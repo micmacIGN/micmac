@@ -11,8 +11,8 @@ mm3d TestLib CASALL  ~/MMM/culture3d/include/XML_MicMac/ParamCasa.xml DirectoryC
                <Symb>  N3=XXXX  </Symb>
                <Symb>  Out=XXXX  </Symb>
                <Symb>  UsePts=false  </Symb>
-               <Symb>  PtsSurf=XXX  </Symb>
-               <Symb>  OriPts=XXX  </Symb>
+               <Symb>  PtsOri=XXX  </Symb>
+               <Symb>  Pts=XXX  </Symb>
 	</DicoLoc>
 
 
@@ -37,8 +37,8 @@ mm3d TestLib CASALL  ~/MMM/culture3d/include/XML_MicMac/ParamCasa.xml DirectoryC
            <SectionEstimSurf>
                 <TypeSurf> eTSA_CylindreRevolution </TypeSurf>
                 <#WHEN VTEST=${UsePts}>
-                     <OriPts>   ${OriPts}  </OriPts>
-                     <PtsSurf>  ${PtsSurf} </PtsSurf>
+                     <OriPts>   ${PtsOri}  </OriPts>
+                     <PtsSurf>  ${Pts} </PtsSurf>
                 </#WHEN>
            </SectionEstimSurf>
         </SectionInitModele>

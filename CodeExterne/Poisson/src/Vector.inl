@@ -29,8 +29,6 @@ DAMAGE.
 #ifndef __VECTORIMPL_HPP
 #define __VECTORIMPL_HPP
 
-#include <string.h>
-
 ////////////
 // Vector //
 ////////////

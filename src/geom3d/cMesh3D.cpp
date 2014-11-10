@@ -38,7 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#include "../../../CodeExterne/Poisson/include/PlyFile.h"
 
 static const REAL Eps = 1e-7;
 
@@ -209,7 +208,7 @@ cEdge cMesh::getEdge(unsigned int idx) const
 
 static PlyProperty face_props[] =
 {
-    { "vertex_indices" , PLY_INT , PLY_INT , offsetof(ElPlyFace,vertices) , 1 , PLY_UCHAR, PLY_UCHAR , offsetof(ElPlyFace,nr_vertices) },
+    { "vertex_indices" , PLY_INT , PLY_INT , offsetof(PlyFace,vertices) , 1 , PLY_UCHAR, PLY_UCHAR , offsetof(PlyFace,nr_vertices) },
 };
 
 PlyProperty props[] =

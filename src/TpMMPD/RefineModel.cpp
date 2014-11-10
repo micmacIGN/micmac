@@ -265,90 +265,99 @@ public:
 
                 // Loading the Tie Points
                 std::string aNameWithoutExt  = aDir + StdPrefixGen(aNameFileGrid1)+ "_" + StdPrefixGen(aNameFileGrid2);
-                std::string aNameFileTiePoints = aNameWithoutExt + ".dat";
+                std::string aNameFileTiePoints = aNameWithoutExt +".dat";
 
-                if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) aNameFileTiePoints = aNameWithoutExt + ".txt";
-
-                if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) std::cout << "file missing: " << aNameWithoutExt << endl;
-                else
+                if ( !ELISE_fp::exist_file(aNameFileTiePoints) )
                 {
-                    cout << "reading: " << aNameFileTiePoints << endl;
+                    aNameFileTiePoints = aNameWithoutExt + ".txt";
 
-                    ElPackHomologue aPackHomol = ElPackHomologue::FromFile(aNameFileTiePoints);
-
-                    if (aPackHomol.size() == 0)
+                    if ( !ELISE_fp::exist_file(aNameFileTiePoints) )
                     {
-                        std::cout << "Error in RefineModelAbs: no tie-points" << std::endl;
-                        return;
+                        std::cout << "file missing: " << aNameWithoutExt << endl;
                     }
-
-                    int rPts_nb = 0; //rejected points number
-                    int mulTP_nb =0; //multiple points number
-
-                    ElPackHomologue::const_iterator iter = aPackHomol.begin();
-                    for (;iter!=aPackHomol.end();++iter )
+                    else
                     {
-                        ElCplePtsHomologues aCple = iter->ToCple();
+                        std::ifstream fic(aNameFileTiePoints.c_str());
 
-                        Pt2dr P1 = aCple.P1();
-                        Pt2dr P2 = aCple.P2();
-
-                        //std::cout << "P1 = "<<P1.x<<" " <<P1.y << std::endl;
-                        //std::cout << "P2 = "<<P2.x<<" " <<P2.y << std::endl;
-
-                        if (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 100.)
+                        if (fic.good())
                         {
-                            rPts_nb++;
-                            //std::cout << "Couple with 2D ground difference > 10 rejected" << std::endl;
-                        }
-                        else
-                        {
-                            ImageMeasure imMes1(P1,Cam1->mIndex);
-                            ImageMeasure imMes2(P2,Cam2->mIndex);
+                            std::cout << "reading: " << aNameFileTiePoints << endl;
 
-                            //algo brute force (à améliorer)
-                            bool found = false;
-                            for (size_t aK=0; aK < nObs(); ++aK)
+                            int rPts_nb = 0; //rejected points number
+                            int TP_nb = 0;   //tie-points number
+
+                            string line;
+
+                            while ( getline (fic,line) )
                             {
-                                TiePoint* TP = vObs[aK];
-                                for (size_t bK=0; bK < TP->vImgMeasure.size(); bK++)
+                                //cout << line << std::endl;
+                                istringstream iss(line);
+
+                                Pt2dr P1,P2;
+                                iss >> P1.x >> P1.y >> P2.x >> P2.y;
+
+                                if ((P1 != Pt2dr(0,0)) && (P2 != Pt2dr(0,0)))
                                 {
-                                    ImageMeasure *imMes3 = &TP->vImgMeasure[bK];
-                                    if ((imMes3->idx != Cam1->mIndex) && (imMes3->ptImg == P1))
+                                    //std::cout << "P1 = "<<P1.x<<" " <<P1.y << std::endl;
+                                    //std::cout << "P2 = "<<P2.x<<" " <<P2.y << std::endl;
+
+                                    if (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 100.)
                                     {
-                                        TP->vImgMeasure.push_back(imMes1);
-                                        mulTP_nb++;
-                                        //  std::cout << "multiple point: " << P1.x << " " << P1.y << " found in " << imMes3->idx << " and " << imMes1.idx << std::endl;
-                                        found = true;
+                                        rPts_nb++;
+                                        //std::cout << "Couple with 2D ground difference > 10 rejected" << std::endl;
                                     }
-                                    else if ((imMes3->idx != Cam2->mIndex) && (imMes3->ptImg == P2))
+                                    else
                                     {
-                                        TP->vImgMeasure.push_back(imMes2);
-                                        // std::cout << "multiple point: " << P2.x << " " << P2.y << " found in " << imMes3->idx << " and " << imMes2.idx << std::endl;
-                                        mulTP_nb++;
-                                        found = true;
+                                        TP_nb++;
+                                        ImageMeasure imMes1(P1,Cam1->mIndex);
+                                        ImageMeasure imMes2(P2,Cam2->mIndex);
+
+                                        //algo brute force (à améliorer)
+                                        bool found = false;
+                                        for (size_t aK=0; aK < nObs(); ++aK)
+                                        {
+                                            TiePoint* TP = vObs[aK];
+                                            for (size_t bK=0; bK < TP->vImgMeasure.size(); bK++)
+                                            {
+                                                ImageMeasure *imMes3 = &TP->vImgMeasure[bK];
+                                                if ((imMes3->idx != Cam1->mIndex) && (imMes3->ptImg == P1))
+                                                {
+                                                    TP->vImgMeasure.push_back(imMes1);
+                                                    std::cout << "multiple point: " << P1.x << " " << P1.y << " found in " << imMes3->idx << " and " << imMes1.idx << std::endl;
+                                                    found = true;
+                                                }
+                                                else if ((imMes3->idx != Cam2->mIndex) && (imMes3->ptImg == P2))
+                                                {
+                                                    TP->vImgMeasure.push_back(imMes2);
+                                                    std::cout << "multiple point: " << P2.x << " " << P2.y << " found in " << imMes3->idx << " and " << imMes2.idx << std::endl;
+                                                    found = true;
+                                                }
+                                            }
+                                        }
+
+                                        if (!found)
+                                        {
+                                            TiePoint *TP = new TiePoint(&mapCameras);
+
+                                            TP->vImgMeasure.push_back(imMes1);
+                                            TP->vImgMeasure.push_back(imMes2);
+
+                                            vObs.push_back(TP);
+
+                                            //std::cout << "vObs size : " << nObs() << std::endl;
+                                        }
                                     }
                                 }
                             }
+                            std::cout << "Number of rejected points: "<< rPts_nb << std::endl;
+                            std::cout << "Number of tie points: "<< TP_nb << std::endl;
 
-                            if (!found)
-                            {
-                                TiePoint *TP = new TiePoint(&mapCameras);
-
-                                TP->vImgMeasure.push_back(imMes1);
-                                TP->vImgMeasure.push_back(imMes2);
-
-                                vObs.push_back(TP);
-
-                                //std::cout << "vObs size : " << nObs() << std::endl;
-                            }
+                            if (TP_nb ==0)
+                                std::cout << "Error in RefineModelAbs: no tie-points" << std::endl;
                         }
+                        else
+                            std::cout << "Error reading file" << aNameFileTiePoints << endl;
                     }
-
-                    std::cout << "Number of tie points: " <<  aPackHomol.size() << std::endl;
-                    std::cout << "Number of rejected tie points: " << rPts_nb << std::endl;
-                    std::cout << "Number of multiple tie points: " << mulTP_nb << std::endl;
-                    std::cout << "Final number of tie points: " <<  aPackHomol.size() - rPts_nb << std::endl;
                 }
             }
         }
@@ -763,10 +772,10 @@ public:
             double iniRMS = std::sqrt(res/numObs);
             //std::cout << "RMS_ini = " << iniRMS << std::endl;
 
-           // double dA0 = 0.5;
+            double dA0 = 0.5;
             double dA1 = 0.01;
             double dA2 = 0.01;
-           // double dB0 = 0.5;
+            double dB0 = 0.5;
             double dB1 = 0.01;
             double dB2 = 0.01;
             double dX = 0.1;
@@ -801,7 +810,7 @@ public:
                 for(size_t bK=0; bK < vMes.size();++bK)
                 {
                     Pt2dr D = aTP->computeImageDifference(bK, pt);
-                   // double ecart2 = square_euclid(D);
+                    double ecart2 = square_euclid(D);
 
                     double pdt = 1.; //1./sqrt(1. + ecart2);
 
@@ -965,7 +974,7 @@ int NewRefineModel_main(int argc, char **argv)
     RefineModelGlobal model(aPat, aNameMNT);
 
     bool ok = (model.nObs() > 3);
-    for(size_t iter = 0; (iter < 100) & ok; iter++)
+    for(size_t iter = 0; (iter < 10) & ok; iter++)
         ok = model.computeObservationMatrix();
 
     if (exportResidus)

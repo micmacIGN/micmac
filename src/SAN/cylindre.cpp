@@ -188,6 +188,9 @@ cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::FromXml
    if (aDA.OrthoCyl().IsInit())
       return new cProjOrthoCylindrique(cProjOrthoCylindrique::FromXml(aDS,aDA.OrthoCyl().Val()));
 
+   if (aDA.Tore().IsInit())
+      return new cProjTore(cProjTore::FromXml(aDS,aDA.Tore().Val()));
+
    ELISE_ASSERT(false,"cInterfSurfaceAnalytique::FromXml");
    return 0;
 }
@@ -210,6 +213,25 @@ Pt3dr cInterfSurfaceAnalytique::FromOrLoc(const Pt3dr & aP) const
     return Pt3dr(0,0,0);
 }
 
+
+cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::ChangeRepDictPts(const std::map<std::string,Pt3dr> &) const
+{
+    ELISE_ASSERT(false,"cInterfSurfaceAnalytique::ChangeRepDictPts");
+    return 0;
+}
+
+
+
+cXmlModeleSurfaceComplexe cInterfSurfaceAnalytique::SimpleXml(const std::string & Id) const
+{
+   cXmlModeleSurfaceComplexe aRes;
+   cXmlOneSurfaceAnalytique aSAN;
+   aSAN.XmlDescriptionAnalytique() = Xml();
+   aSAN.Id() = Id;
+   aSAN.VueDeLExterieur() = mIsVueExt;
+   aRes.XmlOneSurfaceAnalytique().push_back(aSAN);
+   return aRes;
+}
 
 
 
@@ -315,6 +337,9 @@ cTplValGesInit<Pt3dr> cInterfSurfaceAnalytique::PImageToSurf0
 {
     return  InterDemiDroiteVisible(aCap.Capteur2RayTer(aPIm),0);
 }
+
+
+bool cInterfSurfaceAnalytique::IsAnamXCsteOfCart() const { return false; }
      /*****************************************/
      /*                                       */
      /*   cCylindreRevolution                 */
@@ -388,6 +413,70 @@ std::vector<cInterSurfSegDroite>  cCylindreRevolution::InterDroite(const ElSeg3D
 
    return aRes;
 }
+
+cInterfSurfaceAnalytique * cCylindreRevolution::ChangeRepDictPts(const std::map<std::string,Pt3dr> & aDic) const
+{
+    return CR_ChangeRepDictPts(aDic);
+}
+
+
+ElSeg3D  cCylindreRevolution::Axe() const
+{
+   return ElSeg3D(mP0,mP0+mW);
+}
+
+
+cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::map<std::string,Pt3dr> & aDic) const
+{
+    ElSeg3D aSeg = Axe();
+    Pt3dr  aP0OnCyl =  POnCylInit() ;
+
+    std::map<std::string,Pt3dr>::const_iterator itTop =    aDic.find("Top");
+    std::map<std::string,Pt3dr>::const_iterator itBottom = aDic.find("Bottom");
+
+    if ((itTop!=aDic.end()) && (itBottom!=aDic.end()))
+    {
+        Pt3dr aTop  =     itTop->second;
+        Pt3dr aBottom  =  itBottom->second;
+        double aScal = aTop.y - aBottom.y;
+        if (aScal<0)
+        {
+           aSeg  = ElSeg3D(mP0,mP0-mW);
+        }
+    }
+
+    std::map<std::string,Pt3dr>::const_iterator itRight =    aDic.find("Right");
+    std::map<std::string,Pt3dr>::const_iterator itLeft = aDic.find("Left");
+
+    if ((itRight!=aDic.end())|| (itLeft!=aDic.end()))
+    {
+         double aPer = 2*PI*mRay;
+         double aPerInf = aPer * 0.9;
+
+         Pt3dr aPRight =   (itRight!=aDic.end())                            ?
+                           itRight->second                                  :
+                           (itLeft->second  + Pt3dr( aPerInf,0,0))          ;
+               //-------------------------------------------------------------------
+         Pt3dr aPLeft  =   (itLeft!=aDic.end())                             ?
+                           itLeft->second                                   :
+                           (itRight->second + Pt3dr(-aPerInf,0,0))          ;
+
+         cCylindreRevolution aNewCyl(IsVueExt(),aSeg,aP0OnCyl);
+         aPRight = aNewCyl.E2UVL(UVL2E(aPRight));
+         aPLeft  = aNewCyl.E2UVL(UVL2E(aPLeft));
+         while (aPRight.x>(aPLeft.x+aPer))  aPRight.x -= aPer;
+         while (aPRight.x<=aPLeft.x) aPRight.x += aPer;
+
+         // if (aSignInv) aPLeft.x +=aPer;
+
+         aP0OnCyl = aNewCyl.UVL2E((aPRight+aPLeft)/2.0);
+    }
+
+    return new cCylindreRevolution (IsVueExt(),aSeg,aP0OnCyl);
+}
+
+
+
 
 /*
 Pt3dr cCylindreRevolution::SegAndL(const ElSeg3D & aSeg,double aZ0,int & aNbVraiSol) const 

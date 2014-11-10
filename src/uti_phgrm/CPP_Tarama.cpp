@@ -136,7 +136,8 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
         if (Repere!=NOREP)
         {
             bool IsOrthoXCste;
-            if (RepereIsAnam(aDir+Repere,IsOrthoXCste))
+            bool IsAnamXsteOfCart;
+            if (RepereIsAnam(aDir+Repere,IsOrthoXCste,IsAnamXsteOfCart))
             {
                 aCom =    aCom
                         +  std::string(" +DoAnam=true ")

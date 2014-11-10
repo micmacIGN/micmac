@@ -77,7 +77,7 @@ struct HDParamCorrel
 
     HDParamCorrel():
         dimTer(make_uint2(0,0)),
-        dimHaloTer(make_uint2(0,0)),
+        dimDTer(make_uint2(0,0)),
         dimCach(make_uint2(0,0)),
         sizeTer(0),
         sizeCach(0),
@@ -91,7 +91,7 @@ struct HDParamCorrel
     uint2       dimTer;
 
     /// \brief  Dimension du bloque terrain + halo
-    uint2       dimHaloTer;
+    uint2       dimDTer;
 
     /// \brief  Dimension cache des calculs intermédiaires
     uint2       dimCach;
@@ -151,9 +151,9 @@ struct pCorGpu
 
         HdPc.dimTer		= HdPc.rTer.dimension();
 
-        HdPc.dimHaloTer    = rDTer.dimension();
+        HdPc.dimDTer    = rDTer.dimension();
 
-        dimSTer         = iDivUp(HdPc.dimHaloTer,invPC.sampProj)+1;	// Dimension du bloque terrain sous echantilloné
+        dimSTer         = iDivUp(HdPc.dimDTer,invPC.sampProj)+1;	// Dimension du bloque terrain sous echantilloné
 
         HdPc.dimCach    = HdPc.dimTer * make_uint2(invPC.dimVig);
 
@@ -175,7 +175,7 @@ struct pCorGpu
         std::cout << "----------------------------------------------------------\n";
         std::cout << "ZLocInter             : " << ZCInter << "\n";
         std::cout << "Dim Reel Terrain      : " << GpGpuTools::toStr(HdPc.dimTer) << "\n";
-        std::cout << "Dim calcul Terrain    : " << GpGpuTools::toStr(HdPc.dimHaloTer) << "\n";
+        std::cout << "Dim calcul Terrain    : " << GpGpuTools::toStr(HdPc.dimDTer) << "\n";
         std::cout << "Dim calcul Ter Samp   : " << GpGpuTools::toStr(dimSTer) << "\n";
         std::cout << "Dim vignette          : " << GpGpuTools::toStr(make_uint2(invPC.dimVig)) << "\n";
         std::cout << "Rayon vignette        : " << GpGpuTools::toStr(make_uint2(invPC.rayVig)) << "\n";

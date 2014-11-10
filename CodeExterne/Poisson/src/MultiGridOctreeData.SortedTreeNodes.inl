@@ -150,14 +150,13 @@ void SortedTreeNodes::setSliceTableData( SliceTableData& sData , int depth , int
     sData._cMap.clear() , sData._eMap.clear() , sData._fMap.clear();
     sData._cMap.resize( sData.nodeCount * Square::CORNERS , 0 ) , sData._eMap.resize( sData.nodeCount * Square::EDGES , 0 ) , sData._fMap.resize( sData.nodeCount * Square::FACES , 0 );
     sData.cTable.resize( sData.nodeCount ) , sData.eTable.resize( sData.nodeCount ) , sData.fTable.resize( sData.nodeCount );
-    std::vector< TreeOctNode::ConstNeighborKey3 > neighborKeys( std::max< int >( 1 , threads ) );
-    for( unsigned int i=0 ; i<neighborKeys.size() ; i++ ) neighborKeys[i].set( depth );
+    TreeOctNode::ConstNeighborKey3 neighborKey;
+    neighborKey.set( depth );
 #ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads )
+    #pragma omp parallel for num_threads( threads ) firstprivate( neighborKey )
 #endif
     for( int i=span.first ; i<span.second ; i++ )
     {
-        TreeOctNode::ConstNeighborKey3& neighborKey = neighborKeys[ omp_get_thread_num() ];
         TreeOctNode* node = treeNodes[i];
         const TreeOctNode::ConstNeighbors3& neighbors = neighborKey.getNeighbors( node );
         int d , off[3];
@@ -172,8 +171,8 @@ void SortedTreeNodes::setSliceTableData( SliceTableData& sData , int depth , int
             int c = Cube::CornerIndex( x , y , z );
             int fc = Square::CornerIndex( x , y );
             bool cornerOwner = true;
-            unsigned int ac = Cube::AntipodalCornerIndex(c); // The index of the node relative to the corner
-            for( unsigned  int cc=0 ; cc<Cube::CORNERS ; cc++ ) // Iterate over the corner's cells
+            int ac = Cube::AntipodalCornerIndex(c); // The index of the node relative to the corner
+            for( int cc=0 ; cc<Cube::CORNERS ; cc++ ) // Iterate over the corner's cells
             {
                 int xx , yy , zz;
                 Cube::FactorCornerIndex( cc , xx , yy , zz );
@@ -184,7 +183,7 @@ void SortedTreeNodes::setSliceTableData( SliceTableData& sData , int depth , int
             {
                 int myCount = (i - sData.nodeOffset) * Square::CORNERS + fc;
                 sData._cMap[ myCount ] = 1;
-                for( unsigned int cc=0 ; cc<Cube::CORNERS ; cc++ )
+                for( int cc=0 ; cc<Cube::CORNERS ; cc++ )
                 {
                     int xx , yy , zz;
                     Cube::FactorCornerIndex( cc , xx , yy , zz );
@@ -200,8 +199,8 @@ void SortedTreeNodes::setSliceTableData( SliceTableData& sData , int depth , int
             int fe = Square::EdgeIndex( o , y );
             bool edgeOwner = true;
 
-            unsigned int ac = Square::AntipodalCornerIndex( Square::CornerIndex( y , z ) );
-            for( unsigned int cc=0 ; cc<Square::CORNERS ; cc++ )
+            int ac = Square::AntipodalCornerIndex( Square::CornerIndex( y , z ) );
+            for( int cc=0 ; cc<Square::CORNERS ; cc++ )
             {
                 int ii , jj , xx , yy , zz;
                 Square::FactorCornerIndex( cc , ii , jj );
@@ -218,7 +217,7 @@ void SortedTreeNodes::setSliceTableData( SliceTableData& sData , int depth , int
                 int myCount = ( i - sData.nodeOffset ) * Square::EDGES + fe;
                 sData._eMap[ myCount ] = 1;
                 // Set all edge indices
-                for( unsigned int cc=0 ; cc<Square::CORNERS ; cc++ )
+                for( int cc=0 ; cc<Square::CORNERS ; cc++ )
                 {
                     int ii , jj , aii , ajj , xx , yy , zz;
                     Square::FactorCornerIndex( cc , ii , jj );
@@ -248,17 +247,17 @@ void SortedTreeNodes::setSliceTableData( SliceTableData& sData , int depth , int
     }
     int cCount = 0 , eCount = 0 , fCount = 0;
 
-    for( unsigned int i=0 ; i<sData._cMap.size() ; i++ ) if( sData._cMap[i] ) sData._cMap[i] = cCount++;
-    for( unsigned int i=0 ; i<sData._eMap.size() ; i++ ) if( sData._eMap[i] ) sData._eMap[i] = eCount++;
-    for( unsigned int i=0 ; i<sData._fMap.size() ; i++ ) if( sData._fMap[i] ) sData._fMap[i] = fCount++;
+    for( int i=0 ; i<sData._cMap.size() ; i++ ) if( sData._cMap[i] ) sData._cMap[i] = cCount++;
+    for( int i=0 ; i<sData._eMap.size() ; i++ ) if( sData._eMap[i] ) sData._eMap[i] = eCount++;
+    for( int i=0 ; i<sData._fMap.size() ; i++ ) if( sData._fMap[i] ) sData._fMap[i] = fCount++;
 #ifdef USE_OPEN_MP
     #pragma omp parallel for num_threads( threads )
 #endif
     for( int i=0 ; i<sData.nodeCount ; i++ )
     {
-        for( unsigned int j=0 ; j<Square::CORNERS ; j++ ) sData.cTable[i][j] = sData._cMap[ sData.cTable[i][j] ];
-        for( unsigned int j=0 ; j<Square::EDGES   ; j++ ) sData.eTable[i][j] = sData._eMap[ sData.eTable[i][j] ];
-        for( unsigned int j=0 ; j<Square::FACES   ; j++ ) sData.fTable[i][j] = sData._fMap[ sData.fTable[i][j] ];
+        for( int j=0 ; j<Square::CORNERS ; j++ ) sData.cTable[i][j] = sData._cMap[ sData.cTable[i][j] ];
+        for( int j=0 ; j<Square::EDGES   ; j++ ) sData.eTable[i][j] = sData._eMap[ sData.eTable[i][j] ];
+        for( int j=0 ; j<Square::FACES   ; j++ ) sData.fTable[i][j] = sData._fMap[ sData.fTable[i][j] ];
     }
 
     sData.cCount = cCount , sData.eCount = eCount , sData.fCount = fCount;
@@ -275,26 +274,26 @@ void SortedTreeNodes::setXSliceTableData( XSliceTableData& sData , int depth , i
     sData._eMap.clear() , sData._fMap.clear();
     sData._eMap.resize( sData.nodeCount * Square::CORNERS , 0 ) , sData._fMap.resize( sData.nodeCount * Square::EDGES , 0 );
     sData.eTable.resize( sData.nodeCount ) , sData.fTable.resize( sData.nodeCount );
-    std::vector< TreeOctNode::ConstNeighborKey3 > neighborKeys( std::max< int >( 1 , threads ) );
-    for( unsigned int i=0 ; i<neighborKeys.size() ; i++ ) neighborKeys[i].set( depth );
+    TreeOctNode::ConstNeighborKey3 neighborKey;
+    neighborKey.set( depth );
 #ifdef USE_OPEN_MP
-    #pragma omp parallel for num_threads( threads )
+    #pragma omp parallel for num_threads( threads ) firstprivate( neighborKey )
 #endif
     for( int i=span.first ; i<span.second ; i++ )
     {
-        TreeOctNode::ConstNeighborKey3& neighborKey = neighborKeys[ omp_get_thread_num() ];
         TreeOctNode* node = treeNodes[i];
         const TreeOctNode::ConstNeighbors3& neighbors = neighborKey.getNeighbors( node );
         int d , off[3];
         node->depthAndOffset( d , off );
         // Process the edges
+        int o=2;
         for( int x=0 ; x<2 ; x++ ) for( int y=0 ; y<2 ; y++ )
         {
             int fc = Square::CornerIndex( x , y );
             bool edgeOwner = true;
 
-            unsigned int ac = Square::AntipodalCornerIndex( Square::CornerIndex( x , y ) );
-            for( unsigned int cc=0 ; cc<Square::CORNERS ; cc++ )
+            int ac = Square::AntipodalCornerIndex( Square::CornerIndex( x , y ) );
+            for( int cc=0 ; cc<Square::CORNERS ; cc++ )
             {
                 int ii , jj , xx , yy , zz;
                 Square::FactorCornerIndex( cc , ii , jj );
@@ -308,7 +307,7 @@ void SortedTreeNodes::setXSliceTableData( XSliceTableData& sData , int depth , i
                 sData._eMap[ myCount ] = 1;
 
                 // Set all edge indices
-                for( unsigned int cc=0 ; cc<Square::CORNERS ; cc++ )
+                for( int cc=0 ; cc<Square::CORNERS ; cc++ )
                 {
                     int ii , jj , aii , ajj , xx , yy , zz;
                     Square::FactorCornerIndex( cc , ii , jj );
@@ -340,15 +339,15 @@ void SortedTreeNodes::setXSliceTableData( XSliceTableData& sData , int depth , i
     }
     int eCount = 0 , fCount = 0;
 
-    for( unsigned int i=0 ; i<sData._eMap.size() ; i++ ) if( sData._eMap[i] ) sData._eMap[i] = eCount++;
-    for( unsigned int i=0 ; i<sData._fMap.size() ; i++ ) if( sData._fMap[i] ) sData._fMap[i] = fCount++;
+    for( int i=0 ; i<sData._eMap.size() ; i++ ) if( sData._eMap[i] ) sData._eMap[i] = eCount++;
+    for( int i=0 ; i<sData._fMap.size() ; i++ ) if( sData._fMap[i] ) sData._fMap[i] = fCount++;
 #ifdef USE_OPEN_MP
     #pragma omp parallel for num_threads( threads )
 #endif
     for( int i=0 ; i<sData.nodeCount ; i++ )
     {
-        for( unsigned int j=0 ; j<Square::CORNERS ; j++ ) sData.eTable[i][j] = sData._eMap[ sData.eTable[i][j] ];
-        for( unsigned int j=0 ; j<Square::EDGES   ; j++ ) sData.fTable[i][j] = sData._fMap[ sData.fTable[i][j] ];
+        for( int j=0 ; j<Square::CORNERS ; j++ ) sData.eTable[i][j] = sData._eMap[ sData.eTable[i][j] ];
+        for( int j=0 ; j<Square::EDGES   ; j++ ) sData.fTable[i][j] = sData._fMap[ sData.fTable[i][j] ];
     }
 
     sData.eCount = eCount , sData.fCount = fCount;

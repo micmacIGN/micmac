@@ -445,6 +445,13 @@
          <POnCyl  Nb="1" Type="Pt3dr"> </POnCyl>
     </XmlCylindreRevolution>
 
+    <XmlToreRevol   Nb="1"  Class="true" ToReference="true">
+        <!-- P0-P1 , deux points sur la droite -->
+         <Cyl Nb="1" RefType="XmlCylindreRevolution"> </Cyl>
+         <POriTore  Nb="1" Type="Pt3dr"> </POriTore>
+    </XmlToreRevol>
+
+
      <XmlOrthoCyl  Nb="1"  Class="true" ToReference="true">
           <Repere Nb="1" RefType="RepereCartesien"  RefFile="ParamChantierPhotogram.xml"> </Repere>
           <P0 Nb="1" Type="Pt3dr"> </P0>
@@ -454,7 +461,8 @@
 
      <XmlDescriptionAnalytique Nb="1" Class="true" ToReference="true">
                <Cyl Nb="?" RefType="XmlCylindreRevolution"> </Cyl>
-               <OrthoCyl Nb="?" RefType="XmlOrthoCyl"> </OrthoCyl>
+               <OrthoCyl Nb="?" RefType="XmlOrthoCyl">      </OrthoCyl>
+               <Tore Nb="?" RefType="XmlToreRevol">         </Tore>
      </XmlDescriptionAnalytique>
       <XmlOneSurfaceAnalytique Nb="1" Class="true" ToReference="true">
             <XmlDescriptionAnalytique Nb="1" UnionType="true" RefType="XmlDescriptionAnalytique"> </XmlDescriptionAnalytique>

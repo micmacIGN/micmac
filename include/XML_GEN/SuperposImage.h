@@ -1661,6 +1661,34 @@ std::string  Mangling( cXmlCylindreRevolution *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlToreRevol
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlToreRevol & anObj,cElXMLTree * aTree);
+
+
+        cXmlCylindreRevolution & Cyl();
+        const cXmlCylindreRevolution & Cyl()const ;
+
+        Pt3dr & POriTore();
+        const Pt3dr & POriTore()const ;
+    private:
+        cXmlCylindreRevolution mCyl;
+        Pt3dr mPOriTore;
+};
+cElXMLTree * ToXMLTree(const cXmlToreRevol &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlToreRevol &);
+
+void  BinaryUnDumpFromFile(cXmlToreRevol &,ELISE_fp &);
+
+std::string  Mangling( cXmlToreRevol *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlOrthoCyl
 {
     public:
@@ -1710,9 +1738,13 @@ class cXmlDescriptionAnalytique
 
         cTplValGesInit< cXmlOrthoCyl > & OrthoCyl();
         const cTplValGesInit< cXmlOrthoCyl > & OrthoCyl()const ;
+
+        cTplValGesInit< cXmlToreRevol > & Tore();
+        const cTplValGesInit< cXmlToreRevol > & Tore()const ;
     private:
         cTplValGesInit< cXmlCylindreRevolution > mCyl;
         cTplValGesInit< cXmlOrthoCyl > mOrthoCyl;
+        cTplValGesInit< cXmlToreRevol > mTore;
 };
 cElXMLTree * ToXMLTree(const cXmlDescriptionAnalytique &);
 

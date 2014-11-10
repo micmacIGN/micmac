@@ -1467,6 +1467,37 @@ template <class Type,class TyBase>
      memcpy(data_lin(),I2.data_lin(),tx()*ty()*sizeof(Type));
 }
 
+template <class Type,class TyBase> Im2D<Type,TyBase>   Im2D<Type,TyBase>::dup()
+{
+   Im2D<Type,TyBase> aRes(tx(),ty());
+   aRes.dup(*this);
+   return aRes;
+}
+
+template <class Type,class TyBase> double   Im2D<Type,TyBase>::som_rect()
+{
+     double aS;
+     ELISE_COPY(all_pts(),in(),sigma(aS));
+     return aS;
+}
+
+template <class Type,class TyBase> Im2D<Type,TyBase>   Im2D<Type,TyBase>::ToSom1()
+{
+    Im2D<Type,TyBase> aRes = dup();
+    ELISE_COPY(aRes.all_pts(),aRes.in()/som_rect(),aRes.out());
+    return aRes;
+}
+
+/*
+template <class Type,class TyBase>
+Im2D<Type,TyBase>  Im2D<Type,TyBase>::ToSom1()
+{
+     double aSom = som_rect();
+}
+*/
+
+
+
 
 template <class Type,class TyBase>
          REAL   Im2D<Type,TyBase>::som_rect(Pt2dr p0,Pt2dr p1,REAL def)
