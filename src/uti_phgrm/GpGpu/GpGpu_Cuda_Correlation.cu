@@ -170,7 +170,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   const ushort iCla = ClassEqui[idImg].x;
 
-  const ushort pCla = ClassEqui[iCla].y; 
+  const ushort pCla = ClassEqui[iCla].y;
 
   const int  idN    = (pitZ * invPc.nbClass + iCla ) * HdPc.sizeTer + to1D(ptTer,HdPc.dimTer);
 

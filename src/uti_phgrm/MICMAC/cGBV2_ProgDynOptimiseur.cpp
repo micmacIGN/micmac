@@ -112,7 +112,7 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
     mXMin       (aPxMin),
     mXMax       (aPxMax),
     mSz         (mXMin.sz()),
-    mNbPx       (1),    
+    mNbPx       (1),
     mYMin       (mSz.x,mSz.y,0),
     mYMax       (mSz.x,mSz.y,1),
     mMatrCel    (
@@ -348,8 +348,8 @@ void cGBV2_ProgDynOptimiseur::BalayageOneLine(const std::vector<Pt2di> & aVPt)
         tCost aCoutMin = tCost(1e9);
 
         //recherche du cout minimum dans le le rectangle
-        for (aP.y = aBox._p0.y ; aP.y<aBox._p1.y; aP.y++)        
-            for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)          
+        for (aP.y = aBox._p0.y ; aP.y<aBox._p1.y; aP.y++)
+            for (aP.x = aBox._p0.x ; aP.x<aBox._p1.x ; aP.x++)
                 ElSetMin(aCoutMin,aMat[aP].CostPassageForce());
 
 
@@ -449,7 +449,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
         mTabCost[aKP].Reset(0,0);
     }
 
-#if CUDA_ENABLED        
+#if CUDA_ENABLED
         SolveAllDirectionGpu(aNbDir);
 #else
     // Parcours dans toutes les directions
@@ -501,10 +501,10 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
                     aCF = 0;
                 }
 
-                #ifdef CUDA_ENBLED
-						 if(mHasMaskAuto)
-							  IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
-					#endif
+                #ifdef CUDA_ENABLED
+                         if(mHasMaskAuto)
+                              IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
+                #endif
         }
     }
     //nvtxRangePop();
@@ -697,7 +697,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
                 for (uint aK = 0 ; aK < lenghtLine; aK++)
                 {
-                    #ifndef CLAMPDZ                        
+                    #ifndef CLAMPDZ
                         sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
                     #else
 //                        if(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]) > IGpuOpt._poInitCost._maxDz)
@@ -727,7 +727,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
             IGpuOpt.HData2Opt().ReallocInputIf(pitStream + IGpuOpt._poInitCost._maxDz,pitIdStream + WARPSIZE);
 
             copyCells_Mat2Stream(aDirI, IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,idPreCo);
-           
+
             //IGpuOpt.SetCompute(true);
             IGpuOpt.SetPreComp(false);
             IGpuOpt.simpleJob();
@@ -805,7 +805,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
    {
        mCostTransMaskNoMask = 20000;
        mCostDefMasked       = 8000;
-   }    
+   }
 
     //=================
     double aVPentes[theDimPxMax];
@@ -826,8 +826,8 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
     }
 
     int nbDirection = 0;
-     
-    for 
+
+    for
     (
         std::list<cEtapeProgDyn>::const_iterator itE=aModul.EtapeProgDyn().begin();
         itE!=aModul.EtapeProgDyn().end();
@@ -941,7 +941,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                 if(mHasMaskAuto)
                 {
                     /* CUDA_DEFCOR Officiel*/
-                    
+
                     tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
                     bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
                     aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
@@ -971,7 +971,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 /*
         Rect zone(0,0,mSz.x,mSz.y);
         uint2   pTer;
-        uint    maxITSPI = 32;
+        uint    maxITSPI = 64;
 
         for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
         {
@@ -979,11 +979,10 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
             {
 
                 int2 curPT          = make_int2(pTer);
-                uint finalDefCor    = IGpuOpt._FinalDefCor[pTer];
 
                 uint minCOR = 10000;
 
-                if(finalDefCor <= minCOR )
+                if(!aTMask.getOK(Pt2di(pTer.x,pTer.y)))
                 {
                     int zMin    = 1e9;
                     bool findZ  = false;
@@ -1002,7 +1001,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
                         for (int i = 0; i < vec; ++i,curPT += tr)
                         {
-                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] >= ((float)minCOR*3.0f))
+                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] >= ((float)minCOR*2.0f))
                             {
                                 zMin = min(zMin,mDataImRes[0][curPT.y][curPT.x]);
                                 zMax = max(zMax,mDataImRes[0][curPT.y][curPT.x]);
@@ -1016,11 +1015,10 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
                         iteSpi++;
                     }
-
+                    //mDataImRes[0][pTer.y][pTer.x] = zMin;
+                    //IGpuOpt._FinalDefCor[pTer] = 30000;
                     if(findZ) /// TODO!!!! : costinit a defcor si minimum !!!!
-                        mDataImRes[0][pTer.y][pTer.x] = zMin;
-                        //IGpuOpt._FinalDefCor[pTer] = 30000;
-                        // mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
+                        mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
 
                 }
 
@@ -1117,27 +1115,27 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
 de modification et de redistribution accordés par cette licence, il n'est
 offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+seule une responsabilité restreinte p�?se sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs syst�?mes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
