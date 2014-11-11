@@ -120,8 +120,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
     <Symb>  DoAnam=false </Symb>
     <Symb>  ParamAnam=XXXXX </Symb>
-    <Symb>  IncidMax=1.05 </Symb>
+    <Symb>  IncidMax= 1.0 </Symb>
     <Symb>  DoIncid=false </Symb>
+    <Symb>  DoMaskNadir=false </Symb>
 
 
     <eSymb>  NotZoom8="Neq 8 ${ZoomFinal}" </eSymb>
@@ -558,12 +559,22 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <#WHEN VTEST=${DoIncid}>
           <AnamorphoseGeometrieMNT>
                <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+                <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
                 <#WHEN VTEST=${DoAnam}>
-                   <AnamSurfaceAnalytique>
+                     <AnamSurfaceAnalytique>
                             <NameFile> ${ParamAnam}</NameFile>
                             <Id> TheSurf </Id>
                       </AnamSurfaceAnalytique>
-                      <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+                </#WHEN>
+                <#WHEN VTEST=${DoMaskNadir}>
+                      <MakeMaskImNadir>
+                           <DynIncid > 1e4</DynIncid>
+                           <MakeAlsoMaskTerrain> true </MakeAlsoMaskTerrain>
+                           <KBest  >  1  </KBest>
+                           <IncertAngle  > 0.1 </IncertAngle>
+                           <Dilat32 >  6 </Dilat32>
+                           <Erod32>  3</Erod32>
+                      </MakeMaskImNadir>
                 </#WHEN>
           </AnamorphoseGeometrieMNT>
     </#WHEN>

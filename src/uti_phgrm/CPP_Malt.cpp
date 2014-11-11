@@ -261,6 +261,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::string mModeOri;
 
     int aNbProc = NbProcSys();
+    double mPenalSelImBestNadir = -1;
 
 
     ElInitArgMain
@@ -318,10 +319,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                     << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq", eSAM_IsExistFile)
                     << EAM(aNbProc,"NbProc",true,"Nb Proc Used")
+                    << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)")
                 );
 
     if (!MMVisualMode)
     {
+      bool DoIncid = false;
 #if CUDA_ENABLED == 0
       ELISE_ASSERT(!mUseGpu , "NO CUDA VERSION");
 #endif
@@ -680,8 +683,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
              }
              else
              {
+                 DoIncid = true;
                  mCom =    mCom
-                         +  std::string(" +DoAnam=true +DoIncid=true ")
+                         +  std::string(" +DoAnam=true ")
                          +  std::string(" +ParamAnam=") + mRep;
              }
          }
@@ -776,7 +780,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
       if (EAMIsInit(&mIncidMax))
-          mCom   =  mCom + " +DoIncid=true +IncidMax=" + ToString(mIncidMax);
+      {
+          DoIncid = true;
+          mCom   =  mCom + " +IncidMax=" + ToString(mIncidMax);
+      }
 
       if (mEquiv.size() != 0)
       {
@@ -790,6 +797,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
           if (mEquiv.size()>3)
               ELISE_ASSERT(false,"too many equiv class for Malt, use MicMac");
+      }
+      if (mPenalSelImBestNadir)
+      {
+         mCom   =  mCom + " +DoIncid=true +DoMaskNadir=true ";
+      }
+
+      if (DoIncid)  
+      {
+         mCom   =  mCom + " +DoIncid=true ";
       }
 
       std::cout << mCom << "\n";
