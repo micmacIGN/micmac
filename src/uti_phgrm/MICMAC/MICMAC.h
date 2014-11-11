@@ -681,6 +681,7 @@ class cPriseDeVue
 
 			double  DzOverPredic(const Pt3dr &) const;
                         CamStenope *  GetOri() const;
+                        std::string NameMasqOfResol(int aMasq) const;
 
         private :
 
@@ -693,7 +694,6 @@ class cPriseDeVue
            std::string OneNameMasq(const std::list<cOneMasqueImage> & aList) const;
            Fonc_Num    FoncMasq(std::string  & aName) const;
   
-           std::string NameMasqOfResol(int aMasq) const;
 
 
 
