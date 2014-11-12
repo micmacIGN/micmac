@@ -1036,6 +1036,18 @@ Pt2di BoxPClipedIntervC(const Box2di & aB,const Pt2di & aP)
 
 }
 
+ostream & operator << (ostream & ofs,const Box2di  &aBox)
+{
+      ofs << "[" << aBox._p0 << ";" << aBox._p1 <<"]";
+      return ofs;
+}
+ostream & operator << (ostream & ofs,const Box2dr  &aBox)
+{
+      ofs << "[" << aBox._p0 << ";" << aBox._p1 <<"]";
+      return ofs;
+}
+
+
 
 
 

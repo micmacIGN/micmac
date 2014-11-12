@@ -418,6 +418,10 @@ cAppliMICMAC::cAppliMICMAC
    if (aNameExeEnv!=0)
       mNameExe = aNameExeEnv;
 
+   // Parfois besoin de chantier en amont pour Anam ....
+   if (!CalcNomChantier().IsInit() &&  NomChantier().IsInit())
+      mNameChantier = NomChantier().Val();
+
    InitDirectories();
    InitAnamSA();
    InitImages();
@@ -1097,6 +1101,11 @@ void cAppliMICMAC::InitAnamSA()
                      "",
                      mXmlAnamSA
                );
+// std::cout << "AAAAAAAAaa\n";
+       if (mAnaGeomMNT && mAnaGeomMNT->UnUseAnamXCste().Val())
+       {
+              mAnamSA->SetUnusedAnamXCSte();
+       }
        ELISE_ASSERT(!mRepCorrel,"Anam and RepCorrel incompatibles");
     }
     else

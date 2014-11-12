@@ -1825,6 +1825,8 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                peut relacher cette contrainte ?
           -->
          <AnamorphoseGeometrieMNT Nb="?">
+             <!-- Pour gerer le desanamorphose des ortho .... -->
+             <UnUseAnamXCste Nb="?" Def="false" Type="bool"> </UnUseAnamXCste>
              <AnamSurfaceAnalytique Nb="?">
                    <NameFile Nb="1" Type="std::string"> </NameFile>
                    <Id Nb="1" Type="std::string"> </Id>
@@ -1836,8 +1838,11 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                  <DynIncid Nb="?" Type="double" Def="1e4"> </DynIncid>
 <!-- A priori si on fait des masque image, on ne veut pas utiliser cela en geometrie terrain -->
                  <MakeAlsoMaskTerrain Type="bool" Nb="?" Def="false"> </MakeAlsoMaskTerrain>
+                <!-- Selectionne les KBest -->
                  <KBest  Nb="1" Type="int">   </KBest>
-                  <!-- de 0 a 1 , effet de l'inc Z sur les angles -->
+                  <!-- Comme il y a une certaine incert, on selectionne ceux t.q 
+                            Incid<  (1+IncertAngle) KBetsIncid
+                  -->
                  <IncertAngle  Nb="?" Type="double" Def="0.1"> </IncertAngle>
                  <Dilat32 Nb="?" Type="int" Def="6"> </Dilat32>
                  <Erod32 Nb="?" Type="int"  Def="3"> </Erod32>
