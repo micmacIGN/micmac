@@ -64,6 +64,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     int DoPly = 1;
     int DoXYZ = 0;
     int DoNrm = 0;
+    int DoCenter = 0;
 
     double aSc=1.0;
     double aDyn = 1.0;
@@ -93,6 +94,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(DoPly,"DoPly",true,"Do Ply, def = true")
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
                     << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usable for Poisson)")
+                    << EAM(DoCenter,"Center",true,"Add image center (Def=false)",eSAM_InternalUse)
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true, "Do mesh (Def=false)")
@@ -156,7 +158,7 @@ int Nuage2Ply_main(int argc,char ** argv)
        aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
     }
 
-     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
+    cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
      //cElNuage3DMaille * aRes = aNuage;
     std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
 
@@ -168,7 +170,7 @@ int Nuage2Ply_main(int argc,char ** argv)
            aRes->AddExportMesh();
        }
 
-        aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm, DoublePrec, anOffset );
+        aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), DoNrm, DoCenter, DoublePrec, anOffset );
     }
     if (DoXYZ)
     {
