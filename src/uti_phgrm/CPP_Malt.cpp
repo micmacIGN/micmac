@@ -798,7 +798,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           if (mEquiv.size()>3)
               ELISE_ASSERT(false,"too many equiv class for Malt, use MicMac");
       }
-      if (mPenalSelImBestNadir)
+      if (mPenalSelImBestNadir>0)
       {
          mCom   =  mCom + " +DoIncid=true +DoMaskNadir=true ";
       }
