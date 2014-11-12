@@ -131,6 +131,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Sake.cpp
     ${UTI_PHGRM_DIR}/CPP_Liquor.cpp
     ${UTI_PHGRM_DIR}/CPP_Morito.cpp
+    ${UTI_PHGRM_DIR}/CPP_C3DC.cpp
 )
 
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})

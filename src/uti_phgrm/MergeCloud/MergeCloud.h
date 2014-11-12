@@ -285,6 +285,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
 
        bool IsInImageMAP(cASAMG*);
        bool DoPlyCoul() const;
+       int  SzNormale() const;
        
     private :
        tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
@@ -328,6 +329,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        cElRegex *                      mPatMAP;
        bool                            mDoPly;
        bool                            mDoPlyCoul;
+       int                             mSzNormale;
 };
 
    //==============================================================================

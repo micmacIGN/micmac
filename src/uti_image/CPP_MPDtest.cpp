@@ -564,6 +564,23 @@ extern void getKeypointFilename( const string &i_basename, int i_resolution, str
 int MPDtest_main (int argc,char** argv)
 {
 /*
+   cCalibrationInterneRadiale aXmlDr;
+   aXmlDr.CDist() = Pt2dr(3,4);
+*/
+
+    cJPPTest aJPP;
+    aJPP.Name() =  "Jean-Pierre";
+    aJPP.LN().push_back(1);
+    aJPP.LN().push_back(2);
+    MakeFileXML(aJPP,"Test.xml");
+
+    
+    cJPPTest aJP2 = StdGetFromPCP("Test.xml",JPPTest);
+    std::cout << "NAME " << aJP2.Name() << "\n";
+    
+
+
+/*
    for (int aK=0 ; aK<argc ; aK++)
       std::cout << argv[aK] << "\n";
 

@@ -386,6 +386,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Liquor",Liquor_main,"Orientation specialized for linear acquisition"));
        aRes.push_back(cMMCom("Morito",Morito_main,"Mergeset of  Orientaion with common valures"));
        aRes.push_back(cMMCom("Donuts",Donuts_main,"Cyl to Torus (Donuts like)"));
+       aRes.push_back(cMMCom("C3DC",C3DC_main,"Automatic Matching from Cultured 3D Cloud project"));
    }
 
    cCmpMMCom CmpMMCom;

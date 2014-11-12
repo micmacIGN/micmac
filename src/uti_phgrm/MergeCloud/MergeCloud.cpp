@@ -64,7 +64,8 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 */
    mNbImSelected    (0),
    mDoPly           (true),
-   mDoPlyCoul         (false)
+   mDoPlyCoul         (false),
+   mSzNormale         (-1)
 {
    ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
 
@@ -89,6 +90,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
         LArgMain()  << EAM(mFileParam,"XMLParam",true,"File Param, def = XML_MicMac/DefMergeCloud.xml")
                     << EAM(mDoPly,"DoPly",true,"Generate Ply of selected files (Def=true)")
                     << EAM(mDoPlyCoul,"PlyCoul",true,"Generated ply are in coul (Def=false)")
+                    << EAM(mSzNormale,"PlyCoul",true,"Parameters for normals creation")
    );
 
    if (! EAMIsInit(&mFileParam))

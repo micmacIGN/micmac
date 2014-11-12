@@ -345,7 +345,7 @@ const cInterfChantierNameManipulateur::tSet * cElemAppliSetFile::SetIm()
 /*                                                               */
 /*****************************************************************/
 
-static std::string aBlank(" ");
+const  std::string BLANK(" ");
 
 
 void cAppliWithSetImage::Develop(bool EnGray,bool Cons16B)
@@ -649,8 +649,8 @@ void cAppliWithSetImage::AddDelaunayCple()
 void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero)
 {
       std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
-                         + aBlank + QUOTE(mEASF.mFullName)
-                         + aBlank + mOri;
+                         + BLANK + QUOTE(mEASF.mFullName)
+                         + BLANK + mOri;
 
       if (mCalPerIm)
       {
@@ -928,9 +928,9 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
 
                 std::string aCom =      MMBinFile(MM3DStr)
                                      + " ClipIm "
-                                     + mEASF.mDir + anI.mNameIm + aBlank
-                                     + ToString(aDec) + aBlank
-                                     + ToString(aSZ) + aBlank
+                                     + mEASF.mDir + anI.mNameIm + BLANK
+                                     + ToString(aDec) + BLANK
+                                     + ToString(aSZ) + BLANK
                                      + " Out=" + aNewIm;
 
                 std::cout << aCom << "\n";
@@ -1208,10 +1208,10 @@ void cAppliMMByPair::DoReechantEpipInv()
         for (tItAAWSI itA=(*anITS).begin(mSubGrAll) ; itA.go_on() ; itA++)
         {
              std::string aCom =   MMBinFile(MM3DStr) + " TestLib RIE "
-                                + aBlank + (*itA).s1().attr().mIma->mNameIm
-                                + aBlank + (*itA).s2().attr().mIma->mNameIm
-                                + aBlank + mOri
-                                + aBlank + " Dir=" + mEASF.mDir;
+                                + BLANK + (*itA).s1().attr().mIma->mNameIm
+                                + BLANK + (*itA).s2().attr().mIma->mNameIm
+                                + BLANK + mOri
+                                + BLANK + " Dir=" + mEASF.mDir;
               aLCom.push_back(aCom);
 
         }
@@ -1305,9 +1305,9 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
 
      std::string aMatchCom =     MMBinFile(MM3DStr)
                          +  " MM1P"
-                         +  aBlank + anI1.mNameIm
-                         +  aBlank + anI2.mNameIm
-                         +  aBlank + mOri
+                         +  BLANK + anI1.mNameIm
+                         +  BLANK + anI2.mNameIm
+                         +  BLANK + mOri
                          +  " ZoomF=" + ToString(mZoomF)
                          +  " CreateE=" + ToString(mByEpi)
                          +  " InParal=" + ToString(mParalMMIndiv)
@@ -1412,12 +1412,12 @@ void cAppliMMByPair::DoCorrelAndBasculeStd()
              {
                  std::string aComCor =    MMBinFile("MICMAC")
                                  +  XML_MM_File("MM-Param2Im.xml")
-                                 +  std::string(" WorkDir=") + mEASF.mDir          + aBlank
-                                 +  std::string(" +Ori=") + mOri + aBlank
-                                 +  std::string(" +Im1=")    + anI1.mNameIm  + aBlank
-                                 +  std::string(" +Im2=")    + anI2.mNameIm  + aBlank
-                                 +  std::string(" +Zoom0=")  + ToString(mZoom0)  + aBlank
-                                 +  std::string(" +ZoomF=")  + ToString(mZoomF)  + aBlank
+                                 +  std::string(" WorkDir=") + mEASF.mDir          + BLANK
+                                 +  std::string(" +Ori=") + mOri + BLANK
+                                 +  std::string(" +Im1=")    + anI1.mNameIm  + BLANK
+                                 +  std::string(" +Im2=")    + anI2.mNameIm  + BLANK
+                                 +  std::string(" +Zoom0=")  + ToString(mZoom0)  + BLANK
+                                 +  std::string(" +ZoomF=")  + ToString(mZoomF)  + BLANK
                                ;
 
                  if (EAMIsInit(&mIntIncert))
@@ -1484,7 +1484,7 @@ void cAppliMMByPair::DoBascule()
 void cAppliMMByPair::DoFusionGround()
 {
          std::string aCom =    MMBinFile(MM3DStr) + " MergeDepthMap "
-                            +   XML_MM_File("Fusion-MMByP-Ground.xml") + aBlank
+                            +   XML_MM_File("Fusion-MMByP-Ground.xml") + BLANK
                             +   "  WorkDirPFM=" + mEASF.mDir + mDirBasc + "/ ";
          if (mShow)
             std::cout  << aCom << "\n";
@@ -1500,7 +1500,7 @@ void cAppliMMByPair::DoFusionStatue()
        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
        {
             std::string aCom =      MMBinFile(MM3DStr) + " MergeDepthMap "
-                             +   aBlank +  XML_MM_File("Fusion-MMByP-Statute.xml")
+                             +   BLANK +  XML_MM_File("Fusion-MMByP-Statute.xml")
                              + "WorkDirPFM=" + DirMTDImage(*anITS)
                            ;
 
@@ -1595,16 +1595,17 @@ void cAppliMMByPair::DoMDTRIE(bool ForTieP)
 {
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
-            int aZoom = ForTieP ? mZoom0 : mZoomF;
+            // int aZoom = ForTieP ? mZoom0 : mZoomF;
+            int aZoom =  mZoomF;
 
             cImaMM & anIm = *((*anITS).attr().mIma);
             std::string aCom =     MMBinFile("MICMAC")
                                 +  XML_MM_File("MM-GenMTDFusionImage.xml")
-                                +  std::string(" WorkDir=") + mEASF.mDir          + aBlank
-                                +  std::string(" +Ori=") + mOri + aBlank
-                                +  std::string(" +Zoom=")  + ToString(aZoom)  + aBlank
-                                +  " +Im1=" +  anIm.mNameIm + aBlank
-                                +  " +PattVois=" +  PatternOfVois(*anITS,true)  + aBlank
+                                +  std::string(" WorkDir=") + mEASF.mDir          + BLANK
+                                +  std::string(" +Ori=") + mOri + BLANK
+                                +  std::string(" +Zoom=")  + ToString(aZoom)  + BLANK
+                                +  " +Im1=" +  anIm.mNameIm + BLANK
+                                +  " +PattVois=" +  PatternOfVois(*anITS,true)  + BLANK
                            ;
              if (ForTieP) aCom = aCom + " +PrefixDIR=" + TheDIRMergTiepForEPI();
              System(aCom);
@@ -1615,11 +1616,11 @@ void cAppliMMByPair::DoMDTGround()
 {
    std::string aCom =     MMBinFile("MICMAC")
                        +  XML_MM_File("MM-GenMTDNuage.xml")
-                       +  std::string(" WorkDir=") + mEASF.mDir          + aBlank
-                       +  " +PatternAllIm=" +  mEASF.mPat + aBlank
-                       +  std::string(" +Ori=") + mOri + aBlank
-                       +  std::string(" +Zoom=")  + ToString(mZoomF)  + aBlank
-                       +  std::string(" +DirMEC=")  + mDirBasc  + aBlank
+                       +  std::string(" WorkDir=") + mEASF.mDir          + BLANK
+                       +  " +PatternAllIm=" +  mEASF.mPat + BLANK
+                       +  std::string(" +Ori=") + mOri + BLANK
+                       +  std::string(" +Zoom=")  + ToString(mZoomF)  + BLANK
+                       +  std::string(" +DirMEC=")  + mDirBasc  + BLANK
                     ;
 
    if (EAMIsInit(&mImageOfBox))
