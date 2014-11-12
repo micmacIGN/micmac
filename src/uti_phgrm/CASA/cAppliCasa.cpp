@@ -49,6 +49,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // Test push 
 
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic push
+	#endif
+	#pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
+
 cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
      mParam   (*aP2.mObj),
      mICNM    (aP2.mICNM),
@@ -129,7 +137,12 @@ const cInterfSurfaceAnalytique *  cAppli_Casa::UsePts(const cInterfSurfaceAnalyt
    return aSurf->ChangeRepDictPts(aDico);
 }
 
-
+#ifdef WIN32
+#else
+	#ifndef __APPLE__
+		#pragma GCC diagnostic pop
+	#endif
+#endif
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
