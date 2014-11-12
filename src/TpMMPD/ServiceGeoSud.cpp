@@ -5,6 +5,14 @@
 
 #include "Surf.h"
 
+#ifdef WIN32
+#else
+    #ifndef __APPLE__
+        #pragma GCC diagnostic push
+    #endif
+    #pragma GCC diagnostic ignored "-Wunused-result"
+#endif
+
 Pt2di getImageSize(std::string const &aName)
 {
     //on recupere l'extension
@@ -787,12 +795,12 @@ int ServiceGeoSud_Ortho_main(int argc, char **argv) {
 int ServiceGeoSud_Surf_main(int argc, char **argv){
     std::string aFullName;
     std::string aNameOut;
-    
+
     int octaves=5;
     int intervals=4;
     int init_samples=2;
     int nbPoints=100;
-    
+
     ElInitArgMain
     (
      argc, argv,
@@ -800,19 +808,19 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
      << EAMC(aNameOut,"output filename") ,
      LArgMain()
      );
-    
-#if defined (__USE_JP2__) 
+
+#if defined (__USE_JP2__)
     std::auto_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aFullName));
 #else
-	std::auto_ptr<cInterfModuleImageLoader> aRes(NULL);
+    std::auto_ptr<cInterfModuleImageLoader> aRes(NULL);
 #endif
     if (!aRes.get())
     {
         return 1;
     }
-    
+
     Pt2di ImgSz(aRes->Sz(1).real(),aRes->Sz(1).imag());
-    
+
     std::cout << "Taille de l'image  : "<<ImgSz.x<<" x "<<ImgSz.y<<std::endl;
     int tailleDalle = 4000;
     int NbX = ImgSz.x / tailleDalle;
@@ -832,10 +840,10 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
             int cmax = std::min(cmin+tailleDalle,ImgSz.x);
             int lmax = std::min(lmin+tailleDalle,ImgSz.y);
             std::cout << "Crop : "<<cmin<<" "<<lmin<<" "<<cmax<<" "<<lmax<<std::endl;
-            
+
             BufferImage<unsigned short> aBuffer(cmax-cmin,lmax-lmin,1);
             std::cout << "Creation du BufferImage"<<std::endl;
-            
+
             unsigned short ** ptrLine = new unsigned short * [lmax-lmin];
             for(int l=0;l<(lmax-lmin);++l)
             {
@@ -862,11 +870,11 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
                 DigeoPoint pt;
                 pt.x =surfPt.x()+cmin;
                 pt.y =surfPt.y()+lmin;
-                
+
                 REAL8* des = new REAL8[DIGEO_DESCRIPTOR_SIZE];
                 for(int d=0;d<DIGEO_DESCRIPTOR_SIZE;++d)
                 {
-                    if (d<surfPt.descripteur.size())
+                    if (d< (int) surfPt.descripteur.size())
                     {
                         des[d] = surfPt.descripteur[d];
                     }
@@ -881,33 +889,33 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
             }
         }
     }
-    
+
     cout << total_list.size() << " points" << endl;
     DigeoPoint::writeDigeoFile(aNameOut, total_list);
-    
-    
+
+
     // Verification
     {
         // Chargement des points d'interet dans l'ortho
         vector<DigeoPoint> vPts;
-        
+
         DigeoPoint::readDigeoFile( aNameOut, true, vPts );
         std::cout << "Nombre de points lus: "<<vPts.size()<<std::endl;
 
     }
-    
+
     return 0;
 }
 
 int ServiceGeoSud_GeoSud_main(int argc, char **argv){
-    
+
     std::string aFullName;
     std::string aKeyGPP;
     std::string aGRIDExt("GRI");
-    
+
     double ZMoy = 0.;
 
-    
+
     ElInitArgMain
     (
      argc, argv,
@@ -915,7 +923,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
      << EAMC(aKeyGPP,"GPP Key"),
      LArgMain()<< EAM(aGRIDExt,"Grid",true,"GRID ext")
      );
-    
+
     std::string aDir,aPat;
     SplitDirAndFile(aDir,aPat,aFullName);
     std::list<std::string> aLFile;
@@ -924,20 +932,21 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     aLFile = aICNM->StdGetListOfFile(aPat);
 
     std::cout << "Nombre de fichiers a traiter : "<<aLFile.size()<<std::endl;
-    
+
     // On cherche l'emprise du chantier
     double xminChantier,yminChantier,xmaxChantier,ymaxChantier;
+    xminChantier = yminChantier = xmaxChantier = ymaxChantier = 0;
     bool first = true;
-    
+
     std::list<std::string>::const_iterator it,fin=aLFile.end();
     for(it=aLFile.begin();it!=fin;++it)
     {
         std::string aNameFileImage = (*it);
         std::cout << "fichier image : "<<aNameFileImage<<std::endl;
-        
+
         // taille de l'image
         Pt2di ImgSz = getImageSize(aNameFileImage);
-        
+
         // On cherche la grille correspondante
         int placePoint = -1;
         for(int l=aNameFileImage.size()-1;(l>=0)&&(placePoint==-1);--l)
@@ -956,12 +965,12 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             std::string aNameFilePOI = baseName+"dat";
             std::cout << "fichier GRID : "<<aNameFileGrid<<std::endl;
             std::cout << "fichier POI : "<<aNameFilePOI<<std::endl;
-            
+
             // Chargement de la grille et de l'image
             ElAffin2D oriIntImaM2C;
             std::auto_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
-         
-            
+
+
             // On cherche l'emprise de l'image
             double xmin,ymin,xmax,ymax;
             // Projection des coins de l'image pour trouver l'emprise
@@ -1025,7 +1034,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 if (ymax>ymaxChantier)
                     ymaxChantier=ymax;
             }
-            
+
             // Extraction des POI
             {
                 std::string cmdPOI="mm3d Digeo "+aNameFileImage+" -o "+aNameFilePOI;
@@ -1033,19 +1042,19 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             }
         }
     }
-    
+
     // On arrondi
     xminChantier = (int)(xminChantier-1);
     xmaxChantier = (int)(xmaxChantier+1);
     yminChantier = (int)(yminChantier-1);
     ymaxChantier = (int)(ymaxChantier+1);
-    
+
     double resolution = 10.;//10m
     int NC = (xmaxChantier-xminChantier)/resolution;
     int NL = (ymaxChantier-yminChantier)/resolution;
-    
+
     std::cout << std::fixed << "Emprise du chantier : "<<xminChantier<<" "<<yminChantier<<" "<<xmaxChantier<<" "<<ymaxChantier<<std::endl;
-    
+
     // Extraction de l'ortho
     {
         std::ostringstream oss;
@@ -1064,14 +1073,14 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         oss << std::fixed << "curl -o mnt.bil -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/x-bil;bits=32&BBOX="<< xminChantier<<","<<yminChantier<<","<<xmaxChantier<<","<<ymaxChantier<<"&CRS=EPSG:2154&WIDTH="<<NC<<"&HEIGHT="<<NL<<"\"";
         std::cout << "commande : "<<oss.str()<<std::endl;
         system(oss.str().c_str());
-        
-        
+
+
         //echo 'NROWS 675\nNCOLS 1769\nNBANDS 1\nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > mnt.HDR
         std::ostringstream ossHdr;
         ossHdr << "echo 'NROWS "<<NL<<"\nNCOLS "<<NC<<"\nNBANDS 1\"nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > mnt.HDR";
         system(ossHdr.str().c_str());
     }
-    
+
     /*
     // Il faut convertir cette emprise en coordonnees geographique
     //    command = "cs2cs "+targetSyst+" +to +proj=latlon +datum=WGS84 +ellps=WGS84 -f %.12f -s  processing/indirect_ptCarto.txt >  processing/indirect_ptGeo.txt";
@@ -1112,17 +1121,24 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     }
     std::cout << "Emprise Geo : "<<latmax<<" "<<lonmin<<std::endl;
     */
-    
+
     // On extrait les POI de l'ortho
-    
+
     // Export des fichiers
     // PtAppuis.txt (NumPt,lon,lat,alti)
     // Appuis.txt (NumPt,NumImage,ligne,colonne)
     // PtLiaisons.txt (NumPt,alti)
     // Liaisons.txt (NumPt,NumImage,ligne,colonne)
-    
-    
+
+
     return 0;
 }
+
+#ifdef WIN32
+#else
+    #ifndef __APPLE__
+        #pragma GCC diagnostic pop
+    #endif
+#endif
 
 
