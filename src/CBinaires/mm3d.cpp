@@ -464,7 +464,6 @@ int CPP_AppliMergeCloud(int argc,char ** argv);
 int MMEnveloppe_Main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
 int CASALL_main(int argc,char ** argv);
-int CCL_main (int argc,char** argv);
 
 
 

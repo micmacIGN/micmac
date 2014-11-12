@@ -30,8 +30,6 @@ DAMAGE.
 #define __VECTOR_HPP
 
 
-#define Assert assert
-#include <assert.h>
 #include "Array.h"
 
 template< class T >
