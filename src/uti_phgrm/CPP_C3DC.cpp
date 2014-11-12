@@ -81,13 +81,15 @@ class cAppli_C3DC : public cAppliWithSetImage
          bool        mDoPoisson;
          bool        mDoNormale;
          std::string mMasq3D;
+         int         mSzNorm;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
    cAppliWithSetImage  (argc-2,argv+2,TheFlagDev16BGray|TheFlagAcceptProblem),
    mTuning             (true),
    mPlyCoul            (true),
-   mMergeOut           ("C3DC.ply")
+   mMergeOut           ("C3DC.ply"),
+   mSzNorm             (2)
 {
     if (argc<2)
     {
@@ -106,6 +108,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
         LArgMain()  << EAM(mDoNormale,"ExpNormale",true,"Export normals in ply files (def=false)",eSAM_IsBool)
                     << EAM(mMasq3D,"Masq3D",true,"3D masq for point selection")
                     << EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
+                    << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (>=0 if none, Def=2 mean 5x5) ")
                     << EAM(mTuning,"Tuning",true,"Will disappeat soon ...")
    );
 
@@ -137,9 +140,20 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
   //=====================================
    
   mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
-                +  mStrImOri
-                +  " PlyCoul=" + ToString(mPlyCoul);
+                +  mStrImOri;
 
+  if (mSzNorm>=0)
+  {
+     mComMerge = mComMerge + " SzNorm=" + ToString(1+2*mSzNorm);
+     if (mPlyCoul)
+     {
+          std::cout << "Temporarly, incopatibity PlyCou/Normal => don't use coul\n";
+          mPlyCoul = false;
+     }
+  }
+
+
+   mComMerge +=  " PlyCoul=" + ToString(mPlyCoul);
   //=====================================
    mComCatPly =  MM3dBinFile("MergePly ") + QUOTE("Fusion-MMMI/.*Tes.*ply") + " Out="  + mMergeOut;
 
