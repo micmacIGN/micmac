@@ -42,7 +42,7 @@ template< class NodeData > const int OctNode< NodeData >::OffsetShift2=OffsetShi
 template< class NodeData > const int OctNode< NodeData >::OffsetShift3=OffsetShift2+OffsetShift;
 
 template< class NodeData > int OctNode< NodeData >::UseAlloc=0;
-template< class NodeData > Allocator<OctNode< NodeData > > OctNode< NodeData >::mAllocator;
+template< class NodeData > Allocator<OctNode< NodeData > > OctNode< NodeData >::NodeAllocator;
 
 template< class NodeData >
 void OctNode< NodeData >::SetAllocator(int blockSize)
@@ -50,7 +50,7 @@ void OctNode< NodeData >::SetAllocator(int blockSize)
 	if(blockSize>0)
 	{
 		UseAlloc=1;
-		mAllocator.set(blockSize);
+		NodeAllocator.set(blockSize);
 	}
 	else{UseAlloc=0;}
 }
@@ -81,7 +81,7 @@ void OctNode< NodeData >::setFullDepth( int maxDepth )
 template< class NodeData >
 int OctNode< NodeData >::initChildren( void )
 {
-	if( UseAlloc ) children=mAllocator.newElements(8);
+	if( UseAlloc ) children=NodeAllocator.newElements(8);
 	else
 	{
 		if( children ) delete[] children;
@@ -815,7 +815,7 @@ OctNode< NodeData >& OctNode< NodeData >::operator = ( const OctNode< NodeData2 
 	if(children){delete[] children;}
 	children=NULL;
 
-	depth=node.depth;
+	this->depth = node.depth;
 	for(i=0;i<DIMENSION;i++){this->offset[i] = node.offset[i];}
 	if(node.children){
 		initChildren();
