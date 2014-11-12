@@ -383,6 +383,17 @@ std::string  cASAMG::ExportMiseAuPoint()
        aComPly = aComPly + " Attr=" + mIma->mNameIm + " RatioAttrCarte=" + ToString(mStdN->Params().SsResolRef().Val());
     }
 
+    if (mAppli->SzNormale() >0)
+    {
+         aComPly =    aComPly 
+                    + " Normale=" + ToString(mAppli->SzNormale()) 
+                    + " NeighMask=" +  mAppli->NameFileInput(true,mIma->mNameIm,"_Masq.tif","Depth");
+
+    }
+    else if (mAppli->NormaleByCenter())
+    {
+          aComPly = aComPly + " Center=true";
+    }
 
     return aComPly;
 

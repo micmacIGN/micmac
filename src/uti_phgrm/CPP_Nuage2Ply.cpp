@@ -76,6 +76,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     Pt3dr anOffset(0,0,0);
 
     std::string  aNeighMask;
+    bool NormByC = false;
 
 
     ElInitArgMain
@@ -95,6 +96,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(DoPly,"DoPly",true,"Do Ply, def = true")
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
                     << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usable for Poisson)")
+                    << EAM(NormByC,"Center",true,"Add image center (Def=false)",eSAM_InternalUse)
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true, "Do mesh (Def=false)")
@@ -174,6 +176,12 @@ int Nuage2Ply_main(int argc,char ** argv)
        aRes =  aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
      //cElNuage3DMaille * aRes = aNuage;
     std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
+
+    if (NormByC)
+    {
+       if (! EAMIsInit(&DoNrm)) DoNrm = 1;
+       aRes->SetNormByCenter();
+    }
 
     if (DoPly)
     {
