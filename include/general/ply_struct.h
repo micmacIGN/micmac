@@ -37,12 +37,12 @@ typedef struct sFace
     int *verts;              /* vertex index list */
 } sFace;
 
-typedef struct PlyFace
+typedef struct ElPlyFace
 {
     unsigned char nr_vertices;
     int *vertices;
     int segment;
-} PlyFace;
+} ElPlyFace;
 
 typedef struct sPlyColoredVertex
 {
