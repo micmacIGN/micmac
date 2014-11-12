@@ -120,7 +120,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
     <Symb>  DoAnam=false </Symb>
     <Symb>  ParamAnam=XXXXX </Symb>
-    <Symb>  IncidMax= 1.0 </Symb>
+    <Symb>  IncidMax= 0.75 </Symb>
     <Symb>  DoIncid=false </Symb>
     <Symb>  DoMaskNadir=false </Symb>
 
