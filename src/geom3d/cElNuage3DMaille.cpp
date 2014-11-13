@@ -241,6 +241,9 @@ cElNuage3DMaille::cElNuage3DMaille
    mTImDefInterp  (mImDefInterp),
    mCam           (Cam_Gen_From_XML(mParams.Orientation(),mICNM)),
    mImEtire       (1,1),
+   mVoisImDef     (mImDef),
+   mTVoisImDef    (mVoisImDef),
+   mNormByCenter  (false),
    m2RepGlob      (0),
    m2RepLoc       (0),
    mAnam          (0),
@@ -250,6 +253,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mNbTri         (0),
    mResolGlobCalc (false),
    mResolGlob     (0)
+
 {
 //  std::cout   << "WXCRT " << mSz << aParam.Image_Profondeur().Val().Image() << "\n";
 
@@ -300,6 +304,18 @@ cElNuage3DMaille::cElNuage3DMaille
            itA->Scale().Val()
         );
     }
+}
+
+
+void cElNuage3DMaille::SetVoisImDef(Im2D_Bits<1> anIm)
+{
+   mVoisImDef = anIm;
+   mTVoisImDef = TIm2DBits<1> (mVoisImDef);
+}
+
+void cElNuage3DMaille::SetNormByCenter()
+{
+   mNormByCenter = true;
 }
 
 bool cElNuage3DMaille::IsEmpty()
@@ -1086,6 +1102,14 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
 {
 	if (IndexHasContenu(anI1))
 	{
+                double aFact = 0.1;
+		Pt2dr anI1r(anI1.x, anI1.y);
+		ElSeg3D aV = Capteur2RayTer(anI1r);
+		Pt3dr aTgt = aV.TgNormee();
+                if (mNormByCenter)
+                   return aTgt * (-aFact);
+                
+
 		std::vector<Pt3dr> aVP; 
 		std::vector<double> aVPds;
 
@@ -1100,29 +1124,29 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
 			{
 				anI3 = anI2 + Pt2di(aK, bK);
 				
-				if (IndexHasContenu(anI3))
+				if (IndexHasContenuAsNeighboor(anI3))
 				{
 					aVP.push_back(PtOfIndex(anI3));
 					aVPds.push_back(1.f);
 				}
 			}
 		}
+                if (aVP.size() <= 4) return Pt3dr(0,0,0);
 		
 		//estimation du plan aux moindres carrés 	
 		cElPlan3D aPlan(aVP, &aVPds);
 		
 		//retourne la normale en fonction de l'angle avec le segment PdV-Pt
-		Pt3dr aN = aPlan.Norm();
-		Pt2dr anI1r(anI1.x, anI1.y);
-		ElSeg3D aV = Capteur2RayTer(anI1r);
-		Pt3dr aTgt = aV.TgNormee();
-		if (aN.x*aTgt.x + aN.y*aTgt.y + aN.z*aTgt.z < 0.f)	
+		Pt3dr aN = aPlan.Norm()* aFact;
+		// if (aN.x*aTgt.x + aN.y*aTgt.y + aN.z*aTgt.z < 0.f)	
+		if (scal(aN,aTgt) < 0.f)	
 		{
 			return aN;
 		}	
 		else
 		{
-			return Pt3dr(-aN.x,-aN.y,-aN.z);
+			// return Pt3dr(-aN.x,-aN.y,-aN.z);
+			return -aN;
 		}
 	}
 	

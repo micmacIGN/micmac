@@ -64,7 +64,9 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 */
    mNbImSelected    (0),
    mDoPly           (true),
-   mDoPlyCoul         (false)
+   mDoPlyCoul         (false),
+   mSzNormale         (-1),
+   mNormaleByCenter   (false)
 {
    ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
 
@@ -89,6 +91,8 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
         LArgMain()  << EAM(mFileParam,"XMLParam",true,"File Param, def = XML_MicMac/DefMergeCloud.xml")
                     << EAM(mDoPly,"DoPly",true,"Generate Ply of selected files (Def=true)")
                     << EAM(mDoPlyCoul,"PlyCoul",true,"Generated ply are in coul (Def=false)")
+                    << EAM(mSzNormale,"SzNorm",true,"Parameters for normals creation")
+                    << EAM(mNormaleByCenter,"NormByC",true,"Normale by Center")
    );
 
    if (! EAMIsInit(&mFileParam))
@@ -214,6 +218,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    }
    cEl_GPAO::DoComInParal(aLComPly);
 }
+
 
 void cAppliMergeCloud::OneStepSelection()
 {
@@ -363,6 +368,10 @@ bool  cAppliMergeCloud::DoPlyCoul() const
 {
    return mDoPlyCoul;
 }
+
+int  cAppliMergeCloud::SzNormale() const {return mSzNormale;}
+bool cAppliMergeCloud::NormaleByCenter() const {return mNormaleByCenter;}
+
 
 
 //========================================================================================

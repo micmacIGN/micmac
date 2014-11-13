@@ -195,11 +195,19 @@ class cElNuage3DMaille : public cCapture3D
 
    // Acces direct aux index
         Im2D_Bits<1>   ImDef();
+        void SetVoisImDef(Im2D_Bits<1>);
         bool IsEmpty();
         bool  IndexHasContenu(const tIndex2D & anI) const 
         {
              return (mTImDef.get(anI,0) != 0);
         }
+
+        bool  IndexHasContenuAsNeighboor(const tIndex2D & anI) const 
+        {
+             return (mTVoisImDef.get(anI,0) != 0);
+        }
+        void SetNormByCenter();
+
         bool  IndexHasContenuForInterpol(const tIndex2D & aP) const 
         {
              return (mTImDefInterp.get(aP,0) != 0);
@@ -530,6 +538,14 @@ class cElNuage3DMaille : public cCapture3D
         TIm2DBits<1>                 mTImDefInterp;
         ElCamera *                   mCam;
         Im2D_U_INT1                  mImEtire;
+
+  
+       // En general egale a mImDef, peut etre diff pour nuage en "peau de leopard"
+       // Utilise pour les fon de voisinage telle que Normale
+
+        Im2D_Bits<1>                  mVoisImDef;
+        TIm2DBits<1>                  mTVoisImDef;
+        bool                          mNormByCenter;
 
         cChCoCart *                   m2RepGlob;
         cChCoCart *                   m2RepLoc;

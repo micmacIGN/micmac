@@ -18,6 +18,10 @@
 <Verbatim File=".h.cpp">
 // NO MORE
 </Verbatim>
+   <enum Name="eC3DC_Types">
+       <eC3DC_QuickMac>  </eC3DC_QuickMac>
+       <eC3DC_Statute>   </eC3DC_Statute>
+   </enum>
 
    <enum Name="eNewTypeMalt">
        <eTMalt_Ortho>     </eTMalt_Ortho>
@@ -621,6 +625,11 @@
           <eEO_WPK> </eEO_WPK>
           <eEO_NbVals> </eEO_NbVals>
    </enum>
+
+   <JPPTest  Nb="1" Class="true" ToReference="true">
+       <Name Nb="1" Type="std::string"> </Name>
+       <LN Nb="*" Type="int"> </LN>
+   </JPPTest>
 
 
    <CalibrationInterneGridDef Nb="1" Class="true" ToReference="true">

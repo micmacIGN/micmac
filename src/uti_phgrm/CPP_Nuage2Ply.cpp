@@ -75,6 +75,9 @@ int Nuage2Ply_main(int argc,char ** argv)
     bool DoublePrec = false;
     Pt3dr anOffset(0,0,0);
 
+    std::string  aNeighMask;
+    bool NormByC = false;
+
 
     ElInitArgMain
     (
@@ -93,11 +96,13 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(DoPly,"DoPly",true,"Do Ply, def = true")
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
                     << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usable for Poisson)")
+                    << EAM(NormByC,"Center",true,"Add image center (Def=false)",eSAM_InternalUse)
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true, "Do mesh (Def=false)")
                     << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work properly with meshlab or cloud compare")
                     << EAM(anOffset,"Offs", true, "Offset in points to limit 32 Bits accuracy problem")
+                    << EAM(aNeighMask,"NeighMask",true,"Mask for neighboors when larger than point selection (for normals computation)")
     );
 
     if (!MMVisualMode)
@@ -156,9 +161,27 @@ int Nuage2Ply_main(int argc,char ** argv)
        aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
     }
 
-     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
+    cElNuage3DMaille * aRes = aNuage;
+
+    if (EAMIsInit(&aNeighMask))
+    {
+        ELISE_ASSERT(   (aSc==1) && (aP0==Pt2dr(0,0)),"Can change scale && aNeighMask");
+        Tiff_Im aTF(aNeighMask.c_str());
+        Pt2di aSzN = aTF.sz();
+        Im2D_Bits<1> aNM(aSzN.x,aSzN.y);
+        ELISE_COPY(aNM.all_pts(),aTF.in()!=0,aNM.out());
+        aRes->SetVoisImDef(aNM);
+    }
+    else 
+       aRes =  aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
      //cElNuage3DMaille * aRes = aNuage;
     std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
+
+    if (NormByC)
+    {
+       if (! EAMIsInit(&DoNrm)) DoNrm = 1;
+       aRes->SetNormByCenter();
+    }
 
     if (DoPly)
     {

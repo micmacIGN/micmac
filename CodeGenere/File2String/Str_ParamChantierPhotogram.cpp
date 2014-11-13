@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1600]) = {
+const char * (theNameVar_ParamChantierPhotogram[1609]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -20,6 +20,10 @@ const char * (theNameVar_ParamChantierPhotogram[1600]) = {
 "<Verbatim File=\".h.cpp\">\n",
 "// NO MORE\n",
 "</Verbatim>\n",
+"   <enum Name=\"eC3DC_Types\">\n",
+"       <eC3DC_QuickMac>  </eC3DC_QuickMac>\n",
+"       <eC3DC_Statute>   </eC3DC_Statute>\n",
+"   </enum>\n",
 "\n",
 "   <enum Name=\"eNewTypeMalt\">\n",
 "       <eTMalt_Ortho>     </eTMalt_Ortho>\n",
@@ -623,6 +627,11 @@ const char * (theNameVar_ParamChantierPhotogram[1600]) = {
 "          <eEO_WPK> </eEO_WPK>\n",
 "          <eEO_NbVals> </eEO_NbVals>\n",
 "   </enum>\n",
+"\n",
+"   <JPPTest  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"       <Name Nb=\"1\" Type=\"std::string\"> </Name>\n",
+"       <LN Nb=\"*\" Type=\"int\"> </LN>\n",
+"   </JPPTest>\n",
 "\n",
 "\n",
 "   <CalibrationInterneGridDef Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

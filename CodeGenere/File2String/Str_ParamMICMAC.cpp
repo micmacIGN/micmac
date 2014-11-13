@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2126]) = {
+const char * (theNameVar_ParamMICMAC[2129]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1840,8 +1840,11 @@ const char * (theNameVar_ParamMICMAC[2126]) = {
 "                 <DynIncid Nb=\"?\" Type=\"double\" Def=\"1e4\"> </DynIncid>\n",
 "<!-- A priori si on fait des masque image, on ne veut pas utiliser cela en geometrie terrain -->\n",
 "                 <MakeAlsoMaskTerrain Type=\"bool\" Nb=\"?\" Def=\"false\"> </MakeAlsoMaskTerrain>\n",
+"                <!-- Selectionne les KBest -->\n",
 "                 <KBest  Nb=\"1\" Type=\"int\">   </KBest>\n",
-"                  <!-- de 0 a 1 , effet de l'inc Z sur les angles -->\n",
+"                  <!-- Comme il y a une certaine incert, on selectionne ceux t.q \n",
+"                            Incid<  (1+IncertAngle) KBetsIncid\n",
+"                  -->\n",
 "                 <IncertAngle  Nb=\"?\" Type=\"double\" Def=\"0.1\"> </IncertAngle>\n",
 "                 <Dilat32 Nb=\"?\" Type=\"int\" Def=\"6\"> </Dilat32>\n",
 "                 <Erod32 Nb=\"?\" Type=\"int\"  Def=\"3\"> </Erod32>\n",

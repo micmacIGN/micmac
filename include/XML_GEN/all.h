@@ -129,6 +129,7 @@ std::string XML_User_Or_MicMac(const std::string & aName);
 
 const cMMUserEnvironment & MMUserEnv();
 
+extern const  std::string BLANK;
 
 
 
