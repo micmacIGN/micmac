@@ -35,6 +35,18 @@ static PlyProperty oriented_vert_props[] = {
     {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
 };
 
+static PlyProperty oriented_colored_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,x ), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,y ), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,z ), 0, 0, 0, 0},
+    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,nx), 0, 0, 0, 0},
+    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,ny), 0, 0, 0, 0},
+    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,nz), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,blue), 0, 0, 0, 0}
+};
+
 /*!
     Read a ply file, store the point cloud
 */
@@ -84,6 +96,29 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
         {
             switch(nprops)
             {
+            case 9: // x y z nx ny nz r g b
+                {
+                    type = 4;
+                    for (int j = 0; j < nprops ;++j)
+                        ply_get_property (thePlyFile, elem_name, &oriented_colored_vert_props[j]);
+
+                    sPlyOrientedColoredVertex *vertex = (sPlyOrientedColoredVertex *) malloc (sizeof (sPlyOrientedColoredVertex));
+
+                    // grab all the vertex elements
+                    for (int j = 0; j < num_elems; j++)
+                    {
+                        if (incre) *incre = 100.0f*(float)j/num_elems;
+
+                        ply_get_element (thePlyFile, (void *) vertex);
+
+#ifdef _DEBUG
+    printf ("vertex--: %g %g %g %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue);
+#endif
+
+                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue ), Pt3dr(vertex->nx, vertex->ny, vertex->nz)));
+                    }
+                    break;
+                }
             case 7:
                 {
                     type = 2;
@@ -162,15 +197,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                                 printf ("vertex: %g %g %g %g %g %g\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz);
                             #endif
 
-                            int Red   = (int) ((vertex->nx + 1.f)*122.5);
-                            int Green = (int) ((vertex->ny + 1.f)*122.5);
-                            int Blue  = (int) ((vertex->nz + 1.f)*122.5);
-
-                            /*if (Red > 255)   cout << "Red= " << Red << endl;
-                            if (Green > 255) cout << "Green= " << Green << endl;
-                            if (Blue >255)   cout << "Blue= " << Blue << endl;*/
-
-                            ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor(Red, Green, Blue )));
+                            ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), Qt::white, Pt3dr(vertex->nx, vertex->ny, vertex->nz)));
                         }
                     }
                     break;
@@ -188,13 +215,13 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 
                         ply_get_element (thePlyFile, (void *) vertex);
 
-                        #ifdef _DEBUG
-                            printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
-                        #endif
+    #ifdef _DEBUG
+                        printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
+    #endif
 
-                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( 255, 255, 255 )));
-                }
-                break;
+                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z )));
+                    }
+                    break;
                 }
              default:
                 {
