@@ -206,7 +206,7 @@ class cElNuage3DMaille : public cCapture3D
         {
              return (mTVoisImDef.get(anI,0) != 0);
         }
-        void SetNormByCenter();
+        void SetNormByCenter(int val);
 
         bool  IndexHasContenuForInterpol(const tIndex2D & aP) const
         {
@@ -545,14 +545,14 @@ class cElNuage3DMaille : public cCapture3D
 
         Im2D_Bits<1>                  mVoisImDef;
         TIm2DBits<1>                  mTVoisImDef;
-        bool                          mNormByCenter;
+        int                           mNormByCenter;
 
         cChCoCart *                   m2RepGlob;
         cChCoCart *                   m2RepLoc;
         cInterfSurfaceAnalytique *    mAnam;
 
 
-        std::vector<cLayerNuage3DM*>  mAttrs;
+        std::vector<cLayerNuage3DM*>     mAttrs;
         std::vector<cGrpeLayerN3D>       mGrpAttr;
 
 
