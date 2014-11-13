@@ -48,6 +48,7 @@ typedef unsigned char pixel;
 #define DUMP_FLOAT(varname) printf("%s = %f\n", #varname, varname);
 #define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
 #define DUMP_LINE printf("-----------------------------------\n");
+#define DUMP_END printf("\n");
 
 
 #if OPM_ENABLED
