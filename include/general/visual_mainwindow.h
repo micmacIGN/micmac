@@ -8,7 +8,6 @@
 #include "StdAfx.h"
 
 
-#include "Elise_QT.h"
 #include "saisieQT_window.h"
 #include "general/visual_buttons.h"
 

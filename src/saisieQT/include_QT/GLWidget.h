@@ -1,11 +1,6 @@
 #ifndef _GLWIDGET_H
 #define _GLWIDGET_H
 
-#include <cmath>
-#include <limits>
-#include <iostream>
-#include <algorithm>
-
 #include "Engine.h"
 #include "ContextMenu.h"
 

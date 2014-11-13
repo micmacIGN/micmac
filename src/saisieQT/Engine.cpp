@@ -391,7 +391,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
-        float scaleFactor =  _vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
+        float scaleFactor = _vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
 
         if (scaleFactor != 1.f)
         {
@@ -401,7 +401,15 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
             Mask = Mask.scaled(width, height,Qt::KeepAspectRatio);
         }
 
-        Mask.save(aOut);
+#ifdef _DEBUG
+        cout << "Saving mask to: " << aOut.toStdString().c_str() << endl;
+#endif
+
+        if (!Mask.save(aOut))
+        {
+            QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Error saving mask"));
+            return;
+        }
 
         cFileOriMnt anOri;
 
@@ -420,7 +428,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     }
     else
     {
-        QMessageBox::critical(NULL, "cEngine::doMaskImage","Mask is Null");
+        QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Mask is Null"));
     }
 }
 

@@ -1,7 +1,6 @@
 #ifndef SAISIEMASQQT_MAIN_H
 #define SAISIEMASQQT_MAIN_H
 
-#include <memory>
 #include "StdAfx.h"
 
 #include "QT_interface_Elise.h"
