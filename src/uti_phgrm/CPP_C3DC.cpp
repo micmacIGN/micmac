@@ -183,7 +183,7 @@ void cAppli_C3DC::DoAll()
          break;
          default :
               std::cout <<  mStrType  << " : not supported for now\n";
-              ELISE_ASSERT(false,"Unsuppoted value in C3DC");
+              ELISE_ASSERT(false,"Unsupported value in C3DC");
          break;
     }
 
