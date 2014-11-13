@@ -79,7 +79,6 @@ class cAppli_C3DC : public cAppliWithSetImage
          bool        mPlyCoul;
          std::string mMergeOut;
          bool        mDoPoisson;
-         bool        mDoNormale;
          std::string mMasq3D;
          int         mSzNorm;
 };
@@ -105,10 +104,10 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
         LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
                     << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOriFull,"Orientation", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(mDoNormale,"ExpNormale",true,"Export normals in ply files (def=false)",eSAM_IsBool)
+        LArgMain()  
                     << EAM(mMasq3D,"Masq3D",true,"3D masq for point selection")
                     << EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
-                    << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (>=0 if none, Def=2 mean 5x5) ")
+                    << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 mean 5x5) ")
                     << EAM(mTuning,"Tuning",true,"Will disappeat soon ...")
    );
 
