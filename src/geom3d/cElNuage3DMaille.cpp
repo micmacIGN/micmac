@@ -243,6 +243,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mImEtire       (1,1),
    mVoisImDef     (mImDef),
    mTVoisImDef    (mVoisImDef),
+   mNormByCenter  (false),
    m2RepGlob      (0),
    m2RepLoc       (0),
    mAnam          (0),
@@ -312,6 +313,10 @@ void cElNuage3DMaille::SetVoisImDef(Im2D_Bits<1> anIm)
    mTVoisImDef = TIm2DBits<1> (mVoisImDef);
 }
 
+void cElNuage3DMaille::SetNormByCenter()
+{
+   mNormByCenter = true;
+}
 
 bool cElNuage3DMaille::IsEmpty()
 {
@@ -1097,6 +1102,14 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
 {
 	if (IndexHasContenu(anI1))
 	{
+                double aFact = 0.1;
+		Pt2dr anI1r(anI1.x, anI1.y);
+		ElSeg3D aV = Capteur2RayTer(anI1r);
+		Pt3dr aTgt = aV.TgNormee();
+                if (mNormByCenter)
+                   return aTgt * (-aFact);
+                
+
 		std::vector<Pt3dr> aVP; 
 		std::vector<double> aVPds;
 
@@ -1124,17 +1137,16 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
 		cElPlan3D aPlan(aVP, &aVPds);
 		
 		//retourne la normale en fonction de l'angle avec le segment PdV-Pt
-		Pt3dr aN = aPlan.Norm()*0.1;
-		Pt2dr anI1r(anI1.x, anI1.y);
-		ElSeg3D aV = Capteur2RayTer(anI1r);
-		Pt3dr aTgt = aV.TgNormee();
-		if (aN.x*aTgt.x + aN.y*aTgt.y + aN.z*aTgt.z < 0.f)	
+		Pt3dr aN = aPlan.Norm()* aFact;
+		// if (aN.x*aTgt.x + aN.y*aTgt.y + aN.z*aTgt.z < 0.f)	
+		if (scal(aN,aTgt) < 0.f)	
 		{
 			return aN;
 		}	
 		else
 		{
-			return Pt3dr(-aN.x,-aN.y,-aN.z);
+			// return Pt3dr(-aN.x,-aN.y,-aN.z);
+			return -aN;
 		}
 	}
 	
