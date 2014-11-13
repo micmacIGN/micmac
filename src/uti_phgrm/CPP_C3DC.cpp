@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 
-// Im*_Ok => OK 
+// Im*_Ok => OK
 // Im*_Nl => Image Nulle (eliminee)
 
 
@@ -110,16 +110,16 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
         LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
                     << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOriFull,"Orientation", eSAM_IsExistDirOri),
-        LArgMain()  
+        LArgMain()
                     << EAM(mMasq3D,"Masq3D",true,"3D masq for point selection")
                     << EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
                     << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 mean 5x5) ")
-                    << EAM(mTuning,"Tuning",true,"Will disappeat soon ...")
+                    << EAM(mTuning,"Tuning",true,"Will disappear soon ...")
    );
 
    mStrImOri =  BLANK + QUOTE(mEASF.mFullName) +  BLANK + Ori() + BLANK;
    mArgMasq3D = "";
-   if (EAMIsInit(&mMasq3D)) 
+   if (EAMIsInit(&mMasq3D))
       mArgMasq3D = std::string(" Masq3D=" + mMasq3D + BLANK) ;
 
 
@@ -130,33 +130,27 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
                    +  mStrImOri
                    +  mArgMasq3D;
 
-   
+
   //=====================================
-   mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ") 
+   mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ")
                    +  mStrImOri
                    +  std::string(" 16 4 DownScale=2 ")
                    +  mArgMasq3D;
 
-   if (mTuning) 
+   if (mTuning)
    {
       mBaseComEnv = mBaseComEnv + " DoPlyDS=true";
    }
 
   //=====================================
-   
+
   mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
                 +  mStrImOri;
 
   if (mSzNorm>=0)
   {
      mComMerge = mComMerge + " SzNorm=" + ToString(1+2*mSzNorm);
-     if (mPlyCoul)
-     {
-          std::cout << "Temporarly, incopatibity PlyCou/Normal => don't use coul\n";
-          mPlyCoul = false;
-     }
   }
-
 
    mComMerge +=  " PlyCoul=" + ToString(mPlyCoul);
   //=====================================
@@ -167,7 +161,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
 
 void cAppli_C3DC::ExeCom(const std::string & aCom)
 {
-   
+
    std::cout << aCom << "\n\n";
    if (!mTuning) System(aCom);
 }
@@ -192,7 +186,7 @@ void cAppli_C3DC::DoAll()
               ELISE_ASSERT(false,"Unsuppoted value in C3DC");
          break;
     }
-     
+
 }
 
 
