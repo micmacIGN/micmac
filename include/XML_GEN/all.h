@@ -105,6 +105,12 @@ std::string current_program_subcommand(); // mm3d's subcommand (Tapioca, Apero, 
 int MMNbProc();
 bool MPD_MM(); // Est ce que c'est ma machine, afin de ne pas polluer les autres en phase de test !!!!
 
+#if(ELISE_QT_VERSION >= 4)
+	string MMQtLibraryPath();
+	void setQtLibraryPath( const string &i_path );
+	void initQtLibraryPath();
+#endif
+
 inline bool isUsingSeparateDirectories();
 extern const string temporarySubdirectory; // = "Tmp-MM-Dir/" (see src/photogram/ChantierNameAssoc.cpp)
 void setInputDirectory( const std::string &i_directory );
