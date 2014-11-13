@@ -194,6 +194,7 @@ public :
 };
 
 
+extern int CCL_main(int , char **);
 
 
 const std::vector<cMMCom> & getAvailableCommands()

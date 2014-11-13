@@ -159,6 +159,7 @@ int Nuage2Ply_main(int argc,char ** argv)
        aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
     }
 
+    // ATENTION , SI &aNeighMask => IL FAUT QUE aRes soit egal a aNuage SANS passer par ReScaleAndClip
     cElNuage3DMaille * aRes = aNuage;
 
     if (EAMIsInit(&aNeighMask))
