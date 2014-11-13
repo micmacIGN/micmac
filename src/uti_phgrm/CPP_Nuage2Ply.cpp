@@ -76,8 +76,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     Pt3dr anOffset(0,0,0);
 
     std::string  aNeighMask;
-    bool NormByC = false;
-
+    int NormByC = 0;
 
     ElInitArgMain
     (
@@ -96,7 +95,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(DoPly,"DoPly",true,"Do Ply, def = true")
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
                     << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usable for Poisson)")
-                    << EAM(NormByC,"Center",true,"Add image center (Def=false)",eSAM_InternalUse)
+                    << EAM(NormByC,"NormByC",true,"Replace normal (Def=0, 2=optical center 1=point to center vector)",eSAM_InternalUse)
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true, "Do mesh (Def=false)")
@@ -161,7 +160,7 @@ int Nuage2Ply_main(int argc,char ** argv)
        aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
     }
 
-    // ATENTION , SI &aNeighMask => IL FAUT QUE aRes soit egal a aNuage SANS passer par ReScaleAndClip
+    // ATTENTION , SI &aNeighMask => IL FAUT QUE aRes soit egal a aNuage SANS passer par ReScaleAndClip
     cElNuage3DMaille * aRes = aNuage;
 
     if (EAMIsInit(&aNeighMask))
@@ -173,15 +172,15 @@ int Nuage2Ply_main(int argc,char ** argv)
         ELISE_COPY(aNM.all_pts(),aTF.in()!=0,aNM.out());
         aRes->SetVoisImDef(aNM);
     }
-    else 
+    else
        aRes =  aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
      //cElNuage3DMaille * aRes = aNuage;
     std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
 
     if (NormByC)
     {
-       if (! EAMIsInit(&DoNrm)) DoNrm = 1;
-       aRes->SetNormByCenter();
+        if (! EAMIsInit(&DoNrm)) DoNrm = 5;
+        aRes->SetNormByCenter(NormByC);
     }
 
     if (DoPly)
