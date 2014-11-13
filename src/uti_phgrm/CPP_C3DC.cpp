@@ -49,6 +49,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 // =============  ::  ===================================
 
 
+//  Masq-TieP-IMG_8326.JPG  => Tmp pour MMInitial Model (peut etre purge apres Chaque MMEnvlop)
+//  Merge-TieP-ForEpi-IMG_8322.JPG  => Tmp pour MMEnvlop (peut etre purge apres Chaque MMEnvlop ?)
+//  Match-QMIMGP7051.JPG =>  ??
+//  MTD-Image-IMG_8322.JPG => ?? Tmp pour Epi Merge ??
+
+
 
 class cAppli_C3DC : public cAppliWithSetImage
 {

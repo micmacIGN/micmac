@@ -73,6 +73,9 @@ class cCEM_OneIm
 {
      public :
 
+          // Initialisation faisant appel a du virtuel
+          void PostInit();
+
           bool Empty() const;
           cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
           Box2dr BoxIm2(const Pt2di & aSzIm2);
@@ -131,7 +134,10 @@ class cCEM_OneIm
 
      protected :
           virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) = 0;
-          virtual  bool  IsOK(const Pt2di & aP) = 0;
+          bool  IsOK(const Pt2di & aP)
+          {
+              return mTMasq.get(aP,0);
+          }
 
           Output VGray() {return mWin ?  mWin->ogray() : Output::onul(1) ;}
           Output VDisc() {return mWin ?  mWin->odisc() : Output::onul(1) ;}
@@ -139,12 +145,14 @@ class cCEM_OneIm
 
           cCoherEpi_main * mCoher;
           cCpleEpip *      mCple;
+          CamStenope *     mCam;
           std::string      mDir;
           std::string      mDirM;
           std::string      mNameNuage;
           cXML_ParamNuage3DMaille mParNuage;
           double                  mResolAlti;
           std::string      mNameInit;
+          std::string      mNameImMatched;
           std::string      mNameFinal;
           Tiff_Im          mTifIm;
           Box2di           mBox;
@@ -160,6 +168,8 @@ class cCEM_OneIm
           Video_Win *      mWin;
           Video_Win *      mWin2;
           cCEM_OneIm *     mConj;
+          Im2D_Bits<1>     mImMasq;
+          TIm2DBits<1>     mTMasq;
 };
 
 class cCEM_OneIm_Epip  : public cCEM_OneIm
@@ -175,10 +185,6 @@ class cCEM_OneIm_Epip  : public cCEM_OneIm
              Ok = true;
              return Pt2dr(aP.x+mTPx.getprojR(aP),aP.y) + mRP0;
           }
-          virtual  bool  IsOK(const Pt2di & aP)
-          {
-              return mTMasq.get(aP,0);
-          }
           void UsePack(const ElPackHomologue &) ;
 
           std::string      mNamePx;
@@ -189,8 +195,6 @@ class cCEM_OneIm_Epip  : public cCEM_OneIm
 
           std::string      mNameMasq;
           Tiff_Im          mTifMasq;
-          Im2D_Bits<1>     mImMasq;
-          TIm2DBits<1>     mTMasq;
 
 };
 
@@ -212,7 +216,6 @@ class cCEM_OneIm_Nuage  : public cCEM_OneIm
                  Ok = true;
                  return aRes;
           }
-          bool  IsOK(const Pt2di & aP) {return mNuage1->IndexHasContenu(aP);}
 
           std::string              mDirLoc1;
           std::string              mDirLoc2;
@@ -255,6 +258,9 @@ class cCoherEpi_main : public Cont_Vect_Action
         cCoherEpi_main (int argc,char ** argv);
 
         std::string NameIm(bool First);
+        cInterfChantierNameManipulateur * ICNM();
+        cMasqBin3D * Masq3d();
+        
 
 
 
@@ -268,6 +274,7 @@ class cCoherEpi_main : public Cont_Vect_Action
         std::string  mOri;
         std::string  mDir;
         cInterfChantierNameManipulateur * mICNM;
+        cMasqBin3D   * mMasq3d;
         cCpleEpip *  mCple;
         bool          mWithEpi;
         bool          mNoOri;

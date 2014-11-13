@@ -1023,7 +1023,7 @@ int ClipIm_main(int argc,char ** argv)
 
 
 cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
-    cAppliWithSetImage (argc-2,argv+2,TheFlagDev16BGray),
+    cAppliWithSetImage (argc-2,argv+2,TheFlagDev16BGray|TheFlagAcceptProblem),
     mDo           ("APMCRF"),
     mZoom0        (64),
     mZoomF        (1),
@@ -1743,10 +1743,9 @@ int ChantierClip_main(int argc,char ** argv)
    MMD_InitArgcArgv(argc,argv);
    cAppliClipChantier anAppli(argc,argv);
 
-
    BanniereMM3D();
 
-    return 1;
+   return 1;
 }
 #if (0)
 #endif
