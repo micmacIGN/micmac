@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -66,7 +66,7 @@ cXML_ParamNuage3DMaille CropAndSousEch
 
 
 class  cBasculeNuage;
- 
+
 class cLayerNuage3DM
 {
     public :
@@ -78,7 +78,7 @@ class cLayerNuage3DM
        const std::string & Name() const;
        bool  Compatible(const cLayerNuage3DM &) const;
        ~cLayerNuage3DM();
-       
+
 
     private :
        cLayerNuage3DM(const cLayerNuage3DM &);
@@ -115,7 +115,7 @@ class cArgAuxBasc_Sec : public cArgAuxBasc
 };
 
 
-class cRawNuage 
+class cRawNuage
 {
     public :
         cRawNuage(Pt2di aSz);
@@ -141,7 +141,7 @@ class cRawNuage
 // Ces parametres permettent de creer des meta donnees pour manipuler le
 // nuage a une resol differente de celle a laquelle il a ete cree sans
 // modifier les donnees maillees
-class cParamModifGeomMTDNuage 
+class cParamModifGeomMTDNuage
 {
      public :
         cParamModifGeomMTDNuage
@@ -197,22 +197,22 @@ class cElNuage3DMaille : public cCapture3D
         Im2D_Bits<1>   ImDef();
         void SetVoisImDef(Im2D_Bits<1>);
         bool IsEmpty();
-        bool  IndexHasContenu(const tIndex2D & anI) const 
+        bool  IndexHasContenu(const tIndex2D & anI) const
         {
              return (mTImDef.get(anI,0) != 0);
         }
 
-        bool  IndexHasContenuAsNeighboor(const tIndex2D & anI) const 
+        bool  IndexHasContenuAsNeighboor(const tIndex2D & anI) const
         {
              return (mTVoisImDef.get(anI,0) != 0);
         }
         void SetNormByCenter();
 
-        bool  IndexHasContenuForInterpol(const tIndex2D & aP) const 
+        bool  IndexHasContenuForInterpol(const tIndex2D & aP) const
         {
              return (mTImDefInterp.get(aP,0) != 0);
         }
-        bool  IndexHasContenuForInterpol(const Pt2dr & aP) const 
+        bool  IndexHasContenuForInterpol(const Pt2dr & aP) const
         {
              return IndexHasContenuForInterpol(round_down(aP));
         }
@@ -220,11 +220,11 @@ class cElNuage3DMaille : public cCapture3D
         const Pt2di & SzData() const {return mSzData;}
 
         const Pt2di & SzUnique() const;//  const {return mSzGeom;}
-   //  Acces aux donnees 
+   //  Acces aux donnees
 
                  // NUAGE  =>  TERRAIN
 
-        // Si le nuage vient d'un appariement, a combien de pixel de 
+        // Si le nuage vient d'un appariement, a combien de pixel de
         // decalage est equivalent 1 offset de profondeur
         double DynProfInPixel() const;
 
@@ -240,7 +240,7 @@ class cElNuage3DMaille : public cCapture3D
                  //  TERRAIN  => NUAGE
          Pt2dr   Terrain2Index(const Pt3dr &) const;
 
-                 // VIA LES PROFONDEUR 
+                 // VIA LES PROFONDEUR
          virtual bool HasProfondeur() const = 0;
          virtual void    SetProfOfIndex(const tIndex2D & aP,double ) ;
          virtual bool    SetProfOfIndexIfSup(const tIndex2D & aP,double ) ;
@@ -255,7 +255,7 @@ class cElNuage3DMaille : public cCapture3D
 
 
          // Renvoie en Z avec une dynamique telle que Dz de 1 correpsonde a 1 Pixel,
-         // tape dans Im2D Gen 
+         // tape dans Im2D Gen
          virtual double  ProfEnPixel(const tIndex2D & aP) const ;
          virtual double  ProfInterpEnPixel(const Pt2dr & aP) const ;
 
@@ -278,7 +278,7 @@ class cElNuage3DMaille : public cCapture3D
 
          virtual Im2DGen *  ImProf() const;
           Im2D_Bits<1>    ImMask() const;
-   //  Modification 
+   //  Modification
 
         void  SetPtOfIndex(const tIndex2D & aP,const Pt3dr &) ; // Deconseillee car inexacte
         virtual void  V_SetPtOfIndex(const tIndex2D & anI,const Pt3dr & aP3) = 0;
@@ -316,17 +316,17 @@ class cElNuage3DMaille : public cCapture3D
 
 
 
-		
+
 
         double DiffDeSurface(bool& OK,const tIndex2D&,const cElNuage3DMaille &) const;
 
-		
+
 
 /*
        [1]  Partie eventuellement re-definissable (les "iterateurs")
         Par ex a redef si l'image est tres creuse
 
-       [2]     Ca peut etre + rapide de faire l'interpol sur image, 
+       [2]     Ca peut etre + rapide de faire l'interpol sur image,
               d'ou le virtual
 */
 
@@ -347,7 +347,7 @@ class cElNuage3DMaille : public cCapture3D
         bool  Compatible(const cElNuage3DMaille &) const;
         void PlyPutFile
              (
-                  const std::string & aName,const std::list<std::string>& aComments, bool aModeBin, 
+                  const std::string & aName,const std::list<std::string>& aComments, bool aModeBin,
                   int aAddNormale=0,
                   bool DoublePrec = false,
                   const Pt3dr& anOffset = Pt3dr(0,0,0)
@@ -361,11 +361,11 @@ class cElNuage3DMaille : public cCapture3D
                     const std::vector<Pt3dr> * mPts,
                     const std::vector<Pt3di> * mCouls,
                     bool aModeBin,
-		    int aAddNormale = 0,
-		    bool DoublePrec = false,
+            int aAddNormale = 0,
+            bool DoublePrec = false,
                     const Pt3dr& anOffset = Pt3dr(0,0,0)
                ) ;
- 
+
         void Std_AddAttrFromFile(const std::string & aName,double aDyn=1,double aScale=1);
 
 
@@ -383,7 +383,7 @@ class cElNuage3DMaille : public cCapture3D
         //
         //  Un ElCamera a deja la bonne interface pour definir la
         //  geometrie d'acquisition du nuage. Si c'est un nuage en geometrie
-        // camera  stenope c'est trivial. Si c'est un nuage en terrain, on 
+        // camera  stenope c'est trivial. Si c'est un nuage en terrain, on
         // le fera avec un camera de projection orthographique
 
         cElNuage3DMaille
@@ -539,7 +539,7 @@ class cElNuage3DMaille : public cCapture3D
         ElCamera *                   mCam;
         Im2D_U_INT1                  mImEtire;
 
-  
+
        // En general egale a mImDef, peut etre diff pour nuage en "peau de leopard"
        // Utilise pour les fon de voisinage telle que Normale
 
@@ -550,7 +550,7 @@ class cElNuage3DMaille : public cCapture3D
         cChCoCart *                   m2RepGlob;
         cChCoCart *                   m2RepLoc;
         cInterfSurfaceAnalytique *    mAnam;
-        
+
 
         std::vector<cLayerNuage3DM*>  mAttrs;
         std::vector<cGrpeLayerN3D>       mGrpAttr;
@@ -591,7 +591,7 @@ class cZBuffer
             Pt2dr StepOut
         );
 
-        // Fait le basculement "standard" ou l'interpolateur est 
+        // Fait le basculement "standard" ou l'interpolateur est
         // une triangulation
         Im2D_REAL4 Basculer
                    (
@@ -612,7 +612,7 @@ class cZBuffer
         Im2D_REAL4 ZCaches(Pt2di aP0In,Pt2di aP1In,float aDef);
 
         // Initialise d'abord un basculement "standard", ensuite utilise
-        // un schema iteratif, pour calculer le basculement d'un 
+        // un schema iteratif, pour calculer le basculement d'un
         // interploateur specifie par ZInterpofXY
         Im2D_REAL4 BasculerAndInterpoleInverse
                    (
@@ -623,9 +623,9 @@ class cZBuffer
                    );
 
         Im2D_Bits<1> ImOkTer() const;
-		// Image des triangles inverses. Au depart ces triangles ne faisaient pas partie
-		// du ZBUF. Certaines applis en ont besoin, d'autres sont perturbees. Au final
-		// on memorise l'info, on la met a dispo et chacun se dem...
+        // Image des triangles inverses. Au depart ces triangles ne faisaient pas partie
+        // du ZBUF. Certaines applis en ont besoin, d'autres sont perturbees. Au final
+        // on memorise l'info, on la met a dispo et chacun se dem...
         Im2D_Bits<1> ImTriInv() const;
         bool OkTer(const Pt2di &) const;
 
@@ -640,7 +640,7 @@ class cZBuffer
         Pt2di SzOut() const;
 
         // Projection discrete au sens ou elle tient compte des pas,
-        // mais tout peut etre reel 
+        // mais tout peut etre reel
         Pt3dr ProjDisc(const Pt3dr &) const;
         void SetWithBufXYZ(bool);
 
@@ -655,7 +655,7 @@ class cZBuffer
         void AddImAttr(Im2DGen *);
         std::vector<Im2DGen *> AttrOut();
    private :
-       
+
         Pt2di ToPtIndexDef(const Pt2di & aPt) const;
 
         std::vector<Im2DGen *>  mImAttrIn;
@@ -747,8 +747,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 template <class Type> void WriteType(FILE * aFP,Type f)
 {
-	size_t  size = sizeof(Type);
-	TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
+    size_t  size = sizeof(Type);
+    TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
 }
 
 
@@ -785,13 +785,13 @@ class cMasqBin3D
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -801,17 +801,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

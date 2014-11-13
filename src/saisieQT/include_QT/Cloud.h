@@ -12,10 +12,15 @@
 class GlVertex : public cObjectGL
 {
 public:
-    GlVertex(Pt3dr pos = Pt3dr(0.f,0.f,0.f), QColor color_default = Qt::white) :
-        cObjectGL(pos, color_default)
+    GlVertex(Pt3dr pos = Pt3dr(0.f,0.f,0.f), QColor color_default = Qt::white, Pt3dr nrm = Pt3dr(0.f,0.f,0.f)) :
+        cObjectGL(pos, color_default),
+        _nrm(nrm)
     {}
     void draw(){}
+
+    Pt3dr getNormal() { return _nrm; }
+
+    Pt3dr _nrm;
 };
 
 class GlCloud : public cObjectGL
@@ -43,7 +48,7 @@ private:
     QGLBuffer   _vertexbuffer;
     QGLBuffer   _vertexColor;
 
-    int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz)
+    int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz 4:xyznxnynzrgb)
 };
 
 

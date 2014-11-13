@@ -54,8 +54,8 @@
         (
          argc,argv,
                     LArgMain()	<< EAMC(aFullName, "Full Name (Dir+Pattern)", eSAM_IsPatFile),
-         LArgMain()		<< EAM(aNameOut,"Out",true)
-                        << EAM(aBin,"Bin",true,"Generate Binary or Ascii file (Def=true, Binary)", eSAM_IsBool)
+                    LArgMain()	<< EAM(aNameOut,"Out",true)
+                                << EAM(aBin,"Bin",true,"Generate Binary or Ascii file (Def=true, Binary)", eSAM_IsBool)
         );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -72,6 +72,7 @@
         vector <GlCloud*> clouds;
         for(;itr != aVFiles.end(); itr++, incre++)
         {
+            cout << "loading file " << *itr << endl;
             GlCloud * cloud = GlCloud::loadPly(aDir + ELISE_CAR_DIR + *itr, &incre );
             if (cloud)
             {
@@ -87,8 +88,6 @@
                 }
             }
         }
-
-        cout << "nb total elem "	<< gen_nelems << endl;
 
         int type = clouds[0]->type();
 
@@ -137,6 +136,16 @@
                 fprintf(aFP,"property float nx\n");
                 fprintf(aFP,"property float ny\n");
                 fprintf(aFP,"property float nz\n");
+                break;
+            }
+            case 4:
+            {
+                fprintf(aFP,"property float nx\n");
+                fprintf(aFP,"property float ny\n");
+                fprintf(aFP,"property float nz\n");
+                fprintf(aFP,"property uchar red\n");
+                fprintf(aFP,"property uchar green\n");
+                fprintf(aFP,"property uchar blue\n");
                 break;
             }
         }
@@ -201,20 +210,34 @@
                     }
                     case 3:
                     {
-                        QColor col = vertex.getColor();
-
-                        float nx = col.redF()   * 2.f - 1.f;
-                        float ny = col.greenF() * 2.f - 1.f;
-                        float nz = col.blueF()  * 2.f - 1.f;
+                        Pt3dr n = vertex.getNormal();
 
                         if (aBin)
                         {
-                            WriteType(aFP,nx);
-                            WriteType(aFP,ny);
-                            WriteType(aFP,nz);
+                            WriteType(aFP,float(n.x));
+                            WriteType(aFP,float(n.y));
+                            WriteType(aFP,float(n.z));
                         }
                         else
-                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n",  pt.x, pt.y, pt.z, nx, ny, nz);
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z);
+                        break;
+                    }
+                    case 4:
+                    {
+                        QColor col = vertex.getColor();
+                        Pt3dr n = vertex.getNormal();
+
+                        if (aBin)
+                        {
+                            WriteType(aFP,float(n.x));
+                            WriteType(aFP,float(n.y));
+                            WriteType(aFP,float(n.z));
+                            WriteType(aFP,uchar(col.red()));
+                            WriteType(aFP,uchar(col.green()));
+                            WriteType(aFP,uchar(col.blue()));
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z, col.red(), col.green(), col.blue() );
                         break;
                     }
                 }
