@@ -243,7 +243,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mImEtire       (1,1),
    mVoisImDef     (mImDef),
    mTVoisImDef    (mVoisImDef),
-   mNormByCenter  (false),
+   mNormByCenter  (0),
    m2RepGlob      (0),
    m2RepLoc       (0),
    mAnam          (0),
@@ -306,16 +306,15 @@ cElNuage3DMaille::cElNuage3DMaille
     }
 }
 
-
 void cElNuage3DMaille::SetVoisImDef(Im2D_Bits<1> anIm)
 {
-   mVoisImDef = anIm;
-   mTVoisImDef = TIm2DBits<1> (mVoisImDef);
+    mVoisImDef = anIm;
+    mTVoisImDef = TIm2DBits<1> (mVoisImDef);
 }
 
-void cElNuage3DMaille::SetNormByCenter()
+void cElNuage3DMaille::SetNormByCenter(int val)
 {
-   mNormByCenter = true;
+    mNormByCenter = val;
 }
 
 bool cElNuage3DMaille::IsEmpty()
@@ -329,10 +328,9 @@ bool cElNuage3DMaille::IsEmpty()
     return true;
 }
 
-
 bool  cElNuage3DMaille::CaptHasData(const Pt2dr & aP) const
 {
-   return IndexHasContenuForInterpol(aP);
+    return IndexHasContenuForInterpol(aP);
 }
 
 void cElNuage3DMaille::AssertNoEmptyData() const
@@ -346,13 +344,11 @@ const Pt2di &  cElNuage3DMaille::SzUnique() const
     return mSzGeom;
 }
 
-
-
 ElSeg3D  cElNuage3DMaille::Capteur2RayTer(const Pt2dr & aP) const
 {
-   AssertCamInit();
-   return FaisceauFromIndex(aP);
-/*
+    AssertCamInit();
+    return FaisceauFromIndex(aP);
+    /*
    ElSeg3D aSeg = mCam->F2toRayonR3(aP);
    return ElSeg3D
           (
@@ -366,9 +362,9 @@ ElSeg3D  cElNuage3DMaille::Capteur2RayTer(const Pt2dr & aP) const
 
 double cElNuage3DMaille::ResolSolOfPt(const Pt3dr & aP) const
 {
-   Pt2dr aPIm = Ter2Capteur(aP);
-   ElSeg3D aSeg = Capteur2RayTer(aPIm+Pt2dr(1,0));
-   return aSeg.DistDoite(aP);
+    Pt2dr aPIm = Ter2Capteur(aP);
+    ElSeg3D aSeg = Capteur2RayTer(aPIm+Pt2dr(1,0));
+    return aSeg.DistDoite(aP);
 }
 
 double cElNuage3DMaille::ResolSolGlob() const
@@ -406,12 +402,12 @@ double cElNuage3DMaille::ResolSolGlob() const
 
 double  cElNuage3DMaille::ResolImRefFromCapteur() const
 {
-   return  mParams.SsResolRef().Val();
+    return  mParams.SsResolRef().Val();
 }
 
 Pt2dr cElNuage3DMaille::ImRef2Capteur   (const Pt2dr & aP) const
 {
-   return aP / mParams.SsResolRef().Val();
+    return aP / mParams.SsResolRef().Val();
 }
 
 
@@ -433,26 +429,25 @@ Pt3dr cElNuage3DMaille::RoughCapteur2Terrain   (const Pt2dr & aP) const
     // return Loc2Glob(Loc_PtOfIndexInterpol(aPR));
     // return mCam->R3toF2(Glob2Loc(aPt));
 }
-   return PtOfIndexInterpol(aP);
+    return PtOfIndexInterpol(aP);
 }
 
 
 Pt3dr cElNuage3DMaille::PreciseCapteur2Terrain   (const Pt2dr & aP) const
 {
-   return PtOfIndexInterpol(aP);
+    return PtOfIndexInterpol(aP);
 }
 
 Pt2dr cElNuage3DMaille::Ter2Capteur(const Pt3dr & aP) const
 {
-  return Terrain2Index(aP);
+    return Terrain2Index(aP);
 }
 
 
 bool cElNuage3DMaille::PIsVisibleInImage   (const Pt3dr & aP) const
 {
-   return   mCam->PIsVisibleInImage (aP);
+    return   mCam->PIsVisibleInImage (aP);
 }
-
 
 
 void cElNuage3DMaille::AddTri(std::vector<tTri> & aMesh,const tIndex2D & aP,int *K123,int anOffset) const
@@ -470,7 +465,6 @@ void cElNuage3DMaille::AddTri(std::vector<tTri> & aMesh,const tIndex2D & aP,int 
                   anOffset+ mTNumP.get(aP+VOIS_9[K123[2]])
             )
        );
-
 }
 
 void cElNuage3DMaille::GenTri(std::vector<tTri> & aMesh,const tIndex2D &aP,int aOffset) const
@@ -1106,9 +1100,10 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
         Pt2dr anI1r(anI1.x, anI1.y);
         ElSeg3D aV = Capteur2RayTer(anI1r);
         Pt3dr aTgt = aV.TgNormee();
-                if (mNormByCenter)
+                if (mNormByCenter==1)
                    return aTgt * (-aFact);
-
+                else if (mNormByCenter==2)
+                   return Cam()->CS()->PseudoOpticalCenter();
 
         std::vector<Pt3dr> aVP;
         std::vector<double> aVPds;
