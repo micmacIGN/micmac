@@ -145,7 +145,6 @@ class cCEM_OneIm
 
           cCoherEpi_main * mCoher;
           cCpleEpip *      mCple;
-          CamStenope *     mCam;
           std::string      mDir;
           std::string      mDirM;
           std::string      mNameNuage;
@@ -195,6 +194,7 @@ class cCEM_OneIm_Epip  : public cCEM_OneIm
 
           std::string      mNameMasq;
           Tiff_Im          mTifMasq;
+          CamStenope *     mCam;
 
 };
 
@@ -260,6 +260,7 @@ class cCoherEpi_main : public Cont_Vect_Action
         std::string NameIm(bool First);
         cInterfChantierNameManipulateur * ICNM();
         cMasqBin3D * Masq3d();
+        const std::string & Ori() const;
         
 
 

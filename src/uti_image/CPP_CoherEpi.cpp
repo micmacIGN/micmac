@@ -73,7 +73,8 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
                          LocMasqFileMatch(mDirM,mCoher->mNumMasq)
                      )
               ),
-   mTifMasq   (mNameMasq.c_str())
+   mTifMasq   (mNameMasq.c_str()),
+   mCam       (0)
 {
     if (Empty()) return;
 
@@ -102,6 +103,13 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
     }
     ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(0),mP0),mImMasq.out());
 
+    if (aCEM->Masq3d())
+    {
+        ELISE_ASSERT(mCple,"Masq3 require orientaion !!");
+        std::string aNameCam =   aCEM->ICNM()->Dir() 
+                               + aCEM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",mNameImMatched,true);
+        // mCam = 
+    }
 }
 
 void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack)
@@ -144,7 +152,7 @@ cCEM_OneIm_Nuage::cCEM_OneIm_Nuage(cCoherEpi_main * aCoh,const std::string & aNa
        mNuage1->ImDef().all_pts(),
        mNuage1->ImDef().in(),
        mImMasq.out()
-);
+    );
 }
 
           // cElNuage3DMaille *       mNuage;
@@ -164,7 +172,6 @@ cCEM_OneIm::cCEM_OneIm
 )  :
    mCoher     (aCoher),
    mCple      (mCoher->mCple),
-   mCam       (0),
    mDir       (mCoher->mDir),
    mDirM      (mDir + (mCple ? mCple->LocDirMatch(IsFirstIm) : LocDirMec2Im(aCoher->NameIm(IsFirstIm),aCoher->NameIm(!IsFirstIm)))),
    mNameNuage ("NuageImProf_LeChantier_Etape_"+ToString(mCoher->mNumPx) + ".xml"),
@@ -200,15 +207,15 @@ cCEM_OneIm::cCEM_OneIm
        mWin->set_title(IsFirstIm ? "Image 1" : "Image 2");
     }
 
+}
+
+void cCEM_OneIm::PostInit()
+{
     if (mCoher->Masq3d())
     {
         std::cout << "AAAAAAAAAAa " << mSz <<  mNameImMatched  << " " << mCoher->Masq3d() <<  "\n";
         getchar();
     }
-}
-
-void cCEM_OneIm::PostInit()
-{
 }
 
 bool cCEM_OneIm::Empty() const
@@ -855,6 +862,12 @@ std::string cCoherEpi_main::NameIm(bool First)
 
 cInterfChantierNameManipulateur * cCoherEpi_main::ICNM() {return mICNM;}
 cMasqBin3D * cCoherEpi_main::Masq3d() {return mMasq3d;}
+
+const std::string & cCoherEpi_main::Ori() const
+{
+    return mOri;
+}
+
 
 
 
