@@ -385,9 +385,9 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo"));
        aRes.push_back(cMMCom("DIV",Devideo_main,"Developpement d'Images Video (require ffmpeg)"));
        aRes.push_back(cMMCom("Liquor",Liquor_main,"Orientation specialized for linear acquisition"));
-       aRes.push_back(cMMCom("Morito",Morito_main,"Mergeset of  Orientaion with common valures"));
+       aRes.push_back(cMMCom("Morito",Morito_main,"Merge set of Orientation with common values"));
        aRes.push_back(cMMCom("Donuts",Donuts_main,"Cyl to Torus (Donuts like)"));
-       aRes.push_back(cMMCom("C3DC",C3DC_main,"Automatic Matching from Cultured 3D Cloud project"));
+       aRes.push_back(cMMCom("C3DC",C3DC_main,"Automatic Matching from Culture 3D Cloud project"));
    }
 
    cCmpMMCom CmpMMCom;
