@@ -36,10 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
 #include "StdAfx.h"
-
-
-
 
 #define DEF_OFSET -12349876
 
@@ -585,6 +583,9 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    // bool aValInit_TheExitOnBrkp=TheExitOnBrkp;
    // TheExitOnBrkp=true;
    MMD_InitArgcArgv( argc, argv );
+   #if(ELISE_QT_VERSION >= 4)
+		initQtLibraryPath(); 
+   #endif
     // TheExitOnBrkp=true;
 
    // On reactive le blocage par defaut
