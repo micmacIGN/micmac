@@ -91,7 +91,7 @@ class cAppli_C3DC : public cAppliWithSetImage
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
    cAppliWithSetImage  (argc-2,argv+2,TheFlagDev16BGray|TheFlagAcceptProblem),
-   mTuning             (true),
+   mTuning             (MPD_MM()),
    mPlyCoul            (true),
    mMergeOut           ("C3DC.ply"),
    mSzNorm             (2)

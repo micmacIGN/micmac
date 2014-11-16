@@ -140,7 +140,7 @@ cIntervLiquor::cIntervLiquor(cAppliLiquor * anAppli,int aBegin,int aEnd,int aPro
 
 cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
     mSzLim       (40),
-    mOverlapMin  (5),
+    mOverlapMin  (3),
     mOverlapMax  (40),
     mOverlapProp (0.1)
 {
