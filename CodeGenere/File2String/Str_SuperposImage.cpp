@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1288]) = {
+const char * (theNameVar_SuperposImage[1289]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -37,8 +37,9 @@ const char * (theNameVar_SuperposImage[1288]) = {
 "    </enum>\n",
 "\n",
 "    <enum Name=\"eModeMergeCloud\">\n",
-"         <eMMC_Envlop >  </eMMC_Envlop>  \n",
-"         <eMMC_Epi >     </eMMC_Epi>\n",
+"         <eMMC_QuickMac > </eMMC_QuickMac>    \n",
+"         <eMMC_Envlop >   </eMMC_Envlop>   <!-- = Quick Mac pour Epi -->\n",
+"         <eMMC_Epi >      </eMMC_Epi>\n",
 "    </enum>\n",
 "\n",
 "\n",

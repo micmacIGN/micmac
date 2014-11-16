@@ -108,7 +108,7 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
         ELISE_ASSERT(mCple,"Masq3 require orientaion !!");
         std::string aNameCam =   aCEM->ICNM()->Dir() 
                                + aCEM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",mNameImMatched,true);
-        // mCam = 
+        mCam = CamOrientGenFromFile(aNameCam,aCEM->ICNM());
     }
 }
 
@@ -127,6 +127,20 @@ void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack)
          if (0) mWin->draw_circle_abs(aP1,3.0,mWin->pdisc()( (aD<0.5) ? P8COL::green : P8COL::red));
      }
 }
+
+
+Pt3dr  cCEM_OneIm_Epip::To3d(const Pt2di & anI) const 
+{
+    cCEM_OneIm_Epip * aE2 = static_cast<cCEM_OneIm_Epip*> (mConj);
+    CamStenope * aCam2 = aE2->mCam;
+    Pt2dr  aP1 = Pt2dr(anI * mCoher->mDeZoom); 
+    Pt2dr  aP2 = aP1 +  Pt2dr(mTPx.get(anI)*mResolAlti,0);
+
+    return mCam->PseudoInter(aP1,*aCam2,aP2);
+    // ELISE_ASSERT(false,"cCEM_OneIm_Epip::To3d");
+    // return Pt3dr(0,0,0);
+}
+
 
 /*******************************************************************/
 /*                                                                 */
@@ -153,6 +167,12 @@ cCEM_OneIm_Nuage::cCEM_OneIm_Nuage(cCoherEpi_main * aCoh,const std::string & aNa
        mNuage1->ImDef().in(),
        mImMasq.out()
     );
+}
+
+
+Pt3dr cCEM_OneIm_Nuage::To3d(const Pt2di & anI) const
+{
+   return mNuage1->PtOfIndex(anI);
 }
 
           // cElNuage3DMaille *       mNuage;
@@ -213,8 +233,32 @@ void cCEM_OneIm::PostInit()
 {
     if (mCoher->Masq3d())
     {
-        std::cout << "AAAAAAAAAAa " << mSz <<  mNameImMatched  << " " << mCoher->Masq3d() <<  "\n";
-        getchar();
+/*
+        Im2D_Bits<1> aImMasq3d   (mSz.x,mSz.y,0);
+        TIm2DBits<1> aTMasq3d   (aImMasq3d);
+        Pt2di anI;
+        for (anI.x =0 ; anI.x <mSz.x ; anI.x++)
+        {
+            for (anI.y =0 ; anI.y <mSz.y ; anI.y++)
+            {
+                if (mTMasq.get(anI))
+                {
+                   aTMasq3d.oset(anI,mCoher->Masq3d()->IsInMasq(To3d(anI)));
+                }
+            }
+        }
+*/
+        Pt2di anI;
+        for (anI.x =0 ; anI.x <mSz.x ; anI.x++)
+        {
+            for (anI.y =0 ; anI.y <mSz.y ; anI.y++)
+            {
+                if (mTMasq.get(anI) && (! mCoher->Masq3d()->IsInMasq(To3d(anI))))
+                {
+                   mTMasq.oset(anI,0);
+                }
+            }
+        }
     }
 }
 
@@ -664,7 +708,6 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
           mIm1 = new cCEM_OneIm_Epip(this,mNameIm1,mBoxIm1,mVisu,true,mFinal)          ;
        else
           mIm1 = new cCEM_OneIm_Nuage(this,mNameIm1,mNameIm2,mBoxIm1,mVisu,true);
-       mIm1->PostInit();
 
 
        Box2di aBoxIm2 = R2ISup(mIm1->BoxIm2(aSzIm2));
@@ -676,9 +719,10 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
        {
           mIm2 = new cCEM_OneIm_Nuage(this,mNameIm2,mNameIm1,aBoxIm2,mVisu,false);
        }
-       mIm2->PostInit();
 
        mIm1->SetConj(mIm2);
+       mIm1->PostInit();
+       mIm2->PostInit();
 
        if (HasHom)
        {

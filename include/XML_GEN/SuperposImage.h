@@ -44,6 +44,7 @@ void  BinaryUnDumpFromFile(eModeBoxFusion &,ELISE_fp &);
 
 typedef enum
 {
+  eMMC_QuickMac,
   eMMC_Envlop,
   eMMC_Epi
 } eModeMergeCloud;

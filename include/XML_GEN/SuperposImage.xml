@@ -35,8 +35,9 @@
     </enum>
 
     <enum Name="eModeMergeCloud">
-         <eMMC_Envlop >  </eMMC_Envlop>  
-         <eMMC_Epi >     </eMMC_Epi>
+         <eMMC_QuickMac > </eMMC_QuickMac>    
+         <eMMC_Envlop >   </eMMC_Envlop>   <!-- = Quick Mac pour Epi -->
+         <eMMC_Epi >      </eMMC_Epi>
     </enum>
 
 

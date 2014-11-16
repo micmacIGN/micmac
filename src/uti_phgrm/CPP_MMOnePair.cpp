@@ -105,7 +105,7 @@ class cMMOnePair
       const std::string mNameMasqFinal;
       bool              mHasVeget;
       bool              mSkyBackgGound;
-      // std::string       mMasq3D;
+      std::string       mMM1PMasq3D;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -193,7 +193,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)", eSAM_InternalUse)
                     << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
                     << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
-                    // << EAM(mMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
+                    << EAM(mMM1PMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
   );
 
   mNoOri = (mNameOriInit=="NONE");
@@ -587,6 +587,8 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " Regul=0.5"
                       ;
 
+     if (EAMIsInit(&mMM1PMasq3D)) aCom = aCom + " Masq3D=" +mMM1PMasq3D;
+
      aCom = aCom + " RedM=1.0 ";   // Avec la prog dyn, pas de raison de ne pas faire ts le temps à full resol
      if (aLast)
      {
@@ -634,6 +636,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
     
 
+/*
      if (EAMIsInit(&mMasq3D))
      {
           std::string aNameNuage =   mEASF.mDir+LocDirMec2Im(aNamA,aNamB) + "NuageImProf_Chantier-Ori_Etape_"+ ToString(aStep) +".xml";
@@ -644,11 +647,9 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                            + aNameNew
                            + " MasqNuage=" + aNameNew;
 
-// std::cout << "AVANT ################\n";
-// std::cout << aCom << "\n";
           System(aCom);
-// std::cout << "APRES ################\n";
      }
+*/
 
 
      if (aLast)

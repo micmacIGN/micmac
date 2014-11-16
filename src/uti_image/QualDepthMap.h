@@ -75,6 +75,7 @@ class cCEM_OneIm
 
           // Initialisation faisant appel a du virtuel
           void PostInit();
+          virtual Pt3dr To3d(const Pt2di &) const = 0;
 
           bool Empty() const;
           cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
@@ -174,6 +175,7 @@ class cCEM_OneIm
 class cCEM_OneIm_Epip  : public cCEM_OneIm
 {
     public :
+          virtual Pt3dr To3d(const Pt2di &) const ;
           Im2D_REAL4 ImPx() {return mImPx;}
           Im2D_INT2  ImPx_u2() {return mImPx_u2;}
 
@@ -202,6 +204,7 @@ class cCEM_OneIm_Nuage  : public cCEM_OneIm
 {
       public :
           cCEM_OneIm_Nuage (cCoherEpi_main * ,const std::string &,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
+          virtual Pt3dr To3d(const Pt2di &) const ;
       private :
           Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok)
           {

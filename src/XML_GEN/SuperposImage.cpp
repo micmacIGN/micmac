@@ -99,7 +99,9 @@ std::string  Mangling( eModeBoxFusion *) {return "E4601E61E16B99AAFCBF";};
 
 eModeMergeCloud  Str2eModeMergeCloud(const std::string & aName)
 {
-   if (aName=="eMMC_Envlop")
+   if (aName=="eMMC_QuickMac")
+      return eMMC_QuickMac;
+   else if (aName=="eMMC_Envlop")
       return eMMC_Envlop;
    else if (aName=="eMMC_Epi")
       return eMMC_Epi;
@@ -116,6 +118,8 @@ void xml_init(eModeMergeCloud & aVal,cElXMLTree * aTree)
 }
 std::string  eToString(const eModeMergeCloud & anObj)
 {
+   if (anObj==eMMC_QuickMac)
+      return  "eMMC_QuickMac";
    if (anObj==eMMC_Envlop)
       return  "eMMC_Envlop";
    if (anObj==eMMC_Epi)
@@ -142,7 +146,7 @@ void  BinaryUnDumpFromFile(eModeMergeCloud & anObj,ELISE_fp & aFp)
    anObj=(eModeMergeCloud) aIVal;
 }
 
-std::string  Mangling( eModeMergeCloud *) {return "C855F650848FBEDEFB3F";};
+std::string  Mangling( eModeMergeCloud *) {return "80FD61C034B266C3FB3F";};
 
 eQualCloud  Str2eQualCloud(const std::string & aName)
 {
@@ -18705,7 +18709,7 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.PFM_Selection(),aTree->Get("PFM_Selection",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionNuage *) {return "40E234F51AAE18A3FC3F";};
+std::string  Mangling( cParamFusionNuage *) {return "2C7E90FA8C53A2CEFE3F";};
 
 
 std::string & cCWWSIVois::NameVois()

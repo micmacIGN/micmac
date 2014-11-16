@@ -194,6 +194,10 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    {
       aNivMin=eQC_GradFaibleC1;
    }
+   if (mParam.ModeMerge() ==eMMC_QuickMac)
+   {
+      aNivMin=eQC_GradFaibleC2;
+   }
    // aNivMin = eQC_GradFaibleC2;
    for (mCurNivSelSom=mGlobMaxNivH ; mCurNivSelSom>=aNivMin ; mCurNivSelSom--)
    {
@@ -332,6 +336,7 @@ std::string cAppliMergeCloud::NameFileInput(bool DownScale,const std::string & a
        case eMMC_Epi :
             return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
        case eMMC_Envlop :
+       case eMMC_QuickMac :
             std::string aPref = (aPrefIn=="" )? "Depth" : aPrefIn;
             std::string PrefGlob =  DownScale ? "DownScale_NuageFusion-" : "NuageFusion-";
             return Dir() +  DirFusMMInit() +  PrefGlob + aPref + aNameIm + aPost;

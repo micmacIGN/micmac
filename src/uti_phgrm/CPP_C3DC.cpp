@@ -114,6 +114,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
                     << EAM(mMasq3D,"Masq3D",true,"3D masq for point selection")
                     << EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
                     << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 mean 5x5) ")
+                    << EAM(mPlyCoul,"PlyCoul",true,"Colour in ply ? Def = true")
                     << EAM(mTuning,"Tuning",true,"Will disappear soon ...")
    );
 

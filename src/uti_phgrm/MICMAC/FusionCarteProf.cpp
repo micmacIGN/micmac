@@ -601,16 +601,22 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
 /*                                                                    */
 /**********************************************************************/
 
+//template <class Type> Show(const Type & 
+
+
+
+
 template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP, const std::string & anId,const std::string & aFus,int aNum) :
   mNum     (aNum),
-  mFCP     (aFCP),
-  mParam   (aFCP.Param()),
-  mPAlg    (mParam.ParamAlgoFusionMNT()),
-  mSeuilC  (mPAlg.FMNTSeuilCorrel()),
-  mICNM    (aFCP.ICNM()),
+  mFCP     ((aFCP)),
+  mParam   ((aFCP.Param())),
+  mPAlg    ((mParam.ParamAlgoFusionMNT())),
+  mSeuilC  ((mPAlg.FMNTSeuilCorrel())),
+  mICNM    ((aFCP.ICNM())),
 
   mFus         (aFus),
-  mNameIm      (StdPrefix(mFus).substr(6,std::string::npos)),
+  // mNameIm      ((StdPrefix(mFus).substr(6,std::string::npos)),
+  mNameIm      (StdPrefix(mFus)),
   mNameNuage  (mICNM->Dir()+mICNM->Assoc1To2(mParam.KeyNuage(),anId,aFus,true)),
   mNuage      (StdGetObjFromFile<cXML_ParamNuage3DMaille>
                  (

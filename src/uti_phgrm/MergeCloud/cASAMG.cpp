@@ -138,7 +138,9 @@ cASAMG::cASAMG(cAppliMergeCloud * anAppli,cImaMM * anIma)  :
    {
        Im2D_REAL4 aNoCompEnvSup(mSz.x,mSz.y);
        Im2D_REAL4 aNoCompEnvInf(mSz.x,mSz.y);
-       if (mAppli->Param().ModeMerge() == eMMC_Envlop)
+       if( (mAppli->Param().ModeMerge() == eMMC_Envlop)
+         ||  (mAppli->Param().ModeMerge() == eMMC_QuickMac)
+         )
        {
            std::string aNameEnvSup = mAppli->NameFileInput(true,mIma,"_Prof.tif","Max");
            std::string aNameEnvInf = mAppli->NameFileInput(true,mIma,"_Prof.tif","Min");
