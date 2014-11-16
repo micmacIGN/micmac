@@ -1,0 +1,10 @@
+     <PoseCameraInc>
+                   <PatternName>   ${SetIm}   </PatternName>
+                   <AutomGetImC>   Id_Pastis_Hom       </AutomGetImC>
+                   <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                   <PosValueInit>
+                       <PosId> ### </PosId>
+                   </PosValueInit>
+     </PoseCameraInc>
+
+
