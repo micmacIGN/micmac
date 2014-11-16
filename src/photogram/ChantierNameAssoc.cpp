@@ -37,6 +37,13 @@ See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "general/CMake_defines.h"
+#if (ELISE_QT_VERSION >= 4)
+	#include "QCoreApplication"
+	#include "QStringList"
+	#include "QDir"
+#endif
+
 #include "StdAfx.h"
 
 extern void NewSplit( const std::string  &  a2Stplit,std::string & aK0,std::vector<std::string>  & aSup);
@@ -2361,6 +2368,49 @@ std::string XML_MM_File(const std::string & aFile)
     }
 
 
+#if(ELISE_QT_VERSION >= 4)
+	string MMQtLibraryPath()
+	{
+		#if defined(__APPLE__) || defined(__MACH__)
+			return MMDir()+"Frameworks";
+		#endif
+		return string();
+	}
+
+	// there is alway one path in the list to avoid multiple library loading
+	void setQtLibraryPath( const string &i_path )
+	{
+		QString path( i_path.c_str() );
+		if ( !QDir(path).exists() ) cerr << "WARNING: setQtLibraryPath(" << i_path << "): path does not exist" << endl;
+		QCoreApplication::setLibraryPaths( QStringList(path) );
+	}
+
+	// if default path does not exist, replace it by deployment path
+	// used by mm3d and SaisieQT
+	void initQtLibraryPath()
+	{
+		// set to deployment path if it exists
+		string deploymentPath = MMQtLibraryPath();
+		if ( QDir( QString(deploymentPath.c_str()) ).exists() )
+		{
+			setQtLibraryPath(deploymentPath);
+			return;
+		}
+
+		// keep the first existing path to avoid multiple library loading
+		QStringList paths = QCoreApplication::libraryPaths();
+		for ( int i=0; i<paths.size(); i++ )
+		{
+			if ( QDir( paths.at(i) ).exists() )
+			{
+				setQtLibraryPath( paths.at(i).toStdString() );
+				return;
+			}
+		}
+
+		cerr << "WARNING: initQtLibraryPath: no valid path found" << endl;
+	}
+#endif
 
     std::string MMBin() { return MMDir()+"bin"+ELISE_CAR_DIR; }
 
