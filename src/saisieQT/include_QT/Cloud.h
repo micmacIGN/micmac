@@ -1,12 +1,6 @@
 ﻿#ifndef __CLOUD__
 #define __CLOUD__
 
-#include <vector>
-#include <string>
-
-#include <fstream>
-#include <iostream>
-
 #include "3DObject.h"
 
 class GlVertex : public cObjectGL
