@@ -1,0 +1,1 @@
+D:\Dev>"C:\Program Files\Mercurial\hg.exe" clone https://geoportail.forge.ign.fr/hg/culture3d http_proxy=proxy.ign.fr:3128
