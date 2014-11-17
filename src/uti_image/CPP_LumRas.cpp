@@ -249,13 +249,16 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
            (
                  aNameOut.c_str(),
                  anIm.sz(),
-                 GenIm::u_int1,
+                 // GenIm::u_int1,
+                 GenIm::real4,
                  Tiff_Im::No_Compr,
                  Tiff_Im::BlackIsZero
            );
 
     Fonc_Num aFRas  =  FLoc(6,50,anIm);
     Fonc_Num aFStd  =  FLoc(6,50,mAppli.mImGr);
+    Tiff_Im::Create8BFromFonc("Test-Ras.tif",anIm.sz(),aFRas*100);
+    Tiff_Im::Create8BFromFonc("Test-Std.tif",anIm.sz(),aFStd*100);
 // Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
 
    ELISE_COPY(mImShade.all_pts(),(aFRas-aFStd),mImShade.out());
@@ -263,7 +266,8 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
    ELISE_COPY
    (
       TifTest.all_pts(),
-      Max(0,Min(255,128 * (1 + 2*mImShade.in()))),
+      // Max(0,Min(255,128 * (1 + 2*mImShade.in()))),
+      mImShade.in(),
       TifTest.out()
    );
 
