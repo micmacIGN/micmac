@@ -170,6 +170,18 @@ TPL_T bool CData<T>::Dealloc()
     return op;
 }
 
+
+
+template <class T, class structuringClass>
+class CStructuredData : public structuringClass
+{
+
+private:
+    CData<T>        _data;
+};
+
+
+
 /// \class CData2D
 /// \brief Classe abstraite d un tableau d elements structuree en deux dimensions
 template <class T>
@@ -211,10 +223,12 @@ protected:
 
 TPL_T void CData2D<T>::OutputInfo()
 {
-    std::cout << "Structure 2D : \n";
+
     struct2D::Output();
 }
 
+
+/// Specialisation pour cudaArray la taille memoire
 template <> inline
 uint CData2D<cudaArray>::Sizeof()
 {
