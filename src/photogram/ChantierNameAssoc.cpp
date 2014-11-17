@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/CMake_defines.h"
 #if (ELISE_QT_VERSION >= 4)
+#ifdef Int
+   #undef Int
+#endif
 	#include "QCoreApplication"
 	#include "QStringList"
 	#include "QDir"
