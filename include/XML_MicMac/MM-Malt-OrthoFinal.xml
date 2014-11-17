@@ -1,0 +1,31 @@
+               <GenerePartiesCachees >
+                    <#WHEN VTEST=${InParal}>
+                        <ByMkF> ${MkFPC} </ByMkF>
+                    </#WHEN>
+                    <SeuilUsePC> 3 </SeuilUsePC>
+                    <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirOrthoF}@PC_ </KeyCalcPC>
+                    <PatternApply>  ${ImOrtho}</PatternApply>
+
+                    <SzBloc> 2000 </SzBloc>
+                    <SzBord>  200 </SzBord>
+
+
+                    <MakeOrthoParImage >
+                         <DirOrtho> ${DirOrthoF} </DirOrtho>
+
+                         <MakeMTDMaskOrtho>
+                                <Mesures> 
+                                     <NameFile> ${NameMaskOrtho}       </NameFile>
+                                     <NameMTD>  ${NameMTDMaskOrtho}    </NameMTD>
+                                </Mesures>
+                         </MakeMTDMaskOrtho>
+
+                         <ResolRelOrhto> ${ResolRelOrhto} </ResolRelOrhto>
+                         <OrthoBiCub> -1.5  </OrthoBiCub>
+                         <KeyCalcInput>    NKS-Assoc-Id  </KeyCalcInput>
+                         <KeyCalcOutput >  NKS-Assoc-AddDirAndPref@${DirOrthoF}@Ort_ </KeyCalcOutput>
+                         <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrthoF}@Incid_ </KeyCalcIncidHor>
+                         <ResolIm> 1.0 </ResolIm>
+                         <CalcIncAZMoy> true </CalcIncAZMoy>
+                    </MakeOrthoParImage>
+               </GenerePartiesCachees>
