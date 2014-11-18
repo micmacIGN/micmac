@@ -83,6 +83,8 @@ template <class Type,class TyBase>  class DataGenImType :
       virtual INT vmax() const;
       virtual INT vmin() const;
 
+      INT allocatedSize() const { return mSzMemory; }
+
       static CONST_STAT_TPL bool  _integral_type;
       protected :
           virtual ~DataGenImType();
@@ -97,6 +99,7 @@ class DataIm2DGen
 
       INT tx() const { return _txy[0];};
       INT ty() const { return _txy[1];};
+      INT allocatedSize() const { return mTyMem; }
 
    protected :
       void Initializer(INT aTx,INT aTy);

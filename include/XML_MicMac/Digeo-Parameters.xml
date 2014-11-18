@@ -101,12 +101,12 @@
 			<PlotPointsOnTiles> true </PlotPointsOnTiles>
 			<OutputGradients> true </OutputGradients>
 			<OutputTiles> true </OutputTiles>
-			<ForceGradientComputation> true </ForceGradientComputation>
 			<OutputGaussians> true </OutputGaussians>
 			<OutputGaussiansDirectory> gaussians_ref </OutputGaussiansDirectory>
 			<SuppressTiles> false </SuppressTiles>
 			<MergeTiles> false </MergeTiles>
 			-->
+			<ForceGradientComputation> true </ForceGradientComputation>
 		</DigeoTestOutput>
 	</SectionTest>
 

@@ -429,6 +429,17 @@ void cTplImInMem<Type>::SetConvolSepX
      )
 {
     ELISE_ASSERT(aImOut.sz()==aImIn.sz(),"Sz in SetConvolSepX");
+    
+    // __DEL
+    Im2D<Type,tBase> src = aImIn;
+    if ( aImOut.data_lin()==aImIn.data_lin() )
+    {
+		 Im2D<Type,tBase> newSrc( aImIn.tx()+PackTranspo, aImIn.ty() );
+		 newSrc.Resize( aImIn.sz() );
+		 memcpy( newSrc.data_lin(), aImIn.data_lin(), aImIn.tx()*aImIn.ty()*sizeof(Type) );
+		 aImIn = newSrc;
+	 }
+
     int aSzX = aImOut.tx();
     int aSzY = aImOut.ty();
     int aX0 = std::min( -aCS->Deb(), aSzX );
@@ -481,6 +492,27 @@ void cTplImInMem<Type>::SelfSetConvolSepY
 
     Type ** aData =  mIm.data();
 
+	#ifdef __DEBUG_DIGEO
+		for ( int y=0; y<mIm.ty(); y++ )
+		{
+			if ( aData[y]!=mIm.data_lin()+y*mIm.tx() )
+			{
+				cerr << "cTplImInMem: check line failed for line " << y << endl;
+				exit(-1);
+			}
+		}
+		if ( mIm.linearDataAllocatedSize()!=(mIm.tx()+PackTranspo)*mIm.ty() )
+		{
+			cerr << "cTplImInMem: linearDataAllocatedSize = " << mIm.linearDataAllocatedSize() << " != (i_image.tx()+PackTranspo)*i_image.ty() = " << (mIm.tx()+PackTranspo)*mIm.ty() << endl;
+			exit(-1);
+		}
+	#endif
+
+	// __DEL
+	for ( int i=0; i<PackTranspo; i++ )
+		for ( int y=0; y<mIm.ty(); y++ )
+			aData[y][mIm.tx()+i] = 0;
+
     for (int anX = 0; anX<mSz.x ; anX+=PackTranspo)
     {
          // Il n'y a pas de debordement car les images  sont predementionnee 
@@ -514,6 +546,131 @@ void cTplImInMem<Type>::SelfSetConvolSepY
              *(aL)++ = *(aL3++);
          }
     }
+}
+
+template <class tData, class tBase> 
+void  SetConvolBordX( Im2D<tData,tBase> aImOut, Im2D<tData,tBase> aImIn, int anX, tBase * aDFilter, int aDebX,int aFinX )
+{
+    tBase aDiv = ClipForConvol(aImOut.tx(),anX,aDFilter,aDebX,aFinX);
+    tData ** aDOut = aImOut.data();
+    tData ** aDIn = aImIn.data();
+
+    const tBase aSom = InitFromDiv(aDiv,(tBase*)0);
+
+    int aSzY = aImOut.ty();
+    for (int anY=0 ; anY<aSzY ; anY++)
+        aDOut[anY][anX] = CorrelLine(aSom,aDIn[anY]+anX,aDFilter,aDebX,aFinX) / aDiv;
+}
+
+template <class tData, class tBase> 
+void SetConvolSepX( const Im2D<tData,tBase> &i_src, int aNbShitY, cConvolSpec<tData> *aCS, Im2D<tData,tBase> &o_dst )
+{
+    int aSzX = i_src.tx();
+    int aSzY = i_src.ty();
+    int aX0 = std::min( -aCS->Deb(), aSzX );
+
+    int anX;
+    for (anX=0; anX <aX0 ; anX++)
+        SetConvolBordX(o_dst,i_src,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
+
+    int aX1 = std::max( aSzX-aCS->Fin(), anX );
+    for (anX =aX1; anX <aSzX ; anX++) // max car aX1 peut être < aX0 voir negatif et faire planter
+        SetConvolBordX(o_dst,i_src,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
+   
+    // const tBase aSom = InitFromDiv(ShiftG(tBase(1),aNbShitX),(tBase*)0);
+    for (int anY=0 ; anY<aSzY ; anY++)
+    {
+        tData * aDOut = o_dst.data()[anY];
+        tData * aDIn =  i_src.data()[anY];
+        aCS->Convol(aDOut,aDIn,aX0,aX1);
+    }
+}
+
+template <class tData, class tBase> 
+void SelfSetConvolSepY( Im2D<tData,tBase> &i_image, int aNbShitY, cConvolSpec<tData> *aCS )
+{
+    Im2D<tData,tBase> aBufIn(i_image.ty(),PackTranspo);
+    Im2D<tData,tBase> aBufOut(i_image.ty(),PackTranspo);
+
+    tData ** aData =  i_image.data();
+
+	#ifdef __DEBUG_DIGEO
+		for ( int y=0; y<i_image.ty(); y++ )
+		{
+			if ( aData[y]!=i_image.data_lin()+y*i_image.tx() )
+			{
+				cerr << "Im2D: check line failed for line " << y << endl;
+				exit(-1);
+			}
+		}
+		if ( i_image.linearDataAllocatedSize()!=(i_image.tx()+PackTranspo)*i_image.ty() )
+		{
+			cerr << "Im2D: linearDataAllocatedSize = " << i_image.linearDataAllocatedSize() << " != (i_image.tx()+PackTranspo)*i_image.ty() = " << (i_image.tx()+PackTranspo)*i_image.ty() << endl;
+			exit(-1);
+		}
+	#endif
+
+	// __DEL
+	for ( int i=0; i<PackTranspo; i++ )
+		for ( int y=0; y<i_image.ty(); y++ )
+			aData[y][i_image.tx()+i] = 0;
+
+    for (int anX = 0; anX<i_image.tx() ; anX+=PackTranspo)
+    {
+         // Il n'y a pas de debordement car les images  sont predementionnee 
+         // d'un Rab de PackTranspo;  voir ResizeBasic
+
+         tData * aL0 = aBufIn.data()[0];
+         tData * aL1 = aBufIn.data()[1];
+         tData * aL2 = aBufIn.data()[2];
+         tData * aL3 = aBufIn.data()[3];
+         for (int aY=0 ; aY<i_image.ty() ; aY++)
+         {
+             tData * aL = aData[aY]+anX;
+             *(aL0)++ = *(aL++);
+             *(aL1)++ = *(aL++);
+             *(aL2)++ = *(aL++);
+             *(aL3)++ = *(aL++);
+         }
+
+         SetConvolSepX(aBufIn,aNbShitY,aCS,aBufOut);
+
+         aL0 = aBufOut.data()[0];
+         aL1 = aBufOut.data()[1];
+         aL2 = aBufOut.data()[2];
+         aL3 = aBufOut.data()[3];
+
+         for (int aY=0 ; aY<i_image.ty() ; aY++)
+         {
+             tData * aL = aData[aY]+anX;
+             *(aL)++ = *(aL0++);
+             *(aL)++ = *(aL1++);
+             *(aL)++ = *(aL2++);
+             *(aL)++ = *(aL3++);
+         }
+    }
+}
+
+template <class tData, class tBase> 
+void safe_SelfSetConvolSepY( Im2D<tData,tBase> &i_image, int aNbShitY, cConvolSpec<tData> *aCS, Im2D<tData,tBase> &io_temporary1, Im2D<tData,tBase> &io_temporary2 )
+{
+	#ifdef __DEBUG_DIGEO
+		Pt2di tranposeSize( i_image.ty(), i_image.tx() );
+		if ( io_temporary1.sz()!=tranposeSize || io_temporary2.sz()!=tranposeSize )
+			elise_debug_warning( "safe_SelfSetConvolSepY: temporary images do not have correct size: " << io_temporary1.sz() << " or " << io_temporary2.sz() << " != " << i_image.sz() );
+	#endif
+	io_temporary1.Resize( i_image.ty(), i_image.tx() );
+	io_temporary2.Resize( i_image.ty(), i_image.tx() );
+
+	for ( int y=0; y<i_image.ty(); y++ )
+		for ( int x=0; x<i_image.tx(); x++ )
+			io_temporary1.data()[x][y] = i_image.data()[y][x];
+
+	SetConvolSepX( io_temporary1, aNbShitY, aCS, io_temporary2 );
+
+	for ( int y=0; y<i_image.ty(); y++ )
+		for ( int x=0; x<i_image.tx(); x++ )
+			i_image.data()[y][x] = io_temporary2.data()[x][y];
 }
 
 template <class Type> 

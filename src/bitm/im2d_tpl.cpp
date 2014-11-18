@@ -1664,6 +1664,11 @@ void Im2D<Type,TyBase>:: ReadAndPushTif
    ELISE_COPY(aFile.all_pts(),aFile.in(),anOut);
 }
 
+template <class Type,class TyBase>
+INT Im2D<Type,TyBase>::linearDataAllocatedSize() const { return di2d()->DataGenImType<Type,TyBase>::allocatedSize(); }
+
+template <class Type,class TyBase>
+INT Im2D<Type,TyBase>::dataAllocatedSize() const { return di2d()->DataIm2DGen::allocatedSize(); }
 
 
 
