@@ -864,6 +864,15 @@ public:
         DecoratorImage<cudaContext>::SetName(name);
     }
 
+    bool    syncDevice(CuHostData3D<T> &hostData,textureReference&  texture)
+    {
+        CData3D::ReallocIfDim(hostData.GetDimension(),1);
+        bool resultSync = copyHostToDevice(hostData.pData());
+        bindTexture(texture);
+
+        return resultSync;
+    }
+
 protected:
 
     bool    abMalloc()
@@ -983,6 +992,15 @@ public:
         return CData3D::ErrorOutput( cudaMemcpy3DAsync (&p, stream),__FUNCTION__);
     }
 
+
+    bool    syncDevice(CuHostData3D<T> &hostData,textureReference&  texture)
+    {
+        CData3D::ReallocIfDim(hostData.GetDimension(),hostData.GetNbLayer());
+        bool resultSync = copyHostToDevice(hostData.pData());
+        bindTexture(texture);
+
+        return resultSync;
+    }
 
 protected:
 

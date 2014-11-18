@@ -1381,7 +1381,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
  //  ====  2. Pas quotient d'entier
     double aRealNbByPix = 1/ aStepPix;
     int mNbByPix = round_ni(aRealNbByPix);
-
     if (ElAbs(aRealNbByPix-mNbByPix) > TolNbByPix)
     {
          std::cout << "For Step = " << mStepZ  << " GotDif " << aRealNbByPix-mNbByPix << "\n";
@@ -1503,6 +1502,11 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
              }
              // aTabFlag1 =   cImFlags<U_INT2>::Census(mBufCensusIm2[0],mCurSzVMax) ;
         }
+
+#ifdef CUDA_ENABLED
+        interface_Census_GPU._dataCMS.transfertImage(toUi2(mPDV1->LoadedIm().SzIm()), anI0.VDataIm(),0);
+        interface_Census_GPU._dataCMS.transfertImage(toUi2(mPDV1->LoadedIm().SzIm()), anI1.VDataIm(),1);
+#endif
 
         cImFlags<U_INT2>   aTabFlag1 (Pt2di(1,1),1);
         if (DoCensusBasic )
