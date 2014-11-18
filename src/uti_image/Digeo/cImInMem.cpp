@@ -591,6 +591,28 @@ cImInMem *  cImInMem::Mere() {return mMere;}
 cOctaveDigeo &  cImInMem::Oct() {return mOct;}
 
 template <class tData, class tComp>
+void setBorder( Im2D<tData,tComp> &i_image, tData i_value )
+{
+	if ( i_image.tx()<1 || i_image.ty()<1 ) return;
+
+	tData *data = i_image.data_lin();
+
+	// set first line
+	for ( int i=0; i<i_image.tx(); i++ )
+		data[i] = i_value;
+	// set last line
+	memcpy( data+i_image.tx()*(i_image.ty()-1), data, i_image.tx()*sizeof(tData) );
+
+	// set first and last columns
+	const int offsetLast = i_image.tx()-1;
+	for ( int i=0; i<i_image.ty(); i++ )
+	{
+		tData *line = i_image.data()[i];
+		line[0] = line[offsetLast] = i_value;
+	}
+}
+
+template <class tData, class tComp>
 void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient )
 {
     o_gradient.Resize( Pt2di( i_image.tx()*2, i_image.ty() ) );
@@ -724,7 +746,6 @@ void cImInMem::orientate()
 	mAppli.times()->start();
 
 	mOrientedPoints.resize( mFeaturePoints.size() );
-	double octaveTrueSamplingPace = mOct.trueSamplingPace();
 	REAL8 angles[DIGEO_MAX_NB_ANGLES];
 	int nbAngles;
 	size_t nbSkipped = 0;
@@ -738,8 +759,8 @@ void cImInMem::orientate()
 		if ( nbAngles!=0 )
 		{
 			DigeoPoint &dstPoint = *itDst++;
-			dstPoint.x = srcPoint.mPt.x*octaveTrueSamplingPace;
-			dstPoint.y = srcPoint.mPt.y*octaveTrueSamplingPace;
+			dstPoint.x = srcPoint.mPt.x;
+			dstPoint.y = srcPoint.mPt.y;
 			dstPoint.scale = srcPoint.mScale;
 			switch ( srcPoint.mType )
 			{
@@ -927,6 +948,11 @@ void cImInMem::describe()
 			::describe( srcGradient, p.x, p.y, p.scale/octaveTrueSamplingPace, entry.angle, entry.descriptor );
 			normalize_and_truncate( entry.descriptor );
 		}
+
+		// prepare points for outputting
+		p.x *= octaveTrueSamplingPace;
+		p.y *= octaveTrueSamplingPace;
+		p.scale = ScaleInit();
 	}
 
 	mAppli.times()->stop("describe");

@@ -260,7 +260,10 @@ Pt2dr  cOctaveDigeo::ToPtImR1(const Pt2dr& aP0) const
 
 bool cOctaveDigeo::Pt2Sauv(const Pt2dr& aP0) const
 {
-   return mIm.PtResolCalcSauv(ToPtImCalc(aP0));
+	// __DEL
+	return true;
+
+   //return mIm.PtResolCalcSauv(ToPtImCalc(aP0));
 }
 
 int cOctaveDigeo::NbImOri() const
