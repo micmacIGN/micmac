@@ -170,6 +170,18 @@ TPL_T bool CData<T>::Dealloc()
     return op;
 }
 
+
+
+template <class T, class structuringClass>
+class CStructuredData : public structuringClass
+{
+
+private:
+    CData<T>        _data;
+};
+
+
+
 /// \class CData2D
 /// \brief Classe abstraite d un tableau d elements structuree en deux dimensions
 template <class T>
@@ -211,10 +223,12 @@ protected:
 
 TPL_T void CData2D<T>::OutputInfo()
 {
-    std::cout << "Structure 2D : \n";
+
     struct2D::Output();
 }
 
+
+/// Specialisation pour cudaArray la taille memoire
 template <> inline
 uint CData2D<cudaArray>::Sizeof()
 {
@@ -850,6 +864,15 @@ public:
         DecoratorImage<cudaContext>::SetName(name);
     }
 
+    bool    syncDevice(CuHostData3D<T> &hostData,textureReference&  texture)
+    {
+        CData3D::ReallocIfDim(hostData.GetDimension(),1);
+        bool resultSync = copyHostToDevice(hostData.pData());
+        bindTexture(texture);
+
+        return resultSync;
+    }
+
 protected:
 
     bool    abMalloc()
@@ -969,6 +992,15 @@ public:
         return CData3D::ErrorOutput( cudaMemcpy3DAsync (&p, stream),__FUNCTION__);
     }
 
+
+    bool    syncDevice(CuHostData3D<T> &hostData,textureReference&  texture)
+    {
+        CData3D::ReallocIfDim(hostData.GetDimension(),hostData.GetNbLayer());
+        bool resultSync = copyHostToDevice(hostData.pData());
+        bindTexture(texture);
+
+        return resultSync;
+    }
 
 protected:
 
