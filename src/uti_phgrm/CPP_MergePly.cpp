@@ -281,28 +281,6 @@
 
 #else
     #include "../../CodeExterne/Poisson/include/PlyFile.h"
-    #if (0)
-    // MPD : PB de linj et doublon avec : poisson/plyfile.cpp
-    const char *elem_names[] = { /* list of the kinds of elements in the user's object */
-        "vertex", "face"
-    };
-
-    #endif
-
-    PlyProperty vert_props[] = { /* list of property information for a vertex */
-        {"x", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,x), 0, 0, 0, 0},
-        {"y", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,y), 0, 0, 0, 0},
-        {"z", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,z), 0, 0, 0, 0},
-    };
-
-    static PlyProperty oriented_vert_props[] = {
-        {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,x ), 0, 0, 0, 0},
-        {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,y ), 0, 0, 0, 0},
-        {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,z ), 0, 0, 0, 0},
-        {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nx), 0, 0, 0, 0},
-        {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,ny), 0, 0, 0, 0},
-        {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
-    };
 
     int MergePly_main(int argc,char ** argv)
     {

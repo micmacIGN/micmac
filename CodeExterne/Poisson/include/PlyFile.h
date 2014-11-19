@@ -214,6 +214,65 @@ void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
 
 extern int equal_strings(const char *, const char *);
 
+static PlyProperty vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,z), 0, 0, 0, 0},
+};
+
+static PlyProperty colored_a_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,z), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,blue), 0, 0, 0, 0},
+    {"alpha", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,alpha), 0, 0, 0, 0}
+};
+
+static PlyProperty colored_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,x), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,y), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,z), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,blue), 0, 0, 0, 0},
+};
+
+static PlyProperty oriented_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,x ), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,y ), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,z ), 0, 0, 0, 0},
+    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nx), 0, 0, 0, 0},
+    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,ny), 0, 0, 0, 0},
+    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
+};
+
+static PlyProperty oriented_colored_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,x ), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,y ), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,z ), 0, 0, 0, 0},
+    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,nx), 0, 0, 0, 0},
+    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,ny), 0, 0, 0, 0},
+    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,nz), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,blue), 0, 0, 0, 0}
+};
+
+static PlyProperty oriented_colored_alpha_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,x ), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,y ), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,z ), 0, 0, 0, 0},
+    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,nx), 0, 0, 0, 0},
+    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,ny), 0, 0, 0, 0},
+    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,nz), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex,blue), 0, 0, 0, 0},
+    {"alpha", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex,alpha), 0, 0, 0, 0}
+};
+
 /*#ifndef WIN32
 #ifdef __cplusplus
 }
