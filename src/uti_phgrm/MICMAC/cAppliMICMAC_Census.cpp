@@ -1506,6 +1506,12 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 #ifdef CUDA_ENABLED
         interface_Census_GPU._dataCMS.transfertImage(toUi2(mPDV1->LoadedIm().SzIm()), anI0.VDataIm(),0);
         interface_Census_GPU._dataCMS.transfertImage(toUi2(mPDV1->LoadedIm().SzIm()), anI1.VDataIm(),1);
+        interface_Census_GPU._cDataCMS.transfertConstantCensus(aVKImS,aVPds,make_int2(anOff0.x,anOff0.y),make_int2(anOff1.x,anOff1.y));
+        interface_Census_GPU._dataCMS.transfertNappe(mX0Ter, mX1Ter, mY0Ter, mY1Ter, mTabZMin, mTabZMax);
+        interface_Census_GPU._cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));
+        interface_Census_GPU._dataCMS.transfertMask(toUi2(mPDV1->LoadedIm().SzIm()),anI0.ImMasqErod(),anI1.ImMasqErod());
+//        interface_Census_GPU.jobMask();
+//        getchar();
 #endif
 
         cImFlags<U_INT2>   aTabFlag1 (Pt2di(1,1),1);
@@ -1527,8 +1533,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
             aSomC = aMomC->DataSom();
             aSomCC = aMomC->DataSomQuad();
         }
-
-
 
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {

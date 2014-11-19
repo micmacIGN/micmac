@@ -9,10 +9,14 @@
 #define SIZEWIN(rayonWin) (rayonWin*2+1)*(rayonWin*2+1)
 #define NBSCALE 3
 
+struct dataCorrelMS;
+struct constantParameterCensus;
+
 extern "C" textureReference&  texture_ImageEpi(int nEpi);
 extern "C" textureReference* pTexture_ImageEpi(int nEpi);
 extern "C" textureReference& texture_Masq_Erod();
-extern "C" void LaunchKernelCorrelationCensus();
+extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param);
+extern "C" void paramCencus2Device( constantParameterCensus &param );
 
 struct constantParameterCensus
 {
@@ -42,6 +46,17 @@ struct constantParameterCensus
     /// offset terrain image epiolaire 1
     int2    _offset1;
 
+    Rect    _zoneTerrain;
+
+    uint2   _dimTerrain;
+
+    void transfertConstantCensus(
+            const std::vector<std::vector<Pt2di> >  &aVV,
+            const std::vector<double >              &aVPds,
+            int2    offset0,
+            int2    offset1);
+
+    void transfertTerrain(Rect    zoneTerrain);
 };
 
 
@@ -67,17 +82,20 @@ struct dataCorrelMS
     /// Nappe des Z device
     CuDeviceData3D<short2>      _DeviceInterval_Z;
 
-
-    ImageGpGpu<pixel,cudaContext>           _dt_MaskErod;
+    ImageLayeredGpGpu<pixel,cudaContext>    _dt_MaskErod;
     ImageLayeredGpGpu<float,cudaContext>    _dt_Image[NBEPIIMAGE];
 
     textureReference*           _texImage[NBEPIIMAGE];
     textureReference&           _texMaskErod;
 
-
     void    transfertImage(uint2 sizeImage, float ***dataImage , int id);
 
-private:
+    void    transfertMask(uint2 sizeMask, pixel **mImMasqErod_0, pixel **mImMasqErod_1);
+
+    void    transfertNappe(int  mX0Ter, int  mX1Ter, int  mY0Ter, int  mY1Ter, short **mTabZMin, short **mTabZMax);
+
+
+//private:
 
     void syncDeviceData();
 
@@ -91,7 +109,11 @@ public:
 
     dataCorrelMS    _dataCMS;
 
-private:
+    constantParameterCensus _cDataCMS;
+
+//private:
+
+    void jobMask();
 //    virtual void    simpleWork(){}
 
 
