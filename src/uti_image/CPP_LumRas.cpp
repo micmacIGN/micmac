@@ -299,6 +299,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
                       << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]", eSAM_NoInit)
     );
 
+
     if (!MMVisualMode)
     {
         for (int aK=aPdsI.size() ; aK<3 ; aK++)
@@ -336,6 +337,9 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
             aGlobSh = (aK==0) ? aFShade : Virgule(aGlobSh,aFShade);
         }
 
+/* 
+  // RGB 
+
        std::string aNameOut = mEASF.mDir+ "LumRas_"+StdPrefix(mNameImBase) + ".tif";
        Tiff_Im TifTest
                (
@@ -354,6 +358,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
              Max(0,Min(255,aFCoul+ 20*aGlobSh)),
              TifTest.out()
        );
+*/
     }
 }
 

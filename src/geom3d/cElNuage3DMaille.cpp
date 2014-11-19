@@ -37,24 +37,6 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-/*
-
-ply
-format binary_little_endian 1.0
-element vertex 1368228
-property float x
-property float y
-property float z
-property uchar red
-property uchar green
-property uchar blue
-element face 0
-property list uchar int vertex_indices
-end_header
-
-*/
-
-
 
 
 #include "StdAfx.h"

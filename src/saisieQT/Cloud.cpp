@@ -1,52 +1,6 @@
 ﻿#include "Cloud.h"
 #include "../../CodeExterne/Poisson/include/PlyFile.h"
 
-static PlyProperty vert_props[] = {
-    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
-    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
-    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,z), 0, 0, 0, 0},
-};
-
-static PlyProperty colored_a_vert_props[] = {
-    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
-    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
-    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,z), 0, 0, 0, 0},
-    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,red), 0, 0, 0, 0},
-    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,green), 0, 0, 0, 0},
-    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,blue), 0, 0, 0, 0},
-    {"alpha", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,alpha), 0, 0, 0, 0}
-};
-
-static PlyProperty colored_vert_props[] = {
-    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,x), 0, 0, 0, 0},
-    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,y), 0, 0, 0, 0},
-    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,z), 0, 0, 0, 0},
-    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,red), 0, 0, 0, 0},
-    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,green), 0, 0, 0, 0},
-    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,blue), 0, 0, 0, 0},
-};
-
-static PlyProperty oriented_vert_props[] = {
-    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,x ), 0, 0, 0, 0},
-    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,y ), 0, 0, 0, 0},
-    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,z ), 0, 0, 0, 0},
-    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nx), 0, 0, 0, 0},
-    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,ny), 0, 0, 0, 0},
-    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
-};
-
-static PlyProperty oriented_colored_vert_props[] = {
-    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,x ), 0, 0, 0, 0},
-    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,y ), 0, 0, 0, 0},
-    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,z ), 0, 0, 0, 0},
-    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,nx), 0, 0, 0, 0},
-    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,ny), 0, 0, 0, 0},
-    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,nz), 0, 0, 0, 0},
-    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,red), 0, 0, 0, 0},
-    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,green), 0, 0, 0, 0},
-    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,blue), 0, 0, 0, 0}
-};
-
 /*!
     Read a ply file, store the point cloud
 */
@@ -96,6 +50,29 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
         {
             switch(nprops)
             {
+            case 10: // x y z nx ny nz r g b a
+                {
+                    type = 5;
+                    for (int j = 0; j < nprops ;++j)
+                        ply_get_property (thePlyFile, elem_name, &oriented_colored_alpha_vert_props[j]);
+
+                    sPlyOrientedColoredAlphaVertex *vertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
+
+                    // grab all the vertex elements
+                    for (int j = 0; j < num_elems; j++)
+                    {
+                        if (incre) *incre = 100.0f*(float)j/num_elems;
+
+                        ply_get_element (thePlyFile, (void *) vertex);
+
+#ifdef _DEBUG
+    printf ("vertex--: %g %g %g %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue, vertex->alpha);
+#endif
+
+                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha ), Pt3dr(vertex->nx, vertex->ny, vertex->nz)));
+                    }
+                    break;
+                }
             case 9: // x y z nx ny nz r g b
                 {
                     type = 4;
@@ -144,7 +121,6 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                     }
                     break;
                 }
-
             case 6:
                 {
                     // can be (x y z r g b) or (x y z nx ny nz)
@@ -225,7 +201,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                 }
              default:
                 {
-                    printf("unable to load a ply unless number of properties is 3, 6 or 7\n");
+                    printf("unable to load a ply unless number of properties is 3, 6, 7, 9 or 10\n");
                     break;
                 }
             }
