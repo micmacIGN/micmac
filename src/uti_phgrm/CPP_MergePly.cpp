@@ -148,6 +148,17 @@
                 fprintf(aFP,"property uchar blue\n");
                 break;
             }
+            case 5:
+            {
+                fprintf(aFP,"property float nx\n");
+                fprintf(aFP,"property float ny\n");
+                fprintf(aFP,"property float nz\n");
+                fprintf(aFP,"property uchar red\n");
+                fprintf(aFP,"property uchar green\n");
+                fprintf(aFP,"property uchar blue\n");
+                fprintf(aFP,"property uchar alpha\n");
+                break;
+            }
         }
 
         fprintf(aFP,"element face %d\n",0);
@@ -238,6 +249,25 @@
                         }
                         else
                             fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z, col.red(), col.green(), col.blue() );
+                        break;
+                    }
+                    case 5:
+                    {
+                        QColor col = vertex.getColor();
+                        Pt3dr n = vertex.getNormal();
+
+                        if (aBin)
+                        {
+                            WriteType(aFP,float(n.x));
+                            WriteType(aFP,float(n.y));
+                            WriteType(aFP,float(n.z));
+                            WriteType(aFP,uchar(col.red()));
+                            WriteType(aFP,uchar(col.green()));
+                            WriteType(aFP,uchar(col.blue()));
+                            WriteType(aFP,uchar(col.alpha()));
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d %d\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z, col.red(), col.green(), col.blue(), col.alpha() );
                         break;
                     }
                 }
