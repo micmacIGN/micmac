@@ -299,6 +299,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
                       << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]", eSAM_NoInit)
     );
 
+
     if (!MMVisualMode)
     {
         for (int aK=aPdsI.size() ; aK<3 ; aK++)
