@@ -2636,6 +2636,7 @@ class   cGPU_LoadedImGeom
       }
       U_INT1 ** ImPC()      {return mImPC;}
       U_INT1**  ImMasq()    {return mImMasq;}
+      U_INT1**  ImMasqErod()    {return mImMasqErod;}
       float *** VDataIm()   {return mDataIm;}
       float **  VLinDIm()   {return mLinDIm;}
       double  PdsMS() const;

@@ -6,33 +6,69 @@ dataCorrelMS::dataCorrelMS():
 {
     for (int t = 0; t < NBEPIIMAGE; ++t)
     {
-        _texImage[t] = pTexture_ImageEpi(t);
+        _texImage[t]    = pTexture_ImageEpi(t);
         GpGpuTools::SetParamterTexture(*_texImage[t]);
     }
+
+    _texMaskErod.addressMode[0]	= cudaAddressModeBorder;
+    _texMaskErod.addressMode[1]	= cudaAddressModeBorder;
+    _texMaskErod.filterMode     = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
+    _texMaskErod.normalized     = false;
 }
 
 void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
 {
-
     _HostImage[id].ReallocIfDim(sizeImage,3);
-
-//    std::string numeEpi(GpGpuTools::conca("EPI_",id));
-
     for (int tScale = 0; tScale < 3; tScale++)
     {
 
         float ** buuf = dataImage[tScale];
         float *dest = _HostImage[0].pData() + size(sizeImage) * tScale;
-        memcpy( dest , buuf[0],  size(sizeImage) * sizeof(float));
-//        DUMP_INT(tScale)
-//        std::string numec(GpGpuTools::conca("_IMAGES_",tScale));
-//        std::string nameFile = numeEpi + numec + std::string(".pgm");
-//        printf("%s\n",nameFile.c_str());
-//        GpGpuTools::Array1DtoImageFile(dest,nameFile.c_str(),sizeImage,1.f/65536.f);
+        memcpy( dest , buuf[0],  size(sizeImage) * sizeof(float));      
 
     }
+}
 
-   //getchar();
+void dataCorrelMS::transfertMask(uint2 dimMask, pixel **mImMasqErod_0, pixel **mImMasqErod_1)
+{
+    uint2 dimMaskByte = make_uint2(dimMask.x/8,dimMask.y);
+
+    _HostMaskErod.ReallocIfDim(dimMaskByte,2);
+
+    pixel *  dest = _HostMaskErod.pData();
+    memcpy( dest , mImMasqErod_0[0],  size(dimMaskByte) * sizeof(pixel));
+    dest += size(dimMaskByte);
+    memcpy( dest , mImMasqErod_1[0],  size(dimMaskByte) * sizeof(pixel));
+
+//    for (uint y = 0; y < dimMask.y; ++y)
+//    {
+//        pixel* yP = mImMasqErod_0[y];
+
+//        for (uint x = 0; x < dimMask.x; ++x)
+//        {
+//            _HostMaskErod[make_uint3(x,y,0)] = mImMasqErod_0[y][x];//((yP[x/8] >> (7-x %8) ) & 1) ? 255 : 0;
+//        }
+//    }
+
+
+//    std::string numec(GpGpuTools::conca("_Mask_",0));
+//    std::string nameFile = numec + std::string(".pgm");
+//    GpGpuTools::Array1DtoImageFile(dest,nameFile.c_str(),dimMaskByte);
+}
+
+void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter, short **mTabZMin, short **mTabZMax)
+{
+
+    uint2 dimNappe = make_uint2(mX1Ter-mX0Ter,mY1Ter-mY0Ter);
+
+    _HostInterval_Z.ReallocIfDim(dimNappe,1);
+
+    for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+    {
+        int X = anX - mX0Ter;
+        for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+            _HostInterval_Z[make_uint2(X,anY - mY0Ter)] = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+    }
 }
 
 void dataCorrelMS::syncDeviceData()
@@ -44,5 +80,37 @@ void dataCorrelMS::syncDeviceData()
 
     _DeviceInterval_Z.ReallocIf(_HostInterval_Z.GetDimension());
     _DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
+}
 
+void constantParameterCensus::transfertConstantCensus(const std::vector<std::vector<Pt2di> > &aVV, const std::vector<double> &aVPds, int2 offset0, int2 offset1)
+{
+    for (int s = 0; s < (int)aVV.size(); ++s)
+    {
+        short2 *lw = w[s];
+
+        const std::vector<Pt2di> &vv = aVV[s];
+        sizeW[s] = vv.size();
+        poids[s] = aVPds[s];
+        _offset0 = offset0;
+        _offset1 = offset1;
+
+        for (int p = 0; p < (int)vv.size(); ++p)
+        {
+            Pt2di pt = vv[p];
+            lw[p] = make_short2(pt.x,pt.y);
+        }
+    }
+}
+
+void constantParameterCensus::transfertTerrain(Rect zoneTerrain)
+{
+    _zoneTerrain    = zoneTerrain;
+    _dimTerrain     = _zoneTerrain.dimension();
+}
+
+void GpGpuInterfaceCensus::jobMask()
+{
+    paramCencus2Device(_cDataCMS);
+    _dataCMS._dt_MaskErod.syncDevice(_dataCMS._HostMaskErod,_dataCMS._texMaskErod);
+    LaunchKernelCorrelationCensus(_dataCMS,_cDataCMS);
 }
