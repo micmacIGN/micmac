@@ -219,6 +219,29 @@
                 <ShortName> OlMu790  </ShortName>
         </CameraEntry>
 
+<!-- Panasonic -->
+
+        <CameraEntry>
+                <Name>  Panasonic DMC-GH1 </Name>
+                <SzCaptMm>   14.48 18.89  </SzCaptMm>
+                <ShortName> GH1  </ShortName>
+       </CameraEntry>
+        <CameraEntry>
+                <Name>  Panasonic DMC-GH2 </Name>
+                <SzCaptMm>   13 17.3  </SzCaptMm>
+                <ShortName> GH2  </ShortName>
+       </CameraEntry>
+        <CameraEntry>
+                <Name>  Panasonic DMC-GH3 </Name>
+                <SzCaptMm>   13 17.3  </SzCaptMm>
+                <ShortName> GH3  </ShortName>
+       </CameraEntry>
+		<CameraEntry>
+                <Name>  Panasonic DMC-GH4 </Name>
+                <SzCaptMm>   13 17.3  </SzCaptMm>
+                <ShortName> GH4  </ShortName>
+       </CameraEntry>
+		
 <!-- GoPro -->
 
         <CameraEntry>

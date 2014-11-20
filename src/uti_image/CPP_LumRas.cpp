@@ -121,12 +121,14 @@ class cImage_LumRas
        std::string      mName;
        cAppli_LumRas &  mAppli;
        Tiff_Im          mTiffIm;
+       Im2D_REAL4       mImShade;
+       Im2D_U_INT2      mIm;
 
        Fonc_Num         FMoy(int aKIter,int aSzW,Fonc_Num);
        Fonc_Num         FLoc(int aKIter,int aSzW,Im2D_U_INT2);
        Fonc_Num         MoyGlobImage(Fonc_Num aF);
        // Fonc_Num         MoyByCC(Fonc_Num aF);
-       Im2D_REAL4       mImShade;
+       void CalculShadeByDiff();
 };
 
 class cAppli_LumRas : cAppliWithSetImage
@@ -135,6 +137,8 @@ class cAppli_LumRas : cAppliWithSetImage
        friend class cImage_LumRas;
        cAppli_LumRas(int argc,char ** argv);
     private :
+       void  DoShadeByLeastSquare();
+
        std::string mNameImBase;
        //Tiff_Im *   mTifBaseGr;
        Tiff_Im *   mTifBaseCoul;
@@ -145,6 +149,7 @@ class cAppli_LumRas : cAppliWithSetImage
        Im2D_U_INT2                  mImGr;
        Pt2di                        mSz;
        Im2D_Bits<1>                 mImMasq;
+       std::string                  mNameTargSh;
 
 };
 
@@ -199,6 +204,8 @@ Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Im2D_U_INT2 anIm)
         Im2D_REAL4 aIMoy (aSz.x,aSz.y);
         ::MoyByCC(true, TIm2DBits<1>(mAppli.mImMasq),0,TIm2D<U_INT2,INT>(anIm),TIm2D<REAL4,REAL8>(aIMoy));
         aFMoy = aIMoy.in();
+
+Tiff_Im::Create8BFromFonc("TestMasq.tif",aSz,mAppli.mImMasq.in()*255);
         //Tiff_Im::Create8BFromFonc("Test.tif",aSz,aFMoy); std::cout << "CCCCCCCCCC\n"; getchar();
    }
 
@@ -209,14 +216,15 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
    mNameFull   (aNameFull),
    mAppli      (anAppli),
    mTiffIm     (Tiff_Im::StdConvGen(aNameFull,1,true)),
-   mImShade    (1,1)
+   mImShade    (1,1),
+   mIm         (1,1)
 {
    SplitDirAndFile(mDir,mName,mNameFull);
 
-   Im2D_U_INT2 anIm = Im2D_U_INT2::FromFileStd(mNameFull);
+   mIm = Im2D_U_INT2::FromFileStd(mNameFull);
    if (mAppli.mKeyHom !="")
    {
-       Pt2di aSzIn = anIm.sz();
+       Pt2di aSzIn = mIm.sz();
        std::string aNameH = mAppli.mEASF.mICNM->Assoc1To2(mAppli.mKeyHom,mName,NameWithoutDir(mAppli.mNameImBase),true);
        std::cout << "SZ IM " << aSzIn << " " << mNameFull << " " << aNameH << "\n";
 
@@ -227,7 +235,7 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
        Pt2di aSz = mAppli.mSz;
        Im2D_U_INT2 anImReech(aSz.x,aSz.y);
        TIm2D<U_INT2,INT> aTR(anImReech);
-       TIm2D<U_INT2,INT> aT0(anIm);
+       TIm2D<U_INT2,INT> aT0(mIm);
        Pt2di aP;
 
        for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
@@ -239,8 +247,12 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
        }
 
 
-       anIm = anImReech;
+       mIm = anImReech;
    }
+}
+
+void cImage_LumRas::CalculShadeByDiff()
+{
 
    mImShade.Resize(mAppli.mImGr.sz());
 
@@ -248,17 +260,17 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
    Tiff_Im TifTest
            (
                  aNameOut.c_str(),
-                 anIm.sz(),
+                 mIm.sz(),
                  // GenIm::u_int1,
                  GenIm::real4,
                  Tiff_Im::No_Compr,
                  Tiff_Im::BlackIsZero
            );
 
-    Fonc_Num aFRas  =  FLoc(6,50,anIm);
+    Fonc_Num aFRas  =  FLoc(6,50,mIm);
     Fonc_Num aFStd  =  FLoc(6,50,mAppli.mImGr);
-    Tiff_Im::Create8BFromFonc("Test-Ras.tif",anIm.sz(),aFRas*100);
-    Tiff_Im::Create8BFromFonc("Test-Std.tif",anIm.sz(),aFStd*100);
+    Tiff_Im::Create8BFromFonc("Test-Ras.tif",mIm.sz(),aFRas*100);
+    Tiff_Im::Create8BFromFonc("Test-Std.tif",mIm.sz(),aFStd*100);
 // Fonc_Num     cImage_LumRas::FLoc(int aNbIter,int aSzW,Fonc_Num aF)
 
    ELISE_COPY(mImShade.all_pts(),(aFRas-aFStd),mImShade.out());
@@ -281,6 +293,10 @@ cImage_LumRas::cImage_LumRas(const std::string& aNameFull,cAppli_LumRas & anAppl
 /*                                                                    */
 /**********************************************************************/
 
+void  cAppli_LumRas::DoShadeByLeastSquare()
+{
+
+}
 cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
    cAppliWithSetImage(argc-2,argv +2,TheFlagNoOri|TheFlagDev16BGray),
    // mTifBaseGr   (0),
@@ -297,6 +313,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
                       << EAM(mPatImRas, "Image pattern", true, "Pattern", eSAM_IsPatFile) ,
            LArgMain() << EAM(mPostMasq,"Masq",true,"Mask for computation", eSAM_NoInit)
                       << EAM(aPdsI,"PdsIn",true,"Pds on RGB Input, def=[1,1,1]", eSAM_NoInit)
+                      << EAM(mNameTargSh,"TargShade",true,"Targeted Shade", eSAM_NoInit)
     );
 
 
@@ -333,10 +350,23 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
         {
             std::string aName = mVSoms[aK]->attr().mIma->mNameIm;
             mVIm.push_back(new cImage_LumRas(mEASF.mDir+aName,*this));
-            Fonc_Num aFShade = mVIm.back()->mImShade.in();
-            aGlobSh = (aK==0) ? aFShade : Virgule(aGlobSh,aFShade);
+            //Fonc_Num aFShade = mVIm.back()->mImShade.in();
+
+
+
+            // aGlobSh = (aK==0) ? aFShade : Virgule(aGlobSh,aFShade);
         }
 
+
+        if (EAMIsInit(&mNameTargSh))
+        {
+            DoShadeByLeastSquare();
+        }
+        else
+        {
+             for (int aK=0 ; aK<int(mVIm.size()) ; aK++)
+                mVIm[aK]->CalculShadeByDiff();
+        }
 /* 
   // RGB 
 
