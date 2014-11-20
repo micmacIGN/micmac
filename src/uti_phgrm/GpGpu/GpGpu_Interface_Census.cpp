@@ -75,19 +75,19 @@ void dataCorrelMS::syncDeviceData()
     _DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
 }
 
-void constantParameterCensus::transfertConstantCensus(const std::vector<std::vector<Pt2di> > &aVV, const std::vector<double> &aVPds, int2 offset0, int2 offset1,ushort nbscale)
+void constantParameterCensus::transfertConstantCensus(const std::vector<std::vector<Pt2di> > &VV, const std::vector<double> &VPds, int2 offset0, int2 offset1,ushort nbscale)
 {
-    _NBScale = nbscale;
+    aNbScale = nbscale;
 
-    for (int s = 0; s < (int)aVV.size(); ++s)
+    for (int s = 0; s < (int)VV.size(); ++s)
     {
-        short2 *lw = w[s];
+        short2 *lw = aVV[s];
 
-        const std::vector<Pt2di> &vv = aVV[s];
-        sizeW[s] = vv.size();
-        poids[s] = aVPds[s];
-        _offset0 = offset0;
-        _offset1 = offset1;
+        const std::vector<Pt2di> &vv = VV[s];
+        size_aVV[s] = vv.size();
+        aVPds[s] = VPds[s];
+        anOff0 = offset0;
+        anOff1 = offset1;
 
         for (int p = 0; p < (int)vv.size(); ++p)
         {
