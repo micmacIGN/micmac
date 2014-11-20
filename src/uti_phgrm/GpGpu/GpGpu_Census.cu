@@ -69,13 +69,113 @@ __device__
 inline    bool okErod(uint3 pt)
 {
     // TODO peut etre simplifier % et division
-
     pixel mask8b = tex2DLayered(Texture_Masq_Erod,pt.x/8 + 0.5f,pt.y + 0.5f ,pt.z);
 
     return (mask8b >> (7-pt.x %8) ) & 1;
 }
 
-__global__ void projectionMasq(float * dataPixel,uint3 dTer)
+__device__
+inline    texture< float,	cudaTextureType2DLayered >  getTexture(ushort iDi)
+{
+    return iDi == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01;
+}
+
+__device__
+inline    float getValImage(uint2 pt,ushort iDi,ushort nScale)
+{
+    return tex2DLayered(getTexture(iDi),pt.x + 0.5f,pt.y + 0.5f ,nScale);
+}
+
+__device__
+inline    void correl(uint2 pt,ushort iDi)
+{
+    float aGlobSom1 = 0;
+    float aGlobSom2 = 0;
+    float aGlobPds  = 0;
+
+    for (int aKS=0 ; aKS< cParamCencus._NBScale ; aKS++)
+    {
+        float   aSom1   = 0;
+        float   aSom2   = 0;
+        short2 *aVP     = cParamCencus.w[aKS];
+        ushort  aNbP    = cParamCencus.sizeW[aKS];
+        float  aPdsK    = cParamCencus.poids[aKS];
+
+        for (int aKP=0 ; aKP<aNbP ; aKP++)
+        {
+            const short2 aP = aVP[aKP];
+            //const uint ptV  = make_uint2(pt.x+aP.x,)
+            float aV = getValImage(pt+aP,iDi,aKS);
+            aSom1 += aV;
+            aSom2 += aV*aV;
+        }
+        aGlobSom1 += aSom1 * aPdsK;
+        aGlobSom2 += aSom2 * aPdsK;
+        aGlobPds += aPdsK * aNbP;
+
+//        mData1[aKS][aYGlob][aXGlob] = aGlobSom1 / aGlobPds;
+//        mData2[aKS][aYGlob][aXGlob] = aGlobSom2 / aGlobPds;
+    }
+}
+
+__device__
+inline    float CorrelBasic_Center(
+    const uint2 & aPG1,
+    const uint2 & aPG2,
+    float ***  aSom1,
+    float ***  aSom11,
+    float ***  aSom2,
+    float ***  aSom22,
+    int  aPx2,
+    bool ModeMax)
+{
+    float aMaxCor = -1;
+    float aCovGlob = 0;
+    float aPdsGlob = 0;
+    int aNbScale = cParamCencus._NBScale;
+    for (int aKS=0 ; aKS< aNbScale ; aKS++)
+    {
+         bool   aLast   = (aKS==(aNbScale-1));
+         short2*aVP     = cParamCencus.w[aKS];
+         float  aPds    = cParamCencus.poids[aKS];
+         float  aCov    = 0;
+         ushort  aNbP    = cParamCencus.sizeW[aKS];
+
+         float ** anIm1; //= aVBOI1[aKS]->data();
+         float ** anIm2;// = aVBOI2[aKS]->data();
+
+         aPdsGlob += aPds * aNbP;
+         for (int aKP=0 ; aKP<aNbP ; aKP++)
+         {
+             const short2 aP = aVP[aKP];
+             aCov += anIm1[aP.y][aP.x]*anIm2[aP.y][aP.x+aPx2];
+         }
+
+         aCovGlob += aCov * aPds;
+
+         if (ModeMax || aLast)
+         {
+             float aM1  = aSom1 [aKS][aPG1.y][aPG1.x];
+             float aM2  = aSom2 [aKS][aPG2.y][aPG2.x];
+             float aM11 = aSom11[aKS][aPG1.y][aPG1.x] - aM1*aM1;
+             float aM22 = aSom22[aKS][aPG2.y][aPG2.x] - aM2*aM2;
+             float aM12 = aCovGlob / aPdsGlob - aM1 * aM2;
+
+             if (ModeMax)
+             {
+                float aCor = (aM12 * abs(aM12)) /max(cParamCencus.anEpsilon,aM11*aM22);
+                aMaxCor = max(aMaxCor,aCor);
+             }
+             else
+                return aM12 / sqrt(max(cParamCencus.anEpsilon,aM11*aM22));
+        }
+
+    }
+    return (aMaxCor > 0) ? sqrt(aMaxCor) : - sqrt(-aMaxCor) ;
+}
+
+__global__
+void projectionMasqImage(float * dataPixel,uint3 dTer)
 {
 
     if(blockIdx.x > cParamCencus._dimTerrain.y || blockIdx.y > cParamCencus._dimTerrain.x)
@@ -85,7 +185,7 @@ __global__ void projectionMasq(float * dataPixel,uint3 dTer)
 
     float valImage = tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
 
-    dataPixel[to1D(pt,dTer)] = okErod(pt) ? valImage/(32768.f/4.f) : 0;
+    dataPixel[to1D(pt,dTer)] = okErod(pt) ? valImage/(32768.f) : 0;
 }
 
 extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)
@@ -104,10 +204,7 @@ extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParamet
     hData.Fill(0.f);
     dData.Memset(0);
 
-    DUMP_INT2(param._offset0)
-    DUMP_INT2(param._offset1 )
-
-    projectionMasq<<<blocks, threads>>>(dData.pData(),dTer);
+    projectionMasqImage<<<blocks, threads>>>(dData.pData(),dTer);
 
     dData.CopyDevicetoHost(hData);
 

@@ -294,6 +294,11 @@ inline __host__ __device__ uint2 operator+(uint2 a, ushort2 b)
     return make_uint2(a.x + b.x, a.y + b.y);
 }
 
+inline __host__ __device__ uint2 operator+(uint2 a, short2 b)
+{
+    return make_uint2(a.x + b.x, a.y + b.y);
+}
+
 inline __host__ __device__ ushort2 operator+(ushort2 a, int b)
 {
     return make_ushort2(a.x + b, a.y + b);

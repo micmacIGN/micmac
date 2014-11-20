@@ -20,6 +20,8 @@ extern "C" void paramCencus2Device( constantParameterCensus &param );
 
 struct constantParameterCensus
 {
+    //constantParameterCensus():_NBScale(NBSCALE){}
+
     ///
     /// \brief w
     /// parcours des vignettes
@@ -50,11 +52,16 @@ struct constantParameterCensus
 
     uint2   _dimTerrain;
 
+    ushort  _NBScale;
+
+    float   anEpsilon;
+
     void transfertConstantCensus(
             const std::vector<std::vector<Pt2di> >  &aVV,
             const std::vector<double >              &aVPds,
             int2    offset0,
-            int2    offset1);
+            int2    offset1,
+            ushort nbscale = NBSCALE );
 
     void transfertTerrain(Rect    zoneTerrain);
 };
