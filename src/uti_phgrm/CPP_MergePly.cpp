@@ -159,6 +159,8 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
             }
         }
 
+        cout << "nb total elem " << gen_nelems << endl;
+
         int type = clouds[0]->type();
 
         //write merged file
@@ -334,7 +336,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
         {
             thePlyFile = ply_open_for_reading( const_cast<char *>((aDir + ELISE_CAR_DIR + (*itr)).c_str()), &nelems, &elist, &file_type, &version);
 
-            cout << "file "		<< *itr	<< endl;
+            cout << "loading file " << *itr	<< endl;
 #ifdef _DEBUG
             cout << "version "	<< version		<< endl;
             cout << "type "		<< file_type	<< endl;
@@ -387,7 +389,6 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
             printf ("vertex--: %g %g %g %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue, vertex->alpha);
         #endif
 
-                                //glist[Cptr] = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
                                 glist[Cptr] = vertex;
                             }
                             break;
@@ -424,7 +425,6 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                                 fvertex->green = vertex->green;
                                 fvertex->blue  = vertex->blue;
 
-                                //glist[Cptr] = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
                                 glist[Cptr] = fvertex;
 
                             }
@@ -457,9 +457,8 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                                 fvertex->red   = vertex->red;
                                 fvertex->green = vertex->green;
                                 fvertex->blue  = vertex->blue;
-                                fvertex->alpha  = vertex->alpha;
+                                fvertex->alpha = vertex->alpha;
 
-                                //glist[Cptr] = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
                                 glist[Cptr] = fvertex;
                             }
                             break;
@@ -503,7 +502,6 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                                         fvertex->green = vertex->green;
                                         fvertex->blue  = vertex->blue;
 
-                                        //glist[Cptr] = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
                                         glist[Cptr] = fvertex;
                                 }
                             }
@@ -533,7 +531,6 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                                     fvertex->ny = vertex->ny;
                                     fvertex->nz = vertex->nz;
 
-                                    //glist[Cptr] = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
                                     glist[Cptr] = fvertex;
                                 }
                             }
@@ -561,7 +558,6 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                                 fvertex->y = vertex->y;
                                 fvertex->z = vertex->z;
 
-                                //glist[Cptr] = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
                                 glist[Cptr] = fvertex;
                             }
                             break;
@@ -593,9 +589,9 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
 
                 if (aBin)
                 {
-                    WriteType(aFP,float(pt->x));
-                    WriteType(aFP,float(pt->y));
-                    WriteType(aFP,float(pt->z));
+                    WriteType(aFP, pt->x);
+                    WriteType(aFP, pt->y);
+                    WriteType(aFP, pt->z);
                 }
 
                 switch (type)
