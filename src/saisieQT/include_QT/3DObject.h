@@ -247,7 +247,7 @@ class cAxis : public cObjectGL
 class cGrid : public cObjectGL
 {
     public:
-        cGrid(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, int nb = 1.f);
+        cGrid(Pt3dr pt = Pt3dr(0.f,0.f,0.f), Pt3dr scale = Pt3dr(1.f,1.f,1.f));
 
         void    draw();
 };
