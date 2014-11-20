@@ -65,16 +65,27 @@ inline    bool GET_Val_BIT(const U_INT1 * aData,int anX)
     return (aData[anX/8] >> (7-anX %8) ) & 1;
 }
 
+__device__
+inline    bool okErod(uint3 pt)
+{
+    // TODO peut etre simplifier % et division
+
+    pixel mask8b = tex2DLayered(Texture_Masq_Erod,pt.x/8 + 0.5f,pt.y + 0.5f ,pt.z);
+
+    return (mask8b >> (7-pt.x %8) ) & 1;
+}
+
 __global__ void projectionMasq(float * dataPixel,uint3 dTer)
 {
-    const uint3 ptTer = make_uint3(blockIdx.x,blockIdx.y,blockIdx.z);
-    const uint2 ptMTer = make_uint2(blockIdx.x/8,blockIdx.y);
 
-    pixel val = tex2DLayered(Texture_Masq_Erod,ptMTer.x + 0.5f,ptMTer.y + 0.5f ,blockIdx.z);
+    if(blockIdx.x > cParamCencus._dimTerrain.y || blockIdx.y > cParamCencus._dimTerrain.x)
+        return;
 
-    bool OkErod = (val >> (7-ptTer.x %8) ) & 1;
+    const uint3 pt = make_uint3(blockIdx.x,blockIdx.y,blockIdx.z);
 
-    dataPixel[to1D(ptTer,dTer)] = OkErod ? 1.f : 0;
+    float valImage = tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
+
+    dataPixel[to1D(pt,dTer)] = okErod(pt) ? valImage/(32768.f/4.f) : 0;
 }
 
 extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)
@@ -85,18 +96,21 @@ extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParamet
     CuHostData3D<float>     hData;
     CuDeviceData3D<float>   dData;
 
-    uint3 dTer = make_uint3(param._dimTerrain.y , param._dimTerrain.x,2);
-    uint2 _2dTer = make_uint2(param._dimTerrain.y , param._dimTerrain.x);
+    uint3 dTer  = make_uint3(param._dimTerrain.y , param._dimTerrain.x,2);
+    uint2 dTer2 = make_uint2(dTer);
 
-    hData.Malloc(_2dTer,2);
-    dData.Malloc(_2dTer,2);
+    hData.Malloc(dTer2,2);
+    dData.Malloc(dTer2,2);
     hData.Fill(0.f);
     dData.Memset(0);
+
+    DUMP_INT2(param._offset0)
+    DUMP_INT2(param._offset1 )
 
     projectionMasq<<<blocks, threads>>>(dData.pData(),dTer);
 
     dData.CopyDevicetoHost(hData);
 
-    GpGpuTools::Array1DtoImageFile(hData.pData(),"ET_HOP_0.pmg",hData.GetDimension());
-    GpGpuTools::Array1DtoImageFile(hData.pData()+size(hData.GetDimension()),"ET_HOP_1.pmg",hData.GetDimension());
+    GpGpuTools::Array1DtoImageFile(hData.pData()    ,"ET_HOP_0.pmg",hData.GetDimension());
+    GpGpuTools::Array1DtoImageFile(hData.pLData(1)  ,"ET_HOP_1.pmg",hData.GetDimension());
 }
