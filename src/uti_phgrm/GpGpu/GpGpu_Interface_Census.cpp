@@ -21,39 +21,32 @@ void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
     _HostImage[id].ReallocIfDim(sizeImage,3);
     for (int tScale = 0; tScale < 3; tScale++)
     {
-
-        float ** buuf = dataImage[tScale];
-        float *dest = _HostImage[0].pData() + size(sizeImage) * tScale;
-        memcpy( dest , buuf[0],  size(sizeImage) * sizeof(float));      
-
+        float ** source   = dataImage[tScale];
+        float *  dest     = _HostImage[id].pLData(tScale);
+        memcpy( dest , source[0],  size(sizeImage) * sizeof(float));
     }
 }
 
 void dataCorrelMS::transfertMask(uint2 dimMask, pixel **mImMasqErod_0, pixel **mImMasqErod_1)
 {
-    uint2 dimMaskByte = make_uint2(dimMask.x/8,dimMask.y);
-
+    uint2 dimMaskByte = make_uint2((dimMask.x+7)/8,dimMask.y);
     _HostMaskErod.ReallocIfDim(dimMaskByte,2);
-
-    pixel *  dest = _HostMaskErod.pData();
-    memcpy( dest , mImMasqErod_0[0],  size(dimMaskByte) * sizeof(pixel));
-    dest += size(dimMaskByte);
-    memcpy( dest , mImMasqErod_1[0],  size(dimMaskByte) * sizeof(pixel));
+    memcpy( _HostMaskErod.pData()   , mImMasqErod_0[0],  size(dimMaskByte) * sizeof(pixel));
+    memcpy( _HostMaskErod.pLData(1) , mImMasqErod_1[0],  size(dimMaskByte) * sizeof(pixel));
 
 //    for (uint y = 0; y < dimMask.y; ++y)
 //    {
-//        pixel* yP = mImMasqErod_0[y];
+//        //pixel* yP = mImMasqErod_0[y];
 
 //        for (uint x = 0; x < dimMask.x; ++x)
 //        {
-//            _HostMaskErod[make_uint3(x,y,0)] = mImMasqErod_0[y][x];//((yP[x/8] >> (7-x %8) ) & 1) ? 255 : 0;
+//            _HostMaskErod[make_uint3(x,y,0)] = mImMasqErod_0[y][x];
+////            _HostMaskErod[make_uint3(x,y,0)] = ((yP[x/8] >> (7-x %8) ) & 1) ? 255 : 0;
 //        }
 //    }
 
+//    _HostMaskErod.saveImage("Mask_",0);
 
-//    std::string numec(GpGpuTools::conca("_Mask_",0));
-//    std::string nameFile = numec + std::string(".pgm");
-//    GpGpuTools::Array1DtoImageFile(dest,nameFile.c_str(),dimMaskByte);
 }
 
 void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter, short **mTabZMin, short **mTabZMax)
@@ -110,7 +103,7 @@ void constantParameterCensus::transfertTerrain(Rect zoneTerrain)
 
 void GpGpuInterfaceCensus::jobMask()
 {
-    paramCencus2Device(_cDataCMS);
-    _dataCMS._dt_MaskErod.syncDevice(_dataCMS._HostMaskErod,_dataCMS._texMaskErod);
+    paramCencus2Device(_cDataCMS);   
+    _dataCMS.syncDeviceData();
     LaunchKernelCorrelationCensus(_dataCMS,_cDataCMS);
 }
