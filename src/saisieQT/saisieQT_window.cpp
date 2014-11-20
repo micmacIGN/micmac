@@ -810,20 +810,10 @@ void SaisieQtWindow::on_actionLoad_camera_triggered()
 
 void SaisieQtWindow::on_actionLoad_image_triggered()
 {
-#ifdef ELISE_Darwin
-    setWindowFlags(Qt::WindowStaysOnTopHint);
-#endif
-    QString img_filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
 
-    if (!img_filename.isEmpty())
-    {
-        //TODO: factoriser
-        QStringList & filenames = _Engine->getFilenamesIn();
-        filenames.clear();
-        filenames.push_back(img_filename);
-
-        addFiles(filenames);
-    }
+    if (filename.size())
+        addFiles( QStringList(filename) );
 }
 
 void SaisieQtWindow::on_actionSave_masks_triggered()

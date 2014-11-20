@@ -62,9 +62,9 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine,
 int main(int argc, char *argv[])
 {
 #endif
-    
-	MMD_InitArgcArgv( argc, argv );
-	initQtLibraryPath();  
+
+    MMD_InitArgcArgv( argc, argv );
+    initQtLibraryPath();
 
     QApplication app(argc, argv);
 
