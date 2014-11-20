@@ -4751,10 +4751,14 @@ class cSectionName
 
         cTplValGesInit< std::string > & ModeleNuageResult();
         const cTplValGesInit< std::string > & ModeleNuageResult()const ;
+
+        cTplValGesInit< std::string > & KeyNuage2Im();
+        const cTplValGesInit< std::string > & KeyNuage2Im()const ;
     private:
         std::string mKeyNuage;
         std::string mKeyResult;
         cTplValGesInit< std::string > mModeleNuageResult;
+        cTplValGesInit< std::string > mKeyNuage2Im;
 };
 cElXMLTree * ToXMLTree(const cSectionName &);
 
@@ -5157,6 +5161,9 @@ class cParamFusionMNT
 
         cTplValGesInit< std::string > & ModeleNuageResult();
         const cTplValGesInit< std::string > & ModeleNuageResult()const ;
+
+        cTplValGesInit< std::string > & KeyNuage2Im();
+        const cTplValGesInit< std::string > & KeyNuage2Im()const ;
 
         cSectionName & SectionName();
         const cSectionName & SectionName()const ;
