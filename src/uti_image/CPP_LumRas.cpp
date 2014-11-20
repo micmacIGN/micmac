@@ -137,6 +137,8 @@ class cAppli_LumRas : cAppliWithSetImage
        friend class cImage_LumRas;
        cAppli_LumRas(int argc,char ** argv);
     private :
+       void  DoShadeByLeastSquare();
+
        std::string mNameImBase;
        //Tiff_Im *   mTifBaseGr;
        Tiff_Im *   mTifBaseCoul;
@@ -291,6 +293,10 @@ void cImage_LumRas::CalculShadeByDiff()
 /*                                                                    */
 /**********************************************************************/
 
+void  cAppli_LumRas::DoShadeByLeastSquare()
+{
+
+}
 cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
    cAppliWithSetImage(argc-2,argv +2,TheFlagNoOri|TheFlagDev16BGray),
    // mTifBaseGr   (0),
@@ -352,8 +358,9 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
         }
 
 
-        if (1)
+        if (EAMIsInit(&mNameTargSh))
         {
+            DoShadeByLeastSquare();
         }
         else
         {
