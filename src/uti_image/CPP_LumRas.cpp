@@ -296,7 +296,26 @@ void cImage_LumRas::CalculShadeByDiff()
 void  cAppli_LumRas::DoShadeByLeastSquare()
 {
 
+   Im2D_Bits<1> aMarqueur = ImMarqueurCC(mSz);
+   TIm2DBits<1> aTMarqueur(aMarqueur);
+   TIm2DBits<1> aTMasq(mImMasq);
+
+   Pt2di aP;
+   for (aP.x =0 ; aP.x<mSz.x  ; aP.x++)
+   {
+       for (aP.y =0 ; aP.x<mSz.y  ; aP.y++)
+       {
+            if (aTMasq.get(aP) && aTMarqueur.get(aP))
+            {
+            }
+       }
+   }
+
+   
 }
+
+
+
 cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
    cAppliWithSetImage(argc-2,argv +2,TheFlagNoOri|TheFlagDev16BGray),
    // mTifBaseGr   (0),

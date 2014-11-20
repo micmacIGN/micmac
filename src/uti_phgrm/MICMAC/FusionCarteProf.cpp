@@ -616,7 +616,8 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
 
   mFus         (aFus),
   // mNameIm      ((StdPrefix(mFus).substr(6,std::string::npos)),
-  mNameIm      (StdPrefix(mFus)),
+  // mNameIm      (StdPrefix(mFus)),
+  mNameIm      (mICNM->Assoc1To1(mParam.KeyNuage2Im().Val(),mFus,true)),
   mNameNuage  (mICNM->Dir()+mICNM->Assoc1To2(mParam.KeyNuage(),anId,aFus,true)),
   mNuage      (StdGetObjFromFile<cXML_ParamNuage3DMaille>
                  (
