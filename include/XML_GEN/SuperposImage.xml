@@ -1109,6 +1109,9 @@
              <!-- Definit le modele de geometrie resultant, c'est un cle d'association
                  par defaut il sera pris sur le premier input-->
              <ModeleNuageResult Type="std::string" Nb="?"> </ModeleNuageResult>
+
+             <!-- Defaut Identite, par exemple Nuage-IMGP7046.JPG.xml -> IMGP7046.JPG.xml -->
+             <KeyNuage2Im   Type="std::string" Nb="?" Def="NKS-Assoc-Prefix"> </KeyNuage2Im>
        </SectionName>
 
        <!-- Pour gerer le score pas toujours simple fonction de correlation -->
