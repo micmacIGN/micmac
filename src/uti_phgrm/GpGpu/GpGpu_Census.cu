@@ -42,11 +42,11 @@
 
 
 ///
-static __constant__ constantParameterCensus     cParamCencus;
+static __constant__ constantParameterCensus     cPCencus;
 
 extern "C" void paramCencus2Device( constantParameterCensus &param )
 {
-  checkCudaErrors(cudaMemcpyToSymbol(cParamCencus, &param, sizeof(constantParameterCensus)));
+  checkCudaErrors(cudaMemcpyToSymbol(cPCencus, &param, sizeof(constantParameterCensus)));
 }
 
 texture< float,	cudaTextureType2DLayered >      texture_ImageEpi_00;
@@ -66,12 +66,18 @@ inline    bool GET_Val_BIT(const U_INT1 * aData,int anX)
 }
 
 __device__
-inline    bool okErod(uint3 pt)
+inline    bool IsOkErod(uint3 pt)
 {
     // TODO peut etre simplifier % et division
     pixel mask8b = tex2DLayered(Texture_Masq_Erod,pt.x/8 + 0.5f,pt.y + 0.5f ,pt.z);
 
     return (mask8b >> (7-pt.x %8) ) & 1;
+}
+
+__device__
+inline    bool IsOkErod(uint2 pt,ushort idi)
+{
+    return IsOkErod(make_uint3(pt.x,pt.y,idi));
 }
 
 __device__
@@ -93,13 +99,13 @@ inline    void correl(uint2 pt,ushort iDi)
     float aGlobSom2 = 0;
     float aGlobPds  = 0;
 
-    for (int aKS=0 ; aKS< cParamCencus._NBScale ; aKS++)
+    for (int aKS=0 ; aKS< cPCencus.aNbScale ; aKS++)
     {
         float   aSom1   = 0;
         float   aSom2   = 0;
-        short2 *aVP     = cParamCencus.w[aKS];
-        ushort  aNbP    = cParamCencus.sizeW[aKS];
-        float  aPdsK    = cParamCencus.poids[aKS];
+        short2 *aVP     = cPCencus.aVV[aKS];
+        ushort  aNbP    = cPCencus.size_aVV[aKS];
+        float   aPdsK   = cPCencus.aVPds[aKS];
 
         for (int aKP=0 ; aKP<aNbP ; aKP++)
         {
@@ -120,54 +126,70 @@ inline    void correl(uint2 pt,ushort iDi)
 
 __device__
 inline    float CorrelBasic_Center(
+    const uint2 & aPG0,
     const uint2 & aPG1,
-    const uint2 & aPG2,
-    float ***  aSom1,
-    float ***  aSom11,
-    float ***  aSom2,
-    float ***  aSom22,
-    int  aPx2,
-    bool ModeMax)
+//    float ***  aSom1,
+//    float ***  aSom11,
+//    float ***  aSom2,
+//    float ***  aSom22,
+    float*  aSom1,
+    float*  aSom11,
+    float*  aSom2,
+    float*  aSom22,
+    //int     aPx2, // ---> TODO Surement A virer : decalage sub pixel apriori il sera égale à 0!!
+    bool    ModeMax)
 {
     float aMaxCor = -1;
     float aCovGlob = 0;
     float aPdsGlob = 0;
-    int aNbScale = cParamCencus._NBScale;
+
+    //const uint2 aPG1_x2 = make_uint2(aPG1.x + aPx2,aPG1.y);
+
+    int aNbScale = cPCencus.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
     {
          bool   aLast   = (aKS==(aNbScale-1));
-         short2*aVP     = cParamCencus.w[aKS];
-         float  aPds    = cParamCencus.poids[aKS];
+         short2*aVP     = cPCencus.aVV[aKS];
+         float  aPds    = cPCencus.aVPds[aKS];
          float  aCov    = 0;
-         ushort  aNbP    = cParamCencus.sizeW[aKS];
+         ushort aNbP    = cPCencus.size_aVV[aKS];
 
-         float ** anIm1; //= aVBOI1[aKS]->data();
-         float ** anIm2;// = aVBOI2[aKS]->data();
+//         float ** anIm1= aVBOI1[aKS]->data();
+//         float ** anIm2= aVBOI2[aKS]->data();
 
          aPdsGlob += aPds * aNbP;
          for (int aKP=0 ; aKP<aNbP ; aKP++)
          {
              const short2 aP = aVP[aKP];
-             aCov += anIm1[aP.y][aP.x]*anIm2[aP.y][aP.x+aPx2];
+
+             const float valima_0 = getValImage(aPG0 + aP,0,aKS);
+             const float valima_1 = getValImage(aPG1 + aP,1,aKS);
+
+             aCov += valima_0*valima_1;
+             //aCov += anIm1[aP.y][aP.x]*anIm2[aP.y][aP.x+aPx2];
          }
 
          aCovGlob += aCov * aPds;
 
          if (ModeMax || aLast)
          {
-             float aM1  = aSom1 [aKS][aPG1.y][aPG1.x];
-             float aM2  = aSom2 [aKS][aPG2.y][aPG2.x];
-             float aM11 = aSom11[aKS][aPG1.y][aPG1.x] - aM1*aM1;
-             float aM22 = aSom22[aKS][aPG2.y][aPG2.x] - aM2*aM2;
+//             float aM1  = aSom1 [aKS][aPG0.y][aPG0.x];
+//             float aM2  = aSom2 [aKS][aPG1.y][aPG1.x];
+//             float aM11 = aSom11[aKS][aPG0.y][aPG0.x] - aM1*aM1;
+//             float aM22 = aSom22[aKS][aPG1.y][aPG1.x] - aM2*aM2;
+             float aM1  = aSom1 [aKS];
+             float aM2  = aSom2 [aKS];
+             float aM11 = aSom11[aKS] - aM1*aM1;
+             float aM22 = aSom22[aKS] - aM2*aM2;
              float aM12 = aCovGlob / aPdsGlob - aM1 * aM2;
 
              if (ModeMax)
              {
-                float aCor = (aM12 * abs(aM12)) /max(cParamCencus.anEpsilon,aM11*aM22);
+                float aCor = (aM12 * abs(aM12)) /max(cPCencus.anEpsilon,aM11*aM22);
                 aMaxCor = max(aMaxCor,aCor);
              }
              else
-                return aM12 / sqrt(max(cParamCencus.anEpsilon,aM11*aM22));
+                return aM12 / sqrt(max(cPCencus.anEpsilon,aM11*aM22));
         }
 
     }
@@ -178,14 +200,90 @@ __global__
 void projectionMasqImage(float * dataPixel,uint3 dTer)
 {
 
-    if(blockIdx.x > cParamCencus._dimTerrain.y || blockIdx.y > cParamCencus._dimTerrain.x)
+    if(blockIdx.x > cPCencus._dimTerrain.y || blockIdx.y > cPCencus._dimTerrain.x)
         return;
 
     const uint3 pt = make_uint3(blockIdx.x,blockIdx.y,blockIdx.z);
 
     float valImage = tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
 
-    dataPixel[to1D(pt,dTer)] = okErod(pt) ? valImage/(32768.f) : 0;
+    dataPixel[to1D(pt,dTer)] = IsOkErod(pt) ? valImage/(32768.f) : 0;
+}
+
+__global__
+void KernelDoCensusCorrel()
+{
+
+    // ??? TODO à cabler
+    bool    DoMixte     = false;
+    bool    aModeMax    = false;
+    float   aSeuilHC    = 1.0;
+    float   aSeuilBC    = 1.0;
+    // ???
+
+    uint anX = blockIdx.x;
+    uint anY = blockIdx.y;
+    uint Z   = threadIdx.x;
+
+    if(anX > cPCencus._dimTerrain.y || anY > cPCencus._dimTerrain.x)
+        return;
+
+//    int** mTabZMin;
+//    int** mTabZMax;
+
+    const uint2 aPIm0   = make_uint2(anX+cPCencus.anOff0.x,anY+cPCencus.anOff0.x); // TODO Attention au unsigned
+    const bool  OkIm0   = IsOkErod(aPIm0,0);
+
+//    int aZ0 =  mTabZMin[anY][anX];
+//    int aZ1 =  mTabZMax[anY][anX];
+
+    int aXIm1SsPx = anX+cPCencus.anOff1.x;
+    int aYIm1SsPx = anY+cPCencus.anOff1.y;
+
+    // float aGlobCostGraphe = 0;
+    float aGlobCostBasic  = 0;
+    float aGlobCostCorrel = 0;
+
+    float aCost = cPCencus.mAhDefCost;
+
+    if (OkIm0)
+    {
+        int anOffset = Z;
+        const uint2 aPIm1 = make_uint2(aXIm1SsPx+anOffset,aYIm1SsPx);
+
+        if (IsOkErod(aPIm1,1))
+        {
+            float*  aSom1; //correl(uint2 pt,ushort iDi)
+            float*  aSom11;
+            float*  aSom2;
+            float*  aSom22;
+
+            aCost = CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,aModeMax);
+
+            aGlobCostCorrel = aCost;
+
+            if (DoMixte)
+            {
+               if (aGlobCostCorrel>aSeuilHC)
+
+                    aCost = aGlobCostCorrel;
+
+               else if (aGlobCostCorrel>aSeuilBC)
+               {
+                    float aPCor =  (aGlobCostCorrel - aSeuilBC) / (aSeuilHC-aSeuilBC);
+                    aCost       =  aPCor * aGlobCostCorrel + (1-aPCor) * aSeuilBC *  aGlobCostBasic;
+               }
+               else
+                    aCost =  aSeuilBC *  aGlobCostBasic;
+            }
+
+            aCost = 1.f-aCost;
+        }
+        else return;
+    }
+    else
+        return;
+
 }
 
 extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)

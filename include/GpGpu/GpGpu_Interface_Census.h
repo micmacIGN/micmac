@@ -23,38 +23,39 @@ struct constantParameterCensus
     //constantParameterCensus():_NBScale(NBSCALE){}
 
     ///
-    /// \brief w
+    /// \brief aVV
     /// parcours des vignettes
-    short2  w[NBSCALE][SIZEWIN(NBSCALE)];
+    short2  aVV[NBSCALE][SIZEWIN(NBSCALE)];
 
     ///
-    /// \brief sizeW
+    /// \brief size_aVV
     /// taille des vignettes
-    ushort  sizeW[NBSCALE];
+    ushort  size_aVV[NBSCALE];
 
     ///
-    /// \brief poids
+    /// \brief aVPds
     /// poid des vignettes
-    float   poids[NBSCALE];
+    float   aVPds[NBSCALE];
 
     ///
-    /// \brief _offset0
-    /// offset terrain image epiolaire 0
-    int2    _offset0;
-
+    /// \brief anOff0
+    /// offset terrain image epipolaire 0
+    int2    anOff0;
 
     ///
-    /// \brief _offset1
-    /// offset terrain image epiolaire 1
-    int2    _offset1;
+    /// \brief anOff1
+    /// offset terrain image epipolaire 1
+    int2    anOff1;
 
     Rect    _zoneTerrain;
 
     uint2   _dimTerrain;
 
-    ushort  _NBScale;
+    ushort  aNbScale;
 
     float   anEpsilon;
+
+    float   mAhDefCost;
 
     void transfertConstantCensus(
             const std::vector<std::vector<Pt2di> >  &aVV,
