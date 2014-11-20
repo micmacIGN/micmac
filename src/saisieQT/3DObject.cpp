@@ -1748,9 +1748,10 @@ void cMessages2DGL::glRenderText(QString text, QPointF pt, QColor color)
     glwid->renderText ( pt.x(), pt.y(), text);
 }
 
-cGrid::cGrid(Pt3d<double> pt, float scale, int nb) // TODO ne fait rien??!!
+cGrid::cGrid(Pt3dr pt, Pt3dr scale)
 {
-
+    _position = pt;
+    _scale    = scale;
 }
 
 void cGrid::draw()

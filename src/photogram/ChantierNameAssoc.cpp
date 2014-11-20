@@ -42,9 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifdef Int
    #undef Int
 #endif
-	#include "QCoreApplication"
-	#include "QStringList"
-	#include "QDir"
+    #include "QCoreApplication"
+    #include "QStringList"
+    #include "QDir"
 #endif
 
 #include "StdAfx.h"
@@ -1107,7 +1107,7 @@ std::string XML_MM_File(const std::string & aFile)
             std::sort(mRes.begin(),mRes.end());
             mRes.erase(std::unique(mRes.begin(),mRes.end()),mRes.end());
         }
-        
+
         return &mRes;
     }
 
@@ -1121,17 +1121,17 @@ std::string XML_MM_File(const std::string & aFile)
     {
     }
 
-	void cDicoSetNC::assign(const tKey & aKey,cSetName * aSet)
-	{
-		if ( isUsingSeparateDirectories() )
-		{
-			if ( aKey.find("NKS-Set-Orient")!=string::npos )
-			{
-				aSet->setDir( MMOutputDirectory() );
-			}
-		}
-		mDico[aKey] = aSet;
-	}
+    void cDicoSetNC::assign(const tKey & aKey,cSetName * aSet)
+    {
+        if ( isUsingSeparateDirectories() )
+        {
+            if ( aKey.find("NKS-Set-Orient")!=string::npos )
+            {
+                aSet->setDir( MMOutputDirectory() );
+            }
+        }
+        mDico[aKey] = aSet;
+    }
 
     void cDicoSetNC::Add(const tKey & aKey,cSetName * aSet)
     {
@@ -2372,47 +2372,47 @@ std::string XML_MM_File(const std::string & aFile)
 
 
 #if(ELISE_QT_VERSION >= 4)
-	string MMQtLibraryPath()
-	{
-		#if defined(__APPLE__) || defined(__MACH__)
-			return MMDir()+"Frameworks";
-		#endif
-		return string();
-	}
+    string MMQtLibraryPath()
+    {
+        #if defined(__APPLE__) || defined(__MACH__)
+            return MMDir()+"Frameworks";
+        #endif
+        return string();
+    }
 
-	// there is alway one path in the list to avoid multiple library loading
-	void setQtLibraryPath( const string &i_path )
-	{
-		QString path( i_path.c_str() );
-		if ( !QDir(path).exists() ) cerr << "WARNING: setQtLibraryPath(" << i_path << "): path does not exist" << endl;
-		QCoreApplication::setLibraryPaths( QStringList(path) );
-	}
+    // there is alway one path in the list to avoid multiple library loading
+    void setQtLibraryPath( const string &i_path )
+    {
+        QString path( i_path.c_str() );
+        if ( !QDir(path).exists() ) cerr << "WARNING: setQtLibraryPath(" << i_path << "): path does not exist" << endl;
+        QCoreApplication::setLibraryPaths( QStringList(path) );
+    }
 
-	// if default path does not exist, replace it by deployment path
-	// used by mm3d and SaisieQT
-	void initQtLibraryPath()
-	{
-		// set to deployment path if it exists
-		string deploymentPath = MMQtLibraryPath();
-		if ( QDir( QString(deploymentPath.c_str()) ).exists() )
-		{
-			setQtLibraryPath(deploymentPath);
-			return;
-		}
+    // if default path does not exist, replace it by deployment path
+    // used by mm3d and SaisieQT
+    void initQtLibraryPath()
+    {
+        // set to deployment path if it exists
+        string deploymentPath = MMQtLibraryPath();
+        if ( !deploymentPath.empty() && QDir( QString(deploymentPath.c_str())).exists() )
+        {
+            setQtLibraryPath(deploymentPath);
+            return;
+        }
 
-		// keep the first existing path to avoid multiple library loading
-		QStringList paths = QCoreApplication::libraryPaths();
-		for ( int i=0; i<paths.size(); i++ )
-		{
-			if ( QDir( paths.at(i) ).exists() )
-			{
-				setQtLibraryPath( paths.at(i).toStdString() );
-				return;
-			}
-		}
+        // keep the first existing path to avoid multiple library loading
+        QStringList paths = QCoreApplication::libraryPaths();
+        for ( int i=0; i<paths.size(); i++ )
+        {
+            if ( QDir( paths.at(i) ).exists() )
+            {
+                setQtLibraryPath( paths.at(i).toStdString() );
+                return;
+            }
+        }
 
-		cerr << "WARNING: initQtLibraryPath: no valid path found" << endl;
-	}
+        cerr << "WARNING: initQtLibraryPath: no valid path found" << endl;
+    }
 #endif
 
     std::string MMBin() { return MMDir()+"bin"+ELISE_CAR_DIR; }
@@ -2708,7 +2708,7 @@ aKeyOrFile         :
         return mDir;
     }
 
-	  void cInterfChantierNameManipulateur::setDir( const std::string &i_directory ){ mDir=i_directory; }
+      void cInterfChantierNameManipulateur::setDir( const std::string &i_directory ){ mDir=i_directory; }
 
 
 
@@ -2927,7 +2927,7 @@ void cStdChantierRel::AddAllCpleKeySet
         std::vector<std::string> aSampleA,aSampleB;
         if (aSampling!=1)
         {
-            for (int aK=0 ; aK<int(aSetA->size()) ; aK+=aSampling) 
+            for (int aK=0 ; aK<int(aSetA->size()) ; aK+=aSampling)
                 aSampleA.push_back((*aSetA)[aK]);
             aSetA= & aSampleA;
             if (SameSet)
@@ -2936,7 +2936,7 @@ void cStdChantierRel::AddAllCpleKeySet
             }
             else
             {
-                for (int aK=0 ; aK<int(aSetB->size()) ; aK+=aSampling) 
+                for (int aK=0 ; aK<int(aSetB->size()) ; aK+=aSampling)
                     aSampleB.push_back((*aSetB)[aK]);
                 aSetB= & aSampleB;
             }
@@ -3296,7 +3296,7 @@ void cStdChantierRel::AddAllCpleKeySet
             const std::string & aKeyA= itA->KeySets()[0];
             const std::string & aKeyB= itA->KeySets().back();
             int aSampling = 1;
-            if (itA->Sampling().IsInit()) 
+            if (itA->Sampling().IsInit())
                aSampling =itA->Sampling().Val().Val();
 
             if ( isUsingSeparateDirectories() ) mICNM.setDir( oldDirectory );
@@ -3989,47 +3989,47 @@ void   CorrecNameMasq
 
 static void __check_directory( const cTplValGesInit<std::string> &i_XMLDirectory, string &o_directory )
 {
-	if ( !i_XMLDirectory.IsInit() ){ o_directory.clear(); return; }
-	
-	o_directory = i_XMLDirectory.Val();
-	if ( o_directory.length()==0 ) return;
-	char &lastChar = o_directory[o_directory.length()-1];
-	if ( lastChar=='\\' ) lastChar='/';
-	else if ( lastChar!='/' ) o_directory.push_back('/');
-	ELISE_fp::MkDir(o_directory);
+    if ( !i_XMLDirectory.IsInit() ){ o_directory.clear(); return; }
+
+    o_directory = i_XMLDirectory.Val();
+    if ( o_directory.length()==0 ) return;
+    char &lastChar = o_directory[o_directory.length()-1];
+    if ( lastChar=='\\' ) lastChar='/';
+    else if ( lastChar!='/' ) o_directory.push_back('/');
+    ELISE_fp::MkDir(o_directory);
 }
 
 std::string MMOutputDirectory()
 {
-	static string res;
-	static bool isInit = false;
-	if ( isInit ) return res;
-	
-	isInit = true;
-	__check_directory( MMUserEnv().OutputDirectory(), res );
-	return res;
+    static string res;
+    static bool isInit = false;
+    if ( isInit ) return res;
+
+    isInit = true;
+    __check_directory( MMUserEnv().OutputDirectory(), res );
+    return res;
 }
 
 std::string MMLogDirectory()
 {
-	static string res;
-	static bool isInit = false;
-	if ( isInit ) return res;
+    static string res;
+    static bool isInit = false;
+    if ( isInit ) return res;
 
-	isInit = true;
-	__check_directory( MMUserEnv().LogDirectory(), res );
-	return res;
+    isInit = true;
+    __check_directory( MMUserEnv().LogDirectory(), res );
+    return res;
 }
 
 std::string MMTemporaryDirectory()
 {
-	static string res;
-	static bool isInit = false;
-	if ( isInit ) return res;
-	isInit = true;
-	res = MMOutputDirectory()+temporarySubdirectory;
-	ELISE_fp::MkDirSvp(res);
-	return res;
+    static string res;
+    static bool isInit = false;
+    if ( isInit ) return res;
+    isInit = true;
+    res = MMOutputDirectory()+temporarySubdirectory;
+    ELISE_fp::MkDirSvp(res);
+    return res;
 }
 
 static string _inputDirectory;
@@ -4037,8 +4037,8 @@ static bool _isInputDirectorySet = false;
 
 void setInputDirectory( const std::string &i_directory )
 {
-	_inputDirectory = i_directory;
-	_isInputDirectorySet = true;
+    _inputDirectory = i_directory;
+    _isInputDirectorySet = true;
 }
 
 bool isInputDirectorySet(){ return _isInputDirectorySet; }

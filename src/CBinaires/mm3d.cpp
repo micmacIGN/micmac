@@ -584,7 +584,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    // TheExitOnBrkp=true;
    MMD_InitArgcArgv( argc, argv );
    #if(ELISE_QT_VERSION >= 4)
-		initQtLibraryPath(); 
+        initQtLibraryPath();
    #endif
     // TheExitOnBrkp=true;
 
