@@ -456,6 +456,10 @@ public:
 
     void SetPageLockedMemory(bool page){ _pgLockMem = page; }
 
+    T*   pLData(uint layer){ return CData<T>::pData() + layer*size(CData3D<T>::GetDimension());}
+
+    bool saveImage(string nameImage,ushort layer = 0);
+
 protected:
 
     virtual bool    abDealloc() ;
@@ -542,6 +546,13 @@ TPL_T bool CuHostData3D<T>::abMalloc()
         CData3D<T>::SetPData((T*)malloc(CData3D<T>::Sizeof()));
 
     return true;
+}
+
+TPL_T bool CuHostData3D<T>::saveImage(string nameImage,ushort layer)
+{
+    std::string numec(GpGpuTools::conca(nameImage.c_str(),layer));
+    std::string nameFile = numec + std::string(".pgm");
+    return GpGpuTools::Array1DtoImageFile(pLData(layer) ,nameFile.c_str(),CData3D<T>::GetDimension());
 }
 
 template<class T, class gpsdk = cudaContext> class DecoratorDeviceData{};
