@@ -1,19 +1,21 @@
 #include"GpGpu/GpGpu_Interface_Census.h"
 
 
-dataCorrelMS::dataCorrelMS():
-    _texMaskErod(texture_Masq_Erod())
+dataCorrelMS::dataCorrelMS()
 {
     for (int t = 0; t < NBEPIIMAGE; ++t)
     {
         _texImage[t]    = pTexture_ImageEpi(t);
+        _texMaskErod[t] = ptexture_Masq_Erod(t);
         GpGpuTools::SetParamterTexture(*_texImage[t]);
+
+        _texMaskErod[t]->addressMode[0]	= cudaAddressModeBorder;
+        _texMaskErod[t]->addressMode[1]	= cudaAddressModeBorder;
+        _texMaskErod[t]->filterMode     = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
+        _texMaskErod[t]->normalized     = false;
     }
 
-    _texMaskErod.addressMode[0]	= cudaAddressModeBorder;
-    _texMaskErod.addressMode[1]	= cudaAddressModeBorder;
-    _texMaskErod.filterMode     = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
-    _texMaskErod.normalized     = false;
+
 }
 
 void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
@@ -27,12 +29,16 @@ void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
     }
 }
 
-void dataCorrelMS::transfertMask(uint2 dimMask, pixel **mImMasqErod_0, pixel **mImMasqErod_1)
+void dataCorrelMS::transfertMask(uint2 dimMask0,uint2 dimMask1, pixel **mImMasqErod_0, pixel **mImMasqErod_1)
 {
-    uint2 dimMaskByte = make_uint2((dimMask.x+7)/8,dimMask.y);
-    _HostMaskErod.ReallocIfDim(dimMaskByte,2);
-    memcpy( _HostMaskErod.pData()   , mImMasqErod_0[0],  size(dimMaskByte) * sizeof(pixel));
-    memcpy( _HostMaskErod.pLData(1) , mImMasqErod_1[0],  size(dimMaskByte) * sizeof(pixel));
+    uint2 dimMaskByte0 = make_uint2((dimMask0.x+7)/8,dimMask0.y);
+    _HostMaskErod[0].ReallocIfDim(dimMaskByte0,1);
+
+    uint2 dimMaskByte1 = make_uint2((dimMask1.x+7)/8,dimMask1.y);
+    _HostMaskErod[1].ReallocIfDim(dimMaskByte1,1);
+
+    memcpy( _HostMaskErod[0].pData() , mImMasqErod_0[0],  size(dimMaskByte0) * sizeof(pixel));
+    memcpy( _HostMaskErod[1].pData() , mImMasqErod_1[0],  size(dimMaskByte1) * sizeof(pixel));
 
 //    for (uint y = 0; y < dimMask.y; ++y)
 //    {
@@ -67,9 +73,10 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 void dataCorrelMS::syncDeviceData()
 {
     for (int t = 0; t < NBEPIIMAGE; ++t)
+    {
         _dt_Image[t].syncDevice(_HostImage[t],*_texImage[t]);
-
-    _dt_MaskErod.syncDevice(_HostMaskErod,_texMaskErod);
+        _dt_MaskErod[t].syncDevice(_HostMaskErod[t],*_texMaskErod[t]);
+    }
 
     _DeviceInterval_Z.ReallocIf(_HostInterval_Z.GetDimension());
     _DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
@@ -109,3 +116,19 @@ void GpGpuInterfaceCensus::jobMask()
     _dataCMS.syncDeviceData();
     LaunchKernelCorrelationCensus(_dataCMS,_cDataCMS);
 }
+
+void GpGpuInterfaceCensus::transfertImageAndMask(uint2 sI0, uint2 sI1, float ***dataImg0, float ***dataImg1, pixel **mask0, pixel **mask1)
+{
+    _dataCMS.transfertImage(sI0,dataImg0,0);
+    _dataCMS.transfertImage(sI1,dataImg1,1);
+    _dataCMS.transfertMask(sI0,sI1,mask0,mask1);
+}
+
+void GpGpuInterfaceCensus::transfertParamCensus(Rect terrain, const std::vector<std::vector<Pt2di> > &aVV, const std::vector<double> &aVPds, int2 offset0, int2 offset1, short **mTabZMin, short **mTabZMax, ushort nbscale)
+{
+    _cDataCMS.transfertConstantCensus(aVV,aVPds,offset0,offset1);
+    _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
+    _cDataCMS.transfertTerrain(terrain);
+    //_cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));
+}
+

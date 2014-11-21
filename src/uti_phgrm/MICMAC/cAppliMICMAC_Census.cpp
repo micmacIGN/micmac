@@ -1378,9 +1378,12 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
     double aStepPix = mStepZ / mCurEtape->DeZoomTer();
 
+
+
  //  ====  2. Pas quotient d'entier
     double aRealNbByPix = 1/ aStepPix;
     int mNbByPix = round_ni(aRealNbByPix);
+
     if (ElAbs(aRealNbByPix-mNbByPix) > TolNbByPix)
     {
          std::cout << "For Step = " << mStepZ  << " GotDif " << aRealNbByPix-mNbByPix << "\n";
@@ -1389,12 +1392,31 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 /*
 */
 
-
-
     Pt2di anOff0 = anI0.OffsetIm();
     Pt2di anOff1 = anI1.OffsetIm();
 
+#ifdef CUDA_ENABLED
 
+        interface_Census_GPU.transfertImageAndMask(
+                    toUi2(mPDV1->LoadedIm().SzIm()),
+                    toUi2(mPDV2->LoadedIm().SzIm()),
+                    anI0.VDataIm(),
+                    anI1.VDataIm(),
+                    anI0.ImMasqErod(),
+                    anI1.ImMasqErod());
+
+        interface_Census_GPU.transfertParamCensus(
+                    Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
+                    aVKImS,
+                    aVPds,
+                    toInt2(anOff0),
+                    toInt2(anOff1),
+                    mTabZMin,
+                    mTabZMax);
+
+        interface_Census_GPU.jobMask();
+        getchar();
+#endif
 // std::cout << anOff0 << anOff1 << "\n";
 
     // std::cout << mX0Ter  << " " << mY0Ter << "\n";
@@ -1502,17 +1524,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
              }
              // aTabFlag1 =   cImFlags<U_INT2>::Census(mBufCensusIm2[0],mCurSzVMax) ;
         }
-
-#ifdef CUDA_ENABLED
-        interface_Census_GPU._dataCMS.transfertImage(toUi2(mPDV1->LoadedIm().SzIm()), anI0.VDataIm(),0);
-        interface_Census_GPU._dataCMS.transfertImage(toUi2(mPDV1->LoadedIm().SzIm()), anI1.VDataIm(),1);
-        interface_Census_GPU._cDataCMS.transfertConstantCensus(aVKImS,aVPds,make_int2(anOff0.x,anOff0.y),make_int2(anOff1.x,anOff1.y));
-        interface_Census_GPU._dataCMS.transfertNappe(mX0Ter, mX1Ter, mY0Ter, mY1Ter, mTabZMin, mTabZMax);
-        interface_Census_GPU._cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));
-        interface_Census_GPU._dataCMS.transfertMask(toUi2(mPDV1->LoadedIm().SzIm()),anI0.ImMasqErod(),anI1.ImMasqErod());
-//        interface_Census_GPU.jobMask();
-//        getchar();
-#endif
 
         cImFlags<U_INT2>   aTabFlag1 (Pt2di(1,1),1);
         if (DoCensusBasic )
