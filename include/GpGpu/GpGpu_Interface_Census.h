@@ -14,7 +14,7 @@ struct constantParameterCensus;
 
 extern "C" textureReference&  texture_ImageEpi(int nEpi);
 extern "C" textureReference* pTexture_ImageEpi(int nEpi);
-extern "C" textureReference& texture_Masq_Erod();
+extern "C" textureReference* ptexture_Masq_Erod(int nEpi);
 extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param);
 extern "C" void paramCencus2Device( constantParameterCensus &param );
 
@@ -81,7 +81,7 @@ struct dataCorrelMS
     ///
     /// \brief _HostMaskErod
     /// Masque
-    CuHostData3D<pixel>         _HostMaskErod;
+    CuHostData3D<pixel>         _HostMaskErod[NBEPIIMAGE];
 
     /// \brief _HostInterval_Z
     /// Nappe des Z host
@@ -90,15 +90,15 @@ struct dataCorrelMS
     /// Nappe des Z device
     CuDeviceData3D<short2>      _DeviceInterval_Z;
 
-    ImageLayeredGpGpu<pixel,cudaContext>    _dt_MaskErod;
+    ImageGpGpu<pixel,cudaContext>           _dt_MaskErod[NBEPIIMAGE];
     ImageLayeredGpGpu<float,cudaContext>    _dt_Image[NBEPIIMAGE];
 
     textureReference*           _texImage[NBEPIIMAGE];
-    textureReference&           _texMaskErod;
+    textureReference*           _texMaskErod[NBEPIIMAGE];
 
     void    transfertImage(uint2 sizeImage, float ***dataImage , int id);
 
-    void    transfertMask(uint2 sizeMask, pixel **mImMasqErod_0, pixel **mImMasqErod_1);
+    void    transfertMask(uint2 dimMask0, uint2 dimMask1, pixel **mImMasqErod_0, pixel **mImMasqErod_1);
 
     void    transfertNappe(int  mX0Ter, int  mX1Ter, int  mY0Ter, int  mY1Ter, short **mTabZMin, short **mTabZMax);
 
@@ -115,16 +115,25 @@ public:
 
 //    virtual void    freezeCompute();
 
-    dataCorrelMS    _dataCMS;
-
-    constantParameterCensus _cDataCMS;
-
-//private:
-
     void jobMask();
 //    virtual void    simpleWork(){}
 
+    void transfertImageAndMask(uint2 sI0,uint2 sI1,float ***dataImg0,float ***dataImg1,pixel **mask0,pixel **mask1);
 
+    void transfertParamCensus(Rect terrain,
+                              const std::vector<std::vector<Pt2di> >  &aVV,
+                              const std::vector<double >              &aVPds,
+                              int2    offset0,
+                              int2    offset1,
+                              short **mTabZMin,
+                              short **mTabZMax,
+                              ushort nbscale = NBSCALE );
+
+private:
+
+    dataCorrelMS    _dataCMS;
+
+    constantParameterCensus _cDataCMS;
 };
 
 #endif // GPGPU_INTERFACE_CENSUS_H
