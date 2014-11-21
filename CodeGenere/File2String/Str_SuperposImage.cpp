@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1289]) = {
+const char * (theNameVar_SuperposImage[1292]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1111,6 +1111,9 @@ const char * (theNameVar_SuperposImage[1289]) = {
 "             <!-- Definit le modele de geometrie resultant, c'est un cle d'association\n",
 "                 par defaut il sera pris sur le premier input-->\n",
 "             <ModeleNuageResult Type=\"std::string\" Nb=\"?\"> </ModeleNuageResult>\n",
+"\n",
+"             <!-- Defaut Identite, par exemple Nuage-IMGP7046.JPG.xml -> IMGP7046.JPG.xml -->\n",
+"             <KeyNuage2Im   Type=\"std::string\" Nb=\"?\" Def=\"NKS-Assoc-Prefix\"> </KeyNuage2Im>\n",
 "       </SectionName>\n",
 "\n",
 "       <!-- Pour gerer le score pas toujours simple fonction de correlation -->\n",
