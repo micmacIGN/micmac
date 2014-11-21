@@ -82,6 +82,21 @@ void dataCorrelMS::syncDeviceData()
     _DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
 }
 
+void dataCorrelMS::dealloc()
+{
+    for (int t = 0; t < NBEPIIMAGE; ++t)
+    {
+        _HostImage[t].Dealloc();
+        _HostMaskErod[t].Dealloc();
+        _dt_MaskErod[t].Dealloc();
+        _dt_Image[t].Dealloc();
+    }
+
+    _HostInterval_Z.Dealloc();
+    _DeviceInterval_Z.Dealloc();
+
+}
+
 void constantParameterCensus::transfertConstantCensus(const std::vector<std::vector<Pt2di> > &VV, const std::vector<double> &VPds, int2 offset0, int2 offset1,ushort nbscale)
 {
     aNbScale = nbscale;
@@ -108,6 +123,23 @@ void constantParameterCensus::transfertTerrain(Rect zoneTerrain)
 {
     _zoneTerrain    = zoneTerrain;
     _dimTerrain     = _zoneTerrain.dimension();
+}
+
+void constantParameterCensus::dealloc()
+{
+    // TODO A Faire avec la liberation de symbole GPU
+}
+
+GpGpuInterfaceCensus::GpGpuInterfaceCensus():
+    CSimpleJobCpuGpu(true)
+{
+    freezeCompute();
+}
+
+GpGpuInterfaceCensus::~GpGpuInterfaceCensus()
+{
+    _dataCMS.dealloc();
+    _cDataCMS.dealloc();
 }
 
 void GpGpuInterfaceCensus::jobMask()
