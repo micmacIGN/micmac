@@ -107,6 +107,8 @@ public slots:
 
     void selectPoint(QString namePt);
 
+    void setCenterType(int);
+
 signals:
 
     //! Signal emitted when files are dropped on the window

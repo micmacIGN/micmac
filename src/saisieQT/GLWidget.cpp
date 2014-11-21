@@ -107,7 +107,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
 
         _contextMenu.setPolygon( m_GLData->currentPolygon() );
 
-        _matrixManager.setSceneTopo(getGLData()->getBBoxCenter(),getGLData()->getBBoxMaxSize());
+        _matrixManager.setSceneTopo(getGLData()->getPosition(),getGLData()->getBBoxMaxSize());
 
         resetView(doZoom, showMessage, showCams, true, resetPoly);
     }
@@ -244,7 +244,7 @@ void GLWidget::setInteractionMode(int mode, bool showmessage, bool showcams)
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
     if (hasDataLoaded())
-       _matrixManager.setView(orientation,m_GLData->getBBoxCenter());
+       _matrixManager.setView(orientation,m_GLData->getPosition());
 }
 
 void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
@@ -371,6 +371,18 @@ void GLWidget::selectPoint(QString namePt)
 {
     if(polygon())
         polygon()->selectPoint(namePt);
+    update();
+}
+
+void GLWidget::setCenterType(int val)
+{
+    if (hasDataLoaded())
+    {
+        m_GLData->switchCenterByType(val);
+
+        _matrixManager.resetAllMatrix(m_GLData->getPosition());
+    }
+
     update();
 }
 
@@ -508,7 +520,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool showCams, bool res
 {
 
     if (resetMatrix)
-        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() : Pt3dr(0.f,0.f,0.f) );
+        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getPosition() : Pt3dr(0.f,0.f,0.f) );
 
     if (hasDataLoaded() && resetPoly) m_GLData->clearPolygon();
 

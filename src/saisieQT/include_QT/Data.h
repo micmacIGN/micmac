@@ -49,10 +49,12 @@ class cData
 
         void    getMinMax(Pt3dr);
         void    computeBBox(int idCloud = -1);
+        void    computeCloudsCenter(int idCloud = -1);
 
         int     getCloudsSize();
 
         Pt3dr   getBBoxCenter();
+        Pt3dr   getCloudsCenter(){ return _centroid; }
         Pt3dr   getMin(){ return _min; }
         Pt3dr   getMax(){ return _max; }
 
@@ -76,5 +78,8 @@ private:
 
         //!Bounding box of all data
         Pt3dr   _min, _max;
+
+        //!data centroid
+        Pt3dr   _centroid;
 };
 #endif // DATA_H

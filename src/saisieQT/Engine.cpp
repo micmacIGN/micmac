@@ -259,6 +259,7 @@ void cEngine::loadClouds(QStringList filenames, int* incre)
         _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
 
     _Data->computeBBox();
+    _Data->computeCloudsCenter();
 }
 
 void cEngine::loadCameras(QStringList filenames, int *incre)

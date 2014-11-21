@@ -6,15 +6,6 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
-//! Interface mode
-enum APP_MODE { BOX2D,          /**< BOX 2D mode **/
-                MASK2D,         /**< Image mask mode  **/
-                MASK3D,         /**< Point cloud mask **/
-                POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) - uses cAppli_SaisiePts **/
-                POINT2D_PREDIC, /**< Points in Image (SaisieAppuisPredic) - uses cAppli_SaisiePts **/
-                BASC            /**< 2 lines and 1 point (SaisieBasc) - uses cAppli_SaisiePts **/
-};
-
 //! Interaction mode (only in 3D)
 enum INTERACTION_MODE {
     TRANSFORM_CAMERA,

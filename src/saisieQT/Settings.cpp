@@ -2,10 +2,10 @@
 #include "ui_Settings.h"
 #include "ui_Help.h"
 
-cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(parent)
+cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params, int appMode) : QDialog(parent)
   , _ui(new Ui::SettingsDialog)
-  , pageHidden(false)
   , lineItemHidden(false)
+  , _appMode(appMode)
 {
     _ui->setupUi(this);
 
@@ -21,10 +21,6 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params) : QDialog(paren
     refresh();
 
     setUpdatesEnabled(true);
-
-    //temp
-    _ui->forceGray_checkBox->setVisible(false);
-    _ui->forceGray_checkBox->setEnabled(false);
 }
 
 cSettingsDlg::~cSettingsDlg()
@@ -75,6 +71,45 @@ void cSettingsDlg::on_showMasks_checkBox_toggled(bool val)
     emit showMasks(val);
 }
 
+void cSettingsDlg::on_radioButton_centroid_toggled(bool val)
+{
+    if (val)
+    {
+        _parameters->setCenterType(eCentroid);
+
+        emit setCenterType(eCentroid);
+
+        _ui->radioButton_bbox_center->setChecked(false);
+        _ui->radioButton_origin_center->setChecked(false);
+    }
+}
+
+void cSettingsDlg::on_radioButton_bbox_center_toggled(bool val)
+{
+    if (val)
+    {
+        _parameters->setCenterType(eBBoxCenter);
+
+        emit setCenterType(eBBoxCenter);
+
+        _ui->radioButton_centroid->setChecked(false);
+        _ui->radioButton_origin_center->setChecked(false);
+    }
+}
+
+void cSettingsDlg::on_radioButton_origin_center_toggled(bool val)
+{
+    if (val)
+    {
+        _parameters->setCenterType(eOriginCenter);
+
+        emit setCenterType(eOriginCenter);
+
+        _ui->radioButton_centroid->setChecked(false);
+        _ui->radioButton_bbox_center->setChecked(false);
+    }
+}
+
 void cSettingsDlg::on_zoomWin_spinBox_valueChanged(int val)
 {
     _parameters->setZoomWindowValue(val);
@@ -119,49 +154,6 @@ void deleteChildWidgets(QLayoutItem *item)
         }
     }
     delete item->widget();
-}
-
-void cSettingsDlg::hidePage()
-{
-    pageHidden = true;
-
-    //hide page 2 (point creation mode)
-    _ui->toolBox->widget(2)->hide();
-    _ui->toolBox->removeItem(2);
-
-    //hide items in page 2 (other display settings)
-    for (int aK=0; aK<  _ui->gridLayout_3->columnCount();++aK)
-    {
-        //zoom factor in zoom window
-        QLayoutItem * item0 = _ui->gridLayout_3->itemAtPosition(0, aK);
-        if (item0) deleteChildWidgets(item0);
-
-        //prefix for automatic point creation
-        QLayoutItem * item1 = _ui->gridLayout_3->itemAtPosition(3, aK);
-        if (item1) deleteChildWidgets(item1);
-    }
-}
-
-void cSettingsDlg::hideSaisieMasqItems()
-{
-    lineItemHidden = true;
-
-    //hide item in page 1 (other display settings)
-    for (int aK=0; aK < _ui->gridLayout->columnCount();++aK)
-    {
-        //line thickness
-        QLayoutItem * item0 = _ui->gridLayout->itemAtPosition(0, aK);
-        if (item0) deleteChildWidgets(item0);
-    }
-
-    //temp: bug en mode SaisieAppuis
-    _ui->showMasks_checkBox->setVisible(false);
-    _ui->showMasks_checkBox->setCheckable(false);
-}
-
-void cSettingsDlg::uiShowMasks(bool aBool)
-{
-    _ui->showMasks_checkBox->setChecked(aBool);
 }
 
 void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
@@ -233,8 +225,44 @@ void cSettingsDlg::refresh()
 
     _ui->comboBox->setCurrentIndex(_parameters->getLanguage());
 
-    if (!pageHidden)
+    if (_appMode <= MASK3D)
     {
+        //hide page 2 (point creation mode)
+        _ui->toolBox->widget(2)->hide();
+        _ui->toolBox->removeItem(2);
+
+        //hide items in page 2 (other display settings)
+        for (int aK=0; aK<  _ui->gridLayout_3->columnCount();++aK)
+        {
+            //zoom factor in zoom window
+            QLayoutItem * item0 = _ui->gridLayout_3->itemAtPosition(0, aK);
+            if (item0) deleteChildWidgets(item0);
+
+            //prefix for automatic point creation
+            QLayoutItem * item1 = _ui->gridLayout_3->itemAtPosition(3, aK);
+            if (item1) deleteChildWidgets(item1);
+        }
+
+        _ui->showMasks_checkBox->setChecked(true);
+        _parameters->setShowMasks(true);
+        _parameters->write();
+    }
+    else
+    {
+        lineItemHidden = true;
+
+        //hide item in page 1 (other display settings)
+        for (int aK=0; aK < _ui->gridLayout->columnCount();++aK)
+        {
+            //line thickness
+            QLayoutItem * item0 = _ui->gridLayout->itemAtPosition(0, aK);
+            if (item0) deleteChildWidgets(item0);
+        }
+
+        //temp: bug en mode SaisieAppuis
+        _ui->showMasks_checkBox->setVisible(false);
+        _ui->showMasks_checkBox->setCheckable(false);
+
         _ui->zoomWin_spinBox->setValue(_parameters->getZoomWindowValue());
         _ui->PrefixTextEdit->setText(_parameters->getDefPtName());
 
@@ -267,6 +295,25 @@ void cSettingsDlg::refresh()
         _ui->doubleSpinBoxSz->setValue(_parameters->getPtCreationWindowSize());
     }
 
+    if (_appMode != MASK3D)
+    {
+        _ui->label_center->hide();
+        _ui->radioButton_bbox_center->hide();
+        _ui->radioButton_origin_center->hide();
+        _ui->radioButton_centroid->hide();
+    }
+    else
+    {
+        _ui->radioButton_bbox_center->setChecked(_parameters->getSceneCenterType()==eBBoxCenter);
+        _ui->radioButton_origin_center->setChecked(_parameters->getSceneCenterType()==eOriginCenter);
+        _ui->radioButton_centroid->setChecked(_parameters->getSceneCenterType()==eCentroid);
+
+        _ui->showMasks_checkBox->hide();
+    }
+
+    //TODO: temp
+    _ui->forceGray_checkBox->hide();
+
     update();
 }
 
@@ -280,6 +327,7 @@ cParameters::cParameters():
     _gamma(1.f),
     _forceGray(false),
     _showMasks(false),
+    _sceneCenterType(true),
     _zoomWindow(3.f),
     _ptName(QString("100")),
     _postFix(QString("_Masq")),
@@ -301,6 +349,7 @@ cParameters& cParameters::operator =(const cParameters &params)
     _gamma          = params._gamma;
     _forceGray      = params._forceGray;
     _showMasks      = params._showMasks;
+    _sceneCenterType= params._sceneCenterType;
 
     _zoomWindow     = params._zoomWindow;
     _ptName         = params._ptName;
@@ -327,6 +376,7 @@ bool cParameters::operator!=(cParameters &p)
             (p._gamma          != _gamma) ||
             (p._forceGray      != _forceGray) ||
             (p._showMasks      != _showMasks) ||
+            (p._sceneCenterType!= _sceneCenterType) ||
             (p._zoomWindow     != _zoomWindow) ||
             (p._ptName         != _ptName)  ||
             (p._postFix        != _postFix) ||
@@ -365,10 +415,11 @@ void cParameters::read()
 
      settings.beginGroup("Drawing settings");
      setLineThickness(  settings.value("linethickness", 2.f     ).toFloat());
-     setPointDiameter(  settings.value("pointdiameter",0.8f      ).toFloat());
+     setPointDiameter(  settings.value("pointdiameter",0.8f     ).toFloat());
      setGamma(          settings.value("gamma",1.f              ).toFloat());
      setForceGray(      settings.value("forceGray", false       ).toBool());
      setShowMasks(      settings.value("showMasks", false       ).toBool());
+     setCenterType(     settings.value("SceneCenterType", 0     ).toInt());
      settings.endGroup();
 
      settings.beginGroup("Misc");
@@ -406,6 +457,7 @@ void cParameters::write()
      settings.setValue("gamma",         QString::number(_gamma        ,'f',1)  );
      settings.setValue("forceGray",     _forceGray  );
      settings.setValue("showMasks",     _showMasks  );
+     settings.setValue("SceneCenterType",  _sceneCenterType );
      settings.endGroup();
 
      settings.beginGroup("Misc");

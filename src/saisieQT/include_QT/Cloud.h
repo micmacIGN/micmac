@@ -34,6 +34,8 @@ public:
 
     void    setBufferGl(bool onlyColor=false);
 
+    Pt3dr   getSum() { return _sum; }
+
     void    draw();
 
 private:
@@ -42,7 +44,9 @@ private:
     QGLBuffer   _vertexbuffer;
     QGLBuffer   _vertexColor;
 
-    int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz 4:xyznxnynzrgb)
+    int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz 4:xyznxnynzrgb 5:xyznxnynzrgba)
+
+    Pt3dr       _sum;  //coordinate sums to compute scene center
 };
 
 

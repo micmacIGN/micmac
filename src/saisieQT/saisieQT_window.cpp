@@ -841,7 +841,7 @@ void SaisieQtWindow::on_actionSave_as_triggered()
 
 void SaisieQtWindow::on_actionSettings_triggered()
 {
-    cSettingsDlg _settingsDialog(this, _params);
+    cSettingsDlg _settingsDialog(this, _params, _appMode);
 
     connect(&_settingsDialog, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
 
@@ -854,6 +854,7 @@ void SaisieQtWindow::on_actionSettings_triggered()
         connect(&_settingsDialog, SIGNAL(showMasks(bool)),             getWidget(aK), SLOT(showMasks(bool)));
         connect(&_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
         connect(&_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
+        connect(&_settingsDialog, SIGNAL(setCenterType(int)),          getWidget(aK), SLOT(setCenterType(int)));
     }
 
     if (zoomWidget() != NULL)
@@ -864,16 +865,6 @@ void SaisieQtWindow::on_actionSettings_triggered()
 
     const QPoint global = qApp->desktop()->availableGeometry().center();
     _settingsDialog.move(global.x() - _settingsDialog.width() / 2, global.y() - _settingsDialog.height() / 2);
-
-    if (_appMode <= MASK3D)
-    {
-        _settingsDialog.hidePage();
-        _settingsDialog.uiShowMasks(true);
-        _params->setShowMasks(true);
-        _params->write();
-    }
-    else
-        _settingsDialog.hideSaisieMasqItems();
 
     //_settingsDialog.setFixedSize(uiSettings.size());
     _settingsDialog.exec();
@@ -1248,7 +1239,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
             loadPly(filenames);
             threeDWidget()->getGLData()->clearClouds();
             dataCache->computeBBox(1);
-            threeDWidget()->getGLData()->setData(dataCache,false);
+            threeDWidget()->getGLData()->setData(dataCache,false, _params->getSceneCenterType());
             threeDWidget()->resetView(false,false,false,false,true);
             option3DPreview();
         }

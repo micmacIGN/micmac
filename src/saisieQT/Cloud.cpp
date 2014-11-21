@@ -221,6 +221,8 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 
 void GlCloud::addVertex(const GlVertex &vertex)
 {
+    _sum = _sum + vertex.getPosition();
+
     _vertices.push_back(vertex);
 }
 
@@ -249,7 +251,8 @@ void GlCloud::clear()
 }
 
 GlCloud::GlCloud(vector<GlVertex> const & vVertex, int type):
-    _type(type)
+    _type(type),
+    _sum(Pt3dr(0.,0.,0.))
 {
     for (uint aK=0; aK< vVertex.size(); aK++)
     {
