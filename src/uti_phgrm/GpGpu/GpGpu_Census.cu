@@ -253,10 +253,14 @@ void KernelDoCensusCorrel()
 
         if (IsOkErod(aPIm1,1))
         {
-            float*  aSom1; //correl(uint2 pt,ushort iDi)
-            float*  aSom11;
-            float*  aSom2;
-            float*  aSom22;
+
+            // TODO à cabler avec correl(uint2 pt,ushort iDi)
+            float*  aSom1;  // ---> peut precalculer dans un kernel precedent!
+            float*  aSom11; // ---> peut precalculer dans un kernel precedent!
+
+            // TODO à cabler avec correl(uint2 pt,ushort iDi)
+            float*  aSom2; // ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
+            float*  aSom22;// ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
 
             aCost = CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,aModeMax);
 
@@ -264,7 +268,7 @@ void KernelDoCensusCorrel()
 
             if (DoMixte)
             {
-               if (aGlobCostCorrel>aSeuilHC)
+               if(aGlobCostCorrel>aSeuilHC)
 
                     aCost = aGlobCostCorrel;
 
