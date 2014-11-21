@@ -218,7 +218,55 @@
 
 
 
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                PDS CHANNEL                        -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
 
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  [1,1,1,1,1,1,1,1,1,1,1,1] </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_1 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_2 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_3 </Key>
+    </KeyedNamesAssociations>
 
         <!-- ***********************************************   -->
         <!--                                                   -->
