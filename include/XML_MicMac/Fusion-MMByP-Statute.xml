@@ -17,9 +17,6 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
       <KeyedSetsOfNames >
           <Sets>
                  <PatternAccepteur>   Nuage-.*.xml  </PatternAccepteur>
-<!--
-                 <PatternAccepteur>   .* </PatternAccepteur>
--->
           </Sets>
           <Key> Loc-SetInput </Key>
     </KeyedSetsOfNames>
@@ -35,6 +32,17 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
                  </Direct>
            </Calcs>
            <Key>  Loc-Assoc-CplIm2Nuage </Key>
+       </KeyedNamesAssociations>
+
+       <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> Nuage-(.*)\.xml </PatternTransform>
+                    <CalcName> $1  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-Nuage2Im </Key>
        </KeyedNamesAssociations>
 
 
@@ -62,6 +70,7 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
 -->
 
         <ModeleNuageResult> NKS-Assoc-Id </ModeleNuageResult> 
+        <KeyNuage2Im>  Loc-Assoc-Nuage2Im </KeyNuage2Im>
     </SectionName>
 
       <SectionScoreQualite>
