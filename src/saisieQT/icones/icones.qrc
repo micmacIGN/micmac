@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/MM/Icons">
+        <file>images/icon_16.png</file>
+        <file>images/icon_32.png</file>
+        <file>images/icon_64.png</file>
+        <file>images/handle.png</file>
+        <file>images/down_arrow.png</file>
+        <file>images/checkbox.png</file>
+        <file>images/up_arrow.png</file>
+        <file>images/cross_cursor.png</file>
+    </qresource>
+</RCC>
