@@ -65,6 +65,9 @@ struct constantParameterCensus
             ushort nbscale = NBSCALE );
 
     void transfertTerrain(Rect    zoneTerrain);
+
+    void dealloc();
+
 };
 
 
@@ -105,18 +108,23 @@ struct dataCorrelMS
 
 //private:
 
-    void syncDeviceData();
+    void    syncDeviceData();
+
+    void    dealloc();
 
 };
 
-class GpGpuInterfaceCensus //: public CSimpleJobCpuGpu< bool>
+class GpGpuInterfaceCensus : public CSimpleJobCpuGpu< bool>
 {
 public:
 
-//    virtual void    freezeCompute();
+    GpGpuInterfaceCensus();
+    ~GpGpuInterfaceCensus();
 
-    void jobMask();
-//    virtual void    simpleWork(){}
+    virtual void    freezeCompute(){}
+
+    void            jobMask();
+
 
     void transfertImageAndMask(uint2 sI0,uint2 sI1,float ***dataImg0,float ***dataImg1,pixel **mask0,pixel **mask1);
 
@@ -130,6 +138,8 @@ public:
                               ushort nbscale = NBSCALE );
 
 private:
+
+    virtual void    simpleWork(){}
 
     dataCorrelMS    _dataCMS;
 
