@@ -215,7 +215,7 @@ void projectionMasqImage(float * dataPixel,uint3 dTer)
 
     float valImage = tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
 
-    dataPixel[to1D(pt,dTer)] = IsOkErod(pt) ? valImage/(32768.f/4.f) : 0;
+    dataPixel[to1D(pt,dTer)] = IsOkErod(pt) ? valImage/(32768.f) : 0;
 }
 
 __global__

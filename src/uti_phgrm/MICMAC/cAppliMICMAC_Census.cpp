@@ -1414,8 +1414,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                     mTabZMin,
                     mTabZMax);
 
-        interface_Census_GPU.jobMask();
-        getchar();
+//        interface_Census_GPU.jobMask();
+//        getchar();
 #endif
 // std::cout << anOff0 << anOff1 << "\n";
 
