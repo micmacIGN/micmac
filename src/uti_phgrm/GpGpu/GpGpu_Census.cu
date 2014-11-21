@@ -51,13 +51,14 @@ extern "C" void paramCencus2Device( constantParameterCensus &param )
 
 texture< float,	cudaTextureType2DLayered >      texture_ImageEpi_00;
 texture< float,	cudaTextureType2DLayered >      texture_ImageEpi_01;
-texture< pixel,	cudaTextureType2DLayered >      Texture_Masq_Erod;
+texture< pixel,	cudaTextureType2D >             Texture_Masq_Erod_00;
+texture< pixel,	cudaTextureType2D >             Texture_Masq_Erod_01;
 
 extern "C" textureReference& texture_ImageEpi(int nEpi){return nEpi == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01;}
 
 extern "C" textureReference* pTexture_ImageEpi(int nEpi){return nEpi == 0 ? &texture_ImageEpi_00 : &texture_ImageEpi_01;}
 
-extern "C" textureReference& texture_Masq_Erod(){return Texture_Masq_Erod;}
+extern "C" textureReference* ptexture_Masq_Erod(int nEpi){return nEpi == 0 ? &Texture_Masq_Erod_00 : &Texture_Masq_Erod_01;}
 
 __device__
 inline    bool GET_Val_BIT(const U_INT1 * aData,int anX)
@@ -66,10 +67,17 @@ inline    bool GET_Val_BIT(const U_INT1 * aData,int anX)
 }
 
 __device__
+inline    texture< pixel,cudaTextureType2D>  getMask(ushort iDi)
+{
+    return iDi == 0 ? Texture_Masq_Erod_00 : Texture_Masq_Erod_01;
+}
+
+
+__device__
 inline    bool IsOkErod(uint3 pt)
 {
     // TODO peut etre simplifier % et division
-    pixel mask8b = tex2DLayered(Texture_Masq_Erod,pt.x/8 + 0.5f,pt.y + 0.5f ,pt.z);
+    pixel mask8b = tex2D(getMask(pt.z),pt.x/8 + 0.5f,pt.y + 0.5f);
 
     return (mask8b >> (7-pt.x %8) ) & 1;
 }
@@ -200,7 +208,7 @@ __global__
 void projectionMasqImage(float * dataPixel,uint3 dTer)
 {
 
-    if(blockIdx.x > cPCencus._dimTerrain.y || blockIdx.y > cPCencus._dimTerrain.x)
+    if(blockIdx.x > cPCencus._dimTerrain.x || blockIdx.y > cPCencus._dimTerrain.y)
         return;
 
     const uint3 pt = make_uint3(blockIdx.x,blockIdx.y,blockIdx.z);
@@ -253,10 +261,14 @@ void KernelDoCensusCorrel()
 
         if (IsOkErod(aPIm1,1))
         {
-            float*  aSom1; //correl(uint2 pt,ushort iDi)
-            float*  aSom11;
-            float*  aSom2;
-            float*  aSom22;
+
+            // TODO à cabler avec correl(uint2 pt,ushort iDi)
+            float*  aSom1;  // ---> peut precalculer dans un kernel precedent!
+            float*  aSom11; // ---> peut precalculer dans un kernel precedent!
+
+            // TODO à cabler avec correl(uint2 pt,ushort iDi)
+            float*  aSom2; // ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
+            float*  aSom22;// ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
 
             aCost = CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,aModeMax);
 
@@ -264,7 +276,7 @@ void KernelDoCensusCorrel()
 
             if (DoMixte)
             {
-               if (aGlobCostCorrel>aSeuilHC)
+               if(aGlobCostCorrel>aSeuilHC)
 
                     aCost = aGlobCostCorrel;
 
@@ -289,12 +301,12 @@ void KernelDoCensusCorrel()
 extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)
 {
     dim3	threads( 1, 1, 1);
-    dim3	blocks(param._dimTerrain.y , param._dimTerrain.x, 2);
+    dim3	blocks(param._dimTerrain.x , param._dimTerrain.y, 2);
 
     CuHostData3D<float>     hData;
     CuDeviceData3D<float>   dData;
 
-    uint3 dTer  = make_uint3(param._dimTerrain.y , param._dimTerrain.x,2);
+    uint3 dTer  = make_uint3(param._dimTerrain.x , param._dimTerrain.y,2);
     uint2 dTer2 = make_uint2(dTer);
 
     hData.Malloc(dTer2,2);
