@@ -1345,11 +1345,10 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
 		avoir + de "dynamique"-->
 		<SubsXY  Nb="?" Type="bool" Def="false"> </SubsXY>
 		<Polar  Nb="?" Type="bool" Def="false"> </Polar>
-<!--
-	        <ImagePattern  Nb="1" Type="std::string"> </ImagePattern>
-		<NameX   Nb="?" Type="std::string" Def="X"> </NameX>
-		<NameY   Nb="?" Type="std::string" Def="Y"> </NameY>
--->
+                <GenerateImageRedr Nb="?">
+                     <FCND_CalcRedr Nb="1" Type="std::string"> </FCND_CalcRedr>
+                     <Type Nb="?" Type="eTypeNumerique" > </Type>
+                </GenerateImageRedr>
 	    </GenerateProjectionInImages>
 
 
@@ -1962,6 +1961,9 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                    Ne jamais les positionner "a la main" 
 	      !!!! -->
 	 <CalledByProcess  Nb="?" Def="false" Type="bool"> </CalledByProcess>
+	 <IdMasterProcess  Nb="?" Def="-1" Type="int"> </IdMasterProcess>
+         <!-- Pour pouvoir specifier par Key dans le DicoLoc : commandes simplifiees -->
+         <CreateGrayFileAtBegin  Nb="?" Def="false" Type="bool"> </CreateGrayFileAtBegin>
 	 <Visu Nb="?" Def="false" Type="bool">             </Visu>
 	 <ByProcess Nb="?" Def="0" Type="int"> </ByProcess>
          <StopOnEchecFils Nb="?" Def="true" Type="bool"> </StopOnEchecFils>

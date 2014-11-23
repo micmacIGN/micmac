@@ -44,7 +44,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur * aICNM);
 
 const std::string  DirFusMMInit();
+const std::string  DirFusStatue();
+const std::string  PrefDNF() ; //  DownScale_NuageFusion-
+
 const std::string TheDIRMergTiepForEPI();
+const std::string TheDIRMergeEPI();
 const std::string TheRaffineQuickMac();
 const std::string TheRaffineQuickMac(const std::string &);
 

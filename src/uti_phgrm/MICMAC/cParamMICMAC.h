@@ -3157,6 +3157,31 @@ void  BinaryUnDumpFromFile(cImageSelecteur &,ELISE_fp &);
 
 std::string  Mangling( cImageSelecteur *);
 
+class cGenerateImageRedr
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cGenerateImageRedr & anObj,cElXMLTree * aTree);
+
+
+        std::string & FCND_CalcRedr();
+        const std::string & FCND_CalcRedr()const ;
+
+        cTplValGesInit< eTypeNumerique > & Type();
+        const cTplValGesInit< eTypeNumerique > & Type()const ;
+    private:
+        std::string mFCND_CalcRedr;
+        cTplValGesInit< eTypeNumerique > mType;
+};
+cElXMLTree * ToXMLTree(const cGenerateImageRedr &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGenerateImageRedr &);
+
+void  BinaryUnDumpFromFile(cGenerateImageRedr &,ELISE_fp &);
+
+std::string  Mangling( cGenerateImageRedr *);
+
 class cGenerateProjectionInImages
 {
     public:
@@ -3176,11 +3201,21 @@ class cGenerateProjectionInImages
 
         cTplValGesInit< bool > & Polar();
         const cTplValGesInit< bool > & Polar()const ;
+
+        std::string & FCND_CalcRedr();
+        const std::string & FCND_CalcRedr()const ;
+
+        cTplValGesInit< eTypeNumerique > & Type();
+        const cTplValGesInit< eTypeNumerique > & Type()const ;
+
+        cTplValGesInit< cGenerateImageRedr > & GenerateImageRedr();
+        const cTplValGesInit< cGenerateImageRedr > & GenerateImageRedr()const ;
     private:
         std::list< int > mNumsImageDontApply;
         std::string mFCND_CalcProj;
         cTplValGesInit< bool > mSubsXY;
         cTplValGesInit< bool > mPolar;
+        cTplValGesInit< cGenerateImageRedr > mGenerateImageRedr;
 };
 cElXMLTree * ToXMLTree(const cGenerateProjectionInImages &);
 
@@ -6012,6 +6047,12 @@ class cSection_WorkSpace
         cTplValGesInit< bool > & CalledByProcess();
         const cTplValGesInit< bool > & CalledByProcess()const ;
 
+        cTplValGesInit< int > & IdMasterProcess();
+        const cTplValGesInit< int > & IdMasterProcess()const ;
+
+        cTplValGesInit< bool > & CreateGrayFileAtBegin();
+        const cTplValGesInit< bool > & CreateGrayFileAtBegin()const ;
+
         cTplValGesInit< bool > & Visu();
         const cTplValGesInit< bool > & Visu()const ;
 
@@ -6130,6 +6171,8 @@ class cSection_WorkSpace
         cTplValGesInit< std::string > mTmpGeom;
         cTplValGesInit< std::string > mTmpResult;
         cTplValGesInit< bool > mCalledByProcess;
+        cTplValGesInit< int > mIdMasterProcess;
+        cTplValGesInit< bool > mCreateGrayFileAtBegin;
         cTplValGesInit< bool > mVisu;
         cTplValGesInit< int > mByProcess;
         cTplValGesInit< bool > mStopOnEchecFils;
@@ -7058,6 +7101,12 @@ class cParamMICMAC
 
         cTplValGesInit< bool > & CalledByProcess();
         const cTplValGesInit< bool > & CalledByProcess()const ;
+
+        cTplValGesInit< int > & IdMasterProcess();
+        const cTplValGesInit< int > & IdMasterProcess()const ;
+
+        cTplValGesInit< bool > & CreateGrayFileAtBegin();
+        const cTplValGesInit< bool > & CreateGrayFileAtBegin()const ;
 
         cTplValGesInit< bool > & Visu();
         const cTplValGesInit< bool > & Visu()const ;

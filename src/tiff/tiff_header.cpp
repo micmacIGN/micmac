@@ -2155,7 +2155,7 @@ std::string NameFileStd
                 bool ExigB8
             )
 {
-   cInterfChantierNameManipulateur * aICNM = 0;
+   cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::Glob();
    cSpecifFormatRaw *   aSFR = GetSFRFromString(aFullNameOri);
 
 
@@ -2255,6 +2255,7 @@ std::string NameFileStd
        Fonc_Num aFin = aTif->in();
        if (aNbChanSpec==1)
        {
+           if (aICNM==0)  aICNM = cInterfChantierNameManipulateur::Glob();
            if (aICNM==0)  aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullNameOri));
            std::vector<double> aVPds;
            ElArgMain<std::vector<double> > anArg(aVPds,"toto",true);

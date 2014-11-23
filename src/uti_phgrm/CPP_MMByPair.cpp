@@ -37,7 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-const std::string TheDIRMergTiepForEPI(){return  "Merge-TieP-ForEpi";}
+// const std::string TheDIRMergTiepForEPI(){return  "Merge-TieP-ForEpi";}
+const std::string TheDIRMergTiepForEPI(){return  TheDIRMergeEPI();}
+const std::string TheDIRMergeEPI(){return  "MTD-Image";}
+const std::string DirFusStatue(){return  "Fusion-Statue/";}
+const std::string PrefDNF(){return  "DownScale_NuageFusion-";}
 
 
 extern double DynCptrFusDepthMap;
@@ -134,6 +138,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mDoTiePM0;      // Do model initial wih MMTieP ..
       int          mTimes;
       bool         mDebugCreatE;
+      bool         mPurge;
 };
 
 /*****************************************************************/
@@ -1043,12 +1048,13 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mScalePlyMM1P (3),
     mScalePlyFus  (-1),
     mDoOMF        (false),
-    mRIEInParal   (false),
+    mRIEInParal   (true),
     mRIE2Do       (true),
     mExeRIE       (true),
     mDoTiePM0     (false),
     mTimes        (1),
-    mDebugCreatE  (false)
+    mDebugCreatE  (false),
+    mPurge        (! MPD_MM())
 
 {
   if ((argc>=2) && (!mModeHelp))
@@ -1131,6 +1137,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mMasterImages,"Masters",true,"If specified, only pair containing a master will be selected")
                     << EAM(mMasq3D,"Masq3D",true,"If specified the 3D masq")
                     << EAM(mCalPerIm,"CalPerIm",true,"true id Calib per Im were used, def=false")
+                    << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
   );
 
   if (!MMVisualMode)
@@ -1315,7 +1322,9 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " DCE=" +  ToString(mDebugCreatE)
                          +  " HasVeg=" + ToString(mHasVeget)
                          +  " HasSBG=" + ToString(mSkyBackGround)
+                         + " PurgeAtEnd=" + ToString(mPurge)
                       ;
+
 
      if (EAMIsInit(&mMasq3D)) aMatchCom = aMatchCom + " Masq3D=" +mMasq3D + " ";
 
@@ -1537,15 +1546,15 @@ void cAppliMMByPair::DoFusionStatue()
        cEl_GPAO::DoComInParal(aLComPly);
    }
 
-   double aFactRed = 3.0;
+   double aFactRed = 2.0;
    {
-       ELISE_fp::MkDir(mEASF.mDir+"Fusion-0/");
+       ELISE_fp::MkDir(mEASF.mDir+ DirFusStatue() );
        std::list<std::string> aLComRed;
        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
        {
             std::string aCom1 =      MMBinFile(MM3DStr) + " ScaleNuage  "
                                + DirMTDImage(*anITS) + "Fusion_NuageImProf_LeChantier_Etape_1.xml "
-                               + "Fusion-0/NuageRed" + (*anITS).attr().mIma->mNameIm 
+                               + DirFusStatue() + PrefDNF()  + (*anITS).attr().mIma->mNameIm 
                                + " " + ToString(aFactRed)
                                + " InDirLoc=false";
                            ;
@@ -1553,7 +1562,7 @@ void cAppliMMByPair::DoFusionStatue()
             std::string aCom2 =  MMBinFile(MM3DStr) + " ScaleIm  "
                                + DirMTDImage(*anITS) + "Fusion_NuageImProf_LeChantier_Etape_1_Cptr.tif "
                                + " " + ToString(aFactRed)
-                               + " Out=Fusion-0/NuageRed" + (*anITS).attr().mIma->mNameIm  + "CptRed.tif "
+                               + " Out=" +  DirFusStatue() + PrefDNF() + (*anITS).attr().mIma->mNameIm  + "CptRed.tif "
                            ;
 
              aLComRed.push_back(aCom1);

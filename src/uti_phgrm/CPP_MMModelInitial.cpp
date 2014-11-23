@@ -41,6 +41,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
  non max et voisin du vide
 */
+
+#define TheNbPref 5
+
 void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 {
 
@@ -127,9 +130,9 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
 
 
-const std::string  DirFusMMInit() {return "Fusion-MMMI/";}
-const std::string TheRaffineQuickMac() {return "Match-QM";}
-const std::string TheRaffineQuickMac(const std::string & aName) {return TheRaffineQuickMac() + aName + "/";}
+const std::string  DirFusMMInit() {return "Fusion-QuickMac/";}
+// const std::string TheRaffineQuickMac() {return "Match-QM";}
+// const std::string TheRaffineQuickMac(const std::string & aName) {return TheRaffineQuickMac() + aName + "/";}
 
 
 
@@ -164,6 +167,7 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
       bool mDoPly;
       bool mDoPlyDS;
       bool mAutoPurge;
+      bool mModeQM;
 };
 
 
@@ -176,7 +180,8 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    mShowCom    (false),
    mDoPly      (false),
    mDoPlyDS    (false),
-   mAutoPurge  (false)
+   mAutoPurge  (false),
+   mModeQM     (true)
 {
    std::string Masq3D;
    std::string aPat,anOri;
@@ -196,6 +201,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAM(mDoPlyDS,"DoPlyDS",true,"Do Ply down scaled")
                     << EAM(mAutoPurge,"AutoPurge",true,"Automaticaly purge unnecessary temp file (def=true)")
                     << EAM(mJmp,"Jump",true,"Will compute only image Mod Jump==0 , def=1 (all images)")
+                    << EAM(mModeQM,"ModeQM",true,"In Mode Quick Mac")
    );
 
    if (! (mCalledByP))
@@ -362,6 +368,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    }
 
 
+/*
    std::string aDirExp = Dir()+TheRaffineQuickMac(mNameIm);
    ELISE_fp::MkDirSvp(aDirExp);
    ELISE_fp::CpFile
@@ -369,12 +376,27 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
         mDirMerge + "Z_Num1_DeZoom" + ToString(mZoomEnd) + "_LeChantier.xml",
         aDirExp + "MasqTerrain.xml"
    );
+*/
 
    
    if (mAutoPurge)
    {
        ELISE_fp::PurgeDir(Dir()+mDirMatch,true);
-       ELISE_fp::PurgeDir(Dir()+mDirMerge,true);
+       if (mModeQM)
+       {
+           ELISE_fp::PurgeDir(Dir()+mDirMerge,true);
+       }
+       else
+       {
+           std::string aVS[TheNbPref] ={"EnvMax","EnvMin","EnvMasq","Depth","Masq"};
+           for (int aZoom = mZoom0 ; aZoom >= mZoomEnd ; aZoom /= 2)
+           {
+              for (int aK=0 ; aK<5 ; aK++)
+              {
+                   ELISE_fp::RmFile(Dir()+NameFileLoc(aVS[aK],aZoom));
+              }
+           }
+       }
    }
 }
 

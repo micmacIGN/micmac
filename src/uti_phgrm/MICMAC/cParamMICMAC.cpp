@@ -10873,6 +10873,72 @@ void xml_init(cImageSelecteur & anObj,cElXMLTree * aTree)
 std::string  Mangling( cImageSelecteur *) {return "9E79EC740088489FFCBF";};
 
 
+std::string & cGenerateImageRedr::FCND_CalcRedr()
+{
+   return mFCND_CalcRedr;
+}
+
+const std::string & cGenerateImageRedr::FCND_CalcRedr()const 
+{
+   return mFCND_CalcRedr;
+}
+
+
+cTplValGesInit< eTypeNumerique > & cGenerateImageRedr::Type()
+{
+   return mType;
+}
+
+const cTplValGesInit< eTypeNumerique > & cGenerateImageRedr::Type()const 
+{
+   return mType;
+}
+
+void  BinaryUnDumpFromFile(cGenerateImageRedr & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.FCND_CalcRedr(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Type().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Type().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Type().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cGenerateImageRedr & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.FCND_CalcRedr());
+    BinaryDumpInFile(aFp,anObj.Type().IsInit());
+    if (anObj.Type().IsInit()) BinaryDumpInFile(aFp,anObj.Type().Val());
+}
+
+cElXMLTree * ToXMLTree(const cGenerateImageRedr & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GenerateImageRedr",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("FCND_CalcRedr"),anObj.FCND_CalcRedr())->ReTagThis("FCND_CalcRedr"));
+   if (anObj.Type().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Type"),anObj.Type().Val())->ReTagThis("Type"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cGenerateImageRedr & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.FCND_CalcRedr(),aTree->Get("FCND_CalcRedr",1)); //tototo 
+
+   xml_init(anObj.Type(),aTree->Get("Type",1)); //tototo 
+}
+
+std::string  Mangling( cGenerateImageRedr *) {return "60C25B2D94CABED4F93F";};
+
+
 std::list< int > & cGenerateProjectionInImages::NumsImageDontApply()
 {
    return mNumsImageDontApply;
@@ -10916,6 +10982,39 @@ const cTplValGesInit< bool > & cGenerateProjectionInImages::Polar()const
    return mPolar;
 }
 
+
+std::string & cGenerateProjectionInImages::FCND_CalcRedr()
+{
+   return GenerateImageRedr().Val().FCND_CalcRedr();
+}
+
+const std::string & cGenerateProjectionInImages::FCND_CalcRedr()const 
+{
+   return GenerateImageRedr().Val().FCND_CalcRedr();
+}
+
+
+cTplValGesInit< eTypeNumerique > & cGenerateProjectionInImages::Type()
+{
+   return GenerateImageRedr().Val().Type();
+}
+
+const cTplValGesInit< eTypeNumerique > & cGenerateProjectionInImages::Type()const 
+{
+   return GenerateImageRedr().Val().Type();
+}
+
+
+cTplValGesInit< cGenerateImageRedr > & cGenerateProjectionInImages::GenerateImageRedr()
+{
+   return mGenerateImageRedr;
+}
+
+const cTplValGesInit< cGenerateImageRedr > & cGenerateProjectionInImages::GenerateImageRedr()const 
+{
+   return mGenerateImageRedr;
+}
+
 void  BinaryUnDumpFromFile(cGenerateProjectionInImages & anObj,ELISE_fp & aFp)
 {
    { int aNb;
@@ -10944,6 +11043,14 @@ void  BinaryUnDumpFromFile(cGenerateProjectionInImages & anObj,ELISE_fp & aFp)
         }
         else  anObj.Polar().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.GenerateImageRedr().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.GenerateImageRedr().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.GenerateImageRedr().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cGenerateProjectionInImages & anObj)
@@ -10959,6 +11066,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cGenerateProjectionInImages & anObj)
     if (anObj.SubsXY().IsInit()) BinaryDumpInFile(aFp,anObj.SubsXY().Val());
     BinaryDumpInFile(aFp,anObj.Polar().IsInit());
     if (anObj.Polar().IsInit()) BinaryDumpInFile(aFp,anObj.Polar().Val());
+    BinaryDumpInFile(aFp,anObj.GenerateImageRedr().IsInit());
+    if (anObj.GenerateImageRedr().IsInit()) BinaryDumpInFile(aFp,anObj.GenerateImageRedr().Val());
 }
 
 cElXMLTree * ToXMLTree(const cGenerateProjectionInImages & anObj)
@@ -10976,6 +11085,8 @@ cElXMLTree * ToXMLTree(const cGenerateProjectionInImages & anObj)
       aRes->AddFils(::ToXMLTree(std::string("SubsXY"),anObj.SubsXY().Val())->ReTagThis("SubsXY"));
    if (anObj.Polar().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Polar"),anObj.Polar().Val())->ReTagThis("Polar"));
+   if (anObj.GenerateImageRedr().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.GenerateImageRedr().Val())->ReTagThis("GenerateImageRedr"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -10993,9 +11104,11 @@ void xml_init(cGenerateProjectionInImages & anObj,cElXMLTree * aTree)
    xml_init(anObj.SubsXY(),aTree->Get("SubsXY",1),bool(false)); //tototo 
 
    xml_init(anObj.Polar(),aTree->Get("Polar",1),bool(false)); //tototo 
+
+   xml_init(anObj.GenerateImageRedr(),aTree->Get("GenerateImageRedr",1)); //tototo 
 }
 
-std::string  Mangling( cGenerateProjectionInImages *) {return "58B9FCDE1A6408C9FD3F";};
+std::string  Mangling( cGenerateProjectionInImages *) {return "9010CCC95B5C80A6FF3F";};
 
 
 double & cGenCorPxTransv::SsResolPx()
@@ -18667,7 +18780,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "EE4E6CBDAC9340D3FE3F";};
+std::string  Mangling( cEtapeMEC *) {return "E4D567151C793ACAFF3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -19832,7 +19945,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "30CD964AA1FF5880FBBF";};
+std::string  Mangling( cSection_MEC *) {return "4AA3E1B184E822BAFCBF";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -23555,6 +23668,28 @@ const cTplValGesInit< bool > & cSection_WorkSpace::CalledByProcess()const
 }
 
 
+cTplValGesInit< int > & cSection_WorkSpace::IdMasterProcess()
+{
+   return mIdMasterProcess;
+}
+
+const cTplValGesInit< int > & cSection_WorkSpace::IdMasterProcess()const 
+{
+   return mIdMasterProcess;
+}
+
+
+cTplValGesInit< bool > & cSection_WorkSpace::CreateGrayFileAtBegin()
+{
+   return mCreateGrayFileAtBegin;
+}
+
+const cTplValGesInit< bool > & cSection_WorkSpace::CreateGrayFileAtBegin()const 
+{
+   return mCreateGrayFileAtBegin;
+}
+
+
 cTplValGesInit< bool > & cSection_WorkSpace::Visu()
 {
    return mVisu;
@@ -24021,6 +24156,22 @@ void  BinaryUnDumpFromFile(cSection_WorkSpace & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.IdMasterProcess().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.IdMasterProcess().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.IdMasterProcess().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CreateGrayFileAtBegin().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CreateGrayFileAtBegin().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CreateGrayFileAtBegin().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.Visu().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.Visu().ValForcedForUnUmp(),aFp);
         }
@@ -24305,6 +24456,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSection_WorkSpace & anObj)
     if (anObj.TmpResult().IsInit()) BinaryDumpInFile(aFp,anObj.TmpResult().Val());
     BinaryDumpInFile(aFp,anObj.CalledByProcess().IsInit());
     if (anObj.CalledByProcess().IsInit()) BinaryDumpInFile(aFp,anObj.CalledByProcess().Val());
+    BinaryDumpInFile(aFp,anObj.IdMasterProcess().IsInit());
+    if (anObj.IdMasterProcess().IsInit()) BinaryDumpInFile(aFp,anObj.IdMasterProcess().Val());
+    BinaryDumpInFile(aFp,anObj.CreateGrayFileAtBegin().IsInit());
+    if (anObj.CreateGrayFileAtBegin().IsInit()) BinaryDumpInFile(aFp,anObj.CreateGrayFileAtBegin().Val());
     BinaryDumpInFile(aFp,anObj.Visu().IsInit());
     if (anObj.Visu().IsInit()) BinaryDumpInFile(aFp,anObj.Visu().Val());
     BinaryDumpInFile(aFp,anObj.ByProcess().IsInit());
@@ -24399,6 +24554,10 @@ cElXMLTree * ToXMLTree(const cSection_WorkSpace & anObj)
       aRes->AddFils(::ToXMLTree(std::string("TmpResult"),anObj.TmpResult().Val())->ReTagThis("TmpResult"));
    if (anObj.CalledByProcess().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("CalledByProcess"),anObj.CalledByProcess().Val())->ReTagThis("CalledByProcess"));
+   if (anObj.IdMasterProcess().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IdMasterProcess"),anObj.IdMasterProcess().Val())->ReTagThis("IdMasterProcess"));
+   if (anObj.CreateGrayFileAtBegin().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CreateGrayFileAtBegin"),anObj.CreateGrayFileAtBegin().Val())->ReTagThis("CreateGrayFileAtBegin"));
    if (anObj.Visu().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Visu"),anObj.Visu().Val())->ReTagThis("Visu"));
    if (anObj.ByProcess().IsInit())
@@ -24499,6 +24658,10 @@ void xml_init(cSection_WorkSpace & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.CalledByProcess(),aTree->Get("CalledByProcess",1),bool(false)); //tototo 
 
+   xml_init(anObj.IdMasterProcess(),aTree->Get("IdMasterProcess",1),int(-1)); //tototo 
+
+   xml_init(anObj.CreateGrayFileAtBegin(),aTree->Get("CreateGrayFileAtBegin",1),bool(false)); //tototo 
+
    xml_init(anObj.Visu(),aTree->Get("Visu",1),bool(false)); //tototo 
 
    xml_init(anObj.ByProcess(),aTree->Get("ByProcess",1),int(0)); //tototo 
@@ -24566,7 +24729,7 @@ void xml_init(cSection_WorkSpace & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeMasque(),aTree->Get("TypeMasque",1),eTypeNumerique(eTN_Bits1MSBF)); //tototo 
 }
 
-std::string  Mangling( cSection_WorkSpace *) {return "CA0FEBB57A83BDB1FD3F";};
+std::string  Mangling( cSection_WorkSpace *) {return "66898FB8C27CB1D0FE3F";};
 
 
 std::string & cOneBatch::PatternSelImBatch()
@@ -27907,6 +28070,28 @@ const cTplValGesInit< bool > & cParamMICMAC::CalledByProcess()const
 }
 
 
+cTplValGesInit< int > & cParamMICMAC::IdMasterProcess()
+{
+   return Section_WorkSpace().IdMasterProcess();
+}
+
+const cTplValGesInit< int > & cParamMICMAC::IdMasterProcess()const 
+{
+   return Section_WorkSpace().IdMasterProcess();
+}
+
+
+cTplValGesInit< bool > & cParamMICMAC::CreateGrayFileAtBegin()
+{
+   return Section_WorkSpace().CreateGrayFileAtBegin();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::CreateGrayFileAtBegin()const 
+{
+   return Section_WorkSpace().CreateGrayFileAtBegin();
+}
+
+
 cTplValGesInit< bool > & cParamMICMAC::Visu()
 {
    return Section_WorkSpace().Visu();
@@ -28768,6 +28953,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "E66B11DAE945F9CAFDBF";};
+std::string  Mangling( cParamMICMAC *) {return "0845A70D7D7240DAFBBF";};
 
 // Quelque chose

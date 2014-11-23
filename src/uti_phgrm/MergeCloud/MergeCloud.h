@@ -296,7 +296,6 @@ class cAppliMergeCloud : public cAppliWithSetImage
        void OneStepSelection();
 
 
-       static const std::string TheNameSubdir;
 
        std::string mFileParam;
        cParamFusionNuage mParam;

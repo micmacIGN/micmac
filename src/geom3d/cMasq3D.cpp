@@ -421,37 +421,6 @@ void Test3dQT()
 
    std::cout << "MASQ BIN " << aM3D->IsInMasq(aP) << "\n";
 
-/*
-   std::string aDir = "/home/marc/TMP/EPI/Soldat-Temple-Hue/";
-   std::string aIma = "IMGP7048.JPG";
-   std::string aNameMasq3D  = aDir + "AperiCloud_CalPerIm_selectionInfo.xml";
-   std::string aNameNuage =  aDir + "MTD-Image-" + aIma + "/Fusion_NuageImProf_LeChantier_Etape_1.xml";
-   std::string aNameSh= StdPrefix(aNameNuage) + "Shade.tif";
-
-   cMasqBin3D * aM3D = cMasq3DEmpileMasqPart::FromSaisieMasq3d(aNameMasq3D);
-   cElNuage3DMaille * aNuage = cElNuage3DMaille::FromFileIm(aNameNuage);
-
-   Im2D_Bits<1>  aMasq = aM3D->Mas2DPointInMasq3D(*aNuage);
-
-   Pt2dr aSzMax(1200,800);
-   Pt2di aSzI = aMasq.sz();
-   double aRatio = ElMin(aSzMax.x/aSzI.x,aSzMax.y/aSzI.y);
-
-   Pt2dr aSzW =  Pt2dr(aSzI) * aRatio;
-
-   Video_Win * aW = Video_Win::PtrWStd(round_ni(aSzW),true,Pt2dr(aRatio,aRatio));
-
-   Tiff_Im aImS(aNameSh.c_str());
-   Symb_FNum aSSh(aImS.in(0));
-
-   ELISE_COPY
-   (
-       aMasq.all_pts(),
-       Virgule(aMasq.in()*aSSh,aSSh,aSSh),
-       aW->orgb()
-   );
-   getchar();
-*/
 }
 
 

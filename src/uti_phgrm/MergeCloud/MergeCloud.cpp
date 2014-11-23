@@ -327,19 +327,20 @@ Video_Win *  cAppliMergeCloud::TheWinIm(const cASAMG * anAS)
    return mTheWinIm;
 }
 
-const std::string cAppliMergeCloud::TheNameSubdir = "Fusion-0";
 
 std::string cAppliMergeCloud::NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPrefIn)
 {
    switch (mParam.ModeMerge())
    {
        case eMMC_Epi :
-            return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
        case eMMC_Envlop :
        case eMMC_QuickMac :
+
+            std::string aDirLoc = (mParam.ModeMerge()==eMMC_Epi) ? DirFusStatue() : DirFusMMInit();
             std::string aPref = (aPrefIn=="" )? "Depth" : aPrefIn;
             std::string PrefGlob =  DownScale ? "DownScale_NuageFusion-" : "NuageFusion-";
-            return Dir() +  DirFusMMInit() +  PrefGlob + aPref + aNameIm + aPost;
+            return Dir() + aDirLoc   +  PrefGlob + aPref + aNameIm + aPost;
+
    }
    ELISE_ASSERT(false,"cAppliMergeCloud::NameFileInput");
    return "";
