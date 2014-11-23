@@ -90,6 +90,7 @@ class cMMOnePair
       double           mSigmaP;
       Box2di           mBoxIm;
       bool             mPurge;
+      bool             mPurgeAtEnd;
       std::string      mBascMTD;
       bool             mRIE;
       std::string      mBascDEST;
@@ -114,6 +115,8 @@ class cAppliMMOnePair : public cMMOnePair,
      public :
          cAppliMMOnePair(int argc,char ** argv);
      private :
+         void PurgeOneFileEpi(const std::string & aName,const std::string & aPost);
+         void PurgeFileEpi(const std::string & aName);
          void MatchTwoWay(int aStep0,int aStepF);
          void MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForMTD);
          void DoMasqReentrant(bool First,int aStep,bool Last);
@@ -150,6 +153,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDoMR         (true),
     mSigmaP       (1.5),
     mPurge        (true),
+    mPurgeAtEnd   (false),
     mRIE          (false),
     mBascDEST     ("Basculed-"),
     mDoHom        (false),
@@ -180,6 +184,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mSigmaP,"SigmaP",true,"Sigma Pixel for coherence (Def=1.5)")
                     << EAM(mBoxIm,"BoxIm",true,"Box of calc in Epip, tuning purpose (Def=All image)",eSAM_InternalUse)
                     << EAM(mPurge,"Purge",true,"Purge directory, tuning (Def=true)", eSAM_InternalUse)
+                    << EAM(mPurgeAtEnd,"PurgeAtEnd",true,"Purge Final Resul", eSAM_IsBool)
                     << EAM(mMM1PInParal,"InParal",true,"Do it in parallel (Def=true)", eSAM_IsBool)
                     << EAM(mBascMTD,"BascMTD",true,"Metadata of file to bascule (Def No Basc)")
                     << EAM(mRIE,"RIE",true,",Inverse re-sampling from epipolar", eSAM_IsBool)
@@ -422,7 +427,33 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
        BasculeGround(true);
        BasculeGround(false);
     }
+
+    if (mPurgeAtEnd)
+    {
+        if (mCreateEpip)
+        {
+           PurgeFileEpi(mNameIm1);
+           PurgeFileEpi(mNameIm2);
+        }
+        ELISE_fp::PurgeDir(Dir() + LocDirMec2Im(mNameIm1,mNameIm2),true);
+        ELISE_fp::PurgeDir(Dir() + LocDirMec2Im(mNameIm2,mNameIm1),true);
+    }
 }
+
+void cAppliMMOnePair::PurgeOneFileEpi(const std::string & aName,const std::string & aPost)
+{
+     ELISE_fp::RmFile( Dir() + StdPrefix(aName) + aPost);
+}
+
+void cAppliMMOnePair::PurgeFileEpi(const std::string & aName)
+{
+    PurgeOneFileEpi(aName,".tif");
+    PurgeOneFileEpi(aName,"_Masq.tif");
+    PurgeOneFileEpi(aName,"_Masq.xml");
+}
+
+
+
 
 void cAppliMMOnePair::BasculeEpip(bool MasterIs1)
 {
@@ -733,8 +764,10 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
 
+     std::string aDyrPyram = mCreateEpip ? LocDirMec2Im(mNameIm1,mNameIm2) : "Pyram/";
+     aCom = aCom+ " +DirPyram=" + aDyrPyram;
+
      if (mNoOri) aCom = aCom+ " +MasqImOptional=true";
-     if (! mCreateEpip) aCom = aCom+ " +DirPyrIsMEC=false";
 
      if (EAMIsInit(&mBoxIm))
      {

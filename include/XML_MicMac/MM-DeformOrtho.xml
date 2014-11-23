@@ -1,10 +1,12 @@
 <!--
     A Pattern file for using MicMac in post-sismic deformation
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-DeformOrtho.xml   +ImVis=BdOrthoCouleur_2011_007.tif +ImPir=uzon1_pva_prtp_16042014_1.tif   WorkDir=/home/mpd/Bureau/ASP/uzon/8000x8000/ 
 -->
 <ParamMICMAC>
     <DicoLoc>
-         <Symb> Im1=BdOrthoCouleur_2011_007.tif  </Symb>
-         <Symb> Im2=uzon1_pva_prtp_16042014_1.tif  </Symb>
+         <Symb> ImVis=XXXX  </Symb>
+         <Symb> ImPir=XXXX  </Symb>
          <Symb> Inc=10.0  </Symb>
          <Symb> SzW=20 </Symb>
          <Symb> Regul=1.0 </Symb>
@@ -17,6 +19,26 @@
          <Symb> SsResolOpt=10 </Symb>
          <Symb> NbDir=7 </Symb>
 
+         <KeyedNamesAssociations>
+               <Calcs>
+                   <Arrite>  1 1 </Arrite>
+                   <Direct>
+                       <PatternTransform> .*${ImVis} </PatternTransform>
+                       <CalcName>  [1,1,0] </CalcName>
+                   </Direct>
+               </Calcs>
+               <Calcs>
+                   <Arrite>  1 1 </Arrite>
+                   <Direct>
+                       <PatternTransform> .*${ImPir} </PatternTransform>
+                       <CalcName>  [0,1,1] </CalcName>
+                   </Direct>
+               </Calcs>
+
+               <Key>   NKS-Assoc-Pds-Channel </Key>
+         </KeyedNamesAssociations>
+
+
   <KeyedNamesAssociations>
             <Calcs>
                  <Arrite>  1 1 </Arrite>
@@ -26,9 +48,19 @@
                        <CalcName> Teta.tif </CalcName>
                  </Direct>
              </Calcs>
-             <Key>   KeyCsteRhoTeta </Key>
+             <Key>   Loc-KeyCsteRhoTeta </Key>
     </KeyedNamesAssociations>
 
+  <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> (.*) </PatternTransform>
+                       <CalcName> Redr-$0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Loc-KeyRedr </Key>
+    </KeyedNamesAssociations>
 
     </DicoLoc>
 <!-- *************************************************************
@@ -66,8 +98,8 @@ par le correlateur
     <Section_PriseDeVue>
         <GeomImages> eGeomImage_Epip </GeomImages>
         <Images>
-            <Im1> ${Im1} </Im1>
-            <Im2> ${Im2} </Im2>
+            <Im1> ${ImVis} </Im1>
+            <Im2> ${ImPir} </Im2>
         </Images>
     </Section_PriseDeVue>
 
@@ -128,9 +160,12 @@ par le correlateur
             <AlgoRegul> eAlgoDequant </AlgoRegul>
             <GenerateProjectionInImages>
                 <NumsImageDontApply> 0 </NumsImageDontApply>
-                <FCND_CalcProj> KeyCsteRhoTeta </FCND_CalcProj>
+                <FCND_CalcProj> Loc-KeyCsteRhoTeta </FCND_CalcProj>
                 <SubsXY> true </SubsXY>
                 <Polar> true</Polar>
+                <GenerateImageRedr>
+                     <FCND_CalcRedr>  Loc-KeyRedr </FCND_CalcRedr>
+                </GenerateImageRedr>
             </GenerateProjectionInImages>
         </EtapeMEC>
     </Section_MEC>
@@ -146,6 +181,7 @@ par le correlateur
       <TmpResult> MMDeform/ </TmpResult>
 
       <ByProcess>  ${MMNbProc} </ByProcess>
+      <CreateGrayFileAtBegin> true  </CreateGrayFileAtBegin>
 
       <NbCelluleMax> 8e7 </NbCelluleMax>
 

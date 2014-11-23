@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2129]) = {
+const char * (theNameVar_ParamMICMAC[2131]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1347,11 +1347,10 @@ const char * (theNameVar_ParamMICMAC[2129]) = {
 "		avoir + de \"dynamique\"-->\n",
 "		<SubsXY  Nb=\"?\" Type=\"bool\" Def=\"false\"> </SubsXY>\n",
 "		<Polar  Nb=\"?\" Type=\"bool\" Def=\"false\"> </Polar>\n",
-"<!--\n",
-"	        <ImagePattern  Nb=\"1\" Type=\"std::string\"> </ImagePattern>\n",
-"		<NameX   Nb=\"?\" Type=\"std::string\" Def=\"X\"> </NameX>\n",
-"		<NameY   Nb=\"?\" Type=\"std::string\" Def=\"Y\"> </NameY>\n",
-"-->\n",
+"                <GenerateImageRedr Nb=\"?\">\n",
+"                     <FCND_CalcRedr Nb=\"1\" Type=\"std::string\"> </FCND_CalcRedr>\n",
+"                     <Type Nb=\"?\" Type=\"eTypeNumerique\" > </Type>\n",
+"                </GenerateImageRedr>\n",
 "	    </GenerateProjectionInImages>\n",
 "\n",
 "\n",
@@ -1964,6 +1963,9 @@ const char * (theNameVar_ParamMICMAC[2129]) = {
 "                   Ne jamais les positionner \"a la main\" \n",
 "	      !!!! -->\n",
 "	 <CalledByProcess  Nb=\"?\" Def=\"false\" Type=\"bool\"> </CalledByProcess>\n",
+"	 <IdMasterProcess  Nb=\"?\" Def=\"-1\" Type=\"int\"> </IdMasterProcess>\n",
+"         <!-- Pour pouvoir specifier par Key dans le DicoLoc : commandes simplifiees -->\n",
+"         <CreateGrayFileAtBegin  Nb=\"?\" Def=\"false\" Type=\"bool\"> </CreateGrayFileAtBegin>\n",
 "	 <Visu Nb=\"?\" Def=\"false\" Type=\"bool\">             </Visu>\n",
 "	 <ByProcess Nb=\"?\" Def=\"0\" Type=\"int\"> </ByProcess>\n",
 "         <StopOnEchecFils Nb=\"?\" Def=\"true\" Type=\"bool\"> </StopOnEchecFils>\n",

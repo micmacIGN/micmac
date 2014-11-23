@@ -414,6 +414,7 @@ Il est important que la conception soit suffisement generique pour intégrer fac
 
     **  Usecase   **
 
+
 Critères :  
 
     * A-se démarquer des autres 
@@ -473,7 +474,9 @@ Interaction :
 -----------USECASE 5-  l'intérieur de monument au fish-eye ----------
 
 
+-----------USECASE 6-  Un visage a partir de video ----------------
 
+A 1 B 1  C3 C1  D 2 E 3
 
 
 

@@ -326,6 +326,8 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
      );
 }
 
+const std::string & mm_getstrpid();
+
 
 std::string cAppliMICMAC::PrefixGenerikRecalEtapeMicmMac(cEtapeMecComp & anEtape)
 {
@@ -336,7 +338,8 @@ std::string cAppliMICMAC::PrefixGenerikRecalEtapeMicmMac(cEtapeMecComp & anEtape
     //std::string aNameProcess = std::string("\"")+mNameXML+std::string("\"")
    std::string aNameProcess = mNameXML 
                                + std::string(" CalledByProcess=1 ")
-                               + std::string(" ByProcess=0 ");
+                               + std::string(" ByProcess=0 ")
+                               + std::string(" IdMasterProcess="+ mm_getstrpid() + " ");
 
     // MODIF MPD mise entre " des parametre pour etre completement reentrant
     for (int aKArg=0; aKArg<mNbArgAux ; aKArg++)

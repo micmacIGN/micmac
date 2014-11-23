@@ -1376,6 +1376,10 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
      if (PDVFromName  (aName,0))
         return;
 
+     if (CreateGrayFileAtBegin().Val())
+     {
+         Tiff_Im::StdConvGen(WorkDir() + aName, 1,true,true);
+     }
 
      std::string  aNameGeom;
      cGeometrieImageComp * theGotGeom = 0;

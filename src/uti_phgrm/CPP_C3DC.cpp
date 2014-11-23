@@ -49,12 +49,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 // =============  ::  ===================================
 
 
-//  Masq-TieP-IMG_8326.JPG  => Tmp pour MMInitial Model (peut etre purge apres Chaque MMEnvlop)
-//  Merge-TieP-ForEpi-IMG_8322.JPG  => Tmp pour MMEnvlop (peut etre purge apres Chaque MMEnvlop ?)
-//  Match-QMIMGP7051.JPG =>  ??
-//  MTD-Image-IMG_8322.JPG => ?? Tmp pour Epi Merge ??
-
-
 
 class cAppli_C3DC : public cAppliWithSetImage
 {
@@ -136,7 +130,9 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
    mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ")
                    +  mStrImOri
                    +  std::string(" 16 4 DownScale=2 ")
-                   +  mArgMasq3D;
+                   +  mArgMasq3D
+                   +  std::string(" AutoPurge=true")
+                   +  " ModeQM=" + ToString( mType  == eQuickMac) ;
 
    if (mTuning)
    {
@@ -155,7 +151,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
 
    mComMerge +=  " PlyCoul=" + ToString(mPlyCoul);
   //=====================================
-   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE("Fusion-MMMI/.*Tes.*ply") + " Out="  + mMergeOut;
+   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( DirFusMMInit() + ".*Tes.*ply") + " Out="  + mMergeOut;
 
 }
 

@@ -134,7 +134,11 @@ Pt3dr  cCEM_OneIm_Epip::To3d(const Pt2di & anI) const
     cCEM_OneIm_Epip * aE2 = static_cast<cCEM_OneIm_Epip*> (mConj);
     CamStenope * aCam2 = aE2->mCam;
     Pt2dr  aP1 = Pt2dr(anI * mCoher->mDeZoom); 
-    Pt2dr  aP2 = aP1 +  Pt2dr(mTPx.get(anI)*mResolAlti,0);
+    Pt2dr  aP2 = ( Pt2dr(anI) + Pt2dr(mTPx.get(anI),0)) * mCoher->mDeZoom;
+    // Pt2dr  aP2 = aP1 +  Pt2dr((mTPx.get(anI)/mCoher->mStep )*mResolAlti,0);
+    // aP2 = aP1 +  Pt2dr(mTPx.get(anI)*mResolAlti*2,0);
+// std::cout << mCoher->mStep << " " << mResolAlti << "\n";
+
 
     return mCam->PseudoInter(aP1,*aCam2,aP2);
     // ELISE_ASSERT(false,"cCEM_OneIm_Epip::To3d");
@@ -229,36 +233,54 @@ cCEM_OneIm::cCEM_OneIm
 
 }
 
+
+bool DEBUGM3D = true;
+
 void cCEM_OneIm::PostInit()
 {
+    std::vector<Pt3dr> aVPts;
+    std::vector<Pt3di> aVCoul;
+
     if (mCoher->Masq3d())
     {
-/*
-        Im2D_Bits<1> aImMasq3d   (mSz.x,mSz.y,0);
-        TIm2DBits<1> aTMasq3d   (aImMasq3d);
         Pt2di anI;
         for (anI.x =0 ; anI.x <mSz.x ; anI.x++)
         {
             for (anI.y =0 ; anI.y <mSz.y ; anI.y++)
             {
+                
                 if (mTMasq.get(anI))
                 {
-                   aTMasq3d.oset(anI,mCoher->Masq3d()->IsInMasq(To3d(anI)));
+                   if (DEBUGM3D)
+                   {
+                      Pt3dr aPt = To3d(anI);
+                      bool InMasq = mCoher->Masq3d()->IsInMasq(aPt);
+                      aVPts.push_back(aPt);
+                      aVCoul.push_back(InMasq ? Pt3di(128,128,128) : Pt3di(255,0,0));
+                   }
+                   else
+                   {
+                      if  (! mCoher->Masq3d()->IsInMasq(To3d(anI)))
+                          mTMasq.oset(anI,0);
+                   }
                 }
             }
         }
-*/
-        Pt2di anI;
-        for (anI.x =0 ; anI.x <mSz.x ; anI.x++)
-        {
-            for (anI.y =0 ; anI.y <mSz.y ; anI.y++)
-            {
-                if (mTMasq.get(anI) && (! mCoher->Masq3d()->IsInMasq(To3d(anI))))
-                {
-                   mTMasq.oset(anI,0);
-                }
-            }
-        }
+    }
+    if (DEBUGM3D)
+    {
+       std::list<std::string> aVCom;
+       std::vector<const cElNuage3DMaille *> aVNuage;
+
+       cElNuage3DMaille::PlyPutFile
+       (
+          mDirM  + StdPrefix(mNameNuage) + "-TestM3D.ply",
+          aVCom,
+          aVNuage,
+          &(aVPts),
+          &(aVCoul),
+          true
+       );
     }
 }
 

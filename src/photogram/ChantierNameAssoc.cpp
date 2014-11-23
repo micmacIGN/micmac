@@ -2618,7 +2618,6 @@ aKeyOrFile         :
         bool                   DoMkDB
         )
     {
-
         cStdChantierMultiManipulateur * aRes = new cStdChantierMultiManipulateur(argc,argv,aDir);
 
         std::string aPrelim = aDir+theNamePrelim;
@@ -2635,7 +2634,9 @@ aKeyOrFile         :
             aRes->Add(cStdChantierMonoManipulateur::StdGetFromFile(eMMLCD_SCMN,aRes,aDir,aLoc,true));
 
         if (aName.IsInit())
+        {
             aRes->Add(cStdChantierMonoManipulateur::StdGetFromFile(eUnknownSCMN,aRes,aDir,aDir+aName.Val(),false));
+        }
 
         if (aCDisc)
         {
