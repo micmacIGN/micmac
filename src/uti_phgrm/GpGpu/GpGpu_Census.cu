@@ -77,9 +77,13 @@ __device__
 inline    bool IsOkErod(uint3 pt)
 {
     // TODO peut etre simplifier % et division
-    pixel mask8b = tex2D(getMask(pt.z),pt.x/8 + 0.5f,pt.y + 0.5f);
 
-    return (mask8b >> (7-pt.x %8) ) & 1;
+    const int ptxBy8 = pt.x >> 3;           // pt.x >> 3 Division par 8
+    const int modulo = pt.x - (ptxBy8 << 3)  ;// (ptxBy8<<3) multiplication par 8
+
+    pixel mask8b = tex2D(getMask(pt.z),(float)(ptxBy8) + 0.5f,(float)pt.y + 0.5f);
+
+    return (mask8b >> (7-modulo ) ) & 1;
 }
 
 __device__
