@@ -1,0 +1,138 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+%!PS-Adobe-2.0
+%%BoundingBox: 57 143 514 599                                                             
+%%Creator : ELISE.0.0
+%%Title :Mon beau fichier ps
+%%CreationDate: 8/0/99 12h47m40s
+%%EndComments
+%%Pages: 1
+/EliseSaveAllObject save def
+
+
+% Definition of curent primitives : 
+
+/ElWc0
+{
+57.0886 599.43 translate 
+4.56709 -4.56709 scale 
+}
+def
+/ElIMat [1 0 0 1 0 0] def 
+/ElDEC1 [0 1] def 
+/ElDIM <</ImageType 1 /Decode ElDEC1 /ImageMatrix ElIMat>> def 
+/ElInbb {ElDIM /BitsPerComponent 3 -1 roll put} bind def 
+/ElIty {ElDIM /Height 3 -1 roll put} bind def 
+/ElIx0 {ElIMat 4  3 -1 roll neg put} bind def 
+/ElIy0 {ElIMat 5  3 -1 roll neg put} bind def 
+/ElItx {ElDIM /Width 3 -1 roll put} bind def 
+/ElULIM {ElIx0 ElIy0 ElItx} bind def 
+/ElIUC {ElDIM /DataSource currentfile
+  /ASCII85Decode filter  put ElDIM image} bind def 
+/ElUC1 {ElULIM ElIUC} bind def 
+/ElILZW {ElDIM /DataSource currentfile
+  /ASCII85Decode filter  /LZWDecode filter put ElDIM image} bind def 
+/ElLZW1 {ElULIM ElILZW} bind def 
+
+
+% Definition of PS-palette 
+/ElPal2 [/Indexed /DeviceRGB 19<
+ ffffff
+ 000000
+ ffff00
+ 999999
+ cc8033
+ 0000ff
+ ff00ff
+ 00ff00
+ 00ffff
+ ff0000
+ ff8000
+ ff8080
+ 99b319
+ 26b380
+ c00000
+ 4040c0
+ e6c066
+ 4c0c54
+ 80b3cc
+ cc664c
+>] def 
+/ElPal2L
+{ElPal2 setcolorspace  ElDIM /Decode [0 256] put} def 
+%%EndProlog 
+%%Page: 1 1
+
+
+%Drawings orders :
+
+gsave
+ElWc0
+ElPal2L
+
+
+3 setcolor
+0 0 100 100 rectfill
+
+2 setcolor
+0 0 20 20 rectfill
+
+
+4 setcolor
+newpath
+   20 20 moveto
+   0 50 rlineto
+   50 0 rlineto
+   0 -50 rlineto
+   closepath
+stroke
+
+/RECT
+{
+   newpath
+      moveto
+      dup 0  rlineto
+      exch 0 exch rlineto
+      neg 0 rlineto 
+   closepath
+   stroke
+}
+def
+
+0.1 setlinewidth
+
+10 20 30 30 RECT
+10 20 60 60 RECT
+
+showpage
+EliseSaveAllObject restore
+grestoreall
+%%Trailer
+
+
+
