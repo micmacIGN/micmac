@@ -305,7 +305,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
 
-            _Engine->setGLMaxTextureSize(maxTexture);
+            _Engine->setGLMaxTextureSize(maxTexture/*/16*/);
 
             loadOK = loadImages(filenames);
         }
@@ -1371,9 +1371,7 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
             {
                 int imHeight = glW->getGLData()->glImage()._m_image->height();
 
-                float factor = glW->getGLData()->glImage().getLoadedImageRescaleFactor();
-
-                text = QString(text + QString::number(pt.x()/factor,'f',1) + ", " + QString::number((imHeight - pt.y())/factor,'f',1)+" px");
+                text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
             }
     }
 

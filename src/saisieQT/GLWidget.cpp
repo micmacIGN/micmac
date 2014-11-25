@@ -249,10 +249,7 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
 
 float GLWidget::getZoom()
 {
-    if (m_bDisplayMode2D && hasDataLoaded())
-        return getParams()->m_zoom / m_GLData->glImage().getLoadedImageRescaleFactor();
-    else
-        return getParams()->m_zoom;
+    return getParams()->m_zoom;
 }
 
 void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)

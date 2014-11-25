@@ -1379,10 +1379,11 @@ void cRectangle::draw()
 //invalid GL list index
 const GLuint GL_INVALID_LIST_ID = (~0);
 
-cImageGL::cImageGL(float gamma) :
+cImageGL::cImageGL(float scaleFactor,float gamma) :
+    _scaleFactor(scaleFactor),
     _originX(0.f),
     _originY(0.f),
-    _texture(GL_INVALID_LIST_ID),
+    _texture(GL_INVALID_LIST_ID),    
     _gamma(gamma)
 {
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
@@ -1412,6 +1413,8 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
     glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
     glBegin(GL_QUADS);
     {
+
+
         glTexCoord2f(0.0f, 0.0f);
         glVertex2f(originX, originY);
         glTexCoord2f(1.0f, 0.0f);
@@ -1420,6 +1423,7 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
         glVertex2f(originX+glw, originY+glh);
         glTexCoord2f(0.0f, 1.0f);
         glVertex2f(originX, originY+glh);
+
     }
     glEnd();
 }
@@ -1429,10 +1433,6 @@ void cImageGL::draw()
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
 
-    /*int max;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-    cout<<max<<endl;*/
-
     if(_gamma != 1.0f)
     {
         _program.bind();
@@ -1440,7 +1440,12 @@ void cImageGL::draw()
         _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
     }
 
+
+
     drawQuad(Qt::white);
+
+//    glMatrixMode(GL_TEXTURE);
+//    glTranslatef(0.01, 0.f,0.f);
 
     if(_gamma != 1.0f) _program.release();
 
@@ -1534,12 +1539,13 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _qMaskedImage(qMaskedImage)
 {
 
-    _m_mask     = new cImageGL();
-    _m_image    = new cImageGL(qMaskedImage->_gamma);
+    _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
+    _m_mask     = new cImageGL(_loadedImageRescaleFactor );
+    _m_image    = new cImageGL(_loadedImageRescaleFactor,qMaskedImage->_gamma);
     _m_newMask  = qMaskedImage->_m_newMask;
 
     _m_FileOriMnt = qMaskedImage->_m_FileOriMnt;
-    _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
+
     cObjectGL::setName(qMaskedImage->name());
 }
 
