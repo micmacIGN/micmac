@@ -354,9 +354,9 @@ Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const
     fic << Pgeo.y <<" "<<Pgeo.x<<";"<<std::endl;
     // transfo en Lambert93
     std::string command;
-    command = "cs2cs +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
     int res = system(command.c_str());
-    if (res != 0) std::cout<<"error calling cs2cs"<<std::endl;
+    if (res != 0) std::cout<<"error calling cs2cs in ptGeo2Carto"<<std::endl;
     // chargement des coordonnees du point converti
     Pt2dr PointCarto;
     std::ifstream fic2("processing/conv_ptCarto.txt");
@@ -424,9 +424,9 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
     }
     // transfo en Lambert93
     std::string command;
-    command = "cs2cs +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
     int res = system(command.c_str());
-    if (res != 0) std::cout<<"error calling cs2cs"<<std::endl;
+    if (res != 0) std::cout<<"error calling cs2cs in createDirectGrid"<<std::endl;
     // chargement des points
     std::ifstream fic("processing/direct_ptCarto.txt");
     while(!fic.eof()&&fic.good())
@@ -437,11 +437,11 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
         if (fic.good())
             vPtCarto.push_back(Pt2dr(X,Y));
     }
-    std::cout << "Nombre de points lus : "<<vPtCarto.size()<<std::endl;
+    std::cout << "createDirectGrid - Nombre de points lus : "<<vPtCarto.size()<<std::endl;
 }
 
 void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLine,
-                        double stepCarto, std::vector<double> const &vAltitude,
+                               double stepCarto, std::vector<double> const &vAltitude,
                                std::vector<Pt2dr> &vPtImg, std::string targetSyst,
                                std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const
 {
@@ -463,9 +463,10 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
     }
     // transfo en Geo
     std::string command;
-    command = "cs2cs "+targetSyst+" +to +proj=latlon +datum=WGS84 +ellps=WGS84 -f %.12f -s  processing/indirect_ptCarto.txt >  processing/indirect_ptGeo.txt";
+
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " "+targetSyst+" +to +proj=latlon +datum=WGS84 +ellps=WGS84 -f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
     int res = system(command.c_str());
-    if (res != 0) std::cout<<"error calling cs2cs"<<std::endl;
+    if (res != 0) std::cout<<"error calling cs2cs in createIndirectGrid"<<std::endl;
     for(size_t i=0;i<vAltitude.size();++i)
     {
         double altitude = vAltitude[i];
@@ -482,7 +483,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
             }
         }
     }
-    std::cout << "Nombre de points lus : "<<vPtImg.size()<<std::endl;
+    std::cout << "createIndirectGrid - Nombre de points lus : "<<vPtImg.size()<<std::endl;
 }
 
 

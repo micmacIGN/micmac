@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 
 #ifdef __USE_JP2__
-	#include "kdu_compressed.h"
+    #include "kdu_compressed.h"
 #endif
 
 #ifdef CUDA_ENABLED
@@ -19,11 +19,11 @@ string g_externalToolItem_errors[] = { "cannot be found",
 
 const std::string &ExternalToolItem::callName() const
 {
-	if ( !isCallable() ){
-		cerr << "ERROR: trying to call the external program ["  << m_shortName << "] but it " << errorMessage() << endl;
-		exit(-1);
-	}
-	return m_fullName;
+    if ( !isCallable() ){
+        cerr << "ERROR: trying to call the external program ["  << m_shortName << "] but it " << errorMessage() << endl;
+        exit(-1);
+    }
+    return m_fullName;
 }
 
 // ExternalToolHandler
@@ -242,30 +242,31 @@ int CheckDependencies_main(int argc,char ** argv)
     cout << "address size : " << sizeof(int*)*8 << " bits" << endl;
     cout << endl;
 
-	#ifdef USE_OPEN_MP
-		cout << "--- OpenMP enabled" << endl;
-		cout << endl;
-	#endif
+    #ifdef USE_OPEN_MP
+        cout << "--- OpenMP enabled" << endl;
+        cout << endl;
+    #endif
 
-	#if ELISE_QT_VERSION != 0
-		cout << "--- Qt enabled : " << ELISE_QT_VERSION << endl;
-		cout << endl;
-	#endif
+    #if ELISE_QT_VERSION != 0
+        cout << "--- Qt enabled : " << ELISE_QT_VERSION << endl;
+        cout << endl;
+    #endif
 
-	#if defined __USE_JP2__
-		cout << "--- native JPEG2000 enabled : Kakadu " << KDU_CORE_VERSION << endl;
-		cout << endl;
-	#endif
+    #if defined __USE_JP2__
+        cout << "--- native JPEG2000 enabled : Kakadu " << KDU_CORE_VERSION << endl;
+        cout << endl;
+    #endif
 
-	#if defined CUDA_ENABLED
+    #if defined CUDA_ENABLED
         CGpGpuContext<cudaContext>::check_Cuda();
-	#endif
+    #endif
 
     cout << printResult( "make" ) << endl;
     cout << printResult( "exiftool" ) << endl;
     cout << printResult( "exiv2" ) << endl;
     cout << printResult( "convert" ) << endl;
     cout << printResult( "proj" ) << endl;
+    cout << printResult( "cs2cs" ) << endl;
 
     cout << printResult( TheStrSiftPP ) << endl;
     cout << printResult( TheStrAnnPP ) << endl;

@@ -1373,7 +1373,7 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
 
                 float factor = glW->getGLData()->glImage().getLoadedImageRescaleFactor();
 
-                text =  QString(text + QString::number(pt.x()/factor,'f',1) + ", " + QString::number((imHeight - pt.y())/factor,'f',1)+" px");
+                text = QString(text + QString::number(pt.x()/factor,'f',1) + ", " + QString::number((imHeight - pt.y())/factor,'f',1)+" px");
             }
     }
 
