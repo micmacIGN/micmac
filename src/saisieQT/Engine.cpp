@@ -392,7 +392,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
-        float scaleFactor = 1.f; //_vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
+        float scaleFactor = _vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
 
         if (scaleFactor != 1.f)
         {
@@ -595,6 +595,8 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
 
     widthMax    *= maxImagesByRow;
     heightMax   *= maxImagesByCol;
+
+
 
     if ( widthMax > _glMaxTextSize || heightMax > _glMaxTextSize )
     {
