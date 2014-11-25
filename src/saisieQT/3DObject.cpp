@@ -1440,12 +1440,7 @@ void cImageGL::draw()
         _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
     }
 
-
-
     drawQuad(Qt::white);
-
-//    glMatrixMode(GL_TEXTURE);
-//    glTranslatef(0.01, 0.f,0.f);
 
     if(_gamma != 1.0f) _program.release();
 
