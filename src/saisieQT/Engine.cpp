@@ -392,7 +392,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
-        float scaleFactor = _vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
+        float scaleFactor = 1.f; //_vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
 
         if (scaleFactor != 1.f)
         {
@@ -611,7 +611,7 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
 
     if (_scaleFactor != 1.f)
     {
-        QString msg = "Rescaling images with " + QString::number(_scaleFactor,'f', 3) + " factor - tip: use smaller NbF";
+        QString msg = "Rescaling images with " + QString::number(_scaleFactor,'f', 2) + " factor";
         QMessageBox* msgBox = new QMessageBox(QMessageBox::Warning, QObject::tr("GL_MAX_TEXTURE_SIZE exceeded"),  msg);
         msgBox->setWindowFlags(Qt::WindowStaysOnTopHint);
 
