@@ -247,6 +247,14 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
        _matrixManager.setView(orientation,m_GLData->getPosition());
 }
 
+float GLWidget::getZoom()
+{
+    if (m_bDisplayMode2D && hasDataLoaded())
+        return getParams()->m_zoom / m_GLData->glImage().getLoadedImageRescaleFactor();
+    else
+        return getParams()->m_zoom;
+}
+
 void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
 {
 
