@@ -105,7 +105,7 @@ inline    float getValImage(uint2 pt,ushort iDi,ushort nScale)
 }
 
 __device__
-inline    void correl(uint2 pt,ushort iDi)
+inline    void correl(uint2 pt,ushort iDi, float* mdata1, float* mdata2)
 {
     float aGlobSom1 = 0;
     float aGlobSom2 = 0;
@@ -133,6 +133,7 @@ inline    void correl(uint2 pt,ushort iDi)
 
 //        mData1[aKS][aYGlob][aXGlob] = aGlobSom1 / aGlobPds;
 //        mData2[aKS][aYGlob][aXGlob] = aGlobSom2 / aGlobPds;
+
     }
 }
 
@@ -326,26 +327,38 @@ extern "C" void LaunchKernelCorrelationCensusPreview(dataCorrelMS &data,constant
     GpGpuTools::Array1DtoImageFile(hData.pLData(1)  ,"ET_HOP_1.pmg",hData.GetDimension());
 }
 
+__global__
+void KernelDoCorrel()
+{
 
+    const float     aStepPix    =   0.5f;
+    const float     fX          =   (float)blockIdx.z*aStepPix;
+    const ushort    l           =   (ushort)fX;
+    const float     cStepPix    =   fX-(float)l;
+    const float2    ptImage     =   make_float2((float)blockIdx.x + cStepPix,(float)blockIdx.y);
+
+
+}
 
 extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)
 {
     // Cache device
-    //
+
     CuHostData3D<float>  aSom1;
     CuHostData3D<float>  aSom11;
     CuHostData3D<float>  aSom2;
     CuHostData3D<float>  aSom22;
 
-    uint2 dimCache = make_uint2(param._dimTerrain.x*param.mNbByPix,param._dimTerrain.y);
+    aSom1. Malloc (param._dimTerrain,param.aNbScale); //  pas de sous echantillonnage
+    aSom11.Malloc (param._dimTerrain,param.aNbScale);
 
-    aSom1.Malloc (dimCache,param.aNbScale);
-    aSom11.Malloc(dimCache,param.aNbScale);
-    aSom2.Malloc (dimCache,param.aNbScale);
-    aSom22.Malloc(dimCache,param.aNbScale);
+    aSom2. Malloc (param._dimTerrain,param.aNbScale*param.mNbByPix); // pas de sous echantillonnage
+    aSom22.Malloc (param._dimTerrain,param.aNbScale*param.mNbByPix);
 
-    aSom1.Dealloc();
+    aSom1. Dealloc();
     aSom11.Dealloc();
-    aSom2.Dealloc();
+    aSom2. Dealloc();
     aSom22.Dealloc();
+
+
 }
