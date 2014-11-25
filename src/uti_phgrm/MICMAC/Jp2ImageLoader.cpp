@@ -34,7 +34,7 @@
 JP2ImageLoader::JP2ImageLoader(std::string const &nomfic):
 m_Nomfic(nomfic)
 {
-    bool verbose = true;
+    bool verbose = false;
     jp2_source              m_Source;
     kdu_compressed_source * m_Input;
     jp2_family_src          jp2_ultimate_src;

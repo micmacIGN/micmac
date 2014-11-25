@@ -140,7 +140,9 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName)
         }
     }
 #endif
-    return new TIm2D<Type,TyBase>(Im2D<Type,TyBase>::FromFileStd(aName));
+    // Attention la version FromFileStd ne fonctionne pas avec une image couleur??
+    //return new TIm2D<Type,TyBase>(Im2D<Type,TyBase>::FromFileStd(aName));
+    return new TIm2D<Type,TyBase>(Im2D<Type,TyBase>::FromFileBasic(aName));
 }
 
 double correl(std::vector<double> const &f1,std::vector<double> const &f2)
@@ -799,7 +801,7 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
     int octaves=5;
     int intervals=4;
     int init_samples=2;
-    int nbPoints=100;
+    int nbPoints=0;
 
     ElInitArgMain
     (
@@ -807,21 +809,19 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
      LArgMain() << EAMC(aFullName,"Input filename")
      << EAMC(aNameOut,"output filename") ,
      LArgMain()
+     << EAM(octaves,"Octaves",true,"Octaves")
+     << EAM(intervals,"intervals",true,"Intervals")
+     << EAM(init_samples,"init_samples",true,"init_samples")
+     << EAM(nbPoints,"nbPoints",true,"nbPoints")
      );
-
-#if defined (__USE_JP2__)
-    std::auto_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aFullName));
-#else
-    std::auto_ptr<cInterfModuleImageLoader> aRes(NULL);
-#endif
-    if (!aRes.get())
-    {
-        return 1;
-    }
-
-    Pt2di ImgSz(aRes->Sz(1).real(),aRes->Sz(1).imag());
+    
+    Pt2di ImgSz = getImageSize(aFullName);
 
     std::cout << "Taille de l'image  : "<<ImgSz.x<<" x "<<ImgSz.y<<std::endl;
+    if (nbPoints == 0)
+    {
+        nbPoints = sqrt(ImgSz.x*ImgSz.y);
+    }
     int tailleDalle = 4000;
     int NbX = ImgSz.x / tailleDalle;
     if (NbX*tailleDalle < ImgSz.x)
@@ -830,6 +830,11 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
     if (NbY*tailleDalle < ImgSz.y)
         ++NbY;
     list<DigeoPoint> total_list;
+    
+    
+    int nbDalles = NbX*NbY;
+    int nbPointsParDalle = std::max(nbPoints / nbDalles,10);
+    
     for(int nx = 0;nx<NbX;++nx)
     {
         for(int ny = 0;ny<NbY;++ny)
@@ -840,28 +845,20 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
             int cmax = std::min(cmin+tailleDalle,ImgSz.x);
             int lmax = std::min(lmin+tailleDalle,ImgSz.y);
             std::cout << "Crop : "<<cmin<<" "<<lmin<<" "<<cmax<<" "<<lmax<<std::endl;
-
-            BufferImage<unsigned short> aBuffer(cmax-cmin,lmax-lmin,1);
-            std::cout << "Creation du BufferImage"<<std::endl;
-
-            unsigned short ** ptrLine = new unsigned short * [lmax-lmin];
-            for(int l=0;l<(lmax-lmin);++l)
+            
+            Pt2di PminCrop(cmin,lmin);
+            Pt2di SzCrop(cmax-cmin,lmax-lmin);
+            std::auto_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>(aFullName,PminCrop,SzCrop));
+            if (cropImg.get()==NULL)
             {
-                ptrLine[l] = aBuffer.getLinePtr(l);
+                cerr << "Error in "<<aFullName<<" Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
+                return EXIT_FAILURE;
             }
-            aRes->LoadCanalCorrel(sLowLevelIm<unsigned short>
-                                  (
-                                   aBuffer.getPtr(),
-                                   ptrLine,
-                                   std::complex<int>(cmax-cmin,lmax-lmin)
-                                   ),
-                                  1,//deZoom
-                                  std::complex<int>(0,0),//aP0Im
-                                  std::complex<int>(cmin,lmin),//aP0File
-                                  std::complex<int>(cmax-cmin,lmax-lmin));
-            std::cout << "Crop"<<std::endl;
-            delete[] ptrLine;
-            Surf s(aBuffer,octaves,intervals,init_samples,nbPoints);
+            
+            
+            BufferImage<unsigned short> aBuffer(cmax-cmin,lmax-lmin,1,cropImg->_the_im.data_lin(),1,(cmax-cmin),1);
+
+            Surf s(aBuffer,octaves,intervals,init_samples,nbPointsParDalle);
             std::cout << "Nombre de points : "<<s.vPoints.size()<<std::endl;
             for(size_t i=0;i<s.vPoints.size();++i)
             {
@@ -887,6 +884,7 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
                 delete[] des;
                 total_list.push_back(pt);
             }
+            
         }
     }
 
@@ -907,22 +905,83 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
     return 0;
 }
 
+
+int debug(int argc, char **argv)
+{
+    std::string nomDalleOrtho("Dalle_0x0_ortho.tif");
+    // Chargement de l'ortho
+    std::auto_ptr<TIm2D<U_INT1,INT4> > OrthoImg(createTIm2DFromFile<U_INT1,INT4>(nomDalleOrtho));
+    std::cout << "Chargement de OrthoImg : "<<nomDalleOrtho<<std::endl;
+    if (OrthoImg.get()==NULL)
+    {
+        cerr << "Error in "<<nomDalleOrtho<<std::endl;
+        return EXIT_FAILURE;
+    }
+    int SzW=10;
+    double NoData = -9999.;
+
+    DigeoPoint ptSift;
+    ptSift.x = 3090.585959;
+    ptSift.y = 245.973652;
+
+    // Crop
+    TIm2D<U_INT2,INT4> debugFenOrtho(Pt2di(2*SzW+1,2*SzW+1));
+    std::vector<double> fenOrtho;
+    for(int l=-SzW;l<=SzW;++l)
+    {
+        for(int c=-SzW;c<=SzW;++c)
+        {
+            double radio =OrthoImg->getr(Pt2dr((double)c+ptSift.x ,(double)l+ptSift.y),NoData);
+            fenOrtho.push_back(radio);
+            std::cout << "Point "<<(double)c+ptSift.x<<" "<<(double)l+ptSift.y<<" -> "<<c+SzW<<" "<<l+SzW<<" : "<<radio<<std::endl;
+            debugFenOrtho.oset(Pt2di(c+SzW,l+SzW),(int)radio);
+        }
+    }
+    // Sauvegarde
+    Tiff_Im debugFenOrtho_out("debug_ortho_bis.tif", debugFenOrtho.sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+    ELISE_COPY(debugFenOrtho._the_im.all_pts(),debugFenOrtho._the_im.in(),debugFenOrtho_out.out());
+    return 0;
+}
+
 int ServiceGeoSud_GeoSud_main(int argc, char **argv){
+    //return debug(argc,argv);
 
     std::string aFullName;
     std::string aKeyGPP;
     std::string aGRIDExt("GRI");
+    std::string aFileMnt;
 
     double ZMoy = 0.;
-
+    double seuilPixel=20;
+    double seuilCorrel=0.7;
+    int SzW=10;
 
     ElInitArgMain
     (
      argc, argv,
      LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)")
-     << EAMC(aKeyGPP,"GPP Key"),
+     << EAMC(aKeyGPP,"GPP Key")
+     << EAMC(aFileMnt,"xml file (FileOriMnt) for the DTM"),
      LArgMain()<< EAM(aGRIDExt,"Grid",true,"GRID ext")
      );
+    
+    double seuilPixel2 = pow(seuilPixel,2);
+    
+    std::ofstream ficPtLiaison("POINTS_LIAISON.TXT");
+    ficPtLiaison << "# num_pt alti correc_alti prec_alti Actif/Inact"<<std::endl;
+    int idPtLiaison = 1;
+    
+    std::ofstream ficLiaisons("LIAISONS.TXT");
+    ficLiaisons << "# num_pt(rang fic_liaison)) num_modele ligne colonne prec_lig(m) prec_col(m) Actif/Inact"<<std::endl;
+    
+    std::ofstream ficModeles("MODELES.TXT");
+    
+    std::ofstream ficAmers("AMERS.TXT");
+    ficAmers << "# num_pt X Y alti correc_lon correc_lat correc_alti prec_lon(m) prec_lat(m) prec_alt(m) Actif/Inact"<<std::endl;
+    int idAmer = 1;
+    
+    std::ofstream ficAppuis("APPUIS.TXT");
+    ficAppuis << "# num_pt(rang fic_amer) num_modele ligne colonne prec_lig(m) prec_col(m) Actif/Inact"<<std::endl;
 
     std::string aDir,aPat;
     SplitDirAndFile(aDir,aPat,aFullName);
@@ -939,6 +998,10 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     bool first = true;
 
     std::list<std::string>::const_iterator it,fin=aLFile.end();
+    std::list<std::string> aLFilePoi;
+    std::list<std::string> aLFileGrid;
+    std::list<ElCamera*> aLCamera;
+    std::list<std::vector<DigeoPoint> > aLPoi;
     for(it=aLFile.begin();it!=fin;++it)
     {
         std::string aNameFileImage = (*it);
@@ -961,8 +1024,16 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         {
             std::string baseName;
             baseName.assign(aNameFileImage.begin(),aNameFileImage.begin()+placePoint+1);
+            std::string modelName;
+            modelName.assign(aNameFileImage.begin(),aNameFileImage.begin()+placePoint);
             std::string aNameFileGrid = baseName+aGRIDExt;
             std::string aNameFilePOI = baseName+"dat";
+            
+            ficModeles << modelName <<" "<<aLCamera.size()+1<<" 1"<<std::endl;
+            
+            aLFilePoi.push_back(aNameFilePOI);
+            aLFileGrid.push_back(aNameFileGrid);
+            
             std::cout << "fichier GRID : "<<aNameFileGrid<<std::endl;
             std::cout << "fichier POI : "<<aNameFilePOI<<std::endl;
 
@@ -1034,12 +1105,35 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 if (ymax>ymaxChantier)
                     ymaxChantier=ymax;
             }
-
-            // Extraction des POI
+            
+            FILE* fPoi = fopen(aNameFilePOI.c_str(),"r");
+            if (fPoi == NULL)
             {
-                std::string cmdPOI="mm3d Digeo "+aNameFileImage+" -o "+aNameFilePOI;
-                system(cmdPOI.c_str());
+                std::cout << "Le fichier POI n'existe pas encore"<<std::endl;
+                // Extraction des POI
+                {
+                    std::string cmdPOI="mm3d TestLib Surf "+aNameFileImage+" "+aNameFilePOI;
+                    system(cmdPOI.c_str());
+                }
             }
+            else
+            {
+                std::cout << "Le fichier Poi "<<aNameFilePOI<<" existe deja"<<std::endl;
+                fclose(fPoi);
+            }
+            
+            
+            
+            // Chargement des points d'interet dans l'image
+            vector<DigeoPoint> keypointsImage;
+            
+            if ( !DigeoPoint::readDigeoFile( aNameFilePOI, true, keypointsImage ) ){
+                cerr << "WARNING: unable to read keypoints in [" << aNameFilePOI << "]" << endl;
+                return EXIT_FAILURE;
+            }
+            
+            aLPoi.push_back(keypointsImage);
+            aLCamera.push_back(aCamera.release());
         }
     }
 
@@ -1048,20 +1142,514 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     xmaxChantier = (int)(xmaxChantier+1);
     yminChantier = (int)(yminChantier-1);
     ymaxChantier = (int)(ymaxChantier+1);
-
-    double resolution = 10.;//10m
+    
+    
+    // Chargement du MNT
+    cFileOriMnt aMntOri=  StdGetFromPCP(aFileMnt,FileOriMnt);
+    std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
+    std::auto_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
+    if (aMntImg.get()==NULL)
+    {
+        cerr << "Error in "<<aMntOri.NameFileMnt()<<std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    /*
+    // Extraction d'un MNT a 25m de resolution
+    {
+        double resolutionMnt=25;
+        int NCmnt = (xmaxChantier-xminChantier)/resolutionMnt + 1;
+        int NLmnt = (ymaxChantier-yminChantier)/resolutionMnt + 1;
+        std::ostringstream oss;
+        oss << std::fixed << "curl -o mnt_25m.bil -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/x-bil;bits=32&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
+        std::cout << "commande : "<<oss.str()<<std::endl;
+        system(oss.str().c_str());
+        
+        
+        std::ostringstream ossHdr;
+        ossHdr << "echo 'NROWS "<<NLmnt<<"\nNCOLS "<<NCmnt<<"\nNBANDS 1\"nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > mnt_25m.HDR";
+        system(ossHdr.str().c_str());
+    }
+    */
+    // Chargement du MNT
+    
+    
+    // Calcul des points entre les images avec Ann
+    std::list<ElCamera*>::iterator itCamera = aLCamera.begin();
+    int numImg1 = 1;
+    for(it=aLFilePoi.begin();it!=aLFilePoi.end();++it)
+    {
+        std::list<std::string>::const_iterator it2;
+        ElCamera* aCamera = (*itCamera);
+        int numImg2=1;
+        for(it2=aLFilePoi.begin();it2!=it;++it2)
+        {
+            std::string nomRes = "out.res";
+            std::string cmdAnn="mm3d Ann "+(*it)+" "+(*it2)+" out.res";
+            system(cmdAnn.c_str());
+            // Il faut exporter ces points de liaison en allant chercher le Z sur un MNT basse resolution (a 25m)
+            std::ifstream fic(nomRes.c_str());
+            while(fic.good())
+            {
+                double c1,l1,c2,l2;
+                fic >> c1 >> l1 >> c2 >> l2;
+                if (fic.good())
+                {
+                    //std::cout << "Point de liaison "<<c1<<" "<<l1<<" | "<<c2<<" "<<l2<<std::endl;
+                    // On estime le Z
+                    Pt3dr Pt3D = Img2Terrain(aCamera,aMntImg.get(),aMntOri,ZMoy,Pt2di(c1,l1));
+                    // On exporte le point
+                    std::cout << "Point de liaison "<<c1<<" "<<l1<<" | "<<c2<<" "<<l2<<" | "<<Pt3D.z<<std::endl;
+                    
+                    ficPtLiaison << idPtLiaison<<" "<<Pt3D.z << " 0.0 200 1"<<std::endl;
+                    ficLiaisons << idPtLiaison << " "<<numImg1<<" "<<l1<<" "<<c1<<" 5.00e-01  5.00e-01 1"<<std::endl;
+                    ficLiaisons << idPtLiaison << " "<<numImg2<<" "<<l2<<" "<<c2<<" 5.00e-01  5.00e-01 1"<<std::endl;
+                    ++idPtLiaison;
+                }
+            }
+            ++numImg2;
+        }
+        ++itCamera;
+        ++numImg1;
+    }
+    
+    
+    
+    // On arrondit
+    xminChantier = (int)(xminChantier-1);
+    xmaxChantier = (int)(xmaxChantier+1);
+    yminChantier = (int)(yminChantier-1);
+    ymaxChantier = (int)(ymaxChantier+1);
+    /*
+    xminChantier = 375000;
+    xmaxChantier = 379000;
+    yminChantier = 6570000;
+    ymaxChantier = 6574000;
+    */
+    
+    double resolution = 1.;//1m
     int NC = (xmaxChantier-xminChantier)/resolution;
     int NL = (ymaxChantier-yminChantier)/resolution;
 
     std::cout << std::fixed << "Emprise du chantier : "<<xminChantier<<" "<<yminChantier<<" "<<xmaxChantier<<" "<<ymaxChantier<<std::endl;
-
+    
+    // Si le chantier est trop grand, il faut daller
+    int tailleDalle = 4000;
+    int NbX = NC/tailleDalle;
+    if (NbX*tailleDalle<NC)
+        ++NbX;
+    int NbY = NL/tailleDalle;
+    if (NbY*tailleDalle<NL)
+        ++NbY;
+    std::cout << "Nombre de dalles : "<<NbX<<" x "<<NbY<<std::endl;
+    for(int c=0;c<NbX;++c)
     // Extraction de l'ortho
     {
-        std::ostringstream oss;
-        oss << std::fixed << "curl -o ortho.tif -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xmaxChantier<<","<<ymaxChantier<<"&CRS=EPSG:2154&WIDTH="<<NC<<"&HEIGHT="<<NL<<"\"";
-        std::cout << "commande : "<<oss.str()<<std::endl;
-        system(oss.str().c_str());
+        for(int l=0;l<NbY;++l)
+        {
+            std::cout << "Traitement de la dalle "<<c<<" "<<l<<std::endl;
+            std::ostringstream oss ;
+            oss << "Dalle_"<<c<<"x"<<l;
+            std::string nomDalle = oss.str();
+            std::string nomDalleOrtho = nomDalle+"_ortho.tif";
+            std::string nomDalleMntBil = nomDalle+"_mnt.bil";
+            std::string nomDalleMntHdr = nomDalle+"_mnt.hdr";
+            std::string nomDallePoi = nomDalle+"_ortho.dat";
+            
+            int ncDalle = std::min(tailleDalle,NC-c*tailleDalle);
+            int nlDalle = std::min(tailleDalle,NL-l*tailleDalle);
+            double xminDalle = xminChantier + c*tailleDalle*resolution;
+            double yminDalle = yminChantier + l*tailleDalle*resolution;
+            double xmaxDalle = xminDalle + ncDalle*resolution;
+            double ymaxDalle = yminDalle + nlDalle*resolution;
+            // Extraction de l'ortho si necessaire
+            FILE* fDalleOrtho = fopen(nomDalleOrtho.c_str(),"r");
+            if (fDalleOrtho == NULL)
+            {
+                std::ostringstream oss;
+                oss << std::fixed << "curl -o "<<nomDalleOrtho<<" -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
+                std::cout << "commande : "<<oss.str()<<std::endl;
+                system(oss.str().c_str());
+            }
+            else
+            {
+                fclose(fDalleOrtho);
+            }
+            
+            // Chargement de l'ortho
+            std::cout << "Cahrgement de la dalle d'ortho: ..."<<std::endl;
+            std::auto_ptr<TIm2D<U_INT1,INT4> > OrthoImg(createTIm2DFromFile<U_INT1,INT4>(nomDalleOrtho));
+            std::cout << "Chargement de OrthoImg : "<<nomDalleOrtho<<std::endl;
+            if (OrthoImg.get()==NULL)
+            {
+                cerr << "Error in "<<nomDalleOrtho<<std::endl;
+                return EXIT_FAILURE;
+            }
+            
+            // On teste si l'image contient quelque chose (cas des bords de mer)
+            bool empty = true;
+            {
+                double min,max;
+                ELISE_COPY
+                (
+                 OrthoImg->_the_im.all_pts(),
+                 OrthoImg->_the_im.in(),
+                 VMin(min)
+                 );
+                ELISE_COPY
+                (
+                 OrthoImg->_the_im.all_pts(),
+                 OrthoImg->_the_im.in(),
+                 VMax(max)
+                 );
+                
+                std::cout << "Min : "<<min<<" Max : "<<max<<std::endl;
+                if (min!=max)
+                    empty=false;
+            }
+            if (empty)
+                continue;
+            
+            FILE* fDallePoi = fopen(nomDallePoi.c_str(),"r");
+            // Extraction des POI
+            if (fDallePoi==NULL)
+            {
+                std::string cmdPOI="mm3d TestLib Surf "+nomDalleOrtho+" "+nomDallePoi+ " nbPoints=100";
+                system(cmdPOI.c_str());
+            }
+            else
+            {
+                fclose(fDallePoi);
+            }
+            // Extraction du MNT
+            /*
+            {
+                std::ostringstream oss;
+                oss << std::fixed << "curl -o "<<nomDalleMntBil<<" -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/x-bil;bits=32&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
+                std::cout << "commande : "<<oss.str()<<std::endl;
+                system(oss.str().c_str());
+                
+                
+                //echo 'NROWS 675\nNCOLS 1769\nNBANDS 1\nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > mnt.HDR
+                std::ostringstream ossHdr;
+                ossHdr << "echo 'NROWS "<<nlDalle<<"\nNCOLS "<<ncDalle<<"\nNBANDS 1\"nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > "<<nomDalleMntHdr;
+                system(ossHdr.str().c_str());
+            }
+             */
+            
+                        // Chargement des points d'interet dans l'ortho
+            vector<DigeoPoint> keypointsOrtho;
+            
+            if ( !DigeoPoint::readDigeoFile( nomDalle+"_ortho.dat", true, keypointsOrtho ) ){
+                cerr << "WARNING: unable to read keypoints in [" << nomDalle+"_ortho.dat" << "]" << endl;
+                return EXIT_FAILURE;
+            }
+            std::cout << "Nombre de points dans l'ortho : "<<keypointsOrtho.size()<<std::endl;
+            
+            double NoData = -9999.;
+            
+            
+            // on parcourt les points sift de l'ortho
+            vector<DigeoPoint>::const_iterator itKP,finKP=keypointsOrtho.end();
+            for(itKP=keypointsOrtho.begin();itKP!=finKP;++itKP)
+            {
+                DigeoPoint const &ptSift = (*itKP);
+                // On estime la position 3D du point
+                // ToDo: ajouter l'interpolation de l'alti dans le mnt
+                Pt2dr ptOrtho(ptSift.x,ptSift.y);
+                //std::cout << "Point img dans l'ortho : "<<ptOrtho.x<<" "<<ptOrtho.y<<std::endl;
+                ptOrtho.x =  ptOrtho.x*resolution + xminDalle;
+                ptOrtho.y =  -ptOrtho.y*resolution + ymaxDalle;
+                //std::cout << "Point terrain 2D : "<<ptOrtho.x<<" "<<ptOrtho.y<<std::endl;
+                // Position dans le MNT
+                Pt2dr ptMnt;
+                ptMnt.x = (ptOrtho.x-aMntOri.OriginePlani().x)/aMntOri.ResolutionPlani().x;
+                ptMnt.y = (ptOrtho.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
+                //std::cout << "Point img dans le Mnt : "<<ptMnt.x<<" "<<ptMnt.y<<std::endl;
+                double alti = aMntImg->getr(ptMnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
+                if (alti == NoData)
+                {
+                    std::cout << "Pas d'altitude trouvee pour le point : "<<ptOrtho.x<<" "<<ptOrtho.y<<std::endl;
+                    std::cout << "On passe au point suivant"<<std::endl;
+                    break;
+                }
+                //std::cout << "Altitude Mnt : "<<alti<<std::endl;
+                // Position dans l'image
+                Pt3dr pt3(ptOrtho.x,ptOrtho.y,alti);
+                //std::cout << "Point terrain : "<<pt3.x<<" "<<pt3.y<<" "<<pt3.z<<std::endl;
+                
+                bool usePt = false;
+
+                //TIm2D<U_INT2,INT4> debugFenOrtho(Pt2di(2*SzW+1,2*SzW+1));
+
+                std::vector<double> fenOrtho;
+                for(int l=-SzW;l<=SzW;++l)
+                {
+                    for(int c=-SzW;c<=SzW;++c)
+                    {
+                        double radio =OrthoImg->getr(Pt2dr((double)c+ptSift.x ,(double)l+ptSift.y),NoData);
+                        fenOrtho.push_back(radio);
+                        //std::cout << "Point "<<(double)c+ptSift.x<<" "<<(double)l+ptSift.y<<" -> "<<c+SzW<<" "<<l+SzW<<" : "<<radio<<std::endl;
+                        //debugFenOrtho.oset(Pt2di(c+SzW,l+SzW),(int)radio);
+                    }
+                }
+                // Sauvegarde
+                //Tiff_Im debugFenOrtho_out("debug_ortho.tif", debugFenOrtho.sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+                //ELISE_COPY(debugFenOrtho._the_im.all_pts(),debugFenOrtho._the_im.in(),debugFenOrtho_out.out());
+                
+                int numImg = 1;
+                std::list<std::string>::const_iterator itLF=aLFile.begin();
+                std::list<std::string>::const_iterator itLFPoi=aLFilePoi.begin();
+                std::list<std::vector<DigeoPoint> >::const_iterator itPoi=aLPoi.begin();
+                itCamera = aLCamera.begin();
+                for(it=aLFilePoi.begin();it!=aLFilePoi.end();++it,++itLF,++itLFPoi)
+                {
+                    ElCamera* aCamera = (*itCamera);
+                    Pt2dr pImg = aCamera->R3toF2(pt3);
+                    // taille de l'image
+                    Pt2di ImgSz = getImageSize(*itLF);
+
+                    //std::cout << "Point Image : "<<pImg.x<<" "<<pImg.y<<std::endl;
+                    
+                    // Autre approche: on teste tous le voisinage
+#if 1
+                    
+                    // On prepare le crop
+                    bool first=true;
+                    double cmin = 0 ,cmax = 0 ,lmin = 0,lmax = 0;
+                    
+                    for(int l=ptSift.y-SzW-seuilPixel;l<=(ptSift.y+SzW+seuilPixel);++l)
+                    {
+                        for(int c=ptSift.x-SzW-seuilPixel;c<=(ptSift.x+SzW+seuilPixel);++c)
+                        {
+                            Pt3dr P3D;
+                            P3D.x = xminDalle + c * resolution;
+                            P3D.y = ymaxDalle - l * resolution;
+                            P3D.z = alti;
+                            
+                            Pt2dr p2 = aCamera->R3toF2(P3D);
+                            if (first)
+                            {
+                                first = false;
+                                cmin = p2.x;
+                                cmax = p2.x;
+                                lmin = p2.y;
+                                lmax = p2.y;
+                            }
+                            else
+                            {
+                                if (cmin>p2.x)
+                                    cmin=p2.x;
+                                else if (cmax<p2.x)
+                                    cmax=p2.x;
+                                if (lmin>p2.y)
+                                    lmin=p2.y;
+                                else if (lmax<p2.y)
+                                    lmax=p2.y;
+                            }
+                        }
+                    }
+                    
+                    cmin-=1.;
+                    lmin-=1.;
+                    cmax+=1.;
+                    lmax+=1.;
+                    
+                    if (cmin<0)
+                        cmin=0;
+                    if (lmin<0)
+                        lmin=0;
+                    if (cmax>=ImgSz.x)
+                        cmax=ImgSz.x-1;
+                    if (lmax>=ImgSz.y)
+                        lmax=ImgSz.y-1;
+                    
+                    Pt2di PminCrop((int)round_ni(cmin),(int)round_ni(lmin));
+                    Pt2di SzCrop((int)round_ni(cmax-PminCrop.x),(int)round_ni(lmax-PminCrop.y));
+                    if( (SzCrop.x<=0)||(SzCrop.y<=0))
+                        continue;
+                    
+                    //std::cout << "Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
+                    std::auto_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>((*itLF),PminCrop,SzCrop));
+                    if (cropImg.get()==NULL)
+                    {
+                        cerr << "Error in "<<(*itLF)<<" Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
+                        return EXIT_FAILURE;
+                    }
+                    // Sauvegarde
+                    //Tiff_Im debugCropImg_out("debug_cropImg.tif", cropImg->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+                    //ELISE_COPY(cropImg->_the_im.all_pts(),cropImg->_the_im.in(),debugCropImg_out.out());
+
+                    
+                    double coefmax = -1.;
+                    Pt2dr ptMaxCorrel;
+                    for(int dl = -seuilPixel;dl<=seuilPixel;++dl)
+                    {
+                        for(int dc = -seuilPixel;dc<=seuilPixel;++dc)
+                        {
+                            Pt2dr pt2;
+                            pt2.x = pImg.x + dc;
+                            pt2.y = pImg.y + dl;
+                            Pt3dr pTerrain = aCamera->F2AndZtoR3(Pt2dr(pt2.x,pt2.y),pt3.z);
+                            std::vector<double> fenImage;
+                            // Plutot que de reprojetter tous les points de la fenetre, on interpole la projection
+                            Pt3dr pTerrain2;
+                            pTerrain2.x = pTerrain.x + resolution;
+                            pTerrain2.y = pTerrain.y;
+                            pTerrain2.z = pTerrain.z;
+                            Pt2dr ptImg2 = aCamera->R3toF2(pTerrain2);
+                            double deltax_col = ptImg2.x - pt2.x;
+                            double deltax_lig = ptImg2.y - pt2.y;
+                            
+                            pTerrain2.x = pTerrain.x;
+                            pTerrain2.y = pTerrain.y - resolution;
+                            pTerrain2.z = pTerrain.z;
+                            ptImg2 = aCamera->R3toF2(pTerrain2);
+                            double deltay_col = ptImg2.x - pt2.x;
+                            double deltay_lig = ptImg2.y - pt2.y;
+                            
+                            
+                            //TIm2D<U_INT2,INT4> debugFenImg(Pt2di(2*SzW+1,2*SzW+1));
+
+                            for(int dy=-SzW;dy<=SzW;++dy)
+                            {
+                                for(int dx=-SzW;dx<=SzW;++dx)
+                                {
+                                    Pt2dr p2;
+                                    p2.x = pt2.x + dx * deltax_col + dy * deltay_col-PminCrop.x;
+                                    p2.y = pt2.y + dx * deltax_lig + dy * deltay_lig-PminCrop.y;
+                                    double radio =cropImg->getr(p2,NoData);
+                                    fenImage.push_back(radio);
+                                    //debugFenImg.oset(Pt2di(dx+SzW,dy+SzW),(int)radio);
+                                }
+                            }
+                            // Coeff de correlation
+                            double coef = correl(fenOrtho,fenImage,NoData);
+                            //std::cout << "Correl : "<<coef<<std::endl;
+                            if (coef>coefmax)
+                            {
+                                coefmax = coef;
+                                ptMaxCorrel = pt2;
+                                // Sauvegarde
+                                //Tiff_Im debugFenImg_out("debug_img.tif", debugFenImg.sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+                                //ELISE_COPY(debugFenImg._the_im.all_pts(),debugFenImg._the_im.in(),debugFenImg_out.out());
+                            }
+                        }
+                    }
+                    //std::cout << "Max de correlation : "<<ptMaxCorrel.x<<" "<<ptMaxCorrel.y<<" correl = "<<coefmax<<std::endl;
+                    
+                    if (coefmax >= seuilCorrel)
+                    {
+                        std::cout << "Point : "<<ptMaxCorrel.x<<" "<<ptMaxCorrel.y<<" Correl="<<coefmax<<std::endl;
+                        ficAppuis << idAmer <<" "<<numImg<<" "<<ptMaxCorrel.y<<" "<<ptMaxCorrel.x<<" 5.00e-01  5.00e-01 0"<<std::endl;
+                        usePt=true;
+                    }
+#else
+                      // Chargement des points d'interet dans l'image
+                    vector<DigeoPoint> const &keypointsImage=(*itPoi);
+                    
+                    
+                    DigeoPoint ptHomoDmin;
+                    Pt3dr pTerrainDmin;
+                    double dmin = -1.;
+                    // On cherche un POIImage proche de pImg
+                    vector<DigeoPoint>::const_iterator it2,fin2=keypointsImage.end();
+                    for(it2=keypointsImage.begin();it2!=fin2;++it2)
+                    {
+                        DigeoPoint const &ptSift2 = (*it2);
+                        Pt3dr pTerrain = aCamera->F2AndZtoR3(Pt2dr(ptSift2.x,ptSift2.y),pt3.z);
+                        
+                        double d2 = pow(pImg.x-ptSift2.x,2) + pow(pImg.y-ptSift2.y,2);
+                        if (d2<(seuilPixel2))
+                        {
+                            double d = dist(ptSift,ptSift2);
+                            if ((dmin<0)||(dmin>d))
+                            {
+                                dmin = d;
+                                ptHomoDmin = ptSift2;
+                                pTerrainDmin = pTerrain;
+                            }
+                        }
+                    }
+                    //std::cout << "dmin : "<<dmin<<" "<<ptHomoDmin.x<<" "<<ptHomoDmin.y<<std::endl;
+                    
+                    if (dmin>=0)
+                    {
+                        // On valide le point avec la correlation
+                        std::vector<double> fenImage;
+                        std::vector<Pt2dr> vCoordImage;
+                        double cmin = 0 ,cmax = 0 ,lmin = 0,lmax = 0;
+                        
+                        for(int l=ptSift.y-SzW;l<=(ptSift.y+SzW);++l)
+                        {
+                            for(int c=ptSift.x-SzW;c<=(ptSift.x+SzW);++c)
+                            {
+                                Pt3dr P3D;
+                                P3D.x = xminDalle + c * resolution;
+                                P3D.y = ymaxDalle - l * resolution;
+                                P3D.z = pTerrainDmin.z;
+                                
+                                Pt2dr p2 = aCamera->R3toF2(P3D);
+                                vCoordImage.push_back(p2);
+                                if (vCoordImage.size()==1)
+                                {
+                                    cmin = p2.x;
+                                    cmax = p2.x;
+                                    lmin = p2.y;
+                                    lmax = p2.y;
+                                }
+                                else
+                                {
+                                    if (cmin>p2.x)
+                                        cmin=p2.x;
+                                    else if (cmax<p2.x)
+                                        cmax=p2.x;
+                                    if (lmin>p2.y)
+                                        lmin=p2.y;
+                                    else if (lmax<p2.y)
+                                        lmax=p2.y;
+                                }
+                            }
+                        }
+                        Pt2di PminCrop((int)round_ni(cmin-1.),(int)round_ni(lmin-1.));
+                        Pt2di SzCrop((int)round_ni(cmax-PminCrop.x+2),(int)round_ni(lmax-PminCrop.y+2));
+                        std::cout << "Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
+                        std::auto_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>((*itLF),PminCrop,SzCrop));
+                        if (cropImg.get()==NULL)
+                        {
+                            cerr << "Error in "<<(*itLF)<<" Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
+                            return EXIT_FAILURE;
+                        }
+                        for(size_t i=0;i<vCoordImage.size();++i)
+                        {
+                            fenImage.push_back(cropImg->getr(Pt2dr(vCoordImage[i].x-PminCrop.x,vCoordImage[i].y-PminCrop.y),NoData));
+                        }
+                        
+                        // Coeff de correlation
+                        double coef = correl(fenOrtho,fenImage,NoData);
+                        std::cout << "coef : "<<coef<<" Point Ortho : "<<ptSift.x<<" "<<ptSift.y<<" Point Img : "<<ptHomoDmin.x<<" "<<ptHomoDmin.y<<std::endl;
+                        if (coef >= seuilCorrel)
+                        {
+                            std::cout << "Point Dmin : "<<ptHomoDmin.x<<" "<<ptHomoDmin.y<<" Correl="<<coef<<std::endl;
+                            ficAppuis << idAmer <<" "<<numImg<<" "<<ptHomoDmin.y<<" "<<ptHomoDmin.x<<" 5.00e-01  5.00e-01 0"<<std::endl;
+                        }
+                    }
+#endif
+                    
+                    ++itCamera;
+                    ++itPoi;
+                    ++numImg;
+                }
+                if (usePt)
+                {
+                    ficAmers << std::fixed << idAmer<<" "<< pt3.x<<" "<<pt3.y<<" "<<pt3.z<<" 0.0 0.0 0.0 0.1 0.1 0.1 1"<<std::endl;
+                    ++idAmer;
+                }
+            }
+        }
     }
+    
+    /*
     // Extraction des POI
     {
         std::string cmdPOI="mm3d Digeo ortho.tif -o ortho.dat";
@@ -1080,6 +1668,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         ossHdr << "echo 'NROWS "<<NL<<"\nNCOLS "<<NC<<"\nNBANDS 1\"nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > mnt.HDR";
         system(ossHdr.str().c_str());
     }
+     */
 
     /*
     // Il faut convertir cette emprise en coordonnees geographique
