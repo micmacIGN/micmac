@@ -1412,7 +1412,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                     toInt2(anOff0),
                     toInt2(anOff1),
                     mTabZMin,
-                    mTabZMax);
+                    mTabZMax,
+                    mNbByPix);
 
 //        interface_Census_GPU.jobMask();
 //        getchar();

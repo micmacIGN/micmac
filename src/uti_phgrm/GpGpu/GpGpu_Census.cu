@@ -302,7 +302,7 @@ void KernelDoCensusCorrel()
 
 }
 
-extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)
+extern "C" void LaunchKernelCorrelationCensusPreview(dataCorrelMS &data,constantParameterCensus &param)
 {
     dim3	threads( 1, 1, 1);
     dim3	blocks(param._dimTerrain.x , param._dimTerrain.y, 2);
@@ -324,4 +324,28 @@ extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParamet
 
     GpGpuTools::Array1DtoImageFile(hData.pData()    ,"ET_HOP_0.pmg",hData.GetDimension());
     GpGpuTools::Array1DtoImageFile(hData.pLData(1)  ,"ET_HOP_1.pmg",hData.GetDimension());
+}
+
+
+
+extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)
+{
+    // Cache device
+    //
+    CuHostData3D<float>  aSom1;
+    CuHostData3D<float>  aSom11;
+    CuHostData3D<float>  aSom2;
+    CuHostData3D<float>  aSom22;
+
+    uint2 dimCache = make_uint2(param._dimTerrain.x*param.mNbByPix,param._dimTerrain.y);
+
+    aSom1.Malloc (dimCache,param.aNbScale);
+    aSom11.Malloc(dimCache,param.aNbScale);
+    aSom2.Malloc (dimCache,param.aNbScale);
+    aSom22.Malloc(dimCache,param.aNbScale);
+
+    aSom1.Dealloc();
+    aSom11.Dealloc();
+    aSom2.Dealloc();
+    aSom22.Dealloc();
 }
