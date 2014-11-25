@@ -12,6 +12,11 @@ BufferImage<T>::BufferImage(int NRows, int NLines, int NBands):_size(NRows,NLine
 }
 
 template        <class T>
+BufferImage<T>::BufferImage(int NRows, int NLines, int NBands,T* data,int pixelSpace,int lineSpace, int bandSpace):_data(data),_size(NRows,NLines),_numBands(NBands),_pixelSpace(pixelSpace),_lineSpace(lineSpace),_bandSpace(bandSpace),_delete(false)
+{
+}
+
+template        <class T>
 BufferImage<T>::BufferImage():_size(0,0),_numBands(0)
 {
     _data = NULL;
