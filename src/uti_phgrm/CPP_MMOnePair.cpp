@@ -566,12 +566,12 @@ void cAppliMMOnePair::GenerateMTDEpip(bool MasterIs1)
 
        cXML_ParamNuage3DMaille aNuage =  StdGetFromSI(aNameIn,XML_ParamNuage3DMaille);
        aNuage.Image_Profondeur().Val().Image() = NamePx(aStep);
-       // aNuage.Image_Profondeur().Val().Masq() =  NameAutoM(aStep);
-       aNuage.Image_Profondeur().Val().Masq() =  mNameMasqFinal;
+       aNuage.Image_Profondeur().Val().Masq() =  NameAutoM(aStep);
        aNuage.Image_Profondeur().Val().ResolutionAlti() *= aMul;
 
        if (IsLast)
        {
+            aNuage.Image_Profondeur().Val().Masq() =  mNameMasqFinal;
             aNuage.Image_Profondeur().Val().Correl().SetVal("Score-AR.tif");
        }
        else 

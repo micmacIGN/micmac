@@ -69,13 +69,14 @@ class cBoxCoher
          std::string mPost;
 };
 
+
 class cCEM_OneIm
 {
      public :
 
           // Initialisation faisant appel a du virtuel
           void PostInit();
-          virtual Pt3dr To3d(const Pt2di &) const = 0;
+          virtual Pt3dr To3d(const Pt2di &,const Pt3dr * aVerif) const = 0;
 
           bool Empty() const;
           cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
@@ -83,11 +84,13 @@ class cCEM_OneIm
           void SetConj(cCEM_OneIm *);
           virtual void UsePack(const ElPackHomologue &) ;
 
-          Pt2dr ToIm2Gen(const Pt2dr & aP)
+          Pt2dr ToIm2Gen(const Pt2dr & aP) const
           {
                 bool Ok;
                 return RoughToIm2(aP,Ok)- mConj->mRP0;
           }
+
+          inline Pt2dr ToImCam(const Pt2dr & aP) const;
 
           Pt2dr ToIm2(const Pt2dr & aP,bool &Ok)
           {
@@ -134,7 +137,7 @@ class cCEM_OneIm
           }
 
      protected :
-          virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) = 0;
+          virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) const = 0;
           bool  IsOK(const Pt2di & aP)
           {
               return mTMasq.get(aP,0);
@@ -144,6 +147,7 @@ class cCEM_OneIm
           Output VDisc() {return mWin ?  mWin->odisc() : Output::onul(1) ;}
 
 
+          bool             mIsFirstIm;
           cCoherEpi_main * mCoher;
           cCpleEpip *      mCple;
           std::string      mDir;
@@ -170,18 +174,22 @@ class cCEM_OneIm
           cCEM_OneIm *     mConj;
           Im2D_Bits<1>     mImMasq;
           TIm2DBits<1>     mTMasq;
+
+          // DEBUGM3D
+          std::string       mNNOri;
+          cElNuage3DMaille*  mNuOri;
 };
 
 class cCEM_OneIm_Epip  : public cCEM_OneIm
 {
     public :
-          virtual Pt3dr To3d(const Pt2di &) const ;
+          virtual Pt3dr To3d(const Pt2di &,const Pt3dr * aVerif) const ;
           Im2D_REAL4 ImPx() {return mImPx;}
           Im2D_INT2  ImPx_u2() {return mImPx_u2;}
 
           cCEM_OneIm_Epip (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm,bool Final);
 
-          virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok)
+          virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) const
           {
              Ok = true;
              return Pt2dr(aP.x+mTPx.getprojR(aP),aP.y) + mRP0;
@@ -204,10 +212,11 @@ class cCEM_OneIm_Nuage  : public cCEM_OneIm
 {
       public :
           cCEM_OneIm_Nuage (cCoherEpi_main * ,const std::string &,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
-          virtual Pt3dr To3d(const Pt2di &) const ;
+          virtual Pt3dr To3d(const Pt2di &,const Pt3dr * aVerif) const ;
       private :
-          Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok)
+          Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) const
           {
+                 ELISE_ASSERT(false,"See RP0 ???? ");
                  if (! mNuage1->IndexIsOKForInterpol(aP))
                  {
                       Ok = false;
@@ -321,6 +330,10 @@ class cQual_DeptMap
 
 Im2D_REAL4 ImageQualityGrad(Im2D_REAL4 aProf,Im2D_Bits<1> aMasq,Video_Win *);
 
+Pt2dr cCEM_OneIm::ToImCam(const Pt2dr & aP) const
+{
+    return (aP+mRP0) * mCoher->mDeZoom;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
