@@ -42,11 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /*
 
-MTD-Image-MVxxxx_MAP_6937.NEF/NuageImProf_LeChantier_Etape_1.xml
-MEC2Im-Epi_Im2_Left_MVxxxx_MAP_6937_MVxxxx_MAP_6938.tif-Epi_Im1_Right_MVxxxx_MAP_6937_MVxxxx_MAP_6938.tif/NuageImProf_Chantier-Ori_Etape_Last.xml
-
-
-mm3d TestLib RIE MVxxxx_MAP_6937.NEF MVxxxx_MAP_6938.NEF Basc
 
 */
 

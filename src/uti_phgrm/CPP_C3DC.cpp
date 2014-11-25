@@ -50,6 +50,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+/*
+Debut de pipeline statue :
+
+mm3d MMByP Statue "IMGP703[0-5].*JPG" Ori-Ori-CalPerIm/ ZoomF=2 Masq3D=AperiCloud_Ori-CalPerIm_selectionInfo.xml Purge=true Do=APMCR
+mm3d TestLib MMEnvlop   "IMGP703[0-5].*JPG" Ori-CalPerIm  16 4   Masq3D=AperiCloud_Ori-CalPerIm_selectionInfo.xml AutoPurge=true ModeQM=false
+
+*/
+
 class cAppli_C3DC : public cAppliWithSetImage
 {
      public :
