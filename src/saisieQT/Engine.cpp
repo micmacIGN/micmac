@@ -596,6 +596,8 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
     widthMax    *= maxImagesByRow;
     heightMax   *= maxImagesByCol;
 
+
+
     if ( widthMax > _glMaxTextSize || heightMax > _glMaxTextSize )
     {
         QSize totalSize(widthMax, heightMax);
@@ -611,7 +613,7 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
 
     if (_scaleFactor != 1.f)
     {
-        QString msg = "Rescaling images with " + QString::number(_scaleFactor,'f', 3) + " factor - tip: use smaller NbF";
+        QString msg = "Rescaling images with " + QString::number(_scaleFactor,'f', 2) + " factor";
         QMessageBox* msgBox = new QMessageBox(QMessageBox::Warning, QObject::tr("GL_MAX_TEXTURE_SIZE exceeded"),  msg);
         msgBox->setWindowFlags(Qt::WindowStaysOnTopHint);
 

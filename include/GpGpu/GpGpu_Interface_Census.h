@@ -15,7 +15,7 @@ struct constantParameterCensus;
 extern "C" textureReference&  texture_ImageEpi(int nEpi);
 extern "C" textureReference* pTexture_ImageEpi(int nEpi);
 extern "C" textureReference* ptexture_Masq_Erod(int nEpi);
-extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param);
+extern "C" void LaunchKernelCorrelationCensusPreview(dataCorrelMS &data,constantParameterCensus &param);
 extern "C" void paramCencus2Device( constantParameterCensus &param );
 
 struct constantParameterCensus
@@ -57,12 +57,14 @@ struct constantParameterCensus
 
     float   mAhDefCost;
 
-    void transfertConstantCensus(
-            const std::vector<std::vector<Pt2di> >  &aVV,
+    ushort  mNbByPix;
+
+    void transfertConstantCensus(const std::vector<std::vector<Pt2di> >  &aVV,
             const std::vector<double >              &aVPds,
             int2    offset0,
             int2    offset1,
-            ushort nbscale = NBSCALE );
+            ushort  NbByPix,
+            ushort  nbscale = NBSCALE );
 
     void transfertTerrain(Rect    zoneTerrain);
 
@@ -125,7 +127,6 @@ public:
 
     void            jobMask();
 
-
     void transfertImageAndMask(uint2 sI0,uint2 sI1,float ***dataImg0,float ***dataImg1,pixel **mask0,pixel **mask1);
 
     void transfertParamCensus(Rect terrain,
@@ -135,6 +136,7 @@ public:
                               int2    offset1,
                               short **mTabZMin,
                               short **mTabZMax,
+                              ushort NbByPix,
                               ushort nbscale = NBSCALE );
 
 private:

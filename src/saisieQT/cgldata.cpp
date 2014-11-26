@@ -22,7 +22,7 @@ void cGLData::setOptionPolygons(cParameters aParams)
 
 cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode):
     _glMaskedImage(qMaskedImage),
-    _pQMask(qMaskedImage->_m_mask),
+    _pQMask(qMaskedImage->_m_mask), // ????
     _pBall(NULL),
     _pAxis(NULL),
     _pBbox(NULL),
@@ -366,8 +366,12 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.setPen(Qt::NoPen);
 
-    QPolygonF polyDraw(polyg.getVector());
+    QPolygonF polyDraws(polyg.getVector());
     QPainterPath path;
+
+    QTransform trans;
+    trans=trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
+    QPolygonF polyDraw = trans.map(polyDraws);
 
     if(mode == ADD_INSIDE || mode == SUB_INSIDE)
     {

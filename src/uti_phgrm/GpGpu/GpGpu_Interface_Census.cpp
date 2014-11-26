@@ -97,9 +97,16 @@ void dataCorrelMS::dealloc()
 
 }
 
-void constantParameterCensus::transfertConstantCensus(const std::vector<std::vector<Pt2di> > &VV, const std::vector<double> &VPds, int2 offset0, int2 offset1,ushort nbscale)
+void constantParameterCensus::transfertConstantCensus(
+        const std::vector<std::vector<Pt2di> > &VV,
+        const std::vector<double> &VPds,
+        int2 offset0,
+        int2 offset1,
+        ushort NbByPix,
+        ushort nbscale)
 {
-    aNbScale = nbscale;
+    aNbScale    = nbscale;
+    mNbByPix    = NbByPix;
 
     for (int s = 0; s < (int)VV.size(); ++s)
     {
@@ -146,7 +153,7 @@ void GpGpuInterfaceCensus::jobMask()
 {
     paramCencus2Device(_cDataCMS);   
     _dataCMS.syncDeviceData();
-    LaunchKernelCorrelationCensus(_dataCMS,_cDataCMS);
+    LaunchKernelCorrelationCensusPreview(_dataCMS,_cDataCMS);
 }
 
 void GpGpuInterfaceCensus::transfertImageAndMask(uint2 sI0, uint2 sI1, float ***dataImg0, float ***dataImg1, pixel **mask0, pixel **mask1)
@@ -156,9 +163,18 @@ void GpGpuInterfaceCensus::transfertImageAndMask(uint2 sI0, uint2 sI1, float ***
     _dataCMS.transfertMask(sI0,sI1,mask0,mask1);
 }
 
-void GpGpuInterfaceCensus::transfertParamCensus(Rect terrain, const std::vector<std::vector<Pt2di> > &aVV, const std::vector<double> &aVPds, int2 offset0, int2 offset1, short **mTabZMin, short **mTabZMax, ushort nbscale)
+void GpGpuInterfaceCensus::transfertParamCensus(
+        Rect                                    terrain,
+        const std::vector<std::vector<Pt2di> > &aVV,
+        const std::vector<double>              &aVPds,
+        int2                                    offset0,
+        int2                                    offset1,
+        short                                 **mTabZMin,
+        short                                 **mTabZMax,
+        ushort                                  NbByPix,
+        ushort                                  nbscale)
 {
-    _cDataCMS.transfertConstantCensus(aVV,aVPds,offset0,offset1);
+    _cDataCMS.transfertConstantCensus(aVV,aVPds,offset0,offset1,NbByPix);
     _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
     _cDataCMS.transfertTerrain(terrain);
     //_cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));
