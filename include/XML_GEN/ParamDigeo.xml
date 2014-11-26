@@ -149,6 +149,7 @@
 				<ForceGradientComputation Nb="?" Type="bool" Def="false"></ForceGradientComputation>
 				<!-- plots final points on tiles, this option is useless if OutputTiles is false -->
 				<PlotPointsOnTiles Nb="?" Type="bool" Def="false"></PlotPointsOnTiles>
+				<RawOutput Nb="?" Type="bool" Def="false"></RawOutput>
 			</DigeoTestOutput>
 		</SectionTest>
 

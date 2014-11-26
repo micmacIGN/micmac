@@ -137,7 +137,7 @@
 	<!-- Pas de raison, hors mis au point/test, de changer cette val -->
 	<ShowConvolSpec> false </ShowConvolSpec>
 
-	<Verbose> true </Verbose>
+	<Verbose> false </Verbose>
 
 	</SectionWorkSpace>
 </ParamDigeo>

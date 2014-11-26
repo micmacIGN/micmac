@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[194]) = {
+const char * (theNameVar_ParamDigeo[195]) = {
 "<GenCpp>\n",
 "	<Verbatim  File=\".h\">\n",
 "	#ifndef Define_NotDigeo\n",
@@ -151,6 +151,7 @@ const char * (theNameVar_ParamDigeo[194]) = {
 "				<ForceGradientComputation Nb=\"?\" Type=\"bool\" Def=\"false\"></ForceGradientComputation>\n",
 "				<!-- plots final points on tiles, this option is useless if OutputTiles is false -->\n",
 "				<PlotPointsOnTiles Nb=\"?\" Type=\"bool\" Def=\"false\"></PlotPointsOnTiles>\n",
+"				<RawOutput Nb=\"?\" Type=\"bool\" Def=\"false\"></RawOutput>\n",
 "			</DigeoTestOutput>\n",
 "		</SectionTest>\n",
 "\n",

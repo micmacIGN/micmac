@@ -1919,6 +1919,17 @@ const cTplValGesInit< bool > & cDigeoTestOutput::PlotPointsOnTiles()const
    return mPlotPointsOnTiles;
 }
 
+
+cTplValGesInit< bool > & cDigeoTestOutput::RawOutput()
+{
+   return mRawOutput;
+}
+
+const cTplValGesInit< bool > & cDigeoTestOutput::RawOutput()const 
+{
+   return mRawOutput;
+}
+
 void  BinaryUnDumpFromFile(cDigeoTestOutput & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -2009,6 +2020,14 @@ void  BinaryUnDumpFromFile(cDigeoTestOutput & anObj,ELISE_fp & aFp)
         }
         else  anObj.PlotPointsOnTiles().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.RawOutput().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RawOutput().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.RawOutput().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cDigeoTestOutput & anObj)
@@ -2035,6 +2054,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cDigeoTestOutput & anObj)
     if (anObj.ForceGradientComputation().IsInit()) BinaryDumpInFile(aFp,anObj.ForceGradientComputation().Val());
     BinaryDumpInFile(aFp,anObj.PlotPointsOnTiles().IsInit());
     if (anObj.PlotPointsOnTiles().IsInit()) BinaryDumpInFile(aFp,anObj.PlotPointsOnTiles().Val());
+    BinaryDumpInFile(aFp,anObj.RawOutput().IsInit());
+    if (anObj.RawOutput().IsInit()) BinaryDumpInFile(aFp,anObj.RawOutput().Val());
 }
 
 cElXMLTree * ToXMLTree(const cDigeoTestOutput & anObj)
@@ -2063,6 +2084,8 @@ cElXMLTree * ToXMLTree(const cDigeoTestOutput & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ForceGradientComputation"),anObj.ForceGradientComputation().Val())->ReTagThis("ForceGradientComputation"));
    if (anObj.PlotPointsOnTiles().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PlotPointsOnTiles"),anObj.PlotPointsOnTiles().Val())->ReTagThis("PlotPointsOnTiles"));
+   if (anObj.RawOutput().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("RawOutput"),anObj.RawOutput().Val())->ReTagThis("RawOutput"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -2094,9 +2117,11 @@ void xml_init(cDigeoTestOutput & anObj,cElXMLTree * aTree)
    xml_init(anObj.ForceGradientComputation(),aTree->Get("ForceGradientComputation",1),bool(false)); //tototo 
 
    xml_init(anObj.PlotPointsOnTiles(),aTree->Get("PlotPointsOnTiles",1),bool(false)); //tototo 
+
+   xml_init(anObj.RawOutput(),aTree->Get("RawOutput",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cDigeoTestOutput *) {return "0AD5A4017937C19BFF3F";};
+std::string  Mangling( cDigeoTestOutput *) {return "C0B1A5DC2CEAC2E4FCBF";};
 
 
 cTplValGesInit< bool > & cSectionTest::VerifExtrema()
@@ -2231,6 +2256,17 @@ const cTplValGesInit< bool > & cSectionTest::PlotPointsOnTiles()const
 }
 
 
+cTplValGesInit< bool > & cSectionTest::RawOutput()
+{
+   return DigeoTestOutput().Val().RawOutput();
+}
+
+const cTplValGesInit< bool > & cSectionTest::RawOutput()const 
+{
+   return DigeoTestOutput().Val().RawOutput();
+}
+
+
 cTplValGesInit< cDigeoTestOutput > & cSectionTest::DigeoTestOutput()
 {
    return mDigeoTestOutput;
@@ -2292,7 +2328,7 @@ void xml_init(cSectionTest & anObj,cElXMLTree * aTree)
    xml_init(anObj.DigeoTestOutput(),aTree->Get("DigeoTestOutput",1)); //tototo 
 }
 
-std::string  Mangling( cSectionTest *) {return "FF9861347DF7D3A5FE3F";};
+std::string  Mangling( cSectionTest *) {return "0FF5E79E3B5A818AFF3F";};
 
 
 cTplValGesInit< std::string > & cSauvPyram::Dir()
@@ -3429,6 +3465,17 @@ const cTplValGesInit< bool > & cParamDigeo::PlotPointsOnTiles()const
 }
 
 
+cTplValGesInit< bool > & cParamDigeo::RawOutput()
+{
+   return SectionTest().Val().DigeoTestOutput().Val().RawOutput();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::RawOutput()const 
+{
+   return SectionTest().Val().DigeoTestOutput().Val().RawOutput();
+}
+
+
 cTplValGesInit< cDigeoTestOutput > & cParamDigeo::DigeoTestOutput()
 {
    return SectionTest().Val().DigeoTestOutput();
@@ -3714,5 +3761,5 @@ void xml_init(cParamDigeo & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionWorkSpace(),aTree->Get("SectionWorkSpace",1)); //tototo 
 }
 
-std::string  Mangling( cParamDigeo *) {return "6691D13540DC5981FE3F";};
+std::string  Mangling( cParamDigeo *) {return "2C32DE402A5175C1FE3F";};
 

@@ -66,7 +66,7 @@ double MapTimes::stop( const char *i_name )
 {
 	if ( mCurrent==mRecords.begin() )
 	#ifdef __DEBUG_TIMES
-		__elise_debug_error("MapTimes::stop: mCurrent==mRecords.begin() (stopping a Record never started)");
+		__elise_debug_error( true, "MapTimes::stop: mCurrent==mRecords.begin() (stopping a Record never started)");
 	#else
 		return;
 	#endif

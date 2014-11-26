@@ -74,6 +74,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "DigeoPoint.h"
 #include "Expression.h"
 #include "Times.h"
+#include "MultiChannel.h"
 
 #include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
 
@@ -208,8 +209,6 @@ Im1D_REAL8 DeConvol
 // Paramametrage standardA  0 en centre image
 Im1D_REAL8 DeConvol(int aDemISz2,Im1D_REAL8 aI1,Im1D_REAL8 aI3);
 
-
-
 // Convolution C1 et C2 = indexe 0,  lent ; pour verif DeConvol
 Im1D_REAL8 Convol(Im1D_REAL8 aI1,int aC1,Im1D_REAL8 aI2,int aC2);
 // Parametrage stantdard 
@@ -227,7 +226,6 @@ int NbElemForGausKern(double aSigma,double aResidu);
 
 //  Calcule un noyau gaussien
 Im1D_REAL8  GaussianKernelFromResidu(double aSigma,double aResidu,int aSurEch);
-
 
 // Conversion d'un noyau double (de somme 1) en entier, en conservant la somme
 // (Pour une image entiere qui sera interpretee comme rationnele de quotient aMul)
@@ -913,6 +911,7 @@ class cAppliDigeo
        bool doGenerateConvolutionCode() const;
        bool doShowTimes() const;
        bool doComputeCarac() const;
+       bool doRawTestOutput() const;
 
        double loadAllImageLimit() const;
 
@@ -1009,6 +1008,7 @@ class cAppliDigeo
        bool                              mDoPlotPoints;
        bool                              mDoGenerateConvolutionCode;
        bool                              mDoComputeCarac;
+       bool                              mDoRawTestOutput;
        Times                           * mTimes;
 
      private :
@@ -1087,29 +1087,6 @@ cAppliDigeo * DigeoCPP
                     const std::string & aFullNameIm,
                     const cParamAppliDigeo  aParam
               );
-
-
-template <class tData, class tBase>
-inline bool save_raw( const Im2D<tData,tBase> &i_img, const string &i_filename )
-{
-	ofstream f( i_filename.c_str(), ios::binary );
-
-	if ( !f ) return false;
-
-	const U_INT4 magic_number = 3287682487;
-	U_INT4 w    = (U_INT4)i_img.tx(),
-	       h    = (U_INT4)i_img.ty(),
-	       type = (U_INT4)i_img.TypeEl();
-	f.write( (const char*)&magic_number, 4 );
-	f.write( (const char*)&w, 4 );
-	f.write( (const char*)&h, 4 );
-	f.write( (const char*)&type, 4 );
-	f.write( (const char*)i_img.data_lin(), w*h*sizeof(tData) );
-
-	return true;
-}
-
-
 
 #endif //  _ELISE_DIGEO_H_
 

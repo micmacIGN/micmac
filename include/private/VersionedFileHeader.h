@@ -5,6 +5,9 @@
 #include <string>
 #include <iostream>
 
+#include "general/sys_dep.h"
+#include "private/util.h"
+
 typedef enum{
    VFH_Digeo=0,
    VFH_TracePack,
@@ -60,6 +63,18 @@ VFH_Type versionedFileType( const std::string &i_filename );
 
 // generate a new random number than is not equal to itself in reverse byte order and that is not already used
 void generate_new_magic_number( uint32_t &o_direct, uint32_t &o_reverse );
+
+void inverseByteOrder( U_INT1 * ); // useless except for templates
+void inverseByteOrder( INT1 * ); // useless except for templates
+void inverseByteOrder( U_INT2 * );
+void inverseByteOrder( INT2 * );
+//void inverseByteOrder( U_INT4 * );
+void inverseByteOrder( INT4 * );
+//void inverseByteOrder( U_INT8 * );
+//void inverseByteOrder( INT8 * );
+void inverseByteOrder( REAL4 * );
+void inverseByteOrder( REAL8 * );
+void inverseByteOrder( REAL16 * );
 
 #include "VersionedFileHeader.inline.h"
 

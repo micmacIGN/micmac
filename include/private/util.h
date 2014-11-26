@@ -98,6 +98,7 @@ INT inv_bits_order(INT val,INT nbb);
 void byte_inv_2(void *);  // inverse the byte of a two byte  data
 void byte_inv_4(void *);  // inverse the byte of a four byte data
 void byte_inv_8(void *);  // inverse the byte of a eight byte data
+void byte_inv_16(void *);
 
 void byte_inv_tab(void *,INT byte_by_el,INT nb_el);  
     // inverse the byte of a four byte data

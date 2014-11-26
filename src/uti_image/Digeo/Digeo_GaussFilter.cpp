@@ -501,9 +501,9 @@ void cTplImInMem<Type>::SelfSetConvolSepY
 				exit(-1);
 			}
 		}
-		if ( mIm.linearDataAllocatedSize()!=(mIm.tx()+PackTranspo)*mIm.ty() )
+		if ( mIm.linearDataAllocatedSize()<(mIm.tx()+PackTranspo)*mIm.ty() )
 		{
-			cerr << "cTplImInMem: linearDataAllocatedSize = " << mIm.linearDataAllocatedSize() << " != (i_image.tx()+PackTranspo)*i_image.ty() = " << (mIm.tx()+PackTranspo)*mIm.ty() << endl;
+			cerr << "cTplImInMem: linearDataAllocatedSize = " << mIm.linearDataAllocatedSize() << " < (i_image.tx()+PackTranspo)*i_image.ty() = " << (mIm.tx()+PackTranspo)*mIm.ty() << endl;
 			exit(-1);
 		}
 	#endif

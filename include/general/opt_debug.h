@@ -181,17 +181,24 @@ inline void * sdnc_ptr_identity(void * ptr,char *f,int l)\
 #endif
 
 #ifdef __DEBUG
-	#define __elise_debug_error( msg ){\
-		cerr << ELISE_RED_ERROR << msg << std::endl;\
-		exit( EXIT_FAILURE );\
+	#define __elise_debug_error( expr, msg ){\
+		if ( expr ){\
+			cerr << ELISE_RED_DEBUG_ERROR << msg << std::endl;\
+			exit( EXIT_FAILURE );\
+		}\
 	}
-	#define __elise_debug_warning( msg ){\
-		__error_output << ELISE_RED_WARNING << msg << std::endl;\
+	#define __elise_debug_warning( expr, msg ){\
+		if ( expr ) cerr << ELISE_RED_DEBUG_WARNING << msg << std::endl;\
 	}
 #else
-	#define __elise_debug_error( msg )
-	#define __elise_debug_warning( msg )
+	#define __elise_debug_error( expr, msg )
+	#define __elise_debug_warning( expr, msg )
 #endif
+
+#define __elise_error( msg ){\
+	std::cerr << ELISE_RED_ERROR << msg << std::endl;\
+	exit(EXIT_FAILURE);\
+}
 
 #endif /* ! _ELISE_OPT_DEBUG_H */
 

@@ -104,7 +104,79 @@ template <class Type> void cTplImInMem<Type>::ResizeImage(const Pt2di & aSz)
     ResizeBasic(aSz+Pt2di(PackTranspo,0));
     ResizeBasic(aSz);
 }
- 
+
+template <class tData, class tBase>
+tData getMaxValue( const Im2D<tData,tBase> &io_image )
+{
+	tData res = 0;
+
+	const tData *it = io_image.data_lin();
+	unsigned int i = (unsigned int)io_image.tx()*(unsigned int)io_image.ty();
+	while ( i-- ) ElSetMax( res, *it++ );
+}
+
+template <class tData, class tBase>
+void changeDynamic_real( Im2D<tData,tBase> &io_image, tData i_srcMax, tData i_dstMax )
+{
+	if ( i_srcMax==i_dstMax ) return;
+	const int width = io_image.tx(), height = io_image.ty();
+	const tData  mul = (tData)i_dstMax/i_srcMax;
+	tData **data = io_image.data();
+	for (int aY=0 ; aY<height ; aY++)
+	{
+		tData * aL = data[aY];
+		for (int aX=0 ; aX<width; aX++)
+			aL[aX] *= mul;
+	}
+}
+
+template <class tData, class tBase>
+void changeDynamic_integer( Im2D<tData,tBase> &io_image, tBase i_srcMax, tBase i_dstMax )
+{
+	if ( i_srcMax==i_dstMax ) return;
+	const int width = io_image.tx(), height = io_image.ty();
+	tData **data = io_image.data();
+	tBase aMul = i_dstMax/i_srcMax;
+	for ( int aY=0; aY<height; aY++ )
+	{
+		tData * aL = data[aY];
+		for ( int aX=0; aX<width; aX++ )
+			aL[aX] *= aMul;
+	}
+}
+
+template <class tData, class tBase>
+void changeDynamic_integer_safe( Im2D<tData,tBase> &io_image, tBase i_srcMax, tBase i_dstMax )
+{
+	if ( i_srcMax==i_dstMax ) return;
+	const int width = io_image.tx(), height = io_image.ty();
+	tBase aMul = (tBase)round_ni( (double)i_dstMax/(double)i_srcMax );
+	tData **data = io_image.data();
+	for ( int aY=0; aY<height; aY++ )
+	{
+		tData *aL = data[aY];
+		for ( int aX=0; aX<width; aX++ )
+			aL[aX] = ElMin( i_dstMax, tBase(aL[aX])*aMul );
+	}
+}
+
+/*
+template <class tData, class tBase>
+void initial_convolution( Im2D<tData,tBase> &o_dst )
+{
+	const cTypePyramide & aTP = mAppli.Params().TypePyramide();
+	if ( aTP.PyramideGaussienne().IsInit() )
+	{
+		const double aSigmD = mImGlob.InitialDeltaSigma();
+		if ( aSigmD!=0. )
+		{
+			Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
+			SetConvolSepXY( true, aSigmD, *this, aIKerD, mNbShift );
+		}
+	}
+}
+*/
+
 template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2di & aBox,GenIm::type_el aTypeFile)
 {
 	ResizeOctave(aBox.sz());
@@ -130,7 +202,6 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 				for (int aX=0 ; aX<mSz.x ; aX++)
 					aL[aX] = ElMin(aMaxTm1,tBase(aL[aX]*aMul));
 			}
-			std::cout << "\tMultiplieur in : " << aMul  << "\n";
 		}
 		else
 		{
@@ -142,8 +213,6 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 					ElSetMax(aMaxV,aL[aX]);
 			}
 			aMul = (aMaxT-1) / aMaxV;
-			if ( mAppli.Params().ShowTimes().Val() )
-				std::cout << "\tMultiplieur in : " << aMul << " MaxVal " << tBase(aMaxV ) << " MaxType " << aMaxT << "\n";
 			if (aMul > 1)
 			{
 				for (int aY=0 ; aY<mSz.y ; aY++)
@@ -177,7 +246,7 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 					aL[aX] *= mul;
 			}
 			mImGlob.SetDyn(mul);
-			mImGlob.SetMaxValue( 1 );
+			mImGlob.SetMaxValue(1);
 		#else
 			mImGlob.SetDyn(1);
 			mImGlob.SetMaxValue( (REAL8)aMaxV );
@@ -261,9 +330,20 @@ void cTplImInMem<Type>::computeDoG( const cTplImInMem<Type> &i_nextScale )
 template <class Type>
 void cTplImInMem<Type>::saveGaussian()
 {
-	Im2D<U_INT1,INT> outImg( mIm.tx(), mIm.ty() );
-	ELISE_COPY( mIm.all_pts(), round_ni(mIm.in()/mImGlob.GetDyn()), outImg.out() );
-	save_tiff( getValue_iTile_dz_iLevel( mAppli.tiledOutputGaussianExpression() ), outImg );
+	string filename = getValue_iTile_dz_iLevel( mAppli.tiledOutputGaussianExpression() );
+
+	if ( mAppli.doRawTestOutput() )
+	{
+		MultiChannel<Type> channels;
+		channels.link(mIm);
+		channels.write_raw(filename);
+	}
+	else
+	{
+		Im2D<U_INT1,INT> outImg( mIm.tx(), mIm.ty() );
+		ELISE_COPY( mIm.all_pts(), round_ni(mIm.in()/mImGlob.GetDyn()), outImg.out() );
+		save_tiff( filename, outImg );
+	}
 }
 
 
