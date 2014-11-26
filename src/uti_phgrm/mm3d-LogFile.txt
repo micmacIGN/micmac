@@ -1,0 +1,6 @@
+=================================================================
+mm3d MMByP -help 
+ PID : 25812 ;   [Beginning at ] Sun Jan  5 15:58:53 2014
+=================================================================
+/home/vince/culture3d/bin/mm3d SaisieAppuisInit -help 
+ PID : 22075 ;   [Beginning at ] Tue Jun 17 15:34:30 2014
