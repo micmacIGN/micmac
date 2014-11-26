@@ -86,6 +86,7 @@ cAppliDigeo::cAppliDigeo():
 	mDoForceGradientComputation(false),
 	mDoPlotPoints(false),
 	mDoGenerateConvolutionCode(true),
+	mDoRawTestOutput(false),
 	mTimes( NULL )
 {
 	MapTimes *times = new MapTimes;
@@ -264,6 +265,8 @@ bool cAppliDigeo::doShowTimes() const { return mShowTimes; }
 
 bool cAppliDigeo::doComputeCarac() const { return mDoComputeCarac; }
 
+bool cAppliDigeo::doRawTestOutput() const { return mDoRawTestOutput; }
+
 double cAppliDigeo::loadAllImageLimit() const { return mLoadAllImageLimit; }
 
 Times * const cAppliDigeo::times() const { return mTimes; }
@@ -417,6 +420,13 @@ void cAppliDigeo::processTestSection()
 	{
 		const cDigeoTestOutput &testOutput = mSectionTest->DigeoTestOutput().Val();
 
+		string testOutputSuffix = ".tif";
+		if ( testOutput.RawOutput().IsInit() && testOutput.RawOutput().Val() )
+		{
+			mDoRawTestOutput = true;
+			testOutputSuffix = ".raw";
+		}
+
 		// process output of original tiles images
 		if ( testOutput.OutputTiles().IsInit() && mSectionTest->OutputTiles().Val() )
 		{
@@ -425,8 +435,8 @@ void cAppliDigeo::processTestSection()
 			normalizeOutputPath( mOutputTilesDirectory, true );
 
 			// TODO: use a XML parameter for these expressions
-			mTiledOutput_base_expr = "${outputTilesDirectory}${imageBasename}_tile${iTile:3}.tif";
-			mMergedOutput_base_expr = "${outputTilesDirectory}${imageBasename}_merged.tif";
+			mTiledOutput_base_expr = string("${outputTilesDirectory}${imageBasename}_tile${iTile:3}")+testOutputSuffix;
+			mMergedOutput_base_expr = string("${outputTilesDirectory}${imageBasename}_merged")+testOutputSuffix;
 
 			// check expression has the mandatory variables (see expressions_partial_completion() for more variable checking)
 			list<string> neededVariables;
@@ -446,8 +456,8 @@ void cAppliDigeo::processTestSection()
 			normalizeOutputPath( mOutputGaussiansDirectory, true ); 
 
 			// TODO: use a XML parameter for these expressions
-			mTiledOutputGaussian_base_expr = "${outputGaussiansDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gaussian.tif";
-			mMergedOutputGaussian_base_expr = "${outputGaussiansDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gaussian.tif";
+			mTiledOutputGaussian_base_expr = string("${outputGaussiansDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gaussian")+testOutputSuffix;
+			mMergedOutputGaussian_base_expr = string("${outputGaussiansDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gaussian")+testOutputSuffix;
 
 			// check expression has the mandatory variables (see expressions_partial_completion() for more variable checking)
 			list<string> neededVariables;
@@ -467,10 +477,10 @@ void cAppliDigeo::processTestSection()
 			normalizeOutputPath( mOutputGradientsNormDirectory, true );
 
 			// TODO: use a XML parameter for these expressions
-			mTiledOutputGradientNorm_base_expr = "${outputGradientsNormDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gradient.norm.tif";
-			mMergedOutputGradientNorm_base_expr = "${outputGradientsNormDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gradient.norm.tif";
-			mTiledOutputGradientAngle_base_expr = "${outputGradientsAngleDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gradient.angle.tif";
-			mMergedOutputGradientAngle_base_expr = "${outputGradientsAngleDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gradient.angle.tif";
+			mTiledOutputGradientNorm_base_expr = string("${outputGradientsNormDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gradient.norm")+testOutputSuffix;
+			mMergedOutputGradientNorm_base_expr = string("${outputGradientsNormDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gradient.norm")+testOutputSuffix;
+			mTiledOutputGradientAngle_base_expr = string("${outputGradientsAngleDirectory}${imageBasename}_tile${iTile:3}_dz${dz:3}_lvl${iLevel:3}.gradient.angle")+testOutputSuffix;
+			mMergedOutputGradientAngle_base_expr = string("${outputGradientsAngleDirectory}${imageBasename}_merged_dz${dz:3}_lvl${iLevel:3}.gradient.angle")+testOutputSuffix;
 
 			// check expression has the mandatory variables (see expressions_partial_completion() for more variable checking)
 			list<string> neededVariables;

@@ -571,6 +571,9 @@ class cDigeoTestOutput
 
         cTplValGesInit< bool > & PlotPointsOnTiles();
         const cTplValGesInit< bool > & PlotPointsOnTiles()const ;
+
+        cTplValGesInit< bool > & RawOutput();
+        const cTplValGesInit< bool > & RawOutput()const ;
     private:
         cTplValGesInit< bool > mOutputGaussians;
         cTplValGesInit< std::string > mOutputGaussiansDirectory;
@@ -583,6 +586,7 @@ class cDigeoTestOutput
         cTplValGesInit< bool > mSuppressTiles;
         cTplValGesInit< bool > mForceGradientComputation;
         cTplValGesInit< bool > mPlotPointsOnTiles;
+        cTplValGesInit< bool > mRawOutput;
 };
 cElXMLTree * ToXMLTree(const cDigeoTestOutput &);
 
@@ -635,6 +639,9 @@ class cSectionTest
 
         cTplValGesInit< bool > & PlotPointsOnTiles();
         const cTplValGesInit< bool > & PlotPointsOnTiles()const ;
+
+        cTplValGesInit< bool > & RawOutput();
+        const cTplValGesInit< bool > & RawOutput()const ;
 
         cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput();
         const cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput()const ;
@@ -970,6 +977,9 @@ class cParamDigeo
 
         cTplValGesInit< bool > & PlotPointsOnTiles();
         const cTplValGesInit< bool > & PlotPointsOnTiles()const ;
+
+        cTplValGesInit< bool > & RawOutput();
+        const cTplValGesInit< bool > & RawOutput()const ;
 
         cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput();
         const cTplValGesInit< cDigeoTestOutput > & DigeoTestOutput()const ;

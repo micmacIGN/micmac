@@ -146,10 +146,10 @@ Im2DGen cInterfImageAbs::getWindow( Pt2di P0, const Pt2di &windowSize, int asked
 {
 	#ifdef __DEBUG_DIGEO
 		Pt2di _p1 = P0+windowSize;
-		if ( P0.x<0 ) __elise_debug_error( "cInterfImageAbs::getWindow: P0.x = " << P0.x << " <0" );
-		if ( _p1.x>sz().x ) __elise_debug_error( "cInterfImageAbs::getWindow: _p1.x = " << _p1.x << " > i_src.sz().x = " << sz() );
-		if ( P0.y<0 ) __elise_debug_error( "cInterfImageAbs::getWindow: P0.y = " << P0.y << " <0" );
-		if ( _p1.y>sz().y ) __elise_debug_error( "cInterfImageAbs::getWindow: _p1.y = " << _p1.y << " > i_src.sz().y = " << sz() );
+		__elise_debug_error( P0.x<0, "cInterfImageAbs::getWindow: P0.x = " << P0.x << " <0" );
+		__elise_debug_error( _p1.x>sz().x, "cInterfImageAbs::getWindow: _p1.x = " << _p1.x << " > i_src.sz().x = " << sz() );
+		__elise_debug_error( P0.y<0, "cInterfImageAbs::getWindow: P0.y = " << P0.y << " <0" );
+		__elise_debug_error( _p1.y>sz().y, "cInterfImageAbs::getWindow: _p1.y = " << _p1.y << " > i_src.sz().y = " << sz() );
 	#endif
 
 	Pt2di p0( P0.x-askedMargin, P0.y-askedMargin );
@@ -625,13 +625,25 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 	//mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,GenIm::u_int1/*mInterfImage->type_el()*/);
 	mOctaves[0]->FirstImage()->LoadFile(aF,mBoxCurOut,GenIm::real4/*mInterfImage->type_el()*/);
 
-	double aTLoad = mAppli.times()->stop("tile loading");
+	mAppli.times()->stop("tile loading");
 
 	if ( mAppli.doSaveTiles() )
 	{
 		mAppli.times()->start();
 		Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur );
-		save_tiff( mAppli.getValue_iTile( mAppli.tiledOutputExpression(), mAppli.currentBoxIndex() ), window, true );
+		string filename = mAppli.getValue_iTile( mAppli.tiledOutputExpression(), mAppli.currentBoxIndex() );
+
+		if ( mAppli.doRawTestOutput() )
+		{
+			/*
+			MultiChannel channels;
+			channels.link(window);
+			channels.duplicateLastChannel(2);
+			channels.write_raw(filename);
+			*/
+		}
+		else
+			save_tiff( filename, window, true ); // true = rgb
 		mAppli.times()->stop(DIGEO_TIME_OUTPUTS);
 	}
 
@@ -654,9 +666,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     for (int aKOct=0 ; aKOct<int(mOctaves.size()) ; aKOct++)
         mOctaves[aKOct]->PostPyram();
 
-    double aTPyram = mAppli.times()->stop("pyramid computation");
-
-	if ( mAppli.doShowTimes() ) std::cout << "\tTime,  load : " << aTLoad << " ; Pyram : " << aTPyram << endl;
+    mAppli.times()->stop("pyramid computation");
 
 	if ( mAppli.doSaveGaussians() ) saveGaussians();
 }
@@ -789,29 +799,52 @@ void get_channel_min_max( const REAL4 *i_channel, int i_width, int i_height, int
 	}
 }
 
-void channel_to_Im2D( const REAL4 *i_channel, int i_width, int i_height, int i_nbChannels, const int i_iChannel, REAL4 i_min, REAL4 i_max, Im2D<REAL4,REAL> &o_im2d )
+void channel_to_Im2D( const REAL4 *i_channel, int i_width, int i_height, int i_nbChannels, const int i_iChannel, Im2D<REAL4,REAL> &o_im2d )
 {
 	o_im2d.Resize( Pt2di(i_width,i_height) );
 	unsigned int iPix = i_width*i_height;
 
-	if ( iPix==0 ) return;
+	if ( iPix<=0 ) return;
 
 	const REAL4 *itSrc = i_channel+i_iChannel;
 	REAL4 *itDst = o_im2d.data_lin();
-	REAL4 scale = 255./(i_max-i_min);
 	while ( iPix-- )
 	{
-		*itDst++ = scale*( (*itSrc)-i_min );
+		*itDst++ = *itSrc++;
 		itSrc += i_nbChannels;
 	}
 }
 
-void save_gradient_component( const Im2D<REAL4, REAL8> &i_gradient, const int i_iComponent, const string &i_filename )
+void scale_min_max( REAL4 *i_channel, int i_width, int i_height, REAL4 i_min, REAL4 i_max )
+{
+	unsigned int iPix = i_width*i_height;
+
+	if ( iPix<=0 ) return;
+
+	REAL4 *it = i_channel;
+	REAL4 scale = 255./(i_max-i_min);
+	while ( iPix-- )
+	{
+		*it = scale*( (*it)-i_min );
+		it++;
+	}
+}
+
+void save_gradient_component_raw( const Im2D<REAL4, REAL8> &i_gradient, const int i_iComponent, const string &i_filename )
+{
+	Im2D<REAL4, REAL> imgToSave;
+	channel_to_Im2D( i_gradient.data_lin(), i_gradient.tx()/2, i_gradient.ty(), 2, i_iComponent, imgToSave );
+	// __MULTI_CHANNEL
+	//imgToSave.write_raw(i_filename);
+}
+
+void save_gradient_component_tiff( const Im2D<REAL4, REAL8> &i_gradient, const int i_iComponent, const string &i_filename )
 {
 	REAL4 minv = 0., maxv = 0.;
 	get_channel_min_max( i_gradient.data_lin(), i_gradient.tx()/2, i_gradient.ty(), 2, i_iComponent, minv, maxv );
 	Im2D<REAL4, REAL> imgToSave;
-	channel_to_Im2D( i_gradient.data_lin(), i_gradient.tx()/2, i_gradient.ty(), 2, i_iComponent, minv, maxv, imgToSave );
+	channel_to_Im2D( i_gradient.data_lin(), i_gradient.tx()/2, i_gradient.ty(), 2, i_iComponent, imgToSave );
+	scale_min_max(  imgToSave.data_lin(), i_gradient.tx()/2, i_gradient.ty(), minv, maxv );
 
 	ELISE_COPY
 	(
@@ -845,8 +878,18 @@ void cImDigeo::orientateAndDescribe()
 				mAppli.times()->start();
 
 				const Im2D<REAL4,REAL8> &gradient = image.getGradient();
-				save_gradient_component( gradient, 0, image.getValue_iTile_dz_iLevel( mAppli.tiledOutputGradientNormExpression(), -1 ) );
-				save_gradient_component( gradient, 1, image.getValue_iTile_dz_iLevel( mAppli.tiledOutputGradientAngleExpression(), -1 ) );
+				string filename_norm = image.getValue_iTile_dz_iLevel( mAppli.tiledOutputGradientNormExpression(), -1 ),
+				       filename_angle = image.getValue_iTile_dz_iLevel( mAppli.tiledOutputGradientAngleExpression(), -1 );
+				if ( mAppli.doRawTestOutput() )
+				{
+					save_gradient_component_raw( gradient, 0, filename_norm );
+					save_gradient_component_raw( gradient, 1, filename_angle );
+				}
+				else
+				{
+					save_gradient_component_tiff( gradient, 0, filename_norm );
+					save_gradient_component_tiff( gradient, 1, filename_angle );
+				}
 
 				mAppli.times()->stop(DIGEO_TIME_OUTPUTS);
 			}
