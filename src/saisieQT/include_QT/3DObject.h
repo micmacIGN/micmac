@@ -463,7 +463,7 @@ class cRectangle : public cPolygon
 class cImageGL : public cObjectGL
 {
     public:
-        cImageGL(float gamma = 1.f);
+        cImageGL(float scaleFactor=1.f, float gamma = 1.f);
         ~cImageGL();
 
         void    draw(QColor color);
@@ -486,8 +486,8 @@ class cImageGL : public cObjectGL
         GLuint* getTexture(){return &_texture;}
 
         //height and width of original data
-        int     width()  {return _size.width();}
-        int     height() {return _size.height();}
+        int     width()  {return _size.width()/_scaleFactor;}
+        int     height() {return _size.height()/_scaleFactor;}
 
         bool    isPtInside(QPointF const &pt);
 
@@ -500,6 +500,8 @@ class cImageGL : public cObjectGL
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
 private:
+
+        float   _scaleFactor;
 
         QGLShaderProgram _program;
 

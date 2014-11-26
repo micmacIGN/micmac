@@ -23,7 +23,7 @@ public:
     void setView(VIEW_ORIENTATION orientation);
 
     //! Get current zoom
-    float getZoom(){return getParams()->m_zoom;}
+    float getZoom();
 
     void zoomFit();
 

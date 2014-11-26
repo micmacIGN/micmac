@@ -1,11 +1,7 @@
 #ifndef SAISIEMASQQT_MAIN_H
 #define SAISIEMASQQT_MAIN_H
 
-#include "StdAfx.h"
-
 #include "QT_interface_Elise.h"
-
-#include "general/visual_mainwindow.h"
 
 
 using namespace std;

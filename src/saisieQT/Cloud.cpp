@@ -221,8 +221,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
 
 void GlCloud::addVertex(const GlVertex &vertex)
 {
-    _sum = _sum + const_cast<GlVertex &>(vertex).getPosition();  // MPD : erreur: passing ‘const GlVertex’ as ‘this’ argument of ‘Pt3d<double> cObject::getPosition()’ discards qualifiers [-fpermissive]
-
+    _sum = _sum + const_cast<GlVertex &>(vertex).getPosition();
 
     _vertices.push_back(vertex);
 }
