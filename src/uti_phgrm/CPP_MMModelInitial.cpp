@@ -240,6 +240,8 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    }
 
 
+   // mDirTarget = mModeQM ? DirFusMMInit() : TheDIRMergeEPI() + mNameIm;
+
    ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
    mNameIm = mVSoms[0]->attr().mIma->mNameIm;
    mDirMatch  = Dir() + "Masq-TieP-" + mNameIm  + "/";

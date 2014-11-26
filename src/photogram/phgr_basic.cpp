@@ -1517,19 +1517,43 @@ void  ElCamera::SetIncCentre(const Pt3dr & anInc)
 }
 
 
+extern bool DebugVisb;
 
 bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
 {
    Pt3dr aPCam = R3toL3(aPTer);
 
+if (DebugVisb) std::cout << "LLOCC " << aPCam << "\n";
 
-
-   if (HasOrigineProf() && (aPCam.z < 0)) return false;
+   if (
+         HasOrigineProf() 
+         && (aPCam.z <=   1e-5 * (ElAbs(aPCam.x)+ElAbs(aPCam.y)))
+      ) 
+      return false;
 
 
    Pt2dr aPI0 = Proj().Proj(aPCam);
+
+
+if (DebugVisb) std::cout << "PPPPPP " << aPI0 << " " << GetZoneUtilInPixel() << "\n";
+// if (DebugVisb) 
+{
+   if (GetZoneUtilInPixel() )
+   {
+       Pt2dr aPQ = NormM2C(aPI0) ;
+       double aRab = 0.8;
+       Pt2dr aMil = Pt2dr(mSz)/2.0;
+   
+       aPQ =  aMil+ (aPQ-aMil) * aRab;
+       if ((aPQ.x <0)  || (aPQ.y<0) || (aPQ.x>mSz.x) || (aPQ.y>mSz.y)) return false;
+    }
+}
+// NormM2C
+
+
    Pt2dr aPF0 = DistDirecteSsComplem(aPI0);
 
+if (DebugVisb) std::cout << "DDDDD " << aPF0 << "\n";
 
 
    // Si "vraie" camera et scannee il est necessaire de faire le test maintenant
@@ -1540,6 +1564,7 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
 
    Pt2dr aPF1 = DComplM2C(aPF0);
 
+if (DebugVisb) std::cout << "PF11 " << aPF1 << "\n";
    // MPD le 17/06/2014 : je ne comprend plus le [1], qui fait planter les camera ortho
    // a priori la zone utile se juge a la fin
    if (GetZoneUtilInPixel() && ( ! IsInZoneUtile(aPF1))) return false;

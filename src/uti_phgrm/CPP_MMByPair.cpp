@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 // const std::string TheDIRMergTiepForEPI(){return  "Merge-TieP-ForEpi";}
 const std::string TheDIRMergTiepForEPI(){return  TheDIRMergeEPI();}
-const std::string TheDIRMergeEPI(){return  "MTD-Image";}
+const std::string TheDIRMergeEPI(){return  "MTD-Image-";}
 const std::string DirFusStatue(){return  "Fusion-Statue/";}
 const std::string PrefDNF(){return  "DownScale_NuageFusion-";}
 
@@ -1230,13 +1230,12 @@ void cAppliMMByPair::DoReechantEpipInv()
 
 std::string cAppliMMByPair::DirMTDImage(const tSomAWSI & aSom) const
 {
-    return  mEASF.mDir + "MTD-Image-" +  aSom.attr().mIma->mNameIm + "/";
+    return  mEASF.mDir +  TheDIRMergeEPI()  +  aSom.attr().mIma->mNameIm + "/";
 }
 
 bool cAppliMMByPair::InspectMTD(tArcAWSI & anArc,const std::string & aName )
 {
     std::string  aNameFile =  DirMTDImage(anArc.s1())
-                              /* mEASF.mDir + "MTD-Image-" + anArc.s1().attr().mIma->mNameIm + "/" */
                                + aName + "-" + anArc.s2().attr().mIma->mNameIm + ".tif";
 
     return  ELISE_fp::exist_file(aNameFile);
