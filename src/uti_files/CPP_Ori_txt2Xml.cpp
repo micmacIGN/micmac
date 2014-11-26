@@ -345,7 +345,7 @@ void cAppli_Ori_Txt2Xml_main::ShowArc(const tSomVois & aSom1,const tSomVois & aS
 
 /*
 
-   On cherche �  decomposer en un sous ensemble de sommets connexes.
+   On cherche \C3  decomposer en un sous ensemble de sommets connexes.
 Il y a 4 etat possible
 
    * debut de brin
@@ -1393,7 +1393,7 @@ void cAppli_Ori_Txt2Xml_main::GenerateOrientInit()
         }
    }
 
-
+/*
    std::list<std::string> aLCom;
   // int aCptFOk=0;
    for (int aKF=0 ; aKF<int(aVF.size()) ; aKF++)
@@ -1428,7 +1428,7 @@ void cAppli_Ori_Txt2Xml_main::GenerateOrientInit()
 
     cEl_GPAO::DoComInParal(aLCom,"",-1,true,true);
 
-/*
+*/
    std::list<std::string> aLCom;
    for (tItSVois itS=mGrVois.begin(mSubAll) ; itS.go_on() ;itS++)
    {
@@ -1452,16 +1452,17 @@ void cAppli_Ori_Txt2Xml_main::GenerateOrientInit()
                             + " +AeroOut=" + std::string("GenFromC")
                             + " +BDDC=" + mOriOut
                             + " +ImC=" +  aS1->attr().mCam->mNameIm
-                            + " +ImSec=" + QUOTE("(" +aPatVois +")") ;
+                            + " +ImSec=" + QUOTE("(" +aPatVois +")") 
+		            + " +ImSauv=" + aS1->attr().mCam->mNameIm ;
 
 //  "mm3d Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Apero-ModelInitFromCenter.xml  DirectoryChantier=
 
         // std::cout << aCom << "\n";
         aLCom.push_back(aCom);
    }
-*/
 
-    // cEl_GPAO::DoComInParal(aLCom,"",-1,true,true);
+
+    cEl_GPAO::DoComInParal(aLCom,"",-1,true,true);
 }
 
 
@@ -1612,7 +1613,7 @@ int OriExport_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant \C3  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -1628,17 +1629,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
+développement et \C3  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
+manipuler et qui le réserve donc \C3  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
+logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
