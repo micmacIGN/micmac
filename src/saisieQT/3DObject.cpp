@@ -1383,7 +1383,7 @@ cImageGL::cImageGL(float scaleFactor,float gamma) :
     _scaleFactor(scaleFactor),
     _originX(0.f),
     _originY(0.f),
-    _texture(GL_INVALID_LIST_ID),    
+    _texture(GL_INVALID_LIST_ID),
     _gamma(gamma)
 {
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
@@ -1428,6 +1428,11 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
     glEnd();
 }
 
+void cImageGL::drawQuadTile(int m, int n, float tileWidth, float tileHeight, QColor color)
+{
+    drawQuad(_originX + m*tileWidth,_originY + n*tileHeight, tileWidth, tileHeight, color);
+}
+
 void cImageGL::draw()
 {
     glEnable(GL_TEXTURE_2D);
@@ -1445,6 +1450,36 @@ void cImageGL::draw()
     if(_gamma != 1.0f) _program.release();
 
     glBindTexture( GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void cImageGL::draw2()
+{
+    glEnable(GL_TEXTURE_2D);
+    //glBindTexture( GL_TEXTURE_2D, _texture );
+
+    //cout << "zoom " << _zoom << endl;
+    //cout << "scaleFactor " << _scaleFactor << endl;
+
+    int maxM, maxN;
+
+    if (_zoom < _scaleFactor )
+        maxM = maxN = 1;
+    else if (_zoom > 2.f*_scaleFactor )
+        maxM = maxN = 4;
+    else
+        maxM = maxN = 2;
+
+    float tileWidth  = width() / (float) maxM;
+    float tileHeight = height() / (float) maxN;
+
+    int shiftColor = 256/maxM;
+
+    for (int aK =0; aK < maxM; ++aK)
+        for (int bK =0; bK < maxN; ++bK)
+            drawQuadTile(aK, bK, tileWidth, tileHeight, QColor(255-shiftColor*aK, 255-shiftColor*bK, 255));
+
+    //glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
 }
 
@@ -1553,16 +1588,16 @@ void cMaskedImageGL::draw()
 
     glColor4f(1.0f,1.0f,1.0f,1.0f);
 
-    if(_m_mask != NULL && _m_mask->isVisible())
+   /* if(_m_mask != NULL && _m_mask->isVisible())
     {
         _m_mask->draw();
         glBlendFunc(GL_ONE,GL_ONE);
         _m_mask->draw(QColor(128,255,128));
         glBlendFunc(GL_DST_COLOR,GL_ZERO);
         glColor4f(1.0f,1.0f,1.0f,1.0f);
-    }
+    }*/
 
-    _m_image->draw();
+    _m_image->draw2();
 
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);

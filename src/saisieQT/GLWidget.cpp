@@ -339,7 +339,11 @@ void GLWidget::setParams(cParameters* aParams)
 
 void GLWidget::setZoom(float val)
 {
-    if (imageLoaded())  zoomClip( val );
+    if (imageLoaded())
+    {
+        zoomClip( val );
+        getGLData()->glImage().setZoom(val);
+    }
 
     _vp_Params.m_zoom = val;
 

@@ -472,7 +472,11 @@ class cImageGL : public cObjectGL
 
         static  void    drawQuad(GLfloat originX, GLfloat originY, GLfloat glw, GLfloat glh, QColor color = Qt::white);
 
+        void    drawQuadTile(int m, int n, float tileWidth, float tileHeight, QColor color = Qt::white);
+
         void    draw();
+
+        void    draw2();
 
         //void    setPosition(GLfloat originX, GLfloat originY);
         //void    setDimensions(GLfloat glh, GLfloat glw);
@@ -499,9 +503,12 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
+        void    setZoom(float aVal) { _zoom = aVal; }
+
 private:
 
         float   _scaleFactor;
+        float   _zoom;
 
         QGLShaderProgram _program;
 
@@ -584,6 +591,8 @@ public:
     void deleteTextures();
 
     void prepareTextures();
+
+    void setZoom(float aVal) { _m_image->setZoom(aVal); }
 
 private:
 

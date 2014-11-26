@@ -596,8 +596,6 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
     widthMax    *= maxImagesByRow;
     heightMax   *= maxImagesByCol;
 
-
-
     if ( widthMax > _glMaxTextSize || heightMax > _glMaxTextSize )
     {
         QSize totalSize(widthMax, heightMax);
