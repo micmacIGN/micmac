@@ -2,6 +2,7 @@
 #define SAISIEMASQQT_MAIN_H
 
 #include "QT_interface_Elise.h"
+#include    "../../../include/general/visual_mainwindow.h" // TODO AVIRER ACAUSE SETSTYLESHEET
 
 
 using namespace std;
