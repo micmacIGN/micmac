@@ -14,8 +14,6 @@ dataCorrelMS::dataCorrelMS()
         _texMaskErod[t]->filterMode     = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
         _texMaskErod[t]->normalized     = false;
     }
-
-
 }
 
 void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
@@ -60,14 +58,28 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 
     uint2 dimNappe = make_uint2(mX1Ter-mX0Ter,mY1Ter-mY0Ter);
 
-    _HostInterval_Z.ReallocIfDim(dimNappe,1);
+    _uInterval_Z.ReallocIfDim(dimNappe,1);
+
+    _maxDeltaZ = 0;
 
     for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
     {
         int X = anX - mX0Ter;
         for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-            _HostInterval_Z[make_uint2(X,anY - mY0Ter)] = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+        {
+            short2 ZZ   = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+            _uInterval_Z.hostData[make_uint2(X,anY - mY0Ter)] = ZZ;
+            uint deltaZ = abs(ZZ.x-ZZ.y);
+            _maxDeltaZ  = max(_maxDeltaZ,deltaZ);
+        }
     }
+
+    //DUMP_UINT(_maxDeltaZ)
+
+    // Allocation du buffer des couts!
+
+    _uCost.ReallocIfDim(dimNappe,_maxDeltaZ);
+
 }
 
 void dataCorrelMS::syncDeviceData()
@@ -78,8 +90,10 @@ void dataCorrelMS::syncDeviceData()
         _dt_MaskErod[t].syncDevice(_HostMaskErod[t],*_texMaskErod[t]);
     }
 
-    _DeviceInterval_Z.ReallocIf(_HostInterval_Z.GetDimension());
-    _DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
+    _uInterval_Z.syncDevice();
+
+    //_DeviceInterval_Z.ReallocIf(_HostInterval_Z.GetDimension());
+    //_DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
 }
 
 void dataCorrelMS::dealloc()
@@ -92,21 +106,24 @@ void dataCorrelMS::dealloc()
         _dt_Image[t].Dealloc();
     }
 
-    _HostInterval_Z.Dealloc();
-    _DeviceInterval_Z.Dealloc();
+//    _HostInterval_Z.Dealloc();
+    _uInterval_Z.Dealloc();
+    _uCost.Dealloc();
 
 }
 
-void constantParameterCensus::transfertConstantCensus(
-        const std::vector<std::vector<Pt2di> > &VV,
+void constantParameterCensus::transfertConstantCensus(const std::vector<std::vector<Pt2di> > &VV,
         const std::vector<double> &VPds,
         int2 offset0,
         int2 offset1,
         ushort NbByPix,
+        float StepPix,
         ushort nbscale)
 {
+
     aNbScale    = nbscale;
     mNbByPix    = NbByPix;
+    aStepPix    = StepPix;
 
     for (int s = 0; s < (int)VV.size(); ++s)
     {
@@ -130,6 +147,8 @@ void constantParameterCensus::transfertTerrain(Rect zoneTerrain)
 {
     _zoneTerrain    = zoneTerrain;
     _dimTerrain     = _zoneTerrain.dimension();
+
+    mDim3Cache      = make_uint3(_dimTerrain.x,_dimTerrain.y,aNbScale);
 }
 
 void constantParameterCensus::dealloc()
@@ -153,7 +172,9 @@ void GpGpuInterfaceCensus::jobMask()
 {
     paramCencus2Device(_cDataCMS);   
     _dataCMS.syncDeviceData();
-    LaunchKernelCorrelationCensusPreview(_dataCMS,_cDataCMS);
+    //LaunchKernelCorrelationCensusPreview(_dataCMS,_cDataCMS);
+
+    LaunchKernelCorrelationCensus(_dataCMS,_cDataCMS);
 }
 
 void GpGpuInterfaceCensus::transfertImageAndMask(uint2 sI0, uint2 sI1, float ***dataImg0, float ***dataImg1, pixel **mask0, pixel **mask1)
@@ -172,9 +193,10 @@ void GpGpuInterfaceCensus::transfertParamCensus(
         short                                 **mTabZMin,
         short                                 **mTabZMax,
         ushort                                  NbByPix,
+        float                                   StepPix,
         ushort                                  nbscale)
 {
-    _cDataCMS.transfertConstantCensus(aVV,aVPds,offset0,offset1,NbByPix);
+    _cDataCMS.transfertConstantCensus(aVV,aVPds,offset0,offset1,NbByPix,StepPix);
     _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
     _cDataCMS.transfertTerrain(terrain);
     //_cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));

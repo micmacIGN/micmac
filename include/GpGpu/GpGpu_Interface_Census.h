@@ -17,6 +17,8 @@ extern "C" textureReference* pTexture_ImageEpi(int nEpi);
 extern "C" textureReference* ptexture_Masq_Erod(int nEpi);
 extern "C" void LaunchKernelCorrelationCensusPreview(dataCorrelMS &data,constantParameterCensus &param);
 extern "C" void paramCencus2Device( constantParameterCensus &param );
+extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param);
+
 
 struct constantParameterCensus
 {
@@ -59,16 +61,26 @@ struct constantParameterCensus
 
     ushort  mNbByPix;
 
+    float   aStepPix;
+
+    uint3   mDim3Cache;
+
     void transfertConstantCensus(const std::vector<std::vector<Pt2di> >  &aVV,
             const std::vector<double >              &aVPds,
             int2    offset0,
             int2    offset1,
             ushort  NbByPix,
+            float   StepPix,
             ushort  nbscale = NBSCALE );
 
     void transfertTerrain(Rect    zoneTerrain);
 
     void dealloc();
+
+//    __device__ uint3 dim3Cache()
+//    {
+//        return make_uint3(_dimTerrain.x,_dimTerrain.y,aNbScale);
+//    }
 
 };
 
@@ -90,10 +102,13 @@ struct dataCorrelMS
 
     /// \brief _HostInterval_Z
     /// Nappe des Z host
-    CuHostData3D<short2>        _HostInterval_Z;
+    //CuHostData3D<short2>        _HostInterval_Z;
     /// \brief _DeviceInterval_Z
     /// Nappe des Z device
-    CuDeviceData3D<short2>      _DeviceInterval_Z;
+    //CuDeviceData3D<short2>      _DeviceInterval_Z;
+    CuUnifiedData3D<short2>        _uInterval_Z;
+
+    CuUnifiedData3D<float>         _uCost;
 
     ImageGpGpu<pixel,cudaContext>           _dt_MaskErod[NBEPIIMAGE];
     ImageLayeredGpGpu<float,cudaContext>    _dt_Image[NBEPIIMAGE];
@@ -114,6 +129,8 @@ struct dataCorrelMS
 
     void    dealloc();
 
+    uint    _maxDeltaZ;
+
 };
 
 class GpGpuInterfaceCensus : public CSimpleJobCpuGpu< bool>
@@ -132,11 +149,12 @@ public:
     void transfertParamCensus(Rect terrain,
                               const std::vector<std::vector<Pt2di> >  &aVV,
                               const std::vector<double >              &aVPds,
-                              int2    offset0,
-                              int2    offset1,
-                              short **mTabZMin,
-                              short **mTabZMax,
-                              ushort NbByPix,
+                              int2      offset0,
+                              int2      offset1,
+                              short   **mTabZMin,
+                              short   **mTabZMax,
+                              ushort    NbByPix,
+                              float     StepPix,
                               ushort nbscale = NBSCALE );
 
 private:

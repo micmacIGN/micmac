@@ -144,7 +144,6 @@ protected:
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);
 void ShowEnum(const cMMSpecArg & anArg);
-void setStyleSheet(QApplication &app);
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr);
 
 #endif //ELISE_QT_VERSION >= 4

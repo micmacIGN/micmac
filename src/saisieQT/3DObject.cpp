@@ -1383,7 +1383,7 @@ cImageGL::cImageGL(float scaleFactor,float gamma) :
     _scaleFactor(scaleFactor),
     _originX(0.f),
     _originY(0.f),
-    _texture(GL_INVALID_LIST_ID),    
+    _texture(GL_INVALID_LIST_ID),
     _gamma(gamma)
 {
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
@@ -1405,7 +1405,7 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-    drawQuad(_originX, _originY, width(), height(), color);
+     drawQuad(_originX, _originY, width(), height(), color);
 }
 
 void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
@@ -1448,6 +1448,17 @@ void cImageGL::draw()
     glDisable(GL_TEXTURE_2D);
 }
 
+void cImageGL::setGLPosition(GLfloat originX, GLfloat originY)
+{
+    _originX = originX;
+    _originY = originY;
+}
+
+void cImageGL::setSize(QSize size)
+{
+    _size = size;
+}
+
 void cImageGL::draw(QColor color)
 {
     drawQuad(color);
@@ -1458,13 +1469,11 @@ bool cImageGL::isPtInside(const QPointF &pt)
     return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
 }
 
-void cImageGL::PrepareTexture(QImage * pImg)
+void cImageGL::createTexture(QImage * pImg)
 {
     glGenTextures(1, getTexture() );
 
     ImageToTexture(pImg);
-
-    _size = pImg->size();
 }
 
 void cImageGL::ImageToTexture(QImage *pImg)
@@ -1544,6 +1553,7 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     cObjectGL::setName(qMaskedImage->name());
 }
 
+
 void cMaskedImageGL::draw()
 {
     glEnable(GL_BLEND);
@@ -1553,36 +1563,104 @@ void cMaskedImageGL::draw()
 
     glColor4f(1.0f,1.0f,1.0f,1.0f);
 
-    if(_m_mask != NULL && _m_mask->isVisible())
+    if(glMask() != NULL && glMask()->isVisible())
     {
-        _m_mask->draw();
+        if(1)
+            glMask()->draw();
+        else
+            drawTiles(_tilesMask);
+
         glBlendFunc(GL_ONE,GL_ONE);
-        _m_mask->draw(QColor(128,255,128));
+        glMask()->draw(QColor(128,255,128));
         glBlendFunc(GL_DST_COLOR,GL_ZERO);
         glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
 
-    _m_image->draw();
+
+    if(1)
+        glImage()->draw();
+    else
+        drawTiles(_tiles);
 
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
 }
 
-void cMaskedImageGL::prepareTextures()
+void cMaskedImageGL::drawTiles(cImageGL* tiles)
 {
-    if(_m_mask && _m_mask->isVisible())
-        _m_mask->PrepareTexture(_qMaskedImage->_m_mask);
-    if(_m_image && _m_image->isVisible())
-        _m_image->PrepareTexture(_qMaskedImage->_m_image);
+    for (int aK = 0; aK < 4; ++aK)
+          tiles[aK].draw();
+}
+
+QSize cMaskedImageGL::getTilesSize()
+{
+//    QPoint nbFen = (1,1); //_params->getNbFen();
+
+    //cout << "nbFen : " << nbFen.x() << " " << nbFen.y() << endl;
+
+    int maxTextureSize;
+
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+
+    maxTextureSize /= 2;
+
+//    int maxTileSizeX = maxTextureSize / (2 * nbFen.x());
+//    int maxTileSizeY = maxTextureSize / (2 * nbFen.y());
+
+//    cout << "maxTileSize : " << maxTileSizeX << " " << maxTileSizeY << endl;
+
+    int fullRes_image_sizeX = _m_image->width();
+    int fullRes_image_sizeY = _m_image->height();
+
+//    cout << " fullRes_image_size " << fullRes_image_sizeX << " " << fullRes_image_sizeY << endl;
+
+    int nbTilesX = qCeil((float)fullRes_image_sizeX / (float) maxTextureSize);
+    int nbTilesY = qCeil((float)fullRes_image_sizeY / (float) maxTextureSize);
+
+//    cout << "tile size : " << fullRes_image_sizeX/ nbTilesX << " " <<  fullRes_image_sizeY/ nbTilesY << endl;
+
+    //return QSize(fullRes_image_sizeX/ nbTilesX + 1, fullRes_image_sizeY/ nbTilesY + 1);
+
+    return QSize(fullRes_image_sizeX/ nbTilesX , fullRes_image_sizeY/ nbTilesY );
+}
+
+void cMaskedImageGL::createTextures()
+{
+    if( glMask() && glMask()->isVisible())
+    {
+        glMask()->createTexture( _qMaskedImage->_m_rescaled_mask );
+        glMask()->setSize( _qMaskedImage->_m_mask->size() );
+    }
+
+    if(glImage() && glImage()->isVisible())
+    {
+        glImage()->createTexture( _qMaskedImage->_m_rescaled_image );
+        glImage()->setSize( _qMaskedImage->_m_image->size() );
+    }
+
+    if(getLoadedImageRescaleFactor()<1.f)
+    {
+        QSize tileSize = getTilesSize();
+
+        for (int aK = 0; aK < 4; aK++)
+        {
+            _tiles[aK].setSize(tileSize);
+        }
+    }
+}
+
+void cMaskedImageGL::setZone(float aVal, QRectF rectImage) {
+    _m_image->setZoom(aVal);
+    _rectImage = rectImage;
 }
 
 void cMaskedImageGL::deleteTextures()
 {
-    if(_m_mask)
-        _m_mask->deleteTexture(); //TODO segfault (undo)
-    if(_m_image)
-        _m_image->deleteTexture();
+    if(glMask())
+        glMask()->deleteTexture(); //TODO segfault (undo)
+    if(glImage())
+        glImage()->deleteTexture();
 }
 
 //********************************************************************************
