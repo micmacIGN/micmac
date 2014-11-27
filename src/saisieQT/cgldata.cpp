@@ -31,20 +31,6 @@ cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, i
     _clouds_center(Pt3dr(0.,0.,0.)),
     _appMode(appMode)
 {
-    float scaleFactor = qMaskedImage->_loadedImageRescaleFactor;
-    if ( scaleFactor != 1.f )
-    {
-        QSize newSize = qMaskedImage->_m_image->size()*scaleFactor;
-
-        //cout << "new size: " << newSize.width() << " " << newSize.height() << endl;
-
-        qMaskedImage->_m_rescaled_image = new QImage(newSize, QImage::Format_RGB888);
-        *qMaskedImage->_m_rescaled_image = qMaskedImage->_m_image->scaled(newSize,Qt::IgnoreAspectRatio);
-
-        qMaskedImage->_m_rescaled_mask = new QImage(newSize, QImage::Format_Mono);
-        *qMaskedImage->_m_rescaled_mask = qMaskedImage->_m_mask->scaled(newSize,Qt::IgnoreAspectRatio);
-    }
-
     if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
     else _glMaskedImage._m_mask->setVisible(true);
 

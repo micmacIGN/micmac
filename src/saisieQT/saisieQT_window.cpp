@@ -1,6 +1,19 @@
 #include "saisieQT_window.h"
 #include "ui_saisieQT_window.h"
 
+void setStyleSheet(QApplication &app)
+{
+    QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        Q_INIT_RESOURCE(icones);
+
+        app.setStyleSheet(file.readAll());
+        file.close();
+    }
+    else
+        QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Can't find qss file"));
+}
 
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
@@ -18,7 +31,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _ui->setupUi(this);
 
-     _params->read();
+    _params->read();
 
     _Engine->setParams(_params);
 
@@ -1361,8 +1374,8 @@ void SaisieQtWindow::setAutoName(QString val)
 
 void SaisieQtWindow::setImagePosition(QPointF pt)
 {
-    //QString text(tr("Image position : "));
-    QString text(tr("Zoom x Scale factor : "));
+    QString text(tr("Image position : "));
+    //QString text(tr("Zoom x Scale factor : "));
 
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
@@ -1370,10 +1383,10 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
         if(glW)
             if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
             {
-                //int imHeight = glW->getGLData()->glImage()._m_image->height();
+                int imHeight = glW->getGLData()->glImage()._m_image->height();
 
-                //text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
-                text = QString(text + QString::number(glW->getZoom()*glW->getGLData()->glImage().getLoadedImageRescaleFactor(),'f',3) );
+                text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
+                //text = QString(text + QString::number(glW->getZoom()*glW->getGLData()->glImage().getLoadedImageRescaleFactor(),'f',3) );
             }
     }
 
