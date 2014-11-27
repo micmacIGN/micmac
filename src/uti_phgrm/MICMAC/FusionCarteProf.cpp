@@ -701,7 +701,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
    mAfC2MCur = mAfM2CCur.inv();
 
    ELISE_COPY(mImCP.all_pts(),trans(mTifCP.in(),mBoxImCur._p0),mImCP.out());
-   ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(),mBoxImCur._p0),mImMasq.out());
+   ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in()!=0,mBoxImCur._p0),mImMasq.out());
    if (mHasCorrel)
    {
        const cSectionScoreQualite  * aSSQ  = mParam.SectionScoreQualite().PtrVal();

@@ -37,7 +37,6 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-extern const std::string TheDIRMergTiepForEPI();
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 #ifdef MAC
 // Modif Greg pour avoir le nom de la machine dans les log
@@ -457,7 +456,7 @@ void  cMMTP::ExportResultInit()
 void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXML_ParamNuage3DMaille & aCurNuage)
 {
 
-   mNameTargetEnv = mAppli.WorkDir() + TheDIRMergTiepForEPI() + "-" +  mAppli.PDV1()->Name() + "/NuageImProf_LeChantier_Etape_1.xml";
+   mNameTargetEnv = mAppli.WorkDir() + TheDIRMergeEPI()  +  mAppli.PDV1()->Name() + "/NuageImProf_LeChantier_Etape_1.xml";
 
    mNameTargetEnv = aCAEE.NuageExport().ValWithDef(mNameTargetEnv);
    cXML_ParamNuage3DMaille aTargetNuage = StdGetFromSI(mNameTargetEnv,XML_ParamNuage3DMaille);

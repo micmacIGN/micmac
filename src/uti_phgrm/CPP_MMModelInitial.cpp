@@ -146,10 +146,14 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 
        }
 
-       std::string NameFileGlob(const std::string & aPref,const std::string & aPost="tif") { return  aPref + mNameIm + "." +aPost; }
+       std::string NameFileGlob(const std::string & aPref,const std::string & aPost="tif") 
+       { 
+             return  aPref + (mModeQM ? mNameIm : std::string("")) + "." +aPost; 
+       }
        std::string NameFileGlobWithDir(const std::string & aPref,const std::string & aPost="tif")
        {
-           return  Dir() + DirFusMMInit() + NameFileGlob(aPref,aPost);
+           // return  Dir() + DirFusMMInit() + NameFileGlob(aPref,aPost);
+           return  Dir() + mDirTarget + NameFileGlob(aPref,aPost);
 
        }
       void DownScaleNuage(const std::string &,bool IsProf);
@@ -168,6 +172,7 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
       bool mDoPlyDS;
       bool mAutoPurge;
       bool mModeQM;
+      std::string mDirTarget;
 };
 
 
@@ -206,7 +211,18 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
 
    if (! (mCalledByP))
    {
-       ELISE_fp::MkDir(Dir() + DirFusMMInit() );
+      {
+          std::string aComPyr =  MM3dBinFile("MMPyram")
+                                + QUOTE(aPat) + " "
+                                + anOri + " "
+                                + "ImSec=" +anOri;
+
+           VoidSystem(aComPyr.c_str());
+       }
+       if (mModeQM)
+       {
+           ELISE_fp::MkDir(Dir() + DirFusMMInit() );
+       }
        std::list<std::pair<std::string,std::string> >  aLPair = ExpandCommand(3,"InternalCalledByP=true");
 
        std::list<std::string>  aLCom ;
@@ -240,12 +256,12 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    }
 
 
-   // mDirTarget = mModeQM ? DirFusMMInit() : TheDIRMergeEPI() + mNameIm;
 
    ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
    mNameIm = mVSoms[0]->attr().mIma->mNameIm;
+   mDirTarget = mModeQM ? DirFusMMInit() : (TheDIRMergeEPI() + mNameIm + "/");
    mDirMatch  = Dir() + "Masq-TieP-" + mNameIm  + "/";
-   mDirMerge  = Dir() + TheDIRMergTiepForEPI() + "-" +   mNameIm + "/";
+   mDirMerge  = Dir() + TheDIRMergeEPI()  +   mNameIm + "/";
 
 
 
@@ -266,7 +282,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
           std::string aCom =    MM3dBinFile("MMInitialModel ")
                               + mEASF.mFullName + " "
                               + Ori() 
-                              + std::string(" DoMatch=false  Do2Z=false   ExportEnv=true  Zoom=")
+                              + std::string(" DoPyram=false DoMatch=false  Do2Z=false   ExportEnv=true  Zoom=")
                               + ToString(aZoom);
           if (EAMIsInit(&Masq3D)) aCom = aCom + " Masq3D=" + Masq3D;
 
@@ -322,11 +338,12 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
              getchar();
           }
    }
-   const std::string FusMax  = "NuageFusion-Max";
-   const std::string FusMin  = "NuageFusion-Min";
-   const std::string FusEnvMasq = "NuageFusion-EnvMasq";
-   const std::string FusDepth   = "NuageFusion-Depth";
-   const std::string FusMasqD   = "NuageFusion-Masq";
+   const std::string aPrefix = mModeQM ? "NuageFusion" : "QMNuage";
+   const std::string FusMax  =        aPrefix +"-Max";
+   const std::string FusMin  =        aPrefix +"-Min";
+   const std::string FusEnvMasq =     aPrefix +"-EnvMasq";
+   const std::string FusDepth   =     aPrefix +"-Depth";
+   const std::string FusMasqD   =     aPrefix +"-Masq";
 
    Tiff_Im::CreateFromIm(aEnvMax, NameFileGlobWithDir(FusMax));
    Tiff_Im::CreateFromIm(aEnvMin, NameFileGlobWithDir(FusMin));
@@ -359,6 +376,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    anIp.Masq() = NameFileGlob(FusMasqD);
    anIp.Image() = NameFileGlob(FusDepth);
    MakeFileXML(aXMLParam,aNameNuageProf);
+
    if (mDoPly)
       MakePly(aNameNuageProf);
 
@@ -369,16 +387,6 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
       DownScaleNuage(aNameNuageProf,true);
    }
 
-
-/*
-   std::string aDirExp = Dir()+TheRaffineQuickMac(mNameIm);
-   ELISE_fp::MkDirSvp(aDirExp);
-   ELISE_fp::CpFile
-   (
-        mDirMerge + "Z_Num1_DeZoom" + ToString(mZoomEnd) + "_LeChantier.xml",
-        aDirExp + "MasqTerrain.xml"
-   );
-*/
 
    
    if (mAutoPurge)
@@ -391,6 +399,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
        else
        {
            std::string aVS[TheNbPref] ={"EnvMax","EnvMin","EnvMasq","Depth","Masq"};
+
            for (int aZoom = mZoom0 ; aZoom >= mZoomEnd ; aZoom /= 2)
            {
               for (int aK=0 ; aK<5 ; aK++)
@@ -443,6 +452,7 @@ int MMInitialModel_main(int argc,char ** argv)
     bool aDo2Z = true;
     double aReducePly=3.0;
     std::string aMasq3D;
+    bool aDoPyram= true;
 
 
     ElInitArgMain
@@ -459,6 +469,7 @@ int MMInitialModel_main(int argc,char ** argv)
                     << EAM(DoMatch,"DoMatch",true,"Do \"classical\" MicMac at end (Def=true)", eSAM_IsBool)
                     << EAM(aMasq3D,"Masq3D",true,"3D masq when exist (Def=true)", eSAM_IsBool)
                     << EAM(ExportEnv,"ExportEnv",true,"Export Max Min surfaces (Def=false)", eSAM_IsBool)
+                    << EAM(aDoPyram,"DoPyram",true,"Do Pyram (set false when //izing)  ", eSAM_IsBool)
     );
 
     #if (ELISE_windows)
@@ -473,6 +484,7 @@ int MMInitialModel_main(int argc,char ** argv)
        ImSec = AeroIn;
 
     // Genere les pryramides pour que le paral ne s'ecrase pas les 1 les autres
+    if (aDoPyram)
     {
          std::string aComPyr =  MM3dBinFile("MMPyram")
                                 + QUOTE(aFullDir) + " "

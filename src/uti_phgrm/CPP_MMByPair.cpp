@@ -37,8 +37,6 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-// const std::string TheDIRMergTiepForEPI(){return  "Merge-TieP-ForEpi";}
-const std::string TheDIRMergTiepForEPI(){return  TheDIRMergeEPI();}
 const std::string TheDIRMergeEPI(){return  "MTD-Image-";}
 const std::string DirFusStatue(){return  "Fusion-Statue/";}
 const std::string PrefDNF(){return  "DownScale_NuageFusion-";}
@@ -1615,7 +1613,7 @@ void cAppliMMByPair::DoMDTRIE(bool ForTieP)
                                 +  " +Im1=" +  anIm.mNameIm + BLANK
                                 +  " +PattVois=" +  PatternOfVois(*anITS,true)  + BLANK
                            ;
-             if (ForTieP) aCom = aCom + " +PrefixDIR=" + TheDIRMergTiepForEPI();
+             if (ForTieP) aCom = aCom + " +PrefixDIR=" + TheDIRMergeEPI();
              System(aCom);
    }
 }

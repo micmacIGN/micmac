@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "MergeCloud.h"
 
-std::string DirQMPLy () {return "QM-Ply/";}
+// std::string DirQMPLy () {return "QM-Ply/";}
 
 class cCmpResolMCSPOM
 {
@@ -68,7 +68,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mSzNormale         (-1),
    mNormaleByCenter   (false)
 {
-   ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
+   // ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
 
    mVStatNivs[eQC_Out].mGofQ          = 0;
    mVStatNivs[eQC_ZeroCohBrd].mGofQ   = 1/32.0;
