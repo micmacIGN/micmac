@@ -27,22 +27,6 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     // bug Qt non resolu
     // work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
 
-    //float scaleFactor = maskedImg._loadedImageRescaleFactor;
-    /*if ( scaleFactor != 1.f )
-    {
-        QImageReader *reader = new QImageReader(aNameFile);
-
-        QSize newSize = reader->size()*scaleFactor;
-
-        //cout << "new size: " << newSize.width() << " " << newSize.height() << endl;
-
-        reader->setScaledSize(newSize);
-
-        delete maskedImg._m_image;
-        maskedImg._m_image = new QImage(newSize, QImage::Format_RGB888);
-        *maskedImg._m_image = reader->read();
-    }*/
-
     if (maskedImg._m_image->isNull())
     {
         Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
@@ -91,6 +75,27 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     maskedImg.setName(fi.fileName());
 
     loadMask(mask_filename, maskedImg);
+
+    //Rescale image and mask, if needed
+
+    float scaleFactor = maskedImg._loadedImageRescaleFactor;
+    if ( scaleFactor != 1.f )
+    {
+        QSize newSize = maskedImg._m_image->size()*scaleFactor;
+
+        //cout << "new size: " << newSize.width() << " " << newSize.height() << endl;
+
+        maskedImg._m_rescaled_image = new QImage(newSize, QImage::Format_RGB888);
+        *maskedImg._m_rescaled_image = maskedImg._m_image->scaled(newSize,Qt::IgnoreAspectRatio);
+
+        maskedImg._m_rescaled_mask = new QImage(newSize, QImage::Format_Mono);
+        *maskedImg._m_rescaled_mask = maskedImg._m_mask->scaled(newSize,Qt::IgnoreAspectRatio);
+    }
+    else
+    {
+        maskedImg._m_rescaled_image = maskedImg._m_image;
+        maskedImg._m_rescaled_mask = maskedImg._m_mask;
+    }
 }
 
 void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> &maskedImg)

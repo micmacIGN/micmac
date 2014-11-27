@@ -5,6 +5,8 @@
 #include "Settings.h"
 #include "Tree.h"
 
+void setStyleSheet(QApplication &app);
+
 namespace Ui {
 class SaisieQtWindow;
 }
