@@ -89,6 +89,6 @@
 #include <QVector>
 #include <QXmlStreamReader>
 #include <QWidget>
-#include <QtMath>
+//#include <QtMath>
 
 #endif // ELISE_QT_H
