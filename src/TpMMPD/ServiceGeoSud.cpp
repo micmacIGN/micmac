@@ -814,7 +814,7 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
      << EAM(init_samples,"init_samples",true,"init_samples")
      << EAM(nbPoints,"nbPoints",true,"nbPoints")
      );
-    
+
     Pt2di ImgSz = getImageSize(aFullName);
 
     std::cout << "Taille de l'image  : "<<ImgSz.x<<" x "<<ImgSz.y<<std::endl;
@@ -830,11 +830,11 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
     if (NbY*tailleDalle < ImgSz.y)
         ++NbY;
     list<DigeoPoint> total_list;
-    
-    
+
+
     int nbDalles = NbX*NbY;
     int nbPointsParDalle = std::max(nbPoints / nbDalles,10);
-    
+
     for(int nx = 0;nx<NbX;++nx)
     {
         for(int ny = 0;ny<NbY;++ny)
@@ -845,7 +845,7 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
             int cmax = std::min(cmin+tailleDalle,ImgSz.x);
             int lmax = std::min(lmin+tailleDalle,ImgSz.y);
             std::cout << "Crop : "<<cmin<<" "<<lmin<<" "<<cmax<<" "<<lmax<<std::endl;
-            
+
             Pt2di PminCrop(cmin,lmin);
             Pt2di SzCrop(cmax-cmin,lmax-lmin);
             std::auto_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>(aFullName,PminCrop,SzCrop));
@@ -854,8 +854,8 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
                 cerr << "Error in "<<aFullName<<" Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
                 return EXIT_FAILURE;
             }
-            
-            
+
+
             BufferImage<unsigned short> aBuffer(cmax-cmin,lmax-lmin,1,cropImg->_the_im.data_lin(),1,(cmax-cmin),1);
 
             Surf s(aBuffer,octaves,intervals,init_samples,nbPointsParDalle);
@@ -884,7 +884,7 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
                 delete[] des;
                 total_list.push_back(pt);
             }
-            
+
         }
     }
 
@@ -964,22 +964,22 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
      << EAMC(aFileMnt,"xml file (FileOriMnt) for the DTM"),
      LArgMain()<< EAM(aGRIDExt,"Grid",true,"GRID ext")
      );
-    
-    double seuilPixel2 = pow(seuilPixel,2);
-    
+
+    //double seuilPixel2 = pow(seuilPixel,2);
+
     std::ofstream ficPtLiaison("POINTS_LIAISON.TXT");
     ficPtLiaison << "# num_pt alti correc_alti prec_alti Actif/Inact"<<std::endl;
     int idPtLiaison = 1;
-    
+
     std::ofstream ficLiaisons("LIAISONS.TXT");
     ficLiaisons << "# num_pt(rang fic_liaison)) num_modele ligne colonne prec_lig(m) prec_col(m) Actif/Inact"<<std::endl;
-    
+
     std::ofstream ficModeles("MODELES.TXT");
-    
+
     std::ofstream ficAmers("AMERS.TXT");
     ficAmers << "# num_pt X Y alti correc_lon correc_lat correc_alti prec_lon(m) prec_lat(m) prec_alt(m) Actif/Inact"<<std::endl;
     int idAmer = 1;
-    
+
     std::ofstream ficAppuis("APPUIS.TXT");
     ficAppuis << "# num_pt(rang fic_amer) num_modele ligne colonne prec_lig(m) prec_col(m) Actif/Inact"<<std::endl;
 
@@ -1028,12 +1028,12 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             modelName.assign(aNameFileImage.begin(),aNameFileImage.begin()+placePoint);
             std::string aNameFileGrid = baseName+aGRIDExt;
             std::string aNameFilePOI = baseName+"dat";
-            
+
             ficModeles << modelName <<" "<<aLCamera.size()+1<<" 1"<<std::endl;
-            
+
             aLFilePoi.push_back(aNameFilePOI);
             aLFileGrid.push_back(aNameFileGrid);
-            
+
             std::cout << "fichier GRID : "<<aNameFileGrid<<std::endl;
             std::cout << "fichier POI : "<<aNameFilePOI<<std::endl;
 
@@ -1105,7 +1105,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 if (ymax>ymaxChantier)
                     ymaxChantier=ymax;
             }
-            
+
             FILE* fPoi = fopen(aNameFilePOI.c_str(),"r");
             if (fPoi == NULL)
             {
@@ -1121,17 +1121,17 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 std::cout << "Le fichier Poi "<<aNameFilePOI<<" existe deja"<<std::endl;
                 fclose(fPoi);
             }
-            
-            
-            
+
+
+
             // Chargement des points d'interet dans l'image
             vector<DigeoPoint> keypointsImage;
-            
+
             if ( !DigeoPoint::readDigeoFile( aNameFilePOI, true, keypointsImage ) ){
                 cerr << "WARNING: unable to read keypoints in [" << aNameFilePOI << "]" << endl;
                 return EXIT_FAILURE;
             }
-            
+
             aLPoi.push_back(keypointsImage);
             aLCamera.push_back(aCamera.release());
         }
@@ -1142,8 +1142,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     xmaxChantier = (int)(xmaxChantier+1);
     yminChantier = (int)(yminChantier-1);
     ymaxChantier = (int)(ymaxChantier+1);
-    
-    
+
+
     // Chargement du MNT
     cFileOriMnt aMntOri=  StdGetFromPCP(aFileMnt,FileOriMnt);
     std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
@@ -1153,7 +1153,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         cerr << "Error in "<<aMntOri.NameFileMnt()<<std::endl;
         return EXIT_FAILURE;
     }
-    
+
     /*
     // Extraction d'un MNT a 25m de resolution
     {
@@ -1164,16 +1164,16 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         oss << std::fixed << "curl -o mnt_25m.bil -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/x-bil;bits=32&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
         std::cout << "commande : "<<oss.str()<<std::endl;
         system(oss.str().c_str());
-        
-        
+
+
         std::ostringstream ossHdr;
         ossHdr << "echo 'NROWS "<<NLmnt<<"\nNCOLS "<<NCmnt<<"\nNBANDS 1\"nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > mnt_25m.HDR";
         system(ossHdr.str().c_str());
     }
     */
     // Chargement du MNT
-    
-    
+
+
     // Calcul des points entre les images avec Ann
     std::list<ElCamera*>::iterator itCamera = aLCamera.begin();
     int numImg1 = 1;
@@ -1200,7 +1200,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                     Pt3dr Pt3D = Img2Terrain(aCamera,aMntImg.get(),aMntOri,ZMoy,Pt2di(c1,l1));
                     // On exporte le point
                     std::cout << "Point de liaison "<<c1<<" "<<l1<<" | "<<c2<<" "<<l2<<" | "<<Pt3D.z<<std::endl;
-                    
+
                     ficPtLiaison << idPtLiaison<<" "<<Pt3D.z << " 0.0 200 1"<<std::endl;
                     ficLiaisons << idPtLiaison << " "<<numImg1<<" "<<l1<<" "<<c1<<" 5.00e-01  5.00e-01 1"<<std::endl;
                     ficLiaisons << idPtLiaison << " "<<numImg2<<" "<<l2<<" "<<c2<<" 5.00e-01  5.00e-01 1"<<std::endl;
@@ -1212,9 +1212,9 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         ++itCamera;
         ++numImg1;
     }
-    
-    
-    
+
+
+
     // On arrondit
     xminChantier = (int)(xminChantier-1);
     xmaxChantier = (int)(xmaxChantier+1);
@@ -1226,13 +1226,13 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     yminChantier = 6570000;
     ymaxChantier = 6574000;
     */
-    
+
     double resolution = 1.;//1m
     int NC = (xmaxChantier-xminChantier)/resolution;
     int NL = (ymaxChantier-yminChantier)/resolution;
 
     std::cout << std::fixed << "Emprise du chantier : "<<xminChantier<<" "<<yminChantier<<" "<<xmaxChantier<<" "<<ymaxChantier<<std::endl;
-    
+
     // Si le chantier est trop grand, il faut daller
     int tailleDalle = 4000;
     int NbX = NC/tailleDalle;
@@ -1255,7 +1255,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             std::string nomDalleMntBil = nomDalle+"_mnt.bil";
             std::string nomDalleMntHdr = nomDalle+"_mnt.hdr";
             std::string nomDallePoi = nomDalle+"_ortho.dat";
-            
+
             int ncDalle = std::min(tailleDalle,NC-c*tailleDalle);
             int nlDalle = std::min(tailleDalle,NL-l*tailleDalle);
             double xminDalle = xminChantier + c*tailleDalle*resolution;
@@ -1275,7 +1275,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             {
                 fclose(fDalleOrtho);
             }
-            
+
             // Chargement de l'ortho
             std::cout << "Cahrgement de la dalle d'ortho: ..."<<std::endl;
             std::auto_ptr<TIm2D<U_INT1,INT4> > OrthoImg(createTIm2DFromFile<U_INT1,INT4>(nomDalleOrtho));
@@ -1285,7 +1285,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 cerr << "Error in "<<nomDalleOrtho<<std::endl;
                 return EXIT_FAILURE;
             }
-            
+
             // On teste si l'image contient quelque chose (cas des bords de mer)
             bool empty = true;
             {
@@ -1302,14 +1302,14 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                  OrthoImg->_the_im.in(),
                  VMax(max)
                  );
-                
+
                 std::cout << "Min : "<<min<<" Max : "<<max<<std::endl;
                 if (min!=max)
                     empty=false;
             }
             if (empty)
                 continue;
-            
+
             FILE* fDallePoi = fopen(nomDallePoi.c_str(),"r");
             // Extraction des POI
             if (fDallePoi==NULL)
@@ -1328,27 +1328,27 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 oss << std::fixed << "curl -o "<<nomDalleMntBil<<" -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/x-bil;bits=32&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
                 std::cout << "commande : "<<oss.str()<<std::endl;
                 system(oss.str().c_str());
-                
-                
+
+
                 //echo 'NROWS 675\nNCOLS 1769\nNBANDS 1\nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > mnt.HDR
                 std::ostringstream ossHdr;
                 ossHdr << "echo 'NROWS "<<nlDalle<<"\nNCOLS "<<ncDalle<<"\nNBANDS 1\"nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > "<<nomDalleMntHdr;
                 system(ossHdr.str().c_str());
             }
              */
-            
+
                         // Chargement des points d'interet dans l'ortho
             vector<DigeoPoint> keypointsOrtho;
-            
+
             if ( !DigeoPoint::readDigeoFile( nomDalle+"_ortho.dat", true, keypointsOrtho ) ){
                 cerr << "WARNING: unable to read keypoints in [" << nomDalle+"_ortho.dat" << "]" << endl;
                 return EXIT_FAILURE;
             }
             std::cout << "Nombre de points dans l'ortho : "<<keypointsOrtho.size()<<std::endl;
-            
+
             double NoData = -9999.;
-            
-            
+
+
             // on parcourt les points sift de l'ortho
             vector<DigeoPoint>::const_iterator itKP,finKP=keypointsOrtho.end();
             for(itKP=keypointsOrtho.begin();itKP!=finKP;++itKP)
@@ -1377,7 +1377,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 // Position dans l'image
                 Pt3dr pt3(ptOrtho.x,ptOrtho.y,alti);
                 //std::cout << "Point terrain : "<<pt3.x<<" "<<pt3.y<<" "<<pt3.z<<std::endl;
-                
+
                 bool usePt = false;
 
                 //TIm2D<U_INT2,INT4> debugFenOrtho(Pt2di(2*SzW+1,2*SzW+1));
@@ -1396,7 +1396,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 // Sauvegarde
                 //Tiff_Im debugFenOrtho_out("debug_ortho.tif", debugFenOrtho.sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
                 //ELISE_COPY(debugFenOrtho._the_im.all_pts(),debugFenOrtho._the_im.in(),debugFenOrtho_out.out());
-                
+
                 int numImg = 1;
                 std::list<std::string>::const_iterator itLF=aLFile.begin();
                 std::list<std::string>::const_iterator itLFPoi=aLFilePoi.begin();
@@ -1410,14 +1410,14 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                     Pt2di ImgSz = getImageSize(*itLF);
 
                     //std::cout << "Point Image : "<<pImg.x<<" "<<pImg.y<<std::endl;
-                    
+
                     // Autre approche: on teste tous le voisinage
 #if 1
-                    
+
                     // On prepare le crop
                     bool first=true;
                     double cmin = 0 ,cmax = 0 ,lmin = 0,lmax = 0;
-                    
+
                     for(int l=ptSift.y-SzW-seuilPixel;l<=(ptSift.y+SzW+seuilPixel);++l)
                     {
                         for(int c=ptSift.x-SzW-seuilPixel;c<=(ptSift.x+SzW+seuilPixel);++c)
@@ -1426,7 +1426,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                             P3D.x = xminDalle + c * resolution;
                             P3D.y = ymaxDalle - l * resolution;
                             P3D.z = alti;
-                            
+
                             Pt2dr p2 = aCamera->R3toF2(P3D);
                             if (first)
                             {
@@ -1449,12 +1449,12 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                             }
                         }
                     }
-                    
+
                     cmin-=1.;
                     lmin-=1.;
                     cmax+=1.;
                     lmax+=1.;
-                    
+
                     if (cmin<0)
                         cmin=0;
                     if (lmin<0)
@@ -1463,12 +1463,12 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         cmax=ImgSz.x-1;
                     if (lmax>=ImgSz.y)
                         lmax=ImgSz.y-1;
-                    
+
                     Pt2di PminCrop((int)round_ni(cmin),(int)round_ni(lmin));
                     Pt2di SzCrop((int)round_ni(cmax-PminCrop.x),(int)round_ni(lmax-PminCrop.y));
                     if( (SzCrop.x<=0)||(SzCrop.y<=0))
                         continue;
-                    
+
                     //std::cout << "Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
                     std::auto_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>((*itLF),PminCrop,SzCrop));
                     if (cropImg.get()==NULL)
@@ -1480,7 +1480,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                     //Tiff_Im debugCropImg_out("debug_cropImg.tif", cropImg->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
                     //ELISE_COPY(cropImg->_the_im.all_pts(),cropImg->_the_im.in(),debugCropImg_out.out());
 
-                    
+
                     double coefmax = -1.;
                     Pt2dr ptMaxCorrel;
                     for(int dl = -seuilPixel;dl<=seuilPixel;++dl)
@@ -1500,15 +1500,15 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                             Pt2dr ptImg2 = aCamera->R3toF2(pTerrain2);
                             double deltax_col = ptImg2.x - pt2.x;
                             double deltax_lig = ptImg2.y - pt2.y;
-                            
+
                             pTerrain2.x = pTerrain.x;
                             pTerrain2.y = pTerrain.y - resolution;
                             pTerrain2.z = pTerrain.z;
                             ptImg2 = aCamera->R3toF2(pTerrain2);
                             double deltay_col = ptImg2.x - pt2.x;
                             double deltay_lig = ptImg2.y - pt2.y;
-                            
-                            
+
+
                             //TIm2D<U_INT2,INT4> debugFenImg(Pt2di(2*SzW+1,2*SzW+1));
 
                             for(int dy=-SzW;dy<=SzW;++dy)
@@ -1537,7 +1537,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         }
                     }
                     //std::cout << "Max de correlation : "<<ptMaxCorrel.x<<" "<<ptMaxCorrel.y<<" correl = "<<coefmax<<std::endl;
-                    
+
                     if (coefmax >= seuilCorrel)
                     {
                         std::cout << "Point : "<<ptMaxCorrel.x<<" "<<ptMaxCorrel.y<<" Correl="<<coefmax<<std::endl;
@@ -1547,8 +1547,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 #else
                       // Chargement des points d'interet dans l'image
                     vector<DigeoPoint> const &keypointsImage=(*itPoi);
-                    
-                    
+
+
                     DigeoPoint ptHomoDmin;
                     Pt3dr pTerrainDmin;
                     double dmin = -1.;
@@ -1558,7 +1558,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                     {
                         DigeoPoint const &ptSift2 = (*it2);
                         Pt3dr pTerrain = aCamera->F2AndZtoR3(Pt2dr(ptSift2.x,ptSift2.y),pt3.z);
-                        
+
                         double d2 = pow(pImg.x-ptSift2.x,2) + pow(pImg.y-ptSift2.y,2);
                         if (d2<(seuilPixel2))
                         {
@@ -1572,14 +1572,14 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         }
                     }
                     //std::cout << "dmin : "<<dmin<<" "<<ptHomoDmin.x<<" "<<ptHomoDmin.y<<std::endl;
-                    
+
                     if (dmin>=0)
                     {
                         // On valide le point avec la correlation
                         std::vector<double> fenImage;
                         std::vector<Pt2dr> vCoordImage;
                         double cmin = 0 ,cmax = 0 ,lmin = 0,lmax = 0;
-                        
+
                         for(int l=ptSift.y-SzW;l<=(ptSift.y+SzW);++l)
                         {
                             for(int c=ptSift.x-SzW;c<=(ptSift.x+SzW);++c)
@@ -1588,7 +1588,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                                 P3D.x = xminDalle + c * resolution;
                                 P3D.y = ymaxDalle - l * resolution;
                                 P3D.z = pTerrainDmin.z;
-                                
+
                                 Pt2dr p2 = aCamera->R3toF2(P3D);
                                 vCoordImage.push_back(p2);
                                 if (vCoordImage.size()==1)
@@ -1624,7 +1624,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         {
                             fenImage.push_back(cropImg->getr(Pt2dr(vCoordImage[i].x-PminCrop.x,vCoordImage[i].y-PminCrop.y),NoData));
                         }
-                        
+
                         // Coeff de correlation
                         double coef = correl(fenOrtho,fenImage,NoData);
                         std::cout << "coef : "<<coef<<" Point Ortho : "<<ptSift.x<<" "<<ptSift.y<<" Point Img : "<<ptHomoDmin.x<<" "<<ptHomoDmin.y<<std::endl;
@@ -1635,7 +1635,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         }
                     }
 #endif
-                    
+
                     ++itCamera;
                     ++itPoi;
                     ++numImg;
@@ -1648,7 +1648,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             }
         }
     }
-    
+
     /*
     // Extraction des POI
     {

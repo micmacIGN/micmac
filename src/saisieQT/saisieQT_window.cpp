@@ -1,6 +1,19 @@
 #include "saisieQT_window.h"
 #include "ui_saisieQT_window.h"
 
+void setStyleSheet(QApplication &app)
+{
+    QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        Q_INIT_RESOURCE(icones);
+
+        app.setStyleSheet(file.readAll());
+        file.close();
+    }
+    else
+        QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Can't find qss file"));
+}
 
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
@@ -18,7 +31,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _ui->setupUi(this);
 
-     _params->read();
+    _params->read();
 
     _Engine->setParams(_params);
 
@@ -184,7 +197,7 @@ bool SaisieQtWindow::loadPly(const QStringList& filenames)
 
 bool SaisieQtWindow::loadImages(const QStringList& filenames)
 {
-    _Engine->computeScaleFactor(filenames); //sorti car GLContext plus accessible dans loadImages
+    _Engine->computeScaleFactor(filenames, _appMode); //sorti car GLContext plus accessible dans loadImages
 
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
@@ -305,7 +318,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
 
-            _Engine->setGLMaxTextureSize(maxTexture/*/16*/);
+            _Engine->setGLMaxTextureSize(maxTexture);
 
             loadOK = loadImages(filenames);
         }
@@ -1362,6 +1375,7 @@ void SaisieQtWindow::setAutoName(QString val)
 void SaisieQtWindow::setImagePosition(QPointF pt)
 {
     QString text(tr("Image position : "));
+    //QString text(tr("Zoom x Scale factor : "));
 
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
@@ -1372,6 +1386,7 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
                 int imHeight = glW->getGLData()->glImage()._m_image->height();
 
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
+                //text = QString(text + QString::number(glW->getZoom()*glW->getGLData()->glImage().getLoadedImageRescaleFactor(),'f',3) );
             }
     }
 
