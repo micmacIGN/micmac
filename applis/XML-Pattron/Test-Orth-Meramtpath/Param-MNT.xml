@@ -1,0 +1,199 @@
+<!--
+   The simplest MicMac exemple
+
+-->
+
+<ParamMICMAC>
+
+<DicoLoc>
+   <Symb> DefCor=0.5</Symb>
+   <Symb> DirQO=Qk-ORTHO  </Symb>
+</DicoLoc>
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+             <ZIncCalc>   2.0  </ZIncCalc>
+      </IntervAltimetrie>
+      <Planimetrie>
+
+           <MasqueTerrain >
+                <FileBoxMasqIsBoxTer> BoxTer.xml</FileBoxMasqIsBoxTer>
+                <MT_Image >  TA/TA_LeChantier_Masq.tif        </MT_Image>
+                <MT_Xml>     TA/Z_Num1_DeZoom4_LeChantier.xml  </MT_Xml>
+           </MasqueTerrain>
+   
+
+      </Planimetrie>
+
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <ImPat>  IMG_[0-9]{4}.CR2   </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> NKS-Assoc-Im2Orient@-All </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      2             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+
+	     <ZDilatAlti>  2    </ZDilatAlti>
+             <ZDilatPlani> 2    </ZDilatPlani>
+	     <ZRegul>  0.1    </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   2.0    </Px1PenteMax>
+                         <ArgMaskAuto >
+                                <ValDefCorrel >  ${DefCor} </ValDefCorrel>
+                                <CostTrans >     2.0   </CostTrans>
+                                <ReInjectMask> false   </ReInjectMask>
+                         </ArgMaskAuto>
+            </ModulationProgDyn>
+
+            
+        </EtapeMEC>
+	     
+        <EtapeMEC> 
+                <DeZoom >        64        </DeZoom> 
+                <ZPas>           1.0       </ZPas>
+        </EtapeMEC>
+
+        <EtapeMEC> <DeZoom >        64        </DeZoom> </EtapeMEC>
+        <EtapeMEC> <DeZoom >        32        </DeZoom> </EtapeMEC>
+        <EtapeMEC> 
+               <DeZoom >        16        </DeZoom> 
+               <GenerePartiesCachees>
+                        <SeuilUsePC> 3 </SeuilUsePC>
+                        <ByMkF> true </ByMkF>
+               </GenerePartiesCachees>
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        8        </DeZoom> 
+                 <ModulationProgDyn Portee="Globale">
+                         <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   7              </NbDir>
+                         </EtapeProgDyn>
+                         <Px1PenteMax>   1.0    </Px1PenteMax>
+                         <ArgMaskAuto >
+                                <ValDefCorrel >  ${DefCor} </ValDefCorrel>
+                                <CostTrans >     2.0   </CostTrans>
+                                <ReInjectMask>  false   </ReInjectMask>
+                         </ArgMaskAuto>
+                   </ModulationProgDyn>
+                   <GenerePartiesCachees >
+                        <SeuilUsePC> 4 </SeuilUsePC>
+                        <ByMkF> true </ByMkF>
+                        <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirQO}@PC_ </KeyCalcPC>
+
+                        <MakeOrthoParImage >
+                             <ResolRelOrhto> 1.0 </ResolRelOrhto>
+                             <OrthoBiCub> -0.5  </OrthoBiCub>
+                             <ScaleBiCub >  8 </ScaleBiCub>
+                             <DirOrtho> ${DirQO}/ </DirOrtho>
+                             <KeyCalcInput>    NKS-Assoc-Id  </KeyCalcInput>
+                             <KeyCalcOutput >  NKS-Assoc-AddDirAndPref@${DirQO}@Ort_ </KeyCalcOutput>
+                             <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirQO}@Incid_ </KeyCalcIncidHor>
+                             <ResolIm> 1.0 </ResolIm>
+                             <CalcIncAZMoy> true </CalcIncAZMoy>
+                        </MakeOrthoParImage>
+                   </GenerePartiesCachees>
+
+        </EtapeMEC>
+        <EtapeMEC> 
+                <DeZoom >        4        </DeZoom> 
+                 <GenerePartiesCachees>
+                        <SeuilUsePC> 6 </SeuilUsePC>
+                        <ByMkF> true </ByMkF>
+                 </GenerePartiesCachees>
+        </EtapeMEC>
+        <EtapeMEC> <DeZoom >        2        </DeZoom> </EtapeMEC>
+
+
+        <EtapeMEC> 
+               <DeZoom >        2        </DeZoom> 
+                <ZPas>           1.0       </ZPas>
+               <AlgoRegul>  eAlgoDequant </AlgoRegul>
+
+
+               <GenerePartiesCachees >
+                    <ByMkF> true </ByMkF>
+                    <SeuilUsePC> 3 </SeuilUsePC>
+                    <KeyCalcPC> NKS-Assoc-AddDirAndPref@ORTHO@PC_ </KeyCalcPC>
+
+
+
+                    <MakeOrthoParImage >
+                         <ResolRelOrhto> 0.5 </ResolRelOrhto>
+                         <OrthoBiCub> -1.5  </OrthoBiCub>
+                         <KeyCalcInput>    NKS-Assoc-Id  </KeyCalcInput>
+                         <KeyCalcOutput >  NKS-Assoc-AddDirAndPref@ORTHO@Ort_ </KeyCalcOutput>
+                         <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@ORTHO@Incid_ </KeyCalcIncidHor>
+                         <ResolIm> 1.0 </ResolIm>
+                         <CalcIncAZMoy> true </CalcIncAZMoy>
+                    </MakeOrthoParImage>
+               </GenerePartiesCachees>
+<!--
+-->
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+    <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
+    <RepereCorrel>  Repere.xml </RepereCorrel>
+
+
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+<!--
+    <DoNothingBut>
+        <ButDoOrtho>  true </ButDoOrtho>
+    </DoNothingBut>
+-->
+
+
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC>    MEC/  </TmpMEC>
+     <TmpResult> MEC/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>   ${MMNbProc}  </ByProcess>
+<!--
+     <ByProcess>   0  </ByProcess>
+-->
+     <DefTileFile>  40000</DefTileFile>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
