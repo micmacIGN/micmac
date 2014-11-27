@@ -474,10 +474,10 @@ class cImageGL : public cObjectGL
 
         void    draw();
 
-        //void    setPosition(GLfloat originX, GLfloat originY);
-        //void    setDimensions(GLfloat glh, GLfloat glw);
+        void    setGLPosition(GLfloat originX, GLfloat originY);
+        void    setSize(QSize size);
 
-        void    PrepareTexture(QImage *pImg);
+        void    createTexture(QImage *pImg);
 
         void    ImageToTexture(QImage *pImg);
 
@@ -486,8 +486,8 @@ class cImageGL : public cObjectGL
         GLuint* getTexture(){return &_texture;}
 
         //height and width of original data
-        int     width()  {return _size.width()/_scaleFactor;}
-        int     height() {return _size.height()/_scaleFactor;}
+        int     width()  {return _size.width();}
+        int     height() {return _size.height();}
 
         bool    isPtInside(QPointF const &pt);
 
@@ -499,9 +499,12 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
+        void    setZoom(float aVal) { _zoom = aVal; }
+
 private:
 
         float   _scaleFactor;
+        float   _zoom;
 
         QGLShaderProgram _program;
 
@@ -515,6 +518,7 @@ private:
 
         //! Texture image
         GLuint  _texture;
+
         float   _gamma;
 };
 
@@ -527,6 +531,8 @@ public:
     cMaskedImage(float gamma = 1.f, float sFactor= 1.f):
         _m_image(NULL),
         _m_mask(NULL),
+        _m_rescaled_image(NULL),
+        _m_rescaled_mask(NULL),
         _m_newMask(true),
         _gamma(gamma),
         _loadedImageRescaleFactor(sFactor)
@@ -547,10 +553,23 @@ public:
             _m_mask = NULL;
             delete _m_mask;
         }
+        if(_m_rescaled_image != NULL)
+        {
+            _m_rescaled_image = NULL;
+            delete _m_rescaled_image;
+        }
+        if(_m_rescaled_mask != NULL)
+        {
+            _m_rescaled_mask = NULL;
+            delete _m_rescaled_mask;
+        }
     }
 
     T           *_m_image;
     T           *_m_mask;
+
+    T           *_m_rescaled_image;
+    T           *_m_rescaled_mask;
 
     cFileOriMnt  _m_FileOriMnt;
 
@@ -569,11 +588,11 @@ public:
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
-    void setScale(Pt3dr aScale)
+    /*void setScale(Pt3dr aScale)
     {
         _m_image->setScale(aScale);
         _m_mask->setScale(aScale);
-    }
+    }*/
 
     float getLoadedImageRescaleFactor() { return _loadedImageRescaleFactor; }
 
@@ -581,13 +600,29 @@ public:
 
     void draw();
 
+    void drawTiles(cImageGL* tiles);
+
     void deleteTextures();
 
-    void prepareTextures();
+    void createTextures();
+
+    void setZone(float aVal, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
+
+    cMaskedImage<QImage> * getMaskedImage() { return _qMaskedImage; }
 
 private:
 
+    QRectF       _rectImage;
+
+    cImageGL*   glImage()   {return _m_image;}
+    cImageGL*   glMask()    {return _m_mask;}
+
     cMaskedImage<QImage> *_qMaskedImage;
+
+    cImageGL                _tiles[4];
+    cImageGL                _tilesMask[4];
+
+    QSize               getTilesSize();
 };
 //====================================================================================
 

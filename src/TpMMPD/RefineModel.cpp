@@ -479,7 +479,7 @@ class RefineModelGlobal: public RefineModelAbs
 {
 
 public:
-    RefineModelGlobal(std::string const &aPattern, std::string const &aNameFileMNT = ""):RefineModelAbs(aPattern)
+    RefineModelGlobal(std::string const &aPattern, std::string const &aNameFileGCP = "", std::string const &aNameFileMNT = ""):RefineModelAbs(aPattern)
     {
         if ((aNameFileMNT != "") && (ELISE_fp::exist_file(aNameFileMNT)))
         {
@@ -489,6 +489,30 @@ public:
             std::auto_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
             _MntImg = Img;
             if (_MntImg.get()==NULL) cerr << "Error in "<< _MntOri.NameFileMnt() <<std::endl;
+        }
+
+        if ((aNameFileGCP != "") && (ELISE_fp::exist_file(aNameFileGCP)))
+        {
+            cSetPointGlob aSPG = StdGetObjFromFile<cSetPointGlob>
+                    (
+                        aNameFileGCP,
+                        StdGetFileXMLSpec("ParamSaisiePts.xml"),
+                        "SetPointGlob",
+                        "SetPointGlob"
+                        );
+
+            for ( std::list<cPointGlob>::iterator itP=aSPG.PointGlob().begin();
+                  itP!=aSPG.PointGlob().end();
+                  itP++ )
+            {
+                if (itP->P3D().IsInit())
+                {
+                    Pt3dr *p3d = itP->P3D().PtrVal();
+                    cout << "point : " << itP->Name() << " " << p3d->x << " " << p3d->y << " " << p3d->z << endl;
+                }
+            }
+
+            //TODO:
         }
     }
 
@@ -950,19 +974,21 @@ int NewRefineModel_main(int argc, char **argv)
 {
     std::string aPat; // GRID files pattern
     std::string aNameMNT=""; //DTM file
+    std::string aNameGCP=""; //GCP file
     bool exportResidus = false;
 
     ElInitArgMain
     (
          argc, argv,
          LArgMain() << EAMC(aPat,"GRID files pattern"),
-         LArgMain() << EAM(aNameMNT,"DTM",true, "DTM file")
+         LArgMain() << EAM(aNameGCP,"GCP",true, "GCP file")
+                    << EAM(aNameMNT,"DTM",true, "DTM file")
                     << EAM(exportResidus,"ExpRes",true, "Export residuals (def=false)")
     );
 
     ELISE_fp::MkDirSvp("refine");
 
-    RefineModelGlobal model(aPat, aNameMNT);
+    RefineModelGlobal model(aPat, aNameGCP, aNameMNT);
 
     bool ok = (model.nObs() > 3);
     for(size_t iter = 0; (iter < 100) & ok; iter++)

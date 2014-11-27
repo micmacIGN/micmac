@@ -22,7 +22,6 @@ void cGLData::setOptionPolygons(cParameters aParams)
 
 cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode):
     _glMaskedImage(qMaskedImage),
-    _pQMask(qMaskedImage->_m_mask), // ????
     _pBall(NULL),
     _pAxis(NULL),
     _pBbox(NULL),
@@ -366,12 +365,15 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.setPen(Qt::NoPen);
 
-    QPolygonF polyDraws(polyg.getVector());
+    QPolygonF polyDraw(polyg.getVector());
     QPainterPath path;
 
-    QTransform trans;
-    trans=trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
-    QPolygonF polyDraw = trans.map(polyDraws);
+    if (_glMaskedImage.getLoadedImageRescaleFactor() < 1.f)
+    {
+        QTransform trans;
+        trans=trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
+        polyDraw = trans.map(polyDraw);
+    }
 
     if(mode == ADD_INSIDE || mode == SUB_INSIDE)
     {
@@ -412,7 +414,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         getMask()->invertPixels(QImage::InvertRgb);
 
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
-    _glMaskedImage._m_mask->PrepareTexture(getMask());
+    _glMaskedImage._m_mask->createTexture(getMask());
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)

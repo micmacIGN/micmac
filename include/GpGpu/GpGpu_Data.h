@@ -1051,6 +1051,47 @@ private:
     }
 };
 
+template<class T>
+struct CuUnifiedData3D
+{
+    CuDeviceData3D<T>   deviceData;
+    CuHostData3D<T>     hostData;
+
+    void Malloc( uint2 dim, uint l )
+    {
+        deviceData.Malloc(dim,l);
+        hostData.Malloc(dim,l);
+    }
+
+    void syncDevice()
+    {
+        deviceData.CopyHostToDevice(hostData.pData());
+    }
+
+    void syncHost()
+    {
+        deviceData.CopyDevicetoHost(hostData);
+    }
+
+    void ReallocIfDim(uint2 dim, uint l)
+    {
+        deviceData. ReallocIfDim(dim,l);
+        hostData.ReallocIfDim(dim,l);
+    }
+
+    void Dealloc()
+    {
+        deviceData. Dealloc();
+        hostData.Dealloc();
+    }
+
+    T* pData()
+    {
+       return deviceData.pData();
+    }
+};
+
+
 /*@}*/
 
 #endif //GPGPU_DATA_H
