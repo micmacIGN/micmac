@@ -54,16 +54,19 @@ VersionedFileHeader::VersionedFileHeader( VFH_Type i_type, uint32_t i_version, b
 
 bool VersionedFileHeader::read_raw( std::istream &io_istream )
 {
-   char c;
-   io_istream.get(c);
-   if ( c!=-70 ) return false;
-      
-   io_istream.read( (char*)this, sizeof(VersionedFileHeader) );
-   if ( m_isMSBF!=0 && m_isMSBF!=1 ) return false;
-   
-   if ( MSBF_PROCESSOR()!=isMSBF() ) byte_inv_4( &m_version );
-      
-   return true;
+	m_magicNumber = m_version = 0;
+	m_isMSBF = ( MSBF_PROCESSOR()?1:0 );
+
+	char c;
+	io_istream.get(c);
+	if ( c!=-70 ) return false;
+
+	io_istream.read( (char*)this, sizeof(VersionedFileHeader) );
+	if ( m_isMSBF!=0 && m_isMSBF!=1 ) return false;
+
+	if ( MSBF_PROCESSOR()!=isMSBF() ) byte_inv_4( &m_version );
+
+	return true;
 }
 
 bool VersionedFileHeader::read_unknown( std::istream &io_istream, VFH_Type &o_id )
@@ -91,16 +94,16 @@ bool VersionedFileHeader::read_known( VFH_Type i_type, std::istream &io_istream 
 	streampos pos   = io_istream.tellg();
 	ios_base::iostate state = io_istream.rdstate();
 
-	if ( !read_raw( io_istream ) ||
-	     m_magicNumber!=(isMSBF()?g_versioned_headers_list[i_type].magic_number_MSBF:g_versioned_headers_list[i_type].magic_number_LSBF) )
+	if ( !read_raw( io_istream ) )
 	{
 		// reading failed, rewind to starting point and reset error flags
 		io_istream.seekg( pos );
 		io_istream.setstate( state );
-		m_magicNumber = m_version = 0;
-		m_isMSBF = MSBF_PROCESSOR();
-		return false;
 	}
+
+	if ( m_magicNumber!=0 && m_magicNumber!=(isMSBF()?g_versioned_headers_list[i_type].magic_number_MSBF:g_versioned_headers_list[i_type].magic_number_LSBF) )
+		return false;
+
 	return true;
 }
 
@@ -118,13 +121,16 @@ void VersionedFileHeader::write( std::ostream &io_ostream ) const
 bool typeFromMagicNumber( uint32_t i_magic, VFH_Type &o_type, bool &o_isMSBF )
 {
 	versioned_file_header_t *itHeader = g_versioned_headers_list;
-	for ( int i=0; i<nbVersionedTypes(); i++ ){
-		if ( i_magic==itHeader->magic_number_MSBF ){
+	for ( int i=0; i<nbVersionedTypes(); i++ )
+	{
+		if ( i_magic==itHeader->magic_number_MSBF )
+		{
 			o_type = (VFH_Type)i;
 			o_isMSBF = true;
 			return true;
 		}
-		if ( i_magic==itHeader->magic_number_LSBF ){
+		if ( i_magic==itHeader->magic_number_LSBF )
+		{
 			o_type = (VFH_Type)i;
 			o_isMSBF = false;
 			return true;

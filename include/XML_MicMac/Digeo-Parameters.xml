@@ -34,7 +34,6 @@
 			-->
 		</ImageDigeo>
 		<PyramideImage>
-			<!--
 			<TypeNumeriqueOfNiv>
 				<Type> eTN_u_int2 </Type>
 				<Niv> -2  </Niv>
@@ -43,11 +42,12 @@
 				<Type> eTN_float </Type>
 				<Niv> ${NivFloatIm}  </Niv>
 			</TypeNumeriqueOfNiv>
-			-->
+			<!--
 			<TypeNumeriqueOfNiv>
 				<Type> eTN_u_int2 </Type>
 				<Niv> -2  </Niv>
 			</TypeNumeriqueOfNiv>
+			-->
 			<MaximDyn > ${MaxDyn} </MaximDyn>
 			<!-- 
 			<ValMaxForDyn Nb="?" Type="double"> </ValMaxForDyn>
@@ -106,7 +106,7 @@
 			<SuppressTiles> false </SuppressTiles>
 			<MergeTiles> false </MergeTiles>
 			-->
-			<ForceGradientComputation> true </ForceGradientComputation>
+			<ForceGradientComputation> false </ForceGradientComputation>
 		</DigeoTestOutput>
 	</SectionTest>
 
