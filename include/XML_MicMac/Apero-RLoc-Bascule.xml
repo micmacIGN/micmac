@@ -1,0 +1,143 @@
+<Global >
+   <ParamApero>
+
+
+       <DicoLoc>
+
+            <Symb>  PatternAllIm=XXXX  </Symb>
+            <Symb>  AeroIn=XXX-All              </Symb>
+            <Symb>  FileMesures=XXXMesureBascFace2.xml </Symb>
+            <Symb>  RepereOut=XXXX </Symb>
+
+
+            <Symb>  OrthoCyl=XXXX </Symb>
+            <Symb>  PostMasq=XXX_MasqPlanFace2 </Symb>
+            <Symb>  Ext=dat                </Symb>
+            <Symb>  P1P2Hor=false                </Symb>
+
+
+       </DicoLoc>
+
+
+
+       <SectionBDD_Observation>
+            <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
+            </BDD_PtsLiaisons>
+
+           <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+            </BDD_Orient>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> GenerateKC-Others   </Name>
+                   <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                   <CalibPerPose>
+                        <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                        <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                    </CalibPerPose>
+             </CalibrationCameraInc>
+
+             <PoseCameraInc>
+	           <PatternName>     NKS-Set-OfPattern@${PatternAllIm}   </PatternName>
+	           <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   <PosValueInit>
+                            <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+
+                       <SectionContraintes>
+                             <ContraintesCamerasInc>
+                                 <Val> eAllParamFiges  </Val>
+                             </ContraintesCamerasInc>
+                             <ContraintesPoses>
+                                   <NamePose>   .* </NamePose>
+                                   <ByPattern>  true </ByPattern>
+                                   <Val>      ePoseFigee   </Val>
+                             </ContraintesPoses>
+                       </SectionContraintes>
+                                                                                 
+                    </IterationsCompensation>
+
+ <!-- Pour l'instant on en mets 2 car necessaire pour  repercuetr FixExhe sur Prof -->
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 5 </EcartMax>
+                                  <SigmaPond> 2 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+                       <ExportRepereLoc>
+                         <NameRepere> ${RepereOut}</NameRepere>
+                         <PatternEstimPl>NKS-Set-OfExistingPlan@${PatternAllIm}@${PostMasq}</PatternEstimPl>
+                         <EstimPlanHor>
+                              <KeyCalculMasq>NKS-Assoc-AddPostChExt@${PostMasq}@tif</KeyCalculMasq>
+                              <IdBdl>Id_Pastis_Hom</IdBdl>
+                              <Pond>
+                                   <EcartMesureIndiv>1.0</EcartMesureIndiv>
+                                   <Show>eNSM_Paquet</Show>
+                                   <NbMax>100</NbMax>
+                                   <ModePonderation>eL1Secured</ModePonderation>
+                                   <SigmaPond>2.0</SigmaPond>
+                                   <EcartMax>5.0</EcartMax>
+                              </Pond>
+                         </EstimPlanHor>
+                         <P1P2Hor> ${P1P2Hor} </P1P2Hor>
+                         <P1>123456.000000  -8765432.000000</P1>
+                         <P2>123456.000000  -8765432.000000</P2>
+                         <AxeDef>1.000000  0.000000</AxeDef>
+                         <ImP1P2> ${FileMesures} </ImP1P2>
+                         <ExportOrthoCyl>
+                              <UseIt>  ${OrthoCyl} </UseIt>
+                              <AngulCorr>true</AngulCorr>
+                              <L2EstimAxe>true</L2EstimAxe>
+                         </ExportOrthoCyl>
+                       </ExportRepereLoc>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
