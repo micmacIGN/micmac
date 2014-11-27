@@ -11,6 +11,7 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
   , _currentTime(0)
   , _messageManager(this)
   , _widgetId(idx)
+  , _params(NULL)
 {
     _matrixManager.resetAllMatrix();
 
@@ -84,8 +85,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
         m_GLData = aData;
 
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-            m_GLData->glImage().prepareTextures();
-
+            m_GLData->glImage().createTextures();
 
 //        if(!m_GLData->isImgEmpty())
 //        {
@@ -340,10 +340,9 @@ void GLWidget::setParams(cParameters* aParams)
 void GLWidget::setZoom(float val)
 {
     if (imageLoaded())
-    {
-        zoomClip( val );
-        getGLData()->glImage().setZoom(val);
-    }
+
+        zoomClip( val ); // TODO c'est quoi ce truc????
+
 
     _vp_Params.m_zoom = val;
 
@@ -351,6 +350,12 @@ void GLWidget::setZoom(float val)
         _messageManager.GetLastMessage()->message = QString::number(getZoom()*100,'f',1) + "%";
 
     update();
+
+    if (imageLoaded())
+
+        getGLData()->glImage().setZone(val,viewportToImageProjection());
+
+
 }
 
 void GLWidget::zoomFit()
@@ -991,5 +996,24 @@ void GLWidget::dropEvent(QDropEvent *event)
     }
 
     event->ignore();
+}
+
+QRectF GLWidget::viewportToImageProjection()
+{
+    QRectF rect;
+
+    float zoom = getZoom();
+
+    QPointF c0(0.f,0.f);
+    QPointF c1(0.f,(float)vpHeight());
+    QPointF c2((float)vpWidth(), 0.f);
+    QPointF c3((float)vpWidth(),(float) vpHeight());
+
+    rect.setTopLeft    ( _matrixManager.WindowToImage(c0, zoom) );
+    rect.setBottomLeft ( _matrixManager.WindowToImage(c1, zoom) );
+    rect.setTopRight   ( _matrixManager.WindowToImage(c2, zoom) );
+    rect.setBottomRight( _matrixManager.WindowToImage(c3, zoom) );
+
+    return rect;
 }
 

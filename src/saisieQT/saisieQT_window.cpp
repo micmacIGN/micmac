@@ -184,7 +184,7 @@ bool SaisieQtWindow::loadPly(const QStringList& filenames)
 
 bool SaisieQtWindow::loadImages(const QStringList& filenames)
 {
-    _Engine->computeScaleFactor(filenames); //sorti car GLContext plus accessible dans loadImages
+    _Engine->computeScaleFactor(filenames, _appMode); //sorti car GLContext plus accessible dans loadImages
 
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
@@ -305,7 +305,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
 
-            _Engine->setGLMaxTextureSize(maxTexture/16); //!!!!!!!
+            _Engine->setGLMaxTextureSize(maxTexture);
 
             loadOK = loadImages(filenames);
         }

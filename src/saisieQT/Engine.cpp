@@ -27,8 +27,8 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     // bug Qt non resolu
     // work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
 
-    float scaleFactor = maskedImg._loadedImageRescaleFactor;
-    if ( scaleFactor != 1.f )
+    //float scaleFactor = maskedImg._loadedImageRescaleFactor;
+    /*if ( scaleFactor != 1.f )
     {
         QImageReader *reader = new QImageReader(aNameFile);
 
@@ -41,7 +41,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
         delete maskedImg._m_image;
         maskedImg._m_image = new QImage(newSize, QImage::Format_RGB888);
         *maskedImg._m_image = reader->read();
-    }
+    }*/
 
     if (maskedImg._m_image->isNull())
     {
@@ -498,7 +498,7 @@ cGLData* cEngine::getGLData(int WidgetIndex)
         return NULL;
 }
 
-void cEngine::computeScaleFactor(QStringList const &filenames)
+void cEngine::computeScaleFactor(QStringList const &filenames, int appMode)
 {
 
 #if ELISE_QT_VERSION == 5
@@ -562,7 +562,7 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
         if(cur_avail_mem_kb !=0)
         {
             // TODO GERER le MASK... car pas forcememt afficher
-            sizeMemoryTexture_kb *= 2; // Image + masque
+            if (appMode == MASK2D) sizeMemoryTexture_kb *= 2; // Image + masque
             if(sizeMemoryTexture_kb > cur_avail_mem_kb)
             {
                 scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
@@ -603,6 +603,8 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
         totalSize.scale(QSize(_glMaxTextSize,_glMaxTextSize), Qt::KeepAspectRatio);
 
         _scaleFactor = ((float) totalSize.width()) / widthMax;
+
+        //if (appMode == MASK2D) _scaleFactor /= 2.f; //Image + Masque
 
         //cout << "scale factor = " << scaleFactor << endl;
     }

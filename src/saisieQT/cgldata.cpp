@@ -31,6 +31,20 @@ cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, i
     _clouds_center(Pt3dr(0.,0.,0.)),
     _appMode(appMode)
 {
+    float scaleFactor = qMaskedImage->_loadedImageRescaleFactor;
+    if ( scaleFactor != 1.f )
+    {
+        QSize newSize = qMaskedImage->_m_image->size()*scaleFactor;
+
+        //cout << "new size: " << newSize.width() << " " << newSize.height() << endl;
+
+        qMaskedImage->_m_rescaled_image = new QImage(newSize, QImage::Format_RGB888);
+        *qMaskedImage->_m_rescaled_image = qMaskedImage->_m_image->scaled(newSize,Qt::IgnoreAspectRatio);
+
+        qMaskedImage->_m_rescaled_mask = new QImage(newSize, QImage::Format_Mono);
+        *qMaskedImage->_m_rescaled_mask = qMaskedImage->_m_mask->scaled(newSize,Qt::IgnoreAspectRatio);
+    }
+
     if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
     else _glMaskedImage._m_mask->setVisible(true);
 
@@ -366,12 +380,12 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.setPen(Qt::NoPen);
 
-    QPolygonF polyDraws(polyg.getVector());
+    QPolygonF polyDraw(polyg.getVector());
     QPainterPath path;
 
-    QTransform trans;
+   /* QTransform trans;
     trans=trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
-    QPolygonF polyDraw = trans.map(polyDraws);
+    QPolygonF polyDraw = trans.map(polyDraws);*/
 
     if(mode == ADD_INSIDE || mode == SUB_INSIDE)
     {
@@ -412,7 +426,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         getMask()->invertPixels(QImage::InvertRgb);
 
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
-    _glMaskedImage._m_mask->PrepareTexture(getMask());
+    _glMaskedImage._m_mask->createTexture(getMask());
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
