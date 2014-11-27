@@ -366,12 +366,12 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.setPen(Qt::NoPen);
 
-    QPolygonF polyDraws(polyg.getVector());
+    QPolygonF polyDraw(polyg.getVector());
     QPainterPath path;
 
-    QTransform trans;
+   /* QTransform trans;
     trans=trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
-    QPolygonF polyDraw = trans.map(polyDraws);
+    QPolygonF polyDraw = trans.map(polyDraws);*/
 
     if(mode == ADD_INSIDE || mode == SUB_INSIDE)
     {
@@ -412,7 +412,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         getMask()->invertPixels(QImage::InvertRgb);
 
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
-    _glMaskedImage._m_mask->PrepareTexture(getMask());
+    _glMaskedImage._m_mask->createTexture(getMask());
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)

@@ -90,6 +90,8 @@ public:
 
     int  getWindowMeanValue(QPoint pos, int r = 7); //pos = image position, r = half size of window
 
+    QRectF viewportToImageProjection();
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);

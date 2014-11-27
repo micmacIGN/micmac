@@ -39,8 +39,8 @@ class cData
 
         CamStenope *   getCamera(int aK) { return aK < _Cameras.size() ? _Cameras[aK] : NULL; }
         GlCloud *      getCloud(int aK)  { return aK < _Clouds.size() ? _Clouds[aK] : NULL;   }
-        QImage *       getImage(int aK)  { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_image : NULL; }
-        QImage *       getMask(int aK)   { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_mask  : NULL; }
+        //QImage *       getImage(int aK)  { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_image : NULL; }
+        //QImage *       getMask(int aK)   { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_mask  : NULL; }
         cPolygon*      getPolygon(int aK){ return _vPolygons[aK]; }
 
         int            idPolygon(cPolygon* polygon);
