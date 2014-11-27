@@ -26,7 +26,7 @@ public:
 
     bool        isImgEmpty()                            { return _glMaskedImage._m_image == NULL; }
 
-    QImage*     getMask()                               { return _pQMask;     }
+    QImage*     getMask()                               { return _glMaskedImage.getMaskedImage()->_m_rescaled_mask; }
 
     void        setPolygon(int aK, cPolygon *aPoly)     { _vPolygons[aK] = aPoly; }
 
@@ -121,8 +121,6 @@ public:
 private:
 
     cMaskedImageGL      _glMaskedImage;
-
-    QImage*             _pQMask;
 
     cBall*              _pBall;
 
