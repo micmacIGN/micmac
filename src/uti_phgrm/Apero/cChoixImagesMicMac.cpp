@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-bool DebugVisb=false;
+// bool DebugVisb=false;
 
 //  Lorsque l'on veut ponderer des observation ponctuelle dans le plan, 
 //  si elles tombe toute au meme endroit, chacune doit avoir un poid proportionnel
@@ -341,7 +341,7 @@ class cCaseOcupIm
 
         bool PoseMeVoit(cPoseCam* aPC) const
         {
-static int aCpt=0; aCpt++; DebugVisb=(aCpt==385147) && MPD_MM();
+// static int aCpt=0; aCpt++; DebugVisb=(aCpt==385147) && MPD_MM();
              return aPC->CurCam()->PIsVisibleInImage(mPTer);
         }
 
