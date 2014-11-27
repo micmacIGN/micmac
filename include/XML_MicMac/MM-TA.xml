@@ -1,0 +1,138 @@
+<!--
+   The simplest MicMac exemple
+ mCom   =  mCom + " +DoAnam=true +IncidMax=" + ToString(mIncidMax);
+
+-->
+
+<ParamMICMAC>
+  <DicoLoc>
+           <Symb>   PatternAllIm="XXXX"  </Symb>
+           <Symb>   Aero="XXXX"  </Symb>
+           <Symb>   Zoom="4"  </Symb>
+           <Symb>   Repere="NO-REPERE"  </Symb>
+           <Symb>   DirMEC="TA"  </Symb>
+           <Symb>   FileAnam=EmptyXML.xml  </Symb>
+           <Symb>   FileZMoy=EmptyXML.xml  </Symb>
+           <Symb>   KBestMasqNadir=-1  </Symb>
+
+          <Symb>  DoIncid=false </Symb>
+          <Symb>  DoAnam=false </Symb>
+          <Symb>  IncidMax=1.05 </Symb>
+          <Symb>  ParamAnam=XXXX </Symb>
+          <Symb>  ZMoy=0.0 </Symb>
+          <Symb>  IdAnam=TheSurf </Symb>
+          <Symb>  UnUseAXC=false </Symb>
+
+  </DicoLoc>
+
+
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+             <ZIncCalc>   0.01  </ZIncCalc>
+             <ZIncIsProp> true </ZIncIsProp>
+             <#WHEN VTEST=${DoIncid}>
+                   <ZMoyen> ${ZMoy}   </ZMoyen>
+             </#WHEN>
+      </IntervAltimetrie>
+      <Planimetrie>
+      </Planimetrie>
+
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <ImPat>  ${PatternAllIm} </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> NKS-Assoc-Im2Orient@-${Aero} </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+                 <DeZoom >        ${Zoom}        </DeZoom> 
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+   <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
+   <RepereCorrel> ${Repere}    </RepereCorrel>
+
+   <DoNothingBut>
+<!--
+-->
+        <ButDoPyram>  true </ButDoPyram>
+        <ButDoTA>  true </ButDoTA>
+        <ButDoOriMNT> true </ButDoOriMNT>
+        <ButDoExtendParam> true </ButDoExtendParam>
+    </DoNothingBut>
+
+    <ZoomMakeTA> ${Zoom} </ZoomMakeTA>
+    <SaturationTA > 0.0 </SaturationTA>
+    <TAUseMasqNadirKBest>  ${KBestMasqNadir} </TAUseMasqNadirKBest>
+    <OrthoTA> true </OrthoTA>
+    <MakeImCptTA> true </MakeImCptTA>
+
+    <#WHEN VTEST=${DoIncid}>
+          <AnamorphoseGeometrieMNT>
+               <UnUseAnamXCste> ${UnUseAXC} </UnUseAnamXCste>
+               <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+                <#WHEN VTEST=${DoAnam}>
+                   <AnamSurfaceAnalytique>
+                            <NameFile> ${ParamAnam}</NameFile>
+                            <Id> ${IdAnam} </Id>
+                      </AnamSurfaceAnalytique>
+                      <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+                </#WHEN>
+          </AnamorphoseGeometrieMNT>
+    </#WHEN>
+
+
+
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  #### </WorkDir> 
+     <TmpMEC>  ${DirMEC}/  </TmpMEC>
+     <TmpResult> ${DirMEC}/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>   ${MMNbProc} </ByProcess>
+     <DefTileFile> 500000 </DefTileFile>
+     <PurgeMECResultBefore>  true </PurgeMECResultBefore>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
