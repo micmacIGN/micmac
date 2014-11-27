@@ -608,6 +608,8 @@ public:
 
     void setZone(float aVal, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
 
+    cMaskedImage<QImage> * getMaskedImage() { return _qMaskedImage; }
+
 private:
 
     QRectF       _rectImage;
