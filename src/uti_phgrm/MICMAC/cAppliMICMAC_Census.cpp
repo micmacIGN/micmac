@@ -1413,10 +1413,11 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                     toInt2(anOff1),
                     mTabZMin,
                     mTabZMax,
-                    mNbByPix);
+                    mNbByPix,
+                    aStepPix);
 
 //        interface_Census_GPU.jobMask();
-//        getchar();
+        //getchar();
 #endif
 // std::cout << anOff0 << anOff1 << "\n";
 

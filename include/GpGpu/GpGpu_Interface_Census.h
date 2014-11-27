@@ -17,6 +17,8 @@ extern "C" textureReference* pTexture_ImageEpi(int nEpi);
 extern "C" textureReference* ptexture_Masq_Erod(int nEpi);
 extern "C" void LaunchKernelCorrelationCensusPreview(dataCorrelMS &data,constantParameterCensus &param);
 extern "C" void paramCencus2Device( constantParameterCensus &param );
+extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param);
+
 
 struct constantParameterCensus
 {
@@ -59,16 +61,26 @@ struct constantParameterCensus
 
     ushort  mNbByPix;
 
+    float   aStepPix;
+
+    uint3   mDim3Cache;
+
     void transfertConstantCensus(const std::vector<std::vector<Pt2di> >  &aVV,
             const std::vector<double >              &aVPds,
             int2    offset0,
             int2    offset1,
             ushort  NbByPix,
+            float   StepPix,
             ushort  nbscale = NBSCALE );
 
     void transfertTerrain(Rect    zoneTerrain);
 
     void dealloc();
+
+//    __device__ uint3 dim3Cache()
+//    {
+//        return make_uint3(_dimTerrain.x,_dimTerrain.y,aNbScale);
+//    }
 
 };
 
@@ -132,11 +144,12 @@ public:
     void transfertParamCensus(Rect terrain,
                               const std::vector<std::vector<Pt2di> >  &aVV,
                               const std::vector<double >              &aVPds,
-                              int2    offset0,
-                              int2    offset1,
-                              short **mTabZMin,
-                              short **mTabZMax,
-                              ushort NbByPix,
+                              int2      offset0,
+                              int2      offset1,
+                              short   **mTabZMin,
+                              short   **mTabZMax,
+                              ushort    NbByPix,
+                              float     StepPix,
                               ushort nbscale = NBSCALE );
 
 private:
