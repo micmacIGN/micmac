@@ -493,6 +493,25 @@ public:
 
         if ((aNameFileGCP != "") && (ELISE_fp::exist_file(aNameFileGCP)))
         {
+            cSetPointGlob aSPG = StdGetObjFromFile<cSetPointGlob>
+                    (
+                        aNameFileGCP,
+                        StdGetFileXMLSpec("ParamSaisiePts.xml"),
+                        "SetPointGlob",
+                        "SetPointGlob"
+                        );
+
+            for ( std::list<cPointGlob>::iterator itP=aSPG.PointGlob().begin();
+                  itP!=aSPG.PointGlob().end();
+                  itP++ )
+            {
+                if (itP->P3D().IsInit())
+                {
+                    Pt3dr *p3d = itP->P3D().PtrVal();
+                    cout << "point : " << itP->Name() << " " << p3d->x << " " << p3d->y << " " << p3d->z << endl;
+                }
+            }
+
             //TODO:
         }
     }
