@@ -1397,24 +1397,24 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 #ifdef CUDA_ENABLED
 
-        interface_Census_GPU.transfertImageAndMask(
-                    toUi2(mPDV1->LoadedIm().SzIm()),
-                    toUi2(mPDV2->LoadedIm().SzIm()),
-                    anI0.VDataIm(),
-                    anI1.VDataIm(),
-                    anI0.ImMasqErod(),
-                    anI1.ImMasqErod());
+//        interface_Census_GPU.transfertImageAndMask(
+//                    toUi2(mPDV1->LoadedIm().SzIm()),
+//                    toUi2(mPDV2->LoadedIm().SzIm()),
+//                    anI0.VDataIm(),
+//                    anI1.VDataIm(),
+//                    anI0.ImMasqErod(),
+//                    anI1.ImMasqErod());
 
-        interface_Census_GPU.transfertParamCensus(
-                    Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
-                    aVKImS,
-                    aVPds,
-                    toInt2(anOff0),
-                    toInt2(anOff1),
-                    mTabZMin,
-                    mTabZMax,
-                    mNbByPix,
-                    aStepPix);
+//        interface_Census_GPU.transfertParamCensus(
+//                    Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
+//                    aVKImS,
+//                    aVPds,
+//                    toInt2(anOff0),
+//                    toInt2(anOff1),
+//                    mTabZMin,
+//                    mTabZMax,
+//                    mNbByPix,
+//                    aStepPix);
 
 //        interface_Census_GPU.jobMask();
         //getchar();
@@ -1433,8 +1433,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     Box2di aBoxCalc0 = aBox.trans(anOff0);
     Box2di aBoxCalc1 = aBox.trans(anOff1);
 
-   Box2di aBoxDef0 (Pt2di(0,0),mPDV1->LoadedIm().SzIm());
-   Box2di aBoxDef1 (Pt2di(0,0),mPDV2->LoadedIm().SzIm());
+    Box2di aBoxDef0 (Pt2di(0,0),mPDV1->LoadedIm().SzIm());
+    Box2di aBoxDef1 (Pt2di(0,0),mPDV2->LoadedIm().SzIm());
     
 
     std::vector<Im2D_INT4> mImFlag0;

@@ -102,10 +102,13 @@ struct dataCorrelMS
 
     /// \brief _HostInterval_Z
     /// Nappe des Z host
-    CuHostData3D<short2>        _HostInterval_Z;
+    //CuHostData3D<short2>        _HostInterval_Z;
     /// \brief _DeviceInterval_Z
     /// Nappe des Z device
-    CuDeviceData3D<short2>      _DeviceInterval_Z;
+    //CuDeviceData3D<short2>      _DeviceInterval_Z;
+    CuUnifiedData3D<short2>        _uInterval_Z;
+
+    CuUnifiedData3D<float>         _uCost;
 
     ImageGpGpu<pixel,cudaContext>           _dt_MaskErod[NBEPIIMAGE];
     ImageLayeredGpGpu<float,cudaContext>    _dt_Image[NBEPIIMAGE];
@@ -125,6 +128,8 @@ struct dataCorrelMS
     void    syncDeviceData();
 
     void    dealloc();
+
+    uint    _maxDeltaZ;
 
 };
 

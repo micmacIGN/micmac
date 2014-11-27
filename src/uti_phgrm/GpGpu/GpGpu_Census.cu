@@ -391,39 +391,14 @@ void KernelDoCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* mData
 
     }
 }
-template<class T>
-struct CuUnifiedData3D
+
+
+__global__
+void KernelDoCensusCorrelGlobal(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
 {
-    CuDeviceData3D<T>   deviceData;
-    CuHostData3D<T>     hostData;
 
-    void Malloc( uint2 dim, uint l )
-    {
-        deviceData.Malloc(dim,l);
-        hostData.Malloc(dim,l);
-    }
+}
 
-    void syncDevice()
-    {
-        deviceData.CopyHostToDevice(hostData);
-    }
-
-    void syncHost()
-    {
-        deviceData.CopyDevicetoHost(hostData);
-    }
-
-    void Dealloc()
-    {
-        deviceData. Dealloc();
-        hostData.Dealloc();
-    }
-
-    T* pData()
-    {
-       return deviceData.pData();
-    }
-};
 
 extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)
 {
@@ -447,6 +422,13 @@ extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParamet
     KernelDoCorrel<<<blocks_00,threads>>>(0,1,1,aSom1.pData(),aSom11.pData());
     KernelDoCorrel<<<blocks_01,threads>>>(1,param.aStepPix,param.mNbByPix,aSom2.pData(),aSom22.pData());
 
+    KernelDoCensusCorrelGlobal<<<blocks_00,threads>>>(
+                                                        aSom1   .pData(),
+                                                        aSom11  .pData(),
+                                                        aSom2   .pData(),
+                                                        aSom22  .pData(),
+                                                        data._uInterval_Z   .pData(),
+                                                        data._uCost         .pData());
 //    aSom1.syncHost();
 //    aSom1.hostData.OutputValues();
 

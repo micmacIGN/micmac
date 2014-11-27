@@ -58,14 +58,28 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 
     uint2 dimNappe = make_uint2(mX1Ter-mX0Ter,mY1Ter-mY0Ter);
 
-    _HostInterval_Z.ReallocIfDim(dimNappe,1);
+    _uInterval_Z.ReallocIfDim(dimNappe,1);
+
+    _maxDeltaZ = 0;
 
     for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
     {
         int X = anX - mX0Ter;
         for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-            _HostInterval_Z[make_uint2(X,anY - mY0Ter)] = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+        {
+            short2 ZZ   = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
+            _uInterval_Z.hostData[make_uint2(X,anY - mY0Ter)] = ZZ;
+            uint deltaZ = abs(ZZ.x-ZZ.y);
+            _maxDeltaZ  = max(_maxDeltaZ,deltaZ);
+        }
     }
+
+    //DUMP_UINT(_maxDeltaZ)
+
+    // Allocation du buffer des couts!
+
+    _uCost.ReallocIfDim(dimNappe,_maxDeltaZ);
+
 }
 
 void dataCorrelMS::syncDeviceData()
@@ -76,8 +90,10 @@ void dataCorrelMS::syncDeviceData()
         _dt_MaskErod[t].syncDevice(_HostMaskErod[t],*_texMaskErod[t]);
     }
 
-    _DeviceInterval_Z.ReallocIf(_HostInterval_Z.GetDimension());
-    _DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
+    _uInterval_Z.syncDevice();
+
+    //_DeviceInterval_Z.ReallocIf(_HostInterval_Z.GetDimension());
+    //_DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
 }
 
 void dataCorrelMS::dealloc()
@@ -90,8 +106,9 @@ void dataCorrelMS::dealloc()
         _dt_Image[t].Dealloc();
     }
 
-    _HostInterval_Z.Dealloc();
-    _DeviceInterval_Z.Dealloc();
+//    _HostInterval_Z.Dealloc();
+    _uInterval_Z.Dealloc();
+    _uCost.Dealloc();
 
 }
 
