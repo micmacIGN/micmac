@@ -455,7 +455,8 @@ cImDigeo::cImDigeo
    }
 
    // compute gaussians' standard-deviation
-   mInitialDeltaSigma = sqrt( ElSquare(mSigma0)-ElSquare(SigmaN()) );
+	double sigmaN = SigmaN()*( 1./Resol() );
+   mInitialDeltaSigma = sqrt( ElSquare(mSigma0)-ElSquare(sigmaN) );
    if ( mAppli.isVerbose() ) cout << "initial convolution sigma : " << mInitialDeltaSigma << ( mInitialDeltaSigma==0.?"(no convolution)":"" ) << endl;
 }
 
