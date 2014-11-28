@@ -463,6 +463,7 @@ class cRectangle : public cPolygon
 class cImageGL : public cObjectGL
 {
     public:
+
         cImageGL(float scaleFactor=1.f, float gamma = 1.f);
         ~cImageGL();
 
@@ -508,7 +509,7 @@ private:
 
         QGLShaderProgram _program;
 
-        int     _texLocation  ;
+        int     _texLocation;
         int     _gammaLocation;
 
         GLfloat _originX;
@@ -584,7 +585,10 @@ class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 
 public:
 
-    cMaskedImageGL(){}
+    cMaskedImageGL():
+        _qMaskedImage(NULL),
+        _tiles(NULL),
+        _mask_tiles(NULL){}
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
@@ -610,6 +614,9 @@ public:
 
     cMaskedImage<QImage> * getMaskedImage() { return _qMaskedImage; }
 
+    cImageGL& getTile(int aK);
+    cImageGL& getMaskTile(int aK);
+
 private:
 
     QRectF       _rectImage;
@@ -619,8 +626,8 @@ private:
 
     cMaskedImage<QImage> *_qMaskedImage;
 
-    cImageGL                _tiles[4];
-    cImageGL                _tilesMask[4];
+    cImageGL*               _tiles;
+    cImageGL*               _mask_tiles;
 
     QSize               getTilesSize();
 };

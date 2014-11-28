@@ -12,8 +12,6 @@ class cGLData : public cObjectGL
 {
 public:
 
-    cGLData(int appMode = MASK2D);
-
     cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode = MASK2D);
 
     cGLData(cData *data, cParameters aParams, int appMode = MASK2D);
