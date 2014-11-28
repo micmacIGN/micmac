@@ -1,12 +1,6 @@
 #include "cgldata.h"
 
 
-cGLData::cGLData(int appMode):
-    _diam(1.f)
-{
-    initOptions(appMode);
-}
-
 void cGLData::setOptionPolygons(cParameters aParams)
 {
     for (int aK=0; aK < _vPolygons.size(); ++aK)

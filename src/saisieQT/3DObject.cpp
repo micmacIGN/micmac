@@ -9,9 +9,8 @@ cObject::cObject() :
     _alpha(0.6f),
     _state(state_default)
 {
- for (int iC = 0; iC < state_COUNT; ++iC)
-    _color[iC] = QColor(255,255,255);
-
+    for (int iC = 0; iC < state_COUNT; ++iC)
+        _color[iC] = QColor(255,255,255);
 }
 
 cObject::cObject(Pt3dr pos, QColor color_default) :
@@ -22,7 +21,6 @@ cObject::cObject(Pt3dr pos, QColor color_default) :
     _alpha(0.6f),
     _state(state_default)
 {
-
     for (int iC = 0; iC < state_COUNT; ++iC)
         _color[iC] = color_default;
 }
@@ -1414,7 +1412,6 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
     glBegin(GL_QUADS);
     {
 
-
         glTexCoord2f(0.0f, 0.0f);
         glVertex2f(originX, originY);
         glTexCoord2f(1.0f, 0.0f);
@@ -1539,8 +1536,11 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 
 //********************************************************************************
 
+
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
-    _qMaskedImage(qMaskedImage)
+    _qMaskedImage(qMaskedImage),
+    _tiles(NULL),
+    _mask_tiles(NULL)
 {
 
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
@@ -1568,7 +1568,7 @@ void cMaskedImageGL::draw()
         if(1)
             glMask()->draw();
         else
-            drawTiles(_tilesMask);
+            drawTiles(_mask_tiles);
 
         glBlendFunc(GL_ONE,GL_ONE);
         glMask()->draw(QColor(128,255,128));
@@ -1590,7 +1590,7 @@ void cMaskedImageGL::draw()
 void cMaskedImageGL::drawTiles(cImageGL* tiles)
 {
     for (int aK = 0; aK < 4; ++aK)
-          tiles[aK].draw();
+        tiles[aK].draw();
 }
 
 QSize cMaskedImageGL::getTilesSize()
@@ -1650,9 +1650,28 @@ void cMaskedImageGL::createTextures()
     }
 }
 
-void cMaskedImageGL::setZone(float aVal, QRectF rectImage) {
+void cMaskedImageGL::setZone(float aVal, QRectF rectImage)
+{
     _m_image->setZoom(aVal);
     _rectImage = rectImage;
+}
+
+cImageGL &cMaskedImageGL::getTile(int aK)
+{
+    if (_tiles)
+        return _tiles[aK];
+
+    _tiles = new cImageGL[4];
+    return _tiles[aK];
+}
+
+cImageGL &cMaskedImageGL::getMaskTile(int aK)
+{
+    if (_mask_tiles)
+        return _mask_tiles[aK];
+
+    _mask_tiles = new cImageGL[4];
+    return _mask_tiles[aK];
 }
 
 void cMaskedImageGL::deleteTextures()
