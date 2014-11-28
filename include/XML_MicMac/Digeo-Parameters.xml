@@ -11,12 +11,13 @@
 		-->
 
 		<Symb> Resol=0.5          </Symb>
-		<Symb> Sigma0=1.269920842 </Symb>
+		<!-- <Symb> Sigma0=1.269920842 </Symb> -->
+		<Symb> Sigma0=1.6         </Symb>
 		<Symb> SigmaN=0.5         </Symb>
+		<Symb> NivInFirstOct=0   </Symb>
 
 		<Symb> OctaveMax=32      </Symb>
 		<Symb> NivFloatIm=4          </Symb>
-		<Symb> NivInFirstOct=0       </Symb>
 		<Symb> Incremental=true      </Symb>
 		<Symb> ExigeCodeCompile=true </Symb>
 
@@ -34,6 +35,7 @@
 			-->
 		</ImageDigeo>
 		<PyramideImage>
+			<!--
 			<TypeNumeriqueOfNiv>
 				<Type> eTN_u_int2 </Type>
 				<Niv> -2  </Niv>
@@ -42,12 +44,11 @@
 				<Type> eTN_float </Type>
 				<Niv> ${NivFloatIm}  </Niv>
 			</TypeNumeriqueOfNiv>
-			<!--
+			-->
 			<TypeNumeriqueOfNiv>
-				<Type> eTN_u_int2 </Type>
+				<Type> eTN_float </Type>
 				<Niv> -2  </Niv>
 			</TypeNumeriqueOfNiv>
-			-->
 			<MaximDyn > ${MaxDyn} </MaximDyn>
 			<!-- 
 			<ValMaxForDyn Nb="?" Type="double"> </ValMaxForDyn>
@@ -101,12 +102,12 @@
 			<PlotPointsOnTiles> true </PlotPointsOnTiles>
 			<OutputGradients> true </OutputGradients>
 			<OutputTiles> true </OutputTiles>
-			<OutputGaussians> true </OutputGaussians>
 			<OutputGaussiansDirectory> gaussians_ref </OutputGaussiansDirectory>
 			<SuppressTiles> false </SuppressTiles>
 			<MergeTiles> false </MergeTiles>
+			<ForceGradientComputation> true </ForceGradientComputation>
 			-->
-			<ForceGradientComputation> false </ForceGradientComputation>
+			<OutputGaussians> true </OutputGaussians>
 		</DigeoTestOutput>
 	</SectionTest>
 
@@ -137,7 +138,7 @@
 	<!-- Pas de raison, hors mis au point/test, de changer cette val -->
 	<ShowConvolSpec> false </ShowConvolSpec>
 
-	<Verbose> false </Verbose>
+	<Verbose> true </Verbose>
 
 	</SectionWorkSpace>
 </ParamDigeo>

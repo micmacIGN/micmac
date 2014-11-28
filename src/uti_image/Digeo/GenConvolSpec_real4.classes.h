@@ -362,3 +362,28 @@ class cConvolSpec_REAL4_Num13 : public cConvolSpec<REAL4>
 		cConvolSpec_REAL4_Num13(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false){}
 };
 
+class cConvolSpec_REAL4_Num14 : public cConvolSpec<REAL4>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(REAL4 * Out,REAL4 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  0
+				              +   0.000109044*(In[-5]+In[5])
+				              +   0.00194196*(In[-4]+In[4])
+				              +   0.0181382*(In[-3]+In[3])
+				              +   0.0891801*(In[-2]+In[2])
+				              +   0.231548*(In[-1]+In[1])
+				              +   0.318166*(In[0])
+                           );
+				In++;
+			}
+		}
+
+		cConvolSpec_REAL4_Num14(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false){}
+};
+
