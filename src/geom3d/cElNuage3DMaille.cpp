@@ -357,9 +357,9 @@ double cElNuage3DMaille::ResolSolGlob() const
       double aSomRes = 0.0;
       double aSomPds = 0.0;
 
-      for (int aNb=20 ; (aNb<1000) && (aSomPds<100) ; aNb = round_ni(aNb*1.2))
+      for (int aNb=50 ; (aNb>0) &&  (aSomPds<500) ; aNb = ElMin(aNb-1,round_ni(aNb/1.2)))
       {
-          Pt2di aDec = mSzData/ aNb;
+          Pt2di aDec (aNb,aNb);
           Pt2di aP;
           for (aP.x =0 ; aP.x<mSzData.x ; aP.x+=aDec.x)
           {
@@ -375,7 +375,12 @@ double cElNuage3DMaille::ResolSolGlob() const
       }
 
       mResolGlobCalc = true;
-      ELISE_ASSERT(aSomPds!=0.0,"cElNuage3DMaille::ResolSolGlob");
+      if (aSomPds==0)
+      {
+          std::cout << "Masq=" << mParams.PN3M_Nuage().Image_Profondeur().Val().Masq() << "\n";
+          Tiff_Im::Create8BFromFonc("PbMasq.tif",mSzData,ImMask().in());
+          ELISE_ASSERT(aSomPds!=0.0,"cElNuage3DMaille::ResolSolGlob");
+      }
       mResolGlob = aSomRes / aSomPds;
    }
 

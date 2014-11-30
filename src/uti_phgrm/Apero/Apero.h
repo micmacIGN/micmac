@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 extern bool ResidualStepByStep ;
 
 
+void AjustNormalSortante(bool Sortante,Pt3dr & aNorm, const ElCamera * aCS1,const Pt2dr &aPIm);
+
 
 double  GuimbalAnalyse(const ElRotation3D & aR,bool show);
 
@@ -2255,6 +2257,14 @@ class cAppliApero : public NROptF1vND
 
         cAperoPointeMono CreatePointeMono(const cSetOfMesureAppuisFlottants &,const std::string & aNamePt,const cAperoPointeMono * aDef=0);
         cAperoPointeStereo CreatePointeStereo(const cSetOfMesureAppuisFlottants &,const std::string & aNamePt);
+
+        Pt3dr CreatePtFromPointeMonoOrStereo
+              (
+                    const cSetOfMesureAppuisFlottants & aMAF,
+                    const std::string & aNamePt,
+                    const cElPlan3D  * aPlan,
+                    const std::string & aNameSec=""
+              );
 
         ElSeg3D   PointeMono2Seg(const cAperoPointeMono &) ;
         Pt3dr     PointeMonoAndPlan2Pt(const cAperoPointeMono &,const cElPlan3D &);

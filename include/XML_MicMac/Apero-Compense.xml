@@ -64,6 +64,17 @@
            <Symb>  LaY=0 </Symb>
            <Symb>  LaZ=0 </Symb>
 
+           <Symb>  HasModeleAdd=false  </Symb>
+           <Symb>  ModeleAdditionnel=XXXXX  </Symb>
+
+        
+           <Symb>   DegGen=0  </Symb>
+           <eSymb>  DoPolyn1=  Or  ${AffineFree} SupEq ${DegGen} 1 </eSymb>
+           <eSymb>  DoPolyn2=  SupEq ${DegGen} 2 </eSymb>
+           <eSymb>  DoPolyn3=  SupEq ${DegGen} 3 </eSymb>
+
+
+
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -118,6 +129,14 @@
                               <AutorizeNonExisting > false </AutorizeNonExisting>
                          </CalFromFileExtern>
                 </CalValueInit>
+                <#WHEN VTEST=${HasModeleAdd}>
+                        <DistortionAddInc>
+                               <ModUnif>
+                                     <TypeModele> ${ModeleAdditionnel}  </TypeModele>
+                               </ModUnif>
+                        </DistortionAddInc>
+                 </#WHEN>
+
                 <CalibPerPose>
                        <#IF VTEST=${CPI}>
                            <KeyPose2Cal> NKS-Assoc-Id                       </KeyPose2Cal>
@@ -247,6 +266,31 @@
                          </IterationsCompensation>
                          <IterationsCompensation> </IterationsCompensation>
                    </#WHEN>
+
+
+                   <#WHEN VTEST=${DoPolyn2}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_2      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn2 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+
+                   <#WHEN VTEST=${DoPolyn3}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_3      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn3 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+
+
                    <#WHEN VTEST=${AllFree}>
                          <IterationsCompensation>
                             <SectionContraintes>

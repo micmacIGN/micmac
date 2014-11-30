@@ -101,6 +101,9 @@ int Campari_main(int argc,char ** argv)
 
     Pt3dr aGpsLA;
 
+    int aDegAdd = 0;
+    int aDegFree = 0;
+
     ElInitArgMain
     (
     argc,argv,
@@ -122,6 +125,8 @@ int Campari_main(int argc,char ** argv)
                     << EAM(Viscos,"Visc",true,"Viscosity in Levenberg-Marquardt like resolution (Def=1.0)")
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
+                    << EAM(aDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
+                    << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters")
 
     );
 
@@ -187,6 +192,8 @@ int Campari_main(int argc,char ** argv)
                    + std::string("+GrIncGr=") + ToString(aGcpGrU) + " "
                    + std::string("+GrIncIm=") + ToString(aGcpImU) + " ";
         }
+        if (aDegAdd>0)  aCom = aCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(aDegAdd);
+        if (aDegFree>0)  aCom = aCom + " +DegGen=" +  ToString(aDegFree);
 
         if (EAMIsInit(&EmGPS))
         {

@@ -116,12 +116,20 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
         // Possible aucun nuage si peu de voisins et mauvaise config epip
         if (ELISE_fp::exist_file(aNameNuXml))
         {
-            anAttrSom = new cASAMG(this,anIma);
-            mVAttr.push_back(anAttrSom);
-            tMCSom &  aSom = mGr.new_som(anAttrSom);
-            mDicSom[anIma->mNameIm] = & aSom;
-            mVSoms.push_back(&aSom);
-            InMAP = IsInImageMAP(anAttrSom) ;
+             std::string aNM = NameFileInput(true,anIma,"_Masq.tif");
+             Tiff_Im aTM(aNM.c_str());
+             int aSom;
+             ELISE_COPY(aTM.all_pts(),aTM.in(),sigma(aSom));
+            // Possible nuage vide 
+            if (aSom>100)
+            {
+                anAttrSom = new cASAMG(this,anIma);
+                mVAttr.push_back(anAttrSom);
+                tMCSom &  aSom = mGr.new_som(anAttrSom);
+                mDicSom[anIma->mNameIm] = & aSom;
+                mVSoms.push_back(&aSom);
+                InMAP = IsInImageMAP(anAttrSom) ;
+            }
         }
 
         std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << InMAP << "\n";
