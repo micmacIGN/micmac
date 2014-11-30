@@ -1,0 +1,7 @@
+          <MasqueTerrain >
+                <FileBoxMasqIsBoxTer> ${DirMEC}/BoxTer-${Chantier}.xml</FileBoxMasqIsBoxTer>
+                <MT_Image >  ${DirTA}/TA_LeChantier_Masq.tif        </MT_Image>
+                <MT_Xml>     ${DirTA}/TA_LeChantier.xml  </MT_Xml>
+           </MasqueTerrain>
+
+
