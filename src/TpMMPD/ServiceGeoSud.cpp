@@ -1277,7 +1277,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             }
 
             // Chargement de l'ortho
-            std::cout << "Cahrgement de la dalle d'ortho: ..."<<std::endl;
+            std::cout << "Chargement de la dalle d'ortho: ..."<<std::endl;
             std::auto_ptr<TIm2D<U_INT1,INT4> > OrthoImg(createTIm2DFromFile<U_INT1,INT4>(nomDalleOrtho));
             std::cout << "Chargement de OrthoImg : "<<nomDalleOrtho<<std::endl;
             if (OrthoImg.get()==NULL)
