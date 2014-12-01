@@ -55,7 +55,7 @@ class cAppliSake
 
   private:
     std::string   mImPat, mDir, mMaskIm, mDirMEC, mPyr, mDirOrtho, mModeOri, mOriFileExtension;
-    double        mZInc, mZMoy, mStepF, mRegul ;
+    double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho;
     int           mSzW, mZoomI, mZoomF;
     bool          mCalcMEC, mEZA, mExe;
     std::string   mInstruct;
@@ -81,8 +81,9 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mOriFileExtension ("GRI"),
   mZInc             (1000.0),
   mZMoy             (1000.0),
-  mStepF             (0.5),
-  mRegul           (0.01),
+  mStepF            (0.5),
+  mRegul            (0.05),
+  mResolOrtho       (1.0),
   mSzW              (1),
   mZoomI            (32),
   mZoomF            (1),
@@ -155,7 +156,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(mSzW,"SzW",true,"Correlation window size (Def=2, equiv 5x5)")
               << EAM(mZMoy,"ZMoy",true,"Average value of Z (Def=1000.0)")
               << EAM(mZInc,"ZInc",true,"Initial uncertainty on Z (Def=1000.0)")
-              << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.01")
+              << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.05")
               << EAM(mStepF,"ZPas",true,"Quantification step (Def=0.5)")
               //<< EAM(mZoomInit,"ZoomI",true,"Initial Zoom (Def=32)")//
               << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)")
@@ -200,7 +201,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
             + std::string(" +ZMoy=") + ToString(mZMoy)
             + std::string(" +ZPasF=")    + ToString(mStepF)
             + std::string(" +ZRegul=") + ToString(mRegul)
-           ;
+            ;
 
   if (mZoomF<mZoomI)
   {
@@ -250,14 +251,13 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   {
     mInstruct = mInstruct + std::string(" +CalcOrtho=true");
     mInstruct = mInstruct + std::string(" +DirOrtho=") + mDirOrtho;
-    std::cout<< "DirOrtho: *" << mDirOrtho << "*"<<std::endl;
   }
 
   if (EAMIsInit(&mMaskIm))
   {
     std::string aNameMask;
 
-    ELISE_ASSERT(mDir==DirOfFile(mMaskIm),"Mask image not in working directory!!!"); //mDir: mask's directory
+    ELISE_ASSERT(mDir==DirOfFile(mMaskIm),"Mask image not in working directory!!"); //mDir: mask's directory
     SplitDirAndFile(mDir,aNameMask,mMaskIm); //mMaskIm: mask's full path (dir+name)
     if (IsPostfixed(aNameMask)) aNameMask = StdPrefixGen(aNameMask); //aNameMask: mask's filename without postfix
 
@@ -266,13 +266,30 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               + std::string(" +Mask=")  + aNameMask;
   }
 
-   if (EAMIsInit(&aBoxClip))
+  if (EAMIsInit(&aBoxClip))
   {
-    mInstruct = mInstruct + " +UseClip=true "
+    if ((aBoxClip._p0.x<0) || (aBoxClip._p0.x>1) ||
+        (aBoxClip._p0.y<0) || (aBoxClip._p0.y>1) ||
+        (aBoxClip._p1.x<0) || (aBoxClip._p1.x>1) ||
+        (aBoxClip._p1.y<0) || (aBoxClip._p1.y>1))
+    {
+      std::ostringstream err_mess;
+      err_mess<<"Incorrect values for BoxClip=["
+              <<aBoxClip._p0.x<<","
+              <<aBoxClip._p0.y<<","
+              <<aBoxClip._p1.x<<","
+              <<aBoxClip._p1.y
+              <<"] - not normalized values!";
+      ELISE_ASSERT(false, err_mess.str().c_str());
+    }
+    else
+    {
+      mInstruct = mInstruct + " +UseClip=true "
               +  std::string(" +X0Clip=") + ToString(aBoxClip._p0.x)
               +  std::string(" +Y0Clip=") + ToString(aBoxClip._p0.y)
               +  std::string(" +X1Clip=") + ToString(aBoxClip._p1.x)
               +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
+    }
   }
 
   if (EAMIsInit(&aBoxTerrain))
@@ -289,6 +306,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mInstruct = mInstruct + std::string(" +CalcMEC=") + (mCalcMEC ? "true" : "false")
                         + std::string(" +EZA=") + (mEZA ? "true" : "false")
                         + std::string(" +ZoomF=") + ToString(mZoomF)
+                        + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
                         + std::string(" +NbSteps=") + ToString(mNbStepsMEC)
                         + std::string(" +Exe=") + (mExe ? "true" : "false")
                         ;
@@ -324,23 +342,15 @@ void cAppliSake::InitDefValFromType()
   switch (mCorrelGeomType)
   {
     case eGeomTer:
-      //~ mSzW = 1;
       mSzW = 2;
-      mRegul = 0.01;
+      mRegul = 0.05;
       mZoomF = 1;
       break;
 
-    //~ case eGeomIm :
-      //~ mSzW = 1;
-      //~ mRegul = 0.01;
-      //~ mZoomF = 1;
-      //~ break;
-
      case eOrthoIm :
       mSzW = 2;
-      mRegul = 0.05;
-      //~ mZoomF = 2;
-      mZoomF = 1;
+      mRegul = 0.1;
+      mZoomF = 2;
       break;
 
     case eNbTypeVals :
@@ -358,10 +368,15 @@ void cAppliSake::ShowParamVal()
   std::cout << "*   Correl window size: " << 2*mSzW+1 << "x"  << 2*mSzW+1 << " (SzW=" << mSzW << ")" << std::endl;
   std::cout << "*   Correl step: " << mStepF << std::endl;
   std::cout << "*   Regularization term: " << mRegul << std::endl;
-  std::cout << "*   Final DeZoom: " << mZoomF << std::endl;
+  std::cout << "*   Final DeZoom MEC: " << mZoomF << std::endl;
   std::cout << "*   Number of correlation steps: " << mNbStepsMEC << std::endl;
   std::cout << "*   MEC subdirectory: " << mDirMEC << std::endl;
-  if (mStrCorrelGeomType=="OrthoIm")  std::cout << "*   Orthos subdirectory: " << mDirOrtho << std::endl;
+  if (mStrCorrelGeomType=="OrthoIm")
+  {
+    std::cout << "*   Orthos subdirectory: " << mDirOrtho << std::endl;
+    std::cout << "*   Final DeZoom orthos: " << 1 << std::endl;
+  }
+
   std::cout << "******************************************************"<<std::endl;
 }
 

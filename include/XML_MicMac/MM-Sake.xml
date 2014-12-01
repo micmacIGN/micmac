@@ -18,6 +18,7 @@
 
     <Symb> ZInc=1000.0</Symb>
     <Symb> ZMoy=1000.0</Symb>
+
     <Symb> DilatAlti=4</Symb>
     <Symb> DilatPlani=3</Symb>
 
@@ -61,6 +62,7 @@
 
     <Symb> DirOrtho=XXXX</Symb>
     <Symb> CalcOrtho=false</Symb>
+    <Symb> ResolOrtho=1.0  </Symb>
 
   </DicoLoc>
 
@@ -192,6 +194,7 @@
             <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ort_ </KeyCalcOutput>
             <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrtho}@Incid_ </KeyCalcIncidHor>
             <ResolIm> 1.0 </ResolIm>
+            <ResolRelOrhto> ${ResolOrtho} </ResolRelOrhto>
             <CalcIncAZMoy> true </CalcIncAZMoy>
             <MakeMTDMaskOrtho>
               <Mesures>
