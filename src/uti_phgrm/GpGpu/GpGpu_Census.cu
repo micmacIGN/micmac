@@ -155,7 +155,8 @@ inline    float CorrelBasic_Center(
     float*  aSom2,
     float*  aSom22,
     //int     aPx2, // ---> TODO Surement A virer : decalage sub pixel apriori il sera égale à 0!!
-    bool    ModeMax)
+    bool    ModeMax,
+    ushort  aPhase)
 {
     float aMaxCor = -1;
     float aCovGlob = 0;
@@ -195,11 +196,18 @@ inline    float CorrelBasic_Center(
 //             float aM2  = aSom2 [aKS][aPG1.y][aPG1.x];
 //             float aM11 = aSom11[aKS][aPG0.y][aPG0.x] - aM1*aM1;
 //             float aM22 = aSom22[aKS][aPG1.y][aPG1.x] - aM2*aM2;
-             float aM1  = aSom1 [aKS];
-             float aM2  = aSom2 [aKS];
-             float aM11 = aSom11[aKS] - aM1*aM1;
-             float aM22 = aSom22[aKS] - aM2*aM2;
-             float aM12 = aCovGlob / aPdsGlob - aM1 * aM2;
+
+             const uint3 pt0    =   make_uint3(aPG0.x,aPG0.y,aKS);
+             const uint3 pt1    =   make_uint3(aPG0.x,aPG0.y,aKS + aNbScale*aPhase);
+             const uint3 dim    =   make_uint3(cPCencus._dimTerrain.x,cPCencus._dimTerrain.x,1);
+
+             const float aM1    =   aSom1 [to1D(pt0,dim)];
+             const float aM2    =   aSom2 [to1D(pt1,dim)];
+
+             const float aM11   =   aSom11[to1D(pt0,dim)] - aM1*aM1;
+             const float aM22   =   aSom22[to1D(pt1,dim)] - aM2*aM2;
+
+             const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
 
              if (ModeMax)
              {
@@ -229,7 +237,7 @@ void projectionMasqImage(float * dataPixel,uint3 dTer)
 }
 
 __global__
-void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22)
+void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
 {
 
     // ??? TODO à cabler
@@ -239,24 +247,25 @@ void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom2
     float   aSeuilBC    = 1.0;
     // ???
 
-    uint anX = blockIdx.x;
-    uint anY = blockIdx.y;
-    uint Z   = threadIdx.x;
+    int2    pt  =   make_int2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
+    uint    tZ  =   blockIdx.z*blockDim.z + threadIdx.z;
 
-    if(anX > cPCencus._dimTerrain.y || anY > cPCencus._dimTerrain.x)
+    if(oSE(pt,cPCencus._dimTerrain))
         return;
 
-//    int** mTabZMin;
-//    int** mTabZMax;
+    const int2  aPIm0   =   pt.x+cPCencus.anOff0; // TODO Attention au unsigned
+    const bool  OkIm0   =   IsOkErod(make_uint2(aPIm0),0);
+    const short2 iZ     =   nappe[to1D(pt,cPCencus._dimTerrain)];
+    int aZ0             =   iZ.x;
+    const int aZ1       =   iZ.y;
+    const int DeltaZ    =   abs(aZ1-aZ0);
 
-    const uint2 aPIm0   = make_uint2(anX+cPCencus.anOff0.x,anY+cPCencus.anOff0.x); // TODO Attention au unsigned
-    const bool  OkIm0   = IsOkErod(aPIm0,0);
+    if(tZ>DeltaZ)
+        return; // TODO on pourrait eventuellement affacter la valeur du cout par defaut.... mais bof
 
-//    int aZ0 =  mTabZMin[anY][anX];
-//    int aZ1 =  mTabZMax[anY][anX];
+    int aZI = aZ0 + tZ;
 
-    int aXIm1SsPx = anX+cPCencus.anOff1.x;
-    int aYIm1SsPx = anY+cPCencus.anOff1.y;
+    const int2 aIm1SsPx =  pt + cPCencus.anOff1;
 
     // float aGlobCostGraphe = 0;
     float aGlobCostBasic  = 0;
@@ -266,8 +275,19 @@ void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom2
 
     if (OkIm0)
     {
-        int anOffset = Z;
-        const uint2 aPIm1 = make_uint2(aXIm1SsPx+anOffset,aYIm1SsPx);
+        //
+        // anOffset calcul de anOffset
+        ///
+        int aPhase = tZ%cPCencus.mNbByPix;
+
+        while ((aZ0%cPCencus.mNbByPix) != aPhase) aZ0++;
+
+        int anOffset    = aZ0 / cPCencus.mNbByPix;
+        anOffset        = anOffset - ((anOffset * cPCencus.mNbByPix) > aZ0);
+        int sOff        = abs(aZI-aZ0)/cPCencus.mNbByPix; // --> doit tomber juste
+        anOffset       += sOff;
+
+        const uint2 aPIm1 = make_uint2(aIm1SsPx.x+anOffset,aIm1SsPx.y);
 
         if (IsOkErod(aPIm1,1))
         {
@@ -280,10 +300,12 @@ void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom2
             //float*  aSom2; // ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
             //float*  aSom22;// ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
 
-            const float2 faPIm0 = make_float2((float)aPIm0.x,(float)aPIm0.y); // TODO ajouter le pas sub pixelaire
-            const float2 faPIm1 = make_float2((float)aPIm1.x,(float)aPIm1.y); // TODO ajouter le pas sub pixelaire
 
-            aCost = CorrelBasic_Center(faPIm0,faPIm1,aSom1,aSom11,aSom2,aSom22,aModeMax);
+
+            const float2 faPIm0 = make_float2((float)aPIm0.x,(float)aPIm0.y); // TODO ajouter le pas sub pixelaire            
+            const float2 faPIm1 = make_float2((float)aPIm1.x + aPhase*cPCencus.aStepPix,(float)aPIm1.y); // TODO ajouter le pas sub pixelaire
+
+            aCost = CorrelBasic_Center(faPIm0,faPIm1,aSom1,aSom11,aSom2,aSom22,aModeMax,aPhase);
 
             aGlobCostCorrel = aCost;
 
@@ -302,7 +324,13 @@ void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom2
                     aCost =  aSeuilBC *  aGlobCostBasic;
             }
 
-            aCost = 1.f-aCost;
+//            aCost = 1.f-aCost;
+
+            const uint3 ptCost  = make_uint3(pt.x,pt.y,tZ);
+            const uint3 dimCost = make_uint3(cPCencus._dimTerrain.x,cPCencus._dimTerrain.y,1);
+
+            cost[to1D(ptCost,dimCost)] = 1.f-aCost;
+
         }
         else return;
     }
@@ -386,6 +414,7 @@ void KernelDoCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* mData
         // indice dans le cache
         const uint3     p3d        =   make_uint3(pt.x,pt.y,etapeSub*mNbByPix + aKS);
 
+        // Ecriture dans le cache des
         mData1[to1D(p3d,dimCache)] = aGlobSom1 / aGlobPds;
         mData2[to1D(p3d,dimCache)] = aGlobSom2 / aGlobPds;
 
