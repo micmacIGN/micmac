@@ -479,7 +479,11 @@ class RefineModelGlobal: public RefineModelAbs
 {
 
 public:
-    RefineModelGlobal(std::string const &aPattern, std::string const &aNameFileGCP = "", std::string const &aNameFileMNT = ""):RefineModelAbs(aPattern)
+    RefineModelGlobal(std::string const &aPattern,
+                      std::string const &aNameFileGCP = "",
+                      std::string const &aNameFilePointeIm = "",
+                      std::string const &aNameFileMNT = ""):
+        RefineModelAbs(aPattern)
     {
         if ((aNameFileMNT != "") && (ELISE_fp::exist_file(aNameFileMNT)))
         {
@@ -493,26 +497,44 @@ public:
 
         if ((aNameFileGCP != "") && (ELISE_fp::exist_file(aNameFileGCP)))
         {
-            cSetPointGlob aSPG = StdGetObjFromFile<cSetPointGlob>
-                    (
-                        aNameFileGCP,
-                        StdGetFileXMLSpec("ParamSaisiePts.xml"),
-                        "SetPointGlob",
-                        "SetPointGlob"
-                        );
+            cDicoAppuisFlottant aDico = StdGetFromPCP(aNameFileGCP,DicoAppuisFlottant);
+            std::cout << "Nb Pts " <<  aDico.OneAppuisDAF().size() << endl;
+            std::list<cOneAppuisDAF> & aLGCP =  aDico.OneAppuisDAF();
 
-            for ( std::list<cPointGlob>::iterator itP=aSPG.PointGlob().begin();
-                  itP!=aSPG.PointGlob().end();
-                  itP++ )
+            for (
+                     std::list<cOneAppuisDAF>::iterator iT= aLGCP.begin();
+                     iT != aLGCP.end();
+                     iT++
+                )
             {
-                if (itP->P3D().IsInit())
+                cout << "Point : " << iT->NamePt() << " " << iT->Pt() << endl;
+            }
+        }
+
+        if ((aNameFilePointeIm != "") && (ELISE_fp::exist_file(aNameFilePointeIm)))
+        {
+            cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aNameFilePointeIm,SetOfMesureAppuisFlottants);
+            cout << "Nb Pts " << aDico.MesureAppuiFlottant1Im().size() << endl;
+            std::list<cMesureAppuiFlottant1Im> & aLGCP =  aDico.MesureAppuiFlottant1Im();
+
+            for (
+                     std::list<cMesureAppuiFlottant1Im>::iterator iT= aLGCP.begin();
+                     iT != aLGCP.end();
+                     iT++
+                )
+            {
+                cout << "Image : " << iT->NameIm() << endl;
+                std::list< cOneMesureAF1I > & aLPIm = iT->OneMesureAF1I();
+
+                for (
+                     std::list<cOneMesureAF1I>::iterator iTP= aLPIm.begin();
+                     iTP != aLPIm.end();
+                     iTP++
+                    )
                 {
-                    Pt3dr *p3d = itP->P3D().PtrVal();
-                    cout << "point : " << itP->Name() << " " << p3d->x << " " << p3d->y << " " << p3d->z << endl;
+                    cout << "Point : " << iTP->NamePt() << " " << iTP->PtIm() << endl;
                 }
             }
-
-            //TODO:
         }
     }
 
@@ -974,6 +996,7 @@ int NewRefineModel_main(int argc, char **argv)
 {
     std::string aPat; // GRID files pattern
     std::string aNameMNT=""; //DTM file
+    std::string aNamePointeIm=""; //Pointe image file
     std::string aNameGCP=""; //GCP file
     bool exportResidus = false;
 
@@ -982,13 +1005,14 @@ int NewRefineModel_main(int argc, char **argv)
          argc, argv,
          LArgMain() << EAMC(aPat,"GRID files pattern"),
          LArgMain() << EAM(aNameGCP,"GCP",true, "GCP file")
+                    << EAM(aNamePointeIm,"IMG",true, "Pointe image file")
                     << EAM(aNameMNT,"DTM",true, "DTM file")
                     << EAM(exportResidus,"ExpRes",true, "Export residuals (def=false)")
     );
 
     ELISE_fp::MkDirSvp("refine");
 
-    RefineModelGlobal model(aPat, aNameGCP, aNameMNT);
+    RefineModelGlobal model(aPat, aNameGCP, aNamePointeIm, aNameMNT);
 
     bool ok = (model.nObs() > 3);
     for(size_t iter = 0; (iter < 100) & ok; iter++)
@@ -1220,40 +1244,49 @@ public:
     ///
     OldRefineModelAbs(std::string const &aNameFileGridMaster,
                    std::string const &aNameFileGridSlave,
-                   std::string const &aNamefileTiePoints,
+                   std::string const &aNameFileTiePoints,
                    double Zmoy):master(NULL),slave(NULL),zMoy(Zmoy),_N(1,1,0.),_Y(1,1,0.)
     {
         // Loading the GRID file
         master = new OldAffCamera(aNameFileGridMaster);
         slave  = new OldAffCamera(aNameFileGridSlave);
 
-        // Loading the Tie Points with altitude approximate estimation
+        // Loading the Tie Points
+        ElPackHomologue aPackHomol = ElPackHomologue::FromFile(aNameFileTiePoints);
 
-        std::ifstream fic(aNamefileTiePoints.c_str());
-        int rPts_nb = 0; //rejected points number
-        while(fic.good())
+        if (aPackHomol.size() == 0)
         {
-            Pt2dr P1,P2;
-            fic >> P1.x >> P1.y >> P2.x >> P2.y;
-            if (fic.good())
-            {
-                double z = getZ(P1,P2,zMoy);
-                std::cout << "z = "<<z<<std::endl;
-                Pt2dr D = compute2DGroundDifference(P1,P2,z,slave);
+            std::cout << "Error in RefineModelAbs: no tie-points" << std::endl;
+            return;
+        }
 
-                if (square_euclid(D)>100.)
-                {
-                    rPts_nb++;
-                    std::cout << "Point with 2D ground difference > 10 : "<< D.x << " " << D.y << " - rejected" << std::endl;
-                }
-                else
-                {
-                    master->vPtImg.push_back(P1);
-                    slave->vPtImg.push_back(P2);
-                    vZ.push_back(z);
-                }
+        int rPts_nb = 0; //rejected points number
+
+        ElPackHomologue::const_iterator iter = aPackHomol.begin();
+        for (;iter!=aPackHomol.end();++iter )
+        {
+            ElCplePtsHomologues aCple = iter->ToCple();
+
+            Pt2dr P1 = aCple.P1();
+            Pt2dr P2 = aCple.P2();
+
+            double z = getZ(P1,P2,zMoy);
+            //std::cout << "z = "<<z<<std::endl;
+            Pt2dr D = compute2DGroundDifference(P1,P2,z,slave);
+
+            if (square_euclid(D)>100.)
+            {
+                rPts_nb++;
+                //std::cout << "Point with 2D ground difference > 10 : "<< D.x << " " << D.y << " - rejected" << std::endl;
+            }
+            else
+            {
+                master->vPtImg.push_back(P1);
+                slave->vPtImg.push_back(P2);
+                vZ.push_back(z);
             }
         }
+
         std::cout << "Number of rejected points : "<< rPts_nb << std::endl;
         std::cout << "Number of tie points : "<< master->vPtImg.size() << std::endl;
     }
