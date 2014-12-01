@@ -1,0 +1,440 @@
+<!-- 
+      Parametrage pour les points de liaison pour une triangulation.
+   Il s'agit de l'etape 0, elle doit etre suivie de 1, 2 et 3.
+   Cette etape 0 ne va que jusqu'a la resolution 16 et les 
+   les orientation exportees ne laisse libre que le cap.
+
+       Ce fichier a ete mis au point pour un vol drone heliporte.
+   Les valeus suivie d'un "#" en commentaire doivent etre modifiee
+   pour utilisation sur d'autre mission (terrestre, aerien ...)
+
+   #N : indique une modification numerique, une fois les valeurs 
+   fixees pour un type de chantier, il n'est pas necessaire de les
+   modifier pour un autre.
+
+   #S : indique une modification de nom;
+-->
+<ParamMICMAC 
+      Subst="@$#1"
+      NameDecl="@$#1"
+
+      NumImC="@xxx"
+      NumImVois="@x"
+      FOC="@xxx"
+      Prefix="@xxx"
+      Postix="@xxx"
+      Face="@xxx"
+      ZInc="@0"
+      SzW="@1"
+      ZRegul="@0.1"
+      PatternMasqIm="@PasDeMasqImage"
+      DynExport="@1.0"
+      NbB="16"
+>
+<Section_Terrain>  
+
+    <!--   Px1IncCalc : l'incertitude est liee au terrain elle est en metre,
+          ici 10 m c'est bcp pour un helico a 30 m.
+
+          Px2IncCalc : en pixel, c'est lie au defaut de mise en place
+     -->
+    
+    <IntervAltimetrie>
+        <ZIncCalc> ${ZInc}   </ZIncCalc>    <!-- metres -->
+    </IntervAltimetrie>
+
+    <Planimetrie>
+          <MasqueTerrain >
+                  <MT_Image> F${FOC}_IMG_${NumImC}_${Prefix}${Face}${Postix}_MpDcraw8B_GR_Masq.tif    </MT_Image>
+                  <MT_Xml>   F${FOC}_IMG_${NumImC}_${Prefix}${Face}${Postix}_MpDcraw8B_GR_Masq.xml </MT_Xml>
+          </MasqueTerrain>
+
+    </Planimetrie>
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <Im1 >    F${FOC}_IMG_${NumImC}_${Prefix}${Face}${Postix}_MpDcraw${NbB}B_GR.tif  </Im1>  
+          <ImPat >  F${FOC}_IMG_${NumImVois}_${Prefix}${Face}${Postix}_MpDcraw${NbB}B_GR.tif  </ImPat>  
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  Key-Assoc-16B-Im2Or8BInit </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<ChantierFullImage1>  true </ChantierFullImage1>
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+<!--
+         <IncludeFile> ${ThisDir}test.xml </IncludeFile>
+-->
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+	    <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
+	    <AggregCorr> eAggregSymetrique </AggregCorr>
+
+            <SzW >       ${SzW}               </SzW>
+            <ZRegul>     ${ZRegul}  </ZRegul>
+
+
+	    <!--
+	    <TypeWCorr> eWInCorrelRectSpec </TypeWCorr>
+	    <NbIterFenSpec> 4 </NbIterFenSpec>
+	    -->
+
+	    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+	    <!--
+	    <AlgoRegul>  eAlgoCoxRoy </AlgoRegul>
+	    -->
+            <CoxRoy8Cnx> true </CoxRoy8Cnx>
+            <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	    <!-- <ZRegul_Quad> 0.1 </ZRegul_Quad>  -->
+	    <ZPas>   0.5     </ZPas>
+            <ZDilatAlti>  3  </ZDilatAlti>
+	    <ZDilatPlani> 4  </ZDilatPlani>
+
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+            <!--  <Gen8Bits_Px1> true </Gen8Bits_Px1> -->
+
+            <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   5               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   100.0    </Px1PenteMax>
+            </ModulationProgDyn>
+            <AttenRelatifSeuilZ> 0.2 </AttenRelatifSeuilZ>
+
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+	</EtapeMEC>
+
+	<EtapeMEC>
+            <DeZoom >  32    </DeZoom>
+            <SeuilAttenZRegul> 0.15 </SeuilAttenZRegul>
+            <GenerePartiesCachees >
+                 <SeuilUsePC > 4 </SeuilUsePC>
+            </GenerePartiesCachees>
+        </EtapeMEC>
+	<EtapeMEC>
+            <DeZoom >  32    </DeZoom>
+            <SeuilAttenZRegul> 0.15 </SeuilAttenZRegul>
+	      <ZDilatPlani> 10  </ZDilatPlani>
+            <GenerePartiesCachees >
+                 <SeuilUsePC > 4 </SeuilUsePC>
+            </GenerePartiesCachees>
+        </EtapeMEC>
+
+
+	<EtapeMEC> 
+              <DeZoom >  16                </DeZoom> 
+              <SeuilAttenZRegul> 0.10 </SeuilAttenZRegul>
+	      <ZDilatPlani> 10  </ZDilatPlani>
+              <GenerePartiesCachees >
+                 <SeuilUsePC > 5 </SeuilUsePC>
+              </GenerePartiesCachees>
+              <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   5               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   40.0    </Px1PenteMax>
+              </ModulationProgDyn>
+        </EtapeMEC>
+	<EtapeMEC> 
+              <DeZoom >  16                </DeZoom> 
+              <SeuilAttenZRegul> 0.10 </SeuilAttenZRegul>
+	      <ZDilatPlani> 10  </ZDilatPlani>
+              <GenerePartiesCachees >
+                 <SeuilUsePC > 5 </SeuilUsePC>
+              </GenerePartiesCachees>
+        </EtapeMEC>
+	<EtapeMEC> 
+              <DeZoom >  16                </DeZoom> 
+              <SeuilAttenZRegul> 0.10 </SeuilAttenZRegul>
+	      <ZDilatPlani> 10  </ZDilatPlani>
+              <GenerePartiesCachees >
+                 <SeuilUsePC > 5 </SeuilUsePC>
+              </GenerePartiesCachees>
+        </EtapeMEC>
+
+
+
+	<EtapeMEC> 
+               <DeZoom >  8                </DeZoom> 
+               <SeuilAttenZRegul> 0.07 </SeuilAttenZRegul>
+              <GenerePartiesCachees >
+                 <SeuilUsePC > 6 </SeuilUsePC>
+              </GenerePartiesCachees>
+	      <ZDilatPlani> 15  </ZDilatPlani>
+              <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   5               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   20.0    </Px1PenteMax>
+              </ModulationProgDyn>
+        </EtapeMEC>
+	<EtapeMEC> 
+               <DeZoom >  8                </DeZoom> 
+               <SeuilAttenZRegul> 0.07 </SeuilAttenZRegul>
+              <GenerePartiesCachees >
+                 <SeuilUsePC > 6 </SeuilUsePC>
+              </GenerePartiesCachees>
+              <ZDilatAlti>  3  </ZDilatAlti>
+	      <ZDilatPlani> 15  </ZDilatPlani>
+        </EtapeMEC>
+	<EtapeMEC> 
+               <DeZoom >  8                </DeZoom> 
+               <SeuilAttenZRegul> 0.07 </SeuilAttenZRegul>
+              <GenerePartiesCachees >
+                 <SeuilUsePC > 6 </SeuilUsePC>
+              </GenerePartiesCachees>
+              <ZDilatAlti>  3  </ZDilatAlti>
+	      <ZDilatPlani> 15  </ZDilatPlani>
+        </EtapeMEC>
+	<EtapeMEC> 
+               <DeZoom >  8                </DeZoom> 
+               <SeuilAttenZRegul> 0.07 </SeuilAttenZRegul>
+              <GenerePartiesCachees >
+                 <SeuilUsePC > 6 </SeuilUsePC>
+              </GenerePartiesCachees>
+              <ZDilatAlti>  3  </ZDilatAlti>
+	      <ZDilatPlani> 15  </ZDilatPlani>
+        </EtapeMEC>
+
+
+
+	<EtapeMEC> 
+                 <DeZoom >  4                </DeZoom> 
+                <SeuilAttenZRegul> 0.05 </SeuilAttenZRegul>
+                 <GenerePartiesCachees >
+                      <SeuilUsePC > 7 </SeuilUsePC>
+                </GenerePartiesCachees>
+                <ZDilatAlti>  3  </ZDilatAlti>
+	        <ZDilatPlani> 12  </ZDilatPlani>
+        </EtapeMEC>
+	<EtapeMEC> 
+                <DeZoom >  4                </DeZoom> 
+                <SeuilAttenZRegul> 0.05 </SeuilAttenZRegul>
+                 <GenerePartiesCachees >
+                      <SeuilUsePC > 7 </SeuilUsePC>
+                </GenerePartiesCachees>
+	        <ZDilatPlani> 8  </ZDilatPlani>
+        </EtapeMEC>
+	<EtapeMEC> 
+                <DeZoom >  4                </DeZoom> 
+                <SeuilAttenZRegul> 0.05 </SeuilAttenZRegul>
+                 <GenerePartiesCachees >
+                      <SeuilUsePC > 7 </SeuilUsePC>
+                </GenerePartiesCachees>
+	        <ZDilatPlani> 8  </ZDilatPlani>
+        </EtapeMEC>
+
+
+
+	<EtapeMEC> 
+                <DeZoom >  2                </DeZoom> 
+                <SeuilAttenZRegul> 0.05 </SeuilAttenZRegul>
+                <GenerePartiesCachees >
+                      <SeuilUsePC > 8 </SeuilUsePC>
+                </GenerePartiesCachees>
+	        <ZDilatPlani> 7  </ZDilatPlani>
+        </EtapeMEC>
+	<EtapeMEC> 
+                <DeZoom >  2                </DeZoom> 
+                <SeuilAttenZRegul> 0.05 </SeuilAttenZRegul>
+	        <ZDilatPlani> 4  </ZDilatPlani>
+        </EtapeMEC>
+
+
+
+
+	<EtapeMEC> 
+	       <DeZoom >  2  </DeZoom> 
+	       <ZPas>   1.0     </ZPas>
+               <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC>
+<!--
+-->
+
+
+
+
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+
+<!--
+    <X_DirPlanInterFaisceau>  -0.0171129510972843832 </X_DirPlanInterFaisceau>
+    <Y_DirPlanInterFaisceau>   0.999712023350258105  </Y_DirPlanInterFaisceau>
+    <Z_DirPlanInterFaisceau>   -0.0168231172401190933 </Z_DirPlanInterFaisceau>
+-->
+    
+
+
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <!--
+    <DoNothingBut>
+	<ButDoOriMNT>  true </ButDoOriMNT>
+    </DoNothingBut>
+    -->
+    <!--
+    -->
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC > GeoI/ </TmpMEC>
+     <TmpPyr > Pyr-GeoI/ </TmpPyr>
+     <TmpResult > GeoI/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  1000  </SzDalleMax>
+     <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+     <ByProcess> 2 </ByProcess>
+     <NomChantier> GeomIm-${NumImC} </NomChantier>
+     <FirstEtapeMEC> 0 </FirstEtapeMEC>
+
+     <FileExportApero2MM>  AttributFace${Face}.xml </FileExportApero2MM>
+     <UseProfInVertLoc> false </UseProfInVertLoc>
+
+
+     <MapMicMac>
+         <ActivateCmdMap> true </ActivateCmdMap>
+         <ModeCmdMapeur>
+             <CM_One> toto </CM_One>
+         </ModeCmdMapeur>
+
+         <CMVA>  
+               <NV> NumImC "4864" </NV> <NV> NumImVois "(4852|4835|4831)" </NV> 
+               <NV>  Face 3 </NV>   <NV>  FOC "100" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "" </NV>
+               <NV> ZInc "2.0" </NV>    <NV>  ZRegul "0.2" </NV> <NV> SzW "2" </NV>
+         </CMVA>  
+<!--
+         <CMVA>  
+               <NV> NumImC "4844" </NV> <NV> NumImVois "(4852|4835|4831)" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "100" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "" </NV>
+               <NV> ZInc "2.0" </NV>    <NV>  ZRegul "0.2" </NV> <NV> SzW "2" </NV>
+         </CMVA>  
+
+         <CMVA>  
+               <NV> NumImC "4845" </NV> <NV> NumImVois "(4853|4852|4836|4832)" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "100" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "" </NV>
+               <NV> ZInc "2.0" </NV>    <NV>  ZRegul "0.2" </NV> <NV> SzW "2" </NV>
+         </CMVA>  
+
+
+
+         <CMVA>  
+               <NV> NumImC "4838" </NV> <NV> NumImVois "(4829|4847|4855)" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "100" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "" </NV>
+               <NV> ZInc "2.0" </NV>    <NV>  ZRegul "0.2" </NV> <NV> SzW "2" </NV>
+         </CMVA>  
+
+         <CMVA>  
+               <NV> NumImC "4848" </NV> <NV> NumImVois "(4833|4834|4850)" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "100" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "" </NV>
+               <NV> ZInc "2.0" </NV>    <NV>  ZRegul "0.2" </NV> <NV> SzW "2" </NV>
+         </CMVA>  
+         <CMVA>  
+               <NV> NumImC "4837" </NV> <NV> NumImVois "(4830|4846|4854)" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "100" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "" </NV>
+               <NV> ZInc "2.0" </NV>    <NV>  ZRegul "0.2" </NV> <NV> SzW "2" </NV>
+         </CMVA>  
+
+         <CMVA>  
+               <NV> NumImC "4911" </NV> <NV> NumImVois "[0-9]{4}" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "400" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "_Mars" </NV>
+               <NV> ZInc "2.0" </NV>  <NV>  ZRegul "0.1" </NV> <NV> SzW "1" </NV>
+         </CMVA>  
+-->
+
+<!-- ***********************  DZ 2 ***********************      -->
+<!-- ***********************  DZ 2 ***********************      -->
+<!-- ***********************  DZ 2 ***********************      -->
+
+<!--
+         <CMVA>  
+               <NV> NumImC "4912" </NV> <NV> NumImVois "[0-9]{4}" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "400" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "_Mars" </NV>
+               <NV> ZInc "2.0" </NV>  <NV>  ZRegul "0.1" </NV> <NV> SzW "1" </NV>
+         </CMVA>  
+         <CMVA>  
+               <NV> NumImC "4913" </NV> <NV> NumImVois "[0-9]{4}" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "400" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "_Mars" </NV>
+               <NV> ZInc "2.0" </NV>  <NV>  ZRegul "0.1" </NV> <NV> SzW "1" </NV>
+         </CMVA>  
+         <CMVA>  
+               <NV> NumImC "4914" </NV> <NV> NumImVois "[0-9]{4}" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "400" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "_Mars" </NV>
+               <NV> ZInc "2.0" </NV>  <NV>  ZRegul "0.1" </NV> <NV> SzW "1" </NV>
+         </CMVA>  
+         <CMVA>  
+               <NV> NumImC "4915" </NV> <NV> NumImVois "[0-9]{4}" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "400" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "_Mars" </NV>
+               <NV> ZInc "2.0" </NV>  <NV>  ZRegul "0.1" </NV> <NV> SzW "1" </NV>
+         </CMVA>  
+
+         <CMVA>  
+               <NV> NumImC "4908" </NV> <NV> NumImVois "[0-9]{4}" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "400" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "_Mars" </NV>
+               <NV> ZInc "2.0" </NV>  <NV>  ZRegul "0.1" </NV> <NV> SzW "1" </NV>
+         </CMVA>  
+         <CMVA>  
+               <NV> NumImC "4909" </NV> <NV> NumImVois "[0-9]{4}" </NV> 
+               <NV>  Face 2 </NV>   <NV>  FOC "400" </NV>  <NV> Prefix "Face" </NV> <NV> Postix "_Mars" </NV>
+               <NV> ZInc "2.0" </NV>  <NV>  ZRegul "0.1" </NV> <NV> SzW "1" </NV>
+         </CMVA>  
+-->
+
+
+<!--  ****************** -->
+<!--
+-->
+
+    </MapMicMac>
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+</Section_Vrac>
+
+</ParamMICMAC>
+
