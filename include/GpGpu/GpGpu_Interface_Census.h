@@ -100,14 +100,15 @@ struct dataCorrelMS
     /// Masque
     CuHostData3D<pixel>         _HostMaskErod[NBEPIIMAGE];
 
-    /// \brief _HostInterval_Z
-    /// Nappe des Z host
-    //CuHostData3D<short2>        _HostInterval_Z;
-    /// \brief _DeviceInterval_Z
-    /// Nappe des Z device
-    //CuDeviceData3D<short2>      _DeviceInterval_Z;
+
+    ///
+    /// \brief _uInterval_Z
+    ///
     CuUnifiedData3D<short2>        _uInterval_Z;
 
+    ///
+    /// \brief _uCost
+    ///
     CuUnifiedData3D<float>         _uCost;
 
     ImageGpGpu<pixel,cudaContext>           _dt_MaskErod[NBEPIIMAGE];
@@ -121,7 +122,6 @@ struct dataCorrelMS
     void    transfertMask(uint2 dimMask0, uint2 dimMask1, pixel **mImMasqErod_0, pixel **mImMasqErod_1);
 
     void    transfertNappe(int  mX0Ter, int  mX1Ter, int  mY0Ter, int  mY1Ter, short **mTabZMin, short **mTabZMax);
-
 
 //private:
 
