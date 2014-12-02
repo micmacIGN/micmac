@@ -88,20 +88,6 @@ protected:
 
 };
 
-double compute2DGroundDifference(Pt2dr const &ptImg1,
-                                 AffCamera* Cam1,
-                                 Pt2dr const &ptImg2,
-                                 AffCamera* Cam2)
-{
-    double z = Cam1->Camera()->PseudoInter(ptImg1,*Cam2->Camera(),ptImg2).z;
-
-    Pt3dr ptTer1 = Cam1->Camera()->ImEtProf2Terrain(ptImg1,z);
-    Pt2dr ptImg2C(Cam2->apply(ptImg2));
-    Pt3dr ptTer2 = Cam2->Camera()->ImEtProf2Terrain(ptImg2C,z);
-
-    return square_euclid(Pt2dr(ptTer1.x - ptTer2.x,ptTer1.y - ptTer2.y));
-}
-
 class ImageMeasure
 {
 public:
@@ -158,6 +144,49 @@ protected:
     string _ptName;
 };
 
+Pt2dr Observation::computeImageDifference(int index,
+                                          Pt3dr pt,
+                                          double aA0, double aA1, double aA2, double aB0, double aB1, double aB2)
+{
+    ImageMeasure* aMes = &vImgMeasure[index];
+
+    Pt2dr ptImg = aMes->pt();
+
+    map<int, AffCamera *>::const_iterator iter = pMapCam->find(aMes->imgIndex());
+    AffCamera* cam = iter->second;
+
+    Pt2dr ptImgC(aA0 + aA1 * ptImg.x + aA2 * ptImg.y,
+                 aB0 + aB1 * ptImg.x + aB2 * ptImg.y);
+
+    Pt2dr proj = cam->Camera()->R3toF2(pt);
+
+    return ptImgC - proj;
+}
+
+Pt2dr Observation::computeImageDifference(int index, Pt3dr pt)
+{
+    ImageMeasure* aMes = &vImgMeasure[index];
+
+    Pt2dr ptImg = aMes->pt();
+
+    map<int, AffCamera *>::const_iterator iter = pMapCam->find(aMes->imgIndex());
+    AffCamera* cam = iter->second;
+
+    Pt2dr ptImgC = cam->apply(ptImg);
+
+    Pt2dr proj = cam->Camera()->R3toF2(pt);
+
+    return ptImgC - proj;
+}
+
+class GCP : public Observation
+{
+public:
+    GCP(map <int, AffCamera*> *aMap, string aPtName="", bool valid = true, Pt3dr aPt=Pt3dr(0.f,0.f,0.f)):Observation(aMap,aPtName,valid, aPt){}
+
+    Pt3dr getCoord() { return _PtTer; }
+};
+
 class TiePoint : public Observation
 {
 public:
@@ -202,48 +231,19 @@ Pt3dr TiePoint::getCoord()
     }
 }
 
-Pt2dr Observation::computeImageDifference(int index,
-                                       Pt3dr pt,
-                                       double aA0, double aA1, double aA2, double aB0, double aB1, double aB2)
+double compute2DGroundDifference(Pt2dr const &ptImg1,
+                                 AffCamera* Cam1,
+                                 Pt2dr const &ptImg2,
+                                 AffCamera* Cam2)
 {
-    ImageMeasure* aMes = &vImgMeasure[index];
+    double z = Cam1->Camera()->PseudoInter(ptImg1,*Cam2->Camera(),ptImg2).z;
 
-    Pt2dr ptImg = aMes->pt();
+    Pt3dr ptTer1 = Cam1->Camera()->ImEtProf2Terrain(ptImg1,z);
+    Pt2dr ptImg2C(Cam2->apply(ptImg2));
+    Pt3dr ptTer2 = Cam2->Camera()->ImEtProf2Terrain(ptImg2C,z);
 
-    map<int, AffCamera *>::const_iterator iter = pMapCam->find(aMes->imgIndex());
-    AffCamera* cam = iter->second;
-
-    Pt2dr ptImgC(aA0 + aA1 * ptImg.x + aA2 * ptImg.y,
-                 aB0 + aB1 * ptImg.x + aB2 * ptImg.y);
-
-    Pt2dr proj = cam->Camera()->R3toF2(pt);
-
-    return ptImgC - proj;
+    return square_euclid(Pt2dr(ptTer1.x - ptTer2.x,ptTer1.y - ptTer2.y));
 }
-
-Pt2dr Observation::computeImageDifference(int index, Pt3dr pt)
-{
-    ImageMeasure* aMes = &vImgMeasure[index];
-
-    Pt2dr ptImg = aMes->pt();
-
-    map<int, AffCamera *>::const_iterator iter = pMapCam->find(aMes->imgIndex());
-    AffCamera* cam = iter->second;
-
-    Pt2dr ptImgC = cam->apply(ptImg);
-
-    Pt2dr proj = cam->Camera()->R3toF2(pt);
-
-    return ptImgC - proj;
-}
-
-class GCP : public Observation
-{
-public:
-    GCP(map <int, AffCamera*> *aMap, string aName, bool valid = true, Pt3dr aPt=Pt3dr(0.f,0.f,0.f)):Observation(aMap,aName,valid, aPt){}
-
-    Pt3dr getCoord() { return _PtTer; }
-};
 
 //! Abstract class for shared methods
 class RefineModelAbs
@@ -506,7 +506,7 @@ public:
         map<int, AffCamera *>::const_iterator it = mapCameras.begin();
         for (;it!=mapCameras.end();++it)
         {
-            if (it->second->name() == aFilename) return it->second;
+            if (it->second->name() == StdPrefixGen(aFilename)) return it->second;
         }
         AffCamera* Cam = new AffCamera(aFilename, mapCameras.size(), mapCameras.size()!=0);
         mapCameras.insert(pair <int,AffCamera*>(mapCameras.size(), Cam));
@@ -533,16 +533,17 @@ public:
         {
             // Chargement du MNT
             _MntOri = StdGetFromPCP(aNameFileMNT,FileOriMnt);
-            cout << "DTM size : "<<_MntOri.NombrePixels().x<<" "<<_MntOri.NombrePixels().y<<endl;
+            if (_verbose) cout << "DTM size : "<<_MntOri.NombrePixels().x<<" "<<_MntOri.NombrePixels().y<<endl;
             auto_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
             _MntImg = Img;
             if (_MntImg.get()==NULL) cerr << "Error in "<< _MntOri.NameFileMnt() <<endl;
+            //TODO: utiliser le MNT comme contrainte en Z
         }
 
         if ((aNameFileGCP != "") && (ELISE_fp::exist_file(aNameFileGCP)))
         {
             cDicoAppuisFlottant aDico = StdGetFromPCP(aNameFileGCP,DicoAppuisFlottant);
-            cout << "Nb Pts " <<  aDico.OneAppuisDAF().size() << endl;
+            if (_verbose) cout << "Nb GCP " <<  aDico.OneAppuisDAF().size() << endl;
             list<cOneAppuisDAF> & aLGCP =  aDico.OneAppuisDAF();
 
             for (
@@ -551,7 +552,7 @@ public:
                      iT++
                 )
             {
-                cout << "Point : " << iT->NamePt() << " " << iT->Pt() << endl;
+                if (_verbose) cout << "Point : " << iT->NamePt() << " " << iT->Pt() << endl;
 
                 vObs.push_back(new GCP(&mapCameras, iT->NamePt(), true, iT->Pt()));
             }
@@ -560,7 +561,7 @@ public:
         if ((aNameFilePointeIm != "") && (ELISE_fp::exist_file(aNameFilePointeIm)))
         {
             cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aNameFilePointeIm,SetOfMesureAppuisFlottants);
-            cout << "Nb Pts " << aDico.MesureAppuiFlottant1Im().size() << endl;
+            if (_verbose) cout << "Nb GCP img " << aDico.MesureAppuiFlottant1Im().size() << endl;
             list<cMesureAppuiFlottant1Im> & aLGCP =  aDico.MesureAppuiFlottant1Im();
 
             for (
@@ -569,7 +570,7 @@ public:
                      iT++
                 )
             {
-                cout << "Image : " << StdPrefixGen(iT->NameIm()) << endl;
+                if (_verbose) cout << "Image : " << StdPrefixGen(iT->NameIm()) << endl;
                 list< cOneMesureAF1I > & aLPIm = iT->OneMesureAF1I();
 
                 for (
@@ -578,7 +579,7 @@ public:
                      iTP++
                     )
                 {
-                    //cout << "Point : " << iTP->NamePt() << " " << iTP->PtIm() << endl;
+                    if (_verbose) cout << "Point : " << iTP->NamePt() << " " << iTP->PtIm() << endl;
 
                     AffCamera* cam = NULL;
                     for (
@@ -603,7 +604,7 @@ public:
                             if (vObs[aK]->ptName() == iTP->NamePt() )
                             {
                                 vObs[aK]->addImageMeasure(im);
-                                cout << "add img measure to GCP " << vObs[aK]->ptName() << endl;
+                                if (_verbose) cout << "add img measure to GCP " << vObs[aK]->ptName() << endl;
                                 break;
                             }
                         }
@@ -615,7 +616,7 @@ public:
 
     void addObs(int pos, const ElMatrix<double> &obs, const ElMatrix<double> &ccc, const double p, const double res)
     {
-        bool verbose = false;
+        bool verbose = _verbose;
 
         double pdt = 1./(p*p);
 
@@ -677,7 +678,7 @@ public:
 
     void addObs(const ElMatrix<double> &ccc, const double p, const double res)
     {
-        bool verbose = false;
+        bool verbose = _verbose;
 
         double pdt = 1./(p*p);
 
@@ -861,9 +862,6 @@ public:
              Observation* aObs = vObs[aK];
              cout << aObs->getCoord().z << endl;
         }
-
-        //TODO
-        // 3D coord update
     }
 
     //! compute the observation matrix for one iteration
@@ -914,7 +912,6 @@ public:
                 vector <int> vPos;
 
                 Pt3dr pt = aObs->getCoord();
-                cout  << "youhou : " << pt <<endl;
 
                 //pour chaque image où le point de liaison est vu
                 for(size_t bK=0; bK < vMes.size();++bK)
