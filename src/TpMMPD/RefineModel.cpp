@@ -11,12 +11,12 @@
 class AffCamera
 {
  public:
-    AffCamera(string aFilename, int index, bool activate=false): filename (aFilename), mIndex(index), activated(activate)
+    AffCamera(string aFilename, int index, bool activate=false): filename (StdPrefix(aFilename)), mIndex(index), activated(activate)
     {
         // Loading the GRID file
         ElAffin2D oriIntImaM2C;
         Pt2di Sz(10000,10000);
-        mCamera =  new cCameraModuleOrientation(new OrientationGrille(filename),Sz,oriIntImaM2C);
+        mCamera =  new cCameraModuleOrientation(new OrientationGrille(aFilename),Sz,oriIntImaM2C);
 
         //Affinity parameters
         vP.push_back(0);
@@ -27,27 +27,30 @@ class AffCamera
         vP.push_back(1);
     }
 
+    ~AffCamera()
+    {
+        if (mCamera)
+            delete mCamera;
+    }
+
     ///
     /// \brief update affinity parameters
     /// \param sol unknowns matrix
     ///
     void updateParams(ElMatrix <double> const &sol)
     {
-        std::cout << "Init solution of cam " << mIndex <<std::endl;
-        printParams();
+        cout << "Init solution of cam " << filename <<endl;
+        for (size_t aK=0; aK< vP.size(); aK++)
+            cout << vP[aK] <<" ";
+        cout << endl;
 
         for (size_t aK=0; aK< vP.size(); aK++)
             vP[aK] += sol(0,aK);
 
-        std::cout << "Updated solution: "<<std::endl;
-        printParams();
-    }
-
-    void printParams()
-    {
+        cout << "Updated solution: "<<endl;
         for (size_t aK=0; aK< vP.size(); aK++)
-            std::cout << vP[aK] <<" ";
-        std::cout << std::endl;
+            cout << vP[aK] <<" ";
+        cout << endl;
     }
 
     ElCamera* Camera() { return mCamera; }
@@ -55,7 +58,7 @@ class AffCamera
     // the 6 parameters of affinity
     // colc = vP[0] + vP[1] * col + vP[2] * lig
     // rowc = vP[3] + vP[4] * col + vP[5] * lig
-    std::vector <double> vP;
+    vector <double> vP;
 
     Pt2dr apply(Pt2dr const &ptImg2)
     {
@@ -63,23 +66,21 @@ class AffCamera
                      vP[3] + vP[4] * ptImg2.x + vP[5] * ptImg2.y);
     }
 
-    ///
-    /// \brief image filename
-    ///
-    std::string filename;
-
-    int mIndex;
-
-    ~AffCamera()
-    {
-        if (mCamera)
-            delete mCamera;
-    }
-
     void activate(bool aVal) { activated = aVal; }
     bool isActivated() { return activated; }
 
+    string name() { return filename; }
+
+    int index() { return mIndex; }
+
 protected:
+
+    ///
+    /// \brief image filename
+    ///
+    string filename;
+
+    int mIndex;
 
     ElCamera* mCamera;
 
@@ -104,20 +105,35 @@ double compute2DGroundDifference(Pt2dr const &ptImg1,
 class ImageMeasure
 {
 public:
-    ImageMeasure(Pt2dr pt, int id):ptImg(pt),idx(id){}
+    ImageMeasure(Pt2dr aPt, AffCamera* aCam):_ptImg(aPt),_idx(aCam->index()), _imgName(aCam->name()){}
 
-    Pt2dr ptImg;  // image coordinates (in pixel)
-    int   idx;    // index of AffCamera
+    Pt2dr  pt()       { return _ptImg; }
+    string imgName()  { return _imgName; }
+    int    imgIndex() { return _idx;   }
+
+private:
+    Pt2dr _ptImg;       // image coordinates (in pixel)
+    int   _idx;         // index of AffCamera
+
+    string _imgName;    // name of AffCamera
 
     //bool valid; // should this measure be used for estimation
 };
 
-class TiePoint
+class Observation
 {
 public:
-    TiePoint(std::map <int, AffCamera *> *aMap): valid(true), pMapCam(aMap){}
+    Observation(map <int, AffCamera *> *aMap, string aName = "", bool aValid = false, Pt3dr aPt = Pt3dr(0.f,0.f,0.f)):
+        pMapCam(aMap),
+        valid(aValid),
+        _PtTer(aPt),
+        _ptName(aName){}
 
-    Pt3dr getCoord();
+    virtual Pt3dr getCoord()=0;
+
+    string ptName() { return _ptName; }
+
+    void addImageMeasure(ImageMeasure const &aMes) { vImgMeasure.push_back(aMes); }
 
     Pt2dr computeImageDifference(int index,
                                    Pt3dr pt,
@@ -130,41 +146,53 @@ public:
 
     Pt2dr computeImageDifference(int index, Pt3dr pt);
 
-    std::vector <ImageMeasure> vImgMeasure;
+    map <int, AffCamera*> *pMapCam;
 
-    bool valid; // should this point be used for estimation?
+    vector <ImageMeasure> vImgMeasure;
 
-    std::map <int, AffCamera *> *pMapCam;
+    bool valid; // should this observation be used for estimation?
+
+protected:
+    Pt3dr _PtTer;
+
+    string _ptName;
+};
+
+class TiePoint : public Observation
+{
+public:
+    TiePoint(map <int, AffCamera *> *aMap, string aPtName="", bool valid = true): Observation(aMap, aPtName, valid){}
+
+    Pt3dr getCoord();
 };
 
 Pt3dr TiePoint::getCoord()
 {
     if (vImgMeasure.size() == 2)
     {
-        map<int, AffCamera *>::iterator iter1, iter2;
-        iter1 = pMapCam->find(vImgMeasure[0].idx);
-        iter2 = pMapCam->find(vImgMeasure[1].idx);
+        map<int, AffCamera *>::iterator iter1 = pMapCam->find(vImgMeasure[0].imgIndex());
+        map<int, AffCamera *>::iterator iter2 = pMapCam->find(vImgMeasure[1].imgIndex());
 
         AffCamera* cam1 = iter1->second;
         AffCamera* cam2 = iter2->second;
 
-        Pt2dr P1 = cam1->apply(vImgMeasure[0].ptImg);
-        Pt2dr P2 = cam2->apply(vImgMeasure[1].ptImg);
+        Pt2dr P1 = cam1->apply(vImgMeasure[0].pt());
+        Pt2dr P2 = cam2->apply(vImgMeasure[1].pt());
 
         return cam1->Camera()->PseudoInter(P1,*cam2->Camera(),P2);
     }
     else
     {
-        std::vector<ElSeg3D>  aVS;
+        vector<ElSeg3D>  aVS;
         for ( size_t aK=0; aK < vImgMeasure.size(); aK++ )
         {
-            map<int, AffCamera *>::iterator iter = pMapCam->find(vImgMeasure[aK].idx);
+            map<int, AffCamera *>::iterator iter = pMapCam->find(vImgMeasure[aK].imgIndex());
 
             if (iter != pMapCam->end())
             {
                 AffCamera* aCam = iter->second;
 
-                Pt2dr aPN = aCam->apply(vImgMeasure[aK].ptImg);
+                Pt2dr aPN = aCam->apply(vImgMeasure[aK].pt());
 
                 aVS.push_back(aCam->Camera()->F2toRayonR3(aPN));
             }
@@ -174,16 +202,15 @@ Pt3dr TiePoint::getCoord()
     }
 }
 
-Pt2dr TiePoint::computeImageDifference(int index,
+Pt2dr Observation::computeImageDifference(int index,
                                        Pt3dr pt,
                                        double aA0, double aA1, double aA2, double aB0, double aB1, double aB2)
 {
     ImageMeasure* aMes = &vImgMeasure[index];
 
-    Pt2dr ptImg = aMes->ptImg;
+    Pt2dr ptImg = aMes->pt();
 
-    map<int, AffCamera *>::const_iterator iter;
-    iter = pMapCam->find(aMes->idx);
+    map<int, AffCamera *>::const_iterator iter = pMapCam->find(aMes->imgIndex());
     AffCamera* cam = iter->second;
 
     Pt2dr ptImgC(aA0 + aA1 * ptImg.x + aA2 * ptImg.y,
@@ -194,14 +221,13 @@ Pt2dr TiePoint::computeImageDifference(int index,
     return ptImgC - proj;
 }
 
-Pt2dr TiePoint::computeImageDifference(int index, Pt3dr pt)
+Pt2dr Observation::computeImageDifference(int index, Pt3dr pt)
 {
     ImageMeasure* aMes = &vImgMeasure[index];
 
-    Pt2dr ptImg = aMes->ptImg;
+    Pt2dr ptImg = aMes->pt();
 
-    map<int, AffCamera *>::const_iterator iter;
-    iter = pMapCam->find(aMes->idx);
+    map<int, AffCamera *>::const_iterator iter = pMapCam->find(aMes->imgIndex());
     AffCamera* cam = iter->second;
 
     Pt2dr ptImgC = cam->apply(ptImg);
@@ -211,13 +237,21 @@ Pt2dr TiePoint::computeImageDifference(int index, Pt3dr pt)
     return ptImgC - proj;
 }
 
+class GCP : public Observation
+{
+public:
+    GCP(map <int, AffCamera*> *aMap, string aName, bool valid = true, Pt3dr aPt=Pt3dr(0.f,0.f,0.f)):Observation(aMap,aName,valid, aPt){}
+
+    Pt3dr getCoord() { return _PtTer; }
+};
+
 //! Abstract class for shared methods
 class RefineModelAbs
 {
 protected:
-    std::map <int, AffCamera*> mapCameras;
+    map <int, AffCamera*> mapCameras;
 
-    std::vector <TiePoint*> vObs;
+    vector <Observation*> vObs;
 
     ///
     /// \brief normal matrix for least squares estimation
@@ -236,14 +270,15 @@ protected:
 
 public:
 
-    std::vector <TiePoint*> getObs() { return vObs; }
+    vector <Observation*> getObs() { return vObs; }
+
     ///
     /// \brief constructor (loads GRID files, tie-points and filter tie-points on 2D ground difference)
     /// \param aNameFileGridMaster Grid file for master image
     /// \param aNameFileGridSlave Grid file for slave image
     /// \param aNamefileTiePoints Tie-points file
     ///
-    RefineModelAbs(std::string const &aFullDir):_N(1,1,0.),_Y(1,1,0.),numUnk(6), _verbose(false), iteration(0)
+    RefineModelAbs(string const &aFullDir, bool filter):_N(1,1,0.),_Y(1,1,0.),numUnk(6), _verbose(false), iteration(0)
     {
         string aDir, aPat;
         SplitDirAndFile(aDir,aPat,aFullDir);
@@ -252,24 +287,24 @@ public:
         list<string>::iterator itr = aVFiles.begin();
         for(;itr != aVFiles.end(); itr++)
         {
-            std::string aNameFileGrid1 = *itr;
+            string aNameFileGrid1 = *itr;
 
             list<string>::iterator it = itr; it++;
             for(;it != aVFiles.end(); it++)
             {
-                std::string aNameFileGrid2 = *it;
+                string aNameFileGrid2 = *it;
 
                 // Loading the GRID file
                 AffCamera* Cam1 = findCamera(aDir + aNameFileGrid1);
                 AffCamera* Cam2 = findCamera(aDir + aNameFileGrid2);
 
                 // Loading the Tie Points
-                std::string aNameWithoutExt  = aDir + StdPrefixGen(aNameFileGrid1)+ "_" + StdPrefixGen(aNameFileGrid2);
-                std::string aNameFileTiePoints = aNameWithoutExt + ".dat";
+                string aNameWithoutExt  = aDir + StdPrefixGen(aNameFileGrid1)+ "_" + StdPrefixGen(aNameFileGrid2);
+                string aNameFileTiePoints = aNameWithoutExt + ".dat";
 
                 if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) aNameFileTiePoints = aNameWithoutExt + ".txt";
 
-                if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) std::cout << "file missing: " << aNameWithoutExt << endl;
+                if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) cout << "file missing: " << aNameWithoutExt << endl;
                 else
                 {
                     cout << "reading: " << aNameFileTiePoints << endl;
@@ -278,7 +313,7 @@ public:
 
                     if (aPackHomol.size() == 0)
                     {
-                        std::cout << "Error in RefineModelAbs: no tie-points" << std::endl;
+                        cout << "Error in RefineModelAbs: no tie-points" << endl;
                         return;
                     }
 
@@ -293,40 +328,44 @@ public:
                         Pt2dr P1 = aCple.P1();
                         Pt2dr P2 = aCple.P2();
 
-                        //std::cout << "P1 = "<<P1.x<<" " <<P1.y << std::endl;
-                        //std::cout << "P2 = "<<P2.x<<" " <<P2.y << std::endl;
+                        //cout << "P1 = "<<P1.x<<" " <<P1.y << endl;
+                        //cout << "P2 = "<<P2.x<<" " <<P2.y << endl;
 
-                        if (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 100.)
+                        if ((filter) && (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 100.))
                         {
                             rPts_nb++;
-                            //std::cout << "Couple with 2D ground difference > 10 rejected" << std::endl;
+                            //cout << "Couple with 2D ground difference > 10 rejected" << endl;
                         }
                         else
                         {
-                            ImageMeasure imMes1(P1,Cam1->mIndex);
-                            ImageMeasure imMes2(P2,Cam2->mIndex);
+                            ImageMeasure imMes1(P1,Cam1);
+                            ImageMeasure imMes2(P2,Cam2);
 
-                            //algo brute force (à améliorer)
                             bool found = false;
-                            for (size_t aK=0; aK < nObs(); ++aK)
+
+                            if (mapCameras.size() > 2)
                             {
-                                TiePoint* TP = vObs[aK];
-                                for (size_t bK=0; bK < TP->vImgMeasure.size(); bK++)
+                                //algo brute force (à améliorer)
+                                for (size_t aK=0; aK < nObs(); ++aK)
                                 {
-                                    ImageMeasure *imMes3 = &TP->vImgMeasure[bK];
-                                    if ((imMes3->idx != Cam1->mIndex) && (imMes3->ptImg == P1))
+                                    TiePoint* TP = dynamic_cast<TiePoint*> (vObs[aK]);
+                                    for (size_t bK=0; bK < TP->vImgMeasure.size(); bK++)
                                     {
-                                        TP->vImgMeasure.push_back(imMes1);
-                                        mulTP_nb++;
-                                        //  std::cout << "multiple point: " << P1.x << " " << P1.y << " found in " << imMes3->idx << " and " << imMes1.idx << std::endl;
-                                        found = true;
-                                    }
-                                    else if ((imMes3->idx != Cam2->mIndex) && (imMes3->ptImg == P2))
-                                    {
-                                        TP->vImgMeasure.push_back(imMes2);
-                                        // std::cout << "multiple point: " << P2.x << " " << P2.y << " found in " << imMes3->idx << " and " << imMes2.idx << std::endl;
-                                        mulTP_nb++;
-                                        found = true;
+                                        ImageMeasure *imMes3 = &TP->vImgMeasure[bK];
+                                        if ((imMes3->imgName() != Cam1->name()) && (imMes3->pt() == P1))
+                                        {
+                                            TP->addImageMeasure(imMes1);
+                                            mulTP_nb++;
+                                            // cout << "multiple point: " << P1.x << " " << P1.y << " found in " << imMes3->idx << " and " << imMes1.idx << endl;
+                                            found = true;
+                                        }
+                                        else if ((imMes3->imgName() != Cam2->name()) && (imMes3->pt() == P2))
+                                        {
+                                            TP->addImageMeasure(imMes2);
+                                            // cout << "multiple point: " << P2.x << " " << P2.y << " found in " << imMes3->idx << " and " << imMes2.idx << endl;
+                                            mulTP_nb++;
+                                            found = true;
+                                        }
                                     }
                                 }
                             }
@@ -335,25 +374,29 @@ public:
                             {
                                 TiePoint *TP = new TiePoint(&mapCameras);
 
-                                TP->vImgMeasure.push_back(imMes1);
-                                TP->vImgMeasure.push_back(imMes2);
+                                TP->addImageMeasure(imMes1);
+                                TP->addImageMeasure(imMes2);
 
                                 vObs.push_back(TP);
 
-                                //std::cout << "vObs size : " << nObs() << std::endl;
+                                //cout << "vObs size : " << nObs() << endl;
                             }
                         }
                     }
 
-                    std::cout << "Number of tie points: " <<  aPackHomol.size() << std::endl;
-                    std::cout << "Number of rejected tie points: " << rPts_nb << std::endl;
-                    std::cout << "Number of multiple tie points: " << mulTP_nb << std::endl;
-                    std::cout << "Final number of tie points: " <<  aPackHomol.size() - rPts_nb << std::endl;
+                    cout << "Number of tie points: "  << aPackHomol.size() << endl;
+                    cout << "Number of multiple tie points: " << mulTP_nb << endl;
+
+                    if (filter)
+                    {
+                        cout << "Number of rejected tie points: " << rPts_nb << endl;
+                        cout << "Final number of tie points: "    << aPackHomol.size() - rPts_nb << endl;
+                    }
                 }
             }
         }
 
-        std::cout << "mapCameras.size= " << mapCameras.size() << std::endl;
+        cout << "mapCameras.size= " << mapCameras.size() << endl;
     }
 
     ///
@@ -368,7 +411,7 @@ public:
         //pour chaque point de liaison
         for (size_t aK=0; aK < nObs();++aK)
         {
-            TiePoint* TP = vObs[aK];
+            Observation* TP = vObs[aK];
             Pt3dr PT = TP->getCoord();
 
             //pour chaque image ou le point de liaison est vu
@@ -385,18 +428,18 @@ public:
     /// \brief debug matrix
     /// \param mat matrix to write
     ///
-    void printMatrix(ElMatrix <double> const & mat, std::string name="")
+    void printMatrix(ElMatrix <double> const & mat, string name="")
     {
-        std::cout << "-------------------------"<<std::endl;
-        std::cout << "Matrix " << name << " : " << std::endl;
+        cout << "-------------------------"<<endl;
+        cout << "Matrix " << name << " : " << endl;
         for(int j=0;j<mat.Sz().y;++j)
         {
             for(int i=0;i<mat.Sz().x;++i)
-                std::cout << mat(i,j) << " ";
+                cout << mat(i,j) << " ";
 
-            std::cout << std::endl;
+            cout << endl;
         }
-        std::cout << "-------------------------"<<std::endl;
+        cout << "-------------------------"<<endl;
     }
 
     ///
@@ -412,14 +455,14 @@ public:
 
         if (numObs)
         {
-            std::cout << "RMS_init = " << iniRMS << std::endl;
+            cout << "RMS_init = " << iniRMS << endl;
 
-            double curRMS = std::sqrt(res/numObs);
+            double curRMS = sqrt(res/numObs);
 
             if (curRMS>=iniRMS)
             {
-                std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
-                std::cout << "No improve: end at iteration "<< iteration <<std::endl;
+                cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<endl;
+                cout << "No improve: end at iteration "<< iteration <<endl;
                 return false;
             }
 
@@ -429,12 +472,12 @@ public:
             for (size_t aK=0; iter != mapCameras.end();++iter, ++aK)
             {
                 AffCamera* cam = iter->second;
-                std::string name = StdPrefixGen(cam->filename);
-                std::ofstream fic(("refine/" + name + ".txt").c_str());
-                fic << std::setprecision(15);
-                fic << cam->vP[0] <<" "<< cam->vP[1] <<" "<< cam->vP[2] <<" "<< cam->vP[3] <<" "<< cam->vP[4] <<" "<< cam->vP[5] <<" "<<std::endl;
+                string name = StdPrefixGen(cam->name());
+                ofstream fic(("refine/" + name + ".txt").c_str());
+                fic << setprecision(15);
+                fic << cam->vP[0] <<" "<< cam->vP[1] <<" "<< cam->vP[2] <<" "<< cam->vP[3] <<" "<< cam->vP[4] <<" "<< cam->vP[5] <<" "<<endl;
             }
-            std::cout << "RMS_after = " << curRMS << std::endl;
+            cout << "RMS_after = " << curRMS << endl;
             iteration++;
             return true;
         }
@@ -458,16 +501,16 @@ public:
 
     virtual ~RefineModelAbs(){}
 
-    AffCamera *findCamera(std::string aFilename)
+    AffCamera *findCamera(string aFilename)
     {
         map<int, AffCamera *>::const_iterator it = mapCameras.begin();
         for (;it!=mapCameras.end();++it)
         {
-            if (it->second->filename == aFilename) return it->second;
+            if (it->second->name() == aFilename) return it->second;
         }
-        AffCamera* Cam1 = new AffCamera(aFilename, mapCameras.size(), mapCameras.size()!=0);
-        mapCameras.insert(std::pair <int,AffCamera*>(mapCameras.size(), Cam1));
-        return Cam1;
+        AffCamera* Cam = new AffCamera(aFilename, mapCameras.size(), mapCameras.size()!=0);
+        mapCameras.insert(pair <int,AffCamera*>(mapCameras.size(), Cam));
+        return Cam;
     }
 
     size_t nObs() { return vObs.size(); }
@@ -479,35 +522,38 @@ class RefineModelGlobal: public RefineModelAbs
 {
 
 public:
-    RefineModelGlobal(std::string const &aPattern,
-                      std::string const &aNameFileGCP = "",
-                      std::string const &aNameFilePointeIm = "",
-                      std::string const &aNameFileMNT = ""):
-        RefineModelAbs(aPattern)
+    RefineModelGlobal(string const &aPattern,
+                      string const &aNameFileGCP = "",
+                      string const &aNameFilePointeIm = "",
+                      string const &aNameFileMNT = "",
+                      bool filter = false):
+        RefineModelAbs(aPattern, filter)
     {
         if ((aNameFileMNT != "") && (ELISE_fp::exist_file(aNameFileMNT)))
         {
             // Chargement du MNT
             _MntOri = StdGetFromPCP(aNameFileMNT,FileOriMnt);
-            std::cout << "DTM size : "<<_MntOri.NombrePixels().x<<" "<<_MntOri.NombrePixels().y<<std::endl;
-            std::auto_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
+            cout << "DTM size : "<<_MntOri.NombrePixels().x<<" "<<_MntOri.NombrePixels().y<<endl;
+            auto_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
             _MntImg = Img;
-            if (_MntImg.get()==NULL) cerr << "Error in "<< _MntOri.NameFileMnt() <<std::endl;
+            if (_MntImg.get()==NULL) cerr << "Error in "<< _MntOri.NameFileMnt() <<endl;
         }
 
         if ((aNameFileGCP != "") && (ELISE_fp::exist_file(aNameFileGCP)))
         {
             cDicoAppuisFlottant aDico = StdGetFromPCP(aNameFileGCP,DicoAppuisFlottant);
-            std::cout << "Nb Pts " <<  aDico.OneAppuisDAF().size() << endl;
-            std::list<cOneAppuisDAF> & aLGCP =  aDico.OneAppuisDAF();
+            cout << "Nb Pts " <<  aDico.OneAppuisDAF().size() << endl;
+            list<cOneAppuisDAF> & aLGCP =  aDico.OneAppuisDAF();
 
             for (
-                     std::list<cOneAppuisDAF>::iterator iT= aLGCP.begin();
+                     list<cOneAppuisDAF>::iterator iT = aLGCP.begin();
                      iT != aLGCP.end();
                      iT++
                 )
             {
                 cout << "Point : " << iT->NamePt() << " " << iT->Pt() << endl;
+
+                vObs.push_back(new GCP(&mapCameras, iT->NamePt(), true, iT->Pt()));
             }
         }
 
@@ -515,24 +561,53 @@ public:
         {
             cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aNameFilePointeIm,SetOfMesureAppuisFlottants);
             cout << "Nb Pts " << aDico.MesureAppuiFlottant1Im().size() << endl;
-            std::list<cMesureAppuiFlottant1Im> & aLGCP =  aDico.MesureAppuiFlottant1Im();
+            list<cMesureAppuiFlottant1Im> & aLGCP =  aDico.MesureAppuiFlottant1Im();
 
             for (
-                     std::list<cMesureAppuiFlottant1Im>::iterator iT= aLGCP.begin();
+                     list<cMesureAppuiFlottant1Im>::iterator iT = aLGCP.begin();
                      iT != aLGCP.end();
                      iT++
                 )
             {
-                cout << "Image : " << iT->NameIm() << endl;
-                std::list< cOneMesureAF1I > & aLPIm = iT->OneMesureAF1I();
+                cout << "Image : " << StdPrefixGen(iT->NameIm()) << endl;
+                list< cOneMesureAF1I > & aLPIm = iT->OneMesureAF1I();
 
                 for (
-                     std::list<cOneMesureAF1I>::iterator iTP= aLPIm.begin();
+                     list<cOneMesureAF1I>::iterator iTP = aLPIm.begin();
                      iTP != aLPIm.end();
                      iTP++
                     )
                 {
-                    cout << "Point : " << iTP->NamePt() << " " << iTP->PtIm() << endl;
+                    //cout << "Point : " << iTP->NamePt() << " " << iTP->PtIm() << endl;
+
+                    AffCamera* cam = NULL;
+                    for (
+                         map<int, AffCamera *>::iterator iter = mapCameras.begin();
+                         iter != mapCameras.end();
+                         iter++
+                        )
+                    {
+                        if (NameWithoutDir(iter->second->name()) == StdPrefixGen(iT->NameIm()))
+                        {
+                            cam = iter->second;
+                            break;
+                        }
+                    }
+
+                    if (cam)
+                    {
+                        ImageMeasure im( iTP->PtIm(), cam );
+
+                        for (unsigned int aK=0; aK<vObs.size();++aK)
+                        {
+                            if (vObs[aK]->ptName() == iTP->NamePt() )
+                            {
+                                vObs[aK]->addImageMeasure(im);
+                                cout << "add img measure to GCP " << vObs[aK]->ptName() << endl;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -657,7 +732,7 @@ public:
         }
     }
 
-    void solveFirstGroup(std::vector<int> const &vpos)
+    void solveFirstGroup(vector<int> const &vpos)
     {
         bool verbose = false;
 
@@ -757,18 +832,16 @@ public:
 
         if (verbose) printMatrix(sol, "sol");
 
-        //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
+        //cout << "SOL_NORM = " << sol.NormC(2) << endl;
 
 
 
         //for (size_t aK=0; aK < vObs.size(); aK++)
         for (size_t aK=0; aK < 10; aK++)
         {
-             TiePoint* aTP = vObs[aK];
-             std::cout << aTP->getCoord().z << std::endl;
+             Observation* aObs = vObs[aK];
+             cout << aObs->getCoord().z << endl;
         }
-
-
 
 
         int aK =0;
@@ -783,11 +856,10 @@ public:
         }
 
 
-
         for (size_t aK=0; aK < 10; aK++)
         {
-             TiePoint* aTP = vObs[aK];
-             std::cout << aTP->getCoord().z << std::endl;
+             Observation* aObs = vObs[aK];
+             cout << aObs->getCoord().z << endl;
         }
 
         //TODO
@@ -797,7 +869,7 @@ public:
     //! compute the observation matrix for one iteration
     bool computeObservationMatrix()
     {
-        std::cout <<"iter="<<iteration<<std::endl;
+        cout <<"iter="<<iteration<<endl;
 
         double NoData = -9999.;
 
@@ -806,8 +878,8 @@ public:
         cout << "res= " << res << " numObs= " << numObs << endl;
         if (numObs)
         {
-            double iniRMS = std::sqrt(res/numObs);
-            //std::cout << "RMS_ini = " << iniRMS << std::endl;
+            double iniRMS = sqrt(res/numObs);
+            //cout << "RMS_ini = " << iniRMS << endl;
 
            // double dA0 = 0.5;
             double dA1 = 0.01;
@@ -821,11 +893,11 @@ public:
 
             //Get number of cameras to estimate
             int nbCam = 0;
-            map<int, AffCamera *>::const_iterator it=mapCameras.begin();
+            map<int, AffCamera *>::const_iterator it = mapCameras.begin();
             for(;it !=mapCameras.end();++it)
                 if (it->second->isActivated()) nbCam++;
 
-            std::cout << "Nb cam to estimate : " << nbCam << std::endl;
+            cout << "Nb cam to estimate : " << nbCam << endl;
 
             //Init matrix
             int matSz = 3+numUnk*nbCam;
@@ -833,20 +905,21 @@ public:
             _N = ElMatrix<double>(matSz, matSz);
             _Y = ElMatrix<double>(1, matSz);
 
-            //pour chaque point de liaison
+            //pour chaque observation
             for (size_t aK=0; aK < nObs(); aK++)
             {
-                TiePoint* aTP = vObs[aK];
+                Observation* aObs = vObs[aK];
 
-                std::vector <ImageMeasure> vMes = aTP->vImgMeasure;
-                std::vector <int> vPos;
+                vector <ImageMeasure> vMes = aObs->vImgMeasure;
+                vector <int> vPos;
 
-                Pt3dr pt = aTP->getCoord();
+                Pt3dr pt = aObs->getCoord();
+                cout  << "youhou : " << pt <<endl;
 
                 //pour chaque image où le point de liaison est vu
                 for(size_t bK=0; bK < vMes.size();++bK)
                 {
-                    Pt2dr D = aTP->computeImageDifference(bK, pt);
+                    Pt2dr D = aObs->computeImageDifference(bK, pt);
                    // double ecart2 = square_euclid(D);
 
                     double pdt = 1.; //1./sqrt(1. + ecart2);
@@ -857,11 +930,10 @@ public:
                     ElMatrix<double> ccc(3,1);
 
                     // estimation des derivees partielles
-                    map<int, AffCamera *>::iterator iter;
-                    iter = mapCameras.find(vMes[bK].idx);
+                    map<int, AffCamera *>::iterator iter = mapCameras.find(vMes[bK].imgIndex());
                     AffCamera* cam = iter->second;
 
-                    if (cam->mIndex > 0) vPos.push_back(cam->mIndex);
+                    if (cam->index() > 0) vPos.push_back(cam->index());
 
                     double a0 = cam->vP[0];
                     double a1 = cam->vP[1];
@@ -870,18 +942,18 @@ public:
                     double b1 = cam->vP[4];
                     double b2 = cam->vP[5];
 
-                    //Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aTP->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
-                    Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (aTP->computeImageDifference(bK,pt,a0,a1+dA1,a2,b0,b1,b2)-D);
-                    Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (aTP->computeImageDifference(bK,pt,a0,a1,a2+dA2,b0,b1,b2)-D);
-                    //Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0+dB0,b1,b2)-D);
-                    Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0,b1+dB1,b2)-D);
-                    Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (aTP->computeImageDifference(bK,pt,a0,a1,a2,b0,b1,b2+dB2)-D);
+                    //Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aObs->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (aObs->computeImageDifference(bK,pt,a0,a1+dA1,a2,b0,b1,b2)-D);
+                    Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (aObs->computeImageDifference(bK,pt,a0,a1,a2+dA2,b0,b1,b2)-D);
+                    //Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (aObs->computeImageDifference(bK,pt,a0,a1,a2,b0+dB0,b1,b2)-D);
+                    Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (aObs->computeImageDifference(bK,pt,a0,a1,a2,b0,b1+dB1,b2)-D);
+                    Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (aObs->computeImageDifference(bK,pt,a0,a1,a2,b0,b1,b2+dB2)-D);
 
-                    Pt2dr vdX = Pt2dr(1./dX,1./dX) * (aTP->computeImageDifference(bK,Pt3dr(pt.x+dX, pt.y, pt.z),a0,a1,a2,b0,b1,b2)-D);
-                    Pt2dr vdY = Pt2dr(1./dY,1./dY) * (aTP->computeImageDifference(bK,Pt3dr(pt.x, pt.y+dY, pt.z),a0,a1,a2,b0,b1,b2)-D);
-                    Pt2dr vdZ = Pt2dr(1./dZ,1./dZ) * (aTP->computeImageDifference(bK,Pt3dr(pt.x, pt.y, pt.z+dZ),a0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdX = Pt2dr(1./dX,1./dX) * (aObs->computeImageDifference(bK,Pt3dr(pt.x+dX, pt.y, pt.z),a0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdY = Pt2dr(1./dY,1./dY) * (aObs->computeImageDifference(bK,Pt3dr(pt.x, pt.y+dY, pt.z),a0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdZ = Pt2dr(1./dZ,1./dZ) * (aObs->computeImageDifference(bK,Pt3dr(pt.x, pt.y, pt.z+dZ),a0,a1,a2,b0,b1,b2)-D);
 
-                    if (cam->mIndex !=0)
+                    if (cam->index() !=0)
                     {
 
                         //obs(0,0) = vdA0.x;
@@ -898,9 +970,9 @@ public:
                     ccc(1,0) = vdY.x;
                     ccc(2,0) = vdZ.x;
 
-                    addObs(cam->mIndex, obs, ccc, pdt,-D.x);
+                    addObs(cam->index(), obs, ccc, pdt,-D.x);
 
-                    if (cam->mIndex !=0)
+                    if (cam->index() !=0)
                     {
 
                         //obs(0,0) = vdA0.y;
@@ -917,7 +989,7 @@ public:
                     ccc(1,0) = vdY.y;
                     ccc(2,0) = vdZ.y;
 
-                    addObs(cam->mIndex, obs, ccc, pdt,-D.y);
+                    addObs(cam->index(), obs, ccc, pdt,-D.y);
                 }
 
                 solveFirstGroup(vPos);
@@ -929,7 +1001,7 @@ public:
                     double zMnt = _MntImg->getr(ptMnt,NoData)*_MntOri.ResolutionAlti() + _MntOri.OrigineAlti();
 
                     if (zMnt == NoData)
-                        std::cout << "Pas d'altitude trouvee pour le point : "<< pt.x<< " " << pt.y << std::endl;
+                        cout << "Pas d'altitude trouvee pour le point : "<< pt.x<< " " << pt.y << endl;
                     else
                     {
                         double res = -pt.z + zMnt;
@@ -946,7 +1018,7 @@ public:
                 }
             }
 
-            map<int, AffCamera *>::iterator iter= mapCameras.begin();
+            map<int, AffCamera *>::iterator iter = mapCameras.begin();
             for(; iter!=mapCameras.end();++iter)
             {
                 AffCamera* cam = iter->second;
@@ -966,11 +1038,11 @@ public:
                         addObsStabil(cam->mIndex, AB, sig, 0. - cam->vP[aK]);*/
 
                      if ((aK==0) || (aK==3))
-                        addObsStabil(cam->mIndex, AB, sig, 0. - cam->vP[aK]);
+                        addObsStabil(cam->index(), AB, sig, 0. - cam->vP[aK]);
                 }
             }
 
-            std::cout << "before solve"<<std::endl;
+            cout << "before solve"<<endl;
 
             solve();
 
@@ -988,16 +1060,17 @@ public:
     }
 
 private:
-    std::auto_ptr<TIm2D<REAL4,REAL8> > _MntImg;
+    auto_ptr<TIm2D<REAL4,REAL8> > _MntImg;
     cFileOriMnt                        _MntOri;
 };
 
 int NewRefineModel_main(int argc, char **argv)
 {
-    std::string aPat; // GRID files pattern
-    std::string aNameMNT=""; //DTM file
-    std::string aNamePointeIm=""; //Pointe image file
-    std::string aNameGCP=""; //GCP file
+    string aPat; // GRID files pattern
+    string aNameMNT=""; //DTM file
+    string aNamePointeIm=""; //Pointe image file
+    string aNameGCP=""; //GCP file
+    bool filterInput=false;
     bool exportResidus = false;
 
     ElInitArgMain
@@ -1007,12 +1080,13 @@ int NewRefineModel_main(int argc, char **argv)
          LArgMain() << EAM(aNameGCP,"GCP",true, "GCP file")
                     << EAM(aNamePointeIm,"IMG",true, "Pointe image file")
                     << EAM(aNameMNT,"DTM",true, "DTM file")
+                    << EAM(filterInput,"Filter",true, "Remove tiepoints with ground distance > 10m")
                     << EAM(exportResidus,"ExpRes",true, "Export residuals (def=false)")
     );
 
     ELISE_fp::MkDirSvp("refine");
 
-    RefineModelGlobal model(aPat, aNameGCP, aNamePointeIm, aNameMNT);
+    RefineModelGlobal model(aPat, aNameGCP, aNamePointeIm, aNameMNT, filterInput);
 
     bool ok = (model.nObs() > 3);
     for(size_t iter = 0; (iter < 100) & ok; iter++)
@@ -1020,29 +1094,29 @@ int NewRefineModel_main(int argc, char **argv)
 
     if (exportResidus)
     {
-        std::ofstream ficRes("refine/residus.txt");
-        std::ofstream ficGlb("refine/residusGlob.txt");
-        ficRes << std::setprecision(15);
-        ficGlb << std::setprecision(15);
+        ofstream ficRes("refine/residus.txt");
+        ofstream ficGlb("refine/residusGlob.txt");
+        ficRes << setprecision(15);
+        ficGlb << setprecision(15);
 
-        std::vector <TiePoint*> vTP = model.getObs();
+        vector <Observation*> vTP = model.getObs();
         for (size_t aK=0; aK < vTP.size();++aK)
         {
-            TiePoint* TP = vTP[aK];
+            Observation* aObs = vTP[aK];
 
-            Pt3dr PT = TP->getCoord();
+            Pt3dr PT = aObs->getCoord();
 
             double sumRes = 0.;
-            for(size_t i=0;i<TP->vImgMeasure.size();++i)
+            for(size_t i=0;i<aObs->vImgMeasure.size();++i)
             {
-                Pt2dr D = TP->computeImageDifference(i, PT);
+                Pt2dr D = aObs->computeImageDifference(i, PT);
 
-                ficRes << aK <<" "<< TP->vImgMeasure[i].idx <<" "<< TP->vImgMeasure[i].ptImg.x <<" "<< TP->vImgMeasure[i].ptImg.y <<" "<< D.x <<" "<< D.y <<" "<<std::endl;
+                ficRes << aK <<" "<< aObs->vImgMeasure[i].imgName() <<" "<< aObs->vImgMeasure[i].pt().x <<" "<< aObs->vImgMeasure[i].pt().y <<" "<< D.x <<" "<< D.y <<" "<<endl;
 
                 sumRes += square_euclid(D);
             }
 
-            ficGlb << aK <<" "<< PT.x << " " << PT.y << " " << PT.z << " "<< sumRes << " " << std::sqrt(sumRes /TP->vImgMeasure.size()) << endl;
+            ficGlb << aK <<" "<< PT.x << " " << PT.y << " " << PT.z << " "<< sumRes << " " << sqrt(sumRes/aObs->vImgMeasure.size()) << endl;
         }
     }
 
@@ -1051,7 +1125,7 @@ int NewRefineModel_main(int argc, char **argv)
 
 int AddAffinity_main(int argc, char **argv)
 {
-    std::string aNameFile; // tie-points file
+    string aNameFile; // tie-points file
     bool addNoise = false;
 
     ElInitArgMain
@@ -1061,11 +1135,11 @@ int AddAffinity_main(int argc, char **argv)
          LArgMain() << EAM(addNoise, "Noise", true, "Add noise (def=false)" )
     );
 
-    std::vector <DigeoPoint> aList;
+    vector <DigeoPoint> aList;
     DigeoPoint::readDigeoFile(aNameFile, true, aList);
     //TODO: handle versions
 
-    std::cout << "pts nb: " << aList.size() << endl;
+    cout << "pts nb: " << aList.size() << endl;
 
     double A0, A1, A2, B0, B1, B2;
     A0 = 0.1f;
@@ -1079,7 +1153,7 @@ int AddAffinity_main(int argc, char **argv)
     {
         DigeoPoint pt = aList[aK];
 
-        //std::cout << "pt avt " << pt.x << " " << pt.y << std::endl;
+        //cout << "pt avt " << pt.x << " " << pt.y << endl;
         Pt2dr ptt(A0 + A1 * pt.x + A2 * pt.y, B0 + B1 * pt.x + B2 * pt.y);
 
         if (addNoise)
@@ -1088,13 +1162,13 @@ int AddAffinity_main(int argc, char **argv)
             ptt += aNoise;
         }
 
-        //std::cout << "pt apr " << ptt.x << " " << ptt.y << endl;
+        //cout << "pt apr " << ptt.x << " " << ptt.y << endl;
 
         aList[aK].x = ptt.x;
         aList[aK].y = ptt.y;
     }
 
-    std::string aOut = StdPrefixGen(aNameFile)+ "_transf.dat";
+    string aOut = StdPrefixGen(aNameFile)+ "_transf.dat";
     DigeoPoint::writeDigeoFile(aOut, aList, 0, true);
 
     return EXIT_SUCCESS;
@@ -1120,7 +1194,7 @@ class OldAffCamera
     ///
     /// \brief Tie Points (in pixel)
     ///
-    std::vector<Pt2dr> vPtImg;
+    vector<Pt2dr> vPtImg;
 
     ///
     /// \brief update affinity parameters
@@ -1128,7 +1202,7 @@ class OldAffCamera
     ///
     void updateParams(ElMatrix <double> const &sol)
     {
-        std::cout << "Init solution: "<<std::endl;
+        cout << "Init solution: "<<endl;
         printParams();
 
         a0 += sol(0,0);
@@ -1138,14 +1212,14 @@ class OldAffCamera
         b1 += sol(0,4);
         b2 += sol(0,5);
 
-        std::cout << "Updated solution: "<<std::endl;
+        cout << "Updated solution: "<<endl;
         printParams();
     }
 
     void printParams()
     {
-        std::cout << a0<<" "<<a1<<" "<<a2<<std::endl;
-        std::cout << b0<<" "<<b1<<" "<<b2<<std::endl;
+        cout << a0<<" "<<a1<<" "<<a2<<endl;
+        cout << b0<<" "<<b1<<" "<<b2<<endl;
     }
 
     ElCamera* Camera() { return mCamera; }
@@ -1175,7 +1249,7 @@ protected:
     ///
     /// \brief Points altitude (to estimate)
     ///
-    std::vector<double> vZ;
+    vector<double> vZ;
     ///
     /// \brief zMoy Ground mean altitude
     ///
@@ -1242,9 +1316,9 @@ public:
     /// \param aNamefileTiePoints Tie-points file
     /// \param Zmoy ground mean altitude
     ///
-    OldRefineModelAbs(std::string const &aNameFileGridMaster,
-                   std::string const &aNameFileGridSlave,
-                   std::string const &aNameFileTiePoints,
+    OldRefineModelAbs(string const &aNameFileGridMaster,
+                   string const &aNameFileGridSlave,
+                   string const &aNameFileTiePoints,
                    double Zmoy):master(NULL),slave(NULL),zMoy(Zmoy),_N(1,1,0.),_Y(1,1,0.)
     {
         // Loading the GRID file
@@ -1256,7 +1330,7 @@ public:
 
         if (aPackHomol.size() == 0)
         {
-            std::cout << "Error in RefineModelAbs: no tie-points" << std::endl;
+            cout << "Error in RefineModelAbs: no tie-points" << endl;
             return;
         }
 
@@ -1271,13 +1345,13 @@ public:
             Pt2dr P2 = aCple.P2();
 
             double z = getZ(P1,P2,zMoy);
-            //std::cout << "z = "<<z<<std::endl;
+            //cout << "z = "<<z<<endl;
             Pt2dr D = compute2DGroundDifference(P1,P2,z,slave);
 
             if (square_euclid(D)>100.)
             {
                 rPts_nb++;
-                //std::cout << "Point with 2D ground difference > 10 : "<< D.x << " " << D.y << " - rejected" << std::endl;
+                //cout << "Point with 2D ground difference > 10 : "<< D.x << " " << D.y << " - rejected" << endl;
             }
             else
             {
@@ -1287,8 +1361,8 @@ public:
             }
         }
 
-        std::cout << "Number of rejected points : "<< rPts_nb << std::endl;
-        std::cout << "Number of tie points : "<< master->vPtImg.size() << std::endl;
+        cout << "Number of rejected points : "<< rPts_nb << endl;
+        cout << "Number of tie points : "<< master->vPtImg.size() << endl;
     }
 
     ///
@@ -1354,15 +1428,15 @@ public:
     ///
     void printMatrix(ElMatrix <double> const & mat)
     {
-        std::cout << "-------------------------"<<std::endl;
+        cout << "-------------------------"<<endl;
         for(int i=0;i<mat.Sz().x;++i)
         {
             for(int j=0;j<mat.Sz().y;++j)
-                std::cout << mat(i,j) <<" ";
+                cout << mat(i,j) <<" ";
 
-            std::cout << std::endl;
+            cout << endl;
         }
-        std::cout << "-------------------------"<<std::endl;
+        cout << "-------------------------"<<endl;
     }
 
     ///
@@ -1373,21 +1447,21 @@ public:
     ///
     bool launchNewIter(double iniRMS, int numObs)
     {
-        double curRMS = std::sqrt(sumRes()/numObs);
+        double curRMS = sqrt(sumRes()/numObs);
 
         if (curRMS>iniRMS)
         {
-            std::cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<std::endl;
-            std::cout << "No improve: end"<<std::endl;
+            cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<endl;
+            cout << "No improve: end"<<endl;
             return false;
         }
 
         //ecriture dans un fichier des coefficients en vue d'affiner la grille
 
-        std::ofstream fic("refine/refineCoef.txt");
-        fic << std::setprecision(15);
-        fic << slave->a0 <<" "<< slave->a1 <<" "<< slave->a2 <<" "<< slave->b0 <<" "<< slave->b1 <<" "<< slave->b2 <<" "<<std::endl;
-        std::cout << "RMS_after = " << curRMS << std::endl;
+        ofstream fic("refine/refineCoef.txt");
+        fic << setprecision(15);
+        fic << slave->a0 <<" "<< slave->a1 <<" "<< slave->a2 <<" "<< slave->b0 <<" "<< slave->b1 <<" "<< slave->b2 <<" "<<endl;
+        cout << "RMS_after = " << curRMS << endl;
         return true;
     }
 
@@ -1416,9 +1490,9 @@ class OldRefineModelBasicSansZ: public OldRefineModelAbs
 {
 
 public:
-    OldRefineModelBasicSansZ(std::string const &aNameFileGridMaster,
-                     std::string const &aNameFileGridSlave,
-                     std::string const &aNamefileTiePoints,
+    OldRefineModelBasicSansZ(string const &aNameFileGridMaster,
+                     string const &aNameFileGridSlave,
+                     string const &aNamefileTiePoints,
                      double Zmoy):OldRefineModelAbs(aNameFileGridMaster,aNameFileGridSlave,aNamefileTiePoints,Zmoy)
     {
     }
@@ -1426,10 +1500,10 @@ public:
     void solve()
     {
         /*
-         std::cout << "solve"<<std::endl;
-         std::cout << "Matrice _N:"<<std::endl;
+         cout << "solve"<<endl;
+         cout << "Matrice _N:"<<endl;
          printMatrix(_N);
-         std::cout << "Matrice _Y:"<<std::endl;
+         cout << "Matrice _Y:"<<endl;
          printMatrix(_Y);
          */
         ElMatrix<double> AtA = _N.transpose() * _N;
@@ -1439,10 +1513,10 @@ public:
         //printMatrix(AtB);
         ElMatrix<double> sol = gaussj(AtA) * AtB;
         /*
-         std::cout << "Matrice sol:"<<std::endl;
+         cout << "Matrice sol:"<<endl;
          printMatrix(sol);
          */
-        //std::cout << "SOL_NORM = " << sol.NormC(2) << std::endl;
+        //cout << "SOL_NORM = " << sol.NormC(2) << endl;
 
         slave->updateParams(sol);
 
@@ -1458,8 +1532,8 @@ public:
     bool computeObservationMatrix()
     {
         int numObs = 2*vZ.size();
-        double iniRMS = std::sqrt(sumRes()/numObs);
-        std::cout << "RMS_ini = " << iniRMS << std::endl;
+        double iniRMS = sqrt(sumRes()/numObs);
+        cout << "RMS_ini = " << iniRMS << endl;
 
         double dA0 = 0.5;
         double dA1 = 0.01;
@@ -1475,7 +1549,7 @@ public:
         //for( toutes les obs )
         for(size_t i=0;i<master->vPtImg.size();++i)
         {
-            //std::cout << "i = "<<i<<std::endl;
+            //cout << "i = "<<i<<endl;
             Pt2dr const &ptImgMaster = master->vPtImg[i];
             Pt2dr const &ptImgSlave  = slave->vPtImg[i];
             double const Z = vZ[i];
@@ -1544,7 +1618,7 @@ public:
             _Y(0,2*vZ.size()+5) = (1-b2) * pdt;
         }
          */
-        std::cout << "before solve"<<std::endl;
+        cout << "before solve"<<endl;
 
         solve();
 
@@ -1558,9 +1632,9 @@ public:
 
 int RefineModel_main(int argc, char **argv)
 {
-    std::string aNameFileGridMaster; // fichier GRID image maitre
-    std::string aNameFileGridSlave;  // fichier GRID image secondaire
-    std::string aNameFileTiePoints;  // fichier de points de liaison
+    string aNameFileGridMaster; // fichier GRID image maitre
+    string aNameFileGridSlave;  // fichier GRID image secondaire
+    string aNameFileTiePoints;  // fichier de points de liaison
     double aZMoy;                    // the average altitude of the TiePoints
 
     ElInitArgMain
@@ -1580,7 +1654,7 @@ int RefineModel_main(int argc, char **argv)
     bool ok=true;
     for(size_t iter = 0; (iter < 100) & ok; iter++)
     {
-        std::cout <<"iter="<<iter<<std::endl;
+        cout <<"iter="<<iter<<endl;
         ok = model.computeObservationMatrix();
     }
 
