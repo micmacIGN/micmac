@@ -1645,7 +1645,7 @@ void cMaskedImageGL::createTextures()
 
         for (int aK = 0; aK < 4; aK++)
         {
-            _tiles[aK].setSize(tileSize);
+            getTile(aK).setSize(tileSize);
         }
     }
 }

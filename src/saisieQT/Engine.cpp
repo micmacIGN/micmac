@@ -100,7 +100,6 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
 void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> &maskedImg)
 {
-
     setFilenameOut(aNameFile);
 
     if (QFile::exists(aNameFile))
@@ -109,15 +108,15 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> &maskedImg)
 
         if ( maskedImg._loadedImageRescaleFactor != 1.f )
         {
-            maskedImg._m_mask = new QImage( maskedImg._m_image->size(), QImage::Format_Mono);
+            maskedImg._m_mask = new QImage(maskedImg._m_image->size(), QImage::Format_Mono);
 
             QImageReader *reader = new QImageReader(aNameFile);
 
             reader->setScaledSize(maskedImg._m_image->size());
 
-            *(maskedImg._m_mask) = reader->read();
+            reader->read(maskedImg._m_mask);
             maskedImg._m_mask->invertPixels(QImage::InvertRgb);
-            *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
+            *maskedImg._m_mask = QGLWidget::convertToGLFormat(*maskedImg._m_mask);
         }
         else
         {
@@ -618,7 +617,7 @@ void cEngine::computeScaleFactor(QStringList const &filenames, int appMode)
 
     if (_scaleFactor != 1.f)
     {
-        QString msg = "Rescaling images with " + QString::number(_scaleFactor,'f', 2) + " factor";
+        QString msg = QObject::tr("Rescaling images with ") + QString::number(_scaleFactor,'f', 2) + QObject::tr(" factor");
         QMessageBox* msgBox = new QMessageBox(QMessageBox::Warning, QObject::tr("GL_MAX_TEXTURE_SIZE exceeded"),  msg);
         msgBox->setWindowFlags(Qt::WindowStaysOnTopHint);
 
