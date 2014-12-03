@@ -170,7 +170,7 @@ int Campari_main(int argc,char ** argv)
         if (ExpTxt) aCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
         if (EAMIsInit(&aFactResElimTieP))
-           aCom =  " +FactMaxRes=" + ToString(aFactResElimTieP);
+           aCom =  aCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);
 
 
        if (EAMIsInit(&Viscos)) aCom  +=  " +Viscos=" + ToString(Viscos) + " ";
