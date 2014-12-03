@@ -1,0 +1,51 @@
+cEqAppui_PTInc_M2CDRad5
+
+
+
+NO BUG
+
+ | | RESIDU LIAISON (pixel) =  Ter-Im :0.358651 pour [_mg_9811_MpDcraw8B_GB.tif/_mg_9812_MpDcraw8B_GB.tif] Max = 1.54527
+| | | RESIDU LIAISON (pixel) =  Ter-Im :0.360727 pour [_mg_9812_MpDcraw8B_GB.tif/_mg_9811_MpDcraw8B_GB.tif] Max = 1.54527
+| |  RESIDU LIAISON MOYENS = 0.359691 pour Pastis_Hom
+--- End Iter 0
+
+| | | RESIDU LIAISON (pixel) =  Ter-Im :0.330323 pour [_mg_9812_MpDcraw8B_GB.tif/_mg_9811_MpDcraw8B_GB.tif] Max = 1.41494
+| | | RESIDU LIAISON (pixel) =  Ter-Im :0.326888 pour [_mg_9811_MpDcraw8B_GB.tif/_mg_9812_MpDcraw8B_GB.tif] Max = 1.41494
+| |  RESIDU LIAISON MOYENS = 0.32861 pour Pastis_Hom
+--- End Iter 1
+
+| | | RESIDU LIAISON (pixel) =  Ter-Im :0.328587 pour [_mg_9812_MpDcraw8B_GB.tif/_mg_9811_MpDcraw8B_GB.tif] Max = 1.44518
+| | | RESIDU LIAISON (pixel) =  Ter-Im :0.325447 pour [_mg_9811_MpDcraw8B_GB.tif/_mg_9812_MpDcraw8B_GB.tif] Max = 1.44518
+| |  RESIDU LIAISON MOYENS = 0.327021 pour Pastis_Hom
+--- End Iter 2
+
+ ....
+
+
+
+==================================================
+==================================================
+==================================================
+
+BUG
+
+
+
+ESIDU LIAISON (pixel) =  Ter-Im :0.358651 pour [_mg_9811_MpDcraw8B_GB.tif/_mg_9812_MpDcraw8B_GB.tif] Max = 1.54527
+| | | RESIDU LIAISON (pixel) =  Ter-Im :0.360727 pour [_mg_9812_MpDcraw8B_GB.tif/_mg_9811_MpDcraw8B_GB.tif] Max = 1.54527
+| |  RESIDU LIAISON MOYENS = 0.359691 pour Pastis_Hom
+--- End Iter 0
+
+| | | RESIDU LIAISON (pixel) =  Ter-Im :5.55359 pour [_mg_9812_MpDcraw8B_GB.tif/_mg_9811_MpDcraw8B_GB.tif] Max = 7.06908
+| | | RESIDU LIAISON (pixel) =  Ter-Im :5.55933 pour [_mg_9811_MpDcraw8B_GB.tif/_mg_9812_MpDcraw8B_GB.tif] Max = 7.06908
+| |  RESIDU LIAISON MOYENS = 5.55646 pour Pastis_Hom
+--- End Iter 1
+
+
+...
+
+| | | RESIDU LIAISON (pixel) =  Ter-Im :0.325447 pour [_mg_9811_MpDcraw8B_GB.tif/_mg_9812_MpDcraw8B_GB.tif] Max = 1.44518
+| | | RESIDU LIAISON (pixel) =  Ter-Im :0.328587 pour [_mg_9812_MpDcraw8B_GB.tif/_mg_9811_MpDcraw8B_GB.tif] Max = 1.44518
+| |  RESIDU LIAISON MOYENS = 0.327021 pour Pastis_Hom
+--- End Iter 8
+
