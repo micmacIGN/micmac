@@ -1267,7 +1267,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             if (fDalleOrtho == NULL)
             {
                 std::ostringstream oss;
-                oss << std::fixed << "curl -o "<<nomDalleOrtho<<" -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
+
+                oss << std::fixed << g_externalToolHandler.get( "curl" ).callName() + " -o "<<nomDalleOrtho<<" -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
                 std::cout << "commande : "<<oss.str()<<std::endl;
                 system(oss.str().c_str());
             }

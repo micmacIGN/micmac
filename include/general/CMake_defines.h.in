@@ -2,4 +2,7 @@
 #define ELISE_QT_VERSION @qt_version@
 #endif
 
+#define ELISE_DEPLOY @DEPLOY@
+#define PROJECT_SOURCE_DIR @PROJECT_SRC_DIR@
+
 #define ELISE_PTR_SIZE @CMAKE_SIZEOF_VOID_P@

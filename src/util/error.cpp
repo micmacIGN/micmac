@@ -149,7 +149,14 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
 
     std::stringstream sl, sf;
     sl << line;
-    sf << file;
+
+    #if ELISE_DEPLOY == 0
+        sf << file;
+    #else
+        const char *s = strstr(file, PROJECT_SOURCE_DIR);
+        if (s == NULL) sf << file;
+        else sf << s + strlen(PROJECT_SOURCE_DIR) + 1;
+    #endif
 
     msg += "-------------------------------------------------------------\n";
     msg += "|       (Elise's)  LOCATION :                                \n";
@@ -161,7 +168,7 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
 
     throwError(msg);
 
-    AddMessErrContext(std::string("mes=") +mes + std::string(" line=") +ToString(line) + std::string(" file=") + file);
+    AddMessErrContext(std::string("mes=") + mes + std::string(" line=") + ToString(line) + std::string(" file=") + file);
     ElEXIT ( 1, "cEliseFatalErrorHandler::cEFEH_OnErreur");
 }
 
