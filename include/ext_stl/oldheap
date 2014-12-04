@@ -1,0 +1,194 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#ifndef _ELISE_EXT_STL_FIFO
+#define _ELISE_EXT_STL_FIFO
+
+
+
+/*************************************************************/
+/* SOME UTILS ON TAB                                         */
+/*************************************************************/
+
+
+
+
+template <class Type> class ElFifo
+{
+     public :
+
+        ElFifo(int capa = 10,bool circ = false);
+
+        bool circ() const;
+        void set_circ(bool);
+        bool  empty() const;
+        void  clear();
+
+        int    nb ()   const;
+
+        const Type &  operator [] (int k)  const;
+        Type & operator [] (int k) ;
+        inline Type     popfirst();
+        inline Type     poplast();
+        inline void   pushlast(Type);
+        inline void   pushfirst(Type);
+        inline Type     top() const;
+        inline INT     capa() const;
+        ~ElFifo();
+
+
+        // Warn  return 0 if not used as a stacke
+        const Type * tab() const;
+
+     protected :
+        void incr_capa();
+
+        Type * _tab;
+        int  _nb;
+        int   _capa;
+        int   _begin;
+        bool _is_circ;
+
+        ElFifo(const ElFifo<Type>&);
+
+        static void instatiate();
+        friend void ElFifo_instatiate();
+};
+
+
+template <class Type,class Compare> class ElHeap : private ElFifo<Type>
+{
+    public :
+        friend void instantiate_ElHeap();
+
+        ElHeap(Type infty,Compare inferior,INT capa = 2);
+
+        void  push(Type);
+        Type  top();
+        void  pop();
+        bool  empty();
+        INT   nb();  // pout info, stat
+
+        void set_empty();
+
+   private :
+
+        Type          _infty;
+        Compare       _inferior;
+
+        // do not exist
+        ElHeap(const ElHeap<Type,Compare> &);
+
+        void heap_up(INT k);
+        void heap_down(INT k);
+
+
+        static void instantiate(Type,Compare);
+};
+
+template <class Type> class ElRawList : public Mcheck
+{
+     public :
+        Type   _o;
+        ElRawList *   _next;
+        static void rec_delete(ElRawList<Type> *);
+
+};
+template <class Type> class ElIntegerHeap
+{
+      private :
+
+          ElIntegerHeap(const ElIntegerHeap<Type> &);
+
+          friend void instantiate_ElIntegerHeap();
+          static void instantiate(Type);
+
+
+          INT     _nb_objet;
+          INT     _ind_min;
+          ElFifo<ElRawList<Type>* >  _objs;
+          ElRawList<Type> *  _lfree;
+
+          ElRawList<Type> *   get_el();
+          void   put_el_free(ElRawList<Type> *);
+
+      public :
+
+INT     _nb_incr;
+          virtual ~ElIntegerHeap();
+          ElIntegerHeap(INT capa_glob);
+          void push(Type,INT index);
+          Type  top(INT & index);
+          void  pop();
+          bool pop(Type &,INT & index);
+          bool empty();
+          INT  nb();
+};
+
+
+template <class Type> class ElBornedIntegerHeap
+{
+      private :
+
+          ElBornedIntegerHeap(const ElBornedIntegerHeap<Type> &);
+
+          friend void instantiate_ElBornedIntegerHeap();
+          static void instantiate(Type);
+
+
+          INT     _nb_objet;
+          INT     _ind_min;
+          INT     _ind_max;
+          INT     _max_dif;
+
+          ElFifo<Type>   *_objs;
+
+      public :
+
+          virtual ~ElBornedIntegerHeap();
+          ElBornedIntegerHeap(INT max_dif);
+          void push(Type,INT index);
+          Type  top(INT & index);
+          void  pop();
+          bool empty();
+          INT  capa_tot() const;
+  
+          bool pop(Type &,INT & index);
+          INT  nb();
+};
+
+
+
+
+#endif /* ! _ELISE_EXT_STL_FIFO */
+
+
+
+
+
+
+
