@@ -1620,8 +1620,6 @@ QSize cMaskedImageGL::getTilesSize()
 
 //    cout << "tile size : " << fullRes_image_sizeX/ nbTilesX << " " <<  fullRes_image_sizeY/ nbTilesY << endl;
 
-    //return QSize(fullRes_image_sizeX/ nbTilesX + 1, fullRes_image_sizeY/ nbTilesY + 1);
-
     return QSize(fullRes_image_sizeX/ nbTilesX , fullRes_image_sizeY/ nbTilesY );
 }
 
@@ -1652,7 +1650,8 @@ void cMaskedImageGL::createTextures()
 
 void cMaskedImageGL::setZone(float aVal, QRectF rectImage)
 {
-    _m_image->setZoom(aVal);
+    if (_m_image)
+        _m_image->setZoom(aVal);
     _rectImage = rectImage;
 }
 

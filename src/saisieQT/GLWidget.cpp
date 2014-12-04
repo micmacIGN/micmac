@@ -343,7 +343,6 @@ void GLWidget::setZoom(float val)
 
         zoomClip( val ); // TODO c'est quoi ce truc????
 
-
     _vp_Params.m_zoom = val;
 
     if(imageLoaded() && _messageManager.drawMessages())
@@ -354,7 +353,6 @@ void GLWidget::setZoom(float val)
     if (imageLoaded())
 
         getGLData()->glImage().setZone(val,viewportToImageProjection());
-
 
 }
 

@@ -554,8 +554,9 @@ bool ModelObjects::insertRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
-bool ObjectsSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+/*bool ObjectsSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
     //TODO:
     return true;
 }
+*/
