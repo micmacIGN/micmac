@@ -32,10 +32,13 @@ extern void SaisieAppuisPredic(int argc, char ** argv,
                                std::string &aName,
                                std::string &aNamePt,
                                std::string &anOri,
+                               std::string &aModeOri,
                                std::string &aNameMesure,
                                std::string &aTypePts,
                                double &aFlou,
-                               bool &aForceGray);
+                               bool &aForceGray,
+                               double &aZMoy,
+                               double &aZInc);
 
 extern void SaisieBasc(int argc, char ** argv,
                         std::string &aFullName,
