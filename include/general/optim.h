@@ -464,6 +464,8 @@ class cGenSysSurResol
 {
      public :
 
+           ElMatrix<tSysCho>  MatQuad() const;
+
           virtual double CoeffNorm() const;
 
 //  FONCTION LIEES AU DEBUG DES  VALEUR <0 DANS CHOLESKY SUR PIAZZABRA

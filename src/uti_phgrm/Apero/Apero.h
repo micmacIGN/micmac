@@ -1849,6 +1849,7 @@ class cAppliApero : public NROptF1vND
 {
     public :
 
+       void DebugPbConvAppui();
 
         int  NumSauvAuto() const {return  mNumSauvAuto;}
         bool NumIterDebug() const;
