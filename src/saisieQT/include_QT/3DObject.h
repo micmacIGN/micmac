@@ -501,6 +501,7 @@ class cImageGL : public cObjectGL
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
         void    setZoom(float aVal) { _zoom = aVal; }
+        float   getZoom(){ return _zoom; }
 
 private:
 
@@ -602,15 +603,15 @@ public:
 
     void  showMask(bool show) { _m_mask->setVisible(show); }
 
-    void draw();
+    void  draw();
 
-    void drawTiles(cImageGL* tiles);
+    void  drawTiles(cImageGL* tiles);
 
-    void deleteTextures();
+    void  deleteTextures();
 
-    void createTextures();
+    void  createTextures();
 
-    void setZone(float aVal, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
+    void  setZone(float aVal, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
 
     cMaskedImage<QImage> * getMaskedImage() { return _qMaskedImage; }
 
@@ -629,7 +630,10 @@ private:
     cImageGL*               _tiles;
     cImageGL*               _mask_tiles;
 
+    QVector <QRectF>    _vTilesRect;
+
     QSize               getTilesSize();
+    void                createTexturesTiles();
 };
 //====================================================================================
 

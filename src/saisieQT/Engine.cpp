@@ -606,7 +606,7 @@ void cEngine::computeScaleFactor(QStringList const &filenames, int appMode)
 
         totalSize.scale(QSize(_glMaxTextSize,_glMaxTextSize), Qt::KeepAspectRatio);
 
-        _scaleFactor = ((float) totalSize.width()) / widthMax;
+        _scaleFactor = (float) totalSize.width() / widthMax;
 
         //if (appMode == MASK2D) _scaleFactor /= 2.f; //Image + Masque
 

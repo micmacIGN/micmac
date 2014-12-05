@@ -1563,12 +1563,14 @@ void cMaskedImageGL::draw()
 
     glColor4f(1.0f,1.0f,1.0f,1.0f);
 
+    bool tileMode = glImage()->getZoom() > getLoadedImageRescaleFactor();
+
     if(glMask() != NULL && glMask()->isVisible())
     {
-        if(1)
+        //if(tileMode)
+        //    drawTiles(_mask_tiles);
+        //else
             glMask()->draw();
-        else
-            drawTiles(_mask_tiles);
 
         glBlendFunc(GL_ONE,GL_ONE);
         glMask()->draw(QColor(128,255,128));
@@ -1576,11 +1578,11 @@ void cMaskedImageGL::draw()
         glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
 
-
-    if(1)
+    //if(tileMode)
+        //drawTiles(_tiles);
+    //else
         glImage()->draw();
-    else
-        drawTiles(_tiles);
+
 
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -1589,6 +1591,8 @@ void cMaskedImageGL::draw()
 
 void cMaskedImageGL::drawTiles(cImageGL* tiles)
 {
+    if (tiles == NULL) cout << "tiles null" << endl;
+    else
     for (int aK = 0; aK < 4; ++aK)
         tiles[aK].draw();
 }
@@ -1615,12 +1619,58 @@ QSize cMaskedImageGL::getTilesSize()
 
 //    cout << " fullRes_image_size " << fullRes_image_sizeX << " " << fullRes_image_sizeY << endl;
 
-    int nbTilesX = qCeil((float)fullRes_image_sizeX / (float) maxTextureSize);
-    int nbTilesY = qCeil((float)fullRes_image_sizeY / (float) maxTextureSize);
+    int nbTilesX = qCeil((float) fullRes_image_sizeX / maxTextureSize);
+    int nbTilesY = qCeil((float) fullRes_image_sizeY / maxTextureSize);
 
 //    cout << "tile size : " << fullRes_image_sizeX/ nbTilesX << " " <<  fullRes_image_sizeY/ nbTilesY << endl;
 
-    return QSize(fullRes_image_sizeX/ nbTilesX , fullRes_image_sizeY/ nbTilesY );
+    int tileWidth  = fullRes_image_sizeX / nbTilesX;
+    int tileHeight = fullRes_image_sizeY / nbTilesY;
+
+//    cout << "NB ROW - COL = " << nbTilesX << " " << nbTilesY << endl;
+
+    for (int aK=0; aK< nbTilesX; aK++)
+        for (int bK=0; bK< nbTilesY; bK++)
+            _vTilesRect.push_back(QRectF(QPointF(aK*tileWidth, bK*tileHeight),QPointF((aK+1)*tileWidth, (bK+1)*tileHeight)));
+
+    return QSize( tileWidth, tileHeight );
+}
+
+void cMaskedImageGL::createTexturesTiles()
+{
+    //on cherche seulement les tiles intersectées et on crée les textures pour ces tiles
+
+    QVector <QRectF> tilesToDraw;
+
+    //recherche des tiles intersectées
+    for (int aK=0; aK< _vTilesRect.size(); aK++)
+    {
+        if (_vTilesRect[aK].intersects(_rectImage))
+        {
+            tilesToDraw.push_back(_vTilesRect[aK]);
+
+            cout << "viewport intersects rect " << aK << endl;
+        }
+    }
+
+    // création des textures et set des positions GL
+    for (int aK=0; aK < tilesToDraw.size(); ++aK)
+    {
+        QImage cropIJ = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
+        getTile(aK).createTexture(&cropIJ);
+
+        //TODO: set origin = coin haut gauche de chaque tile
+        //float posX, posY;
+        //QPointF topLeft = _vTilesRect[aK].topLeft();
+
+        //convert image coordinates into gl coordinates
+        // ?? utiliser matrixManager->ImageToWindow ou :
+
+        // posX = topLeft.x() / _qMaskedImage->_m_image->width();
+        // posY = topLeft.y() / _qMaskedImage->_m_image->height();
+
+        // getTile(aK).setGLPosition(posX, posY);
+    }
 }
 
 void cMaskedImageGL::createTextures()
@@ -1653,6 +1703,8 @@ void cMaskedImageGL::setZone(float aVal, QRectF rectImage)
     if (_m_image)
         _m_image->setZoom(aVal);
     _rectImage = rectImage;
+
+    //cout << "rect Image = " << _rectImage.topLeft().x() << " " <<  _rectImage.topLeft().y() << " " << _rectImage.bottomRight().x() << " " << _rectImage.bottomRight().y() << endl;
 }
 
 cImageGL &cMaskedImageGL::getTile(int aK)

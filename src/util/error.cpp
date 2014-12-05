@@ -161,7 +161,7 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
     msg += "-------------------------------------------------------------\n";
     msg += "|       (Elise's)  LOCATION :                                \n";
     msg += "|                                                            \n";
-    msg += "| Error  was detected\n";
+    msg += "| Error was detected\n";
     msg += "|          at line : " + sl.str()  +                        "\n";
     msg += "|          of file : " + sf.str()  +                        "\n";
     msg += "-------------------------------------------------------------\n";
