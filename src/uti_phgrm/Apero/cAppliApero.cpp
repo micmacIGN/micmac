@@ -157,6 +157,11 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
         DoAMD();
         mSetEq.SetClosed();
 
+        if (MPD_MM())
+        {
+            std::cout << "NBEQ, NbV: " << mSetEq.Sys()->NbVar() << "\n";
+        }
+
         InitFilters();
 
         Verifs();

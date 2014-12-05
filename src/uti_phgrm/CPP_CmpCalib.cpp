@@ -358,6 +358,88 @@ int CmpCalib_main(int argc,char ** argv)
     else return EXIT_SUCCESS;
 }
 
+//=================================================================
+
+
+int ConvertCalib_main(int argc,char ** argv)
+{
+    std::string aNameIn;
+    std::string aNameImage;
+    std::string aNameTarget;
+    std::string aToto;
+
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aNameIn, "Input calibration file",  eSAM_IsExistFile)
+                     << EAMC(aNameImage, "Name of image", eSAM_IsExistFile)
+                     << EAMC(aNameTarget, "Target calibration file ", eSAM_IsExistFile),
+         LArgMain()  << EAM(aToto,"Toto",true)
+    );
+
+    if (!MMVisualMode)
+    {
+       std::string aDir = DirOfFile(aNameIn);
+       std::string aDirTmp = aDir+temporarySubdirectory;
+       ELISE_fp::MkDir(aDirTmp);
+       std::string aNamePt3d = aDirTmp +"ConvertCal-Mes3D.xml";
+       std::string aNameIm   = aDirTmp +"ConvertCal-Mes2D.xml";
+
+
+       CamStenope * aCamIn = Std_Cal_From_File(aNameIn);
+       int aNbXY = 20;
+       Pt2dr aSzP = aCamIn->SzPixel();
+       cDicoAppuisFlottant aDAF;
+       cMesureAppuiFlottant1Im aMAF;
+       aMAF.NameIm() = aNameImage;
+
+       double  aEps = 1e-2;
+
+       for (int aKP=0 ; aKP<= 1 ; aKP++)
+       {
+           for (int aKx=0 ; aKx<= aNbXY ; aKx++)
+           {
+               for (int aKy=0 ; aKy<= aNbXY ; aKy++)
+               {
+                    Pt2dr aPIm = (Pt2dr(aKx,aKy)/aNbXY) * (1-2*aEps) + Pt2dr(aEps,aEps);
+                    aPIm = aSzP.mcbyc(aPIm);
+                    if (aCamIn->IsInZoneUtile(aPIm))
+                    {
+                        double aProf = 1 + aKP/2.0;
+                        Pt3dr aPTer = aCamIn->ImEtProf2Terrain(aPIm,-aProf);
+                        std::string aNamePt = "Pt_"+ ToString(aKx) + "_" +ToString(aKy);
+
+                        cOneAppuisDAF anAp;
+                        anAp.Pt() = aPTer;
+                        anAp.Incertitude() = Pt3dr(1,1,1);
+                        anAp.NamePt() =  aNamePt;
+                        aDAF.OneAppuisDAF().push_back(anAp);
+                        // Pt2dr aPPhgr = aCam.F2toPtDirRayonL3(aPIm);
+
+                       cOneMesureAF1I aMIm;
+                       aMIm.NamePt() = aNamePt;
+                       aMIm.PtIm() = aPIm;
+                       aMAF.OneMesureAF1I().push_back(aMIm);
+                    }
+               }
+           }
+       }
+       
+       cSetOfMesureAppuisFlottants aSMAF;
+       aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
+
+       MakeFileXML(aDAF,aNamePt3d);
+       MakeFileXML(aSMAF,aNameIm);
+
+       // ParamChantierPhotogram.x
+       
+       return EXIT_SUCCESS;
+    }
+    else return EXIT_SUCCESS;
+}
+
+//=================================================================
+
 
 
 

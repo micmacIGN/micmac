@@ -341,7 +341,6 @@ class cCaseOcupIm
 
         bool PoseMeVoit(cPoseCam* aPC) const
         {
-// static int aCpt=0; aCpt++; DebugVisb=(aCpt==385147) && MPD_MM();
              return aPC->CurCam()->PIsVisibleInImage(mPTer);
         }
 
