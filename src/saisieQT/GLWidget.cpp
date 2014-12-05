@@ -350,9 +350,9 @@ void GLWidget::setZoom(float val)
 
     update();
 
-    if (imageLoaded())
+    if (imageLoaded() && val > getGLData()->glImage().getLoadedImageRescaleFactor())
 
-        getGLData()->glImage().setZone(val,viewportToImageProjection());
+        getGLData()->glImage().setZone(val, viewportToImageProjection());
 
 }
 
