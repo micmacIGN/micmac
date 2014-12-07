@@ -71,7 +71,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 */
 
 /*
-     Soit L = (Tl,Wl)  avec TL matrice rotation et Tl centre de projection   L(P) = Wl* P + Tl
+     Soit L = (Tl,Wl)  avec WL matrice rotation et Tl centre de projection   L(P) = Wl* P + Tl  (Cam->Monde)
      Et R-1 (P) = Wr-1*P - Wr-1 * Tr = tWr * P - Tr  ;   R-1 = (Wr-1,- Wr-1* P)
     
 
