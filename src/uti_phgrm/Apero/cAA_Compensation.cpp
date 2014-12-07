@@ -385,12 +385,6 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
     // mSetEq.SolveResetUpdate(aSO.SomErPond());
     // mSetEq.Solve(aSO.SomErPond());
 
-    if (MPD_MM())
-    {
-        std::cout << "SSSSSSSSSSSSSSSSS\n";
-        getchar();
-    }
-
     mSetEq.Solve(aSO.SomErPond(),(bool *)0);
     mScoreLambda0 = aSO.SomErPond();
 

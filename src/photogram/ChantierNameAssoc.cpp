@@ -2370,6 +2370,7 @@ std::string XML_MM_File(const std::string & aFile)
         return aRes;
     }
 
+bool DebugConvCal() {return false;}
 
 #if(ELISE_QT_VERSION >= 4)
     string MMQtLibraryPath()

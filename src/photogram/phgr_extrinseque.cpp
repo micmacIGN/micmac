@@ -445,6 +445,7 @@ void  cRotationFormelle::SetRotPseudoBaseU (cRotationFormelle * aRF)
 
 cMultiContEQF    cRotationFormelle::StdContraintes()
 {
+
   cMultiContEQF  aRes;
   if (mModeContr == eRotLibre)
   {

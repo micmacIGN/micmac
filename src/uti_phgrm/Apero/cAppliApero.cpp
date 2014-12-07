@@ -157,11 +157,6 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
         DoAMD();
         mSetEq.SetClosed();
 
-        if (MPD_MM())
-        {
-            std::cout << "NBEQ, NbV: " << mSetEq.Sys()->NbVar() << "\n";
-        }
-
         InitFilters();
 
         Verifs();
@@ -916,6 +911,41 @@ bool cAppliApero::NumIterDebug() const
    // return mCptIterCompens==0;
 }
 
+
+void ShowSpectrSys(cSetEqFormelles & aSetEq)
+{
+   if (!MPD_MM()) return;
+   int aNbV = aSetEq.Sys()->NbVar();
+
+    ElMatrix<tSysCho>  aMat = aSetEq.Sys()->MatQuad();
+
+    ElMatrix<tSysCho>  aVP(aNbV,1);
+    ElMatrix<tSysCho>  aVecP(aNbV,aNbV);
+
+    std::vector<int>  aIndVP = jacobi(aMat,aVP,aVecP);
+
+    tSysCho aDet = 1.0;
+    tSysCho aVPMin = 1e50;
+    tSysCho aVPMax = -1e50;
+    for (int aK=0 ; aK< aNbV; aK++)
+    {
+        int aIVp = aIndVP[aK];
+        tSysCho aValP = aVP(aIVp,0);
+        aDet *= aValP;
+        aVPMin = ElMin(aVPMin,aValP);
+        aVPMax = ElMax(aVPMax,aValP);
+
+        std::cout << "Valp "  << aValP << "\n";
+    }
+
+    std::cout << "Det=" << aDet  << " VPMin=" << aVPMin << " VPMax=" << aVPMax << "\n";
+    getchar();
+}
+
+void cAppliApero::DebugPbConvAppui()
+{
+    ShowSpectrSys(mSetEq);
+}
 
 
 

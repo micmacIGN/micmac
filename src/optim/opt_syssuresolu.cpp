@@ -367,6 +367,24 @@ double  cGenSysSurResol::CoeffNorm() const
     return 1.0;
 }
 
+
+ElMatrix<tSysCho>  cGenSysSurResol::MatQuad() const
+{
+    int aNbV=NbVar();
+    ElMatrix<tSysCho> aRes (aNbV,aNbV,0.0);
+
+    for (int anX=0 ; anX<aNbV ; anX++)
+    {
+        for (int anY=0 ; anY<aNbV ; anY++)
+        {
+             aRes(anX,anY) = GetElemQuad(anX,anY);
+        }
+    }
+    return aRes;
+}
+
+
+
 void cGenSysSurResol::ShowGSR(int aMode)
 {
    for (int aKy=0 ; aKy<NbVar() ; aKy++)
