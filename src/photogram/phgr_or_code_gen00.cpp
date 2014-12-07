@@ -157,6 +157,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //=======================  cEqObsBaseGPS ========================
 
 #include "../../CodeGenere/photogram/cEqObsBaseGPS.h"
+#include "../../CodeGenere/photogram/cEqObsBaseGPS_GL.h"
 
 //=======================  Droite ========================
 
@@ -624,6 +625,7 @@ void cElCompiledFonc::InitEntries()
 
 
      AddEntry("cEqObsBaseGPS",cEqObsBaseGPS::Alloc);
+     AddEntry("cEqObsBaseGPS_GL",cEqObsBaseGPS_GL::Alloc);
 
 
      FULL_NEW_ADD_ENTRY(Fraser_PPaEqPPs)
