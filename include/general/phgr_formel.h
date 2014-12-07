@@ -924,6 +924,9 @@ class cSetEqFormelles : public cNameSpaceEqF
           cSetEqFormelles operator = (const cSetEqFormelles &); // N.I.
 };
 
+extern void ShowSpectrSys(cSetEqFormelles & aSetEq);
+
+
 
 #if (0)
 class cHomogFormelle : public cElemEqFormelle,

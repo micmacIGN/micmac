@@ -334,14 +334,6 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
        if (HasFaiscPur)
           std::cout << "    Ecart Estim-Faisceaux " << euclid(aPFP-aRes.mPTer) << "\n";
       
-       if ( MPD_MM()) 
-       {
-           std::cout << " PTS-ABS " << mPt << aRes.mPTer  
-                     << " HG " << mHasGround 
-                     << " PFP " << aPFP 
-                     << "\n";
-           // getchar();
-       }
    }
 
    FILE * aFpRT = mAppli.FpRT() ;
@@ -643,11 +635,6 @@ void cBdAppuisFlottant::Compile()
 
 void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
 {
-    if (MPD_MM()) 
-    {
-        std::cout << "AAAAAAAAAAAaa  " <<   aSO.AddEq() << " \n";
-        getchar();
-    }
    double anErrMax = -10;
    double anErrMoy = 0;
    double aSomP = 0;
@@ -680,11 +667,6 @@ void cBdAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aSO)
            std::cout << "\n   ============================= ERRROR MAX PTS FL ======================\n";
            std::cout <<   "   ||    Value=" << anErrMax << " for Cam=" << aCamMax << " and Pt=" << aPFMax->Name() << " ; MoyErr=" << anErrMoy/aSomP << "\n";
            std::cout <<   "   ======================================================================\n\n";
-    }
-    if (MPD_MM()) 
-    {
-        std::cout << "BBBBBBBB\n";
-        getchar();
     }
 }
 

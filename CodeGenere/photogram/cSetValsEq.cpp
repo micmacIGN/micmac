@@ -63,7 +63,6 @@ void cSetValsEq::ComputeVal()
 
 void cSetValsEq::ComputeValDeriv()
 {
-//std::cout << "cSetValsEq::ComputeValDeriv " << mCompCoord[0] << " " << mCompCoord[1] << "\n";
 
   mVal[0] = mCompCoord[0]-mCompCoord[1]-mLocVar;
 

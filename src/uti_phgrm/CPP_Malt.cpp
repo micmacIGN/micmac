@@ -533,7 +533,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aFileMM = "MM-Malt.xml";
 
-      if (0) // (MPD_MM())
+      if (0) 
       {
           std::cout << "TTTTESSTTTTTT  MALT  !!!!!!!!\n";//   getchar();
           aFileMM = "Test-MM-Malt.xml";

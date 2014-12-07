@@ -1157,7 +1157,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
        )
 {
 
-if (0) // (MPD_MM())
+if (0) 
 {
     std::cout << "====== cManipPt3TerInc::CalcPTerInterFaisceau ====\n";
     for (int aK=0 ; aK< int(aVPds.size()) ; aK++)
@@ -1400,6 +1400,7 @@ void ShowDebugFaisceau(double aCond,double aBH,int aCpt)
     }
 }
 
+bool UPL_DCC() {return false;}
 
 const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                            (
@@ -1439,7 +1440,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
    mResidus.mBSurH  = cResiduP3Inc::TheDefBSurH;
 
 
-   if (MPD_MM()) std::cout << "================== mTerIsInit " <<mTerIsInit << "\n";
+   if (UPL_DCC()) std::cout << "================== mTerIsInit " <<mTerIsInit << "\n";
 
    if (!mTerIsInit)
    {
@@ -1480,7 +1481,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               (WithApp ? &aVAppui : 0),
                               &mResidus.mMesPb
                          );
-   if (MPD_MM()) std::cout << "================== mResidus.mPTer " <<mResidus.mPTer  << " " << mResidus.mBSurH << "\n";
+   if (UPL_DCC()) std::cout << "================== mResidus.mPTer " <<mResidus.mPTer  << " " << mResidus.mBSurH << "\n";
           mResidus.mBSurH  = mPPP.mBsH;
           if (BugNanFE)
           {
@@ -1508,7 +1509,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
  
     Pt3dr aPTer =   mPPP.mProjIsInit ? Pt3dr(0,0,0) :  mResidus.mPTer;
     // mResidus.mPTer = aPTer;
-   if (MPD_MM()) std::cout << "================== aPTer " << aPTer << "\n";
+   if (UPL_DCC()) std::cout << "================== aPTer " << aPTer << "\n";
     mP3Inc->InitVal(aPTer);
 
 
@@ -1525,7 +1526,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
             {
 	       aNbNN++;
             }
-if (MPD_MM())  std::cout  << "==================== Pds " << aVPdsIm[aK] << "\n";
+if (UPL_DCC())  std::cout  << "==================== Pds " << aVPdsIm[aK] << "\n";
         }
 	// if ((aNbNN<2)  && (!mEqSurf) && (! aPtApuis))
         // 	AddEq=0;
@@ -1549,7 +1550,7 @@ if (MPD_MM())  std::cout  << "==================== Pds " << aVPdsIm[aK] << "\n";
        {
            Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK));
            mResidus.mEcIm.push_back(anEr);
-if (MPD_MM())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << " " << mMulGlobPds << "\n";
+if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << " " << mMulGlobPds << "\n";
 
            mResidus.mSomPondEr += aVPdsIm[aK] * mMulGlobPds * square_euclid(anEr);
         }
@@ -1599,7 +1600,7 @@ if (MPD_MM())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << " 
 /*
 		const std::vector<REAL> &  aV =   mSet.VAddEqFonctToSys(aFR[aK],aPds,false) ;
 */
-if (MPD_MM())  std::cout  << "y====y===y===yyyyyy " << aPds << " " << aK <<  " " << aFR[aK]  << " " << aV[0] << "\n";
+if (UPL_DCC())  std::cout  << "y====y===y===yyyyyy " << aPds << " " << aK <<  " " << aFR[aK]  << " " << aV[0] << "\n";
                 mResidus.mSomPondEr +=  aPds * ElSquare(aV[0]);
 //if (aPtApuis) std::cout << "UPLG-DDDDDDDDDDDD " << mResidus.mSomPondEr << "\n";
 	    }
@@ -1607,7 +1608,7 @@ if (MPD_MM())  std::cout  << "y====y===y===yyyyyy " << aPds << " " << aK <<  " "
     }
 
 
-    if (MPD_MM()) std::cout << "HHHHHHHHhhhhhhhhhh " << AddEq << "\n";
+    if (UPL_DCC()) std::cout << "HHHHHHHHhhhhhhhhhh " << AddEq << "\n";
     if (AddEq)
     {
        mSubst.DoSubst();
