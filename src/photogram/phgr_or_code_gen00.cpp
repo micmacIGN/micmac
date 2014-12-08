@@ -129,11 +129,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFraser_PPaEqPPs.h"                    
 
 
-
-
-
-#include "../../CodeGenere/photogram/cEqRigiditeBlock.h"
 #include "../../CodeGenere/photogram/cCylindre_EqRat_CodGen.h"
+
+
+
+
+
 
 #include "../../CodeGenere/photogram/cSetVar.h"
 #include "../../CodeGenere/photogram/cSetValsEq.h"
@@ -836,7 +837,6 @@ void cElCompiledFonc::InitEntries()
 
      AddEntry("cEqAppui_PTInc_M2CNoDist",cEqAppui_PTInc_M2CNoDist::Alloc);
      AddEntry("cEqAppui_PTInc_C2MNoDist",cEqAppui_PTInc_C2MNoDist::Alloc);
-     AddEntry("cEqRigiditeBlock",cEqRigiditeBlock::Alloc);
 
 
 // ====  GUIMBAL LOCK ============

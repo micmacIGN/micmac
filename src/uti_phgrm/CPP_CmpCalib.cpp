@@ -359,6 +359,115 @@ int CmpCalib_main(int argc,char ** argv)
 }
 
 //=================================================================
+int ConvertCalib_main(int argc, char** argv)
+{
+   // virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
+   // for (int aK=0 ; aK<argc ; aK++)
+   //     std::cout << " # " << argv[aK] << "\n";
+
+    std::string aCalibIn;
+    std::string aCalibOut;
+    int aNbXY=20;
+    int aNbProf=2;
+    int aDRMax;
+    std::string aNameCalibOut =  "Out-ConvCal.xml";
+    bool PPFree = true;
+    bool CDFree = true;
+    bool FocFree = true;
+
+    ElInitArgMain
+    (
+       argc,argv,
+       LArgMain()  << EAMC(aCalibIn, "Input Calibration",eSAM_IsExistFile)
+                   << EAMC(aCalibOut,"Output calibration",eSAM_IsExistFile),
+       LArgMain()  << EAM(aNbXY,"NbXY",true,"Number of point of the Grid")
+                   << EAM(aNbProf,"NbProf",true,"Number of depth")
+                   << EAM(aDRMax,"DRMax",true,"Max degree of radial dist (def=infinite)")
+                   << EAM(PPFree,"PPFree",true,"Principal point free (Def=true)")
+                   << EAM(CDFree,"CDFree",true,"Distorsion center free (def=true)")
+                   << EAM(FocFree,"FocFree",true,"Focal free (def=true)")
+    );
+
+   std::string aNameImage = aCalibOut;
+   std::string aDirTmp = DirOfFile(aCalibIn) + "Ori-ConvCalib/";
+   ELISE_fp::MkDir(aDirTmp);
+
+   CamStenope * aCamIn =  Std_Cal_From_File(aCalibIn);
+   Pt2dr aSzPix = aCamIn->SzPixel();
+
+   Pt2di aPInt;
+   double aEps = 1e-2;
+   cDicoAppuisFlottant aDAF;
+   double anInc = 1/ euclid(aSzPix);
+   cMesureAppuiFlottant1Im aMAF;
+   aMAF.NameIm() = aNameImage;
+   for (aPInt.x=0 ; aPInt.x<= aNbXY ; aPInt.x++)
+   {
+       for (aPInt.y=0 ; aPInt.y<= aNbXY ; aPInt.y++)
+       {
+           Pt2dr aPds(aPInt.x/double(aNbXY),aPInt.y/double(aNbXY));
+           aPds = aPds * (1-2*aEps) + Pt2dr(aEps,aEps);
+           Pt2dr aPIm = aSzPix.mcbyc(aPds);
+           for (int aKP=0; aKP < aNbProf ; aKP++)
+           {
+               //Pt2dr aPCheck = aCamIn->R3toF2(aPGround);
+               //std::cout << aPInt << " => " << aPIm << " " << aPCheck<< "\n";
+               std::string aNamePt = "Pt_"+ ToString(aPInt.x)
+                                     + "_"+ ToString(aPInt.y)
+                                     + "_"+ ToString(aKP);
+
+              // GCP generation
+               cOneAppuisDAF anAp;
+               double aProf = 1 + aKP* 0.5;
+               Pt3dr aPGround = aCamIn->ImEtProf2Terrain(aPIm,aProf);
+               anAp.Pt() = aPGround;
+               anAp.Incertitude() = Pt3dr(anInc,anInc,anInc);
+               anAp.NamePt() = aNamePt;
+               aDAF.OneAppuisDAF().push_back(anAp);
+
+              // Image measurement
+              cOneMesureAF1I aM1;
+              aM1.NamePt() = aNamePt;
+              aM1.PtIm() = aPIm;
+	      aMAF.OneMesureAF1I().push_back(aM1);
+
+           }
+       }
+   }
+   cSetOfMesureAppuisFlottants aSMAF;
+   aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
+
+   MakeFileXML(aDAF, aDirTmp + "Mes3D.xml");
+   MakeFileXML(aSMAF, aDirTmp + "Mes2D.xml");
+
+   cOrientationConique  anOC = aCamIn->StdExportCalibGlob();
+   MakeFileXML(anOC, aDirTmp + "Orientation-" + aNameImage + ".xml");
+
+   std::string aCom =    MM3dBinFile("Apero")
+                       + XML_MM_File("Apero-ConvCal.xml")
+                       + " DirectoryChantier=" +DirOfFile(aCalibIn)
+                       + " +AeroIn=ConvCalib"
+                       + " +CalibIn="  + aCalibOut
+                       + " +CalibOut=" + aNameCalibOut
+                       + " +FocFree="  + ToString(FocFree)
+                       + " +PPFree="   + ToString(PPFree)
+                       + " +CDFree="   + ToString(CDFree)
+                      ;
+
+   if (EAMIsInit(&aDRMax))
+       aCom = aCom + " +DRMax=" + ToString(aDRMax);
+
+   System(aCom);
+   std::cout << "COM= " << aCom << "\n";
+
+
+// "/opt/micmac/culture3d/bin/mm3d"
+
+//Apero Apero-ConvCal.xml  DirectoryChantier=/home/prof/Bureau/ConvertCali/ +DRMax=0
+
+   // std::cout << "CalIn=" << aCalibIn << " Foc " << aCamIn->Focale() << "\n";
+   return EXIT_SUCCESS;
+}
 
 
 
