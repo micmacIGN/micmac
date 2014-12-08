@@ -1,0 +1,192 @@
+<Global >
+   <ParamApero>
+       <DicoLoc>
+            <Symb> AeroIn=AAAA </Symb>
+            <Symb> CalibIn=BBBB </Symb>
+            <Symb> CalibOut=CCCC </Symb>
+
+            <Symb> Image=${CalibIn} </Symb>
+
+            <Symb> FocFree=true </Symb>
+            <Symb> PPFree=true </Symb>
+            <Symb> CDFree=true </Symb>
+            <Symb> DRMax=10 </Symb>
+
+            <eSymb> DR1Free= SupEq ${DRMax} 1 </eSymb>
+            <eSymb> DR2Free= SupEq ${DRMax} 2 </eSymb>
+            <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+           <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@-${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@-${AeroIn} </KeyAssoc>
+           </BDD_Orient>
+           <BDD_ObsAppuisFlottant >
+                <Id> Id-Appui </Id>
+                <KeySetOrPat>  Ori-${AeroIn}/Mes2D.xml </KeySetOrPat>
+           </BDD_ObsAppuisFlottant>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+             <CalibrationCameraInc>
+	     <Name> TheKeyCalib   </Name>
+	     <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ${CalibIn}  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+             </CalibrationCameraInc>
+
+             <PoseCameraInc>
+	           <PatternName>     ${Image}   </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                            <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+             <PointFlottantInc>
+                     <Id> Id-Appui </Id>
+                     <KeySetOrPat>  Ori-${AeroIn}/Mes3D.xml </KeySetOrPat>
+             </PointFlottantInc>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		             <ContraintesCamerasInc>
+		                 <Val> eAllParamFiges  </Val>
+		             </ContraintesCamerasInc>
+		             <ContraintesPoses>
+			           <NamePose>   .* </NamePose>
+                                   <ByPattern>  true </ByPattern>
+			           <Val>      eCentreFige   </Val>
+		             </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <#WHEN VTEST=${DR1Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR1  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 1 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${DR2Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR2  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 2 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${FocFree}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberteFocale_1  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Focale freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DR3Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR3  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 3 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${PPFree}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLib_PP_CD_10  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> PP freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${CDFree}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+                                     <#IF VTEST=${PPFree}>
+		                         <Val> eLib_PP_CD_11  </Val>
+		                         <Val> eLib_PP_CD_01  </Val>
+                                     </#IF>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> PP freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                         <ObsAppuisFlottant>
+                               <NameRef> Id-Appui </NameRef>
+                               <PondIm>
+                                     <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                     <Show> eNSM_Paquet     </Show>
+                               </PondIm>
+<!--
+                               <PtsShowDet>  .* </PtsShowDet>
+                               <DetShow3D >   false </DetShow3D>
+                               <ShowMax> false </ShowMax>
+                               <ShowSom>  false</ShowSom>
+-->
+                         </ObsAppuisFlottant>
+		    </SectionObservations>
+
+                    <SectionExport>
+                         <ExportCalib>
+                             <KeyAssoc>  ${CalibOut}  </KeyAssoc>
+                             <KeyIsName> true </KeyIsName>
+                         </ExportCalib>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
