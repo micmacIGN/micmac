@@ -78,6 +78,15 @@ Header-MicMac-eLiSe-25/06/2007*/
       CamRi-1  CamLi  = (Wr-1,- Wr-1* Pr) X (Wl,Pl) = (Wr-1*Wl,- Wr-1* Pr +  Wr-1* Pl)
 */
 
+class cIBC_ImsOneTime;
+class cIBC_OneCam;
+class cImplemBlockCam;
+class cEqObsBlockCam ;
+
+// IBC : suffix for Implement Block Cam
+// cIBC_ImsOneTime  : regroupe les pose acquise au meme temps T
+// cIBC_OneCam      : contient les info partagee par la meme tete de camera
+
 
 // Compute the parameter of the transformation of Point in L coordinate
 // to point in R coordinates
@@ -251,14 +260,6 @@ void GenerateCodeBlockCam()
 
 
 
-class cIBC_ImsOneTime;
-class cIBC_OneCam;
-class cImplemBlockCam;
-
-// IBC : suffix for Implement Block Cam
-// cIBC_ImsOneTime  : regroupe les pose acquise au meme temps T
-// cIBC_OneCam      : contient les info partagee par la meme tete de camera
-
 /***********************************************************/
 /*                                                         */
 /*                                                         */
@@ -355,6 +356,7 @@ class cImplemBlockCam
          std::map<std::string,cIBC_ImsOneTime *> mName2ITime;
          std::vector<cIBC_ImsOneTime *>          mNum2ITime;
          bool                                    mDoneIFC;
+         bool                                    mForCompens;
 };
 
     // =================================
@@ -418,7 +420,8 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
       mSBC        (aSBC),
       mEstimSBC   (aSBC),
       mId         (anId),
-      mDoneIFC    (false)
+      mDoneIFC    (false),
+      mForCompens (false)
 {
     const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
    
@@ -464,7 +467,10 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
 
 
     mLSHC = mSBC.LiaisonsSHC().PtrVal();
-    if (mLSHC)
+    mForCompens = (mLSHC!=0);
+// ## mForCompens => Mettre dans StructBlockCam
+//    On peut avoir equation / a calib et  I/I+1 (pour model derive)
+    if (mForCompens)
     {
        for 
        (
@@ -476,12 +482,16 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
              cIBC_OneCam * aCam = mName2Cam[itPOS->IdGrp()];
              ELISE_ASSERT(aCam!=0,"Cannot get cam from IdGrp");
              ELISE_ASSERT(! aCam->V0Init(),"Multiple Init For IdGrp");
+
+//  ## Creer la camera formelle initialisee en fonction de ParamOrientSHC dans aCam
 // LA
              std::cout << "xxxxxxxxxxxxxxxx CCCaaaammm " << aCam << "\n";
        }
+// Creer les equation dans  cIBC_ImsOneTime 
     }
 }
 
+// Rajouter structure compens dans SectionObservation
 
 
 
