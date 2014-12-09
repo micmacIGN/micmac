@@ -160,6 +160,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqObsBaseGPS.h"
 #include "../../CodeGenere/photogram/cEqObsBaseGPS_GL.h"
 
+#include "../../CodeGenere/photogram/cCodeBlockCam.h"
+
 //=======================  Droite ========================
 
 #include "../../CodeGenere/photogram/cEqAppui_Droite_GL__PTInc_M2CNoVar.h"
@@ -628,6 +630,7 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqObsBaseGPS",cEqObsBaseGPS::Alloc);
      AddEntry("cEqObsBaseGPS_GL",cEqObsBaseGPS_GL::Alloc);
 
+     AddEntry("cCodeBlockCam",cCodeBlockCam::Alloc);
 
      FULL_NEW_ADD_ENTRY(Fraser_PPaEqPPs)
      FULL_NEW_ADD_ENTRY(Four7x2);
