@@ -82,7 +82,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mZInc             (1000.0),
   mZMoy             (1000.0),
   mStepF            (0.5),
-  mRegul            (0.05),
+  mRegul            (0.2),
   mResolOrtho       (1.0),
   mSzW              (1),
   mZoomI            (32),
@@ -137,7 +137,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
   InitDefValFromType();
 
-  Box2dr            aBoxClip, aBoxTerrain;
+  Box2dr            aBoxClip, aBoxTer;
 
   std::string       mModeGeomIm;
   std::string       mModeGeomMnt;
@@ -154,19 +154,20 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               //<< EAM(mMastIm,"MasterIm",true,"Master image is mandatory if the correlation mode geometry is GeomIm", eSAM_IsExistFileRP)
               << EAM(mMaskIm,"Mask",true,"Mask file")
               << EAM(mSzW,"SzW",true,"Correlation window size (Def=2, equiv 5x5)")
-              << EAM(mZMoy,"ZMoy",true,"Average value of Z (Def=1000.0)")
-              << EAM(mZInc,"ZInc",true,"Initial uncertainty on Z (Def=1000.0)")
-              << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.05")
+              << EAM(mZMoy,"ZMoy",true,"Average value of Z (Def=1000.0) - mandatory parameter")
+              << EAM(mZInc,"ZInc",true,"Initial uncertainty on Z (Def=1000.0) - mandatory parameter")
+              << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.2")
               << EAM(mStepF,"ZPas",true,"Quantification step (Def=0.5)")
               //<< EAM(mZoomInit,"ZoomI",true,"Initial Zoom (Def=32)")//
               << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)")
-              << EAM(aBoxClip,"BoxClip",true,"Define computation area (Def=[0,0,1,1], means full area)", eSAM_Normalize)
-              << EAM(aBoxTerrain,"BoxTerrain",true,"Define computation area [Xmin,Ymin,Xmax,Ymax]")
+              << EAM(aBoxClip,"BoxClip",true,"Define computation area (Def=[0,0,1,1] means full area) relative to image", eSAM_Normalize)
+              << EAM(aBoxTer,"BoxTer",true,"Define computation area [Xmin,Ymin,Xmax,Ymax] relative to ground")
               << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=false)", eSAM_IsBool)
               << EAM(mExe,"Exe",true,"Execute command (Def=true)", eSAM_IsBool)
               << EAM(mCalcMEC,"DoMEC",true,"Compute the matching (Def=true)", eSAM_IsBool)
               << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/")
               << EAM(mDirOrtho,"DirOrtho",true,"Orthos subdirectory if OrthoIm (Def=Ortho-${DirMEC})")
+              << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/")
   );
 
 
@@ -219,7 +220,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   }
 
 
-  ELISE_ASSERT(EAMIsInit(&mModeOri), "ModeOri not given (mandatory param)");
+  //ELISE_ASSERT(EAMIsInit(&mModeOri), "ModeOri not given (mandatory param)");
   ELISE_ASSERT(EAMIsInit(&mZMoy), "ZMoy not given (mandatory param)");
   ELISE_ASSERT(EAMIsInit(&mZInc), "ZInc not given (mandatory param)");
 
@@ -229,18 +230,6 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mInstruct = mInstruct + std::string(" +ModeGeomIm=") + mModeGeomIm;
 
   mModeGeomMnt="eGeomMNTEuclid";
-  //~ if (mStrCorrelGeomType=="GeomIm")
-  //~ {
-    //~ if (mMastIm!="")
-    //~ {
-      //~ mModeGeomMnt="eGeomMNTFaisceauIm1ZTerrain_Px1D";
-      //~ if (! EAMIsInit(&mDirMEC))   mDirMEC = "MM-Sake-Img-" + StdPrefix(mMastIm) +ELISE_CAR_DIR;
-//~
-      //~ mInstruct =  mInstruct + std::string(" +UseMasterIm=true")
-                             //~ + std::string(" +MasterIm=") + mMastIm;
-    //~ }
-    //~ else ELISE_ASSERT(false,"Master image not given (MasterIm is mandatory if GeomIm)");
-  //~ }
 
   mInstruct = mInstruct + std::string(" +ModeGeomMNT=") + mModeGeomMnt;
 
@@ -292,13 +281,13 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
     }
   }
 
-  if (EAMIsInit(&aBoxTerrain))
+  if (EAMIsInit(&aBoxTer))
   {
     mInstruct = mInstruct + " +UseBoxTer=true "
-              +  std::string(" +X0Ter=") + ToString(aBoxTerrain._p0.x)
-              +  std::string(" +Y0Ter=") + ToString(aBoxTerrain._p0.y)
-              +  std::string(" +X1Ter=") + ToString(aBoxTerrain._p1.x)
-              +  std::string(" +Y1Ter=") + ToString(aBoxTerrain._p1.y) ;
+              +  std::string(" +X0Ter=") + ToString(aBoxTer._p0.x)
+              +  std::string(" +Y0Ter=") + ToString(aBoxTer._p0.y)
+              +  std::string(" +X1Ter=") + ToString(aBoxTer._p1.x)
+              +  std::string(" +Y1Ter=") + ToString(aBoxTer._p1.y) ;
   }
 
   mNbStepsMEC = 1 + round_ni(log2(mZoomI/mZoomF)) +1; // number of MEC steps (if no duplicate of zoom)
@@ -313,10 +302,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
   ShowParamVal();
 
-  //~ std::cout<<"*********************"<<std::endl;
-  //~ std::cout<<"MicMac call: ** "<<mInstruct<<" **"<<std::endl;
   std::cout<<"** "<<mInstruct<<" **"<<std::endl;
-  //~ std::cout<<"*********************"<<std::endl;
 
 
 
@@ -349,7 +335,7 @@ void cAppliSake::InitDefValFromType()
 
      case eOrthoIm :
       mSzW = 2;
-      mRegul = 0.1;
+      mRegul = 0.2;
       mZoomF = 2;
       break;
 
@@ -361,9 +347,9 @@ void cAppliSake::InitDefValFromType()
 
 void cAppliSake::ShowParamVal()
 {
-  std::cout << "********** SAKE - SAtellite Kit for Elevation ********"<<std::endl;
-  std::cout << "********************Parameters************************"<<std::endl;
-  std::cout << "*   Correl geometry: "<< mStrCorrelGeomType <<std::endl;
+  std::cout << "********** SAKE - SAtellite Kit for Elevation ********" << std::endl;
+  std::cout << "********************Parameters************************" << std::endl;
+  std::cout << "*   Correl geometry: "<< mStrCorrelGeomType << std::endl;
   std::cout << "*   Number of images: " << mNbIm << std::endl;
   std::cout << "*   Correl window size: " << 2*mSzW+1 << "x"  << 2*mSzW+1 << " (SzW=" << mSzW << ")" << std::endl;
   std::cout << "*   Correl step: " << mStepF << std::endl;
@@ -374,9 +360,8 @@ void cAppliSake::ShowParamVal()
   if (mStrCorrelGeomType=="OrthoIm")
   {
     std::cout << "*   Orthos subdirectory: " << mDirOrtho << std::endl;
-    std::cout << "*   Final DeZoom orthos: " << 1 << std::endl;
+    std::cout << "*   Final DeZoom Ortho: " << 1 << std::endl;
   }
-
   std::cout << "******************************************************"<<std::endl;
 }
 
