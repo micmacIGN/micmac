@@ -4,7 +4,6 @@
     <Symb> Dir=XXXX </Symb>
     <Symb> DirMEC=MEC-Sat/</Symb>
     <Symb> Pyr=Pyram/</Symb>
-    <Symb> NomChantier=LeChantier </Symb>
 
     <Symb> UseMask=false </Symb>
     <Symb> Mask=XXXX  </Symb>
@@ -18,12 +17,6 @@
 
     <Symb> ZInc=1000.0</Symb>
     <Symb> ZMoy=1000.0</Symb>
-
-    <Symb> DilatAlti=4</Symb>
-    <Symb> DilatPlani=3</Symb>
-
-    <Symb> UseResolTer=false </Symb>
-    <Symb> ResolTer=1</Symb>
 
     <Symb> Interpol=eInterpolBiCub </Symb>
 
@@ -42,7 +35,7 @@
     <Symb> ZPasF=0.5</Symb>
     <eSymb> DoubleZPasF=* 2 ${ZPasF} </eSymb>
 
-    <Symb> ZRegul=0.01</Symb>
+    <Symb> ZRegul=0.1</Symb>
 
     <Symb> UseClip=false </Symb>
     <Symb> X0Clip=0 </Symb>
@@ -116,24 +109,23 @@
       <SzW>${SzW}</SzW>
 
       <AlgoRegul>eAlgo2PrgDyn</AlgoRegul>
-
       <ModulationProgDyn Portee="Globale">
         <EtapeProgDyn>
           <ModeAgreg>ePrgDAgrSomme</ModeAgreg>
-          <NbDir>8</NbDir>
+          <NbDir> 7 </NbDir>
         </EtapeProgDyn>
+        <Px1PenteMax> 3 </Px1PenteMax>
         <ArgMaskAuto >
           <ValDefCorrel>  0.2 </ValDefCorrel>
-          <CostTrans >  2.0 </CostTrans>
+          <CostTrans >  1.0 </CostTrans>
           <ReInjectMask> false   </ReInjectMask>
         </ArgMaskAuto>
       </ModulationProgDyn>
 
-      <ZRegul>0.3</ZRegul>
+      <ZRegul>${ZRegul}</ZRegul>
       <ZPas>${DoubleZPasF}</ZPas>
-
-      <ZDilatAlti>${DilatAlti}</ZDilatAlti>
-      <ZDilatPlani>${DilatPlani}</ZDilatPlani>
+      <ZDilatAlti> 8 </ZDilatAlti>
+      <ZDilatPlani> 3 </ZDilatPlani>
 
       <GenImagesCorrel>true</GenImagesCorrel>
     </EtapeMEC>
@@ -141,14 +133,12 @@
     <#WHEN VTEST=${AddZoom32}>
       <EtapeMEC>
         <DeZoom> 32 </DeZoom>
-        <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
       </EtapeMEC>
     </#WHEN>
 
     <#WHEN VTEST=${AddZoom16}>
       <EtapeMEC>
         <DeZoom>16</DeZoom>
-        <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
       </EtapeMEC>
     </#WHEN>
 
@@ -168,7 +158,7 @@
     <#WHEN VTEST=${AddZoom2}>
       <EtapeMEC>
         <DeZoom>2</DeZoom>
-        <ZRegul>0.1</ZRegul>
+        <ZRegul>0.2</ZRegul>
       </EtapeMEC>
     </#WHEN>
 
@@ -198,8 +188,8 @@
             <CalcIncAZMoy> true </CalcIncAZMoy>
             <MakeMTDMaskOrtho>
               <Mesures>
-              <NameFile> ../${DirMEC}AutoMask_${NomChantier}_Num_${NbSteps}.tif   </NameFile>
-              <NameMTD>  ../${DirMEC}Z_Num${NbSteps}_DeZoom${ZoomF}_${NomChantier}.xml  </NameMTD>
+              <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbSteps}.tif   </NameFile>
+              <NameMTD>  ../${DirMEC}Z_Num${NbSteps}_DeZoom${ZoomF}_LeChantier.xml  </NameMTD>
               </Mesures>
             </MakeMTDMaskOrtho>
           </MakeOrthoParImage>
@@ -218,7 +208,6 @@
       <TmpMEC>    ${DirMEC} </TmpMEC>
       <TmpResult> ${DirMEC} </TmpResult>
       <TmpPyr>  ${Pyr}  </TmpPyr>
-      <NomChantier>${NomChantier}</NomChantier>
       <NbCelluleMax> 8e7 </NbCelluleMax>
       <SzRecouvrtDalles> 50 </SzRecouvrtDalles>
       <SzDalleMin> 500 </SzDalleMin>
