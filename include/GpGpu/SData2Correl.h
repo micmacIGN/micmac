@@ -12,9 +12,21 @@ extern "C" textureReference&    getTexL_MaskImages();
 #define SYNC    false
 #define ASYNC   true
 
+
+///
+/// \brief The cellules struct
+/// Structure de cellules 3D
 struct cellules
 {
+    ///
+    /// \brief Zone
+    /// La zone 2d
+    ///
     Rect Zone;
+    ///
+    /// \brief Dz
+    /// delta Z de la zone
+    ///
     uint Dz;
 
     cellules():
