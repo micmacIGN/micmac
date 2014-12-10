@@ -234,6 +234,11 @@
       <LimBSurH Nb="?" Type="double" Def="1e-2"> </LimBSurH>
 </ParamEstimPlan>
 
+<RigidBlockWeighting Nb="1" Class="true" ToReference="true">
+    <PondOnTr Nb="1" Type="double"> </PondOnTr>
+   <PondOnRot Nb="1" Type="double"> </PondOnRot>
+</RigidBlockWeighting>
+
 <AperoPointeStereo Nb="1" Class="true" ToReference="true">
       <P1 Nb="1" Type="Pt2dr"> </P1>
       <Im1 Nb="1" Type="std::string"> </Im1>
@@ -602,6 +607,10 @@
               <BlockCamera Nb="*">
                     <NameFile Nb="1" Type="std::string"> </NameFile>
                     <Id   Nb="?" Type="std::string"> </Id>
+                    <UseForBundle Nb="?">
+                        <GlobalBundle Nb="1" Type="bool">      </GlobalBundle>
+                        <RelTimeBundle Nb="1" Type="bool">     </RelTimeBundle>
+                    </UseForBundle>
               </BlockCamera>
 
 
@@ -1213,6 +1222,8 @@ normalises en echelle et/ou en translation -->
                      <ObsBlockCamRig Nb="*">
                          <Id Nb="1" Type="std::string"> </Id>
                          <Show Type="bool" Nb="?" Def="false"> </Show>
+                         <GlobalPond Nb="?" RefType="RigidBlockWeighting"> </GlobalPond>
+                         <RelTimePond Nb="?" RefType="RigidBlockWeighting"> </RelTimePond>
                      </ObsBlockCamRig>
 
                       <!-- Ici il s'agit de point d'appuis "sur", -->
