@@ -335,7 +335,7 @@ class cImplemBlockCam
 {
     public :
          // static cImplemBlockCam * AllocNew(cAppliApero &,const cStructBlockCam,const std::string & anId);
-         cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam,const std::string & anId );
+         cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam,const cBlockCamera & aBl,const std::string & anId );
 
          void EstimCurOri(const cEstimateOrientationInitBlockCamera &);
          void Export(const cExportBlockCamera &);
@@ -415,7 +415,13 @@ void cIBC_OneCam::Init0(const cParamOrientSHC & aPOS)
     //       cImplemBlockCam
     // =================================
 
-cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSBC,const std::string & anId) :
+cImplemBlockCam::cImplemBlockCam
+(
+     cAppliApero & anAppli,
+     const cStructBlockCam aSBC,
+     const cBlockCamera &  aParamCreateBC,
+     const std::string & anId
+) :
       mAppli      (anAppli),
       mSBC        (aSBC),
       mEstimSBC   (aSBC),
@@ -467,11 +473,12 @@ cImplemBlockCam::cImplemBlockCam(cAppliApero & anAppli,const cStructBlockCam aSB
 
 
     mLSHC = mSBC.LiaisonsSHC().PtrVal();
-    mForCompens = (mLSHC!=0);
+    mForCompens = aParamCreateBC.UseForBundle().IsInit();
 // ## mForCompens => Mettre dans StructBlockCam
 //    On peut avoir equation / a calib et  I/I+1 (pour model derive)
     if (mForCompens)
     {
+       std::cout << "FOR BUNDLE !!!!\n"; getchar();
        for 
        (
             std::list<cParamOrientSHC>::const_iterator itPOS=mLSHC->ParamOrientSHC().begin();
@@ -585,7 +592,7 @@ void cAppliApero::InitBlockCameras()
                                  "StructBlockCam",
                                  "StructBlockCam"
                              );
-       cImplemBlockCam * aIBC = new cImplemBlockCam(*this,aSB,anId);
+       cImplemBlockCam * aIBC = new cImplemBlockCam(*this,aSB,*itB,anId);
        mBlockCams[anId] = aIBC;
   }
 }
