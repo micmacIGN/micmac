@@ -2229,6 +2229,9 @@ class cAppliApero : public NROptF1vND
         void AddObservationsRigidGrp(const std::list<cObsRigidGrpImage> &,bool IsLastIter,cStatObs & aSO);
         void AddObservationsRigidGrp(const cObsRigidGrpImage &,bool IsLastIter,cStatObs & aSO);
 
+        void AddObservationsRigidBlockCam(const cObsBlockCamRig &,bool IsLastIter,cStatObs & aSO);
+        void AddObservationsRigidBlockCam(const std::list<cObsBlockCamRig> &,bool IsLastIter,cStatObs & aSO);
+
         double AddAppuisOnePose
               (
                  const cObsAppuis &,cObserv1Im<cTypeEnglob_Appuis> *,
