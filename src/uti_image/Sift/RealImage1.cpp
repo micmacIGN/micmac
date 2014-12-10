@@ -432,31 +432,18 @@ bool RealImage1::savePGM( const std::string &i_filename, bool i_adaptDynamic ) c
     return true;
 }
 
-bool RealImage1::loadTIFF( const std::string &i_filename )
+// image is normalized between 0 and 1 using i_max as i_src's max value
+template <class tData, class tBase>
+void copyNormalized( Im2D<tData,tBase> &i_src, const PixReal i_max, RealImage1 &o_dst )
 {
-    Tiff_Im tiffHeader( i_filename.c_str() );
-    Im2DGen im2d = tiffHeader.ReadIm();
+    o_dst.resize( i_src.sz().x, i_src.sz().y );
 
-    if ( tiffHeader.nb_chan()!=1 ){
-        cerr << "RealImage1::loadTiff : invalid depth : " << tiffHeader.nb_chan() << endl;
-        return false;
-    }
+    U_INT iPix = o_dst.width()*o_dst.height();
+    tData *itSrc = i_src.data_lin();
 
-    if ( tiffHeader.type_el()!=GenIm::u_int1 ){
-        cerr << "RealImage1::loadTiff : unhandled image base type" << endl;
-        return false;
-    }
-
-    resize( im2d.sz().x, im2d.sz().y );
-
-    const PixReal maxValue = 255;
-    unsigned char *itSrc = (unsigned char*)im2d.data_lin();
-    PixReal *itDst = m_data.data();
-    int iPix = m_width*m_height;
+    PixReal *itDst = o_dst.data();
     while ( iPix-- )
-        *itDst++ = ( *itSrc++ )/maxValue;
-
-    return true;
+        *itDst++ = (*itSrc++)/i_max;
 }
 
 bool RealImage1::load( const std::string &i_filename )
@@ -465,24 +452,18 @@ bool RealImage1::load( const std::string &i_filename )
     Im2DGen im2d = tiffHeader.ReadIm();
 
     if ( tiffHeader.nb_chan()!=1 ){
-        cerr << "RealImage1::loadTiff : invalid depth : " << tiffHeader.nb_chan() << endl;
+        cerr << "RealImage1::load : invalid number of channels : " << tiffHeader.nb_chan() << endl;
         return false;
     }
 
-    if ( tiffHeader.type_el()!=GenIm::u_int1 ){
-        cerr << "RealImage1::loadTiff : unhandled image base type" << endl;
+    switch ( tiffHeader.type_el() )
+    {
+    case GenIm::u_int1: copyNormalized( *(Im2D<U_INT1,INT>*)&im2d, (PixReal)255, *this ); break;
+    case GenIm::u_int2: copyNormalized( *(Im2D<U_INT2,INT>*)&im2d, (PixReal)65535, *this ); break;
+    default:
+        cerr << "RealImage1::load : unhandled image base type" << endl;
         return false;
     }
-
-    resize( im2d.sz().x, im2d.sz().y );
-
-    const PixReal maxValue = 255;
-    unsigned char *itSrc = (unsigned char*)im2d.data_lin();
-    PixReal *itDst = m_data.data();
-    int iPix = m_width*m_height;
-    while ( iPix-- )
-        *itDst++ = ( *itSrc++ )/maxValue;
-
     return true;
 }
 
