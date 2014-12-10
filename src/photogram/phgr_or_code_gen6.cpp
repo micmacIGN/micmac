@@ -78,6 +78,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../CodeGenere/photogram/cEqObsBaseGPS.cpp"
 #include "../../CodeGenere/photogram/cEqObsBaseGPS_GL.cpp"
+#include "../../CodeGenere/photogram/cCodeBlockCam.cpp"
 
 //=======================  Droite ========================
 

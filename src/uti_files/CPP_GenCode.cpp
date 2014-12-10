@@ -642,17 +642,16 @@ void   GenCodeSurf()
 //===========================================================================
 
 extern void GenerateCodeEqOffsetGPS();
+extern void GenerateCodeBlockCam();
+
 
 
 int GenCode_main(int argc,char ** argv)
 {
-    GenerateCodeEqOffsetGPS();
-
-   
+    GenerateCodeBlockCam();
+    // GenerateCodeEqOffsetGPS();
    //  GenCodeOneEqHom();
    //  GenCodeEqHom();
-
-
      // GenCodeAppui();
      // GenEqPlanInc();
      // GenDirecteDistorsion();
