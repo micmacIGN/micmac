@@ -606,6 +606,12 @@ void cImplemBlockCam::DoCompensation(const cObsBlockCamRig & anObs)
        {
           cEqObsBlockCam &  anEQ = mVectEqRel[aKE].EQ() ;
           const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
+          double aSomEcartMat = 0;
+          for (int aK=3 ; aK<12 ; aK++)
+              aSomEcartMat += ElSquare(aResidu[aK]);
+       
+          std::cout << aKE << " EcMat  " <<  sqrt(aSomEcartMat)   
+                   << " XYZ " <<  aResidu[0] << " " << aResidu[1] << " " << aResidu[2] <<" \n";
        }
     }
 }
@@ -725,6 +731,17 @@ void cAppliApero:: ExportBlockCam(const cExportBlockCamera & aEBC)
 {
     cImplemBlockCam * aBlock = GetBlockCam(aEBC.Id());
     aBlock->Export(aEBC);
+}
+
+void cAppliApero::AddObservationsRigidBlockCam
+     (
+         const cObsBlockCamRig & anOBCR,
+         bool IsLastIter,
+         cStatObs & aSO
+     )
+{
+    cImplemBlockCam * aBlock = GetBlockCam(anOBCR.Id());
+    aBlock->DoCompensation(anOBCR);
 }
 
 
