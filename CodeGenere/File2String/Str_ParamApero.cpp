@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1567]) = {
+const char * (theNameVar_ParamApero[1578]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -235,6 +235,11 @@ const char * (theNameVar_ParamApero[1567]) = {
 "      <Pond Nb=\"1\" RefType=\"PonderationPackMesure\"> </Pond>\n",
 "      <LimBSurH Nb=\"?\" Type=\"double\" Def=\"1e-2\"> </LimBSurH>\n",
 "</ParamEstimPlan>\n",
+"\n",
+"<RigidBlockWeighting Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"    <PondOnTr Nb=\"1\" Type=\"double\"> </PondOnTr>\n",
+"   <PondOnRot Nb=\"1\" Type=\"double\"> </PondOnRot>\n",
+"</RigidBlockWeighting>\n",
 "\n",
 "<AperoPointeStereo Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "      <P1 Nb=\"1\" Type=\"Pt2dr\"> </P1>\n",
@@ -604,6 +609,10 @@ const char * (theNameVar_ParamApero[1567]) = {
 "              <BlockCamera Nb=\"*\">\n",
 "                    <NameFile Nb=\"1\" Type=\"std::string\"> </NameFile>\n",
 "                    <Id   Nb=\"?\" Type=\"std::string\"> </Id>\n",
+"                    <UseForBundle Nb=\"?\">\n",
+"                        <GlobalBundle Nb=\"1\" Type=\"bool\">      </GlobalBundle>\n",
+"                        <RelTimeBundle Nb=\"1\" Type=\"bool\">     </RelTimeBundle>\n",
+"                    </UseForBundle>\n",
 "              </BlockCamera>\n",
 "\n",
 "\n",
@@ -1215,6 +1224,8 @@ const char * (theNameVar_ParamApero[1567]) = {
 "                     <ObsBlockCamRig Nb=\"*\">\n",
 "                         <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
 "                         <Show Type=\"bool\" Nb=\"?\" Def=\"false\"> </Show>\n",
+"                         <GlobalPond Nb=\"?\" RefType=\"RigidBlockWeighting\"> </GlobalPond>\n",
+"                         <RelTimePond Nb=\"?\" RefType=\"RigidBlockWeighting\"> </RelTimePond>\n",
 "                     </ObsBlockCamRig>\n",
 "\n",
 "                      <!-- Ici il s'agit de point d'appuis \"sur\", -->\n",

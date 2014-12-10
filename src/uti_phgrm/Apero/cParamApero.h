@@ -448,6 +448,34 @@ std::string  Mangling( cParamEstimPlan *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cRigidBlockWeighting
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cRigidBlockWeighting & anObj,cElXMLTree * aTree);
+
+
+        double & PondOnTr();
+        const double & PondOnTr()const ;
+
+        double & PondOnRot();
+        const double & PondOnRot()const ;
+    private:
+        double mPondOnTr;
+        double mPondOnRot;
+};
+cElXMLTree * ToXMLTree(const cRigidBlockWeighting &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cRigidBlockWeighting &);
+
+void  BinaryUnDumpFromFile(cRigidBlockWeighting &,ELISE_fp &);
+
+std::string  Mangling( cRigidBlockWeighting *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cAperoPointeStereo
 {
     public:
@@ -1581,6 +1609,31 @@ void  BinaryUnDumpFromFile(cCalibrationCameraInc &,ELISE_fp &);
 
 std::string  Mangling( cCalibrationCameraInc *);
 
+class cUseForBundle
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cUseForBundle & anObj,cElXMLTree * aTree);
+
+
+        bool & GlobalBundle();
+        const bool & GlobalBundle()const ;
+
+        bool & RelTimeBundle();
+        const bool & RelTimeBundle()const ;
+    private:
+        bool mGlobalBundle;
+        bool mRelTimeBundle;
+};
+cElXMLTree * ToXMLTree(const cUseForBundle &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cUseForBundle &);
+
+void  BinaryUnDumpFromFile(cUseForBundle &,ELISE_fp &);
+
+std::string  Mangling( cUseForBundle *);
+
 class cBlockCamera
 {
     public:
@@ -1594,9 +1647,19 @@ class cBlockCamera
 
         cTplValGesInit< std::string > & Id();
         const cTplValGesInit< std::string > & Id()const ;
+
+        bool & GlobalBundle();
+        const bool & GlobalBundle()const ;
+
+        bool & RelTimeBundle();
+        const bool & RelTimeBundle()const ;
+
+        cTplValGesInit< cUseForBundle > & UseForBundle();
+        const cTplValGesInit< cUseForBundle > & UseForBundle()const ;
     private:
         std::string mNameFile;
         cTplValGesInit< std::string > mId;
+        cTplValGesInit< cUseForBundle > mUseForBundle;
 };
 cElXMLTree * ToXMLTree(const cBlockCamera &);
 
@@ -4260,9 +4323,17 @@ class cObsBlockCamRig
 
         cTplValGesInit< bool > & Show();
         const cTplValGesInit< bool > & Show()const ;
+
+        cTplValGesInit< cRigidBlockWeighting > & GlobalPond();
+        const cTplValGesInit< cRigidBlockWeighting > & GlobalPond()const ;
+
+        cTplValGesInit< cRigidBlockWeighting > & RelTimePond();
+        const cTplValGesInit< cRigidBlockWeighting > & RelTimePond()const ;
     private:
         std::string mId;
         cTplValGesInit< bool > mShow;
+        cTplValGesInit< cRigidBlockWeighting > mGlobalPond;
+        cTplValGesInit< cRigidBlockWeighting > mRelTimePond;
 };
 cElXMLTree * ToXMLTree(const cObsBlockCamRig &);
 
