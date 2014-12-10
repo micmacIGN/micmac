@@ -185,6 +185,11 @@ if (${CUDA_ENABLED})
 
         if(CUDA_FOUND)
 
+#ADD_DEFINITIONS(
+#    -std=c++11 # Or -std=c++0x
+#    # Other flags
+#)
+
                         SET(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
                         SET(Cuda_Sample_path_Windows_XP "$ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
                         SET(Cuda_Sample_path_Apple "/Developer/NVIDIA/CUDA-${CUDA_VERSION}/samples/")
