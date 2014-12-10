@@ -359,6 +359,78 @@ int CmpCalib_main(int argc,char ** argv)
 }
 
 //=================================================================
+
+class cLibertOfCalib
+{
+    public :
+      cLibertOfCalib(int aDR,int aDG,int aDC,bool HasCD,bool PPCDLie) :
+           mDegRad    (aDR),
+           mDegGen    (mDegGen),
+           mDDecentr  (aDC),
+           mHasCD     (HasCD),
+           mPPCDLie   (PPCDLie)
+      {
+      }
+
+
+      int   mDegRad;
+      int   mDegGen;
+      int   mDDecentr;
+      bool  mHasCD;
+      bool  mPPCDLie;
+};
+
+
+cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
+{
+    if (aCalib.ModNoDist().IsInit()) 
+    {
+           return cLibertOfCalib(0,0,0,false,true);
+    }
+    if (aCalib.ModRad().IsInit())  
+    {
+         const cCalibrationInterneRadiale & aCIR = aCalib.ModRad().Val();
+         return cLibertOfCalib(aCIR.CoeffDist().size(),0,0,true ,false);
+    }
+    if (aCalib.ModPhgrStd().IsInit()) 
+    {
+         const cCalibrationInternePghrStd & aCIR = aCalib.ModPhgrStd().Val();
+         const cCalibrationInterneRadiale & aCIP = aCIR.RadialePart();
+         return cLibertOfCalib(aCIP.CoeffDist().size(),1,1,true ,false);
+    }
+
+    if (aCalib.ModUnif().IsInit())
+    {
+        eModelesCalibUnif aMode = aCalib.ModUnif().Val().TypeModele();
+
+        if (aMode==eModeleEbner) return cLibertOfCalib(0,4,0,true ,false);
+        if (aMode==eModeleDCBrown) return cLibertOfCalib(0,4,0,true ,false);
+        if ((aMode>=eModelePolyDeg2) && (aMode<=eModelePolyDeg7))
+        {
+             int aDeg = int(aMode) - int(eModelePolyDeg2) + 2;
+             return cLibertOfCalib(0,aDeg,0,false,false);
+        }
+
+        if ((aMode == eModele_FishEye_10_5_5)  || (aMode==eModele_EquiSolid_FishEye_10_5_5))
+        {
+           return cLibertOfCalib(10,3,4,true,false);
+        }
+
+        if (aMode==eModele_DRad_PPaEqPPs) return cLibertOfCalib(2,0,0,true ,true);
+
+        if ((aMode>=eModeleRadFour7x2) && (aMode<=eModeleRadFour19x2))
+        {
+            int aDegRad = 3 + 2* (int(aMode) - int(eModeleRadFour7x2));
+            return cLibertOfCalib(2,aDegRad,0,false,false);
+        }
+    }
+   
+
+    ELISE_ASSERT(false,"GetDefDegreeOfCalib");
+    return cLibertOfCalib(0,0,0,false,true);
+}
+
+
 int ConvertCalib_main(int argc, char** argv)
 {
    // virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
@@ -370,6 +442,7 @@ int ConvertCalib_main(int argc, char** argv)
     int aNbXY=20;
     int aNbProf=2;
     int aDRMax;
+    int aDegGen;
     std::string aNameCalibOut =  "Out-ConvCal.xml";
     bool PPFree = true;
     bool CDFree = true;
@@ -382,7 +455,8 @@ int ConvertCalib_main(int argc, char** argv)
                    << EAMC(aCalibOut,"Output calibration",eSAM_IsExistFile),
        LArgMain()  << EAM(aNbXY,"NbXY",true,"Number of point of the Grid")
                    << EAM(aNbProf,"NbProf",true,"Number of depth")
-                   << EAM(aDRMax,"DRMax",true,"Max degree of radial dist (def=infinite)")
+                   << EAM(aDRMax,"DRMax",true,"Max degree of radial dist (def=depend Output calibration)")
+                   << EAM(aDegGen,"DegGen",true,"Max degree of generik polynom (def=depend Output calibration)")
                    << EAM(PPFree,"PPFree",true,"Principal point free (Def=true)")
                    << EAM(CDFree,"CDFree",true,"Distorsion center free (def=true)")
                    << EAM(FocFree,"FocFree",true,"Focal free (def=true)")
@@ -434,6 +508,11 @@ int ConvertCalib_main(int argc, char** argv)
            }
        }
    }
+   cCalibrationInternConique aCICOut = StdGetFromPCP(aCalibOut,CalibrationInternConique);
+   cLibertOfCalib  aLOC = GetDefDegreeOfCalib(aCICOut.CalibDistortion().back());
+   if (!EAMIsInit(&aDRMax) ) aDRMax = aLOC.mDegRad;
+   if (!EAMIsInit(&aDegGen)) aDegGen = aLOC.mDegGen;
+   
    cSetOfMesureAppuisFlottants aSMAF;
    aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
 
@@ -452,10 +531,10 @@ int ConvertCalib_main(int argc, char** argv)
                        + " +FocFree="  + ToString(FocFree)
                        + " +PPFree="   + ToString(PPFree)
                        + " +CDFree="   + ToString(CDFree)
+                       + " +DRMax=" + ToString(aDRMax)
+                       + " +DegGen=" + ToString(aDegGen)
                       ;
 
-   if (EAMIsInit(&aDRMax))
-       aCom = aCom + " +DRMax=" + ToString(aDRMax);
 
    System(aCom);
    std::cout << "COM= " << aCom << "\n";
