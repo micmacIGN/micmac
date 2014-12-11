@@ -102,6 +102,13 @@ inline void dump_Type<bool>(bool var)
     printf("%s\n",var ? "true" : "false");
 }
 
+template<>
+inline void dump_Type<const char*>(const char* var)
+{
+    printf("%s\n",var);
+}
+
+
 template<class T>
 void dump_variable(T var,const char* nameVariable)
 {
