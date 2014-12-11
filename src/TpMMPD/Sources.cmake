@@ -10,6 +10,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/Dimap2Grid.cpp
 	${TDPPMD_DIR}/ServiceGeoSud.cpp
 	${TDPPMD_DIR}/Surf.cpp
+	${TDPPMD_DIR}/cTD_Epip.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
