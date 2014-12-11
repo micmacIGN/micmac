@@ -172,13 +172,54 @@ TPL_T bool CData<T>::Dealloc()
 
 
 
-template <class T, class structuringClass>
-class CStructuredData : public structuringClass
+template <class T, class structuringClass = struct2DLayered>
+///
+/// \brief The CStructuredData class
+/// meta programation element
+class CStructuredData : public CData<T>
 {
 
+      structuringClass&         structure();
+
+//    structuringClass &       struct()
+
+//    {return _structure;}
+
 private:
-    CData<T>        _data;
+
+     structuringClass      _structure;
+
 };
+
+template <class T, class structuringClass = struct2DLayered>
+class deviceStructuredData : public CStructuredData<T,structuringClass>
+{
+
+public:
+
+    bool	Memset(int val)
+    {
+        DUMP("Memset device")
+
+                return false;
+    }
+
+    void	OutputInfo(){}
+
+protected:
+
+    bool    abDealloc(){
+                DUMP("abDealloc device")
+                return false;} // TODO pour le rendre completement virtuelle il faut reimplementer les destructeurs...
+
+    bool    abMalloc(){
+        DUMP("abMalloc device")
+        return false;}
+
+    uint    Sizeof(){return 0;}
+};
+
+
 
 
 
