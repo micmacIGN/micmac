@@ -365,6 +365,17 @@ const int & cPyramideGaussienne::NivOctaveMax()const
 }
 
 
+cTplValGesInit< bool > & cPyramideGaussienne::SampledConvolutionKernels()
+{
+   return mSampledConvolutionKernels;
+}
+
+const cTplValGesInit< bool > & cPyramideGaussienne::SampledConvolutionKernels()const 
+{
+   return mSampledConvolutionKernels;
+}
+
+
 cTplValGesInit< double > & cPyramideGaussienne::ConvolFirstImage()
 {
    return mConvolFirstImage;
@@ -465,6 +476,14 @@ void  BinaryUnDumpFromFile(cPyramideGaussienne & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.SampledConvolutionKernels().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SampledConvolutionKernels().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SampledConvolutionKernels().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.ConvolFirstImage().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.ConvolFirstImage().ValForcedForUnUmp(),aFp);
         }
@@ -517,6 +536,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPyramideGaussienne & anObj)
     BinaryDumpInFile(aFp,anObj.IndexFreqInFirstOctave().IsInit());
     if (anObj.IndexFreqInFirstOctave().IsInit()) BinaryDumpInFile(aFp,anObj.IndexFreqInFirstOctave().Val());
     BinaryDumpInFile(aFp,anObj.NivOctaveMax());
+    BinaryDumpInFile(aFp,anObj.SampledConvolutionKernels().IsInit());
+    if (anObj.SampledConvolutionKernels().IsInit()) BinaryDumpInFile(aFp,anObj.SampledConvolutionKernels().Val());
     BinaryDumpInFile(aFp,anObj.ConvolFirstImage().IsInit());
     if (anObj.ConvolFirstImage().IsInit()) BinaryDumpInFile(aFp,anObj.ConvolFirstImage().Val());
     BinaryDumpInFile(aFp,anObj.EpsilonGauss().IsInit());
@@ -544,6 +565,8 @@ cElXMLTree * ToXMLTree(const cPyramideGaussienne & anObj)
    if (anObj.IndexFreqInFirstOctave().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("IndexFreqInFirstOctave"),anObj.IndexFreqInFirstOctave().Val())->ReTagThis("IndexFreqInFirstOctave"));
    aRes->AddFils(::ToXMLTree(std::string("NivOctaveMax"),anObj.NivOctaveMax())->ReTagThis("NivOctaveMax"));
+   if (anObj.SampledConvolutionKernels().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SampledConvolutionKernels"),anObj.SampledConvolutionKernels().Val())->ReTagThis("SampledConvolutionKernels"));
    if (anObj.ConvolFirstImage().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ConvolFirstImage"),anObj.ConvolFirstImage().Val())->ReTagThis("ConvolFirstImage"));
    if (anObj.EpsilonGauss().IsInit())
@@ -576,6 +599,8 @@ void xml_init(cPyramideGaussienne & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NivOctaveMax(),aTree->Get("NivOctaveMax",1)); //tototo 
 
+   xml_init(anObj.SampledConvolutionKernels(),aTree->Get("SampledConvolutionKernels",1),bool(false)); //tototo 
+
    xml_init(anObj.ConvolFirstImage(),aTree->Get("ConvolFirstImage",1),double(-1)); //tototo 
 
    xml_init(anObj.EpsilonGauss(),aTree->Get("EpsilonGauss",1),double(1e-3)); //tototo 
@@ -587,7 +612,7 @@ void xml_init(cPyramideGaussienne & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvolIncrem(),aTree->Get("ConvolIncrem",1),bool(true)); //tototo 
 }
 
-std::string  Mangling( cPyramideGaussienne *) {return "22717116DC74AC97FF3F";};
+std::string  Mangling( cPyramideGaussienne *) {return "8EE136D8A9BC88EFFE3F";};
 
 
 cTplValGesInit< int > & cTypePyramide::NivPyramBasique()
@@ -664,6 +689,17 @@ int & cTypePyramide::NivOctaveMax()
 const int & cTypePyramide::NivOctaveMax()const 
 {
    return PyramideGaussienne().Val().NivOctaveMax();
+}
+
+
+cTplValGesInit< bool > & cTypePyramide::SampledConvolutionKernels()
+{
+   return PyramideGaussienne().Val().SampledConvolutionKernels();
+}
+
+const cTplValGesInit< bool > & cTypePyramide::SampledConvolutionKernels()const 
+{
+   return PyramideGaussienne().Val().SampledConvolutionKernels();
 }
 
 
@@ -783,7 +819,7 @@ void xml_init(cTypePyramide & anObj,cElXMLTree * aTree)
    xml_init(anObj.PyramideGaussienne(),aTree->Get("PyramideGaussienne",1)); //tototo 
 }
 
-std::string  Mangling( cTypePyramide *) {return "81FC747DDDC76FEFFE3F";};
+std::string  Mangling( cTypePyramide *) {return "A4C549CAAE9889A5FF3F";};
 
 
 std::list< cTypeNumeriqueOfNiv > & cPyramideImage::TypeNumeriqueOfNiv()
@@ -904,6 +940,17 @@ int & cPyramideImage::NivOctaveMax()
 const int & cPyramideImage::NivOctaveMax()const 
 {
    return TypePyramide().PyramideGaussienne().Val().NivOctaveMax();
+}
+
+
+cTplValGesInit< bool > & cPyramideImage::SampledConvolutionKernels()
+{
+   return TypePyramide().PyramideGaussienne().Val().SampledConvolutionKernels();
+}
+
+const cTplValGesInit< bool > & cPyramideImage::SampledConvolutionKernels()const 
+{
+   return TypePyramide().PyramideGaussienne().Val().SampledConvolutionKernels();
 }
 
 
@@ -1076,7 +1123,7 @@ void xml_init(cPyramideImage & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypePyramide(),aTree->Get("TypePyramide",1)); //tototo 
 }
 
-std::string  Mangling( cPyramideImage *) {return "DA6F2C90A842D88CFDBF";};
+std::string  Mangling( cPyramideImage *) {return "76CA980EA1C910CAFD3F";};
 
 
 cTplValGesInit< double > & cDigeoSectionImages::ResolInit()
@@ -1233,6 +1280,17 @@ const int & cDigeoSectionImages::NivOctaveMax()const
 }
 
 
+cTplValGesInit< bool > & cDigeoSectionImages::SampledConvolutionKernels()
+{
+   return PyramideImage().TypePyramide().PyramideGaussienne().Val().SampledConvolutionKernels();
+}
+
+const cTplValGesInit< bool > & cDigeoSectionImages::SampledConvolutionKernels()const 
+{
+   return PyramideImage().TypePyramide().PyramideGaussienne().Val().SampledConvolutionKernels();
+}
+
+
 cTplValGesInit< double > & cDigeoSectionImages::ConvolFirstImage()
 {
    return PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolFirstImage();
@@ -1353,7 +1411,7 @@ void xml_init(cDigeoSectionImages & anObj,cElXMLTree * aTree)
    xml_init(anObj.PyramideImage(),aTree->Get("PyramideImage",1)); //tototo 
 }
 
-std::string  Mangling( cDigeoSectionImages *) {return "A3AFB5F20FCCD198FF3F";};
+std::string  Mangling( cDigeoSectionImages *) {return "D4A979FFD0B7AE9AFF3F";};
 
 
 eTypeTopolPt & cOneCarac::Type()
@@ -3113,6 +3171,17 @@ const int & cParamDigeo::NivOctaveMax()const
 }
 
 
+cTplValGesInit< bool > & cParamDigeo::SampledConvolutionKernels()
+{
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SampledConvolutionKernels();
+}
+
+const cTplValGesInit< bool > & cParamDigeo::SampledConvolutionKernels()const 
+{
+   return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().SampledConvolutionKernels();
+}
+
+
 cTplValGesInit< double > & cParamDigeo::ConvolFirstImage()
 {
    return DigeoSectionImages().PyramideImage().TypePyramide().PyramideGaussienne().Val().ConvolFirstImage();
@@ -3761,5 +3830,5 @@ void xml_init(cParamDigeo & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionWorkSpace(),aTree->Get("SectionWorkSpace",1)); //tototo 
 }
 
-std::string  Mangling( cParamDigeo *) {return "2C32DE402A5175C1FE3F";};
+std::string  Mangling( cParamDigeo *) {return "A64F722F98747E93FCBF";};
 

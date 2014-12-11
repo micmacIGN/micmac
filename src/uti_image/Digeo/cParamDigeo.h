@@ -138,6 +138,9 @@ class cPyramideGaussienne
         int & NivOctaveMax();
         const int & NivOctaveMax()const ;
 
+        cTplValGesInit< bool > & SampledConvolutionKernels();
+        const cTplValGesInit< bool > & SampledConvolutionKernels()const ;
+
         cTplValGesInit< double > & ConvolFirstImage();
         const cTplValGesInit< double > & ConvolFirstImage()const ;
 
@@ -159,6 +162,7 @@ class cPyramideGaussienne
         cTplValGesInit< int > mNbInLastOctave;
         cTplValGesInit< int > mIndexFreqInFirstOctave;
         int mNivOctaveMax;
+        cTplValGesInit< bool > mSampledConvolutionKernels;
         cTplValGesInit< double > mConvolFirstImage;
         cTplValGesInit< double > mEpsilonGauss;
         cTplValGesInit< int > mNbShift;
@@ -201,6 +205,9 @@ class cTypePyramide
 
         int & NivOctaveMax();
         const int & NivOctaveMax()const ;
+
+        cTplValGesInit< bool > & SampledConvolutionKernels();
+        const cTplValGesInit< bool > & SampledConvolutionKernels()const ;
 
         cTplValGesInit< double > & ConvolFirstImage();
         const cTplValGesInit< double > & ConvolFirstImage()const ;
@@ -271,6 +278,9 @@ class cPyramideImage
 
         int & NivOctaveMax();
         const int & NivOctaveMax()const ;
+
+        cTplValGesInit< bool > & SampledConvolutionKernels();
+        const cTplValGesInit< bool > & SampledConvolutionKernels()const ;
 
         cTplValGesInit< double > & ConvolFirstImage();
         const cTplValGesInit< double > & ConvolFirstImage()const ;
@@ -356,6 +366,9 @@ class cDigeoSectionImages
 
         int & NivOctaveMax();
         const int & NivOctaveMax()const ;
+
+        cTplValGesInit< bool > & SampledConvolutionKernels();
+        const cTplValGesInit< bool > & SampledConvolutionKernels()const ;
 
         cTplValGesInit< double > & ConvolFirstImage();
         const cTplValGesInit< double > & ConvolFirstImage()const ;
@@ -881,6 +894,9 @@ class cParamDigeo
 
         int & NivOctaveMax();
         const int & NivOctaveMax()const ;
+
+        cTplValGesInit< bool > & SampledConvolutionKernels();
+        const cTplValGesInit< bool > & SampledConvolutionKernels()const ;
 
         cTplValGesInit< double > & ConvolFirstImage();
         const cTplValGesInit< double > & ConvolFirstImage()const ;

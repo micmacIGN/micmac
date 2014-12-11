@@ -91,7 +91,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DIGEO_TIME_OUTPUTS "outputs"
 
-//#define __DEBUG_DIGEO
+#define __DEBUG_DIGEO
 
 //  cRotationFormelle::AddRappOnCentre
 
@@ -215,17 +215,17 @@ Im1D_REAL8 Convol(Im1D_REAL8 aI1,int aC1,Im1D_REAL8 aI2,int aC2);
 Im1D_REAL8 Convol(Im1D_REAL8 aI1,Im1D_REAL8 aI2);
 
 // Force l'image à une integrale donnee
-Im1D_REAL8 MakeSom(Im1D_REAL8 aIm,double aSomCible);
-Im1D_REAL8 MakeSom1(Im1D_REAL8 aIm);
+Im1D_REAL8 MakeSom(Im1D_REAL8 &aIm,double aSomCible);
+Im1D_REAL8 MakeSom1(Im1D_REAL8 &aIm);
 
 //  Calcul un noyau gaussien en faisant pour chaque pixel la valeur integrale.
-Im1D_REAL8  GaussianKernel(double aSigma,int aNb,int aSurEch);
+Im1D_REAL8 DigeoGaussianKernel(double aSigma,int aNb,int aSurEch);
 
 //  Calcul le nombre d'element pour que la gaussiennne puisse etre tronquee a Residu pres
 int NbElemForGausKern(double aSigma,double aResidu);
 
 //  Calcule un noyau gaussien
-Im1D_REAL8  GaussianKernelFromResidu(double aSigma,double aResidu,int aSurEch);
+Im1D_REAL8 DigeoGaussianKernelFromResidue(double aSigma,double aResidu,int aSurEch);
 
 // Conversion d'un noyau double (de somme 1) en entier, en conservant la somme
 // (Pour une image entiere qui sera interpretee comme rationnele de quotient aMul)
@@ -926,6 +926,10 @@ class cAppliDigeo
        int nbComputedGradients() const;
        int nbLevels() const;
        Times * const times() const; 
+       int    gaussianNbShift() const;
+       double gaussianEpsilon() const;
+       int    gaussianSurEch() const;
+       bool   useSampledConvolutionKernels() const;
 
        string getValue_iTile_dz_iLevel( const Expression &e, int iTile, int dz, int iLevel ) const;
        string getValue_dz_iLevel( const Expression &e, int dz, int iLevel ) const;
@@ -1010,6 +1014,10 @@ class cAppliDigeo
        bool                              mDoComputeCarac;
        bool                              mDoRawTestOutput;
        Times                           * mTimes;
+       int                               mGaussianNbShift;
+       double                            mGaussianEpsilon;
+       int                               mGaussianSurEch;
+       bool                              mUseSampledConvolutionKernels;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
@@ -1052,6 +1060,13 @@ template  class aClass<REAL4>;
 
 #define InstantiateFunctionTplDigeo(DataType,ComputeType)\
 template <> void gradient<DataType,ComputeType>( const Im2D<DataType,ComputeType> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+
+template <class Type>
+Im1D<Type,Type> DigeoGaussianKernel( double aSigma, int aNbShift, double aEpsilon, int aSurEch );
+
+template <class Type>
+Im1D<Type,Type> SampledGaussianKernel( double aSigma, int aNbShift );
+
 
 // =========================  INTERFACE EXTERNE ======================
 

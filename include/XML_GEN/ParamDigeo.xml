@@ -85,6 +85,8 @@
 						<IndexFreqInFirstOctave Nb="?" Type="int" Def="0"> </IndexFreqInFirstOctave>
 						<NivOctaveMax  Nb="1"  Type="int">  </NivOctaveMax> <!-- Par ex 8, 32 ..-->
 
+						<SampledConvolutionKernels Nb="?" Type="bool" Def="false"> </SampledConvolutionKernels>
+
 						<!-- A priori ca me semble + "logique" du point de vue de la continuite
 						vis a vis de l'echelle que la toute premiere image soit convoluee
 						par le sigma initial, mais c'est pas tres clair, donc ce parametre

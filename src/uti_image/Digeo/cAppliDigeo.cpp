@@ -87,7 +87,8 @@ cAppliDigeo::cAppliDigeo():
 	mDoPlotPoints(false),
 	mDoGenerateConvolutionCode(true),
 	mDoRawTestOutput(false),
-	mTimes( NULL )
+	mTimes( NULL ),
+	mUseSampledConvolutionKernels(false)
 {
 	MapTimes *times = new MapTimes;
 	times->start();
@@ -105,10 +106,18 @@ cAppliDigeo::cAppliDigeo():
 	if ( Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().IsInit() && Params().ShowTimes().Val() )
 		mLoadAllImageLimit = Params().DigeoSectionImages().ImageDigeo().NbOctetLimitLoadImageOnce().Val();
 	if ( Params().TypePyramide().PyramideGaussienne().IsInit() )
-		mNbLevels = Params().TypePyramide().PyramideGaussienne().Val().NbByOctave().Val();
+	{
+		const cPyramideGaussienne aPyramideGaussienne = Params().TypePyramide().PyramideGaussienne().Val();
+		mNbLevels = aPyramideGaussienne.NbByOctave().Val();
+		mGaussianNbShift = aPyramideGaussienne.NbShift().Val();
+		mGaussianEpsilon = aPyramideGaussienne.EpsilonGauss().Val();
+		mGaussianSurEch  = aPyramideGaussienne.SurEchIntegralGauss().Val();
+		if (aPyramideGaussienne.SampledConvolutionKernels().IsInit() && aPyramideGaussienne.SampledConvolutionKernels().Val() ) mUseSampledConvolutionKernels = true;
+	}
+	mDoComputeCarac = Params().ComputeCarac();
 	if ( Params().GenereCodeConvol().IsInit() )
 		mDoGenerateConvolutionCode = true;
-	mDoComputeCarac = Params().ComputeCarac();
+	
 
 	processTestSection();
 	InitConvolSpec();
@@ -575,6 +584,11 @@ const Expression & cAppliDigeo::mergedOutputGradientNormExpression() const { ret
 
 const Expression & cAppliDigeo::tiledOutputGradientAngleExpression() const { return mTiledOutputGradientAngle_expr; }
 const Expression & cAppliDigeo::mergedOutputGradientAngleExpression() const { return mMergedOutputGradientAngle_expr; }
+
+int    cAppliDigeo::gaussianNbShift() const { return mGaussianNbShift; }
+double cAppliDigeo::gaussianEpsilon() const { return mGaussianEpsilon; }
+int    cAppliDigeo::gaussianSurEch() const { return mGaussianSurEch; }
+bool   cAppliDigeo::useSampledConvolutionKernels() const { return mUseSampledConvolutionKernels; }
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

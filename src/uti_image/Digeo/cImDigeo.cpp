@@ -598,8 +598,8 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
     mSzCur = aBoxIn.sz();
     mP0Cur = aBoxIn._p0;
 
-    Pt2di p0( mP0Cur.x-1, mP0Cur.y-1 ),
-          p1( p0.x+mSzCur.x-1, p0.y+mSzCur.y-1 );
+    Pt2di p0( mP0Cur.x, mP0Cur.y ),
+          p1( p0.x+mSzCur.x, p0.y+mSzCur.y );
 
     int fullW = mInterfImage->sz().x, fullH = mInterfImage->sz().y;
     if ( p0.x<0 ) p0.x=0;
@@ -618,8 +618,9 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 	{
 		ELISE_ASSERT( mResol<=1, "cImDigeo::LoadImageAndPyram: starting with an octave >1 is not handled yet" );
 
-		int marginX, marginY;
-		Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur, 1, marginX, marginY ); // 1 = askedMargin
+		int marginX = 0, marginY = 0;
+		//Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur, 1, marginX, marginY ); // 1 = askedMargin
+		Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur );
 		aF = StdFoncChScale_Bilin( window.in_proj(), Pt2dr( (REAL)marginX,(REAL)marginY ), Pt2dr(mResol,mResol) );
 	};
 
