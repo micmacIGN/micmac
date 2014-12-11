@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamDigeo[195]) = {
+const char * (theNameVar_ParamDigeo[197]) = {
 "<GenCpp>\n",
 "	<Verbatim  File=\".h\">\n",
 "	#ifndef Define_NotDigeo\n",
@@ -86,6 +86,8 @@ const char * (theNameVar_ParamDigeo[195]) = {
 "						(avec val<0) des frequence grace a ce tag -->\n",
 "						<IndexFreqInFirstOctave Nb=\"?\" Type=\"int\" Def=\"0\"> </IndexFreqInFirstOctave>\n",
 "						<NivOctaveMax  Nb=\"1\"  Type=\"int\">  </NivOctaveMax> <!-- Par ex 8, 32 ..-->\n",
+"\n",
+"						<SampledConvolutionKernels Nb=\"?\" Type=\"bool\" Def=\"false\"> </SampledConvolutionKernels>\n",
 "\n",
 "						<!-- A priori ca me semble + \"logique\" du point de vue de la continuite\n",
 "						vis a vis de l'echelle que la toute premiere image soit convoluee\n",

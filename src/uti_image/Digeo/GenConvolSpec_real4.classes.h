@@ -387,3 +387,171 @@ class cConvolSpec_REAL4_Num14 : public cConvolSpec<REAL4>
 		cConvolSpec_REAL4_Num14(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false){}
 };
 
+class cConvolSpec_REAL4_Num15 : public cConvolSpec<REAL4>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(REAL4 * Out,REAL4 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  0
+				              +   0.000105786*(In[-5]+In[5])
+				              +   0.00189321*(In[-4]+In[4])
+				              +   0.0178475*(In[-3]+In[3])
+				              +   0.0886263*(In[-2]+In[2])
+				              +   0.231821*(In[-1]+In[1])
+				              +   0.319412*(In[0])
+                           );
+				In++;
+			}
+		}
+
+		cConvolSpec_REAL4_Num15(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false){}
+};
+
+class cConvolSpec_REAL4_Num16 : public cConvolSpec<REAL4>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(REAL4 * Out,REAL4 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  0
+				              +   7.98401e-05*(In[-5]+In[5])
+				              +   0.00159169*(In[-4]+In[4])
+				              +   0.0163188*(In[-3]+In[3])
+				              +   0.0860415*(In[-2]+In[2])
+				              +   0.233303*(In[-1]+In[1])
+				              +   0.32533*(In[0])
+                           );
+				In++;
+			}
+		}
+
+		cConvolSpec_REAL4_Num16(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-5),-5,5,15,false){}
+};
+
+class cConvolSpec_REAL4_Num17 : public cConvolSpec<REAL4>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(REAL4 * Out,REAL4 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  0
+				              +   9.00541e-06*(In[-7]+In[7])
+				              +   0.000137119*(In[-6]+In[6])
+				              +   0.00137327*(In[-5]+In[5])
+				              +   0.00904643*(In[-4]+In[4])
+				              +   0.0391976*(In[-3]+In[3])
+				              +   0.111713*(In[-2]+In[2])
+				              +   0.209416*(In[-1]+In[1])
+				              +   0.258214*(In[0])
+                           );
+				In++;
+			}
+		}
+
+		cConvolSpec_REAL4_Num17(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-7),-7,7,15,false){}
+};
+
+class cConvolSpec_REAL4_Num18 : public cConvolSpec<REAL4>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(REAL4 * Out,REAL4 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  0
+				              +   4.40559e-05*(In[-8]+In[8])
+				              +   0.000318865*(In[-7]+In[7])
+				              +   0.00177254*(In[-6]+In[6])
+				              +   0.00756781*(In[-5]+In[5])
+				              +   0.024816*(In[-4]+In[4])
+				              +   0.0624999*(In[-3]+In[3])
+				              +   0.120896*(In[-2]+In[2])
+				              +   0.179611*(In[-1]+In[1])
+				              +   0.204946*(In[0])
+                           );
+				In++;
+			}
+		}
+
+		cConvolSpec_REAL4_Num18(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-8),-8,8,15,false){}
+};
+
+class cConvolSpec_REAL4_Num19 : public cConvolSpec<REAL4>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(REAL4 * Out,REAL4 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  0
+				              +   3.99205e-05*(In[-10]+In[10])
+				              +   0.000193694*(In[-9]+In[9])
+				              +   0.000795854*(In[-8]+In[8])
+				              +   0.00276917*(In[-7]+In[7])
+				              +   0.00815948*(In[-6]+In[6])
+				              +   0.0203598*(In[-5]+In[5])
+				              +   0.0430213*(In[-4]+In[4])
+				              +   0.0769822*(In[-3]+In[3])
+				              +   0.116653*(In[-2]+In[2])
+				              +   0.149692*(In[-1]+In[1])
+				              +   0.162667*(In[0])
+                           );
+				In++;
+			}
+		}
+
+		cConvolSpec_REAL4_Num19(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-10),-10,10,15,false){}
+};
+
+class cConvolSpec_REAL4_Num20 : public cConvolSpec<REAL4>
+{
+	public :
+		bool IsCompiled() const { return true; }
+		void Convol(REAL4 * Out,REAL4 * In,int aK0,int aK1)
+		{
+			In+=aK0;
+			Out+=aK0;
+			for (int aK=aK0; aK<aK1 ; aK++){
+				*(Out++) =  (
+				                  0
+				              +   1.85148e-05*(In[-13]+In[13])
+				              +   6.85605e-05*(In[-12]+In[12])
+				              +   0.000228636*(In[-11]+In[11])
+				              +   0.000686644*(In[-10]+In[10])
+				              +   0.00185709*(In[-9]+In[9])
+				              +   0.00452326*(In[-8]+In[8])
+				              +   0.00992168*(In[-7]+In[7])
+				              +   0.019599*(In[-6]+In[6])
+				              +   0.0348657*(In[-5]+In[5])
+				              +   0.0558571*(In[-4]+In[4])
+				              +   0.0805887*(In[-3]+In[3])
+				              +   0.104709*(In[-2]+In[2])
+				              +   0.122521*(In[-1]+In[1])
+				              +   0.129108*(In[0])
+                           );
+				In++;
+			}
+		}
+
+		cConvolSpec_REAL4_Num20(REAL8 * aFilter):cConvolSpec<REAL4>(aFilter-(-13),-13,13,15,false){}
+};
+

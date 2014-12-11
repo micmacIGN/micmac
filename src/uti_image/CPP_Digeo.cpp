@@ -267,7 +267,8 @@ int Digeo_main( int argc, char **argv )
 
 	cImDigeo &image = appli.getImage();
 
-    if ( appli.isVerbose() ){
+    if ( appli.isVerbose() )
+    {
        cout << "number of tiles : " << appli.NbInterv() << endl;
        cout << "tile size : " << appli.Params().DigeoDecoupageCarac().Val().SzDalle() << endl;
        cout << "margin : " << appli.Params().DigeoDecoupageCarac().Val().Bord() << endl;
@@ -282,8 +283,6 @@ int Digeo_main( int argc, char **argv )
 
         Box2di box = appli.getInterv( aKBox );
         if ( appli.isVerbose() ) cout << "processing tile " << aKBox << " of origin " << box._p0 << " and size " << box.sz() << endl;
-        box._p0.x *= image.Resol();
-        box._p0.y *= image.Resol();
 
         image.detect();
 

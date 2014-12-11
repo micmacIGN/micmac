@@ -79,4 +79,28 @@ template <> inline void cAppliDigeo::__InitConvolSpec<U_INT2>()
 		INT theCoeff[39] = {2,5,10,18,33,58,98,159,248,372,538,746,997,1282,1586,1887,2160,2379,2521,2570,2521,2379,2160,1887,1586,1282,997,746,538,372,248,159,98,58,33,18,10,5,2};
 		new cConvolSpec_U_INT2_Num18(theCoeff);
 	}
+	{
+		INT theCoeff[11] = {3,62,585,2904,7596,10468,7596,2904,585,62,3};
+		new cConvolSpec_U_INT2_Num19(theCoeff);
+	}
+	{
+		INT theCoeff[11] = {3,52,535,2819,7645,10660,7645,2819,535,52,3};
+		new cConvolSpec_U_INT2_Num20(theCoeff);
+	}
+	{
+		INT theCoeff[13] = {5,45,296,1284,3661,6862,8462,6862,3661,1284,296,45,5};
+		new cConvolSpec_U_INT2_Num21(theCoeff);
+	}
+	{
+		INT theCoeff[17] = {1,10,58,248,813,2048,3962,5886,6716,5886,3962,2048,813,248,58,10,1};
+		new cConvolSpec_U_INT2_Num22(theCoeff);
+	}
+	{
+		INT theCoeff[21] = {1,6,26,91,267,667,1410,2523,3823,4905,5330,4905,3823,2523,1410,667,267,91,26,6,1};
+		new cConvolSpec_U_INT2_Num23(theCoeff);
+	}
+	{
+		INT theCoeff[27] = {1,2,7,23,61,148,325,642,1142,1830,2641,3431,4015,4232,4015,3431,2641,1830,1142,642,325,148,61,23,7,2,1};
+		new cConvolSpec_U_INT2_Num24(theCoeff);
+	}
 }

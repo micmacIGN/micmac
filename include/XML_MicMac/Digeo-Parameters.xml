@@ -4,18 +4,18 @@
 		<Symb> Im1=IMG_0034.CR2 </Symb>
 		<Symb> NbNivByOct=3     </Symb>
 
-		<!--
+<!--
 		<Symb> Resol=1            </Symb>
 		<Symb> Sigma0=1.6         </Symb>
 		<Symb> SigmaN=1           </Symb>
-		-->
+-->
 
-		<Symb> Resol=0.5          </Symb>
 		<!-- <Symb> Sigma0=1.269920842 </Symb> -->
+		<Symb> Resol=0.5          </Symb>
 		<Symb> Sigma0=1.6         </Symb>
 		<Symb> SigmaN=0.5         </Symb>
-		<Symb> NivInFirstOct=0   </Symb>
 
+		<Symb> NivInFirstOct=0   </Symb>
 		<Symb> OctaveMax=32      </Symb>
 		<Symb> NivFloatIm=4          </Symb>
 		<Symb> Incremental=true      </Symb>
@@ -72,8 +72,10 @@
 					<EpsilonGauss Nb="?" Type="double" Def="1e-3"> ${GausTronque} </EpsilonGauss>
 					<NbShift  Nb="?" Type="int" Def="15"> </NbShift>
 					<SurEchIntegralGauss Nb="?" Type="int" Def="10"> </SurEchIntegralGauss>
+					<SampledConvolutionKernels> true </SampledConvolutionKernels>
 					-->
 					<ConvolIncrem> ${Incremental} </ConvolIncrem>
+					<SampledConvolutionKernels> true </SampledConvolutionKernels>
 				</PyramideGaussienne>
 			</TypePyramide>
 		</PyramideImage>
@@ -101,13 +103,13 @@
 			<!--
 			<PlotPointsOnTiles> true </PlotPointsOnTiles>
 			<OutputGradients> true </OutputGradients>
-			<OutputTiles> true </OutputTiles>
 			<OutputGaussiansDirectory> gaussians_ref </OutputGaussiansDirectory>
-			<SuppressTiles> false </SuppressTiles>
-			<MergeTiles> false </MergeTiles>
 			<ForceGradientComputation> true </ForceGradientComputation>
-			-->
+			<MergeTiles> false </MergeTiles>
+			<SuppressTiles> false </SuppressTiles>
+			<OutputTiles> true </OutputTiles>
 			<OutputGaussians> true </OutputGaussians>
+			-->
 		</DigeoTestOutput>
 	</SectionTest>
 
