@@ -1,0 +1,56 @@
+
+Changement de format Orilib.ori ->CamStenope.xml
+
+
+-1- (FAIT) validation en Prof de champs
+    Chantier /media/ts/Edythem/Vert-Voiture/
+
+-2- (FAIT) Validation chantier "Stantdar" :  o
+     Chantier  :
+         /media/ts/Trieve/Test-NoOrilib-Param-MicMacTer.xml
+
+-3- (FAIT ) Validation sur vieur chantier  ori :
+     /media/ts/MEC/Test-Ori-Toulouse/Param-Ter.xml
+    - Avec et sans carto
+     - Grand chantier  : /media/ts/MEC/Test-Amien
+
+-4- Evolution sur Fish-Eye
+
+-5-  Partage de calibration
+
+-6- Conversion en grille, avec eventuel pre-proc
+    sur le radial
+
+
+
+ ////////////////////////////////////////////////////////////
+Inclure le format Ori.xml comme controle du chantier
+
+Une fois la dalle chargee et la dilate faite, on peut 
+connaitre assez precisement la taille memoire qui
+va etre occupee. Si elle est trop grande :
+    - splite en 4 et appel recursif (eventullement pas par process);
+
+
+Gerer l'ordonnancement des paralelisme selon la suggestion IGN-E,
+cad en faisant avant toute chose un decoupage au niveau 1.
+
+
+ ////////////////////////////////////////////////////////////
+
+0 - regarder si potentiel pb de geometrie
+(si pt de vue trop semblables ?)
+
+1- Visualiser les cubes de correlation.
+   Sauver sous formes images, soit N Images en XY (Z Constant),
+   soit N images XZ (Y Constant); Code commun entre les deux,
+   modulo une interversion des coordonnees.
+
+
+5- Donnees de references :
+   5.a - saisir points de liaisons par saisie liaison
+   5.b - faire une "loc" inverse pour les convertir en //
+   
+
+
+==========================
