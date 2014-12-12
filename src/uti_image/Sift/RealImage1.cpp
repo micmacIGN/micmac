@@ -440,10 +440,36 @@ void copyNormalized( Im2D<tData,tBase> &i_src, const PixReal i_max, RealImage1 &
 
     U_INT iPix = o_dst.width()*o_dst.height();
     tData *itSrc = i_src.data_lin();
-
     PixReal *itDst = o_dst.data();
     while ( iPix-- )
         *itDst++ = (*itSrc++)/i_max;
+}
+
+// image is normalized between 0 and 1 using i_max as i_src's max value
+template <class tData, class tBase>
+void copyNormalized( Im2D<tData,tBase> &i_src, RealImage1 &o_dst )
+{
+    o_dst.resize( i_src.sz().x, i_src.sz().y );
+
+    const U_INT nbPix = o_dst.width()*o_dst.height();
+    if ( nbPix==0 ) return;
+
+    tData *itSrc = i_src.data_lin();
+    tData minv = itSrc[0], maxv = minv;
+    U_INT iPix = nbPix;
+    while ( iPix-- )
+    {
+        tData v = *itSrc++;
+        if ( v<minv ) minv = v;
+        if ( v>maxv ) maxv = v;
+    }
+
+    PixReal *itDst = o_dst.data();
+    const PixReal scale = 1/( (PixReal)maxv-(PixReal)minv );
+    itSrc = i_src.data_lin();
+    iPix = nbPix;
+    while ( iPix-- )
+        *itDst++ = ( (*itSrc++)-minv )*scale;
 }
 
 bool RealImage1::load( const std::string &i_filename )
@@ -458,8 +484,8 @@ bool RealImage1::load( const std::string &i_filename )
 
     switch ( tiffHeader.type_el() )
     {
-    case GenIm::u_int1: copyNormalized( *(Im2D<U_INT1,INT>*)&im2d, (PixReal)255, *this ); break;
-    case GenIm::u_int2: copyNormalized( *(Im2D<U_INT2,INT>*)&im2d, (PixReal)65535, *this ); break;
+    case GenIm::u_int1: copyNormalized( *(Im2D<U_INT1,INT>*)&im2d, *this ); break;
+    case GenIm::u_int2: copyNormalized( *(Im2D<U_INT2,INT>*)&im2d, *this ); break;
     default:
         cerr << "RealImage1::load : unhandled image base type" << endl;
         return false;

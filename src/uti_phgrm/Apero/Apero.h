@@ -2136,7 +2136,8 @@ class cAppliApero : public NROptF1vND
 	 void InitAndCompileBDDObsFlottant();
 	 void InitHasEqDr();
 
-          void DoAMD();
+         void DoAMD();
+         void AMD_AddBlockCam();
 
           void VerifAero(const cVerifAero & aVA);
           void VerifAero(const cVerifAero & aVA,cPoseCam *,cObsLiaisonMultiple  &);

@@ -948,6 +948,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
     std::string aFullName;
     std::string aKeyGPP;
+    std::string aHttpProxy;
     std::string aGRIDExt("GRI");
     std::string aFileMnt;
 
@@ -960,9 +961,11 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     (
      argc, argv,
      LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)")
-     << EAMC(aKeyGPP,"GPP Key")
-     << EAMC(aFileMnt,"xml file (FileOriMnt) for the DTM"),
-     LArgMain()<< EAM(aGRIDExt,"Grid",true,"GRID ext")
+     << EAMC(aKeyGPP,"GPP Key"),
+     LArgMain()
+     << EAM(aGRIDExt,"Grid",true,"GRID ext")
+     << EAM(aFileMnt,"Mnt",true,"xml file (FileOriMnt) for the DTM")
+     << EAM(aHttpProxy,"Proxy",true,"http proxy for GPP access")
      );
 
     //double seuilPixel2 = pow(seuilPixel,2);
@@ -1144,8 +1147,43 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     ymaxChantier = (int)(ymaxChantier+1);
 
 
+    
+    std::string gppAccess;
+    {
+        std::ostringstream oss;
+        oss << g_externalToolHandler.get( "curl" ).callName() << " -H='Referer: http://localhost' ";
+        if (!aHttpProxy.empty())
+            oss << "-x "<<aHttpProxy;
+        gppAccess = oss.str();
+    }
+    
     // Chargement du MNT
-    cFileOriMnt aMntOri=  StdGetFromPCP(aFileMnt,FileOriMnt);
+    cFileOriMnt aMntOri;
+    if (!aFileMnt.empty())
+    {
+        aMntOri=  StdGetFromPCP(aFileMnt,FileOriMnt);
+    }
+    else
+    {
+        // Chargement depuis le Geoportail
+        double resolutionMnt=25;
+        int NCmnt = (xmaxChantier-xminChantier)/resolutionMnt + 1;
+        int NLmnt = (ymaxChantier-yminChantier)/resolutionMnt + 1;
+        std::ostringstream oss;
+        
+        //wget http://wxs.ign.fr -e use_proxy=yes -e http_proxy=http://relay-gpp3-i-interco.sca.gpp.priv.atos.fr:3128{quote}
+        //curl -o ./mnt_tmp2.tif -H="Referer: http://localhost" -x http://relay-gpp3-i-interco.sca.gpp.priv.atos.fr:3128 "http://wxs-i.ign.fr/7gr31kqe5xttprd2g7zbkqgo/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX=43.278259,3.103180,43.411264,3.366021&CRS=EPSG:4326&WIDTH=500&HEIGHT=350"
+        
+        oss << std::fixed << gppAccess<<" \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
+        
+        //oss << std::fixed << "curl -o mnt_25m.tif -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
+        std::cout << "commande : "<<oss.str()<<std::endl;
+        system(oss.str().c_str());
+        aMntOri.OriginePlani()=Pt2dr(xminChantier,ymaxChantier);
+        aMntOri.ResolutionPlani()=Pt2dr(resolutionMnt,-resolutionMnt);
+        aMntOri.NameFileMnt()=std::string("mnt_25m.tif");
+        aMntOri.NombrePixels()=Pt2di(NCmnt,NLmnt);
+    }
     std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
     std::auto_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
     if (aMntImg.get()==NULL)
@@ -1153,26 +1191,6 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         cerr << "Error in "<<aMntOri.NameFileMnt()<<std::endl;
         return EXIT_FAILURE;
     }
-
-    /*
-    // Extraction d'un MNT a 25m de resolution
-    {
-        double resolutionMnt=25;
-        int NCmnt = (xmaxChantier-xminChantier)/resolutionMnt + 1;
-        int NLmnt = (ymaxChantier-yminChantier)/resolutionMnt + 1;
-        std::ostringstream oss;
-        oss << std::fixed << "curl -o mnt_25m.bil -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/x-bil;bits=32&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
-        std::cout << "commande : "<<oss.str()<<std::endl;
-        system(oss.str().c_str());
-
-
-        std::ostringstream ossHdr;
-        ossHdr << "echo 'NROWS "<<NLmnt<<"\nNCOLS "<<NCmnt<<"\nNBANDS 1\"nBYTEORDER I\nNBITS 32\nLAYOUT  BIL\nSIGNE 1\nBAND_NAMES Z\n' > mnt_25m.HDR";
-        system(ossHdr.str().c_str());
-    }
-    */
-    // Chargement du MNT
-
 
     // Calcul des points entre les images avec Ann
     std::list<ElCamera*>::iterator itCamera = aLCamera.begin();
@@ -1267,8 +1285,12 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             if (fDalleOrtho == NULL)
             {
                 std::ostringstream oss;
+                oss << std::fixed << gppAccess << " \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
+                //oss << std::fixed << "curl -o "<<nomDalleOrtho<<" -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
 
+                /*
                 oss << std::fixed << g_externalToolHandler.get( "curl" ).callName() + " -o "<<nomDalleOrtho<<" -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
+                */
                 std::cout << "commande : "<<oss.str()<<std::endl;
                 system(oss.str().c_str());
             }
