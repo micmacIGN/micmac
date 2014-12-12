@@ -170,29 +170,49 @@ TPL_T bool CData<T>::Dealloc()
     return op;
 }
 
-
-
-template <class T, class structuringClass = struct2DLayered>
-///
-/// \brief The CStructuredData class
-/// meta programation element
-class CStructuredData : public CData<T>
+template<ushort dim = 3>
+class CStructure
 {
+    int* getDimension()
+    {
+        return _dimension;
+    }
 
-      structuringClass&         structure();
+    int getSize()
+    {
+        int size = _dimension[0];
 
-//    structuringClass &       struct()
+        for (int id = 1; id < dim; ++id)
+        {
+            size *= _dimension[id];
+        }
 
-//    {return _structure;}
+        return size;
+    }
 
 private:
 
-     structuringClass      _structure;
+    int _dimension[dim];
+};
+
+template<> inline
+int CStructure<0>::getSize()
+{
+    return 0;
+}
+
+
+template <class T, int dim = 3>
+///
+/// \brief The CStructuredData class
+/// meta programation element
+class CStructuredData : public CData<T>, public CStructure<dim>
+{
 
 };
 
-template <class T, class structuringClass = struct2DLayered>
-class deviceStructuredData : public CStructuredData<T,structuringClass>
+template <class T, int dim = 3, class structuringClass = struct2DLayered>
+class deviceStructuredData : public CStructuredData<T,dim>
 {
 
 public:
@@ -200,7 +220,6 @@ public:
     bool	Memset(int val)
     {
         DUMP("Memset device")
-
                 return false;
     }
 
@@ -208,19 +227,21 @@ public:
 
 protected:
 
-    bool    abDealloc(){
-                DUMP("abDealloc device")
-                return false;} // TODO pour le rendre completement virtuelle il faut reimplementer les destructeurs...
+    bool    abDealloc()
+    {
+        DUMP("abDealloc device")
+                return false;
+    }
 
-    bool    abMalloc(){
+    bool    abMalloc()
+    {
         DUMP("abMalloc device")
-        return false;}
+
+                return false;
+    }
 
     uint    Sizeof(){return 0;}
 };
-
-
-
 
 
 /// \class CData2D
