@@ -237,6 +237,8 @@ void cAppliApero::DoAMD()
         it->second->DoAMD(mAMD);
    }
 
+   AMD_AddBlockCam();
+
    for 
    (
        std::set<std::pair<cPoseCam *,cPoseCam *> >::const_iterator it=mSetLinkedCam.begin();
@@ -277,6 +279,7 @@ void cAppliApero::DoAMD()
             mAMD->AddArc(aBase->IncInterv().NumBlocAlloc(),aRF->IncInterv().NumBlocAlloc(),true);
        }
    }
+
 
 /*
    for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
@@ -327,6 +330,9 @@ void cAppliApero::DoAMD()
    if (ShowMes())
       std::cout << "END AMD \n";
    
+
+  
+
 }
 
 void cAppliApero::AddLinkCam(cPoseCam * aC1,cPoseCam * aC2)
