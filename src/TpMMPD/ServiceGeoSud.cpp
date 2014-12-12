@@ -1174,7 +1174,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         //wget http://wxs.ign.fr -e use_proxy=yes -e http_proxy=http://relay-gpp3-i-interco.sca.gpp.priv.atos.fr:3128{quote}
         //curl -o ./mnt_tmp2.tif -H="Referer: http://localhost" -x http://relay-gpp3-i-interco.sca.gpp.priv.atos.fr:3128 "http://wxs-i.ign.fr/7gr31kqe5xttprd2g7zbkqgo/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX=43.278259,3.103180,43.411264,3.366021&CRS=EPSG:4326&WIDTH=500&HEIGHT=350"
         
-        oss << std::fixed << gppAccess<<" \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
+        oss << std::fixed << gppAccess<<" -o mnt_25m.tif  \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
         
         //oss << std::fixed << "curl -o mnt_25m.tif -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
         std::cout << "commande : "<<oss.str()<<std::endl;
@@ -1285,7 +1285,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             if (fDalleOrtho == NULL)
             {
                 std::ostringstream oss;
-                oss << std::fixed << gppAccess << " \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
+                oss << std::fixed << gppAccess << " -o "<<nomDalleOrtho<< " \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
                 //oss << std::fixed << "curl -o "<<nomDalleOrtho<<" -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminDalle<<","<<yminDalle<<","<<xmaxDalle<<","<<ymaxDalle<<"&CRS=EPSG:2154&WIDTH="<<ncDalle<<"&HEIGHT="<<nlDalle<<"\"";
 
                 /*
