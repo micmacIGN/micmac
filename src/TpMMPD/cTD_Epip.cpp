@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cOneImTDEpip;
 class cAppliTDEpip;
 
+static const double TheDefCorrel = -2.0;
 
 class cOneImTDEpip
 {
@@ -62,6 +63,33 @@ class cLoaedImTDEpip
 {
 	 public :
 	   cLoaedImTDEpip(cOneImTDEpip &,double aScale,int aSzW);
+
+       double CrossCorrelation(const Pt2di & aPIm1,int aPx,const cLoaedImTDEpip & aIm2,int aSzW);
+       double Covariance(const Pt2di& aPIm1,int aPx,const cLoaedImTDEpip & aIm2,int aSzW);
+
+       bool InsideW(const Pt2di & aPIm1,const Pt2di & aSzW) const
+       {
+          return     (aPIm1.x >= aSzW.x) 
+                  &&  (aPIm1.y >= aSzW.y) 
+                  &&  (aPIm1.x < mSz.x-aSzW.x)
+                  &&  (aPIm1.y < mSz.y-aSzW.y);
+       }
+       bool InsideW(const Pt2di & aPIm1,const int & aSzW) const
+       {
+           return InsideW(aPIm1,Pt2di(aSzW,aSzW));
+       }
+       
+       void ComputePx( cLoaedImTDEpip &,
+                        TIm2D<INT2,INT>    mTEnvInf,
+                        TIm2D<INT2,INT>    mTEnvSup,
+                        int aSzW
+                      );
+                      
+       void ComputePx( cLoaedImTDEpip &,
+                        int  aIntPx,
+                        int aSzW
+                      );
+        
 	   
 	   cOneImTDEpip & mOIE;
 	   std::string mNameIm;
@@ -74,6 +102,10 @@ class cLoaedImTDEpip
 	   TIm2D<REAL4,REAL8> mTImS2;
 	   Im2D<REAL4,REAL8>  mImS2;
 	   
+	   TIm2D<INT2,INT>    mTPx;
+	   Im2D<INT2,INT>     mIPx;
+	   TIm2D<U_INT1,INT>  mTSc;
+	   Im2D<U_INT1,INT>   mISc;
 };
 
 
@@ -100,7 +132,7 @@ class cAppliTDEpip
 	     int             mZoomDeb;
 	     int             mZoomEnd;
 	     double         mRatioIntPx;
-	     int             mIntPx;
+	     double         mIntPx;
 
 };
 
@@ -158,6 +190,8 @@ void cAppliTDEpip::DoMatchOneScale(int aZoom,int aSzW)
 	cLoaedImTDEpip aLIm1(*mIm1,aZoom,aSzW);
 	cLoaedImTDEpip aLIm2(*mIm2,aZoom,aSzW);
 	
+	aLIm1.ComputePx(aLIm2,round_up(mIntPx/aZoom) ,aSzW);
+     
 }
 
 
@@ -208,12 +242,17 @@ cLoaedImTDEpip::cLoaedImTDEpip(cOneImTDEpip & aOIE,double aScale,int aSzW) :
   mTImS1  (mSz),
   mImS1   (mTImS1._the_im),
   mTImS2  (mSz),
-  mImS2   (mTImS2._the_im)
+  mImS2   (mTImS2._the_im),
+  mTPx    (mSz),
+  mIPx    (mTPx._the_im),
+  mTSc    (mSz),
+  mISc    (mTSc._the_im)
 {
 	ELISE_COPY(mIm.all_pts(), mTifIm.in(),mIm.out());
 	
 	ELISE_COPY
 	(
+	
 	    mIm.all_pts(),
 	    rect_som(mIm.in_proj(),aSzW) / ElSquare(1+2*aSzW),
 	    mImS1.out()
@@ -243,6 +282,113 @@ cLoaedImTDEpip::cLoaedImTDEpip(cOneImTDEpip & aOIE,double aScale,int aSzW) :
 	 );**/
 }
 
+double cLoaedImTDEpip::CrossCorrelation
+        (
+            const Pt2di & aPIm1,
+            int aPx,
+            const cLoaedImTDEpip & aIm2,
+            int aSzW
+        )
+{
+   if (! InsideW(aPIm1,aSzW)) return TheDefCorrel;
+   
+   Pt2di aPIm2 = aPIm1 + Pt2di(aPx,0);
+   if (! aIm2.InsideW(aPIm2,aSzW)) return TheDefCorrel;
+   
+   double aS1 = mTImS1.get(aPIm1);
+   double aS2 = aIm2.mTImS1.get(aPIm2);
+
+   
+   double aCov = Covariance(aPIm1,aPx,aIm2,aSzW)  -aS1*aS2;
+
+   double aVar11 = mTImS2.get(aPIm1) - ElSquare(aS1);
+   double aVar22 = aIm2.mTImS2.get(aPIm2) - ElSquare(aS2);
+   
+   return aCov / sqrt(ElMax(1e-5,aVar11*aVar22));
+}
+
+double cLoaedImTDEpip::Covariance
+       (
+             const Pt2di & aPIm1,
+             int aPx,
+             const cLoaedImTDEpip & aIm2,
+             int aSzW
+       )
+{
+    if (1) // A test to check the low level access to data
+    {
+        float ** aRaw2 = mIm.data();
+        float *  aRaw1 = mIm.data_lin();
+        ELISE_ASSERT(mTIm.get(aPIm1)==aRaw2[aPIm1.y][aPIm1.x],"iiiii");
+        ELISE_ASSERT((aRaw1+aPIm1.y*mSz.x) ==aRaw2[aPIm1.y],"iiiii");
+    }
+    double aSom =0;
+    Pt2di aPIm2 = aPIm1+Pt2di(aPx,0);
+
+    Pt2di aVois;
+    for (aVois.x=-aSzW; aVois.x<=aSzW ; aVois.x++)
+    {
+        for (aVois.y=-aSzW; aVois.y<=aSzW ; aVois.y++)
+        {
+             aSom +=  mTIm.get(aPIm1+aVois) * aIm2.mTIm.get(aPIm2+aVois);
+        } 
+    }
+    return aSom /ElSquare(1+2*aSzW);
+}
+
+void cLoaedImTDEpip::ComputePx
+      ( 
+           cLoaedImTDEpip & aIm2,
+           INT aPxMax,
+           int aSzW
+      )
+{
+	TIm2D<INT2,INT> aTEnvInf(mSz);
+	TIm2D<INT2,INT> aTEnvSup(mSz);
+	
+	ELISE_COPY(aTEnvInf._the_im.all_pts(),-aPxMax,aTEnvInf._the_im.out());
+	ELISE_COPY(aTEnvSup._the_im.all_pts(),+aPxMax,aTEnvSup._the_im.out());
+
+    ComputePx(aIm2,aTEnvInf,aTEnvSup,aSzW);
+}
+
+void cLoaedImTDEpip::ComputePx
+      ( 
+           cLoaedImTDEpip & aIm2,
+           TIm2D<INT2,INT>    aTEnvInf,
+           TIm2D<INT2,INT>    aTEnvSup,
+           int aSzW
+      )
+{
+	Pt2di aP;
+	
+	for (aP.x =0 ; aP.x < mSz.x ; aP.x++)
+	{
+	   for (aP.y =0 ; aP.y < mSz.y ; aP.y++)
+	   {
+		   int aPxMin = aTEnvInf.get(aP);
+		   int aPxMax = aTEnvSup.get(aP);
+		   int aBestPax = 0;
+		   double aBestCor = TheDefCorrel;
+		   
+		   for (int aPx = aPxMin ; aPx <= aPxMax ; aPx++)
+		   {
+			   double aCor = CrossCorrelation(aP,aPx,aIm2,aSzW);
+			   if (aCor > aBestCor)
+			   {
+				   aBestCor = aCor;
+				   aBestPax = aPx;
+			   }
+           }	
+           mTPx.oset(aP,aBestPax);	   
+	   }
+	}
+	Tiff_Im::CreateFromIm(mTPx._the_im,"TestPx.tif");
+	std::cout << "DONE PX\n";
+}
+                      
+                      
+/*************   MAIN *****************/
 
 int TDEpip_main(int argc, char **argv)
 {
