@@ -152,8 +152,6 @@ template <class Type,class tBase> cConvolSpec<Type> *
          (
               Im1D<tBase,tBase>   aKern,
               int                 aNbShitXY,
-              FILE *              aFileH = 0,
-              FILE *              aFileCPP = 0,
               double              aSigma = 1.0,  // Pour commentaire dans le .h
               bool                Increm = false  // Pour commentaire dans le .h
          )
@@ -166,20 +164,6 @@ template <class Type,class tBase> cConvolSpec<Type> *
     while (aSzKer && (aData[aSzKer]==0) && (aData[-aSzKer]==0))
           aSzKer--;
 
-    if (aFileH!= 0)
-    {
-       cTplImInMem<Type>::MakeClassConvolSpec
-       (
-           Increm,
-           aSigma,
-           aFileH,
-           aFileCPP,
-           aData,
-           -aSzKer,
-           aSzKer,
-           aNbShitXY
-       );
-    }
     return   cConvolSpec<Type>::GetOrCreate(aData,-aSzKer,aSzKer,aNbShitXY,false) ;
 }
 
@@ -476,12 +460,7 @@ void cTplImInMem<Type>::SetConvolSepXY
 
 	mAppli.times()->start();
 
-   cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>
-                             (
-                                aKerXY, aNbShitXY,
-                                NULL, NULL,
-                                aSigma, Increm
-                             );
+   cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>( aKerXY, aNbShitXY, aSigma, Increm );
 
     if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
 

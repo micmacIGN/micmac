@@ -396,7 +396,6 @@ template <class Type> class cTplImInMem : public cImInMem
                    cTplImInMem<Type> & aPrec,
                    cTplImInMem<Type> & aNext
              );
-         static void MakeClassConvolSpec(bool Increm,double aSigma,FILE *,FILE *,tBase* aFilter,int aDeb,int aFin,int aNbShit); 
      private :
 
         void ResizeBasic(const Pt2di & aSz);
