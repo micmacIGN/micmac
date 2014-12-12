@@ -284,7 +284,8 @@ template <class Type> class cFusionCarteProf
            );
            void GlobInitDir(cProg2DOptimiser<cFusionCarteProf> &);
 
-          // -- Comlement
+          // -- NOT a requirement, just here, an help for implementation
+          // of DoConnexion
                 void DoConexTrans
                      (
                                   tCelOpt & aCelIn,

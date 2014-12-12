@@ -160,7 +160,8 @@ template <class TargAux> class cTplCelNapPrgDyn
             tCostPrgD  mOwnCost;
 };
 
-
+///  CONVENTIONS "Standard" sur les intervalles de nappes
+///       aImZMin  <=    Z  < aImZMax
 
 template <class TArg> class cProg2DOptimiser
 {
