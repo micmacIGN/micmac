@@ -1,0 +1,218 @@
+<ParamMICMAC>
+  <DicoLoc>
+    <Symb> ImPat=XXXX </Symb>
+    <Symb> Dir=XXXX </Symb>
+    <Symb> DirMEC=MEC-Sat/</Symb>
+    <Symb> Pyr=Pyram/</Symb>
+
+    <Symb> UseMask=false </Symb>
+    <Symb> Mask=XXXX  </Symb>
+
+    <Symb> OriFileExt=XXXX    </Symb>
+
+    <Symb> UseMasterIm=false </Symb>
+    <Symb> MasterIm=XXXX  </Symb>
+
+    <Symb> ModeGeomIm=XXXX </Symb>
+
+    <Symb> ZInc=1000.0</Symb>
+    <Symb> ZMoy=1000.0</Symb>
+
+    <Symb> Interpol=eInterpolBiCub </Symb>
+
+    <Symb> SzW=2</Symb>
+
+    <Symb> ZoomF=1</Symb>
+
+    <eSymb> AddZoom32=Sup 32 ${ZoomF} </eSymb>
+    <eSymb> AddZoom16=Sup 16 ${ZoomF} </eSymb>
+    <eSymb> AddZoom8=Sup 8 ${ZoomF} </eSymb>
+    <eSymb> AddZoom4=Sup 4 ${ZoomF} </eSymb>
+    <eSymb> AddZoom2=Sup 2 ${ZoomF} </eSymb>
+
+    <Symb>  NbSteps=-1 </Symb>
+
+    <Symb> ZPasF=0.5</Symb>
+    <eSymb> DoubleZPasF=* 2 ${ZPasF} </eSymb>
+
+    <Symb> ZRegul=0.1</Symb>
+
+    <Symb> UseClip=false </Symb>
+    <Symb> X0Clip=0 </Symb>
+    <Symb> Y0Clip=0 </Symb>
+    <Symb> X1Clip=1 </Symb>
+    <Symb> Y1Clip=1 </Symb>
+
+    <Symb> UseBoxTer=false </Symb>
+    <Symb> X0Ter=0 </Symb>
+    <Symb> Y0Ter=0 </Symb>
+    <Symb> X1Ter=1 </Symb>
+    <Symb> Y1Ter=1 </Symb>
+
+    <Symb> CalcMEC=true </Symb>
+    <Symb> ModeGeomMNT=eGeomMNTEuclid </Symb>
+    <Symb> EZA=false </Symb>
+
+    <Symb> DirOrtho=XXXX</Symb>
+    <Symb> CalcOrtho=false</Symb>
+    <Symb> ResolOrtho=1.0  </Symb>
+
+  </DicoLoc>
+
+  <Section_Terrain>
+    <IntervAltimetrie>
+      <ZIncCalc>${ZInc}</ZIncCalc>
+      <ZMoyen>${ZMoy}</ZMoyen>
+    </IntervAltimetrie>
+
+    <Planimetrie>
+      <#WHEN VTEST=${UseResolTer}>
+        <ResolutionTerrain>${ResolTer}</ResolutionTerrain>
+      </#WHEN>
+       <#WHEN VTEST=${UseMask}>
+        <MasqueTerrain>
+          <MT_Image> ${Mask}.tif </MT_Image>
+          <MT_Xml>   ${Mask}.xml </MT_Xml>
+        </MasqueTerrain>
+      </#WHEN>
+      <#WHEN VTEST=${UseBoxTer}>
+        <BoxTerrain>  ${X0Ter} ${Y0Ter} ${X1Ter} ${Y1Ter} </BoxTerrain>
+      </#WHEN>
+    </Planimetrie>
+  </Section_Terrain>
+
+  <Section_PriseDeVue>
+    <GeomImages>${ModeGeomIm}</GeomImages>
+    <Images>
+      <#WHEN VTEST=${UseMasterIm}>
+        <Im1>  ${MasterIm} </Im1>
+      </#WHEN>
+      <ImPat>${ImPat}</ImPat>
+    </Images>
+    <NomsGeometrieImage>
+      <PatternSel>  (.*)\.[0-9,a-z,A-Z,_]{3,4} </PatternSel>
+      <PatNameGeom> $1.${OriFileExt} </PatNameGeom>
+    </NomsGeometrieImage>
+  </Section_PriseDeVue>
+
+  <Section_MEC>
+    <#WHEN VTEST=${UseClip}>
+      <ProportionClipMEC >  ${X0Clip} ${Y0Clip} ${X1Clip} ${Y1Clip} </ProportionClipMEC>
+    </#WHEN>
+    <EtapeMEC>
+      <DeZoom>-1</DeZoom>
+      <DynamiqueCorrel>eCoeffAngle</DynamiqueCorrel>
+      <AggregCorr>eAggregSymetrique</AggregCorr>
+
+      <ModeInterpolation>${Interpol}</ModeInterpolation>
+
+      <SzW>${SzW}</SzW>
+
+      <AlgoRegul>eAlgo2PrgDyn</AlgoRegul>
+      <ModulationProgDyn Portee="Globale">
+        <EtapeProgDyn>
+          <ModeAgreg>ePrgDAgrSomme</ModeAgreg>
+          <NbDir> 7 </NbDir>
+        </EtapeProgDyn>
+        <Px1PenteMax> 3 </Px1PenteMax>
+        <ArgMaskAuto >
+          <ValDefCorrel>  0.2 </ValDefCorrel>
+          <CostTrans >  1.0 </CostTrans>
+          <ReInjectMask> false   </ReInjectMask>
+        </ArgMaskAuto>
+      </ModulationProgDyn>
+
+      <ZRegul>${ZRegul}</ZRegul>
+      <ZPas>${DoubleZPasF}</ZPas>
+      <ZDilatAlti> 8 </ZDilatAlti>
+      <ZDilatPlani> 3 </ZDilatPlani>
+
+      <GenImagesCorrel>true</GenImagesCorrel>
+    </EtapeMEC>
+
+    <#WHEN VTEST=${AddZoom32}>
+      <EtapeMEC>
+        <DeZoom> 32 </DeZoom>
+      </EtapeMEC>
+    </#WHEN>
+
+    <#WHEN VTEST=${AddZoom16}>
+      <EtapeMEC>
+        <DeZoom>16</DeZoom>
+      </EtapeMEC>
+    </#WHEN>
+
+    <#WHEN VTEST=${AddZoom8}>
+      <EtapeMEC>
+        <DeZoom>8</DeZoom>
+      </EtapeMEC>
+    </#WHEN>
+
+    <#WHEN VTEST=${AddZoom4}>
+      <EtapeMEC>
+        <DeZoom>4</DeZoom>
+        <ZRegul>0.2</ZRegul>
+      </EtapeMEC>
+    </#WHEN>
+
+    <#WHEN VTEST=${AddZoom2}>
+      <EtapeMEC>
+        <DeZoom>2</DeZoom>
+        <ZRegul>0.2</ZRegul>
+      </EtapeMEC>
+    </#WHEN>
+
+    <EtapeMEC>
+      <DeZoom> ${ZoomF}</DeZoom>
+      <ZPas>${ZPasF}</ZPas>
+      <ZRegul>${ZRegul}</ZRegul>
+    </EtapeMEC>
+
+    <EtapeMEC>
+      <DeZoom> ${ZoomF}</DeZoom>
+      <ZPas> 1 </ZPas>
+      <AlgoRegul> eAlgoDequant </AlgoRegul>
+      <ExportZAbs> ${EZA} </ExportZAbs>
+      <#WHEN VTEST=${CalcOrtho}>
+        <GenerePartiesCachees >
+          <ByMkF> true </ByMkF>
+          <SeuilUsePC> 3 </SeuilUsePC>
+          <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirOrtho}@PC_ </KeyCalcPC>
+          <MakeOrthoParImage>
+            <DirOrtho> ${DirOrtho} </DirOrtho>
+            <KeyCalcInput>Key-Assoc-Id </KeyCalcInput>
+            <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ort_ </KeyCalcOutput>
+            <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrtho}@Incid_ </KeyCalcIncidHor>
+            <ResolIm> 1.0 </ResolIm>
+            <ResolRelOrhto> ${ResolOrtho} </ResolRelOrhto>
+            <CalcIncAZMoy> true </CalcIncAZMoy>
+            <MakeMTDMaskOrtho>
+              <Mesures>
+              <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbSteps}.tif   </NameFile>
+              <NameMTD>  ../${DirMEC}Z_Num${NbSteps}_DeZoom${ZoomF}_LeChantier.xml  </NameMTD>
+              </Mesures>
+            </MakeMTDMaskOrtho>
+          </MakeOrthoParImage>
+      </GenerePartiesCachees>
+      </#WHEN>
+    </EtapeMEC>
+  </Section_MEC>
+
+  <Section_Results>
+    <GeomMNT> ${ModeGeomMNT} </GeomMNT>
+      <DoMEC> ${CalcMEC} </DoMEC>
+  </Section_Results>
+
+  <Section_WorkSpace>
+      <WorkDir >  ${Dir} </WorkDir>
+      <TmpMEC>    ${DirMEC} </TmpMEC>
+      <TmpResult> ${DirMEC} </TmpResult>
+      <TmpPyr>  ${Pyr}  </TmpPyr>
+      <NbCelluleMax> 8e7 </NbCelluleMax>
+      <SzRecouvrtDalles> 50 </SzRecouvrtDalles>
+      <SzDalleMin> 500 </SzDalleMin>
+      <DefTileFile>1000000</DefTileFile>
+      <ByProcess>${MMNbProc}</ByProcess>
+  </Section_WorkSpace>
+  <Section_Vrac />
+</ParamMICMAC>

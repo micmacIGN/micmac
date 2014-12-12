@@ -1,0 +1,199 @@
+<!--
+    A Pattern file for using MicMac in post-sismic deformation
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-DeformOrtho.xml   +ImVis=BdOrthoCouleur_2011_007.tif +ImPir=uzon1_pva_prtp_16042014_1.tif   WorkDir=/home/mpd/Bureau/ASP/uzon/8000x8000/ 
+-->
+<ParamMICMAC>
+    <DicoLoc>
+         <Symb> ImVis=XXXX  </Symb>
+         <Symb> ImPir=XXXX  </Symb>
+         <Symb> Inc=10.0  </Symb>
+         <Symb> SzW=20 </Symb>
+         <Symb> Regul=1.0 </Symb>
+
+
+        <!--  ===================================  -->
+
+         <Symb> CorrelMin=0.2 </Symb>
+         <Symb> GammaCorrel=2 </Symb>
+         <Symb> SsResolOpt=10 </Symb>
+         <Symb> NbDir=7 </Symb>
+
+         <KeyedNamesAssociations>
+               <Calcs>
+                   <Arrite>  1 1 </Arrite>
+                   <Direct>
+                       <PatternTransform> .*${ImVis} </PatternTransform>
+                       <CalcName>  [1,1,0] </CalcName>
+                   </Direct>
+               </Calcs>
+               <Calcs>
+                   <Arrite>  1 1 </Arrite>
+                   <Direct>
+                       <PatternTransform> .*${ImPir} </PatternTransform>
+                       <CalcName>  [0,1,1] </CalcName>
+                   </Direct>
+               </Calcs>
+
+               <Key>   NKS-Assoc-Pds-Channel </Key>
+         </KeyedNamesAssociations>
+
+
+  <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> (.*) </PatternTransform>
+                       <CalcName> Rho.tif </CalcName>
+                       <CalcName> Teta.tif </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Loc-KeyCsteRhoTeta </Key>
+    </KeyedNamesAssociations>
+
+  <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> (.*) </PatternTransform>
+                       <CalcName> Redr-$0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Loc-KeyRedr </Key>
+    </KeyedNamesAssociations>
+
+    </DicoLoc>
+<!-- *************************************************************
+Parametres lies au terrain "physique", independamment de la prise de vue
+  *************************************************************-->
+    <Section_Terrain>
+      <IntervParalaxe>
+        <Px1IncCalc>  ${Inc}  </Px1IncCalc>
+        <Px2IncCalc>  ${Inc}   </Px2IncCalc>
+
+        <!--Px1Moy et Px2Moy fixent la valeur moyenne de la parallaxe;
+        leurs valeurs ont donc une influence directe sur la zone de
+        recherche exploree lors du premier niveau de la pyramide de
+        resolution. Accessoirement, elles ont une influence sur le
+        formatage du resultat (exprime en relatif par rapport a cette
+        valeur moyenne).-->
+        <Px1Moy >  0.0     </Px1Moy>
+        <Px2Moy >  0.0   </Px2Moy>
+
+      </IntervParalaxe>
+
+      <Planimetrie>
+       <!-- image de Masque utilisee pour designer l'emprise fine de
+          la correlation; il doit etre superposable au MNT de resolution
+          1. Si le fichier n'existe pas, il en sera cree un correspondant
+          aux point du terrain qui sont vus d'au moins deux images (pour
+          la parallaxe moyenne) -->
+      </Planimetrie>
+    </Section_Terrain>
+
+ <!-- *************************************************************
+Parametres lies a la prise de vue, independamment de son exploitation
+par le correlateur
+    ************************************************************* -->
+    <Section_PriseDeVue>
+        <GeomImages> eGeomImage_Epip </GeomImages>
+        <Images>
+            <Im1> ${ImVis} </Im1>
+            <Im2> ${ImPir} </Im2>
+        </Images>
+    </Section_PriseDeVue>
+
+    <Section_MEC>
+        <ChantierFullImage1> true </ChantierFullImage1>
+
+
+        <EtapeMEC><!-- Etape de Mise En Correspondance -->
+            <DeZoom > -1 </DeZoom> <!-- le seul fils obligatoire a toutes les etapes-->
+            <SzW> ${SzW}   </SzW> <!-- la taille de la fenetre de correlation [-4,4]x[-4,4]-->
+
+
+            <CorrelMin>  ${CorrelMin} </CorrelMin>
+            <GammaCorrel>  ${GammaCorrel} </GammaCorrel>
+            <DynamiqueCorrel> eCoeffGamma </DynamiqueCorrel>
+
+
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+            <ModulationProgDyn Portee="Globale">
+                <EtapeProgDyn>
+                    <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+                    <NbDir>      ${NbDir}     </NbDir>
+                </EtapeProgDyn>
+            </ModulationProgDyn>
+            <Px1Regul>  ${Regul}    </Px1Regul>
+            <Px2Regul>  ${Regul}   </Px2Regul>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+            <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+
+            <Px1DilatAlti>  2    </Px1DilatAlti>
+            <Px1DilatPlani> 2    </Px1DilatPlani>
+            <Px2DilatAlti>  2    </Px2DilatAlti>
+            <Px2DilatPlani> 2    </Px2DilatPlani>
+
+            <Px1Pas>        1  </Px1Pas>
+            <Px2Pas>        1   </Px2Pas>
+            <SsResolOptim> ${SsResolOpt} </SsResolOptim>
+
+        </EtapeMEC>
+
+
+        <EtapeMEC> <DeZoom > 4 </DeZoom> </EtapeMEC>
+        <EtapeMEC> <DeZoom > 2 </DeZoom> </EtapeMEC>
+        <EtapeMEC> 
+             <DeZoom > 1 </DeZoom> 
+            <Px1DilatAlti>  1    </Px1DilatAlti>
+            <Px1DilatPlani> 1    </Px1DilatPlani>
+            <Px2DilatAlti>  1    </Px2DilatAlti>
+            <Px2DilatPlani> 1    </Px2DilatPlani>
+        </EtapeMEC> 
+
+        <EtapeMEC>
+            <DeZoom >  1  </DeZoom>
+            <Px1Pas>   1.0     </Px1Pas>
+            <Px2Pas>   1.0     </Px2Pas>
+            <AlgoRegul> eAlgoDequant </AlgoRegul>
+            <GenerateProjectionInImages>
+                <NumsImageDontApply> 0 </NumsImageDontApply>
+                <FCND_CalcProj> Loc-KeyCsteRhoTeta </FCND_CalcProj>
+                <SubsXY> true </SubsXY>
+                <Polar> true</Polar>
+                <GenerateImageRedr>
+                     <FCND_CalcRedr>  Loc-KeyRedr </FCND_CalcRedr>
+                </GenerateImageRedr>
+            </GenerateProjectionInImages>
+        </EtapeMEC>
+    </Section_MEC>
+
+
+    <Section_Results >
+        <GeomMNT> eGeomPxBiDim </GeomMNT>
+    </Section_Results>
+
+   <Section_WorkSpace >
+      <WorkDir >  ThisDir </WorkDir>
+      <TmpMEC> MMDeform/ </TmpMEC>
+      <TmpResult> MMDeform/ </TmpResult>
+
+      <ByProcess>  ${MMNbProc} </ByProcess>
+      <CreateGrayFileAtBegin> true  </CreateGrayFileAtBegin>
+
+      <NbCelluleMax> 8e7 </NbCelluleMax>
+
+      <SzRecouvrtDalles> 50 </SzRecouvrtDalles>
+      <SzDalleMin> 500 </SzDalleMin>
+
+      <DefTileFile>100000</DefTileFile>
+
+     </Section_WorkSpace>
+
+    <Section_Vrac> </Section_Vrac>
+
+
+
+</ParamMICMAC>
