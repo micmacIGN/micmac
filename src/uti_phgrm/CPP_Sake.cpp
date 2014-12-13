@@ -141,6 +141,9 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
   std::string       mModeGeomIm;
   std::string       mModeGeomMnt;
+  
+  int aNbProcUsed = NbProcSys(); //number of cores used for computation
+  //std::cout << "Nb of cores used: " <<  aNbProcUsed << std::endl;
 
   ElInitArgMain
   (
@@ -162,6 +165,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)")
               << EAM(aBoxClip,"BoxClip",true,"Define computation area (Def=[0,0,1,1] means full area) relative to image", eSAM_Normalize)
               << EAM(aBoxTer,"BoxTer",true,"Define computation area [Xmin,Ymin,Xmax,Ymax] relative to ground")
+              << EAM(aNbProcUsed,"NbProc",true,"Number of cores used for computation (Def=MMNbProc)")
               << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=false)", eSAM_IsBool)
               << EAM(mExe,"Exe",true,"Execute command (Def=true)", eSAM_IsBool)
               << EAM(mCalcMEC,"DoMEC",true,"Compute the matching (Def=true)", eSAM_IsBool)
@@ -298,13 +302,12 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
                         + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
                         + std::string(" +NbSteps=") + ToString(mNbStepsMEC)
                         + std::string(" +Exe=") + (mExe ? "true" : "false")
+                        + std::string(" +NbProc=") + ToString(aNbProcUsed)
                         ;
 
   ShowParamVal();
 
   std::cout<<"** "<<mInstruct<<" **"<<std::endl;
-
-
 
 }
 
@@ -329,7 +332,7 @@ void cAppliSake::InitDefValFromType()
   {
     case eGeomTer:
       mSzW = 2;
-      mRegul = 0.05;
+      mRegul = 0.2;
       mZoomF = 1;
       break;
 
@@ -347,12 +350,13 @@ void cAppliSake::InitDefValFromType()
 
 void cAppliSake::ShowParamVal()
 {
+  std::cout << "******************************************************"<<std::endl;
   std::cout << "********** SAKE - SAtellite Kit for Elevation ********" << std::endl;
   std::cout << "********************Parameters************************" << std::endl;
   std::cout << "*   Correl geometry: "<< mStrCorrelGeomType << std::endl;
   std::cout << "*   Number of images: " << mNbIm << std::endl;
   std::cout << "*   Correl window size: " << 2*mSzW+1 << "x"  << 2*mSzW+1 << " (SzW=" << mSzW << ")" << std::endl;
-  std::cout << "*   Correl step: " << mStepF << std::endl;
+  //std::cout << "*   Correl step: " << mStepF << std::endl;
   std::cout << "*   Regularization term: " << mRegul << std::endl;
   std::cout << "*   Final DeZoom MEC: " << mZoomF << std::endl;
   std::cout << "*   Number of correlation steps: " << mNbStepsMEC << std::endl;
@@ -376,15 +380,15 @@ int Sake_main(int argc,char ** argv)
 
 
 
-/*Footer-MicMac-eLiSe-25/06/2007
+/* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �   la mise en
+Ce logiciel est un programme informatique servant à la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -394,17 +398,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement, �   l'utilisation,  �   la modification et/ou au
-développement et �   la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �   des développeurs et des professionnels
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �   leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�   l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+Footer-MicMac-eLiSe-25/06/2007/*/

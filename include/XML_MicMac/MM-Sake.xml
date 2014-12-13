@@ -21,7 +21,8 @@
     <Symb> Interpol=eInterpolBiCub </Symb>
 
     <Symb> SzW=2</Symb>
-
+    
+    <Symb> ZoomI=32</Symb>
     <Symb> ZoomF=1</Symb>
 
     <eSymb> AddZoom32=Sup 32 ${ZoomF} </eSymb>
@@ -32,8 +33,9 @@
 
     <Symb>  NbSteps=-1 </Symb>
 
-    <Symb> ZPasF=0.5</Symb>
+    <Symb>  ZPasF=0.5</Symb>
     <eSymb> DoubleZPasF=* 2 ${ZPasF} </eSymb>
+    <eSymb> DemiZPasF=* 0.5 ${ZPasF} </eSymb>
 
     <Symb> ZRegul=0.1</Symb>
 
@@ -52,11 +54,12 @@
     <Symb> CalcMEC=true </Symb>
     <Symb> ModeGeomMNT=eGeomMNTEuclid </Symb>
     <Symb> EZA=false </Symb>
+    <Symb> NbProc=MMNbProc </Symb>
 
     <Symb> DirOrtho=XXXX</Symb>
     <Symb> CalcOrtho=false</Symb>
     <Symb> ResolOrtho=1.0  </Symb>
-
+    <Symb> CalcMosaO=false  </Symb>
   </DicoLoc>
 
   <Section_Terrain>
@@ -64,11 +67,8 @@
       <ZIncCalc>${ZInc}</ZIncCalc>
       <ZMoyen>${ZMoy}</ZMoyen>
     </IntervAltimetrie>
-
+    
     <Planimetrie>
-      <#WHEN VTEST=${UseResolTer}>
-        <ResolutionTerrain>${ResolTer}</ResolutionTerrain>
-      </#WHEN>
        <#WHEN VTEST=${UseMask}>
         <MasqueTerrain>
           <MT_Image> ${Mask}.tif </MT_Image>
@@ -99,9 +99,10 @@
     <#WHEN VTEST=${UseClip}>
       <ProportionClipMEC >  ${X0Clip} ${Y0Clip} ${X1Clip} ${Y1Clip} </ProportionClipMEC>
     </#WHEN>
+    <PasIsInPixel>  true </PasIsInPixel>
     <EtapeMEC>
       <DeZoom>-1</DeZoom>
-      <DynamiqueCorrel>eCoeffAngle</DynamiqueCorrel>
+      <DynamiqueCorrel>eCoeffCorrelStd</DynamiqueCorrel>
       <AggregCorr>eAggregSymetrique</AggregCorr>
 
       <ModeInterpolation>${Interpol}</ModeInterpolation>
@@ -109,6 +110,9 @@
       <SzW>${SzW}</SzW>
 
       <AlgoRegul>eAlgo2PrgDyn</AlgoRegul>
+      <CoxRoy8Cnx> true </CoxRoy8Cnx>  
+      <CoxRoyUChar> false </CoxRoyUChar>       
+
       <ModulationProgDyn Portee="Globale">
         <EtapeProgDyn>
           <ModeAgreg>ePrgDAgrSomme</ModeAgreg>
@@ -128,6 +132,10 @@
       <ZDilatPlani> 3 </ZDilatPlani>
 
       <GenImagesCorrel>true</GenImagesCorrel>
+    </EtapeMEC>
+    
+    <EtapeMEC> 
+      <DeZoom >  ${ZoomI} </DeZoom> 
     </EtapeMEC>
 
     <#WHEN VTEST=${AddZoom32}>
@@ -151,21 +159,25 @@
     <#WHEN VTEST=${AddZoom4}>
       <EtapeMEC>
         <DeZoom>4</DeZoom>
-        <ZRegul>0.2</ZRegul>
       </EtapeMEC>
     </#WHEN>
 
     <#WHEN VTEST=${AddZoom2}>
       <EtapeMEC>
         <DeZoom>2</DeZoom>
-        <ZRegul>0.2</ZRegul>
       </EtapeMEC>
     </#WHEN>
 
     <EtapeMEC>
-      <DeZoom> ${ZoomF}</DeZoom>
-      <ZPas>${ZPasF}</ZPas>
-      <ZRegul>${ZRegul}</ZRegul>
+      <DeZoom> ${ZoomF} </DeZoom>
+      <ZPas> ${ZPasF} </ZPas>
+    </EtapeMEC>
+
+    <EtapeMEC>
+      <DeZoom> ${ZoomF} </DeZoom>
+      <ZPas> ${DemiZPasF} </ZPas>
+      <ZDilatAlti>1</ZDilatAlti>
+      <ZDilatPlani>1</ZDilatPlani>
     </EtapeMEC>
 
     <EtapeMEC>
@@ -173,34 +185,44 @@
       <ZPas> 1 </ZPas>
       <AlgoRegul> eAlgoDequant </AlgoRegul>
       <ExportZAbs> ${EZA} </ExportZAbs>
+     
       <#WHEN VTEST=${CalcOrtho}>
         <GenerePartiesCachees >
           <ByMkF> true </ByMkF>
           <SeuilUsePC> 3 </SeuilUsePC>
           <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirOrtho}@PC_ </KeyCalcPC>
+          <PatternApply>  .* </PatternApply>
+          <SzBloc> 2000 </SzBloc>
+          <SzBord>  200 </SzBord>
+          
           <MakeOrthoParImage>
             <DirOrtho> ${DirOrtho} </DirOrtho>
-            <KeyCalcInput>Key-Assoc-Id </KeyCalcInput>
-            <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ort_ </KeyCalcOutput>
-            <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrtho}@Incid_ </KeyCalcIncidHor>
-            <ResolIm> 1.0 </ResolIm>
-            <ResolRelOrhto> ${ResolOrtho} </ResolRelOrhto>
-            <CalcIncAZMoy> true </CalcIncAZMoy>
+            
             <MakeMTDMaskOrtho>
               <Mesures>
-              <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbSteps}.tif   </NameFile>
-              <NameMTD>  ../${DirMEC}Z_Num${NbSteps}_DeZoom${ZoomF}_LeChantier.xml  </NameMTD>
+                <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbSteps}.tif   </NameFile>
+                <NameMTD>  ../${DirMEC}Z_Num${NbSteps}_DeZoom${ZoomF}_LeChantier.xml  </NameMTD>
               </Mesures>
             </MakeMTDMaskOrtho>
-          </MakeOrthoParImage>
-      </GenerePartiesCachees>
+
+             <ResolRelOrhto> ${ResolOrtho} </ResolRelOrhto>
+             <OrthoBiCub> -1.5  </OrthoBiCub>
+             <KeyCalcInput> NKS-Assoc-Id </KeyCalcInput>
+             <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ortho_ </KeyCalcOutput>
+             <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrtho}@Incid_ </KeyCalcIncidHor>
+             <ResolIm> 1.0 </ResolIm>
+              <CalcIncAZMoy> true </CalcIncAZMoy>
+           </MakeOrthoParImage>
+        </GenerePartiesCachees>
+        
       </#WHEN>
+      
     </EtapeMEC>
   </Section_MEC>
 
   <Section_Results>
     <GeomMNT> ${ModeGeomMNT} </GeomMNT>
-      <DoMEC> ${CalcMEC} </DoMEC>
+    <DoMEC> ${CalcMEC} </DoMEC>
   </Section_Results>
 
   <Section_WorkSpace>
@@ -211,8 +233,17 @@
       <NbCelluleMax> 8e7 </NbCelluleMax>
       <SzRecouvrtDalles> 50 </SzRecouvrtDalles>
       <SzDalleMin> 500 </SzDalleMin>
-      <DefTileFile>1000000</DefTileFile>
-      <ByProcess>${MMNbProc}</ByProcess>
+      <DefTileFile> 1000000 </DefTileFile>
+      <ByProcess> ${NbProc} </ByProcess>
+
+      <#WHEN VTEST=${CalcMosaO}> 
+        <PostProcess>
+          <OneCmdPar>
+            <OneCmdSer>  ${MMDir}bin/Tawny ${ThisDir}${DirOrtho}/ </OneCmdSer>
+          </OneCmdPar>
+       </PostProcess>
+      </#WHEN>
+
   </Section_WorkSpace>
   <Section_Vrac />
 </ParamMICMAC>
