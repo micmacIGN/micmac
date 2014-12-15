@@ -465,6 +465,8 @@ int CPP_AppliMergeCloud(int argc,char ** argv);
 int MMEnveloppe_Main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
 int CASALL_main(int argc,char ** argv);
+extern int MMEnvStatute_main(int argc,char ** argv);
+
 
 
 
@@ -534,6 +536,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Stoe Auto Correlation (if not already done)"));
 
     aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
+    aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envlop for mod statute"));
 
 
     cCmpMMCom CmpMMCom;
