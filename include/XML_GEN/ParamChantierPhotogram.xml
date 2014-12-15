@@ -119,10 +119,9 @@
    </enum>
 
    <enum Name="eTypeSake">
-       <eGeomTer>    </eGeomTer>
-<!--  <eGeomIm>     </eGeomIm> -->
-       <eOrthoIm>    </eOrthoIm>
-       <eNbTypeVals> </eNbTypeVals>
+       <eDEM>           </eDEM>
+       <eOrthoIm>       </eOrthoIm>
+       <eNbTypeVals>    </eNbTypeVals>
    </enum>
 
    <enum Name="eModeGeomMNT">
