@@ -44,6 +44,59 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define TheNbPref 5
 
+
+int MMEnvStatute_main(int argc,char ** argv)
+{
+   std::string aFullName;
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)",eSAM_IsPatFile),
+        LArgMain()  
+   );
+
+   std::string aDir,aNamIm;
+   SplitDirAndFile(aDir,aNamIm,aFullName);
+
+
+   std::string aDirIn = aDir + TheDIRMergeEPI() + aNamIm + "/";
+
+
+   for (int aK=0 ; aK<2 ; aK++)
+   {
+      bool aModeMax = (aK==0);
+      std::string aNameMasqEnv = aDirIn + std::string("QMNuage-EnvMasq.tif");
+      Tiff_Im aFileMasqEnv(aNameMasqEnv.c_str());
+
+
+      std::string aNameEnv = aDirIn + std::string("QMNuage-") + std::string( aModeMax ? "Max" : "Min")  + std::string(".tif");
+      Tiff_Im aFileEnv(aNameEnv.c_str());
+
+      std::string  aNameFileD = aDirIn + "Fusion_" + aNamIm  + ".tif";
+      std::string  aNameFileM = aDirIn + "Fusion_" + aNamIm  + "_Masq.tif"; 
+      int aSign= (aModeMax ? 1 : -1);
+
+      float aVDef = -1e5;
+      Symb_FNum  aFM (Tiff_Im(aNameFileM.c_str()).in(0));
+      Symb_FNum  aFD (aSign * Tiff_Im(aNameFileD.c_str()).in(aVDef));
+     
+      aFD = aFM * aFD + (1-aFM) * aVDef;
+      aFD = rect_max(aFD,5) + 5;
+      aFD = Max(aFD,aFileEnv.in());
+
+      aFD = aFD * aSign;
+      ELISE_COPY ( aFileEnv.all_pts(), aFD, aFileEnv.out());
+
+
+      ELISE_COPY ( aFileMasqEnv.all_pts(), aFileMasqEnv.in()|| aFM, aFileMasqEnv.out());
+
+   }
+
+   return EXIT_SUCCESS;
+}
+
+
+
 void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 {
 
