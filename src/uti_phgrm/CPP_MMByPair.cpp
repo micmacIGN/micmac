@@ -1505,9 +1505,11 @@ void cAppliMMByPair::DoFusionStatue()
        std::list<std::string> aLCom;
        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
        {
+            std::string aNameIm = (*anITS).attr().mIma->mNameIm;
             std::string aCom =      MMBinFile(MM3DStr) + " MergeDepthMap "
                              +   BLANK +  XML_MM_File("Fusion-MMByP-Statute.xml")
                              + "WorkDirPFM=" + DirMTDImage(*anITS)
+                             + " +ImMaster=" + aNameIm
                            ;
 
             aLCom.push_back(aCom);
@@ -1528,11 +1530,13 @@ void cAppliMMByPair::DoFusionStatue()
        std::list<std::string> aLComPly;
        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
        {
+            std::string aNameIm = (*anITS).attr().mIma->mNameIm;
+
             std::string aCom =      MMBinFile(MM3DStr) + " Nuage2Ply "
-                               + DirMTDImage(*anITS) + "Fusion_NuageImProf_LeChantier_Etape_1.xml"
-                               + " Attr=" +   mEASF.mDir+(*anITS).attr().mIma->mNameIm
+                               + DirMTDImage(*anITS) + "Fusion_"+ aNameIm   + ".xml"
+                               + " Attr=" +   mEASF.mDir+aNameIm
                                + " Scale=" + ToString(mScalePlyFus)
-                               + " Out=" + DirMTDImage(*anITS) + "Fus"+(*anITS).attr().mIma->mNameIm + ".ply"
+                               + " Out=" + DirMTDImage(*anITS) + "Fus"+ aNameIm  + ".ply"
                                +  " SeuilMask=" + ToString(DynCptrFusDepthMap*1.99)
                                +  " Mask=" + DirMTDImage(*anITS) +"Fusion_NuageImProf_LeChantier_Etape_1_Cptr.tif"
                            ;
@@ -1549,17 +1553,18 @@ void cAppliMMByPair::DoFusionStatue()
        std::list<std::string> aLComRed;
        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
        {
+            std::string aNameIm = (*anITS).attr().mIma->mNameIm;
             std::string aCom1 =      MMBinFile(MM3DStr) + " ScaleNuage  "
-                               + DirMTDImage(*anITS) + "Fusion_NuageImProf_LeChantier_Etape_1.xml "
-                               + DirFusStatue() + PrefDNF()  + (*anITS).attr().mIma->mNameIm 
+                               + DirMTDImage(*anITS) + "Fusion_"+ aNameIm   + ".xml "
+                               + DirFusStatue() + PrefDNF()  + aNameIm
                                + " " + ToString(aFactRed)
                                + " InDirLoc=false";
                            ;
 
             std::string aCom2 =  MMBinFile(MM3DStr) + " ScaleIm  "
-                               + DirMTDImage(*anITS) + "Fusion_NuageImProf_LeChantier_Etape_1_Cptr.tif "
+                               + DirMTDImage(*anITS) + "Fusion_" +  aNameIm + "_Cptr.tif " 
                                + " " + ToString(aFactRed)
-                               + " Out=" +  DirFusStatue() + PrefDNF() + (*anITS).attr().mIma->mNameIm  + "CptRed.tif "
+                               + " Out=" +  DirFusStatue() + PrefDNF() + aNameIm  + "CptRed.tif "
                            ;
 
              aLComRed.push_back(aCom1);
