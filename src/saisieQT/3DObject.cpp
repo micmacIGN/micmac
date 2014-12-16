@@ -1563,7 +1563,7 @@ void cMaskedImageGL::draw()
 
     glColor4f(1.0f,1.0f,1.0f,1.0f);
 
-    bool tileMode = glImage()->getZoom() > getLoadedImageRescaleFactor();
+    //bool tileMode = glImage()->getZoom() > getLoadedImageRescaleFactor();
 
     if(glMask() != NULL && glMask()->isVisible())
     {
