@@ -99,6 +99,45 @@ void main_SDK()
 
 int main()
 {
+
+    eprintf(0,5,68,4);
+
+    CStructure<3> testS;
+
+    DUMP(testS.getDimension())
+    DUMP(testS.getNbLayer())
+    DUMP_LINE
+
+    testS.setDimension((uint)3);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+    testS.setDimension(20,5);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+    testS.setDimension(18.3f,5555.f);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+            testS.setDimension(2,5,88);
+
+            DUMP(testS.getDimension())
+                    DUMP(testS.getNbLayer())
+
+                    DUMP(testS.getSize())
+                    DUMP_LINE
+
+    return 0;
+
+//    DUMP(typeid(cudaContext).name())
+
 #if OPENCL_ENABLED
     main_SDK<openClContext>();
 #endif
