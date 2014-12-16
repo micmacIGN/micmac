@@ -65,7 +65,7 @@ class cAppliSake
     bool          mModeHelp;
     cInterfChantierNameManipulateur * mICNM;
     const cInterfChantierNameManipulateur::tSet * mSetIm;
-    int           mNbIm, mNbStepsMEC;
+    int           mNbIm, mNbStepsQ;
     bool          mUseMastIm;
     std::string   mMastIm;
 };
@@ -286,13 +286,13 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
                 +  std::string(" +Y1Ter=") + ToString(aBoxTer._p1.y) ;
     }
 
-    mNbStepsMEC = 1 + round_ni(log2(mZoomI/mZoomF)) +1; // number of MEC steps (if no duplicate of zoom)
+    mNbStepsQ = 2 + round_ni(log2(mZoomI/mZoomF)) + 1;
 
     mInstruct = mInstruct + std::string(" +CalcMEC=") + (mCalcMEC ? "true" : "false")
                           + std::string(" +EZA=") + (mEZA ? "true" : "false")
                           + std::string(" +ZoomF=") + ToString(mZoomF)
                           + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
-                          + std::string(" +NbSteps=") + ToString(mNbStepsMEC)
+                          + std::string(" +NbStepsQ=") + ToString(mNbStepsQ)
                           + std::string(" +Exe=") + (mExe ? "true" : "false")
                           + std::string(" +NbProc=") + ToString(aNbProcUsed)
                           ;
@@ -346,7 +346,7 @@ void cAppliSake::ShowParamVal()
   std::cout << "*   Correl window size: " << 2*mSzW+1 << "x"  << 2*mSzW+1 << " (SzW=" << mSzW << ")" << std::endl;
   std::cout << "*   Regularization term: " << mRegul << std::endl;
   std::cout << "*   Final DeZoom MEC: " << mZoomF << std::endl;
-  std::cout << "*   Number of correlation steps: " << mNbStepsMEC << std::endl;
+  std::cout << "*   Number of correlation steps: " << mNbStepsQ+1 << std::endl;
   std::cout << "*   MEC subdirectory: " << mDirMEC << std::endl;
   if (mStrCorrelGeomType=="OrthoIm")
   {
