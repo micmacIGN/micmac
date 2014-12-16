@@ -713,8 +713,8 @@ std::string  Mangling( eTypePreCondRad *) {return "F35D0134295568AAFE3F";};
 
 eTypeSake  Str2eTypeSake(const std::string & aName)
 {
-   if (aName=="eGeomTer")
-      return eGeomTer;
+   if (aName=="eDEM")
+      return eDEM;
    else if (aName=="eOrthoIm")
       return eOrthoIm;
    else if (aName=="eNbTypeVals")
@@ -732,8 +732,8 @@ void xml_init(eTypeSake & aVal,cElXMLTree * aTree)
 }
 std::string  eToString(const eTypeSake & anObj)
 {
-   if (anObj==eGeomTer)
-      return  "eGeomTer";
+   if (anObj==eDEM)
+      return  "eDEM";
    if (anObj==eOrthoIm)
       return  "eOrthoIm";
    if (anObj==eNbTypeVals)
@@ -760,7 +760,7 @@ void  BinaryUnDumpFromFile(eTypeSake & anObj,ELISE_fp & aFp)
    anObj=(eTypeSake) aIVal;
 }
 
-std::string  Mangling( eTypeSake *) {return "0785B3254B2591AEFE3F";};
+std::string  Mangling( eTypeSake *) {return "52FDB3EEB97972B2FE3F";};
 
 eModeGeomMNT  Str2eModeGeomMNT(const std::string & aName)
 {
