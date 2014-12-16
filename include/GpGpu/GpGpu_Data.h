@@ -223,7 +223,7 @@ int inline _foo(size_t n, int xs[])
         int x = xs[i];
         printf("%d\n", x);
     }
-    return n;
+    return (int)n;
 }
 
 #define foo(arg1, ...) ({              \
@@ -231,22 +231,22 @@ int inline _foo(size_t n, int xs[])
    _foo(sizeof(_x)/sizeof(_x[0]), _x); \
 })
 
-#define    eprintf(args...) foo(args)
+//#define    eprintf(args...) foo(args)
 
 
-//#include <initializer_list>
+#include <initializer_list>
 
-//int sum(std::initializer_list<int> numbers)
-//{
-//    int total = 0;
+int inline sumooo(std::initializer_list<int> numbers)
+{
+   int total = 0;
 
-//    for(auto i = numbers.begin(); i != numbers.end(); i++)
-//    {
-//        total += *i;
-//    }
+   for(auto i = numbers.begin(); i != numbers.end(); i++)
+   {
+       total += *i;
+   }
 
-//    return total;
-//}
+   return total;
+}
 
 template<ushort dim = 3>
 class CStructure
@@ -256,6 +256,8 @@ public:
     CStructure()
     {
         DUMP("Constructeur\n")
+		_dimension = new uint[dim];
+
         for (int i = 0; i < dim; ++i)
             setDim(i,1);
     }
@@ -352,7 +354,7 @@ private:
 
 
 
-    uint _dimension[dim];
+    uint *_dimension;
 };
 
 template<> inline

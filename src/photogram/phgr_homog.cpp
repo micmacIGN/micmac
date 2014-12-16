@@ -75,7 +75,7 @@ cXmlAffinR2ToR cElComposHomographie::ToXml() const
 
 bool  cElComposHomographie::HasNan() const
 {
-    return std::isnan(mX) || std::isnan(mY) || std::isnan(m1);
+    return std_isnan(mX) || std_isnan(mY) || std_isnan(m1);
 }
 
 void cElComposHomographie::Show(const std::string & aMes)

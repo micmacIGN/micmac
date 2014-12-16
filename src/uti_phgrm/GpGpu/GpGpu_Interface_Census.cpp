@@ -131,7 +131,7 @@ void constantParameterCensus::transfertConstantCensus(const std::vector<std::vec
 
         const std::vector<Pt2di> &vv = VV[s];
         size_aVV[s] = vv.size();
-        aVPds[s] = VPds[s];
+        aVPds[s] = (float)VPds[s];
         anOff0 = offset0;
         anOff1 = offset1;
 
