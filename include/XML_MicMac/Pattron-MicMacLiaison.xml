@@ -57,6 +57,7 @@
     <SL_RedrOnCur> true </SL_RedrOnCur>
     <SL_XSzW Id="SL_XSzW"> 1000 </SL_XSzW>
     <SL_YSzW Id="SL_YSzW"> 900 </SL_YSzW>
+    <SL_Epip Id="SL_Epip"> false </SL_Epip>
 </Section_Vrac>
 
 

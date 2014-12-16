@@ -73,26 +73,13 @@ int cAppliMICMAC::GetTXY() const
     return aSz-aStep;
 }
 
-
-
 void cAppliMICMAC::DoAllMEC()
 {
 
 #if CUDA_ENABLED
-    //srand ((uint)time(NULL));
-    // Creation du contexte GPGPU
-    //cudaDeviceProp deviceProp;
-    // Obtention de l'identifiant de la carte la plus puissante
-    int devID = gpuGetMaxGflopsDeviceId();
 
-    ELISE_ASSERT(devID == 0 , "NO GRAPHIC CARD FOR USE CUDA");
-
-    // Initialisation du contexte
-    checkCudaErrors(cudaSetDevice(devID));
-    // Obtention des proprietes de la carte
-    //checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-    // Affichage des proprietes de la carte
-    //printf("GPU Device %d: \"%s\" with compute capability %d.%d\n\n", devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+    CGpGpuContext<cudaContext> gpgpuContext;
+    gpgpuContext.createContext();
 
 #endif
 
@@ -138,13 +125,8 @@ void cAppliMICMAC::DoAllMEC()
      }
 
 #if CUDA_ENABLED
-
-    if (mCorrelAdHoc && mCorrelAdHoc->GPU_CorrelBasik().IsInit())
-    {
-        checkCudaErrors( cudaDeviceReset() );
-    }
-    //printf("Reset Device GpGpu.\n");
-
+    if (mCorrelAdHoc && mCorrelAdHoc->GPU_CorrelBasik().IsInit())    
+        gpgpuContext.deleteContext();
 #endif
 }
 
@@ -344,6 +326,8 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
      );
 }
 
+const std::string & mm_getstrpid();
+
 
 std::string cAppliMICMAC::PrefixGenerikRecalEtapeMicmMac(cEtapeMecComp & anEtape)
 {
@@ -354,7 +338,8 @@ std::string cAppliMICMAC::PrefixGenerikRecalEtapeMicmMac(cEtapeMecComp & anEtape
     //std::string aNameProcess = std::string("\"")+mNameXML+std::string("\"")
    std::string aNameProcess = mNameXML 
                                + std::string(" CalledByProcess=1 ")
-                               + std::string(" ByProcess=0 ");
+                               + std::string(" ByProcess=0 ")
+                               + std::string(" IdMasterProcess="+ mm_getstrpid() + " ");
 
     // MODIF MPD mise entre " des parametre pour etre completement reentrant
     for (int aKArg=0; aKArg<mNbArgAux ; aKArg++)

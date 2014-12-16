@@ -453,6 +453,7 @@ class Im2DGen : public GenIm,
       virtual void PutData(FILE * aFP,const Pt2di & anI,bool aModeBin) const;
 
       virtual Im2DGen * ImOfSameType(const Pt2di & aSz) const;
+      virtual Im2DGen * ImRotate(int aRot ) const;  // aRot = (1,0) , (0,1), (-1,0), (0,-1)
 
 
        Box2di BoxDef() const ;
@@ -496,6 +497,7 @@ class Im2D_NoDataLin{};
 template <class Type,class TyBase> class Im2D : public Im2DGen
 {
    public :
+
       ElMatrix<REAL>  ToMatrix() const;
       typedef Type   tElem;
       typedef TyBase tBase;
@@ -547,6 +549,7 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       INT     GetI(const Pt2di &) const ;
       double  GetR(const Pt2di &) const ;
       Im2DGen  *ImOfSameType(const Pt2di & aSz) const;
+      Im2DGen * ImRotate(int aRot ) const;
       Type **   data();
       Type **   data() const;
       Type *    data_lin();
@@ -557,8 +560,11 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       virtual  GenIm::type_el TypeEl() const ;
       void raz();
       void dup (Im2D<Type,TyBase> to_dup);
+      Im2D<Type,TyBase> dup ();
+      REAL  som_rect();
       REAL  som_rect(Pt2dr p0,Pt2dr p1,REAL def=0.0);
       REAL  moy_rect(Pt2dr p0,Pt2dr p1,REAL def=0.0);
+      Im2D<Type,TyBase>  ToSom1();
 
           Im2D<Type,TyBase> Reech(REAL aZoom);
 
@@ -1008,8 +1014,8 @@ template <class Type>  class ElMatrix
           ElMatrix<Type> & operator = (const ElMatrix<Type> &);
           ~ElMatrix();
 
-
-      ElMatrix<Type> ExtensionId(INT ExtAvant,INT ExtApres) const;
+          ElMatrix<Type> sub_mat(INT aCol, INT aLig, INT aNbCol, INT aNbLig) const;
+          ElMatrix<Type> ExtensionId(INT ExtAvant,INT ExtApres) const;
 
           void set_to_size(INT TX,INT TY);
           void set_to_size(const ElMatrix<Type> & m2);

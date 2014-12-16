@@ -184,24 +184,51 @@ typename tGetVal::tValue     GenValPdsPercentile
 
    return aGetV(aVec[aNBV-1]);
 
-
-/*
-
-   double aPercLast = ((aNBV-0.5)/aNBV) * 100;
-
-   double aRang =  ((aPerc-aPerc0)/(aPercLast-aPerc0)) * (aNBV-1);
-
-   if (aRang<0)
-      return aGetV(aVec[0]);
-   else if (aRang>=aNBV-1)
-       return aGetV(aVec[aNBV-1]);
-
-   int aR0 = round_down(aRang);
-   double aP1 = aRang-aR0;
-   double aP0 = 1-aP1;
-   return aGetV(aVec[aR0])*aP0+ aGetV(aVec[aR0+1])*aP1 ;
-*/
 }
+
+template <class TVal> class  cOperator2Double
+{
+    public :
+      double operator ()(const TVal & aVal) const{ return aVal;}
+      typedef double tValue;
+};
+
+
+template <class Type> class cVectorFoncteur
+{
+    public:
+       const std::vector<Type> &  mVH;
+       const Type  & operator()(const int & anInd) const {return mVH[anInd];}
+       cVectorFoncteur(const std::vector<Type> & aVH) : mVH(aVH) {}
+};
+template <class Type> double GetValPercOfHisto
+                      (
+                            const std::vector<Type> & aVH,
+                            double aPerc
+                      )
+{
+    //cOperatorIdentite<int> anOI;
+    std::vector<double> aVInd;
+    int aNbV= aVH.size();
+    for (int aK=0 ; aK<aNbV ; aK++)
+       aVInd.push_back(aK);
+
+    cVectorFoncteur<Type> aVF(aVH);
+
+    return GenValPdsPercentile
+    (
+         aVInd,
+         aPerc,
+         // cOperatorIdentite<int>(),
+         cOperator2Double<int>(),
+         aVF,
+         SomPerc(aVH,cOperatorIdentite<Type>())
+    );
+
+}
+
+
+
 /*
 */
 

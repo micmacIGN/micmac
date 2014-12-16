@@ -158,24 +158,31 @@ void DoDevelopp(int aSz1,int aSz2)
 }
 
 
-void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
+void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
 {
     if ( i_resolution<=0 )
     {
-        o_grayscaleFilename = NameFileStd( aDir+i_baseName, 1, false, true, false );
+        o_grayscaleFilename = NameFileStd( aParamDir+i_baseName, 1, false, true, false );
         return;
     }
 
-    Tiff_Im aFileInit = Tiff_Im::StdConvGen( aDir+i_baseName, 1, false );
+    Tiff_Im aFileInit = Tiff_Im::StdConvGen( aParamDir+i_baseName, 1, false );
     Pt2di 	imageSize = aFileInit.sz();
 
     double scaleFactor = double( i_resolution ) / double( ElMax( imageSize.x, imageSize.y ) );
     double round_ = 10;
     int    round_scaleFactor = round_ni( ( 1/scaleFactor )*round_ );
 
-    o_grayscaleFilename = ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
+    o_grayscaleFilename = ( isUsingSeparateDirectories()?MMOutputDirectory():aParamDir ) + "Pastis" + ELISE_CAR_DIR + std::string( "Resol" ) + ToString( round_scaleFactor )
             + std::string("_Teta0_") + StdPrefixGen( i_baseName ) + ".tif";
 }
+
+
+void getPastisGrayscaleFilename( const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
+{
+    getPastisGrayscaleFilename(aDir,i_baseName,i_resolution,o_grayscaleFilename);
+}
+
 
 void InitDetectingTool( std::string & detectingTool )
 {
@@ -261,7 +268,7 @@ int MultiEch(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Size of High Resolution Images"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
                 << EAM(ByP,"ByP",true,"By process")
-                << EAM(PostFix,"PostFix",false, "Add post fix in directory")
+                << EAM(PostFix,"PostFix",false, "Add postfix in directory")
                 << EAM(aNbMinPt,"NbMinPt",true,"Minimum number of points")
                 << EAM(DoLowRes,"DLR",true,"Do Low Resolution")
                 << EAM(aPat2,"Pat2",true, "Second pattern", eSAM_IsPatFile)
@@ -336,7 +343,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
                             << EAMC(aFullRes,"Size of image"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",false, "Add post fix in directory")
+                << EAM(PostFix,"PostFix",false, "Add postfix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(aPat2,"Pat2",true,"Second pattern", eSAM_IsPatFile)
 
@@ -376,12 +383,16 @@ int All(int argc,char ** argv, const std::string &aArg="")
     return 0;
 }
 
+// Variant de tapioca adatee au lignes resserrees type video
+
+
 int Line(int argc,char ** argv, const std::string &aArg="")
 {
     int  aNbAdj = 5;
     bool ForceAdj = false;
     int isCirc = 0;
     string detectingTool, matchingTool, ignoreMinMaxStr;
+    std::vector<int> aLineJump;
 
     ElInitArgMain
             (
@@ -390,7 +401,8 @@ int Line(int argc,char ** argv, const std::string &aArg="")
                             << EAMC(aFullRes,"Image size")
                             << EAMC(aNbAdj,"Number of adjacent images to look for"),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",false,"Add post fix in directory")
+                << EAM(aLineJump,"Jump",false,"Densification by jump ")
+                << EAM(PostFix,"PostFix",false,"Add postfix in directory")
                 << EAM(ByP,"ByP",true,"By process")
                 << EAM(isCirc,"Circ",true,"In line mode if it's a loop (begin ~ end)")
                 << EAM(ForceAdj,"ForceAdSupResol",true,"to force computation even when Resol < Adj")
@@ -414,7 +426,7 @@ int Line(int argc,char ** argv, const std::string &aArg="")
             ELISE_ASSERT
                     (
                         false,
-                        "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
+                        "Probable inversion of Resol and Adjacence (use ForceAdSupResol if that's what you mean)"
                         );
 
         }
@@ -423,10 +435,24 @@ int Line(int argc,char ** argv, const std::string &aArg="")
         DoDevelopp(-1,aFullRes);
 
         std::string aRel = isCirc ? "NKS-Rel-ChantierCirculaire" : "NKS-Rel-ChantierLineaire";
+        std::string aGenExt = std::string("@") +  aPat+ std::string("@")+ToString(aNbAdj);
+        if (EAMIsInit(&aLineJump))
+        {
+               ELISE_ASSERT(aLineJump.size()<=2,"aLineJump")
+               if (aLineJump.size()==0) aLineJump.push_back(2);
+               if (aLineJump.size()==1) aLineJump.push_back(ElSquare(aLineJump.back()));
+
+               aRel = "NKS-Rel-LinSampled" + aGenExt + "@" + ToString(isCirc) + "@" +ToString(aLineJump[0])+ "@" + ToString(aLineJump[1]);
+        }
+        else
+        {
+           aRel = aRel + aGenExt;
+        }
 
         std::string aSFR =  BinPastis
                 +  aDir + std::string(" ")
-                +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
+                // +  QUOTE(std::string(aRel + "@")+ aPat+ std::string("@")+ToString(aNbAdj)) + std::string(" ")
+                +  QUOTE(aRel) + std::string(" ")
                 +  ToString(aFullRes) + std::string(" ")
                 +  StrMkT()
                 +  std::string("NbMinPtsExp=2 ")
@@ -455,7 +481,7 @@ int File(int argc,char ** argv, const std::string &aArg="")
                 LArgMain()  << EAMC(aFullDir,"XML-File of pair", eSAM_IsExistFile)
                             << EAMC(aFullRes,"Resolution",eSAM_None),
                 LArgMain()  << EAM(ExpTxt,"ExpTxt",true, "Export files in text format (Def=false means binary)", eSAM_IsBool)
-                << EAM(PostFix,"PostFix",false,"Add post fix in directory")
+                << EAM(PostFix,"PostFix",false,"Add postfix in directory")
                 << EAM(ByP,"ByP",true,"By process")
 
                 << EAM(detectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),false)
@@ -773,7 +799,7 @@ int Graph_(int argc,char ** argv, const std::string &aArg="")
                 argc,argv,
 
                 LArgMain()  << EAMC(aFullDir,"Full images' pattern (directory+pattern)", eSAM_IsPatFile)
-                << EAMC(maxDimensionResize,"Processing size of image  (for the greater dimension)", eSAM_None),
+                << EAMC(maxDimensionResize,"Processing size of image (for the greater dimension)", eSAM_None),
 
                 LArgMain()  << EAM(nbThreads, "ByP", true, "By process")
                 << EAM(detectingTool, PASTIS_DETECT_ARGUMENT_NAME.c_str(), true, "executable used to detect keypoints")
@@ -832,7 +858,7 @@ int Graph_(int argc,char ** argv, const std::string &aArg="")
         ELISE_ASSERT
         (
              false,
-             "Probable inversion of Resol and Adjacence (use ForceAdSupResol is that's what you mean)"
+             "Probable inversion of Resol and Adjacence (use ForceAdSupResol if that's what you mean)"
         );
 
     }
@@ -922,6 +948,12 @@ int Tapioca_main(int argc,char ** argv)
         SplitDirAndFile(aDir,aPat,aFullDir);
 
 
+        if ( isUsingSeparateDirectories() )
+            ELISE_fp::MkDirSvp( MMTemporaryDirectory() );
+        else
+            ELISE_fp::MkDirSvp( aDir+"Tmp-MM-Dir/");
+
+
     aPatOri = aPat;
 
     StdAdapt2Crochet(aPat);
@@ -976,7 +1008,7 @@ int Tapioca_main(int argc,char ** argv)
     }
     else if (TheType == Type[4])
     {
-        int aRes = Graph_(argc,argv,TheType);        
+        int aRes = Graph_(argc,argv,TheType);
         BanniereMM3D();
         return aRes;
     }

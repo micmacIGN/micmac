@@ -667,6 +667,10 @@ Fonc_Num rect_median
                     Histo_Kieme::mode_h=Histo_Kieme::undef
          );
 Fonc_Num MedianBySort(Fonc_Num f,INT NbMed);
+Fonc_Num OmbrageKL(Fonc_Num Prof,Fonc_Num Masq,double aPente,int aSzV);
+Fonc_Num NFoncDilatCond(Fonc_Num f2Dil,Fonc_Num fCond,bool aV4,int aNb);
+
+
 
 Fonc_Num RectKth_Pondere
           (

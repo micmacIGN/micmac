@@ -5,25 +5,22 @@
 #include "GpGpu/GpGpu_MultiThreadingCpu.h"
 #include "GpGpu/GpGpu_eLiSe.h"
 
-template <class T>
-void LaunchKernel();
-
-extern "C" void Launch(uint* value);
-extern "C" void OptimisationOneDirection(DEVC_Data2Opti  &d2O);
-extern "C" void OptimisationOneDirectionZ_V01(DEVC_Data2Opti  &d2O);
-extern "C" void OptimisationOneDirectionZ_V02(DEVC_Data2Opti  &d2O);
+extern "C" void Gpu_OptimisationOneDirection(DEVC_Data2Opti  &d2O);
 
 template <class T>
-struct CuHostDaPo3D
+///
+/// \brief The CuHostDaPo3D struct
+/// Structure 1D des couts de corélation
+struct sMatrixCellCost
 {
-    CuHostData3D<T>         _data1D;
-    CuHostData3D<short2>    _ptZ;
+    CuHostData3D<T>         _CostInit1D;
+    CuHostData3D<short3>    _ptZ;
     CuHostData3D<ushort>    _dZ;
     CuHostData3D<uint>      _pit;
     uint                    _size;
     ushort                  _maxDz;
 
-    CuHostDaPo3D():
+    sMatrixCellCost():
         _maxDz(NAPPEMAX) // ATTENTION : NAPPE Dynamique
     {}
 
@@ -37,16 +34,18 @@ struct CuHostDaPo3D
 
     void                    ReallocData()
     {
-        _data1D.ReallocIf(_size);        
-#ifdef CUDA_DEFCOR
-        _data1D.Fill(20000);
-#endif
+        _CostInit1D.ReallocIf(_size);
 
+    }
+
+    void                    fillCostInit(ushort val)
+    {
+        _CostInit1D.Fill(val);
     }
 
     void                    Dealloc()
     {
-        _data1D.Dealloc();
+        _CostInit1D.Dealloc();
 
         _ptZ.Dealloc();
         _dZ.Dealloc();
@@ -56,18 +55,20 @@ struct CuHostDaPo3D
     void PointIncre(uint2 pt,short2 ptZ)
     {
         ushort dZ   = abs(count(ptZ));
-        _ptZ[pt]    = ptZ;
-        _dZ[pt]     = dZ; // PREDEFCOR : _dZ[pt]+1 reserved cell
+        _ptZ[pt]    = make_short3(ptZ.x,ptZ.y,0);
+        _dZ[pt]     = dZ;
 
-    // ATTENTION : Nappe Dynamique!! _maxDz
-    // NAPPEMAX
-        if(_maxDz < dZ)
-        {
+        // NAPPEMAX
+        if(_maxDz < dZ) // Calcul de la taille de la Nappe Max pour le calcul Gpu
             _maxDz = iDivUp32(dZ) * WARPSIZE;
-            //DUMP_INT(_maxDz)
-        }
+
         _pit[pt]    = _size;
         _size      += dZ;
+    }
+
+    void                    setDefCor(uint2 pt,short defCor)
+    {
+        _ptZ[pt].z    = defCor;
     }
 
     uint                    Pit(uint2 pt)
@@ -80,14 +81,12 @@ struct CuHostDaPo3D
         return _pit[toUi2(pt)];
     }
 
-
-
-    short2                  PtZ(uint2 pt)
+    short3                  PtZ(uint2 pt)
     {
         return _ptZ[pt];
     }
 
-    short2                  PtZ(Pt2di pt)
+    short3                  PtZ(Pt2di pt)
     {
         return _ptZ[toUi2(pt)];
     }
@@ -114,18 +113,18 @@ struct CuHostDaPo3D
 
     T*                      operator[](uint2 pt)
     {
-        return _data1D.pData() + _pit[pt];
+        return _CostInit1D.pData() + _pit[pt];
     }
 
     T*                      operator[](Pt2di pt)
     {
-        return _data1D.pData() + _pit[toUi2(pt)];
+        return _CostInit1D.pData() + _pit[toUi2(pt)];
     }
 
     T&                      operator[](int3 pt)
     {
         uint2 ptTer = make_uint2(pt.x,pt.y);
-        return *(_data1D.pData() + _pit[ptTer] - _ptZ[ptTer].x + pt.z);
+        return *(_CostInit1D.pData() + _pit[ptTer] - _ptZ[ptTer].x + pt.z);
     }
 };
 
@@ -148,7 +147,6 @@ public:
     /// \return
     ///
     HOST_Data2Opti& HData2Opt(){ return _H_data2Opt;}
-
     DEVC_Data2Opti& DData2Opt(){ return _D_data2Opt;}
 
     ///
@@ -156,40 +154,22 @@ public:
     ///
     void            Dealloc();
 
-    ///
-    /// \brief oneDirOptGpGpu
-    ///
-
-    ///
-    /// \brief oneDirOptGpGpu
-    ///
-    void            oneDirOptGpGpu();
-
-    ///
-    /// \brief ReallocParam
-    /// \param size
-    ///
-    //void            Prepare(uint x,uint y);
-
-    void            Prepare(uint x, uint y, ushort penteMax, ushort NBDir, float zReg, float zRegQuad, ushort costDefMask,ushort costDefMaskTrans);
+    void            Prepare(uint x, uint y, ushort penteMax, ushort NBDir, float zReg, float zRegQuad, ushort costDefMask, ushort costDefMaskTrans, bool hasMaskAuto);
 
     ///
     /// \brief freezeCompute
     ///
     void            freezeCompute();
 
-    void            simpleJob();
-
     CuHostData3D<uint>      _preFinalCost1D;
     CuHostData3D<uint>      _FinalDefCor;
+    sMatrixCellCost<ushort>    _poInitCost;
 
-    CuHostDaPo3D<ushort>    _poInitCost;
+    void            optimisation();
 
-    void oneCompute();
-    void optimisation();
 private:
 
-    void            threadCompute();
+    void            simpleWork();
 
     HOST_Data2Opti  _H_data2Opt;
     DEVC_Data2Opti  _D_data2Opt;

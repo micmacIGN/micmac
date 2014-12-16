@@ -20,6 +20,8 @@
           <Symb>  IncidMax=1.05 </Symb>
           <Symb>  ParamAnam=XXXX </Symb>
           <Symb>  ZMoy=0.0 </Symb>
+          <Symb>  IdAnam=TheSurf </Symb>
+          <Symb>  UnUseAXC=false </Symb>
 
   </DicoLoc>
 
@@ -100,11 +102,12 @@
 
     <#WHEN VTEST=${DoIncid}>
           <AnamorphoseGeometrieMNT>
+               <UnUseAnamXCste> ${UnUseAXC} </UnUseAnamXCste>
                <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
                 <#WHEN VTEST=${DoAnam}>
                    <AnamSurfaceAnalytique>
                             <NameFile> ${ParamAnam}</NameFile>
-                            <Id> TheSurf </Id>
+                            <Id> ${IdAnam} </Id>
                       </AnamSurfaceAnalytique>
                       <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
                 </#WHEN>

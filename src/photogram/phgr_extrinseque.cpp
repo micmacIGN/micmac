@@ -235,7 +235,8 @@ const ElMatrix<Fonc_Num> & cRotationFormelle::MatFGL(int aKForceGL)
    if (aKForceGL>=0)
    {
        static std::vector<cMatr_Etat_PhgrF *> aVM;
-       for (int aK=0 ; aK<=aKForceGL ; aK++)
+       // for (int aK=0 ; aK<=aKForceGL ; aK++)
+       for (int aK=int(aVM.size()) ; aK<=aKForceGL ; aK++)  // MPD : sinon on augment a chaque fois
            aVM.push_back(new cMatr_Etat_PhgrF("GL_MK"+ToString(aKForceGL),3,3));
 
        return aVM[aKForceGL]->Mat();
@@ -445,6 +446,7 @@ void  cRotationFormelle::SetRotPseudoBaseU (cRotationFormelle * aRF)
 
 cMultiContEQF    cRotationFormelle::StdContraintes()
 {
+
   cMultiContEQF  aRes;
   if (mModeContr == eRotLibre)
   {

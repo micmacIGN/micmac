@@ -24,6 +24,8 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
 
             <Symb>  PenalNbIm=0.3333   </Symb>
             <Symb>  TetaOpt=0.17   </Symb>  <!-- 10 degre, why not -->
+            <Symb>  UseMasq3D=false   </Symb>  <!-- 10 degre, why not -->
+            <Symb>  Masq3D=XXXX   </Symb>  <!-- 10 degre, why not -->
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -42,42 +44,63 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
        <SectionInconnues>
 
              <CalibrationCameraInc>
-                   <Name> GenerateKC-Others   </Name>
+                   <Name> GenerateKC-CalPerIm   </Name>
                    <CalValueInit>
                          <CalFromFileExtern>
                               <NameFile>   ####  </NameFile>
-                              <#IF VTEST=${CalPerIm}>
-                                    <NameTag>    Interne </NameTag>
-                                    <NameTag>    CalibrationInternConique </NameTag>
-                              </#IF>
+                               <NameTag>    Interne </NameTag>
                               <AutorizeNonExisting > true </AutorizeNonExisting>
                          </CalFromFileExtern>
                    </CalValueInit>
-                   <#IF VTEST=${CalPerIm}>
-                         <CalibPerPose>
-                              <KeyPose2Cal> NKS-Assoc-Id </KeyPose2Cal>
-                              <KeyInitFromPose> NKS-Assoc-Im2Orient@${AeroIn} </KeyInitFromPose>
-                         </CalibPerPose>
+                   <CalibPerPose>
+                         <KeyPose2Cal> NKS-Assoc-Id </KeyPose2Cal>
+                         <KeyInitFromPose> NKS-Assoc-Im2Orient@${AeroIn} </KeyInitFromPose>
+                   </CalibPerPose>
+             </CalibrationCameraInc>
 
-                         <CalibPerPose>
-                              <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
-                              <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
-                         </CalibPerPose>
-                   </#IF>
-              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> GenerateKC-CalPerFoc   </Name>
+                   <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                   <CalibPerPose>
+                         <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                         <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                   </CalibPerPose>
+             </CalibrationCameraInc>
 
 
              <PoseCameraInc>
-<!--
-	           <PatternName>    ${PatternAllIm}    </PatternName>
--->
-	           <PatternName>    ${SetIm}    </PatternName>
-	           <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   <PatternName>     ${SetIm}   </PatternName>
+
+                   <CalcNameCalibAux>
+                        <CalcNameOnExistingTag>
+                               <KeyCalcFileOriExt>  NKS-Assoc-Im2Orient@${AeroIn} </KeyCalcFileOriExt>
+                               <KeyCalcName >  NKS-Assoc-Cste@GenerateKC-CalPerFoc      </KeyCalcName>
+                               <TagExist>    FileInterne      </TagExist>
+                               <TagNotExist> Interne      </TagNotExist>
+                               <ExigCohTags> true  </ExigCohTags>
+                        </CalcNameOnExistingTag>
+                   </CalcNameCalibAux>
+                   <CalcNameCalibAux>
+                        <CalcNameOnExistingTag>
+                               <KeyCalcFileOriExt>  NKS-Assoc-Im2Orient@${AeroIn} </KeyCalcFileOriExt>
+                               <KeyCalcName >  NKS-Assoc-Cste@GenerateKC-CalPerIm      </KeyCalcName>
+                               <TagExist>    Interne      </TagExist>
+                               <TagNotExist> FileInterne      </TagNotExist>
+                               <ExigCohTags> true  </ExigCohTags>
+                        </CalcNameOnExistingTag>
+                   </CalcNameCalibAux>
 
                    <PosValueInit>
-                       <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                            <PosFromBDOrient> Or-Init </PosFromBDOrient>
                    </PosValueInit>
              </PoseCameraInc>
+
 
         </SectionInconnues>
 
@@ -134,7 +157,11 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                                <TetaOpt > ${TetaOpt} </TetaOpt>
                                <TetaMaxPreSel> 0.8 </TetaMaxPreSel>
                                <NbMaxPresel>  15</NbMaxPresel>
+                               <NbTestPrecis>  15</NbTestPrecis>
                                <PenalNbIm> ${PenalNbIm} </PenalNbIm>
+                               <#WHEN VTEST=${UseMasq3D}>
+                                    <Masq3D> ${Masq3D} </Masq3D>
+                               </#WHEN>
                           </ChoixImSec>
                      </ChoixImMM>
                      <ExportNuage>

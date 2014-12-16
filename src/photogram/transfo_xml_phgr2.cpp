@@ -346,6 +346,12 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
          return false;
    }
 
+   if ((aFilter.Min().IsInit())&&(aFilter.Min().Val()>aName))
+      return false;
+
+   if ((aFilter.Max().IsInit())&&(aFilter.Max().Val()<aName))
+      return false;
+
 
    const std::list<Pt2drSubst> & aLFoc = aFilter.FocMm();
    if (! aLFoc.empty())
@@ -358,12 +364,6 @@ bool NameFilter(const std::string & aSubD,cInterfChantierNameManipulateur * aICN
    }
    
 
-
-   if ((aFilter.Min().IsInit())&&(aFilter.Min().Val()>aName))
-      return false;
-
-   if ((aFilter.Max().IsInit())&&(aFilter.Max().Val()<aName))
-      return false;
 
    for 
    (

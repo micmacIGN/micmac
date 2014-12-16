@@ -1039,6 +1039,7 @@ void cSetEqFormelles::SolveResetUpdate(double ExpectResidu,bool *OK)
 
 bool DoCheckResiduPhgrm=false;
 
+
 void cSetEqFormelles::Solve(double ExpectResidu,bool *OK)
 {
     AssertClosed();
@@ -1054,9 +1055,17 @@ void cSetEqFormelles::Solve(double ExpectResidu,bool *OK)
         int I0 = (*itB)->IncInterv().I0Solve();
         int I1 = (*itB)->IncInterv().I1Solve();
         for (int aK=I0; aK<I1 ; aK++)
+        {
 	    mSys->SetElemQuad(aK,aK,1);
+        }
     }
 
+    if (0)
+    {
+        ShowSpectrSys(*this);
+        std::cout << "SetEqFormelles::Solve:DoneIntervvvvvvvvvvvvv \n";
+        getchar();
+    }
 
     if (::DebugPbCondFaisceau)
     {

@@ -42,6 +42,53 @@ std::string  Mangling( eModeBoxFusion *);
 
 void  BinaryUnDumpFromFile(eModeBoxFusion &,ELISE_fp &);
 
+typedef enum
+{
+  eMMC_QuickMac,
+  eMMC_Envlop,
+  eMMC_Epi
+} eModeMergeCloud;
+void xml_init(eModeMergeCloud & aVal,cElXMLTree * aTree);
+std::string  eToString(const eModeMergeCloud & aVal);
+
+eModeMergeCloud  Str2eModeMergeCloud(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeMergeCloud & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eModeMergeCloud &);
+
+std::string  Mangling( eModeMergeCloud *);
+
+void  BinaryUnDumpFromFile(eModeMergeCloud &,ELISE_fp &);
+
+typedef enum
+{
+  eQC_Out,
+  eQC_ZeroCohBrd,
+  eQC_ZeroCoh,
+  eQC_ZeroCohImMul,
+  eQC_GradFort,
+  eQC_GradFaibleC1,
+  eQC_Bord,
+  eQC_Coh1,
+  eQC_GradFaibleC2,
+  eQC_Coh2,
+  eQC_Coh3,
+  eQC_NonAff
+} eQualCloud;
+void xml_init(eQualCloud & aVal,cElXMLTree * aTree);
+std::string  eToString(const eQualCloud & aVal);
+
+eQualCloud  Str2eQualCloud(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eQualCloud & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eQualCloud &);
+
+std::string  Mangling( eQualCloud *);
+
+void  BinaryUnDumpFromFile(eQualCloud &,ELISE_fp &);
+
 class cIntervLutConvertion
 {
     public:
@@ -1615,6 +1662,34 @@ std::string  Mangling( cXmlCylindreRevolution *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlToreRevol
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlToreRevol & anObj,cElXMLTree * aTree);
+
+
+        cXmlCylindreRevolution & Cyl();
+        const cXmlCylindreRevolution & Cyl()const ;
+
+        Pt3dr & POriTore();
+        const Pt3dr & POriTore()const ;
+    private:
+        cXmlCylindreRevolution mCyl;
+        Pt3dr mPOriTore;
+};
+cElXMLTree * ToXMLTree(const cXmlToreRevol &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlToreRevol &);
+
+void  BinaryUnDumpFromFile(cXmlToreRevol &,ELISE_fp &);
+
+std::string  Mangling( cXmlToreRevol *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlOrthoCyl
 {
     public:
@@ -1664,9 +1739,13 @@ class cXmlDescriptionAnalytique
 
         cTplValGesInit< cXmlOrthoCyl > & OrthoCyl();
         const cTplValGesInit< cXmlOrthoCyl > & OrthoCyl()const ;
+
+        cTplValGesInit< cXmlToreRevol > & Tore();
+        const cTplValGesInit< cXmlToreRevol > & Tore()const ;
     private:
         cTplValGesInit< cXmlCylindreRevolution > mCyl;
         cTplValGesInit< cXmlOrthoCyl > mOrthoCyl;
+        cTplValGesInit< cXmlToreRevol > mTore;
 };
 cElXMLTree * ToXMLTree(const cXmlDescriptionAnalytique &);
 
@@ -4672,10 +4751,14 @@ class cSectionName
 
         cTplValGesInit< std::string > & ModeleNuageResult();
         const cTplValGesInit< std::string > & ModeleNuageResult()const ;
+
+        cTplValGesInit< std::string > & KeyNuage2Im();
+        const cTplValGesInit< std::string > & KeyNuage2Im()const ;
     private:
         std::string mKeyNuage;
         std::string mKeyResult;
         cTplValGesInit< std::string > mModeleNuageResult;
+        cTplValGesInit< std::string > mKeyNuage2Im;
 };
 cElXMLTree * ToXMLTree(const cSectionName &);
 
@@ -5079,6 +5162,9 @@ class cParamFusionMNT
         cTplValGesInit< std::string > & ModeleNuageResult();
         const cTplValGesInit< std::string > & ModeleNuageResult()const ;
 
+        cTplValGesInit< std::string > & KeyNuage2Im();
+        const cTplValGesInit< std::string > & KeyNuage2Im()const ;
+
         cSectionName & SectionName();
         const cSectionName & SectionName()const ;
 
@@ -5224,6 +5310,62 @@ std::string  Mangling( cParamFusionMNT *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cPFNMiseAuPoint
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cPFNMiseAuPoint & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< Pt2di > & SzVisu();
+        const cTplValGesInit< Pt2di > & SzVisu()const ;
+
+        cTplValGesInit< bool > & TestImageDif();
+        const cTplValGesInit< bool > & TestImageDif()const ;
+
+        cTplValGesInit< bool > & VisuGrad();
+        const cTplValGesInit< bool > & VisuGrad()const ;
+
+        cTplValGesInit< bool > & VisuLowPts();
+        const cTplValGesInit< bool > & VisuLowPts()const ;
+
+        cTplValGesInit< bool > & VisuImageCoh();
+        const cTplValGesInit< bool > & VisuImageCoh()const ;
+
+        cTplValGesInit< bool > & VisuSelect();
+        const cTplValGesInit< bool > & VisuSelect()const ;
+
+        cTplValGesInit< bool > & VisuEnv();
+        const cTplValGesInit< bool > & VisuEnv()const ;
+
+        cTplValGesInit< bool > & VisuElim();
+        const cTplValGesInit< bool > & VisuElim()const ;
+
+        cTplValGesInit< std::string > & ImageMiseAuPoint();
+        const cTplValGesInit< std::string > & ImageMiseAuPoint()const ;
+    private:
+        cTplValGesInit< Pt2di > mSzVisu;
+        cTplValGesInit< bool > mTestImageDif;
+        cTplValGesInit< bool > mVisuGrad;
+        cTplValGesInit< bool > mVisuLowPts;
+        cTplValGesInit< bool > mVisuImageCoh;
+        cTplValGesInit< bool > mVisuSelect;
+        cTplValGesInit< bool > mVisuEnv;
+        cTplValGesInit< bool > mVisuElim;
+        cTplValGesInit< std::string > mImageMiseAuPoint;
+};
+cElXMLTree * ToXMLTree(const cPFNMiseAuPoint &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPFNMiseAuPoint &);
+
+void  BinaryUnDumpFromFile(cPFNMiseAuPoint &,ELISE_fp &);
+
+std::string  Mangling( cPFNMiseAuPoint *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cGrapheRecouvrt
 {
     public:
@@ -5232,10 +5374,30 @@ class cGrapheRecouvrt
         friend void xml_init(cGrapheRecouvrt & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< double > & TauxRecMin();
-        const cTplValGesInit< double > & TauxRecMin()const ;
+        double & TauxRecMin();
+        const double & TauxRecMin()const ;
+
+        cTplValGesInit< std::string > & ExtHom();
+        const cTplValGesInit< std::string > & ExtHom()const ;
+
+        cTplValGesInit< int > & MinSzFilHom();
+        const cTplValGesInit< int > & MinSzFilHom()const ;
+
+        cTplValGesInit< double > & RecSeuilDistProf();
+        const cTplValGesInit< double > & RecSeuilDistProf()const ;
+
+        int & NbPtsLowResume();
+        const int & NbPtsLowResume()const ;
+
+        cTplValGesInit< double > & CostPerImISOM();
+        const cTplValGesInit< double > & CostPerImISOM()const ;
     private:
-        cTplValGesInit< double > mTauxRecMin;
+        double mTauxRecMin;
+        cTplValGesInit< std::string > mExtHom;
+        cTplValGesInit< int > mMinSzFilHom;
+        cTplValGesInit< double > mRecSeuilDistProf;
+        int mNbPtsLowResume;
+        cTplValGesInit< double > mCostPerImISOM;
 };
 cElXMLTree * ToXMLTree(const cGrapheRecouvrt &);
 
@@ -5248,6 +5410,86 @@ std::string  Mangling( cGrapheRecouvrt *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cImageVariations
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cImageVariations & anObj,cElXMLTree * aTree);
+
+
+        bool & V4Vois();
+        const bool & V4Vois()const ;
+
+        int & DistVois();
+        const int & DistVois()const ;
+
+        double & DynAngul();
+        const double & DynAngul()const ;
+
+        double & SeuilStrictVarIma();
+        const double & SeuilStrictVarIma()const ;
+
+        cTplValGesInit< double > & PenteRefutInitInPixel();
+        const cTplValGesInit< double > & PenteRefutInitInPixel()const ;
+
+        cTplValGesInit< bool > & ComputeIncid();
+        const cTplValGesInit< bool > & ComputeIncid()const ;
+
+        cTplValGesInit< int > & DilateBord();
+        const cTplValGesInit< int > & DilateBord()const ;
+    private:
+        bool mV4Vois;
+        int mDistVois;
+        double mDynAngul;
+        double mSeuilStrictVarIma;
+        cTplValGesInit< double > mPenteRefutInitInPixel;
+        cTplValGesInit< bool > mComputeIncid;
+        cTplValGesInit< int > mDilateBord;
+};
+cElXMLTree * ToXMLTree(const cImageVariations &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cImageVariations &);
+
+void  BinaryUnDumpFromFile(cImageVariations &,ELISE_fp &);
+
+std::string  Mangling( cImageVariations *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cPFM_Selection
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cPFM_Selection & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & ElimDirectInterior();
+        const cTplValGesInit< double > & ElimDirectInterior()const ;
+
+        cTplValGesInit< double > & LowRatioSelectIm();
+        const cTplValGesInit< double > & LowRatioSelectIm()const ;
+
+        cTplValGesInit< double > & HighRatioSelectIm();
+        const cTplValGesInit< double > & HighRatioSelectIm()const ;
+    private:
+        cTplValGesInit< double > mElimDirectInterior;
+        cTplValGesInit< double > mLowRatioSelectIm;
+        cTplValGesInit< double > mHighRatioSelectIm;
+};
+cElXMLTree * ToXMLTree(const cPFM_Selection &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPFM_Selection &);
+
+void  BinaryUnDumpFromFile(cPFM_Selection &,ELISE_fp &);
+
+std::string  Mangling( cPFM_Selection *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cParamFusionNuage
 {
     public:
@@ -5256,13 +5498,101 @@ class cParamFusionNuage
         friend void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< double > & TauxRecMin();
-        const cTplValGesInit< double > & TauxRecMin()const ;
+        eModeMergeCloud & ModeMerge();
+        const eModeMergeCloud & ModeMerge()const ;
+
+        cTplValGesInit< Pt2di > & SzVisu();
+        const cTplValGesInit< Pt2di > & SzVisu()const ;
+
+        cTplValGesInit< bool > & TestImageDif();
+        const cTplValGesInit< bool > & TestImageDif()const ;
+
+        cTplValGesInit< bool > & VisuGrad();
+        const cTplValGesInit< bool > & VisuGrad()const ;
+
+        cTplValGesInit< bool > & VisuLowPts();
+        const cTplValGesInit< bool > & VisuLowPts()const ;
+
+        cTplValGesInit< bool > & VisuImageCoh();
+        const cTplValGesInit< bool > & VisuImageCoh()const ;
+
+        cTplValGesInit< bool > & VisuSelect();
+        const cTplValGesInit< bool > & VisuSelect()const ;
+
+        cTplValGesInit< bool > & VisuEnv();
+        const cTplValGesInit< bool > & VisuEnv()const ;
+
+        cTplValGesInit< bool > & VisuElim();
+        const cTplValGesInit< bool > & VisuElim()const ;
+
+        cTplValGesInit< std::string > & ImageMiseAuPoint();
+        const cTplValGesInit< std::string > & ImageMiseAuPoint()const ;
+
+        cPFNMiseAuPoint & PFNMiseAuPoint();
+        const cPFNMiseAuPoint & PFNMiseAuPoint()const ;
+
+        double & TauxRecMin();
+        const double & TauxRecMin()const ;
+
+        cTplValGesInit< std::string > & ExtHom();
+        const cTplValGesInit< std::string > & ExtHom()const ;
+
+        cTplValGesInit< int > & MinSzFilHom();
+        const cTplValGesInit< int > & MinSzFilHom()const ;
+
+        cTplValGesInit< double > & RecSeuilDistProf();
+        const cTplValGesInit< double > & RecSeuilDistProf()const ;
+
+        int & NbPtsLowResume();
+        const int & NbPtsLowResume()const ;
+
+        cTplValGesInit< double > & CostPerImISOM();
+        const cTplValGesInit< double > & CostPerImISOM()const ;
 
         cGrapheRecouvrt & GrapheRecouvrt();
         const cGrapheRecouvrt & GrapheRecouvrt()const ;
+
+        bool & V4Vois();
+        const bool & V4Vois()const ;
+
+        int & DistVois();
+        const int & DistVois()const ;
+
+        double & DynAngul();
+        const double & DynAngul()const ;
+
+        double & SeuilStrictVarIma();
+        const double & SeuilStrictVarIma()const ;
+
+        cTplValGesInit< double > & PenteRefutInitInPixel();
+        const cTplValGesInit< double > & PenteRefutInitInPixel()const ;
+
+        cTplValGesInit< bool > & ComputeIncid();
+        const cTplValGesInit< bool > & ComputeIncid()const ;
+
+        cTplValGesInit< int > & DilateBord();
+        const cTplValGesInit< int > & DilateBord()const ;
+
+        cImageVariations & ImageVariations();
+        const cImageVariations & ImageVariations()const ;
+
+        cTplValGesInit< double > & ElimDirectInterior();
+        const cTplValGesInit< double > & ElimDirectInterior()const ;
+
+        cTplValGesInit< double > & LowRatioSelectIm();
+        const cTplValGesInit< double > & LowRatioSelectIm()const ;
+
+        cTplValGesInit< double > & HighRatioSelectIm();
+        const cTplValGesInit< double > & HighRatioSelectIm()const ;
+
+        cPFM_Selection & PFM_Selection();
+        const cPFM_Selection & PFM_Selection()const ;
     private:
+        eModeMergeCloud mModeMerge;
+        cPFNMiseAuPoint mPFNMiseAuPoint;
         cGrapheRecouvrt mGrapheRecouvrt;
+        cImageVariations mImageVariations;
+        cPFM_Selection mPFM_Selection;
 };
 cElXMLTree * ToXMLTree(const cParamFusionNuage &);
 
@@ -5271,6 +5601,126 @@ void  BinaryDumpInFile(ELISE_fp &,const cParamFusionNuage &);
 void  BinaryUnDumpFromFile(cParamFusionNuage &,ELISE_fp &);
 
 std::string  Mangling( cParamFusionNuage *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cCWWSIVois
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCWWSIVois & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameVois();
+        const std::string & NameVois()const ;
+    private:
+        std::string mNameVois;
+};
+cElXMLTree * ToXMLTree(const cCWWSIVois &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCWWSIVois &);
+
+void  BinaryUnDumpFromFile(cCWWSIVois &,ELISE_fp &);
+
+std::string  Mangling( cCWWSIVois *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cCWWSImage
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCWWSImage & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        std::list< cCWWSIVois > & CWWSIVois();
+        const std::list< cCWWSIVois > & CWWSIVois()const ;
+    private:
+        std::string mNameIm;
+        std::list< cCWWSIVois > mCWWSIVois;
+};
+cElXMLTree * ToXMLTree(const cCWWSImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCWWSImage &);
+
+void  BinaryUnDumpFromFile(cCWWSImage &,ELISE_fp &);
+
+std::string  Mangling( cCWWSImage *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cChantierAppliWithSetImage
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cChantierAppliWithSetImage & anObj,cElXMLTree * aTree);
+
+
+        std::list< cCWWSImage > & Images();
+        const std::list< cCWWSImage > & Images()const ;
+    private:
+        std::list< cCWWSImage > mImages;
+};
+cElXMLTree * ToXMLTree(const cChantierAppliWithSetImage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cChantierAppliWithSetImage &);
+
+void  BinaryUnDumpFromFile(cChantierAppliWithSetImage &,ELISE_fp &);
+
+std::string  Mangling( cChantierAppliWithSetImage *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cParamFiltreDepthByPrgDyn
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cParamFiltreDepthByPrgDyn & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & CostNonAff();
+        const cTplValGesInit< double > & CostNonAff()const ;
+
+        cTplValGesInit< double > & CostTrans();
+        const cTplValGesInit< double > & CostTrans()const ;
+
+        cTplValGesInit< double > & CostRegul();
+        const cTplValGesInit< double > & CostRegul()const ;
+
+        double & StepZ();
+        const double & StepZ()const ;
+
+        cTplValGesInit< double > & DzMax();
+        const cTplValGesInit< double > & DzMax()const ;
+
+        cTplValGesInit< int > & NbDir();
+        const cTplValGesInit< int > & NbDir()const ;
+    private:
+        cTplValGesInit< double > mCostNonAff;
+        cTplValGesInit< double > mCostTrans;
+        cTplValGesInit< double > mCostRegul;
+        double mStepZ;
+        cTplValGesInit< double > mDzMax;
+        cTplValGesInit< int > mNbDir;
+};
+cElXMLTree * ToXMLTree(const cParamFiltreDepthByPrgDyn &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cParamFiltreDepthByPrgDyn &);
+
+void  BinaryUnDumpFromFile(cParamFiltreDepthByPrgDyn &,ELISE_fp &);
+
+std::string  Mangling( cParamFiltreDepthByPrgDyn *);
 
 /******************************************************/
 /******************************************************/

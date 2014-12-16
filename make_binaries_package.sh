@@ -5,7 +5,7 @@ cd build
 
 if [ "$1" == "serveur" ]
 then
-	SERVER_PARAMS="-DWITH_KAKADU=1 -DKAKADU_DIR=$PWD/../../kakadu -DWITH_HEADER_PRECOMP=0"
+	SERVER_PARAMS="-DWITH_KAKADU=1 -DKAKADU_DIR=$PWD/../../kakadu -DWITH_HEADER_PRECOMP=0 -DNO_X11=ON"
 fi
 
 cmake .. $SERVER_PARAMS

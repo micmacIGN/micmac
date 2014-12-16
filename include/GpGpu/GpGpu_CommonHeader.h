@@ -1,11 +1,18 @@
 #ifndef GPGPU_COMMON_HEADER_H
 #define GPGPU_COMMON_HEADER_H
 
+/** @defgroup GpGpuDoc Documentation GpGpu
+ *
+ * Ce module parle de la GpGpu
+ *
+ */
+
 #include <sstream>
 #include <string>
 #include <iostream>
 #include <limits>
 
+using namespace std;
 
 #include "GpGpu/GpGpu_BuildOptions.h"
 
@@ -21,7 +28,7 @@
 #ifdef _WIN32
     #include <Lmcons.h>
 #else
-    #define  NVTOOLS
+    //#define  NVTOOLS
     #include "nvToolsExtCuda.h"
     #include <stdio.h>
     #include <unistd.h>

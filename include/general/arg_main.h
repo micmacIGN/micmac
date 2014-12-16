@@ -273,8 +273,8 @@ class GenElArgMain
                 static const std::string  theChaineInactif;
                 static const std::string  theChaineActif;
 
-        ElSTDNS string	_name;
-        mutable bool	_is_init;
+        ElSTDNS string  _name;
+        mutable bool  _is_init;
                 eSpecArgMain    mSpec;
                 std::list<std::string>  mLEnum;
 };
@@ -345,7 +345,7 @@ template <class Type> class ElArgMain : public GenElArgMain
 
     private :
 
-        Type * 	    _adr;
+        Type *      _adr;
                 std::string  mCom;
 
 };
@@ -456,7 +456,7 @@ int MMRunVisualMode
          std::string aFirstArg = ""
      );
 
-std::vector<char *>   	ElInitArgMain
+std::vector<char *>     ElInitArgMain
         (
             int argc,char ** argv,
             const LArgMain & ,
@@ -467,7 +467,7 @@ std::vector<char *>   	ElInitArgMain
             int   aNbArgGlobGlob = EIAM_NbArgGlobGlob
         );
 
-void  	ElInitArgMain
+void    ElInitArgMain
         (
             const std::string &,
             const LArgMain & ,
@@ -554,6 +554,10 @@ int GenXML2Cpp_main(int argc,char ** argv);
 int GrShade_main(int argc,char ** argv);
 int LumRas_main(int argc,char ** argv);
 
+int DevOneImPtsCarVideo_main(int argc,char ** argv);
+int Devideo_main(int argc,char ** argv);
+
+
 
 
 int CoherEpi_main(int argc,char ** argv);
@@ -589,8 +593,10 @@ int AperiCloud_main(int argc,char ** argv);
 int Apero_main(int argc,char ** argv);
 int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
+int ConvertCalib_main(int argc, char** argv);
 int Campari_main(int argc,char ** argv);
 int CASA_main(int argc,char ** argv);
+int Donuts_main(int argc,char **argv);
 int MMTestOrient_main(int argc,char ** argv);
 int MMHomCorOri_main(int argc,char ** argv);
 int ChgSysCo_main(int argc,char ** argv);
@@ -620,6 +626,10 @@ int RHHComputHom_main(int argc,char ** argv);
 int MakeOneXmlXifInfo_main(int argc,char ** argv);
 int Xml2Dmp_main(int argc,char ** argv);
 int Dmp2Xml_main(int argc,char ** argv);
+
+
+int Morito_main(int argc,char ** argv);
+int Liquor_main(int argc,char ** argv);
 
 
 
@@ -661,7 +671,7 @@ int Ori_Txt2Xml_main(int argc,char ** argv);
 int OriExport_main(int argc,char ** argv);
 int GCP_Txt2Xml_main(int argc,char ** argv);
 int VideoVisage_main(int argc,char ** argv);
-int Poisson_main(int argc,char ** argv);
+//int Poisson_main(int argc,char ** argv);
 int GrapheHom_main(int argc,char ** argv);
 
 int Init11Param_Main(int argc,char ** argv);
@@ -670,13 +680,19 @@ int GCPCtrl_main(int,char **);
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
 
-
+int NewRefineModel_main(int argc, char **argv);
 int RefineModel_main(int argc, char **argv);
+int AddAffinity_main(int argc, char **argv);
+
+int Sake_main(int argc,char ** argv);
+
+
 
 #if (ELISE_X11)
     int SaisieAppuisInit_main(int argc,char ** argv);
     int SaisieAppuisPredic_main(int argc,char ** argv);
     int SaisieBasc_main(int argc,char ** argv);
+    int SaisieCyl_main(int argc,char ** argv);
     int SaisieMasq_main(int argc,char ** argv);
     int SaisiePts_main(int argc,char ** argv);
     int SEL_main(int argc,char ** argv);
@@ -705,8 +721,29 @@ int RefineModel_main(int argc, char **argv);
     int SaisieBascQT_main(int argc,char ** argv);
 #endif
     int Dimap2Grid_main(int argc, char **argv);
-	int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
-	int ServiceGeoSud_Ortho_main(int argc, char **argv);
+  int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
+  int ServiceGeoSud_Ortho_main(int argc, char **argv);
+  int ServiceGeoSud_GeoSud_main(int argc, char **argv);
+  int ServiceGeoSud_Surf_main(int argc, char **argv);
+
+int  CalcAutoCorrel_main(int argc,char ** argv);
+int CPP_AppliMergeCloud(int argc,char ** argv);
+int C3DC_main(int argc,char ** argv);
+int CCL_main(int argc,char ** argv);
+int TDEpip_main(int argc, char **argv);
+
+
+
+
+
+void Paral_Tiff_Dev
+    (
+         const std::string & aDir,
+         const std::vector<std::string> & aLFile,
+         int                            aNbChan,
+         bool                           Cons16B
+    );
+
 
 #endif // ElMemberTpl
 

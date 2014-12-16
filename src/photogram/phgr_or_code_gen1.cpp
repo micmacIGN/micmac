@@ -43,7 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #if  (ELISE_INSERT_CODE_GEN)
 
 #include "../../CodeGenere/photogram/cCylindre_EqRat_CodGen.cpp"  //
-#include "../../CodeGenere/photogram/cEqRigiditeBlock.cpp"  //
 
 #include "../../CodeGenere/photogram/cRegD1.cpp"          //
 #include "../../CodeGenere/photogram/cRegD2.cpp"          //

@@ -52,7 +52,7 @@ void throwError(std::string err)
 {
     message_copy_where_error();
 
-    ShowArgs();
+    // ShowArgs(); A voir comment moduler, mais pour  l'instant ca complique l lecteure des messages ... MPD
 
     ncout() << err;
 
@@ -149,19 +149,26 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
 
     std::stringstream sl, sf;
     sl << line;
-    sf << file;
+
+    #if ELISE_DEPLOY == 0
+        sf << file;
+    #else
+        const char *s = strstr(file, PROJECT_SOURCE_DIR);
+        if (s == NULL) sf << file;
+        else sf << s + strlen(PROJECT_SOURCE_DIR) + 1;
+    #endif
 
     msg += "-------------------------------------------------------------\n";
     msg += "|       (Elise's)  LOCATION :                                \n";
     msg += "|                                                            \n";
-    msg += "| Error  was detected\n";
+    msg += "| Error was detected\n";
     msg += "|          at line : " + sl.str()  +                        "\n";
     msg += "|          of file : " + sf.str()  +                        "\n";
     msg += "-------------------------------------------------------------\n";
 
     throwError(msg);
 
-    AddMessErrContext(std::string("mes=") +mes + std::string(" line=") +ToString(line) + std::string(" file=") + file);
+    AddMessErrContext(std::string("mes=") + mes + std::string(" line=") + ToString(line) + std::string(" file=") + file);
     ElEXIT ( 1, "cEliseFatalErrorHandler::cEFEH_OnErreur");
 }
 
@@ -183,8 +190,8 @@ std::string ElEM::mes_el() const
 
     switch(_type)
     {
-        case _int    : mes += _data.i     ; break;
-        case _real   : mes += _data.r     ; break;
+        case _int    : mes += ToString(_data.i)     ; break;
+        case _real   : mes += ToString(_data.r)     ; break;
         case _string : mes += _data.s     ; break;
         case _pt_pck :  _data.pack->show_kth(_data_2.i);
                         break;
@@ -195,7 +202,7 @@ std::string ElEM::mes_el() const
               for (INT i  = 0 ; i <_data_2.i; i++)
               {
                   if (i) mes +=  " x ";
-                  mes += _data.Pi[i];
+                  mes += ToString(_data.Pi[i]);
               }
 
               mes += "]";
@@ -209,7 +216,7 @@ std::string ElEM::mes_el() const
               for (INT i  = 0 ; i <_data_2.i; i++)
               {
                   if (i) mes +=  " x ";
-                  mes += _data.Pr[i];
+                  mes += ToString(_data.Pr[i]);
               }
 
               mes += "]";

@@ -43,47 +43,306 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+inline double pAramSurBookingIm() {return 5.0;}
+/*
+inline double pAramElimDirectInterior() {return 10.0;}
+inline double pAramLowRatioSelectIm() {return 0.001;}
+inline double pAramHighRatioSelectIm() {return 0.05;}
+*/
+//
+//
+//
+
+typedef enum
+{
+  eLFNoAff,
+  eLFMaster,
+  eLFMasked,
+  eLFBorder
+  // Warn si on change le nb de label : stocke pour l'instant sur des 2 bits
+  //  eLFTmp
+} eLabelFinaux;
+
+
+
 //================== HEADER du HEADER ====================
 
 class cAppliMergeCloud;
 class cASAMG; // Attribut Sommet cAppliMergeCloud
+class cResumNuage; // Classe pour representer un nuage rapidement
+
+class c3AMG; // Attribut ARC cAppliMergeCloud
+class c3AMGS; // c3AMG sym
+
+typedef ElSom<cASAMG*,c3AMG*>  tMCSom;
+typedef ElArc<cASAMG*,c3AMG*>  tMCArc;
+typedef ElGraphe<cASAMG*,c3AMG*>  tMCGr;
+typedef ElSubGraphe<cASAMG*,c3AMG*>  tMCSubGr;
+typedef cSubGrFlagArc<tMCSubGr>  tMCSubGrFA;
+typedef std::pair<tMCSom *,tMCSom *> tMCPairS;
+typedef ElArcIterator<cASAMG*,c3AMG*> tArcIter;
+
+class cResumNuage
+{
+    public :
+        void Reset(int aReserve);
+        int mNbSom;
+        std::vector<INT2> mVX;
+        std::vector<INT2> mVY;
+        std::vector<INT2> mVNb;
+ 
+        Pt2di PK(const int & aK) const {return Pt2di(mVX[aK],mVY[aK]);}
+        
+};
 
 
+class c3AMGS
+{
+   public :
+};
+class c3AMG
+{
+   public :
+      c3AMG(c3AMGS *,double aRec);
+      const double & Rec() const;
+   private :
+      c3AMGS * mSym;
+      double   mRec;
+};
 
 class cASAMG
 {
    public :
       cASAMG(cAppliMergeCloud *,cImaMM *);
+      void MakeVoisinInit();
+
+      double LowRecouvrt(const cASAMG &) const;
+      double Recouvrt(const cASAMG &,const cResumNuage &) const;
+      void TestDifProf(const cASAMG & aNE) const;
+
+      cImaMM *     IMM(); 
+      const cOneSolImageSec &  SolOfCostPerIm(double aCost);
+      const cImSecOfMaster &  ISOM() const;
+
+      void AddCloseVois(cASAMG *);
+
+      void TestImCoher();
+
+      void InspectQual(bool WithClik);
+      void InspectEnv();
+      INT   MaxNivH() const;
+      double QualOfNiv() const;
+      int    NbOfNiv() const;
+      int    NbTot() const;
+
+
+      void InitNewStep(int aNiv);
+      void FinishNewStep(int aNiv);
+      bool IsCurSelectable() const;
+      bool IsSelected() const;
+      int  NivSelected() const;
+
+      void SetSelected(int aNivSel,int aNivElim,tMCSom * aSom);
+      void InitGlobHisto();
+      inline void SuppressPix(const Pt2di &, const int & aLab);
+
+
+      // Valeur >0 si dedans,  <0 dehors, quantifie l'interiorite
+      double  InterioriteEnvlop(const Pt2di & aP,double aProfTest,double & aDeltaProf) const;
+
+      std::string ExportMiseAuPoint();
+ 
+      bool  IsImageMAP() const;
+
+      Video_Win *   TheWinIm() const;
+      Pt2di         Sz() const;
+      double Resol() const;
+
    private :
+     void MakeVec3D(std::vector<Pt3dr> & aVPts,const cResumNuage &) const;
+     double Recouvrt(const cASAMG &,const cResumNuage &,const std::vector<Pt3dr> & aVPts) const;
+
+     double QualityProjOnMe(const std::vector<Pt3dr> &,const cResumNuage &) const;
+     double QualityProjOnOther(const cASAMG &,const Pt3dr &) const;
+     double QualityProjOnMe(const Pt3dr &) const;
+     double SignedDifProf(const Pt3dr &) const;
+     double DifProf2Gain(double aDif) const;
+
+     void ProjectElim(cASAMG *,Im2D_Bits<1> aMasq,const cRawNuage & aNuage);
+     void DoOneTri(const Pt2di & aP0,const Pt2di & aP1,const Pt2di & P2,const cRawNuage &aNuage,const cRawNuage & aMasterNuage);
+
+
+
+
+     inline double DynAng() const ;
+     inline bool   CCV4()   const ;
+     inline int    CCDist() const ;
+     inline int    SeuimNbPtsCCDist() const ;
+
+     void ComputeIncid();
+     void ComputeIncidAngle3D();
+     void ComputeIncidGradProf();
+     void ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPix,int aNumQual);
+
+     void ComputeSubset(int aNbPts,cResumNuage &);
+     
+
      cAppliMergeCloud *   mAppli;
+     const cParamFusionNuage & mPrm;
      cImaMM *             mIma;
      cElNuage3DMaille *   mStdN;
+     double               mResol;
+     Im2D_Bits<1>         mMasqN;
+     TIm2DBits<1>         mTMasqN;
+     Im2DGen *            mImProf;
+
      Im2D_U_INT1          mImCptr;
      TIm2D<U_INT1,INT>    mTCptr;
      Pt2di                mSz;
      Im2D_U_INT1          mImIncid;
      TIm2D<U_INT1,INT>    mTIncid;
+
+     Im2D_Bits<4>         mImQuality;
+     TIm2DBits<4>         mTQual;
+
+     Im2D_Bits<2>         mImLabFin;
+     TIm2DBits<2>         mTLabFin;
+
+     Im2D_Bits<4>         mImEnvSup;
+     TIm2DBits<4>         mTEnvSup;
+     Im2D_Bits<4>         mImEnvInf;
+     TIm2DBits<4>         mTEnvInf;
+     Im1D_INT4            mLutDecEnv;
+     INT4 *               mDLDE;
+
+
+
+     // Im2D_U_INT1          mImQuality;
+     // TIm2D<U_INT1,INT>    mTQual;
+
+     // Im2D_U_INT1          mImQuality;
+     // TIm2D<U_INT1,INT>    mTQual;
+
+
+
+     Im1D<INT4,INT>       mHisto;
+     INT *                mDH;
+     INT                  mMaxNivH;
+     INT                  mNbNivH;
+     double               mQualOfNiv;
+     int                  mNbOfNiv;
+     int                  mNbTot;
+
+     double               mSSIma;
+
+     std::vector<cASAMG *>  mCloseNeigh;
+
+     cResumNuage            mLowRN;  // Basse resolution pour la topologie
+     cImSecOfMaster         mISOM;
+     int                    mNivSelected;
+     bool                   mIsMAP;
+
+     static const int theNbValCompr;
 };
 
 
 //==================================================
+
+class cStatNiv
+{
+    public :
+        cStatNiv();
+
+        double  mGofQ;
+        double  mRecTot;
+        double  mCumRecT;
+        double  mRecMoy;
+        double  mNbImPourRec;
+        int     mNbIm;
+        int     mCumNbIm;
+};
+
 class cAppliMergeCloud : public cAppliWithSetImage
 {
     public :
-       std::string NameFileInput(const std::string & aNameIm,const std::string aPost);
-       std::string NameFileInput(cImaMM *,const std::string aPost);
+       std::string NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPref="");
+       std::string NameFileInput(bool DownScale,cImaMM *,const std::string & aPost,const std::string & aPref="");
+
+
+
        cAppliMergeCloud
        (
             int argc,
             char ** argv
        );
+       const cParamFusionNuage & Param() {return mParam;}
+       Video_Win *   TheWinIm(const cASAMG *);
+
+       static int MaxValQualTheo() {return eQC_Coh3;}
+       REAL8    GainQual(int aNiv) const;
+
+       tMCSubGr &  SubGrAll();
+
+       bool IsInImageMAP(cASAMG*);
+       bool DoPlyCoul() const;
+       int  SzNormale() const;
+       bool NormaleByCenter() const;
+       
     private :
-       static const std::string TheNameSubdir;
+       tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
+       tMCSom * SomOfName(const std::string & aName);
+       void AddVoisVois(std::vector<tMCArc *> & aVArc,tMCSom&,tMCSom&);
+       void CreateGrapheConx();
+       void OneStepSelection();
+
+
 
        std::string mFileParam;
        cParamFusionNuage mParam;
+       Video_Win *       mTheWinIm;
+       double            mRatioW;
+
+       std::vector<cASAMG *>           mVAttr;
+       std::vector<tMCSom *>           mVSoms;
+       std::map<std::string,tMCSom *>  mDicSom;
+       tMCGr                           mGr;
+       int                             mFlagCloseN;
+       tMCSubGr                        mSubGrAll;
+       tMCSubGrFA                      mSubGrCloseN;
+       std::set<tMCPairS>              mTestedPairs;
+       INT                             mGlobMaxNivH;
+       INT                             mCurNivSelSom;
+       INT                             mCurNivElim;
+       std::vector<cStatNiv>           mVStatNivs;
+/*
+       Im1D_REAL8                      mImGainOfQual;
+       REAL8 *                         mDataGainOfQual;
+       Im1D_INT4                       mNbImOfNiv;
+       INT *                           mDataNION;
+       Im1D_INT4                       mCumNbImOfNiv;
+       INT *                           mDataCNION;
+*/
+       double                          mRecouvrTot;
+       double                          mRecMoy;
+       double                          mNbImMoy;
+       int                             mNbImSelected;
+       cElRegex *                      mPatMAP;
+       bool                            mDoPly;
+       bool                            mDoPlyCoul;
+       int                             mSzNormale;
+       bool                            mNormaleByCenter;
 };
 
+   //==============================================================================
+
+double cASAMG::DynAng() const {return mAppli->Param().ImageVariations().DynAngul();}
+bool   cASAMG::CCV4()   const {return mAppli->Param().ImageVariations().V4Vois();}
+int    cASAMG::CCDist() const {return mAppli->Param().ImageVariations().DistVois();}
+int    cASAMG::SeuimNbPtsCCDist() const  {return 2 * (1+2*CCDist());}
+
+
+
+// inline bool pAramComputeIncid() {return false;}
 
 #endif // _ELISE_MERGE_CLOUD
 

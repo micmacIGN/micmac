@@ -114,6 +114,7 @@ uint struct2D::GetSize()
 
 void struct2D::Output()
 {
+    std::cout << "Structure 2D : \n";
     std::cout << "Dimension 2D        : " << GpGpuTools::toStr(_dimension) << "\n";
 }
 
@@ -177,3 +178,5 @@ void struct2DLayered::RefreshMaxSize()
     if(struct2D::GetMaxSize() < size) struct2D::SetMaxSize(size);
     struct2D::RefreshMaxDim();
 }
+
+

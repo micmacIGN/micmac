@@ -54,7 +54,8 @@ void DigeoPoint::addDescriptor( const REAL8 *i_descriptor )
 bool DigeoPoint::operator ==( const DigeoPoint &i_b ) const
 {
 	if ( x!=i_b.x || y!=i_b.y || scale!=i_b.scale || entries.size()!=i_b.entries.size() ) return false;
-	for ( size_t i=0; i<entries.size(); i++ ){
+	for ( size_t i=0; i<entries.size(); i++ )
+	{
 		const Entry &descriptorA = entries[i],
 		            &descriptorB = i_b.entries[i];
 		if ( memcmp( descriptorA.all, descriptorB.all, 8*(DIGEO_DESCRIPTOR_SIZE+1) )!=0 ) return false;
@@ -345,26 +346,137 @@ void DigeoPoint::uniqueToMultipleAngles( vector<DigeoPoint> &io_points )
 	unsigned int nbPoints = io_points.size(),
 	             i = nbPoints-1;
 	if ( nbPoints==0 ) return;
-	while ( i-- ){
+	while ( i-- )
+	{
 		DigeoPoint &previous = itPrevious[0],
 		           &current = itCurrent[0];
-		if ( current.x==previous.x && current.y==previous.y && current.scale==previous.scale && current.type==previous.type ){
-			#ifdef __DEBUG_DIGEO
-				ELISE_ASSERT( previous.nbAngles<DIGEO_MAX_NB_ANGLES, (string("readDigeoFile_v0: point has more than ")+ToString(DIGEO_MAX_NB_ANGLES)+" angles").c_str() );
-			#endif
-			if ( previous.entries.size()<DIGEO_MAX_NB_ANGLES ){
-				// previous and current point are different only by their angle, we can aggregate them
-				previous.addDescriptor( current.entries[0].all );
-				nbPoints--;
-			}
+		if ( current.x==previous.x && current.y==previous.y && current.scale==previous.scale && current.type==previous.type )
+		{
+			// previous and current point are different only by their angle, we can aggregate them
+			previous.addDescriptor( current.entries[0].all );
+			nbPoints--;
 		}
-		else{
+		else
+		{
 			itPrevious++;
 			if ( itCurrent!=itPrevious ) *itPrevious=*itCurrent;
 		}
 		itCurrent++;
 	}
 	io_points.resize( nbPoints );
+}
+
+void DigeoPoint::removeDuplicatedEntries()
+{
+	if ( entries.size()<2 ) return;
+
+	for ( size_t i=0; i<entries.size()-1; i++ )
+		for ( size_t j=i+1; j<entries.size(); j++ )
+			if ( memcmp( entries[i].all, entries[j].all, 8*(DIGEO_DESCRIPTOR_SIZE+1) )==0 ) entries.erase( entries.begin()+j );
+}
+
+void DigeoPoint::removeDuplicates( vector<DigeoPoint> &io_points, int i_gridDimension )
+{
+	if ( io_points.size()<2 ) return;
+
+	// tag duplicates with a scale of -1 (invalid value)
+
+	// get x,y min/max and remove duplicated angles
+	ElTimer chrono, totalChrono;
+	REAL8 minx = io_points[0].x, maxx = io_points[0].x,
+	      maxy = io_points[0].y, miny = io_points[0].y;
+	DigeoPoint *it0 = io_points.data();
+	size_t i0 = io_points.size();
+	while ( i0-- )
+	{
+		it0->removeDuplicatedEntries();
+		REAL8 x = it0->x, y = (*it0++).y;
+		if ( x<minx ) minx = x;
+		if ( y<miny ) miny = y;
+		if ( x>maxx ) maxx = x;
+		if ( y>maxy ) maxy = y;
+	}
+	int x0 = round_down(minx), y0 = round_down(miny),
+	    x1 = round_up(maxx), y1 = round_up(maxy),
+	    w = (x1-x0)+1, h = (y1-y0)+1;
+
+	// allocate buffer
+	int gridSize = i_gridDimension*i_gridDimension;
+	double scaleX = (double)i_gridDimension/(double)w, scaleY = (double)i_gridDimension/(double)h;
+	list<DigeoPoint*> **buffer = new list<DigeoPoint*> *[gridSize];
+	memset( buffer, 0, gridSize*sizeof(list<DigeoPoint*> *) );
+
+	size_t nbRemove = 0;
+	DigeoPoint *firstToRemove = NULL;
+	it0 = io_points.data();
+	i0 = io_points.size();
+	while ( i0-- )
+	{
+		int x = (int)( scaleX*(it0->x-x0) ),
+		    y = (int)( scaleY*(it0->y-y0) );
+
+		#ifdef __DEBUG_DIGEO_POINT
+			if ( x<0 || x>=i_gridDimension || y<0 || y>=i_gridDimension )
+			{
+				cerr << "ERROR: point " << x << ',' << y << "(" << scaleX*(it0->x-x0) << ',' <<  scaleY*(it0->y-y0) << ") out of image of size " << i_gridDimension << 'x' << i_gridDimension << endl;
+				exit(EXIT_FAILURE);
+			}
+		#endif
+
+		list<DigeoPoint*> *&cell = buffer[x+y*i_gridDimension];
+		if ( cell==NULL )
+		{
+			// this is the first point in the cell, we create a list with this point
+			cell = new list<DigeoPoint*>();
+			cell->push_back(it0);
+		}
+		else
+		{
+			// there are already some points projected in the cell, we check if one is equal
+			list<DigeoPoint*>::const_iterator itPoint = cell->begin(), itEnd = cell->end();
+			while ( itPoint!=itEnd )
+			{
+				if ( (**itPoint++)==*it0 )
+				{
+					it0->scale = -1.;
+					if ( firstToRemove==NULL ) firstToRemove=it0;
+					nbRemove++;
+					break;
+				}
+			}
+			if ( it0->scale!=-1. ) cell->push_back(it0);
+		}
+
+		it0++;
+	}
+
+	// clear buffer
+	unsigned int iBuffer = gridSize;
+	list<DigeoPoint*> **itBuffer = buffer;
+	while ( iBuffer-- )
+	{
+		if ( *itBuffer!=NULL ) delete *itBuffer;
+		itBuffer++;
+	}
+	delete [] buffer;
+
+	if ( nbRemove!=0 )
+	{
+		// remove tagged points
+		size_t nbToCopy = io_points.size()-( nbRemove+( firstToRemove-io_points.data() ) );
+		DigeoPoint *itSrc = firstToRemove+1,
+		           *itDst = firstToRemove;
+		while ( nbToCopy )
+		{
+			if ( itSrc->scale!=-1 )
+			{
+				*itDst++ = *itSrc;
+				nbToCopy--;
+			}
+			itSrc++;
+		}
+		io_points.resize( io_points.size()-nbRemove );
+	}
 }
 
 void DigeoPoint::multipleToUniqueAngle( vector<DigeoPoint> &io_points )

@@ -21,24 +21,33 @@ struct st_line
 
 struct p_ReadLine
 {
-    ushort  ID_Bf_Icost;
-    st_line line;
-    st_line seg;
-    bool    Id_Buf;
+    ushort          ID_Bf_Icost;
+    st_line         line;
+    st_line         seg;
+    bool            Id_Buf;
     const ushort    tid;
     const ushort    itid;
-    short2 prev_Dz;
-    ushort pente;
-    float  ZRegul;
-    float  ZRegul_Quad;
+    short2          prev_Dz;
+    ushort          prevDefCor;
+    ushort          pente;
+    float           ZRegul;
+    float           ZRegul_Quad;
+    const ushort    costDefMask;
+    const ushort    costTransDefMask;
+    const bool      hasMaskauto;
+    const ushort    sizeBuffer;
 
-    __device__ p_ReadLine(ushort t,ushort ipente,float zReg,float zRegQuad):
+    __device__ p_ReadLine(ushort t,ushort ipente,float zReg,float zRegQuad,ushort pCostDefMask, ushort pCostTransDefMask,ushort pSizebuffer,bool automask):
         Id_Buf(false),
         tid(t),
         itid(WARPSIZE - t - 1),
         pente(ipente),
         ZRegul(zReg),
-        ZRegul_Quad(zRegQuad)
+        ZRegul_Quad(zRegQuad),
+        costDefMask(pCostDefMask),
+        costTransDefMask(pCostTransDefMask),
+        hasMaskauto(automask),
+        sizeBuffer(pSizebuffer)
     {
         line.id = 0;
         seg.id  = 1;
@@ -71,10 +80,12 @@ struct p_ReadLine
         }
     }
 
-    __device__ inline void reverse(short2 *buffindex,ushort sizeBuff)
+    __device__ inline void reverse(short3 *buffindex,ushort sizeBuff)
     {
         seg.id        = seg.lenght - 1;
-        prev_Dz       = buffindex[seg.id];
+        short3 tp     = buffindex[seg.id];
+        prev_Dz       = make_short2(tp.x,tp.y);
+        prevDefCor    = tp.z;
         seg.id        = WARPSIZE  - seg.id;
         seg.lenght    = WARPSIZE;
         line.id       = 0;
@@ -89,7 +100,11 @@ struct p_ReadLine
 
 };
 
+
 template<template<class T> class U, uint NBUFFER = 1 >
+///
+/// \brief The Data2Optimiz struct
+///
 struct Data2Optimiz
 {
 public:
@@ -98,6 +113,9 @@ public:
 
     ~Data2Optimiz();
 
+    ///
+    /// \brief Dealloc
+    ///
     void Dealloc();
 
     void ReallocParam(uint size);
@@ -125,7 +143,7 @@ public:
     uint NBlines(){return _nbLines;}
 
     ushort*     pInitCost(){    return  _s_InitCostVol.pData();}
-    short2*     pIndex(){       return  _s_Index.pData();}
+    short3*     pIndex(){       return  _s_Index.pData();}
     uint*       pDefCor(){      return  _s_DefCor[0].pData();}
     uint*       pForceCostVol(){return  _s_ForceCostVol[0].pData();}
     uint3*      pParam(){       return  _param[0].pData();}
@@ -140,7 +158,7 @@ public:
 
     U<uint3>    param(ushort i) const;
 
-    U<short2>   s_Index() const;
+    U<short3>   s_Index() const;
 
     U<uint>     &s_ForceCostVol(ushort i);
 
@@ -162,12 +180,14 @@ public:
     ushort      CostTransMaskNoMask() const;
     void        setCostTransMaskNoMask(const ushort &CostTransMaskNoMask);
 
+    bool        hasMaskAuto() const;
+    void        setHasMaskAuto(const bool &hasMaskAuto);
 private:
 
     U<uint3>     _param[NBUFFER];
     U<ushort>    _s_InitCostVol;
     U<uint>      _s_ForceCostVol[NBUFFER];
-    U<short2>    _s_Index;
+    U<short3>    _s_Index;
     U<uint>      _s_DefCor[NBUFFER];
 
     uint         _nbLines;
@@ -177,6 +197,7 @@ private:
     ushort       _CostTransMaskNoMask;
     float        _zReg;
     float        _zRegQuad;
+    bool         _hasMaskAuto;
 
     ushort       _m_DzMax;
 };
@@ -335,7 +356,7 @@ U<uint3> Data2Optimiz<U,NBUFFER>::param(ushort i) const
 }
 
 TEMPLATE_D2OPTI
-U<short2> Data2Optimiz<U,NBUFFER>::s_Index() const
+U<short3> Data2Optimiz<U,NBUFFER>::s_Index() const
 {
     return _s_Index;
 }
@@ -409,12 +430,18 @@ void Data2Optimiz<U,NBUFFER>::setCostTransMaskNoMask(const ushort &CostTransMask
 }
 
 
+TEMPLATE_D2OPTI
+bool Data2Optimiz<U,NBUFFER>::hasMaskAuto() const
+{
+    return _hasMaskAuto;
+}
 
 
-
-
-
-
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::setHasMaskAuto(const bool &hasMaskAuto)
+{
+    _hasMaskAuto = hasMaskAuto;
+}
 
 #endif //__DATA2OPTIMIZ_H__
 

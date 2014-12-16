@@ -12,8 +12,6 @@ class cGLData : public cObjectGL
 {
 public:
 
-    cGLData(int appMode = MASK2D);
-
     cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode = MASK2D);
 
     cGLData(cData *data, cParameters aParams, int appMode = MASK2D);
@@ -26,7 +24,7 @@ public:
 
     bool        isImgEmpty()                            { return _glMaskedImage._m_image == NULL; }
 
-    QImage*     getMask()                               { return _pQMask;     }
+    QImage*     getMask()                               { return _glMaskedImage.getMaskedImage()->_m_rescaled_mask; }
 
     void        setPolygon(int aK, cPolygon *aPoly)     { _vPolygons[aK] = aPoly; }
 
@@ -46,11 +44,13 @@ public:
 
     void        setBBoxMaxSize(float aS){_diam = aS;}
 
-    Pt3dr       getBBoxCenter(){return _center;}
+    void        setBBoxCenter(Pt3dr aPt){_bbox_center = aPt;}
 
-    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;} // TODO a verifier : pourquoi le centre cGLData est initialisé avec BBoxCenter
+    void        setCloudsCenter(Pt3dr aPt){_clouds_center = aPt;}
 
     void        setGlobalCenter(Pt3dr aCenter);
+
+    void        switchCenterByType(int val);
 
     bool        position2DClouds(MatrixManager &mm,QPointF pos);
 
@@ -84,7 +84,7 @@ public:
 
     bool        mode() { return _modePt; }
 
-    void        setData(cData *data, bool setCam = true);
+    void        setData(cData *data, bool setCam = true, int centerType=eCentroid);
 
     bool        incFirstCloud() const;
 
@@ -120,8 +120,6 @@ private:
 
     cMaskedImageGL      _glMaskedImage;
 
-    QImage*             _pQMask;
-
     cBall*              _pBall;
 
     cAxis*              _pAxis;
@@ -130,7 +128,9 @@ private:
 
     cGrid*              _pGrid;
 
-    Pt3dr               _center;
+    Pt3dr               _bbox_center;
+
+    Pt3dr               _clouds_center;
 
     bool                _modePt;
 

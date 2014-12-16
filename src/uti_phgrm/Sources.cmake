@@ -52,6 +52,12 @@ else()
 
 endif()
 
+if(${WITH_OPENCL})
+    set(OPENCL_ENABLED 1)
+else()
+    set(OPENCL_ENABLED  0)
+endif()
+
 
 if(${WITH_OPEN_MP})
     set(OPM_ENABLED 1)
@@ -122,6 +128,10 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_VisuCoupeEpip.cpp
     ${UTI_PHGRM_DIR}/CPP_HomFilterMasq.cpp
     ${UTI_PHGRM_DIR}/CPP_InitCamFromAppuis.cpp
+    ${UTI_PHGRM_DIR}/CPP_Sake.cpp
+    ${UTI_PHGRM_DIR}/CPP_Liquor.cpp
+    ${UTI_PHGRM_DIR}/CPP_Morito.cpp
+    ${UTI_PHGRM_DIR}/CPP_C3DC.cpp
 )
 
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})

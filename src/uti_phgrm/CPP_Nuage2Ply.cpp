@@ -46,7 +46,8 @@ int Ratio(double aV1,double aV2)
 
    double aRes = aV1 / aV2;
    int aIRes = round_ni(aRes);
-   if (ElAbs(aRes-aIRes) > 1e-2)
+   double anEcart =  (aV1 - aV2*aIRes)/aIRes;
+   if ((ElAbs(anEcart) > 1.001) || (aIRes > 32))
       return -1;
 
    return aIRes;
@@ -74,6 +75,8 @@ int Nuage2Ply_main(int argc,char ** argv)
     bool DoublePrec = false;
     Pt3dr anOffset(0,0,0);
 
+    std::string  aNeighMask;
+    int NormByC = 0;
 
     ElInitArgMain
     (
@@ -91,12 +94,14 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(aDyn,"Dyn",true,"Dynamic of attribute")
                     << EAM(DoPly,"DoPly",true,"Do Ply, def = true")
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
-                    << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usuable for Poisson)")
+                    << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usable for Poisson)")
+                    << EAM(NormByC,"NormByC",true,"Replace normal (Def=0, 2=optical center 1=point to center vector)",eSAM_InternalUse)
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true, "Do mesh (Def=false)")
                     << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work properly with meshlab or cloud compare")
                     << EAM(anOffset,"Offs", true, "Offset in points to limit 32 Bits accuracy problem")
+                    << EAM(aNeighMask,"NeighMask",true,"Mask for neighboors when larger than point selection (for normals computation)")
     );
 
     if (!MMVisualMode)
@@ -116,7 +121,7 @@ int Nuage2Ply_main(int argc,char ** argv)
     {
          Im2D_Bits<1> aMaskN= aNuage->ImDef();
          Tiff_Im aMaskSup(aMask.c_str());
-         ELISE_COPY(aMaskN.all_pts(),aMaskSup.in() >= aSeuilMask, aMaskN.out());
+         ELISE_COPY(aMaskN.all_pts(),(aMaskSup.in(0) >= aSeuilMask) && aMaskN.in(), aMaskN.out());
     }
 
     if (aSz.x <0)
@@ -155,9 +160,28 @@ int Nuage2Ply_main(int argc,char ** argv)
        aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
     }
 
-     cElNuage3DMaille * aRes = aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
+    // ATTENTION , SI &aNeighMask => IL FAUT QUE aRes soit egal a aNuage SANS passer par ReScaleAndClip
+    cElNuage3DMaille * aRes = aNuage;
+
+    if (EAMIsInit(&aNeighMask))
+    {
+        ELISE_ASSERT(   (aSc==1) && (aP0==Pt2dr(0,0)),"Can change scale && aNeighMask");
+        Tiff_Im aTF(aNeighMask.c_str());
+        Pt2di aSzN = aTF.sz();
+        Im2D_Bits<1> aNM(aSzN.x,aSzN.y);
+        ELISE_COPY(aNM.all_pts(),aTF.in()!=0,aNM.out());
+        aRes->SetVoisImDef(aNM);
+    }
+    else
+       aRes =  aNuage->ReScaleAndClip(Box2dr(aP0,aP0+aSz),aSc);
      //cElNuage3DMaille * aRes = aNuage;
     std::list<std::string > aLComment(aVCom.begin(), aVCom.end());
+
+    if (NormByC)
+    {
+        if (! EAMIsInit(&DoNrm)) DoNrm = 5;
+        aRes->SetNormByCenter(NormByC);
+    }
 
     if (DoPly)
     {
@@ -184,6 +208,55 @@ int Nuage2Ply_main(int argc,char ** argv)
 }
 
 
+int PlySphere_main(int argc,char ** argv)
+{
+    Pt3dr aC;
+    Pt3di aCoul(255,0,0);
+    double aRay;
+    int aNbPts=5;
+    std::string Out="Sphere.ply";
+
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aC,"Center of sphere")
+                    << EAMC(aRay,"Ray of sphere"),
+        LArgMain()  << EAM(aNbPts,"NbPts",true,"Number of Pts / direc (Def=5, give 1000 points)")
+    );
+
+    std::vector<Pt3di> aVCol;
+    std::vector<Pt3dr> aVpt;
+    for (int anX=-aNbPts; anX<=aNbPts ; anX++)
+    {
+       for (int anY=-aNbPts; anY<=aNbPts ; anY++)
+       {
+          for (int aZ=-aNbPts; aZ<=aNbPts ; aZ++)
+          {
+               Pt3dr aP(anX,anY,aZ);
+               aP = aP * (aRay/aNbPts);
+               if (euclid(aP) <= aRay)
+               {
+                  aVpt.push_back(aC+aP);
+                  aVCol.push_back(aCoul);
+               }
+          }
+       }
+    }
+    std::list<std::string> aVCom;
+    std::vector<const cElNuage3DMaille *> aVNuage;
+    cElNuage3DMaille::PlyPutFile
+    (
+          Out,
+          aVCom,
+          aVNuage,
+          &aVpt,
+          &aVCol,
+          true
+    );
+
+    return 1;
+}
 
 
 

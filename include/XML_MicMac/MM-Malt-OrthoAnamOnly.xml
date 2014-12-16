@@ -29,6 +29,9 @@
 
    <Symb>  ImMNT=".*" </Symb>
    <Symb>  ImOrtho=".*" </Symb>
+   <Symb>  InParal=true </Symb>
+   <Symb>  UseRepere=true </Symb>
+   <Symb>  UseAnam=false </Symb>
 
 
 </DicoLoc>
@@ -98,8 +101,22 @@
 <!--  M4 : Specify the output geometry -->
 <Section_Results >
     <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
-    <RepereCorrel>   ${Repere}  </RepereCorrel>
-    <TagRepereCorrel> Repere    </TagRepereCorrel>
+    <#WHEN VTEST=${UseRepere}>
+        <RepereCorrel>   ${Repere}  </RepereCorrel>
+        <TagRepereCorrel> Repere    </TagRepereCorrel>
+    </#WHEN>
+    <#WHEN VTEST=${UseAnam}>
+        <AnamorphoseGeometrieMNT>
+             <AnamSurfaceAnalytique>
+                   <NameFile> ${Repere}</NameFile>
+                   <Id> TheSurfAux </Id>
+             </AnamSurfaceAnalytique>
+             <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+             <!-- Limite +ou- Pi/3 -->
+             <AnamLimAngleVisib>  1.05 </AnamLimAngleVisib>
+       </AnamorphoseGeometrieMNT>
+    </#WHEN>
+
 
     <ZoomMakeTA> 16 </ZoomMakeTA>
     <DoNothingBut>

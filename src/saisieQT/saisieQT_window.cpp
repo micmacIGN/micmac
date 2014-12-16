@@ -1,6 +1,19 @@
 #include "saisieQT_window.h"
 #include "ui_saisieQT_window.h"
 
+void setStyleSheet(QApplication &app)
+{
+    QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        Q_INIT_RESOURCE(icones);
+
+        app.setStyleSheet(file.readAll());
+        file.close();
+    }
+    else
+        QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Can't find qss file"));
+}
 
 SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         QMainWindow(parent),
@@ -18,7 +31,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
     _ui->setupUi(this);
 
-     _params->read();
+    _params->read();
 
     _Engine->setParams(_params);
 
@@ -140,8 +153,12 @@ void SaisieQtWindow::progression()
 
 void SaisieQtWindow::runProgressDialog(QFuture<void> future)
 {
+    bool bShowMsgs = _ui->actionShow_messages->isChecked();
+    on_actionShow_messages_toggled(false);
+
     _FutureWatcher.setFuture(future);
     _ProgressDialog->setWindowModality(Qt::WindowModal);
+    _ProgressDialog->setCancelButton(NULL);
 
     float szFactor = 1.f;
     if (_params->getFullScreen())
@@ -158,9 +175,10 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> future)
     _ProgressDialog->exec();
 
     future.waitForFinished();
+    on_actionShow_messages_toggled(bShowMsgs);
 }
 
-void SaisieQtWindow::loadPly(const QStringList& filenames)
+bool SaisieQtWindow::loadPly(const QStringList& filenames)
 {
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
@@ -173,11 +191,13 @@ void SaisieQtWindow::loadPly(const QStringList& filenames)
     disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
     delete _incre;
     delete timer_test;
+
+    return true;
 }
 
-void SaisieQtWindow::loadImages(const QStringList& filenames)
+bool SaisieQtWindow::loadImages(const QStringList& filenames)
 {
-    _Engine->computeScaleFactor(filenames); //sorti car GLContext plus accessible dans loadImages
+    _Engine->computeScaleFactor(filenames, _appMode); //sorti car GLContext plus accessible dans loadImages
 
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
@@ -191,10 +211,22 @@ void SaisieQtWindow::loadImages(const QStringList& filenames)
     disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
     delete _incre;
     delete timer_test;
+
+    return true;
 }
 
-void SaisieQtWindow::loadCameras(const QStringList& filenames)
+bool SaisieQtWindow::loadCameras(const QStringList& filenames)
 {
+    cLoader *tmp = new cLoader();
+    for (int i=0;i<filenames.size();++i)
+    {
+         if (!tmp->loadCamera(filenames[i]))
+         {
+             QMessageBox::critical(this, tr("Error"), tr("Bad file: ") + filenames[i]);
+             return false;
+         }
+    }
+
     QTimer *timer_test = new QTimer(this);
     _incre = new int(0);
     connect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
@@ -206,6 +238,8 @@ void SaisieQtWindow::loadCameras(const QStringList& filenames)
     disconnect(timer_test, SIGNAL(timeout()), this, SLOT(progression()));
     delete _incre;
     delete timer_test;
+
+    return true;
 }
 
 void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
@@ -224,18 +258,20 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
                 QString sufx = QFileInfo(filenames[i]).suffix();
 
                 bool formatIsSupported = false;
-                QStringList slist = QStringList("cr2")<<"arw"<<"crw"<<"dng"<<"mrw"<<"nef"<<"orf"<<"pef"<<"raf"<<"x3f"<<"rw2"; //main formats supported by ImageMagick
+                QStringList slist = QStringList("cr2")<<"arw"<<"crw"<<"dng"<<"mrw"<<"nef"<<"orf"<<"pef"<<"raf"<<"x3f"<<"rw2"<<"tif"; //main formats supported by ImageMagick
                 QList<QByteArray> list = QImageReader::supportedImageFormats(); //formats supported by QImage
                 for (int aK=0; aK< list.size();++aK) slist.push_back(QString(list[aK]));
                 if (slist.contains(sufx, Qt::CaseInsensitive))  formatIsSupported = true;
 
                 if ((sufx != "ply") && (sufx != "xml") && (formatIsSupported == false))
                 {
-                    QMessageBox::critical(this, tr("Error"), tr("File format not supported"));
+                    QMessageBox::critical(this, tr("Error"), tr("File format not supported: ") + sufx);
                     return;
                 }
             }
         }
+
+        bool loadOK = false;
 
         _Engine->setFilenames(filenames);
 
@@ -246,20 +282,26 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             if ((_appMode == MASK2D) && (currentWidget()->hasDataLoaded()))
                 closeAll();
 
-            loadPly(filenames);
-            initData();
+            loadOK = loadPly(filenames);
+            if (loadOK)
+            {
+                initData();
 
-            currentWidget()->getHistoryManager()->load(_Engine->getSelectionFilenamesOut()[0]);
+                currentWidget()->getHistoryManager()->load(_Engine->getSelectionFilenamesOut()[0]);
 
-            _appMode = MASK3D;
+                _appMode = MASK3D;
+            }
         }
         else if (suffix == "xml")
         {
-            loadCameras(filenames);
+            loadOK = loadCameras(filenames);
 
-            _ui->actionShow_cams->setChecked(true);
+            if (loadOK)
+            {
+                _ui->actionShow_cams->setChecked(true);
 
-            _appMode = MASK3D;
+                _appMode = MASK3D;
+            }
         }
         else // LOAD IMAGE
         {
@@ -278,34 +320,37 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             _Engine->setGLMaxTextureSize(maxTexture);
 
-            loadImages(filenames);
+            loadOK = loadImages(filenames);
         }
 
-        _Engine->allocAndSetGLData(_appMode, *_params);
-
-        if (setGLData)
+        if (loadOK)
         {
-            for (int aK = 0; aK < nbWidgets();++aK)
-            {
-                getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
-                getWidget(aK)->setParams(_params);
+            _Engine->allocAndSetGLData(_appMode, *_params);
 
-                if (getWidget(aK)->getHistoryManager()->size())
+            if (setGLData)
+            {
+                for (int aK = 0; aK < nbWidgets();++aK)
                 {
-                    getWidget(aK)->applyInfos();
-                    getWidget(aK)->getMatrixManager()->resetViewPort();
-                    //_bSaved = false;
+                    getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
+                    getWidget(aK)->setParams(_params);
+
+                    if (getWidget(aK)->getHistoryManager()->size())
+                    {
+                        getWidget(aK)->applyInfos();
+                        getWidget(aK)->getMatrixManager()->resetViewPort();
+                        //_bSaved = false;
+                    }
                 }
             }
+            else
+                emit imagesAdded(-4, false);
+
+            for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
+
+            updateUI();
+
+            _ui->actionClose_all->setEnabled(true);
         }
-        else
-            emit imagesAdded(-4, false);
-
-        for (int aK=0; aK < filenames.size();++aK) setCurrentFile(filenames[aK]);
-
-        updateUI();
-
-        _ui->actionClose_all->setEnabled(true);
     }
 }
 
@@ -778,20 +823,10 @@ void SaisieQtWindow::on_actionLoad_camera_triggered()
 
 void SaisieQtWindow::on_actionLoad_image_triggered()
 {
-#ifdef ELISE_Darwin
-    setWindowFlags(Qt::WindowStaysOnTopHint);
-#endif
-    QString img_filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open Image File"),QString(), tr("File (*.*)"));
 
-    if (!img_filename.isEmpty())
-    {
-        //TODO: factoriser
-        QStringList & filenames = _Engine->getFilenamesIn();
-        filenames.clear();
-        filenames.push_back(img_filename);
-
-        addFiles(filenames);
-    }
+    if (filename.size())
+        addFiles( QStringList(filename) );
 }
 
 void SaisieQtWindow::on_actionSave_masks_triggered()
@@ -819,7 +854,7 @@ void SaisieQtWindow::on_actionSave_as_triggered()
 
 void SaisieQtWindow::on_actionSettings_triggered()
 {
-    cSettingsDlg _settingsDialog(this, _params);
+    cSettingsDlg _settingsDialog(this, _params, _appMode);
 
     connect(&_settingsDialog, SIGNAL(prefixTextEdit(QString)), this, SLOT(setAutoName(QString)));
 
@@ -832,6 +867,7 @@ void SaisieQtWindow::on_actionSettings_triggered()
         connect(&_settingsDialog, SIGNAL(showMasks(bool)),             getWidget(aK), SLOT(showMasks(bool)));
         connect(&_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
         connect(&_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
+        connect(&_settingsDialog, SIGNAL(setCenterType(int)),          getWidget(aK), SLOT(setCenterType(int)));
     }
 
     if (zoomWidget() != NULL)
@@ -842,16 +878,6 @@ void SaisieQtWindow::on_actionSettings_triggered()
 
     const QPoint global = qApp->desktop()->availableGeometry().center();
     _settingsDialog.move(global.x() - _settingsDialog.width() / 2, global.y() - _settingsDialog.height() / 2);
-
-    if (_appMode <= MASK3D)
-    {
-        _settingsDialog.hidePage();
-        _settingsDialog.uiShowMasks(true);
-        _params->setShowMasks(true);
-        _params->write();
-    }
-    else
-        _settingsDialog.hideSaisieMasqItems();
 
     //_settingsDialog.setFixedSize(uiSettings.size());
     _settingsDialog.exec();
@@ -1184,11 +1210,11 @@ void SaisieQtWindow::resizeTables()
     tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
 }
 
-void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images, QAbstractItemModel *model_Objects)
+void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/)
 {
     tableView_PG()->setModel(model_Pg);
     tableView_Images()->setModel(model_Images);
-    tableView_Objects()->setModel(model_Objects);
+   // tableView_Objects()->setModel(model_Objects);
 }
 
 void SaisieQtWindow::SelectPointAllWGL(QString pointName)
@@ -1226,7 +1252,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
             loadPly(filenames);
             threeDWidget()->getGLData()->clearClouds();
             dataCache->computeBBox(1);
-            threeDWidget()->getGLData()->setData(dataCache,false);
+            threeDWidget()->getGLData()->setData(dataCache,false, _params->getSceneCenterType());
             threeDWidget()->resetView(false,false,false,false,true);
             option3DPreview();
         }
@@ -1349,6 +1375,7 @@ void SaisieQtWindow::setAutoName(QString val)
 void SaisieQtWindow::setImagePosition(QPointF pt)
 {
     QString text(tr("Image position : "));
+    //QString text(tr("Zoom x Scale factor : "));
 
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
@@ -1358,9 +1385,8 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
             {
                 int imHeight = glW->getGLData()->glImage()._m_image->height();
 
-                float factor = glW->getGLData()->glImage().getLoadedImageRescaleFactor();
-
-                text =  QString(text + QString::number(pt.x()/factor,'f',1) + ", " + QString::number((imHeight - pt.y())/factor,'f',1)+" px");
+                text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
+                //text = QString(text + QString::number(glW->getZoom()*glW->getGLData()->glImage().getLoadedImageRescaleFactor(),'f',3) );
             }
     }
 

@@ -85,7 +85,7 @@ class cArgMpDCRaw : public cAppliBatch
        bool  PGSpec () const;
        bool  NameOriIsPrefix() const;
        bool   Add16_8B() const;
-       double Gamma() const;  // A priori Gamma applicable sur le gris
+       double Gamma(const std::string& aNameIm) const;  // A priori Gamma applicable sur le gris
        double EpsLog() const;  // A priori Gamma applicable sur le gris
        const std::string &  CamDist() const;
        const std::string &  HomolRedr()   const;
@@ -110,7 +110,7 @@ class cArgMpDCRaw : public cAppliBatch
        int                       mCons16Bits;
        int                       m8BitAdapt;
        double                    mDyn;
-       double                    mGamma;
+       double                    mGammaCorrec;
        double                    mEpsLog;
        std::string               mSplit;
        bool                      mGB;
@@ -152,7 +152,7 @@ class cArgMpDCRaw : public cAppliBatch
 
        int                           mSwapRB;
        std::string                   mNameOutSpec;
-       bool                          mUseFF;
+       bool                          mUseFF ; // Pas d'initialisation ds la declaration =true;
 
 };
 

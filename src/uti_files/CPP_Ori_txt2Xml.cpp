@@ -704,7 +704,6 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     {
         aStrType = argv[1];
         StdReadEnum(Help,mType,argv[1],eNbTypeOriTxt,true);
-
     }
 
     std::string aStrChSys;
@@ -716,27 +715,27 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     ElInitArgMain
     (
            argc,argv,
-           LArgMain() << EAMC(aStrType,"Format specification")
-                      << EAMC(mFilePtsIn,"Orientation   File")
+           LArgMain() << EAMC(aStrType,"Format specification",eSAM_None,ListOfVal(eNbTypeOriTxt))
+                      << EAMC(mFilePtsIn,"Orientation file", eSAM_IsExistFile)
                       << EAMC(mOriOut,"Targeted orientation") ,
            LArgMain()
                       << EAM(aStrChSys,"ChSys",true,"Change coordinate file")
                       << EAM(mFileCalib,"Calib",true,"External XML calibration file")
                       << EAM(mAddCalib,"AddCalib",true,"Try to add calibration, def=true")
-                      << EAM(aNameConvOri,"ConvOri",true,"Orientation convenetion (like eConvAngPhotoMGrade ...)")
+                      << EAM(aNameConvOri,"ConvOri",true,"Orientation convention (like eConvAngPhotoMGrade ...)")
 
                       << EAM(aPrePost,"PrePost",true,"[Prefix,Postfix] to generate name of image from id")
                       << EAM(mKeyName2Image,"KN2I",true,"Key 2 compute Name Image from Id in file")
-                      << EAM(mDistNeigh,"DN",true,"Neighbooring distance for Image Graphe")
+                      << EAM(mDistNeigh,"DN",true,"Neighbooring distance for Image Graph")
                       << EAM(mImC,"ImC",true,"Image \"Center\" for computing AltiSol")
-                      << EAM(mNbImC,"NbImC",true,"Number of neigboor around Image \"Center\" (Def=50)")
+                      << EAM(mNbImC,"NbImC",true,"Number of neighboors around Image \"Center\" (Def=50)")
                       << EAM(mSizeRC,"RedSizeSC",true,"Reduced Size of image to use for Tapioca for AltiSol (Def=1000)")
                       << EAM(mReexpMatr,"Reexp",true,"Reexport as Matrix (internal set up)", eSAM_InternalUse)
                       << EAM(mRegul,"Regul",true,"Regularisation cost (Cost of hole), Def=5.0")
                       << EAM(mRelNewBr,"RegNewBr",true,"cost of creating a new branch (Def=0.4, prop to Regul)")
                       << EAM(mRelFiabl,"Reliab",true,"Threshold for reliable speed, Def=0.75 (prop to Regul)")
-                      << EAM(mCalcV,"CalcV",true,"Calcul speed (def = false)")
-                      << EAM(mDelay,"Delay",true,"Delay to take into accound after speed estimate")
+                      << EAM(mCalcV,"CalcV",true,"Compute speed (def = false)")
+                      << EAM(mDelay,"Delay",true,"Delay to take into account after speed estimate")
                       << EAM(mTetaFromCap,"TFC",true,"Teta from cap : compute orientation from speed)")
                       << EAM(mRefOri,"RefOri",true,"Ref Orientation (internal purpose)", eSAM_InternalUse)
                       << EAM(mSiftResol,"SiftR",true,"Resolution of sift point for Tapioca ,when ImC, (Def No Sift)")
@@ -757,6 +756,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
 
                       << EAM(mGenOrFromC,"CalOFC",true,"When specified compute initial orientation from centers (in Ori-GenFromC) Ori-${CalOFC}, must contains internal calibrations")
     );
+
+    if (MMVisualMode) return;
 
     mComputeOrFromC = EAMIsInit(&mGenOrFromC);
 
@@ -1588,9 +1589,9 @@ int OriExport_main(int argc,char ** argv)
 
         cElemAppliSetFile aEASF(aFullName);
 
-        for (int aK=0 ; aK<int(aEASF.mSetIm->size()) ; aK++)
+        for (int aK=0 ; aK<int(aEASF.SetIm()->size()) ; aK++)
         {
-             const std::string & aNameCam =  (*aEASF.mSetIm)[aK];
+             const std::string & aNameCam =  (*aEASF.SetIm())[aK];
              std::string aNameIm = aEASF.mICNM->Assoc1To1("NKS-Assoc-Ori2ImGen",aNameCam,true);
              CamStenope * aCS =  CamOrientGenFromFile(aNameCam,aEASF.mICNM);
              // std::cout << "IM = " << aNameCam  << " " << aCS->Focale() << "\n";

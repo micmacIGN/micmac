@@ -47,6 +47,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SYS_DEP_H
 #define _ELISE_SYS_DEP_H
 
+#include "general/CMake_defines.h"
+
 // Only for g++ 2.7.2.1 on alpha
 #define BUG_CPP_Fclose 0
 #define ElBugHomeMPD 1
@@ -375,6 +377,15 @@ typedef REAL8  tSysCho ;
 // Version int de __HG_REV__
 int NumHgRev();
 
+#if ELISE_PTR_SIZE==4
+	#define ELISE_PTR_U_INT U_INT4
+	#define ELISE_PTR_FORMAT "%l"
+#elif ELISE_PTR_SIZE==8
+	#define ELISE_PTR_U_INT U_INT8
+	#define ELISE_PTR_FORMAT "%ll"
+#else
+	unhandled size of pointer
+#endif
 
 #if ELISE_unix
 	#define ELISE_RED_ERROR "\033[1;31mERROR: \033[0m"

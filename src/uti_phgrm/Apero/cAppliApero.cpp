@@ -237,6 +237,8 @@ void cAppliApero::DoAMD()
         it->second->DoAMD(mAMD);
    }
 
+   AMD_AddBlockCam();
+
    for 
    (
        std::set<std::pair<cPoseCam *,cPoseCam *> >::const_iterator it=mSetLinkedCam.begin();
@@ -277,6 +279,7 @@ void cAppliApero::DoAMD()
             mAMD->AddArc(aBase->IncInterv().NumBlocAlloc(),aRF->IncInterv().NumBlocAlloc(),true);
        }
    }
+
 
 /*
    for (int aKP=0 ; aKP<int(mVecPose.size()) ; aKP++)
@@ -327,6 +330,9 @@ void cAppliApero::DoAMD()
    if (ShowMes())
       std::cout << "END AMD \n";
    
+
+  
+
 }
 
 void cAppliApero::AddLinkCam(cPoseCam * aC1,cPoseCam * aC2)
@@ -911,6 +917,41 @@ bool cAppliApero::NumIterDebug() const
    // return mCptIterCompens==0;
 }
 
+
+void ShowSpectrSys(cSetEqFormelles & aSetEq)
+{
+   if (!MPD_MM()) return;
+   int aNbV = aSetEq.Sys()->NbVar();
+
+    ElMatrix<tSysCho>  aMat = aSetEq.Sys()->MatQuad();
+
+    ElMatrix<tSysCho>  aVP(aNbV,1);
+    ElMatrix<tSysCho>  aVecP(aNbV,aNbV);
+
+    std::vector<int>  aIndVP = jacobi(aMat,aVP,aVecP);
+
+    tSysCho aDet = 1.0;
+    tSysCho aVPMin = 1e50;
+    tSysCho aVPMax = -1e50;
+    for (int aK=0 ; aK< aNbV; aK++)
+    {
+        int aIVp = aIndVP[aK];
+        tSysCho aValP = aVP(aIVp,0);
+        aDet *= aValP;
+        aVPMin = ElMin(aVPMin,aValP);
+        aVPMax = ElMax(aVPMax,aValP);
+
+        std::cout << "Valp "  << aValP << "\n";
+    }
+
+    std::cout << "Det=" << aDet  << " VPMin=" << aVPMin << " VPMax=" << aVPMax << "\n";
+    getchar();
+}
+
+void cAppliApero::DebugPbConvAppui()
+{
+    ShowSpectrSys(mSetEq);
+}
 
 
 

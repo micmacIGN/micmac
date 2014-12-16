@@ -1,11 +1,6 @@
 #ifndef _GLWIDGET_H
 #define _GLWIDGET_H
 
-#include <cmath>
-#include <limits>
-#include <iostream>
-#include <algorithm>
-
 #include "Engine.h"
 #include "ContextMenu.h"
 
@@ -28,7 +23,7 @@ public:
     void setView(VIEW_ORIENTATION orientation);
 
     //! Get current zoom
-    float getZoom(){return getParams()->m_zoom;}
+    float getZoom();
 
     void zoomFit();
 
@@ -95,6 +90,8 @@ public:
 
     int  getWindowMeanValue(QPoint pos, int r = 7); //pos = image position, r = half size of window
 
+    QRectF viewportToImageProjection();
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
@@ -111,6 +108,8 @@ public slots:
     void setZoom(float val);
 
     void selectPoint(QString namePt);
+
+    void setCenterType(int);
 
 signals:
 

@@ -27,22 +27,6 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     // bug Qt non resolu
     // work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
 
-    float scaleFactor = maskedImg._loadedImageRescaleFactor;
-    if ( scaleFactor != 1.f )
-    {
-        QImageReader *reader = new QImageReader(aNameFile);
-
-        QSize newSize = reader->size()*scaleFactor;
-
-        //cout << "new size: " << newSize.width() << " " << newSize.height() << endl;
-
-        reader->setScaledSize(newSize);
-
-        delete maskedImg._m_image;
-        maskedImg._m_image = new QImage(newSize, QImage::Format_RGB888);
-        *maskedImg._m_image = reader->read();
-    }
-
     if (maskedImg._m_image->isNull())
     {
         Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
@@ -91,11 +75,31 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
     maskedImg.setName(fi.fileName());
 
     loadMask(mask_filename, maskedImg);
+
+    //Rescale image and mask, if needed
+
+    float scaleFactor = maskedImg._loadedImageRescaleFactor;
+    if ( scaleFactor != 1.f )
+    {
+        QSize newSize = maskedImg._m_image->size()*scaleFactor;
+
+        //cout << "new size: " << newSize.width() << " " << newSize.height() << endl;
+
+        maskedImg._m_rescaled_image = new QImage(newSize, QImage::Format_RGB888);
+        *maskedImg._m_rescaled_image = maskedImg._m_image->scaled(newSize,Qt::IgnoreAspectRatio);
+
+        maskedImg._m_rescaled_mask = new QImage(newSize, QImage::Format_Mono);
+        *maskedImg._m_rescaled_mask = maskedImg._m_mask->scaled(newSize,Qt::IgnoreAspectRatio);
+    }
+    else
+    {
+        maskedImg._m_rescaled_image = maskedImg._m_image;
+        maskedImg._m_rescaled_mask = maskedImg._m_mask;
+    }
 }
 
 void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> &maskedImg)
 {
-
     setFilenameOut(aNameFile);
 
     if (QFile::exists(aNameFile))
@@ -104,15 +108,15 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> &maskedImg)
 
         if ( maskedImg._loadedImageRescaleFactor != 1.f )
         {
-            maskedImg._m_mask = new QImage( maskedImg._m_image->size(), QImage::Format_Mono);
+            maskedImg._m_mask = new QImage(maskedImg._m_image->size(), QImage::Format_Mono);
 
             QImageReader *reader = new QImageReader(aNameFile);
 
             reader->setScaledSize(maskedImg._m_image->size());
 
-            *(maskedImg._m_mask) = reader->read();
+            reader->read(maskedImg._m_mask);
             maskedImg._m_mask->invertPixels(QImage::InvertRgb);
-            *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
+            *maskedImg._m_mask = QGLWidget::convertToGLFormat(*maskedImg._m_mask);
         }
         else
         {
@@ -229,7 +233,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
 
     #ifdef _DEBUG
         cout << "DirChantier : " << DirChantier << endl;
-        cout << "filename : "    << filename << endl;
+        cout << "filename : "    << aNameFile.toStdString() << endl;
     #endif
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
@@ -259,6 +263,7 @@ void cEngine::loadClouds(QStringList filenames, int* incre)
         _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
 
     _Data->computeBBox();
+    _Data->computeCloudsCenter();
 }
 
 void cEngine::loadCameras(QStringList filenames, int *incre)
@@ -267,13 +272,7 @@ void cEngine::loadCameras(QStringList filenames, int *incre)
     {
          if (incre) *incre = 100.0f*(float)i/filenames.size();
          CamStenope* cam = _Loader->loadCamera(filenames[i]);
-         if (cam)
-            _Data->addCamera(cam);
-         else
-         {
-             QMessageBox::critical(NULL, QObject::tr("Error"), QObject::tr("Bad file"));
-             return;
-         }
+         if (cam) _Data->addCamera(cam);
     }
 
     _Data->computeBBox();
@@ -397,7 +396,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
-        float scaleFactor =  _vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
+        float scaleFactor = _vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
 
         if (scaleFactor != 1.f)
         {
@@ -407,7 +406,15 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
             Mask = Mask.scaled(width, height,Qt::KeepAspectRatio);
         }
 
-        Mask.save(aOut);
+#ifdef _DEBUG
+        cout << "Saving mask to: " << aOut.toStdString().c_str() << endl;
+#endif
+
+        if (!Mask.save(aOut))
+        {
+            QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Error saving mask"));
+            return;
+        }
 
         cFileOriMnt anOri;
 
@@ -426,7 +433,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     }
     else
     {
-        QMessageBox::critical(NULL, "cEngine::doMaskImage","Mask is Null");
+        QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Mask is Null"));
     }
 }
 
@@ -495,7 +502,7 @@ cGLData* cEngine::getGLData(int WidgetIndex)
         return NULL;
 }
 
-void cEngine::computeScaleFactor(QStringList const &filenames)
+void cEngine::computeScaleFactor(QStringList const &filenames, int appMode)
 {
 
 #if ELISE_QT_VERSION == 5
@@ -559,7 +566,7 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
         if(cur_avail_mem_kb !=0)
         {
             // TODO GERER le MASK... car pas forcememt afficher
-            sizeMemoryTexture_kb *= 2; // Image + masque
+            if (appMode == MASK2D) sizeMemoryTexture_kb *= 2; // Image + masque
             if(sizeMemoryTexture_kb > cur_avail_mem_kb)
             {
                 scaleFactorVRAM = (float) cur_avail_mem_kb / sizeMemoryTexture_kb;
@@ -599,7 +606,9 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
 
         totalSize.scale(QSize(_glMaxTextSize,_glMaxTextSize), Qt::KeepAspectRatio);
 
-        _scaleFactor = ((float) totalSize.width()) / widthMax;
+        _scaleFactor = (float) totalSize.width() / widthMax;
+
+        //if (appMode == MASK2D) _scaleFactor /= 2.f; //Image + Masque
 
         //cout << "scale factor = " << scaleFactor << endl;
     }
@@ -608,7 +617,7 @@ void cEngine::computeScaleFactor(QStringList const &filenames)
 
     if (_scaleFactor != 1.f)
     {
-        QString msg = "Rescaling images with " + QString::number(_scaleFactor,'f', 3) + " factor - tip: use smaller NbF";
+        QString msg = QObject::tr("Rescaling images with ") + QString::number(_scaleFactor,'f', 2) + QObject::tr(" factor");
         QMessageBox* msgBox = new QMessageBox(QMessageBox::Warning, QObject::tr("GL_MAX_TEXTURE_SIZE exceeded"),  msg);
         msgBox->setWindowFlags(Qt::WindowStaysOnTopHint);
 

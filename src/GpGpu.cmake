@@ -1,7 +1,9 @@
  file(GLOB_RECURSE IncuhCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.cuh  )
  file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
  list(APPEND IncCudaFiles ${IncuhCudaFiles})
- 
+
+
+
 if (MSVC10)
     GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 elseif (MSVC90)
@@ -66,7 +68,7 @@ elseif((NOT ${arch_35} LESS 0))
 elseif((NOT ${arch_50} LESS 0))
 
     set(cuda_arch_version 50 )
-	set(cuda_arch_version_string 3.0 )
+        set(cuda_arch_version_string 5.0 )
     set(cuda_generation Maxwell)
 
 else()
@@ -126,3 +128,114 @@ endif()
 INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
             LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
             ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib)
+
+
+#///////// OPENCL
+
+#//////////////////////////////////////////
+
+if(${WITH_OPENCL})
+
+    message("OPENCL Doesn't work for the moment")
+    FIND_PATH(OPENCL_INCLUDE_DIR
+            NAMES
+                    CL/cl.h OpenCL/cl.h
+            PATHS
+                    $ENV{AMDAPPSDKROOT}/include
+					$ENV{CUDA_PATH}/include
+                    $ENV{INTELOCLSDKROOT}/include
+                    $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/inc
+                    ${CUDA_TOOLKIT_INCLUDE}
+                    # Legacy Stream SDK
+                    $ENV{ATISTREAMSDKROOT}/include)
+
+    IF(CMAKE_SIZEOF_VOID_P EQUAL 4)
+            SET(OPENCL_LIB_SEARCH_PATH
+                    ${OPENCL_LIB_SEARCH_PATH}
+                    $ENV{AMDAPPSDKROOT}/lib/x86
+                    $ENV{INTELOCLSDKROOT}/lib/x86
+                    $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/lib/Win32
+					$ENV{CUDA_PATH}//lib/Win32
+                    # Legacy Stream SDK
+                    $ENV{ATISTREAMSDKROOT}/lib/x86)
+    ELSEIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            SET(OPENCL_LIB_SEARCH_PATH
+                    ${CUDA_TOOLKIT_INCLUDE}/lib64
+                    #${OPENCL_LIB_SEARCH_PATH}
+                    $ENV{AMDAPPSDKROOT}/lib/x86_64
+                    $ENV{INTELOCLSDKROOT}/lib/x64
+                    $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/lib/x64
+					$ENV{CUDA_PATH}//lib/x64
+                    # Legacy stream SDK
+                    $ENV{ATISTREAMSDKROOT}/lib/x86_64)
+    ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 4)
+
+    FIND_LIBRARY(
+        OPENCL_LIBRARY
+        NAMES OpenCL
+        PATHS ${OPENCL_LIB_SEARCH_PATH})
+
+    include(FindPackageHandleStandardArgs)
+    find_package_handle_standard_args(
+      OpenCL
+      DEFAULT_MSG
+      OPENCL_LIBRARY OPENCL_INCLUDE_DIR)
+
+    if(OPENCL_FOUND)
+      set(OPENCL_LIBRARIES ${OPENCL_LIBRARY})
+    else(OPENCL_FOUND)
+      set(OPENCL_LIBRARIES)
+    endif(OPENCL_FOUND)
+
+    mark_as_advanced(
+      OPENCL_INCLUDE_DIR
+      OPENCL_LIBRARY
+      )
+
+if(NOT CUDA_ENABLED)
+    set(filesopencl
+
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
+
+        )
+
+    add_executable(TestOpenCL ${filesopencl})
+
+    target_link_libraries(TestOpenCL ${libStatGpGpuTools} ${OPENCL_LIBRARY})
+
+    INSTALL(TARGETS TestOpenCL RUNTIME DESTINATION ${Install_Dir})
+    message("OPENCL TEST")
+else()
+    set(filesCUDA
+
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_CUDA_Define.cu"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+        )
+
+    cuda_add_executable(TestCUDA ${filesCUDA})
+
+    target_link_libraries(TestCUDA ${libStatGpGpuTools} ${OPENCL_LIBRARY})
+
+    INSTALL(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
+
+endif()
+
+else()
+    set(filesCUDA
+
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_CUDA_Define.cu"
+                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+        )
+
+    cuda_add_executable(TestCUDA ${filesCUDA})
+
+    target_link_libraries(TestCUDA ${libStatGpGpuTools} )
+
+    INSTALL(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
+endif()
+
+#////////////////////////////
+

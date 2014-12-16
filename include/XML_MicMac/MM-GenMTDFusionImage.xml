@@ -11,8 +11,9 @@
            <Symb>   Im1="XXXX"  </Symb>
            <Symb>   Ori="XXXX"  </Symb>
            <Symb>   Zoom="1"  </Symb>
+           <Symb>   PrefixDIR=MTD-Image-  </Symb>
 
-           <Symb>   DirMEC=MTD-Image-${Im1}  </Symb>
+           <Symb>   DirMEC=${PrefixDIR}${Im1}  </Symb>
   </DicoLoc>
 
 

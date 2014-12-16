@@ -6,6 +6,24 @@
 // NO MORE
 typedef enum
 {
+  eC3DC_QuickMac,
+  eC3DC_Statute
+} eC3DC_Types;
+void xml_init(eC3DC_Types & aVal,cElXMLTree * aTree);
+std::string  eToString(const eC3DC_Types & aVal);
+
+eC3DC_Types  Str2eC3DC_Types(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eC3DC_Types & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eC3DC_Types &);
+
+std::string  Mangling( eC3DC_Types *);
+
+void  BinaryUnDumpFromFile(eC3DC_Types &,ELISE_fp &);
+
+typedef enum
+{
   eTMalt_Ortho,
   eTMalt_UrbanMNE,
   eTMalt_GeomImage,
@@ -61,6 +79,7 @@ typedef enum
   eGround,
   eStatue,
   eTestIGN,
+  eQuickMac,
   eNbTypeMMByP
 } eTypeMMByP;
 void xml_init(eTypeMMByP & aVal,cElXMLTree * aTree);
@@ -236,6 +255,25 @@ void  BinaryDumpInFile(ELISE_fp &,const eTypePreCondRad &);
 std::string  Mangling( eTypePreCondRad *);
 
 void  BinaryUnDumpFromFile(eTypePreCondRad &,ELISE_fp &);
+
+typedef enum
+{
+  eDEM,
+  eOrthoIm,
+  eNbTypeVals
+} eTypeSake;
+void xml_init(eTypeSake & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeSake & aVal);
+
+eTypeSake  Str2eTypeSake(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeSake & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeSake &);
+
+std::string  Mangling( eTypeSake *);
+
+void  BinaryUnDumpFromFile(eTypeSake &,ELISE_fp &);
 
 typedef enum
 {
@@ -2199,6 +2237,34 @@ std::string  Mangling( eExportOri *);
 
 void  BinaryUnDumpFromFile(eExportOri &,ELISE_fp &);
 
+class cJPPTest
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cJPPTest & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        std::list< int > & LN();
+        const std::list< int > & LN()const ;
+    private:
+        std::string mName;
+        std::list< int > mLN;
+};
+cElXMLTree * ToXMLTree(const cJPPTest &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cJPPTest &);
+
+void  BinaryUnDumpFromFile(cJPPTest &,ELISE_fp &);
+
+std::string  Mangling( cJPPTest *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cCalibrationInterneGridDef
 {
     public:
@@ -4504,21 +4570,25 @@ class cByAdjacence
         cTplValGesInit< IntSubst > & DeltaMin();
         const cTplValGesInit< IntSubst > & DeltaMin()const ;
 
+        cTplValGesInit< IntSubst > & Sampling();
+        const cTplValGesInit< IntSubst > & Sampling()const ;
+
         cTplValGesInit< cFiltreDeRelationOrient > & Filtre();
         const cTplValGesInit< cFiltreDeRelationOrient > & Filtre()const ;
 
         cTplValGesInit< bool > & Sym();
         const cTplValGesInit< bool > & Sym()const ;
 
-        cTplValGesInit< bool > & Circ();
-        const cTplValGesInit< bool > & Circ()const ;
+        cTplValGesInit< BoolSubst > & Circ();
+        const cTplValGesInit< BoolSubst > & Circ()const ;
     private:
         std::vector< std::string > mKeySets;
         cTplValGesInit< IntSubst > mDeltaMax;
         cTplValGesInit< IntSubst > mDeltaMin;
+        cTplValGesInit< IntSubst > mSampling;
         cTplValGesInit< cFiltreDeRelationOrient > mFiltre;
         cTplValGesInit< bool > mSym;
-        cTplValGesInit< bool > mCirc;
+        cTplValGesInit< BoolSubst > mCirc;
 };
 cElXMLTree * ToXMLTree(const cByAdjacence &);
 
@@ -4813,6 +4883,15 @@ class cXmlXifInfo
 
         cTplValGesInit< cXmlDate > & Date();
         const cTplValGesInit< cXmlDate > & Date()const ;
+
+        cTplValGesInit< std::string > & Orientation();
+        const cTplValGesInit< std::string > & Orientation()const ;
+
+        cTplValGesInit< std::string > & CameraOrientation();
+        const cTplValGesInit< std::string > & CameraOrientation()const ;
+
+        cTplValGesInit< int > & NbBits();
+        const cTplValGesInit< int > & NbBits()const ;
     private:
         int mHGRev;
         cTplValGesInit< double > mFocMM;
@@ -4827,6 +4906,9 @@ class cXmlXifInfo
         cTplValGesInit< std::string > mCam;
         cTplValGesInit< std::string > mBayPat;
         cTplValGesInit< cXmlDate > mDate;
+        cTplValGesInit< std::string > mOrientation;
+        cTplValGesInit< std::string > mCameraOrientation;
+        cTplValGesInit< int > mNbBits;
 };
 cElXMLTree * ToXMLTree(const cXmlXifInfo &);
 
@@ -4835,6 +4917,58 @@ void  BinaryDumpInFile(ELISE_fp &,const cXmlXifInfo &);
 void  BinaryUnDumpFromFile(cXmlXifInfo &,ELISE_fp &);
 
 std::string  Mangling( cXmlXifInfo *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cMIC_IndicAutoCorrel
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMIC_IndicAutoCorrel & anObj,cElXMLTree * aTree);
+
+
+        double & AutoC();
+        const double & AutoC()const ;
+
+        double & SzCalc();
+        const double & SzCalc()const ;
+    private:
+        double mAutoC;
+        double mSzCalc;
+};
+cElXMLTree * ToXMLTree(const cMIC_IndicAutoCorrel &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMIC_IndicAutoCorrel &);
+
+void  BinaryUnDumpFromFile(cMIC_IndicAutoCorrel &,ELISE_fp &);
+
+std::string  Mangling( cMIC_IndicAutoCorrel *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cMTDImCalc
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMTDImCalc & anObj,cElXMLTree * aTree);
+
+
+        std::list< cMIC_IndicAutoCorrel > & MIC_IndicAutoCorrel();
+        const std::list< cMIC_IndicAutoCorrel > & MIC_IndicAutoCorrel()const ;
+    private:
+        std::list< cMIC_IndicAutoCorrel > mMIC_IndicAutoCorrel;
+};
+cElXMLTree * ToXMLTree(const cMTDImCalc &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMTDImCalc &);
+
+void  BinaryUnDumpFromFile(cMTDImCalc &,ELISE_fp &);
+
+std::string  Mangling( cMTDImCalc *);
 
 /******************************************************/
 /******************************************************/
@@ -6289,10 +6423,14 @@ class cISOM_Vois
 
         double & Nb();
         const double & Nb()const ;
+
+        cTplValGesInit< double > & RatioVis();
+        const cTplValGesInit< double > & RatioVis()const ;
     private:
         std::string mName;
         double mAngle;
         double mNb;
+        cTplValGesInit< double > mRatioVis;
 };
 cElXMLTree * ToXMLTree(const cISOM_Vois &);
 
@@ -6334,6 +6472,9 @@ class cImSecOfMaster
         friend void xml_init(cImSecOfMaster & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< double > & UsedPenal();
+        const cTplValGesInit< double > & UsedPenal()const ;
+
         std::string & Master();
         const std::string & Master()const ;
 
@@ -6343,6 +6484,7 @@ class cImSecOfMaster
         cTplValGesInit< cISOM_AllVois > & ISOM_AllVois();
         const cTplValGesInit< cISOM_AllVois > & ISOM_AllVois()const ;
     private:
+        cTplValGesInit< double > mUsedPenal;
         std::string mMaster;
         std::list< cOneSolImageSec > mSols;
         cTplValGesInit< cISOM_AllVois > mISOM_AllVois;

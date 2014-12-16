@@ -111,7 +111,7 @@ private:
 
 };
 
-class ObjectsSFModel : public QSortFilterProxyModel
+/*class ObjectsSFModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
@@ -121,7 +121,7 @@ public:
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
 
-};
+};*/
 
 
 class ModelObjects : public QAbstractTableModel

@@ -69,13 +69,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     ImagesSFModel*      proxyImageModel  = new ImagesSFModel(this);
     PointGlobalSFModel* proxyPointGlob   = new PointGlobalSFModel(this);
-    ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
+    //ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
 
     proxyPointGlob->setSourceModel  (new ModelPointGlobal(0,mAppli));
     proxyImageModel->setSourceModel (new ModelCImage(0,mAppli));
-    proxyObjectModel->setSourceModel(new ModelObjects(0,mAppli));
+    //proxyObjectModel->setSourceModel(new ModelObjects(0,mAppli));
 
-    m_QTMainWindow->setModel(proxyPointGlob, proxyImageModel, proxyObjectModel);
+    m_QTMainWindow->setModel(proxyPointGlob, proxyImageModel/*, proxyObjectModel*/);
 
     m_QTMainWindow->resizeTables();
 

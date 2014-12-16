@@ -209,6 +209,23 @@ Im2D<TypeIn,TypeOut> ImpaintL2
    return Conv2Type(aFlRes,(Im2D<TypeIn,TypeOut>*)0);
 }
 
+template <class Type,class TypeBase> Im2D<Type,TypeBase>  BouchePPV(Im2D<Type,TypeBase> anIm,Fonc_Num aFoncIn)
+{
+   Pt2di aSz = anIm.sz();
+   Im2D<Type,TypeBase> aRes(aSz.x,aSz.y);
+
+   cResProj32 aP32 = Projection32(aFoncIn,aSz);
+
+   ELISE_COPY
+   (
+        aRes.all_pts(),
+        anIm.in()[Virgule(aP32.PX().in(),aP32.PY().in())],
+        aRes.out()
+   );
+
+   return aRes;
+}
+
 
 
     

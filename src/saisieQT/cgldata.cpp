@@ -1,12 +1,6 @@
 #include "cgldata.h"
 
 
-cGLData::cGLData(int appMode):
-    _diam(1.f)
-{
-    initOptions(appMode);
-}
-
 void cGLData::setOptionPolygons(cParameters aParams)
 {
     for (int aK=0; aK < _vPolygons.size(); ++aK)
@@ -22,12 +16,12 @@ void cGLData::setOptionPolygons(cParameters aParams)
 
 cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode):
     _glMaskedImage(qMaskedImage),
-    _pQMask(qMaskedImage->_m_mask),
     _pBall(NULL),
     _pAxis(NULL),
     _pBbox(NULL),
     _pGrid(NULL),
-    _center(Pt3dr(0.f,0.f,0.f)),
+    _bbox_center(Pt3dr(0.,0.,0.)),
+    _clouds_center(Pt3dr(0.,0.,0.)),
     _appMode(appMode)
 {
     if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
@@ -41,18 +35,20 @@ cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, i
 }
 
 
-cGLData::cGLData(cData *data, cParameters aParams,int appMode):
+cGLData::cGLData(cData *data, cParameters aParams, int appMode):
     _pBall(new cBall),
     _pAxis(new cAxis),
     _pBbox(new cBBox),
     _pGrid(new cGrid),
+    _bbox_center(Pt3dr(0.,0.,0.)),
+    _clouds_center(Pt3dr(0.,0.,0.)),
     _appMode(appMode),
     _diam(1.f),
     _incFirstCloud(false)
 {
     initOptions(appMode);
 
-    setData(data);
+    setData(data, true, aParams.getSceneCenterType());
 
     setPolygons(data);
 
@@ -78,7 +74,7 @@ void cGLData::setPolygons(cData *data)
     }
 }
 
-void cGLData::setData(cData *data, bool setCam)
+void cGLData::setData(cData *data, bool setCam, int centerType)
 {
     for (int aK = 0; aK < data->getNbClouds(); ++aK)
     {
@@ -87,19 +83,13 @@ void cGLData::setData(cData *data, bool setCam)
         pCloud->setBufferGl();
     }
 
-    Pt3dr center = data->getBBoxCenter();
     float sc = data->getBBoxMaxSize() / 1.5f;
     Pt3dr scale(sc, sc, sc);
 
-    _pBall->setPosition(center);
     _pBall->setScale(scale);
-    _pAxis->setPosition(center);
     _pAxis->setScale(scale);
-    _pBbox->setPosition(center);
     _pBbox->setScale(scale);
     _pBbox->set(data->getMin(), data->getMax());
-
-    _pGrid->setPosition(center);
     _pGrid->setScale(scale*2.f);
 
     if(setCam)
@@ -112,6 +102,9 @@ void cGLData::setData(cData *data, bool setCam)
 
     setBBoxMaxSize(data->getBBoxMaxSize());
     setBBoxCenter(data->getBBoxCenter());
+    setCloudsCenter(data->getCloudsCenter());
+
+    switchCenterByType(centerType);
 }
 
 bool cGLData::incFirstCloud() const
@@ -212,11 +205,11 @@ void cGLData::draw()
 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
-        glTranslated(getBBoxCenter().x,getBBoxCenter().y,getBBoxCenter().z);
+        glTranslated(getPosition().x,getPosition().y,getPosition().z);
         glRotatef(cObject::getRotation().x,1.f,0.f,0.f);
         glRotatef(cObject::getRotation().y,0.f,1.f,0.f);
         glRotatef(cObject::getRotation().z,0.f,0.f,1.f);
-        glTranslated(-getBBoxCenter().x,-getBBoxCenter().y,-getBBoxCenter().z);
+        glTranslated(-getPosition().x,-getPosition().y,-getPosition().z);
 
         for (int i=0; i<_vClouds.size();i++)
         {
@@ -284,14 +277,28 @@ void cGLData::clearPolygon()
 
 void cGLData::setGlobalCenter(Pt3d<double> aCenter)
 {
-    setBBoxCenter(aCenter);
+    setPosition(aCenter);
     _pBall->setPosition(aCenter);
     _pAxis->setPosition(aCenter);
     _pBbox->setPosition(aCenter);
     _pGrid->setPosition(aCenter);
+}
 
-   /* for (int aK=0; aK < _vClouds.size();++aK)
-       _vClouds[aK]->setPosition(aCenter);*/
+void cGLData::switchCenterByType(int val)
+{
+    switch(val)
+    {
+        case eCentroid:
+        case eDefault:
+            setGlobalCenter(_clouds_center);
+            break;
+        case eBBoxCenter:
+            setGlobalCenter(_bbox_center);
+            break;
+        case eOriginCenter:
+            setGlobalCenter(Pt3dr(0.,0.,0.));
+            break;
+    }
 }
 
 bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
@@ -355,6 +362,13 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     QPolygonF polyDraw(polyg.getVector());
     QPainterPath path;
 
+    if (_glMaskedImage.getLoadedImageRescaleFactor() < 1.f)
+    {
+        QTransform trans;
+        trans=trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
+        polyDraw = trans.map(polyDraw);
+    }
+
     if(mode == ADD_INSIDE || mode == SUB_INSIDE)
     {
         path.addPolygon(polyDraw);
@@ -394,7 +408,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         getMask()->invertPixels(QImage::InvertRgb);
 
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
-    _glMaskedImage._m_mask->PrepareTexture(getMask());
+    _glMaskedImage._m_mask->createTexture(getMask());
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
@@ -414,9 +428,9 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
 
             if(getRotation().x != 0)
             {
-                Pt = Pt - getBBoxCenter() ;
+                Pt = Pt - getPosition() ;
                 Pt = Pt3dr(Pt.x,Pt.z,-Pt.y);
-                Pt = Pt + getBBoxCenter() ;
+                Pt = Pt + getPosition() ;
             }
 
             switch (mode)

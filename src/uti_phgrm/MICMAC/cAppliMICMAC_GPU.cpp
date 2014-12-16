@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
+/** @addtogroup GpGpuDoc */
+/*@{*/
 
     template <class Type,class TBase>
     Type ** ImDec
@@ -682,30 +684,36 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
             {
                 IMmGg.SetTexturesAreLoaded(true);
 
-                pixel *maskGlobal = new pixel[size(IMmGg.DimTerrainGlob())];
+                uint sizeTerGlob  = size(IMmGg.DimTerrainGlob());
 
-                OMP_NT1
-                        for (uint anY = 0 ; anY <  IMmGg.DimTerrainGlob().y ; anY++)
-                        OMP_NT2
-                        for (uint anX = 0 ; anX < IMmGg.DimTerrainGlob().x ; anX++)
-                {
-                    uint idMask		= IMmGg.DimTerrainGlob().x * anY + anX ;
-                    if(IsInTer(anX,anY))
+                pixel *maskGlobal   = new pixel[sizeTerGlob];
+                pixel *maskIML      = new pixel[sizeTerGlob*mNbIm];
+                uint   idMask		=  0;
+
+                for (uint anY = 0 ; anY <  IMmGg.DimTerrainGlob().y ; anY++,idMask += IMmGg.DimTerrainGlob().x)
+                    for (uint anX = 0 ; anX < IMmGg.DimTerrainGlob().x ; anX++)
                     {
-                        maskGlobal[idMask] = 1 ;
-                        IMmGg.NoMasked = true;
+                        uint xId = idMask + anX;
+                        if(IsInTer(anX,anY))
+                        {
+                            maskGlobal[xId] = 1 ;
+                            IMmGg.NoMasked = true;
+                        }
+                        else
+                            maskGlobal[xId] = 0 ;
+
+                        for (int aKIm=0 ; aKIm<mNbIm ; aKIm++,xId+=sizeTerGlob)
+                            maskIML[xId] = (*(mVLI[aKIm])).IsVisible(anX,anY) ? 255 : 0 ;
+
                     }
-                    else
-                        maskGlobal[idMask] = 0 ;
-                }
-
-                if(IMmGg.NoMasked)
-                    IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
-
-                delete[] maskGlobal;
 
                 if(IMmGg.NoMasked)
                 {
+                    // set textures masques images
+                    IMmGg.Data().SetMaskImages(maskIML,IMmGg.DimTerrainGlob(),mNbIm);
+
+                    // set texture masque terrain
+                    IMmGg.Data().SetGlobalMask(maskGlobal,IMmGg.DimTerrainGlob());
                     float*	fdataImg1D	= NULL;
                     uint2	dimImgMax	= make_uint2(0,0);
 
@@ -716,10 +724,13 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     ushort2* hClassEqui = IMmGg.Data().HostClassEqui();
 
+                    // Parcourt de toutes les images pour les classes
                     for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                     {
+                        // image et orientation
                         cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);
 
+                        // classe d'équivalence
                         hClassEqui[aKIm].x = aGLI.PDV()->NumEquiv();
 
 
@@ -731,11 +742,11 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                         hClassEqui[hClassEqui[aKIm].x].y = pitImage;
 
-                        //printf("Image : %d, Classe : %d, NB classe %d, pit : %d\n",aKIm,hClassEqui[aKIm].x,nbCLass,hClassEqui[hClassEqui[aKIm].x].y);
+
                         dimImgMax = max(dimImgMax,toUi2(aGLI.getSizeImage()));
                     }
 
-                    // Pour chaque image
+                    // Pour chaque image nous copions les valeurs dans une structure preparatoire pour les envoyés au GPU
                     for (int aKIm=0 ; aKIm<mNbIm ; aKIm++)
                     {
                         // Obtention de l'image courante
@@ -757,20 +768,24 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                         //------------------------------------------------------------------------
                         /*
-
                         std::string nameFile(GpGpuTools::conca("image_0",aKIm));
 
                         nameFile+=".pgm";
 
                         float* pImage = fdataImg1D + size(dimImgMax) * aKIm;
 
+                        pixel* pImage = maskIML;
+
                         float min = GpGpuTools::getMinArray(pImage,dimImgMax);
 
                         float* dImage =  GpGpuTools::AddArray(pImage,dimImgMax,-min);
 
                         GpGpuTools::Array1DtoImageFile(dImage,nameFile.c_str(),dimImgMax,1.f/(GpGpuTools::getMaxArray(dImage,dimImgMax)));
+
+
                         //GpGpuTools::Array1DtoImageFile(dImage,nameFile.c_str(),dimImgMax,1.f/(65536.f));
                         //GpGpuTools::Array1DtoImageFile(pImage,nameFile.c_str(),dimImgMax,1.f/(2048.f));
+                        GpGpuTools::Array1DtoImageFile(maskIML,nameFile.c_str(),IMmGg.DimTerrainGlob());
 
                         if(!aKIm)
                         {
@@ -781,19 +796,29 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                         */
                         //------------------------------------------------------------------------
 
-                    }
+                    }                                        
 
+                    // Copy Images to device (in layered textures)
                     if ((!(oEq(dimImgMax, 0)|(mNbIm == 0))) && (fdataImg1D != NULL))
                         IMmGg.Data().SetImages(fdataImg1D, dimImgMax, mNbIm);
 
+                    // Delete buffer image temporaire
                     if (fdataImg1D != NULL) delete[] fdataImg1D;
 
+                    // Initialisation des paramètres
                     IMmGg.SetParameter(mNbIm, make_ushort2(toUi2(mCurSzV0)), dimImgMax, (float)mAhEpsilon, SAMPLETERR, INTDEFAULT,nbCLass);
 
                 }
 
+                // delete buffers
+                delete[] maskGlobal;
+                delete[] maskIML;
+
+
             }
 
+            //
+            // Génération de volumes, où le calcul est nécessaire.
 
             IMmGg.MaskVolumeBlock().clear();
 
@@ -837,6 +862,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
                             ElSetMin(mZMinGlob,mZ.x);
                             ElSetMax(mZMaxGlob,mZ.y);
 
+                            // Pour chaque Z du volume, nous determinons le rectangle minimum
                             for (int i = 0; i < dZ; ++i)
                             {
                                 Rect &box = vCellules[i + abs(mZ.x - mZMinGlob)];
@@ -856,6 +882,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                 uint Dz = abs(mZMaxGlob-mZMinGlob);
 
+                // Pour chaque intervalle Z INTERZ, nous constituons une box
                 if(vCellules.size() > 0)
                 {
                     uint cellZmaskVol = iDivUp((int)vCellules.size(), INTERZ);
@@ -879,6 +906,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
 
                     }
                 }
+
             }
 
         }
@@ -1519,6 +1547,13 @@ void cAppliMICMAC::DoGPU_Correl
 }
 
 #ifdef  CUDA_ENABLED
+
+///
+/// \brief cAppliMICMAC::Tabul_Projection Pré-calcul des projections des points terrains dans chaque images
+/// \param Z        Z initiale
+/// \param interZ   interval de Z à pré-calculé
+/// \param idBuf    id buffer de pré-calcul
+///
     void cAppliMICMAC::Tabul_Projection(int Z, uint &interZ, ushort idBuf)
     {
 #ifdef  NVTOOLS
@@ -1528,63 +1563,52 @@ void cAppliMICMAC::DoGPU_Correl
 
         Rect    zone        = IMmGg.Param(idBuf).RDTer();           // Zone Terrain dilaté
         uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;    // Sample
-        float2  *pTabProj   = IMmGg.Data().HostVolumeProj();
-        Rect    *pTabRect   = IMmGg.Data().HostRect();
+        float2  *pTabProj   = IMmGg.Data().HostVolumeProj();        // Pointeur sur le buffer des projections
+        Rect    *pTabRect   = IMmGg.Data().HostRect();              // Pointeur sur le buffer des zones de projections
         uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
-        uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain echantilloné
-        uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain echantilloné
-//        int2	aSzDz		= toI2(Pt2dr(mGeomDFPx->SzDz()));		// Dimension de la zone terrain total
-//        int2	aSzClip		= toI2(Pt2dr(mGeomDFPx->SzClip()));		// Dimension du bloque
+        uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain sous-echantilloné
+        uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain sous-echantilloné
+
         int2	anB			= zone.pt0 +  dimSTabProj * sample;
+
 
         OMP_NT1
         for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
             int rZ = abs(Z - anZ) * mNbIm;
             OMP_NT2
-            for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )					// Mise en calque des projections pour chaque image
+            for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )                     // Mise en calque des projections pour chaque image
             {
-                Rect*   pRect   = pTabRect +  rZ  + aKIm;
-                float2* pTproj  = pTabProj + (rZ  + aKIm )* sizSTabProj;
+                Rect*   pZoneImg    = pTabRect +  rZ  + aKIm;               // Buffer des zones images
+                float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
 
-                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);			// Obtention de l'image courante
+                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);                // Obtention de l'image aKIm
                 const cGeomImage*	aGeom	= aGLI.Geom();
-                //int2 an = make_int2(0);
 
-                int2 an = zone.pt0;
+                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul
+                int2 sampTer    = make_int2(0,0);                           // Point retenu
                 Rect re(MAXIRECT);
+                const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
 
-                const double aZReel	= DequantZ(anZ);			// Dequantification  de X, Y et Z
-                for (an.y = zone.pt0.y; an.y < anB.y; an.y += sample)	// Ballayage du terrain
-                {
-                    for (an.x = zone.pt0.x; an.x < anB.x ; an.x += sample)
+                for (pTer.y = zone.pt0.y; pTer.y < anB.y; pTer.y += sample, sampTer.y++, sampTer.x = 0)	// Ballayage du terrain
+
+                    for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, sampTer.x++)
                     {
-                       // if ( /*aSE(an,0) && */aI(an, aSzDz) && aI(an, aSzClip) /*&& IMmGg.ValDilMask(an-zone.pt0) == 1*/)
-                        {
-
- //                           int2 t  = (an - zone.pt0);
-                            int2 r	= (an - zone.pt0)/sample; // TODO Simplifier calcul
-                            int iD	=  to1D(r,dimSTabProj);
-// 							int aZMin	= mTabZMin[an.y][an.x];int aZMax	= mTabZMax[an.y][an.x];if ((aGLI.IsVisible(an.x ,an.y )) /*&& (aZMin <= anZ)&&(anZ <=aZMax) */)
-
-                            Pt2dr aPTer	= DequantPlani(an.x,an.y);
-                            Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);	// Projection dans l'image
 
 
-                           // if (aGLI.IsOk( aPIm.x, aPIm.y ))
-                            {
+                        Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
+                        Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
 
-                                pTproj[iD]		= make_float2((float)aPIm.x,(float)aPIm.y);
-                            }
-                        }
+                        //if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
+                            buf_proj[to1D(sampTer,dimSTabProj)]		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
+
                     }
-                }
 
 
                 re.pt1.x = aGLI.getSizeImage().x - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
-                re.pt1.y = aGLI.getSizeImage().y - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
+                re.pt1.y = aGLI.getSizeImage().y - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.y;
 
-                *pRect = re;
+                *pZoneImg = re;
 
             }
         }
@@ -1593,6 +1617,72 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  NVTOOLS
         nvtxRangePop();
 #endif
+    }
+
+
+    void cAppliMICMAC::Tabul_Images(int Z, uint &interZ, ushort idBuf)
+    {
+
+        CuHostData3D<float> hoValuesImages;
+
+        Rect    zone        = IMmGg.Param(idBuf).RTer();           // Zone Terrain dilaté
+        zone.out();
+        cout << endl;
+
+        uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
+        uint	sizSTabProj	= size(dimTabProj);					// Taille de la zone terrain sous-echantilloné
+
+        int2	anB			= zone.pt0 +  dimTabProj;
+
+
+        DUMP(anB)
+        DUMP(dimTabProj)
+        DUMP(IMmGg.Param(idBuf).RDTer().dimension())
+        DUMP(IMmGg.Param(idBuf).RTer().dimension())
+
+                IMmGg.Param(idBuf).RTer().out();
+                cout << endl;
+
+        hoValuesImages.Malloc(dimTabProj,IMmGg.Param(idBuf).invPC.nbImages*interZ);
+        float  *pBufVimg   = hoValuesImages.pData();        // Pointeur sur le buffer des projections
+
+        cInterpolateurIm2D<float> * anInt = CurEtape()->InterpFloat();
+
+        for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
+        {
+            int rZ = abs(Z - anZ) * mNbIm;
+
+            for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )                     // Mise en calque des projections pour chaque image
+            {
+
+                float* buf_ValImages     = pBufVimg + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
+
+                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);                // Obtention de l'image aKIm
+                const cGeomImage*	aGeom	= aGLI.Geom();
+
+                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul
+                int2 sampTer    = make_int2(0,0);                           // Point retenu
+                const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
+
+                for (pTer.y = zone.pt0.y; pTer.y < anB.y; pTer.y ++, sampTer.y++, sampTer.x = 0)	// Ballayage du terrain
+
+                    for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x ++, sampTer.x++)
+                    {
+
+                        Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
+                        Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
+
+                        if (aGLI.IsOk( aPIm.x, aPIm.y ))
+                            buf_ValImages[to1D(sampTer,dimTabProj)]		= anInt->GetVal(aGLI.DataIm0(),aPIm); // affectation dans le
+                        else
+                            buf_ValImages[to1D(sampTer,dimTabProj)]		= -1;
+                    }
+            }
+        }
+
+
+        hoValuesImages.OutputValues(0,XY,Rect(0,0,20,hoValuesImages.GetDimension().y),6);
+        hoValuesImages.Dealloc();
     }
 
     void cAppliMICMAC::setVolumeCost( int z0, int z1,ushort idBuf)
@@ -1624,17 +1714,14 @@ void cAppliMICMAC::DoGPU_Correl
                 {
                     double cost = (double)tCost[rSiTer * abs(anZ - (int)z0)];
 
-#ifdef CUDA_DEFCOR
-                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : 2.0);
-#else
+                    // TODO WARNING les couts init sont stockés dans un ushort mais des couts semblent sup à ushortmax!!!!
                     mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
-#endif
                 }
             }
         }
 
 #ifdef  NVTOOLS
-			nvtxRangePop();
+            nvtxRangePop();
 #endif
 
     }
@@ -1683,8 +1770,9 @@ void cAppliMICMAC::DoGPU_Correl
                     IMmGg.Param(idPreBuf).SetDimension(Mask.Zone,Mask.Dz);
 
                     IMmGg.ReallocHostData(Mask.Dz,idPreBuf);
-
+                    //Tabul_Images(anZProjection, Mask.Dz,idPreBuf);
                     Tabul_Projection( anZProjection, Mask.Dz,idPreBuf);
+
 
                     //IMmGg.signalComputeCorrel(Mask.Dz);
                     IMmGg.SetPreComp(false);
@@ -1899,7 +1987,7 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
 }
 
 
-
+/*@}*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

@@ -62,6 +62,9 @@ void f()
 
 
 
+
+
+
 // To put in bench file
 
 void Bench_Rank()
@@ -365,6 +368,92 @@ void TestRandomSetOfMesureSegDr()
     exit(0);
 }
 
+void FiltreRemoveBorderHeter(Im2D_REAL4 anIm,Im2D_U_INT1 aImMasq,double aCostRegul,double aCostTrans)
+{
+    Pt2di aSz = anIm.sz();
+    double aVMax,aVMin;
+
+    ELISE_COPY(aImMasq.border(1),0,aImMasq.out());
+    ELISE_COPY(aImMasq.all_pts(),aImMasq.in()!=0,aImMasq.out());
+    ELISE_COPY(anIm.all_pts(),anIm.in(),VMax(aVMax)|VMin(aVMin));
+    Video_Win * aW = Video_Win::PtrWStd(aSz);
+    ELISE_COPY(anIm.all_pts(),(anIm.in()-aVMin) * (255.0/(aVMax-aVMin)),aW->ogray());
+    std::cout << "VMAX " << aVMax << "\n";
+
+    //ELISE_COPY(aW->all_pts(),aImMasq.in(),aW->odisc());
+    //aW->clik_in();
+
+    ELISE_COPY
+    (
+          aW->all_pts(),
+          nflag_close_sym(flag_front8(aImMasq.in_proj()!=0)),
+          aW->out_graph(Line_St(aW->pdisc()(P8COL::red)))
+    );
+
+    cParamFiltreDepthByPrgDyn aParam =  StdGetFromSI(Basic_XML_MM_File("DefFiltrPrgDyn.xml"),ParamFiltreDepthByPrgDyn);
+    aParam.CostTrans() = aCostTrans;
+    aParam.CostRegul() = aCostRegul;
+
+    Im2D_Bits<1>  aNewMasq =  FiltrageDepthByProgDyn(anIm,aImMasq,aParam);
+  
+    ELISE_COPY
+    (
+         select(aNewMasq.all_pts(),aNewMasq.in()),
+         2,
+         aImMasq.out()
+    );
+    TIm2D<U_INT1,INT> aTMasq(aImMasq);
+    FiltrageCardCC(false,aTMasq,2,0,100);
+
+    Neighbourhood aNV4=Neighbourhood::v4();
+    Neigh_Rel     aNrV4 (aNV4);
+
+    ELISE_COPY
+    (
+           conc
+           (
+               select(select(aImMasq.all_pts(),aImMasq.in()==1),aNrV4.red_sum(aImMasq.in()==0)),
+               aImMasq.neigh_test_and_set(aNV4,1,0,256)
+           ),
+           3,
+           Output::onul()
+    );
+
+
+
+    ELISE_COPY
+    (
+         aNewMasq.all_pts(),
+         aImMasq.in(),
+         aW->odisc()
+    );
+
+/*
+    ELISE_COPY
+    (
+          aW->all_pts(),
+          nflag_close_sym(flag_front8(aNewMasq.in_proj())),
+          aW->out_graph(Line_St(aW->pdisc()(P8COL::green)))
+    );
+*/
+
+
+    aW->clik_in();
+
+}
+
+
+void FiltreRemoveFlou(const std::string & aNameIm,const std::string & aNameMasq)
+{
+    std::cout << "NameIm= " << aNameIm << "\n";
+    Im2D_REAL4 anIm = Im2D_REAL4::FromFileStd(aNameIm);
+    Im2D_U_INT1 aImMasq = Im2D_U_INT1::FromFileStd(aNameMasq);
+    FiltreRemoveBorderHeter(anIm,aImMasq,1.0,10.0);
+}
+
+
+
+
 
 extern void TestFiltreRegul();
 #if (ELISE_QT_VERSION >= 4)
@@ -372,12 +461,149 @@ extern void Test3dQT();
 #endif
 
 
+extern Fonc_Num sobel(Fonc_Num f);
+
+
+void SobelTestNtt(const std::string &aName)
+{
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aName,1,true);
+
+    Pt2di aSz = aTF.sz();
+    Im2D_REAL4 aI0(aSz.x,aSz.y);
+    ELISE_COPY( aTF.all_pts(),aTF.in(),aI0.out());
+
+    Video_Win * aW=0;
+    // aW = Video_Win::PtrWStd(aSz);
+
+    if (aW)
+    {
+        ELISE_COPY(aW->all_pts(),Min(255,aI0.in()/256.0),aW->ogray());
+        aW->clik_in();
+    }
+  
+    Fonc_Num aF1 = sobel(aI0.in_proj());
+
+    Fonc_Num aF2 = aI0.in_proj();
+    for (int aK=0 ; aK<3 ; aK++)
+        aF2 = rect_som(aF2,1) / 9.0;
+    aF2 = sobel(aF2);
+
+    if (aW)
+    {
+        ELISE_COPY(aW->all_pts(),Min(255, 200 * (aF1/Max(aF2,1e-7))),aW->ogray());
+        aW->clik_in();
+    }
+
+    double aSF1,aSF2,aSomPts;
+    ELISE_COPY(aI0.all_pts(),Virgule(aF1,aF2,1.0),Virgule(sigma(aSF1),sigma(aSF2),sigma(aSomPts)));
+
+    std::cout << "Indice " << aSF1 / aSF2 << "\n";
+  
+}
+
+void TestNtt(const std::string &aName)
+{
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aName,1,true);
+
+    Pt2di aSz = aTF.sz();
+    Im2D_REAL4 aI0(aSz.x,aSz.y);
+    ELISE_COPY( aTF.all_pts(),aTF.in(),aI0.out());
+
+    int aWSz=2;
+
+    TIm2D<REAL4,REAL8> aTIm(aI0);
+
+     double aSomGlob=0.0;
+     double aNbGlob=0.0;
+
+     for (int aKdx=-aWSz ; aKdx<=aWSz ; aKdx+=aWSz)
+     {
+         printf("## ");
+         for (int aKdy=-aWSz ; aKdy<=aWSz ; aKdy+=aWSz)
+         {
+             int aDx = aKdx;
+             int aDy = aKdy;
+             Pt2di aDep(aDx,aDy);
+             Pt2di aP;
+             RMat_Inertie aMat;
+             for (aP.x = aWSz ; aP.x<aSz.x-aWSz ; aP.x++)
+             {
+                 for (aP.y=aWSz ; aP.y<aSz.y-aWSz ; aP.y++)
+                 {
+                      aMat.add_pt_en_place(aTIm.get(aP),aTIm.get(aP+aDep));
+                 }
+             }
+             double aC = aMat.correlation();
+             aC = 1-aC;
+             if (dist8(aDep) == aWSz)
+             {
+                aSomGlob += aC;
+                aNbGlob ++;
+             }
+             printf(" %4d",round_ni(10000*(aC)));
+         }
+         printf("\n");
+     }
+     aSomGlob /= aNbGlob;
+     std::cout  <<  " G:" << aSomGlob << "\n";
+     printf("\n\n");
+  
+}
+
+
+
+
+
+
+
+
+extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename );
+extern void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName );
+
 
 int MPDtest_main (int argc,char** argv)
 {
+/*
+   cCalibrationInterneRadiale aXmlDr;
+   aXmlDr.CDist() = Pt2dr(3,4);
+*/
+
+    cJPPTest aJPP;
+    aJPP.Name() =  "Jean-Pierre";
+    aJPP.LN().push_back(1);
+    aJPP.LN().push_back(2);
+    MakeFileXML(aJPP,"Test.xml");
+
+    
+    cJPPTest aJP2 = StdGetFromPCP("Test.xml",JPPTest);
+    std::cout << "NAME " << aJP2.Name() << "\n";
+    
+
+
+/*
+   for (int aK=0 ; aK<argc ; aK++)
+      std::cout << argv[aK] << "\n";
+
+   std::string aDir,aFile;
+
+   SplitDirAndFile(aDir,aFile,argv[1]);
+
+   for (int aResol = -1 ; aResol <2000 ; aResol +=500)
+   {
+       std::string aTest;
+       getPastisGrayscaleFilename(aDir,aFile,aResol,aTest);
+       std::cout << "RESS " << aResol << " => " << aTest << "\n";
+   }
+*/
+
+   
+/*
+    ELISE_ASSERT(argc==3,"MPDtest_main");
+    FiltreRemoveFlou(argv[1],argv[2]);
+*/
+    // std::cout << "ARC " << argv[1] << " " << argv[2] << "\n";
 #if (ELISE_QT_VERSION >= 4)
 
-   Test3dQT();
 #endif
   
    return 0;

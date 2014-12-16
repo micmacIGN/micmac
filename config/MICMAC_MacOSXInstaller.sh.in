@@ -28,8 +28,7 @@ then
 	mkdir $1/MicMac.app/Contents/MacOS/include/qt/translations
 	mkdir $1/MicMac.app/Contents/Frameworks
 	mkdir $1/MicMac.app/Contents/Libraries
-	mkdir $1/MicMac.app/Contents/Libraries/PlugIns
-
+	
 	echo "-- copie de l'icone de l'app"
 	cp ../data/ico/micmac.icns $1/MicMac.app/Contents/Resources
 
@@ -56,18 +55,18 @@ then
 	echo '  <key>CFBundleVersion</key>' >>$plistfile
 	echo '  <string>1.1</string>' >>$plistfile
 	echo '  <key>CFBundleGetInfoString</key>' >>$plistfile
-	echo '  <string>version 1.0.0, Copyright ©2014 IGN - Service des Développements. Tous droits réservés. </string>' >>$plistfile
+	echo '  <string>version 1.0.0</string>' >>$plistfile
 	echo '  <key>CFBundlePackageType</key>' >>$plistfile
 	echo '  <string>APPL</string>' >>$plistfile
  	echo '  <key>LSEnvironment</key>' >>$plistfile
-   	echo '   <dict>' >>$plistfile
-        echo '  	<key>IGN_DATA</key>' >>$plistfile
-        echo '  	<string>Data/</string>' >>$plistfile
-       	echo '   	<key>PROJ_LIB</key>' >>$plistfile
-       	echo '  	<string>Data/geodesy/nad</string>' >>$plistfile
-   	echo '   </dict>' >>$plistfile
-	echo '   </dict>' >>$plistfile
-   	echo '   </plist>' >>$plistfile
+   	echo '  <dict>' >>$plistfile
+    echo '  <key>IGN_DATA</key>' >>$plistfile
+    echo '  <string>Data/</string>' >>$plistfile
+    echo '  <key>PROJ_LIB</key>' >>$plistfile
+    echo '  <string>Data/geodesy/nad</string>' >>$plistfile
+   	echo '  </dict>' >>$plistfile
+	echo '  </dict>' >>$plistfile
+   	echo '  </plist>' >>$plistfile
 
 	echo "-- copie des executables de l'application"
 	cp ../bin/* 						$1/MicMac.app/Contents/MacOS/bin
@@ -75,21 +74,25 @@ then
 	
 	#echo "-- copie des librairies dynamiques (plugins Qt, Pq, odbc)"
 
-	#### partie a rendre generique… ####
-	#cp ${Pq_DIR}/lib/libpq.5.dylib $1/MicMac.app/Contents/Libraries
-	#cp /usr/lib/libiodbc.2.dylib $1/MicMac.app/Contents/Libraries
-	####				####
+	#TODO: a verifier : copie des librairies manquantes - remplacer /path/to/
+	#cp  /path/to/libSM.6.dylib  	$1/MicMac.app/Contents/Libraries
+	#cp  /path/to/libICE.6.dylib  	$1/MicMac.app/Contents/Libraries
+	#cp  /path/to/libX11.6.dylib  	$1/MicMac.app/Contents/Libraries
+	#cp  /path/to/libXext.6.dylib  	$1/MicMac.app/Contents/Libraries
 
 	echo "-- copie des frameworks QT"
 	cp -Rn ${QT_QTCONCURRENT_LIBRARY}  	$1/MicMac.app/Contents/Frameworks
 	cp -Rn ${QT_QTCORE_LIBRARY}  		$1/MicMac.app/Contents/Frameworks
-	cp -Rn ${QT_QTGUI_LIBRARY} 		$1/MicMac.app/Contents/Frameworks
+	cp -Rn ${QT_QTGUI_LIBRARY} 			$1/MicMac.app/Contents/Frameworks
 	cp -Rn ${QT_QTOPENGL_LIBRARY}  		$1/MicMac.app/Contents/Frameworks
 	cp -Rn ${QT_QTWIDGETS_LIBRARY}  	$1/MicMac.app/Contents/Frameworks
 	cp -Rn ${QT_QTXML_LIBRARY}  		$1/MicMac.app/Contents/Frameworks
+
+	
 	
 	if [ "${qt_version}" == "5" ]
 	then
+		mkdir $1/MicMac.app/Contents/Libraries/PlugIns
 		mkdir $1/MicMac.app/Contents/Libraries/PlugIns/platforms
 		#cp -Rn ${QT_COCOA_PLUGIN}  		$1/MicMac.app/Contents/Libraries/PlugIns/platforms
 		cp -Rn ${CMAKE_PREFIX_PATH}/plugins/${QT_COCOA_PLUGIN}  		$1/MicMac.app/Contents/Libraries/PlugIns/platforms
@@ -103,19 +106,30 @@ then
 	rm 	$1/MicMac.app/Contents/Frameworks/QtWidgets.framework/Versions/${qt_version}/QtWidgets_debug
 	rm 	$1/MicMac.app/Contents/Frameworks/QtXml.framework/Versions/${qt_version}/QtXml_debug
 	
-
+	#todo: a verifier:
 	ALIAS_FRAMEWORKS="../../Frameworks"
 
-	echo "-- passage des librairies QT en chemin relatif (MicMac)"
+	echo "-- passage des librairies QT en chemin relatif"
 	#cf: http://qt-project.org/doc/qt-4.8/deployment-mac.html
 
 	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtConcurrent.framework/Versions/${qt_version}/QtConcurrent      	$1/MicMac.app/Contents/Frameworks/QtConcurrent.framework/Versions/${qt_version}/QtConcurrent
-	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtCore.framework/Versions/${qt_version}/QtCore      			$1/MicMac.app/Contents/Frameworks/QtCore.framework/Versions/${qt_version}/QtCore
-	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtGui.framework/Versions/${qt_version}/QtGui      			$1/MicMac.app/Contents/Frameworks/QtGui.framework/Versions/${qt_version}/QtGui
-	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtOpenGL.framework/Versions/${qt_version}/QtOpenGL   			$1/MicMac.app/Contents/Frameworks/QtOpenGL.framework/Versions/${qt_version}/QtOpenGL
-	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtWidgets.framework/Versions/${qt_version}/QtWidgets   		$1/MicMac.app/Contents/Frameworks/QtWidgets.framework/Versions/${qt_version}/QtWidgets
-	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtXml.framework/Versions/${qt_version}/QtXml   			$1/MicMac.app/Contents/Frameworks/QtXml.framework/Versions/${qt_version}/QtXml
+	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtCore.framework/Versions/${qt_version}/QtCore      	$1/MicMac.app/Contents/Frameworks/QtCore.framework/Versions/${qt_version}/QtCore
+	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtGui.framework/Versions/${qt_version}/QtGui      		$1/MicMac.app/Contents/Frameworks/QtGui.framework/Versions/${qt_version}/QtGui
+	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtOpenGL.framework/Versions/${qt_version}/QtOpenGL   	$1/MicMac.app/Contents/Frameworks/QtOpenGL.framework/Versions/${qt_version}/QtOpenGL
+	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtWidgets.framework/Versions/${qt_version}/QtWidgets   $1/MicMac.app/Contents/Frameworks/QtWidgets.framework/Versions/${qt_version}/QtWidgets
+	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/QtXml.framework/Versions/${qt_version}/QtXml   		$1/MicMac.app/Contents/Frameworks/QtXml.framework/Versions/${qt_version}/QtXml
+
+#to do: a remplacer $ALIAS_FRAMEWORKS
+	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/AGL.framework/Versions/A/AGL   		$1/MicMac.app/Contents/Frameworks/AGL.framework/Versions/A/AGL
+	install_name_tool -id @executable_path/$ALIAS_FRAMEWORKS/OpenGL.framework/Versions/A/OpenGL     $1/MicMac.app/Contents/Frameworks/OpenGL.framework/Versions/A/OpenGL
+#######
 	
+	#install_name_tool -id @executable_path/../Libraries/plugins/sqldrivers/libqsqlpsql.dylib  		$1/MicMac.app/Contents/Libraries/plugins/sqldrivers/libqsqlpsql.dylib
+	#install_name_tool -id @executable_path/../Libraries/plugins/sqldrivers/libqsqlite.dylib    	$1/MicMac.app/Contents/Libraries/plugins/sqldrivers/libqsqlite.dylib
+	#install_name_tool -id @executable_path/../Libraries/plugins/sqldrivers/libqsqlodbc.dylib   	$1/MicMac.app/Contents/Libraries/plugins/sqldrivers/libqsqlodbc.dylib
+	#install_name_tool -id @executable_path/../Libraries/libpq.5.dylib   							$1/MicMac.app/Contents/Libraries/libpq.5.dylib
+	#install_name_tool -id @executable_path/../Libraries/libiodbc.2.dylib 							$1/MicMac.app/Contents/Libraries/libiodbc.2.dylib
+
 
 	install_name_tool -change ${QT_OLD_PREFIX}QtCore.framework/Versions/${qt_version}/QtCore   @executable_path/$ALIAS_FRAMEWORKS/QtCore.framework/Versions/${qt_version}/QtCore 	$1/MicMac.app/Contents/Frameworks/QtGui.framework/Versions/${qt_version}/QtGui
 
@@ -144,11 +158,6 @@ then
 	install_name_tool -change ${QT_OLD_PREFIX}QtWidgets.framework/Versions/${qt_version}/QtWidgets   		@executable_path/$ALIAS_FRAMEWORKS/QtWidgets.framework/Versions/${qt_version}/QtWidgets		$1/MicMac.app/Contents/MacOS/bin/SaisieQT
 	install_name_tool -change ${QT_OLD_PREFIX}QtXml.framework/Versions/${qt_version}/QtXml   			@executable_path/$ALIAS_FRAMEWORKS/QtXml.framework/Versions/${qt_version}/QtXml			$1/MicMac.app/Contents/MacOS/bin/SaisieQT
 
-	#install_name_tool -id @executable_path/../Libraries/plugins/sqldrivers/libqsqlpsql.dylib  	$1/MicMac.app/Contents/Libraries/plugins/sqldrivers/libqsqlpsql.dylib
-	#install_name_tool -id @executable_path/../Libraries/plugins/sqldrivers/libqsqlite.dylib    	$1/MicMac.app/Contents/Libraries/plugins/sqldrivers/libqsqlite.dylib
-	#install_name_tool -id @executable_path/../Libraries/plugins/sqldrivers/libqsqlodbc.dylib   	$1/MicMac.app/Contents/Libraries/plugins/sqldrivers/libqsqlodbc.dylib
-	#install_name_tool -id @executable_path/../Libraries/libpq.5.dylib   				$1/MicMac.app/Contents/Libraries/libpq.5.dylib
-	#install_name_tool -id @executable_path/../Libraries/libiodbc.2.dylib 				$1/MicMac.app/Contents/Libraries/libiodbc.2.dylib
 
 
 

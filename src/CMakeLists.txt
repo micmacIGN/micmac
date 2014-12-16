@@ -43,7 +43,7 @@ set(UTI_FILES_DIR "uti_files")
 set(UTI_IMAGE_DIR "uti_image")
 set(UTI_PHGRM_DIR "uti_phgrm")
 set(UTI_ETAPOLY_DIR "EtalonnagePolygone")
-set(POISSON_DIR "poisson")
+set(POISSON_DIR ${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/)
 
 INCLUDE (${AMD_DIR}/Sources.cmake)
 INCLUDE (${HASSA_DIR}/Sources.cmake)
@@ -114,11 +114,6 @@ foreach(source_file ${IncFiles})
         source_group("${includeTree}" FILES ${source_file})
 endforeach(source_file)
 
-if(${CUDA_ENABLED})
-         file(GLOB_RECURSE IncFilesGpGpu ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
-         list(REMOVE_ITEM IncFiles ${IncFilesGpGpu})
-endif()
-
 # OPTION BUILD : En tetes precompiles visual studio
 
 enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
@@ -160,7 +155,7 @@ if(${CUDA_ENABLED})
 
     cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_tomoc} ${HEADERS_nomoc} ${saisie_ui} OPTIONS ${GENCODE_SM})
 
-    target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY})
+    target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY} ${OPENCL_LIBRARY})
 
 else()
 
@@ -197,8 +192,3 @@ endif()
 if ( NOT ${qt_version} EQUAL 0)
     ADD_SUBDIRECTORY(saisieQT)
 endif()
-
-if (WITH_MM3dSat)
-    ADD_SUBDIRECTORY(mm3dSat)
-endif()
-

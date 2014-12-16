@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+extern const std::string & DefXifOrientation();
 namespace NS_MpDcraw
 {
 
@@ -55,7 +56,7 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
      mCons16Bits (1),
      m8BitAdapt  (0),
      mDyn        (0),
-     mGamma      (1.0),
+     mGammaCorrec      (1.0),
      mEpsLog     (0.3),
      mGB         (0),
      mCB         (0),
@@ -92,7 +93,7 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
           anArg,
           LArgMain() << EAM(mCons16Bits,"16B",true)
                      << EAM(m8BitAdapt,"8BA",true)
-                     << EAM(mGamma,"Gamma",true)
+                     << EAM(mGammaCorrec,"Gamma",true)
                      << EAM(mEpsLog,"EpsLog",true)
                      << EAM(mDyn,"Dyn",true)
                  << EAM(mSplit,"Split",true)
@@ -130,6 +131,8 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
                      << EAM(mNameOutSpec,"NameOut",true)
                      << EAM(mUseFF,"UseFF",true)
      );
+
+
 
 
      if (mImRef!="")
@@ -288,6 +291,30 @@ const double & cArgMpDCRaw::Offset() const
   return mOfs;
 }
 
+int ExtractAngleFromRot(const std::string & aSA,bool & Ok)
+{
+   Ok = false;
+   if (aSA==DefXifOrientation()) return 0;
+   static cElRegex anAutomH("Horizontal.*",15);
+   if (anAutomH.Match(aSA))
+   {
+       Ok = true;
+       return 0;
+   }
+   static cElRegex anAutom("Rotate[ ]+(90|180|270)[ ]+(CW|).*",15);
+
+   if (! anAutom.Match(aSA)) return 0;
+
+
+   Ok = true;
+   double aVal =  anAutom.VNumKIemeExprPar(1);
+
+   return round_ni(aVal);
+}
+
+Fonc_Num GamCor(const cArgMpDCRaw & anArg,Fonc_Num aF,const std::string & aNameFile);
+
+
 
 void  cArgMpDCRaw::DevJpg()
 {
@@ -317,7 +344,50 @@ void  cArgMpDCRaw::DevJpg()
 
 
     Tiff_Im aFTmp(aTmp.c_str());
+    cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
 
+    if (0) // Apparemment ca cree plus de pb que ca n'en resoud ....
+    {
+         bool Ok,OkCam;
+         int anA = ExtractAngleFromRot( aMDP.Orientation(),Ok);
+         int anACam = ExtractAngleFromRot(aMDP.CameraOrientation(),OkCam);
+
+// std::cout << "GGGGG " << anA << " " << anACam << "\n"; getchar();
+
+         if (! OkCam)
+         {
+             Pt2di aSz = aFTmp.sz();
+             // On fait l'hypothese que image prise par un droitier en position standard , 
+             // la haut de l'image doit aller a droite
+             if (aSz.y > aSz.x) 
+             {
+                 anACam = 270;
+                 OkCam = true;
+             }
+         }
+
+         if (Ok && OkCam)
+         {
+             if ((anA!=anACam) && (anA==0))
+             { 
+                 int aDA = anACam - anA;
+                 if (aDA<0) aDA += 360;
+                 // Im2DGen aImIn = aFTmp.ReadIm();
+                 std::vector<Im2DGen *>  aV = aFTmp.ReadVecOfIm();
+                 Im2DGen * aImOut = aV[0]->ImRotate(4-aDA/90);
+// std::cout << "HHHHH " << aV[0]->sz() << aImOut->sz() << "\n";
+                 ELISE_fp::RmFile(aTmp);
+                 Tiff_Im::CreateFromIm(*aImOut,aTmp);
+                 aFTmp = Tiff_Im(aTmp.c_str());
+                 // Tiff_Im::CreateFromIm(*aImOut,"toto.tif");
+/*
+                 Pt2di aSz = aFTmp.sz();
+
+                 std::cout << "ANGLES " << anA << " " << anACam  <<  " " <<   aMDP.Orientation() << "\n";
+*/
+             }
+         }
+    }
 
     std::string aRes = NameRes(CurF1(),"","");
 /*
@@ -340,9 +410,9 @@ void  cArgMpDCRaw::DevJpg()
                 ArgMTD()
             );
 
-     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
      Fonc_Num aFRes = aFTmp.in() / FlatField(aMDP,aFullNJPG);
 
+     aFRes = GamCor(*this,aFRes,aFullNJPG);
      if (En8B)
         aFRes = Min(255,aFRes);
 
@@ -460,7 +530,23 @@ double cArgMpDCRaw::Dyn() const
    return mDyn;
 }
 
-double cArgMpDCRaw::Gamma() const { return mGamma; }
+double cArgMpDCRaw::Gamma( const std::string& aNameIm) const 
+{ 
+   if (! EAMIsInit(const_cast<void *>((void *)&mGammaCorrec)))
+   {
+         if (!  mCons16Bits)
+         {
+              std::string aNameGama = ICNM()->Assoc1To1("NKS-Assoc-STD-Gama8Bits",aNameIm,true);
+              double aRes;
+              FromString(aRes,aNameGama);
+              return aRes;
+         }
+   }
+
+    return mGammaCorrec; 
+}
+
+
 double cArgMpDCRaw::EpsLog() const { return mEpsLog; }
 
 bool cArgMpDCRaw::Cons16B() const

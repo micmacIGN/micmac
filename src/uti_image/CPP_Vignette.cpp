@@ -181,7 +181,7 @@ void Vignette_correct(string aDir, GrpVodka aGrpVodka,string aDirOut, string InC
 
     //Reading vignette files
         char foc[5],dia[4];
-        sprintf(foc, "%04d", int(aGrpVodka.foc));
+        sprintf(foc, "%04d", int(10*aGrpVodka.foc));
         sprintf(dia, "%03d", int(10*aGrpVodka.diaph));
         string aNameVignette="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
         //string aNameVignette = "Foc"+ ToString(round_ni(aGrpVodka.foc)) + "Diaph" + ToString(round_ni(10*aGrpVodka.diaph)) + "-FlatField.tif";
@@ -464,11 +464,11 @@ vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::
     //Read InCal
     if (InCal!=""){
         //string aPatVignette="Foc[0-9]{1,6}Diaph[0-9]{1,6}-FlatField.tif";
-        string aPatVignette="Foc[0-9]{4}Diaph[0-9]{3}.tif";
+        string aPatVignette="Foc[0-9]{4}Diaph[0-9]{3}-FlatField.tif";
         list<string> aSetVignette=RegexListFileMatch(aDir + InCal,aPatVignette,1,false);
         unsigned nbInCal=aSetVignette.size();
         for(unsigned i=0;i<nbInCal;i++){
-            GrpVodka aGrpVodka(atof((aSetVignette.back().substr (12,3)).c_str())/10,atof((aSetVignette.back().substr (3,4)).c_str()), true);
+            GrpVodka aGrpVodka(atof((aSetVignette.back().substr (12,3)).c_str())/10,atof((aSetVignette.back().substr (3,4)).c_str())/10, true);
             aVectGrpVodka.push_back(aGrpVodka);
 
             aSetVignette.pop_back();
@@ -584,7 +584,7 @@ int  Vignette_main(int argc,char ** argv)
                            //Creating a flatfield tif file
                                //Creating the numerical format for the output files names
                                     char foc[5],dia[4];
-                                    sprintf(foc, "%04d", int(aVectGrpVodka[i].foc));
+                                    sprintf(foc, "%04d", int(10*aVectGrpVodka[i].foc));
                                     sprintf(dia, "%03d", int(10*aVectGrpVodka[i].diaph));
 
                                string aNameOut="Foc" + (string)foc + "Diaph" + (string)dia + "-FlatField.tif";
