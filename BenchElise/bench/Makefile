@@ -75,9 +75,6 @@ OBJ = b_0_35.o\
       b_0_55.o\
       b_0_54_1.o
 
-im2d_save_raw: im2d_save_raw.cpp ../../lib/libelise.a
-	$(CXX) $(CCFLAG) $(INC_DIR) im2d_save_raw.cpp $(LIB_DIR) $(LIBS) -o im2d_save_raw
-
 multichannel: multichannel.cpp ../../lib/libelise.a
 	$(CXX) $(CCFLAG) $(INC_DIR) multichannel.cpp $(LIB_DIR) $(LIBS) -o multichannel
 

@@ -45,11 +45,8 @@ void MultiChannel<tData>::set( size_t i_iChannel, const Im2D<tData,MultiChannel<
 template <class tData>
 void MultiChannel<tData>::link( Im2D<tData,tBase> &i_im2d )
 {
-	clear();
-	mWidth = i_im2d.tx();
-	mHeight = i_im2d.ty();
-	mChannels.resize(1);
-	mChannels[0] = &i_im2d;
+	resize( i_im2d.tx(), i_im2d.ty(), 1 );
+	*mChannels[0] = i_im2d;
 }
 
 
@@ -74,8 +71,7 @@ void MultiChannel<tData>::resize( int i_width, int i_height, int i_nbChannels )
 	}
 
 	// delete supernumerary channels
-	while ( i<mChannels.size() )
-		delete mChannels[i++];
+	while ( i<mChannels.size() ) delete mChannels[i++];
 
 	// allocate new channels
 	while ( i<newChannels.size() )
@@ -114,6 +110,7 @@ void MultiChannel<tData>::write_raw_v1( ostream &io_ostream, bool i_reverseByteO
 		byte_inv_4( ui4+1 );
 		byte_inv_4( ui4+2 );
 		byte_inv_4( ui4+3 );
+		if ( sizeof(tData)==1 ) i_reverseByteOrder = false; // no need to reverse 1 byte data
 	}
 	io_ostream.write( (const char *)ui4, 16 );
 
@@ -121,19 +118,17 @@ void MultiChannel<tData>::write_raw_v1( ostream &io_ostream, bool i_reverseByteO
 
 	// write channels' data
 	tData *tmpData = NULL;
-	size_t nbElements = 0, nbBytes = 0;
+	size_t nbElements = (size_t)mWidth*(size_t)mHeight, nbBytes = nbElements*sizeof(tData);
+
+	// allocate temporary memory for data inversion
+	if ( i_reverseByteOrder ) tmpData = new tData[nbElements]; 
+
 	for ( size_t i=0; i<mChannels.size(); i++ )
 	{
 		const tData *data = mChannels[i]->data_lin();
-		if ( i_reverseByteOrder && sizeof(tData)>1 )
-		{
-			if ( tmpData==NULL )
-			{
-				nbElements = (size_t)mWidth*(size_t)mHeight;
-				nbBytes = nbElements*sizeof(tData);
-				tmpData = new tData[nbBytes];
-			}
 
+		if ( i_reverseByteOrder  )
+		{
 			memcpy( tmpData, data, nbBytes );
 
 			tData *it = tmpData;
@@ -143,7 +138,7 @@ void MultiChannel<tData>::write_raw_v1( ostream &io_ostream, bool i_reverseByteO
 			data = tmpData;
 		}
 
-		io_ostream.write( (const char*)data, nbElements*sizeof(tData) );
+		io_ostream.write( (const char*)data, nbBytes );
 	}
 
 	if ( tmpData!=NULL ) delete [] tmpData;
@@ -214,6 +209,7 @@ bool MultiChannel<tData>::read_raw_v1( istream &io_istream, bool i_reverseByteOr
 	size_t readNbChannels;
 	GenIm::type_el readType;
 	multi_channels_read_raw_header_v1( io_istream, i_reverseByteOrder, readWidth, readHeight, readNbChannels, readType );
+	if ( sizeof(tData)==1 ) i_reverseByteOrder = false; // no need to reverse 1 byte data
 
 	if ( readType!=typeEl() ) return false;
 
@@ -223,7 +219,7 @@ bool MultiChannel<tData>::read_raw_v1( istream &io_istream, bool i_reverseByteOr
 	{
 		io_istream.read( (char*)mChannels[iChannel]->data_lin(), nbElements*sizeof(tData) );
 
-		if ( i_reverseByteOrder && sizeof(tData)>1 )
+		if ( i_reverseByteOrder )
 		{
 			size_t i = nbElements;
 			tData *it = mChannels[iChannel]->data_lin();
@@ -280,6 +276,8 @@ bool MultiChannel<tData>::read_tiff( Tiff_Im &i_tiff ) // Tiff_Im is not const b
 template <class tData>
 bool MultiChannel<tData>::write_tiff( const string &i_filename ) const
 {
+	__elise_debug_error( typeEl()!=GenIm::u_int2 && typeEl()!=GenIm::u_int1, "MultiChannel: write_tiff: unhandled type " << eToString( typeEl() ) );
+
 	GenIm::type_el tiffOutputType = ( sizeof(tData)>1 ? GenIm::u_int2 : GenIm::u_int1 );
 	Fonc_Num inFonc;
 	Tiff_Im::PH_INTER_TYPE colorSpace;
@@ -308,6 +306,255 @@ bool MultiChannel<tData>::write_tiff( const string &i_filename ) const
 			colorSpace,
 			Tiff_Im::Empty_ARG ).out()
 	);
+
+	return true;
+}
+
+
+//----------------------------------------------------------------------
+// PGM/PPM I/O
+//----------------------------------------------------------------------
+
+template <class tData>
+bool MultiChannel<tData>::write_pnm( const string &i_filename ) const
+{
+	__elise_debug_error( false, "MultiChannel: write_pnm: unhandled type : " << eToString( typeEl() ) );
+	return false;
+}
+
+void write_pnm_header( ostream &io_ostream, int i_width, int i_height, size_t i_nbChannels, int i_maxValue )
+{
+	__elise_debug_error( i_nbChannels!=1 && i_nbChannels!=3, "MultiChannel: write_pnm_header: invalid number of channels : " << i_nbChannels );
+	__elise_debug_error( i_maxValue!=255 && i_maxValue!=65535, "MultiChannel: write_pnm_header: invalid max value : " << i_maxValue );
+
+	io_ostream << (i_nbChannels==1?"P5":"P6") << endl;
+	io_ostream << i_width << ' ' << i_height << endl;
+	io_ostream << i_maxValue << endl;
+}
+
+inline bool __pnm_is_whitespace( char c ){ return c==' ' || c=='\t' || c=='\r' || c=='\n'; }
+
+static void __pnm_read_values( istream &io_istream, list<string> &o_values, list<string> *o_comments )
+{
+	char c;
+	string currentValue(25,' '), comment;
+	currentValue.clear();
+	do
+	{
+		if ( io_istream.peek()=='#' )
+		{
+			if ( currentValue.length()!=0 )
+			{
+				o_values.push_back(currentValue);
+				currentValue.clear();
+			}
+			getline( io_istream, comment );
+			if ( o_comments!=NULL && comment.length()>1 ) o_comments->push_back( comment.substr(1) );
+		}
+		io_istream.get(c);
+		if ( __pnm_is_whitespace(c) )
+		{
+			if ( currentValue.length()!=0 )
+			{
+				o_values.push_back(currentValue);
+				currentValue.clear();
+			}
+		}
+		else
+			currentValue.append( 1, c );
+	}
+	while ( !io_istream.eof() && o_values.size()<4 );
+}
+
+static void __array_byte_inv2( U_INT2 *io_array, size_t i_nbElements )
+{
+	while ( i_nbElements-- ) byte_inv_2( io_array++ );
+}
+
+bool multi_channels_read_pnm_header( istream &io_istream, int &o_width, int &o_height, size_t &o_nbChannels, GenIm::type_el &o_type, list<string> *o_comments )
+{
+	list<string> values;
+	__pnm_read_values( io_istream, values, o_comments );
+	if ( values.size()!=4 )
+	{
+		__elise_debug_error( true, "multi_channels_read_pnm_header: invalid number of values : " << values.size() );
+		return false;
+	}
+
+	list<string>::iterator itValue = values.begin();
+	string id = *itValue++; 
+	if ( id=="P5" ) o_nbChannels = 1;
+	else if ( id=="P6" ) o_nbChannels = 3;
+	else
+	{
+		__elise_debug_error( true, "multi_channels_read_pnm_header: unknown id : " << id );
+		return false;
+	}
+
+	o_width  = atoi( (*itValue++).c_str() );
+	o_height = atoi( (*itValue++).c_str() );
+	int maxValue = atoi( (*itValue++).c_str() );
+
+	if ( maxValue==255 ) o_type = GenIm::u_int1;
+	else if ( maxValue==65535 ) o_type = GenIm::u_int2;
+	else
+	{
+		__elise_debug_error( true, "multi_channels_read_pnm_header: invalid max value : " << maxValue );
+		return false;
+	}
+
+	return true;
+}
+
+bool multi_channels_read_pnm_header( const string &i_filename, int &o_width, int &o_height, size_t &o_nbChannels, GenIm::type_el &o_type, list<string> *o_comments )
+{
+	ifstream f( i_filename.c_str(), ios::binary );
+	if ( !f )
+	{
+		__elise_debug_error( true, "multi_channels_read_pnm_header: cannot open file [" << i_filename << ']' );
+		return false;
+	}
+	return multi_channels_read_pnm_header( f, o_width, o_height, o_nbChannels, o_type, o_comments );
+}
+
+template <>
+bool MultiChannel<U_INT1>::write_pnm( const string &i_filename ) const
+{
+	__elise_debug_error( mChannels.size()!=1 && mChannels.size()!=3 , "MultiChannel: write_pnm<U_INT1>: nbChannels() = " << nbChannels() << " (should be 1 or 3)" );
+
+	ofstream f( i_filename.c_str(), ios::binary );
+	if ( !f ) return false;
+	write_pnm_header( f, mWidth, mHeight, mChannels.size(), 255 );
+
+	if ( mChannels.size()==1 )
+	{
+		f.write( (const char *)mChannels[0]->data_lin(), ( (size_t)mWidth )*( (size_t)mHeight ) );
+		return true;
+	}
+
+	const size_t nbElements = nbPixels()*nbChannels();
+	U_INT1 *tupleData = newTupleArray();
+	f.write( (const char *)tupleData, nbElements*2 );
+	delete [] tupleData;
+
+	return true;
+}
+
+template <>
+bool MultiChannel<U_INT2>::write_pnm( const string &i_filename ) const
+{
+	__elise_debug_error( mChannels.size()!=1 && mChannels.size()!=3, "MultiChannel: write_pnm<U_INT2>: nbChannels() = " << nbChannels() << " (should be 1 or 3)" );
+
+	ofstream f( i_filename.c_str(), ios::binary );
+	if ( !f ) return false;
+	write_pnm_header( f, mWidth, mHeight, mChannels.size(), 65535 );
+
+	size_t nbPix = ( (size_t)mWidth )*( (size_t)mHeight );
+
+	if ( !MSBF_PROCESSOR() && mChannels.size()==1 )
+	{
+		f.write( (const char *)mChannels[0]->data_lin(), nbPix*2 );
+		return true;
+	}
+
+	const size_t nbVal = nbValues();
+	U_INT2 *buffer = new U_INT2[nbVal];
+	toTupleArray(buffer);
+	if ( MSBF_PROCESSOR() ) __array_byte_inv2( buffer, nbVal );
+
+	f.write( (const char *)buffer, nbVal*2 );
+	delete [] buffer;
+
+	return true;
+}
+
+template <class tData>
+bool MultiChannel<tData>::read_pnm( const string &i_filename, list<string> *o_comments )
+{
+	__elise_debug_error( true, "read_pnm<" << El_CTypeTraits<tData>::Name() << ">: type inconsistent with pnm formats, only U_INT1 and U_INT2 are allowed" );
+	return false;
+}
+
+template <>
+bool MultiChannel<U_INT1>::read_pnm( const string &i_filename, list<string> *o_comments )
+{
+	int width, height;
+	size_t nbChannels;
+	GenIm::type_el type;
+	ifstream f( i_filename.c_str(), ios::binary );
+
+	if ( !f )
+	{
+		__elise_debug_error( true, "MultiChannel<U_INT1>::read_pnm: cannot open file [" << i_filename << "] for reading" );
+		return false;
+	}
+
+	if ( !multi_channels_read_pnm_header( f, width, height, nbChannels, type, o_comments ) )
+	{
+		__elise_debug_error( true, "MultiChannel<U_INT1>::read_pnm: cannot read pnm header in [" << i_filename << ']' );
+		return false;
+	}
+
+	if ( type!=GenIm::u_int1 )
+	{
+		__elise_debug_error( true, "MultiChannel<U_INT1>::read_pnm: incompatible image type " << eToString(type) );
+		return false;
+	}
+
+	resize( width, height, nbChannels );
+	if ( nbChannels==1 )
+		f.read( (char*)mChannels[0]->data_lin(), nbChannelBytes() );
+	else
+	{
+		U_INT1 *buffer = new U_INT1[nbValues()];
+		f.read( (char*)buffer, nbBytes() );
+		setFromTuple(buffer);
+		delete [] buffer;
+	}
+
+	return true;
+}
+
+template <>
+bool MultiChannel<U_INT2>::read_pnm( const string &i_filename, list<string> *o_comments )
+{
+	int width, height;
+	size_t nbChannels;
+	GenIm::type_el type;
+	ifstream f( i_filename.c_str(), ios::binary );
+
+	if ( !f )
+	{
+		__elise_debug_error( true, "MultiChannel<U_INT2>::read_pnm: cannot open file [" << i_filename << "] for reading" );
+		return false;
+	}
+
+	if ( !multi_channels_read_pnm_header( f, width, height, nbChannels, type, o_comments ) )
+	{
+		__elise_debug_error( true, "MultiChannel<U_INT2>::read_pnm: cannot read pnm header in [" << i_filename << ']' );
+		return false;
+	}
+
+	if ( type!=GenIm::u_int2 )
+	{
+		__elise_debug_error( true, "MultiChannel<U_INT2>::read_pnm: incompatible image type " << eToString(type) );
+		return false;
+	}
+
+	resize( width, height, nbChannels );
+
+	if ( !MSBF_PROCESSOR() && nbChannels==1 )
+	{
+		f.read( (char*)mChannels[0]->data_lin(), nbBytes() );
+		return true;
+	} 
+
+	const size_t nbVal = nbValues();
+	U_INT2 *buffer = new U_INT2[nbVal];
+	f.read( (char*)buffer, nbBytes() );
+	if ( MSBF_PROCESSOR() ) __array_byte_inv2( buffer, nbVal );
+	setFromTuple(buffer);
+	delete [] buffer;
 
 	return true;
 }
@@ -357,23 +604,62 @@ void MultiChannel<tData>::duplicateLastChannel( size_t i_nbDuplicates )
 		memcpy( mChannels[i++]->data_lin(), src, nbBytes );
 }
 
-/*
-template <class tSrc, class tDst>
-void MultiChannel<tSrc>::convert( ValueConverter<tSrc,tDst> &i_converter, MultiChannel<tDst> &o_dst ) const
+template <class tData>
+bool MultiChannel<tData>::hasSameData( const MultiChannel<tData> &i_b, size_t &i_firstDifferentChannel ) const
 {
-	o_dst.resize( mWidth, mHeight, mChannels.size() );
-	const Iterator itSrc = begin();
-	Iterator itDst = o_dst.begin();
-	while ( itSrc!=end() )
-	{
-		for ( size_t i=0; i<it.size(); i++ )
+	const size_t nbBytes = width()*height()*sizeof(tData);
+	for ( size_t i=0; i<nbChannels(); i++ )
+		if ( memcmp( mChannels[i]->data_lin(), i_b.mChannels[i]->data_lin(), nbBytes )!=0 )
 		{
-			itDst[i] = i_converter( itSrc[i] );
-			itDst++; itSrc++;
+			i_firstDifferentChannel = i;
+			return false;
+		}
+	return true;
+}
+
+template <class tData>
+tData * MultiChannel<tData>::newTupleArray() const
+{
+	tData *res = new tData[nbPixels()*nbChannels()];
+	toTupleArray(res);
+	return res;
+}
+
+template <class tData>
+void MultiChannel<tData>::toTupleArray( tData *o_dst ) const
+{
+	const size_t nbChan = nbChannels();
+	const size_t nbPix = nbPixels();
+	for ( size_t iChannel=0; iChannel<nbChan; iChannel++ )
+	{
+		tData *itDst = o_dst+iChannel;
+		const tData *itSrc = mChannels[iChannel]->data_lin();
+		size_t i = nbPix;
+		while ( i-- )
+		{
+			*itDst = *itSrc++;
+			itDst += nbChan;
 		}
 	}
 }
-*/
+
+template <class tData>
+void MultiChannel<tData>::setFromTuple( const tData *i_src ) const
+{
+	const size_t nbChan = mChannels.size();
+	const size_t nbPix = nbPixels();
+	for ( size_t iChannel=0; iChannel<nbChan; iChannel++ )
+	{
+		const tData *itSrc = i_src+iChannel;
+		tData *itDst = mChannels[iChannel]->data_lin();
+		size_t i = nbPix;
+		while ( i-- )
+		{
+			*itDst++ = *itSrc;
+			itSrc += nbChan;
+		}
+	}
+}
 
 
 //----------------------------------------------------------------------

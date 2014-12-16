@@ -173,6 +173,30 @@ inline bool MultiChannel<tData>::read_tiff( const string &i_filename )
 	return read_tiff( tiff );
 }
 
+template <class tData>
+inline bool MultiChannel<tData>::hasSameDimensions( const MultiChannel<tData> &i_b ) const
+{
+	return ( width()==i_b.width() && height()==i_b.height() && nbChannels()==i_b.nbChannels() );
+}
+
+template <class tData>
+inline bool MultiChannel<tData>::hasSameData( const MultiChannel<tData> &i_b ) const
+{
+	size_t firstDifferentChannel;
+	return hasSameData( i_b, firstDifferentChannel );
+}
+
+template <class tData>
+inline size_t MultiChannel<tData>::nbPixels() const { return ( (size_t)mWidth )*( (size_t)mHeight ); }
+
+template <class tData>
+inline size_t MultiChannel<tData>::nbChannelBytes() const { return nbPixels()*sizeof(tData); }
+
+template <class tData>
+inline size_t MultiChannel<tData>::nbBytes() const { return nbChannelBytes()*mChannels.size(); }
+
+template <class tData>
+inline size_t MultiChannel<tData>::nbValues() const { return nbPixels()*mChannels.size(); }
 
 
 //----------------------------------------------------------------------

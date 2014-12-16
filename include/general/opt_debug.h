@@ -200,6 +200,10 @@ inline void * sdnc_ptr_identity(void * ptr,char *f,int l)\
 	exit(EXIT_FAILURE);\
 }
 
+#define __elise_warning( msg ){\
+	std::cerr << ELISE_RED_WARNING << msg << std::endl;\
+}
+
 #endif /* ! _ELISE_OPT_DEBUG_H */
 
 

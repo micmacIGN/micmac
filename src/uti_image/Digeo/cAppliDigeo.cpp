@@ -590,6 +590,43 @@ double cAppliDigeo::gaussianEpsilon() const { return mGaussianEpsilon; }
 int    cAppliDigeo::gaussianSurEch() const { return mGaussianSurEch; }
 bool   cAppliDigeo::useSampledConvolutionKernels() const { return mUseSampledConvolutionKernels; }
 
+template <class T>
+bool cAppliDigeo::generate_convolution_code()
+{
+	if ( nbSlowConvolutionsUsed<T>()==0 ) return true;
+
+	const string typeName = El_CTypeTraits<T>::Name();
+	if ( isVerbose() ) __elise_warning( nbSlowConvolutionsUsed<T>() << " slow convolutions of type " << typeName << " have been used" );
+
+	string lowerTypeName = El_CTypeTraits<T>::Name();
+	for ( size_t i=0; i<lowerTypeName.length(); i++ ) lowerTypeName[i] = ::tolower(lowerTypeName[i]);
+
+	string classFilename = getConvolutionClassesFilename( lowerTypeName );
+	string instantiationsFilename = getConvolutionInstantiationsFilename( lowerTypeName );
+	if ( !ELISE_fp::exist_file( classFilename ) || !ELISE_fp::exist_file( instantiationsFilename ) )
+	{
+		__elise_warning( "source code do not seem to be available, no convolution code generated for type " << typeName );
+		return false;
+	}
+	
+	if ( !cConvolSpec<T>::generate_classes( classFilename ) )
+	{
+		__elise_warning( "generated convolution couldn't be saved to " << classFilename );
+		return false;
+	}
+
+	if ( !cConvolSpec<T>::generate_instantiations( instantiationsFilename ) )
+	{
+		__elise_warning( "generated convolution couldn't be saved to " << instantiationsFilename );
+		return false;
+	}
+	if ( isVerbose() ) cout << "convolution code has been generated for type " << typeName << ", compile again to improve speed with the same parameters" << endl;
+	return true;
+}
+
+template bool cAppliDigeo::generate_convolution_code<U_INT2>();
+template bool cAppliDigeo::generate_convolution_code<REAL4>();
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

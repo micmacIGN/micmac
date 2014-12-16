@@ -39,167 +39,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Digeo/Digeo.h"
 
-// fait le boulot pour une octave quand ses points d'intéret ont été calculés
-// ajoute les points à o_list (on passe la même liste à toutes les octaves)
-template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Type> * anOct, list<DigeoPoint> &o_list);
-
-// calcul le descripteur d'un point
-void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_angle, REAL8 *o_descriptor );
-
-#define atd(dbinx,dbiny,dbint) *(dp + (dbint)*binto + (dbiny)*binyo + (dbinx)*binxo)
-
-// o_descritpor must be of size DIGEO_DESCRIPTOR_SIZE
-void describe( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracDigeo &i_p, REAL8 i_angle, REAL8 *o_descriptor )
-{
-    REAL8 st0 = sinf( i_angle ),
-		  ct0 = cosf( i_angle );
-
-	int xi = int( i_p.mPt.x+0.5 );
-    int yi = int( i_p.mPt.y+0.5 );
-
-    const REAL8 SBP = DIGEO_DESCRIBE_MAGNIFY*i_p.mLocalScale;
-    const int  W   = (int)ceil( sqrt( 2.0 )*SBP*( DIGEO_DESCRIBE_NBP+1 )/2.0+0.5 );
-
-    /* Offsets to move in the descriptor. */
-    /* Use Lowe's convention. */
-    const int binto = 1 ;
-    const int binyo = DIGEO_DESCRIBE_NBO*DIGEO_DESCRIBE_NBP;
-    const int binxo = DIGEO_DESCRIBE_NBO;
-
-	std::fill( o_descriptor, o_descriptor+DIGEO_DESCRIPTOR_SIZE, 0 ) ;
-
-    /* Center the scale space and the descriptor on the current keypoint.
-    * Note that dpt is pointing to the bin of center (SBP/2,SBP/2,0).
-    */
-	const INT width  = i_gradient.sz().x/2,
-	      height = i_gradient.sz().y;
-    const REAL4 *p = i_gradient.data_lin()+( xi+yi*width )*2;
-    REAL8 *dp = o_descriptor+( DIGEO_DESCRIBE_NBP/2 )*( binyo+binxo );
-
-    #define atd(dbinx,dbiny,dbint) *(dp + (dbint)*binto + (dbiny)*binyo + (dbinx)*binxo)
-
-    /*
-    * Process pixels in the intersection of the image rectangle
-    * (1,1)-(M-1,N-1) and the keypoint bounding box.
-    */
-    const REAL8 wsigma = DIGEO_DESCRIBE_NBP/2 ;
-    int  offset;
-    REAL8 mod, angle, theta,
-		  dx, dy,
-		  nx, ny, nt;
-    int  binx, biny, bint;
-    REAL8 rbinx, rbiny, rbint;
-    int dbinx, dbiny, dbint;
-    REAL weight, win;
-    for ( int dyi=std::max( -W, 1-yi ); dyi<=std::min( W, height-2-yi ); dyi++ )
-    {
-        for ( int dxi=std::max( -W, 1-xi ); dxi<=std::min( W, width-2-xi ); dxi++ )
-        {
-            // retrieve
-            offset = ( dxi+dyi*width )*2;
-            mod    = p[ offset ];
-            angle  = p[ offset+1 ];
-
-            theta  = -angle+i_angle;
-            if ( theta>=0 )
-                theta = std::fmod( theta, REAL8( 2*M_PI ) );
-            else
-                theta = 2*M_PI+std::fmod( theta, REAL8( 2*M_PI ) );
-
-            // fractional displacement
-            dx = xi+dxi-i_p.mPt.x;
-            dy = yi+dyi-i_p.mPt.y;
-
-            // get the displacement normalized w.r.t. the keypoint
-            // orientation and extension.
-            nx = ( ct0*dx + st0*dy )/SBP ;
-            ny = ( -st0*dx + ct0*dy )/SBP ;
-            nt = DIGEO_DESCRIBE_NBO*theta/( 2*M_PI ) ;
-
-            // Get the gaussian weight of the sample. The gaussian window
-            // has a standard deviation equal to NBP/2. Note that dx and dy
-            // are in the normalized frame, so that -NBP/2 <= dx <= NBP/2.
-             win = std::exp( -( nx*nx+ny*ny )/( 2.0*wsigma*wsigma ) );
-
-            // The sample will be distributed in 8 adjacent bins.
-            // We start from the ``lower-left'' bin.
-            binx = std::floor( nx-0.5 );
-            biny = std::floor( ny-0.5 );
-            bint = std::floor( nt );
-            rbinx = nx-( binx+0.5 );
-            rbiny = ny-( biny+0.5 );
-            rbint = nt-bint;
-
-            // Distribute the current sample into the 8 adjacent bins
-            for ( dbinx=0; dbinx<2; dbinx++ )
-            {
-                for ( dbiny=0; dbiny<2; dbiny++ )
-                {
-                    for ( dbint=0; dbint<2; dbint++ )
-                    {
-                        if ( ( ( binx+dbinx ) >= ( -(DIGEO_DESCRIBE_NBP/2)   ) ) &&
-                             ( ( binx+dbinx ) <  ( DIGEO_DESCRIBE_NBP/2      ) ) &&
-                             ( ( biny+dbiny ) >= ( -( DIGEO_DESCRIBE_NBP/2 ) ) ) &&
-                             ( ( biny+dbiny ) <  ( DIGEO_DESCRIBE_NBP/2      ) ) )
-                        {
-                            weight = win*mod
-                                    *std::fabs( 1-dbinx-rbinx )
-                                    *std::fabs( 1-dbiny-rbiny )
-                                    *std::fabs( 1-dbint-rbint );
-
-                            atd( binx+dbinx, biny+dbiny, ( bint+dbint )%DIGEO_DESCRIBE_NBO ) += weight ;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-template <class Type,class tBase> void orientate_and_describe_all(cTplOctDig<Type> * anOct, list<DigeoPoint> &o_list)
-{
-  Im2D<REAL4,REAL8> imgGradient;
-  DigeoPoint p;
-  const std::vector<cTplImInMem<Type> *> &  aVIm = anOct->cTplOctDig<Type>::VTplIms();
-  double trueSamplingPace = anOct->Niv()*anOct->ImDigeo().Resol();
-  REAL8 angles[DIGEO_MAX_NB_ANGLES];
-  int nbAngles;
-
-  for (int aKIm=0 ; aKIm<int(aVIm.size()) ; aKIm++)
-  {
-       cTplImInMem<Type> & anIm = *(aVIm[aKIm]);
-       Im2D<Type,tBase> aTIm = anIm.TIm();
-
-		p.scale = anIm.ScaleInit();
-		std::vector<cPtsCaracDigeo> &  aVPC = anIm.featurePoints();
-		if ( aVPC.size()!=0 )
-		{
-			gradient( aTIm, anOct->GetMaxValue(), imgGradient );
-
-			for ( unsigned int i=0; i<aVPC.size(); i++ ){
-				p.x = aVPC[i].mPt.x*trueSamplingPace;
-				p.y = aVPC[i].mPt.y*trueSamplingPace;
-				switch ( aVPC[i].mType ){
-				case eSiftMaxDog: p.type=DigeoPoint::DETECT_LOCAL_MAX; break;
-				case eSiftMinDog: p.type=DigeoPoint::DETECT_LOCAL_MIN; break;
-				default: p.type=DigeoPoint::DETECT_UNKNOWN; break;
-				}
-				aVPC[i].mLocalScale = aVPC[i].mScale/trueSamplingPace;
-				nbAngles = orientate( imgGradient, aVPC[i], angles );
-				if ( nbAngles!=0 ){
-					p.entries.resize(nbAngles);
-					for ( int iAngle=0; iAngle<nbAngles; iAngle++ ){
-						DigeoPoint::Entry &entry = p.entry(iAngle);
-						describe( imgGradient, aVPC[i], entry.angle, entry.descriptor );
-						normalize_and_truncate( entry.descriptor );
-					}
-					o_list.push_back( p );
-			   }
-		   }
-	   }
-  }
-}
-
 // add i_v to the coordinates of the i_nbPoints last points of io_points
 void translate_points( list<DigeoPoint> &io_points, size_t i_nbPoints, const Pt2di &i_v )
 {
@@ -214,37 +53,6 @@ void translate_points( list<DigeoPoint> &io_points, size_t i_nbPoints, const Pt2
 		itPoint->y = itPoint->y+ty;
 		itPoint++;
 	}
-}
-
-template <class T>
-bool generate_convolution_code( cAppliDigeo &i_appli )
-{
-	if ( i_appli.nbSlowConvolutionsUsed<T>()==0 ) return true;
-
-	const string typeName = El_CTypeTraits<T>::Name();
-	if ( i_appli.isVerbose() ) cout << "WARNING: " << i_appli.nbSlowConvolutionsUsed<T>() << " slow convolutions of type " << typeName << " have been used" << endl;
-
-	string lowerTypeName = El_CTypeTraits<T>::Name();
-	for ( size_t i=0; i<lowerTypeName.length(); i++ ) lowerTypeName[i] = ::tolower(lowerTypeName[i]);
-
-	string classFilename = i_appli.getConvolutionClassesFilename( lowerTypeName );
-	string instantiationsFilename = i_appli.getConvolutionInstantiationsFilename( lowerTypeName );
-	if ( !ELISE_fp::exist_file( classFilename ) || !ELISE_fp::exist_file( instantiationsFilename ) ){
-		cout << "WARNING: source code do not seem to be available, no convolution code generated for type " << typeName << endl;
-		return false;
-	}
-	
-	if ( !cConvolSpec<T>::generate_classes( classFilename ) ){
-		cout << "WARNING: generated convolution couldn't be saved to " << classFilename << endl;
-		return false;
-	}
-
-	if ( !cConvolSpec<T>::generate_instantiations( instantiationsFilename ) ){
-		cout << "WARNING: generated convolution couldn't be saved to " << instantiationsFilename << endl;
-		return false;
-	}
-	if ( i_appli.isVerbose() ) cout << "convolution code has been generated for type " << typeName << ", compile again to improve speed with the same parameters" << endl;
-	return true;
 }
 
 int Digeo_main( int argc, char **argv )
@@ -302,8 +110,8 @@ int Digeo_main( int argc, char **argv )
 
 	if ( appli.doGenerateConvolutionCode() )
 	{
-		generate_convolution_code<U_INT2>( appli );
-		generate_convolution_code<REAL4>( appli );
+		appli.generate_convolution_code<U_INT2>();
+		appli.generate_convolution_code<REAL4>();
 	}
 	else if ( appli.isVerbose() && ( appli.nbSlowConvolutionsUsed<U_INT2>()!=0 || appli.nbSlowConvolutionsUsed<REAL4>()!=0 ) )
 		cout << "skipping convolution code generation" << endl;

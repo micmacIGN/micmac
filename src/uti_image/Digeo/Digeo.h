@@ -946,6 +946,9 @@ class cAppliDigeo
        const Expression & tiledOutputGradientAngleExpression() const;
        const Expression & mergedOutputGradientAngleExpression() const;
 
+       template <class T>
+       bool generate_convolution_code();
+
     private :
        void InitAllImage();
        static void InitConvolSpec();
