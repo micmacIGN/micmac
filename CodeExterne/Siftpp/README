@@ -1,0 +1,69 @@
+                 A LIGHTWEIGHT C++ IMPLEMENTATION OF
+           DAVID LOWE'S SCALE INVARIANT FEATURE TRANSFORMS
+                            Andrea Vedaldi
+                   http://www.cs.ucla.edu/~vedaldi
+
+COPYRIGHT WARNING
+
+  This code implements an algorithm (SIFT) patented by David Lowe and
+  cannot be used for commercial purposes without his permission. See
+  the included license notice for more information.
+
+
+INSTALLING
+
+  If you downloaded the binary distribution, binaries for Mac OS X PPC,
+  Mac OS X Intel and GNU/Linux are found in the mci, mac and glx
+  sub-directories.
+
+  In most cases the program can be compiled by typing
+
+  > make
+
+  from the command line. The Makefile attempts to auto-configure a few
+  parameters. If this fails, the Makefile returns with an error.  This
+  DOES NOT mean that SIFT++ cannot be complied successfully. The
+  program can still be complied by hand, or by modifying the Makefile.
+
+USAGE
+
+  See the included man page (man ./sift.1), also available in HTML
+  format if you downloaded the binary distribution (sift.html).
+
+CHANGES
+  0.8.1  Compiles under Ubuntu 64.
+  0.8.0  Better Makefile.
+  0.7.3  Another bug fix introduced in 0.7.1.
+  0.7.2  Fixed a bug introduced with 0.7.1.
+  0.7.1  Tuned a few parameters to better match D. Lowe.
+  0.7.0  --unnormalized, --floating-point, --magnif
+         Bug fixes (thanks to Brian).
+  0.6.7  Bug fixes (thanks to Loic).
+  0.6.6  Bug fixes (thanks to Giuseppe).
+  0.6.5  Bug fixes (thanks to Liu).
+  0.6.4  Added -I. to Makefile.
+  0.6.3  Minor bug fixes (thanks to Erwin).
+  0.6.2  Minor bug fixes. Minor corrections to the man page.
+  0.6.1  Removed a bug affecting the downsampling of oddly sized images.
+  0.6.0  Introduced --stable-order option.
+  0.5.6  Fixed a minor bug in the convolution code. Increased the default
+         number of octaves that get computed.
+  0.5.5  More bug fixes (PGM parsing error)
+  0.5.4  New switch VL_LOWE_STRICT. This enables features that simulate
+         even more closely Lowe's implementation (it does even
+         simulate a small 'bug').
+  0.5.3  Bug fixes (thanks to P. Ivanov).
+  0.5.2  Man page.
+  0.5.1  Changed the way image boundaries are handled in the computation
+         of the scalespace (thanks to Q.S.Luo for indicating the
+         problem). This makes the algorithm even closer to
+         Lowe's. Inital version of the manpage.
+  0.5    Optionally reads keypoint frames from file. Improved interface.
+  0.4    Faster (and approximated) computations. Binary descriptor output.
+  0.3    Added `--threshold' and `--edge-threshold' opitons to the
+         command line driver.
+  0.2.2  Corrected a bug in the resolution of the 3x3 linear system.
+         (thanks to Fan Gu for finding this out)
+  0.2.1  Corrected a bug in the command line driver.
+  0.2    Made LAPACK independent.
+  0.1    Initial version.
