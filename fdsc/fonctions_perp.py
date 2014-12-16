@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################
-#FDSC v0.95                                                              #
-#Fault Displacement Slip-Curve                                           #
+# Fault Displacement Slip-Curve (FDSC) v1.0                              #
 #                                                                        #
-#Copyright (C) (2013-2014) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
-#am.rosu@laposte.net                                                     #
+# Copyright (C) (2013-2014) Ana-Maria Rosu am.rosu@laposte.net           #
+# IPGP-ENSG/IGN project financed by TOSCA/CNES                           #
 #                                                                        #
-#This software is governed by the CeCILL-B license under French law and  #
+#                                                                        #
+# This software is governed by the CeCILL-B license under French law and #
 #abiding by the rules of distribution of free software.  You can  use,   #
 #modify and/ or redistribute the software under the terms of the CeCILL-B#
 #license as circulated by CEA, CNRS and INRIA at the following URL       #
@@ -256,39 +256,29 @@ def calc_profil_mediane_pond(data_px1, data_px2, coef_correl,larg_moy,tab_toutes
       if type_output==1:
         if not isnan(interpol(data_px1,col,lig)) :
           valeurs.append(interpol(data_px1,col,lig))
-          poids.append(interpol(coef_correl,col,lig)**int(puiss_poids))
+          poids.append(interpol(coef_correl,col,lig))
       if type_output==2:
         if not isnan(interpol(data_px2,col,lig)):
           valeurs.append(interpol(data_px2,col,lig))
-          poids.append(interpol(coef_correl,col,lig)**int(puiss_poids))
+          poids.append(interpol(coef_correl,col,lig))
       if type_output==3:
         if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))):
-          poids.append(interpol(coef_correl,col,lig)**int(puiss_poids))
+          poids.append(interpol(coef_correl,col,lig))
           valeurs_px1=interpol(data_px1,col,lig)
           valeurs_px2=interpol(data_px2,col,lig)
           total=(valeurs_px1, valeurs_px2) #vector of total parallax
           px_projection_paral=valeurs_px1*vect_paral[0]+valeurs_px2*vect_paral[1]
-          #~ print "px_proj_paral: ", px_projection_paral
-          px_paral=(px_projection_paral*vect_paral[0],px_projection_paral*vect_paral[1]) #parallel part
-          #~ print "px_paral: ", px_paral
-          px_paral_norm=sqrt(px_paral[0]**2+px_paral[1]**2)
-          #~ print "px_paral norm: ", px_paral_norm
-          valeurs.append(px_paral_norm)
+          valeurs.append(px_projection_paral)
       if type_output==4:
         if not (isnan(interpol(data_px1,col,lig)) or isnan(interpol(data_px2,col,lig))):
-          poids.append(interpol(coef_correl,col,lig)**int(puiss_poids))
+          poids.append(interpol(coef_correl,col,lig))
           valeurs_px1=interpol(data_px1,col,lig)
           valeurs_px2=interpol(data_px2,col,lig)
           total=(valeurs_px1, valeurs_px2) #vector of total parallax
           #~ print "valeurs: ",valeurs_px1," ",valeurs_px2, " ",total
           #~ print "vect_perp: ",vect_perp
           px_projection_perp=valeurs_px1*vect_perp[0]+valeurs_px2*vect_perp[1]
-          #~ print "px_proj_perp: ", px_projection_perp
-          px_perp=(px_projection_perp*vect_perp[0],px_projection_perp*vect_perp[1]) #perp part
-          #~ print "px_perp: ", px_perp
-          px_perp_norm=sqrt(px_perp[0]**2+px_perp[1]**2)
-          #~ print "px_perp norm: ", px_perp_norm
-          valeurs.append(px_perp_norm)
+          valeurs.append(px_projection_perp)
     ordonnees_profil[i],tab_ecarts[i]=calc_mediane_pond(valeurs,poids,puiss_poids)
   return abscisses_profil,ordonnees_profil,tab_ecarts
 

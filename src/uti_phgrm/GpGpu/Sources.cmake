@@ -7,15 +7,16 @@ set(GpGpuTools_Src_Files
 
 set(uti_phgrm_GpGpu_Src_Files
          ${UTI_PHGRM_GPGPU_DIR}/GpGpu_InterfaceCorrel.cpp
+         ${UTI_PHGRM_GPGPU_DIR}/GpGpu_Interface_Census.cpp
 	 ${UTI_PHGRM_GPGPU_DIR}/SData2Correl.cpp
          ${UTI_PHGRM_GPGPU_DIR}/GpGpu_Cuda_Correlation.cu
+         ${UTI_PHGRM_GPGPU_DIR}/GpGpu_Census.cu
 	 ${UTI_PHGRM_GPGPU_DIR}/cudaFilters.cu
 	 #${UTI_PHGRM_GPGPU_DIR}/GpGpuTextureTools.cu
 )
 
-set(uti_phgrm_Opt_GpGpu_Src_Files
+set(uti_phgrm_Opt_GpGpu_Src_Files        
         ${UTI_PHGRM_GPGPU_DIR}/GpGpu_Cuda_Optimisation.cu
-        ${UTI_PHGRM_GPGPU_DIR}/GpGpu_Cuda_Optimisation_Z.cu
         ${UTI_PHGRM_GPGPU_DIR}/GpGpu_InterfaceOptimisation.cpp
 )
 

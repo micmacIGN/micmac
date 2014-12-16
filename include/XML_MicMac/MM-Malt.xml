@@ -99,6 +99,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <eSymb> AddZoom64=Sup ${ZoomInit} 64 </eSymb>
     <eSymb> AddZoom32=Sup ${ZoomInit} 32 </eSymb>
     <eSymb> AddZoom16=Sup ${ZoomInit} 16 </eSymb>
+    <eSymb> AddZoom8=Sup ${ZoomInit} 8 </eSymb>
+    <eSymb> AddZoom4=Sup ${ZoomInit} 4 </eSymb>
 
     <eSymb>  DoNotMEC=! ${DoMEC} </eSymb>
     <Symb>   ButDoOrtho=true </Symb>
@@ -118,8 +120,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
     <Symb>  DoAnam=false </Symb>
     <Symb>  ParamAnam=XXXXX </Symb>
-    <Symb>  IncidMax=1.05 </Symb>
+    <Symb>  IncidMax= 0.75 </Symb>
     <Symb>  DoIncid=false </Symb>
+    <Symb>  DoMaskNadir=false </Symb>
 
 
     <eSymb>  NotZoom8="Neq 8 ${ZoomFinal}" </eSymb>
@@ -159,6 +162,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb> UseMasq3D=false </Symb>
    <Symb> NameMasq3D=XXXX </Symb>
 
+   <Symb> UseResolTerrain=false </Symb>
+   <Symb> ResolTerrain=0 </Symb>
 <!--
 
     <Symb>  UseEqui=t=rue </Symb>
@@ -182,6 +187,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
      <eSymb> UseMasqImGlobOrLoc= Or ${UseMasqPerIm} ${UseGlobMasqPerIm} </eSymb>
 
+     <eSymb> InParal= Neq 0 ${NbProc} </eSymb>
+
+
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -200,6 +208,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
        </IntervSpecialZInv>
 
       <Planimetrie>
+           <#WHEN VTEST=${UseResolTerrain}>
+                  <ResolutionTerrain> ${ResolTerrain} </ResolutionTerrain>
+           </#WHEN>
            <IncludeFileLoc>  ${FileMasqT} </IncludeFileLoc>
            <FilterEstimTerrain> ${ImMNT} </FilterEstimTerrain>
 		   
@@ -423,15 +434,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
         </#WHEN>
 
 
-<!--
-        <IncludeFileLoc>  ${FileZ64} </IncludeFileLoc>
-        <IncludeFileLoc>  ${FileZ32} </IncludeFileLoc>
-        <IncludeFileLoc>  ${FileZ16PC} </IncludeFileLoc>
--->
 
-
-
-        <EtapeMEC> 
+        <#WHEN VTEST=${AddZoom8}>
+            <EtapeMEC> 
                  <ModeInterpolation Portee="Globale"> eInterpolSinCard </ModeInterpolation>
                  <DeZoom >        8        </DeZoom> 
 	         <ZDilatAlti>  4    </ZDilatAlti>
@@ -452,10 +457,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                         <GenerePartiesCachees >
                              <SeuilUsePC> 4 </SeuilUsePC>
                              <ByMkF> true </ByMkF>
-<!--
-                             <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirQO}@PC_ </KeyCalcPC>
-                             <IncludeFileLoc>  ${FileOthoQ} </IncludeFileLoc>
--->
                         </GenerePartiesCachees>
                    </#WHEN>
                    <#WHEN VTEST=${CorMS}>
@@ -475,8 +476,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                                        <Pds> 0.5 </Pds>
                                   </OneParamCMS>
                                   <OneParamCMS>
-                                       <SzW> 2 2 </SzW>
-                                       <Sigma> 1.0 </Sigma>
+                                       <SzW> 4 4 </SzW>
+                                       <Sigma> 2.0 </Sigma>
                                        <Pds> 0.25 </Pds>
                                   </OneParamCMS>
                            </CorrelMultiScale>
@@ -494,7 +495,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                        </CorrelAdHoc>
                    </#WHEN>
 
-        </EtapeMEC>
+            </EtapeMEC>
+        </#WHEN>
 
         <IncludeFileLoc>  ${FileZ4PC} </IncludeFileLoc>
         <IncludeFileLoc>  ${FileZ2PC} </IncludeFileLoc>
@@ -557,12 +559,22 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
     <#WHEN VTEST=${DoIncid}>
           <AnamorphoseGeometrieMNT>
                <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+                <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
                 <#WHEN VTEST=${DoAnam}>
-                   <AnamSurfaceAnalytique>
+                     <AnamSurfaceAnalytique>
                             <NameFile> ${ParamAnam}</NameFile>
                             <Id> TheSurf </Id>
                       </AnamSurfaceAnalytique>
-                      <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+                </#WHEN>
+                <#WHEN VTEST=${DoMaskNadir}>
+                      <MakeMaskImNadir>
+                           <DynIncid > 1e4</DynIncid>
+                           <MakeAlsoMaskTerrain> true </MakeAlsoMaskTerrain>
+                           <KBest  >  1  </KBest>
+                           <IncertAngle  > 0.1 </IncertAngle>
+                           <Dilat32 >  6 </Dilat32>
+                           <Erod32>  3</Erod32>
+                      </MakeMaskImNadir>
                 </#WHEN>
           </AnamorphoseGeometrieMNT>
     </#WHEN>
@@ -586,7 +598,10 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <TmpMEC>    ${DirMEC}  </TmpMEC>
      <TmpResult> ${DirMEC}  </TmpResult>
      <TmpPyr>    Pyram/  </TmpPyr>
+<!--
      <ByProcess>   ${MMNbProc}  </ByProcess>
+-->
+     <ByProcess>   ${NbProc}  </ByProcess>
      <NomChantier> ${Chantier} </NomChantier>
 
      <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>

@@ -300,6 +300,7 @@ cEtapeMecComp::cEtapeMecComp
   mUseWAdapt         (false),
   mNameXMLNuage      ("")
 {
+// std::cout << "XPPOOOOOORRT ZZZZzzz Aaabs  " << mIsExportZAbs << "\n"; getchar();
 
      if (mIsExportZAbs)
      {
@@ -547,12 +548,10 @@ cEtapeMecComp::cEtapeMecComp
       }
 
 
-      if ((mNum !=0) && (mEtape.AlgoRegul().Val()==eAlgo2PrgDyn))
+      if ((mNum !=0) && (mEtape.AlgoRegul().Val()==eAlgo2PrgDyn || mEtape.AlgoRegul().Val()==eAlgoTestGPU))
       {
           bool NewPrgDynOblig = false;
           bool NewPrgDynInterdit = false;
-
-
 
           const cTplValGesInit< cModulationProgDyn > &  aTplModul =  mEtape.ModulationProgDyn();
           if ( aTplModul.IsInit())
@@ -1028,6 +1027,15 @@ const cGeomDiscFPx &  cEtapeMecComp::GeomTer() const
    return mGeomTer;
 }
 
+cGeomDiscFPx  cEtapeMecComp::GeomTerFinal() const
+{
+   cGeomDiscFPx aRes = mGeomTer;
+   if(mIsExportZAbs) 
+     aRes.SetZIsAbs();
+
+   return aRes;
+}
+
 cGeomDiscFPx &  cEtapeMecComp::GeomTer() 
 {
    return mGeomTer;
@@ -1291,10 +1299,21 @@ if (0)
    return aNbPx;
 }
 
+void TestGeomTer(const cGeomDiscFPx & aGT,const std::string & aMessage)
+{
+   double aZ0 =   0;
+   double aZ1 = 100;
+   aGT.PxDisc2PxReel(&aZ0,&aZ0);
+   aGT.PxDisc2PxReel(&aZ1,&aZ1);
+   std::cout << aMessage  << aZ0 << " " << aZ1 << "\n";
+}
+
+
 
 void cEtapeMecComp::RemplitOri(cFileOriMnt & aFOM) const
 {
    mGeomTer.RemplitOri(aFOM,mIsExportZAbs);
+
    if (mFilesPx.size())
       mFilesPx[0]->RemplitOri(aFOM);
    aFOM.NameFileMasque().SetVal(mAppli.NameImageMasqOfResol(mEtape.DeZoom()));
@@ -1581,6 +1600,16 @@ void cEtapeMecComp::SauvProjImage
    Im2D_REAL4 aImY(aSz.x,aSz.y,0.0);
    TIm2D<REAL4,REAL8> aTY(aImY);
 
+   const cGenerateImageRedr * aGIR = aGPI.GenerateImageRedr().PtrVal();
+   Pt2di aSIR = (aGIR ? aSz : Pt2di(1,1));
+   Im2D_REAL4 aImSup(aSIR.x,aSIR.y,0.0);
+   TIm2D<REAL4,REAL8> aTSup(aImSup);
+   Im2D_REAL4 * aIm2 =  const_cast<cPriseDeVue &>(aPDV).LoadedIm().FirstFloatIm();
+   TIm2D<REAL4,REAL8> aTIm2(*aIm2);
+   std::string aNameSup = mAppli.FullDirMEC() + (aGIR ? mAppli.ICNM()->Assoc1To1(aGIR->FCND_CalcRedr(),aPDV.Name(),true) :"");
+   Pt2di aDecIm = aPDV.Geom().BoxClip()._p0;
+
+
    Pt2di aP;
    bool aSubXY = aGPI.SubsXY().Val();
    bool aPolar = aGPI.Polar().Val();
@@ -1589,6 +1618,13 @@ void cEtapeMecComp::SauvProjImage
        for (aP.y =0 ; aP.y<aSz.y ; aP.y++)
        {
            Pt2dr aPIm = ProjectionInImage(aPDV.Geom(),aLT,Pt2dr(aP));
+           if (aGIR)
+           {
+                aTSup.oset(aP,aTIm2.getprojR(aPIm-Pt2dr(aDecIm)));
+                // aTSup.oset(aP,aTIm2.getprojR(Pt2dr(aP)));
+                // aTSup.oset(aP,mGeomTer.RDiscToR2(Pt2dr(aP)).y);
+   // return aGeom.Objet2ImageInit_Euclid(mGeomTer.RDiscToR2(aP),aPx);  
+           }
            if (aSubXY)
            {
               aPIm = aPIm -mGeomTer.RDiscToR2(Pt2dr(aP));
@@ -1604,17 +1640,28 @@ void cEtapeMecComp::SauvProjImage
    }
 
    std::pair<std::string,std::string>   aNames= mAppli.ICNM()->Assoc2To1(aGPI.FCND_CalcProj(),aPDV.Name(),true);
+   int aPId = mAppli.IdMasterProcess().Val();
+   if (aPId <0) aPId = mm_getpid();
+   std::string aNameTest = mAppli.FullDirMEC() + aNames.first + ".TestCreate-" + ToString(aPId);
+   bool BoxCreate = (aBoxOut._p0 == Pt2di(0,0));
+
    for (int aK=0 ; aK<2 ; aK++)
    {
       Im2D_REAL4 aRes = (aK==0) ? aImX : aImY;
       std::string aNameRes = mAppli.FullDirResult() + (aK==0 ? aNames.first : aNames.second);
       bool isNew;
 
-      if (aBoxOut._p0 != Pt2di(0,0))
+      if (!BoxCreate)
       {
-          SleepProcess(2);
+          bool  Cont = true;
+          while (Cont)
+          {
+              if (ELISE_fp::exist_file(aNameTest))
+                 Cont = false;
+              else
+                 SleepProcess(1);
+          }
       }
-
 
       Tiff_Im aTF = Tiff_Im::CreateIfNeeded
                     (
@@ -1631,6 +1678,30 @@ void cEtapeMecComp::SauvProjImage
          trans(aRes.in(),-aBoxIn._p0),
          aTF.out()
       );
+
+      if ((aK==0) && aGIR)
+      {
+          Tiff_Im aTSup = Tiff_Im::CreateIfNeeded
+                    (
+                       isNew,
+                       aNameSup,
+                       mSzFile,
+                       GenIm::u_int1,
+                       Tiff_Im::No_Compr,
+                       Tiff_Im::BlackIsZero
+                    );
+           ELISE_COPY
+           (
+              rectangle(aBoxOut._p0,aBoxOut._p1),
+              trans(aImSup.in(),-aBoxIn._p0),
+              aTSup.out()
+           );
+      }
+   }
+   if (BoxCreate)
+   {
+      ELISE_fp aFile(aNameTest.c_str(),ELISE_fp::WRITE);
+      aFile.close();
    }
 }
 

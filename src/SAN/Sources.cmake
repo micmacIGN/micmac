@@ -1,6 +1,7 @@
 set(San_Src_Files
 	${SAN_DIR}/cylindre.cpp
 	${SAN_DIR}/ortho_cyl.cpp
+	${SAN_DIR}/torique.cpp
 )
 
 SOURCE_GROUP(San FILES ${San_Src_Files})

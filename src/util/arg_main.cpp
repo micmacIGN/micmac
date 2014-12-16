@@ -163,15 +163,26 @@ std::list<std::string>  TheEmptyListEnum;
 
 bool MMVisualMode = false;
 
-std::string MakeStrFromArgcARgv(int  argc,char** argv)
+std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::string aSubst)
 {
    std::string aRes;
    for (int aK=0 ; aK<argc ; aK++)
-      aRes = aRes + std::string(argv[aK]) + " ";
+   {
+      aRes = aRes + ((aK== aKSubst) ? aSubst: std::string(argv[aK])) + " ";
+   }
 
    return aRes;
 }
 
+std::string MakeStrFromArgcARgv(int  argc,char** argv)
+{
+     return MakeStrFromArgcARgvWithSubst(argc,argv,-1,"");
+}
+
+std::string SubstArgcArvGlob(int aKSubst,std::string aSubst)
+{
+     return MakeStrFromArgcARgvWithSubst(MemoArgc,MemoArgv, aKSubst,aSubst);
+}
 
 int MemoArgc=-1;
 char ** MemoArgv=0;
@@ -191,17 +202,23 @@ int mm_getpid()
 #endif
 }
 
+const std::string & mm_getstrpid()
+{
+    static std::string aRes = ToString(mm_getpid());
+    return aRes;
+}
+
 void MemoArg(int argc,char** argv)
 {
-        AnalyseContextCom(argc,argv);
-    static bool First  = false;
+    AnalyseContextCom(argc,argv);
+    static bool First  = true;
     if (! First) return;
 
-    First = true;
+    First = false;
     MMD_InitArgcArgv(argc,argv);
     MemoArgc = argc;
     MemoArgv = argv;
-        GlobArcArgv = MakeStrFromArgcARgv(argc,argv);
+   GlobArcArgv = MakeStrFromArgcARgv(argc,argv);
 }
 
 void ShowArgs()
@@ -1040,6 +1057,7 @@ std::string cAppliBatch::ComCommune() const
 const std::string & cAppliBatch::CurF1() const {return mCurF1;}
 const std::string & cAppliBatch::CurF2() const {return mCurF2;}
 cInterfChantierNameManipulateur * cAppliBatch::ICNM() {return mICNM;}
+cInterfChantierNameManipulateur * cAppliBatch::ICNM() const {return mICNM;}
 const std::string & cAppliBatch::DirChantier() const {return mDirChantier;}
 const std::string & cAppliBatch::DirTmp() const {return mDirTmp;}
 const std::string & cAppliBatch::DirSauv() const {return mDirSauv;}

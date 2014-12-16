@@ -448,6 +448,34 @@ std::string  Mangling( cParamEstimPlan *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cRigidBlockWeighting
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cRigidBlockWeighting & anObj,cElXMLTree * aTree);
+
+
+        double & PondOnTr();
+        const double & PondOnTr()const ;
+
+        double & PondOnRot();
+        const double & PondOnRot()const ;
+    private:
+        double mPondOnTr;
+        double mPondOnRot;
+};
+cElXMLTree * ToXMLTree(const cRigidBlockWeighting &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cRigidBlockWeighting &);
+
+void  BinaryUnDumpFromFile(cRigidBlockWeighting &,ELISE_fp &);
+
+std::string  Mangling( cRigidBlockWeighting *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cAperoPointeStereo
 {
     public:
@@ -1581,6 +1609,31 @@ void  BinaryUnDumpFromFile(cCalibrationCameraInc &,ELISE_fp &);
 
 std::string  Mangling( cCalibrationCameraInc *);
 
+class cUseForBundle
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cUseForBundle & anObj,cElXMLTree * aTree);
+
+
+        bool & GlobalBundle();
+        const bool & GlobalBundle()const ;
+
+        bool & RelTimeBundle();
+        const bool & RelTimeBundle()const ;
+    private:
+        bool mGlobalBundle;
+        bool mRelTimeBundle;
+};
+cElXMLTree * ToXMLTree(const cUseForBundle &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cUseForBundle &);
+
+void  BinaryUnDumpFromFile(cUseForBundle &,ELISE_fp &);
+
+std::string  Mangling( cUseForBundle *);
+
 class cBlockCamera
 {
     public:
@@ -1594,9 +1647,19 @@ class cBlockCamera
 
         cTplValGesInit< std::string > & Id();
         const cTplValGesInit< std::string > & Id()const ;
+
+        bool & GlobalBundle();
+        const bool & GlobalBundle()const ;
+
+        bool & RelTimeBundle();
+        const bool & RelTimeBundle()const ;
+
+        cTplValGesInit< cUseForBundle > & UseForBundle();
+        const cTplValGesInit< cUseForBundle > & UseForBundle()const ;
     private:
         std::string mNameFile;
         cTplValGesInit< std::string > mId;
+        cTplValGesInit< cUseForBundle > mUseForBundle;
 };
 cElXMLTree * ToXMLTree(const cBlockCamera &);
 
@@ -1696,6 +1759,83 @@ void  BinaryDumpInFile(ELISE_fp &,const cOptimizeAfterInit &);
 void  BinaryUnDumpFromFile(cOptimizeAfterInit &,ELISE_fp &);
 
 std::string  Mangling( cOptimizeAfterInit *);
+
+class cCalcNameOnExistingTag
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCalcNameOnExistingTag & anObj,cElXMLTree * aTree);
+
+
+        std::string & KeyCalcFileOriExt();
+        const std::string & KeyCalcFileOriExt()const ;
+
+        std::string & KeyCalcName();
+        const std::string & KeyCalcName()const ;
+
+        std::string & TagExist();
+        const std::string & TagExist()const ;
+
+        std::string & TagNotExist();
+        const std::string & TagNotExist()const ;
+
+        cTplValGesInit< bool > & ExigCohTags();
+        const cTplValGesInit< bool > & ExigCohTags()const ;
+    private:
+        std::string mKeyCalcFileOriExt;
+        std::string mKeyCalcName;
+        std::string mTagExist;
+        std::string mTagNotExist;
+        cTplValGesInit< bool > mExigCohTags;
+};
+cElXMLTree * ToXMLTree(const cCalcNameOnExistingTag &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCalcNameOnExistingTag &);
+
+void  BinaryUnDumpFromFile(cCalcNameOnExistingTag &,ELISE_fp &);
+
+std::string  Mangling( cCalcNameOnExistingTag *);
+
+class cCalcNameCalibAux
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCalcNameCalibAux & anObj,cElXMLTree * aTree);
+
+
+        std::string & KeyCalcFileOriExt();
+        const std::string & KeyCalcFileOriExt()const ;
+
+        std::string & KeyCalcName();
+        const std::string & KeyCalcName()const ;
+
+        std::string & TagExist();
+        const std::string & TagExist()const ;
+
+        std::string & TagNotExist();
+        const std::string & TagNotExist()const ;
+
+        cTplValGesInit< bool > & ExigCohTags();
+        const cTplValGesInit< bool > & ExigCohTags()const ;
+
+        cTplValGesInit< cCalcNameOnExistingTag > & CalcNameOnExistingTag();
+        const cTplValGesInit< cCalcNameOnExistingTag > & CalcNameOnExistingTag()const ;
+
+        cTplValGesInit< std::string > & KeyCalcNameDef();
+        const cTplValGesInit< std::string > & KeyCalcNameDef()const ;
+    private:
+        cTplValGesInit< cCalcNameOnExistingTag > mCalcNameOnExistingTag;
+        cTplValGesInit< std::string > mKeyCalcNameDef;
+};
+cElXMLTree * ToXMLTree(const cCalcNameCalibAux &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCalcNameCalibAux &);
+
+void  BinaryUnDumpFromFile(cCalcNameCalibAux &,ELISE_fp &);
+
+std::string  Mangling( cCalcNameCalibAux *);
 
 class cPosFromBDAppuis
 {
@@ -2115,8 +2255,11 @@ class cPoseCameraInc
         cTplValGesInit< bool > & ReverseOrderName();
         const cTplValGesInit< bool > & ReverseOrderName()const ;
 
-        std::string & CalcNameCalib();
-        const std::string & CalcNameCalib()const ;
+        cTplValGesInit< std::string > & CalcNameCalib();
+        const cTplValGesInit< std::string > & CalcNameCalib()const ;
+
+        std::list< cCalcNameCalibAux > & CalcNameCalibAux();
+        const std::list< cCalcNameCalibAux > & CalcNameCalibAux()const ;
 
         cTplValGesInit< std::string > & PosesDeRattachement();
         const cTplValGesInit< std::string > & PosesDeRattachement()const ;
@@ -2217,7 +2360,8 @@ class cPoseCameraInc
         cTplValGesInit< cMEP_SPEC_MST > mMEP_SPEC_MST;
         cTplValGesInit< cOptimizeAfterInit > mOptimizeAfterInit;
         cTplValGesInit< bool > mReverseOrderName;
-        std::string mCalcNameCalib;
+        cTplValGesInit< std::string > mCalcNameCalib;
+        std::list< cCalcNameCalibAux > mCalcNameCalibAux;
         cTplValGesInit< std::string > mPosesDeRattachement;
         cTplValGesInit< bool > mNoErroOnRat;
         cTplValGesInit< bool > mByPattern;
@@ -4179,9 +4323,17 @@ class cObsBlockCamRig
 
         cTplValGesInit< bool > & Show();
         const cTplValGesInit< bool > & Show()const ;
+
+        cTplValGesInit< cRigidBlockWeighting > & GlobalPond();
+        const cTplValGesInit< cRigidBlockWeighting > & GlobalPond()const ;
+
+        cTplValGesInit< cRigidBlockWeighting > & RelTimePond();
+        const cTplValGesInit< cRigidBlockWeighting > & RelTimePond()const ;
     private:
         std::string mId;
         cTplValGesInit< bool > mShow;
+        cTplValGesInit< cRigidBlockWeighting > mGlobalPond;
+        cTplValGesInit< cRigidBlockWeighting > mRelTimePond;
 };
 cElXMLTree * ToXMLTree(const cObsBlockCamRig &);
 
@@ -5503,8 +5655,17 @@ class cChoixImSec
         cTplValGesInit< int > & NbMaxPresel();
         const cTplValGesInit< int > & NbMaxPresel()const ;
 
-        cTplValGesInit< int > & NbSetPreSelAng();
-        const cTplValGesInit< int > & NbSetPreSelAng()const ;
+        cTplValGesInit< int > & NbTestPrecis();
+        const cTplValGesInit< int > & NbTestPrecis()const ;
+
+        cTplValGesInit< int > & NbCellOccAng();
+        const cTplValGesInit< int > & NbCellOccAng()const ;
+
+        cTplValGesInit< int > & NbCaseIm();
+        const cTplValGesInit< int > & NbCaseIm()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
     private:
         std::string mKeyAssoc;
         cTplValGesInit< std::string > mPatternSel;
@@ -5521,7 +5682,10 @@ class cChoixImSec
         cTplValGesInit< double > mTeta2Min;
         cTplValGesInit< double > mTeta2Max;
         cTplValGesInit< int > mNbMaxPresel;
-        cTplValGesInit< int > mNbSetPreSelAng;
+        cTplValGesInit< int > mNbTestPrecis;
+        cTplValGesInit< int > mNbCellOccAng;
+        cTplValGesInit< int > mNbCaseIm;
+        cTplValGesInit< std::string > mMasq3D;
 };
 cElXMLTree * ToXMLTree(const cChoixImSec &);
 
@@ -5584,8 +5748,17 @@ class cChoixImMM
         cTplValGesInit< int > & NbMaxPresel();
         const cTplValGesInit< int > & NbMaxPresel()const ;
 
-        cTplValGesInit< int > & NbSetPreSelAng();
-        const cTplValGesInit< int > & NbSetPreSelAng()const ;
+        cTplValGesInit< int > & NbTestPrecis();
+        const cTplValGesInit< int > & NbTestPrecis()const ;
+
+        cTplValGesInit< int > & NbCellOccAng();
+        const cTplValGesInit< int > & NbCellOccAng()const ;
+
+        cTplValGesInit< int > & NbCaseIm();
+        const cTplValGesInit< int > & NbCaseIm()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;
@@ -5686,8 +5859,17 @@ class cSectionExport
         cTplValGesInit< int > & NbMaxPresel();
         const cTplValGesInit< int > & NbMaxPresel()const ;
 
-        cTplValGesInit< int > & NbSetPreSelAng();
-        const cTplValGesInit< int > & NbSetPreSelAng()const ;
+        cTplValGesInit< int > & NbTestPrecis();
+        const cTplValGesInit< int > & NbTestPrecis()const ;
+
+        cTplValGesInit< int > & NbCellOccAng();
+        const cTplValGesInit< int > & NbCellOccAng()const ;
+
+        cTplValGesInit< int > & NbCaseIm();
+        const cTplValGesInit< int > & NbCaseIm()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;
@@ -5853,8 +6035,17 @@ class cEtapeCompensation
         cTplValGesInit< int > & NbMaxPresel();
         const cTplValGesInit< int > & NbMaxPresel()const ;
 
-        cTplValGesInit< int > & NbSetPreSelAng();
-        const cTplValGesInit< int > & NbSetPreSelAng()const ;
+        cTplValGesInit< int > & NbTestPrecis();
+        const cTplValGesInit< int > & NbTestPrecis()const ;
+
+        cTplValGesInit< int > & NbCellOccAng();
+        const cTplValGesInit< int > & NbCellOccAng()const ;
+
+        cTplValGesInit< int > & NbCaseIm();
+        const cTplValGesInit< int > & NbCaseIm()const ;
+
+        cTplValGesInit< std::string > & Masq3D();
+        const cTplValGesInit< std::string > & Masq3D()const ;
 
         cChoixImSec & ChoixImSec();
         const cChoixImSec & ChoixImSec()const ;

@@ -1,8 +1,7 @@
-FDSC v0.95
-Fault Displacement Slip-Curve
+Fault Displacement Slip-Curve (FDSC) v1.0
 
-Copyright (C) (2013-2014) Ana-Maria Rosu, IPGP-IGN project financed by CNES
-am.rosu@laposte.net
+Copyright (C) (2013-2014) Ana-Maria Rosu
+IPGP-ENSG/IGN project financed by TOSCA/CNES
 
 This software is a computer program whose purpose is to outline the
 track of a fault, to do perpendicular profiles to this track, stack them

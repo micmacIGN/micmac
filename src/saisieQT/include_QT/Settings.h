@@ -16,6 +16,14 @@ const float GL_MIN_ZOOM = 0.01f;
 
 float zoomClip(float val);
 
+//! Interface mode
+enum APP_MODE { BOX2D,          /**< BOX 2D mode **/
+                MASK2D,         /**< Image mask mode  **/
+                MASK3D,         /**< Point cloud mask **/
+                POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) - uses cAppli_SaisiePts **/
+                POINT2D_PREDIC, /**< Points in Image (SaisieAppuisPredic) - uses cAppli_SaisiePts **/
+                BASC            /**< 2 lines and 1 point (SaisieBasc) - uses cAppli_SaisiePts **/
+};
 typedef enum
 {
    eEnglish = 0,
@@ -26,6 +34,14 @@ typedef enum
    eRussian = 5,*/
    eEsperanto
 } eLANG;
+
+typedef enum
+{
+   eCentroid     = 0,
+   eBBoxCenter   = 1,
+   eOriginCenter = 2,
+   eDefault
+} eSceneCenterType;
 
 string eToString(const eLANG& langue);
 
@@ -50,6 +66,7 @@ public:
     void setGamma(float val)            { _gamma = val;          }
     void setForceGray(bool val)         { _forceGray = val;      }
     void setShowMasks(bool val)         { _showMasks = val;      }
+    void setCenterType(int val)         { _sceneCenterType = val; }
 
     void setSelectionRadius(int val)    { _radius = val;         }
     void setShiftStep(float val)        {_shiftStep = val;       }
@@ -74,6 +91,7 @@ public:
     float getGamma()                    { return _gamma;         }
     bool  getForceGray()                { return _forceGray;     }
     bool  getShowMasks()                { return _showMasks;     }
+    int   getSceneCenterType()          { return _sceneCenterType; }
 
     int   getSelectionRadius()          { return _radius;        }
     float getShiftStep()                { return _shiftStep;     }
@@ -105,6 +123,7 @@ private:
     float       _gamma;
     bool        _forceGray;
     bool        _showMasks;
+    int         _sceneCenterType;
 
     //! Other parameters
     float       _zoomWindow;
@@ -129,16 +148,12 @@ class cSettingsDlg : public QDialog
 public:
 
     //! Default constructor
-    cSettingsDlg(QWidget* parent, cParameters *params);
+    cSettingsDlg(QWidget* parent, cParameters *params, int appMode);
     ~cSettingsDlg();
 
     void setParameters(cParameters &params);
 
     void enableMarginSpinBox(bool show = true);
-
-    void hidePage();
-    void hideSaisieMasqItems();
-    void uiShowMasks(bool);
 
 signals:
     void lineThicknessChanged(float);
@@ -150,7 +165,7 @@ signals:
     void selectionRadiusChanged(int);
     void prefixTextEdit(QString);
     void shiftStepChanged(float);
-
+    void setCenterType(int);
     void langChanged(int);
 
 protected slots:
@@ -164,6 +179,9 @@ protected slots:
     void on_GammaDoubleSpinBox_valueChanged(double);
     void on_forceGray_checkBox_toggled(bool);
     void on_showMasks_checkBox_toggled(bool);
+    void on_radioButton_centroid_toggled(bool);
+    void on_radioButton_bbox_center_toggled(bool);
+    void on_radioButton_origin_center_toggled(bool);
 
     //!other display settings
     void on_zoomWin_spinBox_valueChanged(int);
@@ -190,8 +208,9 @@ protected:
 
     Ui::SettingsDialog* _ui;
 
-    bool	pageHidden;
     bool    lineItemHidden;
+
+    int    _appMode;
 };
 
 class cHelpDlg : public QDialog

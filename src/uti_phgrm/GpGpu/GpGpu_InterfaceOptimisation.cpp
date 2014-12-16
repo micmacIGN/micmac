@@ -18,28 +18,8 @@ void InterfOptimizGpGpu::Dealloc()
     _poInitCost.Dealloc();
 }
 
-void InterfOptimizGpGpu::oneDirOptGpGpu()
-{
-    _D_data2Opt.SetNbLine(_H_data2Opt.NBlines());
 
-    _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize(),_H_data2Opt.s_Index().GetSize());
-
-    _D_data2Opt.ReallocIf(_H_data2Opt);
-
-    //      Transfert des données vers le device                            ---------------		-
-    _D_data2Opt.CopyHostToDevice(_H_data2Opt);
-
-    //      Kernel optimisation                                             ---------------     -
-    OptimisationOneDirection(_D_data2Opt);
-
-    getLastCudaError("kernelOptiOneDirection failed");
-
-    //      Copie des couts de passage forcé du device vers le host         ---------------     -
-    _D_data2Opt.CopyDevicetoHost(_H_data2Opt);
-
-}
-
-void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,float zReg,float zRegQuad, ushort costDefMask,ushort costDefMaskTrans)
+void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,float zReg,float zRegQuad, ushort costDefMask,ushort costDefMaskTrans, bool hasMaskAuto)
 {
     uint size = (uint)(1.5f*sqrt((float)x *x + y * y));
 
@@ -58,6 +38,8 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,f
     _D_data2Opt.setZRegQuad(zRegQuad);
     _D_data2Opt.setCostDefMasked(costDefMask);
     _D_data2Opt.setCostTransMaskNoMask(costDefMaskTrans);
+    _D_data2Opt.setHasMaskAuto(hasMaskAuto);
+
     _FinalDefCor.Fill(0);
     _preFinalCost1D.Fill(0);
 
@@ -66,6 +48,8 @@ void InterfOptimizGpGpu::Prepare(uint x, uint y, ushort penteMax, ushort NBDir,f
 void InterfOptimizGpGpu::optimisation()
 {
     _D_data2Opt.SetNbLine(_H_data2Opt.nbLines());
+
+    _D_data2Opt.setPenteMax(_H_data2Opt.penteMax());
 
     _H_data2Opt.ReallocOutputIf(_H_data2Opt.s_InitCostVol().GetSize(),_H_data2Opt.s_Index().GetSize(),GetIdBuf());
 
@@ -77,64 +61,15 @@ void InterfOptimizGpGpu::optimisation()
     SetPreComp(true);
 
     //      Kernel optimisation                                             ---------------     -
-    OptimisationOneDirectionZ_V02(_D_data2Opt);
+    Gpu_OptimisationOneDirection(_D_data2Opt);
 
     //      Copie des couts de passage forcé du device vers le host         ---------------     -
     _D_data2Opt.CopyDevicetoHost(_H_data2Opt,GetIdBuf());
 }
 
-void InterfOptimizGpGpu::oneCompute()
+void InterfOptimizGpGpu::simpleWork()
 {
-    //cout << "START OPTI :" << boost::this_thread::get_id() << endl;
-
-    while(!GetCompute())
-    {
-        //printf("WAIT COMPUTE CORREL...\n");
-        boost::this_thread::sleep(boost::posix_time::microsec(1));
-    }
-
-    SetCompute(false);
-
     optimisation();
-
-    while(GetDataToCopy());
-//    {
-//        printf("WAIT DATA COPY CORREL...\n");
-//        boost::this_thread::sleep(boost::posix_time::microsec(5));
-//    }
-
-
-    //IncProgress();
-    SwitchIdBuffer();
-
-    SetDataToCopy(true);
-
-    SetCompute(true);
-
-    //cout << "END OPTI   :" << boost::this_thread::get_id() << endl;
-
-
-    //printf("END oneCompute\n");
-}
-
-void InterfOptimizGpGpu::threadCompute()
-{   
-    while(true)
-    {
-        if(GetCompute() /*&& !_H_data2Opt.nbLines()*/)
-        {
-
-            // TEMP : TENTATIVE DE DEBUGAGE THREAD
-            while(!_H_data2Opt.nbLines())
-                boost::this_thread::sleep(boost::posix_time::microsec(1));
-
-            SetCompute(false);
-
-            oneCompute();
-        }
-        else
-            boost::this_thread::sleep(boost::posix_time::microsec(1));
-    }
 }
 
 void InterfOptimizGpGpu::freezeCompute()
@@ -142,17 +77,9 @@ void InterfOptimizGpGpu::freezeCompute()
     _H_data2Opt.setNbLines(0);
     _D_data2Opt.setNbLines(0);
 
-//    _preFinalCost1D
-//    _poInitCost
-
     SetDataToCopy(false);
     SetCompute(false);
     SetPreComp(false);
 }
 
-void InterfOptimizGpGpu::simpleJob()
-{
-    boost::thread tOpti(&InterfOptimizGpGpu::oneCompute,this);
-    tOpti.detach();
-    //detached
-}
+

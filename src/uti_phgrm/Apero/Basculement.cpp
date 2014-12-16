@@ -754,8 +754,6 @@ void cAppliApero::BasculePoints
    }
 
 
-// std::cout << "--------------BBBBBBBBBBBBBBBB\n";
-
 
    bool OkBasc=false;
    if (aKC!=-1)
@@ -1018,6 +1016,15 @@ Pt3dr  cAppliApero::PointeStereo2Pt(const cAperoPointeStereo & aPS)
 }
 */
 
+void AjustNormalSortante(bool Sortante,Pt3dr & aNorm, const ElCamera * aCS1,const Pt2dr &aPIm)
+{
+// std::cout << "AjustNormalSortante " << Sortante << " " << aNorm << " " << aCS1->F2toDirRayonR3(aPIm) << " " << scal(aNorm,aCS1->F2toDirRayonR3(aPIm)) << "\n";
+    // Si Sortante, le produit scal Norm/DirVisee  doit etre <0, donc ((>0) == Sortante) => chg sign
+    if (   (scal(aNorm,aCS1->F2toDirRayonR3(aPIm)) >0 ) == Sortante)
+         aNorm = - aNorm;
+// std::cout << "AjustNormalSortante "  << aNorm  << "\n";
+}
+
 void cAppliApero::BasculePlan
      (
         const cBasculeLiaisonOnPlan & aBL,
@@ -1040,22 +1047,40 @@ void cAppliApero::BasculePlan
         const cOrientInPlane & anOIP = aBL.OrientInPlane().Val();
         cSetOfMesureAppuisFlottants aSMAF = StdGetMAF(anOIP.FileMesures());
 
+
+         Pt3dr aP1 = CreatePtFromPointeMonoOrStereo(aSMAF,"Line1",&aPlan);
+         Pt3dr aP2 = CreatePtFromPointeMonoOrStereo(aSMAF,"Line2",&aPlan);
+         aPOrig    = CreatePtFromPointeMonoOrStereo(aSMAF,"Origine",&aPlan,"Line1");
+
+/*
         cAperoPointeMono aPt1 =  CreatePointeMono(aSMAF,"Line1");
         Pt3dr aP1 = PointeMonoAndPlan2Pt(aPt1,aPlan);
         Pt3dr aP2 = PointeMonoAndPlan2Pt(CreatePointeMono(aSMAF,"Line2"),aPlan);
         aPOrig = PointeMonoAndPlan2Pt(CreatePointeMono(aSMAF,"Origine",&aPt1),aPlan);
+*/
 
 
         double aD = anOIP.DistFixEch().ValWithDef(0);
 
         if (aD >0)
         {
-            Pt3dr aPE1 =  CpleIm2PTer(CreatePointeStereo(aSMAF,"Ech1"));
-            Pt3dr aPE2 =  CpleIm2PTer(CreatePointeStereo(aSMAF,"Ech2"));
-            aRatio = aD/ euclid(aPE1-aPE2) ;
+            // Pt3dr aPE1 =  CpleIm2PTer(CreatePointeStereo(aSMAF,"Ech1"));
+            // Pt3dr aPE2 =  CpleIm2PTer(CreatePointeStereo(aSMAF,"Ech2"));
+             Pt3dr aPE1 =  CreatePtFromPointeMonoOrStereo(aSMAF,"Ech1",0);
+             Pt3dr aPE2 =  CreatePtFromPointeMonoOrStereo(aSMAF,"Ech2",0);
+             aRatio = aD/ euclid(aPE1-aPE2) ;
         }
 
         Pt3dr aNorm = aRP2E.ImVect(Pt3dr(0,0,1));
+
+        std::vector<cOneMesureAF1I>  aVM = GetMesureOfPts(aSMAF,"Line1");
+        cPoseCam * aPose1 = PoseFromName  (aVM[0].NamePt());
+        // const CamStenope * aCS1 =  aPose1->CurCam();
+        AjustNormalSortante(true,aNorm,aPose1->CurCam(),aVM[0].PtIm());
+
+// void AjustNormalSortante(Pt3dr & aNorm, const ElCamera * aCS1,const Pt2dr &aPIm)
+
+
         Pt3dr aDirX = vunit(aP2-aP1);
         // Pt3dr aDirY = aNorm ^ aDirX;
 
@@ -1250,6 +1275,47 @@ cMesureAppuiFlottant1Im cAppliApero::StdGetOneMAF(const std::string & aName)
 
 }
 
+Pt3dr cAppliApero::CreatePtFromPointeMonoOrStereo
+      (
+            const cSetOfMesureAppuisFlottants & aMAF,
+            const std::string & aNamePt,
+            const cElPlan3D  * aPlan,
+            const std::string & aNameSec
+      )
+{
+   Pt3dr aRes(0,0,0);
+   std::vector<cOneMesureAF1I>  aV = GetMesureOfPts(aMAF,aNamePt);  // !!! LES IMAGES SONT DANS NamePt
+
+   if (aV.size()==0)
+   {
+       aV = GetMesureOfPts(aMAF,aNameSec);   
+   }
+
+   if (int(aV.size()) <1)
+   {
+      std::cout << "For name point = " << aNamePt << "\n";
+      ELISE_ASSERT(false,"cAppliApero::CreatePtFromPointe No Pointe");
+   }
+
+   std::vector<ElSeg3D> aVS;
+   for (int aK=0 ; aK<int(aV.size()) ; aK++)
+   {
+       cOneMesureAF1I aPM = aV[aK];
+       aVS.push_back(PoseFromName(aPM.NamePt())->CurCam()->F2toRayonR3(aPM.PtIm()));
+   }
+
+   if (aV.size()==1)
+   {
+      if (aPlan==0)
+      {
+         std::cout << "For name point = " << aNamePt << "\n";
+         ELISE_ASSERT(false,"cAppliApero::CreatePtFromPointe 1 Pointe ");
+      }
+      return aPlan->Inter(aVS[0]);
+   }
+
+   return  ElSeg3D::L2InterFaisceaux(0,aVS);
+}
 
 
 

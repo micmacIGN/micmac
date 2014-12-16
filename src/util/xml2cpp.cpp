@@ -1271,7 +1271,7 @@ void xml_init(bool  & aVal,cElXMLTree * aTree)
     else
 */
     {
-       std::cout << "VAL=" << aVal << " Tag " << aTree->ValTag() << "\n";
+       std::cout << "VAL=" << aVal << " Tag " << aTree->ValTag() << " Cont " << aTree->Contenu() << "\n";
        ELISE_ASSERT(false,"Unexpected value for xml::bool");
     }
 }
@@ -1732,6 +1732,7 @@ template <class Type> void TypeSubst<Type>::TenteInit()
 }
 
 
+template class TypeSubst<bool>;
 
 template class TypeSubst<int>;
 template class TypeSubst<double>;
@@ -1742,13 +1743,15 @@ void xml_init(IntSubst & anIS,cElXMLTree * aTree) { anIS.SetStr(aTree); }
 void xml_init(DoubleSubst & anIS,cElXMLTree * aTree) { anIS.SetStr(aTree); }
 void xml_init(Pt2diSubst & anIS,cElXMLTree * aTree) { anIS.SetStr(aTree); }
 void xml_init(Pt2drSubst & anIS,cElXMLTree * aTree) { anIS.SetStr(aTree); }
+void xml_init(BoolSubst & anIS,cElXMLTree * aTree) { anIS.SetStr(aTree); }
 
 
 
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const IntSubst   &      anObj) { return ToXMLTree(aNameTag,anObj.Val()); }
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const BoolSubst   &      anObj)   { return ToXMLTree(aNameTag,anObj.Val()); }
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const IntSubst   &      anObj)    { return ToXMLTree(aNameTag,anObj.Val()); }
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const DoubleSubst   &      anObj) { return ToXMLTree(aNameTag,anObj.Val()); }
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2diSubst   &      anObj) { return ToXMLTree(aNameTag,anObj.Val()); }
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      anObj) { return ToXMLTree(aNameTag,anObj.Val()); }
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2diSubst   &      anObj)  { return ToXMLTree(aNameTag,anObj.Val()); }
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      anObj)  { return ToXMLTree(aNameTag,anObj.Val()); }
 
 
 

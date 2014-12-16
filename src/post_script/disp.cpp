@@ -106,7 +106,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
          //======== DATA ============
 
-#define Def_DIM "<</ImageType 1  /ImageMatrix "pIMAT">>"
+#define Def_DIM "<</ImageType 1  /ImageMatrix " pIMAT ">>"
 #define Def_IMAT "[1 0 0 1 0 0]"
 
          //========= PROCEDURES ====================
@@ -118,25 +118,25 @@ Header-MicMac-eLiSe-25/06/2007*/
 
                // ===  procedures  body
 
-#define Def_Ix0  "{"pIMAT" 4  3 -1 roll neg put} bind"
-#define Def_Iy0  "{"pIMAT" 5  3 -1 roll neg put} bind"
-#define Def_Itx  "{"pDIM" /Width 3 -1 roll put} bind"
-#define Def_Ity  "{"pDIM" /Height 3 -1 roll put} bind"
-#define Def_Inbb "{"pDIM" /BitsPerComponent 3 -1 roll put} bind"
+#define Def_Ix0  "{" pIMAT " 4  3 -1 roll neg put} bind"
+#define Def_Iy0  "{" pIMAT " 5  3 -1 roll neg put} bind"
+#define Def_Itx  "{" pDIM " /Width 3 -1 roll put} bind"
+#define Def_Ity  "{" pDIM " /Height 3 -1 roll put} bind"
+#define Def_Inbb "{" pDIM " /BitsPerComponent 3 -1 roll put} bind"
 
 
-#define Def_IUC    "{"pDIM IMA85F " put " pDIM " image} bind"
-#define Def_IRLE   "{"pDIM IMA85F " /RunLengthDecode filter put " pDIM " image} bind"
-#define Def_ILZW   "{"pDIM IMA85F " /LZWDecode filter put " pDIM " image} bind"
+#define Def_IUC    "{" pDIM IMA85F " put " pDIM " image} bind"
+#define Def_IRLE   "{" pDIM IMA85F " /RunLengthDecode filter put " pDIM " image} bind"
+#define Def_ILZW   "{" pDIM IMA85F " /LZWDecode filter put " pDIM " image} bind"
 
 
-#define Def_MIUC    "{true "pIMAT ASCII85 "  imagemask} bind"
-#define Def_MIRLE   "{true "pIMAT ASCII85 " /RunLengthDecode filter  imagemask} bind"
-#define Def_MILZW   "{true "pIMAT ASCII85 " /LZWDecode filter  imagemask} bind"
+#define Def_MIUC    "{true " pIMAT ASCII85 "  imagemask} bind"
+#define Def_MIRLE   "{true " pIMAT ASCII85 " /RunLengthDecode filter  imagemask} bind"
+#define Def_MILZW   "{true " pIMAT ASCII85 " /LZWDecode filter  imagemask} bind"
 
 
 
-#define Def_ULIM  "{"pIx0" "pIy0" "pItx"} bind"
+#define Def_ULIM  "{" pIx0 " " pIy0 " " pItx "} bind"
 
 #define Def_UC1  "{" pULIM " " ElPsPREFIX IUC "} bind"
 #define Def_RLE1 "{" pULIM " " ElPsPREFIX IRLE "} bind"
@@ -158,7 +158,7 @@ const char *   Def_LptsImCste
          "  0 1  3 -1 roll\n"
          "  {\n"
          "     dup dup \n"
-         "     "pSTRX"  exch  get "pSTRY" 3 -1 roll   get  "pSTRC0" 4 -1 roll get 1 add  1 rectfill\n"
+         "     " pSTRX "  exch  get " pSTRY " 3 -1 roll   get  " pSTRC0 " 4 -1 roll get 1 add  1 rectfill\n"
          "  }\n"
          "  for clear\n"
          "}  bind";
@@ -170,8 +170,8 @@ const char *   Def_LptsImInd
          "  0 1  3 -1 roll\n"
          "  {\n"
          "     dup dup \n"
-         "     "pSTRC0"  exch get setcolor\n"
-         "     "pSTRX"  exch  get "pSTRY" 3 -1 roll   get 1 1 rectfill\n"
+         "     " pSTRC0 "  exch get setcolor\n"
+         "     " pSTRX "  exch  get " pSTRY " 3 -1 roll   get 1 1 rectfill\n"
          "  }\n"
          "  for clear\n"
          "}  bind";
@@ -182,8 +182,8 @@ const char *   Def_LptsImGray
          " 0 1  3  -1 roll\n"
          "  {\n"
          "     dup dup \n"
-         "     "pSTRC0"  exch get 256 div setgray\n"
-         "     "pSTRX"  exch  get "pSTRY" 3 -1 roll   get 1 1 rectfill\n"
+         "     " pSTRC0 "  exch get 256 div setgray\n"
+         "     " pSTRX "  exch  get " pSTRY " 3 -1 roll   get 1 1 rectfill\n"
          "  }\n"
          "  for clear\n"
          "}  bind";
@@ -194,11 +194,11 @@ const char *   Def_LptsImRGB
          "  0 1  3 -1 roll\n"
          "  {\n"
          "     dup dup dup dup\n"
-         "        "pSTRC0"  exch get 256 div \n"
-         "        "pSTRC1"  3 -1 roll  get 256 div \n"
-         "        "pSTRC2"  4 -1 roll  get 256 div \n"
+         "        " pSTRC0 "  exch get 256 div \n"
+         "        " pSTRC1 "  3 -1 roll  get 256 div \n"
+         "        " pSTRC2 "  4 -1 roll  get 256 div \n"
          "     setrgbcolor \n"
-         "     "pSTRX"  exch  get "pSTRY" 3 -1 roll   get 1 1 rectfill\n"
+         "     " pSTRX "  exch  get " pSTRY " 3 -1 roll   get 1 1 rectfill\n"
          "  }\n"
          "  for clear\n"
          "}  bind";

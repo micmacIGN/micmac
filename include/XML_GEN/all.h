@@ -105,6 +105,12 @@ std::string current_program_subcommand(); // mm3d's subcommand (Tapioca, Apero, 
 int MMNbProc();
 bool MPD_MM(); // Est ce que c'est ma machine, afin de ne pas polluer les autres en phase de test !!!!
 
+#if(ELISE_QT_VERSION >= 4)
+	string MMQtLibraryPath();
+	void setQtLibraryPath( const string &i_path );
+	void initQtLibraryPath();
+#endif
+
 inline bool isUsingSeparateDirectories();
 extern const string temporarySubdirectory; // = "Tmp-MM-Dir/" (see src/photogram/ChantierNameAssoc.cpp)
 void setInputDirectory( const std::string &i_directory );
@@ -129,6 +135,7 @@ std::string XML_User_Or_MicMac(const std::string & aName);
 
 const cMMUserEnvironment & MMUserEnv();
 
+extern const  std::string BLANK;
 
 
 
@@ -692,7 +699,8 @@ class cStdChantierRel
                     // const cTplValGesInit<cFiltreDeRelationOrient> &,
                     // cComputeFiltreRelSsEch * & aFSsEch,
                     bool aSym,
-                    bool IsCirc
+                    bool IsCirc,
+                    int aSampling=1  // <=0  vide ,  1 no sampling, >1 => sampling
              );
 
 
@@ -905,6 +913,7 @@ class  cSetName
           const cSetNameDescriptor & SND() const;
           cInterfChantierNameManipulateur * ICNM();
           string Dir() const { return mDir; }
+          void setDir( const string &i_directory ) { mDir = i_directory; }
       private :
           void CompileDef();
 
@@ -923,8 +932,9 @@ class cDicoSetNC : public cInterfChantierSetNC
 {
      public :
          void Add(const tKey &,cSetName *);
-     bool SetHasKey(const tKey & aKey)  const;
-     cDicoSetNC();
+         bool SetHasKey(const tKey & aKey)  const;
+         cDicoSetNC();
+         void assign( const tKey &,cSetName * );
      private :
          std::map<tKey,cSetName *> mDico;
          const tSet *  Get(const tKey &);
@@ -1386,7 +1396,7 @@ std::string StdNameGeomCalib(const std::string & aFullName);
 void  DC_Add(const cMMCameraDataBase & aDB);
 
 
-bool RepereIsAnam(const std::string &,bool &IsOrthXCSte);
+bool RepereIsAnam(const std::string &,bool &IsOrthXCSte,bool & IsAnamXCsteOfCart); // OrthoCyl est un cas 
 
 cConvExplicite GlobMakeExplicite(eConventionsOrientation aConv);
 ElRotation3D  GlobStd_RAff_C2M

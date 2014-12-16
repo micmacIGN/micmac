@@ -82,6 +82,8 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
     double   aZMoy = 0;
     int    aKNadir = -1;
     double aIncidMax = 1e5;
+    bool   UnUseAXC = false;
+
 
     ElInitArgMain
     (
@@ -95,6 +97,7 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
                     << EAM(aZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(aKNadir,"KNadir",true,"KBest image or Nadir (when exist)")
                     << EAM(aIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
+                    << EAM(UnUseAXC,"UnUseAXC",true,"Internal use for unamophosed ortho")
     );
 
     if (!MMVisualMode)
@@ -132,11 +135,13 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
             aCom = aCom + " +FileZMoy=File-ZMoy.xml"
                     + " +ZMoy=" + ToString(aZMoy);
         }
+        if (EAMIsInit(&UnUseAXC)) aCom = aCom + " +UnUseAXC=" + ToString(UnUseAXC);
 
         if (Repere!=NOREP)
         {
             bool IsOrthoXCste;
-            if (RepereIsAnam(aDir+Repere,IsOrthoXCste))
+            bool IsAnamXsteOfCart;
+            if (RepereIsAnam(aDir+Repere,IsOrthoXCste,IsAnamXsteOfCart))
             {
                 aCom =    aCom
                         +  std::string(" +DoAnam=true ")

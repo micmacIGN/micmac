@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -36,24 +36,6 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-
-/*
-
-ply
-format binary_little_endian 1.0
-element vertex 1368228
-property float x
-property float y
-property float z
-property uchar red
-property uchar green
-property uchar blue
-element face 0
-property list uchar int vertex_indices
-end_header
-
-*/
-
 
 
 
@@ -179,13 +161,13 @@ void cLayerNuage3DM::PlyPutHeader(FILE * aFp) const
 
 void cLayerNuage3DM::PlyPutData(FILE * aFP,const Pt2di & anI,bool aModeBin) const
 {
-  if (!aModeBin)  
+  if (!aModeBin)
      fprintf(aFP," ");
    mIm->PutData(aFP,anI,aModeBin);
 }
 
 
-Im2DGen * cLayerNuage3DM::Im() const 
+Im2DGen * cLayerNuage3DM::Im() const
 {
    return mIm;
 }
@@ -241,6 +223,9 @@ cElNuage3DMaille::cElNuage3DMaille
    mTImDefInterp  (mImDefInterp),
    mCam           (Cam_Gen_From_XML(mParams.Orientation(),mICNM)),
    mImEtire       (1,1),
+   mVoisImDef     (mImDef),
+   mTVoisImDef    (mVoisImDef),
+   mNormByCenter  (0),
    m2RepGlob      (0),
    m2RepLoc       (0),
    mAnam          (0),
@@ -250,6 +235,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mNbTri         (0),
    mResolGlobCalc (false),
    mResolGlob     (0)
+
 {
 //  std::cout   << "WXCRT " << mSz << aParam.Image_Profondeur().Val().Image() << "\n";
 
@@ -271,7 +257,7 @@ cElNuage3DMaille::cElNuage3DMaille
 /*
 */
 
-    
+
     ELISE_COPY
     (
          mImDef.all_pts(),
@@ -286,7 +272,7 @@ cElNuage3DMaille::cElNuage3DMaille
               UpdateDefInterp(aP);
         }
     }
-    for 
+    for
     (
        std::list<cAttributsNuage3D>::const_iterator itA=aParam.AttributsNuage3D().begin();
        itA!=aParam.AttributsNuage3D().end();
@@ -302,21 +288,31 @@ cElNuage3DMaille::cElNuage3DMaille
     }
 }
 
+void cElNuage3DMaille::SetVoisImDef(Im2D_Bits<1> anIm)
+{
+    mVoisImDef = anIm;
+    mTVoisImDef = TIm2DBits<1> (mVoisImDef);
+}
+
+void cElNuage3DMaille::SetNormByCenter(int val)
+{
+    mNormByCenter = val;
+}
+
 bool cElNuage3DMaille::IsEmpty()
 {
     Pt2di aP;
     for (aP.x=0 ; aP.x < mSzData.x ; aP.x++)
         for ( aP.y=0 ; aP.y < mSzData.y; aP.y++)
-            if (mTImDef.get(aP)) 
+            if (mTImDef.get(aP))
                return false;
-    
+
     return true;
 }
 
-
-bool  cElNuage3DMaille::CaptHasData(const Pt2dr & aP) const 
+bool  cElNuage3DMaille::CaptHasData(const Pt2dr & aP) const
 {
-   return IndexHasContenuForInterpol(aP); 
+    return IndexHasContenuForInterpol(aP);
 }
 
 void cElNuage3DMaille::AssertNoEmptyData() const
@@ -330,13 +326,11 @@ const Pt2di &  cElNuage3DMaille::SzUnique() const
     return mSzGeom;
 }
 
-
-
 ElSeg3D  cElNuage3DMaille::Capteur2RayTer(const Pt2dr & aP) const
 {
-   AssertCamInit();
-   return FaisceauFromIndex(aP);
-/*
+    AssertCamInit();
+    return FaisceauFromIndex(aP);
+    /*
    ElSeg3D aSeg = mCam->F2toRayonR3(aP);
    return ElSeg3D
           (
@@ -346,13 +340,13 @@ ElSeg3D  cElNuage3DMaille::Capteur2RayTer(const Pt2dr & aP) const
 */
 }
 
-// En fait peut avoir valeur par defaut 
+// En fait peut avoir valeur par defaut
 
 double cElNuage3DMaille::ResolSolOfPt(const Pt3dr & aP) const
 {
-   Pt2dr aPIm = Ter2Capteur(aP);
-   ElSeg3D aSeg = Capteur2RayTer(aPIm+Pt2dr(1,0));
-   return aSeg.DistDoite(aP);
+    Pt2dr aPIm = Ter2Capteur(aP);
+    ElSeg3D aSeg = Capteur2RayTer(aPIm+Pt2dr(1,0));
+    return aSeg.DistDoite(aP);
 }
 
 double cElNuage3DMaille::ResolSolGlob() const
@@ -360,80 +354,87 @@ double cElNuage3DMaille::ResolSolGlob() const
    AssertNoEmptyData();
    if (! mResolGlobCalc)
    {
-      int aNb = 20;
-      Pt2di aDec = mSzData/ aNb;
       double aSomRes = 0.0;
       double aSomPds = 0.0;
 
-      Pt2di aP;
-      for (aP.x =0 ; aP.x<mSzData.x ; aP.x+=aDec.x)
+      for (int aNb=50 ; (aNb>0) &&  (aSomPds<500) ; aNb = ElMin(aNb-1,round_ni(aNb/1.2)))
       {
-          for (aP.y =0 ; aP.y<mSzData.y ; aP.y+=aDec.y)
+          Pt2di aDec (aNb,aNb);
+          Pt2di aP;
+          for (aP.x =0 ; aP.x<mSzData.x ; aP.x+=aDec.x)
           {
-               if (IndexHasContenu(aP))
-               {
-                    aSomPds++;
-                    aSomRes += ResolSolOfPt(PtOfIndex(aP));
-               }
+              for (aP.y =0 ; aP.y<mSzData.y ; aP.y+=aDec.y)
+              {
+                   if (IndexHasContenu(aP))
+                   {
+                        aSomPds++;
+                        aSomRes += ResolSolOfPt(PtOfIndex(aP));
+                   }
+              }
           }
       }
+
       mResolGlobCalc = true;
-      ELISE_ASSERT(aSomPds!=0.0,"cElNuage3DMaille::ResolSolGlob");
+      if (aSomPds==0)
+      {
+          std::cout << "Masq=" << mParams.PN3M_Nuage().Image_Profondeur().Val().Masq() << "\n";
+          Tiff_Im::Create8BFromFonc("PbMasq.tif",mSzData,ImMask().in());
+          ELISE_ASSERT(aSomPds!=0.0,"cElNuage3DMaille::ResolSolGlob");
+      }
       mResolGlob = aSomRes / aSomPds;
    }
 
    return mResolGlob;
 }
 
-double  cElNuage3DMaille::ResolImRefFromCapteur() const 
+double  cElNuage3DMaille::ResolImRefFromCapteur() const
 {
-   return  mParams.SsResolRef().Val();
+    return  mParams.SsResolRef().Val();
 }
 
 Pt2dr cElNuage3DMaille::ImRef2Capteur   (const Pt2dr & aP) const
 {
-   return aP / mParams.SsResolRef().Val();
+    return aP / mParams.SsResolRef().Val();
 }
 
 
-bool   cElNuage3DMaille::HasRoughCapteur2Terrain() const 
+bool   cElNuage3DMaille::HasRoughCapteur2Terrain() const
 {
     return true;
 }
 
 
-bool  cElNuage3DMaille::HasPreciseCapteur2Terrain() const 
+bool  cElNuage3DMaille::HasPreciseCapteur2Terrain() const
 {
     return true;
 }
 
-Pt3dr cElNuage3DMaille::RoughCapteur2Terrain   (const Pt2dr & aP) const 
+Pt3dr cElNuage3DMaille::RoughCapteur2Terrain   (const Pt2dr & aP) const
 {
 {
 
     // return Loc2Glob(Loc_PtOfIndexInterpol(aPR));
     // return mCam->R3toF2(Glob2Loc(aPt));
 }
-   return PtOfIndexInterpol(aP);
+    return PtOfIndexInterpol(aP);
 }
 
 
-Pt3dr cElNuage3DMaille::PreciseCapteur2Terrain   (const Pt2dr & aP) const 
+Pt3dr cElNuage3DMaille::PreciseCapteur2Terrain   (const Pt2dr & aP) const
 {
-   return PtOfIndexInterpol(aP);
+    return PtOfIndexInterpol(aP);
 }
 
 Pt2dr cElNuage3DMaille::Ter2Capteur(const Pt3dr & aP) const
 {
-  return Terrain2Index(aP);
+    return Terrain2Index(aP);
 }
 
 
 bool cElNuage3DMaille::PIsVisibleInImage   (const Pt3dr & aP) const
 {
-   return   mCam->PIsVisibleInImage (aP);
+    return   mCam->PIsVisibleInImage (aP);
 }
-
 
 
 void cElNuage3DMaille::AddTri(std::vector<tTri> & aMesh,const tIndex2D & aP,int *K123,int anOffset) const
@@ -451,7 +452,6 @@ void cElNuage3DMaille::AddTri(std::vector<tTri> & aMesh,const tIndex2D & aP,int 
                   anOffset+ mTNumP.get(aP+VOIS_9[K123[2]])
             )
        );
-
 }
 
 void cElNuage3DMaille::GenTri(std::vector<tTri> & aMesh,const tIndex2D &aP,int aOffset) const
@@ -502,7 +502,7 @@ void cElNuage3DMaille::PlyPutDataOneFace(FILE * aFP,const tTri& aTr, bool aModeB
        WriteType(aFP,int(aTr.x));
        WriteType(aFP,int(aTr.y));
        WriteType(aFP,int(aTr.z));
-       
+
    }
    else
    {
@@ -512,7 +512,7 @@ void cElNuage3DMaille::PlyPutDataOneFace(FILE * aFP,const tTri& aTr, bool aModeB
 
 void cElNuage3DMaille::PlyPutDataFace(FILE * aFP,bool aModeBin,int & anOffset) const
 {
-   if (! mGenerMesh) 
+   if (! mGenerMesh)
        return;
    for (tIndex2D anI=Begin(); anI!=End() ;IncrIndex(anI))
    {
@@ -670,10 +670,10 @@ void cElNuage3DMaille::PlyPutFile
            int aAddNormale,
            bool DoublePrec,
            const Pt3dr & anOffset
-     ) 
+     )
 {
    std::string aTypeXYZ = DoublePrec ? "float64" : "float";
-   
+
 
 
 
@@ -717,16 +717,16 @@ void cElNuage3DMaille::PlyPutFile
    //Mode Ecriture : binaire ou non
    std::string mode = aModeBin ? "wb" : "w";
    FILE * aFP = FopenNN(aName,mode,"cElNuage3DMaille::PlyPutFile");
-	
+
    //Header
    fprintf(aFP,"ply\n");
-   std::string aBinSpec =       MSBF_PROCESSOR() ? 
+   std::string aBinSpec =       MSBF_PROCESSOR() ?
                           "binary_big_endian":
                           "binary_little_endian" ;
-                                       
+
    fprintf(aFP,"format %s 1.0\n",aModeBin?aBinSpec.c_str():"ascii");
 
-   for 
+   for
    (
         std::list<std::string>::const_iterator itS=aComments.begin();
         itS!=aComments.end();
@@ -743,28 +743,28 @@ void cElNuage3DMaille::PlyPutFile
    if (aAddNormale)
    {
        fprintf(aFP,"property float nx\n");
-	   fprintf(aFP,"property float ny\n");
-	   fprintf(aFP,"property float nz\n");
+       fprintf(aFP,"property float ny\n");
+       fprintf(aFP,"property float nz\n");
    }
-   
+
    const char * aVCoul[3]={"red","green","blue"};
    for (int aK=0 ; aK<aNbAttr ; aK++)
    {
-	   if (aN0)
-	   {
-		   aN0->mAttrs[aK]->PlyPutHeader(aFP);
-	   }
-	   else
-	   {
-		   fprintf(aFP,"property uchar %s\n",aVCoul[aK]);
-	   }
+       if (aN0)
+       {
+           aN0->mAttrs[aK]->PlyPutHeader(aFP);
+       }
+       else
+       {
+           fprintf(aFP,"property uchar %s\n",aVCoul[aK]);
+       }
    }
 
    fprintf(aFP,"element face %d\n",aNbF);
    fprintf(aFP,"property list uchar int vertex_indices\n");
    fprintf(aFP,"end_header\n");
 
-   //Data	
+   //Data
    for (int aK=0 ; aK<int(aVN.size()) ; aK++)
       aVN[aK]-> PlyPutDataVertex(aFP,aModeBin, aAddNormale,DoublePrec,anOffset);
 
@@ -796,7 +796,7 @@ void cElNuage3DMaille::PlyPutFile
    {
       aVN[aK]-> PlyPutDataFace(aFP,aModeBin,anOffsetNbTri);
    }
-   
+
    ElFclose(aFP);
 }
 
@@ -810,7 +810,7 @@ void cElNuage3DMaille::NuageXZGCOL(const std::string & aName,bool B64)
    aL = aL+Arg_Tiff(Tiff_Im::ANoStrip());
 
    Tiff_Im aXYZ(aNameXYZ.c_str(),mSzData, B64 ? GenIm::real8 : GenIm::real4,Tiff_Im::No_Compr,Tiff_Im::RGB,aL);
-    
+
    Im2D_REAL8 aImX(mSzData.x,mSzData.y,0.0);
    Im2D_REAL8 aImY(mSzData.x,mSzData.y,0.0);
    Im2D_REAL8 aImZ(mSzData.x,mSzData.y,0.0);
@@ -820,7 +820,7 @@ void cElNuage3DMaille::NuageXZGCOL(const std::string & aName,bool B64)
    {
       for (anI.y=0 ; anI.y<mSzData.y ; anI.y++)
       {
-            if (IndexHasContenu(anI))
+           if (IndexHasContenu(anI))
             {
                 Pt3dr aP3 = PtOfIndex(anI);
                 aImX.SetR(anI,aP3.x);
@@ -843,13 +843,13 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
 {
     if (aAddNormale)
     {
-	ELISE_ASSERT((aAddNormale%2) && (aAddNormale>2),"cElNuage3DMaille::NormaleOfIndex: wSize should be an odd > 1 (3, 5, 7...)");
+    ELISE_ASSERT((aAddNormale%2) && (aAddNormale>2),"cElNuage3DMaille::NormaleOfIndex: wSize should be an odd > 1 (3, 5, 7...)");
     }
-	
+
     for (tIndex2D anI=Begin(); anI!=End() ;IncrIndex(anI))
     {
            Pt3dr aP = PtOfIndex(anI) - anOffset;
-		   // std::cout << "PlyPutData:::: " << aP << "\n"; getchar();
+           // std::cout << "PlyPutData:::: " << aP << "\n"; getchar();
 
            if (DoublePrec)
            {
@@ -864,7 +864,7 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
                 }
                 else
                 {
-                   fprintf(aFP,"%.3f %.3f %.3f", xyz[0], xyz[1], xyz[2]);
+                   fprintf(aFP,"%.6f %.6f %.6f", xyz[0], xyz[1], xyz[2]);
                 }
            }
            else
@@ -880,35 +880,35 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
                 }
                 else
                 {
-                   fprintf(aFP,"%.3f %.3f %.3f", xyz[0], xyz[1], xyz[2]);
+                   fprintf(aFP,"%.6f %.6f %.6f", xyz[0], xyz[1], xyz[2]);
                 }
            }
 
-	   if (aAddNormale) 
-	   {
-		   Pt3dr aN = NormaleOfIndex(anI, aAddNormale);
-			   
-		   float Nxyz[3];
-		   Nxyz[0] = (float)aN.x;
-		   Nxyz[1] = (float)aN.y;
-		   Nxyz[2] = (float)aN.z;
-			   
-		   if (aModeBin)
-		   {
-			   int aNb= fwrite(Nxyz,sizeof(float),3,aFP);
-			   ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
-		   }
-		   else
-		   {
-			   fprintf(aFP,"%.3f %.3f %.3f", Nxyz[0], Nxyz[1], Nxyz[2]);
-		   }
-	   }
-		
+       if (aAddNormale)
+       {
+           Pt3dr aN = NormaleOfIndex(anI, aAddNormale);
+
+           float Nxyz[3];
+           Nxyz[0] = (float)aN.x;
+           Nxyz[1] = (float)aN.y;
+           Nxyz[2] = (float)aN.z;
+
+           if (aModeBin)
+           {
+               int aNb= fwrite(Nxyz,sizeof(float),3,aFP);
+               ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
+           }
+           else
+           {
+               fprintf(aFP," %.6f %.6f %.6f", Nxyz[0], Nxyz[1], Nxyz[2]);
+           }
+       }
+
            for (int aK=0 ; aK<int(mAttrs.size()) ; aK++)
            {
               mAttrs[aK]->PlyPutData(aFP,anI,aModeBin);
            }
-           if (!aModeBin) 
+           if (!aModeBin)
               fprintf(aFP,"\n");
     }
 }
@@ -943,14 +943,14 @@ void  cElNuage3DMaille::IncrIndex(tIndex2D & aP) const
 
        // -----------   MODIFICATIONS  ---------------
 
-void  cElNuage3DMaille::SetPtOfIndex(const tIndex2D & anIndex,const Pt3dr & aP3) 
+void  cElNuage3DMaille::SetPtOfIndex(const tIndex2D & anIndex,const Pt3dr & aP3)
 {
     AssertInsideData(anIndex);
     mTImDef.oset(anIndex,1);
     V_SetPtOfIndex(anIndex,Glob2Loc(aP3));
     UpdateVoisAfterModif(anIndex);
 }
-void  cElNuage3DMaille::SetNoValue(const tIndex2D & anIndex) 
+void  cElNuage3DMaille::SetNoValue(const tIndex2D & anIndex)
 {
     AssertInsideData(anIndex);
     mTImDef.oset(anIndex,0);
@@ -1042,7 +1042,7 @@ Pt3dr cElNuage3DMaille::IndexAndProfPixel2Euclid(const   Pt2dr & aP,const double
    return Loc2Glob(Loc_IndexAndProfPixel2Euclid(aP,aProf));
 }
 
-Pt3dr cElNuage3DMaille::Euclid2ProfPixelAndIndex(const   Pt3dr & aP) const 
+Pt3dr cElNuage3DMaille::Euclid2ProfPixelAndIndex(const   Pt3dr & aP) const
 {
     return Loc_Euclid2ProfPixelAndIndex(Glob2Loc(aP));
 }
@@ -1081,49 +1081,58 @@ double cElNuage3DMaille::DiffDeSurface
 //Compute local normal on 3D points in a window (wSize x wSize)
 Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
 {
-	if (IndexHasContenu(anI1))
-	{
-		std::vector<Pt3dr> aVP; 
-		std::vector<double> aVPds;
+    if (IndexHasContenu(anI1))
+    {
+                double aFact = 0.1;
+        Pt2dr anI1r(anI1.x, anI1.y);
+        ElSeg3D aV = Capteur2RayTer(anI1r);
+        Pt3dr aTgt = aV.TgNormee();
+                if (mNormByCenter==1)
+                   return aTgt * (-aFact);
+                else if (mNormByCenter==2)
+                   return Cam()->CS()->PseudoOpticalCenter();
 
-		int halfSize  = wSize/2;
-		tIndex2D anI2 = anI1 - Pt2di(halfSize, halfSize); //top-left corner of window
-		tIndex2D anI3;	
-		
-		//recherche des voisins et stockage des points
-		for(int aK = 0; aK<wSize ; ++aK)
-		{
-			for(int bK = 0; bK<wSize ; ++bK)
-			{
-				anI3 = anI2 + Pt2di(aK, bK);
-				
-				if (IndexHasContenu(anI3))
-				{
-					aVP.push_back(PtOfIndex(anI3));
-					aVPds.push_back(1.f);
-				}
-			}
-		}
-		
-		//estimation du plan aux moindres carrés 	
-		cElPlan3D aPlan(aVP, &aVPds);
-		
-		//retourne la normale en fonction de l'angle avec le segment PdV-Pt
-		Pt3dr aN = aPlan.Norm();
-		Pt2dr anI1r(anI1.x, anI1.y);
-		ElSeg3D aV = Capteur2RayTer(anI1r);
-		Pt3dr aTgt = aV.TgNormee();
-		if (aN.x*aTgt.x + aN.y*aTgt.y + aN.z*aTgt.z < 0.f)	
-		{
-			return aN;
-		}	
-		else
-		{
-			return Pt3dr(-aN.x,-aN.y,-aN.z);
-		}
-	}
-	
-	return Pt3dr(0.f,0.f,0.f);
+        std::vector<Pt3dr> aVP;
+        std::vector<double> aVPds;
+
+        int halfSize  = wSize/2;
+        tIndex2D anI2 = anI1 - Pt2di(halfSize, halfSize); //top-left corner of window
+        tIndex2D anI3;
+
+        //recherche des voisins et stockage des points
+        for(int aK = 0; aK<wSize ; ++aK)
+        {
+            for(int bK = 0; bK<wSize ; ++bK)
+            {
+                anI3 = anI2 + Pt2di(aK, bK);
+
+                if (IndexHasContenuAsNeighboor(anI3))
+                {
+                    aVP.push_back(PtOfIndex(anI3));
+                    aVPds.push_back(1.f);
+                }
+            }
+        }
+                if (aVP.size() <= 4) return Pt3dr(0,0,0);
+
+        //estimation du plan aux moindres carrés
+        cElPlan3D aPlan(aVP, &aVPds);
+
+        //retourne la normale en fonction de l'angle avec le segment PdV-Pt
+        Pt3dr aN = aPlan.Norm()* aFact;
+        // if (aN.x*aTgt.x + aN.y*aTgt.y + aN.z*aTgt.z < 0.f)
+        if (scal(aN,aTgt) < 0.f)
+        {
+            return aN;
+        }
+        else
+        {
+            // return Pt3dr(-aN.x,-aN.y,-aN.z);
+            return -aN;
+        }
+    }
+
+    return Pt3dr(0.f,0.f,0.f);
 }
 
 cXML_ParamNuage3DMaille&  cElNuage3DMaille::Params()
@@ -1194,7 +1203,7 @@ cElNuage3DMaille * cElNuage3DMaille::ReScaleAndClip(Box2dr aBox,double aScale)
         aRes->mAttrs.push_back(new cLayerNuage3DM(aVNewAttr[aKA],mAttrs[aKA]->Name()));
     }
     aRes->mGrpAttr = mGrpAttr;
- 
+
     aRes->VerifParams();
 
 /*
@@ -1211,7 +1220,7 @@ cElNuage3DMaille * cElNuage3DMaille::ReScaleAndClip(Box2dr aBox,double aScale)
     }
     aRes->mGrpAttr = mGrpAttr;
 */
-    
+
 
 
     if (aRes->mParams.Image_Point3D().IsInit())
@@ -1327,7 +1336,8 @@ void cElNuage3DMaille::AddAttrFromFile
     }
     aF = Tronque(aTEl,aF);
 
-    ELISE_COPY(aTF.all_pts(),aF,anOutGlog);
+    // ELISE_COPY(aTF.all_pts(),aF,anOutGlog);
+    ELISE_COPY(rectangle(Pt2di(0,0),mSzData),aF,anOutGlog);
 }
 
 const std::vector<cLayerNuage3DM *> &  cElNuage3DMaille::Attrs() const
@@ -1336,16 +1346,16 @@ const std::vector<cLayerNuage3DM *> &  cElNuage3DMaille::Attrs() const
 }
 
 
-bool cElNuage3DMaille::IndexIsPlani() const 
+bool cElNuage3DMaille::IndexIsPlani() const
 {
     return true;
 }
 
-Pt2dr  cElNuage3DMaille::Index2Plani(const Pt2dr & aP) const 
+Pt2dr  cElNuage3DMaille::Index2Plani(const Pt2dr & aP) const
 {
    return mCam->OrGlbImaC2M(aP);
 }
-Pt2dr  cElNuage3DMaille::Plani2Index(const Pt2dr & aP) const 
+Pt2dr  cElNuage3DMaille::Plani2Index(const Pt2dr & aP) const
 {
    return mCam->OrGlbImaM2C(aP);
 }
@@ -1364,12 +1374,12 @@ Pt2dr   cElNuage3DMaille::Terrain2Index(const Pt3dr & aPt) const
 }
 
 
-double   cElNuage3DMaille::ProfEuclidOfIndex(const tIndex2D & anI) const 
+double   cElNuage3DMaille::ProfEuclidOfIndex(const tIndex2D & anI) const
 {
     return ProfOfIndex(anI);
 }
 
-void     cElNuage3DMaille::SetProfEuclidOfIndex(const tIndex2D & anI,double aProf) 
+void     cElNuage3DMaille::SetProfEuclidOfIndex(const tIndex2D & anI,double aProf)
 {
    SetProfOfIndex(anI,aProf);
 }
@@ -1395,12 +1405,12 @@ double  cElNuage3DMaille::ProfOfIndex(const tIndex2D & aP)  const
 }
 
 
-double  cElNuage3DMaille::ProfEnPixel(const tIndex2D & aP) const 
+double  cElNuage3DMaille::ProfEnPixel(const tIndex2D & aP) const
 {
    ELISE_ASSERT(false,"cElNuage3DMaille::ProfEnPixel");
    return 0;
 }
-double  cElNuage3DMaille::ProfInterpEnPixel(const Pt2dr & aP) const 
+double  cElNuage3DMaille::ProfInterpEnPixel(const Pt2dr & aP) const
 {
    ELISE_ASSERT(false,"cElNuage3DMaille::ProfInterpEnPixel");
    return 0;
@@ -1457,13 +1467,13 @@ class cBasculeNuage : public cZBuffer
         {
         }
 
-		void Test(const Pt2dr & aP)
-		{
-		   Pt3dr aPEucl = mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),0);
-		   Pt3dr aPBasc = mDest->Euclid2ProfAndIndex(aPEucl);
+        void Test(const Pt2dr & aP)
+        {
+           Pt3dr aPEucl = mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),0);
+           Pt3dr aPBasc = mDest->Euclid2ProfAndIndex(aPEucl);
 
-		   std::cout << "TEST " << aP << aPEucl  << aPBasc << "\n";
-		}
+           std::cout << "TEST " << aP << aPEucl  << aPBasc << "\n";
+        }
 
      private :
 
@@ -1471,16 +1481,16 @@ class cBasculeNuage : public cZBuffer
         {
            return mDest->Euclid2ProfAndIndex(mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),aP.z));
         }
-        double ZofXY(const Pt2di & aP)   const 
+        double ZofXY(const Pt2di & aP)   const
         {
               return  mInput->ProfOfIndex(aP);
         }
-        bool SelectP(const Pt2di & aP)   const 
+        bool SelectP(const Pt2di & aP)   const
         {
               return  mInput->IndexHasContenu(aP);
         }
 
-        bool SelectPBascul(const Pt2dr & aP)   const 
+        bool SelectPBascul(const Pt2dr & aP)   const
         {
 // std::cout << "SelectPBascul " << mDest << "\n";
 // std::cout << "SelectPBascul " << mDest->IndexInsideGeom(round_ni(aP)) << "\n";
@@ -1512,11 +1522,11 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
             int aLabel,
             bool AutoResize,
             std::vector<Im2DGen *> * aVAttr
-       ) 
+       )
 {
     AssertNoEmptyData();
     aN2->AssertNoEmptyData();
-    if (anAAB) 
+    if (anAAB)
         SupprTriInv = true;
     cBasculeNuage aBasc(this,aN2,aGeomOutOri);
 
@@ -1530,7 +1540,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
         aBasc.InitDynEtirement(aCoeffEtire);
     Pt2di anOfOut;
     Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
-    cElNuage3DMaille * aNuageRes = this; 
+    cElNuage3DMaille * aNuageRes = this;
 
 
     // Pt2di anOfOutInit= anOfOut;
@@ -1547,7 +1557,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
             SupprTriInv,aCoeffEtire,anAAB,anAAB2,aLabel
     );
 
-    if (aVAttr) 
+    if (aVAttr)
     {
        *aVAttr= aBasc.AttrOut();
     }
@@ -1568,7 +1578,7 @@ void   cElNuage3DMaille::FinishBasculeInThis
             cArgAuxBasc * anAAB,
             cArgAuxBasc_Sec * anAAB2,
             int aLabel
-       ) 
+       )
 {
     AssertNoEmptyData();
     TIm2D<float,double>  aTMB(aMntBasc);
@@ -1588,7 +1598,7 @@ void   cElNuage3DMaille::FinishBasculeInThis
              bool aSInv = SupprTriInv  && (aTImTI.get(aP-anOfOut,0) == 1);
              if (anAAB)
              {
-                 if (aV>aBasculeValOut) 
+                 if (aV>aBasculeValOut)
                  {
                      double aProf1 = ProfOfIndex(aP);
                      if (aV > aProf1)
@@ -1601,7 +1611,7 @@ void   cElNuage3DMaille::FinishBasculeInThis
                         anAAB->mImInd.SetI(aP,aLabel);
                         anAAB->mImTriInv.SetI(aP,aSInv);
                      }
-                     else 
+                     else
                      {
                          if (aV>anAAB2->mImZ.GetR(aP))
                          {
@@ -1658,7 +1668,7 @@ cElNuage3DMaille *  cElNuage3DMaille::BasculementNewName
                     (
                          const cElNuage3DMaille * aN2,
                          bool SupprTriInv,
-                         double aCoeffEtire 
+                         double aCoeffEtire
                     ) const
 {
     cElNuage3DMaille * aRes = Clone();
@@ -1759,10 +1769,10 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 
    cElNuage3DMaille *  aNOut = cElNuage3DMaille::FromParam(aGeomOut,aDirIn,"",1.0,(cParamModifGeomMTDNuage *)0);
-   
+
 
    cParamModifGeomMTDNuage * aParamIn = 0;
-   if (anArgBasc.mBoxClipIn!=0) 
+   if (anArgBasc.mBoxClipIn!=0)
    {
       aParamIn = new cParamModifGeomMTDNuage(1.0,Box2dr(anArgBasc.mBoxClipIn->_p0,anArgBasc.mBoxClipIn->_p1));
    }
@@ -1782,7 +1792,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
     {
        anArgBasc.mResEtir = aRes->ImEtirement();
     }
-  
+
 
 
     if (anArgBasc.mDynEtir>0)
@@ -1813,7 +1823,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        int aOk;
        ELISE_COPY(aSol.all_pts(),aSol.in(),sigma(aOk));
        // std::cout << "NB OK " << aOk << "\n";
-       
+
 
        ELISE_COPY
        (
@@ -1864,16 +1874,32 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 /*
 */
 
+double DynProfInPixel(const cXML_ParamNuage3DMaille & aNuage)
+{
+   ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().OrIntImaM2C());
+   ElAffin2D aC2M = aM2C.inv();
+
+   double aSzPixel = (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
+
+   return (aSzPixel * aNuage.RatioResolAltiPlani().Val()) / (aNuage.Image_Profondeur().Val().ResolutionAlti());
+
+}
+
+double cElNuage3DMaille::DynProfInPixel() const
+{
+   return ::DynProfInPixel(Params());
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1883,17 +1909,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

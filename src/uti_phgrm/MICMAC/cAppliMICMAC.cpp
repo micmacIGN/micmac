@@ -329,7 +329,9 @@ cAppliMICMAC::cAppliMICMAC
    mDoTheMEC       (true),
    mAnaGeomMNT     (0),
    mMakeMaskImNadir  (0),
-   mMaxPrecision     (0)
+   mMaxPrecision     (0),
+   mGLOBMasq3D       (0),
+   mGLOBNuage        (0)
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {
@@ -416,18 +418,13 @@ cAppliMICMAC::cAppliMICMAC
    if (aNameExeEnv!=0)
       mNameExe = aNameExeEnv;
 
+   // Parfois besoin de chantier en amont pour Anam ....
+   if (!CalcNomChantier().IsInit() &&  NomChantier().IsInit())
+      mNameChantier = NomChantier().Val();
+
    InitDirectories();
    InitAnamSA();
    InitImages();
-/*
-   {
-        if (! CalledByProcess().Val())
-           mGPRed2 = new cEl_GPAO;
-std::cout << "BEGIN TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
-        TestReducIm(128);
-std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
-   }
-*/
    InitMemPart();
    ELISE_ASSERT(mNbPDV>=2,"Moins de 2 images selectionnees !!");
 
@@ -519,13 +516,6 @@ std::cout << "END TEST REDUCE " <<mGPRed2 <<  "\n"; getchar();
            MakeFileFDC();
     }
 
-/*
-    {
-        if (! CalledByProcess().Val())
-           mGPRed2 = new cEl_GPAO;
-        TestReducIm(128);
-    }
-*/
 
     if (    (! CalledByProcess().Val())
          && (Use_MM_EtatAvancement().Val())
@@ -678,6 +668,8 @@ void ViderDir(const std::string & aDir)
      ELISE_fp::PurgeDir(aDir);
 }
 
+// void MvDir2Dir(cInterfChantierNameManipulateur * aICN,std::string & aPat,
+
 void cAppliMICMAC::InitDirectories()
 {
     if (!TmpPyr().IsInit())
@@ -698,11 +690,38 @@ void cAppliMICMAC::InitDirectories()
 
    if (PurgeMECResultBefore().Val() &&  (!CalledByProcess().Val()))
    {
+       const std::vector<std::string> * aSetPres = 0;
        if (PreservedFile().IsInit())
-           System("mv " + mFullDirMEC + PreservedFile().Val() + " " + aTmp);
+       {
+          cInterfChantierNameManipulateur * aICD =  cInterfChantierNameManipulateur::BasicAlloc(mFullDirMEC);
+          aSetPres = aICD->Get(PreservedFile().Val());
+          std::cout  << "aSETPRES " << aSetPres->size() << "\n";
+       }
+
+       std::vector<std::string> aVTMP;
+       std::string anUId =  GetUnikId();
+       if (aSetPres)
+       {
+           for (int aK=0 ; aK<int(aSetPres->size()) ; aK++)
+           {
+               std::string  aNameIm = (*aSetPres)[aK];
+               std::string aFileTmp = aTmp + anUId + aNameIm;
+               ELISE_fp::MvFile(mFullDirMEC+aNameIm,aFileTmp);
+               aVTMP.push_back(aFileTmp);
+           }
+       }
+
        ViderDir(mFullDirMEC);
-       if (PreservedFile().IsInit())
-           System("mv " + aTmp + PreservedFile().Val() + " " + mFullDirMEC);
+
+       if (aSetPres)
+       {
+           for (int aK=0 ; aK<int(aSetPres->size()) ; aK++)
+           {
+               ELISE_fp::MvFile(aVTMP[aK],mFullDirMEC+(*aSetPres)[aK]);
+
+           }
+       }
+
        if (mFullDirResult != mFullDirMEC)
           ViderDir(mFullDirResult);
    }
@@ -1082,6 +1101,11 @@ void cAppliMICMAC::InitAnamSA()
                      "",
                      mXmlAnamSA
                );
+// std::cout << "AAAAAAAAaa\n";
+       if (mAnaGeomMNT && mAnaGeomMNT->UnUseAnamXCste().Val())
+       {
+              mAnamSA->SetUnusedAnamXCSte();
+       }
        ELISE_ASSERT(!mRepCorrel,"Anam and RepCorrel incompatibles");
     }
     else
@@ -1352,6 +1376,10 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
      if (PDVFromName  (aName,0))
         return;
 
+     if (CreateGrayFileAtBegin().Val())
+     {
+         Tiff_Im::StdConvGen(WorkDir() + aName, 1,true,true);
+     }
 
      std::string  aNameGeom;
      cGeometrieImageComp * theGotGeom = 0;
@@ -2154,7 +2182,8 @@ void cAppliMICMAC::TestReducIm(int aDZ)
 
     if (mGPRed2)
     {
-       mGPRed2->ExeParal(mFullDirMEC + "MkRed2MM",-1);
+       // GetUnikId : sinon pb avec le nouveau launchmake ...
+       mGPRed2->ExeParal(mFullDirMEC + "MkRed2MM" + GetUnikId() ,-1);
     }
 
 

@@ -681,6 +681,7 @@ class cPriseDeVue
 
 			double  DzOverPredic(const Pt3dr &) const;
                         CamStenope *  GetOri() const;
+                        std::string NameMasqOfResol(int aMasq) const;
 
         private :
 
@@ -693,7 +694,6 @@ class cPriseDeVue
            std::string OneNameMasq(const std::list<cOneMasqueImage> & aList) const;
            Fonc_Num    FoncMasq(std::string  & aName) const;
   
-           std::string NameMasqOfResol(int aMasq) const;
 
 
 
@@ -864,6 +864,8 @@ class cGeomDiscFPx : public  cGeomDiscR2
 {
      public :
        // defini dans GeomXXX.cpp
+
+         void SetZIsAbs();
 
          double  CorrectDerivee() const;
 
@@ -2042,6 +2044,8 @@ class cEtapeMecComp
           int   DeZoomTer() const;
           int   DeZoomIm() const;
           const cGeomDiscFPx &  GeomTer() const;
+  // GeomTerFina tient compte de l'eventuel ExportZAbs qui a ete rajoute a posteriori
+          cGeomDiscFPx   GeomTerFinal() const;
           cGeomDiscFPx &  GeomTer() ;
 
           void Show() const;  // Debug/ MaP
@@ -2630,6 +2634,9 @@ class   cGPU_LoadedImGeom
            AssertOneImage();
            return mLinDIm[0];
       }
+      U_INT1 ** ImPC()      {return mImPC;}
+      U_INT1**  ImMasq()    {return mImMasq;}
+      U_INT1**  ImMasqErod()    {return mImMasqErod;}
       float *** VDataIm()   {return mDataIm;}
       float **  VLinDIm()   {return mLinDIm;}
       double  PdsMS() const;
@@ -2985,8 +2992,16 @@ class cAppliMICMAC  : public   cParamMICMAC,
 		void DoGPU_Correl_Basik (const Box2di & aBoxInterne); 
 
 #ifdef  CUDA_ENABLED
+        ///
+        /// \brief Tabul_Projection
+        /// \param Z
+        /// \param interZ
+        /// \param idBuf
+        ///
         void Tabul_Projection(int Z,  uint &interZ, ushort idBuf);
         void setVolumeCost(int interZ0, int interZ1, ushort idBuf);
+        void Tabul_Images(int Z, uint &interZ, ushort idBuf);
+
 #endif
 		void Correl_MNE_ZPredic (const Box2di & aBoxInterne,const cCorrel_Correl_MNE_ZPredic &);  
 		void DoCorrelPonctuelle2ImGeomI(const Box2di&aBoxInterne,const cCorrel_Ponctuel2ImGeomI&);  
@@ -3655,6 +3670,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 	// GPGPU
 #ifdef CUDA_ENABLED
         GpGpuInterfaceCorrel	IMmGg;
+        GpGpuInterfaceCensus    interface_Census_GPU;
 #endif	
 
          cMMTP *  mMMTP;
@@ -3664,6 +3680,12 @@ class cAppliMICMAC  : public   cParamMICMAC,
          cMakeMaskImNadir         * mMakeMaskImNadir;
 
          int     mMaxPrecision;
+ 
+     public :
+       // Pour debug MM TieP
+         cMasqBin3D *      mGLOBMasq3D;
+         cElNuage3DMaille* mGLOBNuage;
+
 };
 
 std::string  StdNameFromCple
@@ -3752,6 +3774,16 @@ template <class TypeEl,class tBase> cInterpolateurIm2D<TypeEl>  * InterpoleOfEta
 
 void GenTFW(const cFileOriMnt & aFOM,const std::string & aName);
 
+
+void TestGeomTer(const cFileOriMnt & aFOM,const std::string & aMessage);
+
+// Fonction extern pour appel depuis CPU ou GPU
+void CombleTrouPrgDyn (
+         const cModulationProgDyn & aPrgD,
+         Im2D_Bits<1>  aMaskCalc,
+         Im2D_Bits<1>  aMaskTer,
+         Im2D_INT2     aImZ
+     );
 
 
 

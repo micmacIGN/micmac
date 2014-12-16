@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 ##########################################################################
-#FDSC v0.95                                                              #
-#Fault Displacement Slip-Curve                                           #
+# Fault Displacement Slip-Curve (FDSC) v1.0                              #
 #                                                                        #
-#Copyright (C) (2013-2014) Ana-Maria Rosu, IPGP-IGN project financed by CNES  #
-#am.rosu@laposte.net                                                     #
+# Copyright (C) (2013-2014) Ana-Maria Rosu am.rosu@laposte.net           #
+# IPGP-ENSG/IGN project financed by TOSCA/CNES                           #
 #                                                                        #
-#This software is governed by the CeCILL-B license under French law and  #
+#                                                                        #
+# This software is governed by the CeCILL-B license under French law and #
 #abiding by the rules of distribution of free software.  You can  use,   #
 #modify and/ or redistribute the software under the terms of the CeCILL-B#
 #license as circulated by CEA, CNRS and INRIA at the following URL       #
@@ -29,6 +29,12 @@ from fonctions_cg import *
 
 class MainWindow(QtGui.QMainWindow):
   def __init__(self, parent=None):
+    print "********************************************************"
+    print "*****  Fault Displacement Slip-Curve (FDSC) v1.0   *****"
+    print "*** Copyright (C) (2013-2014) Ana-Maria Rosu         ***"
+    print "** IPGP-ENSG/IGN project financed by TOSCA/CNES       **"
+    print "** This software is governed by the CeCILL-B license. **"
+    print "********************************************************"
     super(MainWindow, self).__init__(parent)
     self.initUI()
 
@@ -507,5 +513,8 @@ def main():
     ex = MainWindow()
     sys.exit(app.exec_())
 
+
+#"http://www.cecill.info".
 if __name__ == '__main__':
     main()
+

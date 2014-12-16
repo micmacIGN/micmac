@@ -2,15 +2,18 @@
 
 SData2Correl::SData2Correl():
     _texMaskGlobal(getMaskGlobal()),
+    _TexMaskImages(getTexL_MaskImages()),
     _texImages(getImage()),
     _texProjections_00(getProjection(0)),
     _texProjections_01(getProjection(1))
 {
     _d_volumeCost[0].SetName("_d_volumeCost");
     _d_volumeCach[0].SetName("_d_volumeCach");
-    _d_volumeNIOk[0].SetName("_d_volumeNIOk");
-    _dt_GlobalMask.CData2D::SetName("_dt_GlobalMask");
+    _d_volumeNIOk[0].SetName("_d_volumeNIOk");    
+    _dt_GlobalMask.SetNameImage("_dt_GlobalMask");
+
     _dt_LayeredImages.CData3D::SetName("_dt_LayeredImages");
+    _dt_LayeredMaskImages.CData3D::SetName("_dt_LayeredMaskImages");
     _dt_LayeredProjection->CData3D::SetName("_dt_LayeredProjection");
 
     // Parametres texture des projections
@@ -23,7 +26,13 @@ SData2Correl::SData2Correl():
     _texMaskGlobal.addressMode[0]	= cudaAddressModeBorder;
     _texMaskGlobal.addressMode[1]	= cudaAddressModeBorder;
     _texMaskGlobal.filterMode       = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
-    _texMaskGlobal.normalized       = false;
+    _texMaskGlobal.normalized       = false;   
+
+    _TexMaskImages.addressMode[0]	= cudaAddressModeBorder;
+    _TexMaskImages.addressMode[1]	= cudaAddressModeBorder;
+    _TexMaskImages.filterMode       = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
+    _TexMaskImages.normalized       = false;
+
 
     for (int i = 0; i < SIZERING; ++i)
     {
@@ -42,12 +51,13 @@ SData2Correl::~SData2Correl()
 void SData2Correl::MallocInfo()
 {
     std::cout << "Malloc Info GpGpu\n";
-    GpGpuTools::OutputInfoGpuMemory();
+    CGpGpuContext<cudaContext>::OutputInfoGpuMemory();
     _d_volumeCost[0].MallocInfo();
     _d_volumeCach[0].MallocInfo();
     _d_volumeNIOk[0].MallocInfo();
-    _dt_GlobalMask.CData2D::MallocInfo();
+    _dt_GlobalMask.DecoratorImage<cudaContext>::MallocInfo();
     _dt_LayeredImages.CData3D::MallocInfo();
+    _dt_LayeredMaskImages.CData3D::MallocInfo();
     _dt_LayeredProjection[0].CData3D::MallocInfo();
 }
 
@@ -85,6 +95,7 @@ void SData2Correl::DeallocDeviceData()
 {
     checkCudaErrors( cudaUnbindTexture(&_texImages) );    
     checkCudaErrors( cudaUnbindTexture(&_texMaskGlobal) );
+    checkCudaErrors( cudaUnbindTexture(&_TexMaskImages) );
 
     for (int s = 0;s<NSTREAM;s++)
     {
@@ -96,6 +107,7 @@ void SData2Correl::DeallocDeviceData()
 
     _dt_GlobalMask.Dealloc();
     _dt_LayeredImages.Dealloc();
+    _dt_LayeredMaskImages.Dealloc();
 
     _dRect.Dealloc();
 
@@ -128,12 +140,27 @@ void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
 #endif
 }
 
+void SData2Correl::SetMaskImages(pixel *dataMaskImages, uint2 dimMaskImage, int nbLayer)
+{
+#ifdef  NVTOOLS
+    GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A22B5);
+#endif
+    // Images vers Textures Gpu
+    _dt_LayeredMaskImages.CData3D::ReallocIfDim(dimMaskImage,nbLayer);
+    _dt_LayeredMaskImages.copyHostToDevice(dataMaskImages);
+    _dt_LayeredMaskImages.bindTexture(_TexMaskImages);
+#ifdef  NVTOOLS
+    nvtxRangePop();
+#endif
+}
+
 void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
 {   
 	#ifdef  NVTOOLS
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF1A2B51);
-	#endif
-    _dt_GlobalMask.CData2D::ReallocIfDim(dimMask);
+    #endif
+    //  TODO Verifier si le ReallocIfDim fonctionne.... s'il ne redimmension pas a chaque fois!!!
+    _dt_GlobalMask.DecoratorImage<cudaContext>::ReallocIfDim(dimMask,1);
     _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
 	#ifdef  NVTOOLS
@@ -147,8 +174,10 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFF292CB0);
 	#endif
 
-    _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.invPC.nbImages * param.ZCInter);
 
+//    printf("STart Realloc _dt_LayeredProjection\n");
+    _dt_LayeredProjection[s].ReallocIfDim(param.dimSTer,param.invPC.nbImages * param.ZCInter);
+//    printf("START Realloc _dt_LayeredProjection\n");
 
     // Gestion des bords d'images
     _dRect.ReallocIfDim(make_uint2(1,1),param.invPC.nbImages * param.ZCInter);
@@ -279,7 +308,9 @@ void SData2Correl::ReallocDeviceData(int nStream, pCorGpu param)
     _d_volumeNIOk[nStream].ReallocIf(param.HdPc.dimTer,     param.ZCInter * param.invPC.nbClass);
 }
 
-void SData2Correl::MemsetHostVolumeProj(uint iDef)
+void SData2Correl::MemsetHostVolumeProj(int iDef)
 {
     _hVolumeProj.Memset(iDef);
+    // TODO MASQIMAGE
+    //_hVolumeProj.Fill(make_float2(-80000000,-80000000));
 }

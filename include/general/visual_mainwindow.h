@@ -8,7 +8,6 @@
 #include "StdAfx.h"
 
 
-#include "Elise_QT.h"
 #include "saisieQT_window.h"
 #include "general/visual_buttons.h"
 
@@ -138,12 +137,13 @@ protected:
 
     int                 _curIdx;
 
-    bool                _showDialog; //do we show "Job done" at the end of process"
+    bool                _showDialog; //do we show "Job done" at the end of process
+
+    bool                _bMaltGeomImg;
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);
 void ShowEnum(const cMMSpecArg & anArg);
-void setStyleSheet(QApplication &app);
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr);
 
 #endif //ELISE_QT_VERSION >= 4

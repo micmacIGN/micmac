@@ -43,6 +43,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur * aICNM);
 
+const std::string  DirFusMMInit();
+const std::string  DirFusStatue();
+const std::string  PrefDNF() ; //  DownScale_NuageFusion-
+
+const std::string TheDIRMergTiepForEPI();
+const std::string TheDIRMergeEPI();
+const std::string TheRaffineQuickMac();
+const std::string TheRaffineQuickMac(const std::string &);
 
 
 class cImaMM;
@@ -53,8 +61,10 @@ class cAttrSomAWSI
 {
     public :
         cAttrSomAWSI();
-        cAttrSomAWSI(cImaMM*);
+        cAttrSomAWSI(cImaMM*,int aNumGlob,int aNumAccepted);
         cImaMM* mIma;
+        int     mNumGlob;
+        int     mNumAccepted;
 };
 
 class cAttrArcAWSI
@@ -91,10 +101,16 @@ class cImaMM
        CamStenope * mCam;
        Pt3dr        mC3;
        Pt2dr        mC2;
-       Tiff_Im  &   Tiff();
+       Tiff_Im  &   TiffStd();
+       Tiff_Im  &   Tiff8BGr();
+       Tiff_Im  &   Tiff8BCoul();
+       Tiff_Im  &   Tiff16BGr();
     private :
        cAppliWithSetImage &  mAppli;
-       Tiff_Im  *            mPtrTiff;
+       Tiff_Im  *            mPtrTiffStd;
+       Tiff_Im  *            mPtrTiff8BGr;
+       Tiff_Im  *            mPtrTiff8BCoul;
+       Tiff_Im  *            mPtrTiff16BGr;
 
 };
 
@@ -121,6 +137,8 @@ class cElemAppliSetFile
        std::string mDir;
        std::string mPat;
        cInterfChantierNameManipulateur * mICNM;
+       const cInterfChantierNameManipulateur::tSet * SetIm();
+    private :
        const cInterfChantierNameManipulateur::tSet * mSetIm;
 };
 
@@ -130,12 +148,22 @@ class cAppliWithSetImage
    public :
       CamStenope * CamOfName(const std::string & aName);
       const std::string & Dir() const;
+      const std::string & Ori() const;
+      bool HasOri() const;
+      cInterfChantierNameManipulateur * ICNM() ;
       int  DeZoomOfSize(double ) const;
       void operator()(tSomAWSI*,tSomAWSI*,bool);   // Delaunay call back
+
+    // Remplace la commande argc-argc par N command avec les image indiv, aNumPat est necessaire car peut varier (TestLib ou non)
+      std::list<std::pair<std::string,std::string> > ExpandCommand(int aNumPat,std::string ArgSup,bool Exe=false);
    protected :
   
-      cAppliWithSetImage(int argc,char ** argv,int aFlag);
+      cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI="");
 
+      void SaveCAWSI(const std::string & aName) ;
+      bool CAWSI_AcceptIm(const std::string & aName) const;
+      bool CAWSI_AcceptCpleIm(const std::string & aN1,const std::string &  aN2) const;
+      
       void FilterImageIsolated();
       void Develop(bool EnGray,bool En16B);
       bool MasterSelected(const std::string & aName) const;
@@ -149,6 +177,8 @@ class cAppliWithSetImage
       static const int  TheFlagAcceptProblem  = 8;  // ERREUR DE DEBUTANT FlagNoOri=3 !!!!
 
       tSomAWSI * ImOfName(const std::string & aName);
+      bool ImIsKnown(const std::string & aName) const;
+
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
       void AddCoupleMMImSec(bool ExeApero);
@@ -180,6 +210,9 @@ class cAppliWithSetImage
       std::map<std::string,tSomAWSI *> mDicIm;
       tGrAWSI  mGrIm;
       std::vector<tSomAWSI*> mVSoms;
+      bool                             mWithCAWSI;
+      std::map<std::string,cCWWSImage> mDicWSI;
+
       cSubGrAWSI   mSubGrAll;
       double       mAverNbPix;
 
@@ -192,6 +225,10 @@ class cAppliWithSetImage
       double AltiMoy() const;
       cSetName *   mSetMasters;
       bool mCalPerIm;
+      bool mModeHelp;
+      std::string  mMasq3D;
+
+      static const std::string TheMMByPairNameCAWSI;
 
 
    private :

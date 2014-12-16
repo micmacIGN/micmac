@@ -1,29 +1,66 @@
 #include "StdAfx.h"
 
-#if (ELISE_QT_VERSION >= 4)
-#ifdef Int
-#undef Int
-#endif
-#endif
-
-class Dimap{
+//! Classe pour la conversion de fichier DIMAP en fichier Grid
+class Dimap
+{
 public:
-    Dimap(std::string const &nomFile)
-    {
-        lireDimapFile(nomFile);
-    }
+    ///
+    /// \brief lecture du fichier DIMAP
+    /// \param filename nom du fichier DIMAP
+    ///
+    Dimap(std::string const &filename);
 
-    void lireDimapFile(std::string const &nomFile);
-
+    ///
+    /// \brief transformation des coordonnées d'un point image en point terrain
+    /// \param Pimg point image
+    /// \param altitude altitude terrain
+    /// \return point terrain
+    ///
     Pt2dr direct(Pt2dr Pimg, double altitude)const;
 
+    ///
+    /// \brief transformation des coordonnées d'un point terrain en point image
+    /// \param Pgeo point terrain
+    /// \param altitude altitude terrain
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    /// \param rowCrop ligne du coin haut gauche pour croper
+    /// \param sampCrop colonne du coin haut gauche pour croper
+    /// \return
+    ///
     Pt2dr indirect(Pt2dr Pgeo, double altitude,std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const;
 
+    ///
+    /// \brief Conversion de coordonnées géographiques d'un point en coordonnées cartographiques
+    /// \param Pgeo coordonnées géoégraphiques
+    /// \param targetSyst système de projection cible, par defaut targetSyst="+init=IGNF:LAMB93"
+    /// \return
+    ///
     Pt2dr ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const;
 
+    ///
+    /// \brief Application de l'affinité à la grille au point Pimg
+    /// \param Pimg point image
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    /// \param rowCrop ligne du coin haut gauche pour croper
+    /// \param sampCrop colonne du coin haut gauche pour croper
+    /// \return
+    ///
     Pt2dr ptRefined(Pt2dr Pimg,std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const;
 
-
+    ///
+    /// \brief détermination des sommets de la grille en coordonnées image en fonction du pas (en pixels) puis conversion en coordonnées géographiques
+    /// \param ulcSamp colonne du coin supérieur gauche de la grille en coordonnées image
+    /// \param ulcLine ligne du coin supérieur gauche de la grille en coordonnées image
+    /// \param stepPixel pas en pixels pour la grille en coordonnées image
+    /// \param nbSamp nombre de colonnes de la grille en coordonnées image
+    /// \param nbLine nombre de lignes de la grille en coordonnées image
+    /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+    /// \param vPtCarto vecteur de structures de points Pt2dr qui contient les sommets de la grille directe (pour l'ensemble des « layers »)
+    /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    /// \param rowCrop ligne du coin supérieur gauche de l'image - pour crop
+    /// \param sampCrop colonne du coin supérieur gauche de l'image - pour crop
+    ///
     void createDirectGrid(double ulcSamp, double ulcLine,
                           double stepPixel,
                           int nbSamp, int  nbLine,
@@ -31,6 +68,20 @@ public:
                           std::vector<Pt2dr> &vPtCarto, std::string targetSyst,
                           std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const;
 
+    ///
+    /// \brief calcul des sommets de la grille en coordonnées terrain (cartographiques) en fonction du pas puis conversion en coordonnées géographiques et enfin image
+    /// \param ulcX longitude du coin supérieur gauche de la grille en coordonnées cartographiques
+    /// \param ulcY latitude du coin supérieur gauche de la grille en coordonnées cartographiques
+    /// \param nbrSamp nombre de colonnes de la grille en coordonnées cartographiques
+    /// \param nbrLine nombre de lignes de la grille en coordonnées cartographiques
+    /// \param stepCarto pas en mètres pour la grille en coordonnées cartographiques
+    /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+    /// \param vPtImg vecteur de sommets de la grille inverse (pour l'ensemble des « layers »)
+    /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    /// \param rowCrop ligne du coin supérieur gauche de l'image - pour crop
+    /// \param sampCrop colonne du coin supérieur gauche de l'image - pour crop
+    ///
     void createIndirectGrid(double ulcX, double ulcY,
                             int nbrSamp, int nbrLine,
                             double stepCarto,
@@ -38,15 +89,33 @@ public:
                             std::vector<Pt2dr> &vPtImg, std::string targetSyst,
                             std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const;
 
+    ///
+    /// \brief creation du fichier XML et calculs intermediaires
+    /// \param nomGrid nom du fichier Grid en sortie
+    /// \param nomImage nom de l'image concernée
+    /// \param stepPixel pas en pixels pour la grille en coordonnées image
+    /// \param stepCarto pas en mètres pour la grille en coordonnées cartographiques
+    /// \param rowCrop ligne du coin supérieur gauche de l'image - pour crop
+    /// \param sampCrop colonne du coin supérieur gauche de l'image - pour crop
+    /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+    /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+    /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+    ///
     void createGrid(std::string const &nomGrid, std::string const &nomImage,
                     double stepPixel, double stepCarto,
                     double rowCrop, double sampCrop,
                     std::vector<double> vAltitude, std::string targetSyst,
-                    std::vector<double> vRefineCoef, bool refine)const;
+                    std::vector<double> vRefineCoef)const;
+
+    ///
+    /// \brief infos fichier DIMAP
+    ///
     void info()
     {
+        std::cout << "Dimap info:"<<std::endl;
+        std::cout << "==========================================================="<<std::endl;
         std::cout << "long_scale   : "<<long_scale<<  " | long_off   : "<<long_off<<std::endl;
-        std::cout << "lat_scale    : "<<lat_scale<<   " | lat_off    : "<<lat_off<<std::endl;
+        std::cout << "lat_scale    : "<<lat_scale<<   " | lat_off    : "<<lat_off <<std::endl;
         std::cout << "height_scale : "<<height_scale<<" | height_off : "<<height_off<<std::endl;
         std::cout << "samp_scale   : "<<samp_scale<<  " | samp_off   : "<<samp_off<<std::endl;
         std::cout << "line_scale   : "<<line_scale<<  " | line_off   : "<<line_off<<std::endl;
@@ -54,49 +123,75 @@ public:
         std::cout << "first_col    : "<<first_col<<   " | last_col   : "<<last_col<<std::endl;
         std::cout << "first_lon    : "<<first_lon<<   " | last_lon   : "<<last_lon<<std::endl;
         std::cout << "first_lat    : "<<first_lat<<   " | last_lat   : "<<last_lat<<std::endl;
+        std::cout << "direct_samp_num_coef : "<<direct_samp_num_coef.size()<<std::endl;
+        std::cout << "direct_samp_den_coef : "<<direct_samp_den_coef.size()<<std::endl;
+        std::cout << "direct_line_num_coef : "<<direct_line_num_coef.size()<<std::endl;
+        std::cout << "direct_line_den_coef : "<<direct_line_den_coef.size()<<std::endl;
+        std::cout << "indirect_samp_num_coef : "<<indirect_samp_num_coef.size()<<std::endl;
+        std::cout << "indirect_samp_den_coef : "<<indirect_samp_den_coef.size()<<std::endl;
+        std::cout << "indirect_line_num_coef : "<<indirect_line_num_coef.size()<<std::endl;
+        std::cout << "indirect_line_den_coef : "<<indirect_line_den_coef.size()<<std::endl;
+        std::cout << "==========================================================="<<std::endl;
     }
 
+    ///
+    /// \brief effacement des fichiers relatifs à la creation des grilles ssi le modèle n'est pas affiné
+    /// \param nomGrid nom du fichier Grid en sortie
+    /// \param refine la grille est-elle affinée
+    ///
     void clearing(std::string const &nomGrid, bool refine)
     {
-        //effacement des fichiers relatifs Ã  la crÃ©ation des grilles ssi le modÃ¨le n'est pas affinÃ©
         if (refine == false)
-            {
-            remove (nomGrid.c_str());
-            //Clear GRC grid and binary Grid
-            std::string gridGRC = nomGrid;
-            gridGRC.replace(gridGRC.end()-1,gridGRC.end(),"C");
-            remove (gridGRC.c_str());
-            std::string refGridGRC2 = nomGrid;
-            refGridGRC2.append("Bin");
-            remove (refGridGRC2.c_str());
-            remove ("processing/conv_ptGeo.txt");
-            remove ("processing/conv_ptLamb93.txt");
-            remove ("processing/direct_ptGeo.txt");
-            remove ("processing/direct_ptCarto.txt");
-            remove ("processing/indirect_ptGeo.txt");
-            remove ("processing/indirect_ptCarto.txt");
-            remove ("processing");
-            }
-        //effacement de la grille affinÃ©e + grilles GRC et binaire
-        remove (nomGrid.c_str());
-
-        std::string refGridGRC = nomGrid;
-        refGridGRC.replace(refGridGRC.end()-1,refGridGRC.end(),"C");
-        remove (refGridGRC.c_str());
+        {
+            if (ifstream("processing/conv_ptGeo.txt"))       ELISE_fp::RmFile("processing/conv_ptGeo.txt");
+            if (ifstream("processing/conv_ptCarto.txt"))     ELISE_fp::RmFile("processing/conv_ptCarto.txt");
+            if (ifstream("processing/direct_ptGeo.txt"))     ELISE_fp::RmFile("processing/direct_ptGeo.txt");
+            if (ifstream("processing/direct_ptCarto.txt"))   ELISE_fp::RmFile("processing/direct_ptCarto.txt");
+            if (ifstream("processing/indirect_ptGeo.txt"))   ELISE_fp::RmFile("processing/indirect_ptGeo.txt");
+            if (ifstream("processing/indirect_ptCarto.txt")) ELISE_fp::RmFile("processing/indirect_ptCarto.txt");
+            if (ELISE_fp::IsDirectory("processing"))         ELISE_fp::RmDir("processing");
+        }
+        //effacement de la grille affinee + grilles GRC et binaire
+        std::string gridGRC = nomGrid;
         std::string refGridGRC2 = nomGrid;
         refGridGRC2.append("Bin");
-        remove (refGridGRC2.c_str());
+
+        if (ifstream(nomGrid.c_str()))     ELISE_fp::RmFile(nomGrid.c_str());
+        if (ifstream(gridGRC.c_str()))     ELISE_fp::RmFile(gridGRC.c_str());
+        if (ifstream(refGridGRC2.c_str())) ELISE_fp::RmFile(refGridGRC2.c_str());
     }
 
-//private:
+    ///
+    /// \brief vecteur des 20 coefficients du numérateur de la fonction de calcul de la longitude par transformation  RFM directe
+    ///
     std::vector<double> direct_samp_num_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du dénominateur de la fonction de calcul de la longitude par transformation  RFM directe
+    ///
     std::vector<double> direct_samp_den_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du numérateur de la fonction de calcul de la latitude par transformation  RFM directe
+    ///
     std::vector<double> direct_line_num_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du dénominateur de la fonction de calcul de la latitude par transformation  RFM directe
+    ///
     std::vector<double> direct_line_den_coef;
-
+    ///
+    /// \brief vecteur des 20 coefficients du numérateur de la fonction de calcul de la colonne par transformation  RFM indirecte
+    ///
     std::vector<double> indirect_samp_num_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du dénominateur de la fonction de calcul de la colonne par transformation  RFM indirecte
+    ///
     std::vector<double> indirect_samp_den_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du numérateur de la fonction de calcul de la ligne par transformation  RFM indirecte
+    ///
     std::vector<double> indirect_line_num_coef;
+    ///
+    /// \brief vecteur des 20 coefficients du dénominateur de la fonction de calcul de la ligne par transformation  RFM indirecte
+    ///
     std::vector<double> indirect_line_den_coef;
 
     double indirErrBiasRow;
@@ -104,36 +199,87 @@ public:
     double dirErrBiasX;
     double dirErrBiasY;
 
+    ///
+    /// \brief ligne minimale du domaine de validité de la transformation directe (RFM) issue du fichier DIMAP
+    ///
     double first_row;
+    ///
+    /// \brief colonne minimale du domaine de validité de la transformation directe (RFM) issue du fichier DIMAP
+    ///
     double first_col;
+    ///
+    /// \brief ligne maximale du domaine de validité de la transformation directe (RFM) issue du fichier DIMAP
+    ///
     double last_row;
+    ///
+    /// \brief colonne maximale du domaine de validité de la transformation directe (RFM) issue du fichier DIMAP
+    ///
     double last_col;
+    ///
+    /// \brief longitude minimale du domaine de validité de la transformation indirecte (RFM) issue du fichier DIMAP
+    ///
     double first_lon;
+    ///
+    /// \brief latitude minimale du domaine de validité de la transformation indirecte (RFM) issue du fichier DIMAP
+    ///
     double first_lat;
+    ///
+    /// \brief longitude maximale du domaine de validité de la transformation indirecte (RFM) issue du fichier DIMAP
+    ///
     double last_lon;
+    ///
+    /// \brief latitude maximale du domaine de validité de la transformation indirecte (RFM) issue du fichier DIMAP
+    ///
     double last_lat;
-
+    ///
+    /// \brief facteur d'échelle de la longitude (géographique) issu du fichier Dimap
+    ///
     double long_scale;
+    ///
+    /// \brief offset de la longitude (géographique) issu du fichier DIMAP
+    ///
     double long_off;
+    ///
+    /// \brief acteur d'échelle de la latitude (géographique) issu du fichier Dimap
+    ///
     double lat_scale;
+    ///
+    /// \brief offset de la latitude (géographique) issu du fichier DIMAP
+    ///
     double lat_off;
-
+    ///
+    /// \brief facteur d'échelle de la colonne (coordonnées image) issu du fichier DIMAP
+    ///
     double samp_scale;
+    ///
+    /// \brief offset de la colonne (coordonnées image) issu du fichier DIMAP
+    ///
     double samp_off;
+    ///
+    /// \brief facteur d'échelle de la ligne (coordonnées image)  issu du fichier DIMAP
+    ///
     double line_scale;
+    ///
+    /// \brief offset de la ligne (coordonnées image)  issu du fichier DIMAP
+    ///
     double line_off;
 
+    ///
+    /// \brief facteur d'échelle de l'altitude issu du fichier DIMAP
+    ///
     double height_scale;
+    ///
+    /// \brief offset de l'altitude issu du fichier DIMAP
+    ///
     double height_off;
 
 };
 
 
 
-
 Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
 {
-    //Calcul des coordonnÃ©es image normalisÃ©es
+    //Calcul des coordonnees image normalisees
     double Y=(Pimg.y-line_off)/line_scale;
     double X=(Pimg.x-samp_off)/samp_scale;
     double Z=(altitude-height_off)/height_scale;
@@ -154,22 +300,21 @@ Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
 
     //Calcul final
     Pt2dr Pgeo;
-    if ((lat_den != 0) &&
-        (long_den !=0))
+    if ((lat_den != 0) && (long_den !=0))
     {
         Pgeo.x = (lat_num / lat_den) * lat_scale + lat_off;
         Pgeo.y = (long_num / long_den) * long_scale + long_off;
     }
     else
     {
-        std::cout << "Erreur de calcul - dÃ©nominateur nul"<<std::endl;
+        std::cout << "Erreur de calcul - denominateur nul"<<std::endl;
     }
     return Pgeo;
 }
 
 Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
-    //Calcul des coordonnÃ©es image normalisÃ©es
+    //Calcul des coordonnees image normalisees
     double Y=(Pgeo.y-long_off)/long_scale;
     double X=(Pgeo.x-lat_off)/lat_scale;
     double Z=(altitude-height_off)/height_scale;
@@ -189,15 +334,14 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCo
     }
     //Calcul final
     Pt2dr Pimg;
-    if ((samp_den != 0) &&
-        (line_den !=0))
+    if ((samp_den != 0) && (line_den !=0))
     {
         Pimg.x = (samp_num / samp_den) * samp_scale + samp_off;
         Pimg.y = (line_num / line_den) * line_scale + line_off;
     }
     else
     {
-        std::cout << "Erreur de calcul - dÃ©nominateur nul"<<std::endl;
+        std::cout << "Erreur de calcul - denominateur nul"<<std::endl;
     }
     Pt2dr PimgRefined = ptRefined(Pimg,vRefineCoef,rowCrop,sampCrop);
     return PimgRefined;
@@ -205,16 +349,15 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCo
 
 Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const
 {
-
     std::ofstream fic("processing/conv_ptGeo.txt");
     fic << std::setprecision(15);
     fic << Pgeo.y <<" "<<Pgeo.x<<";"<<std::endl;
     // transfo en Lambert93
     std::string command;
-    command = "cs2cs +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
     int res = system(command.c_str());
-    if (res != 0) std::cout<<"error calling cs2cs"<<std::endl;
-    // chargement des coordonnÃ©es du point converti
+    if (res != 0) std::cout<<"error calling cs2cs in ptGeo2Carto"<<std::endl;
+    // chargement des coordonnees du point converti
     Pt2dr PointCarto;
     std::ifstream fic2("processing/conv_ptCarto.txt");
     while(!fic2.eof()&&fic2.good())
@@ -223,18 +366,18 @@ Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const
         char c;
         fic2 >> Y >> X >> Z >> c;
         if (fic2.good())
-            {
-                PointCarto.x=X;
-                PointCarto.y=Y;
-            }
+        {
+            PointCarto.x=X;
+            PointCarto.y=Y;
+        }
     }
     return PointCarto;
 }
 
 Pt2dr Dimap::ptRefined(Pt2dr Pimg, std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
-    //Pour calculer les coordonnÃ©es affinÃ©es d'un point
-    Pt2dr PimgRefined;
+    //Pour calculer les coordonnees affinees d'un point
+    Pt2dr pImgRefined;
     Pt2dr pCropRefined;
     Pt2dr pCrop;
     pCrop.x=Pimg.x-sampCrop;
@@ -242,17 +385,17 @@ Pt2dr Dimap::ptRefined(Pt2dr Pimg, std::vector<double> vRefineCoef,double rowCro
     pCropRefined.x= vRefineCoef[0] + pCrop.x * vRefineCoef[1] + pCrop.y * vRefineCoef[2];
     pCropRefined.y= vRefineCoef[3] + pCrop.x * vRefineCoef[4] + pCrop.y * vRefineCoef[5];
 
-    PimgRefined.x= pCropRefined.x+sampCrop;
-    PimgRefined.y= pCropRefined.y+rowCrop;
+    pImgRefined.x= pCropRefined.x+sampCrop;
+    pImgRefined.y= pCropRefined.y+rowCrop;
 
-    return PimgRefined;
+    return pImgRefined;
 }
 
 
 void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
-                      double stepPixel,
-                      int nbSamp, int  nbLine,
-                      std::vector<double> const &vAltitude,
+                             double stepPixel,
+                             int nbSamp, int  nbLine,
+                             std::vector<double> const &vAltitude,
                              std::vector<Pt2dr> &vPtCarto, std::string targetSyst,
                              std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
@@ -268,11 +411,9 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
             {
                 for(int c = 0;c<nbSamp;++c)
                 {
-                    double cStep = c  * stepPixel;
-                    double lStep = l * stepPixel;
-                    Pt2dr Pimg(ulcSamp + cStep, ulcLine + lStep);
+                    Pt2dr Pimg(ulcSamp + c * stepPixel, ulcLine + l * stepPixel);
 
-                    //pour affiner les coordonnÃ©es
+                    //pour affiner les coordonnees
                     Pt2dr PimgRefined = ptRefined(Pimg, vRefineCoef, rowCrop, sampCrop);
 
                     Pt2dr Pgeo = direct(PimgRefined,altitude);
@@ -283,9 +424,9 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
     }
     // transfo en Lambert93
     std::string command;
-    command = "cs2cs +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/direct_ptGeo.txt >  processing/direct_ptCarto.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
     int res = system(command.c_str());
-    if (res != 0) std::cout<<"error calling cs2cs"<<std::endl;
+    if (res != 0) std::cout<<"error calling cs2cs in createDirectGrid"<<std::endl;
     // chargement des points
     std::ifstream fic("processing/direct_ptCarto.txt");
     while(!fic.eof()&&fic.good())
@@ -296,11 +437,11 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
         if (fic.good())
             vPtCarto.push_back(Pt2dr(X,Y));
     }
-    std::cout << "Nombre de points lus : "<<vPtCarto.size()<<std::endl;
+    std::cout << "createDirectGrid - Nombre de points lus : "<<vPtCarto.size()<<std::endl;
 }
 
 void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLine,
-                        double stepCarto, std::vector<double> const &vAltitude,
+                               double stepCarto, std::vector<double> const &vAltitude,
                                std::vector<Pt2dr> &vPtImg, std::string targetSyst,
                                std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const
 {
@@ -322,9 +463,10 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
     }
     // transfo en Geo
     std::string command;
-    command = "cs2cs "+targetSyst+" +to +proj=latlon +datum=WGS84 +ellps=WGS84 -f %.12f -s  processing/indirect_ptCarto.txt >  processing/indirect_ptGeo.txt";
+
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " "+targetSyst+" +to +proj=latlon +datum=WGS84 +ellps=WGS84 -f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
     int res = system(command.c_str());
-    if (res != 0) std::cout<<"error calling cs2cs"<<std::endl;
+    if (res != 0) std::cout<<"error calling cs2cs in createIndirectGrid"<<std::endl;
     for(size_t i=0;i<vAltitude.size();++i)
     {
         double altitude = vAltitude[i];
@@ -341,7 +483,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
             }
         }
     }
-    std::cout << "Nombre de points lus : "<<vPtImg.size()<<std::endl;
+    std::cout << "createIndirectGrid - Nombre de points lus : "<<vPtImg.size()<<std::endl;
 }
 
 
@@ -350,12 +492,12 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                 double stepPixel, double stepCarto,
                 double rowCrop, double sampCrop,
                        std::vector<double> vAltitude, std::string targetSyst,
-                       std::vector<double> vRefineCoef, bool refine)const
+                       std::vector<double> vRefineCoef)const
 {
     double firstSamp = first_col;
-    double firstLine= first_row;
-    double lastSamp = last_col;
-    double lastLine = last_row;
+    double firstLine = first_row;
+    double lastSamp  = last_col;
+    double lastLine  = last_row;
 
     //Direct nbr Lignes et colonnes + step last ligne et colonne
     int nbLine, nbSamp;
@@ -400,7 +542,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
     nbrLine=(urc.y-llc.y)/stepCarto +1;
 
     std::vector<Pt2dr> vPtImg;
-    //Calcul des coefficients de l'affinitÃ© pour la transformation inverse
+    //Calcul des coefficients de l'affinite pour la transformation inverse
     std::vector<double> vRefineCoefInv;
     {
         double A0 = vRefineCoef[0];
@@ -431,12 +573,12 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                        targetSyst,vRefineCoefInv, rowCrop, sampCrop);
 
     //Ecriture de la grille
-    //CrÃ©ation de la grille et du flux d'ecriture
+    //Creation de la grille et du flux d'ecriture
 
     std::ofstream writeGrid(nomGrid.c_str());
     writeGrid <<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<<std::endl;
     writeGrid <<"<trans_coord_grid version=\"5\" name=\"\">"<<std::endl;
-        //crÃ©ation de la date
+        //creation de la date
         time_t t= time(0);
         struct tm * timeInfo =localtime(&t);
         std::string date;
@@ -601,7 +743,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
  }
 
 //Lecture du fichier DIMAP
-void Dimap::lireDimapFile(std::string const &nomFile)
+Dimap::Dimap(std::string const &filename)
 {
     direct_samp_num_coef.clear();
     direct_samp_den_coef.clear();
@@ -613,114 +755,113 @@ void Dimap::lireDimapFile(std::string const &nomFile)
     indirect_line_num_coef.clear();
     indirect_line_den_coef.clear();
 
-    cElXMLTree tree(nomFile.c_str());
+    cElXMLTree tree(filename.c_str());
 
- {
-    std::list<cElXMLTree*> noeuds=tree.GetAll(std::string("Direct_Model"));
-    std::list<cElXMLTree*>::iterator it_grid,fin_grid=noeuds.end();
-
-
-    std::string coefSampN="SAMP_NUM_COEFF";
-    std::string coefSampD="SAMP_DEN_COEFF";
-    std::string coefLineN="LINE_NUM_COEFF";
-    std::string coefLineD="LINE_DEN_COEFF";
-    for (int c=1; c<21;c++)
     {
-        std::stringstream ss;
-        ss<<"_"<<c;
-        coefSampN.append(ss.str());
-        coefSampD.append(ss.str());
-        coefLineN.append(ss.str());
-        coefLineD.append(ss.str());
+        std::list<cElXMLTree*> noeuds=tree.GetAll(std::string("Direct_Model"));
+        std::list<cElXMLTree*>::iterator it_grid,fin_grid=noeuds.end();
+
+
+        std::string coefSampN="SAMP_NUM_COEFF";
+        std::string coefSampD="SAMP_DEN_COEFF";
+        std::string coefLineN="LINE_NUM_COEFF";
+        std::string coefLineD="LINE_DEN_COEFF";
+
+        for (int c=1; c<21;c++)
+        {
+            std::stringstream ss;
+            ss<<"_"<<c;
+            coefSampN.append(ss.str());
+            coefSampD.append(ss.str());
+            coefLineN.append(ss.str());
+            coefLineD.append(ss.str());
+            for(it_grid=noeuds.begin();it_grid!=fin_grid;++it_grid)
+            {
+                double value;
+                std::istringstream buffer((*it_grid)->GetUnique(coefSampN.c_str())->GetUniqueVal());
+                buffer >> value;
+                direct_samp_num_coef.push_back(value);
+                std::istringstream buffer2((*it_grid)->GetUnique(coefSampD.c_str())->GetUniqueVal());
+                buffer2 >> value;
+                direct_samp_den_coef.push_back(value);
+                std::istringstream buffer3((*it_grid)->GetUnique(coefLineN.c_str())->GetUniqueVal());
+                buffer3 >> value;
+                direct_line_num_coef.push_back(value);
+                std::istringstream buffer4((*it_grid)->GetUnique(coefLineD.c_str())->GetUniqueVal());
+                buffer4 >> value;
+                direct_line_den_coef.push_back(value);
+            }
+            coefSampN=coefSampN.substr(0,14);
+            coefSampD=coefSampD.substr(0,14);
+            coefLineN=coefLineN.substr(0,14);
+            coefLineD=coefLineD.substr(0,14);
+        }
         for(it_grid=noeuds.begin();it_grid!=fin_grid;++it_grid)
         {
-            double value;
-            std::istringstream buffer((*it_grid)->GetUnique(coefSampN.c_str())->GetUniqueVal());
-            buffer >> value;
-            direct_samp_num_coef.push_back(value);
-            std::istringstream buffer2((*it_grid)->GetUnique(coefSampD.c_str())->GetUniqueVal());
-            buffer2 >> value;
-            direct_samp_den_coef.push_back(value);
-            std::istringstream buffer3((*it_grid)->GetUnique(coefLineN.c_str())->GetUniqueVal());
-            buffer3 >> value;
-             direct_line_num_coef.push_back(value);
-            std::istringstream buffer4((*it_grid)->GetUnique(coefLineD.c_str())->GetUniqueVal());
-            buffer4 >> value;
-            direct_line_den_coef.push_back(value);
+            std::istringstream buffer((*it_grid)->GetUnique("ERR_BIAS_X")->GetUniqueVal());
+            buffer >> dirErrBiasX;
+            std::istringstream bufferb((*it_grid)->GetUnique("ERR_BIAS_Y")->GetUniqueVal());
+            bufferb >> dirErrBiasY;
         }
-        coefSampN=coefSampN.substr(0,14);
-        coefSampD=coefSampD.substr(0,14);
-        coefLineN=coefLineN.substr(0,14);
-        coefLineD=coefLineD.substr(0,14);
-
     }
-     for(it_grid=noeuds.begin();it_grid!=fin_grid;++it_grid)
-     {
-         std::istringstream buffer((*it_grid)->GetUnique("ERR_BIAS_X")->GetUniqueVal());
-         buffer >> dirErrBiasX;
-         std::istringstream bufferb((*it_grid)->GetUnique("ERR_BIAS_Y")->GetUniqueVal());
-         bufferb >> dirErrBiasY;
-     }
- }
 
-
- {
-    std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model"));
-    std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
-
-    std::string coefSampN="SAMP_NUM_COEFF";
-    std::string coefSampD="SAMP_DEN_COEFF";
-    std::string coefLineN="LINE_NUM_COEFF";
-    std::string coefLineD="LINE_DEN_COEFF";
-    for (int c=1; c<21;c++)
     {
-        double value;
-        std::stringstream ss;
-        ss<<"_"<<c;
-        coefSampN.append(ss.str());
-        coefSampD.append(ss.str());
-        coefLineN.append(ss.str());
-        coefLineD.append(ss.str());
+        std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model"));
+        std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
+
+        std::string coefSampN="SAMP_NUM_COEFF";
+        std::string coefSampD="SAMP_DEN_COEFF";
+        std::string coefLineN="LINE_NUM_COEFF";
+        std::string coefLineD="LINE_DEN_COEFF";
+
+        for (int c=1; c<21;c++)
+        {
+            double value;
+            std::stringstream ss;
+            ss<<"_"<<c;
+            coefSampN.append(ss.str());
+            coefSampD.append(ss.str());
+            coefLineN.append(ss.str());
+            coefLineD.append(ss.str());
+            for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
+            {
+                std::istringstream bufferInd((*it_gridInd)->GetUnique(coefSampN.c_str())->GetUniqueVal());
+                bufferInd >> value;
+                indirect_samp_num_coef.push_back(value);
+                std::istringstream bufferInd2((*it_gridInd)->GetUnique(coefSampD.c_str())->GetUniqueVal());
+                bufferInd2 >> value;
+                indirect_samp_den_coef.push_back(value);
+                std::istringstream bufferInd3((*it_gridInd)->GetUnique(coefLineN.c_str())->GetUniqueVal());
+                bufferInd3 >> value;
+                indirect_line_num_coef.push_back(value);
+                std::istringstream bufferInd4((*it_gridInd)->GetUnique(coefLineD.c_str())->GetUniqueVal());
+                bufferInd4 >> value;
+                indirect_line_den_coef.push_back(value);
+            }
+            coefSampN=coefSampN.substr(0,14);
+            coefSampD=coefSampD.substr(0,14);
+            coefLineN=coefLineN.substr(0,14);
+            coefLineD=coefLineD.substr(0,14);
+        }
         for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
         {
-            std::istringstream bufferInd((*it_gridInd)->GetUnique(coefSampN.c_str())->GetUniqueVal());
-            bufferInd >> value;
-            indirect_samp_num_coef.push_back(value);
-            std::istringstream bufferInd2((*it_gridInd)->GetUnique(coefSampD.c_str())->GetUniqueVal());
-            bufferInd2 >> value;
-            indirect_samp_den_coef.push_back(value);
-            std::istringstream bufferInd3((*it_gridInd)->GetUnique(coefLineN.c_str())->GetUniqueVal());
-            bufferInd3 >> value;
-            indirect_line_num_coef.push_back(value);
-            std::istringstream bufferInd4((*it_gridInd)->GetUnique(coefLineD.c_str())->GetUniqueVal());
-            bufferInd4 >> value;
-            indirect_line_den_coef.push_back(value);
+            std::istringstream buffer((*it_gridInd)->GetUnique("ERR_BIAS_ROW")->GetUniqueVal());
+            buffer >> indirErrBiasRow;
+            std::istringstream bufferb((*it_gridInd)->GetUnique("ERR_BIAS_COL")->GetUniqueVal());
+            bufferb >> indirErrBiasCol;
         }
-        coefSampN=coefSampN.substr(0,14);
-        coefSampD=coefSampD.substr(0,14);
-        coefLineN=coefLineN.substr(0,14);
-        coefLineD=coefLineD.substr(0,14);
     }
-     for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
-     {
-         std::istringstream buffer((*it_gridInd)->GetUnique("ERR_BIAS_ROW")->GetUniqueVal());
-         buffer >> indirErrBiasRow;
-        std::istringstream bufferb((*it_gridInd)->GetUnique("ERR_BIAS_COL")->GetUniqueVal());
-         bufferb >> indirErrBiasCol;
-     }
-  }
 
-
-  {
+    {
         std::list<cElXMLTree*> noeudsRFM=tree.GetAll(std::string("RFM_Validity"));
         std::list<cElXMLTree*>::iterator it_gridRFM,fin_gridRFM=noeudsRFM.end();
 
-    {
-        std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Direct_Model_Validity_Domain"));
-        std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
+        {
+            std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Direct_Model_Validity_Domain"));
+            std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
 
 
-        for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
+            for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
             {
                 std::istringstream bufferInd((*it_gridInd)->GetUnique("FIRST_ROW")->GetUniqueVal());
                 bufferInd >> first_row;
@@ -731,107 +872,101 @@ void Dimap::lireDimapFile(std::string const &nomFile)
                 std::istringstream bufferInd4((*it_gridInd)->GetUnique("LAST_COL")->GetUniqueVal());
                 bufferInd4 >> last_col;
             }
-    }
+        }
 
 
-    {
-        std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model_Validity_Domain"));
-        std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
-
-        for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
         {
-            std::istringstream bufferInd((*it_gridInd)->GetUnique("FIRST_LON")->GetUniqueVal());
-            bufferInd >> first_lon;
-            std::istringstream bufferInd2((*it_gridInd)->GetUnique("FIRST_LAT")->GetUniqueVal());
-            bufferInd2 >> first_lat;
-            std::istringstream bufferInd3((*it_gridInd)->GetUnique("LAST_LON")->GetUniqueVal());
-            bufferInd3 >> last_lon;
-            std::istringstream bufferInd4((*it_gridInd)->GetUnique("LAST_LAT")->GetUniqueVal());
-            bufferInd4 >> last_lat;
+            std::list<cElXMLTree*> noeudsInv=tree.GetAll(std::string("Inverse_Model_Validity_Domain"));
+            std::list<cElXMLTree*>::iterator it_gridInd,fin_gridInd=noeudsInv.end();
+
+            for(it_gridInd=noeudsInv.begin();it_gridInd!=fin_gridInd;++it_gridInd)
+            {
+                std::istringstream bufferInd((*it_gridInd)->GetUnique("FIRST_LON")->GetUniqueVal());
+                bufferInd >> first_lon;
+                std::istringstream bufferInd2((*it_gridInd)->GetUnique("FIRST_LAT")->GetUniqueVal());
+                bufferInd2 >> first_lat;
+                std::istringstream bufferInd3((*it_gridInd)->GetUnique("LAST_LON")->GetUniqueVal());
+                bufferInd3 >> last_lon;
+                std::istringstream bufferInd4((*it_gridInd)->GetUnique("LAST_LAT")->GetUniqueVal());
+                bufferInd4 >> last_lat;
+            }
+        }
+        for(it_gridRFM=noeudsRFM.begin();it_gridRFM!=fin_gridRFM;++it_gridRFM)
+        {
+            std::istringstream buffer((*it_gridRFM)->GetUnique("LONG_SCALE")->GetUniqueVal());
+            buffer>> long_scale;
+            std::istringstream buffer2((*it_gridRFM)->GetUnique("LONG_OFF")->GetUniqueVal());
+            buffer2 >> long_off;
+            std::istringstream buffer3((*it_gridRFM)->GetUnique("LAT_SCALE")->GetUniqueVal());
+            buffer3 >> lat_scale;
+            std::istringstream buffer4((*it_gridRFM)->GetUnique("LAT_OFF")->GetUniqueVal());
+            buffer4 >> lat_off;
+            std::istringstream buffer5((*it_gridRFM)->GetUnique("HEIGHT_SCALE")->GetUniqueVal());
+            buffer5 >> height_scale;
+            std::istringstream buffer6((*it_gridRFM)->GetUnique("HEIGHT_OFF")->GetUniqueVal());
+            buffer6 >> height_off;
+            std::istringstream buffer7((*it_gridRFM)->GetUnique("SAMP_SCALE")->GetUniqueVal());
+            buffer7 >> samp_scale;
+            std::istringstream buffer8((*it_gridRFM)->GetUnique("SAMP_OFF")->GetUniqueVal());
+            buffer8 >> samp_off;
+            std::istringstream buffer9((*it_gridRFM)->GetUnique("LINE_SCALE")->GetUniqueVal());
+            buffer9 >> line_scale;
+            std::istringstream buffer10((*it_gridRFM)->GetUnique("LINE_OFF")->GetUniqueVal());
+            buffer10 >> line_off;
         }
     }
-      for(it_gridRFM=noeudsRFM.begin();it_gridRFM!=fin_gridRFM;++it_gridRFM)
-      {
-          std::istringstream buffer((*it_gridRFM)->GetUnique("LONG_SCALE")->GetUniqueVal());
-          buffer>> long_scale;
-          std::istringstream buffer2((*it_gridRFM)->GetUnique("LONG_OFF")->GetUniqueVal());
-          buffer2 >> long_off;
-          std::istringstream buffer3((*it_gridRFM)->GetUnique("LAT_SCALE")->GetUniqueVal());
-          buffer3 >> lat_scale;
-          std::istringstream buffer4((*it_gridRFM)->GetUnique("LAT_OFF")->GetUniqueVal());
-          buffer4 >> lat_off;
-          std::istringstream buffer5((*it_gridRFM)->GetUnique("HEIGHT_SCALE")->GetUniqueVal());
-          buffer5 >> height_scale;
-          std::istringstream buffer6((*it_gridRFM)->GetUnique("HEIGHT_OFF")->GetUniqueVal());
-          buffer6 >> height_off;
-          std::istringstream buffer7((*it_gridRFM)->GetUnique("SAMP_SCALE")->GetUniqueVal());
-          buffer7 >> samp_scale;
-          std::istringstream buffer8((*it_gridRFM)->GetUnique("SAMP_OFF")->GetUniqueVal());
-          buffer8 >> samp_off;
-          std::istringstream buffer9((*it_gridRFM)->GetUnique("LINE_SCALE")->GetUniqueVal());
-          buffer9 >> line_scale;
-          std::istringstream buffer10((*it_gridRFM)->GetUnique("LINE_OFF")->GetUniqueVal());
-          buffer10 >> line_off;
-      }
- }
-
 }
 
 
 
-int Dimap2Grid_main(int argc, char **argv) {
-    std::string aNameFileDimap;// fichier Dimap
-    std::string aNameFileGrid;// fichier GRID
-    std::string aNameImage;//nom de l'image traitee
+int Dimap2Grid_main(int argc, char **argv)
+{
+    std::string aNameFileDimap; // fichier Dimap
+    std::string aNameImage;     // nom de l'image traitee
     std::string targetSyst="+init=IGNF:LAMB93";//systeme de projection cible - format proj4
     std::string refineCoef="processing/refineCoef.txt";
 
     //Creation d'un dossier pour les fichiers intermediaires
-    int res = system ("mkdir processing");
-    //ELISE_ASSERT(res==EXIT_SUCCESS,"Error in file creation");
-    if (res == 0) std::cout<<"folder processing already exists"<<std::endl;
+    ELISE_fp::MkDirSvp("processing");
 
-    //Creation du fichier de coef par defaut (grille non affinÃ©e)
-    std::ofstream ficWrite("processing/refineCoef.txt");
+    //Creation du fichier de coef par defaut (grille non affinee)
+    std::ofstream ficWrite(refineCoef.c_str());
     ficWrite << std::setprecision(15);
     ficWrite << 0 <<" "<< 1 <<" "<< 0 <<" "<< 0 <<" "<< 0 <<" "<< 1 <<" "<<std::endl;
 
-    double altiMin;
-    double altiMax;
+    double altiMin, altiMax;
     int nbLayers;
 
-    double stepPixel = 100;
-    double stepCarto = 50;
+    double stepPixel = 100.f;
+    double stepCarto = 50.f;
 
-    int rowCrop = 0;
+    int rowCrop  = 0;
     int sampCrop = 0;
 
     ElInitArgMain
     (
         argc, argv,
         LArgMain() << EAMC(aNameFileDimap,"Dimap file")
-                   << EAMC(aNameFileGrid,"Grid file")
+                  // << EAMC(aNameFileGrid,"Grid file")
                    << EAMC(aNameImage,"Image name")
                    << EAMC(altiMin,"altitude min")
                    << EAMC(altiMax,"altitude max")
-                   << EAMC(nbLayers,"number of layers")
-     ,
-     LArgMain()
-     //caractÃ©ristique du systÃ¨me gÃ©odÃ©sique saisies sans espace (+proj=utm+zone=10+datum=NAD83...)
-     << EAM(targetSyst,"targetSyst", true,"target system Proj4 +init=IGNF:LAMB93+datum")
-     << EAM(stepPixel,"stepPixel",true,"Step in pixel")
-     << EAM(stepCarto,"stepCarto",true,"Step in m (carto)")
-     << EAM(sampCrop,"sampCrop",true,"upper left samp - crop")
-     << EAM(rowCrop,"rowCrop",true,"upper left row - crop")
-     << EAM(refineCoef,"refineCoef",true,"List of Coef to refine Grid ")
-
+                   << EAMC(nbLayers,"number of layers"),
+        LArgMain()
+                 //caracteristique du systeme geodesique saisies sans espace (+proj=utm+zone=10+datum=NAD83...)
+                 << EAM(targetSyst,"targetSyst", true,"target system Proj4 +init=IGNF:LAMB93+datum")
+                 << EAM(stepPixel,"stepPixel",true,"Step in pixel")
+                 << EAM(stepCarto,"stepCarto",true,"Step in m (carto)")
+                 << EAM(sampCrop,"sampCrop",true,"upper left samp - crop")
+                 << EAM(rowCrop,"rowCrop",true,"upper left row - crop")
+                 << EAM(refineCoef,"refineCoef",true,"File of Coef to refine Grid")
      );
 
+    // fichier GRID en sortie
+    std::string aNameFileGrid = StdPrefixGen(aNameImage)+".GRI";
+
     Dimap dimap(aNameFileDimap);
-    std::cout << "Dimap info:"<<std::endl;
-    std::cout << "=============================="<<std::endl;
     dimap.info();
-    std::cout << "=============================="<<std::endl;
 
     std::vector<double> vAltitude;
     for(int i=0;i<nbLayers;++i)
@@ -850,63 +985,58 @@ int Dimap2Grid_main(int argc, char **argv) {
     for (int i=position.size()-1; i>-1;i--)
         targetSyst.insert(position[i]+1,str);
 
-
-    //recuperation des coefficents pour affiner le modele
+    //recuperation des coefficients pour affiner le modele
     std::vector<double> vRefineCoef;
     std::ifstream ficRead(refineCoef.c_str());
-        while(!ficRead.eof()&&ficRead.good())
-        {
+    while(!ficRead.eof()&&ficRead.good())
+    {
         double a0,a1,a2,b0,b1,b2;
         ficRead >> a0 >> a1 >> a2 >> b0 >> b1 >> b2;
 
         if (ficRead.good())
-            {
+        {
             vRefineCoef.push_back(a0);
             vRefineCoef.push_back(a1);
             vRefineCoef.push_back(a2);
             vRefineCoef.push_back(b0);
             vRefineCoef.push_back(b1);
             vRefineCoef.push_back(b2);
-            }
         }
+    }
     std::cout <<"coef "<<vRefineCoef[0]<<" "<<vRefineCoef[1]<<" "<<vRefineCoef[2]
         <<" "<<vRefineCoef[3]<<" "<<vRefineCoef[4]<<" "<<vRefineCoef[5]<<" "<<std::endl;
 
 
 
 
-    //Test si le modele est affinÃ© pour l'apelation du fichier de sortie
+    //Test si le modele est affine pour l'appellation du fichier de sortie
     bool refine=false;
     double noRefine[]={0,1,0,0,0,1};
 
     for(int i=0; i<6;i++)
     {
         if(vRefineCoef[i] != noRefine[i])
-        {
-            //Effacement du fichier de coefficients (affinitÃ©=identitÃ©) par dÃ©faut
-            remove ("refineCoef.txt");
             refine=true;
-        }
     }
 
     if (refine)
-        {
-        //New folder
-        std::string command;
-            command="mkdir refine_"+aNameImage;
-        int res = system (command.c_str());
-        //ELISE_ASSERT(res == EXIT_SUCCESS,"Error in file creation") ;
-        if (res != 0) std::cout<<"folder refine_"<<aNameImage<<" already exists"<<std::endl;
-        std::cout<<"le modele est affinÃ©"<<std::endl;
-        aNameFileGrid="refine_"+aNameImage+"/"+aNameFileGrid;
-        }
+    {
+        //Effacement du fichier de coefficients (affinite=identite) par defaut
+        if (ifstream(refineCoef.c_str())) ELISE_fp::RmFile(refineCoef.c_str());
 
+        //New folder
+        std::string dir = "refine_" + aNameImage;
+        ELISE_fp::MkDirSvp(dir);
+
+        std::cout<<"le modele est affine"<<std::endl;
+        aNameFileGrid = dir + ELISE_CAR_DIR + aNameFileGrid;
+    }
 
     dimap.clearing(aNameFileGrid, refine);
     dimap.createGrid(aNameFileGrid,aNameImage,
                      stepPixel,stepCarto,
                      rowCrop, sampCrop,
-                     vAltitude,targetSyst,vRefineCoef, refine);
+                     vAltitude,targetSyst,vRefineCoef);
 
     return EXIT_SUCCESS;
 }

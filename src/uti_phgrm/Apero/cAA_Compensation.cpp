@@ -99,6 +99,10 @@ void cAppliApero::AddObservations
    }
 
    {
+          AddObservationsRigidBlockCam(anSO.ObsBlockCamRig(),IsLastIter,aSO);
+   }
+
+   {
        //  MajAddCoeffMatrix();
        //  if (NumIterDebug())  MessageDebug("Avant RigGrp");
 
@@ -114,6 +118,26 @@ void cAppliApero::AddObservations
        mFpRT = 0;
    }
 }
+
+void cAppliApero::AddObservationsRigidBlockCam
+     (
+         const std::list<cObsBlockCamRig> & anOBCR,
+         bool IsLastIter,
+         cStatObs & aSO
+     )
+{
+    for 
+    (
+       std::list<cObsBlockCamRig>::const_iterator itO=anOBCR.begin();
+       itO !=anOBCR.end();
+       itO++
+    )
+    {
+         AddObservationsRigidBlockCam(*itO,IsLastIter,aSO);
+    }
+
+}
+
 
 void cAppliApero::AddObservationsRigidGrp
      (
@@ -197,10 +221,8 @@ void cAppliApero::AddObservationsCentres(const std::list<cObsCentrePDV> & aL,boo
         for (int aKPose=0 ; aKPose<int(mVecPose.size()) ; aKPose++)
         {
             cPoseCam * aPC = mVecPose[aKPose];
-// std::cout << "BBBBB " << aPC->RotIsInit()  << " " <<  aPC->DoAddObsCentre(anObs) << "\n";
             if (aPC->RotIsInit() && aPC->DoAddObsCentre(anObs))
             {
-// std::cout << "CCCCCCC\n";
                  aPC->AddObsCentre(anObs,aPdsPlani,aPdsAlti,aSO);
             }
         }

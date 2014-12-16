@@ -184,6 +184,22 @@
           <Key> NKS-Set-OfPatternAndInterv </Key>
     </KeyedSetsOfNames>
 
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets>
+               <PatternAccepteur> #1  </PatternAccepteur>
+               <Filter>
+                     <FocMm> #2 #3 </FocMm>
+                     <Min> #4 </Min>
+                     <Max> #5 </Max>
+               </Filter>
+          </Sets>
+          <Key> NKS-Set-OfPatternAndFocAndInterv </Key>
+    </KeyedSetsOfNames>
+
+
+
     <KeyedSetsOfNames>
            <IsParametrized>  true </IsParametrized>
            <Sets>
@@ -202,7 +218,55 @@
 
 
 
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                PDS CHANNEL                        -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
 
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  [1,1,1,1,1,1,1,1,1,1,1,1] </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_1 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_2 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_3 </Key>
+    </KeyedNamesAssociations>
 
         <!-- ***********************************************   -->
         <!--                                                   -->
@@ -616,6 +680,10 @@
              <Key>   NKS-Assoc-STD-FOC </Key>
     </KeyedNamesAssociations>
 
+
+
+
+
     <KeyedNamesAssociations>
             <Calcs>
                  <Arrite>  1 1 </Arrite>
@@ -754,6 +822,7 @@
                 <KeySets>  #1   </KeySets>
                 <DeltaMax > 10000  </DeltaMax>
                 <DeltaMin > -10000 </DeltaMin>
+                <Circ>       false  </Circ>
 
                 <Filtre>
                      <FiltreByRelSsEch>
@@ -776,6 +845,7 @@
                      <KeySets>  #1   </KeySets>
                      <DeltaMin > -10000 </DeltaMin>
                      <DeltaMax > 10000  </DeltaMax>
+                     <Circ>       false  </Circ>
                  </ByAdjacence>
             </Sets>
             <Key  > NKS-Rel-AllCpleOfPattern </Key>
@@ -789,6 +859,7 @@
                      <KeySets>  #2   </KeySets>
                      <DeltaMin > -10000 </DeltaMin>
                      <DeltaMax > 10000  </DeltaMax>
+                     <Circ>       false  </Circ>
                  </ByAdjacence>
             </Sets>
             <Key  > NKS-Rel-AllCpleOf2Pat </Key>
@@ -802,6 +873,7 @@
                      <KeySets>  #1   </KeySets>
                      <DeltaMin >  -#2 </DeltaMin>
                      <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       false  </Circ>
                  </ByAdjacence>
             </Sets>
             <Key  > NKS-Rel-ChantierLineaire </Key>
@@ -826,6 +898,34 @@
                  <NameFileIn> #1 </NameFileIn>
             </Sets>
             <Key  > NKS-Rel-ByFile </Key>
+    </KeyedSetsORels>
+
+    <!-- NKS-Rel-LinGen@Pat@Resol@@Sample1@Sample2 -->
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                 </ByAdjacence>
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                     <Sampling> #4  </Sampling>
+                 </ByAdjacence>
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                     <Sampling> #5  </Sampling>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > NKS-Rel-LinSampled </Key>
     </KeyedSetsORels>
 
 

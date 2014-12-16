@@ -32,10 +32,15 @@ OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
 OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF )
 
 # construire l'interface graphique
-OPTION(WITH_ETALONPOLY  "build etalonnage polygone" ON)
+OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
+
+# construire les binaires Poisson
+OPTION(BUILD_POISSON "Build Poisson binaries" OFF )
 
 # Utiliser Cuda
 OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
+
+OPTION(WITH_OPENCL  "Utilisation d'OpenCL" OFF )
 
 # Multi thread Poisson avec OpenMP
 OPTION(WITH_OPEN_MP "use OpenMP" OFF )
@@ -52,10 +57,9 @@ OPTION(WITH_QT5 "compile Qt interfaces" OFF )
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
 
-OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
+OPTION(DEPLOY "compile for end-user" OFF)
 
-#
-OPTION(WITH_MM3dSat "Graphical interface for MNS creation" OFF)
+OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
 
 if ( TRACE_SYSTEM )
         add_definitions(-D__TRACE_SYSTEM__)
@@ -94,53 +98,55 @@ set(UnixBinPath
                 /usr/local/bin)
 
 set(qt_version 0)
+set(DEPLOY 0)
+set(PROJECT_SRC_DIR \"${PROJECT_SOURCE_DIR}\" )
 
 if(${WITH_QT5} OR ${WITH_QT4})
-	find_package(OpenGL REQUIRED)
+        find_package(OpenGL REQUIRED)
 
-	if ( OPENGL_FOUND )
-		message( STATUS "-----> OpenGL found" )
+        if ( OPENGL_FOUND )
+                message( STATUS "-----> OpenGL found" )
 
-		if ( MSVC )
-				include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
-				# ajoute /lib a tous les repertoires contenant un SDK
-				foreach( sdk_dir ${WINDOWSSDK_DIRS} )
-						list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
-				endforeach()
-				set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
-				message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
-		endif()
+                if ( MSVC )
+                                include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
+                                # ajoute /lib a tous les repertoires contenant un SDK
+                                foreach( sdk_dir ${WINDOWSSDK_DIRS} )
+                                                list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
+                                endforeach()
+                                set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
+                                message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
+                endif()
 
-		if (${WITH_QT5})
-  
-			find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
-			if (Qt5_FOUND)
-           			message( STATUS "-----> Qt5 found" )
-              		set(qt_version 5)
-						
-				if(POLICY CMP0020)
-					cmake_policy(SET CMP0020 NEW)
-				endif()
+                if (${WITH_QT5})
 
-				set(QT_LIBRARIES 
-					${Qt5Core_LIBRARIES}
-					${Qt5Gui_LIBRARIES}
-					${Qt5Widgets_LIBRARIES}
-					${Qt5Xml_LIBRARIES}
-					${Qt5Concurrent_LIBRARIES}
-					${Qt5OpenGL_LIBRARIES}
-					${Qt5LinguistTools_LIBRARIES}
-				)
-				SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
-				link_directories(${Qt5_LIBRARY_DIRS})
-			elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
-         			message("WARNING QT 5 not found")
-					message("Set Qt5_DIR to qt CMAKE directory")
-					message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
-					message("   Qt5_DIR --> /opt/Qt5.3.1/5.3/gcc_64/lib/cmake/Qt5")					
-			endif()
+                        find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
+                        if (Qt5_FOUND)
+                                message( STATUS "-----> Qt5 found" )
+                        set(qt_version 5)
 
-		elseif (${WITH_QT4})
+                                if(POLICY CMP0020)
+                                        cmake_policy(SET CMP0020 NEW)
+                                endif()
+
+                                set(QT_LIBRARIES
+                                        ${Qt5Core_LIBRARIES}
+                                        ${Qt5Gui_LIBRARIES}
+                                        ${Qt5Widgets_LIBRARIES}
+                                        ${Qt5Xml_LIBRARIES}
+                                        ${Qt5Concurrent_LIBRARIES}
+                                        ${Qt5OpenGL_LIBRARIES}
+                                        ${Qt5LinguistTools_LIBRARIES}
+                                )
+                                SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
+                                link_directories(${Qt5_LIBRARY_DIRS})
+                        elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
+                                message("WARNING QT 5 not found")
+                                        message("Set Qt5_DIR to qt CMAKE directory")
+                                        message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
+                                        message("   Qt5_DIR --> /opt/Qt5.3.1/5.3/gcc_64/lib/cmake/Qt5")
+                        endif()
+
+                elseif (${WITH_QT4})
 
             FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
             if( QT4_FOUND )
@@ -149,27 +155,24 @@ if(${WITH_QT5} OR ${WITH_QT4})
             else()
                 message( "Qt not available, Qt graphical tools disabled" )
                 message( "**************************************************************************************************************************************" )
-				message( "If Qt is installed, please set QT_QMAKE_EXECUTABLE" )                  					
-				message( "**************************************************************************************************************************************" )
-			endif()
+                                message( "If Qt is installed, please set QT_QMAKE_EXECUTABLE" )
+                                message( "**************************************************************************************************************************************" )
+                        endif()
 
-		endif()
-	else()
+                endif()
+        else()
                 message( "OpenGL not available, Qt graphical tools disabled" )
-	endif()
+        endif()
+endif()
+
+if (${DEPLOY})
+    set(DEPLOY 1)
 endif()
 
 if ( NOT ${qt_version} EQUAL 0 )
       message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
 endif()
 
-if ( ${WITH_MM3dSat} )
-   if ( NOT ${qt_version} EQUAL 0 )
-      add_definitions(-DMM3dSat)
-   else()
-      set( WITH_MM3dSat false )
-   endif()
-endif()
 
 # CUDA
 if (${CUDA_ENABLED})
@@ -181,12 +184,17 @@ if (${CUDA_ENABLED})
         INCLUDE(FindCUDA)
 
         if(CUDA_FOUND)
-		
-			SET(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
-			SET(Cuda_Sample_path_Windows_XP "$ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
-			SET(Cuda_Sample_path_Apple "/Developer/NVIDIA/CUDA-${CUDA_VERSION}/samples/")
-			SET(Cuda_Sample_path_Linux "${CUDA_TOOLKIT_ROOT_DIR}/samples")
-			
+
+#ADD_DEFINITIONS(
+#    -std=c++11 # Or -std=c++0x
+#    # Other flags
+#)
+
+                        SET(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
+                        SET(Cuda_Sample_path_Windows_XP "$ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
+                        SET(Cuda_Sample_path_Apple "/Developer/NVIDIA/CUDA-${CUDA_VERSION}/samples/")
+                        SET(Cuda_Sample_path_Linux "${CUDA_TOOLKIT_ROOT_DIR}/samples")
+
             FIND_PATH(
                         CUDA_SAMPLE_DIR
                         NAMES
@@ -194,14 +202,14 @@ if (${CUDA_ENABLED})
                         PATHS
                             ${Cuda_Sample_path_Linux}
                             ${Cuda_Sample_path_Windows_VISTA_7_8}
-							${Cuda_Sample_path_Windows_XP}
+                                                        ${Cuda_Sample_path_Windows_XP}
                             ${Cuda_Sample_path_Windows_Apple}
                      )
 
-					#message(${CUDA_SAMPLE_DIR})
+                                        #message(${CUDA_SAMPLE_DIR})
 
             if(NOT CUDA_SAMPLE_DIR STREQUAL "CUDA_SAMPLE_DIR-NOTFOUND")
-				#message("Cuda Samples Found")
+                                #message("Cuda Samples Found")
                 message("Cuda Samples Found : " ${CUDA_SAMPLE_DIR})
                 INCLUDE_DIRECTORIES(${CUDA_SAMPLE_DIR}/common/inc)
             else()
@@ -410,12 +418,12 @@ ENDIF()
 # VERIFICATION si ImageMagick est installe
 
 if(NOT WIN32) # ImageMagick n'est pas obligatoire sous windows puisque les exécutables nécessaire sont fournis
-	find_package(ImageMagick QUIET)
+        find_package(ImageMagick QUIET)
 
-	if(NOT ImageMagick_FOUND)
-			MESSAGE("\n***   ATTENTION!!! Vous devez installer Image Magick. ***")
-			MESSAGE("***   http://www.imagemagick.org/script/index.php     ***\n")
-	endif(NOT ImageMagick_FOUND)
+        if(NOT ImageMagick_FOUND)
+                        MESSAGE("\n***   ATTENTION!!! Vous devez installer Image Magick. ***")
+                        MESSAGE("***   http://www.imagemagick.org/script/index.php     ***\n")
+        endif(NOT ImageMagick_FOUND)
 endif()
 
 # VERIFICATION si exiftool est installe
@@ -484,7 +492,7 @@ if(NOT WIN32)
                 MESSAGE("X11 Not Found : pas de SaisieMasq")
         ENDIF()
 ELSE()
-		set( CMAKE_BUILD_TYPE Release )
+                set( CMAKE_BUILD_TYPE Release )
         find_program(MAKE_EXECUTABLE make
                                 PATHS 	${BinAuxWinDir}
                                 DOC "Chemin vers la commande Make"
@@ -501,7 +509,7 @@ ENDIF()
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
 
-		set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE" )
+                set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE" )
         # Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
         if (${CUDA_ENABLED})
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
@@ -549,6 +557,8 @@ set(ELISE_DIR src)
 
 # CONSTRUCTION : Librairie ANN
 include(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/CMakeLists.txt)
+# CONSTRUCTION : Librairie POISSON
+include(${PROJECT_SOURCE_DIR}/CodeExterne/Poisson/CMakeLists.txt)
 # CONSTRUCTION : Librairie ELISE
 set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere )
 include(${code_genere_dir}/Sources.cmake)
@@ -589,24 +599,24 @@ IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
 #------------------------------------------------------------------------------------
 SET(QT_OLD_PREFIX "")
 if(qt_version EQUAL 5)
-	#setting old QT4 variables for installs
-	get_target_property(QT_QTCORE_LIBRARY 		Qt5::Core			LOCATION_Release)
-	get_target_property(QT_QTGUI_LIBRARY 		Qt5::Gui			LOCATION_Release)
-	get_target_property(QT_QTCONCURRENT_LIBRARY Qt5::Concurrent		LOCATION_Release)
-	get_target_property(QT_QTOPENGL_LIBRARY 	Qt5::OpenGL			LOCATION_Release)
-	get_target_property(QT_QTWIDGETS_LIBRARY    Qt5::Widgets		LOCATION_Release)
-	get_target_property(QT_QTXML_LIBRARY        Qt5::Xml            LOCATION_Release)
-	
-	set(QT_COCOA_PLUGIN "platforms/libqcocoa.dylib")
+        #setting old QT4 variables for installs
+        get_target_property(QT_QTCORE_LIBRARY 		Qt5::Core			LOCATION_Release)
+        get_target_property(QT_QTGUI_LIBRARY 		Qt5::Gui			LOCATION_Release)
+        get_target_property(QT_QTCONCURRENT_LIBRARY Qt5::Concurrent		LOCATION_Release)
+        get_target_property(QT_QTOPENGL_LIBRARY 	Qt5::OpenGL			LOCATION_Release)
+        get_target_property(QT_QTWIDGETS_LIBRARY    Qt5::Widgets		LOCATION_Release)
+        get_target_property(QT_QTXML_LIBRARY        Qt5::Xml            LOCATION_Release)
 
-	get_filename_component(QT_QTCORE_LIBRARY ${QT_QTCORE_LIBRARY} PATH)
-	get_filename_component(QT_QTGUI_LIBRARY ${QT_QTGUI_LIBRARY} PATH)
-	get_filename_component(QT_QTCONCURRENT_LIBRARY ${QT_QTCONCURRENT_LIBRARY} PATH)
-	get_filename_component(QT_QTOPENGL_LIBRARY ${QT_QTOPENGL_LIBRARY} PATH)
-	get_filename_component(QT_QTWIDGETS_LIBRARY ${QT_QTWIDGETS_LIBRARY} PATH)
-	get_filename_component(QT_QTXML_LIBRARY ${QT_QTXML_LIBRARY} PATH)
-		
-	SET (QT_OLD_PREFIX "/work/build/______________________________PADDING______________________________/lib/")
+        set(QT_COCOA_PLUGIN "platforms/libqcocoa.dylib")
+
+        get_filename_component(QT_QTCORE_LIBRARY ${QT_QTCORE_LIBRARY} PATH)
+        get_filename_component(QT_QTGUI_LIBRARY ${QT_QTGUI_LIBRARY} PATH)
+        get_filename_component(QT_QTCONCURRENT_LIBRARY ${QT_QTCONCURRENT_LIBRARY} PATH)
+        get_filename_component(QT_QTOPENGL_LIBRARY ${QT_QTOPENGL_LIBRARY} PATH)
+        get_filename_component(QT_QTWIDGETS_LIBRARY ${QT_QTWIDGETS_LIBRARY} PATH)
+        get_filename_component(QT_QTXML_LIBRARY ${QT_QTXML_LIBRARY} PATH)
+
+        SET (QT_OLD_PREFIX "/work/build/______________________________PADDING______________________________/lib/")
 endif()
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_LIST_DIR}/setup/)

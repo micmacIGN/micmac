@@ -39,6 +39,43 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+typedef enum
+{
+  eTS_P,
+  eTS_PB,
+  eTS_PBR,
+  eTS_M,
+  eTS_S,
+  eTS_NB,
+  eTS_NT,
+  eTS_MMD,
+  eTS_NbVals
+} eTypeSEL;
+
+std::string  eToString(const eTypeSEL & anObj)
+{
+    if (anObj==eTS_P)
+       return  "eTS_P";
+    if (anObj==eTS_PB)
+       return  "eTS_PB";
+    if (anObj==eTS_PBR)
+       return  "eTS_PBR";
+    if (anObj==eTS_M)
+       return  "eTS_M";
+    if (anObj==eTS_S)
+       return  "eTS_S";
+    if (anObj==eTS_NB)
+       return  "eTS_NB";
+    if (anObj==eTS_NT)
+       return  "eTS_NT";
+    if (anObj==eTS_MMD)
+       return  "eTS_MMD";
+    if (anObj==eTS_NbVals)
+       return  "eTS_NbVals";
+  std::cout << "Enum = eTypeSEL\n";
+    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+    return "";
+}
 
 void Banniere_SEL()
 {
@@ -75,6 +112,7 @@ int SEL_main(int argc,char ** argv)
     int aRedr=0;
     std::string aFilter="";
     bool aRedrL1 = false;
+    bool ModeEpip = false;
 
     std::string aKeyCompl="Cple2HomAp";
     ElInitArgMain
@@ -86,9 +124,10 @@ int SEL_main(int argc,char ** argv)
            LArgMain() << EAM(aRedr,"R",true)
                       << EAM(aRedrL1,"RL1",true,"Estimate Homography using L1 mode")
                       << EAM(aFilter,"F",true)
-                      << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT MMD",eSAM_NoInit)
+                      << EAM(aKeyH,"KH",true,"In P PB PBR M S NB NT MMD",eSAM_None,ListOfVal(eTS_NbVals,"eTS_"))
                       << EAM(aKeyCompl,"KCpl",true)
                       << EAM(aSzW,"SzW",true)
+                      << EAM(ModeEpip,"ModeEpip",true,"If mode epip, the y displacement are forced to 0")
     );
 
     if (!MMVisualMode)
@@ -102,6 +141,7 @@ int SEL_main(int argc,char ** argv)
                            + " %Im2=" + aN2
                            + " %SL_XSzW=" + ToString(aSzW.x)
                            + " %SL_YSzW=" + ToString(aSzW.y)
+                           + " %SL_Epip=" + ToString(ModeEpip)
                          ;
 
         if (aRedr)

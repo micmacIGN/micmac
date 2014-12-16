@@ -231,7 +231,7 @@ void MakeNameDir(std::string & aStr)
 }
 */
 
-std::string StdWokdDir(const std::string & aValWD,const std::string & aNameFile)
+std::string StdWorkdDir(const std::string & aValWD,const std::string & aNameFile)
 {
   // std::cout << "XXXXXXXXXX\n";
 

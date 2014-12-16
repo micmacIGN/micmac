@@ -97,21 +97,22 @@ int ScaleNuage_main(int argc,char ** argv)
 
          std::string aNameNewMasq = aDirBase + aNameOut+ "_Masq.tif";
          aNewXML.Image_Profondeur().Val().Masq() =  NameWithoutDir(aNameNewMasq);
+         std::string aNameMasqueIn = DirOfFile(aNameNuage) +aXML.Image_Profondeur().Val().Masq();
+         Tiff_Im aFileMasqIn(aNameMasqueIn.c_str());
          Tiff_Im aFileMasq
                  (
                      aNameNewMasq.c_str(),
                      aNewXML.NbPixel(),
-                     GenIm::bits1_msbf,
+                     aFileMasqIn.type_el(),
+                     // GenIm::bits1_msbf,
                      Tiff_Im::No_Compr,
                      Tiff_Im::BlackIsZero
 
                  );
-         std::string aNameMasqueIn = DirOfFile(aNameNuage) +aXML.Image_Profondeur().Val().Masq();
-         Tiff_Im aFileMasqIn(aNameMasqueIn.c_str());
          ELISE_COPY
          (
              aFileMasq.all_pts(),
-             StdFoncChScale(aFileMasqIn.in(0),aP0,Pt2dr(aSc,aSc)),
+             round_ni(StdFoncChScale(aFileMasqIn.in(0),aP0,Pt2dr(aSc,aSc))),
              aFileMasq.out()
          );
 
@@ -135,6 +136,11 @@ int ScaleNuage_main(int argc,char ** argv)
              /  Max(1e-8,StdFoncChScale(aFileMasqIn.in(0),aP0,Pt2dr(aSc,aSc))),
              aFileProf.out()
          );
+
+         if ( aNewXML.Image_Profondeur().IsInit())
+         {
+           aNewXML.Image_Profondeur().Val().Correl().SetNoInit();
+         }
 
          MakeFileXML(aNewXML,aDirBase + aNameOut+".xml");
 

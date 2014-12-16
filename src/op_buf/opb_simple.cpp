@@ -1165,19 +1165,20 @@ template <class Type> void CalcMedianBySort
        Type ** Im = in[d];
        std::vector<Type> Vals;
 
-       INT aK = ((arg.dx1()- arg.dx0() +1) * (arg.dy1()- arg.dy0() +1)) / 2;
+       // INT aK = ((arg.dx1()- arg.dx0() +1) * (arg.dy1()- arg.dy0() +1)) / 2;
 
 
 
        for (INT x=arg.x0() ;  x<arg.x1() ; x++)
        {
-      Vals.clear();
+          Vals.clear();
 
-      for (INT dx =  arg.dx0() ; dx <= arg.dx1() ; dx++)
-          for (INT dy =  arg.dy0() ; dy <= arg.dy1() ; dy++)
-              Vals.push_back(Im[dy][x+dx]);
-      std::sort(Vals.begin(),Vals.end());
-          res[x] = Vals[aK];
+          for (INT dx =  arg.dx0() ; dx <= arg.dx1() ; dx++)
+              for (INT dy =  arg.dy0() ; dy <= arg.dy1() ; dy++)
+                  Vals.push_back(Im[dy][x+dx]);
+          Type aMed = MedianeSup(Vals);
+          res[x] = aMed;
+
        }
    }
 }
@@ -1196,7 +1197,183 @@ Fonc_Num MedianBySort(Fonc_Num f,INT NbMed)
 
 }
 
+/*********************************************************************/
+/*                                                                   */
+/*         Ombrage K Lips                                            */
+/*                                                                   */
+/*********************************************************************/
 
+// Normalement valent false, mais pour tester le mecanisme ~ et dup ...
+#define DupcOmbrageKL  0
+#define TestDupAndKill 0
+
+class cOmbrageKL  : public Simple_OPBuf1<double,double>
+{
+   public :
+
+        cOmbrageKL(double aPente,int aNbV) ;
+   private :
+        void  calc_buf(double ** output,double *** input);
+
+#if DupcOmbrageKL		
+		Simple_OPBuf1<double,double> * dup_comp() {return new cOmbrageKL(mPente,mNbV);}
+#endif
+
+#if TestDupAndKill 
+        ~cOmbrageKL() 
+        {
+              std::cout << "KILL==cOmbrageKL\n"; getchar();
+        }
+#endif
+
+        double mPente;
+        int    mNbV;
+        std::vector<double> mVPds;
+};
+
+
+cOmbrageKL::cOmbrageKL(double aPente,int aNbV) :
+    mPente (aPente),
+    mNbV   (aNbV)
+{
+    for (int anY=-aNbV  ; anY<=aNbV ; anY++)
+    {
+        for (int anX=-aNbV  ; anX<=aNbV ; anX++)
+        {
+             mVPds.push_back(aPente * euclid(Pt2di(anX,anY)));
+        }
+    }
+}
+
+
+void  cOmbrageKL::calc_buf(double ** output,double *** input)
+{
+// static int aCpt=0; aCpt++;
+    ELISE_ASSERT(this->dim_in()==2,"Incoherence in cOmbrageKL::calc_buf");
+
+    double  ** aProf = input[0];
+    double  ** aMasq = input[1];
+    double * anO = output[0];
+
+    for (INT anX=x0() ;  anX<x1() ; anX++)
+    {
+// bool Bug = ((aCpt==19) && (anX==241));
+
+         double aDifMax  = 0.0;
+         if (aMasq[0][anX])
+         {
+             double aP0 = aProf[0][anX];
+             int aCpt=0;
+             for (int aDy=-mNbV  ; aDy<=mNbV ; aDy++)
+             {
+                 double * aM = aMasq[aDy]+anX;
+                 double * aP = aProf[aDy]+anX;
+
+                 for (int aDx=-mNbV  ; aDx<=mNbV ; aDx++)
+                 {
+                     if (aM[aDx])
+                     {
+                         ElSetMax(aDifMax,aP[aDx] -(aP0+mVPds[aCpt]));
+                     }
+                     aCpt++;
+                 }
+             }
+         }
+         anO[anX] = aDifMax;
+    }
+}
+Fonc_Num OmbrageKL(Fonc_Num Prof,Fonc_Num Masq,double aPente,int aSzV)
+{
+     return create_op_buf_simple_tpl
+            (
+                    0,
+                    new  cOmbrageKL(aPente,aSzV),
+                    Virgule(Prof,Masq),
+                    1,
+                    Box2di(Pt2di(-aSzV,-aSzV),Pt2di(aSzV,aSzV))
+            );
+
+}
+
+/*********************************************************************/
+/*                                                                   */
+/*         Dilate cond : limite ici a une dilatation une fois,       */
+/*           Les dilate N sont geres par N Iter                      */
+/*                                                                   */
+/*********************************************************************/
+
+
+class cDilateCondOPB  : public Simple_OPBuf1<int,int>
+{
+   public :
+
+        cDilateCondOPB(bool aV4) :
+           mV4     (aV4),
+           mNbVois (mV4 ? 4 : 8),
+           mVois   (mV4 ? TAB_4_NEIGH :TAB_8_NEIGH)
+        {
+        }
+   private :
+        void  calc_buf(int ** output,int *** input);
+
+        bool           mV4;
+        int            mNbVois;
+        const Pt2di *  mVois;
+};
+
+
+
+void  cDilateCondOPB::calc_buf(int ** output,int *** input)
+{
+// static int aCpt=0; aCpt++;
+    ELISE_ASSERT(this->dim_in()==2,"Incoherence in cOmbrageKL::calc_buf");
+
+    int  ** aFoncToDil = input[0];
+    int  ** aFoncCond = input[1];
+    int * anO = output[0];
+
+    for (INT anX=x0() ;  anX<x1() ; anX++)
+    {
+         bool Ok = false;
+         if (aFoncToDil[0][anX])
+         {
+              Ok=true;
+         }
+         else if (aFoncCond[0][anX])
+         {
+              for (int aK=0 ; (!Ok) && (aK<mNbVois) ; aK++)
+              {
+                   const Pt2di * aV = mVois+ aK;
+                   Ok = aFoncToDil[aV->y][anX+aV->x];
+              }
+         }
+         anO[anX] = Ok;
+    }
+}
+
+Fonc_Num FoncDilatCond(Fonc_Num f2Dil,Fonc_Num fCond,bool aV4)
+{
+     int aSzV=1;
+     return create_op_buf_simple_tpl
+            (
+                    new  cDilateCondOPB(aV4),
+                    0,
+                    Virgule(f2Dil,fCond),
+                    1,
+                    Box2di(Pt2di(-aSzV,-aSzV),Pt2di(aSzV,aSzV))
+            );
+
+}
+
+Fonc_Num NFoncDilatCond(Fonc_Num f2Dil,Fonc_Num fCond,bool aV4,int aNb)
+{
+   Fonc_Num aRes = f2Dil;
+   for (int aK=0 ; aK<aNb ; aK++)
+   {
+       aRes = FoncDilatCond(aRes,fCond,aV4);
+   }
+   return aRes;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

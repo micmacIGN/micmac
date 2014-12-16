@@ -560,7 +560,6 @@ Pt2di aSzWP(600,200);
 
 void  TestScroller::Profil(Im2D_REAL4 aIm,Pt2dr aP0,Pt2dr aP1,INT aCoul)
 {
-cout << aP0 << aP1 << aIm.sz() << "\n";
    REAL aD = euclid(aP1-aP0);
    REAL aStep = ElMax(0.05,ElMax(1.0,aD)/600.0);
    INT aNb = round_ni(aD/aStep);
@@ -608,9 +607,11 @@ void  TestScroller::Profil()
     W.draw_circle_abs(aPW,2.0,W.pdisc()(P8COL::green));
     Pt2dr p1 = mScrol.Scr1().to_user(aPW);
     Pt2dr p2 = mScrol.Scr2().to_user(aPW);
+
       
     aCl = clik_press();
     Pt2dr aQW = aCl._pt;
+    if (mIsEpip) aQW.y = aPW.y;
     W.draw_circle_abs(aQW,2.0,W.pdisc()(P8COL::green));
     W.draw_seg(aPW,aQW,W.pdisc()(P8COL::yellow));
     Pt2dr q1 = mScrol.Scr1().to_user(aQW);

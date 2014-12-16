@@ -284,7 +284,8 @@ template <class Type> class cFusionCarteProf
            );
            void GlobInitDir(cProg2DOptimiser<cFusionCarteProf> &);
 
-          // -- Comlement
+          // -- NOT a requirement, just here, an help for implementation
+          // of DoConnexion
                 void DoConexTrans
                      (
                                   tCelOpt & aCelIn,
@@ -601,16 +602,23 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
 /*                                                                    */
 /**********************************************************************/
 
+//template <class Type> Show(const Type & 
+
+
+
+
 template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP, const std::string & anId,const std::string & aFus,int aNum) :
   mNum     (aNum),
-  mFCP     (aFCP),
-  mParam   (aFCP.Param()),
-  mPAlg    (mParam.ParamAlgoFusionMNT()),
-  mSeuilC  (mPAlg.FMNTSeuilCorrel()),
-  mICNM    (aFCP.ICNM()),
+  mFCP     ((aFCP)),
+  mParam   ((aFCP.Param())),
+  mPAlg    ((mParam.ParamAlgoFusionMNT())),
+  mSeuilC  ((mPAlg.FMNTSeuilCorrel())),
+  mICNM    ((aFCP.ICNM())),
 
   mFus         (aFus),
-  mNameIm      (StdPrefix(mFus).substr(6,std::string::npos)),
+  // mNameIm      ((StdPrefix(mFus).substr(6,std::string::npos)),
+  // mNameIm      (StdPrefix(mFus)),
+  mNameIm      (mICNM->Assoc1To1(mParam.KeyNuage2Im().Val(),mFus,true)),
   mNameNuage  (mICNM->Dir()+mICNM->Assoc1To2(mParam.KeyNuage(),anId,aFus,true)),
   mNuage      (StdGetObjFromFile<cXML_ParamNuage3DMaille>
                  (
@@ -694,7 +702,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
    mAfC2MCur = mAfM2CCur.inv();
 
    ELISE_COPY(mImCP.all_pts(),trans(mTifCP.in(),mBoxImCur._p0),mImCP.out());
-   ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(),mBoxImCur._p0),mImMasq.out());
+   ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in()!=0,mBoxImCur._p0),mImMasq.out());
    if (mHasCorrel)
    {
        const cSectionScoreQualite  * aSSQ  = mParam.SectionScoreQualite().PtrVal();
@@ -1013,8 +1021,6 @@ template <class Type> double cFusionCarteProf<Type>::ToZSauv(double aZ) const
    return  (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
 }
 
-extern Im2D_Bits<1>  FiltreDetecRegulProf(Im2D_REAL4 aImProf,Im2D_Bits<1> aIMasq,const cParamFiltreDetecRegulProf & aParam);
-
 
 template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
@@ -1027,6 +1033,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
 
    mResolPlaniReel = (euclid(mAfC2MCur.I10()) + euclid(mAfC2MCur.I01()))/2.0;
+
+//  std::cout << "mResolPlaniReelmResolPlaniReel " << mResolPlaniReel << "\n";
    mResolPlaniEquiAlt = mResolPlaniReel * mNuage.RatioResolAltiPlani().Val();
 /*
    mRatioPlaniAlti = mResolPlani;

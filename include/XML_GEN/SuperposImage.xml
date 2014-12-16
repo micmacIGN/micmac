@@ -34,6 +34,27 @@
          <eMBF_First >     </eMBF_First>
     </enum>
 
+    <enum Name="eModeMergeCloud">
+         <eMMC_QuickMac > </eMMC_QuickMac>    
+         <eMMC_Envlop >   </eMMC_Envlop>   <!-- = Quick Mac pour Epi -->
+         <eMMC_Epi >      </eMMC_Epi>
+    </enum>
+
+
+    <enum Name="eQualCloud">
+         <eQC_Out >            </eQC_Out>  
+         <eQC_ZeroCohBrd >     </eQC_ZeroCohBrd>
+         <eQC_ZeroCoh >        </eQC_ZeroCoh>
+         <eQC_ZeroCohImMul >   </eQC_ZeroCohImMul>
+         <eQC_GradFort >       </eQC_GradFort>
+         <eQC_GradFaibleC1 >   </eQC_GradFaibleC1>
+         <eQC_Bord >           </eQC_Bord>
+         <eQC_Coh1 >           </eQC_Coh1>
+         <eQC_GradFaibleC2 >   </eQC_GradFaibleC2>
+         <eQC_Coh2 >           </eQC_Coh2>
+         <eQC_Coh3 >           </eQC_Coh3>
+         <eQC_NonAff >         </eQC_NonAff>
+    </enum>
 
 
     <LutConvertion  Nb="1"  Class="true" ToReference="true">
@@ -425,6 +446,13 @@
          <POnCyl  Nb="1" Type="Pt3dr"> </POnCyl>
     </XmlCylindreRevolution>
 
+    <XmlToreRevol   Nb="1"  Class="true" ToReference="true">
+        <!-- P0-P1 , deux points sur la droite -->
+         <Cyl Nb="1" RefType="XmlCylindreRevolution"> </Cyl>
+         <POriTore  Nb="1" Type="Pt3dr"> </POriTore>
+    </XmlToreRevol>
+
+
      <XmlOrthoCyl  Nb="1"  Class="true" ToReference="true">
           <Repere Nb="1" RefType="RepereCartesien"  RefFile="ParamChantierPhotogram.xml"> </Repere>
           <P0 Nb="1" Type="Pt3dr"> </P0>
@@ -434,7 +462,8 @@
 
      <XmlDescriptionAnalytique Nb="1" Class="true" ToReference="true">
                <Cyl Nb="?" RefType="XmlCylindreRevolution"> </Cyl>
-               <OrthoCyl Nb="?" RefType="XmlOrthoCyl"> </OrthoCyl>
+               <OrthoCyl Nb="?" RefType="XmlOrthoCyl">      </OrthoCyl>
+               <Tore Nb="?" RefType="XmlToreRevol">         </Tore>
      </XmlDescriptionAnalytique>
       <XmlOneSurfaceAnalytique Nb="1" Class="true" ToReference="true">
             <XmlDescriptionAnalytique Nb="1" UnionType="true" RefType="XmlDescriptionAnalytique"> </XmlDescriptionAnalytique>
@@ -1080,6 +1109,9 @@
              <!-- Definit le modele de geometrie resultant, c'est un cle d'association
                  par defaut il sera pris sur le premier input-->
              <ModeleNuageResult Type="std::string" Nb="?"> </ModeleNuageResult>
+
+             <!-- Defaut Identite, par exemple Nuage-IMGP7046.JPG.xml -> IMGP7046.JPG.xml -->
+             <KeyNuage2Im   Type="std::string" Nb="?" Def="NKS-Assoc-Prefix"> </KeyNuage2Im>
        </SectionName>
 
        <!-- Pour gerer le score pas toujours simple fonction de correlation -->
@@ -1159,10 +1191,66 @@
   </ParamFusionMNT>
 
   <ParamFusionNuage  Nb="1" Class="true">
+      <ModeMerge Nb="1" Type="eModeMergeCloud"> </ModeMerge>
+      <PFNMiseAuPoint Nb="1">
+            <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
+            <!-- Visualise les diff de prof par couple -->
+            <TestImageDif Nb="?" Type="bool" Def="false"></TestImageDif>
+            <VisuGrad Nb="?" Type="bool"  Def="false"></VisuGrad>
+            <VisuLowPts Nb="?" Type="bool"  Def="false"></VisuLowPts>
+            <VisuImageCoh Nb="?" Type="bool"  Def="false"></VisuImageCoh>
+            <VisuSelect  Nb="?" Type="bool"  Def="false"> </VisuSelect> <!-- Visualise la construction des points selectionnes -->
+            <VisuEnv  Nb="?" Type="bool"  Def="false"> </VisuEnv> <!-- Visualise les enveloppes -->
+            <VisuElim  Nb="?" Type="bool"  Def="false"> </VisuElim> <!-- Visualise chaque elimination -->
+            <ImageMiseAuPoint Nb="?" Type="std::string"> </ImageMiseAuPoint> <!-- Images pour lesquelles on active la visu -->
+      </PFNMiseAuPoint>
       <GrapheRecouvrt Nb="1"> 
-             <TauxRecMin Nb="?" Type="double" Def="0.1"> </TauxRecMin>
+             <TauxRecMin Nb="1" Type="double"> </TauxRecMin>
+             <ExtHom Nb="?" Type="std::string" Def="dat"> </ExtHom>
+             <MinSzFilHom Nb="?" Type="int" Def="1000"> </MinSzFilHom>
+             <RecSeuilDistProf Nb="?" Type="double" Def="1.0"> </RecSeuilDistProf>
+             <NbPtsLowResume Nb="1" Type="int"> </NbPtsLowResume>
+             <CostPerImISOM Nb="?" Type="double" Def="0.2"> </CostPerImISOM>
       </GrapheRecouvrt>
+      <ImageVariations Nb="1">
+           <V4Vois Nb="1" Type="bool"> </V4Vois>
+           <DistVois Nb="1" Type="int"> </DistVois>
+           <DynAngul Nb="1" Type="double"> </DynAngul>
+           <SeuilStrictVarIma Nb="1" Type="double"> </SeuilStrictVarIma>
+           <PenteRefutInitInPixel Nb="?" Type="double" Def="0.5"> </PenteRefutInitInPixel>
+           <ComputeIncid Nb="?" Type="bool" Def="true"> </ComputeIncid>
+           <DilateBord Nb="?" Type="int" Def="3"> </DilateBord>
+      </ImageVariations>
+      <PFM_Selection Nb="1">
+            <ElimDirectInterior Nb="?" Type="double" Def="10.0"> </ElimDirectInterior>
+            <LowRatioSelectIm Nb="?" Type="double" Def="0.001"> </LowRatioSelectIm>
+            <HighRatioSelectIm Nb="?" Type="double" Def="0.05"> </HighRatioSelectIm>
+      </PFM_Selection>
   </ParamFusionNuage>
+
+
+  <CWWSImage Nb="1" Class="true" ToReference="true">
+      <NameIm Nb="1" Type="std::string"> </NameIm>
+      <CWWSIVois Nb="*">
+            <NameVois Nb="1" Type="std::string"> </NameVois>
+      </CWWSIVois>
+  </CWWSImage>
+
+   <ChantierAppliWithSetImage Nb="1" Class="true" ToReference="true">
+       <Images Nb="*" RefType="CWWSImage"> </Images>
+   </ChantierAppliWithSetImage>
+
+
+
+   <ParamFiltreDepthByPrgDyn Nb="1" Class="true" ToReference="true">
+        <CostNonAff Nb="?" Type="double" Def="0.5">   </CostNonAff>
+        <CostTrans Nb="?" Type="double" Def="10">     </CostTrans>
+        <CostRegul Nb="?" Type="double" Def="0.3">    </CostRegul>
+        <StepZ     Nb="1" Type="double">              </StepZ>
+        <DzMax     Nb="?" Type="double" Def="10.0">   </DzMax>
+        <NbDir     Nb="?" Type="int" Def="9">         </NbDir>
+   </ParamFiltreDepthByPrgDyn>
+
 
   <!-- Pourra servir pour construire des affinite, homographie ... -->
 

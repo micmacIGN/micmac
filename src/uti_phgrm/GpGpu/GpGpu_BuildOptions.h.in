@@ -1,5 +1,6 @@
 #cmakedefine CUDA_ENABLED @OptionCuda@
 #cmakedefine OPM_ENABLED  @OPM_ENABLED@
+#cmakedefine OPENCL_ENABLED  @OPENCL_ENABLED@
 //#ifndef __CUDA_API_VERSION
 //#cmakedefine __CUDA_API_VERSION  @__CUDA_API_VERSION@
 //#endif

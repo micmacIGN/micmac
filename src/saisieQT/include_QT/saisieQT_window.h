@@ -5,6 +5,8 @@
 #include "Settings.h"
 #include "Tree.h"
 
+void setStyleSheet(QApplication &app);
+
 namespace Ui {
 class SaisieQtWindow;
 }
@@ -37,11 +39,11 @@ public:
 
     void setLayout(uint sy);
 
-    void loadPly(const QStringList& filenames);
+    bool loadPly(const QStringList& filenames);
 
-    void loadImages(const QStringList& filenames);
+    bool loadImages(const QStringList& filenames);
 
-    void loadCameras(const QStringList& filenames);
+    bool loadCameras(const QStringList& filenames);
 
     void setUI();
 
@@ -57,7 +59,7 @@ public:
 
     void    resizeTables();
 
-    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images, QAbstractItemModel *model_Objects);
+    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/);
 
     void    SelectPointAllWGL(QString pointName = QString(""));
 

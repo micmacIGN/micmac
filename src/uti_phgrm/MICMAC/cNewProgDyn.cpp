@@ -581,14 +581,51 @@ template <class Type> void cMMNewPrg2D<Type>::Local_VecInt1(Pt2di aPTer,int * aP
 
 
 
+void CombleTrouPrgDyn
+     (
+         const cModulationProgDyn & aPrgD,
+         Im2D_Bits<1>  aMaskCalc,
+         Im2D_Bits<1>  aMaskTer,
+         Im2D_INT2     aImZ
+     )
+{
+    const cArgMaskAuto *  aArgMaskAuto = aPrgD.ArgMaskAuto().PtrVal();
+    if (! aArgMaskAuto) return;
+    int aNbOpen = aArgMaskAuto->SzOpen32().Val();
+    if (aNbOpen!=0)
+    {
+       ELISE_COPY
+       (
+            aMaskCalc.all_pts(),
+            open_32(aMaskCalc.in(1),aNbOpen),
+            aMaskCalc.out()
+       );
+    }
+
+    TIm2DBits<1>    aTMaskCalc(aMaskCalc);
+       // filtrage des composantes connexes
+    FiltrageCardCC(true,aTMaskCalc,1,0,aArgMaskAuto->SeuilZC().Val());
+    FiltrageCardCC(true,aTMaskCalc,0,1,aArgMaskAuto->SeuilZC().Val());
+
+    // TIm2D<INT2,INT>   aTImRes(mImRes[mNumNap]);
+    TIm2DBits<1>    aTMaskTer(aMaskTer);
+
+       // aTMask    --> masque de non correlation
+       // aTMaskTer --> masque terrain
+       //ComplKLipsParLBas(aTMaskTer.Im(),aTMask.Im(),mImRes[mNumNap],1.0);
+    ComplKLipsParLBas(aTMaskCalc.Im(),aTMaskTer.Im(),aImZ,1.0);
+/*
+*/
+}
+
 
 template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor)
 {
-    double AmplifKL = 100.0;
+    // double AmplifKL = 100.0;
     if (mHasMask)
     {
         const cArgMaskAuto & anAMA  = mMod.ArgMaskAuto().Val();
-        AmplifKL = anAMA.AmplKLPostTr().Val();
+        // AmplifKL = anAMA.AmplKLPostTr().Val();
         mCostDefMasked = CostR2I(mAppli.CurCorrelToCout(anAMA.ValDefCorrel()));
 
 // std::cout << "COST DEF MASKE " << mAppli.CurCorrelToCout(anAMA.ValDefCorrel()) << " " << mCostDefMasked << "\n";
@@ -669,6 +706,8 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
    }
 
 
+// std::cout << "AAAAAAAAAAAAAAAAAaa " << AmplifKL << "\n"; getchar();
+
    //  Filtrage du masque
    if (mHasMask)
    {
@@ -680,9 +719,9 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
        INT2 **         aRes = mDataImRes[mNumNap];
        Pt2di aP;
 
-       Im2D<INT2,INT>  aZEnvSup(aSz.x,aSz.y,0);
-       aZEnvSup.dup(mImRes[mNumNap]);
-       TIm2D<INT2,INT> aTZES(aZEnvSup);
+       // Im2D<INT2,INT>  aZEnvSup(aSz.x,aSz.y,0);
+       // aZEnvSup.dup(mImRes[mNumNap]);
+       // TIm2D<INT2,INT> aTZES(aZEnvSup);
        
        for (aP.x=0; aP.x<aSz.x ; aP.x++)
        {
@@ -695,53 +734,18 @@ template <class Type>  void cMMNewPrg2D<Type>::Local_SolveOpt(Im2D_U_INT1 aImCor
                        aP,
                        (!NoVal)  && ( mLTCur->IsInMasq(aP))
                  );
-                 aTZES.oset(aP,NoVal?SHRT_MIN:aVRes);
+                 // aTZES.oset(aP,NoVal?SHRT_MIN:aVRes);
                  if (NoVal) 
+                 {
                      aImEtiq.SetI(aP,0);
+                     if (mDoFileCorrel)
+                     {
+                        aImCor.SetI(aP,1);
+                     }
+                 }
            }
        }
-
-       aTZES.algo_dist_env_Klisp_Sup(round_ni(AmplifKL),round_ni(AmplifKL*sqrt(2.0)));
-
-       int aNbOpen = mArgMaskAuto->SzOpen32().Val();
-       if (aNbOpen!=0)
-       {
-           ELISE_COPY
-           (
-               mMaskCalc.all_pts(),
-               open_32(mMaskCalc.in(1),aNbOpen),
-               mMaskCalc.out()
-           );
-       }
-
-
-       for (aP.x=0; aP.x<aSz.x ; aP.x++)
-       {
-           for (aP.y =0 ; aP.y < aSz.y ; aP.y++)
-           {
-               if (aTZES.get(aP) != aRes[aP.y][aP.x])
-               {
-                  aTMask.oset(aP,0);
-                  if (mDoFileCorrel)
-                  {
-                     aImCor.SetI(aP,1);
-                  }
-               }
-           }
-       }
-      
-       // filtrage des composantes connexes
-       FiltrageCardCC(true,aTMask,1,0,mArgMaskAuto->SeuilZC().Val());
-       FiltrageCardCC(true,aTMask,0,1,mArgMaskAuto->SeuilZC().Val());
-
-
-       // TIm2D<INT2,INT>   aTImRes(mImRes[mNumNap]);
-       TIm2DBits<1>    aTMaskTer(mLTCur->ImMasqTer());
-
-       // aTMask    --> masque de non correlation
-       // aTMaskTer --> masque terrain
-       //ComplKLipsParLBas(aTMaskTer.Im(),aTMask.Im(),mImRes[mNumNap],1.0);
-       ComplKLipsParLBas(aTMask.Im(),aTMaskTer.Im(),mImRes[mNumNap],1.0);
+       CombleTrouPrgDyn(mMod,mMaskCalc,mLTCur->ImMasqTer(),mImRes[mNumNap]);
 
 
 

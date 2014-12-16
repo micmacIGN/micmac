@@ -21,7 +21,6 @@
 extern "C" void	CopyParamTodevice(pCorGpu h);
 extern "C" void CopyParamInvTodevice( pCorGpu param );
 extern "C" void	LaunchKernelCorrelation(const int s,cudaStream_t stream,pCorGpu &param,SData2Correl &dataCorrel);
-extern "C" void	LaunchKernelCorrelationZ(const int s,pCorGpu &param,SData2Correl &data2cor);
 extern "C" void	LaunchKernelMultiCorrelation(cudaStream_t stream, pCorGpu &param, SData2Correl &dataCorrel);
 
 extern "C" void dilateKernel(pixel* HostDataOut, short r, uint2 dim);
@@ -49,6 +48,12 @@ public:
 
   void          signalComputeCorrel(uint dZ);
 
+  ///
+  /// \brief InitCorrelJob initialise le job
+  /// \param Zmin z minimum
+  /// \param Zmax z minimum
+  /// \return
+  ///
   uint          InitCorrelJob(int Zmin, int Zmax);
 
   void          freezeCompute();
@@ -71,9 +76,6 @@ public:
 
   bool              NoMasked;
 
-
-  void         simpleJob();
-
 private:
 
   void              CorrelationGpGpu(ushort idBuf = 0 , const int s = 0);
@@ -82,9 +84,7 @@ private:
 
   cudaStream_t*		GetStream(int stream);
 
-  void              threadCompute();
-
-  void              oneCompute();
+  void              simpleWork();
 
   cudaStream_t      _stream[NSTREAM];
 

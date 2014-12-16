@@ -57,7 +57,7 @@ template <class EnumType> void StdReadEnum
 
 
     if (Help)
-       std::cout << "Valid Types for Value : \n";
+       std::cout << "Valid types for enum value: \n";
     for (int aK=0 ; aK<int(aTypeMax) ; aK++)
     {
          EnumType aTK = EnumType(aK);

@@ -6,15 +6,6 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
-//! Interface mode
-enum APP_MODE { BOX2D,          /**< BOX 2D mode **/
-                MASK2D,         /**< Image mask mode  **/
-                MASK3D,         /**< Point cloud mask **/
-                POINT2D_INIT,	/**< Points in Image (SaisieAppuisInit) - uses cAppli_SaisiePts **/
-                POINT2D_PREDIC, /**< Points in Image (SaisieAppuisPredic) - uses cAppli_SaisiePts **/
-                BASC            /**< 2 lines and 1 point (SaisieBasc) - uses cAppli_SaisiePts **/
-};
-
 //! Interaction mode (only in 3D)
 enum INTERACTION_MODE {
     TRANSFORM_CAMERA,
@@ -247,7 +238,7 @@ class cAxis : public cObjectGL
 class cGrid : public cObjectGL
 {
     public:
-        cGrid(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, int nb = 1.f);
+        cGrid(Pt3dr pt = Pt3dr(0.f,0.f,0.f), Pt3dr scale = Pt3dr(1.f,1.f,1.f));
 
         void    draw();
 };
@@ -472,7 +463,8 @@ class cRectangle : public cPolygon
 class cImageGL : public cObjectGL
 {
     public:
-        cImageGL(float gamma = 1.f);
+
+        cImageGL(float scaleFactor=1.f, float gamma = 1.f);
         ~cImageGL();
 
         void    draw(QColor color);
@@ -483,10 +475,10 @@ class cImageGL : public cObjectGL
 
         void    draw();
 
-        //void    setPosition(GLfloat originX, GLfloat originY);
-        //void    setDimensions(GLfloat glh, GLfloat glw);
+        void    setGLPosition(GLfloat originX, GLfloat originY);
+        void    setSize(QSize size);
 
-        void    PrepareTexture(QImage *pImg);
+        void    createTexture(QImage *pImg);
 
         void    ImageToTexture(QImage *pImg);
 
@@ -508,11 +500,17 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
+        void    setZoom(float aVal) { _zoom = aVal; }
+        float   getZoom(){ return _zoom; }
+
 private:
+
+        float   _scaleFactor;
+        float   _zoom;
 
         QGLShaderProgram _program;
 
-        int     _texLocation  ;
+        int     _texLocation;
         int     _gammaLocation;
 
         GLfloat _originX;
@@ -522,6 +520,7 @@ private:
 
         //! Texture image
         GLuint  _texture;
+
         float   _gamma;
 };
 
@@ -534,6 +533,8 @@ public:
     cMaskedImage(float gamma = 1.f, float sFactor= 1.f):
         _m_image(NULL),
         _m_mask(NULL),
+        _m_rescaled_image(NULL),
+        _m_rescaled_mask(NULL),
         _m_newMask(true),
         _gamma(gamma),
         _loadedImageRescaleFactor(sFactor)
@@ -554,10 +555,23 @@ public:
             _m_mask = NULL;
             delete _m_mask;
         }
+        if(_m_rescaled_image != NULL)
+        {
+            _m_rescaled_image = NULL;
+            delete _m_rescaled_image;
+        }
+        if(_m_rescaled_mask != NULL)
+        {
+            _m_rescaled_mask = NULL;
+            delete _m_rescaled_mask;
+        }
     }
 
     T           *_m_image;
     T           *_m_mask;
+
+    T           *_m_rescaled_image;
+    T           *_m_rescaled_mask;
 
     cFileOriMnt  _m_FileOriMnt;
 
@@ -572,29 +586,54 @@ class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 
 public:
 
-    cMaskedImageGL(){}
+    cMaskedImageGL():
+        _qMaskedImage(NULL),
+        _tiles(NULL),
+        _mask_tiles(NULL){}
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
-    void setScale(Pt3dr aScale)
+    /*void setScale(Pt3dr aScale)
     {
         _m_image->setScale(aScale);
         _m_mask->setScale(aScale);
-    }
+    }*/
 
     float getLoadedImageRescaleFactor() { return _loadedImageRescaleFactor; }
 
     void  showMask(bool show) { _m_mask->setVisible(show); }
 
-    void draw();
+    void  draw();
 
-    void deleteTextures();
+    void  drawTiles(cImageGL* tiles);
 
-    void prepareTextures();
+    void  deleteTextures();
+
+    void  createTextures();
+
+    void  setZone(float aVal, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
+
+    cMaskedImage<QImage> * getMaskedImage() { return _qMaskedImage; }
+
+    cImageGL& getTile(int aK);
+    cImageGL& getMaskTile(int aK);
 
 private:
 
+    QRectF       _rectImage;
+
+    cImageGL*   glImage()   {return _m_image;}
+    cImageGL*   glMask()    {return _m_mask;}
+
     cMaskedImage<QImage> *_qMaskedImage;
+
+    cImageGL*               _tiles;
+    cImageGL*               _mask_tiles;
+
+    QVector <QRectF>    _vTilesRect;
+
+    QSize               getTilesSize();
+    void                createTexturesTiles();
 };
 //====================================================================================
 

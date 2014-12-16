@@ -223,6 +223,28 @@ const cTplValGesInit< int > & cSectionEstimSurf::NbRansac()const
    return mNbRansac;
 }
 
+
+cTplValGesInit< std::string > & cSectionEstimSurf::OriPts()
+{
+   return mOriPts;
+}
+
+const cTplValGesInit< std::string > & cSectionEstimSurf::OriPts()const 
+{
+   return mOriPts;
+}
+
+
+cTplValGesInit< std::string > & cSectionEstimSurf::PtsSurf()
+{
+   return mPtsSurf;
+}
+
+const cTplValGesInit< std::string > & cSectionEstimSurf::PtsSurf()const 
+{
+   return mPtsSurf;
+}
+
 void  BinaryUnDumpFromFile(cSectionEstimSurf & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.TypeSurf(),aFp);
@@ -234,6 +256,22 @@ void  BinaryUnDumpFromFile(cSectionEstimSurf & anObj,ELISE_fp & aFp)
         }
         else  anObj.NbRansac().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OriPts().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OriPts().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OriPts().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PtsSurf().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PtsSurf().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PtsSurf().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionEstimSurf & anObj)
@@ -241,6 +279,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionEstimSurf & anObj)
     BinaryDumpInFile(aFp,anObj.TypeSurf());
     BinaryDumpInFile(aFp,anObj.NbRansac().IsInit());
     if (anObj.NbRansac().IsInit()) BinaryDumpInFile(aFp,anObj.NbRansac().Val());
+    BinaryDumpInFile(aFp,anObj.OriPts().IsInit());
+    if (anObj.OriPts().IsInit()) BinaryDumpInFile(aFp,anObj.OriPts().Val());
+    BinaryDumpInFile(aFp,anObj.PtsSurf().IsInit());
+    if (anObj.PtsSurf().IsInit()) BinaryDumpInFile(aFp,anObj.PtsSurf().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionEstimSurf & anObj)
@@ -250,6 +292,10 @@ cElXMLTree * ToXMLTree(const cSectionEstimSurf & anObj)
    aRes->AddFils(::ToXMLTree(std::string("TypeSurf"),anObj.TypeSurf())->ReTagThis("TypeSurf"));
    if (anObj.NbRansac().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NbRansac"),anObj.NbRansac().Val())->ReTagThis("NbRansac"));
+   if (anObj.OriPts().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OriPts"),anObj.OriPts().Val())->ReTagThis("OriPts"));
+   if (anObj.PtsSurf().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PtsSurf"),anObj.PtsSurf().Val())->ReTagThis("PtsSurf"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -263,9 +309,13 @@ void xml_init(cSectionEstimSurf & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeSurf(),aTree->Get("TypeSurf",1)); //tototo 
 
    xml_init(anObj.NbRansac(),aTree->Get("NbRansac",1),int(500)); //tototo 
+
+   xml_init(anObj.OriPts(),aTree->Get("OriPts",1)); //tototo 
+
+   xml_init(anObj.PtsSurf(),aTree->Get("PtsSurf",1)); //tototo 
 }
 
-std::string  Mangling( cSectionEstimSurf *) {return "14B52C2247706AA0FC3F";};
+std::string  Mangling( cSectionEstimSurf *) {return "78615FC165218AF9FE3F";};
 
 
 std::string & cSectionInitModele::Name()
@@ -356,6 +406,28 @@ const cTplValGesInit< int > & cSectionInitModele::NbRansac()const
 }
 
 
+cTplValGesInit< std::string > & cSectionInitModele::OriPts()
+{
+   return SectionEstimSurf().OriPts();
+}
+
+const cTplValGesInit< std::string > & cSectionInitModele::OriPts()const 
+{
+   return SectionEstimSurf().OriPts();
+}
+
+
+cTplValGesInit< std::string > & cSectionInitModele::PtsSurf()
+{
+   return SectionEstimSurf().PtsSurf();
+}
+
+const cTplValGesInit< std::string > & cSectionInitModele::PtsSurf()const 
+{
+   return SectionEstimSurf().PtsSurf();
+}
+
+
 cSectionEstimSurf & cSectionInitModele::SectionEstimSurf()
 {
    return mSectionEstimSurf;
@@ -404,7 +476,7 @@ void xml_init(cSectionInitModele & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionEstimSurf(),aTree->Get("SectionEstimSurf",1)); //tototo 
 }
 
-std::string  Mangling( cSectionInitModele *) {return "758C5C01F0BA8AE4FE3F";};
+std::string  Mangling( cSectionInitModele *) {return "51164B39D2A3BA97FD3F";};
 
 
 cTplValGesInit< int > & cCasaEtapeCompensation::NbIter()
@@ -701,6 +773,6 @@ void xml_init(cParamCasa & anObj,cElXMLTree * aTree)
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamCasa *) {return "D7611FDA0F397EFCFDBF";};
+std::string  Mangling( cParamCasa *) {return "502F916ED9CEC6F8FABF";};
 
 // };

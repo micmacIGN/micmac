@@ -350,7 +350,7 @@ int Tapas_main(int argc,char ** argv)
     std::string ImInit  = NoInit;
     int   aVitesseInit=2;
     int   aDecentre = -1;
-    Pt2dr Focales(-1,-1);
+    Pt2dr Focales(0,100000);
     Pt2dr aPPDec(-1,-1);
     std::string SauvAutom="";
     std::string aSetHom="";
@@ -375,6 +375,9 @@ int Tapas_main(int argc,char ** argv)
     std::string  aPoseFigee="";
     bool Debug = false;
     bool AffineAll = true;
+    double EcartMaxFin=5.0;
+
+    std::vector<std::string> aImMinMax;
 
 
     ElInitArgMain
@@ -393,7 +396,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aPPDec,"PPRel",true, "Principal point shift")
                     << EAM(aDecentre,"Decentre",true, "Principal point is shifted (Def=false)")
                     << EAM(PropDiag,"PropDiag",true, "Hemi-spherik fisheye diameter to diagonal ratio")
-                    << EAM(SauvAutom,"SauvAutom",true, "Save intermediary results to", eSAM_IsOutputFile)
+                    << EAM(SauvAutom,"SauvAutom",true, "Save intermediary results to, Set NONE if dont want any", eSAM_IsOutputFile)
                     << EAM(ImInit,"ImInit",true, "Force first image", eSAM_IsExistFile)
                     << EAM(MOI,"MOI",true,"MOI", eSAM_IsBool)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ",eSAM_InternalUse)
@@ -410,6 +413,8 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     << EAM(AffineAll,"RefineAll",true,"More refinement at all step, safer and more accurate, but slower, def=true")
+                    << EAM(aImMinMax,"ImMinMax",true,"Image min and max (may avoid tricky pattern ...)")
+                    << EAM(EcartMaxFin,"EcMax",true,"Final threshold for residual, def = 5.0 ")
     );
 
 
@@ -469,13 +474,21 @@ int Tapas_main(int argc,char ** argv)
 
        std::string aNameFileApero = "Apero-Glob-New.xml" ;
 
+       std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
+       std::string aSetIm = "NKS-Set-OfPatternAndFoc" + aParamPatFocSetIm;
 
-
+        if (EAMIsInit(&aImMinMax))
+        {
+            ELISE_ASSERT(aImMinMax.size()==2,"ImMinMax size mut be 2");
+            aSetIm =  "NKS-Set-OfPatternAndFocAndInterv" + aParamPatFocSetIm + "@" + aImMinMax[0] + "@" + aImMinMax[1];
+        }
+    
 
        std::string aCom =     MM3dBinFile_quotes( "Apero" )
                            + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+ aNameFileApero ) + " "
                            + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                            + std::string(" ") + QUOTE(std::string("+PatternAllIm=") + aPat) + std::string(" ")
+                           + std::string(" ") + QUOTE(std::string("+SetIm=") + aSetIm) + std::string(" ")
                            //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")
                            + std::string(" +AeroOut=-") + AeroOut
                            + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
@@ -507,6 +520,11 @@ int Tapas_main(int argc,char ** argv)
             aCom = aCom + std::string(" +SetHom=") + aSetHom;
         }
 
+        if (EAMIsInit(&EcartMaxFin))
+        {
+            aCom = aCom + " +EcartMaxFin=" + ToString(EcartMaxFin);
+        }
+
 
 
         if (ModeleAdditional)
@@ -534,20 +552,24 @@ int Tapas_main(int argc,char ** argv)
        if (ImInit!=NoInit)
        {
              aCom =   aCom + " +SetImInit="+ImInit;
-             aCom = aCom + " +FileCamInit=InitCamSpecified.xml";
+             //aCom = aCom + " +FileCamInit=InitCamSpecified.xml";
+             aCom = aCom + " +InitCamSpecif=true +InitCamCenter=false";
              ELISE_ASSERT(AeroIn==NoInit,"Incoherence AeroIn/ImInit");
        }
        if (SauvAutom!="")
-         aCom =   aCom + " +SauvAutom="+SauvAutom;
+       {
+         if (SauvAutom=="NONE")
+            aCom =   aCom + " +DoSauvAutom=false";
+         else
+            aCom =   aCom + " +SauvAutom="+SauvAutom;
+       }
 
        if (AeroIn!= NoInit)
-          aCom =   aCom
-                 + " +FileCamInit=InitCamBDD.xml" ;
+       {
+          aCom =   aCom + " +InitCamBDD=true +InitCamCenter=false";
+                 // + " +FileCamInit=InitCamBDD.xml" ;
+       }
 
-       if (Focales.x>=0)
-          aCom =   aCom
-                 + " +FocMin=" + ToString(Focales.x)
-                 + " +FocMax=" + ToString(Focales.y);
 
        if (aPPDec.x>=0)
            aCom =   aCom + " +xPRelPP=" + ToString(aPPDec.x);

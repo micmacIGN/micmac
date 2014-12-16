@@ -185,7 +185,6 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
                   {
                         std::string aNamePack = mDC+ICNM()->Assoc1To2(aKA,*it1,*it2,true);
                         double aNb = sizeofile(aNamePack.c_str());
- // std::cout << *it1 << " " << *it2 <<  " ===== " << aNb << "\n";
                         mCpt[*it1] += aNb;
                         mCpt[*it2] +=aNb;
                   }
@@ -207,6 +206,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
             aLName.clear();
             aLName.push_back(aBestN);
         }
+
 
 
         if (itP->AddAllNameConnectedBy().IsInit())
@@ -246,7 +246,6 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
                      {
                              aNewL.push_back(*aNewN);
                      }
-// std::cout << *aNewN << " " << isNew << "\n";
                   }
                 }
             }
@@ -353,10 +352,52 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 	      itS++
 	   )
 	   {
-              std::string  aNameCal = itP->CalcNameCalib();
-              if (ICNM()->AssocHasKey(aNameCal))
+              std::string  aNameCal = "";
+              if (itP->CalcNameCalib().IsInit())
               {
-                   aNameCal = ICNM()->Assoc1To1(aNameCal,*itS,true);
+                  aNameCal = itP->CalcNameCalib().Val();
+                  if (ICNM()->AssocHasKey(aNameCal))
+                  {
+                       aNameCal = ICNM()->Assoc1To1(aNameCal,*itS,true);
+                  }
+              }
+              // Si les calibrations sont geres par le nouveua systeme
+              if (!itP->CalcNameCalibAux().empty())
+              {
+                  ELISE_ASSERT(!itP->CalcNameCalib().IsInit(),"Choose CalcNameCalib OR CalcNameCalibAux");
+                  aNameCal = "";
+                  for 
+                  (
+                       std::list<cCalcNameCalibAux>::const_iterator itCAux = itP->CalcNameCalibAux().begin();
+                       (itCAux != itP->CalcNameCalibAux().end()) && (aNameCal=="");
+                       itCAux++
+                  )
+                  {
+// std::cout << "HHHHHHHHH " << itCAux->CalcNameOnExistingTag().IsInit() << "\n";
+                       if (itCAux->CalcNameOnExistingTag().IsInit())
+                       {
+                           const cCalcNameOnExistingTag & aCal = itCAux->CalcNameOnExistingTag().Val();
+                           std::string aXmlFile =  DC() + ICNM()->Assoc1To1(aCal.KeyCalcFileOriExt(),*itS,true);
+                           cElXMLTree aTree (aXmlFile);
+                           bool GotTagE = (aTree.GetOneOrZero(aCal.TagExist()) !=0);
+                           bool GotTagNonE = (aTree.GetOneOrZero(aCal.TagNotExist()) !=0);
+
+// std::cout << "Auux " << aXmlFile << " " << GotTagE <<  " " << GotTagNonE << "\n";
+                           if (aCal.ExigCohTags().Val())
+                           {
+                               ELISE_ASSERT(GotTagE!=GotTagNonE,"Incoherence in CalcNameOnExistingTag");
+                           }
+                           if (GotTagE  && (!GotTagNonE))
+                           {
+                              aNameCal =  ICNM()->Assoc1To1(aCal.KeyCalcName(),*itS,true);
+                           }
+                       }
+                       if (itCAux->KeyCalcNameDef().IsInit())
+                       {
+                             aNameCal = ICNM()->Assoc1To1(itCAux->KeyCalcNameDef().Val(),*itS,true);
+                       }
+                  }
+                  ELISE_ASSERT(aNameCal!="","Could not find satisfying CalcNameCalibAux");
               }
 	   // std::string aNameCal = MatchAndReplace(anAutom,*itS,itP->CalcNameCalib());
 	  
@@ -440,12 +481,9 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
                          itL++
                       )
                       {
-//std::cout << "AAAAAA \n";
 
-//std::cout << "NNN  " << aPC->CalNameFromL(*itL);
 
                             cPoseCam * aPC2 = PoseFromName(aPC->CalNameFromL(*itL));
-// std::cout << "BBBB \n";
                             aPC->UpdateHeriteProf2Init(*aPC2);
                       }
                   }

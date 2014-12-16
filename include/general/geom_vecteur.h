@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -100,8 +100,8 @@ class SegComp : public Seg2d
     // equation normale de la droite
     //  (p1 p). _normale = 0;
     //   p._normale  - _p1. _normale = 0
-    //  c = - _p1. _normale 
-        
+    //  c = - _p1. _normale
+
 
 //  Le repere de la droite (quand on parle abscisse et ordonnees)
 //  est le repere Ortho Normee direct d'origine p1 et de 1ere dir p1p2
@@ -127,18 +127,18 @@ class SegComp : public Seg2d
 
 
         // tel que Cx X + Cy Y + C0 est la fonction ordonnee
-	// qui prend une valeur 1 en P, utile pour calculer
-	// une "matrice" de coeeficent bary dans un triangle
+    // qui prend une valeur 1 en P, utile pour calculer
+    // une "matrice" de coeeficent bary dans un triangle
         void CoeffFoncOrdonnee
-	     (
-	          const Pt2dr& aP,
-		  double & Cx,
-		  double & Cy,
-		  double & aC0
+         (
+              const Pt2dr& aP,
+          double & Cx,
+          double & Cy,
+          double & aC0
              ) const;
 
 
-        REAL ordonnee(Pt2dr pt) const; 
+        REAL ordonnee(Pt2dr pt) const;
         REAL ordonnee(Pt3dr pt) const;  // Point Projectif
         Fonc_Num ordonnee(Pt3d<Fonc_Num> pt) const;  // Point Projectif Formel
         REAL  abscisse(Pt2dr pt) const;
@@ -146,8 +146,8 @@ class SegComp : public Seg2d
         REAL  abscisse_proj_seg(Pt2dr pt) const;  // clippee dans [0 lenght]
         REAL  recouvrement_seg(const Seg2d &) const;  // clippee dans [0 lenght]
 
-        Pt2dr to_rep_loc(Pt2dr) const; 
-        Pt2dr from_rep_loc(Pt2dr) const; 
+        Pt2dr to_rep_loc(Pt2dr) const;
+        Pt2dr from_rep_loc(Pt2dr) const;
 
         REAL  length()   const  {return _length;}
         Pt2dr tangente() const  {return _tangente;}
@@ -156,8 +156,8 @@ class SegComp : public Seg2d
 
         bool in_bande(Pt2dr pt,ModePrim) const;
 
-		bool BoxContains(Pt2dr pt,REAL DLong,REAL DLarg) const;
-		bool BoxContains(const Seg2d & ,REAL DLong,REAL DLarg) const;
+        bool BoxContains(Pt2dr pt,REAL DLong,REAL DLarg) const;
+        bool BoxContains(const Seg2d & ,REAL DLong,REAL DLarg) const;
 
    //=========   DISTANCES   ==============
 
@@ -200,9 +200,9 @@ class SegComp : public Seg2d
         Seg2d  proj_ortho(ModePrim,const SegComp &,ModePrim) const;
 
    //=========   INTERSECTION   ==============
-         
+
         Pt2dr   inter(const SegComp &,bool &) const;  // droite
-        Pt2dr   inter(ModePrim,const SegComp &,ModePrim,bool &) const;  
+        Pt2dr   inter(ModePrim,const SegComp &,ModePrim,bool &) const;
 
         void inter_polyline
              (
@@ -240,44 +240,44 @@ class SegComp : public Seg2d
 class cElTriangleComp
 {
     public :
-	    cElTriangleComp(Pt2dr aP0,Pt2dr aP1,Pt2dr aP2);
+        cElTriangleComp(Pt2dr aP0,Pt2dr aP1,Pt2dr aP2);
             REAL square_dist(Pt2dr pt) const;
 
-	    bool Inside(const Pt2dr &) const;
+        bool Inside(const Pt2dr &) const;
 
-	    Pt2dr P0() const;
-	    Pt2dr P1() const;
-	    Pt2dr P2() const;
+        Pt2dr P0() const;
+        Pt2dr P1() const;
+        Pt2dr P2() const;
 
            // Renvoie une matrice telle que pour
-	   //  un point (x,y) on trouve ses trois
-	   //  coordonnees bary a partir de
-	   //
-	   //       
-	   //    | X |   |  Coeff P1
-	   //  M | Y | = |  Coeff P2
-	   //    | 1 |   |  Coeff P3
-	   //       
+       //  un point (x,y) on trouve ses trois
+       //  coordonnees bary a partir de
+       //
+       //
+       //    | X |   |  Coeff P1
+       //  M | Y | = |  Coeff P2
+       //    | 1 |   |  Coeff P3
+       //
 
-	    ElMatrix<double>  MatCoeffBarry() const;
+        ElMatrix<double>  MatCoeffBarry() const;
 
 
-	    Pt3dr  CoordBarry(const Pt2dr &) const;
-	    Pt2dr  FromCoordBarry(REAL,REAL,REAL) const;
+        Pt3dr  CoordBarry(const Pt2dr &) const;
+        Pt2dr  FromCoordBarry(REAL,REAL,REAL) const;
 
-	    static void Test();
+        static void Test();
 
-	    const SegComp & S01() const;
-	    const SegComp & S12() const;
-	    const SegComp & S20() const;
+        const SegComp & S01() const;
+        const SegComp & S12() const;
+        const SegComp & S20() const;
 
             // Est ce que ordre trigo
-	    static bool ToSwap(const Pt2dr & aP0,const  Pt2dr & aP1,const Pt2dr & aP2);
+        static bool ToSwap(const Pt2dr & aP0,const  Pt2dr & aP1,const Pt2dr & aP2);
     private :
-	    static SegComp ReorderDirect(Pt2dr & aP0, Pt2dr & aP1,Pt2dr & aP2);
-	    SegComp mS01;
-	    SegComp mS12;
-	    SegComp mS20;
+        static SegComp ReorderDirect(Pt2dr & aP0, Pt2dr & aP1,Pt2dr & aP2);
+        SegComp mS01;
+        SegComp mS12;
+        SegComp mS20;
 
 
 };
@@ -287,14 +287,14 @@ template <class Type> class Mat_Inertie
 {
      public  :
 
-       Mat_Inertie(); 
+       Mat_Inertie();
        Mat_Inertie
        (
               ElTyName Type::TypeScal S,
-              ElTyName Type::TypeEff  S1, 
+              ElTyName Type::TypeEff  S1,
               ElTyName Type::TypeEff  S2,
-              ElTyName Type::TypeScal S11, 
-              ElTyName Type::TypeScal S12, 
+              ElTyName Type::TypeScal S11,
+              ElTyName Type::TypeScal S12,
               ElTyName Type::TypeScal S22
        )
           :
@@ -303,7 +303,7 @@ template <class Type> class Mat_Inertie
                _s2    (S2),
                _s11   (S11),
                _s12   (S12),
-               _s22   (S22)     
+               _s22   (S22)
        {
        }
 
@@ -356,7 +356,7 @@ template <class Type> class Mat_Inertie
                        _s11 +  scal(v1,v1) * pds,
                        _s12 +  scal(v1,v2) * pds,
                        _s22 +  scal(v2,v2) * pds
-                   );                
+                   );
        }
 
        Mat_Inertie operator - (const Mat_Inertie &) const;
@@ -373,7 +373,7 @@ template <class Type> class Mat_Inertie
              (
                   _s != 0,
                   "som pds = 0 in Mat_Inertie::normalize"
-             );        
+             );
 
              ElTyName Type::TypeReel::TypeEff  S1 =  _s1 / (REAL) _s;
              ElTyName Type::TypeReel::TypeEff  S2 =  _s2 / (REAL) _s;
@@ -411,7 +411,7 @@ template <class Type> class Mat_Inertie
             #else
               Mat_Inertie<ElTypeName_NotMSW  Type::TypeReel> m =  normalize();
             #endif
-	     if ((m.s11()<=0) || (m.s22() <=0)) return aDef;
+         if ((m.s11()<=0) || (m.s22() <=0)) return aDef;
              return m.s12() / sqrt(m.s11()*m.s22());
        }
 
@@ -424,7 +424,7 @@ template <class Type> class Mat_Inertie
 
     private :
 
- 
+
         ElTyName   Type::TypeScal         _s;
         ElTyName   Type::TypeEff          _s1;
         ElTyName   Type::TypeEff          _s2;
@@ -458,11 +458,11 @@ void PtsOfSquare(ElFifo<Pt2dr> & pts,Pt2dr p0,Pt2dr p1);
 #define IMat_Inertie  Mat_Inertie<ElStdTypeScal<INT> >
 #define RMat_Inertie  Mat_Inertie<ElStdTypeScal<REAL> >
 
-inline Pt2dr MatCdg(const RMat_Inertie& aMat) 
+inline Pt2dr MatCdg(const RMat_Inertie& aMat)
 {
    return Pt2dr(aMat.s1(),aMat.s2());
 }
-inline double ValQuad(const RMat_Inertie& aMat,const Pt2dr aP) 
+inline double ValQuad(const RMat_Inertie& aMat,const Pt2dr aP)
 {
    return     aMat.s11() * ElSquare(aP.x)
          +  2*aMat.s12() * aP.x* aP.y
@@ -474,13 +474,13 @@ template <class Type> Seg2d seg_mean_square(const Mat_Inertie<Type> &,REAL norm 
 
 
 void env_conv
-     ( 
+     (
          ElFifo<INT> &          ind,
          const ElFilo<Pt2di> &  pts,
          bool                   env_min
      );
 void env_conv
-     ( 
+     (
          ElFifo<INT> &          ind,
          const ElFilo<Pt2dr> &  pts,
          bool                   env_min
@@ -514,7 +514,7 @@ class PileEvInterv
       private :
 
         ElFilo<EventInterv> _events;
-}; 
+};
 
 
 class  IntervDisjoint
@@ -526,7 +526,7 @@ class  IntervDisjoint
             void init(PileEvInterv &);
             IntervDisjoint(PileEvInterv &);
             IntervDisjoint();
-           
+
 
       private :
 
@@ -549,7 +549,7 @@ class ElQTRegionPlan
          virtual REAL D2(const Pt2dr &)  const = 0;
          virtual REAL D2(const SegComp &)  const = 0;
          virtual REAL D2(const cElTriangleComp &)  const ; // Def = err fatale
-	 virtual ~ElQTRegionPlan() {}
+     virtual ~ElQTRegionPlan() {}
 };
 
 
@@ -563,7 +563,7 @@ class ElQTRegPt : public ElQTRegionPlan
          virtual REAL D2(const cElTriangleComp &)  const ; // Implantee
 
          ElQTRegPt (Pt2dr);
-	 virtual ~ElQTRegPt() {}
+     virtual ~ElQTRegPt() {}
 
       private :
 
@@ -579,7 +579,7 @@ class ElQTRegSeg : public ElQTRegionPlan
          virtual REAL D2(const SegComp &)  const;
 
          ElQTRegSeg (Seg2d);
-	 virtual ~ElQTRegSeg() {}
+     virtual ~ElQTRegSeg() {}
       private :
 
           SegComp _seg;
@@ -593,7 +593,7 @@ class ElQTRegBox : public ElQTRegionPlan
          virtual REAL D2(const Pt2dr & )  const ;
          virtual REAL D2(const SegComp &)  const;
          ElQTRegBox (const Box2dr &box);
-	 virtual ~ElQTRegBox() {}
+     virtual ~ElQTRegBox() {}
       private :
 
           Box2dr _box;
@@ -614,7 +614,7 @@ class ElQdtGen
       protected :
 
           ElQdtGen
-          ( 
+          (
                      Box2dr        box,
                      INT           NbObjMax,
                      REAL          SzMin
@@ -666,7 +666,7 @@ class ElSeg3D
           Pt3dr  ProjOrtho(Pt3dr aP0) const;  // A la droite
           REAL   DistDoite(Pt3dr aP0) const;
           Pt3dr  PtOfAbsc(REAL anAbsc) const;
-	  REAL   AbscOfProj(Pt3dr aP) const;
+          REAL   AbscOfProj(Pt3dr aP) const;
 
 
           static ElSeg3D  CombinL1(const std::vector<Pt3dr> & aV);
@@ -684,15 +684,15 @@ class ElSeg3D
           Pt3dr P0() const;
           Pt3dr P1() const;
 
-	  static Pt3dr L2InterFaisceaux
-	               (
+      static Pt3dr L2InterFaisceaux
+                   (
                            const std::vector<double> *,
                            const std::vector<ElSeg3D> &aVS,
                            bool * aOK=0,
                            const cRapOnZ *      aRAZ = 0,
                            cResOptInterFaisceaux * = 0,
                            const std::vector<Pt3dr> *  aVPts =0// Si existe doit etre pair et c'est une alternance pts/inc
-		       );
+               );
      private :
 
          Pt3dr mP0;
@@ -703,20 +703,20 @@ class ElSeg3D
 class cElPlan3D
 {
       public :
-	      // Peu importe P0,P1,P2 du moment 
-	      // qu'ils definissent le meme plan
-	      cElPlan3D(Pt3dr aP0,Pt3dr aP1,Pt3dr aP2);
+          // Peu importe P0,P1,P2 du moment
+          // qu'ils definissent le meme plan
+          cElPlan3D(Pt3dr aP0,Pt3dr aP1,Pt3dr aP2);
 
               // Plan au moindre carres; si Pds=0 -> Pds[aK] = 1
               cElPlan3D(const std::vector<Pt3dr> &,const std::vector<double>*,ElSeg3D * aBestSeg=0);
 
-	      Pt3dr Inter(const cElPlan3D&,const cElPlan3D &,bool &OK) const;
-	      Pt3dr Inter(const ElSeg3D &,bool *OK=0) const;
+          Pt3dr Inter(const cElPlan3D&,const cElPlan3D &,bool &OK) const;
+          Pt3dr Inter(const ElSeg3D &,bool *OK=0) const;
               ElSeg3D Inter(const cElPlan3D&,bool &OK) const;
 
-	      // Plante si Plan Vertical
-	      REAL   ZOfXY(Pt2dr aP) const;
-	      Pt3dr  AddZ(Pt2dr aP) const;
+          // Plante si Plan Vertical
+          REAL   ZOfXY(Pt2dr aP) const;
+          Pt3dr  AddZ(Pt2dr aP) const;
 
              // void L1Ameliore(const std::vector<Pt3dr> & aVP,int aNbMax=-1);
              ElRotation3D CoordPlan2Euclid();
@@ -731,13 +731,13 @@ class cElPlan3D
 
              void Revert() ;   // Z => -Z
       private :
-	      // Le plan est donne par son equation normale
-	      // mScal + mNorm.P = 0
-	      Pt3dr mNorm;
-	      REAL mScal;
-	      Pt3dr mP0;
-	      Pt3dr mU;
-	      Pt3dr mV;
+          // Le plan est donne par son equation normale
+          // mScal + mNorm.P = 0
+          Pt3dr mNorm;
+          REAL mScal;
+          Pt3dr mP0;
+          Pt3dr mU;
+          Pt3dr mV;
 };
 
 
@@ -817,69 +817,69 @@ void TestImDist(int,char **);
 
 class cMailageSphere
 {
-	public :
-		cMailageSphere(Pt2dr,Pt2dr,Pt2dr,bool Inv);
-		void SetStep(Pt2dr);
-		void SetMax(Pt2dr);
-		void SetMin(Pt2dr);
+    public :
+        cMailageSphere(Pt2dr,Pt2dr,Pt2dr,bool Inv);
+        void SetStep(Pt2dr);
+        void SetMax(Pt2dr);
+        void SetMin(Pt2dr);
 
-		Pt2dr Pix2Spherik(Pt2dr aIndTP);
-		Pt2di Spherik2PixI(Pt2dr  aTetaPhi);
-		Pt2dr Spherik2PixR(Pt2dr  aTetaPhi);
+        Pt2dr Pix2Spherik(Pt2dr aIndTP);
+        Pt2di Spherik2PixI(Pt2dr  aTetaPhi);
+        Pt2dr Spherik2PixR(Pt2dr  aTetaPhi);
 
-		Pt2di SZEnglob();
-		void WriteFile(const std::string & aNameFile);
-		static cMailageSphere FromFile(const std::string & aNameFile);
+        Pt2di SZEnglob();
+        void WriteFile(const std::string & aNameFile);
+        static cMailageSphere FromFile(const std::string & aNameFile);
 
-		Pt3dr DirMoy();
-		Pt2dr DirMoyH();
+        Pt3dr DirMoy();
+        Pt2dr DirMoyH();
 
-	private :
-		Pt2dr mStep;  // Teta ,Phi
-		Pt2dr mMin;
-		Pt2dr mMax;
-		int   mInv;
+    private :
+        Pt2dr mStep;  // Teta ,Phi
+        Pt2dr mMin;
+        Pt2dr mMax;
+        int   mInv;
 };
 
 class cGridNuageP3D
 {
-	public :
+    public :
             cGridNuageP3D
-	    (
-	         const std::string &,	
-		 Pt2di aSz = Pt2di(-1,-1), // Def => Tiff.sz()
-		 Pt2di aP0 = Pt2di(0,0)
+        (
+             const std::string &,
+         Pt2di aSz = Pt2di(-1,-1), // Def => Tiff.sz()
+         Pt2di aP0 = Pt2di(0,0)
             );
-	    Pt2di Sz() const;
-	    INT   Cpt(Pt2di) const;
-	    Pt3dr P3D(Pt2di) const;
+        Pt2di Sz() const;
+        INT   Cpt(Pt2di) const;
+        Pt3dr P3D(Pt2di) const;
 
-	    std::string NameShade() const;
-	    Im2D_U_INT1   ImShade();
-	    Im2D_INT1     ImCpt();
+        std::string NameShade() const;
+        Im2D_U_INT1   ImShade();
+        Im2D_INT1     ImCpt();
 
-	    // Profondeur dans la direction moyenne
-	    Fonc_Num FProfDMoyH();
+        // Profondeur dans la direction moyenne
+        Fonc_Num FProfDMoyH();
 
-	    Tiff_Im   TifFile(const std::string & aShortName);
-	private :
-	    static const std::string theNameShade;
-	    void Init(Im2DGen,const std::string &);
+        Tiff_Im   TifFile(const std::string & aShortName);
+    private :
+        static const std::string theNameShade;
+        void Init(Im2DGen,const std::string &);
 
-	    std::string   mName;
-	    Pt2di         mSz;
-	    Pt2di         mP0;
-            
-	    Im2D_REAL4    mImX;
-	    REAL4 **      mDX;
-	    Im2D_REAL4    mImY;
-	    REAL4 **      mDY;
-	    Im2D_REAL4    mImZ;
-	    REAL4 **      mDZ;
-	    Im2D_INT1     mImCpt;
-	    Im2D_U_INT1   mImShade;
-	    cMailageSphere  mMSph;
-}; 
+        std::string   mName;
+        Pt2di         mSz;
+        Pt2di         mP0;
+
+        Im2D_REAL4    mImX;
+        REAL4 **      mDX;
+        Im2D_REAL4    mImY;
+        REAL4 **      mDY;
+        Im2D_REAL4    mImZ;
+        REAL4 **      mDZ;
+        Im2D_INT1     mImCpt;
+        Im2D_U_INT1   mImShade;
+        cMailageSphere  mMSph;
+};
 
 
 class cQtcElNuageLaser;
@@ -894,7 +894,7 @@ class cElNuageLaser
 {
      public  :
 
-       typedef enum 
+       typedef enum
        {
             eConvId,
             eConvCarto2Terr,
@@ -910,7 +910,7 @@ class cElNuageLaser
        const std::vector<Pt3dr> & VPts() const;
        void SauvCur(const std::string &);
        void Debug(const std::string & aName);
-                                                                                             
+
 
        REAL   ZMin () const;
        REAL   ZMax () const;
@@ -919,7 +919,7 @@ class cElNuageLaser
        void  AddQt(INT aNbObjMaxParFeuille,REAL aDistPave);
 
        void ParseNuage(cResReqNuageLaser & aResParse,Box2dr aBox);
-                                                                                             
+
      private :
        cElNuageLaser(const cElNuageLaser &);  // Non Implemente
 
@@ -941,17 +941,17 @@ class cElPolygone
        typedef std::vector<Pt2dr> tContour;
        typedef const std::list<tContour>  tConstLC;
        typedef std::list<tContour>::const_iterator  tItConstLC;
-                                                                                       
+
        void AddContour(const tContour &,bool isHole);
        cElPolygone();
        cElPolygone (const gpc_polygon &);
        struct gpc_polygon ToGPC() const;
-                                                                                       
+
        const std::list<tContour> & Contours() const;
        const std::list<bool> &     IsHole();
        tContour  ContSMax() const;
 
-                                                                                       
+
        cElPolygone operator * (const cElPolygone & aPol)  const;
        cElPolygone operator + (const cElPolygone & aPol)  const;
        cElPolygone operator - (const cElPolygone & aPol)  const;
@@ -959,10 +959,10 @@ class cElPolygone
 
        double Surf() const;
        double DiamSimple() const;  // Suppose que existe surf englob
-                                                                                       
+
     private  :
        cElPolygone GenOp(const cElPolygone & aPol,INT)const;
-                                                                                       
+
        std::list<tContour>   mContours;
        std::list<bool>       mIsHole;
 };
@@ -980,13 +980,13 @@ class cElPolygone
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -996,17 +996,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -174,7 +174,7 @@ int ScaleIm_main(int argc,char ** argv)
     (
          TiffOut.all_pts(),
          aFIn,
-     TiffOut.out()
+         TiffOut.out()
     );
     }
     return EXIT_SUCCESS;

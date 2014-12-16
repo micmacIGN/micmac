@@ -97,8 +97,12 @@ int Campari_main(int argc,char ** argv)
     bool DetailAppuis = false;
     double Viscos = 1.0;
     bool ExpTxt = false;
+    std::vector<std::string> aImMinMax;
 
     Pt3dr aGpsLA;
+
+    int aDegAdd = 0;
+    int aDegFree = 0;
 
     ElInitArgMain
     (
@@ -108,7 +112,7 @@ int Campari_main(int argc,char ** argv)
                     << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
     LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]", eSAM_NoInit)
                     << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc, ?GpsAlti?], GpsAlti if != Plani", eSAM_NoInit)
-                    << EAM(aGpsLA,"GpsLa",true,"Gps Lever Arm, in combinaision  with EmGPS", eSAM_NoInit)
+                    << EAM(aGpsLA,"GpsLa",true,"Gps Lever Arm, in combination with EmGPS", eSAM_NoInit)
                     << EAM(aSigmaTieP,"SigmaTieP", true, "Sigma use for TieP weighting (Def=1)")
                     << EAM(aFactResElimTieP,"FactElimTieP", true, "Fact elimination of tie point (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
@@ -120,6 +124,9 @@ int Campari_main(int argc,char ** argv)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity in Levenberg-Marquardt like resolution (Def=1.0)")
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
+                    << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
+                    << EAM(aDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
+                    << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters")
 
     );
 
@@ -132,6 +139,16 @@ int Campari_main(int argc,char ** argv)
         SplitDirAndFile(aDir,aPat,aFullDir);
         StdCorrecNameOrient(AeroIn,aDir);
 
+        Pt2dr Focales(0,100000);
+        std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
+        std::string aSetIm = "NKS-Set-OfPatternAndFoc" + aParamPatFocSetIm;
+
+
+        if (EAMIsInit(&aImMinMax))
+        {
+            ELISE_ASSERT(aImMinMax.size()==2,"Bad size in vect");
+            aSetIm =  "NKS-Set-OfPatternAndFocAndInterv" + aParamPatFocSetIm + "@" + aImMinMax[0] + "@" + aImMinMax[1];
+        }
 
 
 
@@ -139,7 +156,7 @@ int Campari_main(int argc,char ** argv)
        std::string aCom =     MM3dBinFile_quotes( "Apero" )
                            +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
                            +  std::string(" DirectoryChantier=") + aDir + " "
-                           +  std::string(" +SetIm=") + QUOTE(aPat) + " "
+                           +  std::string(" +SetIm=") + QUOTE(aSetIm) + " "
                            +  std::string(" +AeroIn=-") + AeroIn + " "
                            +  std::string(" +AeroOut=-") + AeroOut + " "
                           ;
@@ -153,7 +170,7 @@ int Campari_main(int argc,char ** argv)
         if (ExpTxt) aCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
         if (EAMIsInit(&aFactResElimTieP))
-           aCom =  " +FactMaxRes=" + ToString(aFactResElimTieP);
+           aCom =  aCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);
 
 
        if (EAMIsInit(&Viscos)) aCom  +=  " +Viscos=" + ToString(Viscos) + " ";
@@ -175,13 +192,16 @@ int Campari_main(int argc,char ** argv)
                    + std::string("+GrIncGr=") + ToString(aGcpGrU) + " "
                    + std::string("+GrIncIm=") + ToString(aGcpImU) + " ";
         }
+        if (aDegAdd>0)  aCom = aCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(aDegAdd);
+        if (aDegFree>0)  aCom = aCom + " +DegGen=" +  ToString(aDegFree);
 
         if (EAMIsInit(&EmGPS))
         {
             ELISE_ASSERT((EmGPS.size()>=2) && (EmGPS.size()<=3) ,"Mandatory part of EmGPS requires 2 arguments");
+            StdCorrecNameOrient(EmGPS[0],aDir);
             double aGpsU = RequireFromString<double>(EmGPS[1],"GCP-Ground uncertainty");
             double aGpsAlti = aGpsU;
-            if (EmGPS.size()>=3) 
+            if (EmGPS.size()>=3)
                aGpsAlti = RequireFromString<double>(EmGPS[2],"GCP-Ground Alti uncertainty");
             aCom = aCom +  " +BDDC=" + EmGPS[0]
                         +  " +SigmGPS=" + ToString(aGpsU)
@@ -190,9 +210,9 @@ int Campari_main(int argc,char ** argv)
 
             if (EAMIsInit(&aGpsLA))
             {
-                aCom = aCom + " +WithLA=true +LaX="  + ToString(aGpsLA.x) 
-                                         + " +LaY=" + ToString(aGpsLA.y) 
-                                         + " +LaZ=" + ToString(aGpsLA.z) 
+                aCom = aCom + " +WithLA=true +LaX="  + ToString(aGpsLA.x)
+                                         + " +LaY=" + ToString(aGpsLA.y)
+                                         + " +LaZ=" + ToString(aGpsLA.z)
                                          + " ";
             }
         }

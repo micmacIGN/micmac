@@ -92,7 +92,7 @@ class cMicMacZbuf : public cZBuffer
                const Pt2di &         aTrGT,   // Translation entre la BOX GT et ImZ,ImMasq
                const cGeomDiscFPx&,
                cPriseDeVue & aPdv,
-               Im2D_INT2  aImZInit,
+               Im2D_REAL4   aImZInit,
                Im2D_Bits<1> aImMasq
          );
          void Inspect();
@@ -148,7 +148,7 @@ cMicMacZbuf::cMicMacZbuf
       const Pt2di &         aTrGT,
       const cGeomDiscFPx& aGeomTer,
       cPriseDeVue & aPdv,
-      Im2D_INT2  aImZInit,
+      Im2D_REAL4   aImZInit,
       Im2D_Bits<1> aImMasq
 ) :
   cZBuffer
@@ -176,7 +176,7 @@ cMicMacZbuf::cMicMacZbuf
   {
      ElImplemDequantifier aDeq(mImTer.sz());
      aDeq.SetTraitSpecialCuv(false);
-     aDeq.DoDequantif(mImTer.sz(), mImTer.in(),true);
+     aDeq.DoDequantif(mImTer.sz(), round_ni(mImTer.in()),true);
      ELISE_COPY
      (
           mImTer.all_pts(),
@@ -331,6 +331,7 @@ Box2di  BoxTer2Disc
           );
 }
 
+
 void cAppliMICMAC::MakePartiesCachees
                    (
                        cPriseDeVue & aPdv,
@@ -375,7 +376,6 @@ void cAppliMICMAC::MakePartiesCachees
 
    std::string   anEntete = NamePC(true,aGPC,mCurEtape,aPdv);
 
-   std::cout << "ENTETE =" << anEntete << "\n";
    if (aGPC.DoOnlyWhenNew().Val())
    {
        if (ELISE_fp::exist_file(anEntete+".tif"))
@@ -389,9 +389,10 @@ void cAppliMICMAC::MakePartiesCachees
 
 
 
-   cGeomDiscFPx   aGT = mCurEtape->GeomTer();
+   cGeomDiscFPx   aGT = mCurEtape->GeomTerFinal();
    aGT.SetClipInit();
    Box2dr aBoxGlob(aGT.P0(), aGT.P1());
+
 
    cMetaDataPartiesCachees aMetaData;
    aMetaData.Done() = false;
@@ -414,7 +415,7 @@ void cAppliMICMAC::MakePartiesCachees
       GetIntervZ(aB,aZMin,aZMax,aZMoy);
       aBoxTer =  aPdv.Geom().EmpriseTerrain(&aZMin,&aZMax,0.0);
    }
-  
+
 
     if (InterVide(aBoxGlob,aBoxTer))
     {
@@ -434,7 +435,7 @@ void cAppliMICMAC::MakePartiesCachees
    Pt2di aP0 = aB._p0;
    Pt2di aP1 = aB._p1;
 
-   Im2D_INT2 aImZ(1,1);
+   Im2D_REAL4 aImZ(1,1);
    Im2D_Bits<1>  aImMasq(1,1);
 
    if (FullIm)
@@ -446,7 +447,7 @@ void cAppliMICMAC::MakePartiesCachees
 
     // On va calculer le masque des points terrain qui sont dans le masque terrain
     // initial et dont la projection au Z calcule est dans l'image 
-    // Eventuellement on adpate la boite pour la reduire
+    // Eventuellement on adapte la boite pour la reduire
    
 
 
@@ -456,8 +457,8 @@ void cAppliMICMAC::MakePartiesCachees
       aGT.SetClip(aP0,aP1);
       Pt2di aSzIm = aP1- aP0;
 
-      aImZ = Im2D_INT2(aSzIm.x,aSzIm.y);
-      TIm2D<INT2,INT> aTImZ(aImZ);
+      aImZ = Im2D_REAL4(aSzIm.x,aSzIm.y);
+      TIm2D<REAL4,REAL8> aTImZ(aImZ);
       aImMasq = Im2D_Bits<1>(aSzIm.x,aSzIm.y,0);
       Tiff_Im aTFM = FileMasqOfResol(mCurEtape->DeZoomTer());
 
@@ -580,7 +581,7 @@ void cAppliMICMAC::MakePartiesCachees
 
       if ((!FullIm) && (aNewSz.x>0) &&  (aNewSz.y>0))
       {
-          Im2D_INT2 aNewImZ(aNewSz.x,aNewSz.y);
+          Im2D_REAL4 aNewImZ(aNewSz.x,aNewSz.y);
           Im2D_Bits<1>  aNewImMasq(aNewSz.x,aNewSz.y);
 
           ELISE_COPY
@@ -622,7 +623,6 @@ void cAppliMICMAC::MakePartiesCachees
 
    Pt2di aPBord(aSzBord,aSzBord);
    cDecoupageInterv2D  aDI2d(Box2di(aP0Glob,aP1Glob),Pt2di(aMaxSz,aMaxSz),Box2di(-aPBord,aPBord));
-
 
 
    std::string aStrEnt = anEntete+".tif";
@@ -696,7 +696,6 @@ void cAppliMICMAC::MakePartiesCachees
            }
 
            anOriOrtho.ResolutionPlani() = Pt2dr(aRx,aRy)*aResRelOrtho;
-
 
            if (aMOPI.PixelTerrainPhase().IsInit())
            {
@@ -916,6 +915,7 @@ void cAppliMICMAC::MakeOrtho
        return;
     }
     Tiff_Im aFIn = Tiff_Im::StdConvGen(aNameIn.c_str(),aMOPI.NbChan().Val(),false);
+
     int aDzTer = mCurEtape->DeZoomTer();
 
     int aNbC = aFIn.nb_chan();
@@ -1161,7 +1161,7 @@ void cAppliMICMAC::GetIntervZ(const Box2di & aBox,double & aZMin,double & aZMax,
 
   aZMoy = aSomMZ / aSomM;
 
-  const cGeomDiscFPx &  aGT = mCurEtape->GeomTer();
+  cGeomDiscFPx  aGT = mCurEtape->GeomTerFinal();
   aGT.PxDisc2PxReel(&aZMin,&aZMin);
   aGT.PxDisc2PxReel(&aZMax,&aZMax);
   aGT.PxDisc2PxReel(&aZMoy,&aZMoy);
@@ -1257,10 +1257,7 @@ void cAppliMICMAC::MakePartiesCachees()
              aCpt++;
           }
      }
-     // getchar();
    }
-  
-
 }
 
 

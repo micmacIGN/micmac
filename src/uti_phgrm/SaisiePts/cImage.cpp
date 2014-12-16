@@ -312,7 +312,11 @@ cSP_PointGlob * cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,doubl
 
 
     cSP_PointeImage * aPIm = PointeOfNameGlobSVP(aSPG->PG()->Name());
-    ELISE_ASSERT(aPIm!=0,"Incoherence (2) in cImage::CreatePGFromPointeMono");
+    if (aPIm==0)
+    {
+        std::cout << "Name " << aSPG->PG()->Name() << "\n";
+        ELISE_ASSERT(aPIm!=0,"Incoherence (2) in cImage::CreatePGFromPointeMono");
+    }
     aPIm->Saisie()->Etat() = eEPI_Valide;
     aPIm->Saisie()->PtIm() = aPtIm;
     mAppli.HighLightSom(aSPG);

@@ -788,7 +788,10 @@ cMetaDataPhoto  DATA_Tiff_Ifd::MDP()
                 mExifTiff_ShutterSpeed,
                 mExifTiff_Aperture,
                 mExifTiff_IsoSpeed,
-                ""
+                "",
+                "",
+                "",
+                _bits_p_chanel[0]
            );
 }
 
@@ -2152,6 +2155,7 @@ std::string NameFileStd
                 bool ExigB8
             )
 {
+   cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::Glob();
    cSpecifFormatRaw *   aSFR = GetSFRFromString(aFullNameOri);
 
 
@@ -2176,6 +2180,19 @@ std::string NameFileStd
    bool isTiff = Tiff_Im::IsTiff(aFullNameOri.c_str(),true);
    int aNbChanIn = -1;
    bool Bits16 = RequireBits16 && (!IsPostfixedJPG(aFullNameOri));
+
+   if (isTiff)  // Si fichier tiff , le Bits16 sera calcule plus tard
+   {
+   }
+   else
+   {
+       cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNameOri);
+       int aNbbMDP = aMDP.NbBits(true);
+       if ((aNbbMDP>0) && (aNbbMDP<=8))
+       {
+           Bits16 = false;
+       }
+   }
    bool Conv16to8=false;
 
    if (isTiff || aRawTiff )
@@ -2238,7 +2255,32 @@ std::string NameFileStd
        Fonc_Num aFin = aTif->in();
        if (aNbChanSpec==1)
        {
+           if (aICNM==0)  aICNM = cInterfChantierNameManipulateur::Glob();
+           if (aICNM==0)  aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullNameOri));
+           std::vector<double> aVPds;
+           ElArgMain<std::vector<double> > anArg(aVPds,"toto",true);
+           std::string aNamePds = aICNM->Assoc1To1("NKS-Assoc-Pds-Channel",NameWithoutDir(aFullNameOri),true);
+           anArg.InitEAM(aNamePds,ElGramArgMain::StdGram);
+           ELISE_ASSERT(int(aVPds.size()) >= aNbChanIn,"Channel > nb of pds in tiff => Gray");
+
+           double aSomPds = 0;
+           aFin = 0.0;
+           bool AllP1 = true;
+           for (int aKC=0 ; aKC<aNbChanIn ; aKC++)
+           {
+               double aPds = aVPds[aKC];
+               // FromString(aPds,aICNM->Assoc1To2("NKS-Assoc-Pds-Channel",aFullNameOri,ToString(aKC),true));
+               aFin  =  aFin + aPds * aSIn.kth_proj(aKC);
+               aSomPds  += aPds;
+               AllP1 = AllP1 && (aPds==1);
+           }
+           if (! AllP1) 
+              std::cout << "PDS " << aVPds << " for " <<  aFullNameOri << "\n";
+           aFin  = aFin / aSomPds;
            aPhOut = Tiff_Im::BlackIsZero;
+
+/*
+
            if (aNbChanIn==4) // Maybe RGB+IR ? ToDo !
            {
                aFin  = (aSIn.v0() + aSIn.v1()+ aSIn.v2()+ aSIn.kth_proj(3)) / 4;
@@ -2264,6 +2306,7 @@ std::string NameFileStd
               std::cout  << "For Name " << aFullNameOri << "\n";
               ELISE_ASSERT(false,"Unexpected color combinaison");
            }
+*/
        }
        else if (aNbChanSpec==3)
        {
@@ -2342,7 +2385,7 @@ std::string NameFileStd
 
        if (! Bits16)
        {
-             cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullNameOri));
+             if (aICNM==0)  aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullNameOri));
              aStr = aStr + " Gamma=" + aICNM->Assoc1To1("NKS-Assoc-STD-Gama8Bits",NameWithoutDir(aFullNameOri),true);
              aStr = aStr + " EpsLog=" +  aICNM->Assoc1To1("NKS-Assoc-STD-EpsLog8Bits",NameWithoutDir(aFullNameOri),true);
        }

@@ -1378,6 +1378,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
     double aStepPix = mStepZ / mCurEtape->DeZoomTer();
 
+
+
  //  ====  2. Pas quotient d'entier
     double aRealNbByPix = 1/ aStepPix;
     int mNbByPix = round_ni(aRealNbByPix);
@@ -1390,12 +1392,33 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 /*
 */
 
-
-
     Pt2di anOff0 = anI0.OffsetIm();
     Pt2di anOff1 = anI1.OffsetIm();
 
+#ifdef CUDA_ENABLED
 
+//        interface_Census_GPU.transfertImageAndMask(
+//                    toUi2(mPDV1->LoadedIm().SzIm()),
+//                    toUi2(mPDV2->LoadedIm().SzIm()),
+//                    anI0.VDataIm(),
+//                    anI1.VDataIm(),
+//                    anI0.ImMasqErod(),
+//                    anI1.ImMasqErod());
+
+//        interface_Census_GPU.transfertParamCensus(
+//                    Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
+//                    aVKImS,
+//                    aVPds,
+//                    toInt2(anOff0),
+//                    toInt2(anOff1),
+//                    mTabZMin,
+//                    mTabZMax,
+//                    mNbByPix,
+//                    aStepPix);
+
+//        interface_Census_GPU.jobMask();
+        //getchar();
+#endif
 // std::cout << anOff0 << anOff1 << "\n";
 
     // std::cout << mX0Ter  << " " << mY0Ter << "\n";
@@ -1410,8 +1433,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     Box2di aBoxCalc0 = aBox.trans(anOff0);
     Box2di aBoxCalc1 = aBox.trans(anOff1);
 
-   Box2di aBoxDef0 (Pt2di(0,0),mPDV1->LoadedIm().SzIm());
-   Box2di aBoxDef1 (Pt2di(0,0),mPDV2->LoadedIm().SzIm());
+    Box2di aBoxDef0 (Pt2di(0,0),mPDV1->LoadedIm().SzIm());
+    Box2di aBoxDef1 (Pt2di(0,0),mPDV2->LoadedIm().SzIm());
     
 
     std::vector<Im2D_INT4> mImFlag0;
@@ -1523,8 +1546,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
             aSomC = aMomC->DataSom();
             aSomCC = aMomC->DataSomQuad();
         }
-
-
 
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {

@@ -47,6 +47,7 @@ inline __host__ __device__ short2 make_short2(ushort2 a)
     return make_short2((short)a.x,(short)a.y);
 }
 
+
 /// \struct Rect
 /// \brief Cette structure represente un rectangle definie par deux points
 struct Rect
@@ -294,6 +295,11 @@ inline __host__ __device__ uint2 operator+(uint2 a, ushort2 b)
     return make_uint2(a.x + b.x, a.y + b.y);
 }
 
+inline __host__ __device__ uint2 operator+(uint2 a, short2 b)
+{
+    return make_uint2(a.x + b.x, a.y + b.y);
+}
+
 inline __host__ __device__ ushort2 operator+(ushort2 a, int b)
 {
     return make_ushort2(a.x + b, a.y + b);
@@ -362,6 +368,12 @@ inline __host__ __device__ ushort2 operator+(const ushort2 a, ushort2 b)
 }
 
 
+inline __host__ __device__ float2 operator+(const float2 a, short2 b)
+{
+
+    return make_float2(a.x + b.x, a.y + b.y);
+
+}
 
 
 

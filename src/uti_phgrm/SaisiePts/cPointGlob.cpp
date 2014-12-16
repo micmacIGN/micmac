@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -67,7 +67,7 @@ void cSP_PointGlob::AddAPointe(cSP_PointeImage * aPIm)
     (
         mPointes.find(aPIm->Image()->Name())==mPointes.end(),
         "Multiple add AddAPointe"
-    );  
+    );
     mPointes[aPIm->Image()->Name()] = aPIm;
 }
 
@@ -75,11 +75,11 @@ void cSP_PointGlob::AddAPointe(cSP_PointeImage * aPIm)
 void cSP_PointGlob::SetKilled()
 {
     mPG->Disparu().SetVal(true);
-    eEtatPointeImage aState = mPG->FromDico().ValWithDef(false) ? 
+    eEtatPointeImage aState = mPG->FromDico().ValWithDef(false) ?
                               eEPI_Refute                       :
                               eEPI_Disparu                      ;
 
-    for 
+    for
     (
        std::map<std::string,cSP_PointeImage *>::iterator it=mPointes.begin();
        it!=mPointes.end();
@@ -101,7 +101,7 @@ bool cSP_PointGlob::IsPtAutom() const
 
 void  cSP_PointGlob::SuprDisp()
 {
-    for 
+    for
     (
        std::map<std::string,cSP_PointeImage *>::iterator it=mPointes.begin();
        it!=mPointes.end();
@@ -128,7 +128,7 @@ void cSP_PointGlob::ReCalculPoints()
 
 
     std::vector<cSP_PointeImage *> aVOK;
-    for 
+    for
     (
        std::map<std::string,cSP_PointeImage *>::iterator it=mPointes.begin();
        it!=mPointes.end();
@@ -150,7 +150,7 @@ void cSP_PointGlob::ReCalculPoints()
         }
     }
 
-    if (aVOK.size() == 0) 
+    if (aVOK.size() == 0)
        return;
 
     if (aVOK.size() == 1)
@@ -171,7 +171,7 @@ void cSP_PointGlob::ReCalculPoints()
         Pt3dr aPt = aP0;
         ElCamera * aCamera = anIm.CaptCam();
         // cElNuage3DMaille * aNuage = anIm.CaptNuage();
-        
+
         if (aCap3d->HasPreciseCapteur2Terrain())
         {
             aPt = aCap3d->PreciseCapteur2Terrain(aPIm);
@@ -206,7 +206,7 @@ void cSP_PointGlob::ReCalculPoints()
             aVSeg.push_back(aCap3d->Capteur2RayTer(aPIm));
             if (aCap3d->HasPreciseCapteur2Terrain())
             {
-                 double aPrec = 2.0;  // Arbirtraire , par rapport a precision sur seg
+                 double aPrec = 2.0;  // Arbitraire, par rapport a precision sur seg
                  Pt3dr aPtPrec(aPrec,aPrec,aPrec);
                  aVPts.push_back(aCap3d->PreciseCapteur2Terrain(aPIm));
                  aVPts.push_back(aPtPrec);
@@ -222,7 +222,7 @@ void cSP_PointGlob::ReCalculPoints()
                          (cResOptInterFaisceaux *) 0,
                          &aVPts
                     );
-        
+
         mPG->P3D().SetVal(aPt);
         mPG->PS1().SetNoInit();
         mPG->PS2().SetNoInit();
@@ -278,7 +278,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -289,16 +289,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

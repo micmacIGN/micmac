@@ -53,6 +53,8 @@ extern void mem_raz(void *,tFileOffset);
 
 extern int MemoArgc;
 extern char ** MemoArgv;
+extern std::string SubstArgcArvGlob(int aKSubst,std::string aSubst);
+
 
 std::string GetUnikId();
 std::string Dir2Write();
@@ -594,6 +596,9 @@ ElSTDNS string StdPrefix (const ElSTDNS string &,char = '.');
 ElSTDNS string StdPrefixGen (const ElSTDNS string &,char = '.');
 std::string NameWithoutDir(const std::string &);
 
+std::string ExtractDigit(const std::string & aName,const std::string &  aDef);
+
+
 bool IsPrefix(const char * aPref,const char *aStr);
 
 
@@ -646,7 +651,7 @@ std::string AddPrePost(const std::string & aName,const std::string & aPref,const
 
 std::string DirOfFile(const std::string & aStr);
 
-std::string StdWokdDir(const std::string & aValWD,const std::string & aNameFile);
+std::string StdWorkdDir(const std::string & aValWD,const std::string & aNameFile);
 
 std::vector<std::string> VecStrFromFile(const std::string &);
 
@@ -1154,7 +1159,7 @@ class cEl_GPAO
          void  GenerateMakeFile(const std::string & aNameFile) const ;
          void  GenerateMakeFile(const std::string & aNameFile,bool ModeAdditif) const;
          void ExeParal(std::string aFile,int aNbProc = -1,bool SuprFile=true);
-		 void dump( std::ostream &io_ostream=std::cout ) const;
+         void dump( std::ostream &io_ostream=std::cout ) const;
      private :
          std::map<std::string,cElTask *>  mDico;
 
@@ -1255,6 +1260,7 @@ class cAppliBatch
          const std::string  & DirTmp() const;
          const std::string  & DirSauv() const;
      cInterfChantierNameManipulateur * ICNM();
+     cInterfChantierNameManipulateur * ICNM() const;
 
      bool NivPurgeIsInit();
      void SetNivPurge(eNivPurge  );
@@ -1524,6 +1530,7 @@ template <class Type> class TypeSubst
           std::string    mStrTag;
 };
 
+typedef TypeSubst<bool>    BoolSubst;
 typedef TypeSubst<int>     IntSubst;
 typedef TypeSubst<double>  DoubleSubst;
 
@@ -1534,6 +1541,10 @@ template <class T> const T* VData(const std::vector<T> & aV)  {return &(aV[0]);}
 template <class T> T* VData(std::vector<T> & aV)  {return aV.data();}
 template <class T> const T* VData(const std::vector<T> & aV)  {return aV.data();}
 #endif
+
+///  Ajoute des regles speciales pour que chaque pixle ait au moins un 
+//  precedcesseur et un antecedant
+//   Z est dans l'intervalle ouvert I1 [aZ1Min,aZ1Max[,
 
 void ComputeIntervaleDelta
               (
@@ -1547,6 +1558,7 @@ void ComputeIntervaleDelta
                   INT aZ0Max
               );
 
+///  Ne force pas les connexions
 void BasicComputeIntervaleDelta
               (
                   INT & aDzMin,

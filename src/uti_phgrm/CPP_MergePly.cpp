@@ -39,12 +39,82 @@
 
 #include "StdAfx.h"
 
+void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
+{
+    fprintf(aFP,"ply\n");
+    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+
+    fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
+
+    fprintf(aFP,"comment MergePly generated\n");
+    fprintf(aFP,"element vertex %d\n", aNelems);
+
+    fprintf(aFP,"property float x\n");
+    fprintf(aFP,"property float y\n");
+    fprintf(aFP,"property float z\n");
+
+    switch (aType)
+    {
+        case 0:
+            break;
+        case 1:
+        {
+            fprintf(aFP,"property uchar red\n");
+            fprintf(aFP,"property uchar green\n");
+            fprintf(aFP,"property uchar blue\n");
+            break;
+        }
+        case 2:
+        {
+            fprintf(aFP,"property uchar red\n");
+            fprintf(aFP,"property uchar green\n");
+            fprintf(aFP,"property uchar blue\n");
+            fprintf(aFP,"property uchar alpha\n");
+            break;
+        }
+        case 3:
+        {
+            fprintf(aFP,"property float nx\n");
+            fprintf(aFP,"property float ny\n");
+            fprintf(aFP,"property float nz\n");
+            break;
+        }
+        case 4:
+        {
+            fprintf(aFP,"property float nx\n");
+            fprintf(aFP,"property float ny\n");
+            fprintf(aFP,"property float nz\n");
+            fprintf(aFP,"property uchar red\n");
+            fprintf(aFP,"property uchar green\n");
+            fprintf(aFP,"property uchar blue\n");
+            break;
+        }
+        case 5:
+        {
+            fprintf(aFP,"property float nx\n");
+            fprintf(aFP,"property float ny\n");
+            fprintf(aFP,"property float nz\n");
+            fprintf(aFP,"property uchar red\n");
+            fprintf(aFP,"property uchar green\n");
+            fprintf(aFP,"property uchar blue\n");
+            fprintf(aFP,"property uchar alpha\n");
+            break;
+        }
+    }
+
+    fprintf(aFP,"element face %d\n",0);
+    fprintf(aFP,"property list uchar int vertex_indices\n");
+    fprintf(aFP,"end_header\n");
+}
+
 #if ELISE_QT_VERSION >=4
 
     #include "../saisieQT/include_QT/Cloud.h"
 
     int MergePly_main(int argc,char ** argv)
     {
+        cout << "using MergePly with QT" << ELISE_QT_VERSION << endl;
+
         string aFullName,aNameOut;
         string aDir, aPattern;
 
@@ -54,8 +124,8 @@
         (
          argc,argv,
                     LArgMain()	<< EAMC(aFullName, "Full Name (Dir+Pattern)", eSAM_IsPatFile),
-         LArgMain()		<< EAM(aNameOut,"Out",true)
-                        << EAM(aBin,"Bin",true,"Generate Binary or Ascii file (Def=true, Binary)", eSAM_IsBool)
+                    LArgMain()	<< EAM(aNameOut,"Out",true)
+                                << EAM(aBin,"Bin",true,"Generate Binary or Ascii file (Def=true, Binary)", eSAM_IsBool)
         );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -72,6 +142,7 @@
         vector <GlCloud*> clouds;
         for(;itr != aVFiles.end(); itr++, incre++)
         {
+            cout << "loading file " << *itr << endl;
             GlCloud * cloud = GlCloud::loadPly(aDir + ELISE_CAR_DIR + *itr, &incre );
             if (cloud)
             {
@@ -88,7 +159,7 @@
             }
         }
 
-        cout << "nb total elem "	<< gen_nelems << endl;
+        cout << "nb total elem " << gen_nelems << endl;
 
         int type = clouds[0]->type();
 
@@ -101,49 +172,7 @@
         string mode = aBin ? "wb" : "w";
         FILE * aFP = FopenNN(aNameOut,mode,"MergePly");
 
-        //Header
-        fprintf(aFP,"ply\n");
-        string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
-
-        fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
-
-        fprintf(aFP,"comment MergePly generated\n");
-        fprintf(aFP,"element vertex %d\n", gen_nelems);
-        fprintf(aFP,"property float x\n");
-        fprintf(aFP,"property float y\n");
-        fprintf(aFP,"property float z\n");
-
-        switch (type)
-        {
-            case 0:
-                break;
-            case 1:
-            {
-                fprintf(aFP,"property uchar red\n");
-                fprintf(aFP,"property uchar green\n");
-                fprintf(aFP,"property uchar blue\n");
-                break;
-            }
-            case 2:
-            {
-                fprintf(aFP,"property uchar red\n");
-                fprintf(aFP,"property uchar green\n");
-                fprintf(aFP,"property uchar blue\n");
-                fprintf(aFP,"property uchar alpha\n");
-                break;
-            }
-            case 3:
-            {
-                fprintf(aFP,"property float nx\n");
-                fprintf(aFP,"property float ny\n");
-                fprintf(aFP,"property float nz\n");
-                break;
-            }
-        }
-
-        fprintf(aFP,"element face %d\n",0);
-        fprintf(aFP,"property list uchar int vertex_indices\n");
-        fprintf(aFP,"end_header\n");
+        writeHeader(aFP, gen_nelems, type, aBin);
 
         //Data
         for (int aK=0 ; aK< (int) clouds.size() ; aK++)
@@ -201,20 +230,53 @@
                     }
                     case 3:
                     {
-                        QColor col = vertex.getColor();
-
-                        float nx = col.redF()   * 2.f - 1.f;
-                        float ny = col.greenF() * 2.f - 1.f;
-                        float nz = col.blueF()  * 2.f - 1.f;
+                        Pt3dr n = vertex.getNormal();
 
                         if (aBin)
                         {
-                            WriteType(aFP,nx);
-                            WriteType(aFP,ny);
-                            WriteType(aFP,nz);
+                            WriteType(aFP,float(n.x));
+                            WriteType(aFP,float(n.y));
+                            WriteType(aFP,float(n.z));
                         }
                         else
-                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n",  pt.x, pt.y, pt.z, nx, ny, nz);
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z);
+                        break;
+                    }
+                    case 4:
+                    {
+                        QColor col = vertex.getColor();
+                        Pt3dr n = vertex.getNormal();
+
+                        if (aBin)
+                        {
+                            WriteType(aFP,float(n.x));
+                            WriteType(aFP,float(n.y));
+                            WriteType(aFP,float(n.z));
+                            WriteType(aFP,uchar(col.red()));
+                            WriteType(aFP,uchar(col.green()));
+                            WriteType(aFP,uchar(col.blue()));
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z, col.red(), col.green(), col.blue() );
+                        break;
+                    }
+                    case 5:
+                    {
+                        QColor col = vertex.getColor();
+                        Pt3dr n = vertex.getNormal();
+
+                        if (aBin)
+                        {
+                            WriteType(aFP,float(n.x));
+                            WriteType(aFP,float(n.y));
+                            WriteType(aFP,float(n.z));
+                            WriteType(aFP,uchar(col.red()));
+                            WriteType(aFP,uchar(col.green()));
+                            WriteType(aFP,uchar(col.blue()));
+                            WriteType(aFP,uchar(col.alpha()));
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d %d\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z, col.red(), col.green(), col.blue(), col.alpha() );
                         break;
                     }
                 }
@@ -227,40 +289,17 @@
     }
 
 #else
-
-    //#include "poisson/ply.h"
-
-    #if (0)
-    // MPD : PB de linj et doublon avec : poisson/plyfile.cpp
-    const char *elem_names[] = { /* list of the kinds of elements in the user's object */
-        "vertex", "face"
-    };
-
-    #endif
-
-    PlyProperty vert_props[] = { /* list of property information for a vertex */
-        {"x", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,x), 0, 0, 0, 0},
-        {"y", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,y), 0, 0, 0, 0},
-        {"z", PLY_FLOAT, PLY_FLOAT, offsetof(sVertex,z), 0, 0, 0, 0},
-    };
-
-    static PlyProperty oriented_vert_props[] = {
-        {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,x ), 0, 0, 0, 0},
-        {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,y ), 0, 0, 0, 0},
-        {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,z ), 0, 0, 0, 0},
-        {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nx), 0, 0, 0, 0},
-        {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,ny), 0, 0, 0, 0},
-        {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
-    };
+    #include "../../CodeExterne/Poisson/include/PlyFile.h"
 
     int MergePly_main(int argc,char ** argv)
     {
+        cout << "using MergePly without QT" << endl;
+
         string aFullName,aNameOut;
         string aDir, aPattern;
         vector<string> aVCom;
 
         int aBin  = 1;
-        int DoNrm = 1;
 
         ElInitArgMain
         (
@@ -269,7 +308,6 @@
          LArgMain()		<< EAM(aNameOut,"Out",true)
                         << EAM(aVCom,"Comments",true)
                         << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
-                        << EAM(DoNrm,"Normale",true)
         );
 
         SplitDirAndFile(aDir, aPattern, aFullName);
@@ -278,20 +316,19 @@
         if (aNameOut=="")
             aNameOut = aDir + ELISE_CAR_DIR + StdPrefix(*(aVFiles.begin())) + "_merged.ply";
 
-        sPlyOrientedVertex **glist=NULL;
+        sPlyOrientedColoredAlphaVertex **glist=NULL;
         int gen_nelems =0;
         int Cptr = 0;
 
+        int type = 0;
+        bool wNormales = false;
+
         PlyFile * thePlyFile;
-        int nelems;
-        char **elist;
-        int file_type;
+        int nelems, nprops, num_elems, file_type;
         float version;
-        int nprops;
-        int num_elems;
+        char **elist;
         char *elem_name;
         PlyProperty **plist=NULL;
-        sPlyOrientedVertex **vlist=NULL;
 
         //get global number of elements
         list<string>::iterator itr = aVFiles.begin();
@@ -299,10 +336,12 @@
         {
             thePlyFile = ply_open_for_reading( const_cast<char *>((aDir + ELISE_CAR_DIR + (*itr)).c_str()), &nelems, &elist, &file_type, &version);
 
-            cout << "file "		<< *itr	<< endl;
+            cout << "loading file " << *itr	<< endl;
+#ifdef _DEBUG
             cout << "version "	<< version		<< endl;
             cout << "type "		<< file_type	<< endl;
             cout << "nb elem "	<< nelems		<< endl;
+#endif
 
             elem_name = elist[0];
             plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
@@ -313,7 +352,7 @@
         }
 
         cout << "nb total elem "	<< gen_nelems << endl;
-        glist = (sPlyOrientedVertex **) malloc (sizeof (sPlyOrientedVertex *) * gen_nelems);
+        glist = (sPlyOrientedColoredAlphaVertex **) malloc (sizeof (sPlyOrientedColoredAlphaVertex *) * gen_nelems);
 
         //read ply files
         itr = aVFiles.begin();
@@ -327,34 +366,207 @@
                 elem_name = elist[i];
                 plist = ply_get_element_description (thePlyFile, elem_name, &num_elems, &nprops);
 
-                // print the name of the element, for debugging
-                printf ("element %s %d\n", elem_name, num_elems);
+                if (equal_strings ("vertex", elem_name))
+                {
+                    printf ("element %s number= %d\n", elem_name, num_elems);
 
-                if (equal_strings ("vertex", elem_name)) {
-
-                    // create a vertex list to hold all the vertices
-                    vlist = (sPlyOrientedVertex **) malloc (sizeof (sPlyOrientedVertex *) * num_elems);
-
-                    // set up for getting vertex elements
-                    ply_get_property (thePlyFile, elem_name, &oriented_vert_props[0]);
-                    ply_get_property (thePlyFile, elem_name, &oriented_vert_props[1]);
-                    ply_get_property (thePlyFile, elem_name, &oriented_vert_props[2]);
-                    ply_get_property (thePlyFile, elem_name, &oriented_vert_props[3]);
-                    ply_get_property (thePlyFile, elem_name, &oriented_vert_props[4]);
-                    ply_get_property (thePlyFile, elem_name, &oriented_vert_props[5]);
-
-                    // grab all the vertex elements
-                    for (int j = 0; j < num_elems; j++, Cptr++)
+                    switch(nprops)
                     {
-                        // grab and element from the file
-                        vlist[j] = (sPlyOrientedVertex *) malloc (sizeof (sPlyOrientedVertex));
+                        case 10: // x y z nx ny nz r g b a
+                        {
+                            type = 5;
+                            for (int j = 0; j < nprops ;++j)
+                                ply_get_property (thePlyFile, elem_name, &oriented_colored_alpha_vert_props[j]);
 
-                        ply_get_element (thePlyFile, (void *) vlist[j]);
+                            sPlyOrientedColoredAlphaVertex *vertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
 
-                        glist[Cptr] = (sPlyOrientedVertex *) malloc (sizeof (sPlyOrientedVertex));
-                        glist[Cptr] = vlist[j];
+                            // grab all the vertex elements
+                            for (int j = 0; j < num_elems; j++, Cptr++)
+                            {
+                                ply_get_element (thePlyFile, (void *) vertex);
 
-                        //printf ("vertex: %g %g %g %g %g %g\n", vlist[j]->x, vlist[j]->y, vlist[j]->z, vlist[j]->nx, vlist[j]->ny, vlist[j]->nz);
+        #ifdef _DEBUG
+            printf ("vertex--: %g %g %g %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue, vertex->alpha);
+        #endif
+
+                                glist[Cptr] = vertex;
+                            }
+                            break;
+                        }
+                        case 9: // x y z nx ny nz r g b
+                        {
+                            type = 4;
+                            for (int j = 0; j < nprops ;++j)
+                                ply_get_property (thePlyFile, elem_name, &oriented_colored_vert_props[j]);
+
+                            sPlyOrientedColoredVertex *vertex = (sPlyOrientedColoredVertex *) malloc (sizeof (sPlyOrientedColoredVertex));
+
+                            // grab all the vertex elements
+                            for (int j = 0; j < num_elems; j++, Cptr++)
+                            {
+
+                                ply_get_element (thePlyFile, (void *) vertex);
+
+        #ifdef _DEBUG
+            printf ("vertex--: %g %g %g %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue);
+        #endif
+
+                                sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
+
+                                fvertex->x = vertex->x;
+                                fvertex->y = vertex->y;
+                                fvertex->z = vertex->z;
+
+                                fvertex->nx = vertex->nx;
+                                fvertex->ny = vertex->ny;
+                                fvertex->nz = vertex->nz;
+
+                                fvertex->red   = vertex->red;
+                                fvertex->green = vertex->green;
+                                fvertex->blue  = vertex->blue;
+
+                                glist[Cptr] = fvertex;
+
+                            }
+                            break;
+                        }
+                        case 7:
+                        {
+                            type = 2;
+                            // setup for getting vertex elements
+                            for (int j = 0; j < nprops ;++j)
+                                ply_get_property (thePlyFile, elem_name, &colored_a_vert_props[j]);
+
+                            sPlyColoredVertexWithAlpha * vertex = (sPlyColoredVertexWithAlpha *) malloc (sizeof (sPlyColoredVertexWithAlpha));
+
+                            // grab all the vertex elements
+                            for (int j = 0; j < num_elems; j++, Cptr++)
+                            {
+                                ply_get_element (thePlyFile, (void *) vertex);
+
+                                #ifdef _DEBUG
+                                    printf ("vertex--: %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue, vertex->alpha);
+                                #endif
+
+                                sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
+
+                                fvertex->x = vertex->x;
+                                fvertex->y = vertex->y;
+                                fvertex->z = vertex->z;
+
+                                fvertex->red   = vertex->red;
+                                fvertex->green = vertex->green;
+                                fvertex->blue  = vertex->blue;
+                                fvertex->alpha = vertex->alpha;
+
+                                glist[Cptr] = fvertex;
+                            }
+                            break;
+                        }
+                        case 6:
+                        {
+                            // can be (x y z r g b) or (x y z nx ny nz)
+                            PlyElement *elem = NULL;
+
+                            for (int i = 0; i < nelems; i++)
+                                if (equal_strings ("vertex", thePlyFile->elems[i]->name))
+                                    elem = thePlyFile->elems[i];
+
+                            for (int i = 0; i < nprops; i++)
+                                if ( "nx"==elem->props[i]->name )   wNormales = true;
+
+                            if (!wNormales)
+                            {
+                                type = 1;
+                                for (int j = 0; j < nprops ;++j)
+                                    ply_get_property (thePlyFile, elem_name, &colored_vert_props[j]);
+
+                                sPlyColoredVertex *vertex = (sPlyColoredVertex *) malloc (sizeof (sPlyColoredVertex));
+
+                                for (int j = 0; j < num_elems; j++, Cptr++)
+                                {
+
+                                    ply_get_element (thePlyFile, (void *) vertex);
+
+                                    #ifdef _DEBUG
+                                        printf ("vertex: %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue);
+                                    #endif
+
+                                        sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
+
+                                        fvertex->x = vertex->x;
+                                        fvertex->y = vertex->y;
+                                        fvertex->z = vertex->z;
+
+                                        fvertex->red   = vertex->red;
+                                        fvertex->green = vertex->green;
+                                        fvertex->blue  = vertex->blue;
+
+                                        glist[Cptr] = fvertex;
+                                }
+                            }
+                            else
+                            {
+                                type = 3;
+                                for (int j = 0; j < nprops ;++j)
+                                    ply_get_property (thePlyFile, elem_name, &oriented_vert_props[j]);
+
+                                sPlyOrientedVertex *vertex = (sPlyOrientedVertex *) malloc (sizeof (sPlyOrientedVertex));
+
+                                for (int j = 0; j < num_elems; j++, Cptr++)
+                                {
+                                    ply_get_element (thePlyFile, (void *) vertex);
+
+                                    #ifdef _DEBUG
+                                        printf ("vertex: %g %g %g %g %g %g\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz);
+                                    #endif
+
+                                    sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
+
+                                    fvertex->x = vertex->x;
+                                    fvertex->y = vertex->y;
+                                    fvertex->z = vertex->z;
+
+                                    fvertex->nx = vertex->nx;
+                                    fvertex->ny = vertex->ny;
+                                    fvertex->nz = vertex->nz;
+
+                                    glist[Cptr] = fvertex;
+                                }
+                            }
+                            break;
+                        }
+                        case 3:
+                        {
+                            for (int j = 0; j < nprops ;++j)
+                                ply_get_property (thePlyFile, elem_name, &vert_props[j]);
+
+                            sVertex *vertex = (sVertex *) malloc (sizeof (sVertex));
+
+                            for (int j = 0; j < num_elems; j++, Cptr++)
+                            {
+
+                                ply_get_element (thePlyFile, (void *) vertex);
+
+            #ifdef _DEBUG
+                                printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
+            #endif
+
+                                sPlyOrientedColoredAlphaVertex *fvertex = (sPlyOrientedColoredAlphaVertex *) malloc (sizeof (sPlyOrientedColoredAlphaVertex));
+
+                                fvertex->x = vertex->x;
+                                fvertex->y = vertex->y;
+                                fvertex->z = vertex->z;
+
+                                glist[Cptr] = fvertex;
+                            }
+                            break;
+                        }
+                        default:
+                        {
+                            printf("unable to load a ply unless number of properties is 3, 6, 7, 9 or 10\n");
+                            break;
+                        }
                     }
                 }
             }
@@ -366,64 +578,105 @@
 
         //Mode Ecriture : binaire ou non
         string mode = aBin ? "wb" : "w";
-        FILE * aFP = FopenNN(aNameOut,mode,"MergePly");
+        FILE * aFP = FopenNN(aNameOut, mode, "MergePly");
 
-        //Header
-        fprintf(aFP,"ply\n");
-        string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
-
-        fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
-
-        for
-            (
-             vector<string>::const_iterator itS=aVCom.begin();
-             itS!=aVCom.end();
-             itS++
-             )
-        {
-            fprintf(aFP,"comment %s\n",itS->c_str());
-        }
-        fprintf(aFP,"element vertex %d\n", gen_nelems);
-        fprintf(aFP,"property float x\n");
-        fprintf(aFP,"property float y\n");
-        fprintf(aFP,"property float z\n");
-
-        if (DoNrm)
-        {
-            fprintf(aFP,"property float nx\n");
-            fprintf(aFP,"property float ny\n");
-            fprintf(aFP,"property float nz\n");
-        }
-
-        fprintf(aFP,"element face %d\n",0);
-        fprintf(aFP,"property list uchar int vertex_indices\n");
-        fprintf(aFP,"end_header\n");
+        writeHeader(aFP, gen_nelems, type, aBin);
 
         //data
         for (int aK=0 ; aK< gen_nelems ; aK++)
         {
-            //printf ("gen vertex: %g %g %g %g %g %g\n", glist[aK]->x, glist[aK]->y, glist[aK]->z, glist[aK]->nx, glist[aK]->ny, glist[aK]->nz);
+                sPlyOrientedColoredAlphaVertex * pt = glist[aK];
 
-            if (aBin)
-            {
-                WriteType(aFP,float(glist[aK]->x));
-                WriteType(aFP,float(glist[aK]->y));
-                WriteType(aFP,float(glist[aK]->z));
+                if (aBin)
+                {
+                    WriteType(aFP, pt->x);
+                    WriteType(aFP, pt->y);
+                    WriteType(aFP, pt->z);
+                }
 
-                WriteType(aFP,float(glist[aK]->nx));
-                WriteType(aFP,float(glist[aK]->ny));
-                WriteType(aFP,float(glist[aK]->nz));
-            }
-            else
-            {
-                fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n", glist[aK]->x, glist[aK]->y, glist[aK]->z, glist[aK]->nx, glist[aK]->ny, glist[aK]->nz);
-            }
+                switch (type)
+                {
+                    case 0:
+                    {
+                        if (!aBin)
+                             fprintf(aFP,"%.7f %.7f %.7f\n", pt->x, pt->y, pt->z);
+                        break;
+                    }
+                    case 1:
+                    {
+                        if (aBin)
+                        {
+                            WriteType(aFP, pt->red );
+                            WriteType(aFP, pt->green );
+                            WriteType(aFP, pt->blue );
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %d %d %d\n",  pt->x, pt->y, pt->z, pt->red, pt->green, pt->blue);
+
+                        break;
+                    }
+                    case 2:
+                    {
+                        if (aBin)
+                        {
+                            WriteType(aFP, pt->red);
+                            WriteType(aFP, pt->green);
+                            WriteType(aFP, pt->blue);
+                            WriteType(aFP, pt->alpha);
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %d %d %d %d\n",  pt->x, pt->y, pt->z, pt->red, pt->green, pt->blue, pt->alpha);
+                        break;
+                    }
+                    case 3:
+                    {
+                        if (aBin)
+                        {
+                            WriteType(aFP, pt->nx);
+                            WriteType(aFP, pt->ny);
+                            WriteType(aFP, pt->nz);
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n",  pt->x, pt->y, pt->z, pt->nx, pt->ny, pt->nz);
+                        break;
+                    }
+                    case 4:
+                    {
+                        if (aBin)
+                        {
+                            WriteType(aFP, pt->nx);
+                            WriteType(aFP, pt->ny);
+                            WriteType(aFP, pt->nz);
+                            WriteType(aFP, pt->red);
+                            WriteType(aFP, pt->green);
+                            WriteType(aFP, pt->blue);
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d\n",  pt->x, pt->y, pt->z, pt->nx, pt->y, pt->z, pt->red, pt->green, pt->blue );
+                        break;
+                    }
+                    case 5:
+                    {
+                        if (aBin)
+                        {
+                            WriteType(aFP, pt->nx);
+                            WriteType(aFP, pt->ny);
+                            WriteType(aFP, pt->nz);
+                            WriteType(aFP, pt->red);
+                            WriteType(aFP, pt->green);
+                            WriteType(aFP, pt->blue);
+                            WriteType(aFP, pt->alpha);
+                        }
+                        else
+                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d %d\n",  pt->x, pt->y, pt->z, pt->x, pt->y, pt->z, pt->red, pt->green, pt->blue, pt->alpha );
+                        break;
+                    }
+                }
         }
 
         ElFclose(aFP);
 
         if ( glist!=NULL ) delete [] glist;
-        if ( vlist!=NULL ) delete [] vlist;
         if ( plist!=NULL ) delete plist;
 
         return EXIT_SUCCESS;

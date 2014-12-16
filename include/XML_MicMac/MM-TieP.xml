@@ -8,7 +8,6 @@
 
    mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Jeux-Tests/Grde-Cmde-Royale/ +Im1=IMGP3454.PEF +Ori=-All
 
-mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./  +ImPat="IMGP3454.PEF"  +Ori=-All +ImSec=-All
 
    mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TieP.xml WorkDir=/media/data1/Jeux-Tests/Dragon-2/  +Im1=IMGP7528.PEF +Ori=-All +Zoom=2 +Visu=1 +Do2Z=false
 
@@ -22,6 +21,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
 <ParamMICMAC>
 <DicoLoc>
+   <Symb> DoMatch=true     </Symb>
+
    <Symb> Ori="-All"     </Symb>
    <Symb> Zoom=8     </Symb>
    <Symb> Im1=IMG_0018.JPG </Symb>
@@ -42,15 +43,23 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
    <Symb> ImTextPly=${Im1}_Scaled_${ZVE}.tif </Symb>
    <Symb> ImSec=${Ori} </Symb>
-   <eSymb> EtapeFin=   ?  ${Do2Z} 4 3  </eSymb>
+
+   
+   <eSymb> EtapeFinMatch=   ?  ${Do2Z} 4 3  </eSymb>
+   <eSymb> EtapeFinSift=   ?  ${Do2Z}  2 1  </eSymb>
+   <eSymb> EtapeFin=   ?  ${DoMatch} ${EtapeFinMatch} ${EtapeFinSift}  </eSymb>
 
 
     <Symb> SeuilSCor=0.65 </Symb>
     <Symb> SeuilMedCor=0.8  </Symb>
     <Symb> SeuilMCor=3.0  </Symb>
 
-</DicoLoc>
+    <Symb> UseMasq3D=false  </Symb>
+    <Symb> ExportEnv=false  </Symb>
+    <Symb> FileMasq3D=XXXX  </Symb>
+    <Symb> ZPasCalc=0.5  </Symb>
 
+</DicoLoc>
 
 <Section_Terrain>  
       <IntervAltimetrie>
@@ -69,7 +78,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
           <Im1> ${Im1} </Im1>
          <ImSecCalcApero>
                <Key> NKS-Assoc-ImSec@${ImSec} </Key>
-               <NbMin>  2 </NbMin>
+               <NbMin>  1 </NbMin>
                <NbMax>  4 </NbMax>
                <OnEmpty> eOEISA_exit </OnEmpty>
           </ImSecCalcApero>
@@ -102,7 +111,7 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
              <GenImagesCorrel > true </GenImagesCorrel>
 
-             <ZPas>        0.5  </ZPas>
+             <ZPas>   ${ZPasCalc} </ZPas>
              <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
 
 	     <ZDilatAlti>  4    </ZDilatAlti>
@@ -164,6 +173,12 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <TypeCAH>
                         <MasqueAutoByTieP>
+                            <#WHEN  VTEST=${UseMasq3D}>
+                                  <Masq3D> ${FileMasq3D}       </Masq3D>
+                            </#WHEN>
+                            <FilterPrgDyn> 
+                                   <StepZ>   ${ZPasCalc}   </StepZ>
+                            </FilterPrgDyn>
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
@@ -208,6 +223,36 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
 
                      <TypeCAH>
                         <MasqueAutoByTieP>
+<!--
+                            <FilterPrgDyn> 
+                                   <StepZ>   ${ZPasCalc}   </StepZ>
+                            </FilterPrgDyn>
+                            <ParamFiltreRegProf> 
+                                 <SzCC>  4 </SzCC>
+                                 <PondZ>  1.0 </PondZ>
+                                 <Pente> 0.25 </Pente>
+                                 <NbCCInit> 10 </NbCCInit>
+                            </ParamFiltreRegProf>
+-->
+
+                            <#WHEN  VTEST=${UseMasq3D}>
+                                  <Masq3D> ${FileMasq3D}       </Masq3D>
+                            </#WHEN>
+                            <#WHEN  VTEST=${ExportEnv}>
+                                <ComputeAndExportEnveloppe>
+                                      <EndAfter> true </EndAfter>
+                                      <ProlResolCible>  25  </ProlResolCible>
+                                      <ProlResolCur> 10 </ProlResolCur>
+                                      <ProlDistAdd> 0.25</ProlDistAdd>
+                                      <ProlDistAddMax> 3.0 </ProlDistAddMax>
+                                </ComputeAndExportEnveloppe>
+                            </#WHEN>
+                            <mmtpFilterSky>
+                                <PertPerPix>   0.005    </PertPerPix>
+                                <SzKernelHom>  5        </SzKernelHom>
+                                <PropZonec>    0.001     </PropZonec>
+                            </mmtpFilterSky>
+
                             <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
                             <DeltaZ >        1                         </DeltaZ>
                             <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
@@ -225,7 +270,8 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                  </CorrelAdHoc>
         </EtapeMEC>
 
-        <EtapeMEC> 
+        <#WHEN  VTEST=${DoMatch}>
+            <EtapeMEC> 
                  <DeZoom >        ${Zoom}       </DeZoom> 
                  <ModeInterpolation Portee="Globale"> eInterpolBiCub </ModeInterpolation>
                  <AlgoRegul Portee="Globale">  eAlgo2PrgDyn </AlgoRegul>
@@ -247,9 +293,9 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                            <GPU_Correl> </GPU_Correl>
                      </TypeCAH>
                  </CorrelAdHoc>
-        </EtapeMEC>
+            </EtapeMEC>
 
-        <EtapeMEC> 
+            <EtapeMEC> 
                  <DeZoom >        ${Zoom}   </DeZoom> 
                  <AlgoRegul>  eAlgoDequant  </AlgoRegul>
                  <ZPas>       1             </ZPas>
@@ -258,13 +304,11 @@ mm3d MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=./ 
                      <Offset> 0  </Offset>
                      <SeuilMasqExport> 0.02 </SeuilMasqExport> 
                      <Name> BSH-${Im1}.tif </Name>
-<!--
-                     <NameNuage> RN${Im1}  </NameNuage>
--->
                      <NameNuage> ${ThisDir}${DirMEC}/RN${Im1}  </NameNuage>
                      <ScaleNuage> ${ReduceExp}  </ScaleNuage>
                 </DoImageBSurH>
-        </EtapeMEC> 
+            </EtapeMEC> 
+        </#WHEN>
 
 
 <!--

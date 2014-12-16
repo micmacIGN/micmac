@@ -562,7 +562,6 @@ std::cout << "aFM.name"  << aFM.name() << "##" << anEtape.NameXMLNuage()  << "\n
 // getchar();
 
 
-// mm3d TestLib Masq3Dto2D AperiCloud_AllRel_selectionInfo.xml MTD-Image-IMGP7034.JPG/Fusion_NuageImProf_LeChantier_Etape_1.xml Test.tif 
 
 
    // mNameXMLNuage

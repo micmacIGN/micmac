@@ -107,6 +107,9 @@ int SplitMPO_main(int argc,char ** argv)
 }
 
 
+//================================================================
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant Ã  la mise en

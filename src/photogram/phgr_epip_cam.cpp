@@ -655,7 +655,7 @@ template <class Type,class TypeBase>
       Fonc_Num aFK = aVOut.back()._the_im.in();
       aFOut = (aKC==0) ? aFK : Virgule(aFOut,aFK);
    }
-   ELISE_COPY(rectangle(Pt2di(0,0),aSzIn),trans(aTIn.in(),aBoxIn._p0),aOutInit);
+   ELISE_COPY(rectangle(Pt2di(0,0),aSzIn),trans(aTIn.in_proj(),aBoxIn._p0),aOutInit);
 
 
 
@@ -875,7 +875,10 @@ std::string cCpleEpip::LocNameImEpi(bool Im1,int aDeZoom,bool Pyram)
     {
        std::string aDir =  "Pyram/";
        if (! Pyram)
-          aDir = LocDirMatch(Im1);
+       {
+          // aDir = LocDirMatch(Im1);
+          aDir = LocDirMatch(true);  // Normalement tjs sur une seul dir;
+       }
        aRes = aDir + aRes + "DeZoom" + ToString(aDeZoom) + ".tif";
     }
 

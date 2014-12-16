@@ -18,6 +18,10 @@
 <Verbatim File=".h.cpp">
 // NO MORE
 </Verbatim>
+   <enum Name="eC3DC_Types">
+       <eC3DC_QuickMac>  </eC3DC_QuickMac>
+       <eC3DC_Statute>   </eC3DC_Statute>
+   </enum>
 
    <enum Name="eNewTypeMalt">
        <eTMalt_Ortho>     </eTMalt_Ortho>
@@ -49,6 +53,7 @@
        <eGround>         </eGround>
        <eStatue>         </eStatue>
        <eTestIGN>        </eTestIGN>
+       <eQuickMac>       </eQuickMac>
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>
 
@@ -111,6 +116,12 @@
    <enum Name="eTypePreCondRad">
        <ePCR_Atgt>         </ePCR_Atgt>
        <ePCR_2SinAtgtS2>   </ePCR_2SinAtgtS2>
+   </enum>
+
+   <enum Name="eTypeSake">
+       <eDEM>           </eDEM>
+       <eOrthoIm>       </eOrthoIm>
+       <eNbTypeVals>    </eNbTypeVals>
    </enum>
 
    <enum Name="eModeGeomMNT">
@@ -614,6 +625,11 @@
           <eEO_NbVals> </eEO_NbVals>
    </enum>
 
+   <JPPTest  Nb="1" Class="true" ToReference="true">
+       <Name Nb="1" Type="std::string"> </Name>
+       <LN Nb="*" Type="int"> </LN>
+   </JPPTest>
+
 
    <CalibrationInterneGridDef Nb="1" Class="true" ToReference="true">
          <P0 Nb="1" Type="Pt2dr"> </P0>
@@ -734,7 +750,7 @@
              <ModPhgrStd Nb="?" RefType="CalibrationInternePghrStd"> </ModPhgrStd>
              <ModUnif Nb="?"   RefType="CalibrationInterneUnif">    </ModUnif>
              <ModGrid Nb="?"   RefType="CalibrationInterneGrid">    </ModGrid>
-               
+
               <!-- Mode Grille deformable -->
              <ModGridDef Nb="?"   RefType="CalibrationInterneGridDef">    </ModGridDef>
         </CalibDistortion>
@@ -1188,6 +1204,10 @@
              <DeltaMax Nb="?"  Type="IntSubst" Def="10000000">  </DeltaMax>
              <!--  Def = 0 si 1 Keyset et -10000 sinon-->
              <DeltaMin Nb="?"  Type="IntSubst">  </DeltaMin>
+
+             <!-- Si donnee et >0, retient que 1 valeur ts les Sampling, si <=0 retient rien , 1 sans effet-->
+             <Sampling Nb="?"  Type="IntSubst">  </Sampling>
+
              <!-- Si donne ne conserve que les couple auquel
              KeyEquiv associe la meme valeur
              -->
@@ -1195,7 +1215,7 @@
 
                <!-- Symetrique qd + de 2 ensemble ? -->
               <Sym    Nb="?" Type="bool" Def="true"></Sym>
-              <Circ   Nb="?" Type="bool" Def="false"></Circ>
+              <Circ   Nb="?" Type="BoolSubst" Def="false"></Circ>
        </ByAdjacence>
 
        <CplesExcl Nb="*"  Type="cCpleString"> </CplesExcl>
@@ -1247,7 +1267,18 @@
         <Cam Nb="?" Type="std::string">    </Cam>
         <BayPat Nb="?" Type="std::string">    </BayPat>
         <Date Nb="?" RefType="XmlDate">    </Date>
+        <Orientation Nb="?"  Type="std::string"> </Orientation>
+        <CameraOrientation Nb="?"  Type="std::string"> </CameraOrientation>
+        <NbBits Nb="?"  Type="int"> </NbBits>
     </XmlXifInfo>
+
+    <!-- Pour memoriser les meta donnees calculees, tel que indic de nettete -->
+    <MTDImCalc Nb="1" Class="true" ToReference="true">
+        <MIC_IndicAutoCorrel Nb="*">
+             <AutoC Nb="1" Type="double"> </AutoC> 
+             <SzCalc Nb="1" Type="double"> </SzCalc> 
+        </MIC_IndicAutoCorrel>
+    </MTDImCalc>
 
 
 
@@ -1480,6 +1511,7 @@
     </OneSolImageSec>
 
     <ImSecOfMaster  Nb="1" Class="true" ToReference="true">
+          <UsedPenal Nb="?" Type="double" Def="0.333"> </UsedPenal>
           <Master Nb="1" Type="std::string"> </Master>
           <Sols Nb="*" RefType="OneSolImageSec"> </Sols>
           <ISOM_AllVois Nb="?" AccessorFils="false">
@@ -1487,6 +1519,7 @@
                     <Name Type="std::string" Nb="1"> </Name>
                     <Angle Type="double" Nb="1"> </Angle>
                     <Nb Type="double" Nb="1"> </Nb>
+                    <RatioVis Type="double" Nb="?"> </RatioVis>  <!-- ? Pour compat -->
                </ISOM_Vois>
           </ISOM_AllVois>
     </ImSecOfMaster>

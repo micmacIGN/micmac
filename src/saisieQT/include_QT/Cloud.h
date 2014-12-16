@@ -1,21 +1,20 @@
 ﻿#ifndef __CLOUD__
 #define __CLOUD__
 
-#include <vector>
-#include <string>
-
-#include <fstream>
-#include <iostream>
-
 #include "3DObject.h"
 
 class GlVertex : public cObjectGL
 {
 public:
-    GlVertex(Pt3dr pos = Pt3dr(0.f,0.f,0.f), QColor color_default = Qt::white) :
-        cObjectGL(pos, color_default)
+    GlVertex(Pt3dr pos = Pt3dr(0.f,0.f,0.f), QColor color_default = Qt::white, Pt3dr nrm = Pt3dr(0.f,0.f,0.f)) :
+        cObjectGL(pos, color_default),
+        _nrm(nrm)
     {}
     void draw(){}
+
+    Pt3dr getNormal() { return _nrm; }
+
+    Pt3dr _nrm;
 };
 
 class GlCloud : public cObjectGL
@@ -35,6 +34,8 @@ public:
 
     void    setBufferGl(bool onlyColor=false);
 
+    Pt3dr   getSum() { return _sum; }
+
     void    draw();
 
 private:
@@ -43,7 +44,9 @@ private:
     QGLBuffer   _vertexbuffer;
     QGLBuffer   _vertexColor;
 
-    int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz)
+    int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz 4:xyznxnynzrgb 5:xyznxnynzrgba)
+
+    Pt3dr       _sum;  //coordinate sums to compute scene center
 };
 
 

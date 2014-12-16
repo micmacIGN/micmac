@@ -570,12 +570,17 @@ void cAppliApero::ExportRepereLoc(const cExportRepereLoc & anERL)
        const CamStenope * aCS2 =  aPose2->CurCam();
        const CamStenope * aCSOri =  aPoseOri->CurCam();
 
+
+
+
        Pt3dr aQ1 = aCS1->PtFromPlanAndIm(aPlan,aP1);
        Pt3dr aQ2 = aCS2->PtFromPlanAndIm(aPlan,aP2);
        anO = aCSOri->PtFromPlanAndIm(aPlan,anOriPl);
 
        aVX = vunit(aQ2-aQ1) ;
        aVZ = aPlan.Norm();
+       AjustNormalSortante(true,aVZ,aCS1,aP1);
+
        aVY = vunit(aVZ ^ aVX);
        aVX = aVY ^aVZ ;   // Sans doute inutile, mais bon  ....
 

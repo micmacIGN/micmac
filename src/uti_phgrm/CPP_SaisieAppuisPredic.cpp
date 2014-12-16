@@ -50,10 +50,13 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       std::string &aName,
                       std::string &aNamePt,
                       std::string &anOri,
+                      std::string &aModeOri,
                       std::string &aNameMesure,
                       std::string &aTypePts,
                       double &aFlou,
-                      bool &aForceGray)
+                      bool &aForceGray,
+                      double &aZMoy,
+                      double &aZInc)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -68,8 +71,10 @@ void SaisieAppuisPredic(int argc, char ** argv,
                             << EAM(aNbFen,"NbF",true,"Number of Sub Window (Def 2 2)")
                             << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
                             << EAM(aTypePts,"Type",true,"in [MaxLoc,MinLoc,GeoCube]")
-                            << EAM(aForceGray,"ForceGray",true," Force gray image, def=true")
-
+                            << EAM(aForceGray,"ForceGray",true,"Force gray image, def=true")
+                            << EAM(aModeOri,"OriMode", true, "Orientation type (GRID) (Def=Std)")
+                            << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
+                            << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -114,14 +119,15 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
 {
     Pt2di aSzW(800,800);
     Pt2di aNbFen(-1,-1);
-    std::string aFullName,aNamePt,anOri,aNameMesure, aDir, aName;
+    std::string aFullName,aNamePt,anOri, aModeOri, aNameMesure, aDir, aName;
     bool aForceGray = true;
+    double aZMoy,aZInc;
 
     double aFlou=0.0;
 
     std::string aTypePts="Pts";
 
-    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aNameMesure, aTypePts, aFlou, aForceGray);
+    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts, aFlou, aForceGray, aZMoy, aZInc);
 
     if(!MMVisualMode)
     {
@@ -139,6 +145,18 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
                 +  std::string(" +NbFy=") + ToString(aNbFen.y)
                 +  std::string(" +TypePts=") + aTypePts;
 
+        if (aModeOri == "GRID")
+        {
+            aCom += " +ModeOriIm=eGeomImageGrille"
+                    + std::string(" +Conik=false")
+                    +  std::string(" +ZIncIsProp=false")
+                    //+ " +PostFixOri=GRIBin"
+                    + " +Px1Inc="+ ToString(aZInc) + std::string(" ")
+                    + " +Px1Moy="+ ToString(aZMoy) + std::string(" ");
+
+            //aCom += std::string(" +Geom=eGeomMNTFaisceauIm1ZTerrain_Px1D");
+        }
+
         if (EAMIsInit(&aFlou))
             aCom = aCom + std::string(" +FlouSpecified=true");
         if (EAMIsInit(&aTypePts))
@@ -146,11 +164,9 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
         if (EAMIsInit(&aForceGray))
             aCom = aCom + " +ForceGray=" + ToString(aForceGray);
 
-
         std::cout << aCom << "\n";
 
         int aRes = system(aCom.c_str());
-
 
         return aRes;
     }

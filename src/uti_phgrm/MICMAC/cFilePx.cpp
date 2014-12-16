@@ -1105,6 +1105,7 @@ std::cout << "SUUUUUUUUUUUPPPPRESS\n";
                       aSomPx += aPx;
                       aSom1  += 1.0;
                    }
+                   // if (! isForCont) || doExportZAbs)
                    if ((! isForCont) || doExportZAbs)
                    {
                        aPx =  aNappe.FromDiscPx(aPx) ;

@@ -152,6 +152,7 @@ Pt3dr cProjOrthoCylindrique::Ab2Loc(const Pt3dr & aP) const
 
 Pt3dr cProjOrthoCylindrique::Loc2Cyl(const Pt3dr  & aP) const
 {
+   if (mUnUseAnamXCSte) return aP;
 // std::cout <<  "L2 C" << aP.y <<  " " << (aP.z-mD) << " " << (aP.y/(aP.z-mD))  << " " <<  atan2(aP.y,aP.z-mD) << "\n";
 
    double  A = aP.y -mB * aP.x;
@@ -165,6 +166,8 @@ Pt3dr cProjOrthoCylindrique::Loc2Cyl(const Pt3dr  & aP) const
 
 Pt3dr cProjOrthoCylindrique::Cyl2Loc(const Pt3dr  & aP) const
 {
+   if (mUnUseAnamXCSte) return aP;
+
    double aV = aP.y / mDist;
    if (mAngulCorr) 
       aV = tan(aV);
@@ -208,6 +211,9 @@ bool  cProjOrthoCylindrique::OrthoLocIsXCste() const
 {
     return true;
 }
+
+bool cProjOrthoCylindrique::IsAnamXCsteOfCart() const { return true; }
+
 
 
 //         Pt3dr FromOrLoc(const Pt3dr & aP) const ; // Def Err fatale

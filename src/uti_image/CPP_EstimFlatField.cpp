@@ -81,7 +81,14 @@ int EstimFlatField_main(int argc,char ** argv)
     cTplValGesInit<std::string> aTplN;
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::StdAlloc(0,0,aDir,aTplN);
 
+    MakeXmlXifInfo(aFullDir,aICNM);
+
+
     std::list<std::string> aLName = aICNM->StdGetListOfFile(aPat);
+    Paral_Tiff_Dev(aDir,std::vector<std::string> (aLName.begin(),aLName.end()),1,false);
+
+
+
     Pt2di aSzIm(-1,-1);
     double aNbPix=-1;
     Im2D_REAL4  aImIn(1,1);
@@ -100,8 +107,10 @@ int EstimFlatField_main(int argc,char ** argv)
      {
          std::cout << "To Do " << aCpt << *itN << "\n";
          Tiff_Im  aTIn = Tiff_Im::StdConvGen(aDir+*itN,1,true);
+         std::string aImRefSz;
          if (aSzIm.x<0)
          {
+            aImRefSz = *itN;
             aSzIm = aTIn.sz();
             aImIn = Im2D_REAL4(aSzIm.x,aSzIm.y,0.0);
             if (ByMoy)
@@ -113,7 +122,7 @@ int EstimFlatField_main(int argc,char ** argv)
          {
              if (aSzIm!=aTIn.sz())
              {
-                 std::cout << "For Image " << *itN << "\n";
+                 std::cout << "For Image " << *itN <<  " sz=" << aTIn.sz()  << " Ref=" << aImRefSz << " Sz=" << aSzIm << "\n";
                  ELISE_ASSERT(false,"Different size");
              }
          }

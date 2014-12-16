@@ -57,6 +57,32 @@ template<> inline const char* CGObject::StringClass(struct float2* t ){	return "
 template<> inline const char* CGObject::StringClass(cudaArray* t ){	return "cudaArray*";}
 
 
+template<class CDimension>
+class CStructuring
+{
+
+public:
+
+    CDimension dimension() const;
+    void setDimension(const CDimension &dimension);
+    virtual uint GetSize() = 0;
+private:
+
+    CDimension _dimension;
+
+};
+
+template<class CDimension>
+CDimension CStructuring<CDimension>::dimension() const
+{
+    return _dimension;
+}
+template<class CDimension>
+void CStructuring<CDimension>::setDimension(const CDimension &dimension)
+{
+    _dimension = dimension;
+}
+
 /// \class struct2D
 /// \brief classe structure de donnees de dimension 2
 class struct2D
