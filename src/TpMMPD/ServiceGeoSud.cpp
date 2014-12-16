@@ -36,7 +36,7 @@ Pt2di getImageSize(std::string const &aName)
     if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
     {
         //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
-        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName));
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
         if (aRes.get())
         {
             return Std2Elise(aRes->Sz(1));
@@ -72,7 +72,7 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName, Pt2di const &P
     if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
     {
         //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
-        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName));
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
         if (aRes.get()!=NULLPTR)
         {
             std_unique_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(SzCrop));
@@ -121,7 +121,7 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName)
     // on teste l'extension
     if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
     {
-        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName));
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
         if (aRes.get()!=NULLPTR)
         {
             Pt2di aSz = Std2Elise(aRes->Sz(1));
@@ -580,6 +580,7 @@ Pt3dr Img2Terrain(ElCamera *aCamera, TIm2D<REAL4,REAL8> *mnt, cFileOriMnt const 
                   double Zinit,
                   Pt2di const &Pimg)
 {
+    bool verbose = false;
     int itMax = 10;
     double seuilZ = 1.;
     double NoData = -9999.;
@@ -594,18 +595,20 @@ Pt3dr Img2Terrain(ElCamera *aCamera, TIm2D<REAL4,REAL8> *mnt, cFileOriMnt const 
     while((it<itMax)&&!fin)
     {
         Pterr = aCamera->F2AndZtoR3(Pt2dr(Pimg.x,Pimg.y),Z);
-        //std::cout << "it: "<<it<<" Pterr: "<<Pterr.x<<" "<<Pterr.y<<" "<<Pterr.z<<std::endl;
+        if (verbose) std::cout << "it: "<<it<<" Pterr: "<<Pterr.x<<" "<<Pterr.y<<" "<<Pterr.z<<std::endl;
         // Position dans le MNT
         Pmnt.x = (Pterr.x-ori.OriginePlani().x)/ori.ResolutionPlani().x;
         Pmnt.y = (Pterr.y-ori.OriginePlani().y)/ori.ResolutionPlani().y;
-        //std::cout << "Pmnt : "<<Pmnt<<std::endl;
+        if (verbose) std::cout << "Pmnt : "<<Pmnt<<std::endl;
         double vAlti = mnt->getr(Pmnt,NoData);
         if (vAlti == NoData)
         {
             std::cout << "Attention, le MNT ne couvre pas la zone : "<<Pmnt.x<<" "<<Pmnt.y<<std::endl;
         }
         double alti = vAlti*ori.ResolutionAlti() + ori.OrigineAlti();
+        if (verbose) std::cout << "alti : "<<alti<<std::endl;
         fin = (std::abs(alti - Z)<=seuilZ);
+        if (verbose) std::cout << "alti : "<<alti<<" Z : "<<Z<<" seuilZ "<<seuilZ<<" fin: "<<fin<<std::endl;
         Z = alti;
         ++it;
     }
@@ -1183,6 +1186,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         aMntOri.ResolutionPlani()=Pt2dr(resolutionMnt,-resolutionMnt);
         aMntOri.NameFileMnt()=std::string("mnt_25m.tif");
         aMntOri.NombrePixels()=Pt2di(NCmnt,NLmnt);
+        aMntOri.OrigineAlti()=0;
+        aMntOri.ResolutionAlti()=1.;
     }
     std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
     std_unique_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));

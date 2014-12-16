@@ -31,7 +31,7 @@
 #include <ign/image/BufferImage.h>
 #include <boost/filesystem.hpp>
 #endif
-JP2ImageLoader::JP2ImageLoader(std::string const &nomfic):
+JP2ImageLoader::JP2ImageLoader(std::string const &nomfic, bool onlyNonReversible):
 m_Nomfic(nomfic)
 {
     bool verbose = false;
@@ -94,10 +94,13 @@ m_Nomfic(nomfic)
         _CKernels_W9X7 = true;
     }
 
-    if ((_reversible!=false)||(_CKernels_W9X7!=true))
+    if (onlyNonReversible)
     {
-        std::cout << "JP2 compresse sans perte: non utilisable avec MicMac!"<<std::endl;
-        return;
+        if ((_reversible!=false)||(_CKernels_W9X7!=true))
+        {
+            std::cout << "JP2 compresse sans perte: non utilisable avec MicMac!"<<std::endl;
+            return;
+        }
     }
 
     // fin des modifications
