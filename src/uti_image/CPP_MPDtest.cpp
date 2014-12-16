@@ -610,7 +610,7 @@ int MPDtest_main (int argc,char** argv)
 
 }
 
-auto_ptr<char> toto;
+std_unique_ptr<char> toto;
 
 #endif
 

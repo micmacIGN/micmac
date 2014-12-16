@@ -234,6 +234,20 @@ int inline _foo(size_t n, int xs[])
 #define    eprintf(args...) foo(args)
 
 
+//#include <initializer_list>
+
+//int sum(std::initializer_list<int> numbers)
+//{
+//    int total = 0;
+
+//    for(auto i = numbers.begin(); i != numbers.end(); i++)
+//    {
+//        total += *i;
+//    }
+
+//    return total;
+//}
+
 template<ushort dim = 3>
 class CStructure
 {
