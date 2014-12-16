@@ -135,6 +135,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 template <class Type> bool BadNumber(const Type & aVal) {return (std::isnan(aVal)||std::isinf(aVal));}
 
+#if __cplusplus > 199711L // if c++11
+    #define std_unique_ptr std::unique_ptr
+    #define NULLPTR nullptr
+#else // under c++11
+    #define std_unique_ptr std::auto_ptr
+    #define NULLPTR NULL
+#endif
+
 #if Compiler_Gpp2_7_2   // =========
 	#define ElTyName typename
 #elif(GPP3etPlus || Compiler_Visual_7_0)      // =========
