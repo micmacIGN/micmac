@@ -951,7 +951,7 @@ double cPackObsLiaison::AddObs
 
        if (TheExitOnNan)
        {
-           if (std::isnan(aSqrtEr))
+           if (std_isnan(aSqrtEr))
            {
               ElEXIT(1,"Nan value in residual");
            }

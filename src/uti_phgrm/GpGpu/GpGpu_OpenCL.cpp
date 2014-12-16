@@ -100,8 +100,6 @@ void main_SDK()
 int main()
 {
 
-    eprintf(0,5,68,4);
-
     CStructure<3> testS;
 
     DUMP(testS.getDimension())

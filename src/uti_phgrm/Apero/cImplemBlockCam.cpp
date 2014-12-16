@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#define HandleGL true
+#define HandleGL 1
 
 /*     ==== MODELISATION MATHEMATIQUE-1 ====================
   
@@ -102,7 +102,7 @@ void CalcParamEqRel
           int                 aLNumGl
       )
 {
-#if (!HandleGL)
+#if (HandleGL != 1)
     ELISE_ASSERT(! aRotR.IsGL(),"Guimbal lock in Eq Rig still unsupported");
     ELISE_ASSERT(! aRotL.IsGL(),"Guimbal lock in Eq Rig still unsupported");
     aRNumGl=-1;
