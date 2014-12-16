@@ -57,7 +57,7 @@ class cAppliSake
     std::string   mImPat, mDir, mMaskIm, mDirMEC, mPyr, mDirOrtho, mModeOri, mOriFileExtension;
     double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho;
     int           mSzW, mZoomI, mZoomF;
-    bool          mCalcMEC, mEZA, mExe;
+    bool          mCalcMEC, mEZA, mExe, mCalcMosaO;
     std::string   mInstruct;
     std::string   mImgs;
     eTypeSake     mCorrelGeomType;
@@ -90,6 +90,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mCalcMEC          (true),
   mEZA              (true),
   mExe              (true),
+  mCalcMosaO        (false),
   mUseMastIm        (false),
   mMastIm           ("")
 {
@@ -155,7 +156,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(mZMoy,"ZMoy",true,"Average value of Z (Def=1000.0)")
               << EAM(mZInc,"ZInc",true,"Initial uncertainty on Z (Def=1000.0)")
               << EAM(mModeOri,"ModeOri", true, "Orientation type (GRID or RTO; Def=GRID)", eSAM_NoInit)
-              << EAM(mMaskIm,"Mask",true,"Mask file")
+              << EAM(mMaskIm,"Mask",true,"Mask file", eSAM_IsExistFile)
               << EAM(mSzW,"SzW",true,"Correlation window size (Def=2, equiv 5x5)")
               << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.2")
               << EAM(mStepF,"ZPas",true,"Quantification step (Def=0.5)")
@@ -164,8 +165,9 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(aBoxTer,"BoxTer",true,"Define computation area [Xmin,Ymin,Xmax,Ymax] relative to ground")
               << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=true)", eSAM_IsBool)
               << EAM(mCalcMEC,"DoMEC",true,"Compute the matching (Def=true)", eSAM_IsBool)
-              << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/")
+              << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/)")
               << EAM(mDirOrtho,"DirOrtho",true,"Orthos subdirectory if OrthoIm (Def=Ortho-${DirMEC})")
+              << EAM(mCalcMosaO,"DoOrthoM",true,"Compute the ortho mosaic if OrthoIm (Def=false)", eSAM_IsBool)
               << EAM(aNbProcUsed,"NbProc",true,"Number of cores used for computation (Def=MMNbProc)")
               << EAM(mExe,"Exe",true,"Execute command (Def=true)", eSAM_IsBool)
   );
@@ -234,8 +236,10 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
     if (mStrCorrelGeomType=="OrthoIm")
     {
-      mInstruct = mInstruct + std::string(" +CalcOrtho=true");
-      mInstruct = mInstruct + std::string(" +DirOrtho=") + mDirOrtho;
+      mInstruct = mInstruct + std::string(" +CalcOrtho=true")
+                    + std::string(" +DirOrtho=") + mDirOrtho
+                    + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
+                    + std::string(" +CalcMosaO=") + (mCalcMosaO ? "true" : "false");
     }
 
     if (EAMIsInit(&mMaskIm))
@@ -291,7 +295,6 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
     mInstruct = mInstruct + std::string(" +CalcMEC=") + (mCalcMEC ? "true" : "false")
                           + std::string(" +EZA=") + (mEZA ? "true" : "false")
                           + std::string(" +ZoomF=") + ToString(mZoomF)
-                          + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
                           + std::string(" +NbStepsQ=") + ToString(mNbStepsQ)
                           + std::string(" +Exe=") + (mExe ? "true" : "false")
                           + std::string(" +NbProc=") + ToString(aNbProcUsed)
@@ -299,7 +302,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
     ShowParamVal();
 
-    std::cout<<"** "<<mInstruct<<" **"<<std::endl;
+    std::cout<<mInstruct<<std::endl;
   }
 }
 

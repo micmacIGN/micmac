@@ -199,7 +199,7 @@
              <ResolRelOrhto> ${ResolOrtho} </ResolRelOrhto>
              <OrthoBiCub> -1.5  </OrthoBiCub>
              <KeyCalcInput> NKS-Assoc-Id </KeyCalcInput>
-             <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ortho_ </KeyCalcOutput>
+             <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ort_ </KeyCalcOutput>
              <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrtho}@Incid_ </KeyCalcIncidHor>
              <ResolIm> 1.0 </ResolIm>
              <CalcIncAZMoy> true </CalcIncAZMoy>
