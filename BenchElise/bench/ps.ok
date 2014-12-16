@@ -1,0 +1,981 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#include "general/all.h"
+#include "private/all.h"
+
+
+#include <fstream.h>
+
+class  PS_Pts_Not_RLE :  public Mcheck
+{
+       public :
+
+         PS_Pts_Not_RLE
+         (
+              Data_Elise_PS_Win *,
+              Elise_Palette p
+         );
+
+
+         void put_1L
+         (
+               Pt2di      p0,
+               U_INT1 *   x,
+               U_INT1 *   y,
+               U_INT1 **  cols,
+               INT        nb,
+               bool       cste
+         );
+
+         void put_1L
+         (
+               Pt2di             p0,
+               U_INT1 *          x,
+               U_INT1 *          y,
+               U_INT1 *          x1_rect,
+               Data_Col_Pal *    dcp,
+               INT               nb
+          );
+
+       private :
+
+             void put_1L
+             (
+                   U_INT1 *,
+                   INT nb,
+                   Data_Elise_PS_Disp::defF *
+             );
+
+
+         
+            Data_Elise_PS_Win     * _w;
+            Data_Elise_PS_Disp    * _psd;
+            ofstream              & _fd;
+            Elise_Palette           _p;
+            Data_Elise_Palette    * _dep;
+};
+
+PS_Pts_Not_RLE::PS_Pts_Not_RLE
+(
+     Data_Elise_PS_Win * w,
+     Elise_Palette       p
+)   :
+      _w   (w),
+      _psd (w->_psd),
+      _fd  (_psd->_fd),
+      _p   (p),
+      _dep (p.dep())
+{
+}
+
+
+void PS_Pts_Not_RLE::put_1L
+     (
+          U_INT1 *  data,
+          INT nb,
+          Data_Elise_PS_Disp::defF * prim
+     )
+{
+   prim->put_prim(_psd);
+   _psd->_LStr85.put_prim(_psd); 
+
+    PS_A85 a85(_fd);
+    for (INT i=0 ; i<nb ; i++)
+        a85.put(data[i]);
+
+    a85.close_block();
+}
+
+
+void PS_Pts_Not_RLE::put_1L
+     (
+          Pt2di      p0,
+          U_INT1 *   x,
+          U_INT1 *   y,
+          U_INT1 **  cols,
+          INT        nb,
+          bool       cste
+     )
+{
+    _fd << p0.x << " " << p0.y << " translate\n";
+    _w->set_active();
+    _psd->set_active_palette(_p,false);
+    for (INT k=0; k <nb ; k+= _psd->max_str)
+    {
+         INT nb_loc = min((INT)_psd->max_str,nb-k);
+
+         put_1L(x+k,nb_loc,&_psd->_StrX);
+         put_1L(y+k,nb_loc,&_psd->_StrY);
+
+         if (cols)
+            for (INT d=0 ; d<(cste ? 1 : _dep->ps_dim_out()) ; d++)
+                put_1L(cols[d]+k,nb_loc,_psd->_StrC[d]);
+
+         _fd << (nb_loc-1) << " " ;
+         _psd->Lpts_put_prim(cste);
+    }
+    _fd << -p0.x << " " << -p0.y << " translate\n";
+}
+
+void PS_Pts_Not_RLE::put_1L
+     (
+        Pt2di             p0,
+        U_INT1 *          x,
+        U_INT1 *          y,
+        U_INT1 *          x1_rect,
+        Data_Col_Pal *    dcp,
+        INT               nb
+     )
+{
+     _w->set_col(dcp);
+     put_1L(p0,x,y,&x1_rect,nb,true);
+}
+
+/**************************************************************/
+/*                                                            */
+/*         PS_Out_RLE_computed                                */
+/*                                                            */
+/**************************************************************/
+
+/*
+void Ps_Multi_Filter::put
+(
+     Elise_Palette  p,
+     U_INT1 ***    data,
+     INT           dim_out,
+     Pt2di         sz,
+     Pt2di         p0,
+     Pt2di         p1
+)
+*/
+
+class PS_Out_RLE_computed : public GW_computed
+{
+
+   public  :
+
+      virtual ~PS_Out_RLE_computed();
+
+      PS_Out_RLE_computed
+      (
+          const Arg_Output_Comp &,
+          const Data_El_Geom_GWin *,
+          Data_Elise_Palette *,
+          Data_Elise_PS_Win *,
+          bool              rle
+      );
+
+      // when number of seg is > to this value, use image bits mode
+      // for constante
+      enum { nb_seg_max_cste = 2500 };
+
+   private :
+
+      class dalle 
+      { 
+           public :
+               dalle(INT dim,Pt2di p0,Pt2di sz) :
+                    _dim     (dim),
+                    _lptc    (dim),
+                    _nb      (0),
+                    _p0      (p0),
+                    _sz      (sz),
+                    _im_load (false),
+                    _imb     (1,1)
+               {
+               }
+
+               void make_im_bits(bool erase_lpt);
+               void set_seg(INT x,INT y,INT nb);
+                
+               INT                    _dim;
+               Liste_Pts<U_INT1,INT>  _lptc;
+               INT                    _nb;
+               Pt2di                  _p0;
+               Pt2di                  _sz;
+               bool                   _im_load;
+               Im2D_Bits<1>           _imb;
+      };
+
+      Pt2di  adr_dalle(Pt2di p)
+      {
+           return Pt2di((p.x-_up0.x)/256,(p.y-_up0.y)/256);
+      }
+
+      Box2di box_dalles(Box2di b)
+      {
+            return Box2di
+                   (
+                        adr_dalle(b._p0),
+                        adr_dalle(b._p1-Pt2di(1,1))+Pt2di(1,1)
+                   );
+      }
+
+      //  Pt2di  P0_dalle(Pt2di pd) { return _up0 + pd * 256; }
+
+      bool dump_im_bits (dalle *,INT nb_byte_max);
+      void empty_dalle (dalle *);
+      dalle * add_dalle(Pt2di pt);
+
+
+      virtual void update(const Pack_Of_Pts * pts,const Pack_Of_Pts * vals);
+      void update_rle(const Pack_Of_Pts * pts,const Pack_Of_Pts * vals);
+      void update_not_rle(const Pack_Of_Pts * pts,const Pack_Of_Pts * vals);
+
+      void flush_image(bool);
+
+      Box2di               _rect;
+      bool                _is_rect;
+      bool                  _is_cste;
+      INT                 _nb_buf_y;
+      INT                    _y_cur;
+      bool                     _rle;
+      INT                     _dout;
+      Ps_Multi_Filter          _pmf;
+      Elise_Palette            _pal;
+      Data_Elise_Palette     * _dep;
+      Pt2di                  _p0buf;
+      Pt2di                  _p1buf;
+      U_INT1 ***            _buf;
+      U_INT1 **          _buf_tr;
+
+      INT               _last_x0;
+      INT               _last_x1;
+      INT                _last_y;
+      bool                _first;
+      Data_Elise_PS_Win     * _w;
+      Data_Elise_PS_Disp    *_psd;
+
+      INT                   _vcste[Elise_Std_Max_Dim];
+
+      Data_Col_Pal              _dcp;
+      RLE_Pack_Of_Pts *         _rle_pck;  // for convertion from not RLE
+      Std_Pack_Of_Pts<INT> *    _rle_values;
+
+      dalle ***                 _dalles;
+      Pt2di                     _p0d;
+      Pt2di                     _p1d;
+      INT                       _nb_min_rle;
+      INT                       _d_lpt;
+      INT                       _nb_empty;
+      U_INT1 *                  _buf_add;
+
+};
+
+PS_Out_RLE_computed::PS_Out_RLE_computed
+(
+     const Arg_Output_Comp  &      arg,
+     const Data_El_Geom_GWin *     degw,
+     Data_Elise_Palette  *         dep,
+     Data_Elise_PS_Win   *         w,
+     bool                          rle
+)  :
+   GW_computed     (arg,degw,dep),
+  _rect            (Pt2di(0,0),Pt2di(0,0)),  // Bidon,of course
+  _is_rect         (arg.flux()->is_rect_2d(_rect)),
+  _is_cste         (arg.fonc()->icste(_vcste)),
+  _nb_buf_y        (_is_rect ? 30 : 1),
+  _y_cur           (0),
+  _rle             (rle),
+  _dout            (dep->ps_dim_out()),
+  _pmf             (w->_psd),
+  _pal             (dep),
+  _dep             (dep),
+  _p0buf           (min(0,_up0.x-1),0),
+  _p1buf           (max(_up1.x+1,arg.flux()->sz_buf()),_nb_buf_y),
+  _buf             (NEW_TAB_MATRICE(_dout,_p0buf,_p1buf,U_INT1)),
+  _buf_tr          (NEW_VECTEUR(0,_dout,U_INT1 *)),
+  _last_x0         (0xffffffff),
+  _last_x1         (0xffffffff),
+  _last_y          (0xffffffff),
+  _first           (true),
+  _w               (w),
+  _psd             (w->_psd),
+
+
+  _rle_pck         (RLE_Pack_Of_Pts::new_pck(2,arg.flux()->sz_buf())),
+  _rle_values      (Std_Pack_Of_Pts<INT>::new_pck(2,0)),
+  _dalles          (0),
+  _p0d             (adr_dalle(_up0)),
+  _p1d             (adr_dalle(_up1-Pt2di(1,1))+Pt2di(1,1)),
+  _nb_min_rle      (10),
+  _d_lpt           (2 + (_is_cste ? 1 : _dout)),
+  _nb_empty        (_is_cste ? 2500:_psd->max_str),
+  _buf_add         (NEW_VECTEUR(0,2+_dout,U_INT1))
+{
+
+
+    if (_is_cste)
+    {
+       _dcp = Data_Col_Pal(_pal,_vcste[0],_vcste[1],_vcste[2]);
+    }
+
+    _dalles = NEW_MATRICE(_p0d,_p1d,dalle *);
+    for (INT x=_p0d.x ; x<_p1d.x ; x++)
+        for (INT y=_p0d.y ; y<_p1d.y ; y++)
+            _dalles[y][x] = 0;
+}
+
+PS_Out_RLE_computed::~PS_Out_RLE_computed()
+{
+     flush_image(true);
+
+     DELETE_VECTOR(_buf_add,0);
+     if (_dalles)
+     {
+         for (INT x=_p0d.x ; x<_p1d.x ; x++)
+             for (INT y=_p0d.y ; y<_p1d.y ; y++)
+                 if (_dalles[y][x])
+                 {
+                    empty_dalle(_dalles[y][x]);
+                    delete _dalles[y][x];
+                 }
+
+        DELETE_MATRICE(_dalles,_p0d,_p1d);
+     }
+     delete _rle_values;
+     delete _rle_pck;
+     DELETE_VECTOR(_buf_tr,0);
+     DELETE_TAB_MATRICE(_buf,_dout,_p0buf,_p1buf);
+}
+
+
+PS_Out_RLE_computed::dalle * PS_Out_RLE_computed::add_dalle(Pt2di pt)
+{
+
+    Pt2di pd = adr_dalle(pt);
+    Pt2di p0 = _up0+pd*256;
+
+    if (! _dalles[pd.y][pd.x])
+       _dalles[pd.y][pd.x] = new dalle
+                                 (
+                                    _d_lpt,
+                                    p0,
+                                    Min(Pt2di(256,256),Pt2di(_up1-p0))
+                                 );
+    return _dalles[pd.y][pd.x];
+}
+
+
+void PS_Out_RLE_computed::flush_image(bool /* end */)
+{
+    if ((_first) || (_last_x0==_last_x1))
+       return;
+
+    INT yl = (_last_y-_up0.y)%256;
+
+    if (_is_cste)
+    {
+        Box2di bd= box_dalles
+                   (
+                        Box2di
+                        (
+                           Pt2di(_last_x0,_last_y),
+                           Pt2di(_last_x1,_last_y)
+                        )
+                   );
+        for (INT idx=bd._p0.x; idx<bd._p1.x ; idx++)
+        {
+            INT x0 = max(_last_x0,_up0.x+256*idx);
+            INT x1 = min(_last_x1,_up0.x+256*(idx+1));
+            INT x0l = (x0-_up0.x)%256;
+            INT nb = x1-x0;
+
+            dalle * d = add_dalle(Pt2di(x0,_last_y));
+            d->_nb ++;
+            if (d->_nb == nb_seg_max_cste)
+               d->make_im_bits(true);
+
+            if (d->_im_load)
+               d->set_seg(x0l,yl,nb);
+            else
+            {
+                _buf_add[0] = x0l;
+                _buf_add[1] = yl;
+                _buf_add[2] = nb-1;
+                d->_lptc.add_pt(_buf_add);
+            }
+        }
+    }
+    else
+    {
+        if (_rle || ((_last_x1-_last_x0) >= _nb_min_rle))
+        {
+           _pmf.put
+           (
+              _w,
+              _pal,
+              _buf,
+              _dout,
+              Pt2di(_last_x1-_last_x0,1),
+              Pt2di(_last_x0,_last_y),
+              Pt2di(_last_x0,0),
+              -1
+           );
+        }
+        else
+        {
+            for (INT x = _last_x0; x<_last_x1 ; x++)
+            {
+                  dalle * d = add_dalle(Pt2di(x,_last_y));
+                 _buf_add[0] = (x-_up0.x)%256;
+                 _buf_add[1] = yl;
+                 d->_nb ++;
+                 for (INT dim=2 ; dim<_d_lpt ; dim++)
+                     _buf_add[dim] = _buf[dim-2][0][x];
+                 d->_lptc.add_pt(_buf_add);
+                 if (d->_nb == _nb_empty)
+                    empty_dalle(d);
+            }
+        }
+    }
+}
+
+void PS_Out_RLE_computed::empty_dalle(PS_Out_RLE_computed::dalle * d)
+{
+
+
+    if (_is_cste)
+    {
+       if (d->_im_load)
+       {
+          dump_im_bits(d,-1);
+       }
+       else
+       {
+          d->make_im_bits(false);
+          if(! dump_im_bits(d,3*d->_lptc.card()))
+          {
+             PS_Pts_Not_RLE pnrle(_w,_pal);
+             Im2D<U_INT1,INT> i = d->_lptc.image();
+             pnrle.put_1L
+             (
+                d->_p0,
+                i.data()[0],
+                i.data()[1],
+                i.data()[2],
+                &_dcp,
+                d->_nb
+             );
+          }
+       }
+    }
+    else
+    {
+       PS_Pts_Not_RLE pnrle(_w,_pal);
+       Im2D<U_INT1,INT> i = d->_lptc.image();
+       pnrle.put_1L
+       (
+          d->_p0,
+          i.data()[0],
+          i.data()[1],
+          i.data()+2,
+          d->_nb,
+          false
+       );
+     }
+
+    d->_nb = 0;
+    d->_lptc = Liste_Pts<U_INT1,INT>(_d_lpt);
+}
+
+
+void PS_Out_RLE_computed::dalle::set_seg(INT x0,INT y,INT nb)
+{
+     for (INT k=0; k< nb ; k++)
+         _imb.set(x0+k,y,1);
+}
+
+void PS_Out_RLE_computed::dalle::make_im_bits(bool erase_lpt)
+{
+    El_Internal.assert
+    (
+       (! _im_load),
+       EEM0 << "Multiple  PS_Out_RLE_computed::dalle::make_im_bits"
+    );
+    _im_load = true;
+
+    Im2D<U_INT1,INT> i = _lptc.image();
+    if (erase_lpt)
+        _lptc = Liste_Pts<U_INT1,INT>(_dim);
+
+    _imb = Im2D_Bits<1>(_sz.x,_sz.y,0);      
+
+    INT  nbseg = i.tx();
+    U_INT1 *  x =  i.data()[0];
+    U_INT1 *  y =  i.data()[1];
+    U_INT1 *  nb =  i.data()[2];
+
+    for (INT iseg = 0; iseg<nbseg ; iseg++)
+        set_seg(x[iseg],y[iseg],nb[iseg]+1);
+}
+
+bool PS_Out_RLE_computed::dump_im_bits(PS_Out_RLE_computed::dalle * d,INT nb_byte_max)
+{
+   return _pmf.put
+          (
+                _w,
+                &_dcp,
+                d->_imb.data(),
+                d->_sz,
+                d->_p0,
+                Pt2di(0,0),
+                nb_byte_max
+          );
+}
+
+void PS_Out_RLE_computed::update_rle(const Pack_Of_Pts * p,const Pack_Of_Pts * v)
+{
+    INT nb = p->nb();
+    if (! nb)
+       return;
+
+    const Std_Pack_Of_Pts<INT> * ivals = v->int_cast();
+    const RLE_Pack_Of_Pts * rle_pack = p->rle_cast();
+    INT ** vals =  ivals->_pts;
+
+    _dep->verif_values_out(vals,nb);
+
+    INT x0 = rle_pack->vx0();
+    INT x1 = x0 + nb;
+    INT y  = rle_pack->pt0()[1];
+
+    if (_first)
+    {
+       _first = false;
+       _last_x0 = _last_x1 = x0;
+       _last_y = y-1;
+    }
+
+    if ((_last_y != y) || (_last_x1 != x0))
+    {
+        flush_image(false);
+        _last_x0 = x0;
+        _last_y = y;
+    }
+    _last_x1 = x1;
+
+    for (INT d = 0; d < _dout ; d++)
+        _buf_tr[d] = _buf[d][_y_cur] + x0;
+
+    _w->_psd->use_conv_colors(_dep,_buf_tr,vals,_dout,nb);
+}
+
+void PS_Out_RLE_computed::update_not_rle(const Pack_Of_Pts * p,const Pack_Of_Pts * v)
+{
+     const Std_Pack_Of_Pts<INT> * pts = p->int_cast();
+     const Std_Pack_Of_Pts<INT> * values = v->int_cast();
+
+     INT ** xy = pts->_pts;
+     INT *  x  = xy[0];
+     INT *  y  = xy[1];
+     INT nb    = pts->nb();
+
+     for (INT k1=0 ; k1< nb ; )
+     {
+         INT k2 = k1 +1;
+         while (
+                     (k2<nb)
+                  && (x[k2] == x[k2-1] +1)
+                  && (y[k2] == y[k2-1])
+               )
+               k2++;
+
+         _rle_pck->set_nb(k2-k1); 
+         _rle_pck->set_pt0(Pt2di(x[k1],y[k1]));
+         _rle_values->interv(values,k1,k2);
+         update_rle(_rle_pck,_rle_values);
+         k1 = k2;
+     }
+}
+
+
+
+
+void PS_Out_RLE_computed::update(const Pack_Of_Pts * p,const Pack_Of_Pts * v)
+{
+    if (_rle)
+       update_rle(p,v);
+    else
+       update_not_rle(p,v);
+}
+
+
+
+ 
+Output_Computed * Data_Elise_PS_Win::rle_out_comp
+(
+      const Data_El_Geom_GWin * degw,
+      const Arg_Output_Comp & arg,
+      Data_Elise_Palette *    dep
+)
+{
+      return new PS_Out_RLE_computed (arg,degw,dep,this,true);
+}
+
+Output_Computed * Data_Elise_PS_Win::pint_cste_out_comp
+(
+      const Data_El_Geom_GWin * degw,
+      const Arg_Output_Comp &   arg,
+      Data_Elise_Palette *      dep,
+      INT        *
+)
+{
+     return new PS_Out_RLE_computed (arg,degw,dep,this,false);
+}
+
+
+Output_Computed * Data_Elise_PS_Win::pint_no_cste_out_comp
+(
+      const Data_El_Geom_GWin * degw,
+      const Arg_Output_Comp &   arg,
+      Data_Elise_Palette *      dep
+)
+{
+     return new PS_Out_RLE_computed (arg,degw,dep,this,false);
+}
+
+
+
+
+      //================================
+      //================================
+
+#if (0)
+void Data_Elise_PS_Disp::test_ps()
+{
+    Pt2di SZ (100,100);
+   
+    Disc_Pal  Pdisc = Disc_Pal::clisp_pal(30);
+    Gray_Pal  Pgr(100);
+    Circ_Pal  Pcirc = Circ_Pal::PCIRC6(20);
+
+    Lin1Col_Pal   BluePal
+                  (
+                      Elise_colour::rgb(0,0,0.25),
+                      Elise_colour::rgb(0.5,0.75,1),
+                      40
+                  );
+     RGB_Pal     Prgb(6,6,6);
+     BiCol_Pal   Prb  (
+                          Elise_colour::black,
+                          Elise_colour::red,
+                          Elise_colour::blue,
+                          2,
+                          2
+                      );
+
+    Elise_Set_Of_Palette SOP(newl(BluePal)+Pgr+Pcirc+Pdisc+Prgb+Prb);
+    PS_Display disp("TMP/test.ps","Mon beau fichier ps",SOP);
+
+    PS_Window  W0
+               (
+                   disp,
+                   SZ,
+                   Pt2dr(2.0,5.0),
+                   Pt2dr(18.0,21.0)
+               );
+
+   ELISE_COPY(W0.all_pts(),(FX+FY)%2,W0.out(Pdisc));
+   ELISE_COPY(W0.interior(3),Fonc_Num(0,255,0),W0.orgb());
+   ELISE_COPY(rectangle(Pt2di(0,0),Pt2di(SZ.x,1)),FX%20,W0.out(Pdisc));
+
+   Data_Elise_PS_Win  * w   = W0.depw();
+
+
+   PS_Pts_Not_RLE pnrle(w,Pdisc);
+
+   INT NB = 5500;
+
+   Im1D_U_INT1 Ix(NB);
+   Im1D_U_INT1 Iy(NB);
+   Im1D_U_INT1 Ic(NB);
+
+   for (INT k=0; k<NB ; k++)
+   {
+       Ix.data()[k] = k % SZ.x;
+       Iy.data()[k] = k / SZ.x;
+       Ic.data()[k] = (Ix.data()[k]+Iy.data()[k]) % 4;
+   }
+
+    U_INT1 * c = Ic.data();
+    pnrle.put_1L
+    (
+          Ix.data(),
+          Iy.data(),
+          &c,
+          NB
+    );
+}
+#endif
+
+
+
+void Data_Elise_PS_Disp::test_ps()
+{
+   
+    Disc_Pal  Pdisc = Disc_Pal::clisp_pal(30);
+    Gray_Pal  Pgr(50);
+    Circ_Pal  Pcirc = Circ_Pal::PCIRC6(20);
+
+    Pt2di SZ(512,512);
+
+    Lin1Col_Pal   BluePal
+                  (
+                      Elise_colour::rgb(0,0,0.25),
+                      Elise_colour::rgb(0.5,0.75,1),
+                      30
+                  );
+     RGB_Pal     Prgb(3,3,3);
+     BiCol_Pal   Prb  (
+                          Elise_colour::black,
+                          Elise_colour::red,
+                          Elise_colour::blue,
+                          2,
+                          2
+                      );
+      
+
+
+    Elise_Set_Of_Palette SOP(newl(BluePal)+Pgr+Pcirc+Pdisc+Prgb+Prb);
+    PS_Display disp("TMP/test.ps","Mon beau fichier ps",SOP);
+
+    PS_Window  W0
+               (
+                   disp,
+                   SZ,
+                   Pt2dr(2.0,5.0),
+                   Pt2dr(18.0,21.0)
+               );
+
+/*
+    PS_Window  W1
+               (
+                   disp,
+                   Pt2di(512,512),
+                   Pt2dr(10.0,13.0),
+                   Pt2dr(18.0,21.0)
+               );
+*/
+
+   Video_Display Ecr((char *) NULL);
+   Ecr.load(SOP);
+   Video_Win   Wv  (Ecr,SOP,Pt2di(50,50),Pt2di(SZ.x,SZ.y));
+
+
+   Tiff_Im     Flena("../IM_ELISE/TIFF/lena.tif");
+   Im2D_U_INT1 Lena (512,512);
+   ELISE_COPY(Lena.all_pts(),8*(Flena.in()/8),Lena.out());
+
+
+   ELISE_COPY
+   (
+      W0.all_pts(),
+      Lena.in(0),
+      W0.ogray() | Wv.ogray()
+   );
+
+   ELISE_COPY
+   (
+      disc(Pt2di(256,256),30),
+      255-Lena.in(0),
+      W0.ogray() | Wv.ogray()
+   );
+
+
+/*
+   ELISE_COPY
+   (
+       W0.all_pts(),
+       (FX/50+FY/30)%20,
+       W0.odisc() | Wv.odisc()
+   );
+
+   W0.fill_rect(Pt2di(0,0),Pt2di(512,512),Prgb(256,256,0));
+   Wv.fill_rect(Pt2di(0,0),Pt2di(512,512),Prgb(255,255,0));
+
+   ELISE_COPY
+   (
+      disc(SZ/2,200),
+      Lena.in(0),
+      W0.ogray() | Wv.ogray()
+   );
+
+   
+    Im2D_Bits<1> Ib1(512,512,0);
+
+    for (INT x = 0; x < 512 ; x+=3)
+       ELISE_COPY
+       (  
+             ::line(Pt2di(x,0),Pt2di(256,512)),
+             1,
+             Wv.odisc() | Ib1.oclip()
+       );
+
+    ELISE_COPY
+    (  
+        select(W0.all_pts(),Ib1.in()),
+        4,
+        Wv.odisc() | W0.odisc()
+    );
+*/
+
+/*
+   ELISE_COPY
+   (
+      select(W0.all_pts(),(FX>FY)),//Lena.in(255)<= 64),
+      4,
+      W0.odisc() | Wv.odisc()
+   );
+*/
+
+
+/*
+*/
+
+
+
+/*
+   Im2D_Bits<1> Ib1(512,512);
+
+
+   ELISE_COPY
+   (
+      disc(Pt2di(256,256),200),
+      Lena.in(),
+      W0.ogray() | Wv.ogray()
+   );
+
+   ELISE_COPY
+   (
+       W0.all_pts(),
+       Lena.in()>128,
+       Wv.odisc() | Ib1.out()
+   );
+
+   Data_Elise_PS_Win  * w   = W0.depw();
+   Data_Elise_PS_Disp * psd = w->_psd;
+
+   Ps_Multi_Filter pmf(psd);
+
+   Col_Pal col = Prgb(255,0,0);
+
+   pmf.put
+   (
+         w,
+         col.dcp(),
+         Ib1.data(),
+         Pt2di(511,511),
+         Pt2di(0,0),
+         Pt2di(0,0)
+   );
+*/
+
+/*
+   ELISE_COPY
+   (
+      disc(Pt2di(256,256),200),
+      Lena.in(),
+      W0.ogray()
+   );
+
+
+   PS_Pts_Not_RLE pnrle(w,Prgb);
+
+   for (INT x0=0 ; x0<SZ.x ; x0+=256)
+       for (INT y0=0 ; y0<SZ.x ; y0+=256)
+       {
+           INT x1 = min (SZ.x,x0+256);
+           INT y1 = min (SZ.y,y0+256);
+
+           Liste_Pts<U_INT1,INT>  lxy(5);
+
+           ELISE_COPY
+           (
+                select
+                (
+                   rectangle(Pt2di(x0,y0),Pt2di(x1,y1)),
+                   Lena.in() > 128
+                ).chc
+                 ((
+                      FX-x0,
+                      FY-y0,
+                       Lena.in(),0,255-Lena.in()
+                 )),
+                7777,
+                lxy 
+           );
+
+   PS_Pts_Not_RLE pnrle(w,Prgb);
+           Im2D<U_INT1,INT> i = lxy.image();
+
+           pnrle.put_1L
+           (
+                 Pt2di(x0,y0),
+                 i.data()[0],
+                 i.data()[1],
+                 Prgb(256,0,0),
+                 i.tx()
+           );
+      }
+
+       ELISE_COPY
+       (
+          select(W0.all_pts(),Lena.in() > 60),
+          //  select(W0.all_pts(),FX>FY),
+          // select(W0.all_pts(),mod((FX+FY)/30 +(FX-FY)/30,2)),
+          Lena.in(),
+          W0.ogray() | Wv.ogray()
+       );
+*/
+
+}
+
+
+
+
+int  main(int,char **)
+{
+    All_Memo_counter MC_INIT;
+    stow_memory_counter(MC_INIT);
+    Data_Elise_PS_Disp::test_ps();
+    verif_memory_state(MC_INIT);
+}
+
+/*
+
+ struct tm *localtime(const time_t *timep);
+  time_t time(0);
+*/
+
+
+
+
+
+
+

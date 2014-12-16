@@ -1,0 +1,120 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+
+
+    Pattern="(([0-9]{5})|(0504[0-4])|(0483[0-4])|(0525[2-6]))"
+    AeroIn="-A3-AppuisLiaisonGPS-RTL"
+>
+<!--
+    TypePt="Verif"
+    AeroNav="-A0-Navig-RTL"
+    AeroIn="-A2-AppLiais-RTL"
+    AeroIn="-A2-AppLiais-RTL"
+-->
+   <ParamApero>
+
+
+
+       <SectionBDD_Observation>
+            <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+                 <SplitLayer>
+                      <IdLayer>  Id-Layer-Veget </IdLayer>
+                      <KeyCalHomSplit> KeyStd-Assoc-H2H-SplitBin@-TerNu@-Veget  </KeyCalHomSplit>
+                 </SplitLayer>
+             </BDD_PtsLiaisons>
+
+
+            <BDD_Orient>
+                  <Id>  IdOrInit</Id>
+                  <KeySet>  KeyStd-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  KeyStd-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+            </BDD_Orient>
+            <LayerImageToPose>
+                 <Id> Id-Layer-Veget </Id>
+                 <KeyCalculImage>  Masque_vegetation.tif </KeyCalculImage>
+                 <FactRed> 3 </FactRed>
+                 <EtiqPrio> 1 </EtiqPrio>
+                 <EtiqPrio> 0 </EtiqPrio>
+                 <LayerTerrain>
+                      <!-- +ou- redondant avec l'orientation des poses, mais charge tres en amont -->
+                      <KeyAssocOrImage> KeyStd-Assoc-Im2Orient@${AeroIn} </KeyAssocOrImage>
+                      <SysCoIm> SysCo-RTL-Muru.xml </SysCoIm>  <!-- Un nom de fichier -->
+                      <!-- Pour aller image->Terrain, si pas donne, pris dans Georef (s'il existe !!!) -->
+                      <ZMoyen> -5 </ZMoyen>
+                 </LayerTerrain>
+            </LayerImageToPose>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_${Focale} </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   Ori${AeroIn}/F070_AutoCal.xml       </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>   F${Focale}_${PrefixImages}${Pattern}${PostfixDraw}.tif   </PatternName> 
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+
+                   <PosValueInit>
+	               <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+              <ModeControleDescDic> eCDD_Jamais </ModeControleDescDic>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+              <GridOptimKnownDist> true </GridOptimKnownDist>
+              <NormaliseEqSc> true </NormaliseEqSc>
+              <NormaliseEqTr> true </NormaliseEqTr>
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		              <Val> eFige_Phgr_Std_Aff      </Val>
+		              <Val> eFige_Phgr_Std_Dec      </Val>
+
+		          </ContraintesCamerasInc>
+                          <ContraintesPoses>
+                             <ByPattern> true </ByPattern>
+                             <NamePose>  .* </NamePose>
+                             <Val>      ePoseFigee   </Val>
+                          </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <SectionObservations> </SectionObservations>
+                    <SectionExport> </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+

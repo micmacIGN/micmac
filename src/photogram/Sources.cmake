@@ -1,0 +1,57 @@
+set(Photogram_Src_Files
+	${PHOTOGR_DIR}/ChantierNameAssoc.cpp
+	${PHOTOGR_DIR}/DataBase.cpp
+	${PHOTOGR_DIR}/FiltrageSpatial_CNA.cpp
+	${PHOTOGR_DIR}/cParamEtal.cpp
+	${PHOTOGR_DIR}/phgr_Basculement.cpp
+	${PHOTOGR_DIR}/phgr_autocalibr.cpp
+	${PHOTOGR_DIR}/phgr_basic.cpp
+	${PHOTOGR_DIR}/phgr_cEqObsRotVect.cpp
+	${PHOTOGR_DIR}/phgr_cGereEtats.cpp
+	${PHOTOGR_DIR}/phgr_cGridIncImageMnt.cpp
+	${PHOTOGR_DIR}/phgr_correl_grid.cpp
+	${PHOTOGR_DIR}/phgr_correl_subpix.cpp
+	${PHOTOGR_DIR}/phgr_dist.cpp
+	${PHOTOGR_DIR}/phgr_ebner_brown_dist.cpp
+	${PHOTOGR_DIR}/phgr_ellipse.cpp
+	${PHOTOGR_DIR}/phgr_epip_cam.cpp
+	${PHOTOGR_DIR}/phgr_epipole.cpp
+	${PHOTOGR_DIR}/phgr_eqhomog.cpp
+	${PHOTOGR_DIR}/phgr_extrinseque.cpp
+	${PHOTOGR_DIR}/phgr_formel.cpp
+	${PHOTOGR_DIR}/phgr_homog.cpp
+	${PHOTOGR_DIR}/phgr_inconnue_tmp.cpp
+	${PHOTOGR_DIR}/phgr_intrinseque.cpp
+	${PHOTOGR_DIR}/phgr_laser_image.cpp
+	${PHOTOGR_DIR}/phgr_low_level.cpp
+	${PHOTOGR_DIR}/phgr_mep_rel.cpp
+	${PHOTOGR_DIR}/phgr_or_code_gen00.cpp
+	${PHOTOGR_DIR}/phgr_or_code_gen1.cpp
+	${PHOTOGR_DIR}/phgr_or_code_gen2.cpp
+	${PHOTOGR_DIR}/phgr_or_code_gen3.cpp
+	${PHOTOGR_DIR}/phgr_or_code_gen4.cpp
+	${PHOTOGR_DIR}/phgr_or_code_gen5.cpp
+	${PHOTOGR_DIR}/phgr_or_code_gen6.cpp
+	${PHOTOGR_DIR}/phgr_or_code_gen7.cpp
+	${PHOTOGR_DIR}/phgr_or_opt.cpp
+	${PHOTOGR_DIR}/phgr_or_param_extr.cpp
+	${PHOTOGR_DIR}/phgr_or_param_intr.cpp
+	${PHOTOGR_DIR}/phgr_orient_relative.cpp
+	${PHOTOGR_DIR}/phgr_polyg.cpp
+	${PHOTOGR_DIR}/phgr_pts_interet.cpp
+	${PHOTOGR_DIR}/phgr_sys_coord.cpp
+	${PHOTOGR_DIR}/phgr_triangu_appar_image.cpp
+	${PHOTOGR_DIR}/phgr_triangul.cpp
+	${PHOTOGR_DIR}/transfo_xml_phgr.cpp
+	${PHOTOGR_DIR}/transfo_xml_phgr2.cpp
+	${PHOTOGR_DIR}/cEq12Param.cpp
+	${PHOTOGR_DIR}/cCameraBilin.cpp
+	${PHOTOGR_DIR}/OffsetGPS.cpp
+)
+
+SOURCE_GROUP(Photogram FILES ${Photogram_Src_Files})
+
+set(Elise_Src_Files
+	${Elise_Src_Files}
+	${Photogram_Src_Files}
+)
