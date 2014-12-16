@@ -426,7 +426,8 @@ extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
 extern int  Luc_main(int argc,char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
-extern int  Mathieu_main(int argc,char ** argv);
+extern int  ProjetInfo_main(int argc,char ** argv);
+extern int  Matthieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
 extern int  CreateBlockEpip_main(int argc,char ** argv);
 extern int  TD_GenereAppuis_main(int argc,char ** argv);
@@ -480,14 +481,15 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square library "));
    aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
-   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
+   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou"));
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
    aRes.push_back(cMMCom("NLD",NLD_main,"test"));
    aRes.push_back(cMMCom("RTT",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
    aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favourable angles"));
    aRes.push_back(cMMCom("Ortho2TieP",Ortho2TieP_main,"Select Tie Points from the orthophotography"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
-   aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
+   aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
+   aRes.push_back(cMMCom("PI",ProjetInfo_main,"Texture UV"));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
 
