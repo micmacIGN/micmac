@@ -47,7 +47,7 @@ static bool Debug = true;
 
 void AssertNoNan(const double&  x,const int & aLine,const std::string & aFile)
 {
-    if (std::isnan(x))
+    if (std_isnan(x))
     {
        std::cout << "At Line " << aLine << " of file " << aFile << "\n";
        ELISE_ASSERT(false,"Unexpected Nan Number")
