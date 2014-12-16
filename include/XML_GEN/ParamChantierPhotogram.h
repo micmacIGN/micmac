@@ -258,7 +258,7 @@ void  BinaryUnDumpFromFile(eTypePreCondRad &,ELISE_fp &);
 
 typedef enum
 {
-  eGeomTer,
+  eDEM,
   eOrthoIm,
   eNbTypeVals
 } eTypeSake;
