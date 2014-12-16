@@ -124,16 +124,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
 	#include <float.h>
-	#define isnan _isnan 
+	#define std_isnan _isnan 
+	#define std_isinf isinf 
+
     #define ELISE_STR_DIR "/"
 	// the character separating directories in PATH environment variable
     #define ELISE_CAR_ENV ';'
         #define isinf(x) (!_finite(x))
+#else
+	#include <cmath>
+	#define std_isnan std::isnan 
+	#define std_isinf std::isnan 
 #endif
 
-#include <cmath>
-
-template <class Type> bool BadNumber(const Type & aVal) {return (std::isnan(aVal)||std::isinf(aVal));}
+template <class Type> bool BadNumber(const Type & aVal) {return (std_isnan(aVal)||std_isinf(aVal));}
 
 #if __cplusplus > 199711L // if c++11
     #define std_unique_ptr std::unique_ptr

@@ -820,7 +820,7 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
     std::cout << "Taille de l'image  : "<<ImgSz.x<<" x "<<ImgSz.y<<std::endl;
     if (nbPoints == 0)
     {
-        nbPoints = sqrt(ImgSz.x*ImgSz.y);
+        nbPoints = sqrt((float)ImgSz.x*ImgSz.y);
     }
     int tailleDalle = 4000;
     int NbX = ImgSz.x / tailleDalle;

@@ -417,7 +417,7 @@ void cMajickChek::AddDouble(const REAL16& aV0)
 
    REAL16 aV = aV0;
 
-   if (std::isnan(aV))
+   if (std_isnan(aV))
    {
        mGotNan = true;
        aV = 10.9076461;

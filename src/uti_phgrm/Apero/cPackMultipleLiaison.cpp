@@ -1140,7 +1140,7 @@ double cObsLiaisonMultiple::AddObsLM
                    if (aVP[aKPose]->RotIsInit())
                    {
 	              aResidu += square_euclid(aRes.mEcIm[aKPose]);//  *ElSquare(aScN);
-                      if (std::isnan(aResidu))
+                      if (std_isnan(aResidu))
                       {
                           std::cout <<  aRes.mEcIm[aKPose] << " " << aKPose << " " << aVP[aKPose]->Name() << "\n";
                           std::cout << "CPT= " << aCpt << "\n";
