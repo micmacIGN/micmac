@@ -7,28 +7,9 @@ typedef enum{
 	FF_Raw,
 	FF_Tiff,
 	FF_Jpeg2000,
+	FF_Pgm,
 	FF_Unknown
 } FileFormat_t;
-
-/*
-template <class tSrc, class tDst>
-class ValueConverter
-{
-public:
-	virtual tDst operator ()( const tSrc &i_src ) = 0;
-};
-
-template <class tSrc, class tDst, class tCompute>
-class LinearConverter : public ValueConverter<tSrc,tDst>
-{
-public:
-	tCompute mMinSrc, mMinDst, mScale;
-
-	LinearConverter( tSrc i_minSrc, tSrc i_maxSrc, tDst i_minDst, tDst i_maxDst );
-
-	tDst operator()( const tSrc &i_src );
-};
-*/
 
 template <class tData>
 class MultiChannel
@@ -103,12 +84,28 @@ public:
 	bool read_tiff( const string &i_filename );
 	bool read_tiff( Tiff_Im &i_tiff );
 
+	bool read_pnm( const string &i_filename, list<string> *o_comments=NULL );
+
+	bool write_pnm( const string &i_filename ) const;
+
 	void duplicateLastChannel( size_t i_nbDuplicates );
 
-	/*
-	template <class tDst>
-	void convert( ValueConverter<tData,tDst> &i_converter, MultiChannel<tDst> &o_dst ) const;
-	*/
+	bool hasSameDimensions( const MultiChannel<tData> &i_b ) const;
+	bool hasSameData( const MultiChannel<tData> &i_b, size_t &i_firstDifferentChannel ) const;
+	bool hasSameData( const MultiChannel<tData> &i_b ) const;
+
+	size_t nbPixels() const;
+	size_t nbValues() const;
+	size_t nbChannelBytes() const;
+	size_t nbBytes() const;
+
+	// create a copy of the MultiChannel organized as an array of tuples
+	// user have the responsability to delete the non-NULL returned array
+	tData * newTupleArray() const;
+	// o_dst should have at least the same number of elements as the MultiChannels (ie width*height*nbChannels)
+	void toTupleArray( tData *i_dst ) const;
+	// i_src should have at least the same number of elements as the MultiChannels (ie width*height*nbChannels)
+	void setFromTuple( const tData *i_src ) const;
 
 private:
 	void set_begin_end();
@@ -124,6 +121,8 @@ template <class T> void __clear_vector( vector<T*> &v );
 
 void multi_channels_read_raw_header_v1( istream &io_istream, bool i_reverseByteOrder, int &o_width, int &o_height, size_t &o_nbChannels, GenIm::type_el &o_type );
 bool multi_channels_read_raw_header( const string &i_filename, int &o_width, int &o_height, size_t &o_nbChannels, GenIm::type_el &o_type, VersionedFileHeader *o_header=NULL );
+bool multi_channels_read_pnm_header( istream &io_istream, int &o_width, int &o_height, size_t &o_nbChannels, GenIm::type_el &o_type, list<string> *o_comments = NULL );
+bool multi_channels_read_pnm_header( const string &i_filename, int &o_width, int &o_height, size_t &o_nbChannels, GenIm::type_el &o_type, list<string> *o_comments = NULL );
 bool multi_channels_read_header( const string &i_filename, FileFormat_t &o_format, int &o_width, int &o_height, size_t &o_nbChannels, GenIm::type_el &o_type );
 
 #ifdef __DEBUG_MULTI_CHANNEL
