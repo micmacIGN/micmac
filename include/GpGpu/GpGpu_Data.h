@@ -170,15 +170,139 @@ TPL_T bool CData<T>::Dealloc()
     return op;
 }
 
+template<bool var>
+uint  ttGetDimension(uint* dimension,ushort idDim)
+{
+    return dimension[idDim];
+}
+
+template<> inline
+uint  ttGetDimension<false>(uint* dimension,ushort idDim)
+{
+    return 1;
+}
+
+template<uint dim,ushort idDim>
+uint  tgetDimension(uint* dimension)
+{
+    return ttGetDimension<(idDim<dim)> (dimension,idDim);
+}
+
+///////////////////////////
+///
+
+
+template<bool var>
+void  ttSetDimension(uint* dimension,ushort idDim, uint val)
+{
+    dimension[idDim] = val;
+}
+
+template<> inline
+void  ttSetDimension<false>(uint* dimension,ushort idDim, uint val)
+{
+
+    DUMP("WARNING Set dimension --> ")
+            DUMP(idDim)
+
+}
+
+template<uint dim,ushort idDim>
+void  tSetDimension(uint* dimension, uint val)
+{
+    ttSetDimension<(idDim<dim)> (dimension,idDim, val);
+}
+
+#include <stdio.h>
+#include <stdarg.h>
+
+int inline _foo(size_t n, int xs[])
+{
+    int i;
+    for(i=0 ; i < (int)n ; i++ ) {
+        int x = xs[i];
+        printf("%d\n", x);
+    }
+    return (int)n;
+}
+
+#define foo(arg1, ...) ({              \
+   int _x[] = { arg1, __VA_ARGS__ };   \
+   _foo(sizeof(_x)/sizeof(_x[0]), _x); \
+})
+
+//#define    eprintf(args...) foo(args)
+
+
+//#include <initializer_list>
+
+//int inline sumooo(std::initializer_list<int> numbers)
+//{
+//   int total = 0;
+
+//   for(auto i = numbers.begin(); i != numbers.end(); i++)
+//   {
+//       total += *i;
+//   }
+
+//   return total;
+//}
+
 template<ushort dim = 3>
 class CStructure
 {
-    int* getDimension()
+public:
+
+    CStructure()
     {
-        return _dimension;
+        DUMP("Constructeur\n")
+		_dimension = new uint[dim];
+
+        for (int i = 0; i < dim; ++i)
+            setDim(i,1);
     }
 
-    int getSize()
+//    template<class T>
+//    void setDimension(T x)
+//    {
+//        _setDimension(1,(uint)x);
+//    }
+
+    template<class T>
+    void setDimension(T x = 1 ,T y = 1)
+    {
+        _setDimension(2,(uint)x,(uint)y);
+    }
+
+
+    template<class T>
+    void setDimension(T x,T y,T z)
+    {
+        _setDimension(3,(uint)x,(uint)y,(uint)z);
+    }
+
+
+    void setDimension(uint2 d)
+    {
+        setDimension(d.x,d.y);
+    }
+
+    void setDimension(uint3 d)
+    {
+        setDimension(d.x,d.y,d.z);
+    }
+
+    uint2 getDimension()
+    {        
+        return make_uint2(getDimX(),getDimY());
+    }
+
+    uint getNbLayer()
+    {
+        return getDimZ();
+    }
+
+    uint getSize()
     {
         int size = _dimension[0];
 
@@ -192,15 +316,52 @@ class CStructure
 
 private:
 
-    int _dimension[dim];
+
+    void _setDimension(uint __dim0, ...)
+    {
+
+          va_list args;
+
+          va_start(args, __dim0);
+
+          for (int i = 0; i < min(dim,__dim0); ++i)
+          {
+              uint val = va_arg(args,uint);
+              DUMP(val)
+              setDim(i,val);
+          }
+
+          va_end(args);
+
+    }
+
+    uint  getDimX(){ return getDim<0>();}
+    uint  getDimY(){ return getDim<1>();}
+    uint  getDimZ(){ return getDim<2>();}
+
+    void  setDimX(uint val){ return setDim<0>(val);}
+    void  setDimY(uint val){ return setDim<1>(val);}
+    void  setDimZ(uint val){ return setDim<2>(val);}
+
+    template<ushort id>
+    uint  getDim(){ return tgetDimension<dim,id> (_dimension);}
+
+    template<ushort id>
+    void  setDim(uint val){ return tSetDimension<dim,id> (_dimension,val);}
+
+
+    void  setDim(ushort id, uint val){ _dimension[id]=val;}
+
+
+
+    uint *_dimension;
 };
 
 template<> inline
-int CStructure<0>::getSize()
+uint CStructure<0>::getSize()
 {
     return 0;
 }
-
 
 template <class T, int dim = 3>
 ///

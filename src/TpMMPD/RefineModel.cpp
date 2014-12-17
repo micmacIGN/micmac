@@ -534,8 +534,13 @@ public:
             // Chargement du MNT
             _MntOri = StdGetFromPCP(aNameFileMNT,FileOriMnt);
             if (_verbose) cout << "DTM size : "<<_MntOri.NombrePixels().x<<" "<<_MntOri.NombrePixels().y<<endl;
-            auto_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
+            std_unique_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
+
+            #if __cplusplus > 199711L
+            _MntImg = std::move(Img);
+            #else
             _MntImg = Img;
+            #endif
             if (_MntImg.get()==NULL) cerr << "Error in "<< _MntOri.NameFileMnt() <<endl;
             //TODO: utiliser le MNT comme contrainte en Z
         }
@@ -1057,7 +1062,7 @@ public:
     }
 
 private:
-    auto_ptr<TIm2D<REAL4,REAL8> > _MntImg;
+    std_unique_ptr<TIm2D<REAL4,REAL8> > _MntImg;
     cFileOriMnt                        _MntOri;
 };
 
