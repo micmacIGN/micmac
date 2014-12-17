@@ -99,8 +99,11 @@ void main_SDK()
 
 int main()
 {
-
+#ifndef NOCUDA_X11
     CStructure<3> testS;
+ #else
+    CStructure<10> testS;
+#endif
 
     DUMP(testS.getDimension())
     DUMP(testS.getNbLayer())
@@ -118,7 +121,9 @@ int main()
             DUMP(testS.getNbLayer())
             DUMP_LINE
 
-    testS.setDimension(18.3f,5555.f);
+#ifdef NOCUDA_X11
+     testS.setDimension(3,5,5,8,223,4);
+#endif
 
     DUMP(testS.getDimension())
             DUMP(testS.getNbLayer())
