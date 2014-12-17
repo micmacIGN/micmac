@@ -1,7 +1,7 @@
 
 #include "GpGpu/GpGpu_CommonHeader.h"
 //#include "GpGpu/GpGpu_TextureTools.cuh"
-#include "GpGpu/GpGpu_Interface_Census.h"
+#include "GpGpu/GpGpu_Interface_CorMultiScale.h"
 
 // Algorithme Correlation multi echelle sur ligne epipolaire
 
@@ -42,11 +42,11 @@
 
 
 ///
-static __constant__ constantParameterCensus     cPCencus;
+static __constant__ const_Param_Cor_MS     cPCencus;
 
-extern "C" void paramCencus2Device( constantParameterCensus &param )
+extern "C" void paramCorMultiScale2Device( const_Param_Cor_MS &param )
 {
-  checkCudaErrors(cudaMemcpyToSymbol(cPCencus, &param, sizeof(constantParameterCensus)));
+  checkCudaErrors(cudaMemcpyToSymbol(cPCencus, &param, sizeof(const_Param_Cor_MS)));
 }
 
 texture< float,	cudaTextureType2DLayered >      texture_ImageEpi_00;
@@ -154,7 +154,7 @@ inline    float CorrelBasic_Center(
     float*  aSom11,
     float*  aSom2,
     float*  aSom22,
-    //int     aPx2, // ---> TODO Surement A virer : decalage sub pixel apriori il sera égale à 0!!
+    int     aPx2,
     bool    ModeMax,
     ushort  aPhase)
 {
@@ -162,7 +162,7 @@ inline    float CorrelBasic_Center(
     float aCovGlob = 0;
     float aPdsGlob = 0;
 
-    //const uint2 aPG1_x2 = make_uint2(aPG1.x + aPx2,aPG1.y);
+    const float2 aPG1_x2 = make_float2(aPG1.x + aPx2,aPG1.y);
 
     int aNbScale = cPCencus.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
@@ -182,7 +182,7 @@ inline    float CorrelBasic_Center(
              const short2 aP = aVP[aKP];
 
              const float valima_0 = getValImage(aPG0 + aP,0,aKS);
-             const float valima_1 = getValImage(aPG1 + aP,1,aKS);
+             const float valima_1 = getValImage(aPG1_x2 + aP,1,aKS);
 
              aCov += valima_0*valima_1;
              //aCov += anIm1[aP.y][aP.x]*anIm2[aP.y][aP.x+aPx2];
@@ -198,7 +198,7 @@ inline    float CorrelBasic_Center(
 //             float aM22 = aSom22[aKS][aPG1.y][aPG1.x] - aM2*aM2;
 
              const uint3 pt0    =   make_uint3(aPG0.x,aPG0.y,aKS);
-             const uint3 pt1    =   make_uint3(aPG0.x,aPG0.y,aKS + aNbScale*aPhase);
+             const uint3 pt1    =   make_uint3(aPG1_x2.x,aPG1_x2.y,aKS + aNbScale*aPhase);
              const uint3 dim    =   make_uint3(cPCencus._dimTerrain.x,cPCencus._dimTerrain.x,1);
 
              const float aM1    =   aSom1 [to1D(pt0,dim)];
@@ -237,7 +237,7 @@ void projectionMasqImage(float * dataPixel,uint3 dTer)
 }
 
 __global__
-void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
+void KernelDoCorrelMultiScale(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
 {
 
     // ??? TODO à cabler
@@ -300,12 +300,11 @@ void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom2
             //float*  aSom2; // ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
             //float*  aSom22;// ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
 
-
-
             const float2 faPIm0 = make_float2((float)aPIm0.x,(float)aPIm0.y); // TODO ajouter le pas sub pixelaire            
-            const float2 faPIm1 = make_float2((float)aPIm1.x + aPhase*cPCencus.aStepPix,(float)aPIm1.y); // TODO ajouter le pas sub pixelaire
+            const float2 faPIm1 = make_float2((float)aPIm1.x,(float)aPIm1.y); // TODO ajouter le pas sub pixelaire
+            const int    aPx2   = aPhase*cPCencus.aStepPix;
 
-            aCost = CorrelBasic_Center(faPIm0,faPIm1,aSom1,aSom11,aSom2,aSom22,aModeMax,aPhase);
+            aCost = CorrelBasic_Center(faPIm0,faPIm1,aSom1,aSom11,aSom2,aSom22,aPx2,aModeMax,aPhase);
 
             aGlobCostCorrel = aCost;
 
@@ -339,7 +338,7 @@ void KernelDoCensusCorrel(float* aSom1,float*  aSom11,float* aSom2,float*  aSom2
 
 }
 
-extern "C" void LaunchKernelCorrelationCensusPreview(dataCorrelMS &data,constantParameterCensus &param)
+extern "C" void LaunchKernelCorrelationMultiScalePreview(dataCorrelMS &data,const_Param_Cor_MS &param)
 {
     dim3	threads( 1, 1, 1);
     dim3	blocks(param._dimTerrain.x , param._dimTerrain.y, 2);
@@ -364,7 +363,7 @@ extern "C" void LaunchKernelCorrelationCensusPreview(dataCorrelMS &data,constant
 }
 
 __global__
-void KernelDoCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* mData1, float* mData2)
+void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* mData1, float* mData2)
 {
 
     // point image
@@ -423,13 +422,13 @@ void KernelDoCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* mData
 
 
 __global__
-void KernelDoCensusCorrelGlobal(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
+void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
 {
 
 }
 
 
-extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param)
+extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &param)
 {
     // Cache device
     CuDeviceData3D<float>  aSom1;
@@ -448,10 +447,10 @@ extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParamet
     dim3	blocks_00(iDivUp32(param._dimTerrain.x),iDivUp32(param._dimTerrain.y), 1);
     dim3	blocks_01(iDivUp32(param._dimTerrain.x),iDivUp32(param._dimTerrain.y), param.mNbByPix);
 
-    KernelDoCorrel<<<blocks_00,threads>>>(0,1,1,aSom1.pData(),aSom11.pData());
-    KernelDoCorrel<<<blocks_01,threads>>>(1,param.aStepPix,param.mNbByPix,aSom2.pData(),aSom22.pData());
+    KernelPrepareCorrel<<<blocks_00,threads>>>(0,1,1,aSom1.pData(),aSom11.pData());
+    KernelPrepareCorrel<<<blocks_01,threads>>>(1,param.aStepPix,param.mNbByPix,aSom2.pData(),aSom22.pData());
 
-    KernelDoCensusCorrelGlobal<<<blocks_00,threads>>>(
+    Kernel__DoCorrel_MultiScale_Global<<<blocks_00,threads>>>(
                                                         aSom1   .pData(),
                                                         aSom11  .pData(),
                                                         aSom2   .pData(),

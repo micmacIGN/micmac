@@ -321,13 +321,9 @@ private:
     template<typename T,typename ... Types>
     void ___setDimension(ushort id, T &first, Types& ... rest)
     {
-
-
-        DUMP(first)
         if(id<dim)
             setDim(id,first);
         else
-            //setDim(id,1);
             return;
 
         return ___setDimension(++id,rest...);
