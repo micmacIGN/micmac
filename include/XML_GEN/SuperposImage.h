@@ -5001,6 +5001,9 @@ class cParamAlgoFusionMNT
         double & FMNTGammaCorrel();
         const double & FMNTGammaCorrel()const ;
 
+        cTplValGesInit< std::string > & KeyPdsNuage();
+        const cTplValGesInit< std::string > & KeyPdsNuage()const ;
+
         double & SigmaPds();
         const double & SigmaPds()const ;
 
@@ -5054,6 +5057,7 @@ class cParamAlgoFusionMNT
     private:
         double mFMNTSeuilCorrel;
         double mFMNTGammaCorrel;
+        cTplValGesInit< std::string > mKeyPdsNuage;
         cSpecAlgoFMNT mSpecAlgoFMNT;
 };
 cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT &);
@@ -5181,6 +5185,9 @@ class cParamFusionMNT
 
         double & FMNTGammaCorrel();
         const double & FMNTGammaCorrel()const ;
+
+        cTplValGesInit< std::string > & KeyPdsNuage();
+        const cTplValGesInit< std::string > & KeyPdsNuage()const ;
 
         double & SigmaPds();
         const double & SigmaPds()const ;

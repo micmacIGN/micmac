@@ -113,7 +113,7 @@ class cElPile : public cElPilePrgD
     public :
         cElPile (double aZ,double aPds,double aCptr= -1,const cLoadedCP<float> * aLCP = 0) :
            cElPilePrgD(aZ),
-           mP  (aPds),
+           mPdsPile  (aPds),
            mCPtr (aCptr),
            mLCP  (aLCP)
         {
@@ -121,17 +121,17 @@ class cElPile : public cElPilePrgD
 
         cElPile() :
            cElPilePrgD(),
-           mP(-1),
+           mPdsPile(-1),
            mCPtr (0),
            mLCP(0)
         {
         }
 
-        const float & P() const {return mP;}
+        const float & P() const {return mPdsPile;}
         const float & CPtr() const {return mCPtr;}
         const cLoadedCP<float> *  LCP() const {return mLCP; }
     private :
-        float mP;
+        float mPdsPile;
         float mCPtr;
         const cLoadedCP<float> * mLCP;
 };
@@ -242,7 +242,7 @@ template <class Type> class  cLoadedCP
         TIm2D<U_INT1,INT>  mTImCorrel;
         bool               mZIsInv;
         bool               mQualImSaved;
-
+        double             mPdsIm;
 
 };
 
@@ -649,10 +649,18 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
   mImCorrel   (1,1),
   mTImCorrel  (mImCorrel),
   mZIsInv     (false),
-  mQualImSaved (false)
-
+  mQualImSaved (false),
+  mPdsIm       (1.0)
 {
 
+
+  if (mParam.KeyPdsNuage().IsInit())
+  {
+      std::string aNamePdsIm = mICNM->Assoc1To1(mParam.KeyPdsNuage().Val(),aFus,true);
+      FromString(mPdsIm,aNamePdsIm);
+  }
+
+  std::cout << "PDSssIM " << mPdsIm << " for " << anId << "\n";
 
    if (mNuage.ModeFaisceauxImage().IsInit())
       mZIsInv = mNuage.ModeFaisceauxImage().Val().ZIsInverse();
@@ -759,7 +767,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
 template <class Type> double  cLoadedCP<Type>::PdsLinear(const Pt2dr & aPTer) const
 {
    Pt2dr aPIm = mAfM2CCur(aPTer);
-   double aPds = mTImMasq.get(round_ni(aPIm),0);
+   double aPds = mTImMasq.get(round_ni(aPIm),0) * mPdsIm ;
    if (aPds > 0)
    {
        if (mHasCorrel)
