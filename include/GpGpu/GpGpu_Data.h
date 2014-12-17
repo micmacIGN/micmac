@@ -231,22 +231,11 @@ int inline _foo(size_t n, int xs[])
    _foo(sizeof(_x)/sizeof(_x[0]), _x); \
 })
 
-//#define    eprintf(args...) foo(args)
-
-
-//#include <initializer_list>
-
-//int inline sumooo(std::initializer_list<int> numbers)
-//{
-//   int total = 0;
-
-//   for(auto i = numbers.begin(); i != numbers.end(); i++)
-//   {
-//       total += *i;
-//   }
-
-//   return total;
-//}
+#ifdef      CPPX11
+#ifndef     __CUDACC__
+    #define    NOCUDA_X11
+#endif
+#endif
 
 template<ushort dim = 3>
 class CStructure
@@ -262,25 +251,28 @@ public:
             setDim(i,1);
     }
 
-//    template<class T>
-//    void setDimension(T x)
-//    {
-//        _setDimension(1,(uint)x);
-//    }
+#ifdef NOCUDA_X11
+    template<typename ... Types>
+    void setDimension ( Types ... rest)
+    {
+        _setDimension(rest...);
+    }
+#else
 
     template<class T>
     void setDimension(T x = 1 ,T y = 1)
     {
-        _setDimension(2,(uint)x,(uint)y);
+        _setDimension((uint)x,(uint)y);
     }
 
 
     template<class T>
     void setDimension(T x,T y,T z)
     {
-        _setDimension(3,(uint)x,(uint)y,(uint)z);
+        _setDimension((uint)x,(uint)y,(uint)z);
     }
 
+#endif
 
     void setDimension(uint2 d)
     {
@@ -316,24 +308,39 @@ public:
 
 private:
 
+#ifdef NOCUDA_X11
 
-    void _setDimension(uint __dim0, ...)
+    template<typename ... Types>
+    void _setDimension ( Types ... rest)
+    {
+        return ___setDimension((uint)0,rest...);
+    }
+
+    void ___setDimension(ushort id){}
+
+    template<typename T,typename ... Types>
+    void ___setDimension(ushort id, T &first, Types& ... rest)
     {
 
-          va_list args;
 
-          va_start(args, __dim0);
+        DUMP(first)
+        if(id<dim)
+            setDim(id,first);
+        else
+            //setDim(id,1);
+            return;
 
-          for (int i = 0; i < min(dim,__dim0); ++i)
-          {
-              uint val = va_arg(args,uint);
-              DUMP(val)
-              setDim(i,val);
-          }
-
-          va_end(args);
-
+        return ___setDimension(++id,rest...);
     }
+
+#else
+    void _setDimension(uint dx,uint dy = 1,uint dz = 1)
+    {
+        setDimX(dx);
+        setDimY(dy);
+        setDimZ(dz);
+    }
+#endif
 
     uint  getDimX(){ return getDim<0>();}
     uint  getDimY(){ return getDim<1>();}
