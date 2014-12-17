@@ -1613,8 +1613,7 @@ QSize cMaskedImageGL::getTilesSize()
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
 
     maxTextureSize /= 2;
-
-    maxTextureSize /= 8;  //!!!!!!!!!!!!!!!
+    //maxTextureSize /= 16;  //!!!!!!!!!!!!!!!
 
 //    int maxTileSizeX = maxTextureSize / (2 * nbFen.x());
 //    int maxTileSizeY = maxTextureSize / (2 * nbFen.y());
