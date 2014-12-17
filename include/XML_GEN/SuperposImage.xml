@@ -1129,6 +1129,8 @@
        <ParamAlgoFusionMNT Nb="1">
            <FMNTSeuilCorrel Nb="1" Type="double"> </FMNTSeuilCorrel>
            <FMNTGammaCorrel Nb="1" Type="double"> </FMNTGammaCorrel>
+           <KeyPdsNuage Nb="?" Type="std::string"> </KeyPdsNuage>
+
            <SpecAlgoFMNT Nb="1">
                 <SigmaPds  Type="double" Nb="1"> </SigmaPds>
                 <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->

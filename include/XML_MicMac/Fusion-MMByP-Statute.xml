@@ -23,6 +23,27 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
           <Key> Loc-SetInput </Key>
     </KeyedSetsOfNames>
 
+       <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> Nuage-.*.xml </PatternTransform>
+                    <CalcName> 1.0  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> QMNuage-Depth.xml </PatternTransform>
+                    <CalcName> 0.2  </CalcName>
+                 </Direct>
+           </Calcs>
+
+
+           <Key>  Loc-Assoc-Pds2Nuage </Key>
+       </KeyedNamesAssociations>
+
+
 
        <KeyedNamesAssociations>
            <Calcs>
@@ -103,6 +124,8 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
        <ParamAlgoFusionMNT>
            <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel>
            <FMNTGammaCorrel > 1 </FMNTGammaCorrel>
+           <KeyPdsNuage > Loc-Assoc-Pds2Nuage </KeyPdsNuage>
+
            <SpecAlgoFMNT>
                  <SigmaPds> 5.0 </SigmaPds>
                  <SeuilMaxLoc> 1  </SeuilMaxLoc>
@@ -115,7 +138,7 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
                             <NbDir>  7 </NbDir>
                             <FMNT_GesNoVal>
                                 <PenteMax> 1000 </PenteMax>
-                                <CostNoVal> 0.5 </CostNoVal>
+                                <CostNoVal> 0.99 </CostNoVal>
                                 <Trans>     2 </Trans>
                             </FMNT_GesNoVal>
                  </FMNT_ProgDyn>

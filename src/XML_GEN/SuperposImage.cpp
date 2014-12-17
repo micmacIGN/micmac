@@ -16574,6 +16574,17 @@ const double & cParamAlgoFusionMNT::FMNTGammaCorrel()const
 }
 
 
+cTplValGesInit< std::string > & cParamAlgoFusionMNT::KeyPdsNuage()
+{
+   return mKeyPdsNuage;
+}
+
+const cTplValGesInit< std::string > & cParamAlgoFusionMNT::KeyPdsNuage()const 
+{
+   return mKeyPdsNuage;
+}
+
+
 double & cParamAlgoFusionMNT::SigmaPds()
 {
    return SpecAlgoFMNT().SigmaPds();
@@ -16764,6 +16775,14 @@ void  BinaryUnDumpFromFile(cParamAlgoFusionMNT & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.FMNTSeuilCorrel(),aFp);
     BinaryUnDumpFromFile(anObj.FMNTGammaCorrel(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.KeyPdsNuage().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeyPdsNuage().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeyPdsNuage().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.SpecAlgoFMNT(),aFp);
 }
 
@@ -16771,6 +16790,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cParamAlgoFusionMNT & anObj)
 {
     BinaryDumpInFile(aFp,anObj.FMNTSeuilCorrel());
     BinaryDumpInFile(aFp,anObj.FMNTGammaCorrel());
+    BinaryDumpInFile(aFp,anObj.KeyPdsNuage().IsInit());
+    if (anObj.KeyPdsNuage().IsInit()) BinaryDumpInFile(aFp,anObj.KeyPdsNuage().Val());
     BinaryDumpInFile(aFp,anObj.SpecAlgoFMNT());
 }
 
@@ -16780,6 +16801,8 @@ cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamAlgoFusionMNT",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("FMNTSeuilCorrel"),anObj.FMNTSeuilCorrel())->ReTagThis("FMNTSeuilCorrel"));
    aRes->AddFils(::ToXMLTree(std::string("FMNTGammaCorrel"),anObj.FMNTGammaCorrel())->ReTagThis("FMNTGammaCorrel"));
+   if (anObj.KeyPdsNuage().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("KeyPdsNuage"),anObj.KeyPdsNuage().Val())->ReTagThis("KeyPdsNuage"));
    aRes->AddFils(ToXMLTree(anObj.SpecAlgoFMNT())->ReTagThis("SpecAlgoFMNT"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -16795,10 +16818,12 @@ void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.FMNTGammaCorrel(),aTree->Get("FMNTGammaCorrel",1)); //tototo 
 
+   xml_init(anObj.KeyPdsNuage(),aTree->Get("KeyPdsNuage",1)); //tototo 
+
    xml_init(anObj.SpecAlgoFMNT(),aTree->Get("SpecAlgoFMNT",1)); //tototo 
 }
 
-std::string  Mangling( cParamAlgoFusionMNT *) {return "7E33E6777BC045CFFE3F";};
+std::string  Mangling( cParamAlgoFusionMNT *) {return "3F5C215C4F33F5F3FE3F";};
 
 
 cTplValGesInit< int > & cSectionGestionChantier::SzDalles()
@@ -17238,6 +17263,17 @@ const double & cParamFusionMNT::FMNTGammaCorrel()const
 }
 
 
+cTplValGesInit< std::string > & cParamFusionMNT::KeyPdsNuage()
+{
+   return ParamAlgoFusionMNT().KeyPdsNuage();
+}
+
+const cTplValGesInit< std::string > & cParamFusionMNT::KeyPdsNuage()const 
+{
+   return ParamAlgoFusionMNT().KeyPdsNuage();
+}
+
+
 double & cParamFusionMNT::SigmaPds()
 {
    return ParamAlgoFusionMNT().SpecAlgoFMNT().SigmaPds();
@@ -17643,7 +17679,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionMNT *) {return "37AB3ADAB107DCE2FE3F";};
+std::string  Mangling( cParamFusionMNT *) {return "1DD2784B68A8C8BCFE3F";};
 
 
 cTplValGesInit< Pt2di > & cPFNMiseAuPoint::SzVisu()

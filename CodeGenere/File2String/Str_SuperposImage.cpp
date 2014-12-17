@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1286]) = {
+const char * (theNameVar_SuperposImage[1288]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1131,6 +1131,8 @@ const char * (theNameVar_SuperposImage[1286]) = {
 "       <ParamAlgoFusionMNT Nb=\"1\">\n",
 "           <FMNTSeuilCorrel Nb=\"1\" Type=\"double\"> </FMNTSeuilCorrel>\n",
 "           <FMNTGammaCorrel Nb=\"1\" Type=\"double\"> </FMNTGammaCorrel>\n",
+"           <KeyPdsNuage Nb=\"?\" Type=\"std::string\"> </KeyPdsNuage>\n",
+"\n",
 "           <SpecAlgoFMNT Nb=\"1\">\n",
 "                <SigmaPds  Type=\"double\" Nb=\"1\"> </SigmaPds>\n",
 "                <SigmaZ    Type=\"double\" Nb=\"?\"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->\n",
