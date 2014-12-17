@@ -142,6 +142,7 @@ template <class Type> bool BadNumber(const Type & aVal) {return (std_isnan(aVal)
 #if __cplusplus > 199711L // if c++11
     #define std_unique_ptr std::unique_ptr
     #define NULLPTR nullptr
+    #define CPPX11
 #else // under c++11
     #define std_unique_ptr std::auto_ptr
     #define NULLPTR NULL
