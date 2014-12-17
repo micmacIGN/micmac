@@ -1,0 +1,19 @@
+
+/***********************/
+/*  DALLAGE de Fichier */
+/***********************/
+
+Creation :
+
+   Tag de dallage , fixe la taille des dalles (par defaut 30 000 * 30 000) :
+   Taille reelle des dalles
+     - > 0, multiple des dalles internes, taille inferieure a taille
+       demandee (arrondi <), pas superieure plus que necessaire a la taille
+       des fichiers;
+     - si >= taille fichier pas de dalles
+   Si dallage,
+   annulle :
+     _tiles_offset, _tiles_byte_count
+     genere mTilesFilesNames 
+   
+

@@ -1,0 +1,160 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+template <class Type> class Line_PackB_IM 
+{
+	public :
+
+				~Line_PackB_IM();
+				Line_PackB_IM();
+
+				void init
+				(       
+					vector<U_INT2> &    LInd,
+					vector<U_INT2> &    VInd,
+					vector<U_INT1> &    Length,
+					vector<Type> &		Vals,
+					const Type *		line =0,
+					INT                 nb_tot =0,
+					INT                 per =0
+				);
+
+
+
+		template <class TAct> void DeCompr(TAct & act,INT x0,INT x1,INT per);
+
+	private :
+		enum
+		{
+			MaxL = 128
+		};
+
+		inline int  run_length_pixel(INT ind) const
+		{
+				return _Lrun[ind]/2+1; 
+		}
+		inline int  run_length_compr(INT ind) const
+		{
+				return run_rle(ind) ? 1 : run_length_pixel(ind);
+		}
+		inline bool run_rle(INT ind) const
+		{
+				return (_Lrun[ind]&1) != 0; 
+		}
+
+		U_INT2 *   _indexes_Lrun;
+		U_INT2 *   _indexes_Vrun;
+		U_INT1 * 	_Lrun;
+		Type *		_Vrun;
+};
+
+
+template <class Type> template <class TAct> 
+       void Line_PackB_IM<Type>::DeCompr
+            (
+                 TAct & act,
+                 INT x0,
+                 INT x1,
+                 INT per
+            )
+{
+    INT Vind = _indexes_Vrun[x0/per];
+    INT Lind = _indexes_Lrun[x0/per];
+    INT x = (x0/per) * per;
+
+	while (x<x0)
+	{
+			x += run_length_pixel(Lind);
+			Vind += run_length_compr(Lind);
+			Lind++;
+	}
+
+	if (x>x0)
+	{
+			int x_end = ElMin(x,x1);
+			int LiPrec = Lind-1;
+			int ViPrec = Vind-run_length_compr(LiPrec);
+			INT xprec = x-run_length_pixel(LiPrec);
+			Type * adr = _Vrun+ViPrec;
+
+			if (run_rle(LiPrec))
+				act.RunRLE(x0,x_end,*adr);
+			else
+				act.RunLIT(x0,x_end,adr+x0-xprec);
+	}
+			
+	while(x<x1)
+	{
+			INT xn = ElMin(x1,x+run_length_pixel(Lind));
+			if (run_rle(Lind))
+				act.RunRLE(x,xn,_Vrun[Vind]);
+			else
+				act.RunLIT(x,xn,_Vrun+Vind);
+			x = xn;
+			Vind += run_length_compr(Lind);
+			Lind++;
+	}
+}                                          
+
+template <class Type> class Init_Data_PackB_IM;
+template <class Type> class DPIM_Im_Comp;
+template <class Type> class DPIM_In_Not_Comp;
+
+
+template <class Type> class Data_PackB_IM :	public	RC_Object 
+{
+	public :
+
+		friend Init_Data_PackB_IM<Type>;
+		friend DPIM_Im_Comp<Type>;
+		friend DPIM_In_Not_Comp<Type>;
+		friend DATA_Tiff_Ifd;
+		friend class Reducteur_Im_Compr;
+
+
+		~Data_PackB_IM();
+		// per <0, convention pour ne pas initialiser avec Fonc_Num
+		Data_PackB_IM (INT tx,INT ty,Fonc_Num,INT per =128);
+
+
+		Fonc_Num in(INT def,bool with_def);
+		Pt2di sz() const {return Pt2di(_tx,_ty);}
+		INT tx() const {return _tx;}
+		INT ty() const {return _ty;}
+
+		 Line_PackB_IM<Type> & lpckb(INT y) {return _LINES[y];}
+		 INT per() const {return _per;}
+		
+	private :
+		Line_PackB_IM<Type>	* _LINES;
+		INT _tx,_ty,_per;
+
+		INT _p0[2];
+		INT _p1[2];
+};
+
+
+
