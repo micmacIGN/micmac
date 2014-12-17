@@ -716,7 +716,7 @@ REAL  StatElPackH::SomD2 () const { return mSomD2;}
 
 void Verif(const double & aV,const std::string & aName)
 {
-    if (isnan(aV))
+    if (std_isnan(aV))
     {
         std::cout << "in File " << aName << "\n";
         ELISE_ASSERT(false,"Pb in Pt reading");

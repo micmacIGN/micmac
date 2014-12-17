@@ -1,5 +1,5 @@
-#ifndef GPGPU_INTERFACE_CENSUS_H
-#define GPGPU_INTERFACE_CENSUS_H
+#ifndef GPGPU_INTERFACE_CORMULTISCALE_H
+#define GPGPU_INTERFACE_CORMULTISCALE_H
 
 #include "GpGpu/GpGpu.h"
 #include "GpGpu/GpGpu_Data.h"
@@ -10,19 +10,19 @@
 #define NBSCALE 3
 
 struct dataCorrelMS;
-struct constantParameterCensus;
+struct const_Param_Cor_MS;
 
 extern "C" textureReference&  texture_ImageEpi(int nEpi);
 extern "C" textureReference* pTexture_ImageEpi(int nEpi);
 extern "C" textureReference* ptexture_Masq_Erod(int nEpi);
-extern "C" void LaunchKernelCorrelationCensusPreview(dataCorrelMS &data,constantParameterCensus &param);
-extern "C" void paramCencus2Device( constantParameterCensus &param );
-extern "C" void LaunchKernelCorrelationCensus(dataCorrelMS &data,constantParameterCensus &param);
+extern "C" void LaunchKernelCorrelationMultiScalePreview(dataCorrelMS &data,const_Param_Cor_MS &param);
+extern "C" void paramCorMultiScale2Device( const_Param_Cor_MS &param );
+extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &param);
 
 
-struct constantParameterCensus
+struct const_Param_Cor_MS
 {
-    //constantParameterCensus():_NBScale(NBSCALE){}
+    //constantParameterCorMultiScale():_NBScale(NBSCALE){}
 
     ///
     /// \brief aVV
@@ -65,7 +65,7 @@ struct constantParameterCensus
 
     uint3   mDim3Cache;
 
-    void transfertConstantCensus(const std::vector<std::vector<Pt2di> >  &aVV,
+    void init(const std::vector<std::vector<Pt2di> >  &aVV,
             const std::vector<double >              &aVPds,
             int2    offset0,
             int2    offset1,
@@ -73,7 +73,7 @@ struct constantParameterCensus
             float   StepPix,
             ushort  nbscale = NBSCALE );
 
-    void transfertTerrain(Rect    zoneTerrain);
+    void setTerrain(Rect    zoneTerrain);
 
     void dealloc();
 
@@ -133,12 +133,12 @@ struct dataCorrelMS
 
 };
 
-class GpGpuInterfaceCensus : public CSimpleJobCpuGpu< bool>
+class GpGpu_Interface_Cor_MS : public CSimpleJobCpuGpu< bool>
 {
 public:
 
-    GpGpuInterfaceCensus();
-    ~GpGpuInterfaceCensus();
+    GpGpu_Interface_Cor_MS();
+    ~GpGpu_Interface_Cor_MS();
 
     virtual void    freezeCompute(){}
 
@@ -146,7 +146,7 @@ public:
 
     void transfertImageAndMask(uint2 sI0,uint2 sI1,float ***dataImg0,float ***dataImg1,pixel **mask0,pixel **mask1);
 
-    void transfertParamCensus(Rect terrain,
+    void init(Rect terrain,
                               const std::vector<std::vector<Pt2di> >  &aVV,
                               const std::vector<double >              &aVPds,
                               int2      offset0,
@@ -163,7 +163,7 @@ private:
 
     dataCorrelMS    _dataCMS;
 
-    constantParameterCensus _cDataCMS;
+    const_Param_Cor_MS _cDataCMS;
 };
 
-#endif // GPGPU_INTERFACE_CENSUS_H
+#endif // GPGPU_INTERFACE_CORMULTISCALE_H

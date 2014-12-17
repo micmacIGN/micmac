@@ -318,6 +318,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
 
+            //_Engine->setGLMaxTextureSize(maxTexture/16); //!!!!!!!!!!!!!!!!!!!!!!!
             _Engine->setGLMaxTextureSize(maxTexture);
 
             loadOK = loadImages(filenames);
@@ -1491,6 +1492,8 @@ int SaisieQtWindow::checkBeforeClose()
     if ((!_bSaved) && (_appMode == MASK3D || _appMode == MASK2D) && currentWidget()->getHistoryManager()->sizeChanged() )
     {
         return QMessageBox::question(this, tr("Warning"), tr("Save before closing?"),tr("&Save"),tr("&Close without saving"),tr("Ca&ncel"));
+        //TODO: highlight default button (stylesheet ?)
+        //return QMessageBox::question(this, tr("Warning"), tr("Save before closing?"),QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
     }
     else return -1;
 }

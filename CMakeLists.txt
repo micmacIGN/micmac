@@ -57,6 +57,9 @@ OPTION(WITH_QT5 "compile Qt interfaces" OFF )
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
 
+# Compilateur C++11
+OPTION(WITH_CPP11 "Compilateur C++11" OFF )
+
 OPTION(DEPLOY "compile for end-user" OFF)
 
 OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
@@ -119,7 +122,8 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
                 if (${WITH_QT5})
 
-                        find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
+                        #find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
+                        find_package(Qt5 COMPONENTS Gui Core OpenGL Xml)
                         if (Qt5_FOUND)
                                 message( STATUS "-----> Qt5 found" )
                         set(qt_version 5)
@@ -131,11 +135,11 @@ if(${WITH_QT5} OR ${WITH_QT4})
                                 set(QT_LIBRARIES
                                         ${Qt5Core_LIBRARIES}
                                         ${Qt5Gui_LIBRARIES}
-                                        ${Qt5Widgets_LIBRARIES}
+                                        #${Qt5Widgets_LIBRARIES}
                                         ${Qt5Xml_LIBRARIES}
-                                        ${Qt5Concurrent_LIBRARIES}
+                                        #${Qt5Concurrent_LIBRARIES}
                                         ${Qt5OpenGL_LIBRARIES}
-                                        ${Qt5LinguistTools_LIBRARIES}
+                                        #${Qt5LinguistTools_LIBRARIES}
                                 )
                                 SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
                                 link_directories(${Qt5_LIBRARY_DIRS})
@@ -173,6 +177,16 @@ if ( NOT ${qt_version} EQUAL 0 )
       message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
 endif()
 
+if(${WITH_CPP11})
+    IF(NOT MSVC)
+            message("c++11")
+            # support c++11
+            ADD_DEFINITIONS(
+                    -std=c++11 # Or -std=c++0x
+                    # Other flags
+            )
+    endif()
+endif()
 
 # CUDA
 if (${CUDA_ENABLED})
@@ -185,10 +199,6 @@ if (${CUDA_ENABLED})
 
         if(CUDA_FOUND)
 
-#ADD_DEFINITIONS(
-#    -std=c++11 # Or -std=c++0x
-#    # Other flags
-#)
 
                         SET(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
                         SET(Cuda_Sample_path_Windows_XP "$ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")

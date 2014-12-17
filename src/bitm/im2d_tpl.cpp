@@ -1366,7 +1366,7 @@ Im2DGen*   Im2D<Type,TyBase>::ImRotate(int aIndexRot) const
          aRot = aRot * Pt2di(0,1);
     }
 
-    Pt2di aP0(1e9,1e9),aP1(-1e9,-1e9);
+    Pt2di aP0((int)1e9,(int)1e9),aP1((int)-1e9,(int)-1e9);
     Box2di aBox(Pt2di(0,0),Pt2di(tx()-1,ty()-1));
 
     Pt2di aCoins[4];
