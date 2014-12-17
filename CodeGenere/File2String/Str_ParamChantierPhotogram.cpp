@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1608]) = {
+const char * (theNameVar_ParamChantierPhotogram[1604]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -20,10 +20,6 @@ const char * (theNameVar_ParamChantierPhotogram[1608]) = {
 "<Verbatim File=\".h.cpp\">\n",
 "// NO MORE\n",
 "</Verbatim>\n",
-"   <enum Name=\"eC3DC_Types\">\n",
-"       <eC3DC_QuickMac>  </eC3DC_QuickMac>\n",
-"       <eC3DC_Statute>   </eC3DC_Statute>\n",
-"   </enum>\n",
 "\n",
 "   <enum Name=\"eNewTypeMalt\">\n",
 "       <eTMalt_Ortho>     </eTMalt_Ortho>\n",

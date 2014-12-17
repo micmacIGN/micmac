@@ -331,6 +331,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        bool                            mDoPlyCoul;
        int                             mSzNormale;
        bool                            mNormaleByCenter;
+       eTypeMMByP                      mModeMerge;
 };
 
    //==============================================================================

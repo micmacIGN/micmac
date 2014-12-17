@@ -18,10 +18,6 @@
 <Verbatim File=".h.cpp">
 // NO MORE
 </Verbatim>
-   <enum Name="eC3DC_Types">
-       <eC3DC_QuickMac>  </eC3DC_QuickMac>
-       <eC3DC_Statute>   </eC3DC_Statute>
-   </enum>
 
    <enum Name="eNewTypeMalt">
        <eTMalt_Ortho>     </eTMalt_Ortho>

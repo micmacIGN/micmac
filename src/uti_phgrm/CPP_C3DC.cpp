@@ -69,6 +69,7 @@ class cAppli_C3DC : public cAppliWithSetImage
         void ExeCom(const std::string & aCom);
 
          void PipelineQuickMack();
+         void PipelineStatue();
 
          std::string mStrType;
          eTypeMMByP  mType;
@@ -120,6 +121,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
                     << EAM(mTuning,"Tuning",true,"Will disappear soon ...")
    );
 
+   if (! EAMIsInit(&mMergeOut)) mMergeOut = "C3DC_"+ mStrType + ".ply";
+
    mStrImOri =  BLANK + QUOTE(mEASF.mFullName) +  BLANK + Ori() + BLANK;
    mArgMasq3D = "";
    if (EAMIsInit(&mMasq3D))
@@ -137,20 +140,22 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
   //=====================================
    mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ")
                    +  mStrImOri
-                   +  std::string(" 16 4 DownScale=2 ")
+                   +  std::string(" 16 4 ")
                    +  mArgMasq3D
                    +  std::string(" AutoPurge=true")
                    +  " ModeQM=" + ToString( mType  == eQuickMac) ;
 
+/*
    if (mTuning)
    {
       mBaseComEnv = mBaseComEnv + " DoPlyDS=true";
    }
+*/
 
   //=====================================
 
   mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
-                +  mStrImOri;
+                +  mStrImOri + " ModeMerge=" + mStrType;
 
   if (mSzNorm>=0)
   {
@@ -159,7 +164,9 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
 
    mComMerge +=  " PlyCoul=" + ToString(mPlyCoul);
   //=====================================
-   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( DirFusMMInit() + ".*Tes.*ply") + " Out="  + mMergeOut;
+  std::string aDirFusMM = (mType==eQuickMac) ? DirFusMMInit() : DirFusStatue() ;
+
+   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Tes.*ply") + " Out="  + mMergeOut;
 
 }
 
@@ -174,10 +181,24 @@ void cAppli_C3DC::ExeCom(const std::string & aCom)
 void  cAppli_C3DC::PipelineQuickMack()
 {
     ExeCom(mBaseComMMByP + " Do=AMP " );
-    ExeCom(mBaseComEnv);
+    ExeCom(mBaseComEnv + " DownScale=2 ");
     ExeCom(mComMerge);
     ExeCom(mComCatPly);
 }
+
+
+void  cAppli_C3DC::PipelineStatue()
+{
+    ExeCom(mBaseComMMByP + " Purge=true Do=APMCR ZoomF=2 " );
+    ExeCom(mBaseComEnv);
+    ExeCom(mBaseComMMByP + " Purge=true Do=F " );
+    ExeCom(mComMerge);
+    ExeCom(mComCatPly);
+/*
+*/
+}
+
+
 
 void cAppli_C3DC::DoAll()
 {
@@ -186,6 +207,11 @@ void cAppli_C3DC::DoAll()
          case eQuickMac :
               PipelineQuickMack();
          break;
+ 
+         case eStatue :
+              PipelineStatue();
+         break;
+
          default :
               std::cout <<  mStrType  << " : not supported for now\n";
               ELISE_ASSERT(false,"Unsupported value in C3DC");

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1292]) = {
+const char * (theNameVar_SuperposImage[1286]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -34,12 +34,6 @@ const char * (theNameVar_SuperposImage[1292]) = {
 "         <eMBF_Union >     </eMBF_Union>\n",
 "         <eMBF_Inter >     </eMBF_Inter>\n",
 "         <eMBF_First >     </eMBF_First>\n",
-"    </enum>\n",
-"\n",
-"    <enum Name=\"eModeMergeCloud\">\n",
-"         <eMMC_QuickMac > </eMMC_QuickMac>    \n",
-"         <eMMC_Envlop >   </eMMC_Envlop>   <!-- = Quick Mac pour Epi -->\n",
-"         <eMMC_Epi >      </eMMC_Epi>\n",
 "    </enum>\n",
 "\n",
 "\n",
@@ -1193,7 +1187,7 @@ const char * (theNameVar_SuperposImage[1292]) = {
 "  </ParamFusionMNT>\n",
 "\n",
 "  <ParamFusionNuage  Nb=\"1\" Class=\"true\">\n",
-"      <ModeMerge Nb=\"1\" Type=\"eModeMergeCloud\"> </ModeMerge>\n",
+"      <ModeMerge Nb=\"1\" Type=\"eTypeMMByP\"> </ModeMerge>\n",
 "      <PFNMiseAuPoint Nb=\"1\">\n",
 "            <SzVisu  Nb=\"?\" Type=\"Pt2di\"> </SzVisu>\n",
 "            <!-- Visualise les diff de prof par couple -->\n",

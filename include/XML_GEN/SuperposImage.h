@@ -44,25 +44,6 @@ void  BinaryUnDumpFromFile(eModeBoxFusion &,ELISE_fp &);
 
 typedef enum
 {
-  eMMC_QuickMac,
-  eMMC_Envlop,
-  eMMC_Epi
-} eModeMergeCloud;
-void xml_init(eModeMergeCloud & aVal,cElXMLTree * aTree);
-std::string  eToString(const eModeMergeCloud & aVal);
-
-eModeMergeCloud  Str2eModeMergeCloud(const std::string & aName);
-
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeMergeCloud & anObj);
-
-void  BinaryDumpInFile(ELISE_fp &,const eModeMergeCloud &);
-
-std::string  Mangling( eModeMergeCloud *);
-
-void  BinaryUnDumpFromFile(eModeMergeCloud &,ELISE_fp &);
-
-typedef enum
-{
   eQC_Out,
   eQC_ZeroCohBrd,
   eQC_ZeroCoh,
@@ -5498,8 +5479,8 @@ class cParamFusionNuage
         friend void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree);
 
 
-        eModeMergeCloud & ModeMerge();
-        const eModeMergeCloud & ModeMerge()const ;
+        eTypeMMByP & ModeMerge();
+        const eTypeMMByP & ModeMerge()const ;
 
         cTplValGesInit< Pt2di > & SzVisu();
         const cTplValGesInit< Pt2di > & SzVisu()const ;
@@ -5588,7 +5569,7 @@ class cParamFusionNuage
         cPFM_Selection & PFM_Selection();
         const cPFM_Selection & PFM_Selection()const ;
     private:
-        eModeMergeCloud mModeMerge;
+        eTypeMMByP mModeMerge;
         cPFNMiseAuPoint mPFNMiseAuPoint;
         cGrapheRecouvrt mGrapheRecouvrt;
         cImageVariations mImageVariations;

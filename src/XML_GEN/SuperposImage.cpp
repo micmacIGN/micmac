@@ -97,57 +97,6 @@ void  BinaryUnDumpFromFile(eModeBoxFusion & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eModeBoxFusion *) {return "E4601E61E16B99AAFCBF";};
 
-eModeMergeCloud  Str2eModeMergeCloud(const std::string & aName)
-{
-   if (aName=="eMMC_QuickMac")
-      return eMMC_QuickMac;
-   else if (aName=="eMMC_Envlop")
-      return eMMC_Envlop;
-   else if (aName=="eMMC_Epi")
-      return eMMC_Epi;
-  else
-  {
-      cout << aName << " is not a correct value for enum eModeMergeCloud\n" ;
-      ELISE_ASSERT(false,"XML enum value error");
-  }
-  return (eModeMergeCloud) 0;
-}
-void xml_init(eModeMergeCloud & aVal,cElXMLTree * aTree)
-{
-   aVal= Str2eModeMergeCloud(aTree->Contenu());
-}
-std::string  eToString(const eModeMergeCloud & anObj)
-{
-   if (anObj==eMMC_QuickMac)
-      return  "eMMC_QuickMac";
-   if (anObj==eMMC_Envlop)
-      return  "eMMC_Envlop";
-   if (anObj==eMMC_Epi)
-      return  "eMMC_Epi";
- std::cout << "Enum = eModeMergeCloud\n";
-   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
-   return "";
-}
-
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeMergeCloud & anObj)
-{
-      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const eModeMergeCloud & anObj)
-{
-   BinaryDumpInFile(aFp,int(anObj));
-}
-
-void  BinaryUnDumpFromFile(eModeMergeCloud & anObj,ELISE_fp & aFp)
-{
-   int aIVal;
-   BinaryUnDumpFromFile(aIVal,aFp);
-   anObj=(eModeMergeCloud) aIVal;
-}
-
-std::string  Mangling( eModeMergeCloud *) {return "80FD61C034B266C3FB3F";};
-
 eQualCloud  Str2eQualCloud(const std::string & aName)
 {
    if (aName=="eQC_Out")
@@ -18368,12 +18317,12 @@ void xml_init(cPFM_Selection & anObj,cElXMLTree * aTree)
 std::string  Mangling( cPFM_Selection *) {return "BA977451F612C9E6FCBF";};
 
 
-eModeMergeCloud & cParamFusionNuage::ModeMerge()
+eTypeMMByP & cParamFusionNuage::ModeMerge()
 {
    return mModeMerge;
 }
 
-const eModeMergeCloud & cParamFusionNuage::ModeMerge()const 
+const eTypeMMByP & cParamFusionNuage::ModeMerge()const 
 {
    return mModeMerge;
 }
@@ -18719,7 +18668,7 @@ cElXMLTree * ToXMLTree(const cParamFusionNuage & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamFusionNuage",eXMLBranche);
-   aRes->AddFils(ToXMLTree(std::string("ModeMerge"),anObj.ModeMerge())->ReTagThis("ModeMerge"));
+   aRes->AddFils(::ToXMLTree(std::string("ModeMerge"),anObj.ModeMerge())->ReTagThis("ModeMerge"));
    aRes->AddFils(ToXMLTree(anObj.PFNMiseAuPoint())->ReTagThis("PFNMiseAuPoint"));
    aRes->AddFils(ToXMLTree(anObj.GrapheRecouvrt())->ReTagThis("GrapheRecouvrt"));
    aRes->AddFils(ToXMLTree(anObj.ImageVariations())->ReTagThis("ImageVariations"));
@@ -18745,7 +18694,7 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.PFM_Selection(),aTree->Get("PFM_Selection",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionNuage *) {return "2C7E90FA8C53A2CEFE3F";};
+std::string  Mangling( cParamFusionNuage *) {return "8CC4C5A1346255D2FE3F";};
 
 
 std::string & cCWWSIVois::NameVois()
