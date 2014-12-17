@@ -1499,7 +1499,7 @@ void cAppliMMByPair::DoFusionGround()
 
 void cAppliMMByPair::DoFusionStatue()
 {
-   //bool Test = false;
+   // Merge Depth Map 
    if (1)
    {
        std::list<std::string> aLCom;
@@ -1523,6 +1523,23 @@ void cAppliMMByPair::DoFusionStatue()
        for(int aK=0 ; aK<20 ; aK++) std::cout << "SKIPP (tmp) MergeDepthMap , enter to go on\n";
        getchar();
    }
+
+   // Calcul d'une enveloppe qui tienne compte de MergeDepthMap
+   {
+       std::list<std::string> aLCom;
+       for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+       {
+            std::string aNameIm = (*anITS).attr().mIma->mNameIm;
+            std::string aCom =      MMBinFile(MM3DStr) + " TestLib MMEnvStatute " + aNameIm;
+            aLCom.push_back(aCom);
+            std::cout << aCom << "\n";
+
+       }
+       cEl_GPAO::DoComInParal(aLCom);
+   }
+
+
+
 
    if (EAMIsInit(&mScalePlyFus) && (mScalePlyFus > 0))
    {
@@ -1556,7 +1573,7 @@ void cAppliMMByPair::DoFusionStatue()
             std::string aNameIm = (*anITS).attr().mIma->mNameIm;
             std::string aCom1 =      MMBinFile(MM3DStr) + " ScaleNuage  "
                                + DirMTDImage(*anITS) + "Fusion_"+ aNameIm   + ".xml "
-                               + DirFusStatue() + PrefDNF()  + aNameIm
+                               + DirFusStatue() + PrefDNF()  +   "Depth" + aNameIm
                                + " " + ToString(aFactRed)
                                + " InDirLoc=false";
                            ;
@@ -1564,15 +1581,30 @@ void cAppliMMByPair::DoFusionStatue()
             std::string aCom2 =  MMBinFile(MM3DStr) + " ScaleIm  "
                                + DirMTDImage(*anITS) + "Fusion_" +  aNameIm + "_Cptr.tif " 
                                + " " + ToString(aFactRed)
-                               + " Out=" +  DirFusStatue() + PrefDNF() + aNameIm  + "CptRed.tif "
+                               + " Out=" +  DirFusStatue() + PrefDNF() + "Depth" + aNameIm  + "CptRed.tif "
                            ;
 
              aLComRed.push_back(aCom1);
              aLComRed.push_back(aCom2);
+
+             for (int aK=0 ; aK<2 ; aK++)
+             {
+                 bool aModeMax = (aK==0);
+                 std::string aExt = aModeMax ? "Max" : "Min";
+                 std::string aCom = MMBinFile(MM3DStr) + " ScaleNuage  " 
+                                  + DirMTDImage(*anITS) + "QMNuage-" + aExt + ".xml "
+                                  + DirFusStatue() + PrefDNF() +  aExt + aNameIm  
+                                  +   " " + ToString(aFactRed) + " InDirLoc=false";
+                 aLComRed.push_back(aCom);
+             }
              // std::cout << aCom2 << "\n";
        }
        cEl_GPAO::DoComInParal(aLComRed);
    }
+
+
+
+
 
 
    // getchar();
