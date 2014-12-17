@@ -109,7 +109,7 @@ int main()
     DUMP(testS.getNbLayer())
     DUMP_LINE
 
-    testS.setDimension((uint)3);
+    testS.setDimension(3);
 
     DUMP(testS.getDimension())
             DUMP(testS.getNbLayer())
