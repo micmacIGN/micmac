@@ -318,8 +318,8 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 
             glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexture);
 
-            _Engine->setGLMaxTextureSize(maxTexture/16); //!!!!!!!!!!!!!!!!!!!!!!!
-            //_Engine->setGLMaxTextureSize(maxTexture);
+            //_Engine->setGLMaxTextureSize(maxTexture/16); //!!!!!!!!!!!!!!!!!!!!!!!
+            _Engine->setGLMaxTextureSize(maxTexture);
 
             loadOK = loadImages(filenames);
         }
