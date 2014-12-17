@@ -1,0 +1,283 @@
+<Global
+    Subst="@$#1"
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_Orient>
+                  <Id>  IdOrInit</Id>
+                  <KeySet> Key-Set-All-OrInit </KeySet>
+                  <KeyAssoc>  Key-Assoc-Im2OrInit </KeyAssoc>
+             </BDD_Orient>
+
+              <FilterProj3D >
+                   <Id > TheF3D </Id>
+                   <PatternSel >  F035_IMG_((8808)|(8822)|(8835))_MpDcraw8B_GR.tif  </PatternSel>
+                   <AttrSup>  Filtre3D </AttrSup>
+                   <KeyCalculMasq> Key-Assoc-Std-MultiMasq-Image </KeyCalculMasq>
+              </FilterProj3D>
+
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_035 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>  Orient/F035_AutoCalInit.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>   F035_IMG_[0-9]{4}_MpDcraw8B_GR.tif  </PatternName> 
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosesDeRattachement>  0  </PosesDeRattachement>
+
+                   <PosValueInit>
+                       <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+              <AllMatSym>  true </AllMatSym>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+<!--
+              <ModeResolution> eSysCreuxMap </ModeResolution> 
+-->
+              <GridOptimKnownDist> true </GridOptimKnownDist>
+              <NormaliseEqSc> true </NormaliseEqSc>
+              <NormaliseEqTr> true </NormaliseEqTr>
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+
+               <IterationsCompensation>
+                       <SectionContraintes>
+
+                          <ContraintesCamerasInc>
+                              <Val> eLiberteFocale_0  </Val>
+                              <Val> eLib_PP_CD_00     </Val>
+                              <Val> eLiberte_DR0      </Val>
+
+                          </ContraintesCamerasInc>
+
+                          <ContraintesPoses>
+                             <NamePose>   0 </NamePose>
+                             <Val>      ePoseFigee   </Val>
+                          </ContraintesPoses>
+
+                          <ContraintesPoses>
+                             <NamePose>   1     </NamePose>
+                             <Val>      ePoseBaseNormee   </Val>
+                             <PoseRattachement>   0 </PoseRattachement>
+                          </ContraintesPoses>
+                       </SectionContraintes>
+                    </IterationsCompensation>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  0.3 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                                 <IdFilter3D> TheF3D </IdFilter3D>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  0.1 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                                 <IdFilter3D> TheF3D </IdFilter3D>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+
+
+
+
+	      <EtapeCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+<!--
+                   <IterationsCompensation>
+                      <VerifAero>
+                           <PatternApply> .* </PatternApply>
+                           <IdBdLiaison> Id_Pastis_Hom </IdBdLiaison>
+                           <Resol> 8.0 </Resol>
+                           <PasR> 10 </PasR>
+                           <PasB> 3 </PasB>
+                           <TypeVerif> eVerifResPerIm </TypeVerif>
+
+                           <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                 <ModePonderation>  eL1Secured </ModePonderation>
+                                 <SigmaPond> 2.0 </SigmaPond>
+                                 <EcartMax> 5.0 </EcartMax>
+                                 <IdFilter3D> TheF3D </IdFilter3D>
+                           </Pond>
+                           <Prefixe> TMP2/TEST </Prefixe>
+
+                           <SeuilTxt> 1 </SeuilTxt>
+
+                      </VerifAero>
+
+                    </IterationsCompensation>
+-->
+
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  0.03 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                                 <IdFilter3D> TheF3D </IdFilter3D>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+                       <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc>  Key-Assoc-Im2OrFinale </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+                            <NbVerif>  10 </NbVerif>
+                            <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+
+
+
+
+	</SectionCompensation>
+
+
+
+
+
+
+
+   </ParamApero>
+</Global>
+
