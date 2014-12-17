@@ -48,7 +48,6 @@
     <Symb> X1Ter=1 </Symb>
     <Symb> Y1Ter=1 </Symb>
 
-    <Symb> CalcMEC=true </Symb>
     <Symb> ModeGeomMNT=eGeomMNTEuclid </Symb>
     <Symb> EZA=true </Symb>
     <Symb> NbProc=MMNbProc </Symb>
@@ -212,7 +211,7 @@
 
   <Section_Results>
     <GeomMNT> ${ModeGeomMNT} </GeomMNT>
-    <DoMEC> ${CalcMEC} </DoMEC>
+    <DoMEC> true </DoMEC>
   </Section_Results>
 
   <Section_WorkSpace>
