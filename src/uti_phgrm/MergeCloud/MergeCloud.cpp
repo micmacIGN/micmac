@@ -132,7 +132,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
             }
         }
 
-        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << InMAP << "\n";
+        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << InMAP << " XMl " << aNameNuXml << "\n";
    }
    cCmpResolMCSPOM aCmp;
    std::sort(mVSoms.begin(),mVSoms.end(),aCmp);
