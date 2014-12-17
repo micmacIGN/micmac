@@ -1388,8 +1388,8 @@ cImageGL::cImageGL(float scaleFactor,float gamma) :
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
 
-    _texLocation    = _program.uniformLocation("tex");
-    _gammaLocation  = _program.uniformLocation("gamma");
+    _texLocation   = _program.uniformLocation("tex");
+    _gammaLocation = _program.uniformLocation("gamma");
 }
 
 cImageGL::~cImageGL()
@@ -1403,7 +1403,7 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-     drawQuad(_originX, _originY, width(), height(), color);
+    drawQuad(_originX, _originY, width(), height(), color);
 }
 
 void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
@@ -1540,7 +1540,8 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _qMaskedImage(qMaskedImage),
     _tiles(NULL),
-    _mask_tiles(NULL)
+    _mask_tiles(NULL),
+    _bDrawTiles(false)
 {
 
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
@@ -1563,13 +1564,11 @@ void cMaskedImageGL::draw()
 
     glColor4f(1.0f,1.0f,1.0f,1.0f);
 
-    //bool tileMode = glImage()->getZoom() > getLoadedImageRescaleFactor();
-
     if(glMask() != NULL && glMask()->isVisible())
     {
-        //if(tileMode)
-        //    drawTiles(_mask_tiles);
-        //else
+        if(_bDrawTiles)
+            drawTiles(_mask_tiles);
+        else
             glMask()->draw();
 
         glBlendFunc(GL_ONE,GL_ONE);
@@ -1578,11 +1577,10 @@ void cMaskedImageGL::draw()
         glColor4f(1.0f,1.0f,1.0f,1.0f);
     }
 
-    //if(tileMode)
-        //drawTiles(_tiles);
-    //else
+    if(_bDrawTiles)
+        drawTiles(_tiles);
+    else
         glImage()->draw();
-
 
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
@@ -1594,7 +1592,14 @@ void cMaskedImageGL::drawTiles(cImageGL* tiles)
     if (tiles == NULL) cout << "tiles null" << endl;
     else
     for (int aK = 0; aK < 4; ++aK)
-        tiles[aK].draw();
+       if (tiles[aK].isVisible()) tiles[aK].draw();//*/
+
+    /*{
+        tiles[0].draw(Qt::red);
+        tiles[1].draw(Qt::blue);
+        //tiles[2].draw(Qt::green);
+        //tiles[3].draw(Qt::yellow);
+    }//*/
 }
 
 QSize cMaskedImageGL::getTilesSize()
@@ -1608,6 +1613,7 @@ QSize cMaskedImageGL::getTilesSize()
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
 
     maxTextureSize /= 2;
+    //maxTextureSize /= 16;  //!!!!!!!!!!!!!!!
 
 //    int maxTileSizeX = maxTextureSize / (2 * nbFen.x());
 //    int maxTileSizeY = maxTextureSize / (2 * nbFen.y());
@@ -1627,7 +1633,7 @@ QSize cMaskedImageGL::getTilesSize()
     int tileWidth  = fullRes_image_sizeX / nbTilesX;
     int tileHeight = fullRes_image_sizeY / nbTilesY;
 
-//    cout << "NB ROW - COL = " << nbTilesX << " " << nbTilesY << endl;
+//    cout << "NB TILES (ROW - COL) = " << nbTilesX << "x" << nbTilesY << endl;
 
     for (int aK=0; aK< nbTilesX; aK++)
         for (int bK=0; bK< nbTilesY; bK++)
@@ -1638,38 +1644,67 @@ QSize cMaskedImageGL::getTilesSize()
 
 void cMaskedImageGL::createTexturesTiles()
 {
-    //on cherche seulement les tiles intersectées et on crée les textures pour ces tiles
+    //on cherche seulement les tuiles intersectées et on crée les textures pour ces tuiles
 
+    //recherche des tuiles intersectées
     QVector <QRectF> tilesToDraw;
-
-    //recherche des tiles intersectées
     for (int aK=0; aK< _vTilesRect.size(); aK++)
     {
         if (_vTilesRect[aK].intersects(_rectImage))
-        {
             tilesToDraw.push_back(_vTilesRect[aK]);
-
-            cout << "viewport intersects rect " << aK << endl;
-        }
     }
+
+    // verification du nombre de tuiles intersectées
+    if (tilesToDraw.size() > 4)
+    {
+        cout << "Error in createTexturesTiles" << endl;
+        return;
+    }
+
+    //rescale du masque
+    QImage mask_fullsize = _qMaskedImage->_m_rescaled_mask->scaled(_qMaskedImage->_m_image->size(),Qt::IgnoreAspectRatio);
 
     // création des textures et set des positions GL
     for (int aK=0; aK < tilesToDraw.size(); ++aK)
     {
-        QImage cropIJ = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
-        getTile(aK).createTexture(&cropIJ);
+        QPointF topLeft = tilesToDraw[aK].topLeft();
 
-        //TODO: set origin = coin haut gauche de chaque tile
-        //float posX, posY;
-        //QPointF topLeft = _vTilesRect[aK].topLeft();
+        //TODO: factoriser
+        if (*(getTile(aK).getTexture()) == GL_INVALID_LIST_ID)
+        {
+            QImage crop = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
+            //crop.save("/home/mdeveau/data/Boudha/crop_"+ QString::number(aK) + ".tif");
 
-        //convert image coordinates into gl coordinates
-        // ?? utiliser matrixManager->ImageToWindow ou :
+            getTile(aK).deleteTexture();
+            getTile(aK).createTexture(&crop);
+            getTile(aK).setVisible(true);
 
-        // posX = topLeft.x() / _qMaskedImage->_m_image->width();
-        // posY = topLeft.y() / _qMaskedImage->_m_image->height();
+            getTile(aK).setGLPosition(topLeft.x(), topLeft.y());
+        }
 
-        // getTile(aK).setGLPosition(posX, posY);
+        if (*(getMaskTile(aK).getTexture()) == GL_INVALID_LIST_ID)
+        {
+            QImage mask_crop = mask_fullsize.copy(tilesToDraw[aK].toAlignedRect());
+            //mask_crop.save("/home/mdeveau/data/Boudha/mask_crop_"+ QString::number(aK) + ".tif");
+
+            getMaskTile(aK).deleteTexture();
+            getMaskTile(aK).createTexture(&mask_crop);
+            getMaskTile(aK).setVisible(true);
+
+            getMaskTile(aK).setGLPosition(topLeft.x(), topLeft.y());
+        }
+    }
+
+    _bDrawTiles = true;
+}
+
+void cMaskedImageGL::deleteTexturesTiles()
+{
+    _bDrawTiles = false;
+
+    for (int aK=0; aK <4; ++aK)
+    {
+        getTile(aK).deleteTexture();
     }
 }
 
@@ -1687,22 +1722,33 @@ void cMaskedImageGL::createTextures()
         glImage()->setSize( _qMaskedImage->_m_image->size() );
     }
 
+    //TODO: deplacer ? le faire seulement si on passe au dessus du zoom seuil ? => ne cree les tuiles que si vraiment necessaire
     if(getLoadedImageRescaleFactor()<1.f)
     {
         QSize tileSize = getTilesSize();
 
+        //cout << "tile size = " << tileSize.width() << " " << tileSize.height() << endl;
         for (int aK = 0; aK < 4; aK++)
         {
             getTile(aK).setSize(tileSize);
+            getTile(aK).setVisible(false);
+
+            getMaskTile(aK).setSize(tileSize);
+            getMaskTile(aK).setVisible(false);
         }
     }
 }
 
-void cMaskedImageGL::setZone(float aVal, QRectF rectImage)
+void cMaskedImageGL::setZone(float aZoom, QRectF rectImage)
 {
-    if (_m_image)
-        _m_image->setZoom(aVal);
     _rectImage = rectImage;
+
+    if (_m_image)
+    {
+        _m_image->setZoom(aZoom);
+
+        createTexturesTiles();
+    }
 
     //cout << "rect Image = " << _rectImage.topLeft().x() << " " <<  _rectImage.topLeft().y() << " " << _rectImage.bottomRight().x() << " " << _rectImage.bottomRight().y() << endl;
 }

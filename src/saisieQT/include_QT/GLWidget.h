@@ -92,6 +92,8 @@ public:
 
     QRectF viewportToImageProjection();
 
+    void checkTiles(float aZoom); //compute tiles if needed
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
