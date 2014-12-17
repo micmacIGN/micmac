@@ -17,7 +17,7 @@ extern "C" textureReference* pTexture_ImageEpi(int nEpi);
 extern "C" textureReference* ptexture_Masq_Erod(int nEpi);
 extern "C" void LaunchKernelCorrelationMultiScalePreview(dataCorrelMS &data,const_Param_Cor_MS &param);
 extern "C" void paramCorMultiScale2Device( const_Param_Cor_MS &param );
-extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &param);
+extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data, const_Param_Cor_MS &parCMS);
 
 
 struct const_Param_Cor_MS
@@ -59,10 +59,19 @@ struct const_Param_Cor_MS
 
     float   mAhDefCost;
 
+    ///
+    /// \brief mNbByPix
+    /// nombre de phase par pixel
     ushort  mNbByPix;
 
+    ///
+    /// \brief aStepPix
+    /// Pas sub-pixelaire
     float   aStepPix;
 
+    ///
+    /// \brief mDim3Cache
+    /// dimension du cache preparatoire au calcul de correlation multi-echelle
     uint3   mDim3Cache;
 
     void init(const std::vector<std::vector<Pt2di> >  &aVV,
