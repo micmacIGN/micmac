@@ -3054,64 +3054,64 @@ void printtriangle( struct triedge *t)
   struct edge printsh;
   point printpoint;
 
-  printf("triangle x"ELISE_PTR_FORMAT"x with orientation %d:\n", (ELISE_PTR_U_INT) t->tri,
+  printf("triangle x" ELISE_PTR_FORMAT "x with orientation %d:\n", (ELISE_PTR_U_INT) t->tri,
          t->orient);
   decode(t->tri[0], printtri);
   if (printtri.tri == dummytri) {
     printf("    [0] = Outer space\n");
   } else {
-    printf("    [0] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
+    printf("    [0] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
            printtri.orient);
   }
   decode(t->tri[1], printtri);
   if (printtri.tri == dummytri) {
     printf("    [1] = Outer space\n");
   } else {
-    printf("    [1] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
+    printf("    [1] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
            printtri.orient);
   }
   decode(t->tri[2], printtri);
   if (printtri.tri == dummytri) {
     printf("    [2] = Outer space\n");
   } else {
-    printf("    [2] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
+    printf("    [2] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
            printtri.orient);
   }
   org(*t, printpoint);
   if (printpoint == (point) NULL)
     printf("    Origin[%d] = NULL\n", (t->orient + 1) % 3 + 3);
   else
-    printf("    Origin[%d] = x"ELISE_PTR_FORMAT"x  (%.12g, %.12g)\n",
+    printf("    Origin[%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
            (t->orient + 1) % 3 + 3, (ELISE_PTR_U_INT) printpoint,
            printpoint[0], printpoint[1]);
   dest(*t, printpoint);
   if (printpoint == (point) NULL)
     printf("    Dest  [%d] = NULL\n", (t->orient + 2) % 3 + 3);
   else
-    printf("    Dest  [%d] = x"ELISE_PTR_FORMAT"x  (%.12g, %.12g)\n",
+    printf("    Dest  [%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
            (t->orient + 2) % 3 + 3, (ELISE_PTR_U_INT) printpoint,
            printpoint[0], printpoint[1]);
   apex(*t, printpoint);
   if (printpoint == (point) NULL)
     printf("    Apex  [%d] = NULL\n", t->orient + 3);
   else
-    printf("    Apex  [%d] = x"ELISE_PTR_FORMAT"x  (%.12g, %.12g)\n",
+    printf("    Apex  [%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
            t->orient + 3, (ELISE_PTR_U_INT) printpoint,
            printpoint[0], printpoint[1]);
   if (useshelles) {
     sdecode(t->tri[6], printsh);
     if (printsh.sh != dummysh) {
-      printf("    [6] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
+      printf("    [6] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
              printsh.shorient);
     }
     sdecode(t->tri[7], printsh);
     if (printsh.sh != dummysh) {
-      printf("    [7] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
+      printf("    [7] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
              printsh.shorient);
     }
     sdecode(t->tri[8], printsh);
     if (printsh.sh != dummysh) {
-      printf("    [8] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
+      printf("    [8] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
              printsh.shorient);
     }
   }
@@ -3138,48 +3138,48 @@ void printshelle( struct edge *s)
   struct triedge printtri;
   point printpoint;
 
-  printf("shell edge x"ELISE_PTR_FORMAT"x with orientation %d and mark %d:\n",
+  printf("shell edge x" ELISE_PTR_FORMAT "x with orientation %d and mark %d:\n",
          (ELISE_PTR_U_INT) s->sh, s->shorient, mark(*s));
   sdecode(s->sh[0], printsh);
   if (printsh.sh == dummysh) {
     printf("    [0] = No shell\n");
   } else {
-    printf("    [0] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
+    printf("    [0] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
            printsh.shorient);
   }
   sdecode(s->sh[1], printsh);
   if (printsh.sh == dummysh) {
     printf("    [1] = No shell\n");
   } else {
-    printf("    [1] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
+    printf("    [1] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printsh.sh,
            printsh.shorient);
   }
   sorg(*s, printpoint);
   if (printpoint == (point) NULL)
     printf("    Origin[%d] = NULL\n", 2 + s->shorient);
   else
-    printf("    Origin[%d] = x"ELISE_PTR_FORMAT"x  (%.12g, %.12g)\n",
+    printf("    Origin[%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
            2 + s->shorient, (ELISE_PTR_U_INT) printpoint,
            printpoint[0], printpoint[1]);
   sdest(*s, printpoint);
   if (printpoint == (point) NULL)
     printf("    Dest  [%d] = NULL\n", 3 - s->shorient);
   else
-    printf("    Dest  [%d] = x"ELISE_PTR_FORMAT"x  (%.12g, %.12g)\n",
+    printf("    Dest  [%d] = x" ELISE_PTR_FORMAT "x  (%.12g, %.12g)\n",
            3 - s->shorient, (ELISE_PTR_U_INT) printpoint,
            printpoint[0], printpoint[1]);
   decode(s->sh[4], printtri);
   if (printtri.tri == dummytri) {
     printf("    [4] = Outer space\n");
   } else {
-    printf("    [4] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
+    printf("    [4] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
            printtri.orient);
   }
   decode(s->sh[5], printtri);
   if (printtri.tri == dummytri) {
     printf("    [5] = Outer space\n");
   } else {
-    printf("    [5] = x"ELISE_PTR_FORMAT"x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
+    printf("    [5] = x" ELISE_PTR_FORMAT "x  %d\n", (ELISE_PTR_U_INT) printtri.tri,
            printtri.orient);
   }
 }
