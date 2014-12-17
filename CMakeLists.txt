@@ -57,6 +57,9 @@ OPTION(WITH_QT5 "compile Qt interfaces" OFF )
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
 
+# Compilateur C++11
+OPTION(WITH_CPP11 "Compilateur C++11" OFF )
+
 OPTION(DEPLOY "compile for end-user" OFF)
 
 OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
@@ -174,6 +177,16 @@ if ( NOT ${qt_version} EQUAL 0 )
       message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
 endif()
 
+if(${WITH_CPP11})
+    IF(NOT MSVC)
+            message("c++11")
+            # support c++11
+            ADD_DEFINITIONS(
+                    -std=c++11 # Or -std=c++0x
+                    # Other flags
+            )
+    endif()
+endif()
 
 # CUDA
 if (${CUDA_ENABLED})
@@ -186,13 +199,6 @@ if (${CUDA_ENABLED})
 
         if(CUDA_FOUND)
 
-		IF(NOT MSVC)
-			# support c++11
-			ADD_DEFINITIONS(
-				-std=c++11 # Or -std=c++0x
-				# Other flags
-			)
-		endif()
 
                         SET(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
                         SET(Cuda_Sample_path_Windows_XP "$ENV{AllUsersProfile}/Application Data/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
