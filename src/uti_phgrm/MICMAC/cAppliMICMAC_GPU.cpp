@@ -1635,10 +1635,10 @@ void cAppliMICMAC::DoGPU_Correl
         int2	anB			= zone.pt0 +  dimTabProj;
 
 
-        DUMP_INT2(anB)
-        DUMP_INT2(dimTabProj)
-                DUMP_INT2(IMmGg.Param(idBuf).RDTer().dimension())
-        DUMP_INT2(IMmGg.Param(idBuf).RTer().dimension())
+        DUMP(anB)
+        DUMP(dimTabProj)
+        DUMP(IMmGg.Param(idBuf).RDTer().dimension())
+        DUMP(IMmGg.Param(idBuf).RTer().dimension())
 
                 IMmGg.Param(idBuf).RTer().out();
                 cout << endl;

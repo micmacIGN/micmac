@@ -28,7 +28,7 @@
     <eSymb> AddZoom4=Sup 4 ${ZoomF} </eSymb>
     <eSymb> AddZoom2=Sup 2 ${ZoomF} </eSymb>
 
-    <Symb>  NbSteps=-1 </Symb>
+    <Symb>  NbStepsQ=-1 </Symb>
 
     <Symb>  ZPasF=0.5</Symb>
     <eSymb> DoubleZPasF=* 2 ${ZPasF} </eSymb>
@@ -193,13 +193,13 @@
             <MakeMTDMaskOrtho>
               <Mesures>
                 <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbSteps}.tif   </NameFile>
-                <NameMTD>  ../${DirMEC}Z_Num${NbSteps}_DeZoom${ZoomF}_LeChantier.xml  </NameMTD>
+                <NameMTD>  ../${DirMEC}Z_Num${NbStepsQ}_DeZoom${ZoomF}_LeChantier.xml  </NameMTD>
               </Mesures>
             </MakeMTDMaskOrtho>
              <ResolRelOrhto> ${ResolOrtho} </ResolRelOrhto>
              <OrthoBiCub> -1.5  </OrthoBiCub>
              <KeyCalcInput> NKS-Assoc-Id </KeyCalcInput>
-             <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ortho_ </KeyCalcOutput>
+             <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ort_ </KeyCalcOutput>
              <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrtho}@Incid_ </KeyCalcIncidHor>
              <ResolIm> 1.0 </ResolIm>
              <CalcIncAZMoy> true </CalcIncAZMoy>
