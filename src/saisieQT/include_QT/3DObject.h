@@ -476,6 +476,8 @@ class cImageGL : public cObjectGL
         void    draw();
 
         void    setGLPosition(GLfloat originX, GLfloat originY);
+        GLfloat getGLPositionX(){ return _originX; }
+        GLfloat getGLPositionY(){ return _originY; }
         void    setSize(QSize size);
 
         void    createTexture(QImage *pImg);
@@ -589,7 +591,8 @@ public:
     cMaskedImageGL():
         _qMaskedImage(NULL),
         _tiles(NULL),
-        _mask_tiles(NULL){}
+        _mask_tiles(NULL),
+        _bDrawTiles(false){}
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
@@ -611,29 +614,34 @@ public:
 
     void  createTextures();
 
-    void  setZone(float aVal, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
+    void  createTexturesTiles();
+    void  deleteTexturesTiles();
+
+    void  setZone(float aZoom, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
 
     cMaskedImage<QImage> * getMaskedImage() { return _qMaskedImage; }
 
     cImageGL& getTile(int aK);
     cImageGL& getMaskTile(int aK);
 
+    bool    drawTiles() { return _bDrawTiles; }
+
+    cImageGL*   glImage()  { return _m_image; }
+    cImageGL*   glMask()   { return _m_mask;  }
+
 private:
+    QSize             getTilesSize();
 
-    QRectF       _rectImage;
-
-    cImageGL*   glImage()   {return _m_image;}
-    cImageGL*   glMask()    {return _m_mask;}
+    QRectF            _rectImage;
 
     cMaskedImage<QImage> *_qMaskedImage;
 
-    cImageGL*               _tiles;
-    cImageGL*               _mask_tiles;
+    cImageGL*        _tiles;
+    cImageGL*        _mask_tiles;
 
-    QVector <QRectF>    _vTilesRect;
+    QVector <QRectF> _vTilesRect;
 
-    QSize               getTilesSize();
-    void                createTexturesTiles();
+    bool             _bDrawTiles;
 };
 //====================================================================================
 

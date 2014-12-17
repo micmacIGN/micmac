@@ -337,6 +337,17 @@ void GLWidget::setParams(cParameters* aParams)
         polygon()->setParams(aParams);
 }
 
+void GLWidget::checkTiles(float aZoom)
+{
+    if (imageLoaded() && aZoom > getGLData()->glImage().getLoadedImageRescaleFactor())
+
+        getGLData()->glImage().setZone(aZoom, viewportToImageProjection());
+
+    else
+
+        getGLData()->glImage().deleteTexturesTiles();
+}
+
 void GLWidget::setZoom(float val)
 {
     if (imageLoaded())
@@ -348,12 +359,9 @@ void GLWidget::setZoom(float val)
     if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(getZoom()*100,'f',1) + "%";
 
+    checkTiles(val);
+
     update();
-
-    if (imageLoaded() && val > getGLData()->glImage().getLoadedImageRescaleFactor())
-
-        getGLData()->glImage().setZone(val, viewportToImageProjection());
-
 }
 
 void GLWidget::zoomFit()
@@ -723,6 +731,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                         QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : _matrixManager.screen2TransABall(dPWin);
                         _matrixManager.translate(dp.x(),dp.y(),0.0);
+
+                        checkTiles(getZoom());
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z

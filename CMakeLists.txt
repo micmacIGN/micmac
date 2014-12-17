@@ -119,7 +119,8 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
                 if (${WITH_QT5})
 
-                        find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
+                        #find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
+                        find_package(Qt5 COMPONENTS Gui Core OpenGL Xml)
                         if (Qt5_FOUND)
                                 message( STATUS "-----> Qt5 found" )
                         set(qt_version 5)
@@ -131,11 +132,11 @@ if(${WITH_QT5} OR ${WITH_QT4})
                                 set(QT_LIBRARIES
                                         ${Qt5Core_LIBRARIES}
                                         ${Qt5Gui_LIBRARIES}
-                                        ${Qt5Widgets_LIBRARIES}
+                                        #${Qt5Widgets_LIBRARIES}
                                         ${Qt5Xml_LIBRARIES}
-                                        ${Qt5Concurrent_LIBRARIES}
+                                        #${Qt5Concurrent_LIBRARIES}
                                         ${Qt5OpenGL_LIBRARIES}
-                                        ${Qt5LinguistTools_LIBRARIES}
+                                        #${Qt5LinguistTools_LIBRARIES}
                                 )
                                 SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
                                 link_directories(${Qt5_LIBRARY_DIRS})

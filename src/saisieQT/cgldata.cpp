@@ -362,10 +362,11 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     QPolygonF polyDraw(polyg.getVector());
     QPainterPath path;
 
-    if (_glMaskedImage.getLoadedImageRescaleFactor() < 1.f)
+    if ( _glMaskedImage.getLoadedImageRescaleFactor() < 1.f )
     {
         QTransform trans;
-        trans=trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
+        trans = trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
+
         polyDraw = trans.map(polyDraw);
     }
 
@@ -409,6 +410,16 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
     _glMaskedImage._m_mask->createTexture(getMask());
+
+    if ( _glMaskedImage.drawTiles() )
+    {
+        for (int aK=0; aK < 4; ++aK)
+        {
+            _glMaskedImage.getMaskTile(aK).deleteTexture();
+        }
+
+        _glMaskedImage.createTexturesTiles();
+    }
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
