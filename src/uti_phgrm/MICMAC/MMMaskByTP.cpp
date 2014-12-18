@@ -237,14 +237,15 @@ class cMMTP
                  && (aZ> cCelTiep::TheNoZ)
                  && (aZ< 32000)
                  &&  (mTImMasquageInput.get(Pt2di(anX-mP0Tiep.x,anY-mP0Tiep.y)))
-                 &&  ((mMasq3D==0) ||    mMasq3D->IsInMasq(mNuage3D->IndexAndProfPixel2Euclid(Pt2dr(anX,anY),aZ)))
+                 &&  ((mMasq3D==0) ||    mMasq3D->IsInMasq(mNuage3D->IndexAndProfPixel2Euclid(Pt2dr(anX,anY)+mP0In,aZ)))
                 ;
       }
        
-     void SetMasq3D(cMasqBin3D * aMasq3D,cElNuage3DMaille * aNuage3D)
+     void SetMasq3D(cMasqBin3D * aMasq3D,cElNuage3DMaille * aNuage3D,Pt2dr aP0In)
      {
            mMasq3D = aMasq3D;
            mNuage3D = aNuage3D;
+           mP0In = aP0In;
      }
  
       cCelTiep & Cel(int anX,int anY) { return mTabCTP[anY][anX]; }
@@ -297,6 +298,7 @@ class cMMTP
         Im2D_Bits<1>    mImMasqFinal;   // resultat final si post filtrage
         TIm2DBits<1>    mTImMasqFinal;   
 
+        Pt2dr mP0In;
         cMasqBin3D *       mMasq3D;
         cElNuage3DMaille * mNuage3D;
         std::string mNameTargetEnv;
@@ -1073,6 +1075,8 @@ Fonc_Num FoncHomog(Im2D_REAL4 anIm, int aSzKernelH, double aPertPerPix)
 void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP)
 {
 
+   std::cout << "cAppliMICMAC::DoMasqueAutoByTieP " << aBox << "\n";
+
    // std::cout <<  "*-*-*-*-*-*- cAppliMICMAC::DoMasqueAutoByTieP    "<< mImSzWCor.sz() << " " << aBox.sz() << mCurEtUseWAdapt << "\n";
 
 
@@ -1104,7 +1108,8 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
     {
          Im2D_REAL4 * anIm = mPDV1->LoadedIm().FirstFloatIm();
          ELISE_ASSERT(anIm!=0,"Incohe in mmtpFilterSky");
-         Pt2di aSz = anIm->sz();
+         // Pt2di aSz = anIm->sz();
+         Pt2di aSz = mMMTP->ImMasquageInput().sz();
 
          const cmmtpFilterSky & aFS = aMATP.mmtpFilterSky().Val();
          int aSeuilNbPts = round_ni(aSz.x*aSz.y*aFS.PropZonec().Val());
@@ -1185,7 +1190,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
        if (aMasq3D)
        {
-           mMMTP->SetMasq3D(aMasq3D,aNuage);
+           mMMTP->SetMasq3D(aMasq3D,aNuage,Pt2dr(mBoxIn._p0));
            mGLOBMasq3D = aMasq3D;
            mGLOBNuage = aNuage;
        }
@@ -1195,8 +1200,9 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
            Pt3dr aPE = (*mTP3d)[aK];
            Pt3dr aPL2 = aNuage->Euclid2ProfPixelAndIndex(aPE);
 
-           int aXIm = round_ni(aPL2.x);
-           int aYIm = round_ni(aPL2.y);
+
+           int aXIm = round_ni(aPL2.x) - mBoxIn._p0.x;
+           int aYIm = round_ni(aPL2.y) - mBoxIn._p0.y;
            int aZIm = round_ni(aPL2.z) ;
 
 
