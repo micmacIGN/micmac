@@ -1543,7 +1543,6 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _mask_tiles(NULL),
     _bDrawTiles(false)
 {
-
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
     _m_mask     = new cImageGL(_loadedImageRescaleFactor );
     _m_image    = new cImageGL(_loadedImageRescaleFactor,qMaskedImage->_gamma);
@@ -1673,7 +1672,7 @@ void cMaskedImageGL::createTexturesTiles()
         if (*(getTile(aK).getTexture()) == GL_INVALID_LIST_ID)
         {
             QImage crop = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
-            //crop.save("/home/mdeveau/data/Boudha/crop_"+ QString::number(aK) + ".tif");
+            //crop.save("/home/mdeveau/data/crop_"+ QString::number(aK) + ".tif");
 
             getTile(aK).deleteTexture();
             getTile(aK).createTexture(&crop);
@@ -1685,7 +1684,7 @@ void cMaskedImageGL::createTexturesTiles()
         if (*(getMaskTile(aK).getTexture()) == GL_INVALID_LIST_ID)
         {
             QImage mask_crop = mask_fullsize.copy(tilesToDraw[aK].toAlignedRect());
-            //mask_crop.save("/home/mdeveau/data/Boudha/mask_crop_"+ QString::number(aK) + ".tif");
+            //mask_crop.save("/home/mdeveau/data/mask_crop_"+ QString::number(aK) + ".tif");
 
             getMaskTile(aK).deleteTexture();
             getMaskTile(aK).createTexture(&mask_crop);
