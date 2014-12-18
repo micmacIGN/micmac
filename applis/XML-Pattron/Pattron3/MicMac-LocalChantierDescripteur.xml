@@ -1,0 +1,36 @@
+<ChantierDescripteur>
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform>  sg1l([0-9]{4})_MpDcraw8B_GB.tif </PatternTransform>
+                       <CalcName> DRadFinalePentax28mm.xml </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+
+</ChantierDescripteur>
