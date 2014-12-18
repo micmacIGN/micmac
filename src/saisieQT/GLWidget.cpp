@@ -345,9 +345,7 @@ void GLWidget::checkTiles(float aZoom)
 
         if (rescaleFactor < 1.f)
         {
-
-
-            if(aZoom > getGLData()->glImage().getLoadedImageRescaleFactor())
+            if(aZoom > rescaleFactor)
 
                 getGLData()->glImage().setZone(aZoom, viewportToImageProjection());
 
