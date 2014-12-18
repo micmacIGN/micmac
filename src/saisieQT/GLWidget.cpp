@@ -339,17 +339,22 @@ void GLWidget::setParams(cParameters* aParams)
 
 void GLWidget::checkTiles(float aZoom)
 {
-    float rescaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
-
-    if (rescaleFactor < 1.f)
+    if (imageLoaded())
     {
-        if (imageLoaded() && aZoom > rescaleFactor)
+        float rescaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
 
-            getGLData()->glImage().setZone(aZoom, viewportToImageProjection());
+        if (rescaleFactor < 1.f)
+        {
 
-        else
 
-            getGLData()->glImage().deleteTexturesTiles();
+            if(aZoom > getGLData()->glImage().getLoadedImageRescaleFactor())
+
+                getGLData()->glImage().setZone(aZoom, viewportToImageProjection());
+
+            else
+
+                getGLData()->glImage().deleteTexturesTiles();
+        }
     }
 }
 
