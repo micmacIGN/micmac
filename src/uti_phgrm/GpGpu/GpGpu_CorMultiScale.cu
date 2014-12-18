@@ -104,50 +104,18 @@ inline    float getValImage(float2 pt,ushort iDi,ushort nScale)
     return tex2DLayered(getTexture(iDi),pt.x + 0.5f,pt.y + 0.5f ,nScale);
 }
 
-/*
-//Algorithme de precalcul de corrélation
-__device__
-inline    void correl(float2 pt,ushort iDi, float* mdata1, float* mdata2)
+template<class T>
+__device__ float getValImage(T pt,ushort iDi,ushort nScale)
 {
-    float aGlobSom1 = 0;
-    float aGlobSom2 = 0;
-    float aGlobPds  = 0;
-
-    for (int aKS=0 ; aKS< cPCencus.aNbScale ; aKS++)
-    {
-        float   aSom1   = 0;
-        float   aSom2   = 0;
-        short2 *aVP     = cPCencus.aVV[aKS];
-        ushort  aNbP    = cPCencus.size_aVV[aKS];
-        float   aPdsK   = cPCencus.aVPds[aKS];
-
-        for (int aKP=0 ; aKP<aNbP ; aKP++)
-        {
-            const short2 aP = aVP[aKP];
-            //const uint ptV  = make_uint2(pt.x+aP.x,)
-            float aV = getValImage(pt+aP,iDi,aKS);
-            aSom1 += aV;
-            aSom2 += aV*aV;
-        }
-
-        aGlobSom1 += aSom1 * aPdsK;
-        aGlobSom2 += aSom2 * aPdsK;
-        aGlobPds += aPdsK * aNbP;
-
-//        mData1[aKS][aYGlob][aXGlob] = aGlobSom1 / aGlobPds;
-//        mData2[aKS][aYGlob][aXGlob] = aGlobSom2 / aGlobPds;
-
-    }
+    return tex2DLayered(getTexture(iDi),(float)pt.x + 0.5f,(float)pt.y + 0.5f ,nScale);
 }
-*/
-
 
 // calcul rapide de la correlation multi-echelles centre sur une vignette
 __device__
 inline    float Quick_MS_CorrelBasic_Center(
 
-    const float2 & aPG0,
-    const float2 & aPG1,
+    const uint2 & aPG0,
+    const uint2 & aPG1,
 
 //    float ***  aSom1,
 //    float ***  aSom11,
@@ -237,112 +205,6 @@ void projectionMasqImage(float * dataPixel,uint3 dTer)
     float valImage = tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
 
     dataPixel[to1D(pt,dTer)] = IsOkErod(pt) ? valImage/(32768.f) : 0;
-}
-
-__global__
-void KernelDoCorrelMultiScale(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
-{
-
-    // ??? TODO à cabler
-    bool    DoMixte     = false;
-    bool    aModeMax    = false;
-    float   aSeuilHC    = 1.0;
-    float   aSeuilBC    = 1.0;
-    // ???
-
-    int2    pt  =   make_int2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
-    uint    tZ  =   blockIdx.z*blockDim.z + threadIdx.z;
-
-    if(oSE(pt,cstP_CorMS._dimTerrain))
-        return;
-
-    const int2  aPIm0   =   pt.x+cstP_CorMS.anOff0; // TODO Attention au unsigned
-    const bool  OkIm0   =   IsOkErod(make_uint2(aPIm0),0);
-    const short2 iZ     =   nappe[to1D(pt,cstP_CorMS._dimTerrain)];
-    int aZ0             =   iZ.x;
-    const int aZ1       =   iZ.y;
-    const int DeltaZ    =   abs(aZ1-aZ0);
-
-    if(tZ>DeltaZ)
-        return; // TODO on pourrait eventuellement affacter la valeur du cout par defaut.... mais bof
-
-    int aZI = aZ0 + tZ;
-
-    const int2 aIm1SsPx =  pt + cstP_CorMS.anOff1;
-
-    // float aGlobCostGraphe = 0;
-    float aGlobCostBasic  = 0;
-    float aGlobCostCorrel = 0;
-
-    float aCost = cstP_CorMS.mAhDefCost;
-
-    if (OkIm0)
-    {
-        //
-        // anOffset calcul de anOffset
-        ///
-        int aPhase = tZ%cstP_CorMS.mNbByPix;
-
-        while ((aZ0%cstP_CorMS.mNbByPix) != aPhase) aZ0++;
-
-        int anOffset    = aZ0 / cstP_CorMS.mNbByPix;
-        anOffset        = anOffset - ((anOffset * cstP_CorMS.mNbByPix) > aZ0);
-        int sOff        = abs(aZI-aZ0)/cstP_CorMS.mNbByPix; // --> doit tomber juste
-        anOffset       += sOff;
-
-        const uint2 aPIm1 = make_uint2(aIm1SsPx.x+anOffset,aIm1SsPx.y);
-
-        if (IsOkErod(aPIm1,1))
-        {
-
-            // TODO à cabler avec correl(uint2 pt,ushort iDi)
-            //float*  aSom1;  // ---> peut precalculer dans un kernel precedent!
-            //float*  aSom11; // ---> peut precalculer dans un kernel precedent!
-
-            // TODO à cabler avec correl(uint2 pt,ushort iDi)
-            //float*  aSom2; // ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
-            //float*  aSom22;// ---> peut-etre precalculer dans un kernel precedent! A VERIFIER!!!
-
-            const float2 faPIm0 = make_float2((float)aPIm0.x,(float)aPIm0.y); // TODO ajouter le pas sub pixelaire            
-            const float2 faPIm1 = make_float2((float)aPIm1.x,(float)aPIm1.y); // TODO ajouter le pas sub pixelaire
-
-
-            // FAUX !!!!
-            const int    aPx2   = aPhase*cstP_CorMS.aStepPix;
-            // FAUX !!!!
-
-            aCost = Quick_MS_CorrelBasic_Center(faPIm0,faPIm1,aSom1,aSom11,aSom2,aSom22,aPx2,aModeMax,aPhase);
-
-            aGlobCostCorrel = aCost;
-
-            if (DoMixte)
-            {
-               if(aGlobCostCorrel>aSeuilHC)
-
-                    aCost = aGlobCostCorrel;
-
-               else if (aGlobCostCorrel>aSeuilBC)
-               {
-                    float aPCor =  (aGlobCostCorrel - aSeuilBC) / (aSeuilHC-aSeuilBC);
-                    aCost       =  aPCor * aGlobCostCorrel + (1-aPCor) * aSeuilBC *  aGlobCostBasic;
-               }
-               else
-                    aCost =  aSeuilBC *  aGlobCostBasic;
-            }
-
-//            aCost = 1.f-aCost;
-
-            const uint3 ptCost  = make_uint3(pt.x,pt.y,tZ);
-            const uint3 dimCost = make_uint3(cstP_CorMS._dimTerrain.x,cstP_CorMS._dimTerrain.y,1);
-
-            cost[to1D(ptCost,dimCost)] = 1.f-aCost;
-
-        }
-        else return;
-    }
-    else
-        return;
-
 }
 
 extern "C" void LaunchKernelCorrelationMultiScalePreview(dataCorrelMS &data,const_Param_Cor_MS &param)
@@ -436,36 +298,100 @@ __global__
 void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
 {
 
+    // ??? TODO à cabler
+    bool    DoMixte     = false;
+    bool    aModeMax    = false;
+    float   aSeuilHC    = 1.0;
+    float   aSeuilBC    = 1.0;
+
     // point image
     const uint2  an  =   make_uint2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
 
-    // Z relatif au thread
-    const ushort thZ   =   blockIdx.z*blockDim.z + threadIdx.z;
+    // sortir si le point est en dehors du terrain
+    if(oSE(an,cstP_CorMS._dimTerrain))
+        return;
+    //      pt int dans l'image 0
+    const   uint2     aPIm0       =   an + cstP_CorMS.anOff0;
 
-    const uint   pit =   to1D(make_uint3(an.x,an.y,thZ),make_uint3(cstP_CorMS._dimTerrain));
+    // si dans le masque de l'image 0
+    const bool  OkIm0   =   IsOkErod(aPIm0,0);
 
-//    float&          _cost    =   cost[pit];
-    const short2    _nappe   =   nappe[pit];
-    short aZ0                = _nappe.x;
+    if (OkIm0)
+    {
 
-    // z Absolu
-    const short aZ = (short)thZ + aZ0;
+        // Z relatif au thread
+        const ushort thZ   =   blockIdx.z*blockDim.z + threadIdx.z;
 
-    // calcul de la phase
-    const ushort aPhase = (ushort)(((int)aZ)%cstP_CorMS.mNbByPix);
+        // pitch de decalage
+        const uint   pit =   to1D(an,thZ,cstP_CorMS._dimTerrain);
 
-    /// peut etre precalcul  -- voir simplifier
-    while (aZ0%cstP_CorMS.mNbByPix != aPhase) aZ0++;
-    int anOffset = dElise_div((int)_nappe.x,cstP_CorMS.mNbByPix);
+        float&          _cost   =   cost[pit];
+        const short2    _nappe  =  nappe[pit];
+        short aZ0               = _nappe.x;
 
-    const uint2 aIm1SsPx    =   make_uint2((int)an.x + cstP_CorMS.anOff1.x,(int)an.y + cstP_CorMS.anOff1.y);
-    const uint2 aPIm0       =   make_uint2((int)an.x + cstP_CorMS.anOff0.x,(int)an.y + cstP_CorMS.anOff0.y);
-    const uint2 aPIm1       =   make_uint2(aIm1SsPx.x+anOffset,aIm1SsPx.y);
+        const int DeltaZ    =   abs(_nappe.y-aZ0);
+
+        if(thZ>DeltaZ)
+            return; // TODO on pourrait eventuellement affacter la valeur du cout par defaut.... mais bof
+
+        // z Absolu
+        const short aZ = (short)thZ + aZ0;
+
+        // calcul de la phase
+        const ushort aPhase = (ushort)(((int)aZ)%cstP_CorMS.mNbByPix);
+
+        /// peut etre precalcul  -- voir simplifier
+        ///
+        while (aZ0%cstP_CorMS.mNbByPix != aPhase) aZ0++;
+
+        //  int anOffset = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
+        int anOffset = dElise_div((int)aZ,cstP_CorMS.mNbByPix);
+
+        //
+        const   uint2     aIm1SsPx    =   an + cstP_CorMS.anOff1;
+        //      pt int dans l'image 1
+        const   uint2     aPIm1       =   aIm1SsPx + ui2X(anOffset);
+        // pt float dans l'image 1
+        //const float2      aFPIm1      =   f2X(cstP_CorMS.aStepPix*aPhase)+  aPIm1;
 
 
+        if (IsOkErod(aPIm1,1))
+        {
+            float aCost             = cstP_CorMS.mAhDefCost;
+            float aGlobCostBasic    = 0;
+            float aGlobCostCorrel   = 0;
 
-//    while (mod(aZ0,mNbByPix) != aPhase) aZ0++;
-//    int anOffset = Elise_div(aZ0,mNbByPix);
+            // FAUX !!!!
+            const int    aPx2   = aPhase*cstP_CorMS.aStepPix;
+            // FAUX !!!!
+
+            aCost = Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,aPx2,aModeMax,aPhase);
+
+            aGlobCostCorrel = aCost;
+
+            if (DoMixte)
+            {
+               if(aGlobCostCorrel>aSeuilHC)
+
+                    aCost = aGlobCostCorrel;
+
+               else if (aGlobCostCorrel>aSeuilBC)
+               {
+                    float aPCor =  (aGlobCostCorrel - aSeuilBC) / (aSeuilHC-aSeuilBC);
+                    aCost       =  aPCor * aGlobCostCorrel + (1-aPCor) * aSeuilBC *  aGlobCostBasic;
+               }
+               else
+                    aCost =  aSeuilBC *  aGlobCostBasic;
+            }
+
+            _cost = 1.f-aCost;
+
+        }
+        else return;
+    }
+//    else
+//        return;
+//    }
 
 }
 
