@@ -218,7 +218,13 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    int aNivMin = ElMin(eQC_Coh1,eQC_GradFaibleC2);
    if (mModeMerge ==eStatue)
    {
-      aNivMin=eQC_GradFaibleC2;
+/*
+        <eQC_GradFaibleC1 >   </eQC_GradFaibleC1>
+         <eQC_Bord >           </eQC_Bord>
+         <eQC_Coh1 >           </eQC_Coh1>
+         <eQC_GradFaibleC2 >   </eQC_GradFaibleC2>
+*/
+      aNivMin=eQC_Bord;
    }
    if (mModeMerge ==eQuickMac)
    {

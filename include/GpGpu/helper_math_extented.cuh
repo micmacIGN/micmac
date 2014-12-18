@@ -290,6 +290,11 @@ inline __host__ __device__ int2 operator+(int2 a, uint2 b)
 	return make_int2(a.x + b.x, a.y + b.y);
 }
 
+inline __host__ __device__ uint2 operator+(uint2 a, int2 b)
+{
+    return make_uint2((int)a.x + b.x,(int)a.y + b.y);
+}
+
 inline __host__ __device__ uint2 operator+(uint2 a, ushort2 b)
 {
     return make_uint2(a.x + b.x, a.y + b.y);
@@ -303,6 +308,11 @@ inline __host__ __device__ uint2 operator+(uint2 a, short2 b)
 inline __host__ __device__ ushort2 operator+(ushort2 a, int b)
 {
     return make_ushort2(a.x + b, a.y + b);
+}
+
+inline __host__ __device__ float2 operator+(float2 a, uint2 b)
+{
+    return make_float2(a.x + (float)b.x, a.y + (float)b.y);
 }
 
 inline __host__ __device__ uint2 make_uint2(dim3 a)
@@ -515,5 +525,40 @@ inline __host__ __device__ uint to1D( uint3 c2D, uint3 dim)
 {
     return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
 }
+
+inline __host__ __device__ uint to1D( uint3 c2D, uint2 dim)
+{
+    return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( int3 c2D, uint2 dim)
+{
+    return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( uint3 c2D, int2 dim)
+{
+    return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( uint2 c2D, uint z, uint2 dim)
+{
+    return (dim.y * z + c2D.y) * dim.x + c2D.x;
+}
+inline __host__ __device__ uint to1D( uint2 c2D, ushort z, uint2 dim)
+{
+    return (dim.y * z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ float2 f2X( float x)
+{
+    return make_float2(x,0);
+}
+
+inline __host__ __device__ uint2 ui2X( int x)
+{
+    return make_uint2((uint)x,0);
+}
+
 
 
