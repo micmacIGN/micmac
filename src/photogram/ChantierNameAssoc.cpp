@@ -2435,6 +2435,7 @@ bool DebugConvCal() {return false;}
         mArgTr.SetDico("MMDir",MMDir(),true);
         mArgTr.SetDico("MMNbProc",ToString(MMNbProc()),true);
         mArgTr.SetDico("MMCmdRmFile",SYS_RM,true);
+        mArgTr.SetDico("MPD_MM",ToString(MPD_MM()),true);
 
 
         for (int aK=0 ;aK< argc ; aK++)

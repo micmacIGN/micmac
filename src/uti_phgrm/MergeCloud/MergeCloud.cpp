@@ -224,7 +224,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
          <eQC_Coh1 >           </eQC_Coh1>
          <eQC_GradFaibleC2 >   </eQC_GradFaibleC2>
 */
-      aNivMin=eQC_Bord;
+      aNivMin= eQC_GradFaibleC2;
    }
    if (mModeMerge ==eQuickMac)
    {
