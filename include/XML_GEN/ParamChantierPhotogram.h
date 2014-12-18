@@ -6,24 +6,6 @@
 // NO MORE
 typedef enum
 {
-  eC3DC_QuickMac,
-  eC3DC_Statute
-} eC3DC_Types;
-void xml_init(eC3DC_Types & aVal,cElXMLTree * aTree);
-std::string  eToString(const eC3DC_Types & aVal);
-
-eC3DC_Types  Str2eC3DC_Types(const std::string & aName);
-
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const eC3DC_Types & anObj);
-
-void  BinaryDumpInFile(ELISE_fp &,const eC3DC_Types &);
-
-std::string  Mangling( eC3DC_Types *);
-
-void  BinaryUnDumpFromFile(eC3DC_Types &,ELISE_fp &);
-
-typedef enum
-{
   eTMalt_Ortho,
   eTMalt_UrbanMNE,
   eTMalt_GeomImage,

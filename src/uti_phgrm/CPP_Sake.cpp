@@ -57,7 +57,7 @@ class cAppliSake
     std::string   mImPat, mDir, mMaskIm, mDirMEC, mPyr, mDirOrtho, mModeOri, mOriFileExtension;
     double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho;
     int           mSzW, mZoomI, mZoomF;
-    bool          mCalcMEC, mEZA, mExe, mCalcMosaO;
+    bool          mEZA, mExe, mCalcMosaO;
     std::string   mInstruct;
     std::string   mImgs;
     eTypeSake     mCorrelGeomType;
@@ -87,7 +87,6 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mSzW              (2),
   mZoomI            (32),
   mZoomF            (1),
-  mCalcMEC          (true),
   mEZA              (true),
   mExe              (true),
   mCalcMosaO        (false),
@@ -109,8 +108,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
     list<string> liste_valeur_enum = listPossibleValues(aArg);
 
     QStringList items;
-    list<string>::iterator it=liste_valeur_enum.begin();
-    for (; it != liste_valeur_enum.end(); ++it)
+    for (list<string>::iterator it=liste_valeur_enum.begin(); it != liste_valeur_enum.end(); ++it)
       items << QString((*it).c_str());
 
     setStyleSheet(app);
@@ -164,7 +162,6 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(aBoxClip,"BoxClip",true,"Define computation area (Def=[0,0,1,1] means full area) relative to image", eSAM_Normalize)
               << EAM(aBoxTer,"BoxTer",true,"Define computation area [Xmin,Ymin,Xmax,Ymax] relative to ground")
               << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=true)", eSAM_IsBool)
-              << EAM(mCalcMEC,"DoMEC",true,"Compute the matching (Def=true)", eSAM_IsBool)
               << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/)")
               << EAM(mDirOrtho,"DirOrtho",true,"Orthos subdirectory if OrthoIm (Def=Ortho-${DirMEC})")
               << EAM(mCalcMosaO,"DoOrthoM",true,"Compute the ortho mosaic if OrthoIm (Def=false)", eSAM_IsBool)
@@ -292,8 +289,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
     mNbStepsQ = 2 + round_ni(log2(mZoomI/mZoomF)) + 1;
 
-    mInstruct = mInstruct + std::string(" +CalcMEC=") + (mCalcMEC ? "true" : "false")
-                          + std::string(" +EZA=") + (mEZA ? "true" : "false")
+    mInstruct = mInstruct + std::string(" +EZA=") + (mEZA ? "true" : "false")
                           + std::string(" +ZoomF=") + ToString(mZoomF)
                           + std::string(" +NbStepsQ=") + ToString(mNbStepsQ)
                           + std::string(" +Exe=") + (mExe ? "true" : "false")

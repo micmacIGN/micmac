@@ -3,53 +3,6 @@
 //#include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
 // NO MORE
-eC3DC_Types  Str2eC3DC_Types(const std::string & aName)
-{
-   if (aName=="eC3DC_QuickMac")
-      return eC3DC_QuickMac;
-   else if (aName=="eC3DC_Statute")
-      return eC3DC_Statute;
-  else
-  {
-      cout << aName << " is not a correct value for enum eC3DC_Types\n" ;
-      ELISE_ASSERT(false,"XML enum value error");
-  }
-  return (eC3DC_Types) 0;
-}
-void xml_init(eC3DC_Types & aVal,cElXMLTree * aTree)
-{
-   aVal= Str2eC3DC_Types(aTree->Contenu());
-}
-std::string  eToString(const eC3DC_Types & anObj)
-{
-   if (anObj==eC3DC_QuickMac)
-      return  "eC3DC_QuickMac";
-   if (anObj==eC3DC_Statute)
-      return  "eC3DC_Statute";
- std::cout << "Enum = eC3DC_Types\n";
-   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
-   return "";
-}
-
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const eC3DC_Types & anObj)
-{
-      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const eC3DC_Types & anObj)
-{
-   BinaryDumpInFile(aFp,int(anObj));
-}
-
-void  BinaryUnDumpFromFile(eC3DC_Types & anObj,ELISE_fp & aFp)
-{
-   int aIVal;
-   BinaryUnDumpFromFile(aIVal,aFp);
-   anObj=(eC3DC_Types) aIVal;
-}
-
-std::string  Mangling( eC3DC_Types *) {return "DD11121F2B3DE2DFFD3F";};
-
 eNewTypeMalt  Str2eNewTypeMalt(const std::string & aName)
 {
    if (aName=="eTMalt_Ortho")

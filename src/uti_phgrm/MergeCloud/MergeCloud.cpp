@@ -66,7 +66,8 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mDoPly           (true),
    mDoPlyCoul         (false),
    mSzNormale         (-1),
-   mNormaleByCenter   (false)
+   mNormaleByCenter   (false),
+   mModeMerge         (eQuickMac)
 {
    // ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
 
@@ -83,6 +84,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mVStatNivs[eQC_Coh3].mGofQ         =  4.0;
    
    std::string aPat,anOri;
+   std::string aModeMerge = "QuickMac";
    ElInitArgMain
    (
         argc,argv,
@@ -93,7 +95,10 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
                     << EAM(mDoPlyCoul,"PlyCoul",true,"Generated ply are in coul (Def=false)")
                     << EAM(mSzNormale,"SzNorm",true,"Parameters for normals creation")
                     << EAM(mNormaleByCenter,"NormByC",true,"Normale by Center")
+                    << EAM(aModeMerge,"ModeMerge",true,"Mode Merge in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
    );
+
+
 
    if (! EAMIsInit(&mFileParam))
    {
@@ -101,6 +106,19 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    }
 
    mParam = StdGetFromSI(mFileParam,ParamFusionNuage);
+
+   if (EAMIsInit(&aModeMerge))
+   {
+       bool aModeHelp;
+       StdReadEnum(aModeHelp,mModeMerge,aModeMerge,eNbTypeMMByP);
+   }
+   else
+   {
+      mModeMerge = mParam.ModeMerge();
+   }
+
+
+
 
    mPatMAP  = new cElRegex (mParam.ImageMiseAuPoint().ValWithDef(".*"),10);
 
@@ -198,11 +216,17 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 
 
    int aNivMin = ElMin(eQC_Coh1,eQC_GradFaibleC2);
-   if (mParam.ModeMerge() ==eMMC_Envlop)
+   if (mModeMerge ==eStatue)
    {
-      aNivMin=eQC_GradFaibleC1;
+/*
+        <eQC_GradFaibleC1 >   </eQC_GradFaibleC1>
+         <eQC_Bord >           </eQC_Bord>
+         <eQC_Coh1 >           </eQC_Coh1>
+         <eQC_GradFaibleC2 >   </eQC_GradFaibleC2>
+*/
+      aNivMin=eQC_Bord;
    }
-   if (mParam.ModeMerge() ==eMMC_QuickMac)
+   if (mModeMerge ==eQuickMac)
    {
       aNivMin=eQC_GradFaibleC2;
    }
@@ -338,16 +362,20 @@ Video_Win *  cAppliMergeCloud::TheWinIm(const cASAMG * anAS)
 
 std::string cAppliMergeCloud::NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPrefIn)
 {
-   switch (mParam.ModeMerge())
+   switch (mModeMerge)
    {
-       case eMMC_Epi :
-       case eMMC_Envlop :
-       case eMMC_QuickMac :
+       case eQuickMac :
+       case eStatue :
+       {
 
-            std::string aDirLoc = (mParam.ModeMerge()==eMMC_Epi) ? DirFusStatue() : DirFusMMInit();
+            std::string aDirLoc = (mModeMerge== eStatue) ? DirFusStatue() : DirFusMMInit();
             std::string aPref = (aPrefIn=="" )? "Depth" : aPrefIn;
             std::string PrefGlob =  DownScale ? "DownScale_NuageFusion-" : "NuageFusion-";
             return Dir() + aDirLoc   +  PrefGlob + aPref + aNameIm + aPost;
+       }
+
+       default :
+       ;
 
    }
    ELISE_ASSERT(false,"cAppliMergeCloud::NameFileInput");

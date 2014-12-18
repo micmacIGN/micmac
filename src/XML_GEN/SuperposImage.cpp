@@ -97,57 +97,6 @@ void  BinaryUnDumpFromFile(eModeBoxFusion & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eModeBoxFusion *) {return "E4601E61E16B99AAFCBF";};
 
-eModeMergeCloud  Str2eModeMergeCloud(const std::string & aName)
-{
-   if (aName=="eMMC_QuickMac")
-      return eMMC_QuickMac;
-   else if (aName=="eMMC_Envlop")
-      return eMMC_Envlop;
-   else if (aName=="eMMC_Epi")
-      return eMMC_Epi;
-  else
-  {
-      cout << aName << " is not a correct value for enum eModeMergeCloud\n" ;
-      ELISE_ASSERT(false,"XML enum value error");
-  }
-  return (eModeMergeCloud) 0;
-}
-void xml_init(eModeMergeCloud & aVal,cElXMLTree * aTree)
-{
-   aVal= Str2eModeMergeCloud(aTree->Contenu());
-}
-std::string  eToString(const eModeMergeCloud & anObj)
-{
-   if (anObj==eMMC_QuickMac)
-      return  "eMMC_QuickMac";
-   if (anObj==eMMC_Envlop)
-      return  "eMMC_Envlop";
-   if (anObj==eMMC_Epi)
-      return  "eMMC_Epi";
- std::cout << "Enum = eModeMergeCloud\n";
-   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
-   return "";
-}
-
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeMergeCloud & anObj)
-{
-      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const eModeMergeCloud & anObj)
-{
-   BinaryDumpInFile(aFp,int(anObj));
-}
-
-void  BinaryUnDumpFromFile(eModeMergeCloud & anObj,ELISE_fp & aFp)
-{
-   int aIVal;
-   BinaryUnDumpFromFile(aIVal,aFp);
-   anObj=(eModeMergeCloud) aIVal;
-}
-
-std::string  Mangling( eModeMergeCloud *) {return "80FD61C034B266C3FB3F";};
-
 eQualCloud  Str2eQualCloud(const std::string & aName)
 {
    if (aName=="eQC_Out")
@@ -16625,6 +16574,17 @@ const double & cParamAlgoFusionMNT::FMNTGammaCorrel()const
 }
 
 
+cTplValGesInit< std::string > & cParamAlgoFusionMNT::KeyPdsNuage()
+{
+   return mKeyPdsNuage;
+}
+
+const cTplValGesInit< std::string > & cParamAlgoFusionMNT::KeyPdsNuage()const 
+{
+   return mKeyPdsNuage;
+}
+
+
 double & cParamAlgoFusionMNT::SigmaPds()
 {
    return SpecAlgoFMNT().SigmaPds();
@@ -16815,6 +16775,14 @@ void  BinaryUnDumpFromFile(cParamAlgoFusionMNT & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.FMNTSeuilCorrel(),aFp);
     BinaryUnDumpFromFile(anObj.FMNTGammaCorrel(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.KeyPdsNuage().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeyPdsNuage().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeyPdsNuage().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.SpecAlgoFMNT(),aFp);
 }
 
@@ -16822,6 +16790,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cParamAlgoFusionMNT & anObj)
 {
     BinaryDumpInFile(aFp,anObj.FMNTSeuilCorrel());
     BinaryDumpInFile(aFp,anObj.FMNTGammaCorrel());
+    BinaryDumpInFile(aFp,anObj.KeyPdsNuage().IsInit());
+    if (anObj.KeyPdsNuage().IsInit()) BinaryDumpInFile(aFp,anObj.KeyPdsNuage().Val());
     BinaryDumpInFile(aFp,anObj.SpecAlgoFMNT());
 }
 
@@ -16831,6 +16801,8 @@ cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamAlgoFusionMNT",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("FMNTSeuilCorrel"),anObj.FMNTSeuilCorrel())->ReTagThis("FMNTSeuilCorrel"));
    aRes->AddFils(::ToXMLTree(std::string("FMNTGammaCorrel"),anObj.FMNTGammaCorrel())->ReTagThis("FMNTGammaCorrel"));
+   if (anObj.KeyPdsNuage().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("KeyPdsNuage"),anObj.KeyPdsNuage().Val())->ReTagThis("KeyPdsNuage"));
    aRes->AddFils(ToXMLTree(anObj.SpecAlgoFMNT())->ReTagThis("SpecAlgoFMNT"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -16846,10 +16818,12 @@ void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.FMNTGammaCorrel(),aTree->Get("FMNTGammaCorrel",1)); //tototo 
 
+   xml_init(anObj.KeyPdsNuage(),aTree->Get("KeyPdsNuage",1)); //tototo 
+
    xml_init(anObj.SpecAlgoFMNT(),aTree->Get("SpecAlgoFMNT",1)); //tototo 
 }
 
-std::string  Mangling( cParamAlgoFusionMNT *) {return "7E33E6777BC045CFFE3F";};
+std::string  Mangling( cParamAlgoFusionMNT *) {return "3F5C215C4F33F5F3FE3F";};
 
 
 cTplValGesInit< int > & cSectionGestionChantier::SzDalles()
@@ -17289,6 +17263,17 @@ const double & cParamFusionMNT::FMNTGammaCorrel()const
 }
 
 
+cTplValGesInit< std::string > & cParamFusionMNT::KeyPdsNuage()
+{
+   return ParamAlgoFusionMNT().KeyPdsNuage();
+}
+
+const cTplValGesInit< std::string > & cParamFusionMNT::KeyPdsNuage()const 
+{
+   return ParamAlgoFusionMNT().KeyPdsNuage();
+}
+
+
 double & cParamFusionMNT::SigmaPds()
 {
    return ParamAlgoFusionMNT().SpecAlgoFMNT().SigmaPds();
@@ -17694,7 +17679,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionMNT *) {return "37AB3ADAB107DCE2FE3F";};
+std::string  Mangling( cParamFusionMNT *) {return "1DD2784B68A8C8BCFE3F";};
 
 
 cTplValGesInit< Pt2di > & cPFNMiseAuPoint::SzVisu()
@@ -18368,12 +18353,12 @@ void xml_init(cPFM_Selection & anObj,cElXMLTree * aTree)
 std::string  Mangling( cPFM_Selection *) {return "BA977451F612C9E6FCBF";};
 
 
-eModeMergeCloud & cParamFusionNuage::ModeMerge()
+eTypeMMByP & cParamFusionNuage::ModeMerge()
 {
    return mModeMerge;
 }
 
-const eModeMergeCloud & cParamFusionNuage::ModeMerge()const 
+const eTypeMMByP & cParamFusionNuage::ModeMerge()const 
 {
    return mModeMerge;
 }
@@ -18719,7 +18704,7 @@ cElXMLTree * ToXMLTree(const cParamFusionNuage & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ParamFusionNuage",eXMLBranche);
-   aRes->AddFils(ToXMLTree(std::string("ModeMerge"),anObj.ModeMerge())->ReTagThis("ModeMerge"));
+   aRes->AddFils(::ToXMLTree(std::string("ModeMerge"),anObj.ModeMerge())->ReTagThis("ModeMerge"));
    aRes->AddFils(ToXMLTree(anObj.PFNMiseAuPoint())->ReTagThis("PFNMiseAuPoint"));
    aRes->AddFils(ToXMLTree(anObj.GrapheRecouvrt())->ReTagThis("GrapheRecouvrt"));
    aRes->AddFils(ToXMLTree(anObj.ImageVariations())->ReTagThis("ImageVariations"));
@@ -18745,7 +18730,7 @@ void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.PFM_Selection(),aTree->Get("PFM_Selection",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionNuage *) {return "2C7E90FA8C53A2CEFE3F";};
+std::string  Mangling( cParamFusionNuage *) {return "8CC4C5A1346255D2FE3F";};
 
 
 std::string & cCWWSIVois::NameVois()

@@ -34,12 +34,6 @@
          <eMBF_First >     </eMBF_First>
     </enum>
 
-    <enum Name="eModeMergeCloud">
-         <eMMC_QuickMac > </eMMC_QuickMac>    
-         <eMMC_Envlop >   </eMMC_Envlop>   <!-- = Quick Mac pour Epi -->
-         <eMMC_Epi >      </eMMC_Epi>
-    </enum>
-
 
     <enum Name="eQualCloud">
          <eQC_Out >            </eQC_Out>  
@@ -1135,6 +1129,8 @@
        <ParamAlgoFusionMNT Nb="1">
            <FMNTSeuilCorrel Nb="1" Type="double"> </FMNTSeuilCorrel>
            <FMNTGammaCorrel Nb="1" Type="double"> </FMNTGammaCorrel>
+           <KeyPdsNuage Nb="?" Type="std::string"> </KeyPdsNuage>
+
            <SpecAlgoFMNT Nb="1">
                 <SigmaPds  Type="double" Nb="1"> </SigmaPds>
                 <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->
@@ -1191,7 +1187,7 @@
   </ParamFusionMNT>
 
   <ParamFusionNuage  Nb="1" Class="true">
-      <ModeMerge Nb="1" Type="eModeMergeCloud"> </ModeMerge>
+      <ModeMerge Nb="1" Type="eTypeMMByP"> </ModeMerge>
       <PFNMiseAuPoint Nb="1">
             <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
             <!-- Visualise les diff de prof par couple -->

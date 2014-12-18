@@ -113,7 +113,7 @@ class cElPile : public cElPilePrgD
     public :
         cElPile (double aZ,double aPds,double aCptr= -1,const cLoadedCP<float> * aLCP = 0) :
            cElPilePrgD(aZ),
-           mP  (aPds),
+           mPdsPile  (aPds),
            mCPtr (aCptr),
            mLCP  (aLCP)
         {
@@ -121,17 +121,18 @@ class cElPile : public cElPilePrgD
 
         cElPile() :
            cElPilePrgD(),
-           mP(-1),
+           mPdsPile(-1),
            mCPtr (0),
            mLCP(0)
         {
         }
 
-        const float & P() const {return mP;}
+        void SetPdsPile(float aPds) {mPdsPile = aPds;}
+        const float & P() const {return mPdsPile;}
         const float & CPtr() const {return mCPtr;}
         const cLoadedCP<float> *  LCP() const {return mLCP; }
     private :
-        float mP;
+        float mPdsPile;
         float mCPtr;
         const cLoadedCP<float> * mLCP;
 };
@@ -242,7 +243,7 @@ template <class Type> class  cLoadedCP
         TIm2D<U_INT1,INT>  mTImCorrel;
         bool               mZIsInv;
         bool               mQualImSaved;
-
+        double             mPdsIm;
 
 };
 
@@ -649,10 +650,18 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
   mImCorrel   (1,1),
   mTImCorrel  (mImCorrel),
   mZIsInv     (false),
-  mQualImSaved (false)
-
+  mQualImSaved (false),
+  mPdsIm       (1.0)
 {
 
+
+  if (mParam.KeyPdsNuage().IsInit())
+  {
+      std::string aNamePdsIm = mICNM->Assoc1To1(mParam.KeyPdsNuage().Val(),aFus,true);
+      FromString(mPdsIm,aNamePdsIm);
+  }
+
+  std::cout << "PDSssIM " << mPdsIm << " for " << anId << "\n";
 
    if (mNuage.ModeFaisceauxImage().IsInit())
       mZIsInv = mNuage.ModeFaisceauxImage().Val().ZIsInverse();
@@ -759,7 +768,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
 template <class Type> double  cLoadedCP<Type>::PdsLinear(const Pt2dr & aPTer) const
 {
    Pt2dr aPIm = mAfM2CCur(aPTer);
-   double aPds = mTImMasq.get(round_ni(aPIm),0);
+   double aPds = mTImMasq.get(round_ni(aPIm),0) * mPdsIm ;
    if (aPds > 0)
    {
        if (mHasCorrel)
@@ -1122,10 +1131,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    }
 
 
+   // Creation de la structure de pile
 
-   // double aMul = 100.0;
-   // double aGainDef = 0.15;
-   // double aRegul = 0.5;
 
    Pt2di aQ0;
    for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
@@ -1134,24 +1141,29 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
         for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
         {
 
-           //LocBug = (aQ0.x>= 420) && (aQ0.y>= 537) && (aQ0.x<=430) && (aQ0.y<= 547); //  aPCel.size()>=4;
             Pt2dr aT0 = mAfC2MCur(Pt2dr(aQ0));
             aPCel.clear();
+            double aSomP=0;
             for (int aKI=0 ; aKI<int(mVCL.size()); aKI++)
             {
                 cElPile anEl = mVCL[aKI]->CreatePile(aT0);
                 if (anEl.P()>0)
                 {
                    aPCel.push_back(anEl);
+                   aSomP += anEl.P();
                 }
             }
+
             aTIm0.oset(aQ0,-1);
             aTImNb.oset(aQ0,0);
-   // TIm2D<INT2,INT>  aTIm0(mSzCur);
-   // TIm2D<INT2,INT>  aTImNb(mSzCur);
             bool isDebug = DebugActif && IsPBug(aQ0);
-            if (aPCel.size() >0)
+            if (aSomP>0)
             {
+                for (int aKP=0 ; aKP < int(aPCel.size()) ; aKP++)
+                {
+                    aPCel[aKP].SetPdsPile(aPCel[aKP].P() * (aPCel.size()/aSomP));
+                }
+
                 std::sort(aPCel.begin(),aPCel.end());
                 std::vector<cElPile> aVPile = ComputeExpEv(aPCel,mResolPlaniEquiAlt,mSpecA);
 
@@ -1207,6 +1219,17 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                              const cElPile& aPk = aPil[aKz];
                              aTabP[aKz].ArgAux() = cElPilePrgD(aPk.Z());
                              aTabP[aKz].SetOwnCost(ToICost(ElMax(0.0,ElMin(1.0,1.0-aPk.P()))));
+
+
+if (0)
+{
+static double MaxP=-1;
+if (aPk.P()>MaxP)
+{
+   MaxP=aPk.P();
+   std::cout << "==== MaxP " << MaxP << "\n";
+}
+}
 
                              if (isDebug)
                              {
