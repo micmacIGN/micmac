@@ -1660,19 +1660,27 @@ void cMaskedImageGL::createTexturesTiles()
         return;
     }
 
+    //cout << "scaling" << endl;
+
     //rescale du masque
-    QImage mask_fullsize = _qMaskedImage->_m_rescaled_mask->scaled(_qMaskedImage->_m_image->size(),Qt::IgnoreAspectRatio);
+    //QImage mask_fullsize = _qMaskedImage->_m_rescaled_mask->scaled(_qMaskedImage->_m_image->size(),Qt::IgnoreAspectRatio);
+
+    //cout << "fin scale" << endl;
+
+    QTransform trans;
+    trans = trans.scale(getLoadedImageRescaleFactor(),getLoadedImageRescaleFactor());
 
     // création des textures et set des positions GL
     for (int aK=0; aK < tilesToDraw.size(); ++aK)
     {
         QPointF topLeft = tilesToDraw[aK].topLeft();
 
-        //TODO: factoriser
         if (*(getTile(aK).getTexture()) == GL_INVALID_LIST_ID)
         {
+            //cout << "crop img" << endl;
             QImage crop = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
-            //crop.save("/home/mdeveau/data/crop_"+ QString::number(aK) + ".tif");
+            //cout << "fin crop" << endl;
+            //crop.save("/home/mdeveau/data/crop_"+ QString::number(aK) + ".tif");*/
 
             getTile(aK).deleteTexture();
             getTile(aK).createTexture(&crop);
@@ -1683,7 +1691,16 @@ void cMaskedImageGL::createTexturesTiles()
 
         if (*(getMaskTile(aK).getTexture()) == GL_INVALID_LIST_ID)
         {
-            QImage mask_crop = mask_fullsize.copy(tilesToDraw[aK].toAlignedRect());
+            QRectF rescaled_rect = trans.mapRect(tilesToDraw[aK]);
+            //cout << "rescaled rect = " << rescaled_rect.topLeft().x() << " " << rescaled_rect.topLeft().y() << endl;
+
+            //cout << "crop mask " <<  aK << endl;
+            //QImage mask_crop = mask_fullsize.copy(tilesToDraw[aK].toAlignedRect());
+            QImage rescaled_mask_crop = _qMaskedImage->_m_rescaled_mask->copy(rescaled_rect.toAlignedRect());
+            //cout << "fin crop mask" << endl;
+            //cout << "rescale crop mask" << endl;
+            QImage mask_crop = rescaled_mask_crop.scaled(tilesToDraw[aK].toAlignedRect().size(),Qt::IgnoreAspectRatio);
+            //cout << "fin rescale crop mask" << endl;
             //mask_crop.save("/home/mdeveau/data/mask_crop_"+ QString::number(aK) + ".tif");
 
             getMaskTile(aK).deleteTexture();

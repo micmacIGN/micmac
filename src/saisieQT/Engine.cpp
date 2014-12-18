@@ -134,7 +134,7 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> &maskedImg)
     }
     else
     {
-        cout << "No mask found: " << aNameFile.toStdString().c_str() << endl;
+        //cout << "No mask found: " << aNameFile.toStdString().c_str() << endl;
         maskedImg._m_mask = new QImage(maskedImg._m_image->size(),QImage::Format_Mono);
         *(maskedImg._m_mask) = QGLWidget::convertToGLFormat(*(maskedImg._m_mask));
         maskedImg._m_mask->fill(Qt::white);
