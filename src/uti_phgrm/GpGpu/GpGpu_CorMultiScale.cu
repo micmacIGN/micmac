@@ -72,6 +72,11 @@ inline    texture< pixel,cudaTextureType2D>  getMask(ushort iDi)
     return iDi == 0 ? Texture_Masq_Erod_00 : Texture_Masq_Erod_01;
 }
 
+inline __device__ int dElise_div(int a,int b)
+{
+       int res = a / b;
+       return res - ((res * b) > a);
+}
 
 __device__
 inline    bool IsOkErod(uint3 pt)
@@ -108,89 +113,6 @@ template<class T>
 __device__ float getValImage(T pt,ushort iDi,ushort nScale)
 {
     return tex2DLayered(getTexture(iDi),(float)pt.x + 0.5f,(float)pt.y + 0.5f ,nScale);
-}
-
-// calcul rapide de la correlation multi-echelles centre sur une vignette
-__device__
-inline    float Quick_MS_CorrelBasic_Center(
-
-    const uint2 & aPG0,
-    const uint2 & aPG1,
-
-//    float ***  aSom1,
-//    float ***  aSom11,
-//    float ***  aSom2,
-//    float ***  aSom22,
-    float*  aSom1,
-    float*  aSom11,
-    float*  aSom2,
-    float*  aSom22,
-    int     aPx2,
-    bool    ModeMax,
-    ushort  aPhase)
-{
-    float aMaxCor = -1;
-    float aCovGlob = 0;
-    float aPdsGlob = 0;
-
-    const float2 aPG1_x2 = make_float2(aPG1.x + aPx2,aPG1.y);
-
-    int aNbScale = cstP_CorMS.aNbScale;
-    for (int aKS=0 ; aKS< aNbScale ; aKS++)
-    {
-         bool   aLast   = (aKS==(aNbScale-1));
-         short2*aVP     = cstP_CorMS.aVV[aKS];
-         float  aPds    = cstP_CorMS.aVPds[aKS];
-         float  aCov    = 0;
-         ushort aNbP    = cstP_CorMS.size_aVV[aKS];
-
-//         float ** anIm1= aVBOI1[aKS]->data();
-//         float ** anIm2= aVBOI2[aKS]->data();
-
-         aPdsGlob += aPds * aNbP;
-         for (int aKP=0 ; aKP<aNbP ; aKP++)
-         {
-             const short2 aP = aVP[aKP];
-
-             const float valima_0 = getValImage(aPG0 + aP,0,aKS);
-             const float valima_1 = getValImage(aPG1_x2 + aP,1,aKS); // ATTENTION LE PAS SUB PIXELAIRE !!!
-
-             aCov += valima_0*valima_1;
-             //aCov += anIm1[aP.y][aP.x]*anIm2[aP.y][aP.x+aPx2];
-         }
-
-         aCovGlob += aCov * aPds;
-
-         if (ModeMax || aLast)
-         {
-//             float aM1  = aSom1 [aKS][aPG0.y][aPG0.x];
-//             float aM2  = aSom2 [aKS][aPG1.y][aPG1.x];
-//             float aM11 = aSom11[aKS][aPG0.y][aPG0.x] - aM1*aM1;
-//             float aM22 = aSom22[aKS][aPG1.y][aPG1.x] - aM2*aM2;
-
-             const uint3 pt0    =   make_uint3(aPG0.x,aPG0.y,aKS);
-             const uint3 pt1    =   make_uint3(aPG1_x2.x,aPG1_x2.y,aKS + aNbScale*aPhase);
-             const uint3 dim    =   make_uint3(cstP_CorMS._dimTerrain.x,cstP_CorMS._dimTerrain.x,1);
-
-             const float aM1    =   aSom1 [to1D(pt0,dim)];
-             const float aM2    =   aSom2 [to1D(pt1,dim)];
-
-             const float aM11   =   aSom11[to1D(pt0,dim)] - aM1*aM1;
-             const float aM22   =   aSom22[to1D(pt1,dim)] - aM2*aM2;
-
-             const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
-
-             if (ModeMax)
-             {
-                float aCor = (aM12 * abs(aM12)) /max(cstP_CorMS.anEpsilon,aM11*aM22);
-                aMaxCor = max(aMaxCor,aCor);
-             }
-             else
-                return aM12 / sqrt(max(cstP_CorMS.anEpsilon,aM11*aM22));
-        }
-
-    }
-    return (aMaxCor > 0) ? sqrt(aMaxCor) : - sqrt(-aMaxCor) ;
 }
 
 __global__
@@ -231,6 +153,7 @@ extern "C" void LaunchKernelCorrelationMultiScalePreview(dataCorrelMS &data,cons
     GpGpuTools::Array1DtoImageFile(hData.pLData(1)  ,"ET_HOP_1.pmg",hData.GetDimension());
 }
 
+//  pre-calcul pour la correlation multi echelle et mise en cache dans mSom et mSomSqr
 __global__
 void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* mSom, float* mSomSqr)
 {
@@ -288,10 +211,83 @@ void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* 
 
     }
 }
-inline __device__ int dElise_div(int a,int b)
+
+
+// calcul rapide de la correlation multi-echelles centre sur une vignette
+__device__
+inline    float Quick_MS_CorrelBasic_Center(
+
+    const uint2 & aPG0,
+    const uint2 & aPG1,
+
+//    float ***  aSom1,
+//    float ***  aSom11,
+//    float ***  aSom2,
+//    float ***  aSom22,
+    float*  aSom1,
+    float*  aSom11,
+    float*  aSom2,
+    float*  aSom22,
+    int     aPx2,
+    bool    ModeMax,
+    ushort  aPhase)
 {
-       int res = a / b;
-       return res - ((res * b) > a);
+    float aMaxCor = -1;
+    float aCovGlob = 0;
+    float aPdsGlob = 0;
+
+
+    // pt float dans l'image 1
+    const float2      aFPIm1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + aPx2)+  aPG1;
+
+
+    int aNbScale = cstP_CorMS.aNbScale;
+    for (int aKS=0 ; aKS< aNbScale ; aKS++)
+    {
+         bool   aLast   = (aKS==(aNbScale-1));
+         short2*aVP     = cstP_CorMS.aVV[aKS];
+         float  aPds    = cstP_CorMS.aVPds[aKS];
+         float  aCov    = 0;
+         ushort aNbP    = cstP_CorMS.size_aVV[aKS];
+
+         aPdsGlob += aPds * aNbP;
+         for (int aKP=0 ; aKP<aNbP ; aKP++)
+         {
+             const short2 aP = aVP[aKP];
+
+             const float valima_0 = getValImage(aPG0    + aP,0,aKS);
+             const float valima_1 = getValImage(aFPIm1  + aP,1,aKS);
+
+             aCov += valima_0*valima_1;
+         }
+
+         aCovGlob += aCov * aPds;
+
+         if (ModeMax || aLast)
+         {
+             const uint3 pt0    =   make_uint3(aPG0.x,aPG0.y,aKS);
+             const uint3 pt1    =   make_uint3(aFPIm1.x,aFPIm1.y,aKS + aNbScale*aPhase);
+             const uint3 dim    =   make_uint3(cstP_CorMS._dimTerrain.x,cstP_CorMS._dimTerrain.x,1);
+
+             const float aM1    =   aSom1 [to1D(pt0,dim)];
+             const float aM2    =   aSom2 [to1D(pt1,dim)];
+
+             const float aM11   =   aSom11[to1D(pt0,dim)] - aM1*aM1;
+             const float aM22   =   aSom22[to1D(pt1,dim)] - aM2*aM2;
+
+             const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
+
+             if (ModeMax)
+             {
+                float aCor = (aM12 * abs(aM12)) /max(cstP_CorMS.anEpsilon,aM11*aM22);
+                aMaxCor = max(aMaxCor,aCor);
+             }
+             else
+                return aM12 / sqrt(max(cstP_CorMS.anEpsilon,aM11*aM22));
+        }
+
+    }
+    return (aMaxCor > 0) ? sqrt(aMaxCor) : - sqrt(-aMaxCor) ;
 }
 
 __global__
@@ -351,9 +347,6 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         const   uint2     aIm1SsPx    =   an + cstP_CorMS.anOff1;
         //      pt int dans l'image 1
         const   uint2     aPIm1       =   aIm1SsPx + ui2X(anOffset);
-        // pt float dans l'image 1
-        //const float2      aFPIm1      =   f2X(cstP_CorMS.aStepPix*aPhase)+  aPIm1;
-
 
         if (IsOkErod(aPIm1,1))
         {
@@ -386,13 +379,8 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
             _cost = 1.f-aCost;
 
-        }
-        else return;
+        }   
     }
-//    else
-//        return;
-//    }
-
 }
 
 extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &parCMS)
