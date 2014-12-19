@@ -59,6 +59,7 @@
     <Symb> FileMasq3D=XXXX  </Symb>
     <Symb> ZPasCalc=0.5  </Symb>
 
+    <eSymb> SzDalleMin= ?  ${MPD_MM} 200 20000 </eSymb>
 </DicoLoc>
 
 <Section_Terrain>  
@@ -328,7 +329,7 @@
      <TmpResult> ${DirMEC}/  </TmpResult>
      <TmpPyr>    Pyram/  </TmpPyr>
      <ByProcess> 1 </ByProcess>
-     <SzDalleMin> 20000 </SzDalleMin>
+     <SzDalleMin> ${SzDalleMin} </SzDalleMin>
      <PurgeMECResultBefore>  true </PurgeMECResultBefore>
      <DeZoomDefMinFileAux> 8 </DeZoomDefMinFileAux>
 
