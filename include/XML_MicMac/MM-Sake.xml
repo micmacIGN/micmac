@@ -191,7 +191,7 @@
             <DirOrtho> ${DirOrtho} </DirOrtho>
             <MakeMTDMaskOrtho>
               <Mesures>
-                <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbSteps}.tif   </NameFile>
+                <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbStepsQ}.tif   </NameFile>
                 <NameMTD>  ../${DirMEC}Z_Num${NbStepsQ}_DeZoom${ZoomF}_LeChantier.xml  </NameMTD>
               </Mesures>
             </MakeMTDMaskOrtho>
