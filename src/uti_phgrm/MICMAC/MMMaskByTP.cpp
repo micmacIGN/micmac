@@ -651,6 +651,8 @@ void cMMTP::ContAndBoucheTrou()
     // Au cas ou on ferait un export premature
     ELISE_COPY(mImMasqFinal.all_pts(),mImLabel.in()!=0,mImMasqFinal.out());
 
+    int aSomMaskF;
+    ELISE_COPY(mImMasqFinal.all_pts(),mImLabel.in()!=1,sigma(aSomMaskF));
    // 2- Dequantifiication, adaptee au image a trou
 
        Im2D_REAL4 aProfCont(mSzTiep.x,mSzTiep.y,0.0);
