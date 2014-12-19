@@ -1379,15 +1379,16 @@ const GLuint GL_INVALID_LIST_ID = (~0);
 
 cImageGL::cImageGL(float scaleFactor,float gamma) :
     _scaleFactor(scaleFactor),
-    _originX(0.f),
-    _originY(0.f),
     _texture(GL_INVALID_LIST_ID),
     _gamma(gamma)
 {
+
+
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
 
+    setPosition(Pt3dr(0,0,0));
     _texLocation   = _program.uniformLocation("tex");
     _gammaLocation = _program.uniformLocation("gamma");
 }
@@ -1403,7 +1404,7 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-    drawQuad(_originX, _originY, width(), height(), color);
+    drawQuad(getPosition().x, getPosition().y, width(), height(), color);
 }
 
 void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
@@ -1445,11 +1446,6 @@ void cImageGL::draw()
     glDisable(GL_TEXTURE_2D);
 }
 
-void cImageGL::setGLPosition(GLfloat originX, GLfloat originY)
-{
-    _originX = originX;
-    _originY = originY;
-}
 
 void cImageGL::setSize(QSize size)
 {
@@ -1458,7 +1454,8 @@ void cImageGL::setSize(QSize size)
 
 void cImageGL::draw(QColor color)
 {
-    drawQuad(color);
+    if(isVisible())
+        drawQuad(color);
 }
 
 bool cImageGL::isPtInside(const QPointF &pt)
@@ -1548,6 +1545,15 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _m_image    = new cImageGL(_loadedImageRescaleFactor,qMaskedImage->_gamma);
     _m_newMask  = qMaskedImage->_m_newMask;
 
+     _mask_tiles = new cImageGL[4];
+     _tiles      = new cImageGL[4];
+
+     for (int aK = 0; aK < 4; ++aK)
+     {
+         _tiles->setVisible(false);
+         _mask_tiles->setVisible(false);
+     }
+
     _m_FileOriMnt = qMaskedImage->_m_FileOriMnt;
 
     cObjectGL::setName(qMaskedImage->name());
@@ -1588,42 +1594,35 @@ void cMaskedImageGL::draw()
 
 void cMaskedImageGL::drawTiles(cImageGL* tiles)
 {
-    if (tiles == NULL) cout << "tiles null" << endl;
-    else
     for (int aK = 0; aK < 4; ++aK)
-       if (tiles[aK].isVisible()) tiles[aK].draw();//*/
+    {
+        if (tiles[aK].isVisible())
+        {
+            if(*(tiles[aK].getTexture() )==  GL_INVALID_LIST_ID)
+                tiles[aK].draw(Qt::red);
+            else
+                tiles[aK].draw();
+        }
+    }
 
-    /*{
-        tiles[0].draw(Qt::red);
-        tiles[1].draw(Qt::blue);
-        //tiles[2].draw(Qt::green);
-        //tiles[3].draw(Qt::yellow);
-    }//*/
+//    {
+//        tiles[0].draw(Qt::red);
+//        tiles[1].draw(Qt::blue);
+//        tiles[2].draw(Qt::green);
+//        tiles[3].draw(Qt::yellow);
+//    }
 }
 
 QSize cMaskedImageGL::getTilesSize()
 {
-//    QPoint nbFen = (1,1); //_params->getNbFen();
 
-    //cout << "nbFen : " << nbFen.x() << " " << nbFen.y() << endl;
-
+    // fait uniquement à la construction
     int maxTextureSize;
-
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-
     maxTextureSize /= 2;
-    //maxTextureSize /= 16;  //!!!!!!!!!!!!!!!
-
-//    int maxTileSizeX = maxTextureSize / (2 * nbFen.x());
-//    int maxTileSizeY = maxTextureSize / (2 * nbFen.y());
-
-//    cout << "maxTileSize : " << maxTileSizeX << " " << maxTileSizeY << endl;
 
     int fullRes_image_sizeX = _m_image->width();
     int fullRes_image_sizeY = _m_image->height();
-
-//    cout << " fullRes_image_size " << fullRes_image_sizeX << " " << fullRes_image_sizeY << endl;
-
     int nbTilesX = qCeil((float) fullRes_image_sizeX / maxTextureSize);
     int nbTilesY = qCeil((float) fullRes_image_sizeY / maxTextureSize);
 
@@ -1643,8 +1642,6 @@ QSize cMaskedImageGL::getTilesSize()
 
 void cMaskedImageGL::createTexturesTiles()
 {
-    //on cherche seulement les tuiles intersectées et on crée les textures pour ces tuiles
-
     //recherche des tuiles intersectées
     QVector <QRectF> tilesToDraw;
     for (int aK=0; aK< _vTilesRect.size(); aK++)
@@ -1653,22 +1650,20 @@ void cMaskedImageGL::createTexturesTiles()
             tilesToDraw.push_back(_vTilesRect[aK]);
     }
 
-
-
     // création des textures et set des positions GL
     for (int aK=0; aK < tilesToDraw.size(); ++aK)
     {
         QPointF topLeft = tilesToDraw[aK].topLeft();
 
+        if (*(getTile(aK).getTexture()) == GL_INVALID_LIST_ID)
         {
-            //cout << "crop img" << endl;
+            cout << "crop img = id Tiles : "  << aK << endl;
             QImage crop = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
             //cout << "fin crop" << endl;
             //crop.save("/home/mdeveau/data/crop_"+ QString::number(aK) + ".tif");*/
             getTile(aK).createTexture(&crop);
             getTile(aK).setVisible(true);
-
-            getTile(aK).setGLPosition(topLeft.x(), topLeft.y());
+            getTile(aK).setPosition(Pt3dr(topLeft.x(), topLeft.y(),0));
         }
 
         /*if (*(getMaskTile(aK).getTexture()) == GL_INVALID_LIST_ID)
@@ -1693,7 +1688,17 @@ void cMaskedImageGL::createTexturesTiles()
 
             getMaskTile(aK).setGLPosition(topLeft.x(), topLeft.y());
         }*/
+
     }
+
+    for (int aK=tilesToDraw.size(); aK < 4; ++aK)
+    {
+        //cout << "invisible id Tiles : "  << aK << endl;
+        getTile(aK).setVisible(false);
+    }
+
+    cout << "------------------------------------------------------------------"<< endl;
+
 
     _bDrawTiles = true;
 }
@@ -1705,6 +1710,7 @@ void cMaskedImageGL::deleteTexturesTiles()
     for (int aK=0; aK <4; ++aK)
     {
         getTile(aK).deleteTexture();
+        getTile(aK).setVisible(false);
     }
 }
 
@@ -1731,10 +1737,7 @@ void cMaskedImageGL::createTextures()
         for (int aK = 0; aK < 4; aK++)
         {
             getTile(aK).setSize(tileSize);
-            getTile(aK).setVisible(false);
-
             getMaskTile(aK).setSize(tileSize);
-            getMaskTile(aK).setVisible(false);
         }
     }
 }
@@ -1755,20 +1758,12 @@ void cMaskedImageGL::setZone(float aZoom, QRectF rectImage)
 
 cImageGL &cMaskedImageGL::getTile(int aK)
 {
-    if (_tiles)
-        return _tiles[aK];
-
-    _tiles = new cImageGL[4];
-    return _tiles[aK];
+   return _tiles[aK];
 }
 
 cImageGL &cMaskedImageGL::getMaskTile(int aK)
 {
-    if (_mask_tiles)
-        return _mask_tiles[aK];
-
-    _mask_tiles = new cImageGL[4];
-    return _mask_tiles[aK];
+   return _mask_tiles[aK];
 }
 
 void cMaskedImageGL::deleteTextures()

@@ -475,9 +475,6 @@ class cImageGL : public cObjectGL
 
         void    draw();
 
-        void    setGLPosition(GLfloat originX, GLfloat originY);
-        GLfloat getGLPositionX(){ return _originX; }
-        GLfloat getGLPositionY(){ return _originY; }
         void    setSize(QSize size);
 
         void    createTexture(QImage *pImg);
@@ -515,9 +512,6 @@ private:
         int     _texLocation;
         int     _gammaLocation;
 
-        GLfloat _originX;
-        GLfloat _originY;
-
         QSize   _size;
 
         //! Texture image
@@ -543,7 +537,9 @@ public:
     {}
 
     ~cMaskedImage()
-    {}
+    {
+        deallocImages();
+    }
 
     void deallocImages()
     {
@@ -583,6 +579,7 @@ public:
 
 };
 
+
 class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 {
 
@@ -592,9 +589,22 @@ public:
         _qMaskedImage(NULL),
         _tiles(NULL),
         _mask_tiles(NULL),
-        _bDrawTiles(false){}
+        _bDrawTiles(false)
+    {
+//        _mask_tiles = new cImageGL[4];
+//        _tiles      = new cImageGL[4];
+    }
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
+
+    ~cMaskedImageGL()
+    {
+        if(_tiles)
+            delete [] _tiles;
+
+        if(_mask_tiles)
+            delete [] _mask_tiles;
+    }
 
     /*void setScale(Pt3dr aScale)
     {
