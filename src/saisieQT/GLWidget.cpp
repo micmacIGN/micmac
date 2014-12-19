@@ -156,6 +156,8 @@ void GLWidget::paintGL()
     {
         _matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,getZoom());
 
+        checkTiles();
+
         m_GLData->draw();
 
         overlay();
@@ -337,18 +339,26 @@ void GLWidget::setParams(cParameters* aParams)
         polygon()->setParams(aParams);
 }
 
-void GLWidget::checkTiles(float aZoom)
+void GLWidget::checkTiles()
 {
     if (imageLoaded())
     {
         float rescaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
 
-        if (rescaleFactor < 1.f)
+        if (rescaleFactor < 1.f) //est-on en mode sous-ech ?
         {
-            if(aZoom > rescaleFactor)
+            float zoom = getZoom();
 
-                getGLData()->glImage().setZone(aZoom, viewportToImageProjection());
+            if(zoom > rescaleFactor) //affiche-t-on les tuiles ?
+            {
+                QPointF c0(0.f,0.f);
+                QPointF c3((float)vpWidth(),(float) vpHeight());
 
+                QRectF rect( _matrixManager.WindowToImage(c0, zoom) ,
+                             _matrixManager.WindowToImage(c3, zoom) );
+
+                getGLData()->glImage().setZone(zoom, rect);
+            }
             else
 
                 getGLData()->glImage().deleteTexturesTiles();
@@ -366,8 +376,6 @@ void GLWidget::setZoom(float val)
 
     if(imageLoaded() && _messageManager.drawMessages())
         _messageManager.GetLastMessage()->message = QString::number(getZoom()*100,'f',1) + "%";
-
-    checkTiles(val);
 
     update();
 }
@@ -739,8 +747,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                         QPointF dp = m_bDisplayMode2D ? pos - m_lastPosImage : _matrixManager.screen2TransABall(dPWin);
                         _matrixManager.translate(dp.x(),dp.y(),0.0);
-
-                        checkTiles(getZoom());
                     }
                 }
                 else if (event->buttons() == Qt::RightButton)           // ROTATION Z
@@ -1012,24 +1018,5 @@ void GLWidget::dropEvent(QDropEvent *event)
     }
 
     event->ignore();
-}
-
-QRectF GLWidget::viewportToImageProjection()
-{
-    QRectF rect;
-
-    float zoom = getZoom();
-
-    QPointF c0(0.f,0.f);
-    QPointF c1(0.f,(float)vpHeight());
-    QPointF c2((float)vpWidth(), 0.f);
-    QPointF c3((float)vpWidth(),(float) vpHeight());
-
-    rect.setTopLeft    ( _matrixManager.WindowToImage(c0, zoom) );
-    rect.setBottomLeft ( _matrixManager.WindowToImage(c1, zoom) );
-    rect.setTopRight   ( _matrixManager.WindowToImage(c2, zoom) );
-    rect.setBottomRight( _matrixManager.WindowToImage(c3, zoom) );
-
-    return rect;
 }
 
