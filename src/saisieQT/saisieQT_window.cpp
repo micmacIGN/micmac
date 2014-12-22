@@ -1384,8 +1384,8 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
             {
                 int imHeight = glW->getGLData()->glImage()._m_image->height();
 
+                //text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
-                //text = QString(text + QString::number(glW->getZoom()*glW->getGLData()->glImage().getLoadedImageRescaleFactor(),'f',3) );
             }
     }
 

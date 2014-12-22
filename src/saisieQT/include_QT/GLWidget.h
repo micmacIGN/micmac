@@ -90,9 +90,7 @@ public:
 
     int  getWindowMeanValue(QPoint pos, int r = 7); //pos = image position, r = half size of window
 
-    QRectF viewportToImageProjection();
-
-    void checkTiles(float aZoom); //compute tiles if needed
+    void checkTiles(); //compute tiles if needed
 
 public slots:
 

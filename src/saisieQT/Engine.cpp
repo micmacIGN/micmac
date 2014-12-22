@@ -19,15 +19,25 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 
 void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 {
-    //QTime *chronometre = new QTime(0,0,0,0) ;
-    //chronometre->start();
+//    QTime *chro = new QTime(0,0,0,0) ;
+//    chro->start();
+//    QSize Asize(29566/4, 14321/2);
+//    qDebug() << chro->elapsed() << " begin";
 
     QImageReader *reader = new QImageReader(aNameFile);
-    maskedImg._m_image = new QImage(reader->size(), QImage::Format_RGB888);
+
+//    reader->setClipRect(QRect(QPoint(0,0),Asize));
+
+//    qDebug() << chro->elapsed() << reader->size();
+
+//    qDebug() << chro->elapsed() << " start read";
+
+    maskedImg._m_image = new QImage(reader->size(),reader->imageFormat());
+
     if (!reader->read(maskedImg._m_image));
         maskedImg._m_image = new QImage( aNameFile );
 
-    //cout << "chrono = " << chronometre->elapsed() << endl;
+//    qDebug() << chro->elapsed() << " end read";
 
     // TODO: message d'erreur (non bloquant)
     // foo: Can not read scanlines from a tiled image.
