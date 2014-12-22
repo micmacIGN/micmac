@@ -1657,7 +1657,10 @@ void cEtapeMecComp::SauvProjImage
           while (Cont)
           {
               if (ELISE_fp::exist_file(aNameTest))
+              {
                  Cont = false;
+                 SleepProcess(0.1);
+              }
               else
                  SleepProcess(1);
           }

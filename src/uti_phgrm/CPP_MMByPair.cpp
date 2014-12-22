@@ -126,9 +126,6 @@ class cAppliMMByPair : public cAppliWithSetImage
       eTypeQuality mQualOr;
       bool         mHasVeget;
       bool         mSkyBackGround;
-      bool         mDoPlyMM1P;
-      double       mScalePlyMM1P;
-      double       mScalePlyFus;
       bool         mDoOMF;
       bool         mRIEInParal;  // Pour debuguer en l'inhibant,
       bool         mRIE2Do;      // Do Reech Inv Epip
@@ -1042,9 +1039,6 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mStrQualOr    ("Low"),
     mHasVeget     (false),
     mSkyBackGround(true),
-    mDoPlyMM1P    (false),
-    mScalePlyMM1P (3),
-    mScalePlyFus  (-1),
     mDoOMF        (false),
     mRIEInParal   (true),
     mRIE2Do       (true),
@@ -1123,9 +1117,6 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mBoxOfImage,"BoxOfIm",true,"Associated to ImOfBox, def = full")
                     << EAM(mParalMMIndiv,"ParMMI",true,"If true each MM if // (\" expert\" option, Def=false currently)")
                     << EAM(mStrQualOr,"QualOr",true,"Quality orient (in High, Average, Low, Def= Low with statue)",eSAM_None,ListOfVal(eNbTypeQual,"eQual_"))
-                    << EAM(mDoPlyMM1P,"DoPlyMM1P",true,"Do ply after MM1P, def=false")
-                    << EAM(mScalePlyMM1P,"ScalePlyMM1P",true,"Down Scale of ply after MM1P Def=3")
-                    << EAM(mScalePlyFus,"ScalePlyFus",true,"Down Scale of ply after Fus, Def=-1 (<0 if unused)")
                     << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mTimes,"TimesExe",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip", eSAM_InternalUse)
@@ -1333,8 +1324,6 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
        aMatchCom = aMatchCom + " RIE=true ";
      }
 
-      if (mDoPlyMM1P)
-         aMatchCom = aMatchCom + " DoPly=true " + " ScalePly="  + ToString(mScalePlyMM1P) + " " ;
 
      if (mDoOMF)
         aMatchCom = aMatchCom + " DoOMF=true";
@@ -1499,6 +1488,7 @@ void cAppliMMByPair::DoFusionGround()
 
 void cAppliMMByPair::DoFusionStatue()
 {
+   cMMByImNM * aMMIN = cMMByImNM::ForGlobMerge(Dir(),1.0,"Statue");
    // Merge Depth Map 
    if (1)
    {
@@ -1508,12 +1498,13 @@ void cAppliMMByPair::DoFusionStatue()
             std::string aNameIm = (*anITS).attr().mIma->mNameIm;
             std::string aCom =      MMBinFile(MM3DStr) + " MergeDepthMap "
                              +   BLANK +  XML_MM_File("Fusion-MMByP-Statute.xml")
-                             + "WorkDirPFM=" + DirMTDImage(*anITS)
+                             + " WorkDirPFM=" + DirMTDImage(*anITS)
                              + " +ImMaster=" + aNameIm
+                             + " +Target=" + aMMIN->NameFileXml(eTMIN_Depth,aNameIm)
                            ;
 
             aLCom.push_back(aCom);
-            std::cout << aCom << "\n";
+            // std::cout << aCom << "\n";
 
        }
        cEl_GPAO::DoComInParal(aLCom);
@@ -1523,6 +1514,7 @@ void cAppliMMByPair::DoFusionStatue()
        for(int aK=0 ; aK<20 ; aK++) std::cout << "SKIPP (tmp) MergeDepthMap , enter to go on\n";
        getchar();
    }
+
 
    // Calcul d'une enveloppe qui tienne compte de MergeDepthMap
    {
@@ -1540,29 +1532,9 @@ void cAppliMMByPair::DoFusionStatue()
 
 
 
-
-   if (EAMIsInit(&mScalePlyFus) && (mScalePlyFus > 0))
-   {
-
-       std::list<std::string> aLComPly;
-       for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
-       {
-            std::string aNameIm = (*anITS).attr().mIma->mNameIm;
-
-            std::string aCom =      MMBinFile(MM3DStr) + " Nuage2Ply "
-                               + DirMTDImage(*anITS) + "Fusion_"+ aNameIm   + ".xml"
-                               + " Attr=" +   mEASF.mDir+aNameIm
-                               + " Scale=" + ToString(mScalePlyFus)
-                               + " Out=" + DirMTDImage(*anITS) + "Fus"+ aNameIm  + ".ply"
-                               +  " SeuilMask=" + ToString(DynCptrFusDepthMap*1.99)
-                               +  " Mask=" + DirMTDImage(*anITS) +"Fusion_NuageImProf_LeChantier_Etape_1_Cptr.tif"
-                           ;
-             aLComPly.push_back(aCom);
-             std::cout << aCom << "\n";
-       }
-       // if (Test) getchar();
-       cEl_GPAO::DoComInParal(aLComPly);
-   }
+if (0)
+{
+   // C'est ce qui concerne la reduction des nuage et images de qualite, pour l'instant pas maintenu ....
 
    double aFactRed = 2.0;
    {
@@ -1601,6 +1573,7 @@ void cAppliMMByPair::DoFusionStatue()
        }
        cEl_GPAO::DoComInParal(aLComRed);
    }
+}
 
 
 
@@ -1651,6 +1624,9 @@ void cAppliMMByPair::DoMDTRIE(bool ForTieP)
                                 +  " +PattVois=" +  PatternOfVois(*anITS,true)  + BLANK
                            ;
              if (ForTieP) aCom = aCom + " +PrefixDIR=" + TheDIRMergeEPI();
+
+// std::cout << aCom << "\n";
+
              System(aCom);
    }
 }

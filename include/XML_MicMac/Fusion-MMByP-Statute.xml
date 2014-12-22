@@ -15,10 +15,14 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
     <DicoLoc>
 
       <Symb> ImMaster=XXXXX </Symb>
+      <Symb> EnteteNuEpi=Nuage- </Symb>
+      <Symb> EnteteNuQM=QMNuage-Depth- </Symb>
 
+      <!-- <Symb> Target=/home/marc/TMP/EPI/EXO1-Fontaine/Fusion-Statue/titi${ImMaster}.xml </Symb> -->
+      <Symb> Target=AAAA  </Symb>
       <KeyedSetsOfNames >
           <Sets>
-                 <PatternAccepteur>   (Nuage-.*.xml)|(QMNuage-Depth.xml)  </PatternAccepteur>
+                 <PatternAccepteur>   (${EnteteNuEpi}|${EnteteNuQM}).*.xml </PatternAccepteur>
           </Sets>
           <Key> Loc-SetInput </Key>
     </KeyedSetsOfNames>
@@ -27,14 +31,14 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
            <Calcs>
                 <Arrite>  1 1 </Arrite>
                 <Direct>
-                    <PatternTransform> Nuage-.*.xml </PatternTransform>
+                    <PatternTransform> ${EnteteNuEpi}.*.xml </PatternTransform>
                     <CalcName> 1.0  </CalcName>
                  </Direct>
            </Calcs>
            <Calcs>
                 <Arrite>  1 1 </Arrite>
                 <Direct>
-                    <PatternTransform> QMNuage-Depth.xml </PatternTransform>
+                    <PatternTransform> ${EnteteNuQM}.*.xml </PatternTransform>
                     <CalcName> 0.2  </CalcName>
                  </Direct>
            </Calcs>
@@ -61,15 +65,15 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
            <Calcs>
                 <Arrite>  1 1 </Arrite>
                 <Direct>
-                    <PatternTransform> Nuage-(.*)\.xml </PatternTransform>
+                    <PatternTransform> ${EnteteNuEpi}(.*)\.xml </PatternTransform>
                     <CalcName> $1  </CalcName>
                  </Direct>
            </Calcs>
            <Calcs>
                 <Arrite>  1 1 </Arrite>
                 <Direct>
-                    <PatternTransform>   QMNuage-Depth.xml </PatternTransform>
-                    <CalcName> ${ImMaster}  </CalcName>
+                    <PatternTransform>   ${EnteteNuQM}(.*).xml </PatternTransform>
+                    <CalcName> $1  </CalcName>
                  </Direct>
            </Calcs>
            <Key>  Loc-Assoc-Nuage2Im </Key>
@@ -81,7 +85,7 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
                 <Arrite>  2 1 </Arrite>
                 <Direct>
                     <PatternTransform> (.*) </PatternTransform>
-                    <CalcName> Fusion_${ImMaster}.xml  </CalcName>
+                    <CalcName> ${Target}  </CalcName>
                  </Direct>
            </Calcs>
            <Key>  Loc-Assoc-Im2NuageFusionne </Key>
@@ -94,6 +98,7 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
 
         <KeyNuage> Loc-Assoc-CplIm2Nuage </KeyNuage>  
         <KeyResult> Loc-Assoc-Im2NuageFusionne </KeyResult> <!-- NKS-Assoc-Cste@MaSortie.xml -->
+        <KeyResultIsLoc> false </KeyResultIsLoc>
 
 <!--
         <KeyResult> NKS-Assoc-Cste@FusionZ2 </KeyResult>

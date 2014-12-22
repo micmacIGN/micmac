@@ -15636,6 +15636,17 @@ const std::string & cSectionName::KeyResult()const
 }
 
 
+cTplValGesInit< bool > & cSectionName::KeyResultIsLoc()
+{
+   return mKeyResultIsLoc;
+}
+
+const cTplValGesInit< bool > & cSectionName::KeyResultIsLoc()const 
+{
+   return mKeyResultIsLoc;
+}
+
+
 cTplValGesInit< std::string > & cSectionName::ModeleNuageResult()
 {
    return mModeleNuageResult;
@@ -15664,6 +15675,14 @@ void  BinaryUnDumpFromFile(cSectionName & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.KeyResultIsLoc().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeyResultIsLoc().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeyResultIsLoc().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.ModeleNuageResult().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.ModeleNuageResult().ValForcedForUnUmp(),aFp);
         }
@@ -15683,6 +15702,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionName & anObj)
 {
     BinaryDumpInFile(aFp,anObj.KeyNuage());
     BinaryDumpInFile(aFp,anObj.KeyResult());
+    BinaryDumpInFile(aFp,anObj.KeyResultIsLoc().IsInit());
+    if (anObj.KeyResultIsLoc().IsInit()) BinaryDumpInFile(aFp,anObj.KeyResultIsLoc().Val());
     BinaryDumpInFile(aFp,anObj.ModeleNuageResult().IsInit());
     if (anObj.ModeleNuageResult().IsInit()) BinaryDumpInFile(aFp,anObj.ModeleNuageResult().Val());
     BinaryDumpInFile(aFp,anObj.KeyNuage2Im().IsInit());
@@ -15695,6 +15716,8 @@ cElXMLTree * ToXMLTree(const cSectionName & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionName",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("KeyNuage"),anObj.KeyNuage())->ReTagThis("KeyNuage"));
    aRes->AddFils(::ToXMLTree(std::string("KeyResult"),anObj.KeyResult())->ReTagThis("KeyResult"));
+   if (anObj.KeyResultIsLoc().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("KeyResultIsLoc"),anObj.KeyResultIsLoc().Val())->ReTagThis("KeyResultIsLoc"));
    if (anObj.ModeleNuageResult().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ModeleNuageResult"),anObj.ModeleNuageResult().Val())->ReTagThis("ModeleNuageResult"));
    if (anObj.KeyNuage2Im().IsInit())
@@ -15713,12 +15736,14 @@ void xml_init(cSectionName & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.KeyResult(),aTree->Get("KeyResult",1)); //tototo 
 
+   xml_init(anObj.KeyResultIsLoc(),aTree->Get("KeyResultIsLoc",1),bool(true)); //tototo 
+
    xml_init(anObj.ModeleNuageResult(),aTree->Get("ModeleNuageResult",1)); //tototo 
 
    xml_init(anObj.KeyNuage2Im(),aTree->Get("KeyNuage2Im",1),std::string("NKS-Assoc-Prefix")); //tototo 
 }
 
-std::string  Mangling( cSectionName *) {return "D9BA37B7C9D203AFFDBF";};
+std::string  Mangling( cSectionName *) {return "6C2F9B1388767BFBFBBF";};
 
 
 cTplValGesInit< bool > & cScoreMM1P::MakeFileResult()
@@ -17109,6 +17134,17 @@ const std::string & cParamFusionMNT::KeyResult()const
 }
 
 
+cTplValGesInit< bool > & cParamFusionMNT::KeyResultIsLoc()
+{
+   return SectionName().KeyResultIsLoc();
+}
+
+const cTplValGesInit< bool > & cParamFusionMNT::KeyResultIsLoc()const 
+{
+   return SectionName().KeyResultIsLoc();
+}
+
+
 cTplValGesInit< std::string > & cParamFusionMNT::ModeleNuageResult()
 {
    return SectionName().ModeleNuageResult();
@@ -17679,7 +17715,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionMNT *) {return "1DD2784B68A8C8BCFE3F";};
+std::string  Mangling( cParamFusionMNT *) {return "F48E4A71D646A1D8FD3F";};
 
 
 cTplValGesInit< Pt2di > & cPFNMiseAuPoint::SzVisu()
