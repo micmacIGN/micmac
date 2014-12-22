@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1288]) = {
+const char * (theNameVar_SuperposImage[1289]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1101,6 +1101,7 @@ const char * (theNameVar_SuperposImage[1288]) = {
 "             <KeyNuage Type=\"std::string\" Nb=\"1\"> </KeyNuage>\n",
 "             <!-- Doit genere le nom du fichier XML-resultat, a partir d'un declencheur -->\n",
 "             <KeyResult   Type=\"std::string\" Nb=\"1\"> </KeyResult>\n",
+"             <KeyResultIsLoc   Type=\"bool\" Nb=\"?\" Def=\"true\"> </KeyResultIsLoc>\n",
 "\n",
 "             <!-- Definit le modele de geometrie resultant, c'est un cle d'association\n",
 "                 par defaut il sera pris sur le premier input-->\n",

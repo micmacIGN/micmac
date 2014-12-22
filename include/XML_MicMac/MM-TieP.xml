@@ -59,7 +59,7 @@
     <Symb> FileMasq3D=XXXX  </Symb>
     <Symb> ZPasCalc=0.5  </Symb>
 
-    <eSymb> SzDalleMin= ?  ${MPD_MM} 200 20000 </eSymb>
+    <eSymb> SzDalleMin=  200  </eSymb>
 </DicoLoc>
 
 <Section_Terrain>  
@@ -68,8 +68,8 @@
              <ZIncCalc>   0.0  </ZIncCalc>
       </IntervAltimetrie>
       <IntervSpecialZInv >
-             <MulZMin >  0.9999</MulZMin>
-             <MulZMax >  1.0001 </MulZMax>
+             <MulZMin >  0.3</MulZMin>
+             <MulZMax >  3.0 </MulZMax>
       </IntervSpecialZInv>
 </Section_Terrain>
 
@@ -333,6 +333,7 @@
      <PurgeMECResultBefore>  true </PurgeMECResultBefore>
      <DeZoomDefMinFileAux> 8 </DeZoomDefMinFileAux>
 
+<!--
     <PostProcess>
        <NameMkF> Make_Cmd_Tiep-${Im1}.txt </NameMkF>
        <OneCmdPar>
@@ -341,13 +342,11 @@
                 <#WHEN  VTEST=${DoPly}>
                      <OneCmdSer>  ${MMDir}bin/mm3d ScaleIm    ${ThisDir}/${Im1}  ${ZVE} F8B=true Out=${ThisDir}/${ImTextPly}  </OneCmdSer>
                      <OneCmdSer>  ${MMDir}bin/mm3d Nuage2Ply   ${ThisDir}${DirMEC}/RN${Im1}.xml   Attr=${ThisDir}/${ImTextPly} </OneCmdSer>
-<!--
-                     <OneCmdSer> \rm ${ThisDir}/${ImTextPly} </OneCmdSer>
--->
                      <OneCmdSer> ${MMCmdRmFile} ${ThisDir}${ImTextPly} </OneCmdSer>
                 </#WHEN>
        </OneCmdPar>
     </PostProcess>
+-->
 
 
     <ComprMasque> eComprTiff_None </ComprMasque>

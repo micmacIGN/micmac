@@ -67,7 +67,8 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mDoPlyCoul         (false),
    mSzNormale         (-1),
    mNormaleByCenter   (false),
-   mModeMerge         (eQuickMac)
+   mModeMerge         (eQuickMac),
+   mDS                (1.0)
 {
    // ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
 
@@ -96,6 +97,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
                     << EAM(mSzNormale,"SzNorm",true,"Parameters for normals creation")
                     << EAM(mNormaleByCenter,"NormByC",true,"Normale by Center")
                     << EAM(aModeMerge,"ModeMerge",true,"Mode Merge in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
+                    << EAM(mDS,"DownScale",true,"DownScale used in computation (to compute names)")
    );
 
 
@@ -117,6 +119,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
       mModeMerge = mParam.ModeMerge();
    }
 
+   mMMIN = cMMByImNM::ForGlobMerge(Dir(),mDS,aModeMerge);
 
 
 
@@ -127,14 +130,19 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    for (int aKS=0 ; aKS<int(cAppliWithSetImage::mVSoms.size()) ; aKS++)
    {
         cImaMM * anIma = cAppliWithSetImage::mVSoms[aKS]->attr().mIma;
+        const std::string & aNameIm = anIma->mNameIm;
         cASAMG * anAttrSom = 0;
 
         bool InMAP = false;
-        std::string aNameNuXml = NameFileInput(true,anIma,".xml");
+        //  std::string aNameNuXml = NameFileInput(true,anIma,".xml");
+        std::string aNameNuXml = mMMIN->NameFileXml(eTMIN_Depth,aNameIm);
         // Possible aucun nuage si peu de voisins et mauvaise config epip
         if (ELISE_fp::exist_file(aNameNuXml))
         {
-             std::string aNM = NameFileInput(true,anIma,"_Masq.tif");
+             // std::string aNM = NameFileInput(true,anIma,"_Masq.tif");
+             std::string aNM =  mMMIN->NameFileMasq(eTMIN_Depth,aNameIm);
+
+             // std::string aNM = NameFileInput(true,"Masq"+anIma,".tif");
              Tiff_Im aTM(aNM.c_str());
              int aSom;
              ELISE_COPY(aTM.all_pts(),aTM.in(),sigma(aSom));
@@ -164,6 +172,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    CreateGrapheConx();
 
 
+std::cout << "CCcccccccccccc\n";
    // Calcul image de quality + Stats
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
@@ -359,7 +368,7 @@ Video_Win *  cAppliMergeCloud::TheWinIm(const cASAMG * anAS)
    return mTheWinIm;
 }
 
-
+/*
 std::string cAppliMergeCloud::NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPrefIn)
 {
    switch (mModeMerge)
@@ -386,6 +395,7 @@ std::string cAppliMergeCloud::NameFileInput(bool DownScale,cImaMM * anIma,const 
 {
     return NameFileInput(DownScale,anIma->mNameIm,aPost,aPref);
 }
+*/
 
 
 tMCSom * cAppliMergeCloud::SomOfName(const std::string & aName)
@@ -410,6 +420,12 @@ bool  cAppliMergeCloud::DoPlyCoul() const
 {
    return mDoPlyCoul;
 }
+
+cMMByImNM *  cAppliMergeCloud::MMIN()
+{
+   return mMMIN;
+}
+
 
 int  cAppliMergeCloud::SzNormale() const {return mSzNormale;}
 bool cAppliMergeCloud::NormaleByCenter() const {return mNormaleByCenter;}
