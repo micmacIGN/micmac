@@ -2142,6 +2142,17 @@ bool   Tiff_Im::IsNameInternalTile(const std::string & aNameTiled,cInterfChantie
     return aNameNoTiled != "NONE";
 }
 
+Tiff_Im  Tiff_Im::Dupl(const std::string& aName)
+{
+   return Tiff_Im
+          (
+              aName.c_str(),
+              sz(),
+              type_el(),
+              mode_compr(),
+              phot_interp()
+          );
+}
 
 
 

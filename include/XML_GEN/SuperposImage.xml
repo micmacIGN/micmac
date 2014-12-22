@@ -1099,6 +1099,7 @@
              <KeyNuage Type="std::string" Nb="1"> </KeyNuage>
              <!-- Doit genere le nom du fichier XML-resultat, a partir d'un declencheur -->
              <KeyResult   Type="std::string" Nb="1"> </KeyResult>
+             <KeyResultIsLoc   Type="bool" Nb="?" Def="true"> </KeyResultIsLoc>
 
              <!-- Definit le modele de geometrie resultant, c'est un cle d'association
                  par defaut il sera pris sur le premier input-->

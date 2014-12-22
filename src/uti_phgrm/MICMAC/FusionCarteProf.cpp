@@ -831,9 +831,11 @@ template <class Type> cLoadedCP<Type> *  cFusionCarteProf<Type>::VCLOfName(const
 
 template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string & anId)
 {
-    std::string aNameNuage = mICNM->Dir() + mICNM->Assoc1To1(mParam.KeyResult(),anId,true);
+    std::string aNameNuage =  mICNM->Assoc1To1(mParam.KeyResult(),anId,true);
+    if (mParam.KeyResultIsLoc().Val())
+       aNameNuage = mICNM->Dir() + aNameNuage;
 
-    mNameTif = StdPrefix(aNameNuage)+ ".tif";
+    mNameTif = StdPrefix(aNameNuage)+ "_Prof.tif";
     std::cout << anId  << "=> " << mNameTif<< "\n";
     mNameMasq = StdPrefix(aNameNuage)+ "_Masq.tif";
     mNameCorrel = StdPrefix(aNameNuage)+ "_Correl.tif";

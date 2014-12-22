@@ -4730,6 +4730,9 @@ class cSectionName
         std::string & KeyResult();
         const std::string & KeyResult()const ;
 
+        cTplValGesInit< bool > & KeyResultIsLoc();
+        const cTplValGesInit< bool > & KeyResultIsLoc()const ;
+
         cTplValGesInit< std::string > & ModeleNuageResult();
         const cTplValGesInit< std::string > & ModeleNuageResult()const ;
 
@@ -4738,6 +4741,7 @@ class cSectionName
     private:
         std::string mKeyNuage;
         std::string mKeyResult;
+        cTplValGesInit< bool > mKeyResultIsLoc;
         cTplValGesInit< std::string > mModeleNuageResult;
         cTplValGesInit< std::string > mKeyNuage2Im;
 };
@@ -5143,6 +5147,9 @@ class cParamFusionMNT
 
         std::string & KeyResult();
         const std::string & KeyResult()const ;
+
+        cTplValGesInit< bool > & KeyResultIsLoc();
+        const cTplValGesInit< bool > & KeyResultIsLoc()const ;
 
         cTplValGesInit< std::string > & ModeleNuageResult();
         const cTplValGesInit< std::string > & ModeleNuageResult()const ;

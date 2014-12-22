@@ -137,6 +137,7 @@ const cMMUserEnvironment & MMUserEnv();
 
 extern const  std::string BLANK;
 
+class cMMByImNM;
 
 
 
@@ -1432,6 +1433,55 @@ class cAppliListIm
 // inline functions
 
 bool isUsingSeparateDirectories(){ return MMUserEnv().UseSeparateDirectories().Val(); }
+
+
+// === Gestionnaire de nom pour les fusions ===============
+
+typedef enum
+{
+    eTMIN_Depth,
+    eTMIN_Min,
+    eTMIN_Max,
+    eTMIN_Merge
+} eTypeMMByImNM;
+
+
+class cMMByImNM
+{
+    public :
+
+        static cMMByImNM * ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch);
+        static cMMByImNM * ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm);
+
+        void DoDownScale(const std::string & aNameIm);
+        void PatDoDownScale(const std::string & aPat);
+
+
+        std::string NameFileMasq(eTypeMMByImNM,const std::string aNameIm);
+        std::string NameFileProf(eTypeMMByImNM,const std::string aNameIm);
+        std::string NameFileXml(eTypeMMByImNM,const std::string aNameIm);
+        std::string NameFileEntete(eTypeMMByImNM,const std::string aNameIm);
+        std::string NameFileLabel(eTypeMMByImNM,const std::string aNameIm);
+
+        void ModifIp(eTypeMMByImNM,cImage_Profondeur &,const std::string & aNameIm);
+
+    private  :
+        cMMByImNM (double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix) ;
+
+        static std::string NameOfType(eTypeMMByImNM);
+        std::string NameFileGlob(eTypeMMByImNM,const std::string aNameIm,const std::string aExt);
+        std::string NameFileLoc(eTypeMMByImNM,const std::string aNameIm,const std::string aExt);
+
+
+
+        double         mDS;
+        std::string    mDirGlob;
+        std::string    mDirLoc;
+        std::string    mPrefix;
+        std::string    mFullDir;
+};
+
+
 
 #endif   // _ELISE_XML_GEN_ALL_H
 

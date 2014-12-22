@@ -54,7 +54,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 Debut de pipeline statue :
 
 mm3d MMByP Statue "IMGP703[0-5].*JPG" Ori-Ori-CalPerIm/ ZoomF=2 Masq3D=AperiCloud_Ori-CalPerIm_selectionInfo.xml Purge=true Do=APMCR
-mm3d TestLib MMEnvlop   "IMGP703[0-5].*JPG" CalPerIm  16 4   Masq3D=AperiCloud_CalPerIm_selectionInfo.xml AutoPurge=true ModeQM=false
 
 */
 
@@ -85,19 +84,26 @@ class cAppli_C3DC : public cAppliWithSetImage
 
     // Param opt
          bool        mTuning;
+         bool        mPurge;
          bool        mPlyCoul;
          std::string mMergeOut;
          bool        mDoPoisson;
          std::string mMasq3D;
          int         mSzNorm;
+         double      mDS;
+         int         mZoomF;
+         std::string mStrZ0ZF;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
    cAppliWithSetImage  (argc-2,argv+2,TheFlagDev16BGray|TheFlagAcceptProblem),
    mTuning             (MPD_MM()),
+   mPurge              (!MPD_MM()),
    mPlyCoul            (true),
    mMergeOut           ("C3DC.ply"),
-   mSzNorm             (2)
+   mSzNorm             (2),
+   mDS                 (1.0),
+   mZoomF              (1)
 {
     if (argc<2)
     {
@@ -118,8 +124,24 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
                     << EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
                     << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 mean 5x5) ")
                     << EAM(mPlyCoul,"PlyCoul",true,"Colour in ply ? Def = true")
-                    << EAM(mTuning,"Tuning",true,"Will disappear soon ...")
+                    << EAM(mTuning,"Tuning",true,"Will disappear on day ...")
+                    << EAM(mPurge,"Purge",true,"Purge result, def=true")
+                    << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depenf of mode")
+                    << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depenf of mode")
    );
+
+   if (!EAMIsInit(&mDS))
+   {
+      if (mType==eQuickMac) mDS = 2.0;
+   }
+   if (!EAMIsInit(&mZoomF))
+   {
+      if (mType==eQuickMac) mZoomF = 4;
+      if (mType==eStatue)   mZoomF = 2;
+   }
+
+
+
 
    if (! EAMIsInit(&mMergeOut)) mMergeOut = "C3DC_"+ mStrType + ".ply";
 
@@ -140,10 +162,11 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
   //=====================================
    mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ")
                    +  mStrImOri
-                   +  std::string(" 16 4 ")
+                   +  std::string(" 16 ")  + ToString(4) + " " 
                    +  mArgMasq3D
-                   +  std::string(" AutoPurge=true")
-                   +  " ModeQM=" + ToString( mType  == eQuickMac) ;
+                   +  std::string(" AutoPurge=") + ToString(mPurge)
+                   +  " Out=" + mStrType
+                 ;
 
 /*
    if (mTuning)
@@ -155,7 +178,9 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
   //=====================================
 
   mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
-                +  mStrImOri + " ModeMerge=" + mStrType;
+                +  mStrImOri + " ModeMerge=" + mStrType
+                +  " DownScale=" +ToString(mDS)
+               ;
 
   if (mSzNorm>=0)
   {
@@ -166,8 +191,9 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
   //=====================================
   std::string aDirFusMM = (mType==eQuickMac) ? DirFusMMInit() : DirFusStatue() ;
 
-   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Tes.*ply") + " Out="  + mMergeOut;
+   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Merge.*ply") + " Out="  + mMergeOut;
 
+   mStrZ0ZF = " Zoom0=" + ToString(mZoomF) + " ZoomF=" + ToString(mZoomF);
 }
 
 
@@ -180,8 +206,8 @@ void cAppli_C3DC::ExeCom(const std::string & aCom)
 
 void  cAppli_C3DC::PipelineQuickMack()
 {
-    ExeCom(mBaseComMMByP + " Do=AMP " );
-    ExeCom(mBaseComEnv + " DownScale=2 ");
+    ExeCom(mBaseComMMByP + " Do=AMP " + mStrZ0ZF);
+    ExeCom(mBaseComEnv + " DownScale=" + ToString(mDS));
     ExeCom(mComMerge);
     ExeCom(mComCatPly);
 }
@@ -189,9 +215,9 @@ void  cAppli_C3DC::PipelineQuickMack()
 
 void  cAppli_C3DC::PipelineStatue()
 {
-    ExeCom(mBaseComMMByP + " Purge=true Do=APMCR ZoomF=2 " );
-    ExeCom(mBaseComEnv);
-    ExeCom(mBaseComMMByP + " Purge=true Do=F " );
+    ExeCom(mBaseComMMByP + " Purge=" + ToString(mPurge) + " Do=APMCR ZoomF=" + ToString(mZoomF)  );
+    ExeCom(mBaseComEnv + " Glob=false");
+    ExeCom(mBaseComMMByP + " Purge=" +  ToString(mPurge) + " Do=F " );
     ExeCom(mComMerge);
     ExeCom(mComCatPly);
 /*
