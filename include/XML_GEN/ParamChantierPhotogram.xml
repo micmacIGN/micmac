@@ -50,7 +50,7 @@
        <eStatue>         </eStatue>
        <eTestIGN>        </eTestIGN>
        <eQuickMac>       </eQuickMac>
-       <eStdMac>         </eStdMac>
+       <eMicMac>         </eMicMac>
        <eBigMac>         </eBigMac>
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>

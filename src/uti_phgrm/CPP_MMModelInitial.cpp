@@ -133,6 +133,10 @@ std::string cMMByImNM::NameFileProf(eTypeMMByImNM aType,const std::string aNameI
 std::string cMMByImNM::NameFileXml(eTypeMMByImNM aType,const std::string aNameIm)    {return NameFileGlob(aType,aNameIm,".xml");}
 std::string cMMByImNM::NameFileEntete(eTypeMMByImNM aType,const std::string aNameIm) {return  NameFileGlob(aType,aNameIm,"");}
 
+const std::string & cMMByImNM::FullDir() const
+{
+    return mFullDir;
+}
 
 void  cMMByImNM::ModifIp(eTypeMMByImNM aType,cImage_Profondeur & anIp,const std::string & aNameIm)
 {
@@ -298,7 +302,7 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
 
 
-const std::string  DirFusMMInit() {return "Fusion-QuickMac/";}
+// const std::string  DirFusMMInit() {return "Fusion-QuickMac/";}
 
 
 

@@ -46,6 +46,10 @@ extern double DynCptrFusDepthMap;
 
 
 
+bool IsMacType(eTypeMMByP aType)
+{
+     return  (aType==eBigMac) || (aType==eMicMac) || (aType==eQuickMac);
+}
 
 cPatOfName::cPatOfName() :
     mPat ("\"(") ,
@@ -117,6 +121,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       double       mIntIncert;
       bool         mSkipCorDone;
       eTypeMMByP   mType;
+      bool         mMacType;
       std::string  mStrType;
       bool         mByMM1P;
       // bool         mByEpi;
@@ -1055,6 +1060,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      mStrType = argv[1];
      StdReadEnum(mModeHelp,mType,mStrType,eNbTypeMMByP);
 
+     mMacType = IsMacType(mType);
+
 
      if (mType==eGround)
      {
@@ -1073,7 +1080,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         mRIE2Do = true;
         mZoomF = 4;
      }
-     else if (mType==eQuickMac)
+     else if (mMacType)
      {
         mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
         mAddMMImSec = true;
@@ -1141,14 +1148,14 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       StdCorrecNameOrient(mOri,DirOfFile(mEASF.mFullName));
 
 
-      mByEpi = mByMM1P && (mType!=eQuickMac);
+      mByEpi = mByMM1P && (! mMacType);
 
       mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
 
 
       if (mModeHelp)
           StdEXIT(0);
-      if ((! EAMIsInit(&mZoom0))  && (mType!=eQuickMac))
+      if ((! EAMIsInit(&mZoom0))  && (! mMacType))
          mZoom0 =  DeZoomOfSize(7e4);
       VerifAWSI();
 

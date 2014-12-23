@@ -52,7 +52,7 @@ const char * (theNameVar_ParamChantierPhotogram[1606]) = {
 "       <eStatue>         </eStatue>\n",
 "       <eTestIGN>        </eTestIGN>\n",
 "       <eQuickMac>       </eQuickMac>\n",
-"       <eStdMac>         </eStdMac>\n",
+"       <eMicMac>         </eMicMac>\n",
 "       <eBigMac>         </eBigMac>\n",
 "       <eNbTypeMMByP>    </eNbTypeMMByP>\n",
 "   </enum>\n",

@@ -132,11 +132,13 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
 
    if (!EAMIsInit(&mDS))
    {
-      if (mType==eQuickMac) mDS = 2.0;
+      // if (mType==eQuickMac) mDS = 2.0;
    }
    if (!EAMIsInit(&mZoomF))
    {
-      if (mType==eQuickMac) mZoomF = 4;
+      if (mType==eBigMac)   mZoomF = 2;
+      if (mType==eMicMac)   mZoomF = 4;
+      if (mType==eQuickMac) mZoomF = 8;
       if (mType==eStatue)   mZoomF = 2;
    }
 
@@ -188,8 +190,12 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
   }
 
    mComMerge +=  " PlyCoul=" + ToString(mPlyCoul);
+
+   cMMByImNM * aMMIN = cMMByImNM::ForGlobMerge(Dir(),mDS,mStrType);
+
   //=====================================
-  std::string aDirFusMM = (mType==eQuickMac) ? DirFusMMInit() : DirFusStatue() ;
+
+  std::string aDirFusMM = aMMIN->FullDir();
 
    mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Merge.*ply") + " Out="  + mMergeOut;
 
@@ -230,6 +236,8 @@ void cAppli_C3DC::DoAll()
 {
     switch (mType)
     {
+         case eBigMac :
+         case eMicMac :
          case eQuickMac :
               PipelineQuickMack();
          break;
