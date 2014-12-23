@@ -1465,6 +1465,7 @@ class cMMByImNM
 
         void ModifIp(eTypeMMByImNM,cImage_Profondeur &,const std::string & aNameIm);
 
+        const std::string & FullDir() const;
     private  :
         cMMByImNM (double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix) ;
 
@@ -1480,6 +1481,8 @@ class cMMByImNM
         std::string    mPrefix;
         std::string    mFullDir;
 };
+
+bool IsMacType(eTypeMMByP aType);
 
 
 

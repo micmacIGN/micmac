@@ -62,7 +62,7 @@ typedef enum
   eStatue,
   eTestIGN,
   eQuickMac,
-  eStdMac,
+  eMicMac,
   eBigMac,
   eNbTypeMMByP
 } eTypeMMByP;
