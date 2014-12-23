@@ -76,6 +76,7 @@ int cAppliMICMAC::GetTXY() const
 void cAppliMICMAC::DoAllMEC()
 {
 
+
 #if CUDA_ENABLED
 
     CGpGpuContext<cudaContext> gpgpuContext;
@@ -92,7 +93,9 @@ void cAppliMICMAC::DoAllMEC()
      {          
         OneEtapeSetCur(**itE);
         if (mDoTheMEC  && (!DoNothingBut().IsInit()))
+        {
            DoOneEtapeMEC(**itE);
+        }
         if (
                  ( (*itE)->Num()>=FirstEtapeMEC().Val())
            &&    ( (*itE)->Num()<LastEtapeMEC().Val())
@@ -128,6 +131,7 @@ void cAppliMICMAC::DoAllMEC()
     if (mCorrelAdHoc && mCorrelAdHoc->GPU_CorrelBasik().IsInit())    
         gpgpuContext.deleteContext();
 #endif
+
 }
 
 /*
@@ -785,7 +789,6 @@ void cAppliMICMAC::DoOneBloc
    
        mDefCost =  mStatGlob->CorrelToCout(mDefCorr);
        mSurfOpt = cSurfaceOptimiseur::Alloc(*this,*mLTer,anEqX,anEqY);
-
 
        InitCostCalcCorrel();
 
