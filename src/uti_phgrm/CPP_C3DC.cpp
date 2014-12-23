@@ -98,7 +98,7 @@ class cAppli_C3DC : public cAppliWithSetImage
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
    cAppliWithSetImage  (argc-2,argv+2,TheFlagDev16BGray|TheFlagAcceptProblem),
    mTuning             (MPD_MM()),
-   mPurge              (!MPD_MM()),
+   mPurge              (true),
    mPlyCoul            (true),
    mMergeOut           ("C3DC.ply"),
    mSzNorm             (2),
@@ -162,7 +162,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
   //=====================================
    mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ")
                    +  mStrImOri
-                   +  std::string(" 16 ")  + ToString(4) + " " 
+                   +  std::string(" 16 ")  + ToString(mZoomF) + " " 
                    +  mArgMasq3D
                    +  std::string(" AutoPurge=") + ToString(mPurge)
                    +  " Out=" + mStrType

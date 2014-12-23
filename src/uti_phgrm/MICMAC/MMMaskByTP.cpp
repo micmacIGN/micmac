@@ -1093,7 +1093,6 @@ Fonc_Num FoncHomog(Im2D_REAL4 anIm, int aSzKernelH, double aPertPerPix)
 
 
 
-
 void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoByTieP & aMATP)
 {
 

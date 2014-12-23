@@ -309,6 +309,14 @@ class cElWarning
          std::string   mFile;
 };
 
+#define MPD_MM_BRK(aMes)\
+if (MPD_MM())\
+{\
+      std::cout << " At " << __LINE__ << " " << aMes <<  "  , file= " << __FILE__ << "\n"; \
+      getchar();\
+}
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
