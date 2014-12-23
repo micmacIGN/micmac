@@ -235,9 +235,9 @@ std::cout << "CCcccccccccccc\n";
 */
       aNivMin= eQC_GradFaibleC2;
    }
-   if (mModeMerge ==eQuickMac)
+   if (IsMacType(mModeMerge))
    {
-      aNivMin=eQC_GradFaibleC2;
+      aNivMin=eQC_GradFaibleC1;
    }
    // aNivMin = eQC_GradFaibleC2;
    for (mCurNivSelSom=mGlobMaxNivH ; mCurNivSelSom>=aNivMin ; mCurNivSelSom--)
