@@ -2002,6 +2002,7 @@ template <class Type> void BinUndumpObj(Type & anObj,const std::string & aFile)
 
 bool IsFileDmp(const std::string &);
 
+extern std::vector<std::string> VCurXmlFile;
 template <class Type> Type StdGetObjFromFile_WithLC
                       (
 		          int argc,

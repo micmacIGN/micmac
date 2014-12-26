@@ -416,7 +416,10 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
 
 
    if (aFlag & TheFlagDev16BGray) Develop(true,true);
-   if (aFlag & TheFlagDev8BGray) Develop(true,false);
+   if (aFlag & TheFlagDev8BGray)  Develop(true,false);
+   if (aFlag & TheFlagDev8BCoul)  Develop(false,false);
+   if (aFlag & TheFlagDevXml)     MakeXmlXifInfo(mEASF.mDir,mEASF.mICNM);
+
 
 
 
@@ -1777,6 +1780,61 @@ int ChantierClip_main(int argc,char ** argv)
 #endif
 
 
+/************************************************************************/
+/*                                                                      */
+/*                   Do All Dev                                         */
+/*                                                                      */
+/************************************************************************/
+
+// int DoAllDev_main(int argc,char ** argv);
+
+/*
+class cAppliDoAllDev : cAppliWithSetImage:
+cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI)  :
+{
+     public :
+
+           cAppliDoAllDev(
+};
+*/
+
+int DoAllDev_main(int argc,char ** argv)
+{
+    bool  DoDev8BGr  = true;
+    bool  DoDev16BGr = true;
+    bool  DoDev8BCoul = true;
+    bool  DoDevXml   = true;
+    std::string      aPat;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aPat,"Pattern of Images", eSAM_IsPatFile),
+        LArgMain()  << EAM(DoDev8BGr,"8BGR",true,"Generate 8-bits gray images, def=true")
+                    << EAM(DoDev16BGr,"16BGr",true,"Generate 16-bits gray images, def=true")
+                    << EAM(DoDev8BCoul,"8BCoul",true,"Generate 8-bits coul images, def=true")
+                    << EAM(DoDevXml,"XmlXiff",true,"Generate Xml Xif file, def=true")
+    );
+
+    int AFlag = cAppliWithSetImage::TheFlagNoOri;
+    if (DoDev8BGr ) AFlag |= cAppliWithSetImage::TheFlagDev8BGray ;
+    if (DoDev16BGr) AFlag |= cAppliWithSetImage::TheFlagDev16BGray;
+    if (DoDev8BCoul) AFlag |= cAppliWithSetImage::TheFlagDev8BCoul;
+    if (DoDevXml  ) AFlag |= cAppliWithSetImage::TheFlagDevXml;
+
+    cAppliWithSetImage anAppli(argc-1,argv+1,AFlag);
+
+    DoNothingButRemoveWarningUnused(anAppli);
+
+    return EXIT_SUCCESS;
+}
+
+
+void DoAllDev(const std::string & aPat)
+{
+     std::string aCom =    MMBinFile(MM3DStr) + " AllDev " + QUOTE(aPat);
+     System(aCom);
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

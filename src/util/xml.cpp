@@ -49,6 +49,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 std::string TheEliseDirXmlSpec=string("include")+ELISE_CAR_DIR+"XML_GEN"+ELISE_CAR_DIR;
 bool ValInitNameDecl = false;
 
+std::vector<std::string> VCurXmlFile;
+
+
 /***********************************************************/
 /*                                                         */
 /*                    POLONAISE INVERSE                    */
@@ -1015,8 +1018,12 @@ bool cElXMLTree::IsBranche() const
 
 bool ValInitUseSubst =true;
 
+
+
 cElXMLTree::cElXMLTree(const std::string & aName,cArgCreatXLMTree * anArgEx,bool DoFileInclu) 
 {
+        VCurXmlFile.push_back(aName);
+
 	cArgCreatXLMTree anArg00(aName,false,false);
 	if (anArgEx== 0)
 		anArgEx = & anArg00;
@@ -1036,12 +1043,14 @@ cElXMLTree::cElXMLTree(const std::string & aName,cArgCreatXLMTree * anArgEx,bool
 		{
 			VerifCreation();
 			delete aFp;
+                        VCurXmlFile.pop_back();
 			return;
 		}
 		//cArgCreatXLMTree anArg(aName);
 
 		mFils.push_back(new cElXMLTree(DoFileInclu,aUseSubst,aFp,aToken,this,*anArgEx ));
 	}
+        VCurXmlFile.pop_back();
 }
 
 void cElXMLTree::ExpendRef
@@ -1858,7 +1867,7 @@ cElXMLTree *  cElXMLTree::Missmatch
 		&& (ValAttr("UnionType",aStrFalse)=="true") ;
 	if (aUnionType && (aT2->mFils.size() != 1))
 	{
-		aMes = "UnionType must have exactly on descendant";
+		aMes = "UnionType must have exactly on descendant, Tag : " + aT2->ValTag();
 		return this;
 	}
 	for 
@@ -1992,6 +2001,8 @@ void cElXMLTree::ShowAscendance(FILE * aFp)
 		aK++;
 	}
 	fprintf(aFp,"\n");
+        if (VCurXmlFile.size())
+           fprintf(aFp,"in file : %s\n",VCurXmlFile.back().c_str());
 }
 
 const std::string & cElXMLTree::ValAttr
