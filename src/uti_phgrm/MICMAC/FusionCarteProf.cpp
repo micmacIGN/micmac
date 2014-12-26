@@ -616,7 +616,8 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
   mSeuilC  ((mPAlg.FMNTSeuilCorrel())),
   mICNM    ((aFCP.ICNM())),
 
-  mFus         (aFus),
+  // mFus         ((std::cout << "ZZZZZZyyyy " << anId << " " << aFus << "\n", aFus)),
+  mFus            ( aFus),
   // mNameIm      ((StdPrefix(mFus).substr(6,std::string::npos)),
   // mNameIm      (StdPrefix(mFus)),
   mNameIm      (mICNM->Assoc1To1(mParam.KeyNuage2Im().Val(),mFus,true)),
@@ -661,7 +662,7 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
       FromString(mPdsIm,aNamePdsIm);
   }
 
-  std::cout << "PDSssIM " << mPdsIm << " for " << anId << "\n";
+  // std::cout << "PDSssIM " << mPdsIm << " for " << anId << "\n";
 
    if (mNuage.ModeFaisceauxImage().IsInit())
       mZIsInv = mNuage.ModeFaisceauxImage().Val().ZIsInverse();

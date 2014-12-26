@@ -1802,7 +1802,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        TIm2D<U_INT1,INT> aTImEtir(aImEt);
        Pt2di aSz = aImEt.sz();
        cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSz,0.0,1.0);
-       //cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSz,0.0,0.0);
+       // cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSz,0.0,1.0);
        Pt2di aP;
        double aSeuil = anArgBasc.mSeuilEtir;
 // aSeuil = 0.9;

@@ -686,6 +686,8 @@ int AddAffinity_main(int argc, char **argv);
 
 int Sake_main(int argc,char ** argv);
 
+int DoAllDev_main(int argc,char ** argv);
+
 
 
 #if (ELISE_X11)
