@@ -221,7 +221,7 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
     // Im2D_U_INT1 anImInit = Im2D_U_INT1::FromFileStd(aNameMasq);
     Pt2di aSz = anImInit.sz();
-    double aCostRegul = 1.0;
+    double aCostRegul = 0.4;
     double aCostTrans = 10.0;
 
     //    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
@@ -259,8 +259,8 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
  
         cParamFiltreDepthByPrgDyn aParam =  StdGetFromSI(Basic_XML_MM_File("DefFiltrPrgDyn.xml"),ParamFiltreDepthByPrgDyn);
-        aParam.CostTrans() = aCostTrans;
-        aParam.CostRegul() = aCostRegul;
+        aParam.CostTrans().SetVal(aCostTrans);
+        aParam.CostRegul().SetVal(aCostRegul);
         Im2D_Bits<1>  aNewMasq =  FiltrageDepthByProgDyn(aImDepth,aImMasq,aParam);
 
         // 2 est la couleur de validation
@@ -295,7 +295,6 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
          ELISE_COPY(select(aImMasq.all_pts(),aImMasq.in()==0),0,anImInit.out());
 
     }
-
 
     // ELISE_COPY(anImInit.all_pts(),anImInit.in(),Tiff_Im(aNameMasq.c_str()).out());
 }
@@ -514,6 +513,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
              getchar();
           }
    }
+
 
    std::string aNameXMLIn =  mDirMergeCurIm + "NuageImProf_LeChantier_Etape_1.xml";
    cXML_ParamNuage3DMaille aXMLParam = StdGetFromSI(aNameXMLIn,XML_ParamNuage3DMaille);
