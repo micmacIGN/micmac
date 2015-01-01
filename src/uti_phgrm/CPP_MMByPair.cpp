@@ -415,11 +415,11 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
 */
 
 
+// void cAppliWithSetImage::Develop(bool EnGray,bool Cons16B)
    if (aFlag & TheFlagDev16BGray) Develop(true,true);
    if (aFlag & TheFlagDev8BGray)  Develop(true,false);
    if (aFlag & TheFlagDev8BCoul)  Develop(false,false);
    if (aFlag & TheFlagDevXml)     MakeXmlXifInfo(mEASF.mDir,mEASF.mICNM);
-
 
 
 
@@ -590,7 +590,8 @@ CamStenope * cAppliWithSetImage::CamOfName(const std::string & aNameIm)
       cOrientationConique anOC = StdGetFromPCP(Basic_XML_MM_File("Template-OrCamAngWithInterne.xml"),OrientationConique);
 
       // Tiff_Im aTF = Tiff_Im::StdConvGen(mDir+aNameIm,,);
-      Tiff_Im aTF = Tiff_Im::UnivConvStd(mEASF.mDir+aNameIm);
+      // Tiff_Im aTF = Tiff_Im::UnivConvStd(mEASF.mDir+aNameIm);
+      Tiff_Im aTF = Tiff_Im::Tiff_Im::StdConvGen(mEASF.mDir+aNameIm,1,true);
 
       Pt2dr  aSz = Pt2dr(aTF.sz());
       anOC.Interne().Val().F() = euclid(aSz);
