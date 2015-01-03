@@ -5676,6 +5676,78 @@ std::string  Mangling( cChantierAppliWithSetImage *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cOneZonzATB
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOneZonzATB & anObj,cElXMLTree * aTree);
+
+
+        Box2di & BoxGlob();
+        const Box2di & BoxGlob()const ;
+
+        Box2di & BoxMasq();
+        const Box2di & BoxMasq()const ;
+
+        Pt2di & GermGlob();
+        const Pt2di & GermGlob()const ;
+
+        Pt2di & GermMasq();
+        const Pt2di & GermMasq()const ;
+
+        int & NbGlob();
+        const int & NbGlob()const ;
+
+        int & NbMasq();
+        const int & NbMasq()const ;
+
+        int & Num();
+        const int & Num()const ;
+    private:
+        Box2di mBoxGlob;
+        Box2di mBoxMasq;
+        Pt2di mGermGlob;
+        Pt2di mGermMasq;
+        int mNbGlob;
+        int mNbMasq;
+        int mNum;
+};
+cElXMLTree * ToXMLTree(const cOneZonzATB &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOneZonzATB &);
+
+void  BinaryUnDumpFromFile(cOneZonzATB &,ELISE_fp &);
+
+std::string  Mangling( cOneZonzATB *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cAnaTopoBascule
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cAnaTopoBascule & anObj,cElXMLTree * aTree);
+
+
+        std::list< cOneZonzATB > & OneZonzATB();
+        const std::list< cOneZonzATB > & OneZonzATB()const ;
+    private:
+        std::list< cOneZonzATB > mOneZonzATB;
+};
+cElXMLTree * ToXMLTree(const cAnaTopoBascule &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAnaTopoBascule &);
+
+void  BinaryUnDumpFromFile(cAnaTopoBascule &,ELISE_fp &);
+
+std::string  Mangling( cAnaTopoBascule *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cParamFiltreDepthByPrgDyn
 {
     public:

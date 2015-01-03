@@ -1238,6 +1238,19 @@
    </ChantierAppliWithSetImage>
 
 
+   <AnaTopoBascule Nb="1" Class="true" ToReference="true">
+       <OneZonzATB Nb="*">
+           <BoxGlob Type="Box2di" Nb="1"> </BoxGlob>
+           <BoxMasq Type="Box2di" Nb="1"> </BoxMasq>
+           <GermGlob Type="Pt2di" Nb="1"> </GermGlob>
+           <GermMasq Type="Pt2di" Nb="1"> </GermMasq>
+           <NbGlob Type="int" Nb="1"> </NbGlob>
+           <NbMasq Type="int" Nb="1"> </NbMasq>
+           <Num Type="int" Nb="1">  </Num>
+           <Valide Type="bool" Nb="1"> </Valide>
+       </OneZonzATB>
+   </AnaTopoBascule>
+
 
    <ParamFiltreDepthByPrgDyn Nb="1" Class="true" ToReference="true">
         <CostNonAff Nb="?" Type="double" Def="0.5">   </CostNonAff>
