@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1289]) = {
+const char * (theNameVar_SuperposImage[1301]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1239,6 +1239,18 @@ const char * (theNameVar_SuperposImage[1289]) = {
 "       <Images Nb=\"*\" RefType=\"CWWSImage\"> </Images>\n",
 "   </ChantierAppliWithSetImage>\n",
 "\n",
+"\n",
+"   <AnaTopoBascule Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"       <OneZonzATB Nb=\"*\">\n",
+"           <BoxGlob Type=\"Box2di\" Nb=\"1\"> </BoxGlob>\n",
+"           <BoxMasq Type=\"Box2di\" Nb=\"1\"> </BoxMasq>\n",
+"           <GermGlob Type=\"Pt2di\" Nb=\"1\"> </GermGlob>\n",
+"           <GermMasq Type=\"Pt2di\" Nb=\"1\"> </GermMasq>\n",
+"           <NbGlob Type=\"int\" Nb=\"1\"> </NbGlob>\n",
+"           <NbMasq Type=\"int\" Nb=\"1\"> </NbMasq>\n",
+"           <Num Type=\"int\" Nb=\"1\">  </Num>\n",
+"       </OneZonzATB>\n",
+"   </AnaTopoBascule>\n",
 "\n",
 "\n",
 "   <ParamFiltreDepthByPrgDyn Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

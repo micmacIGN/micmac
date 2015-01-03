@@ -161,6 +161,8 @@ double DynProfInPixel(const cXML_ParamNuage3DMaille &);
 class cElNuage3DMaille : public cCapture3D
 {
      public :
+        // return 0 si pas de pb
+        virtual double SeuilDistPbTopo() const;
 
         bool  CaptHasData(const Pt2dr &) const ;
         Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
@@ -176,6 +178,7 @@ class cElNuage3DMaille : public cCapture3D
         double ResolSolGlob() const;
 
 
+
         ElCamera *   Cam() const;
         cRawNuage   GetRaw() const;
    // Lecture-Creation  globale
@@ -183,6 +186,7 @@ class cElNuage3DMaille : public cCapture3D
         static cElNuage3DMaille * FromFileIm(const std::string & aFile);
         void Save(const std::string & Name);  // Name+Prof.tif   Name+Masq.tif
         virtual cElNuage3DMaille * Clone() const = 0;
+        virtual void ProfBouchePPV() = 0;
    // Parcour par des iterateurs
 
         typedef Pt2di tIndex2D;

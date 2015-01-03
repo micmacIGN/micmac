@@ -536,6 +536,7 @@ Im2D_Bits<1>   cElNuage3DMaille::ImDef()
    return mImDef;
 }
 
+
 Pt3dr  cElNuage3DMaille::Loc2Glob(const Pt3dr & aP) const
 {
     if (m2RepGlob)
@@ -1874,12 +1875,16 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 /*
 */
 
-double DynProfInPixel(const cXML_ParamNuage3DMaille & aNuage)
+double Resol(const cXML_ParamNuage3DMaille & aNuage)
 {
    ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().OrIntImaM2C());
    ElAffin2D aC2M = aM2C.inv();
+   return (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
+}
 
-   double aSzPixel = (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
+double DynProfInPixel(const cXML_ParamNuage3DMaille & aNuage)
+{
+   double aSzPixel = Resol(aNuage);
 
    return (aSzPixel * aNuage.RatioResolAltiPlani().Val()) / (aNuage.Image_Profondeur().Val().ResolutionAlti());
 
@@ -1890,6 +1895,15 @@ double cElNuage3DMaille::DynProfInPixel() const
    return ::DynProfInPixel(Params());
 }
 
+
+double cElNuage3DMaille::SeuilDistPbTopo() const
+{
+   if (mAnam) 
+   {
+      return mAnam->SeuilDistPbTopo() / Resol(Params());
+   }
+   return 0;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

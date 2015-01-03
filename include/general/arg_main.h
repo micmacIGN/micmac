@@ -728,6 +728,8 @@ int DoAllDev_main(int argc,char ** argv);
   int ServiceGeoSud_GeoSud_main(int argc, char **argv);
   int ServiceGeoSud_Surf_main(int argc, char **argv);
 
+int TopoSurf_main(int argc, char **argv);
+
 int  CalcAutoCorrel_main(int argc,char ** argv);
 int CPP_AppliMergeCloud(int argc,char ** argv);
 int C3DC_main(int argc,char ** argv);

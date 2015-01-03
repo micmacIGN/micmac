@@ -543,6 +543,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
     aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envlop for mod statute"));
+    aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topoligical analyse befor bascule"));
 
 
     cCmpMMCom CmpMMCom;
