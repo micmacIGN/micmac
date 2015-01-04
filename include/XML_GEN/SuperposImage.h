@@ -5704,6 +5704,9 @@ class cOneZonzATB
 
         int & Num();
         const int & Num()const ;
+
+        bool & Valide();
+        const bool & Valide()const ;
     private:
         Box2di mBoxGlob;
         Box2di mBoxMasq;
@@ -5712,6 +5715,7 @@ class cOneZonzATB
         int mNbGlob;
         int mNbMasq;
         int mNum;
+        bool mValide;
 };
 cElXMLTree * ToXMLTree(const cOneZonzATB &);
 
@@ -5744,6 +5748,58 @@ void  BinaryDumpInFile(ELISE_fp &,const cAnaTopoBascule &);
 void  BinaryUnDumpFromFile(cAnaTopoBascule &,ELISE_fp &);
 
 std::string  Mangling( cAnaTopoBascule *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cOneZonXmlAMTB
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOneZonXmlAMTB & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameXml();
+        const std::string & NameXml()const ;
+    private:
+        std::string mNameXml;
+};
+cElXMLTree * ToXMLTree(const cOneZonXmlAMTB &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOneZonXmlAMTB &);
+
+void  BinaryUnDumpFromFile(cOneZonXmlAMTB &,ELISE_fp &);
+
+std::string  Mangling( cOneZonXmlAMTB *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cAnaTopoXmlBascule
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cAnaTopoXmlBascule & anObj,cElXMLTree * aTree);
+
+
+        bool & ResFromAnaTopo();
+        const bool & ResFromAnaTopo()const ;
+
+        std::list< cOneZonXmlAMTB > & OneZonXmlAMTB();
+        const std::list< cOneZonXmlAMTB > & OneZonXmlAMTB()const ;
+    private:
+        bool mResFromAnaTopo;
+        std::list< cOneZonXmlAMTB > mOneZonXmlAMTB;
+};
+cElXMLTree * ToXMLTree(const cAnaTopoXmlBascule &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAnaTopoXmlBascule &);
+
+void  BinaryUnDumpFromFile(cAnaTopoXmlBascule &,ELISE_fp &);
+
+std::string  Mangling( cAnaTopoXmlBascule *);
 
 /******************************************************/
 /******************************************************/

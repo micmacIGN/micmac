@@ -19020,6 +19020,17 @@ const int & cOneZonzATB::Num()const
    return mNum;
 }
 
+
+bool & cOneZonzATB::Valide()
+{
+   return mValide;
+}
+
+const bool & cOneZonzATB::Valide()const 
+{
+   return mValide;
+}
+
 void  BinaryUnDumpFromFile(cOneZonzATB & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.BoxGlob(),aFp);
@@ -19029,6 +19040,7 @@ void  BinaryUnDumpFromFile(cOneZonzATB & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.NbGlob(),aFp);
     BinaryUnDumpFromFile(anObj.NbMasq(),aFp);
     BinaryUnDumpFromFile(anObj.Num(),aFp);
+    BinaryUnDumpFromFile(anObj.Valide(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOneZonzATB & anObj)
@@ -19040,6 +19052,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOneZonzATB & anObj)
     BinaryDumpInFile(aFp,anObj.NbGlob());
     BinaryDumpInFile(aFp,anObj.NbMasq());
     BinaryDumpInFile(aFp,anObj.Num());
+    BinaryDumpInFile(aFp,anObj.Valide());
 }
 
 cElXMLTree * ToXMLTree(const cOneZonzATB & anObj)
@@ -19053,6 +19066,7 @@ cElXMLTree * ToXMLTree(const cOneZonzATB & anObj)
    aRes->AddFils(::ToXMLTree(std::string("NbGlob"),anObj.NbGlob())->ReTagThis("NbGlob"));
    aRes->AddFils(::ToXMLTree(std::string("NbMasq"),anObj.NbMasq())->ReTagThis("NbMasq"));
    aRes->AddFils(::ToXMLTree(std::string("Num"),anObj.Num())->ReTagThis("Num"));
+   aRes->AddFils(::ToXMLTree(std::string("Valide"),anObj.Valide())->ReTagThis("Valide"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -19076,9 +19090,11 @@ void xml_init(cOneZonzATB & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbMasq(),aTree->Get("NbMasq",1)); //tototo 
 
    xml_init(anObj.Num(),aTree->Get("Num",1)); //tototo 
+
+   xml_init(anObj.Valide(),aTree->Get("Valide",1)); //tototo 
 }
 
-std::string  Mangling( cOneZonzATB *) {return "938BEB773B3084E4FE3F";};
+std::string  Mangling( cOneZonzATB *) {return "C96DC56BCA398A98FF3F";};
 
 
 std::list< cOneZonzATB > & cAnaTopoBascule::OneZonzATB()
@@ -19137,7 +19153,123 @@ void xml_init(cAnaTopoBascule & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneZonzATB(),aTree->GetAll("OneZonzATB",false,1));
 }
 
-std::string  Mangling( cAnaTopoBascule *) {return "96863FA769B51FB5FD3F";};
+std::string  Mangling( cAnaTopoBascule *) {return "DA157F1196820891FE3F";};
+
+
+std::string & cOneZonXmlAMTB::NameXml()
+{
+   return mNameXml;
+}
+
+const std::string & cOneZonXmlAMTB::NameXml()const 
+{
+   return mNameXml;
+}
+
+void  BinaryUnDumpFromFile(cOneZonXmlAMTB & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameXml(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cOneZonXmlAMTB & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameXml());
+}
+
+cElXMLTree * ToXMLTree(const cOneZonXmlAMTB & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OneZonXmlAMTB",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameXml"),anObj.NameXml())->ReTagThis("NameXml"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cOneZonXmlAMTB & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.NameXml(),aTree->Get("NameXml",1)); //tototo 
+}
+
+std::string  Mangling( cOneZonXmlAMTB *) {return "08886701759534B2FD3F";};
+
+
+bool & cAnaTopoXmlBascule::ResFromAnaTopo()
+{
+   return mResFromAnaTopo;
+}
+
+const bool & cAnaTopoXmlBascule::ResFromAnaTopo()const 
+{
+   return mResFromAnaTopo;
+}
+
+
+std::list< cOneZonXmlAMTB > & cAnaTopoXmlBascule::OneZonXmlAMTB()
+{
+   return mOneZonXmlAMTB;
+}
+
+const std::list< cOneZonXmlAMTB > & cAnaTopoXmlBascule::OneZonXmlAMTB()const 
+{
+   return mOneZonXmlAMTB;
+}
+
+void  BinaryUnDumpFromFile(cAnaTopoXmlBascule & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ResFromAnaTopo(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cOneZonXmlAMTB aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OneZonXmlAMTB().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cAnaTopoXmlBascule & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ResFromAnaTopo());
+    BinaryDumpInFile(aFp,(int)anObj.OneZonXmlAMTB().size());
+    for(  std::list< cOneZonXmlAMTB >::const_iterator iT=anObj.OneZonXmlAMTB().begin();
+         iT!=anObj.OneZonXmlAMTB().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cAnaTopoXmlBascule & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"AnaTopoXmlBascule",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("ResFromAnaTopo"),anObj.ResFromAnaTopo())->ReTagThis("ResFromAnaTopo"));
+  for
+  (       std::list< cOneZonXmlAMTB >::const_iterator it=anObj.OneZonXmlAMTB().begin();
+      it !=anObj.OneZonXmlAMTB().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneZonXmlAMTB"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cAnaTopoXmlBascule & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ResFromAnaTopo(),aTree->Get("ResFromAnaTopo",1)); //tototo 
+
+   xml_init(anObj.OneZonXmlAMTB(),aTree->GetAll("OneZonXmlAMTB",false,1));
+}
+
+std::string  Mangling( cAnaTopoXmlBascule *) {return "0AD3367CD5C86FAEFF3F";};
 
 
 cTplValGesInit< double > & cParamFiltreDepthByPrgDyn::CostNonAff()

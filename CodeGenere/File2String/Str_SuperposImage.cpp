@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1301]) = {
+const char * (theNameVar_SuperposImage[1314]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1249,8 +1249,21 @@ const char * (theNameVar_SuperposImage[1301]) = {
 "           <NbGlob Type=\"int\" Nb=\"1\"> </NbGlob>\n",
 "           <NbMasq Type=\"int\" Nb=\"1\"> </NbMasq>\n",
 "           <Num Type=\"int\" Nb=\"1\">  </Num>\n",
+"           <Valide Type=\"bool\" Nb=\"1\"> </Valide>\n",
 "       </OneZonzATB>\n",
 "   </AnaTopoBascule>\n",
+"\n",
+"   <!-- En fait on ne sauve que les XML avec masq modifie , car c'est plus simple et cela permet\n",
+"    de traiter en meme temps le cas ou il n'y a pas de pb\n",
+"   -->\n",
+"\n",
+"   <AnaTopoXmlBascule Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"       <ResFromAnaTopo Nb=\"1\" Type=\"bool\"> </ResFromAnaTopo>\n",
+"       <OneZonXmlAMTB Nb=\"*\">\n",
+"            <NameXml Nb=\"1\" Type=\"std::string\"> </NameXml>\n",
+"       </OneZonXmlAMTB>\n",
+"   </AnaTopoXmlBascule>\n",
+"    \n",
 "\n",
 "\n",
 "   <ParamFiltreDepthByPrgDyn Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

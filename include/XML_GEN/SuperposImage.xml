@@ -1251,6 +1251,18 @@
        </OneZonzATB>
    </AnaTopoBascule>
 
+   <!-- En fait on ne sauve que les XML avec masq modifie , car c'est plus simple et cela permet
+    de traiter en meme temps le cas ou il n'y a pas de pb
+   -->
+
+   <AnaTopoXmlBascule Nb="1" Class="true" ToReference="true">
+       <ResFromAnaTopo Nb="1" Type="bool"> </ResFromAnaTopo>
+       <OneZonXmlAMTB Nb="*">
+            <NameXml Nb="1" Type="std::string"> </NameXml>
+       </OneZonXmlAMTB>
+   </AnaTopoXmlBascule>
+    
+
 
    <ParamFiltreDepthByPrgDyn Nb="1" Class="true" ToReference="true">
         <CostNonAff Nb="?" Type="double" Def="0.5">   </CostNonAff>
