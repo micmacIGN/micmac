@@ -758,6 +758,8 @@ template <class Type> void WriteType(FILE * aFP,Type f)
 
 cElNuage3DMaille * NuageWithoutDataWithModel(const std::string & aName,const std::string & aModel);
 cElNuage3DMaille * NuageWithoutData(const std::string & aName);
+cElNuage3DMaille * NuageWithoutData(const cXML_ParamNuage3DMaille & aParam,const std::string & aName) ;
+
 cXML_ParamNuage3DMaille XML_Nuage(const std::string & aName);
 bool GeomCompatForte(cElNuage3DMaille * aN1,cElNuage3DMaille *aN2);
 

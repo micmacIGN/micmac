@@ -1780,6 +1780,22 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aGeomIn,aDirIn,"",1.0,aParamIn);
    delete aParamIn;
 
+   if (MPD_MM())
+   {
+         int aCpt=0;
+         Pt2di aSz = aNIn->SzUnique();
+         Pt2di aP;
+         for ( aP.x=0 ; aP.x<aSz.x ; aP.x++)
+         {
+             for ( aP.y=0 ; aP.y<aSz.y ; aP.y++)
+             {
+                  if (aNIn->IndexHasContenu(aP))
+                     aCpt++;
+             }
+         }
+         std::cout << "AAAAAA  " << aNIn->SzUnique() << " NbOk " << aCpt << "\n";
+         getchar();
+   }
 
 
    if (aNIn->IsEmpty())

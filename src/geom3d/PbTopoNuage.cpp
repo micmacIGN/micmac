@@ -108,10 +108,11 @@ class cAnalyPbTopo
           static const int LabPoub = 254;
           cAnalyPbTopo
           (
-                cElNuage3DMaille & aNuageInit,
-                cElNuage3DMaille &aNuageTarget,
-                const std::string & aNameOut,
-                bool                aShow
+             cAnaTopoXmlBascule & Res,
+             cElNuage3DMaille & aNuageInit,
+             cElNuage3DMaille &aNuageTarget,
+             const std::string & aNameOut,
+             bool                aShow
           );
        // Utilisation pour composante connexe
          bool  GZC_V4()  const {return false;}
@@ -246,6 +247,7 @@ int  cAnalyPbTopo::NextNumZoneC()
 
 cAnalyPbTopo::cAnalyPbTopo
 (
+     cAnaTopoXmlBascule & aRes,
      cElNuage3DMaille & aNuageInit,
      cElNuage3DMaille &aNuageTarget,
      const std::string & aNameOut,
@@ -333,6 +335,36 @@ cAnalyPbTopo::cAnalyPbTopo
          mImLab.out()
     );
 
+    if (mATB.OneZonzATB().size() > 1)
+    {
+        aRes.ResFromAnaTopo() = true;
+        aRes.OneZonXmlAMTB().clear();
+        int aCpt=1;
+        for 
+        (
+             std::list<cOneZonzATB>::const_iterator itZ=mATB.OneZonzATB().begin();
+             itZ !=mATB.OneZonzATB().end();
+             itZ++
+        )
+        {
+            std::string aPost = "-Zone"+ ToString(aCpt);
+            aCpt++;
+            std::string aNameMasq =  aNameOut+ aPost + "-Masq.tif";
+            Tiff_Im::CreateFromFonc(aNameMasq,mImLab.sz(),mImLab.in()==itZ->Num(),GenIm::bits1_msbf);
+            cXML_ParamNuage3DMaille aNewXML = mN0.Params();
+            aNewXML.Image_Profondeur().Val().Masq() = NameWithoutDir(aNameMasq);
+            std::string aNameXml =  aNameOut+ aPost + ".xml";
+            MakeFileXML(aNewXML,aNameXml);
+
+            cOneZonXmlAMTB aOZ;
+            aOZ.NameXml() = NameWithoutDir(aNameXml);
+            aRes.OneZonXmlAMTB().push_back(aOZ);
+        }
+    }
+    else
+    {
+    }
+
     if (mShow)
     {
         Video_Win aW = Video_Win::WStd(mSz0,1.0);
@@ -384,12 +416,12 @@ cAnalyPbTopo::cAnalyPbTopo
              );
         }
         Tiff_Im::CreateFromIm(mImFlag,aNameOut+"-Flag.tif");
+        Tiff_Im::CreateFromIm(mImLab,aNameOut+"-Label.tif");
+        MakeFileXML(mATB,aNameOut+"-DetailledMTD.xml");
         std::cout << "NumZonec " <<  mNumZoneC << " Seuil " <<  mDistSeuil << "\n";
         aW.clik_in();
     }
 
-    Tiff_Im::CreateFromIm(mImLab,aNameOut+"-Label.tif");
-    MakeFileXML(mATB,aNameOut+"-MTD.xml");
 }
 
 
@@ -402,6 +434,7 @@ int TopoSurf_main(int argc,char ** argv)
     std::string aNameProj ;
     std::string aNameOut ;
     bool        Show=false;
+    bool        PbTopo;
 
     ElInitArgMain
     (
@@ -410,21 +443,38 @@ int TopoSurf_main(int argc,char ** argv)
                     << EAMC(aNameProj,"Name Targeted Proj",eSAM_IsPatFile),
         LArgMain()  << EAM(aNameOut,"Out",true,"Name Result")
                     << EAM(Show,"Show",true,"Visualize result in Window (Def = false)")
+                    << EAM(PbTopo,"PbTopo",true,"Analye Pb Topo , Def depends from Target topology")
 
     );
 
 
-    cElNuage3DMaille *  aN0 = cElNuage3DMaille::FromFileIm(aName0);
-    cElNuage3DMaille *  aNProj = NuageWithoutData(aNameProj);
+    cElNuage3DMaille *  aNProj =NuageWithoutData(aNameProj);
+
+    if (!EAMIsInit(&PbTopo))
+    {
+       PbTopo = aNProj->SeuilDistPbTopo();
+    }
 
 
     if (! EAMIsInit(&aNameOut))
-       aNameOut = DirOfFile(aName0) + "Topo-" + StdPrefix(NameWithoutDir(aName0)) ;
+       aNameOut = DirOfFile(aName0) + "TopoBasc-" + StdPrefix(NameWithoutDir(aName0)) ;
+
+    cAnaTopoXmlBascule aRes;
+    aRes.ResFromAnaTopo() = false;
+    cOneZonXmlAMTB aOZ;
+    aOZ.NameXml() = aName0; 
+    aRes.OneZonXmlAMTB().push_back(aOZ);
+
+    if (PbTopo)
+    {
+       cElNuage3DMaille *  aN0 = cElNuage3DMaille::FromFileIm(aName0);
+       cAnalyPbTopo anAPT(aRes,*aN0,*aNProj,aNameOut,Show);
+    }
+
+     MakeFileXML(aRes,aNameOut+"-MTD.xml");
 
 
-   cAnalyPbTopo anAPT(*aN0,*aNProj,aNameOut,Show);
-
-   return EXIT_SUCCESS;
+     return EXIT_SUCCESS;
 }
 
 

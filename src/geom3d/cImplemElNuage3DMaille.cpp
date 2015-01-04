@@ -720,6 +720,21 @@ cElNuage3DMaille * NuageWithoutDataWithModel(const std::string & aName,const std
                  true
            );
 }
+
+cElNuage3DMaille * NuageWithoutData(const cXML_ParamNuage3DMaille & aParam,const std::string & aName)
+{
+   return cElNuage3DMaille::FromParam
+           (
+                 aParam,
+                 DirOfFile(aName),
+                 "",
+                 1.0,
+                 (cParamModifGeomMTDNuage *) 0,
+                 true
+           );
+}
+
+
 cElNuage3DMaille * NuageWithoutData(const std::string & aName)
 {
     return NuageWithoutDataWithModel(aName,"");
