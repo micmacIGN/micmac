@@ -1708,7 +1708,28 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 #endif
 
-
+void TestNuage(const cElNuage3DMaille * aNu,const std::string & aMes)
+{
+    int aCpt=0;
+    Pt2di aSz = aNu->SzUnique();
+    Pt2di aP;
+    Im2D_U_INT1 aIm(aSz.x,aSz.y,0);
+    TIm2D<U_INT1,INT> aTIm(aIm);
+    for ( aP.x=0 ; aP.x<aSz.x ; aP.x++)
+    {
+        for ( aP.y=0 ; aP.y<aSz.y ; aP.y++)
+        {
+             if (aNu->IndexHasContenu(aP))
+             {
+                aTIm.oset(aP,1);
+                aCpt++;
+             }
+        }
+    }
+    Tiff_Im::CreateFromIm(aIm,aMes+".tif");
+    std::cout << "TestNu "  << aMes << " Sz " << aNu->SzUnique() << " NbOk " << aCpt << "\n";
+    getchar();
+}
 
 cElNuage3DMaille *  BasculeNuageAutoReSize
                     (
@@ -1780,23 +1801,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    cElNuage3DMaille *  aNIn = cElNuage3DMaille::FromParam(aGeomIn,aDirIn,"",1.0,aParamIn);
    delete aParamIn;
 
-   if (MPD_MM())
-   {
-         int aCpt=0;
-         Pt2di aSz = aNIn->SzUnique();
-         Pt2di aP;
-         for ( aP.x=0 ; aP.x<aSz.x ; aP.x++)
-         {
-             for ( aP.y=0 ; aP.y<aSz.y ; aP.y++)
-             {
-                  if (aNIn->IndexHasContenu(aP))
-                     aCpt++;
-             }
-         }
-         std::cout << "AAAAAA  " << aNIn->SzUnique() << " NbOk " << aCpt << "\n";
-         getchar();
-   }
-
 
    if (aNIn->IsEmpty())
    {
@@ -1804,6 +1808,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    }
 
     cElNuage3DMaille * aRes = aNOut->BasculeInThis(&aGeomOutOri,aNIn,true,anArgBasc.mDynEtir,0,0,-1,anArgBasc.mAutoResize,&aVAttrIm);
+
+
 
     if (anArgBasc.mDynEtir>0)
     {
@@ -1825,6 +1831,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 // aSeuil = 0.9;
 // std::cout << "SEUIILLL " << aSeuil << "\n";
        double aDynSeuil = 0.5 / ElMax(aSeuil,1-aSeuil);
+
 
        for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
        {
