@@ -53,53 +53,51 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int ReprojImg_main(int argc,char ** argv)
 {
-    //just to show args
-    /*for (int aK=0 ; aK< argc ; aK++)
-            std::cout<<" # "<<argv[aK]<<std::endl;*/
-
     std::string aOriIn;//Orientation containing all images and calibrations
-    std::string aMECIn;//MEC directory with depth image of ref
     std::string aNameRefImage;//reference image name
     std::string aNameRepImage;//name of image to reproject
     
     std::string aCalibRef;//calibration of reference image
     std::string aCalibRep;//calibration of image to reproject
     
+    std::string aDepthRefImageName;//reference image DEM file name
+    
+    std::string aAutoMaskImageName; //automask image filename
     
     ElInitArgMain
     (
     argc,argv,
     //mandatory arguments
     LArgMain()  << EAMC(aOriIn, "Directory of input orientation",  eSAM_IsExistDirOri)
-                << EAMC(aMECIn, "MEC directory with reference image DEM",  eSAM_IsExistDirOri)
+                << EAMC(aDepthRefImageName, "Reference DEM filename", eSAM_IsExistFile)
                 << EAMC(aNameRefImage, "Reference image name",  eSAM_IsExistFile)
                 << EAMC(aNameRepImage, "Name of image to reproject",  eSAM_IsExistFile),
     //optional arguments
-    LArgMain()  /*<< EAM(aNbXY,"NbXY",true,"Number of points of the grid")
-                << EAM(aNbProf,"NbProf",true,"Number of depths of the grid")
-                << EAM(aDRMax,"DRMax",true,"Max degree of distorsion (def=10)")*/
-    //LArgMain()  //if no optional argument
+    LArgMain()  << EAM(aAutoMaskImageName,"AutoMask",true,"AutoMask filename", eSAM_IsExistFile)
     );
     
+    MakeFileDirCompl(aOriIn);
+    
+    std::cout<<"OrinIn dir: "<<aOriIn<<std::endl;
+    
     //get reference orientation file name
-    std::string aOriRef=aOriIn+"/Orientation-"+aNameRefImage+".xml";
-    std::string aOriRep=aOriIn+"/Orientation-"+aNameRepImage+".xml";
+    std::string aOriRef=aOriIn+"Orientation-"+aNameRefImage+".xml";
+    std::string aOriRep=aOriIn+"Orientation-"+aNameRepImage+".xml";
     
     // Initialize name manipulator & files
     std::string aDir;
     std::string aRefImgTmpName;
     SplitDirAndFile(aDir,aRefImgTmpName,aNameRefImage);
-    std::cout<<"Dir: "<<aDir<<std::endl;
+    std::cout<<"Working dir: "<<aDir<<std::endl;
     std::cout<<"RefImgTmpName: "<<aRefImgTmpName<<std::endl;
     
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDir);
     CamStenope * aCamRef=CamOrientGenFromFile(aOriRef,aICNM);
     CamStenope * aCamRep=CamOrientGenFromFile(aOriRep,aICNM);
     
-    std::string aDepthRefImageName;//reference image DEM file name
-    aDepthRefImageName=aMECIn+"/Z_Num8_DeZoom1_STD-MALT.tif";
     std::cout<<"DepthRefImageName: "<<aDepthRefImageName<<std::endl;
     Tiff_Im aRefDepthTiffIm(aDepthRefImageName.c_str());
+    
     
     //load color images
     //use NameFileStd to convert input files into 3-channel tiff files
@@ -109,9 +107,11 @@ int ReprojImg_main(int argc,char ** argv)
     Tiff_Im aRefTiffIm(aNameRefImageTif.c_str());
     Tiff_Im aRepTiffIm(aNameRepImageTif.c_str());
     
+       
     Pt2di aRefImgSz=aRefTiffIm.sz();
     Pt2di aRepImgSz=aRepTiffIm.sz();
     Pt2di aRefDepthImgSz=aRefDepthTiffIm.sz();
+    
     ELISE_ASSERT(aRefImgSz==aRefDepthImgSz,"Depth image is not at DeZoom 1!");
     
     std::cout<<"aRefTiffIm.nb_chan(): "<<aRefTiffIm.nb_chan()<<std::endl;
@@ -131,11 +131,34 @@ int ReprojImg_main(int argc,char ** argv)
     ELISE_COPY(aDepthImage.all_pts(),aRefDepthTiffIm.in(),aDepthImage.out());
     TIm2D<REAL4,REAL8> aDepthImageT(aDepthImage);
     
+
+    
     //Output image
     Im2D_U_INT1 aOutputTiffIm(aRefImgSz.x,aRefImgSz.y);
     
+    //Mask of reprojected image
+    Im2D_U_INT1 aMaskRepIm(aRefImgSz.x,aRefImgSz.y);
+    
+    
     //access to each pixel value
     U_INT1 ** aOutputTiffImData=aOutputTiffIm.data();
+    U_INT1 ** aMaskRepImData=aMaskRepIm.data();
+    
+    //automask part
+    Im2D_U_INT1 aAutoMaskImage(aRefImgSz.x,aRefImgSz.y);
+    if (EAMIsInit(&aAutoMaskImageName))
+    {
+      std::cout<<"AutoMaskImageName: "<<aAutoMaskImageName<<std::endl;
+      Tiff_Im aAutoMaskTiffIm(aAutoMaskImageName.c_str());
+      Pt2di aAutoMaskImgSz=aAutoMaskTiffIm.sz();
+      ELISE_ASSERT(aRefImgSz==aAutoMaskImgSz,"AutoMask image is not at DeZoom 1!");
+      ELISE_COPY(aAutoMaskImage.all_pts(),aAutoMaskTiffIm.in(),aAutoMaskImage.out());
+    }else{
+      //if no automask given, suppose it's all white
+      ELISE_COPY(aAutoMaskImage.all_pts(),1,aAutoMaskImage.out());
+    }
+    TIm2D<U_INT1,INT4> aAutoMaskImageT(aAutoMaskImage);
+    
     
     //for each pixel of reference image,
      for (int anY=0 ; anY<aRefImgSz.y ; anY++)
@@ -144,78 +167,84 @@ int ReprojImg_main(int argc,char ** argv)
          {
               //create 2D point in Ref image
               Pt2di aPImRef(anX,anY);
-              //aOutputTiffImData[anY][anX]= aRepImageData[anY][anX];
+              
+              //check if depth exists 
+              if (aAutoMaskImageT.get(aPImRef)!=1) 
+              {
+                aOutputTiffImData[anY][anX]=0;
+                aMaskRepImData[anY][anX]=0;
+                continue;
+              }
+              
               //get depth in aRefDepthTiffIm
-              //TODO: use automask
               float aProf=1/aDepthImageT.get(aPImRef);
               //get 3D point
               Pt3dr aPGround=aCamRef->ImEtProf2Terrain((Pt2dr)aPImRef,aProf);
               //project 3D point into Rep image
               Pt2dr aPImRep=aCamRep->R3toF2(aPGround);
               //check that aPImRep is in Rep image
-              //std::cout<<aPImRef<<":"<<std::flush;
+
               //debug
-              if ((anX==2115)&&(anY==912))
+              /*if ((anX==2115)&&(anY==912))
               {
                 std::cout<<"For pixel ("<<anX<<" "<<anY<<"): z="<<aProf<<std::endl;
                 std::cout<<"Reprojection is ("<<aPImRep.x<<" "<<aPImRep.y<<")"<<std::endl;
-              }
+              }*/
               
               
               //TODO: create output mask?
               if ((aPImRep.x<0) ||(aPImRep.x>=aRepImgSz.x-1) ||(aPImRep.y<0) ||(aPImRep.y>=aRepImgSz.y-1))
               {
-                //std::cout<<"x "<<std::flush;
                 aOutputTiffImData[anY][anX]=0;
+                aMaskRepImData[anY][anX]=0;
                 continue;
               }
               
-              //std::cout<<aPImRep<<" "<<std::flush;
               //get color of this point in Rep image
-              //U_INT1 value=aRepImageData[(int)aPImRep.y][(int)aPImRep.x];
               U_INT1 value=aRepImageT.getr(aPImRep);
               //copy this color into output image
               aOutputTiffImData[anY][anX]=value;
+              aMaskRepImData[anY][anX]=255;
          }
      }
     
     Tiff_Im::CreateFromIm(aOutputTiffIm,aNameRefImage+"_"+aNameRepImage+".tif");
+    Tiff_Im::CreateFromIm(aMaskRepIm,aNameRefImage+"_"+aNameRepImage+"_mask.tif");//TODO: make a xml file? convert to indexed colors?
     //TODO: create image difference!
     //use MM2D for image analysis
     
     return EXIT_SUCCESS;
 }
 
-
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant Ã  la mise en
+Ce logiciel est un programme informatique servant \C3  la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est rÃ©gi par la licence CeCILL-B soumise au droit franÃ§ais et
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusÃ©e par le CEA, le CNRS et l'INRIA
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilitÃ© au code source et des droits de copie,
-de modification et de redistribution accordÃ©s par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitÃ©e.  Pour les mÃªmes raisons,
-seule une responsabilitÃ© restreinte pÃ¨se sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concÃ©dants successifs.
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
 
-A cet Ã©gard  l'attention de l'utilisateur est attirÃ©e sur les risques
-associÃ©s au chargement,  Ã  l'utilisation,  Ã  la modification et/ou au
-dÃ©veloppement et Ã  la reproduction du logiciel par l'utilisateur Ã©tant
-donnÃ© sa spÃ©cificitÃ© de logiciel libre, qui peut le rendre complexe Ã
-manipuler et qui le rÃ©serve donc Ã  des dÃ©veloppeurs et des professionnels
-avertis possÃ©dant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invitÃ©s Ã  charger  et  tester  l'adÃ©quation  du
-logiciel Ã  leurs besoins dans des conditions permettant d'assurer la
-sÃ©curitÃ© de leurs systÃ¨mes et ou de leurs donnÃ©es et, plus gÃ©nÃ©ralement,
-Ã  l'utiliser et l'exploiter dans les mÃªmes conditions de sÃ©curitÃ©.
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
+développement et \C3  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
+manipuler et qui le réserve donc \C3  des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
+logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accÃ©der Ã  cet en-tÃªte signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez acceptÃ© les
+Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
