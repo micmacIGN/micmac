@@ -199,11 +199,11 @@ int  NuageBascule_main(int argc,char ** argv)
         double aRatioInOut = ElMin(aROut / aRIn,1.0);
         aSzDecoup  = Pt2di( Pt2dr(aSzDecoup) * aRatioInOut);
 
-    std::cout << "SZ DECOUP " << aSzDecoup << "\n";
+    // std::cout << "SZ DECOUP " << aSzDecoup << "\n";
     // 
     bool HasCor = aNuageIn.Image_Profondeur().Val().Correl().IsInit();
 
-    cElNuage3DMaille *  aNProj = NuageWithoutData(aNuageOut,aNameOut);
+    // cElNuage3DMaille *  aNProj = NuageWithoutData(aNuageOut,aNameOut);
 
     std::string aDirIn = DirOfFile(aNameInInit);
 
@@ -216,6 +216,9 @@ int  NuageBascule_main(int argc,char ** argv)
            std::string aPrefTopo = aDirIn +  "TopoBasc-" + StdPrefix(NameWithoutDir(aNameInInit));
            std::string aNameMTD = aPrefTopo+"-MTD.xml";
            cAnaTopoXmlBascule aATP = StdGetFromSI(aNameMTD,AnaTopoXmlBascule);
+
+           if (aATP.ResFromAnaTopo())
+           {
 
            int aCpt=1;
            for 
@@ -254,6 +257,8 @@ int  NuageBascule_main(int argc,char ** argv)
            }
            ELISE_fp::RmFile(aNameMTD);
            return EXIT_SUCCESS;
+           }
+           ELISE_fp::RmFile(aNameMTD);
        }
        {
             // std::string aNameInCur = aNameInInit;
@@ -266,7 +271,7 @@ int  NuageBascule_main(int argc,char ** argv)
             bool Ok;
             Box2di      aBoxInGlob  = BoxEnglobMasq(aDirIn + aNuageIn.Image_Profondeur().Val().Masq(),&Ok);
 
-std::cout << "aBoxInGlob " << aBoxInGlob << "\n";
+// std::cout << "aBoxInGlob " << aBoxInGlob << "\n";
             if (!Ok)
             {
                  cXML_ParamNuage3DMaille  aNewNuageOut ;
