@@ -476,6 +476,7 @@ class cImageGL : public cObjectGL
         void    draw();
 
         void    setSize(QSize size);
+        QSize   getSize() { return _size; }
 
         void    createTexture(QImage *pImg);
 
@@ -499,18 +500,14 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
-        void    setZoom(float aVal) { _zoom = aVal; }
-        float   getZoom(){ return _zoom; }
-
 private:
 
         float   _scaleFactor;
-        float   _zoom;
 
-        QGLShaderProgram _program;
+        /*QGLShaderProgram *_program;
 
         int     _texLocation;
-        int     _gammaLocation;
+        int     _gammaLocation;*/
 
         QSize   _size;
 
@@ -579,32 +576,21 @@ public:
 
 };
 
-
 class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 {
 
 public:
 
     cMaskedImageGL():
-        _qMaskedImage(NULL),
-        _tiles(NULL),
-        _mask_tiles(NULL),
-        _bDrawTiles(false)
-    {
-//        _mask_tiles = new cImageGL[4];
-//        _tiles      = new cImageGL[4];
-    }
+        _qMaskedImage(NULL)
+    {}
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
-    ~cMaskedImageGL()
-    {
-        if(_tiles)
-            delete [] _tiles;
+    cMaskedImageGL(QMaskedImage *qMaskedImage, const QRectF & aRect);
 
-        if(_mask_tiles)
-            delete [] _mask_tiles;
-    }
+    ~cMaskedImageGL()
+    {}
 
     /*void setScale(Pt3dr aScale)
     {
@@ -618,41 +604,21 @@ public:
 
     void  draw();
 
-    void  drawTiles(cImageGL* tiles);
-
     void  deleteTextures();
 
     void  createTextures();
 
-    void  createTexturesTiles();
-    void  deleteTexturesTiles();
-
-    void  setZone(float aZoom, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
-
-    cMaskedImage<QImage> * getMaskedImage() { return _qMaskedImage; }
-
-    cImageGL& getTile(int aK);
-    cImageGL& getMaskTile(int aK);
-
-    bool    drawTiles() { return _bDrawTiles; }
+    QMaskedImage* getMaskedImage() { return _qMaskedImage; }
+    void          setMaskedImage(QMaskedImage * aMaskedImage) { _qMaskedImage = aMaskedImage; }
 
     cImageGL*   glImage()  { return _m_image; }
     cImageGL*   glMask()   { return _m_mask;  }
 
 private:
-    QSize             getTilesSize();
 
-    QRectF            _rectImage;
-
-    cMaskedImage<QImage> *_qMaskedImage;
-
-    cImageGL*        _tiles;
-    cImageGL*        _mask_tiles;
-
-    QVector <QRectF> _vTilesRect;
-
-    bool             _bDrawTiles;
+    QMaskedImage *_qMaskedImage;
 };
+
 //====================================================================================
 
 //! Default message positions on screen
