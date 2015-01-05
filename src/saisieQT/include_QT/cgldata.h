@@ -91,6 +91,7 @@ public:
     void        setIncFirstCloud(bool incFirstCloud);
 
     cMaskedImageGL &glImage();
+    QVector <cMaskedImageGL*> glTiles();
 
     cPolygon*   polygon(int id = 0);
 
@@ -116,9 +117,12 @@ public:
 
     void        drawCenter(bool white);
 
+    void        createTiles();
+
 private:
 
     cMaskedImageGL      _glMaskedImage;
+    QVector <cMaskedImageGL*> _glMaskedTiles;
 
     cBall*              _pBall;
 

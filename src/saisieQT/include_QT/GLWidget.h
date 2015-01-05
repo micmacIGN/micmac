@@ -92,6 +92,8 @@ public:
 
     void checkTiles(); //compute tiles if needed
 
+    void setZone(QRectF aRect);
+
 public slots:
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
