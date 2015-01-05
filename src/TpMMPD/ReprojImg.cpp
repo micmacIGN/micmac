@@ -125,20 +125,16 @@ int ReprojImg_main(int argc,char ** argv)
     //to access to pixels (see ExoMM_CorrelMulImage.cpp:151)
     Im2D_U_INT1 aRepImage(aRepImgSz.x,aRepImgSz.y);
     ELISE_COPY(aRepImage.all_pts(),aRepTiffIm.in(),aRepImage.out());
+    TIm2D<U_INT1,INT4> aRepImageT(aRepImage);
     
     Im2D_REAL4 aDepthImage(aRefDepthImgSz.x,aRefDepthImgSz.y);
     ELISE_COPY(aDepthImage.all_pts(),aRefDepthTiffIm.in(),aDepthImage.out());
-    
-    //test write
-    //Tiff_Im::CreateFromIm(aRepImage,"sortie.tif");
-    //std::cout<<"Fait!!"<<std::endl;
+    TIm2D<REAL4,REAL8> aDepthImageT(aDepthImage);
     
     //Output image
     Im2D_U_INT1 aOutputTiffIm(aRefImgSz.x,aRefImgSz.y);
     
     //access to each pixel value
-    U_INT1 ** aRepImageData=aRepImage.data();
-    REAL4 ** aDepthImageData=aDepthImage.data();
     U_INT1 ** aOutputTiffImData=aOutputTiffIm.data();
     
     //for each pixel of reference image,
@@ -147,18 +143,17 @@ int ReprojImg_main(int argc,char ** argv)
          for (int anX=0 ; anX<aRefImgSz.x ; anX++)
          {
               //create 2D point in Ref image
-              Pt2dr aPImRef(anX,anY);
+              Pt2di aPImRef(anX,anY);
               //aOutputTiffImData[anY][anX]= aRepImageData[anY][anX];
               //get depth in aRefDepthTiffIm
               //TODO: use automask
-              float aProf=1/aDepthImageData[anY][anX];
-              //aProf=-0.117422755751374119+aProf/0.000102110886382096895;
+              float aProf=1/aDepthImageT.get(aPImRef);
               //get 3D point
-              Pt3dr aPGround=aCamRef->ImEtProf2Terrain(aPImRef,aProf);
+              Pt3dr aPGround=aCamRef->ImEtProf2Terrain((Pt2dr)aPImRef,aProf);
               //project 3D point into Rep image
               Pt2dr aPImRep=aCamRep->R3toF2(aPGround);
               //check that aPImRep is in Rep image
-              
+              //std::cout<<aPImRef<<":"<<std::flush;
               //debug
               if ((anX==2115)&&(anY==912))
               {
@@ -168,16 +163,17 @@ int ReprojImg_main(int argc,char ** argv)
               
               
               //TODO: create output mask?
-              if ((aPImRep.x<0) ||(aPImRep.x>=aRepImgSz.x) ||(aPImRep.y<0) ||(aPImRep.y>=aRepImgSz.y))
+              if ((aPImRep.x<0) ||(aPImRep.x>=aRepImgSz.x-1) ||(aPImRep.y<0) ||(aPImRep.y>=aRepImgSz.y-1))
               {
+                //std::cout<<"x "<<std::flush;
                 aOutputTiffImData[anY][anX]=0;
                 continue;
               }
               
-              
+              //std::cout<<aPImRep<<" "<<std::flush;
               //get color of this point in Rep image
-              //TODO: interpolate!
-              U_INT1 value=aRepImageData[(int)aPImRep.y][(int)aPImRep.x];
+              //U_INT1 value=aRepImageData[(int)aPImRep.y][(int)aPImRep.x];
+              U_INT1 value=aRepImageT.getr(aPImRep);
               //copy this color into output image
               aOutputTiffImData[anY][anX]=value;
          }
