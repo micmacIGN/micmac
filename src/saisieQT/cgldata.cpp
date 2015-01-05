@@ -122,6 +122,11 @@ cMaskedImageGL &cGLData::glImage()
     return _glMaskedImage;
 }
 
+QVector<cMaskedImageGL *> cGLData::glTiles()
+{
+    return _glMaskedTiles;
+}
+
 cPolygon *cGLData::polygon(int id)
 {
     if(id < (int) _vPolygons.size())
@@ -172,6 +177,12 @@ cGLData::~cGLData()
     _glMaskedImage.deleteTextures();
     _glMaskedImage.deallocImages();
 
+    for (int aK=0; aK < _glMaskedTiles.size();++aK)
+    {
+        _glMaskedTiles[aK]->deleteTextures();
+        _glMaskedTiles[aK]->deallocImages();
+    }
+
     qDeleteAll(_vCams);
     _vCams.clear();
 
@@ -198,7 +209,15 @@ void cGLData::draw()
 {
 
     if(!is3D())
-        glImage().draw();
+    {
+        if (glImage().glImage()->isVisible())
+            glImage().draw();
+        else
+        {
+            for (int aK=0; aK< glTiles().size(); ++aK)
+                glTiles()[aK]->draw();
+        }
+    }
     else
     {
         enableOptionLine();
@@ -261,6 +280,38 @@ void cGLData::drawCenter(bool white)
     glDrawEllipse( 0.f, 0.f, mini, mini);
     glPopMatrix();
 
+}
+
+void cGLData::createTiles()
+{
+    int maxTextureSize;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    maxTextureSize /= 2;
+
+    //maxTextureSize /= 16; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    int fullRes_image_sizeX = _glMaskedImage.glImage()->width();
+    int fullRes_image_sizeY = _glMaskedImage.glImage()->height();
+
+    int nbTilesX = qCeil((float) fullRes_image_sizeX / maxTextureSize);
+    int nbTilesY = qCeil((float) fullRes_image_sizeY / maxTextureSize);
+
+//    cout << "tile size : " << fullRes_image_sizeX/ nbTilesX << " " <<  fullRes_image_sizeY/ nbTilesY << endl;
+
+    int tileWidth  = fullRes_image_sizeX / nbTilesX;
+    int tileHeight = fullRes_image_sizeY / nbTilesY;
+
+//    cout << "NB TILES (ROW - COL) = " << nbTilesX << "x" << nbTilesY << endl;
+
+    for (int aK=0; aK< nbTilesX; aK++)
+        for (int bK=0; bK< nbTilesY; bK++)
+        {
+            QRectF rect(QPointF(aK*tileWidth, bK*tileHeight),QPointF((aK+1)*tileWidth, (bK+1)*tileHeight));
+
+            cMaskedImageGL* tile = new cMaskedImageGL(NULL, rect);
+
+            _glMaskedTiles.push_back(tile);
+        }
 }
 
 void cGLData::normalizeCurrentPolygon(bool nrm)
@@ -411,15 +462,15 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
     _glMaskedImage._m_mask->createTexture(getMask());
 
-    if ( _glMaskedImage.drawTiles() )
+    /*if ( _glMaskedImage.bDrawTiles() )
     {
-        for (int aK=0; aK < 4; ++aK)
+        TODO : for (int aK=0; aK < 4; ++aK)
         {
             _glMaskedImage.getMaskTile(aK).deleteTexture();
         }
 
         _glMaskedImage.createTexturesTiles();
-    }
+    }*/
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
