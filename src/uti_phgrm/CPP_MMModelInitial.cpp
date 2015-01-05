@@ -101,10 +101,13 @@ cMMByImNM::cMMByImNM(double aDS,const std::string & aDirGlob,const std::string &
 }
 
 
+const std::string PrefixMPI = "PIMs-";
+
+
 cMMByImNM * cMMByImNM::ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch)
 {
    std::string aNameDS = DS2String(aDS);
-   std::string aDirLoc = "Fusion-" + aNameDS  + aNameMatch + "/";
+   std::string aDirLoc = PrefixMPI  + aNameDS  + aNameMatch + "/";
    return new cMMByImNM(aDS,aDirGlob,aDirLoc,"Nuage-");
 }
 
@@ -301,7 +304,6 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
 
 
-// const std::string  DirFusMMInit() {return "Fusion-QuickMac/";}
 
 
 

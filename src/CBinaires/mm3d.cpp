@@ -389,6 +389,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Morito",Morito_main,"Merge set of Orientation with common values"));
        aRes.push_back(cMMCom("Donuts",Donuts_main,"Cyl to Torus (Donuts like)"));
        aRes.push_back(cMMCom("C3DC",C3DC_main,"Automatic Matching from Culture 3D Cloud project"));
+       aRes.push_back(cMMCom("PIMs",MPI_main,"Per Image Matchings"));
 
 
        aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force devlopment of all tif/xif file"));

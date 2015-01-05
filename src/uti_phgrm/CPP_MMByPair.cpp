@@ -38,8 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 const std::string TheDIRMergeEPI(){return  "MTD-Image-";}
-const std::string DirFusStatue(){return  "Fusion-Statue/";}
-const std::string PrefDNF(){return  "DownScale_NuageFusion-";}
 
 
 extern double DynCptrFusDepthMap;
@@ -1620,6 +1618,7 @@ void cAppliMMByPair::DoMDT()
 
 void cAppliMMByPair::DoMDTRIE(bool ForTieP)
 {
+   std::list<std::string> aLCOM;
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
             // int aZoom = ForTieP ? mZoom0 : mZoomF;
@@ -1637,9 +1636,11 @@ void cAppliMMByPair::DoMDTRIE(bool ForTieP)
              if (ForTieP) aCom = aCom + " +PrefixDIR=" + TheDIRMergeEPI();
 
 // std::cout << aCom << "\n";
+            aLCOM.push_back(aCom);
 
-             System(aCom);
+             // System(aCom);
    }
+   cEl_GPAO::DoComInParal(aLCOM);
 }
 
 void cAppliMMByPair::DoMDTGround()

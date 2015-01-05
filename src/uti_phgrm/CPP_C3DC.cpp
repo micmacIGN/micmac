@@ -60,7 +60,7 @@ mm3d MMByP Statue "IMGP703[0-5].*JPG" Ori-Ori-CalPerIm/ ZoomF=2 Masq3D=AperiClou
 class cAppli_C3DC : public cAppliWithSetImage
 {
      public :
-         cAppli_C3DC(int argc,char ** argv);
+         cAppli_C3DC(int argc,char ** argv,bool DoMerge);
          void DoAll();
 
      private :
@@ -69,6 +69,7 @@ class cAppli_C3DC : public cAppliWithSetImage
 
          void PipelineQuickMack();
          void PipelineStatue();
+         void DoMergeAndPly();
 
          std::string mStrType;
          eTypeMMByP  mType;
@@ -93,9 +94,10 @@ class cAppli_C3DC : public cAppliWithSetImage
          double      mDS;
          int         mZoomF;
          std::string mStrZ0ZF;
+         bool        mDoMerge;
 };
 
-cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
+cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    cAppliWithSetImage  (argc-2,argv+2,TheFlagDev16BGray|TheFlagAcceptProblem),
    mTuning             (MPD_MM()),
    mPurge              (true),
@@ -103,8 +105,11 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv) :
    mMergeOut           ("C3DC.ply"),
    mSzNorm             (2),
    mDS                 (1.0),
-   mZoomF              (1)
+   mZoomF              (1),
+   mDoMerge            (DoMerge)
 {
+
+
     if (argc<2)
     {
         ELISE_ASSERT(false,"No arg to C3CD");
@@ -210,12 +215,20 @@ void cAppli_C3DC::ExeCom(const std::string & aCom)
    if (!mTuning) System(aCom);
 }
 
+void cAppli_C3DC::DoMergeAndPly()
+{
+    if (mDoMerge)
+    {
+       ExeCom(mComMerge);
+       ExeCom(mComCatPly);
+    }
+}
+
 void  cAppli_C3DC::PipelineQuickMack()
 {
     ExeCom(mBaseComMMByP + " Do=AMP " + mStrZ0ZF);
     ExeCom(mBaseComEnv + " DownScale=" + ToString(mDS));
-    ExeCom(mComMerge);
-    ExeCom(mComCatPly);
+    DoMergeAndPly();
 }
 
 
@@ -224,8 +237,7 @@ void  cAppli_C3DC::PipelineStatue()
     ExeCom(mBaseComMMByP + " Purge=" + ToString(mPurge) + " Do=APMCR ZoomF=" + ToString(mZoomF)  );
     ExeCom(mBaseComEnv + " Glob=false");
     ExeCom(mBaseComMMByP + " Purge=" +  ToString(mPurge) + " Do=F " );
-    ExeCom(mComMerge);
-    ExeCom(mComCatPly);
+    DoMergeAndPly();
 /*
 */
 }
@@ -255,24 +267,22 @@ void cAppli_C3DC::DoAll()
 }
 
 
-
-
 int C3DC_main(int argc,char ** argv)
 {
-    if (0)
-    {
-       for (int aK=0 ; aK<argc ; aK++)
-          std::cout << argv[aK] << "\n";
-       std::cout << "=================================\n";
-    }
-
-
-    cAppli_C3DC anAppli(argc,argv);
-
+    cAppli_C3DC anAppli(argc,argv,true);
     anAppli.DoAll();
-
     return EXIT_SUCCESS;
 }
+
+
+int MPI_main(int argc,char ** argv)
+{
+    cAppli_C3DC anAppli(argc,argv,false);
+    anAppli.DoAll();
+    return EXIT_SUCCESS;
+}
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
