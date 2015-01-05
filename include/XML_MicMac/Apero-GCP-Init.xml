@@ -1,0 +1,133 @@
+<!--
+Apero /home/marc/micmac/include/XML_MicMac/Apero-GCP-Init.xml DirectoryChantier=//media/MPD_DATA/Meremptah/H40/
+-->
+<Global>
+   <ParamApero>
+
+      <DicoLoc>
+            <Symb>  PatternAllIm=IMG_014[25].CR2|IMG_0153.CR2 </Symb>
+            <Symb>  CalibIn=CR2-Conect  </Symb>
+<!--
+            <Symb>  Images=NKS-Set-OfPatternAndFoc@Int.*.CR2@12@17 </Symb>
+            <Symb>  AeroIn=Ext15  </Symb>
+-->
+
+            <Symb>  AeroOut=Test  </Symb>
+            <Symb>  DicoApp=Test-Appui-OrientInit.*S3D.xml  </Symb>
+            <Symb>  SaisieIm=Test-Appui-OrientIni.*S2D.xml  </Symb>
+            <Symb>  L2Basc=true  </Symb>
+       </DicoLoc>
+
+
+       <SectionBDD_Observation>
+            <BDD_ObsAppuisFlottant >
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  ${SaisieIm} </KeySetOrPat>
+                  <AcceptNoGround>  true </AcceptNoGround>
+            </BDD_ObsAppuisFlottant>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+            <CalibrationCameraInc>
+                   <Name> GenerateKC-Others   </Name>
+                   <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                   <CalibPerPose>
+                        <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                        <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori-${CalibIn}/AutoCal@.xml  </KeyInitFromPose>
+                    </CalibPerPose>
+             </CalibrationCameraInc>
+
+
+             <PoseCameraInc>
+	           <PatternName>    ${PatternAllIm}   </PatternName>
+	           <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   <PosValueInit>
+                        <PosFromBDAppuis>
+                              <Id> Id-Appui </Id>
+                              <NbTestRansac> 1000 </NbTestRansac>
+                        </PosFromBDAppuis>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+             <PointFlottantInc>
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  ${DicoApp} </KeySetOrPat>
+             </PointFlottantInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXXX </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+                   <IterationsCompensation>
+                       <SectionContraintes>
+                             <ContraintesCamerasInc>
+                                 <Val> eAllParamFiges  </Val>
+                             </ContraintesCamerasInc>
+                       </SectionContraintes>
+                    </IterationsCompensation>
+
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                        <ObsAppuisFlottant>
+                                 <NameRef> Id-Appui </NameRef>
+                                 <PondIm>
+                                          <EcartMesureIndiv>  10000.0 </EcartMesureIndiv>
+                                          <Show> eNSM_Paquet     </Show>
+                                          <NbMax>   100    </NbMax>
+                                          <ModePonderation>  eL1Secured </ModePonderation>
+                                          <SigmaPond> 20.0 </SigmaPond>
+                                 </PondIm>
+
+                                 <PtsShowDet>  .* </PtsShowDet>
+                                 <DetShow3D >   0 </DetShow3D>
+                                 <ShowMax> true </ShowMax>
+                                 <ShowSom>  true</ShowSom>
+                           </ObsAppuisFlottant>
+
+		    </SectionObservations>
+
+                    <SectionExport>
+<!--
+                         <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@-${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <FileExtern> NKS-Assoc-FromFocMm@Ori-${AeroOut}/AutoCal@.xml </FileExtern>
+                                <FileExternIsKey> true </FileExternIsKey>
+                            </ExportPose>
+                             <ExportCalib>
+                                 <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori-${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                 <KeyIsName> false </KeyIsName>
+                            </ExportCalib>
+-->
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
