@@ -309,6 +309,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
     //      pt int dans l'image 0
     const   uint2     aPIm0       =   an + cstP_CorMS.anOff0;
 
+
     // si dans le masque de l'image 0
     const bool  OkIm0   =   IsOkErod(aPIm0,0);
 
@@ -321,7 +322,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         // pitch de decalage
         const uint   pit =   to1D(an,thZ,cstP_CorMS._dimTerrain);
 
-        float&          _cost   =   cost[pit];
+        float&          _cost   =  cost[pit];
         const short2    _nappe  =  nappe[pit];
         short aZ0               = _nappe.x;
 
@@ -334,11 +335,13 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         const short aZ = (short)thZ + aZ0;
 
         // calcul de la phase
-        const ushort aPhase = (ushort)(((int)aZ)%cstP_CorMS.mNbByPix);
+        // Attention probleme avec valeur negative et le modulo
+        const ushort aPhase = (ushort)((abs((int)aZ))%cstP_CorMS.mNbByPix);
 
         /// peut etre precalcul  -- voir simplifier
         ///
-        while (aZ0%cstP_CorMS.mNbByPix != aPhase) aZ0++;
+        while ((abs((int)aZ0))%cstP_CorMS.mNbByPix != aPhase)
+            aZ0++;
 
         //  int anOffset = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
         int anOffset = dElise_div((int)aZ,cstP_CorMS.mNbByPix);

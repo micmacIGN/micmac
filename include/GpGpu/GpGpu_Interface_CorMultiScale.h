@@ -151,7 +151,7 @@ public:
 
     virtual void    freezeCompute(){}
 
-    void            jobMask();
+    void            Job_Correlation_MultiScale();
 
     void transfertImageAndMask(uint2 sI0,uint2 sI1,float ***dataImg0,float ***dataImg1,pixel **mask0,pixel **mask1);
 
