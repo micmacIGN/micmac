@@ -167,7 +167,7 @@ GpGpu_Interface_Cor_MS::~GpGpu_Interface_Cor_MS()
     _cDataCMS.dealloc();
 }
 
-void GpGpu_Interface_Cor_MS::jobMask()
+void GpGpu_Interface_Cor_MS::Job_Correlation_MultiScale()
 {
     paramCorMultiScale2Device(_cDataCMS);
     _dataCMS.syncDeviceData();
