@@ -103,6 +103,13 @@ class cBlockBasc
         {
         }
         void Compute(const cXML_ParamNuage3DMaille &);
+        void PurgeOneExt(const std::string & anExt) { ELISE_fp::RmFileIfExist(mName+anExt); }
+        void PurgeAll()
+        {
+             PurgeOneExt(".xml");
+             PurgeOneExt("_Masq.tif");
+             PurgeOneExt("_Prof.tif");
+        }
 
         int         mK;
         std::string mName;
@@ -112,6 +119,13 @@ class cBlockBasc
         Pt2di       mDecGlob;
         cXML_ParamNuage3DMaille mNuage;
 };
+
+void PurgeBlock(std::vector<cBlockBasc *>  & aVBl)
+{
+    for (int aK=0 ; aK<int(aVBl.size()) ; aK++)
+        aVBl[aK]->PurgeAll();
+}
+
 
 void cBlockBasc::Compute(const cXML_ParamNuage3DMaille & aNGlob)
 {
@@ -216,6 +230,7 @@ int  NuageBascule_main(int argc,char ** argv)
            std::string aPrefTopo = aDirIn +  "TopoBasc-" + StdPrefix(NameWithoutDir(aNameInInit));
            std::string aNameMTD = aPrefTopo+"-MTD.xml";
            cAnaTopoXmlBascule aATP = StdGetFromSI(aNameMTD,AnaTopoXmlBascule);
+           ELISE_fp::RmFile(aNameMTD);
 
            if (aATP.ResFromAnaTopo())
            {
@@ -255,10 +270,8 @@ int  NuageBascule_main(int argc,char ** argv)
                ELISE_fp::RmFile(aPrefTopo+ aPostFZone +"-Masq.tif");
                ELISE_fp::RmFile(aPrefTopo+ aPostFZone +".xml");
            }
-           ELISE_fp::RmFile(aNameMTD);
            return EXIT_SUCCESS;
            }
-           ELISE_fp::RmFile(aNameMTD);
        }
        {
             // std::string aNameInCur = aNameInInit;
@@ -312,7 +325,7 @@ int  NuageBascule_main(int argc,char ** argv)
                 // System(aCom);
             }
             ElTimer aChrono;
-            std::cout << "-Basc1- bascule by block \n";
+            std::cout << "-Basc1- bascule by block \n"; 
             if (mParal)
             {
                cEl_GPAO::DoComInParal(aLCom,"MakeBascule");
@@ -322,7 +335,7 @@ int  NuageBascule_main(int argc,char ** argv)
                cEl_GPAO::DoComInSerie(aLCom);
             }
 
-            std::cout << "-Basc2- create glob T=" << aChrono.uval() << " \n";
+            std::cout << "-Basc2- create glob T=" << aChrono.uval() << " \n"; 
 
             std::cout << "\n";
             Pt2di aP0(1e9,1e9);
@@ -341,7 +354,13 @@ int  NuageBascule_main(int argc,char ** argv)
             }
             if (! oneBlocOk)
             {
-                 ELISE_ASSERT(false,"No bloc OK : probable bascule with empty mask !!!");
+/*
+                ELISE_ASSERT(false,"No bloc OK : probable bascule with empty mask !!!");
+*/
+           // Modif MPD 05/01/2014 : compte tenu du filtrage en prog dyn, sur l'etirement, il peut arriver de maniere normale que
+           // le masque soit vide
+                PurgeBlock(mVBl);
+                return EXIT_SUCCESS;
             }
             Pt2di aSzNew = Pt2di(aP1-aP0);
 
@@ -418,7 +437,7 @@ int  NuageBascule_main(int argc,char ** argv)
                aFtfw.close();
            }
 
-            std::cout << "-Basc3- merge blocks T=" << aChrono.uval() << "\n";
+            std::cout << "-Basc3- merge blocks T=" << aChrono.uval() << "\n"; getchar();
             for (int aKB=0 ; aKB<aDecoup.NbInterv() ; aKB++)
             {
                 cBlockBasc & aBl =  *(mVBl[aKB]);
@@ -482,8 +501,8 @@ int  NuageBascule_main(int argc,char ** argv)
                      ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aIMasqGlob.in(),-aDec),aFileMasq.out());
                      ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aProfGlob.in(),-aDec),aFileProf.out());
 
-                     ELISE_fp::RmFile(aBl.mName+"_Masq.tif");
-                     ELISE_fp::RmFile(aBl.mName+"_Prof.tif");
+                     // ELISE_fp::RmFile(aBl.mName+"_Masq.tif");
+                     // ELISE_fp::RmFile(aBl.mName+"_Prof.tif");
                      if (aFileCorrel)
                      {
 
@@ -501,7 +520,8 @@ int  NuageBascule_main(int argc,char ** argv)
                         ELISE_fp::RmFile(aNameCorrL);
                      }
                 }
-                ELISE_fp::RmFile(aBl.mName+".xml");
+                aBl.PurgeAll();
+                // ELISE_fp::RmFile(aBl.mName+".xml");
             }
             std::cout << "Basc4- Done T=" << aChrono.uval() << "\n";
        }
