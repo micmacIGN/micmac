@@ -82,6 +82,8 @@ Box2di BoxEnglobMasq(Tiff_Im aTF,bool * Ok=0)
     {
         if (Ok) *Ok = true;
     }
+    aXMax++;
+    aYMax++;
 
     return Box2di(Pt2di(aXMin,aYMin),Pt2di(aXMax,aYMax));
 }
@@ -138,7 +140,10 @@ void cBlockBasc::Compute(const cXML_ParamNuage3DMaille & aNGlob)
 
     mNuage = NuageFromFile(mName + ".xml");
     std::string aNameMasq  = mName + "_Masq.tif";
+
     mBoxLoc = BoxEnglobMasq(aNameMasq,&mOK);
+
+std::cout << "mBoxLoc " << mBoxLoc << "\n";
 
     if (!mOK) return ;
 
@@ -437,13 +442,13 @@ int  NuageBascule_main(int argc,char ** argv)
                aFtfw.close();
            }
 
-            std::cout << "-Basc3- merge blocks T=" << aChrono.uval() << "\n"; getchar();
+            std::cout << "-Basc3- merge blocks T=" << aChrono.uval() << "\n"; 
             for (int aKB=0 ; aKB<aDecoup.NbInterv() ; aKB++)
             {
                 cBlockBasc & aBl =  *(mVBl[aKB]);
                 if (aBl.mOK)
                 {
-                     Pt2di aSz = aBl.mBoxLoc.sz();
+                     Pt2di aSz = aBl.mBoxLoc.sz() ;
                      Im2D_Bits<1> aIMasqLoc(aSz.x,aSz.y,0);
                      Im2D_REAL4   aProfLoc(aSz.x,aSz.y);
 
