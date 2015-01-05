@@ -274,6 +274,13 @@ void ELISE_fp::AssertIsDirectory(const std::string &  aName )
 	}
 }
 
+void ELISE_fp::RmFileIfExist(const std::string & aFile)
+{
+   if (ELISE_fp::exist_file(aFile))
+      ELISE_fp::RmFile(aFile);
+}
+
+
 void ELISE_fp::RmFile(const std::string & aFile)
 {
 #if ELISE_windows
