@@ -85,7 +85,14 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
         m_GLData = aData;
 
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
+        {
             m_GLData->glImage().createTextures();
+
+            if ( m_GLData->glImage().getLoadedImageRescaleFactor()<1.f)
+            {
+                m_GLData->createTiles();
+            }
+        }
 
 //        if(!m_GLData->isImgEmpty())
 //        {
@@ -357,12 +364,110 @@ void GLWidget::checkTiles()
                 QRectF rect( _matrixManager.WindowToImage(c0, zoom) ,
                              _matrixManager.WindowToImage(c3, zoom) );
 
-                getGLData()->glImage().setZone(zoom, rect);
+                setZone(rect);
+
+                getGLData()->glImage().glImage()->setVisible(false);
             }
             else
+            {
+                getGLData()->glImage().glImage()->setVisible(true);
 
-                getGLData()->glImage().deleteTexturesTiles();
+                for (int aK=0; aK < getGLData()->glTiles().size(); ++aK)
+                {
+                    getGLData()->glTiles()[aK]->deleteTextures();
+                }
+            }
         }
+    }
+}
+
+void GLWidget::setZone(QRectF aRect)
+{
+
+    if (getGLData()->glImage().glImage())
+    {
+
+        //recherche des tuiles intersectées
+        for (int aK=0; aK< getGLData()->glTiles().size(); aK++)
+        {
+            cMaskedImageGL * tile = getGLData()->glTiles()[aK];
+            cImageGL * glImgTile  = tile->glImage();
+            cImageGL * glMaskTile = tile->glMask();
+
+            Pt3dr pos = glImgTile->getPosition();
+            QSize sz  = glImgTile->getSize();
+            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz.width(), sz.height()));
+
+            if (rectImg.intersects(aRect))
+            {
+                if ((int) *(glImgTile->getTexture()) == (~0) ) //la texture GL n'existe pas
+                {
+                    QMaskedImage * pTileMaskedImg = tile->getMaskedImage();
+                    if (pTileMaskedImg == NULL)
+                    {
+                        //on stocke l'image cropée pour usage ultérieur, si nécessaire (ex: zoom-dezoom-zoom)
+                        QMaskedImage * maskedImg = getGLData()->glImage().getMaskedImage();
+                        QRect rect = rectImg.toAlignedRect();
+
+                        pTileMaskedImg = new QMaskedImage();
+                        pTileMaskedImg->_m_image = new QImage(maskedImg->_m_image->copy(rect));
+                        pTileMaskedImg->_m_mask  = new QImage(maskedImg->_m_mask->copy(rect));
+                    }
+
+                    glImgTile->createTexture(pTileMaskedImg->_m_image);
+                    glMaskTile->createTexture(pTileMaskedImg->_m_mask);
+                }
+                glImgTile->setVisible(true);
+                glMaskTile->setVisible(true);
+            }
+            else
+            {
+                glImgTile->setVisible(false);
+                glMaskTile->setVisible(false);
+            }
+        }
+
+    // création des textures et set des positions GL
+    /*for (int aK=0; aK < tilesToDraw.size(); ++aK)
+    {
+        QPointF topLeft = tilesToDraw[aK].topLeft();
+
+        if (*(getTile(aK).getTexture()) == GL_INVALID_LIST_ID)
+        {
+            cout << "crop img = id Tiles : "  << aK << endl;
+            QImage crop = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
+            //cout << "fin crop" << endl;
+            //crop.save("/home/mdeveau/data/crop_"+ QString::number(aK) + ".tif");
+            getTile(aK).createTexture(&crop);
+            getTile(aK).setVisible(true);
+            getTile(aK).setPosition(Pt3dr(topLeft.x(), topLeft.y(),0));
+        }
+
+        if (*(getMaskTile(aK).getTexture()) == GL_INVALID_LIST_ID)
+        {
+            QTransform trans;
+            trans = trans.scale(getLoadedImageRescaleFactor(),getLoadedImageRescaleFactor());
+
+            QRectF rescaled_rect = trans.mapRect(tilesToDraw[aK]);
+            //cout << "rescaled rect = " << rescaled_rect.topLeft().x() << " " << rescaled_rect.topLeft().y() << endl;
+
+            //cout << "crop mask " <<  aK << endl;
+            //QImage mask_crop = mask_fullsize.copy(tilesToDraw[aK].toAlignedRect());
+            QImage rescaled_mask_crop = _qMaskedImage->_m_rescaled_mask->copy(rescaled_rect.toAlignedRect());
+            //cout << "fin crop mask" << endl;
+            //cout << "rescale crop mask" << endl;
+            QImage mask_crop = rescaled_mask_crop.scaled(tilesToDraw[aK].toAlignedRect().size(),Qt::IgnoreAspectRatio);
+            //cout << "fin rescale crop mask" << endl;
+            //mask_crop.save("/home/mdeveau/data/mask_crop_"+ QString::number(aK) + ".tif");
+
+            getMaskTile(aK).createTexture(&mask_crop);
+            getMaskTile(aK).setVisible(true);
+
+            getMaskTile(aK).setGLPosition(topLeft.x(), topLeft.y());
+        }
+
+    }*/
+
     }
 }
 
