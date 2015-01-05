@@ -1397,26 +1397,26 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 #ifdef CUDA_ENABLED
 
-        interface_Census_GPU.transfertImageAndMask(
-                    toUi2(mPDV1->LoadedIm().SzIm()),
-                    toUi2(mPDV2->LoadedIm().SzIm()),
-                    anI0.VDataIm(),
-                    anI1.VDataIm(),
-                    anI0.ImMasqErod(),
-                    anI1.ImMasqErod());
+//        interface_Census_GPU.transfertImageAndMask(
+//                    toUi2(mPDV1->LoadedIm().SzIm()),
+//                    toUi2(mPDV2->LoadedIm().SzIm()),
+//                    anI0.VDataIm(),
+//                    anI1.VDataIm(),
+//                    anI0.ImMasqErod(),
+//                    anI1.ImMasqErod());
 
-        interface_Census_GPU.init(
-                    Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
-                    aVKImS,
-                    aVPds,
-                    toInt2(anOff0),
-                    toInt2(anOff1),
-                    mTabZMin,
-                    mTabZMax,
-                    mNbByPix,
-                    aStepPix);
+//        interface_Census_GPU.init(
+//                    Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
+//                    aVKImS,
+//                    aVPds,
+//                    toInt2(anOff0),
+//                    toInt2(anOff1),
+//                    mTabZMin,
+//                    mTabZMax,
+//                    mNbByPix,
+//                    aStepPix);
 
-        interface_Census_GPU.Job_Correlation_MultiScale();
+//        interface_Census_GPU.Job_Correlation_MultiScale();
         //getchar();
 #endif
 // std::cout << anOff0 << anOff1 << "\n";
