@@ -50,18 +50,87 @@ Header-MicMac-eLiSe-25/06/2007*/
  *  - image reprojected into reference orientation
  * 
  * */
+ 
+// RefImage class
+class cRefImReprojImg
+{
+  public:
+    cRefImReprojImg
+    (
+      std::string aOriIn,std::string aDepthRefImageName,
+      std::string aNameRefImage,
+      std::string * aAutoMaskImageName, 
+      cInterfChantierNameManipulateur * aICNM
+    );
+    Pt2di getSize(){return mRefImgSz;}
+    TIm2D<U_INT1,INT4> * getAutoMask(){return & mAutoMaskImageT;}
+    TIm2D<REAL4,REAL8> * getDepth(){return & mDepthImageT;}
+    CamStenope         * getCam(){return mCamRef;}
+  protected:
+    std::string        mNameRefImage;//reference image name
+    std::string        mDepthRefImageName;//reference image DEM file name
+    std::string        mAutoMaskImageName; //automask image filename
+    CamStenope         * mCamRef;
+    std::string        mNameRefImageTif;
+    Tiff_Im            mRefTiffIm;
+    Pt2di              mRefImgSz;
+    TIm2D<REAL4,REAL8> mDepthImageT;
+    Im2D<REAL4,REAL8>  mDepthImage;
+    TIm2D<U_INT1,INT4> mAutoMaskImageT;
+    Im2D<U_INT1,INT4>  mAutoMaskImage;
+};
+
+
+cRefImReprojImg::cRefImReprojImg
+      ( std::string aOriIn,std::string aDepthRefImageName,
+        std::string aNameRefImage,
+        std::string * aAutoMaskImageName, 
+        cInterfChantierNameManipulateur * aICNM):
+  mNameRefImage     (aNameRefImage),
+  mDepthRefImageName(aDepthRefImageName),
+  mAutoMaskImageName(*aAutoMaskImageName),
+  mNameRefImageTif  (NameFileStd(mNameRefImage,3,false,true,true,true)),
+  mRefTiffIm        (mNameRefImageTif.c_str()),
+  mRefImgSz         (mRefTiffIm.sz()),
+  mDepthImageT      (mRefImgSz),
+  mDepthImage       (mDepthImageT._the_im),
+  mAutoMaskImageT   (mRefImgSz),
+  mAutoMaskImage    (mAutoMaskImageT._the_im)
+{
+  std::string aOriRef=aOriIn+"Orientation-"+mNameRefImage+".xml";
+  mCamRef=CamOrientGenFromFile(aOriRef,aICNM);
+  
+  std::cout<<"DepthRefImageName: "<<mDepthRefImageName<<std::endl;
+  Tiff_Im aRefDepthTiffIm(mDepthRefImageName.c_str());
+  Pt2di aRefDepthImgSz=aRefDepthTiffIm.sz();
+  ELISE_ASSERT(mRefImgSz==aRefDepthImgSz,"Depth image is not at DeZoom 1!");
+  std::cout<<"mRefTiffIm.nb_chan(): "<<mRefTiffIm.nb_chan()<<std::endl;
+
+  ELISE_COPY(mDepthImage.all_pts(),aRefDepthTiffIm.in(),mDepthImage.out());
+  
+  //automask part
+  if (EAMIsInit(aAutoMaskImageName))
+  {
+    std::cout<<"AutoMaskImageName: "<<mAutoMaskImageName<<std::endl;
+    Tiff_Im aAutoMaskTiffIm(mAutoMaskImageName.c_str());
+    Pt2di aAutoMaskImgSz=aAutoMaskTiffIm.sz();
+    ELISE_ASSERT(mRefImgSz==aAutoMaskImgSz,"AutoMask image is not at DeZoom 1!");
+    ELISE_COPY(mAutoMaskImage.all_pts(),aAutoMaskTiffIm.in(),mAutoMaskImage.out());
+  }else{
+    //if no automask given, suppose it's all white
+    std::cout<<"No AutoMask"<<std::endl;
+    ELISE_COPY(mAutoMaskImage.all_pts(),1,mAutoMaskImage.out());
+  }
+  
+  
+}
 
 int ReprojImg_main(int argc,char ** argv)
 {
     std::string aOriIn;//Orientation containing all images and calibrations
     std::string aNameRefImage;//reference image name
     std::string aNameRepImage;//name of image to reproject
-    
-    std::string aCalibRef;//calibration of reference image
-    std::string aCalibRep;//calibration of image to reproject
-    
     std::string aDepthRefImageName;//reference image DEM file name
-    
     std::string aAutoMaskImageName; //automask image filename
     
     ElInitArgMain
@@ -75,13 +144,10 @@ int ReprojImg_main(int argc,char ** argv)
     //optional arguments
     LArgMain()  << EAM(aAutoMaskImageName,"AutoMask",true,"AutoMask filename", eSAM_IsExistFile)
     );
-    
+
     MakeFileDirCompl(aOriIn);
-    
     std::cout<<"OrinIn dir: "<<aOriIn<<std::endl;
-    
-    //get reference orientation file name
-    std::string aOriRef=aOriIn+"Orientation-"+aNameRefImage+".xml";
+    //get orientation file name
     std::string aOriRep=aOriIn+"Orientation-"+aNameRepImage+".xml";
     
     // Initialize name manipulator & files
@@ -92,84 +158,39 @@ int ReprojImg_main(int argc,char ** argv)
     std::cout<<"RefImgTmpName: "<<aRefImgTmpName<<std::endl;
     
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    CamStenope * aCamRef=CamOrientGenFromFile(aOriRef,aICNM);
+
+    cRefImReprojImg aRefIm(aOriIn,aDepthRefImageName,aNameRefImage,&aAutoMaskImageName,aICNM);
+
     CamStenope * aCamRep=CamOrientGenFromFile(aOriRep,aICNM);
-    
-    std::cout<<"DepthRefImageName: "<<aDepthRefImageName<<std::endl;
-    Tiff_Im aRefDepthTiffIm(aDepthRefImageName.c_str());
-    
-    
-    //load color images
-    //use NameFileStd to convert input files into 3-channel tiff files
-    //see tiff/tiff_header.cpp:2159
-    std::string aNameRefImageTif = NameFileStd(aNameRefImage,3,false,true,true,true);
+     
     std::string aNameRepImageTif = NameFileStd(aNameRepImage,3,false,true,true,true);
-    Tiff_Im aRefTiffIm(aNameRefImageTif.c_str());
     Tiff_Im aRepTiffIm(aNameRepImageTif.c_str());
-    
-       
-    Pt2di aRefImgSz=aRefTiffIm.sz();
     Pt2di aRepImgSz=aRepTiffIm.sz();
-    Pt2di aRefDepthImgSz=aRefDepthTiffIm.sz();
-    
-    ELISE_ASSERT(aRefImgSz==aRefDepthImgSz,"Depth image is not at DeZoom 1!");
-    
-    std::cout<<"aRefTiffIm.nb_chan(): "<<aRefTiffIm.nb_chan()<<std::endl;
     std::cout<<"aRepTiffIm.nb_chan(): "<<aRepTiffIm.nb_chan()<<std::endl;
     
-    
-    //create output image, having the same orientation as reference image
-    /*Tiff_Im aOutputTiffIm(aRefTiffIm);//copy from aRefTiffIm to have the same characteristics
-    std::cout<<"aOutputTiffIm.nb_chan(): "<<aOutputTiffIm.nb_chan()<<std::endl;*/
-    
-    //to access to pixels (see ExoMM_CorrelMulImage.cpp:151)
+    // Access to pixels (see ExoMM_CorrelMulImage.cpp:151)
     Im2D_U_INT1 aRepImage(aRepImgSz.x,aRepImgSz.y);
     ELISE_COPY(aRepImage.all_pts(),aRepTiffIm.in(),aRepImage.out());
-    TIm2D<U_INT1,INT4> aRepImageT(aRepImage);
-    
-    Im2D_REAL4 aDepthImage(aRefDepthImgSz.x,aRefDepthImgSz.y);
-    ELISE_COPY(aDepthImage.all_pts(),aRefDepthTiffIm.in(),aDepthImage.out());
-    TIm2D<REAL4,REAL8> aDepthImageT(aDepthImage);
-    
-
+    TIm2D<U_INT1,INT4> aRepImageT(aRepImage);  
     
     //Output image
-    Im2D_U_INT1 aOutputTiffIm(aRefImgSz.x,aRefImgSz.y);
-    
+    Im2D_U_INT1 aOutputTiffIm(aRefIm.getSize().x,aRefIm.getSize().y);
     //Mask of reprojected image
-    Im2D_U_INT1 aMaskRepIm(aRefImgSz.x,aRefImgSz.y);
-    
-    
+    Im2D_U_INT1 aMaskRepIm(aRefIm.getSize().x,aRefIm.getSize().y);
     //access to each pixel value
     U_INT1 ** aOutputTiffImData=aOutputTiffIm.data();
     U_INT1 ** aMaskRepImData=aMaskRepIm.data();
     
-    //automask part
-    Im2D_U_INT1 aAutoMaskImage(aRefImgSz.x,aRefImgSz.y);
-    if (EAMIsInit(&aAutoMaskImageName))
-    {
-      std::cout<<"AutoMaskImageName: "<<aAutoMaskImageName<<std::endl;
-      Tiff_Im aAutoMaskTiffIm(aAutoMaskImageName.c_str());
-      Pt2di aAutoMaskImgSz=aAutoMaskTiffIm.sz();
-      ELISE_ASSERT(aRefImgSz==aAutoMaskImgSz,"AutoMask image is not at DeZoom 1!");
-      ELISE_COPY(aAutoMaskImage.all_pts(),aAutoMaskTiffIm.in(),aAutoMaskImage.out());
-    }else{
-      //if no automask given, suppose it's all white
-      ELISE_COPY(aAutoMaskImage.all_pts(),1,aAutoMaskImage.out());
-    }
-    TIm2D<U_INT1,INT4> aAutoMaskImageT(aAutoMaskImage);
-    
-    
     //for each pixel of reference image,
-     for (int anY=0 ; anY<aRefImgSz.y ; anY++)
+     for (int anY=0 ; anY<aRefIm.getSize().y ; anY++)
      {
-         for (int anX=0 ; anX<aRefImgSz.x ; anX++)
+         for (int anX=0 ; anX<aRefIm.getSize().x ; anX++)
          {
               //create 2D point in Ref image
               Pt2di aPImRef(anX,anY);
               
               //check if depth exists 
-              if (aAutoMaskImageT.get(aPImRef)!=1) 
+              if (aRefIm.getAutoMask()->get(aPImRef)!=1) 
               {
                 aOutputTiffImData[anY][anX]=0;
                 aMaskRepImData[anY][anX]=0;
@@ -177,9 +198,9 @@ int ReprojImg_main(int argc,char ** argv)
               }
               
               //get depth in aRefDepthTiffIm
-              float aProf=1/aDepthImageT.get(aPImRef);
+              float aProf=1/aRefIm.getDepth()->get(aPImRef);
               //get 3D point
-              Pt3dr aPGround=aCamRef->ImEtProf2Terrain((Pt2dr)aPImRef,aProf);
+              Pt3dr aPGround=aRefIm.getCam()->ImEtProf2Terrain((Pt2dr)aPImRef,aProf);
               //project 3D point into Rep image
               Pt2dr aPImRep=aCamRep->R3toF2(aPGround);
               //check that aPImRep is in Rep image
@@ -190,7 +211,6 @@ int ReprojImg_main(int argc,char ** argv)
                 std::cout<<"For pixel ("<<anX<<" "<<anY<<"): z="<<aProf<<std::endl;
                 std::cout<<"Reprojection is ("<<aPImRep.x<<" "<<aPImRep.y<<")"<<std::endl;
               }*/
-              
               
               //TODO: create output mask?
               if ((aPImRep.x<0) ||(aPImRep.x>=aRepImgSz.x-1) ||(aPImRep.y<0) ||(aPImRep.y>=aRepImgSz.y-1))
@@ -216,9 +236,9 @@ int ReprojImg_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-/*Footer-MicMac-eLiSe-25/06/2007
+/* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant \C3  la mise en
+Ce logiciel est un programme informatique servant à la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -234,17 +254,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
-développement et \C3  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
-manipuler et qui le réserve donc \C3  des développeurs et des professionnels
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
-logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+Footer-MicMac-eLiSe-25/06/2007/*/
