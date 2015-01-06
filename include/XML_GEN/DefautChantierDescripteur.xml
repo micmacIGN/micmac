@@ -116,6 +116,14 @@
     </KeyedSetsOfNames>
 
 
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <NamesFileLON> #1  </NamesFileLON>
+	  </Sets>
+          <Key> NKS-Set-OfFile </Key>
+    </KeyedSetsOfNames>
+
 
 
 

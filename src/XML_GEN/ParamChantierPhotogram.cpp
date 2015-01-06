@@ -11863,6 +11863,115 @@ void xml_init(cAssocNameToName & anObj,cElXMLTree * aTree)
 std::string  Mangling( cAssocNameToName *) {return "8E3A6A61A8BD2A83FF3F";};
 
 
+cTplValGesInit< std::string > & cEtatPims::NameOri()
+{
+   return mNameOri;
+}
+
+const cTplValGesInit< std::string > & cEtatPims::NameOri()const 
+{
+   return mNameOri;
+}
+
+void  BinaryUnDumpFromFile(cEtatPims & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NameOri().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NameOri().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NameOri().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cEtatPims & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameOri().IsInit());
+    if (anObj.NameOri().IsInit()) BinaryDumpInFile(aFp,anObj.NameOri().Val());
+}
+
+cElXMLTree * ToXMLTree(const cEtatPims & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"EtatPims",eXMLBranche);
+   if (anObj.NameOri().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NameOri"),anObj.NameOri().Val())->ReTagThis("NameOri"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cEtatPims & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.NameOri(),aTree->Get("NameOri",1)); //tototo 
+}
+
+std::string  Mangling( cEtatPims *) {return "7B0598A0C7013DBDFDBF";};
+
+
+std::list< std::string > & cListOfName::Name()
+{
+   return mName;
+}
+
+const std::list< std::string > & cListOfName::Name()const 
+{
+   return mName;
+}
+
+void  BinaryUnDumpFromFile(cListOfName & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Name().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cListOfName & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Name().size());
+    for(  std::list< std::string >::const_iterator iT=anObj.Name().begin();
+         iT!=anObj.Name().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cListOfName & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ListOfName",eXMLBranche);
+  for
+  (       std::list< std::string >::const_iterator it=anObj.Name().begin();
+      it !=anObj.Name().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Name"),(*it))->ReTagThis("Name"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cListOfName & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Name(),aTree->GetAll("Name",false,1));
+}
+
+std::string  Mangling( cListOfName *) {return "989865F5644C6DB3FCBF";};
+
+
 cTplValGesInit< bool > & cSetNameDescriptor::AddDirCur()
 {
    return mAddDirCur;
@@ -11937,6 +12046,17 @@ std::list< std::string > & cSetNameDescriptor::Name()
 const std::list< std::string > & cSetNameDescriptor::Name()const 
 {
    return mName;
+}
+
+
+std::list< std::string > & cSetNameDescriptor::NamesFileLON()
+{
+   return mNamesFileLON;
+}
+
+const std::list< std::string > & cSetNameDescriptor::NamesFileLON()const 
+{
+   return mNamesFileLON;
 }
 
 
@@ -12033,6 +12153,15 @@ void  BinaryUnDumpFromFile(cSetNameDescriptor & anObj,ELISE_fp & aFp)
               anObj.Name().push_back(aVal);
         }
   } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.NamesFileLON().push_back(aVal);
+        }
+  } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -12087,6 +12216,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSetNameDescriptor & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.NamesFileLON().size());
+    for(  std::list< std::string >::const_iterator iT=anObj.NamesFileLON().begin();
+         iT!=anObj.NamesFileLON().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.Min().IsInit());
     if (anObj.Min().IsInit()) BinaryDumpInFile(aFp,anObj.Min().Val());
     BinaryDumpInFile(aFp,anObj.Max().IsInit());
@@ -12125,6 +12260,12 @@ cElXMLTree * ToXMLTree(const cSetNameDescriptor & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("Name"),(*it))->ReTagThis("Name"));
+  for
+  (       std::list< std::string >::const_iterator it=anObj.NamesFileLON().begin();
+      it !=anObj.NamesFileLON().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("NamesFileLON"),(*it))->ReTagThis("NamesFileLON"));
    if (anObj.Min().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Min"),anObj.Min().Val())->ReTagThis("Min"));
    if (anObj.Max().IsInit())
@@ -12155,6 +12296,8 @@ void xml_init(cSetNameDescriptor & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Name(),aTree->GetAll("Name",false,1));
 
+   xml_init(anObj.NamesFileLON(),aTree->GetAll("NamesFileLON",false,1));
+
    xml_init(anObj.Min(),aTree->Get("Min",1)); //tototo 
 
    xml_init(anObj.Max(),aTree->Get("Max",1)); //tototo 
@@ -12162,7 +12305,7 @@ void xml_init(cSetNameDescriptor & anObj,cElXMLTree * aTree)
    xml_init(anObj.Filter(),aTree->Get("Filter",1)); //tototo 
 }
 
-std::string  Mangling( cSetNameDescriptor *) {return "D4AB82B0F59195ABFF3F";};
+std::string  Mangling( cSetNameDescriptor *) {return "8A44F18E9AAD869FFC3F";};
 
 
 std::string & cImMatrixStructuration::KeySet()
@@ -16865,7 +17008,7 @@ void xml_init(cKeyedSetsOfNames & anObj,cElXMLTree * aTree)
    xml_init(anObj.Key(),aTree->Get("Key",1)); //tototo 
 }
 
-std::string  Mangling( cKeyedSetsOfNames *) {return "A823CC96191CA8D9FC3F";};
+std::string  Mangling( cKeyedSetsOfNames *) {return "7AB48553C57D5586FD3F";};
 
 
 cTplValGesInit< bool > & cKeyedSetsORels::IsParametrized()
@@ -17561,7 +17704,7 @@ void xml_init(cChantierDescripteur & anObj,cElXMLTree * aTree)
    xml_init(anObj.FilesDatas(),aTree->GetAll("FilesDatas",false,1));
 }
 
-std::string  Mangling( cChantierDescripteur *) {return "B4DB80A91580D2C8FDBF";};
+std::string  Mangling( cChantierDescripteur *) {return "5262C01ACD4B83ECFE3F";};
 
 
 int & cXML_Date::year()

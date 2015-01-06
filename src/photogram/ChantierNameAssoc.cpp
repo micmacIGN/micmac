@@ -185,6 +185,9 @@ bool TransFormArgKey
     if (ContainerTransFormArgKey(aSND.PatternRefuteur(),AMMNoArg,aDirExt))
         aRes = true;
 
+    if (ContainerTransFormArgKey(aSND.NamesFileLON(),AMMNoArg,aDirExt))
+        aRes = true;
+
     if (aSND.Filter().IsInit())
     {
         TransFormArgKey(aSND.Filter().Val(),AMMNoArg,aDirExt);
@@ -1043,6 +1046,33 @@ std::string XML_MM_File(const std::string & aFile)
     }
 
 
+void cSetName::InternalAddList(const std::list<std::string> & aLN)
+{
+    for
+    (
+        std::list<std::string>::const_iterator itN=aLN.begin();
+        itN!=aLN.end();
+        itN++
+    )
+    {
+         std::string aName = mSND.SubDir().Val() +  *itN; // mICNM->DBNameTransfo(*itN,mSND.NameTransfo());
+         bool Ok = ! AuMoinsUnMatch(mLR,aName);
+
+         if (Ok && mSND.Min().IsInit()   && (*itN< mSND.Min().Val()))
+            Ok = false;
+         if (Ok && mSND.Max().IsInit()   && (*itN> mSND.Max().Val()))
+            Ok = false;
+
+         if (Ok && (!NameFilter(mSND.SubDir().Val(),mICNM,mSND.Filter(),*itN)))
+            Ok = false;
+
+         if (Ok)
+         {
+             mRes.push_back(aName);
+         }
+     }
+}
+
 
     const cInterfChantierSetNC::tSet  * cSetName::Get()
     {
@@ -1050,12 +1080,26 @@ std::string XML_MM_File(const std::string & aFile)
         if (!mExtIsCalc)
         {
             mExtIsCalc = true;
+
             for
-                (
-                std::list<std::string>::const_iterator itA=mSND.PatternAccepteur().begin();
-            itA!=mSND.PatternAccepteur().end();
-            itA++
-                )
+            (
+                   std::list<std::string>::const_iterator itL=mSND.NamesFileLON().begin();
+                   itL!=mSND.NamesFileLON().end();
+                   itL++
+            )
+            {
+                cListOfName aLON = StdGetFromPCP(*itL,ListOfName);
+                InternalAddList(aLON.Name());
+            }
+
+
+
+            for
+            (
+                   std::list<std::string>::const_iterator itA=mSND.PatternAccepteur().begin();
+                   itA!=mSND.PatternAccepteur().end();
+                   itA++
+            )
             {
                 std::list<std::string> aLN = RegexListFileMatch
                     (
@@ -1064,12 +1108,15 @@ std::string XML_MM_File(const std::string & aFile)
                     mSND.NivSubDir().Val(),
                     mSND.NameCompl().Val()
                     );
+
+                 InternalAddList(aLN);
                 /*
                 if (aLN.empty())
                 {
                 aLN = mICNM->StdGetListOfFile(*itA);
                 }
                 */
+/*
                 for
                     (
                     std::list<std::string>::const_iterator itN=aLN.begin();
@@ -1093,6 +1140,7 @@ std::string XML_MM_File(const std::string & aFile)
                         mRes.push_back(aName);
                     }
                 }
+*/
             }
 
             for

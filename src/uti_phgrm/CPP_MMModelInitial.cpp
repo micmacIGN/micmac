@@ -54,6 +54,42 @@ Header-MicMac-eLiSe-25/06/2007*/
 // cMMByImNM  :  MicMac By Image Name Manipulator
 
 
+void MakeListofName(const std::string & aFile,const cInterfChantierNameManipulateur::tSet  *aSet)
+{
+   cListOfName aLON;
+   std::copy(aSet->begin(),aSet->end(),back_inserter(aLON.Name()));
+
+   MakeFileXML(aLON,aFile);
+}
+
+
+void AddistofName(const std::string & aFile,const cInterfChantierNameManipulateur::tSet  *aS0)
+{
+    std::set<std::string> aSetFin;
+
+    for (int aK=0 ; aK<int(aS0->size()) ; aK++)
+        aSetFin.insert((*aS0)[aK]);
+
+    if (ELISE_fp::exist_file(aFile))
+    {
+        cListOfName aL0 =  StdGetFromPCP(aFile,ListOfName);
+        for 
+        (
+           std::list<std::string>::const_iterator itS= aL0.Name().begin();
+           itS != aL0.Name().end();
+           itS++
+        )
+        {
+            aSetFin.insert(*itS);
+        }
+    }
+
+    cListOfName aLON;
+    std::copy(aSetFin.begin(),aSetFin.end(),back_inserter(aLON.Name()));
+    MakeFileXML(aLON,aFile);
+}
+
+
 ///==================================================
 ///          cMMByImNM
 ///==================================================
@@ -95,10 +131,51 @@ cMMByImNM::cMMByImNM(double aDS,const std::string & aDirGlob,const std::string &
     mDirGlob   (aDirGlob),
     mDirLoc    (aDirLoc),
     mPrefix    (aPrefix),
-    mFullDir   (mDirGlob + mDirLoc)
+    mFullDir   (mDirGlob + mDirLoc),
+    mNameFileLON (mFullDir + "PimsFile.xml"),
+    mKeyFileLON ("NKS-Set-OfFile@" + mNameFileLON),
+    mNameEtat   (mFullDir+"PimsEtat.xml")
 {
     ELISE_fp::MkDirSvp(mFullDir);
+    if (ELISE_fp::exist_file(mNameEtat))
+    {
+       mEtats =  StdGetFromPCP(mNameEtat,EtatPims);
+    }
 }
+
+
+void cMMByImNM::AddistofName(const cInterfChantierNameManipulateur::tSet  * aSet)
+{
+   ::AddistofName(mNameFileLON,aSet);
+}
+
+const std::string & cMMByImNM::KeyFileLON() const
+{
+   return mKeyFileLON;
+}
+
+const cEtatPims & cMMByImNM::Etat() const
+{
+   return mEtats;
+}
+
+void  cMMByImNM::SetOriOfEtat(const std::string & anOri) 
+{
+   if (mEtats.NameOri().IsInit())
+   {
+       if (mEtats.NameOri().Val() != anOri)
+       {
+           std::cout << "Ori1=" << mEtats.NameOri().Val() << " Ori2=" << anOri << "\n";
+           ELISE_ASSERT(false,"Multiple orientation use in PIMS");
+       }
+   }
+   else
+   {
+      mEtats.NameOri().SetVal(anOri);
+      MakeFileXML(mEtats,mNameEtat);
+   }
+}
+
 
 
 const std::string PrefixMPI = "PIMs-";
