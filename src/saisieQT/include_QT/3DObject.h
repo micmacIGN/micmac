@@ -614,7 +614,7 @@ public:
     cImageGL*   glImage()  { return _m_image; }
     cImageGL*   glMask()   { return _m_mask;  }
 
-private:
+//private:
 
     QMaskedImage *_qMaskedImage;
 };
