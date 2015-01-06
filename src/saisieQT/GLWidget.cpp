@@ -364,17 +364,25 @@ void GLWidget::checkTiles()
                 QRectF rect( _matrixManager.WindowToImage(c0, zoom) ,
                              _matrixManager.WindowToImage(c3, zoom) );
 
+                getGLData()->glImage().deleteTextures();
+
                 setZone(rect);
 
                 getGLData()->glImage().glImage()->setVisible(false);
+                getGLData()->glImage().glMask()->setVisible(false);
             }
             else
             {
-                getGLData()->glImage().glImage()->setVisible(true);
-
                 for (int aK=0; aK < getGLData()->glTiles().size(); ++aK)
                 {
                     getGLData()->glTiles()[aK]->deleteTextures();
+                }
+
+                if ((int) *(getGLData()->glImage().glImage()->getTexture()) == (~0))
+                {
+                    getGLData()->glImage().glImage()->setVisible(true);
+                    getGLData()->glImage().glMask()->setVisible(true);
+                    getGLData()->glImage().createTextures();
                 }
             }
         }
