@@ -364,17 +364,25 @@ void GLWidget::checkTiles()
                 QRectF rect( _matrixManager.WindowToImage(c0, zoom) ,
                              _matrixManager.WindowToImage(c3, zoom) );
 
+                getGLData()->glImage().deleteTextures();
+
                 setZone(rect);
 
                 getGLData()->glImage().glImage()->setVisible(false);
+                getGLData()->glImage().glMask()->setVisible(false);
             }
             else
             {
-                getGLData()->glImage().glImage()->setVisible(true);
-
                 for (int aK=0; aK < getGLData()->glTiles().size(); ++aK)
                 {
                     getGLData()->glTiles()[aK]->deleteTextures();
+                }
+
+                if ((int) *(getGLData()->glImage().glImage()->getTexture()) == (~0))
+                {
+                    getGLData()->glImage().glImage()->setVisible(true);
+                    getGLData()->glImage().glMask()->setVisible(true);
+                    getGLData()->glImage().createTextures();
                 }
             }
         }
@@ -402,20 +410,20 @@ void GLWidget::setZone(QRectF aRect)
             {
                 if ((int) *(glImgTile->getTexture()) == (~0) ) //la texture GL n'existe pas
                 {
-                    QMaskedImage * pTileMaskedImg = tile->getMaskedImage();
-                    if (pTileMaskedImg == NULL)
+                    if (tile->getMaskedImage() == NULL)
                     {
                         //on stocke l'image cropée pour usage ultérieur, si nécessaire (ex: zoom-dezoom-zoom)
-                        QMaskedImage * maskedImg = getGLData()->glImage().getMaskedImage();
+                        cMaskedImage<QImage> * maskedImg = getGLData()->glImage().getMaskedImage();
                         QRect rect = rectImg.toAlignedRect();
 
-                        pTileMaskedImg = new QMaskedImage();
-                        pTileMaskedImg->_m_image = new QImage(maskedImg->_m_image->copy(rect));
-                        pTileMaskedImg->_m_mask  = new QImage(maskedImg->_m_mask->copy(rect));
+                        tile->_qMaskedImage = new QMaskedImage();
+
+                        tile->_qMaskedImage->_m_image = new QImage(maskedImg->_m_image->copy(rect));
+                        tile->_qMaskedImage->_m_mask  = new QImage(maskedImg->_m_mask->copy(rect));
                     }
 
-                    glImgTile->createTexture(pTileMaskedImg->_m_image);
-                    glMaskTile->createTexture(pTileMaskedImg->_m_mask);
+                    glImgTile->createTexture(tile->getMaskedImage()->_m_image);
+                    glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
                 }
                 glImgTile->setVisible(true);
                 glMaskTile->setVisible(true);

@@ -1383,7 +1383,7 @@ cImageGL::cImageGL(float scaleFactor,float gamma) :
     _gamma(gamma)
 {
         setPosition(Pt3dr(0,0,0));
-/*
+
 
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
@@ -1391,7 +1391,7 @@ cImageGL::cImageGL(float scaleFactor,float gamma) :
 
 
     _texLocation   = _program.uniformLocation("tex");
-    _gammaLocation = _program.uniformLocation("gamma");*/
+    _gammaLocation = _program.uniformLocation("gamma");
 }
 
 cImageGL::~cImageGL()
@@ -1432,16 +1432,16 @@ void cImageGL::draw()
     glEnable(GL_TEXTURE_2D);
     glBindTexture( GL_TEXTURE_2D, _texture );
 
-   /* if(_gamma != 1.0f)
+    if(_gamma != 1.0f)
     {
         _program.bind();
         _program.setUniformValue(_texLocation, GLint(0));
         _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
-    }*/
+    }
 
     drawQuad(Qt::white);
 
-    /*if(_gamma != 1.0f) _program.release();*/
+    if(_gamma != 1.0f) _program.release();
 
     glBindTexture( GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
@@ -1536,8 +1536,7 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 
 //TODO: un seul constructeur ?
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
-    _qMaskedImage(qMaskedImage)/*,
-    _bDrawTiles(false)*/
+    _qMaskedImage(qMaskedImage)
 {
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
     _m_mask     = new cImageGL(_loadedImageRescaleFactor );
