@@ -58,6 +58,11 @@ else()
     set(OPENCL_ENABLED  0)
 endif()
 
+if(${CUDA_CPP11THREAD_NOBOOSTTHREAD})
+    set(CPP11THREAD_NOBOOSTTHREAD 1)
+else()
+    set(CPP11THREAD_NOBOOSTTHREAD  0)
+endif()
 
 if(${WITH_OPEN_MP})
     set(OPM_ENABLED 1)

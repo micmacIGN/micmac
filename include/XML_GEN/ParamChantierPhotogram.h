@@ -3918,6 +3918,54 @@ std::string  Mangling( cAssocNameToName *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cEtatPims
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cEtatPims & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< std::string > & NameOri();
+        const cTplValGesInit< std::string > & NameOri()const ;
+    private:
+        cTplValGesInit< std::string > mNameOri;
+};
+cElXMLTree * ToXMLTree(const cEtatPims &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cEtatPims &);
+
+void  BinaryUnDumpFromFile(cEtatPims &,ELISE_fp &);
+
+std::string  Mangling( cEtatPims *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cListOfName
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cListOfName & anObj,cElXMLTree * aTree);
+
+
+        std::list< std::string > & Name();
+        const std::list< std::string > & Name()const ;
+    private:
+        std::list< std::string > mName;
+};
+cElXMLTree * ToXMLTree(const cListOfName &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cListOfName &);
+
+void  BinaryUnDumpFromFile(cListOfName &,ELISE_fp &);
+
+std::string  Mangling( cListOfName *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSetNameDescriptor
 {
     public:
@@ -3947,6 +3995,9 @@ class cSetNameDescriptor
         std::list< std::string > & Name();
         const std::list< std::string > & Name()const ;
 
+        std::list< std::string > & NamesFileLON();
+        const std::list< std::string > & NamesFileLON()const ;
+
         cTplValGesInit< std::string > & Min();
         const cTplValGesInit< std::string > & Min()const ;
 
@@ -3963,6 +4014,7 @@ class cSetNameDescriptor
         cTplValGesInit< bool > mNameCompl;
         cTplValGesInit< std::string > mSubDir;
         std::list< std::string > mName;
+        std::list< std::string > mNamesFileLON;
         cTplValGesInit< std::string > mMin;
         cTplValGesInit< std::string > mMax;
         cTplValGesInit< cNameFilter > mFilter;

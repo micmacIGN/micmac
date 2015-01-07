@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_DefautChantierDescripteur[2780]) = {
+const char * (theNameVar_DefautChantierDescripteur[2788]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",
 "      Un exemple avec utilisation des fonctionnalites arithmetique\n",
@@ -117,6 +117,14 @@ const char * (theNameVar_DefautChantierDescripteur[2780]) = {
 "          <Key> NKS-Set-PatRefut </Key>\n",
 "    </KeyedSetsOfNames>\n",
 "\n",
+"\n",
+"    <KeyedSetsOfNames>\n",
+"          <IsParametrized>  true </IsParametrized>\n",
+"          <Sets> \n",
+"                 <NamesFileLON> #1  </NamesFileLON>\n",
+"	  </Sets>\n",
+"          <Key> NKS-Set-OfFile </Key>\n",
+"    </KeyedSetsOfNames>\n",
 "\n",
 "\n",
 "\n",

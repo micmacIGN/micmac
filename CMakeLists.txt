@@ -1,7 +1,7 @@
 # fichier contenant la fonction gerant les en-tetes precompilees
 include(${CMAKE_CURRENT_SOURCE_DIR}/precompiled_headers.cmake)
 
-cmake_minimum_required( VERSION 2.8.1 )
+cmake_minimum_required( VERSION 2.8.1 ) 
 project(MICMAC)
 
 set(VERBOSE 0)
@@ -193,7 +193,8 @@ if (${CUDA_ENABLED})
 
         OPTION(CUDA_LINEINFO "Compilation avec lineInfo" OFF )
         OPTION(CUDA_FASTMATH "Compilation avec FASTMATH" OFF )
-
+		OPTION(CUDA_CPP11THREAD_NOBOOSTTHREAD "Use c++11 for the multi-threading" OFF )
+		
         FIND_PACKAGE(CUDA)
         INCLUDE(FindCUDA)
 
@@ -232,14 +233,17 @@ if (${CUDA_ENABLED})
         #IFNOT(${WITH_IGN_ORI})
 
     # ne pas oublier boost_no_system_paths
-        set(Boost_USE_STATIC_LIBS ON)
-        set(Boost_NO_SYSTEM_PATHS ON)
-        FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread date_time chrono REQUIRED )
-        #chrono
-         IF(NOT ${WITH_IGN_ORI})
-                  include_directories ( ${Boost_INCLUDE_DIRS} )
-                  include_directories ( ${Boost_INCLUDE_DIR} )
-         endif()
+
+		if (NOT ${CUDA_CPP11THREAD_NOBOOSTTHREAD})
+			set(Boost_USE_STATIC_LIBS ON)
+			set(Boost_NO_SYSTEM_PATHS ON)
+			FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread date_time chrono REQUIRED )
+			#chrono
+			 IF(NOT ${WITH_IGN_ORI})
+					  include_directories ( ${Boost_INCLUDE_DIRS} )
+					  include_directories ( ${Boost_INCLUDE_DIR} )
+			 endif()
+		endif()
 endif()
 
 # Etalonnage polygone
@@ -523,7 +527,7 @@ IF (MSVC)
         # Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
         if (${CUDA_ENABLED})
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
-        else()
+        #else()
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /nologo" )
             # la valeur par defaut Zm1000 genere une erreur sous windows XP
                         set(zm_value "/Zm200")
@@ -537,7 +541,7 @@ IF (MSVC)
                         endif()
         endif()
 
-        if(MSVC80 OR MSVC90 OR MSVC10)
+        if(MSVC80 OR MSVC90 OR MSVC10 OR MSVC11 OR MSVC12 )
                 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
         endif()
 
