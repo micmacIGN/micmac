@@ -573,6 +573,7 @@ tFileOffset ELISE_fp::read_FileOffset4()
 {
     tByte4AbsFileOffset anO4;
     read(&anO4,sizeof(tByte4AbsFileOffset),1);
+    if ( !_byte_ordered ) byte_inv_4( &anO4 );
   
     return anO4;
 }
