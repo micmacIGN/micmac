@@ -1040,9 +1040,18 @@
          <AutoInverseBySym Nb="?"  Type="bool" Def="false"> </AutoInverseBySym>
    </AssocNameToName>
 
+
+   <EtatPims Nb="1" Class="true" ToReference="true" >
+         <NameOri Nb="?" Type="std::string"> </NameOri>
+   </EtatPims>
+
+   <ListOfName Nb="1" Class="true" ToReference="true" >
+        <Name Nb="*" Type="std::string"> </Name>
+   </ListOfName>
+
    <SetNameDescriptor  Nb="1" Class="true" ToReference="true" >
          <AddDirCur Nb="?" Type="bool" Def="true"> </AddDirCur>
-         <PatternAccepteur Nb="+" Type="std::string"> </PatternAccepteur>
+         <PatternAccepteur Nb="*" Type="std::string"> </PatternAccepteur>
          <PatternRefuteur Nb="*" Type="std::string">  </PatternRefuteur>
          <NivSubDir Nb="?" Type="int" Def="1">      </NivSubDir>
          <!-- Nom complet : si true la directory est incluse -->
@@ -1052,6 +1061,7 @@
          <!-- Permet d'ajouter des noms tels quels , sans qu'il
           existent en tant que fichiers -->
          <Name   Nb="*" Type="std::string"> </Name>
+         <NamesFileLON Nb="*" Type="std::string"> </NamesFileLON>
 
          <!-- Min Max :utiliser plutot Filter -->
          <Min Nb="?" Type="std::string"> </Min>

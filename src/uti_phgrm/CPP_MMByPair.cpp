@@ -589,7 +589,7 @@ CamStenope * cAppliWithSetImage::CamOfName(const std::string & aNameIm)
 
       // Tiff_Im aTF = Tiff_Im::StdConvGen(mDir+aNameIm,,);
       // Tiff_Im aTF = Tiff_Im::UnivConvStd(mEASF.mDir+aNameIm);
-      Tiff_Im aTF = Tiff_Im::Tiff_Im::StdConvGen(mEASF.mDir+aNameIm,1,true);
+      Tiff_Im aTF = Tiff_Im::StdConvGen(mEASF.mDir+aNameIm,1,true);
 
       Pt2dr  aSz = Pt2dr(aTF.sz());
       anOC.Interne().Val().F() = euclid(aSz);
@@ -1544,7 +1544,7 @@ void cAppliMMByPair::DoFusionStatue()
 if (0)
 {
    // C'est ce qui concerne la reduction des nuage et images de qualite, pour l'instant pas maintenu ....
-
+	/*
    double aFactRed = 2.0;
    {
        ELISE_fp::MkDir(mEASF.mDir+ DirFusStatue() );
@@ -1582,6 +1582,7 @@ if (0)
        }
        cEl_GPAO::DoComInParal(aLComRed);
    }
+   */
 }
 
 

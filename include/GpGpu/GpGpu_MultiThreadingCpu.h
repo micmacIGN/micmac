@@ -3,10 +3,11 @@
 
 #include <stdio.h>
 
-//#define CPP11_THREAD
-
 #include "GpGpu/GpGpu_Data.h"
 
+#ifdef CPP11THREAD_NOBOOSTTHREAD
+#define CPP11_THREAD
+#endif
 
 #ifdef CPP11_THREAD
     #ifdef NOCUDA_X11

@@ -918,6 +918,8 @@ class  cSetName
       private :
           void CompileDef();
 
+          void InternalAddList(const std::list<std::string> &);
+
       bool mExtIsCalc;
       bool mDefIsCalc;
           cInterfChantierNameManipulateur *          mICNM;
@@ -1446,6 +1448,11 @@ typedef enum
 } eTypeMMByImNM;
 
 
+
+void MakeListofName(const std::string & aFile,const cInterfChantierNameManipulateur::tSet  *);
+void AddistofName(const std::string & aFile,const cInterfChantierNameManipulateur::tSet  *);
+
+
 class cMMByImNM
 {
     public :
@@ -1466,6 +1473,12 @@ class cMMByImNM
         void ModifIp(eTypeMMByImNM,cImage_Profondeur &,const std::string & aNameIm);
 
         const std::string & FullDir() const;
+
+        void AddistofName(const cInterfChantierNameManipulateur::tSet  *);
+        const std::string & KeyFileLON() const;
+        const cEtatPims & Etat() const;
+        void  SetOriOfEtat(const std::string &) ;
+          
     private  :
         cMMByImNM (double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix) ;
 
@@ -1480,9 +1493,16 @@ class cMMByImNM
         std::string    mDirLoc;
         std::string    mPrefix;
         std::string    mFullDir;
+        std::string    mNameFileLON;
+        std::string    mKeyFileLON;
+        std::string    mNameEtat;
+        cEtatPims      mEtats;
 };
 
 bool IsMacType(eTypeMMByP aType);
+
+
+
 
 
 

@@ -95,6 +95,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          int         mZoomF;
          std::string mStrZ0ZF;
          bool        mDoMerge;
+         cMMByImNM * mMMIN;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -106,7 +107,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mSzNorm             (2),
    mDS                 (1.0),
    mZoomF              (1),
-   mDoMerge            (DoMerge)
+   mDoMerge            (DoMerge),
+   mMMIN               (0)
 {
 
 
@@ -196,15 +198,16 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 
    mComMerge +=  " PlyCoul=" + ToString(mPlyCoul);
 
-   cMMByImNM * aMMIN = cMMByImNM::ForGlobMerge(Dir(),mDS,mStrType);
+   mMMIN = cMMByImNM::ForGlobMerge(Dir(),mDS,mStrType);
 
   //=====================================
 
-  std::string aDirFusMM = aMMIN->FullDir();
+  std::string aDirFusMM = mMMIN->FullDir();
 
    mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Merge.*ply") + " Out="  + mMergeOut;
 
    mStrZ0ZF = " Zoom0=" + ToString(mZoomF) + " ZoomF=" + ToString(mZoomF);
+   mMMIN->SetOriOfEtat(mOri);
 }
 
 
@@ -217,10 +220,15 @@ void cAppli_C3DC::ExeCom(const std::string & aCom)
 
 void cAppli_C3DC::DoMergeAndPly()
 {
+    mMMIN->AddistofName(mEASF.SetIm());
     if (mDoMerge)
     {
        ExeCom(mComMerge);
        ExeCom(mComCatPly);
+    }
+    if (MPD_MM())
+    {
+        std::cout << "KKKKey " <<  mMMIN->KeyFileLON() << "\n";
     }
 }
 
