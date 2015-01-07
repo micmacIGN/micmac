@@ -1548,10 +1548,9 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     cObjectGL::setName(qMaskedImage->name());
 }
 
-cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage, const QRectF &aRect):
-    _qMaskedImage(qMaskedImage)
+cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
+    _qMaskedImage(NULL)
 {
-    //TODO: passer le rescale factor ?
     _m_image = new cImageGL();
     _m_mask  = new cImageGL();
 

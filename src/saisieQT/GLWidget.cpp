@@ -3,6 +3,7 @@
 GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
+  , m_bMaskEdited(false)
   , m_GLData(NULL)
   , m_bDisplayMode2D(false)
   , _vp_Params(ViewportParameters())
@@ -370,6 +371,8 @@ void GLWidget::checkTiles()
 
                 getGLData()->glImage().glImage()->setVisible(false);
                 getGLData()->glImage().glMask()->setVisible(false);
+
+                getGLData()->setDrawTiles(true);
             }
             else
             {
@@ -384,6 +387,8 @@ void GLWidget::checkTiles()
                     getGLData()->glImage().glMask()->setVisible(true);
                     getGLData()->glImage().createTextures();
                 }
+
+                getGLData()->setDrawTiles(false);
             }
         }
     }
@@ -394,7 +399,6 @@ void GLWidget::setZone(QRectF aRect)
 
     if (getGLData()->glImage().glImage())
     {
-
         //recherche des tuiles intersectées
         for (int aK=0; aK< getGLData()->glTiles().size(); aK++)
         {
@@ -408,24 +412,51 @@ void GLWidget::setZone(QRectF aRect)
 
             if (rectImg.intersects(aRect))
             {
+                QMaskedImage * maskedImg = getGLData()->glImage().getMaskedImage();
+                QRect rect = rectImg.toAlignedRect();
+
+                //Partie image
                 if ((int) *(glImgTile->getTexture()) == (~0) ) //la texture GL n'existe pas
                 {
                     if (tile->getMaskedImage() == NULL)
                     {
                         //on stocke l'image cropée pour usage ultérieur, si nécessaire (ex: zoom-dezoom-zoom)
-                        cMaskedImage<QImage> * maskedImg = getGLData()->glImage().getMaskedImage();
-                        QRect rect = rectImg.toAlignedRect();
 
                         tile->_qMaskedImage = new QMaskedImage();
 
-                        tile->_qMaskedImage->_m_image = new QImage(maskedImg->_m_image->copy(rect));
-                        tile->_qMaskedImage->_m_mask  = new QImage(maskedImg->_m_mask->copy(rect));
+                        tile->getMaskedImage()->_m_image = new QImage(maskedImg->_m_image->copy(rect));
                     }
 
                     glImgTile->createTexture(tile->getMaskedImage()->_m_image);
-                    glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
                 }
                 glImgTile->setVisible(true);
+
+                //Partie masque
+                if ((int) *(glMaskTile->getTexture()) == (~0) ) //la texture GL n'existe pas
+                {
+                    if (!m_bMaskEdited)
+                    {
+                        tile->getMaskedImage()->_m_mask = new QImage(maskedImg->_m_mask->copy(rect));
+                    }
+                    else //il y a eu une saisie: il faut utiliser _m_rescaled_mask, car c'est lui qui stocke toutes les modifications (à changer ?)
+                    {
+                        //application du facteur d'échelle au QRect:
+                        float scaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
+
+                        QTransform trans;
+                        trans = trans.scale(scaleFactor,scaleFactor);
+
+                        QRect rescaled_rect = trans.mapRect(rect);
+
+                        QImage rescaled_mask_crop = maskedImg->_m_rescaled_mask->copy(rescaled_rect);
+
+                        QImage mask_crop = rescaled_mask_crop.scaled(sz.width(), sz.height(), Qt::KeepAspectRatio);
+
+                        tile->getMaskedImage()->_m_mask = new QImage(mask_crop);
+                    }
+
+                    glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
+                }
                 glMaskTile->setVisible(true);
             }
             else
@@ -595,6 +626,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             m_GLData->editCloudMask(mode,polyg,m_bFirstAction,_matrixManager);
 
         if (mode <= ADD_OUTSIDE) m_bFirstAction = false;
+        m_bMaskEdited = true;
 
         if (saveInfos) //  TODO ne marche pas avec le switch y/z
         {

@@ -22,7 +22,8 @@ cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, i
     _pGrid(NULL),
     _bbox_center(Pt3dr(0.,0.,0.)),
     _clouds_center(Pt3dr(0.,0.,0.)),
-    _appMode(appMode)
+    _appMode(appMode),
+    _bDrawTiles(false)
 {
     if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
     else _glMaskedImage._m_mask->setVisible(true);
@@ -44,7 +45,8 @@ cGLData::cGLData(cData *data, cParameters aParams, int appMode):
     _clouds_center(Pt3dr(0.,0.,0.)),
     _appMode(appMode),
     _diam(1.f),
-    _incFirstCloud(false)
+    _incFirstCloud(false),
+    _bDrawTiles(false)
 {
     initOptions(appMode);
 
@@ -308,7 +310,7 @@ void cGLData::createTiles()
         {
             QRectF rect(QPointF(aK*tileWidth, bK*tileHeight),QPointF((aK+1)*tileWidth, (bK+1)*tileHeight));
 
-            cMaskedImageGL* tile = new cMaskedImageGL(NULL, rect);
+            cMaskedImageGL* tile = new cMaskedImageGL(rect);
 
             _glMaskedTiles.push_back(tile);
         }
@@ -405,6 +407,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     QBrush SBrush(Qt::black);
     QBrush NSBrush(Qt::white);
     QRect  rect = getMask()->rect();
+    QRectF rectPoly;
 
     p.begin(getMask());
     p.setCompositionMode(QPainter::CompositionMode_Source);
@@ -413,10 +416,14 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     QPolygonF polyDraw(polyg.getVector());
     QPainterPath path;
 
-    if ( _glMaskedImage.getLoadedImageRescaleFactor() < 1.f )
+    float scaleFactor = _glMaskedImage.getLoadedImageRescaleFactor();
+    QTransform trans;
+
+    if ( scaleFactor < 1.f )
     {
-        QTransform trans;
-        trans = trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
+        rectPoly = polyDraw.boundingRect();
+
+        trans = trans.scale(scaleFactor,scaleFactor);
 
         polyDraw = trans.map(polyDraw);
     }
@@ -462,15 +469,33 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
     _glMaskedImage._m_mask->createTexture(getMask());
 
-    /*if ( _glMaskedImage.bDrawTiles() )
+    if ( getDrawTiles() )
     {
-        TODO : for (int aK=0; aK < 4; ++aK)
-        {
-            _glMaskedImage.getMaskTile(aK).deleteTexture();
-        }
 
-        _glMaskedImage.createTexturesTiles();
-    }*/
+        for (int aK=0; aK < glTiles().size(); ++aK)
+        {
+            cMaskedImageGL * tile = glTiles()[aK];
+            cImageGL * glImgTile  = tile->glImage();
+            cImageGL * glMaskTile = tile->glMask();
+
+            Pt3dr pos = glImgTile->getPosition();
+            QSize sz  = glImgTile->getSize();
+            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz.width(), sz.height()));
+
+            if (rectImg.intersects(rectPoly))
+            {
+                QRect rescaled_rect = trans.mapRect(rectImg.toAlignedRect());
+
+                QImage mask_crop = getMask()->copy(rescaled_rect).scaled(sz.width(), sz.height(), Qt::KeepAspectRatio);
+
+                tile->getMaskedImage()->_m_mask = &mask_crop;
+
+                //glMaskTile->deleteTexture();
+                glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
+                //glMaskTile->setVisible(true);
+            }
+        }
+    }
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)

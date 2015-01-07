@@ -119,6 +119,9 @@ public:
 
     void        createTiles();
 
+    void        setDrawTiles(bool val) { _bDrawTiles = val; }
+    bool        getDrawTiles() { return _bDrawTiles; }
+
 private:
 
     cMaskedImageGL      _glMaskedImage;
@@ -154,6 +157,7 @@ private:
     float       _diam;
 
     bool        _incFirstCloud;
+    bool        _bDrawTiles;
 
 };
 

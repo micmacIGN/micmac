@@ -587,7 +587,7 @@ public:
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
-    cMaskedImageGL(QMaskedImage *qMaskedImage, const QRectF & aRect);
+    cMaskedImageGL(const QRectF & aRect);
 
     ~cMaskedImageGL()
     {}

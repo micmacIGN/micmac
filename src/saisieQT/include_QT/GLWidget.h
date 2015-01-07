@@ -162,7 +162,8 @@ protected:
     //! Current interaction mode (with mouse)
     int  m_interactionMode;
 
-    bool m_bFirstAction;
+    bool m_bFirstAction; //warning: false if mask is loaded
+    bool m_bMaskEdited;
 
     //! Data to display
     cGLData    *m_GLData;
