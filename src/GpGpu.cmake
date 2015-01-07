@@ -2,9 +2,11 @@
  file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
  list(APPEND IncCudaFiles ${IncuhCudaFiles})
 
-
-
-if (MSVC10)
+if (MSVC12)
+	GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\12.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+elseif (MSVC11)
+	GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\11.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+elseif (MSVC10)
     GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 elseif (MSVC90)
     GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VS;ProductDir] REALPATH CACHE)
@@ -12,21 +14,79 @@ elseif (MSVC80)
     GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 endif()
  
-if (MSVC10 OR MSVC90 OR MSVC80)
-    set( ENV{PATH} "${VS_DIR}\\VC\\bin" )
-endif()
+if (MSVC12 OR MSVC11 OR MSVC10 OR MSVC90 OR MSVC80)
+    set( ENV{PATH} "${VS_DIR}\\VC\\bin;C:\\Windows\\System32;${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}\\CMakeTmp\\" )
+endif() 
 
-execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu" "--run"
+#message("Start 1er process") 
+
+if( EXISTS "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa.exe")
+
+#message("Found ")
+
+execute_process( COMMAND "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa.exe"
                  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
                  RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
                  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+else()
+
+execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "-o=FoundCapa" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu"  "--run" 
+                 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
+                 RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
+                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+
+#message(${_outNVCC}) 
 
 if(NOT _resultNVCC EQUAL 0)
-      message(STATUS "Error Cuda")
-else()
-      set(_cudaArch "${_outNVCC}")
+	if (MSVC12 OR MSVC11 OR MSVC10 OR MSVC90 OR MSVC80)    
+		
+		set( ENV{PATH} "${VS_DIR}\\VC\\bin;C:\\Windows\\System32;${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}\\CMakeTmp\\" )
+		
+		message("Visual studio express edition")
+		
+		execute_process(COMMAND "vcvars32.bat"  WORKING_DIRECTORY "${VS_DIR}\\VC\\bin")
+
+		#message("Start process 32 bit") 
+
+		if( EXISTS "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa32.exe")
+
+			#message("Found 32")
+
+			execute_process( COMMAND "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa32.exe"
+							 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
+							 RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
+							 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+		else()
+
+			execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "-m32" "-o=FoundCapa32" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu"  "--run"		
+					 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
+					 RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
+					 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+		endif()
+		#message(${_outNVCC}) 
+
+	endif()
+
+	if(NOT _resultNVCC EQUAL 0)		
+		if ("${CMAKE_GENERATOR}" MATCHES "Win64")
+			message("Error: 64 bits generation with cuda and visual express edition")
+			message("2 options ")
+			message("create with 32 bits generator")
+			message("or")
+			message("Copy the folder ${VS_DIR}\\VC\\bin\\x86_amd64 and rename x86_amd64 to amd64")
+			message("Inside the new amd64 folder rename vcvarsx86_amd64.bat file to vcvars64.bat")
+			message(FATAL_ERROR "64 bits generation with cuda and express edition")
+		endif() 
+		message( FATAL_ERROR "Error Cuda --- build in 32 bits" )
+	endif()  
+
 endif()
+
+set(_cudaArch "${_outNVCC}")
 
 string(FIND "${_cudaArch}" "2.1" arch_21)
 string(FIND "${_cudaArch}" "2.0" arch_20)
@@ -87,11 +147,16 @@ set(libStatGpGpuTools GpGpuTools)
 set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
 set(libStatGpGpuOpt GpGpuOpt)
 
+ 
  find_cuda_helper_libs(nvToolsExt)
+
 
  cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM})
 
- target_link_libraries(${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY})
+
+ if(${CUDA_nvToolsExt_LIBRARY})	
+	target_link_libraries(${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY})
+ endif()
 
  cuda_add_library(${libStatGpGpuInterfMicMac}  ${uti_phgrm_GpGpu_Src_Files} STATIC OPTIONS ${GENCODE_SM})
 
@@ -114,7 +179,7 @@ set(libStatGpGpuOpt GpGpuOpt)
  endif()
  INSTALL(TARGETS ${GpGpu_UnitTesting} RUNTIME DESTINATION ${Install_Dir})
 
-link_directories(${PROJECT_SOURCE_DIR}/lib/)
+link_directories(${PROJECT_SOURCE_DIR}/lib/) 
 
 if(${CUDA_ENABLED})
          file(GLOB_RECURSE IncFilesGpGpu ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
