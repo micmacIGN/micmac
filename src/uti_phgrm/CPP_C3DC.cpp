@@ -228,7 +228,7 @@ void cAppli_C3DC::DoMergeAndPly()
     }
     if (MPD_MM())
     {
-        std::cout << "KKKKey " <<  mMMIN->KeyFileLON() << "\n";
+        // std::cout << "KKKKey " <<  mMMIN->KeyFileLON() << "\n";
     }
 }
 
@@ -291,6 +291,130 @@ int MPI_main(int argc,char ** argv)
 }
 
 
+//====================================================
+
+class cChantierFromMPI
+{
+     public :
+       cChantierFromMPI(const std::string &,double aScale);
+         
+       cMMByImNM *    mMMI;
+       std::string    mOri;
+       std::string    mStrImOri;
+       std::string    mStrType;
+       std::string    mFullDirPIm;
+       std::string    mFullDirChantier;
+};
+
+
+cChantierFromMPI::cChantierFromMPI(const std::string & aStr,double aScale) :
+    mMMI             (cMMByImNM::FromExistingDirOrMatch(aStr,aScale)),
+    mOri             (mMMI->Etat().NameOri().ValWithDef("")),
+    mStrImOri        (std::string(" ") + mMMI->KeyFileLON() + " " + mOri),
+    mStrType         (mMMI->NameType()),
+    mFullDirPIm      (mMMI->FullDir()),
+    mFullDirChantier (mMMI->DirGlob())
+{
+    if (mOri=="")
+    {
+        std::cout << "For Name=" << aStr  << " Scale=" << aScale << "\n";
+        ELISE_ASSERT(false,"Reused PIMs was not correctly terminated");
+    }
+}
+
+
+//====================================================
+
+class cAppli_MPI2Ply
+{
+     public :
+         cAppli_MPI2Ply(int argc,char ** argv);
+         void DoAll();
+
+     private :
+         std::string mName;
+         double      mDS;
+         cChantierFromMPI * mCFPI;
+         std::string mMergeOut;
+         std::string mComNuageMerge;
+         std::string mComCatPly;
+};
+
+
+cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
+    mDS (1.0)
+{
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)"),
+        LArgMain()
+                    << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
+                    << EAM(mMergeOut,"Out",true,"Ply File Results")
+    );
+     
+    mCFPI = new cChantierFromMPI(mName,mDS);
+ 
+    mComNuageMerge =       MM3dBinFile("TestLib  MergeCloud ")
+                  +   mCFPI-> mStrImOri 
+                  + " ModeMerge=" + mCFPI->mStrType
+                  +  " DownScale=" +ToString(mDS)
+               ;
+
+
+   if (! EAMIsInit(&mMergeOut)) mMergeOut =  mCFPI->mFullDirChantier+"C3DC_"+ mCFPI->mStrType + ".ply";
+   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( mCFPI->mFullDirPIm + ".*Merge.*ply") + " Out="  + mMergeOut;
+
+}
+
+void cAppli_MPI2Ply::DoAll()
+{
+   System(mComNuageMerge);
+   System(mComCatPly);
+}
+
+int MPI2Ply_main(int argc,char ** argv)
+{
+    cAppli_MPI2Ply anAppli(argc,argv);
+    anAppli.DoAll();
+    return EXIT_SUCCESS;
+}
+
+//====================================================
+
+class cAppli_MPI2Mnt
+{
+     public :
+         cAppli_MPI2Mnt(int argc,char ** argv);
+         void DoAll();
+
+     private :
+         std::string mName;
+         double      mDS;
+         cChantierFromMPI * mCFPI;
+         std::string mComMNTMNT;
+         std::string mRep;
+};
+
+cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
+    mDS  (1.0)
+{
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)"),
+        LArgMain()
+                    << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
+                    << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
+   );
+     
+}
+
+
+int MPI2Mnt_main(int argc,char ** argv)
+{
+    return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

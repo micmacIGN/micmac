@@ -734,6 +734,8 @@ int  CalcAutoCorrel_main(int argc,char ** argv);
 int CPP_AppliMergeCloud(int argc,char ** argv);
 int C3DC_main(int argc,char ** argv);
 int MPI_main(int argc,char ** argv);
+int MPI2Ply_main(int argc,char ** argv);
+int MPI2Mnt_main(int argc,char ** argv);
 int CCL_main(int argc,char ** argv);
 int TDEpip_main(int argc, char **argv);
 
