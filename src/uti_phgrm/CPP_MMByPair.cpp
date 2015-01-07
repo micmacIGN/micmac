@@ -333,6 +333,8 @@ void cElemAppliSetFile::Init(const std::string & aFullName)
         replace( mFullName.begin(), mFullName.end(), '\\', '/' );
 #endif
    SplitDirAndFile(mDir,mPat,mFullName);
+
+// std::cout << "mDdddd '" << mDir  << " " << mPat << "\n";
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    mSetIm = mICNM->Get(mPat);
 }

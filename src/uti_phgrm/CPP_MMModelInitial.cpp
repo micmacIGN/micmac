@@ -109,6 +109,7 @@ std::string cMMByImNM::NameOfType(eTypeMMByImNM aType)
 }
 
 
+
 std::string DS2String(double aDS)
 {
     if (aDS==1) return "";
@@ -122,19 +123,31 @@ std::string DS2String(double aDS)
 
 
     return "DS"+ aStrDS + "_";
-    
 }
 
 
-cMMByImNM::cMMByImNM(double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix) :
+const std::string cMMByImNM::TheNamePimsFile = "PimsFile.xml";
+const std::string cMMByImNM::TheNamePimsEtat = "PimsEtat.xml";
+
+bool  cMMByImNM::StrIsPImsDIr(const std::string & aDir)
+{
+    return    ELISE_fp::exist_file(aDir+TheNamePimsFile) 
+           && ELISE_fp::exist_file(aDir+TheNamePimsEtat);
+}
+
+
+
+
+cMMByImNM::cMMByImNM(double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix,const std::string & aNameType) :
     mDS        (aDS),
     mDirGlob   (aDirGlob),
     mDirLoc    (aDirLoc),
     mPrefix    (aPrefix),
     mFullDir   (mDirGlob + mDirLoc),
-    mNameFileLON (mFullDir + "PimsFile.xml"),
-    mKeyFileLON ("NKS-Set-OfFile@" + mNameFileLON),
-    mNameEtat   (mFullDir+"PimsEtat.xml")
+    mNameFileLON (mFullDir + TheNamePimsFile),
+    mKeyFileLON (aDirGlob+ "%NKS-Set-OfFile@" + mNameFileLON),
+    mNameEtat   (mFullDir+ TheNamePimsEtat),
+    mNameType   (aNameType)
 {
     ELISE_fp::MkDirSvp(mFullDir);
     if (ELISE_fp::exist_file(mNameEtat))
@@ -142,6 +155,8 @@ cMMByImNM::cMMByImNM(double aDS,const std::string & aDirGlob,const std::string &
        mEtats =  StdGetFromPCP(mNameEtat,EtatPims);
     }
 }
+
+
 
 
 void cMMByImNM::AddistofName(const cInterfChantierNameManipulateur::tSet  * aSet)
@@ -181,16 +196,85 @@ void  cMMByImNM::SetOriOfEtat(const std::string & anOri)
 const std::string PrefixMPI = "PIMs-";
 
 
-cMMByImNM * cMMByImNM::ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch)
+std::string cMMByImNM::StdDirPims(double aDS, const std::string & aNameMatch)
 {
    std::string aNameDS = DS2String(aDS);
-   std::string aDirLoc = PrefixMPI  + aNameDS  + aNameMatch + "/";
-   return new cMMByImNM(aDS,aDirGlob,aDirLoc,"Nuage-");
+   return  PrefixMPI  + aNameDS  + aNameMatch + "/";
 }
 
-cMMByImNM * cMMByImNM::ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm)
+cMMByImNM * cMMByImNM::ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch)
 {
-   return new cMMByImNM(1.0,aDirGlob, TheDIRMergeEPI()  +   aNameIm + "/","QMNuage-");
+   // std::string aNameDS = DS2String(aDS);
+   // std::string aDirLoc = PrefixMPI  + aNameDS  + aNameMatch + "/";
+   return new cMMByImNM(aDS,aDirGlob,StdDirPims(aDS,aNameMatch),"Nuage-",aNameMatch);
+}
+
+
+void SelfSuppressCarDirEnd(std::string & aDir)
+{
+    int aL = strlen(aDir.c_str());
+    if (aL && (aDir[aL-1]==ELISE_CAR_DIR))
+    {
+        aDir = aDir.substr(0,aL-1);
+    }
+}
+std::string SuppressCarDirEnd(const std::string & aDirOri)
+{
+    std::string aRes = aDirOri;
+    SelfSuppressCarDirEnd(aRes);
+    return aRes;
+}
+
+cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,bool Svp,double aDS)
+{
+     if (StrIsPImsDIr(aNameDirOri))
+     {
+         static cElRegex aRegDS(PrefixMPI + "DS(.*)_(.*)",10); 
+         static cElRegex aRegR1(PrefixMPI + "(.*)",10); 
+
+         std::string aFullDir=SuppressCarDirEnd(aNameDirOri);
+         std::string aDirGlob,aDirLoc;
+         SplitDirAndFile(aDirGlob,aDirLoc,aFullDir);
+
+         std::string aNameMatch;
+         bool Ok=false;
+         if (aRegDS.Match(aDirLoc))
+         {
+             aDS = aRegDS.VNumKIemeExprPar(1);
+             aNameMatch = aRegDS.KIemeExprPar(2);
+             Ok=true;
+         }
+         else if (aRegR1.Match(aDirLoc))
+         {
+             aNameMatch = aRegR1.KIemeExprPar(1);
+             Ok=true;
+         }
+         if (Ok)
+         {
+             return  cMMByImNM::ForGlobMerge(aDirGlob,aDS,aNameMatch);
+         }
+     }
+
+     if (StrIsPImsDIr(StdDirPims(aDS,aNameDirOri)))
+     {
+        return  cMMByImNM::ForGlobMerge("./",aDS,aNameDirOri);
+     }
+
+
+     if (! Svp)
+     {
+         std::cout << "For, Dir=" << aNameDirOri << " DS=" << aDS << "\n";
+         ELISE_ASSERT(false,"Cannot find PMIS Directory");
+     }
+
+     return 0;
+}
+
+
+
+cMMByImNM * cMMByImNM::ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm,const std::string & aNameType)
+{
+   return new cMMByImNM(1.0,aDirGlob, TheDIRMergeEPI()  +   aNameIm + "/","QMNuage-",aNameType);
 }
 
 
@@ -216,6 +300,18 @@ std::string cMMByImNM::NameFileEntete(eTypeMMByImNM aType,const std::string aNam
 const std::string & cMMByImNM::FullDir() const
 {
     return mFullDir;
+}
+const std::string & cMMByImNM::NameType() const 
+{
+    return mNameType;
+}
+const std::string & cMMByImNM::DirGlob() const 
+{
+    return mDirGlob;
+}
+const std::string & cMMByImNM::DirLoc() const 
+{
+    return mDirLoc;
 }
 
 void  cMMByImNM::ModifIp(eTypeMMByImNM aType,cImage_Profondeur & anIp,const std::string & aNameIm)
@@ -245,7 +341,7 @@ int MMEnvStatute_main(int argc,char ** argv)
    SplitDirAndFile(aDir,aNamIm,aFullName);
 
    cMMByImNM * aGlobIN = cMMByImNM::ForGlobMerge(aDir,1.0,"Statue");
-   cMMByImNM * aLocIN = cMMByImNM::ForMTDMerge(aDir,aNamIm);
+   cMMByImNM * aLocIN = cMMByImNM::ForMTDMerge(aDir,aNamIm,"MTDTmp");
 
 
 
@@ -513,7 +609,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    }
    else
    {
-        mMMIN   =   cMMByImNM::ForMTDMerge(Dir(),mNameIm);
+        mMMIN   =   cMMByImNM::ForMTDMerge(Dir(),mNameIm,"MTDTmp");
         mMMINS1 = mMMIN;
    }
 

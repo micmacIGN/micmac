@@ -52,6 +52,7 @@
        <eQuickMac>       </eQuickMac>
        <eMicMac>         </eMicMac>
        <eBigMac>         </eBigMac>
+       <eMTDTmp>         </eMTDTmp>  <!-- Internal, pour stocker les fusion temporaire entre Epi -->
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>
 
