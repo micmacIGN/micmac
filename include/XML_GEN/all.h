@@ -1458,7 +1458,9 @@ class cMMByImNM
     public :
 
         static cMMByImNM * ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch);
-        static cMMByImNM * ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm);
+        static cMMByImNM * ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm,const std::string & aNameMatch);
+
+        static cMMByImNM * FromExistingDirOrMatch(const std::string & aNameDirOriOrMatch,bool Svp,double aDS=1);
 
         void DoDownScale(const std::string & aNameIm);
         void PatDoDownScale(const std::string & aPat);
@@ -1473,18 +1475,25 @@ class cMMByImNM
         void ModifIp(eTypeMMByImNM,cImage_Profondeur &,const std::string & aNameIm);
 
         const std::string & FullDir() const;
+        const std::string & DirGlob() const;
+        const std::string & DirLoc() const;
+        const std::string & NameType() const;
 
         void AddistofName(const cInterfChantierNameManipulateur::tSet  *);
         const std::string & KeyFileLON() const;
         const cEtatPims & Etat() const;
         void  SetOriOfEtat(const std::string &) ;
           
+        static bool  StrIsPImsDIr(const std::string &);
+        static std::string StdDirPims(double aDS, const std::string & aNameMatch);
+
     private  :
-        cMMByImNM (double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix) ;
+        cMMByImNM (double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix,const std::string &  aNameType) ;
 
         static std::string NameOfType(eTypeMMByImNM);
         std::string NameFileGlob(eTypeMMByImNM,const std::string aNameIm,const std::string aExt);
         std::string NameFileLoc(eTypeMMByImNM,const std::string aNameIm,const std::string aExt);
+
 
 
 
@@ -1497,6 +1506,10 @@ class cMMByImNM
         std::string    mKeyFileLON;
         std::string    mNameEtat;
         cEtatPims      mEtats;
+        std::string    mNameType;
+
+        static const std::string TheNamePimsFile;
+        static const std::string TheNamePimsEtat;
 };
 
 bool IsMacType(eTypeMMByP aType);
