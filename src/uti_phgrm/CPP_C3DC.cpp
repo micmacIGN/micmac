@@ -358,7 +358,8 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
     mComNuageMerge =       MM3dBinFile("TestLib  MergeCloud ")
                   +   mCFPI-> mStrImOri 
                   + " ModeMerge=" + mCFPI->mStrType
-                  +  " DownScale=" +ToString(mDS)
+                  + " DownScale=" +ToString(mDS)
+                  + " PlyCoul=true"
                ;
 
 
