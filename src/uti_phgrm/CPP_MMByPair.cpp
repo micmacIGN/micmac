@@ -419,7 +419,10 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
    if (aFlag & TheFlagDev16BGray) Develop(true,true);
    if (aFlag & TheFlagDev8BGray)  Develop(true,false);
    if (aFlag & TheFlagDev8BCoul)  Develop(false,false);
-   if (aFlag & TheFlagDevXml)     MakeXmlXifInfo(mEASF.mDir,mEASF.mICNM);
+   if (aFlag & TheFlagDevXml)
+   {
+       MakeXmlXifInfo(mEASF.mFullName,mEASF.mICNM);
+   }
 
 
 
