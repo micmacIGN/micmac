@@ -54,8 +54,6 @@
 
 <!--   HOMOGRAPHY-COMPUTING
 
-      NKS-RHH-Assoc-CplIm2Data@@Homogr@dmp
-      NKS-RHH-Assoc-CplIm2Data@@Homologous@dat
 -->
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
@@ -72,7 +70,7 @@
                 <CalcName> $2  </CalcName>
 	     </Inverse>
         </Calcs>
-        <Key>  NKS-RHH-Assoc-CplIm2Data </Key>
+        <Key>  NKS-Assoc-RHH-CplIm2Data </Key>
 	<SubDirAutoMake>  RHH#1</SubDirAutoMake>
 	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
     </KeyedNamesAssociations>
@@ -86,7 +84,7 @@
 		 <SubDir>   RHH#1/ </SubDir>
                  <NivSubDir> 2 </NivSubDir>
 	  </Sets>
-          <Key> NKS-RHH-Set-Homol </Key>
+          <Key> NKS-Set-RHH-Homol </Key>
     </KeyedSetsOfNames>
 
 
