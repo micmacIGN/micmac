@@ -197,6 +197,8 @@ void GpGpu_Interface_Cor_MS::init(
     _cDataCMS.init(aVV,aVPds,offset0,offset1,NbByPix,StepPix);
     _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
     _cDataCMS.setTerrain(terrain);
+    _cDataCMS.maxDeltaZ = _dataCMS._maxDeltaZ;
+
     //_cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));
 }
 

@@ -240,7 +240,6 @@ inline    float Quick_MS_CorrelBasic_Center(
     // pt float dans l'image 1
     const float2      aFPIm1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + aPx2)+  aPG1;
 
-
     int aNbScale = cstP_CorMS.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
     {
@@ -306,9 +305,9 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
     // sortir si le point est en dehors du terrain
     if(oSE(an,cstP_CorMS._dimTerrain))
         return;
+
     //      pt int dans l'image 0
     const   uint2     aPIm0       =   an + cstP_CorMS.anOff0;
-
 
     // si dans le masque de l'image 0
     const bool  OkIm0   =   IsOkErod(aPIm0,0);
@@ -319,16 +318,21 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         // Z relatif au thread
         const ushort thZ   =   blockIdx.z*blockDim.z + threadIdx.z;
 
+//        if(thZ+1 >= cstP_CorMS.maxDeltaZ)
+//        {
+//            return;
+//        }
+
         // pitch de decalage
-        const uint   pit =   to1D(an,thZ,cstP_CorMS._dimTerrain);
+        const uint   pit    =   to1D(an,thZ,cstP_CorMS._dimTerrain);
+        const uint   pit2d  =   to1D(an,cstP_CorMS._dimTerrain);
 
         float&          _cost   =  cost[pit];
-        const short2    _nappe  =  nappe[pit];
-        short aZ0               = _nappe.x;
+        const short2    _nappe  =  nappe[pit2d];
+        short           aZ0     =  _nappe.x;
+        const int       DeltaZ  =  abs(_nappe.y-aZ0);
 
-        const int DeltaZ    =   abs(_nappe.y-aZ0);
-
-        if(thZ>DeltaZ)
+        if(thZ>=DeltaZ)
             return; // TODO on pourrait eventuellement affacter la valeur du cout par defaut.... mais bof
 
         // z Absolu
@@ -385,7 +389,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         }   
     }
 }
-
+#include <stdio.h>
 extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &parCMS)
 {
     // Cache device
@@ -424,8 +428,8 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 
     dim3    blocks__CorMS(divDTerX,divDTerY,bC);
 
+    /// calcul des couts de correlation multi-echelles    
 
-    /// calcul des couts de correlation multi-echelles
     Kernel__DoCorrel_MultiScale_Global<<<threads_CorMS,blocks__CorMS>>>(
                                                         aSom_0   .pData(),
                                                         aSomSqr_0.pData(),
@@ -436,6 +440,9 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 
 //    aSom1.syncHost();
 //    aSom1.hostData.OutputValues();
+
+    data._uCost.syncHost();
+    //data._uCost.hostData.OutputValues();
 
     aSom_0   .Dealloc();
     aSomSqr_0.Dealloc();
