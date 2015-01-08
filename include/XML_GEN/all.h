@@ -900,16 +900,34 @@ class  cSetName
 
 class  cSetNameByAutom : public cSetName
 */
+
+class cLStrOrRegEx
+{
+    public :
+       //void Add(const std::string & aName);
+       //void Add(cElRegex * anAutom);
+       void  AddName(const std::string & aName,cInterfChantierNameManipulateur *anICNM);
+       cLStrOrRegEx();
+       bool AuMoinsUnMatch(const std::string & aName);
+       
+    private  :
+       std::set<std::string>     mSet;
+       std::list<cElRegex *>     mAutom;
+};
+
+
+
+
 class  cSetName
 {
       public :
           typedef cInterfChantierSetNC::tSet tSet;
           const tSet  * Get();
-      cSetName(cInterfChantierNameManipulateur *,const cSetNameDescriptor &);
-      bool SetBasicIsIn(const std::string & aName);
+          cSetName(cInterfChantierNameManipulateur *,const cSetNameDescriptor &);
+          bool SetBasicIsIn(const std::string & aName);
 
           // ce devrait etre SetBasicIsIn, mais par compat avec ce qui marche on ne change pas
-      bool IsSetIn(const std::string & aName);
+          bool IsSetIn(const std::string & aName);
 
           const cSetNameDescriptor & SND() const;
           cInterfChantierNameManipulateur * ICNM();
@@ -917,17 +935,18 @@ class  cSetName
           void setDir( const string &i_directory ) { mDir = i_directory; }
       private :
           void CompileDef();
+          void AddListName(cLStrOrRegEx & aLorReg,const std::list<std::string> & aLName,cInterfChantierNameManipulateur *anICNM);
 
           void InternalAddList(const std::list<std::string> &);
 
-      bool mExtIsCalc;
-      bool mDefIsCalc;
+          bool mExtIsCalc;
+          bool mDefIsCalc;
           cInterfChantierNameManipulateur *          mICNM;
-      std::string                mDir;
-      cSetNameDescriptor         mSND;
-      cInterfChantierSetNC::tSet mRes;
-      std::list<cElRegex *>      mLA; // Accepteur
-      std::list<cElRegex *>      mLR; // Refuteur
+          std::string                mDir;
+          cSetNameDescriptor         mSND;
+          cInterfChantierSetNC::tSet mRes;
+          cLStrOrRegEx               mLA; // Accepteur
+          cLStrOrRegEx               mLR; // Refuteur
 
 };
 
