@@ -464,7 +464,7 @@ class cImageGL : public cObjectGL
 {
     public:
 
-        cImageGL(float scaleFactor=1.f, float gamma = 1.f);
+        cImageGL(float gamma = 1.f);
         ~cImageGL();
 
         void    draw(QColor color);
@@ -501,8 +501,6 @@ class cImageGL : public cObjectGL
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
 private:
-
-        float   _scaleFactor;
 
         QGLShaderProgram _program;
 

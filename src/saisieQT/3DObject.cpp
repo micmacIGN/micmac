@@ -1377,18 +1377,15 @@ void cRectangle::draw()
 //invalid GL list index
 const GLuint GL_INVALID_LIST_ID = (~0);
 
-cImageGL::cImageGL(float scaleFactor,float gamma) :
-    _scaleFactor(scaleFactor),
+cImageGL::cImageGL(float gamma) :
     _texture(GL_INVALID_LIST_ID),
     _gamma(gamma)
 {
-        setPosition(Pt3dr(0,0,0));
-
+    setPosition(Pt3dr(0,0,0));
 
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
-
 
     _texLocation   = _program.uniformLocation("tex");
     _gammaLocation = _program.uniformLocation("gamma");
@@ -1539,8 +1536,8 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _qMaskedImage(qMaskedImage)
 {
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
-    _m_mask     = new cImageGL(_loadedImageRescaleFactor );
-    _m_image    = new cImageGL(_loadedImageRescaleFactor,qMaskedImage->_gamma);
+    _m_mask     = new cImageGL();
+    _m_image    = new cImageGL(qMaskedImage->_gamma);
     _m_newMask  = qMaskedImage->_m_newMask;
 
     _m_FileOriMnt = qMaskedImage->_m_FileOriMnt;

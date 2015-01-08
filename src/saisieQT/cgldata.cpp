@@ -404,8 +404,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 {
     QPainter    p;
-    QBrush SBrush(Qt::black);
-    QBrush NSBrush(Qt::white);
+
     QRect  rect = getMask()->rect();
     QRectF rectPoly;
 
@@ -445,12 +444,12 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         if (m_bFirstAction)
             p.fillRect(rect, Qt::white);
 
-        p.setBrush(SBrush);
+        p.setBrush(QBrush(Qt::black));
         p.drawPath(path);
     }
     else if(mode == SUB_INSIDE || mode == SUB_OUTSIDE)
     {
-        p.setBrush(NSBrush);
+        p.setBrush(QBrush(Qt::white));
         p.drawPath(path);
     }
     else if(mode == ALL)
@@ -489,9 +488,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 
                 tile->getMaskedImage()->_m_mask = &mask_crop;
 
-                //glMaskTile->deleteTexture();
                 glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
-                //glMaskTile->setVisible(true);
             }
         }
     }
