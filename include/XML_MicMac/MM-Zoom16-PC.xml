@@ -1,0 +1,11 @@
+       <EtapeMEC>
+               <DeZoom >        16        </DeZoom>
+               <GenerePartiesCachees>
+                        <SeuilUsePC> 3 </SeuilUsePC>
+                        <ByMkF> ${MkFPC} </ByMkF>
+               </GenerePartiesCachees>
+                <ZDilatAlti>  4    </ZDilatAlti>
+                <ZDilatPlani> 3    </ZDilatPlani>
+        </EtapeMEC>
+
+
