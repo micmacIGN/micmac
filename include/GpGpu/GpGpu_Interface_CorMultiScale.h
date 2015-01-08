@@ -59,6 +59,8 @@ struct const_Param_Cor_MS
 
     float   mAhDefCost;
 
+    uint    maxDeltaZ;
+
     ///
     /// \brief mNbByPix
     /// nombre de phase par pixel
