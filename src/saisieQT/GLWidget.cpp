@@ -408,7 +408,7 @@ void GLWidget::setZone(QRectF aRect)
 
             Pt3dr pos = glImgTile->getPosition();
             QSize sz  = glImgTile->getSize();
-            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz.width(), sz.height()));
+            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
 
             if (rectImg.intersects(aRect))
             {
@@ -440,17 +440,15 @@ void GLWidget::setZone(QRectF aRect)
                     }
                     else //il y a eu une saisie: il faut utiliser _m_rescaled_mask, car c'est lui qui stocke toutes les modifications (à changer ?)
                     {
-                        //application du facteur d'échelle au QRect:
+                        //application du facteur d'échelle au QRect puis crop dans _m_rescaled_mask
                         float scaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
 
-                        QTransform trans;
-                        trans = trans.scale(scaleFactor,scaleFactor);
+                        QTransform trans = QTransform::fromScale(scaleFactor,scaleFactor);
 
-                        QRect rescaled_rect = trans.mapRect(rect);
+                        QImage rescaled_mask_crop = maskedImg->_m_rescaled_mask->copy(trans.mapRect(rect));
 
-                        QImage rescaled_mask_crop = maskedImg->_m_rescaled_mask->copy(rescaled_rect);
-
-                        QImage mask_crop = rescaled_mask_crop.scaled(sz.width(), sz.height(), Qt::KeepAspectRatio);
+                        //application du facteur d'échelle inverse (rescaled => full size)
+                        QImage mask_crop = rescaled_mask_crop.scaled(sz, Qt::KeepAspectRatio);
 
                         tile->getMaskedImage()->_m_mask = new QImage(mask_crop);
                     }
@@ -465,48 +463,6 @@ void GLWidget::setZone(QRectF aRect)
                 glMaskTile->setVisible(false);
             }
         }
-
-    // création des textures et set des positions GL
-    /*for (int aK=0; aK < tilesToDraw.size(); ++aK)
-    {
-        QPointF topLeft = tilesToDraw[aK].topLeft();
-
-        if (*(getTile(aK).getTexture()) == GL_INVALID_LIST_ID)
-        {
-            cout << "crop img = id Tiles : "  << aK << endl;
-            QImage crop = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
-            //cout << "fin crop" << endl;
-            //crop.save("/home/mdeveau/data/crop_"+ QString::number(aK) + ".tif");
-            getTile(aK).createTexture(&crop);
-            getTile(aK).setVisible(true);
-            getTile(aK).setPosition(Pt3dr(topLeft.x(), topLeft.y(),0));
-        }
-
-        if (*(getMaskTile(aK).getTexture()) == GL_INVALID_LIST_ID)
-        {
-            QTransform trans;
-            trans = trans.scale(getLoadedImageRescaleFactor(),getLoadedImageRescaleFactor());
-
-            QRectF rescaled_rect = trans.mapRect(tilesToDraw[aK]);
-            //cout << "rescaled rect = " << rescaled_rect.topLeft().x() << " " << rescaled_rect.topLeft().y() << endl;
-
-            //cout << "crop mask " <<  aK << endl;
-            //QImage mask_crop = mask_fullsize.copy(tilesToDraw[aK].toAlignedRect());
-            QImage rescaled_mask_crop = _qMaskedImage->_m_rescaled_mask->copy(rescaled_rect.toAlignedRect());
-            //cout << "fin crop mask" << endl;
-            //cout << "rescale crop mask" << endl;
-            QImage mask_crop = rescaled_mask_crop.scaled(tilesToDraw[aK].toAlignedRect().size(),Qt::IgnoreAspectRatio);
-            //cout << "fin rescale crop mask" << endl;
-            //mask_crop.save("/home/mdeveau/data/mask_crop_"+ QString::number(aK) + ".tif");
-
-            getMaskTile(aK).createTexture(&mask_crop);
-            getMaskTile(aK).setVisible(true);
-
-            getMaskTile(aK).setGLPosition(topLeft.x(), topLeft.y());
-        }
-
-    }*/
-
     }
 }
 

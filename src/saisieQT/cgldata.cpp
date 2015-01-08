@@ -475,18 +475,17 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         for (int aK=0; aK < glTiles().size(); ++aK)
         {
             cMaskedImageGL * tile = glTiles()[aK];
-            cImageGL * glImgTile  = tile->glImage();
             cImageGL * glMaskTile = tile->glMask();
 
-            Pt3dr pos = glImgTile->getPosition();
-            QSize sz  = glImgTile->getSize();
-            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz.width(), sz.height()));
+            Pt3dr pos = glMaskTile->getPosition();
+            QSize sz  = glMaskTile->getSize();
+            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
 
             if (rectImg.intersects(rectPoly))
             {
                 QRect rescaled_rect = trans.mapRect(rectImg.toAlignedRect());
 
-                QImage mask_crop = getMask()->copy(rescaled_rect).scaled(sz.width(), sz.height(), Qt::KeepAspectRatio);
+                QImage mask_crop = getMask()->copy(rescaled_rect).scaled(sz, Qt::KeepAspectRatio);
 
                 tile->getMaskedImage()->_m_mask = &mask_crop;
 
