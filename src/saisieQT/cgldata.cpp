@@ -290,14 +290,14 @@ void cGLData::createTiles()
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
     maxTextureSize /= 2;
 
-    //maxTextureSize /= 16; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
     int fullRes_image_sizeX = _glMaskedImage.glImage()->width();
     int fullRes_image_sizeY = _glMaskedImage.glImage()->height();
 
-    int nbTilesX = qCeil((float) fullRes_image_sizeX / maxTextureSize);
-    int nbTilesY = qCeil((float) fullRes_image_sizeY / maxTextureSize);
+    unsigned int nbTilesX = qCeil((float) fullRes_image_sizeX / maxTextureSize);
+    unsigned int nbTilesY = qCeil((float) fullRes_image_sizeY / maxTextureSize);
 
+    nbTilesX /= 2;
+    nbTilesY /= 2;
 //    cout << "tile size : " << fullRes_image_sizeX/ nbTilesX << " " <<  fullRes_image_sizeY/ nbTilesY << endl;
 
     int tileWidth  = fullRes_image_sizeX / nbTilesX;
@@ -305,8 +305,8 @@ void cGLData::createTiles()
 
 //    cout << "NB TILES (ROW - COL) = " << nbTilesX << "x" << nbTilesY << endl;
 
-    for (int aK=0; aK< nbTilesX; aK++)
-        for (int bK=0; bK< nbTilesY; bK++)
+    for (unsigned int aK=0; aK< nbTilesX; aK++)
+        for (unsigned int bK=0; bK< nbTilesY; bK++)
         {
             QRectF rect(QPointF(aK*tileWidth, bK*tileHeight),QPointF((aK+1)*tileWidth, (bK+1)*tileHeight));
 
