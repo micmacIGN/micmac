@@ -228,6 +228,7 @@ class cAppliWithSetImage
       double AltiMoy() const;
       cSetName *   mSetMasters;
       bool mCalPerIm;
+      double mPenPerIm;
       bool mModeHelp;
       std::string  mMasq3D;
 

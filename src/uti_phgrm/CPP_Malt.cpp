@@ -836,7 +836,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           std::cout << "\n\n" << mComOA << "\n";
 
            mComTaramaOA =     MMBinFile("Tarama") + " " 
-                           +  mFullName           + " "
+                           +  QUOTE(mFullName)           + " "
                            +  mOri                + " "
                            + std::string(" Zoom=16 ")
                            + std::string(" Out=TA-UnAnam ")

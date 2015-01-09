@@ -369,6 +369,7 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
    mByEpi     (false),
    mSetMasters(0),
    mCalPerIm  (false),
+   mPenPerIm  (-1),
    mModeHelp  (false),
    mNbAlti    (0),
    mSomAlti   (0.0)
@@ -664,6 +665,10 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero)
                          + BLANK + QUOTE(mEASF.mFullName)
                          + BLANK + mOri;
 
+      if (mPenPerIm>0)
+      {
+         aCom = aCom + " PenPerIm=" + ToString(mPenPerIm) + " ";
+      }
       if (mCalPerIm)
       {
          aCom = aCom + " CalPerIm=true ";
@@ -1140,6 +1145,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mMasterImages,"Masters",true,"If specified, only pair containing a master will be selected")
                     << EAM(mMasq3D,"Masq3D",true,"If specified the 3D masq")
                     << EAM(mCalPerIm,"CalPerIm",true,"true id Calib per Im were used, def=false")
+                    << EAM(mPenPerIm,"PenPerIm",true,"Penality Per Image in choice im sec")
                     << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
   );
 
