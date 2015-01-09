@@ -181,8 +181,8 @@ int GLWidget::getWindowMeanValue(QPoint pos, int r)
 {
     QImage gIma = grabFrameBuffer();
 
-    int kP  = 0;
-    int cP  = 0;
+    unsigned int kP  = 0;
+    unsigned int cP  = 0;
 
     for (int x = max(0,pos.x()-r); x < min(gIma.width()-1,pos.x()+r); ++x)
         for (int y = max(0,pos.y()-r); y < min(gIma.height()-1,pos.y()+r); ++y)

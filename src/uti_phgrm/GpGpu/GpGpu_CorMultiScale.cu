@@ -238,7 +238,7 @@ inline    float Quick_MS_CorrelBasic_Center(
 
 
     // pt float dans l'image 1
-    const float2      aFPIm1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + aPx2)+  aPG1;
+    const float2      aFPIm1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + (float)aPx2)+  aPG1;
 
     int aNbScale = cstP_CorMS.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
@@ -362,7 +362,8 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
             float aGlobCostCorrel   = 0;
 
             // FAUX !!!!
-            const int    aPx2   = aPhase*cstP_CorMS.aStepPix;
+            // const int    aPx2   = aPhase*cstP_CorMS.aStepPix;
+            const int    aPx2   = anOffset + thZ;
             // FAUX !!!!
 
             aCost = Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,aPx2,aModeMax,aPhase);
