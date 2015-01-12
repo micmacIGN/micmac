@@ -79,7 +79,7 @@ inline __device__ int dElise_div(int a,int b)
 }
 
 __device__
-inline    bool IsOkErod(uint3 pt)
+inline    bool IsOkErod(int3 pt)
 {
     // TODO peut etre simplifier % et division
 
@@ -92,9 +92,9 @@ inline    bool IsOkErod(uint3 pt)
 }
 
 __device__
-inline    bool IsOkErod(uint2 pt,ushort idi)
+inline    bool IsOkErod(int2 pt,ushort idi)
 {
-    return IsOkErod(make_uint3(pt.x,pt.y,idi));
+    return IsOkErod(make_int3(pt.x,pt.y,idi));
 }
 
 __device__
@@ -122,7 +122,7 @@ void projectionMasqImage(float * dataPixel,uint3 dTer)
     if(blockIdx.x > cstP_CorMS._dimTerrain.x || blockIdx.y > cstP_CorMS._dimTerrain.y)
         return;
 
-    const uint3 pt = make_uint3(blockIdx.x,blockIdx.y,blockIdx.z);
+    const int3 pt = make_int3(blockIdx.x,blockIdx.y,blockIdx.z);
 
     float valImage = tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
 
@@ -217,8 +217,8 @@ void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* 
 __device__
 inline    float Quick_MS_CorrelBasic_Center(
 
-    const uint2 & aPG0,
-    const uint2 & aPG1,
+    const int2 & aPG0,
+    const int2 & aPG1,
 
 //    float ***  aSom1,
 //    float ***  aSom11,
@@ -238,7 +238,7 @@ inline    float Quick_MS_CorrelBasic_Center(
 
 
     // pt float dans l'image 1
-    const float2      aFPIm1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + (float)aPx2)+  aPG1;
+    const float2      aFG1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + dElise_div(aPx2,cstP_CorMS.mNbByPix))+  aPG1;
 
     int aNbScale = cstP_CorMS.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
@@ -254,8 +254,8 @@ inline    float Quick_MS_CorrelBasic_Center(
          {
              const short2 aP = aVP[aKP];
 
-             const float valima_0 = getValImage(aPG0    + aP,0,aKS);
-             const float valima_1 = getValImage(aFPIm1  + aP,1,aKS);
+             const float valima_0 = getValImage(aPG0 + aP,0,aKS);
+             const float valima_1 = getValImage(aFG1 + aP,1,aKS);
 
              aCov += valima_0*valima_1;
          }
@@ -265,14 +265,13 @@ inline    float Quick_MS_CorrelBasic_Center(
          if (ModeMax || aLast)
          {
              const uint3 pt0    =   make_uint3(aPG0.x,aPG0.y,aKS);
-             const uint3 pt1    =   make_uint3(aFPIm1.x,aFPIm1.y,aKS + aNbScale*aPhase);
-             const uint3 dim    =   make_uint3(cstP_CorMS._dimTerrain.x,cstP_CorMS._dimTerrain.x,1);
+             const uint3 pt1    =   make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase);
 
-             const float aM1    =   aSom1 [to1D(pt0,dim)];
-             const float aM2    =   aSom2 [to1D(pt1,dim)];
+             const float aM1    =   aSom1 [to1D(pt0,cstP_CorMS._dimTerrain)];
+             const float aM2    =   aSom2 [to1D(pt1,cstP_CorMS._dimTerrain)];
 
-             const float aM11   =   aSom11[to1D(pt0,dim)] - aM1*aM1;
-             const float aM22   =   aSom22[to1D(pt1,dim)] - aM2*aM2;
+             const float aM11   =   aSom11[to1D(pt0,cstP_CorMS._dimTerrain)] - aM1*aM1;
+             const float aM22   =   aSom22[to1D(pt1,cstP_CorMS._dimTerrain)] - aM2*aM2;
 
              const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
 
@@ -295,19 +294,19 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
     // ??? TODO à cabler
     bool    DoMixte     = false;
-    bool    aModeMax    = false;
+    bool    aModeMax    = true;
     float   aSeuilHC    = 1.0;
     float   aSeuilBC    = 1.0;
 
     // point image
-    const uint2  an  =   make_uint2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
+    const   int2  an  =   make_int2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
 
     // sortir si le point est en dehors du terrain
     if(oSE(an,cstP_CorMS._dimTerrain))
         return;
 
     //      pt int dans l'image 0
-    const   uint2     aPIm0       =   an + cstP_CorMS.anOff0;
+    const   int2     aPIm0       =   an + cstP_CorMS.anOff0;
 
     // si dans le masque de l'image 0
     const bool  OkIm0   =   IsOkErod(aPIm0,0);
@@ -344,16 +343,20 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
         /// peut etre precalcul  -- voir simplifier
         ///
-        while ((abs((int)aZ0))%cstP_CorMS.mNbByPix != aPhase)
-            aZ0++;
+//        while ((abs((int)aZ0))%cstP_CorMS.mNbByPix != aPhase)
+//            aZ0++;
 
-        //  int anOffset = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
-        int anOffset = dElise_div((int)aZ,cstP_CorMS.mNbByPix);
+        int gpu_anOffset = dElise_div((int)aZ,cstP_CorMS.mNbByPix);
 
-        //
-        const   uint2     aIm1SsPx    =   an + cstP_CorMS.anOff1;
+
+//        if( aEq(an,10) && aPhase == 0 && thZ < cstP_CorMS.mNbByPix)
+//            DUMP(gpu_anOffset)
+
+//int anOffset = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
+       //
+        const   int2     aIm1SsPx     =   an + cstP_CorMS.anOff1;
         //      pt int dans l'image 1
-        const   uint2     aPIm1       =   aIm1SsPx + ui2X(anOffset);
+        const   int2     aPIm1        =   aIm1SsPx + i2X(gpu_anOffset);
 
         if (IsOkErod(aPIm1,1))
         {
@@ -361,12 +364,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
             float aGlobCostBasic    = 0;
             float aGlobCostCorrel   = 0;
 
-            // FAUX !!!!
-            // const int    aPx2   = aPhase*cstP_CorMS.aStepPix;
-            const int    aPx2   = anOffset + thZ;
-            // FAUX !!!!
-
-            aCost = Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,aPx2,aModeMax,aPhase);
+            aCost = Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,gpu_anOffset,aModeMax,aPhase);
 
             aGlobCostCorrel = aCost;
 
@@ -443,7 +441,8 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 //    aSom1.hostData.OutputValues();
 
     data._uCost.syncHost();
-    //data._uCost.hostData.OutputValues();
+
+   data._uCost.hostData.OutputValues();
 
     aSom_0   .Dealloc();
     aSomSqr_0.Dealloc();
