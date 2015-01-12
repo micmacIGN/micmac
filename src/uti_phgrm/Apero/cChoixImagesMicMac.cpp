@@ -50,8 +50,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*
 */
 
-class cCombinPosCam;
-class cSetCombPosCam;
+class cCombinPosCam;  // Un sous ensemble d'image secondaire
+class cSetCombPosCam;  // Contient toute les combinaison avec des moyens d'y acceder (via flag ou autre)
 class cCaseOcupIm;
 class cPCICentr;
 class cPoseCdtImSec ;
@@ -226,7 +226,7 @@ void cPoseCdtImSec::MakeImageOccup()
 
            double aRho2 = ElSquare(aDX/aSigmX) +ElSquare(aPr.y/aSigmY);
 
-           double aPds =   exp(-aRho2)  +  exp(-4*aRho2)*4 +   exp(-9*aRho2)*9 + exp(-aRho2/4)/4;
+           double aPds =   exp(-aRho2)  +  exp(-4*aRho2)*4 +   exp(-9*aRho2)*9 ; // ??  + exp(-aRho2/4)/4;
            // double aPds =   exp(-aRho2)  +  exp(-4*aRho2)*4 +  exp(-aRho2/4)/16;
 
 
@@ -402,7 +402,7 @@ class cCombinPosCam
        int mFlag;
        int mNbIm;
        std::vector<cPoseCam*> mVCam;
-       double mGainDir;  // Gain en direction sans tenir compte du fait que image ne se recouvrent pas
+       double mGainDir;   // Gain en direction sans tenir compte du fait que image ne se recouvrent pas
        double mGainGlob;  // Gain pondere en tenant compte du fait que image ne se recouvrent pas
 
        cOneSolImageSec MakeSol(double aPenalCard);
@@ -643,7 +643,10 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
        }
    }
 
-   // On compte le nombre de points de liaisons
+   // On compte le nombre de points de liaisons par case et par image
+   //      aVCase[aKY][aKX].AddPts(aPIm,aProf,1.0);
+   //      aVP[aKPos]->CdtImSec()->mNbPts++
+   
    const std::vector<cOnePtsMult *> &  aVPM = anOLM->VPMul();
    for (int aKPt=0 ; aKPt<int(aVPM.size()) ;aKPt++)
    {
@@ -680,7 +683,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
 
 
 
-   // On finalise les cases : calcul 3D et 
+   // On finalise les cases : calcul 3D et  modulation de la fonction de poids
    {
        double aSomPds = SomPds(aVCase);
        double aSomMoy = aSomPds / (aNbCaseY * aNbCaseX);
@@ -698,7 +701,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
            }
        }
 
-       // Mis a somme de 1
+       // Mis a somme de 1 le poids sur les cases
        aSomPds = SomPds(aVCase);
        for (int aKY = 0 ; aKY < aNbCaseY ; aKY++)
        {
@@ -711,7 +714,11 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
    }
 
 
-    // Pre selection 
+    // Pre selection  (cChoixImMM : aCIM)
+    // On 
+    //   - selectionne les images   sur un criteres purement geometrique (surtout pour limiter la combinatoire)
+    //   -  calcule (pondere par les cases) de la visibilite de  l'image principale dans chaque image secondair
+
     std::vector<cPoseCam*> aVPPres;
     for(int aKP=0 ; aKP<aNbPose ;aKP++)
     {
@@ -731,7 +738,9 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
        }
     }
 
-   // Limitation du nombre si necessaire 
+   // Limitation du nombre si necessaire , on selectionne les K premiere images sur le critere
+   // Gain * Ratio  (Gain purement geom, Ratio recouvrement)
+
     cCmpImOnGainHom aCmp;
     std::sort(aVPPres.begin(),aVPPres.end(),aCmp);
     while (int(aVPPres.size()) >aCIM.NbMaxPresel().Val()) aVPPres.pop_back();
@@ -792,65 +801,14 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
          std::sort(aVSetPond.begin(),aVSetPond.end());
          int aNbTest = ElMin(NbTestSetPrecis,int(aVSetPond.size()));
 
-         // int aKBestSet = -1;
-         // double aBestGain = -1;
-         // On calcul les cout exact
          for (int aKTest=0; aKTest<aNbTest ; aKTest++)
          {
               const std::vector<int>  & aTestSet = aSubSub[aVSetPond[aKTest].mKS];
               aSetComb.GetComb(aTestSet);  // Insere la combinaison
-/*
-              double aSomGain = aCombin.mGainDir;
-              if (ShowACISec)
-              {
-                 for (int aKIm=0 ; aKIm <aCard ; aKIm++)
-                 {
-                     std::cout << aVPPres[aTestSet[aKIm]]->Name() << " ";
-                 }
-                 std::cout  << aSomGain << "\n";
-              }
-              if (aSomGain>aBestGain)
-              {
-                   aBestGain= aSomGain;
-                   aKBestSet = aKTest;
-              }
-*/
          }
-/*
-         if (ShowACISec)
-             std::cout  << "==================================\n";
-
-         std::vector<int> aBestSet = aSubSub[aVSetPond[aKBestSet].mKS];
-         double aScore = aBestGain  - aCard  * aPenal;
-         // double aBestGain = aVSetPond[0].mGain;
-         if (ShowACISec)
-         {
-            std::cout << " Card =" << aCard << " NbS " << aSubSub.size() << " G=" << aBestGain << "\n";
-            for (int aKIm=0 ; aKIm <aCard ; aKIm++)
-            {
-                std::cout << aVPPres[aBestSet[aKIm]]->Name() << " ";
-            }
-            std::cout  << aScore << "\n\n";
-         }
-
-         // On met dans la structure d'exprt
-         cOneSolImageSec aSol;
-         for (int aKE=0 ; aKE<aCard ; aKE++)
-         {
-             cPoseCam * aPC = aVPPres.at(aBestSet.at(aKE));
-             aSol.Images().push_back(aPC->Name());
-         }
-         aSol.Coverage() =  aBestGain;
-         aSol.Score() =  aScore;
-         aISM.Sols().push_back(aSol);
-         if (aScore > aBestScoreGlob)
-         {
-              aBestScoreGlob = aScore;
-              aBestSol = aSol;
-         }
-*/
     }
 
+    // On calcul les cout exact
     aSetComb.SetNoAMBC();
 
     ElTimer aChrono;
