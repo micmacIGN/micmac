@@ -1168,18 +1168,6 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
                    itA++
             )
             {
-/*
-if (MPD_MM())
-{
-    std::cout << "AAAAAAAa " << *itA << "\n";
-    getchar();
-    if ((*itA)[0]== 'N')
-    {
-          const cInterfChantierNameManipulateur::tSet * mSetIm = mICNM->Get(*itA);
-          std::cout << "SIZE ICNM " << mSetIm->size() << "\n";
-    }
-}
-*/
                 std::list<std::string> aLN;
                 if (NameIsNKSSet(*itA))
                 {
@@ -1197,23 +1185,15 @@ if (MPD_MM())
                                   mSND.NameCompl().Val()
                           );
                 }
-/*
-if (MPD_MM())
-{
-    std::cout << "BBBBBBB " << aLN.size() <<  "\n";
-    getchar();
-}
-*/
-
-                 InternalAddList(aLN);
+                InternalAddList(aLN);
             }
 
             for
-                (
+            (
                 std::list<std::string>::const_iterator itA=mSND.Name().begin();
-            itA!=mSND.Name().end();
-            itA++
-                )
+                itA!=mSND.Name().end();
+                itA++
+            )
             {
                 mRes.push_back(*itA);
             }
