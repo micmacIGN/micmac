@@ -578,6 +578,10 @@ inline __host__ __device__ uint to1D( int2 c2D, ushort z, uint2 dim)
     return (dim.y * z + c2D.y) * dim.x + c2D.x;
 }
 
+inline __host__ __device__ uint to1D( int x, int y, uint2 dim)
+{
+    return y * dim.x + x;
+}
 
 inline __host__ __device__ float2 f2X( float x)
 {

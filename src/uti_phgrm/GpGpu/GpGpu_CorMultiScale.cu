@@ -41,6 +41,10 @@
  */
 
 
+//#define unitTestCorMS_gpgpu
+
+
+
 ///
 static __constant__ const_Param_Cor_MS     cstP_CorMS;
 
@@ -59,6 +63,18 @@ extern "C" textureReference& texture_ImageEpi(int nEpi){return nEpi == 0 ? textu
 extern "C" textureReference* pTexture_ImageEpi(int nEpi){return nEpi == 0 ? &texture_ImageEpi_00 : &texture_ImageEpi_01;}
 
 extern "C" textureReference* ptexture_Masq_Erod(int nEpi){return nEpi == 0 ? &Texture_Masq_Erod_00 : &Texture_Masq_Erod_01;}
+
+__device__
+inline    bool IN_THREAD(uint x = 0,uint y = 0,uint z = 0,uint bx = 0,uint by = 0,uint bz = 0)
+{
+    return blockIdx.x == bx && blockIdx.y == by && blockIdx.z == bz && threadIdx.z == z && threadIdx.x == x && threadIdx.y == y;
+}
+
+__device__
+inline    void PRINT_THREAD()
+{
+    printf("[%d,%d,%d|%d,%d,%d]  ",blockIdx.x ,blockIdx.y ,blockIdx.z,threadIdx.x,threadIdx.y ,threadIdx.z);
+}
 
 __device__
 inline    bool GET_Val_BIT(const U_INT1 * aData,int anX)
@@ -206,8 +222,14 @@ void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* 
         const uint3     p3d        =   make_uint3(pt.x,pt.y,etapeSub*mNbByPix + aKS);
 
         // Ecriture dans le cache des
+
+#ifndef unitTestCorMS_gpgpu
         mSom    [to1D(p3d,dimCache)] = aGlobSom    / aGlobPds;
         mSomSqr [to1D(p3d,dimCache)] = aGlobSomSqr / aGlobPds;
+#else
+        mSom    [to1D(p3d,dimCache)] = 1000*p3d.x + p3d.y;
+        mSomSqr [to1D(p3d,dimCache)] = 1000*p3d.x + p3d.y;
+#endif
 
     }
 }
@@ -219,11 +241,6 @@ inline    float Quick_MS_CorrelBasic_Center(
 
     const int2 & aPG0,
     const int2 & aPG1,
-
-//    float ***  aSom1,
-//    float ***  aSom11,
-//    float ***  aSom2,
-//    float ***  aSom22,
     float*  aSom1,
     float*  aSom11,
     float*  aSom2,
@@ -232,13 +249,13 @@ inline    float Quick_MS_CorrelBasic_Center(
     bool    ModeMax,
     ushort  aPhase)
 {
+
     float aMaxCor = -1;
     float aCovGlob = 0;
     float aPdsGlob = 0;
 
-
     // pt float dans l'image 1
-    const float2      aFG1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + (float)dElise_div(aPx2,cstP_CorMS.mNbByPix))+  aPG1;
+    const float2      aFG1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase /*+ (float)dElise_div(aPx2,cstP_CorMS.mNbByPix)*/)+  aPG1;
 
     int aNbScale = cstP_CorMS.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
@@ -257,7 +274,22 @@ inline    float Quick_MS_CorrelBasic_Center(
              const float valima_0 = getValImage(aPG0 + aP,0,aKS);
              const float valima_1 = getValImage(aFG1 + aP,1,aKS);
 
+
+#ifdef unitTestCorMS_gpgpu
+             if(IN_THREAD(1,2,1,6,9,4) && !aKS && !aP.x && !aP.y)
+             {
+
+                   // PRINT_THREAD();
+                 DUMP(aPG0)
+                 DUMP(aPG1)
+                 DUMP(aFG1)
+                 DUMP((int)valima_0)
+                 DUMP(valima_1)
+                 DUMP(aPhase)
+             }
+#endif
              aCov += valima_0*valima_1;
+
          }
 
          aCovGlob += aCov * aPds;
@@ -269,6 +301,16 @@ inline    float Quick_MS_CorrelBasic_Center(
 
              const float aM1    =   aSom1 [pit0];
              const float aM2    =   aSom2 [pit1];
+
+#ifdef unitTestCorMS_gpgpu
+             if(IN_THREAD(1,2,1,6,9,4) && !aKS )
+             {
+                DUMP((int)aSom1  [pit0])
+                DUMP((int)aSom11 [pit0])
+                DUMP((int)aSom2  [pit1])
+                DUMP((int)aSom22 [pit1])
+             }
+#endif
 
              const float aM11   =   aSom11[pit0] - aM1*aM1;
              const float aM22   =   aSom22[pit1] - aM2*aM2;
@@ -442,7 +484,7 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 
     data._uCost.syncHost();
 
-   data._uCost.hostData.OutputValues();
+    data._uCost.hostData.OutputValues();
 
     aSom_0   .Dealloc();
     aSomSqr_0.Dealloc();
