@@ -238,7 +238,7 @@ inline    float Quick_MS_CorrelBasic_Center(
 
 
     // pt float dans l'image 1
-    const float2      aFG1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + dElise_div(aPx2,cstP_CorMS.mNbByPix))+  aPG1;
+    const float2      aFG1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase + (float)dElise_div(aPx2,cstP_CorMS.mNbByPix))+  aPG1;
 
     int aNbScale = cstP_CorMS.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
@@ -264,14 +264,14 @@ inline    float Quick_MS_CorrelBasic_Center(
 
          if (ModeMax || aLast)
          {
-             const uint3 pt0    =   make_uint3(aPG0.x,aPG0.y,aKS);
-             const uint3 pt1    =   make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase);
+             const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstP_CorMS._dimTerrain);
+             const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase),cstP_CorMS._dimTerrain);
 
-             const float aM1    =   aSom1 [to1D(pt0,cstP_CorMS._dimTerrain)];
-             const float aM2    =   aSom2 [to1D(pt1,cstP_CorMS._dimTerrain)];
+             const float aM1    =   aSom1 [pit0];
+             const float aM2    =   aSom2 [pit1];
 
-             const float aM11   =   aSom11[to1D(pt0,cstP_CorMS._dimTerrain)] - aM1*aM1;
-             const float aM22   =   aSom22[to1D(pt1,cstP_CorMS._dimTerrain)] - aM2*aM2;
+             const float aM11   =   aSom11[pit0] - aM1*aM1;
+             const float aM22   =   aSom22[pit1] - aM2*aM2;
 
              const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
 
