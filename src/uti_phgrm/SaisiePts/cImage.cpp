@@ -62,7 +62,9 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli,bool Visuali
    mPrio  (0),
    mInitCamNDone (false),
    mCptAff       (0),
-   mVisualizable (Visualizable)
+   mVisualizable (Visualizable),
+   mEnvMinVisib       (0),
+   mEnvMaxVisib       (0)
 {
 }
 

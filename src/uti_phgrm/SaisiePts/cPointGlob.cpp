@@ -115,12 +115,59 @@ void  cSP_PointGlob::SuprDisp()
     }
 }
 
+bool  cSP_PointGlob::Has3DValue() const
+{
+   return     mPG->FromDico().ValWithDef(false)
+          ||  mPG->Mes3DExportable().ValWithDef(false);
+
+}
+
+Pt3dr cSP_PointGlob::Best3dEstim() const 
+{
+   if (mPG->Mes3DExportable().ValWithDef(false))
+   {
+      ELISE_ASSERT(mPG->P3D().IsInit(),"P3D :: cSP_PointGlob::Best3dEstim");
+      return mPG->P3D().Val();
+   }
+   if (mPG->FromDico().ValWithDef(false))
+   {
+      ELISE_ASSERT(mPG->Pt3DFromDico().IsInit(),"Pt3DFromDico :: cSP_PointGlob::Best3dEstim");
+      return mPG->Pt3DFromDico().Val();
+   }
+
+   ELISE_ASSERT(false,"cSP_PointGlob::Best3dEstim No Pt\n");
+   return Pt3dr(0,0,0);
+}
+
+/*
+void cSP_PointGlob::ReestimVisibilite()
+{
+   if (! Has3DValue()) return;
+   Pt3dr aPTer = Best3dEstim();
+   bool Mas3DVis = true;
+   for 
+   (
+        std::map<std::string,cSP_PointeImage *>::iterator itP=mPointes.begin();
+        itP=mPointes.begin();
+        itP!=mPointes.end();
+   )
+   {
+          (*itP)->ReestimVisibilite(aPTer,Mas3DVis);
+   }
+}
+*/
+
 void cSP_PointGlob::ReCalculPoints()
 {
-    if (! IsPtAutom()) return;
+    if (! IsPtAutom())
+    {
+        return;
+    }
 
     if (! mAppli.HasOrientation() )
+    {
        return;
+    }
 
     Pt3dr aP0 = mPG->P3D().ValWithDef(Pt3dr(1234.67,1.56e69,-6.87e24));
 
@@ -151,7 +198,9 @@ void cSP_PointGlob::ReCalculPoints()
     }
 
     if (aVOK.size() == 0)
+    {
        return;
+    }
 
     if (aVOK.size() == 1)
     {
@@ -188,7 +237,10 @@ void cSP_PointGlob::ReCalculPoints()
             mPG->PS1().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf*aInc));
             mPG->PS2().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf/aInc));
         }
-        if (euclid(aPt-aP0)< 1e-9) return;
+        if (euclid(aPt-aP0)< 1e-9) 
+        {
+            return;
+        }
     }
 
     if (aVOK.size() > 1)
@@ -229,11 +281,12 @@ void cSP_PointGlob::ReCalculPoints()
         mPG->Mes3DExportable().SetVal(true);
 
 
-        if (euclid(aPt-aP0)< 1e-9) return;
+        if (euclid(aPt-aP0)< 1e-9)
+        {
+            return;
+        }
     }
-
     mAppli.AddPGInAllImages(this);
-
     mAppli.RedrawAllWindows();
 }
 
