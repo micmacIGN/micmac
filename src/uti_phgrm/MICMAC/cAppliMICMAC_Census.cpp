@@ -1396,7 +1396,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     Pt2di anOff1 = anI1.OffsetIm();
 
 #ifdef CUDA_ENABLED
-
 //        interface_Census_GPU.transfertImageAndMask(
 //                    toUi2(mPDV1->LoadedIm().SzIm()),
 //                    toUi2(mPDV2->LoadedIm().SzIm()),
@@ -1417,7 +1416,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 //                    aStepPix);
 
 //        interface_Census_GPU.Job_Correlation_MultiScale();
-        //getchar();
 #endif
 // std::cout << anOff0 << anOff1 << "\n";
 
