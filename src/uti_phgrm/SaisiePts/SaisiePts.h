@@ -72,6 +72,8 @@ class cSP_PointeImage
         cSP_PointGlob * Gl();
         bool  & Visible() ;
         bool BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2);
+
+        // void ReestimVisibilite(const Pt3dr & aPTer,bool Masq3DVis);
 private :
          cSP_PointeImage(const cSP_PointeImage &); // N.I.
 
@@ -86,6 +88,10 @@ private :
 class cSP_PointGlob
 {
      public:
+          bool Has3DValue() const;
+          Pt3dr Best3dEstim() const ; // Erreur si pas de Has3DValue
+          // void ReestimVisibilite();
+
           cSP_PointGlob(cAppli_SaisiePts &,cPointGlob * aPG);
           cPointGlob * PG();
           void AddAPointe(cSP_PointeImage *);
@@ -165,6 +171,9 @@ class cImage
            bool                                      mInitCamNDone;
            int                                       mCptAff;
            bool                                      mVisualizable;
+
+           cElNuage3DMaille *                        mEnvMinVisib;
+           cElNuage3DMaille *                        mEnvMaxVisib;
 };
 
 typedef cImage * tImPtr;
@@ -266,8 +275,6 @@ private :
     CaseGPUMT *             mCaseMin5;
     CaseGPUMT *             mCaseMax3;
     CaseGPUMT *             mCaseMax5;
-
-
 };
 
 class cUndoRedo
@@ -574,7 +581,7 @@ private :
          void InitImages();
 
          void InitInPuts();
-         void AddOnePGInImage(cSP_PointGlob * aSPG,cImage & anI);
+         void AddOnePGInImage(cSP_PointGlob * aSPG,cImage & anI,bool WithP3D,const Pt3dr & aP3d,bool InMasq3D);
 
 
          void InitPG();
@@ -614,7 +621,7 @@ private :
          Pt2di                             mDecRech;
          Im2D_INT4                         mImRechVisu;
          Im2D_INT4                         mImRechAlgo;
-
+         cMasqBin3D *                      mMasq3DVisib;
 };
 
 
