@@ -16,14 +16,27 @@ dataCorrelMS::dataCorrelMS()
     }
 }
 
+//#define unitTestCorMS
+
+void dataCorrelMS::unitT__CopyCoordInColor(uint2 sizeImage, float *dest)
+{
+    for (int y = 0; y < (int)sizeImage.y; ++y)
+        for (int x = 0; x < (int)sizeImage.x; ++x)
+            dest[to1D(x,y,sizeImage)] = 1000*x + y;
+}
+
 void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
 {
     _HostImage[id].ReallocIfDim(sizeImage,3);
     for (int tScale = 0; tScale < 3; tScale++)
     {
-        float ** source   = dataImage[tScale];
         float *  dest     = _HostImage[id].pLData(tScale);
+#ifndef  unitTestCorMS
+        float ** source   = dataImage[tScale];
         memcpy( dest , source[0],  size(sizeImage) * sizeof(float));
+#else
+        unitT__CopyCoordInColor(sizeImage,dest);
+#endif
     }
 }
 

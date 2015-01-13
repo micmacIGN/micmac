@@ -142,6 +142,9 @@ struct dataCorrelMS
 
     uint    _maxDeltaZ;
 
+
+private:
+    void unitT__CopyCoordInColor(uint2 sizeImage, float *dest);
 };
 
 class GpGpu_Interface_Cor_MS : public CSimpleJobCpuGpu< bool>
