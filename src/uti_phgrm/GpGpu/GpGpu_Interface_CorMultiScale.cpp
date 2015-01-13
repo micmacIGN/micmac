@@ -22,7 +22,7 @@ void dataCorrelMS::unitT__CopyCoordInColor(uint2 sizeImage, float *dest)
 {
     for (int y = 0; y < (int)sizeImage.y; ++y)
         for (int x = 0; x < (int)sizeImage.x; ++x)
-            dest[to1D(x,y,sizeImage)] = 1000*x + y;
+            dest[to1D(x,y,sizeImage)] = 10000*x + y;
 }
 
 void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
@@ -125,18 +125,24 @@ void dataCorrelMS::dealloc()
 
 }
 
-void const_Param_Cor_MS::init(const std::vector<std::vector<Pt2di> > &VV,
+void const_Param_Cor_MS::init(
+        const std::vector<std::vector<Pt2di> > &VV,
         const std::vector<double> &VPds,
         int2 offset0,
         int2 offset1,
         ushort NbByPix,
         float StepPix,
+        float nEpsilon,
+        float AhDefCost,
         ushort nbscale)
 {
 
     aNbScale    = nbscale;
     mNbByPix    = NbByPix;
     aStepPix    = StepPix;
+    anEpsilon   = nEpsilon;
+    mAhDefCost  = AhDefCost;
+
 
     for (int s = 0; s < (int)VV.size(); ++s)
     {
@@ -205,13 +211,21 @@ void GpGpu_Interface_Cor_MS::init(
         short                                 **mTabZMax,
         ushort                                  NbByPix,
         float                                   StepPix,
+        float                                   nEpsilon,
+        float                                   AhDefCost,
         ushort                                  nbscale)
-{
-    _cDataCMS.init(aVV,aVPds,offset0,offset1,NbByPix,StepPix);
+{   
+    _cDataCMS.init(aVV,aVPds,offset0,offset1,NbByPix,StepPix,nEpsilon,AhDefCost);
     _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
     _cDataCMS.setTerrain(terrain);
     _cDataCMS.maxDeltaZ = _dataCMS._maxDeltaZ;
 
     //_cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));
+}
+
+float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+{
+    float *pcost = _dataCMS._uCost.hostData.pData();
+    return pcost[to1D(pt,_dataCMS._uCost.hostData.GetDimension3D())];
 }
 

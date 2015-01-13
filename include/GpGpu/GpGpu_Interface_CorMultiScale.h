@@ -76,19 +76,22 @@ struct const_Param_Cor_MS
     /// dimension du cache preparatoire au calcul de correlation multi-echelle
     uint3   mDim3Cache;
 
-    void init(const std::vector<std::vector<Pt2di> >  &aVV,
+    void init(
+            const std::vector<std::vector<Pt2di> >  &aVV,
             const std::vector<double >              &aVPds,
             int2    offset0,
             int2    offset1,
             ushort  NbByPix,
             float   StepPix,
+            float nEpsilon,
+            float AhDefCost,
             ushort  nbscale = NBSCALE );
 
     void setTerrain(Rect    zoneTerrain);
 
     void dealloc();
 
-//    __device__ uint3 dim3Cache()
+    //    __device__ uint3 dim3Cache()
 //    {
 //        return make_uint3(_dimTerrain.x,_dimTerrain.y,aNbScale);
 //    }
@@ -168,8 +171,10 @@ public:
                               short   **mTabZMin,
                               short   **mTabZMax,
                               ushort    NbByPix,
-                              float     StepPix,
+                              float     StepPix, float nEpsilon, float AhDefCost,
                               ushort nbscale = NBSCALE );
+
+    float getCost(uint3 pt);
 
 private:
 
