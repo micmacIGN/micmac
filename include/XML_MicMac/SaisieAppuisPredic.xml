@@ -11,6 +11,8 @@
              <Symb> FlouSpecified=false </Symb>
              <Symb> TypeSpecified=false </Symb>
              <Symb> ForceGray=true </Symb>
+             <Symb> WithMasq3D=false </Symb>
+             <Symb> Masq3D=XXXXX </Symb>
         </DicoLoc>
 
         <SectionWindows>
@@ -56,6 +58,10 @@
              <ProfEstimator>
                  <ZMoyenInIma>  true </ZMoyenInIma>
              </ProfEstimator>
+             <#WHEN VTEST=${WithMasq3D}>
+                   <Masq3DFilterVis> ${Masq3D} </Masq3DFilterVis>
+             </#WHEN>
+
         </SectionTerrain>
 
         <DirectoryChantier> ThisDir </DirectoryChantier>

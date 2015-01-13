@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_DefautChantierDescripteur[2788]) = {
+const char * (theNameVar_DefautChantierDescripteur[2786]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",
 "      Un exemple avec utilisation des fonctionnalites arithmetique\n",
@@ -56,8 +56,6 @@ const char * (theNameVar_DefautChantierDescripteur[2788]) = {
 "\n",
 "<!--   HOMOGRAPHY-COMPUTING\n",
 "\n",
-"      NKS-RHH-Assoc-CplIm2Data@@Homogr@dmp\n",
-"      NKS-RHH-Assoc-CplIm2Data@@Homologous@dat\n",
 "-->\n",
 "    <KeyedNamesAssociations>\n",
 "        <IsParametrized>  true </IsParametrized>\n",
@@ -74,7 +72,7 @@ const char * (theNameVar_DefautChantierDescripteur[2788]) = {
 "                <CalcName> $2  </CalcName>\n",
 "	     </Inverse>\n",
 "        </Calcs>\n",
-"        <Key>  NKS-RHH-Assoc-CplIm2Data </Key>\n",
+"        <Key>  NKS-Assoc-RHH-CplIm2Data </Key>\n",
 "	<SubDirAutoMake>  RHH#1</SubDirAutoMake>\n",
 "	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>\n",
 "    </KeyedNamesAssociations>\n",
@@ -88,7 +86,7 @@ const char * (theNameVar_DefautChantierDescripteur[2788]) = {
 "		 <SubDir>   RHH#1/ </SubDir>\n",
 "                 <NivSubDir> 2 </NivSubDir>\n",
 "	  </Sets>\n",
-"          <Key> NKS-RHH-Set-Homol </Key>\n",
+"          <Key> NKS-Set-RHH-Homol </Key>\n",
 "    </KeyedSetsOfNames>\n",
 "\n",
 "\n",
