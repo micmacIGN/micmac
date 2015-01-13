@@ -86,6 +86,9 @@ class cPointGlob
         cTplValGesInit< Pt3dr > & P3D();
         const cTplValGesInit< Pt3dr > & P3D()const ;
 
+        cTplValGesInit< Pt3dr > & Pt3DFromDico();
+        const cTplValGesInit< Pt3dr > & Pt3DFromDico()const ;
+
         cTplValGesInit< bool > & Mes3DExportable();
         const cTplValGesInit< bool > & Mes3DExportable()const ;
 
@@ -122,6 +125,7 @@ class cPointGlob
         eTypePts mType;
         std::string mName;
         cTplValGesInit< Pt3dr > mP3D;
+        cTplValGesInit< Pt3dr > mPt3DFromDico;
         cTplValGesInit< bool > mMes3DExportable;
         cTplValGesInit< Pt3dr > mIncert;
         cTplValGesInit< double > mLargeurFlou;
@@ -454,9 +458,17 @@ class cSectionTerrain
 
         cTplValGesInit< cProfEstimator > & ProfEstimator();
         const cTplValGesInit< cProfEstimator > & ProfEstimator()const ;
+
+        cTplValGesInit< std::string > & Masq3DFilterVis();
+        const cTplValGesInit< std::string > & Masq3DFilterVis()const ;
+
+        cTplValGesInit< std::string > & PIMsFilterVis();
+        const cTplValGesInit< std::string > & PIMsFilterVis()const ;
     private:
         cTplValGesInit< double > mIntervPercProf;
         cTplValGesInit< cProfEstimator > mProfEstimator;
+        cTplValGesInit< std::string > mMasq3DFilterVis;
+        cTplValGesInit< std::string > mPIMsFilterVis;
 };
 cElXMLTree * ToXMLTree(const cSectionTerrain &);
 
@@ -554,6 +566,12 @@ class cParamSaisiePts
 
         cTplValGesInit< cProfEstimator > & ProfEstimator();
         const cTplValGesInit< cProfEstimator > & ProfEstimator()const ;
+
+        cTplValGesInit< std::string > & Masq3DFilterVis();
+        const cTplValGesInit< std::string > & Masq3DFilterVis()const ;
+
+        cTplValGesInit< std::string > & PIMsFilterVis();
+        const cTplValGesInit< std::string > & PIMsFilterVis()const ;
 
         cSectionTerrain & SectionTerrain();
         const cSectionTerrain & SectionTerrain()const ;
