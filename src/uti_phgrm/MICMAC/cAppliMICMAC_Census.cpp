@@ -1396,6 +1396,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     Pt2di anOff1 = anI1.OffsetIm();
 
 #ifdef CUDA_ENABLED
+
 //        interface_Census_GPU.transfertImageAndMask(
 //                    toUi2(mPDV1->LoadedIm().SzIm()),
 //                    toUi2(mPDV2->LoadedIm().SzIm()),
@@ -1413,9 +1414,32 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 //                    mTabZMin,
 //                    mTabZMax,
 //                    mNbByPix,
-//                    aStepPix);
+//                    aStepPix,
+//                    mAhEpsilon,
+//                    mAhDefCost
+//                    );
 
 //        interface_Census_GPU.Job_Correlation_MultiScale();
+
+//        for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+//            for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+//            {
+//                int aZ0 =  mTabZMin[anY][anX];
+//                int aZ1 =  mTabZMax[anY][anX];
+
+//                Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
+//                bool OkIm0 = anI0.IsOkErod(aPIm0.x,aPIm0.y);
+//                for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
+//                {
+//                    uint3 pt =make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
+//                    double aCost = interface_Census_GPU.getCost(pt);
+
+//                    mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, aCost >= 0 &&  OkIm0? aCost : mAhDefCost);
+//                }
+//            }
+
+//        return;
+
 #endif
 // std::cout << anOff0 << anOff1 << "\n";
 
