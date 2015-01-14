@@ -124,7 +124,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 	#define ELISE_CAR_DIR  '/' 
 	#define ELISE_Current_DIR  "./"
 	#include <float.h>
-	#define std_isnan _isnan 
+	#if __MINGW__
+		//#include <cmath>
+		#define std_isnan std::isnan
+	#else
+		#define std_isnan _isnan
+	#endif
 	#define std_isinf isinf 
 
     #define ELISE_STR_DIR "/"

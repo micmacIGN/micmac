@@ -43,10 +43,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <vector>
 #include <list>
 
-#ifdef WIN32
-#include "win_regex.h"
+#if ELISE_windows
+	#include "win_regex.h"
 #else
-#include <regex.h>
+	#include <regex.h>
 #endif
 
 
