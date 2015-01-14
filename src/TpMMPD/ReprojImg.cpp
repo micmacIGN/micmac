@@ -81,51 +81,62 @@ class cReprojColorImg
     cReprojColor getr(Pt2dr pt);
     void set(Pt2di pt, cReprojColor color);
     void write(std::string filename);
+    Pt2di sz(){return mImgSz;}
   protected:
     std::string mImgName;
-    Tiff_Im mTiffImg;
     Pt2di mImgSz;
-    Im2D<U_INT1,INT4> mImgR;
-    Im2D<U_INT1,INT4> mImgG;
-    Im2D<U_INT1,INT4> mImgB;
-    TIm2D<U_INT1,INT4> mImgRT;
-    TIm2D<U_INT1,INT4> mImgGT;
-    TIm2D<U_INT1,INT4> mImgBT;
+    Im2D<U_INT1,INT4> *mImgR;
+    Im2D<U_INT1,INT4> *mImgG;
+    Im2D<U_INT1,INT4> *mImgB;
+    TIm2D<U_INT1,INT4> *mImgRT;
+    TIm2D<U_INT1,INT4> *mImgGT;
+    TIm2D<U_INT1,INT4> *mImgBT;
 };
 
 cReprojColorImg::cReprojColorImg(std::string filename) :
-  mImgName(filename),mTiffImg(mImgName.c_str()),
-  mImgSz(mTiffImg.sz()),mImgR(mImgSz.x,mImgSz.y),
-  mImgG(mImgSz.x,mImgSz.y),mImgB(mImgSz.x,mImgSz.y),
-  mImgRT(mImgR),mImgGT(mImgG),mImgBT(mImgB)
+  mImgName(filename)
 {
-    ELISE_COPY(mImgR.all_pts(),mTiffImg.in(),Virgule(mImgR.out(),mImgG.out(),mImgB.out()));
+    Tiff_Im mTiffImg(mImgName.c_str());
+    mImgSz.x=mTiffImg.sz().x;
+    mImgSz.y=mTiffImg.sz().y;
+    mImgR=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+    mImgG=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+    mImgB=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+    mImgRT=new TIm2D<U_INT1,INT4>(*mImgR);
+    mImgGT=new TIm2D<U_INT1,INT4>(*mImgG);
+    mImgBT=new TIm2D<U_INT1,INT4>(*mImgB);
+    ELISE_COPY(mImgR->all_pts(),mTiffImg.in(),Virgule(mImgR->out(),mImgG->out(),mImgB->out()));
 }
 
 
 cReprojColorImg::cReprojColorImg(Pt2di sz) :
-  mImgName(""),mTiffImg(""),
-  mImgSz(sz),mImgR(mImgSz.x,mImgSz.y),
-  mImgG(mImgSz.x,mImgSz.y),mImgB(mImgSz.x,mImgSz.y),
-  mImgRT(mImgR),mImgGT(mImgG),mImgBT(mImgB)
+  mImgName(""),
+  mImgSz(sz)
 {
+    mImgR=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+    mImgG=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+    mImgB=new Im2D<U_INT1,INT4>(mImgSz.x,mImgSz.y);
+    mImgRT=new TIm2D<U_INT1,INT4>(*mImgR);
+    mImgGT=new TIm2D<U_INT1,INT4>(*mImgG);
+    mImgBT=new TIm2D<U_INT1,INT4>(*mImgB);
 }
+
 
 cReprojColor cReprojColorImg::get(Pt2di pt)
 {
-    return cReprojColor(mImgRT.get(pt),mImgGT.get(pt),mImgBT.get(pt));
+    return cReprojColor(mImgRT->get(pt),mImgGT->get(pt),mImgBT->get(pt));
 }
 
 cReprojColor cReprojColorImg::getr(Pt2dr pt)
 {
-    return cReprojColor(mImgRT.getr(pt),mImgGT.getr(pt),mImgBT.getr(pt));
+    return cReprojColor(mImgRT->getr(pt),mImgGT->getr(pt),mImgBT->getr(pt));
 }
 
 void cReprojColorImg::set(Pt2di pt, cReprojColor color)
 {
-    U_INT1 ** aImRData=mImgR.data();
-    U_INT1 ** aImGData=mImgG.data();
-    U_INT1 ** aImBData=mImgB.data();
+    U_INT1 ** aImRData=mImgR->data();
+    U_INT1 ** aImGData=mImgG->data();
+    U_INT1 ** aImBData=mImgB->data();
     aImRData[pt.y][pt.x]=color.r();
     aImGData[pt.y][pt.x]=color.g();
     aImBData[pt.y][pt.x]=color.b();
@@ -136,15 +147,15 @@ void cReprojColorImg::write(std::string filename)
 {
     ELISE_COPY
     (
-        mImgR.all_pts(),
-        Virgule( mImgR.in(), mImgG.in(), mImgB.in()) ,
+        mImgR->all_pts(),
+        Virgule( mImgR->in(), mImgG->in(), mImgB->in()) ,
         Tiff_Im(
-            filename.c_str()/*,
+            filename.c_str(),
             mImgSz,
             GenIm::u_int1,
             Tiff_Im::No_Compr,
-            colorSpace,
-            Tiff_Im::Empty_ARG*/ ).out()
+            Tiff_Im::RGB,
+            Tiff_Im::Empty_ARG ).out()
     );
 
 /*    ELISE_COPY
@@ -279,23 +290,18 @@ int ReprojImg_main(int argc,char ** argv)
     CamStenope * aCamRep=CamOrientGenFromFile(aOriRep,aICNM);
      
     std::string aNameRepImageTif = NameFileStd(aNameRepImage,3,false,true,true,true);
-    Tiff_Im aRepTiffIm(aNameRepImageTif.c_str());
-    Pt2di aRepImgSz=aRepTiffIm.sz();
-    std::cout<<"aRepTiffIm.nb_chan(): "<<aRepTiffIm.nb_chan()<<std::endl;
-    
-    // Access to pixels (see ExoMM_CorrelMulImage.cpp:151)
-    Im2D_U_INT1 aRepImage(aRepImgSz.x,aRepImgSz.y);
-    ELISE_COPY(aRepImage.all_pts(),aRepTiffIm.in(),aRepImage.out());
-    TIm2D<U_INT1,INT4> aRepImageT(aRepImage);  
+    cReprojColorImg aRepIm(aNameRepImageTif.c_str());
+    Pt2di aRepImgSz=aRepIm.sz();
     
     //Output image
-    Im2D_U_INT1 aOutputTiffIm(aRefIm.getSize().x,aRefIm.getSize().y);
+    cReprojColorImg aOutputIm(aRefIm.getSize());
+
     //Mask of reprojected image
     Im2D_U_INT1 aMaskRepIm(aRefIm.getSize().x,aRefIm.getSize().y);
     //access to each pixel value
-    U_INT1 ** aOutputTiffImData=aOutputTiffIm.data();
     U_INT1 ** aMaskRepImData=aMaskRepIm.data();
     
+    cReprojColor black(0,0,0);
     //for each pixel of reference image,
      for (int anY=0 ; anY<aRefIm.getSize().y ; anY++)
      {
@@ -307,7 +313,7 @@ int ReprojImg_main(int argc,char ** argv)
               //check if depth exists 
               if (aRefIm.getAutoMask()->get(aPImRef)!=1) 
               {
-                aOutputTiffImData[anY][anX]=0;
+                aOutputIm.set(aPImRef,black);
                 aMaskRepImData[anY][anX]=0;
                 continue;
               }
@@ -330,20 +336,21 @@ int ReprojImg_main(int argc,char ** argv)
               //TODO: create output mask?
               if ((aPImRep.x<0) ||(aPImRep.x>=aRepImgSz.x-1) ||(aPImRep.y<0) ||(aPImRep.y>=aRepImgSz.y-1))
               {
-                aOutputTiffImData[anY][anX]=0;
+                aOutputIm.set(aPImRef,black);
                 aMaskRepImData[anY][anX]=0;
                 continue;
               }
               
               //get color of this point in Rep image
-              U_INT1 value=aRepImageT.getr(aPImRep);
+              cReprojColor color=aRepIm.getr(aPImRep);
               //copy this color into output image
-              aOutputTiffImData[anY][anX]=value;
+              aOutputIm.set(aPImRef,color);
               aMaskRepImData[anY][anX]=255;
          }
      }
     
-    Tiff_Im::CreateFromIm(aOutputTiffIm,aNameRefImage+"_"+aNameRepImage+".tif");
+    std::cout<<"Write reproj image..."<<std::endl;
+    aOutputIm.write(aNameRefImage+"_"+aNameRepImage+".tif");
     Tiff_Im::CreateFromIm(aMaskRepIm,aNameRefImage+"_"+aNameRepImage+"_mask.tif");//TODO: make a xml file? convert to indexed colors?
     //TODO: create image difference!
     //use MM2D for image analysis
