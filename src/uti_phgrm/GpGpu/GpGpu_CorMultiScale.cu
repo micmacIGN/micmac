@@ -260,7 +260,7 @@ inline    float Quick_MS_CorrelBasic_Center(
     float aPdsGlob = 0;
 
     // pt float dans l'image 1
-    const float2      aFG1      =   f2X(cstPCMS.aStepPix*(float)aPhase /*+ (float)dElise_div(aPx2,cstP_CorMS.mNbByPix)*/)+  aPG1;
+    const float2      aFG1      =   f2X(cstPCMS.aStepPix*(float)aPhase /*+ (float)dElise_div(aPx2,cstP_CorMS.mNbByPix)*/)+  make_float2(aPG1.x,aPG1.y);
 
     int aNbScale = cstPCMS.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
@@ -319,21 +319,22 @@ inline    float Quick_MS_CorrelBasic_Center(
             const float aM2    =   aSom2 [pit1];
 
 #ifdef unitTestCorMS_gpgpu
-
-            if(IN_THREAD(1,2,1,6,9,4) && !aKS )
             {
-                DUMP((int)aSom1  [pit0])
-                        DUMP((int)aSom11 [pit0])
-                        DUMP((int)aSom2  [pit1])
-                        DUMP((int)aSom22 [pit1])
-            }
+                if(IN_THREAD(1,2,1,6,9,4) && !aKS )
+                {
+                    DUMP((int)aSom1  [pit0])
+                            DUMP((int)aSom11 [pit0])
+                            DUMP((int)aSom2  [pit1])
+                            DUMP((int)aSom22 [pit1])
+                }
 
-            if(IN_THREAD(1,2,2,6,9,4) && !aKS )
-            {
-                DUMP((int)aSom1  [pit0])
-                        DUMP((int)aSom11 [pit0])
-                        DUMP((int)aSom2  [pit1])
-                        DUMP((int)aSom22 [pit1])
+                if(IN_THREAD(1,2,2,6,9,4) && !aKS )
+                {
+                    DUMP((int)aSom1  [pit0])
+                            DUMP((int)aSom11 [pit0])
+                            DUMP((int)aSom2  [pit1])
+                            DUMP((int)aSom22 [pit1])
+                }
             }
 #endif
 
@@ -351,6 +352,7 @@ inline    float Quick_MS_CorrelBasic_Center(
         }
 
     }
+
     return (aMaxCor > 0) ? sqrt(aMaxCor) : - sqrt(-aMaxCor) ;
 }
 
@@ -374,34 +376,25 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
     //      pt int dans l'image 0
     const   int2     aPIm0       =   an + cstPCMS.anOff0;
 
-    // si dans le masque de l'image 0
-    const bool  OkIm0   =   IsOkErod(aPIm0,0);
-
-    if (OkIm0)
+    if (IsOkErod(aPIm0,0))
     {
 
         // Z relatif au thread
-        const ushort thZ   =   blockIdx.z*blockDim.z + threadIdx.z;
+        const ushort thZ        =  blockIdx.z*blockDim.z + threadIdx.z;
 
-        //        if(thZ+1 >= cstP_CorMS.maxDeltaZ)
-        //        {
-        //            return;
-        //        }
+        float&          _cost   =  cost[to1D(an,thZ,cstPCMS._dimTerrain)];
 
-        // pitch de decalage
-        const uint   pit    =   to1D(an,thZ,cstPCMS._dimTerrain);
-        const uint   pit2d  =   to1D(an,cstPCMS._dimTerrain);
+        const short2    _nappe  =  nappe[to1D(an,cstPCMS._dimTerrain)];
 
-        float&          _cost   =  cost[pit];
-        const short2    _nappe  =  nappe[pit2d];
         short           aZ0     =  _nappe.x;
+
         const int       DeltaZ  =  abs(_nappe.y-aZ0);
 
         if(thZ>=DeltaZ)
             return; // TODO on pourrait eventuellement affacter la valeur du cout par defaut.... mais bof
 
         // z Absolu
-        const short aZ = (short)thZ + aZ0;
+        const short aZ = aZ0 + (short)thZ;
 
         // calcul de la phase
         // Attention probleme avec valeur negative et le modulo
@@ -426,6 +419,8 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         const   int2    aIm1SsPx   =   an + cstPCMS.anOff1;
         //      pt int dans l'image 1
         const   int2    aPIm1      =   aIm1SsPx + i2X(gpu_anOffset);
+
+//        DUMP(gpu_anOffset)
 
         float           aCost      =   cstPCMS.mAhDefCost;
 
@@ -452,9 +447,11 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
                 else
                     aCost =  cstPCMS.aSeuilBC *  aGlobCostBasic;
             }
+
+            aCost = 1.f-aCost;
         }
 
-        _cost = 1.f-aCost;
+        _cost = aCost;
     }
 }
 #include <stdio.h>
