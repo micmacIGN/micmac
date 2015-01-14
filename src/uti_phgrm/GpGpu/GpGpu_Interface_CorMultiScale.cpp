@@ -128,12 +128,16 @@ void dataCorrelMS::dealloc()
 void const_Param_Cor_MS::init(
         const std::vector<std::vector<Pt2di> > &VV,
         const std::vector<double> &VPds,
-        int2 offset0,
-        int2 offset1,
-        ushort NbByPix,
-        float StepPix,
-        float nEpsilon,
-        float AhDefCost,
+        int2    offset0,
+        int2    offset1,
+        ushort  NbByPix,
+        float   StepPix,
+        float   nEpsilon,
+        float   AhDefCost,
+        float   SeuilHC,
+        float   SeuilBC,
+        bool    ModeMax,
+        bool    mdoMixte,
         ushort nbscale)
 {
 
@@ -142,7 +146,10 @@ void const_Param_Cor_MS::init(
     aStepPix    = StepPix;
     anEpsilon   = nEpsilon;
     mAhDefCost  = AhDefCost;
-
+    aSeuilHC    = SeuilHC;
+    aSeuilBC    = SeuilBC;
+    aModeMax    = ModeMax;
+    DoMixte     = mdoMixte;
 
     for (int s = 0; s < (int)VV.size(); ++s)
     {
@@ -213,9 +220,14 @@ void GpGpu_Interface_Cor_MS::init(
         float                                   StepPix,
         float                                   nEpsilon,
         float                                   AhDefCost,
+        float                                   aSeuilHC,
+        float                                   aSeuilBC,
+        bool                                    aModeMax,
+        bool                                    DoMixte,
         ushort                                  nbscale)
 {   
-    _cDataCMS.init(aVV,aVPds,offset0,offset1,NbByPix,StepPix,nEpsilon,AhDefCost);
+    _cDataCMS.init(aVV,aVPds,offset0,offset1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte);
+
     _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
     _cDataCMS.setTerrain(terrain);
     _cDataCMS.maxDeltaZ = _dataCMS._maxDeltaZ;

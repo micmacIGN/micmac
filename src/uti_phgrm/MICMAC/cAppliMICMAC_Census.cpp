@@ -1287,8 +1287,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
   bool aModeMax = false;
 
-  
-
    std::vector<float> aVPmsInit;
    double aSomPmsInit=0;
 
@@ -1416,7 +1414,11 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 //                    mNbByPix,
 //                    aStepPix,
 //                    mAhEpsilon,
-//                    mAhDefCost
+//                    mAhDefCost,
+//                    aSeuilHC,
+//                    aSeuilBC,
+//                    aModeMax,
+//                    DoMixte
 //                    );
 
 //        interface_Census_GPU.Job_Correlation_MultiScale();
@@ -1578,9 +1580,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                 int aZ0 =  mTabZMin[anY][anX];
                 int aZ1 =  mTabZMax[anY][anX];
 
-
-               int aXIm1SsPx = anX+anOff1.x;
-               int aYIm1SsPx = anY+anOff1.y;
+                int aXIm1SsPx = anX+anOff1.x;
+                int aYIm1SsPx = anY+anOff1.y;
 
 
                 while (mod(aZ0,mNbByPix) != aPhase) aZ0++;
@@ -1657,6 +1658,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                                     aCost = Quick_MS_CorrelBasic_Center (aPIm0,aPIm1,aSom1,aSom11,aSomC,aSomCC,
                                                              aVBOI0,aVBOIC,anOffset,aVKImS,aVPds,mAhEpsilon,aModeMax
                                             );
+
+
                                     aGlobCostCorrel = aCost;
 
                                     if (Verif)

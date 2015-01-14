@@ -61,6 +61,14 @@ struct const_Param_Cor_MS
 
     uint    maxDeltaZ;
 
+    float   aSeuilHC;
+
+    float   aSeuilBC;
+
+    bool    aModeMax;
+
+    bool    DoMixte;
+
     ///
     /// \brief mNbByPix
     /// nombre de phase par pixel
@@ -76,15 +84,18 @@ struct const_Param_Cor_MS
     /// dimension du cache preparatoire au calcul de correlation multi-echelle
     uint3   mDim3Cache;
 
-    void init(
-            const std::vector<std::vector<Pt2di> >  &aVV,
+    void init(const std::vector<std::vector<Pt2di> >  &aVV,
             const std::vector<double >              &aVPds,
             int2    offset0,
             int2    offset1,
             ushort  NbByPix,
             float   StepPix,
-            float nEpsilon,
-            float AhDefCost,
+            float   nEpsilon,
+            float   AhDefCost,
+            float   aSeuilHC,
+            float   aSeuilBC,
+            bool    aModeMax,
+            bool    DoMixte,
             ushort  nbscale = NBSCALE );
 
     void setTerrain(Rect    zoneTerrain);
@@ -164,15 +175,21 @@ public:
     void transfertImageAndMask(uint2 sI0,uint2 sI1,float ***dataImg0,float ***dataImg1,pixel **mask0,pixel **mask1);
 
     void init(Rect terrain,
-                              const std::vector<std::vector<Pt2di> >  &aVV,
-                              const std::vector<double >              &aVPds,
-                              int2      offset0,
-                              int2      offset1,
-                              short   **mTabZMin,
-                              short   **mTabZMax,
-                              ushort    NbByPix,
-                              float     StepPix, float nEpsilon, float AhDefCost,
-                              ushort nbscale = NBSCALE );
+              const std::vector<std::vector<Pt2di> >  &aVV,
+              const std::vector<double >              &aVPds,
+              int2      offset0,
+              int2      offset1,
+              short   **mTabZMin,
+              short   **mTabZMax,
+              ushort    NbByPix,
+              float     StepPix,
+              float     nEpsilon,
+              float     AhDefCost,
+              float     aSeuilHC,
+              float     aSeuilBC,
+              bool      aModeMax,
+              bool      DoMixte,
+              ushort nbscale = NBSCALE );
 
     float getCost(uint3 pt);
 

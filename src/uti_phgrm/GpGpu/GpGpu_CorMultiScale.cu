@@ -44,11 +44,11 @@
 //#define unitTestCorMS_gpgpu
 
 ///
-static __constant__ const_Param_Cor_MS     cstP_CorMS;
+static __constant__ const_Param_Cor_MS     cstPCMS;
 
 extern "C" void paramCorMultiScale2Device( const_Param_Cor_MS &param )
 {
-    checkCudaErrors(cudaMemcpyToSymbol(cstP_CorMS, &param, sizeof(const_Param_Cor_MS)));
+    checkCudaErrors(cudaMemcpyToSymbol(cstPCMS, &param, sizeof(const_Param_Cor_MS)));
 }
 
 texture< float,	cudaTextureType2DLayered >      texture_ImageEpi_00;
@@ -140,7 +140,7 @@ __global__
 void projectionMasqImage(float * dataPixel,uint3 dTer)
 {
 
-    if(blockIdx.x > cstP_CorMS._dimTerrain.x || blockIdx.y > cstP_CorMS._dimTerrain.y)
+    if(blockIdx.x > cstPCMS._dimTerrain.x || blockIdx.y > cstPCMS._dimTerrain.y)
         return;
 
     const int3 pt = make_int3(blockIdx.x,blockIdx.y,blockIdx.z);
@@ -182,33 +182,33 @@ void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* 
     // point image
     const uint2     pt          =   make_uint2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
 
-    if(oSE(pt,cstP_CorMS._dimTerrain))
+    if(oSE(pt,cstPCMS._dimTerrain))
         return;
 
     // indice de l'etape sub pixelaire, le maximum étant cPCencus.mNbByPix
-    const ushort    aPhase    =   (ushort)blockIdx.z;
+    const ushort    aPhase   =   (ushort)blockIdx.z;
 
     // la dimension du cache, la cache stocke des precaluls pour la corrélation
-    const uint3     dimCache    =   make_uint3(cstP_CorMS._dimTerrain.x,cstP_CorMS._dimTerrain.y,mNbByPix*cstP_CorMS.aNbScale);
+    const uint3     dimCache =   make_uint3(cstPCMS._dimTerrain.x,cstPCMS._dimTerrain.y,mNbByPix*cstPCMS.aNbScale);
 
     // le décalage sub pixelaire
-    const float     cStepPix    =   ((float)aPhase)*aStepPix;
+    const float     cStepPix =   ((float)aPhase)*aStepPix;
 
     // point de l'image pour cette etape sub pixelaire
-    const float2    ptImage     =   make_float2((float)pt.x + cStepPix,(float)pt.y);
+    const float2    ptImage  =   make_float2((float)pt.x + cStepPix,(float)pt.y);
 
-    float aGlobSom = 0;
-    float aGlobSomSqr = 0;
-    float aGlobPds  = 0;
+    float aGlobSom      = 0;
+    float aGlobSomSqr   = 0;
+    float aGlobPds      = 0;
 
     // pour toutes les echelles
-    for (int aKS=0 ; aKS< cstP_CorMS.aNbScale ; aKS++)
+    for (int aKS=0 ; aKS< cstPCMS.aNbScale ; aKS++)
     {
         float   aSom    = 0;
         float   aSomSqr = 0;
-        short2 *aVP     = cstP_CorMS.aVV[aKS];
-        ushort  aNbP    = cstP_CorMS.size_aVV[aKS];
-        float   aPdsK   = cstP_CorMS.aVPds[aKS];
+        short2 *aVP     = cstPCMS.aVV[aKS];
+        ushort  aNbP    = cstPCMS.size_aVV[aKS];
+        float   aPdsK   = cstPCMS.aVPds[aKS];
 
         // pour les éléments de la vignettes
         for (int aKP=0 ; aKP<aNbP ; aKP++)
@@ -260,16 +260,16 @@ inline    float Quick_MS_CorrelBasic_Center(
     float aPdsGlob = 0;
 
     // pt float dans l'image 1
-    const float2      aFG1      =   f2X(cstP_CorMS.aStepPix*(float)aPhase /*+ (float)dElise_div(aPx2,cstP_CorMS.mNbByPix)*/)+  aPG1;
+    const float2      aFG1      =   f2X(cstPCMS.aStepPix*(float)aPhase /*+ (float)dElise_div(aPx2,cstP_CorMS.mNbByPix)*/)+  make_float2(aPG1.x,aPG1.y);
 
-    int aNbScale = cstP_CorMS.aNbScale;
+    int aNbScale = cstPCMS.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
     {
         bool   aLast   = (aKS==(aNbScale-1));
-        short2*aVP     = cstP_CorMS.aVV[aKS];
-        float  aPds    = cstP_CorMS.aVPds[aKS];
+        short2*aVP     = cstPCMS.aVV[aKS];
+        float  aPds    = cstPCMS.aVPds[aKS];
         float  aCov    = 0;
-        ushort aNbP    = cstP_CorMS.size_aVV[aKS];
+        ushort aNbP    = cstPCMS.size_aVV[aKS];
 
         aPdsGlob += aPds * aNbP;
         for (int aKP=0 ; aKP<aNbP ; aKP++)
@@ -312,28 +312,29 @@ inline    float Quick_MS_CorrelBasic_Center(
 
         if (ModeMax || aLast)
         {
-            const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstP_CorMS._dimTerrain);
-            const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase),cstP_CorMS._dimTerrain);
+            const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstPCMS._dimTerrain);
+            const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase),cstPCMS._dimTerrain);
 
             const float aM1    =   aSom1 [pit0];
             const float aM2    =   aSom2 [pit1];
 
 #ifdef unitTestCorMS_gpgpu
-
-            if(IN_THREAD(1,2,1,6,9,4) && !aKS )
             {
-                DUMP((int)aSom1  [pit0])
-                        DUMP((int)aSom11 [pit0])
-                        DUMP((int)aSom2  [pit1])
-                        DUMP((int)aSom22 [pit1])
-            }
+                if(IN_THREAD(1,2,1,6,9,4) && !aKS )
+                {
+                    DUMP((int)aSom1  [pit0])
+                            DUMP((int)aSom11 [pit0])
+                            DUMP((int)aSom2  [pit1])
+                            DUMP((int)aSom22 [pit1])
+                }
 
-            if(IN_THREAD(1,2,2,6,9,4) && !aKS )
-            {
-                DUMP((int)aSom1  [pit0])
-                        DUMP((int)aSom11 [pit0])
-                        DUMP((int)aSom2  [pit1])
-                        DUMP((int)aSom22 [pit1])
+                if(IN_THREAD(1,2,2,6,9,4) && !aKS )
+                {
+                    DUMP((int)aSom1  [pit0])
+                            DUMP((int)aSom11 [pit0])
+                            DUMP((int)aSom2  [pit1])
+                            DUMP((int)aSom22 [pit1])
+                }
             }
 #endif
 
@@ -343,14 +344,15 @@ inline    float Quick_MS_CorrelBasic_Center(
 
             if (ModeMax)
             {
-                float aCor = (aM12 * abs(aM12)) /max(cstP_CorMS.anEpsilon,aM11*aM22);
+                float aCor = (aM12 * abs(aM12)) /max(cstPCMS.anEpsilon,aM11*aM22);
                 aMaxCor = max(aMaxCor,aCor);
             }
             else
-                return aM12 / sqrt(max(cstP_CorMS.anEpsilon,aM11*aM22));
+                return aM12 / sqrt(max(cstPCMS.anEpsilon,aM11*aM22));
         }
 
     }
+
     return (aMaxCor > 0) ? sqrt(aMaxCor) : - sqrt(-aMaxCor) ;
 }
 
@@ -359,60 +361,54 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 {
 
     // ??? TODO à cabler
-    bool    DoMixte     = false;
-    bool    aModeMax    = true;
-    float   aSeuilHC    = 1.0;
-    float   aSeuilBC    = 1.0;
+//    bool    DoMixte     = false;
+//    bool    aModeMax    = true;
+//    float   aSeuilHC    = 1.0;
+//    float   aSeuilBC    = 1.0;
 
     // point image
     const   int2  an  =   make_int2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
 
     // sortir si le point est en dehors du terrain
-    if(oSE(an,cstP_CorMS._dimTerrain))
+    if(oSE(an,cstPCMS._dimTerrain))
         return;
 
     //      pt int dans l'image 0
-    const   int2     aPIm0       =   an + cstP_CorMS.anOff0;
+    const   int2     aPIm0       =   an + cstPCMS.anOff0;
 
-    // si dans le masque de l'image 0
-    const bool  OkIm0   =   IsOkErod(aPIm0,0);
-
-    if (OkIm0)
+    if (IsOkErod(aPIm0,0))
     {
 
         // Z relatif au thread
-        const ushort thZ   =   blockIdx.z*blockDim.z + threadIdx.z;
+        const ushort thZ        =  blockIdx.z*blockDim.z + threadIdx.z;
 
-        //        if(thZ+1 >= cstP_CorMS.maxDeltaZ)
-        //        {
-        //            return;
-        //        }
+        float&          _cost   =  cost[to1D(an,thZ,cstPCMS._dimTerrain)];
 
-        // pitch de decalage
-        const uint   pit    =   to1D(an,thZ,cstP_CorMS._dimTerrain);
-        const uint   pit2d  =   to1D(an,cstP_CorMS._dimTerrain);
+        const short2    _nappe  =  nappe[to1D(an,cstPCMS._dimTerrain)];
 
-        float&          _cost   =  cost[pit];
-        const short2    _nappe  =  nappe[pit2d];
         short           aZ0     =  _nappe.x;
+
         const int       DeltaZ  =  abs(_nappe.y-aZ0);
 
         if(thZ>=DeltaZ)
             return; // TODO on pourrait eventuellement affacter la valeur du cout par defaut.... mais bof
 
         // z Absolu
-        const short aZ = (short)thZ + aZ0;
+        const short aZ = aZ0 + (short)thZ;
 
         // calcul de la phase
         // Attention probleme avec valeur negative et le modulo
-        const ushort aPhase = (ushort)((abs((int)aZ))%cstP_CorMS.mNbByPix);
+        const ushort aPhase = (ushort)((abs((int)aZ))%cstPCMS.mNbByPix);
 
         /// peut etre precalcul  -- voir simplifier
         ///
-        //        while ((abs((int)aZ0))%cstP_CorMS.mNbByPix != aPhase)
-        //            aZ0++;
+//        while ((abs((int)aZ0))%cstP_CorMS.mNbByPix != aPhase)
+//            aZ0++;
 
-        int gpu_anOffset = dElise_div((int)aZ,cstP_CorMS.mNbByPix);
+
+//        const int anOffset      = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
+
+        const int gpu_anOffset  = dElise_div((int)aZ,cstPCMS.mNbByPix);
 
 
         //        if( aEq(an,10) && aPhase == 0 && thZ < cstP_CorMS.mNbByPix)
@@ -420,40 +416,42 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
         //int anOffset = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
         //
-        const   int2     aIm1SsPx     =   an + cstP_CorMS.anOff1;
+        const   int2    aIm1SsPx   =   an + cstPCMS.anOff1;
         //      pt int dans l'image 1
-        const   int2     aPIm1        =   aIm1SsPx + i2X(gpu_anOffset);
+        const   int2    aPIm1      =   aIm1SsPx + i2X(gpu_anOffset);
 
-        float aCost             = cstP_CorMS.mAhDefCost;
+//        DUMP(gpu_anOffset)
+
+        float           aCost      =   cstPCMS.mAhDefCost;
 
         if (IsOkErod(aPIm1,1))
         {
             float aGlobCostBasic    = 0;
             float aGlobCostCorrel   = 0;
 
-            aCost = Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,gpu_anOffset,aModeMax,aPhase);
+            aCost = Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,gpu_anOffset,cstPCMS.aModeMax,aPhase);
 
             aGlobCostCorrel = aCost;
 
-            if (DoMixte)
+            if (cstPCMS.DoMixte)
             {
-                if(aGlobCostCorrel>aSeuilHC)
+                if(aGlobCostCorrel>cstPCMS.aSeuilHC)
 
                     aCost = aGlobCostCorrel;
 
-                else if (aGlobCostCorrel>aSeuilBC)
+                else if (aGlobCostCorrel>cstPCMS.aSeuilBC)
                 {
-                    float aPCor =  (aGlobCostCorrel - aSeuilBC) / (aSeuilHC-aSeuilBC);
-                    aCost       =  aPCor * aGlobCostCorrel + (1-aPCor) * aSeuilBC *  aGlobCostBasic;
+                    float aPCor =  (aGlobCostCorrel - cstPCMS.aSeuilBC) / (cstPCMS.aSeuilHC-cstPCMS.aSeuilBC);
+                    aCost       =  aPCor * aGlobCostCorrel + (1-aPCor) * cstPCMS.aSeuilBC *  aGlobCostBasic;
                 }
                 else
-                    aCost =  aSeuilBC *  aGlobCostBasic;
+                    aCost =  cstPCMS.aSeuilBC *  aGlobCostBasic;
             }
 
-
+            aCost = 1.f-aCost;
         }
 
-        _cost = 1.f-aCost;
+        _cost = aCost;
     }
 }
 #include <stdio.h>
@@ -468,10 +466,10 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
     CuDeviceData3D<float>  aSom_1;
     CuDeviceData3D<float>  aSomSqr_1;
 
-    aSom_0   .Malloc (parCMS._dimTerrain,parCMS.aNbScale); //  pas de sous echantillonnage
+    aSom_0   .Malloc (parCMS._dimTerrain,parCMS.aNbScale);                  //  pas de sous echantillonnage
     aSomSqr_0.Malloc (parCMS._dimTerrain,parCMS.aNbScale);
 
-    aSom_1   .Malloc (parCMS._dimTerrain,parCMS.aNbScale*parCMS.mNbByPix); // avec sous echantillonnage
+    aSom_1   .Malloc (parCMS._dimTerrain,parCMS.aNbScale*parCMS.mNbByPix);  // avec sous echantillonnage
     aSomSqr_1.Malloc (parCMS._dimTerrain,parCMS.aNbScale*parCMS.mNbByPix);
 
     dim3	threads( 32, 32, 1);
