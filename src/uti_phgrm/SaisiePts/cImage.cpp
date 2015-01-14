@@ -64,10 +64,35 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli,bool Visuali
    mCptAff       (0),
    mVisualizable (Visualizable),
    mEnvMinVisib       (0),
-   mEnvMaxVisib       (0)
+   mEnvMaxVisib       (0),
+   mLastLoaded        (false),
+   mCurLoaded         (false)
 {
 }
 
+void cImage::SetMemoLoaded()
+{
+   mLastLoaded = mCurLoaded;
+   mCurLoaded  = false;
+}
+void  cImage::SetLoaded()
+{
+   mCurLoaded = true;
+}
+
+void cImage::OnModifLoad()
+{
+   if (mCurLoaded==mLastLoaded) return;
+
+   if (mCurLoaded)
+   {
+       std::cout << "LOAD " << mName << "\n";
+   }
+   else
+   {
+       std::cout << "UNLOAD " << mName << "\n";
+   }
+}
 
 bool  cImage::Visualizable() const
 {
