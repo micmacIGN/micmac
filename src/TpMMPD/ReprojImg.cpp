@@ -51,6 +51,119 @@ Header-MicMac-eLiSe-25/06/2007*/
  * 
  * */
  
+//color value class
+class cReprojColor
+{
+  public:
+    cReprojColor(U_INT1 r,U_INT1 g,U_INT1 b):mR(r),mG(g),mB(b){}
+    void setR(U_INT1 r){mR=r;}
+    void setG(U_INT1 g){mG=g;}
+    void setB(U_INT1 b){mB=b;}
+    U_INT1 r(){return mR;}
+    U_INT1 g(){return mG;}
+    U_INT1 b(){return mB;}
+  protected:
+    U_INT1 mR;
+    U_INT1 mG;
+    U_INT1 mB;
+};
+
+//----------------------------------------------------------------------------
+
+//Color image
+//TODO: use std::vector<Im2DGen *>  aV = aFTmp.ReadVecOfIm();
+class cReprojColorImg
+{
+  public:
+    cReprojColorImg(std::string filename);
+    cReprojColorImg(Pt2di sz);
+    cReprojColor get(Pt2di pt);
+    cReprojColor getr(Pt2dr pt);
+    void set(Pt2di pt, cReprojColor color);
+    void write(std::string filename);
+  protected:
+    std::string mImgName;
+    Tiff_Im mTiffImg;
+    Pt2di mImgSz;
+    Im2D<U_INT1,INT4> mImgR;
+    Im2D<U_INT1,INT4> mImgG;
+    Im2D<U_INT1,INT4> mImgB;
+    TIm2D<U_INT1,INT4> mImgRT;
+    TIm2D<U_INT1,INT4> mImgGT;
+    TIm2D<U_INT1,INT4> mImgBT;
+};
+
+cReprojColorImg::cReprojColorImg(std::string filename) :
+  mImgName(filename),mTiffImg(mImgName.c_str()),
+  mImgSz(mTiffImg.sz()),mImgR(mImgSz.x,mImgSz.y),
+  mImgG(mImgSz.x,mImgSz.y),mImgB(mImgSz.x,mImgSz.y),
+  mImgRT(mImgR),mImgGT(mImgG),mImgBT(mImgB)
+{
+    ELISE_COPY(mImgR.all_pts(),mTiffImg.in(),Virgule(mImgR.out(),mImgG.out(),mImgB.out()));
+}
+
+
+cReprojColorImg::cReprojColorImg(Pt2di sz) :
+  mImgName(""),mTiffImg(""),
+  mImgSz(sz),mImgR(mImgSz.x,mImgSz.y),
+  mImgG(mImgSz.x,mImgSz.y),mImgB(mImgSz.x,mImgSz.y),
+  mImgRT(mImgR),mImgGT(mImgG),mImgBT(mImgB)
+{
+}
+
+cReprojColor cReprojColorImg::get(Pt2di pt)
+{
+    return cReprojColor(mImgRT.get(pt),mImgGT.get(pt),mImgBT.get(pt));
+}
+
+cReprojColor cReprojColorImg::getr(Pt2dr pt)
+{
+    return cReprojColor(mImgRT.getr(pt),mImgGT.getr(pt),mImgBT.getr(pt));
+}
+
+void cReprojColorImg::set(Pt2di pt, cReprojColor color)
+{
+    U_INT1 ** aImRData=mImgR.data();
+    U_INT1 ** aImGData=mImgG.data();
+    U_INT1 ** aImBData=mImgB.data();
+    aImRData[pt.y][pt.x]=color.r();
+    aImGData[pt.y][pt.x]=color.g();
+    aImBData[pt.y][pt.x]=color.b();
+}
+
+
+void cReprojColorImg::write(std::string filename)
+{
+    ELISE_COPY
+    (
+        mImgR.all_pts(),
+        Virgule( mImgR.in(), mImgG.in(), mImgB.in()) ,
+        Tiff_Im(
+            filename.c_str()/*,
+            mImgSz,
+            GenIm::u_int1,
+            Tiff_Im::No_Compr,
+            colorSpace,
+            Tiff_Im::Empty_ARG*/ ).out()
+    );
+
+/*    ELISE_COPY
+    (
+        mChannels[0]->all_pts(),
+        Virgule( mChannels[0]->in(), mChannels[1]->in(), mChannels[2]->in()) ,
+        Tiff_Im(
+            i_filename.c_str(),
+            Pt2di( mWidth, mHeight ),
+            GenIm::u_int1,
+            Tiff_Im::No_Compr,
+            colorSpace,
+            Tiff_Im::Empty_ARG ).out()
+    );*/
+}
+
+
+//----------------------------------------------------------------------------
+
 // RefImage class
 class cRefImReprojImg
 {
@@ -124,6 +237,8 @@ cRefImReprojImg::cRefImReprojImg
   
   
 }
+
+//----------------------------------------------------------------------------
 
 int ReprojImg_main(int argc,char ** argv)
 {
