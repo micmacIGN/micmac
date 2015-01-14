@@ -4,3 +4,6 @@ mm3d MMByP -help
 =================================================================
 /home/vince/culture3d/bin/mm3d SaisieAppuisInit -help 
  PID : 22075 ;   [Beginning at ] Tue Jun 17 15:34:30 2014
+=================================================================
+"mm3d" "Tapioca" "Line" "-help" 
+ PID : 3709 ;   [Beginning at ] Wed Jan 14 09:55:42 2015

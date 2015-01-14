@@ -152,6 +152,11 @@ class cImage
         void UpdateMapPointes(const std::string aName);
         bool Visualizable() const;
 
+        void SetMemoLoaded();
+        void SetLoaded();
+        void OnModifLoad();
+
+
      private :
 
            cAppli_SaisiePts &                        mAppli;
@@ -174,6 +179,8 @@ class cImage
 
            cElNuage3DMaille *                        mEnvMinVisib;
            cElNuage3DMaille *                        mEnvMaxVisib;
+           bool                                      mLastLoaded;
+           bool                                      mCurLoaded;
 };
 
 typedef cImage * tImPtr;
@@ -311,6 +318,7 @@ class cCaseNamePoint
 class cVirtualInterface
 {
     public:
+     vector<cImage *>           ComputeNewImagesPriority(cSP_PointGlob *pg, bool aUseCpt);
 
     cVirtualInterface(){}
     ~cVirtualInterface(){}
@@ -395,7 +403,6 @@ protected:
 
     cImage *                    CImageVis(int idCimg);
 
-     vector<cImage *>           ComputeNewImagesPriority(cSP_PointGlob *pg, bool aUseCpt);
 
 };
 
@@ -570,6 +577,7 @@ class cAppli_SaisiePts
     void                SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCpt);
 
     void                SortImages(std::vector<cImage *> &images);
+    void OnModifLoadedImage();
 
 private :
 

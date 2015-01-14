@@ -192,6 +192,11 @@ cImage *cVirtualInterface::CImageVis(int idCimg)
 
 vector<cImage *> cVirtualInterface::ComputeNewImagesPriority(cSP_PointGlob *pg,bool aUseCpt)
 {
+    for (int aK=0 ; aK<int(mAppli->imagesVis().size()) ; aK++)
+    {
+         mAppli->imagesVis()[aK]->SetMemoLoaded();
+    }
+
     mAppli->SetImagesPriority(pg, aUseCpt);
 
     vector<cImage *> images = mAppli->imagesVis();
@@ -956,6 +961,15 @@ void cAppli_SaisiePts::SortImages(std::vector<cImage *> &images)
     std::sort(images.begin(),images.end(),aCmpIm);
 }
 
+void cAppli_SaisiePts::OnModifLoadedImage()
+{
+std::cout << "AAAA cAppli_SaisiePts::OnModifLoadedImage " << mImagesVis.size() << "\n";
+    for (int aK=0 ; aK<int(mImagesVis.size()) ; aK++)
+    {
+         mImagesVis[aK]->OnModifLoad();
+    }
+}
+
 void cAppli_SaisiePts::ChangeImages
 (
         cSP_PointGlob * PointPrio,
@@ -963,16 +977,19 @@ void cAppli_SaisiePts::ChangeImages
         bool   aUseCpt
         )
 {
+
+    mImagesVis = mInterface->ComputeNewImagesPriority(PointPrio,aUseCpt);
+/*
     SetImagesPriority(PointPrio,aUseCpt);
-
     SortImages(mImagesVis);
+*/
 
-    #if (ELISE_X11)
+#if (ELISE_X11)
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)
     {
         aW2Ch[aKW]->SetNoImage();
     }
-    #endif
+#endif
     int aKW =0;
     int aKI =0;
 
@@ -987,10 +1004,12 @@ void cAppli_SaisiePts::ChangeImages
 #if (ELISE_X11)
             aW2Ch[aKW]->SetNewImage(anIm);
 #endif
+            anIm->SetLoaded();
             aKW++;
         }
         aKI++;
     }
+    OnModifLoadedImage();
 }
 
 bool cAppli_SaisiePts::HasOrientation() const

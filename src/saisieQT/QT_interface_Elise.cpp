@@ -409,12 +409,15 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
             images[aKW]->CptAff() = _aCpt++;
 
             if (!isDisplayed(images[aKW]))
-
+            {
                 m_QTMainWindow->SetDataToGLWidget(idPg == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
+                images[aKW]->SetLoaded();
+            }
 
             aKW++;
         }
 
+        mAppli->OnModifLoadedImage();
         mAppli->SetImagesVis(images);
 
         rebuildGlPoints(true);
