@@ -541,6 +541,10 @@ IF (MSVC)
                         endif()
         endif()
 
+		if ( ${CMAKE_SYSTEM_VERSION} MATCHES "5.1" )
+			set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm131")
+		endif()
+
         if(MSVC80 OR MSVC90 OR MSVC10 OR MSVC11 OR MSVC12 )
                 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
         endif()
@@ -590,6 +594,7 @@ if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" )
         configure_file( ${BinAuxWinDir}/make.exe ${PROJECT_SOURCE_DIR}/binaire-aux/make.exe COPYONLY )
         configure_file( ${BinAuxWinDir}/proj.exe ${PROJECT_SOURCE_DIR}/binaire-aux/proj.exe COPYONLY )
         configure_file( ${BinAuxWinDir}/proj.dll ${PROJECT_SOURCE_DIR}/binaire-aux/proj.dll COPYONLY )
+        configure_file( ${BinAuxWinDir}/cs2cs.exe ${PROJECT_SOURCE_DIR}/binaire-aux/cs2cs.exe COPYONLY )
 endif()
 
 # Doxygen
