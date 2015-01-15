@@ -237,7 +237,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mResolGlob     (0)
 
 {
-//  std::cout   << "WXCRT " << mSz << aParam.Image_Profondeur().Val().Image() << "\n";
+
 
 
     if (aParam.RepereGlob().IsInit())

@@ -1479,7 +1479,7 @@ class cMMByImNM
         static cMMByImNM * ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch);
         static cMMByImNM * ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm,const std::string & aNameMatch);
 
-        static cMMByImNM * FromExistingDirOrMatch(const std::string & aNameDirOriOrMatch,bool Svp,double aDS=1);
+        static cMMByImNM * FromExistingDirOrMatch(const std::string & aNameDirOriOrMatch,bool Svp,double aDS=1,const std::string & aDir0="./");
 
         void DoDownScale(const std::string & aNameIm);
         void PatDoDownScale(const std::string & aPat);

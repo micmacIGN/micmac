@@ -13,6 +13,8 @@
              <Symb> ForceGray=true </Symb>
              <Symb> WithMasq3D=false </Symb>
              <Symb> Masq3D=XXXXX </Symb>
+             <Symb> WithPIMsFilter=false </Symb>
+             <Symb> PIMsFilter=XXXXX </Symb>
         </DicoLoc>
 
         <SectionWindows>
@@ -60,6 +62,9 @@
              </ProfEstimator>
              <#WHEN VTEST=${WithMasq3D}>
                    <Masq3DFilterVis> ${Masq3D} </Masq3DFilterVis>
+             </#WHEN>
+             <#WHEN VTEST=${WithPIMsFilter}>
+                   <PIMsFilterVis> ${PIMsFilter} </PIMsFilterVis>
              </#WHEN>
 
         </SectionTerrain>
