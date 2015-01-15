@@ -88,13 +88,18 @@ public:
     template <class T>
     static void			OutputArray(CuHostData3D<T> &data, uint Z = 0, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
 
+
+    template <class T>
+    static T			SetValue(float defaut = 0.0f){return defaut;}
+
     ///	\brief			Sortie console formater d'une valeur
     /// \param          value : valeur a afficher
     ///  \param         offset : nombre de chiffre apres la virgule
     ///  \param         defaut : valeur affichee par un caractere speciale
     ///  \param         factor : facteur multiplicatif
     template <class T>
-    static void			OutputValue(T value, uint offset = 3, T defaut = (T)0.0f, float factor = 1.0f);
+    static void			OutputValue(T value, uint offset = 3, T defaut = SetValue<T>(0.0f), float factor = 1.0f);
+
 
     ///	\brief			Retour chariot
     static void			OutputReturn(char * out /*= ""*/);
@@ -137,8 +142,25 @@ void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, u
         memcpy(  dataImage1D + dimDest.x * j , dataImage2D[j],  dimSource.x * sizeof(T));
 }
 
+template <> inline
+uint2    GpGpuTools::SetValue(float defaut){return make_uint2(defaut);}
+
+template <> inline
+int2    GpGpuTools::SetValue(float defaut){return make_int2(defaut);}
+
+
+template <> inline
+float2    GpGpuTools::SetValue(float defaut){return make_float2(defaut);}
+
 template <class T>
 void GpGpuTools::OutputValue( T value, uint offset, T defaut, float factor)
+{
+   DUMPI(value)
+   std::cout << "\t";
+}
+
+template <> inline
+void GpGpuTools::OutputValue( float value, uint offset, float defaut, float factor)
 {
 #ifndef DISPLAYOUTPUT
     return;

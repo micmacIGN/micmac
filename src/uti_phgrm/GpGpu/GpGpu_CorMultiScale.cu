@@ -458,7 +458,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &parCMS)
 {
     // Cache device
-    //CuUnifiedData3D<float>  aSom1;
+//    CuUnifiedData3D<float>  aSom_0;
 
     CuDeviceData3D<float>  aSom_0;
     CuDeviceData3D<float>  aSomSqr_0;
@@ -485,6 +485,11 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
     KernelPrepareCorrel<<<blocks_00,threads>>>(0,1,1,aSom_0.pData(),aSomSqr_0.pData());
     KernelPrepareCorrel<<<blocks_01,threads>>>(1,parCMS.aStepPix,parCMS.mNbByPix,aSom_1.pData(),aSomSqr_1.pData());
 
+
+//    aSom_0.syncHost();
+//    aSom_0.hostData.OutputValues();
+//    getchar();
+
     ushort  modThreadZ = 8;
 
     dim3	threads_CorMS( 32, 32, modThreadZ);
@@ -507,7 +512,7 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
     //    aSom1.hostData.OutputValues();
 
     data._uCost.syncHost();
-//    data._uCost.hostData.OutputValues(4*8);
+    //data._uCost.hostData.OutputValues(4*8);
 
     aSom_0   .Dealloc();
     aSomSqr_0.Dealloc();
