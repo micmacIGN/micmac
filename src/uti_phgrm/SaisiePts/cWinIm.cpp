@@ -234,6 +234,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
                           )
                       )
 {
+    aIm0.SetLoaded();
     SetImage(&aIm0);
 }
 

@@ -156,9 +156,11 @@ class cImage
         void SetLoaded();
         void OnModifLoad();
 
+        bool PIMsValideVis(const Pt3dr &) ;
 
      private :
 
+           bool PIMsValideVis(const Pt3dr &,cElNuage3DMaille * aEnv,bool aMin) ;
            cAppli_SaisiePts &                        mAppli;
 
            std::string                               mName;
@@ -415,10 +417,17 @@ public :
 
     bool operator ()(const tImPtr & aI1,const tImPtr & aI2)
     {
-        if (mIntf->isDisplayed(aI2) && (! mIntf->isDisplayed(aI1)))
-            return true;
-        if (mIntf->isDisplayed(aI1) && (! mIntf->isDisplayed(aI2)))
-            return false;
+/*
+   MPD : Inutile, c'est le mode RollW qui gere cela (et dans ce cas les image les plus anciennes
+         sont prioritaire 
+        if (mIntf)
+        {
+            if (mIntf->isDisplayed(aI2) && (! mIntf->isDisplayed(aI1)))
+                return true;
+            if (mIntf->isDisplayed(aI1) && (! mIntf->isDisplayed(aI2)))
+                return false;
+         }
+*/
 
         if (aI1->Prio() > aI2->Prio()) return true;
         if (aI1->Prio() < aI2->Prio()) return false;
@@ -578,6 +587,7 @@ class cAppli_SaisiePts
 
     void                SortImages(std::vector<cImage *> &images);
     void OnModifLoadedImage();
+    cMMByImNM *                       PIMsFilter();
 
 private :
 
@@ -630,6 +640,7 @@ private :
          Im2D_INT4                         mImRechVisu;
          Im2D_INT4                         mImRechAlgo;
          cMasqBin3D *                      mMasq3DVisib;
+         cMMByImNM *                       mPIMsFilter;
 };
 
 

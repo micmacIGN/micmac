@@ -225,7 +225,7 @@ std::string SuppressCarDirEnd(const std::string & aDirOri)
     return aRes;
 }
 
-cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,bool Svp,double aDS)
+cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,bool Svp,double aDS,const std::string & aDir0)
 {
      if (StrIsPImsDIr(aNameDirOri))
      {
@@ -257,7 +257,7 @@ cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,b
 
      if (StrIsPImsDIr(StdDirPims(aDS,aNameDirOri)))
      {
-        return  cMMByImNM::ForGlobMerge("./",aDS,aNameDirOri);
+        return  cMMByImNM::ForGlobMerge(aDir0,aDS,aNameDirOri);
      }
 
 
