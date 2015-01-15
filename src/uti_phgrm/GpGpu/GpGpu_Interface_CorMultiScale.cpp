@@ -16,6 +16,12 @@ dataCorrelMS::dataCorrelMS()
     }
 }
 
+dataCorrelMS::~dataCorrelMS()
+{
+
+    dealloc();
+}
+
 //#define unitTestCorMS
 
 void dataCorrelMS::unitT__CopyCoordInColor(uint2 sizeImage, float *dest)
@@ -115,8 +121,8 @@ void dataCorrelMS::dealloc()
     {
         _HostImage[t].Dealloc();
         _HostMaskErod[t].Dealloc();
-        _dt_MaskErod[t].Dealloc();
-        _dt_Image[t].Dealloc();
+        _dt_MaskErod[t].UnbindDealloc();
+        _dt_Image[t].UnbindDealloc();
     }
 
 //    _HostInterval_Z.Dealloc();
@@ -189,8 +195,7 @@ GpGpu_Interface_Cor_MS::GpGpu_Interface_Cor_MS():
 
 GpGpu_Interface_Cor_MS::~GpGpu_Interface_Cor_MS()
 {
-    _dataCMS.dealloc();
-    _cDataCMS.dealloc();
+    dealloc();
 }
 
 void GpGpu_Interface_Cor_MS::Job_Correlation_MultiScale()
@@ -240,5 +245,11 @@ float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 {
     float *pcost = _dataCMS._uCost.hostData.pData();
     return pcost[to1D(pt,_dataCMS._uCost.hostData.GetDimension3D())];
+}
+
+void GpGpu_Interface_Cor_MS::dealloc()
+{
+    _dataCMS.dealloc();
+    _cDataCMS.dealloc();
 }
 

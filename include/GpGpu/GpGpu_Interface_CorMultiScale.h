@@ -115,6 +115,8 @@ struct dataCorrelMS
 {
     dataCorrelMS();
 
+    ~dataCorrelMS();
+
     ///
     /// \brief _HostImage
     /// Images epipolaires
@@ -192,6 +194,8 @@ public:
               ushort nbscale = NBSCALE );
 
     float getCost(uint3 pt);
+
+    void dealloc();
 
 private:
 
