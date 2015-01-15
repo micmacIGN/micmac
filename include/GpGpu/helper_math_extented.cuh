@@ -346,6 +346,18 @@ inline __host__ __device__ short2 make_short2(uint3 a)
 	return make_short2((short)a.x,(short)a.y);
 }
 
+inline __host__ __device__ short2 make_short2(float a)
+{
+    return make_short2((short)a,(short)a);
+}
+
+
+inline __host__ __device__ ushort2 make_ushort2(float a)
+{
+    return make_ushort2((ushort)a,(ushort)a);
+}
+
+
 inline __host__ __device__ int2 operator-(const uint3 a, uint2 b)
 {
 	return make_int2(a.x - b.x, a.y - b.y);

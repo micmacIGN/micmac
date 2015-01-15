@@ -152,6 +152,14 @@ int2    GpGpuTools::SetValue(float defaut){return make_int2(defaut);}
 template <> inline
 float2    GpGpuTools::SetValue(float defaut){return make_float2(defaut);}
 
+template <> inline
+short2    GpGpuTools::SetValue(float defaut){return make_short2(defaut);}
+
+
+template <> inline
+ushort2    GpGpuTools::SetValue(float defaut){return make_ushort2(defaut);}
+
+
 template <class T>
 void GpGpuTools::OutputValue( T value, uint offset, T defaut, float factor)
 {

@@ -62,6 +62,13 @@ __device__ __host__ inline void dump_Type<uint3>(uint3 var)
     printf("[%u,%u,%u]",var.x,var.y,var.z);
 }
 
+
+template<>
+__device__ __host__ inline void dump_Type<dim3>(dim3 var)
+{
+    printf("[%u,%u,%u]",var.x,var.y,var.z);
+}
+
 template<>
 __device__ __host__ inline void dump_Type<int2>(int2 var)
 {

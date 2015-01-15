@@ -30,7 +30,11 @@
 #include <QColor>
 #include <QCheckBox>
 #include <QComboBox>
+#if ELISE_QT_VERSION == 5
 #include <QtConcurrent/QtConcurrentRun>
+#elif ELISE_QT_VERSION == 4
+#include <QtConcurrentRun>
+#endif
 #include <QDebug>
 #include <QDir>
 #include <QDomDocument>
