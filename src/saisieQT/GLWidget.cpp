@@ -3,6 +3,7 @@
 GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
+  , m_bMaskEdited(false)
   , m_GLData(NULL)
   , m_bDisplayMode2D(false)
   , _vp_Params(ViewportParameters())
@@ -85,7 +86,14 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
         m_GLData = aData;
 
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
+        {
             m_GLData->glImage().createTextures();
+
+            if ( m_GLData->glImage().getLoadedImageRescaleFactor()<1.f)
+            {
+                m_GLData->createTiles();
+            }
+        }
 
 //        if(!m_GLData->isImgEmpty())
 //        {
@@ -156,6 +164,8 @@ void GLWidget::paintGL()
     {
         _matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,getZoom());
 
+        checkTiles();
+
         m_GLData->draw();
 
         overlay();
@@ -171,8 +181,8 @@ int GLWidget::getWindowMeanValue(QPoint pos, int r)
 {
     QImage gIma = grabFrameBuffer();
 
-    int kP  = 0;
-    int cP  = 0;
+    unsigned int kP  = 0;
+    unsigned int cP  = 0;
 
     for (int x = max(0,pos.x()-r); x < min(gIma.width()-1,pos.x()+r); ++x)
         for (int y = max(0,pos.y()-r); y < min(gIma.height()-1,pos.y()+r); ++y)
@@ -337,6 +347,125 @@ void GLWidget::setParams(cParameters* aParams)
         polygon()->setParams(aParams);
 }
 
+void GLWidget::checkTiles()
+{
+    if (imageLoaded())
+    {
+        float rescaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
+
+        if (rescaleFactor < 1.f) //est-on en mode sous-ech ?
+        {
+            float zoom = getZoom();
+
+            if(zoom > rescaleFactor) //affiche-t-on les tuiles ?
+            {
+                QPointF c0(0.f,0.f);
+                QPointF c3((float)vpWidth(),(float) vpHeight());
+
+                QRectF rect( _matrixManager.WindowToImage(c0, zoom) ,
+                             _matrixManager.WindowToImage(c3, zoom) );
+
+                getGLData()->glImage().deleteTextures();
+
+                setZone(rect);
+
+                getGLData()->glImage().glImage()->setVisible(false);
+                getGLData()->glImage().glMask()->setVisible(false);
+
+                getGLData()->setDrawTiles(true);
+            }
+            else
+            {
+                for (int aK=0; aK < getGLData()->glTiles().size(); ++aK)
+                {
+                    getGLData()->glTiles()[aK]->deleteTextures();
+                }
+
+                if ((int) *(getGLData()->glImage().glImage()->getTexture()) == (~0))
+                {
+                    getGLData()->glImage().glImage()->setVisible(true);
+                    getGLData()->glImage().glMask()->setVisible(true);
+                    getGLData()->glImage().createTextures();
+                }
+
+                getGLData()->setDrawTiles(false);
+            }
+        }
+    }
+}
+
+void GLWidget::setZone(QRectF aRect)
+{
+
+    if (getGLData()->glImage().glImage())
+    {
+        //recherche des tuiles intersectées
+        for (int aK=0; aK< getGLData()->glTiles().size(); aK++)
+        {
+            cMaskedImageGL * tile = getGLData()->glTiles()[aK];
+            cImageGL * glImgTile  = tile->glImage();
+            cImageGL * glMaskTile = tile->glMask();
+
+            Pt3dr pos = glImgTile->getPosition();
+            QSize sz  = glImgTile->getSize();
+            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
+
+            if (rectImg.intersects(aRect))
+            {
+                QMaskedImage * maskedImg = getGLData()->glImage().getMaskedImage();
+                QRect rect = rectImg.toAlignedRect();
+
+                //Partie image
+                if ((int) *(glImgTile->getTexture()) == (~0) ) //la texture GL n'existe pas
+                {
+                    if (tile->getMaskedImage() == NULL)
+                    {
+                        //on stocke l'image cropée pour usage ultérieur, si nécessaire (ex: zoom-dezoom-zoom)
+
+                        tile->_qMaskedImage = new QMaskedImage();
+
+                        tile->getMaskedImage()->_m_image = new QImage(maskedImg->_m_image->copy(rect));
+                    }
+
+                    glImgTile->createTexture(tile->getMaskedImage()->_m_image);
+                }
+                glImgTile->setVisible(true);
+
+                //Partie masque
+                if ((int) *(glMaskTile->getTexture()) == (~0) ) //la texture GL n'existe pas
+                {
+                    if (!m_bMaskEdited)
+                    {
+                        tile->getMaskedImage()->_m_mask = new QImage(maskedImg->_m_mask->copy(rect));
+                    }
+                    else //il y a eu une saisie: il faut utiliser _m_rescaled_mask, car c'est lui qui stocke toutes les modifications (à changer ?)
+                    {
+                        //application du facteur d'échelle au QRect puis crop dans _m_rescaled_mask
+                        float scaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
+
+                        QTransform trans = QTransform::fromScale(scaleFactor,scaleFactor);
+
+                        QImage rescaled_mask_crop = maskedImg->_m_rescaled_mask->copy(trans.mapRect(rect));
+
+                        //application du facteur d'échelle inverse (rescaled => full size)
+                        QImage mask_crop = rescaled_mask_crop.scaled(sz, Qt::KeepAspectRatio);
+
+                        tile->getMaskedImage()->_m_mask = new QImage(mask_crop);
+                    }
+
+                    glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
+                }
+                glMaskTile->setVisible(true);
+            }
+            else
+            {
+                glImgTile->setVisible(false);
+                glMaskTile->setVisible(false);
+            }
+        }
+    }
+}
+
 void GLWidget::setZoom(float val)
 {
     if (imageLoaded())
@@ -349,11 +478,6 @@ void GLWidget::setZoom(float val)
         _messageManager.GetLastMessage()->message = QString::number(getZoom()*100,'f',1) + "%";
 
     update();
-
-    if (imageLoaded() && val > getGLData()->glImage().getLoadedImageRescaleFactor())
-
-        getGLData()->glImage().setZone(val, viewportToImageProjection());
-
 }
 
 void GLWidget::zoomFit()
@@ -458,6 +582,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             m_GLData->editCloudMask(mode,polyg,m_bFirstAction,_matrixManager);
 
         if (mode <= ADD_OUTSIDE) m_bFirstAction = false;
+        m_bMaskEdited = true;
 
         if (saveInfos) //  TODO ne marche pas avec le switch y/z
         {
@@ -994,24 +1119,5 @@ void GLWidget::dropEvent(QDropEvent *event)
     }
 
     event->ignore();
-}
-
-QRectF GLWidget::viewportToImageProjection()
-{
-    QRectF rect;
-
-    float zoom = getZoom();
-
-    QPointF c0(0.f,0.f);
-    QPointF c1(0.f,(float)vpHeight());
-    QPointF c2((float)vpWidth(), 0.f);
-    QPointF c3((float)vpWidth(),(float) vpHeight());
-
-    rect.setTopLeft    ( _matrixManager.WindowToImage(c0, zoom) );
-    rect.setBottomLeft ( _matrixManager.WindowToImage(c1, zoom) );
-    rect.setTopRight   ( _matrixManager.WindowToImage(c2, zoom) );
-    rect.setBottomRight( _matrixManager.WindowToImage(c3, zoom) );
-
-    return rect;
 }
 

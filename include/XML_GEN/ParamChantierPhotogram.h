@@ -6,24 +6,6 @@
 // NO MORE
 typedef enum
 {
-  eC3DC_QuickMac,
-  eC3DC_Statute
-} eC3DC_Types;
-void xml_init(eC3DC_Types & aVal,cElXMLTree * aTree);
-std::string  eToString(const eC3DC_Types & aVal);
-
-eC3DC_Types  Str2eC3DC_Types(const std::string & aName);
-
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const eC3DC_Types & anObj);
-
-void  BinaryDumpInFile(ELISE_fp &,const eC3DC_Types &);
-
-std::string  Mangling( eC3DC_Types *);
-
-void  BinaryUnDumpFromFile(eC3DC_Types &,ELISE_fp &);
-
-typedef enum
-{
   eTMalt_Ortho,
   eTMalt_UrbanMNE,
   eTMalt_GeomImage,
@@ -80,6 +62,8 @@ typedef enum
   eStatue,
   eTestIGN,
   eQuickMac,
+  eMicMac,
+  eBigMac,
   eNbTypeMMByP
 } eTypeMMByP;
 void xml_init(eTypeMMByP & aVal,cElXMLTree * aTree);
@@ -258,7 +242,7 @@ void  BinaryUnDumpFromFile(eTypePreCondRad &,ELISE_fp &);
 
 typedef enum
 {
-  eGeomTer,
+  eDEM,
   eOrthoIm,
   eNbTypeVals
 } eTypeSake;
@@ -3934,6 +3918,54 @@ std::string  Mangling( cAssocNameToName *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cEtatPims
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cEtatPims & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< std::string > & NameOri();
+        const cTplValGesInit< std::string > & NameOri()const ;
+    private:
+        cTplValGesInit< std::string > mNameOri;
+};
+cElXMLTree * ToXMLTree(const cEtatPims &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cEtatPims &);
+
+void  BinaryUnDumpFromFile(cEtatPims &,ELISE_fp &);
+
+std::string  Mangling( cEtatPims *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cListOfName
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cListOfName & anObj,cElXMLTree * aTree);
+
+
+        std::list< std::string > & Name();
+        const std::list< std::string > & Name()const ;
+    private:
+        std::list< std::string > mName;
+};
+cElXMLTree * ToXMLTree(const cListOfName &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cListOfName &);
+
+void  BinaryUnDumpFromFile(cListOfName &,ELISE_fp &);
+
+std::string  Mangling( cListOfName *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSetNameDescriptor
 {
     public:
@@ -3963,6 +3995,9 @@ class cSetNameDescriptor
         std::list< std::string > & Name();
         const std::list< std::string > & Name()const ;
 
+        std::list< std::string > & NamesFileLON();
+        const std::list< std::string > & NamesFileLON()const ;
+
         cTplValGesInit< std::string > & Min();
         const cTplValGesInit< std::string > & Min()const ;
 
@@ -3979,6 +4014,7 @@ class cSetNameDescriptor
         cTplValGesInit< bool > mNameCompl;
         cTplValGesInit< std::string > mSubDir;
         std::list< std::string > mName;
+        std::list< std::string > mNamesFileLON;
         cTplValGesInit< std::string > mMin;
         cTplValGesInit< std::string > mMax;
         cTplValGesInit< cNameFilter > mFilter;

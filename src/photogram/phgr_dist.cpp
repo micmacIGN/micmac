@@ -234,7 +234,7 @@ std::cout << "CPT " << aCpt << "\n";
 
      for (bool cont= true; cont; )
      {
-         if (isnan(anEstim0.x) || isnan(anEstim0.y))
+         if (std_isnan(anEstim0.x) || std_isnan(anEstim0.y))
          {
                std::cout << "NAN Values in inversion,  target " << aPt << " ; guess " << aP00  << " Cpt= " << aCpt<< "\n";
                ErrorInvert();

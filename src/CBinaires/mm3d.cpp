@@ -193,7 +193,7 @@ public :
 
 
 extern int CCL_main(int , char **);
-
+extern int ReprojImg_main(int , char **);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -216,6 +216,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Change coordinate system of orientation",cArgLogCom(2)));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
+       aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
@@ -388,6 +389,13 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Morito",Morito_main,"Merge set of Orientation with common values"));
        aRes.push_back(cMMCom("Donuts",Donuts_main,"Cyl to Torus (Donuts like)"));
        aRes.push_back(cMMCom("C3DC",C3DC_main,"Automatic Matching from Culture 3D Cloud project"));
+       aRes.push_back(cMMCom("PIMs",MPI_main,"Per Image Matchings"));
+       aRes.push_back(cMMCom("PIMs2Ply",MPI2Ply_main,"Generate PPly from Per Image Matchings"));
+       aRes.push_back(cMMCom("PIMs2Mnt",MPI2Mnt_main,"Generate Mnt from Per Image Matchings"));
+
+
+       aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force devlopment of all tif/xif file"));
+
    }
 
    cCmpMMCom CmpMMCom;
@@ -426,7 +434,8 @@ extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
 extern int  Luc_main(int argc,char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
-extern int  Mathieu_main(int argc,char ** argv);
+extern int  ProjetInfo_main(int argc,char ** argv);
+extern int  Matthieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
 extern int  CreateBlockEpip_main(int argc,char ** argv);
 extern int  TD_GenereAppuis_main(int argc,char ** argv);
@@ -465,6 +474,8 @@ int CPP_AppliMergeCloud(int argc,char ** argv);
 int MMEnveloppe_Main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
 int CASALL_main(int argc,char ** argv);
+extern int MMEnvStatute_main(int argc,char ** argv);
+
 
 
 
@@ -478,14 +489,15 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square library "));
    aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
-   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
+   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou"));
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
    aRes.push_back(cMMCom("NLD",NLD_main,"test"));
    aRes.push_back(cMMCom("RTT",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
    aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favourable angles"));
    aRes.push_back(cMMCom("Ortho2TieP",Ortho2TieP_main,"Select Tie Points from the orthophotography"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
-   aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
+   aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
+   aRes.push_back(cMMCom("PI",ProjetInfo_main,"Texture UV"));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
 
@@ -534,6 +546,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Stoe Auto Correlation (if not already done)"));
 
     aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
+    aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envlop for mod statute"));
+    aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topoligical analyse befor bascule"));
 
 
     cCmpMMCom CmpMMCom;

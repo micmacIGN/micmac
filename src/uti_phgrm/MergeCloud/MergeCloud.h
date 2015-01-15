@@ -190,6 +190,7 @@ class cASAMG
      cAppliMergeCloud *   mAppli;
      const cParamFusionNuage & mPrm;
      cImaMM *             mIma;
+     std::string          mNameIm;
      cElNuage3DMaille *   mStdN;
      double               mResol;
      Im2D_Bits<1>         mMasqN;
@@ -265,8 +266,11 @@ class cStatNiv
 class cAppliMergeCloud : public cAppliWithSetImage
 {
     public :
+
+/*
        std::string NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPref="");
        std::string NameFileInput(bool DownScale,cImaMM *,const std::string & aPost,const std::string & aPref="");
+*/
 
 
 
@@ -287,6 +291,7 @@ class cAppliMergeCloud : public cAppliWithSetImage
        bool DoPlyCoul() const;
        int  SzNormale() const;
        bool NormaleByCenter() const;
+       cMMByImNM *       MMIN();
        
     private :
        tMCArc * TestAddNewarc(tMCSom * aS1,tMCSom *aS2);
@@ -331,6 +336,9 @@ class cAppliMergeCloud : public cAppliWithSetImage
        bool                            mDoPlyCoul;
        int                             mSzNormale;
        bool                            mNormaleByCenter;
+       eTypeMMByP                      mModeMerge;
+       cMMByImNM *                     mMMIN;
+       double                          mDS;
 };
 
    //==============================================================================

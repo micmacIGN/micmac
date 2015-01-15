@@ -171,6 +171,7 @@ class  ELISE_fp
          
          static bool lastModificationDate(const std::string &i_filename, cElDate &o_date ); // returns if the date could be retrieved
 
+	 static void RmFileIfExist(const std::string &);  // evite les erreurs qd fichier inexistant
 	 static void RmFile(const std::string &);
 	 static void MvFile(const std::string & aFile,const std::string & aDest);
 	 static void CpFile(const std::string & aFile,const std::string & aDest);
@@ -2002,6 +2003,7 @@ template <class Type> void BinUndumpObj(Type & anObj,const std::string & aFile)
 
 bool IsFileDmp(const std::string &);
 
+extern std::vector<std::string> VCurXmlFile;
 template <class Type> Type StdGetObjFromFile_WithLC
                       (
 		          int argc,

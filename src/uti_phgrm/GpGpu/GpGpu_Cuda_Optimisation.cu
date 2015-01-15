@@ -389,9 +389,9 @@ extern "C" void Gpu_OptimisationOneDirection(Data2Optimiz<CuDeviceData3D> &d2O)
     {        
         printf("Error CUDA Gpu_OptimisationOneDirection\n");
         printf("%s",cudaGetErrorString(err));
-        DUMP_UINT(d2O.NBlines());
-        DUMP_UINT(sizeSharedMemory);
-        DUMP_UINT(d2O.DzMax());
+        DUMP(d2O.NBlines());
+        DUMP(sizeSharedMemory);
+        DUMP(d2O.DzMax());
     }
 
     getLastCudaError("TestkernelOptiOneDirection failed");

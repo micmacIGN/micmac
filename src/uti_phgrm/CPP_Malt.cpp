@@ -263,6 +263,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     int aNbProc = NbProcSys();
     double mPenalSelImBestNadir = -1;
 
+    bool ForceNoIncid = false;
+
 
     ElInitArgMain
     (
@@ -320,6 +322,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq", eSAM_IsExistFile)
                     << EAM(aNbProc,"NbProc",true,"Nb Proc Used")
                     << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)")
+                    << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use")
                 );
 
     if (!MMVisualMode)
@@ -803,7 +806,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          mCom   =  mCom + " +DoIncid=true +DoMaskNadir=true ";
       }
 
-      if (DoIncid)  
+      if (DoIncid && (!ForceNoIncid))  
       {
          mCom   =  mCom + " +DoIncid=true ";
       }
@@ -833,7 +836,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           std::cout << "\n\n" << mComOA << "\n";
 
            mComTaramaOA =     MMBinFile("Tarama") + " " 
-                           +  mFullName           + " "
+                           +  QUOTE(mFullName)           + " "
                            +  mOri                + " "
                            + std::string(" Zoom=16 ")
                            + std::string(" Out=TA-UnAnam ")

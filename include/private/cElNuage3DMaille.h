@@ -161,6 +161,8 @@ double DynProfInPixel(const cXML_ParamNuage3DMaille &);
 class cElNuage3DMaille : public cCapture3D
 {
      public :
+        // return 0 si pas de pb
+        virtual double SeuilDistPbTopo() const;
 
         bool  CaptHasData(const Pt2dr &) const ;
         Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
@@ -176,6 +178,7 @@ class cElNuage3DMaille : public cCapture3D
         double ResolSolGlob() const;
 
 
+
         ElCamera *   Cam() const;
         cRawNuage   GetRaw() const;
    // Lecture-Creation  globale
@@ -183,6 +186,7 @@ class cElNuage3DMaille : public cCapture3D
         static cElNuage3DMaille * FromFileIm(const std::string & aFile);
         void Save(const std::string & Name);  // Name+Prof.tif   Name+Masq.tif
         virtual cElNuage3DMaille * Clone() const = 0;
+        virtual void ProfBouchePPV() = 0;
    // Parcour par des iterateurs
 
         typedef Pt2di tIndex2D;
@@ -754,6 +758,8 @@ template <class Type> void WriteType(FILE * aFP,Type f)
 
 cElNuage3DMaille * NuageWithoutDataWithModel(const std::string & aName,const std::string & aModel);
 cElNuage3DMaille * NuageWithoutData(const std::string & aName);
+cElNuage3DMaille * NuageWithoutData(const cXML_ParamNuage3DMaille & aParam,const std::string & aName) ;
+
 cXML_ParamNuage3DMaille XML_Nuage(const std::string & aName);
 bool GeomCompatForte(cElNuage3DMaille * aN1,cElNuage3DMaille *aN2);
 

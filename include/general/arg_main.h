@@ -686,6 +686,8 @@ int AddAffinity_main(int argc, char **argv);
 
 int Sake_main(int argc,char ** argv);
 
+int DoAllDev_main(int argc,char ** argv);
+
 
 
 #if (ELISE_X11)
@@ -726,9 +728,14 @@ int Sake_main(int argc,char ** argv);
   int ServiceGeoSud_GeoSud_main(int argc, char **argv);
   int ServiceGeoSud_Surf_main(int argc, char **argv);
 
+int TopoSurf_main(int argc, char **argv);
+
 int  CalcAutoCorrel_main(int argc,char ** argv);
 int CPP_AppliMergeCloud(int argc,char ** argv);
 int C3DC_main(int argc,char ** argv);
+int MPI_main(int argc,char ** argv);
+int MPI2Ply_main(int argc,char ** argv);
+int MPI2Mnt_main(int argc,char ** argv);
 int CCL_main(int argc,char ** argv);
 int TDEpip_main(int argc, char **argv);
 

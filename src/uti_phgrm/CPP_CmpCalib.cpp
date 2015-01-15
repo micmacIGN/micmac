@@ -365,7 +365,7 @@ class cLibertOfCalib
     public :
       cLibertOfCalib(int aDR,int aDG,int aDC,bool HasCD,bool PPCDLie) :
            mDegRad    (aDR),
-           mDegGen    (mDegGen),
+           mDegGen    (aDG),
            mDDecentr  (aDC),
            mHasCD     (HasCD),
            mPPCDLie   (PPCDLie)
@@ -383,16 +383,16 @@ class cLibertOfCalib
 
 cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
 {
-    if (aCalib.ModNoDist().IsInit()) 
+    if (aCalib.ModNoDist().IsInit())
     {
            return cLibertOfCalib(0,0,0,false,true);
     }
-    if (aCalib.ModRad().IsInit())  
+    if (aCalib.ModRad().IsInit())
     {
          const cCalibrationInterneRadiale & aCIR = aCalib.ModRad().Val();
          return cLibertOfCalib(aCIR.CoeffDist().size(),0,0,true ,false);
     }
-    if (aCalib.ModPhgrStd().IsInit()) 
+    if (aCalib.ModPhgrStd().IsInit())
     {
          const cCalibrationInternePghrStd & aCIR = aCalib.ModPhgrStd().Val();
          const cCalibrationInterneRadiale & aCIP = aCIR.RadialePart();
@@ -424,7 +424,7 @@ cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
             return cLibertOfCalib(2,aDegRad,0,false,false);
         }
     }
-   
+
 
     ELISE_ASSERT(false,"GetDefDegreeOfCalib");
     return cLibertOfCalib(0,0,0,false,true);
@@ -503,7 +503,7 @@ int ConvertCalib_main(int argc, char** argv)
               cOneMesureAF1I aM1;
               aM1.NamePt() = aNamePt;
               aM1.PtIm() = aPIm;
-	      aMAF.OneMesureAF1I().push_back(aM1);
+          aMAF.OneMesureAF1I().push_back(aM1);
 
            }
        }
@@ -512,7 +512,7 @@ int ConvertCalib_main(int argc, char** argv)
    cLibertOfCalib  aLOC = GetDefDegreeOfCalib(aCICOut.CalibDistortion().back());
    if (!EAMIsInit(&aDRMax) ) aDRMax = aLOC.mDegRad;
    if (!EAMIsInit(&aDegGen)) aDegGen = aLOC.mDegGen;
-   
+
    cSetOfMesureAppuisFlottants aSMAF;
    aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
 

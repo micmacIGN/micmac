@@ -218,7 +218,7 @@ cHeap_CTP_Cmp    TheCmpCTP;
 class cMMTP
 {
     public :
-      cMMTP(const Box2di & aBox,cAppliMICMAC &);
+      cMMTP(const Box2di & aBoxInLoc,const Box2di &aBoxInGlob,const Box2di & aBoxOut,cAppliMICMAC &);
       void  ConputeEnveloppe(const cComputeAndExportEnveloppe &,const cXML_ParamNuage3DMaille & aCurNuage);
       // Dequantifie et bouche, calcul les "petits"  trous et les bouches
       void ContAndBoucheTrou();
@@ -237,14 +237,15 @@ class cMMTP
                  && (aZ> cCelTiep::TheNoZ)
                  && (aZ< 32000)
                  &&  (mTImMasquageInput.get(Pt2di(anX-mP0Tiep.x,anY-mP0Tiep.y)))
-                 &&  ((mMasq3D==0) ||    mMasq3D->IsInMasq(mNuage3D->IndexAndProfPixel2Euclid(Pt2dr(anX,anY),aZ)))
+                 &&  ((mMasq3D==0) ||    mMasq3D->IsInMasq(mNuage3D->IndexAndProfPixel2Euclid(Pt2dr(anX,anY)+mP0In,aZ)))
                 ;
       }
        
-     void SetMasq3D(cMasqBin3D * aMasq3D,cElNuage3DMaille * aNuage3D)
+     void SetMasq3D(cMasqBin3D * aMasq3D,cElNuage3DMaille * aNuage3D,Pt2dr aP0In)
      {
            mMasq3D = aMasq3D;
            mNuage3D = aNuage3D;
+           mP0In = aP0In;
      }
  
       cCelTiep & Cel(int anX,int anY) { return mTabCTP[anY][anX]; }
@@ -277,6 +278,12 @@ class cMMTP
         Pt2di             mP0Tiep;
         Pt2di             mP1Tiep;
         Pt2di             mSzTiep;
+
+        Box2di            mBoxInGlob;
+        Box2di            mBoxInEnv;
+        Box2di            mBoxOutGlob;
+        Box2di            mBoxOutEnv;
+
         cCelTiep **       mTabCTP;
         ElHeap<cCelTiepPtr,cHeap_CTP_Cmp,cHeap_CTP_Index> mHeapCTP;
 
@@ -297,6 +304,7 @@ class cMMTP
         Im2D_Bits<1>    mImMasqFinal;   // resultat final si post filtrage
         TIm2DBits<1>    mTImMasqFinal;   
 
+        Pt2dr mP0In;
         cMasqBin3D *       mMasq3D;
         cElNuage3DMaille * mNuage3D;
         std::string mNameTargetEnv;
@@ -313,8 +321,10 @@ class cMMTP
 Tiff_Im  cMMTP::FileEnv(const std::string & aPref,bool Bin) // Si pas  Bin int2
 {
    std::string aNameRes  = DirOfFile(mNameTargetEnv) + aPref  + "_DeZoom" + ToString( mAppli.CurEtape()->DeZoomTer()) + ".tif";
-   return Tiff_Im
+   bool isNew;
+   return Tiff_Im::CreateIfNeeded
           (
+               isNew,
                aNameRes.c_str(),
                mSzTargetEnv,
                Bin ? GenIm::bits1_msbf : GenIm::real4,
@@ -327,11 +337,13 @@ Tiff_Im  cMMTP::FileEnv(const std::string & aPref,bool Bin) // Si pas  Bin int2
 /*
 */
 
-cMMTP::cMMTP(const Box2di & aBox,cAppliMICMAC & anAppli) : 
+cMMTP::cMMTP(const Box2di & aBoxLoc,const Box2di & aBoxInGlob,const Box2di & aBoxOut,cAppliMICMAC & anAppli) : 
    mAppli            (anAppli),
-   mP0Tiep           (aBox._p0),
-   mP1Tiep           (aBox._p1),
-   mSzTiep           (aBox.sz()),
+   mP0Tiep           (aBoxLoc._p0),
+   mP1Tiep           (aBoxLoc._p1),
+   mSzTiep           (aBoxLoc.sz()),
+   mBoxInGlob        (aBoxInGlob),
+   mBoxOutGlob       (aBoxOut),
    mHeapCTP          (TheCmpCTP),
    mImProf           (mSzTiep.x,mSzTiep.y,0),
    mTImProf          (mImProf),
@@ -411,12 +423,12 @@ void cMMTP::DoOneEnv(Im2D_REAL4 anEnvRed,Im2D_Bits<1> aNewM,bool isMax,const cXM
     aRes = ::AdaptDynOut(aRes,aTargetNuage,aCurNuage);
 
     Tiff_Im  aFileRes = FileEnv(isMax?"EnvMax":"EnvMin",false);
-    ELISE_COPY(aFileRes.all_pts(),aRes * aFMasqBin,aFileRes.out());
+    ELISE_COPY(rectangle(mBoxOutEnv._p0,mBoxOutEnv._p1),trans(aRes * aFMasqBin,-mBoxInEnv._p0),aFileRes.out());
 
     if (isMax)
     {
         Tiff_Im  aFileMasq = FileEnv("EnvMasq",true);
-        ELISE_COPY(aFileMasq.all_pts(),aFMasqBin,aFileMasq.out());
+        ELISE_COPY(rectangle(mBoxOutEnv._p0,mBoxOutEnv._p1),trans(aFMasqBin,-mBoxInEnv._p0),aFileMasq.out());
     }
 }
 
@@ -462,8 +474,14 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
    cXML_ParamNuage3DMaille aTargetNuage = StdGetFromSI(mNameTargetEnv,XML_ParamNuage3DMaille);
    mZoomTargetEnv = aTargetNuage.SsResolRef().Val();
    mSzTargetEnv =  aTargetNuage.NbPixel();
-   
    double aZoomRel = mAppli.CurEtape()->DeZoomTer()/mZoomTargetEnv;
+
+   mBoxOutEnv._p0 = round_ni(Pt2dr(mBoxOutGlob._p0) * aZoomRel);
+   mBoxOutEnv._p1 = round_ni(Pt2dr(mBoxOutGlob._p1) * aZoomRel);
+   mBoxInEnv._p0 = round_ni(Pt2dr(mBoxInGlob._p0) * aZoomRel);
+   mBoxInEnv._p1 = round_ni(Pt2dr(mBoxInGlob._p1) * aZoomRel);
+
+
 
    ELISE_ASSERT(mP0Tiep==Pt2di(0,0),"Too lazy to handle box maping");
 
@@ -557,7 +575,8 @@ void  cMMTP::ConputeEnveloppe(const cComputeAndExportEnveloppe & aCAEE,const cXM
     Fonc_Num  aFMasqBin;
     Fonc_Num fChCo = Virgule(FX,FY)/ aZoomRel;
 
-std::cout  << "ZRRRR  " << aZoomRel <<  " 1/Z " << (1/aZoomRel) << "\n";
+std::cout  << "ZRRRR  " << aZoomRel <<  " 1/Z " << (1/aZoomRel) 
+           <<   " ;; " << mAppli.CurEtape()->DeZoomTer() << " , " << mZoomTargetEnv << "\n";
 // Tiff_Im::CreateFromIm(mContBT,DirOfFile(mNameTargetEnv)+"CONTBT.tif");
 
 
@@ -565,10 +584,11 @@ std::cout  << "ZRRRR  " << aZoomRel <<  " 1/Z " << (1/aZoomRel) << "\n";
     aFoncProf = ::AdaptDynOut(aFoncProf,aTargetNuage,aCurNuage);
 
     Tiff_Im aFileProf = FileEnv("Depth",false);
-    ELISE_COPY(aFileProf.all_pts(),aFoncProf,aFileProf.out());
+    ELISE_COPY(rectangle(mBoxOutEnv._p0,mBoxOutEnv._p1),trans(aFoncProf,-mBoxInEnv._p0),aFileProf.out());
+
 
     Tiff_Im aFileMasq = FileEnv("Masq",true);
-    ELISE_COPY(aFileMasq.all_pts(),aFMasqBin,aFileMasq.out());
+    ELISE_COPY(rectangle(mBoxOutEnv._p0,mBoxOutEnv._p1),trans(aFMasqBin,-mBoxInEnv._p0),aFileMasq.out());
 
 
 #ifdef ELISE_X11
@@ -649,6 +669,10 @@ void cMMTP::ContAndBoucheTrou()
     // Au cas ou on ferait un export premature
     ELISE_COPY(mImMasqFinal.all_pts(),mImLabel.in()!=0,mImMasqFinal.out());
 
+    int aSomMaskF;
+    ELISE_COPY(mImMasqFinal.all_pts(),mImLabel.in()==1,sigma(aSomMaskF));
+    if (aSomMaskF < 100) return;
+    // std::cout << "aSomMaskFaSomMaskF " << aSomMaskF << "\n";
    // 2- Dequantifiication, adaptee au image a trou
 
        Im2D_REAL4 aProfCont(mSzTiep.x,mSzTiep.y,0.0);
@@ -1069,15 +1093,16 @@ Fonc_Num FoncHomog(Im2D_REAL4 anIm, int aSzKernelH, double aPertPerPix)
 
 
 
-
-void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTieP & aMATP)
+void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoByTieP & aMATP)
 {
+
+   std::cout << "cAppliMICMAC::DoMasqueAutoByTieP " << aBoxLoc << "\n";
 
    // std::cout <<  "*-*-*-*-*-*- cAppliMICMAC::DoMasqueAutoByTieP    "<< mImSzWCor.sz() << " " << aBox.sz() << mCurEtUseWAdapt << "\n";
 
 
    ElTimer aChrono;
-   mMMTP = new cMMTP(aBox,*this);
+   mMMTP = new cMMTP(aBoxLoc,mBoxIn,mBoxOut,*this);
 
     // Si il faut repartir d'un masque initial calcule a un de zool anterieur
     if (aMATP.TiePMasqIm().IsInit())
@@ -1104,7 +1129,8 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
     {
          Im2D_REAL4 * anIm = mPDV1->LoadedIm().FirstFloatIm();
          ELISE_ASSERT(anIm!=0,"Incohe in mmtpFilterSky");
-         Pt2di aSz = anIm->sz();
+         // Pt2di aSz = anIm->sz();
+         Pt2di aSz = mMMTP->ImMasquageInput().sz();
 
          const cmmtpFilterSky & aFS = aMATP.mmtpFilterSky().Val();
          int aSeuilNbPts = round_ni(aSz.x*aSz.y*aFS.PropZonec().Val());
@@ -1129,7 +1155,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
  #ifdef ELISE_X11
    if (aMATP.Visu().Val())
    {
-       Pt2dr aSzW = Pt2dr(aBox.sz());
+       Pt2dr aSzW = Pt2dr(aBoxLoc.sz());
        TheScaleW = ElMin(1000.0,ElMin(TheMaxSzW.x/aSzW.x,TheMaxSzW.y/aSzW.y));  // Pour l'instant on accepts Zoom>1 , donc => 1000
 
        // TheScaleW = 0.635;
@@ -1174,7 +1200,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
    }
 #endif
 
-   std::cout << "== cAppliMICMAC::DoMasqueAutoByTieP " << aBox._p0 << " " << aBox._p1 << " Nb=" << mTP3d->size() << "\n"; 
+   std::cout << "== cAppliMICMAC::DoMasqueAutoByTieP " << aBoxLoc._p0 << " " << aBoxLoc._p1 << " Nb=" << mTP3d->size() << "\n"; 
    std::cout << " =NB Im " << mVLI.size() << "\n";
 
 
@@ -1185,7 +1211,7 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
        cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(aXmlN,FullDirMEC());
        if (aMasq3D)
        {
-           mMMTP->SetMasq3D(aMasq3D,aNuage);
+           mMMTP->SetMasq3D(aMasq3D,aNuage,Pt2dr(mBoxIn._p0));
            mGLOBMasq3D = aMasq3D;
            mGLOBNuage = aNuage;
        }
@@ -1195,8 +1221,9 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBox,const cMasqueAutoByTie
            Pt3dr aPE = (*mTP3d)[aK];
            Pt3dr aPL2 = aNuage->Euclid2ProfPixelAndIndex(aPE);
 
-           int aXIm = round_ni(aPL2.x);
-           int aYIm = round_ni(aPL2.y);
+
+           int aXIm = round_ni(aPL2.x) - mBoxIn._p0.x;
+           int aYIm = round_ni(aPL2.y) - mBoxIn._p0.y;
            int aZIm = round_ni(aPL2.z) ;
 
 

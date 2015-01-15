@@ -59,9 +59,56 @@ class cOneImTDEpip
 	
 };
 
+class cCelP2D_TDEpi
+{
+	public :
+	   ///================================================
+	   ///===== PRE-REQUIREMENT FOR 2D PROG DYN , transfer
+	   ///===== from 3D volume to buffer of computation 
+	   ///================================================
+	    void InitTmp(const cTplCelNapPrgDyn<cCelP2D_TDEpi> & aCel)
+        {
+            *this = aCel.ArgAux();
+        }
+	private :
+};
+
 class cLoaedImTDEpip
 {
 	 public :
+	 
+	   ///================================================
+	   ///===== PRE-REQUIREMENT FOR 2D PROG DYN ==========
+	   ///================================================
+	   	    
+            typedef  cCelP2D_TDEpi tArgCelTmp;
+            typedef  cCelP2D_TDEpi tArgNappe;
+            
+            ///-------- Not a PRE-REQUIREMENT but Helpull
+       
+            typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
+            typedef  cTplCelOptProgDyn<tArgCelTmp>  tCelOpt;	 
+            
+		  ///-------- REQUIREMENT : kernell of computation
+           void DoConnexion
+           (
+                  const Pt2di & aPIn, const Pt2di & aPOut,
+                  ePrgSens aSens,int aRab,int aMul,
+                  tCelOpt*Input,int aInZMin,int aInZMax,
+                  tCelOpt*Ouput,int aOutZMin,int aOutZMax
+           );
+           
+           /// Required : but do generally nothing
+           
+           void GlobInitDir(cProg2DOptimiser<cLoaedImTDEpip> &);      	
+	 
+	       ///===============  Support to PrgD
+	       
+	        static const int DynPrD = 1000;
+	        int ToICost (double aCost) {return round_ni(DynPrD*aCost);}
+	     
+	   ///===============
+	   	   
 	   cLoaedImTDEpip(cOneImTDEpip &,double aScale,int aSzW);
 
        double CrossCorrelation(const Pt2di & aPIm1,int aPx,const cLoaedImTDEpip & aIm2,int aSzW);
@@ -69,10 +116,16 @@ class cLoaedImTDEpip
 
        bool InsideW(const Pt2di & aPIm1,const Pt2di & aSzW) const
        {
+		   
+		   // std::cout << aPIm1 << " " << mTMIn.get(aPIm1,0) << "\n";
+		   return   mTMIn.get(aPIm1,0) ;
+		   /*
           return     (aPIm1.x >= aSzW.x) 
                   &&  (aPIm1.y >= aSzW.y) 
                   &&  (aPIm1.x < mSz.x-aSzW.x)
-                  &&  (aPIm1.y < mSz.y-aSzW.y);
+                  &&  (aPIm1.y < mSz.y-aSzW.y)
+                  &&   mTMIn.get(aPIm1,0) ;
+            */
        }
        bool InsideW(const Pt2di & aPIm1,const int & aSzW) const
        {
@@ -89,9 +142,11 @@ class cLoaedImTDEpip
                         int  aIntPx,
                         int aSzW
                       );
+        bool In3DMasq(const Pt2di &aPt,int aPx,cLoaedImTDEpip & aI2);
         
 	   
 	   cOneImTDEpip & mOIE;
+	   cAppliTDEpip &      mAppli;
 	   std::string mNameIm;
 	   Tiff_Im mTifIm;
 	   Pt2di mSz;
@@ -106,7 +161,17 @@ class cLoaedImTDEpip
 	   Im2D<INT2,INT>     mIPx;
 	   TIm2D<U_INT1,INT>  mTSc;
 	   Im2D<U_INT1,INT>   mISc;
+	 
+	   Im2D_Bits<1>       mMasqIn;
+	   TIm2DBits<1>       mTMIn;  
+	   Im2D_Bits<1>       mMasqOut;
+	   TIm2DBits<1>       mTMOut;
+	   int                mMaxJumpPax;
+	   double              mRegul;
+	   
+	   
 };
+
 
 
 
@@ -133,6 +198,7 @@ class cAppliTDEpip
 	     int             mZoomEnd;
 	     double         mRatioIntPx;
 	     double         mIntPx;
+	     int            mCurZoom;
 
 };
 
@@ -146,14 +212,21 @@ cAppliTDEpip::cAppliTDEpip(int argc, char **argv) :
     mZoomEnd  (2),
     mRatioIntPx (0.2)
 {
+	Pt2di aZoom;
     ElInitArgMain
     (
        argc,argv,
        LArgMain()  << EAMC(mNameIm1, "Firt Epip Image",eSAM_IsExistFile)
                    << EAMC(mNameIm2,"Second Epip Image",eSAM_IsExistFile),
        LArgMain()  << EAM(mNameMasq3D,"Masq3D",true,"3 D Optional masq")
+                   << EAM(aZoom,"Zoom",true,"[ZoomBegin,ZoomEnd], Def=[16,2]")
     );
 
+    if (EAMIsInit(&aZoom))
+    {
+		mZoomDeb = aZoom.x;
+		mZoomEnd = aZoom.y;
+    }
  
       mDir = DirOfFile(mNameIm1);
       mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
@@ -187,6 +260,7 @@ void cAppliTDEpip::GenerateDownScale(int aZoomBegin,int aZoomEnd)
 
 void cAppliTDEpip::DoMatchOneScale(int aZoom,int aSzW) 
 {
+	mCurZoom = aZoom;
 	cLoaedImTDEpip aLIm1(*mIm1,aZoom,aSzW);
 	cLoaedImTDEpip aLIm2(*mIm2,aZoom,aSzW);
 	
@@ -234,6 +308,7 @@ std::string cOneImTDEpip::ComCreateImDownScale(double aScale) const
 
 cLoaedImTDEpip::cLoaedImTDEpip(cOneImTDEpip & aOIE,double aScale,int aSzW) :
   mOIE (aOIE),
+  mAppli (aOIE.mAppli),
   mNameIm (aOIE.NameFileDownScale(aScale)),
   mTifIm  (mNameIm.c_str()),
   mSz     (mTifIm.sz()),
@@ -246,9 +321,17 @@ cLoaedImTDEpip::cLoaedImTDEpip(cOneImTDEpip & aOIE,double aScale,int aSzW) :
   mTPx    (mSz),
   mIPx    (mTPx._the_im),
   mTSc    (mSz),
-  mISc    (mTSc._the_im)
+  mISc    (mTSc._the_im),
+  mMasqIn (mSz.x,mSz.y,1),
+  mTMIn   (mMasqIn),
+  mMasqOut(mSz.x,mSz.y,0),
+  mTMOut  (mMasqOut),
+  mMaxJumpPax (2),
+  mRegul      (0.05)
 {
 	ELISE_COPY(mIm.all_pts(), mTifIm.in(),mIm.out());
+	
+	ELISE_COPY(mMasqIn.border(aSzW),0 ,mMasqIn.out());
 	
 	ELISE_COPY
 	(
@@ -347,9 +430,83 @@ void cLoaedImTDEpip::ComputePx
 	TIm2D<INT2,INT> aTEnvSup(mSz);
 	
 	ELISE_COPY(aTEnvInf._the_im.all_pts(),-aPxMax,aTEnvInf._the_im.out());
-	ELISE_COPY(aTEnvSup._the_im.all_pts(),+aPxMax,aTEnvSup._the_im.out());
+	ELISE_COPY(aTEnvSup._the_im.all_pts(),1+aPxMax,aTEnvSup._the_im.out());
 
     ComputePx(aIm2,aTEnvInf,aTEnvSup,aSzW);
+}
+
+void cLoaedImTDEpip::DoConnexion
+     (
+                  const Pt2di & aPIn, const Pt2di & aPOut,
+                  ePrgSens aSens,int aRab,int aMul,
+                  tCelOpt*Input,int aInZMin,int aInZMax,
+                  tCelOpt*Output,int aOutZMin,int aOutZMax
+      )
+{
+	for (int aZ = aOutZMin ; aZ < aOutZMax ; aZ++)
+	{
+		int aDZMin,aDZMax;
+		ComputeIntervaleDelta
+		(
+		    aDZMin,aDZMax,aZ,mMaxJumpPax,
+		    aOutZMin,aOutZMax,
+		    aInZMin,aInZMax
+		);
+        for (int aDZ = aDZMin; aDZ<= aDZMax ; aDZ++)
+        {
+			double aCost = mRegul * ElAbs(aDZ);
+			Output[aZ].UpdateCostOneArc(Input[aZ+aDZ],aSens,ToICost(aCost));
+	    }
+
+    }
+}
+
+template <class  Type> class cMyAveragin : public Simple_OPBuf1<Type,Type>
+{
+	public :
+	
+	void  calc_buf (Type ** MCoutput,Type *** MCinput)
+	{
+		for (int aNbC=0 ; aNbC<this->dim_in() ; aNbC++)
+		{
+			Type * ImOut = MCoutput[aNbC]; 
+			Type ** ImIn = MCinput[aNbC];
+			
+			for (int x=this->x0() ; x<this->x1() ; x++)
+			{
+				Type aSom = 0;
+				for (int aDX=-mNbV ; aDX <=mNbV ; aDX++)
+				{
+					for (int aDY=-mNbV ; aDY <=mNbV ; aDY++)
+				    {
+                        aSom += ImIn[aDY][x+aDX];					
+				    }
+				}
+				ImOut[x] = aSom;
+			}
+		}
+	}
+	
+	cMyAveragin(int aNbV) : mNbV (aNbV) {}
+	int mNbV;
+	
+};
+Fonc_Num MySom(Fonc_Num f,int aNbV)
+{
+    return create_op_buf_simple_tpl
+           (
+                new   cMyAveragin<int>(aNbV),
+                new   cMyAveragin<double>(aNbV),
+                f,
+                1,
+                Box2di (Pt2di(-aNbV,-aNbV), Pt2di(aNbV,aNbV))
+           );
+}
+
+
+
+void cLoaedImTDEpip::GlobInitDir(cProg2DOptimiser<cLoaedImTDEpip> &)
+{
 }
 
 void cLoaedImTDEpip::ComputePx
@@ -360,8 +517,33 @@ void cLoaedImTDEpip::ComputePx
            int aSzW
       )
 {
-	Pt2di aP;
 	
+	if (0)
+	{
+		Video_Win aW = Video_Win::WStd(mSz,2);
+		
+		Fonc_Num aF = mIm.in(0);
+		for (int aK=0 ; aK<4 ; aK++)
+		    aF = MySom(aF,2) / 25;
+		
+		ELISE_COPY
+		(
+		    mIm.all_pts(),
+		    rect_min(rect_max(255-aF,3),3),
+		    aW.ogray()
+		);
+		aW.clik_in();
+		    
+    }
+    
+	Pt2di aP; 
+	///  PRGD 1 : create the object
+	
+	cProg2DOptimiser<cLoaedImTDEpip> aPrgD(*this,aTEnvInf._the_im,aTEnvSup._the_im,0,1);
+    cDynTplNappe3D<tCelNap> &  aSparseVol = aPrgD.Nappe();
+    tCelNap ***  aSparsPtr = aSparseVol.Data() ;
+    ///  -- end PRGD 1
+
 	for (aP.x =0 ; aP.x < mSz.x ; aP.x++)
 	{
 	   for (aP.y =0 ; aP.y < mSz.y ; aP.y++)
@@ -371,22 +553,74 @@ void cLoaedImTDEpip::ComputePx
 		   int aBestPax = 0;
 		   double aBestCor = TheDefCorrel;
 		   
-		   for (int aPx = aPxMin ; aPx <= aPxMax ; aPx++)
+		   for (int aPax = aPxMin ; aPax < aPxMax ; aPax++)
 		   {
-			   double aCor = CrossCorrelation(aP,aPx,aIm2,aSzW);
-			   if (aCor > aBestCor)
+			   double aCor = TheDefCorrel;
+			   if (In3DMasq(aP,aPax,aIm2))
 			   {
-				   aBestCor = aCor;
-				   aBestPax = aPx;
-			   }
+	 		      aCor = CrossCorrelation(aP,aPax,aIm2,aSzW);
+			      if (aCor > aBestCor)
+			      {
+				     aBestCor = aCor;
+				     aBestPax = aPax;
+			      }
+		      }
+		      ///  PRGD 2 : fill the cost 
+		      aSparsPtr[aP.y][aP.x][aPax].SetOwnCost(ToICost(1-aCor));
+		      /// == End PGRD2
            }	
-           mTPx.oset(aP,aBestPax);	   
+           mTPx.oset(aP,aBestPax);	
+           mTSc.oset(aP,ElMax(0,ElMin(255,round_ni((aBestCor+1)*128))));
 	   }
 	}
+	
+	/// PRGD3 : run the optim and use the result
+	aPrgD.DoOptim(7);
+	Im2D_INT2 aSolPrgd(mSz.x,mSz.y);
+    aPrgD.TranfereSol(aSolPrgd.data());
+    Tiff_Im::CreateFromIm(aSolPrgd,"TestPrgPx.tif");
+	///  end PRGD3
+	
+	
+	
+	if (1)
+	{
+		Video_Win aW = Video_Win::WStd(mSz,3);
+		
+		ELISE_COPY
+		(
+		    mTPx._the_im.all_pts(),
+		    Min(2,Abs(mTPx._the_im.in()-aSolPrgd.in())),
+		    aW.odisc()
+		);
+		aW.clik_in();
+		    
+    }
+	
 	Tiff_Im::CreateFromIm(mTPx._the_im,"TestPx.tif");
+	Tiff_Im::CreateFromIm(mTSc._the_im,"TestSc.tif");
+
 	std::cout << "DONE PX\n";
 }
-                      
+
+
+bool cLoaedImTDEpip::In3DMasq(const Pt2di &aPt,int aPx,cLoaedImTDEpip & aI2)
+{
+	cMasqBin3D *  aMasq = mAppli.mMasq3D;
+	if (!aMasq) return true;
+	
+	Pt2di aFullP1 = aPt * mAppli.mCurZoom;
+	Pt2di aFullP2 = aFullP1 + Pt2di(aPx*mAppli.mCurZoom,0);
+	
+	Pt3dr  aPGr =  mOIE.mCam->PseudoInter
+	               (
+	                  Pt2dr(aFullP1),
+	                  *aI2.mOIE.mCam,
+	                  Pt2dr(aFullP2)
+	                );
+	
+	return aMasq->IsInMasq(aPGr);
+}                  
                       
 /*************   MAIN *****************/
 

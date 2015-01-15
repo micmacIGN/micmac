@@ -274,6 +274,13 @@ void ELISE_fp::AssertIsDirectory(const std::string &  aName )
 	}
 }
 
+void ELISE_fp::RmFileIfExist(const std::string & aFile)
+{
+   if (ELISE_fp::exist_file(aFile))
+      ELISE_fp::RmFile(aFile);
+}
+
+
 void ELISE_fp::RmFile(const std::string & aFile)
 {
 #if ELISE_windows
@@ -566,6 +573,7 @@ tFileOffset ELISE_fp::read_FileOffset4()
 {
     tByte4AbsFileOffset anO4;
     read(&anO4,sizeof(tByte4AbsFileOffset),1);
+    if ( !_byte_ordered ) byte_inv_4( &anO4 );
   
     return anO4;
 }

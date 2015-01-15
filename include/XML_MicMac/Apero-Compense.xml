@@ -74,6 +74,11 @@
            <eSymb>  DoPolyn3=  SupEq ${DegGen} 3 </eSymb>
 
 
+           <Symb> DRMax=0 </Symb>
+           <eSymb> DR1Free= SupEq ${DRMax} 1 </eSymb>
+           <eSymb> DR2Free= SupEq ${DRMax} 2 </eSymb>
+           <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
+
 
        </DicoLoc>
 
@@ -268,6 +273,43 @@
                    </#WHEN>
 
 
+                   <#WHEN VTEST=${DR1Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR1  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR1 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+                   <#WHEN VTEST=${DR2Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR2  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR2 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+                   <#WHEN VTEST=${DR3Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR3  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR3 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+
                    <#WHEN VTEST=${DoPolyn2}>
                          <IterationsCompensation>
                               <SectionContraintes>
@@ -300,6 +342,7 @@
                             </SectionContraintes>
                             <Messages>  LIB  All </Messages>
                          </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
                          <IterationsCompensation> </IterationsCompensation>
                    </#WHEN>
 

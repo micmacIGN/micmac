@@ -99,6 +99,48 @@ void main_SDK()
 
 int main()
 {
+#ifndef NOCUDA_X11
+    CStructure<3> testS;
+ #else
+    CStructure<10> testS;
+#endif
+
+    DUMP(testS.getDimension())
+    DUMP(testS.getNbLayer())
+    DUMP_LINE
+
+    testS.setDimension(3);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+    testS.setDimension(20,5);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+#ifdef NOCUDA_X11
+     testS.setDimension(3,5,5,8,223,4);
+#endif
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+            testS.setDimension(2,5,88);
+
+            DUMP(testS.getDimension())
+                    DUMP(testS.getNbLayer())
+
+                    DUMP(testS.getSize())
+                    DUMP_LINE
+
+    return 0;
+
+//    DUMP(typeid(cudaContext).name())
+
 #if OPENCL_ENABLED
     main_SDK<openClContext>();
 #endif
