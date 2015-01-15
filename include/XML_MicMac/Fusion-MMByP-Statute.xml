@@ -1,0 +1,177 @@
+<!--
+mm3d MergeDepthMap /home/mpd/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml WorkDirPFM=/media/data1/Jeux-Tests/MedinetAbou/MTD-Image-IMG_0107.CR2/
+
+mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml WorkDirPFM=/home/marc/TMP/EPI/Pompei/MTD-Image-MVxxxx_MAP_7043.NEF/
+
+
+/home/marc/MMM/culture3d/include/XML_MicMac
+
+mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml  WorkDirPFM=/home/marc/TMP/EPI/Soldat-Temple-Hué/MTD-Image-IMGP7043.JPG/
+
+mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Statute.xml  WorkDirPFM=/home/marc/TMP/EPI/Soldat-Temple-Hue/MTD-Image-IMGP7032.JPG/
+
+-->
+<ParamFusionMNT>
+    <DicoLoc>
+
+      <Symb> ImMaster=XXXXX </Symb>
+      <Symb> EnteteNuEpi=Nuage- </Symb>
+      <Symb> EnteteNuQM=QMNuage-Depth- </Symb>
+
+      <!-- <Symb> Target=/home/marc/TMP/EPI/EXO1-Fontaine/Fusion-Statue/titi${ImMaster}.xml </Symb> -->
+      <Symb> Target=AAAA  </Symb>
+      <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur>   (${EnteteNuEpi}|${EnteteNuQM}).*.xml </PatternAccepteur>
+          </Sets>
+          <Key> Loc-SetInput </Key>
+    </KeyedSetsOfNames>
+
+       <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> ${EnteteNuEpi}.*.xml </PatternTransform>
+                    <CalcName> 1.0  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> ${EnteteNuQM}.*.xml </PatternTransform>
+                    <CalcName> 0.2  </CalcName>
+                 </Direct>
+           </Calcs>
+
+
+           <Key>  Loc-Assoc-Pds2Nuage </Key>
+       </KeyedNamesAssociations>
+
+
+
+       <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  2 1 </Arrite>
+                <Direct>
+                    <PatternTransform> (.*)%(.*) </PatternTransform>
+                    <CalcName> $2  </CalcName>
+                    <Separateur > % </Separateur>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-CplIm2Nuage </Key>
+       </KeyedNamesAssociations>
+
+       <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform> ${EnteteNuEpi}(.*)\.xml </PatternTransform>
+                    <CalcName> $1  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Calcs>
+                <Arrite>  1 1 </Arrite>
+                <Direct>
+                    <PatternTransform>   ${EnteteNuQM}(.*).xml </PatternTransform>
+                    <CalcName> $1  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-Nuage2Im </Key>
+       </KeyedNamesAssociations>
+
+
+   <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  2 1 </Arrite>
+                <Direct>
+                    <PatternTransform> (.*) </PatternTransform>
+                    <CalcName> ${Target}  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-Im2NuageFusionne </Key>
+     </KeyedNamesAssociations>
+
+
+    </DicoLoc>
+
+    <SectionName>
+
+        <KeyNuage> Loc-Assoc-CplIm2Nuage </KeyNuage>  
+        <KeyResult> Loc-Assoc-Im2NuageFusionne </KeyResult> <!-- NKS-Assoc-Cste@MaSortie.xml -->
+        <KeyResultIsLoc> false </KeyResultIsLoc>
+
+<!--
+        <KeyResult> NKS-Assoc-Cste@FusionZ2 </KeyResult>
+-->
+
+        <ModeleNuageResult> NKS-Assoc-Id </ModeleNuageResult> 
+        <KeyNuage2Im>  Loc-Assoc-Nuage2Im </KeyNuage2Im>
+    </SectionName>
+
+      <SectionScoreQualite>
+           <ScoreMM1P>
+                 <MakeFileResult> true </MakeFileResult>
+                 <PdsAR> 1.0 </PdsAR>
+
+                 <PdsDistor> 0.5 </PdsDistor>
+                 <AmplImDistor> 100.0 </AmplImDistor>
+                 <!-- Score = Seuil/ (Seuil+Dist) -->
+                 <SeuilDist> 0.25 </SeuilDist>
+
+                 <PdsDistBord > 0.25</PdsDistBord>
+                 <!-- Score = Min(1, D/Seuil) -->
+                 <SeuilDisBord> 30.0 </SeuilDisBord>
+           </ScoreMM1P>
+       </SectionScoreQualite>
+
+
+
+       <ParamAlgoFusionMNT>
+           <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel>
+           <FMNTGammaCorrel > 1 </FMNTGammaCorrel>
+           <KeyPdsNuage > Loc-Assoc-Pds2Nuage </KeyPdsNuage>
+
+           <SpecAlgoFMNT>
+                 <SigmaPds> 5.0 </SigmaPds>
+                 <SeuilMaxLoc> 1  </SeuilMaxLoc>
+                 <SeuilCptOk>  2.0  </SeuilCptOk>
+                 <SigmaZ> 7.5  </SigmaZ> <!--  ???   -->
+                 <NBMaxMaxLoc> 6  </NBMaxMaxLoc>
+                 <FMNT_ProgDyn>
+                            <Regul> 0.0 </Regul>
+                            <Sigma0> 10.0 </Sigma0>
+                            <NbDir>  7 </NbDir>
+                            <FMNT_GesNoVal>
+                                <PenteMax> 1000 </PenteMax>
+                                <CostNoVal> 0.5 </CostNoVal>
+                                <Trans>     2 </Trans>
+                            </FMNT_GesNoVal>
+                 </FMNT_ProgDyn>
+                 <ParamRegProf> </ParamRegProf>
+           </SpecAlgoFMNT>
+       </ParamAlgoFusionMNT>
+
+
+    <GenereRes> 
+            <KeyString> NuageImProf_LeChantier_Etape_1.xml </KeyString>
+    </GenereRes>
+
+    <GenereInput> 
+              <KeySet> Loc-SetInput </KeySet>
+    </GenereInput>
+
+
+   <SectionGestionChantier>
+             <SzDalles >  1300 </SzDalles>
+             <RecouvrtDalles> 150  </RecouvrtDalles>
+<!--
+             <ByProcess> true </ByProcess>
+             <ParalMkF> MkFusion.txt </ParalMkF> 
+-->
+             <WorkDirPFM> XXXX </WorkDirPFM>
+   </SectionGestionChantier>
+
+
+  </ParamFusionMNT>
+
+
