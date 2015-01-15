@@ -115,7 +115,7 @@ bool  cImage::PIMsValideVis(const Pt3dr &,cElNuage3DMaille * aEnv,bool aMin)
 }
 
 
-bool cImage::PIMsValideVis(const Pt3dr &) 
+bool cImage::PIMsValideVis(const Pt3dr & aP) 
 {
     return    PIMsValideVis(aP,mEnvMinVisib,true) 
            && PIMsValideVis(aP,mEnvMaxVisib,false);
