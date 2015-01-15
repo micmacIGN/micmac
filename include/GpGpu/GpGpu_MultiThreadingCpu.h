@@ -3,11 +3,24 @@
 
 #include <stdio.h>
 
+#include "GpGpu/GpGpu_Data.h"
+
+#ifdef CPP11THREAD_NOBOOSTTHREAD
+#define CPP11_THREAD
+#endif
+
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+        #include <chrono>
+        #include <thread>
+        #include <mutex>
+    #endif
+#else
 #include <boost/thread/thread.hpp>
 #include <boost/progress.hpp>
 #include <boost/timer.hpp>
+#endif
 
-#include "GpGpu/GpGpu_Data.h"
 
 template< class T >
 ///
@@ -82,18 +95,26 @@ private:
 
     bool            _useMultiThreading;
 
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+    std::mutex    _mutexCompu;
+    std::mutex    _mutexCopy;
+    std::mutex    _mutexPreCompute;
+    #endif
+#else
     boost::mutex    _mutexCompu;
     boost::mutex    _mutexCopy;
     boost::mutex    _mutexPreCompute;
+#endif
 
     T               _compute;
     T               _copy;
     bool            _precompute;
 
     bool            _idBufferHostIn;
-
+#ifndef CPP11_THREAD
     boost::progress_display *_show_progress;
-
+#endif
     bool            _show_progress_console;
 
 };
@@ -102,35 +123,59 @@ template< class T >
 CSimpleJobCpuGpu<T>::CSimpleJobCpuGpu(bool useMultiThreading):
     _useMultiThreading(useMultiThreading),
     _idBufferHostIn(false),
+    #ifndef CPP11_THREAD
     _show_progress(NULL),
+    #endif
     _show_progress_console(false)
 {}
 
 template< class T >
 CSimpleJobCpuGpu<T>::~CSimpleJobCpuGpu()
 {
+#ifndef CPP11_THREAD
     if(_show_progress)
         delete _show_progress;
+#endif
 }
 
 template< class T >
 void CSimpleJobCpuGpu<T>::SetCompute(T toBeComputed)
 {
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+    std::lock_guard<std::mutex> guard(_mutexCompu);
+    #endif
+#else
     boost::lock_guard<boost::mutex> guard(_mutexCompu);
+#endif
+
     _compute = toBeComputed;
 }
 
 template< class T >
 T CSimpleJobCpuGpu<T>::GetCompute()
 {
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+    std::lock_guard<std::mutex> guard(_mutexCompu);
+    #endif
+#else
     boost::lock_guard<boost::mutex> guard(_mutexCompu);
+#endif
     return _compute;
 }
 
 template< class T >
 void CSimpleJobCpuGpu<T>::SetDataToCopy(T toBeCopy)
 {
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+    std::lock_guard<std::mutex> guard(_mutexCopy);
+    #endif
+#else
     boost::lock_guard<boost::mutex> guard(_mutexCopy);
+#endif
+
     _copy = toBeCopy;
 
 }
@@ -138,21 +183,40 @@ void CSimpleJobCpuGpu<T>::SetDataToCopy(T toBeCopy)
 template< class T >
 T CSimpleJobCpuGpu<T>::GetDataToCopy()
 {
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+    std::lock_guard<std::mutex> guard(_mutexCopy);
+    #endif
+#else
     boost::lock_guard<boost::mutex> guard(_mutexCopy);
+#endif
     return _copy;
 }
 
 template< class T >
 void CSimpleJobCpuGpu<T>::SetPreComp(bool canBePreCompute)
 {
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+    std::lock_guard<std::mutex> guard(_mutexPreCompute);
+    #endif
+#else
     boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
+#endif
+
     _precompute = canBePreCompute;
 }
 
 template< class T >
 bool CSimpleJobCpuGpu<T>::GetPreComp()
 {
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+    std::lock_guard<std::mutex> guard(_mutexPreCompute);
+    #endif
+#else
     boost::lock_guard<boost::mutex> guard(_mutexPreCompute);
+#endif
     return _precompute;
 }
 
@@ -183,6 +247,7 @@ void CSimpleJobCpuGpu<T>::ResetIdBuffer()
 template< class T >
 void CSimpleJobCpuGpu<T>::SetProgress(unsigned long expected_count)
 {
+#ifndef CPP11_THREAD
     if(_show_progress_console)
     {
         if(_show_progress == NULL)
@@ -190,21 +255,29 @@ void CSimpleJobCpuGpu<T>::SetProgress(unsigned long expected_count)
         else
             _show_progress->restart(expected_count);
     }
+#endif
 }
 
 template< class T >
 void CSimpleJobCpuGpu<T>::IncProgress(uint inc)
 {
+#ifndef CPP11_THREAD
     if(_show_progress_console)
         (*_show_progress) += inc;
+#endif
 }
 
 template< class T >
 void CSimpleJobCpuGpu<T>::simpleCompute()
 {
     while(!GetCompute())
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
+#endif
+     #else
         boost::this_thread::sleep(boost::posix_time::microsec(1));
-
+#endif
     SetCompute(false);
 
     simpleWork();
@@ -221,8 +294,17 @@ void CSimpleJobCpuGpu<T>::simpleCompute()
 template< class T >
 void CSimpleJobCpuGpu<T>::simpleJob()
 {
-    boost::thread tOpti(&CSimpleJobCpuGpu<T>::simpleCompute,this);
-    tOpti.detach();
+#ifdef CPP11_THREAD
+    #ifdef NOCUDA_X11
+        std::thread tOpti(&CSimpleJobCpuGpu<T>::simpleCompute,this);
+        tOpti.detach();
+    #endif
+#else
+        boost::thread tOpti(&CSimpleJobCpuGpu<T>::simpleCompute,this);
+        tOpti.detach();
+#endif
+
+
 }
 
 

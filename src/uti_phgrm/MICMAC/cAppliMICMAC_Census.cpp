@@ -1287,8 +1287,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
   bool aModeMax = false;
 
-  
-
    std::vector<float> aVPmsInit;
    double aSomPmsInit=0;
 
@@ -1405,7 +1403,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 //                    anI0.ImMasqErod(),
 //                    anI1.ImMasqErod());
 
-//        interface_Census_GPU.transfertParamCensus(
+//        interface_Census_GPU.init(
 //                    Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
 //                    aVKImS,
 //                    aVPds,
@@ -1414,10 +1412,36 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 //                    mTabZMin,
 //                    mTabZMax,
 //                    mNbByPix,
-//                    aStepPix);
+//                    aStepPix,
+//                    mAhEpsilon,
+//                    mAhDefCost,
+//                    aSeuilHC,
+//                    aSeuilBC,
+//                    aModeMax,
+//                    DoMixte
+//                    );
 
-//        interface_Census_GPU.jobMask();
-        //getchar();
+//        interface_Census_GPU.Job_Correlation_MultiScale();
+
+//        for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+//            for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+//            {
+//                int aZ0 =  mTabZMin[anY][anX];
+//                int aZ1 =  mTabZMax[anY][anX];
+
+//                Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
+//                bool OkIm0 = anI0.IsOkErod(aPIm0.x,aPIm0.y);
+//                for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
+//                {
+//                    uint3 pt =make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
+//                    double aCost = interface_Census_GPU.getCost(pt);
+
+//                    mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, aCost >= 0 &&  OkIm0? aCost : mAhDefCost);
+//                }
+//            }
+
+//        return;
+
 #endif
 // std::cout << anOff0 << anOff1 << "\n";
 
@@ -1556,9 +1580,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                 int aZ0 =  mTabZMin[anY][anX];
                 int aZ1 =  mTabZMax[anY][anX];
 
-
-               int aXIm1SsPx = anX+anOff1.x;
-               int aYIm1SsPx = anY+anOff1.y;
+                int aXIm1SsPx = anX+anOff1.x;
+                int aYIm1SsPx = anY+anOff1.y;
 
 
                 while (mod(aZ0,mNbByPix) != aPhase) aZ0++;
@@ -1635,6 +1658,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                                     aCost = Quick_MS_CorrelBasic_Center (aPIm0,aPIm1,aSom1,aSom11,aSomC,aSomCC,
                                                              aVBOI0,aVBOIC,anOffset,aVKImS,aVPds,mAhEpsilon,aModeMax
                                             );
+
+
                                     aGlobCostCorrel = aCost;
 
                                     if (Verif)

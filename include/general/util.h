@@ -1542,6 +1542,10 @@ template <class T> T* VData(std::vector<T> & aV)  {return aV.data();}
 template <class T> const T* VData(const std::vector<T> & aV)  {return aV.data();}
 #endif
 
+///  Ajoute des regles speciales pour que chaque pixle ait au moins un 
+//  precedcesseur et un antecedant
+//   Z est dans l'intervalle ouvert I1 [aZ1Min,aZ1Max[,
+
 void ComputeIntervaleDelta
               (
                   INT & aDzMin,
@@ -1554,6 +1558,7 @@ void ComputeIntervaleDelta
                   INT aZ0Max
               );
 
+///  Ne force pas les connexions
 void BasicComputeIntervaleDelta
               (
                   INT & aDzMin,

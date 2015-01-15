@@ -3670,7 +3670,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 	// GPGPU
 #ifdef CUDA_ENABLED
         GpGpuInterfaceCorrel	IMmGg;
-        GpGpuInterfaceCensus    interface_Census_GPU;
+        GpGpu_Interface_Cor_MS    interface_Census_GPU;
 #endif	
 
          cMMTP *  mMMTP;

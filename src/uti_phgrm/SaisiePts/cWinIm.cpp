@@ -234,6 +234,7 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
                           )
                       )
 {
+    aIm0.SetLoaded();
     SetImage(&aIm0);
 }
 
@@ -247,7 +248,9 @@ void  cWinIm::SetNoImage()
 {
     if (mCurIm)
     {
+#if (ELISE_X11)
         mScr->set_max();  // Modif MPD TENTATIVE CORRECTION BUG REAFF
+#endif
         mCurIm->SetWAff(0);
     }
     mCurIm = 0;
@@ -273,7 +276,9 @@ void  cWinIm::SetNewImage(cImage * aIm)
     aIm->CptAff() = aCpt;
 
     // std::cout << "OLD " << mCurIm->Name() << " NEW " << aIm->Name() << "\n";
+#if (ELISE_X11)
     mScr->ReInitTifFile(aIm->Tif());
+#endif
     SetImage(aIm);
 }
 

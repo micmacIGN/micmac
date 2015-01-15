@@ -284,11 +284,29 @@ void SplitDirAndFile
            const std::string & aStr
      )
 {
+
+
+    // ======
     string strCpy = aStr;
 
     #if (ELISE_windows)
         replace( strCpy.begin(), strCpy.end(), '\\', '/' );
     #endif
+
+
+
+    // ====== Regle speciale, si on veut passer des argument de Type  NKS-Set-OfFile, on doit
+    // pouvoir specifier un split special, on le fait avec un #
+    {
+         std::string::size_type aPos  = strCpy.rfind('%');
+         if (aPos != std::string::npos)
+         {
+             aNameDir = strCpy.substr(0,aPos);
+             aNameFile = strCpy.substr(aPos+1,std::string::npos);
+             return;
+         }
+    }
+
 
     std::string::size_type aPos  = strCpy.rfind('/');
 

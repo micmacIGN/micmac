@@ -125,7 +125,7 @@ public:
     void    loadImages(QStringList, int *incre = NULL);
 
     //! Load image (and mask) file
-    void    loadImage(QString imgName, float scaleFactor);
+    void    loadImage(QString imgName);
 
     //void    reloadImage(int appMode, int aK);
     void    reloadMask(int appMode, int aK);
@@ -160,7 +160,7 @@ public:
 
     int     nbGLData(){return (int)_vGLData.size();}
 
-    void    computeScaleFactor(const QStringList &filenames, int appMode);
+    void    computeScaleFactor();
     bool    extGLIsSupported(const char *strExt);
     void    setGLMaxTextureSize(int size) { _glMaxTextSize = size; }
 
@@ -174,7 +174,6 @@ private:
     cParameters*        _params;
 
     int                 _glMaxTextSize;
-    float               _scaleFactor;
 };
 
 

@@ -36,8 +36,13 @@ EVOLUTIONS :
   * Masq 3D + util
   * Gestion du bras de levier en GPS
 
-  *  Bug Ortho ESA
-  * Correction autom auto rotation sur jpg
+  * Bug Ortho ESA
+  * Correction autom auto rotation sur jpg => NON
+  * Convert Calib
+  * Equation de rigidite
+
+  * DoAllDev
+  * Pipeline full auto => presque ...
 
 Torsion de bande : FAITS
 

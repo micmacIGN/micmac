@@ -237,7 +237,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mResolGlob     (0)
 
 {
-//  std::cout   << "WXCRT " << mSz << aParam.Image_Profondeur().Val().Image() << "\n";
+
 
 
     if (aParam.RepereGlob().IsInit())
@@ -535,6 +535,7 @@ Im2D_Bits<1>   cElNuage3DMaille::ImDef()
 {
    return mImDef;
 }
+
 
 Pt3dr  cElNuage3DMaille::Loc2Glob(const Pt3dr & aP) const
 {
@@ -1707,7 +1708,28 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 #endif
 
-
+void TestNuage(const cElNuage3DMaille * aNu,const std::string & aMes)
+{
+    int aCpt=0;
+    Pt2di aSz = aNu->SzUnique();
+    Pt2di aP;
+    Im2D_U_INT1 aIm(aSz.x,aSz.y,0);
+    TIm2D<U_INT1,INT> aTIm(aIm);
+    for ( aP.x=0 ; aP.x<aSz.x ; aP.x++)
+    {
+        for ( aP.y=0 ; aP.y<aSz.y ; aP.y++)
+        {
+             if (aNu->IndexHasContenu(aP))
+             {
+                aTIm.oset(aP,1);
+                aCpt++;
+             }
+        }
+    }
+    Tiff_Im::CreateFromIm(aIm,aMes+".tif");
+    std::cout << "TestNu "  << aMes << " Sz " << aNu->SzUnique() << " NbOk " << aCpt << "\n";
+    getchar();
+}
 
 cElNuage3DMaille *  BasculeNuageAutoReSize
                     (
@@ -1780,13 +1802,14 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    delete aParamIn;
 
 
-
    if (aNIn->IsEmpty())
    {
        return 0;
    }
 
     cElNuage3DMaille * aRes = aNOut->BasculeInThis(&aGeomOutOri,aNIn,true,anArgBasc.mDynEtir,0,0,-1,anArgBasc.mAutoResize,&aVAttrIm);
+
+
 
     if (anArgBasc.mDynEtir>0)
     {
@@ -1802,12 +1825,13 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        TIm2D<U_INT1,INT> aTImEtir(aImEt);
        Pt2di aSz = aImEt.sz();
        cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSz,0.0,1.0);
-       //cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSz,0.0,0.0);
+       // cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSz,0.0,1.0);
        Pt2di aP;
        double aSeuil = anArgBasc.mSeuilEtir;
 // aSeuil = 0.9;
 // std::cout << "SEUIILLL " << aSeuil << "\n";
        double aDynSeuil = 0.5 / ElMax(aSeuil,1-aSeuil);
+
 
        for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
        {
@@ -1874,12 +1898,16 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 /*
 */
 
-double DynProfInPixel(const cXML_ParamNuage3DMaille & aNuage)
+double Resol(const cXML_ParamNuage3DMaille & aNuage)
 {
    ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().OrIntImaM2C());
    ElAffin2D aC2M = aM2C.inv();
+   return (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
+}
 
-   double aSzPixel = (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
+double DynProfInPixel(const cXML_ParamNuage3DMaille & aNuage)
+{
+   double aSzPixel = Resol(aNuage);
 
    return (aSzPixel * aNuage.RatioResolAltiPlani().Val()) / (aNuage.Image_Profondeur().Val().ResolutionAlti());
 
@@ -1890,6 +1918,15 @@ double cElNuage3DMaille::DynProfInPixel() const
    return ::DynProfInPixel(Params());
 }
 
+
+double cElNuage3DMaille::SeuilDistPbTopo() const
+{
+   if (mAnam) 
+   {
+      return mAnam->SeuilDistPbTopo() / Resol(Params());
+   }
+   return 0;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -428,6 +428,8 @@ class Tiff_Im : public ElGenFileIm
      static Tiff_Im CreateFromFonc(const std::string &,Pt2di,Fonc_Num,GenIm::type_el);
      static Tiff_Im CreateFromFonc(const std::string &,Pt2di,Fonc_Num,GenIm::type_el,COMPR_TYPE);
 
+           Tiff_Im  Dupl(const std::string&); // Avec meme carac mais nom different
+
          static void SetDefTileFile(int);
          static int DefTileFile() ;
 

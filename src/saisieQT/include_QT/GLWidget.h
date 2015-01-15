@@ -90,7 +90,9 @@ public:
 
     int  getWindowMeanValue(QPoint pos, int r = 7); //pos = image position, r = half size of window
 
-    QRectF viewportToImageProjection();
+    void checkTiles(); //compute tiles if needed
+
+    void setZone(QRectF aRect);
 
 public slots:
 
@@ -160,7 +162,8 @@ protected:
     //! Current interaction mode (with mouse)
     int  m_interactionMode;
 
-    bool m_bFirstAction;
+    bool m_bFirstAction; //warning: false if mask is loaded
+    bool m_bMaskEdited;
 
     //! Data to display
     cGLData    *m_GLData;

@@ -95,6 +95,7 @@ cSurfaceOptimiseur::cSurfaceOptimiseur
 {
 
 
+
    for (int aK=0 ; aK<theDimPxMax ; aK++)
    {
       mCostRegul[aK] = mCostRegul_Quad[aK] = 0.0;
@@ -240,6 +241,7 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::Alloc
 
        case eAlgoMaxOfScore :
        case eAlgoLeastSQ :
+
             aRes = cSurfaceOptimiseur::AllocCoxMaxOfCorrel(mAppli,aLT,anEqX,anEqY);
        break;
 

@@ -39,6 +39,8 @@
           <Type Nb="1" Type="eTypePts"> </Type>
           <Name Nb="1" Type="std::string"> </Name>
           <P3D Nb="?" Type="Pt3dr"> </P3D>
+          <!-- Si pt de Dico, garde la memoire car P3D risque d'evoluer -->
+          <Pt3DFromDico Nb="?" Type="Pt3dr"> </Pt3DFromDico>
           <!-- Si un seul pointe 2D, il y a un point 3D comme predict, mais pas mesure a exporter -->
           <Mes3DExportable Nb="?"  Type="bool"> </Mes3DExportable>
           <Incert Nb="?" Type="Pt3dr"> </Incert>
@@ -125,6 +127,7 @@ pas interfere avec format utilisateur basique, on separe -->
               <ForceGray Nb="?" Type="bool" Def="false"> </ForceGray>
               <!-- the conventional value NONE is equiv to no orient -->
               <KeyAssocOri Nb="?" Type="std::string"> </KeyAssocOri>
+              <!-- Filter for visibility of points in image -->
         </SectionImages>
 
         <SectionTerrain Nb="1">
@@ -136,6 +139,8 @@ pas interfere avec format utilisateur basique, on separe -->
                  <ZMoyen Nb="?" Type="double"> </ZMoyen>
                  <ZMoyenInIma Nb="?" Type="std::string"> </ZMoyenInIma>
              </ProfEstimator>
+             <Masq3DFilterVis Nb="?" Type="std::string"> </Masq3DFilterVis>
+             <PIMsFilterVis Nb="?" Type="std::string">   </PIMsFilterVis>
         </SectionTerrain>
 
 

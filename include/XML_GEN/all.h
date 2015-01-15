@@ -137,6 +137,7 @@ const cMMUserEnvironment & MMUserEnv();
 
 extern const  std::string BLANK;
 
+class cMMByImNM;
 
 
 
@@ -899,16 +900,34 @@ class  cSetName
 
 class  cSetNameByAutom : public cSetName
 */
+
+class cLStrOrRegEx
+{
+    public :
+       //void Add(const std::string & aName);
+       //void Add(cElRegex * anAutom);
+       void  AddName(const std::string & aName,cInterfChantierNameManipulateur *anICNM);
+       cLStrOrRegEx();
+       bool AuMoinsUnMatch(const std::string & aName);
+       
+    private  :
+       std::set<std::string>     mSet;
+       std::list<cElRegex *>     mAutom;
+};
+
+
+
+
 class  cSetName
 {
       public :
           typedef cInterfChantierSetNC::tSet tSet;
           const tSet  * Get();
-      cSetName(cInterfChantierNameManipulateur *,const cSetNameDescriptor &);
-      bool SetBasicIsIn(const std::string & aName);
+          cSetName(cInterfChantierNameManipulateur *,const cSetNameDescriptor &);
+          bool SetBasicIsIn(const std::string & aName);
 
           // ce devrait etre SetBasicIsIn, mais par compat avec ce qui marche on ne change pas
-      bool IsSetIn(const std::string & aName);
+          bool IsSetIn(const std::string & aName);
 
           const cSetNameDescriptor & SND() const;
           cInterfChantierNameManipulateur * ICNM();
@@ -916,15 +935,18 @@ class  cSetName
           void setDir( const string &i_directory ) { mDir = i_directory; }
       private :
           void CompileDef();
+          void AddListName(cLStrOrRegEx & aLorReg,const std::list<std::string> & aLName,cInterfChantierNameManipulateur *anICNM);
 
-      bool mExtIsCalc;
-      bool mDefIsCalc;
+          void InternalAddList(const std::list<std::string> &);
+
+          bool mExtIsCalc;
+          bool mDefIsCalc;
           cInterfChantierNameManipulateur *          mICNM;
-      std::string                mDir;
-      cSetNameDescriptor         mSND;
-      cInterfChantierSetNC::tSet mRes;
-      std::list<cElRegex *>      mLA; // Accepteur
-      std::list<cElRegex *>      mLR; // Refuteur
+          std::string                mDir;
+          cSetNameDescriptor         mSND;
+          cInterfChantierSetNC::tSet mRes;
+          cLStrOrRegEx               mLA; // Accepteur
+          cLStrOrRegEx               mLR; // Refuteur
 
 };
 
@@ -1432,6 +1454,89 @@ class cAppliListIm
 // inline functions
 
 bool isUsingSeparateDirectories(){ return MMUserEnv().UseSeparateDirectories().Val(); }
+
+
+// === Gestionnaire de nom pour les fusions ===============
+
+typedef enum
+{
+    eTMIN_Depth,
+    eTMIN_Min,
+    eTMIN_Max,
+    eTMIN_Merge
+} eTypeMMByImNM;
+
+
+
+void MakeListofName(const std::string & aFile,const cInterfChantierNameManipulateur::tSet  *);
+void AddistofName(const std::string & aFile,const cInterfChantierNameManipulateur::tSet  *);
+
+
+class cMMByImNM
+{
+    public :
+
+        static cMMByImNM * ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch);
+        static cMMByImNM * ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm,const std::string & aNameMatch);
+
+        static cMMByImNM * FromExistingDirOrMatch(const std::string & aNameDirOriOrMatch,bool Svp,double aDS=1,const std::string & aDir0="./");
+
+        void DoDownScale(const std::string & aNameIm);
+        void PatDoDownScale(const std::string & aPat);
+
+
+        std::string NameFileMasq(eTypeMMByImNM,const std::string aNameIm);
+        std::string NameFileProf(eTypeMMByImNM,const std::string aNameIm);
+        std::string NameFileXml(eTypeMMByImNM,const std::string aNameIm);
+        std::string NameFileEntete(eTypeMMByImNM,const std::string aNameIm);
+        std::string NameFileLabel(eTypeMMByImNM,const std::string aNameIm);
+
+        void ModifIp(eTypeMMByImNM,cImage_Profondeur &,const std::string & aNameIm);
+
+        const std::string & FullDir() const;
+        const std::string & DirGlob() const;
+        const std::string & DirLoc() const;
+        const std::string & NameType() const;
+
+        void AddistofName(const cInterfChantierNameManipulateur::tSet  *);
+        const std::string & KeyFileLON() const;
+        const cEtatPims & Etat() const;
+        void  SetOriOfEtat(const std::string &) ;
+          
+        static bool  StrIsPImsDIr(const std::string &);
+        static std::string StdDirPims(double aDS, const std::string & aNameMatch);
+
+    private  :
+        cMMByImNM (double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix,const std::string &  aNameType) ;
+
+        static std::string NameOfType(eTypeMMByImNM);
+        std::string NameFileGlob(eTypeMMByImNM,const std::string aNameIm,const std::string aExt);
+        std::string NameFileLoc(eTypeMMByImNM,const std::string aNameIm,const std::string aExt);
+
+
+
+
+        double         mDS;
+        std::string    mDirGlob;
+        std::string    mDirLoc;
+        std::string    mPrefix;
+        std::string    mFullDir;
+        std::string    mNameFileLON;
+        std::string    mKeyFileLON;
+        std::string    mNameEtat;
+        cEtatPims      mEtats;
+        std::string    mNameType;
+
+        static const std::string TheNamePimsFile;
+        static const std::string TheNamePimsEtat;
+};
+
+bool IsMacType(eTypeMMByP aType);
+
+
+
+
+
 
 #endif   // _ELISE_XML_GEN_ALL_H
 

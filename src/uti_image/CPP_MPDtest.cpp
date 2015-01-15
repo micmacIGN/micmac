@@ -561,23 +561,13 @@ extern void getPastisGrayscaleFilename(const std::string & aParamDir, const stri
 extern void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName );
 
 
+
 int MPDtest_main (int argc,char** argv)
 {
 /*
    cCalibrationInterneRadiale aXmlDr;
    aXmlDr.CDist() = Pt2dr(3,4);
 */
-
-    cJPPTest aJPP;
-    aJPP.Name() =  "Jean-Pierre";
-    aJPP.LN().push_back(1);
-    aJPP.LN().push_back(2);
-    MakeFileXML(aJPP,"Test.xml");
-
-    
-    cJPPTest aJP2 = StdGetFromPCP("Test.xml",JPPTest);
-    std::cout << "NAME " << aJP2.Name() << "\n";
-    
 
 
 /*
@@ -610,7 +600,7 @@ int MPDtest_main (int argc,char** argv)
 
 }
 
-auto_ptr<char> toto;
+std_unique_ptr<char> toto;
 
 #endif
 

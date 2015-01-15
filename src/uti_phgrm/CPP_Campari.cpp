@@ -103,6 +103,7 @@ int Campari_main(int argc,char ** argv)
 
     int aDegAdd = 0;
     int aDegFree = 0;
+    int aDrMax = 0;
 
     ElInitArgMain
     (
@@ -126,7 +127,8 @@ int Campari_main(int argc,char ** argv)
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
                     << EAM(aDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
-                    << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters")
+                    << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters generiqs")
+                    << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
 
     );
 
@@ -194,6 +196,7 @@ int Campari_main(int argc,char ** argv)
         }
         if (aDegAdd>0)  aCom = aCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(aDegAdd);
         if (aDegFree>0)  aCom = aCom + " +DegGen=" +  ToString(aDegFree);
+        if (aDrMax>0)   aCom = aCom + " +DRMax=" +  ToString(aDrMax);
 
         if (EAMIsInit(&EmGPS))
         {

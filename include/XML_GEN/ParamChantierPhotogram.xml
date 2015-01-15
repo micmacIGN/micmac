@@ -18,10 +18,6 @@
 <Verbatim File=".h.cpp">
 // NO MORE
 </Verbatim>
-   <enum Name="eC3DC_Types">
-       <eC3DC_QuickMac>  </eC3DC_QuickMac>
-       <eC3DC_Statute>   </eC3DC_Statute>
-   </enum>
 
    <enum Name="eNewTypeMalt">
        <eTMalt_Ortho>     </eTMalt_Ortho>
@@ -42,8 +38,8 @@
            <eTT_FraserBasic> </eTT_FraserBasic>
            <eTT_FishEyeBasic> </eTT_FishEyeBasic>
            <eTT_FE_EquiSolBasic> </eTT_FE_EquiSolBasic>
-                   <eTT_RadGen7x2> </eTT_RadGen7x2>
-                   <eTT_RadGen11x2> </eTT_RadGen11x2>
+           <eTT_RadGen7x2> </eTT_RadGen7x2>
+           <eTT_RadGen11x2> </eTT_RadGen11x2>
            <eTT_RadGen15x2> </eTT_RadGen15x2>
            <eTT_RadGen19x2> </eTT_RadGen19x2>
            <eTT_NbVals> </eTT_NbVals>
@@ -54,6 +50,9 @@
        <eStatue>         </eStatue>
        <eTestIGN>        </eTestIGN>
        <eQuickMac>       </eQuickMac>
+       <eMicMac>         </eMicMac>
+       <eBigMac>         </eBigMac>
+       <eMTDTmp>         </eMTDTmp>  <!-- Internal, pour stocker les fusion temporaire entre Epi -->
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>
 
@@ -119,10 +118,9 @@
    </enum>
 
    <enum Name="eTypeSake">
-       <eGeomTer>    </eGeomTer>
-<!--  <eGeomIm>     </eGeomIm> -->
-       <eOrthoIm>    </eOrthoIm>
-       <eNbTypeVals> </eNbTypeVals>
+       <eDEM>           </eDEM>
+       <eOrthoIm>       </eOrthoIm>
+       <eNbTypeVals>    </eNbTypeVals>
    </enum>
 
    <enum Name="eModeGeomMNT">
@@ -1043,9 +1041,18 @@
          <AutoInverseBySym Nb="?"  Type="bool" Def="false"> </AutoInverseBySym>
    </AssocNameToName>
 
+
+   <EtatPims Nb="1" Class="true" ToReference="true" >
+         <NameOri Nb="?" Type="std::string"> </NameOri>
+   </EtatPims>
+
+   <ListOfName Nb="1" Class="true" ToReference="true" >
+        <Name Nb="*" Type="std::string"> </Name>
+   </ListOfName>
+
    <SetNameDescriptor  Nb="1" Class="true" ToReference="true" >
          <AddDirCur Nb="?" Type="bool" Def="true"> </AddDirCur>
-         <PatternAccepteur Nb="+" Type="std::string"> </PatternAccepteur>
+         <PatternAccepteur Nb="*" Type="std::string"> </PatternAccepteur>
          <PatternRefuteur Nb="*" Type="std::string">  </PatternRefuteur>
          <NivSubDir Nb="?" Type="int" Def="1">      </NivSubDir>
          <!-- Nom complet : si true la directory est incluse -->
@@ -1055,6 +1062,7 @@
          <!-- Permet d'ajouter des noms tels quels , sans qu'il
           existent en tant que fichiers -->
          <Name   Nb="*" Type="std::string"> </Name>
+         <NamesFileLON Nb="*" Type="std::string"> </NamesFileLON>
 
          <!-- Min Max :utiliser plutot Filter -->
          <Min Nb="?" Type="std::string"> </Min>

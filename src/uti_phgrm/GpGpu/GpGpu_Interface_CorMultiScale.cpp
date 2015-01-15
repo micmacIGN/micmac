@@ -1,4 +1,4 @@
-#include"GpGpu/GpGpu_Interface_Census.h"
+#include"GpGpu/GpGpu_Interface_CorMultiScale.h"
 
 
 dataCorrelMS::dataCorrelMS()
@@ -16,14 +16,27 @@ dataCorrelMS::dataCorrelMS()
     }
 }
 
+//#define unitTestCorMS
+
+void dataCorrelMS::unitT__CopyCoordInColor(uint2 sizeImage, float *dest)
+{
+    for (int y = 0; y < (int)sizeImage.y; ++y)
+        for (int x = 0; x < (int)sizeImage.x; ++x)
+            dest[to1D(x,y,sizeImage)] = 10000*x + y;
+}
+
 void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
 {
     _HostImage[id].ReallocIfDim(sizeImage,3);
     for (int tScale = 0; tScale < 3; tScale++)
     {
-        float ** source   = dataImage[tScale];
         float *  dest     = _HostImage[id].pLData(tScale);
+#ifndef  unitTestCorMS
+        float ** source   = dataImage[tScale];
         memcpy( dest , source[0],  size(sizeImage) * sizeof(float));
+#else
+        unitT__CopyCoordInColor(sizeImage,dest);
+#endif
     }
 }
 
@@ -112,18 +125,31 @@ void dataCorrelMS::dealloc()
 
 }
 
-void constantParameterCensus::transfertConstantCensus(const std::vector<std::vector<Pt2di> > &VV,
+void const_Param_Cor_MS::init(
+        const std::vector<std::vector<Pt2di> > &VV,
         const std::vector<double> &VPds,
-        int2 offset0,
-        int2 offset1,
-        ushort NbByPix,
-        float StepPix,
+        int2    offset0,
+        int2    offset1,
+        ushort  NbByPix,
+        float   StepPix,
+        float   nEpsilon,
+        float   AhDefCost,
+        float   SeuilHC,
+        float   SeuilBC,
+        bool    ModeMax,
+        bool    mdoMixte,
         ushort nbscale)
 {
 
     aNbScale    = nbscale;
     mNbByPix    = NbByPix;
     aStepPix    = StepPix;
+    anEpsilon   = nEpsilon;
+    mAhDefCost  = AhDefCost;
+    aSeuilHC    = SeuilHC;
+    aSeuilBC    = SeuilBC;
+    aModeMax    = ModeMax;
+    DoMixte     = mdoMixte;
 
     for (int s = 0; s < (int)VV.size(); ++s)
     {
@@ -131,7 +157,7 @@ void constantParameterCensus::transfertConstantCensus(const std::vector<std::vec
 
         const std::vector<Pt2di> &vv = VV[s];
         size_aVV[s] = vv.size();
-        aVPds[s] = VPds[s];
+        aVPds[s] = (float)VPds[s];
         anOff0 = offset0;
         anOff1 = offset1;
 
@@ -143,48 +169,46 @@ void constantParameterCensus::transfertConstantCensus(const std::vector<std::vec
     }
 }
 
-void constantParameterCensus::transfertTerrain(Rect zoneTerrain)
+void const_Param_Cor_MS::setTerrain(Rect zoneTerrain)
 {
     _zoneTerrain    = zoneTerrain;
     _dimTerrain     = _zoneTerrain.dimension();
-
     mDim3Cache      = make_uint3(_dimTerrain.x,_dimTerrain.y,aNbScale);
 }
 
-void constantParameterCensus::dealloc()
+void const_Param_Cor_MS::dealloc()
 {
     // TODO A Faire avec la liberation de symbole GPU
 }
 
-GpGpuInterfaceCensus::GpGpuInterfaceCensus():
+GpGpu_Interface_Cor_MS::GpGpu_Interface_Cor_MS():
     CSimpleJobCpuGpu(true)
 {
     freezeCompute();
 }
 
-GpGpuInterfaceCensus::~GpGpuInterfaceCensus()
+GpGpu_Interface_Cor_MS::~GpGpu_Interface_Cor_MS()
 {
     _dataCMS.dealloc();
     _cDataCMS.dealloc();
 }
 
-void GpGpuInterfaceCensus::jobMask()
+void GpGpu_Interface_Cor_MS::Job_Correlation_MultiScale()
 {
-    paramCencus2Device(_cDataCMS);   
+    paramCorMultiScale2Device(_cDataCMS);
     _dataCMS.syncDeviceData();
-    //LaunchKernelCorrelationCensusPreview(_dataCMS,_cDataCMS);
 
-    LaunchKernelCorrelationCensus(_dataCMS,_cDataCMS);
+    LaunchKernel__Correlation_MultiScale(_dataCMS,_cDataCMS);
 }
 
-void GpGpuInterfaceCensus::transfertImageAndMask(uint2 sI0, uint2 sI1, float ***dataImg0, float ***dataImg1, pixel **mask0, pixel **mask1)
+void GpGpu_Interface_Cor_MS::transfertImageAndMask(uint2 sI0, uint2 sI1, float ***dataImg0, float ***dataImg1, pixel **mask0, pixel **mask1)
 {
     _dataCMS.transfertImage(sI0,dataImg0,0);
     _dataCMS.transfertImage(sI1,dataImg1,1);
     _dataCMS.transfertMask(sI0,sI1,mask0,mask1);
 }
 
-void GpGpuInterfaceCensus::transfertParamCensus(
+void GpGpu_Interface_Cor_MS::init(
         Rect                                    terrain,
         const std::vector<std::vector<Pt2di> > &aVV,
         const std::vector<double>              &aVPds,
@@ -194,11 +218,26 @@ void GpGpuInterfaceCensus::transfertParamCensus(
         short                                 **mTabZMax,
         ushort                                  NbByPix,
         float                                   StepPix,
+        float                                   nEpsilon,
+        float                                   AhDefCost,
+        float                                   aSeuilHC,
+        float                                   aSeuilBC,
+        bool                                    aModeMax,
+        bool                                    DoMixte,
         ushort                                  nbscale)
-{
-    _cDataCMS.transfertConstantCensus(aVV,aVPds,offset0,offset1,NbByPix,StepPix);
+{   
+    _cDataCMS.init(aVV,aVPds,offset0,offset1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte);
+
     _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
-    _cDataCMS.transfertTerrain(terrain);
+    _cDataCMS.setTerrain(terrain);
+    _cDataCMS.maxDeltaZ = _dataCMS._maxDeltaZ;
+
     //_cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));
+}
+
+float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+{
+    float *pcost = _dataCMS._uCost.hostData.pData();
+    return pcost[to1D(pt,_dataCMS._uCost.hostData.GetDimension3D())];
 }
 

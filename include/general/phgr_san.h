@@ -104,6 +104,8 @@ class cInterfSurfaceAnalytique
     // troisiemme coordonnee (genre faisceau de normal)
      public :
 
+         virtual double SeuilDistPbTopo() const;
+
          // renvoie une surface identite, utile pour beneficier
          // de certaine fonction MicMac passant par l'interface
          static cInterfSurfaceAnalytique * Identite(double aZ); 
@@ -216,6 +218,7 @@ class cCylindreRevolution : public cInterfSurfaceAnalytique
       public :
 
         // UVL  = Teta *Ray,   Z   ,   R-R0
+         virtual double SeuilDistPbTopo() const;
 
          friend class cProjTore;
      // aPOnCyl fixe a la fois le rayon et le premier axe
@@ -315,6 +318,7 @@ class cProjTore : public cInterfSurfaceAnalytique
 {
      public :
         cProjTore(const cCylindreRevolution & aCyl,const Pt3dr & aPEuclDiamTor);
+        virtual double SeuilDistPbTopo() const;
    //   Euclidien <=> Torique
         Pt3dr E2UVL(const Pt3dr & aP) const;
         Pt3dr UVL2E(const Pt3dr & aP) const;

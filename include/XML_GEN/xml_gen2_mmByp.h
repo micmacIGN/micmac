@@ -156,9 +156,16 @@ class cAppliWithSetImage
 
     // Remplace la commande argc-argc par N command avec les image indiv, aNumPat est necessaire car peut varier (TestLib ou non)
       std::list<std::pair<std::string,std::string> > ExpandCommand(int aNumPat,std::string ArgSup,bool Exe=false);
-   protected :
+
+      static const int  TheFlagDev8BGray      = 1;
+      static const int  TheFlagDev16BGray     = 2;
+      static const int  TheFlagNoOri          = 4;  
+      static const int  TheFlagAcceptProblem  = 8;  
+      static const int  TheFlagDev8BCoul      = 16;
+      static const int  TheFlagDevXml         = 32;
   
       cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI="");
+   protected :
 
       void SaveCAWSI(const std::string & aName) ;
       bool CAWSI_AcceptIm(const std::string & aName) const;
@@ -171,10 +178,6 @@ class cAppliWithSetImage
       bool CpleHasMasterSelected(tSomAWSI* aS1,tSomAWSI* aS2) const;
 
 
-      static const int  TheFlagDev8BGray   = 1;
-      static const int  TheFlagDev16BGray  = 2;
-      static const int  TheFlagNoOri  = 4;  // ERREUR DE DEBUTANT FlagNoOri=3 !!!!
-      static const int  TheFlagAcceptProblem  = 8;  // ERREUR DE DEBUTANT FlagNoOri=3 !!!!
 
       tSomAWSI * ImOfName(const std::string & aName);
       bool ImIsKnown(const std::string & aName) const;
@@ -225,6 +228,7 @@ class cAppliWithSetImage
       double AltiMoy() const;
       cSetName *   mSetMasters;
       bool mCalPerIm;
+      double mPenPerIm;
       bool mModeHelp;
       std::string  mMasq3D;
 
@@ -266,6 +270,7 @@ class cPatOfName
         int mNb;
 };
 
+void DoAllDev(const std::string & aPat);
 
 
 #endif   // _ELISE_XML_GEN_MMBY_P_

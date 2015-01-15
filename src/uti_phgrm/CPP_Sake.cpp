@@ -57,7 +57,7 @@ class cAppliSake
     std::string   mImPat, mDir, mMaskIm, mDirMEC, mPyr, mDirOrtho, mModeOri, mOriFileExtension;
     double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho;
     int           mSzW, mZoomI, mZoomF;
-    bool          mCalcMEC, mEZA, mExe;
+    bool          mEZA, mExe, mCalcMosaO;
     std::string   mInstruct;
     std::string   mImgs;
     eTypeSake     mCorrelGeomType;
@@ -65,7 +65,7 @@ class cAppliSake
     bool          mModeHelp;
     cInterfChantierNameManipulateur * mICNM;
     const cInterfChantierNameManipulateur::tSet * mSetIm;
-    int           mNbIm, mNbStepsMEC;
+    int           mNbIm, mNbStepsQ;
     bool          mUseMastIm;
     std::string   mMastIm;
 };
@@ -84,12 +84,12 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mStepF            (0.5),
   mRegul            (0.2),
   mResolOrtho       (1.0),
-  mSzW              (1),
+  mSzW              (2),
   mZoomI            (32),
   mZoomF            (1),
-  mCalcMEC          (true),
-  mEZA              (false),
+  mEZA              (true),
   mExe              (true),
+  mCalcMosaO        (false),
   mUseMastIm        (false),
   mMastIm           ("")
 {
@@ -99,7 +99,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   {
     std::cout<<"MMVisualMode"<<std::endl;
     LArgMain LAM;
-    LAM << EAMC(mStrCorrelGeomType,"Correlation geometry",eSAM_None,ListOfVal(eNbTypeVals));
+    LAM << EAMC(mStrCorrelGeomType,"Correlation type",eSAM_None,ListOfVal(eNbTypeVals));
 
     std::vector <cMMSpecArg> aVA = LAM.ExportMMSpec();
 
@@ -108,8 +108,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
     list<string> liste_valeur_enum = listPossibleValues(aArg);
 
     QStringList items;
-    list<string>::iterator it=liste_valeur_enum.begin();
-    for (; it != liste_valeur_enum.end(); ++it)
+    for (list<string>::iterator it=liste_valeur_enum.begin(); it != liste_valeur_enum.end(); ++it)
       items << QString((*it).c_str());
 
     setStyleSheet(app);
@@ -142,170 +141,165 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   std::string       mModeGeomIm;
   std::string       mModeGeomMnt;
 
+  int aNbProcUsed = NbProcSys(); //number of cores used for computation
+
   ElInitArgMain
   (
     argc,argv,
     LArgMain()
-              << EAMC(mStrCorrelGeomType,"Correlation geometry (one of the allowed enumerated values)")
+              << EAMC(mStrCorrelGeomType,"Computation type (one of the allowed enumerated values)")
               << EAMC(mImPat,"Images' path (Directory+Pattern)", eSAM_IsPatFile)
-              << EAMC(mOriFileExtension,"Orientation file extension (Def=GRI)", eSAM_IsExistDirOri),
+              << EAMC(mOriFileExtension,"Orientation file extension (Def=GRI)"),
     LArgMain()
+              << EAM(mZMoy,"ZMoy",true,"Average value of Z (Def=1000.0)")
+              << EAM(mZInc,"ZInc",true,"Initial uncertainty on Z (Def=1000.0)")
               << EAM(mModeOri,"ModeOri", true, "Orientation type (GRID or RTO; Def=GRID)", eSAM_NoInit)
-              //<< EAM(mMastIm,"MasterIm",true,"Master image is mandatory if the correlation mode geometry is GeomIm", eSAM_IsExistFileRP)
-              << EAM(mMaskIm,"Mask",true,"Mask file")
+              << EAM(mMaskIm,"Mask",true,"Mask file", eSAM_IsExistFile)
               << EAM(mSzW,"SzW",true,"Correlation window size (Def=2, equiv 5x5)")
-              << EAM(mZMoy,"ZMoy",true,"Average value of Z (Def=1000.0) - mandatory parameter")
-              << EAM(mZInc,"ZInc",true,"Initial uncertainty on Z (Def=1000.0) - mandatory parameter")
               << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.2")
               << EAM(mStepF,"ZPas",true,"Quantification step (Def=0.5)")
-              //<< EAM(mZoomInit,"ZoomI",true,"Initial Zoom (Def=32)")//
               << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)")
               << EAM(aBoxClip,"BoxClip",true,"Define computation area (Def=[0,0,1,1] means full area) relative to image", eSAM_Normalize)
               << EAM(aBoxTer,"BoxTer",true,"Define computation area [Xmin,Ymin,Xmax,Ymax] relative to ground")
-              << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=false)", eSAM_IsBool)
-              << EAM(mExe,"Exe",true,"Execute command (Def=true)", eSAM_IsBool)
-              << EAM(mCalcMEC,"DoMEC",true,"Compute the matching (Def=true)", eSAM_IsBool)
-              << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/")
+              << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=true)", eSAM_IsBool)
+              << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/)")
               << EAM(mDirOrtho,"DirOrtho",true,"Orthos subdirectory if OrthoIm (Def=Ortho-${DirMEC})")
-              << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/")
+              << EAM(mCalcMosaO,"DoOrthoM",true,"Compute the ortho mosaic if OrthoIm (Def=false)", eSAM_IsBool)
+              << EAM(aNbProcUsed,"NbProc",true,"Number of cores used for computation (Def=MMNbProc)")
+              << EAM(mExe,"Exe",true,"Execute command (Def=true)", eSAM_IsBool)
   );
-
-
-#if (ELISE_windows)
-  replace(mImPat.begin(), mImPat.end(), '\\', '/' );
-#endif
-  SplitDirAndFile(mDir,mImgs,mImPat);
-
-
-  mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-  mSetIm = mICNM->Get(mImgs);
-  mNbIm = mSetIm->size();
-  ELISE_ASSERT((mNbIm>=2)|mUseMastIm,"Not enough images in pattern!!");
-
-  MakeFileDirCompl(mDirMEC);
-
-  if (mDirOrtho=="")
-    mDirOrtho = "Ortho-" + mDirMEC;
-  MakeFileDirCompl(mDirOrtho);
-
-  std::string aFileMM = "MM-Sake.xml";
-
-  //~ ShowParamVal();
-
-  mInstruct =  MM3dBinFile_quotes("MICMAC")
-            +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )
-            + std::string(" WorkDir=") + mDir
-            + std::string(" +ImPat=")  + QUOTE(mImgs)
-            + std::string(" +OriFileExt=")    + mOriFileExtension
-            + std::string(" +SzW=")    + ToString(mSzW)
-            + std::string(" +ZInc=") + ToString(mZInc)
-            + std::string(" +ZMoy=") + ToString(mZMoy)
-            + std::string(" +ZPasF=")    + ToString(mStepF)
-            + std::string(" +ZRegul=") + ToString(mRegul)
-            ;
-
-  if (mZoomF<mZoomI)
+  if (!MMVisualMode)
   {
-    if (log2(mZoomF)!=int(log2(mZoomF)))
+
+  #if (ELISE_windows)
+    replace(mImPat.begin(), mImPat.end(), '\\', '/' );
+  #endif
+    SplitDirAndFile(mDir,mImgs,mImPat);
+
+
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    mSetIm = mICNM->Get(mImgs);
+    mNbIm = mSetIm->size();
+    ELISE_ASSERT((mNbIm>=2)|mUseMastIm,"Not enough images in pattern!!");
+
+    MakeFileDirCompl(mDirMEC);
+
+    if (mDirOrtho=="")
+      mDirOrtho = "Ortho-" + mDirMEC;
+    MakeFileDirCompl(mDirOrtho);
+
+    std::string aFileMM = "MM-Sake.xml";
+
+
+    mInstruct =  MM3dBinFile_quotes("MICMAC")
+              +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )
+              + std::string(" WorkDir=") + mDir
+              + std::string(" +ImPat=")  + QUOTE(mImgs)
+              + std::string(" +OriFileExt=")    + mOriFileExtension
+              + std::string(" +SzW=")    + ToString(mSzW)
+              + std::string(" +ZInc=") + ToString(mZInc)
+              + std::string(" +ZMoy=") + ToString(mZMoy)
+              + std::string(" +ZPasF=")    + ToString(mStepF)
+              + std::string(" +ZRegul=") + ToString(mRegul)
+              ;
+
+    if (mZoomF<mZoomI)
     {
-      std::ostringstream err_mess;
-      err_mess<<"Incorrect value for ZoomF (must be a power of 2 and < ";
-      err_mess<<mZoomI<<")";
-      ELISE_ASSERT(false, err_mess.str().c_str());
-    }
-  }
-  else
-  {
-    ELISE_ASSERT(false, "Value for ZoomF too high");
-  }
-
-
-  //ELISE_ASSERT(EAMIsInit(&mModeOri), "ModeOri not given (mandatory param)");
-  ELISE_ASSERT(EAMIsInit(&mZMoy), "ZMoy not given (mandatory param)");
-  ELISE_ASSERT(EAMIsInit(&mZInc), "ZInc not given (mandatory param)");
-
-  if (mModeOri=="GRID")  mModeGeomIm="eGeomImageGrille";
-  else if (mModeOri=="RTO")  mModeGeomIm="eGeomImageRTO";
-  else  ELISE_ASSERT(false,"Unknown orientation mode (must be GRID or RTO)!");
-  mInstruct = mInstruct + std::string(" +ModeGeomIm=") + mModeGeomIm;
-
-  mModeGeomMnt="eGeomMNTEuclid";
-
-  mInstruct = mInstruct + std::string(" +ModeGeomMNT=") + mModeGeomMnt;
-
-
-  mInstruct = mInstruct + std::string(" +DirMEC=") + mDirMEC;
-
-  if (mStrCorrelGeomType=="OrthoIm")
-  {
-    mInstruct = mInstruct + std::string(" +CalcOrtho=true");
-    mInstruct = mInstruct + std::string(" +DirOrtho=") + mDirOrtho;
-  }
-
-  if (EAMIsInit(&mMaskIm))
-  {
-    std::string aNameMask;
-
-    ELISE_ASSERT(mDir==DirOfFile(mMaskIm),"Mask image not in working directory!!"); //mDir: mask's directory
-    SplitDirAndFile(mDir,aNameMask,mMaskIm); //mMaskIm: mask's full path (dir+name)
-    if (IsPostfixed(aNameMask)) aNameMask = StdPrefixGen(aNameMask); //aNameMask: mask's filename without postfix
-
-
-    mInstruct =  mInstruct + " +UseMask=true"
-              + std::string(" +Mask=")  + aNameMask;
-  }
-
-  if (EAMIsInit(&aBoxClip))
-  {
-    if ((aBoxClip._p0.x<0) || (aBoxClip._p0.x>1) ||
-        (aBoxClip._p0.y<0) || (aBoxClip._p0.y>1) ||
-        (aBoxClip._p1.x<0) || (aBoxClip._p1.x>1) ||
-        (aBoxClip._p1.y<0) || (aBoxClip._p1.y>1))
-    {
-      std::ostringstream err_mess;
-      err_mess<<"Incorrect values for BoxClip=["
-              <<aBoxClip._p0.x<<","
-              <<aBoxClip._p0.y<<","
-              <<aBoxClip._p1.x<<","
-              <<aBoxClip._p1.y
-              <<"] - not normalized values!";
-      ELISE_ASSERT(false, err_mess.str().c_str());
+      if (log2(mZoomF)!=int(log2(mZoomF)))
+      {
+        std::ostringstream err_mess;
+        err_mess<<"Incorrect value for ZoomF (must be a power of 2 and < ";
+        err_mess<<mZoomI<<")";
+        ELISE_ASSERT(false, err_mess.str().c_str());
+      }
     }
     else
     {
-      mInstruct = mInstruct + " +UseClip=true "
-              +  std::string(" +X0Clip=") + ToString(aBoxClip._p0.x)
-              +  std::string(" +Y0Clip=") + ToString(aBoxClip._p0.y)
-              +  std::string(" +X1Clip=") + ToString(aBoxClip._p1.x)
-              +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
+      ELISE_ASSERT(false, "Value for ZoomF too high");
     }
+
+
+    if (mModeOri=="GRID")  mModeGeomIm="eGeomImageGrille";
+    else if (mModeOri=="RTO")  mModeGeomIm="eGeomImageRTO";
+    else  ELISE_ASSERT(false,"Unknown orientation mode (must be GRID or RTO)!");
+    mInstruct = mInstruct + std::string(" +ModeGeomIm=") + mModeGeomIm;
+
+    mModeGeomMnt="eGeomMNTEuclid";
+
+    mInstruct = mInstruct + std::string(" +ModeGeomMNT=") + mModeGeomMnt;
+
+
+    mInstruct = mInstruct + std::string(" +DirMEC=") + mDirMEC;
+
+    if (mStrCorrelGeomType=="OrthoIm")
+    {
+      mInstruct = mInstruct + std::string(" +CalcOrtho=true")
+                    + std::string(" +DirOrtho=") + mDirOrtho
+                    + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
+                    + std::string(" +CalcMosaO=") + (mCalcMosaO ? "true" : "false");
+    }
+
+    if (EAMIsInit(&mMaskIm))
+    {
+      std::string aNameMask;
+
+      ELISE_ASSERT(mDir==DirOfFile(mMaskIm),"Mask image not in working directory!!"); //mDir: mask's directory
+      SplitDirAndFile(mDir,aNameMask,mMaskIm); //mMaskIm: mask's full path (dir+name)
+      if (IsPostfixed(aNameMask)) aNameMask = StdPrefixGen(aNameMask); //aNameMask: mask's filename without postfix
+
+
+      mInstruct =  mInstruct + " +UseMask=true"
+                + std::string(" +Mask=")  + aNameMask;
+    }
+
+    if (EAMIsInit(&aBoxClip))
+    {
+      if ((aBoxClip._p0.x<0) || (aBoxClip._p0.x>1) ||
+          (aBoxClip._p0.y<0) || (aBoxClip._p0.y>1) ||
+          (aBoxClip._p1.x<0) || (aBoxClip._p1.x>1) ||
+          (aBoxClip._p1.y<0) || (aBoxClip._p1.y>1))
+      {
+        std::ostringstream err_mess;
+        err_mess<<"Incorrect values for BoxClip=["
+                <<aBoxClip._p0.x<<","
+                <<aBoxClip._p0.y<<","
+                <<aBoxClip._p1.x<<","
+                <<aBoxClip._p1.y
+                <<"] - not normalized values!";
+        ELISE_ASSERT(false, err_mess.str().c_str());
+      }
+      else
+      {
+        mInstruct = mInstruct + " +UseClip=true "
+                +  std::string(" +X0Clip=") + ToString(aBoxClip._p0.x)
+                +  std::string(" +Y0Clip=") + ToString(aBoxClip._p0.y)
+                +  std::string(" +X1Clip=") + ToString(aBoxClip._p1.x)
+                +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
+      }
+    }
+
+    if (EAMIsInit(&aBoxTer))
+    {
+      mInstruct = mInstruct + " +UseBoxTer=true "
+                +  std::string(" +X0Ter=") + ToString(aBoxTer._p0.x)
+                +  std::string(" +Y0Ter=") + ToString(aBoxTer._p0.y)
+                +  std::string(" +X1Ter=") + ToString(aBoxTer._p1.x)
+                +  std::string(" +Y1Ter=") + ToString(aBoxTer._p1.y) ;
+    }
+
+    mNbStepsQ = 2 + round_ni(log2(mZoomI/mZoomF)) + 1;
+
+    mInstruct = mInstruct + std::string(" +EZA=") + (mEZA ? "true" : "false")
+                          + std::string(" +ZoomF=") + ToString(mZoomF)
+                          + std::string(" +NbStepsQ=") + ToString(mNbStepsQ)
+                          + std::string(" +Exe=") + (mExe ? "true" : "false")
+                          + std::string(" +NbProc=") + ToString(aNbProcUsed)
+                          ;
+
+    ShowParamVal();
+
+    std::cout<<mInstruct<<std::endl;
   }
-
-  if (EAMIsInit(&aBoxTer))
-  {
-    mInstruct = mInstruct + " +UseBoxTer=true "
-              +  std::string(" +X0Ter=") + ToString(aBoxTer._p0.x)
-              +  std::string(" +Y0Ter=") + ToString(aBoxTer._p0.y)
-              +  std::string(" +X1Ter=") + ToString(aBoxTer._p1.x)
-              +  std::string(" +Y1Ter=") + ToString(aBoxTer._p1.y) ;
-  }
-
-  mNbStepsMEC = 1 + round_ni(log2(mZoomI/mZoomF)) +1; // number of MEC steps (if no duplicate of zoom)
-
-  mInstruct = mInstruct + std::string(" +CalcMEC=") + (mCalcMEC ? "true" : "false")
-                        + std::string(" +EZA=") + (mEZA ? "true" : "false")
-                        + std::string(" +ZoomF=") + ToString(mZoomF)
-                        + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
-                        + std::string(" +NbSteps=") + ToString(mNbStepsMEC)
-                        + std::string(" +Exe=") + (mExe ? "true" : "false")
-                        ;
-
-  ShowParamVal();
-
-  std::cout<<"** "<<mInstruct<<" **"<<std::endl;
-
-
-
 }
 
 int cAppliSake::Exe()
@@ -327,15 +321,11 @@ void cAppliSake::InitDefValFromType()
 {
   switch (mCorrelGeomType)
   {
-    case eGeomTer:
-      mSzW = 2;
-      mRegul = 0.05;
+    case eDEM:
       mZoomF = 1;
       break;
 
      case eOrthoIm :
-      mSzW = 2;
-      mRegul = 0.2;
       mZoomF = 2;
       break;
 
@@ -347,15 +337,15 @@ void cAppliSake::InitDefValFromType()
 
 void cAppliSake::ShowParamVal()
 {
+  std::cout << "******************************************************"<<std::endl;
   std::cout << "********** SAKE - SAtellite Kit for Elevation ********" << std::endl;
   std::cout << "********************Parameters************************" << std::endl;
-  std::cout << "*   Correl geometry: "<< mStrCorrelGeomType << std::endl;
+  std::cout << "*   Correl type: "<< mStrCorrelGeomType << std::endl;
   std::cout << "*   Number of images: " << mNbIm << std::endl;
   std::cout << "*   Correl window size: " << 2*mSzW+1 << "x"  << 2*mSzW+1 << " (SzW=" << mSzW << ")" << std::endl;
-  std::cout << "*   Correl step: " << mStepF << std::endl;
   std::cout << "*   Regularization term: " << mRegul << std::endl;
   std::cout << "*   Final DeZoom MEC: " << mZoomF << std::endl;
-  std::cout << "*   Number of correlation steps: " << mNbStepsMEC << std::endl;
+  std::cout << "*   Number of correlation steps: " << mNbStepsQ+1 << std::endl;
   std::cout << "*   MEC subdirectory: " << mDirMEC << std::endl;
   if (mStrCorrelGeomType=="OrthoIm")
   {
@@ -376,9 +366,9 @@ int Sake_main(int argc,char ** argv)
 
 
 
-/*Footer-MicMac-eLiSe-25/06/2007
+/* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �   la mise en
+Ce logiciel est un programme informatique servant à la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -394,17 +384,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement, �   l'utilisation,  �   la modification et/ou au
-développement et �   la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �   des développeurs et des professionnels
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+manipuler et qui le réserve donc à des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �   leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�   l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+Footer-MicMac-eLiSe-25/06/2007/*/

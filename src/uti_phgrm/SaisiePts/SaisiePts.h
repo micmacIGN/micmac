@@ -72,6 +72,8 @@ class cSP_PointeImage
         cSP_PointGlob * Gl();
         bool  & Visible() ;
         bool BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2);
+
+        // void ReestimVisibilite(const Pt3dr & aPTer,bool Masq3DVis);
 private :
          cSP_PointeImage(const cSP_PointeImage &); // N.I.
 
@@ -86,6 +88,10 @@ private :
 class cSP_PointGlob
 {
      public:
+          bool Has3DValue() const;
+          Pt3dr Best3dEstim() const ; // Erreur si pas de Has3DValue
+          // void ReestimVisibilite();
+
           cSP_PointGlob(cAppli_SaisiePts &,cPointGlob * aPG);
           cPointGlob * PG();
           void AddAPointe(cSP_PointeImage *);
@@ -146,8 +152,15 @@ class cImage
         void UpdateMapPointes(const std::string aName);
         bool Visualizable() const;
 
+        void SetMemoLoaded();
+        void SetLoaded();
+        void OnModifLoad();
+
+        bool PIMsValideVis(const Pt3dr &) ;
+
      private :
 
+           bool PIMsValideVis(const Pt3dr &,cElNuage3DMaille * aEnv,bool aMin) ;
            cAppli_SaisiePts &                        mAppli;
 
            std::string                               mName;
@@ -165,6 +178,11 @@ class cImage
            bool                                      mInitCamNDone;
            int                                       mCptAff;
            bool                                      mVisualizable;
+
+           cElNuage3DMaille *                        mEnvMinVisib;
+           cElNuage3DMaille *                        mEnvMaxVisib;
+           bool                                      mLastLoaded;
+           bool                                      mCurLoaded;
 };
 
 typedef cImage * tImPtr;
@@ -266,8 +284,6 @@ private :
     CaseGPUMT *             mCaseMin5;
     CaseGPUMT *             mCaseMax3;
     CaseGPUMT *             mCaseMax5;
-
-
 };
 
 class cUndoRedo
@@ -304,6 +320,7 @@ class cCaseNamePoint
 class cVirtualInterface
 {
     public:
+     vector<cImage *>           ComputeNewImagesPriority(cSP_PointGlob *pg, bool aUseCpt);
 
     cVirtualInterface(){}
     ~cVirtualInterface(){}
@@ -388,7 +405,6 @@ protected:
 
     cImage *                    CImageVis(int idCimg);
 
-     vector<cImage *>           ComputeNewImagesPriority(cSP_PointGlob *pg, bool aUseCpt);
 
 };
 
@@ -401,10 +417,17 @@ public :
 
     bool operator ()(const tImPtr & aI1,const tImPtr & aI2)
     {
-        if (mIntf->isDisplayed(aI2) && (! mIntf->isDisplayed(aI1)))
-            return true;
-        if (mIntf->isDisplayed(aI1) && (! mIntf->isDisplayed(aI2)))
-            return false;
+/*
+   MPD : Inutile, c'est le mode RollW qui gere cela (et dans ce cas les image les plus anciennes
+         sont prioritaire 
+        if (mIntf)
+        {
+            if (mIntf->isDisplayed(aI2) && (! mIntf->isDisplayed(aI1)))
+                return true;
+            if (mIntf->isDisplayed(aI1) && (! mIntf->isDisplayed(aI2)))
+                return false;
+         }
+*/
 
         if (aI1->Prio() > aI2->Prio()) return true;
         if (aI1->Prio() < aI2->Prio()) return false;
@@ -563,6 +586,8 @@ class cAppli_SaisiePts
     void                SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCpt);
 
     void                SortImages(std::vector<cImage *> &images);
+    void OnModifLoadedImage();
+    cMMByImNM *                       PIMsFilter();
 
 private :
 
@@ -574,7 +599,7 @@ private :
          void InitImages();
 
          void InitInPuts();
-         void AddOnePGInImage(cSP_PointGlob * aSPG,cImage & anI);
+         void AddOnePGInImage(cSP_PointGlob * aSPG,cImage & anI,bool WithP3D,const Pt3dr & aP3d,bool InMasq3D);
 
 
          void InitPG();
@@ -614,7 +639,8 @@ private :
          Pt2di                             mDecRech;
          Im2D_INT4                         mImRechVisu;
          Im2D_INT4                         mImRechAlgo;
-
+         cMasqBin3D *                      mMasq3DVisib;
+         cMMByImNM *                       mPIMsFilter;
 };
 
 

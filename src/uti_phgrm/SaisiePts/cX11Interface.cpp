@@ -67,6 +67,9 @@ cX11_Interface::~cX11_Interface()
 
 void cX11_Interface::Init()
 {
+
+//SetImagesPriority(0,);
+
     InitNbWindows();
 
     Pt2di aSzF =  mParam->SectionWindows().SzTotIm().Val().dcbyc(mNb2W);;

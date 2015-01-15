@@ -42,12 +42,8 @@ typedef unsigned char pixel;
 #define DEVC_Data2Opti Data2Optimiz<CuDeviceData3D>
 
 
-
-
-
-
 template<class T>
-void dump_Type(T var)
+__device__ __host__ inline void dump_Type(T var)
 {
 
     printf("Warning dump var not define for this type\n");
@@ -55,67 +51,84 @@ void dump_Type(T var)
 }
 
 template<>
-inline void dump_Type<uint2>(uint2 var)
+__device__ __host__ inline void dump_Type<uint2>(uint2 var)
 {
     printf("[%u,%u]\n",var.x,var.y);
 }
 
 template<>
-inline void dump_Type<int2>(int2 var)
+__device__ __host__ inline void dump_Type<uint3>(uint3 var)
+{
+    printf("[%u,%u,%u]\n",var.x,var.y,var.z);
+}
+
+template<>
+__device__ __host__ inline void dump_Type<int2>(int2 var)
 {
     printf("[%d,%d]\n",var.x,var.y);
 }
 
 template<>
-inline void dump_Type<uint>(uint var)
+__device__ __host__ inline void dump_Type<uint>(uint var)
 {
     printf("%u\n",var);
 }
 
 template<>
-inline void dump_Type<int>(int var)
+__device__ __host__ inline void dump_Type<ushort>(ushort var)
+{
+    printf("%u\n",var);
+}
+
+template<>
+__device__ __host__ inline void dump_Type<int>(int var)
 {
     printf("%d\n",var);
 }
 
 template<>
-inline void dump_Type<float2>(float2 var)
+__device__ __host__ inline void dump_Type<float2>(float2 var)
 {
     printf("[%f,%f]\n",var.x,var.y);
 }
 
 template<>
-inline void dump_Type<float>(float var)
+__device__ __host__ inline void dump_Type<float>(float var)
 {
     printf("%f\n",var);
 }
 
 template<>
-inline void dump_Type<double>(double var)
+__device__ __host__ inline void dump_Type<double>(double var)
 {
     printf("%f\n",var);
 }
 
 template<>
-inline void dump_Type<bool>(bool var)
+__device__ __host__ inline void dump_Type<bool>(bool var)
 {
     printf("%s\n",var ? "true" : "false");
 }
 
 template<>
-inline void dump_Type<const char*>(const char* var)
+__device__ __host__ inline void dump_Type<const char*>(const char* var)
 {
     printf("%s\n",var);
 }
 
 
-template<class T>
+template<class T> __device__ __host__ inline
 void dump_variable(T var,const char* nameVariable)
 {
     printf("%s\t= \t",nameVariable);
     dump_Type(var);
 }
 
+template<> __device__ __host__ inline
+void dump_variable(const char* var,const char* nameVariable)
+{
+    dump_Type(var);
+}
 
 #define DUMP(varname) dump_variable(varname,#varname);
 #define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
