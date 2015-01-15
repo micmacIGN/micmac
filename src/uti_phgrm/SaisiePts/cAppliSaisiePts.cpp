@@ -192,16 +192,16 @@ cImage *cVirtualInterface::CImageVis(int idCimg)
 
 vector<cImage *> cVirtualInterface::ComputeNewImagesPriority(cSP_PointGlob *pg,bool aUseCpt)
 {
+
+    mAppli->SetImagesPriority(pg, aUseCpt);
+    vector<cImage *> images = mAppli->imagesVis();
+    mAppli->SortImages(images);
+
+
     for (int aK=0 ; aK<int(mAppli->imagesVis().size()) ; aK++)
     {
          mAppli->imagesVis()[aK]->SetMemoLoaded();
     }
-
-    mAppli->SetImagesPriority(pg, aUseCpt);
-
-    vector<cImage *> images = mAppli->imagesVis();
-
-    mAppli->SortImages(images);
 
     return images;
 }
@@ -339,25 +339,44 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     mSzRech     (100,100),
     mImRechVisu (mSzRech.x,mSzRech.y),
     mImRechAlgo (mSzRech.x,mSzRech.y),
-    mMasq3DVisib(0)
+    mMasq3DVisib(0),
+    mPIMsFilter   (0)
 {
     if (mParam.Masq3DFilterVis().IsInit())
     {
        mMasq3DVisib = cMasqBin3D::FromSaisieMasq3d(mDC+mParam.Masq3DFilterVis().Val());
     }
+
+
+    if (mParam.PIMsFilterVis().IsInit())
+    {
+       mPIMsFilter = cMMByImNM::FromExistingDirOrMatch(mParam.PIMsFilterVis().Val(),false,1.0,mICNM->Dir());
+    }
+
     Tiff_Im::SetDefTileFile(100000);
 
     InitImages();
     InitInPuts();
 
+
+
 #if (ELISE_X11)
     if(instanceInterface)
     {
+        SetImagesPriority(0,false);
+        SortImages(mImagesVis);
         mInterface = new cX11_Interface(*this);
         mInterface->Init();
+        OnModifLoadedImage();
     }
 #endif
 
+}
+
+
+cMMByImNM *  cAppli_SaisiePts::PIMsFilter ()
+{
+    return mPIMsFilter;
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }
@@ -684,6 +703,17 @@ void cAppli_SaisiePts::AddOnePGInImage
             {
                 OkInIm = false;
             }
+
+            if (OkInIm && mMasq3DVisib)
+            {
+                ElSeg3D   aSeg = aCapt3D->Capteur2RayTer(aPIm);
+                double anA = aSeg.AbscOfProj(aP3d);
+                int aNb=50;
+                for (int aK=aNb; (aK>=0) && (OkInIm) ; aK--)
+                {
+                    OkInIm = mMasq3DVisib->IsInMasq(aSeg.PtOfAbsc((anA*aK)/aNb));
+                }
+            }
         }
     }
 
@@ -957,13 +987,19 @@ void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCp
 
 void cAppli_SaisiePts::SortImages(std::vector<cImage *> &images)
 {
+/*
+std::cout << "SOOiiiII " << images.size() << "\n";
+for (int aK=0 ; aK<int(images.size()) ; aK++)
+{
+    std::cout << "iiiKKkk " << images[aK] << "\n";
+}
+*/
     cCmpIm aCmpIm(mInterface);
     std::sort(images.begin(),images.end(),aCmpIm);
 }
 
 void cAppli_SaisiePts::OnModifLoadedImage()
 {
-std::cout << "AAAA cAppli_SaisiePts::OnModifLoadedImage " << mImagesVis.size() << "\n";
     for (int aK=0 ; aK<int(mImagesVis.size()) ; aK++)
     {
          mImagesVis[aK]->OnModifLoad();

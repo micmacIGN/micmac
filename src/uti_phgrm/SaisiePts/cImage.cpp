@@ -86,13 +86,41 @@ void cImage::OnModifLoad()
 
    if (mCurLoaded)
    {
-       std::cout << "LOAD " << mName << "\n";
+      cMMByImNM * aMMI =   mAppli.PIMsFilter ();
+      if (aMMI)
+      {
+           std::string aNameMin = aMMI->NameFileXml(eTMIN_Min,mName);
+           std::string aNameMax = aMMI->NameFileXml(eTMIN_Max,mName);
+           mEnvMinVisib = cElNuage3DMaille::FromFileIm(aNameMin);
+           mEnvMaxVisib = cElNuage3DMaille::FromFileIm(aNameMax);
+
+           // std::cout << "NNNNNNN " << aNameMin << " " << aNameMax << "\n";
+      }
    }
    else
    {
-       std::cout << "UNLOAD " << mName << "\n";
+       delete mEnvMinVisib;
+       delete mEnvMaxVisib;
+       mEnvMinVisib =0;
+       mEnvMaxVisib =0;
    }
 }
+
+bool  cImage::PIMsValideVis(const Pt3dr &,cElNuage3DMaille * aEnv,bool aMin) 
+{
+   if (aEnv==0) return true;
+
+
+   return true;
+}
+
+
+bool cImage::PIMsValideVis(const Pt3dr & aP) 
+{
+    return    PIMsValideVis(aP,mEnvMinVisib,true) 
+           && PIMsValideVis(aP,mEnvMaxVisib,false);
+}
+
 
 bool  cImage::Visualizable() const
 {
@@ -260,7 +288,7 @@ double  cImage::CalcPriority(cSP_PointGlob * aPP,bool UseCpt) const
 
    if (UseCpt)
    {
-       aRes = aRes - mCptAff * 1e8;
+       aRes = aRes - mCptAff * 1e7 - mCurLoaded*1e10;
    }
 
    return aRes;

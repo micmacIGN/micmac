@@ -95,8 +95,26 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
     
     if (verbose) std::cout << "minC : "<<minC<<" maxC : "<<maxC<<std::endl;
     if (verbose) std::cout << "minL : "<<minL<<" maxL : "<<maxL<<std::endl;
+    
+    if ((minC>=maxC)||(minL>=maxL))
+    {
+        std::cout << "Zone de taille nulle : "<<minC<<" "<<maxC<<" "<<minL<<" "<<maxL<<std::endl;
+        for(int l=0;l<_nl;++l)
+        {
+            int ll = l*_pas;
+            for(int c=0;c<_nc;++c)
+            {
+                (*ptrReponse) = 0.;
+                (*ptrSigLap) = 1;
+                    
+                ++ptrReponse;
+                ++ptrSigLap;
+            }
+        }
+        return;
+    }
 	
-    for(int l=/*minL+1*/0;l</*maxL-1*/_nl;++l)
+    for(int l=0;l<_nl;++l)
     {
         int ll = l*_pas;
         if ((ll<minL)||(ll>=maxL))
@@ -191,64 +209,6 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
                 ((*ptrDxy2a1) + (*ptrDxy2b2) - (*ptrDxy2a2) - (*ptrDxy2b1))-
                 ((*ptrDxy3a1) + (*ptrDxy3b2) - (*ptrDxy3a2) - (*ptrDxy3b1))-
                 ((*ptrDxy4a1) + (*ptrDxy4b2) - (*ptrDxy4a2) - (*ptrDxy4b1));
-                
-                // Verification
-                if (verbose)
-                {
-                    // Position dans l'image
-                    int ll = l*_pas;
-                    int cc = c*_pas;
-                    double DxxV =
-                    Surf::integraleBoite(imageIntegrale,   cc-m,       ll-_lobe+1, _taille_filtre,     2*_lobe-1)
-                    -Surf::integraleBoite(imageIntegrale,   cc-_lobe/2, ll-_lobe+1, _lobe,              2*_lobe-1)*3;
-                    double DyyV =
-                    Surf::integraleBoite(imageIntegrale,   cc-_lobe+1, ll-m,       2*_lobe-1,          _taille_filtre)
-                    -Surf::integraleBoite(imageIntegrale,   cc-_lobe+1, ll-_lobe/2, 2*_lobe-1,          _lobe)*3;
-                    double DxyV =
-                    Surf::integraleBoite(imageIntegrale,   cc+1,       ll-_lobe,   _lobe,              _lobe)
-                    +Surf::integraleBoite(imageIntegrale,   cc-_lobe,   ll+1,       _lobe,              _lobe)
-                    -Surf::integraleBoite(imageIntegrale,   cc-_lobe,   ll-_lobe,   _lobe,              _lobe)
-                    -Surf::integraleBoite(imageIntegrale,   cc+1,       ll+1,       _lobe,              _lobe);
-                    std::cout << "Verification Dxx "<<Dxx<<" "<<DxxV<<std::endl;
-                    /*
-					 std::cout << "v1 : "<<(*ptrDxx1a1)<<" "<<(*ptrDxx1b2)<<" "<<(*ptrDxx1a2)<<" "<<(*ptrDxx1b1)<<std::endl;
-					 std::cout << "v1 : "<<(*ptrDxx2a1)<<" "<<(*ptrDxx2b2)<<" "<<(*ptrDxx2a2)<<" "<<(*ptrDxx2b1)<<std::endl;
-					 std::cout << "v2 : "<<imageIntegrale(cc-m-1,ll-_lobe)<<" "<<imageIntegrale(cc-m-1+_taille_filtre,ll-_lobe+2*_lobe-1)<<" "<<imageIntegrale(cc-m-1+_taille_filtre,ll-_lobe)<<" "<<imageIntegrale(cc-m-1,ll-_lobe+2*_lobe-1)<<std::endl;
-					 std::cout << "v2 : "<<imageIntegrale(cc-_lobe/2-1,ll-_lobe)<<" "<<imageIntegrale(cc-_lobe/2-1+_lobe,ll-_lobe+2*_lobe-1)<<" "<<imageIntegrale(cc-_lobe/2-1+_lobe,ll-_lobe)<<" "<<imageIntegrale(cc-_lobe/2-1,ll-_lobe+2*_lobe-1)<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxx1a1) + (*ptrDxx1b2) - (*ptrDxx1a2) - (*ptrDxx1b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxx2a1) + (*ptrDxx2b2) - (*ptrDxx2a2) - (*ptrDxx2b1))<<std::endl;
-					 std::cout << "v2 : "<< Surf::integraleBoite(imageIntegrale,   cc-m,       ll-_lobe+1, _taille_filtre,     2*_lobe-1)<<std::endl;
-					 std::cout << "v2 : "<< Surf::integraleBoite(imageIntegrale,   cc-_lobe/2, ll-_lobe+1, _lobe,              2*_lobe-1)<<std::endl;
-					 */
-                    std::cout << "Verification Dyy "<<Dyy<<" "<<DyyV<<std::endl;
-                    /*
-					 std::cout << "v1 : "<<(*ptrDyy1a1)<<" "<<(*ptrDyy1b2)<<" "<<(*ptrDyy1a2)<<" "<<(*ptrDyy1b1)<<std::endl;
-					 std::cout << "v1 : "<<(*ptrDyy2a1)<<" "<<(*ptrDyy2b2)<<" "<<(*ptrDyy2a2)<<" "<<(*ptrDyy2b1)<<std::endl;
-					 std::cout << "v2 : "<<imageIntegrale(cc-_lobe,ll-m-1)<<" "<<imageIntegrale(cc+_lobe-1,ll-m-1+_taille_filtre)<<" "<<imageIntegrale(cc+_lobe-1,ll-m-1)<<" "<<imageIntegrale(cc-_lobe,ll-m-1+_taille_filtre)<<std::endl;
-					 std::cout << "v2 : "<<imageIntegrale(cc-_lobe,ll-_lobe/2-1)<<" "<<imageIntegrale(cc+_lobe-1,ll+_lobe-_lobe/2-1)<<" "<<imageIntegrale(cc+_lobe-1,ll-_lobe/2-1)<<" "<<imageIntegrale(cc-_lobe,ll+_lobe-_lobe/2-1)<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDyy1a1) + (*ptrDyy1b2) - (*ptrDyy1a2) - (*ptrDyy1b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDyy2a1) + (*ptrDyy2b2) - (*ptrDyy2a2) - (*ptrDyy2b1))<<std::endl;
-					 std::cout << "v2 : "<< Surf::integraleBoite(imageIntegrale,   cc-_lobe+1, ll-m,       2*_lobe-1,          _taille_filtre,true)<<std::endl;
-					 std::cout << "v2 : "<< Surf::integraleBoite(imageIntegrale,   cc-_lobe+1, ll-_lobe/2, 2*_lobe-1,          _lobe,true)<<std::endl;
-					 */
-                    
-					 std::cout << "Verification Dxy "<<Dxy<<" "<<DxyV<<std::endl;
-					/* 
-					std::cout << "v1 : "<<((*ptrDxy1a1) + (*ptrDxy1b2) - (*ptrDxy1a2) - (*ptrDxy1b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxy2a1) + (*ptrDxy2b2) - (*ptrDxy2a2) - (*ptrDxy2b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxy3a1) + (*ptrDxy3b2) - (*ptrDxy3a2) - (*ptrDxy3b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxy4a1) + (*ptrDxy4b2) - (*ptrDxy4a2) - (*ptrDxy4b1))<<std::endl;
-					 std::cout << "v2 : "<<Surf::integraleBoite(imageIntegrale,   cc+1,       ll-_lobe,   _lobe,              _lobe)<<std::endl;
-					 std::cout << "v2 : "<<Surf::integraleBoite(imageIntegrale,   cc-_lobe,   ll+1,       _lobe,              _lobe)<<std::endl;
-					 std::cout << "v2 : "<<Surf::integraleBoite(imageIntegrale,   cc-_lobe,   ll-_lobe,   _lobe,              _lobe)<<std::endl;
-					 std::cout << "v2 : "<<Surf::integraleBoite(imageIntegrale,   cc+1,       ll+1,       _lobe,              _lobe)<<std::endl;
-					 */
-                    
-                    Dxx = DxxV;
-                    Dyy = DyyV;
-                    Dxy = DxyV;
-                }
-                
                 
                 (*ptrReponse) = (Dxx*Dyy-0.81*Dxy*Dxy)*w;
                 (*ptrSigLap) = Dxx*Dyy>0?1:0;
@@ -492,6 +452,7 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
 {
 	bool verbose = false;
 
+    if (verbose) std::cout << __FILE__<<" : "<<__LINE__<<" Surf "<<octaves<<" "<<intervals<<" "<<init_sample<<" "<<nbPoints<<std::endl;
     int NC,NL;
     NC = imageIn.numCols();
     NL = imageIn.numLines();
@@ -541,7 +502,7 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
 
     for(int lBloc=-marge;lBloc<NL;lBloc+= nbMaxLignesUtiles)
     {
-        //std::cout << "lBloc : "<<lBloc<<std::endl;
+        if (verbose) std::cout << "lBloc : "<<lBloc<<std::endl;
 
         // Zone de l'image a traiter
         int l0_Image = std::max(0,lBloc);
@@ -563,6 +524,7 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
 
         //std::cout << "Allocation de l espace memoire pour le calcul des derivees.."<<std::endl;
         // Allocation de l'espace memoire pour le calcul des "derivees"
+        if (verbose) std::cout << "_layers.size() avant : "<<_layers.size()<<std::endl;
         for(int i=0;i<_num_echelles;i++)
         {
             //std::cout << "Preparation Hessian pour echelle : "<<i+1<<" / "<<_num_echelles<<std::endl;
@@ -570,6 +532,7 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
             _layers.push_back(new SurfLayer(pas,CST_Lobe_SURF[i],CST_Marge_SURF[i],CST_Taille_Filtres[i],NC/pas,nbl_Image/pas));
             _layers[i]->calculerReponsesHessian(imageIntegrale);
         }
+        if (verbose) std::cout << "_layers.size() apres : "<<_layers.size()<<std::endl;
         //std::cout << "Fin de l'allocation"<<std::endl;
 
 
@@ -715,7 +678,7 @@ Surf::Surf(BufferImage<unsigned char> const &imageIn,
            int init_sample,
            int nbPoints):_octaves(octaves),_intervals(intervals),_seuil_extrema((float).0008),_pas_surf(init_sample)
 {
-	bool verbose = true;
+	bool verbose = false;
     std::cout << "Surf : "<<octaves<<" "<<intervals<<" "<<init_sample<<" "<<nbPoints<<std::endl;
 
     int NC,NL;

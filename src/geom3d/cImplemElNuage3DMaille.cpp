@@ -68,6 +68,9 @@ template <class Type,class TBase>
 {
      public :
 
+        ~cElNuage3DMaille_FromImProf() {}
+
+
          cElNuage3DMaille_FromImProf
          (
               const std::string &             aDir,
@@ -349,6 +352,10 @@ template <class Type,class TBase>
         bool         mIsSpherik;
         CamStenope*  mCS;
         double       mProfC;
+
+        ~cElN3D_EpipGen ()
+        {
+        }
 };
 
 

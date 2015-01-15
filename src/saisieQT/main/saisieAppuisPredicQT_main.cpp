@@ -1,4 +1,22 @@
 #include "saisieQT_main.h"
+void SaisieAppuisPredic(int argc, char ** argv,
+                      Pt2di &aSzW,
+                      Pt2di &aNbFen,
+                      std::string &aFullName,
+                      std::string &aDir,
+                      std::string &aName,
+                      std::string &aNamePt,
+                      std::string &anOri,
+                      std::string &aModeOri,
+                      std::string &aNameMesure,
+                      std::string &aTypePts,
+                      std::string &aMasq3D,
+                      std::string &PIMsFilter,
+                      double &aFlou,
+                      bool &aForceGray,
+                      double &aZMoy,
+                      double &aZInc);
+
 
 using namespace std;
 
@@ -45,6 +63,7 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
     string aFullName, aDir, aName, aNamePt;   //mandatory arguments
     string aNameOri, aModeOri, aNameMesure;   //named args
     string aTypePts="Pts";
+    std::string aMasq3D,aPIMsFilter;
     double aFlou=0.;
     double aZMoy, aZInc;
 
@@ -64,7 +83,7 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
         argv[0] = (char*) "SaisieAppuisPredicQT";
     }
 
-    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aFlou, aForceGray, aZMoy, aZInc);
+    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aMasq3D,aPIMsFilter,aFlou, aForceGray, aZMoy, aZInc);
 
     if (!MMVisualMode)
     {
@@ -111,6 +130,18 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
                   << QString("+Px1Moy=") + QString::number(aZMoy);
 
             //<< QString("+Geom=eGeomMNTFaisceauIm1ZTerrain_Px1D");
+        }
+
+        if (EAMIsInit(&aMasq3D))
+        {
+            input << QString("+WithMasq3D=true");
+            input << QString("+Masq3D=") + QString(aMasq3D.c_str());
+        }
+
+        if (EAMIsInit(&aPIMsFilter))
+        {
+            input << QString("+WithPIMsFilter=true");
+            input << QString("+PIMsFilter=") + QString(aPIMsFilter.c_str());
         }
 
         if (EAMIsInit(&aFlou))

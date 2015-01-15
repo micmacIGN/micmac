@@ -53,6 +53,8 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       std::string &aModeOri,
                       std::string &aNameMesure,
                       std::string &aTypePts,
+                      std::string &aMasq3D,
+                      std::string &PIMsFilter,
                       double &aFlou,
                       bool &aForceGray,
                       double &aZMoy,
@@ -75,6 +77,8 @@ void SaisieAppuisPredic(int argc, char ** argv,
                             << EAM(aModeOri,"OriMode", true, "Orientation type (GRID) (Def=Std)")
                             << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
                             << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
+                            << EAM(aMasq3D,"Masq3D",true,"3D Masq used for visibility", eSAM_NoInit)
+                            << EAM(PIMsFilter,"PIMsF",true,"PIMs filter used for visibility", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -120,6 +124,7 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
     Pt2di aSzW(800,800);
     Pt2di aNbFen(-1,-1);
     std::string aFullName,aNamePt,anOri, aModeOri, aNameMesure, aDir, aName;
+    std::string aMasq3D,aPIMsFilter;
     bool aForceGray = true;
     double aZMoy,aZInc;
 
@@ -127,7 +132,7 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
 
     std::string aTypePts="Pts";
 
-    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts, aFlou, aForceGray, aZMoy, aZInc);
+    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc);
 
     if(!MMVisualMode)
     {
@@ -156,6 +161,12 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
 
             //aCom += std::string(" +Geom=eGeomMNTFaisceauIm1ZTerrain_Px1D");
         }
+
+       if (EAMIsInit(&aMasq3D))
+          aCom = aCom + std::string(" +WithMasq3D=true +Masq3D=")+aMasq3D;
+
+       if (EAMIsInit(&aPIMsFilter))
+          aCom = aCom + std::string(" +WithPIMsFilter=true +PIMsFilter=")+aPIMsFilter;
 
         if (EAMIsInit(&aFlou))
             aCom = aCom + std::string(" +FlouSpecified=true");
