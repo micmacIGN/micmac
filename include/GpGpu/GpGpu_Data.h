@@ -678,7 +678,7 @@ public:
     void FillRandom(T min, T max);
 
     /// \brief Affiche un Z du tableau dans la console
-    void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
+    void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = GpGpuTools::SetValue<T>(), float sample = 1.0f, float factor = 1.0f);
 
     void SetPageLockedMemory(bool page){ _pgLockMem = page; }
 

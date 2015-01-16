@@ -53,67 +53,74 @@ __device__ __host__ inline void dump_Type(T var)
 template<>
 __device__ __host__ inline void dump_Type<uint2>(uint2 var)
 {
-    printf("[%u,%u]\n",var.x,var.y);
+    printf("[%u,%u]",var.x,var.y);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<uint3>(uint3 var)
 {
-    printf("[%u,%u,%u]\n",var.x,var.y,var.z);
+    printf("[%u,%u,%u]",var.x,var.y,var.z);
+}
+
+
+template<>
+__device__ __host__ inline void dump_Type<dim3>(dim3 var)
+{
+    printf("[%u,%u,%u]",var.x,var.y,var.z);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<int2>(int2 var)
 {
-    printf("[%d,%d]\n",var.x,var.y);
+    printf("[%d,%d]",var.x,var.y);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<uint>(uint var)
 {
-    printf("%u\n",var);
+    printf("%u",var);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<ushort>(ushort var)
 {
-    printf("%u\n",var);
+    printf("%u",var);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<int>(int var)
 {
-    printf("%d\n",var);
+    printf("%d",var);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<float2>(float2 var)
 {
-    printf("[%f,%f]\n",var.x,var.y);
+    printf("[%f,%f]",var.x,var.y);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<float>(float var)
 {
-    printf("%f\n",var);
+    printf("%f",var);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<double>(double var)
 {
-    printf("%f\n",var);
+    printf("%f",var);
 }
 
 template<>
 __device__ __host__ inline void dump_Type<bool>(bool var)
 {
-    printf("%s\n",var ? "true" : "false");
+    printf("%s",var ? "true" : "false");
 }
 
 template<>
 __device__ __host__ inline void dump_Type<const char*>(const char* var)
 {
-    printf("%s\n",var);
+    printf("%s",var);
 }
 
 
@@ -122,25 +129,30 @@ void dump_variable(T var,const char* nameVariable)
 {
     printf("%s\t= \t",nameVariable);
     dump_Type(var);
+     printf("\n");
 }
 
 template<> __device__ __host__ inline
 void dump_variable(const char* var,const char* nameVariable)
 {
     dump_Type(var);
+    printf("\n");
 }
 
-#define DUMP(varname) dump_variable(varname,#varname);
-#define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
-#define CUDA_DUMP_INT_ALL(varname) printf("%s = %d\n", #varname, varname);
+#define DUMP(varname)   dump_variable(varname,#varname);
+#define DUMPI(varname)  dump_Type(varname);
 
-#define DUMP_UINT(varname) printf("%s = %u\n", #varname, varname);
-#define DUMP_UINT2(varname) printf("%s = [%u,%u]\n", #varname, varname.x,varname.y);
-#define DUMP_INT2(varname) printf("%s = [%d,%d]\n", #varname, varname.x,varname.y);
-#define DUMP_INT(varname) printf("%s = %d\n", #varname, varname);
-#define DUMP_FLOAT2(varname) printf("%s = [%f,%f]\n", #varname, varname.x,varname.y);
-#define DUMP_FLOAT(varname) printf("%s = %f\n", #varname, varname);
-#define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
+
+//#define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
+//#define CUDA_DUMP_INT_ALL(varname) printf("%s = %d\n", #varname, varname);
+
+//#define DUMP_UINT(varname) printf("%s = %u\n", #varname, varname);
+//#define DUMP_UINT2(varname) printf("%s = [%u,%u]\n", #varname, varname.x,varname.y);
+//#define DUMP_INT2(varname) printf("%s = [%d,%d]\n", #varname, varname.x,varname.y);
+//#define DUMP_INT(varname) printf("%s = %d\n", #varname, varname);
+//#define DUMP_FLOAT2(varname) printf("%s = [%f,%f]\n", #varname, varname.x,varname.y);
+//#define DUMP_FLOAT(varname) printf("%s = %f\n", #varname, varname);
+//#define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
 #define DUMP_LINE printf("-----------------------------------\n");
 #define DUMP_END printf("\n");
 

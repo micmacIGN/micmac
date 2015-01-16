@@ -97,32 +97,32 @@ void main_SDK()
     CGpGpuContext<context>::check_Cuda();
 }
 
-int main()
+void UnitTest___CPP11()
 {
 #ifndef NOCUDA_X11
     CStructure<3> testS;
- #else
+#else
     CStructure<10> testS;
 #endif
 
     DUMP(testS.getDimension())
-    DUMP(testS.getNbLayer())
-    DUMP_LINE
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
 
-    testS.setDimension(3);
+            testS.setDimension(3);
 
     DUMP(testS.getDimension())
             DUMP(testS.getNbLayer())
             DUMP_LINE
 
-    testS.setDimension(20,5);
+            testS.setDimension(20,5);
 
     DUMP(testS.getDimension())
             DUMP(testS.getNbLayer())
             DUMP_LINE
 
-#ifdef NOCUDA_X11
-     testS.setDimension(3,5,5,8,223,4);
+        #ifdef NOCUDA_X11
+            testS.setDimension(3,5,5,8,223,4);
 #endif
 
     DUMP(testS.getDimension())
@@ -131,15 +131,24 @@ int main()
 
             testS.setDimension(2,5,88);
 
-            DUMP(testS.getDimension())
-                    DUMP(testS.getNbLayer())
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
 
-                    DUMP(testS.getSize())
-                    DUMP_LINE
+            DUMP(testS.getSize())
+            DUMP_LINE
 
-    return 0;
+}
 
-//    DUMP(typeid(cudaContext).name())
+int main()
+{
+
+    CuHostData3D<int2> bufferHost;
+
+    bufferHost.Malloc(make_uint2(5,5),1);
+
+    bufferHost.Fill(make_int2(5,8));
+
+    bufferHost.OutputValues();
 
 #if OPENCL_ENABLED
     main_SDK<openClContext>();

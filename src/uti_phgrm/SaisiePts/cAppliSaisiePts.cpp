@@ -358,6 +358,7 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     InitImages();
     InitInPuts();
 
+std::cout << "111111111111111111&\n";
 
 
 #if (ELISE_X11)
@@ -370,7 +371,14 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
         OnModifLoadedImage();
     }
 #endif
+std::cout << "22222222222222222222222222222222222222222\n";
 
+    for (std::vector<cSP_PointGlob*>::iterator itP=mPG.begin(); itP!=mPG.end() ; itP++)
+    {
+        std::cout << "PPPpppppGgggg " << (*itP)->PG()->Name() << "\n";
+        AddPGInAllImages(*itP);
+    }
+std::cout << "333333333333333333333333333333333333333333333333\n";
 }
 
 
@@ -602,9 +610,6 @@ void cAppli_SaisiePts::InitPG()
 void cAppli_SaisiePts::InitPointeIm()
 {
 
-
-
-
     for
             (
              std::list<cSaisiePointeIm>::iterator itS=mSOSPI.SaisiePointeIm().begin();
@@ -693,25 +698,29 @@ void cAppli_SaisiePts::AddOnePGInImage
 
     if ( OkInIm  && WithP3D)  
     {
-        cCapture3D * aCapt3D = anI.Capt3d();
-        if (aCapt3D)
+        OkInIm = anI.PIMsValideVis(aP3d) ;
+        if (OkInIm)
         {
-            aPIm =  aCapt3D->Ter2Capteur(aP3d); //  : anI.PointArbitraire();
-
-
-            if (! aCapt3D->PIsVisibleInImage(aP3d))
+            cCapture3D * aCapt3D = anI.Capt3d();
+            if (aCapt3D)
             {
-                OkInIm = false;
-            }
+                aPIm =  aCapt3D->Ter2Capteur(aP3d); //  : anI.PointArbitraire();
 
-            if (OkInIm && mMasq3DVisib)
-            {
-                ElSeg3D   aSeg = aCapt3D->Capteur2RayTer(aPIm);
-                double anA = aSeg.AbscOfProj(aP3d);
-                int aNb=50;
-                for (int aK=aNb; (aK>=0) && (OkInIm) ; aK--)
+
+                if (! aCapt3D->PIsVisibleInImage(aP3d))
                 {
-                    OkInIm = mMasq3DVisib->IsInMasq(aSeg.PtOfAbsc((anA*aK)/aNb));
+                    OkInIm = false;
+                }
+
+                if (OkInIm && mMasq3DVisib)
+                {
+                    ElSeg3D   aSeg = aCapt3D->Capteur2RayTer(aPIm);
+                    double anA = aSeg.AbscOfProj(aP3d);
+                    int aNb=50;
+                    for (int aK=aNb; (aK>=0) && (OkInIm) ; aK--)
+                    {
+                        OkInIm = mMasq3DVisib->IsInMasq(aSeg.PtOfAbsc((anA*aK)/aNb));
+                    }
                 }
             }
         }
