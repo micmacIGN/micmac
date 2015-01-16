@@ -43,6 +43,8 @@
 
 //#define unitTestCorMS_gpgpu
 
+//#define modeMixte
+
 ///
 static __constant__ const_Param_Cor_MS     cstPCMS;
 
@@ -354,12 +356,6 @@ __global__
 void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
 {
 
-    // ??? TODO à cabler
-//    bool    DoMixte     = false;
-//    bool    aModeMax    = true;
-//    float   aSeuilHC    = 1.0;
-//    float   aSeuilBC    = 1.0;
-
     // point image
     const   int2  an  =   make_int2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
 
@@ -394,64 +390,54 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         // Attention probleme avec valeur negative et le modulo
         const ushort aPhase = (ushort)((abs((int)aZ))%cstPCMS.mNbByPix);
 
-        /// peut etre precalcul  -- voir simplifier
-        ///
+
 //        while ((abs((int)aZ0))%cstP_CorMS.mNbByPix != aPhase)
 //            aZ0++;
-
-
 //        const int anOffset      = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
 
-        const int gpu_anOffset  = dElise_div((int)aZ,cstPCMS.mNbByPix);
-
+		const int anOffset  = dElise_div((int)aZ,cstPCMS.mNbByPix);
 
         //        if( aEq(an,10) && aPhase == 0 && thZ < cstP_CorMS.mNbByPix)
         //            DUMP(gpu_anOffset)
 
         //int anOffset = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
-        //
+
+
         const   int2    aIm1SsPx   =   an + cstPCMS.anOff1;
         //      pt int dans l'image 1
-        const   int2    aPIm1      =   aIm1SsPx + i2X(gpu_anOffset);
-
-//        DUMP(gpu_anOffset)
+		const   int2    aPIm1      =   aIm1SsPx + i2X(anOffset);
 
         float           aCost      =   cstPCMS.mAhDefCost;
 
-
 		if (IsOkErod(aPIm1,1) /*&& aIE(aPIm1,make_int2(cstPCMS._dimTerrain))*/) // TODO ---> attention integrer les dimensions correctes de l'image
-
         {
-//            float aGlobCostBasic    = 0;
-//            float aGlobCostCorrel   = 0;
 
+#ifdef modeMixte
 			aCost = Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,/*gpu_anOffset,*/cstPCMS.aModeMax,aPhase);
+			float aGlobCostBasic    = 0;
+			float aGlobCostCorrel   = 0;
+			aGlobCostCorrel = aCost;
 
-//            aGlobCostCorrel = aCost;
+			if (cstPCMS.DoMixte)
+			{
+				if(aGlobCostCorrel>cstPCMS.aSeuilHC)
 
-//            if (cstPCMS.DoMixte)
-//            {
-//                if(aGlobCostCorrel>cstPCMS.aSeuilHC)
+					aCost = aGlobCostCorrel;
 
-//                    aCost = aGlobCostCorrel;
-
-//                else if (aGlobCostCorrel>cstPCMS.aSeuilBC)
-//                {
-//                    float aPCor =  (aGlobCostCorrel - cstPCMS.aSeuilBC) / (cstPCMS.aSeuilHC-cstPCMS.aSeuilBC);
-//                    aCost       =  aPCor * aGlobCostCorrel + (1-aPCor) * cstPCMS.aSeuilBC *  aGlobCostBasic;
-//                }
-//                else
-//                    aCost =  cstPCMS.aSeuilBC *  aGlobCostBasic;
-//            }
-
-            aCost = 1.f-aCost;
-
-//			if(IN_THREAD(4,7,1,3,8,3))
-//				DUMP(aCost)
-
+				else if (aGlobCostCorrel>cstPCMS.aSeuilBC)
+				{
+					float aPCor =  (aGlobCostCorrel - cstPCMS.aSeuilBC) / (cstPCMS.aSeuilHC-cstPCMS.aSeuilBC);
+					aCost       =  aPCor * aGlobCostCorrel + (1-aPCor) * cstPCMS.aSeuilBC *  aGlobCostBasic;
+				}
+				else
+					aCost =  cstPCMS.aSeuilBC *  aGlobCostBasic;
+			}
+#else
+			aCost = 1.f-Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,/*gpu_anOffset,*/cstPCMS.aModeMax,aPhase);
+#endif
         }
 
-        _cost = aCost;
+		_cost = aCost;
     }
 }
 #include <stdio.h>
@@ -505,8 +491,8 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 
 	dim3    blocks__CorMS(divDTerX,divDTerY,bC);
 
-	data._uCost.hostData.Fill(parCMS.mAhDefCost);
-	data._uCost.syncDevice();
+//	data._uCost.hostData.Fill(parCMS.mAhDefCost);
+//	data._uCost.syncDevice();
 //    data._uCost.deviceData.Memset(10000.f);
 
 	Kernel__DoCorrel_MultiScale_Global<<<blocks__CorMS,threads_CorMS>>>(
