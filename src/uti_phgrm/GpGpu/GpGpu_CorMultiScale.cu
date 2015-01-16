@@ -215,7 +215,7 @@ void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* 
         {
             const short2 aP = aVP[aKP];
             float aV = getValImage(ptImage+aP,idImage,aKS);
-            aSom += aV;
+			aSom	+= aV;
             aSomSqr += aV*aV;
         }
 
@@ -227,10 +227,15 @@ void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* 
         const uint3     p3d        =   make_uint3(pt.x,pt.y,aPhase*mNbByPix + aKS);
 
         // Ecriture dans le cache des
+		const uint pSom = to1D(p3d,dimCache);
+
 
 #ifndef unitTestCorMS_gpgpu
-        mSom    [to1D(p3d,dimCache)] = aGlobSom    / aGlobPds;
-        mSomSqr [to1D(p3d,dimCache)] = aGlobSomSqr / aGlobPds;
+
+
+		mSom    [pSom] = aGlobSom    / aGlobPds;
+		mSomSqr [pSom] = aGlobSomSqr / aGlobPds;
+
 #else
         mSom    [to1D(p3d,dimCache)] = 10000*ptImage.x + ptImage.y;
         mSomSqr [to1D(p3d,dimCache)] = 10000*ptImage.x + ptImage.y;
@@ -281,28 +286,17 @@ inline    float Quick_MS_CorrelBasic_Center(
 
 
 #ifdef unitTestCorMS_gpgpu
-            if(IN_THREAD(1,2,1,6,9,4) && !aKS && !aP.x && !aP.y)
-            {
+//			if(IN_THREAD(1,0,4,5,6,4) && !aKS && !aP.x && !aP.y)
+//            {
 
-                // PRINT_THREAD();
-                DUMP(aPG0)
-                        DUMP(aPG1)
-                        DUMP(aFG1)
-                        DUMP((int)valima_0)
-                        DUMP(valima_1)
-                        DUMP(aPhase)
-            }
-            if(IN_THREAD(1,2,2,6,9,4) && !aKS && !aP.x && !aP.y)
-            {
-
-                // PRINT_THREAD();
-                        DUMP(aPG0)
-                        DUMP(aPG1)
-                        DUMP(aFG1)
-                        DUMP((int)valima_0)
-                        DUMP(valima_1)
-                        DUMP(aPhase)
-            }
+//                // PRINT_THREAD();
+//                        DUMP(aPG0)
+//                        DUMP(aPG1)
+//                        DUMP(aFG1)
+//						DUMP(valima_0)
+//                        DUMP(valima_1)
+//                        DUMP(aPhase)
+//            }
 #endif
             aCov += valima_0*valima_1;
 
@@ -315,33 +309,30 @@ inline    float Quick_MS_CorrelBasic_Center(
             const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstPCMS._dimTerrain);
             const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase),cstPCMS._dimTerrain);
 
-//            if(IN_THREAD(0,2,0,27,29,0))
-//            {
-//                    DUMP(make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase))
-//                            DUMP(cstPCMS._dimTerrain)
-//            }
+//			if(IN_THREAD(1,0,4,5,6,4))
+//			{
+//					DUMP(make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase))
+//					DUMP(cstPCMS._dimTerrain)
+//			}
 
             const float aM1    =   aSom1 [pit0];
             const float aM2    =   aSom2 [pit1];
 
 #ifdef unitTestCorMS_gpgpu
-            {
-                if(IN_THREAD(4,6,2,7,10,7))
-                {
-                    DUMP(aSom1  [pit0])
-                            DUMP(aSom11 [pit0])
-                            DUMP(aSom2  [pit1])
-                            DUMP(aSom22 [pit1])
-                }
 
-                if(IN_THREAD(4,6,2,7,10,7))
-                {
-                    DUMP(aSom1  [pit0])
-                            DUMP(aSom11 [pit0])
-                            DUMP(aSom2  [pit1])
-                            DUMP(aSom22 [pit1])
-                }
-            }
+//				if(IN_THREAD(1,0,4,5,6,4))
+//                {
+//                    DUMP(aSom1  [pit0])
+//                            DUMP(aSom11 [pit0])
+//                            DUMP(aSom2  [pit1])
+//                            DUMP(aSom22 [pit1])
+
+//                    DUMP(aSom1  [pit0])
+//                            DUMP(aSom11 [pit0])
+//                            DUMP(aSom2  [pit1])
+//                            DUMP(aSom22 [pit1])
+//                }
+
 #endif
 
             const float aM11   =   aSom11[pit0] - aM1*aM1;
@@ -502,48 +493,24 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 //    aSom_0.hostData.OutputValues();
 //    getchar();
 
-    ushort  modThreadZ = 8;
+	ushort  modThreadZ	= 8;
+	ushort  modXTHread	= 8;
+	ushort  modYTHread	= 8;
 
-    dim3	threads_CorMS( 32, 32, modThreadZ);
+	dim3	threads_CorMS( modXTHread,modYTHread , modThreadZ);
 
-    uint    bC =  iDivUp(data._maxDeltaZ,modThreadZ);
+	uint    bC	=  iDivUp(data._maxDeltaZ,modThreadZ);
 
-    dim3    blocks__CorMS(divDTerX,divDTerY,min(64,bC));
+	divDTerX	= iDivUp(parCMS._dimTerrain.x,modXTHread);
+	divDTerY	= iDivUp(parCMS._dimTerrain.y,modYTHread);
 
-    /// calcul des couts de correlation multi-echelles
-    ///
+	dim3    blocks__CorMS(divDTerX,divDTerY,bC);
 
 //    data._uCost.hostData.Fill(parCMS.mAhDefCost);
 //    data._uCost.syncDevice();
 //    data._uCost.deviceData.Memset(10000.f);
 
-//    DUMP(threads_CorMS)
-//    DUMP(blocks__CorMS)
-
-//    uint size = threads_CorMS.x*threads_CorMS.y*threads_CorMS.z*blocks__CorMS.x*blocks__CorMS.y*blocks__CorMS.z;
-
-//    DUMP(size)
-
-//    int devID;
-//    cudaGetDevice(&devID);
-//    cudaDeviceProp deviceProp;
-//    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
-
-//    uint3 maxThreadsDim = make_uint3(deviceProp.maxThreadsDim[0],deviceProp.maxThreadsDim[1],deviceProp.maxThreadsDim[2]);
-//    uint3 maxGridSize   = make_uint3(deviceProp.maxGridSize[0],deviceProp.maxGridSize[1],deviceProp.maxGridSize[2]);
-
-//    DUMP(maxThreadsDim)
-//    DUMP(maxGridSize)
-
-//    DUMP(deviceProp.maxThreadsPerMultiProcessor)
-
-//    DUMP(deviceProp.multiProcessorCount)
-
-//            int maxThread = deviceProp.maxThreadsPerMultiProcessor * deviceProp.multiProcessorCount;
-
-//    DUMP(maxThread)
-
-    Kernel__DoCorrel_MultiScale_Global<<<threads_CorMS,blocks__CorMS>>>(
+	Kernel__DoCorrel_MultiScale_Global<<<blocks__CorMS,threads_CorMS>>>(
                                                                           aSom_0   .pData(),
                                                                           aSomSqr_0.pData(),
                                                                           aSom_1   .pData(),
@@ -551,7 +518,7 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
                                                                           data._uInterval_Z   .pData(),
                                                                           data._uCost         .pData());
 
-    getLastCudaError("Kernel__DoCorrel_MultiScale_Globalclear 0");
+	getLastCudaError("Kernel__DoCorrel_MultiScale_Global");
 
     //    aSom1.syncHost();
     //    aSom1.hostData.OutputValues();
