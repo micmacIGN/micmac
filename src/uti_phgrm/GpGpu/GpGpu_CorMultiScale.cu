@@ -78,7 +78,7 @@ inline    bool IN_BLOCK(uint bx = 0,uint by = 0,uint bz = 0)
 __device__
 inline    void PRINT_THREAD()
 {
-    printf("[%d,%d,%d|%d,%d,%d]  ",blockIdx.x ,blockIdx.y ,blockIdx.z,threadIdx.x,threadIdx.y ,threadIdx.z);
+    printf("[%d,%d,%d|%d,%d,%d]  ",threadIdx.x,threadIdx.y ,threadIdx.z,blockIdx.x ,blockIdx.y ,blockIdx.z);
 }
 
 __device__
@@ -315,25 +315,31 @@ inline    float Quick_MS_CorrelBasic_Center(
             const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstPCMS._dimTerrain);
             const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase),cstPCMS._dimTerrain);
 
+//            if(IN_THREAD(0,2,0,27,29,0))
+//            {
+//                    DUMP(make_uint3(aPG1.x,aPG1.y,aKS + aNbScale*aPhase))
+//                            DUMP(cstPCMS._dimTerrain)
+//            }
+
             const float aM1    =   aSom1 [pit0];
             const float aM2    =   aSom2 [pit1];
 
 #ifdef unitTestCorMS_gpgpu
             {
-                if(IN_THREAD(1,2,1,6,9,4) && !aKS )
+                if(IN_THREAD(4,6,2,7,10,7))
                 {
-                    DUMP((int)aSom1  [pit0])
-                            DUMP((int)aSom11 [pit0])
-                            DUMP((int)aSom2  [pit1])
-                            DUMP((int)aSom22 [pit1])
+                    DUMP(aSom1  [pit0])
+                            DUMP(aSom11 [pit0])
+                            DUMP(aSom2  [pit1])
+                            DUMP(aSom22 [pit1])
                 }
 
-                if(IN_THREAD(1,2,2,6,9,4) && !aKS )
+                if(IN_THREAD(4,6,2,7,10,7))
                 {
-                    DUMP((int)aSom1  [pit0])
-                            DUMP((int)aSom11 [pit0])
-                            DUMP((int)aSom2  [pit1])
-                            DUMP((int)aSom22 [pit1])
+                    DUMP(aSom1  [pit0])
+                            DUMP(aSom11 [pit0])
+                            DUMP(aSom2  [pit1])
+                            DUMP(aSom22 [pit1])
                 }
             }
 #endif
@@ -341,6 +347,7 @@ inline    float Quick_MS_CorrelBasic_Center(
             const float aM11   =   aSom11[pit0] - aM1*aM1;
             const float aM22   =   aSom22[pit1] - aM2*aM2;
             const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
+
 
             if (ModeMax)
             {
@@ -424,7 +431,9 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
         float           aCost      =   cstPCMS.mAhDefCost;
 
-        if (IsOkErod(aPIm1,1))
+
+        if (IsOkErod(aPIm1,1) && aIE(aPIm1,make_int2(cstPCMS._dimTerrain))) // TODO ---> attention integrer les dimensions correctes de l'image
+
         {
             float aGlobCostBasic    = 0;
             float aGlobCostCorrel   = 0;
@@ -458,7 +467,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &parCMS)
 {
     // Cache device
-    //CuUnifiedData3D<float>  aSom1;
+//    CuUnifiedData3D<float>  aSom_0;
 
     CuDeviceData3D<float>  aSom_0;
     CuDeviceData3D<float>  aSomSqr_0;
@@ -483,7 +492,15 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
     /// Les données sont structurées par calques
     /// les echelles (du même subpixel) sont regroupées par calques consécutifs
     KernelPrepareCorrel<<<blocks_00,threads>>>(0,1,1,aSom_0.pData(),aSomSqr_0.pData());
+
+    getLastCudaError("KernelPrepareCorrel 0");
+
     KernelPrepareCorrel<<<blocks_01,threads>>>(1,parCMS.aStepPix,parCMS.mNbByPix,aSom_1.pData(),aSomSqr_1.pData());
+
+    getLastCudaError("KernelPrepareCorrel 1");
+//    aSom_0.syncHost();
+//    aSom_0.hostData.OutputValues();
+//    getchar();
 
     ushort  modThreadZ = 8;
 
@@ -491,9 +508,40 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 
     uint    bC =  iDivUp(data._maxDeltaZ,modThreadZ);
 
-    dim3    blocks__CorMS(divDTerX,divDTerY,bC);
+    dim3    blocks__CorMS(divDTerX,divDTerY,min(64,bC));
 
     /// calcul des couts de correlation multi-echelles
+    ///
+
+//    data._uCost.hostData.Fill(parCMS.mAhDefCost);
+//    data._uCost.syncDevice();
+//    data._uCost.deviceData.Memset(10000.f);
+
+//    DUMP(threads_CorMS)
+//    DUMP(blocks__CorMS)
+
+//    uint size = threads_CorMS.x*threads_CorMS.y*threads_CorMS.z*blocks__CorMS.x*blocks__CorMS.y*blocks__CorMS.z;
+
+//    DUMP(size)
+
+//    int devID;
+//    cudaGetDevice(&devID);
+//    cudaDeviceProp deviceProp;
+//    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+
+//    uint3 maxThreadsDim = make_uint3(deviceProp.maxThreadsDim[0],deviceProp.maxThreadsDim[1],deviceProp.maxThreadsDim[2]);
+//    uint3 maxGridSize   = make_uint3(deviceProp.maxGridSize[0],deviceProp.maxGridSize[1],deviceProp.maxGridSize[2]);
+
+//    DUMP(maxThreadsDim)
+//    DUMP(maxGridSize)
+
+//    DUMP(deviceProp.maxThreadsPerMultiProcessor)
+
+//    DUMP(deviceProp.multiProcessorCount)
+
+//            int maxThread = deviceProp.maxThreadsPerMultiProcessor * deviceProp.multiProcessorCount;
+
+//    DUMP(maxThread)
 
     Kernel__DoCorrel_MultiScale_Global<<<threads_CorMS,blocks__CorMS>>>(
                                                                           aSom_0   .pData(),
@@ -503,11 +551,15 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
                                                                           data._uInterval_Z   .pData(),
                                                                           data._uCost         .pData());
 
+    getLastCudaError("Kernel__DoCorrel_MultiScale_Globalclear 0");
+
     //    aSom1.syncHost();
     //    aSom1.hostData.OutputValues();
 
     data._uCost.syncHost();
-//    data._uCost.hostData.OutputValues(4*8);
+    //data._uCost.hostData.OutputValues(4*8);
+
+//    data._uInterval_Z.hostData.OutputValues();
 
     aSom_0   .Dealloc();
     aSomSqr_0.Dealloc();

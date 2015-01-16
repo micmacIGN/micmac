@@ -562,8 +562,35 @@ extern void getKeypointFilename( const string &i_basename, int i_resolution, str
 
 
 
+int Jeremy_main( int argc, char **argv )
+{
+    if ( argc<2 ) return EXIT_FAILURE;
+
+    Tiff_Im tiff(argv[1]);
+    cout << '[' << argv[1] << "]: sz = " << tiff.sz() << 'x' << tiff.nb_chan() << ' ' << eToString(tiff.type_el()) << endl;
+    Im2DGen image = tiff.ReadIm();
+    cout << '[' << argv[1] << "]: sz = " << image.sz() << ' ' << eToString(image.TypeEl()) << endl;
+
+    ELISE_COPY
+    (
+        image.all_pts(),
+        Virgule( image.in(), image.in(), image.in() ),
+        Tiff_Im(
+            "toto.tif",
+            image.sz(),
+            image.TypeEl(),
+            Tiff_Im::No_Compr,
+            Tiff_Im::RGB,
+            ArgOpTiffMDP(argv[1])/*Tiff_Im::Empty_ARG*/ ).out()
+    );
+
+    return EXIT_SUCCESS;
+}
+
+
 int MPDtest_main (int argc,char** argv)
 {
+    Jeremy_main(argc,argv);
 /*
    cCalibrationInterneRadiale aXmlDr;
    aXmlDr.CDist() = Pt2dr(3,4);
