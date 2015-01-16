@@ -2470,6 +2470,8 @@ bool DebugConvCal() {return false;}
     {
         #if defined(__APPLE__) || defined(__MACH__)
             return MMDir()+"Frameworks";
+		#elif ELISE_windows
+			return MMBin();
         #endif
         return string();
     }
