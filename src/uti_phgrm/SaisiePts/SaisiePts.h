@@ -179,8 +179,9 @@ class cImage
            int                                       mCptAff;
            bool                                      mVisualizable;
 
-           cElNuage3DMaille *                        mEnvMinVisib;
-           cElNuage3DMaille *                        mEnvMaxVisib;
+           cElNuage3DMaille *                        mPImsNuage;
+           double                                    mPNSeuilAlti;
+           double                                    mPNSeuilPlani;
            bool                                      mLastLoaded;
            bool                                      mCurLoaded;
 };
