@@ -82,6 +82,8 @@ void  cImage::SetLoaded()
 
 void cImage::OnModifLoad()
 {
+
+   std::cout << "CCCCCCC  cImage::OnModifLoad \n";
    if (mCurLoaded==mLastLoaded) return;
 
    if (mCurLoaded)
@@ -94,7 +96,7 @@ void cImage::OnModifLoad()
            mEnvMinVisib = cElNuage3DMaille::FromFileIm(aNameMin);
            mEnvMaxVisib = cElNuage3DMaille::FromFileIm(aNameMax);
 
-           // std::cout << "NNNNNNN " << aNameMin << " " << aNameMax << "\n";
+           std::cout << "NNNNNNN " << aNameMin << " " << aNameMax << "\n";
       }
    }
    else
@@ -106,19 +108,38 @@ void cImage::OnModifLoad()
    }
 }
 
-bool  cImage::PIMsValideVis(const Pt3dr &,cElNuage3DMaille * aEnv,bool aMin) 
+bool  cImage::PIMsValideVis(const Pt3dr & aPTer,cElNuage3DMaille * aEnv,bool aMin) 
 {
    if (aEnv==0) return true;
 
+   Pt2dr aPIm = aEnv->Terrain2Index(aPTer);
 
-   return true;
+
+
+   if (! aEnv->IndexHasContenuForInterpol(aPIm))
+   {
+       // A Parametrer eventuellement
+       return false;
+   }
+
+   Pt3dr aTerInNu = aEnv->Euclid2ProfPixelAndIndex(aPTer);
+
+   double aProfTer = aTerInNu.z;
+   double aProfNu = aEnv->ProfInterpEnPixel(aPIm);
+
+   bool isDessus = (aProfTer >= aProfNu);
+
+   return aMin ?  isDessus : (! isDessus);
+
 }
 
 
 bool cImage::PIMsValideVis(const Pt3dr & aP) 
 {
-    return    PIMsValideVis(aP,mEnvMinVisib,true) 
-           && PIMsValideVis(aP,mEnvMaxVisib,false);
+    bool aRes =    PIMsValideVis(aP,mEnvMinVisib,true) 
+               && PIMsValideVis(aP,mEnvMaxVisib,false);
+    std::cout << "AAAAAAAAAAAAAAA " << aRes  << " " << mEnvMinVisib  << " " << mName << "\n";
+    return aRes;
 }
 
 
