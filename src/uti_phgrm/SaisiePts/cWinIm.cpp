@@ -725,7 +725,7 @@ void  cWinIm::MenuPopUp(Clik aClk)
         {
             std::vector<cWinIm *> aVWI;
             aVWI.push_back(this);
-            mAppli.ChangeImages(0,aVWI,false);
+            mAppli.ChangeImages(0,aVWI,true);
         }
         if (aCase==mCaseThisPt)
         {

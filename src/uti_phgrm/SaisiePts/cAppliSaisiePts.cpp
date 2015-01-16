@@ -358,8 +358,6 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     InitImages();
     InitInPuts();
 
-std::cout << "111111111111111111&\n";
-
 
 #if (ELISE_X11)
     if(instanceInterface)
@@ -371,14 +369,15 @@ std::cout << "111111111111111111&\n";
         OnModifLoadedImage();
     }
 #endif
-std::cout << "22222222222222222222222222222222222222222\n";
 
-    for (std::vector<cSP_PointGlob*>::iterator itP=mPG.begin(); itP!=mPG.end() ; itP++)
+    if (mPIMsFilter)
     {
-        std::cout << "PPPpppppGgggg " << (*itP)->PG()->Name() << "\n";
-        AddPGInAllImages(*itP);
+        for (std::vector<cSP_PointGlob*>::iterator itP=mPG.begin(); itP!=mPG.end() ; itP++)
+        {
+            AddPGInAllImages(*itP);
+        }
+        mInterface->RedrawAllWindows();
     }
-std::cout << "333333333333333333333333333333333333333333333333\n";
 }
 
 
@@ -1049,12 +1048,28 @@ void cAppli_SaisiePts::ChangeImages
 #if (ELISE_X11)
             aW2Ch[aKW]->SetNewImage(anIm);
 #endif
-            anIm->SetLoaded();
             aKW++;
         }
         aKI++;
     }
+
+    for (int aK=0 ; aK<int(mImagesVis.size()) ; aK++)
+    {
+        cImage * anIm = mImagesVis[aK];
+        if (mInterface->isDisplayed(anIm))
+            anIm->SetLoaded();
+    }
+
     OnModifLoadedImage();
+
+    if (mPIMsFilter)
+    {
+        for (std::vector<cSP_PointGlob*>::iterator itP=mPG.begin(); itP!=mPG.end() ; itP++)
+        {
+            AddPGInAllImages(*itP);
+        }
+        mInterface->RedrawAllWindows();
+    }
 }
 
 bool cAppli_SaisiePts::HasOrientation() const

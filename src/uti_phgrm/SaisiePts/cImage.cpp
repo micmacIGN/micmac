@@ -63,8 +63,9 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli,bool Visuali
    mInitCamNDone (false),
    mCptAff       (0),
    mVisualizable (Visualizable),
-   mEnvMinVisib       (0),
-   mEnvMaxVisib       (0),
+   mPImsNuage         (0),
+   mPNSeuilAlti       (6.0),
+   mPNSeuilPlani      (3.0),
    mLastLoaded        (false),
    mCurLoaded         (false)
 {
@@ -83,39 +84,61 @@ void  cImage::SetLoaded()
 void cImage::OnModifLoad()
 {
 
-   std::cout << "CCCCCCC  cImage::OnModifLoad \n";
    if (mCurLoaded==mLastLoaded) return;
 
    if (mCurLoaded)
    {
+std::cout << "LOAD " << mName << "\n";
       cMMByImNM * aMMI =   mAppli.PIMsFilter ();
       if (aMMI)
       {
-           std::string aNameMin = aMMI->NameFileXml(eTMIN_Min,mName);
-           std::string aNameMax = aMMI->NameFileXml(eTMIN_Max,mName);
-           mEnvMinVisib = cElNuage3DMaille::FromFileIm(aNameMin);
-           mEnvMaxVisib = cElNuage3DMaille::FromFileIm(aNameMax);
+           std::string aNameDepth = aMMI->NameFileXml(eTMIN_Depth,mName);
+           mPImsNuage = cElNuage3DMaille::FromFileIm(aNameDepth);
 
-           std::cout << "NNNNNNN " << aNameMin << " " << aNameMax << "\n";
       }
    }
    else
    {
-       delete mEnvMinVisib;
-       delete mEnvMaxVisib;
-       mEnvMinVisib =0;
-       mEnvMaxVisib =0;
+std::cout << "Uuuuu LOAD " << mName << "\n";
+       delete mPImsNuage;
+       mPImsNuage =0;
    }
 }
 
-bool  cImage::PIMsValideVis(const Pt3dr & aPTer,cElNuage3DMaille * aEnv,bool aMin) 
+bool  cImage::PIMsValideVis(const Pt3dr & aPTer)
 {
-   if (aEnv==0) return true;
+   if (mPImsNuage==0) return true;
 
-   Pt2dr aPIm = aEnv->Terrain2Index(aPTer);
+   Pt2dr aPIm = mPImsNuage->Terrain2Index(aPTer);
+   Pt2di aIPIm = round_ni(aPIm);
 
 
+   double aProfMax= -1e20;
+   double aProfMin= 1e20;
+   int aDil = round_up(mPNSeuilPlani);
 
+   for (int aDx= -aDil ; aDx <= aDil ; aDx++)
+   {
+       for (int aDy= -aDil ; aDy <= aDil ; aDy++)
+       {
+            Pt2di aPVois(aIPIm.x+aDx,aIPIm.y+aDy);
+            if ((mPImsNuage->IndexHasContenu(aPVois)) && (euclid(Pt2dr(aPVois)-aPIm)<mPNSeuilPlani))
+            {
+                double aProfNu = mPImsNuage->ProfEnPixel(aPVois);
+                ElSetMax(aProfMax,aProfNu);
+                ElSetMin(aProfMin,aProfNu);
+            }
+       }
+   }
+
+
+   Pt3dr aTerInNu = mPImsNuage->Euclid2ProfPixelAndIndex(aPTer);
+   double aProfTer = aTerInNu.z;
+
+    return (aProfTer >= (aProfMin-mPNSeuilAlti)) && (aProfTer<=(aProfMax+mPNSeuilAlti));
+
+/*
+std::cout << "Valll   BBBBBBB\n";
    if (! aEnv->IndexHasContenuForInterpol(aPIm))
    {
        // A Parametrer eventuellement
@@ -123,24 +146,20 @@ bool  cImage::PIMsValideVis(const Pt3dr & aPTer,cElNuage3DMaille * aEnv,bool aMi
    }
 
    Pt3dr aTerInNu = aEnv->Euclid2ProfPixelAndIndex(aPTer);
-
    double aProfTer = aTerInNu.z;
    double aProfNu = aEnv->ProfInterpEnPixel(aPIm);
 
    bool isDessus = (aProfTer >= aProfNu);
 
+std::cout << "Valll   CCCCCCC " << aProfTer << " " << aProfNu << " \n";
+
    return aMin ?  isDessus : (! isDessus);
+*/
+
+  return false;
 
 }
 
-
-bool cImage::PIMsValideVis(const Pt3dr & aP) 
-{
-    bool aRes =    PIMsValideVis(aP,mEnvMinVisib,true) 
-               && PIMsValideVis(aP,mEnvMaxVisib,false);
-    std::cout << "AAAAAAAAAAAAAAA " << aRes  << " " << mEnvMinVisib  << " " << mName << "\n";
-    return aRes;
-}
 
 
 bool  cImage::Visualizable() const
