@@ -70,6 +70,13 @@ __device__ __host__ inline void dump_Type<dim3>(dim3 var)
 }
 
 template<>
+__device__ __host__ inline void dump_Type<Rect>(Rect var)
+{
+	var.out();
+}
+
+
+template<>
 __device__ __host__ inline void dump_Type<int2>(int2 var)
 {
     printf("[%d,%d]",var.x,var.y);
