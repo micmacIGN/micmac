@@ -138,6 +138,27 @@ __device__ float getValImage(T pt,ushort iDi,ushort nScale)
 	return tex2DLayered(getTexture(iDi),(float)pt.x + 0.5f,(float)pt.y + 0.5f ,nScale);
 }
 
+template<ushort id> inline
+__device__ uint2 getSizeImage()
+{
+	return make_uint2(0);
+}
+
+template<> inline
+__device__ uint2 getSizeImage<0>()
+{
+	return cstPCMS.mSIg0;
+}
+
+
+template<> inline
+__device__ uint2 getSizeImage<1>()
+{
+	return cstPCMS.mSIg1;
+}
+
+
+
 __global__
 void projectionMasqImage(float * dataPixel,uint3 dTer)
 {
@@ -177,21 +198,24 @@ extern "C" void LaunchKernelCorrelationMultiScalePreview(dataCorrelMS &data,cons
 }
 
 //  pre-calcul pour la correlation multi echelle et mise en cache dans mSom et mSomSqr
+template<ushort idTex>
 __global__
-void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* mSom, float* mSomSqr)
+void KernelPrepareCorrel(float aStepPix, ushort mNbByPix, float* mSom, float* mSomSqr)
 {
 
     // point image
     const uint2     pt          =   make_uint2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
 
-    if(oSE(pt,cstPCMS._dimTerrain))
+	const uint2 sizeImage = getSizeImage<idTex>();
+
+	if(oSE(pt,sizeImage))
         return;
 
     // indice de l'etape sub pixelaire, le maximum étant cPCencus.mNbByPix
     const ushort    aPhase   =   (ushort)blockIdx.z;
 
     // la dimension du cache, la cache stocke des precaluls pour la corrélation
-    const uint3     dimCache =   make_uint3(cstPCMS._dimTerrain.x,cstPCMS._dimTerrain.y,mNbByPix*cstPCMS.aNbScale);
+	const uint3     dimCache =   make_uint3(sizeImage.x,sizeImage.y,mNbByPix*cstPCMS.aNbScale);
 
     // le décalage sub pixelaire
     const float     cStepPix =   ((float)aPhase)*aStepPix;
@@ -216,7 +240,7 @@ void KernelPrepareCorrel(ushort idImage,float aStepPix, ushort mNbByPix, float* 
         for (int aKP=0 ; aKP<aNbP ; aKP++)
         {
             const short2 aP = aVP[aKP];
-            float aV = getValImage(ptImage+aP,idImage,aKS);
+			float aV = getValImage(ptImage+aP,idTex,aKS);
 			aSom	+= aV;
             aSomSqr += aV*aV;
         }
@@ -307,8 +331,8 @@ inline    float Quick_MS_CorrelBasic_Center(
 
         if (ModeMax || aLast)
         {
-            const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstPCMS._dimTerrain);
-			const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + cstPCMS.mNbByPix*aPhase),cstPCMS._dimTerrain);
+			const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstPCMS.mSIg0);
+			const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + cstPCMS.mNbByPix*aPhase),cstPCMS.mSIg1);
 
 
             const float aM1    =   aSom1 [pit0];
@@ -366,7 +390,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
     //      pt int dans l'image 0
     const   int2     aPIm0       =   an + cstPCMS.anOff0;
 
-    if (IsOkErod(aPIm0,0))
+	if (IsOkErod(aPIm0,0) && aPIm0.x < cstPCMS.mSIg0.x && aPIm0.y < cstPCMS.mSIg0.y)
     {
 
         // Z relatif au thread
@@ -398,7 +422,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
         float           aCost      =   cstPCMS.mAhDefCost;
 
-		if (IsOkErod(aPIm1,1) /*&& aIE(aPIm1,make_int2(cstPCMS._dimTerrain))*/) // TODO ---> attention integrer les dimensions correctes de l'image
+		if (IsOkErod(aPIm1,1) && aPIm1.x < cstPCMS.mSIg1.x && aPIm1.y < cstPCMS.mSIg1.y) // TODO ---> attention integrer les dimensions correctes de l'image
         {
 
 #ifdef modeMixte
@@ -441,27 +465,30 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
     CuDeviceData3D<float>  aSom_1;
     CuDeviceData3D<float>  aSomSqr_1;
 
-    aSom_0   .Malloc (parCMS._dimTerrain,parCMS.aNbScale);                  //  pas de sous echantillonnage
-    aSomSqr_0.Malloc (parCMS._dimTerrain,parCMS.aNbScale);
+	aSom_0   .Malloc (parCMS.mSIg0,parCMS.aNbScale);                  //  pas de sous echantillonnage
+	aSomSqr_0.Malloc (parCMS.mSIg0,parCMS.aNbScale);
 
-    aSom_1   .Malloc (parCMS._dimTerrain,parCMS.aNbScale*parCMS.mNbByPix);  // avec sous echantillonnage
-    aSomSqr_1.Malloc (parCMS._dimTerrain,parCMS.aNbScale*parCMS.mNbByPix);
+	aSom_1   .Malloc (parCMS.mSIg1,parCMS.aNbScale*parCMS.mNbByPix);  // avec sous echantillonnage
+	aSomSqr_1.Malloc (parCMS.mSIg1,parCMS.aNbScale*parCMS.mNbByPix);
 
     dim3	threads( 32, 32, 1);
 
-    uint    divDTerX = iDivUp32(parCMS._dimTerrain.x);
-    uint    divDTerY = iDivUp32(parCMS._dimTerrain.y);
+	uint    divDTerX0 = iDivUp32(parCMS.mSIg0.x);
+	uint    divDTerY0 = iDivUp32(parCMS.mSIg0.y);
 
-    dim3	blocks_00(divDTerX,divDTerY, 1);
-    dim3	blocks_01(divDTerX,divDTerY, parCMS.mNbByPix);
+	uint    divDTerX1 = iDivUp32(parCMS.mSIg1.x);
+	uint    divDTerY1 = iDivUp32(parCMS.mSIg1.y);
+
+	dim3	blocks_00(divDTerX0,divDTerY0, 1);
+	dim3	blocks_01(divDTerX1,divDTerY1, parCMS.mNbByPix);
 
     /// Les données sont structurées par calques
     /// les echelles (du même subpixel) sont regroupées par calques consécutifs
-    KernelPrepareCorrel<<<blocks_00,threads>>>(0,1,1,aSom_0.pData(),aSomSqr_0.pData());
+	KernelPrepareCorrel<0><<<blocks_00,threads>>>(1,1,aSom_0.pData(),aSomSqr_0.pData());
 
     getLastCudaError("KernelPrepareCorrel 0");
 
-    KernelPrepareCorrel<<<blocks_01,threads>>>(1,parCMS.aStepPix,parCMS.mNbByPix,aSom_1.pData(),aSomSqr_1.pData());
+	KernelPrepareCorrel<1><<<blocks_01,threads>>>(parCMS.aStepPix,parCMS.mNbByPix,aSom_1.pData(),aSomSqr_1.pData());
 
     getLastCudaError("KernelPrepareCorrel 1");
 //    aSom_0.syncHost();
@@ -474,9 +501,9 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 
 	dim3	threads_CorMS( modXTHread,modYTHread , modThreadZ);
 
-	uint    bC	= iDivUp(data._maxDeltaZ,modThreadZ);
-	divDTerX	= iDivUp(parCMS._dimTerrain.x,modXTHread);
-	divDTerY	= iDivUp(parCMS._dimTerrain.y,modYTHread);
+	uint    bC			= iDivUp(data._maxDeltaZ,modThreadZ);
+	uint	divDTerX	= iDivUp(parCMS._dimTerrain.x,modXTHread);
+	uint	divDTerY	= iDivUp(parCMS._dimTerrain.y,modYTHread);
 
 	dim3    blocks__CorMS(divDTerX,divDTerY,bC);
 
