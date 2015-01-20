@@ -390,18 +390,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         // Attention probleme avec valeur negative et le modulo
         const ushort aPhase = (ushort)((abs((int)aZ))%cstPCMS.mNbByPix);
 
-
-//        while ((abs((int)aZ0))%cstP_CorMS.mNbByPix != aPhase)
-//            aZ0++;
-//        const int anOffset      = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
-
-		const int anOffset  = dElise_div((int)aZ,cstPCMS.mNbByPix);
-
-        //        if( aEq(an,10) && aPhase == 0 && thZ < cstP_CorMS.mNbByPix)
-        //            DUMP(gpu_anOffset)
-
-        //int anOffset = dElise_div((int)aZ0,cstP_CorMS.mNbByPix);
-
+		const int anOffset  = dElise_div((int)aZ,cstPCMS.mNbByPix); // TODO peut etre simplifier avec l'opération précédente
 
         const   int2    aIm1SsPx   =   an + cstPCMS.anOff1;
         //      pt int dans l'image 1

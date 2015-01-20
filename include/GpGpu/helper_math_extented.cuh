@@ -170,14 +170,11 @@ struct Rect
         return *this;
     }
 
-#ifdef __cplusplus
-
-	void out()
+	__device__ __host__ void out()
 	{
-        std::cout << "[(" << pt0.x << "," <<  pt0.y << ")" << "(" << pt1.x << "," <<  pt1.y << ")] ";
+		printf("[(%d,%d)(%d,%d)]",pt0.x ,pt0.y,pt1.x,pt1.y);
 	}
 
-#endif
 };
 
 static int iDivUp(int a, int b)
