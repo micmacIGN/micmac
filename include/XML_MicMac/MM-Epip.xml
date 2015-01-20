@@ -563,8 +563,8 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
      </#WHEN>
 
     <AvalaibleMemory> 1024 </AvalaibleMemory>
-    <SzDalleMin> 400 </SzDalleMin>
-    <SzDalleMax> 512 </SzDalleMax>
+    <SzDalleMin> 128 </SzDalleMin>
+    <SzDalleMax> 1000 </SzDalleMax>
     <SzRecouvrtDalles> 20 </SzRecouvrtDalles>
     <SzMinDecomposCalc> 40 </SzMinDecomposCalc>
     <ComprMasque> eComprTiff_None </ComprMasque>
