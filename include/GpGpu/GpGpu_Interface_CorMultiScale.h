@@ -181,7 +181,13 @@ public:
 
     void            Job_Correlation_MultiScale();
 
-    void transfertImageAndMask(uint2 sI0,uint2 sI1,float ***dataImg0,float ***dataImg1,pixel **mask0,pixel **mask1);
+	void			transfertImageAndMask(
+			uint2 sI0,
+			uint2 sI1,
+			float ***dataImg0,
+			float ***dataImg1,
+			pixel **mask0,
+			pixel **mask1);
 
 	void init(Rect terrain,
 			  const std::vector<std::vector<Pt2di> >  &aVV,
@@ -205,6 +211,8 @@ public:
     float getCost(uint3 pt);
 
     void dealloc();
+
+	const_Param_Cor_MS& param(){return _cDataCMS;}
 
 private:
 
