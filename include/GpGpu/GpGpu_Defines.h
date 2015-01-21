@@ -4,8 +4,8 @@
 
 #include "GpGpu_BuildOptions.h"
 
-
 typedef unsigned char pixel;
+
 
 #define NOPAGLOCKMEM false
 #define WARPSIZE    32
@@ -42,6 +42,7 @@ typedef unsigned char pixel;
 #define DEVC_Data2Opti Data2Optimiz<CuDeviceData3D>
 
 
+
 template<class T>
 __device__ __host__ inline void dump_Type(T var)
 {
@@ -68,6 +69,13 @@ __device__ __host__ inline void dump_Type<dim3>(dim3 var)
 {
     printf("[%u,%u,%u]",var.x,var.y,var.z);
 }
+
+template<>
+__device__ __host__ inline void dump_Type<Rect>(Rect var)
+{
+	var.out();
+}
+
 
 template<>
 __device__ __host__ inline void dump_Type<int2>(int2 var)
@@ -271,11 +279,6 @@ inline std::string className(const std::string& prettyFunction)
 
     return prettyFunction.substr(begin,end);
 }
-
-#ifdef CUDA_ENABLED
-//    #define SAVEPLY
-//      #define DEBUG_GPGPU
-#endif
 
 //
 #define __CLASS_NAME__ className(__PRETTY_FUNCTION__)

@@ -966,7 +966,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
      LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)")
      << EAMC(aKeyGPP,"GPP Key"),
      LArgMain()
-     << EAM(aGRIDExt,"Grid",true,"GRID ext")
+     << EAM(aGRIDExt,"Grid",true,"GRID file extension")
      << EAM(aFileMnt,"Mnt",true,"xml file (FileOriMnt) for the DTM")
      << EAM(aHttpProxy,"Proxy",true,"http proxy for GPP access")
      );
@@ -991,6 +991,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
     std::string aDir,aPat;
     SplitDirAndFile(aDir,aPat,aFullName);
+    cout << "ok" << endl;
     std::list<std::string> aLFile;
     cInterfChantierNameManipulateur *aICNM;
     aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -1025,7 +1026,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 placePoint = l;
             }
         }
-        std::string ext = std::string("");
+        //std::string ext = std::string("");
         if (placePoint!=-1)
         {
             std::string baseName;
@@ -1143,14 +1144,14 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         }
     }
 
-    // On arrondi
+    // On arrondit
     xminChantier = (int)(xminChantier-1);
     xmaxChantier = (int)(xmaxChantier+1);
     yminChantier = (int)(yminChantier-1);
     ymaxChantier = (int)(ymaxChantier+1);
 
 
-    
+
     std::string gppAccess;
     {
         std::ostringstream oss;
@@ -1159,7 +1160,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             oss << "-x "<<aHttpProxy;
         gppAccess = oss.str();
     }
-    
+
     // Chargement du MNT
     cFileOriMnt aMntOri;
     if (!aFileMnt.empty())
@@ -1173,12 +1174,12 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         int NCmnt = (xmaxChantier-xminChantier)/resolutionMnt + 1;
         int NLmnt = (ymaxChantier-yminChantier)/resolutionMnt + 1;
         std::ostringstream oss;
-        
+
         //wget http://wxs.ign.fr -e use_proxy=yes -e http_proxy=http://relay-gpp3-i-interco.sca.gpp.priv.atos.fr:3128{quote}
         //curl -o ./mnt_tmp2.tif -H="Referer: http://localhost" -x http://relay-gpp3-i-interco.sca.gpp.priv.atos.fr:3128 "http://wxs-i.ign.fr/7gr31kqe5xttprd2g7zbkqgo/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX=43.278259,3.103180,43.411264,3.366021&CRS=EPSG:4326&WIDTH=500&HEIGHT=350"
-        
+
         oss << std::fixed << gppAccess<<" -o mnt_25m.tif  \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
-        
+
         //oss << std::fixed << "curl -o mnt_25m.tif -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
         std::cout << "commande : "<<oss.str()<<std::endl;
         system(oss.str().c_str());

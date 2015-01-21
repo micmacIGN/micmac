@@ -99,7 +99,7 @@ private:
     #ifdef NOCUDA_X11
     std::mutex    _mutexCompu;
     std::mutex    _mutexCopy;
-    std::mutex    _mutexPreCompute;
+	std::mutex    _mutexPreCompute;
     #endif
 #else
     boost::mutex    _mutexCompu;
