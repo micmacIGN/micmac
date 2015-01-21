@@ -522,8 +522,7 @@ ENDIF()
 
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
-
-                set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE" )
+        set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE" )
         # Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
         if (${CUDA_ENABLED})
             add_definitions( "/W3 /D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4661 /wd4267 /wd4355 /nologo" )
@@ -539,10 +538,10 @@ IF (MSVC)
                                 # REPLACE pour eviter le conflit Zm1000 vs ZmXXX
                                 string(REPLACE "/Zm1000" ${zm_value} CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
                         endif()
-        endif()
-
-		if ( ${CMAKE_SYSTEM_VERSION} MATCHES "5.1" )
+        elseif ( ${CMAKE_SYSTEM_VERSION} MATCHES "5.1" )
 			set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm131")
+        else()
+			set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm170")
 		endif()
 
         if(MSVC80 OR MSVC90 OR MSVC10 OR MSVC11 OR MSVC12 )
