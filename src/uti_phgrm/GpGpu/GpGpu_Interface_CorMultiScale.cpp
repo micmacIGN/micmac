@@ -15,8 +15,8 @@ dataCorrelMS::dataCorrelMS()
         _texMaskErod[t]->normalized     = false;
     }
 
-	_uInterval_Z.SetName(" interval des Z ");
-	_uCost.SetName(" volume des couts ");
+	_uInterval_Z.SetName("_uInterval_Z");
+	_uCost.SetName("_uCost");
 }
 
 dataCorrelMS::~dataCorrelMS()
@@ -92,15 +92,15 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
             short2 ZZ   = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
             _uInterval_Z.hostData[make_uint2(X,anY - mY0Ter)] = ZZ;
             uint deltaZ = abs(ZZ.x-ZZ.y);
+
             _maxDeltaZ  = max(_maxDeltaZ,deltaZ);
+
         }
     }
 
-    //DUMP_UINT(_maxDeltaZ)
+	_maxDeltaZ  = min(_maxDeltaZ,512); // TODO Attention
 
-    // Allocation du buffer des couts!
-
-    _uCost.ReallocIfDim(dimNappe,_maxDeltaZ);
+	_uCost.ReallocIfDim(dimNappe,_maxDeltaZ);
 
 }
 

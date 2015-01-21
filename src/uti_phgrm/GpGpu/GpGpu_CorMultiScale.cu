@@ -404,7 +404,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
         const int       DeltaZ  =  abs(_nappe.y-aZ0);
 
-        if(thZ>=DeltaZ)
+		if(thZ>=DeltaZ || DeltaZ > 512) // TODO Attention 512 nappeMAX
             return; // TODO on pourrait eventuellement affacter la valeur du cout par defaut.... mais bof
 
         // z Absolu
@@ -465,12 +465,11 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
     CuDeviceData3D<float>  aSom_1;
     CuDeviceData3D<float>  aSomSqr_1;
 
-	aSom_0.SetName("aSom_0");
-	aSomSqr_0.SetName("aSomSqr_0");
+	aSom_0.CGObject::SetName("aSom_0");
+	aSomSqr_0.CGObject::SetName("aSomSqr_0");
 
-	aSom_1.SetName("aSom_1");
-	aSomSqr_1.SetName("aSomSqr_1");
-
+	aSom_1.CGObject::SetName("aSom_1");
+	aSomSqr_1.CGObject::SetName("aSomSqr_1");
 
 	aSom_0   .Malloc (parCMS.mSIg0,parCMS.aNbScale);                  //  pas de sous echantillonnage
 	aSomSqr_0.Malloc (parCMS.mSIg0,parCMS.aNbScale);
