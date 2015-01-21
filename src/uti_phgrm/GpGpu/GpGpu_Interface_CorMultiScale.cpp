@@ -14,6 +14,9 @@ dataCorrelMS::dataCorrelMS()
         _texMaskErod[t]->filterMode     = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
         _texMaskErod[t]->normalized     = false;
     }
+
+	_uInterval_Z.SetName("_uInterval_Z");
+	_uCost.SetName("_uCost");
 }
 
 dataCorrelMS::~dataCorrelMS()
@@ -89,15 +92,15 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
             short2 ZZ   = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
             _uInterval_Z.hostData[make_uint2(X,anY - mY0Ter)] = ZZ;
             uint deltaZ = abs(ZZ.x-ZZ.y);
+
             _maxDeltaZ  = max(_maxDeltaZ,deltaZ);
+
         }
     }
 
-    //DUMP_UINT(_maxDeltaZ)
+	_maxDeltaZ  = min(_maxDeltaZ,512); // TODO Attention
 
-    // Allocation du buffer des couts!
-
-    _uCost.ReallocIfDim(dimNappe,_maxDeltaZ);
+	_uCost.ReallocIfDim(dimNappe,_maxDeltaZ);
 
 }
 
@@ -136,6 +139,8 @@ void const_Param_Cor_MS::init(
         const std::vector<double> &VPds,
         int2    offset0,
         int2    offset1,
+		uint2	sIg0,
+		uint2   sIg1,
         ushort  NbByPix,
         float   StepPix,
         float   nEpsilon,
@@ -155,7 +160,9 @@ void const_Param_Cor_MS::init(
     aSeuilHC    = SeuilHC;
     aSeuilBC    = SeuilBC;
     aModeMax    = ModeMax;
-    DoMixte     = mdoMixte;
+    DoMixte     = mdoMixte;	
+	mSIg0		= sIg0;
+	mSIg1		= sIg1;
 
     for (int s = 0; s < (int)VV.size(); ++s)
     {
@@ -220,6 +227,8 @@ void GpGpu_Interface_Cor_MS::init(
         const std::vector<double>              &aVPds,
         int2                                    offset0,
         int2                                    offset1,
+		uint2                                   sIg0,
+		uint2                                   sIg1,
         short                                 **mTabZMin,
         short                                 **mTabZMax,
         ushort                                  NbByPix,
@@ -232,7 +241,7 @@ void GpGpu_Interface_Cor_MS::init(
         bool                                    DoMixte,
         ushort                                  nbscale)
 {   
-    _cDataCMS.init(aVV,aVPds,offset0,offset1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte);
+	_cDataCMS.init(aVV,aVPds,offset0,offset1,sIg0,sIg1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte);
 
     _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
     _cDataCMS.setTerrain(terrain);

@@ -1082,7 +1082,7 @@ int NewRefineModel_main(int argc, char **argv)
          LArgMain() << EAM(aNameGCP,"GCP",true, "GCP file")
                     << EAM(aNamePointeIm,"IMG",true, "Pointe image file")
                     << EAM(aNameMNT,"DTM",true, "DTM file")
-                    << EAM(filterInput,"Filter",true, "Remove tiepoints with ground distance > 10m")
+                    << EAM(filterInput,"Filter",true, "Remove tiepoints with ground distance > 10m (def=false)")
                     << EAM(exportResidus,"ExpRes",true, "Export residuals (def=false)")
     );
 
