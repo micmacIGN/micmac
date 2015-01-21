@@ -9,7 +9,9 @@
 /*@{*/
 
 
+
 #define TPL_T template<class T>
+
 
 /// \class CData
 /// \brief Classe Abstraite de donnees
@@ -102,7 +104,7 @@ private:
     bool            isNULL(){return (_data == NULL);}
 
     /// \param      sizeofmalloc : Taille de l allocation
-    uint            SetSizeofMalloc(uint sizeofmalloc){ return _sizeofMalloc = sizeofmalloc; }
+	uint            SetSizeofMalloc(uint sizeofmalloc){ return _sizeofMalloc = sizeofmalloc; }
 
 };
 
@@ -129,6 +131,8 @@ TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
     return true;
 }
 
+
+
 TPL_T CData<T>::CData():
     _memoryOc(0),
     _data(NULL),
@@ -137,7 +141,12 @@ TPL_T CData<T>::CData():
 #endif
     _sizeofMalloc(0)
 {
-    CGObject::ClassTemplate(CGObject::StringClass<T>(pData()));
+#ifdef      NOCUDA_X11
+	string sCT(CGObject::demangle(typeid(_data).name()));
+	CGObject::ClassTemplate(sCT.substr(0, sCT.size()-1));
+#else
+	CGObject::ClassTemplate(CGObject::StringClass<T>(pData()));
+#endif
 }
 
 TPL_T T CData<T>::GetRandomValue(T min, T max)
@@ -216,6 +225,7 @@ void  tSetDimension(uint* dimension, uint val)
 #include <stdio.h>
 #include <stdarg.h>
 
+
 int inline _foo(size_t n, int xs[])
 {
     int i;
@@ -231,11 +241,6 @@ int inline _foo(size_t n, int xs[])
    _foo(sizeof(_x)/sizeof(_x[0]), _x); \
 })
 
-#ifdef      CPPX11
-#ifndef     __CUDACC__
-    #define    NOCUDA_X11
-#endif
-#endif
 
 template<ushort dim = 3>
 class CStructure
@@ -406,6 +411,8 @@ protected:
 
     uint    Sizeof(){return 0;}
 };
+
+
 
 
 /// \class CData2D
@@ -702,7 +709,13 @@ private:
 
 TPL_T void CuHostData3D<T>::init(bool pgLockMem, uint2 dim, uint l)
 {
-    CGObject::SetType("CuHostData3D");
+
+#ifdef NOCUDA_X11
+	string sCT(CGObject::demangle(typeid(this).name()));
+	CGObject::SetType(sCT.substr(0, sCT.size()-1));
+#else
+	CGObject::SetType("CuHostData3D");
+#endif
     _pgLockMem = pgLockMem;
     CData3D<T>::bInit(dim,l); // ATTENTION PROBLEME : Pure virtual method called
 }
@@ -964,8 +977,14 @@ private:
 };
 
 TPL_T void CuDeviceData3D<T>::init(string name, uint2 dim, uint l)
-{
-    CGObject::SetType("CuDeviceData3D");
+{	
+#ifdef NOCUDA_X11
+	string sCT(CGObject::demangle(typeid(this).name()));
+	CGObject::SetType(sCT.substr(0, sCT.size()-1));
+#else
+	CGObject::SetType("CuDeviceData3D");
+#endif
+
     CGObject::SetName(name);
     if(size(dim) && l)
         CData3D<T>::Malloc(dim,l);
@@ -1086,7 +1105,13 @@ public:
 
     ImageGpGpu<T,cudaContext> ()
     {
-        DecoratorImage<cudaContext>::SetType("ImageCuda");
+		#ifdef NOCUDA_X11
+			string sCT(CGObject::demangle(typeid(this).name()));
+			DecoratorImage<cudaContext>::SetType(sCT.substr(0, sCT.size()-1));
+		#else
+			DecoratorImage<cudaContext>::SetType("ImageCuda");
+		#endif
+
         DecoratorImage<cudaContext>::ClassTemplate(DecoratorImage<cudaContext>::ClassTemplate() + " " + DecoratorImage<cudaContext>::StringClass<T>(_ClassData));
     }
 
@@ -1133,7 +1158,14 @@ class ImageGpGpu<T,openClContext> : public CData2D<cl_mem>, public DecoratorImag
     ImageGpGpu():
         DecoratorImage<openClContext>(this)
     {
-        CData2D::SetType("Image OpenCL");
+
+#ifdef NOCUDA_X11
+	string sCT(CGObject::demangle(typeid(this).name()));
+	CData2D::SetType(sCT.substr(0, sCT.size()-1));
+#else
+	CData2D::SetType("Image OpenCL");
+#endif
+
         CData2D::ClassTemplate(CData2D::ClassTemplate() + " " + CData2D::StringClass<T>(_ClassData));
     }
 
@@ -1315,6 +1347,12 @@ struct CuUnifiedData3D
     {
        return deviceData.pData();
     }
+
+	void SetName(string &name,ushort id = 0)
+	{
+		deviceData.SetName("uDevice_" + name + "_",id);
+		hostData.SetName("uHost_" + name + "_",id);
+	}
 };
 
 

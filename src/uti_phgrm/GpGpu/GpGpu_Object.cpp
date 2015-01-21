@@ -23,7 +23,7 @@ std::string CGObject::Type()
     return _type;
 }
 
-void CGObject::SetType( std::string type )
+void CGObject::SetType(string type )
 {
     _type = type;
 }
@@ -49,7 +49,11 @@ void CGObject::ClassTemplate( std::string classTemplate )
 
 std::string CGObject::Id()
 {
-    return " NAME : " + Name() + ", " + "TYPE : " + Type() + "/" + ClassTemplate();
+#ifdef NOCUDA_X11
+	return " NAME : " + Name() + ", " + "TYPE : " + Type();
+#else
+	return " NAME : " + Name() + ", " + "TYPE : " + Type() + "<" + ClassTemplate() + ">";
+#endif
 }
 
 struct2D::struct2D():
