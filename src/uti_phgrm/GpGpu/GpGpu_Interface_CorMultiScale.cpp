@@ -14,6 +14,9 @@ dataCorrelMS::dataCorrelMS()
         _texMaskErod[t]->filterMode     = cudaFilterModePoint; //cudaFilterModePoint cudaFilterModeLinear
         _texMaskErod[t]->normalized     = false;
     }
+
+	_uInterval_Z.SetName(" interval des Z ");
+	_uCost.SetName(" volume des couts ");
 }
 
 dataCorrelMS::~dataCorrelMS()

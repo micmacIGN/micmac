@@ -141,9 +141,8 @@ TPL_T CData<T>::CData():
 #endif
     _sizeofMalloc(0)
 {
-#ifdef      NOCUDA_X11
-	string sCT(CGObject::demangle(typeid(_data).name()));
-	CGObject::ClassTemplate(sCT.substr(0, sCT.size()-1));
+#ifdef      NOCUDA_X11	
+	CGObject::ClassTemplate(AutoStringClass(_data));
 #else
 	CGObject::ClassTemplate(CGObject::StringClass<T>(pData()));
 #endif
@@ -711,8 +710,7 @@ TPL_T void CuHostData3D<T>::init(bool pgLockMem, uint2 dim, uint l)
 {
 
 #ifdef NOCUDA_X11
-	string sCT(CGObject::demangle(typeid(this).name()));
-	CGObject::SetType(sCT.substr(0, sCT.size()-1));
+	CGObject::SetType(CGObject::AutoStringClass(this));
 #else
 	CGObject::SetType("CuHostData3D");
 #endif
@@ -979,8 +977,7 @@ private:
 TPL_T void CuDeviceData3D<T>::init(string name, uint2 dim, uint l)
 {	
 #ifdef NOCUDA_X11
-	string sCT(CGObject::demangle(typeid(this).name()));
-	CGObject::SetType(sCT.substr(0, sCT.size()-1));
+	CGObject::SetType(CGObject::AutoStringClass(this));
 #else
 	CGObject::SetType("CuDeviceData3D");
 #endif
@@ -1106,8 +1103,7 @@ public:
     ImageGpGpu<T,cudaContext> ()
     {
 		#ifdef NOCUDA_X11
-			string sCT(CGObject::demangle(typeid(this).name()));
-			DecoratorImage<cudaContext>::SetType(sCT.substr(0, sCT.size()-1));
+			DecoratorImage<cudaContext>::SetType(CGObject::AutoStringClass(this));
 		#else
 			DecoratorImage<cudaContext>::SetType("ImageCuda");
 		#endif
@@ -1160,8 +1156,7 @@ class ImageGpGpu<T,openClContext> : public CData2D<cl_mem>, public DecoratorImag
     {
 
 #ifdef NOCUDA_X11
-	string sCT(CGObject::demangle(typeid(this).name()));
-	CData2D::SetType(sCT.substr(0, sCT.size()-1));
+	CData2D::SetType(CGObject::AutoStringClass(this));
 #else
 	CData2D::SetType("Image OpenCL");
 #endif
@@ -1348,7 +1343,7 @@ struct CuUnifiedData3D
        return deviceData.pData();
     }
 
-	void SetName(string &name,ushort id = 0)
+	void SetName(string name,ushort id = 0)
 	{
 		deviceData.SetName("uDevice_" + name + "_",id);
 		hostData.SetName("uHost_" + name + "_",id);
