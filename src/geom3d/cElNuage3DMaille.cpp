@@ -1540,9 +1540,22 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     if (aCoeffEtire > 0)
         aBasc.InitDynEtirement(aCoeffEtire);
     Pt2di anOfOut;
-    Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
+    bool Ok;
+    Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef,&Ok);
+
+
+    if (!Ok)
+    {
+        return 0;
+    }
     cElNuage3DMaille * aNuageRes = this;
 
+
+
+if (MPD_MM())
+{
+    std::cout << "AAAAAAbbsc " << aMntBasc.sz() << "\n";
+}
 
     // Pt2di anOfOutInit= anOfOut;
     if (AutoResize)
@@ -1808,6 +1821,8 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    }
 
     cElNuage3DMaille * aRes = aNOut->BasculeInThis(&aGeomOutOri,aNIn,true,anArgBasc.mDynEtir,0,0,-1,anArgBasc.mAutoResize,&aVAttrIm);
+
+   if (! aRes) return 0;
 
 
 
