@@ -459,11 +459,18 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
     // Cache device
 //    CuUnifiedData3D<float>  aSom_0;
 
-    CuDeviceData3D<float>  aSom_0;
+	CuDeviceData3D<float>  aSom_0;
     CuDeviceData3D<float>  aSomSqr_0;
 
     CuDeviceData3D<float>  aSom_1;
     CuDeviceData3D<float>  aSomSqr_1;
+
+	aSom_0.SetName("aSom_0");
+	aSomSqr_0.SetName("aSomSqr_0");
+
+	aSom_1.SetName("aSom_1");
+	aSomSqr_1.SetName("aSomSqr_1");
+
 
 	aSom_0   .Malloc (parCMS.mSIg0,parCMS.aNbScale);                  //  pas de sous echantillonnage
 	aSomSqr_0.Malloc (parCMS.mSIg0,parCMS.aNbScale);

@@ -40,12 +40,24 @@ public:
     /// \brief  Affecte la classe du template de l objet
 	void		ClassTemplate(string classTemplate);
 
+
     /// \brief  renvoie la classe T en string
     template<class T>
 	const char* StringClass(T* tt){ return "T";}
 
 
+
+
+
 #ifdef NOCUDA_X11
+
+	template<class T>
+	static string AutoStringClass(T* _data)
+	{
+		string sCT(CGObject::demangle(typeid(_data).name()));
+		return sCT.substr(0, sCT.size()-1);
+	}
+
 	static inline const char* demangle(const char* name)
 	{
 		char buf[1024];
