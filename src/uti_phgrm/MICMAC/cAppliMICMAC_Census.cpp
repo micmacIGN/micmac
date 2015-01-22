@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-
+#include "GpGpu/GBV2_ProgDynOptimiseur.h"
 
 
 class cQckInterpolEpip;
@@ -1395,6 +1395,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 #ifdef CUDA_ENABLED
 
+//	bool dynRegulGpu = CurEtape()->AlgoRegul() == eAlgoTestGPU;
+//	if(dynRegulGpu)
+//		DUMP(dynRegulGpu)
+
 //	interface_Census_GPU.transfertImageAndMask(
 //				toUi2(mPDV1->LoadedIm().SzIm()),
 //				toUi2(mPDV2->LoadedIm().SzIm()),
@@ -1420,13 +1424,22 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 //				aSeuilHC,
 //				aSeuilBC,
 //				aModeMax,
-//				DoMixte
+//				DoMixte,
+//				dynRegulGpu
 //				);
+
 
 
 //	interface_Census_GPU.Job_Correlation_MultiScale();
 
 //	GpGpuTools::NvtxR_Push("Start copy cost",0xFFAAFF33);
+
+//	if(dynRegulGpu)
+//	{
+//		cGBV2_ProgDynOptimiseur* mSurfOptGpGpu  = dynamic_cast<cGBV2_ProgDynOptimiseur*>(mSurfOpt);
+
+
+//	}
 
 //	for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 //		for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
