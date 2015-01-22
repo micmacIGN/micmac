@@ -155,6 +155,24 @@ __device__ float getValImage(T pt,ushort nScale)
 	return tex2DLayered(getTexture<idTex>(),(float)pt.x + 0.5f,(float)pt.y + 0.5f ,nScale);
 }
 
+template<class T> inline
+__device__ void TO_COST(float cost,T& destCOST)
+{
+	//destCOST = (T)cost;
+}
+
+template<> inline
+__device__ void TO_COST(float cost,float& destCOST)
+{
+	destCOST = cost;
+}
+
+template<> inline
+__device__ void TO_COST(float cost,ushort& destCOST)
+{
+	destCOST = (ushort)rint(cost*1e4);
+}
+
 template<ushort id> inline
 __device__ uint2 getSizeImage()
 {
@@ -321,7 +339,7 @@ inline    float Quick_MS_CorrelBasic_Center(
 
 			const float valima_0 = getValImage<0>(aPG0 + aP,aKS);
 			const float valima_1 = getValImage<1>(aFG1 + aP,aKS);
-
+{
 #ifdef unitTestCorMS_gpgpu
 			if(IN_THREAD(4,7,1,3,8,3) && !aKS && !aP.x && !aP.y)
 			{
@@ -335,6 +353,7 @@ inline    float Quick_MS_CorrelBasic_Center(
 						DUMP(aPhase)
 			}
 #endif
+}
             aCov += valima_0*valima_1;
 
         }
@@ -348,43 +367,49 @@ inline    float Quick_MS_CorrelBasic_Center(
 
 		const float aM1    =   aSom1 [pit0];
 		const float aM2    =   aSom2 [pit1];
-
+		{
 #ifdef unitTestCorMS_gpgpu
 
-		if(IN_THREAD(4,7,1,3,8,3))
-		{
-			DUMP(ModeMax)
-					DUMP(aCov)
-					DUMP(aCovGlob)
-					DUMP(aPds)
-					DUMP(aPG0)
-					DUMP(aPG1)
-					DUMP(aFG1)
-					DUMP(aSom1  [pit0])
-					DUMP(aSom11 [pit0])
-					DUMP(aSom2  [pit1])
-					DUMP(aSom22 [pit1])
-		}
+			if(IN_THREAD(4,7,1,3,8,3))
+			{
+				DUMP(ModeMax)
+						DUMP(aCov)
+						DUMP(aCovGlob)
+						DUMP(aPds)
+						DUMP(aPG0)
+						DUMP(aPG1)
+						DUMP(aFG1)
+						DUMP(aSom1  [pit0])
+						DUMP(aSom11 [pit0])
+						DUMP(aSom2  [pit1])
+						DUMP(aSom22 [pit1])
+			}
 
 #endif
+		}
 
 		const float aM11   =   aSom11[pit0] - aM1*aM1;
 		const float aM22   =   aSom22[pit1] - aM2*aM2;
 		const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
 
-		//            if (ModeMax)
-		//            {
 		float aCor = (aM12 * abs(aM12)) /max(cstPCMS.anEpsilon,aM11*aM22);
 		aMaxCor = max(aMaxCor,aCor);
-		//            }
-		//            else
-		//                return aM12 / sqrt(max(cstPCMS.anEpsilon,aM11*aM22));
-		//        }
 
+		{
+			//		if (ModeMax)
+			//		{
+			//			float aCor = (aM12 * abs(aM12)) /max(cstPCMS.anEpsilon,aM11*aM22);
+			//			aMaxCor = max(aMaxCor,aCor);
+			//		}
+			//		else
+			//			return aM12 / sqrt(max(cstPCMS.anEpsilon,aM11*aM22));
+			// }
+		}
     }
-
     return (aMaxCor > 0) ? sqrt(aMaxCor) : - sqrt(-aMaxCor) ;
 }
+
+
 
 __global__
 void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
@@ -460,7 +485,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 #endif
         }
 
-		_cost = aCost;
+		TO_COST(aCost,_cost);
     }
 }
 #include <stdio.h>

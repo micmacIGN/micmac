@@ -149,6 +149,7 @@ void const_Param_Cor_MS::init(
         float   SeuilBC,
         bool    ModeMax,
         bool    mdoMixte,
+		bool	dynRegulGpu,
         ushort nbscale)
 {
 
@@ -162,7 +163,8 @@ void const_Param_Cor_MS::init(
     aModeMax    = ModeMax;
     DoMixte     = mdoMixte;	
 	mSIg0		= sIg0;
-	mSIg1		= sIg1;
+	mSIg1		= sIg1;	
+	mDyRegGpu	= dynRegulGpu;
 
     for (int s = 0; s < (int)VV.size(); ++s)
     {
@@ -238,9 +240,10 @@ void GpGpu_Interface_Cor_MS::init(
         float                                   aSeuilBC,
         bool                                    aModeMax,
         bool                                    DoMixte,
+		bool									dynRegulGpu,
         ushort                                  nbscale)
 {   
-	_cDataCMS.init(aVV,aVPds,offset0,offset1,sIg0,sIg1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte);
+	_cDataCMS.init(aVV,aVPds,offset0,offset1,sIg0,sIg1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte,dynRegulGpu);
 
     _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
     _cDataCMS.setTerrain(terrain);

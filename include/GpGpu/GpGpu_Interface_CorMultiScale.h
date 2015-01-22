@@ -74,6 +74,8 @@ struct const_Param_Cor_MS
 
     bool    DoMixte;
 
+	bool	mDyRegGpu;
+
     ///
     /// \brief mNbByPix
     /// nombre de phase par pixel
@@ -102,7 +104,7 @@ struct const_Param_Cor_MS
 			float   aSeuilHC,
 			float   aSeuilBC,
 			bool    aModeMax,
-			bool    DoMixte,
+			bool    DoMixte, bool dynRegulGpu,
 			ushort  nbscale = NBSCALE );
 
     void setTerrain(Rect    zoneTerrain);
@@ -206,6 +208,7 @@ public:
 			  float     aSeuilBC,
 			  bool      aModeMax,
 			  bool      DoMixte,
+			  bool		dynRegulGpu,
 			  ushort nbscale = NBSCALE );
 
     float getCost(uint3 pt);
