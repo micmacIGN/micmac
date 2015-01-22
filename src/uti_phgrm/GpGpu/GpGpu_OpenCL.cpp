@@ -144,6 +144,11 @@ int main()
 
     CuHostData3D<int2> bufferHost;
 
+	CuDeviceData3D<float3> bufferDevice(10,"fata");
+
+	bufferDevice.OutputInfo();
+	bufferHost.OutputInfo();
+
     bufferHost.Malloc(make_uint2(5,5),1);
 
     bufferHost.Fill(make_int2(5,8));

@@ -602,7 +602,8 @@ class cZBuffer
                        Pt2di & aOffset_Out_00,
                        Pt2di aP0In,
                        Pt2di aP1In,
-                       float aZDef  // aZDef doit etre suffisement bas
+                       float aZDef,  // aZDef doit etre suffisement bas
+                       bool  * Ok  = 0
                    );
 
         Im2D_REAL4 ZCaches

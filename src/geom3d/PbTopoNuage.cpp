@@ -323,6 +323,7 @@ cAnalyPbTopo::cAnalyPbTopo
                GenZonec(mPCur,*this);
                mCurATB.BoxGlob()._p1 = mCurATB.BoxGlob()._p1 + Pt2di(1,1);
                mCurATB.BoxMasq()._p1 = mCurATB.BoxMasq()._p1 + Pt2di(1,1);
+
                mATB.OneZonzATB().push_back(mCurATB);
                mNumZoneC = NextNumZoneC();
             }
@@ -452,7 +453,7 @@ int TopoSurf_main(int argc,char ** argv)
 
     if (!EAMIsInit(&PbTopo))
     {
-       PbTopo = aNProj->SeuilDistPbTopo();
+       PbTopo = aNProj->SeuilDistPbTopo() > 0;
     }
 
 

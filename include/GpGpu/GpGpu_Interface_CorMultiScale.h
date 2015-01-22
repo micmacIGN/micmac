@@ -34,6 +34,7 @@ struct const_Param_Cor_MS
     /// taille des vignettes
     ushort  size_aVV[NBSCALE];
 
+
     ///
     /// \brief aVPds
     /// poid des vignettes
@@ -48,6 +49,10 @@ struct const_Param_Cor_MS
     /// \brief anOff1
     /// offset terrain image epipolaire 1
     int2    anOff1;
+
+	uint2	mSIg0;
+
+	uint2	mSIg1;
 
     Rect    _zoneTerrain;
 
@@ -84,19 +89,21 @@ struct const_Param_Cor_MS
     /// dimension du cache preparatoire au calcul de correlation multi-echelle
     uint3   mDim3Cache;
 
-    void init(const std::vector<std::vector<Pt2di> >  &aVV,
-            const std::vector<double >              &aVPds,
-            int2    offset0,
-            int2    offset1,
-            ushort  NbByPix,
-            float   StepPix,
-            float   nEpsilon,
-            float   AhDefCost,
-            float   aSeuilHC,
-            float   aSeuilBC,
-            bool    aModeMax,
-            bool    DoMixte,
-            ushort  nbscale = NBSCALE );
+	void init(const std::vector<std::vector<Pt2di> >  &aVV,
+			const std::vector<double >              &aVPds,
+			int2    offset0,
+			int2    offset1,
+			uint2	sIg0,
+			uint2	sIg1,
+			ushort  NbByPix,
+			float   StepPix,
+			float   nEpsilon,
+			float   AhDefCost,
+			float   aSeuilHC,
+			float   aSeuilBC,
+			bool    aModeMax,
+			bool    DoMixte,
+			ushort  nbscale = NBSCALE );
 
     void setTerrain(Rect    zoneTerrain);
 
@@ -174,28 +181,38 @@ public:
 
     void            Job_Correlation_MultiScale();
 
-    void transfertImageAndMask(uint2 sI0,uint2 sI1,float ***dataImg0,float ***dataImg1,pixel **mask0,pixel **mask1);
+	void			transfertImageAndMask(
+			uint2 sI0,
+			uint2 sI1,
+			float ***dataImg0,
+			float ***dataImg1,
+			pixel **mask0,
+			pixel **mask1);
 
-    void init(Rect terrain,
-              const std::vector<std::vector<Pt2di> >  &aVV,
-              const std::vector<double >              &aVPds,
-              int2      offset0,
-              int2      offset1,
-              short   **mTabZMin,
-              short   **mTabZMax,
-              ushort    NbByPix,
-              float     StepPix,
-              float     nEpsilon,
-              float     AhDefCost,
-              float     aSeuilHC,
-              float     aSeuilBC,
-              bool      aModeMax,
-              bool      DoMixte,
-              ushort nbscale = NBSCALE );
+	void init(Rect terrain,
+			  const std::vector<std::vector<Pt2di> >  &aVV,
+			  const std::vector<double >              &aVPds,
+			  int2      offset0,
+			  int2      offset1,
+			  uint2		sIg0,
+			  uint2		sIg1,
+			  short   **mTabZMin,
+			  short   **mTabZMax,
+			  ushort    NbByPix,
+			  float     StepPix,
+			  float     nEpsilon,
+			  float     AhDefCost,
+			  float     aSeuilHC,
+			  float     aSeuilBC,
+			  bool      aModeMax,
+			  bool      DoMixte,
+			  ushort nbscale = NBSCALE );
 
     float getCost(uint3 pt);
 
     void dealloc();
+
+	const_Param_Cor_MS& param(){return _cDataCMS;}
 
 private:
 
