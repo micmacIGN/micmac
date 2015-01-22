@@ -170,7 +170,7 @@ __device__ void TO_COST(float cost,float& destCOST)
 template<> inline
 __device__ void TO_COST(float cost,ushort& destCOST)
 {
-	destCOST = (ushort)rint(cost*1e4);
+	destCOST = (ushort)((float)cost*(float)1e4);
 }
 
 template<ushort id> inline
@@ -410,9 +410,9 @@ inline    float Quick_MS_CorrelBasic_Center(
 }
 
 
-
+template<class T>
 __global__
-void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, float *cost)
+void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, T *cost)
 {
 
     // point image
@@ -431,7 +431,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         // Z relatif au thread
         const ushort thZ        =  blockIdx.z*blockDim.z + threadIdx.z;
 
-        float&          _cost   =  cost[to1D(an,thZ,cstPCMS._dimTerrain)];
+		T&				_cost   =  cost[to1D(an,thZ,cstPCMS._dimTerrain)];
 
         const short2    _nappe  =  nappe[to1D(an,cstPCMS._dimTerrain)];
 
@@ -549,17 +549,34 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 //	data._uCost.hostData.Fill(parCMS.mAhDefCost);
 //	data._uCost.syncDevice();
 
-	Kernel__DoCorrel_MultiScale_Global<<<blocks__CorMS,threads_CorMS>>>(
-                                                                          aSom_0   .pData(),
-                                                                          aSomSqr_0.pData(),
-                                                                          aSom_1   .pData(),
-                                                                          aSomSqr_1.pData(),
-                                                                          data._uInterval_Z   .pData(),
-                                                                          data._uCost         .pData());
+	if(parCMS.mDyRegGpu)
+	{
+		Kernel__DoCorrel_MultiScale_Global<<<blocks__CorMS,threads_CorMS>>>(
+																			  aSom_0   .pData(),
+																			  aSomSqr_0.pData(),
+																			  aSom_1   .pData(),
+																			  aSomSqr_1.pData(),
+																			  data._uInterval_Z   .pData(),
+																			  data._uCostu        .pData());
 
-	getLastCudaError("Kernel__DoCorrel_MultiScale_Global");
+		getLastCudaError("Kernel__DoCorrel_MultiScale_Global float");
 
-    data._uCost.syncHost();
+		data._uCostu.syncHost();
+	}
+	else
+	{
+		Kernel__DoCorrel_MultiScale_Global<<<blocks__CorMS,threads_CorMS>>>(
+																			  aSom_0   .pData(),
+																			  aSomSqr_0.pData(),
+																			  aSom_1   .pData(),
+																			  aSomSqr_1.pData(),
+																			  data._uInterval_Z   .pData(),
+																			  data._uCostf         .pData());
+
+		getLastCudaError("Kernel__DoCorrel_MultiScale_Global float");
+
+		data._uCostf.syncHost();
+	}
 
     aSom_0   .Dealloc();
     aSomSqr_0.Dealloc();

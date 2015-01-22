@@ -149,19 +149,22 @@ void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int 
 
 #if CUDA_ENABLED
     Pt2di z     = Px2Point(aPX);
-    int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
-    IGpuOpt._poInitCost[pt] = cGBV2_TabulCost::CostR2I(aCost);
+	int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
+	IGpuOpt._poInitCost[pt] = cGBV2_TabulCost::CostR2I(aCost);
 #else
     mMatrCel[aPTer][Px2Point(aPX)].SetCostInit(cGBV2_TabulCost::CostR2I(aCost));
 #endif
 }
+
 #if CUDA_ENABLED
 void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost)
 {
-	int3 pt		= make_int3(aPTer.x,aPTer.y,aPX);
+	Pt2di z     = Px2Point(&aPX);
+	int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
 	IGpuOpt._poInitCost[pt] = aCost;
 }
 #endif
+
 void cGBV2_ProgDynOptimiseur::BalayageOneSens
 (
         const std::vector<Pt2di> &   aVPt,     // vecteur de points

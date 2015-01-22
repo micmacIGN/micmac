@@ -1395,9 +1395,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 #ifdef CUDA_ENABLED
 
-//	bool dynRegulGpu = CurEtape()->AlgoRegul() == eAlgoTestGPU;
-//	if(dynRegulGpu)
-//		DUMP(dynRegulGpu)
+//	bool dynRegulGpu = false;//CurEtape()->AlgoRegul() == eAlgoTestGPU;
 
 //	interface_Census_GPU.transfertImageAndMask(
 //				toUi2(mPDV1->LoadedIm().SzIm()),
@@ -1434,13 +1432,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 //	GpGpuTools::NvtxR_Push("Start copy cost",0xFFAAFF33);
 
-//	if(dynRegulGpu)
-//	{
-//		cGBV2_ProgDynOptimiseur* mSurfOptGpGpu  = dynamic_cast<cGBV2_ProgDynOptimiseur*>(mSurfOpt);
-
-
-//	}
-
 //	for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 //		for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
 //		{
@@ -1449,19 +1440,16 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 //			int delTaZ	= abs(aZ0-aZ1);
 //			bool bIMinZ = delTaZ < 512;
 //			Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
-//			bool OkIm0	= anI0.IsOkErod(aPIm0.x,aPIm0.y);
 
-//			for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
+//			if(anI0.IsOkErod(aPIm0.x,aPIm0.y) && bIMinZ)
 //			{
-//				if(bIMinZ)
+//				for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
 //				{
-//					uint3 pt =make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
-//					double aCost = interface_Census_GPU.getCost(pt);
-//					mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, aCost >= 0.f/* &&aCost <= 2.f*/ &&  OkIm0 ? aCost : mAhDefCost);
-//				}
-//				else
-//				{
-//					mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, mAhDefCost);
+//					uint3	pt		= make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
+//					float aCost	= interface_Census_GPU.getCost<float>(pt);
+//					mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, aCost);
+//					//							ushort aCost	= interface_Census_GPU.getCost<ushort>(pt);
+//					//							mSurfOptGpGpu->gLocal_SetCout(Pt2di(anX,anY),aZI, aCost);
 //				}
 //			}
 //		}

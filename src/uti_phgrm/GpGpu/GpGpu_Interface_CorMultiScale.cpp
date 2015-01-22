@@ -16,7 +16,8 @@ dataCorrelMS::dataCorrelMS()
     }
 
 	_uInterval_Z.SetName("_uInterval_Z");
-	_uCost.SetName("_uCost");
+	_uCostf.SetName("_uCostf");
+	_uCostu.SetName("_uCostu");
 }
 
 dataCorrelMS::~dataCorrelMS()
@@ -49,6 +50,18 @@ void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)
     }
 }
 
+template<>
+float* dataCorrelMS::pDeviceCost()
+{
+	return _uCostf.deviceData.pData();
+}
+
+template<>
+ushort* dataCorrelMS::pDeviceCost()
+{
+	return _uCostu.deviceData.pData();
+}
+
 void dataCorrelMS::transfertMask(uint2 dimMask0,uint2 dimMask1, pixel **mImMasqErod_0, pixel **mImMasqErod_1)
 {
     uint2 dimMaskByte0 = make_uint2((dimMask0.x+7)/8,dimMask0.y);
@@ -75,7 +88,7 @@ void dataCorrelMS::transfertMask(uint2 dimMask0,uint2 dimMask1, pixel **mImMasqE
 
 }
 
-void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter, short **mTabZMin, short **mTabZMax)
+void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter, short **mTabZMin, short **mTabZMax, bool dynGpu)
 {
 
     uint2 dimNappe = make_uint2(mX1Ter-mX0Ter,mY1Ter-mY0Ter);
@@ -100,7 +113,10 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 
 	_maxDeltaZ  = min(_maxDeltaZ,512); // TODO Attention
 
-	_uCost.ReallocIfDim(dimNappe,_maxDeltaZ);
+	if(dynGpu)
+		_uCostu.ReallocIfDim(dimNappe,_maxDeltaZ);
+	else
+		_uCostf.ReallocIfDim(dimNappe,_maxDeltaZ);
 
 }
 
@@ -130,8 +146,8 @@ void dataCorrelMS::dealloc()
 
 //    _HostInterval_Z.Dealloc();
     _uInterval_Z.Dealloc();
-    _uCost.Dealloc();
-
+	_uCostf.Dealloc();
+	_uCostu.Dealloc();
 }
 
 void const_Param_Cor_MS::init(
@@ -245,17 +261,31 @@ void GpGpu_Interface_Cor_MS::init(
 {   
 	_cDataCMS.init(aVV,aVPds,offset0,offset1,sIg0,sIg1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte,dynRegulGpu);
 
-    _dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax);
+	_dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax,dynRegulGpu);
     _cDataCMS.setTerrain(terrain);
     _cDataCMS.maxDeltaZ = _dataCMS._maxDeltaZ;
 
     //_cDataCMS.transfertTerrain(Rect(mX0Ter,mY0Ter,mY1Ter,mX1Ter));
 }
 
+template<class T>
+T GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+{   
+	return 0.1f;
+}
+
+template<>
 float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 {
-    float *pcost = _dataCMS._uCost.hostData.pData();
-    return pcost[to1D(pt,_dataCMS._uCost.hostData.GetDimension3D())];
+	float *pcost = _dataCMS._uCostf.hostData.pData();
+	return pcost[to1D(pt,_dataCMS._uCostf.hostData.GetDimension3D())];
+}
+
+template<>
+ushort GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+{
+	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
 }
 
 void GpGpu_Interface_Cor_MS::dealloc()

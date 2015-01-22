@@ -104,7 +104,8 @@ struct const_Param_Cor_MS
 			float   aSeuilHC,
 			float   aSeuilBC,
 			bool    aModeMax,
-			bool    DoMixte, bool dynRegulGpu,
+			bool    DoMixte,
+			bool	dynRegulGpu,
 			ushort  nbscale = NBSCALE );
 
     void setTerrain(Rect    zoneTerrain);
@@ -145,7 +146,15 @@ struct dataCorrelMS
     ///
     /// \brief _uCost
     ///
-    CuUnifiedData3D<float>         _uCost;
+	CuUnifiedData3D<float>         _uCostf;
+
+	///
+	/// \brief _uCost
+	///
+	CuUnifiedData3D<ushort>         _uCostu;
+
+	template<class T>
+	T* pDeviceCost(){return NULL;}
 
     ImageGpGpu<pixel,cudaContext>           _dt_MaskErod[NBEPIIMAGE];
     ImageLayeredGpGpu<float,cudaContext>    _dt_Image[NBEPIIMAGE];
@@ -157,7 +166,7 @@ struct dataCorrelMS
 
     void    transfertMask(uint2 dimMask0, uint2 dimMask1, pixel **mImMasqErod_0, pixel **mImMasqErod_1);
 
-    void    transfertNappe(int  mX0Ter, int  mX1Ter, int  mY0Ter, int  mY1Ter, short **mTabZMin, short **mTabZMax);
+	void    transfertNappe(int  mX0Ter, int  mX1Ter, int  mY0Ter, int  mY1Ter, short **mTabZMin, short **mTabZMax, bool dynGpu);
 
 //private:
 
@@ -211,7 +220,8 @@ public:
 			  bool		dynRegulGpu,
 			  ushort nbscale = NBSCALE );
 
-    float getCost(uint3 pt);
+	template<class T>
+	T getCost(uint3 pt);
 
     void dealloc();
 

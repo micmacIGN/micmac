@@ -4,8 +4,8 @@
 #include  "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-namespace NS_ParamMICMAC
-{
+//namespace NS_ParamMICMAC
+//{
 
 /**************************************************/
 /*                                                */
@@ -206,5 +206,5 @@ private :
     int                                mCostTransMaskNoMask;
 
 };
-}
+//}
 #endif //H_GBV2_PROGDUNOPTIMISEUR
