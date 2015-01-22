@@ -991,7 +991,6 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
     std::string aDir,aPat;
     SplitDirAndFile(aDir,aPat,aFullName);
-    cout << "ok" << endl;
     std::list<std::string> aLFile;
     cInterfChantierNameManipulateur *aICNM;
     aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -1276,8 +1275,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             oss << "Dalle_"<<c<<"x"<<l;
             std::string nomDalle = oss.str();
             std::string nomDalleOrtho = nomDalle+"_ortho.tif";
-            std::string nomDalleMntBil = nomDalle+"_mnt.bil";
-            std::string nomDalleMntHdr = nomDalle+"_mnt.hdr";
+            //std::string nomDalleMntBil = nomDalle+"_mnt.bil";
+            //std::string nomDalleMntHdr = nomDalle+"_mnt.hdr";
             std::string nomDallePoi = nomDalle+"_ortho.dat";
 
             int ncDalle = std::min(tailleDalle,NC-c*tailleDalle);
@@ -1440,7 +1439,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
                     //std::cout << "Point Image : "<<pImg.x<<" "<<pImg.y<<std::endl;
 
-                    // Autre approche: on teste tous le voisinage
+                    // Autre approche: on teste tout le voisinage
 #if 1
 
                     // On prepare le crop
