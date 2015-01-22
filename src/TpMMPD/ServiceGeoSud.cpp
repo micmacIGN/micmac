@@ -954,6 +954,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     std::string aHttpProxy;
     std::string aGRIDExt("GRI");
     std::string aFileMnt;
+    bool aExportMM = false;
 
     double ZMoy = 0.;
     double seuilPixel=20;
@@ -962,14 +963,15 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
     ElInitArgMain
     (
-     argc, argv,
-     LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)")
-     << EAMC(aKeyGPP,"GPP Key"),
-     LArgMain()
-     << EAM(aGRIDExt,"Grid",true,"GRID file extension")
-     << EAM(aFileMnt,"Mnt",true,"xml file (FileOriMnt) for the DTM")
-     << EAM(aHttpProxy,"Proxy",true,"http proxy for GPP access")
-     );
+         argc, argv,
+         LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)")
+                    << EAMC(aKeyGPP,"GPP Key"),
+         LArgMain()
+                    << EAM(aGRIDExt,"Grid",true,"GRID file extension")
+                    << EAM(aFileMnt,"Mnt",true,"xml file (FileOriMnt) for the DTM")
+                    << EAM(aHttpProxy,"Proxy",true,"http proxy for GPP access")
+                    << EAM(aExportMM,"ExportMM", true, "export GCP and tie-points in MicMac xml format (def=false)")
+    );
 
     //double seuilPixel2 = pow(seuilPixel,2);
 
@@ -1365,7 +1367,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             }
              */
 
-                        // Chargement des points d'interet dans l'ortho
+            // Chargement des points d'interet dans l'ortho
             vector<DigeoPoint> keypointsOrtho;
 
             if ( !DigeoPoint::readDigeoFile( nomDalle+"_ortho.dat", true, keypointsOrtho ) ){
@@ -1376,6 +1378,9 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
             double NoData = -9999.;
 
+            // Export sous forme de dico appuis et mesures
+            cSetOfMesureAppuisFlottants aSetDicoMesure;
+            cDicoAppuisFlottant  aDicoAppuis;
 
             // on parcourt les points sift de l'ortho
             vector<DigeoPoint>::const_iterator itKP,finKP=keypointsOrtho.end();
@@ -1425,6 +1430,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 //Tiff_Im debugFenOrtho_out("debug_ortho.tif", debugFenOrtho.sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
                 //ELISE_COPY(debugFenOrtho._the_im.all_pts(),debugFenOrtho._the_im.in(),debugFenOrtho_out.out());
 
+
+
                 int numImg = 1;
                 std::list<std::string>::const_iterator itLF=aLFile.begin();
                 std::list<std::string>::const_iterator itLFPoi=aLFilePoi.begin();
@@ -1438,6 +1445,10 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                     Pt2di ImgSz = getImageSize(*itLF);
 
                     //std::cout << "Point Image : "<<pImg.x<<" "<<pImg.y<<std::endl;
+
+                    cMesureAppuiFlottant1Im aDicoMesure;
+                    //cout << "Img name: " << *itLF << endl;
+                    aDicoMesure.NameIm()= *itLF;
 
                     // Autre approche: on teste tout le voisinage
 #if 1
@@ -1571,6 +1582,19 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         std::cout << "Point : "<<ptMaxCorrel.x<<" "<<ptMaxCorrel.y<<" Correl="<<coefmax<<std::endl;
                         ficAppuis << idAmer <<" "<<numImg<<" "<<ptMaxCorrel.y<<" "<<ptMaxCorrel.x<<" 5.00e-01  5.00e-01 0"<<std::endl;
                         usePt=true;
+
+                        if (aExportMM)
+                        {
+                            cOneMesureAF1I aMesure;
+
+                            aMesure.PtIm()=ptMaxCorrel;
+
+                            std::ostringstream oss;
+                            oss << idAmer;
+                            aMesure.NamePt()=oss.str();
+
+                            aDicoMesure.OneMesureAF1I().push_back(aMesure);
+                        }
                     }
 #else
                       // Chargement des points d'interet dans l'image
@@ -1660,6 +1684,21 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         {
                             std::cout << "Point Dmin : "<<ptHomoDmin.x<<" "<<ptHomoDmin.y<<" Correl="<<coef<<std::endl;
                             ficAppuis << idAmer <<" "<<numImg<<" "<<ptHomoDmin.y<<" "<<ptHomoDmin.x<<" 5.00e-01  5.00e-01 0"<<std::endl;
+                            //TODO: a verifier greg: il manque usePt =true; ?
+                            //vraiment jamais utilisé a cause du #if ?
+
+                            if (aExportMM)
+                            {
+                                cOneMesureAF1I aMesure;
+
+                                aMesure.PtIm()=ptMaxCorrel;
+
+                                std::ostringstream oss;
+                                oss << idAmer;
+                                aMesure.NamePt()=oss.str();
+
+                                aDicoMesure.OneMesureAF1I().push_back(aMesure);
+                            }
                         }
                     }
 #endif
@@ -1667,12 +1706,35 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                     ++itCamera;
                     ++itPoi;
                     ++numImg;
+
+                    if (aExportMM && usePt) aSetDicoMesure.MesureAppuiFlottant1Im().push_back(aDicoMesure);
                 }
                 if (usePt)
                 {
                     ficAmers << std::fixed << idAmer<<" "<< pt3.x<<" "<<pt3.y<<" "<<pt3.z<<" 0.0 0.0 0.0 0.1 0.1 0.1 1"<<std::endl;
+
+                    if (aExportMM)
+                    {
+                        cOneAppuisDAF aOAD;
+                        aOAD.Pt() = pt3;
+                        std::ostringstream oss;
+                        oss << idAmer;
+                        aOAD.NamePt() = oss.str();
+                        aOAD.Incertitude() = Pt3dr(1,1,1);
+
+                        aDicoAppuis.OneAppuisDAF().push_back(aOAD);
+                    }
+
                     ++idAmer;
                 }
+            }
+
+            if (aExportMM)
+            {
+                std::string aBaseNameResult = "measures"; //TODO: mettre en arg optionnel
+
+                MakeFileXML(aDicoAppuis,aBaseNameResult+"-S3D.xml");
+                MakeFileXML(aSetDicoMesure,aBaseNameResult+"-S2D.xml");
             }
         }
     }
