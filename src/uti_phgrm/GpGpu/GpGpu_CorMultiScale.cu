@@ -120,22 +120,39 @@ inline    bool IsOkErod(int2 pt,ushort idi)
     return IsOkErod(make_int3(pt.x,pt.y,idi));
 }
 
+
+template<ushort idTexture>
 __device__
-inline    texture< float,	cudaTextureType2DLayered >  getTexture(ushort iDi)
+inline    texture< float,	cudaTextureType2DLayered >  getTexture()
 {
-    return iDi == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01;
+	return idTexture == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01;
 }
 
+template<>
 __device__
-inline    float getValImage(float2 pt,ushort iDi,ushort nScale)
+inline    texture< float,	cudaTextureType2DLayered >  getTexture<0>()
 {
-	return tex2DLayered(getTexture(iDi),pt.x + 0.5f,pt.y + 0.5f ,nScale);
+	return texture_ImageEpi_00;
 }
 
-template<class T>
-__device__ float getValImage(T pt,ushort iDi,ushort nScale)
+template<>
+__device__
+inline    texture< float,	cudaTextureType2DLayered >  getTexture<1>()
 {
-	return tex2DLayered(getTexture(iDi),(float)pt.x + 0.5f,(float)pt.y + 0.5f ,nScale);
+	return texture_ImageEpi_01;
+}
+
+template<ushort idTex>
+__device__
+inline    float getValImage(float2 pt,ushort nScale)
+{
+	return tex2DLayered(getTexture<idTex>(),pt.x + 0.5f,pt.y + 0.5f ,nScale);
+}
+
+template<ushort idTex,class T>
+__device__ float getValImage(T pt,ushort nScale)
+{
+	return tex2DLayered(getTexture<idTex>(),(float)pt.x + 0.5f,(float)pt.y + 0.5f ,nScale);
 }
 
 template<ushort id> inline
@@ -150,14 +167,11 @@ __device__ uint2 getSizeImage<0>()
 	return cstPCMS.mSIg0;
 }
 
-
 template<> inline
 __device__ uint2 getSizeImage<1>()
 {
 	return cstPCMS.mSIg1;
 }
-
-
 
 __global__
 void projectionMasqImage(float * dataPixel,uint3 dTer)
@@ -166,9 +180,9 @@ void projectionMasqImage(float * dataPixel,uint3 dTer)
     if(blockIdx.x > cstPCMS._dimTerrain.x || blockIdx.y > cstPCMS._dimTerrain.y)
         return;
 
-    const int3 pt = make_int3(blockIdx.x,blockIdx.y,blockIdx.z);
+	const int3 pt	= make_int3(blockIdx.x,blockIdx.y,blockIdx.z);
 
-    float valImage = tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
+	float valImage	= tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
 
     dataPixel[to1D(pt,dTer)] = IsOkErod(pt) ? valImage/(32768.f) : 0;
 }
@@ -204,24 +218,24 @@ void KernelPrepareCorrel(float aStepPix, ushort mNbByPix, float* mSom, float* mS
 {
 
     // point image
-    const uint2     pt          =   make_uint2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
+	const uint2 ptTer	= make_uint2((blockIdx.x << 5) + threadIdx.x,(blockIdx.y << 5)+ threadIdx.y);
 
-	const uint2 sizeImage = getSizeImage<idTex>();
+	const uint2 szImage = getSizeImage<idTex>();
 
-	if(oSE(pt,sizeImage))
+	if(oSE(ptTer,szImage))
         return;
 
     // indice de l'etape sub pixelaire, le maximum étant cPCencus.mNbByPix
     const ushort    aPhase   =   (ushort)blockIdx.z;
 
     // la dimension du cache, la cache stocke des precaluls pour la corrélation
-	const uint3     dimCache =   make_uint3(sizeImage.x,sizeImage.y,mNbByPix*cstPCMS.aNbScale);
+	const uint3     dimCache =   make_uint3(szImage.x,szImage.y,mNbByPix*cstPCMS.aNbScale);
 
     // le décalage sub pixelaire
     const float     cStepPix =   ((float)aPhase)*aStepPix;
 
     // point de l'image pour cette etape sub pixelaire
-    const float2    ptImage  =   make_float2((float)pt.x + cStepPix,(float)pt.y);
+	const float2    ptImage  =   make_float2((float)ptTer.x + cStepPix,(float)ptTer.y);
 
     float aGlobSom      = 0;
     float aGlobSomSqr   = 0;
@@ -240,7 +254,7 @@ void KernelPrepareCorrel(float aStepPix, ushort mNbByPix, float* mSom, float* mS
         for (int aKP=0 ; aKP<aNbP ; aKP++)
         {
             const short2 aP = aVP[aKP];
-			float aV = getValImage(ptImage+aP,idTex,aKS);
+			float aV = getValImage<idTex>(ptImage+aP,aKS);
 			aSom	+= aV;
             aSomSqr += aV*aV;
         }
@@ -250,14 +264,13 @@ void KernelPrepareCorrel(float aStepPix, ushort mNbByPix, float* mSom, float* mS
         aGlobPds    += aPdsK    * aNbP;
 
         // indice dans le cache
-        const uint3     p3d        =   make_uint3(pt.x,pt.y,aPhase*mNbByPix + aKS);
+		const uint3     p3d        =   make_uint3(ptTer.x,ptTer.y,aPhase*mNbByPix + aKS);
 
         // Ecriture dans le cache des
 		const uint pSom = to1D(p3d,dimCache);
 
 
 #ifndef unitTestCorMS_gpgpu
-
 
 		mSom    [pSom] = aGlobSom    / aGlobPds;
 		mSomSqr [pSom] = aGlobSomSqr / aGlobPds;
@@ -281,7 +294,6 @@ inline    float Quick_MS_CorrelBasic_Center(
         float*  aSom11,
         float*  aSom2,
         float*  aSom22,
-//        int     aPx2,
         bool    ModeMax,
         ushort  aPhase)
 {
@@ -291,12 +303,12 @@ inline    float Quick_MS_CorrelBasic_Center(
     float aPdsGlob = 0;
 
     // pt float dans l'image 1
-	const float2      aFG1      =   f2X(cstPCMS.aStepPix*(float)aPhase /*+ (float)dElise_div(aPx2,cstPCMS.mNbByPix)*/)+  make_float2(aPG1.x,aPG1.y);
+	const float2      aFG1      =   f2X(cstPCMS.aStepPix*(float)aPhase)+  make_float2(aPG1.x,aPG1.y);
 
     int aNbScale = cstPCMS.aNbScale;
     for (int aKS=0 ; aKS< aNbScale ; aKS++)
     {
-        bool   aLast   = (aKS==(aNbScale-1));
+		//bool   aLast   = (aKS==(aNbScale-1));
         short2*aVP     = cstPCMS.aVV[aKS];
         float  aPds    = cstPCMS.aVPds[aKS];
         float  aCov    = 0;
@@ -307,8 +319,8 @@ inline    float Quick_MS_CorrelBasic_Center(
         {
             const short2 aP = aVP[aKP];
 
-            const float valima_0 = getValImage(aPG0 + aP,0,aKS);
-            const float valima_1 = getValImage(aFG1 + aP,1,aKS);
+			const float valima_0 = getValImage<0>(aPG0 + aP,aKS);
+			const float valima_1 = getValImage<1>(aFG1 + aP,aKS);
 
 #ifdef unitTestCorMS_gpgpu
 			if(IN_THREAD(4,7,1,3,8,3) && !aKS && !aP.x && !aP.y)
@@ -329,47 +341,45 @@ inline    float Quick_MS_CorrelBasic_Center(
 
         aCovGlob += aCov * aPds;
 
-        if (ModeMax || aLast)
-        {
-			const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstPCMS.mSIg0);
-			const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + cstPCMS.mNbByPix*aPhase),cstPCMS.mSIg1);
+		//        if (ModeMax || aLast)
+		//        {
+		const uint  pit0   =   to1D(make_uint3(aPG0.x,aPG0.y,aKS),cstPCMS.mSIg0);
+		const uint  pit1   =   to1D(make_uint3(aPG1.x,aPG1.y,aKS + cstPCMS.mNbByPix*aPhase),cstPCMS.mSIg1);
 
-
-            const float aM1    =   aSom1 [pit0];
-            const float aM2    =   aSom2 [pit1];
+		const float aM1    =   aSom1 [pit0];
+		const float aM2    =   aSom2 [pit1];
 
 #ifdef unitTestCorMS_gpgpu
 
-			if(IN_THREAD(4,7,1,3,8,3))
-			{
-				DUMP(ModeMax)
-						DUMP(aCov)
-						DUMP(aCovGlob)
-						DUMP(aPds)
-						DUMP(aPG0)
-						DUMP(aPG1)
-						DUMP(aFG1)
-						DUMP(aSom1  [pit0])
-						DUMP(aSom11 [pit0])
-						DUMP(aSom2  [pit1])
-						DUMP(aSom22 [pit1])
-			}
+		if(IN_THREAD(4,7,1,3,8,3))
+		{
+			DUMP(ModeMax)
+					DUMP(aCov)
+					DUMP(aCovGlob)
+					DUMP(aPds)
+					DUMP(aPG0)
+					DUMP(aPG1)
+					DUMP(aFG1)
+					DUMP(aSom1  [pit0])
+					DUMP(aSom11 [pit0])
+					DUMP(aSom2  [pit1])
+					DUMP(aSom22 [pit1])
+		}
 
 #endif
 
-            const float aM11   =   aSom11[pit0] - aM1*aM1;
-            const float aM22   =   aSom22[pit1] - aM2*aM2;
-            const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
+		const float aM11   =   aSom11[pit0] - aM1*aM1;
+		const float aM22   =   aSom22[pit1] - aM2*aM2;
+		const float aM12   =   aCovGlob / aPdsGlob   - aM1 * aM2;
 
-
-            if (ModeMax)
-            {
-                float aCor = (aM12 * abs(aM12)) /max(cstPCMS.anEpsilon,aM11*aM22);
-                aMaxCor = max(aMaxCor,aCor);
-            }
-            else
-                return aM12 / sqrt(max(cstPCMS.anEpsilon,aM11*aM22));
-        }
+		//            if (ModeMax)
+		//            {
+		float aCor = (aM12 * abs(aM12)) /max(cstPCMS.anEpsilon,aM11*aM22);
+		aMaxCor = max(aMaxCor,aCor);
+		//            }
+		//            else
+		//                return aM12 / sqrt(max(cstPCMS.anEpsilon,aM11*aM22));
+		//        }
 
     }
 
@@ -446,7 +456,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 					aCost =  cstPCMS.aSeuilBC *  aGlobCostBasic;
 			}
 #else
-			aCost = 1.f-Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,/*gpu_anOffset,*/cstPCMS.aModeMax,aPhase);
+			aCost = 1.f-Quick_MS_CorrelBasic_Center(aPIm0,aPIm1,aSom1,aSom11,aSom2,aSom22,cstPCMS.aModeMax,aPhase);
 #endif
         }
 
@@ -457,8 +467,6 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &parCMS)
 {
     // Cache device
-//    CuUnifiedData3D<float>  aSom_0;
-
 	CuDeviceData3D<float>  aSom_0;
     CuDeviceData3D<float>  aSomSqr_0;
 
@@ -515,7 +523,6 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 
 //	data._uCost.hostData.Fill(parCMS.mAhDefCost);
 //	data._uCost.syncDevice();
-//    data._uCost.deviceData.Memset(10000.f);
 
 	Kernel__DoCorrel_MultiScale_Global<<<blocks__CorMS,threads_CorMS>>>(
                                                                           aSom_0   .pData(),
@@ -527,13 +534,7 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 
 	getLastCudaError("Kernel__DoCorrel_MultiScale_Global");
 
-    //    aSom1.syncHost();
-    //    aSom1.hostData.OutputValues();
-
     data._uCost.syncHost();
-    //data._uCost.hostData.OutputValues(4*8);
-
-//    data._uInterval_Z.hostData.OutputValues();
 
     aSom_0   .Dealloc();
     aSomSqr_0.Dealloc();

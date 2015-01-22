@@ -210,8 +210,7 @@ void GpGpu_Interface_Cor_MS::Job_Correlation_MultiScale()
     paramCorMultiScale2Device(_cDataCMS);
     _dataCMS.syncDeviceData();
 
-    LaunchKernel__Correlation_MultiScale(_dataCMS,_cDataCMS);
-    //LaunchKernelCorrelationMultiScalePreview(_dataCMS,_cDataCMS);
+    LaunchKernel__Correlation_MultiScale(_dataCMS,_cDataCMS);   
 }
 
 void GpGpu_Interface_Cor_MS::transfertImageAndMask(uint2 sI0, uint2 sI1, float ***dataImg0, float ***dataImg1, pixel **mask0, pixel **mask1)

@@ -193,7 +193,9 @@ if (${CUDA_ENABLED})
 
         OPTION(CUDA_LINEINFO "Compilation avec lineInfo" OFF )
         OPTION(CUDA_FASTMATH "Compilation avec FASTMATH" OFF )
-		OPTION(CUDA_CPP11THREAD_NOBOOSTTHREAD "Use c++11 for the multi-threading" OFF )
+        OPTION(CUDA_CPP11THREAD_NOBOOSTTHREAD "Use c++11 for the multi-threading" OFF )
+        OPTION(CUDA_NVTOOLS "Use NV TOOLS" OFF )
+
 		
         FIND_PACKAGE(CUDA)
         INCLUDE(FindCUDA)

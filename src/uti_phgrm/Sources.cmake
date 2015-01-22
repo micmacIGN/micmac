@@ -64,6 +64,12 @@ else()
     set(CPP11THREAD_NOBOOSTTHREAD  0)
 endif()
 
+if(${CUDA_NVTOOLS})
+    set(NVTOOLS 1)
+else()
+    set(NVTOOLS  0)
+endif()
+
 if(${WITH_OPEN_MP})
     set(OPM_ENABLED 1)
 else()

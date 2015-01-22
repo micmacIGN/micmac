@@ -1615,7 +1615,7 @@ void cAppliMICMAC::DoGPU_Correl
 
 
 #ifdef  NVTOOLS
-        nvtxRangePop();
+		GpGpuTools::Nvtx_RangePop();
 #endif
     }
 
