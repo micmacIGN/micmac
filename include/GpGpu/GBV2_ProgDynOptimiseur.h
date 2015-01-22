@@ -141,6 +141,9 @@ public :
 
     void Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel);
 
+#if CUDA_ENABLED
+	void gLocal_SetCout(Pt2di aPTer,int aPX,ushort aCost);
+#endif
     void Local_SolveOpt(Im2D_U_INT1 aImCor);
 
     // Im2D_INT2     ImRes() {return mImRes;}
