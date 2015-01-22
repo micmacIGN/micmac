@@ -354,7 +354,7 @@ Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const
     fic << Pgeo.y <<" "<<Pgeo.x<<";"<<std::endl;
     // transfo en Lambert93
     std::string command;
-    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlong +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
     int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in ptGeo2Carto"<<std::endl;
     // chargement des coordonnees du point converti
@@ -424,7 +424,7 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
     }
     // transfo en Lambert93
     std::string command;
-    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlon +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlong +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
     int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in createDirectGrid"<<std::endl;
     // chargement des points
@@ -464,7 +464,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
     // transfo en Geo
     std::string command;
 
-    command = g_externalToolHandler.get( "cs2cs" ).callName() + " "+targetSyst+" +to +proj=latlon +datum=WGS84 +ellps=WGS84 -f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " "+targetSyst+" +to +proj=latlong +datum=WGS84 +ellps=WGS84 -f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
     int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in createIndirectGrid"<<std::endl;
     for(size_t i=0;i<vAltitude.size();++i)
