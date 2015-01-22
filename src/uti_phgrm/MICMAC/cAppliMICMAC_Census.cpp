@@ -1426,6 +1426,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 //	interface_Census_GPU.Job_Correlation_MultiScale();
 
+//	GpGpuTools::NvtxR_Push("Start copy cost",0xFFAAFF33);
+
 //	for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 //		for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
 //		{
@@ -1451,6 +1453,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 //			}
 //		}
 
+//	GpGpuTools::Nvtx_RangePop();
 //	interface_Census_GPU.dealloc();
 
 //	return;

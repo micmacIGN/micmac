@@ -147,14 +147,14 @@ set(libStatGpGpuTools GpGpuTools)
 set(libStatGpGpuInterfMicMac GpGpuInterfMicMac)
 set(libStatGpGpuOpt GpGpuOpt)
 
- 
- find_cuda_helper_libs(nvToolsExt)
-
+if(${CUDA_NVTOOLS})
+    find_cuda_helper_libs(nvToolsExt)
+endif()
 
  cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM})
 
 
- if(${CUDA_nvToolsExt_LIBRARY})	
+ if(${CUDA_NVTOOLS})
 	target_link_libraries(${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY})
  endif()
 
@@ -170,14 +170,23 @@ set(libStatGpGpuOpt GpGpuOpt)
  endif()
 
  set(GpGpu_UnitTesting GpGpuUnitTesting)
- cuda_add_executable(${GpGpu_UnitTesting} ${uti_Test_Opt_GpGpu_Src_Files})
 
- target_link_libraries(${GpGpu_UnitTesting}  ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt})
+cuda_add_executable(${GpGpu_UnitTesting} ${uti_Test_Opt_GpGpu_Src_Files})
 
- if (NOT WIN32)
-        target_link_libraries(${GpGpu_UnitTesting}  rt pthread )
- endif()
- INSTALL(TARGETS ${GpGpu_UnitTesting} RUNTIME DESTINATION ${Install_Dir})
+
+if(${CUDA_NVTOOLS})
+    target_link_libraries(${GpGpu_UnitTesting}  ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY}   )
+else()
+    target_link_libraries(${GpGpu_UnitTesting}  ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${libStatGpGpuTools})
+endif()
+
+if (Boost_FOUND)
+    if (NOT WIN32)
+            target_link_libraries(${GpGpu_UnitTesting}  rt pthread )
+    endif()
+endif()
+
+INSTALL(TARGETS ${GpGpu_UnitTesting} RUNTIME DESTINATION ${Install_Dir})
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/) 
 
@@ -281,7 +290,11 @@ else()
 
     cuda_add_executable(TestCUDA ${filesCUDA})
 
-    target_link_libraries(TestCUDA ${libStatGpGpuTools} ${OPENCL_LIBRARY})
+     if(${CUDA_NVTOOLS})
+            target_link_libraries(TestCUDA ${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY} ${OPENCL_LIBRARY})
+     else()
+            target_link_libraries(TestCUDA ${libStatGpGpuTools} ${OPENCL_LIBRARY})
+     endif()
 
     INSTALL(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
 
@@ -296,6 +309,12 @@ else()
         )
 
     cuda_add_executable(TestCUDA ${filesCUDA})
+
+    if(${CUDA_NVTOOLS})
+        target_link_libraries(TestCUDA ${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY} )
+    else()
+        target_link_libraries(TestCUDA ${libStatGpGpuTools} ${OPENCL_LIBRARY})
+    endif()
 
     target_link_libraries(TestCUDA ${libStatGpGpuTools} )
 

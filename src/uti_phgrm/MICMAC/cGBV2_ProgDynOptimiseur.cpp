@@ -515,7 +515,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, uint idBuf)
 {
 
-    //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
+	GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;

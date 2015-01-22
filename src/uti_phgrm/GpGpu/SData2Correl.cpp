@@ -136,7 +136,7 @@ void SData2Correl::SetImages(float *dataImage, uint2 dimImage, int nbLayer)
     _dt_LayeredImages.copyHostToDevice(dataImage);
     _dt_LayeredImages.bindTexture(_texImages);
 #ifdef  NVTOOLS
-    nvtxRangePop();
+	GpGpuTools::Nvtx_RangePop();
 #endif
 }
 
@@ -150,7 +150,7 @@ void SData2Correl::SetMaskImages(pixel *dataMaskImages, uint2 dimMaskImage, int 
     _dt_LayeredMaskImages.copyHostToDevice(dataMaskImages);
     _dt_LayeredMaskImages.bindTexture(_TexMaskImages);
 #ifdef  NVTOOLS
-    nvtxRangePop();
+	GpGpuTools::Nvtx_RangePop();
 #endif
 }
 
@@ -164,7 +164,7 @@ void SData2Correl::SetGlobalMask(pixel *dataMask, uint2 dimMask)
     _dt_GlobalMask.copyHostToDevice(dataMask);
     _dt_GlobalMask.bindTexture(_texMaskGlobal);
 	#ifdef  NVTOOLS
-    nvtxRangePop();
+	GpGpuTools::Nvtx_RangePop();
 	#endif
 }
 
@@ -194,7 +194,7 @@ void SData2Correl::copyHostToDevice(pCorGpu param,uint s)
     // Lié de données de projections du device avec la texture de projections
     _dt_LayeredProjection[s].bindTexture(GetTeXProjection(s));
 	#ifdef  NVTOOLS
-    nvtxRangePop();
+	GpGpuTools::Nvtx_RangePop();
 	#endif
 }
 
@@ -225,7 +225,7 @@ void SData2Correl::ReallocHostData(uint zInter, pCorGpu param)
     _hRect.ReallocIfDim(make_uint2(1,1),zInter*param.invPC.nbImages);
 
 	#ifdef  NVTOOLS
-    nvtxRangePop();
+	GpGpuTools::Nvtx_RangePop();
 	#endif
 }
 
@@ -250,7 +250,7 @@ void SData2Correl::ReallocDeviceData(pCorGpu &param)
         DeviceMemset(param,s);
     }
 	#ifdef NVTOOLS
-    nvtxRangePop();
+	GpGpuTools::Nvtx_RangePop();
 	#endif
 }
 
@@ -266,7 +266,7 @@ void    SData2Correl::DeviceMemset(pCorGpu &param, uint s)
 
     _d_volumeNIOk[s].Memset(0);
 	#ifdef NVTOOLS
-    nvtxRangePop();
+	GpGpuTools::Nvtx_RangePop();
 	#endif
 }
 

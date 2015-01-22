@@ -124,14 +124,15 @@ public:
 
     //static void			check_Cuda();
 
-	#ifdef  NVTOOLS
-    static void			NvtxR_Push(const char* message, int32_t color);
-#endif
+	static void			NvtxR_Push(const char* message, int32_t color);
+
+	static void			Nvtx_RangePop();
+
     template <class T>
     static T            getMaxArray(T *data, uint2 dim);
 
     template <class T>
-    static T            getMinArray(T *data, uint2 dim);
+	static T            getMinArray(T *data, uint2 dim);
 };
 
 template <class T>

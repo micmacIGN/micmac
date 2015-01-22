@@ -5,8 +5,6 @@
 #include "GpGpu/GpGpu_CommonHeader.h"
 #include "GpGpu/GpGpu_Tools.h"
 
-
-
 using namespace std;
 
 #ifdef NOCUDA_X11

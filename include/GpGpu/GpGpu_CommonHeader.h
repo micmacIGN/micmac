@@ -28,8 +28,9 @@ using namespace std;
 #ifdef _WIN32
     #include <Lmcons.h>
 #else
-    //#define  NVTOOLS
-    #include "nvToolsExtCuda.h"
+	#ifdef NVTOOLS
+		#include "nvToolsExt.h"
+	#endif
     #include <stdio.h>
     #include <unistd.h>
     #include <sys/types.h>
