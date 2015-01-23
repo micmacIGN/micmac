@@ -18,6 +18,7 @@ dataCorrelMS::dataCorrelMS()
 	_uInterval_Z.SetName("_uInterval_Z");
 	_uCostf.SetName("_uCostf");
 	_uCostu.SetName("_uCostu");
+	_uCostp.SetName("_uCostu");
 }
 
 dataCorrelMS::~dataCorrelMS()
@@ -57,7 +58,7 @@ float* dataCorrelMS::pDeviceCost()
 }
 
 template<>
-ushort2* dataCorrelMS::pDeviceCost()
+ushort* dataCorrelMS::pDeviceCost()
 {
 	return _uCostu.deviceData.pData();
 }
@@ -116,7 +117,10 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 	_maxDeltaZ  = min(_maxDeltaZ,512); // TODO Attention
 
 	if(dynGpu)
+	{
 		_uCostu.ReallocIfDim(dimNappe,_maxDeltaZ);
+		_uCostp.ReallocIfDim(dimNappe,_maxDeltaZ);
+	}
 	else
 		_uCostf.ReallocIfDim(dimNappe,_maxDeltaZ);
 
@@ -150,6 +154,7 @@ void dataCorrelMS::dealloc()
     _uInterval_Z.Dealloc();
 	_uCostf.Dealloc();
 	_uCostu.Dealloc();
+	_uCostp.Dealloc();
 }
 
 void const_Param_Cor_MS::init(
@@ -284,11 +289,20 @@ float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 }
 
 template<>
-ushort2 GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+ushort GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 {
-	ushort2 *pcost = _dataCMS._uCostu.hostData.pData();
+	ushort *pcost = _dataCMS._uCostu.hostData.pData();
 	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
 }
+
+template<>
+pixel GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+{
+	pixel *pcost = _dataCMS._uCostp.hostData.pData();
+	return pcost[to1D(pt,_dataCMS._uCostp.hostData.GetDimension3D())];
+}
+
+
 
 void GpGpu_Interface_Cor_MS::dealloc()
 {

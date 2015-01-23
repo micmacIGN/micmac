@@ -156,29 +156,31 @@ __device__ float getValImage(T pt,ushort nScale)
 }
 
 template<class T> inline
-__device__ void TO_COST(float cost,T& destCOST)
+__device__ void TO_COST(float cost,T& destCOST,pixel* pix)
 {
 	//destCOST = (T)cost;
 }
 
 template<> inline
-__device__ void TO_COST(float cost,float& destCOST)
+__device__ void TO_COST(float cost,float& destCOST,pixel* pix )
 {
 	destCOST = cost;
 }
 
 template<> inline
-__device__ void TO_COST(float cost,ushort2& destCOST)
+__device__ void TO_COST(float cost,ushort& destCOST,pixel* pix)
 {
 	if(cost >= 0.f)
 	{
-		const ushort coco = (ushort)(rintf((float)cost*(float)1e4));
-		const ushort kiki = (ushort)max(0.0,min(255.0,rintf(128.0*(2.0-cost)-0.5)));
 
-		destCOST = make_ushort2(coco,kiki);
+		destCOST = (ushort)(rintf((float)cost*(float)1e4));
+		pix[0]	 = (pixel)max(0.0,min(255.0,rintf(128.0*(2.0-cost)-0.5)));
 	}
 	else
-		destCOST = make_ushort2(10123,123);
+	{
+		destCOST = 10123;
+		pix[0]	 = 123;
+	}
 }
 
 template<ushort id> inline
@@ -420,7 +422,7 @@ inline    float Quick_MS_CorrelBasic_Center(
 
 template<class T>
 __global__
-void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, T *cost)
+void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, T *cost,pixel* pix = NULL)
 {
 
     // point image
@@ -437,11 +439,15 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
     {
 
         // Z relatif au thread
-        const ushort thZ        =  blockIdx.z*blockDim.z + threadIdx.z;
+		const ushort thZ        =	blockIdx.z*blockDim.z + threadIdx.z;
 
-		T&				_cost   =  cost[to1D(an,thZ,cstPCMS._dimTerrain)];
+		const uint pitG			=	to1D(an,thZ,cstPCMS._dimTerrain);
 
-        const short2    _nappe  =  nappe[to1D(an,cstPCMS._dimTerrain)];
+		T&				_cost   =	cost[pitG];
+
+		pixel *locPix		    =	pix + pitG;
+
+		const short2    _nappe  =	nappe[to1D(an,cstPCMS._dimTerrain)];
 
         short           aZ0     =  _nappe.x;
 
@@ -493,7 +499,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 #endif
         }
 
-		TO_COST(aCost,_cost);
+		TO_COST(aCost,_cost,locPix);
     }
 }
 #include <stdio.h>
@@ -565,11 +571,14 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 																			  aSom_1   .pData(),
 																			  aSomSqr_1.pData(),
 																			  data._uInterval_Z   .pData(),
-																			  data._uCostu        .pData());
+																			  data._uCostu        .pData(),
+																			  data._uCostp        .pData()
+																			  );
 
 		getLastCudaError("Kernel__DoCorrel_MultiScale_Global float");
 
 		data._uCostu.syncHost();
+		data._uCostp.syncHost();
 	}
 	else
 	{
