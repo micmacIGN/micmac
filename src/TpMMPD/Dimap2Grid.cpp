@@ -35,7 +35,7 @@ public:
     /// \param targetSyst système de projection cible, par defaut targetSyst="+init=IGNF:LAMB93"
     /// \return
     ///
-    Pt2dr ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const;
+	Pt2dr ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst, std::string inputSyst)const;
 
     ///
     /// \brief Application de l'affinité à la grille au point Pimg
@@ -65,7 +65,7 @@ public:
                           double stepPixel,
                           int nbSamp, int  nbLine,
                           std::vector<double> const &vAltitude,
-                          std::vector<Pt2dr> &vPtCarto, std::string targetSyst,
+						  std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
                           std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const;
 
     ///
@@ -86,7 +86,7 @@ public:
                             int nbrSamp, int nbrLine,
                             double stepCarto,
                             std::vector<double> const &vAltitude,
-                            std::vector<Pt2dr> &vPtImg, std::string targetSyst,
+							std::vector<Pt2dr> &vPtImg, std::string targetSyst, std::string inputSyst,
                             std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const;
 
     ///
@@ -104,7 +104,7 @@ public:
     void createGrid(std::string const &nomGrid, std::string const &nomImage,
                     double stepPixel, double stepCarto,
                     double rowCrop, double sampCrop,
-                    std::vector<double> vAltitude, std::string targetSyst,
+					std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
                     std::vector<double> vRefineCoef)const;
 
     ///
@@ -347,14 +347,14 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCo
     return PimgRefined;
 }
 
-Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const
+Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst, std::string inputSyst)const
 {
     std::ofstream fic("processing/conv_ptGeo.txt");
     fic << std::setprecision(15);
     fic << Pgeo.y <<" "<<Pgeo.x<<";"<<std::endl;
     // transfo en Lambert93
     std::string command;
-    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlong +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
+	command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
     int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in ptGeo2Carto"<<std::endl;
     // chargement des coordonnees du point converti
@@ -371,6 +371,7 @@ Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst)const
             PointCarto.y=Y;
         }
     }
+	cout << PointCarto << endl;
     return PointCarto;
 }
 
@@ -396,7 +397,7 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
                              double stepPixel,
                              int nbSamp, int  nbLine,
                              std::vector<double> const &vAltitude,
-                             std::vector<Pt2dr> &vPtCarto, std::string targetSyst,
+							 std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
                              std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
     vPtCarto.clear();
@@ -424,8 +425,8 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
     }
     // transfo en Lambert93
     std::string command;
-    command = g_externalToolHandler.get( "cs2cs" ).callName() + " +proj=latlong +datum=WGS84 +ellps=WGS84 +to "+targetSyst+" -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
-    int res = system(command.c_str());
+	command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
+	int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in createDirectGrid"<<std::endl;
     // chargement des points
     std::ifstream fic("processing/direct_ptCarto.txt");
@@ -442,7 +443,7 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
 
 void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLine,
                                double stepCarto, std::vector<double> const &vAltitude,
-                               std::vector<Pt2dr> &vPtImg, std::string targetSyst,
+							   std::vector<Pt2dr> &vPtImg, std::string targetSyst, std::string inputSyst,
                                std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const
 {
     vPtImg.clear();
@@ -464,7 +465,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
     // transfo en Geo
     std::string command;
 
-    command = g_externalToolHandler.get( "cs2cs" ).callName() + " "+targetSyst+" +to +proj=latlong +datum=WGS84 +ellps=WGS84 -f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " " + targetSyst+" +to "+ inputSyst + "-f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
     int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in createIndirectGrid"<<std::endl;
     for(size_t i=0;i<vAltitude.size();++i)
@@ -491,7 +492,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
 void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                 double stepPixel, double stepCarto,
                 double rowCrop, double sampCrop,
-                       std::vector<double> vAltitude, std::string targetSyst,
+				std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
                        std::vector<double> vRefineCoef)const
 {
     double firstSamp = first_col;
@@ -505,27 +506,27 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
     nbSamp=(lastSamp-firstSamp)/stepPixel +1 ;
 
     std::vector<Pt2dr> vPtCarto;
-    createDirectGrid(firstSamp,firstLine,stepPixel,nbSamp,nbLine,vAltitude,vPtCarto, targetSyst, vRefineCoef, rowCrop, sampCrop);
+	createDirectGrid(firstSamp, firstLine, stepPixel, nbSamp, nbLine, vAltitude, vPtCarto, targetSyst, inputSyst, vRefineCoef, rowCrop, sampCrop);
 
     double xmin,xmax,ymin,ymax;
     // Pour estimer la zone carto on projette le domaine de validite geo
     // Recherche de la zone la plus etendue
-    Pt2dr Pcarto = ptGeo2Carto(Pt2dr(first_lat,first_lon), targetSyst);
+	Pt2dr Pcarto = ptGeo2Carto(Pt2dr(first_lat, first_lon), targetSyst, inputSyst);
     xmin = Pcarto.x;
     ymin = Pcarto.y;
     xmax = xmin;
     ymax = ymin;
-    Pcarto = ptGeo2Carto(Pt2dr(first_lat,last_lon), targetSyst);
+    Pcarto = ptGeo2Carto(Pt2dr(first_lat,last_lon), targetSyst, inputSyst);
     if (xmin>Pcarto.x) xmin = Pcarto.x;
     else if (xmax<Pcarto.x) xmax = Pcarto.x;
     if (ymin>Pcarto.y) ymin = Pcarto.y;
     else if (ymax<Pcarto.y) ymax = Pcarto.y;
-    Pcarto = ptGeo2Carto(Pt2dr(last_lat,last_lon), targetSyst);
+	Pcarto = ptGeo2Carto(Pt2dr(last_lat, last_lon), targetSyst, inputSyst);
     if (xmin>Pcarto.x) xmin = Pcarto.x;
     else if (xmax<Pcarto.x) xmax = Pcarto.x;
     if (ymin>Pcarto.y) ymin = Pcarto.y;
     else if (ymax<Pcarto.y) ymax = Pcarto.y;
-    Pcarto = ptGeo2Carto(Pt2dr(last_lat,first_lon), targetSyst);
+	Pcarto = ptGeo2Carto(Pt2dr(last_lat, first_lon), targetSyst, inputSyst);
     if (xmin>Pcarto.x) xmin = Pcarto.x;
     else if (xmax<Pcarto.x) xmax = Pcarto.x;
     if (ymin>Pcarto.y) ymin = Pcarto.y;
@@ -570,7 +571,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
     }
 
     createIndirectGrid( xmin, ymax,nbrSamp,nbrLine,stepCarto,vAltitude,vPtImg,
-                       targetSyst,vRefineCoefInv, rowCrop, sampCrop);
+                       targetSyst, inputSyst, vRefineCoefInv, rowCrop, sampCrop);
 
     //Ecriture de la grille
     //Creation de la grille et du flux d'ecriture
@@ -923,6 +924,7 @@ int Dimap2Grid_main(int argc, char **argv)
 {
     std::string aNameFileDimap; // fichier Dimap
     std::string aNameImage;     // nom de l'image traitee
+	std::string inputSyst = "+proj=latlong +datum=WGS84";// "+ellps=WGS84" not nessessary //input syst proj
     std::string targetSyst="+init=IGNF:LAMB93";//systeme de projection cible - format proj4
     std::string refineCoef="processing/refineCoef.txt";
 
@@ -971,11 +973,11 @@ int Dimap2Grid_main(int argc, char **argv)
     std::vector<double> vAltitude;
     for(int i=0;i<nbLayers;++i)
         vAltitude.push_back(altiMin+i*(altiMax-altiMin)/(nbLayers-1));
-
+	
     //Parser du targetSyst
     std::size_t found = targetSyst.find_first_of("+");
-    std::string str="+";
-    std::vector<int> position;
+	std::string str = "+";
+	std::vector<int> position;
     while (found!=std::string::npos)
     {
         targetSyst[found]=' ';
@@ -984,7 +986,7 @@ int Dimap2Grid_main(int argc, char **argv)
     }
     for (int i=position.size()-1; i>-1;i--)
         targetSyst.insert(position[i]+1,str);
-
+	
     //recuperation des coefficients pour affiner le modele
     std::vector<double> vRefineCoef;
     std::ifstream ficRead(refineCoef.c_str());
@@ -1036,7 +1038,7 @@ int Dimap2Grid_main(int argc, char **argv)
     dimap.createGrid(aNameFileGrid,aNameImage,
                      stepPixel,stepCarto,
                      rowCrop, sampCrop,
-                     vAltitude,targetSyst,vRefineCoef);
+                     vAltitude,targetSyst,inputSyst,vRefineCoef);
 
     return EXIT_SUCCESS;
 }
