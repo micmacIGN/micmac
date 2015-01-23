@@ -97,6 +97,8 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 
     _maxDeltaZ = 0;
 
+
+	// TODO Attention deja fait dans optimisation GPU!!!
     for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
     {
         int X = anX - mX0Ter;

@@ -164,6 +164,31 @@ void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort2 aCost
 	IGpuOpt._poInitCost[pt] = aCost.x;
 	(*mMemoCorrel)[aPTer][z]= aCost.y;
 
+//	(*mMemoCorrel)[aPTer][z]= aCost.y;
+
+//	ushort size = IGpuOpt._poInitCost.DZ(aPTer);
+
+//	if(size != aCost.x)
+//	{
+//		DUMP(size)
+//				DUMP(aCost.x)
+//			DUMP((*mMemoCorrel)[aPTer].Box().hauteur())
+//				DUMP((*mMemoCorrel)[aPTer].Box().largeur())
+
+//	}
+
+
+//	pixel * oo	= (*mMemoCorrel)[aPTer][0] + (*mMemoCorrel)[aPTer].Box()._p0.x;
+//	pixel * so	= new pixel[size];
+
+//	for (int i = 0; i < size; ++i)
+//	{
+//		so[i] = 123;
+//	}
+
+//	memcpy(oo,so,sizeof(pixel)*(size));
+
+//	delete [] so;
 }
 #endif
 

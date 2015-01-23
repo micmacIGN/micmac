@@ -1426,8 +1426,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 				dynRegulGpu
 				);
 
-
-
 	interface_Census_GPU.Job_Correlation_MultiScale();
 
 	GpGpuTools::NvtxR_Push("Start copy cost",0xFFAAFF33);
@@ -1487,6 +1485,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 	interface_Census_GPU.dealloc();
 
 	return;
+
+	GpGpuTools::NvtxR_Push("CPU MSC",0xFFAA0033);
 
 #endif
 // std::cout << anOff0 << anOff1 << "\n";
@@ -1794,6 +1794,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     DeleteAndClear(aVCG);
     delete aPondFlag;
     delete aMom1;
+
+#ifdef CUDA_ENABLED
+	GpGpuTools::Nvtx_RangePop();
+#endif
 }
 
 
