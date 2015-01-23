@@ -164,31 +164,18 @@ void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost,
 	IGpuOpt._poInitCost[pt] = aCost;
 	(*mMemoCorrel)[aPTer][z]= pix;
 
-//	(*mMemoCorrel)[aPTer][z]= aCost.y;
+}
 
-//	ushort size = IGpuOpt._poInitCost.DZ(aPTer);
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, ushort* aCost, pixel* pix)
+{
+	ushort	size		= IGpuOpt._poInitCost.DZ(aPTer);
+	ushort* costDest	= IGpuOpt._poInitCost[aPTer];
 
-//	if(size != aCost.x)
-//	{
-//		DUMP(size)
-//				DUMP(aCost.x)
-//			DUMP((*mMemoCorrel)[aPTer].Box().hauteur())
-//				DUMP((*mMemoCorrel)[aPTer].Box().largeur())
+	memcpy(costDest,aCost,sizeof(ushort)*size);
 
-//	}
+	pixel * pixDest	= (*mMemoCorrel)[aPTer][0] + (*mMemoCorrel)[aPTer].Box()._p0.x;
 
-
-//	pixel * oo	= (*mMemoCorrel)[aPTer][0] + (*mMemoCorrel)[aPTer].Box()._p0.x;
-//	pixel * so	= new pixel[size];
-
-//	for (int i = 0; i < size; ++i)
-//	{
-//		so[i] = 123;
-//	}
-
-//	memcpy(oo,so,sizeof(pixel)*(size));
-
-//	delete [] so;
+	memcpy(pixDest,pix,sizeof(pixel)*size);
 }
 #endif
 
