@@ -1395,72 +1395,98 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 #ifdef CUDA_ENABLED
 
-//	bool dynRegulGpu = false;//CurEtape()->AlgoRegul() == eAlgoTestGPU;
+	bool dynRegulGpu = CurEtape()->AlgoRegul() == eAlgoTestGPU;
 
-//	interface_Census_GPU.transfertImageAndMask(
-//				toUi2(mPDV1->LoadedIm().SzIm()),
-//				toUi2(mPDV2->LoadedIm().SzIm()),
-//				anI0.VDataIm(),
-//				anI1.VDataIm(),
-//				anI0.ImMasqErod(),
-//				anI1.ImMasqErod());
+	interface_Census_GPU.transfertImageAndMask(
+				toUi2(mPDV1->LoadedIm().SzIm()),
+				toUi2(mPDV2->LoadedIm().SzIm()),
+				anI0.VDataIm(),
+				anI1.VDataIm(),
+				anI0.ImMasqErod(),
+				anI1.ImMasqErod());
 
-//	interface_Census_GPU.init(
-//				Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
-//				aVKImS,
-//				aVPds,
-//				toInt2(anOff0),
-//				toInt2(anOff1),
-//				toUi2(mPDV1->LoadedIm().SzIm()),
-//				toUi2(mPDV2->LoadedIm().SzIm()),
-//				mTabZMin,
-//				mTabZMax,
-//				mNbByPix,
-//				aStepPix,
-//				mAhEpsilon,
-//				mAhDefCost,
-//				aSeuilHC,
-//				aSeuilBC,
-//				aModeMax,
-//				DoMixte,
-//				dynRegulGpu
-//				);
+	interface_Census_GPU.init(
+				Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
+				aVKImS,
+				aVPds,
+				toInt2(anOff0),
+				toInt2(anOff1),
+				toUi2(mPDV1->LoadedIm().SzIm()),
+				toUi2(mPDV2->LoadedIm().SzIm()),
+				mTabZMin,
+				mTabZMax,
+				mNbByPix,
+				aStepPix,
+				mAhEpsilon,
+				mAhDefCost,
+				aSeuilHC,
+				aSeuilBC,
+				aModeMax,
+				DoMixte,
+				dynRegulGpu
+				);
 
 
 
-//		interface_Census_GPU.Job_Correlation_MultiScale();
+	interface_Census_GPU.Job_Correlation_MultiScale();
 
-//		GpGpuTools::NvtxR_Push("Start copy cost",0xFFAAFF33);
+	GpGpuTools::NvtxR_Push("Start copy cost",0xFFAAFF33);
 
-//		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
-//			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
-//			{
-//				int aZ0		=  mTabZMin[anY][anX];
-//				int aZ1		=  mTabZMax[anY][anX];
-//				int delTaZ	= abs(aZ0-aZ1);
-//				bool bIMinZ = delTaZ < 512;
-//				Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
-//				bool OkIm0	= anI0.IsOkErod(aPIm0.x,aPIm0.y);
+	if(dynRegulGpu)
+	{
+		cGBV2_ProgDynOptimiseur* gpuOpt = (cGBV2_ProgDynOptimiseur*)mSurfOpt;
 
-//				for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
-//				{
-//					if(bIMinZ)
-//					{
-//						uint3 pt =make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
-//						double aCost = interface_Census_GPU.getCost<float>(pt);
-//						mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, aCost >= 0.f/* &&aCost <= 2.f*/ &&  OkIm0 ? aCost : mAhDefCost);
-//					}
-//					else
-//					{
-//						mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, mAhDefCost);
-//					}
-//				}
-//			}
+		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+			{
+				int aZ0		=  mTabZMin[anY][anX];
+				int aZ1		=  mTabZMax[anY][anX];
+				int delTaZ	= abs(aZ0-aZ1);
+				bool bIMinZ = delTaZ < 512;
+				Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
+				bool OkIm0	= anI0.IsOkErod(aPIm0.x,aPIm0.y);
 
-//		GpGpuTools::Nvtx_RangePop();
-//		interface_Census_GPU.dealloc();
+				if(OkIm0 && bIMinZ)
+					for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
+					{
+						uint3 pt =make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
+						ushort2 aCost = interface_Census_GPU.getCost<ushort2>(pt);
+						gpuOpt->gLocal_SetCout(Pt2di(anX,anY),aZI,aCost);
+					}
+			}
+	}
+	else
+	{
+		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+			{
+				int aZ0		=  mTabZMin[anY][anX];
+				int aZ1		=  mTabZMax[anY][anX];
+				int delTaZ	= abs(aZ0-aZ1);
+				bool bIMinZ = delTaZ < 512;
+				Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
+				bool OkIm0	= anI0.IsOkErod(aPIm0.x,aPIm0.y);
 
-//		return;
+				for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
+				{
+					if(bIMinZ)
+					{
+						uint3 pt =make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
+						double aCost = interface_Census_GPU.getCost<float>(pt);
+						mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, aCost >= 0.f/* &&aCost <= 2.f*/ &&  OkIm0 ? aCost : mAhDefCost);
+					}
+					else
+					{
+						mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, mAhDefCost);
+					}
+				}
+			}
+	}
+
+	GpGpuTools::Nvtx_RangePop();
+	interface_Census_GPU.dealloc();
+
+	return;
 
 #endif
 // std::cout << anOff0 << anOff1 << "\n";

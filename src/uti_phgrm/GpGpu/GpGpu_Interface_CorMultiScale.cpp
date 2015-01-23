@@ -57,7 +57,7 @@ float* dataCorrelMS::pDeviceCost()
 }
 
 template<>
-ushort* dataCorrelMS::pDeviceCost()
+ushort2* dataCorrelMS::pDeviceCost()
 {
 	return _uCostu.deviceData.pData();
 }
@@ -282,9 +282,9 @@ float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 }
 
 template<>
-ushort GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+ushort2 GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 {
-	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+	ushort2 *pcost = _dataCMS._uCostu.hostData.pData();
 	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
 }
 

@@ -108,7 +108,7 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
         Im2D_INT2       aPxMin,
         Im2D_INT2       aPxMax
 ) :
-    cSurfaceOptimiseur ( mAppli,mLT,1e4,anEqX,anEqY,false,false),
+	cSurfaceOptimiseur ( mAppli,mLT,1e4,anEqX,anEqY,false,false),
     mXMin       (aPxMin),
     mXMax       (aPxMax),
     mSz         (mXMin.sz()),
@@ -157,11 +157,13 @@ void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int 
 }
 
 #if CUDA_ENABLED
-void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost)
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort2 aCost)
 {
 	Pt2di z     = Px2Point(&aPX);
 	int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
-	IGpuOpt._poInitCost[pt] = aCost;
+	IGpuOpt._poInitCost[pt] = aCost.x;
+	(*mMemoCorrel)[aPTer][z]= aCost.y;
+
 }
 #endif
 

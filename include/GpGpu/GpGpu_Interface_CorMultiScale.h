@@ -151,7 +151,7 @@ struct dataCorrelMS
 	///
 	/// \brief _uCost
 	///
-	CuUnifiedData3D<ushort>         _uCostu;
+	CuUnifiedData3D<ushort2>         _uCostu;
 
 	template<class T>
 	T* pDeviceCost(){return NULL;}

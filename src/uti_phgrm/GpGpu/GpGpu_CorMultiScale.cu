@@ -168,9 +168,17 @@ __device__ void TO_COST(float cost,float& destCOST)
 }
 
 template<> inline
-__device__ void TO_COST(float cost,ushort& destCOST)
+__device__ void TO_COST(float cost,ushort2& destCOST)
 {
-	destCOST = (ushort)((float)cost*(float)1e4);
+	if(cost >= 0.f)
+	{
+		const ushort coco = (ushort)(rintf((float)cost*(float)1e4));
+		const ushort kiki = (ushort)max(0.0,min(255.0,rintf(128.0*(2.0-cost)-0.5)));
+
+		destCOST = make_ushort2(coco,kiki);
+	}
+	else
+		destCOST = make_ushort2(10123,123);
 }
 
 template<ushort id> inline
