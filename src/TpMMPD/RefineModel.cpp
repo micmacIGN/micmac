@@ -278,7 +278,7 @@ public:
     /// \param aNameFileGridSlave Grid file for slave image
     /// \param aNamefileTiePoints Tie-points file
     ///
-    RefineModelAbs(string const &aFullDir, bool filter):_N(1,1,0.),_Y(1,1,0.),numUnk(6), _verbose(false), iteration(0)
+    RefineModelAbs(string const &aFullDir, string imgsExtension = ".tif", bool filter = false):_N(1,1,0.),_Y(1,1,0.),numUnk(6), _verbose(false), iteration(0)
     {
         string aDir, aPat;
         SplitDirAndFile(aDir,aPat,aFullDir);
@@ -299,17 +299,25 @@ public:
                 AffCamera* Cam2 = findCamera(aDir + aNameFileGrid2);
 
                 // Loading the Tie Points
-                string aNameWithoutExt  = aDir + StdPrefixGen(aNameFileGrid1)+ "_" + StdPrefixGen(aNameFileGrid2);
-                string aNameFileTiePoints = aNameWithoutExt + ".dat";
+                cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-                if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) aNameFileTiePoints = aNameWithoutExt + ".txt";
+                string aNameFileTiePoints =  aDir +  aICNM->Assoc1To2
+                                         (
+                                            "NKS-Assoc-CplIm2Hom@@dat",
+                                            StdPrefixGen(aNameFileGrid1) + imgsExtension,
+                                            StdPrefixGen(aNameFileGrid2) + imgsExtension,
+                                            true
+                                         );
 
-                if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) cout << "file missing: " << aNameWithoutExt << endl;
+                if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) aNameFileTiePoints = StdPrefixGen(aNameFileTiePoints) + ".txt";
+
+                if ( !ELISE_fp::exist_file(aNameFileTiePoints) ) cout << "file missing: " << StdPrefixGen(aNameFileTiePoints) + ".dat" << endl;
                 else
                 {
                     cout << "reading: " << aNameFileTiePoints << endl;
 
                     ElPackHomologue aPackHomol = ElPackHomologue::FromFile(aNameFileTiePoints);
+                    //cout << "taille " << aPackHomol.size() << endl;
 
                     if (aPackHomol.size() == 0)
                     {
@@ -523,11 +531,12 @@ class RefineModelGlobal: public RefineModelAbs
 
 public:
     RefineModelGlobal(string const &aPattern,
+                      string const &aImgsExtension,
                       string const &aNameFileGCP = "",
                       string const &aNameFilePointeIm = "",
                       string const &aNameFileMNT = "",
                       bool filter = false):
-        RefineModelAbs(aPattern, filter)
+        RefineModelAbs(aPattern, aImgsExtension, filter)
     {
         if ((aNameFileMNT != "") && (ELISE_fp::exist_file(aNameFileMNT)))
         {
@@ -548,7 +557,8 @@ public:
         if ((aNameFileGCP != "") && (ELISE_fp::exist_file(aNameFileGCP)))
         {
             cDicoAppuisFlottant aDico = StdGetFromPCP(aNameFileGCP,DicoAppuisFlottant);
-            if (_verbose) cout << "Nb GCP " <<  aDico.OneAppuisDAF().size() << endl;
+            //if (_verbose)
+                cout << "Nb GCP " <<  aDico.OneAppuisDAF().size() << endl;
             list<cOneAppuisDAF> & aLGCP =  aDico.OneAppuisDAF();
 
             for (
@@ -566,7 +576,8 @@ public:
         if ((aNameFilePointeIm != "") && (ELISE_fp::exist_file(aNameFilePointeIm)))
         {
             cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aNameFilePointeIm,SetOfMesureAppuisFlottants);
-            if (_verbose) cout << "Nb GCP img " << aDico.MesureAppuiFlottant1Im().size() << endl;
+            //if (_verbose)
+                cout << "Nb GCP img " << aDico.MesureAppuiFlottant1Im().size() << endl;
             list<cMesureAppuiFlottant1Im> & aLGCP =  aDico.MesureAppuiFlottant1Im();
 
             for (
@@ -1069,6 +1080,7 @@ private:
 int NewRefineModel_main(int argc, char **argv)
 {
     string aPat; // GRID files pattern
+    string aImgsExtension=".tif"; //img file extension (such used in Tapioca)
     string aNameMNT=""; //DTM file
     string aNamePointeIm=""; //Pointe image file
     string aNameGCP=""; //GCP file
@@ -1078,7 +1090,8 @@ int NewRefineModel_main(int argc, char **argv)
     ElInitArgMain
     (
          argc, argv,
-         LArgMain() << EAMC(aPat,"GRID files pattern"),
+         LArgMain() << EAMC(aPat,"GRID files pattern")
+                    << EAMC(aImgsExtension, "Img files extension"),
          LArgMain() << EAM(aNameGCP,"GCP",true, "GCP file")
                     << EAM(aNamePointeIm,"IMG",true, "Pointe image file")
                     << EAM(aNameMNT,"DTM",true, "DTM file")
@@ -1088,7 +1101,7 @@ int NewRefineModel_main(int argc, char **argv)
 
     ELISE_fp::MkDirSvp("refine");
 
-    RefineModelGlobal model(aPat, aNameGCP, aNamePointeIm, aNameMNT, filterInput);
+    RefineModelGlobal model(aPat, aImgsExtension, aNameGCP, aNamePointeIm, aNameMNT, filterInput);
 
     bool ok = (model.nObs() > 3);
     for(size_t iter = 0; (iter < 100) & ok; iter++)
