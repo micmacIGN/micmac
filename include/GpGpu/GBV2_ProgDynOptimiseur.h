@@ -143,6 +143,8 @@ public :
 
 #if CUDA_ENABLED
 	void gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost,pixel pix);
+
+	void gLocal_SetCout(Pt2di aPTer, ushort* aCost,pixel* pix);
 #endif
     void Local_SolveOpt(Im2D_U_INT1 aImCor);
 

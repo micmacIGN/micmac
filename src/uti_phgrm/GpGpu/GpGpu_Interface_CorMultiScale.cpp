@@ -281,28 +281,58 @@ T GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 	return 0.1f;
 }
 
+template<class T>
+T* GpGpu_Interface_Cor_MS::getCost(uint2 pt)
+{
+	return NULL;
+}
+
 template<>
 float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 {
+	int2 pt2 = make_int2(pt.x,pt.y);
 	float *pcost = _dataCMS._uCostf.hostData.pData();
-	return pcost[to1D(pt,_dataCMS._uCostf.hostData.GetDimension3D())];
+	//return pcost[to1D(pt,_dataCMS._uCostf.hostData.GetDimension3D())];
+	return pcost[to1D(pt2,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ + pt.z];
 }
 
 template<>
 ushort GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 {
+	int2 pt2 = make_int2(pt.x,pt.y);
+//	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+//	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
 	ushort *pcost = _dataCMS._uCostu.hostData.pData();
-	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
+	return pcost[to1D(pt2,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ + pt.z];
 }
 
 template<>
 pixel GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 {
+	int2 pt2 = make_int2(pt.x,pt.y);
 	pixel *pcost = _dataCMS._uCostp.hostData.pData();
-	return pcost[to1D(pt,_dataCMS._uCostp.hostData.GetDimension3D())];
+	//return pcost[to1D(pt,_dataCMS._uCostp.hostData.GetDimension3D())];
+	return pcost[to1D(pt2,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ + pt.z];
 }
 
+template<>
+ushort* GpGpu_Interface_Cor_MS::getCost(uint2 pt)
+{
+//	int2 pt2 = make_int2(pt.x,pt.y);
+//	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+//	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
+	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+	return pcost + to1D(pt,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ ;
+}
 
+template<>
+pixel* GpGpu_Interface_Cor_MS::getCost(uint2 pt)
+{
+//	int2 pt2 = make_int2(pt.x,pt.y);
+	pixel *pcost = _dataCMS._uCostp.hostData.pData();
+	//return pcost[to1D(pt,_dataCMS._uCostp.hostData.GetDimension3D())];
+	return pcost + to1D(pt,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ ;
+}
 
 void GpGpu_Interface_Cor_MS::dealloc()
 {

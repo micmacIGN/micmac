@@ -229,6 +229,9 @@ public:
 	template<class T>
 	T getCost(uint3 pt);
 
+	template<class T>
+	T* getCost(uint2 pt);
+
     void dealloc();
 
 	const_Param_Cor_MS& param(){return _cDataCMS;}

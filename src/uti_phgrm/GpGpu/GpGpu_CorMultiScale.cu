@@ -441,7 +441,9 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
         // Z relatif au thread
 		const ushort thZ        =	blockIdx.z*blockDim.z + threadIdx.z;
 
-		const uint pitG			=	to1D(an,thZ,cstPCMS._dimTerrain);
+//		const uint pitG			=	to1D(an,thZ,cstPCMS._dimTerrain);
+
+		const uint pitG			=	to1D(an,cstPCMS._dimTerrain)*cstPCMS.maxDeltaZ + thZ;
 
 		T&				_cost   =	cost[pitG];
 
