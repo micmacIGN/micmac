@@ -194,6 +194,9 @@ public :
 
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
+extern int SimpleFusionCarte_main(int , char **);
+
+
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -279,6 +282,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main," Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("MergeDepthMap",FusionCarteProf_main," Merging of individual, stackable, depth maps "));
+       aRes.push_back(cMMCom("SMDM",SimpleFusionCarte_main," Simplified Merging of individual, stackable, depth maps "));
        aRes.push_back(cMMCom("MyRename",MyRename_main," File renaming using posix regular expression "));
        aRes.push_back(cMMCom("Genere_Header_TiffFile",Genere_Header_TiffFile_main," Generate Header for internal tiling format "));
 
