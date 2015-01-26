@@ -1446,15 +1446,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 				if(OkIm0 && bIMinZ)
 				{
-//					for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
-//					{
-//						uint3 pt		= make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
-//						ushort aCost	= interface_Census_GPU.getCost<ushort>(pt);
-//						pixel  pix		= interface_Census_GPU.getCost<pixel>(pt);
-
-//						gpuOpt->gLocal_SetCout(Pt2di(anX,anY),aZI,aCost,pix);
-//					}
-
 					uint2 pt		= make_uint2(anX- mX0Ter,anY- mY0Ter);
 					ushort* aCost	= interface_Census_GPU.getCost<ushort>(pt);
 					pixel*  pix		= interface_Census_GPU.getCost<pixel>(pt);
