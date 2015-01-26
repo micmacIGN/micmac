@@ -1531,12 +1531,12 @@ void cAppliMMByPair::DoFusionStatue()
    }
    else
    {
-       for(int aK=0 ; aK<20 ; aK++) std::cout << "SKIPP (tmp) MergeDepthMap , enter to go on\n";
+       for(int aK=0 ; aK<20 ; aK++) std::cout << "SKIPP (tmp) ergeDepthMap , enter to go on\n";
        getchar();
    }
 
 
-   // Calcul d'une enveloppe qui tienne compte de MergeDepthMap
+   // Calcul d'une enveloppe qui tienne compte de merge depth map
    {
        std::list<std::string> aLCom;
        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)

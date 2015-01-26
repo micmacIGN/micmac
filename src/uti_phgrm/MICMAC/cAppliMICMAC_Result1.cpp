@@ -915,21 +915,6 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
 
          GenTFW(aFOM,aName);
          // TFW
-/*
-         {
-             std::string aNameTFW = StdPrefix(aName) + ".tfw";
-             std::ofstream aFtfw(aNameTFW.c_str());
-             if (aFOM.mGXml.mPrec >=0)
-                 aFtfw.precision(aFOM.mGXml.mPrec);
-             else
-                 aFtfw.precision(12);// modification jean christophe michelin je met une precision standard
-
-              aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
-              aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
-              aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
-              aFtfw.close();
-          }
-*/
 }
 
 
@@ -946,6 +931,39 @@ void GenTFW(const cFileOriMnt & aFOM,const std::string & aName)
      aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
      aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
      aFtfw.close();
+}
+
+void GenTFW(const ElAffin2D & anAff,const std::string & aNameTFW)
+{
+    std::ofstream aFtfw(aNameTFW.c_str());
+    aFtfw.precision(10);
+
+
+    // Attention 1 Chance / 2 sur les terme croises aAfC2M.I10().y  et  aAfC2M.I01().x
+    aFtfw << anAff.I10().x << " " << anAff.I10().y << "\n";
+    aFtfw << anAff.I01().x << " " << anAff.I01().y << "\n";
+    aFtfw << anAff.I00().x << " " << anAff.I00().y << "\n";
+
+    aFtfw.close();
+}
+
+double ResolOfAff(const ElAffin2D & anAff)
+{
+   return (euclid(anAff.I10()) +euclid(anAff.I01())) / 2.0;
+}
+
+double ResolOfNu(const cXML_ParamNuage3DMaille & aNu)
+{
+     ElAffin2D aAfM2C = Xml2EL(aNu.Orientation().OrIntImaM2C());
+     return ResolOfAff(aAfM2C.inv());
+}
+
+Box2dr BoxTerOfNu(const cXML_ParamNuage3DMaille & aNu)
+{
+     Box2dr aRes(Pt2dr(0,0),Pt2dr(aNu.NbPixel()));
+
+     ElAffin2D aAfM2C = Xml2EL(aNu.Orientation().OrIntImaM2C());
+     return aRes.BoxImage(aAfM2C.inv());
 }
 
 
