@@ -271,6 +271,16 @@ class cPatOfName
 };
 
 void DoAllDev(const std::string & aPat);
+void GenTFW(const ElAffin2D & anAff,const std::string & aNameTFW);
+void GenTFW(const cFileOriMnt & aFOM,const std::string & aName);
+double ResolOfAff(const ElAffin2D & anAff);
+Box2dr BoxTerOfNu(const cXML_ParamNuage3DMaille & aNu);
+double ResolOfNu(const cXML_ParamNuage3DMaille & aNu);
+
+
+
+
+
 
 
 #endif   // _ELISE_XML_GEN_MMBY_P_
