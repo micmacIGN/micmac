@@ -213,9 +213,6 @@ __device__ void TO_COST(float cost,ushort& destCOST,pixel* pix)
 	}
 }
 
-
-
-
 __global__
 void projectionMasqImage(float * dataPixel,uint3 dTer)
 {
@@ -437,7 +434,7 @@ inline    float Quick_MS_CorrelBasic_Center(
 
 template<class T>
 __global__
-void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, T *cost,pixel* pix = NULL)
+void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2,float*  aSom22,short2 *nappe, T *cost,pixel* pix = NULL,uint* pit = NULL)
 {
 
     // point image
@@ -458,13 +455,18 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
 //		const uint pitG			=	to1D(an,thZ,cstPCMS._dimTerrain);
 
-		const uint pitG			=	to1D(an,cstPCMS._dimTerrain)*cstPCMS.maxDeltaZ + thZ;
+		const uint		pitTer	=	to1D(an,cstPCMS._dimTerrain);
 
-		T&				_cost   =	cost[pitG];
+		const short2    _nappe  =	nappe[pitTer];
 
-		pixel *locPix		    =	pix + pitG;
+//		const uint pitCost		=	to1D(an,cstPCMS._dimTerrain)*cstPCMS.maxDeltaZ + thZ;
 
-		const short2    _nappe  =	nappe[to1D(an,cstPCMS._dimTerrain)];
+		const uint pitCost		=	pit[pitTer] + thZ;
+
+		T&				_cost   =	cost[pitCost];
+
+		pixel *locPix		    =	pix + pitCost;
+
 
         short           aZ0     =  _nappe.x;
 
@@ -522,6 +524,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 #include <stdio.h>
 extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &parCMS)
 {
+
     // Cache device
 	CuDeviceData3D<float>  aSom_0;
     CuDeviceData3D<float>  aSomSqr_0;
@@ -589,7 +592,8 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 																			  aSomSqr_1.pData(),
 																			  data._uInterval_Z   .pData(),
 																			  data._uCostu        .pData(),
-																			  data._uCostp        .pData()
+																			  data._uCostp        .pData(),
+																			  data._uPit		  .pData()
 																			  );
 
 		getLastCudaError("Kernel__DoCorrel_MultiScale_Global float");
