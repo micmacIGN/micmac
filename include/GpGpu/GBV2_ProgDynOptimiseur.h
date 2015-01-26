@@ -145,6 +145,8 @@ public :
 	void gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost,pixel pix);
 
 	void gLocal_SetCout(Pt2di aPTer, ushort* aCost,pixel* pix);
+
+	InterfOptimizGpGpu* getInterfaceGpGpu(){return &IGpuOpt;}
 #endif
     void Local_SolveOpt(Im2D_U_INT1 aImCor);
 

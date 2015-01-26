@@ -224,6 +224,7 @@ public:
 			  bool      aModeMax,
 			  bool      DoMixte,
 			  bool		dynRegulGpu,
+			  InterfOptimizGpGpu* interOpt,
 			  ushort nbscale = NBSCALE );
 
 	template<class T>

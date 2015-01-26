@@ -245,26 +245,26 @@ void GpGpu_Interface_Cor_MS::transfertImageAndMask(uint2 sI0, uint2 sI1, float *
     _dataCMS.transfertMask(sI0,sI1,mask0,mask1);
 }
 
-void GpGpu_Interface_Cor_MS::init(
-        Rect                                    terrain,
-        const std::vector<std::vector<Pt2di> > &aVV,
-        const std::vector<double>              &aVPds,
-        int2                                    offset0,
-        int2                                    offset1,
+void GpGpu_Interface_Cor_MS::init(Rect                                    terrain,
+		const std::vector<std::vector<Pt2di> > &aVV,
+		const std::vector<double>              &aVPds,
+		int2                                    offset0,
+		int2                                    offset1,
 		uint2                                   sIg0,
 		uint2                                   sIg1,
-        short                                 **mTabZMin,
-        short                                 **mTabZMax,
-        ushort                                  NbByPix,
-        float                                   StepPix,
-        float                                   nEpsilon,
-        float                                   AhDefCost,
-        float                                   aSeuilHC,
-        float                                   aSeuilBC,
-        bool                                    aModeMax,
-        bool                                    DoMixte,
+		short                                 **mTabZMin,
+		short                                 **mTabZMax,
+		ushort                                  NbByPix,
+		float                                   StepPix,
+		float                                   nEpsilon,
+		float                                   AhDefCost,
+		float                                   aSeuilHC,
+		float                                   aSeuilBC,
+		bool                                    aModeMax,
+		bool                                    DoMixte,
 		bool									dynRegulGpu,
-        ushort                                  nbscale)
+		InterfOptimizGpGpu*						interOpt,
+		ushort                                  nbscale)
 {   
 	_cDataCMS.init(aVV,aVPds,offset0,offset1,sIg0,sIg1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte,dynRegulGpu);
 
