@@ -157,13 +157,25 @@ void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int 
 }
 
 #if CUDA_ENABLED
-void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort2 aCost)
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost,pixel pix)
 {
 	Pt2di z     = Px2Point(&aPX);
 	int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
-	IGpuOpt._poInitCost[pt] = aCost.x;
-	(*mMemoCorrel)[aPTer][z]= aCost.y;
+	IGpuOpt._poInitCost[pt] = aCost;
+	(*mMemoCorrel)[aPTer][z]= pix;
 
+}
+
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, ushort* aCost, pixel* pix)
+{
+	ushort	size		= IGpuOpt._poInitCost.DZ(aPTer);
+	ushort* costDest	= IGpuOpt._poInitCost[aPTer];
+
+	memcpy(costDest,aCost,sizeof(ushort)*size);
+
+	pixel * pixDest	= (*mMemoCorrel)[aPTer][0] + (*mMemoCorrel)[aPTer].Box()._p0.x;
+
+	memcpy(pixDest,pix,sizeof(pixel)*size);
 }
 #endif
 

@@ -18,6 +18,7 @@ dataCorrelMS::dataCorrelMS()
 	_uInterval_Z.SetName("_uInterval_Z");
 	_uCostf.SetName("_uCostf");
 	_uCostu.SetName("_uCostu");
+	_uCostp.SetName("_uCostu");
 }
 
 dataCorrelMS::~dataCorrelMS()
@@ -57,7 +58,7 @@ float* dataCorrelMS::pDeviceCost()
 }
 
 template<>
-ushort2* dataCorrelMS::pDeviceCost()
+ushort* dataCorrelMS::pDeviceCost()
 {
 	return _uCostu.deviceData.pData();
 }
@@ -97,6 +98,8 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 
     _maxDeltaZ = 0;
 
+
+	// TODO Attention deja fait dans optimisation GPU!!!
     for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
     {
         int X = anX - mX0Ter;
@@ -114,7 +117,10 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 	_maxDeltaZ  = min(_maxDeltaZ,512); // TODO Attention
 
 	if(dynGpu)
+	{
 		_uCostu.ReallocIfDim(dimNappe,_maxDeltaZ);
+		_uCostp.ReallocIfDim(dimNappe,_maxDeltaZ);
+	}
 	else
 		_uCostf.ReallocIfDim(dimNappe,_maxDeltaZ);
 
@@ -148,6 +154,7 @@ void dataCorrelMS::dealloc()
     _uInterval_Z.Dealloc();
 	_uCostf.Dealloc();
 	_uCostu.Dealloc();
+	_uCostp.Dealloc();
 }
 
 void const_Param_Cor_MS::init(
@@ -274,18 +281,57 @@ T GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 	return 0.1f;
 }
 
-template<>
-float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+template<class T>
+T* GpGpu_Interface_Cor_MS::getCost(uint2 pt)
 {
-	float *pcost = _dataCMS._uCostf.hostData.pData();
-	return pcost[to1D(pt,_dataCMS._uCostf.hostData.GetDimension3D())];
+	return NULL;
 }
 
 template<>
-ushort2 GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+float GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 {
-	ushort2 *pcost = _dataCMS._uCostu.hostData.pData();
-	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
+	int2 pt2 = make_int2(pt.x,pt.y);
+	float *pcost = _dataCMS._uCostf.hostData.pData();
+	//return pcost[to1D(pt,_dataCMS._uCostf.hostData.GetDimension3D())];
+	return pcost[to1D(pt2,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ + pt.z];
+}
+
+template<>
+ushort GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+{
+	int2 pt2 = make_int2(pt.x,pt.y);
+//	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+//	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
+	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+	return pcost[to1D(pt2,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ + pt.z];
+}
+
+template<>
+pixel GpGpu_Interface_Cor_MS::getCost(uint3 pt)
+{
+	int2 pt2 = make_int2(pt.x,pt.y);
+	pixel *pcost = _dataCMS._uCostp.hostData.pData();
+	//return pcost[to1D(pt,_dataCMS._uCostp.hostData.GetDimension3D())];
+	return pcost[to1D(pt2,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ + pt.z];
+}
+
+template<>
+ushort* GpGpu_Interface_Cor_MS::getCost(uint2 pt)
+{
+//	int2 pt2 = make_int2(pt.x,pt.y);
+//	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+//	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
+	ushort *pcost = _dataCMS._uCostu.hostData.pData();
+	return pcost + to1D(pt,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ ;
+}
+
+template<>
+pixel* GpGpu_Interface_Cor_MS::getCost(uint2 pt)
+{
+//	int2 pt2 = make_int2(pt.x,pt.y);
+	pixel *pcost = _dataCMS._uCostp.hostData.pData();
+	//return pcost[to1D(pt,_dataCMS._uCostp.hostData.GetDimension3D())];
+	return pcost + to1D(pt,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ ;
 }
 
 void GpGpu_Interface_Cor_MS::dealloc()

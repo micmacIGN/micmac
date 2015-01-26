@@ -1426,8 +1426,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 				dynRegulGpu
 				);
 
-
-
 	interface_Census_GPU.Job_Correlation_MultiScale();
 
 	GpGpuTools::NvtxR_Push("Start copy cost",0xFFAAFF33);
@@ -1447,12 +1445,24 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 				bool OkIm0	= anI0.IsOkErod(aPIm0.x,aPIm0.y);
 
 				if(OkIm0 && bIMinZ)
-					for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
-					{
-						uint3 pt =make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
-						ushort2 aCost = interface_Census_GPU.getCost<ushort2>(pt);
-						gpuOpt->gLocal_SetCout(Pt2di(anX,anY),aZI,aCost);
-					}
+				{
+//					for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
+//					{
+//						uint3 pt		= make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
+//						ushort aCost	= interface_Census_GPU.getCost<ushort>(pt);
+//						pixel  pix		= interface_Census_GPU.getCost<pixel>(pt);
+
+//						gpuOpt->gLocal_SetCout(Pt2di(anX,anY),aZI,aCost,pix);
+//					}
+
+					uint2 pt		= make_uint2(anX- mX0Ter,anY- mY0Ter);
+					ushort* aCost	= interface_Census_GPU.getCost<ushort>(pt);
+					pixel*  pix		= interface_Census_GPU.getCost<pixel>(pt);
+
+					gpuOpt->gLocal_SetCout(Pt2di(anX,anY),aCost,pix);
+				}
+
+
 			}
 	}
 	else
@@ -1487,6 +1497,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 	interface_Census_GPU.dealloc();
 
 	return;
+
+	GpGpuTools::NvtxR_Push("CPU MSC",0xFFAA0033);
 
 #endif
 // std::cout << anOff0 << anOff1 << "\n";
@@ -1794,6 +1806,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     DeleteAndClear(aVCG);
     delete aPondFlag;
     delete aMom1;
+
+#ifdef CUDA_ENABLED
+	GpGpuTools::Nvtx_RangePop();
+#endif
 }
 
 
