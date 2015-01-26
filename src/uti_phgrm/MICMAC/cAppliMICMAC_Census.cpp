@@ -1400,6 +1400,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 	cGBV2_ProgDynOptimiseur* gpuOpt		= dynRegulGpu ? (cGBV2_ProgDynOptimiseur*)mSurfOpt	: NULL;
 	InterfOptimizGpGpu*		 IGpuOpt	= dynRegulGpu ? gpuOpt->getInterfaceGpGpu()			: NULL;
 
+
 	interface_Census_GPU.transfertImageAndMask(
 				toUi2(mPDV1->LoadedIm().SzIm()),
 				toUi2(mPDV2->LoadedIm().SzIm()),
@@ -1487,6 +1488,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 	}
 
 	GpGpuTools::Nvtx_RangePop();
+
 	interface_Census_GPU.dealloc();
 
 	return;

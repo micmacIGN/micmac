@@ -133,7 +133,7 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
     IGpuOpt._preFinalCost1D.ReallocIf(IGpuOpt._poInitCost.Size());
     IGpuOpt._FinalDefCor.ReallocIf(IGpuOpt._poInitCost._dZ.GetDimension());
     IGpuOpt._poInitCost.ReallocData();
-    IGpuOpt._poInitCost.fillCostInit(10123);
+	IGpuOpt._poInitCost.fillCostInit(10123);//TODO PEUT ETRE VIRER
 #endif
 }
 
