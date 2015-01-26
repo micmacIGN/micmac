@@ -940,9 +940,10 @@ void GenTFW(const ElAffin2D & anAff,const std::string & aNameTFW)
 
 
     // Attention 1 Chance / 2 sur les terme croises aAfC2M.I10().y  et  aAfC2M.I01().x
-    aFtfw << anAff.I10().x << " " << anAff.I10().y << "\n";
-    aFtfw << anAff.I01().x << " " << anAff.I01().y << "\n";
-    aFtfw << anAff.I00().x << " " << anAff.I00().y << "\n";
+    // GM: attention pour avoir un tfw valide il faut un champ par ligne
+    aFtfw << anAff.I10().x << "\n" << anAff.I10().y << "\n";
+    aFtfw << anAff.I01().x << "\n" << anAff.I01().y << "\n";
+    aFtfw << anAff.I00().x << "\n" << anAff.I00().y << "\n";
 
     aFtfw.close();
 }
