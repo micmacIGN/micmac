@@ -131,10 +131,10 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
                     << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 mean 5x5) ")
                     << EAM(mPlyCoul,"PlyCoul",true,"Colour in ply ? Def = true")
-                    << EAM(mTuning,"Tuning",true,"Will disappear on day ...")
+                    << EAM(mTuning,"Tuning",true,"Will disappear one day ...")
                     << EAM(mPurge,"Purge",true,"Purge result, def=true")
-                    << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depenf of mode")
-                    << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depenf of mode")
+                    << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends of mode")
+                    << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends of mode")
    );
 
    if (!EAMIsInit(&mDS))
@@ -171,7 +171,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
   //=====================================
    mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ")
                    +  mStrImOri
-                   +  std::string(" 16 ")  + ToString(mZoomF) + " " 
+                   +  std::string(" 16 ")  + ToString(mZoomF) + " "
                    +  mArgMasq3D
                    +  std::string(" AutoPurge=") + ToString(mPurge)
                    +  " Out=" + mStrType
@@ -261,7 +261,7 @@ void cAppli_C3DC::DoAll()
          case eQuickMac :
               PipelineQuickMack();
          break;
- 
+
          case eStatue :
               PipelineStatue();
          break;
@@ -297,7 +297,7 @@ class cChantierFromMPI
 {
      public :
        cChantierFromMPI(const std::string &,double aScale);
-         
+
        cMMByImNM *    mMMI;
        std::string    mOri;
        std::string    mStrImOri;
@@ -352,11 +352,11 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                     << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
                     << EAM(mMergeOut,"Out",true,"Ply File Results")
     );
-     
+
     mCFPI = new cChantierFromMPI(mName,mDS);
- 
+
     mComNuageMerge =       MM3dBinFile("TestLib  MergeCloud ")
-                  +   mCFPI-> mStrImOri 
+                  +   mCFPI-> mStrImOri
                   + " ModeMerge=" + mCFPI->mStrType
                   + " DownScale=" +ToString(mDS)
                   + " PlyCoul=true"
@@ -408,7 +408,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
    );
-     
+
 }
 
 
