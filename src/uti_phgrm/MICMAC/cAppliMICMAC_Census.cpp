@@ -1397,6 +1397,9 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 	bool dynRegulGpu = CurEtape()->AlgoRegul() == eAlgoTestGPU;
 
+	cGBV2_ProgDynOptimiseur* gpuOpt		= dynRegulGpu ? (cGBV2_ProgDynOptimiseur*)mSurfOpt	: NULL;
+	InterfOptimizGpGpu*		 IGpuOpt	= dynRegulGpu ? gpuOpt->getInterfaceGpGpu()			: NULL;
+
 	interface_Census_GPU.transfertImageAndMask(
 				toUi2(mPDV1->LoadedIm().SzIm()),
 				toUi2(mPDV2->LoadedIm().SzIm()),
@@ -1423,7 +1426,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 				aSeuilBC,
 				aModeMax,
 				DoMixte,
-				dynRegulGpu
+				dynRegulGpu,
+				IGpuOpt
 				);
 
 	interface_Census_GPU.Job_Correlation_MultiScale();
@@ -1432,7 +1436,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 	if(dynRegulGpu)
 	{
-		cGBV2_ProgDynOptimiseur* gpuOpt = (cGBV2_ProgDynOptimiseur*)mSurfOpt;
+
 
 		for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
 			for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -1452,8 +1456,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 					gpuOpt->gLocal_SetCout(Pt2di(anX,anY),aCost,pix);
 				}
-
-
 			}
 	}
 	else
