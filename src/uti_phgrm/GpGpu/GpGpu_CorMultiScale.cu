@@ -89,10 +89,26 @@ inline    bool GET_Val_BIT(const U_INT1 * aData,int anX)
     return (aData[anX/8] >> (7-anX %8) ) & 1;
 }
 
+
+template<ushort idTexture>
 __device__
-inline    texture< pixel,cudaTextureType2D>  getMask(ushort iDi)
+inline    texture< pixel,cudaTextureType2D>  getMask()
 {
-    return iDi == 0 ? Texture_Masq_Erod_00 : Texture_Masq_Erod_01;
+	return Texture_Masq_Erod_00;
+}
+
+template<>
+__device__
+inline    texture< pixel,cudaTextureType2D>  getMask<0>()
+{
+	return Texture_Masq_Erod_00;
+}
+
+template<>
+__device__
+inline    texture< pixel,cudaTextureType2D>  getMask<1>()
+{
+	return Texture_Masq_Erod_01;
 }
 
 inline __device__ int dElise_div(int a,int b)
@@ -101,25 +117,39 @@ inline __device__ int dElise_div(int a,int b)
     return res - ((res * b) > a);
 }
 
+template<ushort id> inline
+__device__ uint2 getSizeImage()
+{
+	return make_uint2(0);
+}
+
+template<> inline
+__device__ uint2 getSizeImage<0>()
+{
+	return cstPCMS.mSIg0;
+}
+
+template<> inline
+__device__ uint2 getSizeImage<1>()
+{
+	return cstPCMS.mSIg1;
+}
+
+template<ushort idTexture>
 __device__
-inline    bool IsOkErod(int3 pt)
+inline    bool IsOkErod(int2 pt)
 {
     // TODO peut etre simplifier % et division
 
-    const int ptxBy8 = pt.x >> 3;           // pt.x >> 3 Division par 8
-    const int modulo = pt.x - (ptxBy8 << 3)  ;// (ptxBy8<<3) multiplication par 8
+	const uint2 size = getSizeImage<idTexture>();
 
-    pixel mask8b = tex2D(getMask(pt.z),(float)(ptxBy8) + 0.5f,(float)pt.y + 0.5f);
+	const int ptxBy8 = pt.x >> 3;				// pt.x >> 3 Division par 8
+	const int modulo = pt.x - (ptxBy8 << 3)  ;// (ptxBy8<<3) multiplication par 8
 
-    return (mask8b >> (7-modulo ) ) & 1;
+	pixel mask8b = tex2D(getMask<idTexture>(),(float)(ptxBy8) + 0.5f,(float)pt.y + 0.5f);
+
+	return ((mask8b >> (7-modulo ) ) & 1) && aI(pt,size);
 }
-
-__device__
-inline    bool IsOkErod(int2 pt,ushort idi)
-{
-    return IsOkErod(make_int3(pt.x,pt.y,idi));
-}
-
 
 template<ushort idTexture>
 __device__
@@ -183,23 +213,8 @@ __device__ void TO_COST(float cost,ushort& destCOST,pixel* pix)
 	}
 }
 
-template<ushort id> inline
-__device__ uint2 getSizeImage()
-{
-	return make_uint2(0);
-}
 
-template<> inline
-__device__ uint2 getSizeImage<0>()
-{
-	return cstPCMS.mSIg0;
-}
 
-template<> inline
-__device__ uint2 getSizeImage<1>()
-{
-	return cstPCMS.mSIg1;
-}
 
 __global__
 void projectionMasqImage(float * dataPixel,uint3 dTer)
@@ -208,11 +223,11 @@ void projectionMasqImage(float * dataPixel,uint3 dTer)
     if(blockIdx.x > cstPCMS._dimTerrain.x || blockIdx.y > cstPCMS._dimTerrain.y)
         return;
 
-	const int3 pt	= make_int3(blockIdx.x,blockIdx.y,blockIdx.z);
+	const int2 pt	= make_int2(blockIdx.x,blockIdx.y);
 
-	float valImage	= tex2DLayered(pt.z == 0 ? texture_ImageEpi_00 : texture_ImageEpi_01 ,pt.x + 0.5f,pt.y + 0.5f ,0);
+//	float valImage	= tex2DLayered(getTexture<blockIdx.z>(),pt.x + 0.5f,pt.y + 0.5f ,0);
 
-    dataPixel[to1D(pt,dTer)] = IsOkErod(pt) ? valImage/(32768.f) : 0;
+//	dataPixel[to1D(pt,dTer)] = IsOkErod<blockIdx.z>(pt) ? valImage/(32768.f) : 0;
 }
 
 extern "C" void LaunchKernelCorrelationMultiScalePreview(dataCorrelMS &data,const_Param_Cor_MS &param)
@@ -435,7 +450,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
     //      pt int dans l'image 0
     const   int2     aPIm0       =   an + cstPCMS.anOff0;
 
-	if (IsOkErod(aPIm0,0) && aPIm0.x < cstPCMS.mSIg0.x && aPIm0.y < cstPCMS.mSIg0.y)
+	if (IsOkErod<0>(aPIm0) && aPIm0.x < cstPCMS.mSIg0.x && aPIm0.y < cstPCMS.mSIg0.y)
     {
 
         // Z relatif au thread
@@ -473,7 +488,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 
         float           aCost      =   cstPCMS.mAhDefCost;
 
-		if (IsOkErod(aPIm1,1) && aPIm1.x < cstPCMS.mSIg1.x && aPIm1.y < cstPCMS.mSIg1.y) // TODO ---> attention integrer les dimensions correctes de l'image
+		if (IsOkErod<1>(aPIm1) && aPIm1.x < cstPCMS.mSIg1.x && aPIm1.y < cstPCMS.mSIg1.y) // TODO ---> attention integrer les dimensions correctes de l'image
         {
 
 #ifdef modeMixte
