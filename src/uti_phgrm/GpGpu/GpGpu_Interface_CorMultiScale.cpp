@@ -96,8 +96,11 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 
     _uInterval_Z.ReallocIfDim(dimNappe,1);
 
+	_uPit.ReallocIfDim(dimNappe,1);
+
     _maxDeltaZ = 0;
 
+	uint size = 0;
 
 	// TODO Attention deja fait dans optimisation GPU!!!
     for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
@@ -105,12 +108,18 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
         int X = anX - mX0Ter;
         for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
         {
-            short2 ZZ   = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
-            _uInterval_Z.hostData[make_uint2(X,anY - mY0Ter)] = ZZ;
-            uint deltaZ = abs(ZZ.x-ZZ.y);
 
-            _maxDeltaZ  = max(_maxDeltaZ,deltaZ);
+			uint2	pt	= make_uint2(X,anY - mY0Ter);
+			short2	ZZ  = make_short2(mTabZMin[anY][anX],mTabZMax[anY][anX]);
 
+			_uInterval_Z.hostData[pt] = ZZ;
+
+			uint deltaZ = abs(ZZ.x-ZZ.y);
+
+			_maxDeltaZ  = max(_maxDeltaZ,deltaZ);
+
+			_uPit.hostData[pt]    = size;
+			size				 += deltaZ;
         }
     }
 
@@ -118,8 +127,10 @@ void dataCorrelMS::transfertNappe(int mX0Ter, int mX1Ter, int mY0Ter, int mY1Ter
 
 	if(dynGpu)
 	{
-		_uCostu.ReallocIfDim(dimNappe,_maxDeltaZ);
-		_uCostp.ReallocIfDim(dimNappe,_maxDeltaZ);
+		_uCostu.ReallocIfDim(size);
+		_uCostp.ReallocIfDim(size);
+//		_uCostu.ReallocIfDim(dimNappe,_maxDeltaZ);
+//		_uCostp.ReallocIfDim(dimNappe,_maxDeltaZ);
 	}
 	else
 		_uCostf.ReallocIfDim(dimNappe,_maxDeltaZ);
@@ -135,6 +146,7 @@ void dataCorrelMS::syncDeviceData()
     }
 
     _uInterval_Z.syncDevice();
+	_uPit.syncDevice();
 
     //_DeviceInterval_Z.ReallocIf(_HostInterval_Z.GetDimension());
     //_DeviceInterval_Z.CopyHostToDevice(_HostInterval_Z.pData());
@@ -152,28 +164,38 @@ void dataCorrelMS::dealloc()
 
 //    _HostInterval_Z.Dealloc();
     _uInterval_Z.Dealloc();
+	_uPit.Dealloc();
 	_uCostf.Dealloc();
 	_uCostu.Dealloc();
 	_uCostp.Dealloc();
 }
 
-void const_Param_Cor_MS::init(
-        const std::vector<std::vector<Pt2di> > &VV,
-        const std::vector<double> &VPds,
-        int2    offset0,
-        int2    offset1,
+InterfOptimizGpGpu*dataCorrelMS::getInterOpt(){return mInterOpt;}
+
+void dataCorrelMS::setInterOpt(InterfOptimizGpGpu* InterOpt)
+
+{
+	mInterOpt = InterOpt;
+}
+
+
+
+void const_Param_Cor_MS::init(const std::vector<std::vector<Pt2di> > &VV,
+							  const std::vector<double> &VPds,
+		int2    offset0,
+		int2    offset1,
 		uint2	sIg0,
 		uint2   sIg1,
-        ushort  NbByPix,
-        float   StepPix,
-        float   nEpsilon,
-        float   AhDefCost,
-        float   SeuilHC,
-        float   SeuilBC,
-        bool    ModeMax,
-        bool    mdoMixte,
+		ushort  NbByPix,
+		float   StepPix,
+		float   nEpsilon,
+		float   AhDefCost,
+		float   SeuilHC,
+		float   SeuilBC,
+		bool    ModeMax,
+		bool    mdoMixte,
 		bool	dynRegulGpu,
-        ushort nbscale)
+		ushort nbscale)
 {
 
     aNbScale    = nbscale;
@@ -187,7 +209,7 @@ void const_Param_Cor_MS::init(
     DoMixte     = mdoMixte;	
 	mSIg0		= sIg0;
 	mSIg1		= sIg1;	
-	mDyRegGpu	= dynRegulGpu;
+	mDyRegGpu	= dynRegulGpu;	
 
     for (int s = 0; s < (int)VV.size(); ++s)
     {
@@ -235,7 +257,9 @@ void GpGpu_Interface_Cor_MS::Job_Correlation_MultiScale()
     paramCorMultiScale2Device(_cDataCMS);
     _dataCMS.syncDeviceData();
 
-    LaunchKernel__Correlation_MultiScale(_dataCMS,_cDataCMS);   
+	LaunchKernel__Correlation_MultiScale(_dataCMS,_cDataCMS);
+
+	//_dataCMS._uCostu.deviceData.CopyDevicetoHost(_dataCMS.getInterOpt()->_poInitCost._CostInit1D);
 }
 
 void GpGpu_Interface_Cor_MS::transfertImageAndMask(uint2 sI0, uint2 sI1, float ***dataImg0, float ***dataImg1, pixel **mask0, pixel **mask1)
@@ -245,27 +269,29 @@ void GpGpu_Interface_Cor_MS::transfertImageAndMask(uint2 sI0, uint2 sI1, float *
     _dataCMS.transfertMask(sI0,sI1,mask0,mask1);
 }
 
-void GpGpu_Interface_Cor_MS::init(
-        Rect                                    terrain,
-        const std::vector<std::vector<Pt2di> > &aVV,
-        const std::vector<double>              &aVPds,
-        int2                                    offset0,
-        int2                                    offset1,
+void GpGpu_Interface_Cor_MS::init(Rect                                    terrain,
+		const std::vector<std::vector<Pt2di> > &aVV,
+		const std::vector<double>              &aVPds,
+		int2                                    offset0,
+		int2                                    offset1,
 		uint2                                   sIg0,
 		uint2                                   sIg1,
-        short                                 **mTabZMin,
-        short                                 **mTabZMax,
-        ushort                                  NbByPix,
-        float                                   StepPix,
-        float                                   nEpsilon,
-        float                                   AhDefCost,
-        float                                   aSeuilHC,
-        float                                   aSeuilBC,
-        bool                                    aModeMax,
-        bool                                    DoMixte,
+		short                                 **mTabZMin,
+		short                                 **mTabZMax,
+		ushort                                  NbByPix,
+		float                                   StepPix,
+		float                                   nEpsilon,
+		float                                   AhDefCost,
+		float                                   aSeuilHC,
+		float                                   aSeuilBC,
+		bool                                    aModeMax,
+		bool                                    DoMixte,
 		bool									dynRegulGpu,
-        ushort                                  nbscale)
+		InterfOptimizGpGpu*						interOpt,
+		ushort                                  nbscale)
 {   
+	_dataCMS.setInterOpt(interOpt);
+
 	_cDataCMS.init(aVV,aVPds,offset0,offset1,sIg0,sIg1,NbByPix,StepPix,nEpsilon,AhDefCost, aSeuilHC,aSeuilBC,aModeMax,DoMixte,dynRegulGpu);
 
 	_dataCMS.transfertNappe(terrain.pt0.x, terrain.pt1.x, terrain.pt0.y, terrain.pt1.y, mTabZMin, mTabZMax,dynRegulGpu);
@@ -318,20 +344,22 @@ pixel GpGpu_Interface_Cor_MS::getCost(uint3 pt)
 template<>
 ushort* GpGpu_Interface_Cor_MS::getCost(uint2 pt)
 {
-//	int2 pt2 = make_int2(pt.x,pt.y);
 //	ushort *pcost = _dataCMS._uCostu.hostData.pData();
-//	return pcost[to1D(pt,_dataCMS._uCostu.hostData.GetDimension3D())];
+//	return pcost + to1D(pt,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ ;
+
 	ushort *pcost = _dataCMS._uCostu.hostData.pData();
-	return pcost + to1D(pt,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ ;
+	return pcost + _dataCMS._uPit.hostData[pt];
 }
 
 template<>
 pixel* GpGpu_Interface_Cor_MS::getCost(uint2 pt)
 {
-//	int2 pt2 = make_int2(pt.x,pt.y);
+
+//	pixel *pcost = _dataCMS._uCostp.hostData.pData();
+//	return pcost + to1D(pt,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ ;
+
 	pixel *pcost = _dataCMS._uCostp.hostData.pData();
-	//return pcost[to1D(pt,_dataCMS._uCostp.hostData.GetDimension3D())];
-	return pcost + to1D(pt,_cDataCMS._dimTerrain)*_cDataCMS.maxDeltaZ ;
+	return pcost + _dataCMS._uPit.hostData[pt];
 }
 
 void GpGpu_Interface_Cor_MS::dealloc()
