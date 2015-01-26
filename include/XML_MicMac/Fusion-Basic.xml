@@ -1,0 +1,121 @@
+<!--
+    +PatternInput=Basc-IMG_021[0-9].CR2.*.xml
+    +TmpPMI2Mnt/NuageImProf_STD-MALT_Etape_5.xml
+
+mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-Basic.xml  WorkDirPFM=/home/marc/TMP/EPI/Colonne-Denderah-2012/PIMs-MicMac/Bascule/
+
+-->
+<ParamFusionMNT>
+    <DicoLoc>
+
+<!--
+      <Symb>  PatternInput=Basc-IMG_021[0-5].CR2.*.xml </Symb>
+-->
+      <Symb>  PatternInput=XXXXX </Symb>
+      <Symb>  NameTarget=XXXXXXXX </Symb>
+      <Symb>  NameOutput=XXXXXX </Symb>
+      <Symb>  WithTarget=false </Symb>
+
+
+      <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur>   ${PatternInput}  </PatternAccepteur>
+          </Sets>
+          <Key> Loc-SetInput </Key>
+    </KeyedSetsOfNames>
+
+
+       <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  2 1 </Arrite>
+                <Direct>
+                    <PatternTransform> (.*)%(.*) </PatternTransform>
+                    <CalcName> $2  </CalcName>
+                    <Separateur > % </Separateur>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-CplIm2Nuage </Key>
+       </KeyedNamesAssociations>
+
+
+   <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  2 1 </Arrite>
+                <Direct>
+                    <PatternTransform> (.*) </PatternTransform>
+                    <CalcName> ${NameOutput}  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-Im2NuageFusionne </Key>
+       </KeyedNamesAssociations>
+
+
+    </DicoLoc>
+
+    <SectionName>
+
+        <KeyNuage> Loc-Assoc-CplIm2Nuage </KeyNuage>  
+        <KeyResult> Loc-Assoc-Im2NuageFusionne </KeyResult> <!-- NKS-Assoc-Cste@MaSortie.xml -->
+
+<!--
+        <KeyResult> NKS-Assoc-Cste@FusionZ2 </KeyResult>
+-->
+        <#WHEN VTEST=${WithTarget}>
+            <ModeleNuageResult> NKS-Assoc-Cste@${NameTarget} </ModeleNuageResult> 
+        </#WHEN>
+<!--
+-->
+    </SectionName>
+
+
+       <ParamAlgoFusionMNT>
+           <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel>
+           <FMNTGammaCorrel > 1 </FMNTGammaCorrel>
+           <SpecAlgoFMNT>
+                 <SigmaPds> 5.0 </SigmaPds>
+                 <SeuilMaxLoc> 1  </SeuilMaxLoc>
+                 <SeuilCptOk>  2.0  </SeuilCptOk>
+                 <SigmaZ> 7.5  </SigmaZ> <!--  ???   -->
+                 <NBMaxMaxLoc> 6  </NBMaxMaxLoc>
+                 <FMNT_ProgDyn>
+                            <Regul> 0.0 </Regul>
+                            <Sigma0> 10.0 </Sigma0>
+                            <NbDir>  7 </NbDir>
+                            <FMNT_GesNoVal>
+                                <PenteMax> 10000 </PenteMax>
+                                <CostNoVal> 0.9 </CostNoVal>
+                                <Trans>     2 </Trans>
+                            </FMNT_GesNoVal>
+                 </FMNT_ProgDyn>
+                 <ParamRegProf> </ParamRegProf>
+
+           </SpecAlgoFMNT>
+       </ParamAlgoFusionMNT>
+
+
+    <GenereRes> 
+<!--
+            <KeyString> ${NameTarget} </KeyString>
+-->
+            <KeyString>  toto </KeyString>
+    </GenereRes>
+
+    <GenereInput> 
+              <KeySet> Loc-SetInput </KeySet>
+    </GenereInput>
+
+
+   <SectionGestionChantier>
+             <SzDalles >  1000 </SzDalles>
+             <RecouvrtDalles> 100  </RecouvrtDalles>
+             <ParalMkF> MkFusion.txt </ParalMkF> 
+             <WorkDirPFM> XXXX </WorkDirPFM>
+<!--
+             <WorkDirPFM> /media/data1/SummerSchhol/Gironde_Zone2/MTD-Nuage/ </WorkDirPFM>
+-->
+   </SectionGestionChantier>
+
+
+  </ParamFusionMNT>
+
+
