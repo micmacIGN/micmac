@@ -98,7 +98,7 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
 
     if ((minC>=maxC)||(minL>=maxL))
     {
-        std::cout << "Zone de taille nulle : "<<minC<<" "<<maxC<<" "<<minL<<" "<<maxL<<std::endl;
+        //std::cout << "Zone de taille nulle : "<<minC<<" "<<maxC<<" "<<minL<<" "<<maxL<<std::endl;
         for(int l=0;l<_nl;++l)
         {
             //int ll = l*_pas;
