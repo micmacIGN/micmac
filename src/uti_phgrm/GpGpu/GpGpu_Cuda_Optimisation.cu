@@ -114,6 +114,79 @@ inline void connectMask<true>(uint &costMin,uint costInit, uint prevDefCor, usho
         costMin = min(costMin, costInit + prevDefCor  + costTransDefMask );
 }
 
+template<bool sens> __device__
+inline uint __choose(uint kav,uint kar)
+{
+	return 0;
+}
+
+template<> __device__
+inline uint __choose<true>(uint kav,uint kar)
+{
+	return kav;
+}
+
+template<> __device__
+inline uint __choose<false>(uint kav,uint kar)
+{
+	return kar;
+}
+
+template<bool sens> __device__
+inline ushort __choose(ushort kav,ushort kar)
+{
+	return 0;
+}
+
+template<> __device__
+inline ushort __choose<true>(ushort kav,ushort kar)
+{
+	return kav;
+}
+
+template<> __device__
+inline ushort __choose<false>(ushort kav,ushort kar)
+{
+	return kar;
+}
+
+template<bool sens> __device__
+inline short __choose(short kav,short kar)
+{
+	return 0;
+}
+
+template<> __device__
+inline short __choose<true>(short kav,short kar)
+{
+	return kav;
+}
+
+template<> __device__
+inline short __choose<false>(short kav,short kar)
+{
+	return kar;
+}
+
+template<bool sens> __device__
+inline short __delta()
+{
+	return 0;
+}
+
+template<> __device__
+inline short __delta<true>()
+{
+	return 0;
+}
+
+
+template<> __device__
+inline short __delta<false>()
+{
+	return -WARPSIZE + 1;
+}
+
 template<bool sens,bool hasMask> __device__
 void connectCellsLine(
                 SimpleStream<short3>    &streamIndex,
@@ -127,7 +200,7 @@ void connectCellsLine(
 )
 {
 
-    short3* ST_Bf_Index = S_Bf_Index + p.tid + (sens ? 0 : -WARPSIZE + 1);
+	short3* ST_Bf_Index = S_Bf_Index + p.tid + __delta<sens>();
 
     __shared__ uint minCost[WARPSIZE];
     short2  ConeZ;
@@ -147,7 +220,7 @@ void connectCellsLine(
     uint         prevDefCor   =/* p.costTransDefMask + */p.prevDefCor; // TODO Voir la valeur à mettre!!!
     const ushort idGline = p.line.id + p.seg.id;
 
-    streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor);
+	streamDefCor.SetOrAddValue<sens>(__choose<sens>((uint)idGline, p.line.lenght  - idGline),prevDefCor);
     uint         prevMinCostCells    = 0; // TODO cette valeur doit etre determiner
 
 
@@ -181,8 +254,8 @@ void connectCellsLine(
                 uint    costInit        = getCostInit<hasMask>(500000,ST_Bf_ICost[sgn(p.ID_Bf_Icost)],maskTer);
 
                 const ushort tZ         = z + p.stid<sens>();
-                const short  Z          = ((sens) ? tZ + indexZ.x : indexZ.y - tZ - 1);
-                const short  pitPrZ     = ((sens) ? Z - p.prev_Dz.x : p.prev_Dz.y - Z - 1);
+				const short  Z          = __choose<sens>((short)(tZ + indexZ.x),(short)(indexZ.y - tZ - 1));
+				const short  pitPrZ     = __choose<sens>((short)(Z - p.prev_Dz.x ), (short)(p.prev_Dz.y - Z - 1));
 
                 getIntervale<hasMask>(ConeZ,Z,p.pente,indexZ,p.prev_Dz);
 
@@ -231,8 +304,8 @@ void connectCellsLine(
                 p.prevDefCor = cDefCor;
                 if(p.tid == 0)
                 {
-                    const ushort idGline = p.line.id + p.seg.id;
-                    streamDefCor.SetOrAddValue<sens>(sens ? idGline : p.line.lenght  - idGline,prevDefCor,prevDefCor-cDefCor);
+                    const ushort idGline = p.line.id + p.seg.id;					
+					streamDefCor.SetOrAddValue<sens>(__choose<sens>((uint)idGline , p.line.lenght  - idGline),prevDefCor,prevDefCor-cDefCor);
                 }
 
             }

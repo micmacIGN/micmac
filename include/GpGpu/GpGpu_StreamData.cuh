@@ -22,33 +22,34 @@ public:
         _sizeStream(sizeStream)
     {}
 
-    __device__ virtual short getLen2ReadAV(short2 &index)
+
+	template<bool sens>
+	__device__ short getLen2Read(short2 &index)
     {
         index = make_short2(0,0);
         return 1;
     }
 
-    __device__ virtual short getLen2ReadAR(short2 &index)
-    {
-        index = make_short2(0,0);
-        return 1;
-    }
+//    __device__ virtual short getLen2ReadAR(short2 &index)
+//    {
+//        index = make_short2(0,0);
+//        return 1;
+//    }
 
     template<bool sens, class D> __device__ short2 read(D* destData, ushort tid, T def);
 
 private:
 
-    template<bool sens> __device__ short vec(){ return 1 - 2 * !sens; }
+	template<bool sens> __device__ inline short vec();//{ return 1 - 2 * !sens; }
 
     template<bool sens> __device__ short GetNbToCopy(ushort nTotal,ushort nCopied)
     {
         return min(nTotal - nCopied , MaxReadBuffer<sens>());
     }
 
-    template<bool sens> __device__ ushort MaxReadBuffer()
-    {
-        return sens ? ((ushort)WARPSIZE - _curBufferId) : _curBufferId;
-    }
+	template<bool sens> __device__ inline ushort MaxReadBuffer();
+
+
 
 
     T*                          _bufferData;
@@ -58,11 +59,62 @@ private:
     uint                        _sizeStream;
 };
 
+template<bool sens>
+__device__ inline ushort __mxReadBuffer(ushort &curBufferId)
+{
+	return 0;
+}
+
+template<>
+__device__ inline ushort __mxReadBuffer<true>(ushort &curBufferId)
+{
+	return ((ushort)WARPSIZE - curBufferId);
+}
+
+template<>
+__device__ inline ushort __mxReadBuffer<false>(ushort &curBufferId)
+{
+	return curBufferId;
+}
+
+template< class T > template<bool sens>
+__device__ inline ushort CDeviceStream<T>::MaxReadBuffer()
+{
+	return __mxReadBuffer<sens>(_curBufferId);
+}
+
+template<bool sens>
+__device__ inline short __vec()
+{
+	return 0;
+}
+
+template<>
+__device__ inline short __vec<true>()
+{
+	return 1;
+}
+
+
+template<>
+__device__ inline short __vec<false>()
+{
+	return -1;
+}
+
+template< class T >
+template <bool sens> __device__ inline short CDeviceStream<T>::vec()
+{
+	return __vec<sens>();
+}
+
+
+
 template< class T > template<bool sens, class D>  __device__
 short2 CDeviceStream<T>::read(D *destData, ushort tid, T def)
 {
     short2  index;
-    ushort  NbCopied    = 0 , NbTotalToCopy = sens ? getLen2ReadAV(index) : getLen2ReadAR(index);
+	ushort  NbCopied    = 0 , NbTotalToCopy = getLen2Read<sens>(index);// : getLen2ReadAR(index);
     short   PitSens     = !sens * WARPSIZE;
 
     while(NbCopied < NbTotalToCopy)
@@ -108,22 +160,8 @@ public:
         _streamIndex(bufId,streamId,sizeStreamId)
     {}
 
-
-    __device__ short getLen2ReadAV(short2 &index)
-    {       
-
-        _streamIndex.read<eAVANT>(&index,0,make_short2(0,0));
-
-        return diffYX(index);
-    }
-
-    __device__ short getLen2ReadAR(short2 &index)
-    {
-
-        _streamIndex.read<eARRIERE>(&index,0,make_short2(0,0));
-
-        return diffYX(index);
-    }
+	template<bool sens>
+	__device__ inline  short getLen2Read(short2 &index);
 
 private:
 
@@ -134,10 +172,37 @@ private:
 #define sgn s<sens>
 #define max_cost 1e9
 
-template< bool sens,class T>
-__device__ inline int s(T v)
+template<bool sens>
+__device__ inline short __getLen2Read(short2 &index,CDeviceStream<short2>   &streamIndex)
 {
-    return sens ? v : -v;
+	streamIndex.read<sens>(&index,0,make_short2(0,0));
+
+	return diffYX(index);
+}
+
+template<class T>
+template<bool sens>
+__device__ inline  short CDeviceDataStream<T>::getLen2Read(short2 &index)
+{
+	return __getLen2Read<sens>(index,_streamIndex);
+}
+
+template<bool sens>
+__device__ inline int s(int v)
+{
+	return 0;
+}
+
+template<>
+__device__ inline int s<true>(int v)
+{
+	return v;
+}
+
+template<>
+__device__ inline int s<false>(int v)
+{
+	return -v ;
 }
 
 template<class T>
@@ -226,6 +291,8 @@ void SimpleStream<T>::SetOrAddValue(int id, T value)
     else
         AddValue(id,value);
 }
+
+
 
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::SetOrAddValue(int id, T setValue, T addValue)
