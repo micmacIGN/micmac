@@ -151,7 +151,13 @@ struct dataCorrelMS
 	///
 	/// \brief _uCost
 	///
-	CuUnifiedData3D<ushort2>         _uCostu;
+	CuUnifiedData3D<ushort>         _uCostu;
+
+	///
+	/// \brief _uCost
+	///
+	CuUnifiedData3D<pixel>         _uCostp;
+
 
 	template<class T>
 	T* pDeviceCost(){return NULL;}
@@ -222,6 +228,9 @@ public:
 
 	template<class T>
 	T getCost(uint3 pt);
+
+	template<class T>
+	T* getCost(uint2 pt);
 
     void dealloc();
 
