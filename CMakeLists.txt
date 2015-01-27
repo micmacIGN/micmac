@@ -122,45 +122,50 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
                 if (${WITH_QT5})
 
-                        #find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
-                        find_package(Qt5 COMPONENTS Gui Core OpenGL Xml)
+                            #find_package(Qt5 COMPONENTS Gui Core Widgets OpenGL LinguistTools Concurrent Xml)
+                            find_package(Qt5 COMPONENTS Gui Core OpenGL Xml)
+
                         if (Qt5_FOUND)
-                                message( STATUS "-----> Qt5 found" )
-                        set(qt_version 5)
 
-                                if(POLICY CMP0020)
-                                        cmake_policy(SET CMP0020 NEW)
-                                endif()
+                            message( STATUS "-----> Qt5 found" )
 
-                                set(QT_LIBRARIES
-                                        ${Qt5Core_LIBRARIES}
-                                        ${Qt5Gui_LIBRARIES}
-                                        #${Qt5Widgets_LIBRARIES}
-                                        ${Qt5Xml_LIBRARIES}
-                                        #${Qt5Concurrent_LIBRARIES}
-                                        ${Qt5OpenGL_LIBRARIES}
-                                        #${Qt5LinguistTools_LIBRARIES}
-                                )
-                                SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
-                                link_directories(${Qt5_LIBRARY_DIRS})
+                            set(qt_version 5)
+
+                            if(POLICY CMP0020)
+                                    cmake_policy(SET CMP0020 NEW)
+                            endif()
+
+                            set(QT_LIBRARIES
+                                    ${Qt5Core_LIBRARIES}
+                                    ${Qt5Gui_LIBRARIES}
+                                    ${Qt5Xml_LIBRARIES}
+                                    ${Qt5OpenGL_LIBRARIES}
+                            )
+
+                            SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
+
+                            link_directories(${Qt5_LIBRARY_DIRS})
+
                         elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
-                                message("WARNING QT 5 not found")
-                                        message("Set Qt5_DIR to qt CMAKE directory")
-                                        message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
-                                        message("   Qt5_DIR --> /opt/Qt5.3.1/5.3/gcc_64/lib/cmake/Qt5")
+
+                            message("WARNING QT 5 not found")
+                            message("Set Qt5_DIR to qt CMAKE directory")
+                            message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
+                            message("   Qt5_DIR --> /opt/Qt5.x.x/5.x.x/gcc_64/lib/cmake/Qt5")
+
                         endif()
 
                 elseif (${WITH_QT4})
 
-            FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
-            if( QT4_FOUND )
-                    message( STATUS "-----> Qt4 found" )
-                    set(qt_version 4)
-            else()
-                message( "Qt not available, Qt graphical tools disabled" )
-                message( "**************************************************************************************************************************************" )
-                                message( "If Qt is installed, please set QT_QMAKE_EXECUTABLE" )
-                                message( "**************************************************************************************************************************************" )
+                        FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
+                        if( QT4_FOUND )
+                            message( STATUS "-----> Qt4 found" )
+                            set(qt_version 4)
+                        else()
+                            message( "Qt not available, Qt graphical tools disabled" )
+                            message( "**************************************************************************************************************************************" )
+                            message( "If Qt is installed, please set QT_QMAKE_EXECUTABLE" )
+                            message( "**************************************************************************************************************************************" )
                         endif()
 
                 endif()
@@ -169,12 +174,12 @@ if(${WITH_QT5} OR ${WITH_QT4})
         endif()
 endif()
 
-if (${DEPLOY})
-    set(DEPLOY 1)
-endif()
-
 if ( NOT ${qt_version} EQUAL 0 )
       message( STATUS "QT tools enabled (Qt" ${qt_version} ")" )
+endif()
+
+if (${DEPLOY})
+    set(DEPLOY 1)
 endif()
 
 if(${WITH_CPP11})
@@ -626,37 +631,37 @@ endif()
 
 IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
 
-#------------------------------------------------------------------------------------
-#scripts de configuration et d'installation
-#------------------------------------------------------------------------------------
-SET(QT_OLD_PREFIX "")
-if(qt_version EQUAL 5)
-        #setting old QT4 variables for installs
-        get_target_property(QT_QTCORE_LIBRARY 		Qt5::Core			LOCATION_Release)
-        get_target_property(QT_QTGUI_LIBRARY 		Qt5::Gui			LOCATION_Release)
-        get_target_property(QT_QTCONCURRENT_LIBRARY Qt5::Concurrent		LOCATION_Release)
-        get_target_property(QT_QTOPENGL_LIBRARY 	Qt5::OpenGL			LOCATION_Release)
-        get_target_property(QT_QTWIDGETS_LIBRARY    Qt5::Widgets		LOCATION_Release)
-        get_target_property(QT_QTXML_LIBRARY        Qt5::Xml            LOCATION_Release)
+    #------------------------------------------------------------------------------------
+    #scripts de configuration et d'installation
+    #------------------------------------------------------------------------------------
+    SET(QT_OLD_PREFIX "")
+    if(qt_version EQUAL 5)
+            #setting old QT4 variables for installs
+            get_target_property(QT_QTCORE_LIBRARY 		Qt5::Core			LOCATION_Release)
+            get_target_property(QT_QTGUI_LIBRARY 		Qt5::Gui			LOCATION_Release)
+            get_target_property(QT_QTCONCURRENT_LIBRARY Qt5::Concurrent		LOCATION_Release)
+            get_target_property(QT_QTOPENGL_LIBRARY 	Qt5::OpenGL			LOCATION_Release)
+            get_target_property(QT_QTWIDGETS_LIBRARY    Qt5::Widgets		LOCATION_Release)
+            get_target_property(QT_QTXML_LIBRARY        Qt5::Xml            LOCATION_Release)
 
-        set(QT_COCOA_PLUGIN "platforms/libqcocoa.dylib")
+            set(QT_COCOA_PLUGIN "platforms/libqcocoa.dylib")
 
-        get_filename_component(QT_QTCORE_LIBRARY ${QT_QTCORE_LIBRARY} PATH)
-        get_filename_component(QT_QTGUI_LIBRARY ${QT_QTGUI_LIBRARY} PATH)
-        get_filename_component(QT_QTCONCURRENT_LIBRARY ${QT_QTCONCURRENT_LIBRARY} PATH)
-        get_filename_component(QT_QTOPENGL_LIBRARY ${QT_QTOPENGL_LIBRARY} PATH)
-        get_filename_component(QT_QTWIDGETS_LIBRARY ${QT_QTWIDGETS_LIBRARY} PATH)
-        get_filename_component(QT_QTXML_LIBRARY ${QT_QTXML_LIBRARY} PATH)
+            get_filename_component(QT_QTCORE_LIBRARY ${QT_QTCORE_LIBRARY} PATH)
+            get_filename_component(QT_QTGUI_LIBRARY ${QT_QTGUI_LIBRARY} PATH)
+            get_filename_component(QT_QTCONCURRENT_LIBRARY ${QT_QTCONCURRENT_LIBRARY} PATH)
+            get_filename_component(QT_QTOPENGL_LIBRARY ${QT_QTOPENGL_LIBRARY} PATH)
+            get_filename_component(QT_QTWIDGETS_LIBRARY ${QT_QTWIDGETS_LIBRARY} PATH)
+            get_filename_component(QT_QTXML_LIBRARY ${QT_QTXML_LIBRARY} PATH)
 
-        SET (QT_OLD_PREFIX "/work/build/______________________________PADDING______________________________/lib/")
-endif()
+            SET (QT_OLD_PREFIX "/work/build/______________________________PADDING______________________________/lib/")
+    endif()
 
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_LIST_DIR}/setup/)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_LIST_DIR}/setup/)
 
-configure_file (
-  "${CMAKE_CURRENT_LIST_DIR}/config/MICMAC_MacOSXInstaller.sh.in"
-   "${CMAKE_CURRENT_LIST_DIR}/setup/MICMAC_MacOSXInstaller.sh"
- )
+    configure_file (
+      "${CMAKE_CURRENT_LIST_DIR}/config/MICMAC_MacOSXInstaller.sh.in"
+       "${CMAKE_CURRENT_LIST_DIR}/setup/MICMAC_MacOSXInstaller.sh"
+     )
 
 endif()
 
