@@ -465,7 +465,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
     // transfo en Geo
     std::string command;
 
-    command = g_externalToolHandler.get( "cs2cs" ).callName() + " " + targetSyst+" +to "+ inputSyst + "-f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " " + targetSyst+" +to "+ inputSyst + " -f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
     int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in createIndirectGrid"<<std::endl;
     for(size_t i=0;i<vAltitude.size();++i)
@@ -924,7 +924,7 @@ int Dimap2Grid_main(int argc, char **argv)
 {
     std::string aNameFileDimap; // fichier Dimap
     std::string aNameImage;     // nom de l'image traitee
-	std::string inputSyst = "+proj=latlong +datum=WGS84 +ellps=WGS84"; //input syst proj
+	std::string inputSyst = "+proj=latlong +datum=WGS84 "; //+ellps=WGS84"; //input syst proj
     std::string targetSyst="+init=IGNF:LAMB93";//systeme de projection cible - format proj4
     std::string refineCoef="processing/refineCoef.txt";
 
