@@ -131,20 +131,22 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
                             set(qt_version 5)
 
-                            if(POLICY CMP0020)
-                                    cmake_policy(SET CMP0020 NEW)
-                            endif()
+#                            if(POLICY CMP0020)
+#                                    cmake_policy(SET CMP0020 NEW)
+#                            endif()
 
-                            set(QT_LIBRARIES
-                                    ${Qt5Core_LIBRARIES}
-                                    ${Qt5Gui_LIBRARIES}
-                                    ${Qt5Xml_LIBRARIES}
-                                    ${Qt5OpenGL_LIBRARIES}
-                            )
+#                            set(QT_LIBRARIES
+#                                    ${Qt5Core_LIBRARIES}
+#                                    ${Qt5Gui_LIBRARIES}
+#                                    ${Qt5Xml_LIBRARIES}
+#                                    ${Qt5OpenGL_LIBRARIES}
+#                            )
 
-                            SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
+#                            message("${Qt5Core_LIBRARIES}")
 
-                            link_directories(${Qt5_LIBRARY_DIRS})
+                            #SET(QT_LIBRARY_DIRS "${Qt5_LIBRARY_DIRS}")
+
+#                            link_directories(${Qt5_LIBRARY_DIRS})
 
                         elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
 
