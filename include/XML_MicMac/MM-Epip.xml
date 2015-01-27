@@ -222,7 +222,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
 
 
-	    <GenImagesCorrel> true </GenImagesCorrel>
+            <GenImagesCorrel> true </GenImagesCorrel>
 	    
 	
             <!-- param regul -->
