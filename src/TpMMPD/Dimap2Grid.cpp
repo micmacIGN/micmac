@@ -924,7 +924,7 @@ int Dimap2Grid_main(int argc, char **argv)
 {
     std::string aNameFileDimap; // fichier Dimap
     std::string aNameImage;     // nom de l'image traitee
-	std::string inputSyst = "+proj=latlong +datum=WGS84";// "+ellps=WGS84" not nessessary //input syst proj
+	std::string inputSyst = "+proj=latlong +datum=WGS84 +ellps=WGS84"; //input syst proj
     std::string targetSyst="+init=IGNF:LAMB93";//systeme de projection cible - format proj4
     std::string refineCoef="processing/refineCoef.txt";
 
