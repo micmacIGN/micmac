@@ -992,7 +992,7 @@ int Ortho(std::string const &aNameFileMNT,
     }
     else
     {
-        int tailleDalle = 10000;
+        int tailleDalle = 5000;
         std::cout << "Il faut daller le traitement"<<std::endl;
         int NbX = SzOrtho.x / tailleDalle;
         if (NbX*tailleDalle < SzOrtho.x)
