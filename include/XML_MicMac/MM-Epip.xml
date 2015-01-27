@@ -204,8 +204,8 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 	    <!-- param correl -->
 	    <SzW> ${SzW} </SzW>
 	    <SzWy>  ${SzWy} </SzWy>
-<!--            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>-->
-            <AlgoRegul>  eAlgoTestGPU </AlgoRegul>
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+<!--            <AlgoRegul>  eAlgoTestGPU </AlgoRegul>-->
 
             <#WHEN VTEST=${DoEpi}>
 	        <Px1Pas> ${ZPas} </Px1Pas>
@@ -564,7 +564,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
     <AvalaibleMemory> 1024 </AvalaibleMemory>
     <SzDalleMin> 128 </SzDalleMin>
-    <SzDalleMax> 768 </SzDalleMax>
+    <SzDalleMax> 1000 </SzDalleMax>
     <SzRecouvrtDalles> 20 </SzRecouvrtDalles>
     <SzMinDecomposCalc> 40 </SzMinDecomposCalc>
     <ComprMasque> eComprTiff_None </ComprMasque>
