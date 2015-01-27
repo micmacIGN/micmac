@@ -498,7 +498,9 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 #endif
 
-    //GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
+	#ifdef CUDA_ENABLED
+	GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
+	#endif
     Pt2di aPTer;
 
     // --> TODO Cette etape peut etre  mise dans la partie cuda
@@ -530,7 +532,9 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
                 #endif
         }
     }
-    //nvtxRangePop();
+#ifdef CUDA_ENABLED
+	GpGpuTools::Nvtx_RangePop();
+#endif
 
 }
 #if CUDA_ENABLED
@@ -769,7 +773,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
     IGpuOpt.freezeCompute();
 
-    //GpGpuTools::NvtxR_Push("FinalCost",0xFF883300);
+	GpGpuTools::NvtxR_Push("FinalCost",0x1883382);
     for (uint line = 0 ; line < (uint)mSz.y; line++)
         for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
         {
@@ -785,7 +789,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                  aMat[Pt2di(aPx,0)].SetCostFinal(finalCost[aPx]);
         }
 
-    ////nvtxRangePop();
+	nvtxRangePop();
 
 }
 #endif
@@ -934,7 +938,9 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         }
 
         TIm2DBits<1>    aTMask(mMaskCalc);
-
+#ifdef CUDA_ENABLED
+		GpGpuTools::NvtxR_Push("Recolt",0xFF8833FF);
+#endif
         for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
         {
             for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
@@ -986,11 +992,17 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
             }
         }
-
-        /* officiel COMBLE TROU */
+#ifdef CUDA_ENABLED
+		GpGpuTools::Nvtx_RangePop();
+		GpGpuTools::NvtxR_Push("Comble Trou",0xFF883300);
+#endif
+		/* officiel COMBLE TROU */
         if (mHasMaskAuto)
             CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
 
+		#ifdef CUDA_ENABLED
+		GpGpuTools::Nvtx_RangePop();
+		#endif
 /*
         Rect zone(0,0,mSz.x,mSz.y);
         uint2   pTer;
