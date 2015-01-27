@@ -809,7 +809,7 @@ int Ortho(std::string const &aNameFileMNT,
           double resolution,
           std::string const &aNameResult)
 {
-    int SzMaxImg = 4000 * 4000;
+    int SzMaxImg = 10000 * 10000;
     
     // Chargement du MNT
     cFileOriMnt aMntOri=  StdGetFromPCP(aNameFileMNT,FileOriMnt);
@@ -992,7 +992,7 @@ int Ortho(std::string const &aNameFileMNT,
     }
     else
     {
-        int tailleDalle = 4000;
+        int tailleDalle = 10000;
         std::cout << "Il faut daller le traitement"<<std::endl;
         int NbX = SzOrtho.x / tailleDalle;
         if (NbX*tailleDalle < SzOrtho.x)
