@@ -177,6 +177,14 @@ void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, ushort* aCost, pixel* 
 
 	memcpy(pixDest,pix,sizeof(pixel)*size);
 }
+
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, ushort* aCost)
+{
+	ushort	size		= IGpuOpt._poInitCost.DZ(aPTer);
+	ushort* costDest	= IGpuOpt._poInitCost[aPTer];
+
+	memcpy(costDest,aCost,sizeof(ushort)*size);
+}
 #endif
 
 void cGBV2_ProgDynOptimiseur::BalayageOneSens
@@ -498,43 +506,43 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 #endif
 
-	#ifdef CUDA_ENABLED
-	GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
-	#endif
-    Pt2di aPTer;
+//	#ifdef CUDA_ENABLED
+//	GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
+//	#endif
+//    Pt2di aPTer;
 
-    // --> TODO Cette etape peut etre  mise dans la partie cuda
+//    // --> TODO Cette etape peut etre  mise dans la partie cuda
 
-    for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
-    {
-        for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
-        {
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
-            const Box2di &  aBox = aMat.Box();
-            Pt2di aPRX;
+//    for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
+//    {
+//        for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
+//        {
+//            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
+//            const Box2di &  aBox = aMat.Box();
+//            Pt2di aPRX;
 
-                for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
-                {
+//                for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+//                {
 
-                    tCost & aCF = aMat[aPRX].CostFinal();
-                    //if (mModeAgr==ePrgDAgrSomme) // Mode somme
-                    {
-                        aCF /= mNbDir;
+//                    tCost & aCF = aMat[aPRX].CostFinal();
+//                    //if (mModeAgr==ePrgDAgrSomme) // Mode somme
+//                    {
+//                        aCF /= mNbDir;
 
-                    }
-                    aMat[aPRX].SetCostInit(aCF);
-                    aCF = 0;
-                }
+//                    }
+//                    aMat[aPRX].SetCostInit(aCF);
+//                    aCF = 0;
+//                }
 
-                #ifdef CUDA_ENABLED
-                         if(mHasMaskAuto)
-                              IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
-                #endif
-        }
-    }
-#ifdef CUDA_ENABLED
-	GpGpuTools::Nvtx_RangePop();
-#endif
+//                #ifdef CUDA_ENABLED
+//                         if(mHasMaskAuto)
+//                              IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
+//                #endif
+//        }
+//    }
+//#ifdef CUDA_ENABLED
+//	GpGpuTools::Nvtx_RangePop();
+//#endif
 
 }
 #if CUDA_ENABLED
@@ -542,7 +550,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, uint idBuf)
 {
 
-	GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
+	//GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
@@ -773,23 +781,23 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
     IGpuOpt.freezeCompute();
 
-	GpGpuTools::NvtxR_Push("FinalCost",0x1883382);
-    for (uint line = 0 ; line < (uint)mSz.y; line++)
-        for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
-        {
-            Pt2di ptd(aK,line);
-            uint2 ptTer     = make_uint2(aK,line);
+//	GpGpuTools::NvtxR_Push("FinalCost",0x1883382);
+//    for (uint line = 0 ; line < (uint)mSz.y; line++)
+//        for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
+//        {
+//            Pt2di ptd(aK,line);
+//            uint2 ptTer     = make_uint2(aK,line);
 
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[ptd];
-            short3  pDe      = IGpuOpt._poInitCost.PtZ(ptTer);
-            short2 ptZ      = make_short2(pDe.x,pDe.y);
-            uint* finalCost = IGpuOpt._preFinalCost1D.pData() + IGpuOpt._poInitCost.Pit(ptTer) - ptZ.x ;
+//            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[ptd];
+//            short3  pDe      = IGpuOpt._poInitCost.PtZ(ptTer);
+//            short2 ptZ      = make_short2(pDe.x,pDe.y);
+//            uint* finalCost = IGpuOpt._preFinalCost1D.pData() + IGpuOpt._poInitCost.Pit(ptTer) - ptZ.x ;
 
-            for ( int aPx = ptZ.x ; aPx < ptZ.y ; aPx++)
-                 aMat[Pt2di(aPx,0)].SetCostFinal(finalCost[aPx]);
-        }
+//            for ( int aPx = ptZ.x ; aPx < ptZ.y ; aPx++)
+//                 aMat[Pt2di(aPx,0)].SetCostFinal(finalCost[aPx]);
+//        }
 
-	nvtxRangePop();
+//	nvtxRangePop();
 
 }
 #endif
@@ -950,27 +958,35 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                 Pt2di aPRX;
                 Pt2di aPRXMin;
                 tCost   aCostMin = tCost(1e9);
-               // tCost   agreMin  = 0;
-                //for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
-                {
-                    for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
-                    {
-                        tCost aCost = aMat[aPRX].GetCostInit();
-                        //agreMin += aCost;
-                        if (aCost<aCostMin)
-                        {
+				uint* finalCost = IGpuOpt._preFinalCost1D.pData() + IGpuOpt._poInitCost.Pit(aPTer) - aBox._p0.x ;
 
-                            aCostMin = aCost;
-                            aPRXMin = aPRX;
-                        }
-                    }
-                }
+				for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+				{
+					//
+					//aMat[Pt2di(aPRX.x,0)].SetCostFinal(finalCost[aPRX.x]);
+
+//					tCost & aCF = aMat[aPRX].CostFinal();
+
+//					aCF /= mNbDir;
+
+					aMat[aPRX].SetCostInit(finalCost[aPRX.x]/mNbDir);
+
+					//
+					tCost aCost = aMat[aPRX].GetCostInit();
+					//agreMin += aCost;
+					if (aCost<aCostMin)
+					{
+
+						aCostMin = aCost;
+						aPRXMin = aPRX;
+					}
+				}
 
                 #ifdef CUDA_ENABLED
                 if(mHasMaskAuto)
                 {
                     /* CUDA_DEFCOR Officiel*/
-
+					IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
                     tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
                     bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
                     aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
