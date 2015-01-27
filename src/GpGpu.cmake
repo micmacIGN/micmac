@@ -162,13 +162,13 @@ endif()
 
  cuda_add_library(${libStatGpGpuOpt}  ${uti_phgrm_Opt_GpGpu_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM})
 
- if (Boost_FOUND)
-          target_link_libraries(${libStatGpGpuInterfMicMac} ${libStatGpGpuTools} ${Boost_LIBRARIES} ${Boost_THREADAPI})
-          if (NOT WIN32)
-                target_link_libraries(${libStatGpGpuInterfMicMac}  rt pthread )
-          endif()
- endif()
+if (Boost_FOUND)
+    target_link_libraries(${libStatGpGpuInterfMicMac} ${libStatGpGpuTools} ${Boost_LIBRARIES} ${Boost_THREADAPI})
+endif()
 
+if (NOT WIN32)
+    target_link_libraries(${libStatGpGpuInterfMicMac}  rt pthread )
+endif()
  set(GpGpu_UnitTesting GpGpuUnitTesting)
 
 cuda_add_executable(${GpGpu_UnitTesting} ${uti_Test_Opt_GpGpu_Src_Files})
@@ -180,10 +180,8 @@ else()
     target_link_libraries(${GpGpu_UnitTesting}  ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${libStatGpGpuTools})
 endif()
 
-if (Boost_FOUND)
-    if (NOT WIN32)
-            target_link_libraries(${GpGpu_UnitTesting}  rt pthread )
-    endif()
+if (NOT WIN32)
+        target_link_libraries(${GpGpu_UnitTesting}  rt pthread )
 endif()
 
 INSTALL(TARGETS ${GpGpu_UnitTesting} RUNTIME DESTINATION ${Install_Dir})
