@@ -196,7 +196,7 @@ if (${CUDA_ENABLED})
         OPTION(CUDA_CPP11THREAD_NOBOOSTTHREAD "Use c++11 for the multi-threading" OFF )
         OPTION(CUDA_NVTOOLS "Use NV TOOLS" OFF )
 
-		
+
         FIND_PACKAGE(CUDA)
         INCLUDE(FindCUDA)
 
@@ -234,18 +234,30 @@ if (${CUDA_ENABLED})
 
         #IFNOT(${WITH_IGN_ORI})
 
-    # ne pas oublier boost_no_system_paths
+        # ne pas oublier boost_no_system_paths
 
-		if (NOT ${CUDA_CPP11THREAD_NOBOOSTTHREAD})
-			set(Boost_USE_STATIC_LIBS ON)
-			set(Boost_NO_SYSTEM_PATHS ON)
-			FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread date_time chrono REQUIRED )
-			#chrono
-			 IF(NOT ${WITH_IGN_ORI})
-					  include_directories ( ${Boost_INCLUDE_DIRS} )
-					  include_directories ( ${Boost_INCLUDE_DIR} )
-			 endif()
-		endif()
+        if (NOT ${CUDA_CPP11THREAD_NOBOOSTTHREAD})
+                set(Boost_USE_STATIC_LIBS ON)
+                set(Boost_NO_SYSTEM_PATHS ON)
+                FIND_PACKAGE( Boost 1.48.0 COMPONENTS system serialization thread date_time chrono REQUIRED )
+                #chrono
+                 IF(NOT ${WITH_IGN_ORI})
+                          include_directories ( ${Boost_INCLUDE_DIRS} )
+                          include_directories ( ${Boost_INCLUDE_DIR} )
+                 endif()
+        else()
+            if(NOT ${WITH_CPP11})
+                SET(WITH_CPP11 ON CACHE BOOL "Compilateur C++11" FORCE)
+                IF(NOT MSVC)
+                        message("c++11")
+                        # support c++11
+                        ADD_DEFINITIONS(
+                                -std=c++11 # Or -std=c++0x
+                                # Other flags
+                        )
+                endif()
+            endif()
+        endif()
 endif()
 
 # Etalonnage polygone
