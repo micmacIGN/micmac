@@ -550,7 +550,7 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, uint idBuf)
 {
 
-	//GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
+    GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
@@ -589,14 +589,14 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
         idLine++;
     }
 
-    //nvtxRangePop();
+    GpGpuTools::Nvtx_RangePop();
 }
 
 //#define OUTPUTDEFCOR
 
 void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal1D,CuHostData3D<uint> &FinalDefCor, uint idBuf)
 {
-    //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
+    GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
 
     //nvtxMarkA("Start INIT");
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
@@ -662,7 +662,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
    DUMP_LINE
 #endif
 
-    //nvtxRangePop();
+    GpGpuTools::Nvtx_RangePop();
 
 }
 
