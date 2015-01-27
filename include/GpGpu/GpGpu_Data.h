@@ -1332,6 +1332,14 @@ struct CuUnifiedData3D
         hostData.ReallocIfDim(dim,l);
     }
 
+	void ReallocIfDim(uint size)
+	{
+		uint2 sizeDim = make_uint2(size,1);
+
+		deviceData. ReallocIfDim(sizeDim,1);
+		hostData.ReallocIfDim(sizeDim,1);
+	}
+
     void Dealloc()
     {
         deviceData. Dealloc();

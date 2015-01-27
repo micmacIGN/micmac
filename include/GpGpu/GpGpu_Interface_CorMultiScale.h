@@ -106,6 +106,7 @@ struct const_Param_Cor_MS
 			bool    aModeMax,
 			bool    DoMixte,
 			bool	dynRegulGpu,
+			//InterfOptimizGpGpu* interOpt,
 			ushort  nbscale = NBSCALE );
 
     void setTerrain(Rect    zoneTerrain);
@@ -151,7 +152,15 @@ struct dataCorrelMS
 	///
 	/// \brief _uCost
 	///
-	CuUnifiedData3D<ushort2>         _uCostu;
+	CuUnifiedData3D<ushort>         _uCostu;
+
+	CuUnifiedData3D<uint>			_uPit;
+
+	///
+	/// \brief _uCost
+	///
+	CuUnifiedData3D<pixel>         _uCostp;
+
 
 	template<class T>
 	T* pDeviceCost(){return NULL;}
@@ -176,9 +185,14 @@ struct dataCorrelMS
 
     uint    _maxDeltaZ;
 
+	InterfOptimizGpGpu* getInterOpt();
+
+	void setInterOpt(InterfOptimizGpGpu* InterOpt);
 
 private:
-    void unitT__CopyCoordInColor(uint2 sizeImage, float *dest);
+	void unitT__CopyCoordInColor(uint2 sizeImage, float *dest);
+
+	InterfOptimizGpGpu* mInterOpt;
 };
 
 class GpGpu_Interface_Cor_MS : public CSimpleJobCpuGpu< bool>
@@ -218,10 +232,14 @@ public:
 			  bool      aModeMax,
 			  bool      DoMixte,
 			  bool		dynRegulGpu,
+			  InterfOptimizGpGpu* interOpt,
 			  ushort nbscale = NBSCALE );
 
 	template<class T>
 	T getCost(uint3 pt);
+
+	template<class T>
+	T* getCost(uint2 pt);
 
     void dealloc();
 
@@ -234,6 +252,8 @@ private:
     dataCorrelMS    _dataCMS;
 
     const_Param_Cor_MS _cDataCMS;
+
+
 };
 
 #endif // GPGPU_INTERFACE_CORMULTISCALE_H

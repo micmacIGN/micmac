@@ -133,7 +133,7 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
     IGpuOpt._preFinalCost1D.ReallocIf(IGpuOpt._poInitCost.Size());
     IGpuOpt._FinalDefCor.ReallocIf(IGpuOpt._poInitCost._dZ.GetDimension());
     IGpuOpt._poInitCost.ReallocData();
-    IGpuOpt._poInitCost.fillCostInit(10123);
+	IGpuOpt._poInitCost.fillCostInit(10123);//TODO PEUT ETRE VIRER
 #endif
 }
 
@@ -157,38 +157,25 @@ void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int 
 }
 
 #if CUDA_ENABLED
-void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort2 aCost)
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost,pixel pix)
 {
 	Pt2di z     = Px2Point(&aPX);
 	int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
-	IGpuOpt._poInitCost[pt] = aCost.x;
-	(*mMemoCorrel)[aPTer][z]= aCost.y;
+	IGpuOpt._poInitCost[pt] = aCost;
+	(*mMemoCorrel)[aPTer][z]= pix;
 
-//	(*mMemoCorrel)[aPTer][z]= aCost.y;
+}
 
-//	ushort size = IGpuOpt._poInitCost.DZ(aPTer);
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, ushort* aCost, pixel* pix)
+{
+	ushort	size		= IGpuOpt._poInitCost.DZ(aPTer);
+	ushort* costDest	= IGpuOpt._poInitCost[aPTer];
 
-//	if(size != aCost.x)
-//	{
-//		DUMP(size)
-//				DUMP(aCost.x)
-//			DUMP((*mMemoCorrel)[aPTer].Box().hauteur())
-//				DUMP((*mMemoCorrel)[aPTer].Box().largeur())
+	memcpy(costDest,aCost,sizeof(ushort)*size);
 
-//	}
+	pixel * pixDest	= (*mMemoCorrel)[aPTer][0] + (*mMemoCorrel)[aPTer].Box()._p0.x;
 
-
-//	pixel * oo	= (*mMemoCorrel)[aPTer][0] + (*mMemoCorrel)[aPTer].Box()._p0.x;
-//	pixel * so	= new pixel[size];
-
-//	for (int i = 0; i < size; ++i)
-//	{
-//		so[i] = 123;
-//	}
-
-//	memcpy(oo,so,sizeof(pixel)*(size));
-
-//	delete [] so;
+	memcpy(pixDest,pix,sizeof(pixel)*size);
 }
 #endif
 
