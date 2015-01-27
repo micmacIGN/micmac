@@ -953,6 +953,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         {
             for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
             {
+				#ifdef CUDA_ENABLED
                 tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
                 const Box2di &  aBox = aMat.Box();
                 Pt2di aPRX;
@@ -981,7 +982,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 						aPRXMin = aPRX;
 					}
 				}
-
+				#endif
                 #ifdef CUDA_ENABLED
                 if(mHasMaskAuto)
                 {
@@ -1002,9 +1003,9 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
                         aImCor.SetI(aPTer,aCorI);
 
                 }
-                #endif
 
                 mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+				#endif
 
             }
         }
