@@ -1,0 +1,232 @@
+<!--
+   Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Apero-RHH-ByImIndiv.xml  DirectoryChantier=/media/data2/Test-Plan-Drones/SDTI/
+-->
+<Global >
+   <ParamApero>
+
+       <DicoLoc>
+<!--
+            <Symb>  MasterIm=Im00840.png  </Symb>
+            <Symb>  PatternIm=Im008(15|20|25|30|35|40|45|50|55|60|65|70|75|80).png  </Symb>
+-->
+
+            <Symb>  MasterIm=Im00800.png  </Symb>
+            <Symb>  PatternIm=Im008(00|05|10|30).png  </Symb>
+
+
+            <Symb>  TetaLVM=0.1 </Symb>
+            <Symb>  CentreLVM=1.0 </Symb>
+            <Symb>  Show=false </Symb>
+            <Symb>  Alti=1000 </Symb>
+              
+            <KeyedNamesAssociations>
+                 <Calcs>
+                     <Arrite>  1 1 </Arrite>
+                     <Direct>
+                         <PatternTransform> (.*) </PatternTransform>
+                         <CalcName> RHH/${MasterIm}/OriPlane-$1.xml  </CalcName>
+                      </Direct>
+                 </Calcs>
+                 <Key>  LocKeyOri</Key>
+            </KeyedNamesAssociations>
+
+            <eSymb>  IncZ1= * ${Alti} 1e-2 </eSymb>
+            <eSymb>  IncZ2= * ${Alti} 1e-4 </eSymb>
+       </DicoLoc>
+
+        <ShowSection>
+            <ShowMes> ${Show} </ShowMes>
+         </ShowSection>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet>  NKS-Set-RHH-Homol@@dat@${MasterIm} </KeySet>
+                 <KeyAssoc> NKS-Assoc-RHH-CplIm2Data@@HomolH@dat     </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_ObsAppuisFlottant >
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  RHH/${MasterIm}-Mesure-S2D.xml </KeySetOrPat>
+             </BDD_ObsAppuisFlottant>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib   </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   RHH/${MasterIm}-Calib.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+             <PoseCameraInc>
+	           <PatternName>    ${PatternIm}  </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                        <PosFromBDAppuis>
+                              <Id > Id-Appui </Id>
+                              <NbTestRansac>  100 </NbTestRansac>
+<!--
+                              <DirApprox> 0 0 -1 </DirApprox> 
+-->
+                        </PosFromBDAppuis>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+             <PointFlottantInc>
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>   RHH/${MasterIm}-Mesure-S3D.xml  </KeySetOrPat>
+             </PointFlottantInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXX </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+              <SLMGlob>
+                 <RappelOnAngles>
+                      <ParamF >
+                          <PatternNameApply> .* </PatternNameApply>
+                          <Incertitude> ${TetaLVM} </Incertitude>
+                          <OnCur> true </OnCur>
+                       </ParamF>
+                      <TetaApply> 0 </TetaApply>
+                      <TetaApply> 1 </TetaApply>
+                      <TetaApply> 2 </TetaApply>
+                </RappelOnAngles>
+                 <RappelOnCentres>
+                      <ParamF>
+                             <PatternNameApply> .* </PatternNameApply>
+                             <Incertitude> ${CentreLVM} </Incertitude>
+                             <OnCur> true </OnCur>
+                      </ParamF>
+                      <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                </RappelOnCentres>
+
+             </SLMGlob>
+
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eAllParamFiges  </Val>
+		          </ContraintesCamerasInc>
+
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+
+
+                          <ObsAppuisFlottant>
+                                 <NameRef> Id-Appui </NameRef>
+                                 <PondIm>
+                                          <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                          <ModePonderation>  ePondL2 </ModePonderation>
+                                 </PondIm>
+                          </ObsAppuisFlottant>
+		    </SectionObservations>
+	      </EtapeCompensation>
+
+
+	      <EtapeCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                          <ObsAppuisFlottant>
+                              <NameRef> Id-Appui </NameRef>
+                              <PondIm>
+                                  <EcartMesureIndiv>  10.0 </EcartMesureIndiv>
+                                  <ModePonderation>  ePondL2 </ModePonderation>
+                              </PondIm>
+                          </ObsAppuisFlottant>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <ModePonderation> ePondL2 </ModePonderation>
+                              </Pond>
+                              <RappelOnZ>
+                                   <Z>  0 </Z>
+                                   <IncC> ${IncZ1} </IncC>
+                             </RappelOnZ>
+                          </ObsLiaisons>
+		    </SectionObservations>
+	      </EtapeCompensation>
+
+
+	      <EtapeCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                          <ObsAppuisFlottant>
+                              <NameRef> Id-Appui </NameRef>
+                              <PondIm>
+                                  <EcartMesureIndiv>  1000.0 </EcartMesureIndiv>
+                                  <ModePonderation>  ePondL2 </ModePonderation>
+                              </PondIm>
+
+                          </ObsAppuisFlottant>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <#WHEN VTEST=${Show}>
+                                     <Show> eNSM_Paquet     </Show>
+                                 </#WHEN>
+                                 <ModePonderation> ePondL2 </ModePonderation>
+                              </Pond>
+                              <RappelOnZ>
+                                   <Z>  0 </Z>
+                                   <IncC> ${IncZ2} </IncC>
+                             </RappelOnZ>
+                          </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+                            <ExportPose>
+                                <PatternSel> .* </PatternSel>
+                                <KeyAssoc>  LocKeyOri </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                            </ExportPose>
+                    </SectionExport>
+
+
+
+
+
+	      </EtapeCompensation>
+
+	</SectionCompensation>
+
+
+
+
+   </ParamApero>
+</Global>
+
