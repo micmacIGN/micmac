@@ -13,6 +13,30 @@
     #pragma GCC diagnostic ignored "-Wunused-result"
 #endif
 
+
+std::string baseName(std::string const &aName)
+{
+    //on recupere l'extension
+    int placePoint = -1;
+    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    {
+        if (aName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    std::string base = std::string("");
+    if (placePoint!=-1)
+    {
+        base.assign(aName.begin(),aName.begin()+placePoint);
+    }
+    else
+    {
+        base = aName;
+    }
+    return base;
+}
+
 Pt2di getImageSize(std::string const &aName)
 {
     //on recupere l'extension
@@ -47,6 +71,107 @@ Pt2di getImageSize(std::string const &aName)
     Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
     return aTif.sz();
 }
+
+void getImageInfo(std::string const &aName,Pt2di &Size,int &NbCanaux)
+{
+    Size.x = 0;
+    Size.y = 0;
+    NbCanaux = 0;
+    //on recupere l'extension
+    int placePoint = -1;
+    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    {
+        if (aName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    std::string ext = std::string("");
+    if (placePoint!=-1)
+    {
+        ext.assign(aName.begin()+placePoint+1,aName.end());
+    }
+    //std::cout << "Extension : "<<ext<<std::endl;
+    
+#if defined (__USE_JP2__)
+    // on teste l'extension
+    if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+    {
+        //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get())
+        {
+            Size = Std2Elise(aRes->Sz(1));
+            NbCanaux = aRes->NbCanaux();
+            return;
+        }
+    }
+#endif
+    
+    Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
+    Size = aTif.sz();
+
+}
+
+
+template <class Type,class TyBase>
+std::vector<TIm2D<Type,TyBase>* > createVTIm2DFromFile(std::string const &aName, Pt2di const &PminCrop,Pt2di const &SzCrop)
+{
+    std::vector<TIm2D<Type,TyBase>* > vPtr;
+    //on recupere l'extension
+    int placePoint = -1;
+    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    {
+        if (aName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    std::string ext = std::string("");
+    if (placePoint!=-1)
+    {
+        ext.assign(aName.begin()+placePoint+1,aName.end());
+    }
+    //std::cout << "Extension : "<<ext<<std::endl;
+    
+#if defined (__USE_JP2__)
+    // on teste l'extension
+    if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+    {
+        //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get()!=NULLPTR)
+        {
+            int mFlagLoadedIms=0;
+            std::vector<sLowLevelIm<Type> > vSLLI;
+
+            for(size_t i=0;i<aRes->NbCanaux();++i)
+            {
+                TIm2D<Type,TyBase> * ptr = new TIm2D<Type,TyBase>(SzCrop);
+                vPtr.push_back(ptr);
+                vSLLI.push_back(sLowLevelIm<Type>
+                               (
+                                ptr->_the_im.data_lin(),
+                                ptr->_the_im.data(),
+                                Elise2Std(ptr->sz())
+                                ));
+                mFlagLoadedIms += (1<<i);
+            }
+            aRes->LoadNCanaux(vSLLI,mFlagLoadedIms,
+                                  1,//deZoom
+                                  cInterfModuleImageLoader::tPInt(0,0),//aP0Im
+                                  cInterfModuleImageLoader::tPInt(PminCrop.x,PminCrop.y),//aP0File
+                                  cInterfModuleImageLoader::tPInt(SzCrop.x,SzCrop.y));
+        }
+    }
+#endif
+    
+//    std_unique_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(SzCrop));
+//    Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
+//    ELISE_COPY(anTIm2D->_the_im.all_pts(),trans(aTif.in(),PminCrop),anTIm2D->_the_im.out());
+    return vPtr;
+}
+
 
 template <class Type,class TyBase>
 TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName, Pt2di const &PminCrop,Pt2di const &SzCrop)
@@ -97,6 +222,66 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName, Pt2di const &P
     return anTIm2D.release();
 }
 
+
+template <class Type,class TyBase>
+std::vector<TIm2D<Type,TyBase>* > createVTIm2DFromFile(std::string const &aName)
+{
+    std::vector<TIm2D<Type,TyBase>* > vPtr;
+    //on recupere l'extension
+    int placePoint = -1;
+    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    {
+        if (aName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    std::string ext = std::string("");
+    if (placePoint!=-1)
+    {
+        ext.assign(aName.begin()+placePoint+1,aName.end());
+    }
+    //std::cout << "Extension : "<<ext<<std::endl;
+    
+#if defined (__USE_JP2__)
+    // on teste l'extension
+    if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+    {
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get()!=NULLPTR)
+        {
+            Pt2di aSz = Std2Elise(aRes->Sz(1));
+            
+            
+            int mFlagLoadedIms=0;
+            std::vector<sLowLevelIm<Type> > vSLLI;
+            
+            for(size_t i=0;i<aRes->NbCanaux();++i)
+            {
+                TIm2D<Type,TyBase> * ptr = new TIm2D<Type,TyBase>(aSz);
+                vPtr.push_back(ptr);
+                vSLLI.push_back(sLowLevelIm<Type>
+                               (
+                                ptr->_the_im.data_lin(),
+                                ptr->_the_im.data(),
+                                Elise2Std(ptr->sz())
+                                ));
+                mFlagLoadedIms += (1<<i);
+            }
+            
+            aRes->LoadNCanaux(vSLLI,mFlagLoadedIms,
+                                  1,//deZoom
+                                  cInterfModuleImageLoader::tPInt(0,0),//aP0Im
+                                  cInterfModuleImageLoader::tPInt(0,0),//aP0File
+                                  cInterfModuleImageLoader::tPInt(aSz.x,aSz.y));
+        }
+    }
+#endif
+    return vPtr;
+    // Attention la version FromFileStd ne fonctionne pas avec une image couleur??
+    //return new TIm2D<Type,TyBase>(Im2D<Type,TyBase>::FromFileStd(aName));
+    //return new TIm2D<Type,TyBase>(Im2D<Type,TyBase>::FromFileBasic(aName));
+}
 
 template <class Type,class TyBase>
 TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName)
@@ -625,38 +810,43 @@ int Ortho(std::string const &aNameFileMNT,
           std::string const &aNameResult)
 {
     int SzMaxImg = 4000 * 4000;
-
+    
     // Chargement du MNT
     cFileOriMnt aMntOri=  StdGetFromPCP(aNameFileMNT,FileOriMnt);
     std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
+    std::cout << "Chargement du fichier : "<<aMntOri.NameFileMnt()<<std::endl;
     std_unique_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
+    std::cout << "Fin du chargement"<<std::endl;
     if (aMntImg.get()==NULL)
     {
         cerr << "Error in "<<aMntOri.NameFileMnt()<<std::endl;
         return EXIT_FAILURE;
     }
-
+    
     // Chargement de la grille et de l'image
-    std_unique_ptr<TIm2D<U_INT1,INT4> > img(NULLPTR);
-    Pt2di ImgSz = getImageSize(aNameFileImage);
-    if (ImgSz.x * ImgSz.y < SzMaxImg)
-    {
-        img.reset(createTIm2DFromFile<U_INT1,INT4>(aNameFileImage));
-        if (img.get()==NULLPTR)
-        {
-            cerr << "Error in "<<aNameFileImage<<std::endl;
-            return EXIT_FAILURE;
-        }
-    }
+    Pt2di ImgSz;
+    int ImgNbC;
+    getImageInfo(aNameFileImage,ImgSz,ImgNbC);
 
+    
+    std::cout << "Taille de l'image "<<aNameFileImage<<" : "<<ImgSz.x <<" "<<ImgSz.y<<" x "<<ImgNbC<<std::endl;
+    
+    std::vector<TIm2D<U_INT2,INT4>* > vBuffer;
+    Pt2di bufferMin(0,0);
+    Pt2di bufferMax(0,0);
+    int tailleBuffer=8000;
+    int margeBuffer=100;
+    
     // Chargement de la grille et de l'image
+    std::cout << "Chargement de la grille..."<<std::endl;
     ElAffin2D oriIntImaM2C;
     std_unique_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
-
-//	bool verbose=true;
-
+    std::cout << "...Fin"<<std::endl;
+    
+    //	bool verbose=true;
+    
     // Recherche l'emprise de l'ortho a calculer
-
+    
     double NoData = 0;
     double ZMoy = 0.;
     double xmin,ymin,xmax,ymax;
@@ -702,38 +892,244 @@ int Ortho(std::string const &aNameFileMNT,
             ymax = Pterr.y;
     }
     std::cout << "Emprise Terrain de l'image : "<<xmin<<" "<<ymin<<" "<<xmax<<" "<<ymax<<std::endl;
-    Pt2dr P0Ortho(round_ni(xmin),round_ni(ymin));
+    Pt2dr P0Ortho(round_ni(xmin),round_ni(ymax));
     Pt2di SzOrtho((int)round_ni((xmax-xmin)/resolution),(int)round_ni((ymax-ymin)/resolution));
     std::cout << "Ortho : "<<P0Ortho.x<<" "<<P0Ortho.y<<" / "<<SzOrtho.x<<" "<<SzOrtho.y<<std::endl;
-
-    // Creation de l'image
-    TIm2D<U_INT1,INT4> anTIm2D(SzOrtho);
-
-    // Remplissage de l'image
-    for(int l=0;l<SzOrtho.y;++l)
+    
+    if (( (unsigned int)SzOrtho.x*(unsigned int)SzOrtho.y )<SzMaxImg)
     {
-        for(int c=0;c<SzOrtho.x;++c)
+        std::cout << "Ortho n est pas trop grande, on peut la traiter en une fois"<<std::endl;
+        // Creation de l'image
+        std::vector<TIm2D<U_INT2,INT4>*> vPtrOrtho;
+        for(size_t c=0;c<ImgNbC;++c)
         {
-            Pt2di Portho(c,l);
-            Pt3dr Pterr;
-            Pterr.x = P0Ortho.x + c * resolution;
-            Pterr.x = P0Ortho.y + l * resolution;
-            // Position dans le MNT
-            Pt2dr Pmnt;
-            Pmnt.x = (Pterr.x-aMntOri.OriginePlani().x)/aMntOri.ResolutionPlani().x;
-            Pmnt.y = (Pterr.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
-            Pterr.z = aMntImg->getr(Pmnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
-            // Position dans l'image
-//			Pt2dr Pimg = aCamera->R3toF2(Pterr);
-            double radio = img->getr(Pt2dr(c,l),NoData);
-            anTIm2D.oset(Portho,(int)radio);
+            vPtrOrtho.push_back(new TIm2D<U_INT2,INT4>(SzOrtho));
         }
+        
+        
+        // Remplissage de l'image
+        std::cout << "Debut du remplissage de l ortho"<<std::endl;
+        for(int l=0;l<SzOrtho.y;++l)
+        {
+            for(int c=0;c<SzOrtho.x;++c)
+            {
+                Pt2di Portho(c,l);
+                Pt3dr Pterr;
+                Pterr.x = P0Ortho.x + c * resolution;
+                Pterr.y = P0Ortho.y - l * resolution;
+                // Position dans le MNT
+                Pt2dr Pmnt;
+                Pmnt.x = (Pterr.x-aMntOri.OriginePlani().x)/aMntOri.ResolutionPlani().x;
+                Pmnt.y = (Pterr.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
+                Pterr.z = aMntImg->getr(Pmnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
+                // Position dans l'image
+                Pt2dr Pimg = aCamera->R3toF2(Pterr);
+                
+                if ((Pimg.x<0)||(Pimg.y<0)||(Pimg.x>=ImgSz.x)||(Pimg.y>=ImgSz.y))
+                    continue;
+                
+                // On regarde si le pixel demande est dans le buffer en memoire
+                if ((vBuffer.size()==0)||
+                    ((Pimg.x<bufferMin.x)||(Pimg.x>=bufferMax.x)||(Pimg.y<bufferMin.y)||(Pimg.y>=bufferMax.y)))
+                {
+                    unsigned int minx = (unsigned int)std::max(0,(int)Pimg.x-margeBuffer);
+                    unsigned int miny = (unsigned int)std::max(0,(int)Pimg.y-margeBuffer);
+                    unsigned int maxx = (unsigned int)std::min((int)ImgSz.x ,(int)minx + tailleBuffer + 2*margeBuffer);
+                    unsigned int maxy = (unsigned int)std::min((int)ImgSz.y ,(int)miny + tailleBuffer + 2*margeBuffer);
+                    bufferMin.x = minx;
+                    bufferMin.y = miny;
+                    bufferMax.x = maxx;
+                    bufferMax.y = maxy;
+                    Pt2di SzBuffer = bufferMax-bufferMin;
+                    // on purge
+                    for(size_t i=0;i<vBuffer.size();++i)
+                    {
+                        delete vBuffer[i];
+                    }
+                    vBuffer.clear();
+                    if (((maxx-minx)>0)&&((maxy-miny)>0))
+                    {
+                        vBuffer = createVTIm2DFromFile<U_INT2,INT4>(aNameFileImage,bufferMin,bufferMax-bufferMin);
+                    }
+                }
+                if ((vBuffer.size()!=0)&&
+                    ((Pimg.x>bufferMin.x)&&(Pimg.x<bufferMax.x)&&(Pimg.y>bufferMin.y)&&(Pimg.y<bufferMax.y)))
+                {
+                    // on peut utiliser le buffer en memoire
+                    for(size_t i=0;i<vBuffer.size();++i)
+                    {
+                        double radio = vBuffer[i]->getr(Pt2dr(Pimg.x-bufferMin.x,Pimg.y-bufferMin.y),NoData);
+                        vPtrOrtho[i]->oset(Portho,(int)radio);
+                    }
+                }
+            }
+        }
+        std::cout << "Fin du remplissage de l ortho"<<std::endl;
+        // Sauvegarde
+
+        if (vPtrOrtho.size()==1)
+        {
+            Tiff_Im out(aNameResult.c_str(), vPtrOrtho[0]->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+            ELISE_COPY(vPtrOrtho[0]->_the_im.all_pts(),vPtrOrtho[0]->_the_im.in(),out.out());
+        }
+        else if (vPtrOrtho.size()==3)
+        {
+            Tiff_Im out(aNameResult.c_str(), vPtrOrtho[0]->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::RGB,Tiff_Im::Empty_ARG);
+            ELISE_COPY(vPtrOrtho[0]->_the_im.all_pts(),Virgule(vPtrOrtho[0]->_the_im.in(),vPtrOrtho[1]->_the_im.in(),vPtrOrtho[2]->_the_im.in()),out.out());
+        }
+        
+        // Liberation de la memoire
+        for(size_t i=0;i<vPtrOrtho.size();++i)
+        {
+            delete vPtrOrtho[i];
+        }
+        vPtrOrtho.clear();
+        for(size_t i=0;i<vBuffer.size();++i)
+        {
+            delete vBuffer[i];
+        }
+        vBuffer.clear();
     }
+    else
+    {
+        int tailleDalle = 4000;
+        std::cout << "Il faut daller le traitement"<<std::endl;
+        int NbX = SzOrtho.x / tailleDalle;
+        if (NbX*tailleDalle < SzOrtho.x)
+            ++NbX;
+        int NbY = SzOrtho.y / tailleDalle;
+        if (NbY*tailleDalle < SzOrtho.y)
+            ++NbY;
+        
+        int nbDalles = NbX*NbY;
+        
+        for(int nx = 0;nx<NbX;++nx)
+        {
+            for(int ny = 0;ny<NbY;++ny)
+            {
+                std::cout << "Traitement de la dalle : "<<nx<<" x "<<ny<<std::endl;
+                int cmin = nx*tailleDalle;
+                int lmin = ny*tailleDalle;
+                int cmax = std::min(cmin+tailleDalle,SzOrtho.x);
+                int lmax = std::min(lmin+tailleDalle,SzOrtho.y);
+                Pt2di SzDalleOrtho(cmax-cmin,lmax-lmin);
+                Pt2dr P0DalleOrtho;
+                P0DalleOrtho.x = P0Ortho.x + cmin*resolution;
+                P0DalleOrtho.y = P0Ortho.y - lmin*resolution;
+                
+                std::ostringstream oss;
+                oss << baseName(aNameResult)<<"_"<<nx<<"x"<<ny;
+                std::string aNameDalle = oss.str();
+                
+                // Creation de l'image
+                std::vector<TIm2D<U_INT2,INT4>*> vPtrOrtho;
+                for(size_t c=0;c<ImgNbC;++c)
+                {
+                    vPtrOrtho.push_back(new TIm2D<U_INT2,INT4>(SzDalleOrtho));
+                }
+                
+                
+                // Remplissage de l'image
+                std::cout << "Debut du remplissage de l ortho"<<std::endl;
+                for(int l=0;l<SzDalleOrtho.y;++l)
+                {
+                    for(int c=0;c<SzDalleOrtho.x;++c)
+                    {
+                        Pt2di Portho(c,l);
+                        Pt3dr Pterr;
+                        Pterr.x = P0DalleOrtho.x + c * resolution;
+                        Pterr.y = P0DalleOrtho.y - l * resolution;
+                        // Position dans le MNT
+                        Pt2dr Pmnt;
+                        Pmnt.x = (Pterr.x-aMntOri.OriginePlani().x)/aMntOri.ResolutionPlani().x;
+                        Pmnt.y = (Pterr.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
+                        Pterr.z = aMntImg->getr(Pmnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
+                        // Position dans l'image
+                        Pt2dr Pimg = aCamera->R3toF2(Pterr);
+                        
+                        if ((Pimg.x<0)||(Pimg.y<0)||(Pimg.x>=ImgSz.x)||(Pimg.y>=ImgSz.y))
+                            continue;
+                        
+                        // On regarde si le pixel demande est dans le buffer en memoire
+                        if ((vBuffer.size()==0)||
+                            ((Pimg.x<bufferMin.x)||(Pimg.x>=bufferMax.x)||(Pimg.y<bufferMin.y)||(Pimg.y>=bufferMax.y)))
+                        {
+                            unsigned int minx = (unsigned int)std::max(0,(int)Pimg.x-margeBuffer);
+                            unsigned int miny = (unsigned int)std::max(0,(int)Pimg.y-margeBuffer);
+                            unsigned int maxx = (unsigned int)std::min((int)ImgSz.x ,(int)minx + tailleBuffer + 2*margeBuffer);
+                            unsigned int maxy = (unsigned int)std::min((int)ImgSz.y ,(int)miny + tailleBuffer + 2*margeBuffer);
+                            if (((maxx-minx)>0)&&((maxy-miny)>0))
+                            {
+                                bufferMin.x = minx;
+                                bufferMin.y = miny;
+                                bufferMax.x = maxx;
+                                bufferMax.y = maxy;
+                                Pt2di SzBuffer = bufferMax-bufferMin;
+                                // on purge
+                                for(size_t i=0;i<vBuffer.size();++i)
+                                {
+                                    delete vBuffer[i];
+                                }
+                                vBuffer.clear();
+                                vBuffer = createVTIm2DFromFile<U_INT2,INT4>(aNameFileImage,bufferMin,bufferMax-bufferMin);
+                                std::cout << ".";
+                            }
+                        }
+                        if ((vBuffer.size()!=0)&&
+                            ((Pimg.x>bufferMin.x)&&(Pimg.x<bufferMax.x)&&(Pimg.y>bufferMin.y)&&(Pimg.y<bufferMax.y)))
+                        {
+                            // on peut utiliser le buffer en memoire
+                            for(size_t i=0;i<vBuffer.size();++i)
+                            {
+                                double radio = vBuffer[i]->getr(Pt2dr(Pimg.x-bufferMin.x,Pimg.y-bufferMin.y),NoData);
+                                vPtrOrtho[i]->oset(Portho,(int)radio);
+                            }
+                        }
+                    }
+                }
+                std::cout << "Fin du remplissage de l ortho"<<std::endl;
+                // Sauvegarde
+                
+                if (vPtrOrtho.size()==1)
+                {
+                    Tiff_Im out((aNameDalle+".tif").c_str(), vPtrOrtho[0]->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+                    ELISE_COPY(vPtrOrtho[0]->_the_im.all_pts(),vPtrOrtho[0]->_the_im.in(),out.out());
+                }
+                else if (vPtrOrtho.size()==3)
+                {
+                    Tiff_Im out((aNameDalle+".tif").c_str(), vPtrOrtho[0]->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::RGB,Tiff_Im::Empty_ARG);
+                    ELISE_COPY(vPtrOrtho[0]->_the_im.all_pts(),Virgule(vPtrOrtho[0]->_the_im.in(),vPtrOrtho[1]->_the_im.in(),vPtrOrtho[2]->_the_im.in()),out.out());
+                }
+                
+                //TFW
+                {
+                    
+                    cFileOriMnt aMntOri;
+                    
+                    aMntOri.OriginePlani()=P0DalleOrtho;
+                    aMntOri.ResolutionPlani()=Pt2dr(resolution,-resolution);
+                    aMntOri.NameFileMnt()=aNameDalle;
+                    aMntOri.NombrePixels()=SzDalleOrtho;
+                    
+                    GenTFW(aMntOri,(aNameDalle+".tfw").c_str());
 
-    // Sauvegarde
-    Tiff_Im out(aNameResult.c_str(), anTIm2D.sz(),GenIm::u_int1,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
-    ELISE_COPY(anTIm2D._the_im.all_pts(),anTIm2D._the_im.in(),out.out());
-
+                }
+                
+                // Liberation de la memoire
+                for(size_t i=0;i<vPtrOrtho.size();++i)
+                {
+                    delete vPtrOrtho[i];
+                }
+                vPtrOrtho.clear();
+                for(size_t i=0;i<vBuffer.size();++i)
+                {
+                    delete vBuffer[i];
+                }
+                vBuffer.clear();
+            }
+        }
+        
+    }
     return EXIT_SUCCESS;
 }
 
