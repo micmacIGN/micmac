@@ -520,20 +520,20 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
 }
 
 template<bool final> inline
-void cGBV2_ProgDynOptimiseur::agregation(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,int& z)
+void cGBV2_ProgDynOptimiseur::agregation(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
 {
 	finalCost *= forceCost;
 }
 
 
 template<> inline
-void cGBV2_ProgDynOptimiseur::agregation<false>(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,int& z)
+void cGBV2_ProgDynOptimiseur::agregation<false>(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
 {
 	finalCost += forceCost;
 }
 
 template<> inline
-void cGBV2_ProgDynOptimiseur::agregation<true>(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,int& z)
+void cGBV2_ProgDynOptimiseur::agregation<true>(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
 {
 	const uint aCost = (finalCost  + forceCost)/mNbDir;
 
@@ -547,20 +547,20 @@ void cGBV2_ProgDynOptimiseur::agregation<true>(uint& finalCost,uint& forceCost,c
 }
 
 template<bool final> inline
-void cGBV2_ProgDynOptimiseur::maskAuto(Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
+void cGBV2_ProgDynOptimiseur::maskAuto(const Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
 {
 
 }
 
 template<> inline
-void cGBV2_ProgDynOptimiseur::maskAuto<false>(Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
+void cGBV2_ProgDynOptimiseur::maskAuto<false>(const Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
 {
 
 }
 
 
 template<> inline
-void cGBV2_ProgDynOptimiseur::maskAuto<true>(Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
+void cGBV2_ProgDynOptimiseur::maskAuto<true>(const Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
 {
 	if(mHasMaskAuto)
 	{
@@ -605,9 +605,9 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
         for (uint aK= 0 ; aK < lenghtLine; aK++)
         {
 
-			Pt2di ptTer	= (Pt2di)(*aVPt)[aK];
-			ushort dZ   = mCellCost.DZ(ptTer);
-			int z		= mCellCost.PtZ(ptTer).x;
+			const Pt2di ptTer	= (Pt2di)(*aVPt)[aK];
+			const ushort dZ   = mCellCost.DZ(ptTer);
+			const int z		= mCellCost.PtZ(ptTer).x;
 			uint *finCo = costFinal1D.pData() + mCellCost.Pit(ptTer);
 			uint defCor = (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
 

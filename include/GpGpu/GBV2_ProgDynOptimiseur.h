@@ -195,10 +195,10 @@ private :
     void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal, CuHostData3D<uint> &FinalDefCor, uint idBuf = 0);
 
 	template<bool final> inline
-	void agregation(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,int& z);
+	void agregation(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z);
 
 	template<bool final> inline
-	void maskAuto(Pt2di &ptTer,tCost   &aCostMin,Pt2di	&aPRXMin);
+	void maskAuto(const Pt2di &ptTer,tCost   &aCostMin,Pt2di	&aPRXMin);
 #endif
 
 	Im2D_U_INT1						   *mImCor;
