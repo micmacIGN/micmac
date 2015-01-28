@@ -102,6 +102,53 @@ std::string InitJunkErrorHandler(int argc,char ** argv)
     return aName;
 }
 
+void CheckSetFile(const std::string & aDir,const std::string & aKey,const std::string & aKeyCom)
+{
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> * aVName = aICNM->Get(aKey);
+
+    std::list<std::string> aLCom;
+    for (int aK=0; aK< int (aVName->size()) ; aK++)
+    {
+        std::string aCom =  MM3dBinFile(" TestLib " + aKeyCom ) + aDir+(*aVName)[aK];
+        aLCom.push_back(aCom);
+    }
+
+     cEl_GPAO::DoComInParal(aLCom);
+}
+
+
+/********************************************************/
+/*                                                      */
+/*     Check Tiff                                       */
+/*                                                      */
+/********************************************************/
+
+int CheckOneTiff_main(int argc,char ** argv)
+{
+   std::string  aName = InitJunkErrorHandler(argc,argv);
+   Tiff_Im aTF(aName.c_str());
+   ELISE_COPY(aTF.all_pts(),aTF.in(),Output::onul());
+   return EXIT_SUCCESS;
+}
+
+int CheckAllTiff_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv,2);
+   
+    std::string aDir;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aDir,"Directory "),
+        LArgMain()  
+    );
+
+    CheckSetFile(aDir,"NKS-Set-TmpTifFile","Check1Tiff");
+
+    return EXIT_SUCCESS;
+}
 
 /********************************************************/
 /*                                                      */
@@ -132,21 +179,14 @@ int CheckAllHom_main(int argc,char ** argv)
                     << EAM(aPost,"Extension ",true,"Post , Def = dat")
     );
 
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const std::vector<std::string> * aVName = aICNM->Get("NKS-Set-Homol@"+aExt+ "@"+aPost);
-
-    std::list<std::string> aLCom;
-    for (int aK=0; aK< int (aVName->size()) ; aK++)
-    {
-        std::string aCom =  MM3dBinFile(" TestLib Check1Hom ") + aDir+(*aVName)[aK];
-// std::cout << aCom << "\n";
-        aLCom.push_back(aCom);
-    }
-
-     cEl_GPAO::DoComInParal(aLCom);
+    CheckSetFile(aDir,"NKS-Set-Homol@"+aExt+ "@"+aPost,"Check1Hom");
 
     return EXIT_SUCCESS;
 }
+
+
+
+
 /********************************************************/
 /*                                                      */
 /*                    GESTION DES ERREURS               */
