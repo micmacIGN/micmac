@@ -1009,6 +1009,8 @@ if (mNameFile=="./MEC-Final/Z_Num9_DeZoom1_LeChantier.tif")
 	return res;
 }
 
+extern void BasicErrorHandler();
+
 void ELISE_fp::read(void *ptr,tFileOffset size, tFileOffset nmemb,const char* format)
 {
 	set_last_act_read(true);
@@ -1022,6 +1024,7 @@ void ELISE_fp::read(void *ptr,tFileOffset size, tFileOffset nmemb,const char* fo
 //std::cout <<  size <<  " " << nmemb  << " " << nb_read << " " << ftell(_fp) << "\n";
 			if (nb_read != nmemb)
 			{
+                                BasicErrorHandler();
 			        std::cout <<  "Error while file reading |\n"
 					<<  "    FILE = " <<  mNameFile.c_str() << "  pos = " << tell().BasicLLO()  << "|\n"
 					<<  " reading " <<   nmemb.BasicLLO() << " , got " << nb_read.BasicLLO() << "|";
