@@ -137,6 +137,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       int          mTimes;
       bool         mDebugCreatE;
       bool         mPurge;
+	  bool		   mUseGpu;
 };
 
 /*****************************************************************/
@@ -1063,7 +1064,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDoTiePM0     (false),
     mTimes        (1),
     mDebugCreatE  (false),
-    mPurge        (! MPD_MM())
+	mPurge        (! MPD_MM()),
+	mUseGpu		  (false)
 
 {
   if ((argc>=2) && (!mModeHelp))
@@ -1147,6 +1149,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mCalPerIm,"CalPerIm",true,"true id Calib per Im were used, def=false")
                     << EAM(mPenPerIm,"PenPerIm",true,"Penality Per Image in choice im sec")
                     << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
+					<< EAM(mUseGpu,"UseGpu",false,"Use cuda")
   );
 
   if (!MMVisualMode)

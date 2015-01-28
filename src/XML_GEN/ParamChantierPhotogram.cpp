@@ -175,6 +175,8 @@ eTypeMMByP  Str2eTypeMMByP(const std::string & aName)
       return eMicMac;
    else if (aName=="eBigMac")
       return eBigMac;
+   else if (aName=="eMTDTmp")
+      return eMTDTmp;
    else if (aName=="eNbTypeMMByP")
       return eNbTypeMMByP;
   else
@@ -202,6 +204,8 @@ std::string  eToString(const eTypeMMByP & anObj)
       return  "eMicMac";
    if (anObj==eBigMac)
       return  "eBigMac";
+   if (anObj==eMTDTmp)
+      return  "eMTDTmp";
    if (anObj==eNbTypeMMByP)
       return  "eNbTypeMMByP";
  std::cout << "Enum = eTypeMMByP\n";
@@ -226,7 +230,7 @@ void  BinaryUnDumpFromFile(eTypeMMByP & anObj,ELISE_fp & aFp)
    anObj=(eTypeMMByP) aIVal;
 }
 
-std::string  Mangling( eTypeMMByP *) {return "96DDF68B1746C2E1FD3F";};
+std::string  Mangling( eTypeMMByP *) {return "2AA5323F82CA47FBFD3F";};
 
 eTypeQuality  Str2eTypeQuality(const std::string & aName)
 {

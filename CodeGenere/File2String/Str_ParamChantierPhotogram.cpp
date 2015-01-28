@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1616]) = {
+const char * (theNameVar_ParamChantierPhotogram[1617]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -54,6 +54,7 @@ const char * (theNameVar_ParamChantierPhotogram[1616]) = {
 "       <eQuickMac>       </eQuickMac>\n",
 "       <eMicMac>         </eMicMac>\n",
 "       <eBigMac>         </eBigMac>\n",
+"       <eMTDTmp>         </eMTDTmp>  <!-- Internal, pour stocker les fusion temporaire entre Epi -->\n",
 "       <eNbTypeMMByP>    </eNbTypeMMByP>\n",
 "   </enum>\n",
 "\n",

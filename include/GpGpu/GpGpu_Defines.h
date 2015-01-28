@@ -5,7 +5,7 @@
 #include "GpGpu_BuildOptions.h"
 
 typedef unsigned char pixel;
-
+#include <string>
 
 #define NOPAGLOCKMEM false
 #define WARPSIZE    32
@@ -129,6 +129,12 @@ template<>
 __device__ __host__ inline void dump_Type<const char*>(const char* var)
 {
     printf("%s",var);
+}
+
+template<>
+__device__ __host__ inline void dump_Type<const std::string>(const std::string var)
+{
+	printf("%s",var.c_str());
 }
 
 

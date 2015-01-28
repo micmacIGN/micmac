@@ -64,6 +64,7 @@ typedef enum
   eQuickMac,
   eMicMac,
   eBigMac,
+  eMTDTmp,
   eNbTypeMMByP
 } eTypeMMByP;
 void xml_init(eTypeMMByP & aVal,cElXMLTree * aTree);

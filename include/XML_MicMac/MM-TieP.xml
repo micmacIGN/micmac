@@ -45,6 +45,9 @@
     <Symb> ZPasCalc=0.5  </Symb>
 
     <eSymb> SzDalleMin=  1200  </eSymb>
+
+    <Symb>  UseGpu=false </Symb>
+    <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
 </DicoLoc>
 
 <Section_Terrain>  
@@ -115,6 +118,7 @@
                      <SzBlocAH> 400000 </SzBlocAH>
 
                      <CorrelMultiScale>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
