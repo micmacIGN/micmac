@@ -483,6 +483,8 @@ extern int MMEnvStatute_main(int argc,char ** argv);
 
 int CheckOneHom_main(int argc,char ** argv);
 int CheckAllHom_main(int argc,char ** argv);
+int CheckOneTiff_main(int argc,char ** argv);
+int CheckAllTiff_main(int argc,char ** argv);
 
 
 
@@ -558,6 +560,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
     aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
+    aRes.push_back(cMMCom("Check1Tiff",CheckOneTiff_main,"Check All File Homologue"));
+    aRes.push_back(cMMCom("CheckAllTiff",CheckAllTiff_main,"Check All File Homologue"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 

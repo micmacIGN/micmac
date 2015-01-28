@@ -234,6 +234,7 @@ DATA_tiff_header::DATA_tiff_header(const char * name)
          break;
 
          default :
+              BasicErrorHandler();
               printf("XX=%x\n",byte_order_flag);
               Tjs_El_User.ElAssert
               (  0,
