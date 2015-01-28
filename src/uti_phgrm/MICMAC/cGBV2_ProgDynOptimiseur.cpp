@@ -481,7 +481,6 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
     }
 
 #if CUDA_ENABLED
-		DUMP("ModeGpu Optimisation")
         SolveAllDirectionGpu(aNbDir);
 #else
     // Parcours dans toutes les directions

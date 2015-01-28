@@ -1149,7 +1149,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mCalPerIm,"CalPerIm",true,"true id Calib per Im were used, def=false")
                     << EAM(mPenPerIm,"PenPerIm",true,"Penality Per Image in choice im sec")
                     << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
-					<< EAM(mUseGpu,"UseGpu",false,"Use cuda")
+					<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
   );
 
   if (!MMVisualMode)
@@ -1334,6 +1334,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " HasVeg=" + ToString(mHasVeget)
                          +  " HasSBG=" + ToString(mSkyBackGround)
                          + " PurgeAtEnd=" + ToString(mPurge)
+						 + " UseGpu=" + ToString(mUseGpu)
                       ;
 
 
@@ -1435,7 +1436,7 @@ void cAppliMMByPair::DoCorrelAndBasculeStd()
                                  +  std::string(" +Im1=")    + anI1.mNameIm  + BLANK
                                  +  std::string(" +Im2=")    + anI2.mNameIm  + BLANK
                                  +  std::string(" +Zoom0=")  + ToString(mZoom0)  + BLANK
-                                 +  std::string(" +ZoomF=")  + ToString(mZoomF)  + BLANK
+                                 +  std::string(" +ZoomF=")  + ToString(mZoomF)  + BLANK							
                                ;
 
                  if (EAMIsInit(&mIntIncert))
