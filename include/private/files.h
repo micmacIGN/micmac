@@ -193,6 +193,8 @@ class  ELISE_fp
          REAL4   read_REAL4();
          REAL8   read_REAL8();
 
+         const std::string & NameFile() const {return  mNameFile;}
+
 
          void write_FileOffset4(tFileOffset);
          void write_FileOffset8(tFileOffset);
