@@ -189,6 +189,7 @@ private :
 
     void copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt,  sMatrixCellCost<ushort> &mCellCost, uint idBuf = 0);
 
+	template<bool final>
     void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal, CuHostData3D<uint> &FinalDefCor, uint idBuf = 0);
 
 #endif

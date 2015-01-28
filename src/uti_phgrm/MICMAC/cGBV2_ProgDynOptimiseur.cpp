@@ -578,6 +578,21 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
     GpGpuTools::Nvtx_RangePop();
 }
 
+template<bool final> inline
+void agregation(uint& finalCost,uint& forceCost)
+{
+	finalCost *= forceCost;
+}
+
+
+template<> inline
+void agregation<false>(uint& finalCost,uint& forceCost)
+{
+	finalCost += forceCost;
+}
+
+
+template<bool final>
 void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal1D,CuHostData3D<uint> &FinalDefCor, uint idBuf)
 {
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
@@ -605,7 +620,11 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
 			FinalDefCor[make_uint2(ptTer.x,ptTer.y)] += defCor;
 
             for ( int aPx = 0 ; aPx < dZ ; aPx++)
-                finCo[aPx] += forCo[aPx];
+			{
+//                finCo[aPx] += forCo[aPx];
+				agregation<final>(finCo[aPx],forCo[aPx]);
+
+			}
 
 			forCo += dZ;
 
@@ -719,7 +738,8 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
         if(IGpuOpt.GetDataToCopy())
         {
-            copyCells_Stream2Mat(direction(aNbDir,aKDir),IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,IGpuOpt._preFinalCost1D,IGpuOpt._FinalDefCor,!IGpuOpt.GetIdBuf());
+
+			copyCells_Stream2Mat<false>(direction(aNbDir,aKDir),IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,IGpuOpt._preFinalCost1D,IGpuOpt._FinalDefCor,!IGpuOpt.GetIdBuf());
             IGpuOpt.SetDataToCopy(false);
             aKDir++;
         }
@@ -909,27 +929,23 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 				for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
 				{
-					//
-					//aMat[Pt2di(aPRX.x,0)].SetCostFinal(finalCost[aPRX.x]);
 
+//					aMat[Pt2di(aPRX.x,0)].SetCostFinal(finalCost[aPRX.x]);
 //					tCost & aCF = aMat[aPRX].CostFinal();
-
 //					aCF /= mNbDir;
 
 					aMat[aPRX].SetCostInit(finalCost[aPRX.x]/mNbDir);
 
 					//
 					tCost aCost = aMat[aPRX].GetCostInit();
-					//agreMin += aCost;
+
 					if (aCost<aCostMin)
 					{
-
 						aCostMin = aCost;
 						aPRXMin = aPRX;
 					}
 				}
-				#endif
-                #ifdef CUDA_ENABLED
+
                 if(mHasMaskAuto)
                 {
                     /* CUDA_DEFCOR Officiel*/
