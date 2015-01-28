@@ -558,7 +558,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     <PreservedFile> NuageImProf_Chantier-Ori*xml </PreservedFile>
 -->
 
-    <ByProcess>  0 </ByProcess>
+    <ByProcess>  ${NbProc} </ByProcess>
 <!--
     <ByProcess>  1 </ByProcess>
 -->
