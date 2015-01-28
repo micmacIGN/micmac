@@ -123,6 +123,14 @@
     </KeyedSetsOfNames>
 
 
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> .*(Ch1|Ch1_16B|Ch3)\.tif  </PatternAccepteur>
+		 <SubDir>   Tmp-MM-Dir/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-TmpTifFile </Key>
+    </KeyedSetsOfNames>
 
 
     <KeyedSetsOfNames >
