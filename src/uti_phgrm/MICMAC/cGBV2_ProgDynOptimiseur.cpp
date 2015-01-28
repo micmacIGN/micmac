@@ -556,34 +556,20 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
     const std::vector<Pt2di>* aVPt;
     uint idLine = 0;
     while ((aVPt = mLMR.Next()))
-    {
-        uint    pitStrm = 0;
-        uint    lLine   = aVPt->size();
-        short3* index   = d2Opt.s_Index().pData() + d2Opt.param(idBuf)[idLine].y;
+    {		
+		const uint	lLine    = aVPt->size();
+		short3*		index    = d2Opt.s_Index().pData()		 + d2Opt.param(idBuf)[idLine].y;
+		ushort* destCostInit = d2Opt.s_InitCostVol().pData() + d2Opt.param(idBuf)[idLine].x;
 
         for (uint aK= 0 ; aK < lLine; aK++)
         {
             Pt2di ptTer = (Pt2di)(*aVPt)[aK];
-
-#ifndef CLAMPDZ
             ushort dZ   = mCellCost.DZ(ptTer);
-            index[aK]   = mCellCost.PtZ(ptTer);
-#else
-            ushort dZ   = min(costInit1D.DZ(ptTer),costInit1D._maxDz);
+			index[aK]   = mCellCost.PtZ(ptTer);
 
-            if(dZ == costInit1D._maxDz )
-                index[aK]   = make_short2(costInit1D.PtZ(ptTer).x,costInit1D.PtZ(ptTer).x + costInit1D._maxDz);
-            else
-                index[aK]   = costInit1D.PtZ(ptTer);
-#endif
+			memcpy(destCostInit,mCellCost[ptTer],dZ * sizeof(ushort));
 
-            uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
-
-            ushort* desrCostInit = d2Opt.s_InitCostVol().pData()+idStrm;
-
-            memcpy(desrCostInit,mCellCost[ptTer],dZ * sizeof(ushort));
-
-            pitStrm += dZ;
+			destCostInit += dZ;
         }
 
         idLine++;
@@ -592,75 +578,41 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
     GpGpuTools::Nvtx_RangePop();
 }
 
-//#define OUTPUTDEFCOR
-
 void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal1D,CuHostData3D<uint> &FinalDefCor, uint idBuf)
 {
     GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
 
-    //nvtxMarkA("Start INIT");
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
     const std::vector<Pt2di>* aVPt;
     uint idLine = 0;
-#ifdef OUTPUTDEFCOR
-    uint iii = 40;
-#endif
 
     while ((aVPt = mLMR.Next()))
     {
-        uint    pitStrm         = 0;
+
         uint    lenghtLine      = aVPt->size();
         uint    piTStream_Alti  = d2Opt.param(idBuf)[idLine].y; // Position dans le stream des altitudes/defCor
-
-#ifdef OUTPUTDEFCOR
-        if(idLine == iii)
-            DUMP_UINT(lenghtLine)
-#endif
+		uint *	forCo			= d2Opt.s_ForceCostVol(idBuf).pData() + d2Opt.param(idBuf)[idLine].x ;
 
         for (uint aK= 0 ; aK < lenghtLine; aK++)
         {
 
-            Pt2di ptTer = (Pt2di)(*aVPt)[aK];
-            #ifndef CLAMPDZ
-            ushort dZ   = mCellCost.DZ(ptTer);
-            #else
-            ushort dZ   =  min(costInit1D.DZ(ptTer),costInit1D._maxDz);
-            #endif
+			Pt2di ptTer	= (Pt2di)(*aVPt)[aK];
+			ushort dZ   = mCellCost.DZ(ptTer);
+			uint *finCo = costFinal1D.pData() + mCellCost.Pit(ptTer);
+			uint defCor = (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
 
-            // position dans le stream cout force....
-            uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
-            uint *forCo = d2Opt.s_ForceCostVol(idBuf).pData() + idStrm; // TODO A verifier car devrait deja calculer dans les parametres...
-            uint *finCo = costFinal1D.pData() + mCellCost.Pit(ptTer);
-
-
-            uint defCorr = (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
-
-            FinalDefCor[make_uint2(ptTer.x,ptTer.y)] += defCorr;
-
-#ifdef OUTPUTDEFCOR
-            if(idLine == iii)
-            {
-                //uint minPrevCost = d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]/ mCostDefMasked;
-
-                //uint minPrevCost = (minCost == 0) ? 2 : minCost / mCostDefMasked;
-                DUMP_UINT(minCost)
-            }
-#endif
-
+			FinalDefCor[make_uint2(ptTer.x,ptTer.y)] += defCor;
 
             for ( int aPx = 0 ; aPx < dZ ; aPx++)
                 finCo[aPx] += forCo[aPx];
 
-            pitStrm += dZ;
+			forCo += dZ;
 
         }
 
         idLine++;
     }
-#ifdef OUTPUTDEFCOR
-   DUMP_LINE
-#endif
 
     GpGpuTools::Nvtx_RangePop();
 
@@ -732,13 +684,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
                 for (uint aK = 0 ; aK < lenghtLine; aK++)
                 {
-                    #ifndef CLAMPDZ
-                        sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
-                    #else
-//                        if(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]) > IGpuOpt._poInitCost._maxDz)
-//                                printf("AAAAAAAAAAAAAA : %d\n",IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]));
-                        sizeStreamLine += min(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]),IGpuOpt._poInitCost._maxDz);
-                    #endif
+					 sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
                 }
 
                 // PREDEFCOR
