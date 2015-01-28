@@ -60,6 +60,9 @@
     <Symb> ZPasCalc=0.5  </Symb>
 
     <eSymb> SzDalleMin=  200  </eSymb>
+
+    <Symb>  UseGpu=false </Symb>
+    <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
 </DicoLoc>
 
 <Section_Terrain>  
@@ -149,6 +152,7 @@
                      <SzBlocAH> 400000 </SzBlocAH>
 
                      <CorrelMultiScale>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
@@ -201,6 +205,7 @@
                      <SzBlocAH> 400000 </SzBlocAH>
 
                      <CorrelMultiScale>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
@@ -278,6 +283,7 @@
                  <AlgoRegul Portee="Globale">  eAlgo2PrgDyn </AlgoRegul>
                  <CorrelAdHoc Portee="Globale">
                      <CorrelMultiScale>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <ModeDense> true </ModeDense>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>

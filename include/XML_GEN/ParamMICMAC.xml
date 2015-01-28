@@ -27,7 +27,7 @@
        Trois type de geometrie interviennent
 
 
-       - La géométrie image est liée à l'instrument d'acquisition
+       - La géométrie image est liée �  l'instrument d'acquisition
        (conique ou barette, calibration ...); elle est definie
        dans la section <Section_PriseDeVue> par le champss
       GeomImages qui doit etre dans l'enumeration eGeomImage.
@@ -915,7 +915,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                 <EpsilonMulMoyenne Nb="?" Type="double" Def="0.0"> </EpsilonMulMoyenne>
 
                 <SzBlocAH Nb="?" Type="int" Def="40"> </SzBlocAH>
-                <CorrelMultiScale Nb="?">
+                <CorrelMultiScale Nb="?">                      
+                      <UseGpGpu Nb="?" Type="bool" Def="false"> </UseGpGpu>
                       <ModeDense Nb="?" Type="bool"> </ModeDense>
                       <!-- Si true un indicateur de forme est calcule sur l'image maitresse pour choisir quel type de fenetre est utilise -->
                       <UseWAdapt Nb="?" Type="bool" Def="false"> </UseWAdapt>
