@@ -960,7 +960,7 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
         break;
 
     case   eEPI_Refute :
-        return mInterface->RefInvis() ? 0 : 1e-3;
+        return (mInterface && mInterface->RefInvis()) ? 0 : 1e-3;
         break;
 
     case   eEPI_Douteux :
