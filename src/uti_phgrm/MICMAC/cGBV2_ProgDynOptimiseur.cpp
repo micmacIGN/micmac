@@ -484,7 +484,6 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
         SolveAllDirectionGpu(aNbDir);
 
 #endif
-
 }
 
 #if CUDA_ENABLED
@@ -539,11 +538,11 @@ void cGBV2_ProgDynOptimiseur::agregation<true>(uint& finalCost,uint& forceCost,c
 
 	cell[apx].SetCostInit(aCost);
 
-	if (aCost<aCostMin)
-	{
-		aCostMin = aCost;
-		aPRXMin = Pt2di(z + apx,0);
-	}
+//	if (aCost<aCostMin)
+//	{
+//		aCostMin = aCost;
+//		aPRXMin = Pt2di(z + apx,0);
+//	}
 }
 
 template<bool final> inline
@@ -620,7 +619,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
             for ( int aPx = 0 ; aPx < dZ ; aPx++)
 				agregation<final>(finCo[aPx],forCo[aPx],cell,aPx,aCostMin,aPRXMin,z);
 
-			maskAuto<final>(ptTer,aCostMin,aPRXMin);
+			//maskAuto<final>(ptTer,aCostMin,aPRXMin);
 
 			forCo += dZ;
 
@@ -672,7 +671,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
 	mMaskCalcDone	= true;
 	mMaskCalc		= Im2D_Bits<1>(mSz.x,mSz.y);
-	mTMask			= new TIm2DBits<1>(mMaskCalc);
+	//mTMask			= new TIm2DBits<1>(mMaskCalc);
 
 	IGpuOpt.SetCompute(true);
 
@@ -736,9 +735,9 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
         if(IGpuOpt.GetDataToCopy())
         {
 
-			if(aNbDir == aKDir+1)
-				copyCells_Stream2Mat<true>(direction(aNbDir,aKDir),IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,IGpuOpt._preFinalCost1D,IGpuOpt._FinalDefCor,!IGpuOpt.GetIdBuf());
-			else
+//			if(aNbDir == aKDir+1)
+//				copyCells_Stream2Mat<true>(direction(aNbDir,aKDir),IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,IGpuOpt._preFinalCost1D,IGpuOpt._FinalDefCor,!IGpuOpt.GetIdBuf());
+//			else
 				copyCells_Stream2Mat<false>(direction(aNbDir,aKDir),IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,IGpuOpt._preFinalCost1D,IGpuOpt._FinalDefCor,!IGpuOpt.GetIdBuf());
 			IGpuOpt.SetDataToCopy(false);
 			aKDir++;
@@ -820,6 +819,79 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         nbDirection = itE->NbDir().Val();
         SolveOneEtape(nbDirection);
     }
+
+	Pt2di aPTer;
+
+	if(mHasMaskAuto)
+	{
+		mMaskCalcDone = true;
+		mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
+	}
+
+	TIm2DBits<1>    aTMask(mMaskCalc);
+#ifdef CUDA_ENABLED
+	GpGpuTools::NvtxR_Push("Recolt",0xFF8833FF);
+#endif
+	for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
+	{
+		for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
+		{
+#ifdef CUDA_ENABLED
+			tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
+			const Box2di &  aBox = aMat.Box();
+			Pt2di aPRX;
+			Pt2di aPRXMin;
+			tCost   aCostMin = tCost(1e9);
+			uint* finalCost = IGpuOpt._preFinalCost1D.pData() + IGpuOpt._poInitCost.Pit(aPTer) - aBox._p0.x ;
+
+			for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+			{
+
+				//					aMat[Pt2di(aPRX.x,0)].SetCostFinal(finalCost[aPRX.x]);
+				//					tCost & aCF = aMat[aPRX].CostFinal();
+				//					aCF /= mNbDir;
+
+				aMat[aPRX].SetCostInit(finalCost[aPRX.x]/mNbDir);
+
+				//
+				tCost aCost = aMat[aPRX].GetCostInit();
+
+				if (aCost<aCostMin)
+				{
+					aCostMin = aCost;
+					aPRXMin = aPRX;
+				}
+			}
+
+			if(mHasMaskAuto)
+			{
+				/* CUDA_DEFCOR Officiel*/
+				IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
+				tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
+				bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
+				aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
+
+
+				int aCorI = CostI2CorExport(aCostMin);
+				if(!mLTCur->IsInMasq(aPTer))
+				{
+					aCorI = 0;
+				}
+
+				if(aImCor.Im2D<U_INT1,INT>::Inside(aPTer))
+					aImCor.SetI(aPTer,aCorI);
+
+			}
+
+			mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+#endif
+
+		}
+	}
+
+#ifdef CUDA_ENABLED
+	GpGpuTools::Nvtx_RangePop();
+#endif
 
 #ifdef CUDA_ENABLED
 		GpGpuTools::NvtxR_Push("Comble Trou",0xFF883300);
