@@ -123,7 +123,7 @@ class Tiff_Im : public ElGenFileIm
                eRATIONNAL = 5
         } FIELD_TYPE;
 
-        static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE);
+        static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE,const char * aNameFile);
 
         typedef enum
         {
