@@ -50,6 +50,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #pragma once
 
+class cElErrorHandlor
+{
+    public :
+
+       virtual void OnError();
+       static cElErrorHandlor  TheDefElErrorHandlor;
+};
+extern cElErrorHandlor * TheCurElErrorHandlor;
+
 REAL16 PartieFrac(const REAL16 &);
 // Class faite pour tester la repetitivite (determinise) de l'execution d'un programme
 class cMajickChek
@@ -308,6 +317,9 @@ class cElWarning
          int           mLine;
          std::string   mFile;
 };
+
+extern void BasicErrorHandler();
+
 
 #define MPD_MM_BRK(aMes)\
 if (MPD_MM())\
