@@ -481,6 +481,8 @@ int CASALL_main(int argc,char ** argv);
 extern int MMEnvStatute_main(int argc,char ** argv);
 
 
+int CheckOneHom_main(int argc,char ** argv);
+int CheckAllHom_main(int argc,char ** argv);
 
 
 
@@ -554,6 +556,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topoligical analysis before bascule"));
 
 
+    aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
+    aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
