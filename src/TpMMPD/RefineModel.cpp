@@ -545,7 +545,7 @@ public:
             if (_verbose) cout << "DTM size : "<<_MntOri.NombrePixels().x<<" "<<_MntOri.NombrePixels().y<<endl;
             std_unique_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
 
-            #if __cplusplus > 199711L
+			#if __cplusplus > 199711L | _MSC_VER == 1800
             _MntImg = std::move(Img);
             #else
             _MntImg = Img;

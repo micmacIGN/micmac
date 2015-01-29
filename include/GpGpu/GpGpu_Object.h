@@ -8,7 +8,9 @@
 using namespace std;
 
 #ifdef NOCUDA_X11
+#ifndef _WIN32 
 #include <cxxabi.h>
+#endif
 #endif
 /// \class CGObject
 /// \brief Classe de gestion des types
@@ -58,12 +60,17 @@ public:
 
 	static inline const char* demangle(const char* name)
 	{
+#ifndef _WIN32 
 		char buf[1024];
 		size_t size=1024;
 		int status;
 		char* res = abi::__cxa_demangle (name,buf,&size,
 										 &status);
 		return res;
+#else
+		return name;
+#endif
+
 	}
 #endif
 

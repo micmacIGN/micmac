@@ -48,6 +48,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_SYS_DEP_H
 
 #include "general/CMake_defines.h"
+#include "GpGpu\GpGpu_BuildOptions.h"
 
 // Only for g++ 2.7.2.1 on alpha
 #define BUG_CPP_Fclose 0
@@ -139,7 +140,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 template <class Type> bool BadNumber(const Type & aVal) {return (std_isnan(aVal)||std_isinf(aVal));}
 
-#if __cplusplus > 199711L // if c++11
+#if __cplusplus > 199711L | (_MSC_VER == 1800 & CPP11THREAD_NOBOOSTTHREAD == 1)
     #define std_unique_ptr std::unique_ptr
     #define NULLPTR nullptr
     #define CPPX11
