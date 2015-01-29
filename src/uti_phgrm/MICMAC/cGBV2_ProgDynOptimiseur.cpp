@@ -521,9 +521,8 @@ void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuH
 template<bool final> inline
 void cGBV2_ProgDynOptimiseur::agregation(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
 {
-	finalCost *= forceCost;
-}
 
+}
 
 template<> inline
 void cGBV2_ProgDynOptimiseur::agregation<false>(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
@@ -534,9 +533,11 @@ void cGBV2_ProgDynOptimiseur::agregation<false>(uint& finalCost,uint& forceCost,
 template<> inline
 void cGBV2_ProgDynOptimiseur::agregation<true>(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
 {
-	const uint aCost = (finalCost  + forceCost)/mNbDir;
+	//const uint aCost = (finalCost  + forceCost)/mNbDir;
 
-	cell[apx].SetCostInit(aCost);
+	finalCost   = (finalCost  + forceCost)/mNbDir;
+
+	//cell[apx].SetCostInit(aCost);
 
 //	if (aCost<aCostMin)
 //	{
@@ -597,8 +598,8 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
     while ((aVPt = mLMR.Next()))
     {
 
-        uint    lenghtLine      = aVPt->size();
-        uint    piTStream_Alti  = d2Opt.param(idBuf)[idLine].y; // Position dans le stream des altitudes/defCor
+		const uint    lenghtLine      = aVPt->size();
+		const uint    piTStream_Alti  = d2Opt.param(idBuf)[idLine].y; // Position dans le stream des altitudes/defCor
 		uint *	forCo			= d2Opt.s_ForceCostVol(idBuf).pData() + d2Opt.param(idBuf)[idLine].x ;
 
         for (uint aK= 0 ; aK < lenghtLine; aK++)
@@ -671,7 +672,7 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
 	mMaskCalcDone	= true;
 	mMaskCalc		= Im2D_Bits<1>(mSz.x,mSz.y);
-	//mTMask			= new TIm2DBits<1>(mMaskCalc);
+//	mTMask			= new TIm2DBits<1>(mMaskCalc);
 
 	IGpuOpt.SetCompute(true);
 
@@ -837,6 +838,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 		for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
 		{
 #ifdef CUDA_ENABLED
+
 			tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
 			const Box2di &  aBox = aMat.Box();
 			Pt2di aPRX;
@@ -865,7 +867,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 
 			if(mHasMaskAuto)
 			{
-				/* CUDA_DEFCOR Officiel*/
+				// CUDA_DEFCOR Officiel
 				IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
 				tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
 				bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
@@ -884,6 +886,7 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 			}
 
 			mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
+
 #endif
 
 		}
