@@ -42,9 +42,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*
 */
 
-#define DEF_OFSET -12349876
 
-#define  NbModele 10
+
+bool IsGoodVal(const double & aV)
+{
+   return (!std_isnan(aV)) && (!isinf(aV));
+}
+bool IsGoodVal(const Pt2dr & aP)
+{
+    return IsGoodVal(aP.x) && IsGoodVal(aP.y);
+}
+
+bool IsGoodVal(const Pt3dr & aP)
+{
+    return IsGoodVal(aP.x) && IsGoodVal(aP.y) && IsGoodVal(aP.z) ;
+}
 
 
 /********************************************************/
@@ -156,10 +168,22 @@ int CheckAllTiff_main(int argc,char ** argv)
 /*                                                      */
 /********************************************************/
 
+
 int CheckOneHom_main(int argc,char ** argv)
 {
    std::string  aName = InitJunkErrorHandler(argc,argv);
-   ElPackHomologue::FromFile(aName);
+   ElPackHomologue aPack= ElPackHomologue::FromFile(aName);
+
+   for (ElPackHomologue::tCstIter itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+   {
+       for (int aK=0 ; aK<itP->NbPts() ; aK++)
+       {
+           if (! IsGoodVal(itP->PK(aK)))
+           {
+               BasicErrorHandler();
+           }
+       }
+   }
    return EXIT_SUCCESS;
 }
 
@@ -186,6 +210,48 @@ int CheckAllHom_main(int argc,char ** argv)
 
 
 
+/********************************************************/
+/*                                                      */
+/*     Check Orient                                     */
+/*                                                      */
+/********************************************************/
+
+int CheckOneOrient_main(int argc,char ** argv)
+{
+   std::string  aName = InitJunkErrorHandler(argc,argv);
+
+   CamStenope * aCam = BasicCamOrientGenFromFile(aName);
+   
+   if ((!IsGoodVal(aCam->Focale())) || (!IsGoodVal(aCam->PP())))
+   {
+      BasicErrorHandler();
+   }
+   return EXIT_SUCCESS;
+}
+
+int CheckAllOrient_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv,2);
+   
+    std::string aDir;
+    std::string anOri ;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aDir,"Directory ")
+                    << EAMC(anOri,"Orientation "),
+        LArgMain()  
+    );
+
+    StdCorrecNameOrient(anOri,aDir);
+
+    CheckSetFile(aDir,"NKS-Set-Orient@-"+anOri,"Check1Ori");
+
+    return EXIT_SUCCESS;
+}
+
+
 
 /********************************************************/
 /*                                                      */
@@ -203,6 +269,7 @@ int CheckOneTiffFile_main(int argc,char ** argv)
 */
 
 
+/*
 int Check_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv,2);
@@ -246,6 +313,7 @@ int Check_main(int argc,char ** argv)
 
     return 1;
 }
+*/
 
 
 

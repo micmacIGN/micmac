@@ -4501,6 +4501,12 @@ CamStenope * CamOrientGenFromFile(const std::string & aNameFile, cInterfChantier
    return 0;
 }
 
+CamStenope * BasicCamOrientGenFromFile(const std::string & aNameFile)
+{
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aNameFile));
+    return CamOrientGenFromFile(NameWithoutDir(aNameFile),anICNM);
+}
+
 
 CamStenope * Std_Cal_From_File
              (
