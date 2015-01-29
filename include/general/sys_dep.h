@@ -48,7 +48,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_SYS_DEP_H
 
 #include "general/CMake_defines.h"
-#include "GpGpu\GpGpu_BuildOptions.h"
+#include "GpGpu/GpGpu_BuildOptions.h"
 
 // Only for g++ 2.7.2.1 on alpha
 #define BUG_CPP_Fclose 0
