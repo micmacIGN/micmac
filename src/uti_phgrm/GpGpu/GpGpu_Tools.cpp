@@ -57,10 +57,10 @@ void GpGpuTools::OutputGpu()
 	std::cout << "\b-" << std::flush;
 #endif
 }
-
+#ifdef NVTOOLS
 void GpGpuTools::NvtxR_Push(const char* message, int32_t color)
 {
-#ifdef NVTOOLS
+
     nvtxEventAttributes_t initAttrib = {0};
 
     initAttrib.version = NVTX_VERSION;
@@ -71,9 +71,9 @@ void GpGpuTools::NvtxR_Push(const char* message, int32_t color)
     initAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
 
     nvtxRangePushEx(&initAttrib);
-#endif
-}
 
+}
+#endif
 void GpGpuTools::Nvtx_RangePop()
 {
 #ifdef NVTOOLS

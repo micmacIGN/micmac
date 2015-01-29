@@ -131,10 +131,6 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
                             set(qt_version 5)
 
-#                            if(POLICY CMP0020)
-#                                    cmake_policy(SET CMP0020 NEW)
-#                            endif()
-
 #                            set(QT_LIBRARIES
 #                                    ${Qt5Core_LIBRARIES}
 #                                    ${Qt5Gui_LIBRARIES}

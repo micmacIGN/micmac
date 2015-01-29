@@ -124,7 +124,11 @@ public:
 
     //static void			check_Cuda();
 
+#ifdef NVTOOLS
 	static void			NvtxR_Push(const char* message, int32_t color);
+#else
+	static void			NvtxR_Push(const char* message, int color){}
+#endif
 
 	static void			Nvtx_RangePop();
 
