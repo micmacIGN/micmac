@@ -34,7 +34,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage &maskedImg)
 
     maskedImg._m_image = new QImage(reader->size(),reader->imageFormat());
 
-    if (!reader->read(maskedImg._m_image));
+    if (!reader->read(maskedImg._m_image))
         maskedImg._m_image = new QImage( aNameFile );
 
 //    qDebug() << chro->elapsed() << " end read";

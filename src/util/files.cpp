@@ -1892,6 +1892,10 @@ template void ReadPtr(ELISE_fp & aFile,tFileOffset aNb,REAL8 *);
 cPackNupletsHom cPackNupletsHom::read(ELISE_fp & aFile)
 {
 	int aDim = aFile.read((int*)0);
+        if ((aDim<0) || (aDim>1000))
+        {
+              ELISE_ASSERT(false,"Bas Dim in cPackNupletsHom::read");
+        }
 	cPackNupletsHom aRes(aDim);
 	aRes.mCont  = read_cont(aFile,(std::list<cNupletPtsHomologues> *)0);
 
