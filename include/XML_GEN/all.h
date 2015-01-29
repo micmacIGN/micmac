@@ -1114,6 +1114,7 @@ cOrientationExterneRigide From_Std_RAff_C2M
 // Fonctionne avec une calib ou une camera orientee
 CamStenope * CamOrientGenFromFile(const std::string & aNameFile,cInterfChantierNameManipulateur * anICNM, bool throwAssert = true);
 
+CamStenope * BasicCamOrientGenFromFile(const std::string & aNameFile);
 CamStenope * Std_Cal_From_File
              (
                  const std::string & aNameFile,

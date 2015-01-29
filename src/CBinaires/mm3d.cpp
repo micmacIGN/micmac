@@ -487,6 +487,8 @@ int CheckOneTiff_main(int argc,char ** argv);
 int CheckAllTiff_main(int argc,char ** argv);
 
 
+int CheckOneOrient_main(int argc,char ** argv);
+int CheckAllOrient_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -562,6 +564,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
     aRes.push_back(cMMCom("Check1Tiff",CheckOneTiff_main,"Check All File Homologue"));
     aRes.push_back(cMMCom("CheckAllTiff",CheckAllTiff_main,"Check All File Homologue"));
+
+
+    aRes.push_back(cMMCom("Check1Ori",CheckOneOrient_main,"Check One Orientation"));
+    aRes.push_back(cMMCom("CheckAllOri",CheckAllOrient_main,"Check a Folder of Orientation"));
+
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
