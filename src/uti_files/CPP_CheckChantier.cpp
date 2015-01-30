@@ -46,7 +46,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 bool IsGoodVal(const double & aV)
 {
-   return (!std_isnan(aV)) && (!isinf(aV));
+   return (!std_isnan(aV)) && (!std::isinf(aV));
 }
 bool IsGoodVal(const Pt2dr & aP)
 {
@@ -103,7 +103,7 @@ void InitJunkErrorHandler(const std::string & aName)
 std::string InitJunkErrorHandler(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv,2);
-    if (argc <  2) 
+    if (argc <  2)
     {
         std::cout << "Warn not enough arg \n";
         exit(EXIT_SUCCESS);
@@ -147,14 +147,14 @@ int CheckOneTiff_main(int argc,char ** argv)
 int CheckAllTiff_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv,2);
-   
+
     std::string aDir;
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aDir,"Directory "),
-        LArgMain()  
+        LArgMain()
     );
 
     CheckSetFile(aDir,"NKS-Set-TmpTifFile","Check1Tiff");
@@ -190,7 +190,7 @@ int CheckOneHom_main(int argc,char ** argv)
 int CheckAllHom_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv,2);
-   
+
     std::string aDir;
     std::string aExt ="";
     std::string aPost = "dat";
@@ -221,7 +221,7 @@ int CheckOneOrient_main(int argc,char ** argv)
    std::string  aName = InitJunkErrorHandler(argc,argv);
 
    CamStenope * aCam = BasicCamOrientGenFromFile(aName);
-   
+
    if ((!IsGoodVal(aCam->Focale())) || (!IsGoodVal(aCam->PP())))
    {
       BasicErrorHandler();
@@ -232,7 +232,7 @@ int CheckOneOrient_main(int argc,char ** argv)
 int CheckAllOrient_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv,2);
-   
+
     std::string aDir;
     std::string anOri ;
 
@@ -241,7 +241,7 @@ int CheckAllOrient_main(int argc,char ** argv)
         argc,argv,
         LArgMain()  << EAMC(aDir,"Directory ")
                     << EAMC(anOri,"Orientation "),
-        LArgMain()  
+        LArgMain()
     );
 
     StdCorrecNameOrient(anOri,aDir);
