@@ -1,0 +1,39 @@
+<ParamFusionNuage>
+
+      <ModeMerge> eQuickMac </ModeMerge>
+
+      <PFNMiseAuPoint>
+          <SzVisu> 1200 800  </SzVisu>
+          <TestImageDif> false </TestImageDif>
+          <VisuGrad> false </VisuGrad>
+          <VisuLowPts > false</VisuLowPts>
+          <VisuImageCoh> false </VisuImageCoh>
+          <ImageMiseAuPoint> IMGP704[7-9].JPG </ImageMiseAuPoint> 
+<!--
+-->
+      </PFNMiseAuPoint>
+      <GrapheRecouvrt>
+           <TauxRecMin> 0.01 </TauxRecMin>
+           <ExtHom > dat </ExtHom>
+           <MinSzFilHom>  500 </MinSzFilHom>
+           <RecSeuilDistProf>  1.0</RecSeuilDistProf>
+           <NbPtsLowResume> 2000  </NbPtsLowResume>
+           <CostPerImISOM> 0.12 </CostPerImISOM>
+      </GrapheRecouvrt>
+      <ImageVariations>
+           <V4Vois > false </V4Vois>
+           <DistVois> 3  </DistVois>
+           <DynAngul>  100 </DynAngul>
+           <ComputeIncid>  false </ComputeIncid>
+           <SeuilStrictVarIma>  0.33 </SeuilStrictVarIma>
+           <PenteRefutInitInPixel>  0.5</PenteRefutInitInPixel>
+      </ImageVariations>
+      <PFM_Selection>
+            <ElimDirectInterior> 10.0   </ElimDirectInterior>
+            <LowRatioSelectIm>   0.001  </LowRatioSelectIm>
+            <HighRatioSelectIm>  0.05   </HighRatioSelectIm>
+      </PFM_Selection>
+
+ </ParamFusionNuage>
+
+

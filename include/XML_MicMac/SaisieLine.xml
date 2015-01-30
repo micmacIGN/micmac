@@ -1,0 +1,77 @@
+<!--
+Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
+
+-->
+<ParamSaisiePts>
+
+        <DicoLoc>
+            <Symb> Sauv="Saisie-Line" </Symb>
+            <Symb> Image=IMG_557[2-7].tif </Symb>
+            <Symb> Ori=Test-7 </Symb>
+            <Symb> Dir=/home/marc/TMP/ExempleDoc/Boudha/ </Symb>
+
+            <Symb> SzWx=800 </Symb>
+            <Symb> SzWy=800 </Symb>
+
+            <Symb> NbFx=1 </Symb>
+            <Symb> NbFy=1 </Symb>
+            <Symb> ForceGray=true </Symb>
+            <Symb> Mode=0 </Symb>
+            <eSymb> ModeLine= Eq ${Mode} 0 </eSymb>
+            <eSymb> ModeCyl= Eq ${Mode} 1 </eSymb>
+        </DicoLoc>
+
+        <SectionWindows>
+             <SzTotIm>  ${SzWx}  ${SzWy} </SzTotIm>
+             <NbFenIm >  ${NbFx} ${NbFy} </NbFenIm>
+             <ShowDet> true </ShowDet>
+             <!-- <SzTer> 200 200  </SzTer> -->
+        </SectionWindows>
+
+
+        <SectionInOut>
+              <NamePointesImage> Tmp-SL-Im-${Sauv}   </NamePointesImage>
+              <NamePointsGlobal> Tmp-SL-Glob-${Sauv} </NamePointsGlobal>
+
+              <ExportPointeImage>   ${Sauv}   </ExportPointeImage>
+
+              <#WHEN VTEST=${ModeLine}>
+                   <FixedName> Line1 </FixedName>
+                   <FixedName> Line2 </FixedName>
+                   <FixedName> Origine </FixedName>
+                   <FixedName> Ech1 </FixedName>
+                   <FixedName> Ech2 </FixedName>
+              </#WHEN>
+              <#WHEN VTEST=${ModeCyl}>
+                   <FixedName> Top </FixedName>
+                   <FixedName> Bottom </FixedName>
+                   <FixedName> Left </FixedName>
+                   <FixedName> Right </FixedName>
+              </#WHEN>
+
+
+
+        </SectionInOut>
+
+        <SectionImages>
+              <SetOfImages> ${Image}  </SetOfImages>
+              <ForceGray> ${ForceGray} </ForceGray>
+              <KeyAssocOri> ${Ori}  </KeyAssocOri>
+
+
+        </SectionImages>
+
+       <SectionTerrain>
+             <IntervPercProf> 10.0 </IntervPercProf>
+             <ProfEstimator>
+                 <ZMoyenInIma>  true </ZMoyenInIma>
+             </ProfEstimator>
+        </SectionTerrain>
+
+
+
+        <DirectoryChantier> ThisDir </DirectoryChantier>
+
+</ParamSaisiePts>
+
+
