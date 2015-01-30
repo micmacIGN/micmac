@@ -124,6 +124,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Tapioca.cpp
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
+    ${UTI_PHGRM_DIR}/CPP_Tequila.cpp
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
     ${UTI_PHGRM_DIR}/CPP_TestChantier.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieMasq.cpp
