@@ -18,7 +18,7 @@
            <Symb>  MaxResTieP0=2  </Symb>
            <Symb>  MaxResTiePEnd=1.0  </Symb>
 
-           <Symb>  SauvAutom="" </Symb>
+           <Symb>  SauvAutom="Progr" </Symb>
 
 <!-- Iteration -->
            <Symb>   NbIter=10 </Symb>
@@ -128,10 +128,10 @@
 
 
         <SectionChantier>
-	     <DirectoryChantier> XXXX </DirectoryChantier>
+	     <DirectoryChantier> ./ </DirectoryChantier>
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
-             <SauvAutom>  Progr   </SauvAutom>
-             <SauvAutomBasic>  true </SauvAutomBasic>
+             <SauvAutom>  ${SauvAutom}   </SauvAutom>
+             <SauvAutomBasic>  false </SauvAutomBasic>
         </SectionChantier>
 
         <SectionSolveur>
