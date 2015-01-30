@@ -470,6 +470,9 @@ int  Ortho2TieP_main(int argc,char ** argv);
 int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
+extern int BasculePtsInRepCam_main(int argc,char ** argv);
+
+
 
 int MakeOneXmlXifInfo_main(int argc,char ** argv);
 
@@ -569,6 +572,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("Check1Ori",CheckOneOrient_main,"Check One Orientation"));
     aRes.push_back(cMMCom("CheckAllOri",CheckAllOrient_main,"Check a Folder of Orientation"));
+    
+    aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
@@ -629,9 +634,12 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    // TheExitOnBrkp=aValInit_TheExitOnBrkp;
 
    std::string aCom = argv[1];
-   std::string aLowCom = current_program_subcommand();
+   // std::string aLowCom = current_program_subcommand();
+   std::string aLowCom =  StrToLower(aCom);  // MPD modif, sinon suggestions de marche pas en TestLib
 
    std::vector<cSuggest *> mSugg;
+
+//  std::cout << "JJJJJ " << aLowCom << " " << aCom  << " " << StrToLower(aCom) << "\n";
 
    cSuggest *PatMach    = new cSuggest("Pattern Match",aLowCom);
    cSuggest *PrefMach   = new cSuggest("Prefix Match",aLowCom+".*");
