@@ -245,10 +245,10 @@ int AperoProg_main(int argc,char ** argv)
     std::string AeroOut="";
 
 
-    double aSigmaTieP = 1;
+    /*double aSigmaTieP = 1;
     double aFactResElimTieP = 5;
     double Viscos = 1.0;
-    bool ExpTxt = false;
+    bool ExpTxt = false;*/
 
     ElInitArgMain
     (
@@ -256,7 +256,7 @@ int AperoProg_main(int argc,char ** argv)
          LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
                      << EAMC(AeroIn,"Input Orientation", eSAM_IsExistDirOri)
                      << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
-         LArgMain()  
+         LArgMain()
     );
     if (!MMVisualMode)
     {
@@ -267,6 +267,8 @@ int AperoProg_main(int argc,char ** argv)
         SplitDirAndFile(aDir,aPat,aFullDir);
         StdCorrecNameOrient(AeroIn,aDir);
     }
+
+    return EXIT_SUCCESS;
 }
 
 
