@@ -640,6 +640,7 @@ int Tapas_main(int argc,char ** argv);
 int Tapioca_main(int argc,char ** argv);
 int Tarama_main(int argc,char ** argv);
 int Tawny_main(int argc,char ** argv);
+int Tequila_main(int argc,char ** argv);
 int TestCam_main(int argc,char ** argv);
 int TestChantier_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
