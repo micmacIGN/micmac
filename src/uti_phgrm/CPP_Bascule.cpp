@@ -294,7 +294,7 @@ int BasculePtsInRepCam_main(int argc,char ** argv)
          LArgMain()  << EAMC(aNameCam,"Name Camera" )
                      << EAMC(aNamePts,"Name GGP In"),
           LArgMain()
-                     << EAM(aNamePts_Out,"Result", true )
+                     << EAM(aNamePts_Out,"Out", true )
     );
 
     if (! EAMIsInit(&aNamePts_Out))
@@ -304,7 +304,7 @@ int BasculePtsInRepCam_main(int argc,char ** argv)
                         +  NameWithoutDir(aNamePts);
     }
 
-    CamStenope * aCamIn =  Std_Cal_From_File(aNameCam);
+    CamStenope * aCamIn =  BasicCamOrientGenFromFile(aNameCam);
     ElRotation3D aR = aCamIn->Orient();
     cDicoAppuisFlottant aDAFIn =  StdGetFromPCP(aNamePts,DicoAppuisFlottant);
     for 
