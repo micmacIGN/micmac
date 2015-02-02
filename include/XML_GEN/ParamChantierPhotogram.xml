@@ -1601,6 +1601,18 @@
 </MTDCoher>
 
 
+<Xml_OrientaRel Nb="1" Class="true" ToReference="true">
+     <!-- Euler angles -->
+     <alpha Nb="1" Type="double"> </alpha>  <!-- Precession -->
+     <Beta Nb="1" Type="double">  </Beta>   <!-- Nutation -->
+     <Gama  Nb="1" Type="double">  </Gama>  <!-- Rotation propre -->
+
+     <!-- Spherical coordinates of base -->
+     <Teta Nb="1" Type="double"> </Teta>
+     <Phi Nb="1" Type="double">  </Phi>
+</Xml_OrientaRel>
+
+
 
 <Verbatim File=".h.cpp">
 // };
