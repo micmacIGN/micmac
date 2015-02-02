@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                       */
 /*********************************************************/
 
+
 static bool IsPBUG(const Pt2di & aP)
 {
     return false;
