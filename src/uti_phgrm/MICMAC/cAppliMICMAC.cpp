@@ -287,6 +287,7 @@ cAppliMICMAC::cAppliMICMAC
    mAutomNomPyr    (0),
    mEtape00        (0),
    mCurEtape       (0),
+   mPrecEtape      (0),
    mEBI            (0),
    mCurMAI         (0),
    mGeomDFPx       (NULL),
