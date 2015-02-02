@@ -888,10 +888,9 @@ void cAppliMICMAC::GenereOrientationMnt()
    }
 }
 
-void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
+std::string   cAppliMICMAC::NameOrientationMnt(cEtapeMecComp * itE)
 {
-        cFileOriMnt aFOM = OrientFromOneEtape(*itE);
-        std::string aName =   
+        return
 		        FullDirMEC()
 	              + std::string("Z_Num") 
                       + ToString((itE)->Num())
@@ -900,21 +899,26 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
 		      + std::string("_")
 		      + NameChantier()
                       + std::string(".xml");
-         cElXMLTree * aTree = ToXMLTree(aFOM);
-         FILE * aFP = ElFopen(aName.c_str(),"w");
+}
+
+void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
+{
+    cFileOriMnt aFOM = OrientFromOneEtape(*itE);
+    std::string aName =    NameOrientationMnt(itE);
+    cElXMLTree * aTree = ToXMLTree(aFOM);
+    FILE * aFP = ElFopen(aName.c_str(),"w");
 
          
-         ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
+    ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
 
-         aTree->Show("      ",aFP,0,0,true);
+    aTree->Show("      ",aFP,0,0,true);
 
-         delete aTree;
-         ElFclose(aFP);
+    delete aTree;
+    ElFclose(aFP);
 
-         (itE)->DoRemplitXML_MTD_Nuage();
+    (itE)->DoRemplitXML_MTD_Nuage();
 
-         GenTFW(aFOM,aName);
-         // TFW
+    GenTFW(aFOM,aName);
 }
 
 
@@ -968,39 +972,6 @@ Box2dr BoxTerOfNu(const cXML_ParamNuage3DMaille & aNu)
 }
 
 
-/*
-void cAppliMICMAC::GenereOrientationMnt()
-{
-   for
-   (
-        tContEMC::const_iterator itE = mEtapesMecComp.begin();
-        itE != mEtapesMecComp.end();
-        itE++
-   )
-   {
-        cFileOriMnt aFOM = OrientFromOneEtape(**itE);
-        std::string aName =   
-		        FullDirMEC()
-	              + std::string("Z_Num") 
-                      + ToString((*itE)->Num())
-		      + std::string("_DeZoom")
-		      + ToString((*itE)->DeZoomTer())
-		      + std::string("_")
-		      + NameChantier()
-                      + std::string(".xml");
-         cElXMLTree * aTree = ToXMLTree(aFOM);
-         FILE * aFP = ElFopen(aName.c_str(),"w");
-         ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
-
-         aTree->Show("      ",aFP,0,0,true);
-
-         delete aTree;
-         ElFclose(aFP);
-
-         (*itE)->DoRemplitXML_MTD_Nuage();
-   }
-}
-*/
 
 void cAppliMICMAC::SauvParam()
 {
