@@ -1603,9 +1603,9 @@
 
 <Xml_OrientaRel Nb="1" Class="true" ToReference="true">
      <!-- Euler angles -->
-     <alpha Nb="1" Type="double"> </alpha>  <!-- Precession -->
-     <Beta Nb="1" Type="double">  </Beta>   <!-- Nutation -->
-     <Gama  Nb="1" Type="double">  </Gama>  <!-- Rotation propre -->
+     <teta01 Nb="1" Type="double"> </teta01>  <!-- Precession -->
+     <teta02 Nb="1" Type="double">  </teta02>   <!-- Nutation -->
+     <teta12  Nb="1" Type="double">  </teta12>  <!-- Rotation propre -->
 
      <!-- Spherical coordinates of base -->
      <Teta Nb="1" Type="double"> </Teta>

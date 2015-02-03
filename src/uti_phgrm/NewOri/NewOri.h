@@ -42,6 +42,49 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+class cNewO_OneIm;
+class cNewO_CpleIm;
+class cNewO_Appli;
+
+class cNewO_OneIm
+{
+    public :
+            cNewO_OneIm
+            (
+                 const std::string  & aName
+            );
+    private :
+};
+
+class cNewO_CpleIm
+{
+    public :
+          cNewO_CpleIm
+          (
+                cNewO_OneIm * aI1,
+                cNewO_OneIm * aI2
+          );
+    private :
+       
+};
+
+
+class cNewO_Appli
+{
+     public :
+           cNewO_Appli
+           (
+               const std::string  & aDir,
+               const std::string  & anOri,
+               const std::string  & PostTxt
+           );
+
+     private :
+           CamStenope * CamOfName(const std::string aName);
+           cInterfChantierNameManipulateur * mICNM;
+};
+
+
 
 
 

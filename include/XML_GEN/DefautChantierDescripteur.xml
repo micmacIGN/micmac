@@ -479,6 +479,22 @@
         <Calcs>
             <Direct>
                 <PatternTransform> .*%([0-9]+) </PatternTransform>
+                <CalcName>  AutoCal$1.xml  </CalcName>
+                <NameTransfo>
+                        <AddFocMul> 10 </AddFocMul>
+                 </NameTransfo>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-StdNameCalib </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .*%([0-9]+) </PatternTransform>
                 <CalcName>  #1$1#2  </CalcName>
                 <NameTransfo>
                         <AddFocMul> 10 </AddFocMul>
@@ -487,6 +503,7 @@
         </Calcs>
         <Key>   NKS-Assoc-FromFocMm </Key>
     </KeyedNamesAssociations>
+
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
         <Calcs>
