@@ -148,6 +148,7 @@ Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  Direct
                    <SectionExport>
                      <ChoixImMM>
                           <ChoixImSec>
+                               <FileImSel> Ori${Out}/FileImSel.xml </FileImSel>
                                <KeyAssoc> NKS-Assoc-ImSec@${Out}  </KeyAssoc>
                                <PatternSel>  ${PatternExport}  </PatternSel>
                                <NbMin >  4 </NbMin>

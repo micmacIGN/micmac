@@ -57,6 +57,7 @@ mm3d MMByP Statue "IMGP703[0-5].*JPG" Ori-Ori-CalPerIm/ ZoomF=2 Masq3D=AperiClou
 
 */
 
+
 class cAppli_C3DC : public cAppliWithSetImage
 {
      public :

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1617]) = {
+const char * (theNameVar_ParamChantierPhotogram[1629]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1601,6 +1601,18 @@ const char * (theNameVar_ParamChantierPhotogram[1617]) = {
 "<MTDCoher  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "     <Dec2 Nb=\"1\" Type=\"Pt2di\"> </Dec2>\n",
 "</MTDCoher>\n",
+"\n",
+"\n",
+"<Xml_OrientaRel Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"     <!-- Euler angles -->\n",
+"     <teta01 Nb=\"1\" Type=\"double\"> </teta01>  <!-- Precession -->\n",
+"     <teta02 Nb=\"1\" Type=\"double\">  </teta02>   <!-- Nutation -->\n",
+"     <teta12  Nb=\"1\" Type=\"double\">  </teta12>  <!-- Rotation propre -->\n",
+"\n",
+"     <!-- Spherical coordinates of base -->\n",
+"     <Teta Nb=\"1\" Type=\"double\"> </Teta>\n",
+"     <Phi Nb=\"1\" Type=\"double\">  </Phi>\n",
+"</Xml_OrientaRel>\n",
 "\n",
 "\n",
 "\n",
