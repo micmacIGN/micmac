@@ -42,6 +42,11 @@ const std::string TheDIRMergeEPI(){return  "MTD-Image-";}
 
 extern double DynCptrFusDepthMap;
 
+std::string PatFileOfImSec(const std::string & aDir,const std::string & anOri)
+{
+   return aDir + "%NKS-Set-OfFile@Ori-" + anOri + "/FileImSel.xml";
+}
+
 
 
 bool IsMacType(eTypeMMByP aType)
@@ -137,7 +142,8 @@ class cAppliMMByPair : public cAppliWithSetImage
       int          mTimes;
       bool         mDebugCreatE;
       bool         mPurge;
-	  bool		   mUseGpu;
+      bool		   mUseGpu;
+      bool mSuprImNoMasq;
 };
 
 /*****************************************************************/
@@ -353,6 +359,11 @@ const cInterfChantierNameManipulateur::tSet * cElemAppliSetFile::SetIm()
 
 const  std::string BLANK(" ");
 
+std::string  cAppliWithSetImage::PatFileOfImSec() const
+{
+   return ::PatFileOfImSec(mEASF.mDir,mOri);
+}
+
 
 void cAppliWithSetImage::Develop(bool EnGray,bool Cons16B)
 {
@@ -373,7 +384,8 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
    mPenPerIm  (-1),
    mModeHelp  (false),
    mNbAlti    (0),
-   mSomAlti   (0.0)
+   mSomAlti   (0.0),
+   mSetImNoMasq (0)
 {
    for (int aK=0 ; aK<argc; aK++)
    {
@@ -552,18 +564,41 @@ int  cAppliWithSetImage::DeZoomOfSize(double aSz) const
     return 1 << aL2;
 }
 
+void cAppliWithSetImage::SuppressSom(tSomAWSI & aSom)
+{
+    int aNbEr = mDicIm.erase(aSom.attr().mIma->mNameIm);
+    ELISE_ASSERT(aNbEr==1,"Incoherence in cAppliWithSetImage::FilterImageIsolated");
+    aSom.remove();
+}
+
+
+
 void cAppliWithSetImage::FilterImageIsolated()
 {
    std::vector<tSomAWSI *> aRes;
+
+   if (mSetImNoMasq)
+   {
+        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
+        {
+              if (BoolFind(*mSetImNoMasq,(*anITS).attr().mIma->mNameIm))
+                 SuppressSom(*anITS);
+        }
+   }
+
+
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
        if ((*anITS).nb_succ(mSubGrAll) ==0)
        {
            //std::map<std::string,tSomAWSI *>::iterator itS = mDicIm.find((*anITS).attr().mIma->mNameIm);
            //ELISE_ASSERT(itS!=mDicIm.end(),"Incoherence in cAppliWithSetImage::FilterImageIsolated");
+/*
            int aNbEr = mDicIm.erase((*anITS).attr().mIma->mNameIm);
            ELISE_ASSERT(aNbEr==1,"Incoherence in cAppliWithSetImage::FilterImageIsolated");
            (*anITS).remove();
+*/
+           SuppressSom(*anITS);
        }
        else
        {
@@ -660,7 +695,7 @@ void cAppliWithSetImage::AddDelaunayCple()
 
 }
 
-void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero)
+void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq)
 {
       std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
                          + BLANK + QUOTE(mEASF.mFullName)
@@ -679,7 +714,15 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero)
            aCom = aCom  + " Masq3D=" + mMasq3D;
       }
       if (ExApero)
+      {
          System(aCom);
+      }
+
+      if (SupressImInNoMasq)
+      {
+           mSetImNoMasq = mEASF.mICNM->Get(PatFileOfImSec());
+      }
+         
 
       for (int aKI=0 ; aKI<int(mVSoms.size()) ; aKI++)
       {
@@ -1064,8 +1107,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDoTiePM0     (false),
     mTimes        (1),
     mDebugCreatE  (false),
-	mPurge        (! MPD_MM()),
-	mUseGpu		  (false)
+    mPurge        (! MPD_MM()),
+    mUseGpu		  (false),
+    mSuprImNoMasq  (false)
 
 {
   if ((argc>=2) && (!mModeHelp))
@@ -1093,6 +1137,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         mSkyBackGround = true;
         mRIE2Do = true;
         mZoomF = 4;
+        mSuprImNoMasq = true;
      }
      else if (mMacType)
      {
@@ -1104,6 +1149,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         mZoom0 = 4;
         mZoomF = 4;
         mDoTiePM0 = true;
+        mSuprImNoMasq = true;
      }
      else if (mType==eTestIGN)
      {
@@ -1149,7 +1195,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mCalPerIm,"CalPerIm",true,"true id Calib per Im were used, def=false")
                     << EAM(mPenPerIm,"PenPerIm",true,"Penality Per Image in choice im sec")
                     << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
-					<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+		    << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
   );
 
   if (!MMVisualMode)
@@ -1183,7 +1229,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       if (mDelaunay)
          AddDelaunayCple();
       if (mAddMMImSec)
-         AddCoupleMMImSec(BoolFind(mDo,'A'));
+      {
+         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq);
+      }
 
 
       FilterImageIsolated();

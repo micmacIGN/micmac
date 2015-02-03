@@ -591,7 +591,7 @@ double cCombinPosCam::GainOfCase(const std::vector<std::vector<cCaseOcupIm> > & 
 
 bool DebugPVII = false;
 
-void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cMasqBin3D * aMasq3D)
+bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cMasqBin3D * aMasq3D)
 {
    bool Test = (aPC0->Name()==std::string ("IMGP3450.PEF"));
    cPoseCam* aP44=0;
@@ -612,7 +612,14 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
        std::cout << " ************ " << aPC0->Name() << " ***********\n";
    int aNbPose = mVecPose.size();
    cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale (aCIM.IdBdl(),aPC0->Name());
-   cPCICentr aPCIC(aPC0,anOLM->CentreNuage(aMasq3D));
+
+   int aNbPtsInNu;
+   cPCICentr aPCIC(aPC0,anOLM->CentreNuage(aMasq3D,&aNbPtsInNu));
+
+   if (aNbPtsInNu < 10)
+   {
+       return false;
+   }
 
    // Initialisation a partir du centre nuage
    for(int aKP=0 ; aKP<aNbPose ;aKP++)
@@ -853,6 +860,8 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
        aCpt++;
    }
    std::cout << "] Cov:" << aBestSol.Coverage()  << "\n";
+
+   return true;
 }
 
 
@@ -861,6 +870,7 @@ void  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
 
 void cAppliApero::ExportImMM(const cChoixImMM & aCIM)
 {
+    cListOfName aLON;
     cSetName *  aSelector = mICNM->KeyOrPatSelector(aCIM.PatternSel());
     cMasqBin3D * aMasq3D = 0;
     if (aCIM.Masq3D().IsInit())
@@ -871,9 +881,18 @@ void cAppliApero::ExportImMM(const cChoixImMM & aCIM)
        cPoseCam* aPC = mVecPose[aKP];
        if (aSelector->IsSetIn(aPC->Name()))
        {
-           ExportImSecMM(aCIM,aPC,aMasq3D);
+           bool Ok = ExportImSecMM(aCIM,aPC,aMasq3D);
+           if (Ok)
+           {
+              aLON.Name().push_back(aPC->Name());
+           }
        }
     }
+    if (aCIM.FileImSel().IsInit())
+    {
+          MakeFileXML(aLON,DC()+aCIM.FileImSel().Val());
+    }
+
 
     // Chek Flag
     if (0)

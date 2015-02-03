@@ -21382,4 +21382,109 @@ void xml_init(cMTDCoher & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cMTDCoher *) {return "FB80FE2B97F96881FE3F";};
 
+
+double & cXml_OrientaRel::teta01()
+{
+   return mteta01;
+}
+
+const double & cXml_OrientaRel::teta01()const 
+{
+   return mteta01;
+}
+
+
+double & cXml_OrientaRel::teta02()
+{
+   return mteta02;
+}
+
+const double & cXml_OrientaRel::teta02()const 
+{
+   return mteta02;
+}
+
+
+double & cXml_OrientaRel::teta12()
+{
+   return mteta12;
+}
+
+const double & cXml_OrientaRel::teta12()const 
+{
+   return mteta12;
+}
+
+
+double & cXml_OrientaRel::Teta()
+{
+   return mTeta;
+}
+
+const double & cXml_OrientaRel::Teta()const 
+{
+   return mTeta;
+}
+
+
+double & cXml_OrientaRel::Phi()
+{
+   return mPhi;
+}
+
+const double & cXml_OrientaRel::Phi()const 
+{
+   return mPhi;
+}
+
+void  BinaryUnDumpFromFile(cXml_OrientaRel & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.teta01(),aFp);
+    BinaryUnDumpFromFile(anObj.teta02(),aFp);
+    BinaryUnDumpFromFile(anObj.teta12(),aFp);
+    BinaryUnDumpFromFile(anObj.Teta(),aFp);
+    BinaryUnDumpFromFile(anObj.Phi(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_OrientaRel & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.teta01());
+    BinaryDumpInFile(aFp,anObj.teta02());
+    BinaryDumpInFile(aFp,anObj.teta12());
+    BinaryDumpInFile(aFp,anObj.Teta());
+    BinaryDumpInFile(aFp,anObj.Phi());
+}
+
+cElXMLTree * ToXMLTree(const cXml_OrientaRel & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_OrientaRel",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("teta01"),anObj.teta01())->ReTagThis("teta01"));
+   aRes->AddFils(::ToXMLTree(std::string("teta02"),anObj.teta02())->ReTagThis("teta02"));
+   aRes->AddFils(::ToXMLTree(std::string("teta12"),anObj.teta12())->ReTagThis("teta12"));
+   aRes->AddFils(::ToXMLTree(std::string("Teta"),anObj.Teta())->ReTagThis("Teta"));
+   aRes->AddFils(::ToXMLTree(std::string("Phi"),anObj.Phi())->ReTagThis("Phi"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_OrientaRel & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.teta01(),aTree->Get("teta01",1)); //tototo 
+
+   xml_init(anObj.teta02(),aTree->Get("teta02",1)); //tototo 
+
+   xml_init(anObj.teta12(),aTree->Get("teta12",1)); //tototo 
+
+   xml_init(anObj.Teta(),aTree->Get("Teta",1)); //tototo 
+
+   xml_init(anObj.Phi(),aTree->Get("Phi",1)); //tototo 
+}
+
+std::string  Mangling( cXml_OrientaRel *) {return "61A75D9191A5D0ADFD3F";};
+
 // };

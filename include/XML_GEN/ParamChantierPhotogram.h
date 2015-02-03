@@ -6845,5 +6845,45 @@ std::string  Mangling( cMTDCoher *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_OrientaRel
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OrientaRel & anObj,cElXMLTree * aTree);
+
+
+        double & teta01();
+        const double & teta01()const ;
+
+        double & teta02();
+        const double & teta02()const ;
+
+        double & teta12();
+        const double & teta12()const ;
+
+        double & Teta();
+        const double & Teta()const ;
+
+        double & Phi();
+        const double & Phi()const ;
+    private:
+        double mteta01;
+        double mteta02;
+        double mteta12;
+        double mTeta;
+        double mPhi;
+};
+cElXMLTree * ToXMLTree(const cXml_OrientaRel &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OrientaRel &);
+
+void  BinaryUnDumpFromFile(cXml_OrientaRel &,ELISE_fp &);
+
+std::string  Mangling( cXml_OrientaRel *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotPCP
