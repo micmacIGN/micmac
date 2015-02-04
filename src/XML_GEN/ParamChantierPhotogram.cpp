@@ -21036,6 +21036,17 @@ const cTplValGesInit< std::string > & cMMUserEnvironment::LogDirectory()const
    return mLogDirectory;
 }
 
+
+cTplValGesInit< int > & cMMUserEnvironment::VersionNameCam()
+{
+   return mVersionNameCam;
+}
+
+const cTplValGesInit< int > & cMMUserEnvironment::VersionNameCam()const 
+{
+   return mVersionNameCam;
+}
+
 void  BinaryUnDumpFromFile(cMMUserEnvironment & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -21094,6 +21105,14 @@ void  BinaryUnDumpFromFile(cMMUserEnvironment & anObj,ELISE_fp & aFp)
         }
         else  anObj.LogDirectory().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.VersionNameCam().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.VersionNameCam().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.VersionNameCam().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMMUserEnvironment & anObj)
@@ -21112,6 +21131,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMMUserEnvironment & anObj)
     if (anObj.OutputDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.OutputDirectory().Val());
     BinaryDumpInFile(aFp,anObj.LogDirectory().IsInit());
     if (anObj.LogDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.LogDirectory().Val());
+    BinaryDumpInFile(aFp,anObj.VersionNameCam().IsInit());
+    if (anObj.VersionNameCam().IsInit()) BinaryDumpInFile(aFp,anObj.VersionNameCam().Val());
 }
 
 cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
@@ -21132,6 +21153,8 @@ cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
       aRes->AddFils(::ToXMLTree(std::string("OutputDirectory"),anObj.OutputDirectory().Val())->ReTagThis("OutputDirectory"));
    if (anObj.LogDirectory().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("LogDirectory"),anObj.LogDirectory().Val())->ReTagThis("LogDirectory"));
+   if (anObj.VersionNameCam().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("VersionNameCam"),anObj.VersionNameCam().Val())->ReTagThis("VersionNameCam"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21155,9 +21178,11 @@ void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree)
    xml_init(anObj.OutputDirectory(),aTree->Get("OutputDirectory",1)); //tototo 
 
    xml_init(anObj.LogDirectory(),aTree->Get("LogDirectory",1)); //tototo 
+
+   xml_init(anObj.VersionNameCam(),aTree->Get("VersionNameCam",1),int(0)); //tototo 
 }
 
-std::string  Mangling( cMMUserEnvironment *) {return "121CD2EABC920CBEFDBF";};
+std::string  Mangling( cMMUserEnvironment *) {return "BD12249D67431BC5FE3F";};
 
 
 double & cItem::Scale()

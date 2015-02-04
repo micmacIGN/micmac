@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1629]) = {
+const char * (theNameVar_ParamChantierPhotogram[1630]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1586,6 +1586,7 @@ const char * (theNameVar_ParamChantierPhotogram[1629]) = {
 "         <UseSeparateDirectories Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseSeparateDirectories>\n",
 "         <OutputDirectory  Nb=\"?\" Type=\"std::string\">  </OutputDirectory>\n",
 "         <LogDirectory  Nb=\"?\" Type=\"std::string\">  </LogDirectory>\n",
+"         <VersionNameCam Nb=\"?\" Type=\"int\" Def=\"0\"> </VersionNameCam>\n",
 "    </MMUserEnvironment>\n",
 "\n",
 "<SelectionInfos Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

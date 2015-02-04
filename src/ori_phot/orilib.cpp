@@ -3904,14 +3904,17 @@ std::vector<double> StdEtat_F_PP(const cCalibrationInterneUnif & aCIU,const cCal
            case eModele_FishEye_10_5_5 :
            case eModele_EquiSolid_FishEye_10_5_5 :
                {
-                std::vector<double> aVE = aCIU.Etats();
-            if (aVE.empty())
-               aVE.push_back(aCIC.F());
+                    std::vector<double> aVE = aCIU.Etats();
+                    if (aVE.empty())
+                       aVE.push_back(aCIC.F());
                     std::vector<double> aPar = aCIU.Params();
                     if (aPar.empty())
                     {
-                       aPar.push_back(aCIC.PP().x/2.0);
-                       aPar.push_back(aCIC.PP().y/2.0);
+                       aPar.push_back(aCIC.PP().x);  // MPD : je vois pas pourquoi on / par 2 ???
+                       aPar.push_back(aCIC.PP().y);
+
+                       // aPar.push_back(aCIC.PP().x/2.0);
+                       // aPar.push_back(aCIC.PP().y/2.0);
                     }
                     if (aCIU.TypeModele()== eModele_FishEye_10_5_5)
                     {

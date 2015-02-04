@@ -999,6 +999,67 @@ cCalibrationInternConique   CalibInternAutom
 /*                                                */
 /**************************************************/
 
+
+class cNameFileWithExistigChangeVersionNameCam
+{
+    public :
+        cNameFileWithExistigChangeVersionNameCam
+        (
+            const std::string & aDirGlob,
+            cInterfChantierNameManipulateur * anICNM,
+            const std::string & aKey,
+            const std::string & aNamePose
+        ) :
+          mDirG     (aDirGlob),
+          mICNM     (anICNM),
+          mKey      (aKey),
+          mNamePose (aNamePose),
+          mMMU      (const_cast<cMMUserEnvironment&> (MMUserEnv())),
+          mCurNumC  (mMMU.VersionNameCam().Val())
+       {
+       }
+
+       std::string GetName()
+       {
+            std::string aRes0 = TestOnFile(mCurNumC);
+
+            if (ELISE_fp::exist_file(aRes0)) return aRes0;
+
+            for (int aNum=0 ; aNum<2 ; aNum++)
+            {
+                if (aNum!=mCurNumC)
+                {
+                    std::string aRes = TestOnFile(aNum);
+                    if (ELISE_fp::exist_file(aRes)) return aRes;
+                }
+            }
+
+            return aRes0;
+       }
+
+    private :
+
+          std::string TestOnFile(int aNum)
+          {
+               mMMU.VersionNameCam().SetVal(aNum);
+               std::string aRes = mDirG + mICNM->Assoc1To1(mKey,mNamePose,true);
+               mMMU.VersionNameCam().SetVal(mCurNumC);
+               return aRes;
+          }
+          std::string mDirG;
+          cInterfChantierNameManipulateur *mICNM;
+          std::string mKey;
+          std::string mNamePose;
+          cMMUserEnvironment & mMMU;
+          int                  mCurNumC;
+};
+/*
+cMMUserEnvironment & aMMU = const_cast<cMMUserEnvironment&> (MMUserEnv());
+aMMU.VersionNameCam().SetVal(1);
+std::string NameFileWithExistigChangeVersionNameCam(const std::string & aKey,const std::string & aNamePose
+                  aSEF.NameFile() = anAppli.ICNM()->Assoc1To1(aCPP.KeyInitFromPose().Val(),aPC->Name(),true);
+*/
+
 void cAppliApero::NormaliseScTr(CamStenope & aCam)
 {
    aCam.StdNormalise(mParam.NormaliseEqSc().Val(),mParam.NormaliseEqTr().Val());
@@ -1025,6 +1086,13 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
 
     if ((!Done) && (aCCI.CalFromFileExtern().IsInit()))
     {
+
+        std::string aDirAdd =  aCCI.Directory().Val();
+        if ( isUsingSeparateDirectories() )
+            aDirAdd = MMOutputDirectory() + aDirAdd;
+        else if (aCCI.AddDirCur().Val())
+            aDirAdd = anAppli.DC() + aDirAdd;
+
         cSpecExtractFromFile aSEF = aCCI.CalFromFileExtern().Val();
         if (aPC)
         {
@@ -1032,15 +1100,22 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
             cCalibPerPose aCPP = aCCI.CalibPerPose().Val();
             if (aCPP.KeyInitFromPose().IsInit())
             {
-                  aSEF.NameFile() = anAppli.ICNM()->Assoc1To1(aCPP.KeyInitFromPose().Val(),aPC->Name(),true);
+               cNameFileWithExistigChangeVersionNameCam aNWECV(aDirAdd,anAppli.ICNM(),aCPP.KeyInitFromPose().Val(),aPC->Name());
+
+
+               aSEF.NameFile() = aNWECV.GetName();
+               // aSEF.NameFile() = anAppli.ICNM()->Assoc1To1(aCPP.KeyInitFromPose().Val(),aPC->Name(),true);
             }
         }
 
+/*
         std::string aFullName = aCCI.Directory().Val()+ aSEF.NameFile();
         if ( isUsingSeparateDirectories() )
             aFullName = MMOutputDirectory() + aFullName;
         else if (aCCI.AddDirCur().Val())
             aFullName = anAppli.DC() + aFullName;
+*/
+        std::string aFullName = aDirAdd + aSEF.NameFile(); 
         aTestFullName = aFullName;
 
 
