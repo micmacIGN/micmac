@@ -143,7 +143,8 @@ class cElemAppliSetFile
 };
 
 
-std::string PatFileOfImSec(const std::string & aDir,const std::string & anOri);
+std::string PatFileOfImSec(const std::string & anOri);
+std::string DirAndPatFileOfImSec(const std::string & aDir,const std::string & anOri);
 
 
 
@@ -170,6 +171,7 @@ class cAppliWithSetImage
   
       cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI="");
       std::string PatFileOfImSec() const;
+      std::string DirAndPatFileOfImSec() const;
       void SuppressSom(tSomAWSI & aSom);
 
    protected :

@@ -77,7 +77,8 @@ class cAppli_C3DC : public cAppliWithSetImage
          std::string mOriFull;
 
          std::string mArgMasq3D;
-         std::string mStrImOri;
+         std::string mStrImOri0;
+         std::string mStrImOriApSec;
          std::string mBaseComMMByP;
          std::string mBaseComEnv;
          std::string mComMerge;
@@ -155,7 +156,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 
    if (! EAMIsInit(&mMergeOut)) mMergeOut = "C3DC_"+ mStrType + ".ply";
 
-   mStrImOri =  BLANK + QUOTE(mEASF.mFullName) +  BLANK + Ori() + BLANK;
+   mStrImOri0  =  BLANK + QUOTE(mEASF.mFullName) +  BLANK + Ori() + BLANK;
+   mStrImOriApSec = BLANK +  DirAndPatFileOfImSec() +  BLANK + Ori() + BLANK;
    mArgMasq3D = "";
    if (EAMIsInit(&mMasq3D))
       mArgMasq3D = std::string(" Masq3D=" + mMasq3D + BLANK) ;
@@ -165,13 +167,13 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 
    mBaseComMMByP =    MM3dBinFile("MMByP ")
                    +  BLANK + mStrType
-                   +  mStrImOri
+                   +  mStrImOri0
                    +  mArgMasq3D;
 
 
   //=====================================
    mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ")
-                   +  mStrImOri
+                   +  mStrImOriApSec
                    +  std::string(" 16 ")  + ToString(mZoomF) + " " 
                    +  mArgMasq3D
                    +  std::string(" AutoPurge=") + ToString(mPurge)
@@ -188,7 +190,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
   //=====================================
 
   mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
-                +  mStrImOri + " ModeMerge=" + mStrType
+                +  mStrImOri0 + " ModeMerge=" + mStrType
                 +  " DownScale=" +ToString(mDS)
                ;
 
@@ -301,20 +303,23 @@ class cChantierFromMPI
          
        cMMByImNM *    mMMI;
        std::string    mOri;
-       std::string    mStrImOri;
+
+       std::string    mStrImOri0; // les initiales
+
        std::string    mStrType;
        std::string    mFullDirPIm;
        std::string    mFullDirChantier;
+
 };
 
 
 cChantierFromMPI::cChantierFromMPI(const std::string & aStr,double aScale) :
     mMMI             (cMMByImNM::FromExistingDirOrMatch(aStr,aScale)),
     mOri             (mMMI->Etat().NameOri().ValWithDef("")),
-    mStrImOri        (std::string(" ") + mMMI->KeyFileLON() + " " + mOri),
-    mStrType         (mMMI->NameType()),
-    mFullDirPIm      (mMMI->FullDir()),
-    mFullDirChantier (mMMI->DirGlob())
+    mStrImOri0        (std::string(" ") + mMMI->KeyFileLON() + " " + mOri),
+    mStrType           (mMMI->NameType()),
+    mFullDirPIm        (mMMI->FullDir()),
+    mFullDirChantier   (mMMI->DirGlob())
 {
     if (mOri=="")
     {
@@ -357,7 +362,7 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
     mCFPI = new cChantierFromMPI(mName,mDS);
  
     mComNuageMerge =       MM3dBinFile("TestLib  MergeCloud ")
-                  +   mCFPI-> mStrImOri 
+                  +   mCFPI-> mStrImOri0
                   + " ModeMerge=" + mCFPI->mStrType
                   + " DownScale=" +ToString(mDS)
                   + " PlyCoul=true"
