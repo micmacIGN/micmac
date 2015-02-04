@@ -42,10 +42,16 @@ const std::string TheDIRMergeEPI(){return  "MTD-Image-";}
 
 extern double DynCptrFusDepthMap;
 
-std::string PatFileOfImSec(const std::string & aDir,const std::string & anOri)
+std::string PatFileOfImSec(const std::string & anOri)
 {
-   return aDir + "%NKS-Set-OfFile@Ori-" + anOri + "/FileImSel.xml";
+   return  "NKS-Set-OfFile@Ori-" + anOri + "/FileImSel.xml";
 }
+std::string DirAndPatFileOfImSec(const std::string & aDir,const std::string & anOri)
+{
+   return aDir + "%" + PatFileOfImSec(anOri);
+}
+
+
 
 
 
@@ -361,7 +367,12 @@ const  std::string BLANK(" ");
 
 std::string  cAppliWithSetImage::PatFileOfImSec() const
 {
-   return ::PatFileOfImSec(mEASF.mDir,mOri);
+   return ::PatFileOfImSec(mOri);
+}
+
+std::string  cAppliWithSetImage::DirAndPatFileOfImSec() const
+{
+   return ::DirAndPatFileOfImSec(mEASF.mDir,mOri);
 }
 
 
@@ -581,7 +592,7 @@ void cAppliWithSetImage::FilterImageIsolated()
    {
         for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
         {
-              if (BoolFind(*mSetImNoMasq,(*anITS).attr().mIma->mNameIm))
+              if (! BoolFind(*mSetImNoMasq,(*anITS).attr().mIma->mNameIm))
                  SuppressSom(*anITS);
         }
    }
