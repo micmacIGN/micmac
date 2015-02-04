@@ -230,6 +230,24 @@
            <Key>  NKS-Set-OfExistingPlan </Key>
     </KeyedSetsOfNames>
 
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                Calib Initiale                     -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  false </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-IsFishEye </Key>
+    </KeyedNamesAssociations>
+
+
 
 
         <!-- ***********************************************   -->
@@ -474,6 +492,7 @@
 
                <!--  Gestion des nom lies aux focales -->
 
+<!--
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
         <Calcs>
@@ -487,6 +506,27 @@
         </Calcs>
         <Key>   NKS-Assoc-StdNameCalib </Key>
     </KeyedNamesAssociations>
+-->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>   </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-StdIdCam </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>   </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-StdIdAdditionnelCam </Key>
+    </KeyedNamesAssociations>
 
 
 
@@ -494,7 +534,7 @@
         <IsParametrized>  true </IsParametrized>
         <Calcs>
             <Direct>
-                <PatternTransform> .*%([0-9]+) </PatternTransform>
+                <PatternTransform> .*%([0-9,a-z,A-Z,_,=]+) </PatternTransform>
                 <CalcName>  #1$1#2  </CalcName>
                 <NameTransfo>
                         <AddFocMul> 10 </AddFocMul>
@@ -506,12 +546,21 @@
 
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
+
+        <Calcs>
+            <Direct>
+                <PatternTransform> TheKeyCalib_(.*) </PatternTransform>
+                <CalcName>  #1$1#2  </CalcName>
+             </Direct>
+        </Calcs>
+
         <Calcs>
             <Direct>
                 <PatternTransform> .*_([0-9]+) </PatternTransform>
                 <CalcName>  #1$1#2  </CalcName>
              </Direct>
         </Calcs>
+
         <Calcs>
             <Direct>
                 <PatternTransform> .* </PatternTransform>

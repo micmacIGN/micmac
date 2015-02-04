@@ -6737,6 +6737,9 @@ class cMMUserEnvironment
 
         cTplValGesInit< std::string > & LogDirectory();
         const cTplValGesInit< std::string > & LogDirectory()const ;
+
+        cTplValGesInit< int > & VersionNameCam();
+        const cTplValGesInit< int > & VersionNameCam()const ;
     private:
         cTplValGesInit< std::string > mTiePDetect;
         cTplValGesInit< std::string > mTiePMatch;
@@ -6745,6 +6748,7 @@ class cMMUserEnvironment
         cTplValGesInit< bool > mUseSeparateDirectories;
         cTplValGesInit< std::string > mOutputDirectory;
         cTplValGesInit< std::string > mLogDirectory;
+        cTplValGesInit< int > mVersionNameCam;
 };
 cElXMLTree * ToXMLTree(const cMMUserEnvironment &);
 

@@ -1584,6 +1584,7 @@
          <UseSeparateDirectories Nb="?" Type="bool" Def="false"> </UseSeparateDirectories>
          <OutputDirectory  Nb="?" Type="std::string">  </OutputDirectory>
          <LogDirectory  Nb="?" Type="std::string">  </LogDirectory>
+         <VersionNameCam Nb="?" Type="int" Def="0"> </VersionNameCam>
     </MMUserEnvironment>
 
 <SelectionInfos Nb="1" Class="true" ToReference="true">
