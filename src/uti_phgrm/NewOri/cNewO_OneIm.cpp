@@ -37,61 +37,11 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#ifndef _ELISE_NEW_ORI_H
-#define _ELISE_NEW_ORI_H
-
-#include "StdAfx.h"
-
-class cNewO_OneIm;
-class cNewO_CpleIm;
-class cNewO_Appli;
-
-class cNewO_OneIm
-{
-    public :
-            cNewO_OneIm
-            (
-                 const std::string  & aName
-            );
-    private :
-};
-
-class cNewO_CpleIm
-{
-    public :
-          cNewO_CpleIm
-          (
-                cNewO_OneIm * aI1,
-                cNewO_OneIm * aI2
-          );
-    private :
-       
-};
-
-
-class cNewO_NameManager
-{
-     public :
-           cNewO_NameManager
-           (
-               const std::string  & aDir,
-               const std::string  & anOri,
-               const std::string  & PostTxt
-           );
-           CamStenope * CamOfName(const std::string & aName);
-
-     private :
-           cInterfChantierNameManipulateur * mICNM;
-           std::string                       mDir;
-           std::string                       mOriCal;
-           std::string                       mPostHom;
-};
+#include "NewOri.h"
 
 
 
 
-
-#endif // _ELISE_NEW_ORI_H
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

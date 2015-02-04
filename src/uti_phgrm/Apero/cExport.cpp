@@ -371,6 +371,7 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
                }
                else
                {
+
 	          MakeFileXML(anOC,aNXml,Engl);
                }
 
