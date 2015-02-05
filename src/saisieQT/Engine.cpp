@@ -16,28 +16,6 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 {
     return GlCloud::loadPly( i_ply_file, incre );
 }
-#include "sys/types.h"
-#include "sys/sysinfo.h"
-void cLoader::memory()
-{
-
-	struct sysinfo memInfo;
-
-
-		sysinfo (&memInfo);
-//		long long totalVirtualMem = memInfo.totalram;
-		//Add other values in next statement to avoid int overflow on right hand side...
-//		totalVirtualMem += memInfo.totalswap;
-//		totalVirtualMem *= memInfo.mem_unit;
-
-	long long physMemUsed = memInfo.totalram - memInfo.freeram;
-	//Multiply in next statement to avoid int overflow on right hand side...
-	physMemUsed *= memInfo.mem_unit;
-
-	//DUMP((int)((float)physMemUsed/(1024*1024)))
-
-	qDebug() << "MEMORY" <<  physMemUsed/(1024*1024);
-}
 
 void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor)
 {

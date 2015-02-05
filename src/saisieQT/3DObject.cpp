@@ -1574,9 +1574,17 @@ cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
     _m_mask->setSize(size);
 }
 
+#ifdef _WIN32
+PFNGLBLENDCOLOREXTPROC glBlendColor;
+PFNGLBLENDEQUATIONEXTPROC glBlendEquation;
+#endif
 
 void cMaskedImageGL::draw()
 {
+#ifdef _WIN32
+	glBlendColor = (PFNGLBLENDCOLOREXTPROC)wglGetProcAddress("glBlendColor");
+	glBlendEquation = (PFNGLBLENDEQUATIONEXTPROC)wglGetProcAddress("glBlendEquation");
+#endif
 
     glEnable(GL_BLEND);
     glDisable(GL_ALPHA_TEST);
