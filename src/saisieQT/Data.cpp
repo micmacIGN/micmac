@@ -46,9 +46,11 @@ void cData::addCamera(CamStenope * aCam)
     _Cameras.push_back(aCam);
 }
 
-void cData::pushBackMaskedImage(QMaskedImage maskedImage)
+void cData::pushBackMaskedImage(QMaskedImage *maskedImage)
 {
+
     _MaskedImages.push_back(maskedImage);
+
 }
 
 void cData::clearClouds()
@@ -109,7 +111,11 @@ void cData::clear(int aK)
             _Cameras[aK] = NULL;
         }
     }
-    if (_MaskedImages.size())   _MaskedImages[aK].deallocImages();
+	if (_MaskedImages.size())
+	{
+		if(_MaskedImages[aK])
+			delete _MaskedImages[aK];
+	}
 }
 
 int cData::idPolygon(cPolygon *polygon)
