@@ -66,7 +66,7 @@ public:
       OpShow_Axis   = 0x02,
       OpShow_BBox   = 0x04,
       OpShow_Mess   = 0x08,
-      OpShow_Cams   = 0x10,
+	  OpShow_Cams   = 0x10,
       OpShow_Grid   = 0x20,
       //OpShow_Cent   = 0x40
       // ...
