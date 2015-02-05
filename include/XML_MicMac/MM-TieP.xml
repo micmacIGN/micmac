@@ -56,8 +56,8 @@
              <ZIncCalc>   0.0  </ZIncCalc>
       </IntervAltimetrie>
       <IntervSpecialZInv >
-             <MulZMin >  0.3</MulZMin>
-             <MulZMax >  3.0 </MulZMax>
+             <MulZMin >  0.99</MulZMin>
+             <MulZMax >  1.01 </MulZMax>
       </IntervSpecialZInv>
 </Section_Terrain>
 
