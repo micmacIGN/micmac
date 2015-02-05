@@ -477,9 +477,10 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     shortcuts.push_back(tr("File Menu"));
     actions.push_back("");
 
-    QString Ctrl = "Ctrl+";
     #ifdef ELISE_Darwin
-        Ctrl="Cmd+";
+		QString Ctrl="Cmd+";
+	#else
+		QString Ctrl = "Ctrl+";
     #endif
 
     if (_appMode == MASK3D)
@@ -993,16 +994,16 @@ void SaisieQtWindow::setCurrentFile(const QString &fileName)
 
     settings.setValue("recentFileList", files);
 
-    foreach (QWidget *widget, QApplication::topLevelWidgets())
-    {
-        #if WINVER == 0x0601
-            SaisieQtWindow *mainWin = dynamic_cast<SaisieQtWindow *>(widget);
-        #else
-            SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
-        #endif
-        if (mainWin)
-            mainWin->updateRecentFileActions();
-    }
+	foreach (QWidget *widget, QApplication::topLevelWidgets())
+	{
+		#if WINVER == 0x0601
+			SaisieQtWindow *mainWin = dynamic_cast<SaisieQtWindow *>(widget);
+		#else
+			SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
+		#endif
+		if (mainWin)
+			mainWin->updateRecentFileActions();
+	}
 
 }
 
