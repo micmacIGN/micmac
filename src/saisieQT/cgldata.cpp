@@ -176,6 +176,9 @@ void cGLData::initOptions(int appMode)
 
 cGLData::~cGLData()
 {
+
+	//DUMP("Delete")
+
     _glMaskedImage.deleteTextures();
     _glMaskedImage.deallocImages();
 
@@ -218,6 +221,10 @@ void cGLData::draw()
         {
             for (int aK=0; aK< glTiles().size(); ++aK)
                 glTiles()[aK]->draw();
+
+			 glImage().glImage()->setVisible(false);
+			 glImage().draw();
+
         }
     }
     else
@@ -288,27 +295,28 @@ void cGLData::createTiles()
 {
     int maxTextureSize;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-    maxTextureSize /= 2;
+	maxTextureSize /= 2;
 
-    int fullRes_image_sizeX = _glMaskedImage.glImage()->width();
-    int fullRes_image_sizeY = _glMaskedImage.glImage()->height();
 
-    unsigned int nbTilesX = qCeil((float) fullRes_image_sizeX / maxTextureSize);
-    unsigned int nbTilesY = qCeil((float) fullRes_image_sizeY / maxTextureSize);
+	QSize fullSize	= _glMaskedImage.fullSize();
 
-    nbTilesX /= 2;
-    nbTilesY /= 2;
+
+	unsigned int nbTilesX = 6*qCeil((float) fullSize.width() / maxTextureSize);
+	unsigned int nbTilesY = 6*qCeil((float) fullSize.height()/ maxTextureSize);
+
+//	nbTilesX /= 2;
+//	nbTilesY /= 2;
 //    cout << "tile size : " << fullRes_image_sizeX/ nbTilesX << " " <<  fullRes_image_sizeY/ nbTilesY << endl;
 
-    int tileWidth  = fullRes_image_sizeX / nbTilesX;
-    int tileHeight = fullRes_image_sizeY / nbTilesY;
+	QSize stile(fullSize.width()/nbTilesX,fullSize.height()/nbTilesY);
+
 
 //    cout << "NB TILES (ROW - COL) = " << nbTilesX << "x" << nbTilesY << endl;
 
     for (unsigned int aK=0; aK< nbTilesX; aK++)
         for (unsigned int bK=0; bK< nbTilesY; bK++)
         {
-            QRectF rect(QPointF(aK*tileWidth, bK*tileHeight),QPointF((aK+1)*tileWidth, (bK+1)*tileHeight));
+			QRectF rect(QPointF(aK*stile.width(), bK*stile.height()),QPointF((aK+1)*stile.width(), (bK+1)*stile.height()));
 
             cMaskedImageGL* tile = new cMaskedImageGL(rect);
 
@@ -365,7 +373,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 
     for (int aK=0; aK < _vClouds.size();++aK)
     {
-        float sqrD;
+
         float dist = FLT_MAX;
         idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
         QPointF proj;
@@ -376,7 +384,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
         {
             mm.getProjection(proj, a_cloud->getVertex( bK ).getPosition());
 
-            sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
+			const float sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
 
             if (sqrD < dist )
             {
@@ -439,26 +447,33 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         path = path.subtracted(inner);
     }
 
+//	QColor colorSelect(Qt::white);
+//	QColor colorUnSelect(Qt::black);
+
+
+	QColor colorSelect(Qt::black);
+	QColor colorUnSelect(Qt::white);
+
     if(mode == ADD_INSIDE || mode == ADD_OUTSIDE)
     {
         if (m_bFirstAction)
-            p.fillRect(rect, Qt::white);
+			p.fillRect(rect, colorSelect);
 
-        p.setBrush(QBrush(Qt::black));
+		p.setBrush(QBrush(colorUnSelect));
         p.drawPath(path);
     }
     else if(mode == SUB_INSIDE || mode == SUB_OUTSIDE)
     {
-        p.setBrush(QBrush(Qt::white));
+		p.setBrush(QBrush(colorSelect));
         p.drawPath(path);
     }
     else if(mode == ALL)
 
-        p.fillRect(rect, Qt::black);
+		p.fillRect(rect, colorUnSelect);
 
     else if(mode == NONE)
 
-        p.fillRect(rect, Qt::white);
+		p.fillRect(rect, colorSelect);
 
     p.end();
 
@@ -468,30 +483,30 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
     _glMaskedImage._m_mask->createTexture(getMask());
 
-    if ( getDrawTiles() )
-    {
+//    if ( getDrawTiles() )
+//    {
 
-        for (int aK=0; aK < glTiles().size(); ++aK)
-        {
-            cMaskedImageGL * tile = glTiles()[aK];
-            cImageGL * glMaskTile = tile->glMask();
+//        for (int aK=0; aK < glTiles().size(); ++aK)
+//        {
+//            cMaskedImageGL * tile = glTiles()[aK];
+//            cImageGL * glMaskTile = tile->glMask();
 
-            Pt3dr pos = glMaskTile->getPosition();
-            QSize sz  = glMaskTile->getSize();
-            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
+//            Pt3dr pos = glMaskTile->getPosition();
+//            QSize sz  = glMaskTile->getSize();
+//            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
 
-            if (rectImg.intersects(rectPoly))
-            {
-                QRect rescaled_rect = trans.mapRect(rectImg.toAlignedRect());
+//            if (rectImg.intersects(rectPoly))
+//            {
+//                QRect rescaled_rect = trans.mapRect(rectImg.toAlignedRect());
 
-                QImage mask_crop = getMask()->copy(rescaled_rect).scaled(sz, Qt::KeepAspectRatio);
+//                QImage mask_crop = getMask()->copy(rescaled_rect).scaled(sz, Qt::KeepAspectRatio);
 
-                tile->getMaskedImage()->_m_mask = &mask_crop;
+//                tile->getMaskedImage()->_m_mask = &mask_crop;
 
-                glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
-            }
-        }
-    }
+//                glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
+//            }
+//        }
+//    }
 }
 
 void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)

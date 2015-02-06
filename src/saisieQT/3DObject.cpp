@@ -77,7 +77,7 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
     float theta = 2.f * PI / float(steps);
     float c = cosf(theta); //precalculate the sine and cosine
     float s = sinf(theta);
-    float t;
+//    float t;
 
     float x = r; //we start at angle = 0
     float y = 0;
@@ -97,7 +97,7 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
         glVertex3fv(P);
 
         //apply the rotation matrix
-        t = x;
+		float t = x;
         x = c * x - s * y;
         y = s * t + c * y;
     }
@@ -106,34 +106,31 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 
 void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO step Auto....
 {
-    float theta = 2.f * PI / float(steps);
-
-    float x,y,z = 0.f;
+	const float theta = 2.f * PI / float(steps);
 
     glBegin(GL_LINE_LOOP);
     for(float t = 0.f; t <= 2.f * PI; t+= theta)
     {
-        x = cx + rx*sinf(t);
-        y = cy + ry*cosf(t);
 
-        glVertex3f(x,y,z);
+		const float x = cx + rx*sinf(t);
+		const float y = cy + ry*cosf(t);
+
+		glVertex3f(x,y,0.f);
     }
     glEnd();
 }
 
 void glDrawEllipsed(double cx, double cy, double rx, double ry, int steps) // TODO step Auto....
 {
-    double theta = 2.f * PI / double(steps);
-
-    double x,y,z = 0.f;
+	const double theta = 2.f * PI / double(steps);
 
     glBegin(GL_LINE_LOOP);
     for(double t = 0.f; t <= 2.f * PI; t+= theta)
     {
-        x = cx + rx*std::sin(t);
-        y = cy + ry*std::cos(t);
+		const float x = cx + rx*std::sin(t);
+		const float y = cy + ry*std::cos(t);
 
-        glVertex3d(x,y,z);
+		glVertex3d(x,y,0.f);
     }
     glEnd();
 }
@@ -1042,17 +1039,17 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
     {
         resetSelectedPoint();
 
-        float dist, dist2, x, y, dx, dy;
+		float dist2, x, y;
         dist2 = radius*radius;
         x = pos.x();
         y = pos.y();
 
         for (int aK = 0; aK < size(); ++aK)
         {
-            dx = x - point(aK).x();
-            dy = y - point(aK).y();
+			const float dx = x - point(aK).x();
+			const float dy = y - point(aK).y();
 
-            dist = dx * dx + dy * dy;
+			const float dist = dx * dx + dy * dy;
 
             if  (dist < dist2)
             {
@@ -1263,11 +1260,11 @@ void cPolygonHelper::build(cPoint const &pos, bool insertMode)
 
     if (insertMode)
     {
-        float dist, dist2 = FLT_MAX;
+		float dist2 = FLT_MAX;
         int idx = -1;
         for (int aK =0; aK < sz; ++aK)
         {
-            dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%sz], pos);
+			const float dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%sz], pos);
 
             if (dist < dist2)
             {
@@ -1427,14 +1424,19 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
 void cImageGL::draw()
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, _texture );
 
-    if(_gamma != 1.0f)
-    {
-        _program.bind();
-        _program.setUniformValue(_texLocation, GLint(0));
-        _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
-    }
+	if(_texture != GL_INVALID_LIST_ID)
+	{
+		glBindTexture( GL_TEXTURE_2D, _texture );
+
+		if(_gamma != 1.0f)
+		{
+			_program.bind();
+			_program.setUniformValue(_texLocation, GLint(0));
+			_program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
+		}
+
+	}
 
     drawQuad(Qt::white);
 
@@ -1463,20 +1465,26 @@ bool cImageGL::isPtInside(const QPointF &pt)
 
 void cImageGL::createTexture(QImage * pImg)
 {
-    glGenTextures(1, getTexture() );
+
+	if(!pImg || pImg->isNull())
+		return;
+
+    glGenTextures(1, getTexture() );	
 
     ImageToTexture(pImg);
 }
 
 void cImageGL::ImageToTexture(QImage *pImg)
 {
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, _texture );
 
+    glEnable(GL_TEXTURE_2D);
+
+    glBindTexture( GL_TEXTURE_2D, _texture );
     if (pImg->format() == QImage::Format_Indexed8)
         glTexImage2D( GL_TEXTURE_2D, 0, 3, pImg->width(), pImg->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, pImg->bits());
     else
         glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
+
 
     /*GLenum glErrorT = glGetError();
     if(glErrorT == GL_OUT_OF_MEMORY)
@@ -1487,14 +1495,16 @@ void cImageGL::ImageToTexture(QImage *pImg)
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_2D);
 }
 
 void cImageGL::deleteTexture()
 {
-    if(_texture != GL_INVALID_LIST_ID)
+
+	if(_texture != GL_INVALID_LIST_ID)
         glDeleteTextures(1,&_texture);
-    _texture = GL_INVALID_LIST_ID;
+	_texture = GL_INVALID_LIST_ID;
+
 }
 
 void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
@@ -1564,30 +1574,44 @@ cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
     _m_mask->setSize(size);
 }
 
+#ifdef _WIN32
+PFNGLBLENDCOLOREXTPROC glBlendColor;
+PFNGLBLENDEQUATIONEXTPROC glBlendEquation;
+#endif
 
 void cMaskedImageGL::draw()
 {
+#ifdef _WIN32
+	glBlendColor = (PFNGLBLENDCOLOREXTPROC)wglGetProcAddress("glBlendColor");
+	glBlendEquation = (PFNGLBLENDEQUATIONEXTPROC)wglGetProcAddress("glBlendEquation");
+#endif
 
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE,GL_ZERO);
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_DEPTH_TEST);
 
-    glColor4f(1.0f,1.0f,1.0f,1.0f);
+	if(glImage()->isVisible())
+	{
+		glBlendFunc(GL_ONE,GL_ZERO);		
+		glImage()->draw();
+	}
 
-    if(glMask() != NULL && glMask()->isVisible())
-    {
-        glMask()->draw();
+	if(glMask() != NULL && glMask()->isVisible())
+	{
 
-        glBlendFunc(GL_ONE,GL_ONE);
-        glMask()->draw(QColor(128,255,128));
-        glBlendFunc(GL_DST_COLOR,GL_ZERO);
-        glColor4f(1.0f,1.0f,1.0f,1.0f);
-    }
+		glBlendColor(1.f,0.1f,1.f,1.0f);
+		glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+		glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
+		glMask()->draw();
 
-    glImage()->draw();
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendColor(0.f,0.2f,0.f,1.0f);
+		glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
+		glMask()->draw();
+	}
 
     glDisable(GL_BLEND);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
 }
@@ -1642,23 +1666,92 @@ void cMaskedImageGL::drawImgTiles()
 
 void cMaskedImageGL::createTextures()
 {
-    if( glMask() && glMask()->isVisible())
-    {
-        glMask()->createTexture( _qMaskedImage->_m_rescaled_mask );
-        glMask()->setSize( _qMaskedImage->_m_mask->size() );
-    }
+	_mutex.tryLock();
+	if( _qMaskedImage)
+	{
+		if( glMask() && glMask()->isVisible() )
+		{
 
-    if(glImage() && glImage()->isVisible())
-    {
-        glImage()->createTexture( _qMaskedImage->_m_rescaled_image );
-        glImage()->setSize( _qMaskedImage->_m_image->size() );
-    }
+			glMask()->createTexture( _qMaskedImage->_m_rescaled_mask );
+
+			if(!_qMaskedImage->_fullSize.isNull())
+			{
+				glMask()->setSize( _qMaskedImage->_fullSize);
+			}
+			else
+				glMask()->setSize( _qMaskedImage->_m_mask->size() );
+		}
+		if(glImage() && glImage()->isVisible())
+		{
+			if(getLoadedImageRescaleFactor() < 1.f)
+				glImage()->createTexture( _qMaskedImage->_m_rescaled_image );
+			else
+				glImage()->createTexture( _qMaskedImage->_m_image );
+
+			if(!_qMaskedImage->_fullSize.isNull())
+			{
+				glImage()->setSize( _qMaskedImage->_fullSize );
+			}
+			else
+				glImage()->setSize( _qMaskedImage->_m_image->size() );
+
+		}
+	}
+	_mutex.unlock();
+}
+
+void cMaskedImageGL::createFullImageTexture()
+{
+	if(glImage() && glImage()->isVisible())
+	{
+		_mutex.tryLock();
+		if(_qMaskedImage)
+		{
+			glImage()->createTexture( _qMaskedImage->_m_image );
+			delete _qMaskedImage;
+			_qMaskedImage = NULL;
+		}
+		_mutex.unlock();
+	}
+
+}
+
+void cMaskedImageGL::copyImage(QMaskedImage* image, QRect& rect)
+{
+	_mutex.tryLock();
+	if(!_qMaskedImage)
+		_qMaskedImage = new QMaskedImage();
+
+	_qMaskedImage->_m_image = new QImage(rect.size(),QImage::Format_Mono);
+
+	QImage* tImage = getMaskedImage()->_m_image;
+
+	QImage* sourceImage = image->_m_image;
+
+	*(tImage) = sourceImage->copy(rect);
+
+	_mutex.unlock();
+}
+
+QSize cMaskedImageGL::fullSize()
+{
+
+	_mutex.tryLock();
+	if(getMaskedImage() && !getMaskedImage()->_fullSize.isNull())
+	{
+		QSize lfullSize	= _qMaskedImage->_fullSize;
+		return lfullSize;
+	}
+	else
+		return glImage()->getSize();
+
+	_mutex.unlock();
 }
 
 void cMaskedImageGL::deleteTextures()
 {
-    if(glMask())
-        glMask()->deleteTexture(); //TODO segfault (undo)
+	if(glMask())
+		glMask()->deleteTexture(); //TODO segfault (undo)
     if(glImage())
         glImage()->deleteTexture();
 }
@@ -1687,7 +1780,7 @@ void cObjectGL::enableOptionLine()
 
 void cObjectGL::disableOptionLine()
 {
-    glDisable(GL_BLEND);
+	glDisable(GL_BLEND);
     glDisable(GL_LINE_SMOOTH);
     //glEnable(GL_DEPTH_TEST);
 }
