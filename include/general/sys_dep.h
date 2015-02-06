@@ -131,7 +131,7 @@ Header-MicMac-eLiSe-25/06/2007*/
     #define ELISE_STR_DIR "/"
 	// the character separating directories in PATH environment variable
     #define ELISE_CAR_ENV ';'
-        #define isinf(x) (!_finite(x))
+    #define isinf(x) (!_finite(x))
 #else
 	#include <cmath>
 	#define std_isnan std::isnan 

@@ -42,11 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*
 */
 
-
-
 bool IsGoodVal(const double & aV)
 {
-   return (!std_isnan(aV)) && (!std::isinf(aV));
+	return (!std_isnan(aV)) && (!std_isinf(aV));
 }
 bool IsGoodVal(const Pt2dr & aP)
 {
