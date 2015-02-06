@@ -120,6 +120,12 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
 
         resetView(doZoom, showMessage, showCams, true, resetPoly);
     }
+	else
+	{
+		m_GLData = NULL;
+		if(doZoom)
+			reset();
+	}
 }
 
 cPolygon *GLWidget::polygon(int id){ return m_GLData->polygon(id); }
@@ -618,16 +624,16 @@ void GLWidget::Select(int mode, bool saveInfos)
 {
     if (hasDataLoaded())
     {
-        cPolygon polyg = *polygon();
+		cPolygon *polyg = polygon();
 
         if(mode <= ADD_OUTSIDE)
         {
-           if (polyg.size() == 0)
+		   if (polyg->size() == 0)
            {
                QMessageBox::warning(this,tr("Warning"), tr("Draw a polygon first\n\nLeft clic:\tadd vertex\nRight clic:\tclose polygon"));
                return;
            }
-           else  if ((polyg.size() < 3) || (!polyg.isClosed()))
+		   else  if ((polyg->size() < 3) || (!polyg->isClosed()))
                return;
         }
 
@@ -989,8 +995,8 @@ void GLWidget::enterEvent(QEvent *event)
 {
     // TODO : pourquoi
     // peut etre capter les mvts de souris en dehors de la fenetre
-    setFocus(Qt::ActiveWindowFocusReason);
-    setFocusPolicy(Qt::StrongFocus);
+	setFocus(Qt::ActiveWindowFocusReason);
+	setFocusPolicy(Qt::StrongFocus);
 
     emit overWidget(this);
 }

@@ -938,10 +938,13 @@ void SaisieQtWindow::closeAll(bool check)
 
     emit sCloseAll();
 
-    _Engine->unloadAll();
+	const int nbWidg = nbWidgets();
 
-    for (int aK=0; aK < nbWidgets(); ++aK)
-        getWidget(aK)->reset();
+	for (int idGLW = 0; idGLW < nbWidg; ++idGLW)
+
+		getWidget(idGLW)->setGLData(NULL);
+
+    _Engine->unloadAll();
 
     if (zoomWidget() != NULL)
     {
@@ -1435,19 +1438,25 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 
 void SaisieQtWindow::undo(bool undo)
 {
+	// TODO seg fault dans le undo à cause de la destruction des images...
+
     if (_appMode <= MASK3D)
     {
         if (currentWidget()->getHistoryManager()->size())
         {
+
             if ((_appMode != MASK3D) && undo)
             {
                 int idx = currentWidgetIdx();
 
+				currentWidget()->setGLData(NULL, _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),false,false);
                 //_Engine->reloadImage(_appMode, idx);
                 _Engine->reloadMask(_appMode, idx);
 
-                currentWidget()->setGLData(_Engine->getGLData(idx), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(), false);
+				currentWidget()->setGLData(_Engine->getGLData(idx), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(), false,false);
             }
+
+
 
             undo ? currentWidget()->getHistoryManager()->undo() : currentWidget()->getHistoryManager()->redo();
             currentWidget()->applyInfos();

@@ -664,7 +664,7 @@ void cPoint::glDraw()
 float cPolygon::_selectionRadius = 10.f;
 
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(this, 3, lineWidth)),
+	_helper(new cPolygonHelper(this, 3, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
@@ -676,7 +676,15 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     _maxSz(maxSz)
 {
     setColor(pointColor);
-    setLineWidth(lineWidth);
+	setLineWidth(lineWidth);
+}
+
+cPolygon::~cPolygon()
+{
+	if(_helper)
+	{
+		delete _helper;
+	}
 }
 
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
@@ -734,7 +742,11 @@ void cPolygon::draw()
         disableOptionLine();
     }
 
-    if(helper() != NULL)  helper()->draw();
+
+	if(helper() != NULL)
+	{
+		helper()->draw();
+	}
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -970,11 +982,16 @@ void cPolygon::setVector(const QVector<QPointF> &aPts)
     }
 }
 
+void cPolygon::setHelper(cPolygonHelper* aHelper) {
+
+	_helper = aHelper;
+}
+
 void cPolygon::setPointSelected()
 {
-    _bSelectedPoint = true;
+	_bSelectedPoint = true;
 
-    if (pointValid())
+	if (pointValid())
         point(_idx).setSelected(true);
 }
 
@@ -1229,8 +1246,12 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
 //********************************************************************************
 
 cPolygonHelper::cPolygonHelper(cPolygon* polygon, int maxSz, float lineWidth, QColor lineColor, QColor pointColor):
-    cPolygon(maxSz, lineWidth, lineColor, pointColor, false),
+	cPolygon(maxSz, lineWidth, lineColor, pointColor, false),
     _polygon(polygon)
+{
+}
+
+cPolygonHelper::~cPolygonHelper()
 {
 }
 
@@ -1545,7 +1566,6 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _qMaskedImage(qMaskedImage)
 {
-
 	initGLFunc();
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
     _m_mask     = new cImageGL();
@@ -1574,10 +1594,13 @@ cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
     _m_image->setPosition(pos);
     _m_image->setSize(size);
     _m_mask->setPosition(pos);
-    _m_mask->setSize(size);
+	_m_mask->setSize(size);
 }
 
-
+cMaskedImageGL::~cMaskedImageGL()
+{
+	_mutex.unlock();
+}
 
 void cMaskedImageGL::draw()
 {

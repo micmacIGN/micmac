@@ -36,12 +36,6 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
 
 	//reader.setScaledSize(rescaledSize );
 
-	//TODO voir le format....
-	//maskedImg._m_image = new QImage(reader.scaledSize(),QImage::Format_Mono);
-
-	if(scaleFactor < 1.f)
-		maskedImg->_m_rescaled_image = new QImage(rescaledSize ,QImage::Format_RGB888);
-
 	maskedImg->_m_image			= new QImage(FullSize,QImage::Format_RGB888);
 
 	maskedImg->_loadedImageRescaleFactor = scaleFactor;
@@ -53,6 +47,9 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
 
 	if (!reader.read(&tempImage))
 	{
+		if(maskedImg->_m_image )
+			delete maskedImg->_m_image;
+
 		maskedImg->_m_image = new QImage( aNameFile);
 	}
 
@@ -102,16 +99,22 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
 		maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImageElIse ));
 
     }
-	else	
+	else
+	{
+		if(maskedImg->_m_image )
+			delete maskedImg->_m_image;
 
-		*(maskedImg->_m_image) = QGLWidget::convertToGLFormat( tempImage );
+
+		maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));
+
+	}
 
 
 
 	checkGeoref(aNameFile, maskedImg);
 
 	if(scaleFactor <1.f)
-		*(maskedImg->_m_rescaled_image) = maskedImg->_m_image->scaled(rescaledSize,Qt::IgnoreAspectRatio);
+		maskedImg->_m_rescaled_image = new QImage(maskedImg->_m_image->scaled(rescaledSize,Qt::IgnoreAspectRatio));
 
 	//MASK
     QFileInfo fi(aNameFile);
@@ -131,12 +134,14 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float 
     if (QFile::exists(aNameFile))
     {
 
-
 		maskedImg->_m_newMask = false;
 
 		QImageReader reader(aNameFile);
 
 		reader.setScaledSize(reader.size()*scaleFactor);
+
+		if(maskedImg->_m_rescaled_mask )
+			delete maskedImg->_m_rescaled_mask;
 
 		maskedImg->_m_rescaled_mask = new QImage(reader.scaledSize(), QImage::Format_Mono);
 		QImage tempMask(reader.scaledSize(), QImage::Format_Mono);
@@ -155,7 +160,9 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float 
                 int w = imgMask.sz().x;
                 int h = imgMask.sz().y;
 
-				delete maskedImg->_m_mask;
+
+				//delete maskedImg->_m_mask;
+
 				maskedImg->_m_rescaled_mask = new QImage( w, h, QImage::Format_Mono);
 				maskedImg->_m_rescaled_mask->fill(0);
 
@@ -179,8 +186,6 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float 
 			//tempMask.invertPixels(QImage::InvertRgb);
 			*(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
         }
-
-
     }
     else
     {
@@ -495,14 +500,17 @@ void cEngine::saveMask(ushort idCur, bool isFirstAction)
 void cEngine::unloadAll()
 {
     _Data->clearAll();
-    qDeleteAll(_vGLData);
+	//qDeleteAll(_vGLData);
 
 	// TODO ATTENTION le delete n'est pas fait
 
-//	for (int var = 0; var < _vGLData.size(); ++var)
-//	{
-//		delete _vGLData[var];
-//	}
+	for (int var = 0; var < _vGLData.size(); ++var)
+	{
+		if(_vGLData[var])
+			delete _vGLData[var];
+
+		_vGLData[var] = NULL;
+	}
 
     _vGLData.clear();
 }
@@ -530,6 +538,8 @@ void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
 
 void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
 {
+
+
     delete _vGLData[aK];
 
     if (_Data->is3D())

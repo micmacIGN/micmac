@@ -72,13 +72,27 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
+	//qDeleteAll(_MaskedImages);
+
+	for (int idQMImg = 0; idQMImg < _MaskedImages.size(); ++idQMImg)
+	{
+		if(_MaskedImages[idQMImg])
+			delete _MaskedImages[idQMImg];
+		_MaskedImages[idQMImg] = NULL;
+	}
+
     _MaskedImages.clear();
     reset();
 }
 
 void cData::clearObjects()
 {
-    qDeleteAll(_vPolygons);
+	for (int idpoly = 0; idpoly < _vPolygons.size(); ++idpoly)
+	{
+		if(_vPolygons[idpoly])
+			delete _vPolygons[idpoly];
+		_vPolygons[idpoly] = NULL;
+	}
 
     _vPolygons.clear();
 
