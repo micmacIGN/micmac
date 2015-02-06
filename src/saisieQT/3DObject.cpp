@@ -1545,6 +1545,8 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _qMaskedImage(qMaskedImage)
 {
+
+	initGLFunc();
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
     _m_mask     = new cImageGL();
     _m_image    = new cImageGL(qMaskedImage->_gamma);
@@ -1558,6 +1560,7 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
 cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
     _qMaskedImage(NULL)
 {
+	initGLFunc();
     _m_image = new cImageGL();
     _m_mask  = new cImageGL();
 
@@ -1574,18 +1577,10 @@ cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
     _m_mask->setSize(size);
 }
 
-#ifdef _WIN32
-PFNGLBLENDCOLOREXTPROC glBlendColor;
-PFNGLBLENDEQUATIONEXTPROC glBlendEquation;
-#endif
+
 
 void cMaskedImageGL::draw()
 {
-#ifdef _WIN32
-	glBlendColor = (PFNGLBLENDCOLOREXTPROC)wglGetProcAddress("glBlendColor");
-	glBlendEquation = (PFNGLBLENDEQUATIONEXTPROC)wglGetProcAddress("glBlendEquation");
-#endif
-
     glEnable(GL_BLEND);
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_DEPTH_TEST);
