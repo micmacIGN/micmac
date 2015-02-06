@@ -177,27 +177,54 @@ void cGLData::initOptions(int appMode)
 cGLData::~cGLData()
 {
 
-	//DUMP("Delete")
+	_glMaskedImage.deleteTextures();
+	_glMaskedImage.deallocImages();
 
-    _glMaskedImage.deleteTextures();
-    _glMaskedImage.deallocImages();
+	for (int aK=0; aK < _glMaskedTiles.size();++aK)
+	{
+		_glMaskedTiles[aK]->deleteTextures();
+		_glMaskedTiles[aK]->deallocImages();
 
-    for (int aK=0; aK < _glMaskedTiles.size();++aK)
-    {
-        _glMaskedTiles[aK]->deleteTextures();
-        _glMaskedTiles[aK]->deallocImages();
-    }
+		if(_glMaskedTiles[aK])
+			delete _glMaskedTiles[aK];
 
-    qDeleteAll(_vCams);
-    _vCams.clear();
+		_glMaskedTiles[aK] = NULL;
 
-    if(_pBall != NULL) delete _pBall;
-    if(_pAxis != NULL) delete _pAxis;
-    if(_pBbox != NULL) delete _pBbox;
-    if(_pGrid != NULL) delete _pGrid;
+	}
 
-    //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
-    _vClouds.clear();
+	_glMaskedTiles.clear();
+
+	for (int aK=0; aK < _vCams.size();++aK)
+	{
+
+		if(_vCams[aK])
+			delete _vCams[aK];
+
+		_vCams[aK] = NULL;
+
+	}
+
+	_vCams.clear();
+
+	for (int aK=0; aK < _vPolygons.size();++aK)
+	{
+
+		if(_vPolygons[aK])
+			delete _vPolygons[aK];
+
+		_vPolygons[aK] = NULL;
+
+	}
+
+	_vPolygons.clear();
+
+	if(_pBall != NULL) delete _pBall;
+	if(_pAxis != NULL) delete _pAxis;
+	if(_pBbox != NULL) delete _pBbox;
+	if(_pGrid != NULL) delete _pGrid;
+
+	//pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
+	_vClouds.clear();
 }
 
 void outMatrix4X4(GLdouble *mvMatrix)
@@ -409,7 +436,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
     return false;
 }
 
-void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
+void cGLData::editImageMask(int mode, cPolygon *polyg, bool m_bFirstAction)
 {
     QPainter    p;
 
@@ -420,7 +447,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.setPen(Qt::NoPen);
 
-    QPolygonF polyDraw(polyg.getVector());
+	QPolygonF polyDraw(polyg->getVector());
     QPainterPath path;
 
     float scaleFactor = _glMaskedImage.getLoadedImageRescaleFactor();
@@ -509,7 +536,7 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 //    }
 }
 
-void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
+void cGLData::editCloudMask(int mode, cPolygon *polyg, bool m_bFirstAction, MatrixManager &mm)
 {
 
     QPointF P2D;
@@ -535,7 +562,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
             {
             case ADD_INSIDE:
                 mm.getProjection(P2D, Pt);
-                pointInside = polyg.isPointInsidePoly(P2D);
+				pointInside = polyg->isPointInsidePoly(P2D);
                 if (m_bFirstAction)
                     P.setVisible(pointInside);
                 else
@@ -543,7 +570,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
                 break;
             case ADD_OUTSIDE:
                 mm.getProjection(P2D, Pt);
-                pointInside = polyg.isPointInsidePoly(P2D);
+				pointInside = polyg->isPointInsidePoly(P2D);
                 if (m_bFirstAction)
                     P.setVisible(!pointInside);
                 else
@@ -553,7 +580,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
                 if (P.isVisible())
                 {
                     mm.getProjection(P2D, Pt);
-                    pointInside = polyg.isPointInsidePoly(P2D);
+					pointInside = polyg->isPointInsidePoly(P2D);
                     P.setVisible(!pointInside);
                 }
                 break;
@@ -561,7 +588,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
                 if (P.isVisible())
                 {
                     mm.getProjection(P2D, Pt);
-                    pointInside = polyg.isPointInsidePoly(P2D);
+					pointInside = polyg->isPointInsidePoly(P2D);
                     P.setVisible(pointInside);
                 }
                 break;

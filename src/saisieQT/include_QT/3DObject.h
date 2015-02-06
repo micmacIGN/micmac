@@ -283,6 +283,9 @@ class cPolygon : public cObjectGL
 
         cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
 
+		~cPolygon();
+
+
         virtual void draw();
 
         void    close();
@@ -342,7 +345,7 @@ class cPolygon : public cObjectGL
         void    setVector(QVector <QPointF> const &aPts);
 
         cPolygonHelper* helper() { return _helper; }
-        void    setHelper(cPolygonHelper* aHelper) { _helper = aHelper; }
+		void    setHelper(cPolygonHelper* aHelper);
 
         virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true);
 
@@ -439,6 +442,8 @@ class cPolygonHelper : public cPolygon
 
         cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
+		~cPolygonHelper();
+
         void   build(const cPoint &pos, bool insertMode);
 
         void   setPoints(cPoint p1, cPoint p2, cPoint p3);
@@ -531,16 +536,18 @@ public:
         _gamma(gamma),
 		_loadedImageRescaleFactor(sFactor),
 		_loading(false)
-    {}
+	{
+
+	}
 
     ~cMaskedImage()
-    {
+    {	
         deallocImages();
     }
 
     void deallocImages()
     {
-        if(_m_image != NULL)
+		if(_m_image != NULL)
         {
             delete _m_image;
 			_m_image = NULL;
@@ -597,8 +604,10 @@ public:
 
     cMaskedImageGL(const QRectF & aRect);
 
-    ~cMaskedImageGL()
-    {}
+	~cMaskedImageGL();
+
+//    ~cMaskedImageGL()
+//    {}
 
     /*void setScale(Pt3dr aScale)
     {
