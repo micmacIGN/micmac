@@ -54,9 +54,9 @@ public:
 
     bool        position2DClouds(MatrixManager &mm,QPointF pos);
 
-    void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
+	void        editImageMask(int mode, cPolygon* polyg, bool m_bFirstAction);
 
-    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
+	void        editCloudMask(int mode, cPolygon*polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        replaceCloud(GlCloud* cloud, int id = 0);
 
