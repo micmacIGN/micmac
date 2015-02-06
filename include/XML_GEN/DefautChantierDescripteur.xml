@@ -54,6 +54,7 @@
 
 <!--   HOMOGRAPHY-COMPUTING
 
+    <Symb>  Tooooooo=XxX </Symb>
 -->
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
@@ -492,21 +493,6 @@
 
                <!--  Gestion des nom lies aux focales -->
 
-<!--
-    <KeyedNamesAssociations>
-        <IsParametrized>  true </IsParametrized>
-        <Calcs>
-            <Direct>
-                <PatternTransform> .*%([0-9]+) </PatternTransform>
-                <CalcName>  AutoCal$1.xml  </CalcName>
-                <NameTransfo>
-                        <AddFocMul> 10 </AddFocMul>
-                 </NameTransfo>
-             </Direct>
-        </Calcs>
-        <Key>   NKS-Assoc-StdNameCalib </Key>
-    </KeyedNamesAssociations>
--->
 
     <KeyedNamesAssociations>
         <Calcs>
@@ -534,10 +520,17 @@
         <IsParametrized>  true </IsParametrized>
         <Calcs>
             <Direct>
-                <PatternTransform> .*%([0-9,a-z,A-Z,_,=]+) </PatternTransform>
+                <PatternTransform> .*%([-,0-9,a-z,A-Z,_=:\-\.]+) </PatternTransform>
                 <CalcName>  #1$1#2  </CalcName>
                 <NameTransfo>
+                    <!-- Old Version -->
                         <AddFocMul> 10 </AddFocMul>
+                    <!-- New Version -->
+                        <NewAddNameCam>  true </NewAddNameCam>   <!--   true si V>=1 -->
+                        <NewFocMul  >  1000 </NewFocMul>        <!--  1000 si >=1, 1 sinon -->
+                        <NewKeyId>   NKS-Assoc-StdIdCam </NewKeyId>
+                        <NewKeyIdAdd> NKS-Assoc-StdIdAdditionnelCam </NewKeyIdAdd>
+
                  </NameTransfo>
              </Direct>
         </Calcs>

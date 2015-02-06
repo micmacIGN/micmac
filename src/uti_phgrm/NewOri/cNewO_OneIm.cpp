@@ -40,6 +40,28 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+cNewO_OneIm::cNewO_OneIm
+(
+      cNewO_NameManager & aNM,
+      const std::string  & aName
+)  :
+   mNM   (&aNM),
+   mCS   (aNM.CamOfName(aName)),
+   mName (aName)
+{
+}
+
+CamStenope * cNewO_OneIm::CS() 
+{
+    return mCS;
+}
+const std::string & cNewO_OneIm::Name()  const
+{
+    return mName;
+}
+
+    
+
 
 
 

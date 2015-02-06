@@ -948,6 +948,11 @@
          <!-- Si donne, on ajoute @Foc, arrondi entier, multipliee par AddFocMul -->
          <AddFocMul  Nb="?" Type="double"> </AddFocMul>
          <Separateur Nb="?" Type="std::string" Def="%"> </Separateur>
+         <NewKeyId     Nb="?" Type="std::string"> </NewKeyId>
+         <NewKeyIdAdd  Nb="?" Type="std::string"> </NewKeyIdAdd>
+      <!-- Val def depend avec VersionNameCam >= 1 -->
+         <NewAddNameCam Nb="?" Type="bool">  </NewAddNameCam>   <!--   true si V>=1 -->
+         <NewFocMul  Nb="?" Type="double">  </NewFocMul>        <!--  1000 si >=1, 1 sinon -->
    </DataBaseNameTransfo>
 
    <!--

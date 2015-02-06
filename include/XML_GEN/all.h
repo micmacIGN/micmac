@@ -201,6 +201,8 @@ class cInterfChantierNameManipulateur
 {
      public :
 
+         std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);
+
          std::list<std::string> GetListImByDelta(const cListImByDelta &,const std::string & aN0);
 
          std::vector<std::string> StdGetVecStr(const std::string &);  // Cas [A,Bn..] , ou toto.txt lit fichie, sinon singleton

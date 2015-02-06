@@ -3592,9 +3592,25 @@ class cDataBaseNameTransfo
 
         cTplValGesInit< std::string > & Separateur();
         const cTplValGesInit< std::string > & Separateur()const ;
+
+        cTplValGesInit< std::string > & NewKeyId();
+        const cTplValGesInit< std::string > & NewKeyId()const ;
+
+        cTplValGesInit< std::string > & NewKeyIdAdd();
+        const cTplValGesInit< std::string > & NewKeyIdAdd()const ;
+
+        cTplValGesInit< bool > & NewAddNameCam();
+        const cTplValGesInit< bool > & NewAddNameCam()const ;
+
+        cTplValGesInit< double > & NewFocMul();
+        const cTplValGesInit< double > & NewFocMul()const ;
     private:
         cTplValGesInit< double > mAddFocMul;
         cTplValGesInit< std::string > mSeparateur;
+        cTplValGesInit< std::string > mNewKeyId;
+        cTplValGesInit< std::string > mNewKeyIdAdd;
+        cTplValGesInit< bool > mNewAddNameCam;
+        cTplValGesInit< double > mNewFocMul;
 };
 cElXMLTree * ToXMLTree(const cDataBaseNameTransfo &);
 

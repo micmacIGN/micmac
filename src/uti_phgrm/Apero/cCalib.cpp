@@ -1053,12 +1053,16 @@ class cNameFileWithExistigChangeVersionNameCam
           cMMUserEnvironment & mMMU;
           int                  mCurNumC;
 };
-/*
-cMMUserEnvironment & aMMU = const_cast<cMMUserEnvironment&> (MMUserEnv());
-aMMU.VersionNameCam().SetVal(1);
-std::string NameFileWithExistigChangeVersionNameCam(const std::string & aKey,const std::string & aNamePose
-                  aSEF.NameFile() = anAppli.ICNM()->Assoc1To1(aCPP.KeyInitFromPose().Val(),aPC->Name(),true);
-*/
+
+
+std::string cInterfChantierNameManipulateur::StdNameCalib(const std::string & anOri,const std::string & aNameIm)
+{
+     std::string aKey = "NKS-Assoc-FromFocMm@Ori-"+ anOri + "/AutoCal@.xml";
+     cNameFileWithExistigChangeVersionNameCam     aCNFW(Dir(),this,aKey,aNameIm);
+     return aCNFW.GetName();
+}
+
+
 
 void cAppliApero::NormaliseScTr(CamStenope & aCam)
 {

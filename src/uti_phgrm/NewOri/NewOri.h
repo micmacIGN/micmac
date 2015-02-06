@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 class cNewO_OneIm;
 class cNewO_CpleIm;
+class cNewO_NameManager;
 class cNewO_Appli;
 
 class cNewO_OneIm
@@ -51,9 +52,16 @@ class cNewO_OneIm
     public :
             cNewO_OneIm
             (
+                 cNewO_NameManager & aNM,
                  const std::string  & aName
             );
+
+            CamStenope * CS();
+            const std::string & Name() const;
     private :
+            cNewO_NameManager*  mNM;
+            CamStenope *        mCS;
+            std::string         mName;
 };
 
 class cNewO_CpleIm
@@ -65,6 +73,9 @@ class cNewO_CpleIm
                 cNewO_OneIm * aI2
           );
     private :
+
+          cNewO_OneIm *  mI1;
+          cNewO_OneIm *  mI2;
        
 };
 
@@ -79,6 +90,7 @@ class cNewO_NameManager
                const std::string  & PostTxt
            );
            CamStenope * CamOfName(const std::string & aName);
+           ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2);
 
      private :
            cInterfChantierNameManipulateur * mICNM;

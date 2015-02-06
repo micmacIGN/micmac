@@ -10762,6 +10762,50 @@ const cTplValGesInit< std::string > & cDataBaseNameTransfo::Separateur()const
    return mSeparateur;
 }
 
+
+cTplValGesInit< std::string > & cDataBaseNameTransfo::NewKeyId()
+{
+   return mNewKeyId;
+}
+
+const cTplValGesInit< std::string > & cDataBaseNameTransfo::NewKeyId()const 
+{
+   return mNewKeyId;
+}
+
+
+cTplValGesInit< std::string > & cDataBaseNameTransfo::NewKeyIdAdd()
+{
+   return mNewKeyIdAdd;
+}
+
+const cTplValGesInit< std::string > & cDataBaseNameTransfo::NewKeyIdAdd()const 
+{
+   return mNewKeyIdAdd;
+}
+
+
+cTplValGesInit< bool > & cDataBaseNameTransfo::NewAddNameCam()
+{
+   return mNewAddNameCam;
+}
+
+const cTplValGesInit< bool > & cDataBaseNameTransfo::NewAddNameCam()const 
+{
+   return mNewAddNameCam;
+}
+
+
+cTplValGesInit< double > & cDataBaseNameTransfo::NewFocMul()
+{
+   return mNewFocMul;
+}
+
+const cTplValGesInit< double > & cDataBaseNameTransfo::NewFocMul()const 
+{
+   return mNewFocMul;
+}
+
 void  BinaryUnDumpFromFile(cDataBaseNameTransfo & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -10780,6 +10824,38 @@ void  BinaryUnDumpFromFile(cDataBaseNameTransfo & anObj,ELISE_fp & aFp)
         }
         else  anObj.Separateur().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NewKeyId().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NewKeyId().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NewKeyId().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NewKeyIdAdd().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NewKeyIdAdd().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NewKeyIdAdd().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NewAddNameCam().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NewAddNameCam().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NewAddNameCam().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NewFocMul().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NewFocMul().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NewFocMul().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cDataBaseNameTransfo & anObj)
@@ -10788,6 +10864,14 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cDataBaseNameTransfo & anObj)
     if (anObj.AddFocMul().IsInit()) BinaryDumpInFile(aFp,anObj.AddFocMul().Val());
     BinaryDumpInFile(aFp,anObj.Separateur().IsInit());
     if (anObj.Separateur().IsInit()) BinaryDumpInFile(aFp,anObj.Separateur().Val());
+    BinaryDumpInFile(aFp,anObj.NewKeyId().IsInit());
+    if (anObj.NewKeyId().IsInit()) BinaryDumpInFile(aFp,anObj.NewKeyId().Val());
+    BinaryDumpInFile(aFp,anObj.NewKeyIdAdd().IsInit());
+    if (anObj.NewKeyIdAdd().IsInit()) BinaryDumpInFile(aFp,anObj.NewKeyIdAdd().Val());
+    BinaryDumpInFile(aFp,anObj.NewAddNameCam().IsInit());
+    if (anObj.NewAddNameCam().IsInit()) BinaryDumpInFile(aFp,anObj.NewAddNameCam().Val());
+    BinaryDumpInFile(aFp,anObj.NewFocMul().IsInit());
+    if (anObj.NewFocMul().IsInit()) BinaryDumpInFile(aFp,anObj.NewFocMul().Val());
 }
 
 cElXMLTree * ToXMLTree(const cDataBaseNameTransfo & anObj)
@@ -10798,6 +10882,14 @@ cElXMLTree * ToXMLTree(const cDataBaseNameTransfo & anObj)
       aRes->AddFils(::ToXMLTree(std::string("AddFocMul"),anObj.AddFocMul().Val())->ReTagThis("AddFocMul"));
    if (anObj.Separateur().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Separateur"),anObj.Separateur().Val())->ReTagThis("Separateur"));
+   if (anObj.NewKeyId().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NewKeyId"),anObj.NewKeyId().Val())->ReTagThis("NewKeyId"));
+   if (anObj.NewKeyIdAdd().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NewKeyIdAdd"),anObj.NewKeyIdAdd().Val())->ReTagThis("NewKeyIdAdd"));
+   if (anObj.NewAddNameCam().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NewAddNameCam"),anObj.NewAddNameCam().Val())->ReTagThis("NewAddNameCam"));
+   if (anObj.NewFocMul().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NewFocMul"),anObj.NewFocMul().Val())->ReTagThis("NewFocMul"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -10811,9 +10903,17 @@ void xml_init(cDataBaseNameTransfo & anObj,cElXMLTree * aTree)
    xml_init(anObj.AddFocMul(),aTree->Get("AddFocMul",1)); //tototo 
 
    xml_init(anObj.Separateur(),aTree->Get("Separateur",1),std::string("%")); //tototo 
+
+   xml_init(anObj.NewKeyId(),aTree->Get("NewKeyId",1)); //tototo 
+
+   xml_init(anObj.NewKeyIdAdd(),aTree->Get("NewKeyIdAdd",1)); //tototo 
+
+   xml_init(anObj.NewAddNameCam(),aTree->Get("NewAddNameCam",1)); //tototo 
+
+   xml_init(anObj.NewFocMul(),aTree->Get("NewFocMul",1)); //tototo 
 }
 
-std::string  Mangling( cDataBaseNameTransfo *) {return "5C97038E3E214B9EFD3F";};
+std::string  Mangling( cDataBaseNameTransfo *) {return "18527FE6C95E48FDFD3F";};
 
 
 cTplValGesInit< std::string > & cInterpoleGrille::Directory()
@@ -11748,7 +11848,7 @@ void xml_init(cBasicAssocNameToName & anObj,cElXMLTree * aTree)
    xml_init(anObj.Filter(),aTree->Get("Filter",1)); //tototo 
 }
 
-std::string  Mangling( cBasicAssocNameToName *) {return "1C1B10FF76A392A3FF3F";};
+std::string  Mangling( cBasicAssocNameToName *) {return "5E2E3C5E4081C4E0FD3F";};
 
 
 cTplValGesInit< Pt2di > & cAssocNameToName::Arrite()
@@ -11864,7 +11964,7 @@ void xml_init(cAssocNameToName & anObj,cElXMLTree * aTree)
    xml_init(anObj.AutoInverseBySym(),aTree->Get("AutoInverseBySym",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cAssocNameToName *) {return "8E3A6A61A8BD2A83FF3F";};
+std::string  Mangling( cAssocNameToName *) {return "42F6EFF5D37B48C2FE3F";};
 
 
 cTplValGesInit< std::string > & cEtatPims::NameOri()
@@ -16930,7 +17030,7 @@ void xml_init(cKeyedNamesAssociations & anObj,cElXMLTree * aTree)
    xml_init(anObj.SubDirAutoMakeRec(),aTree->Get("SubDirAutoMakeRec",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cKeyedNamesAssociations *) {return "323341C3245B13B1FD3F";};
+std::string  Mangling( cKeyedNamesAssociations *) {return "91F4C3B56F2A1AD8FD3F";};
 
 
 cTplValGesInit< bool > & cKeyedSetsOfNames::IsParametrized()
@@ -17708,7 +17808,7 @@ void xml_init(cChantierDescripteur & anObj,cElXMLTree * aTree)
    xml_init(anObj.FilesDatas(),aTree->GetAll("FilesDatas",false,1));
 }
 
-std::string  Mangling( cChantierDescripteur *) {return "5262C01ACD4B83ECFE3F";};
+std::string  Mangling( cChantierDescripteur *) {return "9A106A02E369FDE6FC3F";};
 
 
 int & cXML_Date::year()

@@ -4,6 +4,7 @@ set(uti_phgrm_NewOri_Src_Files
     ${UTI_PHGRM_NEW_ORI}/cNewO_CpleIm.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_OneIm.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_NameManager.cpp
+    ${UTI_PHGRM_NEW_ORI}/cNewO_ProjPts.cpp
 )
 
 

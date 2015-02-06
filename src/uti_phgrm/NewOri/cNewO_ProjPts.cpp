@@ -40,29 +40,75 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
-int TestNewOriImage_main(int argc,char ** argv)
+/**************************************************************/
+/*                                                            */
+/*           cProjCple                                        */
+/*                                                            */
+/**************************************************************/
+
+cProjCple::cProjCple(const Pt3dr & aP1,const Pt3dr & aP2,double aPds) :
+    mP1  (aP1),
+    mP2  (aP2),
+    mPds (aPds)
 {
-   std::string aNameOri,aNameI1,aNameI2;
-   ElInitArgMain
-   (
-        argc,argv,
-        LArgMain() <<  EAMC(aNameI1,"Name First Image")
-                   <<  EAMC(aNameI2,"Name Second Image"),
-        LArgMain() << EAM(aNameOri,"Ori",true,"Orientation ")
-   );
-
-
-    cNewO_NameManager aNM("./",aNameOri,"dat");
-
-    CamStenope * aC1 = aNM.CamOfName(aNameI1);
-    CamStenope * aC2 = aNM.CamOfName(aNameI2);
-
-    ElPackHomologue aLH = aNM.PackOfName(aNameI1,aNameI2);
-
-    std::cout << "FFF " << aC1->Focale() << " " << aC2->Focale() << " NBh : " << aLH.size() << "\n";
-
-    return EXIT_SUCCESS;
 }
+
+const Pt3dr & cProjCple::P1() const {return mP1;}
+const Pt3dr & cProjCple::P2() const {return mP2;}
+
+cProjCple cProjCple::Spherik(const ElCamera & aCam1,const Pt2dr & aP1,const ElCamera & aCam2,const Pt2dr &aP2,double aPds)
+{
+    Pt3dr aQ1 =  aCam1.F2toDirRayonL3(aP1);
+    Pt3dr aQ2 =  aCam2.F2toDirRayonL3(aP2);
+
+    return cProjCple(vunit(aQ1),vunit(aQ2),aPds);
+}
+
+static Pt3dr Proj(const Pt3dr & aP) {return Pt3dr(aP.x/aP.z,aP.y/aP.z,1.0);}
+
+cProjCple cProjCple::Projection(const ElCamera & aCam1,const Pt2dr & aP1,const ElCamera & aCam2,const Pt2dr &aP2,double aPds)
+{
+    Pt3dr aQ1 =  aCam1.F2toDirRayonL3(aP1);
+    Pt3dr aQ2 =  aCam2.F2toDirRayonL3(aP2);
+
+    return cProjCple(Proj(aQ1),Proj(aQ2),aPds);
+}
+
+/**************************************************************/
+/*                                                            */
+/*                  cProjListHom                              */
+/*                                                            */
+/**************************************************************/
+
+cProjListHom::cProjListHom
+(  
+      const ElCamera & aCam1,
+      const ElPackHomologue & aPack12,
+      const ElCamera & aCam2,const ElPackHomologue & aPack21,
+      bool Spherik
+)  :
+   mSpherik (Spherik)
+{
+    std::map<Pt2dr,Pt2dr> aMapP2OfP1;
+    for 
+    (
+          ElPackHomologue::tCstIter itH1=aPack12.begin();
+          itH1 !=aPack12.end();
+          itH1++
+    )
+    {
+         ElCplePtsHomologues aCple = itH1->ToCple();
+         aMapP2OfP1[aCple.P1()] =  aMapP2OfP1[aCple.P2()];
+    }
+}
+
+
+
+
+
+
+
+
 
 
 

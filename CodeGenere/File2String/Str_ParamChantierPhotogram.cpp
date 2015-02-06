@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1630]) = {
+const char * (theNameVar_ParamChantierPhotogram[1635]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -950,6 +950,11 @@ const char * (theNameVar_ParamChantierPhotogram[1630]) = {
 "         <!-- Si donne, on ajoute @Foc, arrondi entier, multipliee par AddFocMul -->\n",
 "         <AddFocMul  Nb=\"?\" Type=\"double\"> </AddFocMul>\n",
 "         <Separateur Nb=\"?\" Type=\"std::string\" Def=\"%\"> </Separateur>\n",
+"         <NewKeyId     Nb=\"?\" Type=\"std::string\"> </NewKeyId>\n",
+"         <NewKeyIdAdd  Nb=\"?\" Type=\"std::string\"> </NewKeyIdAdd>\n",
+"      <!-- Val def depend avec VersionNameCam >= 1 -->\n",
+"         <NewAddNameCam Nb=\"?\" Type=\"bool\">  </NewAddNameCam>   <!--   true si V>=1 -->\n",
+"         <NewFocMul  Nb=\"?\" Type=\"double\">  </NewFocMul>        <!--  1000 si >=1, 1 sinon -->\n",
 "   </DataBaseNameTransfo>\n",
 "\n",
 "   <!--\n",

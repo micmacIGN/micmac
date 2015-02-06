@@ -494,6 +494,9 @@ int CheckAllTiff_main(int argc,char ** argv);
 int CheckOneOrient_main(int argc,char ** argv);
 int CheckAllOrient_main(int argc,char ** argv);
 
+int TestNewOriImage_main(int argc,char ** argv);
+
+
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -574,6 +577,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("CheckAllOri",CheckAllOrient_main,"Check a Folder of Orientation"));
     
     aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
+    aRes.push_back(cMMCom("TNO",TestNewOriImage_main,"Test New Orientation"));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);

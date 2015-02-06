@@ -54,6 +54,16 @@ cNewO_NameManager::cNewO_NameManager
 }
 
 
+ElPackHomologue cNewO_NameManager::PackOfName(const std::string & aN1,const std::string & aN2)
+{
+    std::string aNameH = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@"+mPostHom,aN1,aN2,true);
+    if (!  ELISE_fp::exist_file(aNameH))
+       return ElPackHomologue();
+
+    return ElPackHomologue::FromFile(aNameH);
+}
+
+
 CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName) 
 {
 
@@ -95,9 +105,11 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
         return aRes;
    }
 
-   // std::string 
-   // double aFocM = aMTD.FocMm();
-   return 0;
+
+   std::string  aNC = mICNM->StdNameCalib(mOriCal,aName);
+
+
+   return CamOrientGenFromFile(aNC,mICNM);
 }
 /*
 */
