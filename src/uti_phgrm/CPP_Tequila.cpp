@@ -284,34 +284,33 @@ int Tequila_main(int argc,char ** argv)
     cout <<"*******************Filtering border triangles**********************"<<endl;
     cout << endl;
 
-    int maxIter = 2;
+    int maxIter = 10;
     int iter = 0;
     bool cond = true;
 
     while (cond && iter < maxIter)
     {
-        cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
+        //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
         vector<int> vRemovedTri = myMesh.clean();
 
-        cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
+        //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
 
         for (unsigned int aK=0; aK < vRemovedTri.size(); ++aK)
             vIndex.erase(vIndex.begin()+vRemovedTri[aK]);
 
         iter++;
-        cout << "round " << iter << endl;
+        //cout << "round " << iter << endl;
 
         cond = false;
         for (int aK=0; aK< myMesh.getFacesNumber();++aK)
-            if (myMesh.getTriangle(aK)->getEdgesNumber() < 3 )
+            if (myMesh.getTriangle(aK)->getEdgesNumber() < 3 && !myMesh.getTriangle(aK)->isTextured())
             {
                 cond =true;
                 break;
             }
     }
 
-
-    cout << "Faces number after filtering: " << myMesh.getFacesNumber() << endl;
+    printf("Vertex number : %d - faces number : %d \n\n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
     cout << endl;
     cout <<"************************Writing texture************************"<<endl;
@@ -442,7 +441,7 @@ int Tequila_main(int argc,char ** argv)
     fprintf(PlyOut,"format ascii 1.0\n");
     fprintf(PlyOut,"comment UV Mapping generated\n");
     fprintf(PlyOut,"comment TextureFile %s\n", newName.c_str());
-    fprintf(PlyOut,"element vertex %i\n",nbVertex);
+    fprintf(PlyOut,"element vertex %i\n",myMesh.getVertexNumber());
     fprintf(PlyOut,"property float x\n");
     fprintf(PlyOut,"property float y\n");
     fprintf(PlyOut,"property float z\n");
@@ -458,7 +457,7 @@ int Tequila_main(int argc,char ** argv)
     CamStenope *Cam;
     int idx;
 
-    for(int aK=0 ; aK<nbVertex ; aK++) //Ecriture des vertex
+    for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
     {
         pt = myMesh.getVertex(aK);
         fprintf(PlyOut,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
@@ -467,7 +466,7 @@ int Tequila_main(int argc,char ** argv)
     int width  = aSz.x;
     int height = aSz.y;
 
-    cout << "vIndex.size= "<< vIndex.size() << endl;
+    //cout << "vIndex.size= "<< vIndex.size() << endl;
     cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
     for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
     {

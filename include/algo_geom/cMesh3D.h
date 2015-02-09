@@ -135,7 +135,7 @@ class cTriangle
         void	getVertexes(vector <Pt3dr> &vList) const;
         Pt3dr   getVertex(int aK);
 
-        void	getVertexesIndexes(vector <int> &vList) const {vList = mVertex;}
+        void	getVertexesIndexes(vector <int> &vList) const {vList = mTriVertex;}
         void	getVertexesIndexes(int &v1, int &v2, int &v3);
 
         bool	getAttributes(int image_idx, vector <REAL> &ta) const;
@@ -157,12 +157,12 @@ class cTriangle
         void    setTextured(bool aText) { mTextured = aText; }
         bool    isTextured() { return mTextured; }
 
-        int     getEdgesNumber() { return mEdges.size(); }
+        int     getEdgesNumber() { return mTriEdges.size(); }
 
-        vector <cEdge> getEdges();
-        vector <int>   getEdgesIndex();
+        vector <int>   getEdgesIndex() { return mTriEdges; }
 
         void    setEdgeIndex(unsigned int pos, int val);
+        void    setVertexIndex(unsigned int pos, int val);
 
 
 
@@ -173,8 +173,8 @@ class cTriangle
         bool						mInside;		// triangle a conserver
         bool                        mTextured;      // le triangle a-t-il une texture
         int							mTriIdx;		// triangle index
-        vector <int>				mVertex;		// index of vertexes in pMesh->mVertexes
-        vector <int>                mEdges;         // index of edges in pMesh->Edges
+        vector <int>				mTriVertex;		// index of vertexes in pMesh->mVertexes
+        vector <int>                mTriEdges;      // index of edges in pMesh->Edges
         map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes
 
         cMesh       *               pMesh;
