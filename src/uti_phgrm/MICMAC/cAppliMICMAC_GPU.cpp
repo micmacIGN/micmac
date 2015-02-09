@@ -1692,38 +1692,38 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  NVTOOLS
         GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
 #endif
-        float*  tabCost     = IMmGg.VolumeCost(idBuf);
-        Rect    zone        = IMmGg.Param(idBuf).RTer();
-        float   valdefault  = IMmGg.Param(idBuf).invPC.floatDefault;
+		float*		tabCost		= IMmGg.VolumeCost(idBuf);
+		const Rect  zone		= IMmGg.Param(idBuf).RTer();
+		const float valdefault  = IMmGg.Param(idBuf).invPC.floatDefault;
 
-        //std::cout << "Copy : [(" << zone.pt0.x << "," <<  zone.pt0.y << ")" << "(" << zone.pt1.x << "," <<  zone.pt1.y << ")] Z: " << (int)z0 << "->" << (int)z1 << "\n";
+		//std::cout << "Copy : [(" << zone.pt0.x << "," <<  zone.pt0.y << ")" << "(" << zone.pt1.x << "," <<  zone.pt1.y << ")] Z: " << (int)z0 << "->" << (int)z1 << "\n";
 
-        uint2 rDiTer = zone.dimension();
-        uint  rSiTer = size(rDiTer);
+		const uint2 rDiTer = zone.dimension();
+		const uint  rSiTer = size(rDiTer);
 
         OMP_NT1
-        for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
+		for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
         {
-            int pitY = rDiTer.x * (anY - zone.pt0.y);
             OMP_NT2
-            for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
+			for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++, tabCost ++)
             {                
-                float *tCost =  tabCost + pitY + anX -  zone.pt0.x;
-                int anZ0 = max(z0,(int)mTabZMin[anY][anX]);
-                int anZ1 = min(z1,(int)mTabZMax[anY][anX]);
+				float *tCost =  tabCost;
+				const int anZ0 = max(z0,(int)mTabZMin[anY][anX]);
+				const int anZ1 = min(z1,(int)mTabZMax[anY][anX]);
+				const Pt2di ptTer(anX,anY);
+				mNbPointsIsole += abs(anZ1-anZ0);
 
-                for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
-                {
-                    double cost = (double)tCost[rSiTer * abs(anZ - (int)z0)];
-
+				for (int anZ = anZ0;  anZ < anZ1 ; anZ++,tCost+= rSiTer)
+                {					
+					const double cost = (double)*tCost;
                     // TODO WARNING les couts init sont stockés dans un ushort mais des couts semblent sup à ushortmax!!!!
-                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
+					mSurfOpt->SetCout(ptTer,&anZ, cost != valdefault ? cost : mAhDefCost);
                 }
             }
         }
 
 #ifdef  NVTOOLS
-            nvtxRangePop();
+			GpGpuTools::Nvtx_RangePop();
 #endif
 
     }
