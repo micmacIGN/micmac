@@ -57,15 +57,13 @@ int Tequila_main(int argc,char ** argv)
 
     printf("Max texture size / Max texture units: %d / %d\n", maxTextureSize, texture_units);*/
 
-    if (maxTextureSize == 0) maxTextureSize = 4096;
+    if (maxTextureSize == 0) maxTextureSize = 8192;
 
     std::string aDir,aPat,aFullName,aOri,aPly;
     std::string aOut = "textured_Mesh.ply";
     std::string aTextOut = "UVtexture.jpg";
     int aTextMaxSize = maxTextureSize;
     int aZBuffSSEch = 1;
-
-    int aNbLine = 0;
     int JPGcomp = 70;
 
     std::stringstream ss  ;
@@ -83,6 +81,8 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)")
                             << EAM(JPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
              );
+
+    if (MMVisualMode) return EXIT_SUCCESS;
 
     if (aTextMaxSize > maxTextureSize)
     {
@@ -105,6 +105,7 @@ int Tequila_main(int argc,char ** argv)
     std::vector<std::string> ListOri;
     std::vector<CamStenope*> ListCam;
 
+    cout << endl;
     for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
     {
         std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri,*itS,true);
@@ -116,7 +117,7 @@ int Tequila_main(int argc,char ** argv)
     }
 
     cout<<endl;
-    cout<<"************************Lecture du fichier ply************************"<<endl;
+    cout<<"**************************Reading ply file***************************"<<endl;
     cout<<endl;
 
 
@@ -156,11 +157,12 @@ int Tequila_main(int argc,char ** argv)
         if (scalar < 0.f) cout << "youhou !!!********************************************************" << endl;
     }*/
 
-    printf("Nombre de vertex : %d - Nombre de faces : %d \n\n", nbVertex, nbFaces);
+    printf("Vertex number : %d - faces number : %d \n\n", nbVertex, nbFaces);
 
 
-    cout<<"*************************Calcul des Z-Buffer**************************"<< endl;
+    cout<<"*************************Computing Z-Buffer**************************"<< endl;
     cout<< endl;
+
 
     vector <cZBuf> aZBuffers;
     vector <Im2D_REAL4> aZBufIm;
@@ -169,6 +171,8 @@ int Tequila_main(int argc,char ** argv)
     std::list<std::string>::const_iterator itS=aLS.begin();
     for(unsigned int aK=0 ; aK<ListCam.size() ; aK++, itS++) // on teste toutes les CamStenope
     {
+        cout << "Z-buffer " << aK+1 << "/" << ListCam.size() << endl;
+
         cZBuf aZBuffer(ListCam[aK]->Sz(), defValZBuf);
 
         Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
@@ -225,16 +229,17 @@ int Tequila_main(int argc,char ** argv)
         aZBuffers.push_back(aZBuffer);
     }
 
-    cout << "**********************Choix de la meilleure image**********************" << endl;
+    cout << endl;
+    cout << "************************Choosing best image**************************" << endl;
     cout << endl;
 
-    vector<int> vIndex;
+    vector<int> vIndex; //vIndex[aK] indique quelle image est vue par le triangle aK
     int valDef = -1;
 
     for(int i=0 ; i < nbFaces; i++)                            //Pour un triangle
     {
-
-        Pt3dr Norm = myMesh.getTriangle(i)->getNormale(myMesh,true);       //Et sa normale
+        cTriangle * Triangle = myMesh.getTriangle(i);
+        Pt3dr Norm = Triangle->getNormale(true);       //Et sa normale
 
         float PScalcur = -.4f; //angle min = cos(120) = -0.5
         int index = valDef;
@@ -252,6 +257,8 @@ int Tequila_main(int argc,char ** argv)
                 {
                     PScalcur = PScalnew;
                     index = j;
+
+                    Triangle->setTextured(true);
                 }
             }
         }
@@ -271,12 +278,44 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
-    cout << "nombre d'images utilisees / nombre d'images total : " << index.size() << " / " << aLS.size() << endl;
+    cout << "selected images / total : " << index.size() << " / " << aLS.size() << endl;
 
     cout << endl;
-    cout <<"************************Ecriture de la texture************************"<<endl;
+    cout <<"*******************Filtering border triangles**********************"<<endl;
     cout << endl;
 
+    int maxIter = 2;
+    int iter = 0;
+    bool cond = true;
+
+    while (cond && iter < maxIter)
+    {
+        cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
+        vector<int> vRemovedTri = myMesh.clean();
+
+        cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
+
+        for (unsigned int aK=0; aK < vRemovedTri.size(); ++aK)
+            vIndex.erase(vIndex.begin()+vRemovedTri[aK]);
+
+        iter++;
+        cout << "round " << iter << endl;
+
+        cond = false;
+        for (int aK=0; aK< myMesh.getFacesNumber();++aK)
+            if (myMesh.getTriangle(aK)->getEdgesNumber() < 3 )
+            {
+                cond =true;
+                break;
+            }
+    }
+
+
+    cout << "Faces number after filtering: " << myMesh.getFacesNumber() << endl;
+
+    cout << endl;
+    cout <<"************************Writing texture************************"<<endl;
+    cout << endl;
 
     Pt2di aSzMax;
     std::vector<Tiff_Im> aVT;     //Vecteur contenant les images
@@ -304,8 +343,7 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
-    if (aNbLine==0)
-        aNbLine = round_up(sqrt(double(aVT.size())));
+    int aNbLine = round_up(sqrt(double(aVT.size())));
     int aNbCol = round_up(aVT.size()/double(aNbLine));
 
     cout<< "Texture de " << aNbLine << " lignes et "  << aNbCol <<" colonnes, contenant "<< aVT.size() <<" images. "<< endl;
@@ -345,7 +383,7 @@ int Tequila_main(int argc,char ** argv)
     {
         Pt2di ptK(aK % aNbCol, aK / aNbCol);
 
-        std::cout << "WRITE " << aVT[aK].name() << "\n";
+        //std::cout << "WRITE " << aVT[aK].name() << "\n";
 
         Pt2di aP0 (
                     (ptK.x*aSz.x) / aNbCol,
@@ -374,10 +412,10 @@ int Tequila_main(int argc,char ** argv)
 
         TabCoor.push_back(Coord);
 
-        cout<<"Ligne : "<<ptK.y+1 << " Colonne : "<<ptK.x+1<<endl;
+     /*   cout<<"Ligne : "<<ptK.y+1 << " Colonne : "<<ptK.x+1<<endl;
         cout<<"Position : "<< Coord.x <<" " << Coord.y <<endl;
         cout<<"Nombre d'images traitees : "<<aK+1<<"/"<<aVT.size()<<endl;
-        cout<<endl;
+        cout<<endl;*/
     }
 
     std::string newName = StdPrefix(aRes) + ".jpg ";
@@ -395,8 +433,9 @@ int Tequila_main(int argc,char ** argv)
     system_call(aCom.c_str());
 
     cout << endl;
-    cout <<"********************Ecriture du fichier ply***********************"<<endl;
+    cout <<"************************Writing ply file*************************"<<endl;
     cout <<endl;
+
 
     FILE * PlyOut = FopenNN(aOut,"w", "UV Mapping");         //Ecriture du header
     fprintf(PlyOut,"ply\n");
@@ -407,7 +446,7 @@ int Tequila_main(int argc,char ** argv)
     fprintf(PlyOut,"property float x\n");
     fprintf(PlyOut,"property float y\n");
     fprintf(PlyOut,"property float z\n");
-    fprintf(PlyOut,"element face %i\n",nbFaces);
+    fprintf(PlyOut,"element face %i\n",myMesh.getFacesNumber());
     fprintf(PlyOut,"property list uchar int vertex_indices\n");
     fprintf(PlyOut,"property list uchar float texcoord\n");
     fprintf(PlyOut,"end_header\n");
@@ -428,20 +467,23 @@ int Tequila_main(int argc,char ** argv)
     int width  = aSz.x;
     int height = aSz.y;
 
-    for(int i=0 ; i<nbFaces ; i++)                          //Ecriture des triangles
+    cout << "vIndex.size= "<< vIndex.size() << endl;
+    cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
+    for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
     {
         Triangle = myMesh.getTriangle(i);
         Triangle->getVertexesIndexes(t1,t2,t3);              //On recupere les sommets de chaque triangle
 
         idx=vIndex[i];                                      //Liaison avec l'image correspondante
+
         if (idx != valDef)
         {
             Cam = ListCam[idx];
 
             vector <Pt3dr> Vertex;
-            Triangle->getVertexes(myMesh,Vertex);            //projection des vertex du triangle
+            Triangle->getVertexes(Vertex);
 
-            Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);
+            Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
             Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
             Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
@@ -484,7 +526,7 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
-    cout<<"******************************Done********************************"<<endl;
+    cout<<"*******************************Done*********************************"<<endl;
     cout<<endl;
 
     return EXIT_SUCCESS;
