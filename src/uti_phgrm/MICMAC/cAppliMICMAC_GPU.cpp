@@ -1569,41 +1569,43 @@ void cAppliMICMAC::DoGPU_Correl
         uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain sous-echantilloné
         uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain sous-echantilloné
 
-        int2	anB			= zone.pt0 +  dimSTabProj * sample;
-
+		const int2	anB			= zone.pt0 +  dimSTabProj * sample;
+		Pt2dr   saStepPlani(mStepPlani.x*sample,mStepPlani.y*sample);
 
         OMP_NT1
         for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
             int rZ = abs(Z - anZ) * mNbIm;
+			Rect*   pZoneImg    = pTabRect +  rZ;               // Buffer des zones images
+			const double aZReel	= DequantZ(anZ);                // Dequantification Z
+
             OMP_NT2
-            for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )                     // Mise en calque des projections pour chaque image
+			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++, pZoneImg++)                     // Mise en calque des projections pour chaque image
             {
-                Rect*   pZoneImg    = pTabRect +  rZ  + aKIm;               // Buffer des zones images
-                float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
+				float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
 
                 cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);                // Obtention de l'image aKIm
                 const cGeomImage*	aGeom	= aGLI.Geom();
 
-                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul
-                int2 sampTer    = make_int2(0,0);                           // Point retenu
+                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul				
                 Rect re(MAXIRECT);
-                const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
+				Pt2dr aPTer;
+				aPTer.y = mOriPlani.y + mStepPlani.y*pTer.y;// Dequantification  de  Y
 
-                for (pTer.y = zone.pt0.y; pTer.y < anB.y; pTer.y += sample, sampTer.y++, sampTer.x = 0)	// Ballayage du terrain
+				for (; pTer.y < anB.y; pTer.y += sample, aPTer.y += saStepPlani.y)	// Ballayage du terrain
+				{
+					aPTer.x = mOriPlani.x + mStepPlani.x*zone.pt0.x; // Dequantification  de  X
 
-                    for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, sampTer.x++)
-                    {
+					for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, aPTer.x += saStepPlani.x,buf_proj++)
+					{
+						//Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
 
+						const Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
+						//if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
+						*buf_proj		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
 
-                        Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
-                        Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
-
-                        //if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
-                            buf_proj[to1D(sampTer,dimSTabProj)]		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
-
-                    }
-
+					}
+				}
 
                 re.pt1.x = aGLI.getSizeImage().x - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
                 re.pt1.y = aGLI.getSizeImage().y - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.y;
@@ -1749,14 +1751,14 @@ void cAppliMICMAC::DoGPU_Correl
         IMmGg.SetCompute(true);
 
         int nbCellZ = IMmGg.MaskVolumeBlock().size();
-        int aKCellZ      = 0;
-        int aKPreCellZ   = 0;
 
-        // Parcourt de l'intervalle de Z compris dans la nappe globale
-        if (IMmGg.UseMultiThreading())
-            //while( anZComputed < mZMaxGlob )
-
-            while( aKCellZ < nbCellZ )
+		// Parcourt de l'intervalle de Z compris dans la nappe globale
+		if (IMmGg.UseMultiThreading())
+		{
+			//while( anZComputed < mZMaxGlob )
+			int aKCellZ      = 0;
+			int aKPreCellZ   = 0;
+			while( aKCellZ < nbCellZ )
             {
 
                 // Tabulation des projections si la demande est faite
@@ -1793,6 +1795,7 @@ void cAppliMICMAC::DoGPU_Correl
                     aKCellZ++;
                 }
             }
+		}
         else
         {            
             while( anZComputed < mZMaxGlob )
