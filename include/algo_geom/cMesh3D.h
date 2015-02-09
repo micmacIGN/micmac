@@ -58,7 +58,8 @@ class cMesh
     friend class cTriangle;
 
     public:
-                        cMesh(const string & Filename);
+                        cMesh(const string & Filename, bool doAdjacence=true);
+                        cMesh(cMesh const &aMesh);
 
                         ~cMesh();
 
@@ -68,7 +69,7 @@ class cMesh
 
         void		getVertexes(vector <Pt3dr> &vPts) const {vPts = mVertexes;}
         void		getTriangles(vector <cTriangle> &vTriangles) const {vTriangles = mTriangles;}
-        void		getEdges(vector <cEdge> &vEdges) const {vEdges = mEdges;}
+        vector <cEdge> getEdges() const { return mEdges;}
 
         Pt3dr		getVertex(unsigned int idx) const;
         cTriangle*	getTriangle(unsigned int idx);
@@ -78,10 +79,14 @@ class cMesh
         void		addTriangle(const cTriangle &aTri);
         void		addEdge(const cEdge &aEdge);
 
+        void        removeTriangle(cTriangle &aTri);
+
         void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &aTriIdx);
 
         void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vector <unsigned int> const &aTriIdx); //TriInGraph: index of triangles in Graph
         void		setLambda(REAL aL) {mLambda = aL;}
+
+        vector<int> clean(); //returns the index list of removed triangles
 
     private:
 
@@ -117,19 +122,26 @@ class cVertex
 class cTriangle
 {
     public:
-                cTriangle(vector <int> const &idx, int TriIdx);
-                cTriangle(int idx1, int idx2, int idx3, int TriIdx);
+                cTriangle(cMesh* aMesh, vector <int> const &idx, int TriIdx);
 
                 ~cTriangle();
 
-        Pt3dr	getNormale(cMesh const &elMesh, bool normalize = false) const;
-        void	getVertexes(cMesh const &elMesh, vector <Pt3dr> &vList) const;
+        void    setMesh(cMesh* aMesh) { pMesh = aMesh; }
 
-        void	getVertexesIndexes(vector <int> &vList) const {vList = mIndexes;}
+        void    addEdge(int idx);
+        void    removeEdge(int idx);
+
+        Pt3dr	getNormale(bool normalize = false) const;
+        void	getVertexes(vector <Pt3dr> &vList) const;
+        Pt3dr   getVertex(int aK);
+
+        void	getVertexesIndexes(vector <int> &vList) const {vList = mVertex;}
         void	getVertexesIndexes(int &v1, int &v2, int &v3);
-        void	getVoisins(vector <int> &vList) const;
+
         bool	getAttributes(int image_idx, vector <REAL> &ta) const;
         map <int, vector <REAL> >	getAttributesMap() const {return mAttributes;}
+
+        void    setIdx(int id) { mTriIdx = id; }
         int		getIdx() const {return mTriIdx;}
 
         void	setAttributes(int image_idx, const vector <REAL> &ta);
@@ -142,11 +154,27 @@ class cTriangle
 
         REAL	computeEnergy(int img_idx);
 
+        void    setTextured(bool aText) { mTextured = aText; }
+        bool    isTextured() { return mTextured; }
+
+        int     getEdgesNumber() { return mEdges.size(); }
+
+        vector <cEdge> getEdges();
+        vector <int>   getEdgesIndex();
+
+        void    setEdgeIndex(unsigned int pos, int val);
+
+
+
+        bool    operator==( const cTriangle & ) const;
+
     private:
 
         bool						mInside;		// triangle a conserver
+        bool                        mTextured;      // le triangle a-t-il une texture
         int							mTriIdx;		// triangle index
-        vector <int>				mIndexes;		// index of vertexes
+        vector <int>				mVertex;		// index of vertexes in pMesh->mVertexes
+        vector <int>                mEdges;         // index of edges in pMesh->Edges
         map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes
 
         cMesh       *               pMesh;
@@ -154,7 +182,6 @@ class cTriangle
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
-//TODO: remplacer par struct si la classe ne grossit pas plus que ça...
 class cEdge
 {
     public:
@@ -167,6 +194,11 @@ class cEdge
         int		n2(){return mNode2;}
         int		v1(){return mV1;}
         int		v2(){return mV2;}
+
+        void    setN1(int aK) { mNode1 = aK; }
+        void    setN2(int aK) { mNode2 = aK; }
+
+        bool operator==( const cEdge & ) const;
 
     private:
 
@@ -190,7 +222,7 @@ class cZBuf
         Im2D_REAL4	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
         Im2D_REAL4  BasculerUnMaillage(cMesh const &aMesh, CamStenope const & aCam);
 
-        void		BasculerUnTriangle(cTriangle &aTri, cMesh const &aMesh, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
+        void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
 
         void		ComputeVisibleTrianglesIndexes();
         Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
