@@ -17,6 +17,20 @@
   <properties>
       <kakadu.version>1.0.0</kakadu.version>
   </properties>
+  
+  
+  <repositories>
+      <repository>
+          <id>kazan-repo</id>
+          <url>https://geoportail.forge.ign.fr/nexus/content/groups/kazan</url>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+          <releases>
+              <enabled>true</enabled>
+          </releases>
+      </repository>
+  </repositories>
 
 
 <profiles>
@@ -97,17 +111,5 @@
 </profiles>
 
 
-  <repositories>
-    <repository>
-      <id>kazan-repo</id>
-      <url>https://geoportail.forge.ign.fr/nexus/content/groups/kazan</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </repository>
-  </repositories>
 
 </project>
