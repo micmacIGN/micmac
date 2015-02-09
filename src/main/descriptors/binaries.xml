@@ -1,0 +1,39 @@
+<assembly>
+	<id>middle</id>
+	<!-- This package should be extracted in /WEBS/customer/service on a middle server -->
+	<formats>
+		<format>zip</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<baseDirectory></baseDirectory>
+	<fileSets>
+		<fileSet>
+			<directory>${basedir}/</directory>
+			<includes>
+				<include>binaire-aux/*.LINUX</include>
+			</includes>
+			<outputDirectory>/</outputDirectory>
+			<directoryMode>0775</directoryMode>
+			<fileMode>0755</fileMode>
+		</fileSet>
+		<fileSet>
+			<directory>${basedir}/micmac-${micmac.version}/</directory>
+			<includes>
+				<include>bin/mm3d</include>
+			</includes>
+			<outputDirectory>/</outputDirectory>
+			<directoryMode>0775</directoryMode>
+		</fileSet>
+		<fileSet>
+			<directory>${basedir}/</directory>
+			<includes>
+				<include>include/XML_MicMac/*.xml</include>
+				<include>include/XML_MicMac/DicoCalibGeom</include>
+				<include>include/XML_GEN/*.xml</include>
+			</includes>
+			<outputDirectory>/</outputDirectory>
+			<directoryMode>0775</directoryMode>
+			<fileMode>0511</fileMode>
+		</fileSet>
+	</fileSets>
+</assembly>
