@@ -1,5 +1,5 @@
 <assembly>
-	<id>middle</id>
+	<id>binaries</id>
 	<!-- This package should be extracted in /WEBS/customer/service on a middle server -->
 	<formats>
 		<format>zip</format>
