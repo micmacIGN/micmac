@@ -60,7 +60,7 @@
                                         <artifactId>kakadu</artifactId>
                                         <version>${kakadu.version}</version>
                                         <type>zip</type>
-                                        <classifier>middle</classifier>
+                                        <classifier>binaries</classifier>
                                         <overWrite>true</overWrite>
                                         <outputDirectory>${basedir}/kakadu</outputDirectory>
                                     </artifactItem>
