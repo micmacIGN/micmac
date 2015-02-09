@@ -200,7 +200,7 @@ void cTriangle::setEdgeIndex(unsigned int pos, int val)
 
 void cTriangle::removeEdge(int idx)
 {
-    boo found = false;
+    bool found = false;
 
     for (unsigned int aK=0; aK < mEdges.size();++aK)
     {
@@ -477,6 +477,10 @@ void cMesh::removeTriangle(cTriangle &aTri)
                 }
             }
 
+            for (unsigned int bK=aK+1; bK < edges.size();++bK)
+            {
+                if (edges[bK] >edgeIndex) edges[bK] = edges[bK] -1;
+            }
             mEdges.erase(std::remove(mEdges.begin(), mEdges.end(), mEdges[edgeIndex]), mEdges.end());
 
         }
