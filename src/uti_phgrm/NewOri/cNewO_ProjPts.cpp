@@ -80,6 +80,138 @@ cProjCple cProjCple::Projection(const ElCamera & aCam1,const Pt2dr & aP1,const E
 /*                                                            */
 /**************************************************************/
 
+
+
+template <const int TheNbPts,class Type>  class cFixedMergeTieP
+{
+     public :
+       cFixedMergeTieP() :
+           mOk     (true),
+           mNbArc  (0)
+       {
+           for (int aK=0 ; aK<TheNbPts; aK++)
+           {
+               mTabIsInit[aK] = false;
+           }
+       }
+
+
+       void Fusionne(cFixedMergeTieP<TheNbPts,Type> & anEl2)
+       {
+            if ((!mOk) || (! anEl2.mOk))
+            {
+                mOk = anEl2.mOk = false;
+                return;
+            }
+            for (int aK=0 ; aK<TheNbPts; aK++)
+            {
+                if ( mTabIsInit[aK] && anEl2.mTabIsInit[aK] )
+                {
+                   // Ce cas ne devrait pas se produire, il doivent avoir ete fusionnes
+                   ELISE_ASSERT(false,"cFixedMergeTieP");
+                }
+                else if ( mTabIsInit[aK] && (!anEl2. IsInit[aK] ))
+                {
+                     anEl2.mPts[aK] = mPts[aK];
+                     anEl2.mTabIsInit[aK] = true;
+                }
+                else if ( (!IsInit[aK]) && anEl2.IsInit[aK] )
+                {
+                     mPts[aK] = anEl2.mPts[aK] ;
+                     mTabIsInit[aK] = true;
+                }
+            }
+       }
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
+       {
+           AddSom(aV1,aK1);
+           AddSom(aV2,aK2);
+           mNbArc ++;
+       }
+
+        bool IsInit(int aK) const {return IsInit[aK];}
+        bool Pts(int aK)    const {return mPts[aK];}
+       
+     private :
+        void AddSom(const Type & aV,int aK)
+        {
+           if (IsInit[aK])
+           {
+               if (mPts[aK] != aV)
+               {
+                   mOk = false;
+               }
+           }
+           else 
+           {
+              IsInit[aK] = true;
+           }
+        }
+        Type mPts[TheNbPts];
+        bool  mTabIsInit[TheNbPts];
+        bool  mOk;
+        int   mNbArc;
+};
+
+cFixedMergeTieP<2,Pt2dr> anEl2;
+cFixedMergeTieP<3,Pt2dr> anEl3;
+
+template <const int TheNb,class Type> class cFixedMergeStruct
+{
+     public :
+        typedef cFixedMergeTieP<TheNb,Type> tMerge;
+        typedef std::map<Type,tMerge *>     tMapMerge;
+
+        void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
+        {
+             tMerge * aM1 = mTheMaps[aK1][aV1];
+             tMerge * aM2 = mTheMaps[aK2][aV2];
+             tMerge * aMerge = 0;
+
+             if ((aM1==0) && (aM2==0))
+             {
+                 aMerge = new tMerge;
+             }
+             else if ((aM1!=0) && (aM2!=0))
+             {
+                  aM1->Fusionne(aM2);
+                  if (aM1->Ok() && aM2->Ok())
+                  {
+                     delete aM2;
+                     aMerge = aM1;
+                  }
+                  else
+                     return;
+             }
+             else if ((aM1==0) && (aM2!=0))
+             {
+                 aMerge = aM2;
+             }
+             else
+             {
+                 aMerge = aM1;
+             }
+             mTheMaps[aK1] = aMerge;
+             mTheMaps[aK2] = aMerge;
+             for (int aK=0 ;  aK< TheNb ; aK++)
+             {
+                 if (aMerge->IsInit(aK))
+                 {
+                    mTheMaps[aK][ aMerge->Pts[aK]] = aMerge;
+                 }
+             }
+             aMerge->AddArc(aV1,aK1,aV2,aK2);
+        }
+
+     private :
+        tMapMerge                           mTheMaps[TheNb];
+};
+
+
+cFixedMergeStruct<2,Pt2dr> aMap2;
+
+
+/*
 cProjListHom::cProjListHom
 (  
       const ElCamera & aCam1,
@@ -89,7 +221,8 @@ cProjListHom::cProjListHom
 )  :
    mSpherik (Spherik)
 {
-    std::map<Pt2dr,Pt2dr> aMapP2OfP1;
+    std::map<Pt2dr,cElemMapProj> aMapP2OfP1;
+    std::map<Pt2dr,cElemMapProj> aMapP1OfP2;
     for 
     (
           ElPackHomologue::tCstIter itH1=aPack12.begin();
@@ -98,9 +231,10 @@ cProjListHom::cProjListHom
     )
     {
          ElCplePtsHomologues aCple = itH1->ToCple();
-         aMapP2OfP1[aCple.P1()] =  aMapP2OfP1[aCple.P2()];
+         aMapP2OfP1[aCple.P1()].Add(aCple.P2());
     }
 }
+*/
 
 
 
