@@ -34,6 +34,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
         <Symb>  DoEpi=true </Symb>
 
+        <Symb>  UseGpu=false </Symb>
+        <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
+
 	<Symb> Zoom0=64  </Symb>
 	<Symb> ZoomF=1   </Symb>
 	<Symb> ZPas=0.5   </Symb>
@@ -204,8 +207,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 	    <!-- param correl -->
 	    <SzW> ${SzW} </SzW>
 	    <SzWy>  ${SzWy} </SzWy>
+
+            <#WHEN VTEST=${NotUseGpu}>
             <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
-<!--            <AlgoRegul>  eAlgoTestGPU </AlgoRegul>-->
+            </#WHEN>
+            <#WHEN VTEST=${UseGpu}>
+            <AlgoRegul>  eAlgoTestGPU </AlgoRegul>
+            </#WHEN>
 
             <#WHEN VTEST=${DoEpi}>
 	        <Px1Pas> ${ZPas} </Px1Pas>
@@ -251,6 +259,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
                  <#WHEN VTEST=${CMS}>
                      <CorrelMultiScale>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> false </UseWAdapt>
                             <ModeMax> ${MMCEff} </ModeMax>
@@ -564,7 +573,12 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
     <AvalaibleMemory> 1024 </AvalaibleMemory>
     <SzDalleMin> 128 </SzDalleMin>
-    <SzDalleMax> 1000 </SzDalleMax>
+<#WHEN VTEST=${NotUseGpu}>
+            <SzDalleMax> 1000 </SzDalleMax>
+</#WHEN>
+<#WHEN VTEST=${UseGpu}>
+            <SzDalleMax> 512 </SzDalleMax>
+</#WHEN>
     <SzRecouvrtDalles> 20 </SzRecouvrtDalles>
     <SzMinDecomposCalc> 40 </SzMinDecomposCalc>
     <ComprMasque> eComprTiff_None </ComprMasque>

@@ -64,6 +64,7 @@ typedef enum
   eQuickMac,
   eMicMac,
   eBigMac,
+  eMTDTmp,
   eNbTypeMMByP
 } eTypeMMByP;
 void xml_init(eTypeMMByP & aVal,cElXMLTree * aTree);
@@ -3591,9 +3592,25 @@ class cDataBaseNameTransfo
 
         cTplValGesInit< std::string > & Separateur();
         const cTplValGesInit< std::string > & Separateur()const ;
+
+        cTplValGesInit< std::string > & NewKeyId();
+        const cTplValGesInit< std::string > & NewKeyId()const ;
+
+        cTplValGesInit< std::string > & NewKeyIdAdd();
+        const cTplValGesInit< std::string > & NewKeyIdAdd()const ;
+
+        cTplValGesInit< bool > & NewAddNameCam();
+        const cTplValGesInit< bool > & NewAddNameCam()const ;
+
+        cTplValGesInit< double > & NewFocMul();
+        const cTplValGesInit< double > & NewFocMul()const ;
     private:
         cTplValGesInit< double > mAddFocMul;
         cTplValGesInit< std::string > mSeparateur;
+        cTplValGesInit< std::string > mNewKeyId;
+        cTplValGesInit< std::string > mNewKeyIdAdd;
+        cTplValGesInit< bool > mNewAddNameCam;
+        cTplValGesInit< double > mNewFocMul;
 };
 cElXMLTree * ToXMLTree(const cDataBaseNameTransfo &);
 
@@ -6736,6 +6753,9 @@ class cMMUserEnvironment
 
         cTplValGesInit< std::string > & LogDirectory();
         const cTplValGesInit< std::string > & LogDirectory()const ;
+
+        cTplValGesInit< int > & VersionNameCam();
+        const cTplValGesInit< int > & VersionNameCam()const ;
     private:
         cTplValGesInit< std::string > mTiePDetect;
         cTplValGesInit< std::string > mTiePMatch;
@@ -6744,6 +6764,7 @@ class cMMUserEnvironment
         cTplValGesInit< bool > mUseSeparateDirectories;
         cTplValGesInit< std::string > mOutputDirectory;
         cTplValGesInit< std::string > mLogDirectory;
+        cTplValGesInit< int > mVersionNameCam;
 };
 cElXMLTree * ToXMLTree(const cMMUserEnvironment &);
 
@@ -6840,6 +6861,46 @@ void  BinaryDumpInFile(ELISE_fp &,const cMTDCoher &);
 void  BinaryUnDumpFromFile(cMTDCoher &,ELISE_fp &);
 
 std::string  Mangling( cMTDCoher *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_OrientaRel
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OrientaRel & anObj,cElXMLTree * aTree);
+
+
+        double & teta01();
+        const double & teta01()const ;
+
+        double & teta02();
+        const double & teta02()const ;
+
+        double & teta12();
+        const double & teta12()const ;
+
+        double & Teta();
+        const double & Teta()const ;
+
+        double & Phi();
+        const double & Phi()const ;
+    private:
+        double mteta01;
+        double mteta02;
+        double mteta12;
+        double mTeta;
+        double mPhi;
+};
+cElXMLTree * ToXMLTree(const cXml_OrientaRel &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OrientaRel &);
+
+void  BinaryUnDumpFromFile(cXml_OrientaRel &,ELISE_fp &);
+
+std::string  Mangling( cXml_OrientaRel *);
 
 /******************************************************/
 /******************************************************/

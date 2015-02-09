@@ -40,7 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_CMESH
 #define _ELISE_CMESH
 
-#include "general/ptxd.h"
+#include "StdAfx.h"
+//#include "general/ptxd.h"
 #include "../private/cElNuage3DMaille.h"
 #include "../../src/uti_phgrm/MaxFlow/maxflow.h"
 
@@ -147,6 +148,8 @@ class cTriangle
         int							mTriIdx;		// triangle index
         vector <int>				mIndexes;		// index of vertexes
         map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes
+
+        cMesh       *               pMesh;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -180,11 +183,12 @@ class cEdge
 class cZBuf
 {
     public:
-                cZBuf();
+                cZBuf(Pt2di sz = Pt2di(0,0), float defVal = 0.f);
 
                 ~cZBuf();
 
         Im2D_REAL4	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
+        Im2D_REAL4  BasculerUnMaillage(cMesh const &aMesh, CamStenope const & aCam);
 
         void		BasculerUnTriangle(cTriangle &aTri, cMesh const &aMesh, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
 
@@ -192,7 +196,7 @@ class cZBuf
         Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
         Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
-        Im2D_U_INT2				getIndexImage() const {return mImTriIdx;}
+        Im2D_INT4				getIndexImage() const {return mImTriIdx;}
         vector <unsigned int>	getVisibleTrianglesIndexes() const {return vTri;}
 
         cElNuage3DMaille * &	Nuage() {return mNuage;}
@@ -202,20 +206,22 @@ class cZBuf
 
         Pt2di					Sz(){return mSzRes;}
 
+
+
     private:
 
         double					mMaxAngle;		//threshold on angle between surface and viewing direction
 
         Pt2di					mSzRes;			//size result
 
-        Im2D_U_INT2				mImTriIdx;		//triangle index image (label image)
+        Im2D_INT4				mImTriIdx;		//triangle index image (label image)
         Im2D_BIN				mImMask;		//mask image
 
         Im2D_REAL4				mRes;			//Zbuffer
         float **				mDataRes;
 
         float					mDpDef;			//default value for depth img (mRes)
-        unsigned int			mIdDef;			//default value for index img (mImTriIdx)
+        int                     mIdDef;			//default value for index img (mImTriIdx)
 
         vector <unsigned int>	vTri;			//list of visible triangles (contained in the index image)
 

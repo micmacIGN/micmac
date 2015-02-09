@@ -322,6 +322,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image",cArgLogCom(2,"../")));
        // aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
+       aRes.push_back(cMMCom("Tequila",Tequila_main," Texture mesh"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("TestChantier",TestChantier_main," Test global acquisition"));
 
@@ -469,6 +470,9 @@ int  Ortho2TieP_main(int argc,char ** argv);
 int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
+extern int BasculePtsInRepCam_main(int argc,char ** argv);
+
+
 
 int MakeOneXmlXifInfo_main(int argc,char ** argv);
 
@@ -481,7 +485,16 @@ int CASALL_main(int argc,char ** argv);
 extern int MMEnvStatute_main(int argc,char ** argv);
 
 
+int CheckOneHom_main(int argc,char ** argv);
+int CheckAllHom_main(int argc,char ** argv);
+int CheckOneTiff_main(int argc,char ** argv);
+int CheckAllTiff_main(int argc,char ** argv);
 
+
+int CheckOneOrient_main(int argc,char ** argv);
+int CheckAllOrient_main(int argc,char ** argv);
+
+int TestNewOriImage_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -554,6 +567,18 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topoligical analysis before bascule"));
 
 
+    aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
+    aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
+    aRes.push_back(cMMCom("Check1Tiff",CheckOneTiff_main,"Check All File Homologue"));
+    aRes.push_back(cMMCom("CheckAllTiff",CheckAllTiff_main,"Check All File Homologue"));
+
+
+    aRes.push_back(cMMCom("Check1Ori",CheckOneOrient_main,"Check One Orientation"));
+    aRes.push_back(cMMCom("CheckAllOri",CheckAllOrient_main,"Check a Folder of Orientation"));
+    
+    aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
+    aRes.push_back(cMMCom("TNO",TestNewOriImage_main,"Test New Orientation"));
+
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
@@ -613,9 +638,12 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    // TheExitOnBrkp=aValInit_TheExitOnBrkp;
 
    std::string aCom = argv[1];
-   std::string aLowCom = current_program_subcommand();
+   // std::string aLowCom = current_program_subcommand();
+   std::string aLowCom =  StrToLower(aCom);  // MPD modif, sinon suggestions de marche pas en TestLib
 
    std::vector<cSuggest *> mSugg;
+
+//  std::cout << "JJJJJ " << aLowCom << " " << aCom  << " " << StrToLower(aCom) << "\n";
 
    cSuggest *PatMach    = new cSuggest("Pattern Match",aLowCom);
    cSuggest *PrefMach   = new cSuggest("Prefix Match",aLowCom+".*");

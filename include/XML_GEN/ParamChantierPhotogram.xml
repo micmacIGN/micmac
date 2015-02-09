@@ -948,6 +948,11 @@
          <!-- Si donne, on ajoute @Foc, arrondi entier, multipliee par AddFocMul -->
          <AddFocMul  Nb="?" Type="double"> </AddFocMul>
          <Separateur Nb="?" Type="std::string" Def="%"> </Separateur>
+         <NewKeyId     Nb="?" Type="std::string"> </NewKeyId>
+         <NewKeyIdAdd  Nb="?" Type="std::string"> </NewKeyIdAdd>
+      <!-- Val def depend avec VersionNameCam >= 1 -->
+         <NewAddNameCam Nb="?" Type="bool">  </NewAddNameCam>   <!--   true si V>=1 -->
+         <NewFocMul  Nb="?" Type="double">  </NewFocMul>        <!--  1000 si >=1, 1 sinon -->
    </DataBaseNameTransfo>
 
    <!--
@@ -1584,6 +1589,7 @@
          <UseSeparateDirectories Nb="?" Type="bool" Def="false"> </UseSeparateDirectories>
          <OutputDirectory  Nb="?" Type="std::string">  </OutputDirectory>
          <LogDirectory  Nb="?" Type="std::string">  </LogDirectory>
+         <VersionNameCam Nb="?" Type="int" Def="0"> </VersionNameCam>
     </MMUserEnvironment>
 
 <SelectionInfos Nb="1" Class="true" ToReference="true">
@@ -1599,6 +1605,18 @@
 <MTDCoher  Nb="1" Class="true" ToReference="true">
      <Dec2 Nb="1" Type="Pt2di"> </Dec2>
 </MTDCoher>
+
+
+<Xml_OrientaRel Nb="1" Class="true" ToReference="true">
+     <!-- Euler angles -->
+     <teta01 Nb="1" Type="double"> </teta01>  <!-- Precession -->
+     <teta02 Nb="1" Type="double">  </teta02>   <!-- Nutation -->
+     <teta12  Nb="1" Type="double">  </teta12>  <!-- Rotation propre -->
+
+     <!-- Spherical coordinates of base -->
+     <Teta Nb="1" Type="double"> </Teta>
+     <Phi Nb="1" Type="double">  </Phi>
+</Xml_OrientaRel>
 
 
 

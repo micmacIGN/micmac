@@ -123,7 +123,7 @@ class Tiff_Im : public ElGenFileIm
                eRATIONNAL = 5
         } FIELD_TYPE;
 
-        static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE);
+        static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE,const char * aNameFile);
 
         typedef enum
         {
@@ -158,8 +158,8 @@ class Tiff_Im : public ElGenFileIm
              CMYK          = 5,
              YCbCr         = 6,
              CIELab        = 8,
-         PtDeLiaison   = 10531, // Une valeur peu succeptible de telescopage
-         // PtDAppuisDense : il y 4 cannaux,Pds, xy et z superposables aux images
+         PtDeLiaison   = 10531, // Une valeur peu susceptible de telescopage
+         // PtDAppuisDense : il y 4 canaux,Pds, xy et z superposables aux images
          PtDAppuisDense  = 10532
         }  PH_INTER_TYPE;
 

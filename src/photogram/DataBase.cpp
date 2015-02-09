@@ -167,34 +167,8 @@ cXmlExivEntry * cInterfChantierNameManipulateur::GetXivEntry(const std::string &
    return aXEE;
 }
 
+
 /*
-std::string  cInterfChantierNameManipulateur::DBNameTransfo
-     (
-           const std::string & aName,
-           const cTplValGesInit<cDataBaseNameTransfo> &  aTplDBNT
-     )
-{
-   if (! aTplDBNT.IsInit() ) return aName;
-
-   cXmlExivEntry * aXEE = GetXivEntry(aName);
-
-   const cDataBaseNameTransfo & aDBNT = aTplDBNT.Val();
-
-   std::string aRes = aName;
-
-   if (aDBNT.AddFocMul().IsInit())
-   {
-       double aMul = aDBNT.AddFocMul().Val();
-       aRes =    aRes 
-              +  aDBNT.Separateur().Val()
-              +  ToString(round_ni(aMul*aXEE->Focale()));
-   }
- 
-   return aRes;
-}
-*/
-
-
 void  cInterfChantierNameManipulateur::AddMTD2Name
       (
            std::string & aName,
@@ -202,7 +176,26 @@ void  cInterfChantierNameManipulateur::AddMTD2Name
            double aMul
       )
 {
+   // Gestion d'Id simple
+   {
+      std::string anId =  Assoc1To1("NKS-Assoc-StdIdCam",aName,true);
+      if (anId!="")
+      {
+          aName = aName + aSep + anId;
+          return;
+      }
+   }
+
+
    const cMetaDataPhoto &  aMDP = cMetaDataPhoto::CreateExiv2(mDir+aName);
+
+   bool NewMode = (MMUserEnv().VersionNameCam().Val()>=1) ;
+   std::string aSepName = "";
+   if (NewMode)
+   {
+         aMul = 1000;
+         aSepName="_";
+   }
 
    if (aMul>0)
    {
@@ -212,48 +205,119 @@ void  cInterfChantierNameManipulateur::AddMTD2Name
            std::cout << "For name " << aName << "\n";
            ELISE_ASSERT(aFoc>0,"No Xif Focale found in NameTransfo");
        }
-       aName = aName + aSep + ToString(round_ni(aMul*aFoc));
+       aName = aName + aSep + aSepName + ToString(round_ni(aMul*aFoc));
+
+       if (NewMode)
+       {
+           const std::string &  aNameCamInit = aMDP.Cam(true);
+           std::string aNameCamUsed;
+           for (const char * aC = aNameCamInit.c_str() ; *aC; aC++)
+           {
+               if (isalnum(*aC)) aNameCamUsed += *aC;
+               else if (isblank(*aC)) aNameCamUsed += "_";
+           }
+           aName = aName +"_" + aNameCamUsed;
+       }
+       {
+           std::string anId =  Assoc1To1("NKS-Assoc-StdIdAdditionnelCam",aName,true);
+           if (anId!="")
+             aName = aName + "_" + anId;
+       }
    }
 }
+*/
 
 std::string  cInterfChantierNameManipulateur::DBNameTransfo
      (
-           const std::string & aName,
+           const std::string & aNameInit,
            const cTplValGesInit<cDataBaseNameTransfo> &  aTplDBNT
      )
 {
-   if (! aTplDBNT.IsInit() ) return aName;
+   if (! aTplDBNT.IsInit() ) return aNameInit;
    const cDataBaseNameTransfo & aDBNT = aTplDBNT.Val();
 
-   // const cMetaDataPhoto &  aMDP = cMetaDataPhoto::CreateExiv2(mDir+aName);
+   std::string aName = aNameInit;
+   std::string aSep = aDBNT.Separateur().Val();
+   int aMode = MMUserEnv().VersionNameCam().ValWithDef(0);
+   const cMetaDataPhoto &  aMDP = cMetaDataPhoto::CreateExiv2(mDir+aName);
+   double aFoc = aMDP.FocMm(true);
 
+   std::string aCompl = "";
 
-   std::string aRes = aName;
-   AddMTD2Name
-   (
-        aRes,
-        aDBNT.Separateur().Val(),
-        aDBNT.AddFocMul().ValWithDef(-1)
-   );
-
-/*
-   if (aDBNT.AddFocMul().IsInit())
+   // A L'ancienne 
+   if (aMode==0)
    {
-       double aFoc = aMDP.FocMm();
-       if (aFoc<=0)
-       {
-           std::cout << "For name " << aName << "\n";
-           ELISE_ASSERT(aFoc>0,"No Xif Focale found in NameTransfo");
-       }
-        
-       double aMul = aDBNT.AddFocMul().Val();
-       aRes =    aRes 
-              +  aDBNT.Separateur().Val()
-              +  ToString(round_ni(aMul*aFoc));
+        if (aFoc>0)
+        {
+             double aMul  = aDBNT.AddFocMul().ValWithDef(-1);
+             if (aMul>0)
+             {
+                  aCompl += ToString(round_ni(aMul*aFoc));
+             }
+        }
    }
-*/
+   else
+   {
+      std::string aUserId="";
+      if (aDBNT.NewKeyId().IsInit())
+      {
+          aUserId=  Assoc1To1(aDBNT.NewKeyId().Val(),aName,true);
+      }
 
-   return aRes;
+      if (aUserId!="")
+      {
+         aCompl = aUserId;
+      }
+      else
+      {
+         if (aFoc>0)
+         {
+             double aMul  = aDBNT.NewFocMul().ValWithDef(-1);
+             if (aMul>0)
+             {
+                  aCompl += "_Foc-"+ ToString(round_ni(aMul*aFoc));
+             }
+         }
+
+         if (aDBNT.NewAddNameCam().ValWithDef(false))
+         {
+              const std::string &  aNameCamInit = aMDP.Cam(true);
+              if (aNameCamInit!="")
+              {
+                 std::string aNameCamUsed ="_Cam-";
+                 bool IsLastBlk= false;
+                 for (const char * aC = aNameCamInit.c_str() ; *aC; aC++)
+                 {
+                      if (isalnum(*aC)) 
+                      {
+                          aNameCamUsed += *aC;
+                          IsLastBlk = false;
+                      }
+                      else if (isblank(*aC))
+                      { 
+                          if (!IsLastBlk)
+                          {
+                             aNameCamUsed += "_";
+                          }
+                          IsLastBlk = true;
+                      }
+                 }
+                 aCompl +=  aNameCamUsed;
+             }
+         }
+         
+         if (aDBNT.NewKeyIdAdd().IsInit())
+         {
+             aCompl +=  Assoc1To1(aDBNT.NewKeyIdAdd().Val(),aName,true);
+         }
+      }
+   }
+
+
+   aName = aName + aSep + aCompl;
+
+
+   return aName ;
 }
 
 

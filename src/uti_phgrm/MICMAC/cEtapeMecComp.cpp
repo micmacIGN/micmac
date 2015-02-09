@@ -304,7 +304,11 @@ cEtapeMecComp::cEtapeMecComp
 
      if (mIsExportZAbs)
      {
-          ELISE_ASSERT(mIsOptimCont && isLastEtape,"ExportZAbs requires continuous optimisation && last step");
+          ELISE_ASSERT
+          (
+                   mIsOptimCont && isLastEtape && (mAppli.DimPx()==1),
+                  "ExportZAbs requires continuous optimisation && last step"
+          );
      }
     
      if (mIsOptimCont)

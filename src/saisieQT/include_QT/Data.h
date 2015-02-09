@@ -18,7 +18,7 @@ class cData
 
         void replaceCloud(GlCloud * cloud, int id = 0);
 
-        void pushBackMaskedImage(QMaskedImage maskedImage);
+		void pushBackMaskedImage(QMaskedImage *maskedImage);
 
         void clearCameras();
         void clearClouds();
@@ -45,7 +45,7 @@ class cData
 
         int            idPolygon(cPolygon* polygon);
 
-        QMaskedImage&  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
+		QMaskedImage*  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
 
         void    getMinMax(Pt3dr);
         void    computeBBox(int idCloud = -1);
@@ -71,7 +71,7 @@ private:
 
         QVector <CamStenope *> _Cameras;
         QVector <GlCloud *>    _Clouds;
-        QVector <QMaskedImage> _MaskedImages;
+		QVector <QMaskedImage*> _MaskedImages;
 
         //! list of polygons
         QVector<cPolygon*>     _vPolygons;

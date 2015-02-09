@@ -45,6 +45,9 @@
     <Symb> ZPasCalc=0.5  </Symb>
 
     <eSymb> SzDalleMin=  1200  </eSymb>
+
+    <Symb>  UseGpu=false </Symb>
+    <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
 </DicoLoc>
 
 <Section_Terrain>  
@@ -53,8 +56,8 @@
              <ZIncCalc>   0.0  </ZIncCalc>
       </IntervAltimetrie>
       <IntervSpecialZInv >
-             <MulZMin >  0.3</MulZMin>
-             <MulZMax >  3.0 </MulZMax>
+             <MulZMin >  0.99</MulZMin>
+             <MulZMax >  1.01 </MulZMax>
       </IntervSpecialZInv>
 </Section_Terrain>
 
@@ -115,6 +118,7 @@
                      <SzBlocAH> 400000 </SzBlocAH>
 
                      <CorrelMultiScale>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>

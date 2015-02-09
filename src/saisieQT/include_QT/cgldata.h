@@ -54,9 +54,9 @@ public:
 
     bool        position2DClouds(MatrixManager &mm,QPointF pos);
 
-    void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
+	void        editImageMask(int mode, cPolygon* polyg, bool m_bFirstAction);
 
-    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
+	void        editCloudMask(int mode, cPolygon*polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        replaceCloud(GlCloud* cloud, int id = 0);
 
@@ -66,7 +66,7 @@ public:
       OpShow_Axis   = 0x02,
       OpShow_BBox   = 0x04,
       OpShow_Mess   = 0x08,
-      OpShow_Cams   = 0x10,
+	  OpShow_Cams   = 0x10,
       OpShow_Grid   = 0x20,
       //OpShow_Cent   = 0x40
       // ...

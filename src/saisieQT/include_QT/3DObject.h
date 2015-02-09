@@ -93,7 +93,8 @@ class cObjectGL : public cObject
 
         cObjectGL(Pt3dr pos, QColor color_default) :
             cObject(pos, color_default),
-            _glError(0)
+			_lineWidth(1),
+			_glError(0)
         {}
 
         virtual ~cObjectGL(){}
@@ -282,6 +283,9 @@ class cPolygon : public cObjectGL
 
         cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
 
+		~cPolygon();
+
+
         virtual void draw();
 
         void    close();
@@ -341,7 +345,7 @@ class cPolygon : public cObjectGL
         void    setVector(QVector <QPointF> const &aPts);
 
         cPolygonHelper* helper() { return _helper; }
-        void    setHelper(cPolygonHelper* aHelper) { _helper = aHelper; }
+		void    setHelper(cPolygonHelper* aHelper);
 
         virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true);
 
@@ -438,6 +442,8 @@ class cPolygonHelper : public cPolygon
 
         cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
+		~cPolygonHelper();
+
         void   build(const cPoint &pos, bool insertMode);
 
         void   setPoints(cPoint p1, cPoint p2, cPoint p3);
@@ -500,7 +506,7 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
-private:
+private:		
 
         QGLShaderProgram _program;
 
@@ -528,35 +534,38 @@ public:
         _m_rescaled_mask(NULL),
         _m_newMask(true),
         _gamma(gamma),
-        _loadedImageRescaleFactor(sFactor)
-    {}
+		_loadedImageRescaleFactor(sFactor),
+		_loading(false)
+	{
+
+	}
 
     ~cMaskedImage()
-    {
+    {	
         deallocImages();
     }
 
     void deallocImages()
     {
-        if(_m_image != NULL)
+		if(_m_image != NULL)
         {
-            _m_image = NULL;
             delete _m_image;
+			_m_image = NULL;
         }
         if(_m_mask != NULL)
         {
-            _m_mask = NULL;
             delete _m_mask;
+			_m_mask = NULL;
         }
         if(_m_rescaled_image != NULL)
         {
-            _m_rescaled_image = NULL;
             delete _m_rescaled_image;
+			_m_rescaled_image = NULL;
         }
         if(_m_rescaled_mask != NULL)
         {
-            _m_rescaled_mask = NULL;
             delete _m_rescaled_mask;
+			_m_rescaled_mask = NULL;
         }
     }
 
@@ -572,6 +581,11 @@ public:
     float       _gamma;
     float       _loadedImageRescaleFactor;
 
+
+	QSize		_fullSize;
+	//QImageReader *_imageReader;
+	bool		_loading;
+
 };
 
 class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
@@ -581,14 +595,19 @@ public:
 
     cMaskedImageGL():
         _qMaskedImage(NULL)
-    {}
+    {
+	
+		initGLFunc();
+	}
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
     cMaskedImageGL(const QRectF & aRect);
 
-    ~cMaskedImageGL()
-    {}
+	~cMaskedImageGL();
+
+//    ~cMaskedImageGL()
+//    {}
 
     /*void setScale(Pt3dr aScale)
     {
@@ -606,15 +625,37 @@ public:
 
     void  createTextures();
 
+	void  createFullImageTexture();
+
     QMaskedImage* getMaskedImage() { return _qMaskedImage; }
     void          setMaskedImage(QMaskedImage * aMaskedImage) { _qMaskedImage = aMaskedImage; }
 
     cImageGL*   glImage()  { return _m_image; }
     cImageGL*   glMask()   { return _m_mask;  }
 
-//private:
+	void		copyImage(cMaskedImage<QImage>* image, QRect& rect);
+
+	QSize		fullSize();
+
+private:
 
     QMaskedImage *_qMaskedImage;
+
+	QMutex			_mutex;
+
+	void initGLFunc()
+	{
+#ifdef _WIN32
+		glBlendColor = (PFNGLBLENDCOLOREXTPROC)wglGetProcAddress("glBlendColor");
+		glBlendEquation = (PFNGLBLENDEQUATIONEXTPROC)wglGetProcAddress("glBlendEquation");
+#endif
+
+	}
+
+#ifdef _WIN32
+	PFNGLBLENDCOLOREXTPROC glBlendColor;
+	PFNGLBLENDEQUATIONEXTPROC glBlendEquation;
+#endif
 };
 
 //====================================================================================
@@ -631,7 +672,8 @@ enum MessagePosition {  LOWER_LEFT_MESSAGE,
 struct MessageToDisplay
 {
     MessageToDisplay():
-        color(Qt::white)
+		color(Qt::white),
+		position(LOWER_CENTER_MESSAGE)
     {}
 
     //! Message
@@ -651,7 +693,9 @@ public:
     cMessages2DGL(QGLWidget *glw):
         _bDrawMessages(true),
         m_font(QFont("Arial", 10, QFont::Normal, false)),
-        glwid(glw)
+		glwid(glw),
+		w(0),
+		h(0)
     {}
 
     void draw();

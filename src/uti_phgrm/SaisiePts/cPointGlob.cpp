@@ -131,8 +131,19 @@ Pt3dr cSP_PointGlob::Best3dEstim() const
    }
    if (mPG->FromDico().ValWithDef(false))
    {
+/*
       ELISE_ASSERT(mPG->Pt3DFromDico().IsInit(),"Pt3DFromDico :: cSP_PointGlob::Best3dEstim");
       return mPG->Pt3DFromDico().Val();
+*/
+     // Modif MPD pour compatibilite avec anciens fichiers deja crees avant masq3D
+      if (mPG->Pt3DFromDico().IsInit())
+      {
+         return mPG->Pt3DFromDico().Val();
+      }
+      else if (mPG->P3D().IsInit())
+      {
+          return  mPG->P3D().Val();
+      }
    }
 
    ELISE_ASSERT(false,"cSP_PointGlob::Best3dEstim No Pt\n");

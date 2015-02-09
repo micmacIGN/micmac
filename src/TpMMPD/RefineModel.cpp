@@ -545,7 +545,7 @@ public:
             if (_verbose) cout << "DTM size : "<<_MntOri.NombrePixels().x<<" "<<_MntOri.NombrePixels().y<<endl;
             std_unique_ptr<TIm2D<REAL4,REAL8> > Img(createTIm2DFromFile<REAL4,REAL8>(_MntOri.NameFileMnt()));
 
-            #if __cplusplus > 199711L
+			#if __cplusplus > 199711L | _MSC_VER == 1800
             _MntImg = std::move(Img);
             #else
             _MntImg = Img;
@@ -557,7 +557,7 @@ public:
         if ((aNameFileGCP != "") && (ELISE_fp::exist_file(aNameFileGCP)))
         {
             cDicoAppuisFlottant aDico = StdGetFromPCP(aNameFileGCP,DicoAppuisFlottant);
-            //if (_verbose)
+            if (_verbose)
                 cout << "Nb GCP " <<  aDico.OneAppuisDAF().size() << endl;
             list<cOneAppuisDAF> & aLGCP =  aDico.OneAppuisDAF();
 
@@ -576,7 +576,7 @@ public:
         if ((aNameFilePointeIm != "") && (ELISE_fp::exist_file(aNameFilePointeIm)))
         {
             cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aNameFilePointeIm,SetOfMesureAppuisFlottants);
-            //if (_verbose)
+            if (_verbose)
                 cout << "Nb GCP img " << aDico.MesureAppuiFlottant1Im().size() << endl;
             list<cMesureAppuiFlottant1Im> & aLGCP =  aDico.MesureAppuiFlottant1Im();
 
@@ -586,7 +586,9 @@ public:
                      iT++
                 )
             {
-                if (_verbose) cout << "Image : " << StdPrefixGen(iT->NameIm()) << endl;
+                if (_verbose)
+                    cout << "Image : " << StdPrefixGen(iT->NameIm()) << endl;
+
                 list< cOneMesureAF1I > & aLPIm = iT->OneMesureAF1I();
 
                 for (
@@ -595,7 +597,8 @@ public:
                      iTP++
                     )
                 {
-                    if (_verbose) cout << "Point : " << iTP->NamePt() << " " << iTP->PtIm() << endl;
+                    if (_verbose)
+                        cout << "Point : " << iTP->NamePt() << " " << iTP->PtIm() << endl;
 
                     AffCamera* cam = NULL;
                     for (
@@ -620,7 +623,8 @@ public:
                             if (vObs[aK]->ptName() == iTP->NamePt() )
                             {
                                 vObs[aK]->addImageMeasure(im);
-                                if (_verbose) cout << "add img measure to GCP " << vObs[aK]->ptName() << endl;
+                                if (_verbose)
+                                    cout << "add img measure to GCP " << vObs[aK]->ptName() << endl;
                                 break;
                             }
                         }

@@ -296,7 +296,7 @@ void SplitDirAndFile
 
 
     // ====== Regle speciale, si on veut passer des argument de Type  NKS-Set-OfFile, on doit
-    // pouvoir specifier un split special, on le fait avec un #
+    // pouvoir specifier un split special, on le fait avec un %
     {
          std::string::size_type aPos  = strCpy.rfind('%');
          if (aPos != std::string::npos)

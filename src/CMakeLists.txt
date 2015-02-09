@@ -153,7 +153,7 @@ include(${SAISIE_DIR}/Elise_QT.cmake)
 if(${CUDA_ENABLED})
     INCLUDE (GpGpu.cmake)
 
-    cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_tomoc} ${HEADERS_nomoc} ${saisie_ui} OPTIONS ${GENCODE_SM})
+    cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} ${QT_ALLFILES} OPTIONS ${GENCODE_SM})
 	
         if(${CUDA_NVTOOLS})
 		target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY} ${OPENCL_LIBRARY})
@@ -163,7 +163,7 @@ if(${CUDA_ENABLED})
 
 else()
 
-    add_library( ${libElise}  ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_tomoc} ${HEADERS_nomoc} ${saisie_ui})
+    add_library( ${libElise}  ${Elise_Src_Files} ${IncFiles} ${QT_ALLFILES})
 
 endif()
 
@@ -192,7 +192,6 @@ if (WITH_INTERFACE)
     ADD_SUBDIRECTORY(interface)
 endif()
 
-#if (WITH_SAISIEQT)
 if ( NOT ${qt_version} EQUAL 0)
     ADD_SUBDIRECTORY(saisieQT)
 endif()

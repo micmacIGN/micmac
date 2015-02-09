@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                       */
 /*********************************************************/
 
+
 static bool IsPBUG(const Pt2di & aP)
 {
     return false;
@@ -617,6 +618,77 @@ void cAppliMICMAC::MakeResultOfEtape(cEtapeMecComp & anEtape)
     {
        anEtape.DoRemplitXMLNuage();
     }
+    MakeDequantSpecial();
+}
+
+
+void cAppliMICMAC::MakeDequantSpecial()
+{
+   // MPD Modif , le dequant tel que implemante dans MicMac a pas mal d'effet de bord,
+   // pour les reduire efficacement, il faudraoit augmenter taille des recouvrt et 
+   // taille image mais ensite MicMac est couteux en memoire. Donc :
+   //    * on relance un Dequant "basique"
+   //    * on laisse ce qui est fait actuellement car il y a pas mal d'autre chose pour preparer
+   //      ortho etc .... donc on prend pas de risques ...
+
+   if (!mCurEtape->IsOptDequant())
+       return;
+
+   if (mPrecEtape==0) return;
+   if (mPrecEtape->IsOptDequant()) return;
+     
+   for (int aKPx=0 ; aKPx<DimPx() ; aKPx++)
+   {
+       std::string aTifQuant  =    mPrecEtape->KPx(aKPx).NameFile();
+       std::string aTifDeqQuant  = mCurEtape->KPx(aKPx).NameFile();
+
+       double aR=0;
+       double aOfs = 0;
+
+
+       // std::cout << "AAAAAAAAAAAAAa IsOptDequant " << mPrecEtape << " " << mCurEtape << "\n";
+       if (DimPx()==1)
+       {
+           cFileOriMnt aFOMQ   =  StdGetFromPCP(StdPrefix(aTifQuant)+".xml"   ,FileOriMnt);
+           cFileOriMnt aFOMDeQ =  StdGetFromPCP(StdPrefix(aTifDeqQuant)+".xml",FileOriMnt);
+
+       // Z = a0 + R0 z0
+       // Z = a1 + R1 z1
+       //  z1 = (Z-a1) / R1 = (a0 +R0 z0 -a1) /R1 = (a0-a1) /R1  + z1 (R0/R1)
+
+
+//    Z_Num7_DeZoom2_STD-MALT.xml
+//      <ResolutionAlti>0.0135</ResolutionAlti>
+//    Z_Num8_DeZoom2_STD-MALT.xml
+//       <ResolutionAlti>0.003</ResolutionAlti>
+
+
+           aR = aFOMQ.ResolutionAlti() / aFOMDeQ.ResolutionAlti();
+           aOfs = (aFOMQ.OrigineAlti()-aFOMDeQ.OrigineAlti()) /aFOMDeQ.ResolutionAlti();
+           // std::cout << " BB  " << aTifQuant  << " " << aFOMQ.ResolutionAlti() << "\n";
+           // std::cout << " CCC " << aTifDeqQuant << " " << aFOMDeQ.ResolutionAlti() << "\n";
+           // std::cout << " DDDD,  R=" << aR << " Of=" << aOfs << "\n";
+       }
+       else
+       {
+              double aPasQ =  mPrecEtape->KPx(aKPx).ComputedPas();
+              double aPasDeQ =   mCurEtape->KPx(aKPx).ComputedPas();
+              aR=  aPasQ/aPasDeQ;
+              aOfs=0;
+
+             // std::cout << " EEEEE,  R=" << aR << " Of=" << aOfs << "\n";
+       }
+
+       std::string aCom =   MM3dBinFile("Dequant")
+                          + " "  +  aTifQuant
+                          + " Out=" + aTifDeqQuant
+                          + " Dyn=" + ToString(aR)
+                          + " Offs=" + ToString(aOfs)
+                          + " SzRecDalles=1500"
+                          + " SzMaxDalles=15000" ;
+       // std::cout << "COM= " << aCom << "\n";
+       System(aCom);
+   }
 }
 
 

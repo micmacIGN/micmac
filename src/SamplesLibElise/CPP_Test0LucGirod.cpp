@@ -145,8 +145,8 @@ void RotateImage(double alpha, Pt2di aSzOut, vector<Pt2dr> Pts , string aNameDir
     //Parcours des points de l'image de sortie et remplissage des valeurs
     Pt2dr ptOut;
     Pt2di imageTopCorner, imageBottomCorner;
-    imageTopCorner.x    = (int)(P1Cor.x + 0.5) + (max(abs(P1Cor.x-Pts[1].x),abs(P1Cor.x-P3Cor.x))-aSzOut.x)/2;
-    imageTopCorner.y    = (int)(P1Cor.y + 0.5) + (max(abs(P3Cor.y-Pts[1].y),abs(P1Cor.y-P3Cor.y))-aSzOut.y)/2;
+	imageTopCorner.x = (int)(P1Cor.x + 0.5) + (int)(max(abs(P1Cor.x - Pts[1].x), abs(P1Cor.x - P3Cor.x)) - aSzOut.x) / 2;
+	imageTopCorner.y = (int)(P1Cor.y + 0.5) + (int)(max(abs(P3Cor.y - Pts[1].y), abs(P1Cor.y - P3Cor.y)) - aSzOut.y) / 2;
     imageBottomCorner.x = imageTopCorner.x + aSzOut.x;
     imageBottomCorner.y = imageTopCorner.y + aSzOut.y;
 
@@ -222,7 +222,7 @@ int  Luc_main_corner_crop(int argc,char ** argv){
         string name;
         file >> name >> PtsIm[0].x >> PtsIm[0].y >> name >> PtsIm[1].x >> PtsIm[1].y >> name >> PtsIm[2].x >> PtsIm[2].y;
         Pts.push_back(PtsIm);
-        SzX.push_back(euclid(PtsIm[0],PtsIm[1])); SzY.push_back(euclid(PtsIm[2],PtsIm[1]));
+		SzX.push_back((int)euclid(PtsIm[0], PtsIm[1])); SzY.push_back((int)euclid(PtsIm[2], PtsIm[1]));
     }
 
     file.close();
@@ -427,14 +427,14 @@ vector<SpatioTempImage> LoadGrpImages(string aDir, std::string aPatIm, std::stri
 Im2D_U_INT1 Window_Maker(SpatioTempImage aIm, Pt2di aCtrPt, int aSzW)
 {
     //cout << "Creating Window for " << aCtrPt << endl;
-    Im2D_U_INT1 aWindow(1 + 2 * aSzW, 1 + 2 * aSzW, 0.0);
+    Im2D_U_INT1 aWindow(1 + 2 * aSzW, 1 + 2 * aSzW, 0);
     float aWSum = 0;
     for (int i = -aSzW; i <= aSzW; i++)
     {
         vector<float> aLine;
         for (int j = -aSzW; j <= aSzW; j++)
         {
-            aWindow.data()[i + aSzW][j + aSzW] = aIm.RChan.data()[aCtrPt.y + j][aCtrPt.x + i];
+            aWindow.data()[i + aSzW][j + aSzW] =(unsigned char) aIm.RChan.data()[aCtrPt.y + j][aCtrPt.x + i];
             aWSum = aWSum + aIm.RChan.data()[aCtrPt.y + j][aCtrPt.x + i];
         }
     }

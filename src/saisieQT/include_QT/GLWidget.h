@@ -90,11 +90,13 @@ public:
 
     int  getWindowMeanValue(QPoint pos, int r = 7); //pos = image position, r = half size of window
 
-    void checkTiles(); //compute tiles if needed
+	void setZone(QRectF aRect);
 
-    void setZone(QRectF aRect);
+	void checkTiles(); //compute tiles if needed
 
 public slots:
+
+	void createLoadedTexture(cMaskedImageGL* _tile);
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
 
@@ -212,6 +214,33 @@ private:
 
    // QPainter*   _painter;
 };
+
+#include <QObject>
+
+class loaderImageWork : public QObject
+{
+	Q_OBJECT
+
+public:
+	loaderImageWork(QMaskedImage * maskedImg, cMaskedImageGL * tile, QRect &rect);
+	~loaderImageWork();
+
+public slots:
+	void process();
+
+signals:
+	void finished(cMaskedImageGL* _tile);
+	void finished();
+	void error(QString err);
+
+private:
+	QMaskedImage *	_maskedImg;
+	cMaskedImageGL* _tile;
+	QRect			_rect;
+
+};
+
+
 
 #endif  /* _GLWIDGET_H */
 

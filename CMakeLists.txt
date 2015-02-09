@@ -131,10 +131,6 @@ if(${WITH_QT5} OR ${WITH_QT4})
 
                             set(qt_version 5)
 
-#                            if(POLICY CMP0020)
-#                                    cmake_policy(SET CMP0020 NEW)
-#                            endif()
-
 #                            set(QT_LIBRARIES
 #                                    ${Qt5Core_LIBRARIES}
 #                                    ${Qt5Gui_LIBRARIES}
@@ -253,6 +249,9 @@ if (${CUDA_ENABLED})
                           include_directories ( ${Boost_INCLUDE_DIR} )
                  endif()
         else()
+			if(MSVC AND NOT MSVC12 )
+				message(FATAL_ERROR "This version of visual doesn't support c++11")
+			endif()
             if(NOT ${WITH_CPP11})
                 SET(WITH_CPP11 ON CACHE BOOL "Compilateur C++11" FORCE)
                 IF(NOT MSVC)

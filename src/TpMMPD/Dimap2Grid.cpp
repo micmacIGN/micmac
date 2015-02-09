@@ -363,8 +363,7 @@ Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst, std::string inputSy
     while(!fic2.eof()&&fic2.good())
     {
         double X,Y,Z;
-        char c;
-        fic2 >> Y >> X >> Z >> c;
+        fic2 >> Y >> X >> Z;
         if (fic2.good())
         {
             PointCarto.x=X;
@@ -465,7 +464,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
     // transfo en Geo
     std::string command;
 
-    command = g_externalToolHandler.get( "cs2cs" ).callName() + " " + targetSyst+" +to "+ inputSyst + " -f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
+    command = g_externalToolHandler.get( "cs2cs" ).callName() + " " + targetSyst + " +to " + inputSyst + " -f %.12f -s processing/indirect_ptCarto.txt >processing/indirect_ptGeo.txt";
     int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in createIndirectGrid"<<std::endl;
     for(size_t i=0;i<vAltitude.size();++i)
@@ -974,7 +973,7 @@ int Dimap2Grid_main(int argc, char **argv)
     for(int i=0;i<nbLayers;++i)
         vAltitude.push_back(altiMin+i*(altiMax-altiMin)/(nbLayers-1));
 	
-    //Parser du targetSyst
+    /*//Parser du targetSyst
     std::size_t found = targetSyst.find_first_of("+");
 	std::string str = "+";
 	std::vector<int> position;
@@ -985,7 +984,7 @@ int Dimap2Grid_main(int argc, char **argv)
         found=targetSyst.find_first_of("+",found+1);
     }
     for (int i=position.size()-1; i>-1;i--)
-        targetSyst.insert(position[i]+1,str);
+        targetSyst.insert(position[i]+1,str);*/
 	
     //recuperation des coefficients pour affiner le modele
     std::vector<double> vRefineCoef;
