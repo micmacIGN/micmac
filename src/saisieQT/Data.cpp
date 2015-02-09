@@ -46,9 +46,11 @@ void cData::addCamera(CamStenope * aCam)
     _Cameras.push_back(aCam);
 }
 
-void cData::pushBackMaskedImage(QMaskedImage maskedImage)
+void cData::pushBackMaskedImage(QMaskedImage *maskedImage)
 {
+
     _MaskedImages.push_back(maskedImage);
+
 }
 
 void cData::clearClouds()
@@ -70,13 +72,27 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
+	//qDeleteAll(_MaskedImages);
+
+	for (int idQMImg = 0; idQMImg < _MaskedImages.size(); ++idQMImg)
+	{
+		if(_MaskedImages[idQMImg])
+			delete _MaskedImages[idQMImg];
+		_MaskedImages[idQMImg] = NULL;
+	}
+
     _MaskedImages.clear();
     reset();
 }
 
 void cData::clearObjects()
 {
-    qDeleteAll(_vPolygons);
+	for (int idpoly = 0; idpoly < _vPolygons.size(); ++idpoly)
+	{
+		if(_vPolygons[idpoly])
+			delete _vPolygons[idpoly];
+		_vPolygons[idpoly] = NULL;
+	}
 
     _vPolygons.clear();
 
@@ -109,7 +125,11 @@ void cData::clear(int aK)
             _Cameras[aK] = NULL;
         }
     }
-    if (_MaskedImages.size())   _MaskedImages[aK].deallocImages();
+	if (_MaskedImages.size())
+	{
+		if(_MaskedImages[aK])
+			delete _MaskedImages[aK];
+	}
 }
 
 int cData::idPolygon(cPolygon *polygon)

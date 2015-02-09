@@ -149,7 +149,7 @@ class cImage
         cSP_PointGlob * CreatePGFromPointeMono(Pt2dr ,eTypePts,double aSz,cCaseNamePoint *);
         int & CptAff() ;
 
-        void UpdateMapPointes(const std::string aName);
+        void UpdateMapPointes(const std::string &aName);
         bool Visualizable() const;
 
         void SetMemoLoaded();

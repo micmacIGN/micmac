@@ -201,6 +201,8 @@ class cInterfChantierNameManipulateur
 {
      public :
 
+         std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);
+
          std::list<std::string> GetListImByDelta(const cListImByDelta &,const std::string & aN0);
 
          std::vector<std::string> StdGetVecStr(const std::string &);  // Cas [A,Bn..] , ou toto.txt lit fichie, sinon singleton
@@ -1114,6 +1116,7 @@ cOrientationExterneRigide From_Std_RAff_C2M
 // Fonctionne avec une calib ou une camera orientee
 CamStenope * CamOrientGenFromFile(const std::string & aNameFile,cInterfChantierNameManipulateur * anICNM, bool throwAssert = true);
 
+CamStenope * BasicCamOrientGenFromFile(const std::string & aNameFile);
 CamStenope * Std_Cal_From_File
              (
                  const std::string & aNameFile,

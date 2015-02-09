@@ -578,20 +578,6 @@ cFilePx::cFilePx
    mGenFileRel     (anEtape.EtapeMEC().GenFilePxRel().ValWithDef(false)),
    mKPx            (aKPx)
 {
-/*
-     if (mPredCalc)
-     {
-        mRatioDzPrec =   mPredCalc->mEtape.DeZoomTer() / mEtape.DeZoomTer();
-        // mRatioStepPrec =  (ComputedPas() / mPredCalc->ComputedPas()) / mRatioDzPrec;
-        mRatioStepPrec =  (UserPas() / mPredCalc->UserPas()) / mRatioDzPrec;
-
-if (MPD_MM())
-{
-   std::cout << "AAAA aa   " << ComputedPas() << " " << mUserPas << "\n";
-   std::cout << "BBBBB aa   " << mPredCalc->ComputedPas() << " " << mPredCalc->mUserPas << "\n";
-}
-     }
-*/
 }
 
 
@@ -845,6 +831,8 @@ void cFilePx::LoadNappeEstim
             aPRed.y += aDy;
         }
     }
+
+
     if (mEtape.PxAfterModAnIsNulle())
     {
        ELISE_COPY
@@ -910,6 +898,7 @@ void cFilePx::LoadNappeEstim
 
     aFMin =   aFMasq      * (aFMin-mDilatAltiMoins-aRadDZMoins) + (1-aFMasq)  * aMaxShrt;
     aFMax =   aFMasq  * (aFMax+mDilatAltiPlus+1) + (1-aFMasq)  * (-aMaxShrt);
+
 
 
     ELISE_COPY

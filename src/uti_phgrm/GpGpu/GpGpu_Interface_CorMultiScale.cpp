@@ -33,7 +33,7 @@ void dataCorrelMS::unitT__CopyCoordInColor(uint2 sizeImage, float *dest)
 {
     for (int y = 0; y < (int)sizeImage.y; ++y)
         for (int x = 0; x < (int)sizeImage.x; ++x)
-            dest[to1D(x,y,sizeImage)] = 10000*x + y;
+            dest[to1D(x,y,sizeImage)] = (float)10000*x + y;
 }
 
 void dataCorrelMS::transfertImage(uint2 sizeImage, float ***dataImage, int id)

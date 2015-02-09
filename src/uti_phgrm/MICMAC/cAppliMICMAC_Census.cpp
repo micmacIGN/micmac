@@ -1395,10 +1395,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 #ifdef CUDA_ENABLED
 
-	bool useGpu = false;
+	bool useGpu = CMS()->UseGpGpu().Val();
 
 	if(useGpu)
-	{
+	{		
 
 		bool dynRegulGpu = CurEtape()->AlgoRegul() == eAlgoTestGPU;
 

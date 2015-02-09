@@ -896,12 +896,12 @@ int Ortho(std::string const &aNameFileMNT,
     Pt2di SzOrtho((int)round_ni((xmax-xmin)/resolution),(int)round_ni((ymax-ymin)/resolution));
     std::cout << "Ortho : "<<P0Ortho.x<<" "<<P0Ortho.y<<" / "<<SzOrtho.x<<" "<<SzOrtho.y<<std::endl;
     
-    if (( (unsigned int)SzOrtho.x*(unsigned int)SzOrtho.y )<SzMaxImg)
+	if (( (unsigned int)SzOrtho.x*(unsigned int)SzOrtho.y )<(unsigned int)SzMaxImg)
     {
         std::cout << "Ortho n est pas trop grande, on peut la traiter en une fois"<<std::endl;
         // Creation de l'image
         std::vector<TIm2D<U_INT2,INT4>*> vPtrOrtho;
-        for(size_t c=0;c<ImgNbC;++c)
+		for(size_t c=0;c<(unsigned int)ImgNbC;++c)
         {
             vPtrOrtho.push_back(new TIm2D<U_INT2,INT4>(SzOrtho));
         }
@@ -940,14 +940,14 @@ int Ortho(std::string const &aNameFileMNT,
                     bufferMin.y = miny;
                     bufferMax.x = maxx;
                     bufferMax.y = maxy;
-                    Pt2di SzBuffer = bufferMax-bufferMin;
+					//Pt2di SzBuffer = bufferMax-bufferMin;
                     // on purge
                     for(size_t i=0;i<vBuffer.size();++i)
                     {
                         delete vBuffer[i];
                     }
                     vBuffer.clear();
-                    if (((maxx-minx)>0)&&((maxy-miny)>0))
+					if (((maxx-minx)>(unsigned int)0)&&((maxy-miny)>(unsigned int)0))
                     {
                         vBuffer = createVTIm2DFromFile<U_INT2,INT4>(aNameFileImage,bufferMin,bufferMax-bufferMin);
                     }
@@ -1001,7 +1001,7 @@ int Ortho(std::string const &aNameFileMNT,
         if (NbY*tailleDalle < SzOrtho.y)
             ++NbY;
         
-        int nbDalles = NbX*NbY;
+		//int nbDalles = NbX*NbY;
         
         for(int nx = 0;nx<NbX;++nx)
         {
@@ -1023,7 +1023,7 @@ int Ortho(std::string const &aNameFileMNT,
                 
                 // Creation de l'image
                 std::vector<TIm2D<U_INT2,INT4>*> vPtrOrtho;
-                for(size_t c=0;c<ImgNbC;++c)
+				for(size_t c=0;c<(unsigned int)ImgNbC;++c)
                 {
                     vPtrOrtho.push_back(new TIm2D<U_INT2,INT4>(SzDalleOrtho));
                 }
@@ -1058,13 +1058,13 @@ int Ortho(std::string const &aNameFileMNT,
                             unsigned int miny = (unsigned int)std::max(0,(int)Pimg.y-margeBuffer);
                             unsigned int maxx = (unsigned int)std::min((int)ImgSz.x ,(int)minx + tailleBuffer + 2*margeBuffer);
                             unsigned int maxy = (unsigned int)std::min((int)ImgSz.y ,(int)miny + tailleBuffer + 2*margeBuffer);
-                            if (((maxx-minx)>0)&&((maxy-miny)>0))
+							if (((maxx-minx)>(unsigned int)0)&&((maxy-miny)>(unsigned int)0))
                             {
                                 bufferMin.x = minx;
                                 bufferMin.y = miny;
                                 bufferMax.x = maxx;
                                 bufferMax.y = maxy;
-                                Pt2di SzBuffer = bufferMax-bufferMin;
+								//Pt2di SzBuffer = bufferMax-bufferMin;
                                 // on purge
                                 for(size_t i=0;i<vBuffer.size();++i)
                                 {

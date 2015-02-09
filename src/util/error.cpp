@@ -39,6 +39,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+
+void cElErrorHandlor::OnError()
+{
+}
+
+cElErrorHandlor cElErrorHandlor::TheDefElErrorHandlor;
+cElErrorHandlor * TheCurElErrorHandlor = & cElErrorHandlor::TheDefElErrorHandlor;
+
+void BasicErrorHandler()
+{
+     TheCurElErrorHandlor->OnError();
+}
+
+//=========================================
+
 int TheIntFuckingReturnValue=1234567;
 char * TheCharPtrFuckingReturnValue=0;
 
@@ -50,6 +65,7 @@ int  TheNbIterProcess = 1;
 
 void throwError(std::string err)
 {
+    BasicErrorHandler();
     message_copy_where_error();
 
     // ShowArgs(); A voir comment moduler, mais pour  l'instant ca complique l lecteure des messages ... MPD
@@ -63,6 +79,7 @@ void throwError(std::string err)
 
 int GetCharOnBrkp()
 {
+   BasicErrorHandler();
    if (TheExitOnBrkp)
       return 0;
    return getchar();
@@ -70,6 +87,7 @@ int GetCharOnBrkp()
 
 void EliseBRKP()
 {
+    BasicErrorHandler();
     if (!TheExitOnBrkp)
        getchar();
 }
@@ -80,6 +98,7 @@ bool ELISE_DEBUG_INTERNAL = false;
 
 void Elise_Error_Exit()
 {
+    BasicErrorHandler();
     message_copy_where_error();
     for (int k=0; k<10; k++) EliseBRKP();
     ElEXIT(1,"");  // Le seul contexte peut venir de message_copy_where_error qui a rempli si necessaire
@@ -87,6 +106,7 @@ void Elise_Error_Exit()
 
 void elise_internal_error(const char * mes,const char * file,int line)
 {
+    BasicErrorHandler();
     AddMessErrContext
     (
            std::string("elise_internal_error : ") + mes
@@ -107,6 +127,7 @@ void elise_internal_error(const char * mes,const char * file,int line)
 
 void  elise_test_error(const char * mes,const char * file,int line)
 {
+    BasicErrorHandler();
     ncout() << "KEEP COOL , everything is under control \n";
     ncout() << "        this is a test-fatal error \n";
     ncout() << "The following error : \n";
@@ -174,6 +195,7 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
 
 void  elise_fatal_error(const char * mes,const char * file,int line)
 {
+   BasicErrorHandler();
    cEliseFatalErrorHandler::CurHandler()->cEFEH_OnErreur(mes,file,line);
 }
 
@@ -261,7 +283,8 @@ Elise_Pile_Mess_N Elise_Pile_Mess_N::_the_one;
 
 
 void Elise_Pile_Mess_0::display(const char * kind_of)
-{
+{ 
+    BasicErrorHandler();
     std::string msg =
            "-----------------------------------------------------------------\n";
     msg += "|   KIND OF ERR : " + string(kind_of) +                         "\n";

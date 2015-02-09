@@ -90,7 +90,7 @@ public:
 
 
     template <class T>
-    static T			SetValue(float defaut = 0.0f){return defaut;}
+    static T			SetValue(float defaut = 0.0f){return (T)defaut;}
 
     ///	\brief			Sortie console formater d'une valeur
     /// \param          value : valeur a afficher
@@ -124,7 +124,11 @@ public:
 
     //static void			check_Cuda();
 
+#ifdef NVTOOLS
 	static void			NvtxR_Push(const char* message, int32_t color);
+#else
+	static void			NvtxR_Push(const char* message, int color){}
+#endif
 
 	static void			Nvtx_RangePop();
 
@@ -144,17 +148,17 @@ void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, u
 }
 
 template <> inline
-uint2    GpGpuTools::SetValue(float defaut){return make_uint2(defaut);}
+uint2    GpGpuTools::SetValue(float defaut){return make_uint2((uint)defaut);}
 
 template <> inline
-int2    GpGpuTools::SetValue(float defaut){return make_int2(defaut);}
+int2    GpGpuTools::SetValue(float defaut){return make_int2((int)defaut);}
 
 
 template <> inline
 float2    GpGpuTools::SetValue(float defaut){return make_float2(defaut);}
 
 template <> inline
-short2    GpGpuTools::SetValue(float defaut){return make_short2(defaut);}
+short2    GpGpuTools::SetValue(float defaut){return make_short2((short)defaut);}
 
 
 template <> inline

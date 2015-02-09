@@ -745,7 +745,7 @@ int  cObsLiaisonMultiple::IndOfCam(const cPoseCam * aCam) const
 }
 
 
-Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D) const
+Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D,int * aNb) const
 {
   std::vector<double> aVPds;
 
@@ -767,7 +767,15 @@ Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D) const
       }
   }
 
-  ELISE_ASSERT(aVProf.size()!=0,"cObsLiaisonMultiple::CentreNuage No Point");
+  if (aNb)
+  {
+      *aNb = aVProf.size();
+      if (*aNb==0) return Pt3dr(0,0,0);
+  }
+  else
+  {
+      ELISE_ASSERT(aVProf.size()!=0,"cObsLiaisonMultiple::CentreNuage No Point");
+  }
 
   aPMoy = aPMoy/double(aVProf.size());
   

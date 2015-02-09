@@ -143,6 +143,11 @@ class cElemAppliSetFile
 };
 
 
+std::string PatFileOfImSec(const std::string & anOri);
+std::string DirAndPatFileOfImSec(const std::string & aDir,const std::string & anOri);
+
+
+
 class cAppliWithSetImage
 {
    public :
@@ -165,6 +170,10 @@ class cAppliWithSetImage
       static const int  TheFlagDevXml         = 32;
   
       cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI="");
+      std::string PatFileOfImSec() const;
+      std::string DirAndPatFileOfImSec() const;
+      void SuppressSom(tSomAWSI & aSom);
+
    protected :
 
       void SaveCAWSI(const std::string & aName) ;
@@ -184,7 +193,7 @@ class cAppliWithSetImage
 
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
-      void AddCoupleMMImSec(bool ExeApero);
+      void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq);
 
 
 
@@ -238,7 +247,8 @@ class cAppliWithSetImage
    private :
       int   mNbAlti;
       double mSomAlti;
-
+      bool   mSupressImInNoMasq;
+      const std::vector<std::string> * mSetImNoMasq;
 };
 
 

@@ -102,4 +102,12 @@ INCLUDE_DIRECTORIES(${SAISIE_DIR}/include_QT)
       INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
    endif()
 
+   set(QT_ALLFILES ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_tomoc} ${HEADERS_nomoc} ${saisie_ui})
+   
+   SOURCE_GROUP(QT\\ui FILES ${saisie_ui})
+   SOURCE_GROUP(QT\\include FILES ${HEADERS_nomoc})
+   SOURCE_GROUP(QT\\include FILES ${HEADERS_tomoc})
+   SOURCE_GROUP(QT\\src FILES ${RC_SRCS})
+   SOURCE_GROUP(QT\\src FILES ${vmm_SRCS})
+
 endif()

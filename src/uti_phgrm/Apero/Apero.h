@@ -1062,7 +1062,7 @@ class cObsLiaisonMultiple
           void ClearAggregImage();
 
 
-           Pt3dr CentreNuage(const cMasqBin3D * =0 ) const;
+           Pt3dr CentreNuage(const cMasqBin3D * ,int * aNb) const;
 
 
 
@@ -2251,7 +2251,7 @@ class cAppliApero : public NROptF1vND
         void  ExportVisuConfigPose(const cExportVisuConfigGrpPose & anEVCGP);
 
         void ExportImMM(const cChoixImMM &);
-        void ExportImSecMM(const cChoixImMM &,cPoseCam *,const cMasqBin3D * aMasq3D);
+        bool ExportImSecMM(const cChoixImMM &,cPoseCam *,const cMasqBin3D * aMasq3D);
 
          void ExportMesuresFromCarteProf(const cExportMesuresFromCarteProf&);
          void ExportMesuresFromCarteProf

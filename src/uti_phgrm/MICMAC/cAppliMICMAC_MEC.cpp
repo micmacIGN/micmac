@@ -162,7 +162,9 @@ double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec)
 
 void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 {
+     mPrecEtape = mCurEtape;
      mCurEtape = & anEtape;
+     
      if (anEtape.EtapeMEC().GenCubeCorrel().ValWithDef(false))
      {
         ELISE_fp::MkDirSvp(DirCube());
@@ -810,13 +812,10 @@ void cAppliMICMAC::DoOneBloc
         aTimeCorrel = aChrono.ValAndInit();
         if (mShowMes)
         {
-            if(mCorrelAdHoc)
-            {
-                if(mCorrelAdHoc->TypeCAH().GPU_CorrelBasik().IsInit())
-                    mCout << "       Cuda Correlation Finished, Begin Cuda Optimisation\n";
-                else
-                    mCout << "       Correl Calc, Begin Opt\n";
-            }
+			if((mCorrelAdHoc != 0 && mCorrelAdHoc->TypeCAH().GPU_CorrelBasik().IsInit())||
+			   (mCMS!=0 && mCMS->UseGpGpu().Val()))
+
+				mCout << "       Cuda Correlation Finished, Begin Cuda Optimisation\n";
             else
                 mCout << "       Correl Calc, Begin Opt\n";
         }

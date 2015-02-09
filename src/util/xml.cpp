@@ -100,6 +100,10 @@ static double FEq(const std::vector<double> & aV) { return aV[0]==aV[1]; }
 static double FNotEq(const std::vector<double> & aV) { return aV[0]!=aV[1]; }
     
 static double FSom(const std::vector<double> & aV) { return aV[0]+aV[1]; }
+static double FPow(const std::vector<double> & aV) { return pow(aV[0],aV[1]); }
+static double FBarPow(const std::vector<double> & aV) { return  pow(aV[0],aV[2]) * pow(aV[1],1-aV[2]);}
+
+
 static double FOr(const std::vector<double> & aV) { return (aV[0]!=0)||(aV[1]!=0); }
 static double FAnd(const std::vector<double> & aV) { return (aV[0]!=0)&&(aV[1]!=0); }
 static double FMul(const std::vector<double> & aV) { return aV[0]*aV[1]; }
@@ -120,6 +124,8 @@ const std::vector<cOpPolI> & OpPolI()
    static  std::vector<cOpPolI>  aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cOpPolI(3,"BarPow",FBarPow));
+       aRes.push_back(cOpPolI(2,"Pow",FPow));
        aRes.push_back(cOpPolI(2,"+",FSom));
        aRes.push_back(cOpPolI(2,"Or",FOr));
        aRes.push_back(cOpPolI(2,"And",FAnd));

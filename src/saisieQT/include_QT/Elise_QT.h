@@ -18,6 +18,9 @@
     #include <OpenGL/gl.h>
 #else
     #include <GL/gl.h>
+#ifdef _WIN32
+	#include <GL/glext.h>
+#endif
 #endif
 
 #ifdef Int

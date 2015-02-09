@@ -7044,6 +7044,17 @@ void xml_init(cOneParamCMS & anObj,cElXMLTree * aTree)
 std::string  Mangling( cOneParamCMS *) {return "B2CC5E5196B2C2EDFE3F";};
 
 
+cTplValGesInit< bool > & cCorrelMultiScale::UseGpGpu()
+{
+   return mUseGpGpu;
+}
+
+const cTplValGesInit< bool > & cCorrelMultiScale::UseGpGpu()const 
+{
+   return mUseGpGpu;
+}
+
+
 cTplValGesInit< bool > & cCorrelMultiScale::ModeDense()
 {
    return mModeDense;
@@ -7092,6 +7103,14 @@ void  BinaryUnDumpFromFile(cCorrelMultiScale & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.UseGpGpu().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.UseGpGpu().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.UseGpGpu().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.ModeDense().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.ModeDense().ValForcedForUnUmp(),aFp);
         }
@@ -7126,6 +7145,8 @@ void  BinaryUnDumpFromFile(cCorrelMultiScale & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cCorrelMultiScale & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.UseGpGpu().IsInit());
+    if (anObj.UseGpGpu().IsInit()) BinaryDumpInFile(aFp,anObj.UseGpGpu().Val());
     BinaryDumpInFile(aFp,anObj.ModeDense().IsInit());
     if (anObj.ModeDense().IsInit()) BinaryDumpInFile(aFp,anObj.ModeDense().Val());
     BinaryDumpInFile(aFp,anObj.UseWAdapt().IsInit());
@@ -7144,6 +7165,8 @@ cElXMLTree * ToXMLTree(const cCorrelMultiScale & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CorrelMultiScale",eXMLBranche);
+   if (anObj.UseGpGpu().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("UseGpGpu"),anObj.UseGpGpu().Val())->ReTagThis("UseGpGpu"));
    if (anObj.ModeDense().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ModeDense"),anObj.ModeDense().Val())->ReTagThis("ModeDense"));
    if (anObj.UseWAdapt().IsInit())
@@ -7166,6 +7189,8 @@ void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
+   xml_init(anObj.UseGpGpu(),aTree->Get("UseGpGpu",1),bool(false)); //tototo 
+
    xml_init(anObj.ModeDense(),aTree->Get("ModeDense",1)); //tototo 
 
    xml_init(anObj.UseWAdapt(),aTree->Get("UseWAdapt",1),bool(false)); //tototo 
@@ -7175,7 +7200,7 @@ void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneParamCMS(),aTree->GetAll("OneParamCMS",false,1));
 }
 
-std::string  Mangling( cCorrelMultiScale *) {return "5802B0229C68F78FFE3F";};
+std::string  Mangling( cCorrelMultiScale *) {return "6C14BAD3172CC7F4FD3F";};
 
 
 cTplValGesInit< double > & cCensusCost::PdsCrown()
@@ -9340,6 +9365,17 @@ const cTplValGesInit< int > & cCorrelAdHoc::SzBlocAH()const
 }
 
 
+cTplValGesInit< bool > & cCorrelAdHoc::UseGpGpu()
+{
+   return CorrelMultiScale().Val().UseGpGpu();
+}
+
+const cTplValGesInit< bool > & cCorrelAdHoc::UseGpGpu()const 
+{
+   return CorrelMultiScale().Val().UseGpGpu();
+}
+
+
 cTplValGesInit< bool > & cCorrelAdHoc::ModeDense()
 {
    return CorrelMultiScale().Val().ModeDense();
@@ -9610,7 +9646,7 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
 
-std::string  Mangling( cCorrelAdHoc *) {return "92AE10251616EDA5FC3F";};
+std::string  Mangling( cCorrelAdHoc *) {return "D5AF66C398C8F8B3FE3F";};
 
 
 cTplValGesInit< double > & cDoImageBSurH::Dyn()
@@ -15116,6 +15152,17 @@ const cTplValGesInit< int > & cEtapeMEC::SzBlocAH()const
 }
 
 
+cTplValGesInit< bool > & cEtapeMEC::UseGpGpu()
+{
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().UseGpGpu();
+}
+
+const cTplValGesInit< bool > & cEtapeMEC::UseGpGpu()const 
+{
+   return CorrelAdHoc().Val().CorrelMultiScale().Val().UseGpGpu();
+}
+
+
 cTplValGesInit< bool > & cEtapeMEC::ModeDense()
 {
    return CorrelAdHoc().Val().CorrelMultiScale().Val().ModeDense();
@@ -18780,7 +18827,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "E4D567151C793ACAFF3F";};
+std::string  Mangling( cEtapeMEC *) {return "6272268DF1FA019FFF3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -19945,7 +19992,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "4AA3E1B184E822BAFCBF";};
+std::string  Mangling( cSection_MEC *) {return "468127BC8322CDADFE3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -28953,6 +29000,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "0845A70D7D7240DAFBBF";};
+std::string  Mangling( cParamMICMAC *) {return "6E81EF182D40AEEAFD3F";};
 
 // Quelque chose

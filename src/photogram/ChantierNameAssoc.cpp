@@ -1122,7 +1122,7 @@ void cSetName::InternalAddList(const std::list<std::string> & aLN)
         itN++
     )
     {
-         std::string aName = mSND.SubDir().Val() +  *itN; // mICNM->DBNameTransfo(*itN,mSND.NameTransfo());
+         std::string aName = mSND.SubDir().Val() +  *itN; // 
          bool Ok = ! mLR.AuMoinsUnMatch(aName);
 
          if (Ok && mSND.Min().IsInit()   && (*itN< mSND.Min().Val()))

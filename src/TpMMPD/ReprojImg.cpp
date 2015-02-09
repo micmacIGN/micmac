@@ -77,6 +77,7 @@ class cReprojColorImg
   public:
     cReprojColorImg(std::string filename);
     cReprojColorImg(Pt2di sz);
+    ~cReprojColorImg();
     cReprojColor get(Pt2di pt);
     cReprojColor getr(Pt2dr pt);
     void set(Pt2di pt, cReprojColor color);
@@ -121,6 +122,15 @@ cReprojColorImg::cReprojColorImg(Pt2di sz) :
     mImgBT=new TIm2D<U_INT1,INT4>(*mImgB);
 }
 
+cReprojColorImg::~cReprojColorImg()
+{
+    delete mImgR;
+    delete mImgG;
+    delete mImgB;
+    delete mImgRT;
+    delete mImgGT;
+    delete mImgBT;
+} 
 
 cReprojColor cReprojColorImg::get(Pt2di pt)
 {

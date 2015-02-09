@@ -2,6 +2,9 @@
 #define _GPGPU_ELISE_INCLUDE_
 
 
+#ifdef _WIN32
+	#include <windows.h>
+#endif
 
 #include <string>
 #include <vector>

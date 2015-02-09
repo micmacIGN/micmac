@@ -236,6 +236,40 @@ int Campari_main(int argc,char ** argv)
 }
 
 
+int AperoProg_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+
+    std::string aFullDir= "";
+    std::string AeroIn= "";
+    std::string AeroOut="";
+
+
+    /*double aSigmaTieP = 1;
+    double aFactResElimTieP = 5;
+    double Viscos = 1.0;
+    bool ExpTxt = false;*/
+
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
+                     << EAMC(AeroIn,"Input Orientation", eSAM_IsExistDirOri)
+                     << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
+         LArgMain()
+    );
+    if (!MMVisualMode)
+    {
+        std::string aDir,aPat;
+    #if (ELISE_windows)
+         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    #endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
+        StdCorrecNameOrient(AeroIn,aDir);
+    }
+
+    return EXIT_SUCCESS;
+}
 
 
 

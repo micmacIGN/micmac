@@ -11,6 +11,7 @@ set(UTI_PHGRM_GPGPU_DIR ${UTI_PHGRM_DIR}/GpGpu)
 
 set(UTI_PHGRM_FUSION_NUAGES ${UTI_PHGRM_DIR}/FusionNuage)
 set(UTI_PHGRM_MERGE_CLOUD ${UTI_PHGRM_DIR}/MergeCloud)
+set(UTI_PHGRM_NEW_ORI ${UTI_PHGRM_DIR}/NewOri)
 
 set(SrcGrp_Uti_PHGRM uti_phgrm)
 
@@ -24,6 +25,7 @@ INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MERGE_CLOUD}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_CASA_DIR}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_NEW_ORI}/Sources.cmake)
 
 #define __CUDA_API_VERSION 0x5050
 
@@ -124,6 +126,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Tapioca.cpp
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
+    ${UTI_PHGRM_DIR}/CPP_Tequila.cpp
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
     ${UTI_PHGRM_DIR}/CPP_TestChantier.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieMasq.cpp

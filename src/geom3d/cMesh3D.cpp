@@ -84,14 +84,11 @@ Pt3dr cTriangle::getNormale(cMesh const &elMesh, bool normalize) const
 
     if (normalize)
     {
-        Pt3dr v1n = PointNorm1(vPts[1]-vPts[0]);
-        Pt3dr v2n = PointNorm1(vPts[2]-vPts[0]);
-        return v1n^v2n;
+        Pt3dr p1 = vunit(vPts[1]-vPts[0]);
+        Pt3dr p2 = vunit(vPts[2]-vPts[0]);
+        return vunit(p1^p2);
     }
-    else
-    {
-        return (vPts[1]-vPts[0])^(vPts[2]-vPts[0]);
-    }
+    else return (vPts[1]-vPts[0])^(vPts[2]-vPts[0]);
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -482,14 +479,14 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cZBuf::cZBuf() :
-mSzRes		(1,1),
+cZBuf::cZBuf(Pt2di sz, float defVal) :
+mSzRes		(sz),
 mImTriIdx   (1,1),
 mImMask     (1,1),
 mRes        (1,1),
 mDataRes    (0),
-mDpDef      (0.f),
-mIdDef      (0),
+mDpDef      (defVal),
+mIdDef      (USHRT_MAX),
 mNuage		(0)
 {
 }
@@ -506,7 +503,7 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh const &aMesh)
 {
     mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,mDpDef);
     mDataRes = mRes.data();
-    mImTriIdx = Im2D_U_INT2(mSzRes.x,mSzRes.y, mIdDef);
+    mImTriIdx = Im2D_INT4(mSzRes.x,mSzRes.y, mIdDef);
 
     vector <cTriangle> vTriangles;
     aMesh.getTriangles(vTriangles);
@@ -515,6 +512,103 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh const &aMesh)
     {
         BasculerUnTriangle(vTriangles[aK], aMesh);
     }
+
+    return mRes;
+}
+
+Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
+{
+    mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,mDpDef);
+    mDataRes = mRes.data();
+    mImTriIdx = Im2D_INT4(mSzRes.x,mSzRes.y, mIdDef);
+
+    vector <cTriangle> vTriangles;
+    aMesh.getTriangles(vTriangles);
+
+    vector <bool> vTrianglesPartiels;  //0= ok 1=partiellement vu ou caché
+
+    for (unsigned int aK =0; aK<vTriangles.size();++aK)
+    {
+        vTrianglesPartiels.push_back(false);
+    }
+
+    for (unsigned int aK =0; aK<vTriangles.size();++aK)
+    {
+        cTriangle aTri = vTriangles[aK];
+
+        vector <Pt3dr> Sommets;
+        aTri.getVertexes(aMesh, Sommets);
+
+        if (Sommets.size() == 3 )
+        {
+            Pt2dr A2 = aCam.R3toF2(Sommets[0]);
+            Pt2dr B2 = aCam.R3toF2(Sommets[1]);
+            Pt2dr C2 = aCam.R3toF2(Sommets[2]);
+
+            Pt2dr AB = B2-A2;
+            Pt2dr AC = C2-A2;
+            REAL aDet = AB^AC;
+
+            if (aDet!=0)
+            {
+
+               /* Pt2di A2i = round_down(A2);
+                Pt2di B2i = round_down(B2);
+                Pt2di C2i = round_down(C2);
+
+                 //On verifie que le triangle se projete entierement dans l'image
+                 //TODO: gerer les triangles de bord
+                if (A2i.x < 0 || B2i.x < 0 || C2i.x < 0 || A2i.y < 0 || B2i.y < 0 || C2i.y < 0 || A2i.x >= mSzRes.x || B2i.x >= mSzRes.x || C2i.x >= mSzRes.x || A2i.y >= mSzRes.y  || B2i.y >= mSzRes.y  || C2i.y >= mSzRes.y)
+                     return;*/
+
+                Pt3dr center = aCam.OrigineProf();
+                REAL zA = euclid(Sommets[0] - center);  //repris de ElNuage3DMaille ProfOfPtE()
+                REAL zB = euclid(Sommets[1] - center);
+                REAL zC = euclid(Sommets[2] - center);
+
+                Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
+                aP0 = Sup(aP0,Pt2di(0,0));
+                Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
+                aP1 = Inf(aP1,mSzRes-Pt2di(1,1));
+
+
+                for (INT x=aP0.x ; x<= aP1.x ; x++)
+                    for (INT y=aP0.y ; y<= aP1.y ; y++)
+                    {
+                        Pt2dr AP = Pt2dr(x,y)-A2;
+
+                        // Coordonnees barycentriques de P(x,y)
+                        REAL aPdsB = (AP^AC) / aDet;
+                        REAL aPdsC = (AB^AP) / aDet;
+                        REAL aPdsA = 1 - aPdsB - aPdsC;
+                        if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
+                        {
+                            REAL4 aZ = (float) (zA*aPdsA + zB*aPdsB + zC*aPdsC);
+                            if (aZ<mDataRes[y][x])
+                            {
+                                int index = mImTriIdx.GetI(Pt2di(x,y));
+                                if (index != mIdDef) vTrianglesPartiels[index] = true;
+                                mDataRes[y][x] = aZ;
+                                mImTriIdx.SetI(Pt2di(x,y),aTri.getIdx());
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    //on enleve les triangles partiellement vus
+    for(int aK=0; aK < mSzRes.x; aK++)
+        for (int bK=0; bK < mSzRes.y; bK++)
+        {
+            int index = mImTriIdx.GetI(Pt2di(aK,bK));
+            if (vTrianglesPartiels[index])
+            {
+                mDataRes[bK][aK] = mDpDef;
+                mImTriIdx.SetI(Pt2di(aK,bK),USHRT_MAX);
+            }
+            else if ((index != mIdDef) && (find(vTri.begin(), vTri.end(), index)==vTri.end())) vTri.push_back(index);
+        }
 
     return mRes;
 }
@@ -613,7 +707,7 @@ void cZBuf::ComputeVisibleTrianglesIndexes()
     {
         for (int bK=0; bK < mSzRes.y; bK++)
         {
-            unsigned int Idx = (unsigned int) mImTriIdx.Val(aK,bK);
+            int Idx = mImTriIdx.Val(aK,bK);
 
             if ((Idx != mIdDef) && (find(vTri.begin(), vTri.end(), Idx)==vTri.end())) vTri.push_back(Idx);
         }

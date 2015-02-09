@@ -3191,6 +3191,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
         void MakeResultOfEtape(cEtapeMecComp &);
+        void MakeDequantSpecial();
         void DoMasq3D(cEtapeMecComp & anEtape,const cMMUseMasq3D &);
 
 
@@ -3240,6 +3241,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
         ///========================================
 
         void GenereOrientationMnt();
+        std::string   NameOrientationMnt(cEtapeMecComp * itE);
+
         void GenereOrientationMnt(cEtapeMecComp *);
         void SauvParam();
         void MakeFileFDC();
@@ -3360,6 +3363,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 				// predictif)
 
         cEtapeMecComp *         mCurEtape; // Pour eviter de la passer
+        cEtapeMecComp *         mPrecEtape; // Pour eviter de la passer
                                 // tout le temps en parametre
          const cEtiqBestImage *  mEBI;
 

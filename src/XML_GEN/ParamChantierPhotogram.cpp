@@ -175,6 +175,8 @@ eTypeMMByP  Str2eTypeMMByP(const std::string & aName)
       return eMicMac;
    else if (aName=="eBigMac")
       return eBigMac;
+   else if (aName=="eMTDTmp")
+      return eMTDTmp;
    else if (aName=="eNbTypeMMByP")
       return eNbTypeMMByP;
   else
@@ -202,6 +204,8 @@ std::string  eToString(const eTypeMMByP & anObj)
       return  "eMicMac";
    if (anObj==eBigMac)
       return  "eBigMac";
+   if (anObj==eMTDTmp)
+      return  "eMTDTmp";
    if (anObj==eNbTypeMMByP)
       return  "eNbTypeMMByP";
  std::cout << "Enum = eTypeMMByP\n";
@@ -226,7 +230,7 @@ void  BinaryUnDumpFromFile(eTypeMMByP & anObj,ELISE_fp & aFp)
    anObj=(eTypeMMByP) aIVal;
 }
 
-std::string  Mangling( eTypeMMByP *) {return "96DDF68B1746C2E1FD3F";};
+std::string  Mangling( eTypeMMByP *) {return "2AA5323F82CA47FBFD3F";};
 
 eTypeQuality  Str2eTypeQuality(const std::string & aName)
 {
@@ -10758,6 +10762,50 @@ const cTplValGesInit< std::string > & cDataBaseNameTransfo::Separateur()const
    return mSeparateur;
 }
 
+
+cTplValGesInit< std::string > & cDataBaseNameTransfo::NewKeyId()
+{
+   return mNewKeyId;
+}
+
+const cTplValGesInit< std::string > & cDataBaseNameTransfo::NewKeyId()const 
+{
+   return mNewKeyId;
+}
+
+
+cTplValGesInit< std::string > & cDataBaseNameTransfo::NewKeyIdAdd()
+{
+   return mNewKeyIdAdd;
+}
+
+const cTplValGesInit< std::string > & cDataBaseNameTransfo::NewKeyIdAdd()const 
+{
+   return mNewKeyIdAdd;
+}
+
+
+cTplValGesInit< bool > & cDataBaseNameTransfo::NewAddNameCam()
+{
+   return mNewAddNameCam;
+}
+
+const cTplValGesInit< bool > & cDataBaseNameTransfo::NewAddNameCam()const 
+{
+   return mNewAddNameCam;
+}
+
+
+cTplValGesInit< double > & cDataBaseNameTransfo::NewFocMul()
+{
+   return mNewFocMul;
+}
+
+const cTplValGesInit< double > & cDataBaseNameTransfo::NewFocMul()const 
+{
+   return mNewFocMul;
+}
+
 void  BinaryUnDumpFromFile(cDataBaseNameTransfo & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -10776,6 +10824,38 @@ void  BinaryUnDumpFromFile(cDataBaseNameTransfo & anObj,ELISE_fp & aFp)
         }
         else  anObj.Separateur().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NewKeyId().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NewKeyId().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NewKeyId().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NewKeyIdAdd().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NewKeyIdAdd().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NewKeyIdAdd().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NewAddNameCam().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NewAddNameCam().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NewAddNameCam().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NewFocMul().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NewFocMul().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NewFocMul().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cDataBaseNameTransfo & anObj)
@@ -10784,6 +10864,14 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cDataBaseNameTransfo & anObj)
     if (anObj.AddFocMul().IsInit()) BinaryDumpInFile(aFp,anObj.AddFocMul().Val());
     BinaryDumpInFile(aFp,anObj.Separateur().IsInit());
     if (anObj.Separateur().IsInit()) BinaryDumpInFile(aFp,anObj.Separateur().Val());
+    BinaryDumpInFile(aFp,anObj.NewKeyId().IsInit());
+    if (anObj.NewKeyId().IsInit()) BinaryDumpInFile(aFp,anObj.NewKeyId().Val());
+    BinaryDumpInFile(aFp,anObj.NewKeyIdAdd().IsInit());
+    if (anObj.NewKeyIdAdd().IsInit()) BinaryDumpInFile(aFp,anObj.NewKeyIdAdd().Val());
+    BinaryDumpInFile(aFp,anObj.NewAddNameCam().IsInit());
+    if (anObj.NewAddNameCam().IsInit()) BinaryDumpInFile(aFp,anObj.NewAddNameCam().Val());
+    BinaryDumpInFile(aFp,anObj.NewFocMul().IsInit());
+    if (anObj.NewFocMul().IsInit()) BinaryDumpInFile(aFp,anObj.NewFocMul().Val());
 }
 
 cElXMLTree * ToXMLTree(const cDataBaseNameTransfo & anObj)
@@ -10794,6 +10882,14 @@ cElXMLTree * ToXMLTree(const cDataBaseNameTransfo & anObj)
       aRes->AddFils(::ToXMLTree(std::string("AddFocMul"),anObj.AddFocMul().Val())->ReTagThis("AddFocMul"));
    if (anObj.Separateur().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Separateur"),anObj.Separateur().Val())->ReTagThis("Separateur"));
+   if (anObj.NewKeyId().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NewKeyId"),anObj.NewKeyId().Val())->ReTagThis("NewKeyId"));
+   if (anObj.NewKeyIdAdd().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NewKeyIdAdd"),anObj.NewKeyIdAdd().Val())->ReTagThis("NewKeyIdAdd"));
+   if (anObj.NewAddNameCam().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NewAddNameCam"),anObj.NewAddNameCam().Val())->ReTagThis("NewAddNameCam"));
+   if (anObj.NewFocMul().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NewFocMul"),anObj.NewFocMul().Val())->ReTagThis("NewFocMul"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -10807,9 +10903,17 @@ void xml_init(cDataBaseNameTransfo & anObj,cElXMLTree * aTree)
    xml_init(anObj.AddFocMul(),aTree->Get("AddFocMul",1)); //tototo 
 
    xml_init(anObj.Separateur(),aTree->Get("Separateur",1),std::string("%")); //tototo 
+
+   xml_init(anObj.NewKeyId(),aTree->Get("NewKeyId",1)); //tototo 
+
+   xml_init(anObj.NewKeyIdAdd(),aTree->Get("NewKeyIdAdd",1)); //tototo 
+
+   xml_init(anObj.NewAddNameCam(),aTree->Get("NewAddNameCam",1)); //tototo 
+
+   xml_init(anObj.NewFocMul(),aTree->Get("NewFocMul",1)); //tototo 
 }
 
-std::string  Mangling( cDataBaseNameTransfo *) {return "5C97038E3E214B9EFD3F";};
+std::string  Mangling( cDataBaseNameTransfo *) {return "18527FE6C95E48FDFD3F";};
 
 
 cTplValGesInit< std::string > & cInterpoleGrille::Directory()
@@ -11744,7 +11848,7 @@ void xml_init(cBasicAssocNameToName & anObj,cElXMLTree * aTree)
    xml_init(anObj.Filter(),aTree->Get("Filter",1)); //tototo 
 }
 
-std::string  Mangling( cBasicAssocNameToName *) {return "1C1B10FF76A392A3FF3F";};
+std::string  Mangling( cBasicAssocNameToName *) {return "5E2E3C5E4081C4E0FD3F";};
 
 
 cTplValGesInit< Pt2di > & cAssocNameToName::Arrite()
@@ -11860,7 +11964,7 @@ void xml_init(cAssocNameToName & anObj,cElXMLTree * aTree)
    xml_init(anObj.AutoInverseBySym(),aTree->Get("AutoInverseBySym",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cAssocNameToName *) {return "8E3A6A61A8BD2A83FF3F";};
+std::string  Mangling( cAssocNameToName *) {return "42F6EFF5D37B48C2FE3F";};
 
 
 cTplValGesInit< std::string > & cEtatPims::NameOri()
@@ -16926,7 +17030,7 @@ void xml_init(cKeyedNamesAssociations & anObj,cElXMLTree * aTree)
    xml_init(anObj.SubDirAutoMakeRec(),aTree->Get("SubDirAutoMakeRec",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cKeyedNamesAssociations *) {return "323341C3245B13B1FD3F";};
+std::string  Mangling( cKeyedNamesAssociations *) {return "91F4C3B56F2A1AD8FD3F";};
 
 
 cTplValGesInit< bool > & cKeyedSetsOfNames::IsParametrized()
@@ -17704,7 +17808,7 @@ void xml_init(cChantierDescripteur & anObj,cElXMLTree * aTree)
    xml_init(anObj.FilesDatas(),aTree->GetAll("FilesDatas",false,1));
 }
 
-std::string  Mangling( cChantierDescripteur *) {return "5262C01ACD4B83ECFE3F";};
+std::string  Mangling( cChantierDescripteur *) {return "9A106A02E369FDE6FC3F";};
 
 
 int & cXML_Date::year()
@@ -21032,6 +21136,17 @@ const cTplValGesInit< std::string > & cMMUserEnvironment::LogDirectory()const
    return mLogDirectory;
 }
 
+
+cTplValGesInit< int > & cMMUserEnvironment::VersionNameCam()
+{
+   return mVersionNameCam;
+}
+
+const cTplValGesInit< int > & cMMUserEnvironment::VersionNameCam()const 
+{
+   return mVersionNameCam;
+}
+
 void  BinaryUnDumpFromFile(cMMUserEnvironment & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -21090,6 +21205,14 @@ void  BinaryUnDumpFromFile(cMMUserEnvironment & anObj,ELISE_fp & aFp)
         }
         else  anObj.LogDirectory().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.VersionNameCam().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.VersionNameCam().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.VersionNameCam().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMMUserEnvironment & anObj)
@@ -21108,6 +21231,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMMUserEnvironment & anObj)
     if (anObj.OutputDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.OutputDirectory().Val());
     BinaryDumpInFile(aFp,anObj.LogDirectory().IsInit());
     if (anObj.LogDirectory().IsInit()) BinaryDumpInFile(aFp,anObj.LogDirectory().Val());
+    BinaryDumpInFile(aFp,anObj.VersionNameCam().IsInit());
+    if (anObj.VersionNameCam().IsInit()) BinaryDumpInFile(aFp,anObj.VersionNameCam().Val());
 }
 
 cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
@@ -21128,6 +21253,8 @@ cElXMLTree * ToXMLTree(const cMMUserEnvironment & anObj)
       aRes->AddFils(::ToXMLTree(std::string("OutputDirectory"),anObj.OutputDirectory().Val())->ReTagThis("OutputDirectory"));
    if (anObj.LogDirectory().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("LogDirectory"),anObj.LogDirectory().Val())->ReTagThis("LogDirectory"));
+   if (anObj.VersionNameCam().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("VersionNameCam"),anObj.VersionNameCam().Val())->ReTagThis("VersionNameCam"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21151,9 +21278,11 @@ void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree)
    xml_init(anObj.OutputDirectory(),aTree->Get("OutputDirectory",1)); //tototo 
 
    xml_init(anObj.LogDirectory(),aTree->Get("LogDirectory",1)); //tototo 
+
+   xml_init(anObj.VersionNameCam(),aTree->Get("VersionNameCam",1),int(0)); //tototo 
 }
 
-std::string  Mangling( cMMUserEnvironment *) {return "121CD2EABC920CBEFDBF";};
+std::string  Mangling( cMMUserEnvironment *) {return "BD12249D67431BC5FE3F";};
 
 
 double & cItem::Scale()
@@ -21377,5 +21506,110 @@ void xml_init(cMTDCoher & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cMTDCoher *) {return "FB80FE2B97F96881FE3F";};
+
+
+double & cXml_OrientaRel::teta01()
+{
+   return mteta01;
+}
+
+const double & cXml_OrientaRel::teta01()const 
+{
+   return mteta01;
+}
+
+
+double & cXml_OrientaRel::teta02()
+{
+   return mteta02;
+}
+
+const double & cXml_OrientaRel::teta02()const 
+{
+   return mteta02;
+}
+
+
+double & cXml_OrientaRel::teta12()
+{
+   return mteta12;
+}
+
+const double & cXml_OrientaRel::teta12()const 
+{
+   return mteta12;
+}
+
+
+double & cXml_OrientaRel::Teta()
+{
+   return mTeta;
+}
+
+const double & cXml_OrientaRel::Teta()const 
+{
+   return mTeta;
+}
+
+
+double & cXml_OrientaRel::Phi()
+{
+   return mPhi;
+}
+
+const double & cXml_OrientaRel::Phi()const 
+{
+   return mPhi;
+}
+
+void  BinaryUnDumpFromFile(cXml_OrientaRel & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.teta01(),aFp);
+    BinaryUnDumpFromFile(anObj.teta02(),aFp);
+    BinaryUnDumpFromFile(anObj.teta12(),aFp);
+    BinaryUnDumpFromFile(anObj.Teta(),aFp);
+    BinaryUnDumpFromFile(anObj.Phi(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_OrientaRel & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.teta01());
+    BinaryDumpInFile(aFp,anObj.teta02());
+    BinaryDumpInFile(aFp,anObj.teta12());
+    BinaryDumpInFile(aFp,anObj.Teta());
+    BinaryDumpInFile(aFp,anObj.Phi());
+}
+
+cElXMLTree * ToXMLTree(const cXml_OrientaRel & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_OrientaRel",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("teta01"),anObj.teta01())->ReTagThis("teta01"));
+   aRes->AddFils(::ToXMLTree(std::string("teta02"),anObj.teta02())->ReTagThis("teta02"));
+   aRes->AddFils(::ToXMLTree(std::string("teta12"),anObj.teta12())->ReTagThis("teta12"));
+   aRes->AddFils(::ToXMLTree(std::string("Teta"),anObj.Teta())->ReTagThis("Teta"));
+   aRes->AddFils(::ToXMLTree(std::string("Phi"),anObj.Phi())->ReTagThis("Phi"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_OrientaRel & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.teta01(),aTree->Get("teta01",1)); //tototo 
+
+   xml_init(anObj.teta02(),aTree->Get("teta02",1)); //tototo 
+
+   xml_init(anObj.teta12(),aTree->Get("teta12",1)); //tototo 
+
+   xml_init(anObj.Teta(),aTree->Get("Teta",1)); //tototo 
+
+   xml_init(anObj.Phi(),aTree->Get("Phi",1)); //tototo 
+}
+
+std::string  Mangling( cXml_OrientaRel *) {return "61A75D9191A5D0ADFD3F";};
 
 // };

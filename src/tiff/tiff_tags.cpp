@@ -141,7 +141,7 @@ tFileOffset Pseudo_Tiff_Arg::sz_tot() const
 /***********************************************************/
 /***********************************************************/
 
-GenIm::type_el  Tiff_Im::to_Elise_Type_Num(FIELD_TYPE ftype)
+GenIm::type_el  Tiff_Im::to_Elise_Type_Num(FIELD_TYPE ftype,const char * aName)
 {
      switch(ftype)
      {
@@ -153,6 +153,10 @@ GenIm::type_el  Tiff_Im::to_Elise_Type_Num(FIELD_TYPE ftype)
            default    :;
      }
 
+     if (aName !=0)
+     {
+          std::cout << "For Name= " << aName << "\n";
+     }
      elise_internal_error
      (
            "incoherent call to Tiff_Im::to_Elise_Type_Num",
@@ -160,7 +164,7 @@ GenIm::type_el  Tiff_Im::to_Elise_Type_Num(FIELD_TYPE ftype)
            __LINE__
      );
 
-     return GenIm::bits4_lsbf;  // N'importe quoi
+     return GenIm::no_type;  // N'importe quoi
 }
 
 const char * Tiff_Im::name_compr(INT compr)
@@ -507,7 +511,7 @@ INT * TIFF_TAG_VALUE::get_tabi(ELISE_fp fp)
 
          TIFF_TAG_VALUE::read_values
          (
-              Tiff_Im::to_Elise_Type_Num(_field_type),
+              Tiff_Im::to_Elise_Type_Num(_field_type,fp.NameFile().c_str()),
               res,
               _nb_log,
               fp
@@ -541,7 +545,7 @@ TIFF_TAG_VALUE::TIFF_TAG_VALUE(ELISE_fp fp)
      if (_field_type != Tiff_Im::eRATIONNAL)
      {
          _integral = true;
-         GenIm::type_el  el_ty =  Tiff_Im::to_Elise_Type_Num(_field_type);
+         GenIm::type_el  el_ty =  Tiff_Im::to_Elise_Type_Num(_field_type,fp.NameFile().c_str());
          INT nb_byte = nbb_type_num(el_ty)/8;
          INT byte_sz = nb_byte * _nb_log;
 
@@ -746,7 +750,7 @@ void TAG_TIF::physical_write_ivals
          Tiff_Im::FIELD_TYPE type
      )
 {
-    GenIm::type_el  el_ty =  Tiff_Im::to_Elise_Type_Num(type);
+    GenIm::type_el  el_ty =  Tiff_Im::to_Elise_Type_Num(type,fp.NameFile().c_str());
     INT byte_by_el = nbb_type_num(el_ty)/8;
 
     GenIm tamp = alloc_im1d(el_ty,nb);
@@ -805,7 +809,7 @@ void TAG_TIF::write_value_0
       EEM0 << "error in TAG_TIF::write_value_0(..,INT *,..)"
     );
     
-    GenIm::type_el  el_ty =  Tiff_Im::to_Elise_Type_Num(type);
+    GenIm::type_el  el_ty =  Tiff_Im::to_Elise_Type_Num(type,fp.NameFile().c_str());
     INT nb_byte = (nbb_type_num(el_ty)/8) * nb;
 
     if (nb_byte <= 4)

@@ -89,9 +89,9 @@ int  RawCor_main(int argc,char ** argv)
 					double R = aDataR[aY][aX] * sqrt(2364/1024.0);
 					double G = aDataG[aY][aX] * sqrt(1024/1024.0);
 					double B = aDataB[aY][aX] * sqrt(1568/1024.0);
-					if(R>255){aDataR[aY][aX]=255;}else{aDataR[aY][aX]=R;}
-					if(G>255){aDataG[aY][aX]=255;}else{aDataG[aY][aX]=G;}
-					if(B>255){aDataB[aY][aX]=255;}else{aDataB[aY][aX]=B;}
+					if(R>255){aDataR[aY][aX]=255;}else{aDataR[aY][aX]=(unsigned char)R;}
+					if(G>255){aDataG[aY][aX]=255;}else{aDataG[aY][aX]=(unsigned char)G;}
+					if(B>255){aDataB[aY][aX]=255;}else{aDataB[aY][aX]=(unsigned char)B;}
 				}
 		}
 

@@ -284,6 +284,45 @@ int Bascule_main(int argc,char ** argv)
 
 
 
+int BasculePtsInRepCam_main(int argc,char ** argv)
+{
+    std::string aNameCam,aNamePts;
+    std::string aNamePts_Out;
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aNameCam,"Name Camera" )
+                     << EAMC(aNamePts,"Name GGP In"),
+          LArgMain()
+                     << EAM(aNamePts_Out,"Out", true )
+    );
+
+    if (! EAMIsInit(&aNamePts_Out))
+    {
+        aNamePts_Out =     DirOfFile(aNamePts)
+                        + "Basc-" + StdPrefix(NameWithoutDir(aNameCam)) + "-"
+                        +  NameWithoutDir(aNamePts);
+    }
+
+    CamStenope * aCamIn =  BasicCamOrientGenFromFile(aNameCam);
+    ElRotation3D aR = aCamIn->Orient();
+    cDicoAppuisFlottant aDAFIn =  StdGetFromPCP(aNamePts,DicoAppuisFlottant);
+    for 
+    (
+         std::list<cOneAppuisDAF>::iterator itO=aDAFIn.OneAppuisDAF().begin();
+         itO!=aDAFIn.OneAppuisDAF().end();
+         itO++
+
+    )
+    {
+        itO->Pt()  = aR.ImAff(itO->Pt() );
+    }
+
+    MakeFileXML(aDAFIn,aNamePts_Out);
+
+    
+    return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
