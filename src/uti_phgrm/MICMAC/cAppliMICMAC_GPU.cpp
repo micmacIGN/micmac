@@ -1569,43 +1569,41 @@ void cAppliMICMAC::DoGPU_Correl
         uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain sous-echantilloné
         uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain sous-echantilloné
 
-		const int2	anB			= zone.pt0 +  dimSTabProj * sample;
-		Pt2dr   saStepPlani(mStepPlani.x*sample,mStepPlani.y*sample);
+        int2	anB			= zone.pt0 +  dimSTabProj * sample;
+
 
         OMP_NT1
-        for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
+                for (int anZ = Z; anZ < (int)(Z + interZ); anZ++)
         {
             int rZ = abs(Z - anZ) * mNbIm;
-			Rect*   pZoneImg    = pTabRect +  rZ;               // Buffer des zones images
-			const double aZReel	= DequantZ(anZ);                // Dequantification Z
-
             OMP_NT2
-			for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++, pZoneImg++)                     // Mise en calque des projections pour chaque image
+                    for (int aKIm = 0 ; aKIm < mNbIm ; aKIm++ )                     // Mise en calque des projections pour chaque image
             {
-				float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
+                Rect*   pZoneImg    = pTabRect +  rZ  + aKIm;               // Buffer des zones images
+                float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
 
                 cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);                // Obtention de l'image aKIm
                 const cGeomImage*	aGeom	= aGLI.Geom();
 
-                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul				
+                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul
+                int2 sampTer    = make_int2(0,0);                           // Point retenu
                 Rect re(MAXIRECT);
-				Pt2dr aPTer;
-				aPTer.y = mOriPlani.y + mStepPlani.y*pTer.y;// Dequantification  de  Y
+                const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
 
-				for (; pTer.y < anB.y; pTer.y += sample, aPTer.y += saStepPlani.y)	// Ballayage du terrain
-				{
-					aPTer.x = mOriPlani.x + mStepPlani.x*zone.pt0.x; // Dequantification  de  X
+                for (pTer.y = zone.pt0.y; pTer.y < anB.y; pTer.y += sample, sampTer.y++, sampTer.x = 0)	// Ballayage du terrain
 
-					for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, aPTer.x += saStepPlani.x,buf_proj++)
-					{
-						//Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
+                    for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, sampTer.x++)
+                    {
 
-						const Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
-						//if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
-						*buf_proj		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
 
-					}
-				}
+                        Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
+                        Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
+
+                        //if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
+                        buf_proj[to1D(sampTer,dimSTabProj)]		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
+
+                    }
+
 
                 re.pt1.x = aGLI.getSizeImage().x - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
                 re.pt1.y = aGLI.getSizeImage().y - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.y;
@@ -1614,6 +1612,7 @@ void cAppliMICMAC::DoGPU_Correl
 
             }
         }
+
 
 
 #ifdef  NVTOOLS
@@ -1692,32 +1691,32 @@ void cAppliMICMAC::DoGPU_Correl
 #ifdef  NVTOOLS
         GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A8833);
 #endif
-		float*		tabCost		= IMmGg.VolumeCost(idBuf);
-		const Rect  zone		= IMmGg.Param(idBuf).RTer();
-		const float valdefault  = IMmGg.Param(idBuf).invPC.floatDefault;
+        float*  tabCost     = IMmGg.VolumeCost(idBuf);
+        Rect    zone        = IMmGg.Param(idBuf).RTer();
+        float   valdefault  = IMmGg.Param(idBuf).invPC.floatDefault;
 
-		//std::cout << "Copy : [(" << zone.pt0.x << "," <<  zone.pt0.y << ")" << "(" << zone.pt1.x << "," <<  zone.pt1.y << ")] Z: " << (int)z0 << "->" << (int)z1 << "\n";
+        //std::cout << "Copy : [(" << zone.pt0.x << "," <<  zone.pt0.y << ")" << "(" << zone.pt1.x << "," <<  zone.pt1.y << ")] Z: " << (int)z0 << "->" << (int)z1 << "\n";
 
-		const uint2 rDiTer = zone.dimension();
-		const uint  rSiTer = size(rDiTer);
+        uint2 rDiTer = zone.dimension();
+        uint  rSiTer = size(rDiTer);
 
         OMP_NT1
-		for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
+        for (int anY = zone.pt0.y ; anY < (int)zone.pt1.y; anY++)
         {
+            int pitY = rDiTer.x * (anY - zone.pt0.y);
             OMP_NT2
-			for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++, tabCost ++)
-            {                
-				float *tCost =  tabCost;
-				const int anZ0 = max(z0,(int)mTabZMin[anY][anX]);
-				const int anZ1 = min(z1,(int)mTabZMax[anY][anX]);
-				const Pt2di ptTer(anX,anY);
-				mNbPointsIsole += abs(anZ1-anZ0);
+            for (int anX = zone.pt0.x ; anX <  (int)zone.pt1.x ; anX++)
+            {
+                float *tCost =  tabCost + pitY + anX -  zone.pt0.x;
+                int anZ0 = max(z0,(int)mTabZMin[anY][anX]);
+                int anZ1 = min(z1,(int)mTabZMax[anY][anX]);
 
-				for (int anZ = anZ0;  anZ < anZ1 ; anZ++,tCost+= rSiTer)
-                {					
-					const double cost = (double)*tCost;
+                for (int anZ = anZ0;  anZ < anZ1 ; anZ++,mNbPointsIsole++)
+                {
+                    double cost = (double)tCost[rSiTer * abs(anZ - (int)z0)];
+
                     // TODO WARNING les couts init sont stockés dans un ushort mais des couts semblent sup à ushortmax!!!!
-					mSurfOpt->SetCout(ptTer,&anZ, cost != valdefault ? cost : mAhDefCost);
+                    mSurfOpt->SetCout(Pt2di(anX,anY),&anZ, cost != valdefault ? cost : mAhDefCost);
                 }
             }
         }
