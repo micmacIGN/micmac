@@ -766,6 +766,8 @@ void cGBV2_ProgDynOptimiseur::writePoint(FILE* aFP,  Pt3dr            aP,Pt3di  
 void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 {
 
+	// TODO ATTENTION BUG QUAND PAS DE param AUTOMASK DANS LE FICHIER XML (voir revision 4858)
+
 	mImCor = &aImCor;
     // double aVPentes[theDimPxMax];
     const cModulationProgDyn &  aModul = mEtape.EtapeMEC().ModulationProgDyn().Val();
@@ -808,16 +810,14 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         mMaxEc[aKP] = ElMax(1,round_ni(aPente));
     }
 
-    int nbDirection = 0;
-
     for
     (
         std::list<cEtapeProgDyn>::const_iterator itE=aModul.EtapeProgDyn().begin();
         itE!=aModul.EtapeProgDyn().end();
-        itE++
+		++itE
     )
     {
-        nbDirection = itE->NbDir().Val();
+		const int nbDirection = itE->NbDir().Val();
         SolveOneEtape(nbDirection);
     }
 
