@@ -77,7 +77,7 @@ extern "C" void	 LaunchKernelprojectionImage(pCorGpu &param, CuDeviceData3D<floa
 /// \brief Kernel fonction GpGpu Cuda
 /// Calcul les vignettes de correlation pour toutes les images
 ///
-template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushort2 *ClassEqui,float* cachVig, Rect* pRect, uint2 nbActThrd,HDParamCorrel HdPc)
+template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushort2 *ClassEqui,float* cachVig, uint2* pRect, uint2 nbActThrd,HDParamCorrel HdPc)
 {
 
   extern __shared__ float cacheImg[];
@@ -91,20 +91,17 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
   // Obtenir la projection du point dans l'image
   const float2 ptProj   = GetProjection<TexSel>(ptHaloTer,invPc.sampProj,blockIdx.z);
 
-  // DEBUT 2014 || taille de l'image
-  const Rect  zoneImage = pRect[blockIdx.z];
+  // Phase : obtention de la valeur dans l'image
+  const uint	pitZ      = blockIdx.z / invPc.nbImages;
+  const uint	pitCach   = pitZ * invPc.nbImages;
+  const ushort	idImg     = blockIdx.z - pitCach; // ID image courante
 
-  uint pitZ,idImg,pitCach;
+  // DEBUT 2014 || taille de l'image
+  const uint2  zoneImage = pRect[idImg];
 
   // Si la projection est en dehors de l'image on sort
-  if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.pt1.x || ptProj.y >= (float)zoneImage.pt1.y)
+  if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.x || ptProj.y >= (float)zoneImage.y)
       return;
-
-  // Phase : obtention de la valeur dans l'image
-
-  pitZ      = blockIdx.z / invPc.nbImages;
-  pitCach   = pitZ * invPc.nbImages;
-  idImg     = blockIdx.z - pitCach; // ID image courante
 
   cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,idImg);
 
@@ -122,7 +119,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
 
   // Faux mais fait le job! en limite d'image
-  if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y))
+  if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.y))
       return;
 
   // Point terrain global
@@ -187,7 +184,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
     }
 }
-__global__ void getValueImagesKernel(  ushort2 *ClassEqui, float* cuValImage, Rect* pRect, uint2 nbActThrd,HDParamCorrel HdPc)
+__global__ void getValueImagesKernel(  ushort2 *ClassEqui, float* cuValImage, uint2* pRect, uint2 nbActThrd,HDParamCorrel HdPc)
 {
     extern __shared__ float cacheImg[];
 
@@ -201,11 +198,11 @@ __global__ void getValueImagesKernel(  ushort2 *ClassEqui, float* cuValImage, Re
 
     const float2 ptProj   = GetProjection<0>(ptHTer,invPc.sampProj,blockIdx.z);
   // DEBUT AJOUT 2014
-    const Rect  zoneImage = pRect[blockIdx.z];
+	const uint2  zoneImage = pRect[blockIdx.z]; // TODO 2015 FAUX a remplacer pas idImg
 
     uint pitZ,idImg,piCa;
 
-    if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.pt1.x || ptProj.y >= (float)zoneImage.pt1.y)
+	if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.x || ptProj.y >= (float)zoneImage.y)
     {
         cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = -1;
         return;
@@ -229,7 +226,7 @@ __global__ void getValueImagesKernel(  ushort2 *ClassEqui, float* cuValImage, Re
 
 
 // tres bizarre.... surement faux!!
-    if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.pt1.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.pt1.y))
+	if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.y))
     {
         cuValImage[idN]   = -1;
         return;
