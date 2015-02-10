@@ -64,6 +64,7 @@ int Tequila_main(int argc,char ** argv)
     int aTextMaxSize = maxTextureSize;
     int aZBuffSSEch = 1;
     int JPGcomp = 70;
+    bool aBin = true;
 
     std::stringstream ss  ;
     ss << aTextMaxSize;
@@ -75,6 +76,7 @@ int Tequila_main(int argc,char ** argv)
                             << EAMC(aOri,"Orientation path",eSAM_IsExistDirOri)
                             << EAMC(aPly,"Ply file", eSAM_IsExistFile),
                 LArgMain()  << EAM(aOut,"Out",true,"Textured mesh name (def=plyName+ _textured.ply)")
+                            << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def="+ ss.str() +")")
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
@@ -400,10 +402,12 @@ int Tequila_main(int argc,char ** argv)
     cout <<"**************************Writing ply file***************************"<<endl;
     cout <<endl;
 
+    string mode = aBin ? "wb" : "w";
+    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
 
-    FILE * PlyOut = FopenNN(aOut,"w", "UV Mapping");         //Ecriture du header
+    FILE * PlyOut = FopenNN(aOut,mode, "UV Mapping");         //Ecriture du header
     fprintf(PlyOut,"ply\n");
-    fprintf(PlyOut,"format ascii 1.0\n");
+    fprintf(PlyOut,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
     fprintf(PlyOut,"comment UV Mapping generated\n");
     fprintf(PlyOut,"comment TextureFile %s\n", newName.c_str());
     fprintf(PlyOut,"element vertex %i\n",myMesh.getVertexNumber());
@@ -422,10 +426,24 @@ int Tequila_main(int argc,char ** argv)
     CamStenope *Cam;
     int idx;
 
-    for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+    if (aBin)
     {
-        pt = myMesh.getVertex(aK);
-        fprintf(PlyOut,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+        for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+        {
+            pt = myMesh.getVertex(aK);
+
+            WriteType(PlyOut,float(pt.x));
+            WriteType(PlyOut,float(pt.y));
+            WriteType(PlyOut,float(pt.z));
+        }
+    }
+    else
+    {
+        for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+        {
+            pt = myMesh.getVertex(aK);
+            fprintf(PlyOut,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+        }
     }
 
     int width  = aSz.x;
@@ -470,20 +488,71 @@ int Tequila_main(int argc,char ** argv)
                 float Pt3x=(((float)(Pt3.x*Scale)+PtTemp.x)) / (float) width;
                 float Pt3y= 1.0f - (((float)(Pt3.y*Scale)+PtTemp.y)) / (float) height;
 
-                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-                fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                if (aBin)
+                {
+                    WriteType(PlyOut,(unsigned char)3);
+                    WriteType(PlyOut,t1);
+                    WriteType(PlyOut,t2);
+                    WriteType(PlyOut,t3);
+                    WriteType(PlyOut,(unsigned char)6);
+                    WriteType(PlyOut,Pt1x);
+                    WriteType(PlyOut,Pt1y);
+                    WriteType(PlyOut,Pt2x);
+                    WriteType(PlyOut,Pt2y);
+                    WriteType(PlyOut,Pt3x);
+                    WriteType(PlyOut,Pt3y);
+                }
+                else
+                {
+                    fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                    fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                }
             }
             else
             {
                 //cout << "HORS IMG" << endl;
-                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-                fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+                if (aBin)
+                {
+                    WriteType(PlyOut,(unsigned char)3);
+                    WriteType(PlyOut,t1);
+                    WriteType(PlyOut,t2);
+                    WriteType(PlyOut,t3);
+                    WriteType(PlyOut,(unsigned char)6);
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                }
+                else
+                {
+                    fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                    fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+                }
             }
         }
         else
         {
-            fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-            fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+            if (aBin)
+            {
+                WriteType(PlyOut,(unsigned char)3);
+                WriteType(PlyOut,t1);
+                WriteType(PlyOut,t2);
+                WriteType(PlyOut,t3);
+                WriteType(PlyOut,(unsigned char)6);
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+            }
+            else
+            {
+                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+            }
         }
     }
 
