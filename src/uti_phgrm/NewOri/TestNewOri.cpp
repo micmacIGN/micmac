@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+/*
 int TestNewOriImage_main(int argc,char ** argv)
 {
    std::string aNameOri,aNameI1,aNameI2;
@@ -63,6 +64,7 @@ int TestNewOriImage_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+*/
 
 
 

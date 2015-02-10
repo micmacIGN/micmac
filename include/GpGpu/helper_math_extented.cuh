@@ -97,7 +97,7 @@ struct Rect
     }
 
     /// \brief Renvoie la dimension du rectangle
-	uint2 dimension()
+	const uint2 dimension()  const
 	{
         return make_uint2(abs(pt1-pt0));
     }
