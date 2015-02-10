@@ -2998,8 +2998,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
         /// \param interZ
         /// \param idBuf
         ///
-        void Tabul_Projection(int Z,  uint &interZ, ushort idBuf);
-        void setVolumeCost(int interZ0, int interZ1, ushort idBuf);
+        void Tabul_Projection(short Z,  ushort& interZ, ushort idBuf);
+        void setVolumeCost(short interZ0, short interZ1, ushort idBuf);
         void Tabul_Images(int Z, uint &interZ, ushort idBuf);
 
 #endif
