@@ -27,7 +27,7 @@ struct cellules
     /// \brief Dz
     /// delta Z de la zone
     ///
-    uint Dz;
+	ushort Dz;
 
     cellules():
         Zone(MAXIRECT),

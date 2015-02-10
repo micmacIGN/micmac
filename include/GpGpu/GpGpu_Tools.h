@@ -125,12 +125,12 @@ public:
     //static void			check_Cuda();
 
 #ifdef NVTOOLS
-	static void			NvtxR_Push(const char* message, int32_t color);
+	static void  NvtxR_Push(const char* message, int32_t color);
 #else
-	static void			NvtxR_Push(const char* message, int color){}
+	static void  NvtxR_Push(const char* message, int color){}
 #endif
 
-	static void			Nvtx_RangePop();
+	static void	Nvtx_RangePop();
 
     template <class T>
     static T            getMaxArray(T *data, uint2 dim);
@@ -190,7 +190,7 @@ void GpGpuTools::OutputValue( float value, uint offset, float defaut, float fact
     if(p < 1.0f ) p = 1.0f;
     float out	= floor(outO*p)/p;
 
-    std::string valS;
+	//std::string valS;
     stringstream sValS (stringstream::in | stringstream::out);
 
     sValS << abs(out);
