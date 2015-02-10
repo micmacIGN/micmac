@@ -1561,26 +1561,27 @@ void cAppliMICMAC::DoGPU_Correl
 #endif
         IMmGg.Data().MemsetHostVolumeProj(IMmGg.Param(idBuf).invPC.IntDefault);
 
-        Rect    zone        = IMmGg.Param(idBuf).RDTer();           // Zone Terrain dilaté
-        uint    sample      = IMmGg.Param(idBuf).invPC.sampProj;    // Sample
-        float2  *pTabProj   = IMmGg.Data().HostVolumeProj();        // Pointeur sur le buffer des projections
-        Rect    *pTabRect   = IMmGg.Data().HostRect();              // Pointeur sur le buffer des zones de projections
-        uint2	dimTabProj	= zone.dimension();						// Dimension de la zone terrain
-        uint2	dimSTabProj	= iDivUp(dimTabProj,sample)+1;			// Dimension de la zone terrain sous-echantilloné
-        uint	sizSTabProj	= size(dimSTabProj);					// Taille de la zone terrain sous-echantilloné
+		float2*		pTabProj	=	IMmGg.Data().HostVolumeProj();      // Pointeur sur le buffer des projections
+		Rect*		pTabRect	=	IMmGg.Data().HostRect();            // Pointeur sur le buffer des zones de projections
 
-        int2	anB			= zone.pt0 +  dimSTabProj * sample;
+		const Rect  zone        =	IMmGg.Param(idBuf).RDTer();         // Zone Terrain dilaté
+		const uint  sample      =	IMmGg.Param(idBuf).invPC.sampProj;  // Sample
+		const uint2	dimTabProj	=	zone.dimension();					// Dimension de la zone terrain
+		const uint2	dimSTabProj	=	iDivUp(dimTabProj,sample)+1;		// Dimension de la zone terrain sous-echantilloné
+		const uint	sizSTabProj	=	size(dimSTabProj);					// Taille de la zone terrain sous-echantilloné
+		const int2	anB			=	zone.pt0 +  dimSTabProj * sample;
 
+		int rZ = 0;
 
-		//OMP_NT1
-		for (short anZ = Z; anZ < (Z + interZ); anZ++)
-        {
-			int rZ = abs(Z - anZ) * mNbIm;
-		  //  OMP_NT2
-			for (ushort aKIm = 0 ; aKIm < mNbIm ; aKIm++ )                     // Mise en calque des projections pour chaque image
+		OMP_NT1
+		for (short anZ = Z; anZ < (Z + interZ); ++anZ,rZ+= mNbIm)
+		{
+
+			OMP_NT2
+			for (ushort aKIm = 0 ; aKIm < mNbIm ; ++aKIm,++pTabRect)        // Mise en calque des projections pour chaque image
             {
-                Rect*   pZoneImg    = pTabRect +  rZ  + aKIm;               // Buffer des zones images
-                float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
+
+				float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
 
                 cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);                // Obtention de l'image aKIm
                 const cGeomImage*	aGeom	= aGLI.Geom();
@@ -1590,14 +1591,13 @@ void cAppliMICMAC::DoGPU_Correl
                 Rect re(MAXIRECT);
                 const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
 
-                for (pTer.y = zone.pt0.y; pTer.y < anB.y; pTer.y += sample, sampTer.y++, sampTer.x = 0)	// Ballayage du terrain
+				for (; pTer.y < anB.y; pTer.y += sample, ++sampTer.y, sampTer.x = 0)	// Ballayage du terrain
 
-                    for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, sampTer.x++)
+					for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, ++sampTer.x)
                     {
 
-
-                        Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
-                        Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
+						const Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
+						const Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
 
                         //if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
                         buf_proj[to1D(sampTer,dimSTabProj)]		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
@@ -1608,7 +1608,7 @@ void cAppliMICMAC::DoGPU_Correl
                 re.pt1.x = aGLI.getSizeImage().x - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.x;
                 re.pt1.y = aGLI.getSizeImage().y - SAMPLETERR - IMmGg.Param(idBuf).invPC.rayVig.y;
 
-                *pZoneImg = re;
+				*pTabRect = re;
 
             }
         }
