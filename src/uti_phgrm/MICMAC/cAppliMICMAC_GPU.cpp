@@ -1571,44 +1571,36 @@ void cAppliMICMAC::DoGPU_Correl
 		const uint  sample      =	IMmGg.Param(idBuf).invPC.sampProj;  // Sample
 		const uint2	dimTabProj	=	zone.dimension();					// Dimension de la zone terrain
 		const uint2	dimSTabProj	=	iDivUp(dimTabProj,sample)+1;		// Dimension de la zone terrain sous-echantilloné
-		const uint	sizSTabProj	=	size(dimSTabProj);					// Taille de la zone terrain sous-echantilloné
 		const int2	anB			=	zone.pt0 +  dimSTabProj * sample;
 
-		int rZ = 0;
+		const Pt2dr stepPlaniSa(mStepPlani.x*sample,mStepPlani.y*sample);
+		const Pt2dr cpTerDequan(mOriPlani.x + mStepPlani.x*zone.pt0.x,mOriPlani.y + mStepPlani.y*zone.pt0.y);
 
+		float2* buf_proj		= pTabProj ;//+ (rZ  + aKIm )* sizSTabProj;	// Buffer des projections pre-calculées
 		OMP_NT1
-		for (short anZ = Z; anZ < (Z + interZ); ++anZ,rZ+= mNbIm)
+		for (short anZ = Z; anZ < (Z + interZ); ++anZ)
 		{
+			const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
 			OMP_NT2
 			for (ushort aKIm = 0 ; aKIm < mNbIm ; ++aKIm)        // Mise en calque des projections pour chaque image
             {
+				const cGeomImage* aGeom = ((cGPU_LoadedImGeom*)mVLI[aKIm])->Geom();	// geom image
+				int2  pTer;                                 // Debut de la zone de pré-calcul
+				Pt2dr pTerDequan;
 
-				float2* buf_proj    = pTabProj + (rZ  + aKIm )* sizSTabProj;// Buffer des projections pre-calculées
-                cGPU_LoadedImGeom&	aGLI	= *(mVLI[aKIm]);                // Obtention de l'image aKIm
-                const cGeomImage*	aGeom	= aGLI.Geom();
+				for ( pTer.y = zone.pt0.y, pTerDequan.y = cpTerDequan.y; pTer.y < anB.y; pTer.y += sample, pTerDequan.y +=  stepPlaniSa.y)							// Ballayage du terrain
+				{
+					for (pTer.x = zone.pt0.x, pTerDequan.x = cpTerDequan.x; pTer.x < anB.x ; pTer.x += sample,++buf_proj, pTerDequan.x +=  stepPlaniSa.x)
+					{
+						const Pt2dr aPIm  = aGeom->CurObj2Im(pTerDequan,&aZReel);		// Calcul de la projection dans l'image aKIm
 
-                int2 pTer       = zone.pt0;                                 // Debut de la zone de pré-calcul
-                int2 sampTer    = make_int2(0,0);                           // Point retenu
-                const double aZReel	= DequantZ(anZ);                                                    // Dequantification Z
+						//if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
+						*buf_proj		= make_float2((float)aPIm.x,(float)aPIm.y);		// affectation dans le
 
-				for (; pTer.y < anB.y; pTer.y += sample, ++sampTer.y, sampTer.x = 0)	// Ballayage du terrain
-
-					for (pTer.x = zone.pt0.x; pTer.x < anB.x ; pTer.x += sample, ++sampTer.x)
-                    {
-
-						const Pt2dr aPTer	= DequantPlani(pTer.x,pTer.y);          // Dequantification  de X, Y
-						const Pt2dr aPIm  = aGeom->CurObj2Im(aPTer,&aZReel);      // Calcul de la projection dans l'image aKIm
-
-                        //if (aGLI.IsOk( aPIm.x, aPIm.y )) // Le masque image !!
-                        buf_proj[to1D(sampTer,dimSTabProj)]		= make_float2((float)aPIm.x,(float)aPIm.y); // affectation dans le
-
-                    }
-
+					}
+				}
             }
         }
-
-
-
 #ifdef  NVTOOLS
 		GpGpuTools::Nvtx_RangePop();
 #endif
