@@ -44,11 +44,11 @@ Header-MicMac-eLiSe-25/06/2007*/
     #include <GL/gl.h>
 #endif*/
 
+bool debug = false;
+float defValZBuf = 1e9;
 
 int Tequila_main(int argc,char ** argv)
 {
-    bool debug = false;
-
     int maxTextureSize, texture_units;
     maxTextureSize = texture_units = 0;
     /*glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
@@ -60,11 +60,11 @@ int Tequila_main(int argc,char ** argv)
     if (maxTextureSize == 0) maxTextureSize = 8192;
 
     std::string aDir,aPat,aFullName,aOri,aPly;
-    std::string aOut = "textured_Mesh.ply";
-    std::string aTextOut = "UVtexture.jpg";
+    std::string aOut, aTextOut;
     int aTextMaxSize = maxTextureSize;
     int aZBuffSSEch = 1;
     int JPGcomp = 70;
+    bool aBin = true;
 
     std::stringstream ss  ;
     ss << aTextMaxSize;
@@ -75,10 +75,11 @@ int Tequila_main(int argc,char ** argv)
                 LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pat)",eSAM_IsPatFile)
                             << EAMC(aOri,"Orientation path",eSAM_IsExistDirOri)
                             << EAMC(aPly,"Ply file", eSAM_IsExistFile),
-                LArgMain()  << EAM(aOut,"Out",true,"Textured mesh name (def=textured_Mesh.ply)")
-                            << EAM(aTextOut,"Texture",true,"Texture name (def=UVtexture.jpg)")
+                LArgMain()  << EAM(aOut,"Out",true,"Textured mesh name (def=plyName+ _textured.ply)")
+                            << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
+                            << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def="+ ss.str() +")")
-                            << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)")
+                            << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
                             << EAM(JPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
              );
 
@@ -94,7 +95,10 @@ int Tequila_main(int argc,char ** argv)
 
     SplitDirAndFile(aDir,aPat,aFullName);
 
-    std::string aRes = aDir + StdPrefix(aTextOut) + ".tif";
+    if (!EAMIsInit(&aOut)) aOut = StdPrefix(aPly) + "_textured.ply";
+    if (!EAMIsInit(&aTextOut)) aTextOut = StdPrefix(aPly) + "_UVtexture.jpg";
+
+    std::string aRes = StdPrefix(aTextOut) + ".tif";
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
@@ -120,65 +124,27 @@ int Tequila_main(int argc,char ** argv)
     cout<<"**************************Reading ply file***************************"<<endl;
     cout<<endl;
 
-
     cMesh myMesh(aPly);
 
-    int nbVertex = myMesh.getVertexNumber();
-    int nbFaces  = myMesh.getFacesNumber();
-
-    //test des normales
-    /*Pt3dr barucentr;
-    for (int aK=0;aK<nbVertex;aK++)
-    {
-        barucentr = barucentr + myMesh.getVertex(aK);
-    }
-    barucentr = barucentr / nbVertex;
-
-    cout << "barycentr= " << barucentr << endl;
-
-    for (int aK=0; aK < nbFaces;aK++)
-    {
-        cTriangle* Triangle = myMesh.getTriangle(aK);
-        Pt3dr nrm = Triangle->getNormale(myMesh, true);
-
-        vector <Pt3dr> Vertex;
-        Triangle->getVertexes(myMesh,Vertex);
-
-        Pt3dr centre = (Vertex[0] + Vertex[1] +Vertex[2])/ 3;
-
-        Pt3dr vect = centre - barucentr;
-        vect = vect / euclid(vect);
-
-        cout << "norme de vect= " << euclid(vect)<<endl;
-        cout << "norme de nrm= " << euclid(nrm)<<endl;
-
-        float scalar = scal(vect, nrm);
-
-        if (scalar < 0.f) cout << "youhou !!!********************************************************" << endl;
-    }*/
-
-    printf("Vertex number : %d - faces number : %d \n\n", nbVertex, nbFaces);
-
+    printf("Vertex number : %d - faces number : %d \n\n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
     cout<<"*************************Computing Z-Buffer**************************"<< endl;
     cout<< endl;
 
-
     vector <cZBuf> aZBuffers;
     vector <Im2D_REAL4> aZBufIm;
 
-    float defValZBuf = 1e9;
     std::list<std::string>::const_iterator itS=aLS.begin();
-    for(unsigned int aK=0 ; aK<ListCam.size() ; aK++, itS++) // on teste toutes les CamStenope
+    for(unsigned int aK=0 ; aK<ListCam.size() ; aK++, itS++)
     {
         cout << "Z-buffer " << aK+1 << "/" << ListCam.size() << endl;
 
         cZBuf aZBuffer(ListCam[aK]->Sz(), defValZBuf);
 
-        Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
-
         if (debug)
         {
+            Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
+
             //conversion du zBuffer en 8 bits
             Pt2di sz = aZBuffer.Sz();
             Im2D_U_INT1 Converted = Im2D_U_INT1(sz.x, sz.y);
@@ -222,9 +188,11 @@ int Tequila_main(int argc,char ** argv)
             printf ("Saving %s\n", filename.c_str());
             Tiff_Im::CreateFromIm(Labels, filename);
             printf ("Done\n");
-        }
 
-        aZBufIm.push_back(res);
+            aZBufIm.push_back(res);
+        }
+        else
+            aZBufIm.push_back(aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]));
 
         aZBuffers.push_back(aZBuffer);
     }
@@ -236,7 +204,7 @@ int Tequila_main(int argc,char ** argv)
     vector<int> vIndex; //vIndex[aK] indique quelle image est vue par le triangle aK
     int valDef = -1;
 
-    for(int i=0 ; i < nbFaces; i++)                            //Pour un triangle
+    for(int i=0 ; i < myMesh.getFacesNumber(); i++)                            //Pour un triangle
     {
         cTriangle * Triangle = myMesh.getTriangle(i);
         Pt3dr Norm = Triangle->getNormale(true);       //Et sa normale
@@ -281,7 +249,7 @@ int Tequila_main(int argc,char ** argv)
     cout << "selected images / total : " << index.size() << " / " << aLS.size() << endl;
 
     cout << endl;
-    cout <<"*******************Filtering border triangles**********************"<<endl;
+    cout <<"********************Filtering border triangles***********************"<<endl;
     cout << endl;
 
     int maxIter = 10;
@@ -310,10 +278,10 @@ int Tequila_main(int argc,char ** argv)
             }
     }
 
-    printf("Vertex number : %d - faces number : %d \n\n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
+    printf("Vertex number : %d - faces number : %d \n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
     cout << endl;
-    cout <<"************************Writing texture************************"<<endl;
+    cout <<"**************************Writing texture**************************"<<endl;
     cout << endl;
 
     Pt2di aSzMax;
@@ -353,15 +321,14 @@ int Tequila_main(int argc,char ** argv)
 
     float Scale = (float) aTextMaxSize / ElMax(full_width, full_height) ;
 
+    if (Scale > 1.f) Scale = 1.f;
+
     cout << "Scaling factor = " << Scale << endl;
 
     int final_width  = round_up(full_width * Scale);
     int final_height = round_up(full_height * Scale);
 
-    Pt2di aSz (
-                final_width,       //A modifier pour le scale
-                final_height      //A modifier pour le scale
-                );
+    Pt2di aSz ( final_width, final_height );
 
     cout << "SZ = " << aSz << " :: " << aNbCol << " X " << aNbLine  << "\n";
 
@@ -432,13 +399,15 @@ int Tequila_main(int argc,char ** argv)
     system_call(aCom.c_str());
 
     cout << endl;
-    cout <<"************************Writing ply file*************************"<<endl;
+    cout <<"**************************Writing ply file***************************"<<endl;
     cout <<endl;
 
+    string mode = aBin ? "wb" : "w";
+    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
 
-    FILE * PlyOut = FopenNN(aOut,"w", "UV Mapping");         //Ecriture du header
+    FILE * PlyOut = FopenNN(aOut,mode, "UV Mapping");         //Ecriture du header
     fprintf(PlyOut,"ply\n");
-    fprintf(PlyOut,"format ascii 1.0\n");
+    fprintf(PlyOut,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
     fprintf(PlyOut,"comment UV Mapping generated\n");
     fprintf(PlyOut,"comment TextureFile %s\n", newName.c_str());
     fprintf(PlyOut,"element vertex %i\n",myMesh.getVertexNumber());
@@ -457,17 +426,31 @@ int Tequila_main(int argc,char ** argv)
     CamStenope *Cam;
     int idx;
 
-    for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+    if (aBin)
     {
-        pt = myMesh.getVertex(aK);
-        fprintf(PlyOut,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+        for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+        {
+            pt = myMesh.getVertex(aK);
+
+            WriteType(PlyOut,float(pt.x));
+            WriteType(PlyOut,float(pt.y));
+            WriteType(PlyOut,float(pt.z));
+        }
+    }
+    else
+    {
+        for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+        {
+            pt = myMesh.getVertex(aK);
+            fprintf(PlyOut,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+        }
     }
 
     int width  = aSz.x;
     int height = aSz.y;
 
     //cout << "vIndex.size= "<< vIndex.size() << endl;
-    cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
+    //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
     for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
     {
         Triangle = myMesh.getTriangle(i);
@@ -486,7 +469,7 @@ int Tequila_main(int argc,char ** argv)
             Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
             Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-            if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+            if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
             {
                 /*cout << "Pt1= " << Pt1.x << " " << Pt1.y << endl;
                 cout << "Pt2= " << Pt2.x << " " << Pt2.y << endl;
@@ -505,27 +488,75 @@ int Tequila_main(int argc,char ** argv)
                 float Pt3x=(((float)(Pt3.x*Scale)+PtTemp.x)) / (float) width;
                 float Pt3y= 1.0f - (((float)(Pt3.y*Scale)+PtTemp.y)) / (float) height;
 
-
-                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-                fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                if (aBin)
+                {
+                    WriteType(PlyOut,(unsigned char)3);
+                    WriteType(PlyOut,t1);
+                    WriteType(PlyOut,t2);
+                    WriteType(PlyOut,t3);
+                    WriteType(PlyOut,(unsigned char)6);
+                    WriteType(PlyOut,Pt1x);
+                    WriteType(PlyOut,Pt1y);
+                    WriteType(PlyOut,Pt2x);
+                    WriteType(PlyOut,Pt2y);
+                    WriteType(PlyOut,Pt3x);
+                    WriteType(PlyOut,Pt3y);
+                }
+                else
+                {
+                    fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                    fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                }
             }
             else
             {
                 //cout << "HORS IMG" << endl;
-                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-                fprintf(PlyOut,"6 %f %f %f %f %f %f \n",0.0,0.0,0.0,0.0,0.0,0.0);
+                if (aBin)
+                {
+                    WriteType(PlyOut,(unsigned char)3);
+                    WriteType(PlyOut,t1);
+                    WriteType(PlyOut,t2);
+                    WriteType(PlyOut,t3);
+                    WriteType(PlyOut,(unsigned char)6);
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                    WriteType(PlyOut,float(0));
+                }
+                else
+                {
+                    fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                    fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+                }
             }
-
-
         }
         else
         {
-            fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-            fprintf(PlyOut,"6 %f %f %f %f %f %f \n",0.0,0.0,0.0,0.0,0.0,0.0);
+            if (aBin)
+            {
+                WriteType(PlyOut,(unsigned char)3);
+                WriteType(PlyOut,t1);
+                WriteType(PlyOut,t2);
+                WriteType(PlyOut,t3);
+                WriteType(PlyOut,(unsigned char)6);
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+                WriteType(PlyOut,float(0));
+            }
+            else
+            {
+                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+            }
         }
     }
 
-    cout<<"*******************************Done*********************************"<<endl;
+    cout<<"********************************Done**********************************"<<endl;
     cout<<endl;
 
     return EXIT_SUCCESS;

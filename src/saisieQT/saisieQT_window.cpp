@@ -242,6 +242,11 @@ bool SaisieQtWindow::loadCameras(const QStringList& filenames)
 
 void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 {
+	if(threeDWidget())
+	{
+		init3DPreview(getEngine()->getData(),*params());
+	}
+
     if (filenames.size())
     {
         for (int i=0; i< filenames.size();++i)
@@ -351,6 +356,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
             _ui->actionClose_all->setEnabled(true);
         }
     }
+
 }
 
 void SaisieQtWindow::on_actionFullScreen_toggled(bool state)

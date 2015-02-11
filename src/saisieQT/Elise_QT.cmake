@@ -24,6 +24,10 @@ INCLUDE_DIRECTORIES(${SAISIE_DIR}/include_QT)
                     ${SAISIE_DIR}/Tree.cpp
                     ${SAISIE_DIR}/mmglu.cpp)
 
+if ( ${qt_version} EQUAL 4)
+    set(vmm_SRCS ${vmm_SRCS} ${SAISIE_DIR}/gl_core_2_1.c)
+endif()
+
     set( HEADERS_nomoc
        ${SAISIE_DIR}/include_QT/Elise_QT.h
        ${SAISIE_DIR}/include_QT/HistoryManager.h

@@ -14,10 +14,14 @@
 #include "windows.h"
 #endif
 
+#if ELISE_QT_VERSION == 4
+#include <gl_core_2_1.h>
+#endif
+
 #if ELISE_Darwin
     #include <OpenGL/gl.h>
 #else
-    #include <GL/gl.h>
+	#include <GL/gl.h>
 #ifdef _WIN32
 	#if ELISE_QT_VERSION == 5
 		
@@ -99,5 +103,6 @@
 #include <QVector>
 #include <QXmlStreamReader>
 #include <QWidget>
+
 
 #endif // ELISE_QT_H
