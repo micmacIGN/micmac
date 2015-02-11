@@ -19,7 +19,9 @@
 #else
     #include <GL/gl.h>
 #ifdef _WIN32
-	#include <GL/glext.h>
+	#if ELISE_QT_VERSION == 5
+		
+	#endif
 #endif
 #endif
 
@@ -55,6 +57,7 @@
 #include <QGLBuffer>
 
 #if ELISE_QT_VERSION == 5
+#include <qopenglfunctions>
 #include <QOpenGLContext>
 #endif
 
