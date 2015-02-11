@@ -60,6 +60,11 @@ const std::string & cNewO_OneIm::Name()  const
     return mName;
 }
 
+const cNewO_NameManager&  cNewO_OneIm::NM() const
+{
+    return * mNM;
+}
+
     
 
 

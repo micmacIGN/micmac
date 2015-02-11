@@ -58,6 +58,7 @@ class cNewO_OneIm
 
             CamStenope * CS();
             const std::string & Name() const;
+            const cNewO_NameManager&  NM() const;
     private :
             cNewO_NameManager*  mNM;
             CamStenope *        mCS;
@@ -90,7 +91,7 @@ class cNewO_NameManager
                const std::string  & PostTxt
            );
            CamStenope * CamOfName(const std::string & aName);
-           ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2);
+           ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
 
      private :
            cInterfChantierNameManipulateur * mICNM;
@@ -99,6 +100,61 @@ class cNewO_NameManager
            std::string                       mPostHom;
 };
 
+template <const int TheNbPts,class Type>  class cFixedMergeTieP
+{
+     public :
+       typedef cFixedMergeTieP<TheNbPts,Type> tMerge;
+       typedef std::map<Type,tMerge *>     tMapMerge;
+
+       cFixedMergeTieP() ;
+       void FusionneInThis(cFixedMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+
+        bool IsInit(int aK) const {return mTabIsInit[aK];}
+        const Type & GetVal(int aK)    const {return mVals[aK];}
+        bool IsOk() const {return mOk;}
+        void SetNoOk() {mOk=false;}
+        int  NbArc() const {return mNbArc;}
+        void IncrArc() { mNbArc++;}
+        int  NbSom() const ;
+     private :
+        void AddSom(const Type & aV,int aK);
+
+        Type mVals[TheNbPts];
+        bool  mTabIsInit[TheNbPts];
+        bool  mOk;
+        int   mNbArc;
+};
+
+template <const int TheNb,class Type> class cFixedMergeStruct
+{
+     public :
+        typedef cFixedMergeTieP<TheNb,Type> tMerge;
+        typedef std::map<Type,tMerge *>     tMapMerge;
+        typedef typename tMapMerge::iterator         tItMM;
+
+        std::list<tMerge *> Export();
+
+
+        void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+
+     private :
+        tMapMerge                           mTheMaps[TheNb];
+};
+
+template <const int TheNb> void NOMerge_AddPackHom
+                           (
+                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
+                                const ElPackHomologue & aPack,
+                                const ElCamera & aCam1,int aK1,
+                                const ElCamera & aCam2,int aK2
+                           );
+
+template <const int TheNb> void NOMerge_AddAllCams
+                           (
+                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
+                                std::vector<cNewO_OneIm *> aVI
+                           );
 
 
 

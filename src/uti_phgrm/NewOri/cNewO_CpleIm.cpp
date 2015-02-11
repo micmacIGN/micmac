@@ -40,6 +40,205 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+class cNO_AppliOneCple
+{
+    public :
+          cNO_AppliOneCple(int argc,char **argv);
+          void Show();
+    private :
+         typedef cFixedMergeTieP<2,Pt2dr> tMerge;
+
+
+         std::string          mNameIm1;
+         std::string          mNameIm2;
+         std::string          mNameOri;
+         cNewO_NameManager *  mNM;
+         cNewO_OneIm *        mIm1;
+         cNewO_OneIm *        mIm2;
+         std::vector<cNewO_OneIm *>  mVI;
+         std::list<tMerge *>  mTieP;
+};
+
+static const int NbDecoup0PIS2 = 5;
+static const int NbPow2 = 4;
+
+
+class cAppli_RotInit 
+{
+    public :
+         cAppli_RotInit();
+
+    private :
+          void SetCurRot(const Pt3di & aP);
+
+          double K2Teta(int aK) const;
+          int    PInt2Ind(const Pt3di  & aP) const;
+          Pt3dr   PInt2Tetas(const Pt3di  & aP) const;
+
+          double GetCost(const Pt3di  & aP) ;
+          double  CalculCostCur();
+        
+          int               mCurStep;
+          int               mNbStepTeta;
+          ElMatrix<double>  mCurRot;
+          Pt3di             mCurInd;
+          Pt3dr             mCurTeta;
+
+          std::map<int,double>     mMapCost;
+};
+
+double  cAppli_RotInit::CalculCostCur()
+{
+    // ELISE_ASSERT(false,"HHHHHHHHHHHHHHhh");
+// [-64,-48,0][-1.25664,-0.942478,0]
+
+    // return  ElSquare(mCurTeta.x-0.2) + ElSquare(mCurTeta.y+0.5) +  ElSquare(mCurTeta.z);
+    return  ElSquare(mCurTeta.x + 1.25 ) + ElSquare(mCurTeta.y+ 0.94) +  ElSquare(mCurTeta.z);
+}
+
+double cAppli_RotInit::GetCost(const Pt3di  & aP) 
+{
+     int anInd = PInt2Ind(aP);
+     std::map<int,double>::const_iterator iT = mMapCost.find(anInd);
+
+     if (iT != mMapCost.end())
+        return iT->second;
+    
+     SetCurRot(aP);
+     double aCost = CalculCostCur();
+     mMapCost[anInd] = aCost;
+
+     return aCost;
+}
+
+void cAppli_RotInit::SetCurRot(const Pt3di & aP)
+{
+    mCurInd = aP;
+    mCurTeta= PInt2Tetas(aP);
+ // std::cout << mCurInd << mCurTeta << "\n"; getchar();
+    mCurRot = ElMatrix<double>::Rotation(mCurTeta.z,mCurTeta.y,mCurTeta.x);
+}
+
+Pt3dr cAppli_RotInit::PInt2Tetas(const Pt3di  & aP) const
+{
+    return Pt3dr
+           (
+                K2Teta(aP.x),
+                K2Teta(aP.y),
+                K2Teta(aP.z)
+           );
+}
+
+double cAppli_RotInit::K2Teta(int aK) const
+{
+     return (2 * PI * aK)/ mNbStepTeta ;
+}
+
+int    cAppli_RotInit::PInt2Ind(const Pt3di  & aP) const
+{
+    return      mod(aP.x,mNbStepTeta) * ElSquare(mNbStepTeta) 
+             +  mod(aP.y,mNbStepTeta) *  mNbStepTeta
+             +  mod(aP.z,mNbStepTeta);
+}
+
+
+
+
+cAppli_RotInit::cAppli_RotInit() :
+    mCurStep     (1<<NbPow2),
+    mNbStepTeta  (4 * NbDecoup0PIS2 * mCurStep),
+    mCurRot      (3,3)
+{
+    Pt3di aP;
+
+    std::list<Pt3di> aLPMin;
+
+    for (aP.x =  -NbDecoup0PIS2 ; aP.x <= NbDecoup0PIS2 ; aP.x ++)
+    {
+         for (aP.y =  -NbDecoup0PIS2 ; aP.y <= NbDecoup0PIS2 ; aP.y ++)
+         {
+              for (aP.z =  - (2*NbDecoup0PIS2) ; aP.z < (2*NbDecoup0PIS2) ; aP.z ++)
+              {
+                    double aVC =  GetCost(aP*mCurStep);
+                    bool IsMinLoc =    (aVC < GetCost((aP+Pt3di( 1,0,0)) * mCurStep))
+                                    && (aVC < GetCost((aP+Pt3di(-1,0,0)) * mCurStep))
+                                    && (aVC < GetCost((aP+Pt3di(0, 1,0)) * mCurStep))
+                                    && (aVC < GetCost((aP+Pt3di(0,-1,0)) * mCurStep))
+                                    && (aVC < GetCost((aP+Pt3di(0,0, 1)) * mCurStep))
+                                    && (aVC < GetCost((aP+Pt3di(0,0,-1)) * mCurStep));
+
+                    for (int aDx=-1 ; (aDx<=1) && IsMinLoc ; aDx++)
+                    {
+                        for (int aDy=-1 ; (aDy<=1) && IsMinLoc ; aDy++)
+                        {
+                            for (int aDz=-1 ; (aDz<=1) && IsMinLoc ; aDz++)
+                            {
+                                 if ((aDx!=0) || (aDy!=0) || (aDz!=0))
+                                 {
+                                     IsMinLoc = IsMinLoc && (aVC<GetCost( (aP+Pt3di(aDx,aDy,aDz))*mCurStep));
+                                 }
+                            }
+                        }
+                    }
+                    if (IsMinLoc)
+                    {
+                        std::cout << " IisssMinn " << aP << "\n";
+                        aLPMin.push_back(aP*mCurStep);
+                    }
+              }
+         }
+    }
+
+/*
+    std::cout << "Sssz " <<  aLPMin.size() << "\n";
+    if ( aLPMin.size()>0) std::cout << "PP00 " << *(aLPMin.begin()) << "\n";
+*/
+}
+
+
+/*****************************************************************/
+/*                                                               */
+/*                   cAppli_RotInit                              */
+/*                                                               */
+/*****************************************************************/
+
+cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv) 
+{
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain() <<  EAMC(mNameIm1,"Name First Image")
+                   <<  EAMC(mNameIm2,"Name Second Image"),
+        LArgMain() << EAM(mNameOri,"Ori",true,"Orientation ")
+   );
+
+   mNM = new cNewO_NameManager("./",mNameOri,"dat");
+   mIm1 = new cNewO_OneIm(*mNM,mNameIm1);
+   mIm2 = new cNewO_OneIm(*mNM,mNameIm2);
+
+   mVI.push_back(mIm1);
+   mVI.push_back(mIm2);
+   cFixedMergeStruct<2,Pt2dr> aMergeStr;
+   NOMerge_AddAllCams(aMergeStr,mVI);
+   mTieP = aMergeStr.Export();
+}
+
+void cNO_AppliOneCple::Show()
+{
+    std::cout << "NbTiep " << mTieP.size() << "\n";
+}
+
+int TestNewOriImage_main(int argc,char ** argv)
+{
+/*
+   cNO_AppliOneCple anAppli(argc,argv);
+   anAppli.Show();
+*/
+
+   cAppli_RotInit aARI;
+   return EXIT_SUCCESS;
+}
 
 
 

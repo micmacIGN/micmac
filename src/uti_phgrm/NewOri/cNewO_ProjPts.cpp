@@ -40,156 +40,166 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+
 /**************************************************************/
 /*                                                            */
-/*           cProjCple                                        */
+/*                       ::                                   */
 /*                                                            */
 /**************************************************************/
 
-cProjCple::cProjCple(const Pt3dr & aP1,const Pt3dr & aP2,double aPds) :
-    mP1  (aP1),
-    mP2  (aP2),
-    mPds (aPds)
+
+
+template <const int TheNb> void NOMerge_AddPackHom
+                           (
+                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
+                                const ElPackHomologue & aPack,
+                                const ElCamera & aCam1,int aK1,
+                                const ElCamera & aCam2,int aK2
+                           )
 {
+    for 
+    (
+          ElPackHomologue::tCstIter itH=aPack.begin();
+          itH !=aPack.end();
+          itH++
+    )
+    {
+         ElCplePtsHomologues aCple = itH->ToCple();
+         Pt2dr aP1 =  ProjStenope(aCam1.F2toDirRayonL3(aCple.P1()));
+         Pt2dr aP2 =  ProjStenope(aCam2.F2toDirRayonL3(aCple.P2()));
+         aMap.AddArc(aP1,aK1,aP2,aK2);
+    }
 }
 
-const Pt3dr & cProjCple::P1() const {return mP1;}
-const Pt3dr & cProjCple::P2() const {return mP2;}
-
-cProjCple cProjCple::Spherik(const ElCamera & aCam1,const Pt2dr & aP1,const ElCamera & aCam2,const Pt2dr &aP2,double aPds)
+template <const int TheNb> void NOMerge_AddAllCams
+                           (
+                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
+                                std::vector<cNewO_OneIm *> aVI
+                           )
 {
-    Pt3dr aQ1 =  aCam1.F2toDirRayonL3(aP1);
-    Pt3dr aQ2 =  aCam2.F2toDirRayonL3(aP2);
+    ELISE_ASSERT(TheNb==int(aVI.size()),"MeregTieP All Cams");
 
-    return cProjCple(vunit(aQ1),vunit(aQ2),aPds);
+    for (int aK1=0 ; aK1<TheNb ; aK1++)
+    {
+        for (int aK2=0 ; aK2<TheNb ; aK2++)
+        {
+            ElPackHomologue aLH12 = aVI[aK1]->NM().PackOfName(aVI[aK1]->Name(),aVI[aK2]->Name());
+            NOMerge_AddPackHom(aMap,aLH12,*(aVI[aK1]->CS()),aK1,*(aVI[aK2]->CS()),aK2);
+        }
+    }
 }
 
-static Pt3dr Proj(const Pt3dr & aP) {return Pt3dr(aP.x/aP.z,aP.y/aP.z,1.0);}
 
-cProjCple cProjCple::Projection(const ElCamera & aCam1,const Pt2dr & aP1,const ElCamera & aCam2,const Pt2dr &aP2,double aPds)
-{
-    Pt3dr aQ1 =  aCam1.F2toDirRayonL3(aP1);
-    Pt3dr aQ2 =  aCam2.F2toDirRayonL3(aP2);
+/**********************************************************************/
+/*                                                                    */
+/*                         cFixedMergeTieP                            */
+/*                                                                    */
+/**********************************************************************/
 
-    return cProjCple(Proj(aQ1),Proj(aQ2),aPds);
-}
-
-/**************************************************************/
-/*                                                            */
-/*                  cProjListHom                              */
-/*                                                            */
-/**************************************************************/
-
-
-
-template <const int TheNbPts,class Type>  class cFixedMergeTieP
-{
-     public :
-       typedef cFixedMergeTieP<TheNbPts,Type> tMerge;
-       typedef std::map<Type,tMerge *>     tMapMerge;
-
-
-       cFixedMergeTieP() :
+template <const int TheNbPts,class Type>   cFixedMergeTieP<TheNbPts,Type>:: cFixedMergeTieP() :
            mOk     (true),
            mNbArc  (0)
-       {
-           for (int aK=0 ; aK<TheNbPts; aK++)
-           {
-               mTabIsInit[aK] = false;
-           }
-       }
-
-
-       void FusionneInThis(cFixedMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs)
-       {
-            if ((!mOk) || (! anEl2.mOk))
-            {
-                mOk = anEl2.mOk = false;
-                return;
-            }
-            mNbArc += anEl2.mNbArc;
-            for (int aK=0 ; aK<TheNbPts; aK++)
-            {
-                if ( mTabIsInit[aK] && anEl2.mTabIsInit[aK] )
-                {
-                   // Ce cas ne devrait pas se produire, il doivent avoir ete fusionnes
-                   ELISE_ASSERT(false,"cFixedMergeTieP");
-                }
-                else if ( (!mTabIsInit[aK]) && anEl2.mTabIsInit[aK] )
-                {
-                     mVals[aK] = anEl2.mVals[aK] ;
-                     mTabIsInit[aK] = true;
-                     Tabs[aK][mVals[aK]] = this;
-                }
-            }
-       }
-       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
-       {
-           AddSom(aV1,aK1);
-           AddSom(aV2,aK2);
-           mNbArc ++;
-       }
-
-        bool IsInit(int aK) const {return mTabIsInit[aK];}
-        const Type & GetVal(int aK)    const {return mVals[aK];}
-        bool IsOk() const {return mOk;}
-        void SetNoOk() {mOk=false;}
-        int  NbArc() const {return mNbArc;}
-        void IncrArc() { mNbArc++;}
-       
-     private :
-        void AddSom(const Type & aV,int aK)
-        {
-           if (mTabIsInit[aK])
-           {
-               if (mVals[aK] != aV)
-               {
-                   mOk = false;
-               }
-           }
-           else 
-           {
-               mVals[aK] = aV;
-               mTabIsInit[aK] = true;
-           }
-        }
-        Type mVals[TheNbPts];
-        bool  mTabIsInit[TheNbPts];
-        bool  mOk;
-        int   mNbArc;
-};
-
-cFixedMergeTieP<2,Pt2dr> anEl2;
-cFixedMergeTieP<3,Pt2dr> anEl3;
-
-template <const int TheNb,class Type> class cFixedMergeStruct
 {
-     public :
-        typedef cFixedMergeTieP<TheNb,Type> tMerge;
-        typedef std::map<Type,tMerge *>     tMapMerge;
-        typedef typename tMapMerge::iterator         tItMM;
+    for (int aK=0 ; aK<TheNbPts; aK++)
+    {
+        mTabIsInit[aK] = false;
+    }
+}
 
-        std::list<tMerge *> Export()
+template <const int TheNbPts,class Type>   
+void cFixedMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs)
+{
+     if ((!mOk) || (! anEl2.mOk))
+     {
+         mOk = anEl2.mOk = false;
+         return;
+     }
+     mNbArc += anEl2.mNbArc;
+     for (int aK=0 ; aK<TheNbPts; aK++)
+     {
+         if ( mTabIsInit[aK] && anEl2.mTabIsInit[aK] )
+         {
+            // Ce cas ne devrait pas se produire, il doivent avoir ete fusionnes
+            ELISE_ASSERT(false,"cFixedMergeTieP");
+         }
+         else if ( (!mTabIsInit[aK]) && anEl2.mTabIsInit[aK] )
+         {
+            mVals[aK] = anEl2.mVals[aK] ;
+            mTabIsInit[aK] = true;
+            Tabs[aK][mVals[aK]] = this;
+         }
+     }
+}
+
+template <const int TheNbPts,class Type> 
+   void cFixedMergeTieP<TheNbPts,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
+{
+    AddSom(aV1,aK1);
+    AddSom(aV2,aK2);
+    mNbArc ++;
+}
+
+template <const int TheNbPts,class Type>
+   void  cFixedMergeTieP<TheNbPts,Type>::AddSom(const Type & aV,int aK)
+{
+     if (mTabIsInit[aK])
+     {
+        if (mVals[aK] != aV)
         {
-              std::list<tMerge *> aRes;
-              for (int aK=0 ; aK<TheNb ; aK++)
-              {
-                  tMapMerge & aMap = mTheMaps[aK];
-                  for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
-                  {
-                      tMerge * aM = anIt->second;
-                      if (aM->IsOk())
-                      {
-                          aRes.push_back(aM);
-                          aM->SetNoOk();
-                      }
-                  }
-              }
-              return aRes;
+           mOk = false;
         }
+     }
+     else 
+     {
+        mVals[aK] = aV;
+        mTabIsInit[aK] = true;
+     }
+}
+template <const int TheNbPts,class Type>   
+int cFixedMergeTieP<TheNbPts,Type>::NbSom() const
+{
+   int aRes=0; 
+   for (int aK=0 ; aK<TheNbPts ; aK++)
+   {
+       if (mTabIsInit[aK])
+       {
+           aRes++;
+       }
+   }
+   return aRes;
+}
 
-        void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
+template class  cFixedMergeTieP<2,Pt2dr>;
+template class  cFixedMergeTieP<3,Pt2dr>;
+
+/**********************************************************************/
+/*                                                                    */
+/*                         cFixedMergeStruct                            */
+/*                                                                    */
+/**********************************************************************/
+
+template <const int TheNb,class Type>   std::list<cFixedMergeTieP<TheNb,Type>  *> cFixedMergeStruct<TheNb,Type>:: Export()
+{
+    std::list<tMerge *> aRes;
+    for (int aK=0 ; aK<TheNb ; aK++)
+    {
+        tMapMerge & aMap = mTheMaps[aK];
+        for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
         {
+            tMerge * aM = anIt->second;
+            if (aM->IsOk())
+            {
+               aRes.push_back(aM);
+               aM->SetNoOk();
+            }
+        }
+    }
+    return aRes;
+}
+
+template <const int TheNb,class Type>
+        void cFixedMergeStruct<TheNb,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
+{
              tMapMerge & aMap1 = mTheMaps[aK1];
              tItMM anIt1  = mTheMaps[aK1].find(aV1);
              tMerge * aM1 = (anIt1 != aMap1.end()) ? anIt1->second : 0;
@@ -230,36 +240,10 @@ template <const int TheNb,class Type> class cFixedMergeStruct
                  aMerge =  mTheMaps[aK2][aV2] = aM1;
              }
              aMerge->AddArc(aV1,aK1,aV2,aK2);
-        }
-
-     private :
-        tMapMerge                           mTheMaps[TheNb];
-};
-
-
-cFixedMergeStruct<2,Pt2dr> aMap2;
-
-template <const int TheNb> void AddPackHom
-                           (
-                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
-                                const ElPackHomologue & aPack,
-                                const ElCamera & aCam1,int aK1,
-                                const ElCamera & aCam2,int aK2
-                           )
-{
-    for 
-    (
-          ElPackHomologue::tCstIter itH=aPack.begin();
-          itH !=aPack.end();
-          itH++
-    )
-    {
-         ElCplePtsHomologues aCple = itH->ToCple();
-         Pt2dr aP1 =  ProjStenope(aCam1.F2toDirRayonL3(aCple.P1()));
-         Pt2dr aP2 =  ProjStenope(aCam2.F2toDirRayonL3(aCple.P2()));
-         aMap.AddArc(aP1,aK1,aP2,aK2);
-    }
 }
+
+template class  cFixedMergeStruct<2,Pt2dr>;
+template class  cFixedMergeStruct<3,Pt2dr>;
 
 
 /**********************************************************************************************/
@@ -334,7 +318,7 @@ void  NO_MergeTO_Test2_Basic(int aK)
 
 
 
-void  NO_MergeTO_Test2_0
+void  NewOri_Info1Cple
 (  
       const ElCamera & aCam1,
       const ElPackHomologue & aPack12,
@@ -342,8 +326,8 @@ void  NO_MergeTO_Test2_0
 )  
 {
     cFixedMergeStruct<2,Pt2dr> aMap2;
-    AddPackHom(aMap2,aPack12,aCam1,0,aCam2,1);
-    AddPackHom(aMap2,aPack21,aCam2,1,aCam1,0);
+    NOMerge_AddPackHom(aMap2,aPack12,aCam1,0,aCam2,1);
+    NOMerge_AddPackHom(aMap2,aPack21,aCam2,1,aCam1,0);
     std::list<cFixedMergeTieP<2,Pt2dr> *>  aRes = aMap2.Export();
     int aNb1=0;
     int aNb2=0;
@@ -367,12 +351,36 @@ void  NO_MergeTO_Test2_0
 
 
 
-void  NO_MergeTO_Test4_Basic()
+void  NO_MergeTO_Test4_Basic(int aK)
 {
     cFixedMergeStruct<4,Pt2dr> aMap;
+
+    if (aK==0)
+    {
+        std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.Export();
+        ELISE_ASSERT(aRes.size()==0,"NO_MergeTO_Test4_Basic");
+        return;
+    }
     
     aMap.AddArc(Pt2dr(0,0),0,Pt2dr(1,1),1);
     aMap.AddArc(Pt2dr(2,2),2,Pt2dr(3,3),3);
+    if (aK==1)
+    {
+        std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.Export();
+        ELISE_ASSERT(aRes.size()==2,"NO_MergeTO_Test4_Basic");
+        for 
+        (
+             std::list<cFixedMergeTieP<4,Pt2dr> *>::const_iterator itM=aRes.begin();
+             itM!= aRes.end();
+             itM++
+        )
+        {
+            ELISE_ASSERT((*itM)->NbSom() == 2,"NO_MergeTO_Test4_Basic");
+            ELISE_ASSERT((*itM)->NbArc() == 1,"NO_MergeTO_Test4_Basic");
+        }
+        return;
+    }
+
 
     aMap.AddArc(Pt2dr(2,2),2,Pt2dr(1,1),1);
 
@@ -380,18 +388,24 @@ void  NO_MergeTO_Test4_Basic()
 
     ELISE_ASSERT(aRes.size()==1,"NO_MergeTO_Test4_Basic");
     ELISE_ASSERT((*aRes.begin())->NbArc()==3,"NO_MergeTO_Test4_Basic");
+    ELISE_ASSERT((*aRes.begin())->NbSom()==4,"NO_MergeTO_Test4_Basic");
 }
 
-
-
-int TestNewOriImage_main(int argc,char ** argv)
+void Bench_NewOri()
 {
    for (int aK=0 ; aK< 10 ; aK++)
    {
      NO_MergeTO_Test2_Basic(aK);
+     NO_MergeTO_Test4_Basic(aK);
    }
-   NO_MergeTO_Test4_Basic();
-/*
+   std::cout << "All Fine New Ori\n";
+}
+
+
+
+int NewOriImage_main(int argc,char ** argv)
+{
+   // Bench_NewOri();
    std::string aNameOri,aNameI1,aNameI2;
    std::vector<std::string> aVNames;
 
@@ -416,6 +430,10 @@ int TestNewOriImage_main(int argc,char ** argv)
     {
          aVC.push_back(aNM.CamOfName(aVNames[aK]));
     }
+    
+    std::vector<cNewO_OneIm*> aVI;
+    cFixedMergeStruct<2,Pt2dr> aMap;
+    NOMerge_AddAllCams(aMap,aVI);
 
 
     if (aVNames.size()==2)
@@ -424,20 +442,20 @@ int TestNewOriImage_main(int argc,char ** argv)
         {
             ElPackHomologue aLH12 = aNM.PackOfName(aVNames[0],aVNames[1]);
             ElPackHomologue aLH21 = aNM.PackOfName(aVNames[1],aVNames[0]);
-            NO_MergeTO_Test2_0(*(aVC[0]),aLH12,*(aVC[1]),aLH21);
+            NewOri_Info1Cple(*(aVC[0]),aLH12,*(aVC[1]),aLH21);
         }
 
         
     }
 
-*/
-/*
-    ElPackHomologue aLH = aNM.PackOfName(aNameI1,aNameI2);
-    std::cout << "FFF " << aC1->Focale() << " " << aC2->Focale() << " NBh : " << aLH.size() << "\n";
-*/
+    // ElPackHomologue aLH = aNM.PackOfName(aNameI1,aNameI2);
+    //std::cout << "FFF " << aC1->Focale() << " " << aC2->Focale() << " NBh : " << aLH.size() << "\n";
 
     return EXIT_SUCCESS;
 }
+/*
+
+*/
 
 
 

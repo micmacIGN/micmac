@@ -54,7 +54,7 @@ cNewO_NameManager::cNewO_NameManager
 }
 
 
-ElPackHomologue cNewO_NameManager::PackOfName(const std::string & aN1,const std::string & aN2)
+ElPackHomologue cNewO_NameManager::PackOfName(const std::string & aN1,const std::string & aN2) const
 {
     std::string aNameH = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@"+mPostHom,aN1,aN2,true);
     if (!  ELISE_fp::exist_file(aNameH))
