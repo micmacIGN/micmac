@@ -2,7 +2,8 @@
 
 GLWidgetSet::GLWidgetSet() :
     _widgets(0),
-    _zoomWidget(NULL)
+	_zoomWidget(NULL),
+	_3DWidget(NULL)
 {}
 
 const QColor colorBG0("#323232");

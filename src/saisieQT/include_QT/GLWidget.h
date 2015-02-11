@@ -143,6 +143,8 @@ protected:
     void resizeGL(int w, int h);
     void paintGL();
 
+	void initializeGL();
+
     //! inherited from QWidget
     void mouseDoubleClickEvent  (QMouseEvent *event);
     void mousePressEvent        (QMouseEvent *event);

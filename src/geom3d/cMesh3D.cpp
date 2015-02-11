@@ -744,7 +744,7 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
         vector <Pt3dr> Sommets;
         aTri.getVertexes(Sommets);
 
-        if (Sommets.size() == 3 )
+        if (Sommets.size() == 3)
         {
             Pt2dr A2 = aCam.R3toF2(Sommets[0]);
             Pt2dr B2 = aCam.R3toF2(Sommets[1]);
