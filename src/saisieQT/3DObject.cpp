@@ -1566,7 +1566,6 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _qMaskedImage(qMaskedImage)
 {
-	initGLFunc();
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
     _m_mask     = new cImageGL();
     _m_image    = new cImageGL(qMaskedImage->_gamma);
@@ -1580,7 +1579,6 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
 cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
     _qMaskedImage(NULL)
 {
-	initGLFunc();
     _m_image = new cImageGL();
     _m_mask  = new cImageGL();
 
