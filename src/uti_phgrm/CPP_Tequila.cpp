@@ -63,7 +63,8 @@ int Tequila_main(int argc,char ** argv)
     std::string aOut, aTextOut;
     int aTextMaxSize = maxTextureSize;
     int aZBuffSSEch = 1;
-    int JPGcomp = 70;
+    int aJPGcomp = 70;
+    double aAngleMin = 60.f;
     bool aBin = true;
 
     std::stringstream ss  ;
@@ -80,7 +81,8 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def="+ ss.str() +")")
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
-                            << EAM(JPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
+                            << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
+                            << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=60)")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -201,52 +203,44 @@ int Tequila_main(int argc,char ** argv)
     cout << "************************Choosing best image**************************" << endl;
     cout << endl;
 
-    vector<int> vIndex; //vIndex[aK] indique quelle image est vue par le triangle aK
-    int valDef = -1;
+    std::vector <int> index; //liste des index de cameras utilisees
+    int valDef = cTriangle::getDefTextureImgIndex();
+
+    float threshold =  cos(180.f- aAngleMin); //angle min = cos(180 - 60) = -0.5
+    cout << "threshold=" << threshold << endl;
 
     for(int i=0 ; i < myMesh.getFacesNumber(); i++)                            //Pour un triangle
     {
-        cTriangle * Triangle = myMesh.getTriangle(i);
-        Pt3dr Norm = Triangle->getNormale(true);       //Et sa normale
+        float PScalcur = threshold;
 
-        float PScalcur = -.4f; //angle min = cos(120) = -0.5
-        int index = valDef;
-
+        int idx = valDef;
         for(unsigned int j=0 ; j<ListCam.size() ; j++) // on teste toutes les CamStenope
         {
             vector <unsigned int> vTri = aZBuffers[j].getVisibleTrianglesIndexes();
 
             if (std::find(vTri.begin(),vTri.end(), i) != vTri.end())
             {
+                cTriangle * Triangle = myMesh.getTriangle(i);
 
-                double PScalnew = scal(Norm, ListCam[j]->DirK());
+                double PScalnew = scal(Triangle->getNormale(true), ListCam[j]->DirK());
                 //cout << "scal= " << PScalnew << endl;
                 if(PScalnew<PScalcur)        //On garde celle pour laquelle le PS est le plus fort
                 {
                     PScalcur = PScalnew;
-                    index = j;
 
-                    Triangle->setTextured(true);
+                    Triangle->setTextureImgIndex(j);
+                    idx = j;
                 }
             }
         }
-
-        vIndex.push_back(index);
-    }
-
-    std::vector <int> index;
-
-    for(unsigned int aK=0; aK <vIndex.size();++aK)
-    {
-        int curIndex = vIndex[aK];
-
-        if (std::find(index.begin(), index.end(), curIndex)==index.end() && curIndex != valDef)
+        if ((idx != valDef) && (std::find(index.begin(), index.end(), idx)==index.end()))
         {
-            index.push_back(curIndex);
+            index.push_back(idx);
         }
     }
 
-    cout << "selected images / total : " << index.size() << " / " << aLS.size() << endl;
+
+    cout << "Selected images / total : " << index.size() << " / " << aLS.size() << endl;
 
     cout << endl;
     cout <<"********************Filtering border triangles***********************"<<endl;
@@ -259,12 +253,9 @@ int Tequila_main(int argc,char ** argv)
     while (cond && iter < maxIter)
     {
         //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
-        vector<int> vRemovedTri = myMesh.clean();
+        myMesh.clean();
 
         //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
-
-        for (unsigned int aK=0; aK < vRemovedTri.size(); ++aK)
-            vIndex.erase(vIndex.begin()+vRemovedTri[aK]);
 
         iter++;
         //cout << "round " << iter << endl;
@@ -313,7 +304,7 @@ int Tequila_main(int argc,char ** argv)
     int aNbLine = round_up(sqrt(double(aVT.size())));
     int aNbCol = round_up(aVT.size()/double(aNbLine));
 
-    cout<< "Texture de " << aNbLine << " lignes et "  << aNbCol <<" colonnes, contenant "<< aVT.size() <<" images. "<< endl;
+    cout<< aNbLine << " rows and "  << aNbCol <<" columns texture, with "<< aVT.size() <<" images. "<< endl;
     cout<<endl;
 
     int full_width  = aSzMax.x * aNbCol;
@@ -330,7 +321,7 @@ int Tequila_main(int argc,char ** argv)
 
     Pt2di aSz ( final_width, final_height );
 
-    cout << "SZ = " << aSz << " :: " << aNbCol << " X " << aNbLine  << "\n";
+    //cout << "SZ = " << aSz << " :: " << aNbCol << " X " << aNbLine  << "\n";
 
     Tiff_Im::PH_INTER_TYPE aPhI = aVT[0].phot_interp();
     if (aNbCh==3)
@@ -386,12 +377,12 @@ int Tequila_main(int argc,char ** argv)
 
     std::string newName = StdPrefix(aRes) + ".jpg ";
     std::stringstream st  ;
-    st << JPGcomp;
+    st << aJPGcomp;
 
     std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
             + aRes + " " + newName;
 
-    cout << "COM= " << aCom << endl;
+    //cout << "COM= " << aCom << endl;
 
     system_call(aCom.c_str());
 
@@ -449,14 +440,15 @@ int Tequila_main(int argc,char ** argv)
     int width  = aSz.x;
     int height = aSz.y;
 
-    //cout << "vIndex.size= "<< vIndex.size() << endl;
     //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
     for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
     {
         Triangle = myMesh.getTriangle(i);
         Triangle->getVertexesIndexes(t1,t2,t3);              //On recupere les sommets de chaque triangle
 
-        idx=vIndex[i];                                      //Liaison avec l'image correspondante
+        idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
+
+        //cout << "image pour le triangle " << i << " = " << idx << endl;
 
         if (idx != valDef)
         {
