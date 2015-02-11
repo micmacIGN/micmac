@@ -162,6 +162,21 @@ REAL cTriangle::computeEnergy(int img_idx)
     return PI - min;
 }
 
+vector<cTriangle *> cTriangle::getNeighbours()
+{
+    vector <cTriangle*> res;
+
+    for (unsigned int aK=0; aK<mTriEdges.size(); aK++)
+    {
+        cEdge edge = pMesh->getEdge(mTriEdges[aK]);
+
+        if (edge.n1() == mTriIdx) res.push_back(pMesh->getTriangle(edge.n2()));
+        else if (edge.n2() == mTriIdx) res.push_back(pMesh->getTriangle(edge.n1()));
+    }
+
+    return res;
+}
+
 void cTriangle::setEdgeIndex(unsigned int pos, int val)
 {
     if (mTriEdges.size()>pos)
@@ -671,6 +686,62 @@ void cMesh::clean()
             }
         }
     }
+}
+
+std::vector< std::vector <int> > cMesh::getRegions()
+{
+    int defVal = cTriangle::getDefTextureImgIndex();
+    std::set < int > triangleIdxSet;
+    std::vector< std::vector <int> > regions;
+
+    for (int aK=0; aK < getFacesNumber();++aK)
+    {
+        std::vector <int> myList;
+        myList.push_back(aK);
+
+        for (unsigned int bK=0; bK < myList.size();++bK)
+        {
+            cTriangle * Tri = getTriangle(myList[bK]);
+
+            int imgIdx = Tri->getTextureImgIndex();
+            if (imgIdx != defVal)
+            {
+                triangleIdxSet.insert(Tri->getIdx());
+
+                vector <cTriangle *> neighb = Tri->getNeighbours();
+
+                for (unsigned int cK=0; cK < neighb.size();++cK)
+                {
+                    int triIdx = neighb[cK]->getIdx();
+                    if (triangleIdxSet.find(triIdx)== triangleIdxSet.end() &&
+                            (neighb[cK]->getTextureImgIndex() == imgIdx))
+                    {
+                        myList.push_back(triIdx);
+                        triangleIdxSet.insert(triIdx);
+                    }
+                }
+            }
+        }
+
+        //cout << "myList.size() = " << myList.size() << endl;
+
+        if (myList.size() > 1) //TODO: à retirer si on veut texturer les triangles isolés
+            regions.push_back(myList);
+    }
+
+    /*cout << "****************** Resultat *********************" << endl;
+    cout << endl;
+
+    for (unsigned int aK=0; aK < regions.size() ; ++aK)
+    {
+        //first triangle of region aK:
+        int triIdx = regions[aK][0];
+        cTriangle * Tri = getTriangle(triIdx);
+
+        cout << "one region with " << regions[aK].size() << " triangles, for image " << Tri->getTextureImgIndex() << endl;
+    }*/
+
+    return regions;
 }
 
 //--------------------------------------------------------------------------------------------------------------

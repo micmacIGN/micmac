@@ -88,6 +88,8 @@ class cMesh
 
         void        clean();
 
+        std::vector< std::vector<int> > getRegions();
+
     private:
 
         vector <Pt3dr>		mVertexes;
@@ -157,13 +159,16 @@ class cTriangle
         int     getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>   getEdgesIndex() { return mTriEdges; }
+        vector <cTriangle*> getNeighbours();
 
         void    setEdgeIndex(unsigned int pos, int val);
         void    setVertexIndex(unsigned int pos, int val);
 
+        static int     getDefTextureImgIndex() { return mDefTextImIdx; }
+
         void    setTextureImgIndex(int val) { mTextImIdx = val; }
         int     getTextureImgIndex() { return mTextImIdx; }
-        static int     getDefTextureImgIndex() { return mDefTextImIdx; }
+
         bool    isTextured() { return mTextImIdx != -1; }
 
         bool    operator==( const cTriangle & ) const;

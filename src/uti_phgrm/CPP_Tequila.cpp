@@ -98,9 +98,7 @@ int Tequila_main(int argc,char ** argv)
     SplitDirAndFile(aDir,aPat,aFullName);
 
     if (!EAMIsInit(&aOut)) aOut = StdPrefix(aPly) + "_textured.ply";
-    if (!EAMIsInit(&aTextOut)) aTextOut = StdPrefix(aPly) + "_UVtexture.jpg";
-
-    std::string aRes = StdPrefix(aTextOut) + ".tif";
+    if (!EAMIsInit(&aTextOut)) aTextOut = StdPrefix(aPly) + "_UVtexture.tif";
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
@@ -119,7 +117,7 @@ int Tequila_main(int argc,char ** argv)
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
-        cout<<"Image "<<*itS<<", avec son ori : "<< NOri <<endl;
+        cout<<"Image "<<*itS<<", with ori : "<< NOri <<endl;
     }
 
     cout<<endl;
@@ -203,11 +201,11 @@ int Tequila_main(int argc,char ** argv)
     cout << "************************Choosing best image**************************" << endl;
     cout << endl;
 
-    std::vector <int> index; //liste des index de cameras utilisees
+    std::set <int> index; //liste des index de cameras utilisees
     int valDef = cTriangle::getDefTextureImgIndex();
 
-    float threshold =  cos(180.f- aAngleMin); //angle min = cos(180 - 60) = -0.5
-    cout << "threshold=" << threshold << endl;
+    float threshold =  cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
+    //cout << "threshold=" << threshold << endl;
 
     for(int i=0 ; i < myMesh.getFacesNumber(); i++)                            //Pour un triangle
     {
@@ -233,12 +231,11 @@ int Tequila_main(int argc,char ** argv)
                 }
             }
         }
-        if ((idx != valDef) && (std::find(index.begin(), index.end(), idx)==index.end()))
+        if (idx != valDef)
         {
-            index.push_back(idx);
+            index.insert(idx);
         }
     }
-
 
     cout << "Selected images / total : " << index.size() << " / " << aLS.size() << endl;
 
@@ -276,30 +273,147 @@ int Tequila_main(int argc,char ** argv)
     cout << endl;
 
     Pt2di aSzMax;
-    std::vector<Tiff_Im> aVT;     //Vecteur contenant les images
-    std::vector<Pt2dr> TabCoor;   //Vecteur contenant les coordonnées des images dans la texture
+    vector <Tiff_Im> aVT;     //Vecteur contenant les images
+    vector <Pt2dr> TabCoor;
     int aNbCh = 0;
 
     vector <Im2D_REAL4> final_ZBufIm;
 
-    std::sort(index.begin(), index.end());
-
-    for (unsigned int aK=0; aK < index.size() ; aK++)
+    for (std::set<int>::const_iterator it=index.begin(); it!=index.end(); ++it)
     {
-        int id = index[aK];
         int bK=0;
         for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++, bK++)
         {
-            if (id == bK)
+            if (*it == bK)
             {
                 aVT.push_back(Tiff_Im::StdConvGen(aDir+*itS,-1,false,true));
-                final_ZBufIm.push_back(aZBufIm[id]);
+                final_ZBufIm.push_back(aZBufIm[*it]);
                 aSzMax.SetSup(aVT.back().sz());
                 aNbCh = ElMax(aNbCh,aVT.back().nb_chan());
                 break;
             }
         }
     }
+
+#ifdef useRegions
+
+    cout << endl;
+    cout <<"***********************Getting adjacent triangles***********************"<<endl;
+    cout << endl;
+
+    std::vector< std::vector <int> > regions = myMesh.getRegions();
+
+    unsigned int sz = 0;
+    int biggest = -1;
+    for (unsigned int aK=0; aK < regions.size();++aK)
+    {
+        if (regions[aK].size() > sz)
+        {
+            sz = regions[aK].size();
+            biggest = aK;
+        }
+    }
+
+    cout << "Biggest region= " << biggest << " with " << regions[biggest].size() << " triangles " << endl;
+
+    //Calcul de la zone correspondante dans l'image
+
+    int triIdx = regions[biggest][0];
+    cTriangle * Tri = myMesh.getTriangle(triIdx);
+    int imgIdx = Tri->getTextureImgIndex();
+
+    cout << "Image index " << imgIdx << endl;
+
+    double minX, maxX, minY, maxY;
+    minX = minY = DBL_MAX;
+    maxX = maxY = DBL_MIN;
+    for (unsigned int aK=0; aK < regions[biggest].size(); ++aK)
+    {
+        int triIdx = regions[biggest][aK];
+        cTriangle * Triangle = myMesh.getTriangle(triIdx);
+
+        ElCamera * Cam = ListCam[imgIdx];
+
+        vector <Pt3dr> Vertex;
+        Triangle->getVertexes(Vertex);
+
+        Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+        Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
+        Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+
+        if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+        {
+            minX = ElMin(Pt1.x, minX);
+            minX = ElMin(Pt2.x, minX);
+            minX = ElMin(Pt3.x, minX);
+
+            minY = ElMin(Pt1.y, minY);
+            minY = ElMin(Pt2.y, minY);
+            minY = ElMin(Pt3.y, minY);
+
+            maxX = ElMax(Pt1.x, maxX);
+            maxX = ElMax(Pt2.x, maxX);
+            maxX = ElMax(Pt3.x, maxX);
+
+            maxY = ElMax(Pt1.y, maxY);
+            maxY = ElMax(Pt2.y, maxY);
+            maxY = ElMax(Pt3.y, maxY);
+        }
+    }
+
+    cout << "min, max = " << minX << ", " << minY << "  " <<  maxX << ", " << maxY << endl;
+
+
+
+
+
+
+    std::string newTexture = StdPrefix(aPly) + "_UVtexture2.tif";
+
+    int width  = round_up(maxX) - round_down(minX);
+    int height = round_up(maxY) - round_down(minY);
+
+    Pt2di Sz ( width, height );
+
+    Tiff_Im  nFileRes
+            (
+                newTexture.c_str(),
+                Sz,
+                GenIm::u_int1,
+                Tiff_Im::No_Compr,
+                Tiff_Im::RGB
+                );
+
+    Pt2di P0 (0, 0);
+    Pt2di P1 (width, height);
+
+    Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
+    /*Fonc_Num aF = aF0;
+    while (aF.dimf_out() < aNbCh)
+        aF = Virgule(aF0,aF);
+    aF = StdFoncChScale(aF,Pt2dr(-P0.x,-P0.y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));*/
+
+    ELISE_COPY
+    (
+        rectangle(P0,P1),
+        trans(aF0, Pt2di(round_down(minX), round_down(minY))),
+        nFileRes.out()
+    );
+
+    std::string newName = StdPrefix(newTexture) + ".jpg ";
+    std::stringstream st  ;
+    st << aJPGcomp;
+
+    std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
+            + newTexture + " " + newName;
+
+    //cout << "COM= " << aCom << endl;
+
+    system_call(aCom.c_str());
+
+    return EXIT_SUCCESS;
+
+#endif
 
     int aNbLine = round_up(sqrt(double(aVT.size())));
     int aNbCol = round_up(aVT.size()/double(aNbLine));
@@ -329,7 +443,7 @@ int Tequila_main(int argc,char ** argv)
 
     Tiff_Im  FileRes
             (
-                aRes.c_str(),
+                aTextOut.c_str(),
                 aSz,
                 GenIm::u_int1,
                 Tiff_Im::No_Compr,
@@ -375,18 +489,18 @@ int Tequila_main(int argc,char ** argv)
         cout<<endl;*/
     }
 
-    std::string newName = StdPrefix(aRes) + ".jpg ";
+    std::string newName = StdPrefix(aTextOut) + ".jpg ";
     std::stringstream st  ;
     st << aJPGcomp;
 
     std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
-            + aRes + " " + newName;
+            + aTextOut + " " + newName;
 
     //cout << "COM= " << aCom << endl;
 
     system_call(aCom.c_str());
 
-    aCom = std::string(SYS_RM) + " " + aRes;
+    aCom = std::string(SYS_RM) + " " + aTextOut;
     system_call(aCom.c_str());
 
     cout << endl;
