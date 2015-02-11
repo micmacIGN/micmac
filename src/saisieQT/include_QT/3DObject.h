@@ -595,10 +595,7 @@ public:
 
     cMaskedImageGL():
         _qMaskedImage(NULL)
-    {
-	
-		initGLFunc();
-	}
+    {}
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
@@ -642,20 +639,6 @@ private:
     QMaskedImage *_qMaskedImage;
 
 	QMutex			_mutex;
-
-	void initGLFunc()
-	{
-#ifdef _WIN32
-		glBlendColor = (PFNGLBLENDCOLOREXTPROC)wglGetProcAddress("glBlendColor");
-		glBlendEquation = (PFNGLBLENDEQUATIONEXTPROC)wglGetProcAddress("glBlendEquation");
-#endif
-
-	}
-
-#ifdef _WIN32
-	PFNGLBLENDCOLOREXTPROC glBlendColor;
-	PFNGLBLENDEQUATIONEXTPROC glBlendEquation;
-#endif
 };
 
 //====================================================================================
