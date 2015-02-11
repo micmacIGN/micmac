@@ -60,9 +60,9 @@ void cTriangle::addEdge(int idx)
 
 cTriangle::cTriangle(cMesh *aMesh, vector <int> const &idx, int TriIdx):
     mInside(false),
-    mTextured(false),
     mTriIdx(TriIdx),
     mTriVertex(idx),
+    mTextImIdx(mDefTextImIdx),
     pMesh(aMesh)
 {
 }
@@ -205,10 +205,10 @@ void cTriangle::removeEdge(int idx)
 bool cTriangle::operator==( const cTriangle &aTr ) const
 {
     return ( (mInside     ==  aTr.mInside )  &&
-             (mTextured   ==  aTr.mTextured) &&
              (mTriIdx     ==  aTr.mTriIdx)   &&
-             (mTriVertex    ==  aTr.mTriVertex)  &&
-             (mTriEdges      ==  aTr.mTriEdges)    &&
+             (mTriVertex  ==  aTr.mTriVertex) &&
+             (mTriEdges   ==  aTr.mTriEdges)  &&
+             (mTextImIdx  ==  aTr.mTextImIdx) &&
              (mAttributes ==  aTr.mAttributes)
            );
 }
@@ -616,10 +616,8 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vec
 
 }
 
-vector <int> cMesh::clean()
+void cMesh::clean()
 {
-    vector <int> vRemovedIndex;
-
     int nbFaces = getFacesNumber();
     for(int i=0 ; i < nbFaces; i++)
     {
@@ -631,7 +629,6 @@ vector <int> cMesh::clean()
 
             //cout <<"sommets = " << Triangle->getVertex(0) << " " << Triangle->getVertex(1) << " " << Triangle->getVertex(2) << endl;
 
-            vRemovedIndex.push_back(Triangle->getIdx());
             removeTriangle(*Triangle);
             nbFaces--;
             i--;
@@ -674,8 +671,6 @@ vector <int> cMesh::clean()
             }
         }
     }
-
-    return vRemovedIndex;
 }
 
 //--------------------------------------------------------------------------------------------------------------
