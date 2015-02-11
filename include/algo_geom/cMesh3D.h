@@ -86,7 +86,9 @@ class cMesh
         void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vector <unsigned int> const &aTriIdx); //TriInGraph: index of triangles in Graph
         void		setLambda(REAL aL) {mLambda = aL;}
 
-        vector<int> clean(); //returns the index list of removed triangles
+        void        clean();
+
+        std::vector< std::vector<int> > getRegions();
 
     private:
 
@@ -154,28 +156,32 @@ class cTriangle
 
         REAL	computeEnergy(int img_idx);
 
-        void    setTextured(bool aText) { mTextured = aText; }
-        bool    isTextured() { return mTextured; }
-
         int     getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>   getEdgesIndex() { return mTriEdges; }
+        vector <cTriangle*> getNeighbours();
 
         void    setEdgeIndex(unsigned int pos, int val);
         void    setVertexIndex(unsigned int pos, int val);
 
+        static int     getDefTextureImgIndex() { return mDefTextImIdx; }
 
+        void    setTextureImgIndex(int val) { mTextImIdx = val; }
+        int     getTextureImgIndex() { return mTextImIdx; }
+
+        bool    isTextured() { return mTextImIdx != -1; }
 
         bool    operator==( const cTriangle & ) const;
 
     private:
 
         bool						mInside;		// triangle a conserver
-        bool                        mTextured;      // le triangle a-t-il une texture
         int							mTriIdx;		// triangle index
         vector <int>				mTriVertex;		// index of vertexes in pMesh->mVertexes
         vector <int>                mTriEdges;      // index of edges in pMesh->Edges
         map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes
+        static const int            mDefTextImIdx = -1;
+        int                         mTextImIdx;
 
         cMesh       *               pMesh;
 };
@@ -253,9 +259,9 @@ class cZBuf
         float **				mDataRes;
 
         float					mDpDef;			//default value for depth img (mRes)
-        int                     mIdDef;			//default value for index img (mImTriIdx)
+        int                     mIdDef;			//default value for label img (mImTriIdx)
 
-        vector <unsigned int>	vTri;			//list of visible triangles (contained in the index image)
+        vector <unsigned int>	vTri;			//list of visible triangles (contained in the label image)
 
         cElNuage3DMaille *		mNuage;
 };

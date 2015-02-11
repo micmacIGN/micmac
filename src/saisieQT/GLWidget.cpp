@@ -14,9 +14,7 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
   , _widgetId(idx)
   , _params(NULL)
 {
-    _matrixManager.resetAllMatrix();
-
-    _time.start();
+	_time.start();
 
     setAcceptDrops(true);           //drag & drop handling
 
@@ -181,7 +179,17 @@ void GLWidget::paintGL()
             computeFPS(_messageManager.LastMessage());
     }
 
-    _messageManager.draw();
+	_messageManager.draw();
+}
+
+void GLWidget::initializeGL()
+{
+#if ELISE_QT_VERSION == 4
+	if(!glPopMatrix && ogl_LoadFunctions() == ogl_LOAD_FAILED)
+	{
+		printf("ogl_LOAD_FAILED ERROR LOAD FUNCTIONS OPENGL\n");
+	}
+#endif
 }
 
 int GLWidget::getWindowMeanValue(QPoint pos, int r)

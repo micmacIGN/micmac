@@ -1566,7 +1566,6 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _qMaskedImage(qMaskedImage)
 {
-	initGLFunc();
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
     _m_mask     = new cImageGL();
     _m_image    = new cImageGL(qMaskedImage->_gamma);
@@ -1580,7 +1579,6 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
 cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
     _qMaskedImage(NULL)
 {
-	initGLFunc();
     _m_image = new cImageGL();
     _m_mask  = new cImageGL();
 
@@ -1617,15 +1615,29 @@ void cMaskedImageGL::draw()
 	if(glMask() != NULL && glMask()->isVisible())
 	{
 
-		glBlendColor(1.f,0.1f,1.f,1.0f);
-		glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+#if (ELISE_QT_VERSION == 5)
+		QOpenGLContext* context = QOpenGLContext::currentContext();
+		QOpenGLFunctions* glFunctions = context->functions();
+		glFunctions->glBlendColor(1.f, 0.1f, 1.f, 1.0f);
+		glFunctions->glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 		glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
 		glMask()->draw();
 
-		glBlendEquation(GL_FUNC_ADD);
-		glBlendColor(0.f,0.2f,0.f,1.0f);
+		glFunctions->glBlendEquation(GL_FUNC_ADD);
+		glFunctions->glBlendColor(0.f, 0.2f, 0.f, 1.0f);
 		glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
+		glMask()->draw(); 
+#elif (ELISE_QT_VERSION == 4)
+
+		glBlendColor(1.f, 0.1f, 1.f, 1.0f);
+		glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+		glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
 		glMask()->draw();
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendColor(0.f, 0.2f, 0.f, 1.0f);
+		glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
+		glMask()->draw();
+#endif
 	}
 
     glDisable(GL_BLEND);
