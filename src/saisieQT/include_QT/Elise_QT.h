@@ -22,11 +22,6 @@
     #include <OpenGL/gl.h>
 #else
 	#include <GL/gl.h>
-#ifdef _WIN32
-	#if ELISE_QT_VERSION == 5
-		
-	#endif
-#endif
 #endif
 
 #ifdef Int
