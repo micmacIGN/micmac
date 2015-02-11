@@ -56,7 +56,7 @@
 #include <QGLBuffer>
 
 #if ELISE_QT_VERSION == 5
-#include <qopenglfunctions>
+#include <QOpenGLFunctions>
 #include <QOpenGLContext>
 #endif
 
