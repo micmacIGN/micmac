@@ -17,7 +17,7 @@
 			<fileMode>0755</fileMode>
 		</fileSet>
 		<fileSet>
-			<directory>${basedir}/micmac-${micmac.version}/</directory>
+			<directory>${basedir}/</directory>
 			<includes>
 				<include>bin/mm3d</include>
 			</includes>
