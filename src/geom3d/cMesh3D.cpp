@@ -647,7 +647,6 @@ void cMesh::clean()
             removeTriangle(*Triangle);
             nbFaces--;
             i--;
-            //cout << endl;
         }
         /*else if (!Triangle->isTextured())
             cout << "triangle " << i << " nb edges = " << Triangle->getEdgesNumber() << " textured= " << Triangle->isTextured() << endl;*/
