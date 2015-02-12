@@ -40,6 +40,92 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+/*
+    Resoud l'equation :
+       [aBase   aDirkA  Rot(aDirkB)] =0 ,  K in (1,2,3)
+       (aBase ^aDirkA) . Rot(aDirkB) = 0
+*/
+
+class cOriFromBundle
+{
+      public :
+
+           cOriFromBundle
+           (
+                 Pt3dr aBase,
+                 Pt3dr aDir1A,
+                 Pt3dr aDir2A,
+                 Pt3dr aDir3A,
+                 Pt3dr aDir1B,
+                 Pt3dr aDir2B,
+                 Pt3dr aDir3B
+           );
+
+     private :
+           void TestTeta(double aTeta);
+
+           Pt3dr mBase;
+           Pt3dr mDir1A;
+           Pt3dr mDir2A;
+           Pt3dr mDir3A;
+// Direction |_ a B et au mDirKA
+           Pt3dr mDirOr1A;
+           Pt3dr mDirOr2A;
+           Pt3dr mDirOr3A;
+
+           Pt3dr mDir1B;
+           Pt3dr mDir2B;
+           Pt3dr mDir3B;
+           double mSc12;
+
+  // X12 Y1 est un base du plan |_ a aDirOr1A, X12 est aussi |_ a aDirOr2B,
+           Pt3dr mX12;
+           Pt3dr mY1;
+           Pt3dr mY2;
+};
+
+cOriFromBundle::cOriFromBundle
+(
+      Pt3dr aBase,
+      Pt3dr aDir1A,
+      Pt3dr aDir2A,
+      Pt3dr aDir3A,
+      Pt3dr aDir1B,
+      Pt3dr aDir2B,
+      Pt3dr aDir3B
+) :
+  mBase    (vunit(aBase)) ,
+  mDir1A   (vunit(aDir1A)),
+  mDir2A   (vunit(aDir2A)),
+  mDir3A   (vunit(aDir3A)),
+  mDirOr1A (vunit(mBase^mDir1A)),
+  mDirOr2A (vunit(mBase^mDir2A)),
+  mDirOr3A (vunit(mBase^mDir3A)),
+  mDir1B   (vunit(aDir1B)),
+  mDir2B   (vunit(aDir2B)),
+  mDir3B   (vunit(aDir3B)),
+  mSc12    (scal(mDir1B,mDir2B)),
+  mX12     (vunit(mDirOr1A^mDirOr2A)),
+  mY1      (vunit(mDirOr1A^mX12)),
+  mY2      (vunit(mDirOr2A^mX12))
+{
+}
+
+void cOriFromBundle::TestTeta(double aTeta)
+{
+    // L'image de  mDir1B
+/*
+*/
+    double aC = cos(aTeta);
+    double aS = sin(aTeta);
+
+    Pt3dr aVA = mX12 * aC + mY1 * aS;
+    std::cout << aVA << "\n";
+     
+}
+
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en
