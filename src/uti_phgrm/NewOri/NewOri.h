@@ -47,6 +47,65 @@ class cNewO_CpleIm;
 class cNewO_NameManager;
 class cNewO_Appli;
 
+
+
+template <const int TheNbPts,class Type>  class cFixedMergeTieP
+{
+     public :
+       typedef cFixedMergeTieP<TheNbPts,Type> tMerge;
+       typedef std::map<Type,tMerge *>     tMapMerge;
+
+       cFixedMergeTieP() ;
+       void FusionneInThis(cFixedMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs);
+       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+
+        bool IsInit(int aK) const {return mTabIsInit[aK];}
+        const Type & GetVal(int aK)    const {return mVals[aK];}
+        bool IsOk() const {return mOk;}
+        void SetNoOk() {mOk=false;}
+        int  NbArc() const {return mNbArc;}
+        void IncrArc() { mNbArc++;}
+        int  NbSom() const ;
+     private :
+        void AddSom(const Type & aV,int aK);
+
+        Type mVals[TheNbPts];
+        bool  mTabIsInit[TheNbPts];
+        bool  mOk;
+        int   mNbArc;
+};
+
+template <const int TheNb,class Type> class cFixedMergeStruct
+{
+     public :
+        typedef cFixedMergeTieP<TheNb,Type> tMerge;
+        typedef std::map<Type,tMerge *>     tMapMerge;
+        typedef typename tMapMerge::iterator         tItMM;
+
+        void DoExport();
+        const std::list<tMerge *> & ListMerged() const;
+
+
+        void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
+        cFixedMergeStruct();
+
+        const Type & ValInf(int aK) const {return mEnvInf[aK];}
+        const Type & ValSup(int aK) const {return mEnvSup[aK];}
+
+
+     private :
+        void AssertExported() const;
+        void AssertUnExported() const;
+
+        tMapMerge                           mTheMaps[TheNb];
+        Type                                mEnvInf[TheNb];
+        Type                                mEnvSup[TheNb];
+        int                                 mNbSomOfIm[TheNb];
+        std::vector<int>                    mStatArc;
+        bool                                mExportDone;
+        std::list<tMerge *>                 mLM;
+};
+
 class cNewO_OneIm
 {
     public :
@@ -100,47 +159,6 @@ class cNewO_NameManager
            std::string                       mPostHom;
 };
 
-template <const int TheNbPts,class Type>  class cFixedMergeTieP
-{
-     public :
-       typedef cFixedMergeTieP<TheNbPts,Type> tMerge;
-       typedef std::map<Type,tMerge *>     tMapMerge;
-
-       cFixedMergeTieP() ;
-       void FusionneInThis(cFixedMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs);
-       void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
-
-        bool IsInit(int aK) const {return mTabIsInit[aK];}
-        const Type & GetVal(int aK)    const {return mVals[aK];}
-        bool IsOk() const {return mOk;}
-        void SetNoOk() {mOk=false;}
-        int  NbArc() const {return mNbArc;}
-        void IncrArc() { mNbArc++;}
-        int  NbSom() const ;
-     private :
-        void AddSom(const Type & aV,int aK);
-
-        Type mVals[TheNbPts];
-        bool  mTabIsInit[TheNbPts];
-        bool  mOk;
-        int   mNbArc;
-};
-
-template <const int TheNb,class Type> class cFixedMergeStruct
-{
-     public :
-        typedef cFixedMergeTieP<TheNb,Type> tMerge;
-        typedef std::map<Type,tMerge *>     tMapMerge;
-        typedef typename tMapMerge::iterator         tItMM;
-
-        std::list<tMerge *> Export();
-
-
-        void AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2);
-
-     private :
-        tMapMerge                           mTheMaps[TheNb];
-};
 
 template <const int TheNb> void NOMerge_AddPackHom
                            (
@@ -155,6 +173,54 @@ template <const int TheNb> void NOMerge_AddAllCams
                                 cFixedMergeStruct<TheNb,Pt2dr> & aMap,
                                 std::vector<cNewO_OneIm *> aVI
                            );
+
+
+class cCdtCombTiep
+{
+    public :
+        typedef cFixedMergeTieP<2,Pt2dr> tMerge;
+        cCdtCombTiep(tMerge * aM) ;
+
+        tMerge * mMerge;
+        Pt2dr    mP1;
+        double   mDMin;
+        bool     mTaken;
+        double   mPdsOccup;
+};
+
+
+class cNewO_CombineCple
+{
+    public :
+         typedef cFixedMergeTieP<2,Pt2dr> tMerge;
+         cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  & aM);
+
+    private :
+          Pt2dr ToW(const Pt2dr &) const;
+          void SetCurRot(const Pt3di & aP);
+
+          double K2Teta(int aK) const;
+          int    PInt2Ind(const Pt3di  & aP) const;
+          Pt3dr   PInt2Tetas(const Pt3di  & aP) const;
+
+          double GetCost(const Pt3di  & aP) ;
+          double  CalculCostCur();
+
+          int               mCurStep;
+          int               mNbStepTeta;
+          ElMatrix<double>  mCurRot;
+          Pt3di             mCurInd;
+          Pt3dr             mCurTeta;
+
+          std::map<int,double>     mMapCost;
+          std::vector<cCdtCombTiep> mVAllCdt;
+          std::vector<cCdtCombTiep*> mVCdtSel;
+
+          Video_Win *                mW;
+          double                     mScaleW;
+          Pt2dr                      mP0W;
+         
+};
 
 
 
