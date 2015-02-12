@@ -72,48 +72,6 @@ inline __device__ uint minR(uint *sMin, uint &globalMin){ // TODO attention ajou
     return minus;
 }
 
-template<bool autoMask> __device__
-inline void getIntervale(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev){}
-
-template<> __device__
-inline void getIntervale<true>(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
-{
-    BasicComputeIntervaleDelta(aDz,aZ,MaxDeltaZ,aZ_Prev);
-}
-
-template<> __device__
-inline void getIntervale<false>(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
-{
-    GetConeZ(aDz,aZ,MaxDeltaZ,aZ_Next,aZ_Prev);
-}
-
-template<bool autoMask> __device__
-inline uint getCostInit(uint maskCost,uint costInit,bool mask){return 0;}
-
-
-template<> __device__
-inline uint getCostInit<true>(uint maskCost,uint costInit,bool mask)
-{
-   return mask ? maskCost : costInit;
-}
-
-template<> __device__
-inline uint getCostInit<false>(uint maskCost,uint costInit,bool mask)
-{
-   return costInit;
-}
-
-template<bool autoMask> __device__
-inline void connectMask(uint &costMin,uint costInit, uint prevDefCor, ushort costTransDefMask,bool mask){}
-
-
-template<> __device__
-inline void connectMask<true>(uint &costMin,uint costInit, uint prevDefCor, ushort costTransDefMask,bool mask)
-{
-    if(!mask)
-        costMin = min(costMin, costInit + prevDefCor  + costTransDefMask );
-}
-
 template<bool sens> __device__
 inline uint __choose(uint kav,uint kar)
 {
@@ -168,6 +126,48 @@ inline short __choose<false>(short kav,short kar)
 	return kar;
 }
 
+template<bool autoMask> __device__
+inline void getIntervale(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev){}
+
+template<> __device__
+inline void getIntervale<true>(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
+{
+    BasicComputeIntervaleDelta(aDz,aZ,MaxDeltaZ,aZ_Prev);
+}
+
+template<> __device__
+inline void getIntervale<false>(short2 & aDz, int aZ, int MaxDeltaZ, short2 aZ_Next, short2 aZ_Prev)
+{
+    GetConeZ(aDz,aZ,MaxDeltaZ,aZ_Next,aZ_Prev);
+}
+
+template<bool autoMask> __device__
+inline uint getCostInit(uint maskCost,uint costInit,bool mask){return 0;}
+
+
+template<> __device__
+inline uint getCostInit<true>(uint maskCost,uint costInit,bool mask)
+{
+   return mask ? maskCost : costInit;
+}
+
+template<> __device__
+inline uint getCostInit<false>(uint maskCost,uint costInit,bool mask)
+{
+   return costInit;
+}
+
+template<bool autoMask> __device__
+inline void connectMask(uint &costMin,uint costInit, uint prevDefCor, ushort costTransDefMask,bool mask){}
+
+
+template<> __device__
+inline void connectMask<true>(uint &costMin,uint costInit, uint prevDefCor, ushort costTransDefMask,bool mask)
+{
+    if(!mask)
+        costMin = min(costMin, costInit + prevDefCor  + costTransDefMask );
+}
+
 template<bool sens> __device__
 inline short __delta()
 {
@@ -217,15 +217,13 @@ void connectCellsLine(
     //////////////////////////////////////////////////
     /// TODO!!!! : quel doit etre prevDefCor p.costTransDefMask + p.costDefMask ou p.costDefMask
     /////////////////////////////////////////////////
-    uint         prevDefCor   =/* p.costTransDefMask + */p.prevDefCor; // TODO Voir la valeur à mettre!!!
-    const ushort idGline = p.line.id + p.seg.id;
+	uint         prevDefCor	=/* p.costTransDefMask + */p.prevDefCor; // TODO Voir la valeur à mettre!!!
+	const ushort idGline	= p.line.id + p.seg.id;
 
 	streamDefCor.SetOrAddValue<sens>(__choose<sens>((uint)idGline, p.line.lenght  - idGline),prevDefCor);
+
     uint         prevMinCostCells    = 0; // TODO cette valeur doit etre determiner
-
-
     uint         prevMinCost         = 0;
-
 
     while(lined)
     {
@@ -367,12 +365,12 @@ void Kernel_OptimisationOneDirection(ushort* g_ICost, short3* g_Index, uint* g_F
     SimpleStream<short3>    streamIndex(    g_Index     + *pit_Id       ,WARPSIZE);
     SimpleStream<uint>      streamDefCor(   g_DefCor    + *pit_Id       ,WARPSIZE);
 
-   if(p.tid == 0)
-        streamDefCor.SetValue(0,0); // car la premiere ligne n'est calculer
-                                    // Attention voir pour le retour arriere
+	if(p.tid == 0)
+		streamDefCor.SetValue(0,0); // car la premiere ligne n'est calculer
+	// Attention voir pour le retour arriere
 
-    streamICost.read<eAVANT>(S_BuffICost);
-    streamIndex.read<eAVANT>(S_BuffIndex + p.tid);
+	streamICost.read<eAVANT>(S_BuffICost);
+	streamIndex.read<eAVANT>(S_BuffIndex + p.tid);
 
     p.prev_Dz       = make_short2(S_BuffIndex[0].x,S_BuffIndex[0].y);
     p.prevDefCor    = S_BuffIndex[0].z;
