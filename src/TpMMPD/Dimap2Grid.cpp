@@ -279,7 +279,7 @@ public:
 
 Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
 {
-    //Calcul des coordonnees image normalisees
+    //Computing coordinates for normalized image
     double Y=(Pimg.y-line_off)/line_scale;
     double X=(Pimg.x-samp_off)/samp_scale;
     double Z=(altitude-height_off)/height_scale;
@@ -298,7 +298,7 @@ Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
         long_den += vecteurD[i]*direct_samp_den_coef[i];
     }
 
-    //Calcul final
+    //Final computation
     Pt2dr Pgeo;
     if ((lat_den != 0) && (long_den !=0))
     {
@@ -307,14 +307,14 @@ Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
     }
     else
     {
-        std::cout << "Erreur de calcul - denominateur nul"<<std::endl;
+		std::cout << "Computing error - denominator = 0" << std::endl;
     }
     return Pgeo;
 }
 
 Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
-    //Calcul des coordonnees image normalisees
+    //Computing coordinates for normalized image
     double Y=(Pgeo.y-long_off)/long_scale;
     double X=(Pgeo.x-lat_off)/lat_scale;
     double Z=(altitude-height_off)/height_scale;
@@ -332,7 +332,7 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCo
         samp_num  += vecteurD[i]*indirect_samp_num_coef[i];
         samp_den  += vecteurD[i]*indirect_samp_den_coef[i];
     }
-    //Calcul final
+    //Final computation
     Pt2dr Pimg;
     if ((samp_den != 0) && (line_den !=0))
     {
@@ -341,7 +341,7 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCo
     }
     else
     {
-        std::cout << "Erreur de calcul - denominateur nul"<<std::endl;
+        std::cout << "Computing error - denominator = 0"<<std::endl;
     }
     Pt2dr PimgRefined = ptRefined(Pimg,vRefineCoef,rowCrop,sampCrop);
     return PimgRefined;
@@ -352,12 +352,12 @@ Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst, std::string inputSy
     std::ofstream fic("processing/conv_ptGeo.txt");
     fic << std::setprecision(15);
     fic << Pgeo.y <<" "<<Pgeo.x<<";"<<std::endl;
-    // transfo en Lambert93
+    // transformation in the ground coordinate system
     std::string command;
 	command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
     int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in ptGeo2Carto"<<std::endl;
-    // chargement des coordonnees du point converti
+    // loading the coordinate of the converted point
     Pt2dr PointCarto;
     std::ifstream fic2("processing/conv_ptCarto.txt");
     while(!fic2.eof()&&fic2.good())
@@ -422,12 +422,12 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
             }
         }
     }
-    // transfo en Lambert93
+	// transformation in the ground coordinate system
     std::string command;
 	command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
 	int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in createDirectGrid"<<std::endl;
-    // chargement des points
+    // loading points
     std::ifstream fic("processing/direct_ptCarto.txt");
     while(!fic.eof()&&fic.good())
     {
@@ -572,13 +572,13 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
     createIndirectGrid( xmin, ymax,nbrSamp,nbrLine,stepCarto,vAltitude,vPtImg,
                        targetSyst, inputSyst, vRefineCoefInv, rowCrop, sampCrop);
 
-    //Ecriture de la grille
-    //Creation de la grille et du flux d'ecriture
+    //Writing the grid
+    //Creating grid and writing flux
 
     std::ofstream writeGrid(nomGrid.c_str());
     writeGrid <<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<<std::endl;
     writeGrid <<"<trans_coord_grid version=\"5\" name=\"\">"<<std::endl;
-        //creation de la date
+        //creation of the date
         time_t t= time(0);
         struct tm * timeInfo =localtime(&t);
         std::string date;
@@ -587,7 +587,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
         double adate []= {(double)timeInfo-> tm_mon, (double)timeInfo-> tm_mday,
                 (double)timeInfo-> tm_hour,(double)timeInfo-> tm_min, (double)timeInfo-> tm_sec};
         std::vector<double> vdate (adate,adate+5);
-        //Mise en forme de la date
+        // Formating the date
         for (int ida=0; ida<5;ida++)
             {
                 std::stringstream ssdateTempo;
@@ -612,21 +612,21 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                         writeGrid <<"\t\t\t\t\t<vertical>"<<nomImage<<"</vertical>"<<std::endl;
                     writeGrid <<"\t\t\t\t</sys_coord_plani>"<<std::endl;
                     writeGrid <<"\t\t\t\t<sys_coord_alti name=\"sys1\">"<<std::endl;
-                        writeGrid <<"\t\t\t\t\t<code>"<<"LAMBERT93"<<"</code>"<<std::endl;
+                        writeGrid <<"\t\t\t\t\t<code>"<<"Unused in MicMac"<<"</code>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<unit>"<<"m"<<"</unit>"<<std::endl;
                     writeGrid <<"\t\t\t\t</sys_coord_alti>"<<std::endl;
                 writeGrid <<"\t\t\t</sys_coord>"<<std::endl;
 
                 writeGrid <<"\t\t\t<sys_coord name=\"sys2\">"<<std::endl;
                     writeGrid <<"\t\t\t\t<sys_coord_plani name=\"sys2\">"<<std::endl;
-                        writeGrid <<"\t\t\t\t\t<code>"<<"LAMBERT93"<<"</code>"<<std::endl;
+                        writeGrid <<"\t\t\t\t\t<code>"<<"Unused in MicMac"<<"</code>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<unit>"<<"m"<<"</unit>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<direct>"<<"1"<<"</direct>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<sub_code>"<<"*"<<"</sub_code>"<<std::endl;
-                        writeGrid <<"\t\t\t\t\t<vertical>"<<"LAMBERT93"<<"</vertical>"<<std::endl;
+                        writeGrid <<"\t\t\t\t\t<vertical>"<<"Unused in MicMac"<<"</vertical>"<<std::endl;
                     writeGrid <<"\t\t\t\t</sys_coord_plani>"<<std::endl;
                     writeGrid <<"\t\t\t\t<sys_coord_alti name=\"sys2\">"<<std::endl;
-                        writeGrid <<"\t\t\t\t\t<code>"<<"LAMBERT93"<<"</code>"<<std::endl;
+                        writeGrid <<"\t\t\t\t\t<code>"<<"Unused in MicMac"<<"</code>"<<std::endl;
                         writeGrid <<"\t\t\t\t\t<unit>"<<"m"<<"</unit>"<<std::endl;
                     writeGrid <<"\t\t\t\t</sys_coord_alti>"<<std::endl;
                 writeGrid <<"\t\t\t</sys_coord>"<<std::endl;
@@ -637,6 +637,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
             writeGrid <<"\t\t<inverse_available>"<<"1"<<"</inverse_available>"<<std::endl;
         writeGrid <<"\t</trans_coord>"<<std::endl;
 
+// For the direct grid
         writeGrid <<"\t<multi_grid version=\"1\" name=\"1-2\" >"<<std::endl;
             std::stringstream ssUL;
             std::stringstream ssStepPix;
@@ -687,7 +688,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                 }
         writeGrid <<"\t</multi_grid>"<<std::endl;
 
-////pour la grille inverse
+// For the inverse grid
         writeGrid <<"\t<multi_grid version=\"1\" name=\"2-1\" >"<<std::endl;
             std::stringstream ssULInv;
             std::stringstream ssStepCarto;
@@ -947,15 +948,15 @@ int Dimap2Grid_main(int argc, char **argv)
     ElInitArgMain
     (
         argc, argv,
-        LArgMain() << EAMC(aNameFileDimap,"Dimap file")
+        LArgMain() << EAMC(aNameFileDimap,"RPC Dimap file")
                   // << EAMC(aNameFileGrid,"Grid file")
                    << EAMC(aNameImage,"Image name")
-                   << EAMC(altiMin,"altitude min")
-                   << EAMC(altiMax,"altitude max")
-                   << EAMC(nbLayers,"number of layers"),
+                   << EAMC(altiMin,"min altitude (ellipsoidal)")
+                   << EAMC(altiMax,"max altitude (ellipsoidal)")
+                   << EAMC(nbLayers,"number of layers (min 4)"),
         LArgMain()
-                 //caracteristique du systeme geodesique saisies sans espace (+proj=utm+zone=10+datum=NAD83...)
-                 << EAM(targetSyst,"targetSyst", true,"target system Proj4 +init=IGNF:LAMB93+datum")
+                 //caracteristique du systeme geodesique saisies sans espace (+proj=utm +zone=10 +north +datum=WGS84...)
+                 << EAM(targetSyst,"targetSyst", true,"target system in Proj4 format")
                  << EAM(stepPixel,"stepPixel",true,"Step in pixel")
                  << EAM(stepCarto,"stepCarto",true,"Step in m (carto)")
                  << EAM(sampCrop,"sampCrop",true,"upper left samp - crop")
@@ -973,7 +974,8 @@ int Dimap2Grid_main(int argc, char **argv)
     for(int i=0;i<nbLayers;++i)
         vAltitude.push_back(altiMin+i*(altiMax-altiMin)/(nbLayers-1));
 	
-    /*//Parser du targetSyst
+    /* ISN'T THIS USELESS??
+	//Parser du targetSyst
     std::size_t found = targetSyst.find_first_of("+");
 	std::string str = "+";
 	std::vector<int> position;
@@ -984,7 +986,8 @@ int Dimap2Grid_main(int argc, char **argv)
         found=targetSyst.find_first_of("+",found+1);
     }
     for (int i=position.size()-1; i>-1;i--)
-        targetSyst.insert(position[i]+1,str);*/
+        targetSyst.insert(position[i]+1,str);
+	*/
 	
     //recuperation des coefficients pour affiner le modele
     std::vector<double> vRefineCoef;
