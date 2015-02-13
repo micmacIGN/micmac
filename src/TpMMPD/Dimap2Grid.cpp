@@ -348,6 +348,7 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCo
 }
 
 //Returns the vector [Pt2dr(xmin,ymin),Pt2dr(xmax,ymax)]
+/*
 vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const
 {
     std::ofstream fic("processing/conv_ptGeo.txt");
@@ -381,6 +382,37 @@ vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, st
 	
 	return anEmpriseCarto;
 }
+*/
+
+/* MPD :
+
+   Sur UBUNTU J'Otiens les erreurs :
+
+home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:51: erreur: ¿begin¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:74: erreur: ¿end¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:114: erreur: ¿begin¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:137: erreur: ¿end¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:51: erreur: ¿begin¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:74: erreur: ¿end¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:114: erreur: ¿begin¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:137: erreur: ¿end¿ is not a member of ¿std¿
+
+J'imagine qu'il faut remplacer  :
+
+   std::begin(PtsCartox)   par PtsCartox.begin()
+
+Mais je prefere que ce soit l'auteur du code qui valide ce changement.
+
+*/
+
+vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const
+{
+    ELISE_ASSERT(false,"Voir Pb Compile sur Dimap::empriseCarto");
+    vector<Pt2dr> aRes;
+    return aRes;
+}
+
+
 
 Pt2dr Dimap::ptRefined(Pt2dr Pimg, std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
