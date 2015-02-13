@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include "TexturePacker/TexturePacker.h"
 
 /*#if ELISE_Darwin
     #include <OpenGL/gl.h>
@@ -46,6 +47,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 bool debug = false;
 float defValZBuf = 1e9;
+
+struct TextRect
+{
+    TextRect(int idx, Pt2di p0, Pt2di P1);
+
+    int imgIdx;
+    Pt2di p0; // coin hg
+    Pt2di p1; // coin bd
+};
+
+TextRect::TextRect(int idx, Pt2di aP0, Pt2di aP1):
+    imgIdx(idx),
+    p0(aP0),
+    p1(aP1)
+{}
 
 int Tequila_main(int argc,char ** argv)
 {
@@ -62,10 +78,11 @@ int Tequila_main(int argc,char ** argv)
     std::string aDir,aPat,aFullName,aOri,aPly;
     std::string aOut, aTextOut;
     int aTextMaxSize = maxTextureSize;
-    int aZBuffSSEch = 1;
+    //int aZBuffSSEch = 1;
     int aJPGcomp = 70;
     double aAngleMin = 60.f;
     bool aBin = true;
+    bool  aModeClassic = false;
 
     std::stringstream ss  ;
     ss << aTextMaxSize;
@@ -80,9 +97,10 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def="+ ss.str() +")")
-                            << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
+                            //<< EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=60)")
+                            << EAM(aModeClassic,"Mode", true, "Mode (def = false)")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -295,328 +313,656 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
-#ifdef useRegions
-
-    cout << endl;
-    cout <<"***********************Getting adjacent triangles***********************"<<endl;
-    cout << endl;
-
-    std::vector< std::vector <int> > regions = myMesh.getRegions();
-
-    unsigned int sz = 0;
-    int biggest = -1;
-    for (unsigned int aK=0; aK < regions.size();++aK)
+    if (!aModeClassic)
     {
-        if (regions[aK].size() > sz)
+
+        cout << endl;
+        cout <<"***********************Getting adjacent triangles***********************"<<endl;
+        cout << endl;
+
+        std::vector < std::vector <int> > regions = myMesh.getRegions();
+        std::vector < TextRect > vRect;
+        cout << "nb regions = " << regions.size() << endl;
+
+        TEXTURE_PACKER::TexturePacker *tp = TEXTURE_PACKER::createTexturePacker();
+
+        int nbTriangles = 0;
+        for (unsigned int aK=0; aK < regions.size();++aK)
         {
-            sz = regions[aK].size();
-            biggest = aK;
-        }
-    }
+            cout << "nb triangles = " << regions[aK].size() << endl;
+            //Calcul de la zone correspondante dans l'image
 
-    cout << "Biggest region= " << biggest << " with " << regions[biggest].size() << " triangles " << endl;
+            int triIdx = regions[aK][0];
+            cTriangle * Tri = myMesh.getTriangle(triIdx);
+            int imgIdx = Tri->getTextureImgIndex();
 
-    //Calcul de la zone correspondante dans l'image
+            cout << "Image index " << imgIdx << endl;
 
-    int triIdx = regions[biggest][0];
-    cTriangle * Tri = myMesh.getTriangle(triIdx);
-    int imgIdx = Tri->getTextureImgIndex();
+            Pt2dr _min(DBL_MAX, DBL_MAX);
+            Pt2dr _max;
 
-    cout << "Image index " << imgIdx << endl;
-
-    double minX, maxX, minY, maxY;
-    minX = minY = DBL_MAX;
-    maxX = maxY = DBL_MIN;
-    for (unsigned int aK=0; aK < regions[biggest].size(); ++aK)
-    {
-        int triIdx = regions[biggest][aK];
-        cTriangle * Triangle = myMesh.getTriangle(triIdx);
-
-        ElCamera * Cam = ListCam[imgIdx];
-
-        vector <Pt3dr> Vertex;
-        Triangle->getVertexes(Vertex);
-
-        Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
-        Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
-        Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
-
-        if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
-        {
-            minX = ElMin(Pt1.x, minX);
-            minX = ElMin(Pt2.x, minX);
-            minX = ElMin(Pt3.x, minX);
-
-            minY = ElMin(Pt1.y, minY);
-            minY = ElMin(Pt2.y, minY);
-            minY = ElMin(Pt3.y, minY);
-
-            maxX = ElMax(Pt1.x, maxX);
-            maxX = ElMax(Pt2.x, maxX);
-            maxX = ElMax(Pt3.x, maxX);
-
-            maxY = ElMax(Pt1.y, maxY);
-            maxY = ElMax(Pt2.y, maxY);
-            maxY = ElMax(Pt3.y, maxY);
-        }
-    }
-
-    cout << "min, max = " << minX << ", " << minY << "  " <<  maxX << ", " << maxY << endl;
-
-
-
-
-
-
-    std::string newTexture = StdPrefix(aPly) + "_UVtexture2.tif";
-
-    int width  = round_up(maxX) - round_down(minX);
-    int height = round_up(maxY) - round_down(minY);
-
-    Pt2di Sz ( width, height );
-
-    Tiff_Im  nFileRes
-            (
-                newTexture.c_str(),
-                Sz,
-                GenIm::u_int1,
-                Tiff_Im::No_Compr,
-                Tiff_Im::RGB
-                );
-
-    Pt2di P0 (0, 0);
-    Pt2di P1 (width, height);
-
-    Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
-    /*Fonc_Num aF = aF0;
-    while (aF.dimf_out() < aNbCh)
-        aF = Virgule(aF0,aF);
-    aF = StdFoncChScale(aF,Pt2dr(-P0.x,-P0.y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));*/
-
-    ELISE_COPY
-    (
-        rectangle(P0,P1),
-        trans(aF0, Pt2di(round_down(minX), round_down(minY))),
-        nFileRes.out()
-    );
-
-    std::string newName = StdPrefix(newTexture) + ".jpg ";
-    std::stringstream st  ;
-    st << aJPGcomp;
-
-    std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
-            + newTexture + " " + newName;
-
-    //cout << "COM= " << aCom << endl;
-
-    system_call(aCom.c_str());
-
-    return EXIT_SUCCESS;
-
-#endif
-
-    int aNbLine = round_up(sqrt(double(aVT.size())));
-    int aNbCol = round_up(aVT.size()/double(aNbLine));
-
-    cout<< aNbLine << " rows and "  << aNbCol <<" columns texture, with "<< aVT.size() <<" images. "<< endl;
-    cout<<endl;
-
-    int full_width  = aSzMax.x * aNbCol;
-    int full_height = aSzMax.y * aNbLine;
-
-    float Scale = (float) aTextMaxSize / ElMax(full_width, full_height) ;
-
-    if (Scale > 1.f) Scale = 1.f;
-
-    cout << "Scaling factor = " << Scale << endl;
-
-    int final_width  = round_up(full_width * Scale);
-    int final_height = round_up(full_height * Scale);
-
-    Pt2di aSz ( final_width, final_height );
-
-    //cout << "SZ = " << aSz << " :: " << aNbCol << " X " << aNbLine  << "\n";
-
-    Tiff_Im::PH_INTER_TYPE aPhI = aVT[0].phot_interp();
-    if (aNbCh==3)
-        aPhI = Tiff_Im::RGB;
-
-    Tiff_Im  FileRes
-            (
-                aTextOut.c_str(),
-                aSz,
-                GenIm::u_int1,
-                Tiff_Im::No_Compr,
-                aPhI
-                );
-
-    for (int aK=0 ; aK<int(aVT.size()) ; aK++)
-    {
-        Pt2di ptK(aK % aNbCol, aK / aNbCol);
-
-        //std::cout << "WRITE " << aVT[aK].name() << "\n";
-
-        Pt2di aP0 (
-                    (ptK.x*aSz.x) / aNbCol,
-                    (ptK.y*aSz.y) / aNbLine
-                    );
-
-        Pt2di aP1 (
-                    ((ptK.x+1)*aSz.x) / aNbCol,
-                    ((ptK.y+1)*aSz.y) / aNbLine
-                    );
-
-        Fonc_Num aF0 = aVT[aK].in_proj() * (final_ZBufIm[aK].in_proj()!=defValZBuf);
-        Fonc_Num aF = aF0;
-        while (aF.dimf_out() < aNbCh)
-            aF = Virgule(aF0,aF);
-        aF = StdFoncChScale(aF,Pt2dr(-aP0.x,-aP0.y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));
-
-        ELISE_COPY
-                (
-                    rectangle(aP0,aP1),
-                    aF ,
-                    FileRes.out()
-                    );
-
-        Pt2dr Coord = ptK.mcbyc(aVT[aK].sz())*Scale;
-
-        TabCoor.push_back(Coord);
-
-     /*   cout<<"Ligne : "<<ptK.y+1 << " Colonne : "<<ptK.x+1<<endl;
-        cout<<"Position : "<< Coord.x <<" " << Coord.y <<endl;
-        cout<<"Nombre d'images traitees : "<<aK+1<<"/"<<aVT.size()<<endl;
-        cout<<endl;*/
-    }
-
-    std::string newName = StdPrefix(aTextOut) + ".jpg ";
-    std::stringstream st  ;
-    st << aJPGcomp;
-
-    std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
-            + aTextOut + " " + newName;
-
-    //cout << "COM= " << aCom << endl;
-
-    system_call(aCom.c_str());
-
-    aCom = std::string(SYS_RM) + " " + aTextOut;
-    system_call(aCom.c_str());
-
-    cout << endl;
-    cout <<"**************************Writing ply file***************************"<<endl;
-    cout <<endl;
-
-    string mode = aBin ? "wb" : "w";
-    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
-
-    FILE * PlyOut = FopenNN(aOut,mode, "UV Mapping");         //Ecriture du header
-    fprintf(PlyOut,"ply\n");
-    fprintf(PlyOut,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
-    fprintf(PlyOut,"comment UV Mapping generated\n");
-    fprintf(PlyOut,"comment TextureFile %s\n", newName.c_str());
-    fprintf(PlyOut,"element vertex %i\n",myMesh.getVertexNumber());
-    fprintf(PlyOut,"property float x\n");
-    fprintf(PlyOut,"property float y\n");
-    fprintf(PlyOut,"property float z\n");
-    fprintf(PlyOut,"element face %i\n",myMesh.getFacesNumber());
-    fprintf(PlyOut,"property list uchar int vertex_indices\n");
-    fprintf(PlyOut,"property list uchar float texcoord\n");
-    fprintf(PlyOut,"end_header\n");
-
-    Pt3dr pt;
-    int t1, t2, t3;
-    cTriangle *Triangle;
-
-    CamStenope *Cam;
-    int idx;
-
-    if (aBin)
-    {
-        for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
-        {
-            pt = myMesh.getVertex(aK);
-
-            WriteType(PlyOut,float(pt.x));
-            WriteType(PlyOut,float(pt.y));
-            WriteType(PlyOut,float(pt.z));
-        }
-    }
-    else
-    {
-        for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
-        {
-            pt = myMesh.getVertex(aK);
-            fprintf(PlyOut,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
-        }
-    }
-
-    int width  = aSz.x;
-    int height = aSz.y;
-
-    //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
-    for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
-    {
-        Triangle = myMesh.getTriangle(i);
-        Triangle->getVertexesIndexes(t1,t2,t3);              //On recupere les sommets de chaque triangle
-
-        idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
-
-        //cout << "image pour le triangle " << i << " = " << idx << endl;
-
-        if (idx != valDef)
-        {
-            Cam = ListCam[idx];
-
-            vector <Pt3dr> Vertex;
-            Triangle->getVertexes(Vertex);
-
-            Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
-            Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
-            Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
-
-            if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
+            for (unsigned int bK=0; bK < regions[aK].size(); ++bK)
             {
-                /*cout << "Pt1= " << Pt1.x << " " << Pt1.y << endl;
-                cout << "Pt2= " << Pt2.x << " " << Pt2.y << endl;
-                cout << "Pt3= " << Pt3.x << " " << Pt3.y << endl;*/
+                int triIdx = regions[aK][bK];
+                cTriangle * Triangle = myMesh.getTriangle(triIdx);
 
-                //cout << "idx= " << idx << endl;
+                ElCamera * Cam = ListCam[imgIdx];
 
-                Pt2dr PtTemp = TabCoor[idx];
+                vector <Pt3dr> Vertex;
+                Triangle->getVertexes(Vertex);
 
-                //cout << "PtTemp = " <<  PtTemp << endl;
+                Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+                Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
+                Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                float Pt1x=(((float)(Pt1.x*Scale)+PtTemp.x)) / (float) width;
-                float Pt1y= 1.0f - (((float)(Pt1.y*Scale)+PtTemp.y)) / (float) height;
-                float Pt2x=(((float)(Pt2.x*Scale)+PtTemp.x)) / (float) width;
-                float Pt2y= 1.0f - (((float)(Pt2.y*Scale)+PtTemp.y)) / (float) height;
-                float Pt3x=(((float)(Pt3.x*Scale)+PtTemp.x)) / (float) width;
-                float Pt3y= 1.0f - (((float)(Pt3.y*Scale)+PtTemp.y)) / (float) height;
-
-                if (aBin)
+                if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
                 {
-                    WriteType(PlyOut,(unsigned char)3);
-                    WriteType(PlyOut,t1);
-                    WriteType(PlyOut,t2);
-                    WriteType(PlyOut,t3);
-                    WriteType(PlyOut,(unsigned char)6);
-                    WriteType(PlyOut,Pt1x);
-                    WriteType(PlyOut,Pt1y);
-                    WriteType(PlyOut,Pt2x);
-                    WriteType(PlyOut,Pt2y);
-                    WriteType(PlyOut,Pt3x);
-                    WriteType(PlyOut,Pt3y);
+                    _min = Inf(Pt1, _min);
+                    _min = Inf(Pt2, _min);
+                    _min = Inf(Pt3, _min);
+
+                    _max = Sup(Pt1, _max);
+                    _max = Sup(Pt2, _max);
+                    _max = Sup(Pt3, _max);
+                }
+            }
+
+            if (_min != Pt2dr(DBL_MAX, DBL_MAX)) //TODO: gerer les triangles de bord
+            {
+                nbTriangles += regions[aK].size();
+                //cout << "min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
+                vRect.push_back(TextRect(imgIdx, round_down(_min), round_up(_max)));
+
+            }
+            else
+            {
+                regions.erase(std::remove(regions.begin(), regions.end(), regions[aK]), regions.end());
+                aK--;
+            }
+        }
+
+        cout << "Triangles nb = " << nbTriangles << endl;
+        tp->setTextureCount(vRect.size());
+
+        for (unsigned int aK=0; aK < vRect.size(); ++aK)
+        {
+            Pt2di sz = vRect[aK].p1 - vRect[aK].p0;
+            //cout << "width - height " << sz.x << " " <<  sz.y << endl;
+            tp->addTexture(sz.x, sz.y);
+        }
+
+        int final_width, final_height;
+        int unused_area = tp->packTextures(final_width, final_height, true, false);
+
+        cout << "final width-height " << final_width << " " << final_height << endl;
+        cout << "unused_area : " << unused_area << endl;
+
+        Pt2di Sz ( final_width, final_height );
+
+        Tiff_Im  nFileRes
+                (
+                    aTextOut.c_str(),
+                    Sz,
+                    GenIm::u_int1,
+                    Tiff_Im::No_Compr,
+                    Tiff_Im::RGB
+                );
+
+        vector <Pt2di> translations;
+        for (unsigned int aK=0; aK< vRect.size(); aK++)
+        {
+            int imgIdx = vRect[aK].imgIdx;
+
+            int x, y, w, h;
+            bool rotated = tp->getTextureLocation(aK, x, y, w, h);
+
+            //cout << "position dans l'image " << imgIdx << " = " << vRect[aK].p0.x << " " << vRect[aK].p0.y << endl;
+            //cout << "position dans l'image finale " << x << " " << y << endl;
+
+            Pt2di tr =  vRect[aK].p0 - Pt2di(x,y);
+            translations.push_back( tr );
+
+            Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
+
+            if (rotated)
+            {
+                // Can only handle RLE mode for File-Images
+
+                /* ELISE_COPY
+                 (
+                     rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
+                     aF0 [Virgule(FY+Q0,Q1-FX)],
+                     nFileRes.out()
+                 );*/
+            }
+            else
+            {
+                ELISE_COPY
+                (
+                    rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
+                    trans(aF0, tr),
+                    nFileRes.out()
+                );
+            }
+
+            cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
+        }
+
+        releaseTexturePacker(tp);
+
+        std::string newName = StdPrefix(aTextOut) + ".jpg ";
+        std::stringstream st  ;
+        st << aJPGcomp;
+
+        std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
+                + aTextOut + " " + newName;
+
+        //cout << "COM= " << aCom << endl;
+
+        system_call(aCom.c_str());
+
+        cout << endl;
+        cout <<"**************************Writing ply file***************************"<<endl;
+        cout <<endl;
+
+        string mode = aBin ? "wb" : "w";
+        string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+
+        FILE * PlyOut = FopenNN(aOut,mode, "UV Mapping");         //Ecriture du header
+        fprintf(PlyOut,"ply\n");
+        fprintf(PlyOut,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
+        fprintf(PlyOut,"comment UV Mapping generated\n");
+        fprintf(PlyOut,"comment TextureFile %s\n", newName.c_str());
+        fprintf(PlyOut,"element vertex %i\n",myMesh.getVertexNumber());
+        fprintf(PlyOut,"property float x\n");
+        fprintf(PlyOut,"property float y\n");
+        fprintf(PlyOut,"property float z\n");
+        fprintf(PlyOut,"element face %i\n",nbTriangles);
+        fprintf(PlyOut,"property list uchar int vertex_indices\n");
+        fprintf(PlyOut,"property list uchar float texcoord\n");
+        fprintf(PlyOut,"end_header\n");
+
+        Pt3dr pt;
+        int t1, t2, t3;
+        cTriangle *Triangle;
+
+        CamStenope *Cam;
+        int idx;
+
+        if (aBin)
+        {
+            for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+            {
+                pt = myMesh.getVertex(aK);
+
+                WriteType(PlyOut,float(pt.x));
+                WriteType(PlyOut,float(pt.y));
+                WriteType(PlyOut,float(pt.z));
+            }
+        }
+        else
+        {
+            for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+            {
+                pt = myMesh.getVertex(aK);
+                fprintf(PlyOut,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+            }
+        }
+
+        int width  = Sz.x;
+        int height = Sz.y;
+
+        //TODO
+        float Scale = 1.f;
+
+        //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
+        //for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
+        for (unsigned int aK=0; aK < regions.size(); ++aK)
+        {
+            Pt2di PtTemp = translations[aK];
+
+            for (unsigned int bK=0; bK < regions[aK].size();++bK)
+            {
+                int triIdx = regions[aK][bK];
+
+                Triangle = myMesh.getTriangle(triIdx);
+                Triangle->getVertexesIndexes(t1,t2,t3);              //On recupere les sommets de chaque triangle
+
+                idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
+
+                //cout << "image pour le triangle " << i << " = " << idx << endl;
+
+                if (idx != valDef)
+                {
+                    Cam = ListCam[idx];
+
+                    vector <Pt3dr> Vertex;
+                    Triangle->getVertexes(Vertex);
+
+                    Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+                    Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
+                    Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+
+                    if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
+                    {
+                        /*cout << "Pt1= " << Pt1.x << " " << Pt1.y << endl;
+                        cout << "Pt2= " << Pt2.x << " " << Pt2.y << endl;
+                        cout << "Pt3= " << Pt3.x << " " << Pt3.y << endl;*/
+
+                        //cout << "idx= " << idx << endl;
+
+                        //Pt2dr PtTemp = TabCoor[idx];
+
+                        //cout << "PtTemp = " <<  PtTemp << endl;
+
+                        float Pt1x=(((float)(Pt1.x*Scale)+PtTemp.x)) / (float) width;
+                        float Pt1y= 1.0f - (((float)(Pt1.y*Scale)+PtTemp.y)) / (float) height;
+                        float Pt2x=(((float)(Pt2.x*Scale)+PtTemp.x)) / (float) width;
+                        float Pt2y= 1.0f - (((float)(Pt2.y*Scale)+PtTemp.y)) / (float) height;
+                        float Pt3x=(((float)(Pt3.x*Scale)+PtTemp.x)) / (float) width;
+                        float Pt3y= 1.0f - (((float)(Pt3.y*Scale)+PtTemp.y)) / (float) height;
+
+                        if (aBin)
+                        {
+                            WriteType(PlyOut,(unsigned char)3);
+                            WriteType(PlyOut,t1);
+                            WriteType(PlyOut,t2);
+                            WriteType(PlyOut,t3);
+                            WriteType(PlyOut,(unsigned char)6);
+                            WriteType(PlyOut,Pt1x);
+                            WriteType(PlyOut,Pt1y);
+                            WriteType(PlyOut,Pt2x);
+                            WriteType(PlyOut,Pt2y);
+                            WriteType(PlyOut,Pt3x);
+                            WriteType(PlyOut,Pt3y);
+                        }
+                        else
+                        {
+                            fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                            fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                        }
+                    }
+                    else
+                    {
+                        //cout << "HORS IMG" << endl;
+                        if (aBin)
+                        {
+                            WriteType(PlyOut,(unsigned char)3);
+                            WriteType(PlyOut,t1);
+                            WriteType(PlyOut,t2);
+                            WriteType(PlyOut,t3);
+                            WriteType(PlyOut,(unsigned char)6);
+                            WriteType(PlyOut,float(0));
+                            WriteType(PlyOut,float(0));
+                            WriteType(PlyOut,float(0));
+                            WriteType(PlyOut,float(0));
+                            WriteType(PlyOut,float(0));
+                            WriteType(PlyOut,float(0));
+                        }
+                        else
+                        {
+                            fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                            fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+                        }
+                    }
                 }
                 else
                 {
-                    fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-                    fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                    if (aBin)
+                    {
+                        WriteType(PlyOut,(unsigned char)3);
+                        WriteType(PlyOut,t1);
+                        WriteType(PlyOut,t2);
+                        WriteType(PlyOut,t3);
+                        WriteType(PlyOut,(unsigned char)6);
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                    }
+                    else
+                    {
+                        fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                        fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+                    }
+                }
+            }
+        }
+
+
+        /* // plus grande texture en premier
+          while(regions.size())
+        {
+            unsigned int sz = 0;
+            int biggest = -1;
+            for (unsigned int aK=0; aK < regions.size();++aK)
+            {
+                if (regions[aK].size() > sz)
+                {
+                    sz = regions[aK].size();
+                    biggest = aK;
+                }
+            }
+
+            cout << "Biggest region= " << biggest << " with " << regions[biggest].size() << " triangles " << endl;
+
+            //Calcul de la zone correspondante dans l'image
+
+            int triIdx = regions[biggest][0];
+            cTriangle * Tri = myMesh.getTriangle(triIdx);
+            int imgIdx = Tri->getTextureImgIndex();
+
+            cout << "Image index " << imgIdx << endl;
+
+            Pt2dr _min(DBL_MAX, DBL_MAX);
+            Pt2dr _max;
+
+            for (unsigned int aK=0; aK < regions[biggest].size(); ++aK)
+            {
+                int triIdx = regions[biggest][aK];
+                cTriangle * Triangle = myMesh.getTriangle(triIdx);
+
+                ElCamera * Cam = ListCam[imgIdx];
+
+                vector <Pt3dr> Vertex;
+                Triangle->getVertexes(Vertex);
+
+                Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+                Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
+                Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+
+                if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+                {
+                    _min = Inf(Pt1, _min);
+                    _min = Inf(Pt2, _min);
+                    _min = Inf(Pt3, _min);
+
+                    _max = Sup(Pt1, _max);
+                    _max = Sup(Pt2, _max);
+                    _max = Sup(Pt3, _max);
+                }
+            }
+
+            cout << "min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
+            vRect.push_back(TextRect(imgIdx, round_down(_min), round_up(_max)));
+
+            regions.erase(std::remove(regions.begin(), regions.end(), regions[biggest]), regions.end());
+        }*/
+
+
+
+
+        /*
+
+
+
+        Pt2di Sz ( width, height );
+
+        Tiff_Im  nFileRes
+                (
+                    newTexture.c_str(),
+                    Sz,
+                    GenIm::u_int1,
+                    Tiff_Im::No_Compr,
+                    Tiff_Im::RGB
+                    );
+
+        Pt2di P0 (0, 0);
+        Pt2di P1 (width, height);
+
+        Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
+        //Fonc_Num aF = aF0;
+        //while (aF.dimf_out() < aNbCh)
+        //    aF = Virgule(aF0,aF);
+        //aF = StdFoncChScale(aF,Pt2dr(-P0.x,-P0.y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));
+
+        ELISE_COPY
+        (
+            rectangle(P0,P1),
+            trans(aF0, Pt2di(round_down(_min.x), round_down(_min.y))),
+            nFileRes.out()
+        );
+
+        std::string newName = StdPrefix(newTexture) + ".jpg ";
+        std::stringstream st  ;
+        st << aJPGcomp;
+
+        std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
+                + newTexture + " " + newName;
+
+        //cout << "COM= " << aCom << endl;
+
+        system_call(aCom.c_str());*/
+    }
+    else //mode classic
+    {
+        int aNbLine = round_up(sqrt(double(aVT.size())));
+        int aNbCol = round_up(aVT.size()/double(aNbLine));
+
+        cout<< aNbLine << " rows and "  << aNbCol <<" columns texture, with "<< aVT.size() <<" images. "<< endl;
+        cout<<endl;
+
+        int full_width  = aSzMax.x * aNbCol;
+        int full_height = aSzMax.y * aNbLine;
+
+        float Scale = (float) aTextMaxSize / ElMax(full_width, full_height) ;
+
+        if (Scale > 1.f) Scale = 1.f;
+
+        cout << "Scaling factor = " << Scale << endl;
+
+        int final_width  = round_up(full_width * Scale);
+        int final_height = round_up(full_height * Scale);
+
+        Pt2di aSz ( final_width, final_height );
+
+        //cout << "SZ = " << aSz << " :: " << aNbCol << " X " << aNbLine  << "\n";
+
+        Tiff_Im::PH_INTER_TYPE aPhI = aVT[0].phot_interp();
+        if (aNbCh==3)
+            aPhI = Tiff_Im::RGB;
+
+        Tiff_Im  FileRes
+                (
+                    aTextOut.c_str(),
+                    aSz,
+                    GenIm::u_int1,
+                    Tiff_Im::No_Compr,
+                    aPhI
+                    );
+
+        for (int aK=0 ; aK<int(aVT.size()) ; aK++)
+        {
+            Pt2di ptK(aK % aNbCol, aK / aNbCol);
+
+            //std::cout << "WRITE " << aVT[aK].name() << "\n";
+
+            Pt2di aP0 (
+                        (ptK.x*aSz.x) / aNbCol,
+                        (ptK.y*aSz.y) / aNbLine
+                        );
+
+            Pt2di aP1 (
+                        ((ptK.x+1)*aSz.x) / aNbCol,
+                        ((ptK.y+1)*aSz.y) / aNbLine
+                        );
+
+            Fonc_Num aF0 = aVT[aK].in_proj() * (final_ZBufIm[aK].in_proj()!=defValZBuf);
+            Fonc_Num aF = aF0;
+            while (aF.dimf_out() < aNbCh)
+                aF = Virgule(aF0,aF);
+            aF = StdFoncChScale(aF,Pt2dr(-aP0.x,-aP0.y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));
+
+            ELISE_COPY
+                    (
+                        rectangle(aP0,aP1),
+                        aF ,
+                        FileRes.out()
+                        );
+
+            Pt2dr Coord = ptK.mcbyc(aVT[aK].sz())*Scale;
+
+            TabCoor.push_back(Coord);
+
+            /*   cout<<"Ligne : "<<ptK.y+1 << " Colonne : "<<ptK.x+1<<endl;
+            cout<<"Position : "<< Coord.x <<" " << Coord.y <<endl;
+            cout<<"Nombre d'images traitees : "<<aK+1<<"/"<<aVT.size()<<endl;
+            cout<<endl;*/
+        }
+
+        std::string newName = StdPrefix(aTextOut) + ".jpg ";
+        std::stringstream st  ;
+        st << aJPGcomp;
+
+        std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
+                + aTextOut + " " + newName;
+
+        //cout << "COM= " << aCom << endl;
+
+        system_call(aCom.c_str());
+
+        aCom = std::string(SYS_RM) + " " + aTextOut;
+        system_call(aCom.c_str());
+
+        cout << endl;
+        cout <<"**************************Writing ply file***************************"<<endl;
+        cout <<endl;
+
+        string mode = aBin ? "wb" : "w";
+        string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+
+        FILE * PlyOut = FopenNN(aOut,mode, "UV Mapping");         //Ecriture du header
+        fprintf(PlyOut,"ply\n");
+        fprintf(PlyOut,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
+        fprintf(PlyOut,"comment UV Mapping generated\n");
+        fprintf(PlyOut,"comment TextureFile %s\n", newName.c_str());
+        fprintf(PlyOut,"element vertex %i\n",myMesh.getVertexNumber());
+        fprintf(PlyOut,"property float x\n");
+        fprintf(PlyOut,"property float y\n");
+        fprintf(PlyOut,"property float z\n");
+        fprintf(PlyOut,"element face %i\n",myMesh.getFacesNumber());
+        fprintf(PlyOut,"property list uchar int vertex_indices\n");
+        fprintf(PlyOut,"property list uchar float texcoord\n");
+        fprintf(PlyOut,"end_header\n");
+
+        Pt3dr pt;
+        int t1, t2, t3;
+        cTriangle *Triangle;
+
+        CamStenope *Cam;
+        int idx;
+
+        if (aBin)
+        {
+            for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+            {
+                pt = myMesh.getVertex(aK);
+
+                WriteType(PlyOut,float(pt.x));
+                WriteType(PlyOut,float(pt.y));
+                WriteType(PlyOut,float(pt.z));
+            }
+        }
+        else
+        {
+            for(int aK=0 ; aK< myMesh.getVertexNumber() ; aK++) //Ecriture des vertex
+            {
+                pt = myMesh.getVertex(aK);
+                fprintf(PlyOut,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+            }
+        }
+
+        int width  = aSz.x;
+        int height = aSz.y;
+
+        //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
+        for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
+        {
+            Triangle = myMesh.getTriangle(i);
+            Triangle->getVertexesIndexes(t1,t2,t3);              //On recupere les sommets de chaque triangle
+
+            idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
+
+            //cout << "image pour le triangle " << i << " = " << idx << endl;
+
+            if (idx != valDef)
+            {
+                Cam = ListCam[idx];
+
+                vector <Pt3dr> Vertex;
+                Triangle->getVertexes(Vertex);
+
+                Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+                Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
+                Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+
+                if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
+                {
+                    /*cout << "Pt1= " << Pt1.x << " " << Pt1.y << endl;
+                cout << "Pt2= " << Pt2.x << " " << Pt2.y << endl;
+                cout << "Pt3= " << Pt3.x << " " << Pt3.y << endl;*/
+
+                    //cout << "idx= " << idx << endl;
+
+                    Pt2dr PtTemp = TabCoor[idx];
+
+                    //cout << "PtTemp = " <<  PtTemp << endl;
+
+                    float Pt1x=(((float)(Pt1.x*Scale)+PtTemp.x)) / (float) width;
+                    float Pt1y= 1.0f - (((float)(Pt1.y*Scale)+PtTemp.y)) / (float) height;
+                    float Pt2x=(((float)(Pt2.x*Scale)+PtTemp.x)) / (float) width;
+                    float Pt2y= 1.0f - (((float)(Pt2.y*Scale)+PtTemp.y)) / (float) height;
+                    float Pt3x=(((float)(Pt3.x*Scale)+PtTemp.x)) / (float) width;
+                    float Pt3y= 1.0f - (((float)(Pt3.y*Scale)+PtTemp.y)) / (float) height;
+
+                    if (aBin)
+                    {
+                        WriteType(PlyOut,(unsigned char)3);
+                        WriteType(PlyOut,t1);
+                        WriteType(PlyOut,t2);
+                        WriteType(PlyOut,t3);
+                        WriteType(PlyOut,(unsigned char)6);
+                        WriteType(PlyOut,Pt1x);
+                        WriteType(PlyOut,Pt1y);
+                        WriteType(PlyOut,Pt2x);
+                        WriteType(PlyOut,Pt2y);
+                        WriteType(PlyOut,Pt3x);
+                        WriteType(PlyOut,Pt3y);
+                    }
+                    else
+                    {
+                        fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                        fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                    }
+                }
+                else
+                {
+                    //cout << "HORS IMG" << endl;
+                    if (aBin)
+                    {
+                        WriteType(PlyOut,(unsigned char)3);
+                        WriteType(PlyOut,t1);
+                        WriteType(PlyOut,t2);
+                        WriteType(PlyOut,t3);
+                        WriteType(PlyOut,(unsigned char)6);
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                        WriteType(PlyOut,float(0));
+                    }
+                    else
+                    {
+                        fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                        fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+                    }
                 }
             }
             else
             {
-                //cout << "HORS IMG" << endl;
                 if (aBin)
                 {
                     WriteType(PlyOut,(unsigned char)3);
@@ -638,32 +984,10 @@ int Tequila_main(int argc,char ** argv)
                 }
             }
         }
-        else
-        {
-            if (aBin)
-            {
-                WriteType(PlyOut,(unsigned char)3);
-                WriteType(PlyOut,t1);
-                WriteType(PlyOut,t2);
-                WriteType(PlyOut,t3);
-                WriteType(PlyOut,(unsigned char)6);
-                WriteType(PlyOut,float(0));
-                WriteType(PlyOut,float(0));
-                WriteType(PlyOut,float(0));
-                WriteType(PlyOut,float(0));
-                WriteType(PlyOut,float(0));
-                WriteType(PlyOut,float(0));
-            }
-            else
-            {
-                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-                fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
-            }
-        }
     }
-
-    cout<<"********************************Done**********************************"<<endl;
+    cout<<"********************************Done*********************************"<<endl;
     cout<<endl;
 
     return EXIT_SUCCESS;
 }
+

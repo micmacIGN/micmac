@@ -353,6 +353,13 @@ template <class Type>
 template <class Type>
 Type  dist8(const Pt2d<Type> & p){return ElMax(ElAbs(p.x),ElAbs(p.y));}
 
+template <class Type>
+Type  dist48(const Pt2d<Type> & p)
+{
+   Type Ax = ElAbs(p.x);
+   Type Ay = ElAbs(p.y);
+   return ElMax(Ax,Ay) + Ax + Ay;
+}
 
 /*
 template <> Pt2d<double>::Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
