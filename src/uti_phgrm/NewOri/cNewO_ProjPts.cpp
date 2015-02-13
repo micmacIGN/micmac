@@ -65,8 +65,10 @@ template <const int TheNb> void NOMerge_AddPackHom
     )
     {
          ElCplePtsHomologues aCple = itH->ToCple();
-         Pt2dr aP1 =  ProjStenope(aCam1.F2toDirRayonL3(aCple.P1()));
-         Pt2dr aP2 =  ProjStenope(aCam2.F2toDirRayonL3(aCple.P2()));
+         Pt2dr aP1 =  aCple.P1();
+         Pt2dr aP2 =  aCple.P2();
+         aP1 =  ProjStenope(aCam1.F2toDirRayonL3(aP1));
+         aP2 =  ProjStenope(aCam2.F2toDirRayonL3(aP2));
          aMap.AddArc(aP1,aK1,aP2,aK2);
     }
 }
@@ -178,9 +180,18 @@ template class  cFixedMergeTieP<3,Pt2dr>;
 /*                                                                    */
 /**********************************************************************/
 
-template <const int TheNb,class Type>   std::list<cFixedMergeTieP<TheNb,Type>  *> cFixedMergeStruct<TheNb,Type>:: Export()
+template <const int TheNb,class Type> cFixedMergeStruct<TheNb,Type>::cFixedMergeStruct() :
+    mExportDone (false)
 {
-    std::list<tMerge *> aRes;
+}
+
+
+
+template <const int TheNb,class Type>   void cFixedMergeStruct<TheNb,Type>::DoExport()
+{
+    AssertUnExported();
+    mExportDone = true;
+
     for (int aK=0 ; aK<TheNb ; aK++)
     {
         tMapMerge & aMap = mTheMaps[aK];
@@ -189,17 +200,48 @@ template <const int TheNb,class Type>   std::list<cFixedMergeTieP<TheNb,Type>  *
             tMerge * aM = anIt->second;
             if (aM->IsOk())
             {
-               aRes.push_back(aM);
+               mLM.push_back(aM);
                aM->SetNoOk();
             }
         }
     }
-    return aRes;
+
+    for (int aK=0 ; aK<TheNb ; aK++)
+    {
+       mNbSomOfIm[aK] = 0;
+    }
+    
+    for (typename std::list<tMerge *>::const_iterator itM=mLM.begin() ; itM!=mLM.end() ; itM++)
+    {
+        int aNbA = (*itM)->NbArc();
+        while (int(mStatArc.size()) <= aNbA)
+        {
+           mStatArc.push_back(0);
+        }
+        mStatArc[aNbA] ++;
+        for (int aKS=0 ; aKS<TheNb ; aKS++)
+        {
+           if ((*itM)->IsInit(aKS))
+           {
+               const Type &  aVal = (*itM)->GetVal(aKS);
+               if(mNbSomOfIm[aKS] == 0)
+               {
+                   mEnvSup[aKS] = mEnvInf[aKS] = aVal;
+               }
+               mNbSomOfIm[aKS] ++;
+               mEnvInf[aKS] = Inf(mEnvInf[aKS],aVal);
+               mEnvSup[aKS] = Sup(mEnvSup[aKS],aVal);
+           }
+        }
+    }
 }
+
+
 
 template <const int TheNb,class Type>
         void cFixedMergeStruct<TheNb,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
 {
+             AssertUnExported();
              tMapMerge & aMap1 = mTheMaps[aK1];
              tItMM anIt1  = mTheMaps[aK1].find(aV1);
              tMerge * aM1 = (anIt1 != aMap1.end()) ? anIt1->second : 0;
@@ -242,6 +284,24 @@ template <const int TheNb,class Type>
              aMerge->AddArc(aV1,aK1,aV2,aK2);
 }
 
+template <const int TheNb,class Type>  const  std::list<cFixedMergeTieP<TheNb,Type> *> & cFixedMergeStruct<TheNb,Type>::ListMerged() const
+{
+   AssertExported();
+   return mLM;
+}
+
+
+
+template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::AssertExported() const
+{
+   ELISE_ASSERT(mExportDone,"cFixedMergeStruct<TheNb,Type>::AssertExported");
+}
+
+template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::AssertUnExported() const
+{
+   ELISE_ASSERT(!mExportDone,"cFixedMergeStruct<TheNb,Type>::AssertUnExported");
+}
+
 template class  cFixedMergeStruct<2,Pt2dr>;
 template class  cFixedMergeStruct<3,Pt2dr>;
 
@@ -268,7 +328,8 @@ std::vector<int> CptArc(const std::list<cFixedMergeTieP<2,Pt2dr> *> aL,int & aTo
 
 void AssertCptArc(cFixedMergeStruct<2,Pt2dr> & aMap ,int aNb0,int aNb1,int aNb2)
 {
-   std::list<cFixedMergeTieP<2,Pt2dr> *>  aRes = aMap.Export();
+   aMap.DoExport();
+   std::list<cFixedMergeTieP<2,Pt2dr> *>  aRes = aMap.ListMerged();
    int aTot;
    std::vector<int> aCpt = CptArc(aRes,aTot);
 
@@ -328,7 +389,8 @@ void  NewOri_Info1Cple
     cFixedMergeStruct<2,Pt2dr> aMap2;
     NOMerge_AddPackHom(aMap2,aPack12,aCam1,0,aCam2,1);
     NOMerge_AddPackHom(aMap2,aPack21,aCam2,1,aCam1,0);
-    std::list<cFixedMergeTieP<2,Pt2dr> *>  aRes = aMap2.Export();
+    aMap2.DoExport();
+    std::list<cFixedMergeTieP<2,Pt2dr> *>  aRes = aMap2.ListMerged();
     int aNb1=0;
     int aNb2=0;
     for (std::list<cFixedMergeTieP<2,Pt2dr> *>::const_iterator  itR=aRes.begin() ; itR!=aRes.end() ; itR++)
@@ -357,7 +419,8 @@ void  NO_MergeTO_Test4_Basic(int aK)
 
     if (aK==0)
     {
-        std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.Export();
+        aMap.DoExport();
+        std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.ListMerged();
         ELISE_ASSERT(aRes.size()==0,"NO_MergeTO_Test4_Basic");
         return;
     }
@@ -366,7 +429,8 @@ void  NO_MergeTO_Test4_Basic(int aK)
     aMap.AddArc(Pt2dr(2,2),2,Pt2dr(3,3),3);
     if (aK==1)
     {
-        std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.Export();
+        aMap.DoExport();
+        std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.ListMerged();
         ELISE_ASSERT(aRes.size()==2,"NO_MergeTO_Test4_Basic");
         for 
         (
@@ -384,7 +448,8 @@ void  NO_MergeTO_Test4_Basic(int aK)
 
     aMap.AddArc(Pt2dr(2,2),2,Pt2dr(1,1),1);
 
-    std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.Export();
+    aMap.DoExport();
+    std::list<cFixedMergeTieP<4,Pt2dr> *>  aRes = aMap.ListMerged();
 
     ELISE_ASSERT(aRes.size()==1,"NO_MergeTO_Test4_Basic");
     ELISE_ASSERT((*aRes.begin())->NbArc()==3,"NO_MergeTO_Test4_Basic");
@@ -402,10 +467,18 @@ void Bench_NewOri()
 }
 
 
+void ForceInstanceNOMerge_AddAllCams()
+{
+    std::vector<cNewO_OneIm*> aVI;
+    cFixedMergeStruct<2,Pt2dr> aMap;
+    NOMerge_AddAllCams(aMap,aVI);
+}
 
+/*
 int NewOriImage_main(int argc,char ** argv)
 {
-   // Bench_NewOri();
+    Bench_NewOri();
+
    std::string aNameOri,aNameI1,aNameI2;
    std::vector<std::string> aVNames;
 
@@ -451,8 +524,11 @@ int NewOriImage_main(int argc,char ** argv)
     // ElPackHomologue aLH = aNM.PackOfName(aNameI1,aNameI2);
     //std::cout << "FFF " << aC1->Focale() << " " << aC2->Focale() << " NBh : " << aLH.size() << "\n";
 
+
     return EXIT_SUCCESS;
 }
+*/
+
 /*
 
 */

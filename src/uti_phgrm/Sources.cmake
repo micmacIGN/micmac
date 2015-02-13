@@ -12,6 +12,7 @@ set(UTI_PHGRM_GPGPU_DIR ${UTI_PHGRM_DIR}/GpGpu)
 set(UTI_PHGRM_FUSION_NUAGES ${UTI_PHGRM_DIR}/FusionNuage)
 set(UTI_PHGRM_MERGE_CLOUD ${UTI_PHGRM_DIR}/MergeCloud)
 set(UTI_PHGRM_NEW_ORI ${UTI_PHGRM_DIR}/NewOri)
+set(UTI_PHGRM_TEXT_DIR ${UTI_PHGRM_DIR}/TexturePacker)
 
 set(SrcGrp_Uti_PHGRM uti_phgrm)
 
@@ -26,6 +27,7 @@ INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MERGE_CLOUD}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_CASA_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_NEW_ORI}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_TEXT_DIR}/Sources.cmake)
 
 #define __CUDA_API_VERSION 0x5050
 
@@ -169,4 +171,5 @@ list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Porto_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_RHH_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Casa_Src_Files})
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Text_Src_Files})
 list( APPEND Elise_Src_Files ${uti_phgrm_Src_Files})

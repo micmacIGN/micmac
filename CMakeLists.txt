@@ -288,6 +288,7 @@ else()
                 ERROR_QUIET
                 OUTPUT_STRIP_TRAILING_WHITESPACE
         )
+
         message( STATUS "Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
 
         set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
