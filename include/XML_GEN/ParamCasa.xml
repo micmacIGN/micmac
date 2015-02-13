@@ -41,6 +41,8 @@
            <SectionEstimSurf Nb="1">
                 <TypeSurf Nb="1" Type="eTypeSurfaceAnalytique"> </TypeSurf>
                 <NbRansac Nb="?" Type="int" Def="500"> </NbRansac>
+                <OriPts Nb="?" Type="std::string">  </OriPts>
+                <PtsSurf Nb="?" Type="std::string">  </PtsSurf>
            </SectionEstimSurf>
         </SectionInitModele>
 

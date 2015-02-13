@@ -135,14 +135,14 @@ double cInterfImageTiff::Som()const
 
 TIm2D<float,double>* cInterfImageTiff::cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const
 {
-	std::auto_ptr<TIm2D<float,double> > anTIm2D(new TIm2D<float,double>(SzCrop));
+    std_unique_ptr<TIm2D<float,double> > anTIm2D(new TIm2D<float,double>(SzCrop));
 	ELISE_COPY(anTIm2D->_the_im.all_pts(),trans(mTifF->in(),P0),anTIm2D->_the_im.out());
 	return anTIm2D.release();
 }
 
 TIm2D<U_INT1,INT>* cInterfImageTiff::cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const
 {
-	std::auto_ptr<TIm2D<U_INT1,INT> > anTIm2D(new TIm2D<U_INT1,INT>(SzCrop));
+    std_unique_ptr<TIm2D<U_INT1,INT> > anTIm2D(new TIm2D<U_INT1,INT>(SzCrop));
 	ELISE_COPY(anTIm2D->_the_im.all_pts(),trans(mTifF->in(),P0),anTIm2D->_the_im.out());
 	return anTIm2D.release();
 }
@@ -193,10 +193,11 @@ GenIm::type_el cInterfImageLoader::type_el()const
 
 double cInterfImageLoader::Som()const
 {
+    std::cout << "cInterfImageLoader::Som"<<std::endl;
 	double aSom=0;
-	int dl = 1000;
+    int dl = 100;
 	TIm2D<float,double> buffer(Pt2di(sz().x,dl+1));
-	for(int l=0;l<sz().y;l+=dl)
+	for(int l=0;l</*sz().y*/dl;l+=dl)
 	{
 		mLoader->LoadCanalCorrel(sLowLevelIm<float>
 								 (
@@ -217,13 +218,14 @@ double cInterfImageLoader::Som()const
 		 sigma(aSomLin)
 		 );
 		aSom+=aSomLin;
+        std::cout << "l = "<<l<<" aSom : "<<aSom<<std::endl;
 	}
 	return aSom;
 }
 
 TIm2D<float,double>* cInterfImageLoader::cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const
 {
-	std::auto_ptr<TIm2D<float,double> > anTIm2D(new TIm2D<float, double>(SzCrop));
+    std_unique_ptr<TIm2D<float,double> > anTIm2D(new TIm2D<float, double>(SzCrop));
 	mLoader->LoadCanalCorrel(sLowLevelIm<float>
 							 (
 							  anTIm2D->_the_im.data_lin(),
@@ -239,7 +241,7 @@ TIm2D<float,double>* cInterfImageLoader::cropReal4(Pt2di const &P0, Pt2di const 
 
 TIm2D<U_INT1,INT>* cInterfImageLoader::cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const
 {
-	std::auto_ptr<TIm2D<U_INT1,INT> > anTIm2D(new TIm2D<U_INT1,INT>(SzCrop));
+    std_unique_ptr<TIm2D<U_INT1,INT> > anTIm2D(new TIm2D<U_INT1,INT>(SzCrop));
 	mLoader->LoadCanalCorrel(sLowLevelIm<U_INT1>
 							 (
 							  anTIm2D->_the_im.data_lin(),
@@ -343,6 +345,8 @@ cImDigeo::cImDigeo
         aSom /= aSz.x * double(aSz.y);
         mG2MoyIsCalc= true;
         mGradMoy = sqrt(aSom);
+       
+       std::cout << "mGradMoy : "<<mGradMoy<<std::endl;
    }
 
    // Verification de coherence
@@ -527,8 +531,8 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
        mOctaves[aK]->SetBoxInOut(aBoxIn,aBoxOut);
 	
 	// On Crop l'image en mémoire
-	//std::auto_ptr<TIm2D<U_INT1,INT> > anTIm2D(mInterfImage->cropUInt1(mP0Cur,mSzCur));
-	std::auto_ptr<TIm2D<float,double> > anTIm2D(mInterfImage->cropReal4(mP0Cur,mSzCur));
+    //std_unique_ptr<TIm2D<U_INT1,INT> > anTIm2D(mInterfImage->cropUInt1(mP0Cur,mSzCur));
+    std_unique_ptr<TIm2D<float,double> > anTIm2D(mInterfImage->cropReal4(mP0Cur,mSzCur));
 	Fonc_Num aF = anTIm2D->_the_im.in_proj();
 	
     //Fonc_Num aF = mTifF->in_proj();

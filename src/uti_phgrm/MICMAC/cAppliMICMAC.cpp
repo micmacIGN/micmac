@@ -287,6 +287,7 @@ cAppliMICMAC::cAppliMICMAC
    mAutomNomPyr    (0),
    mEtape00        (0),
    mCurEtape       (0),
+   mPrecEtape      (0),
    mEBI            (0),
    mCurMAI         (0),
    mGeomDFPx       (NULL),
@@ -417,6 +418,10 @@ cAppliMICMAC::cAppliMICMAC
    char * aNameExeEnv = getenv("MICMAC_Exe");
    if (aNameExeEnv!=0)
       mNameExe = aNameExeEnv;
+
+   // Parfois besoin de chantier en amont pour Anam ....
+   if (!CalcNomChantier().IsInit() &&  NomChantier().IsInit())
+      mNameChantier = NomChantier().Val();
 
    InitDirectories();
    InitAnamSA();
@@ -1097,6 +1102,11 @@ void cAppliMICMAC::InitAnamSA()
                      "",
                      mXmlAnamSA
                );
+// std::cout << "AAAAAAAAaa\n";
+       if (mAnaGeomMNT && mAnaGeomMNT->UnUseAnamXCste().Val())
+       {
+              mAnamSA->SetUnusedAnamXCSte();
+       }
        ELISE_ASSERT(!mRepCorrel,"Anam and RepCorrel incompatibles");
     }
     else
@@ -1367,6 +1377,10 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
      if (PDVFromName  (aName,0))
         return;
 
+     if (CreateGrayFileAtBegin().Val())
+     {
+         Tiff_Im::StdConvGen(WorkDir() + aName, 1,true,true);
+     }
 
      std::string  aNameGeom;
      cGeometrieImageComp * theGotGeom = 0;

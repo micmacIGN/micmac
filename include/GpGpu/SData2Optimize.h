@@ -21,37 +21,32 @@ struct st_line
 
 struct p_ReadLine
 {
-    ushort  ID_Bf_Icost;
-    st_line line;
-    st_line seg;
-    bool    Id_Buf;
+    ushort          ID_Bf_Icost;
+    st_line         line;
+    st_line         seg;
+    bool            Id_Buf;
     const ushort    tid;
     const ushort    itid;
-    short2 prev_Dz;
-    ushort prevDefCor;
-    ushort pente;
-    float  ZRegul;
-    float  ZRegul_Quad;
+    short2          prev_Dz;
+    ushort          prevDefCor;
+    ushort          pente;
+    float           ZRegul;
+    float           ZRegul_Quad;
+    const ushort    costDefMask;
+    const ushort    costTransDefMask;
+    const bool      hasMaskauto;
+    const ushort    sizeBuffer;
 
-
-#ifdef CUDA_DEFCOR
-    const ushort costDefMask;
-    const ushort costTransDefMask;
-#endif
-
-    const ushort sizeBuffer;
-
-    __device__ p_ReadLine(ushort t,ushort ipente,float zReg,float zRegQuad,ushort pCostDefMask, ushort pCostTransDefMask,ushort pSizebuffer):
+    __device__ p_ReadLine(ushort t,ushort ipente,float zReg,float zRegQuad,ushort pCostDefMask, ushort pCostTransDefMask,ushort pSizebuffer,bool automask):
         Id_Buf(false),
         tid(t),
         itid(WARPSIZE - t - 1),
         pente(ipente),
         ZRegul(zReg),
         ZRegul_Quad(zRegQuad),
-#ifdef CUDA_DEFCOR
         costDefMask(pCostDefMask),
         costTransDefMask(pCostTransDefMask),
-#endif
+        hasMaskauto(automask),
         sizeBuffer(pSizebuffer)
     {
         line.id = 0;
@@ -98,12 +93,24 @@ struct p_ReadLine
         ID_Bf_Icost   = sizeBuff - ID_Bf_Icost + count(prev_Dz);
     }
 
-    template<bool sens> __device__ inline ushort stid()
-    {
-        return sens ? tid : itid;
-    }
+	template<bool sens> __device__ inline ushort stid();
 
 };
+
+template<bool sens> __device__ inline ushort p_ReadLine::stid()
+{
+	return 0;
+}
+
+template<> __device__ inline ushort p_ReadLine::stid<true>()
+{
+	return tid ;
+}
+
+template<> __device__ inline ushort p_ReadLine::stid<false>()
+{
+	return itid;
+}
 
 
 template<template<class T> class U, uint NBUFFER = 1 >
@@ -185,6 +192,8 @@ public:
     ushort      CostTransMaskNoMask() const;
     void        setCostTransMaskNoMask(const ushort &CostTransMaskNoMask);
 
+    bool        hasMaskAuto() const;
+    void        setHasMaskAuto(const bool &hasMaskAuto);
 private:
 
     U<uint3>     _param[NBUFFER];
@@ -200,6 +209,7 @@ private:
     ushort       _CostTransMaskNoMask;
     float        _zReg;
     float        _zRegQuad;
+    bool         _hasMaskAuto;
 
     ushort       _m_DzMax;
 };
@@ -429,6 +439,20 @@ TEMPLATE_D2OPTI
 void Data2Optimiz<U,NBUFFER>::setCostTransMaskNoMask(const ushort &CostTransMaskNoMask)
 {
     _CostTransMaskNoMask = CostTransMaskNoMask;
+}
+
+
+TEMPLATE_D2OPTI
+bool Data2Optimiz<U,NBUFFER>::hasMaskAuto() const
+{
+    return _hasMaskAuto;
+}
+
+
+TEMPLATE_D2OPTI
+void Data2Optimiz<U,NBUFFER>::setHasMaskAuto(const bool &hasMaskAuto)
+{
+    _hasMaskAuto = hasMaskAuto;
 }
 
 #endif //__DATA2OPTIMIZ_H__

@@ -353,6 +353,13 @@ template <class Type>
 template <class Type>
 Type  dist8(const Pt2d<Type> & p){return ElMax(ElAbs(p.x),ElAbs(p.y));}
 
+template <class Type>
+Type  dist48(const Pt2d<Type> & p)
+{
+   Type Ax = ElAbs(p.x);
+   Type Ay = ElAbs(p.y);
+   return ElMax(Ax,Ay) + Ax + Ay;
+}
 
 /*
 template <> Pt2d<double>::Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
@@ -522,7 +529,7 @@ class ElAffin2D : public cElMap2D
         static ElAffin2D trans(Pt2dr aTr);  // Ajoute Tr
 
   // Soit une image I1, que l'on Crop de Tr, puis que l'on sous echantillone
-  // a d'une resolutiobn aResol, pour avoir une image I2 renvoie la transfo qui donne les coordonnees
+  // a d'une resolution aResol, pour avoir une image I2 renvoie la transfo qui donne les coordonnees
   // de l'homologue de I1 dans I2
   //
   //  Si aSzInOut est donne, on rajoute une eventuelle translation pour que l'image
@@ -537,7 +544,7 @@ class ElAffin2D : public cElMap2D
 
         ElAffin2D (const ElSimilitude &);
 
-        ElAffin2D();  // idenitite, on le laisse par compatibilite
+        ElAffin2D();  // identite, on le laisse par compatibilite
 
         Pt2dr IVect (const Pt2dr & aP) const
         {
@@ -548,7 +555,7 @@ class ElAffin2D : public cElMap2D
               return  mI00 + IVect(aP);
         }
 
-         // ideme sim Aff1 * Aff2 renvoie l'affinite e composee (celle z-> Aff1(Aff2(z)))
+         // idem sim Aff1 * Aff2 renvoie l'affinite e composee (celle z-> Aff1(Aff2(z)))
        ElAffin2D operator * (const ElAffin2D & sim2) const;
        ElAffin2D inv() const;
 
@@ -568,7 +575,7 @@ double DMaxCoins(ElAffin2D AfC2M,Pt2dr aSzIm,Pt2dr aC);
 
 // Fonctions specifiques a un des types de points
 
-    // When a Pt2di p is used as a ``seed'' to generate a digital line the average eculidean
+    // When a Pt2di p is used as a ``seed'' to generate a digital line the average euclidean
     // distance d between two consecutives points is variable according to p
     // For example  : d = sqrt(2) for p = (1,1) or p = (234,234) and d = 1 for p = (-99,0)
 REAL  average_euclid_line_seed (Pt2di);
@@ -824,7 +831,7 @@ template <class Type> Pt3d<Type> PZ0(Pt2d<Type> aP)
 {return Pt3d<Type>(aP.x,aP.y,(Type)0);}
 
 template <class Type> Pt3d<Type> PointNorm1(const Pt3d<Type> & aP)
-{return aP / sqrt(aP.x*aP.x+aP.y*aP.y + aP.z*aP.z);};
+{return aP / sqrt(aP.x*aP.x+aP.y*aP.y + aP.z*aP.z);}
 
 inline Pt3di round_down(Pt3dr  p)
 {
@@ -1073,6 +1080,10 @@ Pt2di  RandomlyGenereInside(const Box2di &) ;
 Box2dr  I2R(const Box2di &);
 Box2di  R2I(const Box2dr &);   // Par round_ni
 Box2di  R2ISup(const Box2dr &);   // Par down et sup
+
+ostream & operator << (ostream & ofs,const Box2di  &aBox);
+ostream & operator << (ostream & ofs,const Box2dr  &aBox);
+
 
 
 void AdaptParamCopyTrans(INT& X0src,INT& X0dest,INT& NB,INT NbSrc,INT NbDest);
@@ -1404,7 +1415,7 @@ std::vector<Pt3dr> GetDistribRepresentative(Pt3dr & aCdg,const std::vector<Pt2dr
 namespace std
 {
 bool operator < (const Pt3di & aP1,const Pt3di & aP2);
-};
+}
 
 
 class cMTDImCalc;

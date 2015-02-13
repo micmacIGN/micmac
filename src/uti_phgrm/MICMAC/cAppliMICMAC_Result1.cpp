@@ -888,10 +888,9 @@ void cAppliMICMAC::GenereOrientationMnt()
    }
 }
 
-void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
+std::string   cAppliMICMAC::NameOrientationMnt(cEtapeMecComp * itE)
 {
-        cFileOriMnt aFOM = OrientFromOneEtape(*itE);
-        std::string aName =   
+        return
 		        FullDirMEC()
 	              + std::string("Z_Num") 
                       + ToString((itE)->Num())
@@ -900,36 +899,26 @@ void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
 		      + std::string("_")
 		      + NameChantier()
                       + std::string(".xml");
-         cElXMLTree * aTree = ToXMLTree(aFOM);
-         FILE * aFP = ElFopen(aName.c_str(),"w");
+}
+
+void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
+{
+    cFileOriMnt aFOM = OrientFromOneEtape(*itE);
+    std::string aName =    NameOrientationMnt(itE);
+    cElXMLTree * aTree = ToXMLTree(aFOM);
+    FILE * aFP = ElFopen(aName.c_str(),"w");
 
          
-         ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
+    ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
 
-         aTree->Show("      ",aFP,0,0,true);
+    aTree->Show("      ",aFP,0,0,true);
 
-         delete aTree;
-         ElFclose(aFP);
+    delete aTree;
+    ElFclose(aFP);
 
-         (itE)->DoRemplitXML_MTD_Nuage();
+    (itE)->DoRemplitXML_MTD_Nuage();
 
-         GenTFW(aFOM,aName);
-         // TFW
-/*
-         {
-             std::string aNameTFW = StdPrefix(aName) + ".tfw";
-             std::ofstream aFtfw(aNameTFW.c_str());
-             if (aFOM.mGXml.mPrec >=0)
-                 aFtfw.precision(aFOM.mGXml.mPrec);
-             else
-                 aFtfw.precision(12);// modification jean christophe michelin je met une precision standard
-
-              aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
-              aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
-              aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
-              aFtfw.close();
-          }
-*/
+    GenTFW(aFOM,aName);
 }
 
 
@@ -948,40 +937,41 @@ void GenTFW(const cFileOriMnt & aFOM,const std::string & aName)
      aFtfw.close();
 }
 
-
-/*
-void cAppliMICMAC::GenereOrientationMnt()
+void GenTFW(const ElAffin2D & anAff,const std::string & aNameTFW)
 {
-   for
-   (
-        tContEMC::const_iterator itE = mEtapesMecComp.begin();
-        itE != mEtapesMecComp.end();
-        itE++
-   )
-   {
-        cFileOriMnt aFOM = OrientFromOneEtape(**itE);
-        std::string aName =   
-		        FullDirMEC()
-	              + std::string("Z_Num") 
-                      + ToString((*itE)->Num())
-		      + std::string("_DeZoom")
-		      + ToString((*itE)->DeZoomTer())
-		      + std::string("_")
-		      + NameChantier()
-                      + std::string(".xml");
-         cElXMLTree * aTree = ToXMLTree(aFOM);
-         FILE * aFP = ElFopen(aName.c_str(),"w");
-         ELISE_ASSERT(aFP!=0,"cAppliMICMAC::GenereOrientationMnt");
+    std::ofstream aFtfw(aNameTFW.c_str());
+    aFtfw.precision(10);
 
-         aTree->Show("      ",aFP,0,0,true);
 
-         delete aTree;
-         ElFclose(aFP);
+    // Attention 1 Chance / 2 sur les terme croises aAfC2M.I10().y  et  aAfC2M.I01().x
+    // GM: attention pour avoir un tfw valide il faut un champ par ligne
+    aFtfw << anAff.I10().x << "\n" << anAff.I10().y << "\n";
+    aFtfw << anAff.I01().x << "\n" << anAff.I01().y << "\n";
+    aFtfw << anAff.I00().x << "\n" << anAff.I00().y << "\n";
 
-         (*itE)->DoRemplitXML_MTD_Nuage();
-   }
+    aFtfw.close();
 }
-*/
+
+double ResolOfAff(const ElAffin2D & anAff)
+{
+   return (euclid(anAff.I10()) +euclid(anAff.I01())) / 2.0;
+}
+
+double ResolOfNu(const cXML_ParamNuage3DMaille & aNu)
+{
+     ElAffin2D aAfM2C = Xml2EL(aNu.Orientation().OrIntImaM2C());
+     return ResolOfAff(aAfM2C.inv());
+}
+
+Box2dr BoxTerOfNu(const cXML_ParamNuage3DMaille & aNu)
+{
+     Box2dr aRes(Pt2dr(0,0),Pt2dr(aNu.NbPixel()));
+
+     ElAffin2D aAfM2C = Xml2EL(aNu.Orientation().OrIntImaM2C());
+     return aRes.BoxImage(aAfM2C.inv());
+}
+
+
 
 void cAppliMICMAC::SauvParam()
 {

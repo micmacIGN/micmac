@@ -53,8 +53,6 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     _data->computeBBox();
 
-    m_QTMainWindow->init3DPreview(_data,*m_QTMainWindow->params());
-
     Init();
 
     connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));
@@ -69,13 +67,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     ImagesSFModel*      proxyImageModel  = new ImagesSFModel(this);
     PointGlobalSFModel* proxyPointGlob   = new PointGlobalSFModel(this);
-    ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
+    //ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
 
     proxyPointGlob->setSourceModel  (new ModelPointGlobal(0,mAppli));
     proxyImageModel->setSourceModel (new ModelCImage(0,mAppli));
-    proxyObjectModel->setSourceModel(new ModelObjects(0,mAppli));
+    //proxyObjectModel->setSourceModel(new ModelObjects(0,mAppli));
 
-    m_QTMainWindow->setModel(proxyPointGlob, proxyImageModel, proxyObjectModel);
+    m_QTMainWindow->setModel(proxyPointGlob, proxyImageModel/*, proxyObjectModel*/);
 
     m_QTMainWindow->resizeTables();
 
@@ -409,12 +407,15 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
             images[aKW]->CptAff() = _aCpt++;
 
             if (!isDisplayed(images[aKW]))
-
+            {
                 m_QTMainWindow->SetDataToGLWidget(idPg == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
+                images[aKW]->SetLoaded();
+            }
 
             aKW++;
         }
 
+        mAppli->OnModifLoadedImage();
         mAppli->SetImagesVis(images);
 
         rebuildGlPoints(true);

@@ -11,6 +11,8 @@ set(UTI_PHGRM_GPGPU_DIR ${UTI_PHGRM_DIR}/GpGpu)
 
 set(UTI_PHGRM_FUSION_NUAGES ${UTI_PHGRM_DIR}/FusionNuage)
 set(UTI_PHGRM_MERGE_CLOUD ${UTI_PHGRM_DIR}/MergeCloud)
+set(UTI_PHGRM_NEW_ORI ${UTI_PHGRM_DIR}/NewOri)
+set(UTI_PHGRM_TEXT_DIR ${UTI_PHGRM_DIR}/TexturePacker)
 
 set(SrcGrp_Uti_PHGRM uti_phgrm)
 
@@ -24,6 +26,8 @@ INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MERGE_CLOUD}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_CASA_DIR}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_NEW_ORI}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_TEXT_DIR}/Sources.cmake)
 
 #define __CUDA_API_VERSION 0x5050
 
@@ -58,6 +62,17 @@ else()
     set(OPENCL_ENABLED  0)
 endif()
 
+if(${CUDA_CPP11THREAD_NOBOOSTTHREAD})
+    set(CPP11THREAD_NOBOOSTTHREAD 1)
+else()
+    set(CPP11THREAD_NOBOOSTTHREAD  0)
+endif()
+
+if(${CUDA_NVTOOLS})
+    set(NVTOOLS 1)
+else()
+    set(NVTOOLS  0)
+endif()
 
 if(${WITH_OPEN_MP})
     set(OPM_ENABLED 1)
@@ -113,6 +128,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Tapioca.cpp
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
+    ${UTI_PHGRM_DIR}/CPP_Tequila.cpp
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
     ${UTI_PHGRM_DIR}/CPP_TestChantier.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieMasq.cpp
@@ -131,6 +147,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Sake.cpp
     ${UTI_PHGRM_DIR}/CPP_Liquor.cpp
     ${UTI_PHGRM_DIR}/CPP_Morito.cpp
+    ${UTI_PHGRM_DIR}/CPP_C3DC.cpp
 )
 
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})
@@ -154,4 +171,5 @@ list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Porto_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_RHH_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Casa_Src_Files})
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Text_Src_Files})
 list( APPEND Elise_Src_Files ${uti_phgrm_Src_Files})

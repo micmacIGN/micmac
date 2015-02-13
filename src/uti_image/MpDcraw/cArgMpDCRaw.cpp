@@ -346,12 +346,13 @@ void  cArgMpDCRaw::DevJpg()
     Tiff_Im aFTmp(aTmp.c_str());
     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
 
-    // Gestion de l'autorotation 
-    if (1) // Pour ne pas polluer le commit ...
+    if (0) // Apparemment ca cree plus de pb que ca n'en resoud ....
     {
          bool Ok,OkCam;
          int anA = ExtractAngleFromRot( aMDP.Orientation(),Ok);
          int anACam = ExtractAngleFromRot(aMDP.CameraOrientation(),OkCam);
+
+// std::cout << "GGGGG " << anA << " " << anACam << "\n"; getchar();
 
          if (! OkCam)
          {

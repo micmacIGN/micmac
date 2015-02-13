@@ -2,7 +2,11 @@
 
 <MMCameraDataBase>
 <!-- Canon DSLR -->
-
+   <CameraEntry>
+        <Name>  Canon EOS 6D  </Name>
+        <SzCaptMm>   24.0 36.0 </SzCaptMm>
+        <ShortName> C6D </ShortName>
+   </CameraEntry>
    <CameraEntry>
         <Name>  Canon EOS 5D  </Name>
         <SzCaptMm>   24.0 36.0 </SzCaptMm>
@@ -81,7 +85,7 @@
    </CameraEntry>
    <CameraEntry>
         <Name>  NIKON D300   </Name>
-        <SzCaptMm>   16.0 24.0 </SzCaptMm>
+        <SzCaptMm>   15.8 23.6 </SzCaptMm>
         <ShortName> ND300  </ShortName>
    </CameraEntry>
    <CameraEntry>

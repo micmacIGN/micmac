@@ -84,7 +84,9 @@ int CASA_main(int argc,char ** argv)
     std::string aNameN1;
     std::string aNameN2;
     std::string aNameN3;
+    std::string aNameN4;
     std::string Out="TheCyl.xml";
+    std::vector<std::string> aVPts;
 
     ElInitArgMain
     (
@@ -92,7 +94,9 @@ int CASA_main(int argc,char ** argv)
         LArgMain()  << EAMC(aNameN1,"Name of Cloud", eSAM_IsExistFile),
         LArgMain()  << EAM(Out,"Out",true,"Name of result (Def=TheCyl.xml)")
                     <<  EAM(aNameN2,"N2",true,"Name of optional second cloud", eSAM_IsExistFile)
-                    <<  EAM(aNameN3,"N3",true,"Name of optional second cloud", eSAM_IsExistFile)
+                    <<  EAM(aNameN3,"N3",true,"Name of optional third cloud", eSAM_IsExistFile)
+                    <<  EAM(aNameN4,"N4",true,"Name of optional fourth cloud", eSAM_IsExistFile)
+                    <<  EAM(aVPts,"PtsOri",true,"[Pts2D.xml,Ori], points and Orientation (used for seizing) to specify surface")
      );
 
      if (MMVisualMode) return EXIT_SUCCESS;
@@ -108,6 +112,14 @@ int CASA_main(int argc,char ** argv)
      if (EAMIsInit(&aNameN3))
         aCom = aCom + " +UseN3=true +N3=" + aNameN3;
 
+     if (EAMIsInit(&aNameN4))
+        aCom = aCom + " +UseN4=true +N4=" + aNameN4;
+
+     if (EAMIsInit(&aVPts))
+     {
+         ELISE_ASSERT(aVPts.size()==2,"Require 2 args for PtsOri");
+         aCom = aCom + " +Pts=" + aVPts[0] + " +PtsOri=" + aVPts[1] + " +UsePts=true" ;
+     }
 
      System(aCom);
 

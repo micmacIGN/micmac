@@ -9,9 +9,8 @@ cObject::cObject() :
     _alpha(0.6f),
     _state(state_default)
 {
- for (int iC = 0; iC < state_COUNT; ++iC)
-    _color[iC] = QColor(255,255,255);
-
+    for (int iC = 0; iC < state_COUNT; ++iC)
+        _color[iC] = QColor(255,255,255);
 }
 
 cObject::cObject(Pt3dr pos, QColor color_default) :
@@ -22,7 +21,6 @@ cObject::cObject(Pt3dr pos, QColor color_default) :
     _alpha(0.6f),
     _state(state_default)
 {
-
     for (int iC = 0; iC < state_COUNT; ++iC)
         _color[iC] = color_default;
 }
@@ -79,7 +77,7 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
     float theta = 2.f * PI / float(steps);
     float c = cosf(theta); //precalculate the sine and cosine
     float s = sinf(theta);
-    float t;
+//    float t;
 
     float x = r; //we start at angle = 0
     float y = 0;
@@ -99,7 +97,7 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
         glVertex3fv(P);
 
         //apply the rotation matrix
-        t = x;
+		float t = x;
         x = c * x - s * y;
         y = s * t + c * y;
     }
@@ -108,34 +106,31 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 
 void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO step Auto....
 {
-    float theta = 2.f * PI / float(steps);
-
-    float x,y,z = 0.f;
+	const float theta = 2.f * PI / float(steps);
 
     glBegin(GL_LINE_LOOP);
     for(float t = 0.f; t <= 2.f * PI; t+= theta)
     {
-        x = cx + rx*sinf(t);
-        y = cy + ry*cosf(t);
 
-        glVertex3f(x,y,z);
+		const float x = cx + rx*sinf(t);
+		const float y = cy + ry*cosf(t);
+
+		glVertex3f(x,y,0.f);
     }
     glEnd();
 }
 
 void glDrawEllipsed(double cx, double cy, double rx, double ry, int steps) // TODO step Auto....
 {
-    double theta = 2.f * PI / double(steps);
-
-    double x,y,z = 0.f;
+	const double theta = 2.f * PI / double(steps);
 
     glBegin(GL_LINE_LOOP);
     for(double t = 0.f; t <= 2.f * PI; t+= theta)
     {
-        x = cx + rx*std::sin(t);
-        y = cy + ry*std::cos(t);
+		const float x = cx + rx*std::sin(t);
+		const float y = cy + ry*std::cos(t);
 
-        glVertex3d(x,y,z);
+		glVertex3d(x,y,0.f);
     }
     glEnd();
 }
@@ -669,7 +664,7 @@ void cPoint::glDraw()
 float cPolygon::_selectionRadius = 10.f;
 
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int style):
-    _helper(new cPolygonHelper(this, 3, lineWidth)),
+	_helper(new cPolygonHelper(this, 3, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
@@ -681,7 +676,15 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     _maxSz(maxSz)
 {
     setColor(pointColor);
-    setLineWidth(lineWidth);
+	setLineWidth(lineWidth);
+}
+
+cPolygon::~cPolygon()
+{
+	if(_helper)
+	{
+		delete _helper;
+	}
 }
 
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
@@ -739,7 +742,11 @@ void cPolygon::draw()
         disableOptionLine();
     }
 
-    if(helper() != NULL)  helper()->draw();
+
+	if(helper() != NULL)
+	{
+		helper()->draw();
+	}
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -975,11 +982,16 @@ void cPolygon::setVector(const QVector<QPointF> &aPts)
     }
 }
 
+void cPolygon::setHelper(cPolygonHelper* aHelper) {
+
+	_helper = aHelper;
+}
+
 void cPolygon::setPointSelected()
 {
-    _bSelectedPoint = true;
+	_bSelectedPoint = true;
 
-    if (pointValid())
+	if (pointValid())
         point(_idx).setSelected(true);
 }
 
@@ -1044,17 +1056,17 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
     {
         resetSelectedPoint();
 
-        float dist, dist2, x, y, dx, dy;
+		float dist2, x, y;
         dist2 = radius*radius;
         x = pos.x();
         y = pos.y();
 
         for (int aK = 0; aK < size(); ++aK)
         {
-            dx = x - point(aK).x();
-            dy = y - point(aK).y();
+			const float dx = x - point(aK).x();
+			const float dy = y - point(aK).y();
 
-            dist = dx * dx + dy * dy;
+			const float dist = dx * dx + dy * dy;
 
             if  (dist < dist2)
             {
@@ -1234,8 +1246,12 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
 //********************************************************************************
 
 cPolygonHelper::cPolygonHelper(cPolygon* polygon, int maxSz, float lineWidth, QColor lineColor, QColor pointColor):
-    cPolygon(maxSz, lineWidth, lineColor, pointColor, false),
+	cPolygon(maxSz, lineWidth, lineColor, pointColor, false),
     _polygon(polygon)
+{
+}
+
+cPolygonHelper::~cPolygonHelper()
 {
 }
 
@@ -1265,11 +1281,11 @@ void cPolygonHelper::build(cPoint const &pos, bool insertMode)
 
     if (insertMode)
     {
-        float dist, dist2 = FLT_MAX;
+		float dist2 = FLT_MAX;
         int idx = -1;
         for (int aK =0; aK < sz; ++aK)
         {
-            dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%sz], pos);
+			const float dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%sz], pos);
 
             if (dist < dist2)
             {
@@ -1380,17 +1396,17 @@ void cRectangle::draw()
 const GLuint GL_INVALID_LIST_ID = (~0);
 
 cImageGL::cImageGL(float gamma) :
-    _originX(0.f),
-    _originY(0.f),
     _texture(GL_INVALID_LIST_ID),
     _gamma(gamma)
 {
+    setPosition(Pt3dr(0,0,0));
+
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
 
-    _texLocation    = _program.uniformLocation("tex");
-    _gammaLocation  = _program.uniformLocation("gamma");
+    _texLocation   = _program.uniformLocation("tex");
+    _gammaLocation = _program.uniformLocation("gamma");
 }
 
 cImageGL::~cImageGL()
@@ -1404,7 +1420,7 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-    drawQuad(_originX, _originY, width(), height(), color);
+    drawQuad(getPosition().x, getPosition().y, width(), height(), color);
 }
 
 void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
@@ -1412,6 +1428,7 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
     glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
     glBegin(GL_QUADS);
     {
+
         glTexCoord2f(0.0f, 0.0f);
         glVertex2f(originX, originY);
         glTexCoord2f(1.0f, 0.0f);
@@ -1420,6 +1437,7 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
         glVertex2f(originX+glw, originY+glh);
         glTexCoord2f(0.0f, 1.0f);
         glVertex2f(originX, originY+glh);
+
     }
     glEnd();
 }
@@ -1427,18 +1445,19 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
 void cImageGL::draw()
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, _texture );
 
-    /*int max;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-    cout<<max<<endl;*/
+	if(_texture != GL_INVALID_LIST_ID)
+	{
+		glBindTexture( GL_TEXTURE_2D, _texture );
 
-    if(_gamma != 1.0f)
-    {
-        _program.bind();
-        _program.setUniformValue(_texLocation, GLint(0));
-        _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
-    }
+		if(_gamma != 1.0f)
+		{
+			_program.bind();
+			_program.setUniformValue(_texLocation, GLint(0));
+			_program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
+		}
+
+	}
 
     drawQuad(Qt::white);
 
@@ -1448,9 +1467,16 @@ void cImageGL::draw()
     glDisable(GL_TEXTURE_2D);
 }
 
+
+void cImageGL::setSize(QSize size)
+{
+    _size = size;
+}
+
 void cImageGL::draw(QColor color)
 {
-    drawQuad(color);
+    if(isVisible())
+        drawQuad(color);
 }
 
 bool cImageGL::isPtInside(const QPointF &pt)
@@ -1458,42 +1484,48 @@ bool cImageGL::isPtInside(const QPointF &pt)
     return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
 }
 
-void cImageGL::PrepareTexture(QImage * pImg)
+void cImageGL::createTexture(QImage * pImg)
 {
-    glGenTextures(1, getTexture() );
+
+	if(!pImg || pImg->isNull())
+		return;
+
+    glGenTextures(1, getTexture() );	
 
     ImageToTexture(pImg);
-
-    _size = pImg->size();
 }
 
 void cImageGL::ImageToTexture(QImage *pImg)
 {
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, _texture );
 
+    glEnable(GL_TEXTURE_2D);
+
+    glBindTexture( GL_TEXTURE_2D, _texture );
     if (pImg->format() == QImage::Format_Indexed8)
         glTexImage2D( GL_TEXTURE_2D, 0, 3, pImg->width(), pImg->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, pImg->bits());
     else
         glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
 
-    GLenum glErrorT = glGetError();
+
+    /*GLenum glErrorT = glGetError();
     if(glErrorT == GL_OUT_OF_MEMORY)
     {
         setGlError(glErrorT);
         printf("GL_OUT_OF_MEMORY \n");
-    }
+    }*/
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_2D);
 }
 
 void cImageGL::deleteTexture()
 {
-    if(_texture != GL_INVALID_LIST_ID)
+
+	if(_texture != GL_INVALID_LIST_ID)
         glDeleteTextures(1,&_texture);
-    _texture = GL_INVALID_LIST_ID;
+	_texture = GL_INVALID_LIST_ID;
+
 }
 
 void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
@@ -1530,58 +1562,228 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 
 //********************************************************************************
 
+//TODO: un seul constructeur ?
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _qMaskedImage(qMaskedImage)
 {
-
+    _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
     _m_mask     = new cImageGL();
     _m_image    = new cImageGL(qMaskedImage->_gamma);
     _m_newMask  = qMaskedImage->_m_newMask;
 
     _m_FileOriMnt = qMaskedImage->_m_FileOriMnt;
-    _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
+
     cObjectGL::setName(qMaskedImage->name());
+}
+
+cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
+    _qMaskedImage(NULL)
+{
+    _m_image = new cImageGL();
+    _m_mask  = new cImageGL();
+
+    _m_image->setVisible(false);
+    _m_mask->setVisible(false);
+
+    Pt3dr pos(aRect.topLeft().x(), aRect.topLeft().y(), 0.f);
+
+    QSize size((int) aRect.width(), (int) aRect.height());
+
+    _m_image->setPosition(pos);
+    _m_image->setSize(size);
+    _m_mask->setPosition(pos);
+	_m_mask->setSize(size);
+}
+
+cMaskedImageGL::~cMaskedImageGL()
+{
+	_mutex.unlock();
 }
 
 void cMaskedImageGL::draw()
 {
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE,GL_ZERO);
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_DEPTH_TEST);
 
-    glColor4f(1.0f,1.0f,1.0f,1.0f);
+	if(glImage()->isVisible())
+	{
+		glBlendFunc(GL_ONE,GL_ZERO);		
+		glImage()->draw();
+	}
 
-    if(_m_mask != NULL && _m_mask->isVisible())
-    {
-        _m_mask->draw();
-        glBlendFunc(GL_ONE,GL_ONE);
-        _m_mask->draw(QColor(128,255,128));
-        glBlendFunc(GL_DST_COLOR,GL_ZERO);
-        glColor4f(1.0f,1.0f,1.0f,1.0f);
-    }
+	if(glMask() != NULL && glMask()->isVisible())
+	{
 
-    _m_image->draw();
+#if (ELISE_QT_VERSION == 5)
+		QOpenGLContext* context = QOpenGLContext::currentContext();
+		QOpenGLFunctions* glFunctions = context->functions();
+		glFunctions->glBlendColor(1.f, 0.1f, 1.f, 1.0f);
+		glFunctions->glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+		glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
+		glMask()->draw();
+
+		glFunctions->glBlendEquation(GL_FUNC_ADD);
+		glFunctions->glBlendColor(0.f, 0.2f, 0.f, 1.0f);
+		glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
+		glMask()->draw(); 
+#elif (ELISE_QT_VERSION == 4)
+
+		glBlendColor(1.f, 0.1f, 1.f, 1.0f);
+		glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+		glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
+		glMask()->draw();
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendColor(0.f, 0.2f, 0.f, 1.0f);
+		glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
+		glMask()->draw();
+#endif
+	}
 
     glDisable(GL_BLEND);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
 }
 
-void cMaskedImageGL::prepareTextures()
+/*void cMaskedImageGL::drawMaskTiles()
 {
-    if(_m_mask && _m_mask->isVisible())
-        _m_mask->PrepareTexture(_qMaskedImage->_m_mask);
-    if(_m_image && _m_image->isVisible())
-        _m_image->PrepareTexture(_qMaskedImage->_m_image);
+    for (unsigned int aK=0; aK <_vTiles.size();++aK)
+    {
+        if (_vTiles[aK].getMaskTile()->isVisible())
+            _vTiles[aK].getMaskTile()->draw();
+    }
+}
+
+void cMaskedImageGL::drawImgTiles()
+{
+    for (unsigned int aK=0; aK <_vTiles.size();++aK)
+    {
+        if (_vTiles[aK].getImgTile()->isVisible())
+        {
+            if(*(_vTiles[aK].getImgTile()->getTexture() )==  GL_INVALID_LIST_ID)
+                _vTiles[aK].getImgTile()->draw(Qt::red);
+            else
+            {
+                _vTiles[aK].getImgTile()->draw();
+            }
+        }
+    }
+}*/
+
+/*void cMaskedImageGL::drawTiles(cImageGL* tiles)
+{
+    for (int aK = 0; aK < 4; ++aK)
+    {
+        if (tiles[aK].isVisible())
+        {
+            if(*(tiles[aK].getTexture() )==  GL_INVALID_LIST_ID)
+                tiles[aK].draw(Qt::red);
+            else
+                tiles[aK].draw();
+        }
+    }
+
+//    {
+//        tiles[0].draw(Qt::red);
+//        tiles[1].draw(Qt::blue);
+//        tiles[2].draw(Qt::green);
+//        tiles[3].draw(Qt::yellow);
+//    }
+}*/
+
+
+
+void cMaskedImageGL::createTextures()
+{
+	_mutex.tryLock();
+	if( _qMaskedImage)
+	{
+		if( glMask() && glMask()->isVisible() )
+		{
+
+			glMask()->createTexture( _qMaskedImage->_m_rescaled_mask );
+
+			if(!_qMaskedImage->_fullSize.isNull())
+			{
+				glMask()->setSize( _qMaskedImage->_fullSize);
+			}
+			else
+				glMask()->setSize( _qMaskedImage->_m_mask->size() );
+		}
+		if(glImage() && glImage()->isVisible())
+		{
+			if(getLoadedImageRescaleFactor() < 1.f)
+				glImage()->createTexture( _qMaskedImage->_m_rescaled_image );
+			else
+				glImage()->createTexture( _qMaskedImage->_m_image );
+
+			if(!_qMaskedImage->_fullSize.isNull())
+			{
+				glImage()->setSize( _qMaskedImage->_fullSize );
+			}
+			else
+				glImage()->setSize( _qMaskedImage->_m_image->size() );
+
+		}
+	}
+	_mutex.unlock();
+}
+
+void cMaskedImageGL::createFullImageTexture()
+{
+	if(glImage() && glImage()->isVisible())
+	{
+		_mutex.tryLock();
+		if(_qMaskedImage)
+		{
+			glImage()->createTexture( _qMaskedImage->_m_image );
+			delete _qMaskedImage;
+			_qMaskedImage = NULL;
+		}
+		_mutex.unlock();
+	}
+
+}
+
+void cMaskedImageGL::copyImage(QMaskedImage* image, QRect& rect)
+{
+	_mutex.tryLock();
+	if(!_qMaskedImage)
+		_qMaskedImage = new QMaskedImage();
+
+	_qMaskedImage->_m_image = new QImage(rect.size(),QImage::Format_Mono);
+
+	QImage* tImage = getMaskedImage()->_m_image;
+
+	QImage* sourceImage = image->_m_image;
+
+	*(tImage) = sourceImage->copy(rect);
+
+	_mutex.unlock();
+}
+
+QSize cMaskedImageGL::fullSize()
+{
+
+	_mutex.tryLock();
+	if(getMaskedImage() && !getMaskedImage()->_fullSize.isNull())
+	{
+		QSize lfullSize	= _qMaskedImage->_fullSize;
+		return lfullSize;
+	}
+	else
+		return glImage()->getSize();
+
+	_mutex.unlock();
 }
 
 void cMaskedImageGL::deleteTextures()
 {
-    if(_m_mask)
-        _m_mask->deleteTexture(); //TODO segfault (undo)
-    if(_m_image)
-        _m_image->deleteTexture();
+	if(glMask())
+		glMask()->deleteTexture(); //TODO segfault (undo)
+    if(glImage())
+        glImage()->deleteTexture();
 }
 
 //********************************************************************************
@@ -1608,7 +1810,7 @@ void cObjectGL::enableOptionLine()
 
 void cObjectGL::disableOptionLine()
 {
-    glDisable(GL_BLEND);
+	glDisable(GL_BLEND);
     glDisable(GL_LINE_SMOOTH);
     //glEnable(GL_DEPTH_TEST);
 }
@@ -1748,9 +1950,10 @@ void cMessages2DGL::glRenderText(QString text, QPointF pt, QColor color)
     glwid->renderText ( pt.x(), pt.y(), text);
 }
 
-cGrid::cGrid(Pt3d<double> pt, float scale, int nb) // TODO ne fait rien??!!
+cGrid::cGrid(Pt3dr pt, Pt3dr scale)
 {
-
+    _position = pt;
+    _scale    = scale;
 }
 
 void cGrid::draw()

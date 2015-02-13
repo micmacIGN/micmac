@@ -1,12 +1,7 @@
 #ifndef SAISIEMASQQT_MAIN_H
 #define SAISIEMASQQT_MAIN_H
 
-#include <memory>
-#include "StdAfx.h"
-
 #include "QT_interface_Elise.h"
-
-#include "general/visual_mainwindow.h"
 
 
 using namespace std;
@@ -37,10 +32,13 @@ extern void SaisieAppuisPredic(int argc, char ** argv,
                                std::string &aName,
                                std::string &aNamePt,
                                std::string &anOri,
+                               std::string &aModeOri,
                                std::string &aNameMesure,
                                std::string &aTypePts,
                                double &aFlou,
-                               bool &aForceGray);
+                               bool &aForceGray,
+                               double &aZMoy,
+                               double &aZInc);
 
 extern void SaisieBasc(int argc, char ** argv,
                         std::string &aFullName,

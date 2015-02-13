@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -123,7 +123,7 @@ class Tiff_Im : public ElGenFileIm
                eRATIONNAL = 5
         } FIELD_TYPE;
 
-        static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE);
+        static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE,const char * aNameFile);
 
         typedef enum
         {
@@ -135,16 +135,16 @@ class Tiff_Im : public ElGenFileIm
              JPEG_Compr          = 6,
              MPD_T6              = 40644,
              PackBits_Compr      = 32773,
-             NoByte_PackBits_Compr      = 32774  
+             NoByte_PackBits_Compr      = 32774
 
         }  COMPR_TYPE;
-		/* 
-		 * NoByte_PackBits_Compr
-		 *      Variante, pour les images de + de 8bits, 
-		 *      ou ne redcoupe pas l'image en byte avant de la comprimer
-		 *      en general bcp + efficace (car les bytes constiutant la meme
-		 *      valeur de pixel on puet de raison d'etre egaux)
-	     */
+        /*
+         * NoByte_PackBits_Compr
+         *      Variante, pour les images de + de 8bits,
+         *      ou ne redcoupe pas l'image en byte avant de la comprimer
+         *      en general bcp + efficace (car les bytes constiutant la meme
+         *      valeur de pixel on puet de raison d'etre egaux)
+         */
         static const char * name_compr(INT);
         static bool mode_compr_bin(INT);
 
@@ -158,9 +158,9 @@ class Tiff_Im : public ElGenFileIm
              CMYK          = 5,
              YCbCr         = 6,
              CIELab        = 8,
-	     PtDeLiaison   = 10531, // Une valeur peu succeptible de telescopage
-	     // PtDAppuisDense : il y 4 cannaux,Pds, xy et z superposables aux images
-	     PtDAppuisDense  = 10532  
+         PtDeLiaison   = 10531, // Une valeur peu susceptible de telescopage
+         // PtDAppuisDense : il y 4 canaux,Pds, xy et z superposables aux images
+         PtDAppuisDense  = 10532
         }  PH_INTER_TYPE;
 
         static const char * name_phot_interp(INT);
@@ -200,7 +200,7 @@ class Tiff_Im : public ElGenFileIm
 
 
         enum
-        {  
+        {
             MAX_COLOR_PAL = ((1<<16)-1)
         };
 
@@ -248,7 +248,7 @@ class Tiff_Im : public ElGenFileIm
 
 
 
-          // Resolution 
+          // Resolution
 
           class AResol : public Arg_Tiff
           {
@@ -256,7 +256,7 @@ class Tiff_Im : public ElGenFileIm
                         AResol(Pt2dr,RESOLUTION_UNIT);
           };
 
-          // Predictor 
+          // Predictor
           class APred : public Arg_Tiff
           {
                public : APred(PREDICTOR);
@@ -278,11 +278,11 @@ class Tiff_Im : public ElGenFileIm
                public : ANoStrip();
           };
 
-	  // Pour dallage par fichiers  -1,-1 => Pas de dallage
-	  class AFileTiling : public Arg_Tiff
-	  {
-	        public : AFileTiling(Pt2di sz_dalle);
-	  };
+      // Pour dallage par fichiers  -1,-1 => Pas de dallage
+      class AFileTiling : public Arg_Tiff
+      {
+            public : AFileTiling(Pt2di sz_dalle);
+      };
 
 
 
@@ -303,14 +303,12 @@ class Tiff_Im : public ElGenFileIm
 
           class AMinMax  : public Arg_Tiff
           {
-               public : AMinMax(U_INT2,U_INT2); 
+               public : AMinMax(U_INT2,U_INT2);
                // Tiff does not handle signed of 4-byte values for
                // these tags. That's a pity
           };
 
           Tiff_Im(const char *);  // initialize to the first image
-// 06 73 19 98 77
-
 
           // Binary, Gray level, RGB
 
@@ -320,20 +318,20 @@ class Tiff_Im : public ElGenFileIm
                     COMPR_TYPE                  compr,
                     PH_INTER_TYPE               phot_interp,
                     L_Arg_Opt_Tiff              l = Empty_ARG
-                 );  
+                 );
 
-	  // Cree le fichier si il n'existe pas  ou si  une de
-	  // ses caracteristique est differente de celle passee
+      // Cree le fichier si il n'existe pas  ou si  une de
+      // ses caracteristique est differente de celle passee
           static Tiff_Im CreateIfNeeded
-		         (  
-		              bool  &                     IsModified,
-		              const std::string &         ,
+                 (
+                      bool  &                     IsModified,
+                      const std::string &         ,
                               Pt2di                       sz,
                               GenIm::type_el              type,
                               COMPR_TYPE                  compr,
                               PH_INTER_TYPE               phot_interp,
                               L_Arg_Opt_Tiff              l = Empty_ARG
-                        );  
+                        );
 
           // Color Indexed
 
@@ -343,7 +341,7 @@ class Tiff_Im : public ElGenFileIm
                     COMPR_TYPE                  compr,
                     Disc_Pal                    pal,
                     L_Arg_Opt_Tiff              l = Empty_ARG
-                 );  
+                 );
 
 
 
@@ -359,17 +357,17 @@ class Tiff_Im : public ElGenFileIm
           GenIm::type_el  type_el();
 
           Disc_Pal              pal();
-    	  Elise_Palette         std_pal(Video_Win);
+          Elise_Palette         std_pal(Video_Win);
           Pt2di sz();
           Pt2di sz_tile();
           Pt2di nb_tile();
           INT   nb_chan();
           cMetaDataPhoto MDP() ;
           INT   bitpp();
-		  bool byte_ordered();
+          bool byte_ordered();
           COMPR_TYPE mode_compr();
           PLANAR_CONFIG  plan_conf();
-		  const char * name();
+          const char * name();
 
           Fonc_Num in();
           Fonc_Num in_proj();
@@ -380,18 +378,18 @@ class Tiff_Im : public ElGenFileIm
           Fonc_Num in_bool_proj();
           Fonc_Num in_bool(Fonc_Num );
 
-	  typedef enum {eModeCoulStd,eModeCoulGray,eModeCoulRGB} eModeCoul;
-	  typedef enum {eModeNoProl,eModeProlProj,eModeProlDef}  eModeProl;
-	  Fonc_Num  in_gen(eModeCoul,eModeProl,REAL aDef=0.0);
+      typedef enum {eModeCoulStd,eModeCoulGray,eModeCoulRGB} eModeCoul;
+      typedef enum {eModeNoProl,eModeProlProj,eModeProlDef}  eModeProl;
+      Fonc_Num  in_gen(eModeCoul,eModeProl,REAL aDef=0.0);
 
           Output out();
-	      PackB_IM<U_INT1> un_load_pack_bit_U_INT1();
-	      PackB_IM<U_INT2> un_load_pack_bit_U_INT2();
-		  bool OkFor_un_load_pack_bit_U_INT1();
-		  bool OkFor_un_load_pack_bit_U_INT2();
+          PackB_IM<U_INT1> un_load_pack_bit_U_INT1();
+          PackB_IM<U_INT2> un_load_pack_bit_U_INT2();
+          bool OkFor_un_load_pack_bit_U_INT1();
+          bool OkFor_un_load_pack_bit_U_INT2();
 
-	  tFileOffset   offset_tile(INT x,INT y,INT kth_ch);
-          tFileOffset   byte_count_tile(INT x,INT y,INT kth_ch);    
+      tFileOffset   offset_tile(INT x,INT y,INT kth_ch);
+          tFileOffset   byte_count_tile(INT x,INT y,INT kth_ch);
 
           // N'initialise pas
           std::vector<Im2DGen *>  VecOfIm(Pt2di aSz);
@@ -402,33 +400,35 @@ class Tiff_Im : public ElGenFileIm
           static const ElSTDNS string Str_Group_3FAX_Compr;	// FAX3
           static const ElSTDNS string Str_Group_4FAX_Compr;	// FAX4
           static const ElSTDNS string Str_LZW_Compr;		// LZW
-          static const ElSTDNS string Str_JPEG_Compr;		// JPEG	
+          static const ElSTDNS string Str_JPEG_Compr;		// JPEG
           static const ElSTDNS string Str_MPD_T6; 		// MPTDT6
           static const ElSTDNS string Str_PackBits_Compr;	// PackBits
           static const ElSTDNS string Str_NoBytePackBits_Compr;	// PackBits
 
-	  static Tiff_Im  StdConv(const ElSTDNS string & Name); // => remis  pour compat  avec certain binaires (=BasicConvStd)
-	  static Tiff_Im  BasicConvStd(const ElSTDNS string & Name);  // Que les tif ou assim
-	  static Tiff_Im  UnivConvStd(const ElSTDNS string & Name);   // cree des tifs cache pour les RAW-JPGS (uses StdConvGen)
+      static Tiff_Im  StdConv(const ElSTDNS string & Name); // => remis  pour compat  avec certain binaires (=BasicConvStd)
+      static Tiff_Im  BasicConvStd(const ElSTDNS string & Name);  // Que les tif ou assim
+      static Tiff_Im  UnivConvStd(const ElSTDNS string & Name);   // cree des tifs cache pour les RAW-JPGS (uses StdConvGen)
           // Convertit (avec NameFileStd) les jpg , raw et tif comprs
-	  static Tiff_Im  StdConvGen(const ElSTDNS string & Name,int aNbChan,bool Cons16B,bool ExigNoCompr = true);
+      static Tiff_Im  StdConvGen(const ElSTDNS string & Name,int aNbChan,bool Cons16B,bool ExigNoCompr = true);
 
-	  // Test dand l'ordre aName + ".tif" et aName
-	  static std::string GetNameOfFileExist(const std::string & aName);
+      // Test dand l'ordre aName + ".tif" et aName
+      static std::string GetNameOfFileExist(const std::string & aName);
 
-	  static COMPR_TYPE mode_compr(const ElSTDNS string &);
+      static COMPR_TYPE mode_compr(const ElSTDNS string &);
          Tiff_Im(class DATA_Tiff_Ifd *);
 
          Im2DGen ReadIm();
          static Tiff_Im CreateFromIm(Im2DGen,const std::string &,L_Arg_Opt_Tiff              l = Empty_ARG);
          static Tiff_Im CreateFromIm(std::vector<Im2DGen>,const std::string &,L_Arg_Opt_Tiff              l = Empty_ARG);
 
-	 static Tiff_Im Create8BFromFonc(const std::string &,Pt2di,Fonc_Num,COMPR_TYPE);
-	 static Tiff_Im Create8BFromFonc(const std::string &,Pt2di,Fonc_Num);
-	 static Tiff_Im LZW_Create8BFromFonc(const std::string &,Pt2di,Fonc_Num);
+     static Tiff_Im Create8BFromFonc(const std::string &,Pt2di,Fonc_Num,COMPR_TYPE);
+     static Tiff_Im Create8BFromFonc(const std::string &,Pt2di,Fonc_Num);
+     static Tiff_Im LZW_Create8BFromFonc(const std::string &,Pt2di,Fonc_Num);
 
-	 static Tiff_Im CreateFromFonc(const std::string &,Pt2di,Fonc_Num,GenIm::type_el);
-	 static Tiff_Im CreateFromFonc(const std::string &,Pt2di,Fonc_Num,GenIm::type_el,COMPR_TYPE);
+     static Tiff_Im CreateFromFonc(const std::string &,Pt2di,Fonc_Num,GenIm::type_el);
+     static Tiff_Im CreateFromFonc(const std::string &,Pt2di,Fonc_Num,GenIm::type_el,COMPR_TYPE);
+
+           Tiff_Im  Dupl(const std::string&); // Avec meme carac mais nom different
 
          static void SetDefTileFile(int);
          static int DefTileFile() ;
@@ -438,7 +438,7 @@ class Tiff_Im : public ElGenFileIm
 
 
        private :
- 
+
          void verif_usable(bool mode_read);
          class DATA_Tiff_Ifd * dtifd();
           Fonc_Num in(bool with_def,REAL def_out);
@@ -447,7 +447,7 @@ class Tiff_Im : public ElGenFileIm
 };
 
 
-//  MMDirr + data + Name + .tif 
+//  MMDirr + data + Name + .tif
 Tiff_Im MMIcone(const std::string &);
 
 Output   StdOut(const std::vector<Im2DGen *> &);
@@ -523,13 +523,13 @@ extern void test_huff();
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -539,17 +539,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -36,8 +36,13 @@ EVOLUTIONS :
   * Masq 3D + util
   * Gestion du bras de levier en GPS
 
-  *  Bug Ortho ESA
-  * Correction autom auto rotation sur jpg
+  * Bug Ortho ESA
+  * Correction autom auto rotation sur jpg => NON
+  * Convert Calib
+  * Equation de rigidite
+
+  * DoAllDev
+  * Pipeline full auto => presque ...
 
 Torsion de bande : FAITS
 
@@ -402,8 +407,81 @@ Apres Merge Cloud :
 
    Avantage : super rapide et basique.
 
+============== PROJET INTERFACE MICMAC ========================================
+
+    **  Critere de developpement   **
+
+MicMac est un produit qui évolue, autant que faire se peu, il est important que le travail soit suffisement bien structué pour que l'on puisse intégrer des amélioration future. 
+
+Exemple : pour l'instant MicMac founit des nuage de points. Il est possible assez facilement de fournir des meshes si le besoin émerge comme priorité. Du point de vue de l'interaction utilisateur il n'y a pas de différence entre un process qui transforme un ensemble de photo en un nuage de point et un process qui transforme un ensemle de photo en un mesh.
+
+Il est important que la conception soit suffisement generique pour intégrer facilement ces évolutions futures. Cela peut par exemple se faire en associant à chaque bloc fonctionnel sans interaction, une commande MicMac spécifique qui pourra par la suite évoluer.
+
+    **  Usecase   **
 
 
+Critères :  
+
+    * A-se démarquer des autres 
+    * B-nécessiter peu d'interface, et des interface simple à écrire; qui interrompent le moins possible le process.
+    * C-etre valorisant pour MicMac ;résultat "tape à l'oeil" en terle de com)
+         C1=> grand public
+         C2=> professionnels
+    * D-que les contrainte de  prise de vue soient suffisement simple pour qu'il y ait peu d'échec lors du traitement;
+    * E- necessiter le moins possible d'adaptation MicMac bloquante à court terme.
+
+Notation 0=> pauvre, 1=> moyen , 2 => Bon 3=> très bon
+
+-----------USECASE 1- Le statuaire ----------
+
+Synopsis : A partir d'une prise de vue peu structuré reconstituer un nuage de points (optionnelement  un mesh dans évolution future);
+
+A=>0  , B=>1 , C1=>3,C2=>2 , D=> 1, E2
+
+Sans doute le moins orginal, mais il "faut" l'avoir car c'est la première vitrine.
+
+Interaction :
+    * modèle de caméra (optionnel => FraserBasic par défaut)
+    * masque 3D 
+
+L'inconvénient est que la masque 3D intervient en milieu de processus. Même en pratique il est dommage de s'en priver (pertes de beaucoup de temps et baisse de qualité) on peut envisager de le rendre optionnel, et de réfléchir à plus long terme sur des options de calcul automatique (forcément un peu aléatoire).
+
+    
+-----------USECASE 2- l'ortho-photo de facade ----------
+
+A 1 a 3 (3 ? avec deroule) ,  B 1-2, C1 =>1 C2=>3 , D1, E2
+
+Synopsis : A partir d'une prise terrestre, générer une ortho photo de facade. Adapter au cas du déroulé cylindrique.
+
+Interaction :
+   * donnée de redressement (masque, ligne, etc ...)
+   * ou point d'appuis;
+
+
+-----------USECASE 3-  Mise en valeur de bas relief ----------
+
+A3 ,  B2 , C1 =>0 C2=>3 , D2 ,  E3
+
+Genre "de la Vaissière" ou "Roger Jacques".
+
+Interaction :
+
+    * donnée de redressement (masque)
+    * paramètre de contraste
+
+-----------USECASE 4-  Vol de drone ----------
+
+A 1 ,  B 2, C1 =>3 C2=>2 , D1, E2
+
+Interaction :
+   * points d'appuis si il y a lieu
+
+-----------USECASE 5-  l'intérieur de monument au fish-eye ----------
+
+
+-----------USECASE 6-  Un visage a partir de video ----------------
+
+A 1 B 1  C3 C1  D 2 E 3
 
 
 

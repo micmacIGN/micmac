@@ -12,7 +12,7 @@ void CGObject::SetName( std::string name )
 
 void CGObject::SetName(string name, int id)
 {
-    if(!name.size())
+	if(name.size())
         SetName(GpGpuTools::conca(name.c_str(),id));
     else
         SetName("NO_NAME");
@@ -23,7 +23,7 @@ std::string CGObject::Type()
     return _type;
 }
 
-void CGObject::SetType( std::string type )
+void CGObject::SetType(string type )
 {
     _type = type;
 }
@@ -49,7 +49,11 @@ void CGObject::ClassTemplate( std::string classTemplate )
 
 std::string CGObject::Id()
 {
-    return " NAME : " + Name() + ", " + "TYPE : " + Type() + "/" + ClassTemplate();
+#ifdef NOCUDA_X11
+	return " NAME : " + Name() + ", " + "TYPE : " + Type();
+#else
+	return " NAME : " + Name() + ", " + "TYPE : " + Type() + "<" + ClassTemplate() + ">";
+#endif
 }
 
 struct2D::struct2D():
@@ -114,6 +118,7 @@ uint struct2D::GetSize()
 
 void struct2D::Output()
 {
+    std::cout << "Structure 2D : \n";
     std::cout << "Dimension 2D        : " << GpGpuTools::toStr(_dimension) << "\n";
 }
 
@@ -177,3 +182,5 @@ void struct2DLayered::RefreshMaxSize()
     if(struct2D::GetMaxSize() < size) struct2D::SetMaxSize(size);
     struct2D::RefreshMaxDim();
 }
+
+

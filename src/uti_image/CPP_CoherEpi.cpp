@@ -48,12 +48,15 @@ extern Im2D_Bits<1>  TestLabel(Im2D_INT2 aILabel,INT aLabelOut);
 extern Fonc_Num  MasqBorHomogene(Im2D_REAL4 anIm0,Im2D_Bits<1>  aMasq0,Video_Win * aW);
 
 
+bool DEBUGM3D = false;
+bool DEB_NU3D = false;
 
 /*******************************************************************/
 /*                                                                 */
 /*                cCEM_OneIm_Epip                                  */
 /*                                                                 */
 /*******************************************************************/
+
 
 cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aName,const Box2di & aBox,bool aVisu,bool IsFirstIm,bool Final) :
    cCEM_OneIm(aCEM,aName,aBox,aVisu,IsFirstIm),
@@ -72,12 +75,11 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
                      )
               ),
    mTifMasq   (mNameMasq.c_str()),
-   mImMasq    (mSz.x,mSz.y),
-   mTMasq     (mImMasq)
+   mCam       (0)
 {
     if (Empty()) return;
 
-    if (type_im_integral(mTifPx.type_el()))
+    if ((!DEBUGM3D) && type_im_integral(mTifPx.type_el()))
     {
         Im2D_INT2 anIQ(mSz.x,mSz.y);
         ELISE_COPY ( mIm.all_pts(),trans(mTifPx.in_proj(),mP0) ,anIQ.out());
@@ -101,6 +103,22 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
 
     }
     ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(0),mP0),mImMasq.out());
+
+    if (aCEM->Masq3d())
+    {
+        ELISE_ASSERT(mCple,"Masq3 require orientaion !!");
+        std::string aNameCam =   aCEM->ICNM()->Dir() 
+                               + aCEM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",mNameImMatched,true);
+        mCam = CamOrientGenFromFile(aNameCam,aCEM->ICNM());
+    }
+
+    if (DEB_NU3D)
+    {
+       mNNOri =  "NuageImProf_Chantier-Ori_Etape_"+ToString(mCoher->mNumPx) + ".xml";
+       mNuOri = cElNuage3DMaille::FromFileIm(mDirM+mNNOri);
+       std::cout << "KKKKKK  " << mNamePx << " " << mNameMasq << "\n";
+       std::cout << "DDDDD  " << mDirM << "\n\n";
+    }
 }
 
 void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack)
@@ -118,6 +136,25 @@ void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack)
          if (0) mWin->draw_circle_abs(aP1,3.0,mWin->pdisc()( (aD<0.5) ? P8COL::green : P8COL::red));
      }
 }
+
+
+Pt3dr  cCEM_OneIm_Epip::To3d(const Pt2di & anI,const Pt3dr *) const 
+{
+    cCEM_OneIm_Epip * aE2 = static_cast<cCEM_OneIm_Epip*> (mConj);
+    CamStenope * aCam2 = aE2->mCam;
+    Pt2dr  aP1 = ToImCam(Pt2dr(anI));
+    Pt2dr  aP2 =  mConj->ToImCam(ToIm2Gen(Pt2dr(anI)));
+    // Pt2dr  aP2 = ( Pt2dr(anI) + Pt2dr(mTPx.get(anI),0)) * mCoher->mDeZoom;
+    // Pt2dr  aP2 = aP1 +  Pt2dr((mTPx.get(anI)/mCoher->mStep )*mResolAlti,0);
+    // aP2 = aP1 +  Pt2dr(mTPx.get(anI)*mResolAlti*2,0);
+// std::cout << mCoher->mStep << " " << mResolAlti << "\n";
+
+
+    return mCam->PseudoInter(aP1,*aCam2,aP2);
+    // ELISE_ASSERT(false,"cCEM_OneIm_Epip::To3d");
+    // return Pt3dr(0,0,0);
+}
+
 
 /*******************************************************************/
 /*                                                                 */
@@ -138,6 +175,18 @@ cCEM_OneIm_Nuage::cCEM_OneIm_Nuage(cCoherEpi_main * aCoh,const std::string & aNa
     mParam2     (StdGetFromSI(mDirNuage2+mNameN,XML_ParamNuage3DMaille)),
     mNuage2     (cElNuage3DMaille::FromParam(mParam2,mDirNuage2,"",1.0,(const cParamModifGeomMTDNuage *)0,true))
 {
+    ELISE_COPY
+    (
+       mNuage1->ImDef().all_pts(),
+       mNuage1->ImDef().in(),
+       mImMasq.out()
+    );
+}
+
+
+Pt3dr cCEM_OneIm_Nuage::To3d(const Pt2di & anI,const Pt3dr *) const
+{
+   return mNuage1->PtOfIndex(anI);
 }
 
           // cElNuage3DMaille *       mNuage;
@@ -155,14 +204,16 @@ cCEM_OneIm::cCEM_OneIm
     bool                   aVisu,
     bool                   IsFirstIm
 )  :
+   mIsFirstIm (IsFirstIm),
    mCoher     (aCoher),
    mCple      (mCoher->mCple),
    mDir       (mCoher->mDir),
-   mDirM      (mDir + (mCple ? mCple->LocDirMatch(IsFirstIm) : LocDirMec2Im(aCoher->NameIm(IsFirstIm),aCoher->NameIm(!IsFirstIm)))),
+   mDirM      (mDir + (mCple ? mCple->LocDirMatch(aName) : LocDirMec2Im(aCoher->NameIm(IsFirstIm),aCoher->NameIm(!IsFirstIm)))),
    mNameNuage ("NuageImProf_LeChantier_Etape_"+ToString(mCoher->mNumPx) + ".xml"),
    mParNuage  (StdGetFromSI(mDirM+mNameNuage,XML_ParamNuage3DMaille)),
    mResolAlti (mParNuage.Image_Profondeur().Val().ResolutionAlti()),
    mNameInit  (aName),
+   mNameImMatched (mCple ? mCple->LocNameImEpi(mNameInit) : mNameInit),
    mNameFinal (mDir+  (mCple ? mCple->LocNameImEpi(mNameInit,mCoher->mDeZoom,false) : StdNameImDeZoom(mNameInit,mCoher->mDeZoom))),
    mTifIm     (Tiff_Im::UnivConvStd(mNameFinal.c_str())),
    mBox       (Inf(aBox,Box2di(Pt2di(0,0),mTifIm.sz()))),
@@ -173,7 +224,11 @@ cCEM_OneIm::cCEM_OneIm
    mImOrtho   (1,1),
    mWin       ((aVisu && IsFirstIm) ? Video_Win::PtrWStd(mSz) : 0),
    mWin2      (0),
-   mConj      (0)
+   mConj      (0),
+   mImMasq    (mSz.x,mSz.y,1),
+   mTMasq     (mImMasq),
+   mNNOri     (""),
+   mNuOri     (0)
 {
     ELISE_COPY
     (
@@ -188,6 +243,104 @@ cCEM_OneIm::cCEM_OneIm
        ELISE_COPY ( mIm.all_pts(), 255.0* Min(mIm.in()/aVMax,1.0), VGray());
        mWin->set_title(IsFirstIm ? "Image 1" : "Image 2");
     }
+
+}
+
+
+
+void cCEM_OneIm::PostInit()
+{
+
+    if (mCoher->Masq3d())
+    {
+
+        std::vector<Pt3dr> aVPts;
+        std::vector<Pt3di> aVCoul;
+
+        std::vector<Pt3dr> aVPtsNu;
+        std::vector<Pt3di> aVCoulNu;
+
+        int aCptIn= 0;
+        Pt2di anI;
+        for (anI.x =0 ; anI.x <mSz.x ; anI.x++)
+        {
+            for (anI.y =0 ; anI.y <mSz.y ; anI.y++)
+            {
+                if (mTMasq.get(anI))
+                {
+                   aCptIn++;
+                   if (DEBUGM3D)
+                   {
+                      Pt3dr aPt = To3d(anI,0);
+                      bool InMasq = mCoher->Masq3d()->IsInMasq(aPt);
+                      aVPts.push_back(aPt);
+                      aVCoul.push_back(InMasq ? Pt3di(128,128,128) : Pt3di(255,0,0));
+                   }
+
+                   if (DEB_NU3D)
+                   {
+                      Pt2di  anI0 = anI + mP0;
+                      if (mNuOri->IndexHasContenu(anI0))
+                      {
+                          Pt3dr aPtNu = mNuOri->PtOfIndex(anI0);
+
+                          Pt3dr aPt = To3d(anI,0);
+                          std::cout << "Ddddd " << euclid(aPtNu-aPt) << "\n";
+
+                          bool InMasqNu = mCoher->Masq3d()->IsInMasq(aPtNu);
+                          aVPtsNu.push_back(aPtNu);
+                          aVCoulNu.push_back(InMasqNu ? Pt3di(0,255,0) : Pt3di(0,0,255));
+                      }
+                   }
+                   if ((!DEBUGM3D) && (!DEB_NU3D))
+                   {
+                      if  (! mCoher->Masq3d()->IsInMasq(To3d(anI,0)))
+                          mTMasq.oset(anI,0);
+                   }
+                }
+            }
+        }
+        std::string aPref = mIsFirstIm ? "-FIRST" : "-SECOND" ;
+        if (DEBUGM3D)
+        {
+           std::list<std::string> aVCom;
+           std::vector<const cElNuage3DMaille *> aVNuage;
+
+           cElNuage3DMaille::PlyPutFile
+           (
+              mDirM  + StdPrefix(mNameNuage) +  aPref + "-TestM3D.ply",
+              aVCom,
+              aVNuage,
+              &(aVPts),
+              &(aVCoul),
+              true
+           );
+        }
+        if (DEBUGM3D)
+        {
+           std::list<std::string> aVCom;
+           std::vector<const cElNuage3DMaille *> aVNuage;
+
+           std::string aName = mDirM  + StdPrefix(mNNOri) +  aPref + "-TM3D.ply";
+
+           cElNuage3DMaille::PlyPutFile
+           (
+              aName,
+              aVCom,
+              aVNuage,
+              &(aVPtsNu),
+              &(aVCoulNu),
+              true
+           );
+           std::cout << "WWWAAIIt " << mDirM << " " << mNNOri << " " << aCptIn << "\n"; 
+           std::cout << aName << "\n";
+
+           getchar();
+        }
+    }
+
+
+
 }
 
 bool cCEM_OneIm::Empty() const
@@ -374,6 +527,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mSzDecoup (2000),
     mBrd      (250),
     mDir      ("./"),
+    mMasq3d   (0),
     mCple     (0),
     mWithEpi  (true),
     mNoOri    (false),
@@ -400,6 +554,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mBSHRejet      (0.02)
 
 {
+    std::string aNameMasq3D;
     bool Debug=false;
     double aFactBSHOk=2;
     ElInitArgMain
@@ -436,8 +591,11 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(mBSHRejet,"BSHReject",true,"Value for low Basr to Ratio leading do rejection (Def=0.02)")
                     << EAM(aFactBSHOk,"FactBSHOk",true,"Multiplier so that BSHOk= FactBSHOk * BSHReject (Def=2)")
                     << EAM(Debug,"Debug",true,"Tuning ....", eSAM_InternalUse)
+                    << EAM(aNameMasq3D,"Masq3D",true,"3D masq to enhance filtering")
    );
 
+
+   if (EAMIsInit(&aNameMasq3D)) mMasq3d = cMasqBin3D::FromSaisieMasq3d(mDir + aNameMasq3D);
    mNoOri  =  (mOri  == "NONE");
 
    mBSHOk  = mBSHRejet * aFactBSHOk;
@@ -513,6 +671,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
    if (mByP && (!mCalledByP))
    {
+   // Cas on lance le process en paral et onr recolle les morceaux
          std::string aCom = MMBinFile(MM3DStr) +  MakeStrFromArgcARgv(argc,argv);
          aCom = aCom + " InternalCalledByP=true";
          std::cout << "COM = " << aCom << "\n";
@@ -624,6 +783,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    else
    {
 
+   // Cas on fait le calcul
 
        if (mWithEpi)
           mIm1 = new cCEM_OneIm_Epip(this,mNameIm1,mBoxIm1,mVisu,true,mFinal)          ;
@@ -642,6 +802,8 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
        }
 
        mIm1->SetConj(mIm2);
+       mIm1->PostInit();
+       mIm2->PostInit();
 
        if (HasHom)
        {
@@ -822,6 +984,16 @@ std::string cCoherEpi_main::NameIm(bool First)
 {
    return First ? mNameIm1 : mNameIm2;
 }
+
+cInterfChantierNameManipulateur * cCoherEpi_main::ICNM() {return mICNM;}
+cMasqBin3D * cCoherEpi_main::Masq3d() {return mMasq3d;}
+
+const std::string & cCoherEpi_main::Ori() const
+{
+    return mOri;
+}
+
+
 
 
 void cCoherEpi_main::action(const  ElFifo<Pt2di> & aFil,bool ext)

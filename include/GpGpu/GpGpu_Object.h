@@ -1,11 +1,17 @@
 #ifndef GPGPU_OBJECT_H
 #define GPGPU_OBJECT_H
 
+#include "GpGpu/GpGpu_eLiSe.h"
 #include "GpGpu/GpGpu_CommonHeader.h"
 #include "GpGpu/GpGpu_Tools.h"
 
 using namespace std;
 
+#ifdef NOCUDA_X11
+#ifndef _WIN32 
+#include <cxxabi.h>
+#endif
+#endif
 /// \class CGObject
 /// \brief Classe de gestion des types
 class CGObject
@@ -28,15 +34,46 @@ public:
     /// \brief  renvoie le type de l objet en string
     std::string	Type();
     /// \brief  affecte le type de l objet
-    void		SetType(std::string type);
+	void		SetType(string type);
     /// \brief  renvoie la classe du template de l objet en string
     std::string	ClassTemplate();
     /// \brief  Affecte la classe du template de l objet
-    void		ClassTemplate(std::string classTemplate);
+	void		ClassTemplate(string classTemplate);
+
 
     /// \brief  renvoie la classe T en string
     template<class T>
-    const char* StringClass(T* tt){ return "T";}
+	const char* StringClass(T* tt){ return "T";}
+
+
+
+
+
+#ifdef NOCUDA_X11
+
+	template<class T>
+	static string AutoStringClass(T* _data)
+	{
+		string sCT(CGObject::demangle(typeid(_data).name()));
+		return sCT.substr(0, sCT.size()-1);
+	}
+
+	static inline const char* demangle(const char* name)
+	{
+#ifndef _WIN32 
+		char buf[1024];
+		size_t size=1024;
+		int status;
+		char* res = abi::__cxa_demangle (name,buf,&size,
+										 &status);
+		return res;
+#else
+		return name;
+#endif
+
+	}
+#endif
+
 
 private:
 
@@ -56,6 +93,32 @@ template<> inline const char* CGObject::StringClass(struct float2* t ){	return "
 /// \brief  renvoie la classe cudaArray en char*
 template<> inline const char* CGObject::StringClass(cudaArray* t ){	return "cudaArray*";}
 
+
+template<class CDimension>
+class CStructuring
+{
+
+public:
+
+    CDimension dimension() const;
+    void setDimension(const CDimension &dimension);
+    virtual uint GetSize() = 0;
+private:
+
+    CDimension _dimension;
+
+};
+
+template<class CDimension>
+CDimension CStructuring<CDimension>::dimension() const
+{
+    return _dimension;
+}
+template<class CDimension>
+void CStructuring<CDimension>::setDimension(const CDimension &dimension)
+{
+    _dimension = dimension;
+}
 
 /// \class struct2D
 /// \brief classe structure de donnees de dimension 2

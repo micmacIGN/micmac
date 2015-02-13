@@ -54,8 +54,7 @@
 
 <!--   HOMOGRAPHY-COMPUTING
 
-      NKS-RHH-Assoc-CplIm2Data@@Homogr@dmp
-      NKS-RHH-Assoc-CplIm2Data@@Homologous@dat
+    <Symb>  Tooooooo=XxX </Symb>
 -->
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
@@ -72,7 +71,7 @@
                 <CalcName> $2  </CalcName>
 	     </Inverse>
         </Calcs>
-        <Key>  NKS-RHH-Assoc-CplIm2Data </Key>
+        <Key>  NKS-Assoc-RHH-CplIm2Data </Key>
 	<SubDirAutoMake>  RHH#1</SubDirAutoMake>
 	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
     </KeyedNamesAssociations>
@@ -86,7 +85,7 @@
 		 <SubDir>   RHH#1/ </SubDir>
                  <NivSubDir> 2 </NivSubDir>
 	  </Sets>
-          <Key> NKS-RHH-Set-Homol </Key>
+          <Key> NKS-Set-RHH-Homol </Key>
     </KeyedSetsOfNames>
 
 
@@ -116,7 +115,23 @@
     </KeyedSetsOfNames>
 
 
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <NamesFileLON> #1  </NamesFileLON>
+	  </Sets>
+          <Key> NKS-Set-OfFile </Key>
+    </KeyedSetsOfNames>
 
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> .*(Ch1|Ch1_16B|Ch3)\.tif  </PatternAccepteur>
+		 <SubDir>   Tmp-MM-Dir/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-TmpTifFile </Key>
+    </KeyedSetsOfNames>
 
 
     <KeyedSetsOfNames >
@@ -216,9 +231,75 @@
            <Key>  NKS-Set-OfExistingPlan </Key>
     </KeyedSetsOfNames>
 
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                Calib Initiale                     -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  false </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-IsFishEye </Key>
+    </KeyedNamesAssociations>
 
 
 
+
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                PDS CHANNEL                        -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  [1,1,1,1,1,1,1,1,1,1,1,1] </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_1 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_2 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_3 </Key>
+    </KeyedNamesAssociations>
 
         <!-- ***********************************************   -->
         <!--                                                   -->
@@ -412,27 +493,67 @@
 
                <!--  Gestion des nom lies aux focales -->
 
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>   </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-StdIdCam </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>   </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-StdIdAdditionnelCam </Key>
+    </KeyedNamesAssociations>
+
+
+
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
         <Calcs>
             <Direct>
-                <PatternTransform> .*%([0-9]+) </PatternTransform>
+                <PatternTransform> .*%([-,0-9,a-z,A-Z,_=:\-\.]+) </PatternTransform>
                 <CalcName>  #1$1#2  </CalcName>
                 <NameTransfo>
+                    <!-- Old Version -->
                         <AddFocMul> 10 </AddFocMul>
+                    <!-- New Version -->
+                        <NewAddNameCam>  true </NewAddNameCam>   <!--   true si V>=1 -->
+                        <NewFocMul  >  1000 </NewFocMul>        <!--  1000 si >=1, 1 sinon -->
+                        <NewKeyId>   NKS-Assoc-StdIdCam </NewKeyId>
+                        <NewKeyIdAdd> NKS-Assoc-StdIdAdditionnelCam </NewKeyIdAdd>
+
                  </NameTransfo>
              </Direct>
         </Calcs>
         <Key>   NKS-Assoc-FromFocMm </Key>
     </KeyedNamesAssociations>
+
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
+
+        <Calcs>
+            <Direct>
+                <PatternTransform> TheKeyCalib_(.*) </PatternTransform>
+                <CalcName>  #1$1#2  </CalcName>
+             </Direct>
+        </Calcs>
+
         <Calcs>
             <Direct>
                 <PatternTransform> .*_([0-9]+) </PatternTransform>
                 <CalcName>  #1$1#2  </CalcName>
              </Direct>
         </Calcs>
+
         <Calcs>
             <Direct>
                 <PatternTransform> .* </PatternTransform>

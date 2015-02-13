@@ -34,18 +34,17 @@
 #define PLY_FILE_INCLUDED
 
 
-#ifndef WIN32
-#define _strdup strdup
-#endif
-
+/*#ifndef WIN32
 #ifdef __cplusplus
 extern "C" {
 #endif
+#endif //WIN32*/
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <string.h>
+#include <string>
 
 #define PLY_ASCII         1      /* ascii PLY file */
 #define PLY_BINARY_BE     2      /* binary PLY file, big endian */
@@ -84,7 +83,7 @@ extern "C" {
 
 typedef struct PlyProperty {    /* description of a property */
 
-    char *name;                           /* property name */
+    std::string name;                     /* property name */
     int external_type;                    /* file's data type */
     int internal_type;                    /* program's data type */
     int offset;                           /* offset bytes of prop in a struct */
@@ -184,38 +183,99 @@ extern char *my_alloc();
 #endif
 
 
-/*** delcaration of routines ***/
+/*** declaration of routines ***/
 
-extern PlyFile *ply_write(FILE *, int, const char **, int);
-extern PlyFile *ply_open_for_writing(char *, int, const char **, int, float *);
-extern void ply_describe_element(PlyFile *, char *, int, int, PlyProperty *);
-extern void ply_describe_property(PlyFile *, char *, PlyProperty *);
-extern void ply_element_count(PlyFile *, char *, int);
-extern void ply_header_complete(PlyFile *);
-extern void ply_put_element_setup(PlyFile *, char *);
-extern void ply_put_element(PlyFile *, void *);
-extern void ply_put_comment(PlyFile *, char *);
-extern void ply_put_obj_info(PlyFile *, char *);
-extern PlyFile *ply_read(FILE *, int *, char ***);
-extern PlyFile *ply_open_for_reading( char *, int *, char ***, int *, float *);
-extern PlyProperty **ply_get_element_description(PlyFile *, char *, int*, int*);
-extern void ply_get_element_setup( PlyFile *, char *, int, PlyProperty *);
-extern int ply_get_property(PlyFile *, char *, PlyProperty *);
-extern PlyOtherProp *ply_get_other_properties(PlyFile *, char *, int);
-extern void ply_get_element(PlyFile *, void *);
-extern char **ply_get_comments(PlyFile *, int *);
-extern char **ply_get_obj_info(PlyFile *, int *);
-extern void ply_close(PlyFile *);
-extern void ply_get_info(PlyFile *, float *, int *);
-extern PlyOtherElems *ply_get_other_element (PlyFile *, char *, int);
-extern void ply_describe_other_elements ( PlyFile *, PlyOtherElems *);
-extern void ply_put_other_elements (PlyFile *);
-extern void ply_free_other_elements (PlyOtherElems *);
-extern void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
+PlyFile *ply_write(FILE *, int, const char **, int);
+PlyFile *ply_open_for_writing(char *, int, const char **, int, float *);
+void ply_describe_element(PlyFile *, char *, int, int, PlyProperty *);
+void ply_describe_property(PlyFile *, char *, PlyProperty *);
+void ply_element_count(PlyFile *, char *, int);
+void ply_header_complete(PlyFile *);
+void ply_put_element_setup(PlyFile *, char *);
+void ply_put_element(PlyFile *, void *);
+void ply_put_comment(PlyFile *, char *);
+void ply_put_obj_info(PlyFile *, char *);
+PlyFile *ply_read(FILE *, int *, char ***);
+PlyFile *ply_open_for_reading( char *, int *, char ***, int *, float *);
+PlyProperty **ply_get_element_description(PlyFile *, char *, int*, int*);
+void ply_get_element_setup( PlyFile *, char *, int, PlyProperty *);
+int ply_get_property(PlyFile *, char *, PlyProperty *);
+PlyOtherProp *ply_get_other_properties(PlyFile *, char *, int);
+void ply_get_element(PlyFile *, void *);
+char **ply_get_comments(PlyFile *, int *);
+char **ply_get_obj_info(PlyFile *, int *);
+void ply_close(PlyFile *);
+void ply_get_info(PlyFile *, float *, int *);
+PlyOtherElems *ply_get_other_element (PlyFile *, char *, int);
+void ply_describe_other_elements ( PlyFile *, PlyOtherElems *);
+void ply_put_other_elements (PlyFile *);
+void ply_free_other_elements (PlyOtherElems *);
+void ply_describe_other_properties(PlyFile *, PlyOtherProp *, int);
 
 extern int equal_strings(const char *, const char *);
 
+static PlyProperty vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,z), 0, 0, 0, 0},
+};
+
+static PlyProperty colored_a_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,x), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,y), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertexWithAlpha,z), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,blue), 0, 0, 0, 0},
+    {"alpha", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertexWithAlpha,alpha), 0, 0, 0, 0}
+};
+
+static PlyProperty colored_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,x), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,y), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyColoredVertex,z), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyColoredVertex,blue), 0, 0, 0, 0},
+};
+
+static PlyProperty oriented_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,x ), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,y ), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,z ), 0, 0, 0, 0},
+    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nx), 0, 0, 0, 0},
+    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,ny), 0, 0, 0, 0},
+    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedVertex,nz), 0, 0, 0, 0}
+};
+
+static PlyProperty oriented_colored_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,x ), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,y ), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,z ), 0, 0, 0, 0},
+    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,nx), 0, 0, 0, 0},
+    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,ny), 0, 0, 0, 0},
+    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredVertex,nz), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredVertex,blue), 0, 0, 0, 0}
+};
+
+static PlyProperty oriented_colored_alpha_vert_props[] = {
+    {"x",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,x ), 0, 0, 0, 0},
+    {"y",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,y ), 0, 0, 0, 0},
+    {"z",  PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,z ), 0, 0, 0, 0},
+    {"nx", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,nx), 0, 0, 0, 0},
+    {"ny", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,ny), 0, 0, 0, 0},
+    {"nz", PLY_FLOAT, PLY_FLOAT, offsetof(sPlyOrientedColoredAlphaVertex,nz), 0, 0, 0, 0},
+    {"red",   PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex,red), 0, 0, 0, 0},
+    {"green", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex,green), 0, 0, 0, 0},
+    {"blue",  PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex,blue), 0, 0, 0, 0},
+    {"alpha", PLY_UCHAR, PLY_UCHAR, offsetof(sPlyOrientedColoredAlphaVertex,alpha), 0, 0, 0, 0}
+};
+
+/*#ifndef WIN32
 #ifdef __cplusplus
 }
 #endif
+#endif*/
 #endif // PLY_FILE_INCLUDED

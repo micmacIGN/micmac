@@ -27,7 +27,7 @@
        Trois type de geometrie interviennent
 
 
-       - La géométrie image est liée à l'instrument d'acquisition
+       - La géométrie image est liée �  l'instrument d'acquisition
        (conique ou barette, calibration ...); elle est definie
        dans la section <Section_PriseDeVue> par le champss
       GeomImages qui doit etre dans l'enumeration eGeomImage.
@@ -915,7 +915,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                 <EpsilonMulMoyenne Nb="?" Type="double" Def="0.0"> </EpsilonMulMoyenne>
 
                 <SzBlocAH Nb="?" Type="int" Def="40"> </SzBlocAH>
-                <CorrelMultiScale Nb="?">
+                <CorrelMultiScale Nb="?">                      
+                      <UseGpGpu Nb="?" Type="bool" Def="false"> </UseGpGpu>
                       <ModeDense Nb="?" Type="bool"> </ModeDense>
                       <!-- Si true un indicateur de forme est calcule sur l'image maitresse pour choisir quel type de fenetre est utilise -->
                       <UseWAdapt Nb="?" Type="bool" Def="false"> </UseWAdapt>
@@ -1345,11 +1346,10 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
 		avoir + de "dynamique"-->
 		<SubsXY  Nb="?" Type="bool" Def="false"> </SubsXY>
 		<Polar  Nb="?" Type="bool" Def="false"> </Polar>
-<!--
-	        <ImagePattern  Nb="1" Type="std::string"> </ImagePattern>
-		<NameX   Nb="?" Type="std::string" Def="X"> </NameX>
-		<NameY   Nb="?" Type="std::string" Def="Y"> </NameY>
--->
+                <GenerateImageRedr Nb="?">
+                     <FCND_CalcRedr Nb="1" Type="std::string"> </FCND_CalcRedr>
+                     <Type Nb="?" Type="eTypeNumerique" > </Type>
+                </GenerateImageRedr>
 	    </GenerateProjectionInImages>
 
 
@@ -1825,6 +1825,8 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                peut relacher cette contrainte ?
           -->
          <AnamorphoseGeometrieMNT Nb="?">
+             <!-- Pour gerer le desanamorphose des ortho .... -->
+             <UnUseAnamXCste Nb="?" Def="false" Type="bool"> </UnUseAnamXCste>
              <AnamSurfaceAnalytique Nb="?">
                    <NameFile Nb="1" Type="std::string"> </NameFile>
                    <Id Nb="1" Type="std::string"> </Id>
@@ -1836,8 +1838,11 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                  <DynIncid Nb="?" Type="double" Def="1e4"> </DynIncid>
 <!-- A priori si on fait des masque image, on ne veut pas utiliser cela en geometrie terrain -->
                  <MakeAlsoMaskTerrain Type="bool" Nb="?" Def="false"> </MakeAlsoMaskTerrain>
+                <!-- Selectionne les KBest -->
                  <KBest  Nb="1" Type="int">   </KBest>
-                  <!-- de 0 a 1 , effet de l'inc Z sur les angles -->
+                  <!-- Comme il y a une certaine incert, on selectionne ceux t.q 
+                            Incid<  (1+IncertAngle) KBetsIncid
+                  -->
                  <IncertAngle  Nb="?" Type="double" Def="0.1"> </IncertAngle>
                  <Dilat32 Nb="?" Type="int" Def="6"> </Dilat32>
                  <Erod32 Nb="?" Type="int"  Def="3"> </Erod32>
@@ -1957,6 +1962,9 @@ plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
                    Ne jamais les positionner "a la main" 
 	      !!!! -->
 	 <CalledByProcess  Nb="?" Def="false" Type="bool"> </CalledByProcess>
+	 <IdMasterProcess  Nb="?" Def="-1" Type="int"> </IdMasterProcess>
+         <!-- Pour pouvoir specifier par Key dans le DicoLoc : commandes simplifiees -->
+         <CreateGrayFileAtBegin  Nb="?" Def="false" Type="bool"> </CreateGrayFileAtBegin>
 	 <Visu Nb="?" Def="false" Type="bool">             </Visu>
 	 <ByProcess Nb="?" Def="0" Type="int"> </ByProcess>
          <StopOnEchecFils Nb="?" Def="true" Type="bool"> </StopOnEchecFils>

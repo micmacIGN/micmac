@@ -96,17 +96,19 @@ class cAppliMyRename
        bool        mOrder;
        int         mPrfNum;
        bool        mFull;
+       int         mAddNumMod;
 };
 
 cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
-    mExe     (0) ,
-    mNiv      (1),
-    mForce    (0),
-    mForceDup (0),
-    mAddF     (0),
-    mOrder    (false),
-    mPrfNum   (0),
-    mFull     (false)
+    mExe       (0) ,
+    mNiv       (1),
+    mForce     (0),
+    mForceDup  (0),
+    mAddF      (0),
+    mOrder     (false),
+    mPrfNum    (0),
+    mFull      (false),
+    mAddNumMod (0)
 {
 
     std::string aDP;
@@ -120,6 +122,7 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
                       << EAM(mForce,"F",true)
                       << EAM(mForceDup,"FD",true)
                       << EAM(mAddF,"AddFoc",true)
+                      << EAM(mAddNumMod,"Mod",true,"When spcified add Num of Image % Mod ")
                       << EAM(mFile2M,"File2M",true)
                       << EAM(mFull,"Full",true)
                       << EAM(mOrder,"LastFirst",true,"Treat the last image first (Def=false)")
@@ -141,6 +144,8 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
     std::vector<cMov> aVM;
     if (mAddF)
        mPat = mPat + "@(.*)";
+    if (mAddNumMod)
+       mPat = mPat + "@(.*)";
 
 
     cElRegex *  anF2Autom=0;
@@ -154,11 +159,12 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
     cElRegex * anAutom = new cElRegex(mPat,10);
 
 	bool anOverW=false;
+    int aNum=0;
     for
     (
         std::list<std::string>::const_iterator itS=aLIn.begin();
         itS!=aLIn.end();
-    itS++
+        itS++
     )
     {
 	
@@ -169,6 +175,10 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
              std::string aF = ToString(round_ni(aMDP.FocMm()));
              while (aF.size() < 3) aF="0"+aF;
              aName = aName + "@" + aF;
+        }
+        if (mAddNumMod)
+        {
+            aName = aName + "@" + ToString(aNum%mAddNumMod);
         }
         if (mFile2M!="")
         {
@@ -186,18 +196,19 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
 
         }
 
-    std::string aNOut = MatchAndReplace(*anAutom,aName,mRepl);
-    if (!mForce)
-    {
-        if (ELISE_fp::exist_file(mDir+aNOut))
+        std::string aNOut = MatchAndReplace(*anAutom,aName,mRepl);
+        if (!mForce)
         {
+            if (ELISE_fp::exist_file(mDir+aNOut))
+            {
                 std::cout << *itS << " -> " << aNOut << "\n";
-            std::cout << "FILE [" <<mDir+aNOut<< "]Already exist\n";
-        std::cout << "Use F=1 to overwrite\n\n";
-        anOverW = true;
+                std::cout << "FILE [" <<mDir+aNOut<< "]Already exist\n";
+                std::cout << "Use F=1 to overwrite\n\n";
+                anOverW = true;
+            }
         }
-    }
-    aVM.push_back(cMov(*itS,aNOut));
+        aVM.push_back(cMov(*itS,aNOut));
+        aNum++;
     }
     ELISE_ASSERT(!anOverW,"Cannot overwrite !! ");
 

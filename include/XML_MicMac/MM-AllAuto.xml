@@ -45,6 +45,9 @@
       <eSymb>  WithZ2=InfEq ${ZoomF} 2  </eSymb>
       <eSymb>  WithZ1=InfEq ${ZoomF} 1 </eSymb>
 
+        <Symb>  UseGpu=false </Symb>
+        <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
+
 
 </DicoLoc>
 
@@ -133,6 +136,7 @@
 
                      <CorrelMultiScale>
                             <ModeDense> ${CmsDense} </ModeDense>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <UseWAdapt> false </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
@@ -175,6 +179,7 @@
 
                      <CorrelMultiScale>
                             <ModeDense> ${CmsDense} </ModeDense>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
@@ -221,6 +226,7 @@
                      <CorrelMultiScale>
                             <ModeDense> ${CmsDense} </ModeDense>
                             <UseWAdapt> true </UseWAdapt>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>
                                  <Sigma> 0 </Sigma>

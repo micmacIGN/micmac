@@ -185,6 +185,7 @@ cFiltrageDepthByProgDyn::cFiltrageDepthByProgDyn(Im2D_REAL4 aImDepth,Im2D_U_INT1
     mNbDir            (aParam.NbDir().Val()),
     mResult           (mSz.x,mSz.y)
 {
+// std::cout << "PARM COST REG " << mParamCostRegul << "\n";
    Im2D_INT2 aImMin(mSz.x,mSz.y,0);
    Im2D_INT2 aImMax(mSz.x,mSz.y);  
    ELISE_COPY(aImMax.all_pts(),1+(mImLabel.in()!=0),aImMax.out());
@@ -351,6 +352,7 @@ Im2D_Bits<1>  FiltreDetecRegulProf(Im2D_REAL4 aImProf,Im2D_Bits<1> aIMasq,const 
 }
 
 
+/*
 void TestFiltreRegul()
 {
    Pt2di aP0(2000,500);
@@ -359,8 +361,8 @@ void TestFiltreRegul()
    Video_Win * aW = 0;
 
 
-   Tiff_Im aFileProf ("/home/marc/TMP/EPI/EXO1-Fontaine/MTD-Image-CIMG_2489.JPG/Fusion_NuageImProf_LeChantier_Etape_1.tif");
-   Tiff_Im aFileMasq ("/home/marc/TMP/EPI/EXO1-Fontaine/MTD-Image-CIMG_2489.JPG/Fusion_NuageImProf_LeChantier_Etape_1_Masq.tif");
+   Tiff_Im aFileProf ("XXXXXFusion_NuageImProf_LeChantier_Etape_1.tif");
+   Tiff_Im aFileMasq ("XXXXXFusion_NuageImProf_LeChantier_Etape_1_Masq.tif");
 
    Im2D_REAL4    aImProf(aSz.x,aSz.y);
    Im2D_Bits<1>  aMasq(aSz.x,aSz.y);
@@ -382,6 +384,7 @@ std::cout << "AAAaaaA\n";
 std::cout << "BBBbBb\n";
 getchar();
 }
+*/
 
 /***********************************************************************************/
 /*                                                                                 */

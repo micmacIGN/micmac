@@ -3,6 +3,7 @@
 GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL::SampleBuffers),NULL,shared)
   , m_interactionMode(TRANSFORM_CAMERA)
   , m_bFirstAction(true)
+  , m_bMaskEdited(false)
   , m_GLData(NULL)
   , m_bDisplayMode2D(false)
   , _vp_Params(ViewportParameters())
@@ -11,10 +12,9 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
   , _currentTime(0)
   , _messageManager(this)
   , _widgetId(idx)
+  , _params(NULL)
 {
-    _matrixManager.resetAllMatrix();
-
-    _time.start();
+	_time.start();
 
     setAcceptDrops(true);           //drag & drop handling
 
@@ -42,7 +42,6 @@ void GLWidget::resizeGL(int width, int height)
 
 void GLWidget::computeFPS(MessageToDisplay &dynMess)
 {
-    float       fps;
 
     //  Increase frame count
     _frameCount++;
@@ -54,6 +53,7 @@ void GLWidget::computeFPS(MessageToDisplay &dynMess)
 
     if(deltaTime > 1000)
     {
+		float       fps;
         //  compute the number of frames per second
         fps = _frameCount * 1000.f / deltaTime;
 
@@ -78,14 +78,21 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
 {
     if (aData != NULL)
     {
+
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
             m_GLData->glImage().deleteTextures();
 
         m_GLData = aData;
 
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-            m_GLData->glImage().prepareTextures();
+        {
+            m_GLData->glImage().createTextures();
 
+            if ( m_GLData->glImage().getLoadedImageRescaleFactor()<1.f)
+			{
+                m_GLData->createTiles();
+            }
+        }
 
 //        if(!m_GLData->isImgEmpty())
 //        {
@@ -107,10 +114,16 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
 
         _contextMenu.setPolygon( m_GLData->currentPolygon() );
 
-        _matrixManager.setSceneTopo(getGLData()->getBBoxCenter(),getGLData()->getBBoxMaxSize());
+        _matrixManager.setSceneTopo(getGLData()->getPosition(),getGLData()->getBBoxMaxSize());
 
         resetView(doZoom, showMessage, showCams, true, resetPoly);
     }
+	else
+	{
+		m_GLData = NULL;
+		if(doZoom)
+			reset();
+	}
 }
 
 cPolygon *GLWidget::polygon(int id){ return m_GLData->polygon(id); }
@@ -154,7 +167,9 @@ void GLWidget::paintGL()
 
     if (hasDataLoaded())
     {
-        _matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,_vp_Params.m_zoom);
+        _matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,getZoom());
+
+		//checkTiles(); // ATTENTION A NE SURTOUT PAS METTRE ICI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         m_GLData->draw();
 
@@ -164,15 +179,25 @@ void GLWidget::paintGL()
             computeFPS(_messageManager.LastMessage());
     }
 
-    _messageManager.draw();
+	_messageManager.draw();
+}
+
+void GLWidget::initializeGL()
+{
+#if ELISE_QT_VERSION == 4
+	if(!glPopMatrix && ogl_LoadFunctions() == ogl_LOAD_FAILED)
+	{
+		printf("ogl_LOAD_FAILED ERROR LOAD FUNCTIONS OPENGL\n");
+	}
+#endif
 }
 
 int GLWidget::getWindowMeanValue(QPoint pos, int r)
 {
     QImage gIma = grabFrameBuffer();
 
-    int kP  = 0;
-    int cP  = 0;
+    unsigned int kP  = 0;
+    unsigned int cP  = 0;
 
     for (int x = max(0,pos.x()-r); x < min(gIma.width()-1,pos.x()+r); ++x)
         for (int y = max(0,pos.y()-r); y < min(gIma.height()-1,pos.y()+r); ++y)
@@ -220,7 +245,7 @@ void GLWidget::overlay()
 
                         if (pt.showName() && (pt.name() != ""))
                         {
-                            QPointF wPt = _matrixManager.ImageToWindow( pt,_vp_Params.m_zoom) + QPointF(10.f,-5.f);
+                            QPointF wPt = _matrixManager.ImageToWindow( pt,getZoom()) + QPointF(10.f,-5.f);
 
                             _messageManager.glRenderText(pt.name(),wPt, pt.isSelected() ? Qt::blue : Qt::white);
                         }
@@ -244,7 +269,12 @@ void GLWidget::setInteractionMode(int mode, bool showmessage, bool showcams)
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
     if (hasDataLoaded())
-       _matrixManager.setView(orientation,m_GLData->getBBoxCenter());
+       _matrixManager.setView(orientation,m_GLData->getPosition());
+}
+
+float GLWidget::getZoom()
+{
+    return getParams()->m_zoom;
 }
 
 void GLWidget::centerViewportOnImagePosition(QPointF pt, float zoom)
@@ -332,16 +362,191 @@ void GLWidget::setParams(cParameters* aParams)
         polygon()->setParams(aParams);
 }
 
+void GLWidget::checkTiles()
+{
+    if (imageLoaded())
+    {
+        float rescaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
+
+        if (rescaleFactor < 1.f) //est-on en mode sous-ech ?
+        {
+            float zoom = getZoom();
+
+            if(zoom > rescaleFactor) //affiche-t-on les tuiles ?
+			{
+
+				_matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,getZoom());
+
+                QPointF c0(0.f,0.f);
+				QPointF c3(vpWidth(),vpHeight());
+
+				QPointF p0Img = _matrixManager.WindowToImage(c0, zoom);
+				QPointF p1Img = _matrixManager.WindowToImage(c3, zoom);
+
+				QRectF rect(p0Img ,p1Img);
+
+				getGLData()->glImage().glImage()->setVisible(false);
+				getGLData()->glImage().glImage()->deleteTexture();
+
+				setZone(rect);
+
+				getGLData()->setDrawTiles(true);
+
+            }
+            else
+            {
+
+				getGLData()->setDrawTiles(false);
+
+				for (int aK=0; aK < getGLData()->glTiles().size(); ++aK)
+				{
+					cMaskedImageGL * tile = getGLData()->glTiles()[aK];
+
+					tile->deleteTextures();
+
+//					if(!tile->_loading && tile->getMaskedImage())
+//					{
+//						cMaskedImage<QImage>* image = tile->getMaskedImage();
+//						delete image;
+//					}
+				}
+
+				if ((int) *(getGLData()->glImage().glImage()->getTexture()) == (~0))
+				{
+					getGLData()->glImage().glImage()->setVisible(true);
+					getGLData()->glImage().glMask()->setVisible(false);
+					getGLData()->glImage().createTextures();
+					getGLData()->glImage().glMask()->setVisible(true);
+				}
+
+            }
+        }
+	}
+}
+
+void GLWidget::createLoadedTexture(cMaskedImageGL* tile)
+{
+
+	tile->createFullImageTexture();
+
+	update();
+
+}
+
+void GLWidget::setZone(QRectF aRect)
+{	
+
+    if (getGLData()->glImage().glImage())
+    {
+		//recherche des tuiles intersectées
+
+		QRectF aRectGL(QPointF(aRect.x(),aRect.y()),aRect.size());
+
+
+		for (int aK=0; aK< getGLData()->glTiles().size(); aK++)
+		{
+            cMaskedImageGL * tile = getGLData()->glTiles()[aK];
+            cImageGL * glImgTile  = tile->glImage();
+			//cImageGL * glMaskTile = tile->glMask();
+
+            Pt3dr pos = glImgTile->getPosition();
+            QSize sz  = glImgTile->getSize();
+
+			QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
+
+			QMaskedImage * maskedImg = getGLData()->glImage().getMaskedImage();
+
+			QRectF rectImgGL(QPointF(pos.x,pos.y),sz);
+
+
+			if (rectImgGL.intersects(aRectGL) || aRectGL.contains(rectImgGL) || rectImgGL.contains(aRectGL) || aRectGL.intersects(rectImgGL) )
+            {
+
+				QRect rect = rectImg.toAlignedRect();
+
+				//Partie image
+				if ((int) *(glImgTile->getTexture()) == (~0)) //la texture GL n'existe pas
+                {
+
+					if (tile->getMaskedImage() == NULL && !tile->_loading)
+					{
+						tile->_loading = true;
+
+						QThread* thread = new QThread;
+						loaderImageWork* worker = new loaderImageWork(maskedImg,tile,rect);
+						worker->moveToThread(thread);
+						connect(thread, SIGNAL(started()), worker, SLOT(process()));
+						connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
+						connect(worker, SIGNAL(finished(cMaskedImageGL*)), this, SLOT(createLoadedTexture(cMaskedImageGL*)));
+						connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+						connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+						thread->start(QThread::HighestPriority);
+
+					}
+					else if(tile->getMaskedImage() && !tile->_loading )
+						createLoadedTexture(tile);
+
+				}
+
+				glImgTile->setVisible(true);
+
+                //Partie masque
+//                if ((int) *(glMaskTile->getTexture()) == (~0) ) //la texture GL n'existe pas
+//                {
+//                    if (!m_bMaskEdited)
+//                    {
+//                        tile->getMaskedImage()->_m_mask = new QImage(maskedImg->_m_mask->copy(rect));
+//                    }
+//                    else //il y a eu une saisie: il faut utiliser _m_rescaled_mask, car c'est lui qui stocke toutes les modifications (à changer ?)
+//                    {
+//                        //application du facteur d'échelle au QRect puis crop dans _m_rescaled_mask
+//                        float scaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
+
+//                        QTransform trans = QTransform::fromScale(scaleFactor,scaleFactor);
+
+//                        QImage rescaled_mask_crop = maskedImg->_m_rescaled_mask->copy(trans.mapRect(rect));
+
+//                        //application du facteur d'échelle inverse (rescaled => full size)
+//                        QImage mask_crop = rescaled_mask_crop.scaled(sz, Qt::KeepAspectRatio);
+
+//                        tile->getMaskedImage()->_m_mask = new QImage(mask_crop);
+//                    }
+
+//                    glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
+//                }
+//                glMaskTile->setVisible(true);
+            }
+            else
+            {
+                glImgTile->setVisible(false);
+            }
+        }
+
+    }
+
+
+	update();
+}
+
 void GLWidget::setZoom(float val)
 {
-    if (imageLoaded())  zoomClip( val );
+    if (imageLoaded())
+
+        zoomClip( val ); // TODO c'est quoi ce truc????
+
+	setEnabled(false);
 
     _vp_Params.m_zoom = val;
 
-    if(imageLoaded() && _messageManager.drawMessages())
-        _messageManager.GetLastMessage()->message = QString::number(_vp_Params.m_zoom*100,'f',1) + "%";
 
+	checkTiles();
+
+	setEnabled(true);
+
+	if(imageLoaded() && _messageManager.drawMessages())
+		_messageManager.GetLastMessage()->message = QString::number(getZoom()*100,'f',1) + "%";
     update();
+
 }
 
 void GLWidget::zoomFit()
@@ -371,6 +576,18 @@ void GLWidget::selectPoint(QString namePt)
 {
     if(polygon())
         polygon()->selectPoint(namePt);
+    update();
+}
+
+void GLWidget::setCenterType(int val)
+{
+    if (hasDataLoaded())
+    {
+        m_GLData->switchCenterByType(val);
+
+        _matrixManager.resetAllMatrix(m_GLData->getPosition());
+    }
+
     update();
 }
 
@@ -415,16 +632,16 @@ void GLWidget::Select(int mode, bool saveInfos)
 {
     if (hasDataLoaded())
     {
-        cPolygon polyg = *polygon();
+		cPolygon *polyg = polygon();
 
         if(mode <= ADD_OUTSIDE)
         {
-           if (polyg.size() == 0)
+		   if (polyg->size() == 0)
            {
                QMessageBox::warning(this,tr("Warning"), tr("Draw a polygon first\n\nLeft clic:\tadd vertex\nRight clic:\tclose polygon"));
                return;
            }
-           else  if ((polyg.size() < 3) || (!polyg.isClosed()))
+		   else  if ((polyg->size() < 3) || (!polyg->isClosed()))
                return;
         }
 
@@ -434,6 +651,7 @@ void GLWidget::Select(int mode, bool saveInfos)
             m_GLData->editCloudMask(mode,polyg,m_bFirstAction,_matrixManager);
 
         if (mode <= ADD_OUTSIDE) m_bFirstAction = false;
+        m_bMaskEdited = true;
 
         if (saveInfos) //  TODO ne marche pas avec le switch y/z
         {
@@ -508,7 +726,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool showCams, bool res
 {
 
     if (resetMatrix)
-        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getBBoxCenter() : Pt3dr(0.f,0.f,0.f) );
+        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getPosition() : Pt3dr(0.f,0.f,0.f) );
 
     if (hasDataLoaded() && resetPoly) m_GLData->clearPolygon();
 
@@ -546,9 +764,9 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     m_lastClickZoom = event->pos();
 
 #if ELISE_QT_VERSION == 5
-    setZoom(_vp_Params.m_zoom*pow(1.1f,event->angleDelta().y() / 70.0f ));
+    setZoom(getZoom()*pow(1.1f,event->angleDelta().y() / 70.0f ));
 #else
-    setZoom(_vp_Params.m_zoom*pow(1.1f,event->delta() / 70.0f ));
+    setZoom(getZoom()*pow(1.1f,event->delta() / 70.0f ));
 #endif
 }
 
@@ -558,7 +776,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     {
         m_lastPosWindow = event->pos();
 
-        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : QPointF(m_lastPosWindow.x(),_matrixManager.vpHeight() - m_lastPosWindow.y());
+        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : QPointF(m_lastPosWindow.x(),_matrixManager.vpHeight() - m_lastPosWindow.y());
 
         if (event->button() == Qt::LeftButton)
         {
@@ -610,7 +828,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
     {
         m_lastPosWindow = event->pos();
 
-        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
+        m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : m_lastPosWindow;
 
         int idMovePoint = polygon() ? polygon()->finalMovePoint() : -1; //ne pas factoriser
 
@@ -621,6 +839,15 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
         emit movePoint(idMovePoint);
     }
+	else if ( event->button() == Qt::MiddleButton && hasDataLoaded() )
+	{
+		setEnabled(false);
+
+		checkTiles();
+
+		setEnabled(true);
+	}
+
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -634,7 +861,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         QPointF mPos = event->posF();
 #endif
 
-        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, _vp_Params.m_zoom) : mPos;
+        QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, getZoom()) : mPos;
 
         if ( event->buttons() != Qt::MiddleButton )
             setCursorShape(pos,mPos);
@@ -649,7 +876,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             if (polygon()->isSelected())                    // MOVE POLYGON
             {
                 //TODO: a verifier => y inversé en 3D - OK en 2D
-                QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, _vp_Params.m_zoom) : m_lastPosWindow;
+                QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : m_lastPosWindow;
                 polygon()->translate(pos - translation);
             }
             else if (!(event->buttons() == Qt::MiddleButton))// REFRESH HELPER POLYGON
@@ -661,7 +888,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 if(m_interactionMode == SELECTION)
                     polygon()->refreshHelper( QPointF(pos.x(),_matrixManager.vpHeight() - pos.y()), insertMode, 1.f);
                 else
-                    polygon()->refreshHelper(pos, insertMode, _vp_Params.m_zoom);
+                    polygon()->refreshHelper(pos, insertMode, getZoom());
 
                 if (polygon()->size() && m_bDisplayMode2D)
 
@@ -776,8 +1003,8 @@ void GLWidget::enterEvent(QEvent *event)
 {
     // TODO : pourquoi
     // peut etre capter les mvts de souris en dehors de la fenetre
-    setFocus(Qt::ActiveWindowFocusReason);
-    setFocusPolicy(Qt::StrongFocus);
+	setFocus(Qt::ActiveWindowFocusReason);
+	setFocusPolicy(Qt::StrongFocus);
 
     emit overWidget(this);
 }
@@ -972,3 +1199,45 @@ void GLWidget::dropEvent(QDropEvent *event)
     event->ignore();
 }
 
+// --- CONSTRUCTOR ---
+loaderImageWork::loaderImageWork(cMaskedImage<QImage>* maskedImg, cMaskedImageGL* tile, QRect& rect):
+	_maskedImg(maskedImg),
+	_tile(tile),
+	_rect(rect)
+{
+
+}
+
+
+// --- DECONSTRUCTOR ---
+loaderImageWork::~loaderImageWork() {
+	// free resources
+//	qDebug("End load Tile");
+}
+
+// --- PROCESS ---
+// Start processing data.
+void loaderImageWork::process()
+{
+
+	//QImageReader reader(_maskedImg->_imageReader->fileName());
+
+	//QRect loadRect = QRect(QPoint(_rect.x(),reader.size().height()-_rect.y()-_rect.size().height()),_rect.size());
+
+	//reader.setClipRect(loadRect);
+
+	//QImage tempTile(_rect.size(),QImage::Format_RGB32);
+
+	//	reader.read(&tempTile);
+
+	//QImage* tImage = _tile->getMaskedImage()->_m_image;
+
+//	*(tImage) = QGLWidget::convertToGLFormat( tempTile );
+
+	_tile->copyImage(_maskedImg,_rect);
+
+	_tile->_loading = false;
+
+	emit finished(_tile);
+	emit finished();
+}

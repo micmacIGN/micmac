@@ -9,6 +9,9 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/RefineModel.cpp
 	${TDPPMD_DIR}/Dimap2Grid.cpp
 	${TDPPMD_DIR}/ServiceGeoSud.cpp
+	${TDPPMD_DIR}/Surf.cpp
+	${TDPPMD_DIR}/cTD_Epip.cpp
+	${TDPPMD_DIR}/ReprojImg.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

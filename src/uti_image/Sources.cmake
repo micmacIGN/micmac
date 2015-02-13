@@ -40,6 +40,7 @@ list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_Impainting.cpp
     ${UTI_IMAGE_DIR}/CPP_CalSzWCor.cpp
     ${UTI_IMAGE_DIR}/CPP_MPDtest.cpp
+    ${UTI_IMAGE_DIR}/CPP_CamLightCorrec.cpp
     ${UTI_IMAGE_DIR}/CPP_Sift.cpp
     ${UTI_IMAGE_DIR}/CPP_Ann.cpp
     ${UTI_IMAGE_DIR}/CPP_StatImage.cpp

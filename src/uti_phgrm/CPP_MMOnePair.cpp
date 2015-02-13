@@ -90,6 +90,7 @@ class cMMOnePair
       double           mSigmaP;
       Box2di           mBoxIm;
       bool             mPurge;
+      bool             mPurgeAtEnd;
       std::string      mBascMTD;
       bool             mRIE;
       std::string      mBascDEST;
@@ -105,7 +106,8 @@ class cMMOnePair
       const std::string mNameMasqFinal;
       bool              mHasVeget;
       bool              mSkyBackgGound;
-      // std::string       mMasq3D;
+      std::string       mMM1PMasq3D;
+	  bool				mUseGpu;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -114,6 +116,8 @@ class cAppliMMOnePair : public cMMOnePair,
      public :
          cAppliMMOnePair(int argc,char ** argv);
      private :
+         void PurgeOneFileEpi(const std::string & aName,const std::string & aPost);
+         void PurgeFileEpi(const std::string & aName);
          void MatchTwoWay(int aStep0,int aStepF);
          void MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForMTD);
          void DoMasqReentrant(bool First,int aStep,bool Last);
@@ -150,6 +154,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mDoMR         (true),
     mSigmaP       (1.5),
     mPurge        (true),
+    mPurgeAtEnd   (false),
     mRIE          (false),
     mBascDEST     ("Basculed-"),
     mDoHom        (false),
@@ -162,7 +167,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mNbCommand    (-1),
     mNameMasqFinal ("Masq_Etape_Last.tif"),
     mHasVeget       (false),
-    mSkyBackgGound  (true)
+	mSkyBackgGound  (true),
+	mUseGpu			(false)
 {
   ElInitArgMain
   (
@@ -180,6 +186,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mSigmaP,"SigmaP",true,"Sigma Pixel for coherence (Def=1.5)")
                     << EAM(mBoxIm,"BoxIm",true,"Box of calc in Epip, tuning purpose (Def=All image)",eSAM_InternalUse)
                     << EAM(mPurge,"Purge",true,"Purge directory, tuning (Def=true)", eSAM_InternalUse)
+                    << EAM(mPurgeAtEnd,"PurgeAtEnd",true,"Purge Final Resul", eSAM_IsBool)
                     << EAM(mMM1PInParal,"InParal",true,"Do it in parallel (Def=true)", eSAM_IsBool)
                     << EAM(mBascMTD,"BascMTD",true,"Metadata of file to bascule (Def No Basc)")
                     << EAM(mRIE,"RIE",true,",Inverse re-sampling from epipolar", eSAM_IsBool)
@@ -193,7 +200,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Etpi (tuning purpose)", eSAM_InternalUse)
                     << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
                     << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
-                    // << EAM(mMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
+                    << EAM(mMM1PMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
+					<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
   );
 
   mNoOri = (mNameOriInit=="NONE");
@@ -422,7 +430,33 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
        BasculeGround(true);
        BasculeGround(false);
     }
+
+    if (mPurgeAtEnd)
+    {
+        if (mCreateEpip)
+        {
+           PurgeFileEpi(mNameIm1);
+           PurgeFileEpi(mNameIm2);
+        }
+        ELISE_fp::PurgeDir(Dir() + LocDirMec2Im(mNameIm1,mNameIm2),true);
+        ELISE_fp::PurgeDir(Dir() + LocDirMec2Im(mNameIm2,mNameIm1),true);
+    }
 }
+
+void cAppliMMOnePair::PurgeOneFileEpi(const std::string & aName,const std::string & aPost)
+{
+     ELISE_fp::RmFile( Dir() + StdPrefix(aName) + aPost);
+}
+
+void cAppliMMOnePair::PurgeFileEpi(const std::string & aName)
+{
+    PurgeOneFileEpi(aName,".tif");
+    PurgeOneFileEpi(aName,"_Masq.tif");
+    PurgeOneFileEpi(aName,"_Masq.xml");
+}
+
+
+
 
 void cAppliMMOnePair::BasculeEpip(bool MasterIs1)
 {
@@ -535,12 +569,12 @@ void cAppliMMOnePair::GenerateMTDEpip(bool MasterIs1)
 
        cXML_ParamNuage3DMaille aNuage =  StdGetFromSI(aNameIn,XML_ParamNuage3DMaille);
        aNuage.Image_Profondeur().Val().Image() = NamePx(aStep);
-       // aNuage.Image_Profondeur().Val().Masq() =  NameAutoM(aStep);
-       aNuage.Image_Profondeur().Val().Masq() =  mNameMasqFinal;
+       aNuage.Image_Profondeur().Val().Masq() =  NameAutoM(aStep);
        aNuage.Image_Profondeur().Val().ResolutionAlti() *= aMul;
 
        if (IsLast)
        {
+            aNuage.Image_Profondeur().Val().Masq() =  mNameMasqFinal;
             aNuage.Image_Profondeur().Val().Correl().SetVal("Score-AR.tif");
        }
        else 
@@ -586,6 +620,8 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " FBH="  + ToString( mSkyBackgGound)
                           + " Regul=0.5"
                       ;
+
+     if (EAMIsInit(&mMM1PMasq3D)) aCom = aCom + " Masq3D=" +mMM1PMasq3D;
 
      aCom = aCom + " RedM=1.0 ";   // Avec la prog dyn, pas de raison de ne pas faire ts le temps à full resol
      if (aLast)
@@ -634,6 +670,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
     
 
+/*
      if (EAMIsInit(&mMasq3D))
      {
           std::string aNameNuage =   mEASF.mDir+LocDirMec2Im(aNamA,aNamB) + "NuageImProf_Chantier-Ori_Etape_"+ ToString(aStep) +".xml";
@@ -644,11 +681,9 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                            + aNameNew
                            + " MasqNuage=" + aNameNew;
 
-// std::cout << "AVANT ################\n";
-// std::cout << aCom << "\n";
           System(aCom);
-// std::cout << "APRES ################\n";
      }
+*/
 
 
      if (aLast)
@@ -729,11 +764,14 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " +DoOnlyXml="     + ToString(ForMTD)
                           + " +MMC="     + ToString(!ForMTD)
                           + " +NbProc=" + ToString(mMM1PInParal ? MMNbProc() : 1)
+						  + " +UseGpu=" + ToString(mUseGpu)
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
 
+     std::string aDyrPyram = mCreateEpip ? LocDirMec2Im(mNameIm1,mNameIm2) : "Pyram/";
+     aCom = aCom+ " +DirPyram=" + aDyrPyram;
+
      if (mNoOri) aCom = aCom+ " +MasqImOptional=true";
-     if (! mCreateEpip) aCom = aCom+ " +DirPyrIsMEC=false";
 
      if (EAMIsInit(&mBoxIm))
      {

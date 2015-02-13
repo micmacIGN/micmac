@@ -34,6 +34,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
         <Symb>  DoEpi=true </Symb>
 
+        <Symb>  UseGpu=false </Symb>
+        <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
+
 	<Symb> Zoom0=64  </Symb>
 	<Symb> ZoomF=1   </Symb>
 	<Symb> ZPas=0.5   </Symb>
@@ -76,6 +79,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
   <!-- Parametres calcule -->
         
         <Symb>  DirMEC=MEC2Im-${Im1}-${Im2} </Symb>
+        <Symb>  DirPyram=Pyram/ </Symb>
         <eSymb> DbleZPas=* 2 ${ZPas} </eSymb>
 
            <!-- Ici * joue le role de && --> 
@@ -203,7 +207,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 	    <!-- param correl -->
 	    <SzW> ${SzW} </SzW>
 	    <SzWy>  ${SzWy} </SzWy>
+
+            <#WHEN VTEST=${NotUseGpu}>
             <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+            </#WHEN>
+            <#WHEN VTEST=${UseGpu}>
+            <AlgoRegul>  eAlgoTestGPU </AlgoRegul>
+            </#WHEN>
 
             <#WHEN VTEST=${DoEpi}>
 	        <Px1Pas> ${ZPas} </Px1Pas>
@@ -220,7 +230,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
 
 
-	    <GenImagesCorrel> true </GenImagesCorrel>
+            <GenImagesCorrel> true </GenImagesCorrel>
 	    
 	
             <!-- param regul -->
@@ -249,6 +259,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
                  <#WHEN VTEST=${CMS}>
                      <CorrelMultiScale>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> false </UseWAdapt>
                             <ModeMax> ${MMCEff} </ModeMax>
@@ -535,10 +546,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
     <WorkDir> ThisDir </WorkDir> 
     <TmpMEC> ${DirMEC}/ </TmpMEC>
     <TmpResult> ${DirMEC}/ </TmpResult>
+    <TmpPyr> ${DirPyram} </TmpPyr>
+<!--
     <#IF VTEST=${DirPyrIsMEC}>
          <TmpPyr> ${DirMEC}/ </TmpPyr>
          <TmpPyr> Pyram/ </TmpPyr>
     </#IF>
+-->
     <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
 <!--
     <PreservedFile> NuageImProf_Chantier-Ori*xml </PreservedFile>
@@ -558,8 +572,13 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
      </#WHEN>
 
     <AvalaibleMemory> 1024 </AvalaibleMemory>
-    <SzDalleMin> 400 </SzDalleMin>
-    <SzDalleMax> 1000 </SzDalleMax>
+    <SzDalleMin> 128 </SzDalleMin>
+<#WHEN VTEST=${NotUseGpu}>
+            <SzDalleMax> 1000 </SzDalleMax>
+</#WHEN>
+<#WHEN VTEST=${UseGpu}>
+            <SzDalleMax> 512 </SzDalleMax>
+</#WHEN>
     <SzRecouvrtDalles> 20 </SzRecouvrtDalles>
     <SzMinDecomposCalc> 40 </SzMinDecomposCalc>
     <ComprMasque> eComprTiff_None </ComprMasque>

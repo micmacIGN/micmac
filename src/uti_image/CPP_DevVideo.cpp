@@ -45,6 +45,7 @@ class cOneImageVideo;
 class cAppliDevideo;
 
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
+// ffmpeg -i MVI_0247.MOV Im_0247_%5d_Ok.png
 
 // Im*_Ok => OK 
 // Im*_Nl => Image Nulle (eliminee)

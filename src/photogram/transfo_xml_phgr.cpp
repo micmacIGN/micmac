@@ -740,7 +740,7 @@ std::list<std::string> GetListFromSetSauvInFile
 
 }
 
-bool RepereIsAnam(const std::string & aName,bool  &IsOrthXCSte)
+bool RepereIsAnam(const std::string & aName,bool  &IsOrthXCSte,bool & IsAnamXCsteOfCart)
 {
      cElXMLTree aTree(aName);
      cElXMLTree * aTreeSurf = aTree.Get("XmlOneSurfaceAnalytique");
@@ -753,6 +753,7 @@ bool RepereIsAnam(const std::string & aName,bool  &IsOrthXCSte)
         xml_init(aXmlSurf,aTreeSurf);
         cInterfSurfaceAnalytique * aSurf = cInterfSurfaceAnalytique::FromXml(aXmlSurf);
         IsOrthXCSte = aSurf->HasOrthoLoc() && aSurf->OrthoLocIsXCste();
+        IsAnamXCsteOfCart =  aSurf->IsAnamXCsteOfCart();
         return true;
      }
 

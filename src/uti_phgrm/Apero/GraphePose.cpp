@@ -149,7 +149,6 @@ void  cAppliApero::ConstructMST
               bool GotPMul;
               double aPds = anOLM->StdQualityZone(ZuUseInInit(),OnInit,aNbPtsMin,anExpDist,anExpNb,GotPMul);
 
-// std::cout << "PPPDSSSS " << aPds << "\n";
               if (aPds> 0)
               {
                   if (aPds>aPdsMax)

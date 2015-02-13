@@ -97,8 +97,64 @@ void main_SDK()
     CGpGpuContext<context>::check_Cuda();
 }
 
+void UnitTest___CPP11()
+{
+#ifndef NOCUDA_X11
+    CStructure<3> testS;
+#else
+    CStructure<10> testS;
+#endif
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+            testS.setDimension(3);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+            testS.setDimension(20,5);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+        #ifdef NOCUDA_X11
+            testS.setDimension(3,5,5,8,223,4);
+#endif
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+            testS.setDimension(2,5,88);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+
+            DUMP(testS.getSize())
+            DUMP_LINE
+
+}
+
 int main()
 {
+
+    CuHostData3D<int2> bufferHost;
+
+	CuDeviceData3D<float3> bufferDevice(10,"fata");
+
+	bufferDevice.OutputInfo();
+	bufferHost.OutputInfo();
+
+    bufferHost.Malloc(make_uint2(5,5),1);
+
+    bufferHost.Fill(make_int2(5,8));
+
+    bufferHost.OutputValues();
+
 #if OPENCL_ENABLED
     main_SDK<openClContext>();
 #endif

@@ -498,7 +498,7 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     mIm2       (1,1),
     mMasq      (1,1),
     mTMasq     (mMasq),
-    mMatch     (false)
+    mMatch     (true)
 {
     MMD_InitArgcArgv(argc,argv);
 

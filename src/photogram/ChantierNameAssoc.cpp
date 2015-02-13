@@ -37,7 +37,50 @@ See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "general/CMake_defines.h"
+#if (ELISE_QT_VERSION >= 4)
+#ifdef Int
+   #undef Int
+#endif
+    #include "QCoreApplication"
+    #include "QStringList"
+    #include "QDir"
+#endif
+
 #include "StdAfx.h"
+
+bool NameIsNKS(const std::string & aPat)
+{
+    return (aPat[0]=='N') && (aPat[1]=='K') && (aPat[2]=='S') && (aPat[3]=='-');
+}
+
+bool NameIsNKSAssoc(const std::string & aPat)
+{
+    return        NameIsNKS (aPat)
+              && (aPat[4]=='A') 
+              && (aPat[5]=='s') 
+              && (aPat[6]=='s') 
+              && (aPat[7]=='o') 
+              && (aPat[8]=='c') 
+              && (aPat[9]=='-') 
+           ;
+}
+
+bool NameIsNKSSet(const std::string & aPat)
+{
+    return        NameIsNKS(aPat) 
+              && (aPat[4]=='S') 
+              && (aPat[5]=='e') 
+              && (aPat[6]=='t') 
+              && (aPat[7]=='-') 
+           ;
+}
+
+
+
+
+
+
 
 extern void NewSplit( const std::string  &  a2Stplit,std::string & aK0,std::vector<std::string>  & aSup);
 
@@ -173,6 +216,9 @@ bool TransFormArgKey
         aRes = true;
 
     if (ContainerTransFormArgKey(aSND.PatternRefuteur(),AMMNoArg,aDirExt))
+        aRes = true;
+
+    if (ContainerTransFormArgKey(aSND.NamesFileLON(),AMMNoArg,aDirExt))
         aRes = true;
 
     if (aSND.Filter().IsInit())
@@ -993,18 +1039,52 @@ std::string XML_MM_File(const std::string & aFile)
     }
 
 
-    const cSetNameDescriptor & cSetName::SND() const
-    {
-        return mSND;
-    }
+const cSetNameDescriptor & cSetName::SND() const
+{
+    return mSND;
+}
+
+void  cSetName::AddListName(cLStrOrRegEx & aLorReg,const std::list<std::string> & aLName,cInterfChantierNameManipulateur *anICNM)
+{
+    for (std::list<std::string>::const_iterator itS=aLName.begin(); itS!=aLName.end() ; itS++)
+        aLorReg.AddName(*itS,anICNM);
+}
+
+cLStrOrRegEx::cLStrOrRegEx()
+{
+}
+
+
+bool cLStrOrRegEx::AuMoinsUnMatch(const std::string & aName)
+{
+    return ::AuMoinsUnMatch(mAutom,aName) || DicBoolFind(mSet,aName);
+}
+
+void  cLStrOrRegEx::AddName(const std::string & aName,cInterfChantierNameManipulateur *anICNM)
+{
+   if (NameIsNKSSet(aName))
+   {
+      const cInterfChantierNameManipulateur::tSet * aSetIm = anICNM->Get(aName);
+      for (int aK=0 ; aK<int(aSetIm->size()) ; aK++)
+      {
+          mSet.insert((*aSetIm)[aK]);
+      }
+   }
+   else
+   {
+      mAutom.push_back(new cElRegex(aName,10));
+   }
+}
 
     void cSetName::CompileDef()
     {
         if (!mDefIsCalc)
         {
             mDefIsCalc = true;
-            mLR = CompilePats(mSND.PatternRefuteur());
-            mLA = CompilePats(mSND.PatternAccepteur());
+            AddListName(mLR,mSND.PatternRefuteur(),mICNM);
+            AddListName(mLA,mSND.PatternAccepteur(),mICNM);
+            // mLR = CompilePats(mSND.PatternRefuteur());
+            // mLA = CompilePats(mSND.PatternAccepteur());
         }
     }
 
@@ -1019,8 +1099,8 @@ std::string XML_MM_File(const std::string & aFile)
     {
         CompileDef();
 
-        return       AuMoinsUnMatch(mLA,aName)
-            && (! AuMoinsUnMatch(mLR,aName))
+        return       mLA.AuMoinsUnMatch(aName)
+            && (! mLR.AuMoinsUnMatch(aName))
             && (NameFilter(mICNM,mSND.Filter(),aName))
             ;
     }
@@ -1033,73 +1113,96 @@ std::string XML_MM_File(const std::string & aFile)
     }
 
 
-
-    const cInterfChantierSetNC::tSet  * cSetName::Get()
+void cSetName::InternalAddList(const std::list<std::string> & aLN)
+{
+    for
+    (
+        std::list<std::string>::const_iterator itN=aLN.begin();
+        itN!=aLN.end();
+        itN++
+    )
     {
+         std::string aName = mSND.SubDir().Val() +  *itN; // 
+         bool Ok = ! mLR.AuMoinsUnMatch(aName);
+
+         if (Ok && mSND.Min().IsInit()   && (*itN< mSND.Min().Val()))
+            Ok = false;
+         if (Ok && mSND.Max().IsInit()   && (*itN> mSND.Max().Val()))
+            Ok = false;
+
+         if (Ok && (!NameFilter(mSND.SubDir().Val(),mICNM,mSND.Filter(),*itN)))
+            Ok = false;
+
+         if (Ok)
+         {
+             mRes.push_back(aName);
+         }
+     }
+}
+
+
+const cInterfChantierSetNC::tSet  * cSetName::Get()
+{
         CompileDef();
         if (!mExtIsCalc)
         {
             mExtIsCalc = true;
+
             for
-                (
-                std::list<std::string>::const_iterator itA=mSND.PatternAccepteur().begin();
-            itA!=mSND.PatternAccepteur().end();
-            itA++
-                )
+            (
+                   std::list<std::string>::const_iterator itL=mSND.NamesFileLON().begin();
+                   itL!=mSND.NamesFileLON().end();
+                   itL++
+            )
             {
-                std::list<std::string> aLN = RegexListFileMatch
-                    (
-                    (mSND.AddDirCur().Val()?mDir:"") + mSND.SubDir().Val(),
-                    *itA,
-                    mSND.NivSubDir().Val(),
-                    mSND.NameCompl().Val()
-                    );
-                /*
-                if (aLN.empty())
+                cListOfName aLON = StdGetFromPCP(*itL,ListOfName);
+                InternalAddList(aLON.Name());
+            }
+
+
+
+            for
+            (
+                   std::list<std::string>::const_iterator itA=mSND.PatternAccepteur().begin();
+                   itA!=mSND.PatternAccepteur().end();
+                   itA++
+            )
+            {
+                std::list<std::string> aLN;
+                if (NameIsNKSSet(*itA))
                 {
-                aLN = mICNM->StdGetListOfFile(*itA);
+                     const cInterfChantierNameManipulateur::tSet * mSetIm = mICNM->Get(*itA);
+                     std::copy(mSetIm->begin(),mSetIm->end(),back_inserter(aLN));
                 }
-                */
-                for
-                    (
-                    std::list<std::string>::const_iterator itN=aLN.begin();
-                itN!=aLN.end();
-                itN++
-                    )
+                else
                 {
-                    std::string aName = mSND.SubDir().Val() +  *itN; // mICNM->DBNameTransfo(*itN,mSND.NameTransfo());
-                    bool Ok = ! AuMoinsUnMatch(mLR,aName);
 
-                    if (Ok && mSND.Min().IsInit()   && (*itN< mSND.Min().Val()))
-                        Ok = false;
-                    if (Ok && mSND.Max().IsInit()   && (*itN> mSND.Max().Val()))
-                        Ok = false;
-
-                    if (Ok && (!NameFilter(mSND.SubDir().Val(),mICNM,mSND.Filter(),*itN)))
-                        Ok = false;
-
-                    if (Ok)
-                    {
-                        mRes.push_back(aName);
-                    }
+                    aLN = RegexListFileMatch
+                          (
+                                  (mSND.AddDirCur().Val()?mDir:"") + mSND.SubDir().Val(),
+                                  *itA,
+                                  mSND.NivSubDir().Val(),
+                                  mSND.NameCompl().Val()
+                          );
                 }
+                InternalAddList(aLN);
             }
 
             for
-                (
+            (
                 std::list<std::string>::const_iterator itA=mSND.Name().begin();
-            itA!=mSND.Name().end();
-            itA++
-                )
+                itA!=mSND.Name().end();
+                itA++
+            )
             {
                 mRes.push_back(*itA);
             }
             std::sort(mRes.begin(),mRes.end());
             mRes.erase(std::unique(mRes.begin(),mRes.end()),mRes.end());
         }
-        
+
         return &mRes;
-    }
+}
 
     /*******************************************************/
     /*                                                     */
@@ -1111,6 +1214,17 @@ std::string XML_MM_File(const std::string & aFile)
     {
     }
 
+    void cDicoSetNC::assign(const tKey & aKey,cSetName * aSet)
+    {
+        if ( isUsingSeparateDirectories() )
+        {
+            if ( aKey.find("NKS-Set-Orient")!=string::npos )
+            {
+                aSet->setDir( MMOutputDirectory() );
+            }
+        }
+        mDico[aKey] = aSet;
+    }
 
     void cDicoSetNC::Add(const tKey & aKey,cSetName * aSet)
     {
@@ -1156,8 +1270,7 @@ std::string XML_MM_File(const std::string & aFile)
         cSetNameDescriptor & aSND = * new cSetNameDescriptor(anIt->second->SND());
         TransFormArgKey(aSND,false,aVParams);
         cSetName *aSet = new cSetName(anIt->second->ICNM(),aSND);
-        mDico[aKey] = aSet;
-
+        assign( aKey, aSet );
 
         return aSet;
     }
@@ -2350,7 +2463,53 @@ std::string XML_MM_File(const std::string & aFile)
         return aRes;
     }
 
+bool DebugConvCal() {return false;}
 
+#if(ELISE_QT_VERSION >= 4)
+    string MMQtLibraryPath()
+    {
+        #if defined(__APPLE__) || defined(__MACH__)
+            return MMDir()+"Frameworks";
+		#elif ELISE_windows
+			return MMBin();
+        #endif
+        return string();
+    }
+
+    // there is alway one path in the list to avoid multiple library loading
+    void setQtLibraryPath( const string &i_path )
+    {
+        QString path( i_path.c_str() );
+        if ( !QDir(path).exists() ) cerr << "WARNING: setQtLibraryPath(" << i_path << "): path does not exist" << endl;
+        QCoreApplication::setLibraryPaths( QStringList(path) );
+    }
+
+    // if default path does not exist, replace it by deployment path
+    // used by mm3d and SaisieQT
+    void initQtLibraryPath()
+    {
+        // set to deployment path if it exists
+        string deploymentPath = MMQtLibraryPath();
+        if ( !deploymentPath.empty() && QDir( QString(deploymentPath.c_str())).exists() )
+        {
+            setQtLibraryPath(deploymentPath);
+            return;
+        }
+
+        // keep the first existing path to avoid multiple library loading
+        QStringList paths = QCoreApplication::libraryPaths();
+        for ( int i=0; i<paths.size(); i++ )
+        {
+            if ( QDir( paths.at(i) ).exists() )
+            {
+                setQtLibraryPath( paths.at(i).toStdString() );
+                return;
+            }
+        }
+
+        cerr << "WARNING: initQtLibraryPath: no valid path found" << endl;
+    }
+#endif
 
     std::string MMBin() { return MMDir()+"bin"+ELISE_CAR_DIR; }
 
@@ -2371,6 +2530,7 @@ std::string XML_MM_File(const std::string & aFile)
         mArgTr.SetDico("MMDir",MMDir(),true);
         mArgTr.SetDico("MMNbProc",ToString(MMNbProc()),true);
         mArgTr.SetDico("MMCmdRmFile",SYS_RM,true);
+        mArgTr.SetDico("MPD_MM",ToString(MPD_MM()),true);
 
 
         for (int aK=0 ;aK< argc ; aK++)
@@ -2555,7 +2715,6 @@ aKeyOrFile         :
         bool                   DoMkDB
         )
     {
-
         cStdChantierMultiManipulateur * aRes = new cStdChantierMultiManipulateur(argc,argv,aDir);
 
         std::string aPrelim = aDir+theNamePrelim;
@@ -2572,7 +2731,9 @@ aKeyOrFile         :
             aRes->Add(cStdChantierMonoManipulateur::StdGetFromFile(eMMLCD_SCMN,aRes,aDir,aLoc,true));
 
         if (aName.IsInit())
+        {
             aRes->Add(cStdChantierMonoManipulateur::StdGetFromFile(eUnknownSCMN,aRes,aDir,aDir+aName.Val(),false));
+        }
 
         if (aCDisc)
         {
@@ -2645,7 +2806,7 @@ aKeyOrFile         :
         return mDir;
     }
 
-	  void cInterfChantierNameManipulateur::setDir( const std::string &i_directory ){ mDir=i_directory; }
+      void cInterfChantierNameManipulateur::setDir( const std::string &i_directory ){ mDir=i_directory; }
 
 
 
@@ -2864,7 +3025,7 @@ void cStdChantierRel::AddAllCpleKeySet
         std::vector<std::string> aSampleA,aSampleB;
         if (aSampling!=1)
         {
-            for (int aK=0 ; aK<int(aSetA->size()) ; aK+=aSampling) 
+            for (int aK=0 ; aK<int(aSetA->size()) ; aK+=aSampling)
                 aSampleA.push_back((*aSetA)[aK]);
             aSetA= & aSampleA;
             if (SameSet)
@@ -2873,7 +3034,7 @@ void cStdChantierRel::AddAllCpleKeySet
             }
             else
             {
-                for (int aK=0 ; aK<int(aSetB->size()) ; aK+=aSampling) 
+                for (int aK=0 ; aK<int(aSetB->size()) ; aK+=aSampling)
                     aSampleB.push_back((*aSetB)[aK]);
                 aSetB= & aSampleB;
             }
@@ -3233,7 +3394,7 @@ void cStdChantierRel::AddAllCpleKeySet
             const std::string & aKeyA= itA->KeySets()[0];
             const std::string & aKeyB= itA->KeySets().back();
             int aSampling = 1;
-            if (itA->Sampling().IsInit()) 
+            if (itA->Sampling().IsInit())
                aSampling =itA->Sampling().Val().Val();
 
             if ( isUsingSeparateDirectories() ) mICNM.setDir( oldDirectory );
@@ -3355,7 +3516,9 @@ void cStdChantierRel::AddAllCpleKeySet
         mRTr_R2I   (Pt2dr(0,0),Pt2dr(1,0))
     {
         std::string aNameInit = aDir+aName;
+        if ( isUsingSeparateDirectories() && !ELISE_fp::exist_file(aNameInit) ) aNameInit = MMInputDirectory()+aName;
         mFullNameFinal = aNameInit;
+
         Tiff_Im aFileInit = PastisTif(aNameInit);
         mSzIm = aFileInit.sz();
 
@@ -3924,47 +4087,47 @@ void   CorrecNameMasq
 
 static void __check_directory( const cTplValGesInit<std::string> &i_XMLDirectory, string &o_directory )
 {
-	if ( !i_XMLDirectory.IsInit() ){ o_directory.clear(); return; }
-	
-	o_directory = i_XMLDirectory.Val();
-	if ( o_directory.length()==0 ) return;
-	char &lastChar = o_directory[o_directory.length()-1];
-	if ( lastChar=='\\' ) lastChar='/';
-	else if ( lastChar!='/' ) o_directory.push_back('/');
-	ELISE_fp::MkDir(o_directory);
+    if ( !i_XMLDirectory.IsInit() ){ o_directory.clear(); return; }
+
+    o_directory = i_XMLDirectory.Val();
+    if ( o_directory.length()==0 ) return;
+    char &lastChar = o_directory[o_directory.length()-1];
+    if ( lastChar=='\\' ) lastChar='/';
+    else if ( lastChar!='/' ) o_directory.push_back('/');
+    ELISE_fp::MkDir(o_directory);
 }
 
 std::string MMOutputDirectory()
 {
-	static string res;
-	static bool isInit = false;
-	if ( isInit ) return res;
-	
-	isInit = true;
-	__check_directory( MMUserEnv().OutputDirectory(), res );
-	return res;
+    static string res;
+    static bool isInit = false;
+    if ( isInit ) return res;
+
+    isInit = true;
+    __check_directory( MMUserEnv().OutputDirectory(), res );
+    return res;
 }
 
 std::string MMLogDirectory()
 {
-	static string res;
-	static bool isInit = false;
-	if ( isInit ) return res;
+    static string res;
+    static bool isInit = false;
+    if ( isInit ) return res;
 
-	isInit = true;
-	__check_directory( MMUserEnv().LogDirectory(), res );
-	return res;
+    isInit = true;
+    __check_directory( MMUserEnv().LogDirectory(), res );
+    return res;
 }
 
 std::string MMTemporaryDirectory()
 {
-	static string res;
-	static bool isInit = false;
-	if ( isInit ) return res;
-	isInit = true;
-	res = MMOutputDirectory()+temporarySubdirectory;
-	ELISE_fp::MkDirSvp(res);
-	return res;
+    static string res;
+    static bool isInit = false;
+    if ( isInit ) return res;
+    isInit = true;
+    res = MMOutputDirectory()+temporarySubdirectory;
+    ELISE_fp::MkDirSvp(res);
+    return res;
 }
 
 static string _inputDirectory;
@@ -3972,8 +4135,8 @@ static bool _isInputDirectorySet = false;
 
 void setInputDirectory( const std::string &i_directory )
 {
-	_inputDirectory = i_directory;
-	_isInputDirectorySet = true;
+    _inputDirectory = i_directory;
+    _isInputDirectorySet = true;
 }
 
 bool isInputDirectorySet(){ return _isInputDirectorySet; }

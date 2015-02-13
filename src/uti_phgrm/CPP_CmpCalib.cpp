@@ -358,6 +358,196 @@ int CmpCalib_main(int argc,char ** argv)
     else return EXIT_SUCCESS;
 }
 
+//=================================================================
+
+class cLibertOfCalib
+{
+    public :
+      cLibertOfCalib(int aDR,int aDG,int aDC,bool HasCD,bool PPCDLie) :
+           mDegRad    (aDR),
+           mDegGen    (aDG),
+           mDDecentr  (aDC),
+           mHasCD     (HasCD),
+           mPPCDLie   (PPCDLie)
+      {
+      }
+
+
+      int   mDegRad;
+      int   mDegGen;
+      int   mDDecentr;
+      bool  mHasCD;
+      bool  mPPCDLie;
+};
+
+
+cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
+{
+    if (aCalib.ModNoDist().IsInit())
+    {
+           return cLibertOfCalib(0,0,0,false,true);
+    }
+    if (aCalib.ModRad().IsInit())
+    {
+         const cCalibrationInterneRadiale & aCIR = aCalib.ModRad().Val();
+         return cLibertOfCalib(aCIR.CoeffDist().size(),0,0,true ,false);
+    }
+    if (aCalib.ModPhgrStd().IsInit())
+    {
+         const cCalibrationInternePghrStd & aCIR = aCalib.ModPhgrStd().Val();
+         const cCalibrationInterneRadiale & aCIP = aCIR.RadialePart();
+         return cLibertOfCalib(aCIP.CoeffDist().size(),1,1,true ,false);
+    }
+
+    if (aCalib.ModUnif().IsInit())
+    {
+        eModelesCalibUnif aMode = aCalib.ModUnif().Val().TypeModele();
+
+        if (aMode==eModeleEbner) return cLibertOfCalib(0,4,0,true ,false);
+        if (aMode==eModeleDCBrown) return cLibertOfCalib(0,4,0,true ,false);
+        if ((aMode>=eModelePolyDeg2) && (aMode<=eModelePolyDeg7))
+        {
+             int aDeg = int(aMode) - int(eModelePolyDeg2) + 2;
+             return cLibertOfCalib(0,aDeg,0,false,false);
+        }
+
+        if ((aMode == eModele_FishEye_10_5_5)  || (aMode==eModele_EquiSolid_FishEye_10_5_5))
+        {
+           return cLibertOfCalib(10,3,4,true,false);
+        }
+
+        if (aMode==eModele_DRad_PPaEqPPs) return cLibertOfCalib(2,0,0,true ,true);
+
+        if ((aMode>=eModeleRadFour7x2) && (aMode<=eModeleRadFour19x2))
+        {
+            int aDegRad = 3 + 2* (int(aMode) - int(eModeleRadFour7x2));
+            return cLibertOfCalib(2,aDegRad,0,false,false);
+        }
+    }
+
+
+    ELISE_ASSERT(false,"GetDefDegreeOfCalib");
+    return cLibertOfCalib(0,0,0,false,true);
+}
+
+
+int ConvertCalib_main(int argc, char** argv)
+{
+   // virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
+   // for (int aK=0 ; aK<argc ; aK++)
+   //     std::cout << " # " << argv[aK] << "\n";
+
+    std::string aCalibIn;
+    std::string aCalibOut;
+    int aNbXY=20;
+    int aNbProf=2;
+    int aDRMax;
+    int aDegGen;
+    std::string aNameCalibOut =  "Out-ConvCal.xml";
+    bool PPFree = true;
+    bool CDFree = true;
+    bool FocFree = true;
+
+    ElInitArgMain
+    (
+       argc,argv,
+       LArgMain()  << EAMC(aCalibIn, "Input Calibration",eSAM_IsExistFile)
+                   << EAMC(aCalibOut,"Output calibration",eSAM_IsExistFile),
+       LArgMain()  << EAM(aNbXY,"NbXY",true,"Number of point of the Grid")
+                   << EAM(aNbProf,"NbProf",true,"Number of depth")
+                   << EAM(aDRMax,"DRMax",true,"Max degree of radial dist (def=depend Output calibration)")
+                   << EAM(aDegGen,"DegGen",true,"Max degree of generik polynom (def=depend Output calibration)")
+                   << EAM(PPFree,"PPFree",true,"Principal point free (Def=true)")
+                   << EAM(CDFree,"CDFree",true,"Distorsion center free (def=true)")
+                   << EAM(FocFree,"FocFree",true,"Focal free (def=true)")
+    );
+
+   std::string aNameImage = aCalibOut;
+   std::string aDirTmp = DirOfFile(aCalibIn) + "Ori-ConvCalib/";
+   ELISE_fp::MkDir(aDirTmp);
+
+   CamStenope * aCamIn =  Std_Cal_From_File(aCalibIn);
+   Pt2dr aSzPix = aCamIn->SzPixel();
+
+   Pt2di aPInt;
+   double aEps = 1e-2;
+   cDicoAppuisFlottant aDAF;
+   double anInc = 1/ euclid(aSzPix);
+   cMesureAppuiFlottant1Im aMAF;
+   aMAF.NameIm() = aNameImage;
+   for (aPInt.x=0 ; aPInt.x<= aNbXY ; aPInt.x++)
+   {
+       for (aPInt.y=0 ; aPInt.y<= aNbXY ; aPInt.y++)
+       {
+           Pt2dr aPds(aPInt.x/double(aNbXY),aPInt.y/double(aNbXY));
+           aPds = aPds * (1-2*aEps) + Pt2dr(aEps,aEps);
+           Pt2dr aPIm = aSzPix.mcbyc(aPds);
+           for (int aKP=0; aKP < aNbProf ; aKP++)
+           {
+               //Pt2dr aPCheck = aCamIn->R3toF2(aPGround);
+               //std::cout << aPInt << " => " << aPIm << " " << aPCheck<< "\n";
+               std::string aNamePt = "Pt_"+ ToString(aPInt.x)
+                                     + "_"+ ToString(aPInt.y)
+                                     + "_"+ ToString(aKP);
+
+              // GCP generation
+               cOneAppuisDAF anAp;
+               double aProf = 1 + aKP* 0.5;
+               Pt3dr aPGround = aCamIn->ImEtProf2Terrain(aPIm,aProf);
+               anAp.Pt() = aPGround;
+               anAp.Incertitude() = Pt3dr(anInc,anInc,anInc);
+               anAp.NamePt() = aNamePt;
+               aDAF.OneAppuisDAF().push_back(anAp);
+
+              // Image measurement
+              cOneMesureAF1I aM1;
+              aM1.NamePt() = aNamePt;
+              aM1.PtIm() = aPIm;
+          aMAF.OneMesureAF1I().push_back(aM1);
+
+           }
+       }
+   }
+   cCalibrationInternConique aCICOut = StdGetFromPCP(aCalibOut,CalibrationInternConique);
+   cLibertOfCalib  aLOC = GetDefDegreeOfCalib(aCICOut.CalibDistortion().back());
+   if (!EAMIsInit(&aDRMax) ) aDRMax = aLOC.mDegRad;
+   if (!EAMIsInit(&aDegGen)) aDegGen = aLOC.mDegGen;
+
+   cSetOfMesureAppuisFlottants aSMAF;
+   aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
+
+   MakeFileXML(aDAF, aDirTmp + "Mes3D.xml");
+   MakeFileXML(aSMAF, aDirTmp + "Mes2D.xml");
+
+   cOrientationConique  anOC = aCamIn->StdExportCalibGlob();
+   MakeFileXML(anOC, aDirTmp + "Orientation-" + aNameImage + ".xml");
+
+   std::string aCom =    MM3dBinFile("Apero")
+                       + XML_MM_File("Apero-ConvCal.xml")
+                       + " DirectoryChantier=" +DirOfFile(aCalibIn)
+                       + " +AeroIn=ConvCalib"
+                       + " +CalibIn="  + aCalibOut
+                       + " +CalibOut=" + aNameCalibOut
+                       + " +FocFree="  + ToString(FocFree)
+                       + " +PPFree="   + ToString(PPFree)
+                       + " +CDFree="   + ToString(CDFree)
+                       + " +DRMax=" + ToString(aDRMax)
+                       + " +DegGen=" + ToString(aDegGen)
+                      ;
+
+
+   System(aCom);
+   std::cout << "COM= " << aCom << "\n";
+
+
+// "/opt/micmac/culture3d/bin/mm3d"
+
+//Apero Apero-ConvCal.xml  DirectoryChantier=/home/prof/Bureau/ConvertCali/ +DRMax=0
+
+   // std::cout << "CalIn=" << aCalibIn << " Foc " << aCamIn->Focale() << "\n";
+   return EXIT_SUCCESS;
+}
+
 
 
 

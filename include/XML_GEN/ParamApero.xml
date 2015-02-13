@@ -234,6 +234,11 @@
       <LimBSurH Nb="?" Type="double" Def="1e-2"> </LimBSurH>
 </ParamEstimPlan>
 
+<RigidBlockWeighting Nb="1" Class="true" ToReference="true">
+    <PondOnTr Nb="1" Type="double"> </PondOnTr>
+   <PondOnRot Nb="1" Type="double"> </PondOnRot>
+</RigidBlockWeighting>
+
 <AperoPointeStereo Nb="1" Class="true" ToReference="true">
       <P1 Nb="1" Type="Pt2dr"> </P1>
       <Im1 Nb="1" Type="std::string"> </Im1>
@@ -602,6 +607,10 @@
               <BlockCamera Nb="*">
                     <NameFile Nb="1" Type="std::string"> </NameFile>
                     <Id   Nb="?" Type="std::string"> </Id>
+                    <UseForBundle Nb="?">
+                        <GlobalBundle Nb="1" Type="bool">      </GlobalBundle>
+                        <RelTimeBundle Nb="1" Type="bool">     </RelTimeBundle>
+                    </UseForBundle>
               </BlockCamera>
 
 
@@ -713,7 +722,23 @@
 		   pour "monter" les aeros
 		   -->
 		   <ReverseOrderName Nb="?" Type="bool" Def="false"> </ReverseOrderName>
-	           <CalcNameCalib  Nb="1" Type="std::string">   </CalcNameCalib>
+                   <!-- Si on utilise CalcNameCalib , ne pas utiliser CalcNameCalibAux -->
+	           <CalcNameCalib  Nb="?" Type="std::string">   </CalcNameCalib>
+                   <!-- Pour s'adapter dynamiquement a , par exemple, le cas avec et sans CalPerIm, il faut
+                        pouvoir calculer la cle de calibration avec des critere complexe   -->
+                   <CalcNameCalibAux Nb="*"  UnionType="true">
+                        <CalcNameOnExistingTag Nb="?">
+                               <KeyCalcFileOriExt Nb="1" Type="std::string"> </KeyCalcFileOriExt>
+                               <KeyCalcName Nb="1" Type="std::string">       </KeyCalcName>
+                               <TagExist Nb="1" Type="std::string">          </TagExist>
+                               <TagNotExist Nb="1" Type="std::string">       </TagNotExist>
+                               <ExigCohTags Nb="?" Type="bool" Def="true">   </ExigCohTags>
+                        </CalcNameOnExistingTag>
+                        <KeyCalcNameDef Nb="?" Type="std::string">       </KeyCalcNameDef>
+                   </CalcNameCalibAux>
+
+
+
 		   <!-- A cause d'un "erreur historique" dans la lib elise, l'eventuelle rotation
 		   de rattachement doit etre connue a l'avance.
 		        Si necessaire, on doit pouvoir facilement donner une liste de rattachements
@@ -1197,6 +1222,8 @@ normalises en echelle et/ou en translation -->
                      <ObsBlockCamRig Nb="*">
                          <Id Nb="1" Type="std::string"> </Id>
                          <Show Type="bool" Nb="?" Def="false"> </Show>
+                         <GlobalPond Nb="?" RefType="RigidBlockWeighting"> </GlobalPond>
+                         <RelTimePond Nb="?" RefType="RigidBlockWeighting"> </RelTimePond>
                      </ObsBlockCamRig>
 
                       <!-- Ici il s'agit de point d'appuis "sur", -->
@@ -1488,6 +1515,7 @@ normalises en echelle et/ou en translation -->
 
                      <ChoixImMM Nb="?">
                           <ChoixImSec Nb="1">
+                               <FileImSel Nb="?" Type="std::string"> </FileImSel>
                                <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
                                <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
                                <CardMaxSub Nb="?" Type="int" Def="6"> </CardMaxSub>

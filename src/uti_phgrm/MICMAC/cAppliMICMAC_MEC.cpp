@@ -76,6 +76,7 @@ int cAppliMICMAC::GetTXY() const
 void cAppliMICMAC::DoAllMEC()
 {
 
+
 #if CUDA_ENABLED
 
     CGpGpuContext<cudaContext> gpgpuContext;
@@ -92,7 +93,9 @@ void cAppliMICMAC::DoAllMEC()
      {          
         OneEtapeSetCur(**itE);
         if (mDoTheMEC  && (!DoNothingBut().IsInit()))
+        {
            DoOneEtapeMEC(**itE);
+        }
         if (
                  ( (*itE)->Num()>=FirstEtapeMEC().Val())
            &&    ( (*itE)->Num()<LastEtapeMEC().Val())
@@ -128,6 +131,7 @@ void cAppliMICMAC::DoAllMEC()
     if (mCorrelAdHoc && mCorrelAdHoc->GPU_CorrelBasik().IsInit())    
         gpgpuContext.deleteContext();
 #endif
+
 }
 
 /*
@@ -158,7 +162,9 @@ double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec)
 
 void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
 {
+     mPrecEtape = mCurEtape;
      mCurEtape = & anEtape;
+     
      if (anEtape.EtapeMEC().GenCubeCorrel().ValWithDef(false))
      {
         ELISE_fp::MkDirSvp(DirCube());
@@ -326,6 +332,8 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
      );
 }
 
+const std::string & mm_getstrpid();
+
 
 std::string cAppliMICMAC::PrefixGenerikRecalEtapeMicmMac(cEtapeMecComp & anEtape)
 {
@@ -336,7 +344,8 @@ std::string cAppliMICMAC::PrefixGenerikRecalEtapeMicmMac(cEtapeMecComp & anEtape
     //std::string aNameProcess = std::string("\"")+mNameXML+std::string("\"")
    std::string aNameProcess = mNameXML 
                                + std::string(" CalledByProcess=1 ")
-                               + std::string(" ByProcess=0 ");
+                               + std::string(" ByProcess=0 ")
+                               + std::string(" IdMasterProcess="+ mm_getstrpid() + " ");
 
     // MODIF MPD mise entre " des parametre pour etre completement reentrant
     for (int aKArg=0; aKArg<mNbArgAux ; aKArg++)
@@ -783,7 +792,6 @@ void cAppliMICMAC::DoOneBloc
        mDefCost =  mStatGlob->CorrelToCout(mDefCorr);
        mSurfOpt = cSurfaceOptimiseur::Alloc(*this,*mLTer,anEqX,anEqY);
 
-
        InitCostCalcCorrel();
 
 
@@ -804,13 +812,10 @@ void cAppliMICMAC::DoOneBloc
         aTimeCorrel = aChrono.ValAndInit();
         if (mShowMes)
         {
-            if(mCorrelAdHoc)
-            {
-                if(mCorrelAdHoc->TypeCAH().GPU_CorrelBasik().IsInit())
-                    mCout << "       Cuda Correlation Finished, Begin Cuda Optimisation\n";
-                else
-                    mCout << "       Correl Calc, Begin Opt\n";
-            }
+			if((mCorrelAdHoc != 0 && mCorrelAdHoc->TypeCAH().GPU_CorrelBasik().IsInit())||
+			   (mCMS!=0 && mCMS->UseGpGpu().Val()))
+
+				mCout << "       Cuda Correlation Finished, Begin Cuda Optimisation\n";
             else
                 mCout << "       Correl Calc, Begin Opt\n";
         }

@@ -104,7 +104,7 @@ int Apero_main(int argc,char ** argv)
    if (anAppli.ShowMes())
       Apero_Banniere();
 
-   cElWarning::ShowWarns(anAppli.DC() + "WarnApero.txt");
+   cElWarning::ShowWarns( ( isUsingSeparateDirectories()?MMTemporaryDirectory():anAppli.DC() ) + "WarnApero.txt");
 
    ShowFClose();
    return 0;

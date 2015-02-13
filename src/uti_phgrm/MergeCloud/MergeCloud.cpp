@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "MergeCloud.h"
 
-std::string DirQMPLy () {return "QM-Ply/";}
+// std::string DirQMPLy () {return "QM-Ply/";}
 
 class cCmpResolMCSPOM
 {
@@ -64,9 +64,13 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 */
    mNbImSelected    (0),
    mDoPly           (true),
-   mDoPlyCoul         (false)
+   mDoPlyCoul         (false),
+   mSzNormale         (-1),
+   mNormaleByCenter   (false),
+   mModeMerge         (eQuickMac),
+   mDS                (1.0)
 {
-   ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
+   // ELISE_fp::MkDirSvp(Dir()+DirQMPLy());
 
    mVStatNivs[eQC_Out].mGofQ          = 0;
    mVStatNivs[eQC_ZeroCohBrd].mGofQ   = 1/32.0;
@@ -81,6 +85,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    mVStatNivs[eQC_Coh3].mGofQ         =  4.0;
    
    std::string aPat,anOri;
+   std::string aModeMerge = "QuickMac";
    ElInitArgMain
    (
         argc,argv,
@@ -89,7 +94,13 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
         LArgMain()  << EAM(mFileParam,"XMLParam",true,"File Param, def = XML_MicMac/DefMergeCloud.xml")
                     << EAM(mDoPly,"DoPly",true,"Generate Ply of selected files (Def=true)")
                     << EAM(mDoPlyCoul,"PlyCoul",true,"Generated ply are in coul (Def=false)")
+                    << EAM(mSzNormale,"SzNorm",true,"Parameters for normals creation")
+                    << EAM(mNormaleByCenter,"NormByC",true,"Normale by Center")
+                    << EAM(aModeMerge,"ModeMerge",true,"Mode Merge in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
+                    << EAM(mDS,"DownScale",true,"DownScale used in computation (to compute names)")
    );
+
+
 
    if (! EAMIsInit(&mFileParam))
    {
@@ -98,6 +109,20 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 
    mParam = StdGetFromSI(mFileParam,ParamFusionNuage);
 
+   if (EAMIsInit(&aModeMerge))
+   {
+       bool aModeHelp;
+       StdReadEnum(aModeHelp,mModeMerge,aModeMerge,eNbTypeMMByP);
+   }
+   else
+   {
+      mModeMerge = mParam.ModeMerge();
+   }
+
+   mMMIN = cMMByImNM::ForGlobMerge(Dir(),mDS,aModeMerge);
+
+
+
    mPatMAP  = new cElRegex (mParam.ImageMiseAuPoint().ValWithDef(".*"),10);
 
    // ===  Creation des nuages 
@@ -105,22 +130,35 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    for (int aKS=0 ; aKS<int(cAppliWithSetImage::mVSoms.size()) ; aKS++)
    {
         cImaMM * anIma = cAppliWithSetImage::mVSoms[aKS]->attr().mIma;
+        const std::string & aNameIm = anIma->mNameIm;
         cASAMG * anAttrSom = 0;
 
         bool InMAP = false;
-        std::string aNameNuXml = NameFileInput(true,anIma,".xml");
+        //  std::string aNameNuXml = NameFileInput(true,anIma,".xml");
+        std::string aNameNuXml = mMMIN->NameFileXml(eTMIN_Depth,aNameIm);
         // Possible aucun nuage si peu de voisins et mauvaise config epip
         if (ELISE_fp::exist_file(aNameNuXml))
         {
-            anAttrSom = new cASAMG(this,anIma);
-            mVAttr.push_back(anAttrSom);
-            tMCSom &  aSom = mGr.new_som(anAttrSom);
-            mDicSom[anIma->mNameIm] = & aSom;
-            mVSoms.push_back(&aSom);
-            InMAP = IsInImageMAP(anAttrSom) ;
+             // std::string aNM = NameFileInput(true,anIma,"_Masq.tif");
+             std::string aNM =  mMMIN->NameFileMasq(eTMIN_Depth,aNameIm);
+
+             // std::string aNM = NameFileInput(true,"Masq"+anIma,".tif");
+             Tiff_Im aTM(aNM.c_str());
+             int aSom;
+             ELISE_COPY(aTM.all_pts(),aTM.in(),sigma(aSom));
+            // Possible nuage vide 
+            if (aSom>100)
+            {
+                anAttrSom = new cASAMG(this,anIma);
+                mVAttr.push_back(anAttrSom);
+                tMCSom &  aSom = mGr.new_som(anAttrSom);
+                mDicSom[anIma->mNameIm] = & aSom;
+                mVSoms.push_back(&aSom);
+                InMAP = IsInImageMAP(anAttrSom) ;
+            }
         }
 
-        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << InMAP << "\n";
+        std::cout << anIma->mNameIm  << (anAttrSom ? " OK " : " ## ") << " MAP " << InMAP << " XMl " << aNameNuXml << "\n";
    }
    cCmpResolMCSPOM aCmp;
    std::sort(mVSoms.begin(),mVSoms.end(),aCmp);
@@ -134,6 +172,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    CreateGrapheConx();
 
 
+std::cout << "CCcccccccccccc\n";
    // Calcul image de quality + Stats
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
@@ -186,10 +225,21 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
 
 
    int aNivMin = ElMin(eQC_Coh1,eQC_GradFaibleC2);
-   if (mParam.ModeMerge() ==eMMC_Envlop)
+   if (mModeMerge ==eStatue)
+   {
+/*
+        <eQC_GradFaibleC1 >   </eQC_GradFaibleC1>
+         <eQC_Bord >           </eQC_Bord>
+         <eQC_Coh1 >           </eQC_Coh1>
+         <eQC_GradFaibleC2 >   </eQC_GradFaibleC2>
+*/
+      aNivMin= eQC_GradFaibleC2;
+   }
+   if (IsMacType(mModeMerge))
    {
       aNivMin=eQC_GradFaibleC1;
    }
+   // aNivMin = eQC_GradFaibleC2;
    for (mCurNivSelSom=mGlobMaxNivH ; mCurNivSelSom>=aNivMin ; mCurNivSelSom--)
    {
        std::cout << "BEGIN NIV " <<  mCurNivSelSom << " " << eToString(eQualCloud(mCurNivSelSom)) << "\n"; 
@@ -213,6 +263,7 @@ cAppliMergeCloud::cAppliMergeCloud(int argc,char ** argv) :
    }
    cEl_GPAO::DoComInParal(aLComPly);
 }
+
 
 void cAppliMergeCloud::OneStepSelection()
 {
@@ -317,18 +368,24 @@ Video_Win *  cAppliMergeCloud::TheWinIm(const cASAMG * anAS)
    return mTheWinIm;
 }
 
-const std::string cAppliMergeCloud::TheNameSubdir = "Fusion-0";
-
+/*
 std::string cAppliMergeCloud::NameFileInput(bool DownScale,const std::string & aNameIm,const std::string & aPost,const std::string & aPrefIn)
 {
-   switch (mParam.ModeMerge())
+   switch (mModeMerge)
    {
-       case eMMC_Epi :
-            return Dir() +  TheNameSubdir +  ELISE_STR_DIR + "NuageRed" + aNameIm + aPost ;
-       case eMMC_Envlop :
+       case eQuickMac :
+       case eStatue :
+       {
+
+            std::string aDirLoc = (mModeMerge== eStatue) ? DirFusStatue() : DirFusMMInit();
             std::string aPref = (aPrefIn=="" )? "Depth" : aPrefIn;
             std::string PrefGlob =  DownScale ? "DownScale_NuageFusion-" : "NuageFusion-";
-            return Dir() +  DirFusMMInit() +  PrefGlob + aPref + aNameIm + aPost;
+            return Dir() + aDirLoc   +  PrefGlob + aPref + aNameIm + aPost;
+       }
+
+       default :
+       ;
+
    }
    ELISE_ASSERT(false,"cAppliMergeCloud::NameFileInput");
    return "";
@@ -338,6 +395,7 @@ std::string cAppliMergeCloud::NameFileInput(bool DownScale,cImaMM * anIma,const 
 {
     return NameFileInput(DownScale,anIma->mNameIm,aPost,aPref);
 }
+*/
 
 
 tMCSom * cAppliMergeCloud::SomOfName(const std::string & aName)
@@ -362,6 +420,16 @@ bool  cAppliMergeCloud::DoPlyCoul() const
 {
    return mDoPlyCoul;
 }
+
+cMMByImNM *  cAppliMergeCloud::MMIN()
+{
+   return mMMIN;
+}
+
+
+int  cAppliMergeCloud::SzNormale() const {return mSzNormale;}
+bool cAppliMergeCloud::NormaleByCenter() const {return mNormaleByCenter;}
+
 
 
 //========================================================================================

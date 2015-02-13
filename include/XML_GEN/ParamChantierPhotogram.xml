@@ -38,8 +38,8 @@
            <eTT_FraserBasic> </eTT_FraserBasic>
            <eTT_FishEyeBasic> </eTT_FishEyeBasic>
            <eTT_FE_EquiSolBasic> </eTT_FE_EquiSolBasic>
-                   <eTT_RadGen7x2> </eTT_RadGen7x2>
-                   <eTT_RadGen11x2> </eTT_RadGen11x2>
+           <eTT_RadGen7x2> </eTT_RadGen7x2>
+           <eTT_RadGen11x2> </eTT_RadGen11x2>
            <eTT_RadGen15x2> </eTT_RadGen15x2>
            <eTT_RadGen19x2> </eTT_RadGen19x2>
            <eTT_NbVals> </eTT_NbVals>
@@ -50,6 +50,9 @@
        <eStatue>         </eStatue>
        <eTestIGN>        </eTestIGN>
        <eQuickMac>       </eQuickMac>
+       <eMicMac>         </eMicMac>
+       <eBigMac>         </eBigMac>
+       <eMTDTmp>         </eMTDTmp>  <!-- Internal, pour stocker les fusion temporaire entre Epi -->
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>
 
@@ -115,10 +118,9 @@
    </enum>
 
    <enum Name="eTypeSake">
-       <eGeomTer>    </eGeomTer>
-<!--  <eGeomIm>     </eGeomIm> -->
-       <eOrthoIm>    </eOrthoIm>
-       <eNbTypeVals> </eNbTypeVals>
+       <eDEM>           </eDEM>
+       <eOrthoIm>       </eOrthoIm>
+       <eNbTypeVals>    </eNbTypeVals>
    </enum>
 
    <enum Name="eModeGeomMNT">
@@ -622,6 +624,11 @@
           <eEO_NbVals> </eEO_NbVals>
    </enum>
 
+   <JPPTest  Nb="1" Class="true" ToReference="true">
+       <Name Nb="1" Type="std::string"> </Name>
+       <LN Nb="*" Type="int"> </LN>
+   </JPPTest>
+
 
    <CalibrationInterneGridDef Nb="1" Class="true" ToReference="true">
          <P0 Nb="1" Type="Pt2dr"> </P0>
@@ -941,6 +948,11 @@
          <!-- Si donne, on ajoute @Foc, arrondi entier, multipliee par AddFocMul -->
          <AddFocMul  Nb="?" Type="double"> </AddFocMul>
          <Separateur Nb="?" Type="std::string" Def="%"> </Separateur>
+         <NewKeyId     Nb="?" Type="std::string"> </NewKeyId>
+         <NewKeyIdAdd  Nb="?" Type="std::string"> </NewKeyIdAdd>
+      <!-- Val def depend avec VersionNameCam >= 1 -->
+         <NewAddNameCam Nb="?" Type="bool">  </NewAddNameCam>   <!--   true si V>=1 -->
+         <NewFocMul  Nb="?" Type="double">  </NewFocMul>        <!--  1000 si >=1, 1 sinon -->
    </DataBaseNameTransfo>
 
    <!--
@@ -1034,9 +1046,18 @@
          <AutoInverseBySym Nb="?"  Type="bool" Def="false"> </AutoInverseBySym>
    </AssocNameToName>
 
+
+   <EtatPims Nb="1" Class="true" ToReference="true" >
+         <NameOri Nb="?" Type="std::string"> </NameOri>
+   </EtatPims>
+
+   <ListOfName Nb="1" Class="true" ToReference="true" >
+        <Name Nb="*" Type="std::string"> </Name>
+   </ListOfName>
+
    <SetNameDescriptor  Nb="1" Class="true" ToReference="true" >
          <AddDirCur Nb="?" Type="bool" Def="true"> </AddDirCur>
-         <PatternAccepteur Nb="+" Type="std::string"> </PatternAccepteur>
+         <PatternAccepteur Nb="*" Type="std::string"> </PatternAccepteur>
          <PatternRefuteur Nb="*" Type="std::string">  </PatternRefuteur>
          <NivSubDir Nb="?" Type="int" Def="1">      </NivSubDir>
          <!-- Nom complet : si true la directory est incluse -->
@@ -1046,6 +1067,7 @@
          <!-- Permet d'ajouter des noms tels quels , sans qu'il
           existent en tant que fichiers -->
          <Name   Nb="*" Type="std::string"> </Name>
+         <NamesFileLON Nb="*" Type="std::string"> </NamesFileLON>
 
          <!-- Min Max :utiliser plutot Filter -->
          <Min Nb="?" Type="std::string"> </Min>
@@ -1567,6 +1589,7 @@
          <UseSeparateDirectories Nb="?" Type="bool" Def="false"> </UseSeparateDirectories>
          <OutputDirectory  Nb="?" Type="std::string">  </OutputDirectory>
          <LogDirectory  Nb="?" Type="std::string">  </LogDirectory>
+         <VersionNameCam Nb="?" Type="int" Def="0"> </VersionNameCam>
     </MMUserEnvironment>
 
 <SelectionInfos Nb="1" Class="true" ToReference="true">
@@ -1582,6 +1605,18 @@
 <MTDCoher  Nb="1" Class="true" ToReference="true">
      <Dec2 Nb="1" Type="Pt2di"> </Dec2>
 </MTDCoher>
+
+
+<Xml_OrientaRel Nb="1" Class="true" ToReference="true">
+     <!-- Euler angles -->
+     <teta01 Nb="1" Type="double"> </teta01>  <!-- Precession -->
+     <teta02 Nb="1" Type="double">  </teta02>   <!-- Nutation -->
+     <teta12  Nb="1" Type="double">  </teta12>  <!-- Rotation propre -->
+
+     <!-- Spherical coordinates of base -->
+     <Teta Nb="1" Type="double"> </Teta>
+     <Phi Nb="1" Type="double">  </Phi>
+</Xml_OrientaRel>
 
 
 
