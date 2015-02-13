@@ -587,11 +587,13 @@ int Jeremy_main( int argc, char **argv )
     return EXIT_SUCCESS;
 }
 
+extern void TestOriBundle();
 
 int MPDtest_main (int argc,char** argv)
 {
-    Jeremy_main(argc,argv);
+   TestOriBundle();
 /*
+    Jeremy_main(argc,argv);
    cCalibrationInterneRadiale aXmlDr;
    aXmlDr.CDist() = Pt2dr(3,4);
 */
