@@ -54,12 +54,12 @@ public:
 
     GlCloud*    loadCloud(string i_ply_file , int *incre = NULL);
 
-    void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
+	void        loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor = 1.f);
 
-    void        loadMask(QString aNameFile, QMaskedImage &maskedImg);
+	void        loadMask(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor = 1.f);
 
     //! Check if georeferencing data exists (for box2d mode)
-    void        checkGeoref(QString aNameFile, QMaskedImage &maskedImg);
+	void        checkGeoref(QString aNameFile, QMaskedImage *maskedImg);
 
     void        setFilenames(QStringList const &strl);
     void        setFilenameOut(QString str);
@@ -69,6 +69,8 @@ public:
     QStringList& getSelectionFilenames() { return _SelectionOut; }
 
     void        setPostFix(QString str);
+
+	void memory();
 
 private:
     QStringList _FilenamesIn;
@@ -125,7 +127,7 @@ public:
     void    loadImages(QStringList, int *incre = NULL);
 
     //! Load image (and mask) file
-    void    loadImage(QString imgName, float scaleFactor);
+	void    loadImage(QString imgName, float scaleFactor = 1.f);
 
     //void    reloadImage(int appMode, int aK);
     void    reloadMask(int appMode, int aK);
@@ -160,7 +162,7 @@ public:
 
     int     nbGLData(){return (int)_vGLData.size();}
 
-    void    computeScaleFactor(const QStringList &filenames);
+	float	computeScaleFactor(QStringList &filenames);
     bool    extGLIsSupported(const char *strExt);
     void    setGLMaxTextureSize(int size) { _glMaxTextSize = size; }
 
@@ -174,10 +176,6 @@ private:
     cParameters*        _params;
 
     int                 _glMaxTextSize;
-    float               _scaleFactor;
 };
-
-
-
 
 #endif // ENGINE_H

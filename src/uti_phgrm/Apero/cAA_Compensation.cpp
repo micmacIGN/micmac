@@ -99,6 +99,10 @@ void cAppliApero::AddObservations
    }
 
    {
+          AddObservationsRigidBlockCam(anSO.ObsBlockCamRig(),IsLastIter,aSO);
+   }
+
+   {
        //  MajAddCoeffMatrix();
        //  if (NumIterDebug())  MessageDebug("Avant RigGrp");
 
@@ -114,6 +118,26 @@ void cAppliApero::AddObservations
        mFpRT = 0;
    }
 }
+
+void cAppliApero::AddObservationsRigidBlockCam
+     (
+         const std::list<cObsBlockCamRig> & anOBCR,
+         bool IsLastIter,
+         cStatObs & aSO
+     )
+{
+    for 
+    (
+       std::list<cObsBlockCamRig>::const_iterator itO=anOBCR.begin();
+       itO !=anOBCR.end();
+       itO++
+    )
+    {
+         AddObservationsRigidBlockCam(*itO,IsLastIter,aSO);
+    }
+
+}
+
 
 void cAppliApero::AddObservationsRigidGrp
      (

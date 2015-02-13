@@ -1366,7 +1366,7 @@ Im2DGen*   Im2D<Type,TyBase>::ImRotate(int aIndexRot) const
          aRot = aRot * Pt2di(0,1);
     }
 
-    Pt2di aP0(1e9,1e9),aP1(-1e9,-1e9);
+    Pt2di aP0((int)1e9,(int)1e9),aP1((int)-1e9,(int)-1e9);
     Box2di aBox(Pt2di(0,0),Pt2di(tx()-1,ty()-1));
 
     Pt2di aCoins[4];
@@ -1466,6 +1466,37 @@ template <class Type,class TyBase>
      );
      memcpy(data_lin(),I2.data_lin(),tx()*ty()*sizeof(Type));
 }
+
+template <class Type,class TyBase> Im2D<Type,TyBase>   Im2D<Type,TyBase>::dup()
+{
+   Im2D<Type,TyBase> aRes(tx(),ty());
+   aRes.dup(*this);
+   return aRes;
+}
+
+template <class Type,class TyBase> double   Im2D<Type,TyBase>::som_rect()
+{
+     double aS;
+     ELISE_COPY(all_pts(),in(),sigma(aS));
+     return aS;
+}
+
+template <class Type,class TyBase> Im2D<Type,TyBase>   Im2D<Type,TyBase>::ToSom1()
+{
+    Im2D<Type,TyBase> aRes = dup();
+    ELISE_COPY(aRes.all_pts(),aRes.in()/som_rect(),aRes.out());
+    return aRes;
+}
+
+/*
+template <class Type,class TyBase>
+Im2D<Type,TyBase>  Im2D<Type,TyBase>::ToSom1()
+{
+     double aSom = som_rect();
+}
+*/
+
+
 
 
 template <class Type,class TyBase>

@@ -65,6 +65,7 @@
                <Symb>  LibDec=XXXX    </Symb>
 
                <Symb>  EcartMaxFin=5.0    </Symb>
+               <Symb>  DoSauvAutom=true    </Symb>
     
                <Symb>  HasModeleAdd=false  </Symb>
                <Symb>  ModeleAdditionnel=XXXXX  </Symb>
@@ -222,9 +223,7 @@
 	     <DirectoryChantier> XXXX </DirectoryChantier>
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
              <SauvAutom>  ${SauvAutom} </SauvAutom>
-<!--
--->
-             <SauvAutomBasic>  true </SauvAutomBasic>
+             <SauvAutomBasic>  ${DoSauvAutom} </SauvAutomBasic>
 
              <DebugPbCondFaisceau> ${DebugPbCondFaisceau} </DebugPbCondFaisceau>
 

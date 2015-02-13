@@ -160,6 +160,7 @@ class cPIF_Bilin;
 
 class cEqOffsetGPS;
 class cBaseGPS;
+class cEqObsBlockCam;
 
 
 //   Il n'avait pas ete prevu de renumeroter les intervales. Quand le besoin
@@ -669,6 +670,14 @@ class cSetEqFormelles : public cNameSpaceEqF
                cEqOffsetGPS * NewEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS  &aBase,bool Code2Gen = false);
                cEqOffsetGPS * NewEqOffsetGPS(cCameraFormelle & aRF,cBaseGPS  &aBase);
 
+               cEqObsBlockCam * NewEqBlockCal( cRotationFormelle & aRotRT0,
+                                               cRotationFormelle & aRotLT0,
+                                               cRotationFormelle & aRotRT1,
+                                               cRotationFormelle & aRotLT1,
+                                               bool                doGenerateCode
+                                           );
+
+
 	       cRotationFormelle * NewRotation
                                    (
                                         eModeContrRot,
@@ -923,6 +932,9 @@ class cSetEqFormelles : public cNameSpaceEqF
           cSetEqFormelles(const cSetEqFormelles &); // N.I.
           cSetEqFormelles operator = (const cSetEqFormelles &); // N.I.
 };
+
+extern void ShowSpectrSys(cSetEqFormelles & aSetEq);
+
 
 
 #if (0)

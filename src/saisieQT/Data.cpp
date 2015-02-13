@@ -26,6 +26,7 @@ void cData::replaceCloud(GlCloud *cloud, int id)
     {
         _Clouds[id] = cloud;
         computeBBox(id);
+        computeCloudsCenter(id);
     }
 }
 
@@ -37,6 +38,7 @@ void cData::addReplaceCloud(GlCloud *cloud, int id)
         addCloud(cloud);
 
     computeBBox(id);
+    computeCloudsCenter(id);
 }
 
 void cData::addCamera(CamStenope * aCam)
@@ -44,9 +46,11 @@ void cData::addCamera(CamStenope * aCam)
     _Cameras.push_back(aCam);
 }
 
-void cData::pushBackMaskedImage(QMaskedImage maskedImage)
+void cData::pushBackMaskedImage(QMaskedImage *maskedImage)
 {
+
     _MaskedImages.push_back(maskedImage);
+
 }
 
 void cData::clearClouds()
@@ -68,13 +72,27 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
+	//qDeleteAll(_MaskedImages);
+
+	for (int idQMImg = 0; idQMImg < _MaskedImages.size(); ++idQMImg)
+	{
+		if(_MaskedImages[idQMImg])
+			delete _MaskedImages[idQMImg];
+		_MaskedImages[idQMImg] = NULL;
+	}
+
     _MaskedImages.clear();
     reset();
 }
 
 void cData::clearObjects()
 {
-    qDeleteAll(_vPolygons);
+	for (int idpoly = 0; idpoly < _vPolygons.size(); ++idpoly)
+	{
+		if(_vPolygons[idpoly])
+			delete _vPolygons[idpoly];
+		_vPolygons[idpoly] = NULL;
+	}
 
     _vPolygons.clear();
 
@@ -107,7 +125,11 @@ void cData::clear(int aK)
             _Cameras[aK] = NULL;
         }
     }
-    if (_MaskedImages.size())   _MaskedImages[aK].deallocImages();
+	if (_MaskedImages.size())
+	{
+		if(_MaskedImages[aK])
+			delete _MaskedImages[aK];
+	}
 }
 
 int cData::idPolygon(cPolygon *polygon)
@@ -200,5 +222,42 @@ Pt3dr cData::getBBoxCenter()
 float cData::getBBoxMaxSize()
 {
     return max(_max.x-_min.x, max(_max.y-_min.y, _max.z-_min.z));
+}
+
+//compute data centroid
+void cData::computeCloudsCenter(int idCloud)
+{
+    Pt3dr sum(0.,0.,0.);
+    int cpt = 0;
+
+    for (int bK=0; bK < _Clouds.size();++bK)
+    {
+        if(idCloud == -1 || bK == idCloud)
+        {
+            GlCloud * aCloud = _Clouds[bK];
+
+            sum = sum + aCloud->getSum();
+            cpt += aCloud->size();
+        }
+    }
+
+    if(idCloud == -1)
+    for (int  cK=0; cK < _Cameras.size();++cK)
+    {
+        CamStenope * aCam= _Cameras[cK];
+
+        Pt3dr c1, c2, c3, c4;
+
+        aCam->Coins(c1,c2,c3,c4,1.f);
+        sum = sum + aCam->VraiOpticalCenter();
+        sum = sum + c1;
+        sum = sum + c2;
+        sum = sum + c3;
+        sum = sum + c4;
+
+        cpt += 5;
+    }
+
+    _centroid = sum / cpt;
 }
 

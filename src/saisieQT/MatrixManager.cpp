@@ -12,7 +12,6 @@ MatrixManager::MatrixManager()
 
     _upY = 1.f;
 
-    resetAllMatrix();
 }
 
 MatrixManager::~MatrixManager()

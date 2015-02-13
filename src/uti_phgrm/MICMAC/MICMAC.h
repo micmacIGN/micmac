@@ -681,6 +681,7 @@ class cPriseDeVue
 
 			double  DzOverPredic(const Pt3dr &) const;
                         CamStenope *  GetOri() const;
+                        std::string NameMasqOfResol(int aMasq) const;
 
         private :
 
@@ -693,7 +694,6 @@ class cPriseDeVue
            std::string OneNameMasq(const std::list<cOneMasqueImage> & aList) const;
            Fonc_Num    FoncMasq(std::string  & aName) const;
   
-           std::string NameMasqOfResol(int aMasq) const;
 
 
 
@@ -2636,6 +2636,7 @@ class   cGPU_LoadedImGeom
       }
       U_INT1 ** ImPC()      {return mImPC;}
       U_INT1**  ImMasq()    {return mImMasq;}
+      U_INT1**  ImMasqErod()    {return mImMasqErod;}
       float *** VDataIm()   {return mDataIm;}
       float **  VLinDIm()   {return mLinDIm;}
       double  PdsMS() const;
@@ -2997,10 +2998,10 @@ class cAppliMICMAC  : public   cParamMICMAC,
         /// \param interZ
         /// \param idBuf
         ///
-        void Tabul_Projection(int Z,  uint &interZ, ushort idBuf);
-        void setVolumeCost(int interZ0, int interZ1, ushort idBuf);
-
+        void Tabul_Projection(short Z,  ushort& interZ, ushort idBuf);
+        void setVolumeCost(short interZ0, short interZ1, ushort idBuf);
         void Tabul_Images(int Z, uint &interZ, ushort idBuf);
+
 #endif
 		void Correl_MNE_ZPredic (const Box2di & aBoxInterne,const cCorrel_Correl_MNE_ZPredic &);  
 		void DoCorrelPonctuelle2ImGeomI(const Box2di&aBoxInterne,const cCorrel_Ponctuel2ImGeomI&);  
@@ -3190,6 +3191,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
         void MakeResultOfEtape(cEtapeMecComp &);
+        void MakeDequantSpecial();
         void DoMasq3D(cEtapeMecComp & anEtape,const cMMUseMasq3D &);
 
 
@@ -3239,6 +3241,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
         ///========================================
 
         void GenereOrientationMnt();
+        std::string   NameOrientationMnt(cEtapeMecComp * itE);
+
         void GenereOrientationMnt(cEtapeMecComp *);
         void SauvParam();
         void MakeFileFDC();
@@ -3359,6 +3363,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 				// predictif)
 
         cEtapeMecComp *         mCurEtape; // Pour eviter de la passer
+        cEtapeMecComp *         mPrecEtape; // Pour eviter de la passer
                                 // tout le temps en parametre
          const cEtiqBestImage *  mEBI;
 
@@ -3669,6 +3674,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 	// GPGPU
 #ifdef CUDA_ENABLED
         GpGpuInterfaceCorrel	IMmGg;
+        GpGpu_Interface_Cor_MS    interface_Census_GPU;
 #endif	
 
          cMMTP *  mMMTP;

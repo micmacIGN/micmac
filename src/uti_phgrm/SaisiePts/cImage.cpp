@@ -62,9 +62,104 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli,bool Visuali
    mPrio  (0),
    mInitCamNDone (false),
    mCptAff       (0),
-   mVisualizable (Visualizable)
+   mVisualizable (Visualizable),
+   mPImsNuage         (0),
+   mPNSeuilAlti       (6.0),
+   mPNSeuilPlani      (3.0),
+   mLastLoaded        (false),
+   mCurLoaded         (false)
 {
 }
+
+void cImage::SetMemoLoaded()
+{
+   mLastLoaded = mCurLoaded;
+   mCurLoaded  = false;
+}
+void  cImage::SetLoaded()
+{
+   mCurLoaded = true;
+}
+
+void cImage::OnModifLoad()
+{
+
+   if (mCurLoaded==mLastLoaded) return;
+
+   if (mCurLoaded)
+   {
+std::cout << "LOAD " << mName << "\n";
+      cMMByImNM * aMMI =   mAppli.PIMsFilter ();
+      if (aMMI)
+      {
+           std::string aNameDepth = aMMI->NameFileXml(eTMIN_Depth,mName);
+           mPImsNuage = cElNuage3DMaille::FromFileIm(aNameDepth);
+
+      }
+   }
+   else
+   {
+std::cout << "Uuuuu LOAD " << mName << "\n";
+       delete mPImsNuage;
+       mPImsNuage =0;
+   }
+}
+
+bool  cImage::PIMsValideVis(const Pt3dr & aPTer)
+{
+   if (mPImsNuage==0) return true;
+
+   Pt2dr aPIm = mPImsNuage->Terrain2Index(aPTer);
+   Pt2di aIPIm = round_ni(aPIm);
+
+
+   double aProfMax= -1e20;
+   double aProfMin= 1e20;
+   int aDil = round_up(mPNSeuilPlani);
+
+   for (int aDx= -aDil ; aDx <= aDil ; aDx++)
+   {
+       for (int aDy= -aDil ; aDy <= aDil ; aDy++)
+       {
+            Pt2di aPVois(aIPIm.x+aDx,aIPIm.y+aDy);
+            if ((mPImsNuage->IndexHasContenu(aPVois)) && (euclid(Pt2dr(aPVois)-aPIm)<mPNSeuilPlani))
+            {
+                double aProfNu = mPImsNuage->ProfEnPixel(aPVois);
+                ElSetMax(aProfMax,aProfNu);
+                ElSetMin(aProfMin,aProfNu);
+            }
+       }
+   }
+
+
+   Pt3dr aTerInNu = mPImsNuage->Euclid2ProfPixelAndIndex(aPTer);
+   double aProfTer = aTerInNu.z;
+
+    return (aProfTer >= (aProfMin-mPNSeuilAlti)) && (aProfTer<=(aProfMax+mPNSeuilAlti));
+
+/*
+std::cout << "Valll   BBBBBBB\n";
+   if (! aEnv->IndexHasContenuForInterpol(aPIm))
+   {
+       // A Parametrer eventuellement
+       return false;
+   }
+
+   Pt3dr aTerInNu = aEnv->Euclid2ProfPixelAndIndex(aPTer);
+   double aProfTer = aTerInNu.z;
+   double aProfNu = aEnv->ProfInterpEnPixel(aPIm);
+
+   bool isDessus = (aProfTer >= aProfNu);
+
+std::cout << "Valll   CCCCCCC " << aProfTer << " " << aProfNu << " \n";
+
+   return aMin ?  isDessus : (! isDessus);
+*/
+
+  return false;
+
+}
+
 
 
 bool  cImage::Visualizable() const
@@ -233,7 +328,7 @@ double  cImage::CalcPriority(cSP_PointGlob * aPP,bool UseCpt) const
 
    if (UseCpt)
    {
-       aRes = aRes - mCptAff * 1e8;
+       aRes = aRes - mCptAff * 1e7 - mCurLoaded*1e10;
    }
 
    return aRes;
@@ -312,7 +407,11 @@ cSP_PointGlob * cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,doubl
 
 
     cSP_PointeImage * aPIm = PointeOfNameGlobSVP(aSPG->PG()->Name());
-    ELISE_ASSERT(aPIm!=0,"Incoherence (2) in cImage::CreatePGFromPointeMono");
+    if (aPIm==0)
+    {
+        std::cout << "Name " << aSPG->PG()->Name() << "\n";
+        ELISE_ASSERT(aPIm!=0,"Incoherence (2) in cImage::CreatePGFromPointeMono");
+    }
     aPIm->Saisie()->Etat() = eEPI_Valide;
     aPIm->Saisie()->PtIm() = aPtIm;
     mAppli.HighLightSom(aSPG);
@@ -357,7 +456,7 @@ Fonc_Num  cImage::FilterImage(Fonc_Num aFonc,eTypePts aType,cPointGlob * aPG)
     return aFonc;
 }
 
-void cImage::UpdateMapPointes(const std::string aName)
+void cImage::UpdateMapPointes(const std::string& aName)
 {
     std::map<std::string,cSP_PointeImage *>::iterator It = mPointes.begin();
     for ( ; It != mPointes.end(); It++)

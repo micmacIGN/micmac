@@ -12,8 +12,6 @@ class cGLData : public cObjectGL
 {
 public:
 
-    cGLData(int appMode = MASK2D);
-
     cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode = MASK2D);
 
     cGLData(cData *data, cParameters aParams, int appMode = MASK2D);
@@ -26,7 +24,7 @@ public:
 
     bool        isImgEmpty()                            { return _glMaskedImage._m_image == NULL; }
 
-    QImage*     getMask()                               { return _pQMask;     }
+    QImage*     getMask()                               { return _glMaskedImage.getMaskedImage()->_m_rescaled_mask; }
 
     void        setPolygon(int aK, cPolygon *aPoly)     { _vPolygons[aK] = aPoly; }
 
@@ -46,17 +44,19 @@ public:
 
     void        setBBoxMaxSize(float aS){_diam = aS;}
 
-    Pt3dr       getBBoxCenter(){return _center;}
+    void        setBBoxCenter(Pt3dr aPt){_bbox_center = aPt;}
 
-    void        setBBoxCenter(Pt3dr aCenter){_center = aCenter;} // TODO a verifier : pourquoi le centre cGLData est initialisé avec BBoxCenter
+    void        setCloudsCenter(Pt3dr aPt){_clouds_center = aPt;}
 
     void        setGlobalCenter(Pt3dr aCenter);
 
+    void        switchCenterByType(int val);
+
     bool        position2DClouds(MatrixManager &mm,QPointF pos);
 
-    void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
+	void        editImageMask(int mode, cPolygon* polyg, bool m_bFirstAction);
 
-    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
+	void        editCloudMask(int mode, cPolygon*polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        replaceCloud(GlCloud* cloud, int id = 0);
 
@@ -66,7 +66,7 @@ public:
       OpShow_Axis   = 0x02,
       OpShow_BBox   = 0x04,
       OpShow_Mess   = 0x08,
-      OpShow_Cams   = 0x10,
+	  OpShow_Cams   = 0x10,
       OpShow_Grid   = 0x20,
       //OpShow_Cent   = 0x40
       // ...
@@ -84,13 +84,14 @@ public:
 
     bool        mode() { return _modePt; }
 
-    void        setData(cData *data, bool setCam = true);
+    void        setData(cData *data, bool setCam = true, int centerType=eCentroid);
 
     bool        incFirstCloud() const;
 
     void        setIncFirstCloud(bool incFirstCloud);
 
     cMaskedImageGL &glImage();
+    QVector <cMaskedImageGL*> glTiles();
 
     cPolygon*   polygon(int id = 0);
 
@@ -116,11 +117,15 @@ public:
 
     void        drawCenter(bool white);
 
+    void        createTiles();
+
+    void        setDrawTiles(bool val) { _bDrawTiles = val; }
+    bool        getDrawTiles() { return _bDrawTiles; }
+
 private:
 
     cMaskedImageGL      _glMaskedImage;
-
-    QImage*             _pQMask;
+    QVector <cMaskedImageGL*> _glMaskedTiles;
 
     cBall*              _pBall;
 
@@ -130,7 +135,9 @@ private:
 
     cGrid*              _pGrid;
 
-    Pt3dr               _center;
+    Pt3dr               _bbox_center;
+
+    Pt3dr               _clouds_center;
 
     bool                _modePt;
 
@@ -150,6 +157,7 @@ private:
     float       _diam;
 
     bool        _incFirstCloud;
+    bool        _bDrawTiles;
 
 };
 

@@ -5,6 +5,8 @@
 #include "Settings.h"
 #include "Tree.h"
 
+void setStyleSheet(QApplication &app);
+
 namespace Ui {
 class SaisieQtWindow;
 }
@@ -57,7 +59,7 @@ public:
 
     void    resizeTables();
 
-    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images, QAbstractItemModel *model_Objects);
+    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/);
 
     void    SelectPointAllWGL(QString pointName = QString(""));
 

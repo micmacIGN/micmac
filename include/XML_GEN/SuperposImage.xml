@@ -34,11 +34,6 @@
          <eMBF_First >     </eMBF_First>
     </enum>
 
-    <enum Name="eModeMergeCloud">
-         <eMMC_Envlop >  </eMMC_Envlop>  
-         <eMMC_Epi >     </eMMC_Epi>
-    </enum>
-
 
     <enum Name="eQualCloud">
          <eQC_Out >            </eQC_Out>  
@@ -445,6 +440,13 @@
          <POnCyl  Nb="1" Type="Pt3dr"> </POnCyl>
     </XmlCylindreRevolution>
 
+    <XmlToreRevol   Nb="1"  Class="true" ToReference="true">
+        <!-- P0-P1 , deux points sur la droite -->
+         <Cyl Nb="1" RefType="XmlCylindreRevolution"> </Cyl>
+         <POriTore  Nb="1" Type="Pt3dr"> </POriTore>
+    </XmlToreRevol>
+
+
      <XmlOrthoCyl  Nb="1"  Class="true" ToReference="true">
           <Repere Nb="1" RefType="RepereCartesien"  RefFile="ParamChantierPhotogram.xml"> </Repere>
           <P0 Nb="1" Type="Pt3dr"> </P0>
@@ -454,7 +456,8 @@
 
      <XmlDescriptionAnalytique Nb="1" Class="true" ToReference="true">
                <Cyl Nb="?" RefType="XmlCylindreRevolution"> </Cyl>
-               <OrthoCyl Nb="?" RefType="XmlOrthoCyl"> </OrthoCyl>
+               <OrthoCyl Nb="?" RefType="XmlOrthoCyl">      </OrthoCyl>
+               <Tore Nb="?" RefType="XmlToreRevol">         </Tore>
      </XmlDescriptionAnalytique>
       <XmlOneSurfaceAnalytique Nb="1" Class="true" ToReference="true">
             <XmlDescriptionAnalytique Nb="1" UnionType="true" RefType="XmlDescriptionAnalytique"> </XmlDescriptionAnalytique>
@@ -1096,10 +1099,14 @@
              <KeyNuage Type="std::string" Nb="1"> </KeyNuage>
              <!-- Doit genere le nom du fichier XML-resultat, a partir d'un declencheur -->
              <KeyResult   Type="std::string" Nb="1"> </KeyResult>
+             <KeyResultIsLoc   Type="bool" Nb="?" Def="true"> </KeyResultIsLoc>
 
              <!-- Definit le modele de geometrie resultant, c'est un cle d'association
                  par defaut il sera pris sur le premier input-->
              <ModeleNuageResult Type="std::string" Nb="?"> </ModeleNuageResult>
+
+             <!-- Defaut Identite, par exemple Nuage-IMGP7046.JPG.xml -> IMGP7046.JPG.xml -->
+             <KeyNuage2Im   Type="std::string" Nb="?" Def="NKS-Assoc-Prefix"> </KeyNuage2Im>
        </SectionName>
 
        <!-- Pour gerer le score pas toujours simple fonction de correlation -->
@@ -1123,6 +1130,8 @@
        <ParamAlgoFusionMNT Nb="1">
            <FMNTSeuilCorrel Nb="1" Type="double"> </FMNTSeuilCorrel>
            <FMNTGammaCorrel Nb="1" Type="double"> </FMNTGammaCorrel>
+           <KeyPdsNuage Nb="?" Type="std::string"> </KeyPdsNuage>
+
            <SpecAlgoFMNT Nb="1">
                 <SigmaPds  Type="double" Nb="1"> </SigmaPds>
                 <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->
@@ -1179,7 +1188,7 @@
   </ParamFusionMNT>
 
   <ParamFusionNuage  Nb="1" Class="true">
-      <ModeMerge Nb="1" Type="eModeMergeCloud"> </ModeMerge>
+      <ModeMerge Nb="1" Type="eTypeMMByP"> </ModeMerge>
       <PFNMiseAuPoint Nb="1">
             <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
             <!-- Visualise les diff de prof par couple -->
@@ -1228,6 +1237,31 @@
        <Images Nb="*" RefType="CWWSImage"> </Images>
    </ChantierAppliWithSetImage>
 
+
+   <AnaTopoBascule Nb="1" Class="true" ToReference="true">
+       <OneZonzATB Nb="*">
+           <BoxGlob Type="Box2di" Nb="1"> </BoxGlob>
+           <BoxMasq Type="Box2di" Nb="1"> </BoxMasq>
+           <GermGlob Type="Pt2di" Nb="1"> </GermGlob>
+           <GermMasq Type="Pt2di" Nb="1"> </GermMasq>
+           <NbGlob Type="int" Nb="1"> </NbGlob>
+           <NbMasq Type="int" Nb="1"> </NbMasq>
+           <Num Type="int" Nb="1">  </Num>
+           <Valide Type="bool" Nb="1"> </Valide>
+       </OneZonzATB>
+   </AnaTopoBascule>
+
+   <!-- En fait on ne sauve que les XML avec masq modifie , car c'est plus simple et cela permet
+    de traiter en meme temps le cas ou il n'y a pas de pb
+   -->
+
+   <AnaTopoXmlBascule Nb="1" Class="true" ToReference="true">
+       <ResFromAnaTopo Nb="1" Type="bool"> </ResFromAnaTopo>
+       <OneZonXmlAMTB Nb="*">
+            <NameXml Nb="1" Type="std::string"> </NameXml>
+       </OneZonXmlAMTB>
+   </AnaTopoXmlBascule>
+    
 
 
    <ParamFiltreDepthByPrgDyn Nb="1" Class="true" ToReference="true">

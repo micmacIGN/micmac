@@ -651,7 +651,7 @@ std::string AddPrePost(const std::string & aName,const std::string & aPref,const
 
 std::string DirOfFile(const std::string & aStr);
 
-std::string StdWokdDir(const std::string & aValWD,const std::string & aNameFile);
+std::string StdWorkdDir(const std::string & aValWD,const std::string & aNameFile);
 
 std::vector<std::string> VecStrFromFile(const std::string &);
 
@@ -1159,7 +1159,7 @@ class cEl_GPAO
          void  GenerateMakeFile(const std::string & aNameFile) const ;
          void  GenerateMakeFile(const std::string & aNameFile,bool ModeAdditif) const;
          void ExeParal(std::string aFile,int aNbProc = -1,bool SuprFile=true);
-		 void dump( std::ostream &io_ostream=std::cout ) const;
+         void dump( std::ostream &io_ostream=std::cout ) const;
      private :
          std::map<std::string,cElTask *>  mDico;
 
@@ -1542,6 +1542,10 @@ template <class T> T* VData(std::vector<T> & aV)  {return aV.data();}
 template <class T> const T* VData(const std::vector<T> & aV)  {return aV.data();}
 #endif
 
+///  Ajoute des regles speciales pour que chaque pixle ait au moins un 
+//  precedcesseur et un antecedant
+//   Z est dans l'intervalle ouvert I1 [aZ1Min,aZ1Max[,
+
 void ComputeIntervaleDelta
               (
                   INT & aDzMin,
@@ -1554,6 +1558,7 @@ void ComputeIntervaleDelta
                   INT aZ0Max
               );
 
+///  Ne force pas les connexions
 void BasicComputeIntervaleDelta
               (
                   INT & aDzMin,

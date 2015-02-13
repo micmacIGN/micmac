@@ -154,7 +154,7 @@ public:
     ///
     void            Dealloc();
 
-    void            Prepare(uint x, uint y, ushort penteMax, ushort NBDir, float zReg, float zRegQuad, ushort costDefMask,ushort costDefMaskTrans);
+    void            Prepare(uint x, uint y, ushort penteMax, ushort NBDir, float zReg, float zRegQuad, ushort costDefMask, ushort costDefMaskTrans, bool hasMaskAuto);
 
     ///
     /// \brief freezeCompute

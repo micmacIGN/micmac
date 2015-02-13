@@ -129,11 +129,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFraser_PPaEqPPs.h"                    
 
 
-
-
-
-#include "../../CodeGenere/photogram/cEqRigiditeBlock.h"
 #include "../../CodeGenere/photogram/cCylindre_EqRat_CodGen.h"
+
+
+
+
+
 
 #include "../../CodeGenere/photogram/cSetVar.h"
 #include "../../CodeGenere/photogram/cSetValsEq.h"
@@ -157,6 +158,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 //=======================  cEqObsBaseGPS ========================
 
 #include "../../CodeGenere/photogram/cEqObsBaseGPS.h"
+#include "../../CodeGenere/photogram/cEqObsBaseGPS_GL.h"
+
+#include "../../CodeGenere/photogram/cCodeBlockCam.h"
 
 //=======================  Droite ========================
 
@@ -624,7 +628,9 @@ void cElCompiledFonc::InitEntries()
 
 
      AddEntry("cEqObsBaseGPS",cEqObsBaseGPS::Alloc);
+     AddEntry("cEqObsBaseGPS_GL",cEqObsBaseGPS_GL::Alloc);
 
+     AddEntry("cCodeBlockCam",cCodeBlockCam::Alloc);
 
      FULL_NEW_ADD_ENTRY(Fraser_PPaEqPPs)
      FULL_NEW_ADD_ENTRY(Four7x2);
@@ -834,7 +840,6 @@ void cElCompiledFonc::InitEntries()
 
      AddEntry("cEqAppui_PTInc_M2CNoDist",cEqAppui_PTInc_M2CNoDist::Alloc);
      AddEntry("cEqAppui_PTInc_C2MNoDist",cEqAppui_PTInc_C2MNoDist::Alloc);
-     AddEntry("cEqRigiditeBlock",cEqRigiditeBlock::Alloc);
 
 
 // ====  GUIMBAL LOCK ============

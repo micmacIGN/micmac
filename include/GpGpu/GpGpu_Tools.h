@@ -88,13 +88,18 @@ public:
     template <class T>
     static void			OutputArray(CuHostData3D<T> &data, uint Z = 0, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
 
+
+    template <class T>
+    static T			SetValue(float defaut = 0.0f){return (T)defaut;}
+
     ///	\brief			Sortie console formater d'une valeur
     /// \param          value : valeur a afficher
     ///  \param         offset : nombre de chiffre apres la virgule
     ///  \param         defaut : valeur affichee par un caractere speciale
     ///  \param         factor : facteur multiplicatif
     template <class T>
-    static void			OutputValue(T value, uint offset = 3, T defaut = (T)0.0f, float factor = 1.0f);
+    static void			OutputValue(T value, uint offset = 3, T defaut = SetValue<T>(0.0f), float factor = 1.0f);
+
 
     ///	\brief			Retour chariot
     static void			OutputReturn(char * out /*= ""*/);
@@ -119,14 +124,19 @@ public:
 
     //static void			check_Cuda();
 
-	#ifdef  NVTOOLS
-    static void			NvtxR_Push(const char* message, int32_t color);
+#ifdef NVTOOLS
+	static void  NvtxR_Push(const char* message, int32_t color);
+#else
+	static void  NvtxR_Push(const char* message, int color){}
 #endif
+
+	static void	Nvtx_RangePop();
+
     template <class T>
     static T            getMaxArray(T *data, uint2 dim);
 
     template <class T>
-    static T            getMinArray(T *data, uint2 dim);
+	static T            getMinArray(T *data, uint2 dim);
 };
 
 template <class T>
@@ -137,8 +147,33 @@ void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, u
         memcpy(  dataImage1D + dimDest.x * j , dataImage2D[j],  dimSource.x * sizeof(T));
 }
 
+template <> inline
+uint2    GpGpuTools::SetValue(float defaut){return make_uint2((uint)defaut);}
+
+template <> inline
+int2    GpGpuTools::SetValue(float defaut){return make_int2((int)defaut);}
+
+
+template <> inline
+float2    GpGpuTools::SetValue(float defaut){return make_float2(defaut);}
+
+template <> inline
+short2    GpGpuTools::SetValue(float defaut){return make_short2((short)defaut);}
+
+
+template <> inline
+ushort2    GpGpuTools::SetValue(float defaut){return make_ushort2(defaut);}
+
+
 template <class T>
 void GpGpuTools::OutputValue( T value, uint offset, T defaut, float factor)
+{
+   DUMPI(value)
+   std::cout << "\t";
+}
+
+template <> inline
+void GpGpuTools::OutputValue( float value, uint offset, float defaut, float factor)
 {
 #ifndef DISPLAYOUTPUT
     return;
@@ -155,7 +190,7 @@ void GpGpuTools::OutputValue( T value, uint offset, T defaut, float factor)
     if(p < 1.0f ) p = 1.0f;
     float out	= floor(outO*p)/p;
 
-    std::string valS;
+	//std::string valS;
     stringstream sValS (stringstream::in | stringstream::out);
 
     sValS << abs(out);

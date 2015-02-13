@@ -113,7 +113,7 @@ class cElPile : public cElPilePrgD
     public :
         cElPile (double aZ,double aPds,double aCptr= -1,const cLoadedCP<float> * aLCP = 0) :
            cElPilePrgD(aZ),
-           mP  (aPds),
+           mPdsPile  (aPds),
            mCPtr (aCptr),
            mLCP  (aLCP)
         {
@@ -121,17 +121,18 @@ class cElPile : public cElPilePrgD
 
         cElPile() :
            cElPilePrgD(),
-           mP(-1),
+           mPdsPile(-1),
            mCPtr (0),
            mLCP(0)
         {
         }
 
-        const float & P() const {return mP;}
+        void SetPdsPile(float aPds) {mPdsPile = aPds;}
+        const float & P() const {return mPdsPile;}
         const float & CPtr() const {return mCPtr;}
         const cLoadedCP<float> *  LCP() const {return mLCP; }
     private :
-        float mP;
+        float mPdsPile;
         float mCPtr;
         const cLoadedCP<float> * mLCP;
 };
@@ -242,7 +243,7 @@ template <class Type> class  cLoadedCP
         TIm2D<U_INT1,INT>  mTImCorrel;
         bool               mZIsInv;
         bool               mQualImSaved;
-
+        double             mPdsIm;
 
 };
 
@@ -284,7 +285,8 @@ template <class Type> class cFusionCarteProf
            );
            void GlobInitDir(cProg2DOptimiser<cFusionCarteProf> &);
 
-          // -- Comlement
+          // -- NOT a requirement, just here, an help for implementation
+          // of DoConnexion
                 void DoConexTrans
                      (
                                   tCelOpt & aCelIn,
@@ -321,7 +323,7 @@ template <class Type> class cFusionCarteProf
           //double                 mSigmaZ;
           cInterfChantierNameManipulateur * mICNM;
           std::vector<std::string>          mGenRes;
-          std::string                             mNameNuageIn;
+          // std::string                             mNameNuageIn;
           bool                                    mCalledBySubP;
           bool                                    mInParal;
           bool                                    mInSerialP;
@@ -601,16 +603,24 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
 /*                                                                    */
 /**********************************************************************/
 
+//template <class Type> Show(const Type & 
+
+
+
+
 template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP, const std::string & anId,const std::string & aFus,int aNum) :
   mNum     (aNum),
-  mFCP     (aFCP),
-  mParam   (aFCP.Param()),
-  mPAlg    (mParam.ParamAlgoFusionMNT()),
-  mSeuilC  (mPAlg.FMNTSeuilCorrel()),
-  mICNM    (aFCP.ICNM()),
+  mFCP     ((aFCP)),
+  mParam   ((aFCP.Param())),
+  mPAlg    ((mParam.ParamAlgoFusionMNT())),
+  mSeuilC  ((mPAlg.FMNTSeuilCorrel())),
+  mICNM    ((aFCP.ICNM())),
 
-  mFus         (aFus),
-  mNameIm      (StdPrefix(mFus).substr(6,std::string::npos)),
+  // mFus         ((std::cout << "ZZZZZZyyyy " << anId << " " << aFus << "\n", aFus)),
+  mFus            ( aFus),
+  // mNameIm      ((StdPrefix(mFus).substr(6,std::string::npos)),
+  // mNameIm      (StdPrefix(mFus)),
+  mNameIm      (mICNM->Assoc1To1(mParam.KeyNuage2Im().Val(),mFus,true)),
   mNameNuage  (mICNM->Dir()+mICNM->Assoc1To2(mParam.KeyNuage(),anId,aFus,true)),
   mNuage      (StdGetObjFromFile<cXML_ParamNuage3DMaille>
                  (
@@ -641,10 +651,18 @@ template <class Type>  cLoadedCP<Type>::cLoadedCP(cFusionCarteProf<Type> & aFCP,
   mImCorrel   (1,1),
   mTImCorrel  (mImCorrel),
   mZIsInv     (false),
-  mQualImSaved (false)
-
+  mQualImSaved (false),
+  mPdsIm       (1.0)
 {
 
+
+  if (mParam.KeyPdsNuage().IsInit())
+  {
+      std::string aNamePdsIm = mICNM->Assoc1To1(mParam.KeyPdsNuage().Val(),aFus,true);
+      FromString(mPdsIm,aNamePdsIm);
+  }
+
+  // std::cout << "PDSssIM " << mPdsIm << " for " << anId << "\n";
 
    if (mNuage.ModeFaisceauxImage().IsInit())
       mZIsInv = mNuage.ModeFaisceauxImage().Val().ZIsInverse();
@@ -694,7 +712,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
    mAfC2MCur = mAfM2CCur.inv();
 
    ELISE_COPY(mImCP.all_pts(),trans(mTifCP.in(),mBoxImCur._p0),mImCP.out());
-   ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in(),mBoxImCur._p0),mImMasq.out());
+   ELISE_COPY(mImMasq.all_pts(),trans(mTifMasq.in()!=0,mBoxImCur._p0),mImMasq.out());
    if (mHasCorrel)
    {
        const cSectionScoreQualite  * aSSQ  = mParam.SectionScoreQualite().PtrVal();
@@ -751,7 +769,7 @@ template <class Type> bool  cLoadedCP<Type>::ReLoad(const Box2dr & aBoxTer)
 template <class Type> double  cLoadedCP<Type>::PdsLinear(const Pt2dr & aPTer) const
 {
    Pt2dr aPIm = mAfM2CCur(aPTer);
-   double aPds = mTImMasq.get(round_ni(aPIm),0);
+   double aPds = mTImMasq.get(round_ni(aPIm),0) * mPdsIm ;
    if (aPds > 0)
    {
        if (mHasCorrel)
@@ -814,10 +832,12 @@ template <class Type> cLoadedCP<Type> *  cFusionCarteProf<Type>::VCLOfName(const
 
 template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string & anId)
 {
-    std::string aNameNuage = mICNM->Dir() + mICNM->Assoc1To1(mParam.KeyResult(),anId,true);
+    std::string aNameNuage =  mICNM->Assoc1To1(mParam.KeyResult(),anId,true);
+    if (mParam.KeyResultIsLoc().Val())
+       aNameNuage = mICNM->Dir() + aNameNuage;
 
-    mNameTif = StdPrefix(aNameNuage)+ ".tif";
-    std::cout << anId  << "=> " << mNameTif<< "\n";
+    mNameTif = StdPrefix(aNameNuage)+ "_Prof.tif";
+    // std::cout << anId  << "=> " << mNameTif<< "\n";
     mNameMasq = StdPrefix(aNameNuage)+ "_Masq.tif";
     mNameCorrel = StdPrefix(aNameNuage)+ "_Correl.tif";
     mNameCptr = StdPrefix(aNameNuage)+ "_Cptr.tif";
@@ -837,13 +857,13 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
           mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK],aK));
     }
 
-    mNameNuageIn =   mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true);
     if (mParam.ModeleNuageResult().IsInit())
     {
+       std::string aNameNuageIn =   mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true);
        mNuage = StdGetObjFromFile<cXML_ParamNuage3DMaille>
                 (
                      //mParam.ModeleNuageResult().Val(),
-                     mICNM->Dir() + mNameNuageIn,
+                     mICNM->Dir() + aNameNuageIn,
                      StdGetFileXMLSpec("SuperposImage.xml"),
                      "XML_ParamNuage3DMaille",
                      "XML_ParamNuage3DMaille"
@@ -854,15 +874,32 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
          mNuage = mVC[0]->Nuage();
          double aSomResolAlti = 0;
          double aSomOriAlti = 0;
+
+         std::vector<double> aVR;
+         Pt2dr aP0(1e30,1e30);
+         Pt2dr aP1(-1e30,-1e30);
          for (int aK=0 ; aK<int(mVC.size()) ; aK++)
          {
               double aResol = mVC[aK]->IP().ResolutionAlti();
               double anOri = mVC[aK]->IP().OrigineAlti();
 
-              //  std::cout << "VVVa " <<  aK << " " << anOri  << " " << aResol << "\n";
               aSomResolAlti += aResol;
               aSomOriAlti += anOri;
+
+              aVR.push_back( ResolOfNu(mVC[aK]->Nuage()));
+              Box2dr aBox = BoxTerOfNu(mVC[aK]->Nuage());
+              aP0.SetInf(aBox._p0);
+              aP1.SetSup(aBox._p1);
          }
+
+         double aResol = MedianeSup(aVR);
+         Pt2dr aSz = aP1 - aP0;
+         Pt2di aNbPix = round_up(aSz/aResol);
+
+         //    (aP0.x, aP1.y)  +  (aP.x/R  - aP.y/R)
+         ElAffin2D aAfC2M(Pt2dr(aP0.x,aP1.y),Pt2dr(aResol,0),Pt2dr(0,-aResol));
+         mNuage.Orientation().OrIntImaM2C().SetVal(El2Xml(aAfC2M.inv()));
+         mNuage.NbPixel() = aNbPix;
 
          aSomResolAlti /=  mVC.size();
          aSomOriAlti /=  mVC.size();
@@ -873,25 +910,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
         // Creation du TFW
         {
-            std::string aNameTFW = StdPrefix(mNameTif) + ".tfw";
-            std::ofstream aFtfw(aNameTFW.c_str());
-            aFtfw.precision(10);
-
             ElAffin2D aAfM2C = Xml2EL(mNuage.Orientation().OrIntImaM2C());
-
-
-            double resolutionX = 1./aAfM2C.I10().x;
-            double resolutionY = 1./aAfM2C.I01().y;
-            double origineX = -aAfM2C.I00().x * resolutionX;
-            double origineY = -aAfM2C.I00().y * resolutionY;
-            aFtfw << resolutionX << "\n" << 0 << "\n";
-            aFtfw << 0 << "\n" << resolutionY << "\n";
-            aFtfw << origineX << "\n" << origineY << "\n";
-
-            //aFtfw << aFOM.ResolutionPlani().x << "\n" << 0 << "\n";
-            //aFtfw << 0 << "\n" << aFOM.ResolutionPlani().y << "\n";
-            //aFtfw << aFOM.OriginePlani().x << "\n" << aFOM.OriginePlani().y << "\n";
-            aFtfw.close();
+            GenTFW(aAfM2C.inv(),StdPrefix(mNameTif) + ".tfw");
         }
     }
 
@@ -914,7 +934,10 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
        mNuage.Image_Profondeur().Val().Masq() = NameWithoutDir(mNameMasq);
        mNuage.Image_Profondeur().Val().Image() = NameWithoutDir(mNameTif);
        mNuage.Image_Profondeur().Val().Correl() = NameWithoutDir(mNameCorrel);
-       MakeFileXML(mNuage,mNameNuageIn);
+
+
+// std::cout << "AAAAAAAAAAAA " << mNameNuageIn << "\n";
+       // MakeFileXML(mNuage,mNameNuageIn);
 
        bool IsModified;
        Im2D<tNum,tNBase> aITest(1,1);
@@ -1114,10 +1137,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    }
 
 
+   // Creation de la structure de pile
 
-   // double aMul = 100.0;
-   // double aGainDef = 0.15;
-   // double aRegul = 0.5;
 
    Pt2di aQ0;
    for (aQ0.y = 0 ; aQ0.y < mSzCur.y; aQ0.y++)
@@ -1126,24 +1147,29 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
         for (aQ0.x = 0 ; aQ0.x < mSzCur.x; aQ0.x++)
         {
 
-           //LocBug = (aQ0.x>= 420) && (aQ0.y>= 537) && (aQ0.x<=430) && (aQ0.y<= 547); //  aPCel.size()>=4;
             Pt2dr aT0 = mAfC2MCur(Pt2dr(aQ0));
             aPCel.clear();
+            double aSomP=0;
             for (int aKI=0 ; aKI<int(mVCL.size()); aKI++)
             {
                 cElPile anEl = mVCL[aKI]->CreatePile(aT0);
                 if (anEl.P()>0)
                 {
                    aPCel.push_back(anEl);
+                   aSomP += anEl.P();
                 }
             }
+
             aTIm0.oset(aQ0,-1);
             aTImNb.oset(aQ0,0);
-   // TIm2D<INT2,INT>  aTIm0(mSzCur);
-   // TIm2D<INT2,INT>  aTImNb(mSzCur);
             bool isDebug = DebugActif && IsPBug(aQ0);
-            if (aPCel.size() >0)
+            if (aSomP>0)
             {
+                for (int aKP=0 ; aKP < int(aPCel.size()) ; aKP++)
+                {
+                    aPCel[aKP].SetPdsPile(aPCel[aKP].P() * (aPCel.size()/aSomP));
+                }
+
                 std::sort(aPCel.begin(),aPCel.end());
                 std::vector<cElPile> aVPile = ComputeExpEv(aPCel,mResolPlaniEquiAlt,mSpecA);
 
@@ -1199,6 +1225,17 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                              const cElPile& aPk = aPil[aKz];
                              aTabP[aKz].ArgAux() = cElPilePrgD(aPk.Z());
                              aTabP[aKz].SetOwnCost(ToICost(ElMax(0.0,ElMin(1.0,1.0-aPk.P()))));
+
+
+if (0)
+{
+static double MaxP=-1;
+if (aPk.P()>MaxP)
+{
+   MaxP=aPk.P();
+   std::cout << "==== MaxP " << MaxP << "\n";
+}
+}
 
                              if (isDebug)
                              {
@@ -1455,6 +1492,65 @@ int FusionCarteProf_main(int argc,char ** argv)
 
    cFusionCarteProf<float>  aFCP(aP2,aCom0);
    return 0;
+}
+
+/***************************************************************************/
+
+class cSimpleFusionCarte
+{
+     public :
+         cSimpleFusionCarte(int argc,char ** argv);
+
+     private :
+          std::string         mFullName;
+          cElemAppliSetFile   mEASF;
+          const std::vector<std::string> * mVNames;
+          std::string         mNameTarget;
+          std::string         mNameOut;
+
+};
+
+
+cSimpleFusionCarte::cSimpleFusionCarte(int argc,char ** argv) :
+     mNameOut ("Fusion.xml")
+{
+    ElInitArgMain
+    (
+           argc,argv,
+           LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile),
+           LArgMain() << EAM(mNameTarget,"TargetGeom",true,"Name of Targeted geometry, Def computed by agregation of input")
+                      << EAM(mNameOut,"Out",true,"Result, Def=Fusion.xml")
+
+    );
+
+    mEASF.Init(mFullName);
+
+    std::string aCom =       MM3dBinFile("MergeDepthMap")
+                          +  XML_MM_File("Fusion-Basic.xml ")
+                          +  " WorkDirPFM="    +  mEASF.mDir
+                          +  " +PatternInput=" +  QUOTE(mEASF.mPat)
+                          +  " +NameOutput="   +  mNameOut
+                       ;
+
+
+    if (EAMIsInit(&mNameTarget))
+    {
+        aCom =     aCom +   " +WithTarget=true +NameTarget=" + mNameTarget ;
+    }
+
+    // std::cout << "COM= " << aCom << "\n";
+    System(aCom);
+}
+
+
+
+
+
+int SimpleFusionCarte_main(int argc,char ** argv)
+{
+    cSimpleFusionCarte anAppli(argc,argv);
+
+    return EXIT_SUCCESS;
 }
 
 

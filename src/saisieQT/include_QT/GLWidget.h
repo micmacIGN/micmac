@@ -1,11 +1,6 @@
 #ifndef _GLWIDGET_H
 #define _GLWIDGET_H
 
-#include <cmath>
-#include <limits>
-#include <iostream>
-#include <algorithm>
-
 #include "Engine.h"
 #include "ContextMenu.h"
 
@@ -28,7 +23,7 @@ public:
     void setView(VIEW_ORIENTATION orientation);
 
     //! Get current zoom
-    float getZoom(){return getParams()->m_zoom;}
+    float getZoom();
 
     void zoomFit();
 
@@ -95,7 +90,13 @@ public:
 
     int  getWindowMeanValue(QPoint pos, int r = 7); //pos = image position, r = half size of window
 
+	void setZone(QRectF aRect);
+
+	void checkTiles(); //compute tiles if needed
+
 public slots:
+
+	void createLoadedTexture(cMaskedImageGL* _tile);
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
 
@@ -111,6 +112,8 @@ public slots:
     void setZoom(float val);
 
     void selectPoint(QString namePt);
+
+    void setCenterType(int);
 
 signals:
 
@@ -140,6 +143,8 @@ protected:
     void resizeGL(int w, int h);
     void paintGL();
 
+	void initializeGL();
+
     //! inherited from QWidget
     void mouseDoubleClickEvent  (QMouseEvent *event);
     void mousePressEvent        (QMouseEvent *event);
@@ -161,7 +166,8 @@ protected:
     //! Current interaction mode (with mouse)
     int  m_interactionMode;
 
-    bool m_bFirstAction;
+    bool m_bFirstAction; //warning: false if mask is loaded
+    bool m_bMaskEdited;
 
     //! Data to display
     cGLData    *m_GLData;
@@ -210,6 +216,33 @@ private:
 
    // QPainter*   _painter;
 };
+
+#include <QObject>
+
+class loaderImageWork : public QObject
+{
+	Q_OBJECT
+
+public:
+	loaderImageWork(QMaskedImage * maskedImg, cMaskedImageGL * tile, QRect &rect);
+	~loaderImageWork();
+
+public slots:
+	void process();
+
+signals:
+	void finished(cMaskedImageGL* _tile);
+	void finished();
+	void error(QString err);
+
+private:
+	QMaskedImage *	_maskedImg;
+	cMaskedImageGL* _tile;
+	QRect			_rect;
+
+};
+
+
 
 #endif  /* _GLWIDGET_H */
 

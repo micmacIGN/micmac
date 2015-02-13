@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-
+#include "GpGpu/GBV2_ProgDynOptimiseur.h"
 
 
 class cQckInterpolEpip;
@@ -1287,8 +1287,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
   bool aModeMax = false;
 
-  
-
    std::vector<float> aVPmsInit;
    double aSomPmsInit=0;
 
@@ -1378,6 +1376,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
     double aStepPix = mStepZ / mCurEtape->DeZoomTer();
 
+
+
  //  ====  2. Pas quotient d'entier
     double aRealNbByPix = 1/ aStepPix;
     int mNbByPix = round_ni(aRealNbByPix);
@@ -1390,12 +1390,116 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 /*
 */
 
-
-
     Pt2di anOff0 = anI0.OffsetIm();
     Pt2di anOff1 = anI1.OffsetIm();
 
+#ifdef CUDA_ENABLED
 
+	bool useGpu = CMS()->UseGpGpu().Val();
+
+	if(useGpu)
+	{		
+
+		bool dynRegulGpu = CurEtape()->AlgoRegul() == eAlgoTestGPU;
+
+		cGBV2_ProgDynOptimiseur* gpuOpt		= dynRegulGpu ? (cGBV2_ProgDynOptimiseur*)mSurfOpt	: NULL;
+		InterfOptimizGpGpu*		 IGpuOpt	= dynRegulGpu ? gpuOpt->getInterfaceGpGpu()			: NULL;
+
+
+		interface_Census_GPU.transfertImageAndMask(
+					toUi2(mPDV1->LoadedIm().SzIm()),
+					toUi2(mPDV2->LoadedIm().SzIm()),
+					anI0.VDataIm(),
+					anI1.VDataIm(),
+					anI0.ImMasqErod(),
+					anI1.ImMasqErod());
+
+		interface_Census_GPU.init(
+					Rect(mX0Ter,mY0Ter,mX1Ter,mY1Ter),
+					aVKImS,
+					aVPds,
+					toInt2(anOff0),
+					toInt2(anOff1),
+					toUi2(mPDV1->LoadedIm().SzIm()),
+					toUi2(mPDV2->LoadedIm().SzIm()),
+					mTabZMin,
+					mTabZMax,
+					mNbByPix,
+					aStepPix,
+					mAhEpsilon,
+					mAhDefCost,
+					aSeuilHC,
+					aSeuilBC,
+					aModeMax,
+					DoMixte,
+					dynRegulGpu,
+					IGpuOpt
+					);
+
+		interface_Census_GPU.Job_Correlation_MultiScale();
+
+		GpGpuTools::NvtxR_Push("Start copy cost",0xFFAAFF33);
+
+		if(dynRegulGpu)
+		{
+			for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+				for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+				{
+					int aZ0		=  mTabZMin[anY][anX];
+					int aZ1		=  mTabZMax[anY][anX];
+					int delTaZ	= abs(aZ0-aZ1);
+					bool bIMinZ = delTaZ < 512;
+					Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
+					bool OkIm0	= anI0.IsOkErod(aPIm0.x,aPIm0.y);
+
+					if(OkIm0 && bIMinZ)
+					{
+						uint2 pt		= make_uint2(anX- mX0Ter,anY- mY0Ter);
+						ushort* aCost	= interface_Census_GPU.getCost<ushort>(pt);
+						pixel*  pix		= interface_Census_GPU.getCost<pixel>(pt);
+
+						gpuOpt->gLocal_SetCout(Pt2di(anX,anY),aCost,pix);
+					}
+				}
+		}
+		else
+		{
+			for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
+				for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
+				{
+					int aZ0		=  mTabZMin[anY][anX];
+					int aZ1		=  mTabZMax[anY][anX];
+					int delTaZ	= abs(aZ0-aZ1);
+					bool bIMinZ = delTaZ < 512;
+					Pt2di aPIm0 = Pt2di(anX,anY) + anOff0;
+					bool OkIm0	= anI0.IsOkErod(aPIm0.x,aPIm0.y);
+
+					for (int aZI=aZ0 ; aZI< aZ1 ; aZI++)
+					{
+						if(bIMinZ)
+						{
+							uint3 pt =make_uint3(anX- mX0Ter,anY- mY0Ter,aZI-aZ0);
+							double aCost = interface_Census_GPU.getCost<float>(pt);
+							mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, aCost >= 0.f/* &&aCost <= 2.f*/ &&  OkIm0 ? aCost : mAhDefCost);
+						}
+						else
+						{
+							mSurfOpt->SetCout(Pt2di(anX,anY),&aZI, mAhDefCost);
+						}
+					}
+				}
+		}
+
+		GpGpuTools::Nvtx_RangePop();
+
+		interface_Census_GPU.dealloc();
+
+		return;
+	}
+
+	GpGpuTools::NvtxR_Push("CPU MSC",0xFFAA0033);
+
+#endif
 // std::cout << anOff0 << anOff1 << "\n";
 
     // std::cout << mX0Ter  << " " << mY0Ter << "\n";
@@ -1410,8 +1514,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     Box2di aBoxCalc0 = aBox.trans(anOff0);
     Box2di aBoxCalc1 = aBox.trans(anOff1);
 
-   Box2di aBoxDef0 (Pt2di(0,0),mPDV1->LoadedIm().SzIm());
-   Box2di aBoxDef1 (Pt2di(0,0),mPDV2->LoadedIm().SzIm());
+    Box2di aBoxDef0 (Pt2di(0,0),mPDV1->LoadedIm().SzIm());
+    Box2di aBoxDef1 (Pt2di(0,0),mPDV2->LoadedIm().SzIm());
     
 
     std::vector<Im2D_INT4> mImFlag0;
@@ -1524,8 +1628,6 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
             aSomCC = aMomC->DataSomQuad();
         }
 
-
-
         for (int anX = mX0Ter ; anX <  mX1Ter ; anX++)
         {
             for (int anY = mY0Ter ; anY < mY1Ter ; anY++)
@@ -1535,9 +1637,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                 int aZ0 =  mTabZMin[anY][anX];
                 int aZ1 =  mTabZMax[anY][anX];
 
-
-               int aXIm1SsPx = anX+anOff1.x;
-               int aYIm1SsPx = anY+anOff1.y;
+                int aXIm1SsPx = anX+anOff1.x;
+                int aYIm1SsPx = anY+anOff1.y;
 
 
                 while (mod(aZ0,mNbByPix) != aPhase) aZ0++;
@@ -1614,6 +1715,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                                     aCost = Quick_MS_CorrelBasic_Center (aPIm0,aPIm1,aSom1,aSom11,aSomC,aSomCC,
                                                              aVBOI0,aVBOIC,anOffset,aVKImS,aVPds,mAhEpsilon,aModeMax
                                             );
+
+
                                     aGlobCostCorrel = aCost;
 
                                     if (Verif)
@@ -1702,6 +1805,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     DeleteAndClear(aVCG);
     delete aPondFlag;
     delete aMom1;
+
+#ifdef CUDA_ENABLED
+	GpGpuTools::Nvtx_RangePop();
+#endif
 }
 
 

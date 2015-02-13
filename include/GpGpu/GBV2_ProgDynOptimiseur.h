@@ -4,8 +4,8 @@
 #include  "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
-namespace NS_ParamMICMAC
-{
+//namespace NS_ParamMICMAC
+//{
 
 /**************************************************/
 /*                                                */
@@ -141,6 +141,17 @@ public :
 
     void Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int aLabel);
 
+#if CUDA_ENABLED
+	void gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost,pixel pix);
+
+	void gLocal_SetCout(Pt2di aPTer, ushort* aCost,pixel* pix);
+
+	void gLocal_SetCout(Pt2di aPTer, ushort* aCost);
+
+	InterfOptimizGpGpu* getInterfaceGpGpu(){return &IGpuOpt;}
+
+	TIm2DBits<1>		*mTMask;
+#endif
     void Local_SolveOpt(Im2D_U_INT1 aImCor);
 
     // Im2D_INT2     ImRes() {return mImRes;}
@@ -180,10 +191,17 @@ private :
 
     void copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt,  sMatrixCellCost<ushort> &mCellCost, uint idBuf = 0);
 
+	template<bool final>
     void copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal, CuHostData3D<uint> &FinalDefCor, uint idBuf = 0);
 
+	template<bool final> inline
+	void agregation(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z);
+
+	template<bool final> inline
+	void maskAuto(const Pt2di &ptTer,tCost   &aCostMin,Pt2di	&aPRXMin);
 #endif
 
+	Im2D_U_INT1						   *mImCor;
     Im2D_INT2                          mXMin;
     Im2D_INT2                          mXMax;
     Pt2di                              mSz;
@@ -198,9 +216,13 @@ private :
     int                                mNbDir;
     double                             mPdsProgr;
 
+    bool                               mHasMaskAuto;
     int                                mCostDefMasked;
     int                                mCostTransMaskNoMask;
 
 };
-}
+//}
 #endif //H_GBV2_PROGDUNOPTIMISEUR
+
+
+

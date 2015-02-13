@@ -818,10 +818,18 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
 
 void cAppliPastis::Exec()
 {
-  mSzIm1 = Tiff_Im::StdConvGen(mOutputDirectory+CurF1(),1,false).sz();
-  mSzIm2 = Tiff_Im::StdConvGen(mOutputDirectory+CurF2(),1,false).sz();
+	string filename1 = mOutputDirectory+CurF1();
+	string filename2 = mOutputDirectory+CurF2();
+	if ( isUsingSeparateDirectories() )
+	{
+		if ( !ELISE_fp::exist_file( filename1 ) ) filename1 = DirChantier()+CurF1();
+		if ( !ELISE_fp::exist_file( filename2 ) ) filename2 = DirChantier()+CurF2();
+	}
 
-  ExecSz(mSzPastis,false);
+	mSzIm1 = Tiff_Im::StdConvGen(filename1,1,false).sz();
+	mSzIm2 = Tiff_Im::StdConvGen(filename2,1,false).sz();
+
+	ExecSz(mSzPastis,false);
 }
 
 void cAppliPastis::ExecSz(double aSzMaxApp,bool)

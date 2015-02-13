@@ -41,12 +41,363 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
  non max et voisin du vide
 */
+
+#define TheNbPref 5
+
+
+/**************************************************************************/
+/*                                                                        */
+/*                                                                        */
+/*                                                                        */
+/**************************************************************************/
+                 
+// cMMByImNM  :  MicMac By Image Name Manipulator
+
+
+void MakeListofName(const std::string & aFile,const cInterfChantierNameManipulateur::tSet  *aSet)
+{
+   cListOfName aLON;
+   std::copy(aSet->begin(),aSet->end(),back_inserter(aLON.Name()));
+
+   MakeFileXML(aLON,aFile);
+}
+
+
+void AddistofName(const std::string & aFile,const cInterfChantierNameManipulateur::tSet  *aS0)
+{
+    std::set<std::string> aSetFin;
+
+    for (int aK=0 ; aK<int(aS0->size()) ; aK++)
+        aSetFin.insert((*aS0)[aK]);
+
+    if (ELISE_fp::exist_file(aFile))
+    {
+        cListOfName aL0 =  StdGetFromPCP(aFile,ListOfName);
+        for 
+        (
+           std::list<std::string>::const_iterator itS= aL0.Name().begin();
+           itS != aL0.Name().end();
+           itS++
+        )
+        {
+            aSetFin.insert(*itS);
+        }
+    }
+
+    cListOfName aLON;
+    std::copy(aSetFin.begin(),aSetFin.end(),back_inserter(aLON.Name()));
+    MakeFileXML(aLON,aFile);
+}
+
+
+///==================================================
+///          cMMByImNM
+///==================================================
+
+std::string cMMByImNM::NameOfType(eTypeMMByImNM aType)
+{
+    switch (aType)
+    {
+        case eTMIN_Depth : return  "Depth"  ; 
+        case eTMIN_Min   : return  "Min"    ;
+        case eTMIN_Max   : return  "Max"    ;
+        case eTMIN_Merge : return  "Merge"  ;
+    }
+
+    ELISE_ASSERT(false,"cMMByImNM::NameOfType");
+    return "";
+}
+
+
+
+std::string DS2String(double aDS)
+{
+    if (aDS==1) return "";
+    int aIDS = round_down(aDS);
+    double aFrac = aDS-aIDS;
+
+    std::string aStrDS = ToString(aDS);
+
+    if (aFrac==0) 
+       aStrDS  = ToString(aIDS);
+
+
+    return "DS"+ aStrDS + "_";
+}
+
+
+const std::string cMMByImNM::TheNamePimsFile = "PimsFile.xml";
+const std::string cMMByImNM::TheNamePimsEtat = "PimsEtat.xml";
+
+bool  cMMByImNM::StrIsPImsDIr(const std::string & aDir)
+{
+    return    ELISE_fp::exist_file(aDir+TheNamePimsFile) 
+           && ELISE_fp::exist_file(aDir+TheNamePimsEtat);
+}
+
+
+
+
+cMMByImNM::cMMByImNM(double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix,const std::string & aNameType) :
+    mDS        (aDS),
+    mDirGlob   (aDirGlob),
+    mDirLoc    (aDirLoc),
+    mPrefix    (aPrefix),
+    mFullDir   (mDirGlob + mDirLoc),
+    mNameFileLON (mFullDir + TheNamePimsFile),
+    mKeyFileLON (aDirGlob+ "%NKS-Set-OfFile@" + mNameFileLON),
+    mNameEtat   (mFullDir+ TheNamePimsEtat),
+    mNameType   (aNameType)
+{
+    ELISE_fp::MkDirSvp(mFullDir);
+    if (ELISE_fp::exist_file(mNameEtat))
+    {
+       mEtats =  StdGetFromPCP(mNameEtat,EtatPims);
+    }
+}
+
+
+
+
+void cMMByImNM::AddistofName(const cInterfChantierNameManipulateur::tSet  * aSet)
+{
+   ::AddistofName(mNameFileLON,aSet);
+}
+
+const std::string & cMMByImNM::KeyFileLON() const
+{
+   return mKeyFileLON;
+}
+
+const cEtatPims & cMMByImNM::Etat() const
+{
+   return mEtats;
+}
+
+void  cMMByImNM::SetOriOfEtat(const std::string & anOri) 
+{
+   if (mEtats.NameOri().IsInit())
+   {
+       if (mEtats.NameOri().Val() != anOri)
+       {
+           std::cout << "Ori1=" << mEtats.NameOri().Val() << " Ori2=" << anOri << "\n";
+           ELISE_ASSERT(false,"Multiple orientation use in PIMS");
+       }
+   }
+   else
+   {
+      mEtats.NameOri().SetVal(anOri);
+      MakeFileXML(mEtats,mNameEtat);
+   }
+}
+
+
+
+const std::string PrefixMPI = "PIMs-";
+
+
+std::string cMMByImNM::StdDirPims(double aDS, const std::string & aNameMatch)
+{
+   std::string aNameDS = DS2String(aDS);
+   return  PrefixMPI  + aNameDS  + aNameMatch + "/";
+}
+
+cMMByImNM * cMMByImNM::ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch)
+{
+   // std::string aNameDS = DS2String(aDS);
+   // std::string aDirLoc = PrefixMPI  + aNameDS  + aNameMatch + "/";
+   return new cMMByImNM(aDS,aDirGlob,StdDirPims(aDS,aNameMatch),"Nuage-",aNameMatch);
+}
+
+
+void SelfSuppressCarDirEnd(std::string & aDir)
+{
+    int aL = strlen(aDir.c_str());
+    if (aL && (aDir[aL-1]==ELISE_CAR_DIR))
+    {
+        aDir = aDir.substr(0,aL-1);
+    }
+}
+std::string SuppressCarDirEnd(const std::string & aDirOri)
+{
+    std::string aRes = aDirOri;
+    SelfSuppressCarDirEnd(aRes);
+    return aRes;
+}
+
+cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,bool Svp,double aDS,const std::string & aDir0)
+{
+     if (StrIsPImsDIr(aNameDirOri))
+     {
+         static cElRegex aRegDS(PrefixMPI + "DS(.*)_(.*)",10); 
+         static cElRegex aRegR1(PrefixMPI + "(.*)",10); 
+
+         std::string aFullDir=SuppressCarDirEnd(aNameDirOri);
+         std::string aDirGlob,aDirLoc;
+         SplitDirAndFile(aDirGlob,aDirLoc,aFullDir);
+
+         std::string aNameMatch;
+         bool Ok=false;
+         if (aRegDS.Match(aDirLoc))
+         {
+             aDS = aRegDS.VNumKIemeExprPar(1);
+             aNameMatch = aRegDS.KIemeExprPar(2);
+             Ok=true;
+         }
+         else if (aRegR1.Match(aDirLoc))
+         {
+             aNameMatch = aRegR1.KIemeExprPar(1);
+             Ok=true;
+         }
+         if (Ok)
+         {
+             return  cMMByImNM::ForGlobMerge(aDirGlob,aDS,aNameMatch);
+         }
+     }
+
+     if (StrIsPImsDIr(StdDirPims(aDS,aNameDirOri)))
+     {
+        return  cMMByImNM::ForGlobMerge(aDir0,aDS,aNameDirOri);
+     }
+
+
+     if (! Svp)
+     {
+         std::cout << "For, Dir=" << aNameDirOri << " DS=" << aDS << "\n";
+         ELISE_ASSERT(false,"Cannot find PMIS Directory");
+     }
+
+     return 0;
+}
+
+
+
+cMMByImNM * cMMByImNM::ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm,const std::string & aNameType)
+{
+   return new cMMByImNM(1.0,aDirGlob, TheDIRMergeEPI()  +   aNameIm + "/","QMNuage-",aNameType);
+}
+
+
+std::string cMMByImNM::NameFileGlob(eTypeMMByImNM aType,const std::string aNameIm,const std::string aExt)
+{
+    return mFullDir + NameFileLoc(aType,aNameIm,aExt);
+}
+
+std::string cMMByImNM::NameFileLoc(eTypeMMByImNM aType,const std::string aNameIm,const std::string aExt)
+{
+    return  mPrefix + NameOfType(aType) + "-"  + aNameIm  + aExt;
+}
+
+
+
+
+std::string cMMByImNM::NameFileLabel(eTypeMMByImNM aType,const std::string aNameIm)   {return NameFileGlob(aType,aNameIm,"_Label.tif");}
+std::string cMMByImNM::NameFileMasq(eTypeMMByImNM aType,const std::string aNameIm)   {return NameFileGlob(aType,aNameIm,"_Masq.tif");}
+std::string cMMByImNM::NameFileProf(eTypeMMByImNM aType,const std::string aNameIm)   {return NameFileGlob(aType,aNameIm,"_Prof.tif");}
+std::string cMMByImNM::NameFileXml(eTypeMMByImNM aType,const std::string aNameIm)    {return NameFileGlob(aType,aNameIm,".xml");}
+std::string cMMByImNM::NameFileEntete(eTypeMMByImNM aType,const std::string aNameIm) {return  NameFileGlob(aType,aNameIm,"");}
+
+const std::string & cMMByImNM::FullDir() const
+{
+    return mFullDir;
+}
+const std::string & cMMByImNM::NameType() const 
+{
+    return mNameType;
+}
+const std::string & cMMByImNM::DirGlob() const 
+{
+    return mDirGlob;
+}
+const std::string & cMMByImNM::DirLoc() const 
+{
+    return mDirLoc;
+}
+
+void  cMMByImNM::ModifIp(eTypeMMByImNM aType,cImage_Profondeur & anIp,const std::string & aNameIm)
+{
+    anIp.Image() = NameWithoutDir(NameFileProf(aType,aNameIm));
+    anIp.Masq() = NameWithoutDir(NameFileMasq(aType,aNameIm));
+}
+
+/**************************************************************************/
+/*                                                                        */
+/*         MMEnvStatute_main                                              */
+/*                                                                        */
+/**************************************************************************/
+
+
+int MMEnvStatute_main(int argc,char ** argv)
+{
+   std::string aFullName;
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)",eSAM_IsPatFile),
+        LArgMain()  
+   );
+
+   std::string aDir,aNamIm;
+   SplitDirAndFile(aDir,aNamIm,aFullName);
+
+   cMMByImNM * aGlobIN = cMMByImNM::ForGlobMerge(aDir,1.0,"Statue");
+   cMMByImNM * aLocIN = cMMByImNM::ForMTDMerge(aDir,aNamIm,"MTDTmp");
+
+
+
+   std::string aDirIn = aDir + TheDIRMergeEPI() + aNamIm + "/";
+
+
+   for (int aK=0 ; aK<2 ; aK++)
+   {
+      bool aModeMax = (aK==0);
+      eTypeMMByImNM aModIN = aModeMax ? eTMIN_Max : eTMIN_Min;
+      std::string aNameMasqEnvIn =  aLocIN->NameFileMasq(aModIN,aNamIm);
+
+      Tiff_Im aFileMasqEnvIn(aNameMasqEnvIn.c_str());
+
+
+      std::string aNameProfEnvIn = aLocIN->NameFileProf(aModIN,aNamIm);
+      Tiff_Im aFileProfEnvIn(aNameProfEnvIn.c_str());
+
+      std::string aNameProfDepth = aGlobIN->NameFileProf(eTMIN_Depth,aNamIm);
+      std::string aNameMaqDepth = aGlobIN->NameFileMasq(eTMIN_Depth,aNamIm);
+
+      
+      Tiff_Im aFileProfEnvOut = aFileProfEnvIn.Dupl(aGlobIN->NameFileProf(aModIN,aNamIm));
+      Tiff_Im aFileMasqEnvOut = aFileProfEnvOut.Dupl(aGlobIN->NameFileMasq(aModIN,aNamIm));
+     
+      int aSign= (aModeMax ? 1 : -1);
+
+      float aVDef = -1e5;
+      Symb_FNum  aFMasq (Tiff_Im(aNameMaqDepth.c_str()).in(0));
+      Fonc_Num  aFDepth = aSign * Tiff_Im(aNameProfDepth.c_str()).in(aSign*aVDef);
+     
+      aFDepth = aFMasq * aFDepth + (1-aFMasq) * aVDef;
+      aFDepth = rect_max(aFDepth,5) + 5;
+      aFDepth = Max(aFDepth,aFileMasqEnvIn.in());
+
+      aFDepth = aFDepth * aSign;
+      ELISE_COPY ( aFileProfEnvOut.all_pts(), aFDepth, aFileProfEnvOut.out());
+
+
+      ELISE_COPY ( aFileMasqEnvOut.all_pts(), aFileMasqEnvIn.in()|| aFMasq, aFileMasqEnvOut.out());
+/*
+*/
+
+   }
+
+   return EXIT_SUCCESS;
+}
+
+
+
 void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 {
 
     // Im2D_U_INT1 anImInit = Im2D_U_INT1::FromFileStd(aNameMasq);
     Pt2di aSz = anImInit.sz();
-    double aCostRegul = 1.0;
+    double aCostRegul = 0.4;
     double aCostTrans = 10.0;
 
     //    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
@@ -84,8 +435,8 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
  
         cParamFiltreDepthByPrgDyn aParam =  StdGetFromSI(Basic_XML_MM_File("DefFiltrPrgDyn.xml"),ParamFiltreDepthByPrgDyn);
-        aParam.CostTrans() = aCostTrans;
-        aParam.CostRegul() = aCostRegul;
+        aParam.CostTrans().SetVal(aCostTrans);
+        aParam.CostRegul().SetVal(aCostRegul);
         Im2D_Bits<1>  aNewMasq =  FiltrageDepthByProgDyn(aImDepth,aImMasq,aParam);
 
         // 2 est la couleur de validation
@@ -121,15 +472,11 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
 
     }
 
-
     // ELISE_COPY(anImInit.all_pts(),anImInit.in(),Tiff_Im(aNameMasq.c_str()).out());
 }
 
 
 
-const std::string  DirFusMMInit() {return "Fusion-MMMI/";}
-const std::string TheRaffineQuickMac() {return "Match-QM";}
-const std::string TheRaffineQuickMac(const std::string & aName) {return TheRaffineQuickMac() + aName + "/";}
 
 
 
@@ -137,44 +484,54 @@ class cAppli_Enveloppe_Main : public  cAppliWithSetImage
 {
     public :
        cAppli_Enveloppe_Main(int argc,char ** argv);
-       std::string NameFileLoc(const std::string & aPref ,int aZoom)
+       std::string NameFileCurIm(const std::string & aPref ,int aZoom)
        {
-           return  mDirMerge  + aPref +  "_DeZoom" + ToString(aZoom ) + ".tif";
+           return  mDirMergeCurIm  + aPref +  "_DeZoom" + ToString(aZoom ) + ".tif";
 
        }
 
-       std::string NameFileGlob(const std::string & aPref,const std::string & aPost="tif") { return  aPref + mNameIm + "." +aPost; }
-       std::string NameFileGlobWithDir(const std::string & aPref,const std::string & aPost="tif")
-       {
-           return  Dir() + DirFusMMInit() + NameFileGlob(aPref,aPost);
-
-       }
-      void DownScaleNuage(const std::string &,bool IsProf);
+      void DownScaleNuage(eTypeMMByImNM);
       void MakePly(const std::string &);
+      void SaveResultR1(cXML_ParamNuage3DMaille  & aXMLParam,eTypeMMByImNM aType,Im2D_REAL4 aImProf,Im2D_U_INT1 anImMasq);
     private :
       int mZoom0;
       int mZoomEnd;
+      int mJmp;
       std::string mNameIm;
-      std::string mDirMatch;
-      std::string mDirMerge;
+      std::string mDirMergeCurIm;
       bool mCalledByP;
       double mScaleNuage;
       bool mShowCom;
-      bool mDoPly;
-      bool mDoPlyDS;
       bool mAutoPurge;
+      std::string mOut;
+      cMMByImNM * mMMIN;
+      cMMByImNM * mMMINS1;
+      bool        mGlob;
 };
+
+
+
+void cAppli_Enveloppe_Main::SaveResultR1(cXML_ParamNuage3DMaille  & aXMLParam,eTypeMMByImNM aType,Im2D_REAL4 aImProf,Im2D_U_INT1 anImMasq)
+{
+   cImage_Profondeur & anIp = aXMLParam.Image_Profondeur().Val();
+
+   Tiff_Im::CreateFromIm(aImProf,mMMINS1->NameFileProf(aType,mNameIm));
+   Tiff_Im::CreateFromFonc(mMMINS1->NameFileMasq(aType,mNameIm),anImMasq.sz(),anImMasq.in()!=0,GenIm::bits1_msbf);
+   mMMINS1->ModifIp(aType,anIp,mNameIm);
+   MakeFileXML(aXMLParam,mMMINS1->NameFileXml(aType,mNameIm));
+}
 
 
 
 cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    cAppliWithSetImage(argc-1,argv+1,0,TheMMByPairNameCAWSI),
-   mCalledByP (false),
+   mJmp        (1),
+   mCalledByP  (false),
    mScaleNuage (1),
    mShowCom    (false),
-   mDoPly      (false),
-   mDoPlyDS    (false),
-   mAutoPurge  (false)
+   mAutoPurge  (false),
+   mOut        ("QuickMac"),
+   mGlob       (true)
 {
    std::string Masq3D;
    std::string aPat,anOri;
@@ -190,14 +547,23 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAM(mCalledByP,"InternalCalledByP",true)
                     << EAM(mScaleNuage,"DownScale",true,"Create downscale cloud also")
                     << EAM(mShowCom,"ShowC",true,"Show commande (tuning)")
-                    << EAM(mDoPly,"DoPly",true,"Do Ply")
-                    << EAM(mDoPlyDS,"DoPlyDS",true,"Do Ply down scaled")
                     << EAM(mAutoPurge,"AutoPurge",true,"Automaticaly purge unnecessary temp file (def=true)")
+                    << EAM(mJmp,"Jump",true,"Will compute only image Mod Jump==0 , def=1 (all images)")
+                    << EAM(mOut,"Out",true,"Target Dir in Glob Mode")
+                    << EAM(mGlob,"Glob",true,"Globale mode (else output in each image dir)")
    );
+    
 
    if (! (mCalledByP))
    {
-       ELISE_fp::MkDir(Dir() + DirFusMMInit() );
+      {
+          std::string aComPyr =  MM3dBinFile("MMPyram")
+                                + QUOTE(aPat) + " "
+                                + anOri + " "
+                                + "ImSec=" +anOri;
+
+           VoidSystem(aComPyr.c_str());
+       }
        std::list<std::pair<std::string,std::string> >  aLPair = ExpandCommand(3,"InternalCalledByP=true");
 
        std::list<std::string>  aLCom ;
@@ -207,7 +573,15 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
        {
            const std::string & aCom = itS->first;
            const std::string & aNameIm = itS->second;
-           if (1)
+           bool aDoIt = true;
+           
+           if (mJmp>1)
+           {
+              tSomAWSI * aSom = ImOfName(aNameIm);
+              aDoIt = ((aSom->attr().mNumAccepted%mJmp)==0);
+           }
+
+           if (aDoIt)
            {
               std::cout << aCom<< "\n";
               aLCom.push_back(aCom);
@@ -223,10 +597,21 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    }
 
 
+
    ELISE_ASSERT(mVSoms.size()==1,"Only one image for cAppli_Enveloppe_Main");
    mNameIm = mVSoms[0]->attr().mIma->mNameIm;
-   mDirMatch  = Dir() + "Masq-TieP-" + mNameIm  + "/";
-   mDirMerge  = Dir() + TheDIRMergTiepForEPI() + "-" +   mNameIm + "/";
+   mDirMergeCurIm  = Dir() + TheDIRMergeEPI()  +   mNameIm + "/";
+
+   if (mGlob)
+   {
+      mMMIN   =   cMMByImNM::ForGlobMerge(Dir(),mScaleNuage,mOut);
+      mMMINS1 =   cMMByImNM::ForGlobMerge(Dir(),1.0,mOut);
+   }
+   else
+   {
+        mMMIN   =   cMMByImNM::ForMTDMerge(Dir(),mNameIm,"MTDTmp");
+        mMMINS1 = mMMIN;
+   }
 
 
 
@@ -247,17 +632,17 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
           std::string aCom =    MM3dBinFile("MMInitialModel ")
                               + mEASF.mFullName + " "
                               + Ori() 
-                              + std::string(" DoMatch=false  Do2Z=false   ExportEnv=true  Zoom=")
+                              + std::string(" DoPyram=false DoMatch=false  Do2Z=false   ExportEnv=true  Zoom=")
                               + ToString(aZoom);
           if (EAMIsInit(&Masq3D)) aCom = aCom + " Masq3D=" + Masq3D;
 
           System(aCom);
-          std::string aNameMax = NameFileLoc("EnvMax",aZoom);
-          std::string aNameMin = NameFileLoc("EnvMin",aZoom);
-          std::string aNameMasqEnv = NameFileLoc("EnvMasq",aZoom);
+          std::string aNameMax = NameFileCurIm("EnvMax",aZoom);
+          std::string aNameMin = NameFileCurIm("EnvMin",aZoom);
+          std::string aNameMasqEnv = NameFileCurIm("EnvMasq",aZoom);
 
-          std::string aNameMerge = NameFileLoc("Depth",aZoom);
-          std::string aNameMasqMerge = NameFileLoc("Masq",aZoom);
+          std::string aNameMerge = NameFileCurIm("Depth",aZoom);
+          std::string aNameMasqMerge = NameFileCurIm("Masq",aZoom);
           if (aZoom==mZoom0)
           {
               aEnvMax = Im2D_REAL4::FromFileStd(aNameMax);
@@ -303,67 +688,52 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
              getchar();
           }
    }
-   const std::string FusMax  = "NuageFusion-Max";
-   const std::string FusMin  = "NuageFusion-Min";
-   const std::string FusEnvMasq = "NuageFusion-EnvMasq";
-   const std::string FusDepth   = "NuageFusion-Depth";
-   const std::string FusMasqD   = "NuageFusion-Masq";
-
-   Tiff_Im::CreateFromIm(aEnvMax, NameFileGlobWithDir(FusMax));
-   Tiff_Im::CreateFromIm(aEnvMin, NameFileGlobWithDir(FusMin));
-   Tiff_Im::CreateFromFonc(NameFileGlobWithDir(FusEnvMasq),aMasqEnv.sz(),aMasqEnv.in(),GenIm::bits1_msbf);
 
 
-   FiltreMasqMultiResolMMI(aDepthMerg,aMasqMerge);
-   Tiff_Im::CreateFromIm(aDepthMerg,NameFileGlobWithDir(FusDepth));
-   Tiff_Im::CreateFromIm(aMasqMerge,NameFileGlobWithDir(FusMasqD));
-
-
-   
-   std::string aNameXMLIn =  mDirMerge + "NuageImProf_LeChantier_Etape_1.xml";
-
+   std::string aNameXMLIn =  mDirMergeCurIm + "NuageImProf_LeChantier_Etape_1.xml";
    cXML_ParamNuage3DMaille aXMLParam = StdGetFromSI(aNameXMLIn,XML_ParamNuage3DMaille);
+   aXMLParam.Image_Profondeur().Val().Correl().SetNoInit();
    cImage_Profondeur & anIp = aXMLParam.Image_Profondeur().Val();
    anIp.Correl().SetNoInit();
-   anIp.Masq() = NameFileGlob(FusEnvMasq);
-
-   std::string aNameNuageEnvMax =  NameFileGlobWithDir(FusMax,"xml");
-   std::string aNameNuageEnvMin =  NameFileGlobWithDir(FusMin,"xml");
-   std::string aNameNuageProf =    NameFileGlobWithDir(FusDepth,"xml");
-
-   anIp.Image() = NameFileGlob(FusMax);
-   MakeFileXML(aXMLParam,aNameNuageEnvMax);
-   anIp.Image() = NameFileGlob(FusMin);
-   MakeFileXML(aXMLParam,aNameNuageEnvMin);
 
 
-   anIp.Masq() = NameFileGlob(FusMasqD);
-   anIp.Image() = NameFileGlob(FusDepth);
-   MakeFileXML(aXMLParam,aNameNuageProf);
-   if (mDoPly)
-      MakePly(aNameNuageProf);
+   SaveResultR1(aXMLParam,eTMIN_Max,aEnvMax,aMasqEnv);
+   SaveResultR1(aXMLParam,eTMIN_Min,aEnvMin,aMasqEnv);
 
-   if (mScaleNuage!=1.0)
+   FiltreMasqMultiResolMMI(aDepthMerg,aMasqMerge);
+   SaveResultR1(aXMLParam,eTMIN_Depth,aDepthMerg,aMasqMerge);
+
+   // A revoir mais pour l'instant si non Glob ca se marche sur le pied
+   if ((mScaleNuage!=1.0) && mGlob)
    {
-      DownScaleNuage(aNameNuageEnvMax,false);
-      DownScaleNuage(aNameNuageEnvMin,false);
-      DownScaleNuage(aNameNuageProf,true);
+      DownScaleNuage(eTMIN_Max);
+      DownScaleNuage(eTMIN_Min);
+      DownScaleNuage(eTMIN_Depth);
    }
 
-
-   std::string aDirExp = Dir()+TheRaffineQuickMac(mNameIm);
-   ELISE_fp::MkDirSvp(aDirExp);
-   ELISE_fp::CpFile
-   (
-        mDirMerge + "Z_Num1_DeZoom" + ToString(mZoomEnd) + "_LeChantier.xml",
-        aDirExp + "MasqTerrain.xml"
-   );
 
    
    if (mAutoPurge)
    {
-       ELISE_fp::PurgeDir(Dir()+mDirMatch,true);
-       ELISE_fp::PurgeDir(Dir()+mDirMerge,true);
+
+       std::string aDirMatch  = Dir() + "Masq-TieP-" + mNameIm  + "/";
+       ELISE_fp::PurgeDir(Dir()+aDirMatch,true);
+       if (mGlob)
+       {
+           ELISE_fp::PurgeDir(Dir()+mDirMergeCurIm,true);
+       }
+       else
+       {
+           std::string aVS[TheNbPref] ={"EnvMax","EnvMin","EnvMasq","Depth","Masq"};
+
+           for (int aZoom = mZoom0 ; aZoom >= mZoomEnd ; aZoom /= 2)
+           {
+              for (int aK=0 ; aK<5 ; aK++)
+              {
+                   ELISE_fp::RmFile(Dir()+NameFileCurIm(aVS[aK],aZoom));
+              }
+           }
+       }
    }
 }
 
@@ -373,13 +743,17 @@ void  cAppli_Enveloppe_Main::MakePly(const std::string & aNN)
     System(aCom);
 }
 
-void cAppli_Enveloppe_Main::DownScaleNuage(const std::string & aNN,bool IsProf)
+void cAppli_Enveloppe_Main::DownScaleNuage(eTypeMMByImNM aType)
 {
    
-    std::string aCom =  MM3dBinFile("ScaleNuage") + "  " + aNN  + " DownScale_" + StdPrefix(NameWithoutDir(aNN)) + " " + ToString(mScaleNuage);
+    std::string aCom =     MM3dBinFile("ScaleNuage") 
+                        + " " + mMMINS1->NameFileXml(aType,mNameIm)  
+                        + " " + mMMIN->NameFileEntete(aType,mNameIm)
+                        + " " + ToString(mScaleNuage)
+                        + " InDirLoc=false"
+                      ;
+
     System(aCom);
-    if (mDoPlyDS && IsProf)
-       MakePly(DirOfFile(aNN)+ "DownScale_" + NameWithoutDir(aNN) );
 }
 
 int MMEnveloppe_Main(int argc,char ** argv)
@@ -408,6 +782,7 @@ int MMInitialModel_main(int argc,char ** argv)
     bool aDo2Z = true;
     double aReducePly=3.0;
     std::string aMasq3D;
+    bool aDoPyram= true;
 
 
     ElInitArgMain
@@ -424,6 +799,7 @@ int MMInitialModel_main(int argc,char ** argv)
                     << EAM(DoMatch,"DoMatch",true,"Do \"classical\" MicMac at end (Def=true)", eSAM_IsBool)
                     << EAM(aMasq3D,"Masq3D",true,"3D masq when exist (Def=true)", eSAM_IsBool)
                     << EAM(ExportEnv,"ExportEnv",true,"Export Max Min surfaces (Def=false)", eSAM_IsBool)
+                    << EAM(aDoPyram,"DoPyram",true,"Do Pyram (set false when //izing)  ", eSAM_IsBool)
     );
 
     #if (ELISE_windows)
@@ -438,6 +814,7 @@ int MMInitialModel_main(int argc,char ** argv)
        ImSec = AeroIn;
 
     // Genere les pryramides pour que le paral ne s'ecrase pas les 1 les autres
+    if (aDoPyram)
     {
          std::string aComPyr =  MM3dBinFile("MMPyram")
                                 + QUOTE(aFullDir) + " "

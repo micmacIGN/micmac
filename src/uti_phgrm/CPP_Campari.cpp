@@ -101,6 +101,10 @@ int Campari_main(int argc,char ** argv)
 
     Pt3dr aGpsLA;
 
+    int aDegAdd = 0;
+    int aDegFree = 0;
+    int aDrMax = 0;
+
     ElInitArgMain
     (
     argc,argv,
@@ -109,7 +113,7 @@ int Campari_main(int argc,char ** argv)
                     << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
     LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]", eSAM_NoInit)
                     << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc, ?GpsAlti?], GpsAlti if != Plani", eSAM_NoInit)
-                    << EAM(aGpsLA,"GpsLa",true,"Gps Lever Arm, in combinaision  with EmGPS", eSAM_NoInit)
+                    << EAM(aGpsLA,"GpsLa",true,"Gps Lever Arm, in combination with EmGPS", eSAM_NoInit)
                     << EAM(aSigmaTieP,"SigmaTieP", true, "Sigma use for TieP weighting (Def=1)")
                     << EAM(aFactResElimTieP,"FactElimTieP", true, "Fact elimination of tie point (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
@@ -121,7 +125,10 @@ int Campari_main(int argc,char ** argv)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity in Levenberg-Marquardt like resolution (Def=1.0)")
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
-                    << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoir tricky pat")
+                    << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
+                    << EAM(aDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
+                    << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters generiqs")
+                    << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
 
     );
 
@@ -165,7 +172,7 @@ int Campari_main(int argc,char ** argv)
         if (ExpTxt) aCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
         if (EAMIsInit(&aFactResElimTieP))
-           aCom =  " +FactMaxRes=" + ToString(aFactResElimTieP);
+           aCom =  aCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);
 
 
        if (EAMIsInit(&Viscos)) aCom  +=  " +Viscos=" + ToString(Viscos) + " ";
@@ -187,6 +194,9 @@ int Campari_main(int argc,char ** argv)
                    + std::string("+GrIncGr=") + ToString(aGcpGrU) + " "
                    + std::string("+GrIncIm=") + ToString(aGcpImU) + " ";
         }
+        if (aDegAdd>0)  aCom = aCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(aDegAdd);
+        if (aDegFree>0)  aCom = aCom + " +DegGen=" +  ToString(aDegFree);
+        if (aDrMax>0)   aCom = aCom + " +DRMax=" +  ToString(aDrMax);
 
         if (EAMIsInit(&EmGPS))
         {
@@ -194,7 +204,7 @@ int Campari_main(int argc,char ** argv)
             StdCorrecNameOrient(EmGPS[0],aDir);
             double aGpsU = RequireFromString<double>(EmGPS[1],"GCP-Ground uncertainty");
             double aGpsAlti = aGpsU;
-            if (EmGPS.size()>=3) 
+            if (EmGPS.size()>=3)
                aGpsAlti = RequireFromString<double>(EmGPS[2],"GCP-Ground Alti uncertainty");
             aCom = aCom +  " +BDDC=" + EmGPS[0]
                         +  " +SigmGPS=" + ToString(aGpsU)
@@ -203,9 +213,9 @@ int Campari_main(int argc,char ** argv)
 
             if (EAMIsInit(&aGpsLA))
             {
-                aCom = aCom + " +WithLA=true +LaX="  + ToString(aGpsLA.x) 
-                                         + " +LaY=" + ToString(aGpsLA.y) 
-                                         + " +LaZ=" + ToString(aGpsLA.z) 
+                aCom = aCom + " +WithLA=true +LaX="  + ToString(aGpsLA.x)
+                                         + " +LaY=" + ToString(aGpsLA.y)
+                                         + " +LaZ=" + ToString(aGpsLA.z)
                                          + " ";
             }
         }
@@ -226,6 +236,40 @@ int Campari_main(int argc,char ** argv)
 }
 
 
+int AperoProg_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+
+    std::string aFullDir= "";
+    std::string AeroIn= "";
+    std::string AeroOut="";
+
+
+    /*double aSigmaTieP = 1;
+    double aFactResElimTieP = 5;
+    double Viscos = 1.0;
+    bool ExpTxt = false;*/
+
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
+                     << EAMC(AeroIn,"Input Orientation", eSAM_IsExistDirOri)
+                     << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
+         LArgMain()
+    );
+    if (!MMVisualMode)
+    {
+        std::string aDir,aPat;
+    #if (ELISE_windows)
+         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    #endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
+        StdCorrecNameOrient(AeroIn,aDir);
+    }
+
+    return EXIT_SUCCESS;
+}
 
 
 

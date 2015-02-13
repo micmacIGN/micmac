@@ -105,6 +105,7 @@ class cAppliMalt
           bool        mRepIsAnam;
           std::string mCom;
           std::string mComOA;
+          std::string mComTaramaOA;
           std::string mDirTA;
           bool        mPurge;
           bool        mMkFPC;
@@ -150,8 +151,14 @@ int cAppliMalt::Exe()
 {
     if (! mExe) return 0;
     int aRes = TopSystem(mCom.c_str());
+    if ((aRes==0) && ( mComTaramaOA !=""))
+    {
+        aRes = TopSystem(mComTaramaOA.c_str());
+    }
     if ((aRes==0) && ( mComOA !=""))
+    {
         aRes = TopSystem(mComOA.c_str());
+    }
     if (!MMVisualMode) ShowParam();
     return aRes;
 }
@@ -254,6 +261,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::string mModeOri;
 
     int aNbProc = NbProcSys();
+    double mPenalSelImBestNadir = -1;
+
+    bool ForceNoIncid = false;
 
 
     ElInitArgMain
@@ -311,10 +321,13 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                     << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq", eSAM_IsExistFile)
                     << EAM(aNbProc,"NbProc",true,"Nb Proc Used")
+                    << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)")
+                    << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use")
                 );
 
     if (!MMVisualMode)
     {
+      bool DoIncid = false;
 #if CUDA_ENABLED == 0
       ELISE_ASSERT(!mUseGpu , "NO CUDA VERSION");
 #endif
@@ -460,9 +473,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
       bool IsOrthoXCSte = false;
+      bool IsAnamXCsteOfCart = false;
       if (mType!=eGeomImage)
       {
-          mRepIsAnam =   (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte);
+          mRepIsAnam =   (mRep!="") && RepereIsAnam(mDir+mRep,IsOrthoXCSte,IsAnamXCsteOfCart);
       }
       mUnAnam = mUnAnam && IsOrthoXCSte;
 
@@ -522,7 +536,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aFileMM = "MM-Malt.xml";
 
-      if (0) // (MPD_MM())
+      if (0) 
       {
           std::cout << "TTTTESSTTTTTT  MALT  !!!!!!!!\n";//   getchar();
           aFileMM = "Test-MM-Malt.xml";
@@ -548,7 +562,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               +  std::string(" +ZoomFinal=") + ToString(mZoomFinal)
               +  std::string(" +Ori=") + mOri
               +  std::string(" +ResolRelOrhto=") + ToString(1/(mResolOrtho*mZoomFinal))
-              +  std::string(" +DirTA=") + mDirTA
+              //   ==    +  std::string(" +DirTA=") + mDirTA
               +  std::string(" +NbProc=") + ToString(aNbProc)
               ;
 
@@ -560,6 +574,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       mCom =              MM3dBinFile_quotes("MICMAC")
               +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )
               + anArgCommuns
+              +  std::string(" +DirTA=") + mDirTA
 
               /*
                               +  std::string(" +DirTA=") + mDirTA
@@ -671,8 +686,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
              }
              else
              {
+                 DoIncid = true;
                  mCom =    mCom
-                         +  std::string(" +DoAnam=true +DoIncid=true ")
+                         +  std::string(" +DoAnam=true ")
                          +  std::string(" +ParamAnam=") + mRep;
              }
          }
@@ -767,7 +783,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
       if (EAMIsInit(&mIncidMax))
-          mCom   =  mCom + " +DoIncid=true +IncidMax=" + ToString(mIncidMax);
+      {
+          DoIncid = true;
+          mCom   =  mCom + " +IncidMax=" + ToString(mIncidMax);
+      }
 
       if (mEquiv.size() != 0)
       {
@@ -782,6 +801,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           if (mEquiv.size()>3)
               ELISE_ASSERT(false,"too many equiv class for Malt, use MicMac");
       }
+      if (mPenalSelImBestNadir>0)
+      {
+         mCom   =  mCom + " +DoIncid=true +DoMaskNadir=true ";
+      }
+
+      if (DoIncid && (!ForceNoIncid))  
+      {
+         mCom   =  mCom + " +DoIncid=true ";
+      }
 
       std::cout << mCom << "\n";
       // cInZRegulterfChantierNameManipulateur * aCINM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -794,16 +822,28 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
           mComOA =  MMDir() +"bin"+ELISE_CAR_DIR+"MICMAC "
                   + MMDir() +"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+aFileOAM // MM-Malt.xml
-                  + anArgCommuns;
+                  + anArgCommuns
+                  +  std::string(" +DirTA=TA-UnAnam") ;
 
           mComOA =        mComOA
                   +  std::string(" +Repere=") + mRep
                   +  std::string(" +DirOrthoF=") +  "Ortho-UnAnam-" + mDirMEC
                   ;
+          if (! IsAnamXCsteOfCart) mComOA = mComOA + " +UseRepere=false +UseAnam=true ";
 
           if (mImMNT !="") mComOA   =  mComOA + std::string(" +ImMNT=")   + mImMNT;
           if (mImOrtho !="") mComOA =  mComOA + std::string(" +ImOrtho=") + mImOrtho;
           std::cout << "\n\n" << mComOA << "\n";
+
+           mComTaramaOA =     MMBinFile("Tarama") + " " 
+                           +  QUOTE(mFullName)           + " "
+                           +  mOri                + " "
+                           + std::string(" Zoom=16 ")
+                           + std::string(" Out=TA-UnAnam ")
+                           + " Repere=" + mRep
+                           + std::string(" UnUseAXC=true");
+
+// std::cout << "GEETTCHAR\n"; getchar();
       }
   }
 }

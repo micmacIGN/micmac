@@ -44,24 +44,6 @@ void  BinaryUnDumpFromFile(eModeBoxFusion &,ELISE_fp &);
 
 typedef enum
 {
-  eMMC_Envlop,
-  eMMC_Epi
-} eModeMergeCloud;
-void xml_init(eModeMergeCloud & aVal,cElXMLTree * aTree);
-std::string  eToString(const eModeMergeCloud & aVal);
-
-eModeMergeCloud  Str2eModeMergeCloud(const std::string & aName);
-
-cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeMergeCloud & anObj);
-
-void  BinaryDumpInFile(ELISE_fp &,const eModeMergeCloud &);
-
-std::string  Mangling( eModeMergeCloud *);
-
-void  BinaryUnDumpFromFile(eModeMergeCloud &,ELISE_fp &);
-
-typedef enum
-{
   eQC_Out,
   eQC_ZeroCohBrd,
   eQC_ZeroCoh,
@@ -1661,6 +1643,34 @@ std::string  Mangling( cXmlCylindreRevolution *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlToreRevol
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlToreRevol & anObj,cElXMLTree * aTree);
+
+
+        cXmlCylindreRevolution & Cyl();
+        const cXmlCylindreRevolution & Cyl()const ;
+
+        Pt3dr & POriTore();
+        const Pt3dr & POriTore()const ;
+    private:
+        cXmlCylindreRevolution mCyl;
+        Pt3dr mPOriTore;
+};
+cElXMLTree * ToXMLTree(const cXmlToreRevol &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlToreRevol &);
+
+void  BinaryUnDumpFromFile(cXmlToreRevol &,ELISE_fp &);
+
+std::string  Mangling( cXmlToreRevol *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXmlOrthoCyl
 {
     public:
@@ -1710,9 +1720,13 @@ class cXmlDescriptionAnalytique
 
         cTplValGesInit< cXmlOrthoCyl > & OrthoCyl();
         const cTplValGesInit< cXmlOrthoCyl > & OrthoCyl()const ;
+
+        cTplValGesInit< cXmlToreRevol > & Tore();
+        const cTplValGesInit< cXmlToreRevol > & Tore()const ;
     private:
         cTplValGesInit< cXmlCylindreRevolution > mCyl;
         cTplValGesInit< cXmlOrthoCyl > mOrthoCyl;
+        cTplValGesInit< cXmlToreRevol > mTore;
 };
 cElXMLTree * ToXMLTree(const cXmlDescriptionAnalytique &);
 
@@ -4716,12 +4730,20 @@ class cSectionName
         std::string & KeyResult();
         const std::string & KeyResult()const ;
 
+        cTplValGesInit< bool > & KeyResultIsLoc();
+        const cTplValGesInit< bool > & KeyResultIsLoc()const ;
+
         cTplValGesInit< std::string > & ModeleNuageResult();
         const cTplValGesInit< std::string > & ModeleNuageResult()const ;
+
+        cTplValGesInit< std::string > & KeyNuage2Im();
+        const cTplValGesInit< std::string > & KeyNuage2Im()const ;
     private:
         std::string mKeyNuage;
         std::string mKeyResult;
+        cTplValGesInit< bool > mKeyResultIsLoc;
         cTplValGesInit< std::string > mModeleNuageResult;
+        cTplValGesInit< std::string > mKeyNuage2Im;
 };
 cElXMLTree * ToXMLTree(const cSectionName &);
 
@@ -4983,6 +5005,9 @@ class cParamAlgoFusionMNT
         double & FMNTGammaCorrel();
         const double & FMNTGammaCorrel()const ;
 
+        cTplValGesInit< std::string > & KeyPdsNuage();
+        const cTplValGesInit< std::string > & KeyPdsNuage()const ;
+
         double & SigmaPds();
         const double & SigmaPds()const ;
 
@@ -5036,6 +5061,7 @@ class cParamAlgoFusionMNT
     private:
         double mFMNTSeuilCorrel;
         double mFMNTGammaCorrel;
+        cTplValGesInit< std::string > mKeyPdsNuage;
         cSpecAlgoFMNT mSpecAlgoFMNT;
 };
 cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT &);
@@ -5122,8 +5148,14 @@ class cParamFusionMNT
         std::string & KeyResult();
         const std::string & KeyResult()const ;
 
+        cTplValGesInit< bool > & KeyResultIsLoc();
+        const cTplValGesInit< bool > & KeyResultIsLoc()const ;
+
         cTplValGesInit< std::string > & ModeleNuageResult();
         const cTplValGesInit< std::string > & ModeleNuageResult()const ;
+
+        cTplValGesInit< std::string > & KeyNuage2Im();
+        const cTplValGesInit< std::string > & KeyNuage2Im()const ;
 
         cSectionName & SectionName();
         const cSectionName & SectionName()const ;
@@ -5160,6 +5192,9 @@ class cParamFusionMNT
 
         double & FMNTGammaCorrel();
         const double & FMNTGammaCorrel()const ;
+
+        cTplValGesInit< std::string > & KeyPdsNuage();
+        const cTplValGesInit< std::string > & KeyPdsNuage()const ;
 
         double & SigmaPds();
         const double & SigmaPds()const ;
@@ -5458,8 +5493,8 @@ class cParamFusionNuage
         friend void xml_init(cParamFusionNuage & anObj,cElXMLTree * aTree);
 
 
-        eModeMergeCloud & ModeMerge();
-        const eModeMergeCloud & ModeMerge()const ;
+        eTypeMMByP & ModeMerge();
+        const eTypeMMByP & ModeMerge()const ;
 
         cTplValGesInit< Pt2di > & SzVisu();
         const cTplValGesInit< Pt2di > & SzVisu()const ;
@@ -5548,7 +5583,7 @@ class cParamFusionNuage
         cPFM_Selection & PFM_Selection();
         const cPFM_Selection & PFM_Selection()const ;
     private:
-        eModeMergeCloud mModeMerge;
+        eTypeMMByP mModeMerge;
         cPFNMiseAuPoint mPFNMiseAuPoint;
         cGrapheRecouvrt mGrapheRecouvrt;
         cImageVariations mImageVariations;
@@ -5637,6 +5672,134 @@ void  BinaryDumpInFile(ELISE_fp &,const cChantierAppliWithSetImage &);
 void  BinaryUnDumpFromFile(cChantierAppliWithSetImage &,ELISE_fp &);
 
 std::string  Mangling( cChantierAppliWithSetImage *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cOneZonzATB
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOneZonzATB & anObj,cElXMLTree * aTree);
+
+
+        Box2di & BoxGlob();
+        const Box2di & BoxGlob()const ;
+
+        Box2di & BoxMasq();
+        const Box2di & BoxMasq()const ;
+
+        Pt2di & GermGlob();
+        const Pt2di & GermGlob()const ;
+
+        Pt2di & GermMasq();
+        const Pt2di & GermMasq()const ;
+
+        int & NbGlob();
+        const int & NbGlob()const ;
+
+        int & NbMasq();
+        const int & NbMasq()const ;
+
+        int & Num();
+        const int & Num()const ;
+
+        bool & Valide();
+        const bool & Valide()const ;
+    private:
+        Box2di mBoxGlob;
+        Box2di mBoxMasq;
+        Pt2di mGermGlob;
+        Pt2di mGermMasq;
+        int mNbGlob;
+        int mNbMasq;
+        int mNum;
+        bool mValide;
+};
+cElXMLTree * ToXMLTree(const cOneZonzATB &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOneZonzATB &);
+
+void  BinaryUnDumpFromFile(cOneZonzATB &,ELISE_fp &);
+
+std::string  Mangling( cOneZonzATB *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cAnaTopoBascule
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cAnaTopoBascule & anObj,cElXMLTree * aTree);
+
+
+        std::list< cOneZonzATB > & OneZonzATB();
+        const std::list< cOneZonzATB > & OneZonzATB()const ;
+    private:
+        std::list< cOneZonzATB > mOneZonzATB;
+};
+cElXMLTree * ToXMLTree(const cAnaTopoBascule &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAnaTopoBascule &);
+
+void  BinaryUnDumpFromFile(cAnaTopoBascule &,ELISE_fp &);
+
+std::string  Mangling( cAnaTopoBascule *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cOneZonXmlAMTB
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOneZonXmlAMTB & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameXml();
+        const std::string & NameXml()const ;
+    private:
+        std::string mNameXml;
+};
+cElXMLTree * ToXMLTree(const cOneZonXmlAMTB &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOneZonXmlAMTB &);
+
+void  BinaryUnDumpFromFile(cOneZonXmlAMTB &,ELISE_fp &);
+
+std::string  Mangling( cOneZonXmlAMTB *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cAnaTopoXmlBascule
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cAnaTopoXmlBascule & anObj,cElXMLTree * aTree);
+
+
+        bool & ResFromAnaTopo();
+        const bool & ResFromAnaTopo()const ;
+
+        std::list< cOneZonXmlAMTB > & OneZonXmlAMTB();
+        const std::list< cOneZonXmlAMTB > & OneZonXmlAMTB()const ;
+    private:
+        bool mResFromAnaTopo;
+        std::list< cOneZonXmlAMTB > mOneZonXmlAMTB;
+};
+cElXMLTree * ToXMLTree(const cAnaTopoXmlBascule &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cAnaTopoXmlBascule &);
+
+void  BinaryUnDumpFromFile(cAnaTopoXmlBascule &,ELISE_fp &);
+
+std::string  Mangling( cAnaTopoXmlBascule *);
 
 /******************************************************/
 /******************************************************/

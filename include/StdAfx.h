@@ -20,6 +20,9 @@
 template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }
 
 
+// touch -t 01040000 toto
+//  janv.  4 00:00 toto ....
+
 #include <memory>
 #include <cctype>
 #include <algorithm>
@@ -318,7 +321,6 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
     #include <Psapi.h>
     #include <process.h>
 #endif // _WIN32
-#include "../CodeExterne/Poisson/include/PlyFile.h"
 
 #ifndef INT
     #define INT int

@@ -16,6 +16,9 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/ma
             <Symb> NbFx=1 </Symb>
             <Symb> NbFy=1 </Symb>
             <Symb> ForceGray=true </Symb>
+            <Symb> Mode=0 </Symb>
+            <eSymb> ModeLine= Eq ${Mode} 0 </eSymb>
+            <eSymb> ModeCyl= Eq ${Mode} 1 </eSymb>
         </DicoLoc>
 
         <SectionWindows>
@@ -32,11 +35,22 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/ma
 
               <ExportPointeImage>   ${Sauv}   </ExportPointeImage>
 
-              <FixedName> Line1 </FixedName>
-              <FixedName> Line2 </FixedName>
-              <FixedName> Origine </FixedName>
-              <FixedName> Ech1 </FixedName>
-              <FixedName> Ech2 </FixedName>
+              <#WHEN VTEST=${ModeLine}>
+                   <FixedName> Line1 </FixedName>
+                   <FixedName> Line2 </FixedName>
+                   <FixedName> Origine </FixedName>
+                   <FixedName> Ech1 </FixedName>
+                   <FixedName> Ech2 </FixedName>
+              </#WHEN>
+              <#WHEN VTEST=${ModeCyl}>
+                   <FixedName> Top </FixedName>
+                   <FixedName> Bottom </FixedName>
+                   <FixedName> Left </FixedName>
+                   <FixedName> Right </FixedName>
+              </#WHEN>
+
+
+
         </SectionInOut>
 
         <SectionImages>
