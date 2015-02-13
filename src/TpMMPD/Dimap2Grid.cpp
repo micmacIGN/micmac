@@ -399,6 +399,7 @@ home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:51: erreur: ¿begin¿ is not
 
 J'imagine qu'il faut remplacer  :
 
+
    std::begin(PtsCartox)   par PtsCartox.begin()
 
 Mais je prefere que ce soit l'auteur du code qui valide ce changement.
