@@ -319,6 +319,21 @@ bool cRandNParmiQ::GetNext()
 }
 
 
+std::vector<int> RandPermut(int aN)
+{
+    std::vector<Pt2dr> aV;
+    for (int aK=0 ; aK<aN ; aK++)
+       aV.push_back(Pt2dr(NRrandom3(),aK));
+
+   std::sort(aV.begin(),aV.end());
+   std::vector<int> aRes;
+   for (int aK=0 ; aK<aN ; aK++)
+       aRes.push_back(round_ni(aV[aK].y));
+
+  return aRes;
+}
+
+
 /*
 class ElTimer
 {
