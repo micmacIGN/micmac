@@ -180,12 +180,16 @@ class cCdtCombTiep
     public :
         typedef cFixedMergeTieP<2,Pt2dr> tMerge;
         cCdtCombTiep(tMerge * aM) ;
+        Pt3dr NormQ1Q2();
 
         tMerge * mMerge;
         Pt2dr    mP1;
         double   mDMin;
         bool     mTaken;
         double   mPdsOccup;
+        Pt3dr    mQ1;
+        Pt3dr    mQ2;
+        Pt3dr    mQ2Init;
 };
 
 
@@ -196,6 +200,7 @@ class cNewO_CombineCple
          cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  & aM);
 
     private :
+          double CostOneArc(const Pt2di &);
           Pt2dr ToW(const Pt2dr &) const;
           void SetCurRot(const Pt3di & aP);
 
@@ -211,10 +216,12 @@ class cNewO_CombineCple
           ElMatrix<double>  mCurRot;
           Pt3di             mCurInd;
           Pt3dr             mCurTeta;
+          Pt3dr             mCurBase;
 
           std::map<int,double>     mMapCost;
           std::vector<cCdtCombTiep> mVAllCdt;
           std::vector<cCdtCombTiep*> mVCdtSel;
+          std::list<Pt2di>         mLArcs;
 
           Video_Win *                mW;
           double                     mScaleW;

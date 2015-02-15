@@ -39,6 +39,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+/*
+            ===  14/02/2015 =============
+
+
+J'abandonne, au moins provisoirement, la "voie" Oribundle car il faut pousser tres loin
+le nombe de test en teta, sinon on manque souvent les solutions. Du coup c'est cher
+en temps de calcul.
+
+
+*/
 
 /*
     Resoud l'equation :
@@ -51,6 +61,7 @@ class cOFB_Sol1S1T // One signe, One teta
     public :
        bool SameSigne(const cOFB_Sol1S1T & aS2) {return (mScal<0) == (aS2.mScal<0);}
        cOFB_Sol1S1T Pond(const cOFB_Sol1S1T&) const;
+       void Show(const std::string & aMes);
        int      mSign;
        double   mScal;
        Pt3dr    mV1;
@@ -58,6 +69,11 @@ class cOFB_Sol1S1T // One signe, One teta
        Pt3dr    mV3;
 };
 
+
+void cOFB_Sol1S1T::Show(const std::string & aMes)
+{
+    std::cout << aMes << "Sc " << mScal << " V " << mV1 << mV2 << mV3 << "\n";
+}
 
 cOFB_Sol1S1T cOFB_Sol1S1T::Pond(const cOFB_Sol1S1T& aS2) const
 {
@@ -213,14 +229,24 @@ void cOriFromBundle::AnalyseSol(const ElMatrix<double> & aMat,const Pt3dr & aPA,
      ElSeg3D aSB(mBase,mBase+aBRor);
 
      Pt3dr anI = aSA.PseudoInter(aSB);
+
+     double aAbsA = aSA.AbscOfProj(anI);
+     double aAbsB = aSB.AbscOfProj(anI);
   
-     std::cout << "DIST INT " << aSA.DistDoite(anI) << " " << aSB.DistDoite(anI) << "\n";
+     std::cout << " "
+               <<  ((aAbsA >0) ? "+ " : "- ")  
+               <<  ((aAbsB >0) ? "+ " : "- ")  
+               << " Z  " << aPA.z << " " << aBRor.z  << " " << anI.z << "\n";
 }
 void cOriFromBundle::AnalyseSol(const ElMatrix<double> & aMat) const
 {
      AnalyseSol(aMat,mDir1A,mDir1B);
      AnalyseSol(aMat,mDir2A,mDir2B);
      AnalyseSol(aMat,mDir3A,mDir3B);
+
+     ElRotation3D aR(Pt3dr(0,0,0),aMat,true);
+
+     std::cout << "TETA " << aR.teta01() << " " << aR.teta02() <<  " " << aR.teta12() << "\n\n";
 }
 
 
@@ -232,7 +258,28 @@ ElMatrix<double> cOriFromBundle::CalculRot(const cOFB_Sol1S1T & aSol,bool Show)
 
     ElMatrix<double>  aMatB =     MatFromCol(mDir1B,mDir2B,mDir3B);
     ElMatrix<double> aMatBinA =   MatFromCol(aSol.mV1,aSol.mV2,aSol.mV3);
-    ElMatrix<double> aR = NearestRotation(aMatBinA * gaussj(aMatB)) ;
+    ElMatrix<double> aMat = aMatBinA * gaussj(aMatB);
+
+// std::cout << mDir1B << mDir2B << mDir3B << "\n";
+// std::cout << aSol.mV1 << aSol.mV2 << aSol.mV3 << "\n";
+// std::cout << "xxxxxxxxxxxx\n";
+/*
+    for (int anY=0 ; anY<3 ; anY++)
+    {
+        for (int anX=0 ; anX<3 ; anX++)
+        {
+            std::cout << aMat(anX,anY) << " ";
+        }
+        std::cout << "\n";
+    }
+*/
+// getchar();
+
+
+
+
+    ElMatrix<double> aR = NearestRotation(aMat);
+// std::cout << "yyyyyyyyyyyyyy\n";
 
 
     if (Show)
@@ -245,8 +292,6 @@ ElMatrix<double> cOriFromBundle::CalculRot(const cOFB_Sol1S1T & aSol,bool Show)
     }
     
     return aR;
-
-
 }
 
 
@@ -254,6 +299,10 @@ ElMatrix<double> cOriFromBundle::CalculRot(const cOFB_Sol1S1T & aSol,bool Show)
 
 void  cOriFromBundle::TestTeta(double aT1,int aSign0,int aSign1)
 {
+static int aCpt =0 ; aCpt++;
+// std::cout << "Test Teta " << aCpt << " " << mVSols.size() << "\n";
+bool Bug = false;// (aCpt==67);
+
     cOFB_Sol1T  aRes;
     aRes.mTeta = aT1;
     // L'image de  mDir1B par la rot est dans le plan |_ a mBase et mDir1A donc
@@ -272,11 +321,20 @@ void  cOriFromBundle::TestTeta(double aT1,int aSign0,int aSign1)
 
     double aNorm = sqrt(ElSquare(aC1) + ElSquare(aSP1));
     aRes.mNorm = aNorm;
-    if ((aNorm !=0) && (ElAbs(mSc12<=aNorm)) )
+if (Bug) 
+{
+    std::cout  << "N " << aNorm << " S " << mSc12 << " Rrr= " << aNorm/(ElAbs(mSc12)) -1  <<  "\n";
+}
+    if ((aNorm> 1e-15 ) && (ElAbs(mSc12)<=(aNorm*0.999999)) )
     {
          aRes.mOK = true;
          double aA3 = atan2(aSP1/aNorm,aC1/aNorm);
          double aTeta12 = acos(mSc12/aNorm);
+
+if (Bug) 
+{
+    std::cout  << "N " << aNorm << " S " << mSc12 << " T12 " << aTeta12 << " A " << aA3 << "\n";
+}
 
          //  V1.V2 /aNorm   = cos(T2-A3) =  Sc12/ Norm = cos(Teta12)    => T2 = A3 +/- Teta12
 
@@ -303,6 +361,7 @@ void  cOriFromBundle::TestTeta(double aT1,int aSign0,int aSign1)
                aRes.mSols[aK].mV2 = aV2;
                aRes.mSols[aK].mV3 = aV3;
 
+if (Bug) std::cout << "TTtttt " << aV1 << aV2 << aV3 << "\n";
 
          }
      }
@@ -348,13 +407,22 @@ void  cOriFromBundle::Solve(int aNbInit,int aDepthNonSol,int aDepthSol)
               if (ChngSgn)
               {
                    tPairOFBSol aPair = ExploreDichotChSgn(aK,aK+1,aDepthSol,aKSign);
-                   cOFB_Sol1S1T & aNew0 = mVSols[aPair.first].mSols[aKSign];
-                   cOFB_Sol1S1T & aNew1 = mVSols[aPair.second].mSols[aKSign];
-                   cOFB_Sol1S1T aPond = aNew0.Pond(aNew1);
-                   ElMatrix<double> aR = CalculRot(aPond,false);
-                   mListRots.push_back(aR);
+                   if (mVSols[aPair.first].mOK)
+                   {
+                       cOFB_Sol1S1T & aNew0 = mVSols[aPair.first].mSols[aKSign];
+                       cOFB_Sol1S1T & aNew1 = mVSols[aPair.second].mSols[aKSign];
+                       cOFB_Sol1S1T aPond = aNew0.Pond(aNew1);
+/*
+std::cout << "NUMMS " << aPair.first << " " << aPair.second << "\n";
+aNew0.Show("N0:");
+aNew1.Show("N1:");
+aPond.Show("Pd:");
+*/
+                        ElMatrix<double> aR = CalculRot(aPond,false);
+                        mListRots.push_back(aR);
 
-                   AnalyseSol(aR); getchar();
+                        AnalyseSol(aR);  
+                   }
               }
           }
        }
@@ -369,6 +437,14 @@ tPairOFBSol  cOriFromBundle::ExploreDichotChSgn(int aK0,int aK2,int aLevel,int a
     double aTetaMil = (mVSols[aK0].mTeta + mVSols[aK2].mTeta) / 2.0;
     TestTeta(aTetaMil,aKSign,aKSign+1);
     int aK1 = mVSols.size() -1 ;
+
+    if (! mVSols[aK1].mOK)
+    {
+           return tPairOFBSol(aK1,aK1);
+    }
+
+
+
     if (!mVSols[aK0].mSols[aKSign].SameSigne(mVSols[aK1].mSols[aKSign]))
        return ExploreDichotChSgn(aK0,aK1,aLevel-1,aKSign);
    
@@ -411,7 +487,7 @@ std::list<ElMatrix<double> >  OriFromBundle
 }
 
 
-Pt3dr P3dRand()
+static Pt3dr P3dRand()
 {
    return Pt3dr(NRrandom3(),NRrandom3(),NRrandom3());
 }
@@ -426,17 +502,58 @@ void TestOriBundleBasic()
    std::cout << aChrono.uval() << "\n";
 }
 
+static Pt3dr GrP3dRand(int aK,int aN)
+{
+   return Pt3dr::TyFromSpherique
+          (
+                10.0 + NRrandom3(),
+                ((aK*2*PI) + NRrandom3() *0.5 ) / aN,
+                0.5 + NRrandom3() * 0.1
+          );
+}
+
+
+static Pt3dr  PInBCoord(const Pt3dr & aBase,const ElMatrix<double> & aRot,const Pt3dr & aPA)
+{
+  // mDirOr1A (vunit(mBase^mDir1A)),
+    Pt3dr aRes =  aRot.transpose() * (aBase+aPA);
+
+     std::cout << "PInBCoord " << scal(aBase^aPA,aRot*aRes) << "\n";
+    return aRes;
+}
+
+
+// Test "realiste" 
 
 void TestOriBundle()
 {
+  
       for (int aT=0 ; aT<10000 ; aT++)
       {
+             Pt3dr aPA1 = GrP3dRand(0,3);
+             Pt3dr aPA2 = GrP3dRand(1,3);
+             Pt3dr aPA3 = GrP3dRand(2,3);
 
+             Pt3dr aBase = Pt3dr(0,-1,0) + P3dRand() * 0.1;
+             double aT12 = 0.1*NRrandom3();
+             double aT13 = 0.1*NRrandom3();
+             double aT23 = 0.1*NRrandom3();
+             ElMatrix<double> aRot =  ElMatrix<double>::Rotation(aT12,aT13,aT23);
+
+
+             std::cout << "TETAIN " << aT12 << " " << aT13 << " " << aT23 << "\n\n";
+
+             Pt3dr aPB1 = PInBCoord(aBase,aRot,aPA1);
+             Pt3dr aPB2 = PInBCoord(aBase,aRot,aPA2);
+             Pt3dr aPB3 = PInBCoord(aBase,aRot,aPA3);
+
+              
 /*
           Pt3dr aP1 =  Pt3dr(NRrandom3(),NRrandom3(),10+NRrandom3());
           Pt3dr aP1 =  Pt3dr(NRrandom3(),NRrandom3(),10+NRrandom3());
-          std::list<ElMatrix<double> > aLR = OriFromBundle(P3dRand(),P3dRand(),P3dRand(),P3dRand(),P3dRand(),P3dRand(),P3dRand(),30,5,5);
 */
+            std::list<ElMatrix<double> > aLR = OriFromBundle(aBase,aPA1,aPA2,aPA3,aPB1,aPB2,aPB3,30000,10,10);
+            std::cout << "================== " << aT << "\n"; getchar();
       }
 }
 
