@@ -371,7 +371,7 @@ void  cEngine::loadImage(QString imgName,float scaleFactor )
 void cEngine::reloadMask(int appMode, int aK)
 {
     if (aK < _Data->getNbImages())
-        _Loader->loadMask(getFilenamesOut()[aK], _Data->getMaskedImage(aK));
+        _Loader->loadMask(getFilenamesOut()[aK], _Data->getMaskedImage(aK), _Data->getMaskedImage(aK)->_loadedImageRescaleFactor);
 
     reallocAndSetGLData(appMode, *_params, aK);
 }
