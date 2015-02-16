@@ -156,7 +156,7 @@ class cTriangle
 
         REAL	computeEnergy(int img_idx);
 
-        int     getEdgesNumber() { return mTriEdges.size(); }
+        size_t     getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>   getEdgesIndex() { return mTriEdges; }
         vector <cTriangle*> getNeighbours();
