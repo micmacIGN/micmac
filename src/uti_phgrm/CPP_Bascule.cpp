@@ -325,6 +325,59 @@ int BasculePtsInRepCam_main(int argc,char ** argv)
 }
 
 
+//  =============================================
+
+
+class cAppliBasculeCamsInRepCam_main : public cAppliWithSetImage
+{
+    public :
+          cAppliBasculeCamsInRepCam_main(int argc,char ** argv);
+    private :
+         std::string mOriFull;
+         std::string mCamC;
+         std::string mOriOut;
+};
+
+cAppliBasculeCamsInRepCam_main::cAppliBasculeCamsInRepCam_main(int argc,char ** argv) :
+    cAppliWithSetImage(argc-1,argv+1,0)
+{
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)",eSAM_IsPatFile)
+                    << EAMC(mOriFull,"Orientation", eSAM_IsExistDirOri)
+                    << EAMC(mCamC,"Central camera")
+                    << EAMC(mOriOut,"Output"),
+        LArgMain()
+   );
+
+   tSomAWSI * aS0 = mDicIm[mCamC];
+   // CamStenope * aCS0 = aS0->attr().mIma.mCam;  /// MtoC0
+   ElRotation3D anOri0 = aS0->attr().mIma->mCam->Orient();
+   ELISE_ASSERT(aS0!=0,"cAppliBasculeCamsInRepCam_main No CamC");
+
+   std::string aKey = "NKS-Assoc-Im2Orient@-" + mOriOut;
+
+   // MtoC * MtoC0  
+   for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+   {
+       CamStenope * aCS = mVSoms[aK]->attr().mIma->mCam;  // MtoC
+       aCS->SetOrientation(aCS->Orient() * anOri0.inv());
+       cOrientationConique  anOC = aCS->StdExportCalibGlob();
+       std::string aNameOut = mEASF.mICNM->Assoc1To1(aKey,mVSoms[aK]->attr().mIma->mNameIm,true);
+       MakeFileXML(anOC,aNameOut);
+   }
+}
+
+
+
+
+int BasculeCamsInRepCam_main(int argc,char ** argv)
+{
+    cAppliBasculeCamsInRepCam_main anAppli(argc,argv);
+    return EXIT_SUCCESS;
+}
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant Ã  la mise en
