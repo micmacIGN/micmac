@@ -145,7 +145,7 @@ int Mascarpone_main(int argc,char ** argv)
             printf ("Done\n");
 
             //image des labels
-            Im2D_U_INT2 Labels = aZBuffer.getIndexImage();
+            Im2D_INT4 Labels = aZBuffer.getIndexImage();
 
             filename.replace(filename.end()-9, filename.end(), "_label.tif");
             printf ("Saving %s\n", filename.c_str());
