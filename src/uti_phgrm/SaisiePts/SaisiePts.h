@@ -339,7 +339,7 @@ class cVirtualInterface
 
     virtual cCaseNamePoint * GetIndexNamePoint() = 0 ;
 
-    int                 GetNumCaseNamePoint()      { return mVNameCase.size(); }
+    size_t                 GetNumCaseNamePoint()      { return mVNameCase.size(); }
     cCaseNamePoint &    GetCaseNamePoint(int aK)   { return mVNameCase[aK];    }
 
     virtual pair<int,string> IdNewPts(cCaseNamePoint * aCNP)=0;

@@ -1597,7 +1597,6 @@ cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
 
 cMaskedImageGL::~cMaskedImageGL()
 {
-	_mutex.unlock();
 }
 
 void cMaskedImageGL::draw()
