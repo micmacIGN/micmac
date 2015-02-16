@@ -705,8 +705,6 @@ std::vector< std::vector <int> > cMesh::getRegions()
             int imgIdx = Tri->getTextureImgIndex();
             if (imgIdx != defVal)
             {
-                triangleIdxSet.insert(Tri->getIdx());
-
                 vector <cTriangle *> neighb = Tri->getNeighbours();
 
                 for (unsigned int cK=0; cK < neighb.size();++cK)
@@ -717,6 +715,7 @@ std::vector< std::vector <int> > cMesh::getRegions()
                     {
                         myList.push_back(triIdx);
                         triangleIdxSet.insert(triIdx);
+                        triangleIdxSet.insert(Tri->getIdx());
                     }
                 }
             }
@@ -726,6 +725,49 @@ std::vector< std::vector <int> > cMesh::getRegions()
 
         if (myList.size() > 1) //TODO: à retirer si on veut texturer les triangles isolés
             regions.push_back(myList);
+    }
+
+    //recherche des triangles isolés (trous dans les regions)
+
+    //TODO: voir si cela peut etre fait en une passe avec la creation des regions plus haut
+
+    for (int aK=0; aK < getFacesNumber();++aK)
+    {
+        unsigned int nbNeighb = 0; // number of neighbour with same image index
+        cTriangle * Tri = getTriangle(aK);
+        vector <cTriangle *> neighb = Tri->getNeighbours();
+
+        if (neighb.size())
+        {
+            neighb.push_back(neighb[0]);
+
+            int neighbIndex = -1;
+            int textImgIndex = -1;
+            for (unsigned int cK=0; cK < neighb.size()-1;cK++)
+            {
+                if ( (neighb[cK]->getTextureImgIndex() == neighb[cK+1]->getTextureImgIndex()))
+                {
+                    neighbIndex = neighb[cK]->getIdx();
+                    nbNeighb++;
+                    textImgIndex = neighb[cK]->getTextureImgIndex();
+                }
+            }
+
+            if ((nbNeighb == 3) || ((nbNeighb == 2) && Tri->getEdgesNumber() == 2))
+            {
+                //recherche de la region des voisins
+                for(unsigned int bK=0; bK < regions.size(); ++bK)
+                {
+                    std::vector <int> region = regions[bK];
+
+                    if (find(region.begin(), region.end(), neighbIndex) != region.end())
+                    {
+                        regions[bK].push_back(aK);
+                        Tri->setTextureImgIndex(textImgIndex);
+                    }
+                }
+            }
+        }
     }
 
     /*cout << "****************** Resultat *********************" << endl;

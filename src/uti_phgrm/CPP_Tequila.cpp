@@ -329,7 +329,7 @@ int Tequila_main(int argc,char ** argv)
         int nbTriangles = 0;
         for (unsigned int aK=0; aK < regions.size();++aK)
         {
-            cout << "nb triangles = " << regions[aK].size() << endl;
+            cout << "region " << aK << " nb triangles = " << regions[aK].size() << endl;
             //Calcul de la zone correspondante dans l'image
 
             int triIdx = regions[aK][0];
@@ -376,6 +376,7 @@ int Tequila_main(int argc,char ** argv)
             }
             else
             {
+                //cout << "removing region " << aK << endl;
                 regions.erase(std::remove(regions.begin(), regions.end(), regions[aK]), regions.end());
                 aK--;
             }
@@ -409,15 +410,17 @@ int Tequila_main(int argc,char ** argv)
                 );
 
         vector <Pt2di> translations;
+        vector <bool> rotation;
         for (unsigned int aK=0; aK< vRect.size(); aK++)
         {
+            cout << "region " << aK << endl;
             int imgIdx = vRect[aK].imgIdx;
 
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
-            //cout << "position dans l'image " << imgIdx << " = " << vRect[aK].p0.x << " " << vRect[aK].p0.y << endl;
-            //cout << "position dans l'image finale " << x << " " << y << endl;
+            cout << "position dans l'image " << imgIdx << " = " << vRect[aK].p0.x << " " << vRect[aK].p0.y << endl;
+            cout << "position dans l'image finale " << x << " " << y << endl;
 
             Pt2di tr =  vRect[aK].p0 - Pt2di(x,y);
             translations.push_back( tr );
@@ -426,6 +429,7 @@ int Tequila_main(int argc,char ** argv)
 
             if (rotated)
             {
+                rotation.push_back(true);
                 // Can only handle RLE mode for File-Images
 
                 /* ELISE_COPY
@@ -437,6 +441,8 @@ int Tequila_main(int argc,char ** argv)
             }
             else
             {
+                rotation.push_back(false);
+
                 ELISE_COPY
                 (
                     rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
@@ -454,11 +460,14 @@ int Tequila_main(int argc,char ** argv)
         std::stringstream st  ;
         st << aJPGcomp;
 
-        std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
+        std::string aCom = g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
                 + aTextOut + " " + newName;
 
         //cout << "COM= " << aCom << endl;
 
+        system_call(aCom.c_str());
+
+        aCom = std::string(SYS_RM) + " " + aTextOut;
         system_call(aCom.c_str());
 
         cout << endl;
@@ -515,11 +524,18 @@ int Tequila_main(int argc,char ** argv)
         //TODO
         float Scale = 1.f;
 
+        int nbTrianglesTmp = 0;
         //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
         //for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
         for (unsigned int aK=0; aK < regions.size(); ++aK)
         {
-            Pt2di PtTemp = translations[aK];
+            Pt2di PtTemp = -translations[aK];
+            bool  rotat = rotation[aK];
+
+            //cout << "nb Triangles = " << regions[aK].size() << endl;
+            if(!rotat)
+            {
+                nbTrianglesTmp += regions[aK].size();
 
             for (unsigned int bK=0; bK < regions[aK].size();++bK)
             {
@@ -543,7 +559,7 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                     Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                    if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
+                    if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
                     {
                         /*cout << "Pt1= " << Pt1.x << " " << Pt1.y << endl;
                         cout << "Pt2= " << Pt2.x << " " << Pt2.y << endl;
@@ -555,12 +571,12 @@ int Tequila_main(int argc,char ** argv)
 
                         //cout << "PtTemp = " <<  PtTemp << endl;
 
-                        float Pt1x=(((float)(Pt1.x*Scale)+PtTemp.x)) / (float) width;
-                        float Pt1y= 1.0f - (((float)(Pt1.y*Scale)+PtTemp.y)) / (float) height;
-                        float Pt2x=(((float)(Pt2.x*Scale)+PtTemp.x)) / (float) width;
-                        float Pt2y= 1.0f - (((float)(Pt2.y*Scale)+PtTemp.y)) / (float) height;
-                        float Pt3x=(((float)(Pt3.x*Scale)+PtTemp.x)) / (float) width;
-                        float Pt3y= 1.0f - (((float)(Pt3.y*Scale)+PtTemp.y)) / (float) height;
+                        float Pt1x=((float)(Pt1.x*Scale)+PtTemp.x) / width;
+                        float Pt1y= 1.f - ((float)(Pt1.y*Scale)+PtTemp.y) / height;
+                        float Pt2x=((float)(Pt2.x*Scale)+PtTemp.x) / width;
+                        float Pt2y= 1.f - ((float)(Pt2.y*Scale)+PtTemp.y) / height;
+                        float Pt3x=((float)(Pt3.x*Scale)+PtTemp.x) / width;
+                        float Pt3y= 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / height;
 
                         if (aBin)
                         {
@@ -630,7 +646,9 @@ int Tequila_main(int argc,char ** argv)
                 }
             }
         }
+        }
 
+        cout << "nb final triangles = " << nbTrianglesTmp << endl;
 
         /* // plus grande texture en premier
           while(regions.size())
