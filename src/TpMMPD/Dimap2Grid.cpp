@@ -348,7 +348,7 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCo
 }
 
 //Returns the vector [Pt2dr(xmin,ymin),Pt2dr(xmax,ymax)]
-/*
+
 vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const
 {
     std::ofstream fic("processing/conv_ptGeo.txt");
@@ -377,12 +377,12 @@ vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, st
     }
 
 	vector<Pt2dr> anEmpriseCarto;
-	anEmpriseCarto.push_back(Pt2dr(*std::min_element(std::begin(PtsCartox), std::end(PtsCartox)), *std::min_element(std::begin(PtsCartoy), std::end(PtsCartoy))));
-	anEmpriseCarto.push_back(Pt2dr(*std::max_element(std::begin(PtsCartox), std::end(PtsCartox)), *std::max_element(std::begin(PtsCartoy), std::end(PtsCartoy))));
+	anEmpriseCarto.push_back(Pt2dr(*std::min_element(PtsCartox.begin(), PtsCartox.end()), *std::min_element(PtsCartoy.begin(), PtsCartoy.end())));
+	anEmpriseCarto.push_back(Pt2dr(*std::max_element(PtsCartox.begin(), PtsCartox.end()), *std::max_element(PtsCartoy.begin(), PtsCartoy.end())));
 	
 	return anEmpriseCarto;
 }
-*/
+
 
 /* MPD :
 
@@ -405,14 +405,6 @@ J'imagine qu'il faut remplacer  :
 Mais je prefere que ce soit l'auteur du code qui valide ce changement.
 
 */
-
-vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const
-{
-    ELISE_ASSERT(false,"Voir Pb Compile sur Dimap::empriseCarto");
-    vector<Pt2dr> aRes;
-    return aRes;
-}
-
 
 
 Pt2dr Dimap::ptRefined(Pt2dr Pimg, std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
