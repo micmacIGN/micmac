@@ -170,16 +170,9 @@ double cTD_Camera::StepProfOnePixel(const cTD_Camera & aCam2) const
 /********************************************************************/
 
 
-class cTD_Prof
-{
-    public :
-       static void GenereAppar32(cTD_Camera &,int aNb,double aNoiseGauss,double aProbaBigNoise);
-};
 
-
-void cTD_Prof::GenereAppar32(cTD_Camera & aCam,int aNb,double aNoiseGauss,double aProbaBigNoise)
+void GenereAppar32(CamStenope *aCS,const std::string & aName ,int aNb,double aNoiseGauss,double aProbaBigNoise)
 {
-    CamStenope * aCS = aCam.mCS;
     Pt2dr aSz = Pt2dr(aCS->Sz());
     Box2dr aBox(Pt2dr(0,0),aSz);
 
@@ -201,7 +194,7 @@ void cTD_Prof::GenereAppar32(cTD_Camera & aCam,int aNb,double aNoiseGauss,double
         aL.Mesures().push_back(aM);
     }
     // aL.NameImage().SetVal(aCam.mName);
-    MakeFileXML(aL,StdPrefix(aCam.mName)+"_PtsTest.xml");
+    MakeFileXML(aL,aName+"_PtsTest.xml");
 }
 
 int TD_GenereAppuis_main(int argc,char ** argv)
@@ -219,10 +212,15 @@ int TD_GenereAppuis_main(int argc,char ** argv)
         LArgMain()  << EAM(toto,"toto",true,"Do no stuff")
     );
 
-    cTD_Camera aCam(aNameCam);
+    // cTD_Camera aCam(aNameCam);
+    CamStenope * aCS =  CamOrientGenFromFile
+                        (
+                              NameWithoutDir(aNameCam),
+                              cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aNameCam))
+                        );
 
 
-    cTD_Prof::GenereAppar32(aCam,aNbPts,aWhiteNoise,aProbaOut);
+    GenereAppar32(aCS,aNameCam,aNbPts,aWhiteNoise,aProbaOut);
 
     return 0;
 }
