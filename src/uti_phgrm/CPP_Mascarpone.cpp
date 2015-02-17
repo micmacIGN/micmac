@@ -110,9 +110,11 @@ int Mascarpone_main(int argc,char ** argv)
         aZBuffer.setMaxAngle(aAngleMax);
 
         printf ("BasculerUnMaillage\n" );
-        Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh);
+        aZBuffer.BasculerUnMaillage(myMesh);
 
         #ifdef _DEBUG
+            Im2D_REAL4 res = aZBuffer.get();
+
             //convertion du zBuffer en 8 bits
             Pt2di sz = aZBuffer.Sz();
             Im2D_U_INT1 Converted = Im2D_U_INT1(sz.x, sz.y);

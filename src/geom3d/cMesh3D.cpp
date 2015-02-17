@@ -415,11 +415,7 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
                         printf ("found adjacent triangles : %d %d - vertex : %d %d\n", aK, bK, idc0, idc1);
                     #endif
 
-                    addEdge(cEdge(aK, bK, idc0, idc1));
-                    int idx = getEdgesNumber() - 1;
-                    //cout << "adding edge " << idx << endl;
-                    mTriangles[aK].addEdge(idx);
-                    mTriangles[bK].addEdge(idx);
+                    addEdge(aK, bK, idc0, idc1);
                 }
             }
         }
@@ -454,9 +450,14 @@ void cMesh::addTriangle(const cTriangle &aTri)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cMesh::addEdge(const cEdge &aEdge)
+void cMesh::addEdge(int aK, int bK, int idc0, int idc1)
 {
-    mEdges.push_back(aEdge);
+    mEdges.push_back(cEdge(aK, bK, idc0, idc1));
+
+    int idx = mEdges.size() - 1;
+    //cout << "adding edge " << idx << endl;
+    mTriangles[aK].addEdge(idx);
+    mTriangles[bK].addEdge(idx);
 }
 
 void cMesh::removeTriangle(cTriangle &aTri)
@@ -728,7 +729,8 @@ std::vector<cTextRect> cMesh::getRegions()
     for (int aK=0; aK < getFacesNumber();++aK)
     {
         std::vector <int> myList;
-        myList.push_back(aK);
+        if( getTriangle(aK)->getTextureImgIndex() != defVal)
+            myList.push_back(aK);
 
         for (unsigned int bK=0; bK < myList.size();++bK)
         {
@@ -846,7 +848,7 @@ cZBuf::~cZBuf(){}
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh const &aMesh)
+void cZBuf::BasculerUnMaillage(cMesh const &aMesh)
 {
     mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,mDpDef);
     mDataRes = mRes.data();
@@ -859,11 +861,9 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh const &aMesh)
     {
         BasculerUnTriangle(vTriangles[aK]);
     }
-
-    return mRes;
 }
 
-Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
+void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
 {
     Pt2di SzRes = mSzRes / mScale;
     mRes = Im2D_REAL4(SzRes.x,SzRes.y,mDpDef);
@@ -956,8 +956,6 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
             }
             else if ((index != mIdDef) && (find(vTri.begin(), vTri.end(), index)==vTri.end())) vTri.push_back(index);
         }
-
-    return mRes;
 }
 
 //--------------------------------------------------------------------------------------------------------------
