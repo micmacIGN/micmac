@@ -221,7 +221,7 @@ class cEdge
 class cZBuf
 {
     public:
-                cZBuf(Pt2di sz = Pt2di(0,0), float defVal = 0.f);
+                cZBuf(Pt2di sz = Pt2di(0,0), float defVal = 0.f, int aScale=1.f);
 
                 ~cZBuf();
 
@@ -242,7 +242,7 @@ class cZBuf
         void					setSelfSz(){mSzRes = mNuage->SzUnique();} //temp
         void					setMaxAngle(double aAngle){mMaxAngle = aAngle;}
 
-        Pt2di					Sz(){return mSzRes;}
+        Pt2di					Sz(){return mSzRes / mScale;}
 
 
 
@@ -264,6 +264,8 @@ class cZBuf
         vector <unsigned int>	vTri;			//list of visible triangles (contained in the label image)
 
         cElNuage3DMaille *		mNuage;
+
+        int                     mScale;         //Downscale factor
 };
 
 #endif // _ELISE_CMESH

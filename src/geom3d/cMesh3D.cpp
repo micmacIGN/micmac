@@ -791,15 +791,16 @@ std::vector< std::vector <int> > cMesh::getRegions()
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cZBuf::cZBuf(Pt2di sz, float defVal) :
+cZBuf::cZBuf(Pt2di sz, float defVal, int aScale) :
 mSzRes		(sz),
 mImTriIdx   (1,1),
 mImMask     (1,1),
 mRes        (1,1),
 mDataRes    (0),
 mDpDef      (defVal),
-mIdDef      (USHRT_MAX),
-mNuage		(0)
+mIdDef      (INT_MAX),
+mNuage		(0),
+mScale      (aScale)
 {
 }
 
@@ -830,9 +831,10 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh const &aMesh)
 
 Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
 {
-    mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,mDpDef);
+    Pt2di SzRes = mSzRes / mScale;
+    mRes = Im2D_REAL4(SzRes.x,SzRes.y,mDpDef);
     mDataRes = mRes.data();
-    mImTriIdx = Im2D_INT4(mSzRes.x,mSzRes.y, mIdDef);
+    mImTriIdx = Im2D_INT4(SzRes.x,SzRes.y, mIdDef);
 
     vector <cTriangle> vTriangles;
     aMesh.getTriangles(vTriangles);
@@ -840,9 +842,7 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
     vector <bool> vTrianglesPartiels;  //0= ok 1=partiellement vu ou caché
 
     for (unsigned int aK =0; aK<vTriangles.size();++aK)
-    {
         vTrianglesPartiels.push_back(false);
-    }
 
     for (unsigned int aK =0; aK<vTriangles.size();++aK)
     {
@@ -853,9 +853,9 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
 
         if (Sommets.size() == 3)
         {
-            Pt2dr A2 = aCam.R3toF2(Sommets[0]);
-            Pt2dr B2 = aCam.R3toF2(Sommets[1]);
-            Pt2dr C2 = aCam.R3toF2(Sommets[2]);
+            Pt2dr A2 = aCam.R3toF2(Sommets[0]) / (float) mScale;
+            Pt2dr B2 = aCam.R3toF2(Sommets[1]) / (float) mScale;
+            Pt2dr C2 = aCam.R3toF2(Sommets[2]) / (float) mScale;
 
             Pt2dr AB = B2-A2;
             Pt2dr AC = C2-A2;
@@ -881,7 +881,7 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
                 Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
                 aP0 = Sup(aP0,Pt2di(0,0));
                 Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
-                aP1 = Inf(aP1,mSzRes-Pt2di(1,1));
+                aP1 = Inf(aP1,SzRes-Pt2di(1,1));
 
 
                 for (INT x=aP0.x ; x<= aP1.x ; x++)
@@ -910,14 +910,15 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
     }
 
     //on enleve les triangles partiellement vus
-    for(int aK=0; aK < mSzRes.x; aK++)
-        for (int bK=0; bK < mSzRes.y; bK++)
+    for(int aK=0; aK < SzRes.x; aK++)
+        for (int bK=0; bK < SzRes.y; bK++)
         {
             int index = mImTriIdx.GetI(Pt2di(aK,bK));
-            if (vTrianglesPartiels[index])
+
+            if ((index != mIdDef) && (vTrianglesPartiels[index]))
             {
                 mDataRes[bK][aK] = mDpDef;
-                mImTriIdx.SetI(Pt2di(aK,bK),USHRT_MAX);
+                mImTriIdx.SetI(Pt2di(aK,bK),mIdDef);
             }
             else if ((index != mIdDef) && (find(vTri.begin(), vTri.end(), index)==vTri.end())) vTri.push_back(index);
         }

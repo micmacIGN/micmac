@@ -78,14 +78,14 @@ int Tequila_main(int argc,char ** argv)
     std::string aDir,aPat,aFullName,aOri,aPly;
     std::string aOut, aTextOut;
     int aTextMaxSize = maxTextureSize;
-    //int aZBuffSSEch = 1;
+    int aZBuffSSEch = 1;
     int aJPGcomp = 70;
     double aAngleMin = 60.f;
     bool aBin = true;
     bool  aModeClassic = false;
 
-    std::stringstream ss  ;
-    ss << aTextMaxSize;
+    std::stringstream sst;
+    sst << aTextMaxSize;
 
     ElInitArgMain
             (
@@ -96,8 +96,8 @@ int Tequila_main(int argc,char ** argv)
                 LArgMain()  << EAM(aOut,"Out",true,"Textured mesh name (def=plyName+ _textured.ply)")
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
-                            << EAM(aTextMaxSize,"Sz",true,"Texture max size (def="+ ss.str() +")")
-                            //<< EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
+                            << EAM(aTextMaxSize,"Sz",true,"Texture max size (def="+ sst.str() +")")
+                            << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=60)")
                             << EAM(aModeClassic,"Mode", true, "Mode (def = false)")
@@ -157,15 +157,15 @@ int Tequila_main(int argc,char ** argv)
     {
         cout << "Z-buffer " << aK+1 << "/" << ListCam.size() << endl;
 
-        cZBuf aZBuffer(ListCam[aK]->Sz(), defValZBuf);
+        cZBuf aZBuffer(ListCam[aK]->Sz(), defValZBuf, aZBuffSSEch);
 
         if (debug)
         {
             Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
 
             //conversion du zBuffer en 8 bits
-            Pt2di sz = aZBuffer.Sz();
-            Im2D_U_INT1 Converted = Im2D_U_INT1(sz.x, sz.y);
+            Pt2di sz = res.sz(); //aZBuffer.Sz();
+            Im2D_U_INT1 Converted(sz.x, sz.y);
             REAL min = FLT_MAX;
             REAL max = 0.f;
             for (int cK=0; cK < sz.x;++cK)
@@ -176,8 +176,8 @@ int Tequila_main(int argc,char ** argv)
 
                     if (val != defValZBuf)
                     {
-                        if (val > max) max = val;
-                        if (val < min) min = val;
+                        max = ElMax(val, max);
+                        min = ElMin(val, min);
                     }
                 }
             }
@@ -185,12 +185,8 @@ int Tequila_main(int argc,char ** argv)
             printf ("Min, max depth = %4.2f %4.2f\n", min, max );
 
             for (int cK=0; cK < sz.x;++cK)
-            {
                 for (int bK=0; bK < sz.y;++bK)
-                {
                     Converted.SetI(Pt2di(cK,bK),(int)((res.GetR(Pt2di(cK,bK))-min) *255.f/(max-min)));
-                }
-            }
 
             std::stringstream ss  ;
             ss << aK;
@@ -202,9 +198,31 @@ int Tequila_main(int argc,char ** argv)
             //image des labels
             Im2D_INT4 Labels = aZBuffer.getIndexImage();
 
+            //conversion de l'img de label en 8 bits
+            Im2D_U_INT1 LConverted(sz.x, sz.y);
+            int lmin = INT_MAX;
+            int lmax = 0;
+            for (int cK=0; cK < sz.x;++cK)
+            {
+                for (int bK=0; bK < sz.y;++bK)
+                {
+                    int val = Labels.GetI(Pt2di(cK,bK));
+
+                    if (val != INT_MAX)
+                    {
+                        lmax = ElMax(val, lmax);
+                        lmin = ElMin(val, lmin);
+                    }
+                }
+            }
+
+            for (int cK=0; cK < sz.x;++cK)
+                for (int bK=0; bK < sz.y;++bK)
+                    LConverted.SetI(Pt2di(cK,bK),(int)((Labels.GetI(Pt2di(cK,bK))-lmin) *255.f/(lmax-lmin)));
+
             filename = StdPrefix(*itS) + "_label" + ss.str() + ".tif";
             printf ("Saving %s\n", filename.c_str());
-            Tiff_Im::CreateFromIm(Labels, filename);
+            Tiff_Im::CreateFromIm(LConverted, filename);
             printf ("Done\n");
 
             aZBufIm.push_back(res);
