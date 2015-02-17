@@ -60,7 +60,7 @@ int Tequila_main(int argc,char ** argv)
 
     if (maxTextureSize == 0) maxTextureSize = 8192;
 
-    std::string aDir,aPat,aFullName,aOri,aPly;
+    std::string aDir, aPat, aFullName, aOri, aPly;
     std::string aOut, aTextOut;
     int aTextMaxSize = maxTextureSize;
     int aZBuffSSEch = 1;
@@ -92,9 +92,9 @@ int Tequila_main(int argc,char ** argv)
 
     if (aTextMaxSize > maxTextureSize)
     {
-        std::stringstream sst  ;
-        sst << maxTextureSize;
-        cout << "Warning: trying to write texture higher than GL_MAX_TEXTURE_SIZE (" + sst.str() + ")";
+        std::stringstream sst2;
+        sst2 << maxTextureSize;
+        cout << "Warning: trying to write texture higher than GL_MAX_TEXTURE_SIZE (" + sst2.str() + ")";
         //return;
     }
 
@@ -109,14 +109,12 @@ int Tequila_main(int argc,char ** argv)
     // If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
     StdCorrecNameOrient(aOri,aDir);
 
-    std::vector<std::string> ListOri;
     std::vector<CamStenope*> ListCam;
 
     cout << endl;
     for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
     {
         std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri,*itS,true);
-        ListOri.push_back(NOri);
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
@@ -135,7 +133,6 @@ int Tequila_main(int argc,char ** argv)
     cout<< endl;
 
     vector <cZBuf> aZBuffers;
-    vector <Im2D_REAL4> aZBufIm;
 
     std::list<std::string>::const_iterator itS=aLS.begin();
     for(unsigned int aK=0 ; aK<ListCam.size() ; aK++, itS++)
@@ -144,9 +141,11 @@ int Tequila_main(int argc,char ** argv)
 
         cZBuf aZBuffer(ListCam[aK]->Sz(), defValZBuf, aZBuffSSEch);
 
+        aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
+
         if (debug)
         {
-            Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
+            Im2D_REAL4 res = aZBuffer.get();
 
             //conversion du zBuffer en 8 bits
             Pt2di sz = res.sz(); //aZBuffer.Sz();
@@ -209,11 +208,7 @@ int Tequila_main(int argc,char ** argv)
             printf ("Saving %s\n", filename.c_str());
             Tiff_Im::CreateFromIm(LConverted, filename);
             printf ("Done\n");
-
-            aZBufIm.push_back(res);
         }
-        else
-            aZBufIm.push_back(aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]));
 
         aZBuffers.push_back(aZBuffer);
     }
@@ -252,10 +247,7 @@ int Tequila_main(int argc,char ** argv)
                 }
             }
         }
-        if (idx != valDef)
-        {
-            index.insert(idx);
-        }
+        if (idx != valDef) index.insert(idx);
     }
 
     cout << "Selected images / total : " << index.size() << " / " << aLS.size() << endl;
@@ -264,7 +256,7 @@ int Tequila_main(int argc,char ** argv)
     cout <<"********************Filtering border triangles***********************"<<endl;
     cout << endl;
 
-    int maxIter = 10;
+    int maxIter = 20; //TODO: a mettre en parametre ?
     int iter = 0;
     bool cond = true;
 
@@ -276,26 +268,27 @@ int Tequila_main(int argc,char ** argv)
         //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
 
         iter++;
-        //cout << "round " << iter << endl;
+        cout << "round " << iter << endl;
 
-        cond = false;
-        for (int aK=0; aK< myMesh.getFacesNumber();++aK)
-            if (myMesh.getTriangle(aK)->getEdgesNumber() < 3 && !myMesh.getTriangle(aK)->isTextured())
+        if (iter!= maxIter)
+        {
+            cond = false;
+            for (int aK=0; aK< myMesh.getFacesNumber();++aK)
             {
-                cond =true;
-                break;
+                cTriangle * triangle = myMesh.getTriangle(aK);
+                if (triangle->getEdgesNumber() < 3 && !triangle->isTextured())
+                {
+                    cond = true;
+                    break;
+                }
             }
+        }
     }
 
-    printf("Vertex number : %d - faces number : %d \n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
-
-    cout << endl;
-    cout <<"**************************Writing texture**************************"<<endl;
-    cout << endl;
+    printf("\nVertex number : %d - faces number : %d \n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
     Pt2di aSzMax;
     vector <Tiff_Im> aVT;     //Vecteur contenant les images
-    vector <Pt2dr> TabCoor;
     int aNbCh = 0;
 
     vector <Im2D_REAL4> final_ZBufIm;
@@ -308,7 +301,7 @@ int Tequila_main(int argc,char ** argv)
             if (*it == bK)
             {
                 aVT.push_back(Tiff_Im::StdConvGen(aDir+*itS,-1,false,true));
-                final_ZBufIm.push_back(aZBufIm[*it]);
+                final_ZBufIm.push_back(aZBuffers[*it].get());
                 aSzMax.SetSup(aVT.back().sz());
                 aNbCh = ElMax(aNbCh,aVT.back().nb_chan());
                 break;
@@ -331,7 +324,7 @@ int Tequila_main(int argc,char ** argv)
         int nbTriangles = 0;
         for (unsigned int aK=0; aK < regions.size();++aK)
         {
-            cout << "region " << aK << " nb triangles = " << regions[aK].size() << endl;
+            cout << "region " << aK << " nb triangles = " << regions[aK].triangles.size() << endl;
             //Calcul de la zone correspondante dans l'image
 
             int triIdx = regions[aK].triangles[0];
@@ -384,6 +377,10 @@ int Tequila_main(int argc,char ** argv)
             }
         }
 
+        cout << endl;
+        cout <<"***********************Packing textures***********************"<<endl;
+        cout << endl;
+
         cout << "Triangles nb = " << nbTriangles << endl;
         tp->setTextureCount(regions.size());
 
@@ -394,18 +391,20 @@ int Tequila_main(int argc,char ** argv)
             tp->addTexture(sz.x, sz.y);
         }
 
-        int final_width, final_height;
-        int unused_area = tp->packTextures(final_width, final_height, true, false);
+        int width, height;
+        int unused_area = tp->packTextures(width, height, false, false);
 
-        cout << "final width-height " << final_width << " " << final_height << endl;
-        cout << "unused_area : " << unused_area << endl;
+        cout << "final width-height " << width << " " << height << endl;
+        cout << "unused_area : " << unused_area << " = " << (float) unused_area/ (width*height) << "%" << endl;
 
-        Pt2di Sz ( final_width, final_height );
+        cout << endl;
+        cout <<"**************************Writing texture**************************"<<endl;
+        cout << endl;
 
         Tiff_Im  nFileRes
                 (
                     aTextOut.c_str(),
-                    Sz,
+                    Pt2di( width, height ),
                     GenIm::u_int1,
                     Tiff_Im::No_Compr,
                     Tiff_Im::RGB
@@ -413,14 +412,12 @@ int Tequila_main(int argc,char ** argv)
 
         for (unsigned int aK=0; aK< regions.size(); aK++)
         {
-            cout << "region " << aK << endl;
             int imgIdx = regions[aK].imgIdx;
 
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
-            cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
-            cout << "position dans l'image finale " << x << " " << y << endl;
+            //cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
 
             Pt2di tr =  regions[aK].p0 - Pt2di(x,y);
             regions[aK].translation = tr;
@@ -517,23 +514,15 @@ int Tequila_main(int argc,char ** argv)
             }
         }
 
-        int width  = Sz.x;
-        int height = Sz.y;
-
         //TODO
         float Scale = 1.f;
 
-        int nbTrianglesTmp = 0;
-        //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
-        //for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
         for (unsigned int aK=0; aK < regions.size(); ++aK)
         {
             Pt2di PtTemp = -regions[aK].translation;
             bool rotat = regions[aK].rotation;
 
             //cout << "nb Triangles = " << regions[aK].size() << endl;
-
-                nbTrianglesTmp += regions[aK].triangles.size();
 
                 for (unsigned int bK=0; bK < regions[aK].triangles.size();++bK)
                 {
@@ -565,12 +554,10 @@ int Tequila_main(int argc,char ** argv)
 
                             //cout << "idx= " << idx << endl;
 
-                            //Pt2dr PtTemp = TabCoor[idx];
-
                             //cout << "PtTemp = " <<  PtTemp << endl;
                             if(rotat)
                             {
-                                int width = regions[aK].width();
+                                int rwidth = regions[aK].width();
 
                                 float x1_tmp = Pt1.x;
                                 float x2_tmp = Pt2.x;
@@ -580,9 +567,9 @@ int Tequila_main(int argc,char ** argv)
                                 Pt2.x = Pt2.y;
                                 Pt3.x = Pt3.y;
 
-                                Pt1.y = width - x1_tmp;
-                                Pt2.y = width - x2_tmp;
-                                Pt3.y = width - x3_tmp;
+                                Pt1.y = rwidth - x1_tmp;
+                                Pt2.y = rwidth - x2_tmp;
+                                Pt3.y = rwidth - x3_tmp;
                             }
 
                             float Pt1x=((float)(Pt1.x*Scale)+PtTemp.x) / width;
@@ -662,8 +649,6 @@ int Tequila_main(int argc,char ** argv)
 
         }
 
-        cout << "nb final triangles = " << nbTrianglesTmp << endl;
-
         /* // plus grande texture en premier
           while(regions.size())
         {
@@ -724,52 +709,11 @@ int Tequila_main(int argc,char ** argv)
         }*/
 
 
-
-
-        /*
-
-
-
-        Pt2di Sz ( width, height );
-
-        Tiff_Im  nFileRes
-                (
-                    newTexture.c_str(),
-                    Sz,
-                    GenIm::u_int1,
-                    Tiff_Im::No_Compr,
-                    Tiff_Im::RGB
-                    );
-
-        Pt2di P0 (0, 0);
-        Pt2di P1 (width, height);
-
-        Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
-        //Fonc_Num aF = aF0;
-        //while (aF.dimf_out() < aNbCh)
-        //    aF = Virgule(aF0,aF);
-        //aF = StdFoncChScale(aF,Pt2dr(-P0.x,-P0.y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));
-
-        ELISE_COPY
-        (
-            rectangle(P0,P1),
-            trans(aF0, Pt2di(round_down(_min.x), round_down(_min.y))),
-            nFileRes.out()
-        );
-
-        std::string newName = StdPrefix(newTexture) + ".jpg ";
-        std::stringstream st  ;
-        st << aJPGcomp;
-
-        std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
-                + newTexture + " " + newName;
-
-        //cout << "COM= " << aCom << endl;
-
-        system_call(aCom.c_str());*/
     }
     else //mode classic
     {
+        vector <Pt2dr> TabCoor;
+
         int aNbLine = round_up(sqrt(double(aVT.size())));
         int aNbCol = round_up(aVT.size()/double(aNbLine));
 

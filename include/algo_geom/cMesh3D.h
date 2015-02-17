@@ -99,7 +99,7 @@ class cMesh
 
         void		addPt(const Pt3dr &aPt);
         void		addTriangle(const cTriangle &aTri);
-        void		addEdge(const cEdge &aEdge);
+        void		addEdge(int aK, int bK, int idc0, int idc1);
 
         void        removeTriangle(cTriangle &aTri);
 
@@ -247,8 +247,8 @@ class cZBuf
 
                 ~cZBuf();
 
-        Im2D_REAL4	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
-        Im2D_REAL4  BasculerUnMaillage(cMesh const &aMesh, CamStenope const & aCam);
+        void	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
+        void    BasculerUnMaillage(cMesh const &aMesh, CamStenope const & aCam);
 
         void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
 
@@ -266,7 +266,7 @@ class cZBuf
 
         Pt2di					Sz(){return mSzRes / mScale;}
 
-
+        Im2D_REAL4              get() { return mRes; }
 
     private:
 
