@@ -48,21 +48,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 bool debug = false;
 float defValZBuf = 1e9;
 
-struct TextRect
-{
-    TextRect(int idx, Pt2di p0, Pt2di P1);
-
-    int imgIdx;
-    Pt2di p0; // coin hg
-    Pt2di p1; // coin bd
-};
-
-TextRect::TextRect(int idx, Pt2di aP0, Pt2di aP1):
-    imgIdx(idx),
-    p0(aP0),
-    p1(aP1)
-{}
-
 int Tequila_main(int argc,char ** argv)
 {
     int maxTextureSize, texture_units;
@@ -82,7 +67,7 @@ int Tequila_main(int argc,char ** argv)
     int aJPGcomp = 70;
     double aAngleMin = 60.f;
     bool aBin = true;
-    bool  aModeClassic = false;
+    bool aModeClassic = false;
 
     std::stringstream sst;
     sst << aTextMaxSize;
@@ -338,8 +323,7 @@ int Tequila_main(int argc,char ** argv)
         cout <<"***********************Getting adjacent triangles***********************"<<endl;
         cout << endl;
 
-        std::vector < std::vector <int> > regions = myMesh.getRegions();
-        std::vector < TextRect > vRect;
+        std::vector < cTextRect > regions = myMesh.getRegions();
         cout << "nb regions = " << regions.size() << endl;
 
         TEXTURE_PACKER::TexturePacker *tp = TEXTURE_PACKER::createTexturePacker();
@@ -350,7 +334,7 @@ int Tequila_main(int argc,char ** argv)
             cout << "region " << aK << " nb triangles = " << regions[aK].size() << endl;
             //Calcul de la zone correspondante dans l'image
 
-            int triIdx = regions[aK][0];
+            int triIdx = regions[aK].triangles[0];
             cTriangle * Tri = myMesh.getTriangle(triIdx);
             int imgIdx = Tri->getTextureImgIndex();
 
@@ -359,9 +343,9 @@ int Tequila_main(int argc,char ** argv)
             Pt2dr _min(DBL_MAX, DBL_MAX);
             Pt2dr _max;
 
-            for (unsigned int bK=0; bK < regions[aK].size(); ++bK)
+            for (unsigned int bK=0; bK < regions[aK].triangles.size(); ++bK)
             {
-                int triIdx = regions[aK][bK];
+                int triIdx = regions[aK].triangles[bK];
                 cTriangle * Triangle = myMesh.getTriangle(triIdx);
 
                 ElCamera * Cam = ListCam[imgIdx];
@@ -387,9 +371,9 @@ int Tequila_main(int argc,char ** argv)
 
             if (_min != Pt2dr(DBL_MAX, DBL_MAX)) //TODO: gerer les triangles de bord
             {
-                nbTriangles += regions[aK].size();
+                nbTriangles += regions[aK].triangles.size();
                 //cout << "min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
-                vRect.push_back(TextRect(imgIdx, round_down(_min), round_up(_max)));
+                regions[aK].setRect(imgIdx, round_down(_min), round_up(_max));
 
             }
             else
@@ -401,11 +385,11 @@ int Tequila_main(int argc,char ** argv)
         }
 
         cout << "Triangles nb = " << nbTriangles << endl;
-        tp->setTextureCount(vRect.size());
+        tp->setTextureCount(regions.size());
 
-        for (unsigned int aK=0; aK < vRect.size(); ++aK)
+        for (unsigned int aK=0; aK < regions.size(); ++aK)
         {
-            Pt2di sz = vRect[aK].p1 - vRect[aK].p0;
+            Pt2di sz = regions[aK].size();
             //cout << "width - height " << sz.x << " " <<  sz.y << endl;
             tp->addTexture(sz.x, sz.y);
         }
@@ -427,27 +411,26 @@ int Tequila_main(int argc,char ** argv)
                     Tiff_Im::RGB
                 );
 
-        vector <Pt2di> translations;
-        vector <bool> rotation;
-        for (unsigned int aK=0; aK< vRect.size(); aK++)
+        for (unsigned int aK=0; aK< regions.size(); aK++)
         {
             cout << "region " << aK << endl;
-            int imgIdx = vRect[aK].imgIdx;
+            int imgIdx = regions[aK].imgIdx;
 
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
-            cout << "position dans l'image " << imgIdx << " = " << vRect[aK].p0.x << " " << vRect[aK].p0.y << endl;
+            cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
             cout << "position dans l'image finale " << x << " " << y << endl;
 
-            Pt2di tr =  vRect[aK].p0 - Pt2di(x,y);
-            translations.push_back( tr );
+            Pt2di tr =  regions[aK].p0 - Pt2di(x,y);
+            regions[aK].translation = tr;
+            regions[aK].rotation = rotated;
 
+            //TODO: prendre en compte le facteur de sous-ech sur final_ZBufIm
             Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
 
             if (rotated)
             {
-                rotation.push_back(true);
                 // Can only handle RLE mode for File-Images
 
                 /* ELISE_COPY
@@ -459,8 +442,6 @@ int Tequila_main(int argc,char ** argv)
             }
             else
             {
-                rotation.push_back(false);
-
                 ELISE_COPY
                 (
                     rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
@@ -547,78 +528,116 @@ int Tequila_main(int argc,char ** argv)
         //for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
         for (unsigned int aK=0; aK < regions.size(); ++aK)
         {
-            Pt2di PtTemp = -translations[aK];
-            bool  rotat = rotation[aK];
+            Pt2di PtTemp = -regions[aK].translation;
+            bool rotat = regions[aK].rotation;
 
             //cout << "nb Triangles = " << regions[aK].size() << endl;
-            if(!rotat)
-            {
-                nbTrianglesTmp += regions[aK].size();
 
-            for (unsigned int bK=0; bK < regions[aK].size();++bK)
-            {
-                int triIdx = regions[aK][bK];
+                nbTrianglesTmp += regions[aK].triangles.size();
 
-                Triangle = myMesh.getTriangle(triIdx);
-                Triangle->getVertexesIndexes(t1,t2,t3);              //On recupere les sommets de chaque triangle
-
-                idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
-
-                //cout << "image pour le triangle " << i << " = " << idx << endl;
-
-                if (idx != valDef)
+                for (unsigned int bK=0; bK < regions[aK].triangles.size();++bK)
                 {
-                    Cam = ListCam[idx];
+                    int triIdx = regions[aK].triangles[bK];
 
-                    vector <Pt3dr> Vertex;
-                    Triangle->getVertexes(Vertex);
+                    Triangle = myMesh.getTriangle(triIdx);
+                    Triangle->getVertexesIndexes(t1,t2,t3);              //On recupere les sommets de chaque triangle
 
-                    Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
-                    Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
-                    Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+                    idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
 
-                    if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+                    //cout << "image pour le triangle " << i << " = " << idx << endl;
+
+                    if (idx != valDef)
                     {
-                        /*cout << "Pt1= " << Pt1.x << " " << Pt1.y << endl;
+                        Cam = ListCam[idx];
+
+                        vector <Pt3dr> Vertex;
+                        Triangle->getVertexes(Vertex);
+
+                        Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+                        Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
+                        Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+
+                        if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+                        {
+                            /*cout << "Pt1= " << Pt1.x << " " << Pt1.y << endl;
                         cout << "Pt2= " << Pt2.x << " " << Pt2.y << endl;
                         cout << "Pt3= " << Pt3.x << " " << Pt3.y << endl;*/
 
-                        //cout << "idx= " << idx << endl;
+                            //cout << "idx= " << idx << endl;
 
-                        //Pt2dr PtTemp = TabCoor[idx];
+                            //Pt2dr PtTemp = TabCoor[idx];
 
-                        //cout << "PtTemp = " <<  PtTemp << endl;
+                            //cout << "PtTemp = " <<  PtTemp << endl;
+                            if(rotat)
+                            {
+                                int width = regions[aK].width();
 
-                        float Pt1x=((float)(Pt1.x*Scale)+PtTemp.x) / width;
-                        float Pt1y= 1.f - ((float)(Pt1.y*Scale)+PtTemp.y) / height;
-                        float Pt2x=((float)(Pt2.x*Scale)+PtTemp.x) / width;
-                        float Pt2y= 1.f - ((float)(Pt2.y*Scale)+PtTemp.y) / height;
-                        float Pt3x=((float)(Pt3.x*Scale)+PtTemp.x) / width;
-                        float Pt3y= 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / height;
+                                float x1_tmp = Pt1.x;
+                                float x2_tmp = Pt2.x;
+                                float x3_tmp = Pt3.x;
 
-                        if (aBin)
-                        {
-                            WriteType(PlyOut,(unsigned char)3);
-                            WriteType(PlyOut,t1);
-                            WriteType(PlyOut,t2);
-                            WriteType(PlyOut,t3);
-                            WriteType(PlyOut,(unsigned char)6);
-                            WriteType(PlyOut,Pt1x);
-                            WriteType(PlyOut,Pt1y);
-                            WriteType(PlyOut,Pt2x);
-                            WriteType(PlyOut,Pt2y);
-                            WriteType(PlyOut,Pt3x);
-                            WriteType(PlyOut,Pt3y);
+                                Pt1.x = Pt1.y;
+                                Pt2.x = Pt2.y;
+                                Pt3.x = Pt3.y;
+
+                                Pt1.y = width - x1_tmp;
+                                Pt2.y = width - x2_tmp;
+                                Pt3.y = width - x3_tmp;
+                            }
+
+                            float Pt1x=((float)(Pt1.x*Scale)+PtTemp.x) / width;
+                            float Pt1y= 1.f - ((float)(Pt1.y*Scale)+PtTemp.y) / height;
+                            float Pt2x=((float)(Pt2.x*Scale)+PtTemp.x) / width;
+                            float Pt2y= 1.f - ((float)(Pt2.y*Scale)+PtTemp.y) / height;
+                            float Pt3x=((float)(Pt3.x*Scale)+PtTemp.x) / width;
+                            float Pt3y= 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / height;
+
+                            if (aBin)
+                            {
+                                WriteType(PlyOut,(unsigned char)3);
+                                WriteType(PlyOut,t1);
+                                WriteType(PlyOut,t2);
+                                WriteType(PlyOut,t3);
+                                WriteType(PlyOut,(unsigned char)6);
+                                WriteType(PlyOut,Pt1x);
+                                WriteType(PlyOut,Pt1y);
+                                WriteType(PlyOut,Pt2x);
+                                WriteType(PlyOut,Pt2y);
+                                WriteType(PlyOut,Pt3x);
+                                WriteType(PlyOut,Pt3y);
+                            }
+                            else
+                            {
+                                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                                fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                            }
                         }
                         else
                         {
-                            fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-                            fprintf(PlyOut,"6 %f %f %f %f %f %f \n",Pt1x,Pt1y,Pt2x,Pt2y,Pt3x,Pt3y);
+                            //cout << "HORS IMG" << endl;
+                            if (aBin)
+                            {
+                                WriteType(PlyOut,(unsigned char)3);
+                                WriteType(PlyOut,t1);
+                                WriteType(PlyOut,t2);
+                                WriteType(PlyOut,t3);
+                                WriteType(PlyOut,(unsigned char)6);
+                                WriteType(PlyOut,float(0));
+                                WriteType(PlyOut,float(0));
+                                WriteType(PlyOut,float(0));
+                                WriteType(PlyOut,float(0));
+                                WriteType(PlyOut,float(0));
+                                WriteType(PlyOut,float(0));
+                            }
+                            else
+                            {
+                                fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
+                                fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
+                            }
                         }
                     }
                     else
                     {
-                        //cout << "HORS IMG" << endl;
                         if (aBin)
                         {
                             WriteType(PlyOut,(unsigned char)3);
@@ -640,30 +659,7 @@ int Tequila_main(int argc,char ** argv)
                         }
                     }
                 }
-                else
-                {
-                    if (aBin)
-                    {
-                        WriteType(PlyOut,(unsigned char)3);
-                        WriteType(PlyOut,t1);
-                        WriteType(PlyOut,t2);
-                        WriteType(PlyOut,t3);
-                        WriteType(PlyOut,(unsigned char)6);
-                        WriteType(PlyOut,float(0));
-                        WriteType(PlyOut,float(0));
-                        WriteType(PlyOut,float(0));
-                        WriteType(PlyOut,float(0));
-                        WriteType(PlyOut,float(0));
-                        WriteType(PlyOut,float(0));
-                    }
-                    else
-                    {
-                        fprintf(PlyOut,"3 %i %i %i ",t1,t2,t3);
-                        fprintf(PlyOut,"6 %d %d %d %d %d %d \n",0,0,0,0,0,0);
-                    }
-                }
-            }
-        }
+
         }
 
         cout << "nb final triangles = " << nbTrianglesTmp << endl;
@@ -777,8 +773,8 @@ int Tequila_main(int argc,char ** argv)
         int aNbLine = round_up(sqrt(double(aVT.size())));
         int aNbCol = round_up(aVT.size()/double(aNbLine));
 
-        cout<< aNbLine << " rows and "  << aNbCol <<" columns texture, with "<< aVT.size() <<" images. "<< endl;
-        cout<<endl;
+        cout << aNbLine << " rows and "  << aNbCol <<" columns texture, with "<< aVT.size() <<" images. "<< endl;
+        cout << endl;
 
         int full_width  = aSzMax.x * aNbCol;
         int full_height = aSzMax.y * aNbLine;

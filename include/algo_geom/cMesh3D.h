@@ -53,6 +53,28 @@ class cZBuf;
 
 typedef Graph <float,float,float> RGraph;
 
+class cTextRect
+{
+public:
+
+    cTextRect(std::vector <int> aTriangles);
+
+    void  setRect(int aImgIdx, Pt2di aP0, Pt2di aP1);
+    int   width() { return p1.x - p0.x; }
+    Pt2di size()  { return p1 - p0; }
+
+    int imgIdx;
+    Pt2di p0; // coin hg
+    Pt2di p1; // coin bd
+
+    bool  rotation; //has texture been rotated
+    Pt2di translation; //position of texture in full texture image
+
+    std::vector<int> triangles;
+
+    bool    operator==( const cTextRect & ) const;
+};
+
 class cMesh
 {
     friend class cTriangle;
@@ -88,7 +110,7 @@ class cMesh
 
         void        clean();
 
-        std::vector< std::vector<int> > getRegions();
+        std::vector< cTextRect > getRegions();
 
     private:
 

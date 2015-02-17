@@ -44,6 +44,38 @@ static const REAL Eps = 1e-7;
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
+// cTextRect
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+cTextRect::cTextRect(std::vector<int> aTriangles):
+    imgIdx(-1),
+    p0(Pt2di(0,0)),
+    p1(Pt2di(0,0)),
+    rotation(false),
+    translation(Pt2di(0,0)),
+    triangles(aTriangles)
+{}
+
+void cTextRect::setRect(int aImgIdx, Pt2di aP0, Pt2di aP1)
+{
+    imgIdx = aImgIdx;
+    p0 = aP0;
+    p1 = aP1;
+}
+
+bool cTextRect::operator==( const cTextRect & aTR ) const
+{
+    return (imgIdx == aTR.imgIdx) &&
+            (p0 == aTR.p0) &&
+            (p1 == aTR.p1) &&
+            (rotation == aTR.rotation) &&
+            (translation == aTR.translation) &&
+            (triangles == aTR.triangles);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
 // cTriangle
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
@@ -687,11 +719,11 @@ void cMesh::clean()
     }
 }
 
-std::vector< std::vector <int> > cMesh::getRegions()
+std::vector<cTextRect> cMesh::getRegions()
 {
     int defVal = cTriangle::getDefTextureImgIndex();
     std::set < int > triangleIdxSet;
-    std::vector< std::vector <int> > regions;
+    std::vector< cTextRect > regions;
 
     for (int aK=0; aK < getFacesNumber();++aK)
     {
@@ -724,7 +756,9 @@ std::vector< std::vector <int> > cMesh::getRegions()
         //cout << "myList.size() = " << myList.size() << endl;
 
         if (myList.size() > 1) //TODO: à retirer si on veut texturer les triangles isolés
-            regions.push_back(myList);
+        {
+            regions.push_back(cTextRect(myList));
+        }
     }
 
     //recherche des triangles isolés (trous dans les regions)
@@ -758,11 +792,11 @@ std::vector< std::vector <int> > cMesh::getRegions()
                 //recherche de la region des voisins
                 for(unsigned int bK=0; bK < regions.size(); ++bK)
                 {
-                    std::vector <int> region = regions[bK];
+                    std::vector <int> region = regions[bK].triangles;
 
                     if (find(region.begin(), region.end(), neighbIndex) != region.end())
                     {
-                        regions[bK].push_back(aK);
+                        regions[bK].triangles.push_back(aK);
                         Tri->setTextureImgIndex(textImgIndex);
                     }
                 }
