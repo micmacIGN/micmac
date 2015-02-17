@@ -123,7 +123,7 @@ bool cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
         imageTot(aKI)->UpdateMapPointes(aNewName);
     }
 
-    for (int aKC=0 ; aKC< mInterface->GetNumCaseNamePoint(); aKC++)
+    for (unsigned int aKC=0 ; aKC< mInterface->GetNumCaseNamePoint(); aKC++)
     {
         cCaseNamePoint & aCN = mInterface->GetCaseNamePoint(aKC);
 
@@ -140,7 +140,7 @@ bool cAppli_SaisiePts::ChangeName(std::string anOldName, std::string  aNewName)
         }
     }
 
-    RedrawAllWindows();   
+    RedrawAllWindows();
 
     return true;
 }
