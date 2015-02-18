@@ -1,0 +1,54 @@
+
+
+<ParamCasa>
+
+    <DicoLoc > 
+    </DicoLoc>
+
+
+        <SectionInitModele>
+           <Name> TheCylindre </Name>  <!-- Identifiant -->
+	   <SectionLoadNuage >
+               <NuageByImage>
+                     <NameXMLNuage> GeoI-1098/NuageImProf_Geom-Im_Etape_6.xml </NameXMLNuage>
+                     <NameMasqSup>  GeoI-1098/Correl_Geom-Im_Num_5_Masq.tif</NameMasqSup>
+               </NuageByImage>
+               <NuageByImage>
+                     <NameXMLNuage> GeoI-1106/NuageImProf_Geom-Im_Etape_6.xml </NameXMLNuage>
+                     <NameMasqSup>  GeoI-1106/Correl_Geom-Im_Num_5_Masq.tif</NameMasqSup>
+               </NuageByImage>
+               <NuageByImage>
+                     <NameXMLNuage> GeoI-1113/NuageImProf_Geom-Im_Etape_6.xml </NameXMLNuage>
+                     <NameMasqSup>  GeoI-1113/Correl_Geom-Im_Num_5_Masq.tif</NameMasqSup>
+               </NuageByImage>
+               <NuageByImage>
+                     <NameXMLNuage> GeoI-1120/NuageImProf_Geom-Im_Etape_6.xml </NameXMLNuage>
+                     <NameMasqSup>  GeoI-1120/Correl_Geom-Im_Num_5_Masq.tif</NameMasqSup>
+               </NuageByImage>
+
+
+               <DistSep > 50 </DistSep>
+               <DistZone>  90</DistZone>
+               <!-- <SzW > 500 300  </SzW> -->
+	   </SectionLoadNuage>
+
+           <SectionEstimSurf>
+                <TypeSurf> eTSA_CylindreRevolution </TypeSurf>
+                <NbRansac> 200 </NbRansac>
+           </SectionEstimSurf>
+        </SectionInitModele>
+
+        <SectionCompensation>
+            <EtapeCompensation >
+                 <Sigma> 3.0 </Sigma>
+                 <NbIter>  6 </NbIter>
+                 <Export> TheCylindre.xml </Export>
+            </EtapeCompensation>
+        </SectionCompensation>
+
+
+        <DirectoryChantier> ThisDir </DirectoryChantier>
+       
+</ParamCasa>
+
+
