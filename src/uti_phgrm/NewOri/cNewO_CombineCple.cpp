@@ -99,7 +99,13 @@ Pt3dr  cNewO_CombineCple::BaseOneArc(const Pt2di & anArc,bool & Ok)
 
 double cNewO_CombineCple::CostOneArc(const Pt2di & anArc)
 {
-    mCurBase = mVCdtSel[anArc.x]->NormQ1Q2() ^ mVCdtSel[anArc.y]->NormQ1Q2();
+    return CostOneBase(mVCdtSel[anArc.x]->NormQ1Q2() ^ mVCdtSel[anArc.y]->NormQ1Q2() );
+}
+
+double cNewO_CombineCple::CostOneBase(const Pt3dr & aBase)
+{
+    // mCurBase = mVCdtSel[anArc.x]->NormQ1Q2() ^ mVCdtSel[anArc.y]->NormQ1Q2();
+    mCurBase = aBase;
     double aNormBase = euclid(mCurBase);
     if (aNormBase<1e-9) return 1e9;
     mCurBase = mCurBase / aNormBase;
@@ -168,9 +174,14 @@ void cNewO_CombineCple::SetCurRot(const Pt3di & aP)
 {
     mCurInd = aP;
     mCurTeta= PInt2Tetas(aP);
+    SetCurRot(ElMatrix<double>::Rotation(mCurTeta.z,mCurTeta.y,mCurTeta.x));
+}
+
+void cNewO_CombineCple::SetCurRot(const ElMatrix<double> & aR)
+{
 
  // std::cout << mCurInd << mCurTeta << "\n"; getchar();
-    mCurRot = ElMatrix<double>::Rotation(mCurTeta.z,mCurTeta.y,mCurTeta.x);
+    mCurRot = aR;
 
     for (int aK=0 ; aK<int(mVCdtSel.size()) ; aK++)
     {
@@ -210,7 +221,7 @@ Pt2dr cNewO_CombineCple::ToW(const Pt2dr & aP) const
 
 
 
-cNewO_CombineCple::cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  &  aMap) :
+cNewO_CombineCple::cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  &  aMap,ElRotation3D * aTestSol) :
     mCurStep     (1<<NbPow2),
     mNbStepTeta  (4 * NbDecoup0PIS2 * mCurStep),
     mCurRot      (3,3),
@@ -401,6 +412,21 @@ cNewO_CombineCple::cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  &  aMap)
 
     if (mW) mW->clik_in();
 
+
+    if (aTestSol)
+    {
+       ElRotation3D aR = * aTestSol;
+
+       SetCurRot(aR.Mat());
+       std::cout << "Test Externe : " << CalculCostCur() <<"\n";
+
+
+       aR = aR.inv();
+       SetCurRot(aR.Mat());
+       std::cout << "Test Externe I : " << CalculCostCur() <<"\n";
+       std::cout << "CostBase " << CostOneBase(aR.tr()) << "\n";
+          // ElRotation3D *
+    }
 
     std::cout << "cNewO_CombineCple::cNewO_CombineCple " << aNbSomTot << "\n";
     Pt3di aP;

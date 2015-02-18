@@ -51,6 +51,12 @@ cNewO_NameManager::cNewO_NameManager
     mOriCal    (anOriCal),
     mPostHom   (aPostHom)
 {
+    StdCorrecNameOrient(mOriCal,mDir);
+}
+
+const std::string & cNewO_NameManager::Dir() const
+{
+   return mDir;
 }
 
 
@@ -113,7 +119,23 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
 }
 /*
 */
+CamStenope *  cInterfChantierNameManipulateur::StdCamOfNames(const std::string & aNameIm,const std::string & anOri)
+{
 
+     std::string aKey = "NKS-Assoc-Im2Orient@-"+ anOri ;
+     std::string aNameCam =  Assoc1To1(aKey,aNameIm,true);
+     return CamOrientGenFromFile(aNameCam,this);
+}
+
+CamStenope * cNewO_NameManager::CamOriOfName(const std::string & aNameIm,const std::string & anOri)
+{
+    return mICNM->StdCamOfNames(aNameIm,anOri);
+/*
+     std::string aKey = "NKS-Assoc-Im2Orient@-"+ anOri ;
+     std::string aNameCam =  mICNM->Assoc1To1(aKey,aNameIm,true);
+     return CamOrientGenFromFile(aNameCam,mICNM);
+*/
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
