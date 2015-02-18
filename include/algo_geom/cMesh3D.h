@@ -279,6 +279,9 @@ class cZBuf
 
         Im2D_REAL4              get() { return mRes; }
 
+        void                    write(string filename);
+        void                    writeImLabel(string filename);
+
     private:
 
         double					mMaxAngle;		//threshold on angle between surface and viewing direction

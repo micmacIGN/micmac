@@ -149,69 +149,12 @@ int Tequila_main(int argc,char ** argv)
 
         if (debug)
         {
-            Im2D_REAL4 res = aZBuffer.get();
-
-            //conversion du zBuffer en 8 bits
-            Pt2di sz = res.sz(); //aZBuffer.Sz();
-            Im2D_U_INT1 Converted(sz.x, sz.y);
-            REAL min = FLT_MAX;
-            REAL max = 0.f;
-            for (int cK=0; cK < sz.x;++cK)
-            {
-                for (int bK=0; bK < sz.y;++bK)
-                {
-                    REAL val = res.GetR(Pt2di(cK,bK));
-
-                    if (val != defValZBuf)
-                    {
-                        max = ElMax(val, max);
-                        min = ElMin(val, min);
-                    }
-                }
-            }
-
-            printf ("Min, max depth = %4.2f %4.2f\n", min, max );
-
-            for (int cK=0; cK < sz.x;++cK)
-                for (int bK=0; bK < sz.y;++bK)
-                    Converted.SetI(Pt2di(cK,bK),(int)((res.GetR(Pt2di(cK,bK))-min) *255.f/(max-min)));
-
             std::stringstream ss  ;
             ss << aK;
-            string filename = StdPrefix(*itS) + "_zbuf" + ss.str() + ".tif";
-            printf ("Saving %s\n", filename.c_str());
-            Tiff_Im::CreateFromIm(Converted, filename);
-            printf ("Done\n");
 
-            //image des labels
-            Im2D_INT4 Labels = aZBuffer.getIndexImage();
+            aZBuffer.write(StdPrefix(*itS) + "_zbuf" + ss.str() + ".tif");
 
-            //conversion de l'img de label en 8 bits
-            Im2D_U_INT1 LConverted(sz.x, sz.y);
-            int lmin = INT_MAX;
-            int lmax = 0;
-            for (int cK=0; cK < sz.x;++cK)
-            {
-                for (int bK=0; bK < sz.y;++bK)
-                {
-                    int val = Labels.GetI(Pt2di(cK,bK));
-
-                    if (val != INT_MAX)
-                    {
-                        lmax = ElMax(val, lmax);
-                        lmin = ElMin(val, lmin);
-                    }
-                }
-            }
-
-            for (int cK=0; cK < sz.x;++cK)
-                for (int bK=0; bK < sz.y;++bK)
-                    LConverted.SetI(Pt2di(cK,bK),(int)((Labels.GetI(Pt2di(cK,bK))-lmin) *255.f/(lmax-lmin)));
-
-            filename = StdPrefix(*itS) + "_label" + ss.str() + ".tif";
-            printf ("Saving %s\n", filename.c_str());
-            Tiff_Im::CreateFromIm(LConverted, filename);
-            printf ("Done\n");
+            aZBuffer.writeImLabel(StdPrefix(*itS) + "_label" + ss.str() + ".tif");
         }
 
         aZBuffers.push_back(aZBuffer);
@@ -317,7 +260,7 @@ int Tequila_main(int argc,char ** argv)
     {
 
         cout << endl;
-        cout <<"***********************Getting adjacent triangles***********************"<<endl;
+        cout <<"*********************Getting adjacent triangles********************"<<endl;
         cout << endl;
 
         std::vector < cTextRect > regions = myMesh.getRegions();
@@ -328,14 +271,14 @@ int Tequila_main(int argc,char ** argv)
         int nbTriangles = 0;
         for (unsigned int aK=0; aK < regions.size();++aK)
         {
-            cout << "region " << aK << " nb triangles = " << regions[aK].triangles.size() << endl;
+            //cout << "region " << aK << " nb triangles = " << regions[aK].triangles.size() << endl;
             //Calcul de la zone correspondante dans l'image
 
             int triIdx = regions[aK].triangles[0];
             cTriangle * Tri = myMesh.getTriangle(triIdx);
             int imgIdx = Tri->getTextureImgIndex();
 
-            cout << "Image index " << imgIdx << endl;
+            //cout << "Image index " << imgIdx << endl;
 
             Pt2dr _min(DBL_MAX, DBL_MAX);
             Pt2dr _max;
@@ -382,7 +325,7 @@ int Tequila_main(int argc,char ** argv)
         }
 
         cout << endl;
-        cout <<"*************************Packing textures************************"<<endl;
+        cout <<"**************************Packing textures*************************"<<endl;
         cout << endl;
 
         cout << "Triangles nb = " << nbTriangles << endl;
@@ -402,7 +345,6 @@ int Tequila_main(int argc,char ** argv)
         cout << "unused_area : " << unused_area << " = " << (float) unused_area/ (width*height) << "%" << endl;
 
         cout << endl;
-
         cout <<"**************************Writing texture**************************"<<endl;
         cout << endl;
 
@@ -457,19 +399,9 @@ int Tequila_main(int argc,char ** argv)
 
         releaseTexturePacker(tp);
 
-        std::string aCom = g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
-                + aTextOut + " " + textureName;
-
-        //cout << "COM= " << aCom << endl;
-
-        system_call(aCom.c_str());
-
-        aCom = std::string(SYS_RM) + " " + aTextOut;
-        system_call(aCom.c_str());
-
         cout << endl;
-        cout <<"**************************Writing ply file***************************"<<endl;
-        cout <<endl;
+        cout <<"********************Computing texture coordinates********************"<<endl;
+        cout << endl;
 
         //TODO
         float Scale = 1.f;
@@ -538,8 +470,6 @@ int Tequila_main(int argc,char ** argv)
             }
         }
 
-        myMesh.write(aOut, aBin, textureName);
-
         /* // plus grande texture en premier
           while(regions.size())
         {
@@ -598,7 +528,6 @@ int Tequila_main(int argc,char ** argv)
 
             regions.erase(std::remove(regions.begin(), regions.end(), regions[biggest]), regions.end());
         }*/
-
 
     }
     else //mode classic
@@ -679,18 +608,8 @@ int Tequila_main(int argc,char ** argv)
             cout<<endl;*/
         }
 
-        std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
-                + aTextOut + " " + textureName;
-
-        //cout << "COM= " << aCom << endl;
-
-        system_call(aCom.c_str());
-
-        aCom = std::string(SYS_RM) + " " + aTextOut;
-        system_call(aCom.c_str());
-
         cout << endl;
-        cout <<"**************************Writing ply file***************************"<<endl;
+        cout <<"********************Computing texture coordinates********************"<<endl;
         cout <<endl;
 
         int width  = aSz.x;
@@ -736,9 +655,28 @@ int Tequila_main(int argc,char ** argv)
                 }
             }
         }
-
-        myMesh.write(aOut, aBin, textureName);
     }
+
+    cout << endl;
+    cout <<"***********************Converting texture file***********************"<<endl;
+    cout <<endl;
+
+    std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
+            + aTextOut + " " + textureName;
+
+    //cout << "COM= " << aCom << endl;
+
+    system_call(aCom.c_str());
+
+    aCom = std::string(SYS_RM) + " " + aTextOut;
+    system_call(aCom.c_str());
+
+    cout << endl;
+    cout <<"**************************Writing ply file***************************"<<endl;
+    cout <<endl;
+
+    myMesh.write(aOut, aBin, textureName);
+
     cout<<"********************************Done*********************************"<<endl;
     cout<<endl;
 

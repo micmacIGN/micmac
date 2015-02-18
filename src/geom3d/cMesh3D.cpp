@@ -775,12 +775,9 @@ std::vector<cTextRect> cMesh::getRegions()
     int defVal = cTriangle::getDefTextureImgIndex();
     std::set < int > triangleIdxSet;
     std::vector < cTextRect > regions;
-    std::vector < int > missing;
 
     for (int aK=0; aK < getFacesNumber();++aK)
-    //for (int aK=0; aK < 5;++aK)
     {
-        //cout << "*************" <<endl;
         std::vector <int> myList;
         if ((getTriangle(aK)->getTextureImgIndex() != defVal) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
             myList.push_back(aK);
@@ -795,7 +792,6 @@ std::vector<cTextRect> cMesh::getRegions()
             {
                 vector <cTriangle *> neighb = Tri->getNeighbours();
 
-                                        std::set<int>::iterator it;//tmp
                 bool found = false;
                 for (unsigned int cK=0; cK < neighb.size();++cK)
                 {
@@ -805,47 +801,29 @@ std::vector<cTextRect> cMesh::getRegions()
                     {
                         found = true;
                         myList.push_back(triIdx);
-                        //cout << "inserting 1 " << triIdx << endl;
-                        triangleIdxSet.insert(triIdx);
-                        //cout << "Set = " ;
 
-                        //for (it=triangleIdxSet.begin(); it!=triangleIdxSet.end(); ++it) cout << *it << " ";
-                        //cout << endl;
+                        triangleIdxSet.insert(triIdx);
                     }
                 }
                 if (found)
-                {
-                    //cout << "inserting 2 " << Tri->getIdx() << endl;
                     triangleIdxSet.insert(Tri->getIdx());
-                    //cout << "Set = " ;
-                   // for (it=triangleIdxSet.begin(); it!=triangleIdxSet.end(); ++it) cout << *it << " ";
-                    //cout << endl;
-                }
             }
         }
 
         //cout << "myList.size() = " << myList.size() << endl;
 
-        if (myList.size() > 1) //TODO: à retirer si on veut texturer les triangles isolés
+        if (myList.size() > 1)
         {
             regions.push_back(cTextRect(myList));
-        }
-
-        if (myList.size() == 1)
-        {
-            cout << "missing triangle = " << aK << endl;
-            missing.push_back(aK);
         }
     }
 
     //recherche des triangles isolés (trous dans les regions)
-    cout << "missing.size " << missing.size() << endl;
 
-    int cpt = 0;
+    //int cpt = 0;
     for (int aK=0; aK < getFacesNumber();++aK)
-   // for (unsigned int aK=0; aK < missing.size();++aK)
     {
-        int triIdx = aK;// missing[aK];
+        int triIdx = aK;
         if (triangleIdxSet.find(triIdx) == triangleIdxSet.end())
         {
             cTriangle * Tri = getTriangle(triIdx);
@@ -869,7 +847,7 @@ std::vector<cTextRect> cMesh::getRegions()
                     }
                 }
 
-                if (nbNeighb == 0)
+                /*if (nbNeighb == 0)
                 {
                     cout << "BAD CANDIDATE= " << triIdx << endl;
                     neighb.pop_back();
@@ -883,11 +861,11 @@ std::vector<cTextRect> cMesh::getRegions()
                     }
                     cout << "neighbIndex " << neighbIndex << endl;
                     cout << "textImgIndex " << textImgIndex << endl;
-                }
+                }*/
 
-               // if (/*(Tri->getTextureImgIndex() != textImgIndex) &&*/ (nbNeighb >= 1))
+                if (/*(Tri->getTextureImgIndex() != textImgIndex) &&*/ (nbNeighb >= 1))
                 {
-                    cpt++;
+                    //cpt++;
                     //recherche de la region des voisins
                     for(unsigned int bK=0; bK < regions.size(); ++bK)
                     {
@@ -903,10 +881,10 @@ std::vector<cTextRect> cMesh::getRegions()
                 }
 
             }
-            else cout << "NO NEIGHBOURS!!!!!!" << endl;
+            //else cout << "NO NEIGHBOURS!!!!!!" << endl;
         }
     }
-    cout << "cpt = " << cpt << endl;
+    //cout << "cpt = " << cpt << endl;
 
     /*cout << "****************** Resultat *********************" << endl;
     cout << endl;
@@ -1315,6 +1293,68 @@ Im2D_BIN cZBuf::ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMes
     }
 
     return mImMask;
+}
+
+void cZBuf::write(string filename)
+{
+     //conversion du zBuffer en 8 bits
+    Pt2di sz = mRes.sz(); //aZBuffer.Sz();
+    Im2D_U_INT1 Converted(sz.x, sz.y);
+    REAL min = FLT_MAX;
+    REAL max = 0.f;
+    for (int cK=0; cK < sz.x;++cK)
+    {
+        for (int bK=0; bK < sz.y;++bK)
+        {
+            REAL val = mRes.GetR(Pt2di(cK,bK));
+
+            if (val != mDpDef)
+            {
+                max = ElMax(val, max);
+                min = ElMin(val, min);
+            }
+        }
+    }
+
+    printf ("Min, max depth = %4.2f %4.2f\n", min, max );
+
+    for (int cK=0; cK < sz.x;++cK)
+        for (int bK=0; bK < sz.y;++bK)
+            Converted.SetI(Pt2di(cK,bK),(int)((mRes.GetR(Pt2di(cK,bK))-min) *255.f/(max-min)));
+
+    printf ("Saving %s\n", filename.c_str());
+    Tiff_Im::CreateFromIm(Converted, filename);
+    printf ("Done\n");
+}
+
+void cZBuf::writeImLabel(string filename)
+{
+    //conversion de l'img de label en 8 bits
+    Pt2di sz = mImTriIdx.sz();
+    Im2D_U_INT1 LConverted(sz.x, sz.y);
+    int lmin = INT_MAX;
+    int lmax = 0;
+    for (int cK=0; cK < sz.x;++cK)
+    {
+        for (int bK=0; bK < sz.y;++bK)
+        {
+            int val = mImTriIdx.GetI(Pt2di(cK,bK));
+
+            if (val != INT_MAX)
+            {
+                lmax = ElMax(val, lmax);
+                lmin = ElMin(val, lmin);
+            }
+        }
+    }
+
+    for (int cK=0; cK < sz.x;++cK)
+        for (int bK=0; bK < sz.y;++bK)
+            LConverted.SetI(Pt2di(cK,bK),(int)((mImTriIdx.GetI(Pt2di(cK,bK))-lmin) *255.f/(lmax-lmin)));
+
+    printf ("Saving %s\n", filename.c_str());
+    Tiff_Im::CreateFromIm(LConverted, filename);
+    printf ("Done\n");
 }
 
 //--------------------------------------------------------------------------------------------------------------
