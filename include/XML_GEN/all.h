@@ -202,6 +202,7 @@ class cInterfChantierNameManipulateur
      public :
 
          std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);
+         CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);
 
          std::list<std::string> GetListImByDelta(const cListImByDelta &,const std::string & aN0);
 

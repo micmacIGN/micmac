@@ -151,6 +151,10 @@ class cNewO_NameManager
            );
            CamStenope * CamOfName(const std::string & aName);
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
+           const std::string & Dir() const;
+
+           // 
+           CamStenope * CamOriOfName(const std::string & aName,const std::string & anOri);
 
      private :
            cInterfChantierNameManipulateur * mICNM;
@@ -197,12 +201,15 @@ class cNewO_CombineCple
 {
     public :
          typedef cFixedMergeTieP<2,Pt2dr> tMerge;
-         cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  & aM);
+         cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  & aM,ElRotation3D * aTestSol);
 
     private :
           double CostOneArc(const Pt2di &);
+          double CostOneBase(const Pt3dr & aBase);
+
           Pt2dr ToW(const Pt2dr &) const;
           void SetCurRot(const Pt3di & aP);
+          void SetCurRot(const  ElMatrix<double> & aP);
 
           double K2Teta(int aK) const;
           int    PInt2Ind(const Pt3di  & aP) const;

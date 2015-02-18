@@ -51,11 +51,12 @@ class cNO_AppliOneCple
 
          std::string          mNameIm1;
          std::string          mNameIm2;
-         std::string          mNameOri;
+         std::string          mNameOriCalib;
          cNewO_NameManager *  mNM;
          cNewO_OneIm *        mIm1;
          cNewO_OneIm *        mIm2;
          std::vector<cNewO_OneIm *>  mVI;
+         std::string          mNameOriTest;
 };
 
 /*
@@ -79,10 +80,11 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)
         argc,argv,
         LArgMain() <<  EAMC(mNameIm1,"Name First Image")
                    <<  EAMC(mNameIm2,"Name Second Image"),
-        LArgMain() << EAM(mNameOri,"Ori",true,"Orientation ")
+        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
+                   << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference")
    );
 
-   mNM = new cNewO_NameManager("./",mNameOri,"dat");
+   mNM = new cNewO_NameManager("./",mNameOriCalib,"dat");
    mIm1 = new cNewO_OneIm(*mNM,mNameIm1);
    mIm2 = new cNewO_OneIm(*mNM,mNameIm2);
 
@@ -93,7 +95,17 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)
 
    aMergeStr.DoExport();
 
-   cNewO_CombineCple aARI(aMergeStr);
+   ElRotation3D * aTestSol = 0;
+   if (EAMIsInit(&mNameOriTest))
+   {
+      StdCorrecNameOrient(mNameOriTest,mNM->Dir());
+      CamStenope * aCam1 = mNM->CamOriOfName(mNameIm1,mNameOriTest);
+      CamStenope * aCam2 = mNM->CamOriOfName(mNameIm2,mNameOriTest);
+      aTestSol = new ElRotation3D(aCam2->Orient() *aCam1->Orient().inv());
+      // std::string aNameCam1 = 
+   }
+
+   cNewO_CombineCple aARI(aMergeStr,aTestSol);
 }
 
 void cNO_AppliOneCple::Show()
