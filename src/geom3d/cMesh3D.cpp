@@ -95,7 +95,10 @@ cTriangle::cTriangle(cMesh *aMesh, vector <int> const &idx, int TriIdx):
     mTriIdx(TriIdx),
     mTriVertex(idx),
     mTextImIdx(mDefTextImIdx),
-    pMesh(aMesh)
+    pMesh(aMesh),
+    mText0(Pt2dr()),
+    mText1(Pt2dr()),
+    mText2(Pt2dr())
 {
 }
 
@@ -221,6 +224,20 @@ void cTriangle::setVertexIndex(unsigned int pos, int val)
         mTriVertex[pos] = val;
 }
 
+void cTriangle::setTextureCoordinates(Pt2dr const &p0, Pt2dr const &p1, Pt2dr const &p2)
+{
+    mText0 = p0;
+    mText1 = p1;
+    mText2 = p2;
+}
+
+void cTriangle::getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2)
+{
+    p0 = mText0;
+    p1 = mText1;
+    p2 = mText2;
+}
+
 void cTriangle::removeEdge(int idx)
 {
     bool found = false;
@@ -257,8 +274,41 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
              (mTriEdges   ==  aTr.mTriEdges)  &&
              (mTextImIdx  ==  aTr.mTextImIdx) &&
              (mAttributes ==  aTr.mAttributes)
-           );
+             );
 }
+
+void cTriangle::write(FILE* file, bool aBin)
+{
+    if (aBin)
+    {
+        WriteType(file,(unsigned char)3);
+        WriteType(file,mTriVertex[0]);
+        WriteType(file,mTriVertex[1]);
+        WriteType(file,mTriVertex[2]);
+        if (mText0.x || mText0.y || mText1.x || mText1.y || mText2.x || mText2.y)
+        {
+            WriteType(file,(unsigned char)6);
+            WriteType(file,(float) mText0.x);
+            WriteType(file,(float) mText0.y);
+            WriteType(file,(float) mText1.x);
+            WriteType(file,(float) mText1.y);
+            WriteType(file,(float) mText2.x);
+            WriteType(file,(float) mText2.y);
+        }
+        else
+            WriteType(file,(unsigned char)0);
+    }
+    else
+    {
+        fprintf(file,"3 %i %i %i ",mTriVertex[0],mTriVertex[1],mTriVertex[2]);
+
+        if (mText0.x || mText0.y || mText1.x || mText1.y || mText2.x || mText2.y)
+            fprintf(file,"6 %f %f %f %f %f %f\n",mText0.x,mText0.y,mText1.x,mText1.y,mText2.x,mText2.y);
+        else
+            fprintf(file,"0\n");
+    }
+}
+
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 // cMesh
@@ -724,16 +774,20 @@ std::vector<cTextRect> cMesh::getRegions()
 {
     int defVal = cTriangle::getDefTextureImgIndex();
     std::set < int > triangleIdxSet;
-    std::vector< cTextRect > regions;
+    std::vector < cTextRect > regions;
+    std::vector < int > missing;
 
     for (int aK=0; aK < getFacesNumber();++aK)
+    //for (int aK=0; aK < 5;++aK)
     {
+        //cout << "*************" <<endl;
         std::vector <int> myList;
-        if( getTriangle(aK)->getTextureImgIndex() != defVal)
+        if ((getTriangle(aK)->getTextureImgIndex() != defVal) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
             myList.push_back(aK);
 
         for (unsigned int bK=0; bK < myList.size();++bK)
         {
+            //cout << "triangle " << myList[bK] << endl;
             cTriangle * Tri = getTriangle(myList[bK]);
 
             int imgIdx = Tri->getTextureImgIndex();
@@ -741,16 +795,31 @@ std::vector<cTextRect> cMesh::getRegions()
             {
                 vector <cTriangle *> neighb = Tri->getNeighbours();
 
+                                        std::set<int>::iterator it;//tmp
+                bool found = false;
                 for (unsigned int cK=0; cK < neighb.size();++cK)
                 {
                     int triIdx = neighb[cK]->getIdx();
-                    if (triangleIdxSet.find(triIdx)== triangleIdxSet.end() &&
+                    if ((triangleIdxSet.find(triIdx) == triangleIdxSet.end()) &&
                             (neighb[cK]->getTextureImgIndex() == imgIdx))
                     {
+                        found = true;
                         myList.push_back(triIdx);
+                        //cout << "inserting 1 " << triIdx << endl;
                         triangleIdxSet.insert(triIdx);
-                        triangleIdxSet.insert(Tri->getIdx());
+                        //cout << "Set = " ;
+
+                        //for (it=triangleIdxSet.begin(); it!=triangleIdxSet.end(); ++it) cout << *it << " ";
+                        //cout << endl;
                     }
+                }
+                if (found)
+                {
+                    //cout << "inserting 2 " << Tri->getIdx() << endl;
+                    triangleIdxSet.insert(Tri->getIdx());
+                    //cout << "Set = " ;
+                   // for (it=triangleIdxSet.begin(); it!=triangleIdxSet.end(); ++it) cout << *it << " ";
+                    //cout << endl;
                 }
             }
         }
@@ -761,50 +830,83 @@ std::vector<cTextRect> cMesh::getRegions()
         {
             regions.push_back(cTextRect(myList));
         }
+
+        if (myList.size() == 1)
+        {
+            cout << "missing triangle = " << aK << endl;
+            missing.push_back(aK);
+        }
     }
 
     //recherche des triangles isolés (trous dans les regions)
+    cout << "missing.size " << missing.size() << endl;
 
-    //TODO: voir si cela peut etre fait en une passe avec la creation des regions plus haut
-
+    int cpt = 0;
     for (int aK=0; aK < getFacesNumber();++aK)
+   // for (unsigned int aK=0; aK < missing.size();++aK)
     {
-        unsigned int nbNeighb = 0; // number of neighbour with same image index
-        cTriangle * Tri = getTriangle(aK);
-        vector <cTriangle *> neighb = Tri->getNeighbours();
-
-        if (neighb.size())
+        int triIdx = aK;// missing[aK];
+        if (triangleIdxSet.find(triIdx) == triangleIdxSet.end())
         {
-            neighb.push_back(neighb[0]);
+            cTriangle * Tri = getTriangle(triIdx);
+            vector <cTriangle *> neighb = Tri->getNeighbours();
 
-            int neighbIndex = -1;
-            int textImgIndex = -1;
-            for (unsigned int cK=0; cK < neighb.size()-1;cK++)
+            if (neighb.size())
             {
-                if ( (neighb[cK]->getTextureImgIndex() == neighb[cK+1]->getTextureImgIndex()))
-                {
-                    neighbIndex = neighb[cK]->getIdx();
-                    nbNeighb++;
-                    textImgIndex = neighb[cK]->getTextureImgIndex();
-                }
-            }
+                unsigned int nbNeighb = 0; // number of neighbours with same image index
+                int neighbIndex  = -1;
+                int textImgIndex = -1;
 
-            if ((nbNeighb == 3) || ((nbNeighb == 2) && Tri->getEdgesNumber() == 2))
-            {
-                //recherche de la region des voisins
-                for(unsigned int bK=0; bK < regions.size(); ++bK)
-                {
-                    std::vector <int> region = regions[bK].triangles;
+                neighb.push_back(neighb[0]);
 
-                    if (find(region.begin(), region.end(), neighbIndex) != region.end())
+                for (unsigned int cK=0; cK < neighb.size()-1;cK++)
+                {
+                    if ( (neighb[cK]->getTextureImgIndex() == neighb[cK+1]->getTextureImgIndex()))
                     {
-                        regions[bK].triangles.push_back(aK);
-                        Tri->setTextureImgIndex(textImgIndex);
+                        nbNeighb++;
+                        neighbIndex  = neighb[cK]->getIdx();
+                        textImgIndex = neighb[cK]->getTextureImgIndex();
                     }
                 }
+
+                if (nbNeighb == 0)
+                {
+                    cout << "BAD CANDIDATE= " << triIdx << endl;
+                    neighb.pop_back();
+                    for (unsigned int cK=0; cK < neighb.size();cK++)
+                    {
+                        if ( (neighb[cK]->getTextureImgIndex() == Tri->getTextureImgIndex()))
+                        {
+                            neighbIndex = neighb[cK]->getIdx();
+                            textImgIndex = neighb[cK]->getTextureImgIndex();
+                        }
+                    }
+                    cout << "neighbIndex " << neighbIndex << endl;
+                    cout << "textImgIndex " << textImgIndex << endl;
+                }
+
+               // if (/*(Tri->getTextureImgIndex() != textImgIndex) &&*/ (nbNeighb >= 1))
+                {
+                    cpt++;
+                    //recherche de la region des voisins
+                    for(unsigned int bK=0; bK < regions.size(); ++bK)
+                    {
+                        std::vector <int> region = regions[bK].triangles;
+
+                        if (find(region.begin(), region.end(), neighbIndex) != region.end())
+                        {
+
+                            regions[bK].triangles.push_back(triIdx);
+                            Tri->setTextureImgIndex(textImgIndex);
+                        }
+                    }
+                }
+
             }
+            else cout << "NO NEIGHBOURS!!!!!!" << endl;
         }
     }
+    cout << "cpt = " << cpt << endl;
 
     /*cout << "****************** Resultat *********************" << endl;
     cout << endl;
@@ -820,6 +922,94 @@ std::vector<cTextRect> cMesh::getRegions()
 
     return regions;
 }
+
+void cMesh::write(const string & aOut, bool aBin, const string & textureFilename)
+{
+    string mode = aBin ? "wb" : "w";
+    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+
+    FILE * file = FopenNN(aOut, mode, "UV Mapping");         //Ecriture du header
+    fprintf(file,"ply\n");
+    fprintf(file,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
+    fprintf(file,"comment UV Mapping generated\n");
+    fprintf(file,"comment TextureFile %s\n", textureFilename.c_str());
+    fprintf(file,"element vertex %i\n", getVertexNumber());
+    fprintf(file,"property float x\n");
+    fprintf(file,"property float y\n");
+    fprintf(file,"property float z\n");
+    fprintf(file,"element face %i\n",getFacesNumber());
+    fprintf(file,"property list uchar int vertex_indices\n");
+    fprintf(file,"property list uchar float texcoord\n");
+    fprintf(file,"end_header\n");
+
+    Pt3dr pt;
+    if (aBin)
+    {
+        for(int aK=0; aK< getVertexNumber(); aK++)
+        {
+            pt = getVertex(aK);
+
+            WriteType(file,float(pt.x));
+            WriteType(file,float(pt.y));
+            WriteType(file,float(pt.z));
+        }
+
+        for(int aK=0; aK< getFacesNumber(); aK++)
+        {
+            cTriangle * face = &(mTriangles[aK]);
+
+            int t1, t2, t3;
+            face->getVertexesIndexes(t1, t2, t3);
+
+            Pt2dr p1, p2, p3;
+            face->getTextureCoordinates(p1, p2, p3);
+
+            WriteType(file,(unsigned char)3);
+            WriteType(file,t1);
+            WriteType(file,t2);
+            WriteType(file,t3);
+
+            if (p1.x || p1.y || p2.x || p2.y || p3.x || p3.y)
+            {
+                WriteType(file,(unsigned char)6);
+                WriteType(file,(float) p1.x);
+                WriteType(file,(float) p1.y);
+                WriteType(file,(float) p2.x);
+                WriteType(file,(float) p2.y);
+                WriteType(file,(float) p3.x);
+                WriteType(file,(float) p3.y);
+            }
+            else
+                WriteType(file,(unsigned char)0);
+        }
+    }
+    else
+    {
+        for(int aK=0; aK< getVertexNumber(); aK++)
+        {
+            pt = getVertex(aK);
+            fprintf(file,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+        }
+
+        for(int aK=0; aK< getFacesNumber(); aK++)
+        {
+            cTriangle * face = &(mTriangles[aK]);
+            int t1, t2, t3;
+            face->getVertexesIndexes(t1, t2, t3);
+
+            fprintf(file,"3 %i %i %i ",t1,t2,t3);
+
+            Pt2dr p1, p2, p3;
+            face->getTextureCoordinates(p1, p2, p3);
+
+            if (p1.x || p1.y || p2.x || p2.y || p3.x || p3.y)
+                fprintf(file,"6 %f %f %f %f %f %f\n",p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);
+            else
+                fprintf(file,"0\n");
+        }
+    }
+}
+
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------

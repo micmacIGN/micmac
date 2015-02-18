@@ -112,6 +112,8 @@ class cMesh
 
         std::vector< cTextRect > getRegions();
 
+        void        write(const string & aOut, bool aBin, const string & textureFilename);
+
     private:
 
         vector <Pt3dr>		mVertexes;
@@ -178,7 +180,7 @@ class cTriangle
 
         REAL	computeEnergy(int img_idx);
 
-        size_t     getEdgesNumber() { return mTriEdges.size(); }
+        size_t  getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>   getEdgesIndex() { return mTriEdges; }
         vector <cTriangle*> getNeighbours();
@@ -191,9 +193,14 @@ class cTriangle
         void    setTextureImgIndex(int val) { mTextImIdx = val; }
         int     getTextureImgIndex() { return mTextImIdx; }
 
+        void    setTextureCoordinates(const Pt2dr &p0, const Pt2dr &p1, const Pt2dr &p2);
+        void    getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2);
+
         bool    isTextured() { return mTextImIdx != -1; }
 
         bool    operator==( const cTriangle & ) const;
+
+        void    write(FILE* file, bool aBin);
 
     private:
 
@@ -206,6 +213,10 @@ class cTriangle
         int                         mTextImIdx;
 
         cMesh       *               pMesh;
+
+        Pt2dr                       mText0;         //Texture Coordinates
+        Pt2dr                       mText1;
+        Pt2dr                       mText2;
 };
 
 //--------------------------------------------------------------------------------------------------------------
