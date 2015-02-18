@@ -273,8 +273,10 @@ std::cout << "CPT " << aCpt << "\n";
      {
           aNbStepMax  = NbStep;
 
-          if (aNbStepMax > 5)
-            std::cout  << "NB-STEP-MAX " << aNbStepMax  << " P=" << aPt << "Inv=" << anEstim0<< "\n";
+          if ((aNbStepMax > 5) && MPD_MM())
+          {
+               std::cout  << "NB-STEP-MAX " << aNbStepMax  << " P=" << aPt << "Inv=" << anEstim0<< "\n";
+          }
      }
 
      return anEstim0;
