@@ -293,7 +293,7 @@ std::string  cInterfChantierNameManipulateur::DBNameTransfo
                           aNameCamUsed += *aC;
                           IsLastBlk = false;
                       }
-                      else if (isblank(*aC))
+                      else if (ElIsBlank(*aC))		
                       { 
                           if (!IsLastBlk)
                           {

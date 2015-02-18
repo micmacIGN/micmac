@@ -35,7 +35,7 @@ public:
     /// \param targetSyst système de projection cible, par defaut targetSyst="+init=IGNF:LAMB93"
     /// \return
     ///
-	Pt2dr ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst, std::string inputSyst)const;
+    vector<Pt2dr> empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const;
 
     ///
     /// \brief Application de l'affinité à la grille au point Pimg
@@ -65,7 +65,7 @@ public:
                           double stepPixel,
                           int nbSamp, int  nbLine,
                           std::vector<double> const &vAltitude,
-						  std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
+                          std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
                           std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const;
 
     ///
@@ -86,7 +86,7 @@ public:
                             int nbrSamp, int nbrLine,
                             double stepCarto,
                             std::vector<double> const &vAltitude,
-							std::vector<Pt2dr> &vPtImg, std::string targetSyst, std::string inputSyst,
+                            std::vector<Pt2dr> &vPtImg, std::string targetSyst, std::string inputSyst,
                             std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const;
 
     ///
@@ -104,7 +104,7 @@ public:
     void createGrid(std::string const &nomGrid, std::string const &nomImage,
                     double stepPixel, double stepCarto,
                     double rowCrop, double sampCrop,
-					std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
+                    std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
                     std::vector<double> vRefineCoef)const;
 
     ///
@@ -307,7 +307,7 @@ Pt2dr Dimap::direct(Pt2dr Pimg, double altitude)const
     }
     else
     {
-		std::cout << "Computing error - denominator = 0" << std::endl;
+        std::cout << "Computing error - denominator = 0" << std::endl;
     }
     return Pgeo;
 }
@@ -347,18 +347,23 @@ Pt2dr Dimap::indirect(Pt2dr Pgeo, double altitude, std::vector<double> vRefineCo
     return PimgRefined;
 }
 
-Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst, std::string inputSyst)const
+//Returns the vector [Pt2dr(xmin,ymin),Pt2dr(xmax,ymax)]
+
+vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const
 {
     std::ofstream fic("processing/conv_ptGeo.txt");
     fic << std::setprecision(15);
-    fic << Pgeo.y <<" "<<Pgeo.x<<";"<<std::endl;
+    for (unsigned int i = 0; i<Pgeo.size(); i++)
+    {
+        fic << Pgeo[i].y << " " << Pgeo[i].x << endl;
+    }
     // transformation in the ground coordinate system
     std::string command;
-	command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
+    command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
     int res = system(command.c_str());
-    if (res != 0) std::cout<<"error calling cs2cs in ptGeo2Carto"<<std::endl;
+    ELISE_ASSERT(res == 0, " error calling cs2cs in ptGeo2Carto ");
     // loading the coordinate of the converted point
-    Pt2dr PointCarto;
+    vector<double> PtsCartox, PtsCartoy;
     std::ifstream fic2("processing/conv_ptCarto.txt");
     while(!fic2.eof()&&fic2.good())
     {
@@ -366,13 +371,41 @@ Pt2dr Dimap::ptGeo2Carto(Pt2dr Pgeo, std::string targetSyst, std::string inputSy
         fic2 >> Y >> X >> Z;
         if (fic2.good())
         {
-            PointCarto.x=X;
-            PointCarto.y=Y;
+            PtsCartox.push_back(X);
+            PtsCartoy.push_back(Y);
         }
     }
-	cout << PointCarto << endl;
-    return PointCarto;
+
+    vector<Pt2dr> anEmpriseCarto;
+    anEmpriseCarto.push_back(Pt2dr(*std::min_element(PtsCartox.begin(), PtsCartox.end()), *std::min_element(PtsCartoy.begin(), PtsCartoy.end())));
+    anEmpriseCarto.push_back(Pt2dr(*std::max_element(PtsCartox.begin(), PtsCartox.end()), *std::max_element(PtsCartoy.begin(), PtsCartoy.end())));
+
+    return anEmpriseCarto;
 }
+
+
+/* MPD :
+
+   Sur UBUNTU J'Otiens les erreurs :
+
+home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:51: erreur: ¿begin¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:74: erreur: ¿end¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:114: erreur: ¿begin¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:137: erreur: ¿end¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:51: erreur: ¿begin¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:74: erreur: ¿end¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:114: erreur: ¿begin¿ is not a member of ¿std¿
+/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:137: erreur: ¿end¿ is not a member of ¿std¿
+
+J'imagine qu'il faut remplacer  :
+
+
+   std::begin(PtsCartox)   par PtsCartox.begin()
+
+Mais je prefere que ce soit l'auteur du code qui valide ce changement.
+
+*/
+
 
 Pt2dr Dimap::ptRefined(Pt2dr Pimg, std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
@@ -396,7 +429,7 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
                              double stepPixel,
                              int nbSamp, int  nbLine,
                              std::vector<double> const &vAltitude,
-							 std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
+                             std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
                              std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
     vPtCarto.clear();
@@ -417,32 +450,31 @@ void Dimap::createDirectGrid(double ulcSamp, double ulcLine,
                     Pt2dr PimgRefined = ptRefined(Pimg, vRefineCoef, rowCrop, sampCrop);
 
                     Pt2dr Pgeo = direct(PimgRefined,altitude);
-                    fic << Pgeo.y <<" "<<Pgeo.x<<";"<<std::endl;
+                    fic << Pgeo.y << " " << Pgeo.x << std::endl;
                 }
             }
         }
     }
-	// transformation in the ground coordinate system
+    // transformation in the ground coordinate system
     std::string command;
-	command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
-	int res = system(command.c_str());
+    command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
+    int res = system(command.c_str());
     if (res != 0) std::cout<<"error calling cs2cs in createDirectGrid"<<std::endl;
     // loading points
     std::ifstream fic("processing/direct_ptCarto.txt");
     while(!fic.eof()&&fic.good())
     {
         double X,Y,Z;
-        char c;
-        fic >> Y >> X >> Z >> c;
+        fic >> Y >> X >> Z;
         if (fic.good())
             vPtCarto.push_back(Pt2dr(X,Y));
     }
-    std::cout << "createDirectGrid - Nombre de points lus : "<<vPtCarto.size()<<std::endl;
+    std::cout << "Number of points in direct grid : "<<vPtCarto.size()<<std::endl;
 }
 
 void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLine,
                                double stepCarto, std::vector<double> const &vAltitude,
-							   std::vector<Pt2dr> &vPtImg, std::string targetSyst, std::string inputSyst,
+                               std::vector<Pt2dr> &vPtImg, std::string targetSyst, std::string inputSyst,
                                std::vector<double> vRefineCoef, double rowCrop, double sampCrop)const
 {
     vPtImg.clear();
@@ -457,7 +489,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
             for(int c = 0;c<nbrSamp;++c)
             {
                 double X =ulcX + c*stepCarto;
-                fic << X <<" "<<Y<<";"<<std::endl;
+                fic << X << " " << Y << std::endl;
             }
         }
     }
@@ -475,15 +507,14 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
         while(!fic.eof()&&fic.good())
         {
             double lon ,lat ,Z;
-            char c;
-            fic >> lat  >> lon >> Z >> c;
+            fic >> lat  >> lon >> Z;
             if (fic.good())
             {
                 vPtImg.push_back(indirect(Pt2dr(lat,lon),altitude,vRefineCoef,rowCrop,sampCrop));
             }
         }
     }
-    std::cout << "createIndirectGrid - Nombre de points lus : "<<vPtImg.size()<<std::endl;
+    std::cout << "Number of points in inverse grid : "<<vPtImg.size()<<std::endl;
 }
 
 
@@ -491,7 +522,7 @@ void Dimap::createIndirectGrid(double ulcX, double ulcY, int nbrSamp, int nbrLin
 void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
                 double stepPixel, double stepCarto,
                 double rowCrop, double sampCrop,
-				std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
+                std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
                        std::vector<double> vRefineCoef)const
 {
     double firstSamp = first_col;
@@ -505,36 +536,20 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
     nbSamp=(lastSamp-firstSamp)/stepPixel +1 ;
 
     std::vector<Pt2dr> vPtCarto;
-	createDirectGrid(firstSamp, firstLine, stepPixel, nbSamp, nbLine, vAltitude, vPtCarto, targetSyst, inputSyst, vRefineCoef, rowCrop, sampCrop);
+    createDirectGrid(firstSamp, firstLine, stepPixel, nbSamp, nbLine, vAltitude, vPtCarto, targetSyst, inputSyst, vRefineCoef, rowCrop, sampCrop);
 
-    double xmin,xmax,ymin,ymax;
-    // Pour estimer la zone carto on projette le domaine de validite geo
-    // Recherche de la zone la plus etendue
-	Pt2dr Pcarto = ptGeo2Carto(Pt2dr(first_lat, first_lon), targetSyst, inputSyst);
-    xmin = Pcarto.x;
-    ymin = Pcarto.y;
-    xmax = xmin;
-    ymax = ymin;
-    Pcarto = ptGeo2Carto(Pt2dr(first_lat,last_lon), targetSyst, inputSyst);
-    if (xmin>Pcarto.x) xmin = Pcarto.x;
-    else if (xmax<Pcarto.x) xmax = Pcarto.x;
-    if (ymin>Pcarto.y) ymin = Pcarto.y;
-    else if (ymax<Pcarto.y) ymax = Pcarto.y;
-	Pcarto = ptGeo2Carto(Pt2dr(last_lat, last_lon), targetSyst, inputSyst);
-    if (xmin>Pcarto.x) xmin = Pcarto.x;
-    else if (xmax<Pcarto.x) xmax = Pcarto.x;
-    if (ymin>Pcarto.y) ymin = Pcarto.y;
-    else if (ymax<Pcarto.y) ymax = Pcarto.y;
-	Pcarto = ptGeo2Carto(Pt2dr(last_lat, first_lon), targetSyst, inputSyst);
-    if (xmin>Pcarto.x) xmin = Pcarto.x;
-    else if (xmax<Pcarto.x) xmax = Pcarto.x;
-    if (ymin>Pcarto.y) ymin = Pcarto.y;
-    else if (ymax<Pcarto.y) ymax = Pcarto.y;
+    // Estimation of the validity domaine in cartographic coordinates
+    vector<Pt2dr> cornersGeo;
+    cornersGeo.push_back(Pt2dr(first_lat, first_lon));
+    cornersGeo.push_back(Pt2dr(first_lat, last_lon));
+    cornersGeo.push_back(Pt2dr(last_lat, last_lon));
+    cornersGeo.push_back(Pt2dr(last_lat, first_lon));
+    vector<Pt2dr> anEmpriseCarto = empriseCarto(cornersGeo, targetSyst, inputSyst);
 
-    //Coins sup gauche et inf droit du domaine de validite RPC inverse
-    Pt2dr urc(xmax,ymax);
-    Pt2dr llc(xmin,ymin);
-    std::cout << "Emprise carto : "<<llc.x<<" "<<urc.y<<" "<<urc.x<<" "<<llc.y<<std::endl;
+    //Corners of the validity domaine of the inverse RPC
+    Pt2dr urc(anEmpriseCarto[1].x, anEmpriseCarto[1].y);
+    Pt2dr llc(anEmpriseCarto[0].x, anEmpriseCarto[0].y);
+    std::cout << "Corners of the area : " << llc << " " << urc << std::endl;
 
     //Indirect nbr Lignes et colonnes + step last ligne et colonne
     int nbrLine, nbrSamp;
@@ -544,7 +559,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
     std::vector<Pt2dr> vPtImg;
     //Calcul des coefficients de l'affinite pour la transformation inverse
     std::vector<double> vRefineCoefInv;
-    {
+
         double A0 = vRefineCoef[0];
         double A1 = vRefineCoef[1];
         double A2 = vRefineCoef[2];
@@ -567,12 +582,10 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
         vRefineCoefInv.push_back(IB0);
         vRefineCoefInv.push_back(IB1);
         vRefineCoefInv.push_back(IB2);
-    }
 
-    createIndirectGrid( xmin, ymax,nbrSamp,nbrLine,stepCarto,vAltitude,vPtImg,
-                       targetSyst, inputSyst, vRefineCoefInv, rowCrop, sampCrop);
+    createIndirectGrid(llc.x, urc.y, nbrSamp, nbrLine, stepCarto, vAltitude, vPtImg,
+        targetSyst, inputSyst, vRefineCoefInv, rowCrop, sampCrop);
 
-    //Writing the grid
     //Creating grid and writing flux
 
     std::ofstream writeGrid(nomGrid.c_str());
@@ -639,6 +652,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
 
 // For the direct grid
         writeGrid <<"\t<multi_grid version=\"1\" name=\"1-2\" >"<<std::endl;
+        /*
             std::stringstream ssUL;
             std::stringstream ssStepPix;
             std::stringstream ssNumbCol;
@@ -655,11 +669,12 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
             sStepPix=ssStepPix.str();
             sNumbCol=ssNumbCol.str();
             sNumbLine=ssNumbLine.str();
-            writeGrid <<"\t\t<upper_left>"<<sUpperLeft<<"</upper_left>"<<std::endl;
-            writeGrid <<"\t\t<columns_interval>"<<sStepPix<<"</columns_interval>"<<std::endl;
-            writeGrid <<"\t\t<rows_interval>"<<"-"+sStepPix<<"</rows_interval>"<<std::endl;
-            writeGrid <<"\t\t<columns_number>"<<sNumbCol<<"</columns_number>"<<std::endl;
-            writeGrid <<"\t\t<rows_number>"<<sNumbLine<<"</rows_number>"<<std::endl;
+            */
+            writeGrid << "\t\t<upper_left>" << std::setprecision(15) << firstSamp - sampCrop << "  " << std::setprecision(15) << firstLine - rowCrop << "</upper_left>" << std::endl;
+            writeGrid << "\t\t<columns_interval>" << stepPixel << "</columns_interval>" << std::endl;
+            writeGrid << "\t\t<rows_interval>" << "-" << stepPixel << "</rows_interval>" << std::endl;
+            writeGrid << "\t\t<columns_number>" << nbSamp << "</columns_number>" << std::endl;
+            writeGrid << "\t\t<rows_number>" << nbLine << "</rows_number>" << std::endl;
             writeGrid <<"\t\t<components_number>"<<"2"<<"</components_number>"<<std::endl;
             std::vector<Pt2dr>::const_iterator it = vPtCarto.begin();
 
@@ -690,6 +705,7 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
 
 // For the inverse grid
         writeGrid <<"\t<multi_grid version=\"1\" name=\"2-1\" >"<<std::endl;
+        /*
             std::stringstream ssULInv;
             std::stringstream ssStepCarto;
             std::stringstream ssNumbColInv;
@@ -706,11 +722,12 @@ void Dimap::createGrid(std::string const &nomGrid, std::string const &nomImage,
             sStepCarto=ssStepCarto.str();
             sNumbColInv=ssNumbColInv.str();
             sNumbLineInv=ssNumbLineInv.str();
-            writeGrid <<"\t\t<upper_left>"<<sUpperLeftInv<<"</upper_left>"<<std::endl;
-            writeGrid <<"\t\t<columns_interval>"<<sStepCarto<<"</columns_interval>"<<std::endl;
-            writeGrid <<"\t\t<rows_interval>"<<sStepCarto<<"</rows_interval>"<<std::endl;
-            writeGrid <<"\t\t<columns_number>"<<sNumbColInv<<"</columns_number>"<<std::endl;
-            writeGrid <<"\t\t<rows_number>"<<sNumbLineInv<<"</rows_number>"<<std::endl;
+            */
+            writeGrid << "\t\t<upper_left>" << std::setprecision(15) << vPtCarto[0].x << "  " << std::setprecision(15) << vPtCarto[0].y << "</upper_left>" << std::endl;
+            writeGrid << "\t\t<columns_interval>" << std::setprecision(15) << stepCarto << "</columns_interval>" << std::endl;
+            writeGrid << "\t\t<rows_interval>" << std::setprecision(15) << stepCarto << "</rows_interval>" << std::endl;
+            writeGrid << "\t\t<columns_number>" << nbrSamp << "</columns_number>" << std::endl;
+            writeGrid << "\t\t<rows_number>" << nbrLine << "</rows_number>" << std::endl;
             writeGrid <<"\t\t<components_number>"<<"2"<<"</components_number>"<<std::endl;
             std::vector<Pt2dr>::const_iterator it2 = vPtImg.begin();
 
@@ -924,7 +941,7 @@ int Dimap2Grid_main(int argc, char **argv)
 {
     std::string aNameFileDimap; // fichier Dimap
     std::string aNameImage;     // nom de l'image traitee
-	std::string inputSyst = "+proj=latlong +datum=WGS84 "; //+ellps=WGS84"; //input syst proj
+    std::string inputSyst = "+proj=latlong +datum=WGS84 "; //+ellps=WGS84"; //input syst proj
     std::string targetSyst="+init=IGNF:LAMB93";//systeme de projection cible - format proj4
     std::string refineCoef="processing/refineCoef.txt";
 
@@ -973,12 +990,12 @@ int Dimap2Grid_main(int argc, char **argv)
     std::vector<double> vAltitude;
     for(int i=0;i<nbLayers;++i)
         vAltitude.push_back(altiMin+i*(altiMax-altiMin)/(nbLayers-1));
-	
+
     /* ISN'T THIS USELESS??
-	//Parser du targetSyst
+    //Parser du targetSyst
     std::size_t found = targetSyst.find_first_of("+");
-	std::string str = "+";
-	std::vector<int> position;
+    std::string str = "+";
+    std::vector<int> position;
     while (found!=std::string::npos)
     {
         targetSyst[found]=' ';
@@ -987,8 +1004,8 @@ int Dimap2Grid_main(int argc, char **argv)
     }
     for (int i=position.size()-1; i>-1;i--)
         targetSyst.insert(position[i]+1,str);
-	*/
-	
+    */
+
     //recuperation des coefficients pour affiner le modele
     std::vector<double> vRefineCoef;
     std::ifstream ficRead(refineCoef.c_str());

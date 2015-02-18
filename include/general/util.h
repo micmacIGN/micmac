@@ -520,6 +520,8 @@ class cRandNParmiQ
         int mQ;
 };
 
+std::vector<int> RandPermut(int aN);
+
 
 extern void NRrandom3InitOfTime();
 extern int  NRrandom3 (int aN);  // 0 <= X < N

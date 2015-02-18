@@ -53,6 +53,28 @@ class cZBuf;
 
 typedef Graph <float,float,float> RGraph;
 
+class cTextRect
+{
+public:
+
+    cTextRect(std::vector <int> aTriangles);
+
+    void  setRect(int aImgIdx, Pt2di aP0, Pt2di aP1);
+    int   width() { return p1.x - p0.x; }
+    Pt2di size()  { return p1 - p0; }
+
+    int imgIdx;
+    Pt2di p0; // coin hg
+    Pt2di p1; // coin bd
+
+    bool  rotation; //has texture been rotated
+    Pt2di translation; //position of texture in full texture image
+
+    std::vector<int> triangles;
+
+    bool    operator==( const cTextRect & ) const;
+};
+
 class cMesh
 {
     friend class cTriangle;
@@ -77,7 +99,7 @@ class cMesh
 
         void		addPt(const Pt3dr &aPt);
         void		addTriangle(const cTriangle &aTri);
-        void		addEdge(const cEdge &aEdge);
+        void		addEdge(int aK, int bK, int idc0, int idc1);
 
         void        removeTriangle(cTriangle &aTri);
 
@@ -88,7 +110,9 @@ class cMesh
 
         void        clean();
 
-        std::vector< std::vector<int> > getRegions();
+        std::vector< cTextRect > getRegions();
+
+        void        write(const string & aOut, bool aBin, const string & textureFilename);
 
     private:
 
@@ -156,7 +180,7 @@ class cTriangle
 
         REAL	computeEnergy(int img_idx);
 
-        int     getEdgesNumber() { return mTriEdges.size(); }
+        size_t  getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>   getEdgesIndex() { return mTriEdges; }
         vector <cTriangle*> getNeighbours();
@@ -169,9 +193,14 @@ class cTriangle
         void    setTextureImgIndex(int val) { mTextImIdx = val; }
         int     getTextureImgIndex() { return mTextImIdx; }
 
+        void    setTextureCoordinates(const Pt2dr &p0, const Pt2dr &p1, const Pt2dr &p2);
+        void    getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2);
+
         bool    isTextured() { return mTextImIdx != -1; }
 
         bool    operator==( const cTriangle & ) const;
+
+        void    write(FILE* file, bool aBin);
 
     private:
 
@@ -184,6 +213,10 @@ class cTriangle
         int                         mTextImIdx;
 
         cMesh       *               pMesh;
+
+        Pt2dr                       mText0;         //Texture Coordinates
+        Pt2dr                       mText1;
+        Pt2dr                       mText2;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -221,12 +254,12 @@ class cEdge
 class cZBuf
 {
     public:
-                cZBuf(Pt2di sz = Pt2di(0,0), float defVal = 0.f);
+                cZBuf(Pt2di sz = Pt2di(0,0), float defVal = 0.f, int aScale=1.f);
 
                 ~cZBuf();
 
-        Im2D_REAL4	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
-        Im2D_REAL4  BasculerUnMaillage(cMesh const &aMesh, CamStenope const & aCam);
+        void	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
+        void    BasculerUnMaillage(cMesh const &aMesh, CamStenope const & aCam);
 
         void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
 
@@ -242,9 +275,12 @@ class cZBuf
         void					setSelfSz(){mSzRes = mNuage->SzUnique();} //temp
         void					setMaxAngle(double aAngle){mMaxAngle = aAngle;}
 
-        Pt2di					Sz(){return mSzRes;}
+        Pt2di					Sz(){return mSzRes / mScale;}
 
+        Im2D_REAL4              get() { return mRes; }
 
+        void                    write(string filename);
+        void                    writeImLabel(string filename);
 
     private:
 
@@ -264,6 +300,8 @@ class cZBuf
         vector <unsigned int>	vTri;			//list of visible triangles (contained in the label image)
 
         cElNuage3DMaille *		mNuage;
+
+        int                     mScale;         //Downscale factor
 };
 
 #endif // _ELISE_CMESH

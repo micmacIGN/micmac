@@ -707,7 +707,7 @@ public:
 
     void showMessages(bool show) { _bDrawMessages = show; }
 
-    int size(){ return m_messagesToDisplay.size(); }
+    size_t size(){ return m_messagesToDisplay.size(); }
 
     void    glRenderText(QString text,QPointF pt,QColor color);
 

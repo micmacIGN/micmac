@@ -44,6 +44,38 @@ static const REAL Eps = 1e-7;
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
+// cTextRect
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
+cTextRect::cTextRect(std::vector<int> aTriangles):
+    imgIdx(-1),
+    p0(Pt2di(0,0)),
+    p1(Pt2di(0,0)),
+    rotation(false),
+    translation(Pt2di(0,0)),
+    triangles(aTriangles)
+{}
+
+void cTextRect::setRect(int aImgIdx, Pt2di aP0, Pt2di aP1)
+{
+    imgIdx = aImgIdx;
+    p0 = aP0;
+    p1 = aP1;
+}
+
+bool cTextRect::operator==( const cTextRect & aTR ) const
+{
+    return (imgIdx == aTR.imgIdx) &&
+            (p0 == aTR.p0) &&
+            (p1 == aTR.p1) &&
+            (rotation == aTR.rotation) &&
+            (translation == aTR.translation) &&
+            (triangles == aTR.triangles);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
 // cTriangle
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
@@ -63,7 +95,10 @@ cTriangle::cTriangle(cMesh *aMesh, vector <int> const &idx, int TriIdx):
     mTriIdx(TriIdx),
     mTriVertex(idx),
     mTextImIdx(mDefTextImIdx),
-    pMesh(aMesh)
+    pMesh(aMesh),
+    mText0(Pt2dr()),
+    mText1(Pt2dr()),
+    mText2(Pt2dr())
 {
 }
 
@@ -189,6 +224,20 @@ void cTriangle::setVertexIndex(unsigned int pos, int val)
         mTriVertex[pos] = val;
 }
 
+void cTriangle::setTextureCoordinates(Pt2dr const &p0, Pt2dr const &p1, Pt2dr const &p2)
+{
+    mText0 = p0;
+    mText1 = p1;
+    mText2 = p2;
+}
+
+void cTriangle::getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2)
+{
+    p0 = mText0;
+    p1 = mText1;
+    p2 = mText2;
+}
+
 void cTriangle::removeEdge(int idx)
 {
     bool found = false;
@@ -225,8 +274,41 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
              (mTriEdges   ==  aTr.mTriEdges)  &&
              (mTextImIdx  ==  aTr.mTextImIdx) &&
              (mAttributes ==  aTr.mAttributes)
-           );
+             );
 }
+
+void cTriangle::write(FILE* file, bool aBin)
+{
+    if (aBin)
+    {
+        WriteType(file,(unsigned char)3);
+        WriteType(file,mTriVertex[0]);
+        WriteType(file,mTriVertex[1]);
+        WriteType(file,mTriVertex[2]);
+        if (mText0.x || mText0.y || mText1.x || mText1.y || mText2.x || mText2.y)
+        {
+            WriteType(file,(unsigned char)6);
+            WriteType(file,(float) mText0.x);
+            WriteType(file,(float) mText0.y);
+            WriteType(file,(float) mText1.x);
+            WriteType(file,(float) mText1.y);
+            WriteType(file,(float) mText2.x);
+            WriteType(file,(float) mText2.y);
+        }
+        else
+            WriteType(file,(unsigned char)0);
+    }
+    else
+    {
+        fprintf(file,"3 %i %i %i ",mTriVertex[0],mTriVertex[1],mTriVertex[2]);
+
+        if (mText0.x || mText0.y || mText1.x || mText1.y || mText2.x || mText2.y)
+            fprintf(file,"6 %f %f %f %f %f %f\n",mText0.x,mText0.y,mText1.x,mText1.y,mText2.x,mText2.y);
+        else
+            fprintf(file,"0\n");
+    }
+}
+
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 // cMesh
@@ -383,11 +465,7 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
                         printf ("found adjacent triangles : %d %d - vertex : %d %d\n", aK, bK, idc0, idc1);
                     #endif
 
-                    addEdge(cEdge(aK, bK, idc0, idc1));
-                    int idx = getEdgesNumber() - 1;
-                    //cout << "adding edge " << idx << endl;
-                    mTriangles[aK].addEdge(idx);
-                    mTriangles[bK].addEdge(idx);
+                    addEdge(aK, bK, idc0, idc1);
                 }
             }
         }
@@ -422,9 +500,14 @@ void cMesh::addTriangle(const cTriangle &aTri)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cMesh::addEdge(const cEdge &aEdge)
+void cMesh::addEdge(int aK, int bK, int idc0, int idc1)
 {
-    mEdges.push_back(aEdge);
+    mEdges.push_back(cEdge(aK, bK, idc0, idc1));
+
+    int idx = mEdges.size() - 1;
+    //cout << "adding edge " << idx << endl;
+    mTriangles[aK].addEdge(idx);
+    mTriangles[bK].addEdge(idx);
 }
 
 void cMesh::removeTriangle(cTriangle &aTri)
@@ -687,46 +770,121 @@ void cMesh::clean()
     }
 }
 
-std::vector< std::vector <int> > cMesh::getRegions()
+std::vector<cTextRect> cMesh::getRegions()
 {
     int defVal = cTriangle::getDefTextureImgIndex();
     std::set < int > triangleIdxSet;
-    std::vector< std::vector <int> > regions;
+    std::vector < cTextRect > regions;
 
     for (int aK=0; aK < getFacesNumber();++aK)
     {
         std::vector <int> myList;
-        myList.push_back(aK);
+        if ((getTriangle(aK)->getTextureImgIndex() != defVal) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
+            myList.push_back(aK);
 
         for (unsigned int bK=0; bK < myList.size();++bK)
         {
+            //cout << "triangle " << myList[bK] << endl;
             cTriangle * Tri = getTriangle(myList[bK]);
 
             int imgIdx = Tri->getTextureImgIndex();
             if (imgIdx != defVal)
             {
-                triangleIdxSet.insert(Tri->getIdx());
-
                 vector <cTriangle *> neighb = Tri->getNeighbours();
 
+                bool found = false;
                 for (unsigned int cK=0; cK < neighb.size();++cK)
                 {
                     int triIdx = neighb[cK]->getIdx();
-                    if (triangleIdxSet.find(triIdx)== triangleIdxSet.end() &&
+                    if ((triangleIdxSet.find(triIdx) == triangleIdxSet.end()) &&
                             (neighb[cK]->getTextureImgIndex() == imgIdx))
                     {
+                        found = true;
                         myList.push_back(triIdx);
+
                         triangleIdxSet.insert(triIdx);
                     }
                 }
+                if (found)
+                    triangleIdxSet.insert(Tri->getIdx());
             }
         }
 
         //cout << "myList.size() = " << myList.size() << endl;
 
-        if (myList.size() > 1) //TODO: à retirer si on veut texturer les triangles isolés
-            regions.push_back(myList);
+        if (myList.size() > 1)
+        {
+            regions.push_back(cTextRect(myList));
+        }
     }
+
+    //recherche des triangles isolés (trous dans les regions)
+
+    //int cpt = 0;
+    for (int aK=0; aK < getFacesNumber();++aK)
+    {
+        int triIdx = aK;
+        if (triangleIdxSet.find(triIdx) == triangleIdxSet.end())
+        {
+            cTriangle * Tri = getTriangle(triIdx);
+            vector <cTriangle *> neighb = Tri->getNeighbours();
+
+            if (neighb.size())
+            {
+                unsigned int nbNeighb = 0; // number of neighbours with same image index
+                int neighbIndex  = -1;
+                int textImgIndex = -1;
+
+                neighb.push_back(neighb[0]);
+
+                for (unsigned int cK=0; cK < neighb.size()-1;cK++)
+                {
+                    if ( (neighb[cK]->getTextureImgIndex() == neighb[cK+1]->getTextureImgIndex()))
+                    {
+                        nbNeighb++;
+                        neighbIndex  = neighb[cK]->getIdx();
+                        textImgIndex = neighb[cK]->getTextureImgIndex();
+                    }
+                }
+
+                /*if (nbNeighb == 0)
+                {
+                    cout << "BAD CANDIDATE= " << triIdx << endl;
+                    neighb.pop_back();
+                    for (unsigned int cK=0; cK < neighb.size();cK++)
+                    {
+                        if ( (neighb[cK]->getTextureImgIndex() == Tri->getTextureImgIndex()))
+                        {
+                            neighbIndex = neighb[cK]->getIdx();
+                            textImgIndex = neighb[cK]->getTextureImgIndex();
+                        }
+                    }
+                    cout << "neighbIndex " << neighbIndex << endl;
+                    cout << "textImgIndex " << textImgIndex << endl;
+                }*/
+
+                if (/*(Tri->getTextureImgIndex() != textImgIndex) &&*/ (nbNeighb >= 1))
+                {
+                    //cpt++;
+                    //recherche de la region des voisins
+                    for(unsigned int bK=0; bK < regions.size(); ++bK)
+                    {
+                        std::vector <int> region = regions[bK].triangles;
+
+                        if (find(region.begin(), region.end(), neighbIndex) != region.end())
+                        {
+
+                            regions[bK].triangles.push_back(triIdx);
+                            Tri->setTextureImgIndex(textImgIndex);
+                        }
+                    }
+                }
+
+            }
+            //else cout << "NO NEIGHBOURS!!!!!!" << endl;
+        }
+    }
+    //cout << "cpt = " << cpt << endl;
 
     /*cout << "****************** Resultat *********************" << endl;
     cout << endl;
@@ -743,21 +901,110 @@ std::vector< std::vector <int> > cMesh::getRegions()
     return regions;
 }
 
+void cMesh::write(const string & aOut, bool aBin, const string & textureFilename)
+{
+    string mode = aBin ? "wb" : "w";
+    string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
+
+    FILE * file = FopenNN(aOut, mode, "UV Mapping");         //Ecriture du header
+    fprintf(file,"ply\n");
+    fprintf(file,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
+    fprintf(file,"comment UV Mapping generated\n");
+    fprintf(file,"comment TextureFile %s\n", textureFilename.c_str());
+    fprintf(file,"element vertex %i\n", getVertexNumber());
+    fprintf(file,"property float x\n");
+    fprintf(file,"property float y\n");
+    fprintf(file,"property float z\n");
+    fprintf(file,"element face %i\n",getFacesNumber());
+    fprintf(file,"property list uchar int vertex_indices\n");
+    fprintf(file,"property list uchar float texcoord\n");
+    fprintf(file,"end_header\n");
+
+    Pt3dr pt;
+    if (aBin)
+    {
+        for(int aK=0; aK< getVertexNumber(); aK++)
+        {
+            pt = getVertex(aK);
+
+            WriteType(file,float(pt.x));
+            WriteType(file,float(pt.y));
+            WriteType(file,float(pt.z));
+        }
+
+        for(int aK=0; aK< getFacesNumber(); aK++)
+        {
+            cTriangle * face = &(mTriangles[aK]);
+
+            int t1, t2, t3;
+            face->getVertexesIndexes(t1, t2, t3);
+
+            Pt2dr p1, p2, p3;
+            face->getTextureCoordinates(p1, p2, p3);
+
+            WriteType(file,(unsigned char)3);
+            WriteType(file,t1);
+            WriteType(file,t2);
+            WriteType(file,t3);
+
+            if (p1.x || p1.y || p2.x || p2.y || p3.x || p3.y)
+            {
+                WriteType(file,(unsigned char)6);
+                WriteType(file,(float) p1.x);
+                WriteType(file,(float) p1.y);
+                WriteType(file,(float) p2.x);
+                WriteType(file,(float) p2.y);
+                WriteType(file,(float) p3.x);
+                WriteType(file,(float) p3.y);
+            }
+            else
+                WriteType(file,(unsigned char)0);
+        }
+    }
+    else
+    {
+        for(int aK=0; aK< getVertexNumber(); aK++)
+        {
+            pt = getVertex(aK);
+            fprintf(file,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+        }
+
+        for(int aK=0; aK< getFacesNumber(); aK++)
+        {
+            cTriangle * face = &(mTriangles[aK]);
+            int t1, t2, t3;
+            face->getVertexesIndexes(t1, t2, t3);
+
+            fprintf(file,"3 %i %i %i ",t1,t2,t3);
+
+            Pt2dr p1, p2, p3;
+            face->getTextureCoordinates(p1, p2, p3);
+
+            if (p1.x || p1.y || p2.x || p2.y || p3.x || p3.y)
+                fprintf(file,"6 %f %f %f %f %f %f\n",p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);
+            else
+                fprintf(file,"0\n");
+        }
+    }
+}
+
+
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 // cZBuf
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cZBuf::cZBuf(Pt2di sz, float defVal) :
+cZBuf::cZBuf(Pt2di sz, float defVal, int aScale) :
 mSzRes		(sz),
 mImTriIdx   (1,1),
 mImMask     (1,1),
 mRes        (1,1),
 mDataRes    (0),
 mDpDef      (defVal),
-mIdDef      (USHRT_MAX),
-mNuage		(0)
+mIdDef      (INT_MAX),
+mNuage		(0),
+mScale      (aScale)
 {
 }
 
@@ -769,7 +1016,7 @@ cZBuf::~cZBuf(){}
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh const &aMesh)
+void cZBuf::BasculerUnMaillage(cMesh const &aMesh)
 {
     mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,mDpDef);
     mDataRes = mRes.data();
@@ -782,15 +1029,14 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(cMesh const &aMesh)
     {
         BasculerUnTriangle(vTriangles[aK]);
     }
-
-    return mRes;
 }
 
-Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
+void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
 {
-    mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,mDpDef);
+    Pt2di SzRes = mSzRes / mScale;
+    mRes = Im2D_REAL4(SzRes.x,SzRes.y,mDpDef);
     mDataRes = mRes.data();
-    mImTriIdx = Im2D_INT4(mSzRes.x,mSzRes.y, mIdDef);
+    mImTriIdx = Im2D_INT4(SzRes.x,SzRes.y, mIdDef);
 
     vector <cTriangle> vTriangles;
     aMesh.getTriangles(vTriangles);
@@ -798,9 +1044,7 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
     vector <bool> vTrianglesPartiels;  //0= ok 1=partiellement vu ou caché
 
     for (unsigned int aK =0; aK<vTriangles.size();++aK)
-    {
         vTrianglesPartiels.push_back(false);
-    }
 
     for (unsigned int aK =0; aK<vTriangles.size();++aK)
     {
@@ -811,9 +1055,9 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
 
         if (Sommets.size() == 3)
         {
-            Pt2dr A2 = aCam.R3toF2(Sommets[0]);
-            Pt2dr B2 = aCam.R3toF2(Sommets[1]);
-            Pt2dr C2 = aCam.R3toF2(Sommets[2]);
+            Pt2dr A2 = aCam.R3toF2(Sommets[0]) / (float) mScale;
+            Pt2dr B2 = aCam.R3toF2(Sommets[1]) / (float) mScale;
+            Pt2dr C2 = aCam.R3toF2(Sommets[2]) / (float) mScale;
 
             Pt2dr AB = B2-A2;
             Pt2dr AC = C2-A2;
@@ -839,7 +1083,7 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
                 Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
                 aP0 = Sup(aP0,Pt2di(0,0));
                 Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
-                aP1 = Inf(aP1,mSzRes-Pt2di(1,1));
+                aP1 = Inf(aP1,SzRes-Pt2di(1,1));
 
 
                 for (INT x=aP0.x ; x<= aP1.x ; x++)
@@ -868,19 +1112,18 @@ Im2D_REAL4 cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
     }
 
     //on enleve les triangles partiellement vus
-    for(int aK=0; aK < mSzRes.x; aK++)
-        for (int bK=0; bK < mSzRes.y; bK++)
+    for(int aK=0; aK < SzRes.x; aK++)
+        for (int bK=0; bK < SzRes.y; bK++)
         {
             int index = mImTriIdx.GetI(Pt2di(aK,bK));
-            if (vTrianglesPartiels[index])
+
+            if ((index != mIdDef) && (vTrianglesPartiels[index]))
             {
                 mDataRes[bK][aK] = mDpDef;
-                mImTriIdx.SetI(Pt2di(aK,bK),USHRT_MAX);
+                mImTriIdx.SetI(Pt2di(aK,bK),mIdDef);
             }
             else if ((index != mIdDef) && (find(vTri.begin(), vTri.end(), index)==vTri.end())) vTri.push_back(index);
         }
-
-    return mRes;
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -1050,6 +1293,68 @@ Im2D_BIN cZBuf::ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMes
     }
 
     return mImMask;
+}
+
+void cZBuf::write(string filename)
+{
+     //conversion du zBuffer en 8 bits
+    Pt2di sz = mRes.sz(); //aZBuffer.Sz();
+    Im2D_U_INT1 Converted(sz.x, sz.y);
+    REAL min = FLT_MAX;
+    REAL max = 0.f;
+    for (int cK=0; cK < sz.x;++cK)
+    {
+        for (int bK=0; bK < sz.y;++bK)
+        {
+            REAL val = mRes.GetR(Pt2di(cK,bK));
+
+            if (val != mDpDef)
+            {
+                max = ElMax(val, max);
+                min = ElMin(val, min);
+            }
+        }
+    }
+
+    printf ("Min, max depth = %4.2f %4.2f\n", min, max );
+
+    for (int cK=0; cK < sz.x;++cK)
+        for (int bK=0; bK < sz.y;++bK)
+            Converted.SetI(Pt2di(cK,bK),(int)((mRes.GetR(Pt2di(cK,bK))-min) *255.f/(max-min)));
+
+    printf ("Saving %s\n", filename.c_str());
+    Tiff_Im::CreateFromIm(Converted, filename);
+    printf ("Done\n");
+}
+
+void cZBuf::writeImLabel(string filename)
+{
+    //conversion de l'img de label en 8 bits
+    Pt2di sz = mImTriIdx.sz();
+    Im2D_U_INT1 LConverted(sz.x, sz.y);
+    int lmin = INT_MAX;
+    int lmax = 0;
+    for (int cK=0; cK < sz.x;++cK)
+    {
+        for (int bK=0; bK < sz.y;++bK)
+        {
+            int val = mImTriIdx.GetI(Pt2di(cK,bK));
+
+            if (val != INT_MAX)
+            {
+                lmax = ElMax(val, lmax);
+                lmin = ElMin(val, lmin);
+            }
+        }
+    }
+
+    for (int cK=0; cK < sz.x;++cK)
+        for (int bK=0; bK < sz.y;++bK)
+            LConverted.SetI(Pt2di(cK,bK),(int)((mImTriIdx.GetI(Pt2di(cK,bK))-lmin) *255.f/(lmax-lmin)));
+
+    printf ("Saving %s\n", filename.c_str());
+    Tiff_Im::CreateFromIm(LConverted, filename);
+    printf ("Done\n");
 }
 
 //--------------------------------------------------------------------------------------------------------------

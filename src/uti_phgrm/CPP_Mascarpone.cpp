@@ -110,47 +110,16 @@ int Mascarpone_main(int argc,char ** argv)
         aZBuffer.setMaxAngle(aAngleMax);
 
         printf ("BasculerUnMaillage\n" );
-        Im2D_REAL4 res = aZBuffer.BasculerUnMaillage(myMesh);
+        aZBuffer.BasculerUnMaillage(myMesh);
 
         #ifdef _DEBUG
-            //convertion du zBuffer en 8 bits
-            Pt2di sz = aZBuffer.Sz();
-            Im2D_U_INT1 Converted = Im2D_U_INT1(sz.x, sz.y);
-            REAL min = FLT_MAX;
-            REAL max = 0.f;
-            for (int cK=0; cK < sz.x;++cK)
-            {
-                for (int bK=0; bK < sz.y;++bK)
-                {
-                    REAL val = res.GetR(Pt2di(cK,bK));
+            string name = StdPrefix(filename) + "_zbuf.tif";
 
-                    if (val > max) max = val;
-                    else if ((val != 0.f) && (val < min)) min = val;
-                }
-            }
+            aZBuffer.write(name);
 
-            printf ("Min, max depth = %4.2f %4.2f\n", min, max );
+            name.replace(name.end()-9, name.end(), "_label.tif");
 
-            for (int cK=0; cK < sz.x;++cK)
-            {
-                for (int bK=0; bK < sz.y;++bK)
-                {
-                    Converted.SetI(Pt2di(cK,bK),(int)((res.GetR(Pt2di(cK,bK))-min) *255.f/(max-min)));
-                }
-            }
-
-            filename = StdPrefix(filename) + "_zbuf.tif";
-            printf ("Saving %s\n", filename.c_str());
-            Tiff_Im::CreateFromIm(Converted, filename);
-            printf ("Done\n");
-
-            //image des labels
-            Im2D_U_INT2 Labels = aZBuffer.getIndexImage();
-
-            filename.replace(filename.end()-9, filename.end(), "_label.tif");
-            printf ("Saving %s\n", filename.c_str());
-            Tiff_Im::CreateFromIm(Labels, filename);
-            printf ("Done\n");
+            aZBuffer.writeImLabel(name);
         #endif
 
         aZBuffer.ComputeVisibleTrianglesIndexes();

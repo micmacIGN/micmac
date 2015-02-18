@@ -448,6 +448,9 @@ extern int  TD_Exemple_main(int argc,char ** argv);
 extern int  TD_Sol1(int argc,char ** argv);
 extern int  TD_Sol2(int argc,char ** argv);
 extern int  TD_Sol3(int argc,char ** argv);
+extern int TD_Match1_main(int argc,char ** argv);
+extern int TD_Match2_main(int argc,char ** argv);
+extern int TD_Match3_main(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -471,6 +474,7 @@ int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
 extern int BasculePtsInRepCam_main(int argc,char ** argv);
+extern int BasculeCamsInRepCam_main(int argc,char ** argv);
 
 
 
@@ -500,6 +504,12 @@ int TestNewOriImage_main(int argc,char ** argv);
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
+
+
+   aRes.push_back(cMMCom("TD1",TD_Match1_main,"Some stuff "));
+   aRes.push_back(cMMCom("TD2",TD_Match2_main,"Some stuff "));
+   aRes.push_back(cMMCom("TD3",TD_Match3_main,"Some stuff "));
+
    aRes.push_back(cMMCom("X1",TD_Sol1,"Some stuff "));
    aRes.push_back(cMMCom("X2",TD_Sol2,"Some stuff "));
    aRes.push_back(cMMCom("X3",TD_Sol3,"Some stuff "));
@@ -577,6 +587,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("CheckAllOri",CheckAllOrient_main,"Check a Folder of Orientation"));
     
     aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
+    aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
     aRes.push_back(cMMCom("TNO",TestNewOriImage_main,"Test New Orientation"));
 
     cCmpMMCom CmpMMCom;
