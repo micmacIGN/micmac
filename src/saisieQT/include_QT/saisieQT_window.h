@@ -203,6 +203,9 @@ protected slots:
     void resizeEvent(QResizeEvent *);
     void moveEvent(QMoveEvent *);
 
+	void setNavigationType(int val);
+
+
 protected:
 
     //! Connects all QT actions to slots

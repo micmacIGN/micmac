@@ -43,6 +43,14 @@ typedef enum
    eDefault
 } eSceneCenterType;
 
+typedef enum
+{
+   eNavig_Ball,
+   eNavig_Orbital,
+} eNavigationType;
+
+
+
 string eToString(const eLANG& langue);
 
 class cParameters
@@ -110,10 +118,13 @@ public:
     void    read();
     void    write();
 
+	eNavigationType eNavigation() const;
+	void setENavigation(const eNavigationType& eNavigation);
+
 private:
-    //! Main window parameters
-    bool        _fullScreen;
-    QPoint      _position;
+	//! Main window parameters
+	bool        _fullScreen;
+	QPoint      _position;
     QPoint      _nbFen;
     QSize       _szFen;
 
@@ -134,6 +145,7 @@ private:
 
     //! Point creation mode
     eTypePts    _eType;
+	eNavigationType _eNavigation;
     double      _sz;
 
     //! Language
@@ -166,6 +178,7 @@ signals:
     void prefixTextEdit(QString);
     void shiftStepChanged(float);
     void setCenterType(int);
+	void setNavigationType(int);
     void langChanged(int);
 
 protected slots:
@@ -182,6 +195,9 @@ protected slots:
     void on_radioButton_centroid_toggled(bool);
     void on_radioButton_bbox_center_toggled(bool);
     void on_radioButton_origin_center_toggled(bool);
+	void on_radioButtonBall_toggled(bool val);
+	void on_radionButtonOrbital_toggled(bool);
+
 
     //!other display settings
     void on_zoomWin_spinBox_valueChanged(int);

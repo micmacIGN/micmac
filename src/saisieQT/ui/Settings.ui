@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>405</width>
-    <height>414</height>
+    <width>424</width>
+    <height>660</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -39,7 +39,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <property name="tabSpacing">
       <number>6</number>
@@ -49,8 +49,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>373</width>
-        <height>262</height>
+        <width>406</width>
+        <height>485</height>
        </rect>
       </property>
       <attribute name="label">
@@ -176,45 +176,66 @@
         </layout>
        </item>
        <item>
-        <widget class="QLabel" name="label_center">
-         <property name="text">
-          <string>Center scene on:</string>
+        <widget class="QGroupBox" name="label_center">
+         <property name="title">
+          <string>Center scene on</string>
          </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="QRadioButton" name="radioButton_bbox_center">
+            <property name="text">
+             <string>Bounding box center</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_centroid">
+            <property name="text">
+             <string>Clouds centroid</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_origin_center">
+            <property name="text">
+             <string>Origin (0,0,0)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <property name="leftMargin">
-          <number>20</number>
+        <widget class="QGroupBox" name="groupBox_nav">
+         <property name="title">
+          <string>Camera navigation</string>
          </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QRadioButton" name="radioButton_bbox_center">
-           <property name="text">
-            <string>Bounding box center</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioButton_centroid">
-           <property name="text">
-            <string>Clouds centroid</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioButton_origin_center">
-           <property name="text">
-            <string>Origin (0,0,0)</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QRadioButton" name="radioButtonBall">
+            <property name="autoFillBackground">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Ball</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radionButtonOrbital">
+            <property name="text">
+             <string>orbital</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_3">
@@ -236,8 +257,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>387</width>
-        <height>249</height>
+        <width>406</width>
+        <height>485</height>
        </rect>
       </property>
       <attribute name="label">
@@ -369,8 +390,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>387</width>
-        <height>249</height>
+        <width>406</width>
+        <height>485</height>
        </rect>
       </property>
       <attribute name="label">
@@ -506,8 +527,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>387</width>
-        <height>249</height>
+        <width>406</width>
+        <height>485</height>
        </rect>
       </property>
       <attribute name="label">

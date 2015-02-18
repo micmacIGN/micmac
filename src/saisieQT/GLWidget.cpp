@@ -10,6 +10,7 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
   , _frameCount(0)
   , _previousTime(0)
   , _currentTime(0)
+  , _matrixManager(eNavig_Ball)
   , _messageManager(this)
   , _widgetId(idx)
   , _params(NULL)
@@ -74,7 +75,7 @@ ContextMenu* GLWidget::contextMenu()
     return &_contextMenu;
 }
 
-void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool doZoom, bool resetPoly)
+void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool doZoom, bool resetPoly, int nav)
 {
     if (aData != NULL)
     {
@@ -116,7 +117,10 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
 
         _matrixManager.setSceneTopo(getGLData()->getPosition(),getGLData()->getBBoxMaxSize());
 
+
+		_matrixManager.setENavigation((eNavigationType)nav);
         resetView(doZoom, showMessage, showCams, true, resetPoly);
+
     }
 	else
 	{
@@ -591,6 +595,17 @@ void GLWidget::setCenterType(int val)
     update();
 }
 
+void GLWidget::setNavigationType(int val)
+{
+	if (hasDataLoaded())
+	{
+		_matrixManager.setENavigation((eNavigationType)val);
+		resetView();
+	}
+
+	update();
+}
+
 void GLWidget::zoomFactor(int percent)
 {
     if (m_bDisplayMode2D)
@@ -739,7 +754,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool showCams, bool res
 
         setOption(cGLData::OpShow_Axis, false);
 
-        setOption(cGLData::OpShow_Grid, m_interactionMode == TRANSFORM_CAMERA);
+		setOption(cGLData::OpShow_Grid, m_interactionMode == TRANSFORM_CAMERA && _matrixManager.eNavigation() != eNavig_Ball);
 
         if (m_interactionMode == SELECTION)
 
@@ -805,6 +820,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         }
         else if (event->button() == Qt::RightButton && polygon())
         {
+
             if (polygon()->isLinear())
             {
                 if (event->modifiers() & Qt::ControlModifier)
@@ -814,8 +830,10 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
                 else
 
                     polygon()->removeNearestOrClose(m_lastPosImage);
-            }
-        }
+			}
+
+			_matrixManager.handleRotation(event->pos());
+        }		
         else if (event->button() == Qt::MiddleButton)
 
             m_lastClickZoom = m_lastPosWindow;
@@ -928,7 +946,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         _matrixManager.translate(dp.x(),dp.y(),0.0);
                     }
                 }
-                else if (event->buttons() == Qt::RightButton)           // ROTATION Z
+				else if (event->buttons() == Qt::RightButton && _matrixManager.eNavigation() == eNavig_Ball)           // ROTATION Z
                     r.z = (float)dPWin.x() / vpWidth();
 
                 _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);

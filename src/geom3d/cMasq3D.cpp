@@ -368,7 +368,7 @@ cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::strin
    // QString filename = "/home/marc/TMP/EPI/Champs/AperiCloud_All2_selectionInfo.xml";
    QString filename = aName.c_str();
    HistoryManager *HM = new HistoryManager();
-   MatrixManager *MM = new MatrixManager();
+   MatrixManager *MM = new MatrixManager(eNavig_Ball);
    bool Ok = HM->load(filename);
    if (!Ok)
    {

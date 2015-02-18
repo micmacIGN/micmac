@@ -331,11 +331,14 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         {
             _Engine->allocAndSetGLData(_appMode, *_params);
 
+			setNavigationType(_params->eNavigation());
+
             if (setGLData)
             {
+
                 for (int aK = 0; aK < nbWidgets();++aK)
                 {
-                    getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
+					getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,_params->eNavigation());
                     getWidget(aK)->setParams(_params);
 
                     if (getWidget(aK)->getHistoryManager()->size())
@@ -571,6 +574,27 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
     if (_appMode == MASK3D)
     {
+		shortcuts.push_back(tr("Navigation 3D"));
+		actions.push_back("");
+
+		shortcuts.push_back(tr("camera rotate x and y"));
+		actions.push_back("Left button \t+ move mouse");
+
+		shortcuts.push_back(tr("camera rotate z"));
+		actions.push_back("Right button \t+ move mouse (only ball navigation)");
+
+		shortcuts.push_back(tr("Zoom"));
+		actions.push_back("wheel or shift + middle button");
+
+		shortcuts.push_back(tr("move"));
+		actions.push_back("middle button + move mouse");
+
+		shortcuts.push_back(tr("move on vertex"));
+		actions.push_back("Double click on vertex");
+
+		shortcuts.push_back(tr(""));
+		actions.push_back("");
+
         shortcuts.push_back(tr("Selection Menu"));
         actions.push_back("");
     }
@@ -700,7 +724,16 @@ void SaisieQtWindow::resizeEvent(QResizeEvent *)
 
 void SaisieQtWindow::moveEvent(QMoveEvent *)
 {
-    _params->setPosition(pos());
+	_params->setPosition(pos());
+}
+
+void SaisieQtWindow::setNavigationType(int val)
+{
+	if (_appMode == MASK3D)
+	{
+			on_actionShow_grid_toggled(val);
+			_ui->actionShow_grid->setChecked(val);
+	}
 }
 
 void SaisieQtWindow::on_actionAdd_inside_triggered()
@@ -874,7 +907,10 @@ void SaisieQtWindow::on_actionSettings_triggered()
         connect(&_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
         connect(&_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
         connect(&_settingsDialog, SIGNAL(setCenterType(int)),          getWidget(aK), SLOT(setCenterType(int)));
-    }
+		connect(&_settingsDialog, SIGNAL(setNavigationType(int)),      getWidget(aK), SLOT(setNavigationType(int)));
+    }	
+
+	connect(&_settingsDialog, SIGNAL(setNavigationType(int)), this, SLOT(setNavigationType(int)));
 
     if (zoomWidget() != NULL)
     {
@@ -1261,7 +1297,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
             loadPly(filenames);
             threeDWidget()->getGLData()->clearClouds();
             dataCache->computeBBox(1);
-            threeDWidget()->getGLData()->setData(dataCache,false, _params->getSceneCenterType());
+			threeDWidget()->getGLData()->setData(dataCache,false, _params->getSceneCenterType());
             threeDWidget()->resetView(false,false,false,false,true);
             option3DPreview();
         }
@@ -1363,7 +1399,7 @@ void SaisieQtWindow::redraw(bool nbWidgetsChanged)
                     _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
 
                     if (cpt < _Engine->getData()->getNbImages())
-                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked());
+						getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,params()->eNavigation());
 
                     cpt++;
                 }

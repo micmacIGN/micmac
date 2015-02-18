@@ -15,7 +15,7 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params, int appMode) : 
 
     list<string> languages = ListOfVal(eEsperanto,"");
     list<string>::const_iterator it = languages.begin();
-    for (; it != languages.end(); it++)
+	for (; it != languages.end(); ++it)
         _ui->comboBox->addItem(QString((*it).c_str()));
 
     refresh();
@@ -79,8 +79,8 @@ void cSettingsDlg::on_radioButton_centroid_toggled(bool val)
 
         emit setCenterType(eCentroid);
 
-        _ui->radioButton_bbox_center->setChecked(false);
-        _ui->radioButton_origin_center->setChecked(false);
+//        _ui->radioButton_bbox_center->setChecked(false);
+//        _ui->radioButton_origin_center->setChecked(false);
     }
 }
 
@@ -92,8 +92,8 @@ void cSettingsDlg::on_radioButton_bbox_center_toggled(bool val)
 
         emit setCenterType(eBBoxCenter);
 
-        _ui->radioButton_centroid->setChecked(false);
-        _ui->radioButton_origin_center->setChecked(false);
+//        _ui->radioButton_centroid->setChecked(false);
+//        _ui->radioButton_origin_center->setChecked(false);
     }
 }
 
@@ -105,9 +105,28 @@ void cSettingsDlg::on_radioButton_origin_center_toggled(bool val)
 
         emit setCenterType(eOriginCenter);
 
-        _ui->radioButton_centroid->setChecked(false);
-        _ui->radioButton_bbox_center->setChecked(false);
-    }
+//        _ui->radioButton_centroid->setChecked(false);
+//        _ui->radioButton_bbox_center->setChecked(false);
+	}
+}
+
+void cSettingsDlg::on_radioButtonBall_toggled(bool val)
+{
+	if (val)
+	{
+		_parameters->setENavigation(eNavig_Ball);
+
+		 emit setNavigationType(eNavig_Ball);
+	}
+}
+
+void cSettingsDlg::on_radionButtonOrbital_toggled(bool val)
+{
+	if (val)
+	{
+		_parameters->setENavigation(eNavig_Orbital);
+		emit setNavigationType(eNavig_Orbital);
+	}
 }
 
 void cSettingsDlg::on_zoomWin_spinBox_valueChanged(int val)
@@ -301,12 +320,20 @@ void cSettingsDlg::refresh()
         _ui->radioButton_bbox_center->hide();
         _ui->radioButton_origin_center->hide();
         _ui->radioButton_centroid->hide();
+
+		_ui->groupBox_nav->hide();
+		_ui->radioButtonBall->hide();
+		_ui->radionButtonOrbital->hide();
+
     }
     else
     {
         _ui->radioButton_bbox_center->setChecked(_parameters->getSceneCenterType()==eBBoxCenter);
         _ui->radioButton_origin_center->setChecked(_parameters->getSceneCenterType()==eOriginCenter);
         _ui->radioButton_centroid->setChecked(_parameters->getSceneCenterType()==eCentroid);
+
+		_ui->radioButtonBall->setChecked(_parameters->eNavigation()==eNavig_Ball);
+		_ui->radionButtonOrbital->setChecked(_parameters->eNavigation()==eNavig_Orbital);
 
         _ui->showMasks_checkBox->hide();
     }
@@ -333,6 +360,7 @@ cParameters::cParameters():
     _postFix(QString("_Masq")),
     _radius(50),
     _eType(eNSM_Pts),
+	_eNavigation(eNavig_Ball),
     _sz(5.f),
     _lang(0)
 {}
@@ -350,6 +378,7 @@ cParameters& cParameters::operator =(const cParameters &params)
     _forceGray      = params._forceGray;
     _showMasks      = params._showMasks;
     _sceneCenterType= params._sceneCenterType;
+	_eNavigation	= params._eNavigation;
 
     _zoomWindow     = params._zoomWindow;
     _ptName         = params._ptName;
@@ -377,6 +406,7 @@ bool cParameters::operator!=(cParameters &p)
             (p._forceGray      != _forceGray) ||
             (p._showMasks      != _showMasks) ||
             (p._sceneCenterType!= _sceneCenterType) ||
+			(p._eNavigation	   != _eNavigation) ||
             (p._zoomWindow     != _zoomWindow) ||
             (p._ptName         != _ptName)  ||
             (p._postFix        != _postFix) ||
@@ -420,6 +450,7 @@ void cParameters::read()
      setForceGray(      settings.value("forceGray", false       ).toBool());
      setShowMasks(      settings.value("showMasks", false       ).toBool());
      setCenterType(     settings.value("SceneCenterType", 0     ).toInt());
+	 setENavigation((eNavigationType)settings.value("NavigationType", 0     ).toInt());
      settings.endGroup();
 
      settings.beginGroup("Misc");
@@ -458,6 +489,7 @@ void cParameters::write()
      settings.setValue("forceGray",     _forceGray  );
      settings.setValue("showMasks",     _showMasks  );
      settings.setValue("SceneCenterType",  _sceneCenterType );
+	 settings.setValue("NavigationType",  _eNavigation );
      settings.endGroup();
 
      settings.beginGroup("Misc");
@@ -477,6 +509,16 @@ void cParameters::write()
      settings.setValue("lang", _lang);
      settings.endGroup();
 }
+eNavigationType cParameters::eNavigation() const
+{
+	return _eNavigation;
+}
+
+void cParameters::setENavigation(const eNavigationType& eNavigation)
+{
+	_eNavigation = eNavigation;
+}
+
 
 //****************************************************************************************
 
