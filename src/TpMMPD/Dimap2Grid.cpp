@@ -359,7 +359,7 @@ vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, st
     }
     // transformation in the ground coordinate system
     std::string command;
-    command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
+    command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
     int res = system(command.c_str());
     ELISE_ASSERT(res == 0, " error calling cs2cs in ptGeo2Carto ");
     // loading the coordinate of the converted point
