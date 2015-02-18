@@ -1,16 +1,25 @@
 #include "MatrixManager.h"
 
-MatrixManager::MatrixManager()
+MatrixManager::MatrixManager(eNavigationType nav):
+_eNavigation(nav)
 {
-    _mvMatrix   = new GLdouble[16];
-    _projMatrix = new GLdouble[16];
-    _glViewport = new GLint[4];
+	_mvMatrix		= new GLdouble[16];
+	_projMatrix		= new GLdouble[16];
+//	_MatrixPassageCamera	= new GLdouble[16];
+//	_MatrixPassageCameraInv	= new GLdouble[16];
+//	_positionCamera	= new GLdouble[4];
+	_glViewport		= new GLint[4];
 
-    _rX = PI;
-    _rY = 0.0;
+	loadIdentity(_mvMatrixOld);
+//	loadIdentity(_mvMatrixOldInv);
+//	loadIdentity(_MatrixPassageCamera);
+
+	_rX  = 0.0;
+	_rY	 = 0.0;
+	_rZ	 = 0.0;
+	_upY = 1.f;
+
     _distance = 10.f;
-
-    _upY = 1.f;
 
 }
 
@@ -19,6 +28,8 @@ MatrixManager::~MatrixManager()
     delete [] _mvMatrix;
     delete [] _projMatrix;
     delete [] _glViewport;
+//	delete [] _MatrixPassageCamera;
+//	delete [] _MatrixPassageCameraInv;
 }
 
 void MatrixManager::setGLViewport(GLint x, GLint y, GLsizei width, GLsizei height)
@@ -98,14 +109,14 @@ void MatrixManager::resetViewPort()
 
 void MatrixManager::translate(float tX, float tY, float tZ)
 {
-    float inverMat[4][4];
+	//float inverMat[4][4];
 
-    float translation[3];
+	GLdouble translation[3];
     translation[0] = tX;
     translation[1] = tY;
     translation[2] = tZ;
 
-    MatrixInverse(_mvMatrix, inverMat,translation); // on se place dans le repere
+	MatrixInverse(_mvMatrix, NULL,translation); // on se place dans le repere
 
     m_translationMatrix[0] += translation[0];
     m_translationMatrix[1] += translation[1];
@@ -196,19 +207,30 @@ void MatrixManager::resetRotationMatrix()
 
 void MatrixManager::resetTranslationMatrix(Pt3dr center)
 {
-    m_translationMatrix[0] = -center.x;
-    m_translationMatrix[1] = -center.y;
-    m_translationMatrix[2] = -center.z;
+	m_translationMatrix[0] = -center.x;
+	m_translationMatrix[1] = -center.y;
+	m_translationMatrix[2] = -center.z;
 }
 
-void MatrixManager::resetAllMatrix(Pt3dr center)
+void MatrixManager::resetAllMatrix(Pt3dr center, bool resetALL)
 {
-    _targetCamera.x = 0;
+	_targetCamera.x = 0;
     _targetCamera.y = 0;
     _targetCamera.z = 0;
 
     _distance = 10.f;
-    _upY = 1.f;
+
+	if(resetALL)
+	{
+		loadIdentity(_mvMatrixOld);
+
+		_rX  = 0;
+		_rY	 = 0;
+		_rZ	 = 0.0;
+		_upY = 1;
+		_lR	 = 1;
+		_uD  = 1;
+	}
 
     resetRotationMatrix();
 
@@ -224,16 +246,16 @@ void MatrixManager::resetModelViewMatrix()
     glGetDoublev (GL_MODELVIEW_MATRIX, getModelViewMatrix());
 }
 
-void MatrixManager::setModelViewMatrix()
-{
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+//void MatrixManager::setModelViewMatrix()
+//{
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
 
-    glMultMatrixd(m_rotationMatrix);
-    glTranslated(m_translationMatrix[0],m_translationMatrix[1],m_translationMatrix[2]);
+//    glMultMatrixd(m_rotationMatrix);
+//    glTranslated(m_translationMatrix[0],m_translationMatrix[1],m_translationMatrix[2]);
 
-    glGetDoublev (GL_MODELVIEW_MATRIX, _mvMatrix);
-}
+//    glGetDoublev (GL_MODELVIEW_MATRIX, _mvMatrix);
+//}
 
 void MatrixManager::glOrthoZoom(float zoom, float farr)
 {
@@ -277,6 +299,7 @@ void MatrixManager::setView(VIEW_ORIENTATION orientation, Pt3d<double> centerSce
         _rX = -PI/2.f;
         _rY = 0.0;
     }
+
 }
 
 void MatrixManager::setArcBallCamera(float zoom)
@@ -287,20 +310,37 @@ void MatrixManager::setArcBallCamera(float zoom)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    Pt3d<double> camPos;
-
     _targetCamera.x -= m_translationMatrix[0];
     _targetCamera.y -= m_translationMatrix[1];
     _targetCamera.z -= m_translationMatrix[2];
 
-    camPos.x = _targetCamera.x +  _distance * -sinf(_rX) * cosf(_rY);
-    camPos.y = _targetCamera.y +  _distance * -sinf(_rY);
-    camPos.z = _targetCamera.z + -_distance *  cosf(_rX) * cosf(_rY);
+	_cX = cosf(_rX);
+	_cY = cosf(_rY);
+	_sX = sinf(_rX);
+	_sY = sinf(_rY);
 
-    // Set the camera position and lookat point
-    mmLookAt(camPos.x,camPos.y,camPos.z,      // Camera position
-                  _targetCamera.x, _targetCamera.y, _targetCamera.z,    // Look at point
-                  0.0, _upY, 0.0);
+	GLdouble  posCamera[4];
+	GLdouble  up[4] = {_upY*sin(_rZ),_upY*cos(_rZ),0.0,0.0};
+
+//	GLdouble  up[4] = {0.0,_upY,0.0,0.0};
+
+	posCamera[0] = _distance * -_sX * _cY;
+	posCamera[1] = _distance * -_sY;
+	posCamera[2] = _distance *  _cX * _cY;
+
+	if(_eNavigation ==  eNavig_Ball)
+	{
+		MatrixInverse(_mvMatrixOld,NULL,posCamera);
+		MatrixInverse(_mvMatrixOld,NULL,up);
+	}
+
+	_camPos.x = _targetCamera.x + posCamera[0];
+	_camPos.y = _targetCamera.y + posCamera[1];
+	_camPos.z = _targetCamera.z + posCamera[2];
+
+	mmLookAt(_camPos.x,_camPos.y,_camPos.z,								// Camera position
+				  _targetCamera.x, _targetCamera.y, _targetCamera.z,    // Look at point
+				  up[0],up[1] ,up[2]);									// up
 
     resetTranslationMatrix();
 
@@ -308,32 +348,90 @@ void MatrixManager::setArcBallCamera(float zoom)
     glGetDoublev(GL_PROJECTION_MATRIX, _projMatrix); // TODO a placer pour le realiser une seule fois
 }
 
+void MatrixManager::printVecteur(GLdouble* posCameraOut, const char* nameVariable)
+{
+	printf("%s : [%f,%f,%f]\n",nameVariable,posCameraOut[0],posCameraOut[1],posCameraOut[2]);
+}
+
 void MatrixManager::handleRotation(QPointF clicPosMouse)
 {
 
-    QPointF centerProj;
+	{
+		/*
+	GLdouble translation[3]		=  {_targetCamera.x,_targetCamera.y,_targetCamera.z};
+		GLdouble posCamera[4] = {0.0,0.0,_distance,1.0};
+		GLdouble axeY[3] = {0,1.0,0};
+		GLdouble axeX1[3] = {cos(-_rX),0,-sin(-_rX)};
+		GLdouble rotationY[16];
+		GLdouble rotationX1[16];
 
-    getProjection(centerProj,centerScene());
+		matriceRotation(axeY,rotationY,-_rX);
+		matriceRotation(axeX1,rotationX1,_rY);
+		multiplicationMat(rotationX1,rotationY,_MatrixPassageCamera);
+		addTranslationToMat(_MatrixPassageCamera,translation);
+		GLdouble posCameraOut[4];
+		multiplication(posCamera,posCameraOut,_MatrixPassageCamera);
+		GLdouble posInit[4];
+		gluInvertMatrix(_MatrixPassageCamera,_MatrixPassageCameraInv);
+		multiplication(posCameraOut,posInit,_MatrixPassageCameraInv);
 
-    QPointF projMouse(clicPosMouse.x(), vpHeight() - clicPosMouse.y());
-
-    _lR = (projMouse.x() < centerProj.x()) ? -1 : 1;
-    _uD = (projMouse.y() > centerProj.y()) ? -1 : 1;
 
 
-    if(rY()>0)
-        _uD = -_uD;
+		GLdouble posCAMO[4] = {0,0,_distance,0};
+		GLdouble posCAMI[4];
 
-    if((rY()< 0 && rY() < - PI) ||
-       (rY()> PI && rY() < 2.f * PI))
-         _uD = - _uD;
+		MatrixInverse(_mvMatrixOld,_mvMatrixOldInv,posCAMO);
 
-    if((abs(rY()) < HANGLE))
-        _uD = 1;
-    else if (((abs(rY()) < PI + HANGLE ) &&
-            (abs(rY()) > PI - HANGLE)))
-        _uD = -1;
+		multiplication(posCAMO,posCAMI,_mvMatrixOldInv);
 
+		posCAMO[0] += translation[0];
+		posCAMO[1] += translation[1];
+		posCAMO[2] += translation[2];
+
+	*/
+	}
+
+	if(_eNavigation ==  eNavig_Ball)
+	{
+		CopyMatrix(getModelViewMatrix(),_mvMatrixOld);
+		_rX  = 0;
+		_rY	 = 0;
+		_rZ	 = 0;
+		_upY = 1;
+		_lR	 = 1;
+		_uD  = 1;
+	}
+}
+
+void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
+{
+
+	rX = _uD*rX;
+	float ry = _rY;
+	int sR = -1;
+
+	if(abs(_rY)>= 0 && abs(_rY)<= 2.f * PI)
+		sR = 1;
+
+	_rX += rX * factor * sR;
+	_rY -= rY * factor;
+	_rZ += rZ * factor;
+
+	_rX = fmod(_rX,2*PI);
+	_rY = fmod(_rY,2*PI);
+	_rZ = fmod(_rZ,2*PI);
+
+	if(
+			(abs(ry)<PI/2.f && abs(_rY)>PI/2.f) ||
+			(abs(ry)>PI/2.f && abs(_rY)<PI/2.f) ||
+			(abs(ry)< 3*PI/2.f && abs(_rY)> 3*PI/2.f)||
+			(abs(ry)> 3*PI/2.f && abs(_rY)< 3*PI/2.f)
+			)
+	{
+		if((abs(ry)< 2.f*PI - PI/4.f))
+
+			_upY = -_upY;
+	}
 }
 
 void MatrixManager::setMatrixDrawViewPort()
@@ -354,37 +452,10 @@ void MatrixManager::applyAllTransformation(bool mode2D,QPoint pt,float zoom)
         setArcBallCamera(zoom);
 }
 
-void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
-{
-
-    rX = _uD*rX;
-    float ry = _rY;
-    int sR = -1;
-
-    if(abs(_rY)>= 0 && abs(_rY)<= 2.f * PI)
-        sR = 1;
-
-    _rX -= rX * factor * sR;
-    _rY -= rY * factor;
-    _rX = fmod(_rX,2*PI);
-    _rY = fmod(_rY,2*PI);
-
-    if(
-            (abs(ry)<PI/2.f && abs(_rY)>PI/2.f) ||
-            (abs(ry)>PI/2.f && abs(_rY)<PI/2.f) ||
-            (abs(ry)< 3*PI/2.f && abs(_rY)> 3*PI/2.f)||
-            (abs(ry)> 3*PI/2.f && abs(_rY)< 3*PI/2.f)
-            )
-    {
-        if((abs(ry)< 2.f*PI - PI/4.f))
-
-            _upY = -_upY;
-    }
-}
-
-void MatrixManager::MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4],float* vec)
+void MatrixManager::MatrixInverse(GLdouble* OpenGLmatIn, GLdouble *matOutGL,GLdouble* vec)
 {
     float matIn[4][4];
+	float matOut[4][4];
     // OpenGL matrix is column major matrix in 1x16 array. Convert it to row major 4x4 matrix
     for(int m=0, k=0; m<=3 && k<16; m++)
       for(int n=0;n<=3;n++)
@@ -413,15 +484,28 @@ void MatrixManager::MatrixInverse(GLdouble OpenGLmatIn[], float matOut[][4],floa
     matOut[0][3] = matOut[1][3] = matOut[2][3] = 0.0f;
     matOut[3][3] = 1.0f;
 
-    float inVec[3];
+	if(matOutGL)
+	{
+		for(int m=0, k=0; m<=3 && k<16; m++)
+		  for(int n=0;n<=3;n++)
+		  {
+			matOutGL[k] = matOut[m][n];
+			k++;
+		  }
+	}
 
-    inVec[0] = vec[0] * matOut[0][0] + vec[1]* matOut[1][0] + vec[2]* matOut[2][0];// + matOut[0][3];
-    inVec[1] = vec[0] * matOut[0][1] + vec[1]* matOut[1][1] + vec[2]* matOut[2][1];// + matOut[1][3];
-    inVec[2] = vec[0] * matOut[0][2] + vec[1]* matOut[1][2] + vec[2]* matOut[2][2];// + matOut[2][3];
+	if(vec)
+	{
+		float inVec[3];
 
-    vec[0] = inVec[0];
-    vec[1] = inVec[1];
-    vec[2] = inVec[2];
+		inVec[0] = vec[0] * matOut[0][0] + vec[1]* matOut[1][0] + vec[2]* matOut[2][0];// + matOut[0][3];
+		inVec[1] = vec[0] * matOut[0][1] + vec[1]* matOut[1][1] + vec[2]* matOut[2][1];// + matOut[1][3];
+		inVec[2] = vec[0] * matOut[0][2] + vec[1]* matOut[1][2] + vec[2]* matOut[2][2];// + matOut[2][3];
+
+		vec[0] = inVec[0];
+		vec[1] = inVec[1];
+		vec[2] = inVec[2];
+	}
 }
 
 Pt3d<double> MatrixManager::centerScene() const
@@ -442,15 +526,308 @@ void MatrixManager::setSceneTopo(const Pt3d<double> &centerScene,float diametre)
 
 QPointF MatrixManager::screen2TransABall(QPointF ptScreen)
 {
-    return QPointF(ptScreen .x()/((float)vpWidth()*_projMatrix[0]),-ptScreen .y()/((float)vpHeight()*_projMatrix[5]))*2.f;
+	return QPointF(ptScreen .x()/((float)vpWidth()*_projMatrix[0]),-ptScreen .y()/((float)vpHeight()*_projMatrix[5]))*2.f;
+}
+
+void MatrixManager::multiplication(GLdouble* posIn, GLdouble* posOut, GLdouble* mat)
+{
+	for (int i = 0; i < 4; ++i,mat += 4)
+	{
+		posOut[i] = mat[0]*posIn[0] + mat[1]*posIn[1] + mat[2]*posIn[2] + mat[3]*posIn[3];
+	}
+}
+
+void MatrixManager::matriceRotation(GLdouble* axe, GLdouble* matRot,GLdouble angle)
+{
+
+		GLdouble c = cos(angle);
+		GLdouble s = sin(angle);
+
+		GLdouble ux = axe[0];
+		GLdouble uy = axe[1];
+		GLdouble uz = axe[2];
+
+		//GLdouble L = (ux*ux + uy * uy + uz * uz);
+		//angle = angle * M_PI / 180.0; //converting to radian value
+		GLdouble ux2 = ux * ux;
+		GLdouble uy2 = uy * uy;
+		GLdouble uz2 = uz * uz;
+
+//	    matRot[0]	=	(ux2 + (uy2 + uz2) * c) / L;
+//	    matRot[1]	=	(ux * uy * (1 - c) - uz * sqrt(L) * s) / L;
+//	    matRot[2]	=	(ux * uz * (1 - c) + uy * sqrt(L) * s) / L;
+//	    matRot[3]	=	0.0;
+
+//	    matRot[4]	=	(ux * uy * (1 - c) + uz * sqrt(L) * s) / L;
+//	    matRot[5]	=	(uy2 + (ux2 + uz2) * c) / L;
+//	    matRot[6]	=	(uy * uz * (1 - c) - ux * sqrt(L) * s) / L;
+//	    matRot[7]	=	0.0;
+
+//	    matRot[8]  =	(ux * uz * (1 - c) - uy * sqrt(L) * s) / L;
+//	    matRot[9]  =	(uy * uz * (1 - c) + ux * sqrt(L) * s) / L;
+//	    matRot[10] =	(uz2 + (ux2 + uy2) * c) / L;
+//	    matRot[11] =	0.0;
+
+//	    matRot[12] =	0.0;
+//	    matRot[13] =	0.0;
+//	    matRot[14] =	0.0;
+//	    matRot[15] =	1.0;
+
+		matRot[0]	=	(ux2 + (1 - ux2) * c);
+		matRot[1]	=	(ux * uy * (1 - c) - uz  * s) ;
+		matRot[2]	=	(ux * uz * (1 - c) + uy  * s) ;
+		matRot[3]	=	0.0;
+
+		matRot[4]	=	(ux * uy * (1 - c) + uz  * s) ;
+		matRot[5]	=	(uy2 + (1 - uy2) * c) ;
+		matRot[6]	=	(uy * uz * (1 - c) - ux  * s) ;
+		matRot[7]	=	0.0;
+
+		matRot[8]  =	(ux * uz * (1 - c) - uy  * s) ;
+		matRot[9]  =	(uy * uz * (1 - c) + ux  * s) ;
+		matRot[10] =	(uz2 + (1- uz2) * c) ;
+		matRot[11] =	0.0;
+
+		matRot[12] =	0.0;
+		matRot[13] =	0.0;
+		matRot[14] =	0.0;
+		matRot[15] =	1.0;
+}
+
+
+void MatrixManager::loadIdentity(GLdouble* matOut)
+{
+	matOut[M11] = 1.0;    // Column 1
+	matOut[M12] = 0.0;    // Column 2
+	matOut[M13] = 0.0;    // Column 3
+	matOut[M14] = 0.0;    // Column 4
+
+	// Row 2
+	matOut[M21] = 0.0;    // Column 1
+	matOut[M22] = 1.0;    // Column 2
+	matOut[M23] = 0.0;    // Column 3
+	matOut[M24] = 0.0;    // Column 4
+
+	// Row 3
+	matOut[M31] = 0.0;    // Column 1
+	matOut[M32] = 0.0;    // Column 2
+	matOut[M33] = 1.0;    // Column 3
+	matOut[M34] = 0.0;    // Column 4
+
+	// Row 4
+	matOut[M41] = 0.0;    // Column 1
+	matOut[M42] = 0.0;    // Column 2
+	matOut[M43] = 0.0;    // Column 3
+	matOut[M44] = 1.0;    // Column 3
+}
+eNavigationType MatrixManager::eNavigation() const
+{
+	return _eNavigation;
+}
+
+void MatrixManager::setENavigation(const eNavigationType& eNavigation)
+{
+	_eNavigation = eNavigation;
+
+	resetAllMatrix();
+
+}
+
+void MatrixManager::multiplicationMat(GLdouble* mat1, GLdouble* mat2, GLdouble* matOut)
+{
+	matOut[M11] = mat1[M11] * mat2[M11]   +   mat1[M12] * mat2[M21]   +   mat1[M13] * mat2[M31]   +   mat1[M14] * mat2[M41];    // Column 1
+	matOut[M12] = mat1[M11] * mat2[M12]   +   mat1[M12] * mat2[M22]   +   mat1[M13] * mat2[M32]   +   mat1[M14] * mat2[M42];    // Column 2
+	matOut[M13] = mat1[M11] * mat2[M13]   +   mat1[M12] * mat2[M23]   +   mat1[M13] * mat2[M33]   +   mat1[M14] * mat2[M43];    // Column 3
+	matOut[M14] = mat1[M11] * mat2[M14]   +   mat1[M12] * mat2[M24]   +   mat1[M13] * mat2[M34]   +   mat1[M14] * mat2[M44];    // Column 4
+
+	// Row 2
+	matOut[M21] = mat1[M21] * mat2[M11]   +   mat1[M22] * mat2[M21]   +   mat1[M23] * mat2[M31]   +   mat1[M24] * mat2[M41];    // Column 1
+	matOut[M22] = mat1[M21] * mat2[M12]   +   mat1[M22] * mat2[M22]   +   mat1[M23] * mat2[M32]   +   mat1[M24] * mat2[M42];    // Column 2
+	matOut[M23] = mat1[M21] * mat2[M13]   +   mat1[M22] * mat2[M23]   +   mat1[M23] * mat2[M33]   +   mat1[M24] * mat2[M43];    // Column 3
+	matOut[M24] = mat1[M21] * mat2[M14]   +   mat1[M22] * mat2[M24]   +   mat1[M23] * mat2[M34]   +   mat1[M24] * mat2[M44];    // Column 4
+
+	// Row 3
+	matOut[M31] = mat1[M31] * mat2[M11]   +   mat1[M32] * mat2[M21]   +   mat1[M33] * mat2[M31]   +   mat1[M34] * mat2[M41];    // Column 1
+	matOut[M32] = mat1[M31] * mat2[M12]   +   mat1[M32] * mat2[M22]   +   mat1[M33] * mat2[M32]   +   mat1[M34] * mat2[M42];    // Column 2
+	matOut[M33] = mat1[M31] * mat2[M13]   +   mat1[M32] * mat2[M23]   +   mat1[M33] * mat2[M33]   +   mat1[M34] * mat2[M43];    // Column 3
+	matOut[M34] = mat1[M31] * mat2[M14]   +   mat1[M32] * mat2[M24]   +   mat1[M33] * mat2[M34]   +   mat1[M34] * mat2[M44];    // Column 4
+
+	// Row 4
+	matOut[M41] = mat1[M41] * mat2[M11]   +   mat1[M42] * mat2[M21]   +   mat1[M43] * mat2[M31]   +   mat1[M44] * mat2[M41];    // Column 1
+	matOut[M42] = mat1[M41] * mat2[M12]   +   mat1[M42] * mat2[M22]   +   mat1[M43] * mat2[M32]   +   mat1[M44] * mat2[M42];    // Column 2
+	matOut[M43] = mat1[M41] * mat2[M13]   +   mat1[M42] * mat2[M23]   +   mat1[M43] * mat2[M33]   +   mat1[M44] * mat2[M43];    // Column 3
+	matOut[M44] = mat1[M41] * mat2[M14]   +   mat1[M42] * mat2[M24]   +   mat1[M43] * mat2[M34]   +   mat1[M44] * mat2[M44];    // Column 3
+}
+
+void MatrixManager::addTranslationToMat(GLdouble* mat, GLdouble* translation)
+{
+	mat[M14] += translation[0];
+	mat[M24] += translation[1];
+	mat[M34] += translation[2];
+}
+
+bool MatrixManager::gluInvertMatrix(const GLdouble m[], GLdouble invOut[])
+{
+	double inv[16], det;
+	int i;
+
+	inv[0] = m[5]  * m[10] * m[15] -
+			 m[5]  * m[11] * m[14] -
+			 m[9]  * m[6]  * m[15] +
+			 m[9]  * m[7]  * m[14] +
+			 m[13] * m[6]  * m[11] -
+			 m[13] * m[7]  * m[10];
+
+	inv[4] = -m[4]  * m[10] * m[15] +
+			 m[4]  * m[11] * m[14] +
+			 m[8]  * m[6]  * m[15] -
+			 m[8]  * m[7]  * m[14] -
+			 m[12] * m[6]  * m[11] +
+			 m[12] * m[7]  * m[10];
+
+	inv[8] = m[4]  * m[9] * m[15] -
+			 m[4]  * m[11] * m[13] -
+			 m[8]  * m[5] * m[15] +
+			 m[8]  * m[7] * m[13] +
+			 m[12] * m[5] * m[11] -
+			 m[12] * m[7] * m[9];
+
+	inv[12] = -m[4]  * m[9] * m[14] +
+			  m[4]  * m[10] * m[13] +
+			  m[8]  * m[5] * m[14] -
+			  m[8]  * m[6] * m[13] -
+			  m[12] * m[5] * m[10] +
+			  m[12] * m[6] * m[9];
+
+	inv[1] = -m[1]  * m[10] * m[15] +
+			 m[1]  * m[11] * m[14] +
+			 m[9]  * m[2] * m[15] -
+			 m[9]  * m[3] * m[14] -
+			 m[13] * m[2] * m[11] +
+			 m[13] * m[3] * m[10];
+
+	inv[5] = m[0]  * m[10] * m[15] -
+			 m[0]  * m[11] * m[14] -
+			 m[8]  * m[2] * m[15] +
+			 m[8]  * m[3] * m[14] +
+			 m[12] * m[2] * m[11] -
+			 m[12] * m[3] * m[10];
+
+	inv[9] = -m[0]  * m[9] * m[15] +
+			 m[0]  * m[11] * m[13] +
+			 m[8]  * m[1] * m[15] -
+			 m[8]  * m[3] * m[13] -
+			 m[12] * m[1] * m[11] +
+			 m[12] * m[3] * m[9];
+
+	inv[13] = m[0]  * m[9] * m[14] -
+			  m[0]  * m[10] * m[13] -
+			  m[8]  * m[1] * m[14] +
+			  m[8]  * m[2] * m[13] +
+			  m[12] * m[1] * m[10] -
+			  m[12] * m[2] * m[9];
+
+	inv[2] = m[1]  * m[6] * m[15] -
+			 m[1]  * m[7] * m[14] -
+			 m[5]  * m[2] * m[15] +
+			 m[5]  * m[3] * m[14] +
+			 m[13] * m[2] * m[7] -
+			 m[13] * m[3] * m[6];
+
+	inv[6] = -m[0]  * m[6] * m[15] +
+			 m[0]  * m[7] * m[14] +
+			 m[4]  * m[2] * m[15] -
+			 m[4]  * m[3] * m[14] -
+			 m[12] * m[2] * m[7] +
+			 m[12] * m[3] * m[6];
+
+	inv[10] = m[0]  * m[5] * m[15] -
+			  m[0]  * m[7] * m[13] -
+			  m[4]  * m[1] * m[15] +
+			  m[4]  * m[3] * m[13] +
+			  m[12] * m[1] * m[7] -
+			  m[12] * m[3] * m[5];
+
+	inv[14] = -m[0]  * m[5] * m[14] +
+			  m[0]  * m[6] * m[13] +
+			  m[4]  * m[1] * m[14] -
+			  m[4]  * m[2] * m[13] -
+			  m[12] * m[1] * m[6] +
+			  m[12] * m[2] * m[5];
+
+	inv[3] = -m[1] * m[6] * m[11] +
+			 m[1] * m[7] * m[10] +
+			 m[5] * m[2] * m[11] -
+			 m[5] * m[3] * m[10] -
+			 m[9] * m[2] * m[7] +
+			 m[9] * m[3] * m[6];
+
+	inv[7] = m[0] * m[6] * m[11] -
+			 m[0] * m[7] * m[10] -
+			 m[4] * m[2] * m[11] +
+			 m[4] * m[3] * m[10] +
+			 m[8] * m[2] * m[7] -
+			 m[8] * m[3] * m[6];
+
+	inv[11] = -m[0] * m[5] * m[11] +
+			  m[0] * m[7] * m[9] +
+			  m[4] * m[1] * m[11] -
+			  m[4] * m[3] * m[9] -
+			  m[8] * m[1] * m[7] +
+			  m[8] * m[3] * m[5];
+
+	inv[15] = m[0] * m[5] * m[10] -
+			  m[0] * m[6] * m[9] -
+			  m[4] * m[1] * m[10] +
+			  m[4] * m[2] * m[9] +
+			  m[8] * m[1] * m[6] -
+			  m[8] * m[2] * m[5];
+
+	det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+	if (det == 0)
+		return false;
+
+	det = 1.0 / det;
+
+	for (i = 0; i < 16; i++)
+		invOut[i] = inv[i] * det;
+
+	return true;
+}
+
+void MatrixManager::CopyMatrix(GLdouble* source, GLdouble* in)
+{
+	in[M11] = source[M11];    // Column 1
+	in[M12] = source[M12];    // Column 2
+	in[M13] = source[M13];    // Column 3
+	in[M14] = source[M14];    // Column 4
+
+	// Row 2
+	in[M21] = source[M21];    // Column 1
+	in[M22] = source[M22];    // Column 2
+	in[M23] = source[M23];    // Column 3
+	in[M24] = source[M24];    // Column 4
+
+	// Row 3
+	in[M31] = source[M31];    // Column 1
+	in[M32] = source[M32];    // Column 2
+	in[M33] = source[M33];    // Column 3
+	in[M34] = source[M34];    // Column 4
+
+	// Row 4
+	in[M41] = source[M41];    // Column 1
+	in[M42] = source[M42];    // Column 2
+	in[M43] = source[M43];    // Column 3
+	in[M44] = source[M44];    // Column 3
 }
 
 GLdouble MatrixManager::distance() const
 {
-    return _distance;
+	return _distance;
 }
 
 void MatrixManager::setDistance(const GLdouble &distance)
 {
-    _distance = distance;
+	_distance = distance;
 }

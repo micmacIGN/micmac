@@ -52,7 +52,7 @@ public:
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
     MatrixManager*      getMatrixManager()  { return &_matrixManager;  }
 
-    void        setGLData(cGLData* aData, bool showMessage = true, bool showCams = true, bool doZoom = true, bool resetPoly = true);
+	void        setGLData(cGLData* aData, bool showMessage = true, bool showCams = true, bool doZoom = true, bool resetPoly = true, int nav = eNavig_Ball);
     cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
@@ -114,6 +114,8 @@ public slots:
     void selectPoint(QString namePt);
 
     void setCenterType(int);
+
+	void setNavigationType(int val);
 
 signals:
 

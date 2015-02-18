@@ -50,7 +50,7 @@ cGLData::cGLData(cData *data, cParameters aParams, int appMode):
 {
     initOptions(appMode);
 
-    setData(data, true, aParams.getSceneCenterType());
+	setData(data, true, aParams.getSceneCenterType());
 
     setPolygons(data);
 
@@ -76,7 +76,7 @@ void cGLData::setPolygons(cData *data)
     }
 }
 
-void cGLData::setData(cData *data, bool setCam, int centerType)
+void cGLData::setData(cData *data, bool setCam, int centerType	)
 {
     for (int aK = 0; aK < data->getNbClouds(); ++aK)
     {
@@ -107,6 +107,7 @@ void cGLData::setData(cData *data, bool setCam, int centerType)
     setCloudsCenter(data->getCloudsCenter());
 
     switchCenterByType(centerType);
+
 }
 
 bool cGLData::incFirstCloud() const
@@ -429,7 +430,8 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
         Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
 
         setGlobalCenter(Pt);
-        mm.resetAllMatrix(Pt);
+		mm.resetAllMatrix(Pt,false);
+
         return true;
     }
 
