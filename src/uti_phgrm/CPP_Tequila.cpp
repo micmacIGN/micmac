@@ -344,7 +344,7 @@ int Tequila_main(int argc,char ** argv)
         cout << "packed width-height " << width << " " << height << endl;
         cout << "unused_area : " << unused_area << " = " << (float) unused_area/ (width*height) << "%" << endl;
 
-        float Scale = 1.f; //(float) aTextMaxSize / ElMax(width, height) ;
+        float Scale = (float) aTextMaxSize / ElMax(width, height) ;
 
         if (Scale > 1.f) Scale = 1.f;
 
@@ -352,8 +352,6 @@ int Tequila_main(int argc,char ** argv)
 
         int final_width  = round_up(width * Scale);
         int final_height = round_up(height * Scale);
-
-        Pt2di Sz ( final_width, final_height );
 
         cout << "final width-height " << final_width << " " << final_height << endl;
 
@@ -364,7 +362,7 @@ int Tequila_main(int argc,char ** argv)
         Tiff_Im  nFileRes
                 (
                     aTextOut.c_str(),
-                    Sz,
+                    Pt2di( final_width, final_height ),
                     GenIm::u_int1,
                     Tiff_Im::No_Compr,
                     Tiff_Im::RGB
@@ -372,27 +370,41 @@ int Tequila_main(int argc,char ** argv)
 
         for (unsigned int aK=0; aK< regions.size(); aK++)
         {
-            int imgIdx = regions[aK].imgIdx;
-
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
-            //cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
+            cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
 
-            Pt2di tr = regions[aK].p0 - Pt2di(x,y);
-            regions[aK].translation = Pt2dr(tr) / Scale;
+            int x_scaled = round_up(x * Scale); //TODO: verifier round_up
+            int y_scaled = round_up(y * Scale);
+
+            //cout << "image position  scaled = " << x_scaled << " " << y_scaled << endl;
+
+            int w_scaled = round_up(w * Scale); //TODO: verifier round_up
+            int h_scaled = round_up(h * Scale);
+
+            //cout << "image dimension scaled = " << w_scaled << " " << h_scaled << endl;
+
+            Pt2di p0_scaled(regions[aK].p0.x * Scale, regions[aK].p0.y * Scale);
+
+            Pt2di xy_scaled(x_scaled, y_scaled);
+            Pt2di wh_scaled(w_scaled, h_scaled);
+
+            Pt2di tr = p0_scaled - xy_scaled;
+
+            regions[aK].translation = Pt2dr(tr);
             regions[aK].rotation = rotated;
 
-            //TODO: 1. prendre en compte le facteur de sous-ech sur final_ZBufIm
-            //TODO: 2. prendre en compte le Scale sur tout
-            //TODO: 3. faire la rotation si nécessaire
+            //TODO: prendre en compte le facteur de sous-ech sur final_ZBufIm
+
+            int imgIdx = regions[aK].imgIdx;
+            //cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
 
             Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
             Fonc_Num aF = aF0;
             while (aF.dimf_out() < aNbCh)
                 aF = Virgule(aF0,aF);
-           // aF = StdFoncChScale(aF,Pt2dr(-aP0.x,-aP0.y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));
-             aF = StdFoncChScale(aF,Pt2dr(-x,-y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));
+            aF = StdFoncChScale(aF,Pt2dr(), Pt2dr(1.f/Scale,1.f/Scale));
 
             if (rotated)
             {
@@ -409,20 +421,11 @@ int Tequila_main(int argc,char ** argv)
             {
                 ELISE_COPY
                 (
-                    rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
-                    trans(aF0, tr),
-                    nFileRes.out()
-                );
-
-                /*ELISE_COPY
-                (
-                    rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
+                    rectangle(xy_scaled, xy_scaled + wh_scaled),
                     trans(aF, tr),
                     nFileRes.out()
-                );*/
+                );
             }
-
-            cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
         }
 
         releaseTexturePacker(tp);
