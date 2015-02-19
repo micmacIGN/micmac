@@ -68,7 +68,7 @@ public:
     Pt2di p1; // coin bd
 
     bool  rotation; //has texture been rotated
-    Pt2di translation; //position of texture in full texture image
+    Pt2dr translation; //position of texture in full texture image
 
     std::vector<int> triangles;
 
