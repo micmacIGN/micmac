@@ -28,7 +28,15 @@ void GLWidgetSet::init(cParameters *params, bool modePt)
     for (int aK=0 ; aK < aNb; ++aK)
     {
         _widgets[aK]->setBackgroundColors(colorBG0,colorBG1);
-        if (!modePt) _widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
+
+		if (!modePt)
+			_widgets[aK]->setContextMenuPolicy( Qt::NoContextMenu );
+
+//		qDebug() << QGuiApplication::screens()[1]->name();
+//		_widgets[aK]->context()->contextHandle()->setScreen(QGuiApplication::screens()[1]);
+//		qDebug() << _widgets[aK]->context()->contextHandle()->screen()->name();
+
+		//QOpenGLContext
     }
 
     if (modePt)
