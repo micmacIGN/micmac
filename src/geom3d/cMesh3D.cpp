@@ -502,9 +502,9 @@ void cMesh::addTriangle(const cTriangle &aTri)
 
 void cMesh::addEdge(int aK, int bK, int idc0, int idc1)
 {
+    int idx = mEdges.size();
     mEdges.push_back(cEdge(aK, bK, idc0, idc1));
 
-    int idx = mEdges.size() - 1;
     //cout << "adding edge " << idx << endl;
     mTriangles[aK].addEdge(idx);
     mTriangles[bK].addEdge(idx);
