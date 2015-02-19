@@ -67,7 +67,7 @@ int Tequila_main(int argc,char ** argv)
     int aJPGcomp = 70;
     double aAngleMin = 60.f;
     bool aBin = true;
-    bool aModeClassic = false;
+    bool aModeBasic = false;
 
     std::stringstream sst;
     sst << aTextMaxSize;
@@ -85,7 +85,7 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=60)")
-                            << EAM(aModeClassic,"Mode", true, "Mode (def = false)")
+                            << EAM(aModeBasic,"Mode", true, "Mode (def = false)")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -256,7 +256,7 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
-    if (!aModeClassic)
+    if (!aModeBasic)
     {
 
         cout << endl;
@@ -341,8 +341,21 @@ int Tequila_main(int argc,char ** argv)
         int width, height;
         int unused_area = tp->packTextures(width, height, false, false);
 
-        cout << "final width-height " << width << " " << height << endl;
+        cout << "packed width-height " << width << " " << height << endl;
         cout << "unused_area : " << unused_area << " = " << (float) unused_area/ (width*height) << "%" << endl;
+
+        float Scale = 1.f; //(float) aTextMaxSize / ElMax(width, height) ;
+
+        if (Scale > 1.f) Scale = 1.f;
+
+        cout << "Scaling factor = " << Scale << endl;
+
+        int final_width  = round_up(width * Scale);
+        int final_height = round_up(height * Scale);
+
+        Pt2di Sz ( final_width, final_height );
+
+        cout << "final width-height " << final_width << " " << final_height << endl;
 
         cout << endl;
         cout <<"**************************Writing texture**************************"<<endl;
@@ -351,7 +364,7 @@ int Tequila_main(int argc,char ** argv)
         Tiff_Im  nFileRes
                 (
                     aTextOut.c_str(),
-                    Pt2di( width, height ),
+                    Sz,
                     GenIm::u_int1,
                     Tiff_Im::No_Compr,
                     Tiff_Im::RGB
@@ -366,12 +379,20 @@ int Tequila_main(int argc,char ** argv)
 
             //cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
 
-            Pt2di tr =  regions[aK].p0 - Pt2di(x,y);
-            regions[aK].translation = tr;
+            Pt2di tr = regions[aK].p0 - Pt2di(x,y);
+            regions[aK].translation = Pt2dr(tr) / Scale;
             regions[aK].rotation = rotated;
 
-            //TODO: prendre en compte le facteur de sous-ech sur final_ZBufIm
+            //TODO: 1. prendre en compte le facteur de sous-ech sur final_ZBufIm
+            //TODO: 2. prendre en compte le Scale sur tout
+            //TODO: 3. faire la rotation si nécessaire
+
             Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
+            Fonc_Num aF = aF0;
+            while (aF.dimf_out() < aNbCh)
+                aF = Virgule(aF0,aF);
+           // aF = StdFoncChScale(aF,Pt2dr(-aP0.x,-aP0.y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));
+             aF = StdFoncChScale(aF,Pt2dr(-x,-y)/Scale, Pt2dr(1.f/Scale,1.f/Scale));
 
             if (rotated)
             {
@@ -392,6 +413,13 @@ int Tequila_main(int argc,char ** argv)
                     trans(aF0, tr),
                     nFileRes.out()
                 );
+
+                /*ELISE_COPY
+                (
+                    rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
+                    trans(aF, tr),
+                    nFileRes.out()
+                );*/
             }
 
             cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
@@ -403,12 +431,9 @@ int Tequila_main(int argc,char ** argv)
         cout <<"********************Computing texture coordinates********************"<<endl;
         cout << endl;
 
-        //TODO
-        float Scale = 1.f;
-
         for (unsigned int aK=0; aK < regions.size(); ++aK)
         {
-            Pt2di PtTemp = -regions[aK].translation;
+            Pt2dr PtTemp = -regions[aK].translation;
             bool rotat = regions[aK].rotation;
 
             //cout << "nb Triangles = " << regions[aK].size() << endl;
@@ -456,81 +481,21 @@ int Tequila_main(int argc,char ** argv)
 
                         Pt2dr P1, P2, P3;
 
-                        P1.x = ((float)(Pt1.x*Scale)+PtTemp.x) / width;
-                        P2.x = ((float)(Pt2.x*Scale)+PtTemp.x) / width;
-                        P3.x = ((float)(Pt3.x*Scale)+PtTemp.x) / width;
+                        P1.x = ((float)(Pt1.x*Scale)+PtTemp.x) / final_width;
+                        P2.x = ((float)(Pt2.x*Scale)+PtTemp.x) / final_width;
+                        P3.x = ((float)(Pt3.x*Scale)+PtTemp.x) / final_width;
 
-                        P1.y = 1.f - ((float)(Pt1.y*Scale)+PtTemp.y) / height;
-                        P2.y = 1.f - ((float)(Pt2.y*Scale)+PtTemp.y) / height;
-                        P3.y = 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / height;
+                        P1.y = 1.f - ((float)(Pt1.y*Scale)+PtTemp.y) / final_height;
+                        P2.y = 1.f - ((float)(Pt2.y*Scale)+PtTemp.y) / final_height;
+                        P3.y = 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / final_height;
 
                         Triangle->setTextureCoordinates(P1, P2, P3);
                     }
                 }
             }
         }
-
-        /* // plus grande texture en premier
-          while(regions.size())
-        {
-            unsigned int sz = 0;
-            int biggest = -1;
-            for (unsigned int aK=0; aK < regions.size();++aK)
-            {
-                if (regions[aK].size() > sz)
-                {
-                    sz = regions[aK].size();
-                    biggest = aK;
-                }
-            }
-
-            cout << "Biggest region= " << biggest << " with " << regions[biggest].size() << " triangles " << endl;
-
-            //Calcul de la zone correspondante dans l'image
-
-            int triIdx = regions[biggest][0];
-            cTriangle * Tri = myMesh.getTriangle(triIdx);
-            int imgIdx = Tri->getTextureImgIndex();
-
-            cout << "Image index " << imgIdx << endl;
-
-            Pt2dr _min(DBL_MAX, DBL_MAX);
-            Pt2dr _max;
-
-            for (unsigned int aK=0; aK < regions[biggest].size(); ++aK)
-            {
-                int triIdx = regions[biggest][aK];
-                cTriangle * Triangle = myMesh.getTriangle(triIdx);
-
-                ElCamera * Cam = ListCam[imgIdx];
-
-                vector <Pt3dr> Vertex;
-                Triangle->getVertexes(Vertex);
-
-                Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
-                Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
-                Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
-
-                if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
-                {
-                    _min = Inf(Pt1, _min);
-                    _min = Inf(Pt2, _min);
-                    _min = Inf(Pt3, _min);
-
-                    _max = Sup(Pt1, _max);
-                    _max = Sup(Pt2, _max);
-                    _max = Sup(Pt3, _max);
-                }
-            }
-
-            cout << "min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
-            vRect.push_back(TextRect(imgIdx, round_down(_min), round_up(_max)));
-
-            regions.erase(std::remove(regions.begin(), regions.end(), regions[biggest]), regions.end());
-        }*/
-
     }
-    else //mode classic
+    else //basic mode
     {
         vector <Pt2dr> TabCoor;
 
@@ -612,9 +577,6 @@ int Tequila_main(int argc,char ** argv)
         cout <<"********************Computing texture coordinates********************"<<endl;
         cout <<endl;
 
-        int width  = aSz.x;
-        int height = aSz.y;
-
         //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
         for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
         {
@@ -643,13 +605,13 @@ int Tequila_main(int argc,char ** argv)
 
                     Pt2dr P1, P2, P3;
 
-                    P1.x = ((float)(Pt1.x*Scale)+PtTemp.x) / width;
-                    P2.x = ((float)(Pt2.x*Scale)+PtTemp.x) / width;
-                    P3.x = ((float)(Pt3.x*Scale)+PtTemp.x) / width;
+                    P1.x = ((float)(Pt1.x*Scale)+PtTemp.x) / final_width;
+                    P2.x = ((float)(Pt2.x*Scale)+PtTemp.x) / final_width;
+                    P3.x = ((float)(Pt3.x*Scale)+PtTemp.x) / final_width;
 
-                    P1.y = 1.f - ((float)(Pt1.y*Scale)+PtTemp.y) / height;
-                    P2.y = 1.f - ((float)(Pt2.y*Scale)+PtTemp.y) / height;
-                    P3.y = 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / height;
+                    P1.y = 1.f - ((float)(Pt1.y*Scale)+PtTemp.y) / final_height;
+                    P2.y = 1.f - ((float)(Pt2.y*Scale)+PtTemp.y) / final_height;
+                    P3.y = 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / final_height;
 
                     Triangle->setTextureCoordinates(P1, P2, P3);
                 }
