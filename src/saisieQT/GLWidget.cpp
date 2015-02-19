@@ -545,7 +545,8 @@ void GLWidget::setZoom(float val)
 
 	if(hasDataLoaded() && _matrixManager.isBallNavigation())
 	{
-		getGLData()->pBall()->setScale(val*0.5);
+		if(getGLData()->pBall())
+			getGLData()->pBall()->setScale(val*0.5);
 	}
 
 	checkTiles();
@@ -605,10 +606,10 @@ void GLWidget::setNavigationType(int val)
 {
 	if (hasDataLoaded())
 	{
-
 		_matrixManager.setENavigation((eNavigationType)val);
 		resetView();
-		m_GLData->pBall()->setScale(getZoom()*0.5);
+		if(getGLData()->pBall())
+			m_GLData->pBall()->setScale(getZoom()*0.5);
 	}
 
 	update();

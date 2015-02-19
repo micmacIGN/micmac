@@ -299,13 +299,16 @@ void cBall::setScale(float aScale)
 
 void cBall::setScale(Pt3dr aScale)
 {
-    _cl0->setScale(aScale);
-    _cl1->setScale(aScale);
-    _cl2->setScale(aScale);
+	if(_cl0 && _cl1 && _cl2 && _cr0 && _cr1 && _cr2)
+	{
+		_cl0->setScale(aScale);
+		_cl1->setScale(aScale);
+		_cl2->setScale(aScale);
 
-    _cr0->setScale(aScale);
-    _cr1->setScale(aScale);
-    _cr2->setScale(aScale);
+		_cr0->setScale(aScale);
+		_cr1->setScale(aScale);
+		_cr2->setScale(aScale);
+	}
 }
 
 cAxis::cAxis(Pt3dr pt, float scale, float lineWidth)
