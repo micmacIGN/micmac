@@ -28,13 +28,14 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
 
 void GLWidget::resizeGL(int width, int height)
 {
+	QGLWidget::resizeGL(width,height);
 
-    if (width==0 || height==0) return;
+	if (width==0 || height==0) return;
 
-    _matrixManager.setGLViewport(0,0,width, height);
-    _messageManager.wh(width, height);
+	_matrixManager.setGLViewport(0,0,width, height);
+	_messageManager.wh(width, height);
 
-    zoomFit();
+	zoomFit();
 }
 
 //-------------------------------------------------------------------------
