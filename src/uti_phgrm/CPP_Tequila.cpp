@@ -39,38 +39,36 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "TexturePacker/TexturePacker.h"
 
-/*#if ELISE_Darwin
-    #include <OpenGL/gl.h>
-#else
-    #include <GL/gl.h>
-#endif*/
+typedef enum
+{
+  eBasic,
+  ePack,
+  eLastTM
+} eTequilaMode;
 
-bool debug = false;
-float defValZBuf = 1e9;
+std::string eToString(const eTequilaMode & aVal)
+{
+   if (aVal==eBasic)
+      return  "eBasic";
+   if (aVal==ePack)
+      return  "ePack";
+ std::cout << "Enum = eModeTequila\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
 
 int Tequila_main(int argc,char ** argv)
 {
-    int maxTextureSize, texture_units;
-    maxTextureSize = texture_units = 0;
-    /*glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
-
-    printf("Max texture size / Max texture units: %d / %d\n", maxTextureSize, texture_units);*/
-
-    if (maxTextureSize == 0) maxTextureSize = 8192;
-
-    std::string aDir, aPat, aFullName, aOri, aPly;
-    std::string aOut, aTextOut;
-    int aTextMaxSize = maxTextureSize;
+    std::string aDir, aPat, aFullName, aOri, aPly, aOut, aTextOut;
+    int aTextMaxSize = 4096;
     int aZBuffSSEch = 1;
     int aJPGcomp = 70;
     double aAngleMin = 60.f;
     bool aBin = true;
-    bool aModeBasic = false;
+    std::string aMode = "Pack";
 
-    std::stringstream sst;
-    sst << aTextMaxSize;
+    bool debug = false;
+    float defValZBuf = 1e9;
 
     ElInitArgMain
             (
@@ -81,22 +79,14 @@ int Tequila_main(int argc,char ** argv)
                 LArgMain()  << EAM(aOut,"Out",true,"Textured mesh name (def=plyName+ _textured.ply)")
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
-                            << EAM(aTextMaxSize,"Sz",true,"Texture max size (def="+ sst.str() +")")
+                            << EAM(aTextMaxSize,"Sz",true,"Texture max size (def=4096)")
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=60)")
-                            << EAM(aModeBasic,"Mode", true, "Mode (def = false)")
+                            << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
-
-    if (aTextMaxSize > maxTextureSize)
-    {
-        std::stringstream sst2;
-        sst2 << maxTextureSize;
-        cout << "Warning: trying to write texture higher than GL_MAX_TEXTURE_SIZE (" + sst2.str() + ")";
-        //return;
-    }
 
     SplitDirAndFile(aDir,aPat,aFullName);
 
@@ -256,7 +246,7 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
-    if (!aModeBasic)
+    if (aMode == "Pack")
     {
 
         cout << endl;
@@ -498,7 +488,7 @@ int Tequila_main(int argc,char ** argv)
             }
         }
     }
-    else //basic mode
+    else if (aMode == "Basic")
     {
         vector <Pt2dr> TabCoor;
 
