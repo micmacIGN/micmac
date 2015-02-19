@@ -228,6 +228,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QRadioButton" name="radioButtonBallOneTouch">
+            <property name="text">
+             <string>Ball One Touch (all with left button)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QRadioButton" name="radionButtonOrbital">
             <property name="text">
              <string>orbital</string>
@@ -257,8 +264,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>406</width>
-        <height>485</height>
+        <width>329</width>
+        <height>147</height>
        </rect>
       </property>
       <attribute name="label">
@@ -390,8 +397,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>406</width>
-        <height>485</height>
+        <width>247</width>
+        <height>162</height>
        </rect>
       </property>
       <attribute name="label">
@@ -527,8 +534,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>406</width>
-        <height>485</height>
+        <width>104</width>
+        <height>49</height>
        </rect>
       </property>
       <attribute name="label">

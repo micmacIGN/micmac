@@ -290,6 +290,13 @@ void cBall::setVisible(bool aVis)
     _cr2->setVisible(aVis);
 }
 
+void cBall::setScale(float aScale)
+{
+	Pt3dr pScale(aScale,aScale,aScale);
+	setScale(pScale);
+
+}
+
 void cBall::setScale(Pt3dr aScale)
 {
     _cl0->setScale(aScale);

@@ -351,11 +351,15 @@ void cGLData::createTiles()
             _glMaskedTiles.push_back(tile);
         }
 }
+cBall* cGLData::pBall() const
+{
+	return _pBall;
+}
 
 void cGLData::normalizeCurrentPolygon(bool nrm)
 {
-    if(currentPolygon())
-        currentPolygon()->normalize(nrm);
+	if(currentPolygon())
+		currentPolygon()->normalize(nrm);
 }
 
 void cGLData::clearPolygon()

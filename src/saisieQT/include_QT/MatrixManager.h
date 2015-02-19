@@ -140,6 +140,9 @@ public:
 	eNavigationType eNavigation() const;
 	void		setENavigation(const eNavigationType& eNavigation);
 
+	bool		isBallNavigation();
+
+	QPointF centerVP();
 private:
 	//! GL context aspect ratio (width/height)
 
@@ -157,9 +160,9 @@ private:
 
     float       m_glRatio;
 
-    GLdouble    *_mvMatrix;
-    GLdouble    *_projMatrix;
-    GLint       *_glViewport;
+	GLdouble    _mvMatrix[16];
+	GLdouble    _projMatrix[16];
+	GLint       _glViewport[4];
 
 
     GLdouble    _rX;
@@ -193,6 +196,8 @@ private:
 	void loadIdentity(GLdouble* matOut);
 
 	eNavigationType _eNavigation;
+
+	float		_factor;
 };
 
 #endif

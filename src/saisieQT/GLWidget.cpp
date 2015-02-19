@@ -542,6 +542,10 @@ void GLWidget::setZoom(float val)
 
     _vp_Params.m_zoom = val;
 
+	if(hasDataLoaded() && _matrixManager.isBallNavigation())
+	{
+		getGLData()->pBall()->setScale(val*0.5);
+	}
 
 	checkTiles();
 
@@ -549,6 +553,7 @@ void GLWidget::setZoom(float val)
 
 	if(imageLoaded() && _messageManager.drawMessages())
 		_messageManager.GetLastMessage()->message = QString::number(getZoom()*100,'f',1) + "%";
+
     update();
 
 }
@@ -599,8 +604,10 @@ void GLWidget::setNavigationType(int val)
 {
 	if (hasDataLoaded())
 	{
+
 		_matrixManager.setENavigation((eNavigationType)val);
 		resetView();
+		m_GLData->pBall()->setScale(getZoom()*0.5);
 	}
 
 	update();
@@ -754,7 +761,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool showCams, bool res
 
         setOption(cGLData::OpShow_Axis, false);
 
-		setOption(cGLData::OpShow_Grid, m_interactionMode == TRANSFORM_CAMERA && _matrixManager.eNavigation() != eNavig_Ball);
+		setOption(cGLData::OpShow_Grid, m_interactionMode == TRANSFORM_CAMERA && _matrixManager.eNavigation() == eNavig_Orbital);
 
         if (m_interactionMode == SELECTION)
 
@@ -868,6 +875,16 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
 }
 
+float GLWidget::angleZ(QPointF mPos)
+{
+	QPointF centerViewPort = _matrixManager.centerVP();
+	QPointF lastPosWindowf(m_lastPosWindow);
+	QLineF vectorR(centerViewPort,mPos);
+	QLineF vectorL(centerViewPort,lastPosWindowf);
+	float angle = vectorL.angleTo(vectorR)/180.0*PI;
+	return angle > PI ?  angle - 2.0*PI : angle;
+}
+
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())
@@ -931,6 +948,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                 {
                     r.x = dPWin.y() / vpWidth();
                     r.y = dPWin.x() / vpHeight();
+
+					if(_matrixManager.eNavigation() == eNavig_Ball_OneTouch)
+
+						r.z = angleZ(mPos);
+
                 }
                 else if (event->buttons() == Qt::MiddleButton)
                 {
@@ -946,8 +968,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                         _matrixManager.translate(dp.x(),dp.y(),0.0);
                     }
                 }
-				else if (event->buttons() == Qt::RightButton && _matrixManager.eNavigation() == eNavig_Ball)           // ROTATION Z
-                    r.z = (float)dPWin.x() / vpWidth();
+				else if (event->buttons() == Qt::RightButton && _matrixManager.isBallNavigation())          // ROTATION Z
+					r.z = angleZ(mPos);
 
                 _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
             }
