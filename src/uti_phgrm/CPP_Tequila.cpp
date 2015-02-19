@@ -52,7 +52,7 @@ std::string eToString(const eTequilaMode & aVal)
       return  "eBasic";
    if (aVal==ePack)
       return  "ePack";
- std::cout << "Enum = eModeTequila\n";
+ std::cout << "Enum = eTequilaMode\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
 }
@@ -112,7 +112,7 @@ int Tequila_main(int argc,char ** argv)
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
-        cout<<"Image "<<*itS<<", with ori : "<< NOri <<endl;
+        cout <<"Image "<<*itS<<", with ori : "<< NOri <<endl;
     }
 
     cout<<endl;
@@ -129,7 +129,8 @@ int Tequila_main(int argc,char ** argv)
     vector <cZBuf> aZBuffers;
 
     std::list<std::string>::const_iterator itS=aLS.begin();
-    for(unsigned int aK=0 ; aK<ListCam.size() ; aK++, itS++)
+    const int nCam = ListCam.size();
+    for(int aK=0 ; aK<nCam; aK++, itS++)
     {
         cout << "Z-buffer " << aK+1 << "/" << ListCam.size() << endl;
 
@@ -160,12 +161,13 @@ int Tequila_main(int argc,char ** argv)
     float threshold =  cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
     //cout << "threshold=" << threshold << endl;
 
-    for(int i=0 ; i < myMesh.getFacesNumber(); i++)                            //Pour un triangle
+    const int nFaces = myMesh.getFacesNumber();
+    for(int i=0 ; i < nFaces; i++)                            //Pour un triangle
     {
         float PScalcur = threshold;
 
         int idx = valDef;
-        for(unsigned int j=0 ; j<ListCam.size() ; j++) // on teste toutes les CamStenope
+        for(int j=0 ; j<nCam; j++) // on teste toutes les CamStenope
         {
             vector <unsigned int> vTri = aZBuffers[j].getVisibleTrianglesIndexes();
 
@@ -210,7 +212,8 @@ int Tequila_main(int argc,char ** argv)
         if (iter!= maxIter)
         {
             cond = false;
-            for (int aK=0; aK< myMesh.getFacesNumber();++aK)
+            const int nFaces = myMesh.getFacesNumber();
+            for (int aK=0; aK<nFaces;++aK)
             {
                 cTriangle * triangle = myMesh.getTriangle(aK);
                 if (triangle->getEdgesNumber() < 3 && !triangle->isTextured())
@@ -258,7 +261,6 @@ int Tequila_main(int argc,char ** argv)
 
         TEXTURE_PACKER::TexturePacker *tp = TEXTURE_PACKER::createTexturePacker();
 
-        int nbTriangles = 0;
         for (unsigned int aK=0; aK < regions.size();++aK)
         {
             //cout << "region " << aK << " nb triangles = " << regions[aK].triangles.size() << endl;
@@ -301,10 +303,8 @@ int Tequila_main(int argc,char ** argv)
 
             if (_min != Pt2dr(DBL_MAX, DBL_MAX)) //TODO: gerer les triangles de bord
             {
-                nbTriangles += regions[aK].triangles.size();
                 //cout << "min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
                 regions[aK].setRect(imgIdx, round_down(_min), round_up(_max));
-
             }
             else
             {
@@ -318,10 +318,10 @@ int Tequila_main(int argc,char ** argv)
         cout <<"**************************Packing textures*************************"<<endl;
         cout << endl;
 
-        cout << "Triangles nb = " << nbTriangles << endl;
         tp->setTextureCount(regions.size());
 
-        for (unsigned int aK=0; aK < regions.size(); ++aK)
+        const int nRegions = regions.size();
+        for (int aK=0; aK < nRegions; ++aK)
         {
             Pt2di sz = regions[aK].size();
             //cout << "width - height " << sz.x << " " <<  sz.y << endl;
@@ -358,7 +358,7 @@ int Tequila_main(int argc,char ** argv)
                     Tiff_Im::RGB
                 );
 
-        for (unsigned int aK=0; aK< regions.size(); aK++)
+        for (int aK=0; aK< nRegions; aK++)
         {
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
@@ -424,14 +424,14 @@ int Tequila_main(int argc,char ** argv)
         cout <<"********************Computing texture coordinates********************"<<endl;
         cout << endl;
 
-        for (unsigned int aK=0; aK < regions.size(); ++aK)
+        for (int aK=0; aK < nRegions; ++aK)
         {
             Pt2dr PtTemp = -regions[aK].translation;
             bool rotat = regions[aK].rotation;
 
             //cout << "nb Triangles = " << regions[aK].size() << endl;
-
-            for (unsigned int bK=0; bK < regions[aK].triangles.size();++bK)
+            const int nTriangles = regions[aK].triangles.size();
+            for (int bK=0; bK < nTriangles;++bK)
             {
                 int triIdx = regions[aK].triangles[bK];
 
@@ -527,7 +527,8 @@ int Tequila_main(int argc,char ** argv)
                     aPhI
                     );
 
-        for (int aK=0 ; aK<int(aVT.size()) ; aK++)
+        const int nImg = aVT.size();
+        for (int aK=0 ; aK< nImg ; aK++)
         {
             Pt2di ptK(aK % aNbCol, aK / aNbCol);
 
@@ -571,7 +572,8 @@ int Tequila_main(int argc,char ** argv)
         cout <<endl;
 
         //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
-        for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
+        const int nFaces = myMesh.getFacesNumber();
+        for(int i=0 ; i< nFaces ; i++)                          //Ecriture des triangles
         {
             cTriangle * Triangle = myMesh.getTriangle(i);
 

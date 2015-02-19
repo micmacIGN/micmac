@@ -423,6 +423,7 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
             }
         }
     }
+    ply_close (thePlyFile);
 
     if (doAdjacence) //remplissage du graphe d'adjacence
     {
@@ -434,11 +435,12 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
         id0a = id1a = id2a = idc0 = idc1 = -1;
         id0b = id1b = id2b = -2;
 
-        for (int aK = 0; aK < getFacesNumber(); ++aK)
+        const int nFaces = mTriangles.size();
+        for (int aK = 0; aK < nFaces; ++aK)
         {
             mTriangles[aK].getVertexesIndexes(id0a, id1a, id2a);
 
-            for (int bK=aK; bK < getFacesNumber(); ++bK)
+            for (int bK=aK+1; bK < nFaces; ++bK)
             {
                 mTriangles[bK].getVertexesIndexes(id0b, id1b, id2b);
 
@@ -470,8 +472,6 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
             }
         }
     }
-
-    ply_close (thePlyFile);
 }
 
 cMesh::cMesh(const cMesh &aMesh):
@@ -754,6 +754,7 @@ void cMesh::clean()
         if (!found) //remove this point
         {
             mVertexes.erase(std::remove(mVertexes.begin(), mVertexes.end(), mVertexes[aK]), mVertexes.end());
+            aK--;
 
             for(int i=0 ; i < nbFaces; i++)
             {
@@ -764,7 +765,6 @@ void cMesh::clean()
                 if (vertex1>aK) tri->setVertexIndex(0, vertex1-1);
                 if (vertex2>aK) tri->setVertexIndex(1, vertex2-1);
                 if (vertex3>aK) tri->setVertexIndex(2, vertex3-1);
-
             }
         }
     }
@@ -776,7 +776,8 @@ std::vector<cTextRect> cMesh::getRegions()
     std::set < int > triangleIdxSet;
     std::vector < cTextRect > regions;
 
-    for (int aK=0; aK < getFacesNumber();++aK)
+    const int nFaces = getFacesNumber();
+    for (int aK=0; aK < nFaces;++aK)
     {
         std::vector <int> myList;
         if ((getTriangle(aK)->getTextureImgIndex() != defVal) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
@@ -821,7 +822,7 @@ std::vector<cTextRect> cMesh::getRegions()
     //recherche des triangles isolés (trous dans les regions)
 
     //int cpt = 0;
-    for (int aK=0; aK < getFacesNumber();++aK)
+    for (int aK=0; aK < nFaces;++aK)
     {
         int triIdx = aK;
         if (triangleIdxSet.find(triIdx) == triangleIdxSet.end())
@@ -867,7 +868,8 @@ std::vector<cTextRect> cMesh::getRegions()
                 {
                     //cpt++;
                     //recherche de la region des voisins
-                    for(unsigned int bK=0; bK < regions.size(); ++bK)
+                    const int nRegions = regions.size();
+                    for(int bK=0; bK < nRegions; ++bK)
                     {
                         std::vector <int> region = regions[bK].triangles;
 
@@ -923,7 +925,8 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
     Pt3dr pt;
     if (aBin)
     {
-        for(int aK=0; aK< getVertexNumber(); aK++)
+        const int nVertex = getVertexNumber();
+        for(int aK=0; aK< nVertex; aK++)
         {
             pt = getVertex(aK);
 
@@ -932,7 +935,8 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             WriteType(file,float(pt.z));
         }
 
-        for(int aK=0; aK< getFacesNumber(); aK++)
+        const int nFaces = getFacesNumber();
+        for(int aK=0; aK< nFaces; aK++)
         {
             cTriangle * face = &(mTriangles[aK]);
 
@@ -963,13 +967,15 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
     }
     else
     {
-        for(int aK=0; aK< getVertexNumber(); aK++)
+        const int nVertex = getVertexNumber();
+        for(int aK=0; aK< nVertex; aK++)
         {
             pt = getVertex(aK);
             fprintf(file,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
         }
 
-        for(int aK=0; aK< getFacesNumber(); aK++)
+        const int nFaces = getFacesNumber();
+        for(int aK=0; aK< nFaces; aK++)
         {
             cTriangle * face = &(mTriangles[aK]);
             int t1, t2, t3;
