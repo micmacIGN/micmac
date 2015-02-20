@@ -98,6 +98,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          std::string mStrZ0ZF;
          bool        mDoMerge;
          cMMByImNM * mMMIN;
+		 bool		 mUseGpu;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -110,7 +111,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mDS                 (1.0),
    mZoomF              (1),
    mDoMerge            (DoMerge),
-   mMMIN               (0)
+   mMMIN               (0),
+   mUseGpu			   (false)
 {
 
 
@@ -137,6 +139,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mPurge,"Purge",true,"Purge result, def=true")
                     << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends of mode")
                     << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends of mode")
+					<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
    );
 
    if (!EAMIsInit(&mDS))
@@ -168,7 +171,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mBaseComMMByP =    MM3dBinFile("MMByP ")
                    +  BLANK + mStrType
                    +  mStrImOri0
-                   +  mArgMasq3D;
+				   +  mArgMasq3D
+				   +  " UseGpu=" + ToString(mUseGpu);
 
 
   //=====================================
@@ -552,7 +556,7 @@ int MPI2Mnt_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -568,17 +572,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

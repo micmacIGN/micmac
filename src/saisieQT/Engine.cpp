@@ -439,7 +439,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
-        float scaleFactor = _vGLData[idCur]->glImage().getLoadedImageRescaleFactor();
+		float scaleFactor = _vGLData[idCur]->glImageMasked().getLoadedImageRescaleFactor();
 
         if (scaleFactor != 1.f)
         {
