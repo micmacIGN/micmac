@@ -1194,10 +1194,22 @@ void SaisieQtWindow::setUI()
     }
     else
     {
-        _ui->splitter_Tools->hide();
+		_ui->QFrame_zoom->close();
+		_ui->splitter_Tools->close();
+		_ui->tableView_Objects->close();
+		_ui->tableView_PG->close();
+		_ui->tableView_Images->close();
+		_ui->frame_preview3D->close();
+
+		//_ui->frame_preview3D->close();
+		//_ui->splitter_Tools->hide();
     }
 
-    /*if (_appMode != BASC)*/ _ui->tableView_Objects->hide();
+	/*if (_appMode != BASC)*/
+
+	//_ui->tableView_Objects->hide();
+
+	_ui->tableView_Objects->close();
 
     //TEMP:
     hideAction(_ui->menuTools->menuAction(), false);

@@ -94,6 +94,7 @@ public:
 
 	void checkTiles(); //compute tiles if needed
 
+	float angleZ(QPointF mPos);
 public slots:
 
 	void createLoadedTexture(cMaskedImageGL* _tile);

@@ -122,10 +122,13 @@ public:
     void        setDrawTiles(bool val) { _bDrawTiles = val; }
     bool        getDrawTiles() { return _bDrawTiles; }
 
+	cBall*		pBall() const;
+
+
 private:
 
-    cMaskedImageGL      _glMaskedImage;
-    QVector <cMaskedImageGL*> _glMaskedTiles;
+	cMaskedImageGL      _glMaskedImage;
+	QVector <cMaskedImageGL*> _glMaskedTiles;
 
     cBall*              _pBall;
 

@@ -217,7 +217,8 @@ class cBall : public cObjectGL
 
         void    draw();
 
-    private:
+		void setScale(float aScale);
+private:
 
         cCircle *_cl0;
         cCircle *_cl1;

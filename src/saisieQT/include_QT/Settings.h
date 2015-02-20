@@ -46,6 +46,7 @@ typedef enum
 typedef enum
 {
    eNavig_Ball,
+   eNavig_Ball_OneTouch,
    eNavig_Orbital,
 } eNavigationType;
 
@@ -197,6 +198,7 @@ protected slots:
     void on_radioButton_origin_center_toggled(bool);
 	void on_radioButtonBall_toggled(bool val);
 	void on_radionButtonOrbital_toggled(bool);
+	void on_radioButtonBallOneTouch_toggled(bool val);
 
 
     //!other display settings
