@@ -305,6 +305,7 @@ class cChantierFromMPI
        std::string    mOri;
 
        std::string    mStrPat; // Pattern : def  =>KeyFileLON
+       std::string    mPatFilter; // Pattern : def  =>KeyFileLON
        std::string    mStrImOri0; // les initiales
 
        std::string    mStrType;
@@ -319,6 +320,7 @@ cChantierFromMPI::cChantierFromMPI(const std::string & aStr,double aScale,const 
     mMMI               (cMMByImNM::FromExistingDirOrMatch(aStr,false,aScale)),
     mOri               (mMMI->Etat().NameOri().ValWithDef("")),
     mStrPat            (aPat=="" ? mMMI->KeyFileLON() : aPat),
+    mPatFilter         (aPat=="" ? ".*" : aPat),
     mStrImOri0         (std::string(" ") + mStrPat + " " + mOri),
     mStrType           (mMMI->NameType()),
     mFullDirPIm        (mMMI->FullDir()),
@@ -405,6 +407,7 @@ class cAppli_MPI2Mnt
      private :
          void DoMTD();
          void DoBascule();
+         void DoMerge();
 
          std::string NameBascOfIm(const std::string &);
 
@@ -420,7 +423,9 @@ class cAppli_MPI2Mnt
          std::string mStrRep;
          std::string mDirMTD;
          std::string mDirBasc;
-
+         std::string mNameMerge;
+         std::string             mTargetGeom;
+         cXML_ParamNuage3DMaille mParamTarget;
 };
 
 std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
@@ -431,8 +436,28 @@ std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
 void cAppli_MPI2Mnt::DoAll()
 {
     // DoMTD();
-    DoBascule();
+    mParamTarget =  StdGetFromSI(mTargetGeom,XML_ParamNuage3DMaille);
+    // DoBascule();
+    DoMerge();
 }
+
+void cAppli_MPI2Mnt::DoMerge()
+{
+
+    std::string aCom =       MM3dBinFile("SMDM ")
+                         +   mDirApp+mDirBasc + NameBascOfIm(mCFPI->mPatFilter) + BLANK
+                         +   "Out=" + mNameMerge + BLANK
+                         +   "TargetGeom=" +   mTargetGeom + BLANK
+
+                      ;
+                      
+
+   // System(aCom);
+   
+   
+}
+
+
 
 void cAppli_MPI2Mnt::DoBascule()
 {
@@ -448,7 +473,7 @@ void cAppli_MPI2Mnt::DoBascule()
          std::string aNameIm =  (*mSetIm)[aK];
          std::string aCom =      MM3dBinFile("NuageBascule ")
                              +   mCFPI->mFullDirPIm+   "Nuage-Depth-"+ aNameIm +  ".xml" + BLANK
-                             +   mDirApp+mDirMTD+ TheStringLastNuageMM + BLANK
+                             +   mTargetGeom + BLANK
                              +   mDirApp+mDirBasc + NameBascOfIm(aNameIm) + BLANK
                              +   "Paral=0 ";
 
@@ -484,7 +509,8 @@ void cAppli_MPI2Mnt::DoMTD()
 cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mDS       (1.0),
     mDirMTD   ("PIMs-TmpMnt/"),
-    mDirBasc   ("PIMs-TmpBasc/")
+    mDirBasc   ("PIMs-TmpBasc/"),
+    mNameMerge ("MergePIMs.xml")
 {
    ElInitArgMain
    (
@@ -509,6 +535,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
   // cMMByImNM *    mMMI;
 
 
+    mTargetGeom = mDirApp+mDirMTD+ TheStringLastNuageMM ;
 
 }
 

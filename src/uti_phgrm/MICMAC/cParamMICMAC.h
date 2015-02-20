@@ -622,9 +622,17 @@ class cMemPartMICMAC
 
         cTplValGesInit< double > & BSurHGlob();
         const cTplValGesInit< double > & BSurHGlob()const ;
+
+        cTplValGesInit< int > & DeZoomLast();
+        const cTplValGesInit< int > & DeZoomLast()const ;
+
+        cTplValGesInit< int > & NumLastEtape();
+        const cTplValGesInit< int > & NumLastEtape()const ;
     private:
         cTplValGesInit< int > mNbMaxImageOn1Point;
         cTplValGesInit< double > mBSurHGlob;
+        cTplValGesInit< int > mDeZoomLast;
+        cTplValGesInit< int > mNumLastEtape;
 };
 cElXMLTree * ToXMLTree(const cMemPartMICMAC &);
 

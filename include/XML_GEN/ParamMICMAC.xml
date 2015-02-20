@@ -382,6 +382,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
    <MemPartMICMAC Nb="1" Class="true">
        <NbMaxImageOn1Point Nb="?" Type="int"> </NbMaxImageOn1Point>
        <BSurHGlob  Nb="?" Type="double"> </BSurHGlob>
+       <DeZoomLast  Nb="?" Type="int"> </DeZoomLast>
+       <NumLastEtape  Nb="?" Type="int"> </NumLastEtape>
    </MemPartMICMAC>
 
 
