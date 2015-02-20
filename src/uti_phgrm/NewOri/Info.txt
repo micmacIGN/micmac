@@ -1,0 +1,10 @@
+This folder will contains devlopment relative to a new approach of global orientation in MicMac.
+
+Basically :
+
+   - precompute for each pair of image the possible relative orientation (maybe several solution)
+
+   - validate/invalidate and solve ambiguity of pair of images, using triplet of images
+
+   - then we will see  ....
+
