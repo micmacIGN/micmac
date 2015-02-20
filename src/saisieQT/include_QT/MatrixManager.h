@@ -142,7 +142,9 @@ public:
 
 	bool		isBallNavigation();
 
-	QPointF centerVP();
+	QPointF		centerVP();
+
+	QRectF      getRectViewportToImage(float zoom);
 private:
 	//! GL context aspect ratio (width/height)
 

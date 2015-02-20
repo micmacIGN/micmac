@@ -82,15 +82,15 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
     {
 
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
-            m_GLData->glImage().deleteTextures();
+			m_GLData->glImageMasked().deleteTextures();
 
         m_GLData = aData;
 
         if(_widgetId != -1 && m_GLData && !m_GLData->isImgEmpty())
         {
-            m_GLData->glImage().createTextures();
+			m_GLData->glImageMasked().createTextures();
 
-            if ( m_GLData->glImage().getLoadedImageRescaleFactor()<1.f)
+			if ( m_GLData->glImageMasked().getLoadedImageRescaleFactor()<1.f)
 			{
                 m_GLData->createTiles();
             }
@@ -309,7 +309,7 @@ void GLWidget::gammaChanged(float val)
 {
     if (hasDataLoaded())
     {
-        m_GLData->glImage()._m_image->setGamma(val);
+		m_GLData->glImageMasked()._m_image->setGamma(val);
         update();
     }
 }
@@ -354,7 +354,7 @@ void GLWidget::showMasks(bool val)
 {
     if (hasDataLoaded())
     {
-        m_GLData->glImage().showMask(val);
+		m_GLData->glImageMasked().showMask(val);
         update();
     }
 }
@@ -371,7 +371,7 @@ void GLWidget::checkTiles()
 {
     if (imageLoaded())
     {
-        float rescaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
+		float rescaleFactor = getGLData()->glImageMasked().getLoadedImageRescaleFactor();
 
         if (rescaleFactor < 1.f) //est-on en mode sous-ech ?
         {
@@ -382,26 +382,26 @@ void GLWidget::checkTiles()
 
 				_matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,getZoom());
 
-                QPointF c0(0.f,0.f);
-				QPointF c3(vpWidth(),vpHeight());
+//                QPointF c0(0.f,0.f);
+//				QPointF c3(vpWidth(),vpHeight());
 
-				QPointF p0Img = _matrixManager.WindowToImage(c0, zoom);
-				QPointF p1Img = _matrixManager.WindowToImage(c3, zoom);
+//				QPointF p0Img = _matrixManager.WindowToImage(c0, zoom);
+//				QPointF p1Img = _matrixManager.WindowToImage(c3, zoom);
 
-				QRectF rect(p0Img ,p1Img);
+//				QRectF rect(p0Img ,p1Img);
 
-				getGLData()->glImage().glImage()->setVisible(false);
-				getGLData()->glImage().glImage()->deleteTexture();
+				getGLData()->glImageMasked().glImage()->setVisible(false);
+				getGLData()->glImageMasked().glImage()->deleteTexture();
 
-				setZone(rect);
+				setZone(_matrixManager.getRectViewportToImage(zoom));
 
-				getGLData()->setDrawTiles(true);
+//				getGLData()->setDrawTiles(true);
 
             }
             else
             {
 
-				getGLData()->setDrawTiles(false);
+//				getGLData()->setDrawTiles(false);
 
 				for (int aK=0; aK < getGLData()->glTiles().size(); ++aK)
 				{
@@ -416,12 +416,12 @@ void GLWidget::checkTiles()
 //					}
 				}
 
-				if ((int) *(getGLData()->glImage().glImage()->getTexture()) == (~0))
+				if ((int) *(getGLData()->glImageMasked().glImage()->getTexture()) == (~0))
 				{
-					getGLData()->glImage().glImage()->setVisible(true);
-					getGLData()->glImage().glMask()->setVisible(false);
-					getGLData()->glImage().createTextures();
-					getGLData()->glImage().glMask()->setVisible(true);
+					getGLData()->glImageMasked().glImage()->setVisible(true);
+					getGLData()->glImageMasked().glMask()->setVisible(false);
+					getGLData()->glImageMasked().createTextures();
+					getGLData()->glImageMasked().glMask()->setVisible(true);
 				}
 
             }
@@ -441,7 +441,7 @@ void GLWidget::createLoadedTexture(cMaskedImageGL* tile)
 void GLWidget::setZone(QRectF aRect)
 {	
 
-    if (getGLData()->glImage().glImage())
+	if (getGLData()->glImageMasked().glImage())
     {
 		//recherche des tuiles intersectées
 
@@ -459,7 +459,7 @@ void GLWidget::setZone(QRectF aRect)
 
 			QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
 
-			QMaskedImage * maskedImg = getGLData()->glImage().getMaskedImage();
+			QMaskedImage * maskedImg = getGLData()->glImageMasked().getMaskedImage();
 
 			QRectF rectImgGL(QPointF(pos.x,pos.y),sz);
 
@@ -929,7 +929,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
                 if (polygon()->size() && m_bDisplayMode2D)
 
-                    emit newRectanglePosition(polygon()->transfoTerrain(m_GLData->glImage()));
+					emit newRectanglePosition(polygon()->transfoTerrain(m_GLData->glImageMasked()));
 
                 if((id != polygon()->getSelectedPointIndex()))
 
@@ -1125,21 +1125,21 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             case Qt::Key_G:
                 if(m_bDisplayMode2D)
                 {
-                    m_GLData->glImage()._m_image->incGamma(0.2f);
-                    emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
+					m_GLData->glImageMasked()._m_image->incGamma(0.2f);
+					emit gammaChangedSgnl(m_GLData->glImageMasked()._m_image->getGamma());
                 }
                 break;
             case Qt::Key_H:
                 if(m_bDisplayMode2D)
                 {
-                    m_GLData->glImage()._m_image->incGamma(-0.2f);
-                    emit gammaChangedSgnl(m_GLData->glImage()._m_image->getGamma());
+					m_GLData->glImageMasked()._m_image->incGamma(-0.2f);
+					emit gammaChangedSgnl(m_GLData->glImageMasked()._m_image->getGamma());
                 }
                 break;
             case Qt::Key_J:
                 if(m_bDisplayMode2D)
                 {
-                    m_GLData->glImage()._m_image->setGamma(1.f);
+					m_GLData->glImageMasked()._m_image->setGamma(1.f);
                     emit gammaChangedSgnl(1.f);
                 }
                 break;
