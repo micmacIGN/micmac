@@ -382,10 +382,10 @@ int Tequila_main(int argc,char ** argv)
 
             Pt2di tr = p0_scaled - xy_scaled;
 
-            regions[aK].translation = Pt2dr(tr);
+            regions[aK].translation = tr;
             regions[aK].rotation = rotated;
 
-            //TODO: prendre en compte le facteur de sous-ech sur final_ZBufIm
+            //TODO: prendre en compte le facteur de sous-ech sur final_ZBufIm (aZBuffSSEch)
 
             int imgIdx = regions[aK].imgIdx;
             //cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
@@ -398,14 +398,17 @@ int Tequila_main(int argc,char ** argv)
 
             if (rotated)
             {
-                // Can only handle RLE mode for File-Images
 
-                /* ELISE_COPY
+
+                // Must use operator created  by `create_op_buf_simple_tpl' with 2D rectangle flux
+
+                 ELISE_COPY
                  (
-                     rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
-                     aF0 [Virgule(FY+Q0,Q1-FX)],
+                     rectangle(xy_scaled,xy_scaled + wh_scaled),
+                             //create_op_buf_simple_tpl()
+                             (aF [Virgule(FY,-FX)],
                      nFileRes.out()
-                 );*/
+                 );
             }
             else
             {
@@ -426,7 +429,7 @@ int Tequila_main(int argc,char ** argv)
 
         for (int aK=0; aK < nRegions; ++aK)
         {
-            Pt2dr PtTemp = -regions[aK].translation;
+            Pt2di PtTemp = -regions[aK].translation;
             bool rotat = regions[aK].rotation;
 
             //cout << "nb Triangles = " << regions[aK].size() << endl;
