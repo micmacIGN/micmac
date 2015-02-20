@@ -1,0 +1,76 @@
+<ParamSaisiePts>
+
+        <DicoLoc>
+             <Symb> Sauv=XXXXPointeFinal.xml </Symb>
+             <Symb> Terrain=XXXXRTL-120601.xml </Symb>
+             <Symb> Images=XXXXIMG_01[0-9][0-9].CR2  </Symb>
+             <Symb> Ori=XXXXRTL-Basc </Symb>
+             <Symb> LargeurFlou=XXXX </Symb>
+              
+             <Symb> TypePts=eNSM_Pts </Symb>
+             <Symb> FlouSpecified=false </Symb>
+             <Symb> TypeSpecified=false </Symb>
+             <Symb> ForceGray=true </Symb>
+             <Symb> WithMasq3D=false </Symb>
+             <Symb> Masq3D=XXXXX </Symb>
+             <Symb> WithPIMsFilter=false </Symb>
+             <Symb> PIMsFilter=XXXXX </Symb>
+        </DicoLoc>
+
+        <SectionWindows>
+             <SzTotIm>  ${SzWx}  ${SzWy} </SzTotIm>
+             <NbFenIm > ${NbFx} ${NbFy} </NbFenIm>
+              <ShowDet> true </ShowDet>
+
+             <!-- <SzTer> 200 200  </SzTer> -->
+        </SectionWindows>
+
+
+        <SectionInOut>
+              <ImportFromDico>
+                   <TypePt> ${TypePts}     </TypePt>
+                   <File>   ${Terrain}  </File>
+                   <LargeurFlou> ${LargeurFlou} </LargeurFlou>
+              </ImportFromDico>
+
+              <FlouGlobEcras> ${FlouSpecified} </FlouGlobEcras>
+              <TypeGlobEcras> ${TypeSpecified} </TypeGlobEcras>
+
+
+              <NamePointesImage> Tmp-SL-Im-${Sauv}   </NamePointesImage>
+              <NamePointsGlobal> Tmp-SL-Glob-${Sauv} </NamePointsGlobal>
+
+               <ExportPointeImage>   ${Sauv}   </ExportPointeImage>
+
+<!--
+               <ExportPointeImage>   PointeFinal.xml   </ExportPointeImage>
+-->
+
+
+        </SectionInOut>
+
+        <SectionImages>
+              <SetOfImages> ${Images} </SetOfImages>
+              <ForceGray> ${ForceGray} </ForceGray>
+              <KeyAssocOri> ${Ori}  </KeyAssocOri>
+        </SectionImages>
+
+       <SectionTerrain>
+             <IntervPercProf> 10.0 </IntervPercProf>
+             <ProfEstimator>
+                 <ZMoyenInIma>  true </ZMoyenInIma>
+             </ProfEstimator>
+             <#WHEN VTEST=${WithMasq3D}>
+                   <Masq3DFilterVis> ${Masq3D} </Masq3DFilterVis>
+             </#WHEN>
+             <#WHEN VTEST=${WithPIMsFilter}>
+                   <PIMsFilterVis> ${PIMsFilter} </PIMsFilterVis>
+             </#WHEN>
+
+        </SectionTerrain>
+
+        <DirectoryChantier> ThisDir </DirectoryChantier>
+
+</ParamSaisiePts>
+
+
