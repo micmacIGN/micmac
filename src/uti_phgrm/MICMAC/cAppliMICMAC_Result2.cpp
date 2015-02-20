@@ -634,6 +634,11 @@ void cAppliMICMAC::MakeDequantSpecial()
    if (!mCurEtape->IsOptDequant())
        return;
 
+    if (DoNothingBut().IsInit())
+    {
+        return;
+    }
+
    if (! mDoTheMEC)
        return;
 

@@ -792,6 +792,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
           aCom = aCom + " +DoPly=true " + " +ScalePly=" + ToString(mScalePly) +  " ";
      }
 */
+
      ExeCom(aCom);
 
 }
