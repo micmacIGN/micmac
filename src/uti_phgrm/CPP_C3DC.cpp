@@ -98,6 +98,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          std::string mStrZ0ZF;
          bool        mDoMerge;
          cMMByImNM * mMMIN;
+		 bool		 mUseGpu;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -110,7 +111,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mDS                 (1.0),
    mZoomF              (1),
    mDoMerge            (DoMerge),
-   mMMIN               (0)
+   mMMIN               (0),
+   mUseGpu			   (false)
 {
 
 
@@ -137,6 +139,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mPurge,"Purge",true,"Purge result, def=true")
                     << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends of mode")
                     << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends of mode")
+					<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
    );
 
    if (!EAMIsInit(&mDS))
@@ -168,7 +171,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mBaseComMMByP =    MM3dBinFile("MMByP ")
                    +  BLANK + mStrType
                    +  mStrImOri0
-                   +  mArgMasq3D;
+				   +  mArgMasq3D
+				   +  " UseGpu=" + ToString(mUseGpu);
 
 
   //=====================================
