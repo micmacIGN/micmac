@@ -22,8 +22,8 @@ cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, i
     _pGrid(NULL),
     _bbox_center(Pt3dr(0.,0.,0.)),
     _clouds_center(Pt3dr(0.,0.,0.)),
-    _appMode(appMode),
-    _bDrawTiles(false)
+	_appMode(appMode)
+//    _bDrawTiles(false)
 {
     if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
     else _glMaskedImage._m_mask->setVisible(true);
@@ -45,8 +45,8 @@ cGLData::cGLData(cData *data, cParameters aParams, int appMode):
     _clouds_center(Pt3dr(0.,0.,0.)),
     _appMode(appMode),
     _diam(1.f),
-    _incFirstCloud(false),
-    _bDrawTiles(false)
+	_incFirstCloud(false)
+//    _bDrawTiles(false)
 {
     initOptions(appMode);
 
@@ -120,7 +120,7 @@ void cGLData::setIncFirstCloud(bool incFirstCloud)
     _incFirstCloud = incFirstCloud;
 }
 
-cMaskedImageGL &cGLData::glImage()
+cMaskedImageGL &cGLData::glImageMasked()
 {
     return _glMaskedImage;
 }
@@ -243,15 +243,15 @@ void cGLData::draw()
 
     if(!is3D())
     {
-        if (glImage().glImage()->isVisible())
-            glImage().draw();
+		if (glImageMasked().glImage()->isVisible())
+			glImageMasked().draw();
         else
         {
-            for (int aK=0; aK< glTiles().size(); ++aK)
-                glTiles()[aK]->draw();
+			for (int aK=0; aK< glTiles().size(); ++aK)
+				glTiles()[aK]->draw();
 
-			 glImage().glImage()->setVisible(false);
-			 glImage().draw();
+			 glImageMasked().glImage()->setVisible(false);
+			 glImageMasked().draw();
 
         }
     }

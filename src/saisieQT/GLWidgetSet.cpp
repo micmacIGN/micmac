@@ -55,9 +55,15 @@ void GLWidgetSet::init(cParameters *params, bool modePt)
     }
 }
 
+GLWidget*GLWidgetSet::currentWidget(){return _pcurrentWidget;}
+
+int GLWidgetSet::nbWidgets() const {return _widgets.size();}
+
+GLWidget*GLWidgetSet::zoomWidget(){return _zoomWidget;}
+
 void GLWidgetSet::option3DPreview()
 {
-    threeDWidget()->setOption(cGLData::OpShow_Grid | cGLData::OpShow_Cams);
+	threeDWidget()->setOption(cGLData::OpShow_Grid | cGLData::OpShow_Cams);
     threeDWidget()->setOption(cGLData::OpShow_Ball | cGLData::OpShow_Mess | cGLData::OpShow_BBox,false);
 }
 
