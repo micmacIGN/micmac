@@ -83,6 +83,12 @@ int main(int argc, char *argv[])
 
 	setStyleSheet(app);
 
+	//qDebug() << "Number of screens:" << QGuiApplication::screens().size();
+
+	//QScreen *scrre =  QGuiApplication::primaryScreen();
+
+	//qDebug() << scrre->size();
+
 	QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
 		QString("SaisieMasqQT\n") +
 		QString("SaisieAppuisInitQT\n") +

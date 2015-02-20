@@ -120,6 +120,16 @@ void cSettingsDlg::on_radioButtonBall_toggled(bool val)
 	}
 }
 
+void cSettingsDlg::on_radioButtonBallOneTouch_toggled(bool val)
+{
+	if (val)
+	{
+		_parameters->setENavigation(eNavig_Ball_OneTouch);
+
+		 emit setNavigationType(eNavig_Ball_OneTouch);
+	}
+}
+
 void cSettingsDlg::on_radionButtonOrbital_toggled(bool val)
 {
 	if (val)
@@ -333,6 +343,7 @@ void cSettingsDlg::refresh()
         _ui->radioButton_centroid->setChecked(_parameters->getSceneCenterType()==eCentroid);
 
 		_ui->radioButtonBall->setChecked(_parameters->eNavigation()==eNavig_Ball);
+		_ui->radioButtonBallOneTouch->setChecked(_parameters->eNavigation()==eNavig_Ball_OneTouch);
 		_ui->radionButtonOrbital->setChecked(_parameters->eNavigation()==eNavig_Orbital);
 
         _ui->showMasks_checkBox->hide();

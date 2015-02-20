@@ -1,14 +1,14 @@
 #include "MatrixManager.h"
 
 MatrixManager::MatrixManager(eNavigationType nav):
-_eNavigation(nav)
+_eNavigation(nav),
+ _factor(1.0)
 {
-	_mvMatrix		= new GLdouble[16];
-	_projMatrix		= new GLdouble[16];
+
 //	_MatrixPassageCamera	= new GLdouble[16];
 //	_MatrixPassageCameraInv	= new GLdouble[16];
 //	_positionCamera	= new GLdouble[4];
-	_glViewport		= new GLint[4];
+
 
 	loadIdentity(_mvMatrixOld);
 //	loadIdentity(_mvMatrixOldInv);
@@ -25,9 +25,9 @@ _eNavigation(nav)
 
 MatrixManager::~MatrixManager()
 {
-    delete [] _mvMatrix;
-    delete [] _projMatrix;
-    delete [] _glViewport;
+//    delete [] _mvMatrix;
+//    delete [] _projMatrix;
+//    delete [] _glViewport;
 //	delete [] _MatrixPassageCamera;
 //	delete [] _MatrixPassageCameraInv;
 }
@@ -246,17 +246,6 @@ void MatrixManager::resetModelViewMatrix()
     glGetDoublev (GL_MODELVIEW_MATRIX, getModelViewMatrix());
 }
 
-//void MatrixManager::setModelViewMatrix()
-//{
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-
-//    glMultMatrixd(m_rotationMatrix);
-//    glTranslated(m_translationMatrix[0],m_translationMatrix[1],m_translationMatrix[2]);
-
-//    glGetDoublev (GL_MODELVIEW_MATRIX, _mvMatrix);
-//}
-
 void MatrixManager::glOrthoZoom(float zoom, float farr)
 {
     MatrixManager::mglOrtho(
@@ -322,13 +311,11 @@ void MatrixManager::setArcBallCamera(float zoom)
 	GLdouble  posCamera[4];
 	GLdouble  up[4] = {_upY*sin(_rZ),_upY*cos(_rZ),0.0,0.0};
 
-//	GLdouble  up[4] = {0.0,_upY,0.0,0.0};
-
 	posCamera[0] = _distance * -_sX * _cY;
 	posCamera[1] = _distance * -_sY;
 	posCamera[2] = _distance *  _cX * _cY;
 
-	if(_eNavigation ==  eNavig_Ball)
+	if(isBallNavigation())
 	{
 		MatrixInverse(_mvMatrixOld,NULL,posCamera);
 		MatrixInverse(_mvMatrixOld,NULL,up);
@@ -351,6 +338,13 @@ void MatrixManager::setArcBallCamera(float zoom)
 void MatrixManager::printVecteur(GLdouble* posCameraOut, const char* nameVariable)
 {
 	printf("%s : [%f,%f,%f]\n",nameVariable,posCameraOut[0],posCameraOut[1],posCameraOut[2]);
+}
+
+QPointF MatrixManager::centerVP()
+{
+	QPointF centerViewPort((((float)vpWidth())/2.0),(((float)vpHeight())/2.0));
+
+	return centerViewPort;
 }
 
 void MatrixManager::handleRotation(QPointF clicPosMouse)
@@ -391,8 +385,19 @@ void MatrixManager::handleRotation(QPointF clicPosMouse)
 	*/
 	}
 
-	if(_eNavigation ==  eNavig_Ball)
+	if(isBallNavigation())
 	{
+
+		QPointF centerViewPort = centerVP();
+
+		QLineF vectorR(clicPosMouse,centerViewPort);
+
+		float rayon		= ((float)vpHeight()/4.0);
+		float length	= vectorR.length();
+
+		if(eNavigation() == eNavig_Ball_OneTouch)
+			_factor = length / (rayon);
+
 		CopyMatrix(getModelViewMatrix(),_mvMatrixOld);
 		_rX  = 0;
 		_rY	 = 0;
@@ -413,9 +418,21 @@ void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
 	if(abs(_rY)>= 0 && abs(_rY)<= 2.f * PI)
 		sR = 1;
 
-	_rX += rX * factor * sR;
-	_rY -= rY * factor;
-	_rZ += rZ * factor;
+	if(eNavigation() == eNavig_Ball_OneTouch)
+	{
+		float factorZ	= min(1.0,max(0.0,_factor - 1.0));
+		float factorXY	= 1.0 - factorZ;
+
+		_rX += rX * factor * sR * factorXY;
+		_rY -= rY * factor		* factorXY;
+		_rZ += rZ 				* factorZ;
+	}
+	else
+	{
+		_rX += rX * factor * sR;
+		_rY -= rY * factor;
+		_rZ += rZ;
+	}
 
 	_rX = fmod(_rX,2*PI);
 	_rY = fmod(_rY,2*PI);
@@ -631,6 +648,11 @@ void MatrixManager::setENavigation(const eNavigationType& eNavigation)
 
 	resetAllMatrix();
 
+}
+
+bool MatrixManager::isBallNavigation()
+{
+	return eNavigation() == eNavig_Ball || eNavigation() == eNavig_Ball_OneTouch;
 }
 
 void MatrixManager::multiplicationMat(GLdouble* mat1, GLdouble* mat2, GLdouble* matOut)
