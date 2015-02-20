@@ -639,6 +639,23 @@ extern void TestOriBundle();
 
 int MPDtest_main (int argc,char** argv)
 {
+    Im2D_REAL4 anIm(200,200);
+    TIm2D<REAL4,REAL> aTIm(anIm);
+
+    Pt2dr aP(100,102);
+    aTIm.getr(aP/5.0); // Interpole
+    aTIm.getr(aP/5.0,2); // Interpole et return 2 si en dehors
+    aTIm.getprojR(aP/5.0); // Interpole et prolonge par continuite si en dehors
+    aTIm.get(round_ni(Pt2dr(3.6,3)));
+
+    ELISE_COPY
+    (
+        anIm.all_pts(),
+        anIm.in()[Virgule(FX/5,FY/5)],
+        anIm.out()
+    );
+
+
 /*
      LoadTrScaleRotate
      (
