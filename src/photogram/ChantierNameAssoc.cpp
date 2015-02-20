@@ -2034,6 +2034,12 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
             if (aSet!=0)
                 return aSet;
         }
+        {
+              std::string aDir,aName;
+              SplitDirAndFile(aDir,aName,aKey);
+              if (aName.size() < aKey.size())
+                 return Get(aName);
+        }
         std::cout << "For Key = " << aKey << "\n";
         ELISE_ASSERT(false,"Cannot get keyed set");
         return 0;

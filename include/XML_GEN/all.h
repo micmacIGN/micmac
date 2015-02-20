@@ -121,6 +121,7 @@ std::string MMOutputDirectory(); // equals MMUserEnvironment.OutputDirectory (if
 std::string MMLogDirectory(); // equals MMUserEnvironment.LogDirectory or ./ if not set
 
 extern std::string MM3DStr;
+extern const  std::string TheStringLastNuageMM;
 
 //   Binaire a "l'ancienne"  MMDir() + std::string("bin" ELISE_STR_DIR  COMMANDE)
 std::string MMBinFile(const std::string &);
@@ -1506,6 +1507,7 @@ class cMMByImNM
         const std::string & KeyFileLON() const;
         const cEtatPims & Etat() const;
         void  SetOriOfEtat(const std::string &) ;
+        const std::string & GetOriOfEtat() const;
           
         static bool  StrIsPImsDIr(const std::string &);
         static std::string StdDirPims(double aDS, const std::string & aNameMatch);

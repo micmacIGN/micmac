@@ -299,11 +299,12 @@ int MPI_main(int argc,char ** argv)
 class cChantierFromMPI
 {
      public :
-       cChantierFromMPI(const std::string &,double aScale);
+       cChantierFromMPI(const std::string &,double aScale,const std::string & aPat);
          
        cMMByImNM *    mMMI;
        std::string    mOri;
 
+       std::string    mStrPat; // Pattern : def  =>KeyFileLON
        std::string    mStrImOri0; // les initiales
 
        std::string    mStrType;
@@ -313,10 +314,12 @@ class cChantierFromMPI
 };
 
 
-cChantierFromMPI::cChantierFromMPI(const std::string & aStr,double aScale) :
-    mMMI             (cMMByImNM::FromExistingDirOrMatch(aStr,aScale)),
-    mOri             (mMMI->Etat().NameOri().ValWithDef("")),
-    mStrImOri0        (std::string(" ") + mMMI->KeyFileLON() + " " + mOri),
+
+cChantierFromMPI::cChantierFromMPI(const std::string & aStr,double aScale,const std::string & aPat) :
+    mMMI               (cMMByImNM::FromExistingDirOrMatch(aStr,false,aScale)),
+    mOri               (mMMI->Etat().NameOri().ValWithDef("")),
+    mStrPat            (aPat=="" ? mMMI->KeyFileLON() : aPat),
+    mStrImOri0         (std::string(" ") + mStrPat + " " + mOri),
     mStrType           (mMMI->NameType()),
     mFullDirPIm        (mMMI->FullDir()),
     mFullDirChantier   (mMMI->DirGlob())
@@ -344,6 +347,7 @@ class cAppli_MPI2Ply
          std::string mMergeOut;
          std::string mComNuageMerge;
          std::string mComCatPly;
+         std::string mPat;
 };
 
 
@@ -357,9 +361,10 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
         LArgMain()
                     << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
                     << EAM(mMergeOut,"Out",true,"Ply File Results")
+                    << EAM(mPat,"Pat",true,"Pattern for selecting images (Def=All image in files)")
     );
      
-    mCFPI = new cChantierFromMPI(mName,mDS);
+    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
  
     mComNuageMerge =       MM3dBinFile("TestLib  MergeCloud ")
                   +   mCFPI-> mStrImOri0
@@ -368,9 +373,11 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                   + " PlyCoul=true"
                ;
 
+   std::string aPatPly = "Nuage-Merge-" +mPat + ".*.ply";
+
 
    if (! EAMIsInit(&mMergeOut)) mMergeOut =  mCFPI->mFullDirChantier+"C3DC_"+ mCFPI->mStrType + ".ply";
-   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( mCFPI->mFullDirPIm + ".*Merge.*ply") + " Out="  + mMergeOut;
+   mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( mCFPI->mFullDirPIm + aPatPly) + " Out="  + mMergeOut;
 
 }
 
@@ -396,15 +403,88 @@ class cAppli_MPI2Mnt
          void DoAll();
 
      private :
+         void DoMTD();
+         void DoBascule();
+
+         std::string NameBascOfIm(const std::string &);
+
+
          std::string mName;
          double      mDS;
          cChantierFromMPI * mCFPI;
-         std::string mComMNTMNT;
+         cInterfChantierNameManipulateur * mICNM;
+         const std::vector<std::string> *  mSetIm;
+         std::string mDirApp;
          std::string mRep;
+         std::string mPat;
+         std::string mStrRep;
+         std::string mDirMTD;
+         std::string mDirBasc;
+
 };
 
+std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
+{
+    return  "Bacule" + aNameIm + ".xml" ;
+}
+
+void cAppli_MPI2Mnt::DoAll()
+{
+    // DoMTD();
+    DoBascule();
+}
+
+void cAppli_MPI2Mnt::DoBascule()
+{
+
+    std::list<std::string> aLCom;
+
+       
+
+    std::cout << "DIRAP " << mDirApp << " NBI " << mSetIm->size() << "\n";
+
+    for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
+    {
+         std::string aNameIm =  (*mSetIm)[aK];
+         std::string aCom =      MM3dBinFile("NuageBascule ")
+                             +   mCFPI->mFullDirPIm+   "Nuage-Depth-"+ aNameIm +  ".xml" + BLANK
+                             +   mDirApp+mDirMTD+ TheStringLastNuageMM + BLANK
+                             +   mDirApp+mDirBasc + NameBascOfIm(aNameIm) + BLANK
+                             +   "Paral=0 ";
+
+           aLCom.push_back(aCom);
+    }
+    cEl_GPAO::DoComInParal(aLCom);
+
+    // SMDM
+
+// mm3d NuageBascule "P=PIMs-MicMac/Nuage-Depth-(.*).xml" TmpPMI2Mnt/NuageImProf_STD-MALT_Etape_5.xml  "c=Bascule/Basc-\$1.xml"  Paral=0
+
+}
+
+
+void cAppli_MPI2Mnt::DoMTD()
+{
+    std::string aCom =      MM3dBinFile("Malt ")
+                          + std::string( " UrbanMNE ")
+                          + std::string(" ") + mCFPI->mStrPat
+                          + std::string(" ") + mCFPI->mMMI->GetOriOfEtat()
+                          + mStrRep
+                          + " DoMEC=0  Purge=true ZoomI=4 ZoomF=2  IncMax=1.0 " + 
+                          + " DirMEC=" + mDirMTD
+                       ;
+
+
+   // std::cout << "COM = " << aCom << "\n";
+   System(aCom);
+
+ // mm3d Malt UrbanMNE ./%NKS-Set-OfFile@./PIMs-MicMac/PimsFile.xml  Ori-CalPerIm/ Repere=TheCyl.xml  DoMEC=0  Purge=true ZoomI=4 ZoomF=2 DirMEC=TmpPMI2Mnt IncMax=1.0
+}
+
 cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
-    mDS  (1.0)
+    mDS       (1.0),
+    mDirMTD   ("PIMs-TmpMnt/"),
+    mDirBasc   ("PIMs-TmpBasc/")
 {
    ElInitArgMain
    (
@@ -413,13 +493,32 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
         LArgMain()
                     << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
+                    << EAM(mPat,"Pat",true,"Patter, def = all existing clouds")
    );
      
+   mCFPI = new cChantierFromMPI(mName,mDS,mPat);
+   mDirApp = mCFPI->mFullDirChantier;
+   mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirApp);
+   mSetIm = mICNM->Get(mCFPI->mStrPat);
+
+   ELISE_fp::MkDirSvp(mDirApp+mDirBasc);
+
+
+   if (EAMIsInit(&mRep))
+       mStrRep = " Repere=" + mRep;
+  // cMMByImNM *    mMMI;
+
+
+
 }
 
 
 int MPI2Mnt_main(int argc,char ** argv)
 {
+    cAppli_MPI2Mnt anAppli(argc,argv);
+    anAppli.DoAll();
+
+
     return EXIT_SUCCESS;
 }
 
