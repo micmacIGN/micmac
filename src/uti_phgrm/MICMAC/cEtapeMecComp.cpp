@@ -1808,6 +1808,7 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXML_MTD_Nuage() const
    return DoRemplitXMLNuage(anEN);
 }
 
+const  std::string TheStringLastNuageMM = "MMLastNuage.xml";
 
 cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cMMExportNuage & anEN) const
 {
@@ -1843,6 +1844,11 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cMMExportNuage & 
                               );
         MakeFileXML(aNuage,aName);
         mNameXMLNuage = aName;
+
+        if (mIsLast)
+        {
+             ELISE_fp::CpFile(mNameXMLNuage,mAppli.FullDirMEC()+TheStringLastNuageMM);
+        }
     }
     if (anEN.PlyFile().IsInit())
     {

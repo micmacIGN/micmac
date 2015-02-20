@@ -634,6 +634,9 @@ void cAppliMICMAC::MakeDequantSpecial()
    if (!mCurEtape->IsOptDequant())
        return;
 
+   if (! mDoTheMEC)
+       return;
+
    if (mPrecEtape==0) return;
    if (mPrecEtape->IsOptDequant()) return;
      

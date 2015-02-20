@@ -191,6 +191,12 @@ void  cMMByImNM::SetOriOfEtat(const std::string & anOri)
    }
 }
 
+const std::string &  cMMByImNM::GetOriOfEtat() const
+{
+    ELISE_ASSERT(mEtats.NameOri().IsInit(),"cMMByImNM::GetOriOfEtat");
+    return mEtats.NameOri().Val();
+}
+
 
 
 const std::string PrefixMPI = "PIMs-";

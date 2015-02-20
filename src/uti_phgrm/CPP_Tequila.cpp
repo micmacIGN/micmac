@@ -39,6 +39,58 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "TexturePacker/TexturePacker.h"
 
+
+void LoadTrScaleRotate
+     (
+          const std::string & aNameIn,
+          const std::string & aNameOut,
+          const Pt2di & aP1Int,
+          const Pt2di & aP2Int,
+          const Pt2di & aP1Out,
+          double      aScale,  // Par ex 2 pour image 2 fois + petite
+          int         aRot
+     )
+{
+     Tiff_Im aTifIn(aNameIn.c_str());
+     Tiff_Im aTifOut(aNameOut.c_str());
+
+     int aNbCh = aTifIn.nb_chan();
+     ELISE_ASSERT(aTifOut.nb_chan()==aNbCh,"LoadTrScaleRotate nb channel diff");
+
+
+     Pt2dr aVIn  = Pt2dr(aP2Int-aP1Int);
+     Pt2di aSzOutInit = round_ni(aVIn / aScale);
+
+     std::vector<Im2DGen *>   aVOutInit = aTifOut.VecOfIm(aSzOutInit);
+
+     ELISE_COPY
+     (
+          aVOutInit[0]->all_pts(),
+          StdFoncChScale(aTifIn.in_proj(),Pt2dr(aP1Int),Pt2dr(aScale,aScale)),
+          StdOut(aVOutInit)
+     );
+
+     std::vector<Im2DGen *>   aVOutRotate;
+     for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
+          aVOutRotate.push_back(aVOutInit[aK]->ImRotate(aRot));
+
+     Pt2di aSzOutRotat = aVOutRotate[0]->sz();
+
+
+     ELISE_COPY
+     (
+         rectangle(aP1Out,aP1Out+aSzOutRotat),
+         trans(StdInput(aVOutRotate), -aP1Out),
+         aTifOut.out()
+     );
+}
+
+
+
+
+
+
+
 typedef enum
 {
   eBasic,
