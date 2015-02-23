@@ -670,8 +670,11 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     int     aKPreDir    = 0;
     bool    idPreCo     = false;
 
-	mMaskCalcDone	= true;
-	mMaskCalc		= Im2D_Bits<1>(mSz.x,mSz.y);
+	if(mHasMaskAuto)
+	{
+		mMaskCalcDone = true;
+		mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
+	}
 //	mTMask			= new TIm2DBits<1>(mMaskCalc);
 
 	IGpuOpt.SetCompute(true);
