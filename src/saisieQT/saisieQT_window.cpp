@@ -1482,7 +1482,6 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
     if (_appMode != MASK3D)
     {
         connect(glW, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
-
         connect(glW, SIGNAL(gammaChangedSgnl(float)), this, SLOT(setGamma(float)));
 
         if (zoomWidget())
@@ -1493,6 +1492,8 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 
             connect(glW, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
         }
+
+		glW->checkTiles();
     }
 
     if (_appMode > MASK3D)

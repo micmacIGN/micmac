@@ -382,38 +382,18 @@ void GLWidget::checkTiles()
 
 				_matrixManager.applyAllTransformation(m_bDisplayMode2D,m_lastClickZoom,getZoom());
 
-//                QPointF c0(0.f,0.f);
-//				QPointF c3(vpWidth(),vpHeight());
-
-//				QPointF p0Img = _matrixManager.WindowToImage(c0, zoom);
-//				QPointF p1Img = _matrixManager.WindowToImage(c3, zoom);
-
-//				QRectF rect(p0Img ,p1Img);
-
 				getGLData()->glImageMasked().glImage()->setVisible(false);
 				getGLData()->glImageMasked().glImage()->deleteTexture();
 
 				setZone(_matrixManager.getRectViewportToImage(zoom));
 
-//				getGLData()->setDrawTiles(true);
-
             }
             else
             {
 
-//				getGLData()->setDrawTiles(false);
-
 				for (int aK=0; aK < getGLData()->glTiles().size(); ++aK)
 				{
-					cMaskedImageGL * tile = getGLData()->glTiles()[aK];
-
-					tile->deleteTextures();
-
-//					if(!tile->_loading && tile->getMaskedImage())
-//					{
-//						cMaskedImage<QImage>* image = tile->getMaskedImage();
-//						delete image;
-//					}
+					getGLData()->glTiles()[aK]->deleteTextures();
 				}
 
 				if ((int) *(getGLData()->glImageMasked().glImage()->getTexture()) == (~0))
