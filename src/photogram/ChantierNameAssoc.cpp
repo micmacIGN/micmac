@@ -49,6 +49,27 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+
+bool SplitIn2ArroundEqSvp
+     (
+             const std::string  &  a2Stplit,
+             char            aCar,
+             std::string  &  aBefore,
+             std::string  &  aAfter
+     );
+
+
+std::string GetNameWithoutPerc(const std::string & aName)
+{
+   std::string aBefore,anAfter;
+   bool OkSplit = SplitIn2ArroundEqSvp(aName,'%',aBefore,anAfter);
+
+   if (OkSplit && ELISE_fp::IsDirectory(aBefore)) return anAfter;
+
+   return "";
+}
+
+
 bool NameIsNKS(const std::string & aPat)
 {
     return (aPat[0]=='N') && (aPat[1]=='K') && (aPat[2]=='S') && (aPat[3]=='-');
@@ -2035,10 +2056,14 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
                 return aSet;
         }
         {
+              std::string aName = GetNameWithoutPerc(aKey);
+              if (aName!="") return Get(aName);
+/*
               std::string aDir,aName;
               SplitDirAndFile(aDir,aName,aKey);
               if (aName.size() < aKey.size())
                  return Get(aName);
+*/
         }
         std::cout << "For Key = " << aKey << "\n";
         ELISE_ASSERT(false,"Cannot get keyed set");
@@ -2676,13 +2701,13 @@ aKeyOrFile         :
 
 
 
-    std::list<std::string>
+std::list<std::string>
         cInterfChantierNameManipulateur::StdGetListOfFile
         (
         const std::string & aKeyOrPat,
         int aProf
         )
-    {
+{
         if (SetHasKey(aKeyOrPat))
         {
             const  std::vector<std::string> * aV = Get(aKeyOrPat);
@@ -2691,11 +2716,20 @@ aKeyOrFile         :
         std::list<std::string> aRes =  RegexListFileMatch(mDir,aKeyOrPat,aProf,false);
         if (aRes.empty())
         {
+            std::string aName = GetNameWithoutPerc(aKeyOrPat);
+            if (aName!="") return StdGetListOfFile(aName,aProf);
+           // GetNameWithoutPerc
+/*
+            std::string aDir,aName;
+            SplitDirAndFile(aDir,aName,aKeyOrPat);
+            if (aName.size() < aKey.size())
+                 return StdGetListOfFile
+*/
             std::cout << "For Key-Or-Pat=" << aKeyOrPat << " Dir= " << mDir << "\n";
             ELISE_ASSERT(false,"Empty list for StdGetListOfFile");
         }
         return aRes;
-    }
+}
 
 
 

@@ -59,7 +59,7 @@ int Tawny_main(int argc,char ** argv)
     int mSzV = 1;
     double mCorrThresh = 0.8;
     double mNbPerIm = 1e4;
-    bool  DoL1Filter=true;
+    bool  DoL1Filter=false;
 
     double  aSatThresh = 1e9;
     string aNameOut="Ortho-Eg-Test-Redr.tif";

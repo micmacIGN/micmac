@@ -294,6 +294,8 @@ int  NuageBascule_main(int argc,char ** argv)
             {
                  cXML_ParamNuage3DMaille  aNewNuageOut ;
                  aNewNuageOut.Empty().SetVal(true);
+                 aNewNuageOut.PN3M_Nuage().EmptyPN3M().SetVal(true);
+                 aPrefRes = DirOfFile(aPrefRes) + "PBTOPO-" + NameWithoutDir(aPrefRes);
                  MakeFileXML(aNewNuageOut,aPrefRes+".xml");
                  return EXIT_SUCCESS;
             }
