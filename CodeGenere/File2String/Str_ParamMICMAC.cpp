@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2132]) = {
+const char * (theNameVar_ParamMICMAC[2134]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -384,6 +384,8 @@ const char * (theNameVar_ParamMICMAC[2132]) = {
 "   <MemPartMICMAC Nb=\"1\" Class=\"true\">\n",
 "       <NbMaxImageOn1Point Nb=\"?\" Type=\"int\"> </NbMaxImageOn1Point>\n",
 "       <BSurHGlob  Nb=\"?\" Type=\"double\"> </BSurHGlob>\n",
+"       <DeZoomLast  Nb=\"?\" Type=\"int\"> </DeZoomLast>\n",
+"       <NumLastEtape  Nb=\"?\" Type=\"int\"> </NumLastEtape>\n",
 "   </MemPartMICMAC>\n",
 "\n",
 "\n",

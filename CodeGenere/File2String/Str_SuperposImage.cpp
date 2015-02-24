@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1314]) = {
+const char * (theNameVar_SuperposImage[1315]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -520,6 +520,7 @@ const char * (theNameVar_SuperposImage[1314]) = {
 "                   <!-- PL2XmlTree evite que l'appelle ToXMLTree ait une portee globale -->\n",
 "                   <GeomRestit Nb=\"1\" Type=\"eModeGeomMNT\" PL2XmlTree=\"\"> </GeomRestit>\n",
 "             </Image_Profondeur>\n",
+"             <EmptyPN3M Nb=\"?\" Type=\"bool\"> </EmptyPN3M> <!--- Necessaire pour l'union -->\n",
 "<!--\n",
 "             <Image_MNT Nb=\"?\" AccessorFils=\"false\"> \n",
 "                   <Image  Nb=\"1\" Type=\"std::string\"> </Image>\n",

@@ -639,6 +639,12 @@ extern void TestOriBundle();
 
 int MPDtest_main (int argc,char** argv)
 {
+    // cXML_ParamNuage3DMaille aN = StdGetFromSI("/media/data2/Cylindres/Full-Deroule-Tour-Sud/PIMs-TmpBasc/MergePIMs.xml",XML_ParamNuage3DMaille);
+    cXML_ParamNuage3DMaille aN = StdGetFromSI("/media/data2/Cylindres/Full-Deroule-Tour-Sud/PIMs-TmpOrtho/NuageImProf_LeChantier_Etape_1.xml",XML_ParamNuage3DMaille);
+    cFileOriMnt  aF = ToFOM(aN,true);
+    MakeFileXML(aF,"Test.xml");
+
+
 /*
      LoadTrScaleRotate
      (

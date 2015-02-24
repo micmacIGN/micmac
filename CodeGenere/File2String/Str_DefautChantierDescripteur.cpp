@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_DefautChantierDescripteur[2849]) = {
+const char * (theNameVar_DefautChantierDescripteur[2853]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",
 "      Un exemple avec utilisation des fonctionnalites arithmetique\n",
@@ -56,6 +56,7 @@ const char * (theNameVar_DefautChantierDescripteur[2849]) = {
 "\n",
 "<!--   HOMOGRAPHY-COMPUTING\n",
 "\n",
+"    <Symb>  Tooooooo=XxX </Symb>\n",
 "-->\n",
 "    <KeyedNamesAssociations>\n",
 "        <IsParametrized>  true </IsParametrized>\n",
@@ -521,7 +522,7 @@ const char * (theNameVar_DefautChantierDescripteur[2849]) = {
 "        <IsParametrized>  true </IsParametrized>\n",
 "        <Calcs>\n",
 "            <Direct>\n",
-"                <PatternTransform> .*%([0-9,a-z,A-Z,_,=]+) </PatternTransform>\n",
+"                <PatternTransform> .*%([-,0-9,a-z,A-Z,_=:\\-\\.]+) </PatternTransform>\n",
 "                <CalcName>  #1$1#2  </CalcName>\n",
 "                <NameTransfo>\n",
 "                    <!-- Old Version -->\n",
@@ -529,6 +530,9 @@ const char * (theNameVar_DefautChantierDescripteur[2849]) = {
 "                    <!-- New Version -->\n",
 "                        <NewAddNameCam>  true </NewAddNameCam>   <!--   true si V>=1 -->\n",
 "                        <NewFocMul  >  1000 </NewFocMul>        <!--  1000 si >=1, 1 sinon -->\n",
+"                        <NewKeyId>   NKS-Assoc-StdIdCam </NewKeyId>\n",
+"                        <NewKeyIdAdd> NKS-Assoc-StdIdAdditionnelCam </NewKeyIdAdd>\n",
+"\n",
 "                 </NameTransfo>\n",
 "             </Direct>\n",
 "        </Calcs>\n",

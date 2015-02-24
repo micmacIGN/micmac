@@ -1992,9 +1992,13 @@ class cPN3M_Nuage
 
         cTplValGesInit< cImage_Profondeur > & Image_Profondeur();
         const cTplValGesInit< cImage_Profondeur > & Image_Profondeur()const ;
+
+        cTplValGesInit< bool > & EmptyPN3M();
+        const cTplValGesInit< bool > & EmptyPN3M()const ;
     private:
         cTplValGesInit< cImage_Point3D > mImage_Point3D;
         cTplValGesInit< cImage_Profondeur > mImage_Profondeur;
+        cTplValGesInit< bool > mEmptyPN3M;
 };
 cElXMLTree * ToXMLTree(const cPN3M_Nuage &);
 
@@ -2170,6 +2174,9 @@ class cXML_ParamNuage3DMaille
 
         cTplValGesInit< cImage_Profondeur > & Image_Profondeur();
         const cTplValGesInit< cImage_Profondeur > & Image_Profondeur()const ;
+
+        cTplValGesInit< bool > & EmptyPN3M();
+        const cTplValGesInit< bool > & EmptyPN3M()const ;
 
         cPN3M_Nuage & PN3M_Nuage();
         const cPN3M_Nuage & PN3M_Nuage()const ;

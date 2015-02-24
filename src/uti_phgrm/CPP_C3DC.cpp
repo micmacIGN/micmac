@@ -98,6 +98,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          std::string mStrZ0ZF;
          bool        mDoMerge;
          cMMByImNM * mMMIN;
+		 bool		 mUseGpu;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -110,7 +111,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mDS                 (1.0),
    mZoomF              (1),
    mDoMerge            (DoMerge),
-   mMMIN               (0)
+   mMMIN               (0),
+   mUseGpu			   (false)
 {
 
 
@@ -137,6 +139,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mPurge,"Purge",true,"Purge result, def=true")
                     << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends of mode")
                     << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends of mode")
+					<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
    );
 
    if (!EAMIsInit(&mDS))
@@ -168,7 +171,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mBaseComMMByP =    MM3dBinFile("MMByP ")
                    +  BLANK + mStrType
                    +  mStrImOri0
-                   +  mArgMasq3D;
+				   +  mArgMasq3D
+				   +  " UseGpu=" + ToString(mUseGpu);
 
 
   //=====================================
@@ -305,6 +309,7 @@ class cChantierFromMPI
        std::string    mOri;
 
        std::string    mStrPat; // Pattern : def  =>KeyFileLON
+       std::string    mPatFilter; // Pattern : def  =>KeyFileLON
        std::string    mStrImOri0; // les initiales
 
        std::string    mStrType;
@@ -319,6 +324,7 @@ cChantierFromMPI::cChantierFromMPI(const std::string & aStr,double aScale,const 
     mMMI               (cMMByImNM::FromExistingDirOrMatch(aStr,false,aScale)),
     mOri               (mMMI->Etat().NameOri().ValWithDef("")),
     mStrPat            (aPat=="" ? mMMI->KeyFileLON() : aPat),
+    mPatFilter         (aPat=="" ? ".*" : aPat),
     mStrImOri0         (std::string(" ") + mStrPat + " " + mOri),
     mStrType           (mMMI->NameType()),
     mFullDirPIm        (mMMI->FullDir()),
@@ -405,12 +411,15 @@ class cAppli_MPI2Mnt
      private :
          void DoMTD();
          void DoBascule();
+         void DoMerge();
+         void DoOrtho();
 
          std::string NameBascOfIm(const std::string &);
 
 
          std::string mName;
          double      mDS;
+         int         mDeZoom;
          cChantierFromMPI * mCFPI;
          cInterfChantierNameManipulateur * mICNM;
          const std::vector<std::string> *  mSetIm;
@@ -420,7 +429,14 @@ class cAppli_MPI2Mnt
          std::string mStrRep;
          std::string mDirMTD;
          std::string mDirBasc;
-
+         std::string mNameMerge;
+         std::string mNameOriMerge;
+         std::string mNameOriMasq;
+         std::string              mTargetGeom;
+         cXML_ParamNuage3DMaille  mParamTarget;
+         bool                     mRepIsAnam;
+         bool                     mDoMnt;
+         bool                     mDoOrtho;
 };
 
 std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
@@ -428,11 +444,72 @@ std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
     return  "Bacule" + aNameIm + ".xml" ;
 }
 
+
+
 void cAppli_MPI2Mnt::DoAll()
 {
-    // DoMTD();
-    DoBascule();
+    if (mDoMnt) DoMTD();
+    mParamTarget =  StdGetFromSI(mTargetGeom,XML_ParamNuage3DMaille);
+    if (mDoMnt) DoBascule();
+    if (mDoMnt) DoMerge();
+
+    //============== Generation d'un Ori
+    cXML_ParamNuage3DMaille aN =   StdGetFromSI(mDirApp+mDirBasc +mNameMerge,XML_ParamNuage3DMaille);
+    cFileOriMnt  aFOM = ToFOM(aN,true);
+    MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMasq);
+
+    double aSR = aN.SsResolRef().Val();
+    int aISR = round_ni(aSR);
+    ELISE_ASSERT(ElAbs(aSR-aISR)<1e-7,"cAppli_MPI2Mnt::DoAll => ToFOM");
+    aFOM.NombrePixels() =  aFOM.NombrePixels()* aISR;
+    aFOM.ResolutionPlani() = aFOM.ResolutionPlani() / aISR;
+    aFOM.ResolutionAlti() = aFOM.ResolutionAlti() / aISR;
+    MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMerge);
+    //============== Generation d'un Ori
+
+    if (mDoOrtho) DoOrtho();
 }
+
+
+
+void cAppli_MPI2Mnt::DoOrtho()
+{
+     std::string aCom =       MM3dBinFile("MICMAC ")
+                         +    XML_MM_File("MM-PIMs2Ortho.xml") + BLANK
+                         +    " +Pat=" +  mCFPI->mStrPat       + BLANK
+                         +    " +Ori=" +  mCFPI->mOri                 + BLANK
+                         +    " +DeZoom=" +ToString(mDeZoom)   + BLANK
+                         +    " WorkDir=" + mDirApp
+                      ;
+
+    if (EAMIsInit(&mRep))
+    {
+           aCom +=  " +Repere="+mRep;
+           if (mRepIsAnam) 
+              aCom += " +RepereIsAnam=true";
+           else  
+              aCom += " +RepereIscart=true";
+    }
+
+    // std::cout << "COMORTHO= " << aCom << "\n";
+    System(aCom);
+
+}
+
+void cAppli_MPI2Mnt::DoMerge()
+{
+
+    std::string aCom =       MM3dBinFile("SMDM ")
+                         +   QUOTE(mDirApp+mDirBasc + NameBascOfIm(mCFPI->mPatFilter)) + BLANK
+                         +   "Out=" + mNameMerge + BLANK
+                         // +   "TargetGeom=" +   mTargetGeom + BLANK
+
+                      ;
+                      
+    System(aCom);
+
+}
+
 
 void cAppli_MPI2Mnt::DoBascule()
 {
@@ -448,7 +525,7 @@ void cAppli_MPI2Mnt::DoBascule()
          std::string aNameIm =  (*mSetIm)[aK];
          std::string aCom =      MM3dBinFile("NuageBascule ")
                              +   mCFPI->mFullDirPIm+   "Nuage-Depth-"+ aNameIm +  ".xml" + BLANK
-                             +   mDirApp+mDirMTD+ TheStringLastNuageMM + BLANK
+                             +   mTargetGeom + BLANK
                              +   mDirApp+mDirBasc + NameBascOfIm(aNameIm) + BLANK
                              +   "Paral=0 ";
 
@@ -472,19 +549,23 @@ void cAppli_MPI2Mnt::DoMTD()
                           + mStrRep
                           + " DoMEC=0  Purge=true ZoomI=4 ZoomF=2  IncMax=1.0 " + 
                           + " DirMEC=" + mDirMTD
+                          + " ZoomF=" + ToString(mDeZoom)
                        ;
 
-
-   // std::cout << "COM = " << aCom << "\n";
    System(aCom);
-
- // mm3d Malt UrbanMNE ./%NKS-Set-OfFile@./PIMs-MicMac/PimsFile.xml  Ori-CalPerIm/ Repere=TheCyl.xml  DoMEC=0  Purge=true ZoomI=4 ZoomF=2 DirMEC=TmpPMI2Mnt IncMax=1.0
 }
 
 cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mDS       (1.0),
+    mDeZoom   (2),
     mDirMTD   ("PIMs-TmpMnt/"),
-    mDirBasc   ("PIMs-TmpBasc/")
+    mDirBasc   ("PIMs-TmpBasc/"),
+    mNameMerge ("PIMs-Merged.xml"),
+    mNameOriMerge ("PIMs-ZNUM-Merged.xml"),
+    mNameOriMasq ("PIMs-Merged_Masq.xml"),
+    mRepIsAnam   (false),
+    mDoMnt       (true),
+    mDoOrtho     (false)
 {
    ElInitArgMain
    (
@@ -494,12 +575,21 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
                     << EAM(mPat,"Pat",true,"Patter, def = all existing clouds")
+                    << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to rerun only ortho)")
+                    << EAM(mDoOrtho,"DoOrttho",true,"Generate ortho photo,  def=false")
    );
      
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
    mDirApp = mCFPI->mFullDirChantier;
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirApp);
    mSetIm = mICNM->Get(mCFPI->mStrPat);
+
+   if (EAMIsInit(&mRep))
+   {
+       bool IsOrthoXCSte=false;
+       bool IsAnamXCsteOfCart=false;
+       mRepIsAnam = RepereIsAnam(mDirApp+mRep,IsOrthoXCSte,IsAnamXCsteOfCart);
+   }
 
    ELISE_fp::MkDirSvp(mDirApp+mDirBasc);
 
@@ -509,6 +599,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
   // cMMByImNM *    mMMI;
 
 
+   mTargetGeom = mDirApp+mDirMTD+ TheStringLastNuageMM ;
 
 }
 
@@ -525,7 +616,7 @@ int MPI2Mnt_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -541,17 +632,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

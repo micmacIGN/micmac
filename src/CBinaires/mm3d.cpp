@@ -437,7 +437,8 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs);
 extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
-extern int  Luc_main(int argc,char ** argv);
+extern int  Luc_main(int argc, char ** argv);
+extern int  RPC_main(int argc, char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  ProjetInfo_main(int argc,char ** argv);
 extern int  Matthieu_main(int argc,char ** argv);
@@ -515,7 +516,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("X3",TD_Sol3,"Some stuff "));
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square library "));
-   aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
+   aRes.push_back(cMMCom("Tests_Luc", Luc_main, "tests de Luc"));
    aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou"));
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
    aRes.push_back(cMMCom("NLD",NLD_main,"test"));
@@ -557,7 +558,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an approximate model "));
     aRes.push_back(cMMCom("Refine",NewRefineModel_main,"Refine an approximate model "));
-    aRes.push_back(cMMCom("AddAffinity",AddAffinity_main,"Add an affinity, tuning"));
+	aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
+	aRes.push_back(cMMCom("RPC", RPC_main, "Different things with RPC"));
     aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
     aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
     aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));

@@ -1839,6 +1839,28 @@ const cTplValGesInit< double > & cMemPartMICMAC::BSurHGlob()const
    return mBSurHGlob;
 }
 
+
+cTplValGesInit< int > & cMemPartMICMAC::DeZoomLast()
+{
+   return mDeZoomLast;
+}
+
+const cTplValGesInit< int > & cMemPartMICMAC::DeZoomLast()const 
+{
+   return mDeZoomLast;
+}
+
+
+cTplValGesInit< int > & cMemPartMICMAC::NumLastEtape()
+{
+   return mNumLastEtape;
+}
+
+const cTplValGesInit< int > & cMemPartMICMAC::NumLastEtape()const 
+{
+   return mNumLastEtape;
+}
+
 void  BinaryUnDumpFromFile(cMemPartMICMAC & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -1857,6 +1879,22 @@ void  BinaryUnDumpFromFile(cMemPartMICMAC & anObj,ELISE_fp & aFp)
         }
         else  anObj.BSurHGlob().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DeZoomLast().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DeZoomLast().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DeZoomLast().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NumLastEtape().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NumLastEtape().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NumLastEtape().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMemPartMICMAC & anObj)
@@ -1865,6 +1903,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cMemPartMICMAC & anObj)
     if (anObj.NbMaxImageOn1Point().IsInit()) BinaryDumpInFile(aFp,anObj.NbMaxImageOn1Point().Val());
     BinaryDumpInFile(aFp,anObj.BSurHGlob().IsInit());
     if (anObj.BSurHGlob().IsInit()) BinaryDumpInFile(aFp,anObj.BSurHGlob().Val());
+    BinaryDumpInFile(aFp,anObj.DeZoomLast().IsInit());
+    if (anObj.DeZoomLast().IsInit()) BinaryDumpInFile(aFp,anObj.DeZoomLast().Val());
+    BinaryDumpInFile(aFp,anObj.NumLastEtape().IsInit());
+    if (anObj.NumLastEtape().IsInit()) BinaryDumpInFile(aFp,anObj.NumLastEtape().Val());
 }
 
 cElXMLTree * ToXMLTree(const cMemPartMICMAC & anObj)
@@ -1875,6 +1917,10 @@ cElXMLTree * ToXMLTree(const cMemPartMICMAC & anObj)
       aRes->AddFils(::ToXMLTree(std::string("NbMaxImageOn1Point"),anObj.NbMaxImageOn1Point().Val())->ReTagThis("NbMaxImageOn1Point"));
    if (anObj.BSurHGlob().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("BSurHGlob"),anObj.BSurHGlob().Val())->ReTagThis("BSurHGlob"));
+   if (anObj.DeZoomLast().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DeZoomLast"),anObj.DeZoomLast().Val())->ReTagThis("DeZoomLast"));
+   if (anObj.NumLastEtape().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NumLastEtape"),anObj.NumLastEtape().Val())->ReTagThis("NumLastEtape"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -1888,9 +1934,13 @@ void xml_init(cMemPartMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbMaxImageOn1Point(),aTree->Get("NbMaxImageOn1Point",1)); //tototo 
 
    xml_init(anObj.BSurHGlob(),aTree->Get("BSurHGlob",1)); //tototo 
+
+   xml_init(anObj.DeZoomLast(),aTree->Get("DeZoomLast",1)); //tototo 
+
+   xml_init(anObj.NumLastEtape(),aTree->Get("NumLastEtape",1)); //tototo 
 }
 
-std::string  Mangling( cMemPartMICMAC *) {return "7579FA58798944A8FE3F";};
+std::string  Mangling( cMemPartMICMAC *) {return "01995C9700E5D1BAFE3F";};
 
 
 Box2dr & cParamMasqAnam::BoxTer()

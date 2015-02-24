@@ -61,10 +61,10 @@ public:
         _BGColor1 = col1;
     }
 
-    float imWidth() { return m_GLData->glImage()._m_image->width();  }
-    float imHeight(){ return m_GLData->glImage()._m_image->height(); }
+	float imWidth() { return m_GLData->glImageMasked()._m_image->width();  }
+	float imHeight(){ return m_GLData->glImageMasked()._m_image->height(); }
 
-    bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glImage()._m_image->isPtInside(pt); }
+	bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glImageMasked()._m_image->isPtInside(pt); }
 
     GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }

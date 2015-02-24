@@ -634,6 +634,11 @@ void cAppliMICMAC::MakeDequantSpecial()
    if (!mCurEtape->IsOptDequant())
        return;
 
+    if (DoNothingBut().IsInit())
+    {
+        return;
+    }
+
    if (! mDoTheMEC)
        return;
 
@@ -652,9 +657,11 @@ void cAppliMICMAC::MakeDequantSpecial()
        // std::cout << "AAAAAAAAAAAAAa IsOptDequant " << mPrecEtape << " " << mCurEtape << "\n";
        if (DimPx()==1)
        {
-           cFileOriMnt aFOMQ   =  StdGetFromPCP(StdPrefix(aTifQuant)+".xml"   ,FileOriMnt);
-           cFileOriMnt aFOMDeQ =  StdGetFromPCP(StdPrefix(aTifDeqQuant)+".xml",FileOriMnt);
+           // cFileOriMnt aFOMQ   =  StdGetFromPCP(StdPrefix(aTifQuant)+".xml"   ,FileOriMnt);
+           // cFileOriMnt aFOMDeQ =  StdGetFromPCP(StdPrefix(aTifDeqQuant)+".xml",FileOriMnt);
 
+           cFileOriMnt aFOMQ   =  StdGetFromPCP(NameOrientationMnt(mPrecEtape)  ,FileOriMnt);
+           cFileOriMnt aFOMDeQ =  StdGetFromPCP(NameOrientationMnt(mCurEtape),FileOriMnt);
        // Z = a0 + R0 z0
        // Z = a1 + R1 z1
        //  z1 = (Z-a1) / R1 = (a0 +R0 z0 -a1) /R1 = (a0-a1) /R1  + z1 (R0/R1)

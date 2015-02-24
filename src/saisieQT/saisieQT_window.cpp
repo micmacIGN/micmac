@@ -388,13 +388,20 @@ void SaisieQtWindow::on_actionShow_ball_toggled(bool state)
 void SaisieQtWindow::on_actionShow_bbox_toggled(bool state)
 {
     if (_appMode == MASK3D)
+	{
         currentWidget()->setOption(cGLData::OpShow_BBox,state);
+
+		if(threeDWidget())
+			currentWidget()->setOption(cGLData::OpShow_BBox,state);
+	}
 }
 
 void SaisieQtWindow::on_actionShow_grid_toggled(bool state)
 {
     if (_appMode == MASK3D)
+	{
         currentWidget()->setOption(cGLData::OpShow_Grid,state);
+	}
 }
 
 void SaisieQtWindow::on_actionShow_axis_toggled(bool state)
@@ -912,7 +919,12 @@ void SaisieQtWindow::on_actionSettings_triggered()
 
 	connect(&_settingsDialog, SIGNAL(setNavigationType(int)), this, SLOT(setNavigationType(int)));
 
-    if (zoomWidget() != NULL)
+	if (threeDWidget())
+	{
+		connect(&_settingsDialog, SIGNAL(setNavigationType(int)), threeDWidget(), SLOT(setNavigationType(int)));
+	}
+
+	if (zoomWidget())
     {
         connect(&_settingsDialog, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
         //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
@@ -1440,7 +1452,7 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
         if(glW)
             if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
             {
-                int imHeight = glW->getGLData()->glImage()._m_image->height();
+				int imHeight = glW->getGLData()->glImageMasked()._m_image->height();
 
                 //text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
@@ -1470,7 +1482,6 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
     if (_appMode != MASK3D)
     {
         connect(glW, SIGNAL(newImagePosition(QPointF)), this, SLOT(setImagePosition(QPointF)));
-
         connect(glW, SIGNAL(gammaChangedSgnl(float)), this, SLOT(setGamma(float)));
 
         if (zoomWidget())
@@ -1481,12 +1492,14 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 
             connect(glW, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
         }
+
+		glW->checkTiles();
     }
 
     if (_appMode > MASK3D)
     {
         if ( glW->hasDataLoaded() && !glW->getGLData()->isImgEmpty() )
-            setImageName(glW->getGLData()->glImage().cObjectGL::name());
+			setImageName(glW->getGLData()->glImageMasked().cObjectGL::name());
     }
 }
 
