@@ -584,7 +584,7 @@ void cGBV2_ProgDynOptimiseur::maskAuto<true>(const Pt2di& ptTer, tCost& aCostMin
 
 	mDataImRes[0][ptTer.y][ptTer.x] = aPRXMin.x;
 }
-#include <xmmintrin.h>
+
 
 void dump32 (__m128i m, const string & prefix = string ())
 {
