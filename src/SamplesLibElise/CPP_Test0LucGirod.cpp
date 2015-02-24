@@ -798,7 +798,7 @@ int Luc_main(int argc, char ** argv)
 			(-COL*pow(X, 3)),
 			(-COL*pow(Y, 3)),
 		};
-		aSysCol.AddEquation(1, aEqCol, aPtsIm[i].x);
+		aSysCol.AddEquation(1, aEqCol, COL);
 
 
 		double aEqRow[19] = {
@@ -823,7 +823,7 @@ int Luc_main(int argc, char ** argv)
 			(-ROW*pow(X, 3)),
 			(-ROW*pow(Y, 3)),
 		};
-		aSysRow.AddEquation(1, aEqRow, aPtsIm[i].y);
+		aSysRow.AddEquation(1, aEqRow, ROW);
 	}
 
 	//Computing the result
