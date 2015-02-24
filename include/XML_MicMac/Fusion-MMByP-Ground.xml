@@ -1,0 +1,99 @@
+<ParamFusionMNT>
+    <DicoLoc>
+
+      <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur>   Basculed-.*.xml  </PatternAccepteur>
+          </Sets>
+          <Key> Loc-SetInput </Key>
+    </KeyedSetsOfNames>
+
+
+       <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  2 1 </Arrite>
+                <Direct>
+                    <PatternTransform> (.*)%(.*) </PatternTransform>
+                    <CalcName> $2  </CalcName>
+                    <Separateur > % </Separateur>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-CplIm2Nuage </Key>
+       </KeyedNamesAssociations>
+
+
+   <KeyedNamesAssociations>
+           <Calcs>
+                <Arrite>  2 1 </Arrite>
+                <Direct>
+                    <PatternTransform> (.*) </PatternTransform>
+                    <CalcName> FusionZ1_$1  </CalcName>
+                 </Direct>
+           </Calcs>
+           <Key>  Loc-Assoc-Im2NuageFusionne </Key>
+       </KeyedNamesAssociations>
+
+
+    </DicoLoc>
+
+    <SectionName>
+
+        <KeyNuage> Loc-Assoc-CplIm2Nuage </KeyNuage>  
+        <KeyResult> Loc-Assoc-Im2NuageFusionne </KeyResult> <!-- NKS-Assoc-Cste@MaSortie.xml -->
+
+<!--
+        <KeyResult> NKS-Assoc-Cste@FusionZ2 </KeyResult>
+-->
+
+        <ModeleNuageResult> NKS-Assoc-Id </ModeleNuageResult> 
+    </SectionName>
+
+
+       <ParamAlgoFusionMNT>
+           <FMNTSeuilCorrel> 0.7 </FMNTSeuilCorrel>
+           <FMNTGammaCorrel > 1 </FMNTGammaCorrel>
+           <SpecAlgoFMNT>
+                 <SigmaPds> 5.0 </SigmaPds>
+                 <SeuilMaxLoc> 1  </SeuilMaxLoc>
+                 <SeuilCptOk>  2.0  </SeuilCptOk>
+                 <SigmaZ> 7.5  </SigmaZ> <!--  ???   -->
+                 <NBMaxMaxLoc> 6  </NBMaxMaxLoc>
+                 <FMNT_ProgDyn>
+                            <Regul> 0.0 </Regul>
+                            <Sigma0> 10.0 </Sigma0>
+                            <NbDir>  7 </NbDir>
+                            <FMNT_GesNoVal>
+                                <PenteMax> 10000 </PenteMax>
+                                <CostNoVal> 0.9 </CostNoVal>
+                                <Trans>     2 </Trans>
+                            </FMNT_GesNoVal>
+                 </FMNT_ProgDyn>
+                 <ParamRegProf> </ParamRegProf>
+
+           </SpecAlgoFMNT>
+       </ParamAlgoFusionMNT>
+
+
+    <GenereRes> 
+            <KeyString> NuageImProf_LeChantier_Etape_1.xml </KeyString>
+    </GenereRes>
+
+    <GenereInput> 
+              <KeySet> Loc-SetInput </KeySet>
+    </GenereInput>
+
+
+   <SectionGestionChantier>
+             <SzDalles >  1000 </SzDalles>
+             <RecouvrtDalles> 100  </RecouvrtDalles>
+             <ParalMkF> MkFusion.txt </ParalMkF> 
+             <WorkDirPFM> XXXX </WorkDirPFM>
+<!--
+             <WorkDirPFM> /media/data1/SummerSchhol/Gironde_Zone2/MTD-Nuage/ </WorkDirPFM>
+-->
+   </SectionGestionChantier>
+
+
+  </ParamFusionMNT>
+
+
