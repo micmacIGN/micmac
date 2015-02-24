@@ -142,22 +142,36 @@ void UnitTest___CPP11()
 int main()
 {
 
-    CuHostData3D<int2> bufferHost;
+	DUMP(__div<32>(56*32));
 
-	CuDeviceData3D<float3> bufferDevice(10,"fata");
+	DUMP(__div<10>(56*32));
 
-	bufferDevice.OutputInfo();
-	bufferHost.OutputInfo();
+	DUMP(__mult<32>(100));
+	DUMP(__mult<256>(100));
+	DUMP(__mult<128>(100));
+	DUMP(__mult<1024>(100));
 
-    bufferHost.Malloc(make_uint2(5,5),1);
+	DUMP( (__mod<32>(150)) );
+	DUMP( (__iDivUp<32>(100)) );
+	DUMP( (__iDivUp<64>(100)) );
+	DUMP( (__iDivUp<33>(100)) );
 
-    bufferHost.Fill(make_int2(5,8));
+//    CuHostData3D<int2> bufferHost;
 
-    bufferHost.OutputValues();
+//	CuDeviceData3D<float3> bufferDevice(10,"fata");
 
-#if OPENCL_ENABLED
-    main_SDK<openClContext>();
-#endif
-    main_SDK<cudaContext>();
-    return 0;
+//	bufferDevice.OutputInfo();
+//	bufferHost.OutputInfo();
+
+//    bufferHost.Malloc(make_uint2(5,5),1);
+
+//    bufferHost.Fill(make_int2(5,8));
+
+//    bufferHost.OutputValues();
+
+//#if OPENCL_ENABLED
+//    main_SDK<openClContext>();
+//#endif
+//    main_SDK<cudaContext>();
+//    return 0;
 }
