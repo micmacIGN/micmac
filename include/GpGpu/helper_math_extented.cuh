@@ -191,6 +191,104 @@ SUPPRESS_NOT_USED_WARN static int iDivUp32(uint a)
     //return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
+template<int val>
+int __nBitRotation()
+{
+	printf("ERROR __nBitRotation no define for %d\n",val);
+	return 0;
+}
+
+#define __div_mult(val,rot) \
+	template<> \
+	inline int __nBitRotation<val>()\
+{\
+	return rot;\
+	}\
+	template<typename T2>\
+	struct Bar<val, T2>\
+{\
+	T2 __opDiv( T2 const& t2)\
+{\
+	return  t2>>rot ;\
+	}\
+	T2 __opMult( T2 const& t2)\
+{\
+	return  t2<<rot ;\
+	}\
+	T2 _iDivUp( T2 const& a)\
+{\
+	const T2 div = __opDiv(a);\
+	return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);\
+	}\
+	T2 _modulo( T2 const& a)\
+	{\
+		const T2 div = __opDiv(a);\
+		return a - __opMult(div);\
+	}\
+	};
+
+template<int T1, typename T2>
+struct Bar
+{
+ T2 __opDiv( T2 const& t2)
+ {
+	return t2/T1 ;
+ }
+ T2 __opMult( T2 const& t2)
+ {
+	return  t2*T1 ;
+ }
+ T2 _iDivUp( T2 const& a)
+ {
+	 const T2 div = __opDiv(a);
+	 return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);
+ }
+ T2 _modulo( T2 const& a)
+ {
+	 const T2 div = __opDiv(a);
+	 return a - __opMult(div);
+ }
+
+};
+
+__div_mult(2,1)
+__div_mult(4,2)
+__div_mult(8,3)
+__div_mult(16,4)
+__div_mult(32,5)
+__div_mult(64,6)
+__div_mult(128,7)
+__div_mult(256,8)
+__div_mult(512,9)
+__div_mult(1024,10)
+
+template<int T1, typename T2>
+T2 __div(T2 const& t2)
+{
+   Bar<T1, T2> b;
+   return b.__opDiv(t2);
+}
+
+template<int T1, typename T2>
+T2 __mult(T2 const& t2)
+{
+   Bar<T1, T2> b;
+   return b.__opMult(t2);
+}
+
+template<int T1, typename T2>
+T2 __iDivUp(T2 const& t2)
+{
+   Bar<T1, T2> b;
+   return b._iDivUp(t2);
+}
+
+template<int T1, typename T2>
+T2 __mod(T2 const& t2)
+{
+   Bar<T1, T2> b;
+   return b._modulo(t2);
+}
 
 SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint b)
 {
