@@ -7,6 +7,7 @@ set(SamplesLibElise_Src_Files
     ${SAMPLESLIBELISE_DIR}/CPP_LucasModifNuage.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_TestMatthieu.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_RAW_test.cpp
+	${SAMPLESLIBELISE_DIR}/CPP_RPC.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
