@@ -384,29 +384,6 @@ vector<Pt2dr> Dimap::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, st
 }
 
 
-/* MPD :
-
-   Sur UBUNTU J'Otiens les erreurs :
-
-home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:51: erreur: ¿begin¿ is not a member of ¿std¿
-/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:74: erreur: ¿end¿ is not a member of ¿std¿
-/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:114: erreur: ¿begin¿ is not a member of ¿std¿
-/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:379:137: erreur: ¿end¿ is not a member of ¿std¿
-/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:51: erreur: ¿begin¿ is not a member of ¿std¿
-/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:74: erreur: ¿end¿ is not a member of ¿std¿
-/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:114: erreur: ¿begin¿ is not a member of ¿std¿
-/home/marc/MMM/culture3d/src/TpMMPD/Dimap2Grid.cpp:380:137: erreur: ¿end¿ is not a member of ¿std¿
-
-J'imagine qu'il faut remplacer  :
-
-
-   std::begin(PtsCartox)   par PtsCartox.begin()
-
-Mais je prefere que ce soit l'auteur du code qui valide ce changement.
-
-*/
-
-
 Pt2dr Dimap::ptRefined(Pt2dr Pimg, std::vector<double> vRefineCoef,double rowCrop, double sampCrop)const
 {
     //Pour calculer les coordonnees affinees d'un point
