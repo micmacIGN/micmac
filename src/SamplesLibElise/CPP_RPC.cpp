@@ -390,7 +390,7 @@ void RPC::ReadDimap(std::string const &filename)
 
 void RPC::WriteAirbusRPC(std::string aFileOut)
 {
-	std::ofstream fic(aFileOut);
+	std::ofstream fic(aFileOut.c_str());
 	fic << std::setprecision(16);
 
 	fic << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" << endl;
