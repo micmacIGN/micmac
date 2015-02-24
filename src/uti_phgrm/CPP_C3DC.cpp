@@ -412,12 +412,14 @@ class cAppli_MPI2Mnt
          void DoMTD();
          void DoBascule();
          void DoMerge();
+         void DoOrtho();
 
          std::string NameBascOfIm(const std::string &);
 
 
          std::string mName;
          double      mDS;
+         int         mDeZoom;
          cChantierFromMPI * mCFPI;
          cInterfChantierNameManipulateur * mICNM;
          const std::vector<std::string> *  mSetIm;
@@ -428,8 +430,13 @@ class cAppli_MPI2Mnt
          std::string mDirMTD;
          std::string mDirBasc;
          std::string mNameMerge;
-         std::string             mTargetGeom;
-         cXML_ParamNuage3DMaille mParamTarget;
+         std::string mNameOriMerge;
+         std::string mNameOriMasq;
+         std::string              mTargetGeom;
+         cXML_ParamNuage3DMaille  mParamTarget;
+         bool                     mRepIsAnam;
+         bool                     mDoMnt;
+         bool                     mDoOrtho;
 };
 
 std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
@@ -437,30 +444,71 @@ std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
     return  "Bacule" + aNameIm + ".xml" ;
 }
 
+
+
 void cAppli_MPI2Mnt::DoAll()
 {
-    // DoMTD();
+    if (mDoMnt) DoMTD();
     mParamTarget =  StdGetFromSI(mTargetGeom,XML_ParamNuage3DMaille);
-    // DoBascule();
-    DoMerge();
+    if (mDoMnt) DoBascule();
+    if (mDoMnt) DoMerge();
+
+    //============== Generation d'un Ori
+    cXML_ParamNuage3DMaille aN =   StdGetFromSI(mDirApp+mDirBasc +mNameMerge,XML_ParamNuage3DMaille);
+    cFileOriMnt  aFOM = ToFOM(aN,true);
+    MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMasq);
+
+    double aSR = aN.SsResolRef().Val();
+    int aISR = round_ni(aSR);
+    ELISE_ASSERT(ElAbs(aSR-aISR)<1e-7,"cAppli_MPI2Mnt::DoAll => ToFOM");
+    aFOM.NombrePixels() =  aFOM.NombrePixels()* aISR;
+    aFOM.ResolutionPlani() = aFOM.ResolutionPlani() / aISR;
+    aFOM.ResolutionAlti() = aFOM.ResolutionAlti() / aISR;
+    MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMerge);
+    //============== Generation d'un Ori
+
+    if (mDoOrtho) DoOrtho();
+}
+
+
+
+void cAppli_MPI2Mnt::DoOrtho()
+{
+     std::string aCom =       MM3dBinFile("MICMAC ")
+                         +    XML_MM_File("MM-PIMs2Ortho.xml") + BLANK
+                         +    " +Pat=" +  mCFPI->mStrPat       + BLANK
+                         +    " +Ori=" +  mCFPI->mOri                 + BLANK
+                         +    " +DeZoom=" +ToString(mDeZoom)   + BLANK
+                         +    " WorkDir=" + mDirApp
+                      ;
+
+    if (EAMIsInit(&mRep))
+    {
+           aCom +=  " +Repere="+mRep;
+           if (mRepIsAnam) 
+              aCom += " +RepereIsAnam=true";
+           else  
+              aCom += " +RepereIscart=true";
+    }
+
+    // std::cout << "COMORTHO= " << aCom << "\n";
+    System(aCom);
+
 }
 
 void cAppli_MPI2Mnt::DoMerge()
 {
 
     std::string aCom =       MM3dBinFile("SMDM ")
-                         +   mDirApp+mDirBasc + NameBascOfIm(mCFPI->mPatFilter) + BLANK
+                         +   QUOTE(mDirApp+mDirBasc + NameBascOfIm(mCFPI->mPatFilter)) + BLANK
                          +   "Out=" + mNameMerge + BLANK
-                         +   "TargetGeom=" +   mTargetGeom + BLANK
+                         // +   "TargetGeom=" +   mTargetGeom + BLANK
 
                       ;
                       
+    System(aCom);
 
-   // System(aCom);
-   
-   
 }
-
 
 
 void cAppli_MPI2Mnt::DoBascule()
@@ -501,20 +549,23 @@ void cAppli_MPI2Mnt::DoMTD()
                           + mStrRep
                           + " DoMEC=0  Purge=true ZoomI=4 ZoomF=2  IncMax=1.0 " + 
                           + " DirMEC=" + mDirMTD
+                          + " ZoomF=" + ToString(mDeZoom)
                        ;
 
-
-   // std::cout << "COM = " << aCom << "\n";
    System(aCom);
-
- // mm3d Malt UrbanMNE ./%NKS-Set-OfFile@./PIMs-MicMac/PimsFile.xml  Ori-CalPerIm/ Repere=TheCyl.xml  DoMEC=0  Purge=true ZoomI=4 ZoomF=2 DirMEC=TmpPMI2Mnt IncMax=1.0
 }
 
 cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mDS       (1.0),
+    mDeZoom   (2),
     mDirMTD   ("PIMs-TmpMnt/"),
     mDirBasc   ("PIMs-TmpBasc/"),
-    mNameMerge ("MergePIMs.xml")
+    mNameMerge ("PIMs-Merged.xml"),
+    mNameOriMerge ("PIMs-ZNUM-Merged.xml"),
+    mNameOriMasq ("PIMs-Merged_Masq.xml"),
+    mRepIsAnam   (false),
+    mDoMnt       (true),
+    mDoOrtho     (false)
 {
    ElInitArgMain
    (
@@ -524,12 +575,21 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
                     << EAM(mPat,"Pat",true,"Patter, def = all existing clouds")
+                    << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to rerun only ortho)")
+                    << EAM(mDoOrtho,"DoOrttho",true,"Generate ortho photo,  def=false")
    );
      
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
    mDirApp = mCFPI->mFullDirChantier;
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirApp);
    mSetIm = mICNM->Get(mCFPI->mStrPat);
+
+   if (EAMIsInit(&mRep))
+   {
+       bool IsOrthoXCSte=false;
+       bool IsAnamXCsteOfCart=false;
+       mRepIsAnam = RepereIsAnam(mDirApp+mRep,IsOrthoXCSte,IsAnamXCsteOfCart);
+   }
 
    ELISE_fp::MkDirSvp(mDirApp+mDirBasc);
 
@@ -539,7 +599,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
   // cMMByImNM *    mMMI;
 
 
-    mTargetGeom = mDirApp+mDirMTD+ TheStringLastNuageMM ;
+   mTargetGeom = mDirApp+mDirMTD+ TheStringLastNuageMM ;
 
 }
 
