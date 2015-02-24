@@ -13,8 +13,8 @@ template <class T>
 /// Structure 1D des couts de corélation
 struct sMatrixCellCost
 {
-    CuHostData3D<T>         _CostInit1D;
-    CuHostData3D<short3>    _ptZ;
+	CuHostData3D<T>         _CostInit1D;
+	CuHostData3D<short3>    _ptZ;
     CuHostData3D<ushort>    _dZ;
     CuHostData3D<uint>      _pit;
     uint                    _size;
@@ -22,7 +22,10 @@ struct sMatrixCellCost
 
     sMatrixCellCost():
         _maxDz(NAPPEMAX) // ATTENTION : NAPPE Dynamique
-    {}
+	{
+		_CostInit1D.setAlignMemory(false);
+
+	}
 
     void                    ReallocPt(uint2 dim)
     {
@@ -62,8 +65,16 @@ struct sMatrixCellCost
         if(_maxDz < dZ) // Calcul de la taille de la Nappe Max pour le calcul Gpu
             _maxDz = iDivUp32(dZ) * WARPSIZE;
 
+
+
         _pit[pt]    = _size;
-        _size      += dZ;
+		if(_CostInit1D.alignMemory())
+		{
+			int adZ = iDivUp(dZ,4) * 4;
+			_size      += adZ;
+		}
+		else
+			_size      += dZ;
     }
 
     void                    setDefCor(uint2 pt,short defCor)

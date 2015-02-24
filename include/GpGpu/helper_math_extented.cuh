@@ -191,6 +191,73 @@ SUPPRESS_NOT_USED_WARN static int iDivUp32(uint a)
     //return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
+template<int b,class T>
+T __div(T a)
+{
+	return a / b;
+}
+
+//template<class T>
+//T __div<32,T>(T a)
+//{
+//	return a >> 5;
+//}
+
+template<typename T1, typename T2>
+struct Bar
+{
+ void operator()(T1 const& t1, T2 const& t2)
+ {
+	std::cerr << "In Bar<T1, T2>(" << t1 << ", " << t2 << ")\n";
+ }
+};
+
+template<typename T2>
+struct Bar<int, T2>
+{
+ void operator()(int t1, T2 const& t2)
+ {
+	std::cerr << "In Bar<int, T2>(" << t1 << ", " << t2 << ")\n";
+ }
+};
+
+template<typename T1, typename T2>
+void bar(T1 const& t1, T2 const& t2)
+{
+   Bar<T1, T2> b;
+   b(t1, t2);
+}
+
+//template<>
+//uint __div<uint,32>(uint a)
+//{
+//	return a >> 5;
+//}
+
+template<class T,int b>
+static T __mult(T a)
+{
+	return a * b;
+}
+
+
+template<class T,int b>
+static T _iDivUp(T a)
+{
+	T div = __div<T,b>(a);
+	return ((a - (div << b)) != 0) ? (div + 1) : (div);
+}
+
+template<class T,int b>
+static T iDivUp(T a)
+{
+	T div = a / b;
+	return ((a - div * b) != 0) ? (div + 1) : (div);
+	//return (a % b != 0) ? (a / b + 1) : (a / b);
+}
+
+
+
 
 SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint b)
 {
