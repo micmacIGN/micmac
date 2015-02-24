@@ -64,6 +64,12 @@ void cTextRect::setRect(int aImgIdx, Pt2di aP0, Pt2di aP1)
     p1 = aP1;
 }
 
+void cTextRect::setTransfo(const Pt2di &tr, bool rot)
+{
+    translation = tr;
+    rotation  = rot;
+}
+
 bool cTextRect::operator==( const cTextRect & aTR ) const
 {
     return (imgIdx == aTR.imgIdx) &&
