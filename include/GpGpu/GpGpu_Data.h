@@ -4,6 +4,7 @@
 #include "GpGpu/GpGpu_Object.h"
 #include "GpGpu/GpGpu_Context.h"
 #include "GpGpu/GpGpu_Tools.h"
+#include <xmmintrin.h>
 
 /** @addtogroup GpGpuDoc */
 /*@{*/
@@ -655,22 +656,22 @@ class CuHostData3D : public CData3D<T>
 {
 public:
 
-    CuHostData3D(bool pgLockMem = NOPAGLOCKMEM){init(pgLockMem);}
+	CuHostData3D(bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){init(pgLockMem,alignMemory);}
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dimX : Dimension 1D a initialiser
     /// \param dimY : Dimension 1D a initialiser
     /// \param l : Taille de la 3eme dimension
-    CuHostData3D(uint dimX, uint dimY = 1, uint l = 1, bool pgLockMem = NOPAGLOCKMEM){init(pgLockMem,make_uint2(dimX,dimY),l);}
+	CuHostData3D(uint dimX, uint dimY = 1, uint l = 1, bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){init(pgLockMem,alignMemory,make_uint2(dimX,dimY),l);}
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 2D a initialiser
     /// \param l : Taille de la 3eme dimension
-    CuHostData3D(uint2 dim, uint l = 1, bool pgLockMem = NOPAGLOCKMEM){ init(pgLockMem,dim,l);}
+	CuHostData3D(uint2 dim, uint l = 1, bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){ init(pgLockMem,alignMemory,dim,l);}
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 3D a initialiser
-    CuHostData3D(uint3 dim,bool pgLockMem = NOPAGLOCKMEM ){init(pgLockMem,make_uint2(dim.x,dim.y),dim.z);}
+	CuHostData3D(uint3 dim,bool pgLockMem = NOPAGLOCKMEM ,bool alignMemory = NOALIGNM128 ){init(pgLockMem,alignMemory,make_uint2(dim.x,dim.y),dim.z);}
 
     bool Memset(int val);
 
@@ -692,21 +693,47 @@ public:
 
     bool saveImage(string nameImage,ushort layer = 0);
 
+	bool pgLockMem() const;
+	void setPgLockMem(bool pgLockMem);
+
+	bool alignMemory() const;
+	void setAlignMemory(bool alignMemory);
+
 protected:
 
-    virtual bool    abDealloc() ;
+	virtual bool    abDealloc() ;
 
-    virtual bool    abMalloc();
+	virtual bool    abMalloc();
 
 private:
 
     bool    _pgLockMem;
+	bool	_alignMemory;
 
-    void    init(bool pgLockMem = NOPAGLOCKMEM, uint2 dim = make_uint2(0), uint l = 0);
+	void    init(bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128, uint2 dim = make_uint2(0), uint l = 0);
 
 };
 
-TPL_T void CuHostData3D<T>::init(bool pgLockMem, uint2 dim, uint l)
+TPL_T  bool CuHostData3D<T>::pgLockMem() const
+{
+	return _pgLockMem;
+}
+
+TPL_T void CuHostData3D<T>::setPgLockMem(bool pgLockMem)
+{
+	_pgLockMem = pgLockMem;
+}
+TPL_T bool CuHostData3D<T>::alignMemory() const
+{
+	return _alignMemory;
+}
+
+TPL_T void CuHostData3D<T>::setAlignMemory(bool alignMemory)
+{
+	_alignMemory = alignMemory;
+}
+
+TPL_T void CuHostData3D<T>::init(bool pgLockMem,bool alignMemory, uint2 dim, uint l)
 {
 
 #ifdef NOCUDA_X11
@@ -714,7 +741,8 @@ TPL_T void CuHostData3D<T>::init(bool pgLockMem, uint2 dim, uint l)
 #else
 	CGObject::SetType("CuHostData3D");
 #endif
-    _pgLockMem = pgLockMem;
+	_pgLockMem		= pgLockMem;
+	_alignMemory	= alignMemory;
     CData3D<T>::bInit(dim,l); // ATTENTION PROBLEME : Pure virtual method called
 }
 
@@ -779,6 +807,12 @@ TPL_T bool CuHostData3D<T>::abMalloc()
 {
     if(_pgLockMem)
         return CData<T>::ErrorOutput(cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof()),__FUNCTION__);
+	else if(_alignMemory)
+	{
+		T* data;
+		posix_memalign((void **) &data, sizeof(__m128i), CData3D<T>::Sizeof());
+		CData3D<T>::SetPData(data);
+	}
     else
         CData3D<T>::SetPData((T*)malloc(CData3D<T>::Sizeof()));
 
