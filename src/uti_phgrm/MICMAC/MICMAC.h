@@ -3295,7 +3295,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
                         const ElAffin2D & aSPM2PO,
                         const cMakeOrthoParImage &,
                         cPriseDeVue &,
-                        cMicMacZbuf &,
+                        cMicMacZbuf *,
                         cMetaDataPartiesCachees & aMDPC
                        );
 

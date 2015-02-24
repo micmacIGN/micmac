@@ -6197,6 +6197,17 @@ const cTplValGesInit< cImage_Profondeur > & cPN3M_Nuage::Image_Profondeur()const
    return mImage_Profondeur;
 }
 
+
+cTplValGesInit< bool > & cPN3M_Nuage::EmptyPN3M()
+{
+   return mEmptyPN3M;
+}
+
+const cTplValGesInit< bool > & cPN3M_Nuage::EmptyPN3M()const 
+{
+   return mEmptyPN3M;
+}
+
 void  BinaryUnDumpFromFile(cPN3M_Nuage & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -6215,6 +6226,14 @@ void  BinaryUnDumpFromFile(cPN3M_Nuage & anObj,ELISE_fp & aFp)
         }
         else  anObj.Image_Profondeur().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.EmptyPN3M().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.EmptyPN3M().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.EmptyPN3M().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cPN3M_Nuage & anObj)
@@ -6223,6 +6242,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPN3M_Nuage & anObj)
     if (anObj.Image_Point3D().IsInit()) BinaryDumpInFile(aFp,anObj.Image_Point3D().Val());
     BinaryDumpInFile(aFp,anObj.Image_Profondeur().IsInit());
     if (anObj.Image_Profondeur().IsInit()) BinaryDumpInFile(aFp,anObj.Image_Profondeur().Val());
+    BinaryDumpInFile(aFp,anObj.EmptyPN3M().IsInit());
+    if (anObj.EmptyPN3M().IsInit()) BinaryDumpInFile(aFp,anObj.EmptyPN3M().Val());
 }
 
 cElXMLTree * ToXMLTree(const cPN3M_Nuage & anObj)
@@ -6233,6 +6254,8 @@ cElXMLTree * ToXMLTree(const cPN3M_Nuage & anObj)
       aRes->AddFils(ToXMLTree(anObj.Image_Point3D().Val())->ReTagThis("Image_Point3D"));
    if (anObj.Image_Profondeur().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Image_Profondeur().Val())->ReTagThis("Image_Profondeur"));
+   if (anObj.EmptyPN3M().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("EmptyPN3M"),anObj.EmptyPN3M().Val())->ReTagThis("EmptyPN3M"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -6246,9 +6269,11 @@ void xml_init(cPN3M_Nuage & anObj,cElXMLTree * aTree)
    xml_init(anObj.Image_Point3D(),aTree->Get("Image_Point3D",1)); //tototo 
 
    xml_init(anObj.Image_Profondeur(),aTree->Get("Image_Profondeur",1)); //tototo 
+
+   xml_init(anObj.EmptyPN3M(),aTree->Get("EmptyPN3M",1)); //tototo 
 }
 
-std::string  Mangling( cPN3M_Nuage *) {return "F329FB38EEA3BBABFE3F";};
+std::string  Mangling( cPN3M_Nuage *) {return "12E277B540AB3FC0FDBF";};
 
 
 std::string & cAttributsNuage3D::NameFileImage()
@@ -6721,6 +6746,17 @@ const cTplValGesInit< cImage_Profondeur > & cXML_ParamNuage3DMaille::Image_Profo
 }
 
 
+cTplValGesInit< bool > & cXML_ParamNuage3DMaille::EmptyPN3M()
+{
+   return PN3M_Nuage().EmptyPN3M();
+}
+
+const cTplValGesInit< bool > & cXML_ParamNuage3DMaille::EmptyPN3M()const 
+{
+   return PN3M_Nuage().EmptyPN3M();
+}
+
+
 cPN3M_Nuage & cXML_ParamNuage3DMaille::PN3M_Nuage()
 {
    return mPN3M_Nuage;
@@ -7058,7 +7094,7 @@ void xml_init(cXML_ParamNuage3DMaille & anObj,cElXMLTree * aTree)
    xml_init(anObj.VerifNuage(),aTree->GetAll("VerifNuage",false,1));
 }
 
-std::string  Mangling( cXML_ParamNuage3DMaille *) {return "946D31B2A298B3E1FD3F";};
+std::string  Mangling( cXML_ParamNuage3DMaille *) {return "0FECF3408122F79FFE3F";};
 
 
 std::string & cMasqMesures::NameFile()
