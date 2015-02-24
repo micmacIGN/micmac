@@ -64,6 +64,9 @@ cXML_ParamNuage3DMaille CropAndSousEch
                         );
 
 
+class cFileOriMnt;
+cFileOriMnt ToFOM(const cXML_ParamNuage3DMaille &,bool StdRound);
+
 
 class  cBasculeNuage;
 

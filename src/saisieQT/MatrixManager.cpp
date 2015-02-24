@@ -347,6 +347,17 @@ QPointF MatrixManager::centerVP()
 	return centerViewPort;
 }
 
+QRectF MatrixManager::getRectViewportToImage(float zoom)
+{
+	QPointF c0(0.f,0.f);
+	QPointF c3(vpWidth(),vpHeight());
+
+	QPointF p0Img = WindowToImage(c0, zoom);
+	QPointF p1Img = WindowToImage(c3, zoom);
+
+	return QRectF(p0Img ,p1Img);
+}
+
 void MatrixManager::handleRotation(QPointF clicPosMouse)
 {
 

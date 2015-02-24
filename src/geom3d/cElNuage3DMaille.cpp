@@ -1943,6 +1943,88 @@ double cElNuage3DMaille::SeuilDistPbTopo() const
    return 0;
 }
 
+
+void ToFOMResolStdRound(double & aVal)
+{
+   if (ElAbs(aVal) < 1e-20) return;
+   
+   int aSign=1;
+   if (aVal<0)
+   {
+        aVal =-aVal;
+        aSign=-1;
+   }
+
+
+
+   cDecimal aDec = StdRound(aVal);
+   double aNewV = aDec.RVal();
+   double aDif = ElAbs(aNewV-aVal)/(ElAbs(aVal)) ;
+   // std::cout << "RESOL ToFOMStdRound; Dif= " << aDif << "\n";
+   ELISE_ASSERT(aDif < 1e-7,"RESOL ToFOMStdRound");
+
+   aVal = aNewV * aSign;
+}
+
+void ToFOMOriStdRound(double & aVal,const double & aResol)
+{
+    double aRatio = aVal / aResol;
+
+    double aIR = round(aRatio);
+    double aDif = ElAbs(aRatio-aIR);
+    // std::cout << "ORI ToFOMStdRound; Dif= " << aDif << "\n";
+    ELISE_ASSERT(aDif < 1e-7,"ORI ToFOMStdRound");
+
+    aVal = aResol * aIR;
+}
+
+
+cFileOriMnt ToFOM(const cXML_ParamNuage3DMaille & aXML,bool StdRound)
+{
+    cFileOriMnt aRes;
+    ELISE_ASSERT(aXML.Image_Profondeur().IsInit(),"ToFOM => Image_Profondeur");
+    const cImage_Profondeur & anIP= aXML.Image_Profondeur().Val();
+    aRes.NameFileMnt() = anIP.Image();
+    aRes.NameFileMasque() = anIP.Masq();
+    aRes.NombrePixels() = aXML.NbPixel();
+    // aRes.NameFileMnt() = 
+
+    double anOriA = anIP.OrigineAlti();
+    double aResA = anIP.ResolutionAlti();
+
+    ElAffin2D  anAff = Xml2EL(aXML.Orientation().OrIntImaM2C());
+    anAff = anAff.inv();
+
+    Pt2dr anOriPlani = anAff.I00();
+    // std::cout << "ORIPLANI " << anOriPlani << "\n";
+    // Pt2dr 
+    Pt2dr aResolPlani(anAff.I10().x,anAff.I01().y);
+    // std::cout << "RESOL LANI " << aResolPlani << "\n";
+
+    double anErr = (ElAbs(anAff.I10().y) + ElAbs(anAff.I01().x)) / euclid(aResolPlani);
+    ELISE_ASSERT(anErr<1e-7,"ToFOM Affinite non inv");
+    
+
+    if (StdRound)
+    {
+        ToFOMResolStdRound(aResolPlani.x);
+        ToFOMResolStdRound(aResolPlani.y);
+        ToFOMResolStdRound(aResA);
+
+        ToFOMOriStdRound(anOriPlani.x,aResolPlani.x);
+        ToFOMOriStdRound(anOriPlani.y,aResolPlani.y);
+        ToFOMOriStdRound(anOriA,aResA);
+    }
+
+    aRes.OriginePlani() = anOriPlani;
+    aRes.ResolutionPlani() = aResolPlani;
+    aRes.OrigineAlti() = anOriA;
+    aRes.ResolutionAlti() = aResA;
+    aRes.Geometrie() = anIP.GeomRestit();
+
+    return aRes;
+}
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant Ã  la mise en

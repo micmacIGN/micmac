@@ -518,6 +518,7 @@
                    <!-- PL2XmlTree evite que l'appelle ToXMLTree ait une portee globale -->
                    <GeomRestit Nb="1" Type="eModeGeomMNT" PL2XmlTree=""> </GeomRestit>
              </Image_Profondeur>
+             <EmptyPN3M Nb="?" Type="bool"> </EmptyPN3M> <!--- Necessaire pour l'union -->
 <!--
              <Image_MNT Nb="?" AccessorFils="false"> 
                    <Image  Nb="1" Type="std::string"> </Image>

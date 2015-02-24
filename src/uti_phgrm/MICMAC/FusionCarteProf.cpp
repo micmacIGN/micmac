@@ -860,10 +860,13 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     if (mParam.ModeleNuageResult().IsInit())
     {
        std::string aNameNuageIn =   mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true);
+
+       if (! ELISE_fp::exist_file(aNameNuageIn))
+          aNameNuageIn =  mICNM->Dir() + aNameNuageIn;
        mNuage = StdGetObjFromFile<cXML_ParamNuage3DMaille>
                 (
                      //mParam.ModeleNuageResult().Val(),
-                     mICNM->Dir() + aNameNuageIn,
+                     aNameNuageIn,
                      StdGetFileXMLSpec("SuperposImage.xml"),
                      "XML_ParamNuage3DMaille",
                      "XML_ParamNuage3DMaille"
@@ -1538,7 +1541,7 @@ cSimpleFusionCarte::cSimpleFusionCarte(int argc,char ** argv) :
         aCom =     aCom +   " +WithTarget=true +NameTarget=" + mNameTarget ;
     }
 
-    // std::cout << "COM= " << aCom << "\n";
+    std::cout << "COM= " << aCom << "\n";
     System(aCom);
 }
 

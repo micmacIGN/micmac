@@ -526,6 +526,12 @@ cAppliMICMAC::cAppliMICMAC
         return;
     }
 
+    if ( (! CalledByProcess().Val()))
+    {
+        mMemPart.DeZoomLast().SetVal(mEtapesMecComp.back()->DeZoomTer());
+        mMemPart.NumLastEtape().SetVal(mEtapesMecComp.back()->Num());
+        SauvMemPart();
+     }
 
     {
         SauvEtatAvancement(false);
@@ -914,7 +920,9 @@ void cAppliMICMAC::InitMemPart()
 
 void cAppliMICMAC::SauvMemPart()
 {
-   if (DoNotMemPart())
+   if (       (DoNotMemPart())
+         ||   ( CalledByProcess().Val())
+      )
        return;
 
     cElXMLTree * aTree = ToXMLTree(mMemPart);
