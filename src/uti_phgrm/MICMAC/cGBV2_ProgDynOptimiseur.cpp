@@ -584,6 +584,13 @@ void cGBV2_ProgDynOptimiseur::maskAuto<true>(const Pt2di& ptTer, tCost& aCostMin
 
 	mDataImRes[0][ptTer.y][ptTer.x] = aPRXMin.x;
 }
+#include <xmmintrin.h>
+
+void dump32 (__m128i m, const string & prefix = string ())
+{
+	int *i = (int *) &m;
+	cout << prefix << i[0] << ' ' << i[1] << ' ' << i[2] << ' ' << i[3] << endl;
+}
 
 template<bool final>
 void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal1D,CuHostData3D<uint> &FinalDefCor, uint idBuf)
@@ -598,27 +605,39 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
     while ((aVPt = mLMR.Next()))
     {
 
-		const uint    lenghtLine      = aVPt->size();
-		const uint    piTStream_Alti  = d2Opt.param(idBuf)[idLine].y; // Position dans le stream des altitudes/defCor
-		uint *	forCo			= d2Opt.s_ForceCostVol(idBuf).pData() + d2Opt.param(idBuf)[idLine].x ;
+		const uint  lenghtLine		= aVPt->size();
+		const uint3 param			= d2Opt.param(idBuf)[idLine];
+		const uint  piTStream_Alti	= param.y;											// Position dans le stream des altitudes/defCor
+		const uint*	forCo			= d2Opt.s_ForceCostVol(idBuf).pData() + param.x ;
 
         for (uint aK= 0 ; aK < lenghtLine; aK++)
         {
 
-			const Pt2di ptTer	= (Pt2di)(*aVPt)[aK];
-			const ushort dZ   = mCellCost.DZ(ptTer);
-			const int z		= mCellCost.PtZ(ptTer).x;
-			uint *finCo = costFinal1D.pData() + mCellCost.Pit(ptTer);
-			uint defCor = (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
-
-			cGBV2_CelOptimProgDyn *  cell = mMatrCel[ptTer][0] + z;
+			const Pt2di		ptTer	= (Pt2di)(*aVPt)[aK];
+			const ushort	dZ		= mCellCost.DZ(ptTer);
+			uint*			finCo	= costFinal1D.pData() + mCellCost.Pit(ptTer);
+			const uint		defCor	= (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
 
 			FinalDefCor[make_uint2(ptTer.x,ptTer.y)] += defCor;
-			tCost   aCostMin = tCost(1e9);
-			Pt2di	aPRXMin;
 
-            for ( int aPx = 0 ; aPx < dZ ; aPx++)
-				agregation<final>(finCo[aPx],forCo[aPx],cell,aPx,aCostMin,aPRXMin,z);
+//			const int z		= mCellCost.PtZ(ptTer).x;
+//			cGBV2_CelOptimProgDyn *  cell = mMatrCel[ptTer][0] + z;
+//			tCost   aCostMin = tCost(1e9);
+//			Pt2di	aPRXMin;
+//			for ( int aPx = 0 ; aPx < dZ ; aPx++)
+//				agregation<final>(finCo[aPx],forCo[aPx],cell,aPx,aCostMin,aPRXMin,z);
+
+			for ( int aPx = 0 ; aPx < dZ ; aPx++)
+				finCo[aPx]+=forCo[aPx];
+
+//			for ( int aPx = 0 ; aPx < dZ ; aPx+=4)
+//			{
+//						__m128i a = _mm_load_si128( (const __m128i *)(finCo + aPx) );
+//						__m128i b = _mm_load_si128( (const __m128i *)(forCo + aPx) );
+//						__m128i  resultAD = _mm_add_epi32 (a, b);
+//						__m128i  *dest = (__m128i*)(finCo + aPx);
+//						_mm_store_si128(dest,resultAD);
+//			}
 
 			//maskAuto<final>(ptTer,aCostMin,aPRXMin);
 
