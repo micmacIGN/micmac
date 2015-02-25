@@ -1,7 +1,8 @@
-
 #include "GpGpu/GpGpu_CommonHeader.h"
 //#include "GpGpu/GpGpu_TextureTools.cuh"
 #include "GpGpu/GpGpu_Interface_CorMultiScale.h"
+#include <stdio.h>
+
 
 // Algorithme Correlation multi echelle sur ligne epipolaire
 
@@ -41,9 +42,8 @@
  */
 
 
-//#define unitTestCorMS_gpgpu
-
-//#define modeMixte
+#define THREAD_CMS_PREPARE	32
+#define THREAD_CMS			8
 
 ///
 static __constant__ const_Param_Cor_MS     cstPCMS;
@@ -258,7 +258,7 @@ void KernelPrepareCorrel(float aStepPix, ushort mNbByPix, float* mSom, float* mS
 {
 
     // point image
-	const uint2 ptTer	= make_uint2((blockIdx.x << 5) + threadIdx.x,(blockIdx.y << 5)+ threadIdx.y);
+	const uint2 ptTer	= make_uint2((sgpu::__mult<THREAD_CMS_PREPARE>(blockIdx.x)) + threadIdx.x,(sgpu::__mult<THREAD_CMS_PREPARE>(blockIdx.y))+ threadIdx.y);
 
 	const uint2 szImage = getSizeImage<idTex>();
 
@@ -438,7 +438,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 {
 
     // point image
-    const   int2  an  =   make_int2(blockIdx.x*blockDim.x + threadIdx.x,blockIdx.y*blockDim.y + threadIdx.y);
+	const   int2  an  =   make_int2(sgpu::__mult<THREAD_CMS>(blockIdx.x)+ threadIdx.x,sgpu::__mult<THREAD_CMS>(blockIdx.y) + threadIdx.y);
 
     // sortir si le point est en dehors du terrain
     if(oSE(an,cstPCMS._dimTerrain))
@@ -451,7 +451,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
     {
 
         // Z relatif au thread
-		const ushort thZ        =	blockIdx.z*blockDim.z + threadIdx.z;
+		const ushort thZ        =	sgpu::__mult<THREAD_CMS>(blockIdx.z) + threadIdx.z;
 
 //		const uint pitG			=	to1D(an,thZ,cstPCMS._dimTerrain);
 
@@ -521,7 +521,7 @@ void Kernel__DoCorrel_MultiScale_Global(float* aSom1,float*  aSom11,float* aSom2
 		TO_COST(aCost,_cost,locPix);
     }
 }
-#include <stdio.h>
+
 extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Param_Cor_MS &parCMS)
 {
 
@@ -544,16 +544,16 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 	aSom_1   .Malloc (parCMS.mSIg1,parCMS.aNbScale*parCMS.mNbByPix);  // avec sous echantillonnage
 	aSomSqr_1.Malloc (parCMS.mSIg1,parCMS.aNbScale*parCMS.mNbByPix);
 
-    dim3	threads( 32, 32, 1);
+	const dim3	threads( THREAD_CMS_PREPARE, THREAD_CMS_PREPARE, 1);
 
-	uint    divDTerX0 = iDivUp32(parCMS.mSIg0.x);
-	uint    divDTerY0 = iDivUp32(parCMS.mSIg0.y);
+	const uint  divDTerX0 = sgpu::__iDivUp<THREAD_CMS_PREPARE>(parCMS.mSIg0.x);
+	const uint  divDTerY0 = sgpu::__iDivUp<THREAD_CMS_PREPARE>(parCMS.mSIg0.y);
 
-	uint    divDTerX1 = iDivUp32(parCMS.mSIg1.x);
-	uint    divDTerY1 = iDivUp32(parCMS.mSIg1.y);
+	const uint  divDTerX1 = sgpu::__iDivUp<THREAD_CMS_PREPARE>(parCMS.mSIg1.x);
+	const uint  divDTerY1 = sgpu::__iDivUp<THREAD_CMS_PREPARE>(parCMS.mSIg1.y);
 
-	dim3	blocks_00(divDTerX0,divDTerY0, 1);
-	dim3	blocks_01(divDTerX1,divDTerY1, parCMS.mNbByPix);
+	const dim3	blocks_00(divDTerX0,divDTerY0, 1);
+	const dim3	blocks_01(divDTerX1,divDTerY1, parCMS.mNbByPix);
 
     /// Les données sont structurées par calques
     /// les echelles (du même subpixel) sont regroupées par calques consécutifs
@@ -568,17 +568,14 @@ extern "C" void LaunchKernel__Correlation_MultiScale(dataCorrelMS &data,const_Pa
 //    aSom_0.hostData.OutputValues();
 //    getchar();
 
-	ushort  modThreadZ	= 8;
-	ushort  modXTHread	= 8;
-	ushort  modYTHread	= 8;
-
-	dim3	threads_CorMS( modXTHread,modYTHread , modThreadZ);
-
-	uint    bC			= iDivUp(data._maxDeltaZ,modThreadZ);
-	uint	divDTerX	= iDivUp(parCMS._dimTerrain.x,modXTHread);
-	uint	divDTerY	= iDivUp(parCMS._dimTerrain.y,modYTHread);
-
-	dim3    blocks__CorMS(divDTerX,divDTerY,bC);
+	const ushort  modThreadZ	= THREAD_CMS;
+	const ushort  modXTHread	= THREAD_CMS;
+	const ushort  modYTHread	= THREAD_CMS;
+	const dim3	threads_CorMS( modXTHread,modYTHread , modThreadZ);
+	const uint  bC			= sgpu::__iDivUp<THREAD_CMS>(data._maxDeltaZ);
+	const uint	divDTerX	= sgpu::__iDivUp<THREAD_CMS>(parCMS._dimTerrain.x);
+	const uint	divDTerY	= sgpu::__iDivUp<THREAD_CMS>(parCMS._dimTerrain.y);
+	const dim3  blocks__CorMS(divDTerX,divDTerY,bC);
 
 //	data._uCost.hostData.Fill(parCMS.mAhDefCost);
 //	data._uCost.syncDevice();
