@@ -3,6 +3,7 @@
 
 #include  "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
+#include <xmmintrin.h>
 
 //namespace NS_ParamMICMAC
 //{
