@@ -9,9 +9,11 @@ __GPU_KERNEL void kMultTab(__GPU_GLOBAL int * out,  int t)
 {
     size_t tid = __GPU_THREADX;
 
-    int2 dd = make_int2(50,20);
+	//int2 dd = make_int2(50,20);
 
-    out[tid] = FACTOR*t*hw[tid] + dd.x;
+	//out[tid] = FACTOR*t*hw[tid] + dd.x;
+
+	out[tid] = sgpu::__div<32>(tid*64);
 }
 
 
