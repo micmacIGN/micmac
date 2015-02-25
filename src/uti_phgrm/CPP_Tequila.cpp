@@ -133,7 +133,7 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def=4096)")
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
-                            << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=60)")
+                            << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=70)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
              );
 
@@ -355,7 +355,7 @@ int Tequila_main(int argc,char ** argv)
                 Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                 Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+                if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
                 {
                     _min = Inf(Pt1, Inf(Pt2, Inf(Pt3, _min)));
                     _max = Sup(Pt1, Sup(Pt2, Sup(Pt3, _max)));
