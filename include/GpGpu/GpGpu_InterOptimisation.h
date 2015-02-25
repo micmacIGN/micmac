@@ -63,14 +63,13 @@ struct sMatrixCellCost
 
         // NAPPEMAX
         if(_maxDz < dZ) // Calcul de la taille de la Nappe Max pour le calcul Gpu
-            _maxDz = iDivUp32(dZ) * WARPSIZE;
-
-
+			_maxDz = sgpu::__multipleSup<WARPSIZE>(dZ);
 
         _pit[pt]    = _size;
 		if(_CostInit1D.alignMemory())
 		{
-			int adZ = iDivUp(dZ,4) * 4;
+			//int adZ = iDivUp(dZ,4) * 4;
+			int adZ = sgpu::__multipleSup<4>(dZ);
 			_size      += adZ;
 		}
 		else

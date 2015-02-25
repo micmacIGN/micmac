@@ -139,39 +139,54 @@ void UnitTest___CPP11()
 
 }
 
+void UnitTest___MultiContext()
+{
+	CuHostData3D<int2> bufferHost;
+
+	CuDeviceData3D<float3> bufferDevice(10,"fata");
+
+	bufferDevice.OutputInfo();
+	bufferHost.OutputInfo();
+
+	bufferHost.Malloc(make_uint2(5,5),1);
+
+	bufferHost.Fill(make_int2(5,8));
+
+	bufferHost.OutputValues();
+
+#if OPENCL_ENABLED
+	main_SDK<openClContext>();
+#endif
+	main_SDK<cudaContext>();
+}
+
+
+void UnitTest___SGPU()
+{
+	DUMP(sgpu::__mult<32>(64))
+
+	ushort dZ = 286;
+
+	ushort _maxDz = sgpu::__mult<WARPSIZE>(sgpu::__iDivUp<WARPSIZE>(dZ));
+
+
+	DUMP(_maxDz)
+
+			_maxDz = iDivUp32(dZ) * WARPSIZE;
+
+	DUMP(_maxDz)
+
+			DUMP(sgpu::__div<32>(_maxDz))
+			DUMP(sgpu::__multipleSup<32>(_maxDz))
+			DUMP(sgpu::__multipleSup<34>(_maxDz))
+}
+
 int main()
 {
 
-	DUMP(__div<32>(56*32));
+	UnitTest___SGPU();
 
-	DUMP(__div<10>(56*32));
+	//UnitTest___MultiContext()
 
-	DUMP(__mult<32>(100));
-	DUMP(__mult<256>(100));
-	DUMP(__mult<128>(100));
-	DUMP(__mult<1024>(100));
-
-	DUMP( (__mod<32>(150)) );
-	DUMP( (__iDivUp<32>(100)) );
-	DUMP( (__iDivUp<64>(100)) );
-	DUMP( (__iDivUp<33>(100)) );
-
-//    CuHostData3D<int2> bufferHost;
-
-//	CuDeviceData3D<float3> bufferDevice(10,"fata");
-
-//	bufferDevice.OutputInfo();
-//	bufferHost.OutputInfo();
-
-//    bufferHost.Malloc(make_uint2(5,5),1);
-
-//    bufferHost.Fill(make_int2(5,8));
-
-//    bufferHost.OutputValues();
-
-//#if OPENCL_ENABLED
-//    main_SDK<openClContext>();
-//#endif
-//    main_SDK<cudaContext>();
-//    return 0;
+	return 0;
 }
