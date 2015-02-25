@@ -191,6 +191,125 @@ SUPPRESS_NOT_USED_WARN static int iDivUp32(uint a)
     //return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
+template<int val>
+int __nBitRotation()
+{
+	printf("ERROR __nBitRotation no define for %d\n",val);
+	return 0;
+}
+
+#define __div_mult(val,rot)												\
+template<>																\
+inline int __nBitRotation<val>()										\
+{																		\
+	return rot;															\
+}																		\
+template<typename T>													\
+struct Bar<val, T>														\
+{																		\
+	inline __device__ __host__											\
+	T __opDiv( T const& a) const										\
+	{																	\
+		return  a >> rot ;											\
+	}																	\
+	inline __device__ __host__											\
+	T __opMult( T const& a) const									\
+	{																	\
+		return  a << rot ;												\
+	}																	\
+	inline __device__ __host__											\
+	T _iDivUp( T const& a) const										\
+	{																	\
+		const T div = __opDiv(a);										\
+		return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);		\
+	}																	\
+	inline __device__ __host__											\
+	T _modulo( T const& a) const										\
+	{																	\
+		const T div = __opDiv(a);										\
+		return a - __opMult(div);										\
+	}																	\
+};
+
+template<int fraction, typename T>
+struct Bar
+{
+ inline __device__ __host__
+ T __opDiv( T const& a) const
+ {
+	return a/fraction ;
+ }
+ inline __device__ __host__
+ T __opMult( T const& a) const
+ {
+	return  a*fraction ;
+ }
+ inline __device__ __host__
+ T _iDivUp( T const& a) const
+ {
+	 const T div = __opDiv(a);
+	 return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);
+ }
+ inline __device__ __host__
+ T _modulo( T const& a) const
+ {
+	 const T div = __opDiv(a);
+	 return a - __opMult(div);
+ }
+};
+
+__div_mult(2,1)
+__div_mult(4,2)
+__div_mult(8,3)
+__div_mult(16,4)
+__div_mult(32,5)
+__div_mult(64,6)
+__div_mult(128,7)
+__div_mult(256,8)
+__div_mult(512,9)
+__div_mult(1024,10)
+
+namespace sgpu
+{
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __div(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b.__opDiv(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __mult(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b.__opMult(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __iDivUp(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b._iDivUp(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __mod(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b._modulo(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __multipleSup(T const& a)
+	{
+		return sgpu::__mult<fraction>(sgpu::__iDivUp<fraction>(a));
+	}
+}
 
 SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint b)
 {

@@ -60,6 +60,7 @@ public:
     cTextRect(std::vector <int> aTriangles);
 
     void  setRect(int aImgIdx, Pt2di aP0, Pt2di aP1);
+    void  setTransfo(Pt2di const &tr, bool rot);
     int   width() { return p1.x - p0.x; }
     Pt2di size()  { return p1 - p0; }
 
@@ -68,7 +69,7 @@ public:
     Pt2di p1; // coin bd
 
     bool  rotation; //has texture been rotated
-    Pt2dr translation; //position of texture in full texture image
+    Pt2di translation; //position of texture in full texture image
 
     std::vector<int> triangles;
 

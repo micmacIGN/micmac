@@ -8,6 +8,7 @@ typedef unsigned char pixel;
 #include <string>
 
 #define NOPAGLOCKMEM false
+#define NOALIGNM128	 false
 #define WARPSIZE    32
 #define SIZERING    2
 #define INTDEFAULT	-64
@@ -132,7 +133,7 @@ __device__ __host__ inline void dump_Type<const char*>(const char* var)
 }
 
 template<>
-__device__ __host__ inline void dump_Type<const std::string>(const std::string var)
+__device__ __host__ inline void dump_Type<const std::string &>(const std::string &var)
 {
 	printf("%s",var.c_str());
 }

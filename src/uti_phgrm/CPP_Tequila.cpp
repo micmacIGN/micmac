@@ -42,8 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void LoadTrScaleRotate
      (
-          const std::string & aNameIn,
-          const std::string & aNameOut,
+          Tiff_Im &aTifIn,
+          Tiff_Im &aTifOut,
           const Pt2di & aP1Int,
           const Pt2di & aP2Int,
           const Pt2di & aP1Out,
@@ -51,14 +51,14 @@ void LoadTrScaleRotate
           int         aRot
      )
 {
-     Tiff_Im aTifIn(aNameIn.c_str());
-     Tiff_Im aTifOut(aNameOut.c_str());
+    // Tiff_Im aTifIn(aNameIn.c_str());
+    // Tiff_Im aTifOut(aNameOut.c_str());
 
      int aNbCh = aTifIn.nb_chan();
      ELISE_ASSERT(aTifOut.nb_chan()==aNbCh,"LoadTrScaleRotate nb channel diff");
 
 
-     Pt2dr aVIn  = Pt2dr(aP2Int-aP1Int);
+     Pt2dr aVIn = Pt2dr(aP2Int-aP1Int);
      Pt2di aSzOutInit = round_ni(aVIn / aScale);
 
      std::vector<Im2DGen *>   aVOutInit = aTifOut.VecOfIm(aSzOutInit);
@@ -70,12 +70,11 @@ void LoadTrScaleRotate
           StdOut(aVOutInit)
      );
 
-     std::vector<Im2DGen *>   aVOutRotate;
+     std::vector<Im2DGen *> aVOutRotate;
      for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
           aVOutRotate.push_back(aVOutInit[aK]->ImRotate(aRot));
 
      Pt2di aSzOutRotat = aVOutRotate[0]->sz();
-
 
      ELISE_COPY
      (
@@ -113,7 +112,7 @@ int Tequila_main(int argc,char ** argv)
 {
     std::string aDir, aPat, aFullName, aOri, aPly, aOut, aTextOut;
     int aTextMaxSize = 4096;
-    int aZBuffSSEch = 1;
+    int aZBuffSSEch = 2;
     int aJPGcomp = 70;
     double aAngleMin = 60.f;
     bool aBin = true;
@@ -132,9 +131,9 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def=4096)")
-                            << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=1)",eSAM_InternalUse)
+                            << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
-                            << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=60)")
+                            << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=70)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
              );
 
@@ -171,7 +170,7 @@ int Tequila_main(int argc,char ** argv)
     cout<<"**************************Reading ply file***************************"<<endl;
     cout<<endl;
 
-    cMesh myMesh(aPly);
+    cMesh myMesh(aPly, aMode=="Pack");
 
     printf("Vertex number : %d - faces number : %d - edges number : %d\n\n", myMesh.getVertexNumber(), myMesh.getFacesNumber(), myMesh.getEdgesNumber());
 
@@ -284,7 +283,7 @@ int Tequila_main(int argc,char ** argv)
     int aNbCh = 0;
 
     vector <Im2D_REAL4> final_ZBufIm;
-
+    cInterpolateurIm2D<REAL4> * pInterp = new cInterpolBilineaire<REAL4>;
     for (std::set<int>::const_iterator it=index.begin(); it!=index.end(); ++it)
     {
         int bK=0;
@@ -293,7 +292,23 @@ int Tequila_main(int argc,char ** argv)
             if (*it == bK)
             {
                 aVT.push_back(Tiff_Im::StdConvGen(aDir+*itS,-1,false,true));
-                final_ZBufIm.push_back(aZBuffers[*it].get());
+
+                if (aZBuffSSEch > 1)
+                {
+                    Pt2di sz = aVT.back().sz();
+                    Im2D_REAL4 * pIm = new Im2D_REAL4(sz.x,sz.y,defValZBuf);
+                    Im2D_REAL4 pZBuf = aZBuffers[*it].get();
+                    float **pImData = pIm->data();
+
+                    for (int cK=0; cK < sz.x; cK++)
+                        for(int bK=0; bK < sz.y; bK++)
+                            pImData[bK][cK] = pZBuf.Get(Pt2dr(cK, bK) / aZBuffSSEch, *pInterp, defValZBuf);
+
+                    final_ZBufIm.push_back(*pIm);
+                }
+                else
+                    final_ZBufIm.push_back(aZBuffers[*it].get());
+
                 aSzMax.SetSup(aVT.back().sz());
                 aNbCh = ElMax(aNbCh,aVT.back().nb_chan());
                 break;
@@ -303,7 +318,6 @@ int Tequila_main(int argc,char ** argv)
 
     if (aMode == "Pack")
     {
-
         cout << endl;
         cout <<"*********************Getting adjacent triangles********************"<<endl;
         cout << endl;
@@ -341,21 +355,16 @@ int Tequila_main(int argc,char ** argv)
                 Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                 Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+                if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
                 {
-                    _min = Inf(Pt1, _min);
-                    _min = Inf(Pt2, _min);
-                    _min = Inf(Pt3, _min);
-
-                    _max = Sup(Pt1, _max);
-                    _max = Sup(Pt2, _max);
-                    _max = Sup(Pt3, _max);
+                    _min = Inf(Pt1, Inf(Pt2, Inf(Pt3, _min)));
+                    _max = Sup(Pt1, Sup(Pt2, Sup(Pt3, _max)));
                 }
             }
 
             if (_min != Pt2dr(DBL_MAX, DBL_MAX)) //TODO: gerer les triangles de bord
             {
-                //cout << "min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
+                //cout << "aK= " << aK << " img= " << imgIdx << " min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
                 regions[aK].setRect(imgIdx, round_down(_min), round_up(_max));
             }
             else
@@ -376,15 +385,15 @@ int Tequila_main(int argc,char ** argv)
         for (int aK=0; aK < nRegions; ++aK)
         {
             Pt2di sz = regions[aK].size();
-            //cout << "width - height " << sz.x << " " <<  sz.y << endl;
+            //cout << "aK= " << aK << " width - height " << sz.x << " " <<  sz.y << endl;
             tp->addTexture(sz.x, sz.y);
         }
 
         int width, height;
         int unused_area = tp->packTextures(width, height, false, false);
 
-        cout << "packed width-height " << width << " " << height << endl;
-        cout << "unused_area : " << unused_area << " = " << (float) unused_area/ (width*height) << "%" << endl;
+        cout << "Packed width-height " << width << " " << height << endl;
+        cout << "Unused_area : " << unused_area << " = " << (float) unused_area/ (width*height) << "%" << endl;
 
         float Scale = (float) aTextMaxSize / ElMax(width, height) ;
 
@@ -395,7 +404,7 @@ int Tequila_main(int argc,char ** argv)
         int final_width  = round_up(width * Scale);
         int final_height = round_up(height * Scale);
 
-        cout << "final width-height " << final_width << " " << final_height << endl;
+        cout << "Final width-height " << final_width << " " << final_height << endl;
 
         cout << endl;
         cout <<"**************************Writing texture**************************"<<endl;
@@ -415,52 +424,64 @@ int Tequila_main(int argc,char ** argv)
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
-            cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
+            //cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
 
-            int x_scaled = round_up(x * Scale); //TODO: verifier round_up
-            int y_scaled = round_up(y * Scale);
+            int x_scaled = round_ni(x * Scale);
+            int y_scaled = round_ni(y * Scale);
 
             //cout << "image position  scaled = " << x_scaled << " " << y_scaled << endl;
 
-            int w_scaled = round_up(w * Scale); //TODO: verifier round_up
-            int h_scaled = round_up(h * Scale);
+            int w_scaled = round_ni(w * Scale);
+            int h_scaled = round_ni(h * Scale);
 
             //cout << "image dimension scaled = " << w_scaled << " " << h_scaled << endl;
 
-            Pt2di p0_scaled(regions[aK].p0.x * Scale, regions[aK].p0.y * Scale);
+            int p0x_scaled = round_ni(regions[aK].p0.x * Scale);
+            int p0y_scaled = round_ni(regions[aK].p0.y * Scale);
+
+            Pt2di p0_scaled(p0x_scaled, p0y_scaled);
 
             Pt2di xy_scaled(x_scaled, y_scaled);
             Pt2di wh_scaled(w_scaled, h_scaled);
 
             Pt2di tr = p0_scaled - xy_scaled;
 
-            regions[aK].translation = Pt2dr(tr);
-            regions[aK].rotation = rotated;
-
-            //TODO: prendre en compte le facteur de sous-ech sur final_ZBufIm
+            regions[aK].setTransfo(tr, rotated);
 
             int imgIdx = regions[aK].imgIdx;
             //cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
 
             Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
-            Fonc_Num aF = aF0;
-            while (aF.dimf_out() < aNbCh)
-                aF = Virgule(aF0,aF);
-            aF = StdFoncChScale(aF,Pt2dr(), Pt2dr(1.f/Scale,1.f/Scale));
 
             if (rotated)
             {
-                // Can only handle RLE mode for File-Images
+                std::vector<Im2DGen *> aVOutInit = nFileRes.VecOfIm(Pt2di(h_scaled, w_scaled));
 
-                /* ELISE_COPY
-                 (
-                     rectangle(Pt2di(x,y),Pt2di(x+w,y+h)),
-                     aF0 [Virgule(FY+Q0,Q1-FX)],
-                     nFileRes.out()
-                 );*/
+                ELISE_COPY
+                (
+                     aVOutInit[0]->all_pts(),
+                     StdFoncChScale(aF0,Pt2dr(regions[aK].p0),Pt2dr(1.f/Scale,1.f/Scale)),
+                     StdOut(aVOutInit)
+                );
+
+                std::vector<Im2DGen *>   aVOutRotate;
+                for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
+                     aVOutRotate.push_back(aVOutInit[aK]->ImRotate(3));
+
+                ELISE_COPY
+                (
+                    rectangle(xy_scaled, xy_scaled + wh_scaled),
+                    trans(StdInput(aVOutRotate), -xy_scaled),
+                    nFileRes.out()
+                );
             }
             else
             {
+                Fonc_Num aF = aF0;
+                while (aF.dimf_out() < aNbCh)
+                    aF = Virgule(aF0,aF);
+                aF = StdFoncChScale(aF,Pt2dr(), Pt2dr(1.f/Scale,1.f/Scale));
+
                 ELISE_COPY
                 (
                     rectangle(xy_scaled, xy_scaled + wh_scaled),
@@ -478,8 +499,16 @@ int Tequila_main(int argc,char ** argv)
 
         for (int aK=0; aK < nRegions; ++aK)
         {
-            Pt2dr PtTemp = -regions[aK].translation;
+            Pt2di PtTemp = -regions[aK].translation;
             bool rotat = regions[aK].rotation;
+
+            Pt2dr coin(regions[aK].p0);
+            //cout << "aK= " << aK << " coin = " << coin << endl;
+
+            float tx = round_ni(coin.x * Scale) + PtTemp.x;
+            float ty = round_ni(coin.y * Scale) + PtTemp.y + (float) regions[aK].width() * Scale;
+
+            //cout << "ty = " << ty << endl;
 
             //cout << "nb Triangles = " << regions[aK].size() << endl;
             const int nTriangles = regions[aK].triangles.size();
@@ -504,35 +533,55 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                     Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                    if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+                    if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
                     {
-                        //cout << "PtTemp = " <<  PtTemp << endl;
-                        if(rotat)
-                        {
-                            int rwidth = regions[aK].width();
-
-                            float x1_tmp = Pt1.x;
-                            float x2_tmp = Pt2.x;
-                            float x3_tmp = Pt3.x;
-
-                            Pt1.x = Pt1.y;
-                            Pt2.x = Pt2.y;
-                            Pt3.x = Pt3.y;
-
-                            Pt1.y = rwidth - x1_tmp;
-                            Pt2.y = rwidth - x2_tmp;
-                            Pt3.y = rwidth - x3_tmp;
-                        }
-
                         Pt2dr P1, P2, P3;
 
-                        P1.x = ((float)(Pt1.x*Scale)+PtTemp.x) / final_width;
-                        P2.x = ((float)(Pt2.x*Scale)+PtTemp.x) / final_width;
-                        P3.x = ((float)(Pt3.x*Scale)+PtTemp.x) / final_width;
+                        if(rotat)
+                        {
+                            Pt2dr v1 = (Pt1 - coin)*Scale;
+                            Pt2dr v2 = (Pt2 - coin)*Scale;
+                            Pt2dr v3 = (Pt3 - coin)*Scale;
 
-                        P1.y = 1.f - ((float)(Pt1.y*Scale)+PtTemp.y) / final_height;
-                        P2.y = 1.f - ((float)(Pt2.y*Scale)+PtTemp.y) / final_height;
-                        P3.y = 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / final_height;
+                            P1.x = (tx + v1.y) / final_width;
+                            P2.x = (tx + v2.y) / final_width;
+                            P3.x = (tx + v3.y) / final_width;
+
+                            P1.y = 1.f - (ty - v1.x) / final_height;
+                            P2.y = 1.f - (ty - v2.x) / final_height;
+                            P3.y = 1.f - (ty - v3.x) / final_height;
+
+                           /* if (bK== 0)
+                            {
+                                cout << "Pt1 = " << Pt1 << endl;
+                                cout << "Pt2 = " << Pt2 << endl;
+                                cout << "Pt3 = " << Pt3 << endl;
+
+                                cout << "v1 = " << v1 << endl;
+                                cout << "v2 = " << v2 << endl;
+                                cout << "v3 = " << v3 << endl;
+
+                                cout << "p1x = " << v1.y + PtTemp.x << endl;
+                                cout << "p2x = " << v2.y + PtTemp.x << endl;
+                                cout << "p3x = " << v3.y + PtTemp.x << endl;
+
+                                cout << "p1y = " << y1 << endl;
+                                cout << "p2y = " << y2 << endl;
+                                cout << "p3y = " << y3 << endl;
+
+                                cout << "rwidth " << rwidth << endl;
+                            }*/
+                        }
+                        else
+                        {
+                            P1.x = (Pt1.x*Scale+PtTemp.x) / final_width;
+                            P2.x = (Pt2.x*Scale+PtTemp.x) / final_width;
+                            P3.x = (Pt3.x*Scale+PtTemp.x) / final_width;
+
+                            P1.y = 1.f - (Pt1.y*Scale+PtTemp.y) / final_height;
+                            P2.y = 1.f - (Pt2.y*Scale+PtTemp.y) / final_height;
+                            P3.y = 1.f - (Pt3.y*Scale+PtTemp.y) / final_height;
+                        }
 
                         Triangle->setTextureCoordinates(P1, P2, P3);
                     }

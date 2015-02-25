@@ -205,10 +205,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 #if(ELISE_QT_VERSION >= 4)
 
-    QApplication app(argc, argv);
-
     if (MMVisualMode)
     {
+        QApplication app(argc, argv);
+
         LArgMain LAM;
         LAM << EAMC(mStrType,"Correlation mode",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"));
 
@@ -536,7 +536,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aFileMM = "MM-Malt.xml";
 
-      if (0) 
+      if (0)
       {
           std::cout << "TTTTESSTTTTTT  MALT  !!!!!!!!\n";//   getchar();
           aFileMM = "Test-MM-Malt.xml";
@@ -806,7 +806,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          mCom   =  mCom + " +DoIncid=true +DoMaskNadir=true ";
       }
 
-      if (DoIncid && (!ForceNoIncid))  
+      if (DoIncid && (!ForceNoIncid))
       {
          mCom   =  mCom + " +DoIncid=true ";
       }
@@ -835,7 +835,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           if (mImOrtho !="") mComOA =  mComOA + std::string(" +ImOrtho=") + mImOrtho;
           std::cout << "\n\n" << mComOA << "\n";
 
-           mComTaramaOA =     MMBinFile("Tarama") + " " 
+           mComTaramaOA =     MMBinFile("Tarama") + " "
                            +  QUOTE(mFullName)           + " "
                            +  mOri                + " "
                            + std::string(" Zoom=16 ")

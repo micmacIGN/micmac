@@ -1112,14 +1112,8 @@ cCalibCam *  cCalibCam::Alloc(const std::string & aKeyId,cAppliApero & anAppli,c
             }
         }
 
-/*
-        std::string aFullName = aCCI.Directory().Val()+ aSEF.NameFile();
-        if ( isUsingSeparateDirectories() )
-            aFullName = MMOutputDirectory() + aFullName;
-        else if (aCCI.AddDirCur().Val())
-            aFullName = anAppli.DC() + aFullName;
-*/
-        std::string aFullName = aDirAdd + aSEF.NameFile(); 
+        //std::string aFullName = aDirAdd + aSEF.NameFile(); 
+        std::string aFullName = aSEF.NameFile();
         aTestFullName = aFullName;
 
 
