@@ -1256,7 +1256,10 @@ else
                    }
 	           bool L2 = aPack.size() > mAppli.Param().SeuilL1EstimMatrEss().Val();
                    double aDGen;
-// std::cout << "TEST MEPS STD " << mName << "\n";
+/*
+std::cout << "TEST MEPS STD " << mName  << " L2 " << L2  
+          << " " <<  mAppli.Param().SeuilL1EstimMatrEss().Val()<< "\n";
+*/
 	           aOrRel0 = aLI.TestSolPlane().Val()               ? 
                               aPack.MepRelGenSsOpt(aLBase,L2,aDGen) :
                              aPack.MepRelPhysStd(aLBase,L2)         ;

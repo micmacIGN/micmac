@@ -228,6 +228,8 @@ cNewO_CombineCple::cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  &  aMap,
     mW           (0)
 {
 
+    // REDONDANT AVEC FONCTION GLOBALES FAITE APRES ....  PackReduit
+
     /******************************************************/
     /*                                                    */
     /*   A-        Selection des sommets                  */
@@ -417,11 +419,11 @@ cNewO_CombineCple::cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  &  aMap,
     {
        ElRotation3D aR = * aTestSol;
 
-       SetCurRot(aR.Mat());
-       std::cout << "Test Externe : " << CalculCostCur() <<"\n";
+       // Le sens corret a ete retabli (j'espere !!)
+       // SetCurRot(aR.Mat());
+       // std::cout << "Test Externe : " << CalculCostCur() <<"\n";
+       // aR = aR.inv();
 
-
-       aR = aR.inv();
        SetCurRot(aR.Mat());
        std::cout << "Test Externe I : " << CalculCostCur() <<"\n";
        std::cout << "CostBase " << CostOneBase(aR.tr()) << "\n";
