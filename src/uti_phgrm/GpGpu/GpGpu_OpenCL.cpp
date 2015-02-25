@@ -139,11 +139,8 @@ void UnitTest___CPP11()
 
 }
 
-int main()
+void UnitTest___MultiContext()
 {
-
-	DUMP(sgpu::__mult<32>(64))
-
 	CuHostData3D<int2> bufferHost;
 
 	CuDeviceData3D<float3> bufferDevice(10,"fata");
@@ -161,5 +158,35 @@ int main()
 	main_SDK<openClContext>();
 #endif
 	main_SDK<cudaContext>();
+}
+
+
+void UnitTest___SGPU()
+{
+	DUMP(sgpu::__mult<32>(64))
+
+	ushort dZ = 286;
+
+	ushort _maxDz = sgpu::__mult<WARPSIZE>(sgpu::__iDivUp<WARPSIZE>(dZ));
+
+
+	DUMP(_maxDz)
+
+			_maxDz = iDivUp32(dZ) * WARPSIZE;
+
+	DUMP(_maxDz)
+
+			DUMP(sgpu::__div<32>(_maxDz))
+			DUMP(sgpu::__multipleSup<32>(_maxDz))
+			DUMP(sgpu::__multipleSup<34>(_maxDz))
+}
+
+int main()
+{
+
+	UnitTest___SGPU();
+
+	//UnitTest___MultiContext()
+
 	return 0;
 }

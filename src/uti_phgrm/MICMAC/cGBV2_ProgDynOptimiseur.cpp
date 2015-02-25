@@ -726,8 +726,8 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
                 }
 
                 // PREDEFCOR
-                pitIdStream += iDivUp32(lenghtLine)     << 5;
-                pitStream   += iDivUp32(sizeStreamLine) << 5;
+				pitIdStream += sgpu::__multipleSup<32>(lenghtLine);
+				pitStream   += sgpu::__multipleSup<32>(sizeStreamLine);
 
                 idLine++;
             }

@@ -302,6 +302,13 @@ namespace sgpu
 		const Bar<fraction, T> b;
 		return b._modulo(a);
 	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __multipleSup(T const& a)
+	{
+		return sgpu::__mult<fraction>(sgpu::__iDivUp<fraction>(a));
+	}
 }
 
 SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint b)
