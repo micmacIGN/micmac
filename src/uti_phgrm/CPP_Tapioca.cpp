@@ -889,28 +889,31 @@ int Graph_(int argc,char ** argv, const std::string &aArg="")
         return EXIT_SUCCESS;
 }
 
-void Del_MkTapioca(string MkFT){
-
-//Delete MkTapioca
-std::string cmdDLMkTapioca;
-#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-cmdDLMkTapioca = "rm " + MkFT;
-#endif
-#if (ELISE_windows)
-replace(MkFT.begin(), MkFT.end(), '/', '\\');
-cmdDLMkTapioca = "del /Q " + MkFT;
-#endif
-system_call(cmdDLMkTapioca.c_str());
+void Del_MkTapioca(string MkFT)
+{
+    //Delete MkTapioca
+    if (!MkFT.empty())
+    {
+        std::string cmdDLMkTapioca;
+    #if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
+        cmdDLMkTapioca = "rm " + MkFT;
+    #endif
+    #if (ELISE_windows)
+        replace(MkFT.begin(), MkFT.end(), '/', '\\');
+        cmdDLMkTapioca = "del /Q " + MkFT;
+    #endif
+        system_call(cmdDLMkTapioca.c_str());
+    }
 }
 
 int Tapioca_main(int argc,char ** argv)
 {
 #if(ELISE_QT_VERSION >= 4)
 
-    QApplication app(argc, argv);
-
     if (MMVisualMode)
     {
+        QApplication app(argc, argv);
+
         QStringList items;
 
         for (int aK=0; aK < aNbType; ++aK)
@@ -998,36 +1001,36 @@ int Tapioca_main(int argc,char ** argv)
 
     if (TheType == Type[0])
     {
-		int aRes = MultiEch(argc, argv, TheType);
-		Del_MkTapioca(MkFT);
+        int aRes = MultiEch(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[1])
     {
-		int aRes = All(argc, argv, TheType);
-		Del_MkTapioca(MkFT);
+        int aRes = All(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[2])
     {
-		int aRes = Line(argc, argv, TheType);
-		Del_MkTapioca(MkFT);
+        int aRes = Line(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[3])
     {
-		int aRes = File(argc, argv, TheType);
-		Del_MkTapioca(MkFT);
+        int aRes = File(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[4])
     {
-		int aRes = Graph_(argc, argv, TheType);
-		Del_MkTapioca(MkFT);
+        int aRes = Graph_(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
