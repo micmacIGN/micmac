@@ -207,8 +207,6 @@ class cTriangle
 
         bool    operator==( const cTriangle & ) const;
 
-        void    write(FILE* file, bool aBin);
-
     private:
 
         bool						mInside;		// triangle a conserver
@@ -285,7 +283,7 @@ class cZBuf
 
         Pt2di					Sz(){return mSzRes / mScale;}
 
-        Im2D_REAL4              get() { return mRes; }
+        Im2D_REAL4*             get() { return &mRes; }
 
         void                    write(string filename);
         void                    writeImLabel(string filename);

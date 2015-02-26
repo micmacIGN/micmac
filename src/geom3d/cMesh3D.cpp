@@ -281,37 +281,6 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
              );
 }
 
-void cTriangle::write(FILE* file, bool aBin)
-{
-    if (aBin)
-    {
-        WriteType(file,(unsigned char)3);
-        WriteType(file,mTriVertex[0]);
-        WriteType(file,mTriVertex[1]);
-        WriteType(file,mTriVertex[2]);
-        if (mText0.x || mText0.y || mText1.x || mText1.y || mText2.x || mText2.y)
-        {
-            WriteType(file,(unsigned char)6);
-            WriteType(file,(float) mText0.x);
-            WriteType(file,(float) mText0.y);
-            WriteType(file,(float) mText1.x);
-            WriteType(file,(float) mText1.y);
-            WriteType(file,(float) mText2.x);
-            WriteType(file,(float) mText2.y);
-        }
-        else
-            WriteType(file,(unsigned char)0);
-    }
-    else
-    {
-        fprintf(file,"3 %i %i %i ",mTriVertex[0],mTriVertex[1],mTriVertex[2]);
-
-        if (mText0.x || mText0.y || mText1.x || mText1.y || mText2.x || mText2.y)
-            fprintf(file,"6 %f %f %f %f %f %f\n",mText0.x,mText0.y,mText1.x,mText1.y,mText2.x,mText2.y);
-        else
-            fprintf(file,"0\n");
-    }
-}
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
@@ -829,7 +798,6 @@ void cMesh::clean()
 
 std::vector<cTextRect> cMesh::getRegions()
 {
-    int defVal = cTriangle::getDefTextureImgIndex();
     std::set < int > triangleIdxSet;
     std::vector < cTextRect > regions;
 
@@ -837,7 +805,7 @@ std::vector<cTextRect> cMesh::getRegions()
     for (int aK=0; aK < nFaces;++aK)
     {
         std::vector <int> myList;
-        if ((getTriangle(aK)->getTextureImgIndex() != defVal) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
+        if ((getTriangle(aK)->isTextured()) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
             myList.push_back(aK);
 
         for (unsigned int bK=0; bK < myList.size();++bK)
@@ -845,10 +813,11 @@ std::vector<cTextRect> cMesh::getRegions()
             //cout << "triangle " << myList[bK] << endl;
             cTriangle * Tri = getTriangle(myList[bK]);
 
-            int imgIdx = Tri->getTextureImgIndex();
-            if (imgIdx != defVal)
+            if (Tri->isTextured())
             {
-                vector <cTriangle *> neighb = Tri->getNeighbours();
+                int imgIdx = Tri->getTextureImgIndex();
+
+                vector <cTriangle *> neighb = Tri->getNeighbours(); //TODO: tester le remplacement par les triangles vus par les sommets
 
                 bool found = false;
                 for (unsigned int cK=0; cK < neighb.size();++cK)
@@ -878,7 +847,7 @@ std::vector<cTextRect> cMesh::getRegions()
 
     //recherche des triangles isolés (trous dans les regions)
 
-    //int cpt = 0;
+//TODO meilleur bouchage des trous
     for (int aK=0; aK < nFaces;++aK)
     {
         if (triangleIdxSet.find(aK) == triangleIdxSet.end())
@@ -922,7 +891,6 @@ std::vector<cTextRect> cMesh::getRegions()
 
                 if (/*(Tri->getTextureImgIndex() != textImgIndex) &&*/ (nbNeighb >= 1))
                 {
-                    //cpt++;
                     //recherche de la region des voisins
                     const int nRegions = regions.size();
                     for(int bK=0; bK < nRegions; ++bK)
@@ -941,8 +909,6 @@ std::vector<cTextRect> cMesh::getRegions()
             //else cout << "NO NEIGHBOURS!!!!!!" << endl;
         }
     }
-    //cout << "cpt = " << cpt << endl;
-
     /*cout << "****************** Resultat *********************" << endl;
     cout << endl;
 
@@ -998,16 +964,16 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             int t1, t2, t3;
             face->getVertexesIndexes(t1, t2, t3);
 
-            Pt2dr p1, p2, p3;
-            face->getTextureCoordinates(p1, p2, p3);
-
             WriteType(file,(unsigned char)3);
             WriteType(file,t1);
             WriteType(file,t2);
             WriteType(file,t3);
 
-            if (p1.x || p1.y || p2.x || p2.y || p3.x || p3.y)
+            if (face->isTextured())
             {
+                Pt2dr p1, p2, p3;
+                face->getTextureCoordinates(p1, p2, p3);
+
                 WriteType(file,(unsigned char)6);
                 WriteType(file,(float) p1.x);
                 WriteType(file,(float) p1.y);
@@ -1041,8 +1007,12 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             Pt2dr p1, p2, p3;
             face->getTextureCoordinates(p1, p2, p3);
 
-            if (p1.x || p1.y || p2.x || p2.y || p3.x || p3.y)
+            if (face->isTextured())
+            {
+                Pt2dr p1, p2, p3;
+                face->getTextureCoordinates(p1, p2, p3);
                 fprintf(file,"6 %f %f %f %f %f %f\n",p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);
+            }
             else
                 fprintf(file,"0\n");
         }
