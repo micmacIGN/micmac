@@ -298,17 +298,17 @@ int Tequila_main(int argc,char ** argv)
                 {
                     Pt2di sz = aVT.back().sz();
                     Im2D_REAL4 * pIm = new Im2D_REAL4(sz.x,sz.y,defValZBuf);
-                    Im2D_REAL4 pZBuf = aZBuffers[*it].get();
+                    Im2D_REAL4 * pZBuf = aZBuffers[*it].get();
                     float **pImData = pIm->data();
 
                     for (int cK=0; cK < sz.x; cK++)
                         for(int bK=0; bK < sz.y; bK++)
-                            pImData[bK][cK] = pZBuf.Get(Pt2dr(cK, bK) / aZBuffSSEch, *pInterp, defValZBuf);
+                            pImData[bK][cK] = pZBuf->Get(Pt2dr(cK, bK) / aZBuffSSEch, *pInterp, defValZBuf);
 
                     final_ZBufIm.push_back(*pIm);
                 }
                 else
-                    final_ZBufIm.push_back(aZBuffers[*it].get());
+                    final_ZBufIm.push_back(*(aZBuffers[*it].get()));
 
                 aSzMax.SetSup(aVT.back().sz());
                 aNbCh = ElMax(aNbCh,aVT.back().nb_chan());
