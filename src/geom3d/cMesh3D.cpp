@@ -879,11 +879,11 @@ std::vector<cTextRect> cMesh::getRegions()
     //recherche des triangles isolés (trous dans les regions)
 
     //int cpt = 0;
-    for (int triIdx=0; triIdx < nFaces;++triIdx)
+    for (int aK=0; aK < nFaces;++aK)
     {
-        if (triangleIdxSet.find(triIdx) == triangleIdxSet.end())
+        if (triangleIdxSet.find(aK) == triangleIdxSet.end())
         {
-            cTriangle * Tri = getTriangle(triIdx);
+            cTriangle * Tri = getTriangle(aK);
             vector <cTriangle *> neighb = Tri->getNeighbours();
 
             if (neighb.size())
@@ -931,7 +931,7 @@ std::vector<cTextRect> cMesh::getRegions()
 
                         if (find(region.begin(), region.end(), neighbIndex) != region.end())
                         {
-                            regions[bK].triangles.push_back(triIdx);
+                            regions[bK].triangles.push_back(aK);
                             Tri->setTextureImgIndex(textImgIndex);
                         }
                     }
