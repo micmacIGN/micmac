@@ -103,7 +103,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
   if (oI(ptProj,0) || ptProj.x >= (float)zoneImage.x || ptProj.y >= (float)zoneImage.y)
       return;
 
-  cacheImg[threadIdx.y*BLOCKDIM + threadIdx.x] = GetImageValue(ptProj,idImg);
+  cacheImg[sgpu::__mult<BLOCKDIM>(threadIdx.y) + threadIdx.x] = GetImageValue(ptProj,idImg);
 
   __syncthreads();
 
@@ -112,15 +112,13 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 
   // Nous traitons uniquement les points du terrain du bloque ou Si le processus est hors du terrain global, nous sortons du kernel
 
-
   // Sortir si threard inactif et si en dehors du terrain (à simplifier)
   if (oSE(threadIdx, nbActThrd + invPc.rayVig) || oI(threadIdx , invPc.rayVig) || oSE( ptTer, HdPc.dimTer) || oI(ptTer,0))
-    return;
-
+	return;
 
   // Faux mais fait le job! en limite d'image
   if ( oI( ptProj - invPc.rayVig.x-1, 0) || (ptProj.x + invPc.rayVig.x+1>= (float)zoneImage.x) || (ptProj.y + invPc.rayVig.x+1>= (float)zoneImage.y))
-      return;
+	  return;
 
   // Point terrain global
   int2 coorTer = ptTer + HdPc.rTer.pt0;
@@ -140,7 +138,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
   for (pt.y = c0.y ; pt.y <= c1.y; pt.y++)
   {
 
-      float* cImg    = cacheImg +  pt.y*BLOCKDIM;
+	  const float* cImg    = cacheImg +  sgpu::__mult<BLOCKDIM>(pt.y);
       #pragma unroll
       for (pt.x = c0.x ; pt.x <= c1.x; pt.x++)
       {
@@ -175,7 +173,7 @@ template<int TexSel> __global__ void correlationKernel( uint *dev_NbImgOk, ushor
 #pragma unroll
   for ( pt.y = c0.y ; pt.y <= c1.y; pt.y++)
     {
-      float* cImg = cacheImg + pt.y * BLOCKDIM;
+	  const float* cImg = cacheImg +  sgpu::__mult<BLOCKDIM>(pt.y);
       float* cVig = cache    + pt.y * HdPc.dimCach.x ;
 #pragma unroll
       for ( pt.x = c0.x ; pt.x <= c1.x; pt.x++)
@@ -305,10 +303,10 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
 
   __shared__ float aSV [ SIZE3VIGN   ][ SIZE3VIGN ];          // Somme des valeurs
   __shared__ float aSVV[ SIZE3VIGN   ][ SIZE3VIGN ];         // Somme des carrés des valeurs
-  __shared__ float resu[ SIZE3VIGN/2 ][ SIZE3VIGN/2 ];		// resultat
+  __shared__ float resu[ SIZE3VIGN>>1 ][ SIZE3VIGN>>1 ];		// resultat
 
-  __shared__ float cResu[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// resultat
-  __shared__ uint nbIm[ SIZE3VIGN/2][ SIZE3VIGN/2 ];		// nombre d'images correcte
+  __shared__ float cResu[ SIZE3VIGN>>1][ SIZE3VIGN>>1 ];		// resultat
+  __shared__ uint nbIm[ SIZE3VIGN>>1][ SIZE3VIGN>>1 ];		// nombre d'images correcte
 
   // coordonnées des threads // TODO uint2 to ushort2
   const uint2 t  = make_uint2(threadIdx);
@@ -350,23 +348,22 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
 
       const ushort nImgOK = (ushort)dev_NbImgOk[icTer];
 
-      aSV [t.y][t.x]    = 0.0f;
-      aSVV[t.y][t.x]    = 0.0f;
-      cResu[thTer.y][thTer.x]	= 0.0f;
-
-      //__syncthreads();
-
       if ( nImgOK > 1)
       {
+		  aSV [t.y][t.x]    = 0.0f;
+		  aSVV[t.y][t.x]    = 0.0f;
+		  cResu[thTer.y][thTer.x]	= 0.0f;
 
           const uint pitCla         = ((uint)classEqui[iCla].y) * HdPc.sizeCach;
 
           const uint pitLayerCache  = blockIdx.z  * HdPc.sizeCachAll + pitCla + to1D( ptCach, HdPc.dimCach );	// Taille du cache vignette pour une image
 
-          float* caVi = cacheVign + pitLayerCache;
+		  const float* caVi = cacheVign + pitLayerCache;
+
+		  const uint limOK = nImgOK * HdPc.sizeCach;
 
  #pragma unroll
-          for(uint i =  0 ;i< nImgOK * HdPc.sizeCach ;i+=HdPc.sizeCach)
+		  for(uint i =  0 ;i< limOK ;i+=HdPc.sizeCach)
           {
               const float val  = caVi[i];
               aSV[t.y][t.x]   += val;
@@ -377,19 +374,13 @@ template<ushort SIZE3VIGN > __global__ void multiCorrelationKernel(ushort2* clas
 
           //atomicAdd(&(resu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)) * (nImgOK - 1));
 
-          atomicAdd(&(cResu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)));
+		  atomicAdd(&(cResu[thTer.y][thTer.x]),(aSVV[t.y][t.x] - fdividef(aSV[t.y][t.x] * aSV[t.y][t.x],(float)nImgOK)));
 
           __syncthreads();
 
           if (mainThread)
           {
-              const uint n = nImgOK - 1;
-
-              float ccost =  fdividef( cResu[thTer.y][thTer.x], ((float)n)* (invPc.sizeVig));
-
-              ccost = 1.0f - max (-1.0, min(1.0f,1.0f - ccost));
-
-              resu[thTer.y][thTer.x] += ccost * nImgOK;
+			  resu[thTer.y][thTer.x] += (float)(1.0f - max (-1.0, min(1.0f,1.0f - fdividef( cResu[thTer.y][thTer.x], ((float)(nImgOK - 1))* (invPc.sizeVig))))) * nImgOK;
               nbIm[thTer.y][thTer.x] += nImgOK;
           }
       }

@@ -960,6 +960,7 @@ std::pair<ElMatrix<double>, ElMatrix<double> > RQDecomp(const ElMatrix<double> &
 // Renvoie la rotation la + proche, selon un algo trouve dans Golub et base sur
 // la SVD
 ElMatrix<REAL>  NearestRotation(const ElMatrix<REAL> &);
+ElMatrix<REAL>  MatProVect(const Pt3dr &);
 
 
 //  Probleme de conditionnement

@@ -51,7 +51,7 @@ cNewO_NameManager::cNewO_NameManager
     mOriCal    (anOriCal),
     mPostHom   (aPostHom)
 {
-    StdCorrecNameOrient(mOriCal,mDir);
+   StdCorrecNameOrient(mOriCal,mDir);
 }
 
 const std::string & cNewO_NameManager::Dir() const
