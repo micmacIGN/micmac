@@ -117,6 +117,7 @@ int Tequila_main(int argc,char ** argv)
     double aAngleMin = 60.f;
     bool aBin = true;
     std::string aMode = "Pack";
+    int aMaxIter = 0;
 
     bool debug = false;
     float defValZBuf = 1e9;
@@ -135,6 +136,7 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=70)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
+                            << EAM(aMaxIter,"FilterStep", true, "Border triangles filtering step (def = 0)")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -220,9 +222,9 @@ int Tequila_main(int argc,char ** argv)
         int idx = valDef;
         for(int j=0 ; j<nCam; j++) // on teste toutes les CamStenope
         {
-            vector <unsigned int> vTri = aZBuffers[j].getVisibleTrianglesIndexes();
+            set <unsigned int> *vTri = aZBuffers[j].getVisibleTrianglesIndexes();
 
-            if (std::find(vTri.begin(),vTri.end(), i) != vTri.end())
+            if (vTri->find(i) != vTri->end())
             {
                 cTriangle * Triangle = myMesh.getTriangle(i);
 
@@ -246,11 +248,10 @@ int Tequila_main(int argc,char ** argv)
     cout <<"********************Filtering border triangles***********************"<<endl;
     cout << endl;
 
-    int maxIter = 20; //TODO: a mettre en parametre ?
     int iter = 0;
     bool cond = true;
 
-    while (cond && iter < maxIter)
+    while (cond && iter < aMaxIter)
     {
         //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
         myMesh.clean();
@@ -260,7 +261,7 @@ int Tequila_main(int argc,char ** argv)
         iter++;
         cout << "round " << iter << endl;
 
-        if (iter!= maxIter)
+        if (iter!= aMaxIter)
         {
             cond = false;
             const int nFaces = myMesh.getFacesNumber();
@@ -327,7 +328,8 @@ int Tequila_main(int argc,char ** argv)
 
         TEXTURE_PACKER::TexturePacker *tp = TEXTURE_PACKER::createTexturePacker();
 
-        for (unsigned int aK=0; aK < regions.size();++aK)
+        const int nbRegions = regions.size();
+        for (int aK=0; aK < nbRegions;++aK)
         {
             //cout << "region " << aK << " nb triangles = " << regions[aK].triangles.size() << endl;
             //Calcul de la zone correspondante dans l'image
