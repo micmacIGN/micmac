@@ -285,6 +285,13 @@ class cNewO_CombineCple
          
 };
 
+inline double AttenTetaMax(const double & aVal,const double & aVMax)
+{
+      if (aVMax<=0) return aVal;
+      return  (aVal*aVMax) / (aVal + aVMax);
+}
+
+
 
 
 
