@@ -627,8 +627,8 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
 //			for ( int aPx = 0 ; aPx < dZ ; aPx++)
 //				agregation<final>(finCo[aPx],forCo[aPx],cell,aPx,aCostMin,aPRXMin,z);
 
-			for ( int aPx = 0 ; aPx < dZ ; aPx++)
-				finCo[aPx]+=forCo[aPx];
+			for ( int aPx = 0 ; aPx < dZ ; aPx++,forCo++,finCo++)
+				*finCo += *forCo;
 
 //			for ( int aPx = 0 ; aPx < dZ ; aPx+=4)
 //			{
@@ -641,7 +641,7 @@ void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuH
 
 			//maskAuto<final>(ptTer,aCostMin,aPRXMin);
 
-			forCo += dZ;
+//			forCo += dZ;
 
         }
 
