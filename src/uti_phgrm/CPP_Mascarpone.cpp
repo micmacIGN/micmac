@@ -125,7 +125,7 @@ int Mascarpone_main(int argc,char ** argv)
         aZBuffer.ComputeVisibleTrianglesIndexes();
 
         //On affecte les attributs aux triangles visibles (pour l'instant l'angle Ã  la normale)
-        myMesh.setTrianglesAttribute(aK, aZBuffer.Nuage()->Cam()->DirVisee(), aZBuffer.getVisibleTrianglesIndexes());
+        myMesh.setTrianglesAttribute(aK, aZBuffer.Nuage()->Cam()->DirVisee(), *(aZBuffer.getVisibleTrianglesIndexes()));
 
         aZBuffers.push_back(aZBuffer);
     }
@@ -134,7 +134,7 @@ int Mascarpone_main(int argc,char ** argv)
     for (unsigned int aK=0; aK < aVFiles.size(); ++aK)
     {
         //Graphe d'adjacence
-        RGraph *g = new RGraph(aZBuffers[aK].getVisibleTrianglesIndexes().size(), myMesh.getEdgesNumber());
+        RGraph *g = new RGraph(aZBuffers[aK].getVisibleTrianglesIndexes()->size(), myMesh.getEdgesNumber());
 
         Im2D_BIN mask = aZBuffers[aK].ComputeMask(aK, myMesh);
 
@@ -158,7 +158,7 @@ int Mascarpone_main(int argc,char ** argv)
 
         //on remplit le graphe d'adjacence
         vector <int> TriIdxInGraph;
-        myMesh.setGraph(aK, *g, TriIdxInGraph, aZBuffers[aK].getVisibleTrianglesIndexes());
+        myMesh.setGraph(aK, *g, TriIdxInGraph, *(aZBuffers[aK].getVisibleTrianglesIndexes()));
 
         float flow = g->maxflow();
 

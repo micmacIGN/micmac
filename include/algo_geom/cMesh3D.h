@@ -103,9 +103,9 @@ class cMesh
 
         void        removeTriangle(cTriangle &aTri);
 
-        void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &aTriIdx);
+        void        setTrianglesAttribute(int img_idx, Pt3dr Dir, set <unsigned int> const &aTriIdx);
 
-        void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vector <unsigned int> const &aTriIdx); //TriInGraph: index of triangles in Graph
+        void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, const set<unsigned int> &aTriIdx); //TriInGraph: index of triangles in Graph
         void		setLambda(REAL aL) {mLambda = aL;}
 
         void        clean();
@@ -114,13 +114,16 @@ class cMesh
 
         void        write(const string & aOut, bool aBin, const string & textureFilename);
 
+private:
+
         void        checkTriangle(int id2, set<int>::const_iterator it, int aK);
         void        checkEdgesForVertex(int id, int aK);
-private:
 
         vector <cVertex>	mVertexes;
         vector <cTriangle>	mTriangles;
         vector <cEdge>	    mEdges;			//aretes du graphe de voisinage
+
+        set <pair <int,int> > mEdgesSet;
 
         REAL				mLambda;
 };
@@ -273,7 +276,7 @@ class cZBuf
         Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
         Im2D_INT4				getIndexImage() const {return mImTriIdx;}
-        vector <unsigned int>	getVisibleTrianglesIndexes() const {return vTri;}
+        set <unsigned int> *    getVisibleTrianglesIndexes() {return &vTri;}
 
         cElNuage3DMaille * &	Nuage() {return mNuage;}
 
@@ -302,7 +305,7 @@ class cZBuf
         float					mDpDef;			//default value for depth img (mRes)
         int                     mIdDef;			//default value for label img (mImTriIdx)
 
-        vector <unsigned int>	vTri;			//list of visible triangles (contained in the label image)
+        set <unsigned int>      vTri;			//list of visible triangles (contained in the label image)
 
         cElNuage3DMaille *		mNuage;
 
