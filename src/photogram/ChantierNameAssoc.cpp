@@ -4077,6 +4077,7 @@ void StdCorrecNameHomol(std::string & aNameH,const std::string & aDir)
 
 void StdCorrecNameOrient(std::string & aNameOri,const std::string & aDir)
 {
+    if (aNameOri =="") return;
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     return anICNM->CorrecNameOrient(aNameOri);
 }

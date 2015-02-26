@@ -4,6 +4,7 @@
 #include <helper_functions.h>
 #include <helper_math.h>
 
+
 #ifdef __GNUC__
 #define SUPPRESS_NOT_USED_WARN __attribute__ ((unused))
 #else
@@ -198,59 +199,85 @@ int __nBitRotation()
 	return 0;
 }
 
-#define __div_mult(val,rot) \
-	template<> \
-	inline int __nBitRotation<val>()\
-{\
-	return rot;\
-	}\
-	template<typename T2>\
-	struct Bar<val, T2>\
-{\
-	T2 __opDiv( T2 const& t2)\
-{\
-	return  t2>>rot ;\
-	}\
-	T2 __opMult( T2 const& t2)\
-{\
-	return  t2<<rot ;\
-	}\
-	T2 _iDivUp( T2 const& a)\
-{\
-	const T2 div = __opDiv(a);\
-	return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);\
-	}\
-	T2 _modulo( T2 const& a)\
-	{\
-		const T2 div = __opDiv(a);\
-		return a - __opMult(div);\
-	}\
-	};
-
-template<int T1, typename T2>
-struct Bar
-{
- T2 __opDiv( T2 const& t2)
- {
-	return t2/T1 ;
- }
- T2 __opMult( T2 const& t2)
- {
-	return  t2*T1 ;
- }
- T2 _iDivUp( T2 const& a)
- {
-	 const T2 div = __opDiv(a);
-	 return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);
- }
- T2 _modulo( T2 const& a)
- {
-	 const T2 div = __opDiv(a);
-	 return a - __opMult(div);
- }
-
+#define __div_mult(val,rot)												\
+template<>																\
+inline int __nBitRotation<val>()										\
+{																		\
+	return rot;															\
+}																		\
+template<typename T>													\
+struct Bar<val, T>														\
+{																		\
+	inline __device__ __host__											\
+	T __opDiv( T const& a) const										\
+	{																	\
+		return  a >> rot ;												\
+	}																	\
+	inline __device__ __host__											\
+	T __opMult( T const& a) const										\
+	{																	\
+		return  a << rot ;												\
+	}																	\
+	inline __device__ __host__											\
+	T __opMult2( T const& a) const										\
+	{																	\
+	   T tmp;															\
+	   tmp.x = a.x >> rot;											\
+	   tmp.y = a.y >> rot;											\
+	   return  tmp ;													\
+	}																	\
+	inline __device__ __host__											\
+	T _iDivUp( T const& a) const										\
+	{																	\
+		const T div = __opDiv(a);										\
+		return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);		\
+	}																	\
+	inline __device__ __host__											\
+	T _modulo( T const& a) const										\
+	{																	\
+		const T div = __opDiv(a);										\
+		return a - __opMult(div);										\
+	}																	\
 };
 
+template<int val, typename T>
+struct Bar
+{
+ inline __device__ __host__
+ T __opDiv( T const& a) const
+ {
+	return a/val ;
+ }
+ inline __device__ __host__
+ T __opMult( T const& a) const
+ {
+	return  a*val ;
+ }
+
+ inline __device__ __host__
+ T __opMult2( T const& a) const
+ {
+	T tmp;
+	tmp.x = val*a.x;
+	tmp.y = val*a.y;
+	return  tmp ;
+ }
+
+ inline __device__ __host__
+ T _iDivUp( T const& a) const
+ {
+	 const T div = __opDiv(a);
+	 return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);
+ }
+ inline __device__ __host__
+ T _modulo( T const& a) const
+ {
+	 const T div = __opDiv(a);
+	 return a - __opMult(div);
+ }
+};
+
+__div_mult(1,0)
 __div_mult(2,1)
 __div_mult(4,2)
 __div_mult(8,3)
@@ -262,32 +289,54 @@ __div_mult(256,8)
 __div_mult(512,9)
 __div_mult(1024,10)
 
-template<int T1, typename T2>
-T2 __div(T2 const& t2)
+namespace sgpu
 {
-   Bar<T1, T2> b;
-   return b.__opDiv(t2);
-}
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __div(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b.__opDiv(a);
+	}
 
-template<int T1, typename T2>
-T2 __mult(T2 const& t2)
-{
-   Bar<T1, T2> b;
-   return b.__opMult(t2);
-}
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __mult(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b.__opMult(a);
+	}
 
-template<int T1, typename T2>
-T2 __iDivUp(T2 const& t2)
-{
-   Bar<T1, T2> b;
-   return b._iDivUp(t2);
-}
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __mult2(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b.__opMult2(a);
+	}
 
-template<int T1, typename T2>
-T2 __mod(T2 const& t2)
-{
-   Bar<T1, T2> b;
-   return b._modulo(t2);
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __iDivUp(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b._iDivUp(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __mod(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b._modulo(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __multipleSup(T const& a)
+	{
+		return sgpu::__mult<fraction>(sgpu::__iDivUp<fraction>(a));
+	}
 }
 
 SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint b)
@@ -342,7 +391,7 @@ inline __host__ __device__ uint2 operator/(uint2 a, int b)
 
 inline __host__ __device__ int2 operator*(int a, ushort2 b)
 {
-    return a * make_int2(b);
+	return a * make_int2(b);
 }
 
 inline __host__ __device__ ushort2 operator*(ushort2 a, int b )
@@ -479,6 +528,10 @@ inline __host__ __device__ uint2 operator-(uint2 a, int2 b)
     return make_uint2(a.x - b.x, a.y - b.y);
 }
 
+inline __host__ __device__ uint2 operator-(const uint2 &a, ushort2 b)
+{
+	return make_uint2(a.x - b.x, a.y - b.y);
+}
 
 inline __host__ __device__ short2 operator+(short2 a, uint2 b)
 {

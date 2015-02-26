@@ -106,6 +106,14 @@ template <const int TheNb,class Type> class cFixedMergeStruct
         std::list<tMerge *>                 mLM;
 };
 
+typedef cFixedMergeStruct<2,Pt2dr> tMergeLPackH;
+typedef cFixedMergeTieP<2,Pt2dr>   tMergeCplePt;
+typedef std::list<tMergeCplePt *>  tLMCplP;
+ElPackHomologue ToStdPack(const tMergeLPackH *,bool PondInvNorm,double PdsSingle=0.1);
+
+ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbInit,int aNbFin);
+
+
 class cNewO_OneIm
 {
     public :
@@ -124,18 +132,59 @@ class cNewO_OneIm
             std::string         mName;
 };
 
+class cNOCompPair
+{
+    public :
+       cNOCompPair(const Pt2dr & aP1,const Pt2dr & aP2,const double & aPds);
+
+       Pt2dr mP1;
+       Pt2dr mP2;
+       double mPds;
+       Pt3dr  mQ1;
+       Pt3dr  mQ2;
+};
+
+
 class cNewO_CpleIm
 {
     public :
           cNewO_CpleIm
           (
                 cNewO_OneIm * aI1,
-                cNewO_OneIm * aI2
+                cNewO_OneIm * aI2,
+                tMergeLPackH *      aMergeTieP,
+                ElRotation3D *      aTesSol
           );
-    private :
 
-          cNewO_OneIm *  mI1;
-          cNewO_OneIm *  mI2;
+          double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
+    private :
+          double CostLinear(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
+          double CostLinear(const ElRotation3D & aRot,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax) const;
+
+          void TestCostLinExact(const ElRotation3D & aRot);
+          void AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue &,const std::string & aMes);
+          ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd);
+
+
+          double ExactCost
+                 (const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
+
+
+
+          cNewO_OneIm *     mI1;
+          cNewO_OneIm *     mI2;
+          tMergeLPackH *    mMergePH;
+          ElRotation3D *    mTestC2toC1;
+          ElPackHomologue   mPackPDist;
+          ElPackHomologue   mPackPStd;
+          ElPackHomologue   mPackStdRed;
+
+     // Resolution lineraire
+          int                      mNbCP;
+          double                   mErStd;
+          std::vector<cNOCompPair> mStCPairs;
+          std::vector<cNOCompPair> mRedCPairs;
+          L2SysSurResol            mSysLin;
        
 };
 
