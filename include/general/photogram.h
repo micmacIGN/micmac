@@ -2621,7 +2621,8 @@ class cResMepRelCoplan
            cElemMepRelCoplan & BestSol();
            void AddSol(const cElemMepRelCoplan &);
            const std::list<ElRotation3D> &  LRot() const;
-       const std::vector<cElemMepRelCoplan> & VElOk() const;
+           const std::vector<cElemMepRelCoplan> & VElOk() const;
+           const std::list<cElemMepRelCoplan>    & LElem() const;
         private :
            std::list<cElemMepRelCoplan>    mLElem;
            std::vector<cElemMepRelCoplan>  mVElOk;

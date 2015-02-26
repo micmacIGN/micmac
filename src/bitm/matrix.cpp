@@ -1191,6 +1191,26 @@ template ElMatrix<REAL> MatFromCol (Pt2d<REAL>,Pt2d<REAL>);
 template ElMatrix<REAL16> MatFromCol (Pt2d<REAL16>,Pt2d<REAL16>);
 template ElMatrix<Fonc_Num> MatFromCol (Pt2d<Fonc_Num>,Pt2d<Fonc_Num>);
 
+//   X     A     YC - BZ      0 -Z  Y    A
+//   Y  ^  B  =  ZA - XC   =  Z  0 -X  * B
+//   Z     C     XB - YA      -Y X  0    C
+
+ElMatrix<REAL>  MatProVect(const Pt3dr & aP)
+{
+   ElMatrix<REAL> aRes (3,3);
+   aRes(0,0) = 0;
+   aRes(1,0) = -aP.z;
+   aRes(2,0) =  aP.y;
+   aRes(0,1) = aP.z;
+   aRes(1,1) = 0;
+   aRes(2,1) = -aP.x;
+   aRes(0,2) = -aP.y;
+   aRes(1,2) = aP.x,
+   aRes(2,2) = 0.0;
+
+   return aRes;
+}
+
 
 
 INST_MAT_SCAL(INT)
