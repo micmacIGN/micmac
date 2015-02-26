@@ -73,6 +73,8 @@ template <const int TheNb> void NOMerge_AddPackHom
     }
 }
 
+
+
 template <const int TheNb> void NOMerge_AddAllCams
                            (
                                 cFixedMergeStruct<TheNb,Pt2dr> & aMap,
@@ -474,65 +476,188 @@ void ForceInstanceNOMerge_AddAllCams()
     NOMerge_AddAllCams(aMap,aVI);
 }
 
-/*
-int NewOriImage_main(int argc,char ** argv)
+
+double NormPt2Ray(const Pt2dr & aP)
 {
-    Bench_NewOri();
-
-   std::string aNameOri,aNameI1,aNameI2;
-   std::vector<std::string> aVNames;
+   return euclid(Pt3dr(aP.x,aP.y,1.0));
+}
 
 
-   ElInitArgMain
-   (
-        argc,argv,
-        LArgMain() <<  EAMC(aNameI1,"Name First Image")
-                   <<  EAMC(aNameI2,"Name Second Image"),
-        LArgMain() << EAM(aNameOri,"Ori",true,"Orientation ")
-   );
+/***********************************************/
+/*           FONCTIONS GLOBALES                */
+/***********************************************/
 
-    cNewO_NameManager aNM("./",aNameOri,"dat");
 
-    aVNames.push_back(aNameI1);
-    aVNames.push_back(aNameI2);
 
-    
-    std::vector<CamStenope *> aVC;
+ElPackHomologue ToStdPack(const tMergeLPackH * aMPack,bool PondInvNorm,double aPdsSingle)
+{
+    ElPackHomologue aRes;
 
-    for (int aK=0 ; aK<int(aVNames.size()) ; aK++)
+    const tLMCplP & aLM = aMPack->ListMerged();
+    for ( tLMCplP::const_iterator itC=aLM.begin() ; itC!=aLM.end() ; itC++)
     {
-         aVC.push_back(aNM.CamOfName(aVNames[aK]));
-    }
-    
-    std::vector<cNewO_OneIm*> aVI;
-    cFixedMergeStruct<2,Pt2dr> aMap;
-    NOMerge_AddAllCams(aMap,aVI);
+        const Pt2dr & aP0 = (*itC)->GetVal(0);
+        const Pt2dr & aP1 = (*itC)->GetVal(1);
 
+        double aPds = ((*itC)->NbArc() == 1) ? aPdsSingle : 1.0;
 
-    if (aVNames.size()==2)
-    {
-        if (1)
+        if (PondInvNorm)
         {
-            ElPackHomologue aLH12 = aNM.PackOfName(aVNames[0],aVNames[1]);
-            ElPackHomologue aLH21 = aNM.PackOfName(aVNames[1],aVNames[0]);
-            NewOri_Info1Cple(*(aVC[0]),aLH12,*(aVC[1]),aLH21);
+             aPds /= NormPt2Ray(aP0) * NormPt2Ray(aP1);
         }
 
-        
+        ElCplePtsHomologues aCple(aP0,aP1,aPds);
+        aRes.Cple_Add(aCple);
     }
 
-    // ElPackHomologue aLH = aNM.PackOfName(aNameI1,aNameI2);
-    //std::cout << "FFF " << aC1->Focale() << " " << aC2->Focale() << " NBh : " << aLH.size() << "\n";
-
-
-    return EXIT_SUCCESS;
+    return aRes;
 }
-*/
 
-/*
 
-*/
+struct cCdtPckR
+{
+      public :
+        cCdtPckR(const Pt2dr& aP1,const Pt2dr & aP2,const double & aPds) :
+            mP1       (aP1),
+            mP2       (aP2),
+            mPds0     (aPds),
+            mPdsOccup (0.0),
+            mDMin     (1e10),
+            mTaken    (false)
+         {
+         }
+         Pt2dr  mP1;
+         Pt2dr  mP2;
+         double mPds0;
+         double mPdsOccup;
+         double mDMin;
+         bool   mTaken;
+};
 
+static Pt2dr aP0W(1e5,1e5);
+static Pt2dr aP1W(-1e5,-1e5);
+static double aScaleW=0;
+
+static Pt2dr ToW(const Pt2dr & aP)
+{
+    return (aP-aP0W) *aScaleW;
+}
+
+
+
+ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aNbFin)
+{
+
+    //------------------------------------------------------------------------
+    // A- 1- Preselrection purement aleatoire d'un nombre raisonnable depoints
+    //------------------------------------------------------------------------
+
+    std::vector<cCdtPckR> aVPres;
+
+    RMat_Inertie aMat;
+
+    {
+       cRandNParmiQ aSelec(aNbMaxInit,aPackIn.size());
+       for (ElPackHomologue::const_iterator itP=aPackIn.begin() ; itP!=aPackIn.end() ; itP++)
+       {
+            if (aSelec.GetNext())
+            {
+               cCdtPckR aPair(itP->P1(),itP->P2(),itP->Pds());
+               aVPres.push_back(aPair);
+               Pt2dr aP1 = aPair.mP1;
+               aMat.add_pt_en_place(aP1.x,aP1.y);
+               aP0W.SetInf(aP1);
+               aP1W.SetSup(aP1);
+            }
+       }
+    }
+    aMat = aMat.normalize();
+    int aNbSomTot = int(aVPres.size());
+
+    double aSurfType  =  sqrt (aMat.s11()* aMat.s22() - ElSquare(aMat.s12()));
+    double aDistType = sqrt(aSurfType/aNbSomTot);
+
+    double aSzW = 1200;
+    Video_Win * aW = 0;
+    if (0)
+    {
+         Pt2dr aSz = aP1W-aP0W;
+         aP0W = aP0W - aSz * 0.1;
+         aP1W = aP1W + aSz * 0.1;
+         aSz = aP1W-aP0W;
+
+         aScaleW  = aSzW /ElMax(aSz.x,aSz.y) ;
+         aW = Video_Win::PtrWStd(round_ni(aSz*aScaleW));
+    }
+
+
+    //------------------------------------------------------------------------
+    // A-2   Calcul d'une fonction de deponderation  
+    //------------------------------------------------------------------------
+
+    for (int aKS1 = 0 ; aKS1 <aNbSomTot ; aKS1++)
+    {
+        for (int aKS2 = aKS1 ; aKS2 <aNbSomTot ; aKS2++)
+        {
+           // sqrt pour attenuer la ponderation
+           double aDist = sqrt(dist48( aVPres[aKS1].mP1-aVPres[aKS2].mP1) / 2.0);
+// aDist=1;
+           // double aDist = (dist48( aVPres[aKS1].mP1-aVPres[aKS2].mP1) / 2.0);
+           double aPds = 1 / (aDistType+aDist);
+           aVPres[aKS1].mPdsOccup += aPds;
+           aVPres[aKS2].mPdsOccup += aPds;
+        }
+        if (aW)
+            aW->draw_circle_abs(ToW( aVPres[aKS1].mP1),3.0,aW->pdisc()(P8COL::blue));
+    }
+    for (int aKSom = 0 ; aKSom <aNbSomTot ; aKSom++)
+    {
+       aVPres[aKSom].mPdsOccup *= aVPres[aKSom].mPds0;
+    }
+
+
+    int aNbSomSel = ElMin(aNbSomTot,aNbFin);
+
+    //------------------------------------------------------------------------
+    // A-3  Calcul de aNbSomSel points biens repartis
+    //------------------------------------------------------------------------
+
+    ElTimer aChrono;
+    ElPackHomologue aRes;
+    for (int aKSel=0 ; aKSel<aNbSomSel ; aKSel++)
+    {
+         // Recherche du cdt le plus loin
+         double aMaxDMin = 0;
+         cCdtPckR * aBest = 0;
+         for (int aKSom = 0 ; aKSom <aNbSomTot ; aKSom++)
+         {
+             cCdtPckR & aCdt = aVPres[aKSom];
+             double aDist = aCdt.mDMin *  aCdt.mPdsOccup;
+             if ((!aCdt.mTaken) &&  (aDist > aMaxDMin))
+             {
+                 aMaxDMin = aDist;
+                 aBest = & aCdt;
+             }
+         }
+         ELISE_ASSERT(aBest!=0,"cNewO_CombineCple");
+         aBest->mTaken = true;
+         for (int aKSom = 0 ; aKSom <aNbSomTot ; aKSom++)
+         {
+             cCdtPckR & aCdt = aVPres[aKSom];
+             aCdt.mDMin = ElMin(aCdt.mDMin,dist48(aCdt.mP1-aBest->mP1));
+         }
+         ElCplePtsHomologues aCple(aBest->mP1,aBest->mP2,aBest->mPds0);
+         aRes.Cple_Add(aCple);
+
+         // mVCdtSel.push_back(aBest);
+         if (aW)
+            aW->draw_circle_abs(ToW( aBest->mP1),5.0,aW->pdisc()(P8COL::red));
+    }
+
+
+
+    return aRes;
+}
 
 
 

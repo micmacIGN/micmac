@@ -382,6 +382,11 @@ class cCmpEMRCPtr
          }
 };
 
+const std::list<cElemMepRelCoplan> & cResMepRelCoplan::LElem() const
+{
+   return mLElem;
+}
+
 void cResMepRelCoplan::AddSol(const cElemMepRelCoplan & anEl)
 {
    mLElem.push_front(anEl);

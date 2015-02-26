@@ -90,36 +90,40 @@ class cMesh
         int			getFacesNumber()  const	{return (int) mTriangles.size();}
         int			getEdgesNumber()  const	{return (int) mEdges.size();}
 
-        void		getVertexes(vector <Pt3dr> &vPts) const {vPts = mVertexes;}
         void		getTriangles(vector <cTriangle> &vTriangles) const {vTriangles = mTriangles;}
         vector <cEdge> getEdges() const { return mEdges;}
 
-        Pt3dr		getVertex(unsigned int idx) const;
-        cTriangle*	getTriangle(unsigned int idx);
-        cEdge		getEdge(unsigned int idx) const;
+        cVertex *   getVertex(unsigned int idx);
+        cTriangle *	getTriangle(unsigned int idx);
+        cEdge *     getEdge(unsigned int idx);
 
         void		addPt(const Pt3dr &aPt);
         void		addTriangle(const cTriangle &aTri);
-        void		addEdge(int aK, int bK, int idc0, int idc1);
+        void		addEdge(int aK, int bK);
 
         void        removeTriangle(cTriangle &aTri);
 
-        void		setTrianglesAttribute(int img_idx, Pt3dr Dir, vector <unsigned int> const &aTriIdx);
+        void        setTrianglesAttribute(int img_idx, Pt3dr Dir, set <unsigned int> const &aTriIdx);
 
-        void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, vector <unsigned int> const &aTriIdx); //TriInGraph: index of triangles in Graph
+        void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, const set<unsigned int> &aTriIdx); //TriInGraph: index of triangles in Graph
         void		setLambda(REAL aL) {mLambda = aL;}
 
         void        clean();
 
-        std::vector< cTextRect > getRegions();
+        vector < cTextRect > getRegions();
 
         void        write(const string & aOut, bool aBin, const string & textureFilename);
 
-    private:
+private:
 
-        vector <Pt3dr>		mVertexes;
+        void        checkTriangle(int id2, set<int>::const_iterator it, int aK);
+        void        checkEdgesForVertex(int id, int aK);
+
+        vector <cVertex>	mVertexes;
         vector <cTriangle>	mTriangles;
         vector <cEdge>	    mEdges;			//aretes du graphe de voisinage
+
+        set <pair <int,int> > mEdgesSet;
 
         REAL				mLambda;
 };
@@ -134,13 +138,16 @@ class cVertex
 
                     ~cVertex();
 
-        void		getPos(Pt3dr &pos){pos = mPos;}
-        int			getIndex(){return mIndex;}
+        void		getPos(Pt3dr &pos){ pos = mPos; }
+        set<int>    getTriIdx() { return mTriIdx; }
+        void        addIdx(int id) { mTriIdx.insert(id); }
+
+        bool    operator==( const cVertex & ) const;
 
     private:
 
-        int			mIndex;
         Pt3dr		mPos;
+        set<int>    mTriIdx;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -149,7 +156,7 @@ class cVertex
 class cTriangle
 {
     public:
-                cTriangle(cMesh* aMesh, vector <int> const &idx, int TriIdx);
+                cTriangle(cMesh* aMesh, sFace * face, int TriIdx);
 
                 ~cTriangle();
 
@@ -160,7 +167,6 @@ class cTriangle
 
         Pt3dr	getNormale(bool normalize = false) const;
         void	getVertexes(vector <Pt3dr> &vList) const;
-        Pt3dr   getVertex(int aK);
 
         void	getVertexesIndexes(vector <int> &vList) const {vList = mTriVertex;}
         void	getVertexesIndexes(int &v1, int &v2, int &v3);
@@ -225,15 +231,16 @@ class cTriangle
 class cEdge
 {
     public:
-                cEdge();
-                cEdge(int tri1, int tri2, int v1, int v2){mNode1 = tri1; mNode2 = tri2; mV1 = v1; mV2 = v2;}
+               // cEdge();
+                //cEdge(int tri1, int tri2, int v1, int v2){mNode1 = tri1; mNode2 = tri2; mV1 = v1; mV2 = v2;}
+                cEdge(int tri1, int tri2){mNode1 = tri1; mNode2 = tri2; /*mV1 = v1; mV2 = v2;*/}
 
                 ~cEdge();
 
         int		n1(){return mNode1;}
         int		n2(){return mNode2;}
-        int		v1(){return mV1;}
-        int		v2(){return mV2;}
+       // int		v1(){return mV1;}
+       // int		v2(){return mV2;}
 
         void    setN1(int aK) { mNode1 = aK; }
         void    setN2(int aK) { mNode2 = aK; }
@@ -245,8 +252,8 @@ class cEdge
         int mNode1; //index du triangle
         int mNode2;
 
-        int mV1;	//index des sommets communs
-        int mV2;
+        //int mV1;	//index des sommets communs
+        //int mV2;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -269,7 +276,7 @@ class cZBuf
         Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
         Im2D_INT4				getIndexImage() const {return mImTriIdx;}
-        vector <unsigned int>	getVisibleTrianglesIndexes() const {return vTri;}
+        set <unsigned int> *    getVisibleTrianglesIndexes() {return &vTri;}
 
         cElNuage3DMaille * &	Nuage() {return mNuage;}
 
@@ -298,7 +305,7 @@ class cZBuf
         float					mDpDef;			//default value for depth img (mRes)
         int                     mIdDef;			//default value for label img (mImTriIdx)
 
-        vector <unsigned int>	vTri;			//list of visible triangles (contained in the label image)
+        set <unsigned int>      vTri;			//list of visible triangles (contained in the label image)
 
         cElNuage3DMaille *		mNuage;
 
