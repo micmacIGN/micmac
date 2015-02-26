@@ -63,10 +63,24 @@ public:
 	double first_lon, first_lat, first_height, last_lon, last_lat, last_height;
 
 	//Errors indicated in DIMAP files
+/*
+      MPD -> in ANSI C++, variable initialisation here, not allowed
 	double indirErrBiasRow=0;
 	double indirErrBiasCol=0;
 	double dirErrBiasX=0;
 	double dirErrBiasY=0;
+*/
+        RPC() :
+             indirErrBiasRow (0),
+             indirErrBiasCol (0),
+             dirErrBiasX (0),
+             dirErrBiasY (0)
+        {
+        }
+	double indirErrBiasRow;
+	double indirErrBiasCol;
+	double dirErrBiasX;
+	double dirErrBiasY;
 
 	Pt3dr DirectRPCNorm(Pt2dr, double);
 	Pt3dr InverseRPCNorm(Pt3dr);
@@ -103,7 +117,8 @@ public:
 	void WriteAirbusRPC(std::string aFileOut);
 
 	//For DigitalGlobe data
-	void RPC::ReadRPB(std::string const &filename);
+	// void ReadRPB(std::string const &filename); MPD -> in ANSI C++ , scope specification inside class innot allowed
+	void ReadRPB(std::string const &filename);
 	void ReconstructValidity();
 	void Inverse2Direct(double gridSize);
 
@@ -584,7 +599,8 @@ void RPC::Inverse2Direct(double gridSize)
 
 void RPC::ReadRPB(std::string const &filename)
 {
-	std::ifstream RPBfile(filename);
+	// std::ifstream RPBfile(filename);  MPD : no implicit conversion std::string -> char * in ANSI C++
+	std::ifstream RPBfile(filename.c_str());
 	std::string line;
 	std::string a, b;
 	//Pass 6 lines
