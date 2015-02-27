@@ -145,6 +145,16 @@ class cNOCompPair
 };
 
 
+class cSolOriRel
+{
+    public :
+       cSolOriRel(const ElRotation3D & aR,double aResidu);
+
+
+       ElRotation3D  mRot;
+       double        mRes;
+};
+
 class cNewO_CpleIm
 {
     public :
@@ -153,11 +163,16 @@ class cNewO_CpleIm
                 cNewO_OneIm * aI1,
                 cNewO_OneIm * aI2,
                 tMergeLPackH *      aMergeTieP,
-                ElRotation3D *      aTesSol
+                ElRotation3D *      aTesSol,
+                bool                Show
           );
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
     private :
+          void  AddNewInit(const ElRotation3D & aR);
+          double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) const;
+
+
           double CostLinear(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
           double CostLinear(const ElRotation3D & aRot,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax) const;
 
@@ -185,7 +200,10 @@ class cNewO_CpleIm
           std::vector<cNOCompPair> mStCPairs;
           std::vector<cNOCompPair> mRedCPairs;
           L2SysSurResol            mSysLin;
+          bool                     mShow;
        
+
+         std::list<cSolOriRel>    mSols;
 };
 
 
@@ -284,6 +302,13 @@ class cNewO_CombineCple
           Pt2dr                      mP0W;
          
 };
+
+inline double AttenTetaMax(const double & aVal,const double & aVMax)
+{
+      if (aVMax<=0) return aVal;
+      return  (aVal*aVMax) / (aVal + aVMax);
+}
+
 
 
 
