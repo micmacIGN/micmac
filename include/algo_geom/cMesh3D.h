@@ -81,7 +81,7 @@ class cMesh
     friend class cTriangle;
 
     public:
-                        cMesh(const string & Filename, bool doAdjacence=true);
+                        cMesh(const string & Filename, float scal=-1.f, bool doAdjacence=true);
                         cMesh(cMesh const &aMesh);
 
                         ~cMesh();
@@ -156,7 +156,7 @@ class cVertex
 class cTriangle
 {
     public:
-                cTriangle(cMesh* aMesh, sFace * face, int TriIdx);
+                cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal);
 
                 ~cTriangle();
 
@@ -208,6 +208,9 @@ class cTriangle
 
         bool    operator==( const cTriangle & ) const;
 
+        float   getScal() { return mScal; }
+        void    setScal(float aVal) { mScal = aVal; }
+
 
 private:
 
@@ -224,6 +227,8 @@ private:
         Pt2dr                       mText0;         //Texture Coordinates
         Pt2dr                       mText1;
         Pt2dr                       mText2;
+
+        float                       mScal;          // scalar product between normal and best image viewing direction
 };
 
 //--------------------------------------------------------------------------------------------------------------
