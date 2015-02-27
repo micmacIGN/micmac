@@ -774,7 +774,6 @@ int Luc_main(int argc, char ** argv)
         double Y = (aPtsCarto[i].y - aCartoOffset.y) / aCartoScale.y;
         double COL = (aPtsIm[i].x - aImOffset.x) / aImScale.x;
         double ROW = (aPtsIm[i].y - aImOffset.y) / aImScale.y;
-        cout << X << " " << Y << " " << COL << " " << ROW << endl;
 
         double aEqCol[19] = {
             (1),
@@ -837,6 +836,8 @@ int Luc_main(int argc, char ** argv)
     {
         std::ofstream fic(aFileOut.c_str());
         fic << std::setprecision(15);
+		fic << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" << endl;
+		fic << "<RPC2D>" << endl;
         fic << "\t<RFM_Validity>" << endl;
         fic << "\t\t<Direct_Model_Validity_Domain>" << endl;
         fic << "\t\t\t<FIRST_ROW>" << aPtImMin.x << "</FIRST_ROW>" << endl;
@@ -863,32 +864,25 @@ int Luc_main(int argc, char ** argv)
 
         fic << "\t</RFM_Validity>" << endl;
 
-        fic << "<COL_NUMERATOR>" << endl;
         for (int i = 0; i<10; i++)
         {
-            fic << aDataCol[i] << endl;
+			fic << "<COL_NUMERATOR_" << i + 1 << ">" << aDataCol[i] << "</COL_NUMERATOR_" << i + 1 << ">" << endl;
         }
-        fic << "</COL_NUMERATOR>" << endl;
-        fic << "<COL_DENUMERATOR>" << endl;
-        fic << "1" << endl;
+		fic << "<COL_DENUMERATOR_1>1</COL_DENUMERATOR_1>" << endl;
         for (int i = 10; i<19; i++)
         {
-            fic << aDataCol[i] << std::endl;
+			fic << "<COL_DENUMERATOR_" << i - 8 << ">" << aDataCol[i] << "</COL_DENUMERATOR_" << i -8 << ">" << endl;
         }
-        fic << "</COL_DENUMERATOR>" << endl;
-        fic << "<ROW_NUMERATOR>" << endl;
-        for (int i = 0; i<10; i++)
-        {
-            fic << aDataRow[i] << endl;
-        }
-        fic << "</ROW_NUMERATOR>" << endl;
-        fic << "<ROW_DENUMERATOR>" << endl;
-        fic << "1" << endl;
-        for (int i = 10; i<19; i++)
-        {
-            fic << aDataRow[i] << std::endl;
-        }
-        fic << "</ROW_DENUMERATOR>" << endl;
+		for (int i = 0; i<10; i++)
+		{
+			fic << "<ROW_NUMERATOR_" << i + 1 << ">" << aDataRow[i] << "</ROW_NUMERATOR_" << i + 1 << ">" << endl;
+		}
+		fic << "<ROW_DENUMERATOR_1>1</ROW_DENUMERATOR_1>" << endl;
+		for (int i = 10; i<19; i++)
+		{
+			fic << "<ROW_DENUMERATOR_" << i - 8 << ">" << aDataRow[i] << "</ROW_DENUMERATOR_" << i - 8 << ">" << endl;
+		}
+		fic << "</RPC2D>" << endl;
     }
     cout << "Written functions in file " << aFileOut << endl;
 

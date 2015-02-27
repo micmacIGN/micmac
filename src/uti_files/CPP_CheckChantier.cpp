@@ -250,6 +250,32 @@ int CheckAllOrient_main(int argc,char ** argv)
 }
 
 
+void ChekOneBigTiff(const std::string & aName,int aSz)
+{
+    Tiff_Im::SetDefTileFile(1<<30);
+    // Pt2di aSz(aSz,Sz);
+    Tiff_Im aTF(
+            aName.c_str(),
+            Pt2di(aSz,aSz),
+            GenIm::u_int1,
+            Tiff_Im::No_Compr,
+            Tiff_Im::BlackIsZero
+    );
+    ELISE_COPY(aTF.all_pts(),1,aTF.out());
+
+    double aSom;
+    ELISE_COPY(aTF.all_pts(),Rconv(aTF.in()),sigma(aSom));
+    double aDif = aSom- ElSquare(double(aSz));
+    std::cout << " Som " << aSom << ";  Dif " << aDif  << "\n";
+    ELISE_ASSERT(ElAbs(aDif)<1e-3,"ChekOneBigTiff");
+}
+
+int ChekBigTiff_main(int,char**)
+{
+    ChekOneBigTiff("ChekOneBigTiff_60000.tif",60000);
+    ChekOneBigTiff("ChekOneBigTiff_65000.tif",65000);
+    return EXIT_SUCCESS;
+}
 
 /********************************************************/
 /*                                                      */
@@ -259,59 +285,6 @@ int CheckAllOrient_main(int argc,char ** argv)
 
 
 
-
-/*
-int CheckOneTiffFile_main(int argc,char ** argv)
-{
-}
-*/
-
-
-/*
-int Check_main(int argc,char ** argv)
-{
-   MMD_InitArgcArgv(argc,argv,2);
-
-    std::string  aDir,aPat,aFullDir;
-    int  aNbMax=10;
-
-    ElInitArgMain
-    (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
-    LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def=10)")
-    );
-
-
-#if (ELISE_windows)
-    replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-#endif
-    SplitDirAndFile(aDir,aPat,aFullDir);
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const cInterfChantierNameManipulateur::tSet * mSetIm = aICNM->Get(aPat);
-
-
-    int aNb = ElMin(aNbMax,int(mSetIm->size()));
-
-    for (int aK=0 ; aK< aNb ; aK++)
-    {
-         std::string aName = (*mSetIm)[aK];
-         printf("%3d ",aK);
-         std::cout << aName ;
-         std::cout  << "\n";
-    }
-
-    if (1)
-    {
-         // std::list<std::string>  aL = RegexListFileMatch(aDir,aPat,1,false);
-          std::cout << "NB  BY RFLM " << mSetIm->size() << "\n";
-    }
-
-
-
-    return 1;
-}
-*/
 
 
 

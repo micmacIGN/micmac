@@ -63,6 +63,20 @@ public:
 	double first_lon, first_lat, first_height, last_lon, last_lat, last_height;
 
 	//Errors indicated in DIMAP files
+/*
+      MPD -> in ANSI C++, variable initialisation here, not allowed
+	double indirErrBiasRow=0;
+	double indirErrBiasCol=0;
+	double dirErrBiasX=0;
+	double dirErrBiasY=0;
+*/
+        RPC() :
+             indirErrBiasRow (0),
+             indirErrBiasCol (0),
+             dirErrBiasX (0),
+             dirErrBiasY (0)
+        {
+        }
 	double indirErrBiasRow;
 	double indirErrBiasCol;
 	double dirErrBiasX;
@@ -103,8 +117,10 @@ public:
 	void WriteAirbusRPC(std::string aFileOut);
 
 	//For DigitalGlobe data
+	// void ReadRPB(std::string const &filename); MPD -> in ANSI C++ , scope specification inside class innot allowed
+	void ReadRPB(std::string const &filename);
 	void ReconstructValidity();
-	void Inverse2Direct();
+	void Inverse2Direct(double gridSize);
 
 };
 
@@ -186,7 +202,7 @@ Pt3dr RPC::InverseRPC(Pt3dr Pgeo)
 Pt3dr RPC::InverseRPCNorm(Pt3dr PgeoNorm)
 {
 	double X = PgeoNorm.x, Y = PgeoNorm.y, Z = PgeoNorm.z;
-	double vecteurD[] = { 1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
+	double vecteurD[] = { 1, Y, X, Z, Y*X, Y*Z, X*Z, Y*Y, X*X, Z*Z, X*Y*Z, Y*Y*Y, Y*X*X, Y*Z*Z, X*Y*Y, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };
 	double samp_den = 0.;
 	double samp_num = 0.;
 	double line_den = 0.;
@@ -494,28 +510,36 @@ void RPC::ReconstructValidity()
 
 }
 
-void RPC::Inverse2Direct()
+void RPC::Inverse2Direct(double gridSize)
 {
+	//Cleaning potential data in RPC object
+	direct_samp_num_coef.clear();
+	direct_samp_den_coef.clear();
+	direct_line_num_coef.clear();
+	direct_line_den_coef.clear();
+
 	//Generating a 20*20 grid on the normalized space with random normalized heights
 	vector<Pt3dr> aGridGeoNorm, aGridImNorm;
 	srand(time(NULL));//Initiate the rand value
-	for (u_int i = 0; i < 200; i++)
+	for (u_int i = 0; i <= gridSize; i++)
 	{
-		for (u_int j = 0; j < 200; j++)
+		for (u_int j = 0; j <= gridSize; j++)
 		{
 			Pt3dr aPt;
-			aPt.x = (double(i) - 100) / 100;
-			aPt.y = (double(j) - 100) / 100;
+			aPt.x = (double(i) - (gridSize / 2)) / (gridSize / 2);
+			aPt.y = (double(j) - (gridSize / 2)) / (gridSize / 2);
 			aPt.z = double(rand() % 2000 - 1000) / 1000;
 			aGridGeoNorm.push_back(aPt);
 		}
 	}
-
+	//cout << aGridGeoNorm << endl;
 	//Converting the points to image space
 	for (u_int i = 0; i < aGridGeoNorm.size(); i++)
 	{
 		aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[i]));
 	}
+	//cout << aGridImNorm << endl;
+	//cout << "Im grid Computed" << endl;
 
 
 	//Parameters too get parameters of P1 and P2 in ---  lon=P1(column,row,Z)/P2(column,row,Z)  --- where (column,row,Z) are image coordinates (idem for lat)
@@ -557,68 +581,160 @@ void RPC::Inverse2Direct()
 	double* aDataLon = aSolLat.data();
 
 	//Copying Data in RPC object
+	//Numerators
 	for (int i = 0; i<20; i++)
 	{
-		direct_samp_num_coef[i] = aDataLon[i];
-		direct_line_num_coef[i] = aDataLat[i];
+		direct_samp_num_coef.push_back(aDataLon[i]);
+		direct_line_num_coef.push_back(aDataLat[i]);
 	}
-		direct_line_den_coef[0] = 1;
-		direct_samp_den_coef[0] = 1;
+	//Denominators (first one = 1)
+	direct_line_den_coef.push_back(1);
+	direct_samp_den_coef.push_back(1);
 	for (int i = 20; i<39; i++)
 	{
-		direct_samp_den_coef[i-19] = aDataLon[i];
-		direct_line_den_coef[i-19] = aDataLat[i];
+		direct_samp_den_coef.push_back(aDataLon[i]);
+		direct_line_den_coef.push_back(aDataLat[i]);
 	}
-	/*
-	//Outputting results
-	{
-		std::ofstream fic(aFileOut);
+}
 
-		fic << "<LON_NUMERATOR>" << endl;
-		for (int i = 0; i<20; i++)
-		{
-			fic << aDataLon[i] << endl;
-		}
-		fic << "</LON_NUMERATOR>" << endl;
-		fic << "<LON_DENUMERATOR>" << endl;
-		fic << "1" << endl;
-		for (int i = 20; i<39; i++)
-		{
-			fic << aDataLon[i] << std::endl;
-		}
-		fic << "</LON_DENUMERATOR>" << endl;
-		fic << "<LAT_NUMERATOR>" << endl;
-		for (int i = 0; i<20; i++)
-		{
-			fic << aDataLat[i] << endl;
-		}
-		fic << "</LAT_NUMERATOR>" << endl;
-		fic << "<LAT_DENUMERATOR>" << endl;
-		fic << "1" << endl;
-		for (int i = 20; i<39; i++)
-		{
-			fic << aDataLat[i] << std::endl;
-		}
-		fic << "</LAT_DENUMERATOR>" << endl;
+void RPC::ReadRPB(std::string const &filename)
+{
+	// std::ifstream RPBfile(filename);  MPD : no implicit conversion std::string -> char * in ANSI C++
+	std::ifstream RPBfile(filename.c_str());
+	std::string line;
+	std::string a, b;
+	//Pass 6 lines
+	for (u_int i = 0; i < 6; i++)
+		std::getline(RPBfile, line);
+	//Line Offset
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> line_off;
 	}
-	*/
+	//Samp Offset
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> samp_off;
+	}
+	//Lat Offset
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> lat_off;
+	}
+	//Lon Offset
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> long_off;
+	}
+	//Height Offset
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> height_off;
+	}
+	//Line Scale
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> line_scale;
+	}
+	//Samp Scale
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> samp_scale;
+	}
+	//Lat Scale
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> lat_scale;
+	}
+	//Lon Scale
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> long_scale;
+	}
+	//Height Scale
+	{
+		std::getline(RPBfile, line);
+		std::istringstream iss(line);
+		iss >> a >> b >> height_scale;
+	}
+	double aCoef;
+	//indirect_line_num_coef
+	{
+		std::getline(RPBfile, line);
+		for (u_int i = 0; i < 20; i++)
+		{
+			std::getline(RPBfile, line);
+			std::istringstream iss(line);
+			iss >> aCoef;
+			indirect_line_num_coef.push_back(aCoef);
+		}
+	}
+	//indirect_line_den_coef
+	{
+		std::getline(RPBfile, line);
+		for (u_int i = 0; i < 20; i++)
+		{
+			std::getline(RPBfile, line);
+			std::istringstream iss(line);
+			iss >> aCoef; 
+			indirect_line_den_coef.push_back(aCoef);
+		}
+	}
+	//indirect_samp_num_coef
+	{
+		std::getline(RPBfile, line);
+		for (u_int i = 0; i < 20; i++)
+		{
+			std::getline(RPBfile, line);
+			std::istringstream iss(line);
+			iss >> aCoef;
+			indirect_samp_num_coef.push_back(aCoef);
+		}
+	}
+	//indirect_samp_den_coef
+	{
+		std::getline(RPBfile, line);
+		for (u_int i = 0; i < 20; i++)
+		{
+			std::getline(RPBfile, line);
+			std::istringstream iss(line);
+			iss >> aCoef;
+			indirect_samp_den_coef.push_back(aCoef);
+		}
+	}
 }
 
 int RPC_main(int argc, char ** argv)
 {
-	string aFileOut = "RPC.xml", aNameFileDimap;
+	string aFileOut = "RPC.xml", aNameFile;
+	double gridSize = 50;
 	ElInitArgMain
 		(
 		argc, argv,
-		LArgMain() << EAMC(aNameFileDimap, "RPC Dimap file"),
+		LArgMain() << EAMC(aNameFile, "RPB DigitalGlob file"),
 		LArgMain()
 		<< EAM(aFileOut, "Out", true, "Name of the output file")
+		<< EAM(gridSize, "GridSize", true, "Size of the grid of generated GCPs")
 		);
 
 	RPC Banane;
-	Banane.ReadDimap(aNameFileDimap);
+	Banane.ReadRPB(aNameFile);
+	cout << "RPB File read" << endl;
+	Banane.Inverse2Direct(gridSize);
+	cout << "Direct RPC estimated" << endl;
+	Banane.ReconstructValidity();
+	//Banane.ReadDimap(aNameFileDimap);
 	Banane.info();
-	Banane.Inverse2Direct();
+	//Banane.Inverse2Direct(gridSize);
 	Banane.WriteAirbusRPC(aFileOut);
 	return 0;
 }

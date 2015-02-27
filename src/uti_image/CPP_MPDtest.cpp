@@ -639,10 +639,21 @@ extern void TestOriBundle();
 
 int MPDtest_main (int argc,char** argv)
 {
+    Tiff_Im::SetDefTileFile(1<<30);
+    Pt2di aSz(60000,70000);
+    Tiff_Im aTF(
+            "toto.tif",
+            aSz,
+            GenIm::u_int1,
+            Tiff_Im::No_Compr,
+            Tiff_Im::BlackIsZero
+    );
+    ELISE_COPY(aTF.all_pts(),1,aTF.out());
+
+    double aSom;
+    ELISE_COPY(aTF.all_pts(),Rconv(aTF.in()),sigma(aSom));
+    std::cout << aSom << " " << aSom- (aSz.x*double(aSz.y))  << "\n";
     // cXML_ParamNuage3DMaille aN = StdGetFromSI("/media/data2/Cylindres/Full-Deroule-Tour-Sud/PIMs-TmpBasc/MergePIMs.xml",XML_ParamNuage3DMaille);
-    cXML_ParamNuage3DMaille aN = StdGetFromSI("/media/data2/Cylindres/Full-Deroule-Tour-Sud/PIMs-TmpOrtho/NuageImProf_LeChantier_Etape_1.xml",XML_ParamNuage3DMaille);
-    cFileOriMnt  aF = ToFOM(aN,true);
-    MakeFileXML(aF,"Test.xml");
 
 
 /*
