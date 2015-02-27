@@ -216,6 +216,21 @@ vector<cTriangle *> cTriangle::getNeighbours()
     return res;
 }
 
+set<int> cTriangle::getNeighbours2()
+{
+    set <int> res;
+
+    for (unsigned int aK=0; aK<mTriVertex.size(); aK++)
+    {
+        cVertex *vertex = pMesh->getVertex(mTriVertex[aK]);
+
+        set <int> neighb = vertex->getTriIdx();
+        res.insert(neighb.begin(), neighb.end());
+    }
+
+    return res;
+}
+
 void cTriangle::setEdgeIndex(unsigned int pos, int val)
 {
     if (mTriEdges.size()>pos)
@@ -739,7 +754,7 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, set
 
 void cMesh::clean()
 {
-    cout << "removing triangle" <<endl;
+    //cout << "removing triangle" <<endl;
     int nbFaces = getFacesNumber();
     for(int i=0 ; i < nbFaces; i++)
     {
@@ -759,7 +774,7 @@ void cMesh::clean()
             cout << "triangle " << i << " nb edges = " << Triangle->getEdgesNumber() << " textured= " << Triangle->isTextured() << endl;*/
     }
 
-    cout << "removing points" << endl;
+    //cout << "removing points" << endl;
 
     //suppression des points n'appartenant à aucun triangle
     for(int aK=0; aK < getVertexNumber();++aK)
@@ -810,34 +825,31 @@ std::vector<cTextRect> cMesh::getRegions()
 
         for (unsigned int bK=0; bK < myList.size();++bK)
         {
-            //cout << "triangle " << myList[bK] << endl;
             cTriangle * Tri = getTriangle(myList[bK]);
 
             if (Tri->isTextured())
             {
                 int imgIdx = Tri->getTextureImgIndex();
 
-                vector <cTriangle *> neighb = Tri->getNeighbours(); //TODO: tester le remplacement par les triangles vus par les sommets
+                set<int> neighb = Tri->getNeighbours2();
 
                 bool found = false;
-                for (unsigned int cK=0; cK < neighb.size();++cK)
+                set<int>::const_iterator it = neighb.begin();
+                for(;it!=neighb.end();++it)
                 {
-                    int triIdx = neighb[cK]->getIdx();
-                    if ((triangleIdxSet.find(triIdx) == triangleIdxSet.end()) &&
-                            (neighb[cK]->getTextureImgIndex() == imgIdx))
+                    if ((triangleIdxSet.find(*it) == triangleIdxSet.end()) &&
+                            (getTriangle(*it)->getTextureImgIndex() == imgIdx))
                     {
                         found = true;
-                        myList.push_back(triIdx);
+                        myList.push_back(*it);
 
-                        triangleIdxSet.insert(triIdx);
+                        triangleIdxSet.insert(*it);
                     }
                 }
                 if (found)
                     triangleIdxSet.insert(Tri->getIdx());
             }
         }
-
-        //cout << "myList.size() = " << myList.size() << endl;
 
         if (myList.size() > 1)
         {
@@ -853,7 +865,7 @@ std::vector<cTextRect> cMesh::getRegions()
         if (triangleIdxSet.find(aK) == triangleIdxSet.end())
         {
             cTriangle * Tri = getTriangle(aK);
-            vector <cTriangle *> neighb = Tri->getNeighbours();
+            vector <cTriangle *> neighb = Tri->getNeighbours(); //TODO: utiliser getNeighbours2 ?
 
             if (neighb.size())
             {
