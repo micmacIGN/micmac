@@ -508,13 +508,6 @@ cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
     }
 }
 
-cMesh::cMesh(const cMesh &aMesh):
-    mVertexes(aMesh.mVertexes),
-    mTriangles(aMesh.mTriangles),
-    mEdges(aMesh.mEdges),
-    mLambda(aMesh.mLambda)
-{}
-
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
@@ -1015,10 +1008,7 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             int t1, t2, t3;
             face->getVertexesIndexes(t1, t2, t3);
 
-            fprintf(file,"3 %i %i %i ",t1,t2,t3);
-
-            Pt2dr p1, p2, p3;
-            face->getTextureCoordinates(p1, p2, p3);
+            fprintf(file,"3 %i %i %i\n",t1,t2,t3);
 
             if (face->isTextured())
             {
@@ -1030,6 +1020,52 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
                 fprintf(file,"0\n");
         }
     }
+}
+
+void cMesh::Export(set<unsigned int> const &triangles, int aK)
+{
+  /*  std::stringstream ss;
+    ss << aK;
+
+    string aOut = "/home/mdeveau/data/dat/export" + ss.str() + ".ply";
+    string mode = "w";
+
+    FILE * file = FopenNN(aOut, mode, "UV Mapping");         //Ecriture du header
+    fprintf(file,"ply\n");
+    fprintf(file,"format ascii 1.0\n");
+    fprintf(file,"element vertex %i\n", (int) triangles.size()*3);
+    fprintf(file,"property float x\n");
+    fprintf(file,"property float y\n");
+    fprintf(file,"property float z\n");
+    fprintf(file,"element face %i\n",(int) triangles.size());
+    fprintf(file,"property list uchar int vertex_indices\n");
+    fprintf(file,"end_header\n");
+
+    Pt3dr pt;
+
+    std::set<unsigned int>::const_iterator it = triangles.begin();
+    for(;it!=triangles.end();++it)
+    {
+        cTriangle* face = getTriangle(*it);
+
+        vector <Pt3dr> Pts;
+        face->getVertexes(Pts);
+
+        for(unsigned int aK=0; aK<Pts.size();++aK)
+        {
+            pt = Pts[aK];
+
+            fprintf(file,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+        }
+    }
+
+    int bK=0;
+    it = triangles.begin();
+    for(;it!=triangles.end();++it)
+    {
+        fprintf(file,"3 %i %i %i\n",bK,bK+1,bK+2);
+        bK+=3;
+    }*/
 }
 
 

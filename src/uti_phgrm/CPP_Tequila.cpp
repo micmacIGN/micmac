@@ -209,6 +209,8 @@ int Tequila_main(int argc,char ** argv)
 
         set <unsigned int> *vTri = aZBuffer.getVisibleTrianglesIndexes();
 
+        //myMesh.Export(*vTri, aK); //Tmp
+
         set <unsigned int>::const_iterator it = vTri->begin();
         for (;it!=vTri->end();++it)
         {
