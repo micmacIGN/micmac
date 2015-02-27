@@ -722,6 +722,17 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
 {
 //    if(check)
 //        qDebug() << "Rules";
+
+//	  setEnabled(false);
+//	  QString program = "mm3d";
+//	  QStringList arguments;
+//	  arguments << "vMalt";
+
+//	  QProcess *myProcess = new QProcess(this);
+
+//	  myProcess->waitForFinished(-1);
+//	  myProcess->start(program, arguments);
+	  //setEnabled(true);
 }
 
 void SaisieQtWindow::resizeEvent(QResizeEvent *)
@@ -1224,7 +1235,7 @@ void SaisieQtWindow::setUI()
 	_ui->tableView_Objects->close();
 
     //TEMP:
-    hideAction(_ui->menuTools->menuAction(), false);
+	hideAction(_ui->menuTools->menuAction(), false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
