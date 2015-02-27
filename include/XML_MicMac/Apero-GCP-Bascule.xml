@@ -1,0 +1,189 @@
+<!--
+Apero /home/marc/micmac/include/XML_MicMac/Apero-Ter-Bascule.xml DirectoryChantier=/home/marc/TMP/DroneForca/Lincel/SOL/
+-->
+<Global>
+   <ParamApero>
+
+      <DicoLoc>
+            <Symb>  PatternAllIm=XXXXX </Symb>
+            <Symb>  AeroIn=XXXXX  </Symb>
+<!--
+            <Symb>  Images=NKS-Set-OfPatternAndFoc@Int.*.CR2@12@17 </Symb>
+            <Symb>  AeroIn=Ext15  </Symb>
+-->
+
+            <Symb>  AeroOut=XXXX  </Symb>
+            <Symb>  DicoApp=XXXX  </Symb>
+            <Symb>  SaisieIm=XXXXX  </Symb>
+            <Symb>  L2Basc=true  </Symb>
+            <Symb>  ShowUnused=true  </Symb>
+            <Symb>  CPI=false    </Symb>
+            <Symb>  UseNLD=false    </Symb>
+            <Symb>  PatNLD=.*    </Symb>
+            <Symb>  NLFlagX=63    </Symb>
+            <Symb>  NLFlagY=63    </Symb>
+            <Symb>  NLFlagZ=63    </Symb>
+            <Symb>  NLDForceTR=true    </Symb>
+            <Symb>  NLDShow=false    </Symb>
+            <Symb>  ShowDetail=false    </Symb>
+
+            <eSymb>  NotCPI=! ${CPI} </eSymb>
+       </DicoLoc>
+
+
+       <SectionBDD_Observation>
+            <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@-${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@-${AeroIn} </KeyAssoc>
+            </BDD_Orient>
+            <BDD_ObsAppuisFlottant >
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  ${SaisieIm} </KeySetOrPat>
+                  <AcceptNoGround>  true </AcceptNoGround>
+            </BDD_ObsAppuisFlottant>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+            <CalibrationCameraInc>
+                   <Name> GenerateKC-Others   </Name>
+                   <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <#IF  VTEST=${CPI}>
+                                   <NameTag> Interne</NameTag>
+                                   <NameTag>    CalibrationInternConique </NameTag>
+                              </#IF>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                    <#IF  VTEST=${CPI}>
+                        <CalibPerPose>
+                             <KeyPose2Cal> NKS-Assoc-Id </KeyPose2Cal>
+                             <KeyInitFromPose> NKS-Assoc-Im2Orient@-${AeroIn} </KeyInitFromPose>
+                        </CalibPerPose>
+
+                        <CalibPerPose>
+                             <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                             <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori-${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                         </CalibPerPose>
+                    </#IF>
+             </CalibrationCameraInc>
+
+
+             <PoseCameraInc>
+	           <PatternName>    ${PatternAllIm}   </PatternName>
+	           <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+
+                   <PosValueInit>
+                       <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+             <PointFlottantInc>
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  ${DicoApp} </KeySetOrPat>
+             </PointFlottantInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXXX </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+                   <IterationsCompensation>
+                      <BasculeOrientation>
+                          <AfterCompens> false </AfterCompens>
+                          <PatternNameEstim> .* </PatternNameEstim>
+                          <ModeBascule>
+                               <BasculeOnPoints>
+                                   <BascOnAppuis >
+                                        <NameRef> Id-Appui </NameRef>
+                                   </BascOnAppuis>
+                                   <ModeL2> ${L2Basc} </ModeL2>
+                                   <#WHEN VTEST=${UseNLD}>
+                                        <AerialDeformNonLin>
+                                              <FlagX> ${NLFlagX} </FlagX>
+                                              <FlagY> ${NLFlagY} </FlagY>
+                                              <FlagZ> ${NLFlagZ} </FlagZ>
+                                              <ForceTrueRot> ${NLDForceTR} </ForceTrueRot>
+                                              <PattEstim> ${PatNLD}  </PattEstim>
+                                              <Show> ${NLDShow}  </Show>
+                                        </AerialDeformNonLin>
+                                   </#WHEN>
+                               </BasculeOnPoints>
+                          </ModeBascule>
+
+                       </BasculeOrientation>
+                       <SectionContraintes>
+                             <ContraintesCamerasInc>
+                                 <Val> eAllParamFiges  </Val>
+                             </ContraintesCamerasInc>
+                             <ContraintesPoses>
+                                   <NamePose>   .* </NamePose>
+                                   <ByPattern>  true </ByPattern>
+                                   <Val>      ePoseFigee   </Val>
+                             </ContraintesPoses>
+                       </SectionContraintes>
+                    </IterationsCompensation>
+
+
+		    <SectionObservations>
+                        <ObsAppuisFlottant>
+                                 <NameRef> Id-Appui </NameRef>
+                                 <PondIm>
+                                          <EcartMesureIndiv>  0.0001 </EcartMesureIndiv>
+                                          <Show> eNSM_Paquet     </Show>
+                                          <NbMax>   100    </NbMax>
+                                          <ModePonderation>  eL1Secured </ModePonderation>
+                                          <SigmaPond> 20.0 </SigmaPond>
+                                 </PondIm>
+
+                                 <PtsShowDet>  .* </PtsShowDet>
+                                 <DetShow3D >   ${ShowDetail} </DetShow3D>
+                                 <ShowMax> true </ShowMax>
+                                 <ShowSom>  true</ShowSom>
+                                 <ShowUnused> ${ShowUnused} </ShowUnused>
+                           </ObsAppuisFlottant>
+
+		    </SectionObservations>
+
+                    <SectionExport>
+                         <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@-${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <#WHEN VTEST=${NotCPI}>
+                                    <FileExtern> NKS-Assoc-FromFocMm@Ori-${AeroOut}/AutoCal@.xml </FileExtern>
+                                    <FileExternIsKey> true </FileExternIsKey>
+                                </#WHEN>
+                            </ExportPose>
+                            <#WHEN VTEST=${NotCPI}>
+                                 <ExportCalib>
+                                     <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori-${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                     <KeyIsName> false </KeyIsName>
+                                </ExportCalib>
+                            </#WHEN>
+                    </SectionExport>
+
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
