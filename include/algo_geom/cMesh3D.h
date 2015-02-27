@@ -114,6 +114,8 @@ class cMesh
 
         void        write(const string & aOut, bool aBin, const string & textureFilename);
 
+        void        Export(set <unsigned int> const &triangles, int aK);
+
 private:
 
         void        checkTriangle(int id2, set<int>::const_iterator it, int aK);
