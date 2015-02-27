@@ -190,7 +190,8 @@ class cTriangle
         size_t  getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>   getEdgesIndex() { return mTriEdges; }
-        vector <cTriangle*> getNeighbours();
+        vector<cTriangle *> getNeighbours(); //renvoie les 3 voisins (par les arêtes)
+        set<int> getNeighbours2(); //renvoie les voisins par les sommets
 
         void    setEdgeIndex(unsigned int pos, int val);
         void    setVertexIndex(unsigned int pos, int val);
@@ -207,7 +208,8 @@ class cTriangle
 
         bool    operator==( const cTriangle & ) const;
 
-    private:
+
+private:
 
         bool						mInside;		// triangle a conserver
         int							mTriIdx;		// triangle index
