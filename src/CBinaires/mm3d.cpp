@@ -464,6 +464,7 @@ extern int VisuCoupeEpip_main(int,char **);
 
 int ExoSimulTieP_main(int argc, char** argv);
 int ExoMCI_main(int argc, char** argv);
+int PseudoIntersect_main(int argc, char** argv);
 int  ExoCorrelEpip_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
@@ -486,6 +487,7 @@ int Masq3Dto2D_main(int argc,char ** argv);
 int CPP_AppliMergeCloud(int argc,char ** argv);
 int MMEnveloppe_Main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
+int Export2Ply_main(int argc,char **argv);
 int CASALL_main(int argc,char ** argv);
 extern int MMEnvStatute_main(int argc,char ** argv);
 
@@ -548,6 +550,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar "));
    aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
    aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test  epipolar matcher  "));
+   aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images"));
 
 
    aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
@@ -573,6 +576,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("MergeCloud",CPP_AppliMergeCloud,"Tool for merging overlapping depth maps from different view points"));
     aRes.push_back(cMMCom("MMEnvlop",MMEnveloppe_Main,"Compute initial envelope surface for MMEpi "));
     aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
+    
+    aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning"));
+    
     aRes.push_back(cMMCom("CASALL",CASALL_main,"Compute Analytic Surface Automatically  low level"));
     aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Store Auto Correlation (if not already done)"));
 
