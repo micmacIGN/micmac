@@ -50,6 +50,18 @@ static const double PropStdErDet = 0.75;
 /*                                                                     */
 /***********************************************************************/
 
+double cNewO_CpleIm::DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) const
+{
+    Pt3dr aB1 = vunit(aR1.tr());
+    Pt3dr aB2 = vunit(aR2.tr());
+    double aDB = euclid(aB1-aB2);
+    double aDM = aR1.Mat().L2(aR2.Mat());
+
+    std::cout << " DBase " << aDB << " DRot " << aDM << "\n";
+
+   return aDB + aDM;
+}
+
 cNOCompPair::cNOCompPair(const Pt2dr & aP1,const Pt2dr & aP2,const double & aPds) :
    mP1      (aP1),
    mP2      (aP2),
@@ -107,7 +119,12 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & 
    }
    double aCostOut = ExactCost(aRot,0.1);
 
+
    std::cout  << "For : " << aMes << " ERStd " << mErStd << " Exact " << aCostIn << " => " << aCostOut << "\n";
+   if (mTestC2toC1)
+   {
+        DistRot(*mTestC2toC1,aRot);
+   }
 } 
 
 
@@ -164,6 +181,11 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
 
     anErStd = KthValProp(aVRes,PropStdErDet);
     return ElRotation3D(aNewB0,aNewR,true);
+}
+
+
+void  cNewO_CpleIm::AddNewInit(const ElRotation3D & aR)
+{
 }
 
 //  (A^B) . C:
