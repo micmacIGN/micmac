@@ -96,14 +96,15 @@ void cTriangle::addEdge(int idx)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx):
+cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal):
     mInside(false),
     mTriIdx(TriIdx),
     mTextImIdx(mDefTextImIdx),
     pMesh(aMesh),
     mText0(Pt2dr()),
     mText1(Pt2dr()),
-    mText2(Pt2dr())
+    mText2(Pt2dr()),
+    mScal(scal)
 {
     mTriVertex.push_back(face->verts[0]);
     mTriVertex.push_back(face->verts[1]);
@@ -395,7 +396,7 @@ void cMesh::checkEdgesForVertex(int id, int aK)
     }
 }
 
-cMesh::cMesh(const std::string & Filename, bool doAdjacence)
+cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
 {
     PlyFile * thePlyFile;
     int nelems;
@@ -445,7 +446,7 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
                 ply_get_element (thePlyFile, face);
 
                 //ajout du triangle
-                addTriangle(cTriangle(this, face, j));
+                addTriangle(cTriangle(this, face, j, scal));
 
                 getVertex(face->verts[0])->addIdx(j);
                 getVertex(face->verts[1])->addIdx(j);
