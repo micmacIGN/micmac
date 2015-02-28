@@ -145,15 +145,8 @@ class cNOCompPair
 };
 
 
-class cSolOriRel
-{
-    public :
-       cSolOriRel(const ElRotation3D & aR,double aResidu);
 
 
-       ElRotation3D  mRot;
-       double        mRes;
-};
 
 class cNewO_CpleIm
 {
@@ -178,7 +171,7 @@ class cNewO_CpleIm
 
           void TestCostLinExact(const ElRotation3D & aRot);
           void AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue &,const std::string & aMes);
-          ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd);
+          ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd,double & aErMoy);
 
 
           double ExactCost
@@ -203,7 +196,9 @@ class cNewO_CpleIm
           bool                     mShow;
        
 
-         std::list<cSolOriRel>    mSols;
+          ElRotation3D  mBestSol;
+          double        mCostBestSol;
+          bool          mBestSolIsInit;
 };
 
 

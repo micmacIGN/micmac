@@ -5963,5 +5963,37 @@ std::string  Mangling( cXmlRHHResLnk *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXMLSaveOriRel2Im
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXMLSaveOriRel2Im & anObj,cElXMLTree * aTree);
+
+
+        cRotationVect & ParamRotation();
+        const cRotationVect & ParamRotation()const ;
+
+        Pt3dr & Centre();
+        const Pt3dr & Centre()const ;
+
+        cXmlHomogr & Homogr();
+        const cXmlHomogr & Homogr()const ;
+    private:
+        cRotationVect mParamRotation;
+        Pt3dr mCentre;
+        cXmlHomogr mHomogr;
+};
+cElXMLTree * ToXMLTree(const cXMLSaveOriRel2Im &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXMLSaveOriRel2Im &);
+
+void  BinaryUnDumpFromFile(cXMLSaveOriRel2Im &,ELISE_fp &);
+
+std::string  Mangling( cXMLSaveOriRel2Im *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm
