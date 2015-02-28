@@ -1300,6 +1300,16 @@
         <PRep Nb="1" Type="Pt3dr"> </PRep>
    </XmlRHHResLnk>
 
+
+    <XMLSaveOriRel2Im  Nb="1" ToReference="true" Class="true">
+        <!-- Rotation  :  P1 = C + R * P2, C est la base dans les coordonnes image 1 -->
+        <ParamRotation  Nb="1"  RefType="RotationVect"  RefFile="ParamChantierPhotogram.xml">  </ParamRotation>
+        <Centre Nb="1" Type="Pt3dr"> </Centre>
+        <!-- Homographie P1 => P2 -->
+        <Homogr Nb="1" RefType="XmlHomogr"> </Homogr>
+    </XMLSaveOriRel2Im>
+
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>

@@ -794,7 +794,7 @@
              <!-- Code les rotatuion simple perm + inv de signe sous la forme i-j-k ou ji-k etc .. -->
              <CodageSymbolique Nb="?" Type="std::string"> </CodageSymbolique>
   </RotationVect>
-
+  
 
    <OrientationExterneRigide Nb="1" Class="true" ToReference="true">
         <!-- AltiSol pour compat avec orilib et tout le passe, mais quand Profondeur est defini il

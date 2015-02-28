@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 static const double PropStdErDet = 0.75;
+static const double MulErrStd = 2.0;
 
 
 /***********************************************************************/
@@ -57,7 +58,7 @@ double cNewO_CpleIm::DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) 
     double aDB = euclid(aB1-aB2);
     double aDM = aR1.Mat().L2(aR2.Mat());
 
-    std::cout << " DBase " << aDB << " DRot " << aDM << "\n";
+    // std::cout << " DBase " << aDB << " DRot " << aDM << "\n";
 
    return aDB + aDM;
 }
@@ -104,6 +105,7 @@ void cNewO_CpleIm::TestCostLinExact(const ElRotation3D & aRot)
 
 void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & aPack,const std::string & aMes)
 {
+   ElTimer aChrono;
 
    std::vector<double> aVDet;
    for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
@@ -111,16 +113,49 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & 
        aVDet.push_back(CostLinear(aRot,mStCPairs[aK].mQ1,mStCPairs[aK].mQ2,-1));
    }
 
-   mErStd = KthValProp(aVDet,PropStdErDet);
+   mErStd = MulErrStd *  KthValProp(aVDet,PropStdErDet);
    double aCostIn = ExactCost(aRot,0.1);
-   for (int aK=0 ; aK < 10 ; aK++)
+
+   bool aCont = true;
+   for (int aK=0 ; aCont ; aK++)
    {
-       aRot  = OneIterSolLinear(aRot,mStCPairs,mErStd);
+       double aErMoy;
+       ElRotation3D aNewR =  OneIterSolLinear(aRot,mStCPairs,mErStd,aErMoy);
+
+       if (mBestSolIsInit)
+       {
+           if (DistRot(aNewR,mBestSol) < 1e-4)
+              return;
+       }
+
+        // std::cout << "DIST " <<  DistRot(aNewR,aRot)  << " Cost " <<  ExactCost(aRot,0.1)  << " ErMoy " << aErMoy << "\n";
+
+
+       if (aK==9) 
+          aCont = false;
+       if (DistRot(aNewR,aRot) < 2e-5) 
+          aCont = false;
+
+       aRot = aNewR;
    }
    double aCostOut = ExactCost(aRot,0.1);
 
+   if (aCostOut < mCostBestSol)
+   {
+      mBestSolIsInit = true;
+      mCostBestSol = aCostOut;
+      mBestSol = aRot;
+   }
 
-   std::cout  << "For : " << aMes << " ERStd " << mErStd << " Exact " << aCostIn << " => " << aCostOut << "\n";
+
+   if (mShow)
+   {
+       std::cout  << "For : " << aMes 
+              << " ERStd " << mErStd 
+              << " Exact " << aCostIn << " => " << aCostOut 
+              << " Time " << aChrono.uval() 
+              << "\n";
+   }
    if (mTestC2toC1)
    {
         DistRot(*mTestC2toC1,aRot);
@@ -141,7 +176,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & 
 //   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  + (U'1 ^ B0) . (W^U2) 
 //   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  +  W.(U2 ^(U'1 ^ B0)) => Verifier Signe permut prod vect
 
-ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP,double & anErStd)
+ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP,double & anErStd,double & aErMoy)
 {
     cGenSysSurResol & aSys = mSysLin;
     double aCoef[5];
@@ -151,6 +186,9 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
     Pt3dr aC,aD;
     MakeRONWith1Vect(aB0,aC,aD);
     std::vector<double> aVRes;
+
+    double aSomPds=0;
+    double aSomError=0;
 
     for (int aK=0 ; aK<int(aVP.size()) ; aK++)
     {
@@ -168,10 +206,13 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
 
         double aPds = aPair.mPds / (1+ElSquare(aCste/anErStd));
 
+        aSomPds += aPds;
+        aSomError += aPds * ElAbs(aCste);
        
         aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
         aVRes.push_back(ElAbs(aCste));
     }
+    aErMoy = aSomError / aSomPds;
     Im1D_REAL8   aSol = aSys.GSSR_Solve (0);
     double * aData = aSol.data();
     
@@ -179,7 +220,7 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
     
     ElMatrix<double> aNewR = NearestRotation(aRot.Mat() * (ElMatrix<double>(3,true) + MatProVect(Pt3dr(aData[2],aData[3],aData[4]))));
 
-    anErStd = KthValProp(aVRes,PropStdErDet);
+    anErStd = MulErrStd * KthValProp(aVRes,PropStdErDet);
     return ElRotation3D(aNewB0,aNewR,true);
 }
 

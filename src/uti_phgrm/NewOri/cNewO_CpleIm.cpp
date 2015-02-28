@@ -123,16 +123,20 @@ cNewO_CpleIm::cNewO_CpleIm
    mPackPStd    (ToStdPack(mMergePH,false,0.1)),
    mPackStdRed  (PackReduit(mPackPStd,1500,500)),
    mSysLin      (5),
-   mShow        (aShow)
+   mShow        (aShow),
+   mBestSol     (ElRotation3D::Id),
+   mCostBestSol (1e9),
+   mBestSolIsInit (false)
 {
    InitVPairComp(mStCPairs,mPackPStd);
    InitVPairComp(mRedCPairs,mPackStdRed);
 
-    std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
+   if (mShow)
+      std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
 
     if (mTestC2toC1)
     {
-            std::cout << " Cost sol ext : " << ExactCost(*mTestC2toC1,0.1) << "\n";
+        std::cout << " Cost sol ext : " << ExactCost(*mTestC2toC1,0.1) << "\n";
     }
 
   // Test par Matrices essentielles 
@@ -166,6 +170,19 @@ cNewO_CpleIm::cNewO_CpleIm
         }
     }
 
+    if (mShow)
+    {
+        if (mBestSolIsInit)
+        {
+           std::cout << "Cost " << ExactCost(mBestSol,0.1) << "\n";
+           if (mTestC2toC1)
+           {
+               std::cout << "Ref, Cost " << ExactCost(*mTestC2toC1,0.1) << " dist/Ref " << DistRot(*mTestC2toC1,mBestSol) <<  "\n";
+           }
+        }
+        else
+           std::cout << "NO BEST SOL\n";
+    }
 }
 
 
@@ -211,7 +228,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
                    <<  EAMC(mNameIm2,"Name Second Image"),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
                    << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference")
-                   << EAM(mShow,"OriTest",true,"Orientation for test to a reference")
+                   << EAM(mShow,"Show",true,"Orientation for test to a reference")
    );
 
 

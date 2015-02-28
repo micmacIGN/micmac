@@ -19758,4 +19758,77 @@ void xml_init(cXmlRHHResLnk & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXmlRHHResLnk *) {return "78404523C7B28EC0FD3F";};
 
+
+cRotationVect & cXMLSaveOriRel2Im::ParamRotation()
+{
+   return mParamRotation;
+}
+
+const cRotationVect & cXMLSaveOriRel2Im::ParamRotation()const 
+{
+   return mParamRotation;
+}
+
+
+Pt3dr & cXMLSaveOriRel2Im::Centre()
+{
+   return mCentre;
+}
+
+const Pt3dr & cXMLSaveOriRel2Im::Centre()const 
+{
+   return mCentre;
+}
+
+
+cXmlHomogr & cXMLSaveOriRel2Im::Homogr()
+{
+   return mHomogr;
+}
+
+const cXmlHomogr & cXMLSaveOriRel2Im::Homogr()const 
+{
+   return mHomogr;
+}
+
+void  BinaryUnDumpFromFile(cXMLSaveOriRel2Im & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ParamRotation(),aFp);
+    BinaryUnDumpFromFile(anObj.Centre(),aFp);
+    BinaryUnDumpFromFile(anObj.Homogr(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXMLSaveOriRel2Im & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ParamRotation());
+    BinaryDumpInFile(aFp,anObj.Centre());
+    BinaryDumpInFile(aFp,anObj.Homogr());
+}
+
+cElXMLTree * ToXMLTree(const cXMLSaveOriRel2Im & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XMLSaveOriRel2Im",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.ParamRotation())->ReTagThis("ParamRotation"));
+   aRes->AddFils(::ToXMLTree(std::string("Centre"),anObj.Centre())->ReTagThis("Centre"));
+   aRes->AddFils(ToXMLTree(anObj.Homogr())->ReTagThis("Homogr"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXMLSaveOriRel2Im & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ParamRotation(),aTree->Get("ParamRotation",1)); //tototo 
+
+   xml_init(anObj.Centre(),aTree->Get("Centre",1)); //tototo 
+
+   xml_init(anObj.Homogr(),aTree->Get("Homogr",1)); //tototo 
+}
+
+std::string  Mangling( cXMLSaveOriRel2Im *) {return "116C30A4FB61D9D3FE3F";};
+
 // };
