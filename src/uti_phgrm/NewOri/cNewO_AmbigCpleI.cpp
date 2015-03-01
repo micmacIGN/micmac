@@ -56,9 +56,17 @@ void  cNewO_CpleIm::CalcSegAmbig()
     mIA.y  = MedianeSup(aVY);
     mIA.z  = MedianeSup(aVZ);
 
-    Pt3dr aDir =  vunit(mIA ^ mBestSo.tr());  // Le vecteur |_ au plan (0 , Base, Inter)
-    mSegAmbig = ElSeg3D(anI,anI+aDir);
+    Pt3dr aDir =  vunit(mIA ^ mBestSol.tr());  // Le vecteur |_ au plan (0 , Base, Inter)
+    mSegAmbig = ElSeg3D(mIA,mIA+aDir);
 }
+
+
+/*
+ElRotation3D  cNewO_CpleIm::SolOfAmbiguity(double aTeta)
+{
+}
+
+*/
 
 
 
