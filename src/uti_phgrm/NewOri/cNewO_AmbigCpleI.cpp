@@ -56,17 +56,19 @@ void  cNewO_CpleIm::CalcSegAmbig()
     mIA.y  = MedianeSup(aVY);
     mIA.z  = MedianeSup(aVZ);
 
-    Pt3dr aDir =  vunit(mIA ^ mBestSol.tr());  // Le vecteur |_ au plan (0 , Base, Inter)
-    mSegAmbig = ElSeg3D(mIA,mIA+aDir);
+    mDirAmbig =  vunit(mIA ^ mBestSol.tr());  // Le vecteur |_ au plan (0 , Base, Inter)
+    mSegAmbig = ElSeg3D(mIA,mIA+mDirAmbig);
 }
 
 
-/*
 ElRotation3D  cNewO_CpleIm::SolOfAmbiguity(double aTeta)
 {
+    
+    ElMatrix<double> aMat = VectRotationArroundAxe(mDirAmbig,aTeta) * mBestSol.Mat();
+    CalcBaseOfRot(aMat,mBestSol.tr());
+    return ElRotation3D::Id;
 }
 
-*/
 
 
 
@@ -82,6 +84,7 @@ void cNewO_CpleIm::CalcAmbig()
     }
 
     CalcSegAmbig();
+    SolOfAmbiguity(0.05);
 }
 
 

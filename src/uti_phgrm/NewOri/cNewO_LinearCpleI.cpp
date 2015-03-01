@@ -105,10 +105,9 @@ void cNewO_CpleIm::TestCostLinExact(const ElRotation3D & aRot)
     }
 }
 
-void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & aPack,const std::string & aMes)
+void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes)
 {
 // Si V FIXED PAS DE LEVENBERG SUR ELLE
-std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
    ElTimer aChrono;
 
    std::vector<double> aVDet;
@@ -150,6 +149,7 @@ std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
       mCostBestSol = aCostOut;
       mBestSol = aRot;
       mBestErrStd = mErStd;
+      mResidBest = mCurResidu;
    }
 
 
@@ -168,6 +168,66 @@ std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
 } 
 
 
+// Equation pour la base  simple    [U1,Base, R U2] = 0
+//      [U1,Base, R0 U2] = 0     
+//      [U1,B0 + cC + d D , R0 U2] = 0     
+//      B0.(U1^R0U2) +  +c C.[U1,R0U2] + d D. [U1,R0U2] = 0
+
+Pt3dr  cNewO_CpleIm::CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
+{
+    for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
+    { 
+         cNOCompPair & aCP = mStCPairs[aK];
+         aCP.mQ2R = aMat * aCP.mQ2;
+         aCP.mU1vQ2R = aCP.mQ1 ^aCP.mQ2R;
+    }
+
+    for (int aK=0 ; aK<5  ; aK++)
+    {
+        Pt3dr aNewTr = OneIterCalcBaseOfRot(aMat,aTr0);
+
+        std::cout << "DIST-CBR " << euclid(aNewTr-aTr0) << "\n";
+
+        aTr0 = aNewTr;
+    }
+
+    return aTr0;
+}
+
+
+Pt3dr cNewO_CpleIm::OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
+{
+    cGenSysSurResol & aSys = mSysLin2;
+    double aCoef[2];
+    aSys.GSSR_Reset(false);
+    Pt3dr aC,aD;
+    MakeRONWith1Vect(aTr0,aC,aD);
+
+    for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
+    {
+        double aPds = mBestErrStd-mResidBest[aK];
+        if (aPds >0)
+        {
+            const cNOCompPair & aCP = mStCPairs[aK];
+            const Pt3dr aU1vQ2R = aCP.mU1vQ2R ;
+            double aCste =  scal(aTr0 ,aU1vQ2R);
+            aCoef[0] = scal(aU1vQ2R ,aC);
+            aCoef[1] = scal(aU1vQ2R ,aD);
+            aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
+        }
+    }
+
+    Im1D_REAL8   aSol = aSys.GSSR_Solve (0);
+    double * aData = aSol.data();
+    
+    Pt3dr aRes =   vunit(aTr0+aC*aData[0] + aD*aData[1]);
+    
+    return aRes;
+}
+
+
+
+
 
 // Equation initiale     [U1,Base, R U2] = 0
 //      [U1,Base, R0 dR U2] = 0     R = R0 (Id+dR)    dR ~0  R = (Id + ^W) et W ~ 0
@@ -183,7 +243,7 @@ std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
 
 ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP,double & anErStd,double & aErMoy)
 {
-    cGenSysSurResol & aSys = mSysLin;
+    cGenSysSurResol & aSys = mSysLin5;
     double aCoef[5];
     aSys.GSSR_Reset(false);
     ElMatrix<double> tR0 = aRot.Mat().transpose();
@@ -217,6 +277,7 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
         aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
         aVRes.push_back(ElAbs(aCste));
     }
+    mCurResidu = aVRes;
 
     // Viscosite ?
     double aSomQuad =  aSys.SomQuad();

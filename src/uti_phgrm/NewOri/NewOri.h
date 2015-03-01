@@ -142,6 +142,8 @@ class cNOCompPair
        double mPds;
        Pt3dr  mQ1;
        Pt3dr  mQ2;
+       Pt3dr  mQ2R;
+       Pt3dr  mU1vQ2R;
 };
 
 
@@ -168,6 +170,13 @@ class cNewO_CpleIm
             void CalcSegAmbig();
             ElRotation3D  SolOfAmbiguity(double aTeta);
 
+            Pt3dr CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0);
+            Pt3dr OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0);
+            Pt2dr ToW(const Pt2dr & aP) const;
+            void ShowPack(const ElPackHomologue & aPack,int aCoul,double aRay);
+            void ClikIn();
+
+
        //===================
           void  AddNewInit(const ElRotation3D & aR);
           double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) const;
@@ -177,7 +186,7 @@ class cNewO_CpleIm
           double CostLinear(const ElRotation3D & aRot,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax) const;
 
           void TestCostLinExact(const ElRotation3D & aRot);
-          void AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue &,const std::string & aMes);
+          void AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes);
           ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd,double & aErMoy);
 
 
@@ -192,14 +201,19 @@ class cNewO_CpleIm
           ElRotation3D *    mTestC2toC1;
           ElPackHomologue   mPackPDist;
           ElPackHomologue   mPackPStd;
+          Pt2dr             mPInfI1;
+          Pt2dr             mPSupI1;
           ElPackHomologue   mPackStdRed;
+          
 
      // Resolution lineraire
           int                      mNbCP;
           double                   mErStd;
           std::vector<cNOCompPair> mStCPairs;
           std::vector<cNOCompPair> mRedCPairs;
-          L2SysSurResol            mSysLin;
+          L2SysSurResol            mSysLin5;
+          L2SysSurResol            mSysLin2;
+          L2SysSurResol            mSysLin3;
           bool                     mShow;
        
 
@@ -207,10 +221,17 @@ class cNewO_CpleIm
           double        mCostBestSol;
           bool          mBestSolIsInit;
           double        mBestErrStd;
+          std::vector<double> mResidBest;
+          std::vector<double> mCurResidu;
 
-     // Resolution lineraire
+     // Ambiguite
+          Pt3dr         mDirAmbig;
           ElSeg3D       mSegAmbig;
           Pt3dr         mIA;  // Intersetion
+     // ===============================
+          Video_Win *   mW;
+          Pt2dr         mP0W;
+          double        mScaleW;
 };
 
 
