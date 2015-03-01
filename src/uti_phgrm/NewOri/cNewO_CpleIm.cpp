@@ -61,7 +61,7 @@ void InitVPairComp(std::vector<cNOCompPair> & aV,const ElPackHomologue & aPackH)
 //
 //  Formule exacte et programmation simple et claire pour bench
 //
-double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
+double cNewO_CpleIm::ExactCost(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
 {
    Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
    Pt3dr aQ2 = aRot.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
@@ -70,7 +70,7 @@ double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,const Pt2dr & aP1,const
    ElSeg3D aS1(Pt3dr(0,0,0),aQ1);
    ElSeg3D aS2(aBase,aQ2);
 
-   Pt3dr  anI = aS1.PseudoInter(aS2);
+   anI = aS1.PseudoInter(aS2);
 
    double d1 = aS1.DistDoite(anI);
    double d2 = aS2.DistDoite(anI);
@@ -94,11 +94,12 @@ double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
     double aSomPCost = 0;
     double aSomPds = 0;
+    Pt3dr anI;
 
     for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
     {
          double aPds = itP->Pds();
-         double aCost = ExactCost(aRot,itP->P1(),itP->P2(),aTetaMax);
+         double aCost = ExactCost(anI,aRot,itP->P1(),itP->P2(),aTetaMax);
          aSomPds += aPds;
          aSomPCost += aPds * aCost;
     }
@@ -126,7 +127,8 @@ cNewO_CpleIm::cNewO_CpleIm
    mShow        (aShow),
    mBestSol     (ElRotation3D::Id),
    mCostBestSol (1e9),
-   mBestSolIsInit (false)
+   mBestSolIsInit (false),
+   mSegAmbig      (Pt3dr(0,0,0),Pt3dr(1,1,1))
 {
    InitVPairComp(mStCPairs,mPackPStd);
    InitVPairComp(mRedCPairs,mPackStdRed);
@@ -183,6 +185,8 @@ cNewO_CpleIm::cNewO_CpleIm
         else
            std::cout << "NO BEST SOL\n";
     }
+
+    CalcAmbig();
 }
 
 
@@ -269,7 +273,7 @@ void cNO_AppliOneCple::Show()
 extern void  Bench_NewOri();
 Pt3dr PRand() {return Pt3dr(NRrandC(),NRrandC(),NRrandC());}
 
-int TestNewOriImage_main(int argc,char ** argv)
+void BenchNewFoncRot()
 {
     for (int aK=0 ; aK< 0 ; aK++)
     {
@@ -280,6 +284,31 @@ int TestNewOriImage_main(int argc,char ** argv)
          std::cout << "Test Mxte " << scal(A,B^C) << " " << scal(C,A^B) << "\n";
           std::cout << "Test Mxte "  << ((B^ C) -( MatProVect(B) * C)) << "\n";
     }
+    for (int aK=0 ; aK< 3 ; aK++)
+    {
+        Pt3dr A=PRand();
+        Pt3dr B=PRand();
+        Pt3dr aC =PRand();
+
+        ElSeg3D aSeg(A,B);
+        Pt3dr aPC = aSeg.ProjOrtho(aC);
+
+        double aTeta = NRrandC();
+        ElRotation3D aR = AffinRotationArroundAxe(aSeg,aTeta);
+        Pt3dr aIC = aR.ImAff(aC);
+        Pt3dr  aV0 = vunit(aC-aPC);
+        Pt3dr  aV1 = vunit(aIC-aPC);
+        
+        std::cout << "INV " << euclid(A-aR.ImAff(A)) << " " << euclid(B-aR.ImAff(B)) << "\n";
+        std::cout << "Orth " << scal(aSeg.Tgt(),aV1)  << "Teta " << cos(aTeta) - scal(aV0,aV1)<< "\n";
+    }
+}
+
+
+
+int TestNewOriImage_main(int argc,char ** argv)
+{
+   BenchNewFoncRot();
    // Bench_NewOri();
    cNO_AppliOneCple anAppli(argc,argv);
    anAppli.Show();

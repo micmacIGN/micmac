@@ -162,6 +162,13 @@ class cNewO_CpleIm
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
     private :
+          
+       //======== Amniguity ====
+            void CalcAmbig();
+            void CalcSegAmbig();
+            ElRotation3D  SolOfAmbiguity(double aTeta);
+
+       //===================
           void  AddNewInit(const ElRotation3D & aR);
           double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) const;
 
@@ -175,7 +182,7 @@ class cNewO_CpleIm
 
 
           double ExactCost
-                 (const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
+                 (Pt3dr & anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
 
 
 
@@ -199,6 +206,11 @@ class cNewO_CpleIm
           ElRotation3D  mBestSol;
           double        mCostBestSol;
           bool          mBestSolIsInit;
+          double        mBestErrStd;
+
+     // Resolution lineraire
+          ElSeg3D       mSegAmbig;
+          Pt3dr         mIA;  // Intersetion
 };
 
 

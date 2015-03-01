@@ -5979,10 +5979,22 @@ class cXMLSaveOriRel2Im
 
         cXmlHomogr & Homogr();
         const cXmlHomogr & Homogr()const ;
+
+        double & BOnHRatio();
+        const double & BOnHRatio()const ;
+
+        double & FOVMin();
+        const double & FOVMin()const ;
+
+        double & FOVMax();
+        const double & FOVMax()const ;
     private:
         cRotationVect mParamRotation;
         Pt3dr mCentre;
         cXmlHomogr mHomogr;
+        double mBOnHRatio;
+        double mFOVMin;
+        double mFOVMax;
 };
 cElXMLTree * ToXMLTree(const cXMLSaveOriRel2Im &);
 

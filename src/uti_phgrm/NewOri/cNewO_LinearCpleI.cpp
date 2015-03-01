@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 static const double PropStdErDet = 0.75;
 static const double MulErrStd = 2.0;
+static const double Viscosity = 1e-7;
 
 
 /***********************************************************************/
@@ -94,10 +95,11 @@ double cNewO_CpleIm::CostLinear(const ElRotation3D & aRot,const Pt2dr & aP1,cons
 
 void cNewO_CpleIm::TestCostLinExact(const ElRotation3D & aRot)
 {
+    Pt3dr anI;
     for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
     {
-         double aCl = CostLinear(aRot,itP->P1(),itP->P2(),-1);
-         double aCe = ExactCost(aRot,itP->P1(),itP->P2(),-1);
+         double aCl = CostLinear(aRot,itP->P1(),itP->P2(),-1.0);
+         double aCe = ExactCost(anI,aRot,itP->P1(),itP->P2(),-1.0);
 
          std::cout << "R=" << aCl/aCe << "\n";
     }
@@ -105,6 +107,8 @@ void cNewO_CpleIm::TestCostLinExact(const ElRotation3D & aRot)
 
 void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & aPack,const std::string & aMes)
 {
+// Si V FIXED PAS DE LEVENBERG SUR ELLE
+std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
    ElTimer aChrono;
 
    std::vector<double> aVDet;
@@ -145,6 +149,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & 
       mBestSolIsInit = true;
       mCostBestSol = aCostOut;
       mBestSol = aRot;
+      mBestErrStd = mErStd;
    }
 
 
@@ -212,6 +217,19 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
         aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
         aVRes.push_back(ElAbs(aCste));
     }
+
+    // Viscosite ?
+    double aSomQuad =  aSys.SomQuad();
+    for (int aKI=0 ; aKI<5 ; aKI++)
+    {
+        double aCoef[5];
+        for (int aKJ=0 ; aKJ<5 ; aKJ++)
+            aCoef[aKJ] = (aKI==aKJ);
+            
+        aSys.GSSR_AddNewEquation(aSomQuad*Viscosity,aCoef,0,0);
+    }
+
+
     aErMoy = aSomError / aSomPds;
     Im1D_REAL8   aSol = aSys.GSSR_Solve (0);
     double * aData = aSol.data();

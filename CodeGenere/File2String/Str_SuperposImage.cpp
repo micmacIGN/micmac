@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1325]) = {
+const char * (theNameVar_SuperposImage[1329]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1309,6 +1309,10 @@ const char * (theNameVar_SuperposImage[1325]) = {
 "        <Centre Nb=\"1\" Type=\"Pt3dr\"> </Centre>\n",
 "        <!-- Homographie P1 => P2 -->\n",
 "        <Homogr Nb=\"1\" RefType=\"XmlHomogr\"> </Homogr>\n",
+"        <BOnHRatio Nb=\"1\" Type=\"double\"> </BOnHRatio>\n",
+"        <!-- Fov experimental, calcules sur l'ellipse d'inertie -->\n",
+"        <FOVMin Nb=\"1\" Type=\"double\"> </FOVMin>\n",
+"        <FOVMax Nb=\"1\" Type=\"double\"> </FOVMax>\n",
 "    </XMLSaveOriRel2Im>\n",
 "\n",
 "\n",
