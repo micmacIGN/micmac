@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include <climits>
 
+class ElSeg3D;
+
 template <class Type>  class ElMatrix;
 template <class TypeEl> class cInterpolateurIm2D;
 class cIm2DInter;
@@ -960,6 +962,7 @@ std::pair<ElMatrix<double>, ElMatrix<double> > RQDecomp(const ElMatrix<double> &
 // Renvoie la rotation la + proche, selon un algo trouve dans Golub et base sur
 // la SVD
 ElMatrix<REAL>  NearestRotation(const ElMatrix<REAL> &);
+// Matrice de produit vectoriel
 ElMatrix<REAL>  MatProVect(const Pt3dr &);
 
 
@@ -1271,6 +1274,10 @@ class cChCoCart
 
 // La rotation etant exprimee dans un systeme 1, on la transforme en systeme 2:
 ElRotation3D  ChangementSysC(const Pt3dr aP,const ElRotation3D&,const cSysCoord & aSource,const cSysCoord & aCible);
+
+ElMatrix<REAL>  VectRotationArroundAxe(const Pt3dr &,double aTeta);
+ElRotation3D  AffinRotationArroundAxe(const ElSeg3D &,double aTeta);
+ElRotation3D RotationOfInvariantPoint(const Pt3dr & ,const ElMatrix<double> &);
 
 double ProfFromCam(const ElRotation3D & anOr,const Pt3dr & aP);  // anOr M->C
 

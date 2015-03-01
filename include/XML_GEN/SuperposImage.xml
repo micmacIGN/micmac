@@ -1307,6 +1307,10 @@
         <Centre Nb="1" Type="Pt3dr"> </Centre>
         <!-- Homographie P1 => P2 -->
         <Homogr Nb="1" RefType="XmlHomogr"> </Homogr>
+        <BOnHRatio Nb="1" Type="double"> </BOnHRatio>
+        <!-- Fov experimental, calcules sur l'ellipse d'inertie -->
+        <FOVMin Nb="1" Type="double"> </FOVMin>
+        <FOVMax Nb="1" Type="double"> </FOVMax>
     </XMLSaveOriRel2Im>
 
 
