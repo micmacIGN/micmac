@@ -1552,6 +1552,16 @@ void SaisieQtWindow::undo(bool undo)
         emit undoSgnl(undo);
     }
 }
+deviceIOImage* SaisieQtWindow::devIOImage() const
+{
+	return _Engine->Loader()->devIOImageAlter();
+}
+
+void SaisieQtWindow::setDevIOImage(deviceIOImage* devIOImage)
+{
+	_Engine->Loader()->setDevIOImageAlter(devIOImage);
+}
+
 deviceIOCamera* SaisieQtWindow::devIOCamera() const
 {
 	return _devIOCamera;

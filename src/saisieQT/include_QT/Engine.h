@@ -49,6 +49,14 @@ public:
 	virtual cCamHandler*  loadCamera(QString aNameFile) = 0;
 };
 
+class deviceIOImage
+{
+public:
+	virtual QImage*	loadImage(QString aNameFile) = 0;
+
+	virtual QImage*	loadMask(QString aNameFile) = 0;
+};
+
 class cLoader
 {
 
@@ -81,6 +89,9 @@ public:
 	deviceIOCamera* devIOCamera() const;
 	void setDevIOCamera(deviceIOCamera* devIOCamera);
 
+	deviceIOImage* devIOImageAlter() const;
+	void setDevIOImageAlter(deviceIOImage* devIOImageAlter);
+
 private:
 	QStringList _FilenamesIn;
 	QStringList _FilenamesOut; //binary masks
@@ -88,6 +99,8 @@ private:
     QString     _postFix;
 
 	deviceIOCamera* _devIOCamera;
+
+	deviceIOImage*  _devIOImageAlter;
 };
 
 class cGLData;
