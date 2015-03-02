@@ -46,6 +46,16 @@ static const double MulErrStd = 2.0;
 static const double Viscosity = 1e-7;
 
 
+static  const double MulLVM = 10;
+static  const double InitLVM = 1e-3;
+
+
+
+double VarRel(const double & aNewEr,const double & anOldErr)
+{
+    return (anOldErr-aNewEr) / anOldErr;
+}
+
 /***********************************************************************/
 /*                                                                     */
 /*               LINEAR                                                */
@@ -116,22 +126,40 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
        aVDet.push_back(CostLinear(aRot,mStCPairs[aK].mQ1,mStCPairs[aK].mQ2,-1));
    }
 
+/*
+   double aSomPds = 0;
+   double aSomPdsErr = 0;
+   for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
+   {
+       double aCost = CostLinear(aRot,mStCPairs[aK].mQ1,mStCPairs[aK].mQ2,-1);
+   }
+*/
+
    mErStd = MulErrStd *  KthValProp(aVDet,PropStdErDet);
-   double aCostIn = ExactCost(aRot,0.1);
+   double aCostIn = PixExactCost(aRot,0.1);
 
    bool aCont = true;
+   bool aSqueeze = false;
+   double aLastErrMoy = 1e5;
    for (int aK=0 ; aCont ; aK++)
    {
        double aErMoy;
        ElRotation3D aNewR =  OneIterSolLinear(aRot,mStCPairs,mErStd,aErMoy);
 
+       //  std::cout << "Var ERr " << VarRel(aErMoy,aLastErrMoy) << " :: " << aLastErrMoy << " => " <<  aErMoy << "\n";
+       aLastErrMoy = aErMoy;
+       DoNothingButRemoveWarningUnused(aLastErrMoy);
+
        if (mBestSolIsInit)
        {
            if (DistRot(aNewR,mBestSol) < 1e-4)
-              return;
+           {
+              aSqueeze = true;
+              if (!mShow) 
+                  return;
+           }
        }
 
-        // std::cout << "DIST " <<  DistRot(aNewR,aRot)  << " Cost " <<  ExactCost(aRot,0.1)  << " ErMoy " << aErMoy << "\n";
 
 
        if (aK==9) 
@@ -141,7 +169,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
 
        aRot = aNewR;
    }
-   double aCostOut = ExactCost(aRot,0.1);
+   double aCostOut = PixExactCost(aRot,0.1);
 
    if (aCostOut < mCostBestSol)
    {
@@ -159,11 +187,13 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
               << " ERStd " << mErStd 
               << " Exact " << aCostIn << " => " << aCostOut 
               << " Time " << aChrono.uval() 
-              << "\n";
-   }
-   if (mTestC2toC1)
-   {
-        DistRot(*mTestC2toC1,aRot);
+              << " Sqz " << aSqueeze;
+
+         if (mTestC2toC1)
+         {
+            std::cout  << " D/Ref " <<   DistRot(*mTestC2toC1,aRot);
+         }
+         std::cout << "\n";
    }
 } 
 
@@ -182,26 +212,38 @@ Pt3dr  cNewO_CpleIm::CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
          aCP.mU1vQ2R = aCP.mQ1 ^aCP.mQ2R;
     }
 
+    ElTimer aChrono;
+    double aLastErr = 1e5;
     for (int aK=0 ; aK<5  ; aK++)
     {
-        Pt3dr aNewTr = OneIterCalcBaseOfRot(aMat,aTr0);
+        double anErrMoy;
+        Pt3dr aNewTr = OneIterCalcBaseOfRot(aMat,aTr0,anErrMoy);
 
-        std::cout << "DIST-CBR " << euclid(aNewTr-aTr0) << "\n";
+        if (euclid(aNewTr-aTr0) < 1e-5) return aNewTr;
+
+
+          // std::cout << "DIST-CBR " << euclid(aNewTr-aTr0) << " Err: " << anErrMoy << " VR " << VarRel(anErrMoy,aLastErr) << "\n";
 
         aTr0 = aNewTr;
+        aLastErr = anErrMoy;
+        DoNothingButRemoveWarningUnused(aLastErr);
     }
+    // std::cout << "Time CalcBaseOfRot " << aChrono.uval() << "\n";
 
     return aTr0;
 }
 
 
-Pt3dr cNewO_CpleIm::OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
+Pt3dr cNewO_CpleIm::OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0,double & anErMoy)
 {
     cGenSysSurResol & aSys = mSysLin2;
     double aCoef[2];
     aSys.GSSR_Reset(false);
     Pt3dr aC,aD;
     MakeRONWith1Vect(aTr0,aC,aD);
+
+    double aSomErr=0;
+    double aSomPds=0;
 
     for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
     {
@@ -214,8 +256,11 @@ Pt3dr cNewO_CpleIm::OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
             aCoef[0] = scal(aU1vQ2R ,aC);
             aCoef[1] = scal(aU1vQ2R ,aD);
             aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
+            aSomErr += ElAbs(aCste) * aPds;
+            aSomPds += aPds;
         }
     }
+    anErMoy = aSomErr / aSomPds;
 
     Im1D_REAL8   aSol = aSys.GSSR_Solve (0);
     double * aData = aSol.data();
@@ -272,7 +317,7 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
         double aPds = aPair.mPds / (1+ElSquare(aCste/anErStd));
 
         aSomPds += aPds;
-        aSomError += aPds * ElAbs(aCste);
+        aSomError += aPds * ElSquare(aCste);
        
         aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
         aVRes.push_back(ElAbs(aCste));
@@ -291,7 +336,7 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
     }
 
 
-    aErMoy = aSomError / aSomPds;
+    aErMoy = sqrt(aSomError/aSomPds);
     Im1D_REAL8   aSol = aSys.GSSR_Solve (0);
     double * aData = aSol.data();
     
