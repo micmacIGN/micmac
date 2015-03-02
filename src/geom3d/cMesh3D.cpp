@@ -217,16 +217,21 @@ vector<cTriangle *> cTriangle::getNeighbours()
     return res;
 }
 
-set<int> cTriangle::getNeighbours2()
+vector<int> cTriangle::getNeighbours2() //retourne un set où son index est aussi contenu
 {
-    set <int> res;
+    vector <int> res;
 
     for (unsigned int aK=0; aK<mTriVertex.size(); aK++)
     {
         cVertex *vertex = pMesh->getVertex(mTriVertex[aK]);
 
-        set <int> neighb = vertex->getTriIdx();
-        res.insert(neighb.begin(), neighb.end());
+        vector <int> *neighb = vertex->getTriIdx();
+        /*vector<int>::const_iterator it = neighb.begin();
+        for (;it!=neighb.end();++it)
+        {
+            if (*it != mTriIdx) res.push_back(*it);
+        }*/
+        res.insert(res.end(), neighb->begin(), neighb->end());
     }
 
     return res;
@@ -262,6 +267,8 @@ void cTriangle::removeEdge(int idx)
 {
     //bool found = false;
 
+    //cout << "nb edges = " << mTriEdges.size() << endl;
+
     //TODO: remove
     /*for (unsigned int aK=0; aK < mTriEdges.size();++aK)
     {
@@ -271,16 +278,16 @@ void cTriangle::removeEdge(int idx)
             //cout<< "found ****************************" << endl;
             found = true;
         }
-    }
+    }*/
 
-    if (found)
+    /*if (found)
     {*/
         //cout << "removing edge "<< idx << endl;
         mTriEdges.erase(std::remove(mTriEdges.begin(), mTriEdges.end(), idx), mTriEdges.end());
     //}
-    /*cout << "new index list= "<<endl;
+    //cout << "new index list= "<<endl;
 
-    for (int aK=0; aK< (int) mTriEdges.size();++aK)
+    /*for (int aK=0; aK< (int) mTriEdges.size();++aK)
         cout << mTriEdges[aK] << " ";
 
     cout << endl;*/
@@ -360,12 +367,12 @@ PlyProperty props[] =
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cMesh::checkTriangle(int id2, set<int>::const_iterator it, int aK)
+void cMesh::checkTriangle(int id2, vector<int>::const_iterator it, int aK)
 {
     cVertex * vert2 = getVertex(id2);
-    set<int> tri2 = vert2->getTriIdx();
+    vector<int> *tri2  = vert2->getTriIdx();
 
-    if (tri2.find(aK) != tri2.end())
+    if (find(tri2->begin(), tri2->end(), aK) != tri2->end())
     {
         #ifdef _DEBUG
             printf ("found adjacent triangles : %d %d\n", aK, *it);
@@ -378,11 +385,11 @@ void cMesh::checkTriangle(int id2, set<int>::const_iterator it, int aK)
 void cMesh::checkEdgesForVertex(int id, int aK)
 {
     cVertex * vert = getVertex(id);
-    set<int> tri = vert->getTriIdx();
+    vector<int> * tri = vert->getTriIdx();
 
     int id0, id1, id2;
-    set<int>::const_iterator it = tri.begin();
-    for(;it != tri.end();it++)
+    vector<int>::const_iterator it = tri->begin();
+    for(;it != tri->end();it++)
     {
          if (*it != aK)
          {
@@ -550,11 +557,12 @@ void cMesh::removeTriangle(cTriangle &aTri)
     int index = aTri.getIdx();
 
    /* cout << "triangle à retirer= " << index << endl;
-    cout << "nombre d'edges à retirer =  " << edges.size() << endl;
+    cout << "nombre d'edges à retirer =  " << edges.size() << endl;*/
 
-    for (unsigned int aK=0; aK< edges.size(); aK++)
+   /* for (unsigned int aK=0; aK< edges.size(); aK++)
     {
-        cout << "index des edges à retirer = " << edges[aK] << " entre " << mEdges[edges[aK]].n1() << " et " << mEdges[edges[aK]].n2() <<endl;
+        cout << "index des edges à retirer = " << edges[aK] << endl;
+        cout << " entre " << mEdges[edges[aK]].n1() << " et " << mEdges[edges[aK]].n2() <<endl;
     }*/
 
     const int nTriangles = mTriangles.size();
@@ -564,21 +572,17 @@ void cMesh::removeTriangle(cTriangle &aTri)
 
         cEdge *e = getEdge(edgeIndex);
 
-        //cout << "Edge " << edgeIndex << "between " << e.n1() << " "  << e.n2() << endl;
+       // cout << "Edge " << edgeIndex << "between " << e->n1() << " "  << e->n2() << endl;
 
         int idx = -1;
         if (index == e->n1()) idx = e->n2();
         else if (index == e->n2()) idx = e->n1();
 
-        //cout << "looking for edge " << edgeIndex << " between " << e.n1() << " and " << e.n2() << endl;
-
         if (idx != -1)
         {
-
             //cout << "idx = " << idx << " / " << mTriangles.size() << endl;
             //cout << "aK = " << aK  << endl;
             mTriangles[idx].removeEdge(edgeIndex);
-            //cout << "ok " << endl;
 
             for (int bK=0;bK < nTriangles; bK++ )
             {
@@ -609,13 +613,27 @@ void cMesh::removeTriangle(cTriangle &aTri)
         getTriangle(aK)->setIdx(getTriangle(aK)->getIdx()-1);
     }
 
-    for (unsigned int aK=0; aK < mEdges.size();++aK)
+    const int nbEdges = mEdges.size();
+    for (int aK=0; aK < nbEdges;++aK)
     {
         cEdge *e = getEdge(aK);
         if (e->n1() > index) e->setN1(e->n1()-1);
         if (e->n2() > index) e->setN2(e->n2()-1);
     }
 
+    const int nbVertex = mVertexes.size();
+    for(int aK=0;aK < nbVertex;++aK)
+    {
+        vector<int> *triIdx = getVertex(aK)->getTriIdx();
+
+        int val;
+        for(unsigned int bK=0;bK < triIdx->size();++bK)
+        {
+            val = (*triIdx)[bK];
+            if (val > index) (*triIdx)[bK] = (val -1);
+            else (*triIdx)[bK] = val;
+        }
+    }
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -748,29 +766,58 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, set
 
 void cMesh::clean()
 {
-    //cout << "removing triangle" <<endl;
-    int nbFaces = getFacesNumber();
-    for(int i=0 ; i < nbFaces; i++)
-    {
-        cTriangle * Triangle = getTriangle(i);
+    //searching for triangles to remove
+   std::set < int > triangleIdxSet;
+   std::vector < int > toRemove;
 
-        if (Triangle->getEdgesNumber() < 3 && !Triangle->isTextured())
-        {
-            //cout <<"remove triangle " << Triangle->getIdx() << " with " << Triangle->getEdgesNumber() << " edges" << endl;
+   const int nFaces = getFacesNumber();
+   for (int aK=0; aK < nFaces;++aK)
+   {
+       std::vector <int> myList;
+       cTriangle * triangle = getTriangle(aK);
+       if ((!triangle->isTextured()) && (triangle->getEdgesNumber() <3) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
+           myList.push_back(aK);
 
-            //cout <<"sommets = " << Triangle->getVertex(0) << " " << Triangle->getVertex(1) << " " << Triangle->getVertex(2) << endl;
+       for (unsigned int bK=0; bK < myList.size();++bK)
+       {
+           cTriangle * Tri = getTriangle(myList[bK]);
 
-            removeTriangle(*Triangle);
-            nbFaces--;
-            i--;
-        }
-        /*else if (!Triangle->isTextured())
-            cout << "triangle " << i << " nb edges = " << Triangle->getEdgesNumber() << " textured= " << Triangle->isTextured() << endl;*/
+           if (!Tri->isTextured())
+           {
+               vector<int> neighb = Tri->getNeighbours2();
+
+               bool found = false;
+               vector<int>::const_iterator it = neighb.begin();
+               for(;it!=neighb.end();++it)
+               {
+                   if ((triangleIdxSet.find(*it) == triangleIdxSet.end()) &&
+                           (!getTriangle(*it)->isTextured()))
+                   {
+                       found = true;
+                       myList.push_back(*it);
+
+                       triangleIdxSet.insert(*it);
+                   }
+               }
+               if (found)
+                   triangleIdxSet.insert(Tri->getIdx());
+           }
+       }
+
+       toRemove.insert(toRemove.end(), myList.begin(), myList.end());
+   }
+
+    cout << "Removing " << toRemove.size() << " triangles" <<endl;
+
+    std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
+    for (unsigned int var = 0; var < toRemove.size(); ++var) {
+         removeTriangle(*getTriangle(toRemove[var]));
     }
 
-    //cout << "removing points" << endl;
+    cout << "Removing isolated points" << endl;
 
     //suppression des points n'appartenant à aucun triangle
+    const int nbFaces = getFacesNumber();
     for(int aK=0; aK < getVertexNumber();++aK)
     {
         bool found = false;
@@ -825,10 +872,10 @@ std::vector<cTextRect> cMesh::getRegions()
             {
                 int imgIdx = Tri->getTextureImgIndex();
 
-                set<int> neighb = Tri->getNeighbours2();
+                vector<int> neighb = Tri->getNeighbours2();
 
                 bool found = false;
-                set<int>::const_iterator it = neighb.begin();
+                vector<int>::const_iterator it = neighb.begin();
                 for(;it!=neighb.end();++it)
                 {
                     if ((triangleIdxSet.find(*it) == triangleIdxSet.end()) &&
@@ -975,12 +1022,13 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             WriteType(file,t2);
             WriteType(file,t3);
 
+            WriteType(file,(unsigned char)6);
+
             if (face->isTextured())
             {
                 Pt2dr p1, p2, p3;
                 face->getTextureCoordinates(p1, p2, p3);
 
-                WriteType(file,(unsigned char)6);
                 WriteType(file,(float) p1.x);
                 WriteType(file,(float) p1.y);
                 WriteType(file,(float) p2.x);
@@ -989,7 +1037,14 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
                 WriteType(file,(float) p3.y);
             }
             else
-                WriteType(file,(unsigned char)0);
+            {
+                WriteType(file,0.f);
+                WriteType(file,0.f);
+                WriteType(file,0.f);
+                WriteType(file,0.f);
+                WriteType(file,0.f);
+                WriteType(file,0.f);
+            }
         }
     }
     else
@@ -1017,17 +1072,13 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
                 fprintf(file,"6 %f %f %f %f %f %f\n",p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);
             }
             else
-                fprintf(file,"0\n");
+                fprintf(file,"6 0 0 0 0 0 0\n");
         }
     }
 }
 
-void cMesh::Export(set<unsigned int> const &triangles, int aK)
+void cMesh::Export(string aOut, set<unsigned int> const &triangles)
 {
-  /*  std::stringstream ss;
-    ss << aK;
-
-    string aOut = "/home/mdeveau/data/dat/export" + ss.str() + ".ply";
     string mode = "w";
 
     FILE * file = FopenNN(aOut, mode, "UV Mapping");         //Ecriture du header
@@ -1065,7 +1116,7 @@ void cMesh::Export(set<unsigned int> const &triangles, int aK)
     {
         fprintf(file,"3 %i %i %i\n",bK,bK+1,bK+2);
         bK+=3;
-    }*/
+    }
 }
 
 
