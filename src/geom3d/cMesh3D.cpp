@@ -96,14 +96,15 @@ void cTriangle::addEdge(int idx)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx):
+cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal):
     mInside(false),
     mTriIdx(TriIdx),
     mTextImIdx(mDefTextImIdx),
     pMesh(aMesh),
     mText0(Pt2dr()),
     mText1(Pt2dr()),
-    mText2(Pt2dr())
+    mText2(Pt2dr()),
+    mScal(scal)
 {
     mTriVertex.push_back(face->verts[0]);
     mTriVertex.push_back(face->verts[1]);
@@ -216,6 +217,21 @@ vector<cTriangle *> cTriangle::getNeighbours()
     return res;
 }
 
+set<int> cTriangle::getNeighbours2()
+{
+    set <int> res;
+
+    for (unsigned int aK=0; aK<mTriVertex.size(); aK++)
+    {
+        cVertex *vertex = pMesh->getVertex(mTriVertex[aK]);
+
+        set <int> neighb = vertex->getTriIdx();
+        res.insert(neighb.begin(), neighb.end());
+    }
+
+    return res;
+}
+
 void cTriangle::setEdgeIndex(unsigned int pos, int val)
 {
     if (mTriEdges.size()>pos)
@@ -281,37 +297,6 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
              );
 }
 
-void cTriangle::write(FILE* file, bool aBin)
-{
-    if (aBin)
-    {
-        WriteType(file,(unsigned char)3);
-        WriteType(file,mTriVertex[0]);
-        WriteType(file,mTriVertex[1]);
-        WriteType(file,mTriVertex[2]);
-        if (mText0.x || mText0.y || mText1.x || mText1.y || mText2.x || mText2.y)
-        {
-            WriteType(file,(unsigned char)6);
-            WriteType(file,(float) mText0.x);
-            WriteType(file,(float) mText0.y);
-            WriteType(file,(float) mText1.x);
-            WriteType(file,(float) mText1.y);
-            WriteType(file,(float) mText2.x);
-            WriteType(file,(float) mText2.y);
-        }
-        else
-            WriteType(file,(unsigned char)0);
-    }
-    else
-    {
-        fprintf(file,"3 %i %i %i ",mTriVertex[0],mTriVertex[1],mTriVertex[2]);
-
-        if (mText0.x || mText0.y || mText1.x || mText1.y || mText2.x || mText2.y)
-            fprintf(file,"6 %f %f %f %f %f %f\n",mText0.x,mText0.y,mText1.x,mText1.y,mText2.x,mText2.y);
-        else
-            fprintf(file,"0\n");
-    }
-}
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
@@ -411,7 +396,7 @@ void cMesh::checkEdgesForVertex(int id, int aK)
     }
 }
 
-cMesh::cMesh(const std::string & Filename, bool doAdjacence)
+cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
 {
     PlyFile * thePlyFile;
     int nelems;
@@ -461,7 +446,7 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
                 ply_get_element (thePlyFile, face);
 
                 //ajout du triangle
-                addTriangle(cTriangle(this, face, j));
+                addTriangle(cTriangle(this, face, j, scal));
 
                 getVertex(face->verts[0])->addIdx(j);
                 getVertex(face->verts[1])->addIdx(j);
@@ -522,13 +507,6 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
         }
     }
 }
-
-cMesh::cMesh(const cMesh &aMesh):
-    mVertexes(aMesh.mVertexes),
-    mTriangles(aMesh.mTriangles),
-    mEdges(aMesh.mEdges),
-    mLambda(aMesh.mLambda)
-{}
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
@@ -770,7 +748,7 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, set
 
 void cMesh::clean()
 {
-    cout << "removing triangle" <<endl;
+    //cout << "removing triangle" <<endl;
     int nbFaces = getFacesNumber();
     for(int i=0 ; i < nbFaces; i++)
     {
@@ -790,7 +768,7 @@ void cMesh::clean()
             cout << "triangle " << i << " nb edges = " << Triangle->getEdgesNumber() << " textured= " << Triangle->isTextured() << endl;*/
     }
 
-    cout << "removing points" << endl;
+    //cout << "removing points" << endl;
 
     //suppression des points n'appartenant à aucun triangle
     for(int aK=0; aK < getVertexNumber();++aK)
@@ -829,7 +807,6 @@ void cMesh::clean()
 
 std::vector<cTextRect> cMesh::getRegions()
 {
-    int defVal = cTriangle::getDefTextureImgIndex();
     std::set < int > triangleIdxSet;
     std::vector < cTextRect > regions;
 
@@ -837,38 +814,36 @@ std::vector<cTextRect> cMesh::getRegions()
     for (int aK=0; aK < nFaces;++aK)
     {
         std::vector <int> myList;
-        if ((getTriangle(aK)->getTextureImgIndex() != defVal) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
+        if ((getTriangle(aK)->isTextured()) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
             myList.push_back(aK);
 
         for (unsigned int bK=0; bK < myList.size();++bK)
         {
-            //cout << "triangle " << myList[bK] << endl;
             cTriangle * Tri = getTriangle(myList[bK]);
 
-            int imgIdx = Tri->getTextureImgIndex();
-            if (imgIdx != defVal)
+            if (Tri->isTextured())
             {
-                vector <cTriangle *> neighb = Tri->getNeighbours();
+                int imgIdx = Tri->getTextureImgIndex();
+
+                set<int> neighb = Tri->getNeighbours2();
 
                 bool found = false;
-                for (unsigned int cK=0; cK < neighb.size();++cK)
+                set<int>::const_iterator it = neighb.begin();
+                for(;it!=neighb.end();++it)
                 {
-                    int triIdx = neighb[cK]->getIdx();
-                    if ((triangleIdxSet.find(triIdx) == triangleIdxSet.end()) &&
-                            (neighb[cK]->getTextureImgIndex() == imgIdx))
+                    if ((triangleIdxSet.find(*it) == triangleIdxSet.end()) &&
+                            (getTriangle(*it)->getTextureImgIndex() == imgIdx))
                     {
                         found = true;
-                        myList.push_back(triIdx);
+                        myList.push_back(*it);
 
-                        triangleIdxSet.insert(triIdx);
+                        triangleIdxSet.insert(*it);
                     }
                 }
                 if (found)
                     triangleIdxSet.insert(Tri->getIdx());
             }
         }
-
-        //cout << "myList.size() = " << myList.size() << endl;
 
         if (myList.size() > 1)
         {
@@ -878,13 +853,13 @@ std::vector<cTextRect> cMesh::getRegions()
 
     //recherche des triangles isolés (trous dans les regions)
 
-    //int cpt = 0;
-    for (int triIdx=0; triIdx < nFaces;++triIdx)
+//TODO meilleur bouchage des trous
+    for (int aK=0; aK < nFaces;++aK)
     {
-        if (triangleIdxSet.find(triIdx) == triangleIdxSet.end())
+        if (triangleIdxSet.find(aK) == triangleIdxSet.end())
         {
-            cTriangle * Tri = getTriangle(triIdx);
-            vector <cTriangle *> neighb = Tri->getNeighbours();
+            cTriangle * Tri = getTriangle(aK);
+            vector <cTriangle *> neighb = Tri->getNeighbours(); //TODO: utiliser getNeighbours2 ?
 
             if (neighb.size())
             {
@@ -922,7 +897,6 @@ std::vector<cTextRect> cMesh::getRegions()
 
                 if (/*(Tri->getTextureImgIndex() != textImgIndex) &&*/ (nbNeighb >= 1))
                 {
-                    //cpt++;
                     //recherche de la region des voisins
                     const int nRegions = regions.size();
                     for(int bK=0; bK < nRegions; ++bK)
@@ -931,7 +905,7 @@ std::vector<cTextRect> cMesh::getRegions()
 
                         if (find(region.begin(), region.end(), neighbIndex) != region.end())
                         {
-                            regions[bK].triangles.push_back(triIdx);
+                            regions[bK].triangles.push_back(aK);
                             Tri->setTextureImgIndex(textImgIndex);
                         }
                     }
@@ -941,8 +915,6 @@ std::vector<cTextRect> cMesh::getRegions()
             //else cout << "NO NEIGHBOURS!!!!!!" << endl;
         }
     }
-    //cout << "cpt = " << cpt << endl;
-
     /*cout << "****************** Resultat *********************" << endl;
     cout << endl;
 
@@ -998,16 +970,16 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             int t1, t2, t3;
             face->getVertexesIndexes(t1, t2, t3);
 
-            Pt2dr p1, p2, p3;
-            face->getTextureCoordinates(p1, p2, p3);
-
             WriteType(file,(unsigned char)3);
             WriteType(file,t1);
             WriteType(file,t2);
             WriteType(file,t3);
 
-            if (p1.x || p1.y || p2.x || p2.y || p3.x || p3.y)
+            if (face->isTextured())
             {
+                Pt2dr p1, p2, p3;
+                face->getTextureCoordinates(p1, p2, p3);
+
                 WriteType(file,(unsigned char)6);
                 WriteType(file,(float) p1.x);
                 WriteType(file,(float) p1.y);
@@ -1036,17 +1008,64 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             int t1, t2, t3;
             face->getVertexesIndexes(t1, t2, t3);
 
-            fprintf(file,"3 %i %i %i ",t1,t2,t3);
+            fprintf(file,"3 %i %i %i\n",t1,t2,t3);
 
-            Pt2dr p1, p2, p3;
-            face->getTextureCoordinates(p1, p2, p3);
-
-            if (p1.x || p1.y || p2.x || p2.y || p3.x || p3.y)
+            if (face->isTextured())
+            {
+                Pt2dr p1, p2, p3;
+                face->getTextureCoordinates(p1, p2, p3);
                 fprintf(file,"6 %f %f %f %f %f %f\n",p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);
+            }
             else
                 fprintf(file,"0\n");
         }
     }
+}
+
+void cMesh::Export(set<unsigned int> const &triangles, int aK)
+{
+  /*  std::stringstream ss;
+    ss << aK;
+
+    string aOut = "/home/mdeveau/data/dat/export" + ss.str() + ".ply";
+    string mode = "w";
+
+    FILE * file = FopenNN(aOut, mode, "UV Mapping");         //Ecriture du header
+    fprintf(file,"ply\n");
+    fprintf(file,"format ascii 1.0\n");
+    fprintf(file,"element vertex %i\n", (int) triangles.size()*3);
+    fprintf(file,"property float x\n");
+    fprintf(file,"property float y\n");
+    fprintf(file,"property float z\n");
+    fprintf(file,"element face %i\n",(int) triangles.size());
+    fprintf(file,"property list uchar int vertex_indices\n");
+    fprintf(file,"end_header\n");
+
+    Pt3dr pt;
+
+    std::set<unsigned int>::const_iterator it = triangles.begin();
+    for(;it!=triangles.end();++it)
+    {
+        cTriangle* face = getTriangle(*it);
+
+        vector <Pt3dr> Pts;
+        face->getVertexes(Pts);
+
+        for(unsigned int aK=0; aK<Pts.size();++aK)
+        {
+            pt = Pts[aK];
+
+            fprintf(file,"%.7f %.7f %.7f\n",pt.x,pt.y,pt.z);
+        }
+    }
+
+    int bK=0;
+    it = triangles.begin();
+    for(;it!=triangles.end();++it)
+    {
+        fprintf(file,"3 %i %i %i\n",bK,bK+1,bK+2);
+        bK+=3;
+    }*/
 }
 
 

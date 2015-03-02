@@ -7,6 +7,7 @@ set(uti_phgrm_NewOri_Src_Files
     ${UTI_PHGRM_NEW_ORI}/cNewO_ProjPts.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_CombineCple.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_LinearCpleI.cpp
+    ${UTI_PHGRM_NEW_ORI}/cNewO_AmbigCpleI.cpp
 )
 
 

@@ -81,7 +81,7 @@ class cMesh
     friend class cTriangle;
 
     public:
-                        cMesh(const string & Filename, bool doAdjacence=true);
+                        cMesh(const string & Filename, float scal=-1.f, bool doAdjacence=true);
                         cMesh(cMesh const &aMesh);
 
                         ~cMesh();
@@ -113,6 +113,8 @@ class cMesh
         vector < cTextRect > getRegions();
 
         void        write(const string & aOut, bool aBin, const string & textureFilename);
+
+        void        Export(set <unsigned int> const &triangles, int aK);
 
 private:
 
@@ -156,7 +158,7 @@ class cVertex
 class cTriangle
 {
     public:
-                cTriangle(cMesh* aMesh, sFace * face, int TriIdx);
+                cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal);
 
                 ~cTriangle();
 
@@ -190,7 +192,8 @@ class cTriangle
         size_t  getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>   getEdgesIndex() { return mTriEdges; }
-        vector <cTriangle*> getNeighbours();
+        vector<cTriangle *> getNeighbours(); //renvoie les 3 voisins (par les arêtes)
+        set<int> getNeighbours2(); //renvoie les voisins par les sommets
 
         void    setEdgeIndex(unsigned int pos, int val);
         void    setVertexIndex(unsigned int pos, int val);
@@ -207,9 +210,11 @@ class cTriangle
 
         bool    operator==( const cTriangle & ) const;
 
-        void    write(FILE* file, bool aBin);
+        float   getScal() { return mScal; }
+        void    setScal(float aVal) { mScal = aVal; }
 
-    private:
+
+private:
 
         bool						mInside;		// triangle a conserver
         int							mTriIdx;		// triangle index
@@ -224,6 +229,8 @@ class cTriangle
         Pt2dr                       mText0;         //Texture Coordinates
         Pt2dr                       mText1;
         Pt2dr                       mText2;
+
+        float                       mScal;          // scalar product between normal and best image viewing direction
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -285,7 +292,7 @@ class cZBuf
 
         Pt2di					Sz(){return mSzRes / mScale;}
 
-        Im2D_REAL4              get() { return mRes; }
+        Im2D_REAL4*             get() { return &mRes; }
 
         void                    write(string filename);
         void                    writeImLabel(string filename);

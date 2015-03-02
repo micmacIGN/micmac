@@ -796,7 +796,7 @@ const char * (theNameVar_ParamChantierPhotogram[1635]) = {
 "             <!-- Code les rotatuion simple perm + inv de signe sous la forme i-j-k ou ji-k etc .. -->\n",
 "             <CodageSymbolique Nb=\"?\" Type=\"std::string\"> </CodageSymbolique>\n",
 "  </RotationVect>\n",
-"\n",
+"  \n",
 "\n",
 "   <OrientationExterneRigide Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "        <!-- AltiSol pour compat avec orilib et tout le passe, mais quand Profondeur est defini il\n",

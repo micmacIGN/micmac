@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 static const double PropStdErDet = 0.75;
+static const double MulErrStd = 2.0;
+static const double Viscosity = 1e-7;
 
 
 /***********************************************************************/
@@ -57,7 +59,7 @@ double cNewO_CpleIm::DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) 
     double aDB = euclid(aB1-aB2);
     double aDM = aR1.Mat().L2(aR2.Mat());
 
-    std::cout << " DBase " << aDB << " DRot " << aDM << "\n";
+    // std::cout << " DBase " << aDB << " DRot " << aDM << "\n";
 
    return aDB + aDM;
 }
@@ -93,17 +95,20 @@ double cNewO_CpleIm::CostLinear(const ElRotation3D & aRot,const Pt2dr & aP1,cons
 
 void cNewO_CpleIm::TestCostLinExact(const ElRotation3D & aRot)
 {
+    Pt3dr anI;
     for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
     {
-         double aCl = CostLinear(aRot,itP->P1(),itP->P2(),-1);
-         double aCe = ExactCost(aRot,itP->P1(),itP->P2(),-1);
+         double aCl = CostLinear(aRot,itP->P1(),itP->P2(),-1.0);
+         double aCe = ExactCost(anI,aRot,itP->P1(),itP->P2(),-1.0);
 
          std::cout << "R=" << aCl/aCe << "\n";
     }
 }
 
-void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & aPack,const std::string & aMes)
+void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes)
 {
+// Si V FIXED PAS DE LEVENBERG SUR ELLE
+   ElTimer aChrono;
 
    std::vector<double> aVDet;
    for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
@@ -111,21 +116,116 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & 
        aVDet.push_back(CostLinear(aRot,mStCPairs[aK].mQ1,mStCPairs[aK].mQ2,-1));
    }
 
-   mErStd = KthValProp(aVDet,PropStdErDet);
+   mErStd = MulErrStd *  KthValProp(aVDet,PropStdErDet);
    double aCostIn = ExactCost(aRot,0.1);
-   for (int aK=0 ; aK < 10 ; aK++)
+
+   bool aCont = true;
+   for (int aK=0 ; aCont ; aK++)
    {
-       aRot  = OneIterSolLinear(aRot,mStCPairs,mErStd);
+       double aErMoy;
+       ElRotation3D aNewR =  OneIterSolLinear(aRot,mStCPairs,mErStd,aErMoy);
+
+       if (mBestSolIsInit)
+       {
+           if (DistRot(aNewR,mBestSol) < 1e-4)
+              return;
+       }
+
+        // std::cout << "DIST " <<  DistRot(aNewR,aRot)  << " Cost " <<  ExactCost(aRot,0.1)  << " ErMoy " << aErMoy << "\n";
+
+
+       if (aK==9) 
+          aCont = false;
+       if (DistRot(aNewR,aRot) < 2e-5) 
+          aCont = false;
+
+       aRot = aNewR;
    }
    double aCostOut = ExactCost(aRot,0.1);
 
+   if (aCostOut < mCostBestSol)
+   {
+      mBestSolIsInit = true;
+      mCostBestSol = aCostOut;
+      mBestSol = aRot;
+      mBestErrStd = mErStd;
+      mResidBest = mCurResidu;
+   }
 
-   std::cout  << "For : " << aMes << " ERStd " << mErStd << " Exact " << aCostIn << " => " << aCostOut << "\n";
+
+   if (mShow)
+   {
+       std::cout  << "For : " << aMes 
+              << " ERStd " << mErStd 
+              << " Exact " << aCostIn << " => " << aCostOut 
+              << " Time " << aChrono.uval() 
+              << "\n";
+   }
    if (mTestC2toC1)
    {
         DistRot(*mTestC2toC1,aRot);
    }
 } 
+
+
+// Equation pour la base  simple    [U1,Base, R U2] = 0
+//      [U1,Base, R0 U2] = 0     
+//      [U1,B0 + cC + d D , R0 U2] = 0     
+//      B0.(U1^R0U2) +  +c C.[U1,R0U2] + d D. [U1,R0U2] = 0
+
+Pt3dr  cNewO_CpleIm::CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
+{
+    for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
+    { 
+         cNOCompPair & aCP = mStCPairs[aK];
+         aCP.mQ2R = aMat * aCP.mQ2;
+         aCP.mU1vQ2R = aCP.mQ1 ^aCP.mQ2R;
+    }
+
+    for (int aK=0 ; aK<5  ; aK++)
+    {
+        Pt3dr aNewTr = OneIterCalcBaseOfRot(aMat,aTr0);
+
+        std::cout << "DIST-CBR " << euclid(aNewTr-aTr0) << "\n";
+
+        aTr0 = aNewTr;
+    }
+
+    return aTr0;
+}
+
+
+Pt3dr cNewO_CpleIm::OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
+{
+    cGenSysSurResol & aSys = mSysLin2;
+    double aCoef[2];
+    aSys.GSSR_Reset(false);
+    Pt3dr aC,aD;
+    MakeRONWith1Vect(aTr0,aC,aD);
+
+    for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
+    {
+        double aPds = mBestErrStd-mResidBest[aK];
+        if (aPds >0)
+        {
+            const cNOCompPair & aCP = mStCPairs[aK];
+            const Pt3dr aU1vQ2R = aCP.mU1vQ2R ;
+            double aCste =  scal(aTr0 ,aU1vQ2R);
+            aCoef[0] = scal(aU1vQ2R ,aC);
+            aCoef[1] = scal(aU1vQ2R ,aD);
+            aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
+        }
+    }
+
+    Im1D_REAL8   aSol = aSys.GSSR_Solve (0);
+    double * aData = aSol.data();
+    
+    Pt3dr aRes =   vunit(aTr0+aC*aData[0] + aD*aData[1]);
+    
+    return aRes;
+}
+
+
 
 
 
@@ -141,9 +241,9 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const ElPackHomologue & 
 //   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  + (U'1 ^ B0) . (W^U2) 
 //   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  +  W.(U2 ^(U'1 ^ B0)) => Verifier Signe permut prod vect
 
-ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP,double & anErStd)
+ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP,double & anErStd,double & aErMoy)
 {
-    cGenSysSurResol & aSys = mSysLin;
+    cGenSysSurResol & aSys = mSysLin5;
     double aCoef[5];
     aSys.GSSR_Reset(false);
     ElMatrix<double> tR0 = aRot.Mat().transpose();
@@ -151,6 +251,9 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
     Pt3dr aC,aD;
     MakeRONWith1Vect(aB0,aC,aD);
     std::vector<double> aVRes;
+
+    double aSomPds=0;
+    double aSomError=0;
 
     for (int aK=0 ; aK<int(aVP.size()) ; aK++)
     {
@@ -168,10 +271,27 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
 
         double aPds = aPair.mPds / (1+ElSquare(aCste/anErStd));
 
+        aSomPds += aPds;
+        aSomError += aPds * ElAbs(aCste);
        
         aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
         aVRes.push_back(ElAbs(aCste));
     }
+    mCurResidu = aVRes;
+
+    // Viscosite ?
+    double aSomQuad =  aSys.SomQuad();
+    for (int aKI=0 ; aKI<5 ; aKI++)
+    {
+        double aCoef[5];
+        for (int aKJ=0 ; aKJ<5 ; aKJ++)
+            aCoef[aKJ] = (aKI==aKJ);
+            
+        aSys.GSSR_AddNewEquation(aSomQuad*Viscosity,aCoef,0,0);
+    }
+
+
+    aErMoy = aSomError / aSomPds;
     Im1D_REAL8   aSol = aSys.GSSR_Solve (0);
     double * aData = aSol.data();
     
@@ -179,7 +299,7 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
     
     ElMatrix<double> aNewR = NearestRotation(aRot.Mat() * (ElMatrix<double>(3,true) + MatProVect(Pt3dr(aData[2],aData[3],aData[4]))));
 
-    anErStd = KthValProp(aVRes,PropStdErDet);
+    anErStd = MulErrStd * KthValProp(aVRes,PropStdErDet);
     return ElRotation3D(aNewB0,aNewR,true);
 }
 

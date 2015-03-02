@@ -19758,4 +19758,125 @@ void xml_init(cXmlRHHResLnk & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXmlRHHResLnk *) {return "78404523C7B28EC0FD3F";};
 
+
+cRotationVect & cXMLSaveOriRel2Im::ParamRotation()
+{
+   return mParamRotation;
+}
+
+const cRotationVect & cXMLSaveOriRel2Im::ParamRotation()const 
+{
+   return mParamRotation;
+}
+
+
+Pt3dr & cXMLSaveOriRel2Im::Centre()
+{
+   return mCentre;
+}
+
+const Pt3dr & cXMLSaveOriRel2Im::Centre()const 
+{
+   return mCentre;
+}
+
+
+cXmlHomogr & cXMLSaveOriRel2Im::Homogr()
+{
+   return mHomogr;
+}
+
+const cXmlHomogr & cXMLSaveOriRel2Im::Homogr()const 
+{
+   return mHomogr;
+}
+
+
+double & cXMLSaveOriRel2Im::BOnHRatio()
+{
+   return mBOnHRatio;
+}
+
+const double & cXMLSaveOriRel2Im::BOnHRatio()const 
+{
+   return mBOnHRatio;
+}
+
+
+double & cXMLSaveOriRel2Im::FOVMin()
+{
+   return mFOVMin;
+}
+
+const double & cXMLSaveOriRel2Im::FOVMin()const 
+{
+   return mFOVMin;
+}
+
+
+double & cXMLSaveOriRel2Im::FOVMax()
+{
+   return mFOVMax;
+}
+
+const double & cXMLSaveOriRel2Im::FOVMax()const 
+{
+   return mFOVMax;
+}
+
+void  BinaryUnDumpFromFile(cXMLSaveOriRel2Im & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ParamRotation(),aFp);
+    BinaryUnDumpFromFile(anObj.Centre(),aFp);
+    BinaryUnDumpFromFile(anObj.Homogr(),aFp);
+    BinaryUnDumpFromFile(anObj.BOnHRatio(),aFp);
+    BinaryUnDumpFromFile(anObj.FOVMin(),aFp);
+    BinaryUnDumpFromFile(anObj.FOVMax(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXMLSaveOriRel2Im & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ParamRotation());
+    BinaryDumpInFile(aFp,anObj.Centre());
+    BinaryDumpInFile(aFp,anObj.Homogr());
+    BinaryDumpInFile(aFp,anObj.BOnHRatio());
+    BinaryDumpInFile(aFp,anObj.FOVMin());
+    BinaryDumpInFile(aFp,anObj.FOVMax());
+}
+
+cElXMLTree * ToXMLTree(const cXMLSaveOriRel2Im & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XMLSaveOriRel2Im",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.ParamRotation())->ReTagThis("ParamRotation"));
+   aRes->AddFils(::ToXMLTree(std::string("Centre"),anObj.Centre())->ReTagThis("Centre"));
+   aRes->AddFils(ToXMLTree(anObj.Homogr())->ReTagThis("Homogr"));
+   aRes->AddFils(::ToXMLTree(std::string("BOnHRatio"),anObj.BOnHRatio())->ReTagThis("BOnHRatio"));
+   aRes->AddFils(::ToXMLTree(std::string("FOVMin"),anObj.FOVMin())->ReTagThis("FOVMin"));
+   aRes->AddFils(::ToXMLTree(std::string("FOVMax"),anObj.FOVMax())->ReTagThis("FOVMax"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXMLSaveOriRel2Im & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.ParamRotation(),aTree->Get("ParamRotation",1)); //tototo 
+
+   xml_init(anObj.Centre(),aTree->Get("Centre",1)); //tototo 
+
+   xml_init(anObj.Homogr(),aTree->Get("Homogr",1)); //tototo 
+
+   xml_init(anObj.BOnHRatio(),aTree->Get("BOnHRatio",1)); //tototo 
+
+   xml_init(anObj.FOVMin(),aTree->Get("FOVMin",1)); //tototo 
+
+   xml_init(anObj.FOVMax(),aTree->Get("FOVMax",1)); //tototo 
+}
+
+std::string  Mangling( cXMLSaveOriRel2Im *) {return "AA0A53629996DECAFDBF";};
+
 // };
