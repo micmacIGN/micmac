@@ -41,7 +41,7 @@ void cData::addReplaceCloud(GlCloud *cloud, int id)
     computeCloudsCenter(id);
 }
 
-void cData::addCamera(CamStenope * aCam)
+void cData::addCamera(cCamHandler * aCam)
 {
     _Cameras.push_back(aCam);
 }
@@ -193,13 +193,13 @@ void cData::computeBBox(int idCloud)
     if(idCloud == -1)
     for (int  cK=0; cK < _Cameras.size();++cK)
     {
-        CamStenope * aCam= _Cameras[cK];
+		cCamHandler * aCam = _Cameras[cK];
 
         QVector <Pt3dr> vert;
         Pt3dr c1, c2, c3, c4;
 
-        aCam->Coins(c1,c2,c3,c4,1.f);
-        vert.push_back(aCam->VraiOpticalCenter());
+		aCam->getCoins(c1,c2,c3,c4,1.f);
+		vert.push_back(aCam->getCenter());
         vert.push_back(c1);
         vert.push_back(c2);
         vert.push_back(c3);
@@ -242,14 +242,14 @@ void cData::computeCloudsCenter(int idCloud)
     }
 
     if(idCloud == -1)
-    for (int  cK=0; cK < _Cameras.size();++cK)
+	for (int  cK=0; cK < _Cameras.size();++cK) // TODO doublons avec computeBBox
     {
-        CamStenope * aCam= _Cameras[cK];
+		cCamHandler * aCam= _Cameras[cK];
 
         Pt3dr c1, c2, c3, c4;
 
-        aCam->Coins(c1,c2,c3,c4,1.f);
-        sum = sum + aCam->VraiOpticalCenter();
+		aCam->getCoins(c1,c2,c3,c4,1.f);
+		sum = sum + aCam->getCenter();
         sum = sum + c1;
         sum = sum + c2;
         sum = sum + c3;

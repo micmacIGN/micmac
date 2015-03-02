@@ -43,6 +43,12 @@ public:
     float m_speed;
 };
 
+class deviceIOCamera
+{
+public:
+	virtual cCamHandler*  loadCamera(QString aNameFile) = 0;
+};
+
 class cLoader
 {
 
@@ -50,7 +56,7 @@ public:
 
     cLoader();
 
-    CamStenope* loadCamera(QString aNameFile);
+	cCamHandler* loadCamera(QString aNameFile);
 
     GlCloud*    loadCloud(string i_ply_file , int *incre = NULL);
 
@@ -72,11 +78,16 @@ public:
 
 	void memory();
 
+	deviceIOCamera* devIOCamera() const;
+	void setDevIOCamera(deviceIOCamera* devIOCamera);
+
 private:
-    QStringList _FilenamesIn;
-    QStringList _FilenamesOut; //binary masks
-    QStringList _SelectionOut; //selection infos
+	QStringList _FilenamesIn;
+	QStringList _FilenamesOut; //binary masks
+	QStringList _SelectionOut; //selection infos
     QString     _postFix;
+
+	deviceIOCamera* _devIOCamera;
 };
 
 class cGLData;
@@ -141,7 +152,7 @@ public:
     void    unload(int aK);
 
     //! Compute mask binary images: projection of visible points into loaded cameras
-    void    do3DMasks();
+//    void    do3DMasks();
 
     //! Creates binary image from selection and saves
     void    doMaskImage(ushort idCur, bool isFirstAction);
@@ -166,10 +177,13 @@ public:
     bool    extGLIsSupported(const char *strExt);
     void    setGLMaxTextureSize(int size) { _glMaxTextSize = size; }
 
+	cLoader* Loader() const;
+	void setLoader(cLoader* Loader);
+
 private:
 
-    cLoader*            _Loader;
-    cData*              _Data;
+	cLoader*            _Loader;
+	cData*              _Data;
 
     QVector <cGLData*>  _vGLData;
 
