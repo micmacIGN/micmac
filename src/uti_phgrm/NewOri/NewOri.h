@@ -140,6 +140,7 @@ class cNOCompPair
        Pt2dr mP1;
        Pt2dr mP2;
        double mPds;
+       double mLastPdsOfErr;
        Pt3dr  mQ1;
        Pt3dr  mQ2;
        Pt3dr  mQ2R;
@@ -188,7 +189,7 @@ class cNewO_CpleIm
 
           void TestCostLinExact(const ElRotation3D & aRot);
           void AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes);
-          ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd,double & aErMoy);
+          ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd,double & aErMoy,double & Amelio);
 
 
           double ExactCost
@@ -218,6 +219,8 @@ class cNewO_CpleIm
           L2SysSurResol            mSysLin2;
           L2SysSurResol            mSysLin3;
           bool                     mShow;
+
+          double mCurLamndaLVM;
        
 
           ElRotation3D  mBestSol;

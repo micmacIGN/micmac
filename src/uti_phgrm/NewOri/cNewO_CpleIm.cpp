@@ -242,7 +242,7 @@ cNewO_CpleIm::cNewO_CpleIm
            std::cout << "NO BEST SOL\n";
     }
 
-    CalcAmbig();
+    // CalcAmbig();
 }
 
 
