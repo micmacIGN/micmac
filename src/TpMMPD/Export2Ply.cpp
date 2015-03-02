@@ -264,7 +264,7 @@ int Export2Ply_main(int argc,char ** argv)
 
     std::cout << "fixed:\n" << std::fixed;
     std::cout << aPoints.size() << std::endl;
-    for(uint i=0; i<aPoints.size(); i++)
+    for(u_int i=0; i<aPoints.size(); i++)
         std::cout << aPoints.at(i) << std::endl;
 
     std::cout << "**************debut*******************" << std::endl;
