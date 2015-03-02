@@ -89,6 +89,9 @@ public:
 	deviceIOCamera* devIOCamera() const;
 	void setDevIOCamera(deviceIOCamera* devIOCamera);
 
+	deviceIOImage* devIOImage() const;
+	void setDevIOImage(deviceIOImage* devIOImage);
+
 public slots:
 
 	//! Try to load a list of files
