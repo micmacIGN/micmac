@@ -1,0 +1,153 @@
+<!--
+MICMAC  /home/marc/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=/home/marc/TMP/Versailles/  +Ori=-All +ImSec=-All +ImPat="IMGP[0-9]{4}.PEF" +Ext=dat
+
+-->
+<ParamMICMAC >
+<DicoLoc>
+   <Symb> ImPat=XXXX </Symb>
+   <Symb> Ori=XXXX </Symb>
+   <Symb> ImSec=XXXX </Symb>
+
+   <Symb> Purge=false </Symb>
+   <Symb> DirMEC=MM-Pyram  </Symb>
+</DicoLoc>
+<Section_Terrain>  
+
+
+    
+    <IntervAltimetrie>
+        <ZIncCalc>   0.0 </ZIncCalc>    <!-- metres -->
+        <ZIncZonage>   0.0 </ZIncZonage>    <!-- metres -->
+    </IntervAltimetrie>
+
+    <Planimetrie>
+    </Planimetrie>
+    <IntervSpecialZInv >
+             <MulZMin> 0.3 </MulZMin>
+             <MulZMax> 3  </MulZMax>
+    </IntervSpecialZInv>
+
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue>
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <ImPat >    ${ImPat}   </ImPat>  
+          <ImSecCalcApero>
+               <Key> NKS-Assoc-ImSec@${ImSec} </Key>
+               <OnEmpty> eOEISA_goon </OnEmpty>
+          </ImSecCalcApero>
+     </Images>
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>   NKS-Assoc-Im2Orient@${Ori} </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<ChantierFullImage1>  true </ChantierFullImage1>
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+            <DynamiqueCorrel> eCoeffAngle </DynamiqueCorrel>
+            <CorrelAdHoc>
+                <TypeCAH>
+                        <GPU_Correl> </GPU_Correl>
+                </TypeCAH>
+            </CorrelAdHoc>
+
+            <AggregCorr> eAggregMaxIm1Maitre </AggregCorr>
+
+            <SzW >       1               </SzW>
+
+
+	    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+            <ZRegul>  0.1     </ZRegul>
+	    <ZPas>   0.5     </ZPas>
+            <ZDilatAlti>  4  </ZDilatAlti>
+	    <ZDilatPlani> 5  </ZDilatPlani>
+
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+            <Gen8Bits_Px1> false </Gen8Bits_Px1>
+
+            <ModulationProgDyn Portee="Globale">
+                  <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   7              </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   2.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+	</EtapeMEC>
+
+	<EtapeMEC> <DeZoom >  32    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  16                </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  8                </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  4                </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  2                </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  1                </DeZoom> </EtapeMEC>
+
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <DoNothingBut>
+          <ButDoMasqIm>  true </ButDoMasqIm>
+          <ButDoPyram>  true   </ButDoPyram>
+    </DoNothingBut>
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  XXXX </WorkDir> 
+     <TmpMEC > ${DirMEC}/ </TmpMEC>
+     <TmpPyr > Pyram/ </TmpPyr>
+     <TmpResult > ${DirMEC}/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  1000  </SzDalleMax>
+     <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+
+     <PurgeMECResultBefore> ${Purge} </PurgeMECResultBefore>
+
+     <ByProcess> 1 </ByProcess>
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+</Section_Vrac>
+
+</ParamMICMAC>
+
