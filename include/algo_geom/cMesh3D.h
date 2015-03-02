@@ -178,6 +178,7 @@ class cTriangle
 
         void    setIdx(int id) { mTriIdx = id; }
         int		getIdx() const {return mTriIdx;}
+        void    decIdx() { mTriIdx--; }
 
         void	setAttributes(int image_idx, const vector <REAL> &ta);
 
@@ -191,12 +192,13 @@ class cTriangle
 
         size_t  getEdgesNumber() { return mTriEdges.size(); }
 
-        vector <int>   getEdgesIndex() { return mTriEdges; }
+        vector <int>  getEdgesIndex() { return mTriEdges; }
         vector<cTriangle *> getNeighbours(); //renvoie les 3 voisins (par les arêtes)
         vector<int> getNeighbours2(); //renvoie les voisins par les sommets
 
         void    setEdgeIndex(unsigned int pos, int val);
         void    setVertexIndex(unsigned int pos, int val);
+        void    decEdgeIndex(unsigned int pos);
 
         static int     getDefTextureImgIndex() { return mDefTextImIdx; }
 
@@ -251,6 +253,9 @@ class cEdge
 
         void    setN1(int aK) { mNode1 = aK; }
         void    setN2(int aK) { mNode2 = aK; }
+
+        void    decN1() { mNode1--; }
+        void    decN2() { mNode2--; }
 
         bool operator==( const cEdge & ) const;
 

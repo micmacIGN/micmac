@@ -206,7 +206,7 @@ vector<cTriangle *> cTriangle::getNeighbours()
 {
     vector <cTriangle*> res;
 
-        for (unsigned int aK=0; aK<mTriEdges.size(); aK++)
+    for (unsigned int aK=0; aK<mTriEdges.size(); aK++)
     {
         cEdge *edge = pMesh->getEdge(mTriEdges[aK]);
 
@@ -239,14 +239,29 @@ vector<int> cTriangle::getNeighbours2() //retourne un set où son index est aussi
 
 void cTriangle::setEdgeIndex(unsigned int pos, int val)
 {
-    if (mTriEdges.size()>pos)
-        mTriEdges[pos] = val;
+    #if _DEBUG
+        ELISE_ASSERT(pos < mTriVertex.size(), "cTriangle::setEdgeIndex in cMesh3D.cpp")
+    #endif
+
+    mTriEdges[pos] = val;
 }
 
 void cTriangle::setVertexIndex(unsigned int pos, int val)
 {
-    if (mTriVertex.size()>pos)
-        mTriVertex[pos] = val;
+    #if _DEBUG
+        ELISE_ASSERT(pos < mTriVertex.size(), "cTriangle::setVertexIndex in cMesh3D.cpp")
+    #endif
+
+    mTriVertex[pos] = val;
+}
+
+void cTriangle::decEdgeIndex(unsigned int pos)
+{
+    #if _DEBUG
+        ELISE_ASSERT(pos < mTriVertex.size(), "cTriangle::decEdgeIndex in cMesh3D.cpp")
+    #endif
+
+    mTriEdges[pos]--;
 }
 
 void cTriangle::setTextureCoordinates(Pt2dr const &p0, Pt2dr const &p1, Pt2dr const &p2)
@@ -265,32 +280,11 @@ void cTriangle::getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2)
 
 void cTriangle::removeEdge(int idx)
 {
-    //bool found = false;
+    #if _DEBUG
+        ELISE_ASSERT(idx < mTriEdges.size(), "cTriangle::removeEdge in cMesh3D.cpp")
+    #endif
 
-    //cout << "nb edges = " << mTriEdges.size() << endl;
-
-    //TODO: remove
-    /*for (unsigned int aK=0; aK < mTriEdges.size();++aK)
-    {
-        //cout << "Edge =  " << mTriEdges[aK] << endl;
-        if (mTriEdges[aK] == idx )
-        {
-            //cout<< "found ****************************" << endl;
-            found = true;
-        }
-    }*/
-
-    /*if (found)
-    {*/
-        //cout << "removing edge "<< idx << endl;
-        mTriEdges.erase(std::remove(mTriEdges.begin(), mTriEdges.end(), idx), mTriEdges.end());
-    //}
-    //cout << "new index list= "<<endl;
-
-    /*for (int aK=0; aK< (int) mTriEdges.size();++aK)
-        cout << mTriEdges[aK] << " ";
-
-    cout << endl;*/
+    mTriEdges.erase(std::remove(mTriEdges.begin(), mTriEdges.end(), idx), mTriEdges.end());
 }
 
 bool cTriangle::operator==( const cTriangle &aTr ) const
@@ -463,14 +457,9 @@ cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
     }
     ply_close (thePlyFile);
 
-    if (doAdjacence) //remplissage du graphe d'adjacence
+    if (doAdjacence) //Edges
     {
-        //int cpt;
-
         int id0a, id1a, id2a;
-        /*int idc0, idc1; //index des sommets communs
-        id0a = id1a = id2a = idc0 = idc1 = -1;
-        id0b = id1b = id2b = -2;*/
 
         const int nFaces = mTriangles.size();
         for (int aK = 0; aK < nFaces; ++aK)
@@ -480,37 +469,6 @@ cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
             checkEdgesForVertex(id0a, aK);
             checkEdgesForVertex(id1a, aK);
             checkEdgesForVertex(id2a, aK);
-
-           /* for (int bK=aK+1; bK < nFaces; ++bK)
-            {
-                mTriangles[bK].getVertexesIndexes(id0b, id1b, id2b);
-
-                cpt = 0;
-                if((id0b == id0a)||(id1b == id0a)||(id2b == id0a)) {cpt++; idc0 = id0a;}
-                if((id0b == id1a)||(id1b == id1a)||(id2b == id1a))
-                {
-                    if (cpt) idc1 = id1a;
-                    else	 idc0 = id1a;
-
-                    cpt++;
-                }
-                if((id0b == id2a)||(id1b == id2a)||(id2b == id2a))
-                {
-                    if (cpt) idc1 = id2a;
-                    else	 idc0 = id2a;
-
-                    cpt++;
-                }
-
-                if (cpt == 2)
-                {
-                    #ifdef _DEBUG
-                        printf ("found adjacent triangles : %d %d - vertex : %d %d\n", aK, bK, idc0, idc1);
-                    #endif
-
-                    addEdge(aK, bK, idc0, idc1);
-                }
-            }*/
         }
     }
 }
@@ -545,7 +503,6 @@ void cMesh::addEdge(int aK, int bK)
         int idx = mEdges.size();
         mEdges.push_back(cEdge (aK, bK));
 
-        //cout << "adding edge " << idx << endl;
         mTriangles[aK].addEdge(idx);
         mTriangles[bK].addEdge(idx);
     }
@@ -574,14 +531,12 @@ void cMesh::removeTriangle(cTriangle &aTri)
 
        // cout << "Edge " << edgeIndex << "between " << e->n1() << " "  << e->n2() << endl;
 
-        int idx = -1;
+        int idx = -2;
         if (index == e->n1()) idx = e->n2();
         else if (index == e->n2()) idx = e->n1();
 
-        if (idx != -1)
+        if (idx != -2)
         {
-            //cout << "idx = " << idx << " / " << mTriangles.size() << endl;
-            //cout << "aK = " << aK  << endl;
             mTriangles[idx].removeEdge(edgeIndex);
 
             for (int bK=0;bK < nTriangles; bK++ )
@@ -589,7 +544,7 @@ void cMesh::removeTriangle(cTriangle &aTri)
                 vector <int> vIdx = getTriangle(bK)->getEdgesIndex();
                 for(unsigned int cK=0; cK< vIdx.size();++cK)
                 {
-                    if (vIdx[cK] > edgeIndex) getTriangle(bK)->setEdgeIndex(cK, vIdx[cK] - 1);
+                    if (vIdx[cK] > edgeIndex) getTriangle(bK)->decEdgeIndex(cK);
                 }
             }
 
@@ -610,15 +565,15 @@ void cMesh::removeTriangle(cTriangle &aTri)
     const int nbTriangles = mTriangles.size();
     for (int aK=index;aK < nbTriangles; aK++ )
     {
-        getTriangle(aK)->setIdx(getTriangle(aK)->getIdx()-1);
+        getTriangle(aK)->decIdx();
     }
 
     const int nbEdges = mEdges.size();
     for (int aK=0; aK < nbEdges;++aK)
     {
         cEdge *e = getEdge(aK);
-        if (e->n1() > index) e->setN1(e->n1()-1);
-        if (e->n2() > index) e->setN2(e->n2()-1);
+        if (e->n1() > index) e->decN1();
+        if (e->n2() > index) e->decN2();
     }
 
     const int nbVertex = mVertexes.size();
