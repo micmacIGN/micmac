@@ -86,10 +86,13 @@ public:
 
 
 
+	deviceIOCamera* devIOCamera() const;
+	void setDevIOCamera(deviceIOCamera* devIOCamera);
+
 public slots:
 
-    //! Try to load a list of files
-    void addFiles(const QStringList& filenames, bool setGLData = true);
+	//! Try to load a list of files
+	void addFiles(const QStringList& filenames, bool setGLData = true);
 
     void zoomFactor(int aFactor);
 
@@ -247,6 +250,8 @@ private:
     int                     _appMode;
 
     bool                    _bSaved;
+
+	deviceIOCamera*			_devIOCamera;
 
 };
 #endif // MAINWINDOW_H

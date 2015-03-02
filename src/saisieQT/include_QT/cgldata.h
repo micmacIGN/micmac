@@ -109,7 +109,7 @@ public:
 
     void        clearClouds(){ _vClouds.clear(); }
 
-    cCam*       camera(int iC){ return _vCams[iC]; }
+    cCamGL*       camera(int iC){ return _vCams[iC]; }
 
     void        setPolygons(cData *data);
 
@@ -148,7 +148,7 @@ private:
 
     QVector<GlCloud*>   _vClouds;
 
-    QVector<cCam*>      _vCams;
+    QVector<cCamGL*>      _vCams;
 
     //! Point list for polygonal selection
     QVector<cPolygon*>  _vPolygons;

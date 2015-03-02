@@ -11,10 +11,20 @@ void cLoader::setPostFix(QString str)
 {
     _postFix = str;
 }
+deviceIOCamera* cLoader::devIOCamera() const
+{
+	return _devIOCamera;
+}
+
+void cLoader::setDevIOCamera(deviceIOCamera* devIOCamera)
+{
+	_devIOCamera = devIOCamera;
+}
+
 
 GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 {
-    return GlCloud::loadPly( i_ply_file, incre );
+	return GlCloud::loadPly( i_ply_file, incre );
 }
 
 void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor)
@@ -268,8 +278,14 @@ void cLoader::setFilenameOut(QString str)
     _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfo.xml");
 }
 
-CamStenope* cLoader::loadCamera(QString aNameFile)
+cCamHandler* cLoader::loadCamera(QString aNameFile)
 {
+	if(_devIOCamera)
+		return _devIOCamera->loadCamera(aNameFile);
+	else
+		return NULL;
+
+	/*
     QFileInfo fi(aNameFile);
     string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
 
@@ -281,6 +297,7 @@ CamStenope* cLoader::loadCamera(QString aNameFile)
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
     return CamOrientGenFromFile(fi.fileName().toStdString(),anICNM, false);
+	*/
 }
 
 //****************************************
@@ -311,8 +328,9 @@ void cEngine::loadCameras(QStringList filenames, int *incre)
 {
     for (int i=0;i<filenames.size();++i)
     {
-         if (incre) *incre = 100.0f*(float)i/filenames.size();
-         CamStenope* cam = _Loader->loadCamera(filenames[i]);
+
+		 if (incre) *incre = 100.0f*(float)i/filenames.size();
+		 cCamHandler* cam = _Loader->loadCamera(filenames[i]);
          if (cam) _Data->addCamera(cam);
     }
 
@@ -335,12 +353,22 @@ bool cEngine::extGLIsSupported(const char* strExt)
     return (strstr((const char *)str, strExt) != NULL);
 #endif
 }
+cLoader* cEngine::Loader() const
+{
+	return _Loader;
+}
+
+void cEngine::setLoader(cLoader* Loader)
+{
+	_Loader = Loader;
+}
+
 
 void cEngine::loadImages(QStringList filenames, int* incre)
 {
 	float scaleFactor = computeScaleFactor(filenames);
 
-    for (int i=0;i<filenames.size();++i)
+	for (int i=0;i<filenames.size();++i)
     {
         if (incre) *incre = 100.0f*(float)i/filenames.size();
 		loadImage(filenames[i],scaleFactor);
@@ -380,7 +408,7 @@ void cEngine::addObject(cObject * aObj)
 {
     getData()->addObject(aObj);
 }
-
+/*
 void cEngine::do3DMasks()
 {
     CamStenope* pCam;
@@ -427,7 +455,7 @@ void cEngine::do3DMasks()
 #endif
     }
 }
-
+*/
 void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 {
 //    if (!isFirstAction)

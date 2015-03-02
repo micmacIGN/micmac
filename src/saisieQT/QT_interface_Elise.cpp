@@ -763,6 +763,11 @@ void cQT_Interface::rebuildGlCamera()
     for (int i = 0; i < mAppli->nbImagesVis(); ++i)
     {
         ElCamera * aCamera = mAppli->imageVis(i)->CaptCam();
-        if (aCamera != NULL) _data->addCamera(aCamera->CS());
+
+		if (aCamera != NULL)
+		{
+			cCamHandlerElise * camElise = new cCamHandlerElise(aCamera->CS());
+			_data->addCamera((cCamHandler*)camElise);
+		}
     }
 }

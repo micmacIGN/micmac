@@ -12,7 +12,7 @@ class cData
         cData();
         ~cData();
 
-        void addCamera(CamStenope *);
+		void addCamera(cCamHandler*);
         void addCloud(GlCloud *);
         void addObject(cObject *);
 
@@ -37,7 +37,7 @@ class cData
         int getNbImages()   { return _MaskedImages.size(); }
         int getNbPolygons() { return _vPolygons.size(); }
 
-        CamStenope *   getCamera(int aK) { return aK < _Cameras.size() ? _Cameras[aK] : NULL; }
+		cCamHandler *   getCamera(int aK) { return aK < _Cameras.size() ? _Cameras[aK] : NULL; }
         GlCloud *      getCloud(int aK)  { return aK < _Clouds.size() ? _Clouds[aK] : NULL;   }
         //QImage *       getImage(int aK)  { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_image : NULL; }
         //QImage *       getMask(int aK)   { return aK < _MaskedImages.size() ? ((QMaskedImage)_MaskedImages[aK])._m_mask  : NULL; }
@@ -69,7 +69,7 @@ class cData
         void    addReplaceCloud(GlCloud *cloud, int id = 0);
 private:
 
-        QVector <CamStenope *> _Cameras;
+		QVector <cCamHandler *> _Cameras;
         QVector <GlCloud *>    _Clouds;
 		QVector <QMaskedImage*> _MaskedImages;
 
@@ -82,4 +82,6 @@ private:
         //!data centroid
         Pt3dr   _centroid;
 };
+
+
 #endif // DATA_H

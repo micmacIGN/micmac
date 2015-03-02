@@ -448,7 +448,7 @@ void cBBox::draw()
     }
 }
 
-cCam::cCam(CamStenope *pCam, float scale,  object_state state, float lineWidth) :
+cCamGL::cCamGL(cCamHandler *pCam, float scale,  object_state state, float lineWidth) :
     _pointSize(5.f),
     _Cam(pCam)
 {
@@ -460,7 +460,7 @@ cCam::cCam(CamStenope *pCam, float scale,  object_state state, float lineWidth) 
     setLineWidth(lineWidth);
 }
 
-void cCam::draw()
+void cCamGL::draw()
 {
     if (isVisible())
     {
@@ -480,9 +480,9 @@ void cCam::draw()
 
         glPointSize(_pointSize);
 
-        Pt3dr C  = _Cam->VraiOpticalCenter();
+		Pt3dr C  = _Cam->getCenter();
         Pt3dr P1, P2, P3, P4;
-        _Cam->Coins(P1, P2, P3, P4, _scale.z*.05f);
+		_Cam->getCoins(P1, P2, P3, P4, _scale.z*.05f);
 
         glBegin(GL_LINES);
         //perspective cone
