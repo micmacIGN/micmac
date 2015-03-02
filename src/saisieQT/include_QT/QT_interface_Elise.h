@@ -189,24 +189,24 @@ private slots:
 class cCamHandlerElise : cCamHandler
 {
 public:
-	cCamHandlerElise(CamStenope *pCam) :
-		_Cam(pCam){
+    cCamHandlerElise(CamStenope *pCam) :
+        _Cam(pCam){
 
-	}
+    }
 
-	virtual void getCoins(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ)
-	{
-		_Cam->Coins(aP1, aP2, aP3, aP4, aZ);
-	}
+    virtual void getCoins(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ)
+    {
+        _Cam->Coins(aP1, aP2, aP3, aP4, aZ);
+    }
 
-	virtual Pt3dr getCenter()
-	{
-		return _Cam->VraiOpticalCenter();
-	}
+    virtual Pt3dr getCenter()
+    {
+        return _Cam->VraiOpticalCenter();
+    }
 
 private:
 
-	CamStenope *_Cam;
+    CamStenope *_Cam;
 };
 
 class deviceIOCameraElise : deviceIOCamera
@@ -214,101 +214,98 @@ class deviceIOCameraElise : deviceIOCamera
 
 public:
 
-	deviceIOCameraElise():_mnICNM(NULL){}
+    deviceIOCameraElise():_mnICNM(NULL){}
 
-	virtual cCamHandler*  loadCamera(QString aNameFile)
-	{
-		QFileInfo fi(aNameFile);
+    virtual cCamHandler*  loadCamera(QString aNameFile)
+    {
+        QFileInfo fi(aNameFile);
 
-		if(_mnICNM == NULL || _oldPathChantier != fi.dir())
-		{
-			_oldPathChantier = fi.dir();
-			string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
-			_mnICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
+        if(_mnICNM == NULL || _oldPathChantier != fi.dir())
+        {
+            _oldPathChantier = fi.dir();
+            string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
+            _mnICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
+        }
 
-			DUMP_LINE
+        cCamHandlerElise *camElise = new cCamHandlerElise(CamOrientGenFromFile(fi.fileName().toStdString(),_mnICNM, false));
 
-		}
-
-		cCamHandlerElise *camElise = new cCamHandlerElise(CamOrientGenFromFile(fi.fileName().toStdString(),_mnICNM, false));
-
-		// TODO delete 		anICNM???
+        // TODO delete 		anICNM???
 
 
-		return (cCamHandler*) camElise;
-	}
+        return (cCamHandler*) camElise;
+    }
 
 private:
 
-	QDir							  _oldPathChantier;
+    QDir							  _oldPathChantier;
 
-	cInterfChantierNameManipulateur * _mnICNM;
+    cInterfChantierNameManipulateur * _mnICNM;
 };
 
 class deviceIOImageElise : public deviceIOImage
 {
 public:
-	virtual QImage*	loadImage(QString aNameFile)
-	{
-		Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
+    virtual QImage*	loadImage(QString aNameFile)
+    {
+        Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
 
-		Pt2di aSz = aTF.sz();
+        Pt2di aSz = aTF.sz();
 
-		//maskedImg->_m_image = new QImage(aSz.x, aSz.y, QImage::Format_RGB888);
-		QImage tempImageElIse(aSz.x, aSz.y,QImage::Format_RGB888);
+        //maskedImg->_m_image = new QImage(aSz.x, aSz.y, QImage::Format_RGB888);
+        QImage tempImageElIse(aSz.x, aSz.y,QImage::Format_RGB888);
 
-		Im2D_U_INT1  aImR(aSz.x,aSz.y);
-		Im2D_U_INT1  aImG(aSz.x,aSz.y);
-		Im2D_U_INT1  aImB(aSz.x,aSz.y);
+        Im2D_U_INT1  aImR(aSz.x,aSz.y);
+        Im2D_U_INT1  aImG(aSz.x,aSz.y);
+        Im2D_U_INT1  aImB(aSz.x,aSz.y);
 
-		ELISE_COPY
-		(
-		   aTF.all_pts(),
-		   aTF.in(),
-		   Virgule(aImR.out(),aImG.out(),aImB.out())
-		);
+        ELISE_COPY
+        (
+           aTF.all_pts(),
+           aTF.in(),
+           Virgule(aImR.out(),aImG.out(),aImB.out())
+        );
 
-		U_INT1 ** aDataR = aImR.data();
-		U_INT1 ** aDataG = aImG.data();
-		U_INT1 ** aDataB = aImB.data();
+        U_INT1 ** aDataR = aImR.data();
+        U_INT1 ** aDataG = aImG.data();
+        U_INT1 ** aDataB = aImB.data();
 
-		for (int y=0; y<aSz.y; y++)
-		{
-			for (int x=0; x<aSz.x; x++)
-			{
-				QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
+        for (int y=0; y<aSz.y; y++)
+        {
+            for (int x=0; x<aSz.x; x++)
+            {
+                QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
 
-				tempImageElIse.setPixel(x,y,col.rgb());
-			}
-		}
+                tempImageElIse.setPixel(x,y,col.rgb());
+            }
+        }
 
-		return new QImage(QGLWidget::convertToGLFormat( tempImageElIse ));
-	}
+        return new QImage(QGLWidget::convertToGLFormat( tempImageElIse ));
+    }
 
-	virtual QImage*	loadMask(QString aNameFile)
-	{
-		Tiff_Im imgMask( aNameFile.toStdString().c_str() );
+    virtual QImage*	loadMask(QString aNameFile)
+    {
+        Tiff_Im imgMask( aNameFile.toStdString().c_str() );
 
-		if( imgMask.can_elise_use() )
-		{
-			int w = imgMask.sz().x;
-			int h = imgMask.sz().y;
+        if( imgMask.can_elise_use() )
+        {
+            int w = imgMask.sz().x;
+            int h = imgMask.sz().y;
 
-			QImage tempMask ( w, h, QImage::Format_Mono);
-			tempMask.fill(0);
+            QImage tempMask ( w, h, QImage::Format_Mono);
+            tempMask.fill(0);
 
-			Im2D_Bits<1> aOut(w,h,1);
-			ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
+            Im2D_Bits<1> aOut(w,h,1);
+            ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
 
-			for (int x=0;x< w;++x)
-				for (int y=0; y<h;++y)
-					if (aOut.get(x,y) == 1 )
-						tempMask.setPixel(x,y,1);
+            for (int x=0;x< w;++x)
+                for (int y=0; y<h;++y)
+                    if (aOut.get(x,y) == 1 )
+                        tempMask.setPixel(x,y,1);
 
-			return new QImage(QGLWidget::convertToGLFormat( tempMask ));
-		}
-		else return NULL;
-	}
+            return new QImage(QGLWidget::convertToGLFormat( tempMask ));
+        }
+        else return NULL;
+    }
 };
 
 #endif // QT_INTERFACE_ELISE_H
