@@ -23,7 +23,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _zoomLayout(new QGridLayout),
         _params(new cParameters),
         _appMode(mode),
-        _bSaved(false)
+		_bSaved(false),
+		_devIOCamera(NULL)
 {
     #ifdef ELISE_Darwin
         setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -215,7 +216,12 @@ bool SaisieQtWindow::loadImages(const QStringList& filenames)
 
 bool SaisieQtWindow::loadCameras(const QStringList& filenames)
 {
-    cLoader *tmp = new cLoader();
+	if(_devIOCamera == NULL || _Engine->Loader() == NULL)
+		return false;
+
+	_Engine->Loader()->setDevIOCamera(_devIOCamera);
+
+	cLoader *tmp = _Engine->Loader();
     for (int i=0;i<filenames.size();++i)
     {
          if (!tmp->loadCamera(filenames[i]))
@@ -1546,14 +1552,24 @@ void SaisieQtWindow::undo(bool undo)
         emit undoSgnl(undo);
     }
 }
+deviceIOCamera* SaisieQtWindow::devIOCamera() const
+{
+	return _devIOCamera;
+}
+
+void SaisieQtWindow::setDevIOCamera(deviceIOCamera* devIOCamera)
+{
+	_devIOCamera = devIOCamera;
+}
+
 cParameters *SaisieQtWindow::params() const
 {
-    return _params;
+	return _params;
 }
 
 void SaisieQtWindow::setParams(cParameters *params)
 {
-    _params = params;
+	_params = params;
 }
 
 int SaisieQtWindow::appMode() const

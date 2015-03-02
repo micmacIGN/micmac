@@ -184,4 +184,66 @@ private slots:
     void                validateSelectedGlobalPoints();
 };
 
+
+
+class cCamHandlerElise : cCamHandler
+{
+public:
+	cCamHandlerElise(CamStenope *pCam) :
+		_Cam(pCam){
+
+	}
+
+	virtual void getCoins(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ)
+	{
+		_Cam->Coins(aP1, aP2, aP3, aP4, aZ);
+	}
+
+	virtual Pt3dr getCenter()
+	{
+		return _Cam->VraiOpticalCenter();
+	}
+
+private:
+
+	CamStenope *_Cam;
+};
+
+class deviceIOCameraElise : deviceIOCamera
+{
+
+
+public:
+
+	deviceIOCameraElise():_mnICNM(NULL){}
+
+	virtual cCamHandler*  loadCamera(QString aNameFile)
+	{
+		QFileInfo fi(aNameFile);
+
+		if(_mnICNM == NULL || _oldPathChantier != fi.dir())
+		{
+			_oldPathChantier = fi.dir();
+			string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
+			_mnICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
+
+			DUMP_LINE
+
+		}
+
+		cCamHandlerElise *camElise = new cCamHandlerElise(CamOrientGenFromFile(fi.fileName().toStdString(),_mnICNM, false));
+
+		// TODO delete 		anICNM???
+
+
+		return (cCamHandler*) camElise;
+	}
+
+private:
+
+	QDir							  _oldPathChantier;
+
+	cInterfChantierNameManipulateur * _mnICNM;
+};
+
 #endif // QT_INTERFACE_ELISE_H
