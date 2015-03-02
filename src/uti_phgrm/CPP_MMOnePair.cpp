@@ -107,7 +107,7 @@ class cMMOnePair
       bool              mHasVeget;
       bool              mSkyBackgGound;
       std::string       mMM1PMasq3D;
-	  bool				mUseGpu;
+      bool				mUseGpu;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -167,8 +167,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mNbCommand    (-1),
     mNameMasqFinal ("Masq_Etape_Last.tif"),
     mHasVeget       (false),
-	mSkyBackgGound  (true),
-	mUseGpu			(false)
+    mSkyBackgGound  (true),
+    mUseGpu			(false)
 {
   ElInitArgMain
   (
@@ -201,8 +201,10 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mHasVeget,"HasVeg",true,"Has vegetation, Def= false", eSAM_IsBool)
                     << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
                     << EAM(mMM1PMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
-					<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+                    << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
   );
+
+  if (MMVisualMode) return;
 
   mNoOri = (mNameOriInit=="NONE");
   if (mNoOri)
@@ -577,7 +579,7 @@ void cAppliMMOnePair::GenerateMTDEpip(bool MasterIs1)
             aNuage.Image_Profondeur().Val().Masq() =  mNameMasqFinal;
             aNuage.Image_Profondeur().Val().Correl().SetVal("Score-AR.tif");
        }
-       else 
+       else
             aNuage.Image_Profondeur().Val().Correl().SetNoInit();
 
        MakeFileXML(aNuage,aNameOut);
@@ -668,7 +670,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
      std::string aNameNew = aPref + "_Masq1_Glob.tif";
 
 
-    
+
 
 /*
      if (EAMIsInit(&mMasq3D))
@@ -764,7 +766,7 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " +DoOnlyXml="     + ToString(ForMTD)
                           + " +MMC="     + ToString(!ForMTD)
                           + " +NbProc=" + ToString(mMM1PInParal ? MMNbProc() : 1)
-						  + " +UseGpu=" + ToString(mUseGpu)
+                          + " +UseGpu=" + ToString(mUseGpu)
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
 
