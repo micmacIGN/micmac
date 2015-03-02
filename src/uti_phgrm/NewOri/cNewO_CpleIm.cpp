@@ -69,7 +69,7 @@ double cNewO_CpleIm::ExactCost(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2d
    Pt3dr aBase  = aRot.tr();
 
    ElSeg3D aS1(Pt3dr(0,0,0),aQ1);
-   ElSeg3D aS2(aBase,aQ2);
+   ElSeg3D aS2(aBase,aBase+aQ2);
 
    anI = aS1.PseudoInter(aS2);
 
@@ -108,6 +108,12 @@ double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 }
 
 
+double  cNewO_CpleIm::PixExactCost(const ElRotation3D & aRot,double aTetaMax) const
+{
+   return ExactCost(aRot,aTetaMax) * FocMoy();
+}
+
+
 Pt2dr cNewO_CpleIm::ToW(const Pt2dr & aP) const
 {
      return (aP-mP0W) *mScaleW;
@@ -126,6 +132,11 @@ void  cNewO_CpleIm::ClikIn()
    if (mW) mW->clik_in();
 }
 
+double cNewO_CpleIm::FocMoy() const
+{
+    double aF = 1/mI1->CS()->Focale() + 1/mI2->CS()->Focale();
+    return 2 / aF;
+}
 
 cNewO_CpleIm::cNewO_CpleIm
 (
@@ -176,7 +187,7 @@ cNewO_CpleIm::cNewO_CpleIm
    
    ShowPack(mPackPStd,P8COL::red,2.0);
    ShowPack(mPackStdRed,P8COL::blue,6.0);
-   ClikIn();
+   // ClikIn();
 
    InitVPairComp(mStCPairs,mPackPStd);
    InitVPairComp(mRedCPairs,mPackStdRed);
@@ -186,7 +197,7 @@ cNewO_CpleIm::cNewO_CpleIm
 
     if (mTestC2toC1)
     {
-        std::cout << " Cost sol ext : " << ExactCost(*mTestC2toC1,0.1) << "\n";
+        std::cout << " Cost sol ext : " << PixExactCost(*mTestC2toC1,0.1) << "\n";
     }
 
   // Test par Matrices essentielles 
@@ -194,10 +205,7 @@ cNewO_CpleIm::cNewO_CpleIm
     {
         ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackStdRed.MepRelPhysStd(1.0,false)) ;
         aR = aR.inv();
-        // std::cout << "For " << (aL2 ? "L2": "L1" )<< ", Mat Ess : " << ExactCost(aR,0.1) << "\n";
         AmelioreSolLinear(aR,(aL2 ? "L2 Ess": "L1 Ess" ));
-        // En L1 limiter le nombre de point a par ex 1000
-         // if (! aL2) TestCostLinExact(aR);
     }
 
 
@@ -351,6 +359,8 @@ void BenchNewFoncRot()
         std::cout << "Orth " << scal(aSeg.Tgt(),aV1)  << "Teta " << cos(aTeta) - scal(aV0,aV1)<< "\n";
     }
 }
+
+
 
 
 
