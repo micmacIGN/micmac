@@ -114,11 +114,11 @@ class cMesh
 
         void        write(const string & aOut, bool aBin, const string & textureFilename);
 
-        void        Export(set <unsigned int> const &triangles, int aK);
+        void        Export(string aOut, set <unsigned int> const &triangles);
 
 private:
 
-        void        checkTriangle(int id2, set<int>::const_iterator it, int aK);
+        void        checkTriangle(int id2, vector<int>::const_iterator it, int aK);
         void        checkEdgesForVertex(int id, int aK);
 
         vector <cVertex>	mVertexes;
@@ -141,15 +141,15 @@ class cVertex
                     ~cVertex();
 
         void		getPos(Pt3dr &pos){ pos = mPos; }
-        set<int>    getTriIdx() { return mTriIdx; }
-        void        addIdx(int id) { mTriIdx.insert(id); }
+        vector<int> *  getTriIdx() { return &mTriIdx; }
+        void        addIdx(int id) { if (find(mTriIdx.begin(), mTriIdx.end(), id) == mTriIdx.end()) mTriIdx.push_back(id); }
 
         bool    operator==( const cVertex & ) const;
 
     private:
 
-        Pt3dr		mPos;
-        set<int>    mTriIdx;
+        Pt3dr          mPos;
+        vector<int>    mTriIdx;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -193,7 +193,7 @@ class cTriangle
 
         vector <int>   getEdgesIndex() { return mTriEdges; }
         vector<cTriangle *> getNeighbours(); //renvoie les 3 voisins (par les arêtes)
-        set<int> getNeighbours2(); //renvoie les voisins par les sommets
+        vector<int> getNeighbours2(); //renvoie les voisins par les sommets
 
         void    setEdgeIndex(unsigned int pos, int val);
         void    setVertexIndex(unsigned int pos, int val);
@@ -206,7 +206,7 @@ class cTriangle
         void    setTextureCoordinates(const Pt2dr &p0, const Pt2dr &p1, const Pt2dr &p2);
         void    getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2);
 
-        bool    isTextured() { return mTextImIdx != -1; }
+        bool    isTextured() { return mTextImIdx != mDefTextImIdx; }
 
         bool    operator==( const cTriangle & ) const;
 

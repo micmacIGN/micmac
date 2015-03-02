@@ -64,7 +64,7 @@ class  cReadPts : public cReadObject
 
 int Export2Ply_main(int argc,char ** argv)
 {
-	MMD_InitArgcArgv(argc,argv,3);
+    MMD_InitArgcArgv(argc,argv,3);
 
     std::string NameFile,Out;
     bool Help;
@@ -95,23 +95,23 @@ int Export2Ply_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()  << EAMC(aStrType,"Format specification", eSAM_None, ListOfVal(eNbTypeApp))
-					<< EAMC(NameFile,"Name File of Points Coordinates", eSAM_IsExistFile),
+                    << EAMC(NameFile,"Name File of Points Coordinates", eSAM_IsExistFile),
         LArgMain()  << EAM(aRay,"Ray",false,"Plot a sphere per point")
-					<< EAM(aNbPts,"NbPts",true,"Number of Pts / direc (Def=5, give 1000 points) only with Ray > 0")
-					<< EAM(aScale, "Scale",true,"Scaling factor")
-					<< EAM(aCoul,"FixColor",true,"Fix the color of points")
-					<< EAM(aCoulLP,"LastPtColor",true,"Change color only for last point")
-					<< EAM(aDiffColor, "ChangeColor",false,"Change the color each number of points : not with FixColor")
-					<< EAM(Out, "Out",true, "Default value is NameFile.ply")
-					<< EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
+                    << EAM(aNbPts,"NbPts",true,"Number of Pts / direc (Def=5, give 1000 points) only with Ray > 0")
+                    << EAM(aScale, "Scale",true,"Scaling factor")
+                    << EAM(aCoul,"FixColor",true,"Fix the color of points")
+                    << EAM(aCoulLP,"LastPtColor",true,"Change color only for last point")
+                    << EAM(aDiffColor, "ChangeColor",false,"Change the color each number of points : not with FixColor")
+                    << EAM(Out, "Out",true, "Default value is NameFile.ply")
+                    << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
     );
-    
+
     char * aLine;
     int aCpt=0;
     std::vector<Pt3dr> aPoints;
     std::vector<Pt3dr> aVInc;
     std::vector<std::string> aVName;
-    
+
     if (!MMVisualMode)
     {
         std::string aFormat;
@@ -143,18 +143,18 @@ int Export2Ply_main(int argc,char ** argv)
             bool Ok = cReadObject::ReadFormat(aCom,aFormat,aStrType,false);
             ELISE_ASSERT(Ok,"Arg0 is not a valid format specif");
         }
-     
-		if (Out=="")
-		{
+
+        if (Out=="")
+        {
            Out =StdPrefixGen(NameFile) + ".ply";
-		}
+        }
 
 
-		if (aType==eAppXML)
-		{
-			if (Out==NameFile)
-				Out = "GCPOut_"+NameFile;
-				cDicoAppuisFlottant aD = StdGetObjFromFile<cDicoAppuisFlottant>
+        if (aType==eAppXML)
+        {
+            if (Out==NameFile)
+                Out = "GCPOut_"+NameFile;
+                cDicoAppuisFlottant aD = StdGetObjFromFile<cDicoAppuisFlottant>
                                      (
                                           NameFile,
                                           StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
@@ -205,146 +205,143 @@ int Export2Ply_main(int argc,char ** argv)
                      aVInc[aK] = aVInc[aK] * aMul;
             }
         }
-	
-	}
-	
-	ELISE_ASSERT((aRay >= 0) ,"The value of Ray should be positive");
-    
+
+    }
+
+    ELISE_ASSERT((aRay >= 0) ,"The value of Ray should be positive");
+
     ELISE_ASSERT((aNbPts >=0) , "The value of NbPts should be positive");
-    
+
     if(aNbPts != 5 && aRay==0)
     {
-		ELISE_ASSERT(aRay > 0, "Can't specify number of points without Ray of sphere > 0");
-	}
-	
-	if(aDiffColor !=0 && (aCoul.x != 255 || aCoul.y !=0 || aCoul.z !=0))
-	{
-		ELISE_ASSERT(aDiffColor ==0, "Can't fix and change color at the same time");
-	}
-	
-	if(aDiffColor > aPoints.size())
-	{
-		ELISE_ASSERT(aDiffColor < aPoints.size(), "Can't be superior to number of points in input");
-	}
-	
-	 //if we do not want to keep all points
+        ELISE_ASSERT(aRay > 0, "Can't specify number of points without Ray of sphere > 0");
+    }
+
+    if(aDiffColor !=0 && (aCoul.x != 255 || aCoul.y !=0 || aCoul.z !=0))
+    {
+        ELISE_ASSERT(aDiffColor ==0, "Can't fix and change color at the same time");
+    }
+
+    ELISE_ASSERT(aDiffColor < (int) aPoints.size(), "Can't be superior to number of points in input");
+
+     //if we do not want to keep all points
     if((int)aScale != 1)
     {
-		int aIndice=0;
-		int aSizeInit = aPoints.size();
-		std::vector<Pt3dr> cPoints;
-		std::vector<Pt3di> cVCol;
-		while(aIndice*aScale < aSizeInit)
-		{
-			cPoints.push_back(aPoints.at(aIndice*aScale));
-			cVCol.push_back(aVCol.at(aIndice*aScale));
-			aIndice++;
-		}
-		aPoints.clear();
-		aVCol.clear();
-		aPoints = cPoints;
-		aVCol = cVCol;
-	}
-	
-	//fix color of last point (if fix color is set, give the same color to last point)
-	if(aCoul.x != 255 || aCoul.y !=0 || aCoul.z != 0)
-	{
-		if(aCoulLP.x == 255 && aCoulLP.y == 0 && aCoulLP.z == 0)
-		{
-			aVCol.at(aVCol.size()-1) = aCoul;
-		}
-	}
-	else
-	{
-		aVCol.at(aVCol.size()-1) = aCoulLP;
-	}
+        int aIndice=0;
+        int aSizeInit = aPoints.size();
+        std::vector<Pt3dr> cPoints;
+        std::vector<Pt3di> cVCol;
+        while(aIndice*aScale < aSizeInit)
+        {
+            cPoints.push_back(aPoints.at(aIndice*aScale));
+            cVCol.push_back(aVCol.at(aIndice*aScale));
+            aIndice++;
+        }
+        aPoints.clear();
+        aVCol.clear();
+        aPoints = cPoints;
+        aVCol = cVCol;
+    }
 
-	std::vector<Pt3dr> aVpt;
-	std::vector<Pt3di> aVptCol;
-	std::list<std::string> aVCom;
+    //fix color of last point (if fix color is set, give the same color to last point)
+    if(aCoul.x != 255 || aCoul.y !=0 || aCoul.z != 0)
+    {
+        if(aCoulLP.x == 255 && aCoulLP.y == 0 && aCoulLP.z == 0)
+        {
+            aVCol.at(aVCol.size()-1) = aCoul;
+        }
+    }
+    else
+    {
+        aVCol.at(aVCol.size()-1) = aCoulLP;
+    }
+
+    std::vector<Pt3dr> aVpt;
+    std::vector<Pt3di> aVptCol;
+    std::list<std::string> aVCom;
     std::vector<const cElNuage3DMaille *> aVNuage;
-    
-	
-	std::cout << "fixed:\n" << std::fixed;
-	std::cout << aPoints.size() << std::endl;
-	for(uint i=0; i<aPoints.size(); i++)
-		std::cout << aPoints.at(i) << std::endl;
-		
-	std::cout << "**************debut*******************" << std::endl;
-	
-	//if we want to change color each "aDiffColor" time
-	int aMinValue = 0;
-	int aMaxValue = 255;
-	if((int)aDiffColor != 0)
-	{
-		for(unsigned int aSameColor=0 ; aSameColor < aPoints.size() ; aSameColor+=aDiffColor)
-		{
-			int aRandR = aMinValue + (rand() % (int)(aMaxValue - aMinValue + 1));
-			int aRandG = aMinValue + (rand() % (int)(aMaxValue - aMinValue + 1));
-			int aRandB = aMinValue + (rand() % (int)(aMaxValue - aMinValue + 1));
-			Pt3di aRandColor(aRandR,aRandG,aRandB);
-			
-			int aCompt=0;
-			for (int aPtsSC=0; aPtsSC < (int)aDiffColor ; aPtsSC++)
-			{
-				if(aPoints.size()-aSameColor < aDiffColor)
-				{
-					for (unsigned int aPtsL=0 ; aPtsL < aPoints.size()-aSameColor ; aPtsL++)
-					{
-						aVCol.at(aSameColor+aCompt) = aRandColor;
-					}
-					break;
-				}
-				else
-				{
-					aVCol.at(aSameColor+aCompt) = aRandColor;
-				}
-				aCompt++;
-			}
-		}
-	}
 
-	std::cout << "**************debut*******************" << std::endl;
-    
-    // if we want a sphere per point 
-	if(aRay > 0)
-	{
-		for(unsigned int aNbrPts=0; aNbrPts<aPoints.size(); aNbrPts++)
-		{
-			for (int anX=-aNbPts; anX<=aNbPts ; anX++)
-			{
-				for (int anY=-aNbPts; anY<=aNbPts ; anY++)
-				{
-					for (int aZ=-aNbPts; aZ<=aNbPts ; aZ++)
-					{
-						Pt3dr aP(anX,anY,aZ);
-						aP = aP * (aRay/aNbPts);
-						if (euclid(aP) <= aRay)
-						{
-							aVpt.push_back(aPoints.at(aNbrPts)+aP);
-							aVptCol.push_back(aVCol.at(aNbrPts));
-						}
-					}
-				}
-			}	
-		}
-		
-		cElNuage3DMaille::PlyPutFile
-		(
+
+    std::cout << "fixed:\n" << std::fixed;
+    std::cout << aPoints.size() << std::endl;
+    for(uint i=0; i<aPoints.size(); i++)
+        std::cout << aPoints.at(i) << std::endl;
+
+    std::cout << "**************debut*******************" << std::endl;
+
+    //if we want to change color each "aDiffColor" time
+    int aMinValue = 0;
+    int aMaxValue = 255;
+    if(aDiffColor != 0)
+    {
+        for(unsigned int aSameColor=0 ; aSameColor < aPoints.size() ; aSameColor+=aDiffColor)
+        {
+            int aRandR = aMinValue + (rand() % (int)(aMaxValue - aMinValue + 1));
+            int aRandG = aMinValue + (rand() % (int)(aMaxValue - aMinValue + 1));
+            int aRandB = aMinValue + (rand() % (int)(aMaxValue - aMinValue + 1));
+            Pt3di aRandColor(aRandR,aRandG,aRandB);
+
+            int aCompt=0;
+            for (int aPtsSC=0; aPtsSC < aDiffColor ; aPtsSC++)
+            {
+                if( aPoints.size()-aSameColor < (unsigned int) aDiffColor)
+                {
+                    for (unsigned int aPtsL=0 ; aPtsL < aPoints.size()-aSameColor ; aPtsL++)
+                    {
+                        aVCol.at(aSameColor+aCompt) = aRandColor;
+                    }
+                    break;
+                }
+                else
+                {
+                    aVCol.at(aSameColor+aCompt) = aRandColor;
+                }
+                aCompt++;
+            }
+        }
+    }
+
+    std::cout << "**************debut*******************" << std::endl;
+
+    // if we want a sphere per point
+    if(aRay > 0)
+    {
+        for(unsigned int aNbrPts=0; aNbrPts<aPoints.size(); aNbrPts++)
+        {
+            for (int anX=-aNbPts; anX<=aNbPts ; anX++)
+            {
+                for (int anY=-aNbPts; anY<=aNbPts ; anY++)
+                {
+                    for (int aZ=-aNbPts; aZ<=aNbPts ; aZ++)
+                    {
+                        Pt3dr aP(anX,anY,aZ);
+                        aP = aP * (aRay/aNbPts);
+                        if (euclid(aP) <= aRay)
+                        {
+                            aVpt.push_back(aPoints.at(aNbrPts)+aP);
+                            aVptCol.push_back(aVCol.at(aNbrPts));
+                        }
+                    }
+                }
+            }
+        }
+
+        cElNuage3DMaille::PlyPutFile
+        (
           Out,
           aVCom,
           aVNuage,
           &aVpt,
           &aVptCol,
           true
-		);
-	}
-	
-	
-		
-	else
-	{
-		cElNuage3DMaille::PlyPutFile
+        );
+    }
+
+
+
+    else
+    {
+        cElNuage3DMaille::PlyPutFile
     (
           Out,
           aVCom,
@@ -353,10 +350,10 @@ int Export2Ply_main(int argc,char ** argv)
           &aVCol,
           true
     );
-	}
-	
-    
-   
+    }
+
+
+
     return 1;
 }
 
