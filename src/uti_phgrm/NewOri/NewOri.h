@@ -163,6 +163,7 @@ class cNewO_CpleIm
           );
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
+          double PixExactCost(const ElRotation3D & aRot,double aTetaMax) const;
     private :
           
        //======== Amniguity ====
@@ -171,7 +172,7 @@ class cNewO_CpleIm
             ElRotation3D  SolOfAmbiguity(double aTeta);
 
             Pt3dr CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0);
-            Pt3dr OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0);
+            Pt3dr OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0,double & anErMoy);
             Pt2dr ToW(const Pt2dr & aP) const;
             void ShowPack(const ElPackHomologue & aPack,int aCoul,double aRay);
             void ClikIn();
@@ -192,6 +193,8 @@ class cNewO_CpleIm
 
           double ExactCost
                  (Pt3dr & anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
+
+          double FocMoy() const;
 
 
 
