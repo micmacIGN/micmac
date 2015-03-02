@@ -51,6 +51,8 @@ void  cNewO_CpleIm::CalcSegAmbig()
         aVX.push_back(anI.x);
         aVY.push_back(anI.y);
         aVZ.push_back(anI.z);
+
+// std::cout << "iiiiI " << anI << "\n";
     }
     mIA.x  = MedianeSup(aVX);
     mIA.y  = MedianeSup(aVY);
@@ -65,13 +67,11 @@ ElRotation3D  cNewO_CpleIm::SolOfAmbiguity(double aTeta)
 {
     
     ElMatrix<double> aMat = VectRotationArroundAxe(mDirAmbig,aTeta) * mBestSol.Mat();
-    CalcBaseOfRot(aMat,mBestSol.tr());
-    return ElRotation3D::Id;
+    Pt3dr aTr = CalcBaseOfRot(aMat,mBestSol.tr());
+
+    ElRotation3D aRes(aTr,aMat,true);
+    return aRes;
 }
-
-
-
-
 
 
 
@@ -84,7 +84,24 @@ void cNewO_CpleIm::CalcAmbig()
     }
 
     CalcSegAmbig();
-    SolOfAmbiguity(0.05);
+
+
+    if (mShow)
+    {
+       std::cout << "BOnH " << euclid(mIA)  << " " << euclid(mBestSol.tr()) << "\n";
+       for (int aK=-8 ; aK<=8 ; aK++)
+       {
+            double aTeta = 0.0006 * aK;
+            ElRotation3D aRes = SolOfAmbiguity(aTeta);
+            double aCost = PixExactCost(aRes,0.1);
+            std::cout << "Ambig " << aTeta 
+                      << " Cost " << aCost ;
+            if (mTestC2toC1) 
+               std::cout << " DRef " <<  DistRot(*mTestC2toC1,aRes) ;
+            // std::cout          << " Tr " << aRes.tr() ;
+            std::cout          << "\n";
+       }
+    }
 }
 
 
