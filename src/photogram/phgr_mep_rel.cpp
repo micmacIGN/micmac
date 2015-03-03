@@ -57,6 +57,7 @@ void ShowMatr(const char * mes, ElMatrix<REAL> aMatr)
 }
 
 
+
 // Resoudre par moindre L1  la matrice essentielle
 // dans le plan tangent a la sphere en aVect (ie le plan
 // orthogonal a aVect), le resultat est norme
@@ -1238,6 +1239,169 @@ ElMatrix<REAL> ElPackHomologue::MepRelCocentrique(int aNbRansac,int aNbMaxPts) c
 }
 
 
+/************************************************************/
+/*                                                          */
+/*                  cRansacMatriceEssentielle               */
+/*                                                          */
+/************************************************************/
+
+static const int NBTIRAGE = 1000;
+static const int NBMEILTIR  = 20;
+static const double PROPTIR  = 0.90;
+
+
+class cRansacMatriceEssentielle
+{
+     public :
+         cRansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed);
+
+     private :
+         void SelectK(int aK);
+         void OnTestMatE();
+
+         std::vector<Pt2dr> mVP1;
+         std::vector<Pt2dr> mVP2;
+         std::vector<double> mVPds;
+         std::vector<Pt2dr>  mRedVP1;
+         std::vector<Pt2dr>  mRedVP2;
+         std::vector<double> mRedVPds;
+         
+         std::vector<int>    mIndSelect;
+         std::vector<bool>   mIsSelected;
+         int                 mNbTot;
+         int                 mNbRed;
+         L2SysSurResol       mSys;
+
+         double              mCostBestTir;
+};
+
+void InitPackME
+     (  
+          std::vector<Pt2dr> & aVP1,
+          std::vector<Pt2dr>  &aVP2,
+          std::vector<double>  &aVPds,
+          const  ElPackHomologue & aPack
+     )
+{
+   for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+   {
+      aVP1.push_back(itP->P1());
+      aVP2.push_back(itP->P2());
+      aVPds.push_back(itP->Pds());
+   }
+}
+
+cRansacMatriceEssentielle::cRansacMatriceEssentielle(const ElPackHomologue & aPackFull,const ElPackHomologue & aPackRed)  :
+   mSys(8),
+   mCostBestTir (1e10)
+{
+   InitPackME(mVP1,mVP2,mVPds,aPackFull);
+   InitPackME(mRedVP1,mRedVP2,mRedVPds,aPackRed);
+   mNbTot = mVP1.size();
+   mNbRed = mRedVP1.size();
+   for (int aK=0 ; aK<mNbTot ; aK++)
+   {
+      mIsSelected.push_back(false);
+   }
+
+
+   for (int aNBTir=0 ; aNBTir < 1000 ; aNBTir++)
+   {
+        OnTestMatE();
+   }
+}
+
+void cRansacMatriceEssentielle::SelectK(int aNbSel)
+{
+     mIndSelect.clear();
+     for (int aK=0 ; aK<aNbSel ; aK++)
+     {
+          int aKSel = NRrandom3(mNbTot);
+          while (mIsSelected[aKSel]) aKSel = (1+aKSel)%mNbTot;
+          mIsSelected[aKSel] = true;
+          mIndSelect.push_back(aKSel);
+     }
+     for (int aK=0 ; aK<int(mIndSelect.size()) ; aK++)
+         mIsSelected[mIndSelect[aK]] = false;
+}
+
+double MatEssResidual(const Pt2dr & aP1,const Pt2dr & aP2,double * aCoeff)
+{
+   const double & x1 = aP1.x;
+   const double & y1 = aP1.y;
+   const double & x2 = aP2.x;
+   const double & y2 = aP2.y;
+
+   return   
+            aCoeff[0] * x1 * x2 
+          + aCoeff[1] * x1 * y2 
+          + aCoeff[2] * x1 *  1 
+          + aCoeff[3] * y1 * x2 
+          + aCoeff[4] * y1 * y2 
+          + aCoeff[5] * y1 *  1 
+          + aCoeff[6] *  1 * x2 
+          + aCoeff[7] *  1 * y2
+          +              1      ;
+
+}
+
+void  cRansacMatriceEssentielle::OnTestMatE()
+{
+     int aNb = 12 + NRrandom3(20);
+     aNb = ElMax(8,ElMin(aNb,round_ni(mNbTot*0.7)));
+
+     SelectK(aNb);
+     mSys.Reset();
+
+     double aCoeff[8];
+
+     for (int aCpt=0; aCpt<aNb ; aCpt++)
+     {
+         int aK = mIndSelect[aCpt];
+         const Pt2dr & aP1 = mVP1[aK];
+         const double & x1 = aP1.x;
+         const double & y1 = aP1.y;
+         const Pt2dr & aP2 = mVP2[aK];
+         const double & x2 = aP2.x;
+         const double & y2 = aP2.y;
+         const double & aPds = mVPds[aK];
+
+         aCoeff[0] = x1 * x2;
+         aCoeff[1] = x1 * y2;
+         aCoeff[2] = x1 *  1;
+
+         aCoeff[3] = y1 * x2;
+         aCoeff[4] = y1 * y2;
+         aCoeff[5] = y1 *  1;
+
+         aCoeff[6] =  1 * x2;
+         aCoeff[7] =  1 * y2;
+
+         mSys.AddEquation(aPds,aCoeff,-1.0);
+     }
+
+     bool Ok;
+     Im1D_REAL8  aSol = mSys.Solve(&Ok);
+     if (! Ok) return;
+     double * aDS = aSol.data();
+
+     std::vector<double> aVRes;
+
+     for (int aK=0 ; aK<mNbRed ; aK++)
+     {
+          aVRes.push_back(MatEssResidual(mRedVP1[aK],mRedVP2[aK],aDS));
+     }
+
+     double aCost =   KthValProp(aVRes,PROPTIR);
+
+     if (aCost < mCostBestTir)
+         mCostBestTir =  aCost;
+}
+
+
+void RansacMatriceEssentielle(const ElPackHomologue & aPack)
+{
+}
 
 /****************************************************************/
 /*                                                              */
