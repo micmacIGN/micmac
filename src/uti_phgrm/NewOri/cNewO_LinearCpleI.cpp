@@ -216,6 +216,31 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
          if (mTestC2toC1)
          {
             std::cout  << " D/Ref " <<   DistRot(*mTestC2toC1,aRot) << " Trans " << vunit(mTestC2toC1->tr()) << aRot.tr() << "\n";
+
+             // ElMatrix<double> aM = aRot.Mat() * mTestC2toC1->Mat().transpose() ;
+             ElMatrix<double> aM =  mTestC2toC1->Mat().transpose() *  aRot.Mat() ;
+
+             for (int aY=0 ; aY<3 ; aY++)
+             {
+                 printf("     ");
+                 for (int aX=0 ; aX<3 ; aX++)
+                 {
+                      printf("%5f " ,aM(aX,aY));
+                 }
+                 printf("\n");
+             }
+             printf("\n");
+             ElMatrix<double> aM2 = mTestC2toC1->Mat() ;
+             for (int aY=0 ; aY<3 ; aY++)
+             {
+                 printf("     ");
+                 for (int aX=0 ; aX<3 ; aX++)
+                 {
+                      printf("%5f " ,aM2(aX,aY));
+                 }
+                 printf("\n");
+             }        
+             printf("\n");
          }
          std::cout << "\n";
    }
