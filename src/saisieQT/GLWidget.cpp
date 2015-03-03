@@ -279,7 +279,9 @@ void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
     if (hasDataLoaded())
 	{
-       _matrixManager.setView(orientation,m_GLData->getPosition());
+	   _matrixManager.setView(orientation,m_GLData->getPosition());
+
+
 
 	}
 }
