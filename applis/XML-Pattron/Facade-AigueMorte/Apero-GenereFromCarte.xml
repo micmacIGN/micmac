@@ -1,0 +1,153 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+    PatCouloir="img_(2789|279[0-9]|2800|283[4-9]|284[0-2])_MpDcraw8B_GR.tif"
+>
+   <ParamApero>
+
+<!-- Raccord : 2787 (plafond)
+
+    PB = 2789-2800
+         
+         2834 2842
+                              <Im1>  F024_img_3737_MpDcraw8B_GR.tif </Im1>
+                              <Nuage> GeoI/NuageImProf_Geom-Im-3735_Etape_7.xml </Nuage>
+-->
+      <DicoLoc>
+          <KeyedNamesAssociations>
+              <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                     <PatternTransform>    F[0-9]{3}_img_(.*)_MpDcraw8B_GR.tif  </PatternTransform>
+                     <CalcName>  GeoI/NuageImProf_Geom-Im-$1_Etape_7.xml  </CalcName>
+                 </Direct>
+              </Calcs>
+              <Key>   Key-Assoc-Nuage2Im  </Key>
+          </KeyedNamesAssociations>
+      </DicoLoc>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_Orient>
+                  <Id>  IdOrInit </Id>
+                  <KeySet>    Key-Set-All-OrInit       </KeySet>
+                  <KeyAssoc> Key-Assoc-Im2OrInit  </KeyAssoc>
+             </BDD_Orient>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+               <CalibrationCameraInc>
+                   <Name> TheKeyCalib_024 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+                           <NameFile>   AutoCalDRad-Canon-024.xml  </NameFile>
+                           <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_100 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+                           <NameFile>   AutoCalDRad-Canon-100.xml </NameFile>
+                           <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+
+              <PoseCameraInc>
+	           <PatternName>  F(024)_${PrefixImages}${PatternNumero}${PostfixImagesDebay}\.${TifPost} </PatternName>
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>   F(100)_${PrefixImages}${PatternNumero}${PostfixImagesDebay}\.${TifPost} </PatternName>
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosId> toto </PosId>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+		    <SectionObservations>
+		    </SectionObservations>
+
+                   <SectionExport>
+
+<!--
+                       <ExportMesuresFromCarteProf>
+                          <Cartes2Export>
+                              <Im1>  F024_img_3735_MpDcraw8B_GR.tif </Im1>
+                              <Nuage> GeoI/NuageImProf_Geom-Im-3735_Etape_7.xml </Nuage>
+
+                              <ImN>  F024_img_3733_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3734_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3736_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3737_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3738_MpDcraw8B_GR.tif </ImN>
+
+                              <FilterIm2> F100.*  </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                          <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                          <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                          <LiaisonModeAdd> true </LiaisonModeAdd>
+                       </ExportMesuresFromCarteProf>
+-->
+                       <ExportMesuresFromCarteProf>
+                          <Cartes2Export>
+                              <Im1>  F024_img_3733_MpDcraw8B_GR.tif </Im1>
+                              <Im1>  F024_img_3735_MpDcraw8B_GR.tif </Im1>
+                              <Im1>  F024_img_3736_MpDcraw8B_GR.tif </Im1>
+                              <Im1>  F024_img_3737_MpDcraw8B_GR.tif </Im1>
+                              <Nuage>  Key-Assoc-Nuage2Im </Nuage>
+
+                              <ImN>  F024_img_3733_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3734_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3735_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3736_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3737_MpDcraw8B_GR.tif </ImN>
+                              <ImN>  F024_img_3738_MpDcraw8B_GR.tif </ImN>
+
+                              <FilterIm2> F100.*  </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn> Id_Pastis_Hom </IdBdLiaisonIn>
+                          <KeyAssocLiaisons12> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons12>
+                          <KeyAssocLiaisons21> Key-Assoc-CpleIm2HomolCarte </KeyAssocLiaisons21>
+                          <LiaisonModeAdd> true </LiaisonModeAdd>
+                       </ExportMesuresFromCarteProf>
+
+
+                   </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
