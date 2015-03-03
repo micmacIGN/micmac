@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+static double aSzW = 1200;
 
 /***********************************************************************/
 /*                                                                     */
@@ -61,16 +62,16 @@ void InitVPairComp(std::vector<cNOCompPair> & aV,const ElPackHomologue & aPackH)
 //
 //  Formule exacte et programmation simple et claire pour bench
 //
-double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
+double cNewO_CpleIm::ExactCost(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
 {
    Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
    Pt3dr aQ2 = aRot.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
    Pt3dr aBase  = aRot.tr();
 
    ElSeg3D aS1(Pt3dr(0,0,0),aQ1);
-   ElSeg3D aS2(aBase,aQ2);
+   ElSeg3D aS2(aBase,aBase+aQ2);
 
-   Pt3dr  anI = aS1.PseudoInter(aS2);
+   anI = aS1.PseudoInter(aS2);
 
    double d1 = aS1.DistDoite(anI);
    double d2 = aS2.DistDoite(anI);
@@ -94,11 +95,12 @@ double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
     double aSomPCost = 0;
     double aSomPds = 0;
+    Pt3dr anI;
 
     for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
     {
          double aPds = itP->Pds();
-         double aCost = ExactCost(aRot,itP->P1(),itP->P2(),aTetaMax);
+         double aCost = ExactCost(anI,aRot,itP->P1(),itP->P2(),aTetaMax);
          aSomPds += aPds;
          aSomPCost += aPds * aCost;
     }
@@ -106,6 +108,35 @@ double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 }
 
 
+double  cNewO_CpleIm::PixExactCost(const ElRotation3D & aRot,double aTetaMax) const
+{
+   return ExactCost(aRot,aTetaMax) * FocMoy();
+}
+
+
+Pt2dr cNewO_CpleIm::ToW(const Pt2dr & aP) const
+{
+     return (aP-mP0W) *mScaleW;
+}
+
+
+void cNewO_CpleIm::ShowPack(const ElPackHomologue & aPack,int aCoul,double aRay)
+{
+    if (! mW) return;
+    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+        mW->draw_circle_abs(ToW(itP->P1()),aRay,mW->pdisc()(aCoul));
+}
+
+void  cNewO_CpleIm::ClikIn()
+{
+   if (mW) mW->clik_in();
+}
+
+double cNewO_CpleIm::FocMoy() const
+{
+    double aF = 1/mI1->CS()->Focale() + 1/mI2->CS()->Focale();
+    return 2 / aF;
+}
 
 cNewO_CpleIm::cNewO_CpleIm
 (
@@ -121,18 +152,52 @@ cNewO_CpleIm::cNewO_CpleIm
    mTestC2toC1  (aTestedSol),
    mPackPDist   (ToStdPack(mMergePH,true,0.1)),
    mPackPStd    (ToStdPack(mMergePH,false,0.1)),
+   mPInfI1        (1e5,1e5),
+   mPSupI1        (-1e5,-1e5),
    mPackStdRed  (PackReduit(mPackPStd,1500,500)),
-   mSysLin      (5),
-   mShow        (aShow)
+   mSysLin5     (5),
+   mSysLin2     (2),
+   mSysLin3     (3),
+   mShow        (aShow),
+   mBestSol     (ElRotation3D::Id),
+   mCostBestSol (1e9),
+   mBestSolIsInit (false),
+   mSegAmbig      (Pt3dr(0,0,0),Pt3dr(1,1,1)),
+   mW             (0)
 {
+
+   for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
+   {
+         Pt2dr aP1 = itP->P1();
+         mPInfI1.SetInf(aP1);
+         mPSupI1.SetSup(aP1);
+   }
+
+   if (mShow)
+   {
+         double aRab = 0.02;
+         Pt2dr aSz = mPSupI1 - mPInfI1;
+         mP0W = mPInfI1 - aSz * aRab;
+         Pt2dr aP1W = mPSupI1 + aSz * aRab;
+         aSz = aP1W-mP0W;
+
+         mScaleW  = aSzW /ElMax(aSz.x,aSz.y) ;
+         mW = Video_Win::PtrWStd(round_ni(aSz*mScaleW));
+   }
+   
+   ShowPack(mPackPStd,P8COL::red,2.0);
+   ShowPack(mPackStdRed,P8COL::blue,6.0);
+   // ClikIn();
+
    InitVPairComp(mStCPairs,mPackPStd);
    InitVPairComp(mRedCPairs,mPackStdRed);
 
-    std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
+   if (mShow)
+      std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
 
     if (mTestC2toC1)
     {
-            std::cout << " Cost sol ext : " << ExactCost(*mTestC2toC1,0.1) << "\n";
+        std::cout << " Cost sol ext : " << PixExactCost(*mTestC2toC1,0.1) << "\n";
     }
 
   // Test par Matrices essentielles 
@@ -140,10 +205,7 @@ cNewO_CpleIm::cNewO_CpleIm
     {
         ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackStdRed.MepRelPhysStd(1.0,false)) ;
         aR = aR.inv();
-        // std::cout << "For " << (aL2 ? "L2": "L1" )<< ", Mat Ess : " << ExactCost(aR,0.1) << "\n";
-        AmelioreSolLinear(aR,mPackPStd,(aL2 ? "L2 Ess": "L1 Ess" ));
-        // En L1 limiter le nombre de point a par ex 1000
-         // if (! aL2) TestCostLinExact(aR);
+        AmelioreSolLinear(aR,(aL2 ? "L2 Ess": "L1 Ess" ));
     }
 
 
@@ -161,11 +223,26 @@ cNewO_CpleIm::cNewO_CpleIm
         aR = aR.inv();
         if ( itS->PhysOk())
         {
-            AmelioreSolLinear(aR,mPackPStd," Plane ");
+            AmelioreSolLinear(aR," Plane ");
             // std::cout << "SOL PLANE " << ExactCost(aR,0.1)   << "\n";
         }
     }
 
+    if (mShow)
+    {
+        if (mBestSolIsInit)
+        {
+           std::cout << "Cost " << ExactCost(mBestSol,0.1) << "\n";
+           if (mTestC2toC1)
+           {
+               std::cout << "Ref, Cost " << ExactCost(*mTestC2toC1,0.1) << " dist/Ref " << DistRot(*mTestC2toC1,mBestSol) <<  "\n";
+           }
+        }
+        else
+           std::cout << "NO BEST SOL\n";
+    }
+
+    // CalcAmbig();
 }
 
 
@@ -211,7 +288,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
                    <<  EAMC(mNameIm2,"Name Second Image"),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
                    << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference")
-                   << EAM(mShow,"OriTest",true,"Orientation for test to a reference")
+                   << EAM(mShow,"Show",true,"Orientation for test to a reference")
    );
 
 
@@ -252,7 +329,7 @@ void cNO_AppliOneCple::Show()
 extern void  Bench_NewOri();
 Pt3dr PRand() {return Pt3dr(NRrandC(),NRrandC(),NRrandC());}
 
-int TestNewOriImage_main(int argc,char ** argv)
+void BenchNewFoncRot()
 {
     for (int aK=0 ; aK< 0 ; aK++)
     {
@@ -263,6 +340,35 @@ int TestNewOriImage_main(int argc,char ** argv)
          std::cout << "Test Mxte " << scal(A,B^C) << " " << scal(C,A^B) << "\n";
           std::cout << "Test Mxte "  << ((B^ C) -( MatProVect(B) * C)) << "\n";
     }
+    for (int aK=0 ; aK< 0 ; aK++)
+    {
+        Pt3dr A=PRand();
+        Pt3dr B=PRand();
+        Pt3dr aC =PRand();
+
+        ElSeg3D aSeg(A,B);
+        Pt3dr aPC = aSeg.ProjOrtho(aC);
+
+        double aTeta = NRrandC();
+        ElRotation3D aR = AffinRotationArroundAxe(aSeg,aTeta);
+        Pt3dr aIC = aR.ImAff(aC);
+        Pt3dr  aV0 = vunit(aC-aPC);
+        Pt3dr  aV1 = vunit(aIC-aPC);
+        
+        std::cout << "INV " << euclid(A-aR.ImAff(A)) << " " << euclid(B-aR.ImAff(B)) << "\n";
+        std::cout << "Orth " << scal(aSeg.Tgt(),aV1)  << "Teta " << cos(aTeta) - scal(aV0,aV1)<< "\n";
+    }
+}
+
+
+
+
+
+int TestNewOriImage_main(int argc,char ** argv)
+{
+   std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
+
+   BenchNewFoncRot();
    // Bench_NewOri();
    cNO_AppliOneCple anAppli(argc,argv);
    anAppli.Show();

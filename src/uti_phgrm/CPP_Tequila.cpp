@@ -117,7 +117,6 @@ int Tequila_main(int argc,char ** argv)
     double aAngleMin = 60.f;
     bool aBin = true;
     std::string aMode = "Pack";
-    int aMaxIter = 0;
 
     bool debug = false;
     float defValZBuf = 1e9;
@@ -136,7 +135,6 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=70)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
-                            << EAM(aMaxIter,"FilterStep", true, "Border triangles filtering step (def = 0)")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -156,6 +154,9 @@ int Tequila_main(int argc,char ** argv)
     // If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
     StdCorrecNameOrient(aOri,aDir);
 
+    float threshold =  cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
+    //cout << "threshold=" << threshold << endl;
+
     std::vector<CamStenope*> ListCam;
 
     cout << endl;
@@ -172,9 +173,10 @@ int Tequila_main(int argc,char ** argv)
     cout<<"**************************Reading ply file***************************"<<endl;
     cout<<endl;
 
-    cMesh myMesh(aPly, aMode=="Pack");
+    cMesh myMesh(aPly, threshold, aMode=="Pack");
 
-    printf("Vertex number : %d - faces number : %d - edges number : %d\n\n", myMesh.getVertexNumber(), myMesh.getFacesNumber(), myMesh.getEdgesNumber());
+    const int nFaces = myMesh.getFacesNumber();
+    printf("Vertex number : %d - faces number : %d - edges number : %d\n\n", myMesh.getVertexNumber(), nFaces, myMesh.getEdgesNumber());
 
     cout<<"*************************Computing Z-Buffer**************************"<< endl;
     cout<< endl;
@@ -191,6 +193,10 @@ int Tequila_main(int argc,char ** argv)
 
         aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
 
+        aZBuffers.push_back(aZBuffer);
+
+        set <unsigned int> *vTri = aZBuffer.getVisibleTrianglesIndexes();
+
         if (debug)
         {
             std::stringstream ss  ;
@@ -199,83 +205,43 @@ int Tequila_main(int argc,char ** argv)
             aZBuffer.write(StdPrefix(*itS) + "_zbuf" + ss.str() + ".tif");
 
             aZBuffer.writeImLabel(StdPrefix(*itS) + "_label" + ss.str() + ".tif");
+
+            myMesh.Export(StdPrefix(*itS) + "export" + ss.str() + ".ply", *vTri);
         }
 
-        aZBuffers.push_back(aZBuffer);
-    }
-
-    cout << endl;
-    cout << "************************Choosing best image**************************" << endl;
-    cout << endl;
-
-    std::set <int> index; //liste des index de cameras utilisees
-    int valDef = cTriangle::getDefTextureImgIndex();
-
-    float threshold =  cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
-    //cout << "threshold=" << threshold << endl;
-
-    const int nFaces = myMesh.getFacesNumber();
-    for(int i=0 ; i < nFaces; i++)                            //Pour un triangle
-    {
-        float PScalcur = threshold;
-
-        int idx = valDef;
-        for(int j=0 ; j<nCam; j++) // on teste toutes les CamStenope
+        set <unsigned int>::const_iterator it = vTri->begin();
+        for (;it!=vTri->end();++it)
         {
-            set <unsigned int> *vTri = aZBuffers[j].getVisibleTrianglesIndexes();
+            cTriangle * Triangle = myMesh.getTriangle(*it);
 
-            if (vTri->find(i) != vTri->end())
+            double PScalnew = scal(Triangle->getNormale(true), ListCam[aK]->DirK());
+            //cout << "scal= " << PScalnew << endl;
+            if((PScalnew<Triangle->getScal()))        //On garde celle pour laquelle le PS est le plus fort
             {
-                cTriangle * Triangle = myMesh.getTriangle(i);
-
-                double PScalnew = scal(Triangle->getNormale(true), ListCam[j]->DirK());
-                //cout << "scal= " << PScalnew << endl;
-                if(PScalnew<PScalcur)        //On garde celle pour laquelle le PS est le plus fort
-                {
-                    PScalcur = PScalnew;
-
-                    Triangle->setTextureImgIndex(j);
-                    idx = j;
-                }
+                Triangle->setScal(PScalnew);
+                Triangle->setTextureImgIndex(aK);
             }
         }
-        if (idx != valDef) index.insert(idx);
     }
 
+    std::set <int> index; //liste des index de cameras utilisees
+
+    int valDef = cTriangle::getDefTextureImgIndex();
+
+    for (int aK=0;aK<nFaces; aK++)
+    {
+        int imgIdx = myMesh.getTriangle(aK)->getTextureImgIndex();
+        if(imgIdx != valDef) index.insert(imgIdx);
+    }
+
+    cout << endl;
     cout << "Selected images / total : " << index.size() << " / " << aLS.size() << endl;
 
     cout << endl;
     cout <<"********************Filtering border triangles***********************"<<endl;
     cout << endl;
 
-    int iter = 0;
-    bool cond = true;
-
-    while (cond && iter < aMaxIter)
-    {
-        //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
-        myMesh.clean();
-
-        //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
-
-        iter++;
-        cout << "round " << iter << endl;
-
-        if (iter!= aMaxIter)
-        {
-            cond = false;
-            const int nFaces = myMesh.getFacesNumber();
-            for (int aK=0; aK<nFaces;++aK)
-            {
-                cTriangle * triangle = myMesh.getTriangle(aK);
-                if (triangle->getEdgesNumber() < 3 && !triangle->isTextured())
-                {
-                    cond = true;
-                    break;
-                }
-            }
-        }
-    }
+    myMesh.clean();
 
     printf("\nVertex number : %d - faces number : %d \n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
@@ -285,7 +251,8 @@ int Tequila_main(int argc,char ** argv)
 
     vector <Im2D_REAL4> final_ZBufIm;
     cInterpolateurIm2D<REAL4> * pInterp = new cInterpolBilineaire<REAL4>;
-    for (std::set<int>::const_iterator it=index.begin(); it!=index.end(); ++it)
+    std::set <int>::const_iterator it = index.begin();
+    for (; it != index.end();it++)
     {
         int bK=0;
         for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++, bK++)
@@ -298,17 +265,17 @@ int Tequila_main(int argc,char ** argv)
                 {
                     Pt2di sz = aVT.back().sz();
                     Im2D_REAL4 * pIm = new Im2D_REAL4(sz.x,sz.y,defValZBuf);
-                    Im2D_REAL4 pZBuf = aZBuffers[*it].get();
+                    Im2D_REAL4 * pZBuf = aZBuffers[*it].get();
                     float **pImData = pIm->data();
 
                     for (int cK=0; cK < sz.x; cK++)
-                        for(int bK=0; bK < sz.y; bK++)
-                            pImData[bK][cK] = pZBuf.Get(Pt2dr(cK, bK) / aZBuffSSEch, *pInterp, defValZBuf);
+                        for(int dK=0; dK < sz.y; dK++)
+                            pImData[dK][cK] = pZBuf->Get(Pt2dr(cK, dK) / aZBuffSSEch, *pInterp, defValZBuf);
 
                     final_ZBufIm.push_back(*pIm);
                 }
                 else
-                    final_ZBufIm.push_back(aZBuffers[*it].get());
+                    final_ZBufIm.push_back(*(aZBuffers[*it].get()));
 
                 aSzMax.SetSup(aVT.back().sz());
                 aNbCh = ElMax(aNbCh,aVT.back().nb_chan());
@@ -320,7 +287,7 @@ int Tequila_main(int argc,char ** argv)
     if (aMode == "Pack")
     {
         cout << endl;
-        cout <<"*********************Getting adjacent triangles********************"<<endl;
+        cout <<"**********************Getting adjacent triangles*********************"<<endl;
         cout << endl;
 
         std::vector < cTextRect > regions = myMesh.getRegions();
@@ -378,7 +345,7 @@ int Tequila_main(int argc,char ** argv)
         }
 
         cout << endl;
-        cout <<"**************************Packing textures*************************"<<endl;
+        cout <<"***************************Packing textures**************************"<<endl;
         cout << endl;
 
         tp->setTextureCount(regions.size());
@@ -395,7 +362,7 @@ int Tequila_main(int argc,char ** argv)
         int unused_area = tp->packTextures(width, height, false, false);
 
         cout << "Packed width-height " << width << " " << height << endl;
-        cout << "Unused_area : " << unused_area << " = " << (float) unused_area/ (width*height) << "%" << endl;
+        cout << "Unused_area : " << unused_area << " pixels = " << (float) unused_area/ (width*height) << "%" << endl;
 
         float Scale = (float) aTextMaxSize / ElMax(width, height) ;
 
@@ -409,7 +376,7 @@ int Tequila_main(int argc,char ** argv)
         cout << "Final width-height " << final_width << " " << final_height << endl;
 
         cout << endl;
-        cout <<"**************************Writing texture**************************"<<endl;
+        cout <<"***************************Writing texture***************************"<<endl;
         cout << endl;
 
         Tiff_Im  nFileRes
@@ -513,6 +480,7 @@ int Tequila_main(int argc,char ** argv)
             //cout << "ty = " << ty << endl;
 
             //cout << "nb Triangles = " << regions[aK].size() << endl;
+
             const int nTriangles = regions[aK].triangles.size();
             for (int bK=0; bK < nTriangles;++bK)
             {

@@ -569,6 +569,10 @@ class cGenSysSurResol
          virtual void  SetElemQuad(int i,int j,const tSysCho& );
          virtual tSysCho  GetElemLin(int i) const;
          virtual void  SetElemLin(int i,const tSysCho& ) ;
+         virtual tSysCho SomQuad() const;
+
+          
+         virtual void LVM_Mul(const tSysCho& aLambda) ;  // Levenberg Marquad modif
 
 	 // Pour ces 4 Fon, Def, utilise GetElemQuad-GetElemLin
 

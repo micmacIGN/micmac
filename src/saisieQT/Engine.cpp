@@ -3,7 +3,9 @@
 cLoader::cLoader()
  : _FilenamesIn(),
    _FilenamesOut(),
-   _postFix("_Masq")
+   _postFix("_Masq"),
+   _devIOCamera(NULL),
+   _devIOImageAlter(NULL)
 {}
 
 
@@ -11,10 +13,30 @@ void cLoader::setPostFix(QString str)
 {
     _postFix = str;
 }
+deviceIOCamera* cLoader::devIOCamera() const
+{
+	return _devIOCamera;
+}
+
+void cLoader::setDevIOCamera(deviceIOCamera* devIOCamera)
+{
+	_devIOCamera = devIOCamera;
+}
+deviceIOImage* cLoader::devIOImageAlter() const
+{
+	return _devIOImageAlter;
+}
+
+void cLoader::setDevIOImageAlter(deviceIOImage* devIOImageAlter)
+{
+	_devIOImageAlter = devIOImageAlter;
+}
+
+
 
 GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 {
-    return GlCloud::loadPly( i_ply_file, incre );
+	return GlCloud::loadPly( i_ply_file, incre );
 }
 
 void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor)
@@ -59,57 +81,20 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
     // bug Qt non resolu
     // work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
 
-	if (maskedImg->_m_image->isNull())
+	if (maskedImg->_m_image->isNull() && _devIOImageAlter)
     {
-
-        Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
-
-        Pt2di aSz = aTF.sz();
-
-
 		delete maskedImg->_m_image;
-		//maskedImg->_m_image = new QImage(aSz.x, aSz.y, QImage::Format_RGB888);
-		QImage tempImageElIse(aSz.x, aSz.y,QImage::Format_RGB888);
 
-        Im2D_U_INT1  aImR(aSz.x,aSz.y);
-        Im2D_U_INT1  aImG(aSz.x,aSz.y);
-        Im2D_U_INT1  aImB(aSz.x,aSz.y);
-
-        ELISE_COPY
-        (
-           aTF.all_pts(),
-           aTF.in(),
-           Virgule(aImR.out(),aImG.out(),aImB.out())
-        );
-
-        U_INT1 ** aDataR = aImR.data();
-        U_INT1 ** aDataG = aImG.data();
-		U_INT1 ** aDataB = aImB.data();
-
-        for (int y=0; y<aSz.y; y++)
-        {
-            for (int x=0; x<aSz.x; x++)
-            {
-                QColor col(aDataR[y][x],aDataG[y][x],aDataB[y][x]);
-
-				tempImageElIse.setPixel(x,y,col.rgb());
-            }
-		}	
-
-		maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImageElIse ));
-
+		maskedImg->_m_image = _devIOImageAlter->loadImage(aNameFile);
     }
 	else
 	{
 		if(maskedImg->_m_image )
 			delete maskedImg->_m_image;
 
-
 		maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));
 
 	}
-
-
 
 	checkGeoref(aNameFile, maskedImg);
 
@@ -146,50 +131,24 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float 
 		maskedImg->_m_rescaled_mask = new QImage(reader.scaledSize(), QImage::Format_Mono);
 		QImage tempMask(reader.scaledSize(), QImage::Format_Mono);
 
-
-//        if (!reader.read(maskedImg->_m_mask))
-//		 if (!reader.read(&tempMask))
-//			tempMask = new QImage( aNameFile );
-
-		if (!reader.read(&tempMask) || tempMask.isNull())
+		if ((!reader.read(&tempMask) || tempMask.isNull()) && _devIOImageAlter)
         {
-            Tiff_Im imgMask( aNameFile.toStdString().c_str() );
 
-            if( imgMask.can_elise_use() )
-            {
-                int w = imgMask.sz().x;
-                int h = imgMask.sz().y;
+			maskedImg->_m_rescaled_mask = _devIOImageAlter->loadMask(aNameFile);
 
+			if(maskedImg->_m_rescaled_mask == NULL)
 
-				//delete maskedImg->_m_mask;
+				QMessageBox::critical(NULL, "cLoader::loadMask",QObject::tr("Cannot load mask image"));
 
-				maskedImg->_m_rescaled_mask = new QImage( w, h, QImage::Format_Mono);
-				maskedImg->_m_rescaled_mask->fill(0);
-
-                Im2D_Bits<1> aOut(w,h,1);
-                ELISE_COPY(imgMask.all_pts(),imgMask.in(),aOut.out());
-
-                for (int x=0;x< w;++x)
-                    for (int y=0; y<h;++y)
-                        if (aOut.get(x,y) == 1 )
-							maskedImg->_m_rescaled_mask->setPixel(x,y,1);
-
-				*(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
-            }
-            else
-            {
-                QMessageBox::critical(NULL, "cLoader::loadMask",QObject::tr("Cannot load mask image"));
-            }
         }
         else
-        {
-			//tempMask.invertPixels(QImage::InvertRgb);
+
 			*(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
-        }
+
     }
     else
     {
-		if(scaleFactor<1.f)
+		if(scaleFactor<1.f) // TODO Mask c'est quoi la différence ....
 		{
 			QImage tempMask(maskedImg->_m_rescaled_image->size(),QImage::Format_Mono);
 			maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
@@ -203,8 +162,6 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float 
 			tempMask.fill(Qt::white);
 			*(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
 		}
-
-//        maskedImg->_m_mask->fill(Qt::white);
     }
 }
 
@@ -268,19 +225,12 @@ void cLoader::setFilenameOut(QString str)
     _SelectionOut.push_back(fi.path() + QDir::separator() + fi.completeBaseName() + "_selectionInfo.xml");
 }
 
-CamStenope* cLoader::loadCamera(QString aNameFile)
+cCamHandler* cLoader::loadCamera(QString aNameFile)
 {
-    QFileInfo fi(aNameFile);
-    string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
-
-    #ifdef _DEBUG
-        cout << "DirChantier : " << DirChantier << endl;
-        cout << "filename : "    << aNameFile.toStdString() << endl;
-    #endif
-
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
-
-    return CamOrientGenFromFile(fi.fileName().toStdString(),anICNM, false);
+	if(_devIOCamera)
+		return _devIOCamera->loadCamera(aNameFile);
+	else
+		return NULL;
 }
 
 //****************************************
@@ -311,8 +261,9 @@ void cEngine::loadCameras(QStringList filenames, int *incre)
 {
     for (int i=0;i<filenames.size();++i)
     {
-         if (incre) *incre = 100.0f*(float)i/filenames.size();
-         CamStenope* cam = _Loader->loadCamera(filenames[i]);
+
+		 if (incre) *incre = 100.0f*(float)i/filenames.size();
+		 cCamHandler* cam = _Loader->loadCamera(filenames[i]);
          if (cam) _Data->addCamera(cam);
     }
 
@@ -335,12 +286,22 @@ bool cEngine::extGLIsSupported(const char* strExt)
     return (strstr((const char *)str, strExt) != NULL);
 #endif
 }
+cLoader* cEngine::Loader() const
+{
+	return _Loader;
+}
+
+void cEngine::setLoader(cLoader* Loader)
+{
+	_Loader = Loader;
+}
+
 
 void cEngine::loadImages(QStringList filenames, int* incre)
 {
 	float scaleFactor = computeScaleFactor(filenames);
 
-    for (int i=0;i<filenames.size();++i)
+	for (int i=0;i<filenames.size();++i)
     {
         if (incre) *incre = 100.0f*(float)i/filenames.size();
 		loadImage(filenames[i],scaleFactor);
@@ -380,7 +341,7 @@ void cEngine::addObject(cObject * aObj)
 {
     getData()->addObject(aObj);
 }
-
+/*
 void cEngine::do3DMasks()
 {
     CamStenope* pCam;
@@ -427,7 +388,7 @@ void cEngine::do3DMasks()
 #endif
     }
 }
-
+*/
 void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 {
 //    if (!isFirstAction)

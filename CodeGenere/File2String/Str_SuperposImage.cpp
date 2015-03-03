@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1315]) = {
+const char * (theNameVar_SuperposImage[1329]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1301,6 +1301,20 @@ const char * (theNameVar_SuperposImage[1315]) = {
 "        <EchRepP1 Nb=\"*\" Type=\"Pt3dr\" Container=\"std::vector\"> </EchRepP1>\n",
 "        <PRep Nb=\"1\" Type=\"Pt3dr\"> </PRep>\n",
 "   </XmlRHHResLnk>\n",
+"\n",
+"\n",
+"    <XMLSaveOriRel2Im  Nb=\"1\" ToReference=\"true\" Class=\"true\">\n",
+"        <!-- Rotation  :  P1 = C + R * P2, C est la base dans les coordonnes image 1 -->\n",
+"        <ParamRotation  Nb=\"1\"  RefType=\"RotationVect\"  RefFile=\"ParamChantierPhotogram.xml\">  </ParamRotation>\n",
+"        <Centre Nb=\"1\" Type=\"Pt3dr\"> </Centre>\n",
+"        <!-- Homographie P1 => P2 -->\n",
+"        <Homogr Nb=\"1\" RefType=\"XmlHomogr\"> </Homogr>\n",
+"        <BOnHRatio Nb=\"1\" Type=\"double\"> </BOnHRatio>\n",
+"        <!-- Fov experimental, calcules sur l'ellipse d'inertie -->\n",
+"        <FOVMin Nb=\"1\" Type=\"double\"> </FOVMin>\n",
+"        <FOVMax Nb=\"1\" Type=\"double\"> </FOVMax>\n",
+"    </XMLSaveOriRel2Im>\n",
+"\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
 "// };\n",

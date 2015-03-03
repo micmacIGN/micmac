@@ -37,107 +37,75 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "TpPPMD.h"
+#include "NewOri.h"
 
-
-/********************************************************************/
-/*                                                                  */
-/*         cTD_Camera                                               */
-/*                                                                  */
-/********************************************************************/
-
-cTD_Im::cTD_Im(int anX,int anY) :
-  mIm  (anX,anY,0.0),
-  mSz  (anX,anY),
-  mTIm (mIm)
+void  cNewO_CpleIm::CalcSegAmbig()
 {
-}
+    std::vector<double>  aVX;
+    std::vector<double>  aVY;
+    std::vector<double>  aVZ;
+    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
+    {
+        Pt3dr                anI;
+        ExactCost(anI,mBestSol,itP->P1(),itP->P2(),mBestErrStd);
+        aVX.push_back(anI.x);
+        aVY.push_back(anI.y);
+        aVZ.push_back(anI.z);
 
-cTD_Im cTD_Im::FromString(const std::string & aName)
-{
-   Tiff_Im aTF = Tiff_Im::StdConvGen(aName,-1,true);
-   Pt2di aSzIm = aTF.sz();
-   cTD_Im aRes(aSzIm.x,aSzIm.y);
+// std::cout << "iiiiI " << anI << "\n";
+    }
+    mIA.x  = MedianeSup(aVX);
+    mIA.y  = MedianeSup(aVY);
+    mIA.z  = MedianeSup(aVZ);
 
-   ELISE_COPY(aRes.mIm.all_pts(),aTF.in(),aRes.mIm.out());
-
-   return aRes;
-}
-
-void cTD_Im::Save(const std::string & aName)
-{
-    Tiff_Im  aTF
-             (
-                 aName.c_str(),
-                 mIm.sz(),
-                 GenIm::real4,
-                 Tiff_Im::No_Compr,
-                 Tiff_Im::BlackIsZero
-
-             );
-
-    ELISE_COPY(mIm.all_pts(),mIm.in(),aTF.out());
+    mDirAmbig =  vunit(mIA ^ mBestSol.tr());  // Le vecteur |_ au plan (0 , Base, Inter)
+    mSegAmbig = ElSeg3D(mIA,mIA+mDirAmbig);
 }
 
 
-void  cTD_Im::SaveRGB(const std::string & aName,cTD_Im & aI2,cTD_Im & aI3)
+ElRotation3D  cNewO_CpleIm::SolOfAmbiguity(double aTeta)
 {
-    Tiff_Im  aTF
-             (
-                 aName.c_str(),
-                 mIm.sz(),
-                 GenIm::real4,
-                 Tiff_Im::No_Compr,
-                 Tiff_Im::RGB
+    
+    ElMatrix<double> aMat = VectRotationArroundAxe(mDirAmbig,aTeta) * mBestSol.Mat();
+    Pt3dr aTr = CalcBaseOfRot(aMat,mBestSol.tr());
 
-             );
-
-    ELISE_COPY(mIm.all_pts(),Virgule(mIm.in(),aI2.mIm.in_proj(),aI3.mIm.in_proj()),aTF.out());
+    ElRotation3D aRes(aTr,aMat,true);
+    return aRes;
 }
 
 
-cTD_Im  cTD_Im::ImageMoy(int aSzW,int aNbIter)
+
+void cNewO_CpleIm::CalcAmbig()
 {
-   cTD_Im aRes(mSz.x,mSz.y);
+    if (! mBestSolIsInit) 
+    {
+        std::cout << "For Im " << mI1->Name() << " " << mI2->Name() << "\n";
+        ELISE_ASSERT(false,"No sol cNewO_CpleIm::CalcAmbig");
+    }
 
-   Fonc_Num aF = mIm.in_proj();
-   int aNbVois = ElSquare(1+2*aSzW);
-   for (int aK=0 ; aK<aNbIter ; aK++)
-       aF = rect_som(aF,aSzW) / aNbVois;
-   ELISE_COPY(mIm.all_pts(),aF,aRes.mIm.out());
-
-   return aRes;
-}
-
-cTD_Im  cTD_Im::ImageReduite(double aFact)
-{
-   Pt2di aSzR = round_up(Pt2dr(mSz)/aFact);
-
-   cTD_Im aRes(aSzR.x,aSzR.y);
+    CalcSegAmbig();
 
 
-    Fonc_Num aFIn = StdFoncChScale
-                 (
-                       mIm.in_proj(),
-                       Pt2dr(0,0),
-                       Pt2dr(aFact,aFact)
-                       // aDilXY
-                 );
-    ELISE_COPY(aRes.mIm.all_pts(),aFIn,aRes.mIm.out());
-
-
-
-   return aRes;
-
+    if (mShow)
+    {
+       std::cout << "BOnH " << euclid(mIA)  << " " << euclid(mBestSol.tr()) << "\n";
+       for (int aK=-8 ; aK<=8 ; aK++)
+       {
+            double aTeta = 0.0006 * aK;
+            ElRotation3D aRes = SolOfAmbiguity(aTeta);
+            double aCost = PixExactCost(aRes,0.1);
+            std::cout << "Ambig " << aTeta 
+                      << " Cost " << aCost ;
+            if (mTestC2toC1) 
+               std::cout << " DRef " <<  DistRot(*mTestC2toC1,aRes) ;
+            // std::cout          << " Tr " << aRes.tr() ;
+            std::cout          << "\n";
+       }
+    }
 }
 
 
-Pt2di cTD_Im::Sz() const 
-{
-   return mIm.sz();
-}
-
-
+//  (A^B) . C:
 
 
 

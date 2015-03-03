@@ -1129,6 +1129,34 @@ double ProfFromCam(const ElRotation3D & anOr,const Pt3dr & aP)
 
 }
 
+ElMatrix<REAL>  VectRotationArroundAxe(const Pt3dr & aV00,double aTeta)
+{
+  Pt3dr aV0 = aV00;
+  Pt3dr aV1,aV2;
+  MakeRONWith1Vect(aV0,aV1,aV2);
+
+  return ComplemRotation(aV0,aV1,aV0,aV1*cos(aTeta) + aV2*sin(aTeta));
+
+}
+
+ElRotation3D RotationOfInvariantPoint(const Pt3dr & aP0 ,const ElMatrix<double> & aMat)
+{
+    return ElRotation3D(aP0 - aMat*aP0,aMat,true);
+}
+
+ElRotation3D  AffinRotationArroundAxe(const ElSeg3D & aSeg,double aTeta)
+{
+    return RotationOfInvariantPoint(aSeg.P0(), VectRotationArroundAxe(aSeg.Tgt(),aTeta));
+}
+
+
+/*
+ElMatrix<REAL>  VectRotationArroundAxe(const Pt3dr &,double aTeta);
+ElRotation3D  AffinRotationArroundAxe(const ElSeg3D &,double aTeta);
+ElRotation3D RotationOfInvariantPoint(const Pt3dr & ,const ElMatrix<double> &);
+*/
+
+
 //  Q1 = tr1 + Mat1 * aP1
 //  X2 = S2toS1(X1) = S2.FromSys2This(S1,X1)
 //  X1 = S1.FromSys2This(S2,X2)

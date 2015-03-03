@@ -443,6 +443,25 @@ void cGenSysSurResol::VerifGSS(const std::string & aMes)
    ELISE_ASSERT(false,"cGenSysSurResol::VerifGSS");
 }
 
+tSysCho cGenSysSurResol::SomQuad() const
+{
+   tSysCho aRes = 0;
+   for (int aKx=0 ; aKx<NbVar(); aKx++)
+   {
+       for (int aKy=0 ; aKy<NbVar(); aKy++)
+       {
+           aRes = ElSquare(GetElemQuad(aKx,aKy));
+       }
+   }
+   return aRes;
+}
+
+void cGenSysSurResol::LVM_Mul(const tSysCho& aLambda) 
+{
+   for (int aKx=0 ; aKx<NbVar(); aKx++)
+        SetElemQuad(aKx,aKx,(1+aLambda)*GetElemQuad(aKx,aKx));
+}
+
 
   //    In-Out / partie lineaire
 

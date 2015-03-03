@@ -259,10 +259,19 @@ class cBBox : public cObjectGL
         Pt3dr   _max;
 };
 
-class cCam : public cObjectGL
+class cCamHandler
+{
+public:
+	virtual void getCoins(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ) = 0;
+
+	virtual Pt3dr getCenter() = 0;
+};
+
+
+class cCamGL : public cObjectGL
 {
     public:
-        cCam(CamStenope *pCam, float scale, object_state state = state_default, float lineWidth = 1.f);
+		cCamGL(cCamHandler *pCam, float scale, object_state state = state_default, float lineWidth = 1.f);
 
         void    draw();
 
@@ -271,7 +280,7 @@ class cCam : public cObjectGL
     private:
         float   _pointSize;
 
-        CamStenope *_Cam;
+		cCamHandler *_Cam;
 };
 
 class cPolygonHelper;

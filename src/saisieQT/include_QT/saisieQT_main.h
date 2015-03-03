@@ -3,7 +3,6 @@
 
 #include "QT_interface_Elise.h"
 
-
 using namespace std;
 
 void updateSettings(QSettings &settings, Pt2di aSzWin, Pt2di aNbFen, bool aForceGray);

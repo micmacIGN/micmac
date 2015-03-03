@@ -23,7 +23,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _zoomLayout(new QGridLayout),
         _params(new cParameters),
         _appMode(mode),
-        _bSaved(false)
+		_bSaved(false),
+		_devIOCamera(NULL)
 {
     #ifdef ELISE_Darwin
         setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -215,7 +216,12 @@ bool SaisieQtWindow::loadImages(const QStringList& filenames)
 
 bool SaisieQtWindow::loadCameras(const QStringList& filenames)
 {
-    cLoader *tmp = new cLoader();
+	if(_devIOCamera == NULL || _Engine->Loader() == NULL)
+		return false;
+
+	_Engine->Loader()->setDevIOCamera(_devIOCamera);
+
+	cLoader *tmp = _Engine->Loader();
     for (int i=0;i<filenames.size();++i)
     {
          if (!tmp->loadCamera(filenames[i]))
@@ -722,6 +728,17 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
 {
 //    if(check)
 //        qDebug() << "Rules";
+
+//	  setEnabled(false);
+//	  QString program = "mm3d";
+//	  QStringList arguments;
+//	  arguments << "vMalt";
+
+//	  QProcess *myProcess = new QProcess(this);
+
+//	  myProcess->waitForFinished(-1);
+//	  myProcess->start(program, arguments);
+	  //setEnabled(true);
 }
 
 void SaisieQtWindow::resizeEvent(QResizeEvent *)
@@ -1224,7 +1241,7 @@ void SaisieQtWindow::setUI()
 	_ui->tableView_Objects->close();
 
     //TEMP:
-    hideAction(_ui->menuTools->menuAction(), false);
+	hideAction(_ui->menuTools->menuAction(), false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
@@ -1535,14 +1552,34 @@ void SaisieQtWindow::undo(bool undo)
         emit undoSgnl(undo);
     }
 }
+deviceIOImage* SaisieQtWindow::devIOImage() const
+{
+	return _Engine->Loader()->devIOImageAlter();
+}
+
+void SaisieQtWindow::setDevIOImage(deviceIOImage* devIOImage)
+{
+	_Engine->Loader()->setDevIOImageAlter(devIOImage);
+}
+
+deviceIOCamera* SaisieQtWindow::devIOCamera() const
+{
+	return _devIOCamera;
+}
+
+void SaisieQtWindow::setDevIOCamera(deviceIOCamera* devIOCamera)
+{
+	_devIOCamera = devIOCamera;
+}
+
 cParameters *SaisieQtWindow::params() const
 {
-    return _params;
+	return _params;
 }
 
 void SaisieQtWindow::setParams(cParameters *params)
 {
-    _params = params;
+	_params = params;
 }
 
 int SaisieQtWindow::appMode() const

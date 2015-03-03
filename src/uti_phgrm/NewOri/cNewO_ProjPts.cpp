@@ -534,15 +534,6 @@ struct cCdtPckR
          bool   mTaken;
 };
 
-static Pt2dr aP0W(1e5,1e5);
-static Pt2dr aP1W(-1e5,-1e5);
-static double aScaleW=0;
-
-static Pt2dr ToW(const Pt2dr & aP)
-{
-    return (aP-aP0W) *aScaleW;
-}
-
 
 
 ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aNbFin)
@@ -566,8 +557,6 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aN
                aVPres.push_back(aPair);
                Pt2dr aP1 = aPair.mP1;
                aMat.add_pt_en_place(aP1.x,aP1.y);
-               aP0W.SetInf(aP1);
-               aP1W.SetSup(aP1);
             }
        }
     }
@@ -577,18 +566,6 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aN
     double aSurfType  =  sqrt (aMat.s11()* aMat.s22() - ElSquare(aMat.s12()));
     double aDistType = sqrt(aSurfType/aNbSomTot);
 
-    double aSzW = 1200;
-    Video_Win * aW = 0;
-    if (0)
-    {
-         Pt2dr aSz = aP1W-aP0W;
-         aP0W = aP0W - aSz * 0.1;
-         aP1W = aP1W + aSz * 0.1;
-         aSz = aP1W-aP0W;
-
-         aScaleW  = aSzW /ElMax(aSz.x,aSz.y) ;
-         aW = Video_Win::PtrWStd(round_ni(aSz*aScaleW));
-    }
 
 
     //------------------------------------------------------------------------
@@ -607,8 +584,6 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aN
            aVPres[aKS1].mPdsOccup += aPds;
            aVPres[aKS2].mPdsOccup += aPds;
         }
-        if (aW)
-            aW->draw_circle_abs(ToW( aVPres[aKS1].mP1),3.0,aW->pdisc()(P8COL::blue));
     }
     for (int aKSom = 0 ; aKSom <aNbSomTot ; aKSom++)
     {
@@ -650,8 +625,6 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aN
          aRes.Cple_Add(aCple);
 
          // mVCdtSel.push_back(aBest);
-         if (aW)
-            aW->draw_circle_abs(ToW( aBest->mP1),5.0,aW->pdisc()(P8COL::red));
     }
 
 

@@ -129,6 +129,7 @@ class cTD_Im
 
 
         void Save(const std::string &);
+        void SaveRGB(const std::string &,cTD_Im &,cTD_Im &);
 
         float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
 

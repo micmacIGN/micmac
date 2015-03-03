@@ -97,7 +97,7 @@ void cGLData::setData(cData *data, bool setCam, int centerType	)
     if(setCam)
         for (int i=0; i< data->getNbCameras(); i++)
         {
-            cCam *pCam = new cCam(data->getCamera(i), sc);
+			cCamGL *pCam = new cCamGL(data->getCamera(i), sc);
 
             _vCams.push_back(pCam);
         }

@@ -2,10 +2,10 @@
 
 #if (ELISE_QT_VERSION >= 4)
 
-static int IntMin = -1000000;
-static int IntMax =  1000000;
-static double DoubleMin = -1000000.;
-static double DoubleMax =  1000000.;
+static int IntMin = -1e9;
+static int IntMax =  1e9;
+static double DoubleMin = -1e10;
+static double DoubleMax =  1e10;
 
 bool isFirstArgMalt(string val)
 {
@@ -131,7 +131,7 @@ void visual_MainWindow::moveArgs(vector<cMMSpecArg> &aVAM, vector<cMMSpecArg> &a
     //set minimum width
     if  (toolBox != NULL)
     {
-        if (bHasBox2D) toolBox->setMinimumWidth(670);
+		if (bHasBox2D) toolBox->setMinimumWidth(800);
         else toolBox->setMinimumWidth(470);
     }
 
@@ -519,8 +519,24 @@ void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
     if (filename != NULL)
     {
         setLastDir(filename);
+		_curIdx = aK;
 
-        _SaisieWin->resize(800,600);
+		cInputs* aIn = vInputs[aK];
+
+		_m_FileOriMnt.NameFileMnt() = "";
+
+		if(aIn->Type() == eIT_DoubleSpinBox)
+		{
+			QString nameARG = (aIn->Arg().NameArg().c_str());
+			checkGeoref(filename);
+			if (_m_FileOriMnt.NameFileMnt() == "" && (nameARG==QString("BoxTerrain")))
+			{
+				QMessageBox::critical(this, tr("Error"), tr("No xlm file ori mnt"));
+				//return;
+			}
+		}
+
+		_SaisieWin->resize(800,600);
         _SaisieWin->move(200,200);
         _SaisieWin->show();
 
@@ -534,13 +550,9 @@ void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
 
         connect(_SaisieWin,SIGNAL(sgnClose()), this, SLOT(onSaisieQtWindowClosed()));
 
-        _curIdx = aK;
-
-        cInputs* aIn = vInputs[aK];
-
         if(aIn->Type() == eIT_DoubleSpinBox)
         {
-            connect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(double)));
+			connect(this,SIGNAL(newX0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[0].second), SLOT(setValue(double)));
             connect(this,SIGNAL(newY0Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[1].second), SLOT(setValue(double)));
             connect(this,SIGNAL(newX1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[2].second), SLOT(setValue(double)));
             connect(this,SIGNAL(newY1Position(double)),(QDoubleSpinBox*)(aIn->Widgets()[3].second), SLOT(setValue(double)));
@@ -555,6 +567,47 @@ void visual_MainWindow::onSaisieButtonPressed(int aK, bool normalize)
     }
 }
 
+void visual_MainWindow::checkGeoref(QString aNameFile)
+{
+
+	QFileInfo fi(aNameFile);
+	QString suffix = fi.suffix();
+	QString xmlFile = fi.absolutePath() + QDir::separator() + fi.baseName() + ".xml";
+
+	if ((suffix == "tif") && (QFile(xmlFile).exists()))
+	{
+		std::string aNameTif = aNameFile.toStdString();
+
+		_m_FileOriMnt =  StdGetObjFromFile<cFileOriMnt>
+						 (
+							 StdPrefix(aNameTif)+".xml",
+							 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+							 "FileOriMnt",
+							 "FileOriMnt"
+							 );
+	}
+
+}
+
+const QVector<QPointF> visual_MainWindow::transfoTerrain(QVector<QPointF> res)
+{
+
+
+	if (_m_FileOriMnt.NameFileMnt() != "")
+	{
+		QVector<QPointF> resTerrain;
+		for (int aK=0; aK < res.size(); ++aK)
+		{
+			Pt2dr ptImage(res[aK].x(), res[aK].y());
+			Pt2dr ptTerrain = ToMnt(_m_FileOriMnt, ptImage);
+			resTerrain.push_back(QPointF(ptTerrain.x, ptTerrain.y));
+		}
+		return resTerrain;
+	}
+	else
+		return res;
+}
+
 void visual_MainWindow::_adjustSize(int)
 {
     adjustSize();
@@ -562,12 +615,14 @@ void visual_MainWindow::_adjustSize(int)
 
 void visual_MainWindow::onRectanglePositionChanged(QVector<QPointF> points)
 {
+	QVector<QPointF> pointsTerrain =  transfoTerrain(points);
+
     QPointF minPt(1e9,1e9);
     QPointF maxPt(0,0);
 
-    for (int i = 0; i < points.size(); ++i) {
+	for (int i = 0; i < pointsTerrain.size(); ++i) {
 
-        QPointF pt = points[i];
+		QPointF pt = pointsTerrain[i];
 
         if(pt.x()<minPt.x())minPt.setX(pt.x());
         if(pt.y()<minPt.y())minPt.setY(pt.y());
@@ -746,7 +801,7 @@ QDoubleSpinBox * visual_MainWindow::create_1d_SpinBox(QGridLayout *layout, QWidg
     QDoubleSpinBox *aSpinBox = new QDoubleSpinBox(parent);
     layout->addWidget(aSpinBox,aK, bK);
 
-    aSpinBox->setRange(DoubleMin, DoubleMax);
+	aSpinBox->setRange(DoubleMin, DoubleMax);
 
     return aSpinBox;
 }
@@ -758,7 +813,7 @@ QSpinBox * visual_MainWindow::create_1i_SpinBox(QGridLayout *layout, QWidget *pa
 
     //aSpinBox->setRange(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
     // a ne pas utiliser car ça crée des spinbox immenses...
-    aSpinBox->setRange(IntMin, IntMax);
+	aSpinBox->setRange(IntMin, IntMax);
 
     return aSpinBox;
 }
@@ -924,13 +979,13 @@ void visual_MainWindow::set_argv_recup(string argv)
 
 void visual_MainWindow::resizeEvent(QResizeEvent *)
 {
-    QDesktopWidget* m = qApp->desktop();
-    QRect desk_rect = m->screenGeometry(m->screenNumber(QCursor::pos()));
+	QDesktopWidget* m = qApp->desktop();
+	QRect desk_rect = m->screenGeometry(m->screenNumber(QCursor::pos()));
 
-    int desk_x = desk_rect.width();
-    int desk_y = desk_rect.height();
+	int desk_x = desk_rect.width();
+	int desk_y = desk_rect.height();
 
-    move(desk_x / 2 - width() / 2 + desk_rect.left(), desk_y / 2 - height() / 2 + desk_rect.top());
+	move(desk_x / 2 - width() / 2 + desk_rect.left(), desk_y / 2 - height() / 2 + desk_rect.top());
 }
 
 void visual_MainWindow::closeEvent(QCloseEvent *)
