@@ -198,6 +198,10 @@ cNewO_CpleIm::cNewO_CpleIm
     if (mTestC2toC1)
     {
         std::cout << " Cost sol ext : " << PixExactCost(*mTestC2toC1,0.1) << "\n";
+
+        AmelioreSolLinear((*mTestC2toC1),"Refer " );
+        ElRotation3D aR2(-mTestC2toC1->tr(),mTestC2toC1->Mat(),true);
+        AmelioreSolLinear(aR2,"Ref Inv");
     }
 
   // Test par Matrices essentielles 
