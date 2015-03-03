@@ -1,4 +1,6 @@
 #include "cgldata.h"
+#include <limits>
+
 
 
 void cGLData::setOptionPolygons(cParameters aParams)

@@ -1,4 +1,5 @@
 #include "Data.h"
+#include <limits>
 
 cData::cData()
 {
