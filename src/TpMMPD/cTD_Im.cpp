@@ -79,6 +79,23 @@ void cTD_Im::Save(const std::string & aName)
     ELISE_COPY(mIm.all_pts(),mIm.in(),aTF.out());
 }
 
+
+void  cTD_Im::SaveRGB(const std::string & aName,cTD_Im & aI2,cTD_Im & aI3)
+{
+    Tiff_Im  aTF
+             (
+                 aName.c_str(),
+                 mIm.sz(),
+                 GenIm::real4,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::RGB
+
+             );
+
+    ELISE_COPY(mIm.all_pts(),Virgule(mIm.in(),aI2.mIm.in_proj(),aI3.mIm.in_proj()),aTF.out());
+}
+
+
 cTD_Im  cTD_Im::ImageMoy(int aSzW,int aNbIter)
 {
    cTD_Im aRes(mSz.x,mSz.y);

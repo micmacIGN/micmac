@@ -117,7 +117,6 @@ int Tequila_main(int argc,char ** argv)
     double aAngleMin = 60.f;
     bool aBin = true;
     std::string aMode = "Pack";
-    int aMaxIter = 0;
 
     bool debug = false;
     float defValZBuf = 1e9;
@@ -136,7 +135,6 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=70)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
-                            << EAM(aMaxIter,"FilterStep", true, "Border triangles filtering step (def = 0)")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -195,6 +193,10 @@ int Tequila_main(int argc,char ** argv)
 
         aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
 
+        aZBuffers.push_back(aZBuffer);
+
+        set <unsigned int> *vTri = aZBuffer.getVisibleTrianglesIndexes();
+
         if (debug)
         {
             std::stringstream ss  ;
@@ -203,13 +205,9 @@ int Tequila_main(int argc,char ** argv)
             aZBuffer.write(StdPrefix(*itS) + "_zbuf" + ss.str() + ".tif");
 
             aZBuffer.writeImLabel(StdPrefix(*itS) + "_label" + ss.str() + ".tif");
+
+            myMesh.Export(StdPrefix(*itS) + "export" + ss.str() + ".ply", *vTri);
         }
-
-        aZBuffers.push_back(aZBuffer);
-
-        set <unsigned int> *vTri = aZBuffer.getVisibleTrianglesIndexes();
-
-        //myMesh.Export(*vTri, aK); //Tmp
 
         set <unsigned int>::const_iterator it = vTri->begin();
         for (;it!=vTri->end();++it)
@@ -236,40 +234,14 @@ int Tequila_main(int argc,char ** argv)
         if(imgIdx != valDef) index.insert(imgIdx);
     }
 
+    cout << endl;
     cout << "Selected images / total : " << index.size() << " / " << aLS.size() << endl;
 
     cout << endl;
     cout <<"********************Filtering border triangles***********************"<<endl;
     cout << endl;
 
-    int iter = 0;
-    bool cond = true;
-
-    while (cond && iter < aMaxIter)
-    {
-        //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
-        myMesh.clean();
-
-        //cout << "myMesh.getFacesNb " << myMesh.getFacesNumber() << endl;
-
-        iter++;
-        cout << "round " << iter << endl;
-
-        if (iter!= aMaxIter)
-        {
-            cond = false;
-            const int nFaces = myMesh.getFacesNumber();
-            for (int aK=0; aK<nFaces;++aK)
-            {
-                cTriangle * triangle = myMesh.getTriangle(aK);
-                if (triangle->getEdgesNumber() < 3 && !triangle->isTextured())
-                {
-                    cond = true;
-                    break;
-                }
-            }
-        }
-    }
+    myMesh.clean();
 
     printf("\nVertex number : %d - faces number : %d \n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
@@ -373,7 +345,7 @@ int Tequila_main(int argc,char ** argv)
         }
 
         cout << endl;
-        cout <<"**************************Packing textures*************************"<<endl;
+        cout <<"***************************Packing textures**************************"<<endl;
         cout << endl;
 
         tp->setTextureCount(regions.size());
@@ -390,7 +362,7 @@ int Tequila_main(int argc,char ** argv)
         int unused_area = tp->packTextures(width, height, false, false);
 
         cout << "Packed width-height " << width << " " << height << endl;
-        cout << "Unused_area : " << unused_area << " = " << (float) unused_area/ (width*height) << "%" << endl;
+        cout << "Unused_area : " << unused_area << " pixels = " << (float) unused_area/ (width*height) << "%" << endl;
 
         float Scale = (float) aTextMaxSize / ElMax(width, height) ;
 
@@ -404,7 +376,7 @@ int Tequila_main(int argc,char ** argv)
         cout << "Final width-height " << final_width << " " << final_height << endl;
 
         cout << endl;
-        cout <<"**************************Writing texture**************************"<<endl;
+        cout <<"***************************Writing texture***************************"<<endl;
         cout << endl;
 
         Tiff_Im  nFileRes

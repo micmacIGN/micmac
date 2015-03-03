@@ -456,6 +456,12 @@ tSysCho cGenSysSurResol::SomQuad() const
    return aRes;
 }
 
+void cGenSysSurResol::LVM_Mul(const tSysCho& aLambda) 
+{
+   for (int aKx=0 ; aKx<NbVar(); aKx++)
+        SetElemQuad(aKx,aKx,(1+aLambda)*GetElemQuad(aKx,aKx));
+}
+
 
   //    In-Out / partie lineaire
 

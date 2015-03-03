@@ -39,90 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 #include "hassan/reechantillonnage.h"
-
-class RPC
-{
-public:
-	//Elements of RPC
-	std::vector<double> direct_line_num_coef;
-	std::vector<double> direct_line_den_coef;
-	std::vector<double> direct_samp_num_coef;
-	std::vector<double> direct_samp_den_coef;
-	std::vector<double> indirect_line_num_coef;
-	std::vector<double> indirect_line_den_coef;
-	std::vector<double> indirect_samp_num_coef;
-	std::vector<double> indirect_samp_den_coef;
-	//Offsets and scale for inverse RPC
-	double lat_off, lat_scale, long_off, long_scale, height_off, height_scale;
-	//Offsets and scale for direct RPC
-	double line_off, line_scale, samp_off, samp_scale;
-
-	//Boundaries of RPC validity for image space
-	double first_row, first_col, last_row, last_col;
-	//Boundaries of RPC validity for geo space
-	double first_lon, first_lat, first_height, last_lon, last_lat, last_height;
-
-	//Errors indicated in DIMAP files
-/*
-      MPD -> in ANSI C++, variable initialisation here, not allowed
-	double indirErrBiasRow=0;
-	double indirErrBiasCol=0;
-	double dirErrBiasX=0;
-	double dirErrBiasY=0;
-*/
-        RPC() :
-             indirErrBiasRow (0),
-             indirErrBiasCol (0),
-             dirErrBiasX (0),
-             dirErrBiasY (0)
-        {
-        }
-	double indirErrBiasRow;
-	double indirErrBiasCol;
-	double dirErrBiasX;
-	double dirErrBiasY;
-
-	Pt3dr DirectRPCNorm(Pt2dr, double);
-	Pt3dr InverseRPCNorm(Pt3dr);
-	Pt3dr DirectRPC(Pt2dr, double);
-	Pt3dr InverseRPC(Pt3dr);
-
-	//Showing Info
-	void info()
-	{
-		std::cout << "RPC info:" << std::endl;
-		std::cout << "===========================================================" << std::endl;
-		std::cout << "long_scale   : " << long_scale << " | long_off   : " << long_off << std::endl;
-		std::cout << "lat_scale    : " << lat_scale << " | lat_off    : " << lat_off << std::endl;
-		std::cout << "height_scale : " << height_scale << " | height_off : " << height_off << std::endl;
-		std::cout << "samp_scale   : " << samp_scale << " | samp_off   : " << samp_off << std::endl;
-		std::cout << "line_scale   : " << line_scale << " | line_off   : " << line_off << std::endl;
-		std::cout << "first_row    : " << first_row << " | last_row   : " << last_row << std::endl;
-		std::cout << "first_col    : " << first_col << " | last_col   : " << last_col << std::endl;
-		std::cout << "first_lon    : " << first_lon << " | last_lon   : " << last_lon << std::endl;
-		std::cout << "first_lat    : " << first_lat << " | last_lat   : " << last_lat << std::endl;
-		std::cout << "direct_samp_num_coef : " << direct_samp_num_coef.size() << std::endl;
-		std::cout << "direct_samp_den_coef : " << direct_samp_den_coef.size() << std::endl;
-		std::cout << "direct_line_num_coef : " << direct_line_num_coef.size() << std::endl;
-		std::cout << "direct_line_den_coef : " << direct_line_den_coef.size() << std::endl;
-		std::cout << "indirect_samp_num_coef : " << indirect_samp_num_coef.size() << std::endl;
-		std::cout << "indirect_samp_den_coef : " << indirect_samp_den_coef.size() << std::endl;
-		std::cout << "indirect_line_num_coef : " << indirect_line_num_coef.size() << std::endl;
-		std::cout << "indirect_line_den_coef : " << indirect_line_den_coef.size() << std::endl;
-		std::cout << "===========================================================" << std::endl;
-	}
-
-	//For Dimap
-	void ReadDimap(std::string const &filename);
-	void WriteAirbusRPC(std::string aFileOut);
-
-	//For DigitalGlobe data
-	// void ReadRPB(std::string const &filename); MPD -> in ANSI C++ , scope specification inside class innot allowed
-	void ReadRPB(std::string const &filename);
-	void ReconstructValidity();
-	void Inverse2Direct(double gridSize);
-
-};
+#include "RPC.h"
 
 //From Image coordinates to geographic
 Pt3dr RPC::DirectRPC(Pt2dr Pimg, double altitude)
@@ -599,8 +516,8 @@ void RPC::Inverse2Direct(double gridSize)
 
 void RPC::ReadRPB(std::string const &filename)
 {
-	// std::ifstream RPBfile(filename);  MPD : no implicit conversion std::string -> char * in ANSI C++
 	std::ifstream RPBfile(filename.c_str());
+	ELISE_ASSERT(RPBfile.good(), " RPB file not found ");
 	std::string line;
 	std::string a, b;
 	//Pass 6 lines
@@ -723,19 +640,19 @@ int RPC_main(int argc, char ** argv)
 		LArgMain() << EAMC(aNameFile, "RPB DigitalGlob file"),
 		LArgMain()
 		<< EAM(aFileOut, "Out", true, "Name of the output file")
-		<< EAM(gridSize, "GridSize", true, "Size of the grid of generated GCPs")
+		<< EAM(gridSize, "GridSize", true, "Size of the grid of generated GCPs (Def=50 for 50*50 grid)")
 		);
 
-	RPC Banane;
-	Banane.ReadRPB(aNameFile);
+	RPC aRPC;
+	aRPC.ReadRPB(aNameFile);
 	cout << "RPB File read" << endl;
-	Banane.Inverse2Direct(gridSize);
+	aRPC.Inverse2Direct(gridSize);
 	cout << "Direct RPC estimated" << endl;
-	Banane.ReconstructValidity();
+	aRPC.ReconstructValidity();
 	//Banane.ReadDimap(aNameFileDimap);
-	Banane.info();
+	aRPC.info();
 	//Banane.Inverse2Direct(gridSize);
-	Banane.WriteAirbusRPC(aFileOut);
+	aRPC.WriteAirbusRPC(aFileOut);
 	return 0;
 }
 
