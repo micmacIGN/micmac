@@ -140,6 +140,7 @@ class cNOCompPair
        Pt2dr mP1;
        Pt2dr mP2;
        double mPds;
+       double mLastPdsOfErr;
        Pt3dr  mQ1;
        Pt3dr  mQ2;
        Pt3dr  mQ2R;
@@ -163,6 +164,7 @@ class cNewO_CpleIm
           );
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
+          double PixExactCost(const ElRotation3D & aRot,double aTetaMax) const;
     private :
           
        //======== Amniguity ====
@@ -171,7 +173,7 @@ class cNewO_CpleIm
             ElRotation3D  SolOfAmbiguity(double aTeta);
 
             Pt3dr CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0);
-            Pt3dr OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0);
+            Pt3dr OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0,double & anErMoy);
             Pt2dr ToW(const Pt2dr & aP) const;
             void ShowPack(const ElPackHomologue & aPack,int aCoul,double aRay);
             void ClikIn();
@@ -187,11 +189,13 @@ class cNewO_CpleIm
 
           void TestCostLinExact(const ElRotation3D & aRot);
           void AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes);
-          ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd,double & aErMoy);
+          ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd,double & aErMoy,double & Amelio);
 
 
           double ExactCost
                  (Pt3dr & anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
+
+          double FocMoy() const;
 
 
 
@@ -215,6 +219,8 @@ class cNewO_CpleIm
           L2SysSurResol            mSysLin2;
           L2SysSurResol            mSysLin3;
           bool                     mShow;
+
+          double mCurLamndaLVM;
        
 
           ElRotation3D  mBestSol;

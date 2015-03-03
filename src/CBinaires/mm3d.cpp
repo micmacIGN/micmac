@@ -346,7 +346,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool to develop MPO stereo format in pair of images"));
 
-       aRes.push_back(cMMCom("Sake",Sake_main," Simplified MicMac interface for satellite images - work in progress!",cArgLogCom(3)));
+	   aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images - work in progress!", cArgLogCom(3)));
+	   aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
 
 #if (ELISE_QT_VERSION >= 4)
        aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main," Interactive tool for initial capture of GCP"));
@@ -434,11 +435,17 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs);
 
 // =========================================================
 
+//SateLib declarations
+extern int  RPC_main(int argc, char ** argv);
+extern int NewRefineModel_main(int argc, char **argv);
+extern int RefineModel_main(int argc, char **argv);
+extern int Dimap2Grid_main(int argc, char **argv);
+
+//TestLib declarations
 extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
 extern int  Luc_main(int argc, char ** argv);
-extern int  RPC_main(int argc, char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  ProjetInfo_main(int argc,char ** argv);
 extern int  Matthieu_main(int argc,char ** argv);
@@ -561,11 +568,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump  "));
    aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
 
-    aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an approximate model "));
-    aRes.push_back(cMMCom("Refine",NewRefineModel_main,"Refine an approximate model "));
 	aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
-	aRes.push_back(cMMCom("RPC", RPC_main, "Different things with RPC"));
-    aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
     aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
     aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));
     aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
@@ -607,6 +610,21 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    return aRes;
 }
 
+const std::vector<cMMCom> & SateLibAvailableCommands()
+{
+	static std::vector<cMMCom> aRes;
+
+	aRes.push_back(cMMCom("RPC", RPC_main, "Different things with RPC"));
+	aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
+	aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
+	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
+	
+	cCmpMMCom CmpMMCom;
+	std::sort(aRes.begin(), aRes.end(), CmpMMCom);
+
+	return aRes;
+}
+
 int SampleLibElise_main(int argc,char ** argv)
 {
 
@@ -617,7 +635,13 @@ int SampleLibElise_main(int argc,char ** argv)
 
     return 0;
 }
+int SateLib_main(int argc, char ** argv)
+{
+	
+	GenMain(argc, argv, SateLibAvailableCommands());
 
+	return 0;
+}
 
 //=====================================
 

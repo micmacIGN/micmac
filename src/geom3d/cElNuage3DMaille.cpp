@@ -1970,7 +1970,9 @@ void ToFOMOriStdRound(double & aVal,const double & aResol)
 {
     double aRatio = aVal / aResol;
 
-    double aIR = round(aRatio);
+//	cDecimal aDec = StdRound(aRatio);
+//    double aIR = aDec.RVal();
+    double aIR = round_ni(aRatio);
     double aDif = ElAbs(aRatio-aIR);
     // std::cout << "ORI ToFOMStdRound; Dif= " << aDif << "\n";
     ELISE_ASSERT(aDif < 1e-7,"ORI ToFOMStdRound");

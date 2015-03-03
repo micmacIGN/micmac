@@ -1,0 +1,193 @@
+<!--
+Qq commande de bayer => RAW
+
+ElDcraw -4 -c -t 0 -d _DSC0323.ARW  > _DSC0323.pnm
+
+MpDcraw  _DSC0323.ARW Split=RVBW
+
+Rouge => 0 0
+Bleu  => 1 1
+-->
+<ParamMICMAC>
+
+<DicoLoc>
+   <Symb> Im1=_DSC0323_MpDcraw16B_R.tif </Symb>
+   <Symb> Im2=_DSC0323_MpDcraw16B_V.tif </Symb>
+   <Symb> DirMEC=MEC-${Im1}-${Im2} </Symb>
+</DicoLoc>
+
+
+<Section_Terrain>  
+      <IntervParalaxe>
+             <Px1IncCalc>   3.0  </Px1IncCalc>
+             <Px2IncCalc>   3.0  </Px2IncCalc>
+      </IntervParalaxe>
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImage_Epip </GeomImages>
+     <Images >
+          <Im1> ${Im1} </Im1>
+          <Im2> ${Im2} </Im2>
+     </Images>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+	 <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+
+             <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+            <SzSinCard>  5.0 </SzSinCard>
+            <SzAppodSinCard>  5.0 </SzAppodSinCard>
+
+<!--
+             <ModeInterpolation > eInterpolBiLin </ModeInterpolation>
+             <TypeWCorr> eWInCorrelExp            </TypeWCorr>
+	     <NbIterFenSpec>   1           </NbIterFenSpec>
+-->
+
+
+             <SzW >      10.0           </SzW>
+
+             <AlgoRegul>    eAlgo2PrgDyn    </AlgoRegul>
+
+             <Px1Regul>      2.0    </Px1Regul>
+             <Px2Regul>      2.0    </Px2Regul>
+             <Px1Pas>        0.1    </Px1Pas>
+             <Px2Pas>        0.1    </Px2Pas>
+
+	     <Px1DilatAlti>  2    </Px1DilatAlti>
+             <Px1DilatPlani> 2    </Px1DilatPlani>
+	     <Px2DilatAlti>  2    </Px2DilatAlti>
+             <Px2DilatPlani> 2    </Px2DilatPlani>
+	     
+	     <ModulationProgDyn Portee="Globale">
+	             <EtapeProgDyn>
+                     <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                     <NbDir>   15  </NbDir>
+                     </EtapeProgDyn>
+                     <Px1PenteMax>   0.01   </Px1PenteMax>
+                     <Px2PenteMax>   0.01   </Px2PenteMax>
+	     </ModulationProgDyn>
+	     <SsResolOptim>     4  </SsResolOptim>
+        </EtapeMEC>
+
+
+        <EtapeMEC> 
+	       <DeZoom >        16       </DeZoom> 
+	</EtapeMEC> 
+
+        <EtapeMEC> 
+	       <DeZoom >        8       </DeZoom> 
+	</EtapeMEC> 
+
+        <EtapeMEC> 
+	       <DeZoom >        4       </DeZoom> 
+	</EtapeMEC> 
+
+
+        <EtapeMEC> 
+	     <DeZoom >        2       </DeZoom> 
+             <SzW Portee="Globale">      15.0           </SzW>
+	     <SsResolOptim Portee="Globale">     5  </SsResolOptim>
+	     <Px1DilatAlti>  1    </Px1DilatAlti>
+             <Px1DilatPlani> 1    </Px1DilatPlani>
+	     <Px2DilatAlti>  1    </Px2DilatAlti>
+             <Px2DilatPlani> 1    </Px2DilatPlani>
+	</EtapeMEC> 
+
+
+        <EtapeMEC> 
+	     <DeZoom >        2       </DeZoom> 
+             <SzW Portee="Globale">      15.0           </SzW>
+	     <SsResolOptim Portee="Globale">     5  </SsResolOptim>
+	     <Px1DilatAlti>  2    </Px1DilatAlti>
+             <Px1DilatPlani> 2    </Px1DilatPlani>
+	     <Px2DilatAlti>  0    </Px2DilatAlti>
+             <Px2DilatPlani> 0    </Px2DilatPlani>
+	</EtapeMEC> 
+
+
+        <EtapeMEC> 
+	     <DeZoom >        2       </DeZoom> 
+
+	     <Px1DilatAlti>  0    </Px1DilatAlti>
+             <Px1DilatPlani> 0    </Px1DilatPlani>
+	     <Px2DilatAlti>  2    </Px2DilatAlti>
+             <Px2DilatPlani> 2    </Px2DilatPlani>
+	</EtapeMEC> 
+
+
+
+        <EtapeMEC> 
+	     <DeZoom >        1       </DeZoom> 
+             <SzW  Portee="Globale">      20.0           </SzW>
+	     <SsResolOptim Portee="Globale">     10  </SsResolOptim>
+
+	     <Px1DilatAlti>  2    </Px1DilatAlti>
+             <Px1DilatPlani> 2    </Px1DilatPlani>
+	     <Px2DilatAlti>  0    </Px2DilatAlti>
+             <Px2DilatPlani> 0    </Px2DilatPlani>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+	     <DeZoom >        1       </DeZoom> 
+
+	     <Px1DilatAlti>  0    </Px1DilatAlti>
+             <Px1DilatPlani> 0    </Px1DilatPlani>
+	     <Px2DilatAlti>  2    </Px2DilatAlti>
+             <Px2DilatPlani> 2    </Px2DilatPlani>
+        </EtapeMEC> 
+
+        <EtapeMEC> 
+	     <DeZoom >        1       </DeZoom> 
+            
+	     <Px1DilatAlti>  1    </Px1DilatAlti>
+             <Px1DilatPlani> 1    </Px1DilatPlani>
+	     <Px2DilatAlti>  1    </Px2DilatAlti>
+             <Px2DilatPlani> 1    </Px2DilatPlani>
+	     <Gen8Bits_Px1> true </Gen8Bits_Px1>
+	     <Gen8Bits_Px2> true </Gen8Bits_Px2>
+
+             <PostFiltragePx>
+                  <OneFitragePx>
+                        <TypeFiltrage >  eFiltrageMedian  </TypeFiltrage>
+                        <SzFiltrage  >     2        </SzFiltrage>
+                  </OneFitragePx>
+            </PostFiltragePx>
+
+        </EtapeMEC> 
+        <EtapeMEC> 
+	     <DeZoom >        1       </DeZoom> 
+             <Px1Pas>   1.0     </Px1Pas>
+             <Px2Pas>   1.0     </Px2Pas>
+             <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC> 
+            
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomPxBiDim  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir > ThisDir   </WorkDir> 
+     <TmpMEC>  ${DirMEC}/  </TmpMEC>
+     <TmpResult>  ${DirMEC}/  </TmpResult>
+     <ByProcess>   ${MMNbProc} </ByProcess>
+     <SzDalleMin> 1000 </SzDalleMin>
+     <SzDalleMax> 1000 </SzDalleMax>
+     <SzRecouvrtDalles> 75 </SzRecouvrtDalles>
+     <NomChantier> Evol  </NomChantier>
+     <UseChantierNameDescripteur>true </UseChantierNameDescripteur>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+

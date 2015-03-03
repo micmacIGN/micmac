@@ -257,8 +257,6 @@ public:
 			string DirChantier = (fi.dir().absolutePath()+ QDir::separator()).toStdString();
 			_mnICNM = cInterfChantierNameManipulateur::BasicAlloc(DirChantier);
 
-			DUMP_LINE
-
 		}
 
 		cCamHandlerElise *camElise = new cCamHandlerElise(CamOrientGenFromFile(fi.fileName().toStdString(),_mnICNM, false));
