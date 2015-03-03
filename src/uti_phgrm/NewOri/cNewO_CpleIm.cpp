@@ -199,15 +199,18 @@ cNewO_CpleIm::cNewO_CpleIm
     {
         std::cout << " Cost sol ext : " << PixExactCost(*mTestC2toC1,0.1) << "\n";
 
+/*
         AmelioreSolLinear((*mTestC2toC1),"Refer " );
         ElRotation3D aR2(-mTestC2toC1->tr(),mTestC2toC1->Mat(),true);
         AmelioreSolLinear(aR2,"Ref Inv");
+*/
     }
 
   // Test par Matrices essentielles 
     for (int aL2 = 0 ; aL2 < 2 ; aL2++)
     {
         ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackStdRed.MepRelPhysStd(1.0,false)) ;
+        // ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackPStd.MepRelPhysStd(1.0,false)) ;
         aR = aR.inv();
         AmelioreSolLinear(aR,(aL2 ? "L2 Ess": "L1 Ess" ));
     }
