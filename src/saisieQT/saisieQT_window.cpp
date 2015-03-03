@@ -431,7 +431,7 @@ void SaisieQtWindow::on_actionSwitch_axis_Y_Z_toggled(bool state)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            Pt3dr rotation(state ? -90.f : 0.f,0.f,0.f);
+			QVector3D rotation(state ? -90.f : 0.f,0.f,0.f);
             getWidget(aK)->getGLData()->setRotation(rotation);
             getWidget(aK)->update();
         }
@@ -700,14 +700,14 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
     QMessageBox *msgBox = new QMessageBox(this);
 
-    QString qStr(getBanniereMM3D().c_str());
+	QString qStr("getBanniereMM3D().c_str()");
     #if (ELISE_windows || (defined ELISE_Darwin))
         qStr.replace( "**", "  " );
     #endif
 
     qStr += "\nApplication\t"           + QApplication::applicationName() +
             tr("\nBuilt with\t\tQT ")   + QT_VERSION_STR + //QString::number(ELISE_QT_VERSION) +
-            tr("\nRevision\t\t")        + QString(string(__HG_REV__).c_str()) + "\n";
+			tr("\nRevision\t\t")        + QString(string("__HG_REV__").c_str()) + "\n";
 
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
@@ -1199,14 +1199,14 @@ void SaisieQtWindow::setUI()
 
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
-        _zoomLayout->setContentsMargins(2,2,2,2);
+		_zoomLayout->setContentsMargins(2,2,2,2);
         _ui->QFrame_zoom->setLayout(_zoomLayout);
         _ui->QFrame_zoom->setContentsMargins(0,0,0,0);
 
          QGridLayout*            _tdLayout = new QGridLayout;
 
          _tdLayout->addWidget(threeDWidget());
-         _tdLayout->setContentsMargins(2,2,2,2);
+		 _tdLayout->setContentsMargins(2,2,2,2);
         _ui->frame_preview3D->setLayout(_tdLayout);
         _ui->frame_preview3D->setContentsMargins(0,0,0,0);
         //TEMP: undo ne marche pas du coté Elise (a voir avec Marc)
@@ -1218,8 +1218,8 @@ void SaisieQtWindow::setUI()
 
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);
-
-        _ui->splitter_Tools->setContentsMargins(2,0,0,0);
+		_ui->tableView_Objects->close();
+	   // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
     {
@@ -1283,17 +1283,17 @@ QTableView *SaisieQtWindow::tableView_Objects(){return _ui->tableView_Objects;}
 
 void SaisieQtWindow::resizeTables()
 {
-    tableView_PG()->resizeColumnsToContents();
-    tableView_PG()->resizeRowsToContents();
-    tableView_PG()->horizontalHeader()->setStretchLastSection(true);
+	tableView_PG()->resizeColumnsToContents();
+	tableView_PG()->resizeRowsToContents();
+	tableView_PG()->horizontalHeader()->setStretchLastSection(true);
 
-    tableView_Images()->resizeColumnsToContents();
-    tableView_Images()->resizeRowsToContents();
-    tableView_Images()->horizontalHeader()->setStretchLastSection(true);
+	tableView_Images()->resizeColumnsToContents();
+	tableView_Images()->resizeRowsToContents();
+	tableView_Images()->horizontalHeader()->setStretchLastSection(true);
 
-    tableView_Objects()->resizeColumnsToContents();
-    tableView_Objects()->resizeRowsToContents();
-    tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
+	tableView_Objects()->resizeColumnsToContents();
+	tableView_Objects()->resizeRowsToContents();
+	tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
 }
 
 void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/)

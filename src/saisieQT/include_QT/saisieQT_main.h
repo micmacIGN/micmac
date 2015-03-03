@@ -8,8 +8,8 @@ using namespace std;
 void updateSettings(QSettings &settings, Pt2di aSzWin, Pt2di aNbFen, bool aForceGray);
 
 extern void SaisieAppuisInit(int argc, char ** argv,
-                             Pt2di &aSzW,
-                             Pt2di &aNbFen,
+							 Pt2di &aSzW,
+							 Pt2di &aNbFen,
                              std::string &aFullName,
                              std::string &aDir,
                              std::string &aName,
@@ -24,8 +24,8 @@ extern void SaisieAppuisInit(int argc, char ** argv,
                              double &aZInc);
 
 extern void SaisieAppuisPredic(int argc, char ** argv,
-                               Pt2di &aSzW,
-                               Pt2di &aNbFen,
+							   Pt2di &aSzW,
+							   Pt2di &aNbFen,
                                std::string &aFullName,
                                std::string &aDir,
                                std::string &aName,
@@ -45,8 +45,8 @@ extern void SaisieBasc(int argc, char ** argv,
                         std::string &aName,
                         std::string &anOri,
                         std::string &anOut,
-                        Pt2di &aSzW,
-                        Pt2di &aNbFen,
+						Pt2di &aSzW,
+						Pt2di &aNbFen,
                         bool &aForceGray);
 
 int helpMessage(QApplication const &app, QString text);

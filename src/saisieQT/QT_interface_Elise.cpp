@@ -288,7 +288,7 @@ pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
 
 eTypePts cQT_Interface::PtCreationMode()
 {
-    return m_QTMainWindow->getParams()->getPtCreationMode();
+	return (eTypePts)m_QTMainWindow->getParams()->getPtCreationMode();
 }
 
 double cQT_Interface::PtCreationWindowSize()
@@ -628,8 +628,11 @@ void cQT_Interface::HighlightPoint(cSP_PointeImage* aPIm)
     aPIm->Gl()->HighLighted() = !aPIm->Gl()->HighLighted();
 
     if(aPIm->Gl()->HighLighted() && aPIm->Gl()->PG()->P3D().IsInit())
+	{
+		const Pt3dr pt = aPIm->Gl()->PG()->P3D().Val();
 
-        m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
+		m_QTMainWindow->threeDWidget()->setTranslation(QVector3D(pt.x,pt.y,pt.z));
+	}
 
 }
 
@@ -684,7 +687,11 @@ void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int idImag)
         }
     }
 
-    m_QTMainWindow->getWidget(idImag)->addGlPoint(transformation(aSom->PtIm(),idImag), aSom, aPt1, aPt2, aPG->HighLighted());
+   QPointF pt = transformation(aSom->PtIm(),idImag);
+   QString name(aSom->NamePt().c_str());
+   cPoint point(pt,name,true,aSom->Etat());
+
+   m_QTMainWindow->getWidget(idImag)->addGlPoint(point, aPt1, aPt2, aPG->HighLighted());
 }
 
 void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
@@ -705,7 +712,11 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
             {
                 QColor colorPt = pGV[i]->HighLighted() ? Qt::red : Qt::green;
 
-                cloud->addVertex(GlVertex(Pt3dr(pg->P3D().Val()), pg == selectPtGlob ? colorPt: Qt::blue));
+				Pt3dr pt = (pg->P3D().Val());
+
+				QVector3D pt3D(pt.x,pt.y,pt.z);
+
+				cloud->addVertex(GlVertex(pt3D, pg == selectPtGlob ? colorPt: Qt::blue));
             }
         }
 

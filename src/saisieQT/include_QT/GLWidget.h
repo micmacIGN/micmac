@@ -74,9 +74,9 @@ public:
 
     void setCursorShape(QPointF pos, QPointF mPos);
 
-    void addGlPoint(QPointF pt, cOneSaisie *aSom, QPointF pt1, QPointF pt2, bool highlight);
+	void addGlPoint(cPoint point, QPointF pt1, QPointF pt2, bool highlight);
 
-    void setTranslation(Pt3dr trans);
+	void setTranslation(QVector3D trans);
 
     ContextMenu *contextMenu();
 
@@ -217,10 +217,7 @@ private:
 
     cParameters* _params;
 
-   // QPainter*   _painter;
 };
-
-#include <QObject>
 
 class loaderImageWork : public QObject
 {
@@ -244,8 +241,6 @@ private:
 	QRect			_rect;
 
 };
-
-
 
 #endif  /* _GLWIDGET_H */
 

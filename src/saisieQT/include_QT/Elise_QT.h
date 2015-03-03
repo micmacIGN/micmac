@@ -3,6 +3,9 @@
 
 #include "general/CMake_defines.h"
 
+#include <string>
+
+using namespace std;
 
 #if (ELISE_windows & ELISE_MinGW)
     #include "QTCore/qt_windows.h"

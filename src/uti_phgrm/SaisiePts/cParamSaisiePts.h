@@ -3,7 +3,7 @@
 // #include "general/all.h"
 // #include "private/all.h"
 //
-typedef enum
+typedef enum // Attention repercutions sur QT ... TODO à regler
 {
   eNSM_GeoCube,
   eNSM_Plaquette,
@@ -25,15 +25,15 @@ std::string  Mangling( eTypePts *);
 
 void  BinaryUnDumpFromFile(eTypePts &,ELISE_fp &);
 
-typedef enum
+typedef enum // Attention repercutions sur QT ... TODO à regler
 {
-  eEPI_NonSaisi,
-  eEPI_Refute,
-  eEPI_Douteux,
-  eEPI_Valide,
-  eEPI_NonValue,
-  eEPI_Disparu,
-  eEPI_Highlight
+  eEPI_NonSaisi,// 0
+  eEPI_Refute,// 1
+  eEPI_Douteux, // 2
+  eEPI_Valide,// 3
+  eEPI_NonValue,// 4
+  eEPI_Disparu,//5
+  eEPI_Highlight// 6
 } eEtatPointeImage;
 void xml_init(eEtatPointeImage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eEtatPointeImage & aVal);

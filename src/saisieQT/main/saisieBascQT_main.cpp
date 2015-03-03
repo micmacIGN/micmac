@@ -66,7 +66,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
         )
             filenames.push_back( QString((aDir + *itS).c_str()));
 
-        updateSettings(settings, aSzWin, aNbFen, aForceGray);
+		updateSettings(settings, aSzWin, aNbFen, aForceGray);
 
         QStringList input;
         input   << QString(MMDir().c_str()) + QString("bin/SaisiePts")

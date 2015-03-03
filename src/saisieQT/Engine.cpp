@@ -96,8 +96,6 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
 
 	}
 
-	checkGeoref(aNameFile, maskedImg);
-
 	if(scaleFactor <1.f)
 		maskedImg->_m_rescaled_image = new QImage(maskedImg->_m_image->scaled(rescaledSize,Qt::IgnoreAspectRatio));
 
@@ -162,30 +160,6 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float 
 			tempMask.fill(Qt::white);
 			*(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
 		}
-    }
-}
-
-void cLoader::checkGeoref(QString aNameFile, QMaskedImage *maskedImg)
-{
-	if (!maskedImg->_m_image->isNull())
-    {
-        QFileInfo fi(aNameFile);
-
-        QString suffix = fi.suffix();
-        QString xmlFile = fi.absolutePath() + QDir::separator() + fi.baseName() + ".xml";
-
-        if ((suffix == "tif") && (QFile(xmlFile).exists()))
-        {
-            std::string aNameTif = aNameFile.toStdString();
-
-			maskedImg->_m_FileOriMnt = StdGetObjFromFile<cFileOriMnt>
-                                   (
-                                        StdPrefix(aNameTif)+".xml",
-                                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                                       "FileOriMnt",
-                                       "FileOriMnt"
-                                   );
-        }
     }
 }
 
@@ -420,6 +394,10 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
             return;
         }
 
+		if(Loader()->devIOImageAlter())
+			Loader()->devIOImageAlter()->doMaskImage(Mask,aOut);
+
+	/*
         cFileOriMnt anOri;
 
         anOri.NameFileMnt()		= aOut.toStdString();
@@ -431,6 +409,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
         anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
 
         MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
+		*/
 
 //        if (!isFirstAction)
 //            _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
