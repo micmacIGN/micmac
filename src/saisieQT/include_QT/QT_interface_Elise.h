@@ -1,7 +1,10 @@
 #ifndef QT_INTERFACE_ELISE_H
 #define QT_INTERFACE_ELISE_H
 
+#include "StdAfx.h"
+#include "Elise_QT.h"
 #include "saisieQT_window.h"
+#include  "Tree.h"
 
 class SaisieQtWindow;
 
@@ -38,6 +41,23 @@ public :
     void                Warning(std::string aMsg);
 
     int                 idCImage(QString nameImage);
+
+	static void toQVec3D(Pt3dr P,QVector3D &qP)
+	{
+		qP.setX(P.x);
+		qP.setY(P.y);
+		qP.setZ(P.z);
+	}
+
+
+	static QVector3D toQVec3D(Pt3dr P)
+	{
+		QVector3D qP;
+		qP.setX(P.x);
+		qP.setY(P.y);
+		qP.setZ(P.z);
+		return qP;
+	}
 
 private:
 
@@ -82,7 +102,7 @@ private:
     void                selectPointGlobal(int idPG);
 
 
-    virtual eTypePts    PtCreationMode();
+	virtual eTypePts    PtCreationMode();
 
     virtual double      PtCreationWindowSize();
 
@@ -194,14 +214,25 @@ public:
 
 	}
 
-	virtual void getCoins(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ)
+	virtual void getCoins(QVector3D &aP1,QVector3D &aP2,QVector3D &aP3,QVector3D &aP4, double aZ)
 	{
-		_Cam->Coins(aP1, aP2, aP3, aP4, aZ);
+		Pt3dr P1;
+		Pt3dr P2;
+		Pt3dr P3;
+		Pt3dr P4;
+
+		_Cam->Coins(P1, P2, P3, P4, aZ);
+
+		cQT_Interface::toQVec3D(P1,aP1);
+		cQT_Interface::toQVec3D(P2,aP2);
+		cQT_Interface::toQVec3D(P3,aP3);
+		cQT_Interface::toQVec3D(P4,aP4);
+
 	}
 
-	virtual Pt3dr getCenter()
+	virtual QVector3D getCenter()
 	{
-		return _Cam->VraiOpticalCenter();
+		return cQT_Interface::toQVec3D(_Cam->VraiOpticalCenter());
 	}
 
 private:
@@ -308,6 +339,21 @@ public:
 			return new QImage(QGLWidget::convertToGLFormat( tempMask ));
 		}
 		else return NULL;
+	}
+
+	virtual void	doMaskImage(QImage &mask,QString &aNameFile)
+	{
+		cFileOriMnt anOri;
+
+		anOri.NameFileMnt()		= aNameFile.toStdString();
+		anOri.NombrePixels()	= Pt2di(mask.width(),mask.height());
+		anOri.OriginePlani()	= Pt2dr(0,0);
+		anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
+		anOri.OrigineAlti()		= 0.0;
+		anOri.ResolutionAlti()	= 1.0;
+		anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
+
+		MakeFileXML(anOri, StdPrefix(aNameFile.toStdString()) + ".xml");
 	}
 };
 

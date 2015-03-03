@@ -44,11 +44,11 @@ public:
 
     void        setBBoxMaxSize(float aS){_diam = aS;}
 
-    void        setBBoxCenter(Pt3dr aPt){_bbox_center = aPt;}
+	void        setBBoxCenter(QVector3D aPt){_bbox_center = aPt;}
 
-    void        setCloudsCenter(Pt3dr aPt){_clouds_center = aPt;}
+	void        setCloudsCenter(QVector3D aPt){_clouds_center = aPt;}
 
-    void        setGlobalCenter(Pt3dr aCenter);
+	void        setGlobalCenter(QVector3D aCenter);
 
     void        switchCenterByType(int val);
 
@@ -138,9 +138,9 @@ private:
 
     cGrid*              _pGrid;
 
-    Pt3dr               _bbox_center;
+	QVector3D               _bbox_center;
 
-    Pt3dr               _clouds_center;
+	QVector3D               _clouds_center;
 
     bool                _modePt;
 

@@ -47,16 +47,16 @@ class cData
 
 		QMaskedImage*  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
 
-        void    getMinMax(Pt3dr);
+		void    getMinMax(QVector3D);
         void    computeBBox(int idCloud = -1);
         void    computeCloudsCenter(int idCloud = -1);
 
         int     getCloudsSize();
 
-        Pt3dr   getBBoxCenter();
-        Pt3dr   getCloudsCenter(){ return _centroid; }
-        Pt3dr   getMin(){ return _min; }
-        Pt3dr   getMax(){ return _max; }
+		QVector3D   getBBoxCenter();
+		QVector3D   getCloudsCenter(){ return _centroid; }
+		QVector3D   getMin(){ return _min; }
+		QVector3D   getMax(){ return _max; }
 
         float   getBBoxMaxSize();
 
@@ -77,10 +77,10 @@ private:
         QVector<cPolygon*>     _vPolygons;
 
         //!Bounding box of all data
-        Pt3dr   _min, _max;
+		QVector3D   _min, _max;
 
         //!data centroid
-        Pt3dr   _centroid;
+		QVector3D   _centroid;
 };
 
 

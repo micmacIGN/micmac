@@ -171,11 +171,11 @@ void HistoryManager::save()
                 SII.appendChild(Point);
 
                 //Export points 3D
-                Pt3dr pt3d;
+				QVector3D pt3d;
                 MatrixManager *MM = new MatrixManager();
                 MM->importMatrices(SInfo);
                 MM->getInverseProjection(pt3d, pts[aK], 0.f);
-                str = QString::number(pt3d.x, 'f') + " " + QString::number(pt3d.y, 'f') + " " + QString::number(pt3d.z, 'f');
+				str = QString::number(pt3d.x(), 'f') + " " + QString::number(pt3d.y(), 'f') + " " + QString::number(pt3d.z(), 'f');
                 t = doc2.createTextNode( str );
                 Pt3D.appendChild(t);
                 SIt.appendChild(Pt3D);

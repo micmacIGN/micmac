@@ -431,7 +431,7 @@ void SaisieQtWindow::on_actionSwitch_axis_Y_Z_toggled(bool state)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-            Pt3dr rotation(state ? -90.f : 0.f,0.f,0.f);
+			QVector3D rotation(state ? -90.f : 0.f,0.f,0.f);
             getWidget(aK)->getGLData()->setRotation(rotation);
             getWidget(aK)->update();
         }
@@ -700,14 +700,14 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
     QMessageBox *msgBox = new QMessageBox(this);
 
-    QString qStr(getBanniereMM3D().c_str());
+	QString qStr("getBanniereMM3D().c_str()");
     #if (ELISE_windows || (defined ELISE_Darwin))
         qStr.replace( "**", "  " );
     #endif
 
     qStr += "\nApplication\t"           + QApplication::applicationName() +
             tr("\nBuilt with\t\tQT ")   + QT_VERSION_STR + //QString::number(ELISE_QT_VERSION) +
-            tr("\nRevision\t\t")        + QString(string(__HG_REV__).c_str()) + "\n";
+			tr("\nRevision\t\t")        + QString(string("__HG_REV__").c_str()) + "\n";
 
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());

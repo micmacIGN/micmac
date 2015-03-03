@@ -1,9 +1,17 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include "StdAfx.h"
-
 #include "Elise_QT.h"
+
+typedef enum // Attention repercutions sur QT ... TODO à regler
+{
+  qNSM_GeoCube,
+  qNSM_Plaquette,
+  qNSM_Pts,
+  qNSM_MaxLoc,
+  qNSM_MinLoc,
+  qNSM_NonValue
+} qTypePts;
 
 namespace Ui {
 class SettingsDialog;
@@ -32,7 +40,8 @@ typedef enum
    /*eChinese = 3,
    eArabic  = 4,
    eRussian = 5,*/
-   eEsperanto
+   eEsperanto,
+   eNbLang
 } eLANG;
 
 typedef enum
@@ -52,7 +61,7 @@ typedef enum
 
 
 
-string eToString(const eLANG& langue);
+std::string eToString(const eLANG& langue);
 
 class cParameters
 {
@@ -80,7 +89,7 @@ public:
     void setSelectionRadius(int val)    { _radius = val;         }
     void setShiftStep(float val)        {_shiftStep = val;       }
 
-    void setPtCreationMode(eTypePts mode){ _eType = mode;        }
+	void setPtCreationMode(qTypePts mode){ _eType = mode;        }
     void setPtCreationWindowSize(double sz){ _sz = sz;           }
 
     void setLanguage(int lang)          { _lang = lang;          }
@@ -105,7 +114,7 @@ public:
     int   getSelectionRadius()          { return _radius;        }
     float getShiftStep()                { return _shiftStep;     }
 
-    eTypePts getPtCreationMode()        { return _eType;         }
+	qTypePts	   getPtCreationMode()        { return _eType;         }
     double getPtCreationWindowSize()    { return _sz;            }
 
     int    getLanguage()                { return _lang;          }
@@ -145,7 +154,7 @@ private:
     float       _shiftStep;
 
     //! Point creation mode
-    eTypePts    _eType;
+	qTypePts			_eType;
 	eNavigationType _eNavigation;
     double      _sz;
 

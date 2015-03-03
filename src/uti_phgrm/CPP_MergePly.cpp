@@ -182,13 +182,13 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
             for (int bK=0; bK < (int) cloud->size(); ++bK)
             {
                 GlVertex vertex = cloud->getVertex(bK);
-                Pt3dr pt = vertex.getPosition();
+				QVector3D pt = vertex.getPosition();
 
                 if (aBin)
                 {
-                    WriteType(aFP,float(pt.x));
-                    WriteType(aFP,float(pt.y));
-                    WriteType(aFP,float(pt.z));
+					WriteType(aFP,float(pt.x()));
+					WriteType(aFP,float(pt.y()));
+					WriteType(aFP,float(pt.z()));
                 }
 
                 switch (type)
@@ -196,7 +196,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                     case 0:
                     {
                         if (!aBin)
-                             fprintf(aFP,"%.7f %.7f %.7f\n", pt.x, pt.y, pt.z);
+							 fprintf(aFP,"%.7f %.7f %.7f\n", pt.x(), pt.y(), pt.z());
                         break;
                     }
                     case 1:
@@ -209,7 +209,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                             WriteType(aFP,uchar(col.blue()));
                         }
                         else
-                            fprintf(aFP,"%.7f %.7f %.7f %d %d %d\n",  pt.x, pt.y, pt.z, col.red(), col.green(), col.blue());
+							fprintf(aFP,"%.7f %.7f %.7f %d %d %d\n",  pt.x(), pt.y(), pt.z(), col.red(), col.green(), col.blue());
 
                         break;
                     }
@@ -217,7 +217,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                     {
                         QColor col = vertex.getColor();
 
-                        if (aBin)
+						if (aBin)
                         {
                             WriteType(aFP,uchar(col.red()));
                             WriteType(aFP,uchar(col.green()));
@@ -225,58 +225,58 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
                             WriteType(aFP,uchar(col.alpha()));
                         }
                         else
-                            fprintf(aFP,"%.7f %.7f %.7f %d %d %d %d\n",  pt.x, pt.y, pt.z, col.red(), col.green(), col.blue(), col.alpha());
+							fprintf(aFP,"%.7f %.7f %.7f %d %d %d %d\n",  pt.x(), pt.y(), pt.z(), col.red(), col.green(), col.blue(), col.alpha());
                         break;
                     }
                     case 3:
                     {
-                        Pt3dr n = vertex.getNormal();
+						QVector3D n = vertex.getNormal();
 
                         if (aBin)
                         {
-                            WriteType(aFP,float(n.x));
-                            WriteType(aFP,float(n.y));
-                            WriteType(aFP,float(n.z));
+							WriteType(aFP,float(n.x()));
+							WriteType(aFP,float(n.y()));
+							WriteType(aFP,float(n.z()));
                         }
                         else
-                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z);
+							fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f\n",  pt.x(), pt.y(), pt.z(), n.x(), n.y(), n.z());
                         break;
                     }
                     case 4:
                     {
                         QColor col = vertex.getColor();
-                        Pt3dr n = vertex.getNormal();
+						QVector3D n = vertex.getNormal();
 
                         if (aBin)
                         {
-                            WriteType(aFP,float(n.x));
-                            WriteType(aFP,float(n.y));
-                            WriteType(aFP,float(n.z));
+							WriteType(aFP,float(n.x()));
+							WriteType(aFP,float(n.y()));
+							WriteType(aFP,float(n.z()));
                             WriteType(aFP,uchar(col.red()));
                             WriteType(aFP,uchar(col.green()));
                             WriteType(aFP,uchar(col.blue()));
                         }
                         else
-                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z, col.red(), col.green(), col.blue() );
+							fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d\n",  pt.x(), pt.y(), pt.z(), n.x(), n.y(), n.z(), col.red(), col.green(), col.blue() );
                         break;
                     }
                     case 5:
                     {
                         QColor col = vertex.getColor();
-                        Pt3dr n = vertex.getNormal();
+						QVector3D n = vertex.getNormal();
 
                         if (aBin)
                         {
-                            WriteType(aFP,float(n.x));
-                            WriteType(aFP,float(n.y));
-                            WriteType(aFP,float(n.z));
+							WriteType(aFP,float(n.x()));
+							WriteType(aFP,float(n.y()));
+							WriteType(aFP,float(n.z()));
                             WriteType(aFP,uchar(col.red()));
                             WriteType(aFP,uchar(col.green()));
                             WriteType(aFP,uchar(col.blue()));
                             WriteType(aFP,uchar(col.alpha()));
                         }
                         else
-                            fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d %d\n",  pt.x, pt.y, pt.z, n.x, n.y, n.z, col.red(), col.green(), col.blue(), col.alpha() );
+							fprintf(aFP,"%.7f %.7f %.7f %.7f %.7f %.7f %d %d %d %d\n",  pt.x(), pt.y(), pt.z(), n.x(), n.y(), n.z(), col.red(), col.green(), col.blue(), col.alpha() );
                         break;
                     }
                 }

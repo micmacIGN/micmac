@@ -403,9 +403,11 @@ cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::strin
           for (int bK=0;bK < Infos.poly.size();++bK)
           {
              QPointF pt = Infos.poly[bK];
-             Pt3dr q0;
-             MM->getInverseProjection(q0, pt, 0.0);
-             aVP3.push_back(q0);
+
+			 QVector3D qPt;
+			 //Pt3dr q0;
+			 MM->getInverseProjection(qPt, pt, 0.0);
+			 aVP3.push_back(Pt3dr(qPt.x(),qPt.y(),qPt.z()));
           }
 
           aVMP.push_back(cMasq3DOrthoRaster::ByPolyg3D((SELECTION_MODE) Infos.selection_mode,aVP3,300.0));

@@ -99,7 +99,7 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
              cVirtualInterface::ComputeNbFen(aNbFen, aNbW);
         }
 
-        updateSettings(settings, aSzWin, aNbFen, aForceGray);
+		updateSettings(settings, aSzWin,aNbFen, aForceGray);
 
         settings.beginGroup("Misc");
         settings.setValue("defPtName", QString(aNameMesure.c_str()));
