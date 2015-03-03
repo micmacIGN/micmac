@@ -1199,14 +1199,14 @@ void SaisieQtWindow::setUI()
 
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
-        _zoomLayout->setContentsMargins(2,2,2,2);
+		_zoomLayout->setContentsMargins(2,2,2,2);
         _ui->QFrame_zoom->setLayout(_zoomLayout);
         _ui->QFrame_zoom->setContentsMargins(0,0,0,0);
 
          QGridLayout*            _tdLayout = new QGridLayout;
 
          _tdLayout->addWidget(threeDWidget());
-         _tdLayout->setContentsMargins(2,2,2,2);
+		 _tdLayout->setContentsMargins(2,2,2,2);
         _ui->frame_preview3D->setLayout(_tdLayout);
         _ui->frame_preview3D->setContentsMargins(0,0,0,0);
         //TEMP: undo ne marche pas du coté Elise (a voir avec Marc)
@@ -1219,7 +1219,7 @@ void SaisieQtWindow::setUI()
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);
 
-        _ui->splitter_Tools->setContentsMargins(2,0,0,0);
+	   // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
     {
