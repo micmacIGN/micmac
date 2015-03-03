@@ -249,13 +249,14 @@ void MatrixManager::resetModelViewMatrix()
 
 void MatrixManager::glOrthoZoom(float zoom, float farr)
 {
+
     MatrixManager::mglOrtho(
-        (GLdouble)( -zoom*getGlRatio() ),
-        (GLdouble)( zoom*getGlRatio() ),
-        (GLdouble)( -zoom ),
-        (GLdouble)zoom,
-        (GLdouble)( -farr ),
-        (GLdouble)farr);
+		(GLdouble)( -zoom*getGlRatio() ),
+		(GLdouble)( zoom*getGlRatio() ),
+		(GLdouble)( -zoom ),
+		(GLdouble)zoom,
+		(GLdouble)( farr),
+		(GLdouble)0);
 }
 
 void MatrixManager::setView(VIEW_ORIENTATION orientation, QVector3D centerScene)
@@ -266,7 +267,7 @@ void MatrixManager::setView(VIEW_ORIENTATION orientation, QVector3D centerScene)
     {
     case TOP_VIEW:
 		_rX = M_PI;
-		_rY = M_PI/2.f;
+		_rY = M_PI_2;
         break;
     case BOTTOM_VIEW:
         _rX = 0.0;
@@ -278,25 +279,24 @@ void MatrixManager::setView(VIEW_ORIENTATION orientation, QVector3D centerScene)
         break;
     case BACK_VIEW:
 		_rX = M_PI;
-		_rY = -M_PI/2.f;
+		_rY = -M_PI_2;
         break;
     case LEFT_VIEW:
-		_rX = M_PI/2.f;
+		_rX = M_PI_2;
         _rY = 0.0;
         break;
     case RIGHT_VIEW:
 
-		_rX = -M_PI/2.f;
+		_rX = -M_PI_2;
         _rY = 0.0;
     }
 }
 
-void MatrixManager::setArcBallCamera(float distance)
+void MatrixManager::setArcBallCamera(float aDistance)
 {
-	//printf("setArcBallCamera\n");
 
-	setDistance(distance);
-	glOrthoZoom(distance,distance + 2.0f*_diameterScene);
+	setDistance((aDistance+ _diameterScene)*2.0);
+	glOrthoZoom(aDistance,(aDistance + _diameterScene)*4.0);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -313,9 +313,9 @@ void MatrixManager::setArcBallCamera(float distance)
 	GLdouble  posCamera[4];
 	GLdouble  up[4] = {_upY*sin(_rZ),_upY*cos(_rZ),0.0,0.0};
 
-	posCamera[0] = _distance * -_sX * _cY;
-	posCamera[1] = _distance * -_sY;
-	posCamera[2] = _distance *  _cX * _cY;
+	posCamera[0] = distance() * -_sX * _cY;
+	posCamera[1] = distance() * -_sY;
+	posCamera[2] = distance() *  _cX * _cY;
 
 	if(isBallNavigation())
 	{
