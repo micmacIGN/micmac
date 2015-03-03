@@ -175,7 +175,11 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
           }
 
           if (DistRot(aNewR,aRot) < 2e-5) 
-             aCont = false;
+          {
+             aSqueeze = true;
+             if (!mShow) 
+                aCont = false;
+          }
 
           aRot = aNewR;
           aNbIter+= 1;
@@ -190,7 +194,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
        }
 
 
-       if (aNbIter >= 9.0)
+       if (aNbIter >= 19.0)
           aCont = false;
    }
    double aCostOut = PixExactCost(aRot,0.1);
