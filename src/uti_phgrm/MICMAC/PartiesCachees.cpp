@@ -345,6 +345,7 @@ void cAppliMICMAC::MakePartiesCachees
 
    std::cout << "PC-Name " << aPdv.Name() << " Z " << aZMin << " # " << aZMax<<  "\n";
 
+
    if (aGPC.FiltreName().IsInit() && (! aGPC.FiltreName().Val()->Match(aPdv.Name())))
    {
          return;
@@ -425,7 +426,6 @@ void cAppliMICMAC::MakePartiesCachees
        return;
     }
 
-   std::cout << "PC-Name " << aPdv.Name() << " Z " << aZMin << " # " << aZMax<<  "\n";
 
 
    const cFilePx & aFP = mCurEtape->KPx(0);
@@ -572,13 +572,6 @@ void cAppliMICMAC::MakePartiesCachees
       }
 
 
-  if (MPD_MM())
-  {
-    /// std::string aName = std::string("Masq-PC.tif");
-    /// Tiff_Im::Create8BFromFonc(aName,aImMasq.sz(),aImMasq.in());
-    /// std::cout << "TFM " << aTFM.name() << "  IM:" << aFileMasqGeomIm.name() << "\n";
-  }
-
        
       if (0)
       {
@@ -677,6 +670,7 @@ void cAppliMICMAC::MakePartiesCachees
        Im2D_REAL4 aIPC (aSzClip.x,aSzClip.y,1e5);
        Im2D_Bits<1>  aMasqOrt(aSzClip.x,aSzClip.y,0);
 
+
        if (aNbOk> 100) 
        {
           aMmZB = new cMicMacZbuf
@@ -695,18 +689,17 @@ void cAppliMICMAC::MakePartiesCachees
            float aZDef = -1e15f;
 
            aIPC = aMmZB->ZCaches (Pt2di(0,0),aGT.SzClip(), aZDef);
-        }
+           aMasqOrt = aMmZB->ImOkTer();
+       }
 
+/*
 if (MPD_MM())
 {
-    /// std::cout << "KBOX " << aKBox << " On " << aDI2d.NbInterv()  << " " << aBoxIn._p0 << aBoxIn._p1 << " " << aNbOk << "\n";
-    /// Tiff_Im::CreateFromIm(aIPC,"IPC_"+ToString(aKBox) + ".tif");
-    // getchar();
+std::cout << "AAAAA " << aNbOk << "\n";
+Tiff_Im::CreateFromIm(aIPC,"TestPC"+aPdv.Name() +".tif");
+std::cout << "BBBBB " << aNbOk << " " << DoOrtho  << "\n"; 
 }
-
-        
-        
-    
+*/
 
         double aZoom = aGT.ResolZ1();
 
@@ -763,15 +756,6 @@ if (MPD_MM())
 
            ElAffin2D  aAfPML2POL =   AffPixTer2BoxLoc(aBoxOrthoIn) * aAfPM2PO   * AffPixTer2BoxLoc(aBoxIn).inv();
 
-           if (aMmZB) 
-           {
-              aMasqOrt = aMmZB->ImOkTer();
-if (MPD_MM())
-{
-    /// Tiff_Im::CreateFromIm(aMasqOrt,"INIT-MasqO_"+ToString(aKBox) + ".tif");
-    /// std::cout << "iiiiMMasskOOO " << OrthoEgalePC(aGPC) << "\n";
-}
-           }
            Im2D_U_INT1 aIPCOrt(1,1);
            if (! OrthoEgalePC(aGPC))
            {
@@ -895,12 +879,6 @@ if (MPD_MM())
            );
        }
 
-if (MPD_MM())
-{
-    /// Tiff_Im::CreateFromIm(aMasqOrt,"MasqO_"+ToString(aKBox) + ".tif");
-    /// std::cout << "MMasskOOO\n";
-    /// getchar();
-}
       delete aMmZB;
    }
 
