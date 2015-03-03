@@ -42,16 +42,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "RPC.h"
 
 //From Image coordinates to geographic
-Pt3dr RPC::DirectRPC(Pt2dr Pimg, double altitude)
+Pt3dr RPC::DirectRPC(Pt3dr Pimg)const
 {
-	Pt2dr PimgNorm;
+	Pt3dr PimgNorm;
 	//Converting into normalized coordinates
 	PimgNorm.x = (Pimg.x - samp_off) / samp_scale;
 	PimgNorm.y = (Pimg.y - line_off) / line_scale;
-	double altitudeNorm = (altitude - height_off) / height_scale;
+	PimgNorm.z = (Pimg.z - height_off) / height_scale;
 
 	//Applying direct RPC
-	Pt3dr PgeoNorm = DirectRPCNorm(PimgNorm, altitudeNorm);
+	Pt3dr PgeoNorm = DirectRPCNorm(PimgNorm);
 
 	//Converting into real coordinates
 	Pt3dr Pgeo;
@@ -62,9 +62,9 @@ Pt3dr RPC::DirectRPC(Pt2dr Pimg, double altitude)
 	return Pgeo;
 }
 
-Pt3dr RPC::DirectRPCNorm(Pt2dr PimgNorm, double altitudeNorm)
+Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
 	{
-	double X = PimgNorm.x, Y = PimgNorm.y, Z = altitudeNorm;
+	double X = PimgNorm.x, Y = PimgNorm.y, Z = PimgNorm.z;
 	double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
 
 	double long_den = 0.;
@@ -86,7 +86,7 @@ Pt3dr RPC::DirectRPCNorm(Pt2dr PimgNorm, double altitudeNorm)
 	{
 		PgeoNorm.x = (lat_num / lat_den);
 		PgeoNorm.y = (long_num / long_den);
-		PgeoNorm.z = altitudeNorm;
+		PgeoNorm.z = Z;
 	}
 	else
 	{
@@ -95,13 +95,13 @@ Pt3dr RPC::DirectRPCNorm(Pt2dr PimgNorm, double altitudeNorm)
 	return PgeoNorm;
 }
 
-//From geographic coordinates to image
-Pt3dr RPC::InverseRPC(Pt3dr Pgeo)
+//From geographic (LAT, LONG, Z) coordinates to image
+Pt3dr RPC::InverseRPC(Pt3dr Pgeo, std::vector<double> vRefineCoef)const
 {
 	Pt3dr PgeoNorm;
 	//Converting into normalized coordinates
-	PgeoNorm.x = (Pgeo.x - long_off) / long_scale;
-	PgeoNorm.y = (Pgeo.y - lat_off) / lat_scale;
+	PgeoNorm.x = (Pgeo.x - lat_off) / lat_scale;
+	PgeoNorm.y = (Pgeo.y - long_off) / long_scale;
 	PgeoNorm.z = (Pgeo.z - height_off) / height_scale;
 
 	//Applying inverse RPC
@@ -113,10 +113,12 @@ Pt3dr RPC::InverseRPC(Pt3dr Pgeo)
 	Pimg.y = PimNorm.y * line_scale + line_off;
 	Pimg.z = Pgeo.z;
 
-	return Pimg;
+	Pt3dr PimgRefined = ptRefined(Pimg, vRefineCoef);
+
+	return PimgRefined;
 }
 
-Pt3dr RPC::InverseRPCNorm(Pt3dr PgeoNorm)
+Pt3dr RPC::InverseRPCNorm(Pt3dr PgeoNorm)const
 {
 	double X = PgeoNorm.x, Y = PgeoNorm.y, Z = PgeoNorm.z;
 	double vecteurD[] = { 1, Y, X, Z, Y*X, Y*Z, X*Z, Y*Y, X*X, Z*Z, X*Y*Z, Y*Y*Y, Y*X*X, Y*Z*Z, X*Y*Y, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };
@@ -127,10 +129,10 @@ Pt3dr RPC::InverseRPCNorm(Pt3dr PgeoNorm)
 
 	for (int i = 0; i<20; i++)
 	{
-		line_num += vecteurD[i] * indirect_line_num_coef[i];
-		line_den += vecteurD[i] * indirect_line_den_coef[i];
-		samp_num += vecteurD[i] * indirect_samp_num_coef[i];
-		samp_den += vecteurD[i] * indirect_samp_den_coef[i];
+		line_num += vecteurD[i] * inverse_line_num_coef[i];
+		line_den += vecteurD[i] * inverse_line_den_coef[i];
+		samp_num += vecteurD[i] * inverse_samp_num_coef[i];
+		samp_den += vecteurD[i] * inverse_samp_den_coef[i];
 	}
 	//Final computation
 	Pt3dr PimgNorm;
@@ -154,10 +156,10 @@ void RPC::ReadDimap(std::string const &filename)
 	direct_line_num_coef.clear();
 	direct_line_den_coef.clear();
 
-	indirect_samp_num_coef.clear();
-	indirect_samp_den_coef.clear();
-	indirect_line_num_coef.clear();
-	indirect_line_den_coef.clear();
+	inverse_samp_num_coef.clear();
+	inverse_samp_den_coef.clear();
+	inverse_line_num_coef.clear();
+	inverse_line_den_coef.clear();
 
 	cElXMLTree tree(filename.c_str());
 
@@ -231,16 +233,16 @@ void RPC::ReadDimap(std::string const &filename)
 			{
 				std::istringstream bufferInd((*it_gridInd)->GetUnique(coefSampN.c_str())->GetUniqueVal());
 				bufferInd >> value;
-				indirect_samp_num_coef.push_back(value);
+				inverse_samp_num_coef.push_back(value);
 				std::istringstream bufferInd2((*it_gridInd)->GetUnique(coefSampD.c_str())->GetUniqueVal());
 				bufferInd2 >> value;
-				indirect_samp_den_coef.push_back(value);
+				inverse_samp_den_coef.push_back(value);
 				std::istringstream bufferInd3((*it_gridInd)->GetUnique(coefLineN.c_str())->GetUniqueVal());
 				bufferInd3 >> value;
-				indirect_line_num_coef.push_back(value);
+				inverse_line_num_coef.push_back(value);
 				std::istringstream bufferInd4((*it_gridInd)->GetUnique(coefLineD.c_str())->GetUniqueVal());
 				bufferInd4 >> value;
-				indirect_line_den_coef.push_back(value);
+				inverse_line_den_coef.push_back(value);
 			}
 			coefSampN = coefSampN.substr(0, 14);
 			coefSampD = coefSampD.substr(0, 14);
@@ -321,6 +323,347 @@ void RPC::ReadDimap(std::string const &filename)
 	}
 }
 
+vector<Pt2dr> RPC::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const
+{
+	std::ofstream fic("processing/conv_ptGeo.txt");
+	fic << std::setprecision(15);
+	for (unsigned int i = 0; i<Pgeo.size(); i++)
+	{
+		fic << Pgeo[i].y << " " << Pgeo[i].x << endl;
+	}
+	// transformation in the ground coordinate system
+	std::string command;
+	command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " -s processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
+	int res = system(command.c_str());
+	ELISE_ASSERT(res == 0, " error calling cs2cs in ptGeo2Carto ");
+	// loading the coordinate of the converted point
+	vector<double> PtsCartox, PtsCartoy;
+	std::ifstream fic2("processing/conv_ptCarto.txt");
+	while (!fic2.eof() && fic2.good())
+	{
+		double X, Y, Z;
+		fic2 >> Y >> X >> Z;
+		if (fic2.good())
+		{
+			PtsCartox.push_back(X);
+			PtsCartoy.push_back(Y);
+		}
+	}
+
+	vector<Pt2dr> anEmpriseCarto;
+	anEmpriseCarto.push_back(Pt2dr(*std::min_element(PtsCartox.begin(), PtsCartox.end()), *std::min_element(PtsCartoy.begin(), PtsCartoy.end())));
+	anEmpriseCarto.push_back(Pt2dr(*std::max_element(PtsCartox.begin(), PtsCartox.end()), *std::max_element(PtsCartoy.begin(), PtsCartoy.end())));
+
+	return anEmpriseCarto;
+}
+
+Pt3dr RPC::ptRefined(Pt3dr Pimg, std::vector<double> vRefineCoef)const
+{
+	//Pour calculer les coordonnees affinees d'un point
+	Pt3dr pImgRefined;
+
+	pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2];
+	pImgRefined.y = vRefineCoef[3] + Pimg.x * vRefineCoef[4] + Pimg.y * vRefineCoef[5];
+	pImgRefined.z = Pimg.z;
+
+	return pImgRefined;
+}
+
+void RPC::createDirectGrid(double ulcSamp, double ulcLine,
+	double stepPixel,
+	int nbSamp, int  nbLine,
+	std::vector<double> const &vAltitude,
+	std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
+	std::vector<double> vRefineCoef)const
+{
+	vPtCarto.clear();
+	// On cree un fichier de points geographiques pour les transformer avec proj4
+	{
+		std::ofstream fic("processing/direct_ptGeo.txt");
+		fic << std::setprecision(15);
+		for (size_t i = 0; i<vAltitude.size(); ++i)
+		{
+			double altitude = vAltitude[i];
+			for (int l = 0; l<nbLine; ++l)
+			{
+				for (int c = 0; c<nbSamp; ++c)
+				{
+					Pt3dr Pimg(ulcSamp + c * stepPixel, ulcLine + l * stepPixel, altitude);
+
+					//pour affiner les coordonnees
+					Pt3dr PimgRefined = ptRefined(Pimg, vRefineCoef);
+
+					Pt3dr Pgeo = DirectRPC(PimgRefined);
+					fic << Pgeo.y << " " << Pgeo.x << std::endl;
+				}
+			}
+		}
+	}
+	// transformation in the ground coordinate system
+	std::string command;
+	command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " -s processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
+	int res = system(command.c_str());
+	if (res != 0) std::cout << "error calling cs2cs in createDirectGrid" << std::endl;
+	// loading points
+	std::ifstream fic("processing/direct_ptCarto.txt");
+	while (!fic.eof() && fic.good())
+	{
+		double X, Y, Z;
+		fic >> Y >> X >> Z;
+		if (fic.good())
+			vPtCarto.push_back(Pt2dr(X, Y));
+	}
+	std::cout << "Number of points in direct grid : " << vPtCarto.size() << std::endl;
+}
+
+void RPC::createInverseGrid(double ulcX, double ulcY, int nbrSamp, int nbrLine,
+	double stepCarto, std::vector<double> const &vAltitude,
+	std::vector<Pt3dr> &vPtImg, std::string targetSyst, std::string inputSyst,
+	std::vector<double> vRefineCoef)const
+{
+	vPtImg.clear();
+
+	//Creation of a file with points in cartographic coordinates to be transformed with proj4
+	{
+		std::ofstream fic("processing/inverse_ptCarto.txt");
+		fic << std::setprecision(15);
+		for (int l = 0; l<nbrLine; ++l)
+		{
+			double Y = ulcY - l*stepCarto;
+			for (int c = 0; c<nbrSamp; ++c)
+			{
+				double X = ulcX + c*stepCarto;
+				fic << X << " " << Y << std::endl;
+			}
+		}
+	}
+	// convert to geographic coordinates
+	std::string command;
+	command = g_externalToolHandler.get("cs2cs").callName() + " " + targetSyst + " +to " + inputSyst + " -f %.12f -s processing/inverse_ptCarto.txt >processing/inverse_ptGeo.txt";
+	int res = system(command.c_str());
+	ELISE_ASSERT(res == 0, "error calling cs2cs in createinverseGrid");
+	for (size_t i = 0; i<vAltitude.size(); ++i)
+	{
+		double altitude = vAltitude[i];
+		// loading points
+		std::ifstream fic("processing/inverse_ptGeo.txt");
+		while (!fic.eof() && fic.good())
+		{
+			double lon, lat, Z;
+			fic >> lat >> lon >> Z;
+			if (fic.good())
+			{
+				vPtImg.push_back(InverseRPC(Pt3dr(lat, lon, altitude), vRefineCoef));
+			}
+		}
+	}
+	std::cout << "Number of points in inverse grid : " << vPtImg.size() << std::endl;
+}
+
+void RPC::createGrid(std::string const &nomGrid, std::string const &nomImage,
+	double stepPixel, double stepCarto,
+	std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
+	std::vector<double> vRefineCoef)
+{
+	double firstSamp = first_col;
+	double firstLine = first_row;
+	double lastSamp = last_col;
+	double lastLine = last_row;
+
+	//Direct nbr Lignes et colonnes + step last ligne et colonne
+	int nbLine, nbSamp;
+	nbLine = (lastLine - firstLine) / stepPixel + 1;
+	nbSamp = (lastSamp - firstSamp) / stepPixel + 1;
+
+	std::vector<Pt2dr> vPtCarto;
+	createDirectGrid(firstSamp, firstLine, stepPixel, nbSamp, nbLine, vAltitude, vPtCarto, targetSyst, inputSyst, vRefineCoef);
+
+	// Estimation of the validity domaine in cartographic coordinates
+	vector<Pt2dr> cornersGeo;
+	cornersGeo.push_back(Pt2dr(first_lat, first_lon));
+	cornersGeo.push_back(Pt2dr(first_lat, last_lon));
+	cornersGeo.push_back(Pt2dr(last_lat, last_lon));
+	cornersGeo.push_back(Pt2dr(last_lat, first_lon));
+	vector<Pt2dr> anEmpriseCarto = empriseCarto(cornersGeo, targetSyst, inputSyst);
+
+	//Corners of the validity domaine of the inverse RPC
+	Pt2dr urc(anEmpriseCarto[1].x, anEmpriseCarto[1].y);
+	Pt2dr llc(anEmpriseCarto[0].x, anEmpriseCarto[0].y);
+	std::cout << "Corners of the area : " << llc << " " << urc << std::endl;
+
+	//inverse nbr Lignes et colonnes + step last ligne et colonne
+	int nbrLine, nbrSamp;
+	nbrSamp = (urc.x - llc.x) / stepCarto + 1;
+	nbrLine = (urc.y - llc.y) / stepCarto + 1;
+
+	std::vector<Pt3dr> vPtImg;
+	//Calcul des coefficients de l'affinite pour la transformation inverse
+	std::vector<double> vRefineCoefInv;
+
+	double A0 = vRefineCoef[0];
+	double A1 = vRefineCoef[1];
+	double A2 = vRefineCoef[2];
+	double B0 = vRefineCoef[3];
+	double B1 = vRefineCoef[4];
+	double B2 = vRefineCoef[5];
+
+	double det = A1*B2 - A2*B1;
+
+	double IA0 = -A0;
+	double IA1 = B2 / det;
+	double IA2 = -A2 / det;
+	double IB0 = -B0;
+	double IB1 = -B1 / det;
+	double IB2 = A1 / det;
+
+	vRefineCoefInv.push_back(IA0);
+	vRefineCoefInv.push_back(IA1);
+	vRefineCoefInv.push_back(IA2);
+	vRefineCoefInv.push_back(IB0);
+	vRefineCoefInv.push_back(IB1);
+	vRefineCoefInv.push_back(IB2);
+
+	createInverseGrid(llc.x, urc.y, nbrSamp, nbrLine, stepCarto, vAltitude, vPtImg,
+		targetSyst, inputSyst, vRefineCoefInv);
+
+	//Creating grid and writing flux
+
+	std::ofstream writeGrid(nomGrid.c_str());
+	writeGrid << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+	writeGrid << "<trans_coord_grid version=\"5\" name=\"\">" << std::endl;
+	//creation of the date
+	time_t t = time(0);
+	struct tm * timeInfo = localtime(&t);
+	std::string date;
+	std::stringstream ssdate;
+	ssdate << timeInfo->tm_year + 1900;
+	double adate[] = { (double)timeInfo->tm_mon, (double)timeInfo->tm_mday,
+		(double)timeInfo->tm_hour, (double)timeInfo->tm_min, (double)timeInfo->tm_sec };
+	std::vector<double> vdate(adate, adate + 5);
+	// Formating the date
+	for (int ida = 0; ida<5; ida++)
+	{
+		std::stringstream ssdateTempo;
+		std::string dateTempo;
+		ssdateTempo << vdate[ida];
+		dateTempo = ssdateTempo.str();
+		if (dateTempo.length() == 2)
+			ssdate << dateTempo;
+		else ssdate << 0 << dateTempo;
+	}
+	date = ssdate.str();
+	writeGrid << "\t<date>" << date << "</date>" << std::endl;
+
+	writeGrid << "\t<trans_coord name=\"\">" << std::endl;
+	writeGrid << "\t\t<trans_sys_coord name=\"\">" << std::endl;
+	writeGrid << "\t\t\t<sys_coord name=\"sys1\">" << std::endl;
+	writeGrid << "\t\t\t\t<sys_coord_plani name=\"sys1\">" << std::endl;
+	writeGrid << "\t\t\t\t\t<code>" << nomImage << "</code>" << std::endl;
+	writeGrid << "\t\t\t\t\t<unit>" << "p" << "</unit>" << std::endl;
+	writeGrid << "\t\t\t\t\t<direct>" << "0" << "</direct>" << std::endl;
+	writeGrid << "\t\t\t\t\t<sub_code>" << "*" << "</sub_code>" << std::endl;
+	writeGrid << "\t\t\t\t\t<vertical>" << nomImage << "</vertical>" << std::endl;
+	writeGrid << "\t\t\t\t</sys_coord_plani>" << std::endl;
+	writeGrid << "\t\t\t\t<sys_coord_alti name=\"sys1\">" << std::endl;
+	writeGrid << "\t\t\t\t\t<code>" << "Unused in MicMac" << "</code>" << std::endl;
+	writeGrid << "\t\t\t\t\t<unit>" << "m" << "</unit>" << std::endl;
+	writeGrid << "\t\t\t\t</sys_coord_alti>" << std::endl;
+	writeGrid << "\t\t\t</sys_coord>" << std::endl;
+
+	writeGrid << "\t\t\t<sys_coord name=\"sys2\">" << std::endl;
+	writeGrid << "\t\t\t\t<sys_coord_plani name=\"sys2\">" << std::endl;
+	writeGrid << "\t\t\t\t\t<code>" << "Unused in MicMac" << "</code>" << std::endl;
+	writeGrid << "\t\t\t\t\t<unit>" << "m" << "</unit>" << std::endl;
+	writeGrid << "\t\t\t\t\t<direct>" << "1" << "</direct>" << std::endl;
+	writeGrid << "\t\t\t\t\t<sub_code>" << "*" << "</sub_code>" << std::endl;
+	writeGrid << "\t\t\t\t\t<vertical>" << "Unused in MicMac" << "</vertical>" << std::endl;
+	writeGrid << "\t\t\t\t</sys_coord_plani>" << std::endl;
+	writeGrid << "\t\t\t\t<sys_coord_alti name=\"sys2\">" << std::endl;
+	writeGrid << "\t\t\t\t\t<code>" << "Unused in MicMac" << "</code>" << std::endl;
+	writeGrid << "\t\t\t\t\t<unit>" << "m" << "</unit>" << std::endl;
+	writeGrid << "\t\t\t\t</sys_coord_alti>" << std::endl;
+	writeGrid << "\t\t\t</sys_coord>" << std::endl;
+	writeGrid << "\t\t</trans_sys_coord>" << std::endl;
+	writeGrid << "\t\t<category>" << "1" << "</category>" << std::endl;
+	writeGrid << "\t\t<type_modele>" << "2" << "</type_modele>" << std::endl;
+	writeGrid << "\t\t<direct_available>" << "1" << "</direct_available>" << std::endl;
+	writeGrid << "\t\t<inverse_available>" << "1" << "</inverse_available>" << std::endl;
+	writeGrid << "\t</trans_coord>" << std::endl;
+
+	// For the direct grid
+	writeGrid << "\t<multi_grid version=\"1\" name=\"1-2\" >" << std::endl;
+	writeGrid << "\t\t<upper_left>" << std::setprecision(15) << firstSamp << "  " << std::setprecision(15) << firstLine << "</upper_left>" << std::endl;
+	writeGrid << "\t\t<columns_interval>" << stepPixel << "</columns_interval>" << std::endl;
+	writeGrid << "\t\t<rows_interval>" << "-" << stepPixel << "</rows_interval>" << std::endl;
+	writeGrid << "\t\t<columns_number>" << nbSamp << "</columns_number>" << std::endl;
+	writeGrid << "\t\t<rows_number>" << nbLine << "</rows_number>" << std::endl;
+	writeGrid << "\t\t<components_number>" << "2" << "</components_number>" << std::endl;
+	std::vector<Pt2dr>::const_iterator it = vPtCarto.begin();
+
+	for (size_t i = 0; i<vAltitude.size(); ++i)
+	{
+		std::stringstream ssAlti;
+		std::string sAlti;
+		ssAlti << std::setprecision(15) << vAltitude[i];
+		sAlti = ssAlti.str();
+		writeGrid << "\t\t\t<layer value=\"" << sAlti << "\">" << std::endl;
+
+		for (int l = 0; l<nbLine; ++l)
+		{
+			for (int c = 0; c<nbSamp; ++c)
+			{
+				Pt2dr const &PtCarto = (*it);
+				++it;
+				std::stringstream ssCoord;
+				std::string  sCoord;
+				ssCoord << std::setprecision(15) << PtCarto.x << "   " << std::setprecision(15) << PtCarto.y;
+				sCoord = ssCoord.str();
+				writeGrid << "\t\t\t" << sCoord << std::endl;
+			}
+		}
+		writeGrid << "\t\t\t</layer>" << std::endl;
+	}
+	writeGrid << "\t</multi_grid>" << std::endl;
+
+	// For the inverse grid
+	writeGrid << "\t<multi_grid version=\"1\" name=\"2-1\" >" << std::endl;
+	writeGrid << "\t\t<upper_left>" << std::setprecision(15) << vPtCarto[0].x << "  " << std::setprecision(15) << vPtCarto[0].y << "</upper_left>" << std::endl;
+	writeGrid << "\t\t<columns_interval>" << std::setprecision(15) << stepCarto << "</columns_interval>" << std::endl;
+	writeGrid << "\t\t<rows_interval>" << std::setprecision(15) << stepCarto << "</rows_interval>" << std::endl;
+	writeGrid << "\t\t<columns_number>" << nbrSamp << "</columns_number>" << std::endl;
+	writeGrid << "\t\t<rows_number>" << nbrLine << "</rows_number>" << std::endl;
+	writeGrid << "\t\t<components_number>" << "2" << "</components_number>" << std::endl;
+	std::vector<Pt3dr>::const_iterator it2 = vPtImg.begin();
+
+	for (size_t i = 0; i<vAltitude.size(); ++i)
+	{
+		std::stringstream ssAlti;
+		std::string sAlti;
+		ssAlti << std::setprecision(15) << vAltitude[i];
+		sAlti = ssAlti.str();
+		writeGrid << "\t\t\t<layer value=\"" << sAlti << "\">" << std::endl;
+
+		for (int l = 0; l<nbrLine; ++l)
+		{
+			for (int c = 0; c<nbrSamp; ++c)
+			{
+				Pt3dr const &PtImg = (*it2);
+				++it2;
+				std::stringstream ssCoordInv;
+				std::string  sCoordInv;
+				ssCoordInv << std::setprecision(15) << PtImg.x << "   "
+					<< std::setprecision(15) << PtImg.y ;
+				sCoordInv = ssCoordInv.str();
+				writeGrid << "\t\t\t" << sCoordInv << std::endl;
+			}
+		}
+		writeGrid << "\t\t\t</layer>" << std::endl;
+	}
+	writeGrid << "\t</multi_grid>" << std::endl;
+
+	writeGrid << "</trans_coord_grid>" << std::endl;
+}
+
 void RPC::WriteAirbusRPC(std::string aFileOut)
 {
 	std::ofstream fic(aFileOut.c_str());
@@ -364,19 +707,19 @@ void RPC::WriteAirbusRPC(std::string aFileOut)
 	fic << "\t\t\t<Inverse_Model>" << endl;
 		for (int i = 0; i<20; i++)
 		{
-			fic << "\t\t\t\t<SAMP_NUM_COEFF_" << i + 1 << ">" << indirect_samp_num_coef[i] << "</SAMP_NUM_COEFF_" << i + 1 << ">" << endl;
+			fic << "\t\t\t\t<SAMP_NUM_COEFF_" << i + 1 << ">" << inverse_samp_num_coef[i] << "</SAMP_NUM_COEFF_" << i + 1 << ">" << endl;
 		}
 		for (int i = 0; i<20; i++)
 		{
-			fic << "\t\t\t\t<SAMP_DEN_COEFF_" << i + 1 << ">" << indirect_samp_den_coef[i] << "</SAMP_DEN_COEFF_" << i + 1 << ">" << endl;
+			fic << "\t\t\t\t<SAMP_DEN_COEFF_" << i + 1 << ">" << inverse_samp_den_coef[i] << "</SAMP_DEN_COEFF_" << i + 1 << ">" << endl;
 		}
 		for (int i = 0; i<20; i++)
 		{
-			fic << "\t\t\t\t<LINE_NUM_COEFF_" << i + 1 << ">" << indirect_line_num_coef[i] << "</LINE_NUM_COEFF_" << i + 1 << ">" << endl;
+			fic << "\t\t\t\t<LINE_NUM_COEFF_" << i + 1 << ">" << inverse_line_num_coef[i] << "</LINE_NUM_COEFF_" << i + 1 << ">" << endl;
 		}
 		for (int i = 0; i<20; i++)
 		{
-			fic << "\t\t\t\t<LINE_DEN_COEFF_" << i + 1 << ">" << indirect_line_den_coef[i] << "</LINE_DEN_COEFF_" << i + 1 << ">" << endl;
+			fic << "\t\t\t\t<LINE_DEN_COEFF_" << i + 1 << ">" << inverse_line_den_coef[i] << "</LINE_DEN_COEFF_" << i + 1 << ">" << endl;
 		}
 		fic << "\t\t\t\t<ERR_BIAS_ROW>" << indirErrBiasRow << "</ERR_BIAS_ROW>" << endl;
 		fic << "\t\t\t\t<ERR_BIAS_COL>" << indirErrBiasCol << "</ERR_BIAS_COL>" << endl;
@@ -409,8 +752,9 @@ void RPC::WriteAirbusRPC(std::string aFileOut)
 
 	fic << "\t\t</Global_RFM>" << endl;
 	fic << "\t</Rational_Function_Model>" << endl;
-	fic << "</Dimap_Document>" << endl;
+	fic << "</Dimap_Document>";
 }
+
 void RPC::ReconstructValidity()
 {
 	first_row = -1 * line_scale + line_off;
@@ -473,8 +817,8 @@ void RPC::Inverse2Direct(double gridSize)
 		double X = aGridImNorm[i].x;
 		double Y = aGridImNorm[i].y;
 		double Z = aGridImNorm[i].z;
-		double lon = aGridGeoNorm[i].x;
-		double lat = aGridGeoNorm[i].y;
+		double lat = aGridGeoNorm[i].x;
+		double lon = aGridGeoNorm[i].y;
 
 		double aEqLon[39] = {
 							1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
@@ -494,8 +838,8 @@ void RPC::Inverse2Direct(double gridSize)
 	bool Ok;
 	Im1D_REAL8 aSolLon = aSysLon.GSSR_Solve(&Ok);
 	Im1D_REAL8 aSolLat = aSysLat.GSSR_Solve(&Ok);
-	double* aDataLat = aSolLon.data();
-	double* aDataLon = aSolLat.data();
+	double* aDataLat = aSolLat.data();
+	double* aDataLon = aSolLon.data();
 
 	//Copying Data in RPC object
 	//Numerators
@@ -584,7 +928,7 @@ void RPC::ReadRPB(std::string const &filename)
 		iss >> a >> b >> height_scale;
 	}
 	double aCoef;
-	//indirect_line_num_coef
+	//inverse_line_num_coef
 	{
 		std::getline(RPBfile, line);
 		for (u_int i = 0; i < 20; i++)
@@ -592,10 +936,10 @@ void RPC::ReadRPB(std::string const &filename)
 			std::getline(RPBfile, line);
 			std::istringstream iss(line);
 			iss >> aCoef;
-			indirect_line_num_coef.push_back(aCoef);
+			inverse_line_num_coef.push_back(aCoef);
 		}
 	}
-	//indirect_line_den_coef
+	//inverse_line_den_coef
 	{
 		std::getline(RPBfile, line);
 		for (u_int i = 0; i < 20; i++)
@@ -603,10 +947,10 @@ void RPC::ReadRPB(std::string const &filename)
 			std::getline(RPBfile, line);
 			std::istringstream iss(line);
 			iss >> aCoef; 
-			indirect_line_den_coef.push_back(aCoef);
+			inverse_line_den_coef.push_back(aCoef);
 		}
 	}
-	//indirect_samp_num_coef
+	//inverse_samp_num_coef
 	{
 		std::getline(RPBfile, line);
 		for (u_int i = 0; i < 20; i++)
@@ -614,10 +958,10 @@ void RPC::ReadRPB(std::string const &filename)
 			std::getline(RPBfile, line);
 			std::istringstream iss(line);
 			iss >> aCoef;
-			indirect_samp_num_coef.push_back(aCoef);
+			inverse_samp_num_coef.push_back(aCoef);
 		}
 	}
-	//indirect_samp_den_coef
+	//inverse_samp_den_coef
 	{
 		std::getline(RPBfile, line);
 		for (u_int i = 0; i < 20; i++)
@@ -625,7 +969,7 @@ void RPC::ReadRPB(std::string const &filename)
 			std::getline(RPBfile, line);
 			std::istringstream iss(line);
 			iss >> aCoef;
-			indirect_samp_den_coef.push_back(aCoef);
+			inverse_samp_den_coef.push_back(aCoef);
 		}
 	}
 }
@@ -649,9 +993,7 @@ int RPC_main(int argc, char ** argv)
 	aRPC.Inverse2Direct(gridSize);
 	cout << "Direct RPC estimated" << endl;
 	aRPC.ReconstructValidity();
-	//Banane.ReadDimap(aNameFileDimap);
 	aRPC.info();
-	//Banane.Inverse2Direct(gridSize);
 	aRPC.WriteAirbusRPC(aFileOut);
 	return 0;
 }
