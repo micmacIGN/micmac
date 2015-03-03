@@ -1,11 +1,13 @@
 #include "3DObject.h"
 #include "SaisieGlsl.glsl"
 
+
+
 cObject::cObject() :
     _name(""),
-    _position(Pt3dr(0.f,0.f,0.f)),
-    _rotation(Pt3dr(0.f,0.f,0.f)),
-    _scale(Pt3dr(1.f, 1.f,1.f)),
+	_position(QVector3D(0.f,0.f,0.f)),
+	_rotation(QVector3D(0.f,0.f,0.f)),
+	_scale(QVector3D(1.f, 1.f,1.f)),
     _alpha(0.6f),
     _state(state_default)
 {
@@ -13,11 +15,11 @@ cObject::cObject() :
         _color[iC] = QColor(255,255,255);
 }
 
-cObject::cObject(Pt3dr pos, QColor color_default) :
+cObject::cObject(QVector3D pos, QColor color_default) :
     _name(""),
     _position(pos),
-    _rotation(Pt3dr(0.f,0.f,0.f)),
-    _scale(Pt3dr(1.f, 1.f,1.f)),
+	_rotation(QVector3D(0.f,0.f,0.f)),
+	_scale(QVector3D(1.f, 1.f,1.f)),
     _alpha(0.6f),
     _state(state_default)
 {
@@ -61,12 +63,12 @@ void cObject::setState(object_state state)
     _state = state;
 }
 
-cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
+cCircle::cCircle(QVector3D pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
     _dim(dim)
 {
     setPosition(pt);
     cObject::setColor(col);
-    setScale(Pt3dr(scale,scale,scale));
+	setScale(QVector3D(scale,scale,scale));
     setLineWidth(lineWidth);
     cObject::setVisible(vis);
 }
@@ -74,7 +76,7 @@ cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool
 //draw a unit circle in a given plane (0=YZ, 1=XZ, 2=XY)
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 {
-    float theta = 2.f * PI / float(steps);
+	float theta = 2.f * M_PI / float(steps);
     float c = cosf(theta); //precalculate the sine and cosine
     float s = sinf(theta);
 //    float t;
@@ -106,10 +108,10 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 
 void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO step Auto....
 {
-	const float theta = 2.f * PI / float(steps);
+	const float theta = 2.f * M_PI / float(steps);
 
     glBegin(GL_LINE_LOOP);
-    for(float t = 0.f; t <= 2.f * PI; t+= theta)
+	for(float t = 0.f; t <= 2.f * M_PI; t+= theta)
     {
 
 		const float x = cx + rx*sinf(t);
@@ -122,10 +124,10 @@ void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO st
 
 void glDrawEllipsed(double cx, double cy, double rx, double ry, int steps) // TODO step Auto....
 {
-	const double theta = 2.f * PI / double(steps);
+	const double theta = 2.f * M_PI / double(steps);
 
     glBegin(GL_LINE_LOOP);
-    for(double t = 0.f; t <= 2.f * PI; t+= theta)
+	for(double t = 0.f; t <= 2.f * M_PI; t+= theta)
     {
 		const float x = cx + rx*std::sin(t);
 		const float y = cy + ry*std::cos(t);
@@ -155,20 +157,20 @@ void cCircle::draw()
 
     glEndList();
 
-    glTranslatef(_position.x,_position.y,_position.z);
-    glScalef(_scale.x,_scale.y,_scale.z);
+	glTranslatef(_position.x(),_position.y(),_position.z());
+	glScalef(_scale.x(),_scale.y(),_scale.z());
 
     glCallList(list);
 
     glPopMatrix();
 }
 
-cCross::cCross(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
+cCross::cCross(QVector3D pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
     _dim(dim)
 {
     setPosition(pt);
     cObject::setColor(col);
-    setScale(Pt3dr(scale, scale, scale));
+	setScale(QVector3D(scale, scale, scale));
     setLineWidth(lineWidth);
     cObject::setVisible(vis);
 }
@@ -214,15 +216,15 @@ void cCross::draw()
 
     glEndList();
 
-    glTranslatef(_position.x,_position.y,_position.z);
-    glScalef(_scale.x,_scale.y,_scale.z);
+	glTranslatef(_position.x(),_position.y(),_position.z());
+	glScalef(_scale.x(),_scale.y(),_scale.z());
 
     glCallList(list);
 
     glPopMatrix();
 }
 
-cBall::cBall(Pt3dr pt, float scale, bool isVis, float lineWidth)
+cBall::cBall(QVector3D pt, float scale, bool isVis, float lineWidth)
 {
     cObject::setVisible(isVis);
 
@@ -260,7 +262,7 @@ void cBall::draw()
     }
 }
 
-void cBall::setPosition(Pt3dr const &aPt)
+void cBall::setPosition(QVector3D const &aPt)
 {
     _cl0->setPosition(aPt);
     _cl1->setPosition(aPt);
@@ -271,7 +273,7 @@ void cBall::setPosition(Pt3dr const &aPt)
     _cr2->setPosition(aPt);
 }
 
-Pt3dr cBall::getPosition()
+QVector3D cBall::getPosition()
 {
     return _cl0->getPosition();
 }
@@ -292,12 +294,12 @@ void cBall::setVisible(bool aVis)
 
 void cBall::setScale(float aScale)
 {
-	Pt3dr pScale(aScale,aScale,aScale);
+	QVector3D pScale(aScale,aScale,aScale);
 	setScale(pScale);
 
 }
 
-void cBall::setScale(Pt3dr aScale)
+void cBall::setScale(QVector3D aScale)
 {
 	if(_cl0 && _cl1 && _cl2 && _cr0 && _cr1 && _cr2)
 	{
@@ -311,10 +313,10 @@ void cBall::setScale(Pt3dr aScale)
 	}
 }
 
-cAxis::cAxis(Pt3dr pt, float scale, float lineWidth)
+cAxis::cAxis(QVector3D pt, float scale, float lineWidth)
 {
     _position = pt;
-    _scale    = Pt3dr(scale, scale, scale);
+	_scale    = QVector3D(scale, scale, scale);
     setLineWidth(lineWidth);
 }
 
@@ -348,8 +350,8 @@ void cAxis::draw()
 
         glEndList();
 
-        glTranslatef(_position.x,_position.y,_position.z);
-        glScalef(_scale.x,_scale.y,_scale.z);
+		glTranslatef(_position.x(),_position.y(),_position.z());
+		glScalef(_scale.x(),_scale.y(),_scale.z());
 
         glCallList(dihedron);
 
@@ -357,7 +359,7 @@ void cAxis::draw()
     }
 }
 
-cBBox::cBBox(Pt3dr pt, Pt3dr min, Pt3dr max, float lineWidth)
+cBBox::cBBox(QVector3D pt, QVector3D min, QVector3D max, float lineWidth)
 {
     _position = pt;
     _min = min;
@@ -367,7 +369,7 @@ cBBox::cBBox(Pt3dr pt, Pt3dr min, Pt3dr max, float lineWidth)
     setLineWidth(lineWidth);
 }
 
-void cBBox::set(Pt3dr min, Pt3dr max)
+void cBBox::set(QVector3D min, QVector3D max)
 {
     _min = min;
     _max = max;
@@ -389,52 +391,52 @@ void cBBox::draw()
 
         setGLColor();
 
-        Pt3dr P1(_min);
-        Pt3dr P2(_min.x, _min.y, _max.z);
-        Pt3dr P3(_min.x, _max.y, _max.z);
-        Pt3dr P4(_min.x, _max.y, _min.z);
-        Pt3dr P5(_max.x, _min.y, _min.z);
-        Pt3dr P6(_max.x, _max.y, _min.z);
-        Pt3dr P7(_max);
-        Pt3dr P8(_max.x, _min.y, _max.z);
+		QVector3D P1(_min);
+		QVector3D P2(_min.x(), _min.y(), _max.z());
+		QVector3D P3(_min.x(), _max.y(), _max.z());
+		QVector3D P4(_min.x(), _max.y(), _min.z());
+		QVector3D P5(_max.x(), _min.y(), _min.z());
+		QVector3D P6(_max.x(), _max.y(), _min.z());
+		QVector3D P7(_max);
+		QVector3D P8(_max.x(), _min.y(), _max.z());
 
         glBegin(GL_LINES);
 
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+		glVertex3d(P1.x(), P1.y(), P1.z());
+		glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P3.x, P3.y, P3.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+		glVertex3d(P3.x(), P3.y(), P3.z());
+		glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P4.x, P4.y, P4.z);
+		glVertex3d(P1.x(), P1.y(), P1.z());
+		glVertex3d(P4.x(), P4.y(), P4.z());
 
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P5.x, P5.y, P5.z);
+		glVertex3d(P1.x(), P1.y(), P1.z());
+		glVertex3d(P5.x(), P5.y(), P5.z());
 
-        glVertex3d(P7.x, P7.y, P7.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+		glVertex3d(P7.x(), P7.y(), P7.z());
+		glVertex3d(P3.x(), P3.y(), P3.z());
 
-        glVertex3d(P7.x, P7.y, P7.z);
-        glVertex3d(P6.x, P6.y, P6.z);
+		glVertex3d(P7.x(), P7.y(), P7.z());
+		glVertex3d(P6.x(), P6.y(), P6.z());
 
-        glVertex3d(P8.x, P8.y, P8.z);
-        glVertex3d(P5.x, P5.y, P5.z);
+		glVertex3d(P8.x(), P8.y(), P8.z());
+		glVertex3d(P5.x(), P5.y(), P5.z());
 
-        glVertex3d(P7.x, P7.y, P7.z);
-        glVertex3d(P8.x, P8.y, P8.z);
+		glVertex3d(P7.x(), P7.y(), P7.z());
+		glVertex3d(P8.x(), P8.y(), P8.z());
 
-        glVertex3d(P5.x, P5.y, P5.z);
-        glVertex3d(P6.x, P6.y, P6.z);
+		glVertex3d(P5.x(), P5.y(), P5.z());
+		glVertex3d(P6.x(), P6.y(), P6.z());
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P6.x, P6.y, P6.z);
+		glVertex3d(P4.x(), P4.y(), P4.z());
+		glVertex3d(P6.x(), P6.y(), P6.z());
 
-        glVertex3d(P8.x, P8.y, P8.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+		glVertex3d(P8.x(), P8.y(), P8.z());
+		glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+		glVertex3d(P4.x(), P4.y(), P4.z());
+		glVertex3d(P3.x(), P3.y(), P3.z());
 
         glEnd();
 
@@ -452,7 +454,7 @@ cCamGL::cCamGL(cCamHandler *pCam, float scale,  object_state state, float lineWi
     _pointSize(5.f),
     _Cam(pCam)
 {
-    _scale = Pt3dr(scale, scale, scale);
+	_scale = QVector3D(scale, scale, scale);
 
     setState(state);
     cObject::setColor(QColor("red"));
@@ -480,9 +482,9 @@ void cCamGL::draw()
 
         glPointSize(_pointSize);
 
-		Pt3dr C  = _Cam->getCenter();
-        Pt3dr P1, P2, P3, P4;
-		_Cam->getCoins(P1, P2, P3, P4, _scale.z*.05f);
+		QVector3D C  = _Cam->getCenter();
+		QVector3D P1, P2, P3, P4;
+		_Cam->getCoins(P1, P2, P3, P4, _scale.z()*.05f);
 
         glBegin(GL_LINES);
         //perspective cone
@@ -494,37 +496,37 @@ void cCamGL::draw()
             glColor3f(color.redF(),color.greenF(),color.blueF());
         }
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P1.x, P1.y, P1.z);
+		glVertex3d(C.x(), C.y(), C.z());
+		glVertex3d(P1.x(), P1.y(), P1.z());
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+		glVertex3d(C.x(), C.y(), C.z());
+		glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+		glVertex3d(C.x(), C.y(), C.z());
+		glVertex3d(P3.x(), P3.y(), P3.z());
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P4.x, P4.y, P4.z);
+		glVertex3d(C.x(), C.y(), C.z());
+		glVertex3d(P4.x(), P4.y(), P4.z());
 
         //Image
 
         setGLColor();
 
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+		glVertex3d(P1.x(), P1.y(), P1.z());
+		glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+		glVertex3d(P4.x(), P4.y(), P4.z());
+		glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P3.x, P3.y, P3.z);
-        glVertex3d(P1.x, P1.y, P1.z);
+		glVertex3d(P3.x(), P3.y(), P3.z());
+		glVertex3d(P1.x(), P1.y(), P1.z());
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+		glVertex3d(P4.x(), P4.y(), P4.z());
+		glVertex3d(P3.x(), P3.y(), P3.z());
         glEnd();
 
         glBegin(GL_POINTS);
-        glVertex3d(C.x, C.y, C.z);
+		glVertex3d(C.x(), C.y(), C.z());
         glEnd();
 
         glEndList();
@@ -569,24 +571,24 @@ QColor cPoint::colorPointState()
     {
         switch(_pointState)
         {
-        case eEPI_NonSaisi :
+		case qEPI_NonSaisi ://
             color = Qt::yellow;
             break;
 
-        case eEPI_Refute :
+		case qEPI_Refute ://
             color = Qt::red;
             break;
 
-        case eEPI_Douteux :
+		case qEPI_Douteux ://
             color = QColor(255, 127, 0, 255);
             break;
 
-        case eEPI_Valide :
+		case  qEPI_Valide://
             color = Qt::green;
             break;
 
-        case eEPI_Disparu  :
-        case eEPI_NonValue :
+		case  qEPI_Disparu://
+		case  qEPI_NonValue://
             break;
         }
     }
@@ -632,7 +634,7 @@ void cPoint::draw()
             glEnd( );
         }
 
-        if (_highlight && ((_pointState == eEPI_Valide) || (_pointState == eEPI_NonSaisi)))
+		if (_highlight && ((_pointState == qEPI_Valide) || (_pointState == qEPI_NonSaisi)))
         {
             if (_bEpipolar)
             {
@@ -842,7 +844,7 @@ int cPolygon::getSelectedPointState()
     {
         return point(_idx).pointState();
     }
-    else return eEPI_NonValue;
+	else return qEPI_NonValue;
 }
 
 void cPolygon::add(cPoint &pt)
@@ -859,7 +861,7 @@ void cPolygon::add(const QPointF &pt, bool selected)
 {
     if (size() < _maxSz)
     {
-        cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default],Qt::blue,_pointDiameter);
+		cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, selected, _color[state_default],Qt::blue,_pointDiameter);
 
         cPt.drawCenter(!isLinear());
 
@@ -871,7 +873,7 @@ void cPolygon::addPoint(const QPointF &pt)
 {
     if (size() >= 1)
     {
-        cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
+		cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
 
         cPt.drawCenter(!isLinear());
@@ -961,26 +963,6 @@ const QVector<QPointF> cPolygon::getImgCoordVector(const cMaskedImageGL &img)
     }
 
     return points;
-}
-
-//transforms into terrain coordinates if FileOriMNT exists, else transforms into image coordinates
-const QVector<QPointF> cPolygon::transfoTerrain(const cMaskedImageGL &img)
-{
-    QVector <QPointF> res = getImgCoordVector(img);
-
-    if (img._m_FileOriMnt.NameFileMnt() != "")
-    {
-        for (int aK=0; aK < res.size(); ++aK)
-        {
-            Pt2dr ptImage(res[aK].x(), res[aK].y());
-
-            Pt2dr ptTerrain = ToMnt(img._m_FileOriMnt, ptImage);
-
-            res[aK]=  QPointF(ptTerrain.x, ptTerrain.y);
-        }
-    }
-
-    return res;
 }
 
 void cPolygon::setVector(const QVector<QPointF> &aPts)
@@ -1291,7 +1273,7 @@ void cPolygonHelper::build(cPoint const &pos, bool insertMode)
 
     if (insertMode)
     {
-		float dist2 = FLT_MAX;
+		float dist2 = std::numeric_limits<float>::max();
         int idx = -1;
         for (int aK =0; aK < sz; ++aK)
         {
@@ -1409,7 +1391,7 @@ cImageGL::cImageGL(float gamma) :
     _texture(GL_INVALID_LIST_ID),
     _gamma(gamma)
 {
-    setPosition(Pt3dr(0,0,0));
+	setPosition(QVector3D(0,0,0));
 
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
@@ -1430,7 +1412,7 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-    drawQuad(getPosition().x, getPosition().y, width(), height(), color);
+	drawQuad(getPosition().x(), getPosition().y(), width(), height(), color);
 }
 
 void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
@@ -1581,8 +1563,6 @@ cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
     _m_image    = new cImageGL(qMaskedImage->_gamma);
     _m_newMask  = qMaskedImage->_m_newMask;
 
-    _m_FileOriMnt = qMaskedImage->_m_FileOriMnt;
-
     cObjectGL::setName(qMaskedImage->name());
 }
 
@@ -1595,7 +1575,7 @@ cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
     _m_image->setVisible(false);
     _m_mask->setVisible(false);
 
-    Pt3dr pos(aRect.topLeft().x(), aRect.topLeft().y(), 0.f);
+	QVector3D pos(aRect.topLeft().x(), aRect.topLeft().y(), 0.f);
 
     QSize size((int) aRect.width(), (int) aRect.height());
 
@@ -1961,7 +1941,7 @@ void cMessages2DGL::glRenderText(QString text, QPointF pt, QColor color)
     glwid->renderText ( pt.x(), pt.y(), text);
 }
 
-cGrid::cGrid(Pt3dr pt, Pt3dr scale)
+cGrid::cGrid(QVector3D pt, QVector3D scale)
 {
     _position = pt;
     _scale    = scale;
@@ -1975,29 +1955,29 @@ void cGrid::draw()
         int nbGridX = 10;
         int nbGridZ = 10;
 
-        float scaleX = getScale().x / nbGridX;
-        float scaleZ = getScale().z / nbGridZ;
+		float scaleX = getScale().x() / nbGridX;
+		float scaleZ = getScale().z() / nbGridZ;
 
-        Pt3dr pt;
+		QVector3D pt;
 
-        pt.x = getPosition().x - ((float)nbGridX * 0.5f) * scaleX;
-        pt.y = getPosition().y ;
-        pt.z = getPosition().z - ((float)nbGridZ * 0.5f) * scaleZ;
+		pt.setX( getPosition().x() - ((float)nbGridX * 0.5f) * scaleX);
+		pt.setY( getPosition().y() );
+		pt.setZ(getPosition().z() - ((float)nbGridZ * 0.5f) * scaleZ);
 
         glBegin(GL_LINES);
         glColor3f(.25,.25,.25);
         for(int i=0;i<=nbGridX;i++)
         {
             //if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
-            glVertex3f((float)i * scaleX + pt.x,pt.y,pt.z);
-            glVertex3f((float)i * scaleX + pt.x,pt.y,(float)nbGridZ * scaleZ+ pt.z);
+			glVertex3f((float)i * scaleX + pt.x(),pt.y(),pt.z());
+			glVertex3f((float)i * scaleX + pt.x(),pt.y(),(float)nbGridZ * scaleZ+ pt.z());
         }
 
         for(int i=0;i<=nbGridZ;i++)
         {
             //if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
-            glVertex3f( pt.x,pt.y,(float)i * scaleZ + pt.z);
-            glVertex3f((float)nbGridX* scaleX+pt.x,pt.y,(float)i * scaleZ + pt.z);
+			glVertex3f( pt.x(),pt.y(),(float)i * scaleZ + pt.z());
+			glVertex3f((float)nbGridX* scaleX+pt.x(),pt.y(),(float)i * scaleZ + pt.z());
         };
         glEnd();
     }

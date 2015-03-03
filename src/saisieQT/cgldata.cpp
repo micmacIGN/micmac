@@ -20,8 +20,8 @@ cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, i
     _pAxis(NULL),
     _pBbox(NULL),
     _pGrid(NULL),
-    _bbox_center(Pt3dr(0.,0.,0.)),
-    _clouds_center(Pt3dr(0.,0.,0.)),
+	_bbox_center(QVector3D(0.,0.,0.)),
+	_clouds_center(QVector3D(0.,0.,0.)),
 	_appMode(appMode)
 //    _bDrawTiles(false)
 {
@@ -41,8 +41,8 @@ cGLData::cGLData(cData *data, cParameters aParams, int appMode):
     _pAxis(new cAxis),
     _pBbox(new cBBox),
     _pGrid(new cGrid),
-    _bbox_center(Pt3dr(0.,0.,0.)),
-    _clouds_center(Pt3dr(0.,0.,0.)),
+	_bbox_center(QVector3D(0.,0.,0.)),
+	_clouds_center(QVector3D(0.,0.,0.)),
     _appMode(appMode),
     _diam(1.f),
 	_incFirstCloud(false)
@@ -86,7 +86,7 @@ void cGLData::setData(cData *data, bool setCam, int centerType	)
     }
 
     float sc = data->getBBoxMaxSize() / 1.5f;
-    Pt3dr scale(sc, sc, sc);
+	QVector3D scale(sc, sc, sc);
 
     _pBall->setScale(scale);
     _pAxis->setScale(scale);
@@ -261,11 +261,11 @@ void cGLData::draw()
 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
-        glTranslated(getPosition().x,getPosition().y,getPosition().z);
-        glRotatef(cObject::getRotation().x,1.f,0.f,0.f);
-        glRotatef(cObject::getRotation().y,0.f,1.f,0.f);
-        glRotatef(cObject::getRotation().z,0.f,0.f,1.f);
-        glTranslated(-getPosition().x,-getPosition().y,-getPosition().z);
+		glTranslated(getPosition().x(),getPosition().y(),getPosition().z());
+		glRotatef(cObject::getRotation().x(),1.f,0.f,0.f);
+		glRotatef(cObject::getRotation().y(),0.f,1.f,0.f);
+		glRotatef(cObject::getRotation().z(),0.f,0.f,1.f);
+		glTranslated(-getPosition().x(),-getPosition().y(),-getPosition().z());
 
         for (int i=0; i<_vClouds.size();i++)
         {
@@ -368,7 +368,7 @@ void cGLData::clearPolygon()
         currentPolygon()->clear();
 }
 
-void cGLData::setGlobalCenter(Pt3d<double> aCenter)
+void cGLData::setGlobalCenter(QVector3D aCenter)
 {
     setPosition(aCenter);
     _pBall->setPosition(aCenter);
@@ -389,7 +389,7 @@ void cGLData::switchCenterByType(int val)
             setGlobalCenter(_bbox_center);
             break;
         case eOriginCenter:
-            setGlobalCenter(Pt3dr(0.,0.,0.));
+			setGlobalCenter(QVector3D(0.,0.,0.));
             break;
     }
 }
@@ -406,7 +406,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
     for (int aK=0; aK < _vClouds.size();++aK)
     {
 
-        float dist = FLT_MAX;
+		float dist = std::numeric_limits<float>::max();
         idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
         QPointF proj;
 
@@ -431,7 +431,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
     {
         //final center:
         GlCloud *a_cloud = _vClouds[idx1];
-        Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
+		QVector3D Pt = a_cloud->getVertex( idx2 ).getPosition();
 
         setGlobalCenter(Pt);
 		mm.resetAllMatrix(Pt,false);
@@ -524,7 +524,7 @@ void cGLData::editImageMask(int mode, cPolygon *polyg, bool m_bFirstAction)
 //            cMaskedImageGL * tile = glTiles()[aK];
 //            cImageGL * glMaskTile = tile->glMask();
 
-//            Pt3dr pos = glMaskTile->getPosition();
+//            QVector3D pos = glMaskTile->getPosition();
 //            QSize sz  = glMaskTile->getSize();
 //            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
 
@@ -555,12 +555,12 @@ void cGLData::editCloudMask(int mode, cPolygon *polyg, bool m_bFirstAction, Matr
         for (uint bK=0; bK < (uint) a_cloud->size();++bK)
         {
             GlVertex &P  = a_cloud->getVertex( bK );
-            Pt3dr  Pt = P.getPosition();
+			QVector3D  Pt = P.getPosition();
 
-            if(getRotation().x != 0)
+			if(getRotation().x() != 0)
             {
                 Pt = Pt - getPosition() ;
-                Pt = Pt3dr(Pt.x,Pt.z,-Pt.y);
+				Pt = QVector3D(Pt.x(),Pt.z(),-Pt.y());
                 Pt = Pt + getPosition() ;
             }
 

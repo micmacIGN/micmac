@@ -48,6 +48,9 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="lineWidth">
+       <number>1</number>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -134,7 +137,7 @@
       </widget>
       <widget class="QSplitter" name="splitter_Tools">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -145,11 +148,14 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
+       <property name="opaqueResize">
+        <bool>false</bool>
+       </property>
        <widget class="QFrame" name="QFrame_Tools">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
+          <verstretch>1</verstretch>
          </sizepolicy>
         </property>
         <property name="frameShape">
@@ -158,7 +164,7 @@
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
+        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,3">
          <property name="spacing">
           <number>2</number>
          </property>
@@ -179,13 +185,13 @@
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
+             <verstretch>1</verstretch>
             </sizepolicy>
            </property>
            <property name="minimumSize">
             <size>
              <width>300</width>
-             <height>200</height>
+             <height>175</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -210,18 +216,24 @@
          </item>
          <item>
           <widget class="QFrame" name="frame">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>2</verstretch>
+            </sizepolicy>
+           </property>
            <property name="frameShape">
             <enum>QFrame::NoFrame</enum>
            </property>
            <property name="frameShadow">
             <enum>QFrame::Plain</enum>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout">
+           <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
             <property name="spacing">
              <number>0</number>
             </property>
             <property name="leftMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
              <number>2</number>
@@ -230,7 +242,7 @@
              <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>2</number>
+             <number>0</number>
             </property>
             <item>
              <widget class="QLabel" name="label_ImageName">
@@ -284,10 +296,22 @@
             </item>
             <item>
              <widget class="QSplitter" name="splitter">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>1</verstretch>
+               </sizepolicy>
+              </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
               <widget class="QTableView" name="tableView_Objects">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="frameShape">
                 <enum>QFrame::Box</enum>
                </property>
@@ -302,6 +326,12 @@
                </attribute>
               </widget>
               <widget class="QTableView" name="tableView_PG">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="mouseTracking">
                 <bool>false</bool>
                </property>
@@ -322,6 +352,12 @@
                </attribute>
               </widget>
               <widget class="QTableView" name="tableView_Images">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="frameShape">
                 <enum>QFrame::Box</enum>
                </property>
@@ -346,7 +382,7 @@
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
-          <verstretch>20</verstretch>
+          <verstretch>35</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
@@ -376,7 +412,7 @@
      <x>0</x>
      <y>0</y>
      <width>1163</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <property name="mouseTracking">

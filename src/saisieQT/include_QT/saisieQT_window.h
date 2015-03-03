@@ -1,9 +1,9 @@
 #ifndef SAISIEQTWINDOW_H
 #define SAISIEQTWINDOW_H
 
+#include "Elise_QT.h"
 #include "GLWidgetSet.h"
 #include "Settings.h"
-#include "Tree.h"
 
 void setStyleSheet(QApplication &app);
 

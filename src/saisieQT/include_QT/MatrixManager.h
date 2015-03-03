@@ -1,7 +1,6 @@
 #ifndef __MATRIXMANAGER__
 #define __MATRIXMANAGER__
 
-#include "StdAfx.h"
 #include "mmglu.h"
 #include "HistoryManager.h"
 #include "Settings.h"
@@ -76,10 +75,10 @@ public:
     void        exportMatrices(selectInfos &infos);
 
     //! 3D point projection in viewport
-    void        getProjection(QPointF &P2D, Pt3dr P);
+	void        getProjection(QPointF &P2D, QVector3D P);
 
     //! projection from viewport to world coordinates
-    void        getInverseProjection(Pt3dr &P, QPointF P2D, float dist);
+	void        getInverseProjection(QVector3D &P, QPointF P2D, float dist);
 
     //! Project a point from window to image
     QPointF     WindowToImage(const QPointF &winPt, float glOrthoZoom);
@@ -95,11 +94,11 @@ public:
     void        resetModelViewMatrix();
 
     //! Reset translation matrix
-    void        resetTranslationMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f));
+	void        resetTranslationMatrix(QVector3D center = QVector3D(0.f,0.f,0.f));
 
     void        resetViewPort();
 
-	void        resetAllMatrix(Pt3dr center = Pt3dr(0.f,0.f,0.f), bool resetALL = true);
+	void        resetAllMatrix(QVector3D center = QVector3D(0.f,0.f,0.f), bool resetALL = true);
 
 //    void        setModelViewMatrix();
 
@@ -107,7 +106,7 @@ public:
 
     float       getGlRatio(){return m_glRatio;}
 
-    void        setView(VIEW_ORIENTATION orientation, Pt3dr centerScene);
+	void        setView(VIEW_ORIENTATION orientation, QVector3D centerScene);
 
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
@@ -116,9 +115,9 @@ public:
     GLdouble    distance() const;
     void        setDistance(const GLdouble &distance);
 
-    void        setArcBallCamera(float zoom);
-    Pt3dr       centerScene() const;
-    void        setCenterScene(const Pt3dr &centerScene);
+	void        setArcBallCamera(float distance);
+	QVector3D       centerScene() const;
+	void        setCenterScene(const QVector3D &centerScene);
 
 	void        MatrixInverse(GLdouble* OpenGLmatIn, GLdouble* matOutGL = NULL, GLdouble* vec = NULL);
 
@@ -131,7 +130,7 @@ public:
     GLdouble    rY() const;
     void        setRY(const GLdouble &rY);
 
-    void        setSceneTopo(const Pt3d<double> &centerScene, float diametre);
+	void        setSceneTopo(const QVector3D& centerScene, float diametre);
 
     QPointF     screen2TransABall(QPointF ptScreen);
 
@@ -174,15 +173,15 @@ private:
     GLdouble    _upY;
 
     GLdouble    _distance;
-    Pt3dr       _centerScene;
+	QVector3D   _centerScene;
 
     float       _diameterScene;
 
     int         _lR;
     int         _uD;
 
-    Pt3d<double> _targetCamera;
-	Pt3d<double> _camPos;
+	QVector3D	_targetCamera;
+	QVector3D	_camPos;
 
 	GLdouble		_cX;
 	GLdouble		_cY;

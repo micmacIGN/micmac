@@ -138,10 +138,14 @@ cPolygon *GLWidget::polygon(){
     return m_GLData ? m_GLData->currentPolygon() : NULL;
 }
 
-void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2, bool highlight)
+void GLWidget::addGlPoint( cPoint point, QPointF pt1, QPointF pt2, bool highlight)
 {
+	/*
+	 *
+	 QPointF pt;
     QString name(aSom->NamePt().c_str());
     cPoint point(pt,name,true,aSom->Etat());
+	*/
     point.setDiameter(_params->getPointDiameter() * 0.01);
 
     point.setHighlight(highlight);
@@ -151,7 +155,7 @@ void GLWidget::addGlPoint(QPointF pt, cOneSaisie* aSom, QPointF pt1, QPointF pt2
     getGLData()->currentPolygon()->add(point);
 }
 
-void GLWidget::setTranslation(Pt3d<double> trans)
+void GLWidget::setTranslation(QVector3D trans)
 {
     _matrixManager.resetTranslationMatrix(trans);
 }
@@ -274,7 +278,12 @@ void GLWidget::setInteractionMode(int mode, bool showmessage, bool showcams)
 void GLWidget::setView(VIEW_ORIENTATION orientation)
 {
     if (hasDataLoaded())
-       _matrixManager.setView(orientation,m_GLData->getPosition());
+	{
+	   _matrixManager.setView(orientation,m_GLData->getPosition());
+
+
+
+	}
 }
 
 float GLWidget::getZoom()
@@ -434,14 +443,14 @@ void GLWidget::setZone(QRectF aRect)
             cImageGL * glImgTile  = tile->glImage();
 			//cImageGL * glMaskTile = tile->glMask();
 
-            Pt3dr pos = glImgTile->getPosition();
+			QVector3D pos = glImgTile->getPosition();
             QSize sz  = glImgTile->getSize();
 
-			QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
+			QRectF rectImg(QPointF(pos.x(),pos.y()), QSizeF(sz));
 
 			QMaskedImage * maskedImg = getGLData()->glImageMasked().getMaskedImage();
 
-			QRectF rectImgGL(QPointF(pos.x,pos.y),sz);
+			QRectF rectImgGL(QPointF(pos.x(),pos.y()),sz);
 
 
 			if (rectImgGL.intersects(aRectGL) || aRectGL.contains(rectImgGL) || rectImgGL.contains(aRectGL) || aRectGL.intersects(rectImgGL) )
@@ -730,7 +739,7 @@ void GLWidget::resetView(bool zoomfit, bool showMessage, bool showCams, bool res
 {
 
     if (resetMatrix)
-        _matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getPosition() : Pt3dr(0.f,0.f,0.f) );
+		_matrixManager.resetAllMatrix( hasDataLoaded() ? m_GLData->getPosition() : QVector3D(0.f,0.f,0.f) );
 
     if (hasDataLoaded() && resetPoly) m_GLData->clearPolygon();
 
@@ -863,8 +872,8 @@ float GLWidget::angleZ(QPointF mPos)
 	QPointF lastPosWindowf(m_lastPosWindow);
 	QLineF vectorR(centerViewPort,mPos);
 	QLineF vectorL(centerViewPort,lastPosWindowf);
-	float angle = vectorL.angleTo(vectorR)/180.0*PI;
-	return angle > PI ?  angle - 2.0*PI : angle;
+	float angle = vectorL.angleTo(vectorR)/180.0*M_PI;
+	return angle > M_PI ?  angle - 2.0*M_PI : angle;
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -924,16 +933,16 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
             if (event->buttons())
             {
-                Pt3dr r(0,0,0);
+				QVector3D r(0,0,0);
 
                 if (event->buttons() == Qt::LeftButton)               // ROTATION X et Y
                 {
-                    r.x = dPWin.y() / vpWidth();
-                    r.y = dPWin.x() / vpHeight();
+					r.setX(dPWin.y() / vpWidth());
+					r.setY(dPWin.x() / vpHeight());
 
 					if(_matrixManager.eNavigation() == eNavig_Ball_OneTouch)
 
-						r.z = angleZ(mPos);
+						r.setZ(angleZ(mPos));
 
                 }
                 else if (event->buttons() == Qt::MiddleButton)
@@ -951,9 +960,9 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
                     }
                 }
 				else if (event->buttons() == Qt::RightButton && _matrixManager.isBallNavigation())          // ROTATION Z
-					r.z = angleZ(mPos);
+					r.setZ(angleZ(mPos));
 
-                _matrixManager.rotateArcBall(r.y, r.x, r.z, _vp_Params.m_speed * 2.f);
+				_matrixManager.rotateArcBall(r.y(), r.x(), r.z(), _vp_Params.m_speed * 2.f);
             }
         }
 
@@ -1083,7 +1092,7 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             case Qt::Key_Delete:
                 if (polygon())
                 {
-                    emit removePoint(eEPI_Disparu, m_GLData->currentPolygon()->getSelectedPointIndex());
+					emit removePoint(qEPI_Disparu, m_GLData->currentPolygon()->getSelectedPointIndex());
                     polygon()->removeSelectedPoint();
                 }
                 break;

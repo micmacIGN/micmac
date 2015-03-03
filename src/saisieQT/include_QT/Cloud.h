@@ -2,19 +2,20 @@
 #define __CLOUD__
 
 #include "3DObject.h"
+#include "general/ply_struct.h"
 
 class GlVertex : public cObjectGL
 {
 public:
-    GlVertex(Pt3dr pos = Pt3dr(0.f,0.f,0.f), QColor color_default = Qt::white, Pt3dr nrm = Pt3dr(0.f,0.f,0.f)) :
+	GlVertex(QVector3D pos = QVector3D(0.f,0.f,0.f), QColor color_default = Qt::white, QVector3D nrm = QVector3D(0.f,0.f,0.f)) :
         cObjectGL(pos, color_default),
         _nrm(nrm)
     {}
     void draw(){}
 
-    Pt3dr getNormal() { return _nrm; }
+	QVector3D getNormal() { return _nrm; }
 
-    Pt3dr _nrm;
+	QVector3D _nrm;
 };
 
 class GlCloud : public cObjectGL
@@ -34,7 +35,7 @@ public:
 
     void    setBufferGl(bool onlyColor=false);
 
-    Pt3dr   getSum() { return _sum; }
+	QVector3D   getSum() { return _sum; }
 
     void    draw();
 
@@ -46,7 +47,7 @@ private:
 
     int         _type;  //data stored (0: xyz, 1:xyzrgb, 2: xyzrgba 3:xyznxnynz 4:xyznxnynzrgb 5:xyznxnynzrgba)
 
-    Pt3dr       _sum;  //coordinate sums to compute scene center
+	QVector3D       _sum;  //coordinate sums to compute scene center
 };
 
 
