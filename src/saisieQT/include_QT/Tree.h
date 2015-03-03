@@ -3,7 +3,6 @@
 
 #include "QT_interface_Elise.h"
 
-
 class cQT_Interface ;
 
 class PointGlobalSFModel : public QSortFilterProxyModel

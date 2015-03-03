@@ -13,15 +13,38 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params, int appMode) : 
 
     _parameters = params;
 
-    list<string> languages = ListOfVal(eEsperanto,"");
-    list<string>::const_iterator it = languages.begin();
-	for (; it != languages.end(); ++it)
-        _ui->comboBox->addItem(QString((*it).c_str()));
+//    list<string> languages = ListOfVal(eEsperanto,"");
+//    list<string>::const_iterator it = languages.begin();
+//	for (; it != languages.end(); ++it)
+//        _ui->comboBox->addItem(QString((*it).c_str()));
+
+	for (int i= 0; i< eNbLang; ++i)
+	{
+
+		switch (i) {
+			case eEnglish:
+				_ui->comboBox->addItem(QString("English"));
+				break;
+			case eFrench:
+				_ui->comboBox->addItem(QString("French"));
+				break;
+			case eSpanish:
+				_ui->comboBox->addItem(QString("Spanish"));
+				break;
+			case eEsperanto:
+				_ui->comboBox->addItem(QString("Esperanto"));
+				break;
+			default:
+				break;
+		}
+	}
+
 
     refresh();
 
     setUpdatesEnabled(true);
 }
+
 
 cSettingsDlg::~cSettingsDlg()
 {
@@ -189,7 +212,7 @@ void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
 {
     if (checked)
     {
-        _parameters->setPtCreationMode(eNSM_Pts);
+		_parameters->setPtCreationMode(qNSM_Pts);
         _parameters->setPtCreationWindowSize(-1);
 
         enableMarginSpinBox(false);
@@ -200,7 +223,7 @@ void cSettingsDlg::on_radioButtonMin_toggled(bool checked)
 {
     if (checked)
     {
-        _parameters->setPtCreationMode(eNSM_MinLoc);
+		_parameters->setPtCreationMode(qNSM_MinLoc);//
         enableMarginSpinBox(!_ui->radioButtonStd->isChecked());
     }
 }
@@ -209,7 +232,7 @@ void cSettingsDlg::on_radioButtonMax_toggled(bool checked)
 {
     if (checked)
     {
-        _parameters->setPtCreationMode(eNSM_MaxLoc);
+		_parameters->setPtCreationMode(qNSM_MaxLoc);//
         enableMarginSpinBox(!_ui->radioButtonStd->isChecked());
     }
 }
@@ -297,27 +320,27 @@ void cSettingsDlg::refresh()
 
         switch (_parameters->getPtCreationMode())
         {
-            case eNSM_Pts:
+			case qNSM_Pts://
             {
                 _ui->radioButtonStd->setChecked(true);
                 enableMarginSpinBox(false);
                 break;
             }
-            case eNSM_MinLoc:
+			case qNSM_MinLoc://
             {
                 _ui->radioButtonMin->setChecked(true);
                 enableMarginSpinBox();
                 break;
             }
-            case eNSM_MaxLoc:
+			case qNSM_MaxLoc://
             {
                 _ui->radioButtonMax->setChecked(true);
                 enableMarginSpinBox();
                 break;
             }
-            case eNSM_GeoCube:
-            case eNSM_Plaquette:
-            case eNSM_NonValue:
+			case qNSM_GeoCube://
+			case qNSM_Plaquette://
+			case qNSM_NonValue://
                 break;
         }
 
@@ -370,7 +393,7 @@ cParameters::cParameters():
     _ptName(QString("100")),
     _postFix(QString("_Masq")),
     _radius(50),
-    _eType(eNSM_Pts),
+	_eType(qNSM_Pts),//
 	_eNavigation(eNavig_Ball),
     _sz(5.f),
     _lang(0)
@@ -473,7 +496,7 @@ void cParameters::read()
      settings.endGroup();
 
      settings.beginGroup("Point creation");
-     setPtCreationMode( static_cast<eTypePts> (settings.value("Mode", eNSM_Pts).toInt()));
+	 setPtCreationMode( static_cast<qTypePts> (settings.value("Mode", qNSM_Pts).toInt()));
      setPtCreationWindowSize( settings.value("WindowSize",3.f).toFloat());
      settings.endGroup();
 
@@ -622,8 +645,8 @@ string eToString(const eLANG &anObj)
        return  "eArabic";
     if (anObj==eRussian)
        return  "eRussian";*/
-  std::cout << "Enum = eLANG\n";
-    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+  //std::cout << "Enum = eLANG\n";
+   // ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
     return "";
 }
 

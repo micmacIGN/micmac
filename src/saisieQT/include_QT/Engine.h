@@ -55,6 +55,8 @@ public:
 	virtual QImage*	loadImage(QString aNameFile) = 0;
 
 	virtual QImage*	loadMask(QString aNameFile) = 0;
+
+	virtual void	doMaskImage(QImage &mask,QString &aNameFile) = 0;
 };
 
 class cLoader
@@ -71,9 +73,6 @@ public:
 	void        loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor = 1.f);
 
 	void        loadMask(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor = 1.f);
-
-    //! Check if georeferencing data exists (for box2d mode)
-	void        checkGeoref(QString aNameFile, QMaskedImage *maskedImg);
 
     void        setFilenames(QStringList const &strl);
     void        setFilenameOut(QString str);
