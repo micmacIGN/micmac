@@ -680,12 +680,10 @@ int New_Tapas_main(int,char **);
 int GCPCtrl_main(int,char **);
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
-
-int NewRefineModel_main(int argc, char **argv);
-int RefineModel_main(int argc, char **argv);
 int AddAffinity_main(int argc, char **argv);
 
-int Sake_main(int argc,char ** argv);
+int Sake_main(int argc, char ** argv);
+int SateLib_main(int argc, char ** argv);
 
 int DoAllDev_main(int argc,char ** argv);
 
@@ -723,7 +721,6 @@ int DoAllDev_main(int argc,char ** argv);
     int SaisieBoxQT_main(int argc,char ** argv);
     int SaisieBascQT_main(int argc,char ** argv);
 #endif
-    int Dimap2Grid_main(int argc, char **argv);
   int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
   int ServiceGeoSud_Ortho_main(int argc, char **argv);
   int ServiceGeoSud_GeoSud_main(int argc, char **argv);
