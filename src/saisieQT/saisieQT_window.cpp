@@ -1218,7 +1218,7 @@ void SaisieQtWindow::setUI()
 
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);
-
+		_ui->tableView_Objects->close();
 	   // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
@@ -1283,17 +1283,17 @@ QTableView *SaisieQtWindow::tableView_Objects(){return _ui->tableView_Objects;}
 
 void SaisieQtWindow::resizeTables()
 {
-    tableView_PG()->resizeColumnsToContents();
-    tableView_PG()->resizeRowsToContents();
-    tableView_PG()->horizontalHeader()->setStretchLastSection(true);
+	tableView_PG()->resizeColumnsToContents();
+	tableView_PG()->resizeRowsToContents();
+	tableView_PG()->horizontalHeader()->setStretchLastSection(true);
 
-    tableView_Images()->resizeColumnsToContents();
-    tableView_Images()->resizeRowsToContents();
-    tableView_Images()->horizontalHeader()->setStretchLastSection(true);
+	tableView_Images()->resizeColumnsToContents();
+	tableView_Images()->resizeRowsToContents();
+	tableView_Images()->horizontalHeader()->setStretchLastSection(true);
 
-    tableView_Objects()->resizeColumnsToContents();
-    tableView_Objects()->resizeRowsToContents();
-    tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
+	tableView_Objects()->resizeColumnsToContents();
+	tableView_Objects()->resizeRowsToContents();
+	tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
 }
 
 void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/)
