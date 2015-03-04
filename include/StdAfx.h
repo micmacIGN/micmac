@@ -41,6 +41,7 @@ template <class Type> void DoNothingButRemoveWarningUnused(const Type & ) { }
 #include <stdlib.h>
 #include <string>
 #include <set>
+#include <limits>
 #include <vector>
 #include <sstream>
 #include <iostream>

@@ -284,9 +284,69 @@ double PdsLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP)
 }
 
 
+class cBundleIterLin
+{
+    public :
+
+       void AddObs(const Pt3dr & aQ1,const Pt3dr& aQ2,const double & aPds);
+       ElRotation3D CurSol();
+
+       cBundleIterLin(const ElRotation3D & aRot,const double & anErrStd);
+       L2SysSurResol mSysLin5;
+       ElMatrix<double> tR0;
+       Pt3dr mB0;
+       Pt3dr mC,mD;
+       std::vector<double> mVRes;
+       double              mSomErr;
+       double              mSomPds;
+       double              mErrStd;
+       double              mLastPdsCalc;
+
+};
+
+
+cBundleIterLin::cBundleIterLin(const ElRotation3D & aRot,const double & anErrStd):
+    mSysLin5 (5),
+    tR0      (aRot.Mat().transpose()),
+    mB0      (tR0 * aRot.tr()),
+    mSomErr  (0),
+    mSomPds  (0),
+    mErrStd  (anErrStd)
+{
+    MakeRONWith1Vect(mB0,mC,mD);
+}
+
+
+void cBundleIterLin::AddObs(const Pt3dr & aQ1,const Pt3dr& aQ2,const double & aPds)
+{
+   double aCoef[5];
+   Pt3dr aQp1 = tR0 * aQ1;
+   Pt3dr aUp1VB0 = aQp1 ^ mB0;
+ 
+   double aCste =  scal(aQ2,aUp1VB0);
+   aCoef[0] = scal(aQ2,aQp1^mC);  // Coeff C
+   aCoef[1] = scal(aQ2,aQp1^mD);  // Coeff D
+   Pt3dr  a3Prod = aQ2 ^ aUp1VB0;
+   aCoef[2] = a3Prod.x;
+   aCoef[3] = a3Prod.y;
+   aCoef[4] = a3Prod.z;
+
+   mLastPdsCalc = aPds / (1+ElSquare(aCste/mErrStd));
+        //    aPair.mLastPdsOfErr = aPds;
+
+   mSomPds += aPds;
+   mSomErr += aPds * ElSquare(aCste);
+       
+   mSysLin5.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
+   mVRes.push_back(ElAbs(aCste));
+}
+
+
+
 ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP,double & anErStd,double & aErMoy,double & Amelio)
 {
-    cGenSysSurResol & aSys = mSysLin5;
+    // cGenSysSurResol & aSys = mSysLin5;
+    L2SysSurResol aSys(5);
     double aCoef[5];
     aSys.GSSR_Reset(false);
     ElMatrix<double> tR0 = aRot.Mat().transpose();
@@ -321,22 +381,10 @@ ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vect
         aSys.GSSR_AddNewEquation(aPds,aCoef,-aCste,0);
         aVRes.push_back(ElAbs(aCste));
     }
+        //   A  CONSERVER !!!!        aPair.mLastPdsOfErr = aPds;
     mCurResidu = aVRes;
 
     aSys.LVM_Mul(mCurLamndaLVM);
-    // Viscosite ?
-/*
-    double aSomQuad =  aSys.SomQuad();
-    for (int aKI=0 ; aKI<5 ; aKI++)
-    { 
-        double aCoef[5];
-        for (int aKJ=0 ; aKJ<5 ; aKJ++)
-            aCoef[aKJ] = (aKI==aKJ);
-            
-        aSys.GSSR_AddNewEquation(aSomQuad*Viscosity,aCoef,0,0);
-    }
-*/
-
 
 
     Im1D_REAL8   aSol = aSys.GSSR_Solve (0);
