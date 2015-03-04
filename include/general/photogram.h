@@ -465,7 +465,7 @@ class ElPackHomologue : public cPackNupletsHom
                        const ElRotation3D & aRot1to2,
                        INT &                NbP1,
                        INT &                NbP2
-                  );
+                  ) const;
 
              tPairPt  PMed() const;
 
