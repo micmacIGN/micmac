@@ -155,7 +155,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
        double aErMoy,anAmelio;
        ElRotation3D aNewR =  OneIterSolLinear(aRot,mStCPairs,mErStd,aErMoy,anAmelio);
 
-       std::cout << "AAA " << anAmelio * FocMoy()   << "\n";
+       //std::cout << "AAA " << anAmelio * FocMoy()   << "\n";
        //  std::cout << "AAA " << aErMoy * FocMoy()   << " " << mErStd  * FocMoy()  << " " << PixExactCost(aNewR,0.1) << "\n";
        //  std::cout << "Var ERr " << VarRel(aErMoy,aLastErrMoy) << " :: " << aLastErrMoy << " => " <<  aErMoy << "\n";
 
@@ -175,7 +175,11 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
           }
 
           if (DistRot(aNewR,aRot) < 2e-5) 
-             aCont = false;
+          {
+             aSqueeze = true;
+             if (!mShow) 
+                aCont = false;
+          }
 
           aRot = aNewR;
           aNbIter+= 1;
@@ -212,12 +216,14 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
               << " Exact " << aCostIn << " => " << aCostOut 
               << " Time " << aChrono.uval() 
               << " Sqz " << aSqueeze;
+         std::cout << "\n";
 
          if (mTestC2toC1)
          {
             std::cout  << " D/Ref " <<   DistRot(*mTestC2toC1,aRot) << " Trans " << vunit(mTestC2toC1->tr()) << aRot.tr() << "\n";
 
              // ElMatrix<double> aM = aRot.Mat() * mTestC2toC1->Mat().transpose() ;
+/*
              ElMatrix<double> aM =  mTestC2toC1->Mat().transpose() *  aRot.Mat() ;
 
              for (int aY=0 ; aY<3 ; aY++)
@@ -241,8 +247,8 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
                  printf("\n");
              }        
              printf("\n");
+*/
          }
-         std::cout << "\n";
    }
 } 
 

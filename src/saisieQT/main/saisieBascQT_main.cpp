@@ -103,6 +103,14 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
 
         SaisieQtWindow w(BASC);
 
+		w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+		w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+
+
+		w.setBanniere(QString(getBanniereMM3D().c_str()));
+		QString qsVersion = __HG_REV__;
+		w.setHg_revision(qsVersion.toInt());
+
         QAction* actionBascule = w.addCommandTools("Bascule");
 
         cQT_Interface* interQT = new cQT_Interface(anAppli,&w);

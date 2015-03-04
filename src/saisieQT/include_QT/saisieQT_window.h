@@ -92,6 +92,12 @@ public:
 	deviceIOImage* devIOImage() const;
 	void setDevIOImage(deviceIOImage* devIOImage);
 
+	int hg_revision() const;
+	void setHg_revision(int hg_revision);
+
+	QString banniere() const;
+	void setBanniere(const QString& banniere);
+
 public slots:
 
 	//! Try to load a list of files
@@ -255,6 +261,10 @@ private:
     bool                    _bSaved;
 
 	deviceIOCamera*			_devIOCamera;
+
+	int						_hg_revision;
+
+	QString					_banniere;
 
 };
 #endif // MAINWINDOW_H
