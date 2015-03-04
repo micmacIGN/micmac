@@ -76,6 +76,8 @@ public:
 	Pt3dr DirectRPC(Pt3dr)const;
 	Pt3dr InverseRPC(Pt3dr, std::vector<double> vRefineCoef)const;
 
+	int RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef, std::string aNameFile, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire);
+
 	//Computing cartographic validity zone
 	vector<Pt2dr> empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const;
 
@@ -193,7 +195,7 @@ public:
 	//For DigitalGlobe data
 	void ReadRPB(std::string const &filename);
 	void ReconstructValidity();
-	void Inverse2Direct(double gridSize);
+	void Inverse2Direct(int gridSize);
 
 };
 

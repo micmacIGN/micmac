@@ -41,6 +41,84 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include "RPC.h"
 
+
+
+//RPC2Grid transforms a loaded RPC to a .GRI (and GRIBin) file
+int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef, std::string aNameFile, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire)
+{
+	//Creation d'un dossier pour les fichiers intermediaires
+	ELISE_fp::MkDirSvp("processing");
+
+	//Creation du fichier de coef par defaut (grille non affinee)
+	std::ofstream ficWrite(refineCoef.c_str());
+	ficWrite << std::setprecision(15);
+	ficWrite << 0 << " " << 1 << " " << 0 << " " << 0 << " " << 0 << " " << 1 << " " << std::endl;
+
+	// fichier GRID en sortie
+	std::string aNameFileGrid = StdPrefix(aNameFile) + ".GRI";
+
+	std::vector<double> vAltitude;
+	for (int i = 0; i<nbLayers; ++i)
+		vAltitude.push_back(altiMin + i*(altiMax - altiMin) / (nbLayers - 1));
+
+	//recuperation des coefficients pour affiner le modele
+	std::vector<double> vRefineCoef;
+	std::ifstream ficRead(refineCoef.c_str());
+	while (!ficRead.eof() && ficRead.good())
+	{
+		double a0, a1, a2, b0, b1, b2;
+		ficRead >> a0 >> a1 >> a2 >> b0 >> b1 >> b2;
+
+		if (ficRead.good())
+		{
+			vRefineCoef.push_back(a0);
+			vRefineCoef.push_back(a1);
+			vRefineCoef.push_back(a2);
+			vRefineCoef.push_back(b0);
+			vRefineCoef.push_back(b1);
+			vRefineCoef.push_back(b2);
+		}
+	}
+	std::cout << "coef " << vRefineCoef[0] << " " << vRefineCoef[1] << " " << vRefineCoef[2]
+	<< " " << vRefineCoef[3] << " " << vRefineCoef[4] << " " << vRefineCoef[5] << " " << std::endl;
+
+
+	//Test si le modele est affine pour l'appellation du fichier de sortie
+	bool refine = false;
+	double noRefine[] = { 0, 1, 0, 0, 0, 1 };
+
+	for (int i = 0; i<6; i++)
+	{
+		if (vRefineCoef[i] != noRefine[i])
+			refine = true;
+	}
+
+	if (refine)
+	{
+		//Effacement du fichier de coefficients (affinite=identite) par defaut
+		if (ifstream(refineCoef.c_str())) ELISE_fp::RmFile(refineCoef.c_str());
+
+		//New folder
+		std::string dir = "refine_" + StdPrefix(aNameFile);
+		ELISE_fp::MkDirSvp(dir);
+
+		std::cout << "Model is affine" << std::endl;
+		aNameFileGrid = dir + ELISE_CAR_DIR + aNameFileGrid;
+	}
+
+	clearing(aNameFileGrid, refine);
+	createGrid(aNameFileGrid, StdPrefix(aNameFile) + "TIF",
+		stepPixel, stepCarto,
+		vAltitude, targetSyst, inputSyst, vRefineCoef);
+
+	if (binaire)
+	{
+		string cmd = MMDir() + "bin/mm3d Gri2Bin " + aNameFileGrid + " " + aNameFileGrid + "Bin";
+		system_call(cmd.c_str());
+	}
+	return EXIT_SUCCESS;
+}
+
 //From Image coordinates to geographic
 Pt3dr RPC::DirectRPC(Pt3dr Pimg)const
 {
@@ -771,7 +849,7 @@ void RPC::ReconstructValidity()
 
 }
 
-void RPC::Inverse2Direct(double gridSize)
+void RPC::Inverse2Direct(int gridSize)
 {
 	//Cleaning potential data in RPC object
 	direct_samp_num_coef.clear();
