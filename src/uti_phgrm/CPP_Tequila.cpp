@@ -84,11 +84,18 @@ void LoadTrScaleRotate
      );
 }
 
-
-
-
-
-
+//update index in regions list, when a triangle is removed from mesh
+void updateIndex(int triIdx, std::vector < cTextRect > &regions)
+{
+    for (unsigned int cK=0; cK < regions.size();++cK)
+    {
+        vector <int> vtri = regions[cK].triangles;
+        for (unsigned int dK=0; dK < vtri.size();++dK)
+        {
+            if (vtri[dK] > triIdx) regions[cK].triangles[dK]--;
+        }
+    }
+}
 
 typedef enum
 {
@@ -295,8 +302,7 @@ int Tequila_main(int argc,char ** argv)
 
         TEXTURE_PACKER::TexturePacker *tp = TEXTURE_PACKER::createTexturePacker();
 
-        const int nbRegions = regions.size();
-        for (int aK=0; aK < nbRegions;++aK)
+        for (unsigned int aK=0; aK < regions.size();++aK)
         {
             //cout << "region " << aK << " nb triangles = " << regions[aK].triangles.size() << endl;
             //Calcul de la zone correspondante dans l'image
@@ -324,7 +330,7 @@ int Tequila_main(int argc,char ** argv)
                 Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                 Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
+                if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
                 {
                     _min = Inf(Pt1, Inf(Pt2, Inf(Pt3, _min)));
                     _max = Sup(Pt1, Sup(Pt2, Sup(Pt3, _max)));
@@ -362,13 +368,14 @@ int Tequila_main(int argc,char ** argv)
         int unused_area = tp->packTextures(width, height, false, false);
 
         cout << "Packed width-height " << width << " " << height << endl;
-        cout << "Unused_area : " << unused_area << " pixels = " << (float) unused_area/ (width*height) << "%" << endl;
+        printf("Unused_area : %d pixels = %1.2f %%\n", unused_area, (float) unused_area / (width*height));
 
         float Scale = (float) aTextMaxSize / ElMax(width, height) ;
 
         if (Scale > 1.f) Scale = 1.f;
 
-        cout << "Scaling factor = " << Scale << endl;
+        printf("Scaling factor = %1.2f\n", Scale);
+        if (Scale < 0.2f) cout << "Warning: scaling factor too low, try using higher texture size (Parameter Sz)" << endl;
 
         int final_width  = round_up(width * Scale);
         int final_height = round_up(height * Scale);
@@ -503,7 +510,7 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                     Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                    if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
+                    if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
                     {
                         Pt2dr P1, P2, P3;
 
@@ -553,7 +560,18 @@ int Tequila_main(int argc,char ** argv)
                             P3.y = 1.f - (Pt3.y*Scale+PtTemp.y) / final_height;
                         }
 
-                        Triangle->setTextureCoordinates(P1, P2, P3);
+                        if ((P1.x >=0.f) && (P1.x <= 1.f) && (P2.x >=0.f) && (P2.y <= 1.f) && (P3.x >=0.f) && (P3.y <= 1.f))
+                            Triangle->setTextureCoordinates(P1, P2, P3);
+                        else
+                        {
+                            myMesh.removeTriangle(*Triangle);
+                            updateIndex(triIdx, regions);
+                        }
+                    }
+                    else
+                    {
+                        myMesh.removeTriangle(*Triangle);
+                        updateIndex(triIdx, regions);
                     }
                 }
             }
@@ -643,8 +661,7 @@ int Tequila_main(int argc,char ** argv)
         cout <<endl;
 
         //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
-        const int nFaces = myMesh.getFacesNumber();
-        for(int i=0 ; i< nFaces ; i++)                          //Ecriture des triangles
+        for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
         {
             cTriangle * Triangle = myMesh.getTriangle(i);
 
@@ -680,6 +697,11 @@ int Tequila_main(int argc,char ** argv)
                     P3.y = 1.f - ((float)(Pt3.y*Scale)+PtTemp.y) / final_height;
 
                     Triangle->setTextureCoordinates(P1, P2, P3);
+                }
+                else
+                {
+                    myMesh.removeTriangle(*Triangle);
+                    i--;
                 }
             }
         }

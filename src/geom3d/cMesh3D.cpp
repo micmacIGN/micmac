@@ -1018,7 +1018,7 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             int t1, t2, t3;
             face->getVertexesIndexes(t1, t2, t3);
 
-            fprintf(file,"3 %i %i %i\n",t1,t2,t3);
+            fprintf(file,"3 %i %i %i ",t1,t2,t3);
 
             if (face->isTextured())
             {

@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_CMESH
 
 #include "StdAfx.h"
-//#include "general/ptxd.h"
 #include "../private/cElNuage3DMaille.h"
 #include "../../src/uti_phgrm/MaxFlow/maxflow.h"
 
@@ -240,16 +239,12 @@ private:
 class cEdge
 {
     public:
-               // cEdge();
-                //cEdge(int tri1, int tri2, int v1, int v2){mNode1 = tri1; mNode2 = tri2; mV1 = v1; mV2 = v2;}
-                cEdge(int tri1, int tri2){mNode1 = tri1; mNode2 = tri2; /*mV1 = v1; mV2 = v2;*/}
+                 cEdge(int tri1, int tri2){mNode1 = tri1; mNode2 = tri2; /*mV1 = v1; mV2 = v2;*/}
 
                 ~cEdge();
 
         int		n1(){return mNode1;}
         int		n2(){return mNode2;}
-       // int		v1(){return mV1;}
-       // int		v2(){return mV2;}
 
         void    setN1(int aK) { mNode1 = aK; }
         void    setN2(int aK) { mNode2 = aK; }
@@ -263,9 +258,6 @@ class cEdge
 
         int mNode1; //index du triangle
         int mNode2;
-
-        //int mV1;	//index des sommets communs
-        //int mV2;
 };
 
 //--------------------------------------------------------------------------------------------------------------
