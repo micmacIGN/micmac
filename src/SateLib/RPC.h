@@ -39,163 +39,163 @@ Header-MicMac-eLiSe-25/06/2007*/
 class RPC
 {
 public:
-	//Elements of RPC
-	std::vector<double> direct_line_num_coef;
-	std::vector<double> direct_line_den_coef;
-	std::vector<double> direct_samp_num_coef;
-	std::vector<double> direct_samp_den_coef;
-	std::vector<double> inverse_line_num_coef;
-	std::vector<double> inverse_line_den_coef;
-	std::vector<double> inverse_samp_num_coef;
-	std::vector<double> inverse_samp_den_coef;
-	//Offsets and scale for inverse RPC
-	double lat_off, lat_scale, long_off, long_scale, height_off, height_scale;
-	//Offsets and scale for direct RPC
-	double line_off, line_scale, samp_off, samp_scale;
+        //Elements of RPC
+        std::vector<double> direct_line_num_coef;
+        std::vector<double> direct_line_den_coef;
+        std::vector<double> direct_samp_num_coef;
+        std::vector<double> direct_samp_den_coef;
+        std::vector<double> inverse_line_num_coef;
+        std::vector<double> inverse_line_den_coef;
+        std::vector<double> inverse_samp_num_coef;
+        std::vector<double> inverse_samp_den_coef;
+        //Offsets and scale for inverse RPC
+        double lat_off, lat_scale, long_off, long_scale, height_off, height_scale;
+        //Offsets and scale for direct RPC
+        double line_off, line_scale, samp_off, samp_scale;
 
-	//Boundaries of RPC validity for image space
-	double first_row, first_col, last_row, last_col;
-	//Boundaries of RPC validity for geo space
-	double first_lon, first_lat, first_height, last_lon, last_lat, last_height;
+        //Boundaries of RPC validity for image space
+        double first_row, first_col, last_row, last_col;
+        //Boundaries of RPC validity for geo space
+        double first_lon, first_lat, first_height, last_lon, last_lat, last_height;
 
-	//Errors indicated in DIMAP files
-	RPC() :
-		indirErrBiasRow(0),
-		indirErrBiasCol(0),
-		dirErrBiasX(0),
-		dirErrBiasY(0)
-	{
-	}
-	double indirErrBiasRow;
-	double indirErrBiasCol;
-	double dirErrBiasX;
-	double dirErrBiasY;
+        //Errors indicated in DIMAP files
+        RPC() :
+                indirErrBiasRow(0),
+                indirErrBiasCol(0),
+                dirErrBiasX(0),
+                dirErrBiasY(0)
+        {
+        }
+        double indirErrBiasRow;
+        double indirErrBiasCol;
+        double dirErrBiasX;
+        double dirErrBiasY;
 
-	Pt3dr DirectRPCNorm(Pt3dr)const;
-	Pt3dr InverseRPCNorm(Pt3dr)const;
-	Pt3dr DirectRPC(Pt3dr)const;
-	Pt3dr InverseRPC(Pt3dr, std::vector<double> vRefineCoef)const;
+        Pt3dr DirectRPCNorm(Pt3dr)const;
+        Pt3dr InverseRPCNorm(Pt3dr)const;
+        Pt3dr DirectRPC(Pt3dr)const;
+        Pt3dr InverseRPC(Pt3dr, std::vector<double> vRefineCoef)const;
 
-	int RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef, std::string aNameFile, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire);
+        int RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef, std::string aNameFile, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire);
 
-	//Computing cartographic validity zone
-	vector<Pt2dr> empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const;
+        //Computing cartographic validity zone
+        vector<Pt2dr> empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const;
 
-	// Applying the grid affinity from coefficient from vRefineCoef to a point
-	Pt3dr ptRefined(Pt3dr Pimg, std::vector<double> vRefineCoef)const;
-	///
-	/// \brief détermination des sommets de la grille en coordonnées image en fonction du pas (en pixels) puis conversion en coordonnées géographiques
-	/// \param ulcSamp colonne du coin supérieur gauche de la grille en coordonnées image
-	/// \param ulcLine ligne du coin supérieur gauche de la grille en coordonnées image
-	/// \param stepPixel pas en pixels pour la grille en coordonnées image
-	/// \param nbSamp nombre de colonnes de la grille en coordonnées image
-	/// \param nbLine nombre de lignes de la grille en coordonnées image
-	/// \param vAltitude vecteur contenant les altitudes de chaque « layer »
-	/// \param vPtCarto vecteur de structures de points Pt2dr qui contient les sommets de la grille directe (pour l'ensemble des « layers »)
-	/// \param targetSyst système de projection cible, suivant la nomenclature proj4
-	/// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
-	///
-	void createDirectGrid(double ulcSamp, double ulcLine,
-		double stepPixel,
-		int nbSamp, int  nbLine,
-		std::vector<double> const &vAltitude,
-		std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
-		std::vector<double> vRefineCoef)const;
+        // Applying the grid affinity from coefficient from vRefineCoef to a point
+        Pt3dr ptRefined(Pt3dr Pimg, std::vector<double> vRefineCoef)const;
+        ///
+        /// \brief détermination des sommets de la grille en coordonnées image en fonction du pas (en pixels) puis conversion en coordonnées géographiques
+        /// \param ulcSamp colonne du coin supérieur gauche de la grille en coordonnées image
+        /// \param ulcLine ligne du coin supérieur gauche de la grille en coordonnées image
+        /// \param stepPixel pas en pixels pour la grille en coordonnées image
+        /// \param nbSamp nombre de colonnes de la grille en coordonnées image
+        /// \param nbLine nombre de lignes de la grille en coordonnées image
+        /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+        /// \param vPtCarto vecteur de structures de points Pt2dr qui contient les sommets de la grille directe (pour l'ensemble des « layers »)
+        /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+        /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+        ///
+        void createDirectGrid(double ulcSamp, double ulcLine,
+                double stepPixel,
+                int nbSamp, int  nbLine,
+                std::vector<double> const &vAltitude,
+                std::vector<Pt2dr> &vPtCarto, std::string targetSyst, std::string inputSyst,
+                std::vector<double> vRefineCoef)const;
 
-	///
-	/// \brief calcul des sommets de la grille en coordonnées terrain (cartographiques) en fonction du pas puis conversion en coordonnées géographiques et enfin image
-	/// \param ulcX longitude du coin supérieur gauche de la grille en coordonnées cartographiques
-	/// \param ulcY latitude du coin supérieur gauche de la grille en coordonnées cartographiques
-	/// \param nbrSamp nombre de colonnes de la grille en coordonnées cartographiques
-	/// \param nbrLine nombre de lignes de la grille en coordonnées cartographiques
-	/// \param stepCarto pas en mètres pour la grille en coordonnées cartographiques
-	/// \param vAltitude vecteur contenant les altitudes de chaque « layer »
-	/// \param vPtImg vecteur de sommets de la grille inverse (pour l'ensemble des « layers »)
-	/// \param targetSyst système de projection cible, suivant la nomenclature proj4
-	/// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
-	///
-	void createInverseGrid(double ulcX, double ulcY,
-		int nbrSamp, int nbrLine,
-		double stepCarto,
-		std::vector<double> const &vAltitude,
-		std::vector<Pt3dr> &vPtImg, std::string targetSyst, std::string inputSyst,
-		std::vector<double> vRefineCoef)const;
+        ///
+        /// \brief calcul des sommets de la grille en coordonnées terrain (cartographiques) en fonction du pas puis conversion en coordonnées géographiques et enfin image
+        /// \param ulcX longitude du coin supérieur gauche de la grille en coordonnées cartographiques
+        /// \param ulcY latitude du coin supérieur gauche de la grille en coordonnées cartographiques
+        /// \param nbrSamp nombre de colonnes de la grille en coordonnées cartographiques
+        /// \param nbrLine nombre de lignes de la grille en coordonnées cartographiques
+        /// \param stepCarto pas en mètres pour la grille en coordonnées cartographiques
+        /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+        /// \param vPtImg vecteur de sommets de la grille inverse (pour l'ensemble des « layers »)
+        /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+        /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+        ///
+        void createInverseGrid(double ulcX, double ulcY,
+                int nbrSamp, int nbrLine,
+                double stepCarto,
+                std::vector<double> const &vAltitude,
+                std::vector<Pt3dr> &vPtImg, std::string targetSyst, std::string inputSyst,
+                std::vector<double> vRefineCoef)const;
 
-	///
-	/// \brief creation du fichier XML et calculs intermediaires
-	/// \param nomGrid nom du fichier Grid en sortie
-	/// \param nomImage nom de l'image concernée
-	/// \param stepPixel pas en pixels pour la grille en coordonnées image
-	/// \param stepCarto pas en mètres pour la grille en coordonnées cartographiques
-	/// \param vAltitude vecteur contenant les altitudes de chaque « layer »
-	/// \param targetSyst système de projection cible, suivant la nomenclature proj4
-	/// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
-	///
-	void createGrid(std::string const &nomGrid, std::string const &nomImage,
-		double stepPixel, double stepCarto,
-		std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
-		std::vector<double> vRefineCoef);
+        ///
+        /// \brief creation du fichier XML et calculs intermediaires
+        /// \param nomGrid nom du fichier Grid en sortie
+        /// \param nomImage nom de l'image concernée
+        /// \param stepPixel pas en pixels pour la grille en coordonnées image
+        /// \param stepCarto pas en mètres pour la grille en coordonnées cartographiques
+        /// \param vAltitude vecteur contenant les altitudes de chaque « layer »
+        /// \param targetSyst système de projection cible, suivant la nomenclature proj4
+        /// \param vRefineCoef vecteur contenant les six coefficients de l'affinité servant à affiner la grille
+        ///
+        void createGrid(std::string const &nomGrid, std::string const &nomImage,
+                double stepPixel, double stepCarto,
+                std::vector<double> vAltitude, std::string targetSyst, std::string inputSyst,
+                std::vector<double> vRefineCoef);
 
-	///
-	/// \brief effacement des fichiers relatifs à la creation des grilles ssi le modèle n'est pas affiné
-	/// \param nomGrid nom du fichier Grid en sortie
-	/// \param refine la grille est-elle affinée
-	///
-	void clearing(std::string const &nomGrid, bool refine)
-	{
-		if (refine == false)
-		{
-			if (ifstream("processing/conv_ptGeo.txt"))       ELISE_fp::RmFile("processing/conv_ptGeo.txt");
-			if (ifstream("processing/conv_ptCarto.txt"))     ELISE_fp::RmFile("processing/conv_ptCarto.txt");
-			if (ifstream("processing/direct_ptGeo.txt"))     ELISE_fp::RmFile("processing/direct_ptGeo.txt");
-			if (ifstream("processing/direct_ptCarto.txt"))   ELISE_fp::RmFile("processing/direct_ptCarto.txt");
-			if (ifstream("processing/inverse_ptGeo.txt"))   ELISE_fp::RmFile("processing/inverse_ptGeo.txt");
-			if (ifstream("processing/inverse_ptCarto.txt")) ELISE_fp::RmFile("processing/inverse_ptCarto.txt");
-			if (ELISE_fp::IsDirectory("processing"))         ELISE_fp::RmDir("processing");
-		}
-		//effacement de la grille affinee + grilles GRC et binaire
-		std::string gridGRC = nomGrid;
-		std::string refGridGRC2 = nomGrid;
-		refGridGRC2.append("Bin");
+        ///
+        /// \brief effacement des fichiers relatifs à la creation des grilles ssi le modèle n'est pas affiné
+        /// \param nomGrid nom du fichier Grid en sortie
+        /// \param refine la grille est-elle affinée
+        ///
+        void clearing(std::string const &nomGrid, bool refine)
+        {
+                if (refine == false)
+                {
+                        if (ifstream("processing/conv_ptGeo.txt"))       ELISE_fp::RmFile("processing/conv_ptGeo.txt");
+                        if (ifstream("processing/conv_ptCarto.txt"))     ELISE_fp::RmFile("processing/conv_ptCarto.txt");
+                        if (ifstream("processing/direct_ptGeo.txt"))     ELISE_fp::RmFile("processing/direct_ptGeo.txt");
+                        if (ifstream("processing/direct_ptCarto.txt"))   ELISE_fp::RmFile("processing/direct_ptCarto.txt");
+                        if (ifstream("processing/inverse_ptGeo.txt"))   ELISE_fp::RmFile("processing/inverse_ptGeo.txt");
+                        if (ifstream("processing/inverse_ptCarto.txt")) ELISE_fp::RmFile("processing/inverse_ptCarto.txt");
+                        if (ELISE_fp::IsDirectory("processing"))         ELISE_fp::RmDir("processing");
+                }
+                //effacement de la grille affinee + grilles GRC et binaire
+                std::string gridGRC = nomGrid;
+                std::string refGridGRC2 = nomGrid;
+                refGridGRC2.append("Bin");
 
-		if (ifstream(nomGrid.c_str()))     ELISE_fp::RmFile(nomGrid.c_str());
-		if (ifstream(gridGRC.c_str()))     ELISE_fp::RmFile(gridGRC.c_str());
-		if (ifstream(refGridGRC2.c_str())) ELISE_fp::RmFile(refGridGRC2.c_str());
-	}
+                if (ifstream(nomGrid.c_str()))     ELISE_fp::RmFile(nomGrid.c_str());
+                if (ifstream(gridGRC.c_str()))     ELISE_fp::RmFile(gridGRC.c_str());
+                if (ifstream(refGridGRC2.c_str())) ELISE_fp::RmFile(refGridGRC2.c_str());
+        }
 
-	//Showing Info
-	void info()
-	{
-		std::cout << "RPC info:" << std::endl;
-		std::cout << "===========================================================" << std::endl;
-		std::cout << "long_scale   : " << long_scale << " | long_off   : " << long_off << std::endl;
-		std::cout << "lat_scale    : " << lat_scale << " | lat_off    : " << lat_off << std::endl;
-		std::cout << "height_scale : " << height_scale << " | height_off : " << height_off << std::endl;
-		std::cout << "samp_scale   : " << samp_scale << " | samp_off   : " << samp_off << std::endl;
-		std::cout << "line_scale   : " << line_scale << " | line_off   : " << line_off << std::endl;
-		std::cout << "first_row    : " << first_row << " | last_row   : " << last_row << std::endl;
-		std::cout << "first_col    : " << first_col << " | last_col   : " << last_col << std::endl;
-		std::cout << "first_lon    : " << first_lon << " | last_lon   : " << last_lon << std::endl;
-		std::cout << "first_lat    : " << first_lat << " | last_lat   : " << last_lat << std::endl;
-		std::cout << "direct_samp_num_coef : " << direct_samp_num_coef.size() << std::endl;
-		std::cout << "direct_samp_den_coef : " << direct_samp_den_coef.size() << std::endl;
-		std::cout << "direct_line_num_coef : " << direct_line_num_coef.size() << std::endl;
-		std::cout << "direct_line_den_coef : " << direct_line_den_coef.size() << std::endl;
-		std::cout << "inverse_samp_num_coef : " << inverse_samp_num_coef.size() << std::endl;
-		std::cout << "inverse_samp_den_coef : " << inverse_samp_den_coef.size() << std::endl;
-		std::cout << "inverse_line_num_coef : " << inverse_line_num_coef.size() << std::endl;
-		std::cout << "inverse_line_den_coef : " << inverse_line_den_coef.size() << std::endl;
-		std::cout << "===========================================================" << std::endl;
-	}
+        //Showing Info
+        void info()
+        {
+                std::cout << "RPC info:" << std::endl;
+                std::cout << "===========================================================" << std::endl;
+                std::cout << "long_scale   : " << long_scale << " | long_off   : " << long_off << std::endl;
+                std::cout << "lat_scale    : " << lat_scale << " | lat_off    : " << lat_off << std::endl;
+                std::cout << "height_scale : " << height_scale << " | height_off : " << height_off << std::endl;
+                std::cout << "samp_scale   : " << samp_scale << " | samp_off   : " << samp_off << std::endl;
+                std::cout << "line_scale   : " << line_scale << " | line_off   : " << line_off << std::endl;
+                std::cout << "first_row    : " << first_row << " | last_row   : " << last_row << std::endl;
+                std::cout << "first_col    : " << first_col << " | last_col   : " << last_col << std::endl;
+                std::cout << "first_lon    : " << first_lon << " | last_lon   : " << last_lon << std::endl;
+                std::cout << "first_lat    : " << first_lat << " | last_lat   : " << last_lat << std::endl;
+                std::cout << "direct_samp_num_coef : " << direct_samp_num_coef.size() << std::endl;
+                std::cout << "direct_samp_den_coef : " << direct_samp_den_coef.size() << std::endl;
+                std::cout << "direct_line_num_coef : " << direct_line_num_coef.size() << std::endl;
+                std::cout << "direct_line_den_coef : " << direct_line_den_coef.size() << std::endl;
+                std::cout << "inverse_samp_num_coef : " << inverse_samp_num_coef.size() << std::endl;
+                std::cout << "inverse_samp_den_coef : " << inverse_samp_den_coef.size() << std::endl;
+                std::cout << "inverse_line_num_coef : " << inverse_line_num_coef.size() << std::endl;
+                std::cout << "inverse_line_den_coef : " << inverse_line_den_coef.size() << std::endl;
+                std::cout << "===========================================================" << std::endl;
+        }
 
-	//For Dimap
-	void ReadDimap(std::string const &filename);
-	void WriteAirbusRPC(std::string aFileOut);
+        //For Dimap
+        void ReadDimap(std::string const &filename);
+        void WriteAirbusRPC(std::string aFileOut);
 
-	//For DigitalGlobe data
-	void ReadRPB(std::string const &filename);
-	void ReconstructValidity();
-	void Inverse2Direct(int gridSize);
+        //For DigitalGlobe data
+        void ReadRPB(std::string const &filename);
+        void ReconstructValidity();
+        void Inverse2Direct(u_int gridSize);
 
 };
 
