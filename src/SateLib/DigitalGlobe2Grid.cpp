@@ -40,7 +40,8 @@ int DigitalGlobe2Grid_main(int argc, char **argv)
 	aRPC.info();
 
 	//Computing Grid
-	aRPC.RPC2Grid(nbLayers, altiMin, altiMax, refineCoef, aNameFile, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
+	std:string aNameIm = StdPrefix(aNameFile) + ".TIF";
+	aRPC.RPC2Grid(nbLayers, altiMin, altiMax, refineCoef, aNameIm, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
 
 
 	return EXIT_SUCCESS;
