@@ -1,0 +1,381 @@
+<Global >
+   <ParamApero>
+       <DicoLoc>
+            <Symb> AeroIn=AAAA </Symb>
+            <Symb> CalibIn=BBBB </Symb>
+            <Symb> CalibOut=CCCC </Symb>
+
+            <Symb> Image=${CalibIn} </Symb>
+
+            <Symb> FocFree=true </Symb>
+            <Symb> PPFree=true </Symb>
+            <Symb> CDFree=true </Symb>
+            <Symb> DRMax=10 </Symb>
+            <Symb> DegGen=10 </Symb>
+
+            <eSymb> DR1Free= SupEq ${DRMax} 1 </eSymb>
+            <eSymb> DR2Free= SupEq ${DRMax} 2 </eSymb>
+            <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
+            <eSymb> DR4Free= SupEq ${DRMax} 4 </eSymb>
+            <eSymb> DR5Free= SupEq ${DRMax} 5 </eSymb>
+            <eSymb> DR6Free= SupEq ${DRMax} 6 </eSymb>
+            <eSymb> DR7Free= SupEq ${DRMax} 7 </eSymb>
+            <eSymb> DR8Free= SupEq ${DRMax} 8 </eSymb>
+            <eSymb> DR9Free= SupEq ${DRMax} 9 </eSymb>
+            <eSymb> DR10Free= SupEq ${DRMax} 10 </eSymb>
+
+            <eSymb> DGen1Free= SupEq ${DegGen} 1 </eSymb>
+            <eSymb> DGen2Free= SupEq ${DegGen} 2 </eSymb>
+            <eSymb> DGen3Free= SupEq ${DegGen} 3 </eSymb>
+            <eSymb> DGen4Free= SupEq ${DegGen} 4 </eSymb>
+            <eSymb> DGen5Free= SupEq ${DegGen} 5 </eSymb>
+            <eSymb> DGen6Free= SupEq ${DegGen} 6 </eSymb>
+            <eSymb> DGen7Free= SupEq ${DegGen} 7 </eSymb>
+            <eSymb> DGen8Free= SupEq ${DegGen} 8 </eSymb>
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+           <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@-${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@-${AeroIn} </KeyAssoc>
+           </BDD_Orient>
+           <BDD_ObsAppuisFlottant >
+                <Id> Id-Appui </Id>
+                <KeySetOrPat>  Ori-${AeroIn}/Mes2D.xml </KeySetOrPat>
+           </BDD_ObsAppuisFlottant>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+             <CalibrationCameraInc>
+	     <Name> TheKeyCalib   </Name>
+	     <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ${CalibIn}  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+             </CalibrationCameraInc>
+
+             <PoseCameraInc>
+	           <PatternName>     ${Image}   </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                            <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+             <PointFlottantInc>
+                     <Id> Id-Appui </Id>
+                     <KeySetOrPat>  Ori-${AeroIn}/Mes3D.xml </KeySetOrPat>
+             </PointFlottantInc>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+             <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		             <ContraintesCamerasInc>
+		                 <Val> eAllParamFiges  </Val>
+		             </ContraintesCamerasInc>
+		             <ContraintesPoses>
+			           <NamePose>   .* </NamePose>
+                                   <ByPattern>  true </ByPattern>
+			           <Val>      eCentreFige   </Val>
+		             </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <#WHEN VTEST=${DR1Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR1  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 1 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${DR2Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR2  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 2 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${FocFree}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberteFocale_1  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Focale freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DR3Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR3  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 3 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${PPFree}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLib_PP_CD_10  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> PP freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN VTEST=${CDFree}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+                                     <#IF VTEST=${PPFree}>
+		                         <Val> eLib_PP_CD_11  </Val>
+		                         <Val> eLib_PP_CD_01  </Val>
+                                     </#IF>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> PP freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DGen1Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_Phgr_Std_Aff  </Val>
+		                     <Val> eLiberteParamDeg_1  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Deg Gen 1 </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+
+                    <#WHEN VTEST=${DR4Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR4  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 4 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DR5Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR5  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 5 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DGen2Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberteParamDeg_2  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Deg Gen 2 </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DR6Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR6  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 6 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DGen3Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberteParamDeg_3  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Deg Gen 3 </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DR7Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR7  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 7 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DGen4Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberteParamDeg_4  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Deg Gen 4 </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DR8Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR8  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 8 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DR9Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR9  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 9 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DGen5Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberteParamDeg_5  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Deg Gen 5 </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DR10Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberte_DR10  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Dis Rad 10 freeed </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DGen6Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberteParamDeg_6  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Deg Gen 6 </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DGen7Free}>
+                        <IterationsCompensation> 
+		             <SectionContraintes>
+		                 <ContraintesCamerasInc>
+		                     <Val> eLiberteParamDeg_7  </Val>
+		                 </ContraintesCamerasInc>
+		             </SectionContraintes>
+                             <Messages> Deg Gen 7 </Messages>
+                        </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                         <ObsAppuisFlottant>
+                               <NameRef> Id-Appui </NameRef>
+                               <PondIm>
+                                     <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                     <Show> eNSM_Paquet     </Show>
+                               </PondIm>
+<!--
+                               <PtsShowDet>  .* </PtsShowDet>
+                               <DetShow3D >   false </DetShow3D>
+                               <ShowMax> false </ShowMax>
+                               <ShowSom>  false</ShowSom>
+-->
+                         </ObsAppuisFlottant>
+		    </SectionObservations>
+
+                    <SectionExport>
+                         <ExportCalib>
+                             <KeyAssoc>  ${CalibOut}  </KeyAssoc>
+                             <KeyIsName> true </KeyIsName>
+                         </ExportCalib>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
