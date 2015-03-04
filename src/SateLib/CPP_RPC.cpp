@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 //RPC2Grid transforms a loaded RPC to a .GRI (and GRIBin) file
-int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef, std::string aNameFile, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire)
+int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef, std::string aNameIm, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire)
 {
 	//Creation d'un dossier pour les fichiers intermediaires
 	ELISE_fp::MkDirSvp("processing");
@@ -55,7 +55,7 @@ int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef
 	ficWrite << 0 << " " << 1 << " " << 0 << " " << 0 << " " << 0 << " " << 1 << " " << std::endl;
 
 	// fichier GRID en sortie
-	std::string aNameFileGrid = StdPrefix(aNameFile) + ".GRI";
+	std::string aNameFileGrid = StdPrefix(aNameIm) + ".GRI";
 
 	std::vector<double> vAltitude;
 	for (int i = 0; i<nbLayers; ++i)
@@ -99,7 +99,7 @@ int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef
 		if (ifstream(refineCoef.c_str())) ELISE_fp::RmFile(refineCoef.c_str());
 
 		//New folder
-		std::string dir = "refine_" + StdPrefix(aNameFile);
+		std::string dir = "refine_" + StdPrefix(aNameIm);
 		ELISE_fp::MkDirSvp(dir);
 
 		std::cout << "Model is affine" << std::endl;
@@ -107,7 +107,7 @@ int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef
 	}
 
 	clearing(aNameFileGrid, refine);
-	createGrid(aNameFileGrid, StdPrefix(aNameFile) + "TIF",
+	createGrid(aNameFileGrid, aNameIm,
 		stepPixel, stepCarto,
 		vAltitude, targetSyst, inputSyst, vRefineCoef);
 

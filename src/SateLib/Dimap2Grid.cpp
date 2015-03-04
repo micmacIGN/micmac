@@ -3,7 +3,7 @@
 
 int Dimap2Grid_main(int argc, char **argv)
 {
-    std::string aNameFile; // RPC Dimap .xml file
+    std::string aNameFile, aNameIm; // RPC Dimap .xml file and image associated
 	std::string inputSyst = "+proj=latlong +datum=WGS84 "; //input syst proj4
 	std::string targetSyst;//output syst proj4
 	std::string refineCoef = "processing/refineCoef.txt";
@@ -18,6 +18,7 @@ int Dimap2Grid_main(int argc, char **argv)
 		(
 		argc, argv,
 		LArgMain() << EAMC(aNameFile, "RPC Dimap file")
+		<< EAMC(aNameIm, "Name of image (to generate appropriatelly named GRID file)")
 		<< EAMC(altiMin, "min altitude (ellipsoidal)")
 		<< EAMC(altiMax, "max altitude (ellipsoidal)")
 		<< EAMC(nbLayers, "number of layers (min 4)")
@@ -37,7 +38,7 @@ int Dimap2Grid_main(int argc, char **argv)
 	aRPC.info();
 
 	//Computing Grid
-	aRPC.RPC2Grid(nbLayers, altiMin, altiMax, refineCoef, aNameFile, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
+	aRPC.RPC2Grid(nbLayers, altiMin, altiMax, refineCoef, aNameIm, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
 
     return EXIT_SUCCESS;
 }
