@@ -67,7 +67,8 @@ int Mascarpone_main(int argc,char ** argv)
 
         for (int aK = 0; aK <myMesh.getVertexNumber();++aK)
         {
-            Pt3dr pt = myMesh.getVertex(aK);
+            Pt3dr pt;
+			myMesh.getVertex(aK)->getPos(pt);
             printf ("vertex %ddd : %f %f %f\n",aK, pt.x ,pt.y, pt.z);
         }
 
