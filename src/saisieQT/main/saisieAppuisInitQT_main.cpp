@@ -179,6 +179,10 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 		w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
 		w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
 
+		w.setBanniere(QString(getBanniereMM3D().c_str()));
+		QString qsVersion = __HG_REV__;
+		w.setHg_revision(qsVersion.toInt());
+
         new cQT_Interface(anAppli,&w);
 
         w.show();

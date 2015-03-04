@@ -12,6 +12,11 @@ int saisieBoxQT_main(QApplication &app, int argc, char *argv[])
 	w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
 	w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
 
+
+	w.setBanniere(QString(getBanniereMM3D().c_str()));
+	QString qsVersion = __HG_REV__;
+	w.setHg_revision(qsVersion.toInt());
+
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
 

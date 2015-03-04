@@ -440,6 +440,7 @@ extern int  RPC_main(int argc, char ** argv);
 extern int NewRefineModel_main(int argc, char **argv);
 extern int RefineModel_main(int argc, char **argv);
 extern int Dimap2Grid_main(int argc, char **argv);
+extern int DigitalGlobe2Grid_main(int argc, char **argv);
 
 //TestLib declarations
 extern int  Sample_W0_main(int argc,char ** argv);
@@ -616,6 +617,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 
 	aRes.push_back(cMMCom("RPC", RPC_main, "Different things with RPC"));
 	aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
+	aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
 	aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
 	

@@ -1,24 +1,23 @@
 #include "StdAfx.h"
 #include "RPC.h"
 
-int Dimap2Grid_main(int argc, char **argv)
+int DigitalGlobe2Grid_main(int argc, char **argv)
 {
-    std::string aNameFile, aNameIm; // RPC Dimap .xml file and image associated
+	std::string aNameFile; // .RPB file from Digital Globe
 	std::string inputSyst = "+proj=latlong +datum=WGS84 "; //input syst proj4
 	std::string targetSyst;//output syst proj4
 	std::string refineCoef = "processing/refineCoef.txt";
 	bool binaire = true;
 	double altiMin, altiMax;
-    int nbLayers;
+	int nbLayers;
 
-    double stepPixel = 100.f;
-    double stepCarto = 50.f;
+	double stepPixel = 100.f;
+	double stepCarto = 50.f;
 
 	ElInitArgMain
 		(
 		argc, argv,
-		LArgMain() << EAMC(aNameFile, "RPC Dimap file")
-		<< EAMC(aNameIm, "Name of image (to generate appropriatelly named GRID file)")
+		LArgMain() << EAMC(aNameFile, "RPB from DigitalGlobe file")
 		<< EAMC(altiMin, "min altitude (ellipsoidal)")
 		<< EAMC(altiMax, "max altitude (ellipsoidal)")
 		<< EAMC(nbLayers, "number of layers (min 4)")
@@ -31,15 +30,20 @@ int Dimap2Grid_main(int argc, char **argv)
 		<< EAM(binaire, "Bin", true, "Export Grid in binaries (Def=True)")
 		);
 
-	//Reading Dimap and setting up RPC object
+	//Reading Inverse RPC, computing Direct RPC and setting up RPC object
 	RPC aRPC;
-	aRPC.ReadDimap(aNameFile);
-	cout << "Dimap File read" << endl;
+	aRPC.ReadRPB(aNameFile);
+	cout << "RPB File read" << endl;
+	aRPC.Inverse2Direct(50);//50 is the size of grid for generated GCPs (50*50)
+	cout << "Direct RPC estimated" << endl;
+	aRPC.ReconstructValidity();
 	aRPC.info();
 
 	//Computing Grid
+	std:string aNameIm = StdPrefix(aNameFile) + ".TIF";
 	aRPC.RPC2Grid(nbLayers, altiMin, altiMax, refineCoef, aNameIm, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
 
-    return EXIT_SUCCESS;
+
+	return EXIT_SUCCESS;
 }
 
