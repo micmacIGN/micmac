@@ -9,6 +9,9 @@ int saisieBoxQT_main(QApplication &app, int argc, char *argv[])
 
     SaisieQtWindow w(BOX2D);
 
+	w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+	w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;
 

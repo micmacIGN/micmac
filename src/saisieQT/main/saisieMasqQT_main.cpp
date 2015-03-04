@@ -36,8 +36,6 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
         SaisieQtWindow w;
 
-		//deviceIOCameraElise* dIOCamElise = ;
-
 		w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
 		w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
 

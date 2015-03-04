@@ -177,6 +177,9 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 
         SaisieQtWindow w(POINT2D_PREDIC);
 
+		w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+		w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+
         new cQT_Interface(anAppli,&w);
 
         w.show();
