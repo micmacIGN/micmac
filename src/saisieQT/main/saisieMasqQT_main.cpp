@@ -39,6 +39,11 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 		w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
 		w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
 
+
+		w.setBanniere(QString(getBanniereMM3D().c_str()));
+		QString qsVersion = __HG_REV__;
+		w.setHg_revision(qsVersion.toInt());
+
 #ifdef _DEBUG
         for (int aK=0; aK < cmdline_args.size();++aK)
             cout << "arguments : " << cmdline_args[aK].toStdString().c_str() << endl;
