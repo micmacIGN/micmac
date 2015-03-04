@@ -62,50 +62,26 @@ void InitVPairComp(std::vector<cNOCompPair> & aV,const ElPackHomologue & aPackH)
 //
 //  Formule exacte et programmation simple et claire pour bench
 //
+extern double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
+extern double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) ;
+
 double cNewO_CpleIm::ExactCost(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
 {
-   Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
-   Pt3dr aQ2 = aRot.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
-   Pt3dr aBase  = aRot.tr();
-
-   ElSeg3D aS1(Pt3dr(0,0,0),aQ1);
-   ElSeg3D aS2(aBase,aBase+aQ2);
-
-   anI = aS1.PseudoInter(aS2);
-
-   double d1 = aS1.DistDoite(anI);
-   double d2 = aS2.DistDoite(anI);
-   double D1 = euclid(anI);
-   double D2 = euclid(aBase-anI);
-
-   
-   double aTeta =  d1/D1 + d2/D2;
-   return AttenTetaMax(aTeta,aTetaMax);
-/*
-   if (aTetaMax<=0) return aTeta;
-   // En 0 equiv aTeta, en inf equiv a TetaMax
-   return  (aTeta*aTetaMax) / (aTeta + aTetaMax);
-*/
+   return ExactCostMEP(anI,aRot,aP1,aP2,aTetaMax);
 }
 
-// inline double AttenTetaMax(const double & aVal,const double & aVMax)
+
+
+
+
+
 
 // double cNewO_CpleIm
 double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
-    double aSomPCost = 0;
-    double aSomPds = 0;
-    Pt3dr anI;
-
-    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
-    {
-         double aPds = itP->Pds();
-         double aCost = ExactCost(anI,aRot,itP->P1(),itP->P2(),aTetaMax);
-         aSomPds += aPds;
-         aSomPCost += aPds * aCost;
-    }
-    return aSomPCost / aSomPds;
+    return ExactCostMEP(mPackPStd,aRot,aTetaMax);
 }
+
 
 
 double  cNewO_CpleIm::PixExactCost(const ElRotation3D & aRot,double aTetaMax) const
@@ -138,6 +114,8 @@ double cNewO_CpleIm::FocMoy() const
     return 2 / aF;
 }
 
+extern void RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
+
 cNewO_CpleIm::cNewO_CpleIm
 (
       cNewO_OneIm * aI1,
@@ -165,6 +143,9 @@ cNewO_CpleIm::cNewO_CpleIm
    mSegAmbig      (Pt3dr(0,0,0),Pt3dr(1,1,1)),
    mW             (0)
 {
+
+   RansacMatriceEssentielle(mPackPStd,mPackStdRed,FocMoy());
+
 
    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
    {
