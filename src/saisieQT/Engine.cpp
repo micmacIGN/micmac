@@ -86,14 +86,16 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
 		delete maskedImg->_m_image;
 
 		maskedImg->_m_image = _devIOImageAlter->loadImage(aNameFile);
+		maskedImg->_fullSize = maskedImg->_m_image->size(); // TODO ATTENTION _fullSize surement inutile
+
     }
 	else
 	{
 		if(maskedImg->_m_image )
 			delete maskedImg->_m_image;
 
-		maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));
-
+		maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));		
+		maskedImg->_fullSize = maskedImg->_m_image->size();
 	}
 
 	if(scaleFactor <1.f)

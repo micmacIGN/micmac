@@ -24,7 +24,9 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _params(new cParameters),
         _appMode(mode),
 		_bSaved(false),
-		_devIOCamera(NULL)
+		_devIOCamera(NULL),
+		_hg_revision(69),
+		_banniere("No comment")
 {
     #ifdef ELISE_Darwin
         setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -700,16 +702,20 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
     QMessageBox *msgBox = new QMessageBox(this);
 
-	QString qStr("getBanniereMM3D().c_str()");
-    #if (ELISE_windows || (defined ELISE_Darwin))
+	QString qStr(_banniere);
+#if (ELISE_windows || (defined ELISE_Darwin))
         qStr.replace( "**", "  " );
-    #endif
+#endif
 
-    qStr += "\nApplication\t"           + QApplication::applicationName() +
-            tr("\nBuilt with\t\tQT ")   + QT_VERSION_STR + //QString::number(ELISE_QT_VERSION) +
-			tr("\nRevision\t\t")        + QString(string("__HG_REV__").c_str()) + "\n";
+		QString version;
+		version.setNum(_hg_revision);
 
-    msgBox->setText(qStr);
+
+	qStr += "\nApplication\t" + QApplication::applicationName() +
+			+ "\n" +  tr("Built with \tQT ")   + QT_VERSION_STR  +
+			+ "\n" +  tr("Revision\t\t")    + version + "\n";
+
+	msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
     msgBox->setFont(font);
 
@@ -1552,6 +1558,26 @@ void SaisieQtWindow::undo(bool undo)
         emit undoSgnl(undo);
     }
 }
+QString SaisieQtWindow::banniere() const
+{
+	return _banniere;
+}
+
+void SaisieQtWindow::setBanniere(const QString& banniere)
+{
+	_banniere = banniere;
+}
+
+int SaisieQtWindow::hg_revision() const
+{
+	return _hg_revision;
+}
+
+void SaisieQtWindow::setHg_revision(int hg_revision)
+{
+	_hg_revision = hg_revision;
+}
+
 deviceIOImage* SaisieQtWindow::devIOImage() const
 {
 	return _Engine->Loader()->devIOImageAlter();
