@@ -1357,6 +1357,8 @@ class cRansacMatriceEssentielle
      private :
 
 
+         void OneIterLin(cSolTmpME & aSol,const ElPackHomologue & aPack,int aNbIter);
+         void OneReducSol(int aNb,const ElPackHomologue & aPack,int aNbIter);
          void SelectK(int aK);
          void OnTestMatE(int aNb);
 
@@ -1375,6 +1377,7 @@ class cRansacMatriceEssentielle
 
          double              mCostBestTir;
          double              mFoc;
+         double              mCostMin;
 
          cTplKPluGrand<cSolTmpME,cCmpcSolTmpME> mKBest;
 };
@@ -1443,6 +1446,8 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    std::cout << "Time Ess " << aChrono1.uval() << "\n";
    ElTimer aChrono2;
 
+  // On selectionne les NbSelRotInit  meileures sur le critere "exact"
+
    std::vector<cSolTmpME> aVS = mKBest.Els();
    mKBest.ClearAndSetK(NbSelRotInit);
    for (int aK=0 ; aK<int(aVS.size()) ; aK++)
@@ -1455,16 +1460,54 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    }
 
 
-   aVS = mKBest.Els();
-   for (int aK=0 ; aK<int(aVS.size()) ; aK++)
-   {
-       std::cout << "COST " << aVS[aK].mCost *mFoc  << "\n";
-   }
-
+   OneReducSol(7,aPackRed,2);
+   OneReducSol(5,aPackRed,2);
+   OneReducSol(3,aPackRed,3);
+   OneReducSol(1,aPackRed,3);
 
    std::cout << "Time Exact " << aChrono2.uval() << "\n";
    getchar();
 }
+
+
+void cRansacMatriceEssentielle::OneIterLin(cSolTmpME & aSol,const ElPackHomologue & aPack,int aNbIter)
+{
+    double aCostIn = aSol.mCost;
+
+
+    for (int aKIter =0 ; aKIter < aNbIter ; aKIter++)
+    {
+        cBundleIterLin   aBIL(aSol.mRot,2*mCostMin);
+
+        for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+        {
+             aBIL.AddObs(vunit(PZ1(itP->P1())),vunit(PZ1(itP->P2())),itP->Pds());
+        }
+
+        aSol.mRot =  aBIL.CurSol();
+    }
+    aSol.mCost =  ExactCostMEP(aPack,aSol.mRot,0.1) ;
+
+    std::cout << "COST " << aCostIn *mFoc  << " Out " << aSol.mCost * mFoc << "\n";
+}
+
+void cRansacMatriceEssentielle::OneReducSol(int aNb,const ElPackHomologue & aPack,int aNbIter)
+{
+   std::vector<cSolTmpME> aVS = mKBest.Els();
+   mKBest.ClearAndSetK(aNb);
+   mCostMin = 1e10;
+   for (int aK=0 ; aK<int(aVS.size()) ; aK++)
+       ElSetMin(mCostMin,aVS[aK].mCost);
+
+
+   for (int aK=0 ; aK<int(aVS.size()) ; aK++)
+   {
+      OneIterLin(aVS[aK],aPack,aNbIter);
+      mKBest.push(aVS[aK]);
+   }
+   std::cout << "----------------------\n";
+}
+
 
 void cRansacMatriceEssentielle::SelectK(int aNbSel)
 {
@@ -1588,9 +1631,73 @@ void RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologu
 
 /****************************************************************/
 /*                                                              */
-/*            cResolvAmbiBase                                   */
+/*            cBundleIterLin                                    */
 /*                                                              */
 /****************************************************************/
+
+// Equation initiale     [U1,Base, R U2] = 0
+//      [U1,Base, R0 dR U2] = 0     R = R0 (Id+dR)    dR ~0  R = (Id + ^W) et W ~ 0
+//   [tR0 U1, tR0 Base,U2 + W^U2] = 0 , 
+//    tR0 Base = B0 +dB   est un vecteur norme, soit CD tq (B0,C,D) est un Base ortho norme;
+//    tR0 U1 = U'1
+//   [U'1 ,  B0 + c C + d D , U2 + W ^U2] = 0
+//   (U1' ^ (B0 + c C + d D)) . (U2 + W ^U2) = 0
+//   (U'1 ^B0  + c U'1^C + d U'1 ^D ) . (U2 + W ^ U2) = 0
+//  En supprimant les termes en Wc ou Wd :
+//   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  + (U'1 ^ B0) . (W^U2) 
+//   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  +  W.(U2 ^(U'1 ^ B0)) => Verifier Signe permut prod vect
+
+double cBundleIterLin::ErrMoy() const {return mSomErr/mSomPds;}
+
+cBundleIterLin::cBundleIterLin(const ElRotation3D & aRot,const double & anErrStd):
+    mRot     (aRot),
+    mSysLin5 (5),
+    tR0      (aRot.Mat().transpose()),
+    mB0      (tR0 * aRot.tr()),
+    mSomErr  (0),
+    mSomPds  (0),
+    mErrStd  (anErrStd)
+{
+    MakeRONWith1Vect(mB0,mC,mD);
+    mSysLin5.GSSR_Reset(false);
+}
+
+void cBundleIterLin::AddObs(const Pt3dr & aQ1,const Pt3dr& aQ2,const double & aPds)
+{
+   double aCoef[5];
+   Pt3dr aQp1 = tR0 * aQ1;
+   Pt3dr aUp1VB0 = aQp1 ^ mB0;
+
+   double aCste =  scal(aQ2,aUp1VB0);
+   aCoef[0] = scal(aQ2,aQp1^mC);  // Coeff C
+   aCoef[1] = scal(aQ2,aQp1^mD);  // Coeff D
+   Pt3dr  a3Prod = aQ2 ^ aUp1VB0;
+   aCoef[2] = a3Prod.x;
+   aCoef[3] = a3Prod.y;
+   aCoef[4] = a3Prod.z;
+
+   mLastPdsCalc = aPds / (1+ElSquare(aCste/mErrStd));
+        //    aPair.mLastPdsOfErr = aPds;
+
+   mSomPds += mLastPdsCalc;
+   mSomErr += mLastPdsCalc * ElSquare(aCste);
+
+   mSysLin5.GSSR_AddNewEquation(mLastPdsCalc,aCoef,-aCste,0);
+   mVRes.push_back(ElAbs(aCste));
+}
+
+ElRotation3D  cBundleIterLin::CurSol()
+{
+    Im1D_REAL8   aSol = mSysLin5.GSSR_Solve (0);
+    double * aData = aSol.data();
+
+    Pt3dr aNewB0 = mRot.Mat()  * vunit(mB0+mC*aData[0] + mD*aData[1]);
+
+    ElMatrix<double> aNewR = NearestRotation(mRot.Mat() * (ElMatrix<double>(3,true) + MatProVect(Pt3dr(aData[2],aData[3],aData[4]))));
+    return ElRotation3D (aNewB0,aNewR,true);
+}
+
+
 
 
 
