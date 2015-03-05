@@ -1426,6 +1426,18 @@ const cMIC_IndicAutoCorrel * GetIndicAutoCorrel(const cMTDImCalc & aMTD,int aSzW
 std::string NameMTDImCalc(const std::string & aFullName);
 
 
+inline double CoutAttenueTetaMax(const double & aVal,const double & aVMax)
+{
+      return  (aVal*aVMax) / (aVal + aVMax);
+}
+
+inline double GenCoutAttenueTetaMax(const double & aVal,const double & aVMax)
+{
+      if (aVMax<=0) return aVal;
+      return CoutAttenueTetaMax(aVal,aVMax);
+}
+
+
 #endif //  _ELISE_INCLUDE_GENERAL_PTXD_H_
 
 

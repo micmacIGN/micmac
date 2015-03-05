@@ -465,7 +465,7 @@ class ElPackHomologue : public cPackNupletsHom
                        const ElRotation3D & aRot1to2,
                        INT &                NbP1,
                        INT &                NbP2
-                  );
+                  ) const;
 
              tPairPt  PMed() const;
 
@@ -3207,6 +3207,12 @@ class cCamStenopeBilin : public CamStenope
            cDistorBilin mDBL;
 };
 
+
+
+extern double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
+extern double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) ;
+
+ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
 
 
 
