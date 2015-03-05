@@ -68,6 +68,7 @@ double cNewO_CpleIm::DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) 
 {
     Pt3dr aB1 = vunit(aR1.tr());
     Pt3dr aB2 = vunit(aR2.tr());
+    if (scal(aB1,aB2) <0) aB1 = -aB1;
     double aDB = euclid(aB1-aB2);
     double aDM = aR1.Mat().L2(aR2.Mat());
 
@@ -215,6 +216,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
               << " ERStd " << mErStd 
               << " Exact " << aCostIn << " => " << aCostOut 
               << " Time " << aChrono.uval() 
+              <<  " Inter " << MedianNuage(mPackStdRed,aRot)
               << " Sqz " << aSqueeze;
          std::cout << "\n";
 
