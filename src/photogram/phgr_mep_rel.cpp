@@ -1301,6 +1301,9 @@ class cMEPCoCentrik
         double                   mFoc;
 
         void OneItereRotPur(ElMatrix<REAL>  & aMat,double & aDist);
+
+
+        void OneTestMatr(const ElMatrix<REAL>  &,const Pt3dr & aBase);
 };
 
 
@@ -1314,6 +1317,8 @@ void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
     mSysLin3.GSSR_Reset(false);
 
     std::vector<double> aVRes;
+    double aSomP=0;
+    double aSomErr=0;
     for (ElPackHomologue::const_iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
     {
          Pt3dr aQ1 = vunit(PZ1(itP->P1()));
@@ -1326,6 +1331,9 @@ void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
          aVRes.push_back(anEcart);
          double aPds =  itP->Pds() / (1 + ElSquare(anEcart / (2*anErrStd)));
 
+         aSomP += aPds;
+         aSomErr += aPds * square_euclid(aQ1-aQ2);;
+
          ElMatrix<REAL>  aMQ2 =  MatProVect(aQ2);
          for (int aY=0 ; aY< 3 ; aY++)
          {
@@ -1336,13 +1344,15 @@ void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
              mSysLin3.GSSR_AddNewEquation(aPds,aCoeff,aVQ2[aY]-aVQ1[aY],0);
          }
     }
+    std::cout << "ERR QUAD " << sqrt(aSomErr/aSomP) * mFoc << "\n";
+    anErrStd = MoyKPPVal(aVRes,NbForEcart(aVRes.size()));
     Im1D_REAL8   aSol = mSysLin3.GSSR_Solve (0);
     double * aData = aSol.data();
 
-    ElMatrix<double> aMPV =  MatProVect(Pt3dr(aData[2],aData[3],aData[4]));
+    ElMatrix<double> aMPV =  MatProVect(Pt3dr(aData[0],aData[1],aData[2]));
    
 
-    aMat  = NearestRotation(aMat * (ElMatrix<double>(3,true) -aMPV));
+    aMat  = NearestRotation(aMat * (ElMatrix<double>(3,true) +aMPV));
 }
 
 
@@ -1357,10 +1367,13 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc) :
      ElMatrix<REAL> aMat =  GlobMepRelCocentrique(anEcart,mPack,NbRanCoCInit,aPack.size());
      aMat = aMat.transpose() ; // Retour aux convention 2 = > 1
 
-     std::cout 
-               << "Time "    << aChrono.uval()
-               << "Ecart "   << anEcart * mFoc
-               << "\n";
+
+     for (int aK=0 ; aK<6 ; aK++)
+     {
+         OneItereRotPur(aMat,anEcart);
+     }
+     std::cout << "Time "    << aChrono.uval() << " Ecart "   << anEcart * mFoc << "\n";
+
      getchar();
 }
 
