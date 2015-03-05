@@ -352,21 +352,51 @@ Config_Freeman_Or::Config_Freeman_Or(bool v8,bool trigo) :
        ElSwap(_succ,_prec);
 }
 
-/*
-std::vector<Pt3di> DirCube(int & aNb,bool Ok1,bool Ok2,bool ok3)
+std::vector<Pt3di> DirCube(int aFlag)
 {
+    std::vector<Pt3di> aRes;
     for (int anX=-1 ; anX<=1 ; anX++)
     {
-        for (int anY=-1 ; anY<=1 ; anZ++)
+        for (int anY=-1 ; anY<=1 ; anY++)
         {
              for (int aZ=-1 ; aZ<=1 ; aZ++)
              {
+                 int aSom = ElAbs(anX) +  ElAbs(anY) +  ElAbs(aZ);
+                 Pt3di aP(anX,anY,aZ);
+                 if (aFlag & (1<<aSom))
+                    aRes.push_back(aP);
              }
         }
     }
+    return aRes;
 }
 
-Pt3di *  Dir6Cube(int & aNb);
+const std::vector<Pt3di> &  Dir6Cube()
+{
+     static std::vector<Pt3di> aRes = DirCube(2);
+     return aRes;
+}
+const std::vector<Pt3di> &  Dir8Cube()
+{
+     static std::vector<Pt3di> aRes = DirCube(8);
+     return aRes;
+}
+const std::vector<Pt3di> &  Dir14Cube()
+{
+     static std::vector<Pt3di> aRes = DirCube(2|8);
+     return aRes;
+}
+const std::vector<Pt3di> &  Dir26Cube()
+{
+     static std::vector<Pt3di> aRes = DirCube(2|4|8);
+     return aRes;
+}
+
+
+
+
+
+/*
 Pt3di *  Dir8Cube(int & aNb);
 Pt3di *  Dir14Cube(int & aNb);
 Pt3di *  Dir26Cube(int & aNb);

@@ -136,10 +136,10 @@ class Config_Freeman_Or
 };
 
 
-Pt3di *  Dir6Cube(int & aNb);
-Pt3di *  Dir8Cube(int & aNb);
-Pt3di *  Dir14Cube(int & aNb);
-Pt3di *  Dir26Cube(int & aNb);
+const std::vector<Pt3di> &  Dir6Cube();
+const std::vector<Pt3di> &  Dir8Cube();
+const std::vector<Pt3di> &  Dir14Cube();
+const std::vector<Pt3di> &  Dir26Cube();
 
 
 #endif
