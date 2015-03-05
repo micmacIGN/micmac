@@ -523,10 +523,10 @@ std::string getBanniereMM3D()
     banniere += "**                                                                    ** \n";
     banniere += "**  Research also currently supported by :                            ** \n";
     banniere += "**  - CNES (French Space Agency) - via TOSCA Committee                ** \n";
-    banniere += "**  - Compagnie National du Rhone                                     ** \n";
-	banniere += "**  - Vinci-Construction-Terrassement                                 ** \n"; 
-	banniere += "**  - ERC Advanced Grant A.Kaab \"ICEMASS\" (University of Oslo)      ** \n";
-	banniere += "**                                                                    ** \n";
+    banniere += "**  - Compagnie Nationale du Rhone                                    ** \n";
+    banniere += "**  - Vinci-Construction-Terrassement                                 ** \n";
+    banniere += "**  - ERC Advanced Grant A.Kaab \"ICEMASS\" (University of Oslo)        ** \n";
+    banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    ** \n";
     banniere += "**                G Maillet, L Girod                                  ** \n";

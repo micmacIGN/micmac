@@ -158,7 +158,6 @@ int Tequila_main(int argc,char ** argv)
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
 
-    // If the users enters Ori-MyOrientation/, it will be corrected into MyOrientation
     StdCorrecNameOrient(aOri,aDir);
 
     float threshold =  cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
