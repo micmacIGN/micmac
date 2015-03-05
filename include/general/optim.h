@@ -573,6 +573,7 @@ class cGenSysSurResol
 
           
          virtual void LVM_Mul(const tSysCho& aLambda) ;  // Levenberg Marquad modif
+         virtual void LVM_Mul(const tSysCho& aLambda,int aK) ;  // Levenberg Marquad modif sur une seule inconnue
 
 	 // Pour ces 4 Fon, Def, utilise GetElemQuad-GetElemLin
 

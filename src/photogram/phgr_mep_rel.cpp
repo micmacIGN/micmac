@@ -1206,11 +1206,98 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
 
 /************************************************************/
 /*                                                          */
+/*                  Utilitaires                             */
+/*                                                          */
+/************************************************************/
+
+void InitPackME
+     (  
+          std::vector<Pt2dr> & aVP1,
+          std::vector<Pt2dr>  &aVP2,
+          std::vector<double>  &aVPds,
+          const  ElPackHomologue & aPack
+     )
+{
+   for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+   {
+      aVP1.push_back(itP->P1());
+      aVP2.push_back(itP->P2());
+      aVPds.push_back(itP->Pds());
+   }
+}
+
+//  Formule exacte et programmation simple et claire pour bench, c'est l'angle
+
+double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) 
+{
+   Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
+   Pt3dr aQ2 = aRot.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
+   Pt3dr aBase  = aRot.tr();
+
+   ElSeg3D aS1(Pt3dr(0,0,0),aQ1);
+   ElSeg3D aS2(aBase,aBase+aQ2);
+
+   anI = aS1.PseudoInter(aS2);
+    
+   double d1 = aS1.DistDoite(anI);
+   double d2 = aS2.DistDoite(anI);
+   double D1 = euclid(anI);
+   double D2 = euclid(aBase-anI);
+
+
+   double aTeta =  d1/D1 + d2/D2;
+   return GenCoutAttenueTetaMax(aTeta,aTetaMax);
+}
+
+
+double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) 
+{
+    double aSomPCost = 0;
+    double aSomPds = 0;
+    Pt3dr anI;
+
+    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+    {
+         double aPds = itP->Pds();
+         double aCost = ExactCostMEP(anI,aRot,itP->P1(),itP->P2(),aTetaMax);
+         aSomPds += aPds;
+         aSomPCost += aPds * aCost;
+    }
+    return aSomPCost / aSomPds;
+}
+
+
+Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot)
+{
+    std::vector<double>  aVX;
+    std::vector<double>  aVY;
+    std::vector<double>  aVZ;
+    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+    {
+        Pt3dr                anI;
+        ExactCostMEP(anI,aRot,itP->P1(),itP->P2(),0.1);
+        aVX.push_back(anI.x);
+        aVY.push_back(anI.y);
+        aVZ.push_back(anI.z);
+
+// std::cout << "iiiiI " << anI << "\n";
+    }
+    return Pt3dr
+           (
+                 MedianeSup(aVX),
+                 MedianeSup(aVY),
+                 MedianeSup(aVZ)
+           );
+}
+
+/************************************************************/
+/*                                                          */
 /*                  MEP CO-CENTTRIQUE                       */
 /*                                                          */
 /************************************************************/
 
 static const double PropCostEcartDist  = 0.95;
+static const int    NbCpleBase = 2000;
 
 static int NbForEcart(int aSize)
 {
@@ -1296,14 +1383,16 @@ class cMEPCoCentrik
 {
      public :
         cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc);
+        void OneItereRotPur(ElMatrix<REAL>  & aMat,double & aDist);
+        void OneTestMatr(const ElMatrix<REAL>  &,const Pt3dr & aBase,double aCost);
 
         const ElPackHomologue &  mPack;
         double                   mFoc;
+        double                   mCostMin;
+        std::vector<Pt2dr> mVP1;
+        std::vector<Pt2dr> mVP2;
+        std::vector<double> mVPds;
 
-        void OneItereRotPur(ElMatrix<REAL>  & aMat,double & aDist);
-
-
-        void OneTestMatr(const ElMatrix<REAL>  &,const Pt3dr & aBase);
 };
 
 
@@ -1355,13 +1444,43 @@ void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
     aMat  = NearestRotation(aMat * (ElMatrix<double>(3,true) +aMPV));
 }
 
+void cMEPCoCentrik::OneTestMatr(const ElMatrix<REAL>  & aMat,const Pt3dr & aBase,double  aCost)
+{
+    ElRotation3D aRot(aBase,aMat,true);
+    std::cout << "IN COST " <<  ExactCostMEP(mPack,aRot,0.1) * mFoc  << " for " << aBase  << "\n";
+    for (int aKIter =0 ; aKIter < 15 ; aKIter++)
+    {
+        cBundleIterLin   aBIL(aRot,2*aCost);
+
+        for (ElPackHomologue::const_iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
+        {
+             aBIL.AddObs(vunit(PZ1(itP->P1())),vunit(PZ1(itP->P2())),itP->Pds());
+        }
+
+/*
+        for (int aK=2 ; aK<5 ; aK++)
+        {
+           aBIL.mSysLin5.LVM_Mul(0.1 ,aK);
+        }
+*/
+
+        aRot =  aBIL.CurSol();
+    }
+    mCostMin = ElMin(mCostMin, ExactCostMEP(mPack,aRot,0.1));
+   std::cout << "OUT COST " <<  ExactCostMEP(mPack,aRot,0.1) * mFoc  << " for " << aBase  << " CMIN " << mCostMin *mFoc << "\n\n";
+  
+}
 
 
 
 cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc) :
     mPack (aPack),
-    mFoc  (aFoc)
+    mFoc  (aFoc),
+    mCostMin (1e5)
 {
+     bool doPly = true;
+     InitPackME(mVP1,mVP2,mVPds,aPack);
+
      ElTimer aChrono;
      double anEcart;
      ElMatrix<REAL> aMat =  GlobMepRelCocentrique(anEcart,mPack,NbRanCoCInit,aPack.size());
@@ -1374,6 +1493,75 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc) :
      }
      std::cout << "Time "    << aChrono.uval() << " Ecart "   << anEcart * mFoc << "\n";
 
+
+     const std::vector<Pt3di> aVTest = Dir26Cube();
+
+     for (int aKP=0 ; aKP<int(aVTest.size()) ; aKP++)
+     {
+         OneTestMatr(aMat,vunit(Pt3dr(aVTest[aKP])), anEcart);
+     }
+
+     for (int aK= 0 ; aK<0 ; aK++)
+     {
+          Pt3dr aP(NRrandC(),NRrandC(),NRrandC());
+          OneTestMatr(aMat,vunit(aP), anEcart * 10);
+          std::cout << "ITTTER " << aK << "\n";
+
+          // if ((aK%1000) == 0) getchar();
+     }
+
+
+     std::vector<
+     {
+         std::vector<Pt3di> aVCol;
+         Pt3di aRouge(255,0,0);
+         Pt3di aVert(0,255,0);
+         std::vector<Pt3dr> aVpt;
+         for (int aKP =0 ; aKP< int(mVP1.size()) ; aKP++)
+         {
+              Pt3dr aQ1 = vunit(PZ1(mVP1[aKP]));
+              Pt3dr aQ2 = vunit(PZ1(mVP2[aKP]));
+              aVCol.push_back(aRouge);
+              aVpt.push_back(vunit(aQ1^aQ2));
+         }
+
+
+         for (int aK=0 ; aK<NbCpleBase ; aK++)
+         {
+              int aKA = NRrandom3(mVP1.size());
+              Pt3dr aA1 = vunit(PZ1(mVP1[aKA]));
+              Pt3dr aA2 = vunit(PZ1(mVP2[aKA]));
+              Pt3dr aNA = vunit(aA1^aA2);
+
+              int aKB = NRrandom3(mVP1.size());
+              Pt3dr aB1 = vunit(PZ1(mVP1[aKB]));
+              Pt3dr aB2 = vunit(PZ1(mVP2[aKB]));
+              Pt3dr aNB = vunit(aB1^aB2);
+
+             
+              Pt3dr aBase = aNA ^aNB;
+              if (euclid (aBase)>1e-6)
+              {
+                  aVCol.push_back(aVert);
+                  aVpt.push_back(vunit(aBase));
+              }
+
+         }
+
+         std::list<std::string> aVCom;
+         std::vector<const cElNuage3DMaille *> aVNuage;
+         cElNuage3DMaille::PlyPutFile
+         (
+               "Base.ply",
+               aVCom,
+               aVNuage,
+               &aVpt,
+               &aVCol,
+               true
+         );
+
+     }
+
      getchar();
 }
 
@@ -1384,77 +1572,6 @@ void TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc)
 }
 
 
-
-/************************************************************/
-/*                                                          */
-/*                  Utilitaires                             */
-/*                                                          */
-/************************************************************/
-
-
-//  Formule exacte et programmation simple et claire pour bench, c'est l'angle
-
-double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) 
-{
-   Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
-   Pt3dr aQ2 = aRot.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
-   Pt3dr aBase  = aRot.tr();
-
-   ElSeg3D aS1(Pt3dr(0,0,0),aQ1);
-   ElSeg3D aS2(aBase,aBase+aQ2);
-
-   anI = aS1.PseudoInter(aS2);
-    
-   double d1 = aS1.DistDoite(anI);
-   double d2 = aS2.DistDoite(anI);
-   double D1 = euclid(anI);
-   double D2 = euclid(aBase-anI);
-
-
-   double aTeta =  d1/D1 + d2/D2;
-   return GenCoutAttenueTetaMax(aTeta,aTetaMax);
-}
-
-
-double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) 
-{
-    double aSomPCost = 0;
-    double aSomPds = 0;
-    Pt3dr anI;
-
-    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-    {
-         double aPds = itP->Pds();
-         double aCost = ExactCostMEP(anI,aRot,itP->P1(),itP->P2(),aTetaMax);
-         aSomPds += aPds;
-         aSomPCost += aPds * aCost;
-    }
-    return aSomPCost / aSomPds;
-}
-
-
-Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot)
-{
-    std::vector<double>  aVX;
-    std::vector<double>  aVY;
-    std::vector<double>  aVZ;
-    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-    {
-        Pt3dr                anI;
-        ExactCostMEP(anI,aRot,itP->P1(),itP->P2(),0.1);
-        aVX.push_back(anI.x);
-        aVY.push_back(anI.y);
-        aVZ.push_back(anI.z);
-
-// std::cout << "iiiiI " << anI << "\n";
-    }
-    return Pt3dr
-           (
-                 MedianeSup(aVX),
-                 MedianeSup(aVY),
-                 MedianeSup(aVZ)
-           );
-}
 
 
 /************************************************************/
@@ -1536,21 +1653,11 @@ class cRansacMatriceEssentielle
          ElRotation3D                           mSol;
 };
 
-void InitPackME
-     (  
-          std::vector<Pt2dr> & aVP1,
-          std::vector<Pt2dr>  &aVP2,
-          std::vector<double>  &aVPds,
-          const  ElPackHomologue & aPack
-     )
-{
-   for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-   {
-      aVP1.push_back(itP->P1());
-      aVP2.push_back(itP->P2());
-      aVPds.push_back(itP->Pds());
-   }
-}
+
+
+
+
+
 
 cRansacMatriceEssentielle::cRansacMatriceEssentielle
 (

@@ -741,6 +741,17 @@ class cElPlan3D
 };
 
 
+cElPlan3D RobustePlan3D
+          (
+             const std::vector<Pt3dr> & aVPts,
+             const std::vector<double> * aVPondInit,
+             double anEffort,
+             double aRatioTirage = 1.0,
+             int    aNbStepLin = 7 
+          );
+
+
+
 /*
 class cInterfSystemeCoordonne3D
 {
