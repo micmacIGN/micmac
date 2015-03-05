@@ -337,6 +337,10 @@ class cNewO_CombineCple
          
 };
 
+extern Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
+extern void TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc);
+
+
 
 
 
