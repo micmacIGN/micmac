@@ -50,7 +50,7 @@
         <x>0</x>
         <y>0</y>
         <width>406</width>
-        <height>485</height>
+        <height>495</height>
        </rect>
       </property>
       <attribute name="label">
@@ -237,7 +237,7 @@
           <item>
            <widget class="QRadioButton" name="radionButtonOrbital">
             <property name="text">
-             <string>orbital</string>
+             <string>Orbital</string>
             </property>
            </widget>
           </item>
@@ -264,8 +264,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>329</width>
-        <height>147</height>
+        <width>298</width>
+        <height>139</height>
        </rect>
       </property>
       <attribute name="label">
@@ -397,8 +397,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>247</width>
-        <height>162</height>
+        <width>406</width>
+        <height>495</height>
        </rect>
       </property>
       <attribute name="label">
@@ -534,8 +534,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>104</width>
-        <height>49</height>
+        <width>406</width>
+        <height>495</height>
        </rect>
       </property>
       <attribute name="label">
