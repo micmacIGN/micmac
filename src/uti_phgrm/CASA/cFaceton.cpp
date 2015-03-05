@@ -177,6 +177,11 @@ cFaceton   cAccumFaceton::CompileF(const cElNuage3DMaille & aNuage)
   int i0 = aVInd[0];
   int i1 = aVInd[1];
   int i2 = aVInd[2];
+
+  ELISE_ASSERT(0<=aValP(i0,i0), "Erreur in jacobi");
+  ELISE_ASSERT(aValP(i0,i0) <= aValP(i1,i1), "Erreur in jacobi");
+  ELISE_ASSERT(aValP(i1,i1) <= aValP(i2,i2), "Erreur in jacobi");
+
   if (   (aValP(i0,i0) <0) || (aValP(i0,i0) > aValP(i1,i1)) || (aValP(i1,i1) > aValP(i2,i2)))
   {
      cElWarning::JacobiInCasa.AddWarn("",__LINE__,__FILE__);
@@ -184,9 +189,6 @@ cFaceton   cAccumFaceton::CompileF(const cElNuage3DMaille & aNuage)
   }
 
 
-  // ELISE_ASSERT(0<=aValP(i0,i0), "Erreur in jacobi");
-  // ELISE_ASSERT(aValP(i0,i0) <= aValP(i1,i1), "Erreur in jacobi");
-  // ELISE_ASSERT(aValP(i1,i1) <= aValP(i2,i2), "Erreur in jacobi");
 
   aVecp.GetCol(i0,aU);
 

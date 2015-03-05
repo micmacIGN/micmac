@@ -1212,6 +1212,14 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
 
 static const double PropCostEcartDist  = 0.95;
 
+static int NbForEcart(int aSize)
+{
+    int aNbVal = round_ni(aSize * PropCostEcartDist);
+    aNbVal = ElMax(1,ElMin(aSize-1,aNbVal));
+
+    return aNbVal;
+}
+
 double SomEcartDist
        (
            const ElMatrix<REAL> &    aMat,
@@ -1224,9 +1232,9 @@ double SomEcartDist
     {
         aVRes.push_back(euclid(aMat*aVDir1[aK]-aVDir2[aK]));
     }
-    int aNbVal = round_ni(aVRes.size() * PropCostEcartDist);
-    aNbVal = ElMax(1,ElMin(int(aVRes.size())-1,aNbVal));
-    return MoyKPPVal(aVRes,aNbVal);
+    // int aNbVal = round_ni(aVRes.size() * PropCostEcartDist);
+    // aNbVal = ElMax(1,ElMin(int(aVRes.size())-1,aNbVal));
+    return MoyKPPVal(aVRes,NbForEcart(aVRes.size()));
 }
 
 
@@ -1302,7 +1310,6 @@ class cMEPCoCentrik
 
 void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
 {
-/*
     L2SysSurResol mSysLin3(3);
     mSysLin3.GSSR_Reset(false);
 
@@ -1311,18 +1318,31 @@ void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
     {
          Pt3dr aQ1 = vunit(PZ1(itP->P1()));
          Pt3dr aQ2 =  aMat * vunit(PZ1(itP->P2()));
+         double aVQ2[3],aVQ1[3];
+         aQ2.to_tab(aVQ2);
+         aQ1.to_tab(aVQ1);
 
          double anEcart = euclid(aQ1-aQ2);
          aVRes.push_back(anEcart);
          double aPds =  itP->Pds() / (1 + ElSquare(anEcart / (2*anErrStd)));
 
          ElMatrix<REAL>  aMQ2 =  MatProVect(aQ2);
+         for (int aY=0 ; aY< 3 ; aY++)
+         {
+             double aCoeff[3];
+             for (int aX=0 ; aX< 3 ; aX++)
+                 aCoeff[aX] = aMQ2(aX,aY);
 
-
-         double aCoeff[3];
-         aCoeff[0] = 0 ; aCoeff
+             mSysLin3.GSSR_AddNewEquation(aPds,aCoeff,aVQ2[aY]-aVQ1[aY],0);
+         }
     }
-*/
+    Im1D_REAL8   aSol = mSysLin3.GSSR_Solve (0);
+    double * aData = aSol.data();
+
+    ElMatrix<double> aMPV =  MatProVect(Pt3dr(aData[2],aData[3],aData[4]));
+   
+
+    aMat  = NearestRotation(aMat * (ElMatrix<double>(3,true) -aMPV));
 }
 
 
