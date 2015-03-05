@@ -615,7 +615,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 {
 	static std::vector<cMMCom> aRes;
 
-	aRes.push_back(cMMCom("RPC", RPC_main, "Different things with RPC"));
+	aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcomming RPC functions"));
 	aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
 	aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
 	aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
