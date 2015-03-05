@@ -1204,6 +1204,22 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
    return ElRotation3D(aCL,aM,true);
 }
 
+/************************************************************/
+/*                                                          */
+/*                  MEP CO-CENTTRIQUE                       */
+/*                                                          */
+/************************************************************/
+
+static const double PropCostEcartDist  = 0.95;
+
+static int NbForEcart(int aSize)
+{
+    int aNbVal = round_ni(aSize * PropCostEcartDist);
+    aNbVal = ElMax(1,ElMin(aSize-1,aNbVal));
+
+    return aNbVal;
+}
+
 double SomEcartDist
        (
            const ElMatrix<REAL> &    aMat,
@@ -1211,25 +1227,27 @@ double SomEcartDist
            const std::vector<Pt3dr>& aVDir2
        )
 { 
-    double aRes = 0;
+    std::vector<double> aVRes;
     for (int aK=0 ; aK<int(aVDir1.size()) ; aK++)
     {
-        aRes += euclid(aMat*aVDir1[aK]-aVDir2[aK]);
+        aVRes.push_back(euclid(aMat*aVDir1[aK]-aVDir2[aK]));
     }
-    return aRes;
+    // int aNbVal = round_ni(aVRes.size() * PropCostEcartDist);
+    // aNbVal = ElMax(1,ElMin(int(aVRes.size())-1,aNbVal));
+    return MoyKPPVal(aVRes,NbForEcart(aVRes.size()));
 }
 
 
-ElMatrix<REAL> ElPackHomologue::MepRelCocentrique(int aNbRansac,int aNbMaxPts) const
+ElMatrix<REAL> GlobMepRelCocentrique(double & anEcartMin,const ElPackHomologue & aPack, int aNbRansac,int aNbMaxPts) 
 {
-   aNbMaxPts = ElMin(aNbMaxPts,size());
+   aNbMaxPts = ElMin(aNbMaxPts,aPack.size());
 
    std::vector<Pt3dr> aVDir1;
    std::vector<Pt3dr> aVDir2;
 
-   cRandNParmiQ aRand(aNbMaxPts,size());
+   cRandNParmiQ aRand(aNbMaxPts,aPack.size());
 
-   for (tCstIter itH=begin() ; itH!=end() ; itH++)
+   for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
    {
       if (aRand.GetNext())
       {
@@ -1239,7 +1257,7 @@ ElMatrix<REAL> ElPackHomologue::MepRelCocentrique(int aNbRansac,int aNbMaxPts) c
    }
 
    ElMatrix<REAL> aRes(3,3);
-   double anEcartMin = 1e60;
+   anEcartMin = 1e60;
 
    while (aNbRansac)
    {
@@ -1261,9 +1279,115 @@ ElMatrix<REAL> ElPackHomologue::MepRelCocentrique(int aNbRansac,int aNbMaxPts) c
 }
 
 
+ElMatrix<REAL> ElPackHomologue::MepRelCocentrique(int aNbRansac,int aNbMaxPts) const
+{
+    double anEcMin;
+    return GlobMepRelCocentrique(anEcMin,*this,aNbRansac,aNbMaxPts);
+}
+/*
+*/
+
+
+
+static const int NbRanCoCInit = 200;
+
+
+class cMEPCoCentrik
+{
+     public :
+        cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc);
+
+        const ElPackHomologue &  mPack;
+        double                   mFoc;
+
+        void OneItereRotPur(ElMatrix<REAL>  & aMat,double & aDist);
+
+
+        void OneTestMatr(const ElMatrix<REAL>  &,const Pt3dr & aBase);
+};
+
+
+//  aMat U2 = U1
+//  aMat U2 = U1 + U1 ^W 
+
+
+void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
+{
+    L2SysSurResol mSysLin3(3);
+    mSysLin3.GSSR_Reset(false);
+
+    std::vector<double> aVRes;
+    double aSomP=0;
+    double aSomErr=0;
+    for (ElPackHomologue::const_iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
+    {
+         Pt3dr aQ1 = vunit(PZ1(itP->P1()));
+         Pt3dr aQ2 =  aMat * vunit(PZ1(itP->P2()));
+         double aVQ2[3],aVQ1[3];
+         aQ2.to_tab(aVQ2);
+         aQ1.to_tab(aVQ1);
+
+         double anEcart = euclid(aQ1-aQ2);
+         aVRes.push_back(anEcart);
+         double aPds =  itP->Pds() / (1 + ElSquare(anEcart / (2*anErrStd)));
+
+         aSomP += aPds;
+         aSomErr += aPds * square_euclid(aQ1-aQ2);;
+
+         ElMatrix<REAL>  aMQ2 =  MatProVect(aQ2);
+         for (int aY=0 ; aY< 3 ; aY++)
+         {
+             double aCoeff[3];
+             for (int aX=0 ; aX< 3 ; aX++)
+                 aCoeff[aX] = aMQ2(aX,aY);
+
+             mSysLin3.GSSR_AddNewEquation(aPds,aCoeff,aVQ2[aY]-aVQ1[aY],0);
+         }
+    }
+    std::cout << "ERR QUAD " << sqrt(aSomErr/aSomP) * mFoc << "\n";
+    anErrStd = MoyKPPVal(aVRes,NbForEcart(aVRes.size()));
+    Im1D_REAL8   aSol = mSysLin3.GSSR_Solve (0);
+    double * aData = aSol.data();
+
+    ElMatrix<double> aMPV =  MatProVect(Pt3dr(aData[0],aData[1],aData[2]));
+   
+
+    aMat  = NearestRotation(aMat * (ElMatrix<double>(3,true) +aMPV));
+}
+
+
+
+
+cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc) :
+    mPack (aPack),
+    mFoc  (aFoc)
+{
+     ElTimer aChrono;
+     double anEcart;
+     ElMatrix<REAL> aMat =  GlobMepRelCocentrique(anEcart,mPack,NbRanCoCInit,aPack.size());
+     aMat = aMat.transpose() ; // Retour aux convention 2 = > 1
+
+
+     for (int aK=0 ; aK<6 ; aK++)
+     {
+         OneItereRotPur(aMat,anEcart);
+     }
+     std::cout << "Time "    << aChrono.uval() << " Ecart "   << anEcart * mFoc << "\n";
+
+     getchar();
+}
+
+
+void TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc)
+{
+    cMEPCoCentrik aMC(aPack,aFoc);
+}
+
+
+
 /************************************************************/
 /*                                                          */
-/*                  cRansacMatriceEssentielle               */
+/*                  Utilitaires                             */
 /*                                                          */
 /************************************************************/
 
@@ -1308,6 +1432,36 @@ double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,doub
     return aSomPCost / aSomPds;
 }
 
+
+Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot)
+{
+    std::vector<double>  aVX;
+    std::vector<double>  aVY;
+    std::vector<double>  aVZ;
+    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+    {
+        Pt3dr                anI;
+        ExactCostMEP(anI,aRot,itP->P1(),itP->P2(),0.1);
+        aVX.push_back(anI.x);
+        aVY.push_back(anI.y);
+        aVZ.push_back(anI.z);
+
+// std::cout << "iiiiI " << anI << "\n";
+    }
+    return Pt3dr
+           (
+                 MedianeSup(aVX),
+                 MedianeSup(aVY),
+                 MedianeSup(aVZ)
+           );
+}
+
+
+/************************************************************/
+/*                                                          */
+/*                  cRansacMatriceEssentielle               */
+/*                                                          */
+/************************************************************/
 
 
 

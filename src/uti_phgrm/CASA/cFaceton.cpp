@@ -53,8 +53,19 @@ cFaceton::cFaceton(double aPds,Pt2dr anIndex,Pt3dr aCdg,Pt3dr aNorm) :
    mPds     (aPds),
    mIndex   (anIndex),
    mCentre  (aCdg),
-   mNormale (aNorm)
+   mNormale (aNorm),
+   mOk      (true)
 {
+}
+
+cFaceton::cFaceton() :
+  mOk (false)
+{
+}
+ 
+bool cFaceton::Ok() const
+{
+   return mOk;
 }
 
 const Pt2dr & cFaceton::Index() const
@@ -145,8 +156,7 @@ void cAccumFaceton::Add(const Pt2dr & anIndex,const Pt3dr  & aPt,double aPds)
 }
 
 
-
-cFaceton   cAccumFaceton::Compile(const cElNuage3DMaille & aNuage)
+cFaceton   cAccumFaceton::CompileF(const cElNuage3DMaille & aNuage)
 {
    Pt3dr aCdg = mSomPt / mSomPds;
    ElMatrix<double> aM2 = mMoment;
@@ -167,9 +177,18 @@ cFaceton   cAccumFaceton::Compile(const cElNuage3DMaille & aNuage)
   int i0 = aVInd[0];
   int i1 = aVInd[1];
   int i2 = aVInd[2];
-  ELISE_ASSERT(0<=aValP(i0,i0), "Erreur in jacobi");
-  ELISE_ASSERT(aValP(i0,i0) <= aValP(i1,i1), "Erreur in jacobi");
-  ELISE_ASSERT(aValP(i1,i1) <= aValP(i2,i2), "Erreur in jacobi");
+
+  // ELISE_ASSERT(0<=aValP(i0,i0), "Erreur in jacobi");
+  // ELISE_ASSERT(aValP(i0,i0) <= aValP(i1,i1), "Erreur in jacobi");
+  // ELISE_ASSERT(aValP(i1,i1) <= aValP(i2,i2), "Erreur in jacobi");
+
+  if (   (aValP(i0,i0) <0) || (aValP(i0,i0) > aValP(i1,i1)) || (aValP(i1,i1) > aValP(i2,i2)))
+  {
+     cElWarning::JacobiInCasa.AddWarn("",__LINE__,__FILE__);
+     return cFaceton();
+  }
+
+
 
   aVecp.GetCol(i0,aU);
 

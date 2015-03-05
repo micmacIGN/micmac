@@ -39,25 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+
 void  cNewO_CpleIm::CalcSegAmbig()
 {
-    std::vector<double>  aVX;
-    std::vector<double>  aVY;
-    std::vector<double>  aVZ;
-    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
-    {
-        Pt3dr                anI;
-        ExactCost(anI,mBestSol,itP->P1(),itP->P2(),mBestErrStd);
-        aVX.push_back(anI.x);
-        aVY.push_back(anI.y);
-        aVZ.push_back(anI.z);
-
-// std::cout << "iiiiI " << anI << "\n";
-    }
-    mIA.x  = MedianeSup(aVX);
-    mIA.y  = MedianeSup(aVY);
-    mIA.z  = MedianeSup(aVZ);
-
     mDirAmbig =  vunit(mIA ^ mBestSol.tr());  // Le vecteur |_ au plan (0 , Base, Inter)
     mSegAmbig = ElSeg3D(mIA,mIA+mDirAmbig);
 }
