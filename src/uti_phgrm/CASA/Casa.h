@@ -51,6 +51,7 @@ class cFaceton
 {
      public :
         cFaceton(double aPds,Pt2dr anIndex,Pt3dr aCdg,Pt3dr aNorm);
+        cFaceton();  // Renvoie un jerk
 
         const Pt2dr & Index() const;
         const Pt3dr & Centre() const;
@@ -64,12 +65,15 @@ class cFaceton
      // Terminologie claire pour un cylindre, de maniere generale, est ce que la normale
      // est dans le sens des z (de la coord anam)  decroissant 
          bool IsFaceExterne(const cInterfSurfaceAnalytique &) const;
+         bool Ok() const;
 
      private :
+
          double mPds;
          Pt2dr  mIndex;
          Pt3dr  mCentre;
          Pt3dr  mNormale;
+         bool mOk;
 };
 
 // On accumule l'info dans le moment d'inertie. Le faceton
@@ -82,7 +86,7 @@ class cAccumFaceton
     public :
        void Add(const Pt2dr & anIndex,const Pt3dr  & ,double aPds);
       cAccumFaceton();
-      cFaceton   Compile(const cElNuage3DMaille &);
+      cFaceton   CompileF(const cElNuage3DMaille &);
     private  :
        
         double mSomPds;

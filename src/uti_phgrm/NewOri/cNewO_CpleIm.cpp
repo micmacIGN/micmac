@@ -176,21 +176,21 @@ cNewO_CpleIm::cNewO_CpleIm
     {
         std::cout << " Cost sol ext : " << PixExactCost(*mTestC2toC1,0.1) << "\n";
 
-/*
-        AmelioreSolLinear((*mTestC2toC1),"Refer " );
-        ElRotation3D aR2(-mTestC2toC1->tr(),mTestC2toC1->Mat(),true);
-        AmelioreSolLinear(aR2,"Ref Inv");
-*/
     }
 
+    TestMEPCoCentrik(mPackStdRed,FocMoy());
 
-   // Nouveau test par Ransac + ME
+    /*******************************************************/
+    /*      TEST DES DIFFERENTES INITIALISATIONS           */
+    /*******************************************************/
+
+   // = T1 ============== Nouveau test par Ransac + ME
     {
        ElRotation3D aRR =RansacMatriceEssentielle(mPackPStd,mPackStdRed,FocMoy());
        AmelioreSolLinear(aRR,"Ran Ess");
     }
 
-  // Test par Matrices essentielles 
+  // = T2 ==============   Test par Matrices essentielles  "classique" 
     for (int aL2 = 0 ; aL2 < 2 ; aL2++)
     {
         ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackStdRed.MepRelPhysStd(1.0,false)) ;
@@ -200,7 +200,7 @@ cNewO_CpleIm::cNewO_CpleIm
     }
 
 
-  // Test par  homographie plane
+  //  = T3 ============  Test par  homographie plane "classique" (i.e. globale) 
     double aDist ; 
     bool   Ok;
     cElHomographie aHom = cElHomographie::RobustInit(&aDist,mPackPStd,Ok,100,80,500);
@@ -215,18 +215,27 @@ cNewO_CpleIm::cNewO_CpleIm
         if ( itS->PhysOk())
         {
             AmelioreSolLinear(aR," Plane ");
-            // std::cout << "SOL PLANE " << ExactCost(aR,0.1)   << "\n";
         }
     }
+
+
+    if (! mBestSolIsInit)
+    {
+        return;
+    }
+
+    mIA =  MedianNuage(mPackStdRed,mBestSol);
+
+
 
     if (mShow)
     {
         if (mBestSolIsInit)
         {
-           std::cout << "Cost " << ExactCost(mBestSol,0.1) << "\n";
+           std::cout << "Cost " << ExactCost(mBestSol,0.1)  *FocMoy() << " Centre " << mIA << "\n";
            if (mTestC2toC1)
            {
-               std::cout << "Ref, Cost " << ExactCost(*mTestC2toC1,0.1) << " dist/Ref " << DistRot(*mTestC2toC1,mBestSol) <<  "\n";
+               std::cout << "Ref, Cost " << ExactCost(*mTestC2toC1,0.1) * FocMoy() << " dist/Ref " << DistRot(*mTestC2toC1,mBestSol) <<  "\n";
            }
         }
         else
