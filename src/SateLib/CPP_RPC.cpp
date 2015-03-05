@@ -1054,25 +1054,196 @@ void RPC::ReadRPB(std::string const &filename)
 
 int RPC_main(int argc, char ** argv)
 {
-	string aFileOut = "RPC.xml", aNameFile;
-	double gridSize = 50;
+	//GET PSEUDO-RPC2D FOR ASTER FROM LATTICE POINTS
+	std::string aTxtImage, aTxtCarto;
+	std::string aFileOut = "RPC2D-params.xml";
+	//Reading the arguments
 	ElInitArgMain
 		(
 		argc, argv,
-		LArgMain() << EAMC(aNameFile, "RPB DigitalGlob file"),
 		LArgMain()
-		<< EAM(aFileOut, "Out", true, "Name of the output file")
-		<< EAM(gridSize, "GridSize", true, "Size of the grid of generated GCPs (Def=50 for 50*50 grid)")
+		<< EAMC(aTxtImage, "txt file contaning the lattice point in the image coordinates", eSAM_IsPatFile)
+		<< EAMC(aTxtCarto, "txt file contaning the lattice point in the carto coordinates", eSAM_IsPatFile),
+		LArgMain()
+		<< EAM(aFileOut, "Out", true, "Output xml file with RPC2D coordinates")
 		);
 
-	RPC aRPC;
-	aRPC.ReadRPB(aNameFile);
-	cout << "RPB File read" << endl;
-	aRPC.Inverse2Direct(gridSize);
-	cout << "Direct RPC estimated" << endl;
-	aRPC.ReconstructValidity();
-	aRPC.info();
-	aRPC.WriteAirbusRPC(aFileOut);
+	//Reading the files
+	vector<Pt2dr> aPtsIm, aPtsCarto;
+	{
+		std::ifstream fic(aTxtImage.c_str());
+		while (!fic.eof() && fic.good())
+		{
+			double X, Y;
+			fic >> X >> Y;
+			Pt2dr aPt(X, Y);
+			if (fic.good())
+			{
+				aPtsIm.push_back(aPt);
+			}
+		}
+		cout << "Read " << aPtsIm.size() << " points in image coordinates" << endl;
+		//cout << aPtsIm << endl;
+		std::ifstream fic2(aTxtCarto.c_str());
+		while (!fic2.eof() && fic2.good())
+		{
+			double X, Y, Z;
+			fic2 >> X >> Y >> Z;
+			Pt2dr aPt(X, Y);
+			if (fic2.good())
+			{
+				aPtsCarto.push_back(aPt);
+			}
+		}
+		cout << "Read " << aPtsCarto.size() << " points in cartographic coordinates" << endl;
+		//cout << aPtsCarto << endl;
+	}
+
+	//Finding normalization parameters
+	//divide Pts into X and Y
+	vector<double> aPtsCartoX, aPtsCartoY, aPtsImX, aPtsImY;
+	for (u_int i = 0; i < aPtsCarto.size(); i++)
+	{
+		aPtsCartoX.push_back(aPtsCarto[i].x);
+		aPtsCartoY.push_back(aPtsCarto[i].y);
+		aPtsImX.push_back(aPtsIm[i].x);
+		aPtsImY.push_back(aPtsIm[i].y);
+	}
+
+	Pt2dr aPtCartoMin(*std::min_element(aPtsCartoX.begin(), aPtsCartoX.end()), *std::min_element(aPtsCartoY.begin(), aPtsCartoY.end()));
+	Pt2dr aPtCartoMax(*std::max_element(aPtsCartoX.begin(), aPtsCartoX.end()), *std::max_element(aPtsCartoY.begin(), aPtsCartoY.end()));
+	Pt2dr aPtImMin(*std::min_element(aPtsImX.begin(), aPtsImX.end()), *std::min_element(aPtsImY.begin(), aPtsImY.end()));
+	Pt2dr aPtImMax(*std::max_element(aPtsImX.begin(), aPtsImX.end()), *std::max_element(aPtsImY.begin(), aPtsImY.end()));
+	Pt2dr aCartoScale((aPtCartoMax.x - aPtCartoMin.x) / 2, (aPtCartoMax.y - aPtCartoMin.y) / 2);
+	Pt2dr aImScale((aPtImMax.x - aPtImMin.x) / 2, (aPtImMax.y - aPtImMin.y) / 2);
+	Pt2dr aCartoOffset(aPtCartoMin.x + (aPtCartoMax.x - aPtCartoMin.x) / 2, aPtCartoMin.y + (aPtCartoMax.y - aPtCartoMin.y) / 2);
+	Pt2dr aImOffset(aPtImMin.x + (aPtImMax.x - aPtImMin.x) / 2, aPtImMin.y + (aPtImMax.y - aPtImMin.y) / 2);
+
+	//Parameters too get parameters of P1 and P2 in ---  Column=P1(X,Y)/P2(X,Y)  --- where (X,Y) are Carto coordinates (idem for Row)
+	//Function is 0=Poly1(X,Y)-Column*Poly2(X,Y) ==> Column*k=a+bX+cY+dXY+eX^2+fY^2+gX^2Y+hXY^2+iX^3+jY^3-Column(lX+mY+nXY+oX^2+pY^2+qX^2Y+rXY^2+sX^3+tY^3)
+	//k=1 to avoid sol=0
+	L2SysSurResol aSysCol(19), aSysRow(19);
+
+	//For all lattice points
+	for (u_int i = 0; i<aPtsCarto.size(); i++){
+
+		//NORMALIZATION
+		double X = (aPtsCarto[i].x - aCartoOffset.x) / aCartoScale.x;
+		double Y = (aPtsCarto[i].y - aCartoOffset.y) / aCartoScale.y;
+		double COL = (aPtsIm[i].x - aImOffset.x) / aImScale.x;
+		double ROW = (aPtsIm[i].y - aImOffset.y) / aImScale.y;
+
+		double aEqCol[19] = {
+			(1),
+			(X),
+			(Y),
+			(X*Y),
+			(pow(X, 2)),
+			(pow(Y, 2)),
+			(pow(X, 2)*Y),
+			(X*pow(Y, 2)),
+			(pow(X, 3)),
+			(pow(Y, 3)),
+			//(COL),
+			(-COL*X),
+			(-COL*Y),
+			(-COL*X*Y),
+			(-COL*pow(X, 2)),
+			(-COL*pow(Y, 2)),
+			(-COL*pow(X, 2)*Y),
+			(-COL*X*pow(Y, 2)),
+			(-COL*pow(X, 3)),
+			(-COL*pow(Y, 3)),
+		};
+		aSysCol.AddEquation(1, aEqCol, COL);
+
+
+		double aEqRow[19] = {
+			(1),
+			(X),
+			(Y),
+			(X*Y),
+			(pow(X, 2)),
+			(pow(Y, 2)),
+			(pow(X, 2)*Y),
+			(X*pow(Y, 2)),
+			(pow(X, 3)),
+			(pow(Y, 3)),
+			//(ROW),
+			(-ROW*X),
+			(-ROW*Y),
+			(-ROW*X*Y),
+			(-ROW*pow(X, 2)),
+			(-ROW*pow(Y, 2)),
+			(-ROW*pow(X, 2)*Y),
+			(-ROW*X*pow(Y, 2)),
+			(-ROW*pow(X, 3)),
+			(-ROW*pow(Y, 3)),
+		};
+		aSysRow.AddEquation(1, aEqRow, ROW);
+	}
+
+	//Computing the result
+	bool Ok;
+	Im1D_REAL8 aSolCol = aSysCol.GSSR_Solve(&Ok);
+	Im1D_REAL8 aSolRow = aSysRow.GSSR_Solve(&Ok);
+	double* aDataCol = aSolCol.data();
+	double* aDataRow = aSolRow.data();
+
+	//Outputting results
+	{
+		std::ofstream fic(aFileOut.c_str());
+		fic << std::setprecision(15);
+		fic << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" << endl;
+		fic << "<RPC2D>" << endl;
+		fic << "\t<RFM_Validity>" << endl;
+		fic << "\t\t<Direct_Model_Validity_Domain>" << endl;
+		fic << "\t\t\t<FIRST_ROW>" << aPtImMin.x << "</FIRST_ROW>" << endl;
+		fic << "\t\t\t<FIRST_COL>" << aPtImMin.y << "</FIRST_COL>" << endl;
+		fic << "\t\t\t<LAST_ROW>" << aPtImMax.x << "</LAST_ROW>" << endl;
+		fic << "\t\t\t<LAST_COL>" << aPtImMax.y << "</LAST_COL>" << endl;
+		fic << "\t\t</Direct_Model_Validity_Domain>" << endl;
+		fic << "\t\t<Inverse_Model_Validity_Domain>" << endl;
+		fic << "\t\t\t<FIRST_X>" << aPtCartoMin.x << "</FIRST_X>" << endl;
+		fic << "\t\t\t<FIRST_Y>" << aPtCartoMin.y << "</FIRST_Y>" << endl;
+		fic << "\t\t\t<LAST_X>" << aPtCartoMax.x << "</LAST_X>" << endl;
+		fic << "\t\t\t<LAST_Y>" << aPtCartoMax.y << "</LAST_Y>" << endl;
+		fic << "\t\t</Inverse_Model_Validity_Domain>" << endl;
+
+		fic << "\t\t<X_SCALE>" << aCartoScale.x << "</X_SCALE>" << endl;
+		fic << "\t\t<X_OFF>" << aCartoOffset.x << "</X_OFF>" << endl;
+		fic << "\t\t<Y_SCALE>" << aCartoScale.y << "</Y_SCALE>" << endl;
+		fic << "\t\t<Y_OFF>" << aCartoOffset.y << "</Y_OFF>" << endl;
+
+		fic << "\t\t<SAMP_SCALE>" << aImScale.x << "</SAMP_SCALE>" << endl;
+		fic << "\t\t<SAMP_OFF>" << aImOffset.x << "</SAMP_OFF>" << endl;
+		fic << "\t\t<LINE_SCALE>" << aImScale.y << "</LINE_SCALE>" << endl;
+		fic << "\t\t<LINE_OFF>" << aImOffset.y << "</LINE_OFF>" << endl;
+
+		fic << "\t</RFM_Validity>" << endl;
+
+		for (int i = 0; i<10; i++)
+		{
+			fic << "<COL_NUMERATOR_" << i + 1 << ">" << aDataCol[i] << "</COL_NUMERATOR_" << i + 1 << ">" << endl;
+		}
+		fic << "<COL_DENUMERATOR_1>1</COL_DENUMERATOR_1>" << endl;
+		for (int i = 10; i<19; i++)
+		{
+			fic << "<COL_DENUMERATOR_" << i - 8 << ">" << aDataCol[i] << "</COL_DENUMERATOR_" << i - 8 << ">" << endl;
+		}
+		for (int i = 0; i<10; i++)
+		{
+			fic << "<ROW_NUMERATOR_" << i + 1 << ">" << aDataRow[i] << "</ROW_NUMERATOR_" << i + 1 << ">" << endl;
+		}
+		fic << "<ROW_DENUMERATOR_1>1</ROW_DENUMERATOR_1>" << endl;
+		for (int i = 10; i<19; i++)
+		{
+			fic << "<ROW_DENUMERATOR_" << i - 8 << ">" << aDataRow[i] << "</ROW_DENUMERATOR_" << i - 8 << ">" << endl;
+		}
+		fic << "</RPC2D>" << endl;
+	}
+	cout << "Written functions in file " << aFileOut << endl;
+
 	return 0;
 }
 
