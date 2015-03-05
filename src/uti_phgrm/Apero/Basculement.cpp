@@ -910,12 +910,6 @@ void cAppliApero::BasculePoints
    delete aPtrBNL;
 }
 
-extern    cElPlan3D RobustePlan3D
-          (
-             const std::vector<Pt3dr> & aVPts,
-             const std::vector<double> * aVPond,
-             double anEffort
-          );
 
      //---------------------------------------------
      //     BasculeLiaison
