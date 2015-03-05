@@ -1478,7 +1478,7 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc) :
     mFoc  (aFoc),
     mCostMin (1e5)
 {
-     bool doPly = true;
+     // bool doPly = true;
      InitPackME(mVP1,mVP2,mVPds,aPack);
 
      ElTimer aChrono;
@@ -1511,7 +1511,7 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc) :
      }
 
 
-     std::vector<
+     // std::vector<
      {
          std::vector<Pt3di> aVCol;
          Pt3di aRouge(255,0,0);
