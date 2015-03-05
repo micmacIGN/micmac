@@ -525,7 +525,7 @@ std::string getBanniereMM3D()
     banniere += "**  - CNES (French Space Agency) - via TOSCA Committee                ** \n";
     banniere += "**  - Compagnie Nationale du Rhone                                    ** \n";
     banniere += "**  - Vinci-Construction-Terrassement                                 ** \n";
-    banniere += "**  - ERC Advanced Grant A.Kaab \"ICEMASS\" (University of Oslo)        ** \n";
+    banniere += "**  - ERC Advanced Grant A.Kaeaeb \"ICEMASS\" (University of Oslo)      ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    ** \n";
