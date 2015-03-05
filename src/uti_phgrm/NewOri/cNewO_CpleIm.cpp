@@ -112,7 +112,6 @@ double cNewO_CpleIm::FocMoy() const
     return 2 / aF;
 }
 
-extern void RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
 
 cNewO_CpleIm::cNewO_CpleIm
 (
@@ -142,7 +141,6 @@ cNewO_CpleIm::cNewO_CpleIm
    mW             (0)
 {
 
-   RansacMatriceEssentielle(mPackPStd,mPackStdRed,FocMoy());
 
 
    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
@@ -183,6 +181,13 @@ cNewO_CpleIm::cNewO_CpleIm
         ElRotation3D aR2(-mTestC2toC1->tr(),mTestC2toC1->Mat(),true);
         AmelioreSolLinear(aR2,"Ref Inv");
 */
+    }
+
+
+   // Nouveau test par Ransac + ME
+    {
+       ElRotation3D aRR =RansacMatriceEssentielle(mPackPStd,mPackStdRed,FocMoy());
+       AmelioreSolLinear(aRR,"Ran Ess");
     }
 
   // Test par Matrices essentielles 

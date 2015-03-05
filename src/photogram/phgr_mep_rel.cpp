@@ -416,8 +416,6 @@ void cResMepRelCoplan::AddSol(const cElemMepRelCoplan & anEl)
 {
    mLElem.push_front(anEl);
 
-//std::cout << "OK MECOPLAN " << anEl.PhysOk() << "\n";
-//anEl.Show();
 
    if (anEl.PhysOk())
    {
@@ -1353,6 +1351,7 @@ class cRansacMatriceEssentielle
 {
      public :
          cRansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
+         const ElRotation3D &  Sol() const;
 
      private :
 
@@ -1380,6 +1379,7 @@ class cRansacMatriceEssentielle
          double              mCostMin;
 
          cTplKPluGrand<cSolTmpME,cCmpcSolTmpME> mKBest;
+         ElRotation3D                           mSol;
 };
 
 void InitPackME
@@ -1407,7 +1407,8 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    mSys(8),
    mCostBestTir (1e10),
    mFoc         (aFoc),
-   mKBest       (TheCmpSolTmpME,NbSelMatEss)
+   mKBest       (TheCmpSolTmpME,NbSelMatEss),
+   mSol         (ElRotation3D::Id)
 {
    InitPackME(mVP1,mVP2,mVPds,aPackFull);
    InitPackME(mRedVP1,mRedVP2,mRedVPds,aPackRed);
@@ -1418,8 +1419,6 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
       mIsSelected.push_back(false);
    }
 
-
-  ElTimer aChrono1;
 
    // Adapte a donnees tres bruites, plein de petit tirages minimaliste
    for (int aKTir=0 ; aKTir < NbTirageMinimaliste ; aKTir++)
@@ -1443,10 +1442,6 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
 
 
 
-   std::cout << "Time Ess " << aChrono1.uval() << "\n";
-   ElTimer aChrono2;
-
-  // On selectionne les NbSelRotInit  meileures sur le critere "exact"
 
    std::vector<cSolTmpME> aVS = mKBest.Els();
    mKBest.ClearAndSetK(NbSelRotInit);
@@ -1455,8 +1450,6 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
       aVS[aK].mRot = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
       aVS[aK].mCost = ExactCostMEP(aPackRed,aVS[aK].mRot,0.1) ;
       mKBest.push(aVS[aK]);
-      //std::cout << "   CCCC= " << aVS[aK].mCost << "\n";
-     //  std::cout << ExactCostMEP(aPackFull,aRot,0.1) * mFoc << " " <<  ExactCostMEP(aPackFull,aRot.inv(),0.1)  * mFoc<< "\n";
    }
 
 
@@ -1465,16 +1458,16 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    OneReducSol(3,aPackRed,3);
    OneReducSol(1,aPackRed,3);
 
-   std::cout << "Time Exact " << aChrono2.uval() << "\n";
-   getchar();
+   mSol =  mKBest.Els()[0].mRot;
 }
 
+const ElRotation3D &  cRansacMatriceEssentielle::Sol() const
+{
+    return mSol;
+}
 
 void cRansacMatriceEssentielle::OneIterLin(cSolTmpME & aSol,const ElPackHomologue & aPack,int aNbIter)
 {
-    double aCostIn = aSol.mCost;
-
-
     for (int aKIter =0 ; aKIter < aNbIter ; aKIter++)
     {
         cBundleIterLin   aBIL(aSol.mRot,2*mCostMin);
@@ -1488,7 +1481,6 @@ void cRansacMatriceEssentielle::OneIterLin(cSolTmpME & aSol,const ElPackHomologu
     }
     aSol.mCost =  ExactCostMEP(aPack,aSol.mRot,0.1) ;
 
-    std::cout << "COST " << aCostIn *mFoc  << " Out " << aSol.mCost * mFoc << "\n";
 }
 
 void cRansacMatriceEssentielle::OneReducSol(int aNb,const ElPackHomologue & aPack,int aNbIter)
@@ -1505,7 +1497,6 @@ void cRansacMatriceEssentielle::OneReducSol(int aNb,const ElPackHomologue & aPac
       OneIterLin(aVS[aK],aPack,aNbIter);
       mKBest.push(aVS[aK]);
    }
-   std::cout << "----------------------\n";
 }
 
 
@@ -1624,9 +1615,10 @@ void  cRansacMatriceEssentielle::OnTestMatE(int aNb)
 }
 
 
-void RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc)
+ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc)
 {
     cRansacMatriceEssentielle aRME(aPack,aPackRed,aFoc);
+    return aRME.Sol();
 }
 
 /****************************************************************/
