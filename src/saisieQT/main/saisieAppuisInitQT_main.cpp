@@ -40,7 +40,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     QStringList cmdline_args = QCoreApplication::arguments();
 
-    if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    if (cmdline_args.back().contains("help"))
     {
         QString help = "Mandatory unnamed args :\n"
                  "* string :: {Full name (Dir+Pattern)}\n"
@@ -113,7 +113,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
              cVirtualInterface::ComputeNbFen(aNbFen, aNbW);
         }
 
-		updateSettings(settings, aSzWin,aNbFen, aForceGray);
+        updateSettings(settings, aSzWin,aNbFen, aForceGray);
 
         settings.beginGroup("Misc");
         settings.setValue("defPtName", QString(aNameAuto.c_str()));
@@ -176,12 +176,12 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
         SaisieQtWindow w(POINT2D_INIT);
 
-		w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
-		w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+        w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+        w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
 
-		w.setBanniere(QString(getBanniereMM3D().c_str()));
-		QString qsVersion = __HG_REV__;
-		w.setHg_revision(qsVersion.toInt());
+        w.setBanniere(QString(getBanniereMM3D().c_str()));
+        QString qsVersion = __HG_REV__;
+        w.setHg_revision(qsVersion.toInt());
 
         new cQT_Interface(anAppli,&w);
 

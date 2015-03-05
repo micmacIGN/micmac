@@ -336,6 +336,7 @@ void Elise_Assertion::unactive_user()
 
 /********************  WARNS  *********************/
 
+cElWarning cElWarning::JacobiInCasa("Singular facets in CASA");
 cElWarning cElWarning::BehindCam("Point behind camera after initialisation");
 cElWarning cElWarning::FocInxifAndMM("Focal length specified both by xif and NKS-Assoc-STD-FOC");
 cElWarning cElWarning::CamInxifAndMM("Camera name specified both by xif and NKS-Assoc-STD-FOC");

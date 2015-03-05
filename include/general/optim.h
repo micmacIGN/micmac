@@ -1336,6 +1336,28 @@ class cEq12Parametre
         double mValueFixArb;
 };
 
+class cBundleIterLin
+{
+    public :
+
+       void AddObs(const Pt3dr & aQ1,const Pt3dr& aQ2,const double & aPds);
+       ElRotation3D CurSol();
+       double ErrMoy() const;
+
+       cBundleIterLin(const ElRotation3D & aRot,const double & anErrStd);
+       ElRotation3D  mRot;
+       L2SysSurResol mSysLin5;
+       ElMatrix<double> tR0;
+       Pt3dr mB0;
+       Pt3dr mC,mD;
+       std::vector<double> mVRes;
+       double              mSomErr;
+       double              mSomPds;
+       double              mErrStd;
+       double              mLastPdsCalc;
+
+};
+
 
 
 #endif //  _ELISE_GENERAL_OPTIM_H

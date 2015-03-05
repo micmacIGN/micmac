@@ -62,50 +62,24 @@ void InitVPairComp(std::vector<cNOCompPair> & aV,const ElPackHomologue & aPackH)
 //
 //  Formule exacte et programmation simple et claire pour bench
 //
+
 double cNewO_CpleIm::ExactCost(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
 {
-   Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
-   Pt3dr aQ2 = aRot.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
-   Pt3dr aBase  = aRot.tr();
-
-   ElSeg3D aS1(Pt3dr(0,0,0),aQ1);
-   ElSeg3D aS2(aBase,aBase+aQ2);
-
-   anI = aS1.PseudoInter(aS2);
-
-   double d1 = aS1.DistDoite(anI);
-   double d2 = aS2.DistDoite(anI);
-   double D1 = euclid(anI);
-   double D2 = euclid(aBase-anI);
-
-   
-   double aTeta =  d1/D1 + d2/D2;
-   return AttenTetaMax(aTeta,aTetaMax);
-/*
-   if (aTetaMax<=0) return aTeta;
-   // En 0 equiv aTeta, en inf equiv a TetaMax
-   return  (aTeta*aTetaMax) / (aTeta + aTetaMax);
-*/
+   return ExactCostMEP(anI,aRot,aP1,aP2,aTetaMax);
 }
 
-// inline double AttenTetaMax(const double & aVal,const double & aVMax)
+
+
+
+
+
 
 // double cNewO_CpleIm
 double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
-    double aSomPCost = 0;
-    double aSomPds = 0;
-    Pt3dr anI;
-
-    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
-    {
-         double aPds = itP->Pds();
-         double aCost = ExactCost(anI,aRot,itP->P1(),itP->P2(),aTetaMax);
-         aSomPds += aPds;
-         aSomPCost += aPds * aCost;
-    }
-    return aSomPCost / aSomPds;
+    return ExactCostMEP(mPackPStd,aRot,aTetaMax);
 }
+
 
 
 double  cNewO_CpleIm::PixExactCost(const ElRotation3D & aRot,double aTetaMax) const
@@ -138,6 +112,7 @@ double cNewO_CpleIm::FocMoy() const
     return 2 / aF;
 }
 
+
 cNewO_CpleIm::cNewO_CpleIm
 (
       cNewO_OneIm * aI1,
@@ -165,6 +140,8 @@ cNewO_CpleIm::cNewO_CpleIm
    mSegAmbig      (Pt3dr(0,0,0),Pt3dr(1,1,1)),
    mW             (0)
 {
+
+
 
    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
    {
@@ -199,14 +176,21 @@ cNewO_CpleIm::cNewO_CpleIm
     {
         std::cout << " Cost sol ext : " << PixExactCost(*mTestC2toC1,0.1) << "\n";
 
-/*
-        AmelioreSolLinear((*mTestC2toC1),"Refer " );
-        ElRotation3D aR2(-mTestC2toC1->tr(),mTestC2toC1->Mat(),true);
-        AmelioreSolLinear(aR2,"Ref Inv");
-*/
     }
 
-  // Test par Matrices essentielles 
+    TestMEPCoCentrik(mPackStdRed,FocMoy());
+
+    /*******************************************************/
+    /*      TEST DES DIFFERENTES INITIALISATIONS           */
+    /*******************************************************/
+
+   // = T1 ============== Nouveau test par Ransac + ME
+    {
+       ElRotation3D aRR =RansacMatriceEssentielle(mPackPStd,mPackStdRed,FocMoy());
+       AmelioreSolLinear(aRR,"Ran Ess");
+    }
+
+  // = T2 ==============   Test par Matrices essentielles  "classique" 
     for (int aL2 = 0 ; aL2 < 2 ; aL2++)
     {
         ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackStdRed.MepRelPhysStd(1.0,false)) ;
@@ -216,7 +200,7 @@ cNewO_CpleIm::cNewO_CpleIm
     }
 
 
-  // Test par  homographie plane
+  //  = T3 ============  Test par  homographie plane "classique" (i.e. globale) 
     double aDist ; 
     bool   Ok;
     cElHomographie aHom = cElHomographie::RobustInit(&aDist,mPackPStd,Ok,100,80,500);
@@ -231,18 +215,27 @@ cNewO_CpleIm::cNewO_CpleIm
         if ( itS->PhysOk())
         {
             AmelioreSolLinear(aR," Plane ");
-            // std::cout << "SOL PLANE " << ExactCost(aR,0.1)   << "\n";
         }
     }
+
+
+    if (! mBestSolIsInit)
+    {
+        return;
+    }
+
+    mIA =  MedianNuage(mPackStdRed,mBestSol);
+
+
 
     if (mShow)
     {
         if (mBestSolIsInit)
         {
-           std::cout << "Cost " << ExactCost(mBestSol,0.1) << "\n";
+           std::cout << "Cost " << ExactCost(mBestSol,0.1)  *FocMoy() << " Centre " << mIA << "\n";
            if (mTestC2toC1)
            {
-               std::cout << "Ref, Cost " << ExactCost(*mTestC2toC1,0.1) << " dist/Ref " << DistRot(*mTestC2toC1,mBestSol) <<  "\n";
+               std::cout << "Ref, Cost " << ExactCost(*mTestC2toC1,0.1) * FocMoy() << " dist/Ref " << DistRot(*mTestC2toC1,mBestSol) <<  "\n";
            }
         }
         else

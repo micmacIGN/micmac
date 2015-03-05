@@ -3,7 +3,12 @@
 
 #include  "StdAfx.h"
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
-#include <xmmintrin.h>
+
+#ifdef CUDA_ENABLED
+#ifdef __SSE__
+//#include <xmmintrin.h>
+#endif
+#endif
 
 //namespace NS_ParamMICMAC
 //{

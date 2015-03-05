@@ -337,11 +337,10 @@ class cNewO_CombineCple
          
 };
 
-inline double AttenTetaMax(const double & aVal,const double & aVMax)
-{
-      if (aVMax<=0) return aVal;
-      return  (aVal*aVMax) / (aVal + aVMax);
-}
+extern Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
+extern void TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc);
+
+
 
 
 

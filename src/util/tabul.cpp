@@ -352,6 +352,26 @@ Config_Freeman_Or::Config_Freeman_Or(bool v8,bool trigo) :
        ElSwap(_succ,_prec);
 }
 
+/*
+std::vector<Pt3di> DirCube(int & aNb,bool Ok1,bool Ok2,bool ok3)
+{
+    for (int anX=-1 ; anX<=1 ; anX++)
+    {
+        for (int anY=-1 ; anY<=1 ; anZ++)
+        {
+             for (int aZ=-1 ; aZ<=1 ; aZ++)
+             {
+             }
+        }
+    }
+}
+
+Pt3di *  Dir6Cube(int & aNb);
+Pt3di *  Dir8Cube(int & aNb);
+Pt3di *  Dir14Cube(int & aNb);
+Pt3di *  Dir26Cube(int & aNb);
+*/
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

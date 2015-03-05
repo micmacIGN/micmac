@@ -77,7 +77,8 @@ int CASALL_main(int argc,char ** argv)
 
    cAppli_Casa   anAppli (aP2);
 
-   return 0;
+   cElWarning::ShowWarns(aP2.mDC + "CasaWarn.txt");
+   return EXIT_SUCCESS;
 }
 int CASA_main(int argc,char ** argv)
 {

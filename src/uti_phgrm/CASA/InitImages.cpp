@@ -222,16 +222,19 @@ void cAppli_Casa::AddNuage2Surf
              }
              if (aTime!=0)
              {
-                cFaceton aFct = anAcu.Compile(*aNuage);
-                aVF.push_back(aFct);
-                if (aW)
+                cFaceton aFct = anAcu.CompileF(*aNuage);
+                if (aFct.Ok())
                 {
-                    Pt2dr aP0 =aFct.Index();
-                    Pt3dr aN = aFct.Normale();
-                    if (aN.z<0) aN = aN*-1;
-                    Pt2dr aDir(aN.x,aN.y);
-                    aW->draw_circle_abs(aP0,1,aW->pdisc()(P8COL::green)); 
-                    aW->draw_seg(aP0,aP0+aDir*30,aW->pdisc()(P8COL::red)); 
+                    aVF.push_back(aFct);
+                    if (aW)
+                    {
+                        Pt2dr aP0 =aFct.Index();
+                        Pt3dr aN = aFct.Normale();
+                        if (aN.z<0) aN = aN*-1;
+                        Pt2dr aDir(aN.x,aN.y);
+                        aW->draw_circle_abs(aP0,1,aW->pdisc()(P8COL::green)); 
+                        aW->draw_seg(aP0,aP0+aDir*30,aW->pdisc()(P8COL::red)); 
+                    }
                 }
                 // getchar();
              }
