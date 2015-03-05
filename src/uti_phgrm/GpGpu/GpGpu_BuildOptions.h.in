@@ -1,0 +1,8 @@
+#cmakedefine CUDA_ENABLED @OptionCuda@
+#cmakedefine OPM_ENABLED  @OPM_ENABLED@
+#cmakedefine OPENCL_ENABLED  @OPENCL_ENABLED@
+#cmakedefine CPP11THREAD_NOBOOSTTHREAD  @CPP11THREAD_NOBOOSTTHREAD@
+#cmakedefine NVTOOLS  @NVTOOLS@
+//#ifndef __CUDA_API_VERSION
+//#cmakedefine __CUDA_API_VERSION  @__CUDA_API_VERSION@
+//#endif
