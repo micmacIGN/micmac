@@ -136,6 +136,12 @@ class Config_Freeman_Or
 };
 
 
+Pt3di *  Dir6Cube(int & aNb);
+Pt3di *  Dir8Cube(int & aNb);
+Pt3di *  Dir14Cube(int & aNb);
+Pt3di *  Dir26Cube(int & aNb);
+
+
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
