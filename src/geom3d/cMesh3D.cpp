@@ -48,8 +48,8 @@ static const REAL Eps = 1e-7;
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cTextRect::cTextRect(std::vector<int> aTriangles):
-    imgIdx(-1),
+cTextRect::cTextRect(std::vector<int> aTriangles, int idx):
+    imgIdx(idx),
     p0(Pt2di(0,0)),
     p1(Pt2di(0,0)),
     rotation(false),
@@ -762,14 +762,14 @@ void cMesh::clean()
        toRemove.insert(toRemove.end(), myList.begin(), myList.end());
    }
 
-    cout << "Removing " << toRemove.size() << " triangles" <<endl;
+    cout << "Removing " << toRemove.size() << " faces" <<endl;
 
     std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
     for (unsigned int var = 0; var < toRemove.size(); ++var) {
          removeTriangle(*getTriangle(toRemove[var]));
     }
 
-    cout << "Removing isolated points" << endl;
+    //cout << "Removing isolated vertex" << endl;
 
     //suppression des points n'appartenant à aucun triangle
     const int nbFaces = getFacesNumber();
@@ -816,8 +816,12 @@ std::vector<cTextRect> cMesh::getRegions()
     for (int aK=0; aK < nFaces;++aK)
     {
         std::vector <int> myList;
+        int imgIdx = -1;
         if ((getTriangle(aK)->isTextured()) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
+        {
+            imgIdx = getTriangle(aK)->getTextureImgIndex();;
             myList.push_back(aK);
+        }
 
         for (unsigned int bK=0; bK < myList.size();++bK)
         {
@@ -825,8 +829,6 @@ std::vector<cTextRect> cMesh::getRegions()
 
             if (Tri->isTextured())
             {
-                int imgIdx = Tri->getTextureImgIndex();
-
                 vector<int> neighb = Tri->getNeighbours2();
 
                 bool found = false;
@@ -849,85 +851,9 @@ std::vector<cTextRect> cMesh::getRegions()
 
         if (myList.size() > 1)
         {
-            regions.push_back(cTextRect(myList));
+            regions.push_back(cTextRect(myList, imgIdx));
         }
     }
-
-    //recherche des triangles isolés (trous dans les regions)
-
-//TODO meilleur bouchage des trous
-    for (int aK=0; aK < nFaces;++aK)
-    {
-        if (triangleIdxSet.find(aK) == triangleIdxSet.end())
-        {
-            cTriangle * Tri = getTriangle(aK);
-            vector <cTriangle *> neighb = Tri->getNeighbours(); //TODO: utiliser getNeighbours2 ?
-
-            if (neighb.size())
-            {
-                unsigned int nbNeighb = 0; // number of neighbours with same image index
-                int neighbIndex  = -1;
-                int textImgIndex = -1;
-
-                neighb.push_back(neighb[0]);
-
-                for (unsigned int cK=0; cK < neighb.size()-1;cK++)
-                {
-                    if ( (neighb[cK]->getTextureImgIndex() == neighb[cK+1]->getTextureImgIndex()))
-                    {
-                        nbNeighb++;
-                        neighbIndex  = neighb[cK]->getIdx();
-                        textImgIndex = neighb[cK]->getTextureImgIndex();
-                    }
-                }
-
-                /*if (nbNeighb == 0)
-                {
-                    cout << "BAD CANDIDATE= " << triIdx << endl;
-                    neighb.pop_back();
-                    for (unsigned int cK=0; cK < neighb.size();cK++)
-                    {
-                        if ( (neighb[cK]->getTextureImgIndex() == Tri->getTextureImgIndex()))
-                        {
-                            neighbIndex = neighb[cK]->getIdx();
-                            textImgIndex = neighb[cK]->getTextureImgIndex();
-                        }
-                    }
-                    cout << "neighbIndex " << neighbIndex << endl;
-                    cout << "textImgIndex " << textImgIndex << endl;
-                }*/
-
-                if (/*(Tri->getTextureImgIndex() != textImgIndex) &&*/ (nbNeighb >= 1))
-                {
-                    //recherche de la region des voisins
-                    const int nRegions = regions.size();
-                    for(int bK=0; bK < nRegions; ++bK)
-                    {
-                        std::vector <int> region = regions[bK].triangles;
-
-                        if (find(region.begin(), region.end(), neighbIndex) != region.end())
-                        {
-                            regions[bK].triangles.push_back(aK);
-                            Tri->setTextureImgIndex(textImgIndex);
-                        }
-                    }
-                }
-
-            }
-            //else cout << "NO NEIGHBOURS!!!!!!" << endl;
-        }
-    }
-    /*cout << "****************** Resultat *********************" << endl;
-    cout << endl;
-
-    for (unsigned int aK=0; aK < regions.size() ; ++aK)
-    {
-        //first triangle of region aK:
-        int triIdx = regions[aK][0];
-        cTriangle * Tri = getTriangle(triIdx);
-
-        cout << "one region with " << regions[aK].size() << " triangles, for image " << Tri->getTextureImgIndex() << endl;
-    }*/
 
     return regions;
 }
@@ -1450,23 +1376,12 @@ void cZBuf::writeImLabel(string filename)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-/*cEdge::cEdge()
-{
-    mNode1 = -1;
-    mNode2 = -1;
-    mV1	   = -1;
-    mV2    = -1;
-}*/
-
 cEdge::~cEdge(){}
 
 bool cEdge::operator==(const cEdge & e) const
 {
     return ((mNode1 == e.mNode1) &&
-            (mNode2 == e.mNode2)/* &&
-            (mV1    == e.mV1)    &&
-            (mV2    == e.mV2)*/
-            );
+            (mNode2 == e.mNode2) );
 }
 
 //--------------------------------------------------------------------------------------------------------------

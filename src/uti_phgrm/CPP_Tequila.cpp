@@ -121,7 +121,7 @@ int Tequila_main(int argc,char ** argv)
     int aTextMaxSize = 4096;
     int aZBuffSSEch = 2;
     int aJPGcomp = 70;
-    double aAngleMin = 60.f;
+    double aAngleMin = 90.f;
     bool aBin = true;
     std::string aMode = "Pack";
 
@@ -140,7 +140,7 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def=4096)")
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
-                            << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=70)")
+                            << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=90)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
              );
 
@@ -193,11 +193,12 @@ int Tequila_main(int argc,char ** argv)
     const int nCam = ListCam.size();
     for(int aK=0 ; aK<nCam; aK++, itS++)
     {
+        CamStenope* Cam = ListCam[aK];
         cout << "Z-buffer " << aK+1 << "/" << ListCam.size() << endl;
 
-        cZBuf aZBuffer(ListCam[aK]->Sz(), defValZBuf, aZBuffSSEch);
+        cZBuf aZBuffer(Cam->Sz(), defValZBuf, aZBuffSSEch);
 
-        aZBuffer.BasculerUnMaillage(myMesh, *ListCam[aK]);
+        aZBuffer.BasculerUnMaillage(myMesh, *Cam);
 
         aZBuffers.push_back(aZBuffer);
 
@@ -220,12 +221,22 @@ int Tequila_main(int argc,char ** argv)
         {
             cTriangle * Triangle = myMesh.getTriangle(*it);
 
-            double PScalnew = scal(Triangle->getNormale(true), ListCam[aK]->DirK());
-            //cout << "scal= " << PScalnew << endl;
-            if((PScalnew<Triangle->getScal()))        //On garde celle pour laquelle le PS est le plus fort
+            vector <Pt3dr> Vertex;
+            Triangle->getVertexes(Vertex);
+
+            Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+            Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
+            Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+
+            if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
             {
-                Triangle->setScal(PScalnew);
-                Triangle->setTextureImgIndex(aK);
+                double PScalnew = scal(Triangle->getNormale(true), Cam->DirK());
+                //cout << "scal= " << PScalnew << endl;
+                if((PScalnew<Triangle->getScal()))        //On garde celle pour laquelle le PS est le plus fort
+                {
+                    Triangle->setScal(PScalnew);
+                    Triangle->setTextureImgIndex(aK);
+                }
             }
         }
     }
@@ -244,7 +255,7 @@ int Tequila_main(int argc,char ** argv)
     cout << "Selected images / total : " << index.size() << " / " << aLS.size() << endl;
 
     cout << endl;
-    cout <<"********************Filtering border triangles***********************"<<endl;
+    cout <<"**********************Filtering border faces*************************"<<endl;
     cout << endl;
 
     myMesh.clean();
@@ -329,7 +340,7 @@ int Tequila_main(int argc,char ** argv)
                 Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                 Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+                if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
                 {
                     _min = Inf(Pt1, Inf(Pt2, Inf(Pt3, _min)));
                     _max = Sup(Pt1, Sup(Pt2, Sup(Pt3, _max)));
@@ -367,7 +378,7 @@ int Tequila_main(int argc,char ** argv)
         int unused_area = tp->packTextures(width, height, false, false);
 
         cout << "Packed width-height " << width << " " << height << endl;
-        printf("Unused_area : %d pixels = %1.2f %%\n", unused_area, (float) unused_area / (width*height));
+        printf("Unused_area : %d pixels = %1.2f %%\n", unused_area, (float) 100.f * unused_area / (width*height));
 
         float Scale = (float) aTextMaxSize / ElMax(width, height) ;
 
@@ -509,7 +520,7 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                     Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
-                    if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+                    if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
                     {
                         Pt2dr P1, P2, P3;
 

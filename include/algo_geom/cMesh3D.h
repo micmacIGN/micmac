@@ -56,7 +56,7 @@ class cTextRect
 {
 public:
 
-    cTextRect(std::vector <int> aTriangles);
+    cTextRect(std::vector <int> aTriangles, int idx);
 
     void  setRect(int aImgIdx, Pt2di aP0, Pt2di aP1);
     void  setTransfo(Pt2di const &tr, bool rot);
