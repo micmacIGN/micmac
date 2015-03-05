@@ -27,10 +27,6 @@ public:
 
     void runProgressDialog(QFuture<void> future);
 
-    void readSettings();
-
-    void writeSettings();
-
     void applyParams();
 
     void labelShowMode(bool state);
@@ -82,26 +78,26 @@ public:
 
     cParameters *params() const;
 
-    void setParams(cParameters *params);
+    void    setParams(cParameters *params);
 
 
 
-	deviceIOCamera* devIOCamera() const;
-	void setDevIOCamera(deviceIOCamera* devIOCamera);
+    deviceIOCamera* devIOCamera() const;
+    void setDevIOCamera(deviceIOCamera* devIOCamera);
 
-	deviceIOImage* devIOImage() const;
-	void setDevIOImage(deviceIOImage* devIOImage);
+    deviceIOImage* devIOImage() const;
+    void setDevIOImage(deviceIOImage* devIOImage);
 
-	int hg_revision() const;
-	void setHg_revision(int hg_revision);
+    int hg_revision() const;
+    void setHg_revision(int hg_revision);
 
-	QString banniere() const;
-	void setBanniere(const QString& banniere);
+    QString banniere() const;
+    void setBanniere(const QString& banniere);
 
 public slots:
 
-	//! Try to load a list of files
-	void addFiles(const QStringList& filenames, bool setGLData = true);
+    //! Try to load a list of files
+    void addFiles(const QStringList& filenames, bool setGLData = true);
 
     void zoomFactor(int aFactor);
 
@@ -215,7 +211,7 @@ protected slots:
     void resizeEvent(QResizeEvent *);
     void moveEvent(QMoveEvent *);
 
-	void setNavigationType(int val);
+    void setNavigationType(int val);
 
 
 protected:
@@ -260,11 +256,11 @@ private:
 
     bool                    _bSaved;
 
-	deviceIOCamera*			_devIOCamera;
+    deviceIOCamera*			_devIOCamera;
 
-	int						_hg_revision;
+    int						_hg_revision;
 
-	QString					_banniere;
+    QString					_banniere;
 
 };
 #endif // MAINWINDOW_H

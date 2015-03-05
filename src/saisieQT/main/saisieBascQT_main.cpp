@@ -9,7 +9,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
 
     QStringList cmdline_args = QCoreApplication::arguments();
 
-    if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    if (cmdline_args.back().contains("help"))
     {
         QString help = "Mandatory unnamed args :\n"
                  "* string :: {Full Name (Dir+Pattern)}\n"
@@ -66,7 +66,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
         )
             filenames.push_back( QString((aDir + *itS).c_str()));
 
-		updateSettings(settings, aSzWin, aNbFen, aForceGray);
+        updateSettings(settings, aSzWin, aNbFen, aForceGray);
 
         QStringList input;
         input   << QString(MMDir().c_str()) + QString("bin/SaisiePts")
@@ -103,13 +103,13 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
 
         SaisieQtWindow w(BASC);
 
-		w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
-		w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+        w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+        w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
 
 
-		w.setBanniere(QString(getBanniereMM3D().c_str()));
-		QString qsVersion = __HG_REV__;
-		w.setHg_revision(qsVersion.toInt());
+        w.setBanniere(QString(getBanniereMM3D().c_str()));
+        QString qsVersion = __HG_REV__;
+        w.setHg_revision(qsVersion.toInt());
 
         QAction* actionBascule = w.addCommandTools("Bascule");
 
