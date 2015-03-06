@@ -111,7 +111,7 @@ class cMesh
 
         vector < cTextRect > getRegions();
 
-        void        write(const string & aOut, bool aBin, const string & textureFilename);
+        void        write(const string & aOut, bool aBin, const string & textureFilename="");
 
         void        Export(string aOut, set <unsigned int> const &triangles);
 
@@ -279,7 +279,6 @@ class cZBuf
         Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
         Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
-        Im2D_INT4				getIndexImage() const {return mImTriIdx;}
         set <unsigned int> *    getVisibleTrianglesIndexes() {return &vTri;}
 
         cElNuage3DMaille * &	Nuage() {return mNuage;}

@@ -160,7 +160,8 @@ int Tequila_main(int argc,char ** argv)
 
     StdCorrecNameOrient(aOri,aDir);
 
-    float threshold =  cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
+    float threshold = cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
+    //float threshold = 1e30;
     //cout << "threshold=" << threshold << endl;
 
     std::vector<CamStenope*> ListCam;
@@ -230,8 +231,16 @@ int Tequila_main(int argc,char ** argv)
 
             if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
             {
+                /*Pt2dr A = Pt2 - Pt1;
+                Pt2dr B = Pt3 - Pt1;
+                double A2 = square_euclid(A);
+                double B2 = square_euclid(B);
+                double AB = scal(A, B);
+
+                double PScalnew = A2 + B2 - sqrt( (A2 - B2) + 4.f*AB*AB );*/
                 double PScalnew = scal(Triangle->getNormale(true), Cam->DirK());
                 //cout << "scal= " << PScalnew << endl;
+
                 if((PScalnew<Triangle->getScal()))        //On garde celle pour laquelle le PS est le plus fort
                 {
                     Triangle->setScal(PScalnew);
@@ -724,7 +733,7 @@ int Tequila_main(int argc,char ** argv)
     std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
             + aTextOut + " " + textureName;
 
-    //cout << "COM= " << aCom << endl;
+    if (debug) cout << "COM= " << aCom << endl;
 
     system_call(aCom.c_str());
 
@@ -742,4 +751,37 @@ int Tequila_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+/*Footer-MicMac-eLiSe-25/06/2007
+
+Ce logiciel est un programme informatique servant �  la mise en
+correspondances d'images pour la reconstruction du relief.
+
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+respectant les principes de diffusion des logiciels libres. Vous pouvez
+utiliser, modifier et/ou redistribuer ce programme sous les conditions
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+sur le site "http://www.cecill.info".
+
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
+
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+termes.
+Footer-MicMac-eLiSe-25/06/2007*/
 
