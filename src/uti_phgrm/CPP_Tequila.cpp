@@ -241,7 +241,7 @@ int Tequila_main(int argc,char ** argv)
                 double PScalnew = scal(Triangle->getNormale(true), Cam->DirK());
                 //cout << "scal= " << PScalnew << endl;
 
-                if((PScalnew>Triangle->getScal()))        //On garde celle pour laquelle le PS est le plus fort
+                if((PScalnew<Triangle->getScal()))        //On garde celle pour laquelle le PS est le plus fort
                 {
                     Triangle->setScal(PScalnew);
                     Triangle->setTextureImgIndex(aK);
