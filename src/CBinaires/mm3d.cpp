@@ -323,6 +323,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image",cArgLogCom(2,"../")));
        // aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
        aRes.push_back(cMMCom("Tequila",Tequila_main," Texture mesh"));
+       aRes.push_back(cMMCom("TiPunch",TiPunch_main," Compute mesh"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("TestChantier",TestChantier_main," Test global acquisition"));
 
@@ -346,8 +347,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool to develop MPO stereo format in pair of images"));
 
-	   aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images - work in progress!", cArgLogCom(3)));
-	   aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
+       aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images - work in progress!", cArgLogCom(3)));
+       aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
 
 #if (ELISE_QT_VERSION >= 4)
        aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main," Interactive tool for initial capture of GCP"));
@@ -571,7 +572,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump  "));
    aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
 
-	aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
+    aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
     aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
     aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));
     aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
@@ -582,9 +583,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("MergeCloud",CPP_AppliMergeCloud,"Tool for merging overlapping depth maps from different view points"));
     aRes.push_back(cMMCom("MMEnvlop",MMEnveloppe_Main,"Compute initial envelope surface for MMEpi "));
     aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
-    
+
     aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning"));
-    
+
     aRes.push_back(cMMCom("CASALL",CASALL_main,"Compute Analytic Surface Automatically  low level"));
     aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Store Auto Correlation (if not already done)"));
 
@@ -602,7 +603,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("Check1Ori",CheckOneOrient_main,"Check One Orientation"));
     aRes.push_back(cMMCom("CheckAllOri",CheckAllOrient_main,"Check a Folder of Orientation"));
-    
+
     aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
     aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
     aRes.push_back(cMMCom("TNO",TestNewOriImage_main,"Test New Orientation"));
@@ -615,18 +616,18 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
-	static std::vector<cMMCom> aRes;
+    static std::vector<cMMCom> aRes;
 
-	aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcomming RPC functions"));
-	aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
-	aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
-	aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
-	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
-	
-	cCmpMMCom CmpMMCom;
-	std::sort(aRes.begin(), aRes.end(), CmpMMCom);
+    aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcomming RPC functions"));
+    aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
+    aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
+    aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
+    aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
 
-	return aRes;
+    cCmpMMCom CmpMMCom;
+    std::sort(aRes.begin(), aRes.end(), CmpMMCom);
+
+    return aRes;
 }
 
 int SampleLibElise_main(int argc,char ** argv)
@@ -641,10 +642,10 @@ int SampleLibElise_main(int argc,char ** argv)
 }
 int SateLib_main(int argc, char ** argv)
 {
-	
-	GenMain(argc, argv, SateLibAvailableCommands());
 
-	return 0;
+    GenMain(argc, argv, SateLibAvailableCommands());
+
+    return 0;
 }
 
 //=====================================
