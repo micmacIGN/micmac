@@ -860,21 +860,26 @@ std::vector<cTextRect> cMesh::getRegions()
 
 void cMesh::write(const string & aOut, bool aBin, const string & textureFilename)
 {
+    bool hasTexture = textureFilename != "";
+
     string mode = aBin ? "wb" : "w";
     string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
 
-    FILE * file = FopenNN(aOut, mode, "UV Mapping");         //Ecriture du header
+    FILE * file = FopenNN(aOut, mode, "cMesh::write");
     fprintf(file,"ply\n");
     fprintf(file,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
-    fprintf(file,"comment UV Mapping generated\n");
-    fprintf(file,"comment TextureFile %s\n", textureFilename.c_str());
+    if (hasTexture)
+    {
+        fprintf(file,"comment UV Mapping generated\n");
+        fprintf(file,"comment TextureFile %s\n", textureFilename.c_str());
+    }
     fprintf(file,"element vertex %i\n", getVertexNumber());
     fprintf(file,"property float x\n");
     fprintf(file,"property float y\n");
     fprintf(file,"property float z\n");
     fprintf(file,"element face %i\n",getFacesNumber());
     fprintf(file,"property list uchar int vertex_indices\n");
-    fprintf(file,"property list uchar float texcoord\n");
+    if (hasTexture) fprintf(file,"property list uchar float texcoord\n");
     fprintf(file,"end_header\n");
 
     Pt3dr pt;
@@ -903,28 +908,31 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
             WriteType(file,t2);
             WriteType(file,t3);
 
-            WriteType(file,(unsigned char)6);
-
-            if (face->isTextured())
+            if (hasTexture)
             {
-                Pt2dr p1, p2, p3;
-                face->getTextureCoordinates(p1, p2, p3);
+                WriteType(file,(unsigned char)6);
 
-                WriteType(file,(float) p1.x);
-                WriteType(file,(float) p1.y);
-                WriteType(file,(float) p2.x);
-                WriteType(file,(float) p2.y);
-                WriteType(file,(float) p3.x);
-                WriteType(file,(float) p3.y);
-            }
-            else
-            {
-                WriteType(file,0.f);
-                WriteType(file,0.f);
-                WriteType(file,0.f);
-                WriteType(file,0.f);
-                WriteType(file,0.f);
-                WriteType(file,0.f);
+                if (face->isTextured())
+                {
+                    Pt2dr p1, p2, p3;
+                    face->getTextureCoordinates(p1, p2, p3);
+
+                    WriteType(file,(float) p1.x);
+                    WriteType(file,(float) p1.y);
+                    WriteType(file,(float) p2.x);
+                    WriteType(file,(float) p2.y);
+                    WriteType(file,(float) p3.x);
+                    WriteType(file,(float) p3.y);
+                }
+                else
+                {
+                    WriteType(file,0.f);
+                    WriteType(file,0.f);
+                    WriteType(file,0.f);
+                    WriteType(file,0.f);
+                    WriteType(file,0.f);
+                    WriteType(file,0.f);
+                }
             }
         }
     }
@@ -946,14 +954,17 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
 
             fprintf(file,"3 %i %i %i ",t1,t2,t3);
 
-            if (face->isTextured())
+            if (hasTexture)
             {
-                Pt2dr p1, p2, p3;
-                face->getTextureCoordinates(p1, p2, p3);
-                fprintf(file,"6 %f %f %f %f %f %f\n",p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);
+                if (face->isTextured())
+                {
+                    Pt2dr p1, p2, p3;
+                    face->getTextureCoordinates(p1, p2, p3);
+                    fprintf(file,"6 %f %f %f %f %f %f\n",p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);
+                }
+                else
+                    fprintf(file,"6 0 0 0 0 0 0\n");
             }
-            else
-                fprintf(file,"6 0 0 0 0 0 0\n");
         }
     }
 }
@@ -962,7 +973,7 @@ void cMesh::Export(string aOut, set<unsigned int> const &triangles)
 {
     string mode = "w";
 
-    FILE * file = FopenNN(aOut, mode, "UV Mapping");         //Ecriture du header
+    FILE * file = FopenNN(aOut, mode, "cMesh::Export");
     fprintf(file,"ply\n");
     fprintf(file,"format ascii 1.0\n");
     fprintf(file,"element vertex %i\n", (int) triangles.size()*3);

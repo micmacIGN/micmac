@@ -131,6 +131,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Tequila.cpp
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
     ${UTI_PHGRM_DIR}/CPP_TestChantier.cpp
+    ${UTI_PHGRM_DIR}/CPP_TiPunch.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieMasq.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieQT.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisPredic.cpp
