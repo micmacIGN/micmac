@@ -601,7 +601,6 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
 }
 
 
-extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename );
 
 std::string  cAppliDevideo::NamePtsSift( cOneImageVideo * anOIV)
 {

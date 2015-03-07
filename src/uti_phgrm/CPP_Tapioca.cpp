@@ -158,15 +158,24 @@ void DoDevelopp(int aSz1,int aSz2)
 }
 
 
-void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
+void getPastisGrayscaleFilename
+     (
+          const std::string & aParamDir, 
+          const string &i_baseName, 
+          int i_resolution, 
+          string &o_grayscaleFilename 
+     )
 {
+    // SFS 
     if ( i_resolution<=0 )
     {
-        o_grayscaleFilename = NameFileStd( aParamDir+i_baseName, 1, false, true, false );
+        // o_grayscaleFilename = NameFileStd( aParamDir+i_baseName, 1, false, true, false );
+        o_grayscaleFilename = PastisNameFileStd( aParamDir+i_baseName);
         return;
     }
 
-    Tiff_Im aFileInit = Tiff_Im::StdConvGen( aParamDir+i_baseName, 1, false );
+    // Tiff_Im aFileInit = Tiff_Im::StdConvGen( aParamDir+i_baseName, 1, false );
+    Tiff_Im aFileInit = PastisTif(aParamDir+i_baseName);
     Pt2di 	imageSize = aFileInit.sz();
 
     double scaleFactor = double( i_resolution ) / double( ElMax( imageSize.x, imageSize.y ) );
