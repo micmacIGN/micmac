@@ -639,6 +639,7 @@ extern void TestOriBundle();
 int MPDtest_main (int argc,char** argv)
 {
     
+    cMasqBin3D::FromSaisieMasq3d("/home/marc/TMP/EPI/EXO1-Fontaine/AperiCloud_All_selectionInfo.xml");
 
 
 /*
@@ -687,6 +688,7 @@ int MPDtest_main (int argc,char** argv)
 #if (ELISE_QT_VERSION >= 4)
 
 #endif
+    cElWarning::ShowWarns("MPDTest.txt");
   
    return 0;
 

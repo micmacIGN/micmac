@@ -1313,6 +1313,13 @@
         <FOVMax Nb="1" Type="double"> </FOVMax>
     </XMLSaveOriRel2Im>
 
+<Polyg3D  Nb="1" ToReference="true" Class="true">
+ <Item Nb="*" Container="std::vector">
+      <Pt Type="Pt3dr" Nb="*"  Container="std::vector"></Pt>
+      <Mode Type="int" Nb="1"></Mode>
+ </Item>
+</Polyg3D>
+
 
 <Verbatim File=".h.cpp">
 // };

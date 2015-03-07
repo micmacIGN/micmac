@@ -1592,6 +1592,7 @@
          <VersionNameCam Nb="?" Type="int" Def="0"> </VersionNameCam>
     </MMUserEnvironment>
 
+<!--
 <SelectionInfos Nb="1" Class="true" ToReference="true">
  <Item Nb="*">
       <Scale Nb="1" Type="double"></Scale>
@@ -1601,6 +1602,7 @@
       <Mode Nb="1" Type="int"></Mode>
  </Item>
 </SelectionInfos>
+-->
 
 <MTDCoher  Nb="1" Class="true" ToReference="true">
      <Dec2 Nb="1" Type="Pt2di"> </Dec2>

@@ -3213,6 +3213,8 @@ extern double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & 
 extern double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) ;
 extern double PVExactCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
 extern double LinearCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
+Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
+extern double LinearExactCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
 
 ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
 
@@ -3223,9 +3225,6 @@ void InitPackME
           std::vector<double>  &aVPds,
           const  ElPackHomologue & aPack
      );
-double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
-double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
-Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
 
 
 

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1635]) = {
+const char * (theNameVar_ParamChantierPhotogram[1637]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1594,6 +1594,7 @@ const char * (theNameVar_ParamChantierPhotogram[1635]) = {
 "         <VersionNameCam Nb=\"?\" Type=\"int\" Def=\"0\"> </VersionNameCam>\n",
 "    </MMUserEnvironment>\n",
 "\n",
+"<!--\n",
 "<SelectionInfos Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 " <Item Nb=\"*\">\n",
 "      <Scale Nb=\"1\" Type=\"double\"></Scale>\n",
@@ -1603,6 +1604,7 @@ const char * (theNameVar_ParamChantierPhotogram[1635]) = {
 "      <Mode Nb=\"1\" Type=\"int\"></Mode>\n",
 " </Item>\n",
 "</SelectionInfos>\n",
+"-->\n",
 "\n",
 "<MTDCoher  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "     <Dec2 Nb=\"1\" Type=\"Pt2di\"> </Dec2>\n",
