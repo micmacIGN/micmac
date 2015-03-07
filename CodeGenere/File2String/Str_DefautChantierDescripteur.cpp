@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_DefautChantierDescripteur[2853]) = {
+const char * (theNameVar_DefautChantierDescripteur[2864]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",
 "      Un exemple avec utilisation des fonctionnalites arithmetique\n",
@@ -258,6 +258,17 @@ const char * (theNameVar_DefautChantierDescripteur[2853]) = {
 "        <!--                PDS CHANNEL                        -->\n",
 "        <!--                                                   -->\n",
 "        <!-- ***********************************************   -->\n",
+"\n",
+"    <KeyedNamesAssociations>\n",
+"        <Calcs>\n",
+"            <Arrite>  1 1 </Arrite>\n",
+"            <Direct>\n",
+"                <PatternTransform> .* </PatternTransform>\n",
+"                <CalcName>  NONE </CalcName>\n",
+"            </Direct>\n",
+"        </Calcs>\n",
+"        <Key>   NKS-Assoc-SFS </Key>\n",
+"    </KeyedNamesAssociations>\n",
 "\n",
 "    <KeyedNamesAssociations>\n",
 "        <Calcs>\n",

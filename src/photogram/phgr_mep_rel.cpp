@@ -1211,6 +1211,7 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
 /*                                                          */
 /************************************************************/
 
+/*
 void InitPackME
      (  
           std::vector<Pt2dr> & aVP1,
@@ -1309,6 +1310,7 @@ Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot)
                  MedianeSup(aVZ)
            );
 }
+*/
 
 /************************************************************/
 /*                                                          */

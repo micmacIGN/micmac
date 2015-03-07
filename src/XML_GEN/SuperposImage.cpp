@@ -19879,4 +19879,138 @@ void xml_init(cXMLSaveOriRel2Im & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXMLSaveOriRel2Im *) {return "AA0A53629996DECAFDBF";};
 
+
+std::vector< Pt3dr > & cItem::Pt()
+{
+   return mPt;
+}
+
+const std::vector< Pt3dr > & cItem::Pt()const 
+{
+   return mPt;
+}
+
+
+int & cItem::Mode()
+{
+   return mMode;
+}
+
+const int & cItem::Mode()const 
+{
+   return mMode;
+}
+
+void  BinaryUnDumpFromFile(cItem & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             Pt3dr aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Pt().push_back(aVal);
+        }
+  } ;
+    BinaryUnDumpFromFile(anObj.Mode(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cItem & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Pt().size());
+    for(  std::vector< Pt3dr >::const_iterator iT=anObj.Pt().begin();
+         iT!=anObj.Pt().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.Mode());
+}
+
+cElXMLTree * ToXMLTree(const cItem & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Item",eXMLBranche);
+  for
+  (       std::vector< Pt3dr >::const_iterator it=anObj.Pt().begin();
+      it !=anObj.Pt().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Pt"),(*it))->ReTagThis("Pt"));
+   aRes->AddFils(::ToXMLTree(std::string("Mode"),anObj.Mode())->ReTagThis("Mode"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cItem & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Pt(),aTree->GetAll("Pt",false,1));
+
+   xml_init(anObj.Mode(),aTree->Get("Mode",1)); //tototo 
+}
+
+std::string  Mangling( cItem *) {return "F39797983C9708C0FE3F";};
+
+
+std::vector< cItem > & cPolyg3D::Item()
+{
+   return mItem;
+}
+
+const std::vector< cItem > & cPolyg3D::Item()const 
+{
+   return mItem;
+}
+
+void  BinaryUnDumpFromFile(cPolyg3D & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cItem aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Item().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cPolyg3D & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Item().size());
+    for(  std::vector< cItem >::const_iterator iT=anObj.Item().begin();
+         iT!=anObj.Item().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cPolyg3D & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Polyg3D",eXMLBranche);
+  for
+  (       std::vector< cItem >::const_iterator it=anObj.Item().begin();
+      it !=anObj.Item().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Item"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cPolyg3D & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Item(),aTree->GetAll("Item",false,1));
+}
+
+std::string  Mangling( cPolyg3D *) {return "C18FFFD663F91689FF3F";};
+
 // };

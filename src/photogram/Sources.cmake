@@ -25,6 +25,7 @@ set(Photogram_Src_Files
 	${PHOTOGR_DIR}/phgr_laser_image.cpp
 	${PHOTOGR_DIR}/phgr_low_level.cpp
 	${PHOTOGR_DIR}/phgr_mep_rel.cpp
+	${PHOTOGR_DIR}/phgr_mep_util.cpp
 	${PHOTOGR_DIR}/phgr_or_code_gen00.cpp
 	${PHOTOGR_DIR}/phgr_or_code_gen1.cpp
 	${PHOTOGR_DIR}/phgr_or_code_gen2.cpp
