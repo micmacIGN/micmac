@@ -2787,11 +2787,18 @@ std::list<std::string>
         return aRes;
     }
 
-    cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(const std::string & aDir)
-    {
-        cTplValGesInit<std::string> aNoName;
-        return StdAlloc(0,0,aDir,aNoName);
-    }
+cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(const std::string & aDir)
+{
+   static std::map<std::string,cInterfChantierNameManipulateur *> TheMap;
+   cInterfChantierNameManipulateur * aRes = TheMap[aDir];
+   if (! aRes)
+   {
+      cTplValGesInit<std::string> aNoName;
+      aRes =  StdAlloc(0,0,aDir,aNoName);
+      TheMap[aDir] = aRes;
+   } 
+   return aRes;
+}
 
     void cStdChantierMultiManipulateur::CD_Add(cChantierDescripteur * aCDisc)
     {
@@ -3478,14 +3485,42 @@ void cStdChantierRel::AddAllCpleKeySet
     /*                                                     */
     /*******************************************************/
 
-    cCompileCAPI::cCompileCAPI()
-    {
-    }
+cCompileCAPI::cCompileCAPI()
+{
+}
 
-    Tiff_Im PastisTif(const std::string &  aName)
-    {
-        return  Tiff_Im::StdConvGen(aName,1,false);
-    }
+std::string PastisNameFileStd(const std::string & aFullNameOri)
+{
+   std::string aDir,aNameSsDir;
+   SplitDirAndFile(aDir,aNameSsDir,aFullNameOri);
+   cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+   std::string aNameSift = aICNM->Assoc1To1("NKS-Assoc-SFS",aNameSsDir,true);
+
+   if (aNameSift=="NONE") 
+      return  NameFileStd( aFullNameOri, 1, false, true, false );
+      
+   if (aNameSift=="SFS") 
+      aNameSift =  std::string("Tmp-MM-Dir")+ELISE_CAR_DIR + aNameSsDir + "_sfs.tif";
+
+   aNameSift =  aDir + aNameSift;
+ 
+   if (!  ELISE_fp::exist_file(aNameSift))
+   {
+      std::string aCom =  MMBin() +  MM3DStr + " TestLib PrepSift  " + aFullNameOri  + " NameOut="+ aNameSift;
+      System(aCom);
+   }
+
+   return aNameSift;
+}
+
+Tiff_Im PastisTif(const std::string &  aNameOri)
+{
+    // SFS
+    // return  Tiff_Im::StdConvGen(aName,1,false);
+    std::string aName = PastisNameFileStd(aNameOri);
+    return  Tiff_Im(aName.c_str());
+}
 
     void DoSimplePastisSsResol(const std::string & aFullName,int aResol)
     {
@@ -3804,8 +3839,7 @@ void cStdChantierRel::AddAllCpleKeySet
         }
         else
         {
-            // aRes = dist8(Tiff_Im::StdConv(NameFileStd(mDir+aNameIm,1,false)).sz());
-            aRes = dist8(PastisTif(mDir+aNameIm).sz()); //  Tiff_Im::StdConvGen(mDir+aNameIm,1,false).sz());
+            aRes = dist8(PastisTif(mDir+aNameIm).sz()); 
         }
 
         return aRes;
