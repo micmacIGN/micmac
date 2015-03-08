@@ -175,7 +175,9 @@ void HistoryManager::save()
                 MatrixManager *MM = new MatrixManager();
                 MM->importMatrices(SInfo);
                 MM->getInverseProjection(pt3d, pts[aK], 0.f);
-				str = QString::number(pt3d.x(), 'f') + " " + QString::number(pt3d.y(), 'f') + " " + QString::number(pt3d.z(), 'f');
+				// str = QString::number(pt3d.x(), 'f') + " " + QString::number(pt3d.y(), 'f') + " " + QString::number(pt3d.z(), 'f');
+//  MPD : tentative de ne pas perdre betement de la precision qui peut etre genant avec les grande coordonnees ? 
+	        str = QString::number(pt3d.x(), 'f',20) + " " + QString::number(pt3d.y(), 'f',20) + " " + QString::number(pt3d.z(), 'f',20);
                 t = doc2.createTextNode( str );
                 Pt3D.appendChild(t);
                 SIt.appendChild(Pt3D);

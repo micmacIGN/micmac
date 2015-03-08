@@ -386,6 +386,8 @@ Pt3dr cMEPCoCentrik::ComputeDirBase()
 }
  
 
+extern void TestLinariseAngle(const  ElPackHomologue & aPack,const ElRotation3D &aRot,double aFoc);
+
 
 
 
@@ -431,17 +433,22 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElR
           // if ((aK%1000) == 0) getchar();
      }
 */
+     double aNoise = 5e-3;
+     ElMatrix<double> aMP =  ElMatrix<double>::Rotation(aNoise*NRrandC(),aNoise*NRrandC(),aNoise*NRrandC());
+     TestLinariseAngle(aPack,ElRotation3D(aRef->tr(),aRef->Mat(),true),aFoc);
 
      ComputePlanBase(aMat);
      Pt3dr aNorm = ComputeDirBase();
 
+     std::cout << "END LIN \n";
+     getchar();
 
      ShowMatr("REF/Mat",aRef->Mat()*aMat.transpose());
      // ShowMatr("Cycl",aMat);
      std::cout << "Tr, Ref " << vunit(aRef->tr()) << " " << aNorm << "\n";
 
      std::cout << "\nTEST REFERNCE \n";
-     OneTestMatr(aRef->Mat(),vunit(aRef->tr()),anEcart);
+     OneTestMatr(aRef->Mat()*aMP,vunit(aRef->tr()),anEcart);
      std::cout << "\nTEST CALC \n";
      OneTestMatr(aMat,aNorm,anEcart);
 

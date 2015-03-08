@@ -3208,7 +3208,19 @@ class cCamStenopeBilin : public CamStenope
 };
 
 
+/*
+   Teste , equivalence de :
 
+       PVExactCostMEP Pt3dr   : 0.376684  => 3/4 fois + rapide
+       PVExactCostMEP Pt2drA  : 0.679608
+       ExactCostMEP           : 1.27514
+
+  A Faire QuasiExactCostFaiscMEP
+*/
+       
+
+extern double QuasiExactCostFaiscMEP(const ElRotation3D & aRot,const Pt3dr & aQ1,const Pt3dr & aQ2Init,double aTetaMax);
+extern double PVExactCostMEP(const ElRotation3D & aRot,const Pt3dr & aQ1,const Pt3dr & aQ2Init,double aTetaMax);
 extern double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
 extern double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) ;
 extern double PVExactCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
@@ -3225,6 +3237,7 @@ void InitPackME
           std::vector<double>  &aVPds,
           const  ElPackHomologue & aPack
      );
+
 
 
 

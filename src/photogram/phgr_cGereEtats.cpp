@@ -81,6 +81,13 @@ void cVarEtat_PhgrF::SetEtat(const double & aVal)
    *mAdr = aVal;
 }
 
+double cVarEtat_PhgrF::GetVal() const
+{
+   ELISE_ASSERT(mAdr!=0,"cVarEtat_PhgrF::SetEtat");
+   return *mAdr;
+}
+
+
 Fonc_Num cVarEtat_PhgrF::FN() const
 {
    return cVarSpec(0,mName);
@@ -140,6 +147,10 @@ void cP2d_Etat_PhgrF::SetEtatSVP(const Pt2dr & aP)
 }
 
 
+Pt2dr cP2d_Etat_PhgrF::GetVal() const
+{
+   return  Pt2dr(mVarX.GetVal(),mVarY.GetVal());
+}
 
 
 
@@ -176,6 +187,12 @@ void cP3d_Etat_PhgrF::SetEtat(const Pt3dr & aP)
     mVarY.SetEtat(aP.y);
     mVarZ.SetEtat(aP.z);
 }
+
+Pt3dr cP3d_Etat_PhgrF::GetVal() const
+{
+   return  Pt3dr(mVarX.GetVal(),mVarY.GetVal(),mVarZ.GetVal());
+}
+
 
 /*********************************************************/
 /*                                                       */
