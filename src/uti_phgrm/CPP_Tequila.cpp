@@ -290,7 +290,7 @@ int Tequila_main(int argc,char ** argv)
                     double aV2 = square_euclid(aV);
                     double aUV = scal(aU,aV);
 
-                    //le coef d'etirement est sqrt((aU2+aV2-sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2)
+                    //le coef d'etirement est sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2)
                     // mais on supprime les calculs superflus => sqrt et /2 strictement monotones
 
                     criter = aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV));
