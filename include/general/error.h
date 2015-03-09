@@ -290,6 +290,7 @@ class cElWarning
             const std::string &  aFile
          );
 
+         static cElWarning  PlanarityInMasq3d;
          static cElWarning  JacobiInCasa;
          static cElWarning  BehindCam;
          static cElWarning  FocInxifAndMM;

@@ -643,12 +643,14 @@ void   GenCodeSurf()
 
 extern void GenerateCodeEqOffsetGPS();
 extern void GenerateCodeBlockCam();
+extern void GenCodeEqLinariseAngle();
 
 
 
 int GenCode_main(int argc,char ** argv)
 {
-    GenerateCodeBlockCam();
+    GenCodeEqLinariseAngle();
+    // GenerateCodeBlockCam();
     // GenerateCodeEqOffsetGPS();
    //  GenCodeOneEqHom();
    //  GenCodeEqHom();

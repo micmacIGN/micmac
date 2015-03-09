@@ -178,7 +178,7 @@ cNewO_CpleIm::cNewO_CpleIm
 
     }
 
-    TestMEPCoCentrik(mPackStdRed,FocMoy());
+    TestMEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1);
 
     /*******************************************************/
     /*      TEST DES DIFFERENTES INITIALISATIONS           */

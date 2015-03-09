@@ -50,7 +50,8 @@ void ShowMatr(const char * mes, ElMatrix<REAL> aMatr)
      for(INT y = 0; y< aMatr.ty() ; y++)
      {
          for(INT x = 0; x< aMatr.tx() ; x++)
-            printf (" %8d",INT(aMatr(x,y)*1e4));
+            printf (" %5f",aMatr(x,y));
+            // printf (" %8d",INT(aMatr(x,y)*1e4));
          printf("\n");
      }
      cout << "\n";
@@ -1210,6 +1211,7 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
 /*                                                          */
 /************************************************************/
 
+/*
 void InitPackME
      (  
           std::vector<Pt2dr> & aVP1,
@@ -1249,6 +1251,22 @@ double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,con
    return GenCoutAttenueTetaMax(aTeta,aTetaMax);
 }
 
+double PVExactCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) 
+{
+   Pt3dr aQ1 = vunit(PZ1(aP1));
+   Pt3dr aQ2 = aRot.Mat() *  vunit(PZ1(aP2));
+   Pt3dr aBase  = aRot.tr();
+
+   Pt3dr aQ1vQ2vB = vunit(aQ1 ^ aQ2) ^ aBase;
+
+   double aDet = Det(aQ1,aQ2,aBase);
+
+   //   /2 pour etre coherent avec ExactCostMEP
+   double aTeta = (ElAbs(aDet/scal(aQ1vQ2vB,aQ1)) +  ElAbs(aDet/scal(aQ1vQ2vB,aQ2))) / 2.0;
+   
+   return GenCoutAttenueTetaMax(aTeta,aTetaMax);
+}
+
 
 double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) 
 {
@@ -1260,6 +1278,9 @@ double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,doub
     {
          double aPds = itP->Pds();
          double aCost = ExactCostMEP(anI,aRot,itP->P1(),itP->P2(),aTetaMax);
+
+ std::cout << "RRRrr " << aCost / PVExactCostMEP(aRot,itP->P1(),itP->P2(),aTetaMax) << "\n";
+
          aSomPds += aPds;
          aSomPCost += aPds * aCost;
     }
@@ -1289,290 +1310,7 @@ Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot)
                  MedianeSup(aVZ)
            );
 }
-
-/************************************************************/
-/*                                                          */
-/*                  MEP CO-CENTTRIQUE                       */
-/*                                                          */
-/************************************************************/
-
-static const double PropCostEcartDist  = 0.95;
-static const int    NbCpleBase = 2000;
-
-static int NbForEcart(int aSize)
-{
-    int aNbVal = round_ni(aSize * PropCostEcartDist);
-    aNbVal = ElMax(1,ElMin(aSize-1,aNbVal));
-
-    return aNbVal;
-}
-
-double SomEcartDist
-       (
-           const ElMatrix<REAL> &    aMat,
-           const std::vector<Pt3dr>& aVDir1,
-           const std::vector<Pt3dr>& aVDir2
-       )
-{ 
-    std::vector<double> aVRes;
-    for (int aK=0 ; aK<int(aVDir1.size()) ; aK++)
-    {
-        aVRes.push_back(euclid(aMat*aVDir1[aK]-aVDir2[aK]));
-    }
-    // int aNbVal = round_ni(aVRes.size() * PropCostEcartDist);
-    // aNbVal = ElMax(1,ElMin(int(aVRes.size())-1,aNbVal));
-    return MoyKPPVal(aVRes,NbForEcart(aVRes.size()));
-}
-
-
-ElMatrix<REAL> GlobMepRelCocentrique(double & anEcartMin,const ElPackHomologue & aPack, int aNbRansac,int aNbMaxPts) 
-{
-   aNbMaxPts = ElMin(aNbMaxPts,aPack.size());
-
-   std::vector<Pt3dr> aVDir1;
-   std::vector<Pt3dr> aVDir2;
-
-   cRandNParmiQ aRand(aNbMaxPts,aPack.size());
-
-   for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
-   {
-      if (aRand.GetNext())
-      {
-          aVDir1.push_back(vunit(PZ1(itH->P1())));
-          aVDir2.push_back(vunit(PZ1(itH->P2())));
-      }
-   }
-
-   ElMatrix<REAL> aRes(3,3);
-   anEcartMin = 1e60;
-
-   while (aNbRansac)
-   {
-       int aKA = NRrandom3(aVDir1.size());
-       int aKB = NRrandom3(aVDir2.size());
-       if (aKA!=aKB)
-       {
-          aNbRansac--;
-          ElMatrix<REAL> aMat = ComplemRotation(aVDir1[aKA],aVDir1[aKB],aVDir2[aKA],aVDir2[aKB]);
-          double anEc = SomEcartDist(aMat,aVDir1,aVDir2);
-          if (anEc<anEcartMin)
-          {
-              anEcartMin = anEc;
-              aRes = aMat;
-          }
-       }
-   }
-   return aRes;
-}
-
-
-ElMatrix<REAL> ElPackHomologue::MepRelCocentrique(int aNbRansac,int aNbMaxPts) const
-{
-    double anEcMin;
-    return GlobMepRelCocentrique(anEcMin,*this,aNbRansac,aNbMaxPts);
-}
-/*
 */
-
-
-
-static const int NbRanCoCInit = 200;
-
-
-class cMEPCoCentrik
-{
-     public :
-        cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc);
-        void OneItereRotPur(ElMatrix<REAL>  & aMat,double & aDist);
-        void OneTestMatr(const ElMatrix<REAL>  &,const Pt3dr & aBase,double aCost);
-
-        const ElPackHomologue &  mPack;
-        double                   mFoc;
-        double                   mCostMin;
-        std::vector<Pt2dr> mVP1;
-        std::vector<Pt2dr> mVP2;
-        std::vector<double> mVPds;
-
-};
-
-
-//  aMat U2 = U1
-//  aMat U2 = U1 + U1 ^W 
-
-
-void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
-{
-    L2SysSurResol mSysLin3(3);
-    mSysLin3.GSSR_Reset(false);
-
-    std::vector<double> aVRes;
-    double aSomP=0;
-    double aSomErr=0;
-    for (ElPackHomologue::const_iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
-    {
-         Pt3dr aQ1 = vunit(PZ1(itP->P1()));
-         Pt3dr aQ2 =  aMat * vunit(PZ1(itP->P2()));
-         double aVQ2[3],aVQ1[3];
-         aQ2.to_tab(aVQ2);
-         aQ1.to_tab(aVQ1);
-
-         double anEcart = euclid(aQ1-aQ2);
-         aVRes.push_back(anEcart);
-         double aPds =  itP->Pds() / (1 + ElSquare(anEcart / (2*anErrStd)));
-
-         aSomP += aPds;
-         aSomErr += aPds * square_euclid(aQ1-aQ2);;
-
-         ElMatrix<REAL>  aMQ2 =  MatProVect(aQ2);
-         for (int aY=0 ; aY< 3 ; aY++)
-         {
-             double aCoeff[3];
-             for (int aX=0 ; aX< 3 ; aX++)
-                 aCoeff[aX] = aMQ2(aX,aY);
-
-             mSysLin3.GSSR_AddNewEquation(aPds,aCoeff,aVQ2[aY]-aVQ1[aY],0);
-         }
-    }
-    std::cout << "ERR QUAD " << sqrt(aSomErr/aSomP) * mFoc << "\n";
-    anErrStd = MoyKPPVal(aVRes,NbForEcart(aVRes.size()));
-    Im1D_REAL8   aSol = mSysLin3.GSSR_Solve (0);
-    double * aData = aSol.data();
-
-    ElMatrix<double> aMPV =  MatProVect(Pt3dr(aData[0],aData[1],aData[2]));
-   
-
-    aMat  = NearestRotation(aMat * (ElMatrix<double>(3,true) +aMPV));
-}
-
-void cMEPCoCentrik::OneTestMatr(const ElMatrix<REAL>  & aMat,const Pt3dr & aBase,double  aCost)
-{
-    ElRotation3D aRot(aBase,aMat,true);
-    std::cout << "IN COST " <<  ExactCostMEP(mPack,aRot,0.1) * mFoc  << " for " << aBase  << "\n";
-    for (int aKIter =0 ; aKIter < 15 ; aKIter++)
-    {
-        cBundleIterLin   aBIL(aRot,2*aCost);
-
-        for (ElPackHomologue::const_iterator itP=mPack.begin() ; itP!=mPack.end() ; itP++)
-        {
-             aBIL.AddObs(vunit(PZ1(itP->P1())),vunit(PZ1(itP->P2())),itP->Pds());
-        }
-
-/*
-        for (int aK=2 ; aK<5 ; aK++)
-        {
-           aBIL.mSysLin5.LVM_Mul(0.1 ,aK);
-        }
-*/
-
-        aRot =  aBIL.CurSol();
-    }
-    mCostMin = ElMin(mCostMin, ExactCostMEP(mPack,aRot,0.1));
-   std::cout << "OUT COST " <<  ExactCostMEP(mPack,aRot,0.1) * mFoc  << " for " << aBase  << " CMIN " << mCostMin *mFoc << "\n\n";
-  
-}
-
-
-
-cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc) :
-    mPack (aPack),
-    mFoc  (aFoc),
-    mCostMin (1e5)
-{
-     // bool doPly = true;
-     InitPackME(mVP1,mVP2,mVPds,aPack);
-
-     ElTimer aChrono;
-     double anEcart;
-     ElMatrix<REAL> aMat =  GlobMepRelCocentrique(anEcart,mPack,NbRanCoCInit,aPack.size());
-     aMat = aMat.transpose() ; // Retour aux convention 2 = > 1
-
-
-     for (int aK=0 ; aK<6 ; aK++)
-     {
-         OneItereRotPur(aMat,anEcart);
-     }
-     std::cout << "Time "    << aChrono.uval() << " Ecart "   << anEcart * mFoc << "\n";
-
-
-     const std::vector<Pt3di> aVTest = Dir26Cube();
-
-     for (int aKP=0 ; aKP<int(aVTest.size()) ; aKP++)
-     {
-         OneTestMatr(aMat,vunit(Pt3dr(aVTest[aKP])), anEcart);
-     }
-
-     for (int aK= 0 ; aK<0 ; aK++)
-     {
-          Pt3dr aP(NRrandC(),NRrandC(),NRrandC());
-          OneTestMatr(aMat,vunit(aP), anEcart * 10);
-          std::cout << "ITTTER " << aK << "\n";
-
-          // if ((aK%1000) == 0) getchar();
-     }
-
-
-     // std::vector<
-     {
-         std::vector<Pt3di> aVCol;
-         Pt3di aRouge(255,0,0);
-         Pt3di aVert(0,255,0);
-         std::vector<Pt3dr> aVpt;
-         for (int aKP =0 ; aKP< int(mVP1.size()) ; aKP++)
-         {
-              Pt3dr aQ1 = vunit(PZ1(mVP1[aKP]));
-              Pt3dr aQ2 = vunit(PZ1(mVP2[aKP]));
-              aVCol.push_back(aRouge);
-              aVpt.push_back(vunit(aQ1^aQ2));
-         }
-
-
-         for (int aK=0 ; aK<NbCpleBase ; aK++)
-         {
-              int aKA = NRrandom3(mVP1.size());
-              Pt3dr aA1 = vunit(PZ1(mVP1[aKA]));
-              Pt3dr aA2 = vunit(PZ1(mVP2[aKA]));
-              Pt3dr aNA = vunit(aA1^aA2);
-
-              int aKB = NRrandom3(mVP1.size());
-              Pt3dr aB1 = vunit(PZ1(mVP1[aKB]));
-              Pt3dr aB2 = vunit(PZ1(mVP2[aKB]));
-              Pt3dr aNB = vunit(aB1^aB2);
-
-             
-              Pt3dr aBase = aNA ^aNB;
-              if (euclid (aBase)>1e-6)
-              {
-                  aVCol.push_back(aVert);
-                  aVpt.push_back(vunit(aBase));
-              }
-
-         }
-
-         std::list<std::string> aVCom;
-         std::vector<const cElNuage3DMaille *> aVNuage;
-         cElNuage3DMaille::PlyPutFile
-         (
-               "Base.ply",
-               aVCom,
-               aVNuage,
-               &aVpt,
-               &aVCol,
-               true
-         );
-
-     }
-
-     getchar();
-}
-
-
-void TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc)
-{
-    cMEPCoCentrik aMC(aPack,aFoc);
-}
-
-
-
 
 /************************************************************/
 /*                                                          */
@@ -1881,77 +1619,6 @@ ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPack
     cRansacMatriceEssentielle aRME(aPack,aPackRed,aFoc);
     return aRME.Sol();
 }
-
-/****************************************************************/
-/*                                                              */
-/*            cBundleIterLin                                    */
-/*                                                              */
-/****************************************************************/
-
-// Equation initiale     [U1,Base, R U2] = 0
-//      [U1,Base, R0 dR U2] = 0     R = R0 (Id+dR)    dR ~0  R = (Id + ^W) et W ~ 0
-//   [tR0 U1, tR0 Base,U2 + W^U2] = 0 , 
-//    tR0 Base = B0 +dB   est un vecteur norme, soit CD tq (B0,C,D) est un Base ortho norme;
-//    tR0 U1 = U'1
-//   [U'1 ,  B0 + c C + d D , U2 + W ^U2] = 0
-//   (U1' ^ (B0 + c C + d D)) . (U2 + W ^U2) = 0
-//   (U'1 ^B0  + c U'1^C + d U'1 ^D ) . (U2 + W ^ U2) = 0
-//  En supprimant les termes en Wc ou Wd :
-//   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  + (U'1 ^ B0) . (W^U2) 
-//   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  +  W.(U2 ^(U'1 ^ B0)) => Verifier Signe permut prod vect
-
-double cBundleIterLin::ErrMoy() const {return mSomErr/mSomPds;}
-
-cBundleIterLin::cBundleIterLin(const ElRotation3D & aRot,const double & anErrStd):
-    mRot     (aRot),
-    mSysLin5 (5),
-    tR0      (aRot.Mat().transpose()),
-    mB0      (tR0 * aRot.tr()),
-    mSomErr  (0),
-    mSomPds  (0),
-    mErrStd  (anErrStd)
-{
-    MakeRONWith1Vect(mB0,mC,mD);
-    mSysLin5.GSSR_Reset(false);
-}
-
-void cBundleIterLin::AddObs(const Pt3dr & aQ1,const Pt3dr& aQ2,const double & aPds)
-{
-   double aCoef[5];
-   Pt3dr aQp1 = tR0 * aQ1;
-   Pt3dr aUp1VB0 = aQp1 ^ mB0;
-
-   double aCste =  scal(aQ2,aUp1VB0);
-   aCoef[0] = scal(aQ2,aQp1^mC);  // Coeff C
-   aCoef[1] = scal(aQ2,aQp1^mD);  // Coeff D
-   Pt3dr  a3Prod = aQ2 ^ aUp1VB0;
-   aCoef[2] = a3Prod.x;
-   aCoef[3] = a3Prod.y;
-   aCoef[4] = a3Prod.z;
-
-   mLastPdsCalc = aPds / (1+ElSquare(aCste/mErrStd));
-        //    aPair.mLastPdsOfErr = aPds;
-
-   mSomPds += mLastPdsCalc;
-   mSomErr += mLastPdsCalc * ElSquare(aCste);
-
-   mSysLin5.GSSR_AddNewEquation(mLastPdsCalc,aCoef,-aCste,0);
-   mVRes.push_back(ElAbs(aCste));
-}
-
-ElRotation3D  cBundleIterLin::CurSol()
-{
-    Im1D_REAL8   aSol = mSysLin5.GSSR_Solve (0);
-    double * aData = aSol.data();
-
-    Pt3dr aNewB0 = mRot.Mat()  * vunit(mB0+mC*aData[0] + mD*aData[1]);
-
-    ElMatrix<double> aNewR = NearestRotation(mRot.Mat() * (ElMatrix<double>(3,true) + MatProVect(Pt3dr(aData[2],aData[3],aData[4]))));
-    return ElRotation3D (aNewB0,aNewR,true);
-}
-
-
-
 
 
 
