@@ -410,6 +410,7 @@ class Tiff_Im : public ElGenFileIm
       static Tiff_Im  UnivConvStd(const ElSTDNS string & Name);   // cree des tifs cache pour les RAW-JPGS (uses StdConvGen)
           // Convertit (avec NameFileStd) les jpg , raw et tif comprs
       static Tiff_Im  StdConvGen(const ElSTDNS string & Name,int aNbChan,bool Cons16B,bool ExigNoCompr = true);
+      static Tiff_Im  SpecialFilterSift(const ElSTDNS string & Name);
 
       // Test dand l'ordre aName + ".tif" et aName
       static std::string GetNameOfFileExist(const std::string & aName);
@@ -506,14 +507,18 @@ void MakeTiffRed2BinaireWithCaracIdent
           Pt2di                 aSzRed=Pt2di(-1,-1)
      );
 
-// A priori ExigB8 est redondant avec cons16B, mais ai des doutes et pour assurer la compat ....
 
+Tiff_Im PastisTif(const std::string &  aName);
+std::string PastisNameFileStd(const std::string & aFullNameOri);
+
+// A priori ExigB8 est redondant avec cons16B, mais ai des doutes et pour assurer la compat ....
 std::string NameFileStd(const std::string & aFullNameOri,int aNbChan,bool cons16B,bool ExigNoCompr = true,bool Create= true,bool ExigB8=false);
-// std::string NoCreateNameFileStd(const std::string & aFullNameOri);
 bool IsKnownTifPost(const std::string & aPost);
 bool IsKnownJPGPost(const std::string & aPost);
 bool IsPostfixedJPG(const std::string & aName);
 
+
+extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename);
 
 
 

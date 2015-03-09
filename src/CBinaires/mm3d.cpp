@@ -513,6 +513,7 @@ int ChekBigTiff_main(int,char**);
 
 
 int TestNewOriImage_main(int argc,char ** argv);
+int PreparSift_Main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -520,6 +521,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    static std::vector<cMMCom> aRes;
 
 
+   aRes.push_back(cMMCom("PrepSift",PreparSift_Main,"Some stuff "));
    aRes.push_back(cMMCom("TD1",TD_Match1_main,"Some stuff "));
    aRes.push_back(cMMCom("TD2",TD_Match2_main,"Some stuff "));
    aRes.push_back(cMMCom("TD3",TD_Match3_main,"Some stuff "));

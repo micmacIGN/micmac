@@ -50,6 +50,7 @@ int  Matthieu_main(int argc,char ** argv)
 {
   //=====================  PARAMETRES EN DUR ==============
 
+/*
   cSelectionInfos  aSI =   StdGetObjFromFile<cSelectionInfos>
              (
                  Basic_XML_MM_File("TestSelInfo.xml"),
@@ -63,6 +64,7 @@ int  Matthieu_main(int argc,char ** argv)
 
    MakeFileXML(aSI,"Out-TestSelInfo.xml");
 
+*/
 
 
 

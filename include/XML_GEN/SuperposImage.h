@@ -6007,5 +6007,57 @@ std::string  Mangling( cXMLSaveOriRel2Im *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cItem
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cItem & anObj,cElXMLTree * aTree);
+
+
+        std::vector< Pt3dr > & Pt();
+        const std::vector< Pt3dr > & Pt()const ;
+
+        int & Mode();
+        const int & Mode()const ;
+    private:
+        std::vector< Pt3dr > mPt;
+        int mMode;
+};
+cElXMLTree * ToXMLTree(const cItem &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cItem &);
+
+void  BinaryUnDumpFromFile(cItem &,ELISE_fp &);
+
+std::string  Mangling( cItem *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cPolyg3D
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cPolyg3D & anObj,cElXMLTree * aTree);
+
+
+        std::vector< cItem > & Item();
+        const std::vector< cItem > & Item()const ;
+    private:
+        std::vector< cItem > mItem;
+};
+cElXMLTree * ToXMLTree(const cPolyg3D &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cPolyg3D &);
+
+void  BinaryUnDumpFromFile(cPolyg3D &,ELISE_fp &);
+
+std::string  Mangling( cPolyg3D *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm
