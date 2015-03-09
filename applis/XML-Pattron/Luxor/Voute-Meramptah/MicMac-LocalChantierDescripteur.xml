@@ -1,0 +1,216 @@
+<!--
+
+   FAIRE ATTENTION PtDr1  / PtDr2 doit aller
+   de la gauche vers la droite (sinon 180)
+
+
+    SAISIR MASQ ImPl1 et ImPl2 avant de commencer
+
+
+   PB COPRESSION GeoT/Masq_GeomTer_DeZoom1.tif a regler 
+   => GERE PAS applis/MICMAC/cAppliMICMAC_Result1.cpp l  521
+     FAIRE MASQ NON COMPRIME OK ....
+
+-->
+
+<Global>
+
+  <ChantierDescripteur
+     Subst="@$#1"
+     NameDecl="@$#1"
+
+     ImC="1081"
+     FocGA="005"
+     LFoc="010"
+     PatNum="[0-9]{4}"
+
+     FocPL="${LFoc}"
+     ImPl1="1098"
+     ImPl2="1113"
+
+     ImDr1="1098"
+     ImDr2="1098"
+     PtDr1="1039 2465"
+     PtDr2="2572 2499"
+     VecDr="1 0"
+
+
+     PrefixImages="IMG_"
+     PostfixImagesBrute=""
+     PostfixRAW="JPG"
+     PostfixImagesDebay="_Gray"
+     PostfixColImagesDebay="_Col"
+     NbJob="2"
+
+     PatternFoc="F([0-9]{3})_"
+
+     PrefixCalibGeom="AutoCalDRad-Canon-"
+     PrefixCalibCoul="Bayer-Canon-"
+
+     SzPastisDef="1500"
+     SzPastisSsRes="500"
+
+     PatPlan="((${ImPl1})|(${ImPl2}))"
+  >
+
+       <BatchChantDesc>
+              <Key> Batch1 </Key>
+
+              <Requirement>
+
+              </Requirement>
+               
+<!-- RENOMME LES IMAGES VS FOCALE , CONVERTIT EN COULEUR TIF , CONVERTIT EN GRIS TIF -->
+               <Line>  bin/MyRename  "${ThisDir}(${PrefixImages}.*).${PostfixRAW}"   "F\$2_\$1.${PostfixRAW}" AddFoc=1  Exe=1 </Line>
+
+               <Line> bin/MapCmd convert "P=${ThisDir}/(F[0-9]{3}_${PrefixImages}.*)\.${PostfixRAW}"  -compress None -colorspace RGB -depth 8 "c=\$1${PostfixColImagesDebay}.tif"   M=MkToto </Line>
+
+               <Line> make all -f MkToto -j${NbJob}  </Line>
+
+               <Line> bin/MapCmd convert "P=${ThisDir}/(F[0-9]{3}_${PrefixImages}.*)\.${PostfixRAW}"  -compress None -colorspace Gray -depth 8 "c=\$1${PostfixImagesDebay}.tif"   M=MkToto </Line>
+
+               <Line> make all -f MkToto -j${NbJob}  </Line>
+<!--
+-->
+
+
+<!-- HOMOL BASSE RESOL ET BONNE RESOL -->
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-All-Cple  ${SzPastisSsRes} FiltreOnlyDupl=1 MkF=MkToto NbMinPtsExp=2 SsRes=1  </Line>
+<!--
+-->
+              <Line> make all -f MkToto -j${NbJob}  -k </Line>
+
+              <Line> bin/Pastis  ${ThisDir}  Key-Rel-All-Cples-Filtr-SsEch ${SzPastisDef} FiltreOnlyDupl=1 MkF=MkToto NbMinPtsExp=2   </Line>
+              <Line> make all -f MkToto -j${NbJob} -k  </Line>
+<!--  -->
+
+<!--
+
+              <Line> bin/Apero ${ThisDir}Apero-FocGA.xml  </Line>
+              <Line> bin/Apero ${ThisDir}Apero-Glob.xml  </Line>
+
+
+              <Line> bin/MICMAC ${ThisDir}param-MakeMask.xml  </Line>
+-->
+
+
+<!--
+               <Line>  mkdir ${ThisDir}JPEG  </Line>
+               <Line>  mv  ${ThisDir}*.JPG ${ThisDir}JPEG/  </Line>
+
+               <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(.*).${PostfixRAW}" 16B=0 Cal=Key-Assoc-Calib-Coul GR=1    BiCubParam=-0.5 M=MkToto "T=\$1${PostfixImagesDebay}.tif" </Line>
+               <Line> make all -f MkToto -j${NbJob}  </Line>
+
+               <Line>   bin/MpDcraw ${ThisDir} F${FocGA}_${PrefixImages}${ImC}.${PostfixRAW}  16B=0 Cal=Key-Assoc-Calib-Coul CR=1    BiCubParam=-0.5  </Line>
+
+               <Line>  bin/MapCmd bin/MpDcraw "P=${ThisDir}(F${LFoc}.*).${PostfixRAW}" 16B=0 Cal=Key-Assoc-Calib-Coul CR=1    BiCubParam=-0.5 M=MkToto "T=\$1${PostfixColImagesDebay}.tif" ImRef=F${LFoc}_${PrefixImages}${ImRefLF}.${PostfixRAW}    Dyn=${DynLF}</Line>
+               <Line> make all -f MkToto -j${NbJob}  </Line>
+
+
+              <Line> bin/SaisieMasq   ${ThisDir}F${FocGA}_${PrefixImages}${ImC}_MpDcraw8B_GR.tif Attr=Plan </Line>
+
+
+
+              <Line> bin/Apero  ${ThisDir}Apero-GA.xml  </Line>
+              <Line> bin/MICMAC  ${ThisDir}param-MM-GA.xml   </Line>
+
+
+              <Line> make all -f MkToto -j${NbJob}  </Line>
+
+
+              <Line> bin/Apero  ${ThisDir}Apero-Appuis.xml  </Line>
+-->
+
+        </BatchChantDesc>
+
+
+<!--   ***********************************************   -->
+<!--                                                     -->
+<!--    PT LIAISON POUR TA                               -->
+<!--                                                     -->
+<!--   ***********************************************   -->
+
+
+  <KeyedSetsOfNames >
+           <Sets>
+                  <PatternAccepteur> F[0-9]{3}_.*${PostfixImagesDebay}.tif </PatternAccepteur>
+           </Sets>
+           <Key > Key-Set-All-Im </Key>
+  </KeyedSetsOfNames>
+
+
+  <KeyedSetsORels >
+       <Sets>
+           <ByAdjacence>
+               <KeySets >  Key-Set-All-Im </KeySets>
+               <DeltaMin > -1000 </DeltaMin>
+               <DeltaMax > 1000  </DeltaMax>
+           </ByAdjacence>
+       </Sets>
+       <Key>  Key-Rel-All-Cple</Key>
+   </KeyedSetsORels>
+
+
+   <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  Key-Set-All-Im   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+                <Filtre>
+                     <FiltreByRelSsEch>
+                        <KeySet >  Key-Set-SsRes-HomolPastisBin          </KeySet>
+                        <KeyAssocCple>  Key-Assoc-SsRes-CpleIm2HomolPastisBin   </KeyAssocCple>
+                        <SeuilBasNbPts> 2 </SeuilBasNbPts>
+                        <SeuilHautNbPts> 2 </SeuilHautNbPts>
+                        <NbMinCple> 100000 </NbMinCple>
+                     </FiltreByRelSsEch>
+                </Filtre>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-All-Cples-Filtr-SsEch </Key>
+    </KeyedSetsORels>
+
+
+
+  <APrioriImage>
+       <KeyedAddedSet>  Key-Set-All-Im   </KeyedAddedSet>
+       <Key>  Key-APG-Scale </Key>
+       <ContenuAPrioriImage>
+              <Scale> 1.0 </Scale>
+              <KeyAutoAdaptScale> Key-Assoc-STD-FOC </KeyAutoAdaptScale>
+              <PdsMaxAdaptScale> 0.5 </PdsMaxAdaptScale>
+       </ContenuAPrioriImage>
+   </APrioriImage>
+
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)Gray\.tif</PatternTransform>
+                <CalcName> $1Col.tif  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>  KeyAssoc-Gray2Coul </Key>
+    </KeyedNamesAssociations>
+
+
+
+<!--   ***********************************************   -->
+<!--                                                     -->
+<!--   MISE EN PLACE DES IMAGES FAISANT LE TOUR DE L'ARC -->
+<!--                                                     -->
+<!--   ***********************************************   -->
+
+
+
+<!--   ***********************************************   -->
+<!--                                                     -->
+<!--   MISE EN PLACE DES 100 et 400 mm                   -->
+<!--                                                     -->
+<!--   ***********************************************   -->
+
+
+  </ChantierDescripteur>
+</Global>
