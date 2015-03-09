@@ -211,8 +211,8 @@ class cTriangle
 
         bool    operator==( const cTriangle & ) const;
 
-        float   getScal() { return mScal; }
-        void    setScal(float aVal) { mScal = aVal; }
+        float   getCriter() { return mCriter; }
+        void    setCriter(float aVal) { mCriter = aVal; }
 
 
 private:
@@ -231,7 +231,7 @@ private:
         Pt2dr                       mText1;
         Pt2dr                       mText2;
 
-        float                       mScal;          // scalar product between normal and best image viewing direction
+        float                       mCriter;          // Criterion for image texture choosing (scalar product between normal and best image viewing direction, stretching)
 };
 
 //--------------------------------------------------------------------------------------------------------------
