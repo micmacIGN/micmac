@@ -80,6 +80,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqObsBaseGPS_GL.cpp"
 #include "../../CodeGenere/photogram/cCodeBlockCam.cpp"
 #include "../../CodeGenere/photogram/cEqLinariseAngle.cpp"
+#include "../../CodeGenere/photogram/cEqBBCamFirst.cpp"
+#include "../../CodeGenere/photogram/cEqBBCamSecond.cpp"
 
 //=======================  Droite ========================
 

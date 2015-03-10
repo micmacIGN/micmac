@@ -40,57 +40,28 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /*
 
-
-std::cout << "Coor " << mCompCoord[0] << "\n";
-std::cout << "Coor " << mCompCoord[1] << "\n";
-std::cout << "Coor " << mCompCoord[2] << "\n";
-std::cout << "Coor " << mCompCoord[3] << "\n";
-std::cout << "Coor " << mCompCoord[4] << "\n";
-
-std::cout << "Q2 "  << mLocQ2_x << " " << mLocQ2_y << " " << mLocQ2_z << "\n";
-std::cout << "Qp1 "  << mLocQp1_x << " " << mLocQp1_y << " " << mLocQp1_z << "\n";
-std::cout << "B0 "  << mLocVecB0_x << " " << mLocVecB0_y << " " << mLocVecB0_z << "\n";
-std::cout << "C  "  << mLocVecC_x << " " << mLocVecC_y << " " << mLocVecC_z << "\n";
-std::cout << "D  "  << mLocVecD_x << " " << mLocVecD_y << " " << mLocVecD_z << "\n";
-
-
-
-
-
-std::cout << "======= 5555 ========\n";
-std::cout << tmp50_ << " " << tmp51_ << " " << tmp52_ << " " << tmp53_ << " " << tmp54_ << "\n";
-std::cout << tmp55_ << " " << tmp56_ << " " << tmp57_ << " " << tmp58_ << " " << tmp59_ << "\n";
-
 */
 
 
 #include "StdAfx.h"
 
-/************************************************************/
-/*                                                          */
-/*           Equation Linearise de l'angle                  */
-/*                                                          */
-/************************************************************/
-
 extern bool AllowUnsortedVarIn_SetMappingCur;
 
-
-
 /*
-     cOmegaLineAng et cScalLineAng sont definie afin d'heriter de cElemEqFormelle, cObjFormel2Destroy
+     cPt3dEEF et cScalEEF sont definie afin d'heriter de cElemEqFormelle, cObjFormel2Destroy
     Sinon, on aurai interet a les traiter directement dans cGlobEqLineraiseAngle
 */
 
-class cOmegaLineAng : public cElemEqFormelle,
-                      public cObjFormel2Destroy
+class cPt3dEEF : public cElemEqFormelle,
+                 public cObjFormel2Destroy
 {
     public : 
        Pt3dr             mP0;
        Pt3d<Fonc_Num>    mP;  
 
-       cOmegaLineAng(cSetEqFormelles & aSet) :
+       cPt3dEEF(cSetEqFormelles & aSet,const Pt3dr & aP0) :
           cElemEqFormelle (aSet,false),
-          mP0     (0,0,0),
+          mP0     (aP0),
           mP      (aSet.Alloc().NewPt3(mP0))
        {
            CloseEEF();
@@ -99,16 +70,16 @@ class cOmegaLineAng : public cElemEqFormelle,
 };
 
 
-class cScalLineAng : public cElemEqFormelle,
+class cScalEEF : public cElemEqFormelle,
                      public cObjFormel2Destroy
 {
     public : 
        double      mS0;
        Fonc_Num    mS;  
 
-       cScalLineAng(cSetEqFormelles & aSet) :
+       cScalEEF(cSetEqFormelles & aSet,double aV0) :
           cElemEqFormelle (aSet,false),
-          mS0     (0),
+          mS0     (aV0),
           mS      (aSet.Alloc().NewF(&mS0))
        {
            CloseEEF();
@@ -116,8 +87,274 @@ class cScalLineAng : public cElemEqFormelle,
        }
 };
 
-class cGlobEqLineraiseAngle :    public cNameSpaceEqF,
-                            public cObjFormel2Destroy
+
+/************************************************************/
+/*                                                          */
+/*            Bundle classique                              */
+/*                                                          */
+/************************************************************/
+
+/*
+    P sur         C1-> U1
+    P +t2  sur  R2 C2-> U2
+    P +t3  sur  R3 C3-> U3
+
+
+    tR2 P sur         tR2 C1-> tR2 U1  
+    tR2 P + tR2 t2  sur C2-> U2
+    tR2 P +  t3  sur  tR2 R3 C3-> U3
+
+   Si P est qqcq  tR2 P  est qcq, 
+   Si t2 est norem qcq , tR2 te est norme qcq
+
+     Q sur         tR2 C1-> tR2 U1  , tR2 =  (Id + ^W) * tR20  , (Id + ^W) Q sur tR20 U1
+     Q + t'2  sur C2-> U2
+     Q + t'3  sur  tR2 R3 C3-> U3
+
+*/
+
+class cEqBundleBase  : public cNameSpaceEqF,
+                      public cObjFormel2Destroy
+{
+    public :
+       cEqBundleBase(bool DoGenCode,int aNbCamSup);  // Nb de cam en plus des 2 minim
+       void    InitNewRot(const ElRotation3D & aRot);
+       ElRotation3D SolveResetUpdate();
+       
+       double AddEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel,double aPds);
+       double ResiduEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel);
+    protected :
+       // virtual Pt2dr    AddEquationGen(const Pt3dr & aP1,const Pt3dr & aP2,double aPds,bool WithEq) = 0;
+      
+       double    AddEquationGen(const std::vector<Pt2dr> & aP2,const std::vector<bool> & aVSel, double aPds,bool WithEq);
+
+       ElMatrix<double> tR2;
+
+       cSetEqFormelles * mSetEq;
+       cSetEqFormelles * mSetEq2;  // Galere pour gere la connexist des intervalle en mode GenCode
+       cPt3dEEF *        mW1;
+       cP3d_Etat_PhgrF   mB2;
+       Pt3dr             mB2Cur;
+       cScalEEF *        mc2;
+       cP3d_Etat_PhgrF   mC2;
+       cScalEEF *        md2;
+       cP3d_Etat_PhgrF   mD2;
+
+       cP2d_Etat_PhgrF   mI1;  // tRot ^ U1
+       cP2d_Etat_PhgrF   mI2;
+ 
+       cIncListInterv        mLInterv1;
+       cIncListInterv        mLInterv2;
+       int                   mNbCamSup;
+       std::string           mNameEq1;
+       std::string           mNameEq2;
+
+       std::vector<cElCompiledFonc *>     mVFEsResid;
+       cEqfP3dIncTmp *       mEqP3I;
+       cEqfP3dIncTmp *       mEq2P3I;
+       cSubstitueBlocIncTmp  mSBIT12;
+};
+
+void  cEqBundleBase::InitNewRot(const ElRotation3D & aRot)
+{
+     for (int aK=0 ; aK<mSetEq->Alloc().CurInc() ; aK++) 
+         mSetEq->Alloc().SetVar(0,aK);
+     tR2 = aRot.Mat().transpose();
+     mW1->mP0 = Pt3dr(0,0,0);
+
+     mB2Cur = tR2 * aRot.tr();
+     Pt3dr aC2,aD2;
+     MakeRONWith1Vect(mB2Cur,aC2,aD2);
+     mB2.SetEtat(mB2Cur);
+
+     mc2->mS0 = 0;
+     mC2.SetEtat(aC2);
+     md2->mS0 = 0;
+     mD2.SetEtat(aD2);
+
+     mSetEq->SetPhaseEquation();
+/*
+*/
+}
+
+double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel, double aPds,bool WithEq)
+{
+   int aFlag=0;
+   
+   std::vector<double> aVPds;
+   aVPds.push_back(aPds);
+   aVPds.push_back(aPds);
+   double aRes = 0;
+   std::vector<ElSeg3D> aVSeg;
+   static Pt3dr    aVDir[9];
+   int aNbP=0;
+
+   if (aVSel[0])
+   {
+       aVDir[0] = tR2 * Pt3dr(aVPts[0].x,aVPts[0].y,1);
+       mI1.SetEtat(ProjStenope(aVDir[0]));
+       aVSeg.push_back(ElSeg3D(Pt3dr(0,0,0),aVDir[0]));
+       aNbP++;
+   }
+
+   if (aVSel[1])
+   {
+       aVDir[1] = Pt3dr(aVPts[1].x,aVPts[1].y,1);
+       mI2.SetEtat(ProjStenope(aVDir[1]));
+       aVSeg.push_back(ElSeg3D(mB2Cur,aVDir[1]));
+       aNbP++;
+   }
+   
+   ELISE_ASSERT(aVSeg.size()>=2,"cEqBundleBase::AddEquationGen");
+   Pt3dr aP = ElSeg3D::L2InterFaisceaux(0,aVSeg);
+
+   mEqP3I->InitVal(aP);
+
+   for (int aK=0 ; aK<int (aVPts.size())  ; aK++)
+   {
+      aFlag |= (1<<aK);
+      if (aVSel[aK])
+      {
+         mI1.SetEtat(ProjStenope(aVDir[aK]));
+         const std::vector<REAL> & aVRES =      WithEq                                              ?
+                                                mSetEq->VAddEqFonctToSys(mVFEsResid[aK],aVPds,false) :
+                                                mSetEq->VResiduSigne(mVFEsResid[aK])                 ;
+
+         aRes += ElAbs(aVRES[0]) + ElAbs(aVRES[1]);
+      }
+   }
+
+   if (aFlag== 3) mSBIT12.DoSubst();
+
+   return aRes;
+}
+
+double cEqBundleBase::AddEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel,double aPds)
+{
+   return AddEquationGen(aVPts,aVSel,aPds,true);
+}
+// Pt2dr  ResiduEquation(const Pt3dr & aP1,const Pt3dr & aP2);
+
+cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup) :
+    tR2         (1,1),
+    mSetEq      (new cSetEqFormelles(cNameSpaceEqF::eSysPlein)),
+    mSetEq2     ( DoGenCode ? new cSetEqFormelles(cNameSpaceEqF::eSysPlein) : mSetEq),
+    mW1         (new cPt3dEEF(*mSetEq,Pt3dr(0,0,0))),
+    mB2         ("VecB2"),
+    mc2         (new cScalEEF (*mSetEq2,0)),
+    mC2         ("VecC2"),
+    md2         (new cScalEEF (*mSetEq2,0)),
+    mD2         ("VecD2"),
+    mI1         ("I1"),
+    mI2         ("I2"),
+    mNbCamSup   (aNbCamSup),
+    mNameEq1    ("cEqBBCamFirst"),
+    mNameEq2    ("cEqBBCamSecond"),
+    mEqP3I      (mSetEq->Pt3dIncTmp()),
+    mEq2P3I     (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
+    mSBIT12     (*mEqP3I)
+{
+  AllowUnsortedVarIn_SetMappingCur = true;
+  mW1->IncInterv().SetName("Omega1");
+  mc2->IncInterv().SetName("C2");
+  md2->IncInterv().SetName("D2");
+
+  mLInterv1.AddInterv(mW1->IncInterv());
+  mLInterv1.AddInterv(mEqP3I->IncInterv());
+
+  mLInterv2.AddInterv(mc2->IncInterv());
+  mLInterv2.AddInterv(md2->IncInterv());
+  mLInterv2.AddInterv(mEq2P3I->IncInterv());
+
+  if (DoGenCode)
+  {
+      {
+         {
+             std::vector<Fonc_Num> aVR1;
+             Pt3d<Fonc_Num>  aPIGlob = mEqP3I->PF();
+
+             Pt3d<Fonc_Num> aP1 = mW1->mP ^ aPIGlob;
+             aVR1.push_back(mI1.PtF().x - aP1.x / aP1.z);
+             aVR1.push_back(mI1.PtF().y - aP1.y / aP1.z);
+             cElCompileFN::DoEverything
+             (
+                 DIRECTORY_GENCODE_FORMEL, 
+                 mNameEq1,  
+                 aVR1,  
+                 mLInterv1  
+             );
+         }
+         {
+             std::vector<Fonc_Num> aVR2;
+             Pt3d<Fonc_Num>  aPIGlob = mEq2P3I->PF();
+             Pt3d<Fonc_Num> aP2 =  aPIGlob + mB2.PtF() + mC2.PtF()*mc2->mS + mD2.PtF()*md2->mS;
+             aVR2.push_back(mI2.PtF().x - aP2.x / aP2.z);
+             aVR2.push_back(mI2.PtF().y - aP2.y / aP2.z);
+             cElCompileFN::DoEverything
+             (
+                 DIRECTORY_GENCODE_FORMEL, 
+                 mNameEq2,  
+                 aVR2,  
+                 mLInterv2  
+             );
+         }
+      }
+
+      return;
+  }
+
+  // Buf de subst d'inconnues
+   mSBIT12.AddInc(mLInterv1);
+   mSBIT12.AddInc(mLInterv2);
+   mSBIT12.Close();
+
+  // Maintenant, sinon recouvrt avec Tmp
+
+   mVFEsResid.push_back(cElCompiledFonc::AllocFromName(mNameEq1));
+   ELISE_ASSERT( mVFEsResid.back() !=0,"Cannot allocate cGlobEqLineraiseAngle");
+   mVFEsResid.back() ->SetMappingCur(mLInterv1,mSetEq);
+   mI1.InitAdr(*mVFEsResid.back());
+
+
+   mVFEsResid.push_back(cElCompiledFonc::AllocFromName(mNameEq2));
+   ELISE_ASSERT(mVFEsResid.back()!=0,"Cannot allocate cGlobEqLineraiseAngle");
+   mVFEsResid.back()->SetMappingCur(mLInterv2,mSetEq);
+
+   mB2.InitAdr(*mVFEsResid.back());
+   mC2.InitAdr(*mVFEsResid.back());
+   mD2.InitAdr(*mVFEsResid.back());
+   mI2.InitAdr(*mVFEsResid.back());
+   //======================
+
+   mSetEq->AddFonct(mVFEsResid[0]);
+   mSetEq->AddFonct(mVFEsResid[1]);
+   mSetEq->AddObj2Kill(this);
+
+
+    mSetEq->SetClosed();
+   // mSetEq.
+}
+
+void GenCodecEqBundleBase()
+{
+    cEqBundleBase * anEla = new  cEqBundleBase (true,0);
+    delete anEla;
+
+    anEla = new  cEqBundleBase (false,0);
+}
+
+
+/************************************************************/
+/*                                                          */
+/*           Equation Linearise de l'angle                  */
+/*                                                          */
+/************************************************************/
+
+
+
+
+class cGlobEqLineraiseAngle : public cNameSpaceEqF,
+                              public cObjFormel2Destroy
 {
     public :
        cGlobEqLineraiseAngle(bool doGenCode);
@@ -134,22 +371,25 @@ class cGlobEqLineraiseAngle :    public cNameSpaceEqF,
        ElMatrix<double> tR0;
 
        cSetEqFormelles * mSetEq;
-       cOmegaLineAng *   mW;
+       cPt3dEEF *   mW;
        cP3d_Etat_PhgrF   mB0;
-       cScalLineAng *    mc;
+       cScalEEF *    mc;
        cP3d_Etat_PhgrF   mC;
-       cScalLineAng *    md;
+       cScalEEF *    md;
        cP3d_Etat_PhgrF   mD;
-       Pt3d<Fonc_Num>    mResidu;
 
        cP3d_Etat_PhgrF   mQp1;  // tRot ^ U1
        cP3d_Etat_PhgrF   mQ2;
  
-       std::vector<Fonc_Num> mVRes;
+       std::vector<Fonc_Num> mVFRes;
        cElCompiledFonc *     mFoncEqResidu;
        cIncListInterv        mLInterv;
        std::string           mNameType;
 };
+
+
+
+
 
 void cGlobEqLineraiseAngle::InitNewRot(const ElRotation3D & aRot)
 {
@@ -171,6 +411,9 @@ void cGlobEqLineraiseAngle::InitNewRot(const ElRotation3D & aRot)
 
      mSetEq->SetPhaseEquation();
 }
+
+
+
 
 ElRotation3D cGlobEqLineraiseAngle::SolveResetUpdate()
 {
@@ -216,11 +459,11 @@ Pt3d<Fonc_Num> vunit(const Pt3d<Fonc_Num> & aV) {return aV / sqrt(square_euclid(
 cGlobEqLineraiseAngle::cGlobEqLineraiseAngle(bool doGenCode) :
     tR0         (1,1),
     mSetEq      (new cSetEqFormelles(cNameSpaceEqF::eSysPlein)),
-    mW          (new cOmegaLineAng(*mSetEq)),
+    mW          (new cPt3dEEF(*mSetEq,Pt3dr(0,0,0))),
     mB0         ("VecB0"),
-    mc          (new cScalLineAng (*mSetEq)),
+    mc          (new cScalEEF (*mSetEq,0)),
     mC          ("VecC"),
-    md          (new cScalLineAng (*mSetEq)),
+    md          (new cScalEEF (*mSetEq,0)),
     mD          ("VecD"),
     mQp1        ("Qp1"),
     mQ2         ("Q2"),
@@ -251,8 +494,8 @@ cGlobEqLineraiseAngle::cGlobEqLineraiseAngle(bool doGenCode) :
 
    Fonc_Num aDet = Det(aQp1,aQp2,aBase);
   
-   mVRes.push_back(aDet/scal(aQp1VQp2,aQp1));
-   mVRes.push_back(aDet/scal(aQp1VQp2,aQp2));
+   mVFRes.push_back(aDet/scal(aQp1VQp2,aQp1));
+   mVFRes.push_back(aDet/scal(aQp1VQp2,aQp2));
 
    // Fonc_Num aRIm1 = aDet / scal(
 
@@ -289,7 +532,7 @@ void cGlobEqLineraiseAngle::GenCode()
     (
         DIRECTORY_GENCODE_FORMEL,  // Directory ou est localise le code genere
         mNameType,  // donne les noms de fichier .cpp et .h ainsi que les nom de classe
-        mVRes,  // expressions formelles 
+        mVFRes,  // expressions formelles 
         mLInterv  // intervalle de reference
     );
 

@@ -231,6 +231,12 @@ void MakeNameDir(std::string & aStr)
 }
 */
 
+std::string AddDirIfRequired(const std::string & aDir,const std::string & aFile)
+{
+    if (ELISE_fp::exist_file(aDir+ aFile)) return aDir + aFile;
+    return aFile;
+}
+
 std::string StdWorkdDir(const std::string & aValWD,const std::string & aNameFile)
 {
   // std::cout << "XXXXXXXXXX\n";

@@ -2704,8 +2704,8 @@ aKeyOrFile         :
 std::list<std::string>
         cInterfChantierNameManipulateur::StdGetListOfFile
         (
-        const std::string & aKeyOrPat,
-        int aProf
+           const std::string & aKeyOrPat,
+           int aProf
         )
 {
         if (SetHasKey(aKeyOrPat))
@@ -2725,6 +2725,17 @@ std::list<std::string>
             if (aName.size() < aKey.size())
                  return StdGetListOfFile
 */
+            // Si la directory a ete ajoutee deux fois ...
+            if (ELISE_fp::exist_file(mDir + NameWithoutDir(aKeyOrPat)))
+            {
+                aRes.push_back(NameWithoutDir(aKeyOrPat));
+                return aRes;
+            }
+            if (ELISE_fp::exist_file(aKeyOrPat))
+            {
+                aRes.push_back(aKeyOrPat);
+                return aRes;
+            }
             std::cout << "For Key-Or-Pat=" << aKeyOrPat << " Dir= " << mDir << "\n";
             ELISE_ASSERT(false,"Empty list for StdGetListOfFile");
         }
