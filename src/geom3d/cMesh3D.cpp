@@ -104,7 +104,7 @@ cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal):
     mText0(Pt2dr()),
     mText1(Pt2dr()),
     mText2(Pt2dr()),
-    mScal(scal)
+    mCriter(scal)
 {
     mTriVertex.push_back(face->verts[0]);
     mTriVertex.push_back(face->verts[1]);

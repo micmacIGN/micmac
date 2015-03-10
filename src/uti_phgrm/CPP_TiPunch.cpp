@@ -37,9 +37,6 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-#if (ELISE_unix)
-    #include "dirent.h"
-#endif
 
 int TiPunch_main(int argc,char ** argv)
 {
@@ -49,6 +46,7 @@ int TiPunch_main(int argc,char ** argv)
     bool aBin = true;
     bool aRmPoissonMesh = false;
     int aDepth = 8;
+    double aDst = 1.f;
 
     ElInitArgMain
             (
@@ -60,6 +58,7 @@ int TiPunch_main(int argc,char ** argv)
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
                             << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
+                            << EAM(aDst,"Dist",true,"Threshold on distance between mesh and point cloud (def=1)")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -81,7 +80,10 @@ int TiPunch_main(int argc,char ** argv)
             + std::string(" --in ") + aPly.c_str()
             + std::string(" --out ") + poissonMesh.c_str()
             + " --depth " + ss.str()
-            + " --threads " + sst.str();
+    //#if USE_OPEN_MP //TODO: à activer quand WITH_OPEN_MP=1
+            + " --threads " + sst.str()
+    //#endif
+    ;
 
     if (verbose) cout << "Com= " << aCom << endl;
 
@@ -108,7 +110,9 @@ int TiPunch_main(int argc,char ** argv)
         cout <<"Image "<<*itS<<", with ori : "<< NOri <<endl;
     }
 
-    //TODO: charger Z_Num
+    //TODO: charger Z_Num / Depth-img
+
+    Im2D_REAL4 * pImg = new Im2D_REAL4(1000,1000,0.f);
 
     cMesh myMesh(poissonMesh);
 
@@ -123,11 +127,32 @@ int TiPunch_main(int argc,char ** argv)
         const int nCam = ListCam.size();
         for(int bK=0 ; bK<nCam; bK++)
         {
-           /* CamStenope* Cam = ListCam[bK];
+            CamStenope* Cam = ListCam[bK];
 
             Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);
             Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
-            Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);*/
+            Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+
+            if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+            {
+                Pt2dr _min(DBL_MAX, DBL_MAX);
+                Pt2dr _max;
+
+                _min = Inf(Pt1, Inf(Pt2, Inf(Pt3, _min)));
+                _max = Sup(Pt1, Sup(Pt2, Sup(Pt3, _max)));
+
+                bool found = false;
+                //Parcours de l'image de profondeur
+                for(int cK= _min.x; cK < _max.x; cK++)
+                {
+                    for(int dK=_min.y; dK < _max.y; dK++)
+                    {
+                        if (pImg->GetR(Pt2di(cK,dK)) < aDst) found = true;
+                    }
+                }
+
+                if (!found) myMesh.removeTriangle(*Triangle);
+            }
         }
     }
 
