@@ -1,0 +1,76 @@
+
+<GenCpp  Difndef="Define_NotCasa">
+
+<Verbatim File=".cpp">
+#include "StdAfx.h"
+#include "cParamCasa.h"
+</Verbatim>
+<Verbatim File=".h.cpp">
+// NOMORE ... 
+</Verbatim>
+
+   <ParamCasa  Nb="1" Class="true">
+
+        <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                         RefFile="ParamChantierPhotogram.xml"
+	> 
+	</DicoLoc>
+
+
+        <SectionInitModele Nb="+">
+           <Name Nb="1" Type="std::string"> </Name>  <!-- Identifiant -->
+	   <SectionLoadNuage Nb="1">
+               <NuageByImage Nb="+"  >
+<!--
+   Ancienne forme, on donnait des nuages sous forme d'image XYZMasq
+                     <NameMasq Nb="1" Type="std::string"> </NameMasq>
+                     <NameNuage Nb="1" Type="std::string"> </NameNuage>
+-->
+
+                     <NameMasqSup Nb="?"  Type="std::string"> </NameMasqSup>
+                     <NameXMLNuage Nb="1"  Type="std::string"> </NameXMLNuage>
+<!--
+-->
+
+               </NuageByImage>
+               <DistSep Nb="?" Type="double" Def="50.0"> </DistSep>  <!-- Ecartement entre les germes des "facetons" -->
+               <DistZone Nb="?" Type="double" Def="90.0"> </DistZone>  <!-- Taille du faceton, car ils se recouvrent -->
+               <SzW Nb="?" Type="Pt2di"> </SzW>  <!-- Pour fenetre de visualisation -->
+	   </SectionLoadNuage>
+
+           <SectionEstimSurf Nb="1">
+                <TypeSurf Nb="1" Type="eTypeSurfaceAnalytique"> </TypeSurf>
+                <NbRansac Nb="?" Type="int" Def="500"> </NbRansac>
+                <OriPts Nb="?" Type="std::string">  </OriPts>
+                <PtsSurf Nb="?" Type="std::string">  </PtsSurf>
+           </SectionEstimSurf>
+        </SectionInitModele>
+
+        <CasaSectionCompensation Nb="1">
+            <CasaEtapeCompensation Nb="*">
+<!--
+                 <Sigma  Nb="*" Type="double"> </Sigma>
+-->
+                 <NbIter Nb="?" Type="int" Def="1"> </NbIter>
+                 <Export Nb="?" Type="std::string"> </Export>
+            </CasaEtapeCompensation>
+            
+            <!-- Chaque facette vote pour orienter la surface, normalement 
+             elle devraient toute voter dans le meme sens, ce que l'on verifie avec
+             une certaine tolerance -->
+
+             <PercCoherenceOrientation Nb="?" Type="double" Def="95.0"> </PercCoherenceOrientation>
+        </CasaSectionCompensation>
+
+
+        <DirectoryChantier Nb="1" Type="std::string"></DirectoryChantier>
+       
+   </ParamCasa>
+
+
+
+<Verbatim File=".h.cpp">
+// };
+</Verbatim>
+
+</GenCpp>
