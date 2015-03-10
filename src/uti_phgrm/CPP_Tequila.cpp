@@ -104,6 +104,13 @@ typedef enum
   eLastTM
 } eTequilaMode;
 
+typedef enum
+{
+    eAngle,
+    eStretch,
+    eLastTC
+} eTequilaCrit;
+
 std::string eToString(const eTequilaMode & aVal)
 {
    if (aVal==eBasic)
@@ -111,6 +118,17 @@ std::string eToString(const eTequilaMode & aVal)
    if (aVal==ePack)
       return  "ePack";
  std::cout << "Enum = eTequilaMode\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+std::string eToString(const eTequilaCrit & aVal)
+{
+   if (aVal==eAngle)
+      return  "eAngle";
+   if (aVal==eStretch)
+      return  "eStretch";
+ std::cout << "Enum = eTequilaCrit\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
 }
@@ -124,6 +142,7 @@ int Tequila_main(int argc,char ** argv)
     double aAngleMin = 90.f;
     bool aBin = true;
     std::string aMode = "Pack";
+    std::string aCrit = "Angle";
 
     bool debug = false;
     float defValZBuf = 1e9;
@@ -142,6 +161,7 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
                             << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=90)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
+                            << EAM(aCrit,"Crit", true, "Texture choosing criterion (def = Angle)", eSAM_None, ListOfVal(eLastTC))
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -160,8 +180,10 @@ int Tequila_main(int argc,char ** argv)
 
     StdCorrecNameOrient(aOri,aDir);
 
-    float threshold = cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
-    //float threshold = 1e30;
+    float threshold = 0.f;
+
+    if (aCrit == "Angle") threshold = cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
+    else if (aCrit == "Stretch") threshold = 1e30;
     //cout << "threshold=" << threshold << endl;
 
     std::vector<CamStenope*> ListCam;
@@ -225,25 +247,64 @@ int Tequila_main(int argc,char ** argv)
             vector <Pt3dr> Vertex;
             Triangle->getVertexes(Vertex);
 
-            Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
-            Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
-            Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+            Pt2dr D = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+            Pt2dr E = Cam->R3toF2(Vertex[1]);
+            Pt2dr F = Cam->R3toF2(Vertex[2]);
 
-            if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
+            if (Cam->IsInZoneUtile(D) && Cam->IsInZoneUtile(E) && Cam->IsInZoneUtile(F))
             {
-                /*Pt2dr A = Pt2 - Pt1;
-                Pt2dr B = Pt3 - Pt1;
-                double A2 = square_euclid(A);
-                double B2 = square_euclid(B);
-                double AB = scal(A, B);
+                double criter = threshold;
 
-                double PScalnew = A2 + B2 - sqrt( (A2 - B2) + 4.f*AB*AB );*/
-                double PScalnew = scal(Triangle->getNormale(true), Cam->DirK());
-                //cout << "scal= " << PScalnew << endl;
-
-                if((PScalnew<Triangle->getScal()))        //On garde celle pour laquelle le PS est le plus fort
+                if (aCrit == "Stretch")
                 {
-                    Triangle->setScal(PScalnew);
+                    Pt2dr v1(Vertex[1].x - Vertex[0].x, Vertex[1].y - Vertex[0].y);
+                    Pt2dr v2(Vertex[2].x - Vertex[0].x, Vertex[2].y - Vertex[0].y);
+
+                    double norme = ElMax(euclid(v1), euclid(v2));
+
+                    Pt2dr v1n = v1 / norme;
+                    Pt2dr v2n = v2 / norme;
+
+                    //coordonnees du point C dans le plan du triangle (repere orthonormé defini par Ox = BA )
+                    double x = scal(v1n, v2n);
+                    double y = sin(acos(x));
+
+                    //AB = B(1,0) - A(0,0)
+                    //AC = C(x,y) - A(0,0)
+
+                    Pt2dr DE (E - D);
+                    Pt2dr DF (F - D);
+
+                    double det = DE.x * DF.y - DF.x*DE.y;
+
+                    double ni00 =  DF.y / det;
+                    double ni10 = -DF.x / det;
+                    double ni01 = -DE.y / det;
+                    double ni11 =  DE.x / det;
+
+                    //Coefficients de l'affinite
+                    Pt2dr aU (ni00 , x*ni00 + y*ni10);
+                    Pt2dr aV (ni01 , x*ni01 + y*ni11);
+
+                    double aU2 = square_euclid(aU);
+                    double aV2 = square_euclid(aV);
+                    double aUV = scal(aU,aV);
+
+                    //le coef d'etirement est sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2)
+                    // mais on supprime les calculs superflus => sqrt et /2 strictement monotones
+
+                    criter = aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV));
+
+                    //cout << "criter = " << criter << endl;
+                }
+                else if (aCrit == "Angle")
+                {
+                    criter = scal(Triangle->getNormale(true), Cam->DirK());
+                }
+
+                if((criter < Triangle->getCriter()))
+                {
+                    Triangle->setCriter(criter);
                     Triangle->setTextureImgIndex(aK);
                 }
             }
