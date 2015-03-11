@@ -174,7 +174,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
+        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP))
                     << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOriFull,"Orientation", eSAM_IsExistDirOri),
         LArgMain()
@@ -630,11 +630,11 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
         argc,argv,
         LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)"),
         LArgMain()
-                    << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
+                    << EAM(mDS,"DS",true,"Downscale, Def=1.0")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
-                    << EAM(mPat,"Pat",true,"Patter, def = all existing clouds")
-                    << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to rerun only ortho)")
-                    << EAM(mDoOrtho,"DoOrttho",true,"Generate ortho photo,  def=false")
+                    << EAM(mPat,"Pat",true,"Pattern, def = all existing clouds")
+                    << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to return only ortho)")
+                    << EAM(mDoOrtho,"DoOrtho",true,"Generate ortho photo,  def=false")
    );
 
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
