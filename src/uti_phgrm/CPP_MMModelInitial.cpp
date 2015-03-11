@@ -50,7 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                        */
 /*                                                                        */
 /**************************************************************************/
-                 
+
 // cMMByImNM  :  MicMac By Image Name Manipulator
 
 
@@ -73,7 +73,7 @@ void AddistofName(const std::string & aFile,const cInterfChantierNameManipulateu
     if (ELISE_fp::exist_file(aFile))
     {
         cListOfName aL0 =  StdGetFromPCP(aFile,ListOfName);
-        for 
+        for
         (
            std::list<std::string>::const_iterator itS= aL0.Name().begin();
            itS != aL0.Name().end();
@@ -98,7 +98,7 @@ std::string cMMByImNM::NameOfType(eTypeMMByImNM aType)
 {
     switch (aType)
     {
-        case eTMIN_Depth : return  "Depth"  ; 
+        case eTMIN_Depth : return  "Depth"  ;
         case eTMIN_Min   : return  "Min"    ;
         case eTMIN_Max   : return  "Max"    ;
         case eTMIN_Merge : return  "Merge"  ;
@@ -118,7 +118,7 @@ std::string DS2String(double aDS)
 
     std::string aStrDS = ToString(aDS);
 
-    if (aFrac==0) 
+    if (aFrac==0)
        aStrDS  = ToString(aIDS);
 
 
@@ -131,7 +131,7 @@ const std::string cMMByImNM::TheNamePimsEtat = "PimsEtat.xml";
 
 bool  cMMByImNM::StrIsPImsDIr(const std::string & aDir)
 {
-    return    ELISE_fp::exist_file(aDir+TheNamePimsFile) 
+    return    ELISE_fp::exist_file(aDir+TheNamePimsFile)
            && ELISE_fp::exist_file(aDir+TheNamePimsEtat);
 }
 
@@ -174,7 +174,7 @@ const cEtatPims & cMMByImNM::Etat() const
    return mEtats;
 }
 
-void  cMMByImNM::SetOriOfEtat(const std::string & anOri) 
+void  cMMByImNM::SetOriOfEtat(const std::string & anOri)
 {
    if (mEtats.NameOri().IsInit())
    {
@@ -235,8 +235,8 @@ cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,b
 {
      if (StrIsPImsDIr(aNameDirOri))
      {
-         static cElRegex aRegDS(PrefixMPI + "DS(.*)_(.*)",10); 
-         static cElRegex aRegR1(PrefixMPI + "(.*)",10); 
+         static cElRegex aRegDS(PrefixMPI + "DS(.*)_(.*)",10);
+         static cElRegex aRegR1(PrefixMPI + "(.*)",10);
 
          std::string aFullDir=SuppressCarDirEnd(aNameDirOri);
          std::string aDirGlob,aDirLoc;
@@ -270,7 +270,7 @@ cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,b
      if (! Svp)
      {
          std::cout << "For, Dir=" << aNameDirOri << " DS=" << aDS << "\n";
-         ELISE_ASSERT(false,"Cannot find PMIS Directory");
+         ELISE_ASSERT(false,"Cannot find PIMs Directory");
      }
 
      return 0;
@@ -307,15 +307,15 @@ const std::string & cMMByImNM::FullDir() const
 {
     return mFullDir;
 }
-const std::string & cMMByImNM::NameType() const 
+const std::string & cMMByImNM::NameType() const
 {
     return mNameType;
 }
-const std::string & cMMByImNM::DirGlob() const 
+const std::string & cMMByImNM::DirGlob() const
 {
     return mDirGlob;
 }
-const std::string & cMMByImNM::DirLoc() const 
+const std::string & cMMByImNM::DirLoc() const
 {
     return mDirLoc;
 }
@@ -340,7 +340,7 @@ int MMEnvStatute_main(int argc,char ** argv)
    (
         argc,argv,
         LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)",eSAM_IsPatFile),
-        LArgMain()  
+        LArgMain()
    );
 
    std::string aDir,aNamIm;
@@ -369,16 +369,16 @@ int MMEnvStatute_main(int argc,char ** argv)
       std::string aNameProfDepth = aGlobIN->NameFileProf(eTMIN_Depth,aNamIm);
       std::string aNameMaqDepth = aGlobIN->NameFileMasq(eTMIN_Depth,aNamIm);
 
-      
+
       Tiff_Im aFileProfEnvOut = aFileProfEnvIn.Dupl(aGlobIN->NameFileProf(aModIN,aNamIm));
       Tiff_Im aFileMasqEnvOut = aFileProfEnvOut.Dupl(aGlobIN->NameFileMasq(aModIN,aNamIm));
-     
+
       int aSign= (aModeMax ? 1 : -1);
 
       float aVDef = -1e5;
       Symb_FNum  aFMasq (Tiff_Im(aNameMaqDepth.c_str()).in(0));
       Fonc_Num  aFDepth = aSign * Tiff_Im(aNameProfDepth.c_str()).in(aSign*aVDef);
-     
+
       aFDepth = aFMasq * aFDepth + (1-aFMasq) * aVDef;
       aFDepth = rect_max(aFDepth,5) + 5;
       aFDepth = Max(aFDepth,aFileMasqEnvIn.in());
@@ -439,7 +439,7 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
         ELISE_COPY(aImMasq.all_pts(),anImInit.in()!=0,aImMasq.out());
         ELISE_COPY(aImMasq.border(1),0,aImMasq.out());
 
- 
+
         cParamFiltreDepthByPrgDyn aParam =  StdGetFromSI(Basic_XML_MM_File("DefFiltrPrgDyn.xml"),ParamFiltreDepthByPrgDyn);
         aParam.CostTrans().SetVal(aCostTrans);
         aParam.CostRegul().SetVal(aCostRegul);
@@ -558,7 +558,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
                     << EAM(mOut,"Out",true,"Target Dir in Glob Mode")
                     << EAM(mGlob,"Glob",true,"Globale mode (else output in each image dir)")
    );
-    
+
 
    if (! (mCalledByP))
    {
@@ -580,7 +580,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
            const std::string & aCom = itS->first;
            const std::string & aNameIm = itS->second;
            bool aDoIt = true;
-           
+
            if (mJmp>1)
            {
               tSomAWSI * aSom = ImOfName(aNameIm);
@@ -637,7 +637,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    {
           std::string aCom =    MM3dBinFile("MMInitialModel ")
                               + mEASF.mFullName + " "
-                              + Ori() 
+                              + Ori()
                               + std::string(" DoPyram=false DoMatch=false  Do2Z=false   ExportEnv=true  Zoom=")
                               + ToString(aZoom);
           if (EAMIsInit(&Masq3D)) aCom = aCom + " Masq3D=" + Masq3D;
@@ -654,7 +654,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
               aEnvMax = Im2D_REAL4::FromFileStd(aNameMax);
               aEnvMin = Im2D_REAL4::FromFileStd(aNameMin);
               aMasqEnv = Im2D_U_INT1::FromFileStd(aNameMasqEnv);
-            
+
               aDepthMerg = Im2D_REAL4::FromFileStd(aNameMerge);
               aMasqMerge = Im2D_U_INT1::FromFileStd(aNameMasqMerge);
               ELISE_COPY(aMasqMerge.all_pts(),aMasqMerge.in()*aCpt,aMasqMerge.out());
@@ -718,7 +718,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
    }
 
 
-   
+
    if (mAutoPurge)
    {
 
@@ -751,9 +751,9 @@ void  cAppli_Enveloppe_Main::MakePly(const std::string & aNN)
 
 void cAppli_Enveloppe_Main::DownScaleNuage(eTypeMMByImNM aType)
 {
-   
-    std::string aCom =     MM3dBinFile("ScaleNuage") 
-                        + " " + mMMINS1->NameFileXml(aType,mNameIm)  
+
+    std::string aCom =     MM3dBinFile("ScaleNuage")
+                        + " " + mMMINS1->NameFileXml(aType,mNameIm)
                         + " " + mMMIN->NameFileEntete(aType,mNameIm)
                         + " " + ToString(mScaleNuage)
                         + " InDirLoc=false"
