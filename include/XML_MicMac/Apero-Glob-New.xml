@@ -1,0 +1,772 @@
+<!--
+    Innovation
+-->
+
+<Global >
+   <ParamApero>
+
+      <DicoLoc>
+
+
+               <Symb>  TolLinkPPCD=0.2 </Symb> 
+               <Symb>  SeuilFE=16.5 </Symb> 
+               <Symb>  TetaLVM=0.01 </Symb>
+               <Symb>  CentreLVM=0.1 </Symb>
+               <Symb>  IntrLVM=0.1 </Symb>
+               <Symb>  RayFEInit=0.85 </Symb>
+               <Symb>  CalibIn="ABC" </Symb>
+               <Symb>  InitCamSpecif=false </Symb>
+               <Symb>  InitCamBDD=false </Symb>
+               <Symb>  InitCamCenter=true </Symb>
+
+<!--
+               <Symb>  FocMin=0 </Symb>
+               <Symb>  FocMax=10000 </Symb>
+               <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
+-->
+
+               <Symb>  SetImInit="XXXX" </Symb>
+
+               <Symb>  FileCamInit=InitCamCenter.xml </Symb>
+               <Symb>  AeroIn=XXXXXX </Symb>
+               <Symb>  AeroOutGrid=-Grid${AeroOut} </Symb>
+               <Symb>  RayonInvGrid=0.95  </Symb>
+
+               <Symb>  ModeCDD=eCDD_Jamais </Symb>
+
+               <Symb> xPRelPP=0.5  </Symb>
+               <Symb> yPRelPP=0.5  </Symb>
+               <Symb> PropDiagU=1.0  </Symb>
+               <Symb> SauvAutom=""  </Symb>
+               <Symb> MOI=false  </Symb>
+               <Symb> DebugPbCondFaisceau=false  </Symb>
+
+               <Symb> ValDec=eLiberte_Phgr_Std_Dec </Symb>
+               <Symb> ValAff=eLiberte_Phgr_Std_Aff </Symb>
+               <Symb> RapTxt=""   </Symb>
+               <Symb> PoseFigee="HUyZZ9_m@@9hyY" </Symb>
+               <Symb> WithPoseFigee=false </Symb>
+
+               <Symb>   Fast=false </Symb>
+               <Symb>   AutoCal=false </Symb>
+               <Symb>   CalFigee=false </Symb>
+
+               <Symb>  DoPP=true    </Symb>
+               <Symb>  DoCD=true    </Symb>
+               <Symb>  SetHom=""   </Symb>
+
+               <Symb>  UseFilterIm=false   </Symb>
+               <Symb>  ImMin=XXXX   </Symb>
+               <Symb>  ImMax=XXXX   </Symb>
+
+               <Symb>  LibFoc=XXXX    </Symb>
+               <Symb>  LibPP=XXXX    </Symb>
+               <Symb>  LibCD=XXXX    </Symb>
+               <Symb>  LibDec=XXXX    </Symb>
+
+               <Symb>  EcartMaxFin=5.0    </Symb>
+               <Symb>  DoSauvAutom=true    </Symb>
+    
+               <Symb>  HasModeleAdd=false  </Symb>
+               <Symb>  ModeleAdditionnel=XXXXX  </Symb>
+               <eSymb>  DoDR1=  SupEq ${DegRadMax} 1 </eSymb>
+               <eSymb>  DoDR2=  SupEq ${DegRadMax} 2 </eSymb>
+               <eSymb>  DoDR3=  SupEq ${DegRadMax} 3 </eSymb>
+               <eSymb>  DoDR4=  SupEq ${DegRadMax} 4 </eSymb>
+               <eSymb>  DoDR5=  SupEq ${DegRadMax} 5 </eSymb>
+               <eSymb>  DoDR6=  SupEq ${DegRadMax} 6 </eSymb>
+               <eSymb>  DoDR7=  SupEq ${DegRadMax} 7 </eSymb>
+               <eSymb>  DoDR8=  SupEq ${DegRadMax} 8 </eSymb>
+               <eSymb>  DoDR9=  SupEq ${DegRadMax} 9 </eSymb>
+               <eSymb>  DoDR10=  SupEq ${DegRadMax} 10 </eSymb>
+               <eSymb>  DoPPorCD= Or ${DoPP} ${DoCD}  </eSymb>
+               <eSymb>  DoPPandCD= And  ${DoPP} ${DoCD}  </eSymb>
+
+               <eSymb>  DoPolyn1=  SupEq ${DegGen} 1 </eSymb>
+               <eSymb>  DoPolyn2=  SupEq ${DegGen} 2 </eSymb>
+               <eSymb>  DoPolyn3=  SupEq ${DegGen} 3 </eSymb>
+               <eSymb>  DoPolyn4=  SupEq ${DegGen} 4 </eSymb>
+               <eSymb>  DoPolyn5=  SupEq ${DegGen} 5 </eSymb>
+               <eSymb>  DoPolyn6=  SupEq ${DegGen} 6 </eSymb>
+               <eSymb>  DoPolyn7=  SupEq ${DegGen} 7 </eSymb>
+
+               <eSymb> WithNoPoseFigee=! ${WithPoseFigee} </eSymb>
+               <eSymb> IntrLVM1000=* 1000 ${IntrLVM} </eSymb>
+               <eSymb>  AffineAll=! ${Fast}  </eSymb>
+               <eSymb>  NbMax0=? ${Fast} 3 10  </eSymb>
+
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
+            </BDD_PtsLiaisons>
+
+            <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <SeuilAutomFE>  ${SeuilFE} </SeuilAutomFE>
+
+             <CalibrationCameraInc>
+                   <Name> GenerateKC-Others   </Name>
+                   <CalValueInit>
+                         <CalibAutomNoDist>
+                              <!-- <TypeDist> eCalibAutomRadial </TypeDist> -->
+                              <TypeDist> ${ModeleCam} </TypeDist>
+                              <PositionRelPP> ${xPRelPP} ${yPRelPP} </PositionRelPP>
+                         </CalibAutomNoDist>
+
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                   <#WHEN VTEST=${HasModeleAdd}>
+                        <DistortionAddInc>
+                               <ModUnif>
+                                     <TypeModele> ${ModeleAdditionnel}  </TypeModele>
+                               </ModUnif>
+                        </DistortionAddInc>
+                   </#WHEN>
+
+
+                   <CalibPerPose>
+                        <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                        <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${CalibIn}/AutoCal@.xml  </KeyInitFromPose>
+                    </CalibPerPose>
+                   <RayMaxUtile>  ${RayFEInit} </RayMaxUtile>
+                   <RayIsRelatifDiag  > true </RayIsRelatifDiag>
+                   <RayApplyOnlyFE > true </RayApplyOnlyFE>
+                   <PropDiagUtile> ${PropDiagU} </PropDiagUtile>
+              </CalibrationCameraInc>
+
+
+<!--
+              <IncludeFileLoc>  ${FileCamInit} </IncludeFileLoc>
+-->
+              <#WHEN VTEST=${InitCamCenter}>
+                   <PoseCameraInc>
+                          <PatternName>   ${SetIm}   </PatternName>
+                          <AutomGetImC>   Id_Pastis_Hom       </AutomGetImC>
+                          <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                          <PosValueInit>
+                              <PosId> ### </PosId>
+                          </PosValueInit>
+                   </PoseCameraInc>
+              </#WHEN>
+              <#WHEN VTEST=${InitCamSpecif}>
+                   <PoseCameraInc>
+                         <PatternName>   ${SetImInit}   </PatternName>
+                         <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                         <PosValueInit>
+                             <PosId> ### </PosId>
+                         </PosValueInit>
+                    </PoseCameraInc>
+              </#WHEN>
+              <#WHEN VTEST=${InitCamBDD}>
+                   <PoseCameraInc>
+                         <PatternName>    ${SetIm} </PatternName>
+                         <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                         <Filter>
+                             <KeyExistingFile>
+                                 <KeyAssoc> NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+                                 <RequireExist> true </RequireExist>
+                                 <RequireForAll>  true</RequireForAll>
+                            </KeyExistingFile>
+                         </Filter>
+                         <PosValueInit>
+                             <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                         </PosValueInit>
+                   </PoseCameraInc>
+              </#WHEN>
+
+
+              <PoseCameraInc>
+	           <PatternName>  ${SetIm}    </PatternName>
+                   <#WHEN VTEST=${UseFilterIm}>
+                      <Filter>
+                           <Min> ${ImMin} </Min>
+                           <Max> ${ImMax}</Max>
+                      </Filter>
+                   </#WHEN>
+
+	           <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                   <InitNow> false </InitNow>
+                   <MEP_SPEC_MST>
+                           <Show> true </Show>
+                           <MontageOnInit> ${MOI} </MontageOnInit>
+                   </MEP_SPEC_MST>
+
+		   <PosValueInit>
+		        <PoseFromLiaisons>
+                             <LiaisonsInit>
+                                 <NameCam> ####  </NameCam>
+				 <IdBD> Id_Pastis_Hom  </IdBD>
+                             </LiaisonsInit>
+		        </PoseFromLiaisons>
+		   </PosValueInit>
+              </PoseCameraInc>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXX </DirectoryChantier>
+             <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
+             <SauvAutom>  ${SauvAutom} </SauvAutom>
+             <SauvAutomBasic>  ${DoSauvAutom} </SauvAutomBasic>
+
+             <DebugPbCondFaisceau> ${DebugPbCondFaisceau} </DebugPbCondFaisceau>
+
+        </SectionChantier>
+
+        <SectionSolveur>
+              <ModeControleDescDic> ${ModeCDD} </ModeControleDescDic>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                   <IterationsCompensation>
+
+                       <SLMEtape> 
+                           <RappelOnAngles>
+                                <ParamF >
+                                    <PatternNameApply> .* </PatternNameApply>
+                                    <Incertitude> ${TetaLVM} </Incertitude>
+                                    <OnCur> true </OnCur>  
+                                 </ParamF>
+                                <TetaApply> 0 </TetaApply>
+                                <TetaApply> 1 </TetaApply>
+                                <TetaApply> 2 </TetaApply>
+                          </RappelOnAngles>
+                          <RappelOnCentres>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${CentreLVM} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                                <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                          </RappelOnCentres>
+                          <RappelOnIntrinseque>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${IntrLVM} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                          </RappelOnIntrinseque>
+                       </SLMEtape>
+
+
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eAllParamFiges  </Val>
+                          </ContraintesCamerasInc>
+                           <ContraintesPoses>
+                                   <NamePose>   ${PoseFigee} </NamePose>
+                                   <ByPattern>  true </ByPattern>
+                                   <Val>      ePoseFigee   </Val>
+                          </ContraintesPoses>
+                          <#WHEN VTEST=${WithNoPoseFigee}>
+                              <ContraintesPoses>
+                                   <NamePose>   0 </NamePose>
+                                   <Val>      ePoseFigee   </Val>
+                               </ContraintesPoses>
+
+                              <ContraintesPoses>
+                                   <NamePose>   1     </NamePose>
+                                   <Val>      ePoseBaseNormee   </Val>
+                                   <PoseRattachement>   0 </PoseRattachement>
+                                </ContraintesPoses>
+                          </#WHEN>
+ 
+                       </SectionContraintes>
+                       <Pose2Init>
+                             <ProfMin> [2,${VitesseInit}] </ProfMin>
+                             <Show> true </Show>
+                       </Pose2Init>
+                    </IterationsCompensation>
+
+
+                    <!-- Fermeture de la boucle -->
+                    <IterationsCompensation> 
+                        <CtrlTimeCompens>
+                              <NbMin > 2 </NbMin>
+                              <NbMax>  ${NbMax0}       </NbMax>
+                              <SeuilEvolMoy > 1e-5  </SeuilEvolMoy>
+                        </CtrlTimeCompens>
+                    </IterationsCompensation>
+
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 100 </EcartMax>
+                                  <SigmaPond> 5 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <#WHEN  VTEST=${AutoCal}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eAllParamLibres      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <CtrlTimeCompens>
+                                    <NbMax > 3 </NbMax>
+                                    <SeuilEvolMoy> 1e10  </SeuilEvolMoy>
+                              </CtrlTimeCompens>
+                         </IterationsCompensation>
+                    </#WHEN>
+                    <#WHEN  VTEST=${CalFigee}>
+                         <IterationsCompensation>
+                              <CtrlTimeCompens>
+                                    <NbMax > 3 </NbMax>
+                                    <SeuilEvolMoy> 1e10  </SeuilEvolMoy>
+                              </CtrlTimeCompens>
+                         </IterationsCompensation>
+                    </#WHEN>
+
+
+                    <!-- D'abord 2 Coeff radiaux, car souvent focal instable -->
+                    <#WHEN VTEST=${DoDR1}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR1      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR1 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoDR2}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR2      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR2 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+
+                    <!-- Liberer la focale qui est souvent assez fausse -->
+                    <#WHEN VTEST=${LibFoc}>
+                         <IterationsCompensation>
+
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteFocale_1   </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  Lib FOC </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <!-- Liberer le point principal, aussi assez faux... -->
+                    <#WHEN VTEST=${LibPP}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLib_PP_CD_10   </Val>
+                                    </ContraintesCamerasInc>
+                                    <#WHEN VTEST=${LibCD}>
+                                         <ContraintesCamerasInc>
+                                              <Val> eLib_PP_CD_Lies      </Val>
+                                              <TolContrainte>  1e-5 </TolContrainte>
+                                         </ContraintesCamerasInc>
+                                     </#WHEN>
+                              </SectionContraintes>
+                              <Messages>  Lib PP </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR3}>
+                         <IterationsCompensation>
+                              <SetRayMaxUtileCalib>
+                                   <Name > .*</Name>
+                                   <Ray > 0.90 </Ray>
+                                   <IsRelatifDiag > true </IsRelatifDiag>
+                                   <ApplyOnlyFE  > true </ApplyOnlyFE>
+                              </SetRayMaxUtileCalib>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR3      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR3 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${LibCD}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <#IF VTEST=${LibPP}>
+                                             <Val>  eLib_PP_CD_11    </Val>
+                                             <Val>  eLib_PP_CD_01    </Val>
+                                        </#IF>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  CD </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoPolyn1}>
+                         <IterationsCompensation>
+                              <SetRayMaxUtileCalib>
+                                   <Name > .*</Name>
+                                   <Ray > 0.95 </Ray>
+                                   <IsRelatifDiag > true </IsRelatifDiag>
+                                   <ApplyOnlyFE  > true </ApplyOnlyFE>
+                              </SetRayMaxUtileCalib>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_Phgr_Std_Aff      </Val>
+                                        <Val> eLiberteParamDeg_1      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn1 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${LibDec}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_Dec1      </Val>
+                                        <Val> eLiberte_Phgr_Std_Dec      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Decentrik </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR4}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR4      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR4 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoDR5}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR5      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR5 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+
+                    <#WHEN VTEST=${DoPolyn2}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_2      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn2 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn3}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_3      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn3 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn4}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_4      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn4 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn5}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_5      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn5 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn6}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_6      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn6 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+                    <#WHEN VTEST=${DoPolyn7}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_7      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn7 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR6}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR6      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR6 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR7}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR7      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR7 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR8}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR8      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR8 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+                    <#WHEN VTEST=${DoDR9}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_DR9      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  DR9 </Messages>
+                         </IterationsCompensation>
+                         <#WHEN VTEST=${AffineAll}> <IterationsCompensation> </IterationsCompensation> </#WHEN>
+                    </#WHEN>
+
+
+
+
+                    <IterationsCompensation> </IterationsCompensation> 
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                  <EcartMax> 50 </EcartMax>
+                                  <SigmaPond> 4 </SigmaPond>
+                                  <ModePonderation> eL1Secured </ModePonderation>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+
+                       <SLMEtape> 
+                           <RappelOnAngles>
+                                <ParamF >
+                                    <PatternNameApply> .* </PatternNameApply>
+                                    <Incertitude> ${TetaLVM} </Incertitude>
+                                    <OnCur> true </OnCur>  
+                                 </ParamF>
+                                <TetaApply> 0 </TetaApply>
+                                <TetaApply> 1 </TetaApply>
+                                <TetaApply> 2 </TetaApply>
+                          </RappelOnAngles>
+                          <RappelOnCentres>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${CentreLVM} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                                <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                          </RappelOnCentres>
+                          <RappelOnIntrinseque>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${IntrLVM1000} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                          </RappelOnIntrinseque>
+                       </SLMEtape>
+
+
+                   <IterationsCompensation>  <MultSLMEtape> 0.6 </MultSLMEtape> </IterationsCompensation>
+                   <#WHEN VTEST=${AffineAll}>
+                       <IterationsCompensation>  <MultSLMEtape> 0.31 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.17 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.1 </MultSLMEtape> </IterationsCompensation>
+
+                       <IterationsCompensation>  <MultSLMEtape> 0.06 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.031 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.017 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.01 </MultSLMEtape> </IterationsCompensation>
+
+                       <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.0031 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.0017 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.001 </MultSLMEtape> </IterationsCompensation>
+                       <IterationsCompensation>  <MultSLMEtape> 0.006 </MultSLMEtape> </IterationsCompensation>
+                   </#WHEN>
+
+
+
+		    <SectionObservations>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> ${EcartMaxFin} </EcartMax>
+                              </Pond>
+                          </ObsLiaisons>
+                          <TxtRapDetaille>
+                               <NameFile> ${RapTxt}</NameFile>
+                         </TxtRapDetaille>
+		    </SectionObservations>
+
+	      </EtapeCompensation>
+
+	      <EtapeCompensation>
+
+
+                   <#IF VTEST=${AffineAll}>
+                        <MultSLMEtape> 1e-7 </MultSLMEtape>
+                        <MultSLMEtape> 1e-9   </MultSLMEtape>
+                   </#IF>
+
+                   <IterationsCompensation> 
+                        <#IF VTEST=${AffineAll}>
+                              <CtrlTimeCompens>
+                                    <NbMin > 3 </NbMin>
+                                    <NbMax>    10       </NbMax>
+                                    <SeuilEvolMoy > 1e-10  </SeuilEvolMoy>
+                                    <AutoAdaptLVM>
+                                         <Mult> 1e-2  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
+                                         <ModeMin> true </ModeMin>
+                                    </AutoAdaptLVM>
+                              </CtrlTimeCompens>
+                              <CtrlTimeCompens>
+                                    <NbMin > 0 </NbMin>
+                                    <NbMax>    5      </NbMax>
+                                    <SeuilEvolMoy > 1e-5  </SeuilEvolMoy>
+                              </CtrlTimeCompens>
+                        </#IF>
+                   </IterationsCompensation>
+
+
+		    <SectionObservations>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> ${EcartMaxFin} </EcartMax>
+                              </Pond>
+                          </ObsLiaisons>
+                          <TxtRapDetaille>
+                               <NameFile> ${RapTxt}</NameFile>
+                         </TxtRapDetaille>
+		    </SectionObservations>
+
+                    <SectionExport>
+                            <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
+                                <FileExternIsKey> true </FileExternIsKey>
+                            </ExportPose>
+                             <ExportCalib>
+                                 <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                 <KeyIsName> false </KeyIsName>
+                            </ExportCalib>
+                    </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
