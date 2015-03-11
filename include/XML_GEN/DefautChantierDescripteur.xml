@@ -1,0 +1,2883 @@
+<!--
+   Pour ne pas l'oublier : 
+      Un exemple avec utilisation des fonctionnalites arithmetique
+                          <CalcName>  IR$%7+10+1.tif  </CalcName> 
+
+ ajoute 10 a $1 et l'ecrit sur 7 caracteres
+
+                 (.*)_(.)x[0-9]{3}_[0-9]{4,5}
+
+-->
+
+
+<Global  Subst="@$#1">
+
+  <NameDeclaration
+       NameDecl="@$#1"
+
+
+       CannonPatternNumero="([0-9]{4})"
+
+       NikonPatternNumero="([0-9]{4})"
+
+
+       TifPost="tif"
+
+       XVertStd="0"
+       YVertStd="0"
+       ZVertStd="-1"
+       VerticaleStandard="${XVertStd} ${YVertStd} ${ZVertStd}"
+
+       PNumCV2="[0-9]{2,3}_[0-9]{4,5}"
+       PostFixImPoly="(|\.tif|_8Bits\.tif)"
+       PostFix8BImPoly="_8Bits\.tif"
+       EF=" *-?[0-9]+\\.?[0-9]*"
+       EIU="[0-9]+"
+       EIS="-?${EIU}"
+       ID=" *[0-9]*[a-z,A-Z][0-9,a-z,A-Z,_]*"
+  >
+
+  </NameDeclaration>
+
+<ChantierDescripteur>
+
+<!--  ***********************************************************
+*                                                               *
+*       NEW and (hopefully) definitive systems of Keys  :       *
+*                                                               *
+*           - parametrized                                      *
+*           - conserve the extension in created directories     *
+*      NKS = NEW KEY STANDARD                                   *
+*                                                               *
+*                                                               *
+ *********************************************************** -->
+
+<!--   HOMOGRAPHY-COMPUTING
+
+    <Symb>  Tooooooo=XxX </Symb>
+-->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> RHH#1/$1/#2$2.#3  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> RHH#1/(.*)/#2(.*)\.#3 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  NKS-Assoc-RHH-CplIm2Data </Key>
+	<SubDirAutoMake>  RHH#1</SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> #3/HomolH(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   RHH#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-RHH-Homol </Key>
+    </KeyedSetsOfNames>
+
+
+
+
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                SETS                               -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> #1  </PatternAccepteur>
+	  </Sets>
+          <Key> NKS-Set-OfPattern </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> #1  </PatternAccepteur>
+                 <PatternRefuteur> #2  </PatternRefuteur>
+	  </Sets>
+          <Key> NKS-Set-PatRefut </Key>
+    </KeyedSetsOfNames>
+
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <NamesFileLON> #1  </NamesFileLON>
+	  </Sets>
+          <Key> NKS-Set-OfFile </Key>
+    </KeyedSetsOfNames>
+
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> .*(Ch1|Ch1_16B|Ch3)\.tif  </PatternAccepteur>
+		 <SubDir>   Tmp-MM-Dir/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-TmpTifFile </Key>
+    </KeyedSetsOfNames>
+
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> Pastis(.*)/(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   Homol#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-Homol </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets>
+                 <PatternAccepteur> Pastis#3/(.*).(#2)  </PatternAccepteur>
+                 <SubDir>   Homol#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+          </Sets>
+          <Key> NKS-Set-Homol-Filtered </Key>
+    </KeyedSetsOfNames>
+<!--
+-->
+
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> Orientation-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Ori#1/ </SubDir>
+	  </Sets>
+          <Key> NKS-Set-Orient </Key>
+    </KeyedSetsOfNames>
+
+     <KeyedSetsOfNames>
+           <IsParametrized>  true </IsParametrized>
+           <Sets>
+                   <PatternAccepteur> Orientation-#2.xml  </PatternAccepteur>
+                   <SubDir>   Ori#1/ </SubDir>
+           </Sets>
+           <Key> NKS-Set-Orient-Filtered </Key>
+     </KeyedSetsOfNames>
+
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets>
+               <PatternAccepteur> #1  </PatternAccepteur>
+               <Filter>
+                     <FocMm> #2 #3 </FocMm>
+               </Filter>
+          </Sets>
+          <Key> NKS-Set-OfPatternAndFoc </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets>
+               <PatternAccepteur> #1  </PatternAccepteur>
+               <Filter>
+                     <Min> #2 </Min>
+                     <Max> #3 </Max>
+               </Filter>
+          </Sets>
+          <Key> NKS-Set-OfPatternAndInterv </Key>
+    </KeyedSetsOfNames>
+
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets>
+               <PatternAccepteur> #1  </PatternAccepteur>
+               <Filter>
+                     <FocMm> #2 #3 </FocMm>
+                     <Min> #4 </Min>
+                     <Max> #5 </Max>
+               </Filter>
+          </Sets>
+          <Key> NKS-Set-OfPatternAndFocAndInterv </Key>
+    </KeyedSetsOfNames>
+
+
+
+    <KeyedSetsOfNames>
+           <IsParametrized>  true </IsParametrized>
+           <Sets>
+                     <PatternAccepteur> #1  </PatternAccepteur>
+                     <Filter>
+                         <KeyExistingFile>
+                               <KeyAssoc>  NKS-Assoc-AddPostChExt@#2@tif  </KeyAssoc>
+                               <!-- Si faux, on requier la non existance -->
+                               <RequireExist> true </RequireExist>
+                               <RequireForAll> true </RequireForAll>
+                          </KeyExistingFile>
+                     </Filter>
+           </Sets>
+           <Key>  NKS-Set-OfExistingPlan </Key>
+    </KeyedSetsOfNames>
+
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                Calib Initiale                     -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  false </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-IsFishEye </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                PDS CHANNEL                        -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  NONE </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-SFS </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)(\.ply|_polyg3d\.xml|_selectionInfo\.xml) </PatternTransform>
+                <CalcName>  $1_polyg3d.xml </CalcName>
+            </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  NONE </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-CorrecMasq3D </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  [1,1,1,1,1,1,1,1,1,1,1,1] </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_1 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_2 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .*  </PatternTransform>
+                <CalcName>  1.0  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Pds-Channel_3 </Key>
+    </KeyedNamesAssociations>
+
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                ASSOCS                             -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)_Tile_[0-9]+_[0-9]+.tif  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+            </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)  </PatternTransform>
+                <CalcName>  NONE  </CalcName>
+            </Direct>
+        </Calcs>
+
+        <Key>   NKS-Assoc-Tile2File </Key>
+    </KeyedNamesAssociations>
+
+               <!--  ORIENTATIONS, HOMOLOGUES -->
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4})  </PatternTransform>
+                <CalcName>  $1.xml  </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-SpecifRaw </Key>
+    </KeyedNamesAssociations>
+
+               <!--  ORIENTATIONS, HOMOLOGUES -->
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/ImSec-$1.xml  </CalcName>
+            </Direct>
+            <Inverse>
+                <PatternTransform> Ori#1/ImSec-(.*).xml  </PatternTransform>
+                <CalcName>  $1  </CalcName>
+            </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-ImSec </Key>
+        <SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/Pt3dIm-$1.dat  </CalcName>
+            </Direct>
+            <Inverse>
+                <PatternTransform> Ori#1/Pt3dIm-(.*).dat  </PatternTransform>
+                <CalcName>  $1  </CalcName>
+            </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-Pts3dIm </Key>
+        <SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+  
+
+
+
+  
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                  <PatternTransform> Orientation-(.*).xml  </PatternTransform>
+                   <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Direct>
+                  <PatternTransform> (.*)  </PatternTransform>
+                   <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Ori2ImGen </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+    <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/Orientation-$1.xml  </CalcName>
+             </Direct>
+             <Inverse>
+                  <PatternTransform> Ori#1/Orientation-(.*).xml  </PatternTransform>
+                   <CalcName>  $1  </CalcName>
+             </Inverse>
+        </Calcs>
+
+
+        <Key>   NKS-Assoc-Im2Orient </Key>
+	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <!-- C'est quasiment la meme qie NKS-Assoc-Im2Orient,  mais pas SubDirAutoMake
+        pas tres elegant comme duplication, mais bon ....  -->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  #1$1/#2$1.#3  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform>#1(.*)/#2(.*).#3  </PatternTransform>
+                <CalcName>  $2  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-Im2NuageInit </Key>
+    </KeyedNamesAssociations>
+
+    <!-- C'est quasiment la meme qie NKS-Assoc-Im2Orient,  mais pas SubDirAutoMake
+        pas tres elegant comme duplication, mais bon ....  -->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/Orientation-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori#1/Orientation-(.*).xml  </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-SauvAutom-Assoc-Im2Orient </Key>
+    </KeyedNamesAssociations>
+
+
+
+            <!-- Bcp + rare, si on dois changer l'extension -->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.#2 </PatternTransform>
+                <CalcName>  Ori#1/Orientation-$1.#3.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori#1/Orientation-(.*)\.#3\.xml  </PatternTransform>
+                <CalcName>  $1.#2  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-Im2OrientChangExt </Key>
+	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> Homol#1/Pastis$1/$2.#2  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Homol#1/Pastis(.*)/(.*)\.#2 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  NKS-Assoc-CplIm2Hom </Key>
+	<SubDirAutoMake> Homol#1 </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+               <!--  Gestion des nom lies aux focales -->
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>   </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-StdIdCam </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>   </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-StdIdAdditionnelCam </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .*%([-,0-9,a-z,A-Z,_=:\-\.]+) </PatternTransform>
+                <CalcName>  #1$1#2  </CalcName>
+                <NameTransfo>
+                    <!-- Old Version -->
+                        <AddFocMul> 10 </AddFocMul>
+                    <!-- New Version -->
+                        <NewAddNameCam>  true </NewAddNameCam>   <!--   true si V>=1 -->
+                        <NewFocMul  >  1000 </NewFocMul>        <!--  1000 si >=1, 1 sinon -->
+                        <NewKeyId>   NKS-Assoc-StdIdCam </NewKeyId>
+                        <NewKeyIdAdd> NKS-Assoc-StdIdAdditionnelCam </NewKeyIdAdd>
+
+                 </NameTransfo>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-FromFocMm </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+
+        <Calcs>
+            <Direct>
+                <PatternTransform> TheKeyCalib_(.*) </PatternTransform>
+                <CalcName>  #1$1#2  </CalcName>
+             </Direct>
+        </Calcs>
+
+        <Calcs>
+            <Direct>
+                <PatternTransform> .*_([0-9]+) </PatternTransform>
+                <CalcName>  #1$1#2  </CalcName>
+             </Direct>
+        </Calcs>
+
+        <Calcs>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  #1-$0#2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-FromKeyCal </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+                 <!--     *   *   *   *   *   *   *   *   *    -->
+                 <!--    AJOUT DE POST ET PREFIX, MODIF EXT ... -->
+                 <!--     *   *   *   *   *   *   *   *   *    -->
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> $0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-Id </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  #1  </CalcName>
+             </Direct>
+             <Inverse>
+                <PatternTransform> #1 </PatternTransform>
+                <CalcName>  Cste-Is-Not-Invertible  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-Cste </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4}) </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-Prefix </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4}) </PatternTransform>
+                <CalcName>  $1#1.$2  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> (.*)#1\.([a-z,A-Z,0-9]{3,4}) </PatternTransform>
+                <CalcName>  $1.$2  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-AddPost </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4}) </PatternTransform>
+                <CalcName>  $1#1.tif </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-AddPost-tifExt </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4}) </PatternTransform>
+                <CalcName>  $1#1.#2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-AddPostChExt </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> #1(.*)\.#2 </PatternTransform>
+                <CalcName>  #3$1.#4  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> #3(.*)\.#4 </PatternTransform>
+                <CalcName>  #1$1.#2  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-ChangPrefixAndExt </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  #1$1.#2  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> #1(.*)#2 </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-AddPrePost </Key>
+    </KeyedNamesAssociations>
+
+
+    <!-- Pour les image de pyramide MicMac -->
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  #1/$1DeZoom#2.tif  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> #1/(.*)DeZoom#2.tif </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   NKS-Assoc-PyramMM </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([0-9,A-Z,a-z]{2,4}) </PatternTransform>
+                <CalcName>  #1/#2$1.tif  </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  #1/#2$1.tif  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   NKS-Assoc-AddDirAndPref </Key>
+        <SubDirAutoMake> #1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+        <!--  Gestion des focales a l'ancienne, pour chantier existant, 
+              focale pas dans xif et erreur de xif ;
+              Peut etre redefinie dans le MicMacLoc ... si necessaire
+         -->
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> F([0-9]+)_.*  </PatternTransform>
+                       <CalcName> $1 </CalcName>
+                 </Direct>
+             </Calcs>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> 0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-FOC </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> NO-CAM </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-CAM </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> NO-SZ </CalcName>
+                       <CalcName> NO-SZ </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-SZ </Key>
+    </KeyedNamesAssociations>
+
+    <!-- Pour le devlopt en 8 Bits :  Gama > 0 donne un gama, Gama < 0 Gama * dyn log  -->
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> 1.0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-Gama8Bits </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> 1.0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-EpsLog8Bits </Key>
+    </KeyedNamesAssociations>
+
+
+                  <!---    SPECIAL RESULTAT MICMAC -->
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> (.*).tif </PatternTransform>
+                       <CalcName> $1.xml </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-MM-Prof2MetaData </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> (.*)/Z_Num([0-9]+)_DeZoom([0-9]+)_(.*).tif </PatternTransform>
+                       <CalcName> $1/AutoMask_$4_Num_$2.tif </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-MM-Prof2AutoMask </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> (.*)/Z_Num([0-9]+)_DeZoom([0-9]+)_(.*).tif </PatternTransform>
+                       <CalcName> $1/Correl_$4_Num_$2.tif </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-MM-Prof2Correl </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+            <IsParametrized>  true </IsParametrized>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform>(.*[^0-9])([0-9]{#1,})([^0-9].*) </PatternTransform>
+                       <CalcName> $1 </CalcName>
+                       <CalcName> $2 </CalcName>
+                       <CalcName> $3 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Extract-Single-Num </Key>
+    </KeyedNamesAssociations>
+
+
+
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--    ANCIEN ENCORE UTILISES   ?????                 -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+<!--
+-->
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+                <CalcName> Homol/Hom_$1-$2.xml  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Homol/Hom_(.*)-(.*)\.xml </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  Key-Assoc-StdHom </Key>
+	<SubDirAutoMake> Homol </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+        <!-- ***********************************************   -->
+        <!--                                                   -->
+        <!--                RELATIONS                          -->
+        <!--                                                   -->
+        <!-- ***********************************************   -->
+
+    <KeyedSetsORels>
+       <IsParametrized>  true </IsParametrized>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  #1   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+                <Circ>       false  </Circ>
+
+                <Filtre>
+                     <FiltreByRelSsEch>
+                        <KeySet >  NKS-Set-Homol@_SRes@dat         </KeySet>
+                        <KeyAssocCple>  NKS-Assoc-CplIm2Hom@_SRes@dat   </KeyAssocCple>
+                        <SeuilBasNbPts>  #2  </SeuilBasNbPts>
+                        <SeuilHautNbPts> #2 </SeuilHautNbPts>
+                        <NbMinCple> 100000 </NbMinCple>
+                     </FiltreByRelSsEch>
+                </Filtre>
+            </ByAdjacence>
+       </Sets>
+       <Key  > NKS-Rel-SsECh </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin > -10000 </DeltaMin>
+                     <DeltaMax > 10000  </DeltaMax>
+                     <Circ>       false  </Circ>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > NKS-Rel-AllCpleOfPattern </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <KeySets>  #2   </KeySets>
+                     <DeltaMin > -10000 </DeltaMin>
+                     <DeltaMax > 10000  </DeltaMax>
+                     <Circ>       false  </Circ>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > NKS-Rel-AllCpleOf2Pat </Key>
+    </KeyedSetsORels>
+
+
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       false  </Circ>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > NKS-Rel-ChantierLineaire </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       true </Circ>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > NKS-Rel-ChantierCirculaire </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <NameFileIn> #1 </NameFileIn>
+            </Sets>
+            <Key  > NKS-Rel-ByFile </Key>
+    </KeyedSetsORels>
+
+    <!-- NKS-Rel-LinGen@Pat@Resol@@Sample1@Sample2 -->
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                 </ByAdjacence>
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                     <Sampling> #4  </Sampling>
+                 </ByAdjacence>
+                 <ByAdjacence>
+                     <KeySets>  #1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                     <Circ>       #3  </Circ>
+                     <Sampling> #5  </Sampling>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > NKS-Rel-LinSampled </Key>
+    </KeyedSetsORels>
+
+
+
+<!-- ***********************************************************
+*                                                              *
+*                          CAMERA NUMERIQUE                    *
+*                                                              *
+ *********************************************************** -->
+
+     <!--    *********************************************************
+             CAM V2
+        ********************************************************* -->
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    .*_.x(${PNumCV2})${PostFixImPoly}  </PatternTransform> 
+                <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Cv2-IdIm   </Key>
+  </KeyedNamesAssociations>
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    .*_(.)x${PNumCV2}${PostFixImPoly} </PatternTransform>
+                <CalcName>  $1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Cv2-Chanel   </Key>
+  </KeyedNamesAssociations>
+                                               
+
+
+     <!--    *********************************************************
+             Etalonnage sur  Polyone
+        ********************************************************* -->
+
+  <KeyedSetsOfNames>
+          <Sets>
+                 <PatternAccepteur>    Orient_.*\.xml    </PatternAccepteur>
+                 <SubDir>     Orient_Polyg/  </SubDir>
+          </Sets>
+          <Key> Key-Set-AppuiOri-Polygone-CamV2 </Key>
+  </KeyedSetsOfNames>
+
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*)_(.)x(${PNumCV2})${PostFixImPoly}     </PatternTransform>
+                <CalcName>  Orient_Polyg/Orient_$1_$2x$3.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Orient_Polyg/Orient_(.*)_(.)x(${PNumCV2})\.xml  </PatternTransform>
+                <CalcName>  $1_$2x$3_8Bits.tif     </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2AppuiOri-Polygone_8Bits </Key>
+        <SubDirAutoMake>  Orient_Polyg </SubDirAutoMake>
+  </KeyedNamesAssociations>
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*)     </PatternTransform>
+                <CalcName>  Orient_Polyg/Orient_$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Orient_Polyg/Orient_(.*)\.xml  </PatternTransform>
+                <CalcName>  $1    </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2AppuiOri-Polygone-CamV2 </Key>
+        <SubDirAutoMake>  Orient_Polyg </SubDirAutoMake>
+  </KeyedNamesAssociations>
+
+  <KeyedSetsOfNames>
+          <Sets>
+                 <PatternAccepteur>    Orient.*\.xml    </PatternAccepteur>
+                 <SubDir>     Orient_Polyg/  </SubDir>
+          </Sets>
+          <Key> Key-Set-AppuiOri-Polygone-Basic </Key>
+  </KeyedSetsOfNames>
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*)     </PatternTransform>
+                <CalcName>  Orient_Polyg/Orient$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Orient_Polyg/Orient(.*)\.xml  </PatternTransform>
+                <CalcName>  $1     </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2AppuiOri-Polygone-Basic </Key>
+        <SubDirAutoMake>  Orient_Polyg </SubDirAutoMake>
+  </KeyedNamesAssociations>
+
+
+
+  <KeyedSetsOfNames>
+          <Sets>
+                 <PatternAccepteur>    Appuis.*\.xml    </PatternAccepteur>
+                 <SubDir>     Appuis-Init/  </SubDir>
+          </Sets>
+          <Key> Key-Set-Appui-Init-Etalonage </Key>
+  </KeyedSetsOfNames>
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*)     </PatternTransform>
+                <CalcName>  Appuis-Init/Appuis_$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Appuis-Init/Appuis_(.*)\.xml  </PatternTransform>
+                <CalcName>  $1     </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Appui-Init-Etalonage </Key>
+        <SubDirAutoMake>  Appuis-Init </SubDirAutoMake>
+  </KeyedNamesAssociations>
+
+
+
+  <KeyedSetsOfNames>
+          <Sets>
+                 <PatternAccepteur>    Appuis_.*\.xml    </PatternAccepteur>
+                 <SubDir>     Appuis/  </SubDir>
+          </Sets>
+          <Key> Key-Set-Std-Appuis </Key>
+  </KeyedSetsOfNames>
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*)\.tif     </PatternTransform>
+                <CalcName>  Appuis/Appuis_$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Appuis/Appuis_(.*)\.xml  </PatternTransform>
+                <CalcName>  $1.tif     </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Std-Im2Appuis </Key>
+        <SubDirAutoMake>  Appuis </SubDirAutoMake>
+  </KeyedNamesAssociations>
+
+
+                                               
+     <!--    *********************************************************
+             CORRESPONDANCE CANAUX A CANAUX
+        ********************************************************* -->
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*_).(x${PNumCV2}${PostFixImPoly})     </PatternTransform>
+                <CalcName>  $1r$2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Cv2-ToImR </Key>
+  </KeyedNamesAssociations>
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*_).(x${PNumCV2}${PostFixImPoly})     </PatternTransform>
+                <CalcName>  $1b$2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Cv2-ToImB </Key>
+  </KeyedNamesAssociations>
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*_).(x${PNumCV2}${PostFixImPoly})     </PatternTransform>
+                <CalcName>  $1v$2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Cv2-ToImV </Key>
+  </KeyedNamesAssociations>
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>    (.*_).(x${PNumCV2}${PostFixImPoly})     </PatternTransform>
+                <CalcName>  $1RVBx$2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Cv2-ToImRVB </Key>
+  </KeyedNamesAssociations>
+
+
+
+<!--    *********************************************************
+                       MARC (registration)
+   ********************************************************* -->
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Homol/Marc_Homol_$1-$2.xml  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Homol/Marc_Homol_(.*)-(.*)\.xml </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  MarcIm2Hom </Key>
+	<SubDirAutoMake> Homol </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+     <!-- Pastis Set -->
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur>  Marc_Homol.*\.xml  </PatternAccepteur>
+		 <SubDir>   Homol/ </SubDir>
+	  </Sets>
+          <Key> All-MarcHom </Key>
+    </KeyedSetsOfNames>
+
+
+<!--    *********************************************************
+
+                       PASTIS
+
+   ********************************************************* -->
+
+     <!-- Association Pastis -->
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*) </PatternTransform>
+                <CalcName>  Pastis/AP-$1_KeySift_$2.xml  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> eModeAutoPano-Pastis-PtInt </Key>
+	<SubDirAutoMake> Pastis </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+                <CalcName>  Pastis/LBPp$1.dat  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> eModeLeBrisPP-Pastis-PtInt </Key>
+	<SubDirAutoMake> Pastis </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  3 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost}@(.*) </PatternTransform>
+                <CalcName>  Pastis/AP-Match-$1-$2-$3.txt </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> eModeAutoPano-Pastis-Hom-Txt </Key>
+	<SubDirAutoMake> Pastis </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.dat@(.*)\.dat </PatternTransform>
+                <CalcName>  Pastis/LBPp-Match-$1/$2.result </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> eModeLeBrisPP-Pastis-Hom-Txt </Key>
+	<SubDirAutoMake> Pastis </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Homol/Pastis$1-$2.xml  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Homol/Pastis(.*)-(.*)\.xml </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  PastisHom </Key>
+	<SubDirAutoMake> Homol </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Homol/Pastis$1/$2.dat  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Homol/Pastis(.*)/(.*)\.dat </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  Key-Assoc-CpleIm2HomolPastisBin </Key>
+	<SubDirAutoMake> Homol </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Homol_SRes/Pastis$1/$2.dat  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Homol_SRes/Pastis(.*)/(.*)\.dat </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  Key-Assoc-SsRes-CpleIm2HomolPastisBin </Key>
+	<SubDirAutoMake> Homol_SRes </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+
+
+     <!-- Pastis Set -->
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> Pastis(.*)-(.*)\.(xml)  </PatternAccepteur>
+		 <SubDir>   Homol/ </SubDir>
+	  </Sets>
+          <Key> All-PastisHom </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> Pastis(.*)/(.*)\.(dat)  </PatternAccepteur>
+		 <SubDir>   Homol/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> Key-Set-HomolPastisBin </Key>
+    </KeyedSetsOfNames>
+
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> Pastis(.*)/(.*)\.(dat)  </PatternAccepteur>
+		 <SubDir>   Homol_SRes/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> Key-Set-SsRes-HomolPastisBin </Key>
+    </KeyedSetsOfNames>
+
+
+
+<!--    *********************************************************
+
+                       PORTO 
+
+   ********************************************************* -->
+
+     <!-- Pastis Set -->
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> MicMac-PL3-(.*)-(.*).${TifPost}  </PatternAccepteur>
+		 <SubDir>   Sauv-Micmac-LIAISON/ </SubDir>
+	  </Sets>
+          <Key> All-PortoHom </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Sauv-Micmac-LIAISON/MicMac-PL3-$1-$2.${TifPost}  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Sauv-Micmac-LIAISON/MicMac-PL3-(.*)-(.*).${TifPost} </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  PortoHom </Key>
+	<SubDirAutoMake> Sauv-Micmac-LIAISON </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+                <CalcName> make bin/Filter; bin/Filter $1 "Harris 1.5 2 Moy 1 3" Out=$2 </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>  PortoCalcInteret </Key>
+    </KeyedNamesAssociations>
+
+     
+
+
+<!--    *********************************************************
+
+       AERO 
+
+   ********************************************************* -->
+
+    <!--   Orientations -->
+
+    <KeyedNamesAssociations>
+
+        <!-- Calib MPD -->
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> F([0-9]{3})_.* </PatternTransform>
+                <CalcName>  TheKeyCalib_$1  </CalcName>
+             </Direct>
+
+        </Calcs>
+
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+             <Direct>
+                <PatternTransform> (Droite|Gauche).*  </PatternTransform>
+                <CalcName>  TheKeyCalib_$1  </CalcName>
+             </Direct>
+        </Calcs>
+        <!-- Calib LOEMI -->
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+             <Direct>
+                <PatternTransform> .*_(.)x${PNumCV2}${PostFixImPoly}  </PatternTransform>
+                <CalcName>  TheKeyCalib_$1  </CalcName>
+             </Direct>
+        </Calcs>
+
+
+        <Key>   Key-Assoc-CalculKeyCalib </Key>
+    </KeyedNamesAssociations>
+
+     <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> F([0-9]{3})_.*.(tif|TIF) </PatternTransform>
+                <CalcName>  AutoCalDRad-Canon-$1.xml </CalcName>
+             </Direct>
+
+        </Calcs>
+        <Key>   Key-Assoc-CalibOfIm </Key>
+    </KeyedNamesAssociations>
+
+
+     <KeyedNamesAssociations>
+        <!-- Defaut, aucune calib (pout pastis) -->
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  NoCalib </CalcName>
+             </Direct>
+
+        </Calcs>
+
+        <Key>   Key-Assoc-NoCalib </Key>
+    </KeyedNamesAssociations>
+
+     <KeyedNamesAssociations>
+        <!-- Defaut, aucune calib (pout pastis) -->
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform>  F([0-9]{3}).* </PatternTransform>
+                <CalcName>  Bayer-Canon-$1.xml </CalcName>
+             </Direct>
+
+        </Calcs>
+
+        <Key>   Key-Assoc-Calib-Coul </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                 <PatternTransform> F([0-9]{3})_.*  </PatternTransform>
+                 <CalcName>  Ori-F/F$1_AutoCalFinale.xml </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Im2AutoCalFinale </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                 <PatternTransform> F([0-9]{3})_.*  </PatternTransform>
+                 <CalcName>  Ori-F-2/F$1_AutoCalFinale2.xml </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Im2AutoCalFinale2 </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+         <Calcs>
+             <Arrite>  1 1 </Arrite>
+             <Direct>
+                  <PatternTransform> TheKeyCalib_([0-9]{3})  </PatternTransform>
+                  <CalcName>  Ori-F-2/F$1_AutoCalFinale2.xml </CalcName>
+              </Direct>
+          </Calcs>
+          <Key>   Key-Assoc-CleCal2AutoCalFinale2 </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+    <KeyedNamesAssociations>
+         <Calcs>
+             <Arrite>  1 1 </Arrite>
+             <Direct>
+                  <PatternTransform> TheKeyCalib_([0-9]{3})  </PatternTransform>
+                  <CalcName>  Ori-F/F$1_AutoCalFinale.xml </CalcName>
+              </Direct>
+          </Calcs>
+          <Key>   Key-Assoc-CleCal2AutoCalFinale </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                 <PatternTransform> F([0-9]{3})_.*  </PatternTransform>
+                 <CalcName>  Orient/F$1_AutoCalInit.xml </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Im2AutoCalInit </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+         <Calcs>
+             <Arrite>  1 1 </Arrite>
+             <Direct>
+                  <PatternTransform> TheKeyCalib_([0-9]{3})  </PatternTransform>
+                  <CalcName>  Orient/F$1_AutoCalInit.xml </CalcName>
+              </Direct>
+          </Calcs>
+          <Key>   Key-Assoc-CleCal2AutoCalInit </Key>
+    </KeyedNamesAssociations>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                 <PatternTransform> F([0-9]{3})_.*  </PatternTransform>
+                 <CalcName>  Orient/F$1_GridFinale.xml </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Im2GridFinale </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+         <Calcs>
+             <Arrite>  1 1 </Arrite>
+             <Direct>
+                  <PatternTransform> TheKeyCalib_([0-9]{3})  </PatternTransform>
+                  <CalcName>  Orient/F$1_GridFinale.xml </CalcName>
+              </Direct>
+          </Calcs>
+          <Key>   Key-Assoc-CleCal2GridFinale </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Orient/OrPrenInit0-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Orient/OrPrenInit0-(.*).xml </PatternTransform>
+                <CalcName>  $1.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   OrPreInit0 </Key>
+	<SubDirAutoMake> Orient </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedSetsOfNames >
+          <Sets> <PatternAccepteur> Orient(.*).xml  </PatternAccepteur> </Sets>
+          <Key> OrientEtalPoly </Key>
+    </KeyedSetsOfNames>
+
+
+
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> OrPrenInit0-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Orient/ </SubDir>
+	  </Sets>
+          <Key> All-OrPreInit0 </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.[0-9,A-Z,a-z]{2,4} </PatternTransform>
+                <CalcName>  Or-Nav/OrNav-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Or-Nav/OrNav-(.*).xml  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrNav </Key>
+	<SubDirAutoMake> Or-Nav </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)_MpDcraw8B_GR.tif  </PatternTransform>
+                <CalcName>  Or-Nav/OrNav-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Or-Nav/OrNav-(.*).xml  </PatternTransform>
+                <CalcName>  $1_MpDcraw8B_GR.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrNav_MpDcraw8B_GR </Key>
+	<SubDirAutoMake> Or-Nav </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur>  OrNav-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Or-Nav/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-Or-Nav </Key>
+    </KeyedSetsOfNames>
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Orient/OrInit-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Orient/OrInit-(.*).xml  </PatternTransform>
+                <CalcName>  $1.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrInit </Key>
+	<SubDirAutoMake> Orient </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)MpDcraw16B_(.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Orient/OrInit-$1MpDcraw8B_$2.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Orient/OrInit-(.*)MpDcraw8B_(.*).xml  </PatternTransform>
+                <CalcName>  $1MpDcraw16B_$2.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im16B2OrInit8B </Key>
+	<SubDirAutoMake> Orient </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)MpDcraw16B_(.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Ori-F/OrFinale-$1MpDcraw8B_$2.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F/OrFinale-(.*)MpDcraw8B_(.*).xml  </PatternTransform>
+                <CalcName>  $1MpDcraw16B_$2.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im16B2OrFinale8B </Key>
+	<SubDirAutoMake> Ori-F </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)16B(.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Orient/OrInit-$18B$2.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Orient/OrInit-(.*).xml  </PatternTransform>
+                <CalcName>  $1.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-16B-Im2Or8BInit </Key>
+	<SubDirAutoMake> Orient </SubDirAutoMake>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)16B(.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Ori-F/OrFinale-$18B$2.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F/OrFinale-(.*)8B(.*).xml  </PatternTransform>
+                <CalcName>  $116B$2.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-16B-Im2Or8BFinale </Key>
+	<SubDirAutoMake> Ori-F </SubDirAutoMake>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)16B(.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Ori-F-2/OrFinale-$18B$2.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F-2/OrFinale-(.*)8B(.*).xml  </PatternTransform>
+                <CalcName>  $116B$2.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-16B-Im2Or8BFinale-2 </Key>
+	<SubDirAutoMake> Ori-F-2 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+
+
+
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif </PatternTransform>
+                <CalcName>  $1.ori  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Tif2Orilib  </Key>
+	<SubDirAutoMake> Orient </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif </PatternTransform>
+                <CalcName>  Ori-F/OrFinale-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F/OrFinale-(.*).xml  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrFinale </Key>
+	<SubDirAutoMake> Ori-F </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif </PatternTransform>
+                <CalcName>  Ori-F-2/OrFinale-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F-2/OrFinale-(.*).xml  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrFinale-2 </Key>
+	<SubDirAutoMake> Ori-F-2 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif </PatternTransform>
+                <CalcName>  Ori-F-3/OrFinale-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F-3/OrFinale-(.*).xml  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrFinale-3 </Key>
+	<SubDirAutoMake> Ori-F-3 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif </PatternTransform>
+                <CalcName>  Ori-F-4/OrFinale-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F-4/OrFinale-(.*).xml  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrFinale-4 </Key>
+	<SubDirAutoMake> Ori-F-4 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif </PatternTransform>
+                <CalcName>  Ori-F-5/OrFinale-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F-5/OrFinale-(.*).xml  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrFinale-5 </Key>
+	<SubDirAutoMake> Ori-F-5 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif </PatternTransform>
+                <CalcName>  Ori-F-6/OrFinale-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori-F-6/OrFinale-(.*).xml  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Key-Assoc-Im2OrFinale-6 </Key>
+	<SubDirAutoMake> Ori-F-6 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+
+
+
+
+
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> OrFinale-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Ori-F/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-OrFinale </Key>
+    </KeyedSetsOfNames>
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> OrFinale-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Ori-F-2/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-OrFinale-2 </Key>
+    </KeyedSetsOfNames>
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> OrFinale-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Ori-F-3/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-OrFinale-3 </Key>
+    </KeyedSetsOfNames>
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> OrFinale-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Ori-F-4/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-OrFinale-4 </Key>
+    </KeyedSetsOfNames>
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> OrFinale-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Ori-F-5/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-OrFinale-5 </Key>
+    </KeyedSetsOfNames>
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> OrFinale-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Ori-F-6/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-OrFinale-6 </Key>
+    </KeyedSetsOfNames>
+
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Orient/Or-FromPorto-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Orient/Or-FromPorto-(.*).xml  </PatternTransform>
+                <CalcName>  $1.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   Orient-From-Porto </Key>
+	<SubDirAutoMake> Orient </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> OrInit-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Orient/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-All-OrInit </Key>
+    </KeyedSetsOfNames>
+
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost} </PatternTransform>
+                <CalcName>  Orient/OrMM3-$1.xml  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   OrMM3 </Key>
+	<SubDirAutoMake> Orient </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+                <CalcName>  $1DeZoom$2.tif </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Pyram-MM </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+<!--    *********************************************************
+   ********************************************************* -->
+
+    <!--                          
+    <KeyedNamesAssociations>
+         <Calcs> 
+	     <Arrite>  2 1 </Arrite>
+	     <Direct>
+	           <PatternTransform> (.*)\.(...)@(.*)\.(...) </PatternTransform>
+		   <Separateur> @ </Separateur>
+		    <CalcName>  HomManuels$1_#_$3.xml  </CalcName>
+	     </Direct>
+	     <Inverse>
+	           <PatternTransform> HomManuels(.*)_#_(.*).xml  </PatternTransform>
+		   <CalcName>  $1.${TifPost}  </CalcName>
+		   <CalcName>  $2.${TifPost}  </CalcName>
+	     </Inverse>
+	 </Calcs>
+         <Key> HomManuels </Key>
+    </KeyedNamesAssociations>
+  -->
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> (.*)\.${TifPost}  </PatternAccepteur>
+	  </Sets>
+          <Key> Key-Set-All-Tif </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedNamesAssociations>
+       <Calcs>
+          <Arrite>  1 1 </Arrite>
+          <Direct>
+              <PatternTransform> (.*)\.${TifPost} </PatternTransform>
+              <CalcName>  MpDcraw16B_$1_GB.${TifPost} </CalcName>
+          </Direct>
+       </Calcs>
+       <Key>  Im2MpDCraw-GB </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+       <Calcs>
+          <Arrite>  2 1 </Arrite>
+          <Direct>
+              <PatternTransform> (.*)\.${TifPost}@(.) </PatternTransform>
+              <CalcName>  MpDcraw16B_$1_$2.${TifPost} </CalcName>
+          </Direct>
+          <Inverse>
+              <PatternTransform> MpDcraw16B_(.*)_(.)\.${TifPost} </PatternTransform>
+              <CalcName>  $1.${TifPost} </CalcName>
+              <CalcName>  $2 </CalcName>
+          </Inverse>
+       </Calcs>
+       <Key>  ImChan2SplitMpDCraw </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+                <CalcName> SWAP_HOM/Hom_$2-$1.xml  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> SWAP_HOM/Hom_(.*)-(.*)\.xml </PatternTransform>
+                <CalcName> $2  </CalcName>
+                <CalcName> $1  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  Key-Assoc-StdHom-Inverse </Key>
+	<SubDirAutoMake> SWAP_HOM </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> Hom(.*)-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Homol/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-StdHom </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> Hom(.*)-(.*).xml  </PatternAccepteur>
+		 <SubDir>   SWAP_HOM/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-StdHom-Inverse </Key>
+    </KeyedSetsOfNames>
+
+
+
+    <KeyedSetsORels>
+       <Sets > 
+            <ByAdjacence>
+	        <KeySets>  Key-Set-All-Tif   </KeySets>
+		<DeltaMax > 1000  </DeltaMax>
+		<DeltaMin > -1000 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > Key-Rel-All-Cple-Tif </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+       <Sets > 
+            <ByAdjacence>
+	        <KeySets>  Key-Set-All-Tif   </KeySets>
+		<DeltaMax > 1000  </DeltaMax>
+		<DeltaMin > 0 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > AllCpleTif-Or </Key>
+    </KeyedSetsORels>
+
+
+    <KeyedSetsORels>
+       <Sets > 
+            <ByAdjacence>
+	        <KeySets>  Key-Set-All-Tif   </KeySets>
+		<DeltaMax > 3  </DeltaMax>
+		<DeltaMin > 0 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > CpleTif-Or-Adj3 </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+       <Sets > 
+            <ByAdjacence>
+	        <KeySets>  Key-Set-All-Tif   </KeySets>
+		<DeltaMax > 2  </DeltaMax>
+		<DeltaMin > -2 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > CpleTif-Sym-Adj2 </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+       <Sets > 
+            <ByAdjacence>
+	        <KeySets>  Key-Set-All-Tif   </KeySets>
+		<DeltaMax > 1  </DeltaMax>
+		<DeltaMin > -1 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > CpleTif-Sym-Adj1 </Key>
+    </KeyedSetsORels>
+
+
+<!--
+      Debayerisation
+-->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 2 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.(.*) </PatternTransform>
+                <CalcName> XProj-$1.${TifPost}  </CalcName>
+                <CalcName> YProj-$1.${TifPost}  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>  Im2Proj </Key>
+	<SubDirAutoMake> Homol </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+<!--
+      Nuages de points
+-->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+                <CalcName>  NuageImProf_$1_Etape_$2.xml  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> Key-Assoc-Nuage-ImProf </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+                <CalcName>  MicMac_$1_Resol$2.ply  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> Key-Assoc-Nuage-Ply </Key>
+    </KeyedNamesAssociations>
+
+
+<!--
+      Masq-Image
+    + _Masq
+-->
+
+    <!-- Implicitement Masque 0 -->
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.[a-z,A-Z,0-9]{3,4} </PatternTransform>
+                <CalcName>  $1_Masq.tif  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> Key-Assoc-Std-Masq-Image </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif@(.*) </PatternTransform>
+                <CalcName>  $1_Masq$2.tif  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> Key-Assoc-Std-MultiMasq-Image </Key>
+    </KeyedNamesAssociations>
+
+
+<!--
+     
+     CARTES PROFS 2 LIAISON-APPUIS
+-->
+    
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Carte2ApL/AppuisWithOr_$1_On_$2.xml  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>  Key-Assoc-Carte2Appuis-With-Origine </Key>
+	<SubDirAutoMake> Carte2ApL </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Carte2ApL/Appuis_$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Carte2ApL/Appuis_(.*).xml </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>  Key-Assoc-Carte2Appuis </Key>
+	<SubDirAutoMake> Carte2ApL </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> Appuis_.*\.xml  </PatternAccepteur>
+		 <SubDir>   Carte2ApL/ </SubDir>
+	  </Sets>
+          <Key> Key-Set-All-Appuis-Cartes </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Carte2ApL/HomApL$1/$2.dat  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Carte2ApL/HomApL(.*)/(.*)\.dat </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  Key-Assoc-CpleIm2HomolCarte </Key>
+	<SubDirAutoMake> Carte2ApL </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+    <KeyedSetsOfNames >
+          <Sets> 
+                 <PatternAccepteur> HomApL(.*)/(.*)\.(dat)  </PatternAccepteur>
+		 <SubDir>   Carte2ApL/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> Key-Set-HomolCarte </Key>
+    </KeyedSetsOfNames>
+
+    
+<!--
+     ORTHO ORTHO ORTHO ORTHO 
+     ORTHO ORTHO ORTHO ORTHO 
+     ORTHO ORTHO ORTHO ORTHO 
+-->
+
+    <!--  1 - Cle pour la generation des ortho par images -->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  ORTHO/Ort_$1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-OpIm-Assoc-Im2Ort </Key>
+        <SubDirAutoMake> ORTHO </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  ORTHO/Incid_$1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-OpIm-Assoc-Im2Incid </Key>
+        <SubDirAutoMake> ORTHO </SubDirAutoMake>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  ORTHO/PC_$1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-OpIm-Assoc-Im2PC </Key>
+        <SubDirAutoMake> ORTHO </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)_MpDcraw8B_G(.\..*) </PatternTransform>
+                <CalcName>  $1_MpDcraw8B_C$2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-Gray2Coul-StdMpDCraw </Key>
+    </KeyedNamesAssociations>
+
+
+    <!--  1 - Cle pour le traiement  des orthos  -->
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  0.0  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Priorite-Ortho </Key>
+    </KeyedNamesAssociations>
+
+  <KeyedSetsOfNames >
+          <Sets>
+             <PatternAccepteur>  Ort_(.*)\.tif</PatternAccepteur>
+             <!--
+              <PatternAccepteur>  Ort_p3260115.tif</PatternAccepteur> 
+             -->
+          </Sets>
+          <Key> Key-OrthtoSet-All-OpIm </Key>
+    </KeyedSetsOfNames>
+
+
+  <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> Ort_(.*)\.tif </PatternTransform>
+                <CalcName>  PC_$1.xml  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Orthto-Assoc-OpIm2Mtd </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> Ort_(.*)\.tif </PatternTransform>
+                <CalcName>  PC_$1.tif  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-OpIm2PC </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> Ort_(.*)\.tif </PatternTransform>
+                <CalcName>  Incid_$1.tif  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Key-Assoc-OpIm2Incid </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> $0 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-Id </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> F([0-9]+).*  </PatternTransform>
+                       <CalcName> $1 </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-STD-FOC </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> Ori-InterneScan/MeasuresCamera.xml </CalcName>
+                       <CalcName> Ori-InterneScan/MeasuresIm-$0.xml </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   Key-Assoc-STD-Orientation-Interne </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+    <!--  ###############################################-->
+    <!--                                                 -->
+    <!--  NOUVELLES CLES , POUR ETRE UTILISEES AVEC LES @ -->
+    <!--                                                 -->
+    <!--  ###############################################-->
+
+
+    <!--   RELATIONS  -->
+
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  KeyStd-Set-OfPattern@#1   </KeySets>
+                     <DeltaMin > -10000 </DeltaMin>
+                     <DeltaMax > 10000  </DeltaMax>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > KeyStd-Rel-AllCpleOfPattern </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <ByAdjacence>
+                     <KeySets>  KeyStd-Set-OfPattern@#1   </KeySets>
+                     <DeltaMin >  -#2 </DeltaMin>
+                     <DeltaMax >  #2  </DeltaMax>
+                 </ByAdjacence>
+            </Sets>
+            <Key  > KeyStd-Rel-ChantierLineaire </Key>
+    </KeyedSetsORels>
+
+    <KeyedSetsORels>
+            <IsParametrized>  true </IsParametrized>
+            <Sets >
+                 <NameFileIn> #1 </NameFileIn>
+            </Sets>
+            <Key  > KeyStd-Rel-ByFile </Key>
+    </KeyedSetsORels>
+
+
+    <KeyedSetsORels>
+       <IsParametrized>  true </IsParametrized>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  KeyStd-Set-OfPattern@#1   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+
+                <Filtre>
+                     <FiltreByRelSsEch>
+                        <KeySet >  Key-Set-SsRes-HomolPastisBin          </KeySet>
+                        <KeyAssocCple>  Key-Assoc-SsRes-CpleIm2HomolPastisBin   </KeyAssocCple>
+                        <SeuilBasNbPts>  #2  </SeuilBasNbPts>
+                        <SeuilHautNbPts> #2 </SeuilHautNbPts>
+                        <NbMinCple> 100000 </NbMinCple>
+                     </FiltreByRelSsEch>
+                </Filtre>
+            </ByAdjacence>
+       </Sets>
+       <Key  > KeyStd-Rel-SsECh </Key>
+    </KeyedSetsORels>
+
+
+
+    <!--   =================================== -->
+
+
+
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> .*\.#1  </PatternAccepteur>
+	  </Sets>
+          <Key> KeyStd-Set-WithExt </Key>
+    </KeyedSetsOfNames>
+
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> #1  </PatternAccepteur>
+	  </Sets>
+          <Key> KeyStd-Set-OfPattern </Key>
+    </KeyedSetsOfNames>
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .*%([0-9]+) </PatternTransform>
+                <CalcName>  TheKeyCalib_#1$1  </CalcName>
+                <NameTransfo>
+                        <AddFocMul> 10 </AddFocMul>
+                 </NameTransfo>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-KeyCalib </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .*%([0-9]+) </PatternTransform>
+                <CalcName>  Bayer_#1_$1.xml  </CalcName>
+                <NameTransfo>
+                        <AddFocMul> 10 </AddFocMul>
+                 </NameTransfo>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-CalibBayer </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Direct>
+                <PatternTransform> .*%([0-9]+) </PatternTransform>
+                <CalcName>  CalibGeomInit_#1_$1.xml  </CalcName>
+                <NameTransfo>
+                        <AddFocMul> 10 </AddFocMul>
+                 </NameTransfo>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-CalibGeomInit </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> .* </PatternTransform>
+                <CalcName>  #1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-Cste </Key>
+    </KeyedNamesAssociations>
+     <!-- Ajoute un post-fix -->
+     <!-- Change l'extension du fichier -->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.[a-z,A-Z,0-9]{3,4} </PatternTransform>
+                <CalcName>  $1.#1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-ChangExt </Key>
+    </KeyedNamesAssociations>
+     <!-- Ajoute un post-fix -->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4}) </PatternTransform>
+                <CalcName>  $1#1.$2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-AddPost </Key>
+    </KeyedNamesAssociations>
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.([a-z,A-Z,0-9]{3,4}) </PatternTransform>
+                <CalcName>  $1#1.#2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-AddPost-and-ChangExt </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  #1$1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-AddPref </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.(.*) </PatternTransform>
+                <CalcName>  #1$1#2.$2  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-AddPrefPost </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+           <!-- ORIENTATIONS -->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)#2\.tif </PatternTransform>
+                <CalcName>  Ori#1/Orientation-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori#1/Orientation-(.*).xml  </PatternTransform>
+                <CalcName>  $1#2.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   KeyStd-Assoc-Im2Orient-WithPost </Key>
+	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+    <KeyedSetsOfNames>
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> Orientation-(.*).xml  </PatternAccepteur>
+		 <SubDir>   Ori#1/ </SubDir>
+	  </Sets>
+          <Key> KeyStd-Set-Orient </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.tif </PatternTransform>
+                <CalcName>  Ori#1/Orientation-$1.xml  </CalcName>
+             </Direct>
+            <Inverse>
+                <PatternTransform> Ori#1/Orientation-(.*).xml  </PatternTransform>
+                <CalcName>  $1.tif  </CalcName>
+             </Inverse>
+        </Calcs>
+        <Key>   KeyStd-Assoc-Im2Orient </Key>
+	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                 <PatternTransform> #1(.*)  </PatternTransform>
+                 <CalcName>  $1 </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   KeyStd-SuprBefore  </Key>
+    </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                 <PatternTransform> F([0-9]{3})_.*  </PatternTransform>
+                 <CalcName>  Ori#1/F$1_AutoCal.xml </CalcName>
+            </Direct>
+        </Calcs>
+        <!-- Image Coul Loemi -->
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                 <PatternTransform> .*_(..?)x[0-9]{3}.*  </PatternTransform>
+                 <CalcName>  Ori#1/F$1_AutoCal.xml </CalcName>
+            </Direct>
+        </Calcs>
+        <Key>   KeyStd-Assoc-Im2AutoCal  </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+             <Arrite>  1 1 </Arrite>
+             <Direct>
+                  <PatternTransform> TheKeyCalib_(.*)  </PatternTransform>
+                  <CalcName>  Ori#1/F$1_AutoCal.xml </CalcName>
+              </Direct>
+         </Calcs>
+
+
+         <Key>   KeyStd-Assoc-CleCal2AutoCal </Key>
+    </KeyedNamesAssociations>
+
+
+
+
+
+           <!-- SPLIT POINTS HOMOLOGUES  -->
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> Pastis(.*)/(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   Homol#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> KeyStd-Set-Homol </Key>
+          <!--  <Key> KeyStd-Set-Homol@Eau </Key>  -->
+    </KeyedSetsOfNames>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)\.${TifPost}@(.*)\.${TifPost} </PatternTransform>
+                <CalcName> Homol#1/Pastis$1/$2.#2  </CalcName>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> Homol#1/Pastis(.*)/(.*)\.#2 </PatternTransform>
+                <CalcName> $1.${TifPost}  </CalcName>
+                <CalcName> $2.${TifPost}  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  KeyStd-Assoc-CplIm2HomBin </Key>
+	<SubDirAutoMake> Homol#1 </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+
+    <!-- Pour spliter en deux des points homologues -->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <Separateur> @ </Separateur>
+                <PatternTransform> Homol(/.*)@0 </PatternTransform>
+                <CalcName> Homol#1/$1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <Separateur> @ </Separateur>
+                <PatternTransform> Homol(/.*)@1 </PatternTransform>
+                <CalcName> Homol#2/$1  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>  KeyStd-Assoc-H2H-SplitBin </Key>
+        <SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+
+
+</ChantierDescripteur>
+
+</Global>
+

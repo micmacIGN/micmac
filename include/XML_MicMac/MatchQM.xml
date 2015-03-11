@@ -1,0 +1,211 @@
+<!--
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MatchQM.xml +Im1=0055_S1LE.CR2 +Ori=ViseeExt WorkDir=/media/data2/Chambord-PPMD/EscalierViseeExt/
+
+
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MatchQM.xml +Im1=IMGP7053.JPG +Ori=Ori-CalPerIm WorkDir=/media/data2/Jeux-Test/Soldat-Temple-Hue/  +ZoomF=2 +Zoom0=4
+
+
+-->
+
+<ParamMICMAC>
+<DicoLoc>
+
+   <Symb> Ori="-ViseeExt"     </Symb>
+   <Symb> Im1=0056_S1LE.CR2  </Symb>
+
+   <Symb> Zoom0=4     </Symb>
+   <Symb> ZoomF=2     </Symb>
+
+   <Symb> DirMEC=Match-QM${Im1}     </Symb>
+   <Symb>  ModeAgr=eAggregMinIm1Maitre  </Symb>
+   
+
+    <Symb> UseMasq3D=false  </Symb>
+    <Symb> ExportEnv=false  </Symb>
+    <Symb> FileMasq3D=XXXX  </Symb>
+    <Symb> ZPasCalc=0.5  </Symb>
+
+     <eSymb> DoZoom1=InfEq ${ZoomF} 1 </eSymb> 
+     <eSymb> DoZoom2=InfEq ${ZoomF} 2 </eSymb> 
+     <eSymb> LastEtape= - 4 Int Log2 ${ZoomF}  </eSymb>
+
+    <Symb>  UseGpu=false </Symb>
+    <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
+
+</DicoLoc>
+
+<Section_Terrain>  
+      <IntervAltimetrie>
+             <ZIncCalc>   0.0  </ZIncCalc>
+             <MNT_Init>
+                  <MNT_Init_Image> ${DirMEC}/MNT0Terrain.tif  </MNT_Init_Image>
+                  <MNT_Init_Xml>   ${DirMEC}/MasqTerrain.xml  </MNT_Init_Xml>
+             </MNT_Init>
+<!--
+-->
+
+      </IntervAltimetrie>
+      <IntervSpecialZInv >
+             <MulZMin >  0.9999</MulZMin>
+             <MulZMax >  1.0001 </MulZMax>
+      </IntervSpecialZInv>
+      <Planimetrie>
+             <MasqueTerrain>
+                  <MT_Image > ${DirMEC}/MasqTerrain.tif </MT_Image>
+                  <MT_Xml >   ${DirMEC}/MasqTerrain.xml </MT_Xml>
+             </MasqueTerrain>
+      </Planimetrie>
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <Im1> ${Im1} </Im1>
+         <ImSecCalcApero>
+               <Key> NKS-Assoc-ImSec@-${Ori} </Key>
+               <NbMin>  1 </NbMin>
+               <NbMax>  4 </NbMax>
+               <OnEmpty> eOEISA_exit </OnEmpty>
+          </ImSecCalcApero>
+     </Images>
+
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <ChantierFullImage1>  true </ChantierFullImage1>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+             <AggregCorr> eAggregMoyMedIm1Maitre </AggregCorr>
+
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>   ${ZPasCalc} </ZPas>
+             <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+
+	     <ZDilatAlti>  4    </ZDilatAlti>
+             <ZDilatPlani> 3    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+
+             <ModulationProgDyn Portee="Globale">
+                  <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   7              </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   1.0    </Px1PenteMax>
+                  <ArgMaskAuto >
+                         <ValDefCorrel >  0.3 </ValDefCorrel>
+                         <CostTrans >     2   </CostTrans>
+                         <ReInjectMask> false   </ReInjectMask>
+                         <Erod32Mask> 0        </Erod32Mask>
+                         <SzOpen32> 0 </SzOpen32>
+                         <SeuilZC> 50 </SeuilZC>
+                  </ArgMaskAuto>
+             </ModulationProgDyn>
+        </EtapeMEC>
+	     
+         <EtapeMEC> 
+                 <DeZoom >        ${Zoom0}       </DeZoom> 
+                 <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+	         <ZDilatAlti>  1    </ZDilatAlti>
+                 <ZDilatPlani> 1    </ZDilatPlani>
+                 <CorrelAdHoc Portee="Globale">
+                     <SzBlocAH> 400000 </SzBlocAH>
+                     <CorrelMultiScale>
+                            <ModeDense> true </ModeDense>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
+                            <UseWAdapt> true </UseWAdapt>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+
+                     <TypeCAH>
+                           <GPU_Correl> </GPU_Correl>
+                     </TypeCAH>
+                 </CorrelAdHoc>
+            </EtapeMEC>
+
+            <#WHEN VTEST=${DoZoom2}>
+               <EtapeMEC> 
+                    <DeZoom>  2 </DeZoom> 
+               </EtapeMEC> 
+            </#WHEN>
+            <#WHEN VTEST=${DoZoom1}>
+               <EtapeMEC> 
+                    <DeZoom>  1 </DeZoom> 
+	            <ZDilatAlti>  2    </ZDilatAlti>
+                    <ZDilatPlani> 2    </ZDilatPlani>
+               </EtapeMEC> 
+            </#WHEN>
+            <EtapeMEC> 
+                    <DeZoom> ${ZoomF} </DeZoom> 
+                    <ZPas>   1.0      </ZPas>
+                    <AlgoRegul>  eAlgoDequant </AlgoRegul>
+            </EtapeMEC> 
+
+
+</Section_MEC>
+
+<Section_Results >
+     <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+     <ZoomMakeTA> 16 </ZoomMakeTA>
+     <LazyZoomMaskTerrain> true </LazyZoomMaskTerrain>
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  XXXXX  </WorkDir> 
+     <TmpMEC>    ${DirMEC}/  </TmpMEC>
+     <TmpResult> ${DirMEC}/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+     <ByProcess>  1 </ByProcess>
+     <SzDalleMin> 1000 </SzDalleMin>
+     <PurgeMECResultBefore>  true </PurgeMECResultBefore>
+     <PreservedFile> (MasqTerrain.tif|MasqTerrain.xml|MNT0Terrain.tif|MasqFinal.tif) </PreservedFile>
+    
+     <PostProcess>
+           <NameMkF>  Make-MatchQM-${Im1}   </NameMkF>
+           <OneCmdPar>
+                     <OneCmdSer>  ${MMDir}bin/mm3d Nuage2Ply   ${ThisDir}${DirMEC}/NuageImProf_LeChantier_Etape_${LastEtape}.xml    Attr=${ThisDir}/${Im1} Out=${ThisDir}QM-Ply/${Im1}.ply Mask=${ThisDir}${DirMEC}/MasqFinal.tif </OneCmdSer>
+
+           </OneCmdPar>
+     </PostProcess>
+
+
+     <DeZoomDefMinFileAux> 8 </DeZoomDefMinFileAux>
+     <ComprMasque> eComprTiff_None </ComprMasque>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
