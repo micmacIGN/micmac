@@ -6,8 +6,7 @@
 cEqBBCamFirst::cEqBBCamFirst():
     cElCompiledFonc(2)
 {
-   AddIntRef (cIncIntervale("Omega1",0,3));
-   AddIntRef (cIncIntervale("Tmp_PTer",3,6));
+   AddIntRef (cIncIntervale("Tmp_PTer",0,3));
    Close(false);
 }
 
@@ -15,60 +14,34 @@ cEqBBCamFirst::cEqBBCamFirst():
 
 void cEqBBCamFirst::ComputeVal()
 {
-   double tmp0_ = mCompCoord[4];
-   double tmp1_ = mCompCoord[1];
-   double tmp2_ = mCompCoord[2];
-   double tmp3_ = mCompCoord[3];
-   double tmp4_ = mCompCoord[0];
-   double tmp5_ = mCompCoord[5];
-   double tmp6_ = tmp4_*tmp0_;
-   double tmp7_ = tmp1_*tmp3_;
-   double tmp8_ = tmp6_-tmp7_;
+   double tmp0_ = mCompCoord[2];
 
-  mVal[0] = mLocI1_x-(tmp1_*tmp5_-tmp2_*tmp0_)/(tmp8_);
+  mVal[0] = mLocI1_x-mCompCoord[0]/tmp0_;
 
-  mVal[1] = mLocI1_y-(tmp2_*tmp3_-tmp4_*tmp5_)/(tmp8_);
+  mVal[1] = mLocI1_y-mCompCoord[1]/tmp0_;
 
 }
 
 
 void cEqBBCamFirst::ComputeValDeriv()
 {
-   double tmp0_ = mCompCoord[4];
-   double tmp1_ = mCompCoord[1];
-   double tmp2_ = mCompCoord[5];
-   double tmp3_ = tmp1_*tmp2_;
-   double tmp4_ = mCompCoord[2];
-   double tmp5_ = tmp4_*tmp0_;
-   double tmp6_ = tmp3_-tmp5_;
-   double tmp7_ = mCompCoord[0];
-   double tmp8_ = tmp7_*tmp0_;
-   double tmp9_ = mCompCoord[3];
-   double tmp10_ = tmp1_*tmp9_;
-   double tmp11_ = tmp8_-tmp10_;
-   double tmp12_ = ElSquare(tmp11_);
-   double tmp13_ = tmp4_*tmp9_;
-   double tmp14_ = tmp7_*tmp2_;
-   double tmp15_ = tmp13_-tmp14_;
-   double tmp16_ = -(tmp9_);
-   double tmp17_ = -(tmp1_);
+   double tmp0_ = mCompCoord[2];
+   double tmp1_ = mCompCoord[0];
+   double tmp2_ = ElSquare(tmp0_);
+   double tmp3_ = tmp0_/tmp2_;
+   double tmp4_ = -(tmp3_);
+   double tmp5_ = mCompCoord[1];
 
-  mVal[0] = mLocI1_x-(tmp6_)/(tmp11_);
+  mVal[0] = mLocI1_x-tmp1_/tmp0_;
 
-  mCompDer[0][0] = -(-((tmp6_)*tmp0_)/tmp12_);
-  mCompDer[0][1] = -((tmp2_*(tmp11_)-(tmp6_)*tmp16_)/tmp12_);
-  mCompDer[0][2] = -((-(tmp0_)*(tmp11_))/tmp12_);
-  mCompDer[0][3] = -(-((tmp6_)*tmp17_)/tmp12_);
-  mCompDer[0][4] = -((-(tmp4_)*(tmp11_)-(tmp6_)*tmp7_)/tmp12_);
-  mCompDer[0][5] = -((tmp1_*(tmp11_))/tmp12_);
-  mVal[1] = mLocI1_y-(tmp15_)/(tmp11_);
+  mCompDer[0][0] = tmp4_;
+  mCompDer[0][1] = 0;
+  mCompDer[0][2] = -(-(tmp1_)/tmp2_);
+  mVal[1] = mLocI1_y-tmp5_/tmp0_;
 
-  mCompDer[1][0] = -((-(tmp2_)*(tmp11_)-(tmp15_)*tmp0_)/tmp12_);
-  mCompDer[1][1] = -(-((tmp15_)*tmp16_)/tmp12_);
-  mCompDer[1][2] = -((tmp9_*(tmp11_))/tmp12_);
-  mCompDer[1][3] = -((tmp4_*(tmp11_)-(tmp15_)*tmp17_)/tmp12_);
-  mCompDer[1][4] = -(-((tmp15_)*tmp7_)/tmp12_);
-  mCompDer[1][5] = -((-(tmp7_)*(tmp11_))/tmp12_);
+  mCompDer[1][0] = 0;
+  mCompDer[1][1] = tmp4_;
+  mCompDer[1][2] = -(-(tmp5_)/tmp2_);
 }
 
 

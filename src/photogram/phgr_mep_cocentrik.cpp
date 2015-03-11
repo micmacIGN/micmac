@@ -433,7 +433,7 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElR
           // if ((aK%1000) == 0) getchar();
      }
 */
-     double aNoise = 5e-3;
+     double aNoise = 1e-4;
      ElMatrix<double> aMP =  ElMatrix<double>::Rotation(aNoise*NRrandC(),aNoise*NRrandC(),aNoise*NRrandC());
      TestLinariseAngle(aPack,ElRotation3D(aRef->tr(),aRef->Mat(),true),aFoc);
 

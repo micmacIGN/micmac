@@ -6,9 +6,10 @@
 cEqBBCamSecond::cEqBBCamSecond():
     cElCompiledFonc(2)
 {
-   AddIntRef (cIncIntervale("C2",0,1));
-   AddIntRef (cIncIntervale("D2",1,2));
-   AddIntRef (cIncIntervale("Tmp_PTer",2,5));
+   AddIntRef (cIncIntervale("C2",3,4));
+   AddIntRef (cIncIntervale("D2",4,5));
+   AddIntRef (cIncIntervale("Omega2",0,3));
+   AddIntRef (cIncIntervale("Tmp_PTer",5,8));
    Close(false);
 }
 
@@ -16,62 +17,94 @@ cEqBBCamSecond::cEqBBCamSecond():
 
 void cEqBBCamSecond::ComputeVal()
 {
-   double tmp0_ = mCompCoord[0];
-   double tmp1_ = mCompCoord[1];
-   double tmp2_ = mCompCoord[4];
-   double tmp3_ = tmp2_+mLocVecB2_z;
-   double tmp4_ = mLocVecC2_z*tmp0_;
-   double tmp5_ = tmp3_+tmp4_;
-   double tmp6_ = mLocVecD2_z*tmp1_;
-   double tmp7_ = tmp5_+tmp6_;
+   double tmp0_ = mCompCoord[7];
+   double tmp1_ = mCompCoord[6];
+   double tmp2_ = mCompCoord[1];
+   double tmp3_ = mCompCoord[5];
+   double tmp4_ = mCompCoord[3];
+   double tmp5_ = mCompCoord[4];
+   double tmp6_ = mCompCoord[2];
+   double tmp7_ = mCompCoord[0];
+   double tmp8_ = tmp7_*tmp1_;
+   double tmp9_ = tmp2_*tmp3_;
+   double tmp10_ = tmp8_-tmp9_;
+   double tmp11_ = tmp0_+tmp10_;
+   double tmp12_ = (tmp11_)-mLocVecB2_z;
+   double tmp13_ = mLocVecC2_z*tmp4_;
+   double tmp14_ = tmp12_-tmp13_;
+   double tmp15_ = mLocVecD2_z*tmp5_;
+   double tmp16_ = tmp14_-tmp15_;
 
-  mVal[0] = mLocI2_x-(mCompCoord[2]+mLocVecB2_x+mLocVecC2_x*tmp0_+mLocVecD2_x*tmp1_)/(tmp7_);
+  mVal[0] = mLocI2_x-((tmp3_+tmp2_*tmp0_-tmp6_*tmp1_)-mLocVecB2_x-mLocVecC2_x*tmp4_-mLocVecD2_x*tmp5_)/(tmp16_);
 
-  mVal[1] = mLocI2_y-(mCompCoord[3]+mLocVecB2_y+mLocVecC2_y*tmp0_+mLocVecD2_y*tmp1_)/(tmp7_);
+  mVal[1] = mLocI2_y-((tmp1_+tmp6_*tmp3_-tmp7_*tmp0_)-mLocVecB2_y-mLocVecC2_y*tmp4_-mLocVecD2_y*tmp5_)/(tmp16_);
 
 }
 
 
 void cEqBBCamSecond::ComputeValDeriv()
 {
-   double tmp0_ = mCompCoord[0];
-   double tmp1_ = mCompCoord[1];
-   double tmp2_ = mCompCoord[4];
-   double tmp3_ = tmp2_+mLocVecB2_z;
-   double tmp4_ = mLocVecC2_z*tmp0_;
-   double tmp5_ = tmp3_+tmp4_;
-   double tmp6_ = mLocVecD2_z*tmp1_;
-   double tmp7_ = tmp5_+tmp6_;
-   double tmp8_ = mCompCoord[2];
-   double tmp9_ = tmp8_+mLocVecB2_x;
-   double tmp10_ = mLocVecC2_x*tmp0_;
-   double tmp11_ = tmp9_+tmp10_;
-   double tmp12_ = mLocVecD2_x*tmp1_;
-   double tmp13_ = tmp11_+tmp12_;
-   double tmp14_ = ElSquare(tmp7_);
-   double tmp15_ = mCompCoord[3];
-   double tmp16_ = tmp15_+mLocVecB2_y;
-   double tmp17_ = mLocVecC2_y*tmp0_;
-   double tmp18_ = tmp16_+tmp17_;
-   double tmp19_ = mLocVecD2_y*tmp1_;
-   double tmp20_ = tmp18_+tmp19_;
-   double tmp21_ = (tmp7_)/tmp14_;
-   double tmp22_ = -(tmp21_);
+   double tmp0_ = mCompCoord[7];
+   double tmp1_ = mCompCoord[6];
+   double tmp2_ = mCompCoord[1];
+   double tmp3_ = mCompCoord[5];
+   double tmp4_ = mCompCoord[3];
+   double tmp5_ = mCompCoord[4];
+   double tmp6_ = tmp2_*tmp0_;
+   double tmp7_ = mCompCoord[2];
+   double tmp8_ = tmp7_*tmp1_;
+   double tmp9_ = tmp6_-tmp8_;
+   double tmp10_ = tmp3_+tmp9_;
+   double tmp11_ = (tmp10_)-mLocVecB2_x;
+   double tmp12_ = mLocVecC2_x*tmp4_;
+   double tmp13_ = tmp11_-tmp12_;
+   double tmp14_ = mLocVecD2_x*tmp5_;
+   double tmp15_ = tmp13_-tmp14_;
+   double tmp16_ = mCompCoord[0];
+   double tmp17_ = tmp16_*tmp1_;
+   double tmp18_ = tmp2_*tmp3_;
+   double tmp19_ = tmp17_-tmp18_;
+   double tmp20_ = tmp0_+tmp19_;
+   double tmp21_ = (tmp20_)-mLocVecB2_z;
+   double tmp22_ = mLocVecC2_z*tmp4_;
+   double tmp23_ = tmp21_-tmp22_;
+   double tmp24_ = mLocVecD2_z*tmp5_;
+   double tmp25_ = tmp23_-tmp24_;
+   double tmp26_ = ElSquare(tmp25_);
+   double tmp27_ = tmp7_*tmp3_;
+   double tmp28_ = tmp16_*tmp0_;
+   double tmp29_ = tmp27_-tmp28_;
+   double tmp30_ = tmp1_+tmp29_;
+   double tmp31_ = (tmp30_)-mLocVecB2_y;
+   double tmp32_ = mLocVecC2_y*tmp4_;
+   double tmp33_ = tmp31_-tmp32_;
+   double tmp34_ = mLocVecD2_y*tmp5_;
+   double tmp35_ = tmp33_-tmp34_;
+   double tmp36_ = -(tmp3_);
+   double tmp37_ = -(mLocVecC2_z);
+   double tmp38_ = -(mLocVecD2_z);
+   double tmp39_ = -(tmp2_);
 
-  mVal[0] = mLocI2_x-(tmp13_)/(tmp7_);
+  mVal[0] = mLocI2_x-(tmp15_)/(tmp25_);
 
-  mCompDer[0][0] = -((mLocVecC2_x*(tmp7_)-(tmp13_)*mLocVecC2_z)/tmp14_);
-  mCompDer[0][1] = -((mLocVecD2_x*(tmp7_)-(tmp13_)*mLocVecD2_z)/tmp14_);
-  mCompDer[0][2] = tmp22_;
-  mCompDer[0][3] = 0;
-  mCompDer[0][4] = -(-(tmp13_)/tmp14_);
-  mVal[1] = mLocI2_y-(tmp20_)/(tmp7_);
+  mCompDer[0][0] = -(-((tmp15_)*tmp1_)/tmp26_);
+  mCompDer[0][1] = -((tmp0_*(tmp25_)-(tmp15_)*tmp36_)/tmp26_);
+  mCompDer[0][2] = -((-(tmp1_)*(tmp25_))/tmp26_);
+  mCompDer[0][3] = -((-(mLocVecC2_x)*(tmp25_)-(tmp15_)*tmp37_)/tmp26_);
+  mCompDer[0][4] = -((-(mLocVecD2_x)*(tmp25_)-(tmp15_)*tmp38_)/tmp26_);
+  mCompDer[0][5] = -((tmp25_-(tmp15_)*tmp39_)/tmp26_);
+  mCompDer[0][6] = -((-(tmp7_)*(tmp25_)-(tmp15_)*tmp16_)/tmp26_);
+  mCompDer[0][7] = -((tmp2_*(tmp25_)-(tmp15_))/tmp26_);
+  mVal[1] = mLocI2_y-(tmp35_)/(tmp25_);
 
-  mCompDer[1][0] = -((mLocVecC2_y*(tmp7_)-(tmp20_)*mLocVecC2_z)/tmp14_);
-  mCompDer[1][1] = -((mLocVecD2_y*(tmp7_)-(tmp20_)*mLocVecD2_z)/tmp14_);
-  mCompDer[1][2] = 0;
-  mCompDer[1][3] = tmp22_;
-  mCompDer[1][4] = -(-(tmp20_)/tmp14_);
+  mCompDer[1][0] = -((-(tmp0_)*(tmp25_)-(tmp35_)*tmp1_)/tmp26_);
+  mCompDer[1][1] = -(-((tmp35_)*tmp36_)/tmp26_);
+  mCompDer[1][2] = -((tmp3_*(tmp25_))/tmp26_);
+  mCompDer[1][3] = -((-(mLocVecC2_y)*(tmp25_)-(tmp35_)*tmp37_)/tmp26_);
+  mCompDer[1][4] = -((-(mLocVecD2_y)*(tmp25_)-(tmp35_)*tmp38_)/tmp26_);
+  mCompDer[1][5] = -((tmp7_*(tmp25_)-(tmp35_)*tmp39_)/tmp26_);
+  mCompDer[1][6] = -((tmp25_-(tmp35_)*tmp16_)/tmp26_);
+  mCompDer[1][7] = -((-(tmp16_)*(tmp25_)-(tmp35_))/tmp26_);
 }
 
 

@@ -878,6 +878,14 @@ void cSubstitueBlocIncTmp::Close()
    cCmpSsBloc aCmp;
    std::sort(mSBlNonTmp.begin(),mSBlNonTmp.end(),aCmp);
 
+/*
+   std::cout << "CloseCSB, SIZE " << mVSBlTmp.size() << " " << mSBlNonTmp.size() << "\n";
+   for (int aK=0 ; aK< int(mSBlNonTmp.size()) ; aK++)
+   {
+      const cSsBloc &aBl = mSBlNonTmp[aK];
+      std::cout << "SSSBL " << aBl.I0AbsAlloc() << " " << aBl.I1AbsAlloc() << "\n";
+   }
+*/
 }
 
 
