@@ -53,13 +53,14 @@ int TiPunch_main(int argc,char ** argv)
                 argc,argv,
                 LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pat)",eSAM_IsPatFile)
                             << EAMC(aOri,"Orientation path",eSAM_IsExistDirOri)
-                            << EAMC(aPly,"Ply file", eSAM_IsExistFile),
+                            << EAMC(aPly,"Ply file", eSAM_IsExistFile)
+                            << EAMC(aMode,"C3DC mode", eSAM_None,ListOfVal(eNbTypeMMByP)),
                 LArgMain()  << EAM(aOut,"Out",true,"Mesh name (def=plyName+ _mesh.ply)")
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
                             << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
                             << EAM(aDst,"Dist",true,"Threshold on distance between mesh and point cloud (def=1)")
-             );
+            );
 
     if (MMVisualMode) return EXIT_SUCCESS;
 
@@ -87,18 +88,27 @@ int TiPunch_main(int argc,char ** argv)
 
     if (verbose) cout << "Com= " << aCom << endl;
 
+#ifdef taratata
     cout << "\nRunning Poisson reconstruction" << endl;
 
     system_call(aCom.c_str());
 
     cout << "\nMesh built and saved in " << poissonMesh << endl;
-
+#endif
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
 
     StdCorrecNameOrient(aOri,aDir);
 
     std::vector<CamStenope*> ListCam;
+
+    bool help;
+    eTypeMMByP  type;
+    StdReadEnum(help,type,aMode,eNbTypeMMByP);
+
+    cMMByImNM *mPIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
+
+    vector <Im2D_REAL4 *> vImg;
 
     cout << endl;
     for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
@@ -107,12 +117,29 @@ int TiPunch_main(int argc,char ** argv)
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
-        cout <<"Image "<<*itS<<", with ori : "<< NOri <<endl;
+        std::string aNameProfDepth = mPIMsFilter->NameFileProf(eTMIN_Depth,*itS);
+
+        if (ELISE_fp::exist_file(aNameProfDepth))
+        {
+            Tiff_Im tif(aNameProfDepth.c_str());
+
+            Im2D_REAL4* pImg = new Im2D_REAL4(tif.sz().x, tif.sz().y);
+
+            ELISE_COPY
+            (
+                pImg->all_pts(),
+                tif.in(),
+                pImg->out()
+            );
+
+            vImg.push_back(pImg);
+            cout << "img sz" << vImg.back()->sz() << endl;
+        }
+        else
+            cout << "File does not exist : " << aNameProfDepth << endl;
+
+        cout <<"Image "<<*itS<<", with depth : "<< aNameProfDepth <<endl;
     }
-
-    //TODO: charger Z_Num / Depth-img
-
-    Im2D_REAL4 * pImg = new Im2D_REAL4(1000,1000,0.f);
 
     cMesh myMesh(poissonMesh);
 
@@ -147,7 +174,7 @@ int TiPunch_main(int argc,char ** argv)
                 {
                     for(int dK=_min.y; dK < _max.y; dK++)
                     {
-                        if (pImg->GetR(Pt2di(cK,dK)) < aDst) found = true;
+                        if (vImg[bK]->GetR(Pt2di(cK,dK)) < aDst) found = true;
                     }
                 }
 
