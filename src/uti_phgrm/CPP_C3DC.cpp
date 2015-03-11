@@ -40,6 +40,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
+#if (ELISE_QT_VERSION >= 4)
+    #include "general/visual_mainwindow.h"
+#endif
+
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 
 // Im*_Ok => OK
@@ -72,6 +76,8 @@ class cAppli_C3DC : public cAppliWithSetImage
          void PipelineStatue();
          void DoMergeAndPly();
 
+         void ReadType(const std::string &aType);
+
          std::string mStrType;
          eTypeMMByP  mType;
          std::string mOriFull;
@@ -98,7 +104,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          std::string mStrZ0ZF;
          bool        mDoMerge;
          cMMByImNM * mMMIN;
-		 bool		 mUseGpu;
+         bool		 mUseGpu;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -116,42 +122,85 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 {
 
 
-    if (argc<2)
+#if(ELISE_QT_VERSION >= 4)
+
+    if (MMVisualMode)
     {
-        ELISE_ASSERT(false,"No arg to C3CD");
+        QApplication app(argc, argv);
+
+        LArgMain LAM;
+        LAM << EAMC(mStrType,"Mode",eSAM_None,ListOfVal(eNbTypeMMByP));
+
+        std::vector <cMMSpecArg> aVA = LAM.ExportMMSpec();
+
+        cMMSpecArg aArg = aVA[0];
+
+        list<string> liste_valeur_enum = listPossibleValues(aArg);
+
+        QStringList items;
+        list<string>::iterator it=liste_valeur_enum.begin();
+        for (; it != liste_valeur_enum.end(); ++it)
+            items << QString((*it).c_str());
+
+        setStyleSheet(app);
+
+        bool ok = false;
+        int  defaultItem = 0;
+
+        if(argc > 1)
+            defaultItem = items.indexOf(QString(argv[1]));
+
+        QInputDialog myDialog;
+        QString item = myDialog.getItem(NULL, app.applicationName(),
+                                             QString (aArg.Comment().c_str()), items, defaultItem, false, &ok);
+
+        if (ok && !item.isEmpty())
+            mStrType = item.toStdString();
+        else
+            return;
+
+        ReadType(mStrType);
     }
-    mStrType = argv[1];
-    StdReadEnum(mModeHelp,mType,mStrType,eNbTypeMMByP);
+    else
+    {
+        ELISE_ASSERT(argc >= 2,"Not enough arg");
+        ReadType(argv[1]);
+    }
+#else
+    ELISE_ASSERT(argc >= 2,"Not enough arg");
+    ReadType(argv[1]);
+#endif
 
-
-   ElInitArgMain
-   (
+    ElInitArgMain
+    (
         argc,argv,
-        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
+        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP))
                     << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOriFull,"Orientation", eSAM_IsExistDirOri),
         LArgMain()
-                    << EAM(mMasq3D,"Masq3D",true,"3D masq for point selection")
+                    << EAM(mMasq3D,"Masq3D",true,"3D masq for point selection",eSAM_IsExistFileRP)
                     << EAM(mMergeOut,"Out",true,"final result (Def=C3DC.ply)")
-                    << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 mean 5x5) ")
-                    << EAM(mPlyCoul,"PlyCoul",true,"Colour in ply ? Def = true")
-                    << EAM(mTuning,"Tuning",true,"Will disappear one day ...")
-                    << EAM(mPurge,"Purge",true,"Purge result, def=true")
-                    << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends of mode")
-                    << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends of mode")
-					<< EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
-   );
+                    << EAM(mSzNorm,"SzNorm",true,"Sz of param for normal evaluation (<=0 if none, Def=2 means 5x5) ")
+                    << EAM(mPlyCoul,"PlyCoul",true,"Colour in ply ? (Def = true)")
+                    << EAM(mTuning,"Tuning",true,"Will disappear one day ...",eSAM_InternalUse)
+                    << EAM(mPurge,"Purge",true,"Purge result, (Def=true)")
+                    << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends on mode")
+                    << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode")
+                    << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+    );
+
+   if (MMVisualMode) return;
 
    if (!EAMIsInit(&mDS))
    {
-      // if (mType==eQuickMac) mDS = 2.0;
+       // if (mType==eQuickMac) mDS = 2.0;
    }
    if (!EAMIsInit(&mZoomF))
    {
-      if (mType==eBigMac)   mZoomF = 2;
-      if (mType==eMicMac)   mZoomF = 4;
-      if (mType==eQuickMac) mZoomF = 8;
-      if (mType==eStatue)   mZoomF = 2;
+       if (mType==eBigMac)   mZoomF = 2;
+       if (mType==eMicMac)   mZoomF = 4;
+       if (mType==eQuickMac) mZoomF = 8;
+       if (mType==eStatue)   mZoomF = 2;
    }
 
 
@@ -163,53 +212,53 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mStrImOriApSec = BLANK +  DirAndPatFileOfImSec() +  BLANK + Ori() + BLANK;
    mArgMasq3D = "";
    if (EAMIsInit(&mMasq3D))
-      mArgMasq3D = std::string(" Masq3D=" + mMasq3D + BLANK) ;
+       mArgMasq3D = std::string(" Masq3D=" + mMasq3D + BLANK) ;
 
 
-  //=====================================
+   //=====================================
 
    mBaseComMMByP =    MM3dBinFile("MMByP ")
-                   +  BLANK + mStrType
-                   +  mStrImOri0
-				   +  mArgMasq3D
-				   +  " UseGpu=" + ToString(mUseGpu);
+           +  BLANK + mStrType
+           +  mStrImOri0
+           +  mArgMasq3D
+           +  " UseGpu=" + ToString(mUseGpu);
 
 
-  //=====================================
+   //=====================================
    mBaseComEnv =      MM3dBinFile("TestLib MMEnvlop ")
-                   +  mStrImOriApSec
-                   +  std::string(" 16 ")  + ToString(mZoomF) + " " 
-                   +  mArgMasq3D
-                   +  std::string(" AutoPurge=") + ToString(mPurge)
-                   +  " Out=" + mStrType
-                 ;
+           +  mStrImOriApSec
+           +  std::string(" 16 ")  + ToString(mZoomF) + " "
+           +  mArgMasq3D
+           +  std::string(" AutoPurge=") + ToString(mPurge)
+           +  " Out=" + mStrType
+           ;
 
-/*
+   /*
    if (mTuning)
    {
       mBaseComEnv = mBaseComEnv + " DoPlyDS=true";
    }
 */
 
-  //=====================================
+   //=====================================
 
-  mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
-                +  mStrImOri0 + " ModeMerge=" + mStrType
-                +  " DownScale=" +ToString(mDS)
-               ;
+   mComMerge =      MM3dBinFile("TestLib  MergeCloud ")
+           +  mStrImOri0 + " ModeMerge=" + mStrType
+           +  " DownScale=" +ToString(mDS)
+           ;
 
-  if (mSzNorm>=0)
-  {
-     mComMerge = mComMerge + " SzNorm=" + ToString(1+2*mSzNorm);
-  }
+   if (mSzNorm>=0)
+   {
+       mComMerge = mComMerge + " SzNorm=" + ToString(1+2*mSzNorm);
+   }
 
    mComMerge +=  " PlyCoul=" + ToString(mPlyCoul);
 
    mMMIN = cMMByImNM::ForGlobMerge(Dir(),mDS,mStrType);
 
-  //=====================================
+   //=====================================
 
-  std::string aDirFusMM = mMMIN->FullDir();
+   std::string aDirFusMM = mMMIN->FullDir();
 
    mComCatPly =  MM3dBinFile("MergePly ") + QUOTE( aDirFusMM + ".*Merge.*ply") + " Out="  + mMergeOut;
 
@@ -239,6 +288,12 @@ void cAppli_C3DC::DoMergeAndPly()
     }
 }
 
+void cAppli_C3DC::ReadType(const std::string & aType)
+{
+    mStrType = aType;
+    StdReadEnum(mModeHelp,mType,mStrType,eNbTypeMMByP);
+}
+
 void  cAppli_C3DC::PipelineQuickMack()
 {
     ExeCom(mBaseComMMByP + " Do=AMP " + mStrZ0ZF);
@@ -261,22 +316,25 @@ void  cAppli_C3DC::PipelineStatue()
 
 void cAppli_C3DC::DoAll()
 {
-    switch (mType)
+    if (!MMVisualMode)
     {
-         case eBigMac :
-         case eMicMac :
-         case eQuickMac :
-              PipelineQuickMack();
-         break;
- 
-         case eStatue :
-              PipelineStatue();
-         break;
+        switch (mType)
+        {
+             case eBigMac :
+             case eMicMac :
+             case eQuickMac :
+                  PipelineQuickMack();
+             break;
 
-         default :
-              std::cout <<  mStrType  << " : not supported for now\n";
-              ELISE_ASSERT(false,"Unsupported value in C3DC");
-         break;
+             case eStatue :
+                  PipelineStatue();
+             break;
+
+             default :
+                  std::cout <<  mStrType  << " : not supported for now\n";
+                  ELISE_ASSERT(false,"Unsupported value in C3DC");
+             break;
+        }
     }
 
 }
@@ -304,7 +362,7 @@ class cChantierFromMPI
 {
      public :
        cChantierFromMPI(const std::string &,double aScale,const std::string & aPat);
-         
+
        cMMByImNM *    mMMI;
        std::string    mOri;
 
@@ -369,9 +427,9 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                     << EAM(mMergeOut,"Out",true,"Ply File Results")
                     << EAM(mPat,"Pat",true,"Pattern for selecting images (Def=All image in files)")
     );
-     
+
     mCFPI = new cChantierFromMPI(mName,mDS,mPat);
- 
+
     mComNuageMerge =       MM3dBinFile("TestLib  MergeCloud ")
                   +   mCFPI-> mStrImOri0
                   + " ModeMerge=" + mCFPI->mStrType
@@ -485,9 +543,9 @@ void cAppli_MPI2Mnt::DoOrtho()
     if (EAMIsInit(&mRep))
     {
            aCom +=  " +Repere="+mRep;
-           if (mRepIsAnam) 
+           if (mRepIsAnam)
               aCom += " +RepereIsAnam=true";
-           else  
+           else
               aCom += " +RepereIscart=true";
     }
 
@@ -505,7 +563,7 @@ void cAppli_MPI2Mnt::DoMerge()
                          // +   "TargetGeom=" +   mTargetGeom + BLANK
 
                       ;
-                      
+
     System(aCom);
 
 }
@@ -516,7 +574,7 @@ void cAppli_MPI2Mnt::DoBascule()
 
     std::list<std::string> aLCom;
 
-       
+
 
     std::cout << "DIRAP " << mDirApp << " NBI " << mSetIm->size() << "\n";
 
@@ -547,7 +605,7 @@ void cAppli_MPI2Mnt::DoMTD()
                           + std::string(" ") + mCFPI->mStrPat
                           + std::string(" ") + mCFPI->mMMI->GetOriOfEtat()
                           + mStrRep
-                          + " DoMEC=0  Purge=true ZoomI=4 ZoomF=2  IncMax=1.0 " + 
+                          + " DoMEC=0  Purge=true ZoomI=4 ZoomF=2  IncMax=1.0 " +
                           + " DirMEC=" + mDirMTD
                           + " ZoomF=" + ToString(mDeZoom)
                        ;
@@ -572,13 +630,13 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
         argc,argv,
         LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)"),
         LArgMain()
-                    << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
+                    << EAM(mDS,"DS",true,"Downscale, Def=1.0")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
-                    << EAM(mPat,"Pat",true,"Patter, def = all existing clouds")
-                    << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to rerun only ortho)")
-                    << EAM(mDoOrtho,"DoOrttho",true,"Generate ortho photo,  def=false")
+                    << EAM(mPat,"Pat",true,"Pattern, def = all existing clouds")
+                    << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to return only ortho)")
+                    << EAM(mDoOrtho,"DoOrtho",true,"Generate ortho photo,  def=false")
    );
-     
+
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
    mDirApp = mCFPI->mFullDirChantier;
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirApp);
