@@ -330,7 +330,10 @@ class cElCompileFN
                             const std::string           &   aDir,
                             const std::string           &   aNameCl,
 			    std::vector<Fonc_Num>           aVar,
-                            const cIncListInterv &          aList
+                            const cIncListInterv &          aList,
+                           // si true il y a d'abord les fonction pour la valeur ensuite
+                           // celle pour les derivee
+                            bool  SpecFnumCoorUseCsteVal = false
 
                          );
 
@@ -359,9 +362,9 @@ class cElCompileFN
              void SetFile(const std::string & aPostFixe,const char * incl);
              void CloseFile();
 	     std::string  NameVarLoc(const std::string &);
-             void MakeFileCpp(std::vector<Fonc_Num> );
-             void MakeFonc(std::vector<Fonc_Num> f,INT DegDeriv);
-             void MakeFileH();
+             void MakeFileCpp(std::vector<Fonc_Num>,bool  SpecFnumCoorUseCsteVal = false  );
+             void MakeFonc(std::vector<Fonc_Num> f,INT DegDeriv,bool  SpecFnumCoorUseCsteVal = false);
+             void MakeFileH(bool  SpecFnumCoorUseCsteVal = false);
 
              cElCompileFN(const cElCompileFN &);      // Unimplemanted
              void operator = (const cElCompileFN &);  // Unimplemanted
@@ -391,6 +394,7 @@ class Fonc_Num_Not_Comp : public RC_Object
          virtual INT dimf_out() const = 0;
 
          virtual bool  is0() const;
+         virtual void   inspect() const;
          virtual bool  is1() const;
          virtual bool  IsCsteRealDim1(REAL &) const;
 

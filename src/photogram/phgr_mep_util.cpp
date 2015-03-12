@@ -179,10 +179,10 @@ class cPt3dEEF : public cElemEqFormelle,
        Pt3dr             mP0;
        Pt3d<Fonc_Num>    mP;  
 
-       cPt3dEEF(cSetEqFormelles & aSet,const Pt3dr & aP0) :
+       cPt3dEEF(cSetEqFormelles & aSet,const Pt3dr & aP0,bool HasValCste) :
           cElemEqFormelle (aSet,false),
           mP0     (aP0),
-          mP      (aSet.Alloc().NewPt3(mP0))
+          mP      (aSet.Alloc().NewPt3(mP0,HasValCste))
        {
            CloseEEF();
            aSet.AddObj2Kill(this);
@@ -197,10 +197,10 @@ class cScalEEF : public cElemEqFormelle,
        double      mS0;
        Fonc_Num    mS;  
 
-       cScalEEF(cSetEqFormelles & aSet,double aV0) :
+       cScalEEF(cSetEqFormelles & aSet,double aV0,bool HasValCste) :
           cElemEqFormelle (aSet,false),
           mS0     (aV0),
-          mS      (aSet.Alloc().NewF(&mS0))
+          mS      (aSet.Alloc().NewF(&mS0,HasValCste))
        {
            CloseEEF();
            aSet.AddObj2Kill(this);
@@ -248,7 +248,7 @@ class cEqBundleBase  : public cNameSpaceEqF,
        static const double  ThePropERRInit = 0.80;
 
 
-       cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc);  // Nb de cam en plus des 2 minim
+       cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste = false);  // Nb de cam en plus des 2 minim
        void    InitNewRot(const ElRotation3D & aRot,bool SetPhaseEq=true);
        void SolveResetUpdate();
        
@@ -285,6 +285,7 @@ class cEqBundleBase  : public cNameSpaceEqF,
        cIncListInterv        mLInterv1;
        cIncListInterv        mLInterv2;
        int                   mNbCamSup;
+       std::string           mPostAccel;
        std::string           mNameEq1;
        std::string           mNameEq2;
 
@@ -295,24 +296,27 @@ class cEqBundleBase  : public cNameSpaceEqF,
 };
 
 
+extern bool FnumCoorUseCsteVal;
 
-cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc) :
+
+cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste) :
     mR2         (1,1),
     mSol2       (ElRotation3D::Id),
     mFoc        (aFoc),
     mSetEq      (new cSetEqFormelles(TypeSysLin)),
     mSetEq2     ( DoGenCode ? new cSetEqFormelles(TypeSysLin) : mSetEq),
-    mW2         (new cPt3dEEF(*mSetEq2,Pt3dr(0,0,0))),
+    mW2         (new cPt3dEEF(*mSetEq2,Pt3dr(0,0,0),UseAccelCoordCste)),
     mB2         ("VecB2"),
-    mc2         (new cScalEEF (*mSetEq2,0)),
+    mc2         (new cScalEEF (*mSetEq2,0,UseAccelCoordCste)),
     mC2         ("VecC2"),
-    md2         (new cScalEEF (*mSetEq2,0)),
+    md2         (new cScalEEF (*mSetEq2,0,UseAccelCoordCste)),
     mD2         ("VecD2"),
     mI1         ("I1"),
     mI2         ("I2"),
     mNbCamSup   (aNbCamSup),
-    mNameEq1    ("cEqBBCamFirst"),
-    mNameEq2    ("cEqBBCamSecond"),
+    mPostAccel   (UseAccelCoordCste ? "_AccelCsteCoord" : ""),
+    mNameEq1    ("cEqBBCamFirst" + mPostAccel),
+    mNameEq2    ("cEqBBCamSecond" + mPostAccel),
     mEqP3I      (mSetEq->Pt3dIncTmp()),
     mEq2P3I     (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
     mSBIT12     (*mEqP3I)
@@ -329,39 +333,86 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc) :
   mLInterv2.AddInterv(md2->IncInterv());
   mLInterv2.AddInterv(mEq2P3I->IncInterv());
 
+
   if (DoGenCode)
   {
+      std::vector<Fonc_Num> aVR1;
+      std::vector<Fonc_Num> aVR2;
+
+      int aNbK = UseAccelCoordCste ? 2 : 1;
+
+{
+std::cout << "UseAccelCoordCste " << UseAccelCoordCste << "\n";
+Pt3d<Fonc_Num>  aP1 = mEq2P3I->PF();
+Pt3d<Fonc_Num>  aP2 = mW2->mP;
+
+
+
+FnumCoorUseCsteVal = true;
+aP1.z.inspect() ; std::cout << " W2\n";
+aP2.z.inspect() ; std::cout << " P1\n";
+std::cout << "AAAAAA " <<  aP1.x.is0()  << " " << aP2.x.is0() << "\n";
+Fonc_Num aF1 = aP2.x * aP1.z + 1 *FX + 0*FY;
+aF1.show(std::cout); std::cout << "\n";
+
+kth_coord(3).inspect(); std::cout << "333\n";
+
+// FnumCoorUseCsteVal = false;
+std::cout << "BBBBB " <<   aP2.y.is0()  << " " << aP2.x.is0() << "\n";
+Fonc_Num aF2 = aP1.x * aP1.z + aP2.y ;
+aF2.show(std::cout); std::cout << "\n";
+
+getchar();
+}
+
+      for (int aK=0 ; aK< aNbK ; aK++)
       {
+         FnumCoorUseCsteVal =  (aK==1);
+         // std::cout << "FnumCoorUseCsteValFnumCoorUseCsteVal " << FnumCoorUseCsteVal << "\n";
          {
-             std::vector<Fonc_Num> aVR1;
              Pt3d<Fonc_Num>  aPIGlob = mEqP3I->PF();
 
              Pt3d<Fonc_Num> aP1 = aPIGlob ;
              aVR1.push_back(mI1.PtF().x - aP1.x / aP1.z);
              aVR1.push_back(mI1.PtF().y - aP1.y / aP1.z);
-             cElCompileFN::DoEverything
-             (
-                 DIRECTORY_GENCODE_FORMEL, 
-                 mNameEq1,  
-                 aVR1,  
-                 mLInterv1  
-             );
+
          }
          {
-             std::vector<Fonc_Num> aVR2;
              Pt3d<Fonc_Num>  aPIGlob = mEq2P3I->PF();
              Pt3d<Fonc_Num> aP2 =  aPIGlob + (mW2->mP ^ aPIGlob) - mB2.PtF() - mC2.PtF()*mc2->mS - mD2.PtF()*md2->mS ;
              aVR2.push_back(mI2.PtF().x - aP2.x / aP2.z);
              aVR2.push_back(mI2.PtF().y - aP2.y / aP2.z);
-             cElCompileFN::DoEverything
-             (
-                 DIRECTORY_GENCODE_FORMEL, 
-                 mNameEq2,  
-                 aVR2,  
-                 mLInterv2  
-             );
          }
+/*
+         // aVR1.push_back( mI1.PtF().x + mW2->mP.x / mW2->mP.y + mW2->mP.z);
+         aVR2.push_back( mI1.PtF().x + mW2->mP.x / mW2->mP.z);
+         aVR2.push_back(mW2->mP.x / mW2->mP.y);
+*/
+
+
       }
+
+std::cout << "AAAAAAAAAAAA\n";
+
+      cElCompileFN::DoEverything
+      (
+             DIRECTORY_GENCODE_FORMEL, 
+             mNameEq1,  
+             aVR1,  
+             mLInterv1  ,
+             UseAccelCoordCste
+      );
+std::cout << "BBBBBB\n";
+      cElCompileFN::DoEverything
+      (
+             DIRECTORY_GENCODE_FORMEL, 
+             mNameEq2,  
+             aVR2,  
+             mLInterv2  ,
+             UseAccelCoordCste
+      );
+
+      FnumCoorUseCsteVal = false;
 
       return;
   }
@@ -577,8 +628,12 @@ double  cEqBundleBase::AddEquation12(const Pt2dr & aP1,const Pt2dr & aP2,double 
 
 void GenCodecEqBundleBase()
 {
-    cEqBundleBase * anEla = new  cEqBundleBase (true,0,0.0);
+    cEqBundleBase * anEla = new  cEqBundleBase (true,0,0.0,true);
     delete anEla;
+/*
+    anEla = new  cEqBundleBase (true,0,0.0,false);
+    delete anEla;
+*/
 
 }
 
@@ -700,11 +755,11 @@ Pt3d<Fonc_Num> vunit(const Pt3d<Fonc_Num> & aV) {return aV / sqrt(square_euclid(
 cGlobEqLineraiseAngle::cGlobEqLineraiseAngle(bool doGenCode) :
     tR0         (1,1),
     mSetEq      (new cSetEqFormelles(TypeSysLin)),
-    mW          (new cPt3dEEF(*mSetEq,Pt3dr(0,0,0))),
+    mW          (new cPt3dEEF(*mSetEq,Pt3dr(0,0,0),true)),
     mB0         ("VecB0"),
-    mc          (new cScalEEF (*mSetEq,0)),
+    mc          (new cScalEEF (*mSetEq,0,true)),
     mC          ("VecC"),
-    md          (new cScalEEF (*mSetEq,0)),
+    md          (new cScalEEF (*mSetEq,0,true)),
     mD          ("VecD"),
     mQp1        ("Qp1"),
     mQ2         ("Q2"),
