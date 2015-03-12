@@ -375,7 +375,7 @@ template <> inline Fonc_Num ElAbs   (Fonc_Num ) {ELISE_ASSERT(false,"ElMax(Fonc_
 
      // coordinates functions 
 
-extern Fonc_Num kth_coord(INT);
+extern Fonc_Num kth_coord(INT,bool HasAlwaysInitialValue=false,double InitialValue=0);
 extern const Fonc_Num FX;  // FX = kth_coord(0)
 extern const Fonc_Num FY;  // FY = kth_coord(1)
 extern const Fonc_Num FZ;  // FY = kth_coord(2)

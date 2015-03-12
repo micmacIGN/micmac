@@ -455,7 +455,7 @@ INT Fonc_Coord_Not_Comp::CmpFormelIfSameKind(Fonc_Num_Not_Comp * aF2)
 /*                                                    */
 /******************************************************/
 
-Fonc_Num kth_coord(INT k)
+Fonc_Num kth_coord(INT k,bool HasAlwaysInitialValue,double InitialValue)
 {
     ELISE_ASSERT(k>=0,"KthCoord<0");
     return new Fonc_Coord_Not_Comp(k);

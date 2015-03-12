@@ -516,9 +516,17 @@ std::string getBanniereMM3D()
     std::string banniere = "\n";
     banniere += "************************************************************************ \n";
     banniere += "**                                                                    ** \n";
+    banniere += "**                                                                    ** \n";
     banniere += "**    MicMac: a  free open source project  for photogrammetry         ** \n";
     banniere += "**     hosted at Ecole Nationale des Sciences Geographiques           ** \n";
     banniere += "**               in Marne-la-Vallee, for IGN-France                   ** \n";
+    banniere += "**                                                                    ** \n";
+    banniere += "**    Hope you enjoy, todo list in case of any problem using MicMac : ** \n";
+    banniere += "**      (0) Take a  Pastis                                            ** \n";
+    banniere += "**      (1) Switch you computer off and on                            ** \n";
+    banniere += "**      (2) Install it on Gnu-Linux (work better on)                  ** \n";
+    banniere += "**      (3) Contact the forum http://forum-micmac.forumprod.com/      ** \n";
+    banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**  The project is funded by :                                        ** \n";
     banniere += "**                                                                    ** \n";
@@ -538,6 +546,7 @@ std::string getBanniereMM3D()
     banniere += "**                G Maillet, L Girod                                  ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**               Contact: Marc.Pierrot-Deseilligny@ensg.eu            ** \n";
+    banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "************************************************************************ \n";
 

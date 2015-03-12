@@ -655,6 +655,18 @@ struct cResOptInterFaisceaux
 };
 
 
+/*
+TIME :
+     3.03199   ElSeg3D::L2InterFaisceaux 
+     0.473224   InterSeg(const Pt3dr & aP0,...
+     1.23799    InterSeg(const std::vector<Pt3r> 
+*/
+
+Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1);
+Pt3dr InterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1);
+
+
+
 
 class ElSeg3D
 {
