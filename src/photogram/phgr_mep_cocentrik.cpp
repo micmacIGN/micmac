@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+
+
 /************************************************************/
 /*                                                          */
 /*                  MEP CO-CENTTRIQUE                       */
@@ -433,7 +435,7 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElR
           // if ((aK%1000) == 0) getchar();
      }
 */
-     double aNoise = 1e-4;
+     double aNoise = 1e-2;
      ElMatrix<double> aMP =  ElMatrix<double>::Rotation(aNoise*NRrandC(),aNoise*NRrandC(),aNoise*NRrandC());
      TestLinariseAngle(aPack,ElRotation3D(aRef->tr(),aRef->Mat(),true),aFoc);
 

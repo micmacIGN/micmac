@@ -222,12 +222,12 @@ class AllocateurDInconnues
         void AssertUsable(const cStateAllocI &) const;
         void RestoreState(const cStateAllocI &);
         AllocateurDInconnues();
-        Fonc_Num        NewF(REAL *);
+        Fonc_Num        NewF(REAL *,bool HasAlwaysInitialValue=false);
         INT             NewInc(REAL *);
-        Pt3d<Fonc_Num>  NewPt3(REAL *,REAL*,REAL*);
-        Pt3d<Fonc_Num>            NewPt3(Pt3dr &);
-        Pt2d<Fonc_Num>            NewPt2(REAL*,REAL*);
-        Pt2d<Fonc_Num>            NewPt2(Pt2dr &);
+        Pt3d<Fonc_Num>  NewPt3(REAL *,REAL*,REAL*,bool HasAlwaysInitialValue=false);
+        Pt3d<Fonc_Num>            NewPt3(Pt3dr &,bool HasAlwaysInitialValue=false);
+        Pt2d<Fonc_Num>            NewPt2(REAL*,REAL*,bool HasAlwaysInitialValue=false);
+        Pt2d<Fonc_Num>            NewPt2(Pt2dr &,bool HasAlwaysInitialValue=false);
 
         std::vector<Fonc_Num>            NewVectInc(std::vector<double> &);
 

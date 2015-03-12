@@ -41,7 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-
 // static bool BUG= false;
 
 void ShowMatr(const char * mes, ElMatrix<REAL> aMatr)
