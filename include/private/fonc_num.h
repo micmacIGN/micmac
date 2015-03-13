@@ -407,6 +407,9 @@ class Fonc_Num_Not_Comp : public RC_Object
          virtual void VarDerNN(ElGrowingSetInd &) const = 0;
          virtual INT DegrePoly() const;
 
+         virtual   Fonc_Num Simplify() ;
+
+
 
          virtual Fonc_Num::tKindOfExpr  KindOfExpr();
          virtual INT CmpFormelIfSameKind(Fonc_Num_Not_Comp *);
@@ -426,6 +429,10 @@ class Fonc_Num_Not_Comp : public RC_Object
 class Op_Bin_Not_Comp : public Fonc_Num_Not_Comp
 {
       public :
+
+         Fonc_Num Simplify() ;
+
+         
          typedef double   (* TyVal)  (double,double);
          typedef Fonc_Num (* TyDeriv)(Fonc_Num,Fonc_Num,INT k);
          typedef double   (* TyValDeriv)(Fonc_Num,Fonc_Num,const  PtsKD &,INT k);
@@ -479,6 +486,7 @@ class Op_Bin_Not_Comp : public Fonc_Num_Not_Comp
 class Op_Un_Not_Comp : public Fonc_Num_Not_Comp
 {
       public :
+         Fonc_Num Simplify() ;
          virtual  Fonc_Num_Computed * compute(const Arg_Fonc_Num_Comp &);
          virtual  Fonc_Num_Computed * op_un_comp
                                       (const Arg_Fonc_Num_Comp &,

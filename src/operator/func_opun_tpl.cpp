@@ -49,6 +49,24 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                             */
 /***************************************************************/
 
+Fonc_Num Op_Un_Not_Comp::Simplify()
+{
+   std::string aStrName = _name;
+   if (aStrName=="cos") return cos(_f);
+   if (aStrName=="sin") return sin(_f);
+   if (aStrName=="tan") return tan(_f);
+
+   if (aStrName=="exp")  return exp(_f);
+   if (aStrName=="log")  return log(_f);
+   if (aStrName=="log2") return log2(_f);
+   if (aStrName=="sqrt") return sqrt(_f);
+   if (aStrName=="atan") return atan(_f);
+
+   std::cout << "For operator = " << _name << "\n";
+   ELISE_ASSERT(false,"Unhandled operator in Op_Un_Not_Comp::Simplify");
+   return 0;
+}
+
 Fonc_Num Op_Un_Not_Comp::deriv(INT k) const 
 {
     return _OpUnDeriv(_f,k);

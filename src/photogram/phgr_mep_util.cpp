@@ -343,26 +343,58 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
 
 {
 std::cout << "UseAccelCoordCste " << UseAccelCoordCste << "\n";
-Pt3d<Fonc_Num>  aP1 = mEq2P3I->PF();
-Pt3d<Fonc_Num>  aP2 = mW2->mP;
 
 
+Pt3d<Fonc_Num>  aPTer = mEq2P3I->PF();
+Pt3d<Fonc_Num>  aPW = mW2->mP;
 
-FnumCoorUseCsteVal = true;
-aP1.z.inspect() ; std::cout << " W2\n";
-aP2.z.inspect() ; std::cout << " P1\n";
-std::cout << "AAAAAA " <<  aP1.x.is0()  << " " << aP2.x.is0() << "\n";
-Fonc_Num aF1 = aP2.x * aP1.z + 1 *FX + 0*FY;
-aF1.show(std::cout); std::cout << "\n";
 
-kth_coord(3).inspect(); std::cout << "333\n";
+// aPTer.z.inspect() ; std::cout << " W2\n";
+// aPW.z.inspect() ; std::cout << " P1\n";
+
+
+{  // Experience 1, une fonction generee sous  FnumCoorUseCsteVal
+    FnumCoorUseCsteVal = true;
+/*
+std::cout << "AAAAAA Ter " <<  aPTer.x.is0()  << " W " << aPW.x.is0() << "\n";
+// AAAAAA Ter 0 W 1  => c'est normal
+*/
+
+    Fonc_Num aF1 = aPW.x * aPTer.z  + aPTer.z + aPW.y;
+    aF1.show(std::cout); std::cout << "\n";
+    //  =>  X7  soit aPTer.z, c'est normal
+}
+
+{  // Experience 2, une fonction generee sans  FnumCoorUseCsteVa
+
+    FnumCoorUseCsteVal = false;
+    Fonc_Num aF1 = aPW.x * aPTer.z  + aPTer.z + aPW.y;
+    aF1.show(std::cout); std::cout << "  Exp2 \n";
+    // = > +(+(*(X0,X7),X7),X1)    soit X0X7 + X7 + X1 ; c'est normal
+}
+
+{    // Experience 3, une fonction et ses derivees 
+    FnumCoorUseCsteVal = false;
+    Fonc_Num aF1 = (aPW.x +1) * (aPTer.z + mI1.PtF().x);
+
+    aF1.deriv(0).show(std::cout) ;  std::cout << " Exp3 \n";
+    aF1.deriv(7).show(std::cout) ;  std::cout << " Exp3 \n";
+
+    FnumCoorUseCsteVal = true;
+    aF1.deriv(0).show(std::cout) ;  std::cout << " Exp3 \n";
+    aF1.deriv(7).show(std::cout) ;  std::cout << " Exp3 \n";
+    aF1.deriv(7).Simplify().show(std::cout) ;  std::cout << " Exp3 \n";
+}
+
+// kth_coord(3).inspect(); std::cout << "333\n";
 
 // FnumCoorUseCsteVal = false;
-std::cout << "BBBBB " <<   aP2.y.is0()  << " " << aP2.x.is0() << "\n";
-Fonc_Num aF2 = aP1.x * aP1.z + aP2.y ;
-aF2.show(std::cout); std::cout << "\n";
+// std::cout << "BBBBB " <<   aP2.y.is0()  << " " << aP2.x.is0() << "\n";
+// Fonc_Num aF2 = aP1.x * aP1.z + aP2.y ;
+// aF2.show(std::cout); std::cout << "\n";
 
 getchar();
+exit(0);
 }
 
       for (int aK=0 ; aK< aNbK ; aK++)

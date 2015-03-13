@@ -287,6 +287,7 @@ class Fonc_Num : public  PRC0
 	 INT  NumCoord() const; // En qq sorte la fonc inverse de kth_coord, 
 	                        // => Erreur si pas une fonc coord
      void show(std::ostream & os) const;
+     Fonc_Num Simplify() ;
      void inspect() const;  // debug
      bool is0() const;
      bool is1() const;
