@@ -38,15 +38,41 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+/*#if(ELISE_QT_VERSION >= 4)
+    #ifdef Int
+        #undef Int
+    #endif
+
+    #include <QMessageBox>
+    #include <QApplication>
+#endif*/
+
+// Test if distance in depth image is close to distance between pt3d and center (threshold = aDst)
+bool DistanceTest(double aDst, Pt3dr const &pt3d, Pt3dr const &center, double downScale, CamStenope* cam, Im2D_REAL4* ImgProf, Im2D_INT4* Masq)
+{
+    Pt2dr Pt = cam->R3toF2(pt3d);
+    if (cam->IsInZoneUtile(Pt))
+    {
+        Pt2di Pti(round_down(Pt.x/downScale), round_down(Pt.y/downScale));
+        /*if (Masq->GetI(Pti) == 1)
+        {
+            cout << "dist  : " << ImgProf->GetR(Pti) << endl;
+        }*/
+
+        if ((Masq->GetI(Pti)) && (abs(abs(ImgProf->GetR(Pti)) - euclid(pt3d - center)) < aDst)) return true;
+    }
+    return false;
+}
+
 int TiPunch_main(int argc,char ** argv)
 {
     bool verbose = true;
 
-    std::string aDir, aPat, aFullName, aOri, aPly, aOut;
+    std::string aDir, aPat, aFullName, aOri, aPly, aOut, aMode, aCom;
     bool aBin = true;
     bool aRmPoissonMesh = false;
     int aDepth = 8;
-    double aDst = 1.f;
+    double aDst = 0.5f;
 
     ElInitArgMain
             (
@@ -70,58 +96,99 @@ int TiPunch_main(int argc,char ** argv)
 
     stringstream ss;
     ss << aDepth;
-
-    int nbProc = NbProcSys();
-    stringstream sst;
-    sst << nbProc;
-
     std::string poissonMesh = StdPrefix(aPly) + "_poisson_depth" + ss.str() +".ply";
 
-    std::string aCom = g_externalToolHandler.get( "PoissonRecon" ).callName()
-            + std::string(" --in ") + aPly.c_str()
-            + std::string(" --out ") + poissonMesh.c_str()
-            + " --depth " + ss.str()
-    //#if USE_OPEN_MP //TODO: à activer quand WITH_OPEN_MP=1
-            + " --threads " + sst.str()
-    //#endif
-    ;
+    bool computeMesh = true;
 
-    if (verbose) cout << "Com= " << aCom << endl;
+    if (ELISE_fp::exist_file(poissonMesh))
+    {
+        /*if (MMVisualMode)
+        {
+            #if(ELISE_QT_VERSION >= 4)
+              std::string question = "File " + poissonMesh + " already exists. Do you want to replace it? (y/n)";
+              QMessageBox::StandardButton reply = QMessageBox::question(NULL, "Warning", question.c_str(),
+                                            QMessageBox::Yes|QMessageBox::No);
+              if (reply == QMessageBox::Yes) {
+                computeMesh = true;
+                QApplication::quit();
+              } else {
+                computeMesh = false;
+              }
+            #endif
+        }
+        else*/
+        {
+            std::string yn;
+            cout << "File " << poissonMesh << " already exists. Do you want to replace it? (y/n)" << endl;
+            cin >> yn;
+            while ((yn != "y") && (yn != "n"))
+            {
+                cout << "Invalid value, try again." << endl;
+                cin >> yn;
+            }
+            if (yn == "y")
+                computeMesh = true;
+            else if (yn == "n")
+                computeMesh = false;
+        }
+    }
 
-#ifdef taratata
-    cout << "\nRunning Poisson reconstruction" << endl;
+    if (computeMesh)
+    {
+        //#if USE_OPEN_MP
+        int nbProc = NbProcSys();
+        stringstream sst;
+        sst << nbProc;
+        //#endif
 
-    system_call(aCom.c_str());
+        aCom = g_externalToolHandler.get( "PoissonRecon" ).callName()
+                + std::string(" --in ") + aPly.c_str()
+                + std::string(" --out ") + poissonMesh.c_str()
+                + " --depth " + ss.str()
+        //#if USE_OPEN_MP //TODO: à activer quand WITH_OPEN_MP=1
+                + " --threads " + sst.str()
+        //#endif
+        ;
 
-    cout << "\nMesh built and saved in " << poissonMesh << endl;
-#endif
+        if (verbose) cout << "Com= " << aCom << endl;
+
+        cout << "\n**********************Running Poisson reconstruction**********************" << endl;
+
+        system_call(aCom.c_str());
+
+        cout << "\nMesh built and saved in " << poissonMesh << endl;
+    }
+
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
 
     StdCorrecNameOrient(aOri,aDir);
 
-    std::vector<CamStenope*> ListCam;
+    std::vector<CamStenope*> vCam;
+    std::vector<Pt3dr> vCamCenter;
 
     bool help;
     eTypeMMByP  type;
     StdReadEnum(help,type,aMode,eNbTypeMMByP);
 
-    cMMByImNM *mPIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
+    cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
 
-    vector <Im2D_REAL4 *> vImg;
+    vector <Im2D_REAL4 *> vImgProf;
+    vector <Im2D_INT4 *>  vImgMasq;
 
     cout << endl;
     for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
     {
         std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri,*itS,true);
 
-        ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
+        vCam.push_back(CamOrientGenFromFile(NOri,aICNM));
+        vCamCenter.push_back(vCam.back()->VraiOpticalCenter()); //pour eviter le test systematique dans VraiOpticalCenter() lors du parcours du maillage
 
-        std::string aNameProfDepth = mPIMsFilter->NameFileProf(eTMIN_Depth,*itS);
+        std::string aNameProf = PIMsFilter->NameFileProf(eTMIN_Depth,*itS);
 
-        if (ELISE_fp::exist_file(aNameProfDepth))
+        if (ELISE_fp::exist_file(aNameProf))
         {
-            Tiff_Im tif(aNameProfDepth.c_str());
+            Tiff_Im tif = Tiff_Im::StdConvGen(aNameProf, 1, true);
 
             Im2D_REAL4* pImg = new Im2D_REAL4(tif.sz().x, tif.sz().y);
 
@@ -132,58 +199,91 @@ int TiPunch_main(int argc,char ** argv)
                 pImg->out()
             );
 
-            vImg.push_back(pImg);
-            cout << "img sz" << vImg.back()->sz() << endl;
+            vImgProf.push_back(pImg);
+            //cout << "img sz" << vImgProf.back()->sz() << endl;
         }
         else
-            cout << "File does not exist : " << aNameProfDepth << endl;
+            cout << "File does not exist : " << aNameProf << endl;
 
-        cout <<"Image "<<*itS<<", with depth : "<< aNameProfDepth <<endl;
+        std::string aNameMasq = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
+
+        if (ELISE_fp::exist_file(aNameMasq))
+        {
+            Tiff_Im tif = Tiff_Im::StdConvGen(aNameMasq, 1, false);
+
+            Im2D_INT4* pImg = new Im2D_INT4(tif.sz().x, tif.sz().y);
+
+            ELISE_COPY
+            (
+                pImg->all_pts(),
+                tif.in(),
+                pImg->out()
+            );
+
+            vImgMasq.push_back(pImg);
+            //cout << "img sz" << vImgMasq.back()->sz() << endl;
+        }
+        else
+            cout << "File does not exist : " << aNameMasq << endl;
+
+        cout << "Image "<<*itS<<", with ori : " << NOri << endl;
+        cout << "Depth : "<< aNameProf << endl;
     }
+
+    double downScaleFactor = (double) vCam[0]->Sz().x / vImgProf[0]->sz().x;
+
+    //cout << "downScaleFactor = " << downScaleFactor << endl;
 
     cMesh myMesh(poissonMesh);
 
-    const int nbFaces = myMesh.getFacesNumber();
-    for(int aK=0; aK <nbFaces; aK++)
+    cout << endl;
+    cout <<"**********************Filtering faces*************************"<<endl;
+    cout << endl;
+
+    std::vector < int > toRemove;
+
+    const int nCam = vCam.size();
+    for(int aK=0; aK <myMesh.getFacesNumber(); aK++)
     {
+        if (aK%1000 == 0) cout << aK << " / " << myMesh.getFacesNumber() << endl;
+
         cTriangle * Triangle = myMesh.getTriangle(aK);
 
         vector <Pt3dr> Vertex;
         Triangle->getVertexes(Vertex);
 
-        const int nCam = ListCam.size();
+        bool found = false;
         for(int bK=0 ; bK<nCam; bK++)
         {
-            CamStenope* Cam = ListCam[bK];
+            found = DistanceTest(aDst, (Vertex[0]+Vertex[1]+Vertex[2])/3.f, vCamCenter[bK], downScaleFactor, vCam[bK], vImgProf[bK], vImgMasq[bK]);
 
-            Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);
-            Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
-            Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
+            if (found) break;
+        }
 
-            if (Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2) && Cam->IsInZoneUtile(Pt3))
-            {
-                Pt2dr _min(DBL_MAX, DBL_MAX);
-                Pt2dr _max;
-
-                _min = Inf(Pt1, Inf(Pt2, Inf(Pt3, _min)));
-                _max = Sup(Pt1, Sup(Pt2, Sup(Pt3, _max)));
-
-                bool found = false;
-                //Parcours de l'image de profondeur
-                for(int cK= _min.x; cK < _max.x; cK++)
-                {
-                    for(int dK=_min.y; dK < _max.y; dK++)
-                    {
-                        if (vImg[bK]->GetR(Pt2di(cK,dK)) < aDst) found = true;
-                    }
-                }
-
-                if (!found) myMesh.removeTriangle(*Triangle);
-            }
+        if (!found)
+        {
+            toRemove.push_back(Triangle->getIdx());
+            //myMesh.removeTriangle(*Triangle, false);
+            //aK--;
         }
     }
+    cout << myMesh.getFacesNumber() << " / " << myMesh.getFacesNumber() << endl;
+
+    cout << "Removing " << toRemove.size() << endl;
+
+    std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
+    for (unsigned int var = 0; var < toRemove.size(); ++var) {
+         myMesh.removeTriangle(*(myMesh.getTriangle(toRemove[var])), false);
+    }
+
+    cout << endl;
+    cout <<"**************************Writing ply file***************************"<<endl;
+    cout <<endl;
 
     myMesh.write(aOut, aBin);
+
+    cout<<"********************************Done*********************************"<<endl;
+    cout<<endl;
 
     if (aRmPoissonMesh)
     {

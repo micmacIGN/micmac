@@ -1333,7 +1333,7 @@ template <class Type>  void  TplElRotation3D<Type>::AssertTrueRot() const
    }
    else
    {
-       ELISE_ASSERT(mTrueRot,"Excpecting true rotation");
+       ELISE_ASSERT(mTrueRot,"Expecting true rotation");
    }
 }
 
