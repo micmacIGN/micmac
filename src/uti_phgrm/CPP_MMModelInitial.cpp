@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-/*    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
+/*    Un filtrage basique qui supprime recursivement (par CC) les points obtenus a une resol
  non max et voisin du vide
 */
 
@@ -351,7 +351,7 @@ int MMEnvStatute_main(int argc,char ** argv)
 
 
 
-   std::string aDirIn = aDir + TheDIRMergeEPI() + aNamIm + "/";
+   //std::string aDirIn = aDir + TheDIRMergeEPI() + aNamIm + "/";
 
 
    for (int aK=0 ; aK<2 ; aK++)
@@ -367,7 +367,7 @@ int MMEnvStatute_main(int argc,char ** argv)
       Tiff_Im aFileProfEnvIn(aNameProfEnvIn.c_str());
 
       std::string aNameProfDepth = aGlobIN->NameFileProf(eTMIN_Depth,aNamIm);
-      std::string aNameMaqDepth = aGlobIN->NameFileMasq(eTMIN_Depth,aNamIm);
+      std::string aNameMasqDepth = aGlobIN->NameFileMasq(eTMIN_Depth,aNamIm);
 
 
       Tiff_Im aFileProfEnvOut = aFileProfEnvIn.Dupl(aGlobIN->NameFileProf(aModIN,aNamIm));
@@ -376,7 +376,7 @@ int MMEnvStatute_main(int argc,char ** argv)
       int aSign= (aModeMax ? 1 : -1);
 
       float aVDef = -1e5;
-      Symb_FNum  aFMasq (Tiff_Im(aNameMaqDepth.c_str()).in(0));
+      Symb_FNum  aFMasq (Tiff_Im(aNameMasqDepth.c_str()).in(0));
       Fonc_Num  aFDepth = aSign * Tiff_Im(aNameProfDepth.c_str()).in(aSign*aVDef);
 
       aFDepth = aFMasq * aFDepth + (1-aFMasq) * aVDef;
@@ -406,7 +406,7 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
     double aCostRegul = 0.4;
     double aCostTrans = 10.0;
 
-    //    Un filtrage basique qui supprime recursivement (par CC) les points otenus a une resol
+    //    Un filtrage basique qui supprime recursivement (par CC) les points obtenus a une resol
     //  non max et voisin du vide
     {
          Im2D_U_INT1 anImEtiq(aSz.x,aSz.y);
@@ -432,7 +432,7 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
     }
 
 
-    // Filtrage des irregularite par prog dyn
+    // Filtrage des irregularites par prog dyn
 
     {
         Im2D_U_INT1 aImMasq(aSz.x,aSz.y);
@@ -454,7 +454,7 @@ void FiltreMasqMultiResolMMI(Im2D_REAL4 aImDepth,Im2D_U_INT1 anImInit)
         );
 
 
-        // suprime les ttes petites CC
+        // supprime les ttes petites CC
         TIm2D<U_INT1,INT> aTMasq(aImMasq);
         FiltrageCardCC(false,aTMasq,2,0,100);
 
@@ -547,16 +547,16 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
         argc,argv,
         LArgMain()  << EAMC(aPat,"Full Directory (Dir+Pattern)",eSAM_IsPatFile)
                     << EAMC(anOri,"Orientation ", eSAM_IsExistDirOri)
-                    << EAMC(mZoom0,"Zoom lowest resol ", eSAM_IsExistDirOri)
-                    << EAMC(mZoomEnd,"Zoom largest resol ", eSAM_IsExistDirOri),
-        LArgMain()  << EAM(Masq3D,"Masq3D",true,"Masq3D pour filtrer")
+                    << EAMC(mZoom0,"Lowest resol zoom", eSAM_IsExistDirOri)
+                    << EAMC(mZoomEnd,"Largest resol zoom", eSAM_IsExistDirOri),
+        LArgMain()  << EAM(Masq3D,"Masq3D",true,"3D masq for filtering")
                     << EAM(mCalledByP,"InternalCalledByP",true)
                     << EAM(mScaleNuage,"DownScale",true,"Create downscale cloud also")
-                    << EAM(mShowCom,"ShowC",true,"Show commande (tuning)")
-                    << EAM(mAutoPurge,"AutoPurge",true,"Automaticaly purge unnecessary temp file (def=true)")
+                    << EAM(mShowCom,"ShowC",true,"Show command (tuning)")
+                    << EAM(mAutoPurge,"AutoPurge",true,"Automatically purge unnecessary temp file (def=true)")
                     << EAM(mJmp,"Jump",true,"Will compute only image Mod Jump==0 , def=1 (all images)")
                     << EAM(mOut,"Out",true,"Target Dir in Glob Mode")
-                    << EAM(mGlob,"Glob",true,"Globale mode (else output in each image dir)")
+                    << EAM(mGlob,"Glob",true,"Global mode (else output in each image dir)")
    );
 
 
