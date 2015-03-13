@@ -52,15 +52,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 Fonc_Num Op_Un_Not_Comp::Simplify()
 {
    std::string aStrName = _name;
-   if (aStrName=="cos") return cos(_f);
-   if (aStrName=="sin") return sin(_f);
-   if (aStrName=="tan") return tan(_f);
-
-   if (aStrName=="exp")  return exp(_f);
-   if (aStrName=="log")  return log(_f);
-   if (aStrName=="log2") return log2(_f);
-   if (aStrName=="sqrt") return sqrt(_f);
-   if (aStrName=="atan") return atan(_f);
+   if (aStrName=="-") return -(_f.Simplify());
 
    std::cout << "For operator = " << _name << "\n";
    ELISE_ASSERT(false,"Unhandled operator in Op_Un_Not_Comp::Simplify");
@@ -394,6 +386,8 @@ class Op_Un_Mixte_Not_Comp : public Op_Un_Not_Comp
 
 	  typedef INT (* tDegreOpun)(INT);
 
+          Fonc_Num Simplify();
+
           Op_Un_Mixte_Not_Comp 
           (
                   Fonc_Num f, 
@@ -445,6 +439,17 @@ class Op_Un_Mixte_Not_Comp : public Op_Un_Not_Comp
 
 };
 
+
+Fonc_Num Op_Un_Mixte_Not_Comp::Simplify()
+{
+   std::string aStrName = _name;
+   if (aStrName=="-") return -(_f.Simplify());
+   if (aStrName=="ElSquare") return Square(_f.Simplify());
+
+   std::cout << "For operator = " << _name << "\n";
+   ELISE_ASSERT(false,"Unhandled operator in Op_Un_Not_Comp::Simplify");
+   return 0;
+}
       //======================
       //  Interface 
       //======================
@@ -624,6 +629,7 @@ Fonc_Num PowI(Fonc_Num f,INT aDegre)
 class Op_Un_Math : public Op_Un_Not_Comp
 {
       public :
+         Fonc_Num Simplify();
          static Fonc_Num  New
                 (
                      Fonc_Num f,
@@ -664,6 +670,25 @@ class Op_Un_Math : public Op_Un_Not_Comp
 
 };
 
+Fonc_Num Op_Un_Math::Simplify()
+{
+   std::string aStrName = _name;
+   // if (aStrName=="-") return -(_f.Simplify());
+   // if (aStrName=="ElSquare") return Square(_f.Simplify());
+   if (aStrName=="cos") return cos(_f.Simplify());
+   if (aStrName=="sin") return sin(_f.Simplify());
+   if (aStrName=="tan") return tan(_f.Simplify());
+   if (aStrName=="exp")  return exp(_f.Simplify());
+   if (aStrName=="log")  return log(_f.Simplify());
+   if (aStrName=="log2") return log2(_f.Simplify());
+   if (aStrName=="sqrt") return sqrt(_f.Simplify());
+   if (aStrName=="atan") return atan(_f.Simplify());
+
+
+   std::cout << "For operator = " << _name << "\n";
+   ELISE_ASSERT(false,"Unhandled operator in Op_Un_Not_Comp::Simplify");
+   return 0;
+}
 Fonc_Num Op_Un_Math::New
          (
             Fonc_Num f,
