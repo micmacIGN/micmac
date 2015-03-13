@@ -56,11 +56,13 @@ Fonc_Num Op_Bin_Not_Comp::Simplify()
    if (aStrName == "+") return _f0.Simplify() +  _f1.Simplify();
    if (aStrName == "*") return _f0.Simplify() *  _f1.Simplify();
    if (aStrName == "/") return _f0.Simplify() /  _f1.Simplify();
+   if (aStrName == "-") return _f0.Simplify() -  _f1.Simplify();
    if (aStrName == "pow") return pow(_f0.Simplify(),_f1.Simplify());
 
    //if (aStrName == "+") return _f0.Simplify() +  _f1.Simplify();
 
 
+   std::cout << "FOR operator = " << aStrName << "\n";
    ELISE_ASSERT(false,"Unhandled operator in Simplify");
    return 0;
 }

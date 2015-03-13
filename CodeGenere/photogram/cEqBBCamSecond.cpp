@@ -19,12 +19,12 @@ void cEqBBCamSecond::ComputeVal()
 {
    double tmp0_ = mCompCoord[7];
    double tmp1_ = mCompCoord[6];
-   double tmp2_ = 0.000000;
+   double tmp2_ = mCompCoord[1];
    double tmp3_ = mCompCoord[5];
-   double tmp4_ = 0.000000;
-   double tmp5_ = 0.000000;
-   double tmp6_ = 0.000000;
-   double tmp7_ = 0.000000;
+   double tmp4_ = mCompCoord[3];
+   double tmp5_ = mCompCoord[4];
+   double tmp6_ = mCompCoord[2];
+   double tmp7_ = mCompCoord[0];
    double tmp8_ = tmp7_*tmp1_;
    double tmp9_ = tmp2_*tmp3_;
    double tmp10_ = tmp8_-tmp9_;
@@ -46,12 +46,12 @@ void cEqBBCamSecond::ComputeValDeriv()
 {
    double tmp0_ = mCompCoord[7];
    double tmp1_ = mCompCoord[6];
-   double tmp2_ = 0.000000;
+   double tmp2_ = mCompCoord[1];
    double tmp3_ = mCompCoord[5];
-   double tmp4_ = 0.000000;
-   double tmp5_ = 0.000000;
+   double tmp4_ = mCompCoord[3];
+   double tmp5_ = mCompCoord[4];
    double tmp6_ = tmp2_*tmp0_;
-   double tmp7_ = 0.000000;
+   double tmp7_ = mCompCoord[2];
    double tmp8_ = tmp7_*tmp1_;
    double tmp9_ = tmp6_-tmp8_;
    double tmp10_ = tmp3_+tmp9_;
@@ -60,7 +60,7 @@ void cEqBBCamSecond::ComputeValDeriv()
    double tmp13_ = tmp11_-tmp12_;
    double tmp14_ = mLocVecD2_x*tmp5_;
    double tmp15_ = tmp13_-tmp14_;
-   double tmp16_ = 0.000000;
+   double tmp16_ = mCompCoord[0];
    double tmp17_ = tmp16_*tmp1_;
    double tmp18_ = tmp2_*tmp3_;
    double tmp19_ = tmp17_-tmp18_;
@@ -83,8 +83,7 @@ void cEqBBCamSecond::ComputeValDeriv()
    double tmp36_ = -(tmp3_);
    double tmp37_ = -(mLocVecC2_z);
    double tmp38_ = -(mLocVecD2_z);
-   double tmp39_ = (tmp25_)/tmp26_;
-   double tmp40_ = -(tmp39_);
+   double tmp39_ = -(tmp2_);
 
   mVal[0] = mLocI2_x-(tmp15_)/(tmp25_);
 
@@ -93,9 +92,9 @@ void cEqBBCamSecond::ComputeValDeriv()
   mCompDer[0][2] = -((-(tmp1_)*(tmp25_))/tmp26_);
   mCompDer[0][3] = -((-(mLocVecC2_x)*(tmp25_)-(tmp15_)*tmp37_)/tmp26_);
   mCompDer[0][4] = -((-(mLocVecD2_x)*(tmp25_)-(tmp15_)*tmp38_)/tmp26_);
-  mCompDer[0][5] = tmp40_;
-  mCompDer[0][6] = 0;
-  mCompDer[0][7] = -(-(tmp15_)/tmp26_);
+  mCompDer[0][5] = -((tmp25_-(tmp15_)*tmp39_)/tmp26_);
+  mCompDer[0][6] = -((-(tmp7_)*(tmp25_)-(tmp15_)*tmp16_)/tmp26_);
+  mCompDer[0][7] = -((tmp2_*(tmp25_)-(tmp15_))/tmp26_);
   mVal[1] = mLocI2_y-(tmp35_)/(tmp25_);
 
   mCompDer[1][0] = -((-(tmp0_)*(tmp25_)-(tmp35_)*tmp1_)/tmp26_);
@@ -103,9 +102,9 @@ void cEqBBCamSecond::ComputeValDeriv()
   mCompDer[1][2] = -((tmp3_*(tmp25_))/tmp26_);
   mCompDer[1][3] = -((-(mLocVecC2_y)*(tmp25_)-(tmp35_)*tmp37_)/tmp26_);
   mCompDer[1][4] = -((-(mLocVecD2_y)*(tmp25_)-(tmp35_)*tmp38_)/tmp26_);
-  mCompDer[1][5] = 0;
-  mCompDer[1][6] = tmp40_;
-  mCompDer[1][7] = -(-(tmp35_)/tmp26_);
+  mCompDer[1][5] = -((tmp7_*(tmp25_)-(tmp35_)*tmp39_)/tmp26_);
+  mCompDer[1][6] = -((tmp25_-(tmp35_)*tmp16_)/tmp26_);
+  mCompDer[1][7] = -((-(tmp16_)*(tmp25_)-(tmp35_))/tmp26_);
 }
 
 

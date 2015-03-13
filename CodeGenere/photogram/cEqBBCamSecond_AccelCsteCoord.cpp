@@ -29,68 +29,39 @@ void cEqBBCamSecond_AccelCsteCoord::ComputeVal()
 
 void cEqBBCamSecond_AccelCsteCoord::ComputeValDeriv()
 {
-   double tmp0_ = mCompCoord[7];
-   double tmp1_ = mCompCoord[6];
-   double tmp2_ = 0.000000;
-   double tmp3_ = mCompCoord[5];
-   double tmp4_ = 0.000000;
-   double tmp5_ = 0.000000;
-   double tmp6_ = tmp2_*tmp0_;
-   double tmp7_ = 0.000000;
-   double tmp8_ = tmp7_*tmp1_;
-   double tmp9_ = tmp6_-tmp8_;
-   double tmp10_ = tmp3_+tmp9_;
-   double tmp11_ = (tmp10_)-mLocVecB2_x;
-   double tmp12_ = mLocVecC2_x*tmp4_;
-   double tmp13_ = tmp11_-tmp12_;
-   double tmp14_ = mLocVecD2_x*tmp5_;
-   double tmp15_ = tmp13_-tmp14_;
-   double tmp16_ = 0.000000;
-   double tmp17_ = tmp16_*tmp1_;
-   double tmp18_ = tmp2_*tmp3_;
-   double tmp19_ = tmp17_-tmp18_;
-   double tmp20_ = tmp0_+tmp19_;
-   double tmp21_ = (tmp20_)-mLocVecB2_z;
-   double tmp22_ = mLocVecC2_z*tmp4_;
-   double tmp23_ = tmp21_-tmp22_;
-   double tmp24_ = mLocVecD2_z*tmp5_;
-   double tmp25_ = tmp23_-tmp24_;
-   double tmp26_ = ElSquare(tmp25_);
-   double tmp27_ = tmp7_*tmp3_;
-   double tmp28_ = tmp16_*tmp0_;
-   double tmp29_ = tmp27_-tmp28_;
-   double tmp30_ = tmp1_+tmp29_;
-   double tmp31_ = (tmp30_)-mLocVecB2_y;
-   double tmp32_ = mLocVecC2_y*tmp4_;
-   double tmp33_ = tmp31_-tmp32_;
-   double tmp34_ = mLocVecD2_y*tmp5_;
-   double tmp35_ = tmp33_-tmp34_;
-   double tmp36_ = -(tmp3_);
-   double tmp37_ = -(mLocVecC2_z);
-   double tmp38_ = -(mLocVecD2_z);
-   double tmp39_ = (tmp25_)/tmp26_;
-   double tmp40_ = -(tmp39_);
+   double tmp0_ = mCompCoord[5];
+   double tmp1_ = tmp0_-mLocVecB2_x;
+   double tmp2_ = mCompCoord[7];
+   double tmp3_ = tmp2_-mLocVecB2_z;
+   double tmp4_ = ElSquare(tmp3_);
+   double tmp5_ = mCompCoord[6];
+   double tmp6_ = tmp5_-mLocVecB2_y;
+   double tmp7_ = -(tmp0_);
+   double tmp8_ = -(mLocVecC2_z);
+   double tmp9_ = -(mLocVecD2_z);
+   double tmp10_ = (tmp3_)/tmp4_;
+   double tmp11_ = -(tmp10_);
 
-  mVal[0] = mLocI2_x-(tmp15_)/(tmp25_);
+  mVal[0] = mLocI2_x-(tmp1_)/(tmp3_);
 
-  mCompDer[0][0] = -(-((tmp15_)*tmp1_)/tmp26_);
-  mCompDer[0][1] = -((tmp0_*(tmp25_)-(tmp15_)*tmp36_)/tmp26_);
-  mCompDer[0][2] = -((-(tmp1_)*(tmp25_))/tmp26_);
-  mCompDer[0][3] = -((-(mLocVecC2_x)*(tmp25_)-(tmp15_)*tmp37_)/tmp26_);
-  mCompDer[0][4] = -((-(mLocVecD2_x)*(tmp25_)-(tmp15_)*tmp38_)/tmp26_);
-  mCompDer[0][5] = tmp40_;
+  mCompDer[0][0] = -(-((tmp1_)*tmp5_)/tmp4_);
+  mCompDer[0][1] = -((tmp2_*(tmp3_)-(tmp1_)*tmp7_)/tmp4_);
+  mCompDer[0][2] = -((-(tmp5_)*(tmp3_))/tmp4_);
+  mCompDer[0][3] = -((-(mLocVecC2_x)*(tmp3_)-(tmp1_)*tmp8_)/tmp4_);
+  mCompDer[0][4] = -((-(mLocVecD2_x)*(tmp3_)-(tmp1_)*tmp9_)/tmp4_);
+  mCompDer[0][5] = tmp11_;
   mCompDer[0][6] = 0;
-  mCompDer[0][7] = -(-(tmp15_)/tmp26_);
-  mVal[1] = mLocI2_y-(tmp35_)/(tmp25_);
+  mCompDer[0][7] = -(-(tmp1_)/tmp4_);
+  mVal[1] = mLocI2_y-(tmp6_)/(tmp3_);
 
-  mCompDer[1][0] = -((-(tmp0_)*(tmp25_)-(tmp35_)*tmp1_)/tmp26_);
-  mCompDer[1][1] = -(-((tmp35_)*tmp36_)/tmp26_);
-  mCompDer[1][2] = -((tmp3_*(tmp25_))/tmp26_);
-  mCompDer[1][3] = -((-(mLocVecC2_y)*(tmp25_)-(tmp35_)*tmp37_)/tmp26_);
-  mCompDer[1][4] = -((-(mLocVecD2_y)*(tmp25_)-(tmp35_)*tmp38_)/tmp26_);
+  mCompDer[1][0] = -((-(tmp2_)*(tmp3_)-(tmp6_)*tmp5_)/tmp4_);
+  mCompDer[1][1] = -(-((tmp6_)*tmp7_)/tmp4_);
+  mCompDer[1][2] = -((tmp0_*(tmp3_))/tmp4_);
+  mCompDer[1][3] = -((-(mLocVecC2_y)*(tmp3_)-(tmp6_)*tmp8_)/tmp4_);
+  mCompDer[1][4] = -((-(mLocVecD2_y)*(tmp3_)-(tmp6_)*tmp9_)/tmp4_);
   mCompDer[1][5] = 0;
-  mCompDer[1][6] = tmp40_;
-  mCompDer[1][7] = -(-(tmp35_)/tmp26_);
+  mCompDer[1][6] = tmp11_;
+  mCompDer[1][7] = -(-(tmp6_)/tmp4_);
 }
 
 

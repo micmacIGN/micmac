@@ -207,6 +207,58 @@ class cScalEEF : public cElemEqFormelle,
        }
 };
 
+/************************************************************/
+/*                                                          */
+/*                cBundleOptim                              */
+/*                                                          */
+/************************************************************/
+
+class cBundleOptim
+{
+      public :
+
+            static const double  ThePropERRInit = 0.80;
+           // Retourne le residu ;
+           // Si err < 0, fait juste le calcul avec un estimation robuste
+           // Sinon mets a jour et estime au moindre carre pondere en fonction de Err
+           double AddPack(const ElPackHomologue &  aPack,const ElRotation3D  & aRotB,double anErr) ;
+           // Derniere solution calculee
+           virtual ElRotation3D  CurSol() const = 0 ; 
+           virtual double AddEquation12(const Pt2dr & aP1,const Pt2dr & aP2,double aPds) = 0;
+           virtual double ResiduEquation12(const Pt2dr & aP1,const Pt2dr & aP2) = 0;
+           virtual void    InitNewRot(const ElRotation3D & aRot,bool SetPhaseEq) = 0;
+           virtual void SolveResetUpdate() = 0;
+           
+};
+
+double cBundleOptim::AddPack(const ElPackHomologue &  aPack,const ElRotation3D  & aRotB,double anErr)
+{
+    double aSomPds=0;
+    double aSomErr=0;
+    InitNewRot(aRotB,anErr >0);
+    std::vector<double> aVRes;
+    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+    {
+         double aRes = ResiduEquation12(itP->P1(),itP->P2());
+         if (anErr >0)
+         {
+             double aPds = 1 / (1+ElSquare(aRes/anErr));
+             AddEquation12(itP->P1(),itP->P2(),aPds);
+             aSomPds += aPds;
+             aSomErr += aPds * ElSquare(aRes);
+         }
+         else
+            aVRes.push_back(aRes);
+    }
+          
+    if (anErr >0)
+    {
+       SolveResetUpdate();
+       return sqrt(aSomErr / aSomPds);
+    }
+    return KthValProp(aVRes,ThePropERRInit);
+}
+
 
 /************************************************************/
 /*                                                          */
@@ -256,7 +308,7 @@ class cEqBundleBase  : public cNameSpaceEqF,
        double AddEquation12(const Pt2dr & aP1,const Pt2dr & aP2,double aPds);
        double ResiduEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel);
        double ResiduEquation12(const Pt2dr & aP1,const Pt2dr & aP2);
-       const ElRotation3D & Sol2() const;
+       ElRotation3D  CurSol() const;
        double AddPack(const ElPackHomologue &  aPack,const ElRotation3D  & aRotB,double anErr);
     protected :
        // virtual Pt2dr    AddEquationGen(const Pt3dr & aP1,const Pt3dr & aP2,double aPds,bool WithEq) = 0;
@@ -296,7 +348,6 @@ class cEqBundleBase  : public cNameSpaceEqF,
 };
 
 
-extern bool FnumCoorUseCsteVal;
 
 
 cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste) :
@@ -336,115 +387,89 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
 
   if (DoGenCode)
   {
-      std::vector<Fonc_Num> aVR1;
-      std::vector<Fonc_Num> aVR2;
-
-      int aNbK = UseAccelCoordCste ? 2 : 1;
-
-{
-std::cout << "UseAccelCoordCste " << UseAccelCoordCste << "\n";
 
 
-Pt3d<Fonc_Num>  aPTer = mEq2P3I->PF();
-Pt3d<Fonc_Num>  aPW = mW2->mP;
-
-
-// aPTer.z.inspect() ; std::cout << " W2\n";
-// aPW.z.inspect() ; std::cout << " P1\n";
-
-
-{  // Experience 1, une fonction generee sous  FnumCoorUseCsteVal
-    FnumCoorUseCsteVal = true;
-/*
-std::cout << "AAAAAA Ter " <<  aPTer.x.is0()  << " W " << aPW.x.is0() << "\n";
-// AAAAAA Ter 0 W 1  => c'est normal
-*/
-
-    Fonc_Num aF1 = aPW.x * aPTer.z  + aPTer.z + aPW.y;
-    aF1.show(std::cout); std::cout << "\n";
-    //  =>  X7  soit aPTer.z, c'est normal
-}
-
-{  // Experience 2, une fonction generee sans  FnumCoorUseCsteVa
-
-    FnumCoorUseCsteVal = false;
-    Fonc_Num aF1 = aPW.x * aPTer.z  + aPTer.z + aPW.y;
-    aF1.show(std::cout); std::cout << "  Exp2 \n";
-    // = > +(+(*(X0,X7),X7),X1)    soit X0X7 + X7 + X1 ; c'est normal
-}
-
+if(0)
 {    // Experience 3, une fonction et ses derivees 
-    FnumCoorUseCsteVal = false;
+    Pt3d<Fonc_Num> aPW = mW2->mP;
+    Pt3d<Fonc_Num> aPTer = mEq2P3I->PF();
     Fonc_Num aF1 = (aPW.x +1) * (aPTer.z + mI1.PtF().x);
 
     aF1.deriv(0).show(std::cout) ;  std::cout << " Exp3 \n";
     aF1.deriv(7).show(std::cout) ;  std::cout << " Exp3 \n";
 
-    FnumCoorUseCsteVal = true;
     aF1.deriv(0).show(std::cout) ;  std::cout << " Exp3 \n";
     aF1.deriv(7).show(std::cout) ;  std::cout << " Exp3 \n";
     aF1.deriv(7).Simplify().show(std::cout) ;  std::cout << " Exp3 \n";
+
+    Pt3d<Fonc_Num>  aPIGlob = mEq2P3I->PF();
+    Pt3d<Fonc_Num> aP2 =  aPIGlob + (mW2->mP ^ aPIGlob) - mB2.PtF() - mC2.PtF()*mc2->mS - mD2.PtF()*md2->mS ;
+    aF1 = mI2.PtF().x -  aP2.x/aP2.z;
+
+    
+    
+  
+    std::vector<Fonc_Num> aVR;
+    aVR.push_back(aF1);
+    cElCompileFN::DoEverything
+    (
+             DIRECTORY_GENCODE_FORMEL, 
+             "UseTestCste",
+             aVR,  
+             mLInterv2  ,
+             true
+    );
+    cElCompileFN::DoEverything
+    (
+             DIRECTORY_GENCODE_FORMEL, 
+             "UseNoTestCste",
+             aVR,  
+             mLInterv2  ,
+             false
+    );
+    exit(0);
 }
 
-// kth_coord(3).inspect(); std::cout << "333\n";
 
-// FnumCoorUseCsteVal = false;
-// std::cout << "BBBBB " <<   aP2.y.is0()  << " " << aP2.x.is0() << "\n";
-// Fonc_Num aF2 = aP1.x * aP1.z + aP2.y ;
-// aF2.show(std::cout); std::cout << "\n";
-
-getchar();
-exit(0);
-}
-
-      for (int aK=0 ; aK< aNbK ; aK++)
       {
-         FnumCoorUseCsteVal =  (aK==1);
-         // std::cout << "FnumCoorUseCsteValFnumCoorUseCsteVal " << FnumCoorUseCsteVal << "\n";
-         {
-             Pt3d<Fonc_Num>  aPIGlob = mEqP3I->PF();
+             std::vector<Fonc_Num> aVR1;
+             std::vector<Fonc_Num> aVR2;
 
-             Pt3d<Fonc_Num> aP1 = aPIGlob ;
-             aVR1.push_back(mI1.PtF().x - aP1.x / aP1.z);
-             aVR1.push_back(mI1.PtF().y - aP1.y / aP1.z);
+             {
+                Pt3d<Fonc_Num>  aPIGlob = mEqP3I->PF();
+                Pt3d<Fonc_Num> aP1 = aPIGlob ;
+                aVR1.push_back(mI1.PtF().x - aP1.x / aP1.z);
+                aVR1.push_back(mI1.PtF().y - aP1.y / aP1.z);
+             }
 
-         }
-         {
-             Pt3d<Fonc_Num>  aPIGlob = mEq2P3I->PF();
-             Pt3d<Fonc_Num> aP2 =  aPIGlob + (mW2->mP ^ aPIGlob) - mB2.PtF() - mC2.PtF()*mc2->mS - mD2.PtF()*md2->mS ;
-             aVR2.push_back(mI2.PtF().x - aP2.x / aP2.z);
-             aVR2.push_back(mI2.PtF().y - aP2.y / aP2.z);
-         }
-/*
-         // aVR1.push_back( mI1.PtF().x + mW2->mP.x / mW2->mP.y + mW2->mP.z);
-         aVR2.push_back( mI1.PtF().x + mW2->mP.x / mW2->mP.z);
-         aVR2.push_back(mW2->mP.x / mW2->mP.y);
-*/
+             {
+                 Pt3d<Fonc_Num>  aPIGlob = mEq2P3I->PF();
+                 Pt3d<Fonc_Num> aP2 =  aPIGlob + (mW2->mP ^ aPIGlob) - mB2.PtF() - mC2.PtF()*mc2->mS - mD2.PtF()*md2->mS ;
+                 aVR2.push_back(mI2.PtF().x - aP2.x / aP2.z);
+                 aVR2.push_back(mI2.PtF().y - aP2.y / aP2.z);
+             }
 
-
+             cElCompileFN::DoEverything
+             (
+                 DIRECTORY_GENCODE_FORMEL, 
+                 mNameEq1,  
+                 aVR1,  
+                 mLInterv1  ,
+                 UseAccelCoordCste
+             );
+             cElCompileFN::DoEverything
+             (
+                 DIRECTORY_GENCODE_FORMEL, 
+                 mNameEq2,  
+                 aVR2,  
+                 mLInterv2  ,
+                 UseAccelCoordCste
+             );
       }
 
-std::cout << "AAAAAAAAAAAA\n";
 
-      cElCompileFN::DoEverything
-      (
-             DIRECTORY_GENCODE_FORMEL, 
-             mNameEq1,  
-             aVR1,  
-             mLInterv1  ,
-             UseAccelCoordCste
-      );
-std::cout << "BBBBBB\n";
-      cElCompileFN::DoEverything
-      (
-             DIRECTORY_GENCODE_FORMEL, 
-             mNameEq2,  
-             aVR2,  
-             mLInterv2  ,
-             UseAccelCoordCste
-      );
 
-      FnumCoorUseCsteVal = false;
+
 
       return;
   }
@@ -484,7 +509,7 @@ std::cout << "BBBBBB\n";
 
      // =========================== GESTION ROTATION =================
 
-const ElRotation3D & cEqBundleBase::Sol2() const {return mSol2;}
+ElRotation3D  cEqBundleBase::CurSol() const {return mSol2;}
 
 void  cEqBundleBase::InitNewRot(const ElRotation3D & aRot,bool SetPhaseEq)
 {
@@ -531,9 +556,12 @@ double cEqBundleBase::AddPack(const ElPackHomologue &  aPack,const ElRotation3D 
 {
     double aSomPds=0;
     double aSomErr=0;
+    InitNewRot(aRotB,anErr >0);
+/*
     InitNewRot(aRotB,false);
     if (anErr >0)
        mSetEq->SetPhaseEquation();
+*/
     std::vector<double> aVRes;
     for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
     {
@@ -662,11 +690,8 @@ void GenCodecEqBundleBase()
 {
     cEqBundleBase * anEla = new  cEqBundleBase (true,0,0.0,true);
     delete anEla;
-/*
     anEla = new  cEqBundleBase (true,0,0.0,false);
     delete anEla;
-*/
-
 }
 
 
@@ -986,7 +1011,7 @@ cFullEqLinariseAngle::cFullEqLinariseAngle(const  ElPackHomologue & aPack,ElRota
           }
           
           aBB->SolveResetUpdate();
-          aRotB = aBB->Sol2();
+          aRotB = aBB->CurSol();
       }
 
       anErStd = KthValProp(aVRes,0.75);
@@ -1008,7 +1033,7 @@ void TestLinariseAngle(const  ElPackHomologue & aPack,const ElRotation3D &aRef,d
 
    //   cFullEqLinariseAngle aFELA(aPack,aRot,aFoc);
 
-   cEqBundleBase * aBB = new  cEqBundleBase (false,0,aFoc);
+   cEqBundleBase * aBB = new  cEqBundleBase (false,0,aFoc,true);
    // aBB->InitNewRot(aRot);
 
    double anErr = aBB->AddPack(aPack,aRot,-1);
@@ -1017,7 +1042,7 @@ void TestLinariseAngle(const  ElPackHomologue & aPack,const ElRotation3D &aRef,d
    {
          std::cout << "Errreur " << anErr * aFoc << "\n";
          anErr = aBB->AddPack(aPack,aRot,anErr);
-         aRot = aBB->Sol2();
+         aRot = aBB->CurSol();
    }
  
 }
