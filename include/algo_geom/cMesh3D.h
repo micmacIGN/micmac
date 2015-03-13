@@ -100,7 +100,7 @@ class cMesh
         void		addTriangle(const cTriangle &aTri);
         void		addEdge(int aK, int bK);
 
-        void        removeTriangle(cTriangle &aTri);
+        void        removeTriangle(cTriangle &aTri, bool doAdjacence = true);
 
         void        setTrianglesAttribute(int img_idx, Pt3dr Dir, set <unsigned int> const &aTriIdx);
 
