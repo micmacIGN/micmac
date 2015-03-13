@@ -28,9 +28,9 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 		_hg_revision(69),
 		_banniere("No comment")
 {
-    #ifdef ELISE_Darwin
+    /*#ifdef ELISE_Darwin
         setWindowFlags(Qt::WindowStaysOnTopHint);
-    #endif
+    #endif*/
 
     _ui->setupUi(this);
 
