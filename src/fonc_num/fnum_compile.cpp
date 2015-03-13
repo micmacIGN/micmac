@@ -1124,6 +1124,18 @@ void cElCompiledFonc::AddDevLimOrd2ToSysSurRes (L2SysSurResol & aSys,REAL aPds)
 
 
 
+int DimOutFonc(const std::vector<Fonc_Num> & vFoncs, bool SpecFCUV)
+{
+   int aDimOut = INT(vFoncs.size());
+   if (SpecFCUV)
+   {
+       ELISE_ASSERT((aDimOut%2)==0,"cElCompileFN::MakeFileCpp Dim Pb in SpecFCUV");
+       aDimOut /= 2;
+   }
+   return aDimOut;
+}
+
+
 void cElCompileFN::SetFile(const std::string & aPostFix, const char * anInclCompl)
 {
     if (mFile)
@@ -1257,16 +1269,18 @@ void  cElCompileFN::PutVarLoc(cVarSpec aVar)
 }
 
 
-void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs)
+void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs,bool SpecFCUV)
 {
 
    SetFile("cpp","h");
+
+   int aDimOut = DimOutFonc(vFoncs,SpecFCUV);
 
 
 // Constructeur : 
 
    (*this) << mNameClass << "::" << mNameClass << "():\n";
-   (*this) << "    cElCompiledFonc(" << INT(vFoncs.size()) << ")\n";
+   (*this) << "    cElCompiledFonc(" <<  aDimOut << ")\n";
    (*this) << "{\n";
 
 
@@ -1286,9 +1300,9 @@ void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs)
    (*this) << "\n\n\n";
 
 
-   MakeFonc(vFoncs,0);
-   MakeFonc(vFoncs,1);
-   MakeFonc(vFoncs,2);
+   MakeFonc(vFoncs,0,SpecFCUV);
+   MakeFonc(vFoncs,1,SpecFCUV);
+   MakeFonc(vFoncs,2,SpecFCUV);
 
 // Calcul des Fonction SetVar
    (*this) << "\n";
@@ -1331,7 +1345,7 @@ void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs)
 }
 
 
-void cElCompileFN::MakeFileH()
+void cElCompileFN::MakeFileH(bool SpecFCUV)
 {
    SetFile("h",0);
 
@@ -1367,10 +1381,17 @@ void cElCompileFN::MakeFileH()
    CloseFile();
 }
 
+extern bool FnumCoorUseCsteVal;
+
+
+// On met d'abord les fonction pour la derivees, ensuite les fonctions pour la valeur
+
 #define MAKE_DER_SEC false
-void cElCompileFN::MakeFonc(std::vector<Fonc_Num> vFoncs,INT aDegDeriv) // 0, fonc , 1 deriv, 2 hessian
+void cElCompileFN::MakeFonc(std::vector<Fonc_Num> vFoncs,INT aDegDeriv,bool SpecFCUV) // 0, fonc , 1 deriv, 2 hessian
 {
-std::cout << "DEGRE " << aDegDeriv << "\n";
+   FnumCoorUseCsteVal = true;
+   int aDimOut = DimOutFonc(vFoncs,SpecFCUV);
+// std::cout << "DEGRE " << aDegDeriv << "\n";
     if (! MAKE_DER_SEC && (aDegDeriv==2))
     {
         (*this) << "void " << mNameClass << "::ComputeValDerivHessian()\n";
@@ -1388,7 +1409,15 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
     delete mDicSymb;
     mDicSymb     = new  cDico_SymbFN;
 
-    for (INT aK=0 ; aK<INT(vFoncs.size()) ; aK++)
+    int aK0 = 0 ;
+    if (SpecFCUV)
+    {
+        if (aDegDeriv==0) aK0 += aDimOut;
+        else if (aDegDeriv==1)  ;   // Tout va bien
+        else if (aDegDeriv==2)  ;   // Tout va mal, mais normalement on n'arrive pas la
+    }
+
+    for (INT aK= aK0 ; aK<(aK0+aDimOut) ; aK++)
     {
          (*this) << vFoncs[aK];
 
@@ -1398,6 +1427,16 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
             {
 	        Fonc_Num aFD = vFoncs[aK].deriv(aD);
                 (*this) << aFD;
+/*
+if (SpecFCUV)
+{
+    std::cout << "GGGGG " << aK << "\n";
+    vFoncs[aK].show(std::cout); std::cout << "\n";
+    aFD.show(std::cout); std::cout << "\n";
+
+   std::cout << "FFFFFF \n"; getchar();
+}
+*/
             }
          }
          if (aDegDeriv >= 2)
@@ -1426,9 +1465,9 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
    (*this) << "{\n";
    mDicSymb->PutSymbs(*this);
 
-   for (INT aK=0; aK<INT(vFoncs.size()) ; aK++)
+   for (INT aK=aK0; aK<(aK0+aDimOut) ; aK++)
    {
-       (*this) << "  mVal["<<aK<<"] = " << vFoncs[aK] << ";\n\n";
+       (*this) << "  mVal["<<aK-aK0<<"] = " << vFoncs[aK] << ";\n\n";
 
         // Calcul des derivees 
        if (aDegDeriv>=1)
@@ -1436,7 +1475,7 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
            for (INT aD = 0 ; aD<mNVMax ; aD++)
            {
                 Fonc_Num aDer = Fonc_Num (vFoncs[aK].deriv(aD) );
-                (*this) << "  mCompDer[" <<aK << "][" << aD << "] = " << aDer << ";\n";
+                (*this) << "  mCompDer[" <<aK-aK0 << "][" << aD << "] = " << aDer << ";\n";
            }
        }
 
@@ -1458,6 +1497,7 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
        }
    }
    (*this) << "}\n\n\n";
+   FnumCoorUseCsteVal = false;
 }
 
 
@@ -1466,9 +1506,11 @@ void cElCompileFN::DoEverything
              const std::string &             aDir,
              const std::string &             aName,
 	     std::vector<Fonc_Num>           vFoncs,
-             const cIncListInterv &          aListInterv
+             const cIncListInterv &          aListInterv,
+             bool                            SpecFCUV
      )
 {
+   FnumCoorUseCsteVal = true;
    ELISE_ASSERT(aListInterv.IsConnexe0N(),"Bad Interv in cElCompileFN::DoEverything");
 
    cElCompileFN aECFN(aDir,aName,aListInterv);
@@ -1485,8 +1527,9 @@ void cElCompileFN::DoEverything
        }
    }
 
-   aECFN.MakeFileCpp(vFoncs);
-   aECFN.MakeFileH();
+   aECFN.MakeFileCpp(vFoncs,SpecFCUV);
+   aECFN.MakeFileH(SpecFCUV);
+   FnumCoorUseCsteVal = false;
 }
 
 void cElCompileFN::DoEverything

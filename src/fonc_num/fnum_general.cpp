@@ -256,6 +256,13 @@ bool  Fonc_Num::is0() const
      return SAFE_DYNC(Fonc_Num_Not_Comp *,_ptr)->is0();
 }
 
+
+void  Fonc_Num::inspect() const
+{
+     SAFE_DYNC(Fonc_Num_Not_Comp *,_ptr)->inspect();
+}
+
+
 bool  Fonc_Num::is1() const
 {
      return SAFE_DYNC(Fonc_Num_Not_Comp *,_ptr)->is1();
@@ -409,6 +416,10 @@ INT Fonc_Num_Not_Comp::NumCoord() const
 bool Fonc_Num_Not_Comp::is0() const
 {
      return false;
+}
+
+void Fonc_Num_Not_Comp::inspect() const
+{
 }
 
 bool Fonc_Num_Not_Comp::is1() const

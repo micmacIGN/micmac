@@ -348,20 +348,39 @@ template <class Type>
 /*                                                    */
 /******************************************************/
 
+bool FnumCoorUseCsteVal = false;
+
 class Fonc_Coord_Not_Comp : public Fonc_Num_Not_Comp
 {
        public :
 
-            Fonc_Coord_Not_Comp(INT k) :
-                _kth (k)
+            Fonc_Coord_Not_Comp(INT k,bool HasAlwaysSameVal,double aVal) :
+                _kth (k),
+                mHASV (HasAlwaysSameVal),
+                mVal  (aVal)
             {
+            }
+            void inspect() const
+            {
+                std::cout << "INSPECT " << mHASV << " " << FnumCoorUseCsteVal << " " << mVal << " " << _kth << "\n";
+            }
+
+            virtual bool  is0() const 
+            {
+                 return mHASV && FnumCoorUseCsteVal && (mVal==0);
+            }
+            virtual bool  is1() const 
+            {
+                 return mHASV && FnumCoorUseCsteVal && (mVal==1);
             }
 
             virtual Fonc_Num_Computed * compute(const Arg_Fonc_Num_Comp &);
 
 
        private :
-           INT _kth;
+           INT    _kth;
+           bool   mHASV;
+           double mVal;
 
            virtual bool integral_fonc (bool iflux) const
            {
@@ -435,7 +454,11 @@ Fonc_Num_Computed * Fonc_Coord_Not_Comp::compute(const Arg_Fonc_Num_Comp & arg)
 
 void  Fonc_Coord_Not_Comp::compile (cElCompileFN & anEnv)
 {
-    anEnv.PutVarNum(_kth);
+// std::cout << "UuUcompile K: " << _kth << " Has "  << mHASV << " Use " << FnumCoorUseCsteVal << "\n";
+    if (mHASV && FnumCoorUseCsteVal)
+          anEnv << mVal ;
+    else
+       anEnv.PutVarNum(_kth);
 }
 
 
@@ -455,10 +478,10 @@ INT Fonc_Coord_Not_Comp::CmpFormelIfSameKind(Fonc_Num_Not_Comp * aF2)
 /*                                                    */
 /******************************************************/
 
-Fonc_Num kth_coord(INT k)
+Fonc_Num kth_coord(INT k,bool HasAlwaysSameValue,double InitialValue)
 {
     ELISE_ASSERT(k>=0,"KthCoord<0");
-    return new Fonc_Coord_Not_Comp(k);
+    return new Fonc_Coord_Not_Comp(k,HasAlwaysSameValue,InitialValue);
 }
 
 const Fonc_Num FX = kth_coord(0);
@@ -466,8 +489,6 @@ const Fonc_Num FY = kth_coord(1);
 const Fonc_Num FZ = kth_coord(2);
 
 
-/*************************************************************/
-/*                                                           */
 /*  "CONCATENATION OF COORDINATE OF FUNCTIONS"               */
 /*    That is, let f1 and f2 be two function :               */
 /*       f1 : p ->  (x1, ... ,xn1)                           */

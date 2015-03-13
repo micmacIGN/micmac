@@ -38,12 +38,132 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-/*
-
-*/
 
 
 #include "StdAfx.h"
+
+
+
+
+
+Pt3dr InterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1)
+{
+/*
+TIMME :
+     3.03199   ElSeg3D::L2InterFaisceaux 
+     0.473224   InterSeg(const Pt3dr & aP0,...
+     1.23799    InterSeg(const std::vector<Pt3r> 
+
+*/
+
+     // (P0 + p (P1-P0) ) - (Q0+ q(Q1-Q0)) .  (P1-P0) = 0 
+     // (P0 + p (P1-P0) ) - (Q0+ q(Q1-Q0)) .  (Q1-Q0) = 0 
+
+      Pt3dr aP01 = aP1 -aP0;
+      Pt3dr aQ01 = aQ1 -aQ0;
+      // Normale
+
+      Pt3dr aPQ = aQ0 - aP0;
+
+      //    a p + b q = X
+      //    c p + d q = Y
+
+      double a = scal(aP01,aP01);
+      double b = -scal(aQ01,aP01);
+      double c = -b;
+      double d = -scal(aQ01,aQ01);
+      double X = scal(aPQ,aP01);
+      double Y = scal(aPQ,aQ01);
+
+
+     //  p      (d  -b)  X
+     //  q  =   (-c  a)  Y
+
+
+      double aDet = a*d - b*c;
+
+      double p = ( d * X - b * Y ) / aDet;
+      double q = (-c * X + a * Y ) / aDet;
+
+     return (aP0 + aP01 * p + aQ0 +aQ01 * q) / 2.0;
+
+}
+
+
+/*
+      droite D : P U   ,  soit V W tq (UVW) soit une BON 
+      d^2 (D,Q) =  [(Q-P) .V] ^2 +  [(Q-P) .W] ^2
+                = t(Q-P) [ U tU + W tW] (Q-P)
+                =   t(Q -P) [ I - tU U]  (Q-P)
+
+     Maintenta Uk Vk Wk .... 
+
+      Mk = I - tUk Uk / ||Uk|| ^2 
+      
+      Som(Mk) Q = Som ( Mk Pk)
+
+*/
+
+Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1)
+{
+    if (aVP0.size()==2)
+       return InterSeg(aVP0[0],aVP1[0],aVP0[1],aVP1[1]);
+    static Im2D_REAL8 aImMat(3,3);
+    static double ** aDM = aImMat.data();
+    static double & aM00 = aDM[0][0];
+    static double & aM11 = aDM[1][1];
+    static double & aM22 = aDM[2][2];
+    static double & aM10 = aDM[0][1];
+    static double & aM20 = aDM[0][2];
+    static double & aM21 = aDM[1][2];
+    aM00  = aM11 = aM22 =  aM10 = aM20 = aM21 = 0;
+
+    static double aV[3];
+    aV[0] = aV[1] = aV[2]=0;
+
+    int aNb = aVP0.size();
+
+    for (int aK=0 ; aK<aNb  ; aK++)
+    {
+        const Pt3dr & aP0 = aVP0[aK];
+        Pt3dr aU = (aVP1[aK]-aP0);
+        double aX2 = ElSquare(aU.x);
+        double aY2 = ElSquare(aU.y);
+        double aZ2 = ElSquare(aU.z);
+        double aU2 = aX2 + aY2 + aZ2;
+
+        double mxx = 1 -  aX2 / aU2;
+        double myy = 1 -  aY2 / aU2;
+        double mzz = 1 -  aZ2 / aU2;
+        double mxy = - (aU.x * aU.y) / aU2;
+        double mxz = - (aU.x * aU.z) / aU2;
+        double myz = - (aU.y * aU.z) / aU2;
+        
+        aM00 += mxx;
+        aM11 += myy;
+        aM22 += mzz;
+        aM10 += mxy;
+        aM20 += mxz;
+        aM21 += myz;
+
+        aV[0] +=  mxx * aP0.x + mxy  * aP0.y + mxz * aP0.z;
+        aV[1] +=  mxy * aP0.x + myy  * aP0.y + myz * aP0.z;
+        aV[2] +=  mxz * aP0.x + myz  * aP0.y + mzz * aP0.z;
+    }
+    cMSymCoffact3x3<double>  aMCF(aDM);
+
+    return aMCF.CoffVecInv(aV);
+}
+
+
+
+
+
+
+#define TypeSysLin cNameSpaceEqF::eSysPlein
+// #define TypeSysLin cNameSpaceEqF::eSysL2BlocSym
+
+
 
 extern bool AllowUnsortedVarIn_SetMappingCur;
 
@@ -59,10 +179,10 @@ class cPt3dEEF : public cElemEqFormelle,
        Pt3dr             mP0;
        Pt3d<Fonc_Num>    mP;  
 
-       cPt3dEEF(cSetEqFormelles & aSet,const Pt3dr & aP0) :
+       cPt3dEEF(cSetEqFormelles & aSet,const Pt3dr & aP0,bool HasValCste) :
           cElemEqFormelle (aSet,false),
           mP0     (aP0),
-          mP      (aSet.Alloc().NewPt3(mP0))
+          mP      (aSet.Alloc().NewPt3(mP0,HasValCste))
        {
            CloseEEF();
            aSet.AddObj2Kill(this);
@@ -77,10 +197,10 @@ class cScalEEF : public cElemEqFormelle,
        double      mS0;
        Fonc_Num    mS;  
 
-       cScalEEF(cSetEqFormelles & aSet,double aV0) :
+       cScalEEF(cSetEqFormelles & aSet,double aV0,bool HasValCste) :
           cElemEqFormelle (aSet,false),
           mS0     (aV0),
-          mS      (aSet.Alloc().NewF(&mS0))
+          mS      (aSet.Alloc().NewF(&mS0,HasValCste))
        {
            CloseEEF();
            aSet.AddObj2Kill(this);
@@ -95,6 +215,14 @@ class cScalEEF : public cElemEqFormelle,
 /************************************************************/
 
 /*
+    R2  :  C2toC1
+
+    P sur  C1M  U1M
+    P sur  C2M  U2M
+
+
+
+
     P sur         C1-> U1
     P +t2  sur  R2 C2-> U2
     P +t3  sur  R3 C3-> U3
@@ -117,22 +245,33 @@ class cEqBundleBase  : public cNameSpaceEqF,
                       public cObjFormel2Destroy
 {
     public :
-       cEqBundleBase(bool DoGenCode,int aNbCamSup);  // Nb de cam en plus des 2 minim
-       void    InitNewRot(const ElRotation3D & aRot);
-       ElRotation3D SolveResetUpdate();
+       static const double  ThePropERRInit = 0.80;
+
+
+       cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste = false);  // Nb de cam en plus des 2 minim
+       void    InitNewRot(const ElRotation3D & aRot,bool SetPhaseEq=true);
+       void SolveResetUpdate();
        
        double AddEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel,double aPds);
+       double AddEquation12(const Pt2dr & aP1,const Pt2dr & aP2,double aPds);
        double ResiduEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel);
+       double ResiduEquation12(const Pt2dr & aP1,const Pt2dr & aP2);
+       const ElRotation3D & Sol2() const;
+       double AddPack(const ElPackHomologue &  aPack,const ElRotation3D  & aRotB,double anErr);
     protected :
        // virtual Pt2dr    AddEquationGen(const Pt3dr & aP1,const Pt3dr & aP2,double aPds,bool WithEq) = 0;
       
        double    AddEquationGen(const std::vector<Pt2dr> & aP2,const std::vector<bool> & aVSel, double aPds,bool WithEq);
+       double    AddEquation12Gen(const Pt2dr & aP1,const Pt2dr & aP2, double aPds,bool WithEq);
 
-       ElMatrix<double> tR2;
+       ElMatrix<double> mR2;
+       ElRotation3D     mSol2;
+       double           mFoc;
 
+       
        cSetEqFormelles * mSetEq;
        cSetEqFormelles * mSetEq2;  // Galere pour gere la connexist des intervalle en mode GenCode
-       cPt3dEEF *        mW1;
+       cPt3dEEF *        mW2;
        cP3d_Etat_PhgrF   mB2;
        Pt3dr             mB2Cur;
        cScalEEF *        mc2;
@@ -146,6 +285,7 @@ class cEqBundleBase  : public cNameSpaceEqF,
        cIncListInterv        mLInterv1;
        cIncListInterv        mLInterv2;
        int                   mNbCamSup;
+       std::string           mPostAccel;
        std::string           mNameEq1;
        std::string           mNameEq2;
 
@@ -155,150 +295,124 @@ class cEqBundleBase  : public cNameSpaceEqF,
        cSubstitueBlocIncTmp  mSBIT12;
 };
 
-void  cEqBundleBase::InitNewRot(const ElRotation3D & aRot)
-{
-     for (int aK=0 ; aK<mSetEq->Alloc().CurInc() ; aK++) 
-         mSetEq->Alloc().SetVar(0,aK);
-     tR2 = aRot.Mat().transpose();
-     mW1->mP0 = Pt3dr(0,0,0);
 
-     mB2Cur = tR2 * aRot.tr();
-     Pt3dr aC2,aD2;
-     MakeRONWith1Vect(mB2Cur,aC2,aD2);
-     mB2.SetEtat(mB2Cur);
+extern bool FnumCoorUseCsteVal;
 
-     mc2->mS0 = 0;
-     mC2.SetEtat(aC2);
-     md2->mS0 = 0;
-     mD2.SetEtat(aD2);
 
-     mSetEq->SetPhaseEquation();
-/*
-*/
-}
-
-double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel, double aPds,bool WithEq)
-{
-   int aFlag=0;
-   
-   std::vector<double> aVPds;
-   aVPds.push_back(aPds);
-   aVPds.push_back(aPds);
-   double aRes = 0;
-   std::vector<ElSeg3D> aVSeg;
-   static Pt3dr    aVDir[9];
-   int aNbP=0;
-
-   if (aVSel[0])
-   {
-       aVDir[0] = tR2 * Pt3dr(aVPts[0].x,aVPts[0].y,1);
-       mI1.SetEtat(ProjStenope(aVDir[0]));
-       aVSeg.push_back(ElSeg3D(Pt3dr(0,0,0),aVDir[0]));
-       aNbP++;
-   }
-
-   if (aVSel[1])
-   {
-       aVDir[1] = Pt3dr(aVPts[1].x,aVPts[1].y,1);
-       mI2.SetEtat(ProjStenope(aVDir[1]));
-       aVSeg.push_back(ElSeg3D(mB2Cur,aVDir[1]));
-       aNbP++;
-   }
-   
-   ELISE_ASSERT(aVSeg.size()>=2,"cEqBundleBase::AddEquationGen");
-   Pt3dr aP = ElSeg3D::L2InterFaisceaux(0,aVSeg);
-
-   mEqP3I->InitVal(aP);
-
-   for (int aK=0 ; aK<int (aVPts.size())  ; aK++)
-   {
-      aFlag |= (1<<aK);
-      if (aVSel[aK])
-      {
-         mI1.SetEtat(ProjStenope(aVDir[aK]));
-         const std::vector<REAL> & aVRES =      WithEq                                              ?
-                                                mSetEq->VAddEqFonctToSys(mVFEsResid[aK],aVPds,false) :
-                                                mSetEq->VResiduSigne(mVFEsResid[aK])                 ;
-
-         aRes += ElAbs(aVRES[0]) + ElAbs(aVRES[1]);
-      }
-   }
-
-   if (aFlag== 3) mSBIT12.DoSubst();
-
-   return aRes;
-}
-
-double cEqBundleBase::AddEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel,double aPds)
-{
-   return AddEquationGen(aVPts,aVSel,aPds,true);
-}
-// Pt2dr  ResiduEquation(const Pt3dr & aP1,const Pt3dr & aP2);
-
-cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup) :
-    tR2         (1,1),
-    mSetEq      (new cSetEqFormelles(cNameSpaceEqF::eSysPlein)),
-    mSetEq2     ( DoGenCode ? new cSetEqFormelles(cNameSpaceEqF::eSysPlein) : mSetEq),
-    mW1         (new cPt3dEEF(*mSetEq,Pt3dr(0,0,0))),
+cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste) :
+    mR2         (1,1),
+    mSol2       (ElRotation3D::Id),
+    mFoc        (aFoc),
+    mSetEq      (new cSetEqFormelles(TypeSysLin)),
+    mSetEq2     ( DoGenCode ? new cSetEqFormelles(TypeSysLin) : mSetEq),
+    mW2         (new cPt3dEEF(*mSetEq2,Pt3dr(0,0,0),UseAccelCoordCste)),
     mB2         ("VecB2"),
-    mc2         (new cScalEEF (*mSetEq2,0)),
+    mc2         (new cScalEEF (*mSetEq2,0,UseAccelCoordCste)),
     mC2         ("VecC2"),
-    md2         (new cScalEEF (*mSetEq2,0)),
+    md2         (new cScalEEF (*mSetEq2,0,UseAccelCoordCste)),
     mD2         ("VecD2"),
     mI1         ("I1"),
     mI2         ("I2"),
     mNbCamSup   (aNbCamSup),
-    mNameEq1    ("cEqBBCamFirst"),
-    mNameEq2    ("cEqBBCamSecond"),
+    mPostAccel   (UseAccelCoordCste ? "_AccelCsteCoord" : ""),
+    mNameEq1    ("cEqBBCamFirst" + mPostAccel),
+    mNameEq2    ("cEqBBCamSecond" + mPostAccel),
     mEqP3I      (mSetEq->Pt3dIncTmp()),
     mEq2P3I     (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
     mSBIT12     (*mEqP3I)
 {
   AllowUnsortedVarIn_SetMappingCur = true;
-  mW1->IncInterv().SetName("Omega1");
+  mW2->IncInterv().SetName("Omega2");
   mc2->IncInterv().SetName("C2");
   md2->IncInterv().SetName("D2");
 
-  mLInterv1.AddInterv(mW1->IncInterv());
   mLInterv1.AddInterv(mEqP3I->IncInterv());
 
+  mLInterv2.AddInterv(mW2->IncInterv());
   mLInterv2.AddInterv(mc2->IncInterv());
   mLInterv2.AddInterv(md2->IncInterv());
   mLInterv2.AddInterv(mEq2P3I->IncInterv());
 
+
   if (DoGenCode)
   {
+      std::vector<Fonc_Num> aVR1;
+      std::vector<Fonc_Num> aVR2;
+
+      int aNbK = UseAccelCoordCste ? 2 : 1;
+
+{
+std::cout << "UseAccelCoordCste " << UseAccelCoordCste << "\n";
+Pt3d<Fonc_Num>  aP1 = mEq2P3I->PF();
+Pt3d<Fonc_Num>  aP2 = mW2->mP;
+
+
+
+FnumCoorUseCsteVal = true;
+aP1.z.inspect() ; std::cout << " W2\n";
+aP2.z.inspect() ; std::cout << " P1\n";
+std::cout << "AAAAAA " <<  aP1.x.is0()  << " " << aP2.x.is0() << "\n";
+Fonc_Num aF1 = aP2.x * aP1.z + 1 *FX + 0*FY;
+aF1.show(std::cout); std::cout << "\n";
+
+kth_coord(3).inspect(); std::cout << "333\n";
+
+// FnumCoorUseCsteVal = false;
+std::cout << "BBBBB " <<   aP2.y.is0()  << " " << aP2.x.is0() << "\n";
+Fonc_Num aF2 = aP1.x * aP1.z + aP2.y ;
+aF2.show(std::cout); std::cout << "\n";
+
+getchar();
+}
+
+      for (int aK=0 ; aK< aNbK ; aK++)
       {
+         FnumCoorUseCsteVal =  (aK==1);
+         // std::cout << "FnumCoorUseCsteValFnumCoorUseCsteVal " << FnumCoorUseCsteVal << "\n";
          {
-             std::vector<Fonc_Num> aVR1;
              Pt3d<Fonc_Num>  aPIGlob = mEqP3I->PF();
 
-             Pt3d<Fonc_Num> aP1 = mW1->mP ^ aPIGlob;
+             Pt3d<Fonc_Num> aP1 = aPIGlob ;
              aVR1.push_back(mI1.PtF().x - aP1.x / aP1.z);
              aVR1.push_back(mI1.PtF().y - aP1.y / aP1.z);
-             cElCompileFN::DoEverything
-             (
-                 DIRECTORY_GENCODE_FORMEL, 
-                 mNameEq1,  
-                 aVR1,  
-                 mLInterv1  
-             );
+
          }
          {
-             std::vector<Fonc_Num> aVR2;
              Pt3d<Fonc_Num>  aPIGlob = mEq2P3I->PF();
-             Pt3d<Fonc_Num> aP2 =  aPIGlob + mB2.PtF() + mC2.PtF()*mc2->mS + mD2.PtF()*md2->mS;
+             Pt3d<Fonc_Num> aP2 =  aPIGlob + (mW2->mP ^ aPIGlob) - mB2.PtF() - mC2.PtF()*mc2->mS - mD2.PtF()*md2->mS ;
              aVR2.push_back(mI2.PtF().x - aP2.x / aP2.z);
              aVR2.push_back(mI2.PtF().y - aP2.y / aP2.z);
-             cElCompileFN::DoEverything
-             (
-                 DIRECTORY_GENCODE_FORMEL, 
-                 mNameEq2,  
-                 aVR2,  
-                 mLInterv2  
-             );
          }
+/*
+         // aVR1.push_back( mI1.PtF().x + mW2->mP.x / mW2->mP.y + mW2->mP.z);
+         aVR2.push_back( mI1.PtF().x + mW2->mP.x / mW2->mP.z);
+         aVR2.push_back(mW2->mP.x / mW2->mP.y);
+*/
+
+
       }
+
+std::cout << "AAAAAAAAAAAA\n";
+
+      cElCompileFN::DoEverything
+      (
+             DIRECTORY_GENCODE_FORMEL, 
+             mNameEq1,  
+             aVR1,  
+             mLInterv1  ,
+             UseAccelCoordCste
+      );
+std::cout << "BBBBBB\n";
+      cElCompileFN::DoEverything
+      (
+             DIRECTORY_GENCODE_FORMEL, 
+             mNameEq2,  
+             aVR2,  
+             mLInterv2  ,
+             UseAccelCoordCste
+      );
+
+      FnumCoorUseCsteVal = false;
 
       return;
   }
@@ -335,12 +449,192 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup) :
    // mSetEq.
 }
 
+
+     // =========================== GESTION ROTATION =================
+
+const ElRotation3D & cEqBundleBase::Sol2() const {return mSol2;}
+
+void  cEqBundleBase::InitNewRot(const ElRotation3D & aRot,bool SetPhaseEq)
+{
+     for (int aK=0 ; aK<mSetEq->Alloc().CurInc() ; aK++) 
+         mSetEq->Alloc().SetVar(0,aK);
+     mR2 = aRot.Mat();
+     mW2->mP0 = Pt3dr(0,0,0);
+
+     mB2Cur =  aRot.tr();
+     Pt3dr aC2,aD2;
+     MakeRONWith1Vect(mB2Cur,aC2,aD2);
+     mB2.SetEtat(mB2Cur);
+
+     mc2->mS0 = 0;
+     mC2.SetEtat(aC2);
+     md2->mS0 = 0;
+     mD2.SetEtat(aD2);
+
+     if (SetPhaseEq)
+        mSetEq->SetPhaseEquation();
+}
+
+void  cEqBundleBase::SolveResetUpdate()
+{
+    
+    // std::cout << " SOLLLL C2 " << mc2->mS0  << " D2 " << md2->mS0 << "\n";
+    // std::cout << " SOL W2 " << mW2->mP0 << "\n";
+
+    mSetEq->SolveResetUpdate();
+
+
+    Pt3dr aNewB0 =  vunit(mB2.GetVal() + mC2.GetVal()*mc2->mS0 + mD2.GetVal()*md2->mS0);
+
+    ElMatrix<double> aNewR = NearestRotation( gaussj(ElMatrix<double>(3,true)+MatProVect(mW2->mP0)) * mR2);
+
+    mSol2 = ElRotation3D (aNewB0,aNewR,true);
+}
+
+
+//  ====================== ADD EQUATIONS ===============================
+
+
+double cEqBundleBase::AddPack(const ElPackHomologue &  aPack,const ElRotation3D  & aRotB,double anErr)
+{
+    double aSomPds=0;
+    double aSomErr=0;
+    InitNewRot(aRotB,false);
+    if (anErr >0)
+       mSetEq->SetPhaseEquation();
+    std::vector<double> aVRes;
+    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+    {
+         double aRes = ResiduEquation12(itP->P1(),itP->P2());
+         if (anErr >0)
+         {
+             double aPds = 1 / (1+ElSquare(aRes/anErr));
+             AddEquation12(itP->P1(),itP->P2(),aPds);
+             aSomPds += aPds;
+             aSomErr += aPds * ElSquare(aRes);
+         }
+         else
+            aVRes.push_back(aRes);
+    }
+          
+    if (anErr >0)
+    {
+       SolveResetUpdate();
+       return sqrt(aSomErr / aSomPds);
+    }
+    return KthValProp(aVRes,ThePropERRInit);
+}
+
+
+
+double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel, double aPds,bool WithEq)
+{
+   int aFlag=0;
+   
+   std::vector<double> aVPds; // Deux poids, car deux mesures poru chaque camera
+   aVPds.push_back(aPds);
+   aVPds.push_back(aPds);
+   double aRes = 0;
+   static Pt3dr    aVDir[9];
+   int aNbP=0;
+   std::vector<Pt3dr> aVP0;
+   std::vector<Pt3dr> aVP1;
+
+   if (aVSel[0])
+   {
+       aVDir[0] =  Pt3dr(aVPts[0].x,aVPts[0].y,1);
+       mI1.SetEtat(ProjStenope(aVDir[0]));
+       aVP0.push_back(Pt3dr(0,0,0));
+       aVP1.push_back(aVDir[0]);
+       aNbP++;
+   }
+
+   if (aVSel[1])
+   {
+       aVDir[1] = mR2 * Pt3dr(aVPts[1].x,aVPts[1].y,1);
+       mI2.SetEtat(ProjStenope(aVDir[1]));
+       aVP0.push_back(mB2Cur);
+       aVP1.push_back(mB2Cur+aVDir[1]);
+       aNbP++;
+   }
+   
+   ELISE_ASSERT(aVP0.size()>=2,"cEqBundleBase::AddEquationGen");
+   // double aDist;
+   Pt3dr aP = InterSeg(aVP0,aVP1);
+
+
+
+   mEqP3I->InitVal(aP);
+
+   for (int aK=0 ; aK<int (aVPts.size())  ; aK++)
+   {
+      aFlag |= (1<<aK);
+      if (aVSel[aK])
+      {
+         mI1.SetEtat(ProjStenope(aVDir[aK]));
+         const std::vector<REAL> & aVRES =      WithEq                                              ?
+                                                mSetEq->VAddEqFonctToSys(mVFEsResid[aK],aVPds,false) :
+                                                mSetEq->VResiduSigne(mVFEsResid[aK])                 ;
+
+         aRes += ElAbs(aVRES[0]) + ElAbs(aVRES[1]);
+      }
+   }
+
+
+
+
+   if (WithEq)
+   {
+      if (aFlag== 3) mSBIT12.DoSubst();
+   }
+
+   return aRes;
+}
+
+
+
+
+double    cEqBundleBase::AddEquation12Gen(const Pt2dr & aP1,const Pt2dr & aP2, double aPds,bool WithEq)
+{
+    std::vector<Pt2dr> aVPts;
+    std::vector<bool>  aVSel;
+
+    aVPts.push_back(aP1);
+    aVPts.push_back(aP2);
+    aVSel.push_back(true);
+    aVSel.push_back(true);
+    return AddEquationGen(aVPts,aVSel,aPds,WithEq);
+}
+
+
+double cEqBundleBase::AddEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel,double aPds)
+{
+   return AddEquationGen(aVPts,aVSel,aPds,true);
+}
+double  cEqBundleBase::ResiduEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel)
+{
+   return AddEquationGen(aVPts,aVSel,1.0,false);
+}
+
+double  cEqBundleBase::ResiduEquation12(const Pt2dr & aP1,const Pt2dr & aP2)
+{
+   return AddEquation12Gen(aP1,aP2,1.0,false);
+}
+
+double  cEqBundleBase::AddEquation12(const Pt2dr & aP1,const Pt2dr & aP2,double aPds)
+{
+   return AddEquation12Gen(aP1,aP2,aPds,true);
+}
+
 void GenCodecEqBundleBase()
 {
-    cEqBundleBase * anEla = new  cEqBundleBase (true,0);
+    cEqBundleBase * anEla = new  cEqBundleBase (true,0,0.0,true);
     delete anEla;
+/*
+    anEla = new  cEqBundleBase (true,0,0.0,false);
+    delete anEla;
+*/
 
-    anEla = new  cEqBundleBase (false,0);
 }
 
 
@@ -418,6 +712,8 @@ void cGlobEqLineraiseAngle::InitNewRot(const ElRotation3D & aRot)
 ElRotation3D cGlobEqLineraiseAngle::SolveResetUpdate()
 {
     mSetEq->SolveResetUpdate();
+    std::cout << " AAAASOLLLL  " << mc->mS0  << " D " << md->mS0 << "\n";
+    std::cout << " AAAASOL W2 " << mW->mP0 << "\n";
 
     ElMatrix<double> aR0 = tR0.transpose();
 
@@ -458,12 +754,12 @@ Pt3d<Fonc_Num> vunit(const Pt3d<Fonc_Num> & aV) {return aV / sqrt(square_euclid(
 
 cGlobEqLineraiseAngle::cGlobEqLineraiseAngle(bool doGenCode) :
     tR0         (1,1),
-    mSetEq      (new cSetEqFormelles(cNameSpaceEqF::eSysPlein)),
-    mW          (new cPt3dEEF(*mSetEq,Pt3dr(0,0,0))),
+    mSetEq      (new cSetEqFormelles(TypeSysLin)),
+    mW          (new cPt3dEEF(*mSetEq,Pt3dr(0,0,0),true)),
     mB0         ("VecB0"),
-    mc          (new cScalEEF (*mSetEq,0)),
+    mc          (new cScalEEF (*mSetEq,0,true)),
     mC          ("VecC"),
-    md          (new cScalEEF (*mSetEq,0)),
+    md          (new cScalEEF (*mSetEq,0,true)),
     mD          ("VecD"),
     mQp1        ("Qp1"),
     mQ2         ("Q2"),
@@ -623,9 +919,14 @@ cFullEqLinariseAngle::cFullEqLinariseAngle(const  ElPackHomologue & aPack,ElRota
 
 
   double  anErStd = ErrStd(aRot);
+  double  anErrInit = anErStd;
 
+  ElRotation3D aRotB = aRot;
   for (int aCpt=0 ; aCpt<8; aCpt++)
   {
+
+
+
       double ErrIn = anErStd;
       std::vector<double> aVRes;
 
@@ -640,21 +941,57 @@ cFullEqLinariseAngle::cFullEqLinariseAngle(const  ElPackHomologue & aPack,ElRota
 // std::cout <<  aRes / PVExactCostMEP(aRot,mVP1[aK],mVP2[aK],-1) << "\n";
 
       }
+      // Test provisoire Bundle
+      {
+          cEqBundleBase * aBB = new  cEqBundleBase (false,0,mFoc);
+          aBB->InitNewRot(aRotB,true);
+          for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+          {
+              double aRes = aBB->ResiduEquation12(itP->P1(),itP->P2());
+              double aPds = 1 / (1+ElSquare(aRes/anErrInit));
+              std::cout << "RBBBB " << aRes*mFoc  << " " << aPds <<  " " << anErrInit *  mFoc << "\n";
+              aBB->AddEquation12(itP->P1(),itP->P2(),aPds);
+          }
+          
+          aBB->SolveResetUpdate();
+          aRotB = aBB->Sol2();
+      }
+
       anErStd = KthValProp(aVRes,0.75);
       aRot = mELA->SolveResetUpdate();
       mELA->InitNewRot(aRot);
+
+
       std::cout << "ERR  " << ErrIn*mFoc << " ==> " <<  ErrStd(aRot)*mFoc << "\n";
 getchar();
   }
 }
 
 
-void TestLinariseAngle(const  ElPackHomologue & aPack,const ElRotation3D &aRot,double aFoc)
+void TestLinariseAngle(const  ElPackHomologue & aPack,const ElRotation3D &aRef,double aFoc)
 {
-   cFullEqLinariseAngle aFELA(aPack,aRot,aFoc);
+   double aNoise = 1e-4;
+   ElMatrix<double> aMP =  ElMatrix<double>::Rotation(aNoise*NRrandC(),aNoise*NRrandC(),aNoise*NRrandC());
+   ElRotation3D aRot(aRef.tr(),aRef.Mat()*aMP,true);
+
+   //   cFullEqLinariseAngle aFELA(aPack,aRot,aFoc);
+
+   cEqBundleBase * aBB = new  cEqBundleBase (false,0,aFoc);
+   // aBB->InitNewRot(aRot);
+
+   double anErr = aBB->AddPack(aPack,aRot,-1);
+
+   for (int aKS=0 ; aKS < 20 ; aKS++)
+   {
+         std::cout << "Errreur " << anErr * aFoc << "\n";
+         anErr = aBB->AddPack(aPack,aRot,anErr);
+         aRot = aBB->Sol2();
+   }
+ 
 }
 
 
+    // anEla = new  cEqBundleBase (false,0);
 
 /************************************************************/
 /*                                                          */
