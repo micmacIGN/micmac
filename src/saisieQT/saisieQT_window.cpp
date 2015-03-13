@@ -632,13 +632,15 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("close polygon or delete nearest vertex"));
         shortcuts.push_back(tr("Echap"));
         actions.push_back(tr("delete polygon"));
+        shortcuts.push_back(tr("W+drag"));
+        actions.push_back(tr("move polygon"));
 
 #ifdef ELISE_Darwin
     #if ELISE_QT_VERSION >= 5
-            shortcuts.push_back("Cmd+U");
-            shortcuts.push_back("Cmd+Y");
-            shortcuts.push_back("Shift+U");
-            shortcuts.push_back("Shift+Y");
+            shortcuts.push_back("Fn+Space bar");
+            shortcuts.push_back("Fn+D");
+            shortcuts.push_back("Fn+U");
+            shortcuts.push_back("Fn+Y");
             fillStringList(actions, _appMode);
     #else
             shortcuts.push_back(tr("Space bar"));
@@ -1177,10 +1179,9 @@ void SaisieQtWindow::updateUI()
 
     #ifdef ELISE_Darwin
     #if(ELISE_QT_VERSION >= 5)
-        _ui->actionRemove_inside->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_Y));
-        _ui->actionAdd_inside->setShortcut(QKeySequence(Qt::ControlModifier + Qt::Key_U));
-        _ui->actionRemove_inside->setShortcut(QKeySequence(Qt::ShiftModifier + Qt::Key_Y));
-        _ui->actionAdd_inside->setShortcut(QKeySequence(Qt::ShiftModifier + Qt::Key_U));
+        _ui->actionRemove_inside->setShortcut(Qt::Key_D);
+        _ui->actionRemove_outside->setShortcut(Qt::Key_Y);
+        _ui->actionAdd_outside->setShortcut(Qt::Key_U);
     #endif
     #endif
 }
