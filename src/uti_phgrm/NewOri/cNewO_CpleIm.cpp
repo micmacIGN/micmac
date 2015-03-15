@@ -63,29 +63,23 @@ void InitVPairComp(std::vector<cNOCompPair> & aV,const ElPackHomologue & aPackH)
 //  Formule exacte et programmation simple et claire pour bench
 //
 
-double cNewO_CpleIm::ExactCost(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
+#define FONC_EXACT_COST ProjCostMEP
+
+double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
 {
-   return ExactCostMEP(anI,aRot,aP1,aP2,aTetaMax);
+   return FONC_EXACT_COST(aRot,aP1,aP2,aTetaMax);
 }
-
-
-
-
-
-
-
-// double cNewO_CpleIm
 double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
-    return ExactCostMEP(mPackPStd,aRot,aTetaMax);
+    return FONC_EXACT_COST(mPackPStd,aRot,aTetaMax);
 }
-
-
-
 double  cNewO_CpleIm::PixExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
    return ExactCost(aRot,aTetaMax) * FocMoy();
 }
+
+
+
 
 
 Pt2dr cNewO_CpleIm::ToW(const Pt2dr & aP) const
@@ -133,6 +127,7 @@ cNewO_CpleIm::cNewO_CpleIm
    mSysLin5     (5),
    mSysLin2     (2),
    mSysLin3     (3),
+   mIBI         (cInterfBundle2Image::LinearDet(mPackStdRed,FocMoy())),
    mShow        (aShow),
    mBestSol     (ElRotation3D::Id),
    mCostBestSol (1e9),

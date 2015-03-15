@@ -3219,15 +3219,24 @@ class cCamStenopeBilin : public CamStenope
 */
        
 
-extern double QuasiExactCostFaiscMEP(const ElRotation3D & aRot,const Pt3dr & aQ1,const Pt3dr & aQ2Init,double aTetaMax);
-extern double PVExactCostMEP(const ElRotation3D & aRot,const Pt3dr & aQ1,const Pt3dr & aQ2Init,double aTetaMax);
-extern double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
-extern double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) ;
-extern double PVExactCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
-extern double LinearCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
-Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
-extern double LinearExactCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
+double QuickD48EProjCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double ProjCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double DistDroiteCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double PVCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double PVCostMEP(const ElRotation3D & aR2to1 ,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax);
+double LinearCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double LinearCostMEP(const ElRotation3D & aR2to1 ,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax);
 
+
+double QuickD48EProjCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double ProjCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double DistDroiteCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double PVCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double LinearCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+
+
+
+Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
 ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
 
 void InitPackME
@@ -3239,6 +3248,33 @@ void InitPackME
      );
 
 
+
+class  cInterfBundle2Image
+{
+     public :
+           cInterfBundle2Image(int mNbCple,double aFoc);
+           double ErrInitRobuste(const ElRotation3D &aRot,double aProp = 0.75);
+           ElRotation3D   OneIterEq(const  ElRotation3D &aRot,double & anErrStd);
+
+           static cInterfBundle2Image * LineariseAngle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCste0);
+           static cInterfBundle2Image * LinearDet(const  ElPackHomologue & aPack,double aFoc);
+           static cInterfBundle2Image * Bundle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCoordCste);
+           virtual  ~cInterfBundle2Image();
+
+           virtual const std::string & VIB2I_NameType() = 0 ;
+           virtual double VIB2I_PondK(const int & aK) const = 0;
+           virtual double VIB2I_ErrorK(const ElRotation3D &aRot,const int & aK) const = 0;
+           virtual double VIB2I_AddObsK(const int & aK,const double & aPds) =0;
+           virtual void   VIB2I_InitNewRot(const ElRotation3D &aRot) = 0;
+           virtual ElRotation3D    VIB2I_Solve() = 0;
+
+     protected :
+
+           int    mNbCple;
+           double mFoc;
+     private :
+
+};
 
 
 
