@@ -1337,7 +1337,7 @@ class cEq12Parametre
         double mValueFixArb;
 };
 
-class cBundleIterLin
+class cOldBundleIterLin
 {
     public :
 
@@ -1345,7 +1345,7 @@ class cBundleIterLin
        ElRotation3D CurSol();
        double ErrMoy() const;
 
-       cBundleIterLin(const ElRotation3D & aRot,const double & anErrStd);
+       cOldBundleIterLin(const ElRotation3D & aRot,const double & anErrStd);
        ElRotation3D  mRot;
        L2SysSurResol mSysLin5;
        ElMatrix<double> tR0;

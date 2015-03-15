@@ -1210,107 +1210,6 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
 /*                                                          */
 /************************************************************/
 
-/*
-void InitPackME
-     (  
-          std::vector<Pt2dr> & aVP1,
-          std::vector<Pt2dr>  &aVP2,
-          std::vector<double>  &aVPds,
-          const  ElPackHomologue & aPack
-     )
-{
-   for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-   {
-      aVP1.push_back(itP->P1());
-      aVP2.push_back(itP->P2());
-      aVPds.push_back(itP->Pds());
-   }
-}
-
-//  Formule exacte et programmation simple et claire pour bench, c'est l'angle
-
-double ExactCostMEP(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) 
-{
-   Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
-   Pt3dr aQ2 = aRot.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
-   Pt3dr aBase  = aRot.tr();
-
-   ElSeg3D aS1(Pt3dr(0,0,0),aQ1);
-   ElSeg3D aS2(aBase,aBase+aQ2);
-
-   anI = aS1.PseudoInter(aS2);
-    
-   double d1 = aS1.DistDoite(anI);
-   double d2 = aS2.DistDoite(anI);
-   double D1 = euclid(anI);
-   double D2 = euclid(aBase-anI);
-
-
-   double aTeta =  d1/D1 + d2/D2;
-   return GenCoutAttenueTetaMax(aTeta,aTetaMax);
-}
-
-double PVExactCostMEP(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) 
-{
-   Pt3dr aQ1 = vunit(PZ1(aP1));
-   Pt3dr aQ2 = aRot.Mat() *  vunit(PZ1(aP2));
-   Pt3dr aBase  = aRot.tr();
-
-   Pt3dr aQ1vQ2vB = vunit(aQ1 ^ aQ2) ^ aBase;
-
-   double aDet = Det(aQ1,aQ2,aBase);
-
-   //   /2 pour etre coherent avec ExactCostMEP
-   double aTeta = (ElAbs(aDet/scal(aQ1vQ2vB,aQ1)) +  ElAbs(aDet/scal(aQ1vQ2vB,aQ2))) / 2.0;
-   
-   return GenCoutAttenueTetaMax(aTeta,aTetaMax);
-}
-
-
-double ExactCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax) 
-{
-    double aSomPCost = 0;
-    double aSomPds = 0;
-    Pt3dr anI;
-
-    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-    {
-         double aPds = itP->Pds();
-         double aCost = ExactCostMEP(anI,aRot,itP->P1(),itP->P2(),aTetaMax);
-
- std::cout << "RRRrr " << aCost / PVExactCostMEP(aRot,itP->P1(),itP->P2(),aTetaMax) << "\n";
-
-         aSomPds += aPds;
-         aSomPCost += aPds * aCost;
-    }
-    return aSomPCost / aSomPds;
-}
-
-
-Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot)
-{
-    std::vector<double>  aVX;
-    std::vector<double>  aVY;
-    std::vector<double>  aVZ;
-    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-    {
-        Pt3dr                anI;
-        ExactCostMEP(anI,aRot,itP->P1(),itP->P2(),0.1);
-        aVX.push_back(anI.x);
-        aVY.push_back(anI.y);
-        aVZ.push_back(anI.z);
-
-// std::cout << "iiiiI " << anI << "\n";
-    }
-    return Pt3dr
-           (
-                 MedianeSup(aVX),
-                 MedianeSup(aVY),
-                 MedianeSup(aVZ)
-           );
-}
-*/
-
 /************************************************************/
 /*                                                          */
 /*                  cRansacMatriceEssentielle               */
@@ -1434,7 +1333,7 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    // Adapte a donnees assez peu bruites, tire de 8 a 50% des points
    for (int aKTir=0 ; aKTir < NbTirageBig ; aKTir++)
    {
-        int aNb =  round_ni( (mNbRed*0.5) * (1+aKTir%5) / 6.0);
+        int aNb =  round_ni( (mNbRed*0.5) * ((1+aKTir%5) / 6.0)  );
         OnTestMatE(aNb);
    }
 
@@ -1446,7 +1345,7 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    for (int aK=0 ; aK<int(aVS.size()) ; aK++)
    {
       aVS[aK].mRot = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
-      aVS[aK].mCost = ExactCostMEP(aPackRed,aVS[aK].mRot,0.1) ;
+      aVS[aK].mCost = QuickD48EProjCostMEP(aPackRed,aVS[aK].mRot,0.1) ;
       mKBest.push(aVS[aK]);
    }
 
@@ -1466,18 +1365,15 @@ const ElRotation3D &  cRansacMatriceEssentielle::Sol() const
 
 void cRansacMatriceEssentielle::OneIterLin(cSolTmpME & aSol,const ElPackHomologue & aPack,int aNbIter)
 {
+    cInterfBundle2Image * aIB =  cInterfBundle2Image::LinearDet(aPack,mFoc);
+    aSol.mCost = aIB->ErrInitRobuste(aSol.mRot);
+
     for (int aKIter =0 ; aKIter < aNbIter ; aKIter++)
     {
-        cBundleIterLin   aBIL(aSol.mRot,2*mCostMin);
-
-        for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-        {
-             aBIL.AddObs(vunit(PZ1(itP->P1())),vunit(PZ1(itP->P2())),itP->Pds());
-        }
-
-        aSol.mRot =  aBIL.CurSol();
+        aSol.mRot = aIB->OneIterEq(aSol.mRot,aSol.mCost);
     }
-    aSol.mCost =  ExactCostMEP(aPack,aSol.mRot,0.1) ;
+    aSol.mCost = aIB->ErrInitRobuste(aSol.mRot);
+    delete aIB;
 
 }
 

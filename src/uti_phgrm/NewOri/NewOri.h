@@ -192,8 +192,7 @@ class cNewO_CpleIm
           ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd,double & aErMoy,double & Amelio);
 
 
-          double ExactCost
-                 (Pt3dr & anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
+          double ExactCost (const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
 
           double FocMoy() const;
 
@@ -218,6 +217,8 @@ class cNewO_CpleIm
           L2SysSurResol            mSysLin5;
           L2SysSurResol            mSysLin2;
           L2SysSurResol            mSysLin3;
+          cInterfBundle2Image *    mIBI;
+
           bool                     mShow;
 
           double mCurLamndaLVM;
