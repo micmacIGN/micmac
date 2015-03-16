@@ -597,8 +597,12 @@ void ReinitStatCondFaisceau()
    aVBSurH.clear();
 }
 
+bool ShowStatMatCond = true;
 void ShowStatCondFaisceau(bool aShowVect)
 {
+     if (!ShowStatMatCond) return;
+
+
      std::cout << "Cond = " << aMaxCond  
                << "  Moy = " << (aSomCond/aNbCond) 
                << "  SupS = " << (double(aNb100)/double(aNbCond))
