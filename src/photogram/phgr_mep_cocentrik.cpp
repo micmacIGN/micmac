@@ -471,7 +471,8 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElR
      std::cout << "Time "    << aChrono.uval() << " Ecart "   << mEcartCo * mFoc << "\n";
 
 
-     Test(aPack,aMat,aRef,mEcartCo);
+     if (aRef)
+        Test(aPack,aMat,aRef,mEcartCo);
 }
 
 void cMEPCoCentrik::Test(const ElPackHomologue & aPack,const  ElMatrix<REAL> & aMat,const ElRotation3D * aRef,double anEcart)
