@@ -1096,7 +1096,7 @@ double cInterfBundle2Image::ErrInitRobuste(const ElRotation3D &aRot,double aProp
 }
 
 
-ElRotation3D cInterfBundle2Image::OneIterEq(const  ElRotation3D &aRot,double & anErrStd)
+void cInterfBundle2Image::OneIterEqGen(const  ElRotation3D &aRot,double & anErrStd,bool AddEq)
 {
   VIB2I_InitNewRot(aRot);
   double aSomErr = 0;
@@ -1106,7 +1106,8 @@ ElRotation3D cInterfBundle2Image::OneIterEq(const  ElRotation3D &aRot,double & a
   {
        double anErr =  VIB2I_ErrorK(aRot,aK);
        double aPds = VIB2I_PondK(aK) / (1 + ElSquare(anErr/(2.0*anErrStd)));
-       VIB2I_AddObsK(aK,aPds);
+       if (AddEq)
+          VIB2I_AddObsK(aK,aPds);
 //   std::cout << "EEEEE " << anErr << " " << aE2 << "\n";
        aSomErr += aPds * ElSquare(anErr);
        aSomPds += aPds;
@@ -1115,7 +1116,19 @@ ElRotation3D cInterfBundle2Image::OneIterEq(const  ElRotation3D &aRot,double & a
   aSomErr /= aSomPds;
   aSomErr = sqrt(aSomErr);
   anErrStd = aSomErr;
+}
+
+ElRotation3D cInterfBundle2Image::OneIterEq(const  ElRotation3D &aRot,double & anErrStd)
+{
+  OneIterEqGen(aRot,anErrStd,true);
   return VIB2I_Solve() ;
+} 
+
+double cInterfBundle2Image::ResiduEq(const  ElRotation3D &aRot,const double & anErrStd)
+{
+    double anErrOut = anErrStd;
+    OneIterEqGen(aRot,anErrOut,false);
+    return anErrOut;
 }
 
      // ==========================================================
