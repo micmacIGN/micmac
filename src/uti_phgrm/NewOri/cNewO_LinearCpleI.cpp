@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 static const double PropStdErDet = 0.75;
-static const double MulErrStd = 1.0;
 
 
 static  const double MulLVM = 10;
@@ -130,7 +129,9 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
    ElTimer aChrono;
 
 
-   mErStd = MulErrStd * mIBI->ErrInitRobuste(aRot,PropStdErDet);
+   mErStd =  mLinIBI->ErrInitRobuste(aRot,PropStdErDet);  // Version robuste, sans init
+   mErStd = mLinIBI->ResiduEq(aRot,mErStd);               // Version moindres carres
+   
    
 
 
@@ -138,11 +139,13 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
 
    bool aCont = true;
    bool aSqueeze = false;
-   double aLastErrMoy = 1e5;
    for (double  aNbIter=0 ; aCont ; )
    {
-       double aErMoy,anAmelio;
-       ElRotation3D aNewR =  OneIterSolLinear(aRot,mStCPairs,mErStd,aErMoy,anAmelio);
+       // std::cout << "ERRR " << mErStd *FocMoy() << "\n";
+       double aLastErr = mErStd;
+       ElRotation3D aNewR  = mLinIBI->OneIterEq(aRot,mErStd);
+       double anAmelio = aLastErr - mErStd;
+
 
        /// std::cout << "AAA " << anAmelio * FocMoy()   << "\n";
        //  std::cout << "AAA " << aErMoy * FocMoy()   << " " << mErStd  * FocMoy()  << " " << PixExactCost(aNewR,0.1) << "\n";
@@ -150,9 +153,6 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
 
        if ((anAmelio >0) || (! UseLVM))
        {
-          aLastErrMoy = aErMoy;
-          DoNothingButRemoveWarningUnused(aLastErrMoy);
-
           if (mBestSolIsInit)
           {
               if (DistRot(aNewR,mBestSol) < 1e-4)
@@ -259,32 +259,6 @@ double PdsLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP)
     }
     return aSomError / aSomPds;
 }
-
-
-ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP,double & anErStd,double & aErMoy,double & Amelio)
-{
-    cOldBundleIterLin aBIL(aRot,anErStd);
-
-    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
-    {
-        cNOCompPair & aPair = aVP[aK];
-        aBIL.AddObs(aPair.mQ1,aPair.mQ2,aPair.mPds);
-        aPair.mLastPdsOfErr =  aBIL.mLastPdsCalc;
-    }
-    mCurResidu = aBIL.mVRes;
-
-    aBIL.mSysLin5.LVM_Mul(mCurLamndaLVM);
-
-    anErStd = MulErrStd * KthValProp(mCurResidu,PropStdErDet);
-    ElRotation3D aResult = aBIL.CurSol();
-
-    aErMoy = aBIL.ErrMoy();
-    Amelio = aErMoy - PdsLinear(aResult,aVP);
-    aErMoy = sqrt(aErMoy);
-
-    return aResult;
-}
-
 
 
 

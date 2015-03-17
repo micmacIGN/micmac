@@ -50,6 +50,7 @@ set(Photogram_Src_Files
 	${PHOTOGR_DIR}/OffsetGPS.cpp
 	${PHOTOGR_DIR}/OriCombiBundle.cpp
 	${PHOTOGR_DIR}/phgr_mep_cocentrik.cpp
+	${PHOTOGR_DIR}/phgr_mep_patch_plane.cpp
 )
 
 SOURCE_GROUP(Photogram FILES ${Photogram_Src_Files})

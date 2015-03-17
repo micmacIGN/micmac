@@ -3255,6 +3255,7 @@ class  cInterfBundle2Image
            cInterfBundle2Image(int mNbCple,double aFoc);
            double ErrInitRobuste(const ElRotation3D &aRot,double aProp = 0.75);
            ElRotation3D   OneIterEq(const  ElRotation3D &aRot,double & anErrStd);
+           double         ResiduEq(const  ElRotation3D &aRot,const double & anErrStd);
 
            static cInterfBundle2Image * LineariseAngle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCste0);
            static cInterfBundle2Image * LinearDet(const  ElPackHomologue & aPack,double aFoc);
@@ -3270,13 +3271,27 @@ class  cInterfBundle2Image
 
      protected :
 
+           void   OneIterEqGen(const  ElRotation3D &aRot,double & anErrStd,bool AddEq);
            int    mNbCple;
            double mFoc;
      private :
 
 };
 
+class cResMepCoc
+{
+     public :
 
+          cResMepCoc(ElMatrix<double> & aMat,double aCostRPur,const ElRotation3D & aR,double aCostVraiRot,Pt3dr aPMed);
+
+          ElMatrix<double>  mMat;
+          double            mCostRPure;
+          ElRotation3D      mSolRot;
+          double            mCostVraiRot;
+          Pt3dr             mPMed;
+};
+
+cResMepCoc MEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show);
 
 
 
