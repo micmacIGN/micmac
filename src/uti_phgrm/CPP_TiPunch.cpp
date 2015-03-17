@@ -73,19 +73,22 @@ int TiPunch_main(int argc,char ** argv)
     bool aRmPoissonMesh = false;
     int aDepth = 8;
     double aDst = 0.5f;
+    bool aFilter = true;
+    aMode = "Statue";
 
     ElInitArgMain
             (
                 argc,argv,
-                LArgMain()  << EAMC(aFullName,"Full Name (Dir+Pat)",eSAM_IsPatFile)
-                            << EAMC(aOri,"Orientation path",eSAM_IsExistDirOri)
-                            << EAMC(aPly,"Ply file", eSAM_IsExistFile)
-                            << EAMC(aMode,"C3DC mode", eSAM_None,ListOfVal(eNbTypeMMByP)),
-                LArgMain()  << EAM(aOut,"Out",true,"Mesh name (def=plyName+ _mesh.ply)")
+                LArgMain()  << EAMC(aPly,"Ply file", eSAM_IsExistFile),
+                LArgMain()  << EAM(aFullName,"Pattern", false, "Full Name (Dir+Pat)",eSAM_IsPatFile)
+                            << EAM(aOri,"Ori", false, "Orientation path",eSAM_IsExistDirOri)
+                            << EAM(aOut,"Out", true, "Mesh name (def=plyName+ _mesh.ply)")
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
                             << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
                             << EAM(aDst,"Dist",true,"Threshold on distance between mesh and point cloud (def=1)")
+                            << EAM(aFilter,"Filter",true,"Filter mesh with distance (def=true)")
+                            << EAM(aMode,"Mode", true, "C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
             );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -159,121 +162,125 @@ int TiPunch_main(int argc,char ** argv)
         cout << "\nMesh built and saved in " << poissonMesh << endl;
     }
 
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
-
-    StdCorrecNameOrient(aOri,aDir);
-
-    std::vector<CamStenope*> vCam;
-    std::vector<Pt3dr> vCamCenter;
-
-    bool help;
-    eTypeMMByP  type;
-    StdReadEnum(help,type,aMode,eNbTypeMMByP);
-
-    cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
-
-    vector <Im2D_REAL4 *> vImgProf;
-    vector <Im2D_INT4 *>  vImgMasq;
-
-    cout << endl;
-    for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
-    {
-        std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri,*itS,true);
-
-        vCam.push_back(CamOrientGenFromFile(NOri,aICNM));
-        vCamCenter.push_back(vCam.back()->VraiOpticalCenter()); //pour eviter le test systematique dans VraiOpticalCenter() lors du parcours du maillage
-
-        std::string aNameProf = PIMsFilter->NameFileProf(eTMIN_Depth,*itS);
-
-        if (ELISE_fp::exist_file(aNameProf))
-        {
-            Tiff_Im tif = Tiff_Im::StdConvGen(aNameProf, 1, true);
-
-            Im2D_REAL4* pImg = new Im2D_REAL4(tif.sz().x, tif.sz().y);
-
-            ELISE_COPY
-            (
-                pImg->all_pts(),
-                tif.in(),
-                pImg->out()
-            );
-
-            vImgProf.push_back(pImg);
-            //cout << "img sz" << vImgProf.back()->sz() << endl;
-        }
-        else
-            cout << "File does not exist : " << aNameProf << endl;
-
-        std::string aNameMasq = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
-
-        if (ELISE_fp::exist_file(aNameMasq))
-        {
-            Tiff_Im tif = Tiff_Im::StdConvGen(aNameMasq, 1, false);
-
-            Im2D_INT4* pImg = new Im2D_INT4(tif.sz().x, tif.sz().y);
-
-            ELISE_COPY
-            (
-                pImg->all_pts(),
-                tif.in(),
-                pImg->out()
-            );
-
-            vImgMasq.push_back(pImg);
-            //cout << "img sz" << vImgMasq.back()->sz() << endl;
-        }
-        else
-            cout << "File does not exist : " << aNameMasq << endl;
-
-        cout << "Image "<<*itS<<", with ori : " << NOri << endl;
-        cout << "Depth : "<< aNameProf << endl;
-    }
-
-    double downScaleFactor = (double) vCam[0]->Sz().x / vImgProf[0]->sz().x;
-
-    //cout << "downScaleFactor = " << downScaleFactor << endl;
 
     cMesh myMesh(poissonMesh);
 
-    cout << endl;
-    cout <<"**********************Filtering faces*************************"<<endl;
-    cout << endl;
-
-    std::vector < int > toRemove;
-
-    const int nCam = vCam.size();
-    for(int aK=0; aK <myMesh.getFacesNumber(); aK++)
+    if (aFilter)
     {
-        if (aK%1000 == 0) cout << aK << " / " << myMesh.getFacesNumber() << endl;
+        cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+        std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
 
-        cTriangle * Triangle = myMesh.getTriangle(aK);
+        StdCorrecNameOrient(aOri,aDir);
 
-        vector <Pt3dr> Vertex;
-        Triangle->getVertexes(Vertex);
+        std::vector<CamStenope*> vCam;
+        std::vector<Pt3dr> vCamCenter;
 
-        bool found = false;
-        for(int bK=0 ; bK<nCam; bK++)
+        bool help;
+        eTypeMMByP  type;
+        StdReadEnum(help,type,aMode,eNbTypeMMByP);
+
+        cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
+
+        vector <Im2D_REAL4 *> vImgProf;
+        vector <Im2D_INT4 *>  vImgMasq;
+
+        cout << endl;
+        for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
         {
-            found = DistanceTest(aDst, (Vertex[0]+Vertex[1]+Vertex[2])/3.f, vCamCenter[bK], downScaleFactor, vCam[bK], vImgProf[bK], vImgMasq[bK]);
+            std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri,*itS,true);
 
-            if (found) break;
+            vCam.push_back(CamOrientGenFromFile(NOri,aICNM));
+            vCamCenter.push_back(vCam.back()->VraiOpticalCenter()); //pour eviter le test systematique dans VraiOpticalCenter() lors du parcours du maillage
+
+            std::string aNameProf = PIMsFilter->NameFileProf(eTMIN_Depth,*itS);
+
+            if (ELISE_fp::exist_file(aNameProf))
+            {
+                Tiff_Im tif = Tiff_Im::StdConvGen(aNameProf, 1, true);
+
+                Im2D_REAL4* pImg = new Im2D_REAL4(tif.sz().x, tif.sz().y);
+
+                ELISE_COPY
+                (
+                    pImg->all_pts(),
+                    tif.in(),
+                    pImg->out()
+                );
+
+                vImgProf.push_back(pImg);
+                //cout << "img sz" << vImgProf.back()->sz() << endl;
+            }
+            else
+                cout << "File does not exist : " << aNameProf << endl;
+
+            std::string aNameMasq = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
+
+            if (ELISE_fp::exist_file(aNameMasq))
+            {
+                Tiff_Im tif = Tiff_Im::StdConvGen(aNameMasq, 1, false);
+
+                Im2D_INT4* pImg = new Im2D_INT4(tif.sz().x, tif.sz().y);
+
+                ELISE_COPY
+                (
+                    pImg->all_pts(),
+                    tif.in(),
+                    pImg->out()
+                );
+
+                vImgMasq.push_back(pImg);
+                //cout << "img sz" << vImgMasq.back()->sz() << endl;
+            }
+            else
+                cout << "File does not exist : " << aNameMasq << endl;
+
+            cout << "Image "<<*itS<<", with ori : " << NOri << endl;
+            cout << "Depth : "<< aNameProf << endl;
         }
 
-        if (!found)
+        double downScaleFactor = (double) vCam[0]->Sz().x / vImgProf[0]->sz().x;
+
+        //cout << "downScaleFactor = " << downScaleFactor << endl;
+
+        cout << endl;
+        cout <<"**********************Filtering faces*************************"<<endl;
+        cout << endl;
+
+        std::vector < int > toRemove;
+
+        const int nCam = vCam.size();
+        for(int aK=0; aK <myMesh.getFacesNumber(); aK++)
         {
-            toRemove.push_back(Triangle->getIdx());
-            //myMesh.removeTriangle(*Triangle, false);
-            //aK--;
+            if (aK%1000 == 0) cout << aK << " / " << myMesh.getFacesNumber() << endl;
+
+            cTriangle * Triangle = myMesh.getTriangle(aK);
+
+            vector <Pt3dr> Vertex;
+            Triangle->getVertexes(Vertex);
+
+            bool found = false;
+            for(int bK=0 ; bK<nCam; bK++)
+            {
+                found = DistanceTest(aDst, (Vertex[0]+Vertex[1]+Vertex[2])/3.f, vCamCenter[bK], downScaleFactor, vCam[bK], vImgProf[bK], vImgMasq[bK]);
+
+                if (found) break;
+            }
+
+            if (!found)
+            {
+                toRemove.push_back(Triangle->getIdx());
+                //myMesh.removeTriangle(*Triangle, false);
+                //aK--;
+            }
         }
-    }
-    cout << myMesh.getFacesNumber() << " / " << myMesh.getFacesNumber() << endl;
+        cout << myMesh.getFacesNumber() << " / " << myMesh.getFacesNumber() << endl;
 
-    cout << "Removing " << toRemove.size() << endl;
+        cout << "Removing " << toRemove.size() << endl;
 
-    std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
-    for (unsigned int var = 0; var < toRemove.size(); ++var) {
-         myMesh.removeTriangle(*(myMesh.getTriangle(toRemove[var])), false);
+        std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
+        for (unsigned int var = 0; var < toRemove.size(); ++var) {
+             myMesh.removeTriangle(*(myMesh.getTriangle(toRemove[var])), false);
+        }
     }
 
     cout << endl;
