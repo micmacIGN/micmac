@@ -361,6 +361,18 @@ Type  dist48(const Pt2d<Type> & p)
    return ElMax(Ax,Ay) + Ax + Ay;
 }
 
+template <class Type>
+Type  dist48_euclid(const Pt2d<Type> & p)
+{
+   Type Ax = ElAbs(p.x);
+   Type Ay = ElAbs(p.y);
+   return (3*ElMax(Ax,Ay) +  2*(Ax + Ay)) / 5.0;
+}
+
+
+
+
+
 /*
 template <> Pt2d<double>::Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
 template <> Pt2d<int>::Pt2d(const Pt2d<double>& p) : x (round_ni(p.x)), y (round_ni(p.y)) {};

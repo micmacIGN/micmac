@@ -63,29 +63,23 @@ void InitVPairComp(std::vector<cNOCompPair> & aV,const ElPackHomologue & aPackH)
 //  Formule exacte et programmation simple et claire pour bench
 //
 
-double cNewO_CpleIm::ExactCost(Pt3dr &  anI,const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
+#define FONC_EXACT_COST ProjCostMEP
+
+double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
 {
-   return ExactCostMEP(anI,aRot,aP1,aP2,aTetaMax);
+   return FONC_EXACT_COST(aRot,aP1,aP2,aTetaMax);
 }
-
-
-
-
-
-
-
-// double cNewO_CpleIm
 double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
-    return ExactCostMEP(mPackPStd,aRot,aTetaMax);
+    return FONC_EXACT_COST(mPackPStd,aRot,aTetaMax);
 }
-
-
-
 double  cNewO_CpleIm::PixExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
    return ExactCost(aRot,aTetaMax) * FocMoy();
 }
+
+
+
 
 
 Pt2dr cNewO_CpleIm::ToW(const Pt2dr & aP) const
@@ -112,6 +106,15 @@ double cNewO_CpleIm::FocMoy() const
     return 2 / aF;
 }
 
+void TestOriPlanePatch
+     (
+         const ElPackHomologue & aPack,
+         Video_Win * aW,
+         Pt2dr       aP0W,
+         double      mScaleW
+     );
+
+
 
 cNewO_CpleIm::cNewO_CpleIm
 (
@@ -133,6 +136,9 @@ cNewO_CpleIm::cNewO_CpleIm
    mSysLin5     (5),
    mSysLin2     (2),
    mSysLin3     (3),
+   mLinIBI      (cInterfBundle2Image::LinearDet(mPackStdRed,FocMoy())),
+   mRedPvIBI    (cInterfBundle2Image::LineariseAngle(mPackStdRed,FocMoy(),true)),
+   mFullPvIBI   (cInterfBundle2Image::LineariseAngle(mPackPStd,FocMoy(),true)),
    mShow        (aShow),
    mBestSol     (ElRotation3D::Id),
    mCostBestSol (1e9),
@@ -140,7 +146,6 @@ cNewO_CpleIm::cNewO_CpleIm
    mSegAmbig      (Pt3dr(0,0,0),Pt3dr(1,1,1)),
    mW             (0)
 {
-
 
 
    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
@@ -159,8 +164,34 @@ cNewO_CpleIm::cNewO_CpleIm
          aSz = aP1W-mP0W;
 
          mScaleW  = aSzW /ElMax(aSz.x,aSz.y) ;
-         mW = Video_Win::PtrWStd(round_ni(aSz*mScaleW));
+         Pt2di aSzWI = round_ni(aSz*mScaleW);
+         mW = Video_Win::PtrWStd(aSzWI);
+
+         Tiff_Im aTif= Tiff_Im::StdConvGen(mI1->Name(),1,false);
+         Pt2di aSzI = aTif.sz();
+         Im2D_U_INT1 anIm(aSzI.x,aSzI.y);
+         TIm2D<U_INT1,INT> aTIm(anIm);
+         ELISE_COPY(anIm.all_pts(),aTif.in(),anIm.out());
+
+         Im2D_U_INT1 aImW(aSzWI.x,aSzWI.y);
+         TIm2D<U_INT1,INT> aTImW(aImW);
+
+         Pt2di aP;
+         CamStenope * aCS1 =  aI1->CS();
+         for (aP.x=0 ; aP.x<aSzWI.x ; aP.x++)
+         {
+             for (aP.y=0 ; aP.y<aSzWI.y ; aP.y++)
+             {
+                   // aTImW.oset(aP,128);
+                   Pt2dr aPPhom = (Pt2dr(aP)/mScaleW + mP0W);
+                   Pt2dr aPIm = aCS1->R3toF2(PZ1(aPPhom));
+                   aTImW.oset(aP,aTIm.getprojR(aPIm));
+             }
+         }
+         ELISE_COPY(aImW.all_pts(),aImW.in(),mW->ogray());
    }
+
+   // TestOriPlanePatch(mPackStdRed,mW,mP0W,mScaleW);
    
    ShowPack(mPackPStd,P8COL::red,2.0);
    ShowPack(mPackStdRed,P8COL::blue,6.0);
@@ -178,7 +209,6 @@ cNewO_CpleIm::cNewO_CpleIm
 
     }
 
-    TestMEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1);
 
     /*******************************************************/
     /*      TEST DES DIFFERENTES INITIALISATIONS           */
@@ -219,10 +249,41 @@ cNewO_CpleIm::cNewO_CpleIm
     }
 
 
+    // Test rotation pure
+
+    cResMepCoc aRCoc= MEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1,mShow);
+
+    if (mShow)
+    {
+       std::cout << "Ecart RPUre " << aRCoc.mCostRPure * FocMoy() << " VraiR " << aRCoc.mCostVraiRot *FocMoy();
+       if (mTestC2toC1)  
+          std::cout << " DREf (pix) " << aRCoc.mMat.L2(mTestC2toC1->Mat())  * FocMoy();
+       std::cout << "\n";
+    }
+
+
+
+
     if (! mBestSolIsInit)
     {
         return;
     }
+
+
+    // Affinage solution
+    double anErr = mRedPvIBI->ErrInitRobuste(mBestSol,0.75);
+    ElTimer aChrono;
+    anErr = mRedPvIBI->ResiduEq(mBestSol,anErr);
+    for (int aK=0 ; aK< 10 ; aK++)
+    {
+         // std::cout << "ERRCur " <<  anErr*FocMoy() << "\n";
+         cInterfBundle2Image * anIBI = (aK<5) ? mRedPvIBI  : mFullPvIBI;
+         ElRotation3D aSol = anIBI->OneIterEq(mBestSol,anErr);
+         mBestSol = aSol;
+    }
+
+    if (mShow)
+        std::cout << "EERRR FINALE " << anErr*FocMoy() << " " << aChrono.uval() << "\n";
 
     mIA =  MedianNuage(mPackStdRed,mBestSol);
 
@@ -366,7 +427,7 @@ void BenchNewFoncRot()
 
 int TestNewOriImage_main(int argc,char ** argv)
 {
-   std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
+   // std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
 
    BenchNewFoncRot();
    // Bench_NewOri();

@@ -857,9 +857,9 @@ void AllocateurDInconnues::PushVar(REAL * anAdr)
     mValsVar.push_back(*anAdr);
 }
 
-Fonc_Num AllocateurDInconnues::NewF(REAL * anAdr)
+Fonc_Num AllocateurDInconnues::NewF(REAL * anAdr,bool HasAlwaysInitialValue)
 {
-    return  kth_coord(NewInc(anAdr));
+    return  kth_coord(NewInc(anAdr),HasAlwaysInitialValue,*anAdr);
 }
 
 INT AllocateurDInconnues::NewInc(REAL * anAdr)
@@ -869,7 +869,7 @@ INT AllocateurDInconnues::NewInc(REAL * anAdr)
 }
 
 Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3
-                 (REAL * adrX,REAL * adrY,REAL * adrZ)
+                 (REAL * adrX,REAL * adrY,REAL * adrZ,bool HasAlwaysInitialValue)
 {
     PushVar(adrX);
     PushVar(adrY);
@@ -878,9 +878,9 @@ Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3
     mIdInc += 3;
     return Pt3d<Fonc_Num>
            (
-               kth_coord(mIdInc-3),
-               kth_coord(mIdInc-2),
-               kth_coord(mIdInc-1)
+               kth_coord(mIdInc-3,HasAlwaysInitialValue,*adrX),
+               kth_coord(mIdInc-2,HasAlwaysInitialValue,*adrY),
+               kth_coord(mIdInc-1,HasAlwaysInitialValue,*adrZ)
            );
 }
 
@@ -895,27 +895,27 @@ std::vector<Fonc_Num>   AllocateurDInconnues::NewVectInc(std::vector<double> & a
 }
 
 
-Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3(Pt3dr & aP)
+Pt3d<Fonc_Num>   AllocateurDInconnues::NewPt3(Pt3dr & aP,bool HasAlwaysInitialValue)
 {
-      return   NewPt3(&aP.x,&aP.y,&aP.z);
+      return   NewPt3(&aP.x,&aP.y,&aP.z,HasAlwaysInitialValue);
 }
 
 
-Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(REAL * adrX,REAL * adrY)
+Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(REAL * adrX,REAL * adrY,bool HasAlwaysInitialValue)
 {
     PushVar(adrX);
     PushVar(adrY);
     mIdInc += 2;
     return Pt2d<Fonc_Num>
            (
-               kth_coord(mIdInc-2),
-               kth_coord(mIdInc-1)
+               kth_coord(mIdInc-2,HasAlwaysInitialValue,*adrX),
+               kth_coord(mIdInc-1,HasAlwaysInitialValue,*adrY)
            );
 }
 
-Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(Pt2dr & aP)
+Pt2d<Fonc_Num>   AllocateurDInconnues::NewPt2(Pt2dr & aP,bool HasAlwaysInitialValue)
 {
-      return   NewPt2(&aP.x,&aP.y);
+      return   NewPt2(&aP.x,&aP.y,HasAlwaysInitialValue);
 }
 
 TplElRotation3D<Fonc_Num> AllocateurDInconnues::NewRot

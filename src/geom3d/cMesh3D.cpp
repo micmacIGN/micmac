@@ -508,56 +508,60 @@ void cMesh::addEdge(int aK, int bK)
     }
 }
 
-void cMesh::removeTriangle(cTriangle &aTri)
+void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
 {
-    vector <int> edges = aTri.getEdgesIndex();
     int index = aTri.getIdx();
 
-   /* cout << "triangle à retirer= " << index << endl;
-    cout << "nombre d'edges à retirer =  " << edges.size() << endl;*/
-
-   /* for (unsigned int aK=0; aK< edges.size(); aK++)
+    if (doAdjacence)
     {
-        cout << "index des edges à retirer = " << edges[aK] << endl;
-        cout << " entre " << mEdges[edges[aK]].n1() << " et " << mEdges[edges[aK]].n2() <<endl;
-    }*/
+        vector <int> edges = aTri.getEdgesIndex();
 
-    const int nTriangles = mTriangles.size();
-    for (unsigned int aK=0; aK< edges.size(); aK++)
-    {
-        int edgeIndex = edges[aK];
+       /* cout << "triangle à retirer= " << index << endl;
+        cout << "nombre d'edges à retirer =  " << edges.size() << endl;*/
 
-        cEdge *e = getEdge(edgeIndex);
-
-       // cout << "Edge " << edgeIndex << "between " << e->n1() << " "  << e->n2() << endl;
-
-        int idx = -2;
-        if (index == e->n1()) idx = e->n2();
-        else if (index == e->n2()) idx = e->n1();
-
-        if (idx != -2)
+       /* for (unsigned int aK=0; aK< edges.size(); aK++)
         {
-            mTriangles[idx].removeEdge(edgeIndex);
+            cout << "index des edges à retirer = " << edges[aK] << endl;
+            cout << " entre " << mEdges[edges[aK]].n1() << " et " << mEdges[edges[aK]].n2() <<endl;
+        }*/
 
-            for (int bK=0;bK < nTriangles; bK++ )
+        const int nTriangles = mTriangles.size();
+        for (unsigned int aK=0; aK< edges.size(); aK++)
+        {
+            int edgeIndex = edges[aK];
+
+            cEdge *e = getEdge(edgeIndex);
+
+           // cout << "Edge " << edgeIndex << "between " << e->n1() << " "  << e->n2() << endl;
+
+            int idx = -2;
+            if (index == e->n1()) idx = e->n2();
+            else if (index == e->n2()) idx = e->n1();
+
+            if (idx != -2)
             {
-                vector <int> vIdx = getTriangle(bK)->getEdgesIndex();
-                for(unsigned int cK=0; cK< vIdx.size();++cK)
+                mTriangles[idx].removeEdge(edgeIndex);
+
+                for (int bK=0;bK < nTriangles; bK++ )
                 {
-                    if (vIdx[cK] > edgeIndex) getTriangle(bK)->decEdgeIndex(cK);
+                    vector <int> vIdx = getTriangle(bK)->getEdgesIndex();
+                    for(unsigned int cK=0; cK< vIdx.size();++cK)
+                    {
+                        if (vIdx[cK] > edgeIndex) getTriangle(bK)->decEdgeIndex(cK);
+                    }
                 }
+
+                for (unsigned int bK=aK+1; bK < edges.size();++bK)
+                {
+                    if (edges[bK] >edgeIndex) edges[bK] = edges[bK] -1;
+                }
+
+                mEdges.erase(std::remove(mEdges.begin(), mEdges.end(), *e), mEdges.end());
+
             }
-
-            for (unsigned int bK=aK+1; bK < edges.size();++bK)
-            {
-                if (edges[bK] >edgeIndex) edges[bK] = edges[bK] -1;
-            }
-
-            mEdges.erase(std::remove(mEdges.begin(), mEdges.end(), *e), mEdges.end());
-
+            else
+                cout << "impossible error !!!!!!" << endl;
         }
-        else
-            cout << "impossible error !!!!!!" << endl;
     }
 
     mTriangles.erase(std::remove(mTriangles.begin(), mTriangles.end(), aTri), mTriangles.end());
@@ -568,12 +572,15 @@ void cMesh::removeTriangle(cTriangle &aTri)
         getTriangle(aK)->decIdx();
     }
 
-    const int nbEdges = mEdges.size();
-    for (int aK=0; aK < nbEdges;++aK)
+    if (doAdjacence)
     {
-        cEdge *e = getEdge(aK);
-        if (e->n1() > index) e->decN1();
-        if (e->n2() > index) e->decN2();
+        const int nbEdges = mEdges.size();
+        for (int aK=0; aK < nbEdges;++aK)
+        {
+            cEdge *e = getEdge(aK);
+            if (e->n1() > index) e->decN1();
+            if (e->n2() > index) e->decN2();
+        }
     }
 
     const int nbVertex = mVertexes.size();

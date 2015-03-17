@@ -1060,7 +1060,9 @@ void cSetEqFormelles::Solve(double ExpectResidu,bool *OK)
         }
     }
 
-    if (0)
+    
+
+    if (false)
     {
         ShowSpectrSys(*this);
         std::cout << "SetEqFormelles::Solve:DoneIntervvvvvvvvvvvvv \n";

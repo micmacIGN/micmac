@@ -41,6 +41,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+/*
+   *  Debayerisation
+   *  TD Ransc
+   *  Appariement
+
+*/
+
 /* ===========================================
 
    Ce fichier contient la definition de quelques classes donnant acces au fonctionallité

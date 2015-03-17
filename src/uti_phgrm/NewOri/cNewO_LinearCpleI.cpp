@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 static const double PropStdErDet = 0.75;
-static const double MulErrStd = 2.0;
 
 
 static  const double MulLVM = 10;
@@ -108,11 +107,10 @@ double cNewO_CpleIm::CostLinear(const ElRotation3D & aRot,const Pt2dr & aP1,cons
 
 void cNewO_CpleIm::TestCostLinExact(const ElRotation3D & aRot)
 {
-    Pt3dr anI;
     for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
     {
          double aCl = CostLinear(aRot,itP->P1(),itP->P2(),-1.0);
-         double aCe = ExactCost(anI,aRot,itP->P1(),itP->P2(),-1.0);
+         double aCe = ExactCost(aRot,itP->P1(),itP->P2(),-1.0);
 
          std::cout << "R=" << aCl/aCe << "\n";
     }
@@ -130,31 +128,24 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
 // Si V FIXED PAS DE LEVENBERG SUR ELLE
    ElTimer aChrono;
 
-   std::vector<double> aVDet;
-   for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
-   {
-       aVDet.push_back(CostLinear(aRot,mStCPairs[aK].mQ1,mStCPairs[aK].mQ2,-1));
-   }
 
-/*
-   double aSomPds = 0;
-   double aSomPdsErr = 0;
-   for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
-   {
-       double aCost = CostLinear(aRot,mStCPairs[aK].mQ1,mStCPairs[aK].mQ2,-1);
-   }
-*/
+   mErStd =  mLinIBI->ErrInitRobuste(aRot,PropStdErDet);  // Version robuste, sans init
+   mErStd = mLinIBI->ResiduEq(aRot,mErStd);               // Version moindres carres
+   
+   
 
-   mErStd = MulErrStd *  KthValProp(aVDet,PropStdErDet);
+
    double aCostIn = PixExactCost(aRot,0.1);
 
    bool aCont = true;
    bool aSqueeze = false;
-   double aLastErrMoy = 1e5;
    for (double  aNbIter=0 ; aCont ; )
    {
-       double aErMoy,anAmelio;
-       ElRotation3D aNewR =  OneIterSolLinear(aRot,mStCPairs,mErStd,aErMoy,anAmelio);
+       // std::cout << "ERRR " << mErStd *FocMoy() << "\n";
+       double aLastErr = mErStd;
+       ElRotation3D aNewR  = mLinIBI->OneIterEq(aRot,mErStd);
+       double anAmelio = aLastErr - mErStd;
+
 
        /// std::cout << "AAA " << anAmelio * FocMoy()   << "\n";
        //  std::cout << "AAA " << aErMoy * FocMoy()   << " " << mErStd  * FocMoy()  << " " << PixExactCost(aNewR,0.1) << "\n";
@@ -162,9 +153,6 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
 
        if ((anAmelio >0) || (! UseLVM))
        {
-          aLastErrMoy = aErMoy;
-          DoNothingButRemoveWarningUnused(aLastErrMoy);
-
           if (mBestSolIsInit)
           {
               if (DistRot(aNewR,mBestSol) < 1e-4)
@@ -271,32 +259,6 @@ double PdsLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP)
     }
     return aSomError / aSomPds;
 }
-
-
-ElRotation3D  cNewO_CpleIm::OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP,double & anErStd,double & aErMoy,double & Amelio)
-{
-    cBundleIterLin aBIL(aRot,anErStd);
-
-    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
-    {
-        cNOCompPair & aPair = aVP[aK];
-        aBIL.AddObs(aPair.mQ1,aPair.mQ2,aPair.mPds);
-        aPair.mLastPdsOfErr =  aBIL.mLastPdsCalc;
-    }
-    mCurResidu = aBIL.mVRes;
-
-    aBIL.mSysLin5.LVM_Mul(mCurLamndaLVM);
-
-    anErStd = MulErrStd * KthValProp(mCurResidu,PropStdErDet);
-    ElRotation3D aResult = aBIL.CurSol();
-
-    aErMoy = aBIL.ErrMoy();
-    Amelio = aErMoy - PdsLinear(aResult,aVP);
-    aErMoy = sqrt(aErMoy);
-
-    return aResult;
-}
-
 
 
 

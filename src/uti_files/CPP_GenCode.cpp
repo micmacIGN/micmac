@@ -651,6 +651,9 @@ extern void GenCodecEqBundleBase();
 int GenCode_main(int argc,char ** argv)
 {
     GenCodecEqBundleBase();
+    GenCodeEqLinariseAngle();
+
+
     // GenerateCodeBlockCam();
     // GenerateCodeEqOffsetGPS();
     //  GenCodeOneEqHom();
