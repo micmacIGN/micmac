@@ -849,6 +849,26 @@ void RPC::ReconstructValidity()
 
 }
 
+vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
+{
+	//Generating a 20*20 grid on the normalized space with random normalized heights
+	vector<Pt3dr> aGridNorm;
+	srand(time(NULL));//Initiate the rand value
+	for (u_int i = 0; i <= gridSize; i++)
+	{
+		for (u_int j = 0; j <= gridSize; j++)
+		{
+			Pt3dr aPt;
+			aPt.x = (double(i) - (gridSize / 2)) / (gridSize / 2);
+			aPt.y = (double(j) - (gridSize / 2)) / (gridSize / 2);
+			aPt.z = double(rand() % 2000 - 1000) / 1000;
+			aGridNorm.push_back(aPt);
+		}
+	}
+
+	return aGridNorm;
+}
+
 void RPC::Inverse2Direct(u_int gridSize)
 {
     //Cleaning potential data in RPC object
@@ -857,29 +877,16 @@ void RPC::Inverse2Direct(u_int gridSize)
     direct_line_num_coef.clear();
     direct_line_den_coef.clear();
 
-    //Generating a 20*20 grid on the normalized space with random normalized heights
-    vector<Pt3dr> aGridGeoNorm, aGridImNorm;
-    srand(time(NULL));//Initiate the rand value
-    for (u_int i = 0; i <= gridSize; i++)
-    {
-        for (u_int j = 0; j <= gridSize; j++)
-        {
-            Pt3dr aPt;
-            aPt.x = (double(i) - (gridSize / 2)) / (gridSize / 2);
-            aPt.y = (double(j) - (gridSize / 2)) / (gridSize / 2);
-            aPt.z = double(rand() % 2000 - 1000) / 1000;
-            aGridGeoNorm.push_back(aPt);
-        }
-    }
-    //cout << aGridGeoNorm << endl;
-    //Converting the points to image space
+	//Generating a 20*20 grid on the normalized space with random normalized heights
+	vector<Pt3dr> aGridGeoNorm = GenerateRandNormGrid(gridSize);
+
+	//Converting the points to image space
+	vector<Pt3dr> aGridImNorm;
     for (u_int i = 0; i < aGridGeoNorm.size(); i++)
     {
         aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[i]));
     }
-    //cout << aGridImNorm << endl;
-    //cout << "Im grid Computed" << endl;
-
+	
 
     //Parameters too get parameters of P1 and P2 in ---  lon=P1(column,row,Z)/P2(column,row,Z)  --- where (column,row,Z) are image coordinates (idem for lat)
     //To simplify notations : Column->X and Row->Y
@@ -1052,197 +1059,417 @@ void RPC::ReadRPB(std::string const &filename)
     }
 }
 
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                       Current test with RPCLib                                             //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class RPC2D
+{
+public:
+
+	//Constructors and destructors
+	RPC2D(){};
+	~RPC2D(){};
+
+	//Elements of RPC
+	std::vector<double> inverse_line_num_coef;
+	std::vector<double> inverse_line_den_coef;
+	std::vector<double> inverse_samp_num_coef;
+	std::vector<double> inverse_samp_den_coef;
+	//Offsets and scale for ground space
+	double lat_off, lat_scale, long_off, long_scale, height_off, height_scale;
+	//Offsets and scale for image space
+	double line_off, line_scale, samp_off, samp_scale;
+
+	//Boundaries of RPC validity for image space
+	double first_row, first_col, last_row, last_col;
+	//Boundaries of RPC validity for geo space
+	double first_lon, first_lat, last_lon, last_lat;
+
+
+	// From geocentric to image
+	Pt2dr InverseRPC2DNorm(Pt3dr PgeoNorm, double aAngle, double aFactor)const;
+	Pt2dr InverseRPC2D(Pt3dr Pgeo, double aAngle, double aFactor)const;
+	
+	//Compute the 2D transfo between geodetic and image lattice points
+	void ComputeRPC2D(vector<vector<Pt2dr> > aPtsIm, vector<vector<Pt2dr> > aPtsGeo, double aHMax, double aHMin);
+
+	//Compute image position of a 3D point
+	Pt3dr InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt2dr> > aMatPtsGeo, vector<vector<Pt3dr> > aMatSatPos);
+
+	//Showing Info
+	void info()
+	{
+		std::cout << "RPC2D info:" << std::endl;
+		std::cout << "===========================================================" << std::endl;
+		std::cout << "long_scale   : " << long_scale << " | long_off   : " << long_off << std::endl;
+		std::cout << "lat_scale    : " << lat_scale << " | lat_off    : " << lat_off << std::endl;
+		std::cout << "samp_scale   : " << samp_scale << " | samp_off   : " << samp_off << std::endl;
+		std::cout << "line_scale   : " << line_scale << " | line_off   : " << line_off << std::endl;
+		std::cout << "first_row    : " << first_row << " | last_row   : " << last_row << std::endl;
+		std::cout << "first_col    : " << first_col << " | last_col   : " << last_col << std::endl;
+		std::cout << "first_lon    : " << first_lon << " | last_lon   : " << last_lon << std::endl;
+		std::cout << "first_lat    : " << first_lat << " | last_lat   : " << last_lat << std::endl;
+		std::cout << "inverse_samp_num_coef : " << inverse_samp_num_coef.size() << std::endl;
+		std::cout << "inverse_samp_den_coef : " << inverse_samp_den_coef.size() << std::endl;
+		std::cout << "inverse_line_num_coef : " << inverse_line_num_coef.size() << std::endl;
+		std::cout << "inverse_line_den_coef : " << inverse_line_den_coef.size() << std::endl;
+		std::cout << "===========================================================" << std::endl;
+	}
+
+};
+
+//reads the txt file with lattice point in im coordinates
+vector<vector<Pt2dr> > ReadLatticeIm(string aTxtImage)
+{
+	vector<vector<Pt2dr> > aMatIm;
+	//Reading the files
+	std::ifstream fic(aTxtImage.c_str());
+	u_int j = 0;
+	while (!fic.eof() && fic.good())
+	{
+		for (u_int i = 0; i < 11; i++)
+		{
+			double X, Y;
+			fic >> X >> Y;
+			Pt2dr aPt(X, Y);
+			if (fic.good())
+			{
+				aMatIm[j].push_back(aPt);
+			}
+		}
+		j++;
+	}
+
+	cout << "Read " << aMatIm.size() << " lattice points in image coordinates" << endl;
+
+	return aMatIm;
+}
+
+//reads the txt file with lattice point in geocentric coordinates and transforms them into geodetic
+vector<vector<Pt2dr> > ReadLatticeGeo(string aTxtGeo)
+{
+	//Reading the file
+	vector<vector<Pt2dr> > aMatGeo;
+	std::ifstream fic2(aTxtGeo.c_str());
+	u_int j = 0;
+	while (!fic2.eof() && fic2.good())
+	{
+		for (u_int i = 0; i < 11; i++)
+		{
+			double Long, Lat;
+			fic2 >> Long >> Lat;
+			//geocentric->geodetic
+			Lat = atan(tan(Lat*M_PI / 180) / 0.99330562) * 180 / M_PI;
+			Pt2dr aPt(Long, Lat);
+			if (fic2.good())
+			{
+				aMatGeo[j].push_back(aPt);
+			}
+		}
+		j++;
+	}
+
+	cout << "Read " << aMatGeo.size() << " lattice points in geodetic coordinates" << endl;
+
+	return aMatGeo;
+}
+
+//reads the txt file with the satellite positions
+vector<vector<Pt3dr> > ReadSatPos(string aTxtSatPos)
+{
+	//Reading the file
+	vector<vector<Pt3dr> > aSatPos;
+	std::ifstream fic2(aTxtSatPos.c_str());
+	u_int i = 0;
+	while (!fic2.eof() && fic2.good())
+	{
+		double X, Y, Z;
+		fic2 >> X >> Y >> Z;
+
+		Pt3dr aPt(X, Y, Z);
+		if (fic2.good())
+		{
+			for (u_int j = 0; j < 11; j++)
+				aSatPos[i].push_back(aPt);
+		}
+		i++;
+	}
+	cout << "Read " << aSatPos.size() << " satellite position points in ECEF coordinates" << endl;
+
+	return aSatPos;
+}
+
+Pt2dr RPC2D::InverseRPC2D(Pt3dr Pgeo, double aAngle, double aFactor)const
+{
+	//Converting into normalized coordinates
+	Pt3dr PgeoNorm;
+	PgeoNorm.x = (Pgeo.x - lat_off) / lat_scale;
+	PgeoNorm.y = (Pgeo.y - long_off) / long_scale;
+
+	//Applying inverse RPC
+	Pt2dr PimNorm = InverseRPC2DNorm(PgeoNorm, aAngle, aFactor);
+
+	///Converting into Real Coordinates
+	Pt2dr Pimg;
+	Pimg.x = PimNorm.x * samp_scale + samp_off;
+	Pimg.y = PimNorm.y * line_scale + line_off;
+
+	return Pimg;
+}
+
+Pt2dr RPC2D::InverseRPC2DNorm(Pt3dr PgeoNorm, double aAngle, double aFactor)const
+{
+	double X = PgeoNorm.x, Y = PgeoNorm.y;
+	double vecteurD[] = { 1, Y, X, Y*X, Y*Y, X*X, Y*Y*Y, Y*X*X,  X*Y*Y, X*X*X};
+	double samp_den = 0.;
+	double samp_num = 0.;
+	double line_den = 0.;
+	double line_num = 0.;
+
+	for (int i = 0; i<10; i++)
+	{
+		line_num += vecteurD[i] * inverse_line_num_coef[i];
+		line_den += vecteurD[i] * inverse_line_den_coef[i];
+		samp_num += vecteurD[i] * inverse_samp_num_coef[i];
+		samp_den += vecteurD[i] * inverse_samp_den_coef[i];
+	}
+	//Final computation
+	Pt2dr PimgNorm;
+	if ((samp_den != 0) && (line_den != 0))
+	{
+		PimgNorm.x = (samp_num / samp_den) - cos(aAngle)*PgeoNorm.z*aFactor;
+		PimgNorm.y = (line_num / line_den) + sin(aAngle)*PgeoNorm.z*aFactor;
+	}
+	else
+	{
+		std::cout << "Computing error - denominator = 0" << std::endl;
+	}
+	return PimgNorm;
+}
+
+void RPC2D::ComputeRPC2D(vector<vector<Pt2dr> > aPtsIm, vector<vector<Pt2dr> > aPtsGeo, double aHMax, double aHMin)
+{
+
+	//Finding normalization parameters
+		//divide Pts into X and Y
+		vector<double> aPtsGeoX, aPtsGeoY, aPtsImX, aPtsImY;
+		for (u_int i = 0; i < aPtsGeo.size(); i++)
+		{
+			for (u_int j = 0; j < aPtsGeo[0].size(); j++)
+			{
+				aPtsGeoX.push_back(aPtsGeo[i][j].x);
+				aPtsGeoY.push_back(aPtsGeo[i][j].y);
+				aPtsImX.push_back(aPtsIm[i][j].x);
+				aPtsImY.push_back(aPtsIm[i][j].y);
+			}
+		}
+		//Find Mins
+		Pt2dr aPtGeoMin(*std::min_element(aPtsGeoX.begin(), aPtsGeoX.end()), *std::min_element(aPtsGeoY.begin(), aPtsGeoY.end()));
+		Pt2dr aPtGeoMax(*std::max_element(aPtsGeoX.begin(), aPtsGeoX.end()), *std::max_element(aPtsGeoY.begin(), aPtsGeoY.end()));
+		Pt2dr aPtImMin(*std::min_element(aPtsImX.begin(), aPtsImX.end()), *std::min_element(aPtsImY.begin(), aPtsImY.end()));
+		Pt2dr aPtImMax(*std::max_element(aPtsImX.begin(), aPtsImX.end()), *std::max_element(aPtsImY.begin(), aPtsImY.end()));
+		//Compute scales and offsets
+		long_scale = (aPtGeoMax.x - aPtGeoMin.x) / 2;
+		lat_scale=(aPtGeoMax.y - aPtGeoMin.y) / 2;
+		samp_scale = (aPtImMax.x - aPtImMin.x) / 2;
+		line_off=(aPtImMax.y - aPtImMin.y) / 2;
+		long_off = aPtGeoMin.x + (aPtGeoMax.x - aPtGeoMin.x) / 2;
+		lat_off=aPtGeoMin.y + (aPtGeoMax.y - aPtGeoMin.y) / 2;
+		samp_off = aPtImMin.x + (aPtImMax.x - aPtImMin.x) / 2;
+		line_off=aPtImMin.y + (aPtImMax.y - aPtImMin.y) / 2;
+		height_scale = 1 / (aHMax - aHMin);
+		height_off = (aHMax + aHMin) / 2;
+
+	//Parameters too get parameters of P1 and P2 in ---  Column=P1(X,Y)/P2(X,Y)  --- where (X,Y) are Geo coordinates (idem for Row)
+	//Function is 0=Poly1(X,Y)-Column*Poly2(X,Y) ==> Column*k=a+bX+cY+dXY+eX^2+fY^2+gX^2Y+hXY^2+iX^3+jY^3-Column(lX+mY+nXY+oX^2+pY^2+qX^2Y+rXY^2+sX^3+tY^3)
+	//k=1 to avoid sol=0
+	L2SysSurResol aSysCol(19), aSysRow(19);
+
+	//For all lattice points
+	for (u_int i = 0; i < aPtsGeo.size(); i++)
+	{
+		for (u_int j = 0; j < aPtsGeo[0].size(); j++)
+		{
+			//NORMALIZATION
+			double X = (aPtsGeo[i][j].x - long_off) / long_scale;
+			double Y = (aPtsGeo[i][j].y - lat_off) / lat_scale;
+			double COL = (aPtsIm[i][j].x - samp_off) / samp_scale;
+			double ROW = (aPtsIm[i][j].y - line_off) / line_scale;
+
+			double aEqCol[19] = { 1, Y, X, Y*X, Y*Y, X*X, Y*Y*Y, Y*X*X, X*Y*Y, X*X*X,
+				-COL*Y, -COL*X, -COL*Y*X, -COL*Y*Y, -COL*X*X, -COL*Y*Y*Y, -COL*Y*X*X, -COL*X*Y*Y, -COL*X*X*X };
+			aSysCol.AddEquation(1, aEqCol, COL);
+
+
+			double aEqRow[19] = { 1, Y, X, Y*X, Y*Y, X*X, Y*Y*Y, Y*X*X, X*Y*Y, X*X*X,
+				-ROW*Y, -ROW*X, -ROW*Y*X, -ROW*Y*Y, -ROW*X*X, -ROW*Y*Y*Y, -ROW*Y*X*X, -ROW*X*Y*Y, -ROW*X*X*X };
+			aSysRow.AddEquation(1, aEqRow, ROW);
+		}
+	}
+
+	//Computing the result
+	bool Ok;
+	Im1D_REAL8 aSolCol = aSysCol.GSSR_Solve(&Ok);
+	Im1D_REAL8 aSolRow = aSysRow.GSSR_Solve(&Ok);
+	double* aDataCol = aSolCol.data();
+	double* aDataRow = aSolRow.data();
+
+	//Copying Data in RPC2D object
+	//Numerators
+	for (int i = 0; i<10; i++)
+	{
+		inverse_samp_num_coef.push_back(aDataCol[i]);
+		inverse_line_num_coef.push_back(aDataRow[i]);
+	}
+	//Denominators (first one = 1)
+	inverse_line_den_coef.push_back(1);
+	inverse_samp_den_coef.push_back(1);
+	for (int i = 10; i<19; i++)
+	{
+		inverse_samp_den_coef.push_back(aDataCol[i]);
+		inverse_line_den_coef.push_back(aDataRow[i]);
+	}
+
+
+}
+
+Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt2dr> > aMatPtsGeo, vector<vector<Pt3dr> > aMatSatPos)
+{
+	//Convert to ground geodetic coords
+	Pt3dr aPtGeo;
+	aPtGeo.x = aPtGeoNorm.x * long_scale + long_off;
+	aPtGeo.y = aPtGeoNorm.y * lat_scale + lat_off;
+	aPtGeo.z = aPtGeoNorm.z * height_scale + height_off;
+
+	//Compute angle for altitude correction
+	Pt3dr aPtGeoDodgeS(aPtGeo.x, aPtGeo.y - 0.00001, aPtGeo.z);
+	Pt3dr aPtGeoDodgeN(aPtGeo.x, aPtGeo.y + 0.00001, aPtGeo.z);
+	Pt2dr aPtImDodgeS = InverseRPC2D(aPtGeoDodgeS, 0, 0);
+	Pt2dr aPtImDodgeN = InverseRPC2D(aPtGeoDodgeN, 0, 0);
+	double aAngle = -atan(abs(aPtImDodgeS.y - aPtImDodgeN.y) / abs(aPtImDodgeS.x - aPtImDodgeN.x));
+
+	Pt3dr aPtGeoDodgeAngle(aPtGeo.x - cos(aAngle), aPtGeo.y - sin(aAngle), aPtGeo.z);
+
+	//Defining local plane
+	Pt3dr aPtGeoDodgeE(aPtGeo.x + 0.00001, aPtGeo.y, aPtGeo.z);
+	vector<Pt3dr> aVPtsPlaneECEF;
+	// Creating a file with coordinates of point
+	{
+		std::ofstream fic("processing/localPlane_geo.txt");
+		fic << std::setprecision(15);
+		fic << aPtGeo.x << aPtGeo.y << endl;
+		fic << aPtGeoDodgeN.x << aPtGeoDodgeN.y << endl;
+		fic << aPtGeoDodgeE.x << aPtGeoDodgeE.y << endl;
+		fic << aPtGeoDodgeAngle.x << aPtGeoDodgeAngle.y << endl;
+	}
+	// transformation in the ground coordinate system
+	std::string command;
+	command = g_externalToolHandler.get("cs2cs").callName() + " +proj=longlat +datum=WGS84 +to +proj=geocent processing/localPlane_geo.txt > processing/localPlane_ECEF.txt";
+	int res = system(command.c_str());
+	if (res != 0) std::cout << "error calling cs2cs in Defining local plane" << std::endl;
+	// loading points
+	std::ifstream fic("processing/localPlane_ECEF.txt");
+	while (!fic.eof() && fic.good())
+	{
+		double X, Y, Z;
+		fic >> X >> Y >> Z;
+		if (fic.good())
+			aVPtsPlaneECEF.push_back(Pt3dr(X, Y, Z));
+	}
+
+	//Computing the normal
+	Pt3dr aNormal = (aVPtsPlaneECEF[1] - aVPtsPlaneECEF[0]) ^ (aVPtsPlaneECEF[2] - aVPtsPlaneECEF[0]);
+
+	//Finding satellite position for point aPtGeoDodgeAngle (SatPosLoc)
+	Pt3dr aPtECEFDodgeAngle = aVPtsPlaneECEF[4];
+
+
+
+	//TODO TODOTODOTODO
+	//Compute the position of the point in 11*16 matrix space and get equivalent (aSatPosLoc) in the satpos matrix
+	Pt3dr aSatPosLoc;
+
+	//aSatPosProj is InterSeg on (aPtGeo aPtGeoDodgeAngle)/X/(SatPosLoc SatPosLoc-normal)
+	Pt3dr aSatPosProj;
+	//END TODO TODOTODOTODO
+
+
+
+
+	//Computing distance between aPtGeoDodgeAngle and aSatPosProj, and aSatHeight
+	double aSatPosProj2aPtGeoDodgeAngle = euclid(aSatPosProj - aPtGeoDodgeAngle);
+	double aSatHeight = euclid(aSatPosProj - aSatPosLoc);
+
+	//Compute correction factor (dependent on height)
+	double tanBeta = aSatPosProj2aPtGeoDodgeAngle / aSatHeight;
+		//Compute point Dodged of (1-tanBeta)
+		Pt3dr  aPtGeoDodgeTanBeta(aPtGeo.x - cos(aAngle)*(1 - tanBeta), aPtGeo.y - sin(aAngle)*(1 - tanBeta), aPtGeo.z);
+		//Compute positions in image
+		Pt2dr aPtImDodgeAngle = InverseRPC2D(aPtGeoDodgeAngle, 0, 0);
+		Pt2dr aPtImDodgeTanBeta = InverseRPC2D(aPtGeoDodgeTanBeta, 0, 0);
+
+		double aFactor = euclid(aPtImDodgeAngle - aPtImDodgeTanBeta);
+		
+	//Final computation of position of point in image
+		Pt2dr aPtIm=InverseRPC2D(aPtGeoDodgeTanBeta, aAngle, aFactor);
+
+	//Normalization
+	Pt3dr aPtImNorm;
+	aPtImNorm.x = (aPtIm.x - samp_off) / samp_scale;
+	aPtImNorm.y = (aPtIm.y - line_off) / line_scale;
+	aPtImNorm.y = aPtGeoNorm.z;
+
+	return aPtImNorm;
+}
+
 int RPC_main(int argc, char ** argv)
 {
     //GET PSEUDO-RPC2D FOR ASTER FROM LATTICE POINTS
-    std::string aTxtImage, aTxtCarto;
+    std::string aTxtImage, aTxtGeo, aTxtSatPos;
     std::string aFileOut = "RPC2D-params.xml";
+	double aHMin=0, aHMax=3000;
     //Reading the arguments
     ElInitArgMain
         (
         argc, argv,
         LArgMain()
-        << EAMC(aTxtImage, "txt file contaning the lattice point in the image coordinates", eSAM_IsPatFile)
-        << EAMC(aTxtCarto, "txt file contaning the lattice point in the carto coordinates", eSAM_IsPatFile),
+        << EAMC(aTxtImage, "txt file contaning the lattice point in image coordinates", eSAM_IsPatFile)
+        << EAMC(aTxtGeo, "txt file contaning the lattice point in geocentric coordinates", eSAM_IsPatFile)
+		<< EAMC(aTxtSatPos, "txt file contaning the satellite position in ECEF", eSAM_IsPatFile),
         LArgMain()
         << EAM(aFileOut, "Out", true, "Output xml file with RPC2D coordinates")
+		<< EAM(aHMin, "HMin", true, "Min elipsoid height of scene (default=0)")
+		<< EAM(aHMax, "HMax", true, "Max elipsoid height of scene (default=3000)")
         );
 
-    //Reading the files
-    vector<Pt2dr> aPtsIm, aPtsCarto;
-    {
-        std::ifstream fic(aTxtImage.c_str());
-        while (!fic.eof() && fic.good())
-        {
-            double X, Y;
-            fic >> X >> Y;
-            Pt2dr aPt(X, Y);
-            if (fic.good())
-            {
-                aPtsIm.push_back(aPt);
-            }
-        }
-        cout << "Read " << aPtsIm.size() << " points in image coordinates" << endl;
-        //cout << aPtsIm << endl;
-        std::ifstream fic2(aTxtCarto.c_str());
-        while (!fic2.eof() && fic2.good())
-        {
-            double X, Y, Z;
-            fic2 >> X >> Y >> Z;
-            Pt2dr aPt(X, Y);
-            if (fic2.good())
-            {
-                aPtsCarto.push_back(aPt);
-            }
-        }
-        cout << "Read " << aPtsCarto.size() << " points in cartographic coordinates" << endl;
-        //cout << aPtsCarto << endl;
-    }
+	//TODO : READ THIS FROM HDF
+	//Reading files
+	vector<vector<Pt2dr> > aMatPtsIm = ReadLatticeIm(aTxtImage);
+	vector<vector<Pt2dr> > aMatPtsGeo = ReadLatticeGeo(aTxtGeo);
+	vector<vector<Pt3dr> > aMatSatPos = ReadSatPos(aTxtSatPos);
 
-    //Finding normalization parameters
-    //divide Pts into X and Y
-    vector<double> aPtsCartoX, aPtsCartoY, aPtsImX, aPtsImY;
-    for (u_int i = 0; i < aPtsCarto.size(); i++)
-    {
-        aPtsCartoX.push_back(aPtsCarto[i].x);
-        aPtsCartoY.push_back(aPtsCarto[i].y);
-        aPtsImX.push_back(aPtsIm[i].x);
-        aPtsImY.push_back(aPtsIm[i].y);
-    }
+	RPC2D aRPC2D;
+	RPC aRPC3D;
+	aRPC2D.ComputeRPC2D(aMatPtsIm, aMatPtsGeo, aHMax, aHMin);
 
-    Pt2dr aPtCartoMin(*std::min_element(aPtsCartoX.begin(), aPtsCartoX.end()), *std::min_element(aPtsCartoY.begin(), aPtsCartoY.end()));
-    Pt2dr aPtCartoMax(*std::max_element(aPtsCartoX.begin(), aPtsCartoX.end()), *std::max_element(aPtsCartoY.begin(), aPtsCartoY.end()));
-    Pt2dr aPtImMin(*std::min_element(aPtsImX.begin(), aPtsImX.end()), *std::min_element(aPtsImY.begin(), aPtsImY.end()));
-    Pt2dr aPtImMax(*std::max_element(aPtsImX.begin(), aPtsImX.end()), *std::max_element(aPtsImY.begin(), aPtsImY.end()));
-    Pt2dr aCartoScale((aPtCartoMax.x - aPtCartoMin.x) / 2, (aPtCartoMax.y - aPtCartoMin.y) / 2);
-    Pt2dr aImScale((aPtImMax.x - aPtImMin.x) / 2, (aPtImMax.y - aPtImMin.y) / 2);
-    Pt2dr aCartoOffset(aPtCartoMin.x + (aPtCartoMax.x - aPtCartoMin.x) / 2, aPtCartoMin.y + (aPtCartoMax.y - aPtCartoMin.y) / 2);
-    Pt2dr aImOffset(aPtImMin.x + (aPtImMax.x - aPtImMin.x) / 2, aPtImMin.y + (aPtImMax.y - aPtImMin.y) / 2);
+	//Generate ramdom points in geodetic
+	vector<Pt3dr> aGridGeoNorm = aRPC3D.GenerateRandNormGrid(20);
+	
+	//Compute their image coord with pre-RPC method
+	//vector<Pt3dr> aGridImNorm;
+	//for (u_int i = 0; i < aGridGeoNorm.size(); i++)
+	//{
+	//	aGridImNorm.push_back(aRPC2D.InversePreRPCNorm(aGridGeoNorm[i], aMatPtsGeo, aMatSatPos));
+	//}
 
-    //Parameters too get parameters of P1 and P2 in ---  Column=P1(X,Y)/P2(X,Y)  --- where (X,Y) are Carto coordinates (idem for Row)
-    //Function is 0=Poly1(X,Y)-Column*Poly2(X,Y) ==> Column*k=a+bX+cY+dXY+eX^2+fY^2+gX^2Y+hXY^2+iX^3+jY^3-Column(lX+mY+nXY+oX^2+pY^2+qX^2Y+rXY^2+sX^3+tY^3)
-    //k=1 to avoid sol=0
-    L2SysSurResol aSysCol(19), aSysRow(19);
+	//Compute Direct and Inverse RPC
 
-    //For all lattice points
-    for (u_int i = 0; i<aPtsCarto.size(); i++){
-
-        //NORMALIZATION
-        double X = (aPtsCarto[i].x - aCartoOffset.x) / aCartoScale.x;
-        double Y = (aPtsCarto[i].y - aCartoOffset.y) / aCartoScale.y;
-        double COL = (aPtsIm[i].x - aImOffset.x) / aImScale.x;
-        double ROW = (aPtsIm[i].y - aImOffset.y) / aImScale.y;
-
-        double aEqCol[19] = {
-            (1),
-            (X),
-            (Y),
-            (X*Y),
-            (pow(X, 2)),
-            (pow(Y, 2)),
-            (pow(X, 2)*Y),
-            (X*pow(Y, 2)),
-            (pow(X, 3)),
-            (pow(Y, 3)),
-            //(COL),
-            (-COL*X),
-            (-COL*Y),
-            (-COL*X*Y),
-            (-COL*pow(X, 2)),
-            (-COL*pow(Y, 2)),
-            (-COL*pow(X, 2)*Y),
-            (-COL*X*pow(Y, 2)),
-            (-COL*pow(X, 3)),
-            (-COL*pow(Y, 3)),
-        };
-        aSysCol.AddEquation(1, aEqCol, COL);
-
-
-        double aEqRow[19] = {
-            (1),
-            (X),
-            (Y),
-            (X*Y),
-            (pow(X, 2)),
-            (pow(Y, 2)),
-            (pow(X, 2)*Y),
-            (X*pow(Y, 2)),
-            (pow(X, 3)),
-            (pow(Y, 3)),
-            //(ROW),
-            (-ROW*X),
-            (-ROW*Y),
-            (-ROW*X*Y),
-            (-ROW*pow(X, 2)),
-            (-ROW*pow(Y, 2)),
-            (-ROW*pow(X, 2)*Y),
-            (-ROW*X*pow(Y, 2)),
-            (-ROW*pow(X, 3)),
-            (-ROW*pow(Y, 3)),
-        };
-        aSysRow.AddEquation(1, aEqRow, ROW);
-    }
-
-    //Computing the result
-    bool Ok;
-    Im1D_REAL8 aSolCol = aSysCol.GSSR_Solve(&Ok);
-    Im1D_REAL8 aSolRow = aSysRow.GSSR_Solve(&Ok);
-    double* aDataCol = aSolCol.data();
-    double* aDataRow = aSolRow.data();
-
-    //Outputting results
-    {
-        std::ofstream fic(aFileOut.c_str());
-        fic << std::setprecision(15);
-        fic << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" << endl;
-        fic << "<RPC2D>" << endl;
-        fic << "\t<RFM_Validity>" << endl;
-        fic << "\t\t<Direct_Model_Validity_Domain>" << endl;
-        fic << "\t\t\t<FIRST_ROW>" << aPtImMin.x << "</FIRST_ROW>" << endl;
-        fic << "\t\t\t<FIRST_COL>" << aPtImMin.y << "</FIRST_COL>" << endl;
-        fic << "\t\t\t<LAST_ROW>" << aPtImMax.x << "</LAST_ROW>" << endl;
-        fic << "\t\t\t<LAST_COL>" << aPtImMax.y << "</LAST_COL>" << endl;
-        fic << "\t\t</Direct_Model_Validity_Domain>" << endl;
-        fic << "\t\t<Inverse_Model_Validity_Domain>" << endl;
-        fic << "\t\t\t<FIRST_X>" << aPtCartoMin.x << "</FIRST_X>" << endl;
-        fic << "\t\t\t<FIRST_Y>" << aPtCartoMin.y << "</FIRST_Y>" << endl;
-        fic << "\t\t\t<LAST_X>" << aPtCartoMax.x << "</LAST_X>" << endl;
-        fic << "\t\t\t<LAST_Y>" << aPtCartoMax.y << "</LAST_Y>" << endl;
-        fic << "\t\t</Inverse_Model_Validity_Domain>" << endl;
-
-        fic << "\t\t<X_SCALE>" << aCartoScale.x << "</X_SCALE>" << endl;
-        fic << "\t\t<X_OFF>" << aCartoOffset.x << "</X_OFF>" << endl;
-        fic << "\t\t<Y_SCALE>" << aCartoScale.y << "</Y_SCALE>" << endl;
-        fic << "\t\t<Y_OFF>" << aCartoOffset.y << "</Y_OFF>" << endl;
-
-        fic << "\t\t<SAMP_SCALE>" << aImScale.x << "</SAMP_SCALE>" << endl;
-        fic << "\t\t<SAMP_OFF>" << aImOffset.x << "</SAMP_OFF>" << endl;
-        fic << "\t\t<LINE_SCALE>" << aImScale.y << "</LINE_SCALE>" << endl;
-        fic << "\t\t<LINE_OFF>" << aImOffset.y << "</LINE_OFF>" << endl;
-
-        fic << "\t</RFM_Validity>" << endl;
-
-        for (int i = 0; i<10; i++)
-        {
-            fic << "<COL_NUMERATOR_" << i + 1 << ">" << aDataCol[i] << "</COL_NUMERATOR_" << i + 1 << ">" << endl;
-        }
-        fic << "<COL_DENUMERATOR_1>1</COL_DENUMERATOR_1>" << endl;
-        for (int i = 10; i<19; i++)
-        {
-            fic << "<COL_DENUMERATOR_" << i - 8 << ">" << aDataCol[i] << "</COL_DENUMERATOR_" << i - 8 << ">" << endl;
-        }
-        for (int i = 0; i<10; i++)
-        {
-            fic << "<ROW_NUMERATOR_" << i + 1 << ">" << aDataRow[i] << "</ROW_NUMERATOR_" << i + 1 << ">" << endl;
-        }
-        fic << "<ROW_DENUMERATOR_1>1</ROW_DENUMERATOR_1>" << endl;
-        for (int i = 10; i<19; i++)
-        {
-            fic << "<ROW_DENUMERATOR_" << i - 8 << ">" << aDataRow[i] << "</ROW_DENUMERATOR_" << i - 8 << ">" << endl;
-        }
-        fic << "</RPC2D>" << endl;
-    }
-    cout << "Written functions in file " << aFileOut << endl;
 
     return 0;
 }
