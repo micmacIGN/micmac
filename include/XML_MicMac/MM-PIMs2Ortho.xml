@@ -64,6 +64,8 @@ Pat=TS_35_50[0-5].CR2
          par le correlateur
 -->
 <Section_PriseDeVue>
+     <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
+
      <GeomImages> eGeomImageOri </GeomImages> 
      <Images >  
           <ImPat >    ${Pat}   </ImPat>  
@@ -174,6 +176,12 @@ Pat=TS_35_50[0-5].CR2
     </#WHEN>
     <#WHEN VTEST=${RepereIsCart}>
          <RepereCorrel>   ${Repere}  </RepereCorrel>
+<!--
+         <AnamorphoseGeometrieMNT>
+               <AnamLimAngleVisib> 0.75 </AnamLimAngleVisib>
+               <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+         </AnamorphoseGeometrieMNT>
+-->
     </#WHEN>
 
 
@@ -208,8 +216,8 @@ Pat=TS_35_50[0-5].CR2
 
      <PurgeMECResultBefore> ${Purge} </PurgeMECResultBefore>
 
-     <ByProcess> ${MMNbProc}  </ByProcess>
-
+      <ByProcess> ${MMNbProc}  </ByProcess>
+      <ComprMasque> eComprTiff_None </ComprMasque>
 
 </Section_WorkSpace>
 

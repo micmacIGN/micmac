@@ -495,6 +495,7 @@ class cAppli_MPI2Mnt
          bool                     mRepIsAnam;
          bool                     mDoMnt;
          bool                     mDoOrtho;
+         bool                     mDebug;
 };
 
 std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
@@ -506,10 +507,11 @@ std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
 
 void cAppli_MPI2Mnt::DoAll()
 {
-    if (mDoMnt) DoMTD();
+    if (mDoMnt && (!mDebug) ) DoMTD();
     mParamTarget =  StdGetFromSI(mTargetGeom,XML_ParamNuage3DMaille);
-    if (mDoMnt) DoBascule();
-    if (mDoMnt) DoMerge();
+    if (mDoMnt && (!mDebug) ) DoBascule();
+    if (mDoMnt && (!mDebug) ) DoMerge();
+
 
     //============== Generation d'un Ori
     cXML_ParamNuage3DMaille aN =   StdGetFromSI(mDirApp+mDirBasc +mNameMerge,XML_ParamNuage3DMaille);
@@ -546,11 +548,13 @@ void cAppli_MPI2Mnt::DoOrtho()
            if (mRepIsAnam)
               aCom += " +RepereIsAnam=true";
            else
-              aCom += " +RepereIscart=true";
+              aCom += " +RepereIsCart=true";
     }
 
-    // std::cout << "COMORTHO= " << aCom << "\n";
-    System(aCom);
+    if (mDebug)
+        std::cout << "COMORTHO= " << aCom << "\n";
+    else
+        System(aCom);
 
 }
 
@@ -623,7 +627,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mNameOriMasq ("PIMs-Merged_Masq.xml"),
     mRepIsAnam   (false),
     mDoMnt       (true),
-    mDoOrtho     (false)
+    mDoOrtho     (false),
+    mDebug       (false)
 {
    ElInitArgMain
    (
@@ -635,6 +640,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mPat,"Pat",true,"Pattern, def = all existing clouds")
                     << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to return only ortho)")
                     << EAM(mDoOrtho,"DoOrtho",true,"Generate ortho photo,  def=false")
+                    << EAM(mDebug,"Debug",true,"Debug !!!")
    );
 
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);

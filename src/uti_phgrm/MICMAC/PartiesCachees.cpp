@@ -428,6 +428,7 @@ void cAppliMICMAC::MakePartiesCachees
 
 
 
+
    const cFilePx & aFP = mCurEtape->KPx(0);
    Tiff_Im     aTFP =   aFP.FileIm() ;
    GenIm::type_el aTypePx = aTFP.type_el();
@@ -436,6 +437,7 @@ void cAppliMICMAC::MakePartiesCachees
    Box2di aB  = BoxTer2Disc(aGT,aBoxTer,Pt2di(3,3));
    Pt2di aP0 = aB._p0;
    Pt2di aP1 = aB._p1;
+
 
    Im2D_REAL4 aImZ(1,1);
    Im2D_Bits<1>  aImMasq(1,1);
@@ -487,7 +489,6 @@ void cAppliMICMAC::MakePartiesCachees
       Im2D_Bits<1> aImMGI(aSzMGI.x,aSzMGI.y);
       ELISE_COPY(aImMGI.all_pts(),aFileMasqGeomIm.in_bool_proj(),aImMGI.out());
       TIm2DBits<1>  aTImMGI(aImMGI);
-///std::cout << "MADSSSsssssssssssssssskkkKKK  " << aMasqIm.name() << aMasqIm.sz() << aSzPdv << "\n";
 
       cGeomImage & aGeoI =  aPdv.Geom();
       // Calcul le masque en geometrie image
@@ -691,15 +692,6 @@ void cAppliMICMAC::MakePartiesCachees
            aIPC = aMmZB->ZCaches (Pt2di(0,0),aGT.SzClip(), aZDef);
            aMasqOrt = aMmZB->ImOkTer();
        }
-
-/*
-if (MPD_MM())
-{
-std::cout << "AAAAA " << aNbOk << "\n";
-Tiff_Im::CreateFromIm(aIPC,"TestPC"+aPdv.Name() +".tif");
-std::cout << "BBBBB " << aNbOk << " " << DoOrtho  << "\n"; 
-}
-*/
 
         double aZoom = aGT.ResolZ1();
 
@@ -1170,6 +1162,7 @@ void cAppliMICMAC::GetIntervZ(const Box2di & aBox,double & aZMin,double & aZMax,
   Tiff_Im     aTFP =   aFP.FileIm() ;
 
   Tiff_Im aTFM = FileMasqOfResol(mCurEtape->DeZoomTer());
+
 
   Symb_FNum  aFZ  (Rconv(aTFP.in()));
   Symb_FNum  aFM  (Rconv(aTFM.in_bool_proj()));

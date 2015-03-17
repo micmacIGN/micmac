@@ -1117,6 +1117,19 @@ void cAppliMICMAC::InitAnamSA()
        }
        ELISE_ASSERT(!mRepCorrel,"Anam and RepCorrel incompatibles");
     }
+    else if (mRepCorrel!=0)
+    {
+
+/*
+for (int aK=0 ; aK<10 ; aK++)
+        std::cout << mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(1,0,0)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(0,1,0)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(0,0,1)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << "\n";
+*/
+        mAnamSA = cInterfSurfaceAnalytique::FromCCC(*mRepCorrel);
+    }
     else
     {
       // Il y a un probleme avec l'utilisation des surfaces analytique identite car une surface doit etre telle que

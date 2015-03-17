@@ -594,7 +594,6 @@ void cAppliMICMAC::MakeDefImMasq(int aDeZoomCible)
           // aP1.SetInf(aSzClip);
 	  //
 
-            /*if (MPD_MM()) std::cout << " MakeDefImMasq " << (*itFI)->Name() << "\n";*/
 
 	  //  On ne fait pas confiance aux calcul inverse
 	     Pt2di aP0 = Pt2di(0,0);
@@ -624,7 +623,6 @@ void cAppliMICMAC::MakeDefImMasq(int aDeZoomCible)
        }
     }
 
-    //Tiff_Im::Create8BFromFonc("ImCompteur.tif",aImCpt.sz(),aImCpt.in());
 /*
 */
     aGeomDFPx.SetDeZoom(aDeZoomCible);

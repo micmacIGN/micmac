@@ -355,6 +355,7 @@ void cGeomImage::SetDeZoomIm(int aDeZoom)
 
 Pt2dr cGeomImage::CurObj2Im(Pt2dr aPTer,const REAL * aPx) const
 {
+
    return Objet2ImageInit_Euclid(aPTer,aPx)/double(mDeZoom) - Pt2dr(mP0Clip);
 }
 
@@ -1019,6 +1020,7 @@ Pt2dr cGeomImage::ImageAndPx2Obj_Euclid(Pt2dr aPIm,const REAL * aPx) const
 
 Pt2dr cGeomImage::Objet2ImageInit_Euclid(Pt2dr aPTer,const REAL * aPx) const
 {
+
     Pt2dr aPIm ;
     if (mRC)
     {
