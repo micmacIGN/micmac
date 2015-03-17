@@ -189,9 +189,6 @@ class cNewO_CpleIm
 
           void TestCostLinExact(const ElRotation3D & aRot);
           void AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes);
-          ElRotation3D OneIterSolLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> &,double & anErStd,double & aErMoy,double & Amelio);
-
-
           double ExactCost (const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
 
           double FocMoy() const;
@@ -217,7 +214,9 @@ class cNewO_CpleIm
           L2SysSurResol            mSysLin5;
           L2SysSurResol            mSysLin2;
           L2SysSurResol            mSysLin3;
-          cInterfBundle2Image *    mIBI;
+          cInterfBundle2Image *    mLinIBI;
+          cInterfBundle2Image *    mRedPvIBI;
+          cInterfBundle2Image *    mFullPvIBI;
 
           bool                     mShow;
 
@@ -339,7 +338,8 @@ class cNewO_CombineCple
 };
 
 extern Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
-extern void TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef=0);
+ElMatrix<double> TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,double & anEcart);
+
 
 
 
