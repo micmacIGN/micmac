@@ -48,9 +48,9 @@ public:
         std::vector<double> inverse_line_den_coef;
         std::vector<double> inverse_samp_num_coef;
         std::vector<double> inverse_samp_den_coef;
-        //Offsets and scale for inverse RPC
+        //Offsets and scale for ground space
         double lat_off, lat_scale, long_off, long_scale, height_off, height_scale;
-        //Offsets and scale for direct RPC
+        //Offsets and scale for image space
         double line_off, line_scale, samp_off, samp_scale;
 
         //Boundaries of RPC validity for image space
@@ -195,6 +195,9 @@ public:
         //For DigitalGlobe data
         void ReadRPB(std::string const &filename);
         void ReconstructValidity();
+
+		//Construction of RPCs
+		vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
         void Inverse2Direct(u_int gridSize);
 
 };

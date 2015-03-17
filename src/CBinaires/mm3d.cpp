@@ -436,13 +436,6 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs);
 
 // =========================================================
 
-//SateLib declarations
-extern int  RPC_main(int argc, char ** argv);
-extern int NewRefineModel_main(int argc, char **argv);
-extern int RefineModel_main(int argc, char **argv);
-extern int Dimap2Grid_main(int argc, char **argv);
-extern int DigitalGlobe2Grid_main(int argc, char **argv);
-
 //TestLib declarations
 extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
@@ -614,6 +607,25 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    return aRes;
 }
 
+int SampleLibElise_main(int argc, char ** argv)
+{
+
+	// std::cout << "TEST ELISE LIB\n";
+
+	GenMain(argc, argv, TestLibAvailableCommands());
+
+
+	return 0;
+}
+
+//SateLib declarations
+extern int RPC_main(int argc, char ** argv);
+extern int NewRefineModel_main(int argc, char **argv);
+extern int RefineModel_main(int argc, char **argv);
+extern int Dimap2Grid_main(int argc, char **argv);
+extern int DigitalGlobe2Grid_main(int argc, char **argv);
+extern int AsterDestrip_main(int argc, char **argv);
+
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
     static std::vector<cMMCom> aRes;
@@ -623,6 +635,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
     aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
     aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
+	aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
@@ -630,16 +643,6 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     return aRes;
 }
 
-int SampleLibElise_main(int argc,char ** argv)
-{
-
-    // std::cout << "TEST ELISE LIB\n";
-
-    GenMain(argc,argv,TestLibAvailableCommands());
-
-
-    return 0;
-}
 int SateLib_main(int argc, char ** argv)
 {
 
