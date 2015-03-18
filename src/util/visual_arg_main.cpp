@@ -141,10 +141,10 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 
 int MMRunVisualMode
 (
-        int argc,char ** argv, // A priori inutile, mais peut-etre cela evoluera-t-il ?
+        int argc,char ** argv,
         std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory
-        std::vector<cMMSpecArg> & aVAO,   // Vector Arg Optional
-        std::string aFirstArg
+        std::vector<cMMSpecArg> & aVAO,  // Vector Arg Optional
+        std::string aFirstArg            // Command name
         )
 {
 
