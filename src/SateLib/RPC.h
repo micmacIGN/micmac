@@ -198,7 +198,8 @@ public:
 
 		//Construction of RPCs
 		vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
-        void Inverse2Direct(u_int gridSize);
+		void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
+		void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
 
 };
 
