@@ -869,24 +869,14 @@ vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
 	return aGridNorm;
 }
 
-void RPC::Inverse2Direct(u_int gridSize)
+void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 {
-    //Cleaning potential data in RPC object
-    direct_samp_num_coef.clear();
-    direct_samp_den_coef.clear();
-    direct_line_num_coef.clear();
-    direct_line_den_coef.clear();
 
-	//Generating a 20*20 grid on the normalized space with random normalized heights
-	vector<Pt3dr> aGridGeoNorm = GenerateRandNormGrid(gridSize);
-
-	//Converting the points to image space
-	vector<Pt3dr> aGridImNorm;
-    for (u_int i = 0; i < aGridGeoNorm.size(); i++)
-    {
-        aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[i]));
-    }
-	
+	//Cleaning potential data in RPC object
+	direct_samp_num_coef.clear();
+	direct_samp_den_coef.clear();
+	direct_line_num_coef.clear();
+	direct_line_den_coef.clear();
 
     //Parameters too get parameters of P1 and P2 in ---  lon=P1(column,row,Z)/P2(column,row,Z)  --- where (column,row,Z) are image coordinates (idem for lat)
     //To simplify notations : Column->X and Row->Y
@@ -941,6 +931,70 @@ void RPC::Inverse2Direct(u_int gridSize)
         direct_samp_den_coef.push_back(aDataLon[i]);
         direct_line_den_coef.push_back(aDataLat[i]);
     }
+}
+
+void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
+{
+
+	//Cleaning potential data in RPC object
+	inverse_samp_num_coef.clear();
+	inverse_samp_den_coef.clear();
+	inverse_line_num_coef.clear();
+	inverse_line_den_coef.clear();
+
+	//Parameters too get parameters of P1 and P2 in ---  Column=P1(lat,long,Z)/P2(lat,long,Z)  --- where (lat,long,Z) are geodetic coordinates (idem for row and P3/P4)
+	//To simplify notations : long->X and lat->Y
+	//Function is 0=Poly1(X,Y,Z)-column*Poly2(X,Y,Z) with poly 3rd degree (up to X^3,Y^3,Z^3,XXY,XXZ,XYY,XZZ,YYZ,YZZ)
+	//First param (cst) of Poly2=1 to avoid sol=0
+
+	L2SysSurResol aSysCol(39), aSysRow(39);
+
+	//For all lattice points
+	for (u_int i = 0; i<aGridGeoNorm.size(); i++){
+
+		//Simplifying notations
+		double X = aGridGeoNorm[i].x;
+		double Y = aGridGeoNorm[i].y;
+		double Z = aGridGeoNorm[i].z;
+		double Row = aGridImNorm[i].x;
+		double Col = aGridImNorm[i].y;
+
+		double aEqCol[39] = {
+			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
+			-Col*X, -Col*Y, -Col*Z, -Col*X*Y, -Col*X*Z, -Col*Y*Z, -Col*X*X, -Col*Y*Y, -Col*Z*Z, -Col*Y*X*Z, -Col*X*X*X, -Col*X*Y*Y, -Col*X*Z*Z, -Col*Y*X*X, -Col*Y*Y*Y, -Col*Y*Z*Z, -Col*X*X*Z, -Col*Y*Y*Z, -Col*Z*Z*Z
+		};
+		aSysCol.AddEquation(1, aEqCol, X);
+
+
+		double aEqRow[39] = {
+			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
+			-Row*X, -Row*Y, -Row*Z, -Row*X*Y, -Row*X*Z, -Row*Y*Z, -Row*X*X, -Row*Y*Y, -Row*Z*Z, -Row*Y*X*Z, -Row*X*X*X, -Row*X*Y*Y, -Row*X*Z*Z, -Row*Y*X*X, -Row*Y*Y*Y, -Row*Y*Z*Z, -Row*X*X*Z, -Row*Y*Y*Z, -Row*Z*Z*Z
+		};
+		aSysRow.AddEquation(1, aEqRow, Y);
+	}
+
+	//Computing the result
+	bool Ok;
+	Im1D_REAL8 aSolCol = aSysCol.GSSR_Solve(&Ok);
+	Im1D_REAL8 aSolRow = aSysRow.GSSR_Solve(&Ok);
+	double* aDataCol = aSolCol.data();
+	double* aDataRow = aSolRow.data();
+
+	//Copying Data in RPC object
+	//Numerators
+	for (int i = 0; i<20; i++)
+	{
+		inverse_samp_num_coef.push_back(aDataCol[i]);
+		inverse_line_num_coef.push_back(aDataRow[i]);
+	}
+	//Denominators (first one = 1)
+	inverse_line_den_coef.push_back(1);
+	inverse_samp_den_coef.push_back(1);
+	for (int i = 20; i<39; i++)
+	{
+		inverse_samp_den_coef.push_back(aDataCol[i]);
+		inverse_line_den_coef.push_back(aDataRow[i]);
+	}
 }
 
 void RPC::ReadRPB(std::string const &filename)
@@ -1097,10 +1151,10 @@ public:
 	Pt2dr InverseRPC2D(Pt3dr Pgeo, double aAngle, double aFactor)const;
 	
 	//Compute the 2D transfo between geodetic and image lattice points
-	void ComputeRPC2D(vector<vector<Pt2dr> > aPtsIm, vector<vector<Pt2dr> > aPtsGeo, double aHMax, double aHMin);
+	void ComputeRPC2D(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsGeo, double aHMax, double aHMin);
 
 	//Compute image position of a 3D point
-	Pt3dr InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt2dr> > aMatPtsGeo, vector<vector<Pt3dr> > aMatSatPos);
+	Pt3dr InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt3dr> > aMatPtsGeo, vector<vector<Pt3dr> > aMatSatPos);
 
 	//Showing Info
 	void info()
@@ -1128,54 +1182,94 @@ public:
 vector<vector<Pt2dr> > ReadLatticeIm(string aTxtImage)
 {
 	vector<vector<Pt2dr> > aMatIm;
+	vector<double> Xs,Ys;
 	//Reading the files
 	std::ifstream fic(aTxtImage.c_str());
-	u_int j = 0;
+	u_int Y_count = 0;
+	while (!fic.eof() && fic.good() && Y_count<11)
+	{
+		double Y;
+		fic >> Y ;
+		//std::cout << "X=" << X << endl;
+		Ys.push_back(Y);
+		Y_count++;
+	}
 	while (!fic.eof() && fic.good())
 	{
-		for (u_int i = 0; i < 11; i++)
+		double X;
+		fic >> X;
+		//std::cout << "Y=" << Y << endl;
+		Xs.push_back(X);
+	}
+	for (u_int i = 0; i < Xs.size(); i++)
+	{
+		vector<Pt2dr> aVectPts;
+		for (u_int j = 0; j < Ys.size(); j++)
 		{
-			double X, Y;
-			fic >> X >> Y;
-			Pt2dr aPt(X, Y);
-			if (fic.good())
-			{
-				aMatIm[j].push_back(aPt);
-			}
+			Pt2dr aPt(Xs[i], Ys[j]);
+			aVectPts.push_back(aPt);
 		}
-		j++;
+		aMatIm.push_back(aVectPts);
+		//std::cout << aMatIm[i] << endl;
 	}
 
-	cout << "Read " << aMatIm.size() << " lattice points in image coordinates" << endl;
+	std::cout << "Loaded " << aMatIm.size()*aMatIm[0].size() << " lattice points in image coordinates" << endl;
 
 	return aMatIm;
 }
 
 //reads the txt file with lattice point in geocentric coordinates and transforms them into geodetic
-vector<vector<Pt2dr> > ReadLatticeGeo(string aTxtGeo)
+vector<vector<Pt3dr> > ReadLatticeGeo(string aTxtLong, string aTxtLat)
 {
 	//Reading the file
-	vector<vector<Pt2dr> > aMatGeo;
-	std::ifstream fic2(aTxtGeo.c_str());
-	u_int j = 0;
+	vector<vector<Pt3dr> > aMatGeo;
+	std::ifstream fic1(aTxtLong.c_str());
+	while (!fic1.eof() && fic1.good())
+	{
+		double L1, L2, L3, L4, L5, L6, L7, L8, L9, L10, L11;
+		fic1 >> L1 >> L2 >> L3 >> L4 >> L5 >> L6 >> L7 >> L8 >> L9 >> L10 >> L11;
+		vector<Pt3dr> aVectPts;
+		//for (u_int i = 0; i < 11; i++)
+		//{
+		//		
+		//}
+		Pt3dr aPt1(L1, 0.0, 0.0); aVectPts.push_back(aPt1);
+		Pt3dr aPt2(L2, 0.0, 0.0); aVectPts.push_back(aPt2);
+		Pt3dr aPt3(L3, 0.0, 0.0); aVectPts.push_back(aPt3);
+		Pt3dr aPt4(L4, 0.0, 0.0); aVectPts.push_back(aPt4);
+		Pt3dr aPt5(L5, 0.0, 0.0); aVectPts.push_back(aPt5);
+		Pt3dr aPt6(L6, 0.0, 0.0); aVectPts.push_back(aPt6);
+		Pt3dr aPt7(L7, 0.0, 0.0); aVectPts.push_back(aPt7);
+		Pt3dr aPt8(L8, 0.0, 0.0); aVectPts.push_back(aPt8);
+		Pt3dr aPt9(L9, 0.0, 0.0); aVectPts.push_back(aPt9);
+		Pt3dr aPt10(L10, 0.0, 0.0); aVectPts.push_back(aPt10);
+		Pt3dr aPt11(L11, 0.0, 0.0); aVectPts.push_back(aPt11);
+
+		aMatGeo.push_back(aVectPts);
+	}
+	std::ifstream fic2(aTxtLat.c_str());
+	u_int i = 0;
 	while (!fic2.eof() && fic2.good())
 	{
-		for (u_int i = 0; i < 11; i++)
-		{
-			double Long, Lat;
-			fic2 >> Long >> Lat;
-			//geocentric->geodetic
-			Lat = atan(tan(Lat*M_PI / 180) / 0.99330562) * 180 / M_PI;
-			Pt2dr aPt(Long, Lat);
-			if (fic2.good())
-			{
-				aMatGeo[j].push_back(aPt);
-			}
-		}
-		j++;
+		double L1, L2, L3, L4, L5, L6, L7, L8, L9, L10, L11;
+		fic2 >> L1 >> L2 >> L3 >> L4 >> L5 >> L6 >> L7 >> L8 >> L9 >> L10 >> L11;
+		//geocentric->geodetic
+		aMatGeo[i][0].y = atan(tan(L1*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][1].y = atan(tan(L1*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][2].y = atan(tan(L2*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][3].y = atan(tan(L3*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][4].y = atan(tan(L4*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][5].y = atan(tan(L5*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][6].y = atan(tan(L6*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][7].y = atan(tan(L7*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][8].y = atan(tan(L8*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][9].y = atan(tan(L9*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		aMatGeo[i][10].y = atan(tan(L10*M_PI / 180) / 0.99330562) * 180 / M_PI;
+		//std::cout << "Ligne " << i << " : " << aMatGeo[i] << endl;
+		i++;
 	}
 
-	cout << "Read " << aMatGeo.size() << " lattice points in geodetic coordinates" << endl;
+	std::cout << "Loaded " << aMatGeo.size()*aMatGeo[0].size() << " lattice points in geodetic coordinates" << endl;
 
 	return aMatGeo;
 }
@@ -1193,14 +1287,17 @@ vector<vector<Pt3dr> > ReadSatPos(string aTxtSatPos)
 		fic2 >> X >> Y >> Z;
 
 		Pt3dr aPt(X, Y, Z);
+		vector<Pt3dr> aVectPts;
 		if (fic2.good())
 		{
 			for (u_int j = 0; j < 11; j++)
-				aSatPos[i].push_back(aPt);
+				aVectPts.push_back(aPt);
 		}
+		aSatPos.push_back(aVectPts);
+		//std::cout << aSatPos[i] << endl;
 		i++;
 	}
-	cout << "Read " << aSatPos.size() << " satellite position points in ECEF coordinates" << endl;
+	cout << "Loaded " << aSatPos.size() << " satellite position points in ECEF coordinates" << endl;
 
 	return aSatPos;
 }
@@ -1253,16 +1350,19 @@ Pt2dr RPC2D::InverseRPC2DNorm(Pt3dr PgeoNorm, double aAngle, double aFactor)cons
 	return PimgNorm;
 }
 
-void RPC2D::ComputeRPC2D(vector<vector<Pt2dr> > aPtsIm, vector<vector<Pt2dr> > aPtsGeo, double aHMax, double aHMin)
+void RPC2D::ComputeRPC2D(vector<vector<Pt2dr> > aPtsIm, vector<vector<Pt3dr> > aPtsGeo, double aHMax, double aHMin)
 {
 
 	//Finding normalization parameters
 		//divide Pts into X and Y
+	std::cout << "Size Geo : " << aPtsGeo.size() << " " << aPtsGeo[0].size() << endl;
+	std::cout << "Size Ima : " << aPtsIm.size() << " " << aPtsIm[0].size() << endl;
 		vector<double> aPtsGeoX, aPtsGeoY, aPtsImX, aPtsImY;
 		for (u_int i = 0; i < aPtsGeo.size(); i++)
 		{
 			for (u_int j = 0; j < aPtsGeo[0].size(); j++)
 			{
+				//cout << i << " " << j << endl;
 				aPtsGeoX.push_back(aPtsGeo[i][j].x);
 				aPtsGeoY.push_back(aPtsGeo[i][j].y);
 				aPtsImX.push_back(aPtsIm[i][j].x);
@@ -1285,7 +1385,7 @@ void RPC2D::ComputeRPC2D(vector<vector<Pt2dr> > aPtsIm, vector<vector<Pt2dr> > a
 		line_off=aPtImMin.y + (aPtImMax.y - aPtImMin.y) / 2;
 		height_scale = 1 / (aHMax - aHMin);
 		height_off = (aHMax + aHMin) / 2;
-
+		//std::cout << "Scales and offsets computed" << endl;
 	//Parameters too get parameters of P1 and P2 in ---  Column=P1(X,Y)/P2(X,Y)  --- where (X,Y) are Geo coordinates (idem for Row)
 	//Function is 0=Poly1(X,Y)-Column*Poly2(X,Y) ==> Column*k=a+bX+cY+dXY+eX^2+fY^2+gX^2Y+hXY^2+iX^3+jY^3-Column(lX+mY+nXY+oX^2+pY^2+qX^2Y+rXY^2+sX^3+tY^3)
 	//k=1 to avoid sol=0
@@ -1339,7 +1439,7 @@ void RPC2D::ComputeRPC2D(vector<vector<Pt2dr> > aPtsIm, vector<vector<Pt2dr> > a
 
 }
 
-Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt2dr> > aMatPtsGeo, vector<vector<Pt3dr> > aMatSatPos)
+Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt3dr> > aMatPtsGeo, vector<vector<Pt3dr> > aMatSatPos)
 {
 	//Convert to ground geodetic coords
 	Pt3dr aPtGeo;
@@ -1370,7 +1470,7 @@ Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt2dr> > aMatPtsG
 	}
 	// transformation in the ground coordinate system
 	std::string command;
-	command = g_externalToolHandler.get("cs2cs").callName() + " +proj=longlat +datum=WGS84 +to +proj=geocent processing/localPlane_geo.txt > processing/localPlane_ECEF.txt";
+	command = g_externalToolHandler.get("cs2cs").callName() + " +proj=longlat +datum=WGS84 +to +proj=geocent +ellps=WGS84 processing/localPlane_geo.txt > processing/localPlane_ECEF.txt";
 	int res = system(command.c_str());
 	if (res != 0) std::cout << "error calling cs2cs in Defining local plane" << std::endl;
 	// loading points
@@ -1389,18 +1489,35 @@ Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt2dr> > aMatPtsG
 	//Finding satellite position for point aPtGeoDodgeAngle (SatPosLoc)
 	Pt3dr aPtECEFDodgeAngle = aVPtsPlaneECEF[4];
 
-
-
-	//TODO TODOTODOTODO
 	//Compute the position of the point in 11*16 matrix space and get equivalent (aSatPosLoc) in the satpos matrix
+
 	Pt3dr aSatPosLoc;
+	//Finding the four points around the point
+	for (u_int i = 0; i < aMatPtsGeo.size() - 1; i++)
+	{
+		for (u_int j = 0; j < aMatPtsGeo[i].size() - 1; j++)
+		{
+			if ((aMatPtsGeo[i][j].y<aPtGeo.y && aMatPtsGeo[i][j + 1].x>aPtGeo.x && aMatPtsGeo[i + 1][j].x<aPtGeo.x && aMatPtsGeo[i + 1][j + 1].y>aPtGeo.y) ||
+				(aMatPtsGeo[i][j].y>aPtGeo.y && aMatPtsGeo[i][j + 1].x<aPtGeo.x && aMatPtsGeo[i + 1][j].x>aPtGeo.x && aMatPtsGeo[i + 1][j + 1].y < aPtGeo.y))
+			{
+				//then the point is in the "square"
+				//Computing the distance from the points to the corners of the "square"
+				double D1 = euclid(aPtGeo - aMatPtsGeo[i][j]), D2 = euclid(aPtGeo - aMatPtsGeo[i][j+1]), D3 = euclid(aPtGeo - aMatPtsGeo[i+1][j]), D4 = euclid(aPtGeo - aMatPtsGeo[i+1][j+1]);
+				double sumD = 1/D1 + 1/D2 + 1/D3 + 1/D4;
+				//aSatPosLoc.x = (aMatSatPos[i][j].x/D1 + *aMatSatPos[i][j + 1].x/D2 + aMatSatPos[i + 1][j].x/D3 + aMatSatPos[i + 1][j + 1].x/D4) / sumD;
+				//aSatPosLoc.y = (aMatSatPos[i][j].y/D1 + *aMatSatPos[i][j + 1].y/D2 + aMatSatPos[i + 1][j].y/D3 + aMatSatPos[i + 1][j + 1].y/D4) / sumD;
+				//aSatPosLoc.z = (aMatSatPos[i][j].z/D1 + *aMatSatPos[i][j + 1].z/D2 + aMatSatPos[i + 1][j].z/D3 + aMatSatPos[i + 1][j + 1].z/D4) / sumD;
+				aSatPosLoc = (aMatSatPos[i][j] / D1 + aMatSatPos[i][j + 1] / D2 + aMatSatPos[i + 1][j] / D3 + aMatSatPos[i + 1][j + 1] / D4) / sumD;
+			}
+
+		}
+	}
+
+
+
 
 	//aSatPosProj is InterSeg on (aPtGeo aPtGeoDodgeAngle)/X/(SatPosLoc SatPosLoc-normal)
-	Pt3dr aSatPosProj;
-	//END TODO TODOTODOTODO
-
-
-
+	Pt3dr aSatPosProj = InterSeg(aVPtsPlaneECEF[0], aVPtsPlaneECEF[4], aSatPosLoc, aVPtsPlaneECEF[0]);
 
 	//Computing distance between aPtGeoDodgeAngle and aSatPosProj, and aSatHeight
 	double aSatPosProj2aPtGeoDodgeAngle = euclid(aSatPosProj - aPtGeoDodgeAngle);
@@ -1431,7 +1548,7 @@ Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt2dr> > aMatPtsG
 int RPC_main(int argc, char ** argv)
 {
     //GET PSEUDO-RPC2D FOR ASTER FROM LATTICE POINTS
-    std::string aTxtImage, aTxtGeo, aTxtSatPos;
+    std::string aTxtImage, aTxtLong, aTxtLat, aTxtSatPos;
     std::string aFileOut = "RPC2D-params.xml";
 	double aHMin=0, aHMax=3000;
     //Reading the arguments
@@ -1439,8 +1556,9 @@ int RPC_main(int argc, char ** argv)
         (
         argc, argv,
         LArgMain()
-        << EAMC(aTxtImage, "txt file contaning the lattice point in image coordinates", eSAM_IsPatFile)
-        << EAMC(aTxtGeo, "txt file contaning the lattice point in geocentric coordinates", eSAM_IsPatFile)
+        << EAMC(aTxtImage, "txt file contaning the lattice pointd in image coordinates", eSAM_IsPatFile)
+		<< EAMC(aTxtLong, "txt file contaning the longitude of the lattice points", eSAM_IsPatFile)
+		<< EAMC(aTxtLat, "txt file contaning the geocentric latitude of the lattice points", eSAM_IsPatFile)
 		<< EAMC(aTxtSatPos, "txt file contaning the satellite position in ECEF", eSAM_IsPatFile),
         LArgMain()
         << EAM(aFileOut, "Out", true, "Output xml file with RPC2D coordinates")
@@ -1450,26 +1568,34 @@ int RPC_main(int argc, char ** argv)
 
 	//TODO : READ THIS FROM HDF
 	//Reading files
-	vector<vector<Pt2dr> > aMatPtsIm = ReadLatticeIm(aTxtImage);
-	vector<vector<Pt2dr> > aMatPtsGeo = ReadLatticeGeo(aTxtGeo);
+	vector<vector<Pt2dr> > aMatPtsIm = ReadLatticeIm(aTxtImage);// cout << aMatPtsIm << endl;
+	vector<vector<Pt3dr> > aMatPtsGeo = ReadLatticeGeo(aTxtLong, aTxtLat);// cout << aMatPtsGeo << endl;
 	vector<vector<Pt3dr> > aMatSatPos = ReadSatPos(aTxtSatPos);
 
 	RPC2D aRPC2D;
 	RPC aRPC3D;
 	aRPC2D.ComputeRPC2D(aMatPtsIm, aMatPtsGeo, aHMax, aHMin);
 
+	//Creating a folder for intemediate files
+	ELISE_fp::MkDirSvp("processing");
+
 	//Generate ramdom points in geodetic
-	vector<Pt3dr> aGridGeoNorm = aRPC3D.GenerateRandNormGrid(20);
+	vector<Pt3dr> aGridGeoNorm = aRPC3D.GenerateRandNormGrid(1);
 	
 	//Compute their image coord with pre-RPC method
-	//vector<Pt3dr> aGridImNorm;
-	//for (u_int i = 0; i < aGridGeoNorm.size(); i++)
-	//{
-	//	aGridImNorm.push_back(aRPC2D.InversePreRPCNorm(aGridGeoNorm[i], aMatPtsGeo, aMatSatPos));
-	//}
-
+	vector<Pt3dr> aGridImNorm;
+	for (u_int i = 0; i < aGridGeoNorm.size(); i++)
+	{
+		aGridImNorm.push_back(aRPC2D.InversePreRPCNorm(aGridGeoNorm[i], aMatPtsGeo, aMatSatPos));
+	}
+	
 	//Compute Direct and Inverse RPC
-
+	aRPC3D.GCP2Direct(aGridGeoNorm, aGridImNorm);
+	cout << "Direct RPC estimated" << endl;
+	aRPC3D.GCP2Inverse(aGridGeoNorm, aGridImNorm);
+	cout << "Inverse RPC estimated" << endl;
+	aRPC3D.ReconstructValidity();
+	aRPC3D.info();
 
     return 0;
 }
