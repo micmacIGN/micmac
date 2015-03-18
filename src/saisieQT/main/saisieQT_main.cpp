@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
             float dpi = ((QGuiApplication*)QCoreApplication::instance())->primaryScreen()->physicalDotsPerInchX();
             cout << "DPI = " << dpi << endl;
 
-            if (dpi > 1.f) app.setAttribute(Qt::AA_UseHighDpiPixmaps);
+            if (dpi > 96.f) app.setAttribute(Qt::AA_UseHighDpiPixmaps);
         #elif ELISE_QT_VERSION == 4
             //TODO: QSystemDisplayInfo
         #endif
