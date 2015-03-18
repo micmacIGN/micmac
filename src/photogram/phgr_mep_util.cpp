@@ -398,7 +398,7 @@ class cEqBundleBase  : public cNameSpaceEqF,
                        public cObjFormel2Destroy
 {
     public :
-       static const double  ThePropERRInit = 0.80;
+       const double  ThePropERRInit = 0.80;
 
 
        cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste = false);  // Nb de cam en plus des 2 minim
