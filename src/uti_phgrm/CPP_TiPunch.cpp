@@ -167,6 +167,9 @@ int TiPunch_main(int argc,char ** argv)
 
     if (aFilter)
     {
+        ELISE_ASSERT(EAMIsInit(&aFullName),"Filter=true and image pattern is missing");
+        ELISE_ASSERT(EAMIsInit(&aOri),"Filter=true and orientation directory is missing");
+
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
         std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
 
@@ -187,7 +190,7 @@ int TiPunch_main(int argc,char ** argv)
         cout << endl;
         for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
         {
-            std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri,*itS,true);
+            std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" + aOri,*itS,true);
 
             vCam.push_back(CamOrientGenFromFile(NOri,aICNM));
             vCamCenter.push_back(vCam.back()->VraiOpticalCenter()); //pour eviter le test systematique dans VraiOpticalCenter() lors du parcours du maillage

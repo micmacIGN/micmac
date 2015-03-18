@@ -34,10 +34,23 @@ int DigitalGlobe2Grid_main(int argc, char **argv)
     RPC aRPC;
     aRPC.ReadRPB(aNameFile);
     cout << "RPB File read" << endl;
-    aRPC.Inverse2Direct(50);//50 is the size of grid for generated GCPs (50*50)
+
+	//Generating a 50*50 grid on the normalized space with random normalized heights
+	vector<Pt3dr> aGridGeoNorm = aRPC.GenerateRandNormGrid(50);//50 is the size of grid for generated GCPs (50*50)
+
+	//Converting the points to image space
+	vector<Pt3dr> aGridImNorm;
+	for (u_int i = 0; i < aGridGeoNorm.size(); i++)
+	{
+		aGridImNorm.push_back(aRPC.InverseRPCNorm(aGridGeoNorm[i]));
+	}
+	
+	aRPC.GCP2Direct(aGridGeoNorm, aGridImNorm);
     cout << "Direct RPC estimated" << endl;
     aRPC.ReconstructValidity();
     aRPC.info();
+
+
 
     //Computing Grid
     std::string aNameIm = StdPrefix(aNameFile) + ".TIF";
