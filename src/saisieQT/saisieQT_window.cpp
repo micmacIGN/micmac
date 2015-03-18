@@ -23,10 +23,10 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _zoomLayout(new QGridLayout),
         _params(new cParameters),
         _appMode(mode),
-		_bSaved(false),
-		_devIOCamera(NULL),
-		_hg_revision(69),
-		_banniere("No comment")
+        _bSaved(false),
+        _devIOCamera(NULL),
+        _hg_revision(69),
+        _banniere("No comment")
 {
     /*#ifdef ELISE_Darwin
         setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -218,12 +218,12 @@ bool SaisieQtWindow::loadImages(const QStringList& filenames)
 
 bool SaisieQtWindow::loadCameras(const QStringList& filenames)
 {
-	if(_devIOCamera == NULL || _Engine->Loader() == NULL)
-		return false;
+    if(_devIOCamera == NULL || _Engine->Loader() == NULL)
+        return false;
 
-	_Engine->Loader()->setDevIOCamera(_devIOCamera);
+    _Engine->Loader()->setDevIOCamera(_devIOCamera);
 
-	cLoader *tmp = _Engine->Loader();
+    cLoader *tmp = _Engine->Loader();
     for (int i=0;i<filenames.size();++i)
     {
          if (!tmp->loadCamera(filenames[i]))
@@ -250,10 +250,10 @@ bool SaisieQtWindow::loadCameras(const QStringList& filenames)
 
 void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
 {
-	if(threeDWidget())
-	{
-		init3DPreview(getEngine()->getData(),*params());
-	}
+    if(threeDWidget())
+    {
+        init3DPreview(getEngine()->getData(),*params());
+    }
 
     if (filenames.size())
     {
@@ -339,14 +339,14 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         {
             _Engine->allocAndSetGLData(_appMode, *_params);
 
-			setNavigationType(_params->eNavigation());
+            setNavigationType(_params->eNavigation());
 
             if (setGLData)
             {
 
                 for (int aK = 0; aK < nbWidgets();++aK)
                 {
-					getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,_params->eNavigation());
+                    getWidget(aK)->setGLData(_Engine->getGLData(aK), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,_params->eNavigation());
                     getWidget(aK)->setParams(_params);
 
                     if (getWidget(aK)->getHistoryManager()->size())
@@ -396,20 +396,20 @@ void SaisieQtWindow::on_actionShow_ball_toggled(bool state)
 void SaisieQtWindow::on_actionShow_bbox_toggled(bool state)
 {
     if (_appMode == MASK3D)
-	{
+    {
         currentWidget()->setOption(cGLData::OpShow_BBox,state);
 
-		if(threeDWidget())
-			currentWidget()->setOption(cGLData::OpShow_BBox,state);
-	}
+        if(threeDWidget())
+            currentWidget()->setOption(cGLData::OpShow_BBox,state);
+    }
 }
 
 void SaisieQtWindow::on_actionShow_grid_toggled(bool state)
 {
     if (_appMode == MASK3D)
-	{
+    {
         currentWidget()->setOption(cGLData::OpShow_Grid,state);
-	}
+    }
 }
 
 void SaisieQtWindow::on_actionShow_axis_toggled(bool state)
@@ -433,7 +433,7 @@ void SaisieQtWindow::on_actionSwitch_axis_Y_Z_toggled(bool state)
     {
         if (getWidget(aK)->hasDataLoaded())
         {
-			QVector3D rotation(state ? -90.f : 0.f,0.f,0.f);
+            QVector3D rotation(state ? -90.f : 0.f,0.f,0.f);
             getWidget(aK)->getGLData()->setRotation(rotation);
             getWidget(aK)->update();
         }
@@ -502,9 +502,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     actions.push_back("");
 
     #ifdef ELISE_Darwin
-		QString Ctrl="Cmd+";
-	#else
-		QString Ctrl = "Ctrl+";
+        QString Ctrl="Cmd+";
+    #else
+        QString Ctrl = "Ctrl+";
     #endif
 
     if (_appMode == MASK3D)
@@ -589,26 +589,26 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
     if (_appMode == MASK3D)
     {
-		shortcuts.push_back(tr("Navigation 3D"));
-		actions.push_back("");
+        shortcuts.push_back(tr("Navigation 3D"));
+        actions.push_back("");
 
-		shortcuts.push_back(tr("camera rotate x and y"));
-		actions.push_back("Left button \t+ move mouse");
+        shortcuts.push_back(tr("camera rotate x and y"));
+        actions.push_back(tr("Left button \t+ move mouse"));
 
-		shortcuts.push_back(tr("camera rotate z"));
-		actions.push_back("Right button \t+ move mouse (only ball navigation)");
+        shortcuts.push_back(tr("camera rotate z"));
+        actions.push_back(tr("Right button \t+ move mouse (only ball navigation)"));
 
-		shortcuts.push_back(tr("Zoom"));
-		actions.push_back("wheel or shift + middle button");
+        shortcuts.push_back(tr("Zoom"));
+        actions.push_back(tr("wheel or shift + middle button"));
 
-		shortcuts.push_back(tr("move"));
-		actions.push_back("middle button + move mouse");
+        shortcuts.push_back(tr("move"));
+        actions.push_back("middle button + move mouse");
 
-		shortcuts.push_back(tr("move on vertex"));
-		actions.push_back("Double click on vertex");
+        shortcuts.push_back(tr("move on vertex"));
+        actions.push_back(tr("Double click on vertex"));
 
-		shortcuts.push_back(tr(""));
-		actions.push_back("");
+        shortcuts.push_back(tr(""));
+        actions.push_back("");
 
         shortcuts.push_back(tr("Selection Menu"));
         actions.push_back("");
@@ -704,20 +704,20 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
     QMessageBox *msgBox = new QMessageBox(this);
 
-	QString qStr(_banniere);
+    QString qStr(_banniere);
 #if (ELISE_windows || (defined ELISE_Darwin))
         qStr.replace( "**", "  " );
 #endif
 
-		QString version;
-		version.setNum(_hg_revision);
+        QString version;
+        version.setNum(_hg_revision);
 
 
-	qStr += "\nApplication\t" + QApplication::applicationName() +
-			+ "\n" +  tr("Built with \tQT ")   + QT_VERSION_STR  +
-			+ "\n" +  tr("Revision\t\t")    + version + "\n";
+    qStr += "\nApplication\t" + QApplication::applicationName() +
+            + "\n" +  tr("Built with \tQT ")   + QT_VERSION_STR  +
+            + "\n" +  tr("Revision\t\t")    + version + "\n";
 
-	msgBox->setText(qStr);
+    msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
     msgBox->setFont(font);
 
@@ -746,7 +746,7 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
 
 //	  myProcess->waitForFinished(-1);
 //	  myProcess->start(program, arguments);
-	  //setEnabled(true);
+      //setEnabled(true);
 }
 
 void SaisieQtWindow::resizeEvent(QResizeEvent *)
@@ -756,16 +756,16 @@ void SaisieQtWindow::resizeEvent(QResizeEvent *)
 
 void SaisieQtWindow::moveEvent(QMoveEvent *)
 {
-	_params->setPosition(pos());
+    _params->setPosition(pos());
 }
 
 void SaisieQtWindow::setNavigationType(int val)
 {
-	if (_appMode == MASK3D)
-	{
-			on_actionShow_grid_toggled(val);
-			_ui->actionShow_grid->setChecked(val);
-	}
+    if (_appMode == MASK3D)
+    {
+            on_actionShow_grid_toggled(val);
+            _ui->actionShow_grid->setChecked(val);
+    }
 }
 
 void SaisieQtWindow::on_actionAdd_inside_triggered()
@@ -939,17 +939,17 @@ void SaisieQtWindow::on_actionSettings_triggered()
         connect(&_settingsDialog, SIGNAL(selectionRadiusChanged(int)), getWidget(aK), SLOT(selectionRadiusChanged(int)));
         connect(&_settingsDialog, SIGNAL(shiftStepChanged(float)),     getWidget(aK), SLOT(shiftStepChanged(float)));
         connect(&_settingsDialog, SIGNAL(setCenterType(int)),          getWidget(aK), SLOT(setCenterType(int)));
-		connect(&_settingsDialog, SIGNAL(setNavigationType(int)),      getWidget(aK), SLOT(setNavigationType(int)));
-    }	
+        connect(&_settingsDialog, SIGNAL(setNavigationType(int)),      getWidget(aK), SLOT(setNavigationType(int)));
+    }
 
-	connect(&_settingsDialog, SIGNAL(setNavigationType(int)), this, SLOT(setNavigationType(int)));
+    connect(&_settingsDialog, SIGNAL(setNavigationType(int)), this, SLOT(setNavigationType(int)));
 
-	if (threeDWidget())
-	{
-		connect(&_settingsDialog, SIGNAL(setNavigationType(int)), threeDWidget(), SLOT(setNavigationType(int)));
-	}
+    if (threeDWidget())
+    {
+        connect(&_settingsDialog, SIGNAL(setNavigationType(int)), threeDWidget(), SLOT(setNavigationType(int)));
+    }
 
-	if (zoomWidget())
+    if (zoomWidget())
     {
         connect(&_settingsDialog, SIGNAL(zoomWindowChanged(float)), zoomWidget(), SLOT(setZoom(float)));
         //connect(zoomWidget(), SIGNAL(zoomChanged(float)), this, SLOT(setZoom(float)));
@@ -1017,11 +1017,11 @@ void SaisieQtWindow::closeAll(bool check)
 
     emit sCloseAll();
 
-	const int nbWidg = nbWidgets();
+    const int nbWidg = nbWidgets();
 
-	for (int idGLW = 0; idGLW < nbWidg; ++idGLW)
+    for (int idGLW = 0; idGLW < nbWidg; ++idGLW)
 
-		getWidget(idGLW)->setGLData(NULL);
+        getWidget(idGLW)->setGLData(NULL);
 
     _Engine->unloadAll();
 
@@ -1076,16 +1076,16 @@ void SaisieQtWindow::setCurrentFile(const QString &fileName)
 
     settings.setValue("recentFileList", files);
 
-	foreach (QWidget *widget, QApplication::topLevelWidgets())
-	{
-		#if WINVER == 0x0601
-			SaisieQtWindow *mainWin = dynamic_cast<SaisieQtWindow *>(widget);
-		#else
-			SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
-		#endif
-		if (mainWin)
-			mainWin->updateRecentFileActions();
-	}
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
+        #if WINVER == 0x0601
+            SaisieQtWindow *mainWin = dynamic_cast<SaisieQtWindow *>(widget);
+        #else
+            SaisieQtWindow *mainWin = qobject_cast<SaisieQtWindow *>(widget);
+        #endif
+        if (mainWin)
+            mainWin->updateRecentFileActions();
+    }
 
 }
 
@@ -1206,14 +1206,14 @@ void SaisieQtWindow::setUI()
 
         //zoom Window
         _zoomLayout->addWidget(zoomWidget());
-		_zoomLayout->setContentsMargins(2,2,2,2);
+        _zoomLayout->setContentsMargins(2,2,2,2);
         _ui->QFrame_zoom->setLayout(_zoomLayout);
         _ui->QFrame_zoom->setContentsMargins(0,0,0,0);
 
          QGridLayout*            _tdLayout = new QGridLayout;
 
          _tdLayout->addWidget(threeDWidget());
-		 _tdLayout->setContentsMargins(2,2,2,2);
+         _tdLayout->setContentsMargins(2,2,2,2);
         _ui->frame_preview3D->setLayout(_tdLayout);
         _ui->frame_preview3D->setContentsMargins(0,0,0,0);
         //TEMP: undo ne marche pas du cotÃ© Elise (a voir avec Marc)
@@ -1225,30 +1225,30 @@ void SaisieQtWindow::setUI()
 
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);
-		_ui->tableView_Objects->close();
-	   // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
+        _ui->tableView_Objects->close();
+       // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
     {
-		_ui->QFrame_zoom->close();
-		_ui->splitter_Tools->close();
-		_ui->tableView_Objects->close();
-		_ui->tableView_PG->close();
-		_ui->tableView_Images->close();
-		_ui->frame_preview3D->close();
+        _ui->QFrame_zoom->close();
+        _ui->splitter_Tools->close();
+        _ui->tableView_Objects->close();
+        _ui->tableView_PG->close();
+        _ui->tableView_Images->close();
+        _ui->frame_preview3D->close();
 
-		//_ui->frame_preview3D->close();
-		//_ui->splitter_Tools->hide();
+        //_ui->frame_preview3D->close();
+        //_ui->splitter_Tools->hide();
     }
 
-	/*if (_appMode != BASC)*/
+    /*if (_appMode != BASC)*/
 
-	//_ui->tableView_Objects->hide();
+    //_ui->tableView_Objects->hide();
 
-	_ui->tableView_Objects->close();
+    _ui->tableView_Objects->close();
 
     //TEMP:
-	hideAction(_ui->menuTools->menuAction(), false);
+    hideAction(_ui->menuTools->menuAction(), false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
@@ -1290,17 +1290,17 @@ QTableView *SaisieQtWindow::tableView_Objects(){return _ui->tableView_Objects;}
 
 void SaisieQtWindow::resizeTables()
 {
-	tableView_PG()->resizeColumnsToContents();
-	tableView_PG()->resizeRowsToContents();
-	tableView_PG()->horizontalHeader()->setStretchLastSection(true);
+    tableView_PG()->resizeColumnsToContents();
+    tableView_PG()->resizeRowsToContents();
+    tableView_PG()->horizontalHeader()->setStretchLastSection(true);
 
-	tableView_Images()->resizeColumnsToContents();
-	tableView_Images()->resizeRowsToContents();
-	tableView_Images()->horizontalHeader()->setStretchLastSection(true);
+    tableView_Images()->resizeColumnsToContents();
+    tableView_Images()->resizeRowsToContents();
+    tableView_Images()->horizontalHeader()->setStretchLastSection(true);
 
-	tableView_Objects()->resizeColumnsToContents();
-	tableView_Objects()->resizeRowsToContents();
-	tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
+    tableView_Objects()->resizeColumnsToContents();
+    tableView_Objects()->resizeRowsToContents();
+    tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
 }
 
 void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/)
@@ -1345,7 +1345,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
             loadPly(filenames);
             threeDWidget()->getGLData()->clearClouds();
             dataCache->computeBBox(1);
-			threeDWidget()->getGLData()->setData(dataCache,false, _params->getSceneCenterType());
+            threeDWidget()->getGLData()->setData(dataCache,false, _params->getSceneCenterType());
             threeDWidget()->resetView(false,false,false,false,true);
             option3DPreview();
         }
@@ -1447,7 +1447,7 @@ void SaisieQtWindow::redraw(bool nbWidgetsChanged)
                     _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
 
                     if (cpt < _Engine->getData()->getNbImages())
-						getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,params()->eNavigation());
+                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,params()->eNavigation());
 
                     cpt++;
                 }
@@ -1476,7 +1476,7 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
         if(glW)
             if ( glW->hasDataLoaded() && !glW->getGLData()->is3D() && (glW->isPtInsideIm(pt)))
             {
-				int imHeight = glW->getGLData()->glImageMasked()._m_image->height();
+                int imHeight = glW->getGLData()->glImageMasked()._m_image->height();
 
                 //text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
@@ -1517,19 +1517,19 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
             connect(glW, SIGNAL(newImagePosition(QPointF)), zoomWidget(), SLOT(centerViewportOnImagePosition(QPointF)));
         }
 
-		glW->checkTiles();
+        glW->checkTiles();
     }
 
     if (_appMode > MASK3D)
     {
         if ( glW->hasDataLoaded() && !glW->getGLData()->isImgEmpty() )
-			setImageName(glW->getGLData()->glImageMasked().cObjectGL::name());
+            setImageName(glW->getGLData()->glImageMasked().cObjectGL::name());
     }
 }
 
 void SaisieQtWindow::undo(bool undo)
 {
-	// TODO seg fault dans le undo à cause de la destruction des images...
+    // TODO seg fault dans le undo à cause de la destruction des images...
 
     if (_appMode <= MASK3D)
     {
@@ -1540,11 +1540,11 @@ void SaisieQtWindow::undo(bool undo)
             {
                 int idx = currentWidgetIdx();
 
-				currentWidget()->setGLData(NULL, _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),false,false);
+                currentWidget()->setGLData(NULL, _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),false,false);
                 //_Engine->reloadImage(_appMode, idx);
                 _Engine->reloadMask(_appMode, idx);
 
-				currentWidget()->setGLData(_Engine->getGLData(idx), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(), false,false);
+                currentWidget()->setGLData(_Engine->getGLData(idx), _ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(), false,false);
             }
 
 
@@ -1561,52 +1561,52 @@ void SaisieQtWindow::undo(bool undo)
 }
 QString SaisieQtWindow::banniere() const
 {
-	return _banniere;
+    return _banniere;
 }
 
 void SaisieQtWindow::setBanniere(const QString& banniere)
 {
-	_banniere = banniere;
+    _banniere = banniere;
 }
 
 int SaisieQtWindow::hg_revision() const
 {
-	return _hg_revision;
+    return _hg_revision;
 }
 
 void SaisieQtWindow::setHg_revision(int hg_revision)
 {
-	_hg_revision = hg_revision;
+    _hg_revision = hg_revision;
 }
 
 deviceIOImage* SaisieQtWindow::devIOImage() const
 {
-	return _Engine->Loader()->devIOImageAlter();
+    return _Engine->Loader()->devIOImageAlter();
 }
 
 void SaisieQtWindow::setDevIOImage(deviceIOImage* devIOImage)
 {
-	_Engine->Loader()->setDevIOImageAlter(devIOImage);
+    _Engine->Loader()->setDevIOImageAlter(devIOImage);
 }
 
 deviceIOCamera* SaisieQtWindow::devIOCamera() const
 {
-	return _devIOCamera;
+    return _devIOCamera;
 }
 
 void SaisieQtWindow::setDevIOCamera(deviceIOCamera* devIOCamera)
 {
-	_devIOCamera = devIOCamera;
+    _devIOCamera = devIOCamera;
 }
 
 cParameters *SaisieQtWindow::params() const
 {
-	return _params;
+    return _params;
 }
 
 void SaisieQtWindow::setParams(cParameters *params)
 {
-	_params = params;
+    _params = params;
 }
 
 int SaisieQtWindow::appMode() const
