@@ -510,7 +510,7 @@ void cAppli_MPI2Mnt::DoAll()
     if (mDoMnt && (!mDebug) ) DoMTD();
     mParamTarget =  StdGetFromSI(mTargetGeom,XML_ParamNuage3DMaille);
     if (mDoMnt && (!mDebug) ) DoBascule();
-    if (mDoMnt && (!mDebug) ) DoMerge();
+    if (mDoMnt ) DoMerge();
 
 
     //============== Generation d'un Ori
@@ -568,7 +568,10 @@ void cAppli_MPI2Mnt::DoMerge()
 
                       ;
 
-    System(aCom);
+    if (mDebug)
+       std::cout << aCom << "\n";
+    else
+        System(aCom);
 
 }
 

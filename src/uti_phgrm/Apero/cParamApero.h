@@ -2618,6 +2618,9 @@ class cSectionChantier
         cTplValGesInit< bool > & IsAperiCloud();
         const cTplValGesInit< bool > & IsAperiCloud()const ;
 
+        cTplValGesInit< bool > & IsChoixImSec();
+        const cTplValGesInit< bool > & IsChoixImSec()const ;
+
         cTplValGesInit< std::string > & FileSauvParam();
         const cTplValGesInit< std::string > & FileSauvParam()const ;
 
@@ -2673,6 +2676,7 @@ class cSectionChantier
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
         cTplValGesInit< bool > mIsAperiCloud;
+        cTplValGesInit< bool > mIsChoixImSec;
         cTplValGesInit< std::string > mFileSauvParam;
         cTplValGesInit< bool > mGenereErreurOnContraineCam;
         cTplValGesInit< double > mProfSceneChantier;
@@ -6213,6 +6217,9 @@ class cParamApero
 
         cTplValGesInit< bool > & IsAperiCloud();
         const cTplValGesInit< bool > & IsAperiCloud()const ;
+
+        cTplValGesInit< bool > & IsChoixImSec();
+        const cTplValGesInit< bool > & IsChoixImSec()const ;
 
         cTplValGesInit< std::string > & FileSauvParam();
         const cTplValGesInit< std::string > & FileSauvParam()const ;

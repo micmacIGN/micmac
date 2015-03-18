@@ -108,6 +108,7 @@ double cNewO_CpleIm::FocMoy() const
 
 void TestOriPlanePatch
      (
+         double aFoc,
          const ElPackHomologue & aPack,
          Video_Win * aW,
          Pt2dr       aP0W,
@@ -191,7 +192,7 @@ cNewO_CpleIm::cNewO_CpleIm
          ELISE_COPY(aImW.all_pts(),aImW.in(),mW->ogray());
    }
 
-   TestOriPlanePatch(mPackStdRed,mW,mP0W,mScaleW);
+   TestOriPlanePatch(FocMoy(),mPackStdRed,mW,mP0W,mScaleW);
    
    ShowPack(mPackPStd,P8COL::red,2.0);
    ShowPack(mPackStdRed,P8COL::blue,6.0);

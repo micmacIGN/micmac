@@ -53,9 +53,12 @@ class cAttrSomOPP
        {
        }
 
-      Pt2dr mP1;
-      Pt2dr mP2;
-      double mPds;
+       ElCplePtsHomologues Cple() {return ElCplePtsHomologues(mP1,mP2,1.0);}
+
+       Pt2dr mP1;
+       Pt2dr mP2;
+       double mPds;
+
 };
 
 class cAttrArcSomOPP
@@ -77,34 +80,46 @@ Pt2dr POfSomPtr(const tSomOPP * aSom) {return aSom->attr().mP1;}
 class cOriPlanePatch
 {
     public :
-        cOriPlanePatch( const ElPackHomologue & aPack,
+        cOriPlanePatch(   double aFoc,
+                          const ElPackHomologue & aPack,
                           Video_Win * aW,
                           Pt2dr       aP0W,
                           double      aScaleW
                       );
          void operator()(tSomOPP*,tSomOPP*,bool);  // Delaunay call back
 
+
+         void TestPt();
+         void TestHomogr();
+         void TestOneHomogr(std::vector<tSomOPP*>  & aVSom);
+
     private  :
          void ShowPoint(const Pt2dr &,double aRay,int coul) const;
          void ShowPoint(const tSomOPP &,double aRay,int coul) const;
          void ShowSeg(const Pt2dr & aP1,const Pt2dr& aP2,int aCoul) const;
          Pt2dr ToW(const Pt2dr & aP) const;
+         Pt2dr FromW(const Pt2dr & aP) const;
+         tSomOPP * GetPt(int aCoul);
 
 
 
+         double                 mFoc;
          Video_Win *            mW;
          Pt2dr                  mP0W;
          double                 mScaleW;
          std::vector<tSomOPP *> mVSom;
          tGrOPP                 mGrOPP;
+         int                    mFlagVisitH;
+         L2SysSurResol          mSysHom;
 };
 
     //  ==============  Graphisme   ================
 
 Pt2dr cOriPlanePatch::ToW(const Pt2dr & aP) const { return (aP-mP0W) *mScaleW; }
+Pt2dr cOriPlanePatch::FromW(const Pt2dr & aP) const { return aP/mScaleW + mP0W; }
 void cOriPlanePatch::ShowPoint(const Pt2dr & aP,double aRay,int aCoul) const
 {
-   if (mW) 
+   if (mW && (aCoul>=0)) 
       mW->draw_circle_abs(ToW(aP),aRay,mW->pdisc()(aCoul));
 }
 void  cOriPlanePatch::ShowPoint(const tSomOPP & aS,double aRay,int aCoul) const
@@ -122,18 +137,129 @@ void cOriPlanePatch::ShowSeg(const Pt2dr & aP1,const Pt2dr& aP2,int aCoul) const
 void cOriPlanePatch::operator()(tSomOPP* aS1,tSomOPP* aS2,bool)
 {
     ShowSeg(aS1->attr().mP1,aS2->attr().mP1,P8COL::red);
+
+    if (! mGrOPP.arc_s1s2(*aS1,*aS2))
+    {
+        cAttrArcSomOPP anAttr;
+        mGrOPP.add_arc(*aS1,*aS2,anAttr,anAttr);
+    }
 }
+
+
+
+tSomOPP * cOriPlanePatch::GetPt(int aCoul)
+{
+   Clik aCl = mW->clik_in();
+   Pt2dr aP = FromW(aCl._pt);
+   double aDistMin = 1e20;
+   tSomOPP * aRes = 0;
+   
+   for (int aK=0 ; aK<int(mVSom.size()) ; aK++)
+   {
+       double aD = euclid(aP,mVSom[aK]->attr().mP1);
+       if (aD<aDistMin)
+       {
+           aDistMin = aD;
+           aRes = mVSom[aK];
+       }
+   }
+
+   ShowPoint(*aRes,3.0,P8COL::white);
+   return aRes;
+}
+
+
+
+void cOriPlanePatch::TestOneHomogr(std::vector<tSomOPP*>  & aVSom)
+{
+    mSysHom.Reset();
+    
+}
+
+
+
+
+
+
+
+
+void cOriPlanePatch::TestHomogr()
+{
+    Pt2dr aC (0,0);
+    ElPackHomologue aPack;
+    for (int aK=0 ; aK<4 ; aK++)
+    {
+        ElCplePtsHomologues   aCple = GetPt(P8COL::white)->attr().Cple();
+        aPack.Cple_Add(aCple);
+        aC  = aC + aCple.P1();
+    }
+    aC = aC /4;
+
+    double aDMax = 6;
+    double ErrProp = 1e-2;
+
+
+    ElTimer aChrono;
+
+    for (int aNbIt = 0 ; aNbIt<4 ; aNbIt ++)
+    {
+        cElHomographie aHom(aPack,true);
+        ElPackHomologue  aNewPack;
+
+        for (int aK=0 ; aK<int(mVSom.size()) ; aK++)
+        {
+             Pt2dr aP1 = mVSom[aK]->attr().mP1;
+             Pt2dr aP2 = mVSom[aK]->attr().mP2;
+             Pt2dr aQ2 = aHom.Direct(aP1);
+
+             double aResidu = euclid(aQ2,aP2) * mFoc;
+             double aDC = euclid(aP1,aC) * mFoc;
+
+             int aCoul = P8COL::red;
+
+             if (aResidu  < (aDMax + aDC * ErrProp))
+             {
+                // double aPds = 1/(1+ElSquare(aD/aDPond));
+                double aPds = 1.0;
+                ElCplePtsHomologues aCple(aP1,aP2,aPds);
+                aNewPack.Cple_Add(aCple);
+                aCoul = P8COL::yellow;
+             }
+             // if (aResidu < 3) aCoul = P8COL::white;
+
+             ShowPoint(aP1,3.0,aCoul);
+        }
+
+        // std::cout << "END IT " << aNbIt << "\n";
+        aNewPack = aPack;
+    }
+    std::cout << "TTT " << aChrono.uval() << "\n";
+}
+
+
+
+
+void  cOriPlanePatch::TestPt()
+{
+    GetPt(P8COL::yellow);
+}
+
+
 
 cOriPlanePatch::cOriPlanePatch
 ( 
+      double                  aFoc,
       const ElPackHomologue & aPack,
       Video_Win * aW,
       Pt2dr       aP0W,
       double      aScaleW
 )  :
-   mW       (aW),
-   mP0W     (aP0W),
-   mScaleW  (aScaleW)
+   mFoc         (aFoc),
+   mW           (aW),
+   mP0W         (aP0W),
+   mScaleW      (aScaleW),
+   mFlagVisitH  (mGrOPP.alloc_flag_som()),
+   mSysHom      (8)
 {
     // if (mW) mW->clear();
     for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
@@ -158,6 +284,13 @@ cOriPlanePatch::cOriPlanePatch
 
 
 
+    if (aW)
+    {
+        while (1)
+        {
+              TestHomogr();
+        }
+    }
     std::cout << "Time Delaunay " << aChrono.uval() << "\n";
     getchar();
 }
@@ -167,6 +300,7 @@ cOriPlanePatch::cOriPlanePatch
 
 void TestOriPlanePatch
      (
+         double                  aFoc,
          const ElPackHomologue & aPack,
          Video_Win * aW,
          Pt2dr       aP0W,
@@ -174,7 +308,7 @@ void TestOriPlanePatch
             
      )
 {
-    cOriPlanePatch anOPP(aPack,aW,aP0W,aScaleW);
+    cOriPlanePatch anOPP(aFoc,aPack,aW,aP0W,aScaleW);
 
 }
 
