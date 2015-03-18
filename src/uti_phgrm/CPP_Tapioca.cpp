@@ -160,13 +160,13 @@ void DoDevelopp(int aSz1,int aSz2)
 
 void getPastisGrayscaleFilename
      (
-          const std::string & aParamDir, 
-          const string &i_baseName, 
-          int i_resolution, 
-          string &o_grayscaleFilename 
+          const std::string & aParamDir,
+          const string &i_baseName,
+          int i_resolution,
+          string &o_grayscaleFilename
      )
 {
-    // SFS 
+    // SFS
     if ( i_resolution<=0 )
     {
         // o_grayscaleFilename = NameFileStd( aParamDir+i_baseName, 1, false, true, false );
@@ -392,7 +392,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
     return 0;
 }
 
-// Variant de tapioca adatee au lignes resserrees type video
+// Variante de tapioca adaptee aux lignes resserees type video
 
 
 int Line(int argc,char ** argv, const std::string &aArg="")
