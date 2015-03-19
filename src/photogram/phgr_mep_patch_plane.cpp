@@ -191,29 +191,56 @@ tSomOPP * cOriPlanePatch::GetPt(int aCoul)
 
 
 // (a + b x1 + c y1) = x2 (1+g x1 + h y1)
+// (d + e x1 + f y1) = y2 (1+g x1 + h y1)
 
-/*
 void cOriPlanePatch::AddHom(tSomOPP* aSom)
 {
      static double aCoeff[8];
 
      aSom->flag_set_kth_true(mFlagVisitH);
-     double ax1 = 
+     const cAttrSomOPP & anAttr = aSom->attr();
+     double aX1 =  anAttr.mP1.x;
+     double aY1 =  anAttr.mP1.y;
+     double aX2 =  anAttr.mP2.x;
+     double aY2 =  anAttr.mP2.y;
     
      aCoeff[0] = 1;
-     aCoeff[1] = 1;
+     aCoeff[1] = aX1;
+     aCoeff[2] = aY1;
+     aCoeff[3] = aCoeff[4] = aCoeff[5] = 0;
+     aCoeff[6]  = aX2 * aX1;
+     aCoeff[7] =  aX2 * aY1;
+     mSysHom.GSSR_AddNewEquation(1.0,aCoeff,aX2,0);
+
+
+     aCoeff[0] = aCoeff[1] = aCoeff[2] = 0;
+     aCoeff[3] = 1;
+     aCoeff[4] = aX1;
+     aCoeff[5] = aY1;
+     aCoeff[6]  = aY2 * aX1;
+     aCoeff[7]  = aY2 * aY1;
+     mSysHom.GSSR_AddNewEquation(1.0,aCoeff,aY2,0);
 }
+
+
+ 
+
+/*
 */
 
 
 void cOriPlanePatch::TestOneGerm(std::vector<tSomOPP*>  & aVSom)
 {
-    mSysHom.Reset();
+    mSysHom.GSSR_Reset(true);
+    mSysHom.SetPhaseEquation(0);
 
     for (int aK=0 ; aK<int (aVSom.size()) ; aK++)
     {
         // AddHom(*aVSom[aK]);
+        AddHom(aVSom[aK]);
     }
+/*
+*/
     
 }
 
@@ -246,6 +273,7 @@ void cOriPlanePatch::TestHomogr()
         aHom = cElHomographie(aPack,true);
         ElPackHomologue  aNewPack;
 
+        std::vector<tSomOPP*> aVTest;
         for (int aK=0 ; aK<int(mVSom.size()) ; aK++)
         {
              Pt2dr aP1 = mVSom[aK]->attr().mP1;
@@ -268,10 +296,12 @@ void cOriPlanePatch::TestHomogr()
              // if (aResidu < 3) aCoul = P8COL::white;
 
              ShowPoint(aP1,3.0,aCoul);
+             aVTest.push_back(mVSom[aK]);
         }
+        TestOneGerm(aVTest);
 
         // std::cout << "END IT " << aNbIt << "\n";
-        aNewPack = aPack;
+        aPack = aNewPack;
     }
     
     std::cout << "TTT " << aChrono.uval() << "\n";
