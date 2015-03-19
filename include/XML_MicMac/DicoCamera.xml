@@ -65,6 +65,11 @@
         <SzCaptMm>    5.55  7.4  </SzCaptMm>
         <ShortName> CPS90  </ShortName>
    </CameraEntry> 
+   <CameraEntry>
+        <Name>  Canon PowerShot S110 </Name>
+        <SzCaptMm>    5.7  7.6  </SzCaptMm>
+        <ShortName> CPS110  </ShortName>
+   </CameraEntry> 
 	<CameraEntry>
         <Name> Canon IXUS 105 </Name>
         <SzCaptMm> 5.1 3.8 </SzCaptMm>
