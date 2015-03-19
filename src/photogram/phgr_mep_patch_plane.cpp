@@ -37,6 +37,22 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+/*
+
+  A faire rajouter une observation.
+  Mesure les temps de calcul des différentes briques :
+
+     * calcul de SVD . Si calcul de SVD rapide, dq on fait une estim hom, on tente sa chance sur residu 3D:q
+     * inversion
+     * ajout une obs
+
+
+  Algo :
+
+    - a partir de germe (4 point)
+    - file d'attente (heap) sur le critere de l'ecart / homogr courante
+
+*/
 
 #include "StdAfx.h"
 
