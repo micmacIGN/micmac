@@ -42,7 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 #if (ELISE_windows)
-#include "direct.h"
+	#include "direct.h"
+	#define fseek _fseeki64
+	#define ftell _ftelli64
 #endif
 
 
@@ -1020,7 +1022,18 @@ void ELISE_fp::read(void *ptr,tFileOffset size, tFileOffset nmemb,const char* fo
 		{
 //std::cout <<  "Teeell " << tell()  << " " << ftell(_fp) << " " << _fp << " " << mNameFile << "\n";
 //std::cout <<  "Teeell " << tell()  << " " << ftell(_fp) << " " << _fp << " " << mNameFile << "\n";
+
+			#if defined(__DEBUG) || defined(__BUG_MINGW64)
+				tFileOffset old_offset = tell();
+			#endif
+
 			tFileOffset nb_read = fread(ptr,size.BasicLLO(),nmemb.BasicLLO(),_fp);
+			#ifdef __DEBUG
+				ELISE_ASSERT( old_offset+nmemb*size==tell(), "old_offset+nmemb*size==tell()" );
+			#endif
+			#ifdef __BUG_MINGW64
+				if ( tell()-old_offset!=nmemb*size ) seek( old_offset+nmemb*size, sbegin, false );
+			#endif
 //std::cout <<  size <<  " " << nmemb  << " " << nb_read << " " << ftell(_fp) << "\n";
 			if (nb_read != nmemb)
 			{
