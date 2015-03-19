@@ -38,6 +38,10 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 /*
+    Temps pour 1000 SVD :       0.040899
+    Temps pour 1000 Solve(8)  : 0.00645113
+    Temps pour 1000000  AddEq  : 0.113502
+
 
   A faire rajouter une observation.
   Mesure les temps de calcul des différentes briques :
@@ -107,9 +111,10 @@ class cOriPlanePatch
 
          void TestPt();
          void TestHomogr();
-         void TestOneHomogr(std::vector<tSomOPP*>  & aVSom);
+         void TestOneGerm(std::vector<tSomOPP*>  & aVSom);
 
     private  :
+         void AddHom(tSomOPP*);
          void ShowPoint(const Pt2dr &,double aRay,int coul) const;
          void ShowPoint(const tSomOPP &,double aRay,int coul) const;
          void ShowSeg(const Pt2dr & aP1,const Pt2dr& aP2,int aCoul) const;
@@ -185,16 +190,32 @@ tSomOPP * cOriPlanePatch::GetPt(int aCoul)
 }
 
 
+// (a + b x1 + c y1) = x2 (1+g x1 + h y1)
 
-void cOriPlanePatch::TestOneHomogr(std::vector<tSomOPP*>  & aVSom)
+/*
+void cOriPlanePatch::AddHom(tSomOPP* aSom)
+{
+     static double aCoeff[8];
+
+     aSom->flag_set_kth_true(mFlagVisitH);
+     double ax1 = 
+    
+     aCoeff[0] = 1;
+     aCoeff[1] = 1;
+}
+*/
+
+
+void cOriPlanePatch::TestOneGerm(std::vector<tSomOPP*>  & aVSom)
 {
     mSysHom.Reset();
+
+    for (int aK=0 ; aK<int (aVSom.size()) ; aK++)
+    {
+        // AddHom(*aVSom[aK]);
+    }
     
 }
-
-
-
-
 
 
 
@@ -203,6 +224,7 @@ void cOriPlanePatch::TestHomogr()
 {
     Pt2dr aC (0,0);
     ElPackHomologue aPack;
+    std::vector<tSomOPP*> aVSom;
     for (int aK=0 ; aK<4 ; aK++)
     {
         ElCplePtsHomologues   aCple = GetPt(P8COL::white)->attr().Cple();
@@ -216,10 +238,12 @@ void cOriPlanePatch::TestHomogr()
 
 
     ElTimer aChrono;
+    cElHomographie aHom  = cElHomographie::Id();
+    
 
     for (int aNbIt = 0 ; aNbIt<4 ; aNbIt ++)
     {
-        cElHomographie aHom(aPack,true);
+        aHom = cElHomographie(aPack,true);
         ElPackHomologue  aNewPack;
 
         for (int aK=0 ; aK<int(mVSom.size()) ; aK++)
@@ -249,7 +273,40 @@ void cOriPlanePatch::TestHomogr()
         // std::cout << "END IT " << aNbIt << "\n";
         aNewPack = aPack;
     }
+    
     std::cout << "TTT " << aChrono.uval() << "\n";
+
+    ElTimer aChronoSVD;
+    for (int aK=0 ; aK<1000  ; aK++) 
+    {
+        cResMepRelCoplan aRMC =  ElPackHomologue::MepRelCoplan(1.0,aHom,tPairPt(Pt2dr(0,0),Pt2dr(0,0)));
+    }
+    std::cout << "tSVD  " << aChronoSVD.uval() << "\n";
+    
+    ElTimer aChronoAddE;
+    L2SysSurResol aSys(8);
+    aSys.SetPhaseEquation(0);
+    for (int aNb=0 ; aNb<1000 ; aNb++)
+    {
+        double aCoeff[8];
+        for (int aX=0 ; aX<8 ; aX++)
+        {
+            aCoeff[aX] = NRrandC();
+        }
+        for (int anE=0 ; anE<1000 ; anE++)
+            aSys.GSSR_AddNewEquation(1.0,aCoeff,5,0);
+    }
+    std::cout << "ADDe  " << aChronoAddE.uval() << "\n";
+    
+    ElTimer aChronoSolve;
+    for (int aK=0 ; aK<1000  ; aK++) 
+    {
+         aSys.GSSR_Solve (0);
+
+    }
+    std::cout << "tSVD  " << aChronoSolve.uval() << "\n";
+    
+
 }
 
 
