@@ -167,6 +167,8 @@ eTypeMMByP  Str2eTypeMMByP(const std::string & aName)
       return eGround;
    else if (aName=="eStatue")
       return eStatue;
+   else if (aName=="eForest")
+      return eForest;
    else if (aName=="eTestIGN")
       return eTestIGN;
    else if (aName=="eQuickMac")
@@ -196,6 +198,8 @@ std::string  eToString(const eTypeMMByP & anObj)
       return  "eGround";
    if (anObj==eStatue)
       return  "eStatue";
+   if (anObj==eForest)
+      return  "eForest";
    if (anObj==eTestIGN)
       return  "eTestIGN";
    if (anObj==eQuickMac)
@@ -230,7 +234,7 @@ void  BinaryUnDumpFromFile(eTypeMMByP & anObj,ELISE_fp & aFp)
    anObj=(eTypeMMByP) aIVal;
 }
 
-std::string  Mangling( eTypeMMByP *) {return "2AA5323F82CA47FBFD3F";};
+std::string  Mangling( eTypeMMByP *) {return "48B81066C9E75AEEFB3F";};
 
 eTypeQuality  Str2eTypeQuality(const std::string & aName)
 {
