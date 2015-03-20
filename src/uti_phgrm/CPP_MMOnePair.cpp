@@ -107,7 +107,9 @@ class cMMOnePair
       bool              mHasVeget;
       bool              mSkyBackgGound;
       std::string       mMM1PMasq3D;
-      bool				mUseGpu;
+      bool	        mUseGpu;
+      double            mDefCor;
+      double            mZReg;
 };
 
 class cAppliMMOnePair : public cMMOnePair,
@@ -168,7 +170,9 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mNameMasqFinal ("Masq_Etape_Last.tif"),
     mHasVeget       (false),
     mSkyBackgGound  (true),
-    mUseGpu			(false)
+    mUseGpu	    (false),
+    mDefCor         (0.5),
+    mZReg           (0.05)
 {
   ElInitArgMain
   (
@@ -202,6 +206,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mSkyBackgGound,"HasSBG",true,"Has Sky Background , Def= true", eSAM_IsBool)
                     << EAM(mMM1PMasq3D,"Masq3D",true,"Masq 3D to filter points", eSAM_IsBool)
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+                    << EAM(mDefCor,"DefCor",false,"Def cor (Def=0.5)")
+                    << EAM(mZReg,"ZReg",false,"Regularisation factor (Def=0.05)")
   );
 
   if (MMVisualMode) return;
@@ -767,6 +773,8 @@ void cAppliMMOnePair::MatchOneWay(bool MasterIs1,int aStep0,int aStepF,bool ForM
                           + " +MMC="     + ToString(!ForMTD)
                           + " +NbProc=" + ToString(mMM1PInParal ? MMNbProc() : 1)
                           + " +UseGpu=" + ToString(mUseGpu)
+                          + " +DefCor=" + ToString(mDefCor)
+                          + " +ZReg="   + ToString(mZReg)
 // FirstEtapeMEC=5 LastEtapeMEC=6
                       ;
 

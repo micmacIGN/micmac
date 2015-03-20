@@ -73,7 +73,7 @@ class cAppli_C3DC : public cAppliWithSetImage
         void ExeCom(const std::string & aCom);
 
          void PipelineQuickMack();
-         void PipelineStatue();
+         void PipelineEpip();
          void DoMergeAndPly();
 
          void ReadType(const std::string &aType);
@@ -105,6 +105,9 @@ class cAppli_C3DC : public cAppliWithSetImage
          bool        mDoMerge;
          cMMByImNM * mMMIN;
          bool		 mUseGpu;
+         double          mDefCor;
+         double          mZReg;
+         std::string     mArgSupEpip;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -118,7 +121,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mZoomF              (1),
    mDoMerge            (DoMerge),
    mMMIN               (0),
-   mUseGpu			   (false)
+   mUseGpu	       (false),
+   mArgSupEpip         ("")
 {
 
 
@@ -187,6 +191,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends on mode")
                     << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode")
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+                    << EAM(mDefCor,"DefCor",false,"Use cuda (Def=false)")
     );
 
    if (MMVisualMode) return;
@@ -201,10 +206,11 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
        if (mType==eMicMac)   mZoomF = 4;
        if (mType==eQuickMac) mZoomF = 8;
        if (mType==eStatue)   mZoomF = 2;
+       if (mType==eForest)   mZoomF = 4;
    }
 
-
-
+   if (EAMIsInit(&mDefCor)) mArgSupEpip +=  " DefCor=" + ToString(mDefCor);
+   if (EAMIsInit(&mZReg)) mArgSupEpip +=  " ZReg=" + ToString(mZReg);
 
    if (! EAMIsInit(&mMergeOut)) mMergeOut = "C3DC_"+ mStrType + ".ply";
 
@@ -302,9 +308,9 @@ void  cAppli_C3DC::PipelineQuickMack()
 }
 
 
-void  cAppli_C3DC::PipelineStatue()
+void  cAppli_C3DC::PipelineEpip()
 {
-    ExeCom(mBaseComMMByP + " Purge=" + ToString(mPurge) + " Do=APMCR ZoomF=" + ToString(mZoomF)  );
+    ExeCom(mBaseComMMByP + " Purge=" + ToString(mPurge) + " Do=APMCR ZoomF=" + ToString(mZoomF) + mArgSupEpip  );
     ExeCom(mBaseComEnv + " Glob=false");
     ExeCom(mBaseComMMByP + " Purge=" +  ToString(mPurge) + " Do=F " );
     DoMergeAndPly();
@@ -327,7 +333,10 @@ void cAppli_C3DC::DoAll()
              break;
 
              case eStatue :
-                  PipelineStatue();
+                  PipelineEpip();
+             break;
+             case eForest :
+                  PipelineEpip();
              break;
 
              default :
