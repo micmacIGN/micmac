@@ -47,21 +47,53 @@ Header-MicMac-eLiSe-25/06/2007*/
     #include <QApplication>
 #endif*/
 
-// Test if distance in depth image is close to distance between pt3d and center (threshold = aDst)
-bool DistanceTest(double aDst, Pt3dr const &pt3d, Pt3dr const &center, double downScale, CamStenope* cam, Im2D_REAL4* ImgProf, Im2D_INT4* Masq)
-{
-    Pt2dr Pt = cam->R3toF2(pt3d);
-    if (cam->IsInZoneUtile(Pt))
-    {
-        Pt2di Pti(round_down(Pt.x/downScale), round_down(Pt.y/downScale));
-        /*if (Masq->GetI(Pti) == 1)
-        {
-            cout << "dist  : " << ImgProf->GetR(Pti) << endl;
-        }*/
+static const REAL Eps = 1e-7;
 
-        if ((Masq->GetI(Pti)) && (abs(abs(ImgProf->GetR(Pti)) - euclid(pt3d - center)) < aDst)) return true;
+REAL SqrDistSum(vector <Pt3dr> const & Sommets, cElNuage3DMaille* nuage)
+{
+    REAL Res = 0.f;
+
+    if (Sommets.size() == 3)
+    {
+        ElCamera* aCam = nuage->Cam();
+
+        Pt2dr A = aCam->R3toF2(Sommets[0]);
+        Pt2dr B = aCam->R3toF2(Sommets[1]);
+        Pt2dr C = aCam->R3toF2(Sommets[2]);
+
+        Pt2dr AB = B-A;
+        Pt2dr AC = C-A;
+        REAL aDet = AB^AC;
+
+        if (aDet!=0)
+        {
+            Pt2di aP0 = round_down(Inf(A,Inf(B,C)));
+            aP0 = Sup(aP0,Pt2di(0,0));
+            Pt2di aP1 = round_up(Sup(A,Sup(B,C)));
+            aP1 = Inf(aP1,nuage->SzUnique()-Pt2di(1,1));
+
+            for (INT x=aP0.x ; x<= aP1.x ; x++)
+                for (INT y=aP0.y ; y<= aP1.y ; y++)
+                {
+                    Pt2dr Pt(x,y);
+                    Pt2dr AP = Pt-A;
+
+                    // Coordonnees barycentriques de P(x,y)
+                    REAL aPdsB = (AP^AC) / aDet;
+                    REAL aPdsC = (AB^AP) / aDet;
+                    REAL aPdsA = 1 - aPdsB - aPdsC;
+                    if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps) &&
+                            (nuage->ImMask().GetI(Pt2di(x,y)) > 0))
+                    {
+                        Pt3dr Pt1 = Sommets[0]*aPdsA + Sommets[1]*aPdsB + Sommets[2]*aPdsC;
+                        Pt3dr Pt2 = nuage->PreciseCapteur2Terrain(Pt);
+
+                        Res += square_euclid(Pt1, Pt2);
+                    }
+                }
+        }
     }
-    return false;
+    return Res;
 }
 
 int TiPunch_main(int argc,char ** argv)
@@ -72,7 +104,6 @@ int TiPunch_main(int argc,char ** argv)
     bool aBin = true;
     bool aRmPoissonMesh = false;
     int aDepth = 8;
-    double aDst = 0.5f;
     bool aFilter = true;
     aMode = "Statue";
 
@@ -81,13 +112,11 @@ int TiPunch_main(int argc,char ** argv)
                 argc,argv,
                 LArgMain()  << EAMC(aPly,"Ply file", eSAM_IsExistFile),
                 LArgMain()  << EAM(aFullName,"Pattern", false, "Full Name (Dir+Pat)",eSAM_IsPatFile)
-                            << EAM(aOri,"Ori", false, "Orientation path",eSAM_IsExistDirOri)
                             << EAM(aOut,"Out", true, "Mesh name (def=plyName+ _mesh.ply)")
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
                             << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
-                            << EAM(aDst,"Dist",true,"Threshold on distance between mesh and point cloud (def=1)")
-                            << EAM(aFilter,"Filter",true,"Filter mesh with distance (def=true)")
+                            << EAM(aFilter,"Filter",true,"Filter mesh (def=true)")
                             << EAM(aMode,"Mode", true, "C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
             );
 
@@ -163,20 +192,14 @@ int TiPunch_main(int argc,char ** argv)
     }
 
 
-    cMesh myMesh(poissonMesh);
+    cMesh myMesh(poissonMesh, 1, false); //pas d'arete pour l'instant
 
     if (aFilter)
     {
         ELISE_ASSERT(EAMIsInit(&aFullName),"Filter=true and image pattern is missing");
-        ELISE_ASSERT(EAMIsInit(&aOri),"Filter=true and orientation directory is missing");
 
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
         std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
-
-        StdCorrecNameOrient(aOri,aDir);
-
-        std::vector<CamStenope*> vCam;
-        std::vector<Pt3dr> vCamCenter;
 
         bool help;
         eTypeMMByP  type;
@@ -184,66 +207,18 @@ int TiPunch_main(int argc,char ** argv)
 
         cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
 
-        vector <Im2D_REAL4 *> vImgProf;
-        vector <Im2D_INT4 *>  vImgMasq;
+        vector <cElNuage3DMaille *> vNuages;
+
 
         cout << endl;
         for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
         {
-            std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-" + aOri,*itS,true);
+            std::string aNameXml  = PIMsFilter->NameFileXml(eTMIN_Depth,*itS);
 
-            vCam.push_back(CamOrientGenFromFile(NOri,aICNM));
-            vCamCenter.push_back(vCam.back()->VraiOpticalCenter()); //pour eviter le test systematique dans VraiOpticalCenter() lors du parcours du maillage
+            vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
 
-            std::string aNameProf = PIMsFilter->NameFileProf(eTMIN_Depth,*itS);
-
-            if (ELISE_fp::exist_file(aNameProf))
-            {
-                Tiff_Im tif = Tiff_Im::StdConvGen(aNameProf, 1, true);
-
-                Im2D_REAL4* pImg = new Im2D_REAL4(tif.sz().x, tif.sz().y);
-
-                ELISE_COPY
-                (
-                    pImg->all_pts(),
-                    tif.in(),
-                    pImg->out()
-                );
-
-                vImgProf.push_back(pImg);
-                //cout << "img sz" << vImgProf.back()->sz() << endl;
-            }
-            else
-                cout << "File does not exist : " << aNameProf << endl;
-
-            std::string aNameMasq = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
-
-            if (ELISE_fp::exist_file(aNameMasq))
-            {
-                Tiff_Im tif = Tiff_Im::StdConvGen(aNameMasq, 1, false);
-
-                Im2D_INT4* pImg = new Im2D_INT4(tif.sz().x, tif.sz().y);
-
-                ELISE_COPY
-                (
-                    pImg->all_pts(),
-                    tif.in(),
-                    pImg->out()
-                );
-
-                vImgMasq.push_back(pImg);
-                //cout << "img sz" << vImgMasq.back()->sz() << endl;
-            }
-            else
-                cout << "File does not exist : " << aNameMasq << endl;
-
-            cout << "Image "<<*itS<<", with ori : " << NOri << endl;
-            cout << "Depth : "<< aNameProf << endl;
+            cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
         }
-
-        double downScaleFactor = (double) vCam[0]->Sz().x / vImgProf[0]->sz().x;
-
-        //cout << "downScaleFactor = " << downScaleFactor << endl;
 
         cout << endl;
         cout <<"**********************Filtering faces*************************"<<endl;
@@ -251,22 +226,24 @@ int TiPunch_main(int argc,char ** argv)
 
         std::vector < int > toRemove;
 
-        const int nCam = vCam.size();
         for(int aK=0; aK <myMesh.getFacesNumber(); aK++)
         {
             if (aK%1000 == 0) cout << aK << " / " << myMesh.getFacesNumber() << endl;
 
             cTriangle * Triangle = myMesh.getTriangle(aK);
 
-            vector <Pt3dr> Vertex;
-            Triangle->getVertexes(Vertex);
+            vector <Pt3dr> Sommets;
+            Triangle->getVertexes(Sommets);
 
             bool found = false;
-            for(int bK=0 ; bK<nCam; bK++)
+            const int nNuages = vNuages.size();
+            for(int bK=0 ; bK<nNuages; bK++)
             {
-                found = DistanceTest(aDst, (Vertex[0]+Vertex[1]+Vertex[2])/3.f, vCamCenter[bK], downScaleFactor, vCam[bK], vImgProf[bK], vImgMasq[bK]);
-
-                if (found) break;
+                if (SqrDistSum(Sommets, vNuages[bK]) > 0.f)
+                {
+                    found = true;
+                    break;
+                }
             }
 
             if (!found)
