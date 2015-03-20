@@ -86,6 +86,9 @@ void DataGenIm::verif_in_range_type
      {
          INT index = index_values_out_of_range(vals,pts->nb(),v_min,v_max);
 
+	// Debug Greg: pb constate sur des correlations GeoSud et IGN/Espace (Marseille-7c)?
+	if (index == INDEX_NOT_FOUND) return;
+
          El_User_Dyn.ElAssert
          (
              index == INDEX_NOT_FOUND,
@@ -104,6 +107,9 @@ void DataGenIm::verif_in_range_type
      {
          INT index = index_values_out_of_range(vals,pts->nb(),(REAL)v_min,(REAL)v_max);
 
+        // Debug Greg: pb constate sur des correlations GeoSud et IGN/Espace (Marseille-7c)?
+	if (index == INDEX_NOT_FOUND) return;
+	
          El_User_Dyn.ElAssert
          (
              index == INDEX_NOT_FOUND,
