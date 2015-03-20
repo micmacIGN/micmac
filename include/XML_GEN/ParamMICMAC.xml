@@ -1,0 +1,2132 @@
+<?xml version="1.0" ?>
+<GenCpp>
+
+<Verbatim File=".h.cpp">
+#include "StdAfx.h"
+</Verbatim>
+<Verbatim  File=".h">
+#ifndef Define_NotMicMac
+#define Define_NotMicMac
+</Verbatim>
+<Verbatim File=".cpp">
+// UNUSED
+</Verbatim>
+
+<Verbatim File=".h">
+// NO MORE
+</Verbatim>
+
+<Verbatim File=".h.cpp">
+// Quelque chose
+</Verbatim>
+
+
+
+
+<!--
+       Trois type de geometrie interviennent
+
+
+       - La géométrie image est liée �  l'instrument d'acquisition
+       (conique ou barette, calibration ...); elle est definie
+       dans la section <Section_PriseDeVue> par le champss
+      GeomImages qui doit etre dans l'enumeration eGeomImage.
+
+       - La géométrie de mise en correspondance qui
+       a une influence forte sur l'algorithmie, elle
+       est definie dans  <section_MEC>, par le champs
+       GeomMEC qui doit etre dans l'enumeration eModeGeomMEC
+	
+       - la géométrie du MNT resultat (par exemple
+       cartographique ou euclidien local), elle est
+       definie dans  <Section_Results> par le champs
+       GeoMNT qui doit etre dans l'enumeration
+       eModeGeomMNT
+	
+-->
+
+
+
+   <!--  eModeGeomMEC
+
+       elle peut
+       prendre essentiellement deux valeur eGeomMECIm1 et 
+       eGeomMECTerrain
+   -->
+
+
+   <enum Name="eModeGeomMEC">
+	   <eGeomMECIm1 >     </eGeomMECIm1>
+           <eGeomMECTerrain > </eGeomMECTerrain>
+           <eNoGeomMEC >      </eNoGeomMEC>
+   </enum>
+   <enum Name="eModeCensusCost">
+	   <eMCC_GrCensus >          </eMCC_GrCensus>
+           <eMCC_CensusBasic >       </eMCC_CensusBasic>
+           <eMCC_CensusCorrel >      </eMCC_CensusCorrel>
+           <eMCC_CensusMixCorrelBasic >      </eMCC_CensusMixCorrelBasic>
+   </enum>
+
+
+   <enum Name="eTypeModeleAnalytique">
+	 <eTMA_Homologues>     </eTMA_Homologues>  
+         <!--  En eTMAHomographie1D, si il y a export pour les
+             deux Px, le quotient est != pour X et Y
+         -->
+	 <eTMA_DHomD >     </eTMA_DHomD>  
+         <!--  En mode TMA_Ori, on recalcule l'orientation relative de Im2/Im1 -->
+	 <eTMA_Ori >     </eTMA_Ori>  
+
+
+          <!-- Ce mode n'est plus vraiment analytique, on exporte un nuage de point
+	  3D en geomrtrie euclidienne, pour chaque point de la grille terrain, on le
+	  met la pour profiter de certaine fonctionnalites trouvees dans cModeleAnalytiqueComp::GetMatr
+	  -->
+	 <eTMA_Nuage3D> </eTMA_Nuage3D>
+   </enum>
+
+
+   <!--   eModeGeomImage
+
+        Beaucoup de geometrie image existaient dans
+   le mode 2D de MecAutoCal, je ne les reinterfaceraient qu'au fur et
+   a mesure des besoins, en cherchant a simplifier et si
+   possible a tout faire rentrer dans quelques modes :
+
+          DHD_Px :  Dist1 o  Hom o Dist2 o Paralaxe, modele qui
+          prend en compte  toutes les deformation
+          "molles",  notamment l'autocalibration sur mur,
+          la superposition des cannaux de la camera numerique,
+
+          DH_Px_HD :  Distorsion1 o Homographie1 o Paralaxe o 
+          Homographie2 o Distorsion2; 
+          modele general pour toutes les perspectives coniques
+
+          Differents modeles "physiques" de capteurs : .ori
+          puis grilles
+
+        
+	 Pour le mode Terrain, aujourd'hui seul les ori sont
+    supportés mais il n'y aurait  pas de pb a rajouter
+    par exemple les formats grilles.
+
+    Mode derive :
+	   eGeomImage_Hom_Px : la geométrie est une homographie
+         implemente comme un cas particulier de DHD
+
+	   eGeomImage_Epip : la geométrie epipolaire classique (mais en 2D)
+         implemente comme un cas particulier de DHD
+   -->
+   
+   <enum Name="eModeGeomImage">
+	   <eGeomImageOri>          </eGeomImageOri>
+           <eGeomImageModule>       </eGeomImageModule>
+	   <eGeomImageGrille>       </eGeomImageGrille>
+           <eGeomImageRTO>       </eGeomImageRTO>
+           <eGeomImageCON>       </eGeomImageCON>
+
+	   <eGeomImageDHD_Px>       </eGeomImageDHD_Px>
+	   <eGeomImage_Hom_Px>      </eGeomImage_Hom_Px>
+	   <eGeomImageDH_Px_HD>     </eGeomImageDH_Px_HD>
+	   <eGeomImage_Epip>        </eGeomImage_Epip>
+	   <eGeomImage_EpipolairePure>        </eGeomImage_EpipolairePure>
+
+	   <eNoGeomIm>              </eNoGeomIm>
+           <!-- Pas encore implementée -->
+   </enum>
+
+   <enum Name="eOnEmptyImSecApero">
+           <eOEISA_error> </eOEISA_error>
+           <eOEISA_exit> </eOEISA_exit>
+           <eOEISA_goon> </eOEISA_goon>
+   </enum>
+
+   <enum Name="eModeAggregCorr">
+         <eAggregSymetrique> </eAggregSymetrique>
+	 <eAggregIm1Maitre>  </eAggregIm1Maitre>
+         <eAggregInfoMut>    </eAggregInfoMut>
+         <!-- Max des correls a l'image 1; teste pour resoudre pb de parties cachees -->
+	 <eAggregMaxIm1Maitre>  </eAggregMaxIm1Maitre>
+	 <eAggregMinIm1Maitre>  </eAggregMinIm1Maitre>
+         <!-- Pas vrai median, moyenne - Min et Max -->
+	 <eAggregMoyMedIm1Maitre>  </eAggregMoyMedIm1Maitre>
+   </enum>
+
+   <enum Name="eModeDynamiqueCorrel">
+         <eCoeffCorrelStd> </eCoeffCorrelStd>
+	 <eCoeffAngle>     </eCoeffAngle>
+	 <eCoeffGamma>     </eCoeffGamma>
+   </enum>
+
+   <enum Name="eTypeImPyram">
+         <eUInt8Bits>   </eUInt8Bits>
+         <eUInt16Bits>  </eUInt16Bits>
+         <eFloat32Bits> </eFloat32Bits>
+   </enum>
+
+   <enum Name="eAlgoRegul">
+         <eAlgoCoxRoy>      </eAlgoCoxRoy>
+         <eAlgo2PrgDyn>     </eAlgo2PrgDyn>
+	 <eAlgoMaxOfScore>  </eAlgoMaxOfScore>
+         <!-- Dans ce mode l'algo de CoxRoy est utilise quand cela est possible, cad
+         qd la dimension de paralaxe est 1, sinon c'est l'algo AlgoWenCxRImpossible
+         qui est utilise, sa Valeur par defaut est eAlgo2PrgDyn
+         -->
+         <eAlgoCoxRoySiPossible>      </eAlgoCoxRoySiPossible>
+
+
+         <!--
+             Cet algorithme est totalement different des autres, il 
+             ne discretise pas les paralaxes et fonctionne par differenciation.
+             A priori, il ne s'utilise qu'en derniere etape.
+         -->
+         <eAlgoOptimDifferentielle> </eAlgoOptimDifferentielle>
+         <eAlgoDequant> </eAlgoDequant>
+         <eAlgoLeastSQ> </eAlgoLeastSQ>
+         <eAlgoTestGPU>  </eAlgoTestGPU>
+ <!-- Peut sembler bizare, l'interet est lorque l'on veut utiliser des fonctionnalités
+     annexes t.q les partie cachees, en reentrant d'un MNT externe -->
+         <eAlgoIdentite> </eAlgoIdentite>
+   </enum>
+
+   <enum Name="eModeInterpolation">
+        <eInterpolPPV>   </eInterpolPPV>
+        <eInterpolBiLin> </eInterpolBiLin>
+        <eInterpolBiCub> </eInterpolBiCub>
+        <eInterpolSinCard> </eInterpolSinCard>
+
+        <!-- Ancienne version de D Boldo, jamais recettee -->
+        <eOldInterpolSinCard> </eOldInterpolSinCard>
+
+        <!-- Pseudo interpolateurs pour regler les problemes de biais
+             de partie fractionnaire (marches,franges ...), 
+             maintenant interpolateur par defaut de MicMac-->
+        <eInterpolMPD>  </eInterpolMPD>
+
+        <!-- Interpolateurs optimises en temps de calc,
+            a priori tout benef -->
+        <eInterpolBicubOpt>  </eInterpolBicubOpt>
+   </enum>
+
+
+   <enum Name="eTypeFiltrage">
+        <eFiltrageMedian>  </eFiltrageMedian>
+        <eFiltrageMoyenne> </eFiltrageMoyenne>
+        <eFiltrageDeriche> </eFiltrageDeriche>
+        <eFiltrageGamma>   </eFiltrageGamma>
+        <eFiltrageEqLoc>   </eFiltrageEqLoc>
+   </enum>
+ 
+   <enum Name="ePxApply">
+         <eApplyPx1>   </eApplyPx1>
+         <eApplyPx2>   </eApplyPx2>
+         <eApplyPx12>   </eApplyPx12>
+   </enum>
+
+   <enum Name="eModeAggregProgDyn">
+         <ePrgDAgrSomme>      </ePrgDAgrSomme>
+         <ePrgDAgrMax>        </ePrgDAgrMax>
+         <ePrgDAgrReinject>   </ePrgDAgrReinject>
+         <ePrgDAgrProgressif>   </ePrgDAgrProgressif>
+   </enum>
+
+
+   <enum Name="eMicMacCodeRetourErreur">
+         <eErrNbPointInEqOriRel>      </eErrNbPointInEqOriRel>
+         <eErrImageFileEmpty>         </eErrImageFileEmpty>
+         <eErrPtHomHorsImage>         </eErrPtHomHorsImage>
+         <eErrRecouvrInsuffisant>     </eErrRecouvrInsuffisant>
+         <eErrGrilleInverseNonDisponible>     </eErrGrilleInverseNonDisponible>
+   </enum>
+
+   <enum Name="eTypeWinCorrel">
+       <eWInCorrelFixe>  </eWInCorrelFixe>
+       <eWInCorrelExp>   </eWInCorrelExp>
+       <!-- Il s'agit de fenetre rectangulaire "bete", donc a priori
+       pas d'interet particulier / eWInCorrelFixe; si ce n'est que
+       l'implementation passe par le mecanisme general FiltrageW
+       qui permet de prendre en compte des option nouvelles telles
+       par exemple que, Nb Iteration!=1,  SzWx!=SzWy, taille reelle pas encore 
+       pris par les autres
+       -->
+       <eWInCorrelRectSpec>   </eWInCorrelRectSpec>
+   </enum>
+
+
+
+  <enum Name="eTypeModeEchantPtsI">
+       <eModeEchantRegulier>  </eModeEchantRegulier>  <!--  Type besoin IGN-E -->
+       <eModeEchantNonAutoCor>  </eModeEchantNonAutoCor>  <!--  Type besoin aero -->
+       <eModeEchantAleatoire> </eModeEchantAleatoire> <!--  A des fins de Test -->
+       <eModeEchantPtsIntByComandeExterne> </eModeEchantPtsIntByComandeExterne>
+  </enum>
+
+
+  <enum Name="eSemantiqueLL">
+         <!--  Geometrie -->
+      <eSLL_Geom_X> </eSLL_Geom_X>
+      <eSLL_Geom_Y> </eSLL_Geom_Y>
+      <eSLL_Geom_Z> </eSLL_Geom_Z>
+      <eSLL_Geom_dir_X> </eSLL_Geom_dir_X>
+      <eSLL_Geom_dir_Y> </eSLL_Geom_dir_Y>
+      <eSLL_Geom_dir_Z> </eSLL_Geom_dir_Z>
+         <!--  Radiometrie -->
+      <eSLL_Radiom_R> </eSLL_Radiom_R>
+      <eSLL_Radiom_G> </eSLL_Radiom_G>
+      <eSLL_Radiom_B> </eSLL_Radiom_B>
+      <eSLL_Radiom_Panchro> </eSLL_Radiom_Panchro>
+      <eSLL_Radiom_Pir> </eSLL_Radiom_Pir>
+      <eSLL_Radiom_Lidar> </eSLL_Radiom_Lidar>
+      <eSLL_Radiom_Unknown> </eSLL_Radiom_Unknown>
+         <!--  Inconnue -->
+      <eSLL_Unknown> </eSLL_Unknown>
+  </enum>
+
+  <SpecFitrageImage Nb="1" Class="true" ToReference="true">
+      <TypeFiltrage Nb="1" Type="eTypeFiltrage">   </TypeFiltrage>
+      <SzFiltrage   Nb="1"  Type="double">            </SzFiltrage>
+      <!-- Taille en + qui ne tient pas compte du SRA etc .. -->
+      <SzFiltrNonAd   Nb="?"  Type="double" Def="0.0"> </SzFiltrNonAd>
+      <PxApply      Nb="?"  Type="ePxApply" Def="eApplyPx12">       </PxApply>
+      <PatternSelFiltre Nb="?" Type="cElRegex_Ptr">    </PatternSelFiltre>
+      <NbIteration Nb="?" Type="int" Def="1"> </NbIteration>
+      <AmplitudeSignal Nb="?" Type="double" Def="255"> </AmplitudeSignal>
+      <UseIt Nb="?" Type="bool" Def="true"> </UseIt>
+  </SpecFitrageImage>
+
+<!--  Permet de memoriser sous forme d'une image tabuler, les corrections de geom
+-->
+
+<!--
+  <MetaDataPartiesCachees Nb="1" Class="true" ToReference="true">
+       <Done  Nb="1" Type="bool"> </Done>
+       <Offset Nb="1" Type="Pt2di"> </Offset>
+       <Sz Nb="1" Type="Pt2di"> </Sz>
+       <Pas Nb="1" Type="double">  </Pas>
+       <SeuilUse  Nb="1" Type="int">  </SeuilUse>
+  </MetaDataPartiesCachees>
+-->
+
+
+  <CorrectionPxTransverse Nb="1" Class="true" ToReference="true">
+       <DirPx Nb="1" Type="Pt2dr">          </DirPx>
+       <ValeurPx Nb="1" Type="Im2D_REAL4">  </ValeurPx>
+       <SsResol  Nb="1" Type="double">      </SsResol>
+  </CorrectionPxTransverse>
+
+  <LidarFlight Nb="1" Class="true">
+<!-- D'un cote, il semble indispensable que la donnee "vol-lidar" soit complete
+ et puisse contenuir aussi les meta-donnees permettant de savoir dans quel referentiel sont
+exprimees les coordonnees. D'un autre cote, je n'ai pas du tout envie de mettre le
+doigt dans la geodesie. 
+    Pour l'instant, le moins mauvais compromis me semble etre d'avoir une chaine
+    de caractere SystemeCoordonnees qui peut etre :
+          - une valeur dans un dictionnaire a definir (= LambertZone1 , ...)
+          - un nom de fichier "xml" selon un format utilisateur dont je veux
+            tout ignorer;
+          - la valeur conventionnelle SystemeCoordonneesIndefini
+-->
+      <SystemeCoordonnees Nb="1" Type="std::string" > </SystemeCoordonnees>
+      <LidarStrip Nb="+">
+           <LidarLayer Nb="+">  <!-- En fait >= 3 -->
+                <NameFile Nb="1" Type="std::string"> </NameFile>
+                <Semantic Nb="1" Type="eSemantiqueLL"> </Semantic>
+                
+                <LongueurDOnde Nb="?" Type="double"> </LongueurDOnde>
+<!-- Permet par exemple de stocker les coordonnes sur des float, sans perte significative
+     de precision, meme en lambert
+-->
+                <OffsetValues Nb="?" Type="double" Def="0.0"> </OffsetValues>
+                <StepValues Nb="?" Type="double" Def="0.0"> </StepValues>
+
+<!--  Permet l'utilisation du fichier tiff comme un raw
+   par les lecteur n'ayant pas de gestionnaire Tiff ;
+-->
+                <IntegerValues Nb="1" Type="bool"> </IntegerValues>
+                <SignedValues Nb="1" Type="bool"> </SignedValues>
+                <BytePerValues Nb="1" Type="int"> </BytePerValues>
+                <OffsetDataInFile Nb="1" Type="int"> </OffsetDataInFile>
+           </LidarLayer>  
+
+<!-- Indique si la structure 2D du fichier est pertinente. Si true le fichier
+est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
+
+-->
+            <FileIs2DStructured Nb="1" Type="bool"> </FileIs2DStructured>
+<!--
+   Formule approchee permettant  de convertir les coordonnees "image" 
+   en coordonnees terrain; Utilisee de la maniere suivante :
+    Terrain(i,j) = ImTerain_P00 + i *DerImTerain_Di + j *DerImTerain_Dj
+   N'a de sens que si FileIs2DStructured=true
+-->
+           <GeometrieAffineApprochee Nb="?">
+                 <ImTerain_P00 Nb="1" Type="Pt2dr"> </ImTerain_P00>
+                 <DerImTerain_Di Nb="1" Type="Pt2dr"> </DerImTerain_Di>
+                 <DerImTerain_Dj Nb="1" Type="Pt2dr"> </DerImTerain_Dj>
+           </GeometrieAffineApprochee>
+           <BoiteEnglob Nb="1" Type="Box2dr"> </BoiteEnglob>
+      </LidarStrip>
+      <BoiteEnglob Nb="1" Type="Box2dr"> </BoiteEnglob>
+  </LidarFlight>
+<!--
+-->
+
+   <!--
+        Cette classe permet de partager des resultats entre les
+     process MICMAC. Pour ne surtout pas avoir a gerer de pb
+     d'acces concurent, on s'arrange pour que seul le process
+     maitre ecrive dedans et qu'il le fasse avant d'avoir
+     ouvert un quelconque process fils (ou a la rigueur apres
+     avoir fermes tous ceux en // d'une etape);
+   -->
+   <MemPartMICMAC Nb="1" Class="true">
+       <NbMaxImageOn1Point Nb="?" Type="int"> </NbMaxImageOn1Point>
+       <BSurHGlob  Nb="?" Type="double"> </BSurHGlob>
+       <DeZoomLast  Nb="?" Type="int"> </DeZoomLast>
+       <NumLastEtape  Nb="?" Type="int"> </NumLastEtape>
+   </MemPartMICMAC>
+
+
+   <ParamMasqAnam Nb="1" Class="true">
+        <BoxTer Nb="1" Type="Box2dr"> </BoxTer>
+        <Resol  Nb="1" Type="double"> </Resol>
+   </ParamMasqAnam>
+
+
+   <MM_EtatAvancement Nb="1" Class="true">
+         <AllDone Nb="1" Type="bool"> </AllDone>
+   </MM_EtatAvancement>
+
+
+   <!--  
+        Pour eventuellement generer un fichier vecteur de description 
+       du chantier.
+   -->
+   <FileDescriptionChantier Nb="1" Class="true">
+	  <ImageFDC Nb="*">
+	      <FDCIm  Nb="1" Type="std::string"> </FDCIm>
+	      <DirEpipTransv Nb="?" Type="Pt2dr"> </DirEpipTransv>
+	  </ImageFDC>
+          <CouplesFDC Nb="*">
+                <FDCIm1 Nb="1" Type="std::string"> </FDCIm1>
+                <FDCIm2 Nb="1" Type="std::string"> </FDCIm2>
+                <BSurH Nb="?" Type="double">    </BSurH>
+          </CouplesFDC>
+   </FileDescriptionChantier>
+
+   <BoxMasqIsBoxTer Nb="1" Class="true">
+       <Box Nb="1" Type="Box2dr"> </Box>
+   </BoxMasqIsBoxTer>
+
+
+   <ParamMICMAC Nb="1" Class="true">
+
+        <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                         RefFile="ParamChantierPhotogram.xml"
+        >
+        </DicoLoc>
+
+
+<!-- *************************************************************     
+         Parametres lies au terrain "physique" 
+         independamment de la prise de vue
+-->
+     <Section_Terrain Nb="1">  
+
+       <!-- Completement redondant avec ZIncIsProp, mais plus general et arrive apres -->
+       <IntervalPaxIsProportion Type="bool" Nb="?" Def="false"> </IntervalPaxIsProportion>
+
+       <!-- En general aucun interet a le fixer soif meme; exception on lance plusieurs MicMac
+           en Faisceau Z Terrain et on veut les compare facile -->
+       <RatioAltiPlani Nb="?" Type="double"> </RatioAltiPlani>
+
+       <!--
+           En mode eGeomMECTerrain, IntervAltimetrie doit etre remplis
+        et IntervParalaxe doit etre vide.
+           Vice-vers en mode eGeomMECIm1.
+
+           Z,Px1,Px2 Calc sont les incertitude utilisée pour définir
+        l'intervalle de recherche initiale ("nappe englobante").
+
+          Z,Px1,Px2 Zonage sont les incertitudes utilisees pour definir
+        les espaces objets. Si il ne sont pas precises ils seront egaux
+        a leur equivalent calc.
+
+           Si ZMoyen n'est pas precise, il sera recherche dans les fichier
+         de geometrie si il le contiennent (altisol des ".ori").
+       -->
+
+       <EstimPxPrefZ2Prof Nb="?" Type="bool" Def="false"> </EstimPxPrefZ2Prof>
+       <IntervAltimetrie Nb="?">
+          <!-- Si vrai, pour la geometrie faisceau privilegie le Z sur la profondeur
+	       pour la calcul de paralaxe moyenne, adaptee au bas relief -->
+          <!-- Incertitude en Z -->
+             <ZMoyen Nb="?" Type="double">       </ZMoyen>
+             <ZIncCalc Nb="1" Type="double">     </ZIncCalc>
+             <!-- Si Vrai, le ZIncCalc est une prop / a la distance sol -->
+             <ZIncIsProp Nb="?" Type="bool"> </ZIncIsProp>
+             <ZIncZonage Nb="?" Type="double">   </ZIncZonage>
+             <MNT_Init Nb="?"> 
+                  <MNT_Init_Image Nb="1" Type="std::string"> </MNT_Init_Image>
+                  <MNT_Init_Xml Nb="1" Type="std::string">   </MNT_Init_Xml>
+                  <!-- Se rajoute a MNT_Init_Image, permet de gerer de maniere
+                       assymetrique le ZIncCalc -->
+                  <MNT_Offset Nb="?"  Type="double" Def="0.0"> </MNT_Offset>
+             </MNT_Init>
+
+             <EnveloppeMNT_INIT Nb="?">
+                  <ZInf Nb="1" Type="std::string"> </ZInf>
+                  <ZSup Nb="1" Type="std::string"> </ZSup>
+             </EnveloppeMNT_INIT>
+
+
+             
+       </IntervAltimetrie>
+
+       <IntervParalaxe Nb="?">
+          <!-- Incertitude en Paralaxe -->
+             <Px1Moy Nb="?" Type="double">      </Px1Moy>
+             <Px2Moy Nb="?" Type="double">      </Px2Moy>
+             <Px1IncCalc Nb="1" Type="double">      </Px1IncCalc>
+
+             <!-- Utilisee pour les points de liaisons, permet d'avoir
+	     un paramatrage universel pas idiot -->
+             <Px1PropProf Nb="?" Type="double" Def="0.0">      </Px1PropProf>
+
+             <Px2IncCalc Nb="?" Type="double">      </Px2IncCalc>
+             <Px1IncZonage Nb="?" Type="double">    </Px1IncZonage>
+             <Px2IncZonage Nb="?" Type="double">    </Px2IncZonage>
+       </IntervParalaxe>
+
+
+       <!-- Remplace le MNT INIT , sera plus general, pour l'instant implementation minimaliste,
+            exige un nuage superposable a celui du calcul 
+        -->
+       <NuageXMLInit Nb="?">
+             <NameNuageXML Nb="1" Type="std::string">       </NameNuageXML>
+             <CanAdaptGeom Nb="?" Type="bool" Def="false">  </CanAdaptGeom>
+       </NuageXMLInit>
+
+       <!-- Adapte a la geometrie faisceau -->
+       <IntervSpecialZInv Nb="?">
+             <MulZMin Nb="1" Type="double"> </MulZMin>
+             <MulZMax Nb="1" Type="double"> </MulZMax>
+       </IntervSpecialZInv>
+
+        <!-- limite le nombre de decimale des fichiers de geo-ref, mis a true par defaut car
+         on suppose (espere) que ce ne posera pas de pb de compat -->
+        <GeoRefAutoRoundResol Nb="?" Type="bool"> </GeoRefAutoRoundResol>
+        <GeoRefAutoRoundBox Nb="?" Type="bool"> </GeoRefAutoRoundBox>
+
+       <!-- Adapte  a la geometrie terrain -->
+        <Planimetrie Nb="?">
+
+             <!-- 
+                   La zone terrain est definie par l'union de Box Terrain
+                (si elle existe) et de la projection en terrain, avec la
+                def paralaxe, de l'ensemble des points inclus; s'il n'y a
+                ni boite ni Point inclus c'est +ou- la zone qui englobera
+                toutes les images .
+              -->
+             <BoxTerrain Nb="?" Type="Box2dr"> </BoxTerrain>
+             <ListePointsInclus Nb="*">
+                    <Pt Nb="+" Type="Pt2dr"> </Pt>
+                    <Im Nb="1" Type="std::string"> </Im>
+             </ListePointsInclus>
+             <!-- Par ex, si RatioResolImage vaut 0.8 et que la resolution
+                des image est 20 cm, alors la resolution terrain sera de 
+                16 cm
+              -->
+             <RatioResolImage Nb="?" Type="double"> </RatioResolImage>
+             <ResolutionTerrain Nb="?" Type="double"> </ResolutionTerrain>
+
+             <!-- Parfois on peut souhaiter que des images 
+                  (par exemple HR servant a l'ortho) ne soient
+                  pas utilisee pour calculer les caracteristiques geometrique -->
+             <FilterEstimTerrain Nb="?" Type="std::string" Def=".*"> </FilterEstimTerrain>
+
+        <!--
+              Image de Masque utilisee pour designer l'emprise fine de
+           la correlation, il doit etre superposable au MNT de resolution
+           1.  
+               Si le fichier n'existe pas, il en sera cree un correspondant
+           aux point du terrain qui sont vus d'au moins deux images (pour 
+           la paralaxe moyenne)
+        -->
+             <MasqueTerrain Nb="?"> 
+                  <!-- Si donne et que n'existe pas, la boite du masque est calculee
+                  et devient la boite terrain,  ensuite elle est sauvegardee dans le fichier
+                  pour usage ulterieur
+                  -->
+                  <FileBoxMasqIsBoxTer Nb="?" Type="std::string"> </FileBoxMasqIsBoxTer>
+                  <MT_Image Nb="1" Type="std::string"> </MT_Image>
+                  <MT_Xml Nb="1" Type="std::string"> </MT_Xml>
+             </MasqueTerrain>
+
+         
+
+
+        <!-- Taille minimale de l'emprise terrain / a la taille de l'image 1,
+             par defaut vaut 0 (donc aucune contrainte) sauf pour le cas
+             ou la geometrie est eGeomMNTFaisceauIm1PrCh_Px2D, auquel
+             cas il vaut 0.02 (2%) car cette geometrie est presque
+             toujours associee a du calcul de points homologues qui degenere
+             lorsque la zone est quasi vide.
+        -->
+              <RecouvrementMinimal Nb="?" Type="double">  </RecouvrementMinimal>
+        </Planimetrie>
+
+        <!-- Si donne, il ecrase toute les autres valeur de Plani et Alti -->
+        <FileOriMnt Nb="?" Type="std::string"> </FileOriMnt>
+
+        <!--
+             Cette section contient des champs qui releve a la fois du terrain
+           et de l'agorithmie. Il s'agit de specifier comment les different
+           terme de la fonction d'energie evoluent en fonction de l'echelle.
+
+              Il sont tous precises en terme d'exposant / a DeZoom;
+           
+           Pour les valeurs par defaut :
+
+              o ExpSigmaCorrel : -2, suppose la moyenne de correlation 
+                independante de l'echelle
+
+              o ExpRegulAlti : -1, si cout de type L1, et compte tenu du fait
+                que l'on raisonne toujours avec une quantif alti proportionnelle
+                a la quantif plani
+
+               o ExpRegulPlani : -1, si on fait abstraction de tout aspect "fractal"
+                 du relief , revient a une integrale de || de gradient
+
+             Donc en fait, par un raisonnement tres "complique", on retrouve un
+           coeff de regul constant.
+
+              Par contre ce n'est plus le cas lorsque SsResAlgo est != 1
+        -->
+        <RugositeMNT Nb="?">
+             <EnergieExpCorrel Nb="?" Type="double" Def="-2.0">      </EnergieExpCorrel> 
+             <EnergieExpRegulPlani Nb="?" Type="double" Def="-1.0">  </EnergieExpRegulPlani> 
+             <EnergieExpRegulAlti Nb="?" Type="double" Def="-1.0">   </EnergieExpRegulAlti> 
+        </RugositeMNT>
+
+
+     </Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+
+         ValSpecNotImage : si initialisee, donne la valeur
+       des pixels hors de l'image.
+-->
+     <Section_PriseDeVue Nb="1">
+        <!-- Bord d'image a ne pas utiliser,  apparu avec image
+             drawtisee, assez large pour tenir compte des eventuelles
+             corrections d'achromatisme
+        -->
+        <BordImage Nb="?" Type="int"  Def="5"> </BordImage>
+        <!-- Aucune raison a priori d'aller contre la valeur par defaut,mais
+             bon on sait jamais
+        -->
+
+
+        <ConvertToSameOriPtTgtLoc Nb="?" Type="bool" > </ConvertToSameOriPtTgtLoc>
+        <ValSpecNotImage Nb="?" Type="int"> </ValSpecNotImage>
+        <PrefixMasqImRes Nb="?" Type="std::string" Def="MasqIm">    </PrefixMasqImRes>
+
+        <DirMasqueImages Nb="?" Type="std::string" Def=""> </DirMasqueImages>
+        <!-- Il y en a plusieurs ce qui permet si necessaire de les combiner 
+            par "et" 
+        -->
+        <MasqImageIn Nb="*">
+             <!-- En cas de match multiple, c'est le dernier qui compte -->
+             <OneMasqueImage Nb="*">
+                <PatternSel Nb="1" Type="cElRegex_Ptr">    </PatternSel>
+                   <!-- Si NomMasq=PasDeMasqImage -> Valeur Tag 
+                        pour ne pas aller chercher de masque -->
+                <NomMasq Nb="1"  Type="std::string">      </NomMasq>  
+             </OneMasqueImage>
+             <AcceptNonExistingFile Nb="?" Type="bool" Def="false"> </AcceptNonExistingFile>
+        </MasqImageIn>
+
+         <!-- Filtre a appliquer en entree de l'image -->
+        <FiltreImageIn Nb="*" RefType="SpecFitrageImage"> </FiltreImageIn>
+
+        <GeomImages Nb="1" Type="eModeGeomImage"> </GeomImages>
+        <ModuleGeomImage Nb="?">
+           <NomModule Nb="1" Type="std::string"> </NomModule>
+           <NomGeometrie Nb="1" Type="std::string"> </NomGeometrie> 
+        </ModuleGeomImage>
+ 
+     <!-- Im1 et Im2 doivent etre des noms, les ImC peuvent
+     etre des patterns , au total il doit y avoir au - 2 images -->
+        <Images Nb="1">
+             <Im1 Nb="?" Type="std::string">   </Im1>
+             <Im2 Nb="?" Type="std::string">   </Im2>
+             <!-- Utilise le  FileChantierNameDescripteur pour calculer le nom de l'image 2 a partir du nom de l'image1-->
+	     <FCND_CalcIm2fromIm1 Nb="?">
+	          <I2FromI1Key Nb="1" Type="std::string"> </I2FromI1Key>
+		  <I2FromI1SensDirect Nb="1" Type="bool"> </I2FromI1SensDirect>
+	     </FCND_CalcIm2fromIm1>
+
+
+             <ImPat Nb="*" Type="std::string">   </ImPat>
+             <!-- Utilise le mecanisem ImSecOfMaster d'Apero -->
+             <ImSecCalcApero Nb="?">
+                  <Key Nb="1" Type="std::string"> </Key>
+                  <!-- Si Pas donne utilise Score  -->
+                  <Nb Nb="?" Type="int" Def="-1"> </Nb>  
+
+                  <NbMin Nb="?" Type="int" Def="-1"> </NbMin>  
+                  <NbMax Nb="?" Type="int" Def="1000"> </NbMax>  
+                  <OnEmpty Nb="?" Type="eOnEmptyImSecApero" Def="eOEISA_error"> </OnEmpty>  
+             </ImSecCalcApero>
+             <RelGlobSelecteur Nb="?" RefType="ParamGenereStrVois" RefFile="SuperposImage.xml"> </RelGlobSelecteur>
+             <Filter Nb="?" 
+                     RefType="NameFilter"
+                     RefFile="ParamChantierPhotogram.xml"
+             >
+             </Filter>
+
+             <!-- Si donne,filtre les images recouvrant la premier (au sens de 
+                la fon Elise) d'au moins ce seuil 
+              -->
+             <AutoSelectionneImSec Nb="?">
+                  <RecouvrMin Nb="1" Type="double"> </RecouvrMin>
+             </AutoSelectionneImSec>
+
+
+              <!-- Dans le cas ou il y a une structure lineaire du chantier, les images secondaire peuvent etre
+                   calculees a partir de la maitresse, il faut pouvoir convertir un nom en nombre et vice versa
+              -->
+              <ImSecByDelta Nb="?" RefType="ListImByDelta" RefFile="ParamChantierPhotogram.xml">
+              </ImSecByDelta>
+
+              <!-- Ne peut etre utilisee que pour generer la superposition multi-canal , A priori obsolete-->
+             <Im3Superp Nb="?" Type="std::string">   </Im3Superp>
+        </Images>
+	<!-- Ne peut etre vide que pour les modes epipolaires -->
+        <NomsGeometrieImage Nb="*">
+	    <UseIt Nb="?" Type="bool" Def="true"> </UseIt>
+            <PatternSel Nb="?" Type="std::string">    </PatternSel>
+             <!-- La valeur GridDistId  est une cle pour pas de distorsion-->
+            <PatNameGeom Nb="?" Type="std::string">   </PatNameGeom>
+
+             <!-- Si ce tag "esoterique" vaut true, alors c'est la concatenation de Iml@Im2 qui
+                  est utilise pour calculer le nom de la geometrie de Im1 (et Im2@Im1
+                  pour Im2). Ce tag est utilise pour eviter tout conflit de noms lorsque des
+                  orientation relatives calculees par couple sont reutilisees en entree de MICMAC
+             -->
+            <PatternNameIm1Im2 Nb="?" Type="std::string"> </PatternNameIm1Im2>
+
+             <!-- Normalement il devrait y avoir exclusion des la specif entre les
+	     trois PatternSel,PatNameGeom,PatternNameIm1Im2 et le mode FDNC, cela
+	     conduirait a des incompatibilite, c'est donc dans le code que l'on verifie
+	     cette exclusion.
+	     -->
+             <FCND_Mode_GeomIm Nb="?">
+	          <FCND_GeomCalc Nb="1" Type="std::string"> </FCND_GeomCalc>  <!-- Pour l'instant 1 to 1 -->
+                 <!-- permet de filtrer si plusieurs NomsGeometrieImage , par def OK-->
+	          <FCND_GeomApply Nb="?" Type="std::string"> </FCND_GeomApply> 
+             </FCND_Mode_GeomIm>
+
+
+            <AddNumToNameGeom Type="bool" Nb="?" Def="false"> </AddNumToNameGeom>
+
+            <ModuleImageLoader Nb="?"> 
+                 <NomModule Nb="1" Type="std::string"> </NomModule>
+                 <NomLoader Nb="1" Type="std::string"> </NomLoader> 
+            </ModuleImageLoader>
+             <!-- Liste des orientation generee a un facteur de DeZoom; Non Implante -->
+            <GenereOriDeZoom Nb="*" Type="int"> </GenereOriDeZoom> 
+
+	    <!-- Utilisee si l'image a ete modifiee (chgt d'echelle, crop)  mais pas
+	    le fichier de geometrie-->
+            <ModifieurGeometrie Nb="*">
+	        <Geom Nb="1" UnionType="true">
+	            <CropAndScale Nb="?"> 
+		       <!-- X et Y, sauf si ScaleY est specifie-->
+		       <Scale Nb="?" Type="double" Def="1.0"> </Scale> 
+		       <!-- Debut du crop dans les coordonnees de l'image intiale -->
+		       <Crop  Nb="?" Type="Pt2dr" Def="0.0 , 0.0"> </Crop>
+		       <ScaleY Nb="?" Type="double"> </ScaleY>  <!-- Defaut = Scale-->
+		       <!-- Initiale a "reduite" : (X-tr.x)/Sc.x -->
+	            </CropAndScale> 
+		    <NamePxTr Nb="?" Type="std::string"> </NamePxTr>
+	        </Geom>
+		<Apply Nb="?" Type="cElRegex_Ptr"  > </Apply>
+            </ModifieurGeometrie>
+
+
+        </NomsGeometrieImage>
+        <!-- Fonctionne sur le meme principe que PatternNameGeom
+             avec les "symboles" %I et %J
+        -->
+        <NomsHomomologues Nb="?">
+              <PatternSel Nb="1" Type="std::string">    </PatternSel>
+              <PatNameGeom Nb="1" Type="std::string">   </PatNameGeom>
+              <SeparateurHom Nb="?" Type="std::string" Def="">   </SeparateurHom>
+        </NomsHomomologues>
+
+	<!-- Toujours dans le sens direct, car pas forcement inversible -->
+	<FCND_CalcHomFromI1I2 Nb="?" Type="std::string"> </FCND_CalcHomFromI1I2>
+
+
+	<!-- Ces deux tags on ete rajoutes pour les prise de vue
+	convergent tres oblique, le probleme apparait quand l'image
+	d'un point terrain passe de l'autre cote du plan focal.
+
+	     Pour eviter ca 
+	-->
+	<SingulariteInCorresp_I1I2 Type="bool" Nb="?" Def="false"> </SingulariteInCorresp_I1I2>
+
+
+        <ClassEquivalenceImage Nb="?" 
+	            RefType="MapName2Name"
+		    RefFile="SuperposImage.xml"
+        >
+        </ClassEquivalenceImage>
+
+     </Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres reglant le comportement
+     de l'algo de mise en correspondance
+
+     La premiere etape doit obligatoirement avoir le champs
+   resolution a -1. Elle donne les valeurs par defaut et ne
+   sera pas executee.  
+
+     Pour les champs facultatif l'attribut "Portee" est a prendre
+   au sens de Portee Lexical, il peut valoir "Locale" ou "Globale".
+   Si il vaut Local seule l'etape courante est modifiee, sinon
+   ce sont toutes les etapes suivante. Pour la premiere etape
+   (avec Resol = -1), la portee est toujours globale.
+
+     De maniere generale, c'est l'attribut DeltaPrec a "1" qui
+   a cet effet (defaut = "0").
+
+       Doit etre ordonne des resolutions les plus basses
+   aux plus grandes.
+-->
+     <Section_MEC Nb="1">
+
+         <!-- Option applicable a la geometrie terrain, en image c'est de touet facon
+        la cas... Permet de faire des fichiers + generiques -->
+
+         <PasIsInPixel Nb="?" Type="bool" Def="false"> </PasIsInPixel>
+
+         <!--
+               Si on veut que la mise en correspondance ne se fasse pas
+            sur tous le chantier on fixe la Box ProportionClipMEC, une valeur
+            0 0 1 1 (+ou -  celle par defaut) correspond a l'ensemble du 
+            channtier.
+               Utile pour tester rapidement l'effet de modification des parametres.
+         -->
+        <ProportionClipMEC Type="Box2dr" Nb="?"> </ProportionClipMEC>
+        <ClipMecIsProp Nb="?" Type="bool" Def="true"></ClipMecIsProp>
+        <ZoomClipMEC Nb="?" Type="double" Def="1.0"></ZoomClipMEC>
+            <!-- Valeur de la correlation quand moins de 2 images-->
+        <NbMinImagesVisibles Nb="?" Type="int" Def="2"> </NbMinImagesVisibles>
+            <!-- Si ce tag vaut true et que pour un point la Px vaut DefCorr, alors c'est propage 
+	    a tout les point de cet Px. Vrai par defaut car ca evite des biais en bord d'image
+	    -->
+
+
+	<OneDefCorAllPxDefCor Nb="?" Type="bool" Def="false"> </OneDefCorAllPxDefCor>
+	<!-- Dans certaine config (tres longue focale) le OneDefCorAllPxDefCor a pour
+	effet de "manger" tout le terrain si on le fait trop tot, donc :   -->
+	<ZoomBeginODC_APDC Nb="?"  Type="int" Def="4"> </ZoomBeginODC_APDC>
+
+
+        <DefCorrelation Nb="?" Type="double" Def="-0.01234"> </DefCorrelation>
+	<!-- Tag "cosmetique",  recalcul les pixel hors image par projection sur les
+	pixels images -->
+        <ReprojPixelNoVal Nb="?" Type="bool" Def="true"> </ReprojPixelNoVal>
+            <!-- "Epsilon" utilise lorsque Ecart Quad trop faible"-->
+        <EpsilonCorrelation Nb="?" Type="double" Def="1e-5"> </EpsilonCorrelation>
+
+        <!-- Permet qu'a resolution 1, seuls 1 point sur FreqEchantPtsI soit calcule,
+             les frequence inferieures sont gerees automatiquement;
+        -->
+        <EchantillonagePtsInterets Nb="?">
+             <FreqEchantPtsI Nb="1" Type="int"> </FreqEchantPtsI> 
+             <ModeEchantPtsI Nb="1" Type="eTypeModeEchantPtsI"> </ModeEchantPtsI>
+	     <KeyCommandeExterneInteret Nb="?" Type="std::string"> </KeyCommandeExterneInteret>
+
+              <!-- Parametres specifiques a Mode=NonAutoCor-->
+              <SzVAutoCorrel Nb="?" Type="int" Def="2"> </SzVAutoCorrel>
+              <EstmBrAutoCorrel Nb="?" Type="double" Def="-1.0"> </EstmBrAutoCorrel>
+              <SeuilLambdaAutoCorrel Nb="?" Type="double" Def="0.0"> </SeuilLambdaAutoCorrel>
+              <SeuilEcartTypeAutoCorrel Nb="?" Type="double" Def="0.0"> </SeuilEcartTypeAutoCorrel>
+              <RepartExclusion Nb="?" Type="double" Def="0.4"> </RepartExclusion>
+              <RepartEvitement Nb="?" Type="double" Def="1.0"> </RepartEvitement>
+        </EchantillonagePtsInterets>
+
+	<!-- souvent, en geomIm1 maitresse,  il est utile que les coordonnees du terrain 
+	soient superposables a image1( sans translation) , ce tag permet de forcer
+	-->
+	<ChantierFullImage1 Nb="?" Type="bool" Def="false"> </ChantierFullImage1>
+        <!-- Est-ce que lorsque ChantierFullImage1 on doit inhiber le masque ? true par compat -->
+	<ChantierFullMaskImage1 Nb="?" Type="bool" Def="true"> </ChantierFullMaskImage1>
+        <!--  Si l'on souhite generer des points homologues multiples, il faut que ce soit tjs les memes
+	      points de l'image 1 que l'on retrouve.
+              Pour faire cela simplement, la taille du chantier est alors tjs egale a celle de l'image
+	      (evite pb de coherence sur les origines).
+	      Par ailleurs les points homologues sont exportes sous formes d'images.
+
+	      Ce tag force aussi a true ChantierFullImage1
+	-->
+	<ExportForMultiplePointsHomologues Nb="?" Type="bool" Def="false"> </ExportForMultiplePointsHomologues>
+
+
+
+
+        <!--  J'ai observe empririquement que la dynamique de correlation
+              peut etre extrement variable selon les contextes et les
+              taille de fenetre, pour essayer d'avoir un parametrage de regularisation
+              qui ne soit pas dependant de la taille de fenetre, 
+              on peut regler ces coeefs.
+
+              Pas de correction pour les variation de fenetre interieure,
+              la formule est (a peu pres) valide pour de fenetre de taille 
+              interieure 0
+        -->
+        <AdapteDynCov Nb="?">
+             <CovLim Nb="?" Type="double" Def="0.005">   </CovLim>
+             <TermeDecr Nb="?" Type="double" Def="0.06">   </TermeDecr>
+              <!--  3 pour fenetre 3x3  -->
+             <SzRef    Nb="?"  Type="int" Def="3"> </SzRef>
+             <!-- La Val Ref a ete etalonnee pour une fenetre 3x3  "vide"  -->
+             <ValRef    Nb="?"  Type="double" Def="0.048"> </ValRef>
+        </AdapteDynCov>
+
+        <MMUseMasq3D Nb="?" AccessorFils="false">
+             <NameMasq Nb="1" Type="std::string"> </NameMasq>
+             <ZoomBegin Nb="?" Def="16"  Type="int"> </ZoomBegin>
+             <Dilate Nb="?" Def="2"  Type="int"> </Dilate>
+             <PrefixNuage Nb="?"  Type="std::string"> </PrefixNuage>
+        </MMUseMasq3D>
+
+        <EtapeMEC Nb="+" DeltaPrec="1">
+            <DeZoom  Nb="1" Type="int">                    </DeZoom>
+
+
+            <CorrelAdHoc Nb="?">
+
+                <EpsilonAddMoyenne Nb="?" Type="double" Def="0.0"> </EpsilonAddMoyenne>
+                <EpsilonMulMoyenne Nb="?" Type="double" Def="0.0"> </EpsilonMulMoyenne>
+
+                <SzBlocAH Nb="?" Type="int" Def="40"> </SzBlocAH>
+                <CorrelMultiScale Nb="?">                      
+                      <UseGpGpu Nb="?" Type="bool" Def="false"> </UseGpGpu>
+                      <ModeDense Nb="?" Type="bool"> </ModeDense>
+                      <!-- Si true un indicateur de forme est calcule sur l'image maitresse pour choisir quel type de fenetre est utilise -->
+                      <UseWAdapt Nb="?" Type="bool" Def="false"> </UseWAdapt>
+                      <ModeMax Nb="?" Type="bool" Def="false">  </ModeMax> <!--Pour l'instant Uniquement Implante dans la filiere Census-->
+                      <OneParamCMS Nb="+" Container="std::vector">
+                           <SzW Nb="1" Type="Pt2di"> </SzW>
+                           <!-- A priori Sigma doit etre fonction de  SzW, mais quelle fonction ?? -->
+                           <Sigma Nb="1" Type="double"> </Sigma>
+                           <!-- Poids apres normalisation des tailles de fenetres -->
+                           <Pds Nb="1" Type="double"> </Pds> 
+                           <!-- Si pas Square W : filtre gauss -->
+                           <SquareW Nb="?" Type="bool" Def="false"> </SquareW> 
+                      </OneParamCMS>
+                </CorrelMultiScale>
+
+                        <!-- Si Correl2DLeastSquare  L'algo doit obligat etre eAlgoLeastSQ -->
+
+
+
+                <TypeCAH Nb="1" Union="true">
+                        <CensusCost Nb="?" AccessorFils="false">
+                              <PdsCrown  Type="double" Def="0.5" Nb="?"> </PdsCrown>
+                              <TypeCost Type="eModeCensusCost" Nb="1">   </TypeCost>
+                              <Verif Type="bool" Nb="?" Def="false">   </Verif>
+                              <AttenDist  Type="double" Def="0.0" Nb="?"> </AttenDist>
+                              <SeuilHautCorMixte Type="double" Def="0.8" Nb="?"> </SeuilHautCorMixte>
+                              <SeuilBasCorMixte Type="double" Def="0.6" Nb="?">  </SeuilBasCorMixte>
+                        </CensusCost>
+
+
+                        <Correl2DLeastSquare Nb="?" AccessorFils="false">    
+                             <SzW Nb="1" Type="int"> </SzW>
+                             <PeriodEch Nb="1" Type="int"> </PeriodEch>
+                             <Step Nb="?" Type="double" Def="1.0"> </Step>
+                        </Correl2DLeastSquare>
+
+
+                        <GPU_Correl Nb="?" AccessorFils="false">    
+                                <Unused Nb="?" Type="std::string"> </Unused>
+                        </GPU_Correl>
+
+                        <!-- Afin de conserver le max de simplicite -->
+                        <GPU_CorrelBasik Nb="?" AccessorFils="false">    
+                                <Unused Nb="?" Type="std::string"> </Unused>
+                        </GPU_CorrelBasik>
+
+
+                        <MultiCorrelPonctuel Nb="?"  AccessorFils="false">
+                                <PdsCorrelStd   Nb="1" Type="double" > </PdsCorrelStd>
+                                <PdsCorrelPonct Nb="1" Type="double" > </PdsCorrelPonct>
+                                <DefCost  Nb="?" Type="double" Def="0.1"> </DefCost>
+                                <UnUsedTest Nb="?" Type="std::string"> </UnUsedTest>
+                        </MultiCorrelPonctuel>
+
+
+                        <Correl_Ponctuel2ImGeomI Nb="?" AccessorFils="false">    
+                              <RatioI1I2 Nb="?" Type="double" Def="1.0"> </RatioI1I2>
+                        </Correl_Ponctuel2ImGeomI>
+
+                        <Correl_PonctuelleCroisee Nb="?" AccessorFils="false">    
+                              <RatioI1I2 Nb="?" Type="double" Def="1.0"> </RatioI1I2>
+                              <PdsPonctuel Nb="1" Type="double"> </PdsPonctuel>
+                              <PdsCroisee  Nb="1" Type="double"> </PdsCroisee>
+                        </Correl_PonctuelleCroisee>
+
+                        <Correl_MultiFen Nb="?" AccessorFils="false">    
+                              <NbFen Nb="1" Type="int"> </NbFen>
+                        </Correl_MultiFen>
+
+                        <Correl_Correl_MNE_ZPredic  Nb="?" AccessorFils="false">    
+                              <SeuilDZ Nb="1" Type="double"> </SeuilDZ>
+                        </Correl_Correl_MNE_ZPredic>
+
+                       <!-- Mesure supposee robuste de correlation non centree normalisee par le pixel central -->
+                        <Correl_NC_Robuste  Nb="?" AccessorFils="false">    
+                              <Unused Nb="?" Type="std::string"> </Unused>
+                        </Correl_NC_Robuste>
+
+                        <MasqueAutoByTieP Nb="?" AccessorFils="false"> 
+                            <FilterPrgDyn Nb="?" RefType="ParamFiltreDepthByPrgDyn"  RefFile="SuperposImage.xml"> </FilterPrgDyn>
+                            <!-- Si true, s'arrete apres avoir rechecher les point qui correlent bien sans chercher a boucher les trous -->
+                            <ComputeAndExportEnveloppe Nb="?">
+
+                                   <EndAfter Nb="?" Type="bool" Def="true"> </EndAfter>
+                                   <NuageExport Nb="?" Type="std::string"> </NuageExport>
+                                   <SsEchFilter Type="double" Nb="?" Def="3.0"> </SsEchFilter>
+                                   <SzFilter    Type="int" Nb="?" Def="7"> </SzFilter>
+                                   <ParamPropFilter    Type="double" Nb="?" Def="0.9"> </ParamPropFilter>
+
+                                   <ProlResolCible Type="double" Nb="?" Def="25">   </ProlResolCible>
+                                   <ProlResolCur  Type="double" Nb="?" Def="10"> </ProlResolCur>
+                                   <ProlDistAdd Type="double" Nb="?" Def="0.25"> </ProlDistAdd>
+                                   <ProlDistAddMax Nb="?" Type="double" Def="3.0"> </ProlDistAddMax>
+
+                                   <DilatAltiCible Nb="?" Type="int" Def="5"> </DilatAltiCible>
+                                   <DilatPlaniCible Nb="?" Type="int" Def="5"> </DilatPlaniCible>
+                                   <DilatPlaniCur Nb="?" Type="int" Def="2"> </DilatPlaniCur>
+                                   <DilatAltiCur Nb="?" Type="int" Def="2"> </DilatAltiCur>
+                            </ComputeAndExportEnveloppe>
+                            <!-- Filtre permettant de supprimer le ciel (sans nuage ...) en virant les zones tres homogenes -->
+                            <mmtpFilterSky Nb="?">
+                                <PertPerPix Type="double" Nb="?" Def="0.005"> </PertPerPix>
+                                <SzKernelHom Type="int" Nb="?" Def="5"> </SzKernelHom>
+                                <PropZonec  Type="double" Nb="?" Def="0.001"> </PropZonec>
+                            </mmtpFilterSky>
+
+                            <BasicOneIter Type="bool" Def="true" Nb="?"> </BasicOneIter>
+                            <Masq3D Nb="?" Type="std::string">        </Masq3D>
+                            <ParamFiltreRegProf RefType="ParamFiltreDetecRegulProf" Nb="?"  RefFile="SuperposImage.xml"> </ParamFiltreRegProf>
+
+                            <GlobFilePt3D  Nb="?" Type="std::string"> </GlobFilePt3D>
+                            <KeyImFilePt3D  Nb="1" Type="std::string"> </KeyImFilePt3D>
+                            <DeltaZ Nb="1" Type="int"> </DeltaZ>
+<!-- Attention, ce sont distance Correl = (2-D) /2.0 , donc D>0.6 equiv correl < 0.7 -->
+                            <SeuilSomCostCorrel Nb="1" Type="double"> </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel Nb="1" Type="double"> </SeuilMaxCostCorrel>
+                            <SeuilMedCostCorrel Nb="1" Type="double"> </SeuilMedCostCorrel>
+                            <Visu Nb="?" Type="bool" Def="false"> </Visu>
+                            <ImPaintResult Nb="?"  Type="eImpaintMethod" Def="eImpaintL2"> </ImPaintResult>
+                            <ParamIPMnt Nb="?" Type="double" Def="1.0"> </ParamIPMnt>
+
+                            <TiePMasqIm Nb="?">
+                                 <DeZoomRel Nb="1" Type="int"> </DeZoomRel>
+                                 <Dilate Nb="1" Type="int">   </Dilate>
+                            </TiePMasqIm>
+                            <DoImageLabel Nb="?" Type="bool" Def="false"> </DoImageLabel>
+                        </MasqueAutoByTieP> 
+                </TypeCAH>
+            </CorrelAdHoc>
+
+            <DoImageBSurH Nb="?" AccessorFils="false">
+                 <Dyn Nb="?" Type="double" Def="1e-2"> </Dyn>
+                 <!-- Offset >0 si on veut stocker les eventuel B/H neg (vue derriere la cam) -->
+                 <Offset Nb="?" Type="double" Def="0"> </Offset>
+                 <SeuilMasqExport Nb="?" Type="double"> </SeuilMasqExport>
+                 <Name Nb="1" Type="std::string"> </Name>
+                 <ScaleNuage Nb="1" Type="double"> </ScaleNuage>
+                 <NameNuage Nb="1" Type="std::string"> </NameNuage>
+            </DoImageBSurH>
+
+             <DoStatResult Nb="?">
+                  <DoRatio2Im Nb="1" Type="bool"> </DoRatio2Im>
+             </DoStatResult>
+
+            <!-- Permet de specifier un  masque special a l'etape
+                 et a l'image
+            -->
+            <MasqOfEtape Nb="*">
+                <PatternApply Nb="1" Type="cElRegex_Ptr"> </PatternApply>
+                <RectInclus Nb="?" Type="Box2dr"> </RectInclus>
+            </MasqOfEtape>
+            <!-- Pour raison de compatibilite, les valeurs par defaut sont
+              donnees dans la section Section_WorkSpace, une valeur
+              peut etre redefinie pour chaque etape -->
+	    <SzRecouvrtDalles Nb="?"  Type="int"> </SzRecouvrtDalles>
+	    <SzDalleMin       Nb="?"  Type="int"> </SzDalleMin>
+	    <SzDalleMax       Nb="?"  Type="int"> </SzDalleMax>
+
+            <DynamiqueCorrel Nb="?" Type="eModeDynamiqueCorrel"> 
+            </DynamiqueCorrel>
+
+            <!-- Un moyen basique de ne pas tenir compte des correlations faibles
+            est de dire que si Correl < CorrelMin alors Correl = CorrelMin -->
+            <CorrelMin Nb="?" Type="double" > </CorrelMin>
+            <!-- Gamma de 2, ecrase les correl faible => VOIR FORMULE Cor2Cost -->
+            <GammaCorrel Nb="?" Type="double" > </GammaCorrel>
+
+            <AggregCorr Nb="?" Type="eModeAggregCorr"> 
+            </AggregCorr>
+
+	    <!-- Peut etre reel dans le cas de WithFenetreExp -->
+            <SzW    Nb="?"  Type="double">      </SzW>
+	    <!-- En cas de fenetre speciales, faut il utiliser un masque
+	    des images globales, plus rigoureux mais diminue la zone
+	    de calcul ; defaut true ssi NbIm=2-->
+	    <WSpecUseMasqGlob Nb="?" Type="bool"> </WSpecUseMasqGlob>
+	    <TypeWCorr Nb="?" Type="eTypeWinCorrel"> </TypeWCorr>
+	       <!-- Pas defaut egal a SzWx, pour l'instant ne peut etre !=
+	       avec le mode habituel eWInCorrelFixe (car oubli de prise en compte au depart)
+	       -->
+	    <SzWy  Nb="?"  Type="double">      </SzWy>
+	    <NbIterFenSpec Nb="?" Type="int"> </NbIterFenSpec>
+
+
+             <!-- Vaut il mieux  (1) filtrer par le gradient puis calculer le sous-ech, ou (2) l'inverse ?
+	         si c'est  (1) on utilise FiltreImageIn, sinon FiltreImageLoc, applique a la volee,
+		 fait le (2) -->
+            <FiltreImageLoc Nb="*" RefType="SpecFitrageImage"> </FiltreImageLoc>
+
+            <!-- Taille de la fenetre utilisee pour calculer les ecarts
+                 types, par defaut vaut SzW -->
+            <SzWInt    Nb="?"  Type="int">      </SzWInt>
+
+            <!-- Eventuelle sur echantillonage de la fenetre de correlation, par defaut
+                 vaut 1 -->
+            <SurEchWCor Nb="?"  Type="int"> </SurEchWCor>
+
+	    <AlgoRegul Nb="?" Type="eAlgoRegul"> </AlgoRegul>
+            <!-- Uniquemenet accepte pour les algos continus -->
+            <ExportZAbs Nb="?" Type="bool" Def="false"> </ExportZAbs>
+	    <AlgoWenCxRImpossible Nb="?" Type="eAlgoRegul"> </AlgoWenCxRImpossible>
+
+
+            <CoxRoy8Cnx Nb="?" Type="bool"> </CoxRoy8Cnx>     <!-- Def=false-->
+            <CoxRoyUChar Nb="?" Type="bool"> </CoxRoyUChar>   <!-- Def=true-->
+
+
+            <ModulationProgDyn Nb="?">
+                <EtapeProgDyn  Nb="+">
+                     <Px1MultRegul Nb="?" Type="std::vector<double>"> </Px1MultRegul>
+                     <Px2MultRegul Nb="?" Type="std::vector<double>"> </Px2MultRegul>
+                     <NbDir Nb="?" Type="int" Def="2">             </NbDir>
+                     <ModeAgreg Type="eModeAggregProgDyn" Nb="1">  </ModeAgreg>
+                     <Teta0 Nb="?" Type="double" Def="0.0">         </Teta0>
+                </EtapeProgDyn>
+                <Px1PenteMax Nb="?" Type="double" Def="10.0"> </Px1PenteMax>
+                <Px2PenteMax Nb="?" Type="double" Def="10.0"> </Px2PenteMax>
+                <!-- Essentiellement pour mise au point, sinon il vaut mieux laisser MM chosir -->
+                <ChoixNewProg Nb="?" Type="bool"> </ChoixNewProg>
+                <ArgMaskAuto Nb="?">
+                      <ValDefCorrel Nb="1" Type="double"> </ValDefCorrel>
+                      <CostTrans Nb="1" Type="double"> </CostTrans>
+                      <ReInjectMask Nb="?" Type="bool" Def="true"> </ReInjectMask>
+
+                      <AmplKLPostTr Nb="?" Def="100.0" Type="double"> </AmplKLPostTr>
+                      <!-- Erosion pour prendre en compte les imprecisions, par defaut
+                        2 si diff de zoom, 0 si zoom maintenu , donne en distance 3-2, a pour effet 
+                        d'aggrandir la zone correllee -->
+                      <Erod32Mask Nb="?" Type="int" > </Erod32Mask>
+                      <!-- Diminue la zone correllee -->
+                      <SzOpen32 Nb="?" Type="int" Def="9" > </SzOpen32>
+                      <SeuilZC Nb="?" Type="int" Def="200" > </SeuilZC>
+                      <!-- Ne peut etre utilise qu'avec le mode eAggregMaxIm1Maitre -->
+                      <EtiqBestImage Nb="?">
+                             <CostChangeEtiq Nb="1" Type="double"> </CostChangeEtiq>
+                             <SauvEtiq Nb="?" Type="bool" Def="false"> </SauvEtiq>
+                      </EtiqBestImage>
+                </ArgMaskAuto>
+            </ModulationProgDyn>
+
+            <!-- Ce vecteur (PrgDynMultRegul) est utilise pour moduler l'evolution 
+                 du cout de regularisation de PrgDyn au cour des differents balayage. 
+                 De maniere a avoir un comportement le plus proche possible de 
+                 CoxRoy. Normalement il est determine  automatiquement. 
+             
+            --> 
+<!--
+            <DirectionsProgdyn Nb="*" Type="Pt2dr"> </DirectionsProgdyn>
+            <Px1PrgDynMultRegul Nb="*" Type="double"> </Px1PrgDynMultRegul>
+            <Px2PrgDynMultRegul Nb="*" Type="double"> </Px2PrgDynMultRegul>
+
+             <Px1PenteMax Nb="?" Type="double" Def="10.0"> </Px1PenteMax>
+             <Px2PenteMax Nb="?" Type="double" Def="10.0"> </Px2PenteMax>
+-->
+
+            <SsResolOptim Nb="?" Type="int" > </SsResolOptim> <!-- Def = 1  -->
+<!--
+      On peut souhaiter avoir un pas MNT plus fin que la resolution image.
+      Si la resolution image est de 20 cm, par ex faire un MNT a 10. Si on
+      laisse les option de MICMAC telle quelle, il va faire a ss/resolution
+      2 du MNT (cad a resol 20 cm) utiliser des images a ss-resol 2, donc
+      a 40 au lieu des 20 disponibles. C'est ballot !
+           Le parametre RatioDeZoomImage permet de controler cela. Mettre 0.5 dans le cas precedent
+          
+-->
+            <RatioDeZoomImage Nb="?" Type="double"> </RatioDeZoomImage> <!-- Def = 1  -->
+
+        <!-- Regle la quantif des tabul d'interpol -->
+            <NdDiscKerInterp Nb="?" Type="int"> </NdDiscKerInterp> <!-- Def 1000 -->
+            <ModeInterpolation Nb="?" Type="eModeInterpolation"> </ModeInterpolation>
+<!--
+      Dans le cas de l'interpolation bicubique, on peut specifier le parametre de la famille, 
+entre -0.5 et -3. Par defaut, on est a -0.5, ce qui transforme une droite en droite. Pour etre
+plus proche du sinus cardinal, il vaut mieux etre autour de -1.2.
+-->
+            <CoefInterpolationBicubique Nb="?" Type="double"> </CoefInterpolationBicubique>  <!-- Def -0.5 -->
+
+            <SzSinCard Nb="?" Type="double" > </SzSinCard> <!-- Def 5.0 -->
+            <!-- Fenetre de Tukey, si SzSinCard=<SzAppodSinCard alors c'est une fenetre de Hanning -->
+            <SzAppodSinCard Nb="?" Type="double"> </SzAppodSinCard>
+<!--
+      OBSOLETE CAR UTILISE DANS LE VIEUX SINCARD  : eOldInterpolSinCard
+
+
+      Dans le cas de l'interpolation par sinus cardinal, on peut specifier la taille de la fenetre 
+	a prendre en compte. plus c'est grand, plus c'est precis et plus c'est lent...
+	On peut egalement specifier si on souhaite apodiser par une gaussienne, afin de diminuer les effets 
+	de limitation de la taille de la fenetre. Par defaut, on ne le fait pas, pour avoir le meme
+	comportement qu'avant
+-->
+            <TailleFenetreSinusCardinal Nb="?" Type="int" Def="3"> </TailleFenetreSinusCardinal>
+            <ApodisationSinusCardinal Nb="?" Type="bool" Def="false"> </ApodisationSinusCardinal>
+	    <!-- 
+	        En mode eGeomMECTerrain les Z* ci dessous
+	    doivent tous avoir une valeur et les Px1*,Px2* aucun.
+	    Vice-versa en mode eGeomMECIm1
+	    -->
+
+            <!--
+                Est-ce que la geometrie est suffisament reguliere pour
+               que l'on puisse utiliser des difference finie pour 
+               eviter de la cacluler trop souvent.
+ 
+                 Par defaut :
+                     - Diff finie OK sur Fenetre 5x5 (taille 2)
+                       si il n'y a pas de redressement
+                     - Diff finie non valides;
+            -->
+            <SzGeomDerivable Nb="?" Type="int"> </SzGeomDerivable>
+
+            <!-- Permet d'avoir de couts concaves qui favoriseront
+               les sauts brusques -->
+            <SeuilAttenZRegul Nb="?"  Type="double"> </SeuilAttenZRegul>
+            <AttenRelatifSeuilZ Nb="?"  Type="double"> </AttenRelatifSeuilZ> <!-- Def 0.2 -->
+
+            <!-- Le parametre de pas en Pax, est en proportion du pas
+            en "terrain", cela assure que ZPas=1.0 est toujours une
+            valeur raisonnable pour un premier essai -->
+            <ZRegul_Quad Nb="?"  Type="double">     </ZRegul_Quad>
+            <ZRegul Nb="?"  Type="double">     </ZRegul>
+            <ZPas  Nb="?"  Type="double">     </ZPas>
+
+             <!-- Ces deux valeurs permettent de gerer le fait que, la notion de
+             partie cache etant completement disymetrique, on peur avoir de bonne raison de 
+             recherche + vers le bas que vers le haut -->
+	    <RabZDilatAltiMoins   Nb="?" Type="int">   </RabZDilatAltiMoins>
+	    <RabZDilatPlaniMoins   Nb="?" Type="int">  </RabZDilatPlaniMoins>
+
+	    <ZDilatAlti   Nb="?" Type="int">   </ZDilatAlti>
+            <ZDilatPlani  Nb="?" Type="int">   </ZDilatPlani>
+            <ZDilatPlaniPropPtsInt  Nb="?" Type="double">   </ZDilatPlaniPropPtsInt>
+            <ZRedrPx Nb="?" Type="bool">      </ZRedrPx>
+            <ZDeqRedr Nb="?" Type="bool">      </ZDeqRedr>
+            <!-- Faut il dequantifier la px de redressement, defaut = true-->
+            <RedrNbIterMed Nb="?" Type="int"></RedrNbIterMed> <!-- Def 2 -->
+            <RedrSzMed Nb="?" Type="int"></RedrSzMed>  <!-- Def 2 -->
+            <RedrSauvBrut Nb="?" Type="bool"></RedrSauvBrut> <!-- false -->
+
+            <RedrNbIterMoy Nb="?" Type="int"></RedrNbIterMoy> <!-- Def 3 -->
+            <RedrSzMoy Nb="?" Type="int"></RedrSzMoy>         <!-- Def 8 -->
+
+            <Px1Regul_Quad Nb="?"  Type="double">     </Px1Regul_Quad>
+            <Px1Regul Nb="?"  Type="double">     </Px1Regul>
+            <Px1Pas  Nb="?"  Type="double">     </Px1Pas>
+	    <Px1DilatAlti   Nb="?" Type="int">   </Px1DilatAlti>
+            <Px1DilatPlani  Nb="?" Type="int">   </Px1DilatPlani>
+            <Px1DilatPlaniPropPtsInt  Nb="?" Type="double">   </Px1DilatPlaniPropPtsInt>
+            <Px1RedrPx Nb="?" Type="bool">      </Px1RedrPx>
+            <Px1DeqRedr Nb="?" Type="bool">      </Px1DeqRedr> <!-- Def true-->
+
+            <Px2Regul_Quad Nb="?"  Type="double">     </Px2Regul_Quad>
+            <Px2Regul Nb="?"  Type="double">     </Px2Regul>
+            <Px2Pas  Nb="?"  Type="double">     </Px2Pas>
+	    <Px2DilatAlti   Nb="?" Type="int">   </Px2DilatAlti>
+            <Px2DilatPlani  Nb="?" Type="int">   </Px2DilatPlani>
+            <Px2DilatPlaniPropPtsInt  Nb="?" Type="double">   </Px2DilatPlaniPropPtsInt>
+            <Px2RedrPx Nb="?" Type="bool">      </Px2RedrPx>
+            <Px2DeqRedr Nb="?" Type="bool">      </Px2DeqRedr> <!-- Def true-->
+            <!-- Pre redressement en fonction des Px calc, Def = false-->
+
+         <!-- Parametre reglant l'utilisation des contours -->
+	    <!--   <UseContours Nb="?" Type="bool" >   </UseContours>  -->
+
+
+         <!--  Filtrage a posteriori des paralaxe -->
+            <PostFiltragePx Nb="?">
+                  <OneFitragePx Nb="*" RefType="SpecFitrageImage"> 
+                  </OneFitragePx>
+            </PostFiltragePx>
+	 <!-- Filtrage pour suprimer les discontinuites, un peu redondant avec le
+	      precedent mais 1/appliquable qq soit l'algo 2/ + oriente filtrage lineaire
+	 -->
+	     <PostFiltrageDiscont Nb="?">
+	          <SzFiltre Nb="1" Type="double"> </SzFiltre>
+		  <!-- + c'est grand + on se rapproche de la gaussienne -->
+	          <NbIter Nb="?" Type="int" Def="2"> </NbIter>
+
+                  <!-- Par defaut pas de ponderation-->
+		  <ExposPonderGrad Nb="?" Type="double" Def="2.0">   </ExposPonderGrad>
+		  <DericheFactEPC Nb="?" Type="double" Def="1.0"> </DericheFactEPC>
+		  <ValGradAtten Nb="?" Type="double">             </ValGradAtten>
+
+
+		  <ExposPonderCorr Nb="?" Type="double"> </ExposPonderCorr>
+	          
+	     </PostFiltrageDiscont>
+
+
+          <!-- Permet d'utiliser un ensemble d'images variable en fonction
+               de l'etape de calcul, typiquement pour ne rajouter les images
+               obliques que vers la fin
+           -->
+            <ImageSelecteur Nb="?">
+                   <ModeExclusion Nb="1" Type="bool"> </ModeExclusion>
+                   <PatternSel Nb="*" Type="std::string"> </PatternSel>
+            </ImageSelecteur>
+
+         <!-- Si on doit selectionner selon une relation / a image1 -->
+            <RelSelecteur Nb="?" RefType="ParamGenereStrVois" RefFile="SuperposImage.xml"> </RelSelecteur>
+
+          <!--
+               Generation de visualisation des resultat intermediaires
+          -->
+                    <!-- Images en 8 Bits -->
+            <Gen8Bits_Px1 Nb="?" Type="bool">    </Gen8Bits_Px1>
+            <Offset8Bits_Px1 Nb="?" Type="int">  </Offset8Bits_Px1>
+            <Dyn8Bits_Px1 Nb="?" Type="double">  </Dyn8Bits_Px1>
+            <Gen8Bits_Px2 Nb="?" Type="bool">    </Gen8Bits_Px2>
+            <Offset8Bits_Px2 Nb="?" Type="int">  </Offset8Bits_Px2>
+            <Dyn8Bits_Px2 Nb="?" Type="double">  </Dyn8Bits_Px2>
+
+            <ArgGen8Bits  Nb="*" Type="std::string"> </ArgGen8Bits>
+
+            <GenFilePxRel Nb="?" Type="bool">    </GenFilePxRel>
+             <!-- Generation d'image des coeff de correlation, 
+              defaut=false sauf pour la derniere etape 
+              -->
+            <GenImagesCorrel Nb="?" Type="bool"> </GenImagesCorrel>
+            <GenCubeCorrel   Nb="?" Type="bool"> </GenCubeCorrel>
+
+
+
+	    <GenerateProjectionInImages Nb="*">
+	        <NumsImageDontApply Nb="*" Type="int"> </NumsImageDontApply>
+		<FCND_CalcProj Nb="1" Type="std::string"> </FCND_CalcProj>
+		<!-- Soustrait l'identdite (X,Y), au resultat; a du sens en GeomIm1 pour
+		avoir + de "dynamique"-->
+		<SubsXY  Nb="?" Type="bool" Def="false"> </SubsXY>
+		<Polar  Nb="?" Type="bool" Def="false"> </Polar>
+                <GenerateImageRedr Nb="?">
+                     <FCND_CalcRedr Nb="1" Type="std::string"> </FCND_CalcRedr>
+                     <Type Nb="?" Type="eTypeNumerique" > </Type>
+                </GenerateImageRedr>
+	    </GenerateProjectionInImages>
+
+
+             <!-- Generation d'une image reduite de Px transv pour creer un CorrectionPxTransverse-->
+
+	     <GenCorPxTransv Nb="?">
+	           <!-- Par rapport a une resol de 1-->
+	            <SsResolPx  Nb="1" Type="double">          </SsResolPx>
+		    <NameXMLFile   Nb="1" Type="std::string">  </NameXMLFile>
+	     </GenCorPxTransv>
+
+	     
+	     <ExportAsModeleDist  Nb="*"
+	            RefType="GenereModeleRaster2Analytique"
+		    RefFile="SuperposImage.xml"
+	     >
+	     </ExportAsModeleDist>
+
+
+             
+            <!--
+                  Parametres specifiques a l'optimisation differentielle,
+            -->
+            <OptDif_PxApply Type="ePxApply" Nb="?"></OptDif_PxApply> <!--Def eApplyPx12 -->
+
+            <!--
+                  Permet de lancer une interface de visualisation, pour eventuel
+                  "debugage/mis au point"
+            -->
+             <InterfaceVisualisation Nb="?">
+                         <!-- Si pas de Visu Terrain souhaitee : SzWTerr <0 -->
+                 <VisuTerrainIm Type="bool" Nb="?" Def="true"> </VisuTerrainIm>
+                 <SzWTerr    Type="int" Nb="?" Def="100">            </SzWTerr>
+                 <UnSelectedImage Type="std::string" Nb="*">         </UnSelectedImage>
+                 <CentreVisuTerrain  Type="Pt2di"  Nb="1">           </CentreVisuTerrain>
+                 <ZoomTerr  Type="int" Nb="?" Def="1"> </ZoomTerr>
+
+                 <!-- Si on souhaite faire un histogramme de la partie fractionnaire-->
+                 <NbDiscHistoPartieFrac Type="int" Nb="?" Def="-1"> </NbDiscHistoPartieFrac>
+
+                 <!-- Simulation du probleme de partie fractionnaire -->
+                 <SimulFrac Nb="?">
+                     <CoutFrac Nb="1" Type="double"> </CoutFrac>
+                 </SimulFrac>
+             </InterfaceVisualisation>
+
+
+             <!--  Export des meta donnees associees a la carte de profondeur pour en faire
+                   un fichier XML utilisable en autonome, par defaut vaut non initialise -->
+             <MMExportNuage Nb="*" UnionType="true"> 
+                  <MTD_Nuage_Maille Nb="?">
+                      <!-- Permettra d'embarquer les donnees image dans le fichier xml, pas implante pour l'instant -->
+                      <DataInside Nb="?" Type="bool" Def="false"> </DataInside>
+                      <KeyNameMTD Nb="1" Type="std::string">   </KeyNameMTD>
+                      <RatioPseudoConik Nb="?" Type="double" Def="1000"> </RatioPseudoConik>
+                  </MTD_Nuage_Maille>
+                  <PlyFile Nb="?">
+		      <KeyNamePly Nb="?" Type="std::string" Def="Key-Assoc-Nuage-Ply"></KeyNamePly>
+                      <Binary Nb="1" Type="bool"> </Binary>
+                      <Resolution Nb="1" Type="double"> </Resolution>
+                      <PlyCommentAdd Nb="*" Type="std::string"> </PlyCommentAdd>
+                      
+                      <CannauxExportPly Nb="*">
+                           <NameIm Nb="1" Type="std::string">        </NameIm>
+                           <NamesProperty Nb="*" Type="std::string" Container="std::vector"> </NamesProperty>
+                           <FlagUse Nb="?" Type="int">  </FlagUse>
+                      </CannauxExportPly>
+                  </PlyFile>
+             </MMExportNuage>
+
+             
+
+            <!--
+                  Generation des modeles analytiques
+            -->
+            <ModelesAnalytiques Nb="?">
+                 <OneModeleAnalytique Nb="*">
+
+                   
+
+
+                      <UseIt Nb="?" Type="bool" Def="true"> </UseIt>
+
+		      <KeyNuage3D Nb="?" Type="std::string"></KeyNuage3D>
+
+                   <!-- Type de modele : Hom-polynome, matrice rotation etc -->
+                      <TypeModele   Nb="1" Type="eTypeModeleAnalytique"> </TypeModele>
+                   <!-- En mode Hom-polynome-->
+                      <!-- degre du polynome -->
+		      <HomographieL2 Nb="?" Type="bool" Def="true"> </HomographieL2>
+		      <PolynomeL2 Nb="?" Type="bool" Def="true"> </PolynomeL2>
+                      <DegrePol Nb="?" Type="int"> </DegrePol>
+                   <!-- En modee rotation--> 
+                        <!--Liste des  numeros d'angles bloques,   0 : teta_01, 1 : teta_02 , 2 : teta_12
+                         1 et 2 figes donne rotation horizontale -->
+                      <NumsAngleFiges Nb="*" Type="int"></NumsAngleFiges>
+                         <!-- Estimation en mode L1 des orientation -->
+                      <L1CalcOri Nb="?" Type="bool" Def="false"> </L1CalcOri>
+
+
+                   <!-- Noms des fichiers Ori a l'export -->
+                      <AutomSelExportOri Nb="?" Type="std::string"> </AutomSelExportOri>
+                      <AutomNamesExportOri1 Nb="?" Type="std::string"> </AutomNamesExportOri1>
+                      <AutomNamesExportOri2 Nb="?" Type="std::string"> </AutomNamesExportOri2>
+
+                   <!-- Noms des fichiers d'homologues , format binaire et xml -->
+		      <!-- Compatibilite, utiliser Key -->
+                      <AutomNamesExportHomXml Nb="?" Type="std::string"> </AutomNamesExportHomXml>
+                      <AutomNamesExportHomTif Nb="?" Type="std::string"> </AutomNamesExportHomTif>
+                      <AutomNamesExportHomBin Nb="?" Type="std::string"> </AutomNamesExportHomBin>
+		      <AffineOrient Nb="?" Type="bool" Def="true"> </AffineOrient>
+
+		      <!-- Compatibilite, utiliser Key -->
+                      <KeyNamesExportHomXml Nb="?" Type="std::string"> </KeyNamesExportHomXml>
+ 
+   
+                   <!-- Utilise en mode Ori, si une Valeur S est donnee, avant export 
+                        des points homologues sont ceux ci sont pondere par S2/(E2+S2) ou E est le 
+                        residu d'intersection (en pixel) des rayons perspectifs
+                   -->
+                      <SigmaPixPdsExport Nb="?" Type="double">           </SigmaPixPdsExport>
+
+
+                   <!--  Si FiltreByCorrel est vrai, la correlation est utilisee pour ponderer les point
+                      Homologues en entree, soit S le seuil donnee par SeuilFiltreCorrel, la ponderation
+                      est binaire (C>S) si UseFCBySeuil est vrai, sinon c'est (C-S) tronque a 0
+                    -->
+                      <FiltreByCorrel   Nb="?" Def="false" Type="bool">  </FiltreByCorrel>
+                      <SeuilFiltreCorrel Nb="?" Def="0.2" Type="double"> </SeuilFiltreCorrel>
+                      <UseFCBySeuil   Nb="?" Def="true" Type="bool">  </UseFCBySeuil>
+		      <ExposantPondereCorrel Nb="?" Def="1.0" Type="double"> </ExposantPondereCorrel>
+
+		      <!--  Le filtrage pas la correlation deja calculee est  utile sur des appariement
+		      "mous" tel que la superposition multi spectral, avec des appariements ponctuels, tels
+		      les poinst de liaison, il est un peu redondant avec ce qui a deja ete fait, on se donne
+		      donc la possibilite de recalculer un score qui soit multi-echelle;
+
+		       Le tag UseIt a pour but de permettre le reglage de "meta fichier" de parametre
+		       (ils en prevoient plusieur et le frontal choisit celui qui lui convient)
+		      -->
+
+		      <ReCalclCorrelMultiEchelle Nb="*">
+		           <UseIt Nb="1" Type="bool"> </UseIt>
+			   <ScaleSzW Nb="+" Type="Pt2di"> </ScaleSzW> <!-- X = DeZoom, Y = SzW-->
+			   <AgregMin Nb="?" Type="bool" Def="true"> </AgregMin>
+			   <DoImg  Nb="?" Type="bool" Def="true">   </DoImg>
+                           <Seuil Nb="1"  Type="double"> </Seuil>
+		      </ReCalclCorrelMultiEchelle>
+
+                    <!-- La correlation dense donne un homologue pour chaque point, c'est inutile
+                    et couteux pour calculer des modeles analytique, on regroupe donc entree les points
+                    selon un grille reguliere de pas PasCalcul -->
+                      <PasCalcul Nb="1" Type="int">                     </PasCalcul>
+                      <!-- Si on souhaite juste prendre le point central, pour etre + reigoureux de point de vue photogram -->
+                      <PointUnique Nb="?" Type="bool" Def="false"> </PointUnique>
+                      <!-- Pas utilise actuellement 
+                          <PasDebug Nb="?" Type="int">                     </PasDebug>
+                          <EcartPond Nb="*" Type="double"> </EcartPond>
+                      -->
+                      <!--  
+                       -->
+                      <!-- Est ce que le modele calcule devra etre reimporte comme predicteur, si oui-->
+                      <ReuseModele Nb="?" Type="bool">          </ReuseModele>
+                      <!-- Permet de ne pas refaire le calcul, utilise en mise au point, 
+                           le calcul etant effectue une premiere fois pour qu'il y'ait les bonnes
+                           structures sans  perte de temps-->
+                      <MakeExport Nb="?" Type="bool"  Def="true">          </MakeExport>
+
+                       <!-- nom des fichiers d'exports -->
+                      <NameExport Nb="?" Type="std::string" Def="ModeleAnalytique"> </NameExport>
+                      <!-- Export d'une version "image" de la //axe analytique, Mise au point-->
+                      <ExportImage Nb="?" Type="bool" Def="false"> </ExportImage>
+                      <!--
+                          Si true, alors on exporte une image de difference entre le modele
+                         et les fichiers de //axes, qui sera utilisee commme paralaxe de
+                         "residuelle" / au modele analytique
+                      -->
+                      <ReuseResiduelle Nb="?" Type="bool" Def="false"></ReuseResiduelle>
+
+                      <!--Pour  generer un modele de grille de la transfo, 
+		          3 valeur en argument Nom1 Num Nom2
+			-->
+		       
+		      <FCND_ExportModeleGlobal Nb="?" Type="std::string"> </FCND_ExportModeleGlobal>
+
+
+
+                      <!-- Maille de Grille dans le cas ExportModeleGlobal -->
+                      <MailleExport Nb="?" Type="double" Def="10.0"></MailleExport>
+                      <UseHomologueReference Nb="?" Type="bool" Def="false"> </UseHomologueReference>
+                      <MakeImagePxRef Nb="?" Type="bool" Def="false"> </MakeImagePxRef>
+                      <NbPtMinValideEqOriRel Nb="?" Type="int" Def="6"> </NbPtMinValideEqOriRel>
+                 </OneModeleAnalytique>
+            </ModelesAnalytiques>
+            <!-- La bascule se fait avant la compensation   -->
+            <BasculeRes Nb="*">
+	          <Ori Nb="1" UnionType="true">
+                      <Explicite Nb="?" RefType="FileOriMnt"
+                                 RefFile="ParamChantierPhotogram.xml"
+                      > 
+                      </Explicite>
+		      <ByFileNomChantier Nb="?">
+		           <Prefixe Nb="1" Type="std::string">  </Prefixe>
+			   <NomChantier Nb="?" Type="bool" Def="true"> </NomChantier>
+		           <Postfixe Nb="1" Type="std::string"> </Postfixe>
+			   <NameTag  Nb="?"  Type="std::string" Def="FileOriMnt"
+                                     RefFile="ParamChantierPhotogram.xml"
+                           > </NameTag>
+		      </ByFileNomChantier>
+	          </Ori>
+		  <OutValue Nb="?" Type="double" Def="0.0"> </OutValue>
+	    </BasculeRes>
+
+
+            <GenerePartiesCachees Nb="?">
+                  <!-- Nouvelle methode de generation de nom, sinon c'est MicMac qui choisit -->
+                  <UseIt Nb="?" Def="true" Type="bool"></UseIt>
+
+                  <PasDisc   Nb="?" Type="double" Def="1.0"> </PasDisc>
+                  <SeuilUsePC Nb="1" Type="double">   </SeuilUsePC>
+                  <KeyCalcPC Nb="?" Type="std::string"> </KeyCalcPC>
+                  <!-- Si on mets une KeyCalcPC, en gal c'est pour de l'ortho, donc pas de chantier ds le nom -->
+                  <AddChantierKPC Nb="?" Type="bool" Def="false"> </AddChantierKPC>
+                  <SupresExtChantierKPC Nb="?" Type="bool" Def="true"> </SupresExtChantierKPC>
+                  <!-- Dequantifier le MNT est un tout petit peu + precis -->
+                  <Dequant Nb="?" Type="bool"> </Dequant>
+                  <ByMkF Nb="?" Type="bool" Def="true"> </ByMkF>
+
+                   <!-- Surtout pour la mise au point, sinon a priori on
+                   en a besoin pour tous -->
+                  <PatternApply Nb="?" Type="std::string" Def=".*"> </PatternApply>
+
+                  <VisuSuperposMNT Nb="?">
+                        <NameFile Nb="1" Type="std::string"> </NameFile>
+                        <Seuil    Nb="1" Type="double">      </Seuil>
+                  </VisuSuperposMNT>
+                  <!-- Si true va + vite mais consomme bcp + de memoire -->
+                  <BufXYZ Nb="?" Type="bool" Def="true"></BufXYZ>
+                  <!-- Si true ne fait pas le calcul lorsque le fichier PC exitse -->
+                  <DoOnlyWhenNew Nb="?" Type="bool" Def="false"></DoOnlyWhenNew>
+
+                  <!-- Le calcul peut etre assez consommateur en memoire, pas mal de tampon
+                       et zone potentiellemnt bcp + grande que l'image. D'ou le decoupage avec
+                       ces param pa def
+                   -->
+
+                  <SzBloc Nb="?" Type="int" Def="4000"> </SzBloc>
+                  <SzBord Nb="?" Type="int" Def="300"> </SzBord>
+                  <ImSuperpMNT Nb="?" Type="bool" Def="false"> </ImSuperpMNT>
+                  <!-- Si cette valeur est donnees tous les calculs d'emprise sont fait dessus, utile lorsqu'une partie
+                       meme faible du MNE est tres bruitees -->
+                  <ZMoy Nb="?" Type="double"> </ZMoy>
+                  <FiltreName Nb="?" Type="cElRegex_Ptr"> </FiltreName>
+                  <MakeOrthoParImage Nb="?">
+
+                      <DirOrtho Nb="?" Type="std::string" Def="ORTHO/"> </DirOrtho>
+                      <FileMTD Nb="?" Type="std::string" Def="MTDOrtho.xml"> </FileMTD>
+
+                      <MakeMTDMaskOrtho Nb="?">
+                          <NameFileSauv Nb="?" Type="std::string" Def="MTDMaskOrtho.xml"> </NameFileSauv>
+                          <Mesures Nb="1" RefType="MasqMesures" RefFile="SuperposImage.xml"> </Mesures>
+                      </MakeMTDMaskOrtho>
+
+
+                      <OrthoBiCub Nb="?" Type="double" Def="-0.5"> </OrthoBiCub>
+                      <!-- Si l'image est bcp + resolu que l'ortho et qu'on veut eviter
+                           l'aliasing (par ex souvent = au DeZoom si image Resol1 et pas
+                           ortho "naturel")-->
+                      <ScaleBiCub  Nb="?" Type="double" Def="1"> </ScaleBiCub>
+                      <!-- On peut vouloir generer une ortho a une resol differente du MNT,
+                           de même, la phasage des pixel, peut etre different de celui du MNT
+                            pour import dans une autre ortho
+
+                             ResolRelOrhto -> 0.5 pour avoir une ortho 2 fois plus resolue
+                      -->
+                      <ResolRelOrhto Nb="?" Type="double"> </ResolRelOrhto>
+                      <ResolAbsOrtho Nb="?" Type="double"> </ResolAbsOrtho>
+                       <!-- Valeur d'un des pixel terrain ou il  y aura un point d'ortho -->
+                      <PixelTerrainPhase Nb="?" Type="Pt2dr"> </PixelTerrainPhase> 
+
+
+                      <KeyCalcInput Nb="1" Type="std::string"> </KeyCalcInput>
+                      <KeyCalcOutput Nb="1" Type="std::string"> </KeyCalcOutput>
+                      <!-- Par defaut nombre de canaux "naturel" de l'image -->
+                      <NbChan Nb="?" Type="int" Def="-1"> </NbChan>
+                      <!-- Pour avoir une image d'incidence toute bete / au plan hor -->
+                      <KeyCalcIncidHor Nb="?" Type="std::string"> </KeyCalcIncidHor>
+                      <SsResolIncH Nb="?" Type="double" Def="10"> </SsResolIncH>
+<!-- Est ce que l'image d'incidence est calculee a Z Moyen -->
+                      <CalcIncAZMoy Nb="?" Type="bool"> </CalcIncAZMoy>
+<!-- Est ce que cette image, qui en fait gere les priorite est simplement une image de frontiere -->
+                      <ImageIncIsDistFront Nb="?" Type="bool" Def="false"> </ImageIncIsDistFront>
+
+                       <!-- Permet, meme en mode angle  d'eviter les point frontiere -->
+                       <RepulsFront Nb="?" Type="int" Def="20"> </RepulsFront>
+                      <!-- !!! Par rapport a la resolution des image R1, 0.5 si image 2 fois plus petite -->
+                      <ResolIm Nb="?" Type="double" Def="1.0"> </ResolIm>
+                      
+                      <!-- Si l'image qu'on ortho rectifie a ete cropee / image de correl : Trans > 0 , le translate
+                           est donne pour des zoom image de 1 -->
+                      <TranslateIm Nb="?" Type="Pt2di" Def="Pt2di(0,0)"> </TranslateIm>
+<!--
+-->
+                  </MakeOrthoParImage>
+            </GenerePartiesCachees>
+
+            <RedrLocAnam Nb="?">
+                 <NameOut Type="std::string" Nb="1"> </NameOut>
+                 <NameMasq Type="std::string" Nb="1"> </NameMasq>
+                 <NameOriGlob Type="std::string" Nb="1"> </NameOriGlob>
+                 <NameNuage Type="std::string" Nb="?"> </NameNuage>
+
+                 <XRecouvrt Type="int" Def="300" Nb="?"> </XRecouvrt>
+                 <MemAvalaible Type="double" Def="3e7" Nb="?"> </MemAvalaible>
+                 <FilterMulLargY Type="double" Def="3.0" Nb="?"> </FilterMulLargY>
+                 <NbIterFilterY Type="double" Def="4" Nb="?"> </NbIterFilterY>
+
+                 <FilterXY Type="int" Def="2" Nb="?"> </FilterXY>
+                 <NbIterXY Type="int" Def="3" Nb="?"> </NbIterXY>
+
+                 <DensityHighThresh Type="double" Def="0.5" Nb="?"> </DensityHighThresh>
+                 <DensityLowThresh Type="double" Def="0.3" Nb="?"> </DensityLowThresh>
+
+                 <UseAutoMask Type="bool" Nb="?" Def="true"> </UseAutoMask>
+            </RedrLocAnam>
+
+           <!--  Utilisation si possibles des parties cachees -->
+            <UsePartiesCachee Nb="?" Type="bool"> </UsePartiesCachee> <!-- Def true -->
+            <NameVisuTestPC Nb="?" Type="std::string"> </NameVisuTestPC>
+
+
+            <NuagePredicteur Nb="?">
+                   <KeyAssocIm2Nuage Nb="1" Type="std::string"> </KeyAssocIm2Nuage>
+                   <Selector Nb="?" Type="std::string" Def=".*"> </Selector>
+                   <ScaleNuage Nb="1" Type="double"> </ScaleNuage>
+            </NuagePredicteur>
+        </EtapeMEC>
+	<!-- Voir dans cFileImage.cpp des commentaires sur
+	TypePyramImage.
+
+               Doit etre ordonne des resolutions les plus basses
+            aux plus grandes.
+	-->
+	<TypePyramImage Nb="*">
+               <Resol Nb="1" Type="int">              </Resol>
+	       <DivIm  Nb="?" Type="int" Def="16">    </DivIm>
+	       <TypeEl Nb="1" Type="eTypeImPyram">    </TypeEl>
+	</TypePyramImage>
+        <!-- Genrer des pyramide avec perte min si pas de TypePyramImage -->
+        <HighPrecPyrIm Type="bool" Def="true" Nb="?"> </HighPrecPyrIm>
+
+         <!-- Si raw ou jpg en entree, remplace le TypePyramImage -->
+        <Correl16Bits Nb="?" Type="bool"> </Correl16Bits> <!-- true -->
+
+        <!-- Definition des noms de modeles images -->
+<!--
+        <NameMDModele Nb="?" Type="std::string" Def="MTD_"> </NameMDModele>
+        <NameDataModele  Nb="?" Type="std::string" Def="DataGr_"> </NameDataModele>
+        <AddNumToNameModele Nb="?" Type="bool" Def="true">  </AddNumToNameModele>
+-->
+
+
+
+     </Section_MEC>
+
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+     <Section_Results Nb="1">
+         <!-- Si on trouve AllDone dans  MM_EtatAvancement, on ne fait rien -->
+         <Use_MM_EtatAvancement Nb="?" Type="bool" Def="false"> </Use_MM_EtatAvancement>
+
+         <!-- On peut avoir besoin que MicMac ne fasse rigoureusement
+	      rien si ce n'est qq action specifiques dei generation de donnees ai
+	      (par exemple : orientation )
+
+	      On peut malgre tout avoir "un peu plus que ce que l'on demande" car il
+	      il y des dependances entre les diverses donnees, certaine difficilement
+	      evitable (par exemple le TA a besoin de la pyramide a sa resol), d'autre
+	      plus contestable .
+	 -->
+
+
+         <DoNothingBut Nb="?">
+                  <ButDoPyram Nb="?" Type="bool" Def="false">         </ButDoPyram>
+                  <ButDoMasqIm Nb="?" Type="bool" Def="false">        </ButDoMasqIm>
+                  <ButDoMemPart Nb="?" Type="bool" Def="false">       </ButDoMemPart>
+                  <ButDoTA Nb="?" Type="bool" Def="false">             </ButDoTA>
+                  <ButDoMasqueChantier Nb="?" Type="bool" Def="false"> </ButDoMasqueChantier>
+                  <ButDoOriMNT Nb="?" Type="bool" Def="false">         </ButDoOriMNT>
+                  <ButDoMTDNuage Nb="?" Type="bool" Def="false">         </ButDoMTDNuage>
+                  <ButDoFDC Nb="?" Type="bool" Def="false">            </ButDoFDC>
+                  <ButDoExtendParam Nb="?" Type="bool" Def="false">    </ButDoExtendParam>
+		  <ButDoGenCorPxTransv  Nb="?" Type="bool" Def="false"> </ButDoGenCorPxTransv>
+		  <ButDoPartiesCachees  Nb="?" Type="bool" Def="false"> </ButDoPartiesCachees>
+		  <ButDoOrtho  Nb="?" Type="bool" Def="false"> </ButDoOrtho>
+		  <ButDoSimul  Nb="?" Type="bool" Def="false"> </ButDoSimul>
+		  <ButDoRedrLocAnam  Nb="?" Type="bool" Def="false"> </ButDoRedrLocAnam>
+         </DoNothingBut>
+         <!-- A laisser pour com interne MicMac : // des PC -->
+         <Paral_Pc_IdProcess Nb="?" Type="int"> </Paral_Pc_IdProcess>
+         <Paral_Pc_NbProcess Nb="?" Type="int"> </Paral_Pc_NbProcess>
+
+         <!-- Dans les geometrie faisceau, les plans d'equi profondeur sont par
+	 defaut parallele au capteur, on peut preferer une direction specifique par exemple
+	 avec un scene quasi plane et une pdv convergente.
+	 -->
+         <X_DirPlanInterFaisceau Nb="?" Type="double" Def="0"> </X_DirPlanInterFaisceau>
+         <Y_DirPlanInterFaisceau Nb="?" Type="double" Def="0"> </Y_DirPlanInterFaisceau>
+         <Z_DirPlanInterFaisceau Nb="?" Type="double" Def="0"> </Z_DirPlanInterFaisceau>
+
+         <GeomMNT Nb="1" Type="eModeGeomMNT"> </GeomMNT>
+
+
+         <SectionSimulation Nb="?" AccessorFils="false">
+             <SimulRelief Nb="1">
+                  <DoItR Nb="?" Type="bool" Def="false"> </DoItR>
+                  <MNTPart Nb="1">
+                     <PenteGlob Nb="?" Type="Pt2dr" Def="Pt2dr(0,0)"></PenteGlob>
+                     <FoncPer Nb="*">
+                           <Per Nb="1" Type="Pt2dr"> </Per>
+                           <Ampl Nb="1" Type="double"> </Ampl>
+<!-- Si true alors Ampl fixe l'amplitude de la derivee -->
+                           <AmplIsDer Nb="?" Type="bool" Def="true"></AmplIsDer>
+                     </FoncPer>
+                  </MNTPart>
+                  <MNEPart Nb="1">
+                     <SimulBarres Nb="*">
+                        <Nb Nb="1" Type="int"> </Nb>
+                        <PowDistLongueur Nb="?" Type="double" Def="2.0"> </PowDistLongueur>
+                        <IntervLongeur Nb="1" Type="Pt2dr"> </IntervLongeur>
+                        <IntervLargeur Nb="1" Type="Pt2dr"> </IntervLargeur>
+                        <IntervPentes Nb="1" Type="Pt2dr"> </IntervPentes>
+                        <IntervHauteur Nb="1" Type="Pt2dr"> </IntervHauteur>
+                        <ProbSortant Nb="?" Type="double" Def="0.5"> </ProbSortant>
+                     </SimulBarres>
+                  </MNEPart>
+             </SimulRelief>
+
+             <TexturePart Nb="1">
+                   <Texton Nb="1" Type="std::string"> </Texton>
+                   <ImRes Nb="1" Type="std::string"> </ImRes>
+             </TexturePart>
+
+             <ProjImPart Nb="1">
+                  <PatternSel Nb="1"  Type="cElRegex_Ptr"> </PatternSel>
+                  <SzBloc Nb="?" Type="int" Def="100000"> </SzBloc>
+                  <SzBrd Nb="?" Type="int" Def="20"> </SzBrd>
+              <!-- Pas defaut le mm que RatioResolImage global ; si meilleur resol, < 1 -->
+                  <RatioSurResol Nb="?" Type="double"> </RatioSurResol>
+                  <KeyProjMNT Nb="?" Type="std::string"> </KeyProjMNT>
+                  <KeyIm Nb="?" Type="std::string"> </KeyIm>
+
+                  <BicubParam Nb="?" Type="double" Def="-0.5"></BicubParam>
+                  <ReprojInverse Nb="?" Type="bool" Def="false"> </ReprojInverse>
+
+                  <SzFTM Type="double" Nb="?" Def="1.0"> </SzFTM>
+                  <Bruit Type="double" Nb="?"> </Bruit>
+             </ProjImPart>
+
+         </SectionSimulation>
+
+         <!--  Pour la calcul d'emprise, quand la geom connait sa paralaxe, faut il
+               l'utiliser ou utiliser la valeur globale
+         -->
+         <Prio2OwnAltisolForEmprise Nb="?" Type="bool" Def="false"> </Prio2OwnAltisolForEmprise>
+       
+          <!-- Si Anamorphose est specifiee,
+               0- Px doit etre 1D
+               1- il faut que la geometrie soit
+               terrain (euclid). Sans doute restrictif, a voir si on
+               peut relacher cette contrainte ?
+          -->
+         <AnamorphoseGeometrieMNT Nb="?">
+             <!-- Pour gerer le desanamorphose des ortho .... -->
+             <UnUseAnamXCste Nb="?" Def="false" Type="bool"> </UnUseAnamXCste>
+             <AnamSurfaceAnalytique Nb="?">
+                   <NameFile Nb="1" Type="std::string"> </NameFile>
+                   <Id Nb="1" Type="std::string"> </Id>
+             </AnamSurfaceAnalytique>
+             <AnamDeZoomMasq Nb="?" Type="int" Def="16"> </AnamDeZoomMasq>
+             <!-- Limite +ou- Pi/3 -->
+             <AnamLimAngleVisib Nb="?" Type="double" Def="1.05"> </AnamLimAngleVisib>
+             <MakeMaskImNadir Nb="?">
+                 <DynIncid Nb="?" Type="double" Def="1e4"> </DynIncid>
+<!-- A priori si on fait des masque image, on ne veut pas utiliser cela en geometrie terrain -->
+                 <MakeAlsoMaskTerrain Type="bool" Nb="?" Def="false"> </MakeAlsoMaskTerrain>
+                <!-- Selectionne les KBest -->
+                 <KBest  Nb="1" Type="int">   </KBest>
+                  <!-- Comme il y a une certaine incert, on selectionne ceux t.q 
+                            Incid<  (1+IncertAngle) KBetsIncid
+                  -->
+                 <IncertAngle  Nb="?" Type="double" Def="0.1"> </IncertAngle>
+                 <Dilat32 Nb="?" Type="int" Def="6"> </Dilat32>
+                 <Erod32 Nb="?" Type="int"  Def="3"> </Erod32>
+             </MakeMaskImNadir>
+         </AnamorphoseGeometrieMNT>
+
+         <!-- Utile  pour un chgt de rep temp a la correl (redressement, 
+             pb d'unites heterogenes ....)   NO-REPERE  donne meme effet que rien -->
+         <RepereCorrel Nb="?" Type="std::string"> </RepereCorrel>
+         <TagRepereCorrel Nb="?" Type="std::string" Def="RepereCartesien"> </TagRepereCorrel>
+
+
+
+         <DoMEC Nb="?" Def="true" Type="bool">  </DoMEC>
+         <!-- Le DoMEC ne se fera que si le fichier n'existe pas -->
+         <NonExistingFileDoMEC Nb="?"  Type="std::string"> </NonExistingFileDoMEC>
+
+
+         <!-- FDC=File Description de Chantier -->
+         <DoFDC Nb="?" Def="false" Type="bool">  </DoFDC>
+	 <!-- Si true genere le xml apres inclusion des fichier
+	 et modif par lignes de commandes-->
+	 <GenereXMLComp Nb="?" Def="true" Type="bool"> </GenereXMLComp>
+
+         <TAUseMasqNadirKBest Nb="?" Type="int"> </TAUseMasqNadirKBest>
+	 <ZoomMakeTA Nb="?"  Type="int"> </ZoomMakeTA>
+         <SaturationTA  Nb="?" Type="double" Def="50.0"> </SaturationTA>
+         <!-- Si true le TA ressemble + a une ortho, avec prise en compte du nadir, la
+          coloration est   un etiquettage -->
+         <OrthoTA Nb="?" Type="bool" Def="false"> </OrthoTA>
+	 <ZoomMakeMasq Nb="?"  Type="int"> </ZoomMakeMasq>
+         
+
+         <!-- Si true le masque terrain n'est calcule qu'a la resolution necessaire, cela fait gagner un temps
+              non negligeable en proportion lorque l'on s'arrete a des resol basse; false par defaut au cas
+              ou il y aurait des effets collateraux ...
+         -->
+         <LazyZoomMaskTerrain Nb="?" Type="bool" Def="false"> </LazyZoomMaskTerrain>
+
+
+         <MakeImCptTA Nb="?" Type="bool" Def="false"> </MakeImCptTA>
+         <FilterTA  Nb="?" Type="std::string"> </FilterTA>
+	 <!-- 
+	     Coefficient de Gamma Correction utilisee dans les fonctionnamites
+	 necessitant une visualisation des images (TA, Visu interm ...)
+	 -->
+	 <GammaVisu Nb="?" Def="1.0" Type="double"> </GammaVisu>
+
+         <ZoomVisuLiaison Nb="?" Def="-1" Type="int"> </ZoomVisuLiaison>
+         <!-- De par le mode de calcul, il est possible, bien qu'improbable,
+            que les points homologues soient en dehors de l'image.
+              Ce parametre regle le seuil de verification. Il est SIGNE,
+            une valeur negative indiquant un reglage plus strict.
+              "Conventionnellement" les valeurs superieures a 1e10 ne sont
+           pas testees.
+         -->
+         <TolerancePointHomInImage Nb="?" Type="double" Def="0.0">
+         </TolerancePointHomInImage>
+
+         <!-- Meme pb que TolerancePointHomInImage , mais il s'agit
+	 d'une mesure "corrective", les point en dehors du seuil sont
+	 vires (et ne genere pas d'erreur ....) -->
+         <FiltragePointHomInImage Nb="?" Type="double" Def="0.0">
+         </FiltragePointHomInImage>
+
+         <!-- Origine de la numerotation des erreurs MicMac -->
+         <BaseCodeRetourMicmacErreur Nb="?" Type="int" Def="100"> 
+         </BaseCodeRetourMicmacErreur>
+
+         <SuperpositionImages Nb="?">
+              <OrdreChannels Nb="1" Type="Pt3di"> </OrdreChannels>
+              <PtBalanceBlancs  Nb="?" Type="Pt2di"> </PtBalanceBlancs>
+              <P0Sup Nb="?" Type="Pt2di">            </P0Sup>
+              <SzSup Nb="?" Type="Pt2di">            </SzSup>
+
+              <PatternSelGrid Nb="1" Type="cElRegex_Ptr">  </PatternSelGrid>
+              <PatternNameGrid Nb="1" Type="std::string">  </PatternNameGrid>
+              <ColorimetriesCanaux Nb="*">
+                  <CanalSelector Nb="1"  Type="cElRegex_Ptr"> </CanalSelector>
+                  <ValBlanc Nb="?" Type="double">             </ValBlanc>
+                  <!-- ValNoir +ou- le voile atmospherique -->
+                  <ValNoir  Nb="?" Type="double" Def="0.0">   </ValNoir>
+              </ColorimetriesCanaux>
+              <GammaCorrection Nb="?" Def="1.0" Type="double"> </GammaCorrection>
+              <MultiplicateurBlanc Nb="?" Def="1.0" Type="double"> </MultiplicateurBlanc>
+              <GenFileImages Nb="?" Def="false" Type="bool"> </GenFileImages>
+         </SuperpositionImages>
+
+   
+     </Section_Results>
+<!--  *************************************************************
+     Parametres lies a l'execution du calcul 
+     du "chantier" sur la machine
+-->
+     <Section_WorkSpace Nb="1">
+
+          <!-- Permet de stocker un fichier de specialisation en fonnction (par ex)
+               de la PDV maitresse -->
+          <FileExportApero2MM Nb="?" Type="std::string"> </FileExportApero2MM>
+          <UseProfInVertLoc Nb="?" Type="bool" Def="true"></UseProfInVertLoc>
+
+          <NameFileParamMICMAC Nb="?" Type="std::string"> </NameFileParamMICMAC>
+      <!-- Localisation sur le disque -->
+         <!-- Work Dir, emplacement du chantier -->
+         <WorkDir Nb="1" Type="std::string"> </WorkDir>
+         <!-- Tmp Dir en local /  -->
+         <DirImagesOri Nb="?" Type="std::string"> </DirImagesOri>
+
+         <TmpMEC Nb="1" Type="std::string">  </TmpMEC>
+         <TmpPyr Nb="?" Type="std::string">  </TmpPyr>
+         <TmpGeom Nb="?" Type="std::string" Def="" >  </TmpGeom>
+	 <TmpResult Nb="?" Type="std::string" Def="Result/" >  </TmpResult>
+
+      <!-- Execution par processus--> 
+      <!-- !!!!   CalledByProcess : 
+                   Ces tag sont geres par le correlateur
+                   Ne jamais les positionner "a la main" 
+	      !!!! -->
+	 <CalledByProcess  Nb="?" Def="false" Type="bool"> </CalledByProcess>
+	 <IdMasterProcess  Nb="?" Def="-1" Type="int"> </IdMasterProcess>
+         <!-- Pour pouvoir specifier par Key dans le DicoLoc : commandes simplifiees -->
+         <CreateGrayFileAtBegin  Nb="?" Def="false" Type="bool"> </CreateGrayFileAtBegin>
+	 <Visu Nb="?" Def="false" Type="bool">             </Visu>
+	 <ByProcess Nb="?" Def="0" Type="int"> </ByProcess>
+         <StopOnEchecFils Nb="?" Def="true" Type="bool"> </StopOnEchecFils>
+      <!-- Decoupage --> 
+	           <!-- Memoire en Mega Octet -->
+	 <AvalaibleMemory  Nb="?" Def="128" Type="int"> </AvalaibleMemory>
+	 <SzRecouvrtDalles Nb="?" Def="50"  Type="int"> </SzRecouvrtDalles>
+	 <SzDalleMin       Nb="?" Def="400" Type="int"> </SzDalleMin>
+	 <SzDalleMax       Nb="?" Def="800" Type="int"> </SzDalleMax>
+            <!-- Nouvelle facon de gerer la memoire, controle a posteriori de la taille et split recursif-->
+         <NbCelluleMax Nb="?" Def="2e7" Type="double"> </NbCelluleMax>
+         <!-- Dans le decoupage de cAppliMICMAC_ChCorrel.cpp -->
+         <SzMinDecomposCalc Nb="?" Def="10" Type="int"> </SzMinDecomposCalc>
+         <AutorizeSplitRec Nb="?" Type="bool"> </AutorizeSplitRec>
+         <DefTileFile Nb="?" Def="10000" Type="int"> </DefTileFile>
+
+      <!-- Pour un certains nombre de fichiers aux, t.q. TA ou Masq, le DeZoom,
+          si non specifie est calcule de maniere a ce que le nombre de pixel soit approx
+          NbPixFilesAux. 
+	  Pour eviter d'avoir une taille 1 sur les petits chantier c'est au min DeZoomDefMinFileAux
+      -->
+	 <NbPixDefFilesAux Nb="?" Def="3.0e7" Type="double"> </NbPixDefFilesAux>
+	 <DeZoomDefMinFileAux Nb="?" Def="4" Type="int">  </DeZoomDefMinFileAux>
+      <!-- Execution partielle
+           En general geree par le correlateur, mais peut etre effectuee
+	   "a la main" pour une reprise a chaud
+       -->
+         <FirstEtapeMEC Nb="?" Def="0"  Type="int"> </FirstEtapeMEC>
+         <LastEtapeMEC  Nb="?" Def="10000" Type="int"> </LastEtapeMEC>
+         <FirstBoiteMEC Nb="?" Def="0"  Type="int"> </FirstBoiteMEC>
+         <NbBoitesMEC   Nb="?" Def="100000000" Type="int"> </NbBoitesMEC>  
+
+        <NomChantier Nb="?" Type="std::string" Def="LeChantier">  </NomChantier>
+        <CalcNomChantier Nb="?">
+              <PatternSelChantier Nb="1" Type="std::string">    </PatternSelChantier>
+              <PatNameChantier Nb="1" Type="std::string">   </PatNameChantier>
+              <SeparateurChantier Nb="?" Type="std::string" Def="">   </SeparateurChantier>
+        </CalcNomChantier>
+
+        <PatternSelPyr Nb="?" Type="std::string" Def="(.*)@(.*)"> </PatternSelPyr>
+        <PatternNomPyr Nb="?" Type="std::string" Def="$1DeZoom$2.tif"> </PatternNomPyr>
+        <SeparateurPyr Nb="?" Type="std::string" Def="@"> </SeparateurPyr>
+
+        <KeyCalNamePyr Nb="?" Type="std::string" Def="Key-Assoc-Pyram-MM"> </KeyCalNamePyr>
+
+        <ActivePurge Nb="?" Type="bool" Def="false"> </ActivePurge>
+        <PurgeFiles Nb="*">
+            <PatternSelPurge Nb="1" Type="std::string"> </PatternSelPurge>
+            <PurgeToSupress  Nb="1" Type="bool">        </PurgeToSupress>
+        </PurgeFiles>
+
+        <PurgeMECResultBefore Nb="?" Type="bool" Def="false"> </PurgeMECResultBefore>
+        <PreservedFile Nb="?" Type="std::string"> </PreservedFile>
+
+	<UseChantierNameDescripteur Nb="?" Type="bool" Def="false"> </UseChantierNameDescripteur>
+	<FileChantierNameDescripteur Nb="?" Type="string"> </FileChantierNameDescripteur>
+
+       <MapMicMac Nb="?"
+                    RefType="CmdMappeur"
+                    RefFile="ParamChantierPhotogram.xml"
+        >
+        </MapMicMac>
+
+       <PostProcess Nb="?"
+                    RefType="CmdExePar"
+                    RefFile="ParamChantierPhotogram.xml"
+        >
+        </PostProcess>
+        
+        <ComprMasque Nb="?" Type="eComprTiff" Def="eComprTiff_FAX4"> </ComprMasque>
+        <TypeMasque Nb="?" Type="eTypeNumerique" Def="eTN_Bits1MSBF"> </TypeMasque>
+
+
+     </Section_WorkSpace>
+
+     <SectionBatch Nb="?">
+	     <!-- Si false imprime juste la ligne de commande -->
+	 <ExeBatch Nb="?" Type="bool" Def="true"> </ExeBatch>
+         <OneBatch Nb="*">
+              <PatternSelImBatch Nb="1"  Type="std::string">    </PatternSelImBatch>
+              <PatternCommandeBatch Nb="*"  Type="std::string"> </PatternCommandeBatch>
+         </OneBatch>
+         <NextMicMacFile2Exec Nb="*" Type="std::string"> </NextMicMacFile2Exec>
+     </SectionBatch>
+<!--  *************************************************************
+     Comme son nom l'indique cette section contient un certain
+    nombre de parametre en Vrac. Ils ne sont pas directement
+    utiles pour le programme operationnel de mise en correspondances ;
+   
+      Ils sont utiles soit pour la mise au point/debugage, soit pour
+    des programmes annexes tels que le programme de saisie de points 
+    de liaison.
+-->
+     <Section_Vrac Nb="1">
+          <DebugMM Nb="?" Type="bool" Def="false"></DebugMM>
+      <!-- SAISIE DE POINTS DE LIAISONS -->
+          <!-- Saisie de liasion avec contrainte epipolaire-->
+          <SL_XSzW Nb="?" Def="1000" Type="int"> </SL_XSzW> 
+          <SL_YSzW Nb="?" Def="900" Type="int"> </SL_YSzW> 
+          <SL_Epip Nb="?" Def="false" Type="bool"> </SL_Epip> 
+          <SL_YDecEpip Nb="?" Type="int" Def="0"> </SL_YDecEpip> 
+          <!-- Saisie de liasion avec des points homologues Im1/Im2 "initiaux"
+           pour redresser l'image, c'est un nom de fichier-->
+          <SL_PackHom0 Nb="?" Type="std::string" Def=""> </SL_PackHom0>
+	  <SL_RedrOnCur Nb="?" Type="bool" Def="false">   </SL_RedrOnCur>
+	  <SL_NewRedrCur   Nb="?" Type="bool" Def="false">   </SL_NewRedrCur>
+	  <SL_L2Estim   Nb="?" Type="bool" Def="true">   </SL_L2Estim>
+
+
+          <SL_FILTER Nb="?" Type="std::vector<std::string>"> </SL_FILTER>
+          <SL_TJS_FILTER Nb="?" Type="bool" Def="false"> </SL_TJS_FILTER>
+          <SL_Step_Grid Nb="?" Type="double" Def="10.0"> </SL_Step_Grid>
+          <SL_Name_Grid_Exp Nb="?" Type="std::string" Def="GridMap_%I_To_%J"> </SL_Name_Grid_Exp>
+          
+      <!-- VISUALISATION DE SUPERPOSITIONS  -->
+          <VSG_DynImRed Nb="?" Type="double" Def="5.0">  </VSG_DynImRed>
+          <VSG_DeZoomContr Nb="?" Type="int" Def="16">   </VSG_DeZoomContr>
+
+      <!-- DEBUG -->
+           <PtDebug Type="Pt2di" Nb="?" > </PtDebug>
+	   <DumpNappesEnglob Type="bool" Nb="?" Def="false"> </DumpNappesEnglob>
+
+      <!-- Aucune raison pour l'utisateur de change la valeur par defaut de ces variables de
+           mise au point
+      -->
+        <InterditAccelerationCorrSpec Nb="?" Type="bool" Def="false"> </InterditAccelerationCorrSpec>
+        <InterditCorrelRapide Nb="?" Type="bool" Def="false"> </InterditCorrelRapide>
+	<ForceCorrelationByRect Nb="?" Type="bool" Def="false"> </ForceCorrelationByRect>
+      <!-- Permet pour mise au point, de donner des cples homologues de ref -->
+           <ListTestCpleHomol Nb="*">
+                <PtIm1 Type="Pt2dr" Nb="1" > </PtIm1>
+                <PtIm2 Type="Pt2dr" Nb="1" > </PtIm2>
+           </ListTestCpleHomol>
+
+      <!-- Mise au point, si presente les coordonnees images sont affichees-->
+           <ListeTestPointsTerrain Type="Pt3dr" Nb="*" > </ListeTestPointsTerrain>
+	   <WithMessage Nb="?" Type="bool" Def="false">   </WithMessage>
+
+           <ShowLoadedImage Nb="?" Type="bool" Def="false">    </ShowLoadedImage>
+
+           <SectionDebug Nb="?">
+                <DebugEscalier Nb="?">
+                     <P1 Nb="1" Type="Pt2di"> </P1>
+                     <P2 Nb="1" Type="Pt2di"> </P2>
+                     <ShowDerivZ Nb="?" Type="bool" Def="false"> </ShowDerivZ>
+                </DebugEscalier>
+           </SectionDebug>
+ 
+     </Section_Vrac>
+
+   </ParamMICMAC>
+
+<Verbatim File=".h.cpp">
+// Quelque chose
+</Verbatim>
+
+<Verbatim File=".h">
+#endif // Define_NotMicMac
+</Verbatim>
+
+
+
+</GenCpp>
