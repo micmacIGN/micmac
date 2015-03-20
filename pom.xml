@@ -11,7 +11,7 @@
 
   <groupId>fr.ign</groupId>
   <artifactId>micmac</artifactId>
-  <version>1.0.beta3</version>
+  <version>1.0.beta4</version>
   <packaging>pom</packaging>
   
   <properties>
