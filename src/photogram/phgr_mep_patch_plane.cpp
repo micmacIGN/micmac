@@ -42,6 +42,18 @@ Header-MicMac-eLiSe-25/06/2007*/
     Temps pour 1000 Solve(8)  : 0.00645113
     Temps pour 1000000  AddEq  : 0.113502
 
+Le parametre de taille n'a quasiment pas d'influence dans OneIterNbSomGlob 
+    OneIterNbSomGlob(aHom,20,P8COL::green,Show);
+
+Par contre, si on supprime TestEvalHomographie, le temps es / par 60.
+
+Conclusion, pour optimiser les chances il faut tenter bcp de triangle, en faisant varier
+les tailles d'initialisation. Pour chaque taille on prend un approch progressive, mais 
+on ne fait qu'un seul test de TestEvalHomographie,
+
+
+
+
 
   A faire rajouter une observation.
   Mesure les temps de calcul des différentes briques :
@@ -78,6 +90,7 @@ class cAttrSomOPP
        Pt2dr mP1;
        Pt2dr mP2;
        double mPds;
+       double mDist;
 
 };
 
@@ -96,7 +109,6 @@ typedef  ElGraphe<cAttrSomOPP,cAttrArcSomOPP> tGrOPP;
 
 Pt2dr POfSomPtr(const tSomOPP * aSom) {return aSom->attr().mP1;}
 
-
 class cOriPlanePatch
 {
     public :
@@ -111,10 +123,12 @@ class cOriPlanePatch
 
          void TestPt();
          void TestHomogr();
-         void TestOneGerm(std::vector<tSomOPP*>  & aVSom);
+         void TestOneGermGlob(const std::vector<tSomOPP*>  & aVSom,bool Show);
          void    ResetHom();
          cElHomographie SolveHom();
+         void OneIterNbSomGlob(cElHomographie & aHom,int aNbGlob,int aNbCoul,bool Show);
     private  :
+         void  TestEvalHomographie(const cElHomographie &,bool Show);
          void AddHom(tSomOPP*);
          void ShowPoint(const Pt2dr &,double aRay,int coul) const;
          void ShowPoint(const tSomOPP &,double aRay,int coul) const;
@@ -126,14 +140,18 @@ class cOriPlanePatch
 
 
          double                 mFoc;
+         ElPackHomologue        mPack;
          Video_Win *            mW;
          Pt2dr                  mP0W;
          double                 mScaleW;
          std::vector<tSomOPP *> mVSom;
+         int                    mNbSom;
          tGrOPP                 mGrOPP;
          int                    mFlagVisitH;
          L2SysSurResol          mSysHom;
          bool                   mModeAff;
+         cInterfBundle2Image *  mIBI_Lin;
+         
 };
 
     //  ==============  Graphisme   ================
@@ -243,7 +261,45 @@ void cOriPlanePatch::ResetHom()
 {
     mSysHom.GSSR_Reset(true);
     mSysHom.SetPhaseEquation(0);
+    for (int aK=0 ; aK< mNbSom ; aK++)
+    {
+        mVSom[aK]->flag_set_kth_false(mFlagVisitH);
+    }
 }
+
+
+void  cOriPlanePatch::TestEvalHomographie(const cElHomographie & aHom,bool Show)
+{
+     cResMepRelCoplan aRMC =  ElPackHomologue::MepRelCoplan(1.0,aHom,tPairPt(Pt2dr(0,0),Pt2dr(0,0)));
+     const std::list<cElemMepRelCoplan>  & aLSolPl = aRMC.LElem();
+
+     ElRotation3D aBestR = ElRotation3D::Id;
+     double aBestScore = 1e20;
+     for (std::list<cElemMepRelCoplan>::const_iterator itS = aLSolPl.begin() ; itS != aLSolPl.end() ; itS++)
+     {
+        if ( itS->PhysOk())
+        {
+             ElRotation3D aR = itS->Rot();
+             aR = aR.inv();
+             double aScore = LinearCostMEP(mPack,aR,0.1);
+             if (aScore<aBestScore)
+             {
+                 aBestScore = aScore;
+                 aBestR = aR;
+             }
+        }
+     }
+     double anEr = mIBI_Lin->ErrInitRobuste(aBestR);
+     anEr =  mIBI_Lin->ResiduEq(aBestR,anEr);
+     double anEr0 = anEr;
+     for (int aK=0 ; aK<5 ; aK++)
+     {
+           aBestR = mIBI_Lin->OneIterEq(aBestR,anEr);
+     }
+     if (Show)
+        std::cout << "COST Hom " << anEr0*mFoc << " => " << anEr*mFoc << "\n";
+}
+
 cElHomographie cOriPlanePatch::SolveHom()
 { 
     if (mModeAff)
@@ -259,8 +315,6 @@ cElHomographie cOriPlanePatch::SolveHom()
     Im1D_REAL8 aSol =      mSysHom.GSSR_Solve (0);
     double * aDS = aSol.data();
 
-    std::cout << "gGgG " << aDS[6] << " HHhh " << aDS[7] << "\n";
-
     cElComposHomographie aHX(aDS[1],aDS[2],aDS[0]);
     cElComposHomographie aHY(aDS[4],aDS[5],aDS[3]);
     cElComposHomographie aHZ(aDS[6],aDS[7],     1);
@@ -268,14 +322,58 @@ cElHomographie cOriPlanePatch::SolveHom()
     return cElHomographie(aHX,aHY,aHZ);
 }
 
-void cOriPlanePatch::TestOneGerm(std::vector<tSomOPP*>  & aVSom)
+void cOriPlanePatch::OneIterNbSomGlob(cElHomographie & aHom,int aNbGlob,int aCoul,bool Show)
 {
+    int aNbIn = 0;
+    std::vector<double> aVDist;
+    for (int aK=0 ; aK< mNbSom ; aK++)
+    {
+       tSomOPP * aS = mVSom[aK];
+       if (! aS->flag_kth(mFlagVisitH))
+       {
+           cAttrSomOPP & anAttr = aS->attr();
+           anAttr.mDist = square_euclid(anAttr.mP2-aHom.Direct(anAttr.mP1));
+           aVDist.push_back(anAttr.mDist);
+       }
+       else
+          aNbIn ++;
+    }
+    double aVSeuil = KthVal(aVDist,aNbGlob-aNbIn);
+    
+    for (int aK=0 ; aK< mNbSom ; aK++)
+    {
+        tSomOPP * aS = mVSom[aK];
+        if ((!aS->flag_kth(mFlagVisitH)) &&  (aS->attr().mDist<=aVSeuil))
+        {
+             AddHom(aS);
+             if (Show) ShowPoint(*aS,3.0,aCoul);
+        }
+    }
+    aHom = SolveHom();
+    TestEvalHomographie(aHom,Show);
+}
 
+void cOriPlanePatch::TestOneGermGlob(const std::vector<tSomOPP*>  & aVSom,bool Show)
+{
+    mModeAff = false;
+    ResetHom();
     for (int aK=0 ; aK<int (aVSom.size()) ; aK++)
     {
         AddHom(aVSom[aK]);
     }
+    cElHomographie aHom = SolveHom();
 
+    OneIterNbSomGlob(aHom,8,P8COL::red,Show);
+/*
+    OneIterNbSomGlob(aHom,10,P8COL::red,Show);
+    OneIterNbSomGlob(aHom,12,P8COL::red,Show);
+    OneIterNbSomGlob(aHom,14,P8COL::red,Show);
+    OneIterNbSomGlob(aHom,16,P8COL::red,Show);
+*/
+    OneIterNbSomGlob(aHom,20,P8COL::green,Show);
+    OneIterNbSomGlob(aHom,50,P8COL::blue,Show);
+    OneIterNbSomGlob(aHom,100,P8COL::cyan,Show);
+    OneIterNbSomGlob(aHom,200,P8COL::black,Show);
 }
 
 
@@ -283,7 +381,11 @@ void cOriPlanePatch::TestOneGerm(std::vector<tSomOPP*>  & aVSom)
 
 void cOriPlanePatch::TestHomogr()
 {
-#if (0)
+    mW->clik_in();
+    for (int aK=0 ; aK<int(mVSom.size()) ; aK++)
+    {
+        ShowPoint(*(mVSom[aK]),3.0,P8COL::green);
+    }
     mModeAff = true;
     int aNbPts = mModeAff ? 3 : 4;
     Pt2dr aC (0,0);
@@ -292,11 +394,18 @@ void cOriPlanePatch::TestHomogr()
     {
         tSomOPP * aSom =  GetSom(P8COL::white);
         aVTest.push_back(aSom);
-        ElCplePtsHomologues   aCple = aSom->attr().Cple();
-        aPack.Cple_Add(aCple);
         aC  = aC +  aSom->attr().mP1;
     }
 
+    TestOneGermGlob(aVTest,true);
+
+    ElTimer aChrono;
+    for (int aK=0 ; aK<100 ; aK++)
+        TestOneGermGlob(aVTest,false);
+    std::cout  << "TIME GLOB " << aChrono.uval() << "\n";
+}
+
+/*
     ResetHom();
     TestOneGerm(aVTest);
     cElHomographie aHom = SolveHom();
@@ -311,16 +420,15 @@ void cOriPlanePatch::TestHomogr()
         int aCoul = P8COL::red;
 
         if (aResidu  < 10)
-             {
-                // double aPds = 1/(1+ElSquare(aD/aDPond));
-                double aPds = 1.0;
-                ElCplePtsHomologues aCple(aP1,aP2,aPds);
-                aVTest.push_back(mVSom[aK]);
-                aNewPack.Cple_Add(aCple);
-                aCoul = P8COL::yellow;
+        {
+            aCoul =P8COL::green;
+        }
+        ShowPoint(aP1,3.0,aCoul);
+    }
+}
+*/
 
-}}
-
+#if (0)
 
     aC = aC /aNbPts ;
 
@@ -404,10 +512,10 @@ SolveHom();
 
     }
     std::cout << "tSVD  " << aChronoSolve.uval() << "\n";
+}
     
 #endif
 
-}
 
 
 
@@ -428,12 +536,14 @@ cOriPlanePatch::cOriPlanePatch
       double      aScaleW
 )  :
    mFoc         (aFoc),
+   mPack        (aPack),
    mW           (aW),
    mP0W         (aP0W),
    mScaleW      (aScaleW),
    mFlagVisitH  (mGrOPP.alloc_flag_som()),
    mSysHom      (8),
-   mModeAff     (false)
+   mModeAff     (false),
+   mIBI_Lin     (cInterfBundle2Image::LinearDet(mPack,mFoc))
 {
     // if (mW) mW->clear();
     for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
@@ -442,6 +552,7 @@ cOriPlanePatch::cOriPlanePatch
          mVSom.push_back(&aSom);
          if (mW) ShowPoint(aSom,3.0,P8COL::green);
     }
+    mNbSom = mVSom.size();
 
     std::cout << "ENETR DELAU , Nb " << aPack.size() << " \n";
 
