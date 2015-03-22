@@ -577,9 +577,9 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aN
         for (int aKS2 = aKS1 ; aKS2 <aNbSomTot ; aKS2++)
         {
            // sqrt pour attenuer la ponderation
-           double aDist = sqrt(dist48( aVPres[aKS1].mP1-aVPres[aKS2].mP1) / 2.0);
-// aDist=1;
-           // double aDist = (dist48( aVPres[aKS1].mP1-aVPres[aKS2].mP1) / 2.0);
+           double aDist = sqrt(dist48_euclid( aVPres[aKS1].mP1-aVPres[aKS2].mP1) );
+           // double aDist =  dist48_euclid( aVPres[aKS1].mP1-aVPres[aKS2].mP1) ;
+           // double  aDist=1;
            double aPds = 1 / (aDistType+aDist);
            aVPres[aKS1].mPdsOccup += aPds;
            aVPres[aKS2].mPdsOccup += aPds;
