@@ -869,7 +869,9 @@ bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
 
 
 void cAppliApero::ExportImMM(const cChoixImMM & aCIM)
-{
+{ 
+
+
     cListOfName aLON;
     cSetName *  aSelector = mICNM->KeyOrPatSelector(aCIM.PatternSel());
     cMasqBin3D * aMasq3D = 0;

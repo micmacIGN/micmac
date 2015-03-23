@@ -466,6 +466,17 @@ void SaisieQtWindow::on_actionShow_names_toggled(bool show)
     }
 }
 
+void SaisieQtWindow::on_actionShow_Zoom_window_toggled(bool show)
+{
+	_ui->QFrame_zoom->setVisible(show);
+}
+
+
+void SaisieQtWindow::on_actionShow_3D_view_toggled(bool show)
+{
+	_ui->frame_preview3D->setVisible(show);
+}
+
 void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 {
     emit showRefuted( !show );
@@ -1225,7 +1236,8 @@ void SaisieQtWindow::setUI()
 
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);
-        _ui->tableView_Objects->close();
+
+		_ui->tableView_Objects->hide();
        // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
@@ -1241,14 +1253,11 @@ void SaisieQtWindow::setUI()
         //_ui->splitter_Tools->hide();
     }
 
-    /*if (_appMode != BASC)*/
-
-    //_ui->tableView_Objects->hide();
-
-    _ui->tableView_Objects->close();
-
     //TEMP:
-    hideAction(_ui->menuTools->menuAction(), false);
+	hideAction(_ui->menuTools->menuAction(), false);
+
+	if (_appMode <= MASK3D)
+		hideAction(_ui->menuWindows->menuAction(), false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )

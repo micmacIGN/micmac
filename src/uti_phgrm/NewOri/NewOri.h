@@ -160,7 +160,8 @@ class cNewO_CpleIm
                 cNewO_OneIm * aI2,
                 tMergeLPackH *      aMergeTieP,
                 ElRotation3D *      aTesSol,
-                bool                Show
+                bool                Show,
+                bool                aHPP
           );
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;

@@ -60,6 +60,7 @@ typedef enum
 {
   eGround,
   eStatue,
+  eForest,
   eTestIGN,
   eQuickMac,
   eMicMac,

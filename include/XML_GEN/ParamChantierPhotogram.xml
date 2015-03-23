@@ -48,6 +48,7 @@
    <enum Name="eTypeMMByP">
        <eGround>         </eGround>
        <eStatue>         </eStatue>
+       <eForest>         </eForest>
        <eTestIGN>        </eTestIGN>
        <eQuickMac>       </eQuickMac>
        <eMicMac>         </eMicMac>

@@ -874,6 +874,7 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
               <IsAperiCloud Type="bool" Nb="?" Def="false"> </IsAperiCloud>  <!-- Dans ce cas, court-circuite +sieur meca -->
+              <IsChoixImSec Type="bool" Nb="?" Def="false"> </IsChoixImSec>  <!-- Dans ce cas, court-circuite +sieur meca -->
               <FileSauvParam Nb="?" Type="std::string"> </FileSauvParam>
               <GenereErreurOnContraineCam Nb="?" Type="bool" Def="true"> </GenereErreurOnContraineCam>
 	      <!--  Juste pour fixer les ordres de grandeur dans le cas d'une aero 

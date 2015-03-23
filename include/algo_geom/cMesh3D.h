@@ -183,10 +183,6 @@ class cTriangle
 
         bool	hasAttributes() { return (!mAttributes.empty()); }
 
-        void	setInside() {mInside = true;}
-
-        bool	isInside(){return mInside;}
-
         REAL	computeEnergy(int img_idx);
 
         size_t  getEdgesNumber() { return mTriEdges.size(); }
@@ -217,7 +213,6 @@ class cTriangle
 
 private:
 
-        bool						mInside;		// triangle a conserver
         int							mTriIdx;		// triangle index
         vector <int>				mTriVertex;		// index of vertexes in pMesh->mVertexes
         vector <int>                mTriEdges;      // index of edges in pMesh->Edges

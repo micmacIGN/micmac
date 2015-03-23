@@ -113,7 +113,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       std::string MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool & Done,bool & Begun);
       void DoFusion();
       void DoFusionGround();
-      void DoFusionStatue();
+      void DoFusionEpip();
 
       std::string mDo;
       int mZoom0;
@@ -148,7 +148,9 @@ class cAppliMMByPair : public cAppliWithSetImage
       int          mTimes;
       bool         mDebugCreatE;
       bool         mPurge;
-      bool		   mUseGpu;
+      bool         mUseGpu;
+      double       mDefCor;
+      double       mZReg;
       bool mSuprImNoMasq;
 };
 
@@ -1119,7 +1121,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mTimes        (1),
     mDebugCreatE  (false),
     mPurge        (! MPD_MM()),
-    mUseGpu		  (false),
+    mUseGpu        (false),
+    mDefCor        (0.5),
+    mZReg          (0.05),
     mSuprImNoMasq  (false)
 
 {
@@ -1150,6 +1154,18 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         mZoomF = 4;
         mSuprImNoMasq = true;
      }
+     else if (mType==eForest)
+     {
+        mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
+        mAddMMImSec = true;
+        mHasVeget = true;
+        mSkyBackGround = false;
+        mRIE2Do = true;
+        mZoomF = 4;
+        mSuprImNoMasq = true;
+        mDefCor = 0.2;
+        mZReg   = 0.02;
+     }
      else if (mMacType)
      {
         mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
@@ -1179,8 +1195,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64",eSAM_IsPowerOf2)
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1",eSAM_IsPowerOf2)
-                    << EAM(mDelaunay,"Delaunay","Add Delaunay edges in pair to match, Def=true on ground")
-                    << EAM(mAddMMImSec,"MMImSec","Add pair from AperoChImSecMM,  Def=true in mode Statue")
+                    << EAM(mDelaunay,"Delaunay",true,"Add Delaunay edges in pair to match, Def=true on ground")
+                    << EAM(mAddMMImSec,"MMImSec",true,"Add pair from AperoChImSecMM,  Def=true in mode Statue")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip, first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
                     << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
@@ -1207,6 +1223,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mPenPerIm,"PenPerIm",true,"Penality Per Image in choice im sec")
                     << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
 		    << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+		    << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
+		    << EAM(mZReg,"ZReg",false,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
+
   );
 
   if (!MMVisualMode)
@@ -1392,8 +1411,10 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " DCE=" +  ToString(mDebugCreatE)
                          +  " HasVeg=" + ToString(mHasVeget)
                          +  " HasSBG=" + ToString(mSkyBackGround)
-                         + " PurgeAtEnd=" + ToString(mPurge)
-						 + " UseGpu=" + ToString(mUseGpu)
+                         +  " PurgeAtEnd=" + ToString(mPurge)
+		         +  " UseGpu=" + ToString(mUseGpu)
+                         +  " DefCor=" + ToString(mDefCor)
+                         +  " ZReg=" + ToString(mZReg)
                       ;
 
 
@@ -1569,9 +1590,10 @@ void cAppliMMByPair::DoFusionGround()
          System(aCom);
 }
 
-void cAppliMMByPair::DoFusionStatue()
+void cAppliMMByPair::DoFusionEpip()
 {
-   cMMByImNM * aMMIN = cMMByImNM::ForGlobMerge(Dir(),1.0,"Statue");
+   // cMMByImNM * aMMIN = cMMByImNM::ForGlobMerge(Dir(),1.0,"Statue");
+   cMMByImNM * aMMIN = cMMByImNM::ForGlobMerge(Dir(),1.0,mStrType);
    // Merge Depth Map
    if (1)
    {
@@ -1671,8 +1693,8 @@ void cAppliMMByPair::DoFusion()
 {
     if (mType==eGround)
        DoFusionGround();
-    if (mType==eStatue)
-       DoFusionStatue();
+    if ((mType==eStatue) || (mType==eForest))
+       DoFusionEpip();
 }
 
 

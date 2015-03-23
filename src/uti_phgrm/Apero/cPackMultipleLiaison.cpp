@@ -747,6 +747,7 @@ int  cObsLiaisonMultiple::IndOfCam(const cPoseCam * aCam) const
 
 Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D,int * aNb) const
 {
+
   std::vector<double> aVPds;
 
   const CamStenope &   aCS  = *(mPose1->CurCam());
@@ -756,6 +757,7 @@ Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D,int * aNb) con
   for (int aKPt=0 ; aKPt<int(mVPMul.size()) ;aKPt++)
   {
       cOnePtsMult& anOPM = *(mVPMul[aKPt]);
+
       if (anOPM.MemPds() >0)
       {
            Pt3dr aPI = anOPM.QuickInter(aVPds);
@@ -1092,7 +1094,7 @@ double cObsLiaisonMultiple::AddObsLM
 
         bool aOldMemPtOk = aPM->MemPtOk();
         Pt3dr aOldMemPt  = aPM->MemPt();
-        if (Add2C)
+        if (Add2C )
         {
            aPM->SetMemPtOk(false);
            aPM->MemPt() =  NoMemPt;
@@ -1291,7 +1293,8 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                    aPM->MemPds() = aPdsIm;
                 }
 
-                if (((aPdsIm >0) &&  Add2C) && isInF3D)
+
+                if (((aPdsIm >0) &&  (Add2C)) && isInF3D)
                 {
                     aNbPdsNN++;   
                     aNbMultPdsNN += (aNbRInit>=3);

@@ -526,11 +526,19 @@
     </property>
     <addaction name="actionRule"/>
    </widget>
+   <widget class="QMenu" name="menuWindows">
+    <property name="title">
+     <string>Windows</string>
+    </property>
+    <addaction name="actionShow_Zoom_window"/>
+    <addaction name="actionShow_3D_view"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuSelection"/>
    <addaction name="menuHelp"/>
    <addaction name="menuTools"/>
+   <addaction name="menuWindows"/>
   </widget>
   <action name="actionFullScreen">
    <property name="checkable">
@@ -1113,6 +1121,31 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Del</string>
+   </property>
+  </action>
+  <action name="actionShow_Zoom_window">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Zoom window</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Zoom window</string>
+   </property>
+  </action>
+  <action name="actionShow_3D_view">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show 3D view</string>
    </property>
   </action>
  </widget>
