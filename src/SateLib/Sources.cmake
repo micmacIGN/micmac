@@ -4,6 +4,7 @@ set(SateLib_Src_Files
 	${SATELIB_DIR}/Dimap2Grid.cpp
 	${SATELIB_DIR}/RefineModel.cpp
 	${SATELIB_DIR}/DigitalGlobe2Grid.cpp
+	${SATELIB_DIR}/Aster2Grid.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
