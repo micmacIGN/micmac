@@ -1,0 +1,166 @@
+<ParamDigeo>
+
+    <DicoLoc>
+        <Symb> Im1=IMG_0034.CR2 </Symb>
+        <Symb> NbNivByOct=3     </Symb>
+
+        
+        <Symb> Resol=1            </Symb>
+        <Symb> Sigma0=1.6         </Symb>
+        <Symb> SigmaN=1           </Symb>
+        
+        
+        <!--
+        <Symb> Resol=0.5          </Symb>
+        <Symb> Sigma0=1.269920842 </Symb>
+        <Symb> SigmaN=0.5         </Symb>
+        -->
+
+        <Symb> OctaveMax=32      </Symb>
+        <Symb> NivFloatIm=4          </Symb>
+        <Symb> NivInFirstOct=0       </Symb>
+        <Symb> Incremental=true      </Symb>
+        <Symb> ExigeCodeCompile=true </Symb>
+
+        <Symb> Sauv=0             </Symb>
+        <Symb> RatioGrad=0.05     </Symb>
+
+        <eSymb> MaxDyn= ! ${Sauv} </eSymb>
+    </DicoLoc>
+
+        <DigeoSectionImages>
+           <ImageDigeo>
+              <KeyOrPat>  ${Im1} </KeyOrPat>
+              <ResolInit>  ${Resol} </ResolInit>
+<!--
+              <NbOctetLimitLoadImageOnce> 1e8 </NbOctetLimitLoadImageOnce>
+-->
+           </ImageDigeo>
+           <PyramideImage>
+				  
+	      <!--
+		 <TypeNumeriqueOfNiv>
+			<Type> eTN_u_int2 </Type>
+			<Niv> -2  </Niv>
+		 </TypeNumeriqueOfNiv>
+		 <TypeNumeriqueOfNiv>
+			<Type> eTN_float </Type>
+			<Niv> ${NivFloatIm}  </Niv>
+		 </TypeNumeriqueOfNiv>
+	      -->
+	      <TypeNumeriqueOfNiv>
+		  <Type> eTN_u_int2 </Type>
+		  <Niv> -2  </Niv>
+	      </TypeNumeriqueOfNiv>
+
+
+              <MaximDyn > ${MaxDyn} </MaximDyn>
+              <!-- 
+                   <ValMaxForDyn Nb="?" Type="double"> </ValMaxForDyn>
+              -->
+             
+              <ReducDemiImage >  eRDI_121 </ReducDemiImage>
+
+              <TypePyramide>
+                  <PyramideGaussienne>
+                       <NbByOctave> ${NbNivByOct} </NbByOctave>
+                       <SigmaN> ${SigmaN} </SigmaN>
+                       <Sigma0> ${Sigma0} </Sigma0>
+                       <IndexFreqInFirstOctave >  ${NivInFirstOct} </IndexFreqInFirstOctave>
+                       <NivOctaveMax> ${OctaveMax} </NivOctaveMax> 
+<!--
+                       <ConvolFirstImage Nb="?" Type="double" Def="-1"> </ConvolFirstImage>
+                       <EpsilonGauss Nb="?" Type="double" Def="1e-3"> ${GausTronque} </EpsilonGauss>
+                       <NbShift  Nb="?" Type="int" Def="15"> </NbShift>
+                       <SurEchIntegralGauss Nb="?" Type="int" Def="10"> </SurEchIntegralGauss>
+-->
+                       <ConvolIncrem> ${Incremental} </ConvolIncrem>
+                  </PyramideGaussienne>
+              </TypePyramide>
+           </PyramideImage>
+        </DigeoSectionImages>
+       
+        <SectionCaracImages>
+           <!-- Juste pour pouvoir eventuellement squeezer en amont tout le calcul
+           -->
+           <ComputeCarac> true </ComputeCarac>
+           <SiftCarac>
+               <DoMax> true </DoMax>
+               <DoMin> true </DoMin>
+
+               <NivEstimGradMoy> 4 </NivEstimGradMoy>
+               <RatioAllongMin > 8 </RatioAllongMin>
+               <RatioGrad> ${RatioGrad} </RatioGrad>
+           </SiftCarac>
+<!--
+-->
+        </SectionCaracImages>
+
+        <!-- Cette section gère les fonctionnalites permettant de faire
+             des tests de perfomances ou de bon fonctionnement
+        -->
+            
+        <SectionTest>
+<!--
+             <GenereRandomRect Nb="?">
+                  <NbRect Nb="1" Type="int"></NbRect>
+                  <SzRect Nb="1" Type="int"></SzRect>
+             </GenereRandomRect>
+             <GenereCarroyage Nb="?">
+                  <PerX Nb="1" Type="int"></PerX>
+                  <PerY Nb="1" Type="int"></PerY>
+             </GenereCarroyage>
+             <GenereAllRandom Nb="?">
+                  <SzFilter Nb="1" Type="int"> </SzFilter>  
+             </GenereAllRandom>
+
+             <VerifExtrema Nb="?" Type="bool" Def="false"></VerifExtrema>
+-->
+<!--
+             <DigeoTestOutput>
+                  <OutputGaussians> true </OutputGaussians>
+                  <OutputTiles> true </OutputTiles>
+             </DigeoTestOutput>
+-->
+       </SectionTest>
+
+        <SectionWorkSpace>
+<!--
+           <DirectoryChantier>  /media/data1/Jeux-Tests/12-Tetes-Inc-4341-6/  </DirectoryChantier>
+-->
+           <DirectoryChantier>  /home/marc/TMP/Delphes/12-Tetes-Inc-4341-6/  </DirectoryChantier>
+           <#WHEN VTEST=${Sauv}>
+               <SauvPyram>
+                  <Dir> SP/ </Dir>
+                  <StripTifFile> 100  </StripTifFile>
+                  <Force8B>   true  </Force8B>
+                  <Dyn> 0.01 </Dyn>
+                </SauvPyram>
+           </#WHEN>
+<!--
+-->
+
+           <DigeoDecoupageCarac>
+                <SzDalle > 2048 </SzDalle>
+                <Bord>  0  </Bord>
+           </DigeoDecoupageCarac>
+<!--
+-->
+
+            <!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait
+                 insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment
+            <ExigeCodeCompile> ${ExigeCodeCompile} </ExigeCodeCompile>
+            -->
+            <GenereCodeConvol></GenereCodeConvol>
+
+
+           <ShowTimes> 0 </ShowTimes>
+
+           <!-- Pas de raison, hors mis au point/test, de changer cette val -->
+           <ShowConvolSpec> false </ShowConvolSpec>
+
+	   <Verbose> false </Verbose>
+
+        </SectionWorkSpace>
+</ParamDigeo>
+

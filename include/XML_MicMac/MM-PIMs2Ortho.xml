@@ -1,0 +1,229 @@
+<!--
+MICMAC  /home/marc/MMM/culture3d/include/XML_MicMac/MM-ModelInitial.xml WorkDir=/home/marc/TMP/ExempleDoc/Boudha-MM/  +Ori=-Test-3 +ImSec=-Test-3 +Im1=IMG_5588.tif 
+
+PIMs-TmpBasc/PIMs-ZNUM-Merged.xml
+Pat=TS_35_50[0-5].CR2
+-->
+
+<ParamMICMAC >
+<DicoLoc>
+<!--
+   <Symb> Pat=TS_100.*.CR2  </Symb>
+   <Symb> Ori=MEP_TS_35Figee_100_Tronquee </Symb>
+   <Symb> Repere=TheCyl.xml </Symb>
+   <Symb> DeZoom=2 </Symb>
+-->
+   <Symb> Pat=XXXX  </Symb>
+   <Symb> Ori=XXXX </Symb>
+   <Symb> Repere=XXX </Symb>
+   <Symb> DeZoom=XXXXX </Symb>
+   <Symb> RepereIsAnam=false </Symb>
+   <Symb> RepereIsCart=false </Symb>
+
+   <Symb>  PrefixBasc=PIMs-TmpBasc/PIMs- </Symb>
+   <Symb>  FOM=${PrefixBasc}ZNUM-Merged.xml </Symb>
+   <Symb>  FOMMasq=${PrefixBasc}Merged_Masq.xml </Symb>
+   <Symb>  NuageInit=${PrefixBasc}Merged.xml </Symb>
+   <Symb>  MasqInit=${PrefixBasc}Merged_Masq.tif </Symb>
+
+   <Symb> Purge=true </Symb>
+   <Symb> DirMEC=PIMs-TmpMntOrtho  </Symb>
+   <Symb> DirOrthoF=PIMs-ORTHO/  </Symb>
+   <eSymb> ResolRelOrhto= / 1.0 ${DeZoom} </eSymb>
+
+</DicoLoc>
+<Section_Terrain>  
+
+
+    
+    <IntervAltimetrie>
+        <ZIncCalc>   0.0 </ZIncCalc>    <!-- metres -->
+        <ZIncZonage>   0.0 </ZIncZonage>    <!-- metres -->
+    </IntervAltimetrie>
+
+    <Planimetrie>
+        <MasqueTerrain>
+            <MT_Image> ${MasqInit} </MT_Image>
+            <MT_Xml >  ${FOMMasq}</MT_Xml>
+        </MasqueTerrain>
+    </Planimetrie>
+
+    <FileOriMnt> ${FOM}</FileOriMnt>
+
+    <NuageXMLInit>
+         <NameNuageXML>   ${NuageInit}     </NameNuageXML>
+         <CanAdaptGeom> false  </CanAdaptGeom>
+    </NuageXMLInit>
+
+
+
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue>
+     <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
+
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <ImPat >    ${Pat}   </ImPat>  
+     </Images>
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>   NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+            <DynamiqueCorrel> eCoeffAngle </DynamiqueCorrel>
+            <CorrelAdHoc>
+                <TypeCAH>
+                        <GPU_Correl> </GPU_Correl>
+                </TypeCAH>
+            </CorrelAdHoc>
+
+
+            <SzW >       1               </SzW>
+
+
+	    <AlgoRegul>  eAlgoIdentite </AlgoRegul>
+
+	    <ZRegul>   0.05     </ZRegul>
+	    <ZPas>   1.0     </ZPas>
+            <ZDilatAlti>  1  </ZDilatAlti>
+	    <ZDilatPlani> 1  </ZDilatPlani>
+
+	</EtapeMEC>
+
+	<EtapeMEC> 
+	       <DeZoom >  ${DeZoom}  </DeZoom> 
+               <#WHEN VTEST=true>
+                 <GenerePartiesCachees >
+                    <ByMkF> true </ByMkF>
+                    <SeuilUsePC> 3 </SeuilUsePC>
+                    <KeyCalcPC> NKS-Assoc-AddDirAndPref@${DirOrthoF}@PC_ </KeyCalcPC>
+                    <PatternApply>  .* </PatternApply>
+
+                    <SzBloc> 2000 </SzBloc>
+                    <SzBord>  200 </SzBord>
+
+
+                    <MakeOrthoParImage >
+                         <DirOrtho> ${DirOrthoF} </DirOrtho>
+
+                         <MakeMTDMaskOrtho>
+                                <Mesures>
+                                     <NameFile> ../${MasqInit}       </NameFile>
+                                     <NameMTD>  ../${FOMMasq}    </NameMTD>
+                                </Mesures>
+                         </MakeMTDMaskOrtho>
+<!--
+-->
+
+                         <ResolRelOrhto> ${ResolRelOrhto} </ResolRelOrhto>
+                         <OrthoBiCub> -1.5  </OrthoBiCub>
+                         <KeyCalcInput>    NKS-Assoc-Id  </KeyCalcInput>
+                         <KeyCalcOutput >  NKS-Assoc-AddDirAndPref@${DirOrthoF}@Ort_ </KeyCalcOutput>
+                         <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrthoF}@Incid_ </KeyCalcIncidHor>
+                         <ResolIm> 1.0 </ResolIm>
+                         <CalcIncAZMoy> true </CalcIncAZMoy>
+                    </MakeOrthoParImage>
+                  </GenerePartiesCachees>
+               </#WHEN>
+        </EtapeMEC>
+
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+
+<!--
+    <X_DirPlanInterFaisceau>  ${XVertStd} </X_DirPlanInterFaisceau>
+    <Y_DirPlanInterFaisceau>  ${YVertStd} </Y_DirPlanInterFaisceau>
+    <Z_DirPlanInterFaisceau>  ${ZVertStd} </Z_DirPlanInterFaisceau>
+-->
+
+    <#WHEN VTEST=${RepereIsAnam}>
+         <AnamorphoseGeometrieMNT>
+             <AnamSurfaceAnalytique>
+                   <NameFile> ${Repere}</NameFile>
+                   <Id> TheSurf </Id>
+             </AnamSurfaceAnalytique>
+             <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+             <!-- Limite +ou- Pi/3 -->
+             <AnamLimAngleVisib>  1.05 </AnamLimAngleVisib>
+         </AnamorphoseGeometrieMNT>
+    </#WHEN>
+    <#WHEN VTEST=${RepereIsCart}>
+         <RepereCorrel>   ${Repere}  </RepereCorrel>
+<!--
+         <AnamorphoseGeometrieMNT>
+               <AnamLimAngleVisib> 0.75 </AnamLimAngleVisib>
+               <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+         </AnamorphoseGeometrieMNT>
+-->
+    </#WHEN>
+
+
+    <GeomMNT> eGeomMNTEuclid </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <!--
+    <DoNothingBut>
+	<ButDoMasqIm>  true </ButDoMasqIm>
+	<ButDoPyram>  true </ButDoPyram>
+    </DoNothingBut>
+    -->
+    <!--
+    -->
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC > ${DirMEC}/ </TmpMEC>
+     <TmpPyr > Pyram/ </TmpPyr>
+     <TmpResult > ${DirMEC}/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  1000  </SzDalleMax>
+     <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+
+     <PurgeMECResultBefore> ${Purge} </PurgeMECResultBefore>
+
+      <ByProcess> ${MMNbProc}  </ByProcess>
+      <ComprMasque> eComprTiff_None </ComprMasque>
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+     <DebugMM> true </DebugMM>
+</Section_Vrac>
+
+</ParamMICMAC>
+
