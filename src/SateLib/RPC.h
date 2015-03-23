@@ -37,6 +37,9 @@ See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+//Important note:
+//pt.x is either the column in image space or the longitude in geographic coordinates or the easting  in projected coordinates
+//pt.y is either the row    in image space or the latitude  in geographic coordinates or the northing in projected coordinates
 class RPC2D
 {
 public:
