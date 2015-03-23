@@ -900,8 +900,8 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
         double X = aGridImNorm[i].x;
         double Y = aGridImNorm[i].y;
         double Z = aGridImNorm[i].z;
-        double lat = aGridGeoNorm[i].x;
-        double lon = aGridGeoNorm[i].y;
+        double lon = aGridGeoNorm[i].x;
+        double lat = aGridGeoNorm[i].y;
 
 		double aEqLon[39] = {
 			1, Y, X, Z, Y*X, Y*Z, X*Z, Y*Y, X*X, Z*Z, X*Y*Z, Y*Y*Y, Y*X*X, Y*Z*Z, X*Y*Y, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z,
@@ -964,8 +964,8 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 		double X = aGridGeoNorm[i].x;
 		double Y = aGridGeoNorm[i].y;
 		double Z = aGridGeoNorm[i].z;
-		double Row = aGridImNorm[i].x;
-		double Col = aGridImNorm[i].y;
+		double Col = aGridImNorm[i].x;
+		double Row = aGridImNorm[i].y;
 
 		double aEqCol[39] = {
 			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
