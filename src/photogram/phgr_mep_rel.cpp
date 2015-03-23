@@ -1221,6 +1221,7 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
 static const int NbTirageMinimaliste = 200;
 static const int NbTirageSmall = 800;
 static const int NbTirageBig = 200;
+
 static const int NbSelMatEss  = 80;
 static const int NbSelRotInit  = 10;
 static const double PropCostEss  = 0.90;
@@ -1345,6 +1346,10 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    for (int aK=0 ; aK<int(aVS.size()) ; aK++)
    {
       aVS[aK].mRot = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
+
+
+// OneIterLin(aVS[aK],aPackRed,5);
+
       aVS[aK].mCost = QuickD48EProjCostMEP(aPackRed,aVS[aK].mRot,0.1) ;
       mKBest.push(aVS[aK]);
    }
@@ -1365,7 +1370,8 @@ const ElRotation3D &  cRansacMatriceEssentielle::Sol() const
 
 void cRansacMatriceEssentielle::OneIterLin(cSolTmpME & aSol,const ElPackHomologue & aPack,int aNbIter)
 {
-    cInterfBundle2Image * aIB =  cInterfBundle2Image::LinearDet(aPack,mFoc);
+     cInterfBundle2Image * aIB =  cInterfBundle2Image::LinearDet(aPack,mFoc);
+    // cInterfBundle2Image * aIB =  cInterfBundle2Image::Bundle(aPack,mFoc,true);
     aSol.mCost = aIB->ErrInitRobuste(aSol.mRot);
 
     for (int aKIter =0 ; aKIter < aNbIter ; aKIter++)

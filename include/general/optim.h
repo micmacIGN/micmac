@@ -1337,6 +1337,7 @@ class cEq12Parametre
         double mValueFixArb;
 };
 
+/*
 class cOldBundleIterLin
 {
     public :
@@ -1358,6 +1359,7 @@ class cOldBundleIterLin
        double              mLastPdsCalc;
 
 };
+*/
 
 
 
