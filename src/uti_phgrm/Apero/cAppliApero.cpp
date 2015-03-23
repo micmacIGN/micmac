@@ -127,10 +127,11 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
           mLogFile.open(mLogName.c_str(),ios::out|ios::ate|ios::app);
      }
 
-     if (mParam.IsAperiCloud().Val())
+     if (mParam.IsAperiCloud().Val()) 
      {
          AcceptFalseRot = true;
-         SetSqueezeDOCOAC();
+         if (mParam.IsAperiCloud().Val())
+            SetSqueezeDOCOAC();
      }
 
 

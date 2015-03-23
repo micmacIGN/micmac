@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1579]) = {
+const char * (theNameVar_ParamApero[1580]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -876,6 +876,7 @@ const char * (theNameVar_ParamApero[1579]) = {
 "\n",
 "        <SectionChantier Nb=\"1\">\n",
 "              <IsAperiCloud Type=\"bool\" Nb=\"?\" Def=\"false\"> </IsAperiCloud>  <!-- Dans ce cas, court-circuite +sieur meca -->\n",
+"              <IsChoixImSec Type=\"bool\" Nb=\"?\" Def=\"false\"> </IsChoixImSec>  <!-- Dans ce cas, court-circuite +sieur meca -->\n",
 "              <FileSauvParam Nb=\"?\" Type=\"std::string\"> </FileSauvParam>\n",
 "              <GenereErreurOnContraineCam Nb=\"?\" Type=\"bool\" Def=\"true\"> </GenereErreurOnContraineCam>\n",
 "	      <!--  Juste pour fixer les ordres de grandeur dans le cas d'une aero \n",

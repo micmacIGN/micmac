@@ -9214,6 +9214,17 @@ const cTplValGesInit< bool > & cSectionChantier::IsAperiCloud()const
 }
 
 
+cTplValGesInit< bool > & cSectionChantier::IsChoixImSec()
+{
+   return mIsChoixImSec;
+}
+
+const cTplValGesInit< bool > & cSectionChantier::IsChoixImSec()const 
+{
+   return mIsChoixImSec;
+}
+
+
 cTplValGesInit< std::string > & cSectionChantier::FileSauvParam()
 {
    return mFileSauvParam;
@@ -9424,6 +9435,14 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.IsChoixImSec().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.IsChoixImSec().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.IsChoixImSec().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.FileSauvParam().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.FileSauvParam().ValForcedForUnUmp(),aFp);
         }
@@ -9563,6 +9582,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
 {
     BinaryDumpInFile(aFp,anObj.IsAperiCloud().IsInit());
     if (anObj.IsAperiCloud().IsInit()) BinaryDumpInFile(aFp,anObj.IsAperiCloud().Val());
+    BinaryDumpInFile(aFp,anObj.IsChoixImSec().IsInit());
+    if (anObj.IsChoixImSec().IsInit()) BinaryDumpInFile(aFp,anObj.IsChoixImSec().Val());
     BinaryDumpInFile(aFp,anObj.FileSauvParam().IsInit());
     if (anObj.FileSauvParam().IsInit()) BinaryDumpInFile(aFp,anObj.FileSauvParam().Val());
     BinaryDumpInFile(aFp,anObj.GenereErreurOnContraineCam().IsInit());
@@ -9605,6 +9626,8 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionChantier",eXMLBranche);
    if (anObj.IsAperiCloud().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("IsAperiCloud"),anObj.IsAperiCloud().Val())->ReTagThis("IsAperiCloud"));
+   if (anObj.IsChoixImSec().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IsChoixImSec"),anObj.IsChoixImSec().Val())->ReTagThis("IsChoixImSec"));
    if (anObj.FileSauvParam().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("FileSauvParam"),anObj.FileSauvParam().Val())->ReTagThis("FileSauvParam"));
    if (anObj.GenereErreurOnContraineCam().IsInit())
@@ -9651,6 +9674,8 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.IsAperiCloud(),aTree->Get("IsAperiCloud",1),bool(false)); //tototo 
 
+   xml_init(anObj.IsChoixImSec(),aTree->Get("IsChoixImSec",1),bool(false)); //tototo 
+
    xml_init(anObj.FileSauvParam(),aTree->Get("FileSauvParam",1)); //tototo 
 
    xml_init(anObj.GenereErreurOnContraineCam(),aTree->Get("GenereErreurOnContraineCam",1),bool(true)); //tototo 
@@ -9686,7 +9711,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ThresholdWarnPointsBehind(),aTree->Get("ThresholdWarnPointsBehind",1),double(0.01)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "0673D69BDEB761C5FF3F";};
+std::string  Mangling( cSectionChantier *) {return "4F2EF2C4DB4B58DFFE3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -23024,6 +23049,17 @@ const cTplValGesInit< bool > & cParamApero::IsAperiCloud()const
 }
 
 
+cTplValGesInit< bool > & cParamApero::IsChoixImSec()
+{
+   return SectionChantier().IsChoixImSec();
+}
+
+const cTplValGesInit< bool > & cParamApero::IsChoixImSec()const 
+{
+   return SectionChantier().IsChoixImSec();
+}
+
+
 cTplValGesInit< std::string > & cParamApero::FileSauvParam()
 {
    return SectionChantier().FileSauvParam();
@@ -23603,6 +23639,6 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "D69C0D6E3B8188A6FF3F";};
+std::string  Mangling( cParamApero *) {return "9C1684639AD6FD8DFF3F";};
 
 // };

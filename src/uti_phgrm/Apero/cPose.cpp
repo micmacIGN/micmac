@@ -846,6 +846,15 @@ bool cPoseCam::IsId(const ElAffin2D & anAff) const
 /*
 */
 
+
+class cTransfo3DIdent : public cTransfo3D
+{
+     public :
+          std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> & aSrc) const {return aSrc;}
+
+};
+
+
 extern bool DebugOFPA;
 extern int aCPTOkOFA ;
 extern int aCPTNotOkOFA ;
@@ -917,6 +926,7 @@ else
    }
 
     bool isAPC =  mAppli.Param().IsAperiCloud().Val();
+    bool isForISec =  mAppli.Param().IsChoixImSec().Val();
     bool initFromBD = false;
 
     if (mPCI->PosId().IsInit())
@@ -1350,6 +1360,30 @@ std::cout << "TEST MEPS STD " << mName  << " L2 " << L2
 
 //GUIMBAL
 
+    if (isForISec && (! aRot.IsTrueRot()))
+    {
+        CamStenope* aCS =    (mCalib->PIF().DupCurPIF());
+        aCS->UnNormalize();
+
+        aCS->SetProfondeur(aProfPose);
+        aCS->SetAltiSol(anAltiSol);
+        aCS->SetOrientation(aRot.inv());
+        aCS->SetIdCam(mName);
+        std::vector<ElCamera *> aVCam;
+        aVCam.push_back(aCS);
+        cTransfo3DIdent aTransfo;
+        ElCamera::ChangeSys(aVCam,aTransfo,true,true);
+
+        ElRotation3D aRMod = aCS->Orient();
+        // mCF->SetCurRot(aRMod.inv());
+        aRot = aRMod.inv();
+
+// ShowMatr("Entree",aRot.Mat());
+// ShowMatr("Sortie",aRMod.inv().Mat());
+// getchar();
+    }
+
+
     double aLMG = mAppli.Param().LimModeGL().Val();
     if ((aLMG>0) && (GuimbalAnalyse(aRot,false)<aLMG))
     {
@@ -1358,6 +1392,9 @@ std::cout << "TEST MEPS STD " << mName  << " L2 " << L2
     }
 
     mCF->SetCurRot(aRot);
+
+
+
 
     if (isAPC)
     {
