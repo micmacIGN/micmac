@@ -65,7 +65,7 @@ OPTION(DEPLOY "compile for end-user" OFF)
 OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
 
 if ( TRACE_SYSTEM )
-        add_definitions(-D__TRACE_SYSTEM__)
+        add_definitions(-D__TRACE_SYSTEM__=${TRACE_SYSTEM})
 endif()
 
 if ( WITH_OPEN_MP )
