@@ -74,7 +74,7 @@ __device__ __host__ inline void dump_Type<dim3>(dim3 var)
 template<>
 __device__ __host__ inline void dump_Type<Rect>(Rect var)
 {
-	var.out();
+    var.out();
 }
 
 
@@ -135,7 +135,7 @@ __device__ __host__ inline void dump_Type<const char*>(const char* var)
 template<>
 __device__ __host__ inline void dump_Type<const std::string &>(const std::string &var)
 {
-	printf("%s",var.c_str());
+    printf("%s",var.c_str());
 }
 
 
@@ -256,7 +256,7 @@ void dump_variable(const char* var,const char* nameVariable)
 //}
 
 
-#if OPM_ENABLED
+#if USE_OPEN_MP
     #if ELISE_windows
         #define OMP_NT0 __pragma("omp parallel for num_threads(8)")
         #define OMP_NT1 __pragma("omp parallel for num_threads(4)")

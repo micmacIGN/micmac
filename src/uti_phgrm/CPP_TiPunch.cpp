@@ -100,7 +100,7 @@ int TiPunch_main(int argc,char ** argv)
 {
     bool verbose = true;
 
-    std::string aDir, aPat, aFullName, aOri, aPly, aOut, aMode, aCom;
+    std::string aDir, aPat, aFullName, aPly, aOut, aMode, aCom;
     bool aBin = true;
     bool aRmPoissonMesh = false;
     int aDepth = 8;
@@ -167,19 +167,19 @@ int TiPunch_main(int argc,char ** argv)
 
     if (computeMesh)
     {
-        //#if USE_OPEN_MP
-        int nbProc = NbProcSys();
-        stringstream sst;
-        sst << nbProc;
-        //#endif
+        #if USE_OPEN_MP
+            int nbProc = NbProcSys();
+            stringstream sst;
+            sst << nbProc;
+        #endif
 
         aCom = g_externalToolHandler.get( "PoissonRecon" ).callName()
                 + std::string(" --in ") + aPly.c_str()
                 + std::string(" --out ") + poissonMesh.c_str()
                 + " --depth " + ss.str()
-        //#if USE_OPEN_MP //TODO: à activer quand WITH_OPEN_MP=1
+        #if USE_OPEN_MP
                 + " --threads " + sst.str()
-        //#endif
+        #endif
         ;
 
         if (verbose) cout << "Com= " << aCom << endl;
@@ -226,7 +226,8 @@ int TiPunch_main(int argc,char ** argv)
 
         std::vector < int > toRemove;
 
-        for(int aK=0; aK <myMesh.getFacesNumber(); aK++)
+        const int nFaces = myMesh.getFacesNumber();
+        for(int aK=0; aK < nFaces; aK++)
         {
             if (aK%1000 == 0) cout << aK << " / " << myMesh.getFacesNumber() << endl;
 
@@ -249,8 +250,6 @@ int TiPunch_main(int argc,char ** argv)
             if (!found)
             {
                 toRemove.push_back(Triangle->getIdx());
-                //myMesh.removeTriangle(*Triangle, false);
-                //aK--;
             }
         }
         cout << myMesh.getFacesNumber() << " / " << myMesh.getFacesNumber() << endl;

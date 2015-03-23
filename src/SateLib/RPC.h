@@ -36,6 +36,69 @@ eLiSe image library. MicMac is governed by the  "Cecill-B licence".
 See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
+//Important note:
+//pt.x is either the column in image space or the longitude in geographic coordinates or the easting  in projected coordinates
+//pt.y is either the row    in image space or the latitude  in geographic coordinates or the northing in projected coordinates
+class RPC2D
+{
+public:
+
+        //Constructors and destructors
+        RPC2D(){};
+        ~RPC2D(){};
+
+        //Elements of RPC
+        std::vector<double> inverse_line_num_coef;
+        std::vector<double> inverse_line_den_coef;
+        std::vector<double> inverse_samp_num_coef;
+        std::vector<double> inverse_samp_den_coef;
+        //Offsets and scale for ground space
+        double lat_off, lat_scale, long_off, long_scale, height_off, height_scale;
+        //Offsets and scale for image space
+        double line_off, line_scale, samp_off, samp_scale;
+
+        //Boundaries of RPC validity for image space
+        double first_row, first_col, last_row, last_col;
+        //Boundaries of RPC validity for geo space
+        double first_lon, first_lat, last_lon, last_lat;
+
+
+        // From geocentric to image
+        Pt2dr InverseRPC2DNorm(Pt2dr PgeoNorm)const;
+        Pt2dr InverseRPC2D(Pt3dr Pgeo, double aAngle, double aFactor)const;
+
+        //Compute the 2D transfo between geodetic and image lattice points
+        void ComputeRPC2D(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsGeo, double aHMax, double aHMin);
+
+        //Compute image position of a 3D point
+        Pt3dr InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt3dr> > aMatPtsGeo, vector<vector<Pt3dr> > aMatSatPos);
+
+        //Filter points out of the normalized lattice grid
+        vector<Pt3dr> filterOutOfBound(vector<Pt3dr> aVectorGeoNorm, vector<vector<Pt3dr> > aMatPtsGeo);
+
+        //Showing Info
+        void info()
+        {
+                std::cout << "RPC2D info:" << std::endl;
+                std::cout << "===========================================================" << std::endl;
+                std::cout << "long_scale   : " << long_scale << " | long_off   : " << long_off << std::endl;
+                std::cout << "lat_scale    : " << lat_scale << " | lat_off    : " << lat_off << std::endl;
+                std::cout << "first_lon    : " << first_lon << " | last_lon   : " << last_lon << std::endl;
+                std::cout << "first_lat    : " << first_lat << " | last_lat   : " << last_lat << std::endl;
+                std::cout << "samp_scale   : " << samp_scale << " | samp_off   : " << samp_off << std::endl;
+                std::cout << "line_scale   : " << line_scale << " | line_off   : " << line_off << std::endl;
+                std::cout << "first_col    : " << first_col << " | last_col   : " << last_col << std::endl;
+                std::cout << "first_row    : " << first_row << " | last_row   : " << last_row << std::endl;
+                std::cout << "inverse_samp_num_coef : " << inverse_samp_num_coef << std::endl;
+                std::cout << "inverse_samp_den_coef : " << inverse_samp_den_coef << std::endl;
+                std::cout << "inverse_line_num_coef : " << inverse_line_num_coef << std::endl;
+                std::cout << "inverse_line_den_coef : " << inverse_line_den_coef << std::endl;
+                std::cout << "===========================================================" << std::endl;
+        }
+
+};
+
 class RPC
 {
 public:
@@ -196,12 +259,14 @@ public:
         void ReadRPB(std::string const &filename);
         void ReconstructValidity();
 
-		//Construction of RPCs
-		vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
-		void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
-		void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
+                //Construction of RPCs
+                vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
+                void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
+                void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
+                void Validity2Dto3D(RPC2D aRPC2D);
 
 };
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

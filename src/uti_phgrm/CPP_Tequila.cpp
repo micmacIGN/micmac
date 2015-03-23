@@ -182,7 +182,7 @@ int Tequila_main(int argc,char ** argv)
 
     float threshold = 0.f;
 
-    if (aCrit == "Angle") threshold = cos(PI*(1.f - aAngleMin/180.f)); //angle min = cos(180 - 60) = -0.5
+    if (aCrit == "Angle") threshold = -cos(PI*aAngleMin/180.f); //angle min = cos(180 - 60) = -0.5
     else if (aCrit == "Stretch") threshold = 1e30;
     //cout << "threshold=" << threshold << endl;
 

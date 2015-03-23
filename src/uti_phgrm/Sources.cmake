@@ -75,9 +75,9 @@ else()
 endif()
 
 if(${WITH_OPEN_MP})
-    set(OPM_ENABLED 1)
+    set(USE_OPEN_MP 1)
 else()
-    set(OPM_ENABLED 0)
+    set(USE_OPEN_MP 0)
 endif()
 
 configure_file(
