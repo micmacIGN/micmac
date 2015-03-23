@@ -521,6 +521,7 @@ class ElSimilitude : public cElMap2D
           Pt2dr  _sc;
 };
 
+class cElHomographie;
 class ElAffin2D : public cElMap2D
 {
      public :
@@ -574,6 +575,15 @@ class ElAffin2D : public cElMap2D
        Pt2dr I00() const {return mI00;}
        Pt2dr I10() const {return mI10;}
        Pt2dr I01() const {return mI01;}
+       static ElAffin2D FromTri2Tri
+               (
+                    const Pt2dr & a0, const Pt2dr & a1, const Pt2dr & a2,
+                    const Pt2dr & b0, const Pt2dr & b1, const Pt2dr & b2
+               );
+
+       cElHomographie ToHomographie() const;
+
+
      private :
 
             Pt2dr mI00;

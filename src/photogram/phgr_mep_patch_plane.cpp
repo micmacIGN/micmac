@@ -52,9 +52,6 @@ les tailles d'initialisation. Pour chaque taille on prend un approch progressive
 on ne fait qu'un seul test de TestEvalHomographie,
 
 
-
-
-
   A faire rajouter une observation.
   Mesure les temps de calcul des différentes briques :
 
@@ -169,12 +166,20 @@ typedef ElHeap<tSomOPPPtr,cCmpAttrSomOPP> tHeapSPPP;
 class cAttrSomDualOPP
 {
     public :
-          cAttrSomDualOPP() {}
+          cAttrSomDualOPP() :
+              mHom            (cElHomographie::Id())
+           {}
 
 
-          cAttrSomDualOPP(const  ElSubFilo<tArcOPP *> & aFA) :
+          cAttrSomDualOPP(const  ElSubFilo<tArcOPP *> & aFA,int aNum) :
               mEcHom (TheDefautEcH),
-              mDejaInH  (false)
+              mDejaInH  (false),
+              mNum      (aNum),
+              mOwnSc0   (1e20),
+              mBestIncludeSc0 (1e10),
+              mNumBestIS0     (-1),
+              mPreselH        (false),
+              mHom            (cElHomographie::Id())
           {
               ELISE_ASSERT(aFA.nb()==3,"cSomDualOPP");
               mSoms[0] = &(aFA[0]->s1());
@@ -188,6 +193,12 @@ class cAttrSomDualOPP
           Pt2dr        mC;
           double       mEcHom;
           bool         mDejaInH ;  // Cpt in Hom
+          int          mNum;
+          double       mOwnSc0;
+          double       mBestIncludeSc0;
+          int          mNumBestIS0;
+          bool         mPreselH;
+          cElHomographie  mHom;
 };
 
 class cAttrArcDualOPP
@@ -243,6 +254,7 @@ class cOriPlanePatch
 
          void TestPt();
          void TestHomogrDual();
+         void CalcAllHomAndSel();
          void TestHomogr();
          void TestOneGermGlob(const std::vector<tSomOPP*>  & aVSom,bool Show);
          void TestOneGermLocal(const std::vector<tSomOPP*>  & aVSom,bool Show);
@@ -256,6 +268,8 @@ class cOriPlanePatch
          {
              return square_euclid(mCurHom.Direct(anAtr.mP1)-anAtr.mP2);
          }
+
+         double MoyenneEcStd(const std::vector<tSomOPP *> &) const;
          void  TestEvalHomographie(const cElHomographie &,bool Show);
          void AddHom(tSomOPP*,double aPds);
          void ReinitSom(tSomOPP* aSom);
@@ -281,7 +295,10 @@ class cOriPlanePatch
          void FaceEstimateEcH(tSomDualOPP * aF,bool Force);
          void AddFace2EstimHom(tSomDualOPP * aF,int aDelta);
          void InsertVoisDual(tSomDualOPP *);
+
          void SetExploredFace(tSomDualOPP * aF);
+         void SetSelectedFace(tSomDualOPP * aF);
+         void AddSetFaceSom(tSomDualOPP * aF,int aFlagFace,std::vector<tSomDualOPP *> & aVFace,int aFlagSom,std::vector<tSomOPP*>& aVSom);
 
          void  ReinitAll();
          void  ReinitFace(bool DejaInH,bool  EcH, bool Flag );
@@ -297,10 +314,12 @@ class cOriPlanePatch
          double                 mScaleW;
          std::vector<tSomOPP *> mVSom;
          std::vector<tSomOPP *> mVExploredSom;
+         std::vector<tSomOPP *> mVSelectedSom;
          int                    mNbSom;
          tGrOPP                 mGrOPP;
          cSubGrapheOPPPlan      mSubGrFull;
          int                    mFlagVisitSomH;
+         int                    mFlagSelectedSomH;
          tSubGrFlagOpp          mSubGrFlagVH;
          L2SysSurResol          mSysHom;
          bool                   mModeAff;
@@ -318,6 +337,7 @@ class cOriPlanePatch
          cCmpAttrFaceOPP             mCmpF;
          tHeapFPP                   mHeapF;
          int                    mFlagVisitFaceH;
+         int                    mFlagSelectedFaceH;
 
 };
 
@@ -860,24 +880,43 @@ void cOriPlanePatch::AddFace2EstimHom(tSomDualOPP * aF,int aDelta)
     }
 }
 
-void cOriPlanePatch::SetExploredFace(tSomDualOPP * aF)
+void cOriPlanePatch::AddSetFaceSom
+     (
+           tSomDualOPP * aF,
+           int                        aFlagFace,
+           std::vector<tSomDualOPP *> & aVFace,
+           int                        aFlagSom,
+           std::vector<tSomOPP *>     & aVSom
+     )
 {
-    if (! aF->flag_kth(mFlagVisitFaceH))
+    if (! aF->flag_kth(aFlagFace))
     {
-        aF->flag_set_kth_true(mFlagVisitFaceH);
-        mExploredFaceH.push_back(aF);
+        aF->flag_set_kth_true(aFlagFace);
+        aVFace.push_back(aF);
         cAttrSomDualOPP &  anAF = aF->attr();
         for (int aK=0 ; aK<3 ; aK++)
         {
              tSomOPPPtr aS = anAF.mSoms[aK];
-             if (! aS->flag_kth(mFlagVisitSomH))
+             if (! aS->flag_kth(aFlagSom))
              {
-                 mVExploredSom.push_back(aS);
-                 aS->flag_set_kth_true(mFlagVisitSomH);
+                 aVSom.push_back(aS);
+                 aS->flag_set_kth_true(aFlagSom);
              }
         }
     }
 }
+void cOriPlanePatch::SetExploredFace(tSomDualOPP * aF)
+{
+     AddSetFaceSom(aF,mFlagVisitFaceH,mExploredFaceH,mFlagVisitSomH,mVExploredSom);
+}
+
+void cOriPlanePatch::SetSelectedFace(tSomDualOPP * aF)
+{
+     AddSetFaceSom(aF,mFlagSelectedFaceH,mSelectedFaceH,mFlagSelectedSomH,mVSelectedSom);
+}
+
+
+
 
 void cOriPlanePatch::FaceEstimateEcH(tSomDualOPP * aF,bool Force)
 {
@@ -905,6 +944,7 @@ void  cOriPlanePatch::ResetMakeHomDual(bool aModeAff)
     mExploredFaceH.clear();
     mSelectedFaceH.clear();
     mVExploredSom.clear();
+    mVSelectedSom.clear();
     mSysHom.GSSR_Reset(true);
     mSysHom.SetPhaseEquation(0);
     mHeapF.clear();
@@ -918,7 +958,11 @@ void  cOriPlanePatch::ReinitFace(bool DejaInH,bool  EcH, bool Flag )
          cAttrSomDualOPP &  anAF =aFace->attr();
          if (DejaInH) anAF.mDejaInH= false;
          if (EcH)  anAF.mEcHom = TheDefautEcH;
-         if (Flag) aFace->flag_set_kth_false(mFlagVisitFaceH);
+         if (Flag)
+         {
+             aFace->flag_set_kth_false(mFlagVisitFaceH);
+             aFace->flag_set_kth_false(mFlagSelectedFaceH);
+         }
     }
 }
 
@@ -930,7 +974,11 @@ void  cOriPlanePatch::ReinitSol(bool Cpt,bool  EcH, bool Flag )
          cAttrSomOPP & anAS = aSom->attr();
          if ( Cpt) anAS.mCptF = 0;
          if (EcH)  anAS.mEcHom = TheDefautEcH;
-         if (Flag) aSom->flag_set_kth_false(mFlagVisitSomH);
+         if (Flag)
+         {
+             aSom->flag_set_kth_false(mFlagVisitSomH);
+             aSom->flag_set_kth_false(mFlagSelectedSomH);
+         }
     }
 }
 
@@ -941,6 +989,7 @@ void  cOriPlanePatch::ReinitAll()
 }
 
 
+// AFinitte transformant ak en bk
 
 
 void cOriPlanePatch::InitHeapDual(const std::vector<tSomDualOPP *> & aVInit)
@@ -949,16 +998,29 @@ void cOriPlanePatch::InitHeapDual(const std::vector<tSomDualOPP *> & aVInit)
    {
        AddFace2EstimHom(aVInit[aKF],1);
    }
-   SolveHom();
 
-   // Sinon les parametre du sys ne sont pas bon
-   if (mModeAff)
+   if (aVInit.size()==1)
    {
-      ReinitAll();
-      ResetMakeHomDual(false);
-      for (int aKF=0 ; aKF<int(aVInit.size()) ; aKF++)
+      cAttrSomDualOPP &  anAF =aVInit[0]->attr();
+      ElAffin2D anAfinity = ElAffin2D::FromTri2Tri
+                       (
+                           anAF.mSoms[0]->attr().mP1, anAF.mSoms[1]->attr().mP1, anAF.mSoms[2]->attr().mP1,
+                           anAF.mSoms[0]->attr().mP2, anAF.mSoms[1]->attr().mP2, anAF.mSoms[2]->attr().mP2
+                       );
+      mCurHom = anAfinity.ToHomographie();
+   }
+   else
+   {
+      SolveHom();
+   // Sinon les parametre du sys ne sont pas bon
+      if (mModeAff)
       {
-          AddFace2EstimHom(aVInit[aKF],1);
+         ReinitAll();
+         ResetMakeHomDual(false);
+         for (int aKF=0 ; aKF<int(aVInit.size()) ; aKF++)
+         {
+             AddFace2EstimHom(aVInit[aKF],1);
+         }
       }
    }
 
@@ -975,7 +1037,8 @@ void cOriPlanePatch::InitHeapDual(const std::vector<tSomDualOPP *> & aVInit)
 
 void cOriPlanePatch::InsertVoisDual(tSomDualOPP * aF)
 {
-    mSelectedFaceH.push_back(aF);
+    // mSelectedFaceH.push_back(aF);
+    SetSelectedFace(aF);
     AddFace2EstimHom(aF,1);
     
     for (tItDualAOPP itA=aF->begin(mSubGrDualFull) ; itA.go_on() ; itA++)
@@ -1004,9 +1067,12 @@ void cOriPlanePatch::DualRecalculHom()
 
 
 
+
+
 void cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool aModeAff,bool aShow)
 {
   // Remise a zero des compteur globaux
+   aModeAff = aModeAff && (aVInit.size() !=1); // Si Taille 1, triangle et prise en charge directe
    ResetMakeHomDual(aModeAff);
 
 
@@ -1015,7 +1081,7 @@ void cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool a
 
    long int aCpt=0;
     
-   while (mSelectedFaceH.size() < 20)
+   while (mVSelectedSom.size() < 20)
    {
          tSomDualOPP * aF=0;
          bool Ok = mHeapF.pop(aF);
@@ -1037,13 +1103,98 @@ void cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool a
    // Re
 }
 
+double  cOriPlanePatch::MoyenneEcStd(const std::vector<tSomOPP *> & aV) const
+{
+    double aScore = 0;
+    for (int aKS=0 ; aKS<int(aV.size()) ; aKS++)
+    {
+         aScore += EcHom(aV[aKS]->attr());
+    }
+    return sqrt(aScore/aV.size()) * mFoc;
+}
+
+bool BetterScoreNumOrEg(double aSc1,int aNum1,double aSc2,int aNum2)
+{
+   return  (aSc1 < aSc2) || ((aSc1==aSc2) && (aNum1 >= aNum2));
+}
+
 void cOriPlanePatch::MakeHomogrInitDual(tSomDualOPP * aF0,bool aShow)
 {
     std::vector<tSomDualOPP *> aVF0;
     aVF0.push_back(aF0);
     MakeHomogrInitDual(aVF0,true,aShow);
+    SolveHom();
+    aF0->attr().mHom = mCurHom;
+
+    double aScore = MoyenneEcStd(mVSelectedSom);
+    cAttrSomDualOPP & anAF0 =  aF0->attr();
+    anAF0.mOwnSc0 = aScore;
+
+    for (int aKF=0 ; aKF<int(mSelectedFaceH.size()) ; aKF++)
+    {
+        cAttrSomDualOPP &  anAF  = mSelectedFaceH[aKF]->attr();
+        if (BetterScoreNumOrEg(aScore,anAF0.mNum,anAF.mBestIncludeSc0,anAF.mNumBestIS0))
+        {
+           anAF.mBestIncludeSc0 = aScore;
+           anAF.mNumBestIS0     = anAF0.mNum;
+        }
+    }
+
+    if (aShow)
+    {
+       std::cout << "Score=" << aScore << " Nb=" << mVSelectedSom.size() << "\n";
+    }
+    ReinitAll();
 }
 
+
+void cOriPlanePatch::CalcAllHomAndSel()
+{
+    ElTimer aChrono;
+    for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
+    {
+        MakeHomogrInitDual(mVFace[aK],false);
+    }
+    double aMinSc0 = 1e20;
+    int aNbPres = 0;
+    for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
+    {
+        tSomDualOPP * aF = mVFace[aK];
+        cAttrSomDualOPP &  anAF  = aF->attr();
+        ElSetMin(aMinSc0,anAF.mOwnSc0);
+        if (BetterScoreNumOrEg(anAF.mOwnSc0,anAF.mNum,anAF.mBestIncludeSc0,anAF.mNumBestIS0))
+        {
+            bool IsMinLoc = true;
+
+            for (tItDualAOPP itA=aF->begin(mSubGrDualFull) ; itA.go_on() ; itA++)
+            {
+                if ((*itA).s2().attr().mOwnSc0 < anAF.mOwnSc0)
+                   IsMinLoc = false;
+            }
+
+            int aCoul = IsMinLoc ? P8COL::red : P8COL::cyan;
+
+            ShowPoint(anAF.mC,2.0,aCoul);
+            ShowPoint(anAF.mC,4.0,aCoul);
+            ShowPoint(anAF.mC,6.0,aCoul);
+            if (IsMinLoc) 
+            {
+               anAF.mPreselH= true;
+               aNbPres++;
+               // std::cout << "SCORE " << anAF.mOwnSc0 << "\n";
+            }
+        }
+    }
+
+    if (mW)
+    {
+       std::cout << "TIME " << aChrono.uval()  << " NbS=" << aNbPres << " SCMin " << aMinSc0  << "\n";
+    }
+    ElTimer aChrono2;
+    for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
+    {
+    }
+}
 
 
 
@@ -1051,15 +1202,50 @@ void cOriPlanePatch::TestHomogrDual()
 {
     tSomDualOPP * aFace = GetFace(P8COL::white);
     MakeHomogrInitDual(aFace,true);
-    ReinitAll();
 
+   std::cout << "FACE " << aFace->attr().mOwnSc0 << "\n";
+
+   TestEvalHomographie(aFace->attr().mHom,true);
+/*
     ElTimer aChrono;
     for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
     {
         MakeHomogrInitDual(mVFace[aK],false);
-        ReinitAll();
     }
-    std::cout << "TIME " << aChrono.uval() << "\n";
+    double aMinSc0 = 1e20;
+    int aNbPres = 0;
+    for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
+    {
+        tSomDualOPP * aF = mVFace[aK];
+        cAttrSomDualOPP &  anAF  = aF->attr();
+        ElSetMin(aMinSc0,anAF.mOwnSc0);
+        if (BetterScoreNumOrEg(anAF.mOwnSc0,anAF.mNum,anAF.mBestIncludeSc0,anAF.mNumBestIS0))
+        {
+            bool IsMinLoc = true;
+
+            for (tItDualAOPP itA=aF->begin(mSubGrDualFull) ; itA.go_on() ; itA++)
+            {
+                if ((*itA).s2().attr().mOwnSc0 < anAF.mOwnSc0)
+                   IsMinLoc = false;
+            }
+
+            int aCoul = IsMinLoc ? P8COL::red : P8COL::cyan;
+
+            ShowPoint(anAF.mC,2.0,aCoul);
+            ShowPoint(anAF.mC,4.0,aCoul);
+            ShowPoint(anAF.mC,6.0,aCoul);
+            if (IsMinLoc) 
+            {
+               anAF.mPreselH= true;
+               aNbPres++;
+               // std::cout << "SCORE " << anAF.mOwnSc0 << "\n";
+            }
+        }
+    }
+
+    std::cout << "TIME " << aChrono.uval()  << " NbS=" << aNbPres << " SCMin " << aMinSc0  << "\n";
+    std::cout << "FACE " << aFace->attr().mOwnSc0 << "\n";
+*/
 }
 
 
@@ -1086,6 +1272,7 @@ cOriPlanePatch::cOriPlanePatch
    mP0W         (aP0W),
    mScaleW      (aScaleW),
    mFlagVisitSomH  (mGrOPP.alloc_flag_som()),
+   mFlagSelectedSomH  (mGrOPP.alloc_flag_som()),
    mSubGrFlagVH (mSubGrFull,mFlagVisitSomH),
    mSysHom      (8),
    mModeAff     (false),
@@ -1095,7 +1282,8 @@ cOriPlanePatch::cOriPlanePatch
    mCurHom      (cElHomographie::Id()),
    mHeap        (mCmpPPP),
    mHeapF       (mCmpF),
-   mFlagVisitFaceH  (mGrDual.alloc_flag_som())
+   mFlagVisitFaceH  (mGrDual.alloc_flag_som()),
+   mFlagSelectedFaceH  (mGrDual.alloc_flag_som())
 {
     ShowStatMatCond = false;
     // if (mW) mW->clear();
@@ -1126,6 +1314,7 @@ cOriPlanePatch::cOriPlanePatch
     ElTimer aChronoD;
     // Graphe dual
     {
+         int aCpt = 0;
          ElPartition<tArcOPP *> aPart0;
          bool OkFT = all_face_trigo(mGrOPP,mSubGrFull,aPart0);
          ELISE_ASSERT(OkFT,"Pb Graphe Dual in  cOriPlanePatch::cOriPlanePatch");
@@ -1141,12 +1330,13 @@ cOriPlanePatch::cOriPlanePatch
              }
              else
              {
-                  tSomDualOPP & aFaceDual = mGrDual.new_som(cAttrSomDualOPP(aFaceA));
+                  tSomDualOPP & aFaceDual = mGrDual.new_som(cAttrSomDualOPP(aFaceA,aCpt));
                   mVFace.push_back(&aFaceDual);
                   for (int aKA=0 ; aKA < aFaceA.nb() ; aKA++)
                   {
                         aFaceA[aKA]->attr().mFInt = & aFaceDual;
                   }
+                  aCpt++;
              }
          }
 
@@ -1187,6 +1377,7 @@ cOriPlanePatch::cOriPlanePatch
      }
      std::cout << "Time Delaunay " << aChrono.uval() << " " << aChronoD.uval() << "\n";
 
+     CalcAllHomAndSel();
 
     if (aW)
     {
