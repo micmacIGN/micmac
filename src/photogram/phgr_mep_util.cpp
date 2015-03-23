@@ -942,6 +942,8 @@ void GenCodeEqLinariseAngle()
 //   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  + (U'1 ^ B0) . (W^U2)
 //   (U'1 ^ B0) .U2    +  c ((U'1^C).U2) + d ((U'1 ^D).U2)  +  W.(U2 ^(U'1 ^ B0)) => Verifier Signe permut prod vect
 
+
+/*
 double cOldBundleIterLin::ErrMoy() const {return mSomErr/mSomPds;}
 
 cOldBundleIterLin::cOldBundleIterLin(const ElRotation3D & aRot,const double & anErrStd):
@@ -990,6 +992,7 @@ ElRotation3D  cOldBundleIterLin::CurSol()
     ElMatrix<double> aNewR = NearestRotation(mRot.Mat() * (ElMatrix<double>(3,true) + MatProVect(Pt3dr(aData[2],aData[3],aData[4]))));
     return ElRotation3D (aNewB0,aNewR,true);
 }
+*/
 
     //   ============= cBundleIterLin  remplacera cOldeBundleIterLin des architecture OK
 

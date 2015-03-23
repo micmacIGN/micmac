@@ -123,7 +123,8 @@ cNewO_CpleIm::cNewO_CpleIm
       cNewO_OneIm * aI2,
       tMergeLPackH *      aMergeTieP,
       ElRotation3D *      aTestedSol,
-      bool                aShow
+      bool                aShow,
+      bool                aHPP
 )  :
    mI1          (aI1),
    mI2          (aI2),
@@ -148,6 +149,8 @@ cNewO_CpleIm::cNewO_CpleIm
    mW             (0)
 {
 
+   if (mShow)
+      std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
 
    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
    {
@@ -190,9 +193,13 @@ cNewO_CpleIm::cNewO_CpleIm
              }
          }
          ELISE_COPY(aImW.all_pts(),aImW.in(),mW->ogray());
+//          ShowPack(mPackPStd,P8COL::red,2.0);
    }
 
-   TestOriPlanePatch(FocMoy(),mPackStdRed,mW,mP0W,mScaleW);
+   if (aHPP)
+   {
+      TestOriPlanePatch(FocMoy(),mPackStdRed,mW,mP0W,mScaleW);
+   }
    
    ShowPack(mPackPStd,P8COL::red,2.0);
    ShowPack(mPackStdRed,P8COL::blue,6.0);
@@ -201,8 +208,6 @@ cNewO_CpleIm::cNewO_CpleIm
    InitVPairComp(mStCPairs,mPackPStd);
    InitVPairComp(mRedCPairs,mPackStdRed);
 
-   if (mShow)
-      std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
 
     if (mTestC2toC1)
     {
@@ -333,6 +338,7 @@ class cNO_AppliOneCple
          std::vector<cNewO_OneIm *>  mVI;
          std::string          mNameOriTest;
          bool                 mShow;
+         bool                 mHPP;
 };
 
 
@@ -340,7 +346,8 @@ class cNO_AppliOneCple
 
 
 cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
-   mShow (false)
+   mShow (false),
+   mHPP  (true)
 {
 
    ElInitArgMain
@@ -351,6 +358,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
                    << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference")
                    << EAM(mShow,"Show",true,"Orientation for test to a reference")
+                   << EAM(mHPP,"HPP",true,"Homograhic Planar Patch")
    );
 
 
@@ -380,7 +388,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    }
 
 //    cNewO_CombineCple aARI(aMergeStr,aTestSol);
-      cNewO_CpleIm aCple(mIm1,mIm2,&aMergeStr,aTestSol,mShow);
+   cNewO_CpleIm aCple(mIm1,mIm2,&aMergeStr,aTestSol,mShow,mHPP);
 }
 
 void cNO_AppliOneCple::Show()
