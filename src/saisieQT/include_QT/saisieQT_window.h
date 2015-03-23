@@ -214,6 +214,8 @@ protected slots:
     void setNavigationType(int val);
 
 
+	void on_actionShow_Zoom_window_toggled(bool show);
+	void on_actionShow_3D_view_toggled(bool show);
 protected:
 
     //! Connects all QT actions to slots

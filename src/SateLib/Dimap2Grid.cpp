@@ -4,7 +4,7 @@
 int Dimap2Grid_main(int argc, char **argv)
 {
     std::string aNameFile, aNameIm; // RPC Dimap .xml file and image associated
-	std::string inputSyst = "+proj=latlong +datum=WGS84 "; //input syst proj4
+	std::string inputSyst = "+proj=longlat +datum=WGS84"; //input syst proj4
 	std::string targetSyst;//output syst proj4
 	std::string refineCoef = "processing/refineCoef.txt";
 	bool binaire = true;

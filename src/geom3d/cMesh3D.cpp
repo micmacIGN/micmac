@@ -97,7 +97,6 @@ void cTriangle::addEdge(int idx)
 //--------------------------------------------------------------------------------------------------------------
 
 cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal):
-    mInside(false),
     mTriIdx(TriIdx),
     mTextImIdx(mDefTextImIdx),
     pMesh(aMesh),
@@ -289,12 +288,15 @@ void cTriangle::removeEdge(int idx)
 
 bool cTriangle::operator==( const cTriangle &aTr ) const
 {
-    return ( (mInside     ==  aTr.mInside )  &&
-             (mTriIdx     ==  aTr.mTriIdx)   &&
+    return ( (mTriIdx     ==  aTr.mTriIdx)   &&
              (mTriVertex  ==  aTr.mTriVertex) &&
              (mTriEdges   ==  aTr.mTriEdges)  &&
              (mTextImIdx  ==  aTr.mTextImIdx) &&
-             (mAttributes ==  aTr.mAttributes)
+             (mAttributes ==  aTr.mAttributes) &&
+             (mText0      ==  aTr.mText0) &&
+             (mText1      ==  aTr.mText1) &&
+             (mText2      ==  aTr.mText2) &&
+             (mCriter     ==  aTr.mCriter)
              );
 }
 
@@ -1297,10 +1299,8 @@ Im2D_BIN cZBuf::ComputeMask(int img_idx, cMesh &aMesh)
             }
 
             if ((bestAngle < mMaxAngle) && (bestImage == img_idx))
-            //if (bestAngle < mMaxAngle)
             {
                 BasculerUnTriangle(*aTri, true);
-                aTri->setInside();
             }
         }
     }

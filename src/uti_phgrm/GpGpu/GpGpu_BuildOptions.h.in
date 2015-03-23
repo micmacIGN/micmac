@@ -1,5 +1,5 @@
 #cmakedefine CUDA_ENABLED @OptionCuda@
-#cmakedefine OPM_ENABLED  @OPM_ENABLED@
+#cmakedefine USE_OPEN_MP  @USE_OPEN_MP@
 #cmakedefine OPENCL_ENABLED  @OPENCL_ENABLED@
 #cmakedefine CPP11THREAD_NOBOOSTTHREAD  @CPP11THREAD_NOBOOSTTHREAD@
 #cmakedefine NVTOOLS  @NVTOOLS@

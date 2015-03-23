@@ -191,7 +191,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends on mode")
                     << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode")
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
-                    << EAM(mDefCor,"DefCor",false,"Use cuda (Def=false)")
+                    << EAM(mDefCor,"DefCor",false,"Def correlation,context depend")
+                    << EAM(mZReg,"ZReg",false,"Regularisation , context depend")
     );
 
    if (MMVisualMode) return;

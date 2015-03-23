@@ -624,6 +624,7 @@ extern int NewRefineModel_main(int argc, char **argv);
 extern int RefineModel_main(int argc, char **argv);
 extern int Dimap2Grid_main(int argc, char **argv);
 extern int DigitalGlobe2Grid_main(int argc, char **argv);
+extern int Aster2Grid_main(int argc, char **argv);
 extern int AsterDestrip_main(int argc, char **argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
@@ -632,7 +633,8 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 
     aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcomming RPC functions"));
     aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
-    aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
+	aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
+	aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "/!\ NON FUNCTIONNAL, will Create a Grid file from the meta-data of an Aster Images"));
     aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
     aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
