@@ -226,7 +226,8 @@ int TiPunch_main(int argc,char ** argv)
 
         std::vector < int > toRemove;
 
-        for(int aK=0; aK <myMesh.getFacesNumber(); aK++)
+        const int nFaces = myMesh.getFacesNumber();
+        for(int aK=0; aK < nFaces; aK++)
         {
             if (aK%1000 == 0) cout << aK << " / " << myMesh.getFacesNumber() << endl;
 
@@ -249,8 +250,6 @@ int TiPunch_main(int argc,char ** argv)
             if (!found)
             {
                 toRemove.push_back(Triangle->getIdx());
-                //myMesh.removeTriangle(*Triangle, false);
-                //aK--;
             }
         }
         cout << myMesh.getFacesNumber() << " / " << myMesh.getFacesNumber() << endl;
