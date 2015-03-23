@@ -162,20 +162,6 @@ int Aster2Grid_main(int argc, char ** argv)
 	aRPC2D.ComputeRPC2D(aMatPtsIm, aMatPtsGeo, aHMax, aHMin);
 	aRPC2D.info();
 
-	//Creating a folder for intemediate files
-	ELISE_fp::MkDirSvp("processing");
-
-	//Generate ramdom points in geodetic
-	cout << "Generating ramdom points in normalized geodetic coordinates" << endl;
-	vector<Pt3dr> aGridGeoNorm = aRPC3D.GenerateRandNormGrid(49);
-	//Filtering points out of image
-	cout << "Generated points : " << aGridGeoNorm.size() << endl;
-	aGridGeoNorm = aRPC2D.filterOutOfBound(aGridGeoNorm, aMatPtsGeo);
-	cout << "Filtered points : " << aGridGeoNorm.size() << endl;
-
-	//Compute their image coord with pre-RPC method
-	cout << "Converting points points in normalized image coordinates" << endl;
-
 	////Test
 
 	//Pt3dr aPtTest3(-150.9131, 63.3609, 683);
@@ -198,37 +184,88 @@ int Aster2Grid_main(int argc, char ** argv)
 	//Pt3dr aPt = aRPC2D.InversePreRPCNorm(aPtTest, aMatPtsGeo, aMatSatPos);
 	//cout << aPt << endl;
 
-	vector<Pt3dr> aGridImNorm;
-	for (u_int i = 0; i < aGridGeoNorm.size(); i++)
+	//Creating a folder for intemediate files
+	ELISE_fp::MkDirSvp("processing");
+
+	//Generate ramdom points in geodetic
+	cout << "Generating ramdom points in normalized geodetic coordinates" << endl;
+	vector<Pt3dr> aVectGeoNorm = aRPC3D.GenerateRandNormGrid(49);
+	//Filtering points out of image
+	cout << "Generated points : " << aVectGeoNorm.size() << endl;
+	aVectGeoNorm = aRPC2D.filterOutOfBound(aVectGeoNorm, aMatPtsGeo);
+	cout << "Filtered points : " << aVectGeoNorm.size() << endl;
+
+	//Compute their image coord with pre-RPC method
+	cout << "Converting points points in normalized image coordinates" << endl;
+
+	vector<Pt3dr> aVectImNorm;
+	for (u_int i = 0; i < aVectGeoNorm.size(); i++)
 	{
-		Pt3dr aPt = aRPC2D.InversePreRPCNorm(aGridGeoNorm[i], aMatPtsGeo, aMatSatPos);
+		Pt3dr aPt = aRPC2D.InversePreRPCNorm(aVectGeoNorm[i], aMatPtsGeo, aMatSatPos);
 		//cout << "Original point : " << aGridGeoNorm[i] << endl;
 		//cout << "Inverted point : " << aPt << endl;
-		aGridImNorm.push_back(aPt);
+		aVectImNorm.push_back(aPt);
 	}
 
 	//Compute Direct and Inverse RPC
 	aRPC3D.Validity2Dto3D(aRPC2D);
-	aRPC3D.GCP2Direct(aGridGeoNorm, aGridImNorm);
+	aRPC3D.GCP2Direct(aVectGeoNorm, aVectImNorm);
 	cout << "Direct RPC estimated" << endl;
-	aRPC3D.GCP2Inverse(aGridGeoNorm, aGridImNorm);
+	aRPC3D.GCP2Inverse(aVectGeoNorm, aVectImNorm);
 	cout << "Inverse RPC estimated" << endl;
 	aRPC3D.ReconstructValidity();
 	aRPC3D.info();
 
 	//Testing the reconstructed RPC
-	Pt3dr aPtTest4(aMatPtsGeo[3][3].x, aMatPtsGeo[3][3].y, 0);
-	cout << "Lattice (3,3) Geo : " << setprecision(15) << aMatPtsGeo[3][3] << endl;
-	cout << "Lattice (3,3) Ima : " << aMatPtsIm[3][3] << endl;
+	Pt3dr aPtTestGeo(aMatPtsGeo[3][3].x, aMatPtsGeo[3][3].y, 0);
+	Pt3dr aPtTestIma(aMatPtsIm[3][3].x, aMatPtsIm[3][3].y, 0);
+	//cout << "Point Test Geo    : " << aPtTest4 << endl;
 	double noRefine[] = { 0, 1, 0, 0, 0, 1 };
 	vector<double> vRefineCoef;
 	for (int i = 0; i<6; i++)
 	{
 		vRefineCoef.push_back(noRefine[i]);
 	}
-	Pt3dr aPtDir4 = aRPC3D.InverseRPC(aPtTest4, vRefineCoef);
+	Pt3dr aPtInverse3D = aRPC3D.InverseRPC(aPtTestGeo, vRefineCoef);
+	Pt3dr aPtDirect3D = aRPC3D.DirectRPC(aPtTestIma);
+	Pt2dr aPtInverse2D = aRPC2D.InverseRPC2D(aPtTestGeo, 0, 0);
 
-	cout << "LatticePT33 = " << aPtDir4 << endl;
+	cout << "Lattice (3,3) Geo         = " << setprecision(15) << aMatPtsGeo[3][3] << endl;
+	cout << "LatticePT33 RPC2D         = " << aPtInverse2D << endl;
+	cout << "LatticePT33 Inverse RPC3D = " << aPtInverse3D << endl;
+	cout << "Lattice (3,3) Ima         = " << aMatPtsIm[3][3] << endl;
+	cout << "LatticePT33 Direct RPC3D  = " << aPtDirect3D << endl;
+
+	Pt3dr aPtTest1(-150.9131, 63.3609, 683);//Canyon
+	Pt2dr aPtInverse2D1 = aRPC2D.InverseRPC2D(aPtTest1, 0, 0);
+	//Pt3dr aPtInverse2D3D1 = aRPC2D.InversePreRPCNorm(aPtTest1, aMatPtsGeo, aMatSatPos);
+	Pt3dr aPtInverse3D1 = aRPC3D.InverseRPC(aPtTest1, vRefineCoef);
+	Pt3dr aPtTest2(-150.5422, 63.1457, 3311);//East Mountain
+	Pt2dr aPtInverse2D2 = aRPC2D.InverseRPC2D(aPtTest2, 0, 0);
+	//Pt3dr aPtInverse2D3D2 = aRPC2D.InversePreRPCNorm(aPtTest2, aMatPtsGeo, aMatSatPos);
+	Pt3dr aPtInverse3D2 = aRPC3D.InverseRPC(aPtTest2, vRefineCoef);
+	Pt3dr aPtTest3(-151.0321, 63.2009, 2097);//West Mountain
+	Pt2dr aPtInverse2D3 = aRPC2D.InverseRPC2D(aPtTest3, 0, 0);
+	//Pt3dr aPtInverse2D3D3 = aRPC2D.InversePreRPCNorm(aPtTest3, aMatPtsGeo, aMatSatPos);
+	Pt3dr aPtInverse3D3 = aRPC3D.InverseRPC(aPtTest3, vRefineCoef);
+	cout << "Canyon Geo           = " << aPtTest1 << endl;
+	cout << "Canyon Ima           = " << "[2111.3,1654.99]" << endl;
+	cout << "Canyon RPC2D         = " << aPtInverse2D1 << endl;
+	//cout << "Canyon RPC2D3D       = " << aPtInverse2D3D1 << endl;
+	cout << "Canyon RPC3D         = " << aPtInverse3D1 << endl;
+
+	cout << "East mountain Geo    = " << aPtTest2 << endl;
+	cout << "East mountain Ima    = " << "[3719.5,2605.6]" << endl;
+	cout << "East mountain RPC2D  = " << aPtInverse2D2 << endl;
+	//cout << "East mountain RPC2D3D= " << aPtInverse2D3D2 << endl;
+	cout << "East mountain RPC3D  = " << aPtInverse3D2 << endl;
+
+	cout << "West mountain Geo    = " << aPtTest3 << endl;
+	cout << "West mountain Ima    = " << "[2090.5,2856.1]" << endl;
+	cout << "West mountain RPC2D  = " << aPtInverse2D3 << endl;
+	//cout << "West mountain RPC2D3D= " << aPtInverse2D3D3 << endl;
+	cout << "West mountain RPC3D  = " << aPtInverse3D3 << endl;
+
 
 
 	return 0;

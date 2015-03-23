@@ -151,7 +151,7 @@ Pt3dr RPC::DirectRPC(Pt3dr Pimg)const
 Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     {
     double X = PimgNorm.x, Y = PimgNorm.y, Z = PimgNorm.z;
-    double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
+	double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };
 
     double long_den = 0.;
     double long_num = 0.;
@@ -181,7 +181,7 @@ Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     return PgeoNorm;
 }
 
-//From geographic (LAT, LONG, Z) coordinates to image
+//From geographic (LONG, LAT, Z) coordinates to image
 Pt3dr RPC::InverseRPC(Pt3dr Pgeo, std::vector<double> vRefineCoef)const
 {
     Pt3dr PgeoNorm;
@@ -206,7 +206,7 @@ Pt3dr RPC::InverseRPC(Pt3dr Pgeo, std::vector<double> vRefineCoef)const
 
 Pt3dr RPC::InverseRPCNorm(Pt3dr PgeoNorm)const
 {
-    double X = PgeoNorm.x, Y = PgeoNorm.y, Z = PgeoNorm.z;
+	double X = PgeoNorm.x, Y = PgeoNorm.y, Z = PgeoNorm.z; 
 	double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
     double samp_den = 0.;
     double samp_num = 0.;
@@ -886,9 +886,9 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	direct_line_num_coef.clear();
 	direct_line_den_coef.clear();
 
-    //Parameters too get parameters of P1 and P2 in ---  lon=P1(column,-row,Z)/P2(column,-row,Z)  --- where (column,-row,Z) are image coordinates (idem for lat), -row to get a direct system
+    //Parameters too get parameters of P1 and P2 in ---  lon=P1(row,column,Z)/P2(row,column,Z)  --- where (row,column,Z) are image coordinates (idem for lat)
     //To simplify notations : Column->X and Row->Y
-    //Function is 0=Poly1(X,Y,Z)-long*Poly2(X,Y,Z) with poly 3rd degree (up to X^3,Y^3,Z^3,XXY,XXZ,XYY,XZZ,YYZ,YZZ)
+    //Function is 0=Poly1(Y,X,Z)-long*Poly2(Y,X,Z) with poly 3rd degree (up to X^3,Y^3,Z^3,XXY,XXZ,XYY,XZZ,YYZ,YZZ)
     //First param (cst) of Poly2=1 to avoid sol=0
 
     L2SysSurResol aSysLon(39), aSysLat(39);
@@ -903,18 +903,18 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
         double lat = aGridGeoNorm[i].x;
         double lon = aGridGeoNorm[i].y;
 
-        double aEqLon[39] = {
-                            1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-                            -lon*X, -lon*Y, -lon*Z, -lon*X*Y, -lon*X*Z, -lon*Y*Z, -lon*X*X, -lon*Y*Y, -lon*Z*Z, -lon*Y*X*Z, -lon*X*X*X, -lon*X*Y*Y, -lon*X*Z*Z, -lon*Y*X*X, -lon*Y*Y*Y, -lon*Y*Z*Z, -lon*X*X*Z, -lon*Y*Y*Z, -lon*Z*Z*Z
-                            };
-        aSysLon.AddEquation(1, aEqLon, lon);
+		double aEqLon[39] = {
+			1, Y, X, Z, Y*X, Y*Z, X*Z, Y*Y, X*X, Z*Z, X*Y*Z, Y*Y*Y, Y*X*X, Y*Z*Z, X*Y*Y, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z,
+			-lon*Y, -lon*X, -lon*Z, -lon*Y*X, -lon*Y*Z, -lon*X*Z, -lon*Y*Y, -lon*X*X, -lon*Z*Z, -lon*X*Y*Z, -lon*Y*Y*Y, -lon*Y*X*X, -lon*Y*Z*Z, -lon*X*Y*Y, -lon*X*X*X, -lon*X*Z*Z, -lon*Y*Y*Z, -lon*X*X*Z, -lon*Z*Z*Z
+		};
+		aSysLon.AddEquation(1, aEqLon, lon);
 
 
-        double aEqLat[39] = {
-                            1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
-                            -lat*X, -lat*Y, -lat*Z, -lat*X*Y, -lat*X*Z, -lat*Y*Z, -lat*X*X, -lat*Y*Y, -lat*Z*Z, -lat*Y*X*Z, -lat*X*X*X, -lat*X*Y*Y, -lat*X*Z*Z, -lat*Y*X*X, -lat*Y*Y*Y, -lat*Y*Z*Z, -lat*X*X*Z, -lat*Y*Y*Z, -lat*Z*Z*Z
-                            };
-        aSysLat.AddEquation(1, aEqLat, lat);
+		double aEqLat[39] = {
+			1, Y, X, Z, Y*X, Y*Z, X*Z, Y*Y, X*X, Z*Z, X*Y*Z, Y*Y*Y, Y*X*X, Y*Z*Z, X*Y*Y, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z,
+			-lat*Y, -lat*X, -lat*Z, -lat*Y*X, -lat*Y*Z, -lat*X*Z, -lat*Y*Y, -lat*X*X, -lat*Z*Z, -lat*X*Y*Z, -lat*Y*Y*Y, -lat*Y*X*X, -lat*Y*Z*Z, -lat*X*Y*Y, -lat*X*X*X, -lat*X*Z*Z, -lat*Y*Y*Z, -lat*X*X*Z, -lat*Z*Z*Z
+		};
+		aSysLat.AddEquation(1, aEqLat, lat);
     }
 
     //Computing the result
@@ -950,7 +950,7 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	inverse_line_num_coef.clear();
 	inverse_line_den_coef.clear();
 
-	//Parameters too get parameters of P1 and P2 in ---  Column=P1(lat,long,Z)/P2(lat,long,Z)  --- where (lat,long,Z) are geodetic coordinates (idem for row and P3/P4)
+	//Parameters too get parameters of P1 and P2 in ---  Column=P1(long,lat,Z)/P2(long,lat,Z)  --- where (long,lat,Z) are geodetic coordinates (idem for row and P3/P4)
 	//To simplify notations : long->X and lat->Y
 	//Function is 0=Poly1(X,Y,Z)-column*Poly2(X,Y,Z) with poly 3rd degree (up to X^3,Y^3,Z^3,XXY,XXZ,XYY,XZZ,YYZ,YZZ)
 	//First param (cst) of Poly2=1 to avoid sol=0
@@ -1302,7 +1302,7 @@ void RPC2D::ComputeRPC2D(vector<vector<Pt2dr> > aPtsIm, vector<vector<Pt3dr> > a
 Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt3dr> > aMatPtsGeo, vector<vector<Pt3dr> > aMatSatPos)
 {
 	//cout << aPtGeoNorm << endl;
-	//Convert to ground geodetic coords
+	//Convert Normalized coordinates to ground geodetic coords
 	Pt3dr aPtGeo;
 	aPtGeo.x = aPtGeoNorm.x * long_scale + long_off;
 	aPtGeo.y = aPtGeoNorm.y * lat_scale + lat_off;
