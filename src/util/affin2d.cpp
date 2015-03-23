@@ -53,7 +53,6 @@ void XXXXX(FILE * aF)
 
 
 
-//  TEST MERCURIAL
 
 ElAffin2D::ElAffin2D
 (
@@ -215,6 +214,26 @@ ElAffin2D  ElAffin2D::L2Fit(const  ElPackHomologue & aPack)
    return aRes;
 }
 
+
+ElAffin2D ElAffin2D::FromTri2Tri
+          (
+               const Pt2dr & a0, const Pt2dr & a1, const Pt2dr & a2,
+               const Pt2dr & b0, const Pt2dr & b1, const Pt2dr & b2
+          )
+{
+     ElAffin2D aA(a0,a1-a0,a2-a0);
+     ElAffin2D aB(b0,b1-b0,b2-b0);
+     return aB * aA.inv();
+}
+
+cElHomographie ElAffin2D::ToHomographie() const
+{
+    cElComposHomographie aHX(mI10.x,mI01.x,mI00.x);
+    cElComposHomographie aHY(mI10.y,mI01.y,mI00.y);
+    cElComposHomographie aHZ(     0,     0,     1);
+
+    return  cElHomographie(aHX,aHY,aHZ);
+}
 
 
 
