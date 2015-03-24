@@ -57,17 +57,22 @@ int RPC::RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef
     //Creation d'un dossier pour les fichiers intermediaires
     ELISE_fp::MkDirSvp("processing");
 
-    //Creation du fichier de coef par defaut (grille non affinee)
-    std::ofstream ficWrite(refineCoef.c_str());
-    ficWrite << std::setprecision(15);
-    ficWrite << 0 << " " << 1 << " " << 0 << " " << 0 << " " << 0 << " " << 1 << " " << std::endl;
-
     // fichier GRID en sortie
     std::string aNameFileGrid = StdPrefix(aNameIm) + ".GRI";
 
     std::vector<double> vAltitude;
     for (int i = 0; i<nbLayers; ++i)
         vAltitude.push_back(altiMin + i*(altiMax - altiMin) / (nbLayers - 1));
+
+	if (refineCoef == "")
+	{
+		refineCoef = "processing/refineCoef.txt";
+
+		//Creation du fichier de coef par defaut (grille non affinee)
+		std::ofstream ficWrite(refineCoef.c_str());
+		ficWrite << std::setprecision(15);
+		ficWrite << 0 << " " << 1 << " " << 0 << " " << 0 << " " << 0 << " " << 1 << " " << std::endl;
+	}
 
     //recuperation des coefficients pour affiner le modele
     std::vector<double> vRefineCoef;
@@ -857,9 +862,31 @@ void RPC::ReconstructValidity()
 
 }
 
+void RPC::Validity2Dto3D(RPC2D aRPC2D)
+{
+	first_lon = aRPC2D.first_lon;
+	first_lat = aRPC2D.first_lat;
+	first_col = aRPC2D.first_col;
+	first_row = aRPC2D.first_row;
+	last_lon = aRPC2D.last_lon;
+	last_lat = aRPC2D.last_lat;
+	last_col = aRPC2D.last_col;
+	last_row = aRPC2D.last_row;
+	long_scale = aRPC2D.long_scale;
+	lat_scale = aRPC2D.lat_scale;
+	samp_scale = aRPC2D.samp_scale;
+	line_scale = aRPC2D.line_scale;
+	long_off = aRPC2D.long_off;
+	lat_off = aRPC2D.lat_off;
+	samp_off = aRPC2D.samp_off;
+	line_off = aRPC2D.line_off;
+	height_scale = aRPC2D.height_scale;
+	height_off = aRPC2D.height_off;
+}
+
 vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
 {
-	//Generating a 20*20 grid on the normalized space with random normalized heights
+	//Generating a gridSize*gridSize grid on the normalized space with random normalized heights
 	vector<Pt3dr> aGridNorm;
 	srand(time(NULL));//Initiate the rand value
 	for (u_int i = 0; i <= gridSize; i++)
@@ -877,6 +904,7 @@ vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
 	return aGridNorm;
 }
 
+//Take GCPs in normalized space to compute f in ground=f(image)
 void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 {
 
@@ -941,6 +969,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
     }
 }
 
+//Take GCPs in normalized space to compute f in image=f(ground)
 void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 {
 
@@ -971,14 +1000,14 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
 			-Col*X, -Col*Y, -Col*Z, -Col*X*Y, -Col*X*Z, -Col*Y*Z, -Col*X*X, -Col*Y*Y, -Col*Z*Z, -Col*Y*X*Z, -Col*X*X*X, -Col*X*Y*Y, -Col*X*Z*Z, -Col*Y*X*X, -Col*Y*Y*Y, -Col*Y*Z*Z, -Col*X*X*Z, -Col*Y*Y*Z, -Col*Z*Z*Z
 		};
-		aSysCol.AddEquation(1, aEqCol, X);
+		aSysCol.AddEquation(1, aEqCol, Col);
 
 
 		double aEqRow[39] = {
 			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
 			-Row*X, -Row*Y, -Row*Z, -Row*X*Y, -Row*X*Z, -Row*Y*Z, -Row*X*X, -Row*Y*Y, -Row*Z*Z, -Row*Y*X*Z, -Row*X*X*X, -Row*X*Y*Y, -Row*X*Z*Z, -Row*Y*X*X, -Row*Y*Y*Y, -Row*Y*Z*Z, -Row*X*X*Z, -Row*Y*Y*Z, -Row*Z*Z*Z
 		};
-		aSysRow.AddEquation(1, aEqRow, Y);
+		aSysRow.AddEquation(1, aEqRow, Row);
 	}
 
 	//Computing the result
@@ -1121,28 +1150,6 @@ void RPC::ReadRPB(std::string const &filename)
     }
 }
 
-void RPC::Validity2Dto3D(RPC2D aRPC2D)
-{
-	first_lon = aRPC2D.first_lon;
-	first_lat = aRPC2D.first_lat;
-	first_col = aRPC2D.first_col;
-	first_row = aRPC2D.first_row;
-	last_lon = aRPC2D.last_lon;
-	last_lat = aRPC2D.last_lat;
-	last_col = aRPC2D.last_col;
-	last_row = aRPC2D.last_row;
-	long_scale = aRPC2D.long_scale;
-	lat_scale = aRPC2D.lat_scale;
-	samp_scale = aRPC2D.samp_scale;
-	line_scale = aRPC2D.line_scale;
-	long_off = aRPC2D.long_off;
-	lat_off = aRPC2D.lat_off;
-	samp_off = aRPC2D.samp_off;
-	line_off = aRPC2D.line_off;
-	height_scale = aRPC2D.height_scale;
-	height_off = aRPC2D.height_off;
-}
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1165,8 +1172,8 @@ Pt2dr RPC2D::InverseRPC2D(Pt3dr Pgeo, double aAngle, double aFactor)const
 	//cout << "PimNorm = " << PimNorm << endl;
 	///Converting into Real Coordinates
 	Pt2dr Pimg;
-	Pimg.x = PimNorm.x * samp_scale + samp_off - cos(aAngle)*Pgeo.z*aFactor;
-	Pimg.y = PimNorm.y * line_scale + line_off + sin(aAngle)*Pgeo.z*aFactor;
+	Pimg.x = PimNorm.x * samp_scale + samp_off - cos(aAngle)*Pgeo.z*aFactor; //cout << "Xcor = " << -cos(aAngle)*Pgeo.z*aFactor << endl;
+	Pimg.y = PimNorm.y * line_scale + line_off + sin(aAngle)*Pgeo.z*aFactor; //cout << "Ycor = " << sin(aAngle)*Pgeo.z*aFactor << endl;
 
 	return Pimg;
 }
@@ -1350,10 +1357,10 @@ Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt3dr> > aMatPtsG
 			aVPtsPlaneECEF.push_back(Pt3dr(X, Y, Z));
 	}
 
-	//Finding satellite position for point aPtGeoDodgeAngle (SatPosLoc)
 	Pt3dr aPtECEFDodgeAngle = aVPtsPlaneECEF[3];
 
-	//Compute the position of the point in 11*16 matrix space and get equivalent (aSatPosLoc) in the satpos matrix
+	//Finding satellite position for point aPtGeoDodgeAngle (aSatPosLoc)
+	//Compute the position of the point in 11*16 matrix space and get equivalent (aSatPosLoc) in the aMatSatPos matrix
 
 	Pt3dr aSatPosLoc;
 	//Finding the four points around the point
@@ -1427,7 +1434,7 @@ Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt3dr> > aMatPtsG
 	//cout << "aSatPosProj2aPtGeoDodgeAngle = " << aSatPosProj2aPtGeoDodgeAngle << endl;
 	//cout << "aSatHeight = " << aSatHeight << endl;
 	//cout << "tanBeta = " << tanBeta << endl;
-		//Compute point Dodged of (1-tanBeta)
+		//Compute point Dodged of (1-tanBeta) * 1/111111th of a degree (about 1m) in the same direction as aPtGeoDodgeAngle
 		Pt3dr aPtGeoDodgeTanBeta(aPtGeo.x - cos(aAngle)*(1 - tanBeta) / 111111, aPtGeo.y - sin(aAngle)*(1 - tanBeta) / 111111, aPtGeo.z);
 		//cout << "aPtGeoDodgeTanBeta = " << aPtGeoDodgeTanBeta << endl;
 		//cout << "aPtGeoDodgeAngle = " << aPtGeoDodgeAngle << endl;
