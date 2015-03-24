@@ -491,14 +491,16 @@ void SaisieQtWindow::on_actionShow_list_polygons_toggled(bool show)
 
 	if(show)
 	{
-		QList<int> sizeS = {1,1};
+		QList<int> sizeS;
+		sizeS << 1 << 1;
 		_ui->splitter_Tools->show();
 		_ui->splitter_GLWid_Tools->setSizes(sizeS);
 	}
 
 	else
 	{
-		QList<int> sizeS = {1,0};
+		QList<int> sizeS;
+		sizeS << 1 << 0;
 		_ui->splitter_Tools->hide();
 		_ui->splitter_GLWid_Tools->setSizes(sizeS);
 	}
@@ -1277,7 +1279,8 @@ void SaisieQtWindow::setUI()
 		_ui->tableView_Objects->hide();
 		_ui->splitter_Tools->hide();
 
-		QList<int> sizeS = {1,0};
+		QList<int> sizeS;
+		sizeS << 1 << 0;
 		_ui->splitter_GLWid_Tools->setSizes(sizeS);
 
 		_ui->splitter_GLWid_Tools->setStretchFactor(0,5);
