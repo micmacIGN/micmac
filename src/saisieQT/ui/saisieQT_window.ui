@@ -532,6 +532,7 @@
     </property>
     <addaction name="actionShow_Zoom_window"/>
     <addaction name="actionShow_3D_view"/>
+    <addaction name="actionShow_list_polygons"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -1146,6 +1147,14 @@
    </property>
    <property name="text">
     <string>Show 3D view</string>
+   </property>
+  </action>
+  <action name="actionShow_list_polygons">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show list polygons</string>
    </property>
   </action>
  </widget>
