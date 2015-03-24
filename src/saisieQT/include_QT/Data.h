@@ -83,5 +83,4 @@ private:
 		QVector3D   _centroid;
 };
 
-
 #endif // DATA_H
