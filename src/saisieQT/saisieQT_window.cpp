@@ -489,13 +489,9 @@ void SaisieQtWindow::on_actionShow_list_polygons_toggled(bool show)
 {
 	tableView_Objects()->setVisible(show);
 
-	//qDebug() << _ui->splitter_GLWid_Tools->handleWidth();
-
-	((QSortFilterProxyModel*)tableView_Objects()->model())->invalidate();
-
 	if(show)
 	{
-		QList<int> sizeS = {3,2};
+		QList<int> sizeS = {1,1};
 		_ui->splitter_Tools->show();
 		_ui->splitter_GLWid_Tools->setSizes(sizeS);
 	}
@@ -508,7 +504,6 @@ void SaisieQtWindow::on_actionShow_list_polygons_toggled(bool show)
 	}
 
 }
-
 
 void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 {
@@ -1279,14 +1274,14 @@ void SaisieQtWindow::setUI()
 		_ui->tableView_PG->close();
 		_ui->tableView_Images->close();
 		_ui->frame_preview3D->close();
-		//_ui->splitter_Tools->close();
 		_ui->tableView_Objects->hide();
-        //_ui->frame_preview3D->close();
 		_ui->splitter_Tools->hide();
 
 		QList<int> sizeS = {1,0};
 		_ui->splitter_GLWid_Tools->setSizes(sizeS);
 
+		_ui->splitter_GLWid_Tools->setStretchFactor(0,5);
+		_ui->splitter_GLWid_Tools->setStretchFactor(1,2);
     }
 
     //TEMP:
