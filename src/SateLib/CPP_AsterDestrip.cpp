@@ -43,88 +43,86 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int AsterDestrip_main(int argc, char ** argv)
 {
-	std::string aFullNameIm, aNameIm;
-	std::string aFileOut = "";
-	//Reading the arguments
-	ElInitArgMain
-		(
-		argc, argv,
-		LArgMain()
-		<< EAMC(aFullNameIm, "Aster image file", eSAM_IsPatFile),
-		LArgMain()
-		<< EAM(aFileOut, "Out", true, "Output xml file with RPC2D coordinates")
-		);
-	string aPattern, aNameDir;
-	SplitDirAndFile(aNameDir, aNameIm, aFullNameIm);
+    std::string aFullNameIm, aNameIm;
+    std::string aFileOut = "";
+    //Reading the arguments
+    ElInitArgMain
+        (
+        argc, argv,
+        LArgMain()
+        << EAMC(aFullNameIm, "Aster image file", eSAM_IsPatFile),
+        LArgMain()
+        << EAM(aFileOut, "Out", true, "Output xml file with RPC2D coordinates")
+        );
+    string aNameDir;
+    SplitDirAndFile(aNameDir, aNameIm, aFullNameIm);
 
-	if (aFileOut == "")
-	{
-		aFileOut = aNameDir + StdPrefix(aNameIm) + "_Destriped.tif";
-	}
-	
-	//Reading the image and creating the objects to be manipulated
-	Tiff_Im aTF = Tiff_Im::StdConvGen(aNameDir + aNameIm, 1, false);
+    if (aFileOut == "")
+    {
+        aFileOut = aNameDir + StdPrefix(aNameIm) + "_Destriped.tif";
+    }
 
-	Pt2di aSz = aTF.sz();
+    //Reading the image and creating the objects to be manipulated
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aNameDir + aNameIm, 1, false);
 
-	Im2D_REAL8  aIm(aSz.x, aSz.y);
-	Im2D_U_INT1  aImOut(aSz.x, aSz.y);
+    Pt2di aSz = aTF.sz();
 
-	ELISE_COPY
-		(
-		aTF.all_pts(),
-		aTF.in(),
-		aIm.out()
-		);
+    Im2D_REAL8  aIm(aSz.x, aSz.y);
+    Im2D_U_INT1  aImOut(aSz.x, aSz.y);
 
-	cout << aNameIm << " loaded" << endl;
-	REAL8 ** aData = aIm.data();
-	U_INT1 ** aDataOut = aImOut.data();
+    ELISE_COPY
+        (
+        aTF.all_pts(),
+        aTF.in(),
+        aIm.out()
+        );
 
-	//Making regular image at F=2pix
-	Im2D_REAL8  aImRegul(aSz.x, aSz.y);
-	REAL8 ** aDataRegul = aImRegul.data();
-	{
-		Im2D_REAL8  aImHalf(aSz.x / 2, aSz.y / 2);
-		REAL8 ** aDataHalf = aImHalf.data();
-		for (int aY = 0; aY<aSz.y/2; aY++)
-		{
-			for (int aX = 0; aX<aSz.x/2; aX++)
-			{
-				Pt2dr ptOut(aX * 2, aY * 2);
-				aDataHalf[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
-			}
-		}
-		cout << "Small image generated (of size : " << aSz.x / 2 << " " << aSz.y / 2 << ")" << endl;
+    cout << aNameIm << " loaded" << endl;
+    REAL8 ** aData = aIm.data();
+    //U_INT1 ** aDataOut = aImOut.data();
 
-		double min = 0, max = 0;
-		for (int aY = 0; aY<aSz.y ; aY++)
-		{
-			for (int aX = 0; aX<aSz.x ; aX++)
-			{
-				Pt2dr ptOut(aX / 2, aY / 2);
-				aDataRegul[aY][aX] = aData[aY][aX]-Reechantillonnage::biline(aDataHalf, aSz.x / 2, aSz.y / 2, ptOut);
-				if (aDataRegul[aY][aX] < min)
-					min = aDataRegul[aY][aX];
-				if (aDataRegul[aY][aX] > max)
-					max = aDataRegul[aY][aX];
-			}
-		}
+    //Making regular image at F=2pix
+    Im2D_REAL8  aImRegul(aSz.x, aSz.y);
+    REAL8 ** aDataRegul = aImRegul.data();
+    {
+        Im2D_REAL8  aImHalf(aSz.x / 2, aSz.y / 2);
+        REAL8 ** aDataHalf = aImHalf.data();
+        for (int aY = 0; aY<aSz.y/2; aY++)
+        {
+            for (int aX = 0; aX<aSz.x/2; aX++)
+            {
+                Pt2dr ptOut(aX * 2, aY * 2);
+                aDataHalf[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
+            }
+        }
+        cout << "Small image generated (of size : " << aSz.x / 2 << " " << aSz.y / 2 << ")" << endl;
 
-		//Normallization
-		for (int aY = 0; aY<aSz.y; aY++)
-		{
-			for (int aX = 0; aX<aSz.x; aX++)
-			{
-				aDataRegul[aY][aX] = (aDataRegul[aY][aX] - min) * 255 / max;
-			}
-		}
+        double min = 0, max = 0;
+        for (int aY = 0; aY<aSz.y ; aY++)
+        {
+            for (int aX = 0; aX<aSz.x ; aX++)
+            {
+                Pt2dr ptOut(aX / 2, aY / 2);
+                aDataRegul[aY][aX] = aData[aY][aX]-Reechantillonnage::biline(aDataHalf, aSz.x / 2, aSz.y / 2, ptOut);
+                if (aDataRegul[aY][aX] < min)
+                    min = aDataRegul[aY][aX];
+                if (aDataRegul[aY][aX] > max)
+                    max = aDataRegul[aY][aX];
+            }
+        }
 
-		cout << "Regul image generated" << endl;
+        //Normalization
+        for (int aY = 0; aY<aSz.y; aY++)
+        {
+            for (int aX = 0; aX<aSz.x; aX++)
+            {
+                aDataRegul[aY][aX] = (aDataRegul[aY][aX] - min) * 255 / max;
+            }
+        }
 
-	}
+        cout << "Regul image generated" << endl;
 
-
+    }
 
 
 
@@ -134,24 +132,26 @@ int AsterDestrip_main(int argc, char ** argv)
 
 
 
-	Tiff_Im  aTOut
-		(
-		aFileOut.c_str(),
-		aSz,
-		GenIm::u_int1,
-		Tiff_Im::No_Compr,
-		Tiff_Im::BlackIsZero
-		);
 
 
-	ELISE_COPY
-		(
-		aTOut.all_pts(),
-		aImOut.in(),
-		aTOut.out()
-		);
+    Tiff_Im  aTOut
+        (
+        aFileOut.c_str(),
+        aSz,
+        GenIm::u_int1,
+        Tiff_Im::No_Compr,
+        Tiff_Im::BlackIsZero
+        );
 
-	return 0;
+
+    ELISE_COPY
+        (
+        aTOut.all_pts(),
+        aImOut.in(),
+        aTOut.out()
+        );
+
+    return 0;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007
