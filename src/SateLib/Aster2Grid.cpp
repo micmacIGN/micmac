@@ -132,22 +132,35 @@ vector<vector<Pt3dr> > ReadSatPos(string aTxtSatPos)
 int Aster2Grid_main(int argc, char ** argv)
 {
 	//GET PSEUDO-RPC2D FOR ASTER FROM LATTICE POINTS
-	std::string aTxtImage, aTxtLong, aTxtLat, aTxtSatPos;
-	std::string aFileOut = "RPC2D-params.xml";
+	std::string aTxtImage, aTxtLong, aTxtLat, aTxtSatPos, aNameIm;
+	std::string inputSyst = "+proj=longlat +datum=WGS84 "; //input syst proj4
+	std::string targetSyst;//output syst proj4
+	std::string refineCoef = "processing/refineCoef.txt";
+	bool binaire = true;
+	int nbLayers;
 	double aHMin = 0, aHMax = 3000;
+	double stepPixel = 25.f;
+	double stepCarto = 500.f;//equals to image resolution in cm
+
 	//Reading the arguments
 	ElInitArgMain
 		(
 		argc, argv,
 		LArgMain()
+		<< EAMC(aNameIm, "name of AsterIm")
+		<< EAMC(nbLayers, "number of layers (min 4)")
+		<< EAMC(targetSyst, "targetSyst - target system in Proj4 format (ex : \"+proj=utm +zone=32 +north +datum=WGS84 +units=m +no_defs\"")
 		<< EAMC(aTxtImage, "txt file contaning the lattice pointd in image coordinates", eSAM_IsPatFile)
 		<< EAMC(aTxtLong, "txt file contaning the longitude of the lattice points", eSAM_IsPatFile)
 		<< EAMC(aTxtLat, "txt file contaning the geocentric latitude of the lattice points", eSAM_IsPatFile)
 		<< EAMC(aTxtSatPos, "txt file contaning the satellite position in ECEF", eSAM_IsPatFile),
 		LArgMain()
-		<< EAM(aFileOut, "Out", true, "Output xml file with RPC2D coordinates")
 		<< EAM(aHMin, "HMin", true, "Min elipsoid height of scene (default=0)")
 		<< EAM(aHMax, "HMax", true, "Max elipsoid height of scene (default=3000)")
+		<< EAM(stepPixel, "stepPixel", true, "Step in pixel (Def=100pix)")
+		<< EAM(stepCarto, "stepCarto", true, "Step in m (carto) (Def=50m)")
+		<< EAM(refineCoef, "refineCoef", true, "File of Coef to refine Grid")
+		<< EAM(binaire, "Bin", true, "Export Grid in binaries (Def=True)")
 		);
 
 	//TODO : READ THIS FROM HDF
@@ -206,6 +219,8 @@ int Aster2Grid_main(int argc, char ** argv)
 		//cout << "Inverted point : " << aPt << endl;
 		aVectImNorm.push_back(aPt);
 	}
+	//cout << aVectGeoNorm << endl;
+	//cout << aVectImNorm << endl;
 
 	//Compute Direct and Inverse RPC
 	aRPC3D.Validity2Dto3D(aRPC2D);
@@ -213,60 +228,68 @@ int Aster2Grid_main(int argc, char ** argv)
 	cout << "Direct RPC estimated" << endl;
 	aRPC3D.GCP2Inverse(aVectGeoNorm, aVectImNorm);
 	cout << "Inverse RPC estimated" << endl;
-	aRPC3D.ReconstructValidity();
 	aRPC3D.info();
 
-	//Testing the reconstructed RPC
-	Pt3dr aPtTestGeo(aMatPtsGeo[3][3].x, aMatPtsGeo[3][3].y, 0);
-	Pt3dr aPtTestIma(aMatPtsIm[3][3].x, aMatPtsIm[3][3].y, 0);
-	//cout << "Point Test Geo    : " << aPtTest4 << endl;
-	double noRefine[] = { 0, 1, 0, 0, 0, 1 };
-	vector<double> vRefineCoef;
-	for (int i = 0; i<6; i++)
-	{
-		vRefineCoef.push_back(noRefine[i]);
-	}
-	Pt3dr aPtInverse3D = aRPC3D.InverseRPC(aPtTestGeo, vRefineCoef);
-	Pt3dr aPtDirect3D = aRPC3D.DirectRPC(aPtTestIma);
-	Pt2dr aPtInverse2D = aRPC2D.InverseRPC2D(aPtTestGeo, 0, 0);
+	////Testing the reconstructed RPC
+	//Pt3dr aPtTestGeo(aMatPtsGeo[3][3].x, aMatPtsGeo[3][3].y, 0);
+	//Pt3dr aPtTestIma(aMatPtsIm[3][3].x, aMatPtsIm[3][3].y, 0);
+	////cout << "Point Test Geo    : " << aPtTest4 << endl;
+	//double noRefine[] = { 0, 1, 0, 0, 0, 1 };
+	//vector<double> vRefineCoef;
+	//for (int i = 0; i<6; i++)
+	//{
+	//	vRefineCoef.push_back(noRefine[i]);
+	//}
+	//Pt3dr aPtInverse3D = aRPC3D.InverseRPC(aPtTestGeo, vRefineCoef);
+	//Pt3dr aPtDirect3D = aRPC3D.DirectRPC(aPtTestIma);
+	//Pt2dr aPtInverse2D = aRPC2D.InverseRPC2D(aPtTestGeo, 0, 0);
 
-	cout << "Lattice (3,3) Geo         = " << setprecision(15) << aMatPtsGeo[3][3] << endl;
-	cout << "LatticePT33 RPC2D         = " << aPtInverse2D << endl;
-	cout << "LatticePT33 Inverse RPC3D = " << aPtInverse3D << endl;
-	cout << "Lattice (3,3) Ima         = " << aMatPtsIm[3][3] << endl;
-	cout << "LatticePT33 Direct RPC3D  = " << aPtDirect3D << endl;
+	//cout << "Lattice (3,3) Geo         = " << setprecision(15) << aMatPtsGeo[3][3] << endl;
+	//cout << "LatticePT33 RPC2D         = " << aPtInverse2D << endl;
+	//cout << "LatticePT33 Inverse RPC3D = " << aPtInverse3D << endl;
+	//cout << "Lattice (3,3) Ima         = " << aMatPtsIm[3][3] << endl;
+	//cout << "LatticePT33 Direct RPC3D  = " << aPtDirect3D << endl;
 
-	Pt3dr aPtTest1(-150.9131, 63.3609, 683);//Canyon
-	Pt2dr aPtInverse2D1 = aRPC2D.InverseRPC2D(aPtTest1, 0, 0);
-	//Pt3dr aPtInverse2D3D1 = aRPC2D.InversePreRPCNorm(aPtTest1, aMatPtsGeo, aMatSatPos);
-	Pt3dr aPtInverse3D1 = aRPC3D.InverseRPC(aPtTest1, vRefineCoef);
-	Pt3dr aPtTest2(-150.5422, 63.1457, 3311);//East Mountain
-	Pt2dr aPtInverse2D2 = aRPC2D.InverseRPC2D(aPtTest2, 0, 0);
-	//Pt3dr aPtInverse2D3D2 = aRPC2D.InversePreRPCNorm(aPtTest2, aMatPtsGeo, aMatSatPos);
-	Pt3dr aPtInverse3D2 = aRPC3D.InverseRPC(aPtTest2, vRefineCoef);
-	Pt3dr aPtTest3(-151.0321, 63.2009, 2097);//West Mountain
-	Pt2dr aPtInverse2D3 = aRPC2D.InverseRPC2D(aPtTest3, 0, 0);
-	//Pt3dr aPtInverse2D3D3 = aRPC2D.InversePreRPCNorm(aPtTest3, aMatPtsGeo, aMatSatPos);
-	Pt3dr aPtInverse3D3 = aRPC3D.InverseRPC(aPtTest3, vRefineCoef);
-	cout << "Canyon Geo           = " << aPtTest1 << endl;
-	cout << "Canyon Ima           = " << "[2111.3,1654.99]" << endl;
-	cout << "Canyon RPC2D         = " << aPtInverse2D1 << endl;
-	//cout << "Canyon RPC2D3D       = " << aPtInverse2D3D1 << endl;
-	cout << "Canyon RPC3D         = " << aPtInverse3D1 << endl;
+	//Pt3dr aPtTest1(-150.9131, 63.3609, 0);// 683);//Canyon
+	//Pt2dr aPtInverse2D1 = aRPC2D.InverseRPC2D(aPtTest1, 0, 0);
+	////Pt3dr aPtInverse2D3D1 = aRPC2D.InversePreRPCNorm(aPtTest1, aMatPtsGeo, aMatSatPos);
+	//Pt3dr aPtInverse3D1 = aRPC3D.InverseRPC(aPtTest1, vRefineCoef);
+	//Pt3dr aPtTest2(-150.5422, 63.1457, 0);// 3311);//East Mountain
+	//Pt2dr aPtInverse2D2 = aRPC2D.InverseRPC2D(aPtTest2, 0, 0);
+	////Pt3dr aPtInverse2D3D2 = aRPC2D.InversePreRPCNorm(aPtTest2, aMatPtsGeo, aMatSatPos);
+	//Pt3dr aPtInverse3D2 = aRPC3D.InverseRPC(aPtTest2, vRefineCoef);
+	//Pt3dr aPtTest3(-151.0321, 63.2009, 0);//, 2097);//West Mountain
+	//Pt3dr aPtTest31(-151.0321, 63.2009, 2097);//West Mountain 3D
+	//Pt3dr aPtTest3i(2090.5, 2856.1, 2097);//West Mountain Im
+	//Pt2dr aPtInverse2D3 = aRPC2D.InverseRPC2D(aPtTest3, 0, 0);
+	////Pt3dr aPtInverse2D3D3 = aRPC2D.InversePreRPCNorm(aPtTest3, aMatPtsGeo, aMatSatPos);
+	//Pt3dr aPtInverse3D3 = aRPC3D.InverseRPC(aPtTest3, vRefineCoef);
+	//Pt3dr aPtInverse3D31 = aRPC3D.InverseRPC(aPtTest31, vRefineCoef);
+	//Pt3dr aPtDirect3D31 = aRPC3D.DirectRPC(aPtTest3i);
+	//Pt3dr aPtInverse3D312 = aRPC3D.InverseRPC(aPtDirect3D31, vRefineCoef);
+	//cout << "Canyon Geo           = " << aPtTest1 << endl;
+	//cout << "Canyon Ima           = " << "[2111.3,1654.99]" << endl;
+	//cout << "Canyon RPC2D         = " << aPtInverse2D1 << endl;
+	////cout << "Canyon RPC2D3D       = " << aPtInverse2D3D1 << endl;
+	//cout << "Canyon RPC3D         = " << aPtInverse3D1 << endl;
 
-	cout << "East mountain Geo    = " << aPtTest2 << endl;
-	cout << "East mountain Ima    = " << "[3719.5,2605.6]" << endl;
-	cout << "East mountain RPC2D  = " << aPtInverse2D2 << endl;
-	//cout << "East mountain RPC2D3D= " << aPtInverse2D3D2 << endl;
-	cout << "East mountain RPC3D  = " << aPtInverse3D2 << endl;
+	//cout << "East mountain Geo    = " << aPtTest2 << endl;
+	//cout << "East mountain Ima    = " << "[3719.5,2605.6]" << endl;
+	//cout << "East mountain RPC2D  = " << aPtInverse2D2 << endl;
+	////cout << "East mountain RPC2D3D= " << aPtInverse2D3D2 << endl;
+	//cout << "East mountain RPC3D  = " << aPtInverse3D2 << endl;
 
-	cout << "West mountain Geo    = " << aPtTest3 << endl;
-	cout << "West mountain Ima    = " << "[2090.5,2856.1]" << endl;
-	cout << "West mountain RPC2D  = " << aPtInverse2D3 << endl;
-	//cout << "West mountain RPC2D3D= " << aPtInverse2D3D3 << endl;
-	cout << "West mountain RPC3D  = " << aPtInverse3D3 << endl;
+	//cout << "West mountain Geo    = " << aPtTest3 << endl;
+	//cout << "West mountain Ima    = " << "[2090.5,2856.1]" << endl;
+	//cout << "West mountain RPC2D  = " << aPtInverse2D3 << endl;
+	////cout << "West mountain RPC2D3D= " << aPtInverse2D3D3 << endl;
+	//cout << "West mountain RPC3D 0= " << aPtInverse3D3 << endl;
+	//cout << "West mountain RPC3D 1= " << aPtInverse3D31 << endl;
+	//cout << "West mountain RPC3D d= " << aPtDirect3D31 << endl;
+	//cout << "West mountain RPC3D i= " << aPtInverse3D312 << endl;
 
-
+	//Computing Grid
+	aRPC3D.RPC2Grid(nbLayers, aHMin, aHMax, refineCoef, aNameIm, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
 
 	return 0;
 }
