@@ -60,6 +60,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 
 	setModelObject(proxyObjectModel);
 
+	connect(currentWidget(),SIGNAL(changeHistory()),proxyObjectModel,SLOT(invalidate()));
+
     tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
     tableView_Images()->setContextMenuPolicy(Qt::CustomContextMenu);
     tableView_Objects()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -1785,28 +1787,6 @@ QVariant ModelObjects::data(const QModelIndex &index, int role) const
 
 		if(aK < _hMag->size())
 		{
-			/*
-			cPolygon* aPoly = _engine->getData()->getPolygon(aK);
-
-			switch (index.column())
-			{
-				case 0:
-				{
-					if ((aK == 0) && (aPoly->getMaxSize() == 2))        return QString(tr("Line"));
-					else if ((aK ==1) && (aPoly->getMaxSize() == 1))    return QString(tr("Origin"));
-					else if ((aK ==2) && (aPoly->getMaxSize() == 2))    return QString(tr("Scale"));
-					else if  (aPoly->getMaxSize() == 4)                 return QString(tr("Box 2D"));
-					else
-						return QString(tr("Polygon"));
-				}
-				case 1:
-				{
-					if (aPoly->getMaxSize() == aPoly->size())
-						return QString(tr("Done"));
-					else
-						return QString(tr("Mask"));
-				}
-			}*/
 
 			QString nonS;
 			QVector <selectInfos> sInfo = _hMag->getSelectInfos();
@@ -1853,6 +1833,7 @@ QVariant ModelObjects::data(const QModelIndex &index, int role) const
 			}
 		}
 	}
+
 	return QVariant();
 }
 
