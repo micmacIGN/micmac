@@ -54,6 +54,12 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         setImageName("");
     }
 
+	ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
+
+	proxyObjectModel->setSourceModel(new ModelObjects(0,currentWidget()->getHistoryManager()));
+
+	setModelObject(proxyObjectModel);
+
     tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
     tableView_Images()->setContextMenuPolicy(Qt::CustomContextMenu);
     tableView_Objects()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -62,6 +68,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
     tableView_Objects()->setMouseTracking(true);
 
     _helpDialog = new cHelpDlg(QApplication::applicationName() + tr(" shortcuts"), this);
+
 }
 
 SaisieQtWindow::~SaisieQtWindow()
@@ -426,7 +433,6 @@ void SaisieQtWindow::on_actionShow_axis_toggled(bool state)
     }
 }
 
-
 void SaisieQtWindow::on_actionSwitch_axis_Y_Z_toggled(bool state)
 {
     for (int aK = 0; aK < nbWidgets();++aK)
@@ -476,6 +482,31 @@ void SaisieQtWindow::on_actionShow_3D_view_toggled(bool show)
 {
 	_ui->frame_preview3D->setVisible(show);
 }
+
+void SaisieQtWindow::on_actionShow_list_polygons_toggled(bool show)
+{
+	tableView_Objects()->setVisible(show);
+
+	//qDebug() << _ui->splitter_GLWid_Tools->handleWidth();
+
+	((QSortFilterProxyModel*)tableView_Objects()->model())->invalidate();
+
+	if(show)
+	{
+		QList<int> sizeS = {3,2};
+		_ui->splitter_Tools->show();
+		_ui->splitter_GLWid_Tools->setSizes(sizeS);
+	}
+
+	else
+	{
+		QList<int> sizeS = {1,0};
+		_ui->splitter_Tools->hide();
+		_ui->splitter_GLWid_Tools->setSizes(sizeS);
+	}
+
+}
+
 
 void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
 {
@@ -1237,27 +1268,35 @@ void SaisieQtWindow::setUI()
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);
 
-		_ui->tableView_Objects->hide();
+		_ui->tableView_Objects->close();
        // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
     {
-        _ui->QFrame_zoom->close();
-        _ui->splitter_Tools->close();
-        _ui->tableView_Objects->close();
-        _ui->tableView_PG->close();
-        _ui->tableView_Images->close();
-        _ui->frame_preview3D->close();
-
+		_ui->QFrame_zoom->close();
+		_ui->tableView_PG->close();
+		_ui->tableView_Images->close();
+		_ui->frame_preview3D->close();
+		//_ui->splitter_Tools->close();
+		_ui->tableView_Objects->hide();
         //_ui->frame_preview3D->close();
-        //_ui->splitter_Tools->hide();
+		_ui->splitter_Tools->hide();
+
+		QList<int> sizeS = {1,0};
+		_ui->splitter_GLWid_Tools->setSizes(sizeS);
+
     }
 
     //TEMP:
 	hideAction(_ui->menuTools->menuAction(), false);
 
 	if (_appMode <= MASK3D)
-		hideAction(_ui->menuWindows->menuAction(), false);
+	{
+		hideAction(_ui->actionShow_Zoom_window, false);
+		hideAction(_ui->actionShow_3D_view, false);
+	}
+	else
+		hideAction(_ui->actionShow_list_polygons, false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
@@ -1312,11 +1351,15 @@ void SaisieQtWindow::resizeTables()
     tableView_Objects()->horizontalHeader()->setStretchLastSection(true);
 }
 
-void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/)
+void SaisieQtWindow::setModelObject(QAbstractItemModel *model_Objects)
+{
+	tableView_Objects()->setModel(model_Objects);
+}
+
+void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images)
 {
     tableView_PG()->setModel(model_Pg);
     tableView_Images()->setModel(model_Images);
-   // tableView_Objects()->setModel(model_Objects);
 }
 
 void SaisieQtWindow::SelectPointAllWGL(QString pointName)
@@ -1694,4 +1737,134 @@ void SaisieQtWindow::labelShowMode(bool state)
             _ui->label_ImageName->show();
         }
     }
+}
+
+
+
+
+ModelObjects::ModelObjects(QObject *parent, HistoryManager* hMag)
+	:QAbstractTableModel(parent),
+	  _hMag(hMag)
+{
+
+}
+
+int ModelObjects::rowCount(const QModelIndex & /*parent*/) const
+{
+	return _hMag->size();
+}
+
+int ModelObjects::columnCount(const QModelIndex &parent) const
+{
+	return 3;
+}
+
+QVariant ModelObjects::headerData(int section, Qt::Orientation orientation, int role) const
+{
+	if (role == Qt::DisplayRole)
+	{
+		if (orientation == Qt::Horizontal)
+		{
+			switch (section)
+			{
+			case 0:
+				return QString(tr("Object"));
+			case 1:
+				return QString(tr("State"));
+			}
+		}
+	}
+	return QVariant();
+}
+
+QVariant ModelObjects::data(const QModelIndex &index, int role) const
+{
+	if (role == Qt::DisplayRole || role == Qt::EditRole)
+	{
+		int aK = index.row();
+
+		if(aK < _hMag->size())
+		{
+			/*
+			cPolygon* aPoly = _engine->getData()->getPolygon(aK);
+
+			switch (index.column())
+			{
+				case 0:
+				{
+					if ((aK == 0) && (aPoly->getMaxSize() == 2))        return QString(tr("Line"));
+					else if ((aK ==1) && (aPoly->getMaxSize() == 1))    return QString(tr("Origin"));
+					else if ((aK ==2) && (aPoly->getMaxSize() == 2))    return QString(tr("Scale"));
+					else if  (aPoly->getMaxSize() == 4)                 return QString(tr("Box 2D"));
+					else
+						return QString(tr("Polygon"));
+				}
+				case 1:
+				{
+					if (aPoly->getMaxSize() == aPoly->size())
+						return QString(tr("Done"));
+					else
+						return QString(tr("Mask"));
+				}
+			}*/
+
+			QString nonS;
+			QVector <selectInfos> sInfo = _hMag->getSelectInfos();
+			selectInfos info = sInfo[aK];
+
+			switch (index.column())
+			{
+				case 0:
+				{
+					return nonS.number(aK);
+				}
+				case 1:
+				{
+
+					return nonS.number(info.poly.size());
+				}
+				case 2:
+				{
+
+					switch (info.selection_mode)
+					{
+						case SUB_INSIDE:
+							return QString("SUB_INSIDE");
+							break;
+						case ADD_INSIDE:
+							return QString("ADD_INSIDE");
+							break;
+						case SUB_OUTSIDE:
+							return QString("SUB_OUTSIDE");
+							break;
+						case ADD_OUTSIDE:
+							return QString("ADD_OUTSIDE");
+							break;
+						case INVERT:
+							return QString("INVERT");
+							break;
+						case NONE:
+							return QString("NONE");
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+	}
+	return QVariant();
+}
+
+bool ModelObjects::insertRows(int row, int count, const QModelIndex &parent)
+{
+	beginInsertRows(QModelIndex(), row, row+count-1);
+	endInsertRows();
+	return true;
+}
+
+bool ObjectsSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+	//TODO:
+	return true;
 }
