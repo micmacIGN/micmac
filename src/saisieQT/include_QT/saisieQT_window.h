@@ -55,7 +55,7 @@ public:
 
     void    resizeTables();
 
-    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/);
+	void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
 
     void    SelectPointAllWGL(QString pointName = QString(""));
 
@@ -216,11 +216,13 @@ protected slots:
 
 	void on_actionShow_Zoom_window_toggled(bool show);
 	void on_actionShow_3D_view_toggled(bool show);
+	void on_actionShow_list_polygons_toggled(bool show);
 protected:
 
     //! Connects all QT actions to slots
     void connectActions();
 
+	void setModelObject(QAbstractItemModel* model_Objects);
 private:
 
     void                    createRecentFileMenu();
@@ -265,4 +267,45 @@ private:
     QString					_banniere;
 
 };
+
+
+class ObjectsSFModel : public QSortFilterProxyModel
+{
+	Q_OBJECT
+
+public:
+	ObjectsSFModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+
+protected:
+	bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+
+};
+
+class ModelObjects : public QAbstractTableModel
+{
+	Q_OBJECT
+public:
+
+	ModelObjects(QObject *parent, HistoryManager* hMag);
+
+	int             rowCount(const QModelIndex &parent = QModelIndex()) const ;
+
+	int             columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+	QVariant        data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+	QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
+
+	/*bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+
+	Qt::ItemFlags   flags(const QModelIndex &index) const;*/
+
+	bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
+
+private:
+
+	HistoryManager *		_hMag;
+
+};
+
 #endif // MAINWINDOW_H

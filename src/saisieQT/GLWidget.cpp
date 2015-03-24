@@ -673,6 +673,8 @@ void GLWidget::Select(int mode, bool saveInfos)
             _matrixManager.exportMatrices(info);
 
             _historyManager.push_back(info);
+
+			changeHistory();
         }
 
         emit maskEdited();
@@ -726,7 +728,10 @@ void GLWidget::setOption(QFlags<cGLData::Option> option, bool show)
 void GLWidget::reset()
 {
     _vp_Params.reset();
+
     _historyManager.reset();
+
+	changeHistory();
 
     m_bFirstAction = true;
 
