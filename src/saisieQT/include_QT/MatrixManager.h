@@ -21,28 +21,28 @@ enum VIEW_ORIENTATION {  TOP_VIEW,      /**< Top view (eye: +Z) **/
 
 enum matID
 {
-	M11,
-	M12,
-	M13,
-	M14,
-	M21,
-	M22,
-	M23,
-	M24,
-	M31,
-	M32,
-	M33,
-	M34,
-	M41,
-	M42,
-	M43,
-	M44
-	};
+    M11,
+    M12,
+    M13,
+    M14,
+    M21,
+    M22,
+    M23,
+    M24,
+    M31,
+    M32,
+    M33,
+    M34,
+    M41,
+    M42,
+    M43,
+    M44
+    };
 
 class MatrixManager
 {
 public:
-	MatrixManager(eNavigationType nav = eNavig_Ball);
+    MatrixManager(eNavigationType nav = eNavig_Ball);
     ~MatrixManager();
 
     GLdouble*   getModelViewMatrix(){return _mvMatrix;}
@@ -75,10 +75,10 @@ public:
     void        exportMatrices(selectInfos &infos);
 
     //! 3D point projection in viewport
-	void        getProjection(QPointF &P2D, QVector3D P);
+    void        getProjection(QPointF &P2D, QVector3D P);
 
     //! projection from viewport to world coordinates
-	void        getInverseProjection(QVector3D &P, QPointF P2D, float dist);
+    void        getInverseProjection(QVector3D &P, QPointF P2D, float dist);
 
     //! Project a point from window to image
     QPointF     WindowToImage(const QPointF &winPt, float glOrthoZoom);
@@ -94,11 +94,11 @@ public:
     void        resetModelViewMatrix();
 
     //! Reset translation matrix
-	void        resetTranslationMatrix(QVector3D center = QVector3D(0.f,0.f,0.f));
+    void        resetTranslationMatrix(QVector3D center = QVector3D(0.f,0.f,0.f));
 
     void        resetViewPort();
 
-	void        resetAllMatrix(QVector3D center = QVector3D(0.f,0.f,0.f), bool resetALL = true);
+    void        resetAllMatrix(QVector3D center = QVector3D(0.f,0.f,0.f), bool resetALL = true);
 
 //    void        setModelViewMatrix();
 
@@ -106,7 +106,7 @@ public:
 
     float       getGlRatio(){return m_glRatio;}
 
-	void        setView(VIEW_ORIENTATION orientation, QVector3D centerScene);
+    void        setView(VIEW_ORIENTATION orientation, QVector3D centerScene);
 
     GLdouble    m_rotationMatrix[16];
     GLdouble    m_translationMatrix[3];
@@ -115,11 +115,11 @@ public:
     GLdouble    distance() const;
     void        setDistance(const GLdouble &distance);
 
-	void        setArcBallCamera(float distance);
-	QVector3D       centerScene() const;
-	void        setCenterScene(const QVector3D &centerScene);
+    void        setArcBallCamera(float distance);
+    QVector3D       centerScene() const;
+    void        setCenterScene(const QVector3D &centerScene);
 
-	void        MatrixInverse(GLdouble* OpenGLmatIn, GLdouble* matOutGL = NULL, GLdouble* vec = NULL);
+    void        MatrixInverse(GLdouble* OpenGLmatIn, GLdouble* matOutGL = NULL, GLdouble* vec = NULL);
 
     void        handleRotation(QPointF clicPosMouse);
 
@@ -130,75 +130,76 @@ public:
     GLdouble    rY() const;
     void        setRY(const GLdouble &rY);
 
-	void        setSceneTopo(const QVector3D& centerScene, float diametre);
+    void        setSceneTopo(const QVector3D& centerScene, float diametre);
 
     QPointF     screen2TransABall(QPointF ptScreen);
 
-	void		printVecteur(GLdouble* posCameraOut,const char* nameVariable);
+    void		printVecteur(GLdouble* posCameraOut,const char* nameVariable);
 
-	eNavigationType eNavigation() const;
-	void		setENavigation(const eNavigationType& eNavigation);
+    eNavigationType eNavigation() const;
+    void		setENavigation(const eNavigationType& eNavigation);
 
-	bool		isBallNavigation();
+    bool		isBallNavigation();
 
-	QPointF		centerVP();
+    QPointF		centerVP();
 
-	QRectF      getRectViewportToImage(float zoom);
+    QRectF      getRectViewportToImage(float zoom);
+
 private:
-	//! GL context aspect ratio (width/height)
+    //! GL context aspect ratio (width/height)
 
-	void        multiplication(GLdouble* posIn, GLdouble* posOut, GLdouble* mat);
+    void        multiplication(GLdouble* posIn, GLdouble* posOut, GLdouble* mat);
 
-	void		matriceRotation(GLdouble* axe, GLdouble* matRot, GLdouble angle);
+    void		matriceRotation(GLdouble* axe, GLdouble* matRot, GLdouble angle);
 
-	void        multiplicationMat(GLdouble* mat1, GLdouble* mat2,GLdouble* matOut);
+    void        multiplicationMat(GLdouble* mat1, GLdouble* mat2,GLdouble* matOut);
 
-	void		addTranslationToMat(GLdouble* mat, GLdouble* translation);
+    void		addTranslationToMat(GLdouble* mat, GLdouble* translation);
 
-	bool		gluInvertMatrix(const GLdouble m[16], GLdouble invOut[16]);
+    bool		gluInvertMatrix(const GLdouble m[16], GLdouble invOut[16]);
 
-	void		CopyMatrix(GLdouble * source,GLdouble * in);
+    void		CopyMatrix(GLdouble * source,GLdouble * in);
 
     float       m_glRatio;
 
-	GLdouble    _mvMatrix[16];
-	GLdouble    _projMatrix[16];
-	GLint       _glViewport[4];
+    GLdouble    _mvMatrix[16];
+    GLdouble    _projMatrix[16];
+    GLint       _glViewport[4];
 
 
     GLdouble    _rX;
     GLdouble    _rY;
-	GLdouble    _rZ;
+    GLdouble    _rZ;
 
     GLdouble    _upY;
 
     GLdouble    _distance;
-	QVector3D   _centerScene;
+    QVector3D   _centerScene;
 
     float       _diameterScene;
 
     int         _lR;
     int         _uD;
 
-	QVector3D	_targetCamera;
-	QVector3D	_camPos;
+    QVector3D	_targetCamera;
+    QVector3D	_camPos;
 
-	GLdouble		_cX;
-	GLdouble		_cY;
-	GLdouble		_sX;
-	GLdouble		_sY;
+    GLdouble		_cX;
+    GLdouble		_cY;
+    GLdouble		_sX;
+    GLdouble		_sY;
 
-	GLdouble	  _mvMatrixOld[16];
+    GLdouble	  _mvMatrixOld[16];
 //	GLdouble	  _mvMatrixOldInv[16];
 
 //	GLdouble    *_MatrixPassageCamera;
 //	GLdouble    *_MatrixPassageCameraInv;
 //	GLdouble    *_positionCamera;
-	void loadIdentity(GLdouble* matOut);
+    void loadIdentity(GLdouble* matOut);
 
-	eNavigationType _eNavigation;
+    eNavigationType _eNavigation;
 
-	float		_factor;
+    float		_factor;
 };
 
 #endif

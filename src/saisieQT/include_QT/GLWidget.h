@@ -141,6 +141,8 @@ signals:
 
     void maskEdited();
 
+	void changeHistory();
+
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);
@@ -186,6 +188,7 @@ protected:
 
     bool        imageLoaded();
 
+	int PixelRatio();
 private:
 
     //! Window parameters (zoom, etc.)

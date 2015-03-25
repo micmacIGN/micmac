@@ -55,7 +55,7 @@ public:
 
     void    resizeTables();
 
-    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/);
+	void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
 
     void    SelectPointAllWGL(QString pointName = QString(""));
 
@@ -188,8 +188,8 @@ protected slots:
     void on_actionReset_triggered();
     void on_actionRemove_inside_triggered();
     void on_actionRemove_outside_triggered();
-    void on_actionUndo_triggered(){ undo(); }
-    void on_actionRedo_triggered(){ undo(false); }
+	void on_actionUndo_triggered();
+	void on_actionRedo_triggered();
 
     //File Menu
     void on_actionLoad_plys_triggered();
@@ -213,14 +213,24 @@ protected slots:
 
     void setNavigationType(int val);
 
-
 	void on_actionShow_Zoom_window_toggled(bool show);
+
 	void on_actionShow_3D_view_toggled(bool show);
+
+	void on_actionShow_list_polygons_toggled(bool show);
+
+	void selectionObjectChanged(const QItemSelection& select, const QItemSelection& unselect);
+
+	void updateMask(bool reloadMask = true);
+
+	void on_actionConfirm_changes_triggered();
+
 protected:
 
     //! Connects all QT actions to slots
     void connectActions();
 
+	void setModelObject(QAbstractItemModel* model_Objects);
 private:
 
     void                    createRecentFileMenu();
@@ -228,8 +238,6 @@ private:
     void                    setCurrentFile(const QString &fileName);
     void                    updateRecentFileActions();
     QString                 strippedName(const QString &fullFileName);
-
-    void                    undo(bool undo = true);
 
     int *                   _incre;
 
@@ -265,4 +273,83 @@ private:
     QString					_banniere;
 
 };
+
+
+class ObjectsSFModel : public QSortFilterProxyModel
+{
+	Q_OBJECT
+
+public:
+	ObjectsSFModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+
+protected:
+	bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+
+};
+
+class ModelObjects : public QAbstractTableModel
+{
+	Q_OBJECT
+public:
+
+	ModelObjects(QObject *parent, HistoryManager* hMag);
+
+	int             rowCount(const QModelIndex &parent = QModelIndex()) const ;
+
+	int             columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+	QVariant        data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+	QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
+
+	bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+
+	Qt::ItemFlags   flags(const QModelIndex &index) const;
+
+	bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
+
+private:
+
+	HistoryManager *		_hMag;
+
+};
+
+class ComboBoxDelegate : public QStyledItemDelegate
+{
+	Q_OBJECT
+
+public:
+	ComboBoxDelegate(const char** listCombo,int size = 0,QObject *parent = 0);
+
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+						  const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+	Q_DECL_OVERRIDE
+#endif
+	;
+
+	void setEditorData(QWidget *editor, const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+	Q_DECL_OVERRIDE
+#endif
+	;
+	void setModelData(QWidget *editor, QAbstractItemModel *model,
+					  const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+	Q_DECL_OVERRIDE
+#endif
+	;
+
+	void updateEditorGeometry(QWidget *editor,
+		const QStyleOptionViewItem &option, const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+	Q_DECL_OVERRIDE
+#endif
+	;
+private:
+	int			_size;
+	const char**		_enumString;
+};
+
+
 #endif // MAINWINDOW_H

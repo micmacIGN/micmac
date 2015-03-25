@@ -529,13 +529,13 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
    aRes.push_back(cMMCom("NLD",NLD_main,"test"));
    aRes.push_back(cMMCom("RTT",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
-   aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favourable angles"));
+   aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favorable angles"));
    aRes.push_back(cMMCom("Ortho2TieP",Ortho2TieP_main,"Select Tie Points from the orthophotography"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
    aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
    aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
-   aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
+   aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
 
    aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
    aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
@@ -553,7 +553,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercise for multi correlation in image geometry  "));
    aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar "));
    aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
-   aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test  epipolar matcher  "));
+   aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
    aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images"));
 
 
@@ -584,7 +584,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
     aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envelope for mode statue"));
-    aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topoligical analysis before bascule"));
+    aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topological analysis before bascule"));
 
 
     aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
@@ -610,12 +610,12 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 int SampleLibElise_main(int argc, char ** argv)
 {
 
-	// std::cout << "TEST ELISE LIB\n";
+    // std::cout << "TEST ELISE LIB\n";
 
-	GenMain(argc, argv, TestLibAvailableCommands());
+    GenMain(argc, argv, TestLibAvailableCommands());
 
 
-	return 0;
+    return 0;
 }
 
 //SateLib declarations
@@ -631,13 +631,13 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 {
     static std::vector<cMMCom> aRes;
 
-    aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcomming RPC functions"));
+    aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcoming RPC functions"));
     aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
-	aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
-	aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "/!\ NON FUNCTIONNAL, will Create a Grid file from the meta-data of an Aster Images"));
+    aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
+    aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "WARNING: NON FUNCTIONAL, will Create a Grid file from the meta-data of an Aster Images"));
     aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
     aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
-	aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
+    aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
@@ -674,6 +674,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        ELISE_ASSERT(ELISE_QT_VERSION > 0, std::string("Qt not installed, " + std::string(argv[1]) + " not available").c_str() );
 
        ELISE_ASSERT(argv[1]!=std::string("vMICMAC"), std::string("vMICMAC not available").c_str() );
+       ELISE_ASSERT(argv[1]!=std::string("vApero"), std::string("vApero not available").c_str() );
 
        MMVisualMode = true;
        argv[1]++;
