@@ -156,7 +156,8 @@ Pt3dr RPC::DirectRPC(Pt3dr Pimg)const
 Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     {
     double X = PimgNorm.x, Y = PimgNorm.y, Z = PimgNorm.z;
-	double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };
+	double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
+	//double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };
 
     double long_den = 0.;
     double long_num = 0.;
@@ -164,11 +165,11 @@ Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     double lat_num = 0.;
 
     for (int i = 0; i<20; i++)
-    {
+	{
+		long_num += vecteurD[i] * direct_samp_num_coef[i];
+		long_den += vecteurD[i] * direct_samp_den_coef[i];
         lat_num += vecteurD[i] * direct_line_num_coef[i];
         lat_den += vecteurD[i] * direct_line_den_coef[i];
-        long_num += vecteurD[i] * direct_samp_num_coef[i];
-        long_den += vecteurD[i] * direct_samp_den_coef[i];
     }
 
     //Final computation
@@ -475,9 +476,9 @@ void RPC::createDirectGrid(double ulcSamp, double ulcLine,
         for (size_t i = 0; i<vAltitude.size(); ++i)
         {
             double altitude = vAltitude[i];
-            for (int l = 0; l<nbLine; ++l)
+			for (int l = 0; l<nbLine; ++l)
             {
-                for (int c = 0; c<nbSamp; ++c)
+				for (int c = 0; c<nbSamp; ++c)
                 {
                     Pt3dr Pimg(ulcSamp + c * stepPixel, ulcLine + l * stepPixel, altitude);
 
@@ -932,15 +933,15 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
         double lat = aGridGeoNorm[i].y;
 
 		double aEqLon[39] = {
-			1, Y, X, Z, Y*X, Y*Z, X*Z, Y*Y, X*X, Z*Z, X*Y*Z, Y*Y*Y, Y*X*X, Y*Z*Z, X*Y*Y, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z,
-			-lon*Y, -lon*X, -lon*Z, -lon*Y*X, -lon*Y*Z, -lon*X*Z, -lon*Y*Y, -lon*X*X, -lon*Z*Z, -lon*X*Y*Z, -lon*Y*Y*Y, -lon*Y*X*X, -lon*Y*Z*Z, -lon*X*Y*Y, -lon*X*X*X, -lon*X*Z*Z, -lon*Y*Y*Z, -lon*X*X*Z, -lon*Z*Z*Z
+			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
+			-lon*X, -lon*Y, -lon*Z, -lon*X*Y, -lon*X*Z, -lon*Y*Z, -lon*X*X, -lon*Y*Y, -lon*Z*Z, -lon*Y*X*Z, -lon*X*X*X, -lon*X*Y*Y, -lon*X*Z*Z, -lon*Y*X*X, -lon*Y*Y*Y, -lon*Y*Z*Z, -lon*X*X*Z, -lon*Y*Y*Z, -lon*Z*Z*Z
 		};
 		aSysLon.AddEquation(1, aEqLon, lon);
 
 
 		double aEqLat[39] = {
-			1, Y, X, Z, Y*X, Y*Z, X*Z, Y*Y, X*X, Z*Z, X*Y*Z, Y*Y*Y, Y*X*X, Y*Z*Z, X*Y*Y, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z,
-			-lat*Y, -lat*X, -lat*Z, -lat*Y*X, -lat*Y*Z, -lat*X*Z, -lat*Y*Y, -lat*X*X, -lat*Z*Z, -lat*X*Y*Z, -lat*Y*Y*Y, -lat*Y*X*X, -lat*Y*Z*Z, -lat*X*Y*Y, -lat*X*X*X, -lat*X*Z*Z, -lat*Y*Y*Z, -lat*X*X*Z, -lat*Z*Z*Z
+			1, X, Y, Z, X*Y, X*Z, Y*Z, X*X, Y*Y, Z*Z, Y*X*Z, X*X*X, X*Y*Y, X*Z*Z, Y*X*X, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z,
+			-lat*X, -lat*Y, -lat*Z, -lat*X*Y, -lat*X*Z, -lat*Y*Z, -lat*X*X, -lat*Y*Y, -lat*Z*Z, -lat*Y*X*Z, -lat*X*X*X, -lat*X*Y*Y, -lat*X*Z*Z, -lat*Y*X*X, -lat*Y*Y*Y, -lat*Y*Z*Z, -lat*X*X*Z, -lat*Y*Y*Z, -lat*Z*Z*Z
 		};
 		aSysLat.AddEquation(1, aEqLat, lat);
     }
