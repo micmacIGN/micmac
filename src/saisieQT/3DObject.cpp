@@ -722,6 +722,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
 
 void cPolygon::draw()
 {
+
     for (int aK=0; aK < size();++aK)
         point(aK).draw();
 
@@ -795,7 +796,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
     return *this;
 }
 
-void cPolygon::close()
+void cPolygon::RemoveLastPointAndClose()
 {
     int sz = size();
 
@@ -807,7 +808,12 @@ void cPolygon::close()
         _bIsClosed = true;
     }
 
-    _bSelectedPoint = false;
+	_bSelectedPoint = false;
+}
+
+void cPolygon::close()
+{
+	_bIsClosed = true;
 }
 
 void cPolygon::removeNearestOrClose(QPointF pos)
@@ -821,7 +827,7 @@ void cPolygon::removeNearestOrClose(QPointF pos)
         if (size() < 3) _bIsClosed = false;
     }
     else // close polygon
-        close();
+		RemoveLastPointAndClose();
 }
 
 void cPolygon::removeSelectedPoint()
@@ -971,7 +977,7 @@ void cPolygon::setVector(const QVector<QPointF> &aPts)
 {
     _points.clear();
     for(int aK=0; aK < aPts.size(); ++aK)
-    {
+    {		
         _points.push_back(cPoint(aPts[aK]));
     }
 }

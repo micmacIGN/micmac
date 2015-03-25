@@ -63,7 +63,6 @@ using namespace std;
 #include <QOpenGLContext>
 #endif
 
-
 #include <QGridLayout>
 #include <QtGui>
 #include <QIcon>
@@ -96,6 +95,7 @@ using namespace std;
 #include <QSpinBox>
 #include <QStandardItemModel>
 #include <QStyle>
+#include <QStyledItemDelegate>
 #include <QSortFilterProxyModel>
 #include <QUrl>
 #include <QVector>
