@@ -240,14 +240,14 @@ public:
                 std::cout << "first_col    : " << first_col << " | last_col   : " << last_col << std::endl;
                 std::cout << "first_lon    : " << first_lon << " | last_lon   : " << last_lon << std::endl;
                 std::cout << "first_lat    : " << first_lat << " | last_lat   : " << last_lat << std::endl;
-                std::cout << "direct_samp_num_coef : " << direct_samp_num_coef.size() << std::endl;
-                std::cout << "direct_samp_den_coef : " << direct_samp_den_coef.size() << std::endl;
-                std::cout << "direct_line_num_coef : " << direct_line_num_coef.size() << std::endl;
-                std::cout << "direct_line_den_coef : " << direct_line_den_coef.size() << std::endl;
-                std::cout << "inverse_samp_num_coef : " << inverse_samp_num_coef.size() << std::endl;
-                std::cout << "inverse_samp_den_coef : " << inverse_samp_den_coef.size() << std::endl;
-                std::cout << "inverse_line_num_coef : " << inverse_line_num_coef.size() << std::endl;
-                std::cout << "inverse_line_den_coef : " << inverse_line_den_coef.size() << std::endl;
+                std::cout << "direct_samp_num_coef : " << direct_samp_num_coef << std::endl;
+                std::cout << "direct_samp_den_coef : " << direct_samp_den_coef << std::endl;
+                std::cout << "direct_line_num_coef : " << direct_line_num_coef << std::endl;
+                std::cout << "direct_line_den_coef : " << direct_line_den_coef << std::endl;
+                std::cout << "inverse_samp_num_coef : " << inverse_samp_num_coef << std::endl;
+                std::cout << "inverse_samp_den_coef : " << inverse_samp_den_coef << std::endl;
+                std::cout << "inverse_line_num_coef : " << inverse_line_num_coef << std::endl;
+                std::cout << "inverse_line_den_coef : " << inverse_line_den_coef << std::endl;
                 std::cout << "===========================================================" << std::endl;
         }
 

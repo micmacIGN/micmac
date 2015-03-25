@@ -46,6 +46,8 @@
            <Symb>  PPFree=false </Symb>
            <Symb>  AffineFree=false </Symb>
 
+ 	   <Symb>  PoseFigee=false </Symb>
+
 
            <eSymb>  NotCPI=! ${CPI} </eSymb>
            <eSymb>  DetailAppuis=0 </eSymb>
@@ -231,7 +233,20 @@
                           <ContraintesCamerasInc>
                               <Val> eAllParamFiges  </Val>
                           </ContraintesCamerasInc>
+		          
+ 			<#WHEN VTEST=${PoseFigee}>
+			 <ContraintesPoses>
+			     <NamePose>   .* </NamePose>
+  			     <ByPattern>  true </ByPattern>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>	
+			</#WHEN>
+
                        </SectionContraintes>
+			<#WHEN VTEST=${PoseFigee}>
+			<Messages>  External orientations of the cameras are frozen </Messages>
+			</#WHEN>
+
                    </IterationsCompensation>
 
                    <#WHEN VTEST=${FocFree}>

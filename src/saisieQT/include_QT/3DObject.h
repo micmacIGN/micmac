@@ -43,9 +43,11 @@ enum SELECTION_MODE { SUB_INSIDE,
                       ADD_OUTSIDE,
                       INVERT,
                       ALL,
-                      NONE
+					  NONE,
+					  SIZE_OF_SELECTION_MODE
                     };
 
+extern const char* SELECTION_MODE_String[SIZE_OF_SELECTION_MODE];
 
 // TODO GERER les etats avec des flags
 enum object_state {
@@ -318,7 +320,9 @@ class cPolygon : public cObjectGL
 
         virtual void draw();
 
-        void    close();
+		void    RemoveLastPointAndClose();
+
+		void    close();
 
         bool    isPointInsidePoly(const QPointF& P);
 
