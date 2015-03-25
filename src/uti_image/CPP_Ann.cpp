@@ -4,20 +4,6 @@
 
 using namespace std;
 
-static string clipShortestExtension( const string &i_filename )
-{
-	size_t pos = i_filename.find_last_of( "." );
-	if ( pos>=i_filename.length()-1 ) return string();
-	return i_filename.substr( 0, pos );
-}
-
-static string getBasename( const string &i_filename )
-{
-	size_t pos = i_filename.find_last_of( "/\\" );
-	if ( pos>=i_filename.length()-1 ) return string();
-	return i_filename.substr( pos+1, i_filename.length()-pos+1 );
-}
-
 static inline bool ann_read_digeo_file( const string &i_filename, vector<DigeoPoint> &i_array, bool i_removeMin, bool i_removeMax, bool i_removeUnknown )
 {
 	if ( !DigeoPoint::readDigeoFile( i_filename, false/*do no use multiple angles*/, i_array ) ){
@@ -58,16 +44,17 @@ void match_and_filter( vector<DigeoPoint> &io_array0, vector<DigeoPoint> &io_arr
 bool process_couple( const string &i_inFilename0, const string &i_inFilename1, string i_outFilename,
                      bool i_removeMin, bool i_removeMax, bool i_removeUnknown, bool i_noSplitTypes )
 {
-	if ( i_outFilename.length()==0 ){
+	if ( i_outFilename.length()==0 )
+	{
 		// construct output name from input names
 		// if in0 = dir0/name0.ext0 and in1 = dir1/name1.ext1
 		// with ext0 and ext1 the shortest extensions of in0 and in1
 		// then out = dir0/name0.-.name1.result
 		string name0_clipped = clipShortestExtension( i_inFilename0 );
 		string name1_clipped_basename = clipShortestExtension( getBasename( i_inFilename1 ) );
-		i_outFilename = name0_clipped+".-."+name1_clipped_basename+".result";
+		i_outFilename = ann_create_output_filename(i_inFilename0,i_inFilename1);
 	}
-	
+
 	vector<DigeoPoint> allPointsArray0, allPointsArray1;
 	if ( !ann_read_digeo_file( i_inFilename0, allPointsArray0, i_removeMin, i_removeMax, i_removeUnknown ) ) return false;
 	if ( !ann_read_digeo_file( i_inFilename1, allPointsArray1, i_removeMin, i_removeMax, i_removeUnknown ) ) return false;

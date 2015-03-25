@@ -11,10 +11,10 @@
 #include <iostream>
 #include <fstream>
 
-// this can possibly be removed if ANN is not installed
 #include "../../../CodeExterne/ANN/include/ANN/ANN.h"
 
 #include "../Digeo/DigeoPoint.h"
+#include "ann_utils.h"
 
 #define SIFT_POINT_UNDEFINED_INDEX -1
 

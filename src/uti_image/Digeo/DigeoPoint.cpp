@@ -1,4 +1,91 @@
-#include "StdAfx.h"
+#ifdef __NO_ELISE
+	#include "DigeoPoint.h"
+
+	#include <algorithm>
+
+	// return the smallest integral value >= r
+	INT round_up(REAL r)
+	{
+		INT i = (INT) r;
+		return i + (i < r);
+	}
+
+	// return the highest integral value <= r
+	INT round_down(REAL r)
+	{
+		INT i = (INT) r;
+		return i - (i > r);
+	}
+
+	void byte_inv_2(void * t)
+	{
+		std::swap
+		(
+			((char *) t)[0],
+			((char *) t)[1]
+		);
+	}
+
+	void byte_inv_4(void * t)
+	{
+		std::swap
+		(
+			((char *) t)[0],
+			((char *) t)[3]
+		);
+		std::swap
+		(
+			((char *) t)[1],
+			((char *) t)[2]
+		);
+	}
+
+	void byte_inv_8(void * t)
+	{
+		std::swap
+		(
+			((char *) t)[0],
+			((char *) t)[7]
+		);
+		std::swap
+		(
+			((char *) t)[1],
+			((char *) t)[6]
+		);
+		std::swap
+		(
+			((char *) t)[2],
+			((char *) t)[5]
+		);
+		std::swap
+		(
+			((char *) t)[3],
+			((char *) t)[4]
+		);
+	}
+
+	bool MSBF_PROCESSOR()
+	{
+		static bool init = false;
+		static bool res  = true; // bidon
+
+		if (! init)
+		{
+			U_INT2 ui2=0;
+			char * c = (char *) &ui2;
+
+			c[0] = 0;
+			c[1] = 1;
+
+
+			res  = (ui2 == 1);
+			init = true;
+		}
+		return res;
+	}
+#else
+	#include "StdAfx.h"
+#endif
 
 #include <fstream>
 
@@ -351,7 +438,6 @@ void DigeoPoint::removeDuplicates( vector<DigeoPoint> &io_points, int i_gridDime
 	// tag duplicates with a scale of -1 (invalid value)
 
 	// get x,y min/max and remove duplicated angles
-	ElTimer chrono, totalChrono;
 	REAL8 minx = io_points[0].x, maxx = io_points[0].x,
 	      maxy = io_points[0].y, miny = io_points[0].y;
 	DigeoPoint *it0 = io_points.data();
