@@ -882,13 +882,16 @@ void SaisieQtWindow::on_actionReset_triggered()
 void SaisieQtWindow::on_actionConfirm_changes_triggered()
 {
 	QItemSelection select	= tableView_Objects()->selectionModel()->selection();
-	int id = select.indexes()[0].row();
-	selectInfos &	info	= getWidget(0)->getHistoryManager()->getSelectInfo(id);
-	cPolygon * currentPoly	= currentWidget()->getGLData()->polygon();
-	info.poly				= currentPoly->getVector();
-	currentPoly->clear();
-	updateMask();
-	tableView_Objects()->clearSelection();
+	if(select.indexes().size())
+	{
+		int id = select.indexes()[0].row();
+		selectInfos &	info	= getWidget(0)->getHistoryManager()->getSelectInfo(id);
+		cPolygon * currentPoly	= currentWidget()->getGLData()->polygon();
+		info.poly				= currentPoly->getVector();
+		currentPoly->clear();
+		updateMask();
+		tableView_Objects()->clearSelection();
+	}
 }
 
 void SaisieQtWindow::on_actionRemove_inside_triggered()
