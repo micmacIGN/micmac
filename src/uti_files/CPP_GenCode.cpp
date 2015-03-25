@@ -641,34 +641,37 @@ void   GenCodeSurf()
 
 //===========================================================================
 
-extern void GenCodeRigiditeBlock();
 extern void GenerateCodeEqOffsetGPS();
+extern void GenerateCodeBlockCam();
+extern void GenCodeEqLinariseAngle();
+extern void GenCodecEqBundleBase();
+
 
 
 int GenCode_main(int argc,char ** argv)
 {
-    GenerateCodeEqOffsetGPS();
-
-   
-   //  GenCodeOneEqHom();
-   //  GenCodeEqHom();
+    GenCodecEqBundleBase();
+    GenCodeEqLinariseAngle();
 
 
-     // GenCodeRigiditeBlock();
-     // GenCodeAppui();
-     // GenEqPlanInc();
-     // GenDirecteDistorsion();
-     //   GencqCalibCroisee();
-     // GencEqObsRotVect();
-      // GenCodeEllipse();
-     // GenCodeLaserImage();
-     //  GenCodeAppui();
-     // GenCodeGrid(); 
-      // GenCodeLiaison();
-     // GenCodeCorrelGrid();
-     // GenCodeDiv();
-     // GenCodeDiv2();
-      // GenCodeSurf();
+    // GenerateCodeBlockCam();
+    // GenerateCodeEqOffsetGPS();
+    //  GenCodeOneEqHom();
+    //  GenCodeEqHom();
+    // GenCodeAppui();
+    // GenEqPlanInc();
+    // GenDirecteDistorsion();
+    //   GencqCalibCroisee();
+    // GencEqObsRotVect();
+    // GenCodeEllipse();
+    // GenCodeLaserImage();
+    //  GenCodeAppui();
+    // GenCodeGrid(); 
+    // GenCodeLiaison();
+    // GenCodeCorrelGrid();
+    // GenCodeDiv();
+    // GenCodeDiv2();
+    // GenCodeSurf();
 
      return 0;
 }

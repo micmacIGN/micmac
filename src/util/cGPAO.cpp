@@ -542,7 +542,7 @@ bool launchMake( const string &i_makefile, const string &i_rule, unsigned int i_
 		while ( ELISE_fp::exist_file( makefileCopyName ) );
 		cout << "###copying [" << i_makefile << "] to [" << makefileCopyName << "]" << endl;
 		ELISE_fp::copy_file( i_makefile, makefileCopyName, true );
-		i_nbJobs = 1; // no multithreading in trace_system mode
+		i_nbJobs = __TRACE_SYSTEM__; // no multithreading in trace_system mode
 	#endif
 
 	string nbJobsStr( "-j" );

@@ -40,7 +40,68 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+     /*****************************************/
+     /*                                       */
+     /*      cSurfAnalIdent                   */
+     /*                                       */
+     /*****************************************/
 
+class cSurfAnalReperCart : public cInterfSurfaceAnalytique
+{
+    public :
+        cSurfAnalReperCart (const cChCoCart & aCart) :
+                 cInterfSurfaceAnalytique (true) ,
+                 mCCCE2L                  (aCart.Inv()),
+                 mCCCL2E                  (mCCCE2L.Inv())
+         {
+         }
+
+        Pt3dr E2UVL(const Pt3dr & aP) const {return mCCCE2L.FromLoc(aP);}
+        Pt3dr UVL2E(const Pt3dr & aP) const {return mCCCL2E.FromLoc(aP);}
+        void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const {}
+
+        cXmlDescriptionAnalytique Xml()  const
+        {
+             ELISE_ASSERT(false,"cSurfAnalIdent::Xml");
+             cXmlDescriptionAnalytique aNS;
+             return aNS;
+        }
+
+        bool HasOrthoLoc() const {return false;}
+
+        std::vector<cInterSurfSegDroite>  InterDroite(const ElSeg3D & aSegOri,double aZ1) const 
+        {
+            ElSeg3D aSeg(E2UVL(aSegOri.PtOfAbsc(0)),E2UVL(aSegOri.PtOfAbsc(1)));
+            std::vector<cInterSurfSegDroite> aRes;
+
+            double aZ0 = aSeg.P0().z ;
+            double aDZ = aSeg.TgNormee().z;
+
+            if (aDZ==0) return aRes;
+
+            aRes.push_back
+            (
+                cInterSurfSegDroite
+                (
+                    (aZ1-aZ0)/aDZ,
+                    (  aZ0 >  aZ1 ) ? eSurfVI_Rent : eSurfVI_Sort
+                )
+            );
+            return aRes;
+        }
+    private :
+
+         cChCoCart mCCCE2L;
+         cChCoCart mCCCL2E;
+
+};
+
+
+cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::FromCCC(const cChCoCart & aCCC)
+{
+    cInterfSurfaceAnalytique * aRes = new cSurfAnalReperCart(aCCC);
+    return aRes;
+}
 
      /*****************************************/
      /*                                       */

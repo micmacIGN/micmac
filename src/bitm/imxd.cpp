@@ -86,14 +86,17 @@ void DataGenIm::verif_in_range_type
      {
          INT index = index_values_out_of_range(vals,pts->nb(),v_min,v_max);
 
-         El_User_Dyn.ElAssert
-         (
+         if (index != INDEX_NOT_FOUND)
+         {
+           El_User_Dyn.ElAssert
+           (
              index == INDEX_NOT_FOUND,
              EEM0  << "values out of range in bitmaps writing \n"
                    << "|   value = "   << vals[index]     << "\n"
                    << "|   pts =  "    << ElEM(pts,index)     << "\n"
                    << "|   interval = [" << v_min << " ---  " << v_max  << "["
-         );
+           );
+         }
      }
 }
 

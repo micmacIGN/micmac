@@ -4,12 +4,15 @@
 #include "GpGpu/GpGpu_Object.h"
 #include "GpGpu/GpGpu_Context.h"
 #include "GpGpu/GpGpu_Tools.h"
+#include <xmmintrin.h>
 
 /** @addtogroup GpGpuDoc */
 /*@{*/
 
 
+
 #define TPL_T template<class T>
+
 
 /// \class CData
 /// \brief Classe Abstraite de donnees
@@ -102,7 +105,7 @@ private:
     bool            isNULL(){return (_data == NULL);}
 
     /// \param      sizeofmalloc : Taille de l allocation
-    uint            SetSizeofMalloc(uint sizeofmalloc){ return _sizeofMalloc = sizeofmalloc; }
+	uint            SetSizeofMalloc(uint sizeofmalloc){ return _sizeofMalloc = sizeofmalloc; }
 
 };
 
@@ -129,6 +132,8 @@ TPL_T bool CData<T>::ErrorOutput( cudaError_t err,const char* fonctionName )
     return true;
 }
 
+
+
 TPL_T CData<T>::CData():
     _memoryOc(0),
     _data(NULL),
@@ -137,7 +142,11 @@ TPL_T CData<T>::CData():
 #endif
     _sizeofMalloc(0)
 {
-    CGObject::ClassTemplate(CGObject::StringClass<T>(pData()));
+#ifdef      NOCUDA_X11	
+	CGObject::ClassTemplate(AutoStringClass(_data));
+#else
+	CGObject::ClassTemplate(CGObject::StringClass<T>(pData()));
+#endif
 }
 
 TPL_T T CData<T>::GetRandomValue(T min, T max)
@@ -170,15 +179,239 @@ TPL_T bool CData<T>::Dealloc()
     return op;
 }
 
+template<bool var>
+uint  ttGetDimension(uint* dimension,ushort idDim)
+{
+    return dimension[idDim];
+}
+
+template<> inline
+uint  ttGetDimension<false>(uint* dimension,ushort idDim)
+{
+    return 1;
+}
+
+template<uint dim,ushort idDim>
+uint  tgetDimension(uint* dimension)
+{
+    return ttGetDimension<(idDim<dim)> (dimension,idDim);
+}
+
+///////////////////////////
+///
 
 
-template <class T, class structuringClass>
-class CStructuredData : public structuringClass
+template<bool var>
+void  ttSetDimension(uint* dimension,ushort idDim, uint val)
+{
+    dimension[idDim] = val;
+}
+
+template<> inline
+void  ttSetDimension<false>(uint* dimension,ushort idDim, uint val)
 {
 
+    DUMP("WARNING Set dimension --> ")
+            DUMP(idDim)
+
+}
+
+template<uint dim,ushort idDim>
+void  tSetDimension(uint* dimension, uint val)
+{
+    ttSetDimension<(idDim<dim)> (dimension,idDim, val);
+}
+
+#include <stdio.h>
+#include <stdarg.h>
+
+
+int inline _foo(size_t n, int xs[])
+{
+    int i;
+    for(i=0 ; i < (int)n ; i++ ) {
+        int x = xs[i];
+        printf("%d\n", x);
+    }
+    return (int)n;
+}
+
+#define foo(arg1, ...) ({              \
+   int _x[] = { arg1, __VA_ARGS__ };   \
+   _foo(sizeof(_x)/sizeof(_x[0]), _x); \
+})
+
+
+template<ushort dim = 3>
+class CStructure
+{
+public:
+
+    CStructure()
+    {
+        DUMP("Constructeur\n")
+		_dimension = new uint[dim];
+
+        for (int i = 0; i < dim; ++i)
+            setDim(i,1);
+    }
+
+#ifdef NOCUDA_X11
+    template<typename ... Types>
+    void setDimension ( Types ... rest)
+    {
+        _setDimension(rest...);
+    }
+#else
+
+    template<class T>
+    void setDimension(T x = 1 ,T y = 1)
+    {
+        _setDimension((uint)x,(uint)y);
+    }
+
+
+    template<class T>
+    void setDimension(T x,T y,T z)
+    {
+        _setDimension((uint)x,(uint)y,(uint)z);
+    }
+
+#endif
+
+    void setDimension(uint2 d)
+    {
+        setDimension(d.x,d.y);
+    }
+
+    void setDimension(uint3 d)
+    {
+        setDimension(d.x,d.y,d.z);
+    }
+
+    uint2 getDimension()
+    {        
+        return make_uint2(getDimX(),getDimY());
+    }
+
+    uint getNbLayer()
+    {
+        return getDimZ();
+    }
+
+    uint getSize()
+    {
+        int size = _dimension[0];
+
+        for (int id = 1; id < dim; ++id)
+        {
+            size *= _dimension[id];
+        }
+
+        return size;
+    }
+
 private:
-    CData<T>        _data;
+
+#ifdef NOCUDA_X11
+
+    template<typename ... Types>
+    void _setDimension ( Types ... rest)
+    {
+        return ___setDimension((uint)0,rest...);
+    }
+
+    void ___setDimension(ushort id){}
+
+    template<typename T,typename ... Types>
+    void ___setDimension(ushort id, T &first, Types& ... rest)
+    {
+        if(id<dim)
+            setDim(id,first);
+        else
+            return;
+
+        return ___setDimension(++id,rest...);
+    }
+
+#else
+    void _setDimension(uint dx,uint dy = 1,uint dz = 1)
+    {
+        setDimX(dx);
+        setDimY(dy);
+        setDimZ(dz);
+    }
+#endif
+
+    uint  getDimX(){ return getDim<0>();}
+    uint  getDimY(){ return getDim<1>();}
+    uint  getDimZ(){ return getDim<2>();}
+
+    void  setDimX(uint val){ return setDim<0>(val);}
+    void  setDimY(uint val){ return setDim<1>(val);}
+    void  setDimZ(uint val){ return setDim<2>(val);}
+
+    template<ushort id>
+    uint  getDim(){ return tgetDimension<dim,id> (_dimension);}
+
+    template<ushort id>
+    void  setDim(uint val){ return tSetDimension<dim,id> (_dimension,val);}
+
+
+    void  setDim(ushort id, uint val){ _dimension[id]=val;}
+
+
+
+    uint *_dimension;
 };
+
+template<> inline
+uint CStructure<0>::getSize()
+{
+    return 0;
+}
+
+template <class T, int dim = 3>
+///
+/// \brief The CStructuredData class
+/// meta programation element
+class CStructuredData : public CData<T>, public CStructure<dim>
+{
+
+};
+
+template <class T, int dim = 3, class structuringClass = struct2DLayered>
+class deviceStructuredData : public CStructuredData<T,dim>
+{
+
+public:
+
+    bool	Memset(int val)
+    {
+        DUMP("Memset device")
+                return false;
+    }
+
+    void	OutputInfo(){}
+
+protected:
+
+    bool    abDealloc()
+    {
+        DUMP("abDealloc device")
+                return false;
+    }
+
+    bool    abMalloc()
+    {
+        DUMP("abMalloc device")
+
+                return false;
+    }
+
+    uint    Sizeof(){return 0;}
+};
+
 
 
 
@@ -423,22 +656,22 @@ class CuHostData3D : public CData3D<T>
 {
 public:
 
-    CuHostData3D(bool pgLockMem = NOPAGLOCKMEM){init(pgLockMem);}
+	CuHostData3D(bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){init(pgLockMem,alignMemory);}
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dimX : Dimension 1D a initialiser
     /// \param dimY : Dimension 1D a initialiser
     /// \param l : Taille de la 3eme dimension
-    CuHostData3D(uint dimX, uint dimY = 1, uint l = 1, bool pgLockMem = NOPAGLOCKMEM){init(pgLockMem,make_uint2(dimX,dimY),l);}
+	CuHostData3D(uint dimX, uint dimY = 1, uint l = 1, bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){init(pgLockMem,alignMemory,make_uint2(dimX,dimY),l);}
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 2D a initialiser
     /// \param l : Taille de la 3eme dimension
-    CuHostData3D(uint2 dim, uint l = 1, bool pgLockMem = NOPAGLOCKMEM){ init(pgLockMem,dim,l);}
+	CuHostData3D(uint2 dim, uint l = 1, bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){ init(pgLockMem,alignMemory,dim,l);}
 
     /// \brief constructeur avec initialisation de la dimension de la structure
     /// \param dim : Dimension 3D a initialiser
-    CuHostData3D(uint3 dim,bool pgLockMem = NOPAGLOCKMEM ){init(pgLockMem,make_uint2(dim.x,dim.y),dim.z);}
+	CuHostData3D(uint3 dim,bool pgLockMem = NOPAGLOCKMEM ,bool alignMemory = NOALIGNM128 ){init(pgLockMem,alignMemory,make_uint2(dim.x,dim.y),dim.z);}
 
     bool Memset(int val);
 
@@ -452,7 +685,7 @@ public:
     void FillRandom(T min, T max);
 
     /// \brief Affiche un Z du tableau dans la console
-    void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = (T)0.0f, float sample = 1.0f, float factor = 1.0f);
+    void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = GpGpuTools::SetValue<T>(), float sample = 1.0f, float factor = 1.0f);
 
     void SetPageLockedMemory(bool page){ _pgLockMem = page; }
 
@@ -460,24 +693,56 @@ public:
 
     bool saveImage(string nameImage,ushort layer = 0);
 
+	bool pgLockMem() const;
+	void setPgLockMem(bool pgLockMem);
+
+	bool alignMemory() const;
+	void setAlignMemory(bool alignMemory);
+
 protected:
 
-    virtual bool    abDealloc() ;
+	virtual bool    abDealloc() ;
 
-    virtual bool    abMalloc();
+	virtual bool    abMalloc();
 
 private:
 
     bool    _pgLockMem;
+	bool	_alignMemory;
 
-    void    init(bool pgLockMem = NOPAGLOCKMEM, uint2 dim = make_uint2(0), uint l = 0);
+	void    init(bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128, uint2 dim = make_uint2(0), uint l = 0);
 
 };
 
-TPL_T void CuHostData3D<T>::init(bool pgLockMem, uint2 dim, uint l)
+TPL_T  bool CuHostData3D<T>::pgLockMem() const
 {
-    CGObject::SetType("CuHostData3D");
-    _pgLockMem = pgLockMem;
+	return _pgLockMem;
+}
+
+TPL_T void CuHostData3D<T>::setPgLockMem(bool pgLockMem)
+{
+	_pgLockMem = pgLockMem;
+}
+TPL_T bool CuHostData3D<T>::alignMemory() const
+{
+	return _alignMemory;
+}
+
+TPL_T void CuHostData3D<T>::setAlignMemory(bool alignMemory)
+{
+	_alignMemory = alignMemory;
+}
+
+TPL_T void CuHostData3D<T>::init(bool pgLockMem,bool alignMemory, uint2 dim, uint l)
+{
+
+#ifdef NOCUDA_X11
+	CGObject::SetType(CGObject::AutoStringClass(this));
+#else
+	CGObject::SetType("CuHostData3D");
+#endif
+	_pgLockMem		= pgLockMem;
+	_alignMemory	= alignMemory;
     CData3D<T>::bInit(dim,l); // ATTENTION PROBLEME : Pure virtual method called
 }
 
@@ -542,6 +807,12 @@ TPL_T bool CuHostData3D<T>::abMalloc()
 {
     if(_pgLockMem)
         return CData<T>::ErrorOutput(cudaMallocHost(CData3D<T>::ppData(),CData3D<T>::Sizeof()),__FUNCTION__);
+	else if(_alignMemory)
+	{
+		T* data;
+		if(!posix_memalign((void **) &data, sizeof(__m128i), CData3D<T>::Sizeof()))
+			CData3D<T>::SetPData(data);
+	}
     else
         CData3D<T>::SetPData((T*)malloc(CData3D<T>::Sizeof()));
 
@@ -738,8 +1009,13 @@ private:
 };
 
 TPL_T void CuDeviceData3D<T>::init(string name, uint2 dim, uint l)
-{
-    CGObject::SetType("CuDeviceData3D");
+{	
+#ifdef NOCUDA_X11
+	CGObject::SetType(CGObject::AutoStringClass(this));
+#else
+	CGObject::SetType("CuDeviceData3D");
+#endif
+
     CGObject::SetName(name);
     if(size(dim) && l)
         CData3D<T>::Malloc(dim,l);
@@ -860,7 +1136,12 @@ public:
 
     ImageGpGpu<T,cudaContext> ()
     {
-        DecoratorImage<cudaContext>::SetType("ImageCuda");
+		#ifdef NOCUDA_X11
+			DecoratorImage<cudaContext>::SetType(CGObject::AutoStringClass(this));
+		#else
+			DecoratorImage<cudaContext>::SetType("ImageCuda");
+		#endif
+
         DecoratorImage<cudaContext>::ClassTemplate(DecoratorImage<cudaContext>::ClassTemplate() + " " + DecoratorImage<cudaContext>::StringClass<T>(_ClassData));
     }
 
@@ -907,7 +1188,13 @@ class ImageGpGpu<T,openClContext> : public CData2D<cl_mem>, public DecoratorImag
     ImageGpGpu():
         DecoratorImage<openClContext>(this)
     {
-        CData2D::SetType("Image OpenCL");
+
+#ifdef NOCUDA_X11
+	CData2D::SetType(CGObject::AutoStringClass(this));
+#else
+	CData2D::SetType("Image OpenCL");
+#endif
+
         CData2D::ClassTemplate(CData2D::ClassTemplate() + " " + CData2D::StringClass<T>(_ClassData));
     }
 
@@ -1050,6 +1337,61 @@ private:
         return make_cudaExtent( CData3D::GetDimension().x, CData3D::GetDimension().y, CData3D::GetNbLayer());
     }
 };
+
+template<class T>
+struct CuUnifiedData3D
+{
+    CuDeviceData3D<T>   deviceData;
+    CuHostData3D<T>     hostData;
+
+    void Malloc( uint2 dim, uint l )
+    {
+        deviceData.Malloc(dim,l);
+        hostData.Malloc(dim,l);
+    }
+
+    void syncDevice()
+    {
+        deviceData.CopyHostToDevice(hostData.pData());
+    }
+
+    void syncHost()
+    {
+        deviceData.CopyDevicetoHost(hostData);
+    }
+
+    void ReallocIfDim(uint2 dim, uint l)
+    {
+        deviceData. ReallocIfDim(dim,l);
+        hostData.ReallocIfDim(dim,l);
+    }
+
+	void ReallocIfDim(uint size)
+	{
+		uint2 sizeDim = make_uint2(size,1);
+
+		deviceData. ReallocIfDim(sizeDim,1);
+		hostData.ReallocIfDim(sizeDim,1);
+	}
+
+    void Dealloc()
+    {
+        deviceData. Dealloc();
+        hostData.Dealloc();
+    }
+
+    T* pData()
+    {
+       return deviceData.pData();
+    }
+
+	void SetName(string name,ushort id = 0)
+	{
+		deviceData.SetName("uDevice_" + name + "_",id);
+		hostData.SetName("uHost_" + name + "_",id);
+	}
+};
+
 
 /*@}*/
 

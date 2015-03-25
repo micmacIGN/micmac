@@ -353,6 +353,25 @@ template <class Type>
 template <class Type>
 Type  dist8(const Pt2d<Type> & p){return ElMax(ElAbs(p.x),ElAbs(p.y));}
 
+template <class Type>
+Type  dist48(const Pt2d<Type> & p)
+{
+   Type Ax = ElAbs(p.x);
+   Type Ay = ElAbs(p.y);
+   return ElMax(Ax,Ay) + Ax + Ay;
+}
+
+template <class Type>
+Type  dist48_euclid(const Pt2d<Type> & p)
+{
+   Type Ax = ElAbs(p.x);
+   Type Ay = ElAbs(p.y);
+   return (3*ElMax(Ax,Ay) +  2*(Ax + Ay)) / 5.0;
+}
+
+
+
+
 
 /*
 template <> Pt2d<double>::Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
@@ -502,6 +521,7 @@ class ElSimilitude : public cElMap2D
           Pt2dr  _sc;
 };
 
+class cElHomographie;
 class ElAffin2D : public cElMap2D
 {
      public :
@@ -522,7 +542,7 @@ class ElAffin2D : public cElMap2D
         static ElAffin2D trans(Pt2dr aTr);  // Ajoute Tr
 
   // Soit une image I1, que l'on Crop de Tr, puis que l'on sous echantillone
-  // a d'une resolutiobn aResol, pour avoir une image I2 renvoie la transfo qui donne les coordonnees
+  // a d'une resolution aResol, pour avoir une image I2 renvoie la transfo qui donne les coordonnees
   // de l'homologue de I1 dans I2
   //
   //  Si aSzInOut est donne, on rajoute une eventuelle translation pour que l'image
@@ -537,7 +557,7 @@ class ElAffin2D : public cElMap2D
 
         ElAffin2D (const ElSimilitude &);
 
-        ElAffin2D();  // idenitite, on le laisse par compatibilite
+        ElAffin2D();  // identite, on le laisse par compatibilite
 
         Pt2dr IVect (const Pt2dr & aP) const
         {
@@ -548,13 +568,22 @@ class ElAffin2D : public cElMap2D
               return  mI00 + IVect(aP);
         }
 
-         // ideme sim Aff1 * Aff2 renvoie l'affinite e composee (celle z-> Aff1(Aff2(z)))
+         // idem sim Aff1 * Aff2 renvoie l'affinite e composee (celle z-> Aff1(Aff2(z)))
        ElAffin2D operator * (const ElAffin2D & sim2) const;
        ElAffin2D inv() const;
 
        Pt2dr I00() const {return mI00;}
        Pt2dr I10() const {return mI10;}
        Pt2dr I01() const {return mI01;}
+       static ElAffin2D FromTri2Tri
+               (
+                    const Pt2dr & a0, const Pt2dr & a1, const Pt2dr & a2,
+                    const Pt2dr & b0, const Pt2dr & b1, const Pt2dr & b2
+               );
+
+       cElHomographie ToHomographie() const;
+
+
      private :
 
             Pt2dr mI00;
@@ -568,7 +597,7 @@ double DMaxCoins(ElAffin2D AfC2M,Pt2dr aSzIm,Pt2dr aC);
 
 // Fonctions specifiques a un des types de points
 
-    // When a Pt2di p is used as a ``seed'' to generate a digital line the average eculidean
+    // When a Pt2di p is used as a ``seed'' to generate a digital line the average euclidean
     // distance d between two consecutives points is variable according to p
     // For example  : d = sqrt(2) for p = (1,1) or p = (234,234) and d = 1 for p = (-99,0)
 REAL  average_euclid_line_seed (Pt2di);
@@ -824,7 +853,7 @@ template <class Type> Pt3d<Type> PZ0(Pt2d<Type> aP)
 {return Pt3d<Type>(aP.x,aP.y,(Type)0);}
 
 template <class Type> Pt3d<Type> PointNorm1(const Pt3d<Type> & aP)
-{return aP / sqrt(aP.x*aP.x+aP.y*aP.y + aP.z*aP.z);};
+{return aP / sqrt(aP.x*aP.x+aP.y*aP.y + aP.z*aP.z);}
 
 inline Pt3di round_down(Pt3dr  p)
 {
@@ -1408,7 +1437,7 @@ std::vector<Pt3dr> GetDistribRepresentative(Pt3dr & aCdg,const std::vector<Pt2dr
 namespace std
 {
 bool operator < (const Pt3di & aP1,const Pt3di & aP2);
-};
+}
 
 
 class cMTDImCalc;
@@ -1417,6 +1446,18 @@ class cMIC_IndicAutoCorrel;
 cMTDImCalc GetMTDImCalc(const std::string & aNameIm);
 const cMIC_IndicAutoCorrel * GetIndicAutoCorrel(const cMTDImCalc & aMTD,int aSzW);
 std::string NameMTDImCalc(const std::string & aFullName);
+
+
+inline double CoutAttenueTetaMax(const double & aVal,const double & aVMax)
+{
+      return  (aVal*aVMax) / (aVal + aVMax);
+}
+
+inline double GenCoutAttenueTetaMax(const double & aVal,const double & aVMax)
+{
+      if (aVMax<=0) return aVal;
+      return CoutAttenueTetaMax(aVal,aVMax);
+}
 
 
 #endif //  _ELISE_INCLUDE_GENERAL_PTXD_H_

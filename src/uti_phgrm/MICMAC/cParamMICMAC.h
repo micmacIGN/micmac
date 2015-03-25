@@ -622,9 +622,17 @@ class cMemPartMICMAC
 
         cTplValGesInit< double > & BSurHGlob();
         const cTplValGesInit< double > & BSurHGlob()const ;
+
+        cTplValGesInit< int > & DeZoomLast();
+        const cTplValGesInit< int > & DeZoomLast()const ;
+
+        cTplValGesInit< int > & NumLastEtape();
+        const cTplValGesInit< int > & NumLastEtape()const ;
     private:
         cTplValGesInit< int > mNbMaxImageOn1Point;
         cTplValGesInit< double > mBSurHGlob;
+        cTplValGesInit< int > mDeZoomLast;
+        cTplValGesInit< int > mNumLastEtape;
 };
 cElXMLTree * ToXMLTree(const cMemPartMICMAC &);
 
@@ -2111,6 +2119,9 @@ class cCorrelMultiScale
         friend void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & UseGpGpu();
+        const cTplValGesInit< bool > & UseGpGpu()const ;
+
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;
 
@@ -2123,6 +2134,7 @@ class cCorrelMultiScale
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
     private:
+        cTplValGesInit< bool > mUseGpGpu;
         cTplValGesInit< bool > mModeDense;
         cTplValGesInit< bool > mUseWAdapt;
         cTplValGesInit< bool > mModeMax;
@@ -2733,6 +2745,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        cTplValGesInit< bool > & UseGpGpu();
+        const cTplValGesInit< bool > & UseGpGpu()const ;
 
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;
@@ -4204,6 +4219,9 @@ class cEtapeMEC
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        cTplValGesInit< bool > & UseGpGpu();
+        const cTplValGesInit< bool > & UseGpGpu()const ;
 
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;

@@ -3,11 +3,9 @@
 
 #include "general/CMake_defines.h"
 
-
 #if(ELISE_QT_VERSION >= 4)
 
 #include "Elise_QT.h"
-
 #include <cmath>
 
 class cSelectionButton: public QPushButton

@@ -45,7 +45,7 @@ class cIntervLiquor;
 
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 
-// Im*_Ok => OK 
+// Im*_Ok => OK
 // Im*_Nl => Image Nulle (eliminee)
 
 
@@ -95,7 +95,7 @@ class cAppliLiquor
     public :
         cAppliLiquor(int argc,char ** argv);
         const std::string & Dir() {return mEASF.mDir;}
-        
+
 
     private :
         cIntervLiquor * SplitRecInterv(int aDeb,int aEnd,int aProf);
@@ -149,12 +149,12 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
     ElInitArgMain
      (
            argc,argv,
-           LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile) 
-                      << EAMC(mCalib,"Caliibration Dir"),
+           LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile)
+                      << EAMC(mCalib,"Calibration Dir"),
            LArgMain() << EAM(mSzLim,"SzInit",true,"Sz of initial interval (Def=50)")
                       << EAM(mOverlapProp,"OverLap",true,"Prop overlap (Def=0.1) ")
     );
-   
+
     mEASF.Init(mFullName);
     mVNames = mEASF.SetIm();
     mNbIm = mVNames->size();
@@ -174,7 +174,7 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
 void  cAppliLiquor::DoComRec(int aLevel)
 {
    std::list<std::string> aLComMerge;
-   for 
+   for
    (
         std::list<cIntervLiquor*>::iterator II=mInterv[aLevel].begin();
         II!=mInterv[aLevel].end();
@@ -192,7 +192,7 @@ void  cAppliLiquor::DoComRec(int aLevel)
    cEl_GPAO::DoComInParal(aLComMerge);
 
    std::list<std::string> aLComComp;
-   for 
+   for
    (
         std::list<cIntervLiquor*>::iterator II=mInterv[aLevel].begin();
         II!=mInterv[aLevel].end();
@@ -201,7 +201,7 @@ void  cAppliLiquor::DoComRec(int aLevel)
    {
         cIntervLiquor & anIL = **II;
         std::string aComComp =     MM3dBinFile("Campari")
-                                +  mFullName  + " " 
+                                +  mFullName  + " "
                                 +  anIL.NameMerge() + " "
                                 +  anIL.NameOri()  + " "
                                 +  StrImMinMax(anIL)
@@ -221,7 +221,7 @@ void  cAppliLiquor::DoComRec(int aLevel)
 void cAppliLiquor::DoComTerm()
 {
    std::list<std::string> aLComInit;
-   for 
+   for
    (
         std::list<cIntervLiquor*>::iterator II=mInterv.back().begin();
         II!=mInterv.back().end();
@@ -243,9 +243,9 @@ cIntervLiquor * cAppliLiquor::SplitRecInterv(int aDeb,int aEnd,int aProf)
    if (aLarg < mSzLim)
    {
        // std::cout << "INTERV " << aDeb << " " << aEnd << "\n";
-       
+
    }
-   else 
+   else
    {
          int anOverlap = ElMax(mOverlapMin,ElMin(mOverlapMax,round_ni(aLarg*mOverlapProp)));
          int aNewLarg = round_up((aLarg + anOverlap)/2.0);
@@ -274,7 +274,7 @@ std::string  cAppliLiquor::StrImMinMax(const  cIntervLiquor& anIL) const
 
 std::string cAppliLiquor::ComTerm(const  cIntervLiquor& anIL) const
 {
-   
+
    // std::string aN1  = (*mVNames)[anIL.Begin()];
    // std::string aN2  = (*mVNames)[anIL.End()-1];
    std::string aNMil  = (*mVNames)[(anIL.End()+anIL.Begin())/2];

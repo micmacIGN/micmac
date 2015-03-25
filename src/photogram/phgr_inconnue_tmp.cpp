@@ -597,8 +597,12 @@ void ReinitStatCondFaisceau()
    aVBSurH.clear();
 }
 
+bool ShowStatMatCond = true;
 void ShowStatCondFaisceau(bool aShowVect)
 {
+     if (!ShowStatMatCond) return;
+
+
      std::cout << "Cond = " << aMaxCond  
                << "  Moy = " << (aSomCond/aNbCond) 
                << "  SupS = " << (double(aNb100)/double(aNbCond))
@@ -878,6 +882,14 @@ void cSubstitueBlocIncTmp::Close()
    cCmpSsBloc aCmp;
    std::sort(mSBlNonTmp.begin(),mSBlNonTmp.end(),aCmp);
 
+/*
+   std::cout << "CloseCSB, SIZE " << mVSBlTmp.size() << " " << mSBlNonTmp.size() << "\n";
+   for (int aK=0 ; aK< int(mSBlNonTmp.size()) ; aK++)
+   {
+      const cSsBloc &aBl = mSBlNonTmp[aK];
+      std::cout << "SSSBL " << aBl.I0AbsAlloc() << " " << aBl.I1AbsAlloc() << "\n";
+   }
+*/
 }
 
 
@@ -1157,7 +1169,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
        )
 {
 
-if (0) // (MPD_MM())
+if (0) 
 {
     std::cout << "====== cManipPt3TerInc::CalcPTerInterFaisceau ====\n";
     for (int aK=0 ; aK< int(aVPds.size()) ; aK++)
@@ -1400,6 +1412,7 @@ void ShowDebugFaisceau(double aCond,double aBH,int aCpt)
     }
 }
 
+bool UPL_DCC() {return false;}
 
 const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                            (
@@ -1439,6 +1452,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
    mResidus.mBSurH  = cResiduP3Inc::TheDefBSurH;
 
 
+   if (UPL_DCC()) std::cout << "================== mTerIsInit " <<mTerIsInit << "\n";
 
    if (!mTerIsInit)
    {
@@ -1479,6 +1493,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               (WithApp ? &aVAppui : 0),
                               &mResidus.mMesPb
                          );
+   if (UPL_DCC()) std::cout << "================== mResidus.mPTer " <<mResidus.mPTer  << " " << mResidus.mBSurH << "\n";
           mResidus.mBSurH  = mPPP.mBsH;
           if (BugNanFE)
           {
@@ -1506,6 +1521,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
  
     Pt3dr aPTer =   mPPP.mProjIsInit ? Pt3dr(0,0,0) :  mResidus.mPTer;
     // mResidus.mPTer = aPTer;
+   if (UPL_DCC()) std::cout << "================== aPTer " << aPTer << "\n";
     mP3Inc->InitVal(aPTer);
 
 
@@ -1522,6 +1538,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
             {
 	       aNbNN++;
             }
+if (UPL_DCC())  std::cout  << "==================== Pds " << aVPdsIm[aK] << "\n";
         }
 	// if ((aNbNN<2)  && (!mEqSurf) && (! aPtApuis))
         // 	AddEq=0;
@@ -1545,7 +1562,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
        {
            Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK));
            mResidus.mEcIm.push_back(anEr);
-// std::cout << aNuple.PK(aK) << "\n";
+if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << " " << mMulGlobPds << "\n";
 
            mResidus.mSomPondEr += aVPdsIm[aK] * mMulGlobPds * square_euclid(anEr);
         }
@@ -1595,6 +1612,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
 /*
 		const std::vector<REAL> &  aV =   mSet.VAddEqFonctToSys(aFR[aK],aPds,false) ;
 */
+if (UPL_DCC())  std::cout  << "y====y===y===yyyyyy " << aPds << " " << aK <<  " " << aFR[aK]  << " " << aV[0] << "\n";
                 mResidus.mSomPondEr +=  aPds * ElSquare(aV[0]);
 //if (aPtApuis) std::cout << "UPLG-DDDDDDDDDDDD " << mResidus.mSomPondEr << "\n";
 	    }
@@ -1602,6 +1620,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
     }
 
 
+    if (UPL_DCC()) std::cout << "HHHHHHHHhhhhhhhhhh " << AddEq << "\n";
     if (AddEq)
     {
        mSubst.DoSubst();

@@ -104,6 +104,12 @@ Pt3dr cProjTore::FromOrLoc(const Pt3dr & aP) const { return Cyl2Tore(aP); }
 Pt3dr cProjTore::E2UVL(const Pt3dr & aP) const { return Cyl2Tore(mCyl.E2UVL(aP)); }
 
 
+double cProjTore::SeuilDistPbTopo() const
+{
+   return PI * ElMin(mCyl.Ray(),mDiamCyl.z-mCyl.Ray());
+}
+
+
 
 Pt3dr cProjTore::Tore2Cyl(const Pt3dr  & aP) const  // :Cyl2Loc : ToOrLoc
 {

@@ -105,20 +105,35 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
              heap_down(nb()-1);
         }
 
-        bool pop(Type & v)
+        bool popPtr(Type * v) 
         {
              if (nb() <= 0) return false;
-             v = mEls[0];  /*-------------RI-----------*/   SetNoIndex(v); //  TParam::SetIndex(v,HEAP_NO_INDEX);
+             if (v) {*v = mEls[0];  /*-------------RI-----------*/   SetNoIndex(*v);} //  TParam::SetIndex(v,HEAP_NO_INDEX);
              mEls[0] = mEls[nb()-1];  /*--RI-----------*/    ResetIndex(0);
 	     mEls.pop_back();
              heap_up(0);
              return true;
+        }
+
+
+        bool pop(Type & v) {return popPtr(&v);}
+        bool pop() {return popPtr(0);}
+
+
+        Type * Lowest() 
+        {
+           if (empty()) return 0;
+           return & mEls[0];
         }
         void clear() { mEls.clear();}
         INT nb() {return (int) mEls.size();}
         bool empty() {return mEls.empty();}
 
         const std::vector<Type> & Els() {return mEls;}
+
+        Compare & Inferior() {return _inferior;}
+        const Compare & Inferior() const {return _inferior;}
+
    private :
 
 	std::vector<Type> mEls;
@@ -186,6 +201,52 @@ template <class Type,class Compare, class TParam=DefaultParamHeap<Type> > class 
             return SthDone;
         }
 };
+
+
+
+template <class Type,class Compare> class cTplKPluGrand
+{
+
+    public :
+       cTplKPluGrand(Compare inferior,int aK) :
+          mHeap (inferior,aK),
+          mK    (aK)
+       {
+       }
+
+       const std::vector<Type> & Els() {return mHeap.Els();}
+
+
+      void push(const Type& aV)
+      {
+          if (mHeap.nb() < mK)
+          {
+               mHeap.push(aV);
+          }
+          else if (mHeap.Inferior()(*mHeap.Lowest(),aV))
+          {
+              mHeap.push(aV);
+              mHeap.pop();
+          }
+      }
+      void clear() { mHeap.clear();}
+      void SetK(int aK)
+      {
+          while (mHeap.nb() > aK) mHeap.pop();
+          mK = aK;
+      }
+      void ClearAndSetK(int aK)
+      {
+           mHeap.clear();
+           mK = aK;
+      }
+
+    private :
+          ElHeap<Type,Compare> mHeap ;
+          int                  mK;
+
+};
+
 
 
 

@@ -82,30 +82,48 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
     int NCII,NLII;
     NCII = imageIntegrale.numCols();
     NLII = imageIntegrale.numLines();
-    
+
     int minL = std::max(m+1,_lobe+1);
     int maxL = NLII-std::max(_lobe,-m-1+_taille_filtre);
     int minC = std::max(m+1,_lobe);
     int maxC = NCII-std::max(2*_lobe-1,_taille_filtre);
-	
+
     minC = minC + (_pas - minC%_pas);
     maxC = maxC - maxC%_pas;
     minL = minL + (_pas - minL%_pas);
     maxL = maxL - maxL%_pas;
-    
+
     if (verbose) std::cout << "minC : "<<minC<<" maxC : "<<maxC<<std::endl;
     if (verbose) std::cout << "minL : "<<minL<<" maxL : "<<maxL<<std::endl;
-	
-    for(int l=/*minL+1*/0;l</*maxL-1*/_nl;++l)
+
+    if ((minC>=maxC)||(minL>=maxL))
+    {
+        //std::cout << "Zone de taille nulle : "<<minC<<" "<<maxC<<" "<<minL<<" "<<maxL<<std::endl;
+        for(int l=0;l<_nl;++l)
+        {
+            //int ll = l*_pas;
+            for(int c=0;c<_nc;++c)
+            {
+                (*ptrReponse) = 0.;
+                (*ptrSigLap) = 1;
+
+                ++ptrReponse;
+                ++ptrSigLap;
+            }
+        }
+        return;
+    }
+
+    for(int l=0;l<_nl;++l)
     {
         int ll = l*_pas;
         if ((ll<minL)||(ll>=maxL))
         {
             for(int c=0;c<_nc;++c)
-            {                
+            {
                 (*ptrReponse) = 0.;
                 (*ptrSigLap) = 1;
-                
+
                 ++ptrReponse;
                 ++ptrSigLap;
             }
@@ -116,12 +134,12 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
             double const * ptrLineDxx1b = imageIntegrale.getLinePtr(ll+_lobe-1);
             double const * ptrLineDxx2a = ptrLineDxx1a;
             double const * ptrLineDxx2b = ptrLineDxx1b;
-            
+
             double const * ptrLineDyy1a = imageIntegrale.getLinePtr(ll-m-1);
             double const * ptrLineDyy1b = imageIntegrale.getLinePtr(ll-m-1+_taille_filtre);
             double const * ptrLineDyy2a = imageIntegrale.getLinePtr(ll-_lobe/2-1);
             double const * ptrLineDyy2b = imageIntegrale.getLinePtr(ll+_lobe-_lobe/2-1);
-            
+
             double const * ptrLineDxy1a = imageIntegrale.getLinePtr(ll-_lobe-1);
             double const * ptrLineDxy1b = imageIntegrale.getLinePtr(ll-1);
             double const * ptrLineDxy2a = imageIntegrale.getLinePtr(ll);
@@ -130,35 +148,35 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
             double const * ptrLineDxy3b = ptrLineDxy1b;
             double const * ptrLineDxy4a = ptrLineDxy2a;
             double const * ptrLineDxy4b = ptrLineDxy2b;
-            
+
             double const * ptrDxx1a1 = ptrLineDxx1a + (-m-1) + minC;
             double const * ptrDxx1a2 = ptrDxx1a1 + _taille_filtre;
             double const * ptrDxx1b1 = ptrLineDxx1b + (-m-1) + minC;
             double const * ptrDxx1b2 = ptrDxx1b1 + _taille_filtre;
-            
+
             double const * ptrDxx2a1 = ptrLineDxx2a + (-_lobe/2-1) + minC;
             double const * ptrDxx2a2 = ptrDxx2a1 + _lobe;
             double const * ptrDxx2b1 = ptrLineDxx2b + (-_lobe/2-1) + minC;
             double const * ptrDxx2b2 = ptrDxx2b1 + _lobe;
-            
+
             double const * ptrDyy1a1 = ptrLineDyy1a + (-_lobe) + minC;
             double const * ptrDyy1a2 = ptrDyy1a1 + 2*_lobe-1;
             double const * ptrDyy1b1 = ptrLineDyy1b + (-_lobe) + minC;
             double const * ptrDyy1b2 = ptrDyy1b1 + 2*_lobe-1;
-            
+
             double const * ptrDyy2a1 = ptrLineDyy2a + (-_lobe) + minC;
             double const * ptrDyy2a2 = ptrDyy2a1 + 2*_lobe-1;
             double const * ptrDyy2b1 = ptrLineDyy2b + (-_lobe) + minC;
             double const * ptrDyy2b2 = ptrDyy2b1 + 2*_lobe-1;
-            
-            
+
+
             double const * ptrDxy1a1 = ptrLineDxy1a + minC;
             double const * ptrDxy1a2 = ptrDxy1a1 + _lobe;
             double const * ptrDxy1b1 = ptrLineDxy1b + minC;
             double const * ptrDxy1b2 = ptrDxy1b1 + _lobe;
-            double const * ptrDxy2a1 = ptrLineDxy2a - _lobe-1 + minC; 
+            double const * ptrDxy2a1 = ptrLineDxy2a - _lobe-1 + minC;
             double const * ptrDxy2a2 = ptrDxy2a1 + _lobe;
-            double const * ptrDxy2b1 = ptrLineDxy2b - _lobe-1 + minC; 
+            double const * ptrDxy2b1 = ptrLineDxy2b - _lobe-1 + minC;
             double const * ptrDxy2b2 = ptrDxy2b1 + _lobe;
             double const * ptrDxy3a1 = ptrLineDxy3a - _lobe-1 + minC;
             double const * ptrDxy3a2 = ptrDxy3a1 + _lobe;
@@ -168,91 +186,33 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
             double const * ptrDxy4a2 = ptrDxy4a1 + _lobe;
             double const * ptrDxy4b1 = ptrLineDxy4b + minC;
             double const * ptrDxy4b2 = ptrDxy4b1 + _lobe;
-            
+
             for(int c=0;c<minC/_pas;++c)
             {
                 (*ptrReponse) = 0.;
                 (*ptrSigLap) = 1;
-                
+
                 ++ptrReponse;
                 ++ptrSigLap;
             }
             for(int c=minC/_pas;c<maxC/_pas;++c)
             {
                 // Position dans l'image
-                
+
                 double Dxx =    ((*ptrDxx1a1) + (*ptrDxx1b2) - (*ptrDxx1a2) - (*ptrDxx1b1)) -
                 ((*ptrDxx2a1) + (*ptrDxx2b2) - (*ptrDxx2a2) - (*ptrDxx2b1))*3;
-                
+
                 double Dyy =    ((*ptrDyy1a1) + (*ptrDyy1b2) - (*ptrDyy1a2) - (*ptrDyy1b1)) -
                 ((*ptrDyy2a1) + (*ptrDyy2b2) - (*ptrDyy2a2) - (*ptrDyy2b1))*3;
-                
+
                 double Dxy =    ((*ptrDxy1a1) + (*ptrDxy1b2) - (*ptrDxy1a2) - (*ptrDxy1b1))+
                 ((*ptrDxy2a1) + (*ptrDxy2b2) - (*ptrDxy2a2) - (*ptrDxy2b1))-
                 ((*ptrDxy3a1) + (*ptrDxy3b2) - (*ptrDxy3a2) - (*ptrDxy3b1))-
                 ((*ptrDxy4a1) + (*ptrDxy4b2) - (*ptrDxy4a2) - (*ptrDxy4b1));
-                
-                // Verification
-                if (verbose)
-                {
-                    // Position dans l'image
-                    int ll = l*_pas;
-                    int cc = c*_pas;
-                    double DxxV =
-                    Surf::integraleBoite(imageIntegrale,   cc-m,       ll-_lobe+1, _taille_filtre,     2*_lobe-1)
-                    -Surf::integraleBoite(imageIntegrale,   cc-_lobe/2, ll-_lobe+1, _lobe,              2*_lobe-1)*3;
-                    double DyyV =
-                    Surf::integraleBoite(imageIntegrale,   cc-_lobe+1, ll-m,       2*_lobe-1,          _taille_filtre)
-                    -Surf::integraleBoite(imageIntegrale,   cc-_lobe+1, ll-_lobe/2, 2*_lobe-1,          _lobe)*3;
-                    double DxyV =
-                    Surf::integraleBoite(imageIntegrale,   cc+1,       ll-_lobe,   _lobe,              _lobe)
-                    +Surf::integraleBoite(imageIntegrale,   cc-_lobe,   ll+1,       _lobe,              _lobe)
-                    -Surf::integraleBoite(imageIntegrale,   cc-_lobe,   ll-_lobe,   _lobe,              _lobe)
-                    -Surf::integraleBoite(imageIntegrale,   cc+1,       ll+1,       _lobe,              _lobe);
-                    std::cout << "Verification Dxx "<<Dxx<<" "<<DxxV<<std::endl;
-                    /*
-					 std::cout << "v1 : "<<(*ptrDxx1a1)<<" "<<(*ptrDxx1b2)<<" "<<(*ptrDxx1a2)<<" "<<(*ptrDxx1b1)<<std::endl;
-					 std::cout << "v1 : "<<(*ptrDxx2a1)<<" "<<(*ptrDxx2b2)<<" "<<(*ptrDxx2a2)<<" "<<(*ptrDxx2b1)<<std::endl;
-					 std::cout << "v2 : "<<imageIntegrale(cc-m-1,ll-_lobe)<<" "<<imageIntegrale(cc-m-1+_taille_filtre,ll-_lobe+2*_lobe-1)<<" "<<imageIntegrale(cc-m-1+_taille_filtre,ll-_lobe)<<" "<<imageIntegrale(cc-m-1,ll-_lobe+2*_lobe-1)<<std::endl;
-					 std::cout << "v2 : "<<imageIntegrale(cc-_lobe/2-1,ll-_lobe)<<" "<<imageIntegrale(cc-_lobe/2-1+_lobe,ll-_lobe+2*_lobe-1)<<" "<<imageIntegrale(cc-_lobe/2-1+_lobe,ll-_lobe)<<" "<<imageIntegrale(cc-_lobe/2-1,ll-_lobe+2*_lobe-1)<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxx1a1) + (*ptrDxx1b2) - (*ptrDxx1a2) - (*ptrDxx1b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxx2a1) + (*ptrDxx2b2) - (*ptrDxx2a2) - (*ptrDxx2b1))<<std::endl;
-					 std::cout << "v2 : "<< Surf::integraleBoite(imageIntegrale,   cc-m,       ll-_lobe+1, _taille_filtre,     2*_lobe-1)<<std::endl;
-					 std::cout << "v2 : "<< Surf::integraleBoite(imageIntegrale,   cc-_lobe/2, ll-_lobe+1, _lobe,              2*_lobe-1)<<std::endl;
-					 */
-                    std::cout << "Verification Dyy "<<Dyy<<" "<<DyyV<<std::endl;
-                    /*
-					 std::cout << "v1 : "<<(*ptrDyy1a1)<<" "<<(*ptrDyy1b2)<<" "<<(*ptrDyy1a2)<<" "<<(*ptrDyy1b1)<<std::endl;
-					 std::cout << "v1 : "<<(*ptrDyy2a1)<<" "<<(*ptrDyy2b2)<<" "<<(*ptrDyy2a2)<<" "<<(*ptrDyy2b1)<<std::endl;
-					 std::cout << "v2 : "<<imageIntegrale(cc-_lobe,ll-m-1)<<" "<<imageIntegrale(cc+_lobe-1,ll-m-1+_taille_filtre)<<" "<<imageIntegrale(cc+_lobe-1,ll-m-1)<<" "<<imageIntegrale(cc-_lobe,ll-m-1+_taille_filtre)<<std::endl;
-					 std::cout << "v2 : "<<imageIntegrale(cc-_lobe,ll-_lobe/2-1)<<" "<<imageIntegrale(cc+_lobe-1,ll+_lobe-_lobe/2-1)<<" "<<imageIntegrale(cc+_lobe-1,ll-_lobe/2-1)<<" "<<imageIntegrale(cc-_lobe,ll+_lobe-_lobe/2-1)<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDyy1a1) + (*ptrDyy1b2) - (*ptrDyy1a2) - (*ptrDyy1b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDyy2a1) + (*ptrDyy2b2) - (*ptrDyy2a2) - (*ptrDyy2b1))<<std::endl;
-					 std::cout << "v2 : "<< Surf::integraleBoite(imageIntegrale,   cc-_lobe+1, ll-m,       2*_lobe-1,          _taille_filtre,true)<<std::endl;
-					 std::cout << "v2 : "<< Surf::integraleBoite(imageIntegrale,   cc-_lobe+1, ll-_lobe/2, 2*_lobe-1,          _lobe,true)<<std::endl;
-					 */
-                    
-					 std::cout << "Verification Dxy "<<Dxy<<" "<<DxyV<<std::endl;
-					/* 
-					std::cout << "v1 : "<<((*ptrDxy1a1) + (*ptrDxy1b2) - (*ptrDxy1a2) - (*ptrDxy1b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxy2a1) + (*ptrDxy2b2) - (*ptrDxy2a2) - (*ptrDxy2b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxy3a1) + (*ptrDxy3b2) - (*ptrDxy3a2) - (*ptrDxy3b1))<<std::endl;
-					 std::cout << "v1 : "<<((*ptrDxy4a1) + (*ptrDxy4b2) - (*ptrDxy4a2) - (*ptrDxy4b1))<<std::endl;
-					 std::cout << "v2 : "<<Surf::integraleBoite(imageIntegrale,   cc+1,       ll-_lobe,   _lobe,              _lobe)<<std::endl;
-					 std::cout << "v2 : "<<Surf::integraleBoite(imageIntegrale,   cc-_lobe,   ll+1,       _lobe,              _lobe)<<std::endl;
-					 std::cout << "v2 : "<<Surf::integraleBoite(imageIntegrale,   cc-_lobe,   ll-_lobe,   _lobe,              _lobe)<<std::endl;
-					 std::cout << "v2 : "<<Surf::integraleBoite(imageIntegrale,   cc+1,       ll+1,       _lobe,              _lobe)<<std::endl;
-					 */
-                    
-                    Dxx = DxxV;
-                    Dyy = DyyV;
-                    Dxy = DxyV;
-                }
-                
-                
+
                 (*ptrReponse) = (Dxx*Dyy-0.81*Dxy*Dxy)*w;
                 (*ptrSigLap) = Dxx*Dyy>0?1:0;
-                
+
                 ++ptrReponse;
                 ++ptrSigLap;
                 ptrDxx1a1 +=_pas;
@@ -277,7 +237,7 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
                 ptrDxy1b2 +=_pas;
                 ptrDxy2a1 +=_pas;
                 ptrDxy2a2 +=_pas;
-                ptrDxy2b1 +=_pas; 
+                ptrDxy2b1 +=_pas;
                 ptrDxy2b2 +=_pas;
                 ptrDxy3a1 +=_pas;
                 ptrDxy3a2 +=_pas;
@@ -292,7 +252,7 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
             {
                 (*ptrReponse) = 0.;
                 (*ptrSigLap) = 1;
-                
+
                 ++ptrReponse;
                 ++ptrSigLap;
             }
@@ -490,8 +450,9 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
            int init_sample,
            int nbPoints):_octaves(octaves),_intervals(intervals),_seuil_extrema((float).0008),_pas_surf(init_sample)
 {
-	bool verbose = false;
+    bool verbose = false;
 
+    if (verbose) std::cout << __FILE__<<" : "<<__LINE__<<" Surf "<<octaves<<" "<<intervals<<" "<<init_sample<<" "<<nbPoints<<std::endl;
     int NC,NL;
     NC = imageIn.numCols();
     NL = imageIn.numLines();
@@ -541,7 +502,7 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
 
     for(int lBloc=-marge;lBloc<NL;lBloc+= nbMaxLignesUtiles)
     {
-        //std::cout << "lBloc : "<<lBloc<<std::endl;
+        if (verbose) std::cout << "lBloc : "<<lBloc<<std::endl;
 
         // Zone de l'image a traiter
         int l0_Image = std::max(0,lBloc);
@@ -563,6 +524,7 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
 
         //std::cout << "Allocation de l espace memoire pour le calcul des derivees.."<<std::endl;
         // Allocation de l'espace memoire pour le calcul des "derivees"
+        if (verbose) std::cout << "_layers.size() avant : "<<_layers.size()<<std::endl;
         for(int i=0;i<_num_echelles;i++)
         {
             //std::cout << "Preparation Hessian pour echelle : "<<i+1<<" / "<<_num_echelles<<std::endl;
@@ -570,6 +532,7 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
             _layers.push_back(new SurfLayer(pas,CST_Lobe_SURF[i],CST_Marge_SURF[i],CST_Taille_Filtres[i],NC/pas,nbl_Image/pas));
             _layers[i]->calculerReponsesHessian(imageIntegrale);
         }
+        if (verbose) std::cout << "_layers.size() apres : "<<_layers.size()<<std::endl;
         //std::cout << "Fin de l'allocation"<<std::endl;
 
 
@@ -715,7 +678,7 @@ Surf::Surf(BufferImage<unsigned char> const &imageIn,
            int init_sample,
            int nbPoints):_octaves(octaves),_intervals(intervals),_seuil_extrema((float).0008),_pas_surf(init_sample)
 {
-	bool verbose = true;
+    bool verbose = false;
     std::cout << "Surf : "<<octaves<<" "<<intervals<<" "<<init_sample<<" "<<nbPoints<<std::endl;
 
     int NC,NL;
@@ -948,7 +911,7 @@ double Surf::integraleBoite(BufferImage<double> const &imageIntegrale,int c0,int
 
     if ((ci<0) || (li<0) || (cf>= NC) || (lf>= NL))
     {
-		if (verbose) std::cout << "test1 FALSE -> return 0"<<std::endl;
+        if (verbose) std::cout << "test1 FALSE -> return 0"<<std::endl;
         return 0.;
     }
 
@@ -957,11 +920,11 @@ double Surf::integraleBoite(BufferImage<double> const &imageIntegrale,int c0,int
     double A = lineI[ci]+lineF[cf]-lineI[cf]-lineF[ci];
     //double A = imageIntegrale(ci,li)+imageIntegrale(cf,lf)-imageIntegrale(cf,li)-imageIntegrale(ci,lf);
     if (verbose) std::cout << lineI[ci] << " " <<lineF[cf]<<" " <<lineI[cf]<<" " <<lineF[ci]<<std::endl;
-	if (A<0)
-	{
-		if (verbose) std::cout << "test2 FALSE -> return 0"<<std::endl;
+    if (A<0)
+    {
+        if (verbose) std::cout << "test2 FALSE -> return 0"<<std::endl;
         A=0.;
-	}
+    }
     return A;
 }
 
@@ -972,17 +935,17 @@ bool Surf::calculerDescripteur(BufferImage<double> const &imageIntegrale,SurfPoi
     if (verbose) std::cout << "Surf::calculerDescripteur du point"<<Pt.x()<<" "<<Pt.y()<<std::endl;
     Pt.setOrientation(0.);
     /*
-	if(_is_orientation)
+    if(_is_orientation)
     {
-		if (verbose) std::cout << "is_orientation"<<std::endl;
+        if (verbose) std::cout << "is_orientation"<<std::endl;
         //CST_SURF_CalculerOrientation(Surf,Pt);
     }
     else
     {
-		if (verbose) std::cout << "else"<<std::endl;
+        if (verbose) std::cout << "else"<<std::endl;
         Pt.setOrientation(_orientation);
     }
-	*/
+    */
     if (verbose) std::cout << "orientation : "<<Pt.orientation()<<std::endl;
 
     double co = cos(Pt.orientation());
@@ -1205,8 +1168,8 @@ bool Surf::isExtremum(int c, int l, SurfLayer const &Ech_p,SurfLayer const &Ech_
 
 void SurfPoint::applyTransfo(const double shiftX, const double shiftY, const double fact)
 {
-	_x *= fact;
-	_y *= fact;
-	_x += shiftX;
-	_y += shiftY; 
+    _x *= fact;
+    _y *= fact;
+    _x += shiftX;
+    _y += shiftY;
 }

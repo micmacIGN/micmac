@@ -463,6 +463,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                        <SzW Portee="Globale"> 1 </SzW>
                        <CorrelAdHoc Portee="Globale">
                            <CorrelMultiScale>
+                                  <UseGpGpu> ${UseGpu} </UseGpGpu>
                                   <ModeDense> ${MSDense} </ModeDense>
                                   <UseWAdapt>  false </UseWAdapt>
                                   <OneParamCMS>

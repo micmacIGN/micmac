@@ -448,6 +448,34 @@ std::string  Mangling( cParamEstimPlan *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cRigidBlockWeighting
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cRigidBlockWeighting & anObj,cElXMLTree * aTree);
+
+
+        double & PondOnTr();
+        const double & PondOnTr()const ;
+
+        double & PondOnRot();
+        const double & PondOnRot()const ;
+    private:
+        double mPondOnTr;
+        double mPondOnRot;
+};
+cElXMLTree * ToXMLTree(const cRigidBlockWeighting &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cRigidBlockWeighting &);
+
+void  BinaryUnDumpFromFile(cRigidBlockWeighting &,ELISE_fp &);
+
+std::string  Mangling( cRigidBlockWeighting *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cAperoPointeStereo
 {
     public:
@@ -1581,6 +1609,31 @@ void  BinaryUnDumpFromFile(cCalibrationCameraInc &,ELISE_fp &);
 
 std::string  Mangling( cCalibrationCameraInc *);
 
+class cUseForBundle
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cUseForBundle & anObj,cElXMLTree * aTree);
+
+
+        bool & GlobalBundle();
+        const bool & GlobalBundle()const ;
+
+        bool & RelTimeBundle();
+        const bool & RelTimeBundle()const ;
+    private:
+        bool mGlobalBundle;
+        bool mRelTimeBundle;
+};
+cElXMLTree * ToXMLTree(const cUseForBundle &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cUseForBundle &);
+
+void  BinaryUnDumpFromFile(cUseForBundle &,ELISE_fp &);
+
+std::string  Mangling( cUseForBundle *);
+
 class cBlockCamera
 {
     public:
@@ -1594,9 +1647,19 @@ class cBlockCamera
 
         cTplValGesInit< std::string > & Id();
         const cTplValGesInit< std::string > & Id()const ;
+
+        bool & GlobalBundle();
+        const bool & GlobalBundle()const ;
+
+        bool & RelTimeBundle();
+        const bool & RelTimeBundle()const ;
+
+        cTplValGesInit< cUseForBundle > & UseForBundle();
+        const cTplValGesInit< cUseForBundle > & UseForBundle()const ;
     private:
         std::string mNameFile;
         cTplValGesInit< std::string > mId;
+        cTplValGesInit< cUseForBundle > mUseForBundle;
 };
 cElXMLTree * ToXMLTree(const cBlockCamera &);
 
@@ -2555,6 +2618,9 @@ class cSectionChantier
         cTplValGesInit< bool > & IsAperiCloud();
         const cTplValGesInit< bool > & IsAperiCloud()const ;
 
+        cTplValGesInit< bool > & IsChoixImSec();
+        const cTplValGesInit< bool > & IsChoixImSec()const ;
+
         cTplValGesInit< std::string > & FileSauvParam();
         const cTplValGesInit< std::string > & FileSauvParam()const ;
 
@@ -2610,6 +2676,7 @@ class cSectionChantier
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
         cTplValGesInit< bool > mIsAperiCloud;
+        cTplValGesInit< bool > mIsChoixImSec;
         cTplValGesInit< std::string > mFileSauvParam;
         cTplValGesInit< bool > mGenereErreurOnContraineCam;
         cTplValGesInit< double > mProfSceneChantier;
@@ -4260,9 +4327,17 @@ class cObsBlockCamRig
 
         cTplValGesInit< bool > & Show();
         const cTplValGesInit< bool > & Show()const ;
+
+        cTplValGesInit< cRigidBlockWeighting > & GlobalPond();
+        const cTplValGesInit< cRigidBlockWeighting > & GlobalPond()const ;
+
+        cTplValGesInit< cRigidBlockWeighting > & RelTimePond();
+        const cTplValGesInit< cRigidBlockWeighting > & RelTimePond()const ;
     private:
         std::string mId;
         cTplValGesInit< bool > mShow;
+        cTplValGesInit< cRigidBlockWeighting > mGlobalPond;
+        cTplValGesInit< cRigidBlockWeighting > mRelTimePond;
 };
 cElXMLTree * ToXMLTree(const cObsBlockCamRig &);
 
@@ -5539,6 +5614,9 @@ class cChoixImSec
         friend void xml_init(cChoixImSec & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< std::string > & FileImSel();
+        const cTplValGesInit< std::string > & FileImSel()const ;
+
         std::string & KeyAssoc();
         const std::string & KeyAssoc()const ;
 
@@ -5596,6 +5674,7 @@ class cChoixImSec
         cTplValGesInit< std::string > & Masq3D();
         const cTplValGesInit< std::string > & Masq3D()const ;
     private:
+        cTplValGesInit< std::string > mFileImSel;
         std::string mKeyAssoc;
         cTplValGesInit< std::string > mPatternSel;
         cTplValGesInit< int > mCardMaxSub;
@@ -5631,6 +5710,9 @@ class cChoixImMM
 
         friend void xml_init(cChoixImMM & anObj,cElXMLTree * aTree);
 
+
+        cTplValGesInit< std::string > & FileImSel();
+        const cTplValGesInit< std::string > & FileImSel()const ;
 
         std::string & KeyAssoc();
         const std::string & KeyAssoc()const ;
@@ -5742,6 +5824,9 @@ class cSectionExport
 
         std::list< cExportNuage > & ExportNuage();
         const std::list< cExportNuage > & ExportNuage()const ;
+
+        cTplValGesInit< std::string > & FileImSel();
+        const cTplValGesInit< std::string > & FileImSel()const ;
 
         std::string & KeyAssoc();
         const std::string & KeyAssoc()const ;
@@ -5918,6 +6003,9 @@ class cEtapeCompensation
 
         std::list< cExportNuage > & ExportNuage();
         const std::list< cExportNuage > & ExportNuage()const ;
+
+        cTplValGesInit< std::string > & FileImSel();
+        const cTplValGesInit< std::string > & FileImSel()const ;
 
         std::string & KeyAssoc();
         const std::string & KeyAssoc()const ;
@@ -6129,6 +6217,9 @@ class cParamApero
 
         cTplValGesInit< bool > & IsAperiCloud();
         const cTplValGesInit< bool > & IsAperiCloud()const ;
+
+        cTplValGesInit< bool > & IsChoixImSec();
+        const cTplValGesInit< bool > & IsChoixImSec()const ;
 
         cTplValGesInit< std::string > & FileSauvParam();
         const cTplValGesInit< std::string > & FileSauvParam()const ;

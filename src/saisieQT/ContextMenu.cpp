@@ -25,7 +25,9 @@ void ContextMenu::createContextMenuActions()
 
     // Point (state, HL, name)
 
-    QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
+	//QString IconFolder = QString(MMDir().c_str()) + "data/ico/";
+
+	QString IconFolder = "../data/ico/";
 
     _validate  = new QAction(QIcon(IconFolder + "smile.ico"),           tr("Validate"), this);
     _dubious   = new QAction(QIcon(IconFolder + "interrogation.ico"),   tr("Dubious") , this);
@@ -47,10 +49,10 @@ void ContextMenu::createContextMenuActions()
     connect(_refuted,		    SIGNAL(triggered()),   _stateSignalMapper, SLOT(map()));
     connect(_noSaisie,		    SIGNAL(triggered()),   _stateSignalMapper, SLOT(map()));
 
-    _stateSignalMapper->setMapping (_validate,  eEPI_Valide);
-    _stateSignalMapper->setMapping (_dubious,   eEPI_Douteux);
-    _stateSignalMapper->setMapping (_refuted,   eEPI_Refute);
-    _stateSignalMapper->setMapping (_noSaisie,  eEPI_NonSaisi);
+	_stateSignalMapper->setMapping (_validate,qEPI_Valide );//
+	_stateSignalMapper->setMapping (_dubious,  qEPI_Douteux);//
+	_stateSignalMapper->setMapping (_refuted,  qEPI_Refute);//
+	_stateSignalMapper->setMapping (_noSaisie, qEPI_NonSaisi );//
 
     connect (_stateSignalMapper, SIGNAL(mapped(int)), this, SLOT(setPointState(int)));
 }
@@ -90,7 +92,7 @@ void ContextMenu::highlight()
 {
     int idx = highlightNearestPoint(_lastPosImage);
 
-    emit changeState(NS_SaisiePts::eEPI_Highlight, idx);
+	emit changeState(qEPI_Highlight, idx);//
 }
 
 void ContextMenu::rename()

@@ -287,6 +287,7 @@ cAppliMICMAC::cAppliMICMAC
    mAutomNomPyr    (0),
    mEtape00        (0),
    mCurEtape       (0),
+   mPrecEtape      (0),
    mEBI            (0),
    mCurMAI         (0),
    mGeomDFPx       (NULL),
@@ -525,6 +526,12 @@ cAppliMICMAC::cAppliMICMAC
         return;
     }
 
+    if ( (! CalledByProcess().Val()))
+    {
+        mMemPart.DeZoomLast().SetVal(mEtapesMecComp.back()->DeZoomTer());
+        mMemPart.NumLastEtape().SetVal(mEtapesMecComp.back()->Num());
+        SauvMemPart();
+     }
 
     {
         SauvEtatAvancement(false);
@@ -913,7 +920,9 @@ void cAppliMICMAC::InitMemPart()
 
 void cAppliMICMAC::SauvMemPart()
 {
-   if (DoNotMemPart())
+   if (       (DoNotMemPart())
+         ||   ( CalledByProcess().Val())
+      )
        return;
 
     cElXMLTree * aTree = ToXMLTree(mMemPart);
@@ -1107,6 +1116,19 @@ void cAppliMICMAC::InitAnamSA()
               mAnamSA->SetUnusedAnamXCSte();
        }
        ELISE_ASSERT(!mRepCorrel,"Anam and RepCorrel incompatibles");
+    }
+    else if (mRepCorrel!=0)
+    {
+
+/*
+for (int aK=0 ; aK<10 ; aK++)
+        std::cout << mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(1,0,0)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(0,1,0)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(0,0,1)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << "\n";
+*/
+        mAnamSA = cInterfSurfaceAnalytique::FromCCC(*mRepCorrel);
     }
     else
     {

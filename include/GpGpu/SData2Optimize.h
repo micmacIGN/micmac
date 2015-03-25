@@ -93,12 +93,24 @@ struct p_ReadLine
         ID_Bf_Icost   = sizeBuff - ID_Bf_Icost + count(prev_Dz);
     }
 
-    template<bool sens> __device__ inline ushort stid()
-    {
-        return sens ? tid : itid;
-    }
+	template<bool sens> __device__ inline ushort stid();
 
 };
+
+template<bool sens> __device__ inline ushort p_ReadLine::stid()
+{
+	return 0;
+}
+
+template<> __device__ inline ushort p_ReadLine::stid<true>()
+{
+	return tid ;
+}
+
+template<> __device__ inline ushort p_ReadLine::stid<false>()
+{
+	return itid;
+}
 
 
 template<template<class T> class U, uint NBUFFER = 1 >

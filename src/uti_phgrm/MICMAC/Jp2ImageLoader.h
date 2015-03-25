@@ -34,7 +34,7 @@ class JP2ImageLoader: public cInterfModuleImageLoader
 		{
 		}
 		
-		JP2ImageLoader(std::string const &nomfic);
+		JP2ImageLoader(std::string const &nomfic, bool onlyNonReversible=true);
 		
 		virtual eIFImL_TypeNumerique PreferedTypeOfResol(int aDeZoom)const
 		{

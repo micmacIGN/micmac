@@ -280,6 +280,8 @@ cTplLoadedImage<TypeEl>::cTplLoadedImage
      mEpsC         (anAppli.EpsilonCorrelation().Val()),
      mWPC          (0)
 {
+
+
    LoadAllImCorrel(mIm,aIMIL,aDZ,aBox._p0);
 
    const cEtapeMEC & anEt = anAppli.CurEtape()->EtapeMEC();
@@ -367,6 +369,7 @@ cTplLoadedImage<TypeEl>::cTplLoadedImage
        erod_d8(mMasqIm.in(0),mInterpol->SzKernel()),
        mMasqIm.out()
    );
+
 }
 
 template <class TypeEl>

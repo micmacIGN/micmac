@@ -68,6 +68,9 @@ template <class Type,class TBase>
 {
      public :
 
+        ~cElNuage3DMaille_FromImProf() {}
+
+
          cElNuage3DMaille_FromImProf
          (
               const std::string &             aDir,
@@ -148,6 +151,8 @@ template <class Type,class TBase>
               return this->mTIm.getprojR(aP);
          }
 
+        void ProfBouchePPV();
+
      protected :
 
          Im2D<Type,TBase> mIm;
@@ -167,6 +172,28 @@ template <class Type,class TBase>
          }
 };
 
+Fonc_Num sobel(Fonc_Num);
+
+template <class Type,class TBase>  void  cElNuage3DMaille_FromImProf<Type,TBase>::ProfBouchePPV()
+{
+   Im2D<Type,TBase> aIPPV = BouchePPV(mIm,ImDef().in());
+
+
+   int aNbTest = 7;
+   for (int aK=0 ; aK< (aNbTest+2) ; aK++)
+   {
+       Symb_FNum aFMasq = ImDef().in();
+       int aSzV = ElMax(1,ElSquare(aNbTest-aK));
+
+       Fonc_Num aFLisse = rect_som(aIPPV.in_proj(),aSzV) /  ElSquare(1+2*aSzV);
+       aFLisse  = aFLisse*(! aFMasq) + mIm.in() * aFMasq;
+       ELISE_COPY(aIPPV.all_pts(),aFLisse,aIPPV.out());
+
+
+   }
+   ELISE_COPY(aIPPV.all_pts(),aIPPV.in(),mIm.out());
+   ELISE_COPY(ImDef().all_pts(),1,ImDef().out());
+}
 
 template <class Type,class TBase>  void  cElNuage3DMaille_FromImProf<Type,TBase>::VerifParams() const
 {
@@ -325,6 +352,10 @@ template <class Type,class TBase>
         bool         mIsSpherik;
         CamStenope*  mCS;
         double       mProfC;
+
+        ~cElN3D_EpipGen ()
+        {
+        }
 };
 
 
@@ -696,6 +727,21 @@ cElNuage3DMaille * NuageWithoutDataWithModel(const std::string & aName,const std
                  true
            );
 }
+
+cElNuage3DMaille * NuageWithoutData(const cXML_ParamNuage3DMaille & aParam,const std::string & aName)
+{
+   return cElNuage3DMaille::FromParam
+           (
+                 aParam,
+                 DirOfFile(aName),
+                 "",
+                 1.0,
+                 (cParamModifGeomMTDNuage *) 0,
+                 true
+           );
+}
+
+
 cElNuage3DMaille * NuageWithoutData(const std::string & aName)
 {
     return NuageWithoutDataWithModel(aName,"");

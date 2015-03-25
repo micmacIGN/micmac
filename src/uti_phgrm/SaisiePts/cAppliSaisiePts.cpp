@@ -192,11 +192,16 @@ cImage *cVirtualInterface::CImageVis(int idCimg)
 
 vector<cImage *> cVirtualInterface::ComputeNewImagesPriority(cSP_PointGlob *pg,bool aUseCpt)
 {
+
     mAppli->SetImagesPriority(pg, aUseCpt);
-
     vector<cImage *> images = mAppli->imagesVis();
-
     mAppli->SortImages(images);
+
+
+    for (int aK=0 ; aK<int(mAppli->imagesVis().size()) ; aK++)
+    {
+         mAppli->imagesVis()[aK]->SetMemoLoaded();
+    }
 
     return images;
 }
@@ -333,21 +338,52 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
     mShowDet    (mParam.ShowDet().Val()),
     mSzRech     (100,100),
     mImRechVisu (mSzRech.x,mSzRech.y),
-    mImRechAlgo (mSzRech.x,mSzRech.y)
+    mImRechAlgo (mSzRech.x,mSzRech.y),
+    mMasq3DVisib(0),
+    mPIMsFilter   (0)
 {
+    if (mParam.Masq3DFilterVis().IsInit())
+    {
+       mMasq3DVisib = cMasqBin3D::FromSaisieMasq3d(mDC+mParam.Masq3DFilterVis().Val());
+    }
+
+
+    if (mParam.PIMsFilterVis().IsInit())
+    {
+       mPIMsFilter = cMMByImNM::FromExistingDirOrMatch(mParam.PIMsFilterVis().Val(),false,1.0,mICNM->Dir());
+    }
+
     Tiff_Im::SetDefTileFile(100000);
 
     InitImages();
     InitInPuts();
 
+
 #if (ELISE_X11)
     if(instanceInterface)
     {
+        SetImagesPriority(0,false);
+        SortImages(mImagesVis);
         mInterface = new cX11_Interface(*this);
         mInterface->Init();
+        OnModifLoadedImage();
     }
 #endif
 
+    if (mPIMsFilter)
+    {
+        for (std::vector<cSP_PointGlob*>::iterator itP=mPG.begin(); itP!=mPG.end() ; itP++)
+        {
+            AddPGInAllImages(*itP);
+        }
+        mInterface->RedrawAllWindows();
+    }
+}
+
+
+cMMByImNM *  cAppli_SaisiePts::PIMsFilter ()
+{
+    return mPIMsFilter;
 }
 
 const Pt2di &  cAppli_SaisiePts::SzRech() const     { return mSzRech;     }
@@ -556,6 +592,7 @@ void cAppli_SaisiePts::InitPG()
             aPG.Incert().SetVal(itA->Incertitude());
             aPG.ContenuPt().SetNoInit();
             aPG.FromDico().SetVal(true);
+            aPG.Pt3DFromDico().SetVal(itA->Pt());
             cSP_PointGlob * aNPG = AddPointGlob(aPG,false,true,true);
 
             if (mParam.FlouGlobEcras().Val())
@@ -571,9 +608,6 @@ void cAppli_SaisiePts::InitPG()
 
 void cAppli_SaisiePts::InitPointeIm()
 {
-
-
-
 
     for
             (
@@ -632,34 +666,61 @@ void cAppli_SaisiePts::AddPGInAllImages(cSP_PointGlob  * aSPG)
 {
     if (mParam.KeyAssocOri().IsInit())
     {
+        Pt3dr aP3D(0,0,0);
+        bool HasP3D = aSPG->Has3DValue() ;
+        bool InMasq3D = true;
+        if (HasP3D)
+        {
+            aP3D = aSPG->Best3dEstim();
+            if (mMasq3DVisib)
+            {
+               InMasq3D = mMasq3DVisib->IsInMasq(aP3D);
+            }
+        }
+        
         for (std::vector<cImage*>::iterator itI=mImagesTot.begin(); itI!=mImagesTot.end() ; itI++)
         {
-            AddOnePGInImage(aSPG,**itI);
+            AddOnePGInImage(aSPG,**itI,HasP3D,aP3D,InMasq3D);
         }
     }
 }
 
-void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
+void cAppli_SaisiePts::AddOnePGInImage
+     (cSP_PointGlob  * aSPG,cImage & anI,bool WithP3D,const Pt3dr & aP3d,bool InMasq3D)
 {
 
     const cPointGlob & aPG = *(aSPG->PG());
 
     Pt2dr aPIm  = anI.PointArbitraire();
-    bool OkInIm = true;
+    bool OkInIm = InMasq3D;
 
 
-    if (aPG.P3D().IsInit())
+    if ( OkInIm  && WithP3D)  
     {
-        Pt3dr aP3 = aPG.P3D().Val();
-        cCapture3D * aCapt3D = anI.Capt3d();
-        if (aCapt3D)
+        OkInIm = anI.PIMsValideVis(aP3d) ;
+        if (OkInIm)
         {
-            aPIm =  aCapt3D->Ter2Capteur(aP3); //  : anI.PointArbitraire();
-
-
-            if (! aCapt3D->PIsVisibleInImage(aP3))
+            cCapture3D * aCapt3D = anI.Capt3d();
+            if (aCapt3D)
             {
-                OkInIm = false;
+                aPIm =  aCapt3D->Ter2Capteur(aP3d); //  : anI.PointArbitraire();
+
+
+                if (! aCapt3D->PIsVisibleInImage(aP3d))
+                {
+                    OkInIm = false;
+                }
+
+                if (OkInIm && mMasq3DVisib)
+                {
+                    ElSeg3D   aSeg = aCapt3D->Capteur2RayTer(aPIm);
+                    double anA = aSeg.AbscOfProj(aP3d);
+                    int aNb=50;
+                    for (int aK=aNb; (aK>=0) && (OkInIm) ; aK--)
+                    {
+                        OkInIm = mMasq3DVisib->IsInMasq(aSeg.PtOfAbsc((anA*aK)/aNb));
+                    }
+                }
             }
         }
     }
@@ -675,6 +736,7 @@ void cAppli_SaisiePts::AddOnePGInImage(cSP_PointGlob  * aSPG,cImage & anI)
             if ( OkInIm && anI.InImage(aPIm))
             {
                 aPointeIm->Saisie()->PtIm() = aPIm;
+                aPointeIm->Visible() = true;  // New MPD 13/01/15 , sinon evolue toujours dans le meme sens ??? 
             }
             else
             {
@@ -898,7 +960,7 @@ double cAppli_SaisiePts::StatePriority(eEtatPointeImage aState)
         break;
 
     case   eEPI_Refute :
-        return mInterface->RefInvis() ? 0 : 1e-3;
+        return (mInterface && mInterface->RefInvis()) ? 0 : 1e-3;
         break;
 
     case   eEPI_Douteux :
@@ -933,8 +995,23 @@ void   cAppli_SaisiePts::SetImagesPriority(cSP_PointGlob * PointPrio,bool aUseCp
 
 void cAppli_SaisiePts::SortImages(std::vector<cImage *> &images)
 {
+/*
+std::cout << "SOOiiiII " << images.size() << "\n";
+for (int aK=0 ; aK<int(images.size()) ; aK++)
+{
+    std::cout << "iiiKKkk " << images[aK] << "\n";
+}
+*/
     cCmpIm aCmpIm(mInterface);
     std::sort(images.begin(),images.end(),aCmpIm);
+}
+
+void cAppli_SaisiePts::OnModifLoadedImage()
+{
+    for (int aK=0 ; aK<int(mImagesVis.size()) ; aK++)
+    {
+         mImagesVis[aK]->OnModifLoad();
+    }
 }
 
 void cAppli_SaisiePts::ChangeImages
@@ -944,16 +1021,19 @@ void cAppli_SaisiePts::ChangeImages
         bool   aUseCpt
         )
 {
+
+    mImagesVis = mInterface->ComputeNewImagesPriority(PointPrio,aUseCpt);
+/*
     SetImagesPriority(PointPrio,aUseCpt);
-
     SortImages(mImagesVis);
+*/
 
-    #if (ELISE_X11)
+#if (ELISE_X11)
     for (int aKW =0 ; aKW < int(aW2Ch.size()) ; aKW++)
     {
         aW2Ch[aKW]->SetNoImage();
     }
-    #endif
+#endif
     int aKW =0;
     int aKI =0;
 
@@ -971,6 +1051,24 @@ void cAppli_SaisiePts::ChangeImages
             aKW++;
         }
         aKI++;
+    }
+
+    for (int aK=0 ; aK<int(mImagesVis.size()) ; aK++)
+    {
+        cImage * anIm = mImagesVis[aK];
+        if (mInterface->isDisplayed(anIm))
+            anIm->SetLoaded();
+    }
+
+    OnModifLoadedImage();
+
+    if (mPIMsFilter)
+    {
+        for (std::vector<cSP_PointGlob*>::iterator itP=mPG.begin(); itP!=mPG.end() ; itP++)
+        {
+            AddPGInAllImages(*itP);
+        }
+        mInterface->RedrawAllWindows();
     }
 }
 

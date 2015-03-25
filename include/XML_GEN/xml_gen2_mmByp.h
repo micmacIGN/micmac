@@ -143,6 +143,11 @@ class cElemAppliSetFile
 };
 
 
+std::string PatFileOfImSec(const std::string & anOri);
+std::string DirAndPatFileOfImSec(const std::string & aDir,const std::string & anOri);
+
+
+
 class cAppliWithSetImage
 {
    public :
@@ -156,9 +161,20 @@ class cAppliWithSetImage
 
     // Remplace la commande argc-argc par N command avec les image indiv, aNumPat est necessaire car peut varier (TestLib ou non)
       std::list<std::pair<std::string,std::string> > ExpandCommand(int aNumPat,std::string ArgSup,bool Exe=false);
-   protected :
+
+      static const int  TheFlagDev8BGray      = 1;
+      static const int  TheFlagDev16BGray     = 2;
+      static const int  TheFlagNoOri          = 4;  
+      static const int  TheFlagAcceptProblem  = 8;  
+      static const int  TheFlagDev8BCoul      = 16;
+      static const int  TheFlagDevXml         = 32;
   
       cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI="");
+      std::string PatFileOfImSec() const;
+      std::string DirAndPatFileOfImSec() const;
+      void SuppressSom(tSomAWSI & aSom);
+
+   protected :
 
       void SaveCAWSI(const std::string & aName) ;
       bool CAWSI_AcceptIm(const std::string & aName) const;
@@ -171,17 +187,13 @@ class cAppliWithSetImage
       bool CpleHasMasterSelected(tSomAWSI* aS1,tSomAWSI* aS2) const;
 
 
-      static const int  TheFlagDev8BGray   = 1;
-      static const int  TheFlagDev16BGray  = 2;
-      static const int  TheFlagNoOri  = 4;  // ERREUR DE DEBUTANT FlagNoOri=3 !!!!
-      static const int  TheFlagAcceptProblem  = 8;  // ERREUR DE DEBUTANT FlagNoOri=3 !!!!
 
       tSomAWSI * ImOfName(const std::string & aName);
       bool ImIsKnown(const std::string & aName) const;
 
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
-      void AddCoupleMMImSec(bool ExeApero);
+      void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq);
 
 
 
@@ -225,6 +237,7 @@ class cAppliWithSetImage
       double AltiMoy() const;
       cSetName *   mSetMasters;
       bool mCalPerIm;
+      double mPenPerIm;
       bool mModeHelp;
       std::string  mMasq3D;
 
@@ -234,7 +247,8 @@ class cAppliWithSetImage
    private :
       int   mNbAlti;
       double mSomAlti;
-
+      bool   mSupressImInNoMasq;
+      const std::vector<std::string> * mSetImNoMasq;
 };
 
 
@@ -265,6 +279,17 @@ class cPatOfName
         std::string mPat;
         int mNb;
 };
+
+void DoAllDev(const std::string & aPat);
+void GenTFW(const ElAffin2D & anAff,const std::string & aNameTFW);
+void GenTFW(const cFileOriMnt & aFOM,const std::string & aName);
+double ResolOfAff(const ElAffin2D & anAff);
+Box2dr BoxTerOfNu(const cXML_ParamNuage3DMaille & aNu);
+double ResolOfNu(const cXML_ParamNuage3DMaille & aNu);
+
+
+
+
 
 
 

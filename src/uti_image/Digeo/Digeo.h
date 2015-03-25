@@ -201,7 +201,7 @@ Im1D_REAL8 Convol(Im1D_REAL8 aI1,int aC1,Im1D_REAL8 aI2,int aC2);
 // Parametrage stantdard 
 Im1D_REAL8 Convol(Im1D_REAL8 aI1,Im1D_REAL8 aI2);
 
-// Force l'image à une integrale donnee
+// Force l'image �  une integrale donnee
 Im1D_REAL8 MakeSom(Im1D_REAL8 aIm,double aSomCible);
 Im1D_REAL8 MakeSom1(Im1D_REAL8 aIm);
 
@@ -641,7 +641,7 @@ public:
 class cInterfImageTiff:public cInterfImageAbs
 {
 private:
-	std::auto_ptr<Tiff_Im> mTifF;
+    std_unique_ptr<Tiff_Im> mTifF;
 public:
 	cInterfImageTiff(std::string const &aName);
 	
@@ -668,7 +668,7 @@ public:
 class cInterfImageLoader:public cInterfImageAbs
 {
 private:
-	std::auto_ptr<cInterfModuleImageLoader> mLoader; 
+    std_unique_ptr<cInterfModuleImageLoader> mLoader;
 public:
 	cInterfImageLoader(std::string const &aName);
 	~cInterfImageLoader()
@@ -1016,7 +1016,7 @@ cAppliDigeo * DigeoCPP
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -1032,17 +1032,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

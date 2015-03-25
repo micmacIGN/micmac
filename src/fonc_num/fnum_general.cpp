@@ -243,6 +243,13 @@ INT Fonc_Num::NumCoord() const
 }
 
 
+Fonc_Num  Fonc_Num::Simplify() 
+{
+   Fonc_Num_Not_Comp * pFNNC = SAFE_DYNC(Fonc_Num_Not_Comp *,_ptr);
+
+    return pFNNC->Simplify();
+
+}
 
 
 void Fonc_Num::show(std::ostream & os) const
@@ -255,6 +262,13 @@ bool  Fonc_Num::is0() const
 {
      return SAFE_DYNC(Fonc_Num_Not_Comp *,_ptr)->is0();
 }
+
+
+void  Fonc_Num::inspect() const
+{
+     SAFE_DYNC(Fonc_Num_Not_Comp *,_ptr)->inspect();
+}
+
 
 bool  Fonc_Num::is1() const
 {
@@ -350,8 +364,11 @@ INT Fonc_Num_Not_Comp::CmpFormelIfSameKind(Fonc_Num_Not_Comp *)
    return 0;
 }
 
-
-
+Fonc_Num Fonc_Num_Not_Comp::Simplify() 
+{
+   
+   return Fonc_Num(const_cast<Fonc_Num_Not_Comp *>(this));
+}
 
 void  Fonc_Num_Not_Comp::show(std::ostream &) const
 {
@@ -409,6 +426,10 @@ INT Fonc_Num_Not_Comp::NumCoord() const
 bool Fonc_Num_Not_Comp::is0() const
 {
      return false;
+}
+
+void Fonc_Num_Not_Comp::inspect() const
+{
 }
 
 bool Fonc_Num_Not_Comp::is1() const

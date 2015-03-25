@@ -64,6 +64,8 @@ class cVarEtat_PhgrF
          void SetEtatSVP(const double &);
          void InitAdrSVP(cElCompiledFonc & aFoncC);
 
+         double GetVal() const;
+
      private :
          std::string mName;
          double *          mAdr;
@@ -79,6 +81,7 @@ class cP2d_Etat_PhgrF
      public :
            cP2d_Etat_PhgrF (const std::string & aNamePt);
            Pt2d<Fonc_Num>  PtF() const;
+           Pt2dr GetVal() const;
 
            void InitAdr(cElCompiledFonc & aFoncC);
            void SetEtat(const Pt2dr &);
@@ -106,6 +109,7 @@ class cP3d_Etat_PhgrF
            Pt3d<Fonc_Num>  PtF() const;
            void InitAdr(cElCompiledFonc & aFoncC);
            void SetEtat(const Pt3dr &);
+           Pt3dr GetVal() const;
      private :
 
            cVarEtat_PhgrF   mVarX;

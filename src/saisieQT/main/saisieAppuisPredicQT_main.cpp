@@ -1,4 +1,22 @@
 #include "saisieQT_main.h"
+void SaisieAppuisPredic(int argc, char ** argv,
+                      Pt2di &aSzW,
+                      Pt2di &aNbFen,
+                      std::string &aFullName,
+                      std::string &aDir,
+                      std::string &aName,
+                      std::string &aNamePt,
+                      std::string &anOri,
+                      std::string &aModeOri,
+                      std::string &aNameMesure,
+                      std::string &aTypePts,
+                      std::string &aMasq3D,
+                      std::string &PIMsFilter,
+                      double &aFlou,
+                      bool &aForceGray,
+                      double &aZMoy,
+                      double &aZInc);
+
 
 using namespace std;
 
@@ -9,12 +27,12 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 
     QStringList cmdline_args = QCoreApplication::arguments();
 
-    if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    if (cmdline_args.back().contains("help"))
     {
         QString help = "Mandatory unnamed args :\n"
                  "* string :: {Full name (Dir+Pattern)}\n"
                  "* string :: {Orientation ; NONE if not used}\n"
-                 " * string :: {File for Ground Control Points}\n"
+                 "* string :: {File for Ground Control Points}\n"
                  "* string :: {File for Image Measurements}\n\n"
                 "Named args :\n"
                 "* [Name=SzW] Pt2di :: {Sz of window}\n"
@@ -43,11 +61,17 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
     Pt2di aNbFen(-1,-1);
 
     string aFullName, aDir, aName, aNamePt;   //mandatory arguments
-    string aNameOri, aNameMesure;                       //named args
+    string aNameOri, aModeOri, aNameMesure;   //named args
     string aTypePts="Pts";
+    std::string aMasq3D,aPIMsFilter;
     double aFlou=0.;
+    double aZMoy, aZInc;
 
     bool aForceGray = false;
+
+    settings.beginGroup("Misc");
+    aNameMesure = settings.value("defPtName", QString("100")).toString().toStdString();
+    settings.endGroup();
 
     settings.beginGroup("Drawing settings");
     aForceGray = settings.value("forceGray", false       ).toBool();
@@ -59,7 +83,7 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
         argv[0] = (char*) "SaisieAppuisPredicQT";
     }
 
-    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aNameMesure, aTypePts, aFlou, aForceGray);
+    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aMasq3D,aPIMsFilter,aFlou, aForceGray, aZMoy, aZInc);
 
     if (!MMVisualMode)
     {
@@ -75,7 +99,11 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
              cVirtualInterface::ComputeNbFen(aNbFen, aNbW);
         }
 
-        updateSettings(settings, aSzWin, aNbFen, aForceGray);
+        updateSettings(settings, aSzWin,aNbFen, aForceGray);
+
+        settings.beginGroup("Misc");
+        settings.setValue("defPtName", QString(aNameMesure.c_str()));
+        settings.endGroup();
 
         QStringList input;
         input   << QString(MMDir().c_str()) + QString("bin/SaisiePts")
@@ -92,6 +120,29 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
                 << QString("+NbFy=") + QString::number(aNbFen.y)
                 << QString("+TypePts=") + QString(aTypePts.c_str());
 
+        if (aModeOri == "GRID")
+        {
+            input << QString("+ModeOriIm=eGeomImageGrille")
+                  << QString("+Conik=false")
+                  << QString("+ZIncIsProp=false")
+                    //<< QString(+PostFixOri=GRIBin")
+                  << QString("+Px1Inc=") + QString::number(aZInc)
+                  << QString("+Px1Moy=") + QString::number(aZMoy);
+
+            //<< QString("+Geom=eGeomMNTFaisceauIm1ZTerrain_Px1D");
+        }
+
+        if (EAMIsInit(&aMasq3D))
+        {
+            input << QString("+WithMasq3D=true");
+            input << QString("+Masq3D=") + QString(aMasq3D.c_str());
+        }
+
+        if (EAMIsInit(&aPIMsFilter))
+        {
+            input << QString("+WithPIMsFilter=true");
+            input << QString("+PIMsFilter=") + QString(aPIMsFilter.c_str());
+        }
 
         if (EAMIsInit(&aFlou))
             input << QString("+FlouSpecified=") + QString::number(aFlou);
@@ -101,8 +152,6 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 
         if (EAMIsInit(&aForceGray))
             input << QString("+ForceGray=") + QString(aForceGray ? "1" : "0");
-
-
 
         char **output;
 
@@ -127,6 +176,14 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
         cAppli_SaisiePts   anAppli (aP2,false);
 
         SaisieQtWindow w(POINT2D_PREDIC);
+
+        w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+        w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+
+
+        w.setBanniere(QString(getBanniereMM3D().c_str()));
+        QString qsVersion = __HG_REV__;
+        w.setHg_revision(qsVersion.toInt());
 
         new cQT_Interface(anAppli,&w);
 

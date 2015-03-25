@@ -121,7 +121,9 @@ template <class T> class cDynTplNappe2D
 };
 
 
-//  !!!    Data[Y][X][Z]  !!!!
+///  !!!    Data[Y][X][Z]  !!!!
+///  CONVENTIONS "Standard" sur les intervalles de nappes
+///       aImZMin  <=    Z  < aImZMax
 
 template <class T> class cDynTplNappe3D
 {

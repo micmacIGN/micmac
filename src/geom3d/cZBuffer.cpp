@@ -143,9 +143,14 @@ Im2D_REAL4 cZBuffer::Basculer
                Pt2di & aOffset_Out_00,
                Pt2di aP0In,
                Pt2di aP1In,
-               float aDef
+               float aDef,
+               bool * isOk
            )
 {
+    if (isOk) 
+    {
+        *isOk = true;
+    }
     mBufDone = false;
     mP0In = aP0In;
     mSzIn =  aP1In-aP0In;
@@ -203,6 +208,7 @@ Im2D_REAL4 cZBuffer::Basculer
 				if (SelectPBascul(aP2Out))
 				{
 				   aNbOkIm++;
+
 
 				   aPInf.SetInf(aP2Out);
 				   aPSup.SetSup(aP2Out);
@@ -266,9 +272,18 @@ Im2D_REAL4 cZBuffer::Basculer
     }
 
     mSzRes = round_up(aPSup) - mOffet_Out_00;
-    if ((mSzRes.x<=0)  || (mSzRes.y<=0))
+
+    if ((mSzRes.x<=1)  || (mSzRes.y<=1))
     {
-       return  Im2D_REAL4(mSzRes.x,mSzRes.y,aDef);
+       if (isOk) 
+       {
+           *isOk = false;
+       }
+       else
+       {
+           ELISE_ASSERT(false,"Cannot Bascule Nuage");
+       }
+       return  Im2D_REAL4(1,1,aDef);
     }
 
 

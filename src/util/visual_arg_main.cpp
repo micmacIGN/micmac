@@ -120,19 +120,6 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
 }*/
 
 #if(ELISE_QT_VERSION >= 4)
-void setStyleSheet(QApplication &app)
-{
-    QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
-    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        Q_INIT_RESOURCE(icones);
-
-        app.setStyleSheet(file.readAll());
-        file.close();
-    }
-    else
-        QMessageBox::critical(NULL, "Error", "Can't find qss file");
-}
 
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 {
@@ -154,10 +141,10 @@ void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 
 int MMRunVisualMode
 (
-        int argc,char ** argv, // A priori inutile, mais peut-etre cela evoluera-t-il ?
+        int argc,char ** argv,
         std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory
-        std::vector<cMMSpecArg> & aVAO,   // Vector Arg Optional
-        std::string aFirstArg
+        std::vector<cMMSpecArg> & aVAO,  // Vector Arg Optional
+        std::string aFirstArg            // Command name
         )
 {
 

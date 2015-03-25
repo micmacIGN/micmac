@@ -2,7 +2,6 @@
 #define __CONTEXTMENUMANAGER__
 
 #include "3DObject.h"
-#include "Elise_QT.h"
 
 typedef enum
 {

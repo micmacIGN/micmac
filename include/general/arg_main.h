@@ -593,6 +593,7 @@ int AperiCloud_main(int argc,char ** argv);
 int Apero_main(int argc,char ** argv);
 int Bascule_main(int argc,char ** argv);
 int CmpCalib_main(int argc,char ** argv);
+int ConvertCalib_main(int argc, char** argv);
 int Campari_main(int argc,char ** argv);
 int CASA_main(int argc,char ** argv);
 int Donuts_main(int argc,char **argv);
@@ -639,8 +640,10 @@ int Tapas_main(int argc,char ** argv);
 int Tapioca_main(int argc,char ** argv);
 int Tarama_main(int argc,char ** argv);
 int Tawny_main(int argc,char ** argv);
+int Tequila_main(int argc,char ** argv);
 int TestCam_main(int argc,char ** argv);
 int TestChantier_main(int argc,char ** argv);
+int TiPunch_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
 int SysCoordPolyn_main(int argc,char ** argv);
 int Gri2Bin_main(int argc,char ** argv);
@@ -678,12 +681,12 @@ int New_Tapas_main(int,char **);
 int GCPCtrl_main(int,char **);
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
-
-int NewRefineModel_main(int argc, char **argv);
-int RefineModel_main(int argc, char **argv);
 int AddAffinity_main(int argc, char **argv);
 
-int Sake_main(int argc,char ** argv);
+int Sake_main(int argc, char ** argv);
+int SateLib_main(int argc, char ** argv);
+
+int DoAllDev_main(int argc,char ** argv);
 
 
 
@@ -719,17 +722,21 @@ int Sake_main(int argc,char ** argv);
     int SaisieBoxQT_main(int argc,char ** argv);
     int SaisieBascQT_main(int argc,char ** argv);
 #endif
-    int Dimap2Grid_main(int argc, char **argv);
   int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
   int ServiceGeoSud_Ortho_main(int argc, char **argv);
   int ServiceGeoSud_GeoSud_main(int argc, char **argv);
   int ServiceGeoSud_Surf_main(int argc, char **argv);
 
+int TopoSurf_main(int argc, char **argv);
+
 int  CalcAutoCorrel_main(int argc,char ** argv);
 int CPP_AppliMergeCloud(int argc,char ** argv);
 int C3DC_main(int argc,char ** argv);
+int MPI_main(int argc,char ** argv);
+int MPI2Ply_main(int argc,char ** argv);
+int MPI2Mnt_main(int argc,char ** argv);
 int CCL_main(int argc,char ** argv);
-
+int TDEpip_main(int argc, char **argv);
 
 
 

@@ -557,27 +557,110 @@ void TestNtt(const std::string &aName)
 
 
 
-extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename );
 extern void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName );
 
 
+
+int Jeremy_main( int argc, char **argv )
+{
+    if ( argc<2 ) return EXIT_FAILURE;
+
+    Tiff_Im tiff(argv[1]);
+    cout << '[' << argv[1] << "]: sz = " << tiff.sz() << 'x' << tiff.nb_chan() << ' ' << eToString(tiff.type_el()) << endl;
+    Im2DGen image = tiff.ReadIm();
+    cout << '[' << argv[1] << "]: sz = " << image.sz() << ' ' << eToString(image.TypeEl()) << endl;
+
+    ELISE_COPY
+    (
+        image.all_pts(),
+        Virgule( image.in(), image.in(), image.in() ),
+        Tiff_Im(
+            "toto.tif",
+            image.sz(),
+            image.TypeEl(),
+            Tiff_Im::No_Compr,
+            Tiff_Im::RGB,
+            ArgOpTiffMDP(argv[1])/*Tiff_Im::Empty_ARG*/ ).out()
+    );
+
+    return EXIT_SUCCESS;
+}
+
+
+/*
+void LoadTrScaleRotate
+     (
+          const std::string & aNameIn,
+          const std::string & aNameOut,
+          const Pt2di & aP1Int,
+          const Pt2di & aP2Int,
+          const Pt2di & aP1Out,
+          double      aScale,  // Par ex 2 pour image 2 fois + petite
+          int         aRot
+     )
+{
+     Tiff_Im aTifIn(aNameIn.c_str());
+     Tiff_Im aTifOut(aNameOut.c_str());
+
+     int aNbCh = aTifIn.nb_chan();
+     ELISE_ASSERT(aTifOut.nb_chan()==aNbCh,"LoadTrScaleRotate nb channel diff");
+
+
+     Pt2dr aVIn  = Pt2dr(aP2Int-aP1Int);
+     Pt2di aSzOutInit = round_ni(aVIn / aScale);
+
+     std::vector<Im2DGen *>   aVOutInit = aTifOut.VecOfIm(aSzOutInit);
+     
+     ELISE_COPY
+     (
+          aVOutInit[0]->all_pts(),
+          StdFoncChScale(aTifIn.in_proj(),Pt2dr(aP1Int),Pt2dr(aScale,aScale)),
+          StdOut(aVOutInit)
+     );
+
+     std::vector<Im2DGen *>   aVOutRotate;
+     for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
+          aVOutRotate.push_back(aVOutInit[aK]->ImRotate(aRot));
+
+     Pt2di aSzOutRotat = aVOutRotate[0]->sz();
+
+
+     ELISE_COPY
+     (
+         rectangle(aP1Out,aP1Out+aSzOutRotat),
+         trans(StdInput(aVOutRotate), -aP1Out),
+         aTifOut.out()
+     );
+}
+*/
+
+extern void TestOriBundle();
+
 int MPDtest_main (int argc,char** argv)
 {
+    
+    cMasqBin3D::FromSaisieMasq3d("/home/marc/TMP/EPI/EXO1-Fontaine/AperiCloud_All_selectionInfo.xml");
+
+
 /*
+     LoadTrScaleRotate
+     (
+          "/media/data2/Jeux-Test/img_0762.cr2_Ch3.tif",
+          "/media/data2/Jeux-Test/img_0762.cr2_Ch3_Scaled.tif",
+          Pt2di(1500,1500),
+          Pt2di(2100,2400),
+          Pt2di(500,500),
+          3.0,
+          1
+     );
+*/
+          
+/*
+   TestOriBundle();
+    Jeremy_main(argc,argv);
    cCalibrationInterneRadiale aXmlDr;
    aXmlDr.CDist() = Pt2dr(3,4);
 */
-
-    cJPPTest aJPP;
-    aJPP.Name() =  "Jean-Pierre";
-    aJPP.LN().push_back(1);
-    aJPP.LN().push_back(2);
-    MakeFileXML(aJPP,"Test.xml");
-
-    
-    cJPPTest aJP2 = StdGetFromPCP("Test.xml",JPPTest);
-    std::cout << "NAME " << aJP2.Name() << "\n";
-    
 
 
 /*
@@ -605,12 +688,13 @@ int MPDtest_main (int argc,char** argv)
 #if (ELISE_QT_VERSION >= 4)
 
 #endif
+    cElWarning::ShowWarns("MPDTest.txt");
   
    return 0;
 
 }
 
-auto_ptr<char> toto;
+std_unique_ptr<char> toto;
 
 #endif
 

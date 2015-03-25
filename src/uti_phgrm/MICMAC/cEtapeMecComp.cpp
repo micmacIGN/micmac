@@ -304,7 +304,11 @@ cEtapeMecComp::cEtapeMecComp
 
      if (mIsExportZAbs)
      {
-          ELISE_ASSERT(mIsOptimCont && isLastEtape,"ExportZAbs requires continuous optimisation && last step");
+          ELISE_ASSERT
+          (
+                   mIsOptimCont && isLastEtape && (mAppli.DimPx()==1),
+                  "ExportZAbs requires continuous optimisation && last step"
+          );
      }
     
      if (mIsOptimCont)
@@ -1657,7 +1661,10 @@ void cEtapeMecComp::SauvProjImage
           while (Cont)
           {
               if (ELISE_fp::exist_file(aNameTest))
+              {
                  Cont = false;
+                 SleepProcess(0.1);
+              }
               else
                  SleepProcess(1);
           }
@@ -1801,6 +1808,7 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXML_MTD_Nuage() const
    return DoRemplitXMLNuage(anEN);
 }
 
+const  std::string TheStringLastNuageMM = "MMLastNuage.xml";
 
 cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cMMExportNuage & anEN) const
 {
@@ -1836,6 +1844,11 @@ cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXMLNuage(const cMMExportNuage & 
                               );
         MakeFileXML(aNuage,aName);
         mNameXMLNuage = aName;
+
+        if (mIsLast)
+        {
+             ELISE_fp::CpFile(mNameXMLNuage,mAppli.FullDirMEC()+TheStringLastNuageMM);
+        }
     }
     if (anEN.PlyFile().IsInit())
     {

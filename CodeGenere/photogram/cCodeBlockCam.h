@@ -2,11 +2,11 @@
 #include "StdAfx.h"
 
 
-class cEqRigiditeBlock: public cElCompiledFonc
+class cCodeBlockCam: public cElCompiledFonc
 {
    public :
 
-      cEqRigiditeBlock();
+      cCodeBlockCam();
       void ComputeVal();
       void ComputeValDeriv();
       void ComputeValDerivHessian();
@@ -29,6 +29,15 @@ class cEqRigiditeBlock: public cElCompiledFonc
       void SetGL_MK1_2_0(double);
       void SetGL_MK1_2_1(double);
       void SetGL_MK1_2_2(double);
+      void SetGL_MK2_0_0(double);
+      void SetGL_MK2_0_1(double);
+      void SetGL_MK2_0_2(double);
+      void SetGL_MK2_1_0(double);
+      void SetGL_MK2_1_1(double);
+      void SetGL_MK2_1_2(double);
+      void SetGL_MK2_2_0(double);
+      void SetGL_MK2_2_1(double);
+      void SetGL_MK2_2_2(double);
       void SetGL_MK3_0_0(double);
       void SetGL_MK3_0_1(double);
       void SetGL_MK3_0_2(double);
@@ -62,6 +71,15 @@ class cEqRigiditeBlock: public cElCompiledFonc
       double mLocGL_MK1_2_0;
       double mLocGL_MK1_2_1;
       double mLocGL_MK1_2_2;
+      double mLocGL_MK2_0_0;
+      double mLocGL_MK2_0_1;
+      double mLocGL_MK2_0_2;
+      double mLocGL_MK2_1_0;
+      double mLocGL_MK2_1_1;
+      double mLocGL_MK2_1_2;
+      double mLocGL_MK2_2_0;
+      double mLocGL_MK2_2_1;
+      double mLocGL_MK2_2_2;
       double mLocGL_MK3_0_0;
       double mLocGL_MK3_0_1;
       double mLocGL_MK3_0_2;

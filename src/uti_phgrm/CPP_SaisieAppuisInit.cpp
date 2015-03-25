@@ -166,10 +166,10 @@ int SaisieAppuisInit_main(int argc,char ** argv)
 
       if (EAMIsInit(&aPrefix2Add))
          aCom = aCom + " +Pref2Add=" + aPrefix2Add;
+
       std::cout << aCom << "\n";
 
       int aRes = system(aCom.c_str());
-
 
       return aRes;
   }

@@ -29,16 +29,15 @@ public:
 
     GLWidget* getWidget(int aK = CURRENT_IDW){return aK==CURRENT_IDW ? currentWidget() :_widgets[aK];}
 
-    GLWidget* currentWidget(){return _pcurrentWidget;}
+	GLWidget* currentWidget();
 
-    int nbWidgets() const {return _widgets.size();}
+	int nbWidgets() const;
 
-    GLWidget* zoomWidget(){return _zoomWidget;}
-
-    void widgetSetResize(int);
+	GLWidget* zoomWidget();
 
     GLWidget * threeDWidget() const;
 
+	void widgetSetResize(int);
 
     void option3DPreview();
 
