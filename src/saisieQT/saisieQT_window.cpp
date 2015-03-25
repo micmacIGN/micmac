@@ -70,7 +70,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
 	setModelObject(proxyObjectModel);
 	connect(currentWidget(),SIGNAL(changeHistory()),proxyObjectModel,SLOT(invalidate()));
 	connect(tableView_Objects()->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),this,SLOT(selectionObjectChanged(QItemSelection,QItemSelection)));
-	connect(tableView_Objects()->selectionModel()->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)),this,SLOT(updateMask()));
+	connect(tableView_Objects()->selectionModel()->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),this,SLOT(updateMask()));
 
 	tableView_Objects()->setItemDelegateForColumn(2,new ComboBoxDelegate(SELECTION_MODE_String,SIZE_OF_SELECTION_MODE));
 
