@@ -535,7 +535,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
    aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
-   aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples functions modifying cloud "));
+   aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
 
    aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
    aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
@@ -674,6 +674,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        ELISE_ASSERT(ELISE_QT_VERSION > 0, std::string("Qt not installed, " + std::string(argv[1]) + " not available").c_str() );
 
        ELISE_ASSERT(argv[1]!=std::string("vMICMAC"), std::string("vMICMAC not available").c_str() );
+       ELISE_ASSERT(argv[1]!=std::string("vApero"), std::string("vApero not available").c_str() );
 
        MMVisualMode = true;
        argv[1]++;

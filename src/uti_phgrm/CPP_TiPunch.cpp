@@ -111,13 +111,13 @@ int TiPunch_main(int argc,char ** argv)
             (
                 argc,argv,
                 LArgMain()  << EAMC(aPly,"Ply file", eSAM_IsExistFile),
-                LArgMain()  << EAM(aFullName,"Pattern", false, "Full Name (Dir+Pat)",eSAM_IsPatFile)
-                            << EAM(aOut,"Out", true, "Mesh name (def=plyName+ _mesh.ply)")
+                LArgMain()  << EAM(aFullName,"Pattern",false,"Full Name (Dir+Pat)",eSAM_IsPatFile)
+                            << EAM(aOut,"Out",false,"Mesh name (def=plyName+ _mesh.ply)")
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
                             << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
                             << EAM(aFilter,"Filter",true,"Filter mesh (def=true)")
-                            << EAM(aMode,"Mode", true, "C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
+                            << EAM(aMode,"Mode",true,"C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
             );
 
     if (MMVisualMode) return EXIT_SUCCESS;
