@@ -24,10 +24,6 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
     setOption(cGLData::OpShow_Mess);
 
     _contextMenu.createContextMenuActions();
-
-    //cout << "devicePixelRatio() =	" << devicePixelRatio() << endl;
-
-    //_matrixManager.setDevicePixelRatio(devicePixelRatio());
 }
 
 void GLWidget::resizeGL(int width, int height)

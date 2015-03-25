@@ -145,8 +145,6 @@ public:
 
     QRectF      getRectViewportToImage(float zoom);
 
-    void        setDevicePixelRatio(int val) {_devicePixelRatio = val;}
-
 private:
     //! GL context aspect ratio (width/height)
 
@@ -202,8 +200,6 @@ private:
     eNavigationType _eNavigation;
 
     float		_factor;
-
-    int         _devicePixelRatio;
 };
 
 #endif
