@@ -1,4 +1,4 @@
-QT_DIR=/Users/admin/Qt/5.3/clang_64
+QT_DIR=/Users/admin/dev/Qt5.4.1/5.4/clang_64
 FRAMEWORKS_FROM_BIN_PATH=../Frameworks
 FRAMEWORKS_PATH=Frameworks
 STARTING_DIRECTORY=$PWD
