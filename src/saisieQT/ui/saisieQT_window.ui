@@ -312,6 +312,12 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="frameShape">
                 <enum>QFrame::Box</enum>
                </property>
@@ -451,7 +457,7 @@
     <addaction name="actionInvertSelected"/>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
-    <addaction name="separator"/>
+    <addaction name="actionConfirm_changes"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -537,9 +543,9 @@
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuSelection"/>
+   <addaction name="menuWindows"/>
    <addaction name="menuHelp"/>
    <addaction name="menuTools"/>
-   <addaction name="menuWindows"/>
   </widget>
   <action name="actionFullScreen">
    <property name="checkable">
@@ -1155,6 +1161,14 @@
    </property>
    <property name="text">
     <string>Show list polygons</string>
+   </property>
+  </action>
+  <action name="actionConfirm_changes">
+   <property name="text">
+    <string>Confirm changes</string>
+   </property>
+   <property name="shortcut">
+    <string>Return</string>
    </property>
   </action>
  </widget>
