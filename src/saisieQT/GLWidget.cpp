@@ -785,7 +785,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
         return;
     }
 
-    m_lastClickZoom = event->pos();
+    m_lastClickZoom = event->pos() * devicePixelRatio();
 
 #if ELISE_QT_VERSION == 5
     setZoom(getZoom()*pow(1.1f,event->angleDelta().y() / 70.0f ));
