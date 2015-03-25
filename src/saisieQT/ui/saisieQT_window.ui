@@ -1162,6 +1162,9 @@
    <property name="text">
     <string>Show list polygons</string>
    </property>
+   <property name="shortcut">
+    <string>V</string>
+   </property>
   </action>
   <action name="actionConfirm_changes">
    <property name="text">
