@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     //Test Retina
-    #ifdef ELISE_Darwin
+    /*#ifdef ELISE_Darwin
         #if ELISE_QT_VERSION >=5
             float dpi = ((QGuiApplication*)QCoreApplication::instance())->primaryScreen()->physicalDotsPerInchX();
             cout << "DPI = " << dpi << endl;
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
         #elif ELISE_QT_VERSION == 4
             //TODO: QSystemDisplayInfo
         #endif
-    #endif //ELISE_Darwin
+    #endif //ELISE_Darwin*/
 
 
 

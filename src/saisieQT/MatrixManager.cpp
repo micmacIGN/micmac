@@ -2,8 +2,7 @@
 
 MatrixManager::MatrixManager(eNavigationType nav):
 _eNavigation(nav),
- _factor(1.0),
-  _devicePixelRatio(1)
+ _factor(1.0)
 {
 
 //	_MatrixPassageCamera	= new GLdouble[16];
@@ -177,8 +176,8 @@ void MatrixManager::getInverseProjection(QVector3D &P, QPointF P2D, float dist)
 
 QPointF MatrixManager::WindowToImage(QPointF const &winPt, float zoom)
 {
-    QPointF res( winPt.x()*_devicePixelRatio         - .5f*_glViewport[2]*(1.f + _projMatrix[12]),
-                -winPt.y()*_devicePixelRatio  -1.f   + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
+    QPointF res( winPt.x()         - .5f*_glViewport[2]*(1.f + _projMatrix[12]),
+                -winPt.y()  -1.f   + .5f*_glViewport[3]*(1.f - _projMatrix[13]));
 
     res /= zoom;
 
@@ -187,8 +186,8 @@ QPointF MatrixManager::WindowToImage(QPointF const &winPt, float zoom)
 
 QPointF MatrixManager::ImageToWindow(QPointF const &imPt, float zoom)
 {
-    return QPointF ((imPt.x()*zoom + .5f*_glViewport[2]*(1.f + _projMatrix[12]))/_devicePixelRatio,
-            (- 1.f - imPt.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13]))/_devicePixelRatio);
+    return QPointF ((imPt.x()*zoom + .5f*_glViewport[2]*(1.f + _projMatrix[12])),
+            (- 1.f - imPt.y()*zoom + .5f*_glViewport[3]*(1.f - _projMatrix[13])));
 }
 
 void MatrixManager::mglOrtho( GLdouble left, GLdouble right,

@@ -24,10 +24,6 @@ GLWidget::GLWidget(int idx,  const QGLWidget *shared) : QGLWidget(QGLFormat(QGL:
     setOption(cGLData::OpShow_Mess);
 
     _contextMenu.createContextMenuActions();
-
-    //cout << "devicePixelRatio() =	" << devicePixelRatio() << endl;
-
-    _matrixManager.setDevicePixelRatio(devicePixelRatio());
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -259,6 +255,7 @@ void GLWidget::overlay()
                         if (pt.showName() && (pt.name() != ""))
                         {
                             QPointF wPt = _matrixManager.ImageToWindow( pt,getZoom()) + QPointF(10.f,-5.f);
+                            wPt /= devicePixelRatio();
 
                             _messageManager.glRenderText(pt.name(),wPt, pt.isSelected() ? Qt::blue : Qt::white);
                         }
@@ -716,7 +713,7 @@ void GLWidget::applyInfos()
 
             Select(infos.selection_mode, false);
         }
-		changeHistory();
+        changeHistory();
     }
 }
 
@@ -784,7 +781,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
         return;
     }
 
-    m_lastClickZoom = event->pos();
+    m_lastClickZoom = event->pos() * devicePixelRatio();
 
 #if ELISE_QT_VERSION == 5
     setZoom(getZoom()*pow(1.1f,event->angleDelta().y() / 70.0f ));
@@ -797,7 +794,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     if(hasDataLoaded())
     {
-        m_lastPosWindow = event->pos();
+        m_lastPosWindow = event->pos() * devicePixelRatio();
 
         m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : QPointF(m_lastPosWindow.x(),_matrixManager.vpHeight() - m_lastPosWindow.y());
 
@@ -852,7 +849,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton && hasDataLoaded())
     {
-        m_lastPosWindow = event->pos();
+        m_lastPosWindow = event->pos() * devicePixelRatio();
 
         m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : m_lastPosWindow;
 
@@ -897,6 +894,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         QPointF mPos = event->posF();
 #endif
 
+        mPos *= devicePixelRatio();
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, getZoom()) : mPos;
 
         if ( event->buttons() != Qt::MiddleButton )
@@ -912,7 +910,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             if (polygon()->isSelected())                    // MOVE POLYGON
             {
                 //TODO: a verifier => y inversé en 3D - OK en 2D
-                QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : m_lastPosWindow;
+                QPoint lastPos = m_lastPosWindow*devicePixelRatio();
+                QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(lastPos, getZoom()) : lastPos;
                 polygon()->translate(pos - translation);
             }
             else if (!(event->buttons() == Qt::MiddleButton))// REFRESH HELPER POLYGON
@@ -939,7 +938,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (m_interactionMode == TRANSFORM_CAMERA)
         {
-            QPointF dPWin = QPointF(event->pos() - m_lastPosWindow);
+            QPointF dPWin = QPointF(event->pos() * devicePixelRatio() - m_lastPosWindow);
 
             if (event->buttons())
             {
@@ -979,7 +978,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if (event->buttons() != Qt::MiddleButton)  //pour eviter le changement de label_ImagePosition_2 en mode translation
             emit newImagePosition( m_lastMoveImage );
 
-        m_lastPosWindow = event->pos();
+        m_lastPosWindow = event->pos() * devicePixelRatio();
 
         update();
     }
