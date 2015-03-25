@@ -67,6 +67,9 @@ cX11_Interface::~cX11_Interface()
 
 void cX11_Interface::Init()
 {
+
+//SetImagesPriority(0,);
+
     InitNbWindows();
 
     Pt2di aSzF =  mParam->SectionWindows().SzTotIm().Val().dcbyc(mNb2W);;
@@ -168,7 +171,7 @@ cCaseNamePoint *  cX11_Interface::GetIndexNamePoint()
     Pt2di aKse = mMenuNamePoint->Pt2Case(Pt2di(aClk._pt));
     cCaseNamePoint * aRes =  &(mVNameCase[aKse.y]);
 
-    cout << aRes->mName << " Type "  << aRes->mTCP << endl;
+    //cout << aRes->mName << " Type "  << aRes->mTCP << endl;
 
     if (! aRes->mFree) return 0;
 

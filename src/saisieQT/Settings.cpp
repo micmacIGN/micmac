@@ -13,15 +13,38 @@ cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params, int appMode) : 
 
     _parameters = params;
 
-    list<string> languages = ListOfVal(eEsperanto,"");
-    list<string>::const_iterator it = languages.begin();
-    for (; it != languages.end(); it++)
-        _ui->comboBox->addItem(QString((*it).c_str()));
+//    list<string> languages = ListOfVal(eEsperanto,"");
+//    list<string>::const_iterator it = languages.begin();
+//	for (; it != languages.end(); ++it)
+//        _ui->comboBox->addItem(QString((*it).c_str()));
+
+	for (int i= 0; i< eNbLang; ++i)
+	{
+
+		switch (i) {
+			case eEnglish:
+				_ui->comboBox->addItem(QString("English"));
+				break;
+			case eFrench:
+				_ui->comboBox->addItem(QString("French"));
+				break;
+			case eSpanish:
+				_ui->comboBox->addItem(QString("Spanish"));
+				break;
+			case eEsperanto:
+				_ui->comboBox->addItem(QString("Esperanto"));
+				break;
+			default:
+				break;
+		}
+	}
+
 
     refresh();
 
     setUpdatesEnabled(true);
 }
+
 
 cSettingsDlg::~cSettingsDlg()
 {
@@ -79,8 +102,8 @@ void cSettingsDlg::on_radioButton_centroid_toggled(bool val)
 
         emit setCenterType(eCentroid);
 
-        _ui->radioButton_bbox_center->setChecked(false);
-        _ui->radioButton_origin_center->setChecked(false);
+//        _ui->radioButton_bbox_center->setChecked(false);
+//        _ui->radioButton_origin_center->setChecked(false);
     }
 }
 
@@ -92,8 +115,8 @@ void cSettingsDlg::on_radioButton_bbox_center_toggled(bool val)
 
         emit setCenterType(eBBoxCenter);
 
-        _ui->radioButton_centroid->setChecked(false);
-        _ui->radioButton_origin_center->setChecked(false);
+//        _ui->radioButton_centroid->setChecked(false);
+//        _ui->radioButton_origin_center->setChecked(false);
     }
 }
 
@@ -105,9 +128,38 @@ void cSettingsDlg::on_radioButton_origin_center_toggled(bool val)
 
         emit setCenterType(eOriginCenter);
 
-        _ui->radioButton_centroid->setChecked(false);
-        _ui->radioButton_bbox_center->setChecked(false);
-    }
+//        _ui->radioButton_centroid->setChecked(false);
+//        _ui->radioButton_bbox_center->setChecked(false);
+	}
+}
+
+void cSettingsDlg::on_radioButtonBall_toggled(bool val)
+{
+	if (val)
+	{
+		_parameters->setENavigation(eNavig_Ball);
+
+		 emit setNavigationType(eNavig_Ball);
+	}
+}
+
+void cSettingsDlg::on_radioButtonBallOneTouch_toggled(bool val)
+{
+	if (val)
+	{
+		_parameters->setENavigation(eNavig_Ball_OneTouch);
+
+		 emit setNavigationType(eNavig_Ball_OneTouch);
+	}
+}
+
+void cSettingsDlg::on_radionButtonOrbital_toggled(bool val)
+{
+	if (val)
+	{
+		_parameters->setENavigation(eNavig_Orbital);
+		emit setNavigationType(eNavig_Orbital);
+	}
 }
 
 void cSettingsDlg::on_zoomWin_spinBox_valueChanged(int val)
@@ -160,7 +212,7 @@ void cSettingsDlg::on_radioButtonStd_toggled(bool checked)
 {
     if (checked)
     {
-        _parameters->setPtCreationMode(eNSM_Pts);
+		_parameters->setPtCreationMode(qNSM_Pts);
         _parameters->setPtCreationWindowSize(-1);
 
         enableMarginSpinBox(false);
@@ -171,7 +223,7 @@ void cSettingsDlg::on_radioButtonMin_toggled(bool checked)
 {
     if (checked)
     {
-        _parameters->setPtCreationMode(eNSM_MinLoc);
+		_parameters->setPtCreationMode(qNSM_MinLoc);//
         enableMarginSpinBox(!_ui->radioButtonStd->isChecked());
     }
 }
@@ -180,7 +232,7 @@ void cSettingsDlg::on_radioButtonMax_toggled(bool checked)
 {
     if (checked)
     {
-        _parameters->setPtCreationMode(eNSM_MaxLoc);
+		_parameters->setPtCreationMode(qNSM_MaxLoc);//
         enableMarginSpinBox(!_ui->radioButtonStd->isChecked());
     }
 }
@@ -268,27 +320,27 @@ void cSettingsDlg::refresh()
 
         switch (_parameters->getPtCreationMode())
         {
-            case eNSM_Pts:
+			case qNSM_Pts://
             {
                 _ui->radioButtonStd->setChecked(true);
                 enableMarginSpinBox(false);
                 break;
             }
-            case eNSM_MinLoc:
+			case qNSM_MinLoc://
             {
                 _ui->radioButtonMin->setChecked(true);
                 enableMarginSpinBox();
                 break;
             }
-            case eNSM_MaxLoc:
+			case qNSM_MaxLoc://
             {
                 _ui->radioButtonMax->setChecked(true);
                 enableMarginSpinBox();
                 break;
             }
-            case eNSM_GeoCube:
-            case eNSM_Plaquette:
-            case eNSM_NonValue:
+			case qNSM_GeoCube://
+			case qNSM_Plaquette://
+			case qNSM_NonValue://
                 break;
         }
 
@@ -301,12 +353,21 @@ void cSettingsDlg::refresh()
         _ui->radioButton_bbox_center->hide();
         _ui->radioButton_origin_center->hide();
         _ui->radioButton_centroid->hide();
+
+		_ui->groupBox_nav->hide();
+		_ui->radioButtonBall->hide();
+		_ui->radionButtonOrbital->hide();
+
     }
     else
     {
         _ui->radioButton_bbox_center->setChecked(_parameters->getSceneCenterType()==eBBoxCenter);
         _ui->radioButton_origin_center->setChecked(_parameters->getSceneCenterType()==eOriginCenter);
         _ui->radioButton_centroid->setChecked(_parameters->getSceneCenterType()==eCentroid);
+
+		_ui->radioButtonBall->setChecked(_parameters->eNavigation()==eNavig_Ball);
+		_ui->radioButtonBallOneTouch->setChecked(_parameters->eNavigation()==eNavig_Ball_OneTouch);
+		_ui->radionButtonOrbital->setChecked(_parameters->eNavigation()==eNavig_Orbital);
 
         _ui->showMasks_checkBox->hide();
     }
@@ -332,7 +393,8 @@ cParameters::cParameters():
     _ptName(QString("100")),
     _postFix(QString("_Masq")),
     _radius(50),
-    _eType(eNSM_Pts),
+	_eType(qNSM_Pts),//
+	_eNavigation(eNavig_Ball),
     _sz(5.f),
     _lang(0)
 {}
@@ -350,6 +412,7 @@ cParameters& cParameters::operator =(const cParameters &params)
     _forceGray      = params._forceGray;
     _showMasks      = params._showMasks;
     _sceneCenterType= params._sceneCenterType;
+	_eNavigation	= params._eNavigation;
 
     _zoomWindow     = params._zoomWindow;
     _ptName         = params._ptName;
@@ -377,6 +440,7 @@ bool cParameters::operator!=(cParameters &p)
             (p._forceGray      != _forceGray) ||
             (p._showMasks      != _showMasks) ||
             (p._sceneCenterType!= _sceneCenterType) ||
+			(p._eNavigation	   != _eNavigation) ||
             (p._zoomWindow     != _zoomWindow) ||
             (p._ptName         != _ptName)  ||
             (p._postFix        != _postFix) ||
@@ -415,11 +479,12 @@ void cParameters::read()
 
      settings.beginGroup("Drawing settings");
      setLineThickness(  settings.value("linethickness", 2.f     ).toFloat());
-     setPointDiameter(  settings.value("pointdiameter",0.8f     ).toFloat());
+     setPointDiameter(  settings.value("pointdiameter",4.f      ).toFloat());
      setGamma(          settings.value("gamma",1.f              ).toFloat());
      setForceGray(      settings.value("forceGray", false       ).toBool());
      setShowMasks(      settings.value("showMasks", false       ).toBool());
      setCenterType(     settings.value("SceneCenterType", 0     ).toInt());
+	 setENavigation((eNavigationType)settings.value("NavigationType", 0     ).toInt());
      settings.endGroup();
 
      settings.beginGroup("Misc");
@@ -431,7 +496,7 @@ void cParameters::read()
      settings.endGroup();
 
      settings.beginGroup("Point creation");
-     setPtCreationMode( static_cast<eTypePts> (settings.value("Mode", eNSM_Pts).toInt()));
+	 setPtCreationMode( static_cast<qTypePts> (settings.value("Mode", qNSM_Pts).toInt()));
      setPtCreationWindowSize( settings.value("WindowSize",3.f).toFloat());
      settings.endGroup();
 
@@ -458,6 +523,7 @@ void cParameters::write()
      settings.setValue("forceGray",     _forceGray  );
      settings.setValue("showMasks",     _showMasks  );
      settings.setValue("SceneCenterType",  _sceneCenterType );
+	 settings.setValue("NavigationType",  _eNavigation );
      settings.endGroup();
 
      settings.beginGroup("Misc");
@@ -477,6 +543,16 @@ void cParameters::write()
      settings.setValue("lang", _lang);
      settings.endGroup();
 }
+eNavigationType cParameters::eNavigation() const
+{
+	return _eNavigation;
+}
+
+void cParameters::setENavigation(const eNavigationType& eNavigation)
+{
+	_eNavigation = eNavigation;
+}
+
 
 //****************************************************************************************
 
@@ -569,8 +645,8 @@ string eToString(const eLANG &anObj)
        return  "eArabic";
     if (anObj==eRussian)
        return  "eRussian";*/
-  std::cout << "Enum = eLANG\n";
-    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+  //std::cout << "Enum = eLANG\n";
+   // ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
     return "";
 }
 

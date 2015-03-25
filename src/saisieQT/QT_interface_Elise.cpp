@@ -53,8 +53,6 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     _data->computeBBox();
 
-    m_QTMainWindow->init3DPreview(_data,*m_QTMainWindow->params());
-
     Init();
 
     connect(m_QTMainWindow,	SIGNAL(imagesAdded(int, bool)), this, SLOT(changeImages(int, bool)));
@@ -69,13 +67,13 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     ImagesSFModel*      proxyImageModel  = new ImagesSFModel(this);
     PointGlobalSFModel* proxyPointGlob   = new PointGlobalSFModel(this);
-    ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
+    //ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
 
     proxyPointGlob->setSourceModel  (new ModelPointGlobal(0,mAppli));
     proxyImageModel->setSourceModel (new ModelCImage(0,mAppli));
-    proxyObjectModel->setSourceModel(new ModelObjects(0,mAppli));
+    //proxyObjectModel->setSourceModel(new ModelObjects(0,mAppli));
 
-    m_QTMainWindow->setModel(proxyPointGlob, proxyImageModel, proxyObjectModel);
+    m_QTMainWindow->setModel(proxyPointGlob, proxyImageModel/*, proxyObjectModel*/);
 
     m_QTMainWindow->resizeTables();
 
@@ -290,7 +288,7 @@ pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
 
 eTypePts cQT_Interface::PtCreationMode()
 {
-    return m_QTMainWindow->getParams()->getPtCreationMode();
+	return (eTypePts)m_QTMainWindow->getParams()->getPtCreationMode();
 }
 
 double cQT_Interface::PtCreationWindowSize()
@@ -409,12 +407,15 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
             images[aKW]->CptAff() = _aCpt++;
 
             if (!isDisplayed(images[aKW]))
-
+            {
                 m_QTMainWindow->SetDataToGLWidget(idPg == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
+                images[aKW]->SetLoaded();
+            }
 
             aKW++;
         }
 
+        mAppli->OnModifLoadedImage();
         mAppli->SetImagesVis(images);
 
         rebuildGlPoints(true);
@@ -627,8 +628,11 @@ void cQT_Interface::HighlightPoint(cSP_PointeImage* aPIm)
     aPIm->Gl()->HighLighted() = !aPIm->Gl()->HighLighted();
 
     if(aPIm->Gl()->HighLighted() && aPIm->Gl()->PG()->P3D().IsInit())
+	{
+		const Pt3dr pt = aPIm->Gl()->PG()->P3D().Val();
 
-        m_QTMainWindow->threeDWidget()->setTranslation(aPIm->Gl()->PG()->P3D().Val());
+		m_QTMainWindow->threeDWidget()->setTranslation(QVector3D(pt.x,pt.y,pt.z));
+	}
 
 }
 
@@ -653,16 +657,16 @@ cGLData *cQT_Interface::getGlData(cImage *image)
 
 Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
 {
-    float scaleFactor = getGlData(idImage)->glImage().getLoadedImageRescaleFactor();
+	float scaleFactor = getGlData(idImage)->glImageMasked().getLoadedImageRescaleFactor();
 
-    return Pt2dr(pt.x()/scaleFactor,(getGlData(idImage)->glImage()._m_image->height() - pt.y())/scaleFactor);
+	return Pt2dr(pt.x()/scaleFactor,(getGlData(idImage)->glImageMasked()._m_image->height() - pt.y())/scaleFactor);
 }
 
 QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
 {
-    float scaleFactor = getGlData(idImage)->glImage().getLoadedImageRescaleFactor();
+	float scaleFactor = getGlData(idImage)->glImageMasked().getLoadedImageRescaleFactor();
 
-    return QPointF(pt.x*scaleFactor,getGlData(idImage)->glImage()._m_image->height() - pt.y*scaleFactor);
+	return QPointF(pt.x*scaleFactor,getGlData(idImage)->glImageMasked()._m_image->height() - pt.y*scaleFactor);
 }
 
 void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int idImag)
@@ -683,7 +687,11 @@ void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int idImag)
         }
     }
 
-    m_QTMainWindow->getWidget(idImag)->addGlPoint(transformation(aSom->PtIm(),idImag), aSom, aPt1, aPt2, aPG->HighLighted());
+   QPointF pt = transformation(aSom->PtIm(),idImag);
+   QString name(aSom->NamePt().c_str());
+   cPoint point(pt,name,true,aSom->Etat());
+
+   m_QTMainWindow->getWidget(idImag)->addGlPoint(point, aPt1, aPt2, aPG->HighLighted());
 }
 
 void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
@@ -704,7 +712,11 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
             {
                 QColor colorPt = pGV[i]->HighLighted() ? Qt::red : Qt::green;
 
-                cloud->addVertex(GlVertex(Pt3dr(pg->P3D().Val()), pg == selectPtGlob ? colorPt: Qt::blue));
+				Pt3dr pt = (pg->P3D().Val());
+
+				QVector3D pt3D(pt.x,pt.y,pt.z);
+
+				cloud->addVertex(GlVertex(pt3D, pg == selectPtGlob ? colorPt: Qt::blue));
             }
         }
 
@@ -762,6 +774,11 @@ void cQT_Interface::rebuildGlCamera()
     for (int i = 0; i < mAppli->nbImagesVis(); ++i)
     {
         ElCamera * aCamera = mAppli->imageVis(i)->CaptCam();
-        if (aCamera != NULL) _data->addCamera(aCamera->CS());
+
+		if (aCamera != NULL)
+		{
+			cCamHandlerElise * camElise = new cCamHandlerElise(aCamera->CS());
+			_data->addCamera((cCamHandler*)camElise);
+		}
     }
 }

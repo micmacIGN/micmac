@@ -79,7 +79,7 @@ les resultats sont coherents.
 
 Notes diverses
 
-	Si vous souhaiter utiliser les commandes de Micmac a partir de n'importe quel repertoire sans avoir a specifier son chemin, il faut ajouter le chemin du repertoire "bin" dans la variable d'environnement PATH. Il n'est pas necessaire d'y ajouter le chemin du repertoire
+	Si vous souhaitez utiliser les commandes de Micmac a partir de n'importe quel repertoire sans avoir a specifier son chemin, il faut ajouter le chemin du repertoire "bin" dans la variable d'environnement PATH. Il n'est pas necessaire d'y ajouter le chemin du repertoire
 "binaire-aux".
 	Sous Linux / MacOS, pour utiliser les outils QT, ajouter le chemin du répertoire "lib" dans LD_LIBRARY_PATH, dans le fichier .bashrc comme suit: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/micmac/lib/
 	Sous MacOSX, si vous voulez utiliser les outils QT avec les binaires précompilés disponibles sur logiciels.ign.fr, vous devez installer les librairies Qt pour Mac depuis http://http://download.qt-project.org/archive/qt/4.8/4.8.4/  qt-opensource-mac-4.8.4.dmg

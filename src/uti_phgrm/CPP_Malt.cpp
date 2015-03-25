@@ -205,10 +205,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 #if(ELISE_QT_VERSION >= 4)
 
-    QApplication app(argc, argv);
-
     if (MMVisualMode)
     {
+        QApplication app(argc, argv);
+
         LArgMain LAM;
         LAM << EAMC(mStrType,"Correlation mode",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"));
 
@@ -262,6 +262,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
     int aNbProc = NbProcSys();
     double mPenalSelImBestNadir = -1;
+
+    bool ForceNoIncid = false;
 
 
     ElInitArgMain
@@ -320,6 +322,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq", eSAM_IsExistFile)
                     << EAM(aNbProc,"NbProc",true,"Nb Proc Used")
                     << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)")
+                    << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use")
                 );
 
     if (!MMVisualMode)
@@ -533,7 +536,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aFileMM = "MM-Malt.xml";
 
-      if (0) // (MPD_MM())
+      if (0)
       {
           std::cout << "TTTTESSTTTTTT  MALT  !!!!!!!!\n";//   getchar();
           aFileMM = "Test-MM-Malt.xml";
@@ -803,7 +806,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          mCom   =  mCom + " +DoIncid=true +DoMaskNadir=true ";
       }
 
-      if (DoIncid)  
+      if (DoIncid && (!ForceNoIncid))
       {
          mCom   =  mCom + " +DoIncid=true ";
       }
@@ -832,8 +835,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           if (mImOrtho !="") mComOA =  mComOA + std::string(" +ImOrtho=") + mImOrtho;
           std::cout << "\n\n" << mComOA << "\n";
 
-           mComTaramaOA =     MMBinFile("Tarama") + " " 
-                           +  mFullName           + " "
+           mComTaramaOA =     MMBinFile("Tarama") + " "
+                           +  QUOTE(mFullName)           + " "
                            +  mOri                + " "
                            + std::string(" Zoom=16 ")
                            + std::string(" Out=TA-UnAnam ")

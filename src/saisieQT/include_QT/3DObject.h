@@ -4,7 +4,25 @@
 #include "Settings.h"
 #include "mmglu.h"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+
 #define QMaskedImage cMaskedImage<QImage>
+
+
+typedef enum // Attention repercutions sur QT ... TODO à regler
+{
+  qEPI_NonSaisi,// 0
+  qEPI_Refute,// 1
+  qEPI_Douteux, // 2
+  qEPI_Valide,// 3
+  qEPI_NonValue,// 4
+  qEPI_Disparu,//5
+  qEPI_Highlight// 6
+} qEtatPointeImage;
+
+
 
 //! Interaction mode (only in 3D)
 enum INTERACTION_MODE {
@@ -46,22 +64,22 @@ class cObject
 {
     public:
         cObject();
-        cObject(Pt3dr pt, QColor color_default);
+		cObject(QVector3D pt, QColor color_default);
         virtual ~cObject();
 
         QString name()          { return _name;     }
-        Pt3dr   getPosition()   { return _position; }
-        Pt3dr   getRotation()   { return _rotation; }
+		QVector3D   getPosition()   { return _position; }
+		QVector3D   getRotation()   { return _rotation; }
         QColor  getColor();
-        Pt3dr   getScale()      { return _scale;    }
+		QVector3D   getScale()      { return _scale;    }
         bool    isVisible()     { return (state() != state_invible); }
         bool    isSelected()    { return (state() == state_selected);}
 
         void    setName(QString name)          { _name = name;     }
-        void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
-        void    setRotation(Pt3dr const &aPt)  { _rotation = aPt;  }
+		void    setPosition(QVector3D const &aPt)  { _position = aPt;  }
+		void    setRotation(QVector3D const &aPt)  { _rotation = aPt;  }
         void    setColor(QColor const &aCol, object_state state = state_default)   { _color[state] = aCol;    }
-        void    setScale(Pt3dr aScale)         { _scale = aScale; }
+		void    setScale(QVector3D aScale)         { _scale = aScale; }
         void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
         void    setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
 
@@ -74,14 +92,14 @@ protected:
 
         QString _name;
 
-        Pt3dr   _position;
+		QVector3D  _position;
 
-        Pt3dr   _rotation;
+		QVector3D   _rotation;
 
         QColor  _color[state_COUNT];
-        Pt3dr   _scale;
+		QVector3D   _scale;
 
-        float   _alpha;
+		float		_alpha;
         object_state   _state;
 };
 
@@ -91,9 +109,10 @@ class cObjectGL : public cObject
 
         cObjectGL();
 
-        cObjectGL(Pt3dr pos, QColor color_default) :
+		cObjectGL(QVector3D pos, QColor color_default) :
             cObject(pos, color_default),
-            _glError(0)
+			_lineWidth(1),
+			_glError(0)
         {}
 
         virtual ~cObjectGL(){}
@@ -136,7 +155,7 @@ class cPoint : public cObjectGL, public QPointF
     cPoint(QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            bool showName   = false,
-           int  statePoint = eEPI_NonValue,
+		   int  statePoint = qEPI_NonValue,
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
@@ -181,7 +200,7 @@ private:
 class cCircle : public cObjectGL
 {
     public:
-        cCircle(Pt3dr, QColor, float, float, bool, int dim);
+		cCircle(QVector3D, QColor, float, float, bool, int dim);
         cCircle(int dim);
 
         void    draw();
@@ -194,7 +213,7 @@ class cCircle : public cObjectGL
 class cCross : public cObjectGL
 {
     public:
-        cCross(Pt3dr, QColor, float, float, bool, int dim);
+		cCross(QVector3D, QColor, float, float, bool, int dim);
 
         void    draw();
 
@@ -206,17 +225,18 @@ class cBall : public cObjectGL
 {
     public:
 
-        cBall(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, bool isVis = true, float lineWidth = 1.f);
+		cBall(QVector3D pt = QVector3D(0.f,0.f,0.f), float scale = 1.f, bool isVis = true, float lineWidth = 1.f);
         ~cBall();
 
-        void    setPosition(Pt3dr const &aPt);
-        Pt3dr   getPosition();
+		void    setPosition(QVector3D const &aPt);
+		QVector3D   getPosition();
         void    setVisible(bool aVis);
-        void    setScale(Pt3dr aScale);
+		void    setScale(QVector3D aScale);
 
         void    draw();
 
-    private:
+		void setScale(float aScale);
+private:
 
         cCircle *_cl0;
         cCircle *_cl1;
@@ -230,7 +250,7 @@ class cBall : public cObjectGL
 class cAxis : public cObjectGL
 {
     public:
-        cAxis(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, float lineWidth = 1.f);
+		cAxis(QVector3D pt = QVector3D(0.f,0.f,0.f), float scale = 1.f, float lineWidth = 1.f);
 
         void    draw();
 };
@@ -238,7 +258,7 @@ class cAxis : public cObjectGL
 class cGrid : public cObjectGL
 {
     public:
-        cGrid(Pt3dr pt = Pt3dr(0.f,0.f,0.f), Pt3dr scale = Pt3dr(1.f,1.f,1.f));
+		cGrid(QVector3D pt = QVector3D(0.f,0.f,0.f), QVector3D scale = QVector3D(1.f,1.f,1.f));
 
         void    draw();
 };
@@ -246,21 +266,32 @@ class cGrid : public cObjectGL
 class cBBox : public cObjectGL
 {
     public:
-        cBBox(Pt3dr pt = Pt3dr(0.f,0.f,0.f), Pt3dr min= Pt3dr(0.f,0.f,0.f), Pt3dr max= Pt3dr(1.f,1.f,1.f), float lineWidth = 1.f);
+		cBBox(QVector3D pt = QVector3D(0.f,0.f,0.f), QVector3D min= QVector3D(0.f,0.f,0.f), QVector3D max= QVector3D(1.f,1.f,1.f), float lineWidth = 1.f);
 
         void    draw();
 
-        void set(Pt3d<double> min, Pt3d<double> max);
+		void set(QVector3D min, QVector3D max);
 
     private:
-        Pt3dr   _min;
-        Pt3dr   _max;
+		QVector3D   _min;
+		QVector3D   _max;
 };
 
-class cCam : public cObjectGL
+class cCamHandler
+{
+public:
+	virtual ~cCamHandler(){}
+
+	virtual void getCoins(QVector3D &aP1,QVector3D &aP2,QVector3D &aP3,QVector3D &aP4, double aZ) = 0;
+
+	virtual QVector3D getCenter() = 0;
+};
+
+
+class cCamGL : public cObjectGL
 {
     public:
-        cCam(CamStenope *pCam, float scale, object_state state = state_default, float lineWidth = 1.f);
+		cCamGL(cCamHandler *pCam, float scale, object_state state = state_default, float lineWidth = 1.f);
 
         void    draw();
 
@@ -269,7 +300,7 @@ class cCam : public cObjectGL
     private:
         float   _pointSize;
 
-        CamStenope *_Cam;
+		cCamHandler *_Cam;
 };
 
 class cPolygonHelper;
@@ -281,6 +312,9 @@ class cPolygon : public cObjectGL
     public:
 
         cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+
+		~cPolygon();
+
 
         virtual void draw();
 
@@ -341,7 +375,7 @@ class cPolygon : public cObjectGL
         void    setVector(QVector <QPointF> const &aPts);
 
         cPolygonHelper* helper() { return _helper; }
-        void    setHelper(cPolygonHelper* aHelper) { _helper = aHelper; }
+		void    setHelper(cPolygonHelper* aHelper);
 
         virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true);
 
@@ -438,6 +472,8 @@ class cPolygonHelper : public cPolygon
 
         cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
 
+		~cPolygonHelper();
+
         void   build(const cPoint &pos, bool insertMode);
 
         void   setPoints(cPoint p1, cPoint p2, cPoint p3);
@@ -463,6 +499,7 @@ class cRectangle : public cPolygon
 class cImageGL : public cObjectGL
 {
     public:
+
         cImageGL(float gamma = 1.f);
         ~cImageGL();
 
@@ -474,10 +511,10 @@ class cImageGL : public cObjectGL
 
         void    draw();
 
-        //void    setPosition(GLfloat originX, GLfloat originY);
-        //void    setDimensions(GLfloat glh, GLfloat glw);
+        void    setSize(QSize size);
+        QSize   getSize() { return _size; }
 
-        void    PrepareTexture(QImage *pImg);
+        void    createTexture(QImage *pImg);
 
         void    ImageToTexture(QImage *pImg);
 
@@ -499,20 +536,18 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
-private:
+private:		
 
         QGLShaderProgram _program;
 
-        int     _texLocation  ;
+        int     _texLocation;
         int     _gammaLocation;
-
-        GLfloat _originX;
-        GLfloat _originY;
 
         QSize   _size;
 
         //! Texture image
         GLuint  _texture;
+
         float   _gamma;
 };
 
@@ -525,36 +560,59 @@ public:
     cMaskedImage(float gamma = 1.f, float sFactor= 1.f):
         _m_image(NULL),
         _m_mask(NULL),
+        _m_rescaled_image(NULL),
+        _m_rescaled_mask(NULL),
         _m_newMask(true),
         _gamma(gamma),
-        _loadedImageRescaleFactor(sFactor)
-    {}
+		_loadedImageRescaleFactor(sFactor),
+		_loading(false)
+	{
+
+	}
 
     ~cMaskedImage()
-    {}
+    {	
+        deallocImages();
+    }
 
     void deallocImages()
     {
-        if(_m_image != NULL)
+		if(_m_image != NULL)
         {
-            _m_image = NULL;
             delete _m_image;
+			_m_image = NULL;
         }
         if(_m_mask != NULL)
         {
-            _m_mask = NULL;
             delete _m_mask;
+			_m_mask = NULL;
+        }
+        if(_m_rescaled_image != NULL)
+        {
+            delete _m_rescaled_image;
+			_m_rescaled_image = NULL;
+        }
+        if(_m_rescaled_mask != NULL)
+        {
+            delete _m_rescaled_mask;
+			_m_rescaled_mask = NULL;
         }
     }
 
     T           *_m_image;
     T           *_m_mask;
 
-    cFileOriMnt  _m_FileOriMnt;
+    T           *_m_rescaled_image;
+    T           *_m_rescaled_mask;
 
     bool        _m_newMask;
     float       _gamma;
     float       _loadedImageRescaleFactor;
+
+
+	QSize		_fullSize;
+	//QImageReader *_imageReader;
+	bool		_loading;
 
 };
 
@@ -563,30 +621,54 @@ class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 
 public:
 
-    cMaskedImageGL(){}
+    cMaskedImageGL():
+        _qMaskedImage(NULL)
+    {}
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
-    void setScale(Pt3dr aScale)
+    cMaskedImageGL(const QRectF & aRect);
+
+	~cMaskedImageGL();
+
+//    ~cMaskedImageGL()
+//    {}
+
+	/*void setScale(QVector3D aScale)
     {
         _m_image->setScale(aScale);
         _m_mask->setScale(aScale);
-    }
+    }*/
 
     float getLoadedImageRescaleFactor() { return _loadedImageRescaleFactor; }
 
     void  showMask(bool show) { _m_mask->setVisible(show); }
 
-    void draw();
+    void  draw();
 
-    void deleteTextures();
+    void  deleteTextures();
 
-    void prepareTextures();
+    void  createTextures();
+
+	void  createFullImageTexture();
+
+    QMaskedImage* getMaskedImage() { return _qMaskedImage; }
+    void          setMaskedImage(QMaskedImage * aMaskedImage) { _qMaskedImage = aMaskedImage; }
+
+    cImageGL*   glImage()  { return _m_image; }
+    cImageGL*   glMask()   { return _m_mask;  }
+
+	void		copyImage(cMaskedImage<QImage>* image, QRect& rect);
+
+	QSize		fullSize();
 
 private:
 
-    cMaskedImage<QImage> *_qMaskedImage;
+    QMaskedImage *_qMaskedImage;
+
+	QMutex			_mutex;
 };
+
 //====================================================================================
 
 //! Default message positions on screen
@@ -601,7 +683,8 @@ enum MessagePosition {  LOWER_LEFT_MESSAGE,
 struct MessageToDisplay
 {
     MessageToDisplay():
-        color(Qt::white)
+		color(Qt::white),
+		position(LOWER_CENTER_MESSAGE)
     {}
 
     //! Message
@@ -621,7 +704,9 @@ public:
     cMessages2DGL(QGLWidget *glw):
         _bDrawMessages(true),
         m_font(QFont("Arial", 10, QFont::Normal, false)),
-        glwid(glw)
+		glwid(glw),
+		w(0),
+		h(0)
     {}
 
     void draw();
@@ -650,7 +735,7 @@ public:
 
     void showMessages(bool show) { _bDrawMessages = show; }
 
-    int size(){ return m_messagesToDisplay.size(); }
+    size_t size(){ return m_messagesToDisplay.size(); }
 
     void    glRenderText(QString text,QPointF pt,QColor color);
 

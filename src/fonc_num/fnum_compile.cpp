@@ -66,7 +66,6 @@ void cSsBloc::BlocSetInt(cIncIntervale & anInt)
 {
    mInt = &anInt;
 /*
-std::cout << "cSsBloc::theCptGlob " << theCptGlob << " " << mInt << "\n";
 getchar();
 */
 }
@@ -404,7 +403,6 @@ void cIncListInterv::AddInterv(const cIncIntervale & anInterv,bool CanOverlap)
    }
 
    mMap.insert(anInterv);
-// std::cout << "zredsdsskb " << mI0Min << " " << anInterv.I0Alloc() << "\n";
    ElSetMin(mI0Min,anInterv.I0Alloc());
    ElSetMax(mI1Max,anInterv.I1Alloc());
    mSurf += anInterv.Sz();
@@ -1124,6 +1122,8 @@ void cElCompiledFonc::AddDevLimOrd2ToSysSurRes (L2SysSurResol & aSys,REAL aPds)
 
 
 
+
+
 void cElCompileFN::SetFile(const std::string & aPostFix, const char * anInclCompl)
 {
     if (mFile)
@@ -1257,16 +1257,18 @@ void  cElCompileFN::PutVarLoc(cVarSpec aVar)
 }
 
 
-void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs)
+void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs,bool SpecFCUV)
 {
 
    SetFile("cpp","h");
+
+   int aDimOut = vFoncs.size();
 
 
 // Constructeur : 
 
    (*this) << mNameClass << "::" << mNameClass << "():\n";
-   (*this) << "    cElCompiledFonc(" << INT(vFoncs.size()) << ")\n";
+   (*this) << "    cElCompiledFonc(" <<  aDimOut << ")\n";
    (*this) << "{\n";
 
 
@@ -1286,9 +1288,9 @@ void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs)
    (*this) << "\n\n\n";
 
 
-   MakeFonc(vFoncs,0);
-   MakeFonc(vFoncs,1);
-   MakeFonc(vFoncs,2);
+   MakeFonc(vFoncs,0,SpecFCUV);
+   MakeFonc(vFoncs,1,SpecFCUV);
+   MakeFonc(vFoncs,2,SpecFCUV);
 
 // Calcul des Fonction SetVar
    (*this) << "\n";
@@ -1331,7 +1333,7 @@ void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs)
 }
 
 
-void cElCompileFN::MakeFileH()
+void cElCompileFN::MakeFileH(bool SpecFCUV)
 {
    SetFile("h",0);
 
@@ -1367,10 +1369,23 @@ void cElCompileFN::MakeFileH()
    CloseFile();
 }
 
-#define MAKE_DER_SEC false
-void cElCompileFN::MakeFonc(std::vector<Fonc_Num> vFoncs,INT aDegDeriv) // 0, fonc , 1 deriv, 2 hessian
+extern bool FnumCoorUseCsteVal;
+
+Fonc_Num SimplifyFCUV(Fonc_Num aF)
 {
-std::cout << "DEGRE " << aDegDeriv << "\n";
+   if (FnumCoorUseCsteVal) return aF.Simplify();
+   return aF;
+}
+
+
+// On met d'abord les fonction pour la derivees, ensuite les fonctions pour la valeur
+
+#define MAKE_DER_SEC false
+void cElCompileFN::MakeFonc(std::vector<Fonc_Num> vFoncs,INT aDegDeriv,bool UseAccel) // 0, fonc , 1 deriv, 2 hessian
+{
+   FnumCoorUseCsteVal = UseAccel;
+   int aDimOut = vFoncs.size();
+// std::cout << "DEGRE " << aDegDeriv << "\n";
     if (! MAKE_DER_SEC && (aDegDeriv==2))
     {
         (*this) << "void " << mNameClass << "::ComputeValDerivHessian()\n";
@@ -1388,15 +1403,17 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
     delete mDicSymb;
     mDicSymb     = new  cDico_SymbFN;
 
-    for (INT aK=0 ; aK<INT(vFoncs.size()) ; aK++)
+    int aK0 = 0 ;
+    for (INT aK= 0  ; aK<aDimOut ; aK++)
     {
-         (*this) << vFoncs[aK];
+         Fonc_Num aF0 =  SimplifyFCUV(vFoncs[aK]);  
+         (*this) << aF0;
 
          if (aDegDeriv >= 1)
          {
             for (INT aD=0 ; aD<mNVMax ; aD++)
             {
-	        Fonc_Num aFD = vFoncs[aK].deriv(aD);
+	        Fonc_Num aFD =  SimplifyFCUV(vFoncs[aK].deriv(aD));
                 (*this) << aFD;
             }
          }
@@ -1404,10 +1421,10 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
          {
             for (INT aD1=0 ; aD1<mNVMax ; aD1++)
             {
-	        Fonc_Num aFD1 = vFoncs[aK].deriv(aD1);
+	        Fonc_Num aFD1 =  SimplifyFCUV(vFoncs[aK].deriv(aD1));
                 for (INT aD2=0 ; aD2<= aD1 ; aD2++)
                 {
-	            Fonc_Num aFD1D2 = aFD1.deriv(aD2);
+	            Fonc_Num aFD1D2 = SimplifyFCUV(aFD1.deriv(aD2));
                     (*this) << aFD1D2;
                 }
             }
@@ -1426,17 +1443,18 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
    (*this) << "{\n";
    mDicSymb->PutSymbs(*this);
 
-   for (INT aK=0; aK<INT(vFoncs.size()) ; aK++)
+   for (INT aK=0; aK<aDimOut ; aK++)
    {
-       (*this) << "  mVal["<<aK<<"] = " << vFoncs[aK] << ";\n\n";
+       Fonc_Num aF0 =  SimplifyFCUV(vFoncs[aK]);
+       (*this) << "  mVal["<<aK-aK0<<"] = " << aF0 << ";\n\n";
 
         // Calcul des derivees 
        if (aDegDeriv>=1)
        {
            for (INT aD = 0 ; aD<mNVMax ; aD++)
            {
-                Fonc_Num aDer = Fonc_Num (vFoncs[aK].deriv(aD) );
-                (*this) << "  mCompDer[" <<aK << "][" << aD << "] = " << aDer << ";\n";
+                Fonc_Num aDer =  SimplifyFCUV(vFoncs[aK].deriv(aD) );
+                (*this) << "  mCompDer[" <<aK-aK0 << "][" << aD << "] = " << aDer << ";\n";
            }
        }
 
@@ -1445,10 +1463,10 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
        {
            for (INT aD1 = 0 ; aD1<mNVMax ; aD1++)
            {
-                Fonc_Num aFD1 =   vFoncs[aK].deriv(aD1);
+                Fonc_Num aFD1 =   SimplifyFCUV(vFoncs[aK].deriv(aD1));
                 for (INT aD2=0 ; aD2<= aD1 ; aD2++)
                 {
-	           Fonc_Num aFD1D2 = aFD1.deriv(aD2);
+	           Fonc_Num aFD1D2 = SimplifyFCUV(aFD1.deriv(aD2));
                    (*this) 
                        << "  mCompHessian[" << aK<< "][" << aD1 << "]["<< aD2 << "]= " 
                        << "  mCompHessian[" << aK<< "][" << aD2 << "]["<< aD1 << "]= " 
@@ -1458,6 +1476,7 @@ std::cout << "DEGRE " << aDegDeriv << "\n";
        }
    }
    (*this) << "}\n\n\n";
+   FnumCoorUseCsteVal = false;
 }
 
 
@@ -1466,9 +1485,11 @@ void cElCompileFN::DoEverything
              const std::string &             aDir,
              const std::string &             aName,
 	     std::vector<Fonc_Num>           vFoncs,
-             const cIncListInterv &          aListInterv
+             const cIncListInterv &          aListInterv,
+             bool                            SpecFCUV
      )
 {
+   FnumCoorUseCsteVal = SpecFCUV;
    ELISE_ASSERT(aListInterv.IsConnexe0N(),"Bad Interv in cElCompileFN::DoEverything");
 
    cElCompileFN aECFN(aDir,aName,aListInterv);
@@ -1476,7 +1497,8 @@ void cElCompileFN::DoEverything
  // On parcourt une premiere fois  pour generer les variables, a toutes fins utiles
    for (INT aK=0; aK<INT(vFoncs.size()) ; aK++)
    {
-       aECFN << vFoncs[aK];
+       Fonc_Num aF = SimplifyFCUV( vFoncs[aK]);
+       aECFN << aF ;
        INT aNb = aListInterv.Surf();
        for (INT aD=0 ; aD<aNb ; aD++)
        {
@@ -1485,8 +1507,9 @@ void cElCompileFN::DoEverything
        }
    }
 
-   aECFN.MakeFileCpp(vFoncs);
-   aECFN.MakeFileH();
+   aECFN.MakeFileCpp(vFoncs,SpecFCUV);
+   aECFN.MakeFileH(SpecFCUV);
+   FnumCoorUseCsteVal = false;
 }
 
 void cElCompileFN::DoEverything

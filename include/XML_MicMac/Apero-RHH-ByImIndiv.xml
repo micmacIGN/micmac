@@ -42,8 +42,8 @@
        <SectionBDD_Observation>
              <BDD_PtsLiaisons>
                  <Id>    Id_Pastis_Hom  </Id>
-                 <KeySet>  NKS-RHH-Set-Homol@@dat@${MasterIm} </KeySet>
-                 <KeyAssoc> NKS-RHH-Assoc-CplIm2Data@@HomolH@dat     </KeyAssoc>
+                 <KeySet>  NKS-Set-RHH-Homol@@dat@${MasterIm} </KeySet>
+                 <KeyAssoc> NKS-Assoc-RHH-CplIm2Data@@HomolH@dat     </KeyAssoc>
              </BDD_PtsLiaisons>
              <BDD_ObsAppuisFlottant >
                   <Id> Id-Appui </Id>

@@ -234,6 +234,11 @@
       <LimBSurH Nb="?" Type="double" Def="1e-2"> </LimBSurH>
 </ParamEstimPlan>
 
+<RigidBlockWeighting Nb="1" Class="true" ToReference="true">
+    <PondOnTr Nb="1" Type="double"> </PondOnTr>
+   <PondOnRot Nb="1" Type="double"> </PondOnRot>
+</RigidBlockWeighting>
+
 <AperoPointeStereo Nb="1" Class="true" ToReference="true">
       <P1 Nb="1" Type="Pt2dr"> </P1>
       <Im1 Nb="1" Type="std::string"> </Im1>
@@ -602,6 +607,10 @@
               <BlockCamera Nb="*">
                     <NameFile Nb="1" Type="std::string"> </NameFile>
                     <Id   Nb="?" Type="std::string"> </Id>
+                    <UseForBundle Nb="?">
+                        <GlobalBundle Nb="1" Type="bool">      </GlobalBundle>
+                        <RelTimeBundle Nb="1" Type="bool">     </RelTimeBundle>
+                    </UseForBundle>
               </BlockCamera>
 
 
@@ -865,6 +874,7 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
               <IsAperiCloud Type="bool" Nb="?" Def="false"> </IsAperiCloud>  <!-- Dans ce cas, court-circuite +sieur meca -->
+              <IsChoixImSec Type="bool" Nb="?" Def="false"> </IsChoixImSec>  <!-- Dans ce cas, court-circuite +sieur meca -->
               <FileSauvParam Nb="?" Type="std::string"> </FileSauvParam>
               <GenereErreurOnContraineCam Nb="?" Type="bool" Def="true"> </GenereErreurOnContraineCam>
 	      <!--  Juste pour fixer les ordres de grandeur dans le cas d'une aero 
@@ -1213,6 +1223,8 @@ normalises en echelle et/ou en translation -->
                      <ObsBlockCamRig Nb="*">
                          <Id Nb="1" Type="std::string"> </Id>
                          <Show Type="bool" Nb="?" Def="false"> </Show>
+                         <GlobalPond Nb="?" RefType="RigidBlockWeighting"> </GlobalPond>
+                         <RelTimePond Nb="?" RefType="RigidBlockWeighting"> </RelTimePond>
                      </ObsBlockCamRig>
 
                       <!-- Ici il s'agit de point d'appuis "sur", -->
@@ -1504,6 +1516,7 @@ normalises en echelle et/ou en translation -->
 
                      <ChoixImMM Nb="?">
                           <ChoixImSec Nb="1">
+                               <FileImSel Nb="?" Type="std::string"> </FileImSel>
                                <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
                                <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
                                <CardMaxSub Nb="?" Type="int" Def="6"> </CardMaxSub>

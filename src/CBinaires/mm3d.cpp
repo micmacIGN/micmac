@@ -193,6 +193,10 @@ public :
 
 
 extern int CCL_main(int , char **);
+extern int ReprojImg_main(int , char **);
+extern int SimpleFusionCarte_main(int , char **);
+
+
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -211,9 +215,11 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Apero2Meshlab", Apero2Meshlab_main, "Convert Orientation from Apero-Micmac workflow to a meshlab-compatible format"));
        aRes.push_back(cMMCom("Bascule",Bascule_main," Generate orientations coherent with some physical information on the scene",cArgLogCom(2)));
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
-       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogenous measures",cArgLogCom(2)));
+       aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogeneous measures",cArgLogCom(2)));
        aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Change coordinate system of orientation",cArgLogCom(2)));
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
+       aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
+       aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
@@ -226,11 +232,11 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Drunk", Drunk_main," Images distortion removing tool"));
        aRes.push_back(cMMCom("ElDcraw",ElDcraw_main," Do some stuff"));
        aRes.push_back(cMMCom("GCPBascule",GCPBascule_main," Relative to absolute using GCP",cArgLogCom(2)));
-       aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with  GCP"));
+       aRes.push_back(cMMCom("GCPCtrl",GCPCtrl_main," Control accuracy with GCP"));
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
 
-       aRes.push_back(cMMCom("GrapheHom",GrapheHom_main," Compute XML-Visibility graph from approximative orientation ",cArgLogCom(3)));
+       aRes.push_back(cMMCom("GrapheHom",GrapheHom_main," Compute XML-Visibility graph from approximate orientation ",cArgLogCom(3)));
        aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriExport",OriExport_main," Export orientation from XML to XML or TXT with specified convention",cArgLogCom(3)));
@@ -265,7 +271,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MICMAC",MICMAC_main," Computes image matching from oriented images"));
        aRes.push_back(cMMCom("MMPyram",MMPyram_main," Computes pyram for micmac (internal use)",cArgLogCom(2)));
 
-       aRes.push_back(cMMCom("MMCalcSzWCor",CalcSzWCor_main," Compute Image of Size of correlation windows (Atomic tool, for adaptative window in geom imgae)",cArgLogCom(2)));
+       aRes.push_back(cMMCom("MMCalcSzWCor",CalcSzWCor_main," Compute Image of Size of correlation windows (Atomic tool, for adaptive window in geom image)",cArgLogCom(2)));
        aRes.push_back(cMMCom("MpDcraw",MpDcraw_main," Interface to dcraw"));
 
        aRes.push_back(cMMCom("MMTestOrient",MMTestOrient_main," Tool for testing quality of orientation"));
@@ -276,6 +282,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("MMMergeCloud",MM_FusionNuage_main," Merging of low resol cloud, in preparation 2 MicMac ",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("MergeDepthMap",FusionCarteProf_main," Merging of individual, stackable, depth maps "));
+       aRes.push_back(cMMCom("SMDM",SimpleFusionCarte_main," Simplified Merging of individual, stackable, depth maps "));
        aRes.push_back(cMMCom("MyRename",MyRename_main," File renaming using posix regular expression "));
        aRes.push_back(cMMCom("Genere_Header_TiffFile",Genere_Header_TiffFile_main," Generate Header for internal tiling format "));
 
@@ -301,7 +308,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ScaleIm",ScaleIm_main," Tool for image scaling"));
        aRes.push_back(cMMCom("StatIm",StatIm_main," Tool for basic stat on an image"));
        aRes.push_back(cMMCom("ConvertIm",ConvertIm_main," Tool for convertion inside tiff-format"));
-       aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a pannel of images "));
+       aRes.push_back(cMMCom("PanelIm",MakePlancheImage_main,"Tool for creating a panel of images "));
        aRes.push_back(cMMCom("ScaleNuage",ScaleNuage_main," Tool for scaling internal representation of point cloud"));
        aRes.push_back(cMMCom("Sift",Sift_main," Tool for extracting points of interest using Lowe's SIFT method"));
        aRes.push_back(cMMCom("SysCoordPolyn",SysCoordPolyn_main," Tool for creating a polynomial coordinate system from a set of known pair of coordinate"));
@@ -315,6 +322,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image",cArgLogCom(2,"../")));
        // aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
+       aRes.push_back(cMMCom("Tequila",Tequila_main," Texture mesh"));
+       aRes.push_back(cMMCom("TiPunch",TiPunch_main," Compute mesh"));
        aRes.push_back(cMMCom("TestCam",TestCam_main," Test camera orientation convention"));
        aRes.push_back(cMMCom("TestChantier",TestChantier_main," Test global acquisition"));
 
@@ -338,7 +347,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool to develop MPO stereo format in pair of images"));
 
-       aRes.push_back(cMMCom("Sake",Sake_main," Simplified MicMac interface for satellite images - work in progress!",cArgLogCom(3)));
+       aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images - work in progress!", cArgLogCom(3)));
+       aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
 
 #if (ELISE_QT_VERSION >= 4)
        aRes.push_back(cMMCom("SaisieAppuisInitQT",SaisieAppuisInitQT_main," Interactive tool for initial capture of GCP"));
@@ -383,9 +393,16 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo"));
        aRes.push_back(cMMCom("DIV",Devideo_main,"Developpement d'Images Video (require ffmpeg)"));
        aRes.push_back(cMMCom("Liquor",Liquor_main,"Orientation specialized for linear acquisition"));
-       aRes.push_back(cMMCom("Morito",Morito_main,"Merge set of Orientation with common values"));
+       aRes.push_back(cMMCom("Morito",Morito_main,"Merge set of Orientations with common values"));
        aRes.push_back(cMMCom("Donuts",Donuts_main,"Cyl to Torus (Donuts like)"));
        aRes.push_back(cMMCom("C3DC",C3DC_main,"Automatic Matching from Culture 3D Cloud project"));
+       aRes.push_back(cMMCom("PIMs",MPI_main,"Per Image Matchings"));
+       aRes.push_back(cMMCom("PIMs2Ply",MPI2Ply_main,"Generate Ply from Per Image Matchings"));
+       aRes.push_back(cMMCom("PIMs2Mnt",MPI2Mnt_main,"Generate Mnt from Per Image Matchings"));
+
+
+       aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force devlopment of all tif/xif file"));
+
    }
 
    cCmpMMCom CmpMMCom;
@@ -419,12 +436,14 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs);
 
 // =========================================================
 
+//TestLib declarations
 extern int  Sample_W0_main(int argc,char ** argv);
 extern int  Sample_LSQ0_main(int argc,char ** argv);
 extern int  Abdou_main(int argc,char ** argv);
-extern int  Luc_main(int argc,char ** argv);
+extern int  Luc_main(int argc, char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
-extern int  Mathieu_main(int argc,char ** argv);
+extern int  ProjetInfo_main(int argc,char ** argv);
+extern int  Matthieu_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
 extern int  CreateBlockEpip_main(int argc,char ** argv);
 extern int  TD_GenereAppuis_main(int argc,char ** argv);
@@ -432,6 +451,9 @@ extern int  TD_Exemple_main(int argc,char ** argv);
 extern int  TD_Sol1(int argc,char ** argv);
 extern int  TD_Sol2(int argc,char ** argv);
 extern int  TD_Sol3(int argc,char ** argv);
+extern int TD_Match1_main(int argc,char ** argv);
+extern int TD_Match2_main(int argc,char ** argv);
+extern int TD_Match3_main(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -444,6 +466,7 @@ extern int VisuCoupeEpip_main(int,char **);
 
 int ExoSimulTieP_main(int argc, char** argv);
 int ExoMCI_main(int argc, char** argv);
+int PseudoIntersect_main(int argc, char** argv);
 int  ExoCorrelEpip_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
@@ -454,6 +477,10 @@ int  Ortho2TieP_main(int argc,char ** argv);
 int  Idem_main(int argc,char ** argv);
 // int RHH_main(int argc,char **argv);
 
+extern int BasculePtsInRepCam_main(int argc,char ** argv);
+extern int BasculeCamsInRepCam_main(int argc,char ** argv);
+
+
 
 int MakeOneXmlXifInfo_main(int argc,char ** argv);
 
@@ -462,30 +489,53 @@ int Masq3Dto2D_main(int argc,char ** argv);
 int CPP_AppliMergeCloud(int argc,char ** argv);
 int MMEnveloppe_Main(int argc,char ** argv);
 int PlySphere_main(int argc,char ** argv);
+int Export2Ply_main(int argc,char **argv);
 int CASALL_main(int argc,char ** argv);
+extern int MMEnvStatute_main(int argc,char ** argv);
 
 
+int CheckOneHom_main(int argc,char ** argv);
+int CheckAllHom_main(int argc,char ** argv);
+int CheckOneTiff_main(int argc,char ** argv);
+int CheckAllTiff_main(int argc,char ** argv);
+
+
+int CheckOneOrient_main(int argc,char ** argv);
+int CheckAllOrient_main(int argc,char ** argv);
+int ChekBigTiff_main(int,char**);
+
+
+int TestNewOriImage_main(int argc,char ** argv);
+int PreparSift_Main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
+
+
+   aRes.push_back(cMMCom("PrepSift",PreparSift_Main,"Some stuff "));
+   aRes.push_back(cMMCom("TD1",TD_Match1_main,"Some stuff "));
+   aRes.push_back(cMMCom("TD2",TD_Match2_main,"Some stuff "));
+   aRes.push_back(cMMCom("TD3",TD_Match3_main,"Some stuff "));
+
    aRes.push_back(cMMCom("X1",TD_Sol1,"Some stuff "));
    aRes.push_back(cMMCom("X2",TD_Sol2,"Some stuff "));
    aRes.push_back(cMMCom("X3",TD_Sol3,"Some stuff "));
    aRes.push_back(cMMCom("W0",Sample_W0_main,"Test on Graphic Windows "));
    aRes.push_back(cMMCom("LSQ0",Sample_LSQ0_main,"Basic Test on Least Square library "));
-   aRes.push_back(cMMCom("Tests_Luc",Luc_main,"tests de Luc"));
-   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou "));
+   aRes.push_back(cMMCom("Tests_Luc", Luc_main, "tests de Luc"));
+   aRes.push_back(cMMCom("Abdou",Abdou_main,"Exemples fonctions abdou"));
    aRes.push_back(cMMCom("CheckOri",CheckOri_main,"Difference between two sets of orientations"));
    aRes.push_back(cMMCom("NLD",NLD_main,"test"));
    aRes.push_back(cMMCom("RTT",ResToTxt_main,"Transform residuals from GCPBascule into a readable file"));
-   aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favourable angles"));
+   aRes.push_back(cMMCom("SelTieP",SelTieP_main,"Select Tie Points with favorable angles"));
    aRes.push_back(cMMCom("Ortho2TieP",Ortho2TieP_main,"Select Tie Points from the orthophotography"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
-   aRes.push_back(cMMCom("TesSI",Mathieu_main,"Test SelectionInfos "));
+   aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
+   aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
-   aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples fonctions modifying cloud "));
+   aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Exemples functions modifying cloud "));
 
    aRes.push_back(cMMCom("BlocEpip",CreateBlockEpip_main,"Epip by bloc (internal use to // epip) "));
    aRes.push_back(cMMCom("MMSMA",MMSymMasqAR_main,"Symetrise Masque Alle-Retour (internal use in MM1P) "));
@@ -503,6 +553,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("MCI",ExoMCI_main,"Exercise for multi correlation in image geometry  "));
    aRes.push_back(cMMCom("ECE",ExoCorrelEpip_main,"Exercise for correlation in epipolar "));
    aRes.push_back(cMMCom("ESTP",ExoSimulTieP_main,"Tie points simulation  "));
+   aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
+   aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images"));
 
 
    aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
@@ -513,10 +565,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Xml2Dmp",Xml2Dmp_main,"Convert XML to Dump  "));
    aRes.push_back(cMMCom("Dmp2Xml",Dmp2Xml_main,"Convert Dump to Xml  "));
 
-    aRes.push_back(cMMCom("RefineModel",RefineModel_main,"Refine an approximate model "));
-    aRes.push_back(cMMCom("Refine",NewRefineModel_main,"Refine an approximate model "));
-    aRes.push_back(cMMCom("AddAffinity",AddAffinity_main,"Add an affinity, tuning"));
-    aRes.push_back(cMMCom("Dimap2Grid",Dimap2Grid_main,"Create a Grid file from a Dimap (SPOT or Pleiades) "));
+    aRes.push_back(cMMCom("AddAffinity", AddAffinity_main, "Add an affinity, tuning"));
     aRes.push_back(cMMCom("TP2GCP",ServiceGeoSud_TP2GCP_main,"Tie Points to Ground Control Points (for GeoSud services)"));
     aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));
     aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
@@ -525,13 +574,32 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 #endif
     aRes.push_back(cMMCom("MergeCloud",CPP_AppliMergeCloud,"Tool for merging overlapping depth maps from different view points"));
-    aRes.push_back(cMMCom("MMEnvlop",MMEnveloppe_Main,"Compute initial enveloppe surface for MMEpi "));
+    aRes.push_back(cMMCom("MMEnvlop",MMEnveloppe_Main,"Compute initial envelope surface for MMEpi "));
     aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
+
+    aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning"));
+
     aRes.push_back(cMMCom("CASALL",CASALL_main,"Compute Analytic Surface Automatically  low level"));
-    aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Stoe Auto Correlation (if not already done)"));
+    aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Store Auto Correlation (if not already done)"));
 
     aRes.push_back(cMMCom("CLIC",CCL_main,"Cam Light Imag Correc)"));
+    aRes.push_back(cMMCom("MMEnvStatute",MMEnvStatute_main,"Envelope for mode statue"));
+    aRes.push_back(cMMCom("TopoBasc",TopoSurf_main,"Topological analysis before bascule"));
 
+
+    aRes.push_back(cMMCom("Check1Hom",CheckOneHom_main,"Check One File Homologue"));
+    aRes.push_back(cMMCom("CheckAllHom",CheckAllHom_main,"Check All File Homologue"));
+    aRes.push_back(cMMCom("Check1Tiff",CheckOneTiff_main,"Check All File Homologue"));
+    aRes.push_back(cMMCom("CheckAllTiff",CheckAllTiff_main,"Check All File Homologue"));
+    aRes.push_back(cMMCom("CheckBigTiff",ChekBigTiff_main,"Check creation of a big file"));
+
+
+    aRes.push_back(cMMCom("Check1Ori",CheckOneOrient_main,"Check One Orientation"));
+    aRes.push_back(cMMCom("CheckAllOri",CheckAllOrient_main,"Check a Folder of Orientation"));
+
+    aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
+    aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
+    aRes.push_back(cMMCom("TNO",TestNewOriImage_main,"Test New Orientation"));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
@@ -539,17 +607,51 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    return aRes;
 }
 
-int SampleLibElise_main(int argc,char ** argv)
+int SampleLibElise_main(int argc, char ** argv)
 {
 
     // std::cout << "TEST ELISE LIB\n";
 
-    GenMain(argc,argv,TestLibAvailableCommands());
+    GenMain(argc, argv, TestLibAvailableCommands());
 
 
     return 0;
 }
 
+//SateLib declarations
+extern int RPC_main(int argc, char ** argv);
+extern int NewRefineModel_main(int argc, char **argv);
+extern int RefineModel_main(int argc, char **argv);
+extern int Dimap2Grid_main(int argc, char **argv);
+extern int DigitalGlobe2Grid_main(int argc, char **argv);
+extern int Aster2Grid_main(int argc, char **argv);
+extern int AsterDestrip_main(int argc, char **argv);
+
+const std::vector<cMMCom> & SateLibAvailableCommands()
+{
+    static std::vector<cMMCom> aRes;
+
+    aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcoming RPC functions"));
+    aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
+    aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
+    aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "WARNING: NON FUNCTIONAL, will Create a Grid file from the meta-data of an Aster Images"));
+    aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
+    aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
+    aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
+
+    cCmpMMCom CmpMMCom;
+    std::sort(aRes.begin(), aRes.end(), CmpMMCom);
+
+    return aRes;
+}
+
+int SateLib_main(int argc, char ** argv)
+{
+
+    GenMain(argc, argv, SateLibAvailableCommands());
+
+    return 0;
+}
 
 //=====================================
 
@@ -592,9 +694,12 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    // TheExitOnBrkp=aValInit_TheExitOnBrkp;
 
    std::string aCom = argv[1];
-   std::string aLowCom = current_program_subcommand();
+   // std::string aLowCom = current_program_subcommand();
+   std::string aLowCom =  StrToLower(aCom);  // MPD modif, sinon suggestions de marche pas en TestLib
 
    std::vector<cSuggest *> mSugg;
+
+//  std::cout << "JJJJJ " << aLowCom << " " << aCom  << " " << StrToLower(aCom) << "\n";
 
    cSuggest *PatMach    = new cSuggest("Pattern Match",aLowCom);
    cSuggest *PrefMach   = new cSuggest("Prefix Match",aLowCom+".*");
@@ -649,7 +754,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
 
 
    std::cout << "For command = " << argv[1] << "\n";
-   ELISE_ASSERT(false,"Unkown command in mm3d");
+   ELISE_ASSERT(false,"Unknown command in mm3d");
 
    delete PatMach;
    delete PrefMach;

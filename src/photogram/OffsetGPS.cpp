@@ -90,10 +90,19 @@ cEqOffsetGPS::cEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS & aBase,bool doGenCo
     mRot  (&aRF),
     mBase (&aBase),
     mGPS  ("GPS"),
-    mNameType ("cEqObsBaseGPS"),
+    mNameType ("cEqObsBaseGPS" + std::string(aRF.IsGL() ? "_GL" : "")),
     mResidu   (mRot->C2M(mBase->BaseInc())- mGPS.PtF()),
     mFoncEqResidu (0)
 {
+/*
+    ELISE_ASSERT
+    (
+       (! aRF.IsGL()),
+       "cEqOffsetGPS to complete in Gimbal Lock Mode"
+    );
+*/
+
+
     AllowUnsortedVarIn_SetMappingCur = true;
     ELISE_ASSERT
     (
@@ -111,12 +120,14 @@ cEqOffsetGPS::cEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS & aBase,bool doGenCo
      if (doGenCode)
      {
          GenCode();
+         return;
      }
 
      mFoncEqResidu = cElCompiledFonc::AllocFromName(mNameType);
      ELISE_ASSERT(mFoncEqResidu!=0,"Cannot allocate cEqObsBaseGPS");
      mFoncEqResidu->SetMappingCur(mLInterv,mSet);
 
+     //  GL 
      mGPS.InitAdr(*mFoncEqResidu);
      mSet->AddFonct(mFoncEqResidu);
 }
@@ -144,6 +155,14 @@ void cEqOffsetGPS::GenCode()
 Pt3dr  cEqOffsetGPS::AddObs(const Pt3dr & aGPS,const Pt3dr & aPds)
 {
      mGPS.SetEtat(aGPS);
+     if (mRot->IsGL())
+     {
+         ELISE_ASSERT(false,"cEqOffsetGPS::AddObs GL to complete");
+        //     mMatriceGL      (isGL ? new cMatr_Etat_PhgrF("GL",3,3) : 0),
+        //   mMatriceGL->SetEtat(mRot.MGL());
+
+     }
+
      std::vector<double> aVPds;
      aVPds.push_back(aPds.x);
      aVPds.push_back(aPds.y);
@@ -210,17 +229,23 @@ cEqOffsetGPS * cSetEqFormelles::NewEqOffsetGPS(cCameraFormelle & aCam,cBaseGPS  
 //               cEqOffsetGPS * NewEqOffsetGPS(cCameraFormelle & aRF,cBaseGPS  &aBase);
 
 
-void GenerateCodeEqOffsetGPS()
+void GenerateCodeEqOffsetGPS(bool aGL)
 {
      cSetEqFormelles aSet;
 
      ElRotation3D aRot(Pt3dr(0,0,0),0,0,0);
      cRotationFormelle * aRF = aSet.NewRotation (cNameSpaceEqF::eRotLibre,aRot);
+     aRF->SetGL(aGL);
 
      cBaseGPS * aBase = aSet.NewBaseGPS(Pt3dr(0,0,0));
      aSet.NewEqOffsetGPS(*aRF,*aBase,true);
 }
 
+void GenerateCodeEqOffsetGPS()
+{
+    GenerateCodeEqOffsetGPS(false);
+    GenerateCodeEqOffsetGPS(true);
+}
 
 
 // cEqOffsetGPS::cEqOffsetGPS(cRotationFormelle & aRF,Pt3d<Fonc_Num>  &aBase)

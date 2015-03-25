@@ -43,6 +43,22 @@ public:
     float m_speed;
 };
 
+class deviceIOCamera
+{
+public:
+	virtual cCamHandler*  loadCamera(QString aNameFile) = 0;
+};
+
+class deviceIOImage
+{
+public:
+	virtual QImage*	loadImage(QString aNameFile) = 0;
+
+	virtual QImage*	loadMask(QString aNameFile) = 0;
+
+	virtual void	doMaskImage(QImage &mask,QString &aNameFile) = 0;
+};
+
 class cLoader
 {
 
@@ -50,16 +66,13 @@ public:
 
     cLoader();
 
-    CamStenope* loadCamera(QString aNameFile);
+	cCamHandler* loadCamera(QString aNameFile);
 
     GlCloud*    loadCloud(string i_ply_file , int *incre = NULL);
 
-    void        loadImage(QString aNameFile, QMaskedImage &maskedImg);
+	void        loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor = 1.f);
 
-    void        loadMask(QString aNameFile, QMaskedImage &maskedImg);
-
-    //! Check if georeferencing data exists (for box2d mode)
-    void        checkGeoref(QString aNameFile, QMaskedImage &maskedImg);
+	void        loadMask(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor = 1.f);
 
     void        setFilenames(QStringList const &strl);
     void        setFilenameOut(QString str);
@@ -70,11 +83,23 @@ public:
 
     void        setPostFix(QString str);
 
+	void memory();
+
+	deviceIOCamera* devIOCamera() const;
+	void setDevIOCamera(deviceIOCamera* devIOCamera);
+
+	deviceIOImage* devIOImageAlter() const;
+	void setDevIOImageAlter(deviceIOImage* devIOImageAlter);
+
 private:
-    QStringList _FilenamesIn;
-    QStringList _FilenamesOut; //binary masks
-    QStringList _SelectionOut; //selection infos
+	QStringList _FilenamesIn;
+	QStringList _FilenamesOut; //binary masks
+	QStringList _SelectionOut; //selection infos
     QString     _postFix;
+
+	deviceIOCamera* _devIOCamera;
+
+	deviceIOImage*  _devIOImageAlter;
 };
 
 class cGLData;
@@ -125,7 +150,7 @@ public:
     void    loadImages(QStringList, int *incre = NULL);
 
     //! Load image (and mask) file
-    void    loadImage(QString imgName, float scaleFactor);
+	void    loadImage(QString imgName, float scaleFactor = 1.f);
 
     //void    reloadImage(int appMode, int aK);
     void    reloadMask(int appMode, int aK);
@@ -139,7 +164,7 @@ public:
     void    unload(int aK);
 
     //! Compute mask binary images: projection of visible points into loaded cameras
-    void    do3DMasks();
+//    void    do3DMasks();
 
     //! Creates binary image from selection and saves
     void    doMaskImage(ushort idCur, bool isFirstAction);
@@ -160,24 +185,23 @@ public:
 
     int     nbGLData(){return (int)_vGLData.size();}
 
-    void    computeScaleFactor(const QStringList &filenames);
+	float	computeScaleFactor(QStringList &filenames);
     bool    extGLIsSupported(const char *strExt);
     void    setGLMaxTextureSize(int size) { _glMaxTextSize = size; }
 
+	cLoader* Loader() const;
+	void setLoader(cLoader* Loader);
+
 private:
 
-    cLoader*            _Loader;
-    cData*              _Data;
+	cLoader*            _Loader;
+	cData*              _Data;
 
     QVector <cGLData*>  _vGLData;
 
     cParameters*        _params;
 
     int                 _glMaxTextSize;
-    float               _scaleFactor;
 };
-
-
-
 
 #endif // ENGINE_H

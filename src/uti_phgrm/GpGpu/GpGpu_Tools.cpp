@@ -74,6 +74,13 @@ void GpGpuTools::NvtxR_Push(const char* message, int32_t color)
 
 }
 #endif
+void GpGpuTools::Nvtx_RangePop()
+{
+#ifdef NVTOOLS
+	nvtxRangePop();
+#endif
+}
+
 float GpGpuTools::fValue( float value,float factor )
 {
 	return value * factor;

@@ -76,6 +76,7 @@ int MMPyram_main(int argc,char ** argv)
 
    std::cout << "Com = " << aCom << "\n";
    int aRes = system_call(aCom.c_str());
+   ELISE_fp::PurgeDir(aDir+"MM-Pyram/",true);
 
 
    return aRes;

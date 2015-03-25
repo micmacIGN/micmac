@@ -123,7 +123,7 @@ class Tiff_Im : public ElGenFileIm
                eRATIONNAL = 5
         } FIELD_TYPE;
 
-        static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE);
+        static GenIm::type_el  to_Elise_Type_Num(FIELD_TYPE,const char * aNameFile);
 
         typedef enum
         {
@@ -158,8 +158,8 @@ class Tiff_Im : public ElGenFileIm
              CMYK          = 5,
              YCbCr         = 6,
              CIELab        = 8,
-         PtDeLiaison   = 10531, // Une valeur peu succeptible de telescopage
-         // PtDAppuisDense : il y 4 cannaux,Pds, xy et z superposables aux images
+         PtDeLiaison   = 10531, // Une valeur peu susceptible de telescopage
+         // PtDAppuisDense : il y 4 canaux,Pds, xy et z superposables aux images
          PtDAppuisDense  = 10532
         }  PH_INTER_TYPE;
 
@@ -410,6 +410,7 @@ class Tiff_Im : public ElGenFileIm
       static Tiff_Im  UnivConvStd(const ElSTDNS string & Name);   // cree des tifs cache pour les RAW-JPGS (uses StdConvGen)
           // Convertit (avec NameFileStd) les jpg , raw et tif comprs
       static Tiff_Im  StdConvGen(const ElSTDNS string & Name,int aNbChan,bool Cons16B,bool ExigNoCompr = true);
+      static Tiff_Im  SpecialFilterSift(const ElSTDNS string & Name);
 
       // Test dand l'ordre aName + ".tif" et aName
       static std::string GetNameOfFileExist(const std::string & aName);
@@ -427,6 +428,8 @@ class Tiff_Im : public ElGenFileIm
 
      static Tiff_Im CreateFromFonc(const std::string &,Pt2di,Fonc_Num,GenIm::type_el);
      static Tiff_Im CreateFromFonc(const std::string &,Pt2di,Fonc_Num,GenIm::type_el,COMPR_TYPE);
+
+           Tiff_Im  Dupl(const std::string&); // Avec meme carac mais nom different
 
          static void SetDefTileFile(int);
          static int DefTileFile() ;
@@ -504,14 +507,18 @@ void MakeTiffRed2BinaireWithCaracIdent
           Pt2di                 aSzRed=Pt2di(-1,-1)
      );
 
-// A priori ExigB8 est redondant avec cons16B, mais ai des doutes et pour assurer la compat ....
 
+Tiff_Im PastisTif(const std::string &  aName);
+std::string PastisNameFileStd(const std::string & aFullNameOri);
+
+// A priori ExigB8 est redondant avec cons16B, mais ai des doutes et pour assurer la compat ....
 std::string NameFileStd(const std::string & aFullNameOri,int aNbChan,bool cons16B,bool ExigNoCompr = true,bool Create= true,bool ExigB8=false);
-// std::string NoCreateNameFileStd(const std::string & aFullNameOri);
 bool IsKnownTifPost(const std::string & aPost);
 bool IsKnownJPGPost(const std::string & aPost);
 bool IsPostfixedJPG(const std::string & aName);
 
+
+extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename);
 
 
 

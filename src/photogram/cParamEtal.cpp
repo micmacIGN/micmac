@@ -363,7 +363,7 @@ void cParamEtal::InitFromFile(const std::string & aNameFile)
               <<   EAM(mSeuilPonder,"SeuilPonder",true)
      );
 
-     mDirectory = StdWokdDir(mDirectory,aNameFile);
+     mDirectory = StdWorkdDir(mDirectory,aNameFile);
      mNameFile = NameWithoutDir(aNameFile);
 
      ELISE_ASSERT

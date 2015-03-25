@@ -1129,6 +1129,34 @@ double ProfFromCam(const ElRotation3D & anOr,const Pt3dr & aP)
 
 }
 
+ElMatrix<REAL>  VectRotationArroundAxe(const Pt3dr & aV00,double aTeta)
+{
+  Pt3dr aV0 = aV00;
+  Pt3dr aV1,aV2;
+  MakeRONWith1Vect(aV0,aV1,aV2);
+
+  return ComplemRotation(aV0,aV1,aV0,aV1*cos(aTeta) + aV2*sin(aTeta));
+
+}
+
+ElRotation3D RotationOfInvariantPoint(const Pt3dr & aP0 ,const ElMatrix<double> & aMat)
+{
+    return ElRotation3D(aP0 - aMat*aP0,aMat,true);
+}
+
+ElRotation3D  AffinRotationArroundAxe(const ElSeg3D & aSeg,double aTeta)
+{
+    return RotationOfInvariantPoint(aSeg.P0(), VectRotationArroundAxe(aSeg.Tgt(),aTeta));
+}
+
+
+/*
+ElMatrix<REAL>  VectRotationArroundAxe(const Pt3dr &,double aTeta);
+ElRotation3D  AffinRotationArroundAxe(const ElSeg3D &,double aTeta);
+ElRotation3D RotationOfInvariantPoint(const Pt3dr & ,const ElMatrix<double> &);
+*/
+
+
 //  Q1 = tr1 + Mat1 * aP1
 //  X2 = S2toS1(X1) = S2.FromSys2This(S1,X1)
 //  X1 = S1.FromSys2This(S2,X2)
@@ -1190,6 +1218,26 @@ template ElMatrix<REAL> MatFromCol (Pt3d<REAL>,Pt3d<REAL>,Pt3d<REAL>);
 template ElMatrix<REAL> MatFromCol (Pt2d<REAL>,Pt2d<REAL>);
 template ElMatrix<REAL16> MatFromCol (Pt2d<REAL16>,Pt2d<REAL16>);
 template ElMatrix<Fonc_Num> MatFromCol (Pt2d<Fonc_Num>,Pt2d<Fonc_Num>);
+
+//   X     A     YC - BZ      0 -Z  Y    A
+//   Y  ^  B  =  ZA - XC   =  Z  0 -X  * B
+//   Z     C     XB - YA      -Y X  0    C
+
+ElMatrix<REAL>  MatProVect(const Pt3dr & aP)
+{
+   ElMatrix<REAL> aRes (3,3);
+   aRes(0,0) = 0;
+   aRes(1,0) = -aP.z;
+   aRes(2,0) =  aP.y;
+   aRes(0,1) = aP.z;
+   aRes(1,1) = 0;
+   aRes(2,1) = -aP.x;
+   aRes(0,2) = -aP.y;
+   aRes(1,2) = aP.x,
+   aRes(2,2) = 0.0;
+
+   return aRes;
+}
 
 
 
@@ -1285,7 +1333,7 @@ template <class Type>  void  TplElRotation3D<Type>::AssertTrueRot() const
    }
    else
    {
-       ELISE_ASSERT(mTrueRot,"Excpecting true rotation");
+       ELISE_ASSERT(mTrueRot,"Expecting true rotation");
    }
 }
 

@@ -214,6 +214,17 @@ const cTplValGesInit< Pt3dr > & cPointGlob::P3D()const
 }
 
 
+cTplValGesInit< Pt3dr > & cPointGlob::Pt3DFromDico()
+{
+   return mPt3DFromDico;
+}
+
+const cTplValGesInit< Pt3dr > & cPointGlob::Pt3DFromDico()const 
+{
+   return mPt3DFromDico;
+}
+
+
 cTplValGesInit< bool > & cPointGlob::Mes3DExportable()
 {
    return mMes3DExportable;
@@ -349,6 +360,14 @@ void  BinaryUnDumpFromFile(cPointGlob & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.Pt3DFromDico().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Pt3DFromDico().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Pt3DFromDico().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.Mes3DExportable().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.Mes3DExportable().ValForcedForUnUmp(),aFp);
         }
@@ -434,6 +453,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPointGlob & anObj)
     BinaryDumpInFile(aFp,anObj.Name());
     BinaryDumpInFile(aFp,anObj.P3D().IsInit());
     if (anObj.P3D().IsInit()) BinaryDumpInFile(aFp,anObj.P3D().Val());
+    BinaryDumpInFile(aFp,anObj.Pt3DFromDico().IsInit());
+    if (anObj.Pt3DFromDico().IsInit()) BinaryDumpInFile(aFp,anObj.Pt3DFromDico().Val());
     BinaryDumpInFile(aFp,anObj.Mes3DExportable().IsInit());
     if (anObj.Mes3DExportable().IsInit()) BinaryDumpInFile(aFp,anObj.Mes3DExportable().Val());
     BinaryDumpInFile(aFp,anObj.Incert().IsInit());
@@ -464,6 +485,8 @@ cElXMLTree * ToXMLTree(const cPointGlob & anObj)
    aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
    if (anObj.P3D().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("P3D"),anObj.P3D().Val())->ReTagThis("P3D"));
+   if (anObj.Pt3DFromDico().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Pt3DFromDico"),anObj.Pt3DFromDico().Val())->ReTagThis("Pt3DFromDico"));
    if (anObj.Mes3DExportable().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Mes3DExportable"),anObj.Mes3DExportable().Val())->ReTagThis("Mes3DExportable"));
    if (anObj.Incert().IsInit())
@@ -500,6 +523,8 @@ void xml_init(cPointGlob & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.P3D(),aTree->Get("P3D",1)); //tototo 
 
+   xml_init(anObj.Pt3DFromDico(),aTree->Get("Pt3DFromDico",1)); //tototo 
+
    xml_init(anObj.Mes3DExportable(),aTree->Get("Mes3DExportable",1)); //tototo 
 
    xml_init(anObj.Incert(),aTree->Get("Incert",1)); //tototo 
@@ -521,7 +546,7 @@ void xml_init(cPointGlob & anObj,cElXMLTree * aTree)
    xml_init(anObj.FromDico(),aTree->Get("FromDico",1)); //tototo 
 }
 
-std::string  Mangling( cPointGlob *) {return "58044E838F1588CAFBBF";};
+std::string  Mangling( cPointGlob *) {return "CE04521A66A37CDAFE3F";};
 
 
 std::list< cPointGlob > & cSetPointGlob::PointGlob()
@@ -580,7 +605,7 @@ void xml_init(cSetPointGlob & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointGlob(),aTree->GetAll("PointGlob",false,1));
 }
 
-std::string  Mangling( cSetPointGlob *) {return "D529A4EC704CC49AFF3F";};
+std::string  Mangling( cSetPointGlob *) {return "0806226174F19493FF3F";};
 
 
 eEtatPointeImage & cOneSaisie::Etat()
@@ -1524,6 +1549,28 @@ const cTplValGesInit< cProfEstimator > & cSectionTerrain::ProfEstimator()const
    return mProfEstimator;
 }
 
+
+cTplValGesInit< std::string > & cSectionTerrain::Masq3DFilterVis()
+{
+   return mMasq3DFilterVis;
+}
+
+const cTplValGesInit< std::string > & cSectionTerrain::Masq3DFilterVis()const 
+{
+   return mMasq3DFilterVis;
+}
+
+
+cTplValGesInit< std::string > & cSectionTerrain::PIMsFilterVis()
+{
+   return mPIMsFilterVis;
+}
+
+const cTplValGesInit< std::string > & cSectionTerrain::PIMsFilterVis()const 
+{
+   return mPIMsFilterVis;
+}
+
 void  BinaryUnDumpFromFile(cSectionTerrain & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -1542,6 +1589,22 @@ void  BinaryUnDumpFromFile(cSectionTerrain & anObj,ELISE_fp & aFp)
         }
         else  anObj.ProfEstimator().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Masq3DFilterVis().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Masq3DFilterVis().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Masq3DFilterVis().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PIMsFilterVis().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PIMsFilterVis().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PIMsFilterVis().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionTerrain & anObj)
@@ -1550,6 +1613,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionTerrain & anObj)
     if (anObj.IntervPercProf().IsInit()) BinaryDumpInFile(aFp,anObj.IntervPercProf().Val());
     BinaryDumpInFile(aFp,anObj.ProfEstimator().IsInit());
     if (anObj.ProfEstimator().IsInit()) BinaryDumpInFile(aFp,anObj.ProfEstimator().Val());
+    BinaryDumpInFile(aFp,anObj.Masq3DFilterVis().IsInit());
+    if (anObj.Masq3DFilterVis().IsInit()) BinaryDumpInFile(aFp,anObj.Masq3DFilterVis().Val());
+    BinaryDumpInFile(aFp,anObj.PIMsFilterVis().IsInit());
+    if (anObj.PIMsFilterVis().IsInit()) BinaryDumpInFile(aFp,anObj.PIMsFilterVis().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionTerrain & anObj)
@@ -1560,6 +1627,10 @@ cElXMLTree * ToXMLTree(const cSectionTerrain & anObj)
       aRes->AddFils(::ToXMLTree(std::string("IntervPercProf"),anObj.IntervPercProf().Val())->ReTagThis("IntervPercProf"));
    if (anObj.ProfEstimator().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ProfEstimator().Val())->ReTagThis("ProfEstimator"));
+   if (anObj.Masq3DFilterVis().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Masq3DFilterVis"),anObj.Masq3DFilterVis().Val())->ReTagThis("Masq3DFilterVis"));
+   if (anObj.PIMsFilterVis().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PIMsFilterVis"),anObj.PIMsFilterVis().Val())->ReTagThis("PIMsFilterVis"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -1573,9 +1644,13 @@ void xml_init(cSectionTerrain & anObj,cElXMLTree * aTree)
    xml_init(anObj.IntervPercProf(),aTree->Get("IntervPercProf",1),double(10.0)); //tototo 
 
    xml_init(anObj.ProfEstimator(),aTree->Get("ProfEstimator",1)); //tototo 
+
+   xml_init(anObj.Masq3DFilterVis(),aTree->Get("Masq3DFilterVis",1)); //tototo 
+
+   xml_init(anObj.PIMsFilterVis(),aTree->Get("PIMsFilterVis",1)); //tototo 
 }
 
-std::string  Mangling( cSectionTerrain *) {return "DC9A24F02C66BCB5FE3F";};
+std::string  Mangling( cSectionTerrain *) {return "9670D68A763FEBAFFE3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamSaisiePts::DicoLoc()
@@ -1864,6 +1939,28 @@ const cTplValGesInit< cProfEstimator > & cParamSaisiePts::ProfEstimator()const
 }
 
 
+cTplValGesInit< std::string > & cParamSaisiePts::Masq3DFilterVis()
+{
+   return SectionTerrain().Masq3DFilterVis();
+}
+
+const cTplValGesInit< std::string > & cParamSaisiePts::Masq3DFilterVis()const 
+{
+   return SectionTerrain().Masq3DFilterVis();
+}
+
+
+cTplValGesInit< std::string > & cParamSaisiePts::PIMsFilterVis()
+{
+   return SectionTerrain().PIMsFilterVis();
+}
+
+const cTplValGesInit< std::string > & cParamSaisiePts::PIMsFilterVis()const 
+{
+   return SectionTerrain().PIMsFilterVis();
+}
+
+
 cSectionTerrain & cParamSaisiePts::SectionTerrain()
 {
    return mSectionTerrain;
@@ -1947,6 +2044,6 @@ void xml_init(cParamSaisiePts & anObj,cElXMLTree * aTree)
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamSaisiePts *) {return "3FE47656AAF6DAA8FC3F";};
+std::string  Mangling( cParamSaisiePts *) {return "46D7A90EDA917184FE3F";};
 
 // };

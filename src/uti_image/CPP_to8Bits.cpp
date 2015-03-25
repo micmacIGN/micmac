@@ -156,7 +156,9 @@ int to8Bits_main(int argc,char ** argv)
         if (Coul < 0)
             Coul = Circ;
 
-        Tiff_Im tiff = Tiff_Im::StdConvGen(aNameIn.c_str(),1,true,false);
+        // Tiff_Im tiff = Tiff_Im::StdConvGen(aNameIn.c_str(),1,true,false);
+        // MPD , sinon RGB => Black
+        Tiff_Im tiff = Tiff_Im::StdConvGen(aNameIn.c_str(),-1,true,false);
 
 
 

@@ -1,9 +1,11 @@
 #ifndef SAISIEQTWINDOW_H
 #define SAISIEQTWINDOW_H
 
+#include "Elise_QT.h"
 #include "GLWidgetSet.h"
 #include "Settings.h"
-#include "Tree.h"
+
+void setStyleSheet(QApplication &app);
 
 namespace Ui {
 class SaisieQtWindow;
@@ -24,10 +26,6 @@ public:
     QString getPostFix();
 
     void runProgressDialog(QFuture<void> future);
-
-    void readSettings();
-
-    void writeSettings();
 
     void applyParams();
 
@@ -57,7 +55,7 @@ public:
 
     void    resizeTables();
 
-    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images, QAbstractItemModel *model_Objects);
+	void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
 
     void    SelectPointAllWGL(QString pointName = QString(""));
 
@@ -80,9 +78,21 @@ public:
 
     cParameters *params() const;
 
-    void setParams(cParameters *params);
+    void    setParams(cParameters *params);
 
 
+
+    deviceIOCamera* devIOCamera() const;
+    void setDevIOCamera(deviceIOCamera* devIOCamera);
+
+    deviceIOImage* devIOImage() const;
+    void setDevIOImage(deviceIOImage* devIOImage);
+
+    int hg_revision() const;
+    void setHg_revision(int hg_revision);
+
+    QString banniere() const;
+    void setBanniere(const QString& banniere);
 
 public slots:
 
@@ -201,11 +211,18 @@ protected slots:
     void resizeEvent(QResizeEvent *);
     void moveEvent(QMoveEvent *);
 
+    void setNavigationType(int val);
+
+
+	void on_actionShow_Zoom_window_toggled(bool show);
+	void on_actionShow_3D_view_toggled(bool show);
+	void on_actionShow_list_polygons_toggled(bool show);
 protected:
 
     //! Connects all QT actions to slots
     void connectActions();
 
+	void setModelObject(QAbstractItemModel* model_Objects);
 private:
 
     void                    createRecentFileMenu();
@@ -243,5 +260,52 @@ private:
 
     bool                    _bSaved;
 
+    deviceIOCamera*			_devIOCamera;
+
+    int						_hg_revision;
+
+    QString					_banniere;
+
 };
+
+
+class ObjectsSFModel : public QSortFilterProxyModel
+{
+	Q_OBJECT
+
+public:
+	ObjectsSFModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+
+protected:
+	bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+
+};
+
+class ModelObjects : public QAbstractTableModel
+{
+	Q_OBJECT
+public:
+
+	ModelObjects(QObject *parent, HistoryManager* hMag);
+
+	int             rowCount(const QModelIndex &parent = QModelIndex()) const ;
+
+	int             columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+	QVariant        data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+	QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
+
+	/*bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+
+	Qt::ItemFlags   flags(const QModelIndex &index) const;*/
+
+	bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
+
+private:
+
+	HistoryManager *		_hMag;
+
+};
+
 #endif // MAINWINDOW_H

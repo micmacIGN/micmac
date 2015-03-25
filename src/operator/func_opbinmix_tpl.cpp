@@ -47,6 +47,26 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*             OP_Bin_TPL                                      */
 /*                                                             */
 /***************************************************************/
+
+
+
+Fonc_Num Op_Bin_Not_Comp::Simplify() 
+{
+   std::string aStrName(_name);
+   if (aStrName == "+") return _f0.Simplify() +  _f1.Simplify();
+   if (aStrName == "*") return _f0.Simplify() *  _f1.Simplify();
+   if (aStrName == "/") return _f0.Simplify() /  _f1.Simplify();
+   if (aStrName == "-") return _f0.Simplify() -  _f1.Simplify();
+   if (aStrName == "pow") return pow(_f0.Simplify(),_f1.Simplify());
+
+   //if (aStrName == "+") return _f0.Simplify() +  _f1.Simplify();
+
+
+   std::cout << "FOR operator = " << aStrName << "\n";
+   ELISE_ASSERT(false,"Unhandled operator in Simplify");
+   return 0;
+}
+
 Fonc_Num Op_Bin_Not_Comp::deriv(INT k) const
 {
     return _OpBinDeriv(_f0,_f1,k);
@@ -526,6 +546,13 @@ Fonc_Num operator - (Fonc_Num f1,Fonc_Num f2)
 REAL CppPow(REAL x,REAL y) {return pow(x,y);}
 Fonc_Num pow (Fonc_Num f1,Fonc_Num f2)
 {
+     if (f1.is0()) return 0;
+     if (f1.is1()) return 1;
+     if (f2.is0()) return 1;
+     if (f2.is1()) return f1;
+
+
+
      return Op_Bin_Mix_Not_Comp::New(f1,f2,OpPow2,false,"pow",CppPow,NoDeriv,NoValDeriv,StdMixDegre);
 };
 

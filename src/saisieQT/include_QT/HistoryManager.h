@@ -4,8 +4,6 @@
 #include "Elise_QT.h"
 #include <iostream>
 
-
-
 struct selectInfos
 {
     selectInfos(){}

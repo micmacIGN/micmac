@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 extern bool ResidualStepByStep ;
 
 
+void AjustNormalSortante(bool Sortante,Pt3dr & aNorm, const ElCamera * aCS1,const Pt2dr &aPIm);
+
 
 double  GuimbalAnalyse(const ElRotation3D & aR,bool show);
 
@@ -1060,7 +1062,7 @@ class cObsLiaisonMultiple
           void ClearAggregImage();
 
 
-           Pt3dr CentreNuage(const cMasqBin3D * =0 ) const;
+           Pt3dr CentreNuage(const cMasqBin3D * ,int * aNb) const;
 
 
 
@@ -1847,6 +1849,7 @@ class cAppliApero : public NROptF1vND
 {
     public :
 
+       void DebugPbConvAppui();
 
         int  NumSauvAuto() const {return  mNumSauvAuto;}
         bool NumIterDebug() const;
@@ -2133,7 +2136,8 @@ class cAppliApero : public NROptF1vND
 	 void InitAndCompileBDDObsFlottant();
 	 void InitHasEqDr();
 
-          void DoAMD();
+         void DoAMD();
+         void AMD_AddBlockCam();
 
           void VerifAero(const cVerifAero & aVA);
           void VerifAero(const cVerifAero & aVA,cPoseCam *,cObsLiaisonMultiple  &);
@@ -2226,6 +2230,9 @@ class cAppliApero : public NROptF1vND
         void AddObservationsRigidGrp(const std::list<cObsRigidGrpImage> &,bool IsLastIter,cStatObs & aSO);
         void AddObservationsRigidGrp(const cObsRigidGrpImage &,bool IsLastIter,cStatObs & aSO);
 
+        void AddObservationsRigidBlockCam(const cObsBlockCamRig &,bool IsLastIter,cStatObs & aSO);
+        void AddObservationsRigidBlockCam(const std::list<cObsBlockCamRig> &,bool IsLastIter,cStatObs & aSO);
+
         double AddAppuisOnePose
               (
                  const cObsAppuis &,cObserv1Im<cTypeEnglob_Appuis> *,
@@ -2244,7 +2251,7 @@ class cAppliApero : public NROptF1vND
         void  ExportVisuConfigPose(const cExportVisuConfigGrpPose & anEVCGP);
 
         void ExportImMM(const cChoixImMM &);
-        void ExportImSecMM(const cChoixImMM &,cPoseCam *,const cMasqBin3D * aMasq3D);
+        bool ExportImSecMM(const cChoixImMM &,cPoseCam *,const cMasqBin3D * aMasq3D);
 
          void ExportMesuresFromCarteProf(const cExportMesuresFromCarteProf&);
          void ExportMesuresFromCarteProf
@@ -2255,6 +2262,14 @@ class cAppliApero : public NROptF1vND
 
         cAperoPointeMono CreatePointeMono(const cSetOfMesureAppuisFlottants &,const std::string & aNamePt,const cAperoPointeMono * aDef=0);
         cAperoPointeStereo CreatePointeStereo(const cSetOfMesureAppuisFlottants &,const std::string & aNamePt);
+
+        Pt3dr CreatePtFromPointeMonoOrStereo
+              (
+                    const cSetOfMesureAppuisFlottants & aMAF,
+                    const std::string & aNamePt,
+                    const cElPlan3D  * aPlan,
+                    const std::string & aNameSec=""
+              );
 
         ElSeg3D   PointeMono2Seg(const cAperoPointeMono &) ;
         Pt3dr     PointeMonoAndPlan2Pt(const cAperoPointeMono &,const cElPlan3D &);

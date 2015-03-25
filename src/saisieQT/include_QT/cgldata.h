@@ -12,8 +12,6 @@ class cGLData : public cObjectGL
 {
 public:
 
-    cGLData(int appMode = MASK2D);
-
     cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode = MASK2D);
 
     cGLData(cData *data, cParameters aParams, int appMode = MASK2D);
@@ -26,7 +24,7 @@ public:
 
     bool        isImgEmpty()                            { return _glMaskedImage._m_image == NULL; }
 
-    QImage*     getMask()                               { return _pQMask;     }
+    QImage*     getMask()                               { return _glMaskedImage.getMaskedImage()->_m_rescaled_mask; }
 
     void        setPolygon(int aK, cPolygon *aPoly)     { _vPolygons[aK] = aPoly; }
 
@@ -46,19 +44,19 @@ public:
 
     void        setBBoxMaxSize(float aS){_diam = aS;}
 
-    void        setBBoxCenter(Pt3dr aPt){_bbox_center = aPt;}
+	void        setBBoxCenter(QVector3D aPt){_bbox_center = aPt;}
 
-    void        setCloudsCenter(Pt3dr aPt){_clouds_center = aPt;}
+	void        setCloudsCenter(QVector3D aPt){_clouds_center = aPt;}
 
-    void        setGlobalCenter(Pt3dr aCenter);
+	void        setGlobalCenter(QVector3D aCenter);
 
     void        switchCenterByType(int val);
 
     bool        position2DClouds(MatrixManager &mm,QPointF pos);
 
-    void        editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction);
+	void        editImageMask(int mode, cPolygon* polyg, bool m_bFirstAction);
 
-    void        editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm);
+	void        editCloudMask(int mode, cPolygon*polyg, bool m_bFirstAction, MatrixManager &mm);
 
     void        replaceCloud(GlCloud* cloud, int id = 0);
 
@@ -68,7 +66,7 @@ public:
       OpShow_Axis   = 0x02,
       OpShow_BBox   = 0x04,
       OpShow_Mess   = 0x08,
-      OpShow_Cams   = 0x10,
+	  OpShow_Cams   = 0x10,
       OpShow_Grid   = 0x20,
       //OpShow_Cent   = 0x40
       // ...
@@ -92,7 +90,8 @@ public:
 
     void        setIncFirstCloud(bool incFirstCloud);
 
-    cMaskedImageGL &glImage();
+	cMaskedImageGL &glImageMasked();
+    QVector <cMaskedImageGL*> glTiles();
 
     cPolygon*   polygon(int id = 0);
 
@@ -110,7 +109,7 @@ public:
 
     void        clearClouds(){ _vClouds.clear(); }
 
-    cCam*       camera(int iC){ return _vCams[iC]; }
+    cCamGL*       camera(int iC){ return _vCams[iC]; }
 
     void        setPolygons(cData *data);
 
@@ -118,11 +117,18 @@ public:
 
     void        drawCenter(bool white);
 
+    void        createTiles();
+
+//    void        setDrawTiles(bool val) { _bDrawTiles = val; }
+//    bool        getDrawTiles() { return _bDrawTiles; }
+
+	cBall*		pBall() const;
+
+
 private:
 
-    cMaskedImageGL      _glMaskedImage;
-
-    QImage*             _pQMask;
+	cMaskedImageGL      _glMaskedImage;
+	QVector <cMaskedImageGL*> _glMaskedTiles;
 
     cBall*              _pBall;
 
@@ -132,9 +138,9 @@ private:
 
     cGrid*              _pGrid;
 
-    Pt3dr               _bbox_center;
+	QVector3D               _bbox_center;
 
-    Pt3dr               _clouds_center;
+	QVector3D               _clouds_center;
 
     bool                _modePt;
 
@@ -142,7 +148,7 @@ private:
 
     QVector<GlCloud*>   _vClouds;
 
-    QVector<cCam*>      _vCams;
+    QVector<cCamGL*>      _vCams;
 
     //! Point list for polygonal selection
     QVector<cPolygon*>  _vPolygons;
@@ -154,6 +160,7 @@ private:
     float       _diam;
 
     bool        _incFirstCloud;
+//    bool        _bDrawTiles;
 
 };
 

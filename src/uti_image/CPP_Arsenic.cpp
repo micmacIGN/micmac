@@ -85,8 +85,13 @@ string FindMaltEtape(int ResolModel, std::string aNameIm, std::string aPatModel)
         }
     cout<<"MicMac step to be used = num"<<aEtape<<endl;
 
-    string aEtapeStr = static_cast<ostringstream*>( &(ostringstream() << aEtape) )->str();
-    return aEtapeStr;
+    // Modif GM: compilation c++11
+    ostringstream oss;
+    oss << aEtape;
+    return oss.str();
+
+    //string aEtapeStr = static_cast<ostringstream*>( &(ostringstream() << aEtape) )->str();
+    //return aEtapeStr;
 }
 
 vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolModel, string InVig)

@@ -26,6 +26,10 @@ public:
     ///et il ne sera pas desalloue dans le destructeur
     BufferImage(int nXSize, int nYSize, int nBands);
     
+    BufferImage(int nXSize,int nYSize, int nNBands,
+                T* data, int nPixelSpace, int nLineSpace, int nBandSpace);
+    
+    
     /////////////METHODES HERITEES DE IMAGE/////////////
     ///\brief taille du buffer
     std::pair<size_t,size_t>						size(int aDeZoom=1)const;

@@ -158,6 +158,42 @@ extern bool BugFE; // pour debuguer les pb de non inversibilite des dist fortes
 extern bool BugAZL; // pour debuguer les pb d'AZL
 extern bool BugGL; // pour debuguer les pb de Guimbal Lock
 
+
+class cProjCple
+{
+     public :
+          cProjCple(const Pt3dr &,const Pt3dr &,double aPds);
+          const Pt3dr & P1() const;
+          const Pt3dr & P2() const;
+
+          static cProjCple Spherik(const ElCamera & aCam1,const Pt2dr & ,const ElCamera & aCam2,const Pt2dr &,double aPds);
+          static cProjCple Projection(const ElCamera & aCam1,const Pt2dr & ,const ElCamera & aCam2,const Pt2dr &,double aPds);
+     private :
+           Pt3dr  mP1;
+           Pt3dr  mP2;
+           double mPds;
+};
+
+class cProjListHom
+{
+     public :
+          typedef std::vector<cProjCple>      tCont;
+          typedef tCont::iterator           tIter;
+          typedef tCont::const_iterator     tCstIter;
+          tCstIter & begin() const;
+          tCstIter & end() const;
+
+          cProjListHom(  const ElCamera & aCam1,const ElPackHomologue & aPack12,
+                         const ElCamera & aCam2,const ElPackHomologue & aPack21,
+                         bool Spherik
+                      );
+     public :
+          tCont       mLClpe;
+          bool        mSpherik;
+};
+
+
+
 class cNupletPtsHomologues
 {
      public :
@@ -429,7 +465,7 @@ class ElPackHomologue : public cPackNupletsHom
                        const ElRotation3D & aRot1to2,
                        INT &                NbP1,
                        INT &                NbP2
-                  );
+                  ) const;
 
              tPairPt  PMed() const;
 
@@ -2585,7 +2621,8 @@ class cResMepRelCoplan
            cElemMepRelCoplan & BestSol();
            void AddSol(const cElemMepRelCoplan &);
            const std::list<ElRotation3D> &  LRot() const;
-       const std::vector<cElemMepRelCoplan> & VElOk() const;
+           const std::vector<cElemMepRelCoplan> & VElOk() const;
+           const std::list<cElemMepRelCoplan>    & LElem() const;
         private :
            std::list<cElemMepRelCoplan>    mLElem;
            std::vector<cElemMepRelCoplan>  mVElOk;
@@ -3170,6 +3207,91 @@ class cCamStenopeBilin : public CamStenope
            cDistorBilin mDBL;
 };
 
+
+/*
+   Teste , equivalence de :
+
+       PVExactCostMEP Pt3dr   : 0.376684  => 3/4 fois + rapide
+       PVExactCostMEP Pt2drA  : 0.679608
+       ExactCostMEP           : 1.27514
+
+  A Faire QuasiExactCostFaiscMEP
+*/
+       
+
+double QuickD48EProjCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double ProjCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double DistDroiteCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double PVCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double PVCostMEP(const ElRotation3D & aR2to1 ,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax);
+double LinearCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double LinearCostMEP(const ElRotation3D & aR2to1 ,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax);
+
+
+double QuickD48EProjCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double ProjCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double DistDroiteCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double PVCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double LinearCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+
+
+
+Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
+ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
+
+void InitPackME
+     (
+          std::vector<Pt2dr> & aVP1,
+          std::vector<Pt2dr>  &aVP2,
+          std::vector<double>  &aVPds,
+          const  ElPackHomologue & aPack
+     );
+
+
+
+class  cInterfBundle2Image
+{
+     public :
+           cInterfBundle2Image(int mNbCple,double aFoc);
+           double ErrInitRobuste(const ElRotation3D &aRot,double aProp = 0.75);
+           ElRotation3D   OneIterEq(const  ElRotation3D &aRot,double & anErrStd);
+           double         ResiduEq(const  ElRotation3D &aRot,const double & anErrStd);
+
+           static cInterfBundle2Image * LineariseAngle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCste0);
+           static cInterfBundle2Image * LinearDet(const  ElPackHomologue & aPack,double aFoc);
+           static cInterfBundle2Image * Bundle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCoordCste);
+           virtual  ~cInterfBundle2Image();
+
+           virtual const std::string & VIB2I_NameType() = 0 ;
+           virtual double VIB2I_PondK(const int & aK) const = 0;
+           virtual double VIB2I_ErrorK(const ElRotation3D &aRot,const int & aK) const = 0;
+           virtual double VIB2I_AddObsK(const int & aK,const double & aPds) =0;
+           virtual void   VIB2I_InitNewRot(const ElRotation3D &aRot) = 0;
+           virtual ElRotation3D    VIB2I_Solve() = 0;
+
+     protected :
+
+           void   OneIterEqGen(const  ElRotation3D &aRot,double & anErrStd,bool AddEq);
+           int    mNbCple;
+           double mFoc;
+     private :
+
+};
+
+class cResMepCoc
+{
+     public :
+
+          cResMepCoc(ElMatrix<double> & aMat,double aCostRPur,const ElRotation3D & aR,double aCostVraiRot,Pt3dr aPMed);
+
+          ElMatrix<double>  mMat;
+          double            mCostRPure;
+          ElRotation3D      mSolRot;
+          double            mCostVraiRot;
+          Pt3dr             mPMed;
+};
+
+cResMepCoc MEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show);
 
 
 

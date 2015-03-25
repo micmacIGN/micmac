@@ -231,7 +231,13 @@ void MakeNameDir(std::string & aStr)
 }
 */
 
-std::string StdWokdDir(const std::string & aValWD,const std::string & aNameFile)
+std::string AddDirIfRequired(const std::string & aDir,const std::string & aFile)
+{
+    if (ELISE_fp::exist_file(aDir+ aFile)) return aDir + aFile;
+    return aFile;
+}
+
+std::string StdWorkdDir(const std::string & aValWD,const std::string & aNameFile)
 {
   // std::cout << "XXXXXXXXXX\n";
 
@@ -284,11 +290,29 @@ void SplitDirAndFile
            const std::string & aStr
      )
 {
+
+
+    // ======
     string strCpy = aStr;
 
     #if (ELISE_windows)
         replace( strCpy.begin(), strCpy.end(), '\\', '/' );
     #endif
+
+
+
+    // ====== Regle speciale, si on veut passer des argument de Type  NKS-Set-OfFile, on doit
+    // pouvoir specifier un split special, on le fait avec un %
+    {
+         std::string::size_type aPos  = strCpy.rfind('%');
+         if (aPos != std::string::npos)
+         {
+             aNameDir = strCpy.substr(0,aPos);
+             aNameFile = strCpy.substr(aPos+1,std::string::npos);
+             return;
+         }
+    }
+
 
     std::string::size_type aPos  = strCpy.rfind('/');
 
@@ -496,6 +520,7 @@ std::string getBanniereMM3D()
     banniere += "**     hosted at Ecole Nationale des Sciences Geographiques           ** \n";
     banniere += "**               in Marne-la-Vallee, for IGN-France                   ** \n";
     banniere += "**                                                                    ** \n";
+    banniere += "**                                                                    ** \n";
     banniere += "**  The project is funded by :                                        ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**  - Institut National de l'Information Geographique et Forestiere   ** \n";
@@ -503,16 +528,24 @@ std::string getBanniereMM3D()
     banniere += "**  - the french FUI Project \"Culture 3D Cloud\"                       ** \n";
     banniere += "**  - the french ANR Project \"MONUMENTUM\"                             ** \n";
     banniere += "**                                                                    ** \n";
-    banniere += "**  Research also currently supported by                              ** \n";
+    banniere += "**  Research also currently supported by :                            ** \n";
     banniere += "**  - CNES (French Space Agency) - via TOSCA Committee                ** \n";
-    banniere += "**  - Compagnie National du Rhone                                     ** \n";
+    banniere += "**  - Compagnie Nationale du Rhone                                    ** \n";
     banniere += "**  - Vinci-Construction-Terrassement                                 ** \n";
+    banniere += "**  - ERC Advanced Grant A.Kaeaeb \"ICEMASS\" (University of Oslo)      ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    ** \n";
-    banniere += "**     G Maillet, L Girod                                             ** \n";
+    banniere += "**                G Maillet, L Girod                                  ** \n";
     banniere += "**                                                                    ** \n";
-    banniere += "**               Contact: Marc.Pierrot-Deseilligny@ensg.eu            ** \n";
+    banniere += "**    Contact for participating : Marc.Pierrot-Deseilligny@ensg.eu    ** \n";
+    banniere += "**                                                                    ** \n";
+    banniere += "**    Hope you enjoy, todo list in case of any problem using MicMac : ** \n";
+    banniere += "**      (0) Take a  Pastis                                            ** \n";
+    banniere += "**      (1) Switch you computer off and on                            ** \n";
+    banniere += "**      (2) Install it on Gnu-Linux (work better on)                  ** \n";
+    banniere += "**      (3) Contact the forum http://forum-micmac.forumprod.com/      ** \n";
+    banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "************************************************************************ \n";
 

@@ -8,7 +8,7 @@ MICMAC  /home/marc/MMM/culture3d/include/XML_MicMac/MM-Pyram.xml  WorkDir=/home/
    <Symb> Ori=XXXX </Symb>
    <Symb> ImSec=XXXX </Symb>
 
-   <Symb> Purge=true </Symb>
+   <Symb> Purge=false </Symb>
    <Symb> DirMEC=MM-Pyram  </Symb>
 </DicoLoc>
 <Section_Terrain>  

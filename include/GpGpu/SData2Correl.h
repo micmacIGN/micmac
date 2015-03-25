@@ -12,10 +12,22 @@ extern "C" textureReference&    getTexL_MaskImages();
 #define SYNC    false
 #define ASYNC   true
 
+
+///
+/// \brief The cellules struct
+/// Structure de cellules 3D
 struct cellules
 {
+    ///
+    /// \brief Zone
+    /// La zone 2d
+    ///
     Rect Zone;
-    uint Dz;
+    ///
+    /// \brief Dz
+    /// delta Z de la zone
+    ///
+	ushort Dz;
 
     cellules():
         Zone(MAXIRECT),
@@ -44,7 +56,7 @@ public:
 
     float2* HostVolumeProj();
 
-    Rect    *HostRect();
+	uint2*	HostRect();
 
     uint*   DeviVolumeNOK(uint s);
 
@@ -52,7 +64,7 @@ public:
 
     float*  DeviVolumeCost(uint s);
 
-    Rect*   DeviRect();
+	uint2*	DeviRect();
 
     void    copyHostToDevice(pCorGpu param, uint s = 0);
 
@@ -72,7 +84,11 @@ public:
 
     ushort2 *HostClassEqui();
 
-    void    ReallocHostClassEqui(uint nbImages);
+	void    ReallocConstData(uint nbImages);
+
+	void    SyncConstData();
+
+	void	SetZoneImage(const ushort& idImage, const uint2& sizeImage, const ushort2& r);
 
     ushort2 *DeviClassEqui();
 
@@ -93,20 +109,24 @@ private:
     ///
     /// \brief _hRect   HOST     gestion des bords d'images
     ///
-    CuHostData3D<Rect>          _hRect;
+//    CuHostData3D<Rect>          _hRect;
     ///
     /// \brief _dRect   Device   gestion des bords d'images
     ///
-    CuDeviceData3D<Rect>        _dRect;
+//    CuDeviceData3D<Rect>        _dRect;
+
+	CuUnifiedData3D<uint2>		_uRect;
 
     ///
     /// \brief _hClassEqui HOST     gestion des classes d'images
     ///
-    CuHostData3D<ushort2>       _hClassEqui;
+	//CuHostData3D<ushort2>       _hClassEqui;
     ///
     /// \brief _dClassEqui DEVICE    gestion des classes d'images
     ///
-    CuDeviceData3D<ushort2>     _dClassEqui;
+	//CuDeviceData3D<ushort2>     _dClassEqui;
+	CuUnifiedData3D<ushort2>     _uClassEqui;
+
 
     CuDeviceData3D<float>       _d_volumeCost[NSTREAM];	// volume des couts
     CuDeviceData3D<float>       _d_volumeCach[NSTREAM];	// volume des calculs intermédiaires

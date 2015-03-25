@@ -201,6 +201,11 @@ bool  cInterfSurfaceAnalytique::OrthoLocIsXCste() const
 }
 
 
+double cInterfSurfaceAnalytique::SeuilDistPbTopo() const
+{
+   return 0.0;
+}
+
 Pt3dr cInterfSurfaceAnalytique::ToOrLoc(const Pt3dr & aP) const 
 {
     ELISE_ASSERT(false,"cInterfSurfaceAnalytique::ToOrLoc");
@@ -579,6 +584,10 @@ Pt3dr cCylindreRevolution::E2UVL(const Pt3dr & aP) const
            );
 }
 
+double cCylindreRevolution::SeuilDistPbTopo() const
+{
+   return PI * mRay;
+}
 
 Pt3dr cCylindreRevolution::UVL2E(const Pt3dr & aP) const
 {

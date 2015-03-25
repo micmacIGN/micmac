@@ -716,7 +716,7 @@ REAL  StatElPackH::SomD2 () const { return mSomD2;}
 
 void Verif(const double & aV,const std::string & aName)
 {
-    if (isnan(aV))
+    if (std_isnan(aV))
     {
         std::cout << "in File " << aName << "\n";
         ELISE_ASSERT(false,"Pb in Pt reading");
@@ -1523,11 +1523,27 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
    Pt3dr aPCam = R3toL3(aPTer);
 
 
-
-   if (HasOrigineProf() && (aPCam.z < 0)) return false;
+   if (
+         HasOrigineProf() 
+         && (aPCam.z <=   1e-5 * (ElAbs(aPCam.x)+ElAbs(aPCam.y)))
+      ) 
+      return false;
 
 
    Pt2dr aPI0 = Proj().Proj(aPCam);
+
+
+   if (GetZoneUtilInPixel() )
+   {
+       Pt2dr aPQ = NormM2C(aPI0) ;
+       double aRab = 0.8;
+       Pt2dr aMil = Pt2dr(mSz)/2.0;
+   
+       aPQ =  aMil+ (aPQ-aMil) * aRab;
+       if ((aPQ.x <0)  || (aPQ.y<0) || (aPQ.x>mSz.x) || (aPQ.y>mSz.y)) return false;
+    }
+
+
    Pt2dr aPF0 = DistDirecteSsComplem(aPI0);
 
 

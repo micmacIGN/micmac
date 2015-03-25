@@ -3,7 +3,7 @@
 // #include "general/all.h"
 // #include "private/all.h"
 //
-typedef enum
+typedef enum // Attention repercutions sur QT ... TODO à regler
 {
   eNSM_GeoCube,
   eNSM_Plaquette,
@@ -25,15 +25,15 @@ std::string  Mangling( eTypePts *);
 
 void  BinaryUnDumpFromFile(eTypePts &,ELISE_fp &);
 
-typedef enum
+typedef enum // Attention repercutions sur QT ... TODO à regler
 {
-  eEPI_NonSaisi,
-  eEPI_Refute,
-  eEPI_Douteux,
-  eEPI_Valide,
-  eEPI_NonValue,
-  eEPI_Disparu,
-  eEPI_Highlight
+  eEPI_NonSaisi,// 0
+  eEPI_Refute,// 1
+  eEPI_Douteux, // 2
+  eEPI_Valide,// 3
+  eEPI_NonValue,// 4
+  eEPI_Disparu,//5
+  eEPI_Highlight// 6
 } eEtatPointeImage;
 void xml_init(eEtatPointeImage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eEtatPointeImage & aVal);
@@ -86,6 +86,9 @@ class cPointGlob
         cTplValGesInit< Pt3dr > & P3D();
         const cTplValGesInit< Pt3dr > & P3D()const ;
 
+        cTplValGesInit< Pt3dr > & Pt3DFromDico();
+        const cTplValGesInit< Pt3dr > & Pt3DFromDico()const ;
+
         cTplValGesInit< bool > & Mes3DExportable();
         const cTplValGesInit< bool > & Mes3DExportable()const ;
 
@@ -122,6 +125,7 @@ class cPointGlob
         eTypePts mType;
         std::string mName;
         cTplValGesInit< Pt3dr > mP3D;
+        cTplValGesInit< Pt3dr > mPt3DFromDico;
         cTplValGesInit< bool > mMes3DExportable;
         cTplValGesInit< Pt3dr > mIncert;
         cTplValGesInit< double > mLargeurFlou;
@@ -454,9 +458,17 @@ class cSectionTerrain
 
         cTplValGesInit< cProfEstimator > & ProfEstimator();
         const cTplValGesInit< cProfEstimator > & ProfEstimator()const ;
+
+        cTplValGesInit< std::string > & Masq3DFilterVis();
+        const cTplValGesInit< std::string > & Masq3DFilterVis()const ;
+
+        cTplValGesInit< std::string > & PIMsFilterVis();
+        const cTplValGesInit< std::string > & PIMsFilterVis()const ;
     private:
         cTplValGesInit< double > mIntervPercProf;
         cTplValGesInit< cProfEstimator > mProfEstimator;
+        cTplValGesInit< std::string > mMasq3DFilterVis;
+        cTplValGesInit< std::string > mPIMsFilterVis;
 };
 cElXMLTree * ToXMLTree(const cSectionTerrain &);
 
@@ -554,6 +566,12 @@ class cParamSaisiePts
 
         cTplValGesInit< cProfEstimator > & ProfEstimator();
         const cTplValGesInit< cProfEstimator > & ProfEstimator()const ;
+
+        cTplValGesInit< std::string > & Masq3DFilterVis();
+        const cTplValGesInit< std::string > & Masq3DFilterVis()const ;
+
+        cTplValGesInit< std::string > & PIMsFilterVis();
+        const cTplValGesInit< std::string > & PIMsFilterVis()const ;
 
         cSectionTerrain & SectionTerrain();
         const cSectionTerrain & SectionTerrain()const ;

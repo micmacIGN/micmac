@@ -576,11 +576,6 @@ void L2SysSurResol::GSSR_Add_EqInterPlan3D(const Pt3dr& aDirOrtho,const Pt3dr& a
    aCoeff[2] =  aDirOrtho.z;
 
    //GSSR_AddNewEquation(aPds,aCoeff,scal(aDirOrtho,aP0),0);
-if (MPD_MM())
-{
-// std::cout << "PLLANNN " << aPds << "\n";
-// getchar();
-}
     L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&(aCoeff[0]),scal(aDirOrtho,aP0));
 }
 

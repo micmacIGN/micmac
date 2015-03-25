@@ -79,7 +79,7 @@ int ReechInvEpip_main(int argc,char ** argv)
     cCpleEpip * aCplE = StdCpleEpip(aDir,anOri,aNameMin,aNameMax);
 
     std::string aDirIn = aDir+ aCplE->LocDirMatch(aName1);
-    std::string aDirOut = aDir+ "MTD-Image-" + aName1 + "/";
+    std::string aDirOut = aDir+  TheDIRMergeEPI()  + aName1 + "/";
 
     std::string aNameIn       =  aDirIn  + "NuageImProf_Chantier-Ori_Etape_Last.xml";
     std::string aNameGeomOut  =  aDirOut + "NuageImProf_LeChantier_Etape_1.xml";

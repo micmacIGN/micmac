@@ -69,7 +69,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
     printf ("vertex--: %g %g %g %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue, vertex->alpha);
 #endif
 
-                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha ), Pt3dr(vertex->nx, vertex->ny, vertex->nz)));
+						ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha ), QVector3D(vertex->nx, vertex->ny, vertex->nz)));
                     }
                     break;
                 }
@@ -92,7 +92,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
     printf ("vertex--: %g %g %g %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz, vertex->red, vertex->green, vertex->blue);
 #endif
 
-                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue ), Pt3dr(vertex->nx, vertex->ny, vertex->nz)));
+						ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue ), QVector3D(vertex->nx, vertex->ny, vertex->nz)));
                     }
                     break;
                 }
@@ -117,7 +117,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                             printf ("vertex--: %g %g %g %u %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue, vertex->alpha);
                         #endif
 
-                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha )));
+						ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue, vertex->alpha )));
                     }
                     break;
                 }
@@ -152,7 +152,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                                 printf ("vertex: %g %g %g %u %u %u\n", vertex->x, vertex->y, vertex->z, vertex->red, vertex->green, vertex->blue);
                             #endif
 
-                            ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue )));
+							ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), QColor( vertex->red, vertex->green, vertex->blue )));
                         }
                     }
                     else
@@ -173,7 +173,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                                 printf ("vertex: %g %g %g %g %g %g\n", vertex->x, vertex->y, vertex->z, vertex->nx, vertex->ny, vertex->nz);
                             #endif
 
-                            ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z ), Qt::white, Pt3dr(vertex->nx, vertex->ny, vertex->nz)));
+							ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z ), Qt::white, QVector3D(vertex->nx, vertex->ny, vertex->nz)));
                         }
                     }
                     break;
@@ -195,7 +195,7 @@ GlCloud* GlCloud::loadPly(string i_filename ,int* incre)
                         printf ("vertex: %g %g %g\n", vertex->x, vertex->y, vertex->z);
     #endif
 
-                        ptList.push_back( GlVertex (Pt3dr ( vertex->x, vertex->y, vertex->z )));
+						ptList.push_back( GlVertex (QVector3D ( vertex->x, vertex->y, vertex->z )));
                     }
                     break;
                 }
@@ -252,15 +252,15 @@ void GlCloud::clear()
 
 GlCloud::GlCloud(vector<GlVertex> const & vVertex, int type):
     _type(type),
-    _sum(Pt3dr(0.,0.,0.))
+	_sum(QVector3D(0.,0.,0.))
 {
     for (uint aK=0; aK< vVertex.size(); aK++)
     {
         addVertex(vVertex[aK]);
     }
 
-    _position = Pt3dr(0.,0.,0.);
-    _scale = Pt3dr(1.f,1.f,1.f);
+	_position = QVector3D(0.,0.,0.);
+	_scale = QVector3D(1.f,1.f,1.f);
 }
 
 void GlCloud::draw()
@@ -304,13 +304,13 @@ void GlCloud::setBufferGl(bool onlyColor)
     for(uint bK=0; bK< sizeCloud; bK++)
     {
         GlVertex vert = getVertex(bK);
-        Pt3dr  pos  = vert.getPosition();
+		QVector3D  pos  = vert.getPosition();
         QColor colo = vert.getColor();
         if(!onlyColor)
         {
-            vertices[bK*3 + 0 ] = pos.x;
-            vertices[bK*3 + 1 ] = pos.y;
-            vertices[bK*3 + 2 ] = pos.z;
+			vertices[bK*3 + 0 ] = pos.x();
+			vertices[bK*3 + 1 ] = pos.y();
+			vertices[bK*3 + 2 ] = pos.z();
         }
         if(vert.isVisible())
         {

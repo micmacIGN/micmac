@@ -176,8 +176,6 @@ public:
     bool loadPGM( const std::string &i_filename );
     bool savePGM( const std::string &i_filename, bool i_adaptDynamic=false ) const;
 
-    bool loadTIFF( const std::string &i_filename );
-
     bool load( const std::string &i_filename );
 
     bool loadRaw( const std::string &i_filename );
@@ -206,16 +204,16 @@ public:
     // draw i_image at coordinates (i_x,i_y) into (*this)
     // no clipping is done, i_image must fit
     void drawWindow( int i_x, int i_y, const RealImage1 &i_image );
-    
+
     template <class T>
     RealImage1( UINT i_width, UINT i_height, const std::vector<T> &i_data );
-    
+
     template <class T>
     void setFromArray( UINT i_width, UINT i_height, const T *i_data );
-    
+
     template <class T>
     void toVector( std::vector<T> &o_data ) const;
-    
+
     template <class T>
     void toArray( T *o_data ) const;
 };
