@@ -73,20 +73,6 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    //Test Retina
-    /*#ifdef ELISE_Darwin
-        #if ELISE_QT_VERSION >=5
-            float dpi = ((QGuiApplication*)QCoreApplication::instance())->primaryScreen()->physicalDotsPerInchX();
-            cout << "DPI = " << dpi << endl;
-
-            if (dpi > 96.f) app.setAttribute(Qt::AA_UseHighDpiPixmaps);
-        #elif ELISE_QT_VERSION == 4
-            //TODO: QSystemDisplayInfo
-        #endif
-    #endif //ELISE_Darwin*/
-
-
-
     //app.setStyle("fusion");
 
     // QT Modifie le comportement de sscanf !!!!! problematique quand on parse les fichiers XML
