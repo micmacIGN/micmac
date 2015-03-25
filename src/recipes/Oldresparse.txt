@@ -1,0 +1,468 @@
+/*Header-MicMac-eLiSe-25/06/2007
+
+    MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
+    eLiSe  : ELements of an Image Software Environnement
+
+    www.micmac.ign.fr
+
+   
+    Copyright : Institut Geographique National
+    Author : Marc Pierrot Deseilligny
+    Contributors : Gregoire Maillet, Didier Boldo.
+
+[1] M. Pierrot-Deseilligny, N. Paparoditis.
+    "A multiresolution and optimization-based image matching approach:
+    An application to surface reconstruction from SPOT5-HRS stereo imagery."
+    In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
+    (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
+
+[2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
+    d'images, adapte au contexte geograhique" to appears in 
+    Bulletin d'information de l'Institut Geographique National, 2007.
+
+Francais :
+
+   MicMac est un logiciel de mise en correspondance d'image adapte 
+   au contexte de recherche en information geographique. Il s'appuie sur
+   la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
+   licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
+
+
+English :
+
+    MicMac is an open source software specialized in image matching
+    for research in geographic information. MicMac is built on the
+    eLiSe image library. MicMac is governed by the  "Cecill-B licence".
+    See below and http://www.cecill.info.
+
+Header-MicMac-eLiSe-25/06/2007*/
+
+#include "general/all.h"
+#include "private/all.h"
+                                
+
+
+
+cSparseMatrForGradConj::cSparseMatrForGradConj(cVectMatMul & aVMM,cVectPreCond & aVPC) :
+   mEpsB       (1e-6),
+   mEpsSolInit (-1),
+   mVMM        (aVMM),
+   mVPC        (aVPC),
+   mImBLin     (1),
+   mImXSol     (1),
+   mImPk       (1),
+   mImAPk      (1),
+   mImRk       (1),
+   mImZk       (1),
+   mImM        (1)
+{
+}
+
+void cSparseMatrForGradConj::SetEpsB(REAL anEpsB)
+{
+   mEpsB = anEpsB;
+}
+void cSparseMatrForGradConj::SetEpsRel(REAL anEpsRel)
+{
+
+   mEpsSolInit = anEpsRel;
+}
+
+/*
+void cSparseMatrForGradConj::NR_SparseSolve(const double *b,int n,double * x,double * rsq)
+{
+
+	b--; x--;
+	int j,iter,irst=0;
+	double aden,anum,bsq,dgg,eps2,gam,gg,rp;
+	Im1D_REAL8 Ig(n+1),Ih(n+1),Ixi(n+1),Ixj(n+1);
+	double * g = Ig.data();
+	double * h = Ih.data();
+	double * xi = Ixi.data();
+	double * xj = Ixj.data();
+
+	eps2=n*mEpsB*mEpsB;
+	for (;;) {
+		++irst;
+		asub(x,xi,n);
+		rp=bsq=0.0;
+		for (j=1;j<=n;j++) {
+			bsq += b[j]*b[j];
+			xi[j] -= b[j];
+			rp += xi[j]*xi[j];
+		}
+		atsub(xi,g,n);
+		for (j=1;j<=n;j++)
+			h[j] = g[j] = -g[j];
+                REAL Ec0 = -1;
+		for (iter=1;iter<=20*n;iter++) {
+			asub(h,xi,n);
+			anum=aden=0.0;
+			for (j=1;j<=n;j++) {
+				anum += g[j]*h[j];
+				aden += xi[j]*xi[j];
+			}
+			if (aden==0)
+			{
+			   ELISE_ASSERT(anum==0,"Very singular matrix in SPARSE");
+			}
+			else
+			   anum /= aden;
+			for (j=1;j<=n;j++) {
+				xi[j]=x[j];
+				x[j] += anum*h[j];
+			}
+			asub(x,xj,n);
+			*rsq=0.0;
+			for (j=1;j<=n;j++) {
+				xj[j] -= b[j];
+				*rsq += xj[j]*xj[j];
+			}
+                        REAL Ec = *rsq / n ;
+                        if (Ec0<0) Ec0 = Ec;
+                        if (false && ((iter%10)==5))
+                            cout  << mEpsSolInit << " " << iter 
+                                  << " ECARTS " << Ec << " " << Ec/Ec0 << "\n";
+// cout << "ITER GCONJ " << iter << " " << *rsq  << " " <<   bsq <<  "\n";
+			if (*rsq == rp || *rsq <= bsq*eps2) return;
+			if (*rsq == rp || (Ec < Ec0 * mEpsSolInit)) return;
+			if (*rsq > rp) {
+				for (j=1;j<=n;j++) x[j]=xi[j];
+				if (irst >= 3) return;
+				break;
+			}
+			rp = *rsq;
+			atsub(xj,xi,n);
+			gg=dgg=0.0;
+			for (j=1;j<=n;j++) {
+				gg += g[j]*g[j];
+				dgg += (xi[j]+g[j])*xi[j];
+			}
+			if (gg == 0.0) return;
+			gam=dgg/gg;
+			for (j=1;j<=n;j++) {
+				g[j] = -xi[j];
+				h[j]=g[j]+gam*h[j];
+			}
+		}
+		// ELISE_ASSERT(false,"Too many interations in routine SPARSE");
+	}
+}
+*/
+
+//==============================================================
+
+class  cVecByIm1
+{
+     public :
+        typedef Im1D_REAL8  tVec;
+
+        static double  Scal(const tVec & aV1,const tVec & aV2);
+        static void  AddAlphaV(tVec & aV1,const double  aAlpha,const tVec & aV2);  // aV1 += aAlpha * aV2
+        static void  MulAlphaAndAdd(tVec & aV1,const double  aAlpha,const tVec & aV2);  // aV1 = aV1*aAlpha + aV2
+        static void  SetDiff(tVec & aV1,const tVec & aV2,const tVec & aV3);
+        static void  Affect(tVec & aV1,const tVec & aV2);
+};
+
+
+double  cVecByIm1::Scal(const tVec & aV1,const tVec & aV2)
+{
+   int aNb = aV1.tx();
+   const double * aD1 = aV1.data();
+   const double * aD2 = aV2.data();
+   double aRes = 0.0;
+
+   for (int aK=0 ; aK<aNb ; aK++)
+       aRes += aD1[aK] * aD2[aK];
+
+   return aRes;
+}
+
+void  cVecByIm1::AddAlphaV(tVec & aV1,const double aAlpha,const tVec & aV2)
+{
+   int aNb = aV1.tx();
+   double * aD1 = aV1.data();
+   const double * aD2 = aV2.data();
+
+   for (int aK=0 ; aK<aNb ; aK++)
+        aD1[aK] += aAlpha * aD2[aK];
+
+}
+
+void  cVecByIm1::MulAlphaAndAdd(tVec & aV1,const double  aAlpha,const tVec & aV2)
+{
+   int aNb = aV1.tx();
+   double * aD1 = aV1.data();
+   const double * aD2 = aV2.data();
+
+   for (int aK=0 ; aK<aNb ; aK++)
+        aD1[aK] = aAlpha * aD1[aK] + aD2[aK];
+}
+
+
+void  cVecByIm1::SetDiff(tVec & aV1,const tVec & aV2,const tVec & aV3)
+{
+   int aNb = aV1.tx();
+   double * aD1 = aV1.data();
+   const double * aD2 = aV2.data();
+   const double * aD3 = aV3.data();
+
+   for (int aK=0 ; aK<aNb ; aK++)
+        aD1[aK] = aD2[aK] -aD3[aK];
+}
+
+void  cVecByIm1::Affect(tVec & aV1,const tVec & aV2)
+{
+   int aNb = aV1.tx();
+   double * aD1 = aV1.data();
+   const double * aD2 = aV2.data();
+
+   for (int aK=0 ; aK<aNb ; aK++)
+        aD1[aK] = aD2[aK];
+
+}
+
+
+
+
+
+
+#define Type cVecByIm1
+
+
+//==============================================================
+
+
+
+
+void cSparseMatrForGradConj::MpdGC_AllocAndInitGlob
+     (
+          // const double *b,
+          // double * x,
+          Im1D_REAL8  aImB,
+          Im1D_REAL8  aImX,
+          int n,
+          cGenSysSurResol * aSP
+     )
+{
+   mN    = n;
+   mImBLin = aImB;
+   // mBLin = mImBLin.data();
+   // mBLin = b;
+   mImXSol  = aImX;
+   // mXsol    = mImXSol.data();
+   // mXsol = x;
+   mImPk.Resize(n);
+   // mPk = mImPk.data();
+   mImAPk.Resize(n);
+   // mAPk = mImAPk.data();
+   mImRk.Resize(n);
+   // mRk = mImRk.data();
+
+   mImZk.Resize(n);
+   // mZk = mImZk.data();
+/*
+   if (aSP)
+   {
+       mPreCond = true;
+       mImZk.Resize(n);
+       mZk = mImZk.data();
+       mImM.Resize(n);
+       mM = mImM.data();
+       for (int aK=0 ; aK<n ; aK++)
+          mM[aK] = aSP->GetElemQuad(aK,aK);
+   }
+   else
+   {
+       mPreCond = false;
+       mZk = mRk;
+       mM = 0;
+   }
+*/
+}
+
+// #define Sgn -1 
+
+
+//  Voir http://en.wikipedia.org/wiki/Conjugate_gradient_method
+
+
+
+
+void cSparseMatrForGradConj::MpdGC_InitOneEtape()
+{
+    // FAIT
+    // Rk = b - A XSol
+    // Pk = Rk
+     // SMFGC_Asub(mXsol,mAPk,mN);
+     mVMM.VMMDo(mImXSol,mImAPk);
+
+     Type::SetDiff(mImRk,mImBLin,mImAPk);
+     mVPC.VPCDo(mImRk,mImZk);
+/*
+     if (mPreCond)
+     {
+         for (int anI=0 ;anI<mN ; anI++)
+         {
+             mZk[anI] =  mRk[anI] /  mM[anI];
+         }
+     }
+*/
+
+     Type::Affect(mImPk,mImZk);
+
+     mSomRkZk = Type::Scal(mImRk,mImZk);
+
+
+}
+
+double cSparseMatrForGradConj::MpdGC_Residu() 
+{
+   ELISE_ASSERT(false,"cSparseMatrForGradConj::MpdGC_Residu");
+   double aRes = 0;
+/*
+   SMFGC_Asub(mXsol,mAPk,mN);
+   for (int anI=0 ;anI<mN ; anI++)
+   {
+       aRes += ElSquare(mAPk[anI]-mBLin[anI]);
+   }
+*/
+   return aRes;
+}
+
+/*
+double cSparseMatrForGradConj::MpdGC_ResiduConj() 
+{
+   SMFGC_Asub(mXsol,mAPk,mN);
+   for (int anI=0 ;anI<mN ; anI++)
+   {
+       mAPk[anI]-= mBLin[anI];
+   }
+}
+*/
+
+#define aEps       1e-15
+#define aEpsResidu 1e-2
+
+bool  cSparseMatrForGradConj::MpdGC_OneStepDesc()
+{
+   if (mSomRkZk < aEps)
+      return false;
+   // mAPk = A *mPk
+   // SMFGC_Asub(mPk,mAPk,mN);
+   mVMM.VMMDo(mImPk,mImAPk);
+   // aSomPAP =  t mPk * A * mPk
+
+   double aSomPAP = Type::Scal(mImPk,mImAPk);
+  
+   if (aSomPAP < aEps)
+      return false;
+   // aAlpha = ||Rk||^2  / aSomPAP
+   double aAlpha = mSomRkZk  / aSomPAP;
+
+   // mXsol = mXsol + aAlpha * mPk
+   // mRk = mRk - aAlpha * mPk
+
+   Type::AddAlphaV(mImXSol,aAlpha,mImPk);
+   Type::AddAlphaV(mImRk,-aAlpha,mImAPk);
+
+   mVPC.VPCDo(mImRk,mImZk);
+/*
+   if (mPreCond)
+   {
+       for (int anI=0 ;anI<mN ; anI++)
+       {
+             mZk[anI] =  mRk[anI] /  mM[anI];
+       }
+   }
+*/
+   double aSomNextRkZk = Type::Scal(mImRk,mImZk);
+   Type::MulAlphaAndAdd(mImPk,aSomNextRkZk / mSomRkZk,mImZk);
+   mSomRkZk  = aSomNextRkZk;
+
+   return true;
+  
+}
+
+
+
+bool cSparseMatrForGradConj::MpdGC_OneItereSolveComplet()
+{
+    MpdGC_InitOneEtape();
+    for (int aK=0 ; aK<mN ; aK++)
+    {
+       // std::cout  << "ETAPE " << aK << " Residu="<< MpdGC_Residu() << "\n";
+       if (!  MpdGC_OneStepDesc()) 
+          return false;
+    }
+    return true;
+}
+
+void cSparseMatrForGradConj::VerifResidu()
+{
+    double aResisu = MpdGC_Residu() ;
+    if (aResisu > aEpsResidu)
+    {
+        std::cout  << "RESIDU = " << aResisu << "\n";
+        ELISE_ASSERT(false,"cSparseMatrForGradConj::VerifResidu");
+    }
+}
+
+bool cSparseMatrForGradConj::MpdGC_SolveComplePrecis
+     (
+          Im1D_REAL8    aImB,
+          Im1D_REAL8    aImX,
+          // const double * b,
+          // double *x,
+          int n,
+          int aNbIter,
+          cGenSysSurResol * aSP
+      )
+{
+  MpdGC_AllocAndInitGlob(aImB,aImX,n,aSP);
+  for (int aK=0 ; aK<aNbIter ; aK++)
+  {
+       if (! MpdGC_OneItereSolveComplet())
+       {
+          // VerifResidu();
+          return false;
+       }
+  }
+  // VerifResidu();
+  return true;
+}
+
+
+
+/*Footer-MicMac-eLiSe-25/06/2007
+
+Ce logiciel est un programme informatique servant à la mise en
+correspondances d'images pour la reconstruction du relief.
+
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+respectant les principes de diffusion des logiciels libres. Vous pouvez
+utiliser, modifier et/ou redistribuer ce programme sous les conditions
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+sur le site "http://www.cecill.info".
+
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
+
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+manipuler et qui le réserve donc à des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+termes.
+Footer-MicMac-eLiSe-25/06/2007*/
