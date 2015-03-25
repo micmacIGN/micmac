@@ -942,7 +942,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (m_interactionMode == TRANSFORM_CAMERA)
         {
-            QPointF dPWin = QPointF(event->pos() - m_lastPosWindow);
+            QPointF dPWin = QPointF(event->pos() * devicePixelRatio() - m_lastPosWindow);
 
             if (event->buttons())
             {
@@ -982,7 +982,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         if (event->buttons() != Qt::MiddleButton)  //pour eviter le changement de label_ImagePosition_2 en mode translation
             emit newImagePosition( m_lastMoveImage );
 
-        m_lastPosWindow = event->pos();
+        m_lastPosWindow = event->pos() * devicePixelRatio();
 
         update();
     }
