@@ -188,8 +188,8 @@ protected slots:
     void on_actionReset_triggered();
     void on_actionRemove_inside_triggered();
     void on_actionRemove_outside_triggered();
-    void on_actionUndo_triggered(){ undo(); }
-    void on_actionRedo_triggered(){ undo(false); }
+	void on_actionUndo_triggered();
+	void on_actionRedo_triggered();
 
     //File Menu
     void on_actionLoad_plys_triggered();
@@ -213,10 +213,18 @@ protected slots:
 
     void setNavigationType(int val);
 
-
 	void on_actionShow_Zoom_window_toggled(bool show);
+
 	void on_actionShow_3D_view_toggled(bool show);
+
 	void on_actionShow_list_polygons_toggled(bool show);
+
+	void selectionObjectChanged(const QItemSelection& select, const QItemSelection& unselect);
+
+	void updateMask(bool reloadMask = true);
+
+	void on_actionConfirm_changes_triggered();
+
 protected:
 
     //! Connects all QT actions to slots
@@ -230,8 +238,6 @@ private:
     void                    setCurrentFile(const QString &fileName);
     void                    updateRecentFileActions();
     QString                 strippedName(const QString &fullFileName);
-
-    void                    undo(bool undo = true);
 
     int *                   _incre;
 
@@ -296,9 +302,9 @@ public:
 
 	QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
 
-	/*bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+	bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
 
-	Qt::ItemFlags   flags(const QModelIndex &index) const;*/
+	Qt::ItemFlags   flags(const QModelIndex &index) const;
 
 	bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
 
@@ -307,5 +313,27 @@ private:
 	HistoryManager *		_hMag;
 
 };
+
+class ComboBoxDelegate : public QStyledItemDelegate
+{
+	Q_OBJECT
+
+public:
+	ComboBoxDelegate(const char** listCombo,int size = 0,QObject *parent = 0);
+
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+						  const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
+	void setModelData(QWidget *editor, QAbstractItemModel *model,
+					  const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+	void updateEditorGeometry(QWidget *editor,
+		const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+private:
+	int			_size;
+	const char**		_enumString;
+};
+
 
 #endif // MAINWINDOW_H
