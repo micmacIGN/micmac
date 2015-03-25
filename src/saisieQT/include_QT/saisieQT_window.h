@@ -322,14 +322,30 @@ public:
 	ComboBoxDelegate(const char** listCombo,int size = 0,QObject *parent = 0);
 
 	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-						  const QModelIndex &index) const Q_DECL_OVERRIDE;
+						  const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+	Q_DECL_OVERRIDE
+#endif
+	;
 
-	void setEditorData(QWidget *editor, const QModelIndex &index) const Q_DECL_OVERRIDE;
+	void setEditorData(QWidget *editor, const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+	Q_DECL_OVERRIDE
+#endif
+	;
 	void setModelData(QWidget *editor, QAbstractItemModel *model,
-					  const QModelIndex &index) const Q_DECL_OVERRIDE;
+					  const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+	Q_DECL_OVERRIDE
+#endif
+	;
 
 	void updateEditorGeometry(QWidget *editor,
-		const QStyleOptionViewItem &option, const QModelIndex &index) const Q_DECL_OVERRIDE;
+		const QStyleOptionViewItem &option, const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+	Q_DECL_OVERRIDE
+#endif
+	;
 private:
 	int			_size;
 	const char**		_enumString;
