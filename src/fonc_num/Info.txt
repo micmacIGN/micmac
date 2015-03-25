@@ -1,0 +1,17 @@
+
+                             SVD_And_AddEqSysSurResol
+                                       |
+                               aSys.GSSR_UseEqMatIndexee ?
+                                 1                      0
+                               /                          \
+               GSSR_EqMatIndexee                       GSSR_AddNewEquation_Indexe
+                  /             \
+              cFormQuadCreuse     L2SysSurResol
+               /           
+     Modifie les poids;
+     mMat->EqMatIndexee
+   /                   \
+cElMatCreuseStrFixe   cElMatCreuseGen
+      |                            |
+AddLineInd                     AddElem
+     
