@@ -1,0 +1,1578 @@
+<GenCpp>
+
+<Verbatim File=".h.cpp">
+#include "StdAfx.h"
+</Verbatim>
+<Verbatim  File=".h">
+#ifndef Define_NotApero
+#define Define_NotApero
+</Verbatim>
+<Verbatim File=".cpp">
+// UNUSED #include "cParamApero.h"
+</Verbatim>
+
+<Verbatim File=".h">
+// #include "XML_GEN/all.h"
+</Verbatim>
+
+<Verbatim File=".h.cpp">
+// NO MORE ... 
+</Verbatim>
+
+
+<!--  0 : Fige ;   1 : Libre -->
+<enum Name="eTypeContrainteCalibCamera">
+
+   <eAllParamLibres>      </eAllParamLibres>
+   <eAllParamFiges>       </eAllParamFiges>
+   
+  <!-- Concerne les modele generique, pour l'instant Ebner / D.C. Brown -->
+
+   <eLiberteParamDeg_0>   </eLiberteParamDeg_0>  <!-- Fige tous les param aux -->
+   <eLiberteParamDeg_1>   </eLiberteParamDeg_1>  <!-- Libere les param affine -->
+   <eLiberteParamDeg_2>   </eLiberteParamDeg_2>  <!-- Libere les param affine et quad -->
+   <eLiberteParamDeg_3>   </eLiberteParamDeg_3>  
+   <eLiberteParamDeg_4>   </eLiberteParamDeg_4>  
+   <eLiberteParamDeg_5>   </eLiberteParamDeg_5>  
+   <eLiberteParamDeg_6>   </eLiberteParamDeg_6>  
+   <eLiberteParamDeg_7>   </eLiberteParamDeg_7>  
+
+   <!-- les variantes ci dessous gardent bloques les parametrs de degre 1,
+   peut etre utile avec les eq homographiques ? -->
+   <eLiberteParamDeg_2_NoAff>   </eLiberteParamDeg_2_NoAff> 
+   <eLiberteParamDeg_3_NoAff>   </eLiberteParamDeg_3_NoAff>  
+   <eLiberteParamDeg_4_NoAff>   </eLiberteParamDeg_4_NoAff>  
+   <eLiberteParamDeg_5_NoAff>   </eLiberteParamDeg_5_NoAff>  
+
+
+
+
+  <!-- Concerne les model specifique, genre Poivillier ou Fraser -->
+    <eLiberteFocale_0>   </eLiberteFocale_0>
+    <eLiberteFocale_1>   </eLiberteFocale_1>
+                       
+     <eLib_PP_CD_00>           </eLib_PP_CD_00>
+     <eLib_PP_CD_10>           </eLib_PP_CD_10>
+     <eLib_PP_CD_01>           </eLib_PP_CD_01>
+     <eLib_PP_CD_11>           </eLib_PP_CD_11>
+     <eLib_PP_CD_Lies>         </eLib_PP_CD_Lies>
+
+     <eLiberte_DR0>       </eLiberte_DR0>
+     <eLiberte_DR1>       </eLiberte_DR1>
+     <eLiberte_DR2>       </eLiberte_DR2>
+     <eLiberte_DR3>       </eLiberte_DR3>
+     <eLiberte_DR4>       </eLiberte_DR4>
+     <eLiberte_DR5>       </eLiberte_DR5>
+     <eLiberte_DR6>       </eLiberte_DR6>
+     <eLiberte_DR7>       </eLiberte_DR7>
+     <eLiberte_DR8>       </eLiberte_DR8>
+     <eLiberte_DR9>       </eLiberte_DR9>
+     <eLiberte_DR10>       </eLiberte_DR10>
+
+
+     <!-- Reserve au Fish Eye -->
+     <eLiberte_Dec0>       </eLiberte_Dec0>
+     <eLiberte_Dec1>       </eLiberte_Dec1>
+     <eLiberte_Dec2>       </eLiberte_Dec2>
+     <eLiberte_Dec3>       </eLiberte_Dec3>
+     <eLiberte_Dec4>       </eLiberte_Dec4>
+     <eLiberte_Dec5>       </eLiberte_Dec5>
+     
+     <!-- Aff-in et Dec-entrique -->
+     <eLiberte_Phgr_Std_Aff>    </eLiberte_Phgr_Std_Aff>
+     <eLiberte_Phgr_Std_Dec>    </eLiberte_Phgr_Std_Dec>
+     <eFige_Phgr_Std_Aff>            </eFige_Phgr_Std_Aff>
+     <eFige_Phgr_Std_Dec>            </eFige_Phgr_Std_Dec>
+
+
+     <!-- Param AFOCAL  -->
+
+     <eLiberte_AFocal0>       </eLiberte_AFocal0>
+     <eLiberte_AFocal1>       </eLiberte_AFocal1>
+     <eFige_AFocal0>          </eFige_AFocal0>
+     <eFige_AFocal1>          </eFige_AFocal1>
+
+</enum>
+
+<enum Name="eTypeCalibAutom">
+    <eCalibAutomRadial>              </eCalibAutomRadial>
+    <eCalibAutomPhgrStd>             </eCalibAutomPhgrStd>
+    <eCalibAutomFishEyeLineaire>     </eCalibAutomFishEyeLineaire>
+    <eCalibAutomFishEyeEquiSolid>     </eCalibAutomFishEyeEquiSolid>
+<!--  PPa=PPs for eCalibAutomRadialBasic and eCalibAutomPhgrStdBasic -->
+    <eCalibAutomRadialBasic>          </eCalibAutomRadialBasic>
+    <eCalibAutomPhgrStdBasic>         </eCalibAutomPhgrStdBasic>
+    <eCalibAutomFour7x2>                 </eCalibAutomFour7x2>
+    <eCalibAutomFour11x2>                 </eCalibAutomFour11x2>
+    <eCalibAutomFour15x2>                 </eCalibAutomFour15x2>
+    <eCalibAutomFour19x2>                 </eCalibAutomFour19x2>
+    <eCalibAutomNone>                 </eCalibAutomNone>
+</enum>
+
+   
+<enum Name="eTypeContraintePoseCamera">
+    <ePoseLibre>         </ePoseLibre>
+    <ePoseFigee>         </ePoseFigee>
+    <ePoseBaseNormee>    </ePoseBaseNormee>
+    <ePoseVraieBaseNormee>    </ePoseVraieBaseNormee>
+    <eCentreFige>        </eCentreFige>
+</enum>
+
+<enum Name="eTypeVerif">
+ <!-- DoDZ regarde ce qui se passe quand on supprime les points de l'image elle meme
+      dans la compensation. Sans doute pour tester les pb de biais
+-->
+    <eVerifDZ> </eVerifDZ>
+<!--  Residu Per Im -->
+    <eVerifResPerIm> </eVerifResPerIm>
+</enum>
+
+
+
+     <!-- Type de ponderation pour le Minimum Spaning Tree de mise en place-->
+<enum Name="eTypePondMST_MEP">
+    <eMST_PondCard> </eMST_PondCard>
+</enum>
+
+
+     <!-- Mode de controle de la desente dicothomique dans la direction du gradient -->
+<enum Name="eControleDescDic">
+    <eCDD_Jamais> </eCDD_Jamais>
+    <eCDD_OnRemontee> </eCDD_OnRemontee>
+    <eCDD_Toujours> </eCDD_Toujours>
+</enum>
+
+
+
+<enum  Name="eModePonderationRobuste">
+    <ePondL2>  </ePondL2>   <!-- Basique -->
+    <ePondL1>  </ePondL1>   <!-- Deconseille -->
+    <ePondLK>  </ePondLK>   <!-- Cuisine, selon moi -->
+
+    <ePondGauss> </ePondGauss> <!-- ePondGauss et ePondArcTgt : se valent -->
+    <eL1Secured> </eL1Secured>  <!-- sqrt(1/(1+(X/Sigma)2)) -->
+</enum>
+
+
+<enum Name="eUniteMesureErreur">
+    <eUME_Radian>  </eUME_Radian>
+    <eUME_Image>   </eUME_Image>      <!-- Donc en  pixel -->
+    <eUME_Terrain> </eUME_Terrain>    <!-- Donc en metre, en general -->
+    <eUME_Naturel>  </eUME_Naturel>    <!-- Un peu dangereux mais pratique : Liaison ->image, Appuis->Terrain -->
+</enum>
+
+<enum Name="eNiveauShowMessage">
+    <eNSM_None>          </eNSM_None>
+    <eNSM_Iter>          </eNSM_Iter>
+    <eNSM_Paquet>        </eNSM_Paquet>
+    <eNSM_Percentile>    </eNSM_Percentile>
+    <eNSM_CpleIm>        </eNSM_CpleIm>
+    <eNSM_Indiv>         </eNSM_Indiv>
+</enum>
+
+
+<enum Name="eModePointLiaison">
+    <eMPL_DbleCoplanIm>     </eMPL_DbleCoplanIm>  <!-- Mode "historique" -->
+    <eMPL_PtTerrainInc>     </eMPL_PtTerrainInc>  <!-- Mode recommande -->
+</enum>
+
+
+<OptimizationPowel Nb="1" Class="true" ToReference="true">
+     <PowPointLiaisons Nb="*"> 
+           <Id Nb="1" Type="std::string"> </Id>
+           <NbTot Nb="1" Type="int">      </NbTot>
+           <Pds Nb="?" Type="double" Def="1.0"> </Pds>
+     </PowPointLiaisons>
+</OptimizationPowel>
+
+<ShowPbLiaison Nb="1" Class="true" ToReference="true">
+    <NbMinPtsMul Nb="?" Type="int" Nb="20"> </NbMinPtsMul>
+    <Actif Nb="?" Type="bool" Def="true"> </Actif>  <!-- Pour pouvoir inhiber, au cas ou .... -->
+    <GetCharOnPb Nb="?" Type="bool" Def="true"> </GetCharOnPb>
+</ShowPbLiaison>
+
+<PonderationPackMesure Nb="1" Class="true" ToReference="true">
+    <!-- Le poids classique Pds = (1/EcartMesureIndiv)2 -->
+    <EcartMesureIndiv  Nb="1"  Type="double"> </EcartMesureIndiv>
+
+    <!-- Si on veut evaluer les mesures sans qu'elles influent sur la compensation
+      mettre a false -->
+    <Add2Compens Nb="?" Type="bool" Def="true"> </Add2Compens>
+
+    <ModePonderation Nb="?" Type="eModePonderationRobuste" Def="ePondL2"> 
+    </ModePonderation>
+
+
+    <!-- On rejette les mesures  > EcartMax -->
+    <EcartMax  Nb="?"  Type="double" Def="1e20"> </EcartMax>
+    <ExposantLK  Nb="?" Type="double" Def="1.2"> </ExposantLK>
+    <!-- Pour le mode ePondGauss et ePondArcTgt  -->
+     <SigmaPond Nb="?" Type="double" Def="1e20"> </SigmaPond>
+
+<!-- Le poids de chaque el est NbMax/(Nb+NbMax), donc pour Nb<<NMax
+     le poids est proche de 1, pour Nb >> NbMax, le poids total est proche
+     de NbMax
+-->
+
+    <NbMax Nb="?" Type="double" Def="1e20"> </NbMax>
+
+    <Show Nb="?" Type="eNiveauShowMessage" Def="eNSM_None"> </Show>
+    <GetChar Nb="?" Type="bool" Def="false"> </GetChar>
+    <NbMinMultShowIndiv  Nb="?" Type="int" Def="2"> </NbMinMultShowIndiv>
+    <ShowPercentile Nb="?" Type="std::vector<double>"> </ShowPercentile>
+
+    <ExposantPoidsMult  Nb="?" Type="double" Def="1"> </ExposantPoidsMult>
+    <IdFilter3D  Nb="?" Type="std::string"> </IdFilter3D>
+
+</PonderationPackMesure>
+
+<ParamEstimPlan  Nb="1" Class="true" ToReference="true">
+      <AttrSup Nb="?" Type="std::string"> </AttrSup>
+      <KeyCalculMasq Nb="?" Type="std::string"> </KeyCalculMasq>
+      <IdBdl Nb="1"  Type="std::string"> </IdBdl>
+      <Pond Nb="1" RefType="PonderationPackMesure"> </Pond>
+      <LimBSurH Nb="?" Type="double" Def="1e-2"> </LimBSurH>
+</ParamEstimPlan>
+
+<RigidBlockWeighting Nb="1" Class="true" ToReference="true">
+    <PondOnTr Nb="1" Type="double"> </PondOnTr>
+   <PondOnRot Nb="1" Type="double"> </PondOnRot>
+</RigidBlockWeighting>
+
+<AperoPointeStereo Nb="1" Class="true" ToReference="true">
+      <P1 Nb="1" Type="Pt2dr"> </P1>
+      <Im1 Nb="1" Type="std::string"> </Im1>
+      <P2 Nb="1" Type="Pt2dr"> </P2>
+      <Im2 Nb="1" Type="std::string"> </Im2>
+</AperoPointeStereo>
+<AperoPointeMono Nb="1" Class="true" ToReference="true">
+      <Pt Nb="1" Type="Pt2dr"> </Pt>
+      <Im Nb="1" Type="std::string"> </Im>
+</AperoPointeMono>
+
+<Apero2PointeFromFile Nb="1" Class="true" ToReference="true">
+     <File Nb="1" Type="std::string"> </File>
+     <NameP1 Nb="1" Type="std::string"> </NameP1>
+     <NameP2 Nb="1" Type="std::string"> </NameP2>
+</Apero2PointeFromFile>
+
+<ParamForceRappel Nb="1" Class="true" ToReference="true">
+     <PatternNameApply Nb="1" Type="cElRegex_Ptr"> </PatternNameApply> 
+     <Incertitude Nb="+" Type="double" Container="std::vector"> </Incertitude>
+     <OnCur Nb="?" Type="bool"> </OnCur>  <!-- Sinon en val Init-->
+</ParamForceRappel>
+
+<!-- Ces sections permettent de rajouter des comportemebt de type "visco-elastique"
+     qui, au prix d'un eventuel ralentissement de la convergence, permettent
+     de limiter les risques de divergence. Certaine options, devraient avoir
+     un comportement tres proche du Levenberg Markard (orthographe tres approx )
+-->
+<SectionLevenbergMarkard   Nb="1" Class="true" ToReference="true">
+     <RappelOnAngles Nb="*">
+          <ParamF Nb="1" RefType="ParamForceRappel" AccessorFils="false"> </ParamF> 
+          <TetaApply Nb="+" Type="int" Container="std::vector"> </TetaApply>
+    </RappelOnAngles>
+     <RappelOnCentres Nb="*">
+          <ParamF Nb="1" RefType="ParamForceRappel" AccessorFils="false"> </ParamF> 
+          <!-- A priori idiot de mettre de la viscosite si deja force de rappel en GPS -->
+          <OnlyWhenNoCentreInit Nb="?" Type="bool" Def="true"> </OnlyWhenNoCentreInit>
+    </RappelOnCentres>
+    <RappelOnIntrinseque Nb="*">
+          <ParamF Nb="1" RefType="ParamForceRappel" AccessorFils="false"> </ParamF> 
+    </RappelOnIntrinseque>
+</SectionLevenbergMarkard>
+
+
+<SetOrientationInterne Nb="1" Class="true" ToReference="true">
+    <KeyFile Nb="1" Type="std::string"> </KeyFile>
+    <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
+    <Tag Nb="?" Type="std::string" Def="AffinitePlane"> </Tag>
+    <!-- Est ce que cette orientation s'ajoute a celle courante , ou est-ce qu'elle l'ecrase ? 
+        Attention si on enchaine plusieurs etape avec sauvegarde et AddToCur=true alors on va cumuler
+        N fois la meme transfo, ce qui n'est sans doute pas ce que l'on veut -->
+    <AddToCur Nb="1" Type="bool"> </AddToCur> 
+    <M2C  Nb="1" Type="bool"> </M2C>   <!-- Sens Monde vers Camera -->
+</SetOrientationInterne>
+
+<ExportAsNewGrid Nb="1"   Class="true" ToReference="true">
+    <Step Nb="1" Type="Pt2dr"> </Step>
+    <RayonInv Nb="?" Type="double" Def="-1"> </RayonInv>
+    <RayonInvRelFE Nb="?" Type="double" Def="-1"> </RayonInvRelFE>
+</ExportAsNewGrid>
+
+
+   <ParamApero  Nb="1" Class="true">
+
+
+        <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                         RefFile="ParamChantierPhotogram.xml"
+	> 
+	</DicoLoc>
+
+
+         <FileDebug Nb="?" Type="std::string"> </FileDebug>
+
+        <ShowSection  Nb="?"> 
+            <ShowMes Nb="?" Type="bool" Def="true"> </ShowMes>
+            <LogFile  Nb="?" Type="std::string"> </LogFile>
+         </ShowSection>
+
+        <!-- Ne jamais positionner a la main, utilise pour qu'Apero
+             communique avec ses sous process an cas de map
+        -->
+        <CalledByItself Nb="?" Type="bool" Def="false"> </CalledByItself>
+        <!-- 
+              Genere un mode ou Apero map un ensemble en se rappelant lui meme
+        -->
+
+        <SectionMapApero Nb="?"
+                    RefType="CmdMappeur"
+                    RefFile="ParamChantierPhotogram.xml"
+        >
+        </SectionMapApero>
+
+
+
+        <!-- Cette section declare l'ensembles des observations qui seront utilisees
+	au cours de la compensation . Les donnees vont etres chargees une fois pour toute
+	-->
+	<SectionBDD_Observation Nb="1">
+
+            <BDD_PtsLiaisons Nb="*">
+	    <!--  Si non precise : true (compte tenu des nouveau pts multiple)
+	    -->
+
+                  <TestForMatin Nb="?" Type="int"> </TestForMatin>
+	          <UseAsPtMultiple Nb="?" Type="bool"> </UseAsPtMultiple> 
+	          <Id Nb="1" Type="std::string"> </Id>
+
+                   <!-- Si donne on ne selectionne que les couples du meme groupe (par GroupeDePose) -->
+                  <IdFilterSameGrp Nb="?"  Type="std::string"> </IdFilterSameGrp>
+
+                  <AutoSuprReflexif Nb="?" Type="bool" Def="true"> </AutoSuprReflexif>
+                  <KeySet  Nb="*" Type="std::string" Container="std::vector">   </KeySet>
+                  <KeyAssoc  Nb="*" Type="std::string" Container="std::vector"> </KeyAssoc>
+
+                  <!-- To add tie points in xml format, not optimal at all for now -->
+                  <XMLKeySetOrPat  Nb="*" Type="std::string">   </XMLKeySetOrPat>
+
+
+                  <SzImForInvY Nb="?"> 
+                      <SzIm1 Nb="1" Type="Pt2dr">  </SzIm1>
+                      <SzIm2 Nb="1" Type="Pt2dr">  </SzIm2>
+		  </SzImForInvY>
+
+                  <SplitLayer Nb="?">
+                      <IdLayer Nb="1" Type="std::string"> </IdLayer>
+                      <KeyCalHomSplit Nb="1" Type="std::string"> </KeyCalHomSplit>
+                  </SplitLayer>
+
+
+            </BDD_PtsLiaisons>
+
+            <BDD_PtsAppuis Nb="*">
+	          <Id Nb="1" Type="std::string"> </Id>
+		  <KeySet Nb="1" Type="std::string"> </KeySet>
+		  <!--  ASSOCIATION dans le sens Image vers Orientation  -->
+		  <KeyAssoc    Nb="1" Type="std::string">  </KeyAssoc>
+                  <SzImForInvY Nb="?"  Type="Pt2dr"> </SzImForInvY>
+                  <InvXY Nb="?" Type="bool" Def="false"> </InvXY>
+
+                  <ToSubstract Nb="?"  Type="Pt3dr"></ToSubstract>
+                  <TagExtract Nb="?" Type="std::string" Def="ListeAppuis1Im"> </TagExtract>
+
+                  <!-- Critere permettant de numeroter/fusionner les points si
+                       pas deja fait -->
+                  <BddApp_AutoNum Nb="?">
+                      <DistFusion    Nb="1" Type="double"> </DistFusion>
+                      <DistAmbiguite Nb="1" Type="double"> </DistAmbiguite>
+                  </BddApp_AutoNum>
+            </BDD_PtsAppuis>
+
+
+            <!--  Observations des appuis "flottants"
+	    -->
+            <BDD_ObsAppuisFlottant Nb="*">
+                  <!-- A rejouter au mesure images si par exemple saisi su Jpg de taille diff -->
+                  <OffsetIm Nb="?" Type="Pt2dr" Def="Pt2dr(0,0)"> </OffsetIm>
+	          <Id Nb="1" Type="std::string"> </Id>
+                  <!-- Ceci est pour les mesures de points -->
+		  <KeySetOrPat Nb="?" Type="std::string"> </KeySetOrPat>
+                  <NameAppuiSelector Nb="?" Type="std::string"> </NameAppuiSelector>
+
+                  <!-- If true : no error will appear when no ground data base exist;
+                       OLD : default is false for full compatibility 
+                       NEW : default is true, do not see any draw back
+                   -->
+                  <AcceptNoGround Nb="?" Type="bool" Def="true"> </AcceptNoGround>
+		  <KeySetSegDroite Nb="?" Type="std::string"> </KeySetSegDroite>
+            </BDD_ObsAppuisFlottant>
+
+            <!--  Observations des appuis "flottants"
+	    -->
+
+
+
+             <BDD_Orient Nb="*">
+	          <Id Nb="1" Type="std::string" > </Id>
+		  <KeySet Nb="1" Type="std::string"> </KeySet>
+		  <KeyAssoc    Nb="1" Type="std::string">  </KeyAssoc>
+                  <ConvOr Nb="?"  Type="eConventionsOrientation"> </ConvOr>
+             </BDD_Orient>
+
+
+             <BDD_Centre Nb="*">
+	          <Id Nb="1" Type="std::string" > </Id>
+		  <KeySet Nb="1" Type="std::string"> </KeySet>
+		  <KeyAssoc    Nb="1" Type="std::string">  </KeyAssoc>
+                  <Tag Nb="?" Type="std::string" Def="Centre"> </Tag>
+                  <ByFileTrajecto  Nb="?" Type="std::string"> </ByFileTrajecto>
+                  <PatternFileTrajecto Nb="?" Type="std::string"> </PatternFileTrajecto>
+                  <PatternRefutFileTrajecto Nb="?" Type="std::string"> </PatternRefutFileTrajecto>
+
+                   <!-- L'offset est calcule  par aC0 - mObsCentre = Ofs -->
+                   <CalcOffsetCentre  Nb="?">
+                         <IdBase Nb="1" Type="std::string"> </IdBase>
+                         <KeyCalcBande Nb="1" Type="std::string"> </KeyCalcBande>
+                         <OffsetUnknown Nb="?" Type="bool" Def="false"> </OffsetUnknown>
+                   </CalcOffsetCentre>
+<!--
+-->
+                 
+                  <!-- Necessaire de connaitre a l'avance les couples qui pourraient etre utilises
+                       pour une compensation sur les differences relatives -->
+<!--
+                  <EcartMaxTimeUseRelatif Nb="?" Type="double">  </EcartMaxTimeUseRelatif>
+-->
+             </BDD_Centre>
+
+
+<!--
+       Permet de filtrer les points 3D sur le critere que leur projection appartiennent
+   aux masques images.
+-->
+
+              <FilterProj3D Nb="*">
+                   <Id  Nb="1" Type="std::string" > </Id>
+                   <PatternSel Nb="1" Type="std::string" > </PatternSel>
+                   <AttrSup Nb="1" Type="std::string"> </AttrSup>
+                   <KeyCalculMasq Nb="1" Type="std::string"> </KeyCalculMasq>
+              </FilterProj3D>
+
+
+              <LayerImageToPose Nb="*">
+                   <Id Nb="1" Type="std::string"> </Id>
+                   <!-- Nom de l'image si LayerTerrain -->
+                   <KeyCalculImage Nb="1" Type="std::string"> </KeyCalculImage>
+                   <FactRed Nb="1" Type="int"> </FactRed>
+                   <KeyNameRed Nb="?" Type="std::string" Def="KeyStd-Assoc-AddPref@Layer-Reduc-"> </KeyNameRed>
+                   <!-- Si tout les points ne sont pas egaux a la valeur centrale, done etiq nulle, si
+                        vaut -1 aucune gestion de priorit et  d'amniguite -->
+                   <FactCoherence Nb="?" Type="int" Def="-1"> </FactCoherence>
+
+                   <!-- Gere la priorite d'affectation des etiquettes pour les labels
+                        la derniere valeur implicite est 255, valeur conventionnelle de non affectation 
+                           3 2 4 est equiv 3 2 4 255
+                        attention :
+                           3 255 4  2   est equiv a  3 255
+
+                        Pour chaque pixel, si son voisinage est homogene on le laisse t.q.
+                        sinon on calcule le label de priorite minimal sans que cela puisse aller
+                        au dela de la priorite de 255
+                   -->
+         
+                   <EtiqPrio Nb="*" Type="int" Container="std::vector"> </EtiqPrio>
+
+                   <!-- La couche image, peut etre (est souvent ?) exprimee en geometrie terrain,
+                   rajoute a posteriori ... -->
+                   <LayerTerrain Nb="?">
+                       <KeyAssocGeoref Nb="?" Type="std::string" Def="KeyStd-Assoc-ChangExt@xml"> </KeyAssocGeoref>
+                       <!-- +ou- redondant avec l'orientation des poses, mais charge tres en amont -->
+                       <KeyAssocOrImage Nb="1" Type="std::string"> </KeyAssocOrImage>
+                       <SysCoIm Nb="1" Type="std::string"> </SysCoIm>  <!-- Un nom de fichier -->
+                       <TagOri Nb="?" Type="std::string" Def="OrientationConique"> </TagOri>
+                       <!-- Pour aller image->Terrain, si pas donne, pris dans Georef (s'il existe !!!) -->
+                       <ZMoyen Nb="?" Type="double"> </ZMoyen>
+                   </LayerTerrain>
+              </LayerImageToPose>
+
+
+               <LimInfBSurHPMoy Nb="?" Def="1e-2" Type="double"> </LimInfBSurHPMoy>
+               <LimSupBSurHPMoy Nb="?" Def="2e-1" Type="double"> </LimSupBSurHPMoy>
+
+	</SectionBDD_Observation>
+
+<!--
+     Cette section contient tout les "objets" qui generent des inconnues a
+     determiner;
+
+     A priori ce peut etre :
+
+         - une orientation de camera (pose)
+	 - une calibration interne
+	 - un plan (utilise dans les eq homograhpique melangee avec des orientations)
+	 - une homographie (eq homographiques seules)
+-->
+
+       
+
+        <SectionInconnues Nb="1">
+
+             <!-- Seuil, en equiv 35, de la focale ou on passe en autom au modele Fiseheye -->
+             <!-- En fait, ce n'est pas en general une tres bonne idee, par exemple pb avec les 14mm sur meramptah , donc def=-1-->
+             <SeuilAutomFE Nb="?" Type="double" Def="-1"> </SeuilAutomFE>
+
+             <!-- A partir de l'image 3, et sauf en cas de zone plane, les bases ne 
+                sont plus arbitraires, et donc il faut plusieurs laisons pour initialiser,.
+                  Si on ne le fait pas, on se fait (legitimement ?) insulter, sauf a
+                mettre ce tag a true
+             -->
+                
+             <AutoriseToujoursUneSeuleLiaison Nb="?" Type="bool" Def="false"> </AutoriseToujoursUneSeuleLiaison>
+
+             <!--
+                  Si un masque est passe il permet de filtrer les points
+               pour le calcul du points moyen.
+             -->
+             <MapMaskHom Nb="?" UnionType="true"
+                    RefType="MapName2Name"
+                    RefFile="SuperposImage.xml"
+              >
+              </MapMaskHom>
+              <SauvePMoyenOnlyWithMasq  Nb="?" Type="bool" Def="true"> </SauvePMoyenOnlyWithMasq>
+              
+
+
+              <GpsOffset Nb="*">
+                  <ValInit Nb="1" Type="Pt3dr"> </ValInit>
+                  <Id Nb="1" Type="std::string"> </Id>
+              </GpsOffset>
+
+              <CalibrationCameraInc Nb="*">
+	           <Name Nb="1" Type="std::string"> </Name>
+                   <ConvCal Nb="?"  Type="eConventionsOrientation" Def="eConvApero_DistM2C" > </ConvCal>
+                    
+	           <Directory Nb="?" Type="std::string" Def="">        </Directory>
+                   <AddDirCur Nb="?" Type="bool" Def="true">           </AddDirCur>
+		   <CalValueInit Nb="1">
+			 <CalFromValues  Nb="?"     
+			     RefType="CalibrationInternConique" 
+                         > 
+			 </CalFromValues>
+		         <CalFromFileExtern  Nb="?" RefType="SpecExtractFromFile"> </CalFromFileExtern>
+
+                         <!-- Calib avec BD MicMac -->
+                         <CalibFromMmBD Nb="?" Type="bool" Def="true"> </CalibFromMmBD>
+
+                         <CalibAutomNoDist Nb="?">
+                              <TypeDist Nb="1" Type="eTypeCalibAutom"> </TypeDist>
+                              <!-- Si on n'est pas en calib per pose, NameIm doit exister -->
+                              <NameIm Nb="?" Type="std::string"> </NameIm>
+                              <!-- Sauv le resultat, calcul a partir de Id -->
+                              <KeyFileSauv Nb="?" Type="std::string"> </KeyFileSauv>
+                              <PositionRelPP Nb="?" Type="Pt2dr" Def="Pt2dr(0.5,0.5)"> </PositionRelPP>
+                         </CalibAutomNoDist>
+                   </CalValueInit>
+
+                   <!-- Si cette valeur est passee alors elle est ajoutee au modele de
+		   distortion et c'est elle le modele inconu (en general init a Id)
+		   -->
+                   <DistortionAddInc Nb="?" RefType="CalibDistortion"> </DistortionAddInc>
+                   <AddParamAFocal Nb="?">
+                        <Coeffs Nb="+" Type="double" Container="std::vector"> </Coeffs> <!-- Doit etre en nombre de 2 -->
+                   </AddParamAFocal>
+                   <!-- Le mettre a une valeur > 1e20 si on veut laisser la valeur du fichier camera -->
+                   <RayMaxUtile Nb="?" Type="double" Def="1e20"> </RayMaxUtile>
+                   <RayIsRelatifDiag  Nb="?" Type="bool" Def="false"> </RayIsRelatifDiag>
+                   <RayApplyOnlyFE  Nb="?" Type="bool" Def="false"> </RayApplyOnlyFE>
+                   <PropDiagUtile Nb="?" Type="double" Def="1.0"> </PropDiagUtile>
+
+                    <!-- Cette option permet d'avoir une calibration par pose (ou
+                         eventuellement groupe de pose) . Utile par exemple pour
+                         rattraper un pb de mise au point  
+                     -->
+                     <CalibPerPose Nb="?">
+                           <!-- Peut eventuellement etre reversible -->
+                           <KeyPose2Cal Nb="1" Type="std::string"> </KeyPose2Cal>
+                           <!-- Si elle est donnee le CalFromFileExtern va etre cherche dans le fichier 
+                                calcule a partir de KeyInitFromPose -->
+                           <KeyInitFromPose Nb="?" Type="std::string"> </KeyInitFromPose>
+                     </CalibPerPose>
+                     
+
+              </CalibrationCameraInc>
+
+              <SeuilL1EstimMatrEss Nb="?" Type="int" Def="150"> </SeuilL1EstimMatrEss>
+
+              <BlockCamera Nb="*">
+                    <NameFile Nb="1" Type="std::string"> </NameFile>
+                    <Id   Nb="?" Type="std::string"> </Id>
+                    <UseForBundle Nb="?">
+                        <GlobalBundle Nb="1" Type="bool">      </GlobalBundle>
+                        <RelTimeBundle Nb="1" Type="bool">     </RelTimeBundle>
+                    </UseForBundle>
+              </BlockCamera>
+
+
+               <!-- A priori obsolete, remplacee par valeur dans calib -->
+              <GlobOrInterne Nb="?" RefType="SetOrientationInterne"></GlobOrInterne>
+
+              <PoseCameraInc Nb="*"  ToReference="true">
+                   
+
+                    <!--  Orienation interne : ATTENTION GERE COMME UN CORRECTIF AU MESURES PAS BIEN INTEGRE 
+                    A LA COMPENSATION, DOIVENT ETRE RELUE A CHAQUE FOIS .... -->
+
+                    <!-- A priori obsolete, remplacee par marques fiduciaires -->
+                    <OrInterne Nb="?" RefType="SetOrientationInterne"></OrInterne>
+
+                    <!-- S'il existe une base de donnees de centre de rattachement, typiquement
+                         du GPS embarque -->
+                   <IdBDCentre Nb="?" Type="std::string"> </IdBDCentre>
+                   <IdOffsetGPS  Nb="?" Type="std::string"> </IdOffsetGPS>
+
+                   <!-- Si on veut avoir une initialisation progressive, mettre a false -->
+                   <InitNow Nb="?" Type="bool" Def="true"> </InitNow>
+		   <!-- Ecrase ProfSceneChantier -->
+	           <ProfSceneImage Nb="?" Type="double">        </ProfSceneImage>
+	           <Directory Nb="?" Type="std::string" Def="">        </Directory>
+	           <PatternName  Nb="+" Type="std::string">     </PatternName>
+
+                    <AutomGetImC Nb="?" Type="std::string"> </AutomGetImC>
+
+                    <TestFewerTiePoints Nb="?" Type="std::string"> </TestFewerTiePoints>
+
+                    <Filter Nb="?" 
+                                RefType="NameFilter"
+                                RefFile="ParamChantierPhotogram.xml"
+                   >
+                   </Filter>
+
+                   <PatternRefuteur Nb="?" Type="cElRegex_Ptr"> </PatternRefuteur>
+                   <!-- + Ergonomique que PatternRefuteur, mais defaut false pour compatibilite stricte -->
+                   <AutoRefutDupl Nb="?" Type="bool" Def="true"> </AutoRefutDupl>
+
+                    <!-- Si donne, on ne retient que les noms pour lequel le fichier donne par la cle d'association existe 
+                    SUPPRIME : remplace par Filter : + standard et + puissant
+                    <KeyFilterByExistingFile Nb="?" Type="std::string"> </KeyFilterByExistingFile>
+-->
+
+
+                    <!-- Si la cle transcrit les noms, permet de dupliquer les poses (utiliser sur eau) -->
+                    <KeyTranscriptionName Nb="?" Type="std::string"> </KeyTranscriptionName>
+
+                    <!-- Si ce tag est vrai, il faut rajouter non pas les nom de Pattername
+                    mais ceux qui y sont "connecte" par un fichier homologue de la BDD
+                    specifiee -->
+                    <AddAllNameConnectedBy Nb="?" Type="std::string"> </AddAllNameConnectedBy>
+
+                    <FilterConnecBy Nb="?" Type="std::string"> </FilterConnecBy>
+                    
+                    <MEP_SPEC_MST Nb="?"> 
+                         <Show Nb="?" Type="bool" Def="false"> </Show> 
+
+                    <!-- On privilegie systematiquement les poses pour lesquelles on trouve un
+                        nombre de points multiples superieur a cette 
+                        valeur,
+                    -->
+                         <MinNbPtsInit Nb="?" Type="int" Def="8"> </MinNbPtsInit>
+
+
+
+                         <ExpDist Nb="?" Type="double" Def="2.0"> </ExpDist>
+                         <ExpNb Nb="?" Type="double" Def="1.0"> </ExpNb>
+
+                         <!-- Si true, on ne peutr construire que sur les vues intiales,
+                              lorsque l'on rajoute des vues instables tout a la fin
+                              sur des images deja orientees
+                         -->
+                         <MontageOnInit Nb="?" Type="bool" Def="false"></MontageOnInit>
+                         
+
+                     <!--  Option "dangereuse" a priori. Si donne, ne genere pas d'erreur, juste un
+                          warning, si des images restent non connectables arrive apres le rang
+                          donne (par ex 3 si on veut juste le min pour basculer) . Dans le cadre
+                          de mise en place locale sur des voisinage reduit (type Delaunay)
+                          et avec des relation redondante, permet d'eviter un blocage
+                     -->
+                         <NbInitMinBeforeUnconnect  Nb="?" Type="int" Def="10000000"></NbInitMinBeforeUnconnect>
+                    </MEP_SPEC_MST>
+                   
+
+                     <!-- Permet une optimization par descente "empirique" sur un critere L1 
+                          apres l'initialisation -->
+                     <OptimizeAfterInit Nb="?">
+                           <ParamOptim Nb="1" RefType="OptimizationPowel"> </ParamOptim>
+                           <ApplyOAI Nb="*" Type="">
+                                <Cstr Nb="1" Type="eTypeContraintePoseCamera"> </Cstr>
+                                <PatternApply Nb="1" Type="std::string"> </PatternApply>
+                           </ApplyOAI>
+                     </OptimizeAfterInit>
+
+<!--
+    A priori ca sert a rien ??
+                  <ModifGeom Nb="?"> 
+                      <Cste Nb="1" Type="Pt2dr">  </Cste>
+                      <Mul Nb="1" Type="Pt2dr">  </Mul>
+		  </ModifGeom>
+-->
+
+
+		   <!-- Il peut etre necessaire de parser les nom en ordre inverse
+		   pour "monter" les aeros
+		   -->
+		   <ReverseOrderName Nb="?" Type="bool" Def="false"> </ReverseOrderName>
+                   <!-- Si on utilise CalcNameCalib , ne pas utiliser CalcNameCalibAux -->
+	           <CalcNameCalib  Nb="?" Type="std::string">   </CalcNameCalib>
+                   <!-- Pour s'adapter dynamiquement a , par exemple, le cas avec et sans CalPerIm, il faut
+                        pouvoir calculer la cle de calibration avec des critere complexe   -->
+                   <CalcNameCalibAux Nb="*"  UnionType="true">
+                        <CalcNameOnExistingTag Nb="?">
+                               <KeyCalcFileOriExt Nb="1" Type="std::string"> </KeyCalcFileOriExt>
+                               <KeyCalcName Nb="1" Type="std::string">       </KeyCalcName>
+                               <TagExist Nb="1" Type="std::string">          </TagExist>
+                               <TagNotExist Nb="1" Type="std::string">       </TagNotExist>
+                               <ExigCohTags Nb="?" Type="bool" Def="true">   </ExigCohTags>
+                        </CalcNameOnExistingTag>
+                        <KeyCalcNameDef Nb="?" Type="std::string">       </KeyCalcNameDef>
+                   </CalcNameCalibAux>
+
+
+
+		   <!-- A cause d'un "erreur historique" dans la lib elise, l'eventuelle rotation
+		   de rattachement doit etre connue a l'avance.
+		        Si necessaire, on doit pouvoir facilement donner une liste de rattachements
+		     potentiels.
+		   -->
+		   <PosesDeRattachement Nb="?" Type="std::string"> </PosesDeRattachement>
+                   <!-- Si true ne genere pas d'erreur lorque l'on demande le rattachement a des vue
+                        inexistante -->
+                   <NoErroOnRat Nb="?" Type="bool" Def="true"> </NoErroOnRat>
+		   <!--  S'il n'y a pas de fichier associe a PatternName , mettre ByPattern a false
+		   -->
+		   <ByPattern Nb="?" Type="bool" Def="true">     </ByPattern>
+                   <KeyFilterExistingFile Nb="?" Type="std::string"> </KeyFilterExistingFile>
+                   <!-- Si ByKey ==true, le  PatternName est une cle d'ensemble -->
+		   <ByKey Nb="?" Type="bool" Def="false">     </ByKey>
+                   <!-- Si ByFile ==true, le  PatternName est fichier contenat un SauvegardeSetString, 
+                        redondant avec ByKey mais pb avec EtalonnagePolyg qui n'utilise pas les
+                         MicMacLocalChantierDescripteur-->
+		   <ByFile Nb="?" Type="bool" Def="false">     </ByFile>
+                   
+		   <PosValueInit Nb="1"  UnionType="true">
+
+		        <PosId Nb="?" Type="std::string"> </PosId> <!-- Le string est ignore --> 
+		        <PosFromBDOrient Nb="?" Type="std::string"> </PosFromBDOrient>
+		        <PosFromBDAppuis Nb="?"> 
+			      <Id Nb="1" Type="std::string"> </Id>
+			      <NbTestRansac Nb="1" Type="int"> </NbTestRansac>
+     <!-- Si on la connait, cette direction approximative de l'axe de visee permet d'eviter
+          les retournement qui arrive parfois (avec les longues focales) -->
+                              <DirApprox Type="Pt3dr" Nb="?"> </DirApprox>
+			</PosFromBDAppuis>
+
+			<PoseFromLiaisons Nb="?">
+			      <LiaisonsInit Nb="+" Container="std::vector">
+				   <!-- OnZonePlane : seulement la premiere -->
+			           <OnZonePlane Nb="?"  Type="std::string"> </OnZonePlane>
+<!-- OnZonePlane etait fait pour partager le plan, en fait peu utile. TestSolPlane
+se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas faire de mal
+-->
+                                   <TestSolPlane Nb="?" Type="bool" Def="true"></TestSolPlane>
+<!-- Si >0  on tente d'ameliorer la solution par Mat ess ou mise en place coplanaire, i
+     par un solution de relevement dans l'espace sur points multiples
+--> 
+
+                                   <NbRansacSolAppui  Nb="?" Type="int" Def="200"> </NbRansacSolAppui>
+                                    
+<!--   -->
+                                   <InitOrientPure  Nb="?" Type="bool" Def="false"> </InitOrientPure>
+                                   <NbPtsRansacOrPure  Nb="?" Type="int" Def="200"> </NbPtsRansacOrPure>
+                                   <NbTestRansacOrPure  Nb="?" Type="int" Def="500"> </NbTestRansacOrPure>
+
+
+
+                                   <NbMinPtsRanAp  Nb="?" Type="int" Def="0"> </NbMinPtsRanAp>
+                                   <NbMaxPtsRanAp  Nb="?" Type="int" Def="500"> </NbMaxPtsRanAp>
+                                   <PropMinPtsMult Nb="?"  Type="double" Def="0.5"> </PropMinPtsMult>
+
+			           <NameCam Nb="1" Type="std::string"> </NameCam>
+				   <NameCamIsKeyCalc Nb="?" Type="bool" Def="false"> </NameCamIsKeyCalc>
+				   <KeyCalcIsIDir Nb="?" Type="bool" Def="true"> </KeyCalcIsIDir>
+				   <IdBD Nb="1"  Type="std::string"> </IdBD>
+	                           <ProfSceneCouple Nb="?" Type="double"> </ProfSceneCouple>
+				   <L2EstimPlan Nb="?" Type="bool" Def="true"> </L2EstimPlan>
+				   <!-- Si valeur, remplace la pronfondeur -->
+				   <LongueurBase Nb="?" Type="double"> </LongueurBase>
+			      </LiaisonsInit>
+			</PoseFromLiaisons>
+
+			<PoseInitFromReperePlan Nb="?">   <!--  Voir [PIFRP]-->
+			      <OnZonePlane Nb="1" Type="std::string">   </OnZonePlane>
+                              <L2EstimPlan Nb="?" Type="bool" Def="true"> </L2EstimPlan>
+                              <!-- Si le fichier existe est interprete comme un nom de fichier,
+                                   sinon comme un identifiant de base -->
+                              <IdBD Nb="1"  Type="std::string"> </IdBD>
+			      <NameCam Nb="1" Type="std::string">       </NameCam>
+			      <!-- Inutile car normalement peut etre calcule par les points,
+			      mais peut etre plus naturel a fixer que le facteur d'echelle dans le plan
+			      -->
+			      <DEuclidPlan  Nb="?"  Type="double">      </DEuclidPlan>
+                              <InitPIFRP Nb="1"  UnionType="true">
+                                  <MesurePIFRP Nb="?">
+                                      <Ap1  Nb="1" RefType="MesureAppuis">         </Ap1>
+                                      <Ap2  Nb="1" RefType="MesureAppuis">         </Ap2>
+                                      <Ap3  Nb="1" RefType="MesureAppuis">         </Ap3>
+                                  </MesurePIFRP>
+                                  <DirPlan Nb="?" Type="Pt3dr"> </DirPlan>
+                              </InitPIFRP>
+			</PoseInitFromReperePlan>
+
+		   </PosValueInit>
+              </PoseCameraInc>
+
+             <GroupeDePose Nb="*">
+                 <KeyPose2Grp Nb="1" Type="std::string"> </KeyPose2Grp>
+                 <Id Nb="1" Type="std::string"> </Id>
+                 <ShowCreate Nb="?" Type="bool" Def="false"> </ShowCreate>
+             </GroupeDePose>
+
+
+	      <SurfParamInc Nb="*">
+                  <!-- (cas le + courant) Si le nom correspond a une zone plane, 
+		  utilisee lors de l'initialisation, il n'est pas utile de  
+		  preciser les point de liaison 
+		  -->
+                  
+		  <!-- La liste des liaisons auxquelles s'appliquent le contrainte -->
+
+		  <LiaisonsApplyContrainte Nb="+">
+		       <NameRef Nb="1" Type="std::string">  </NameRef> 
+		       <PatternI1 Nb="1" Type="std::string"> </PatternI1>
+		       <PatternI2 Nb="?" Type="std::string" Def=".*"> </PatternI2>
+		  </LiaisonsApplyContrainte>
+                  
+		  <InitSurf Nb="1"  UnionType="true">
+	               <ZonePlane Nb="?" Type="std::string"> </ZonePlane>
+		  </InitSurf>
+	      </SurfParamInc>
+
+	      <PointFlottantInc Nb="*">
+		    <!-- Il faut connaitre a l'avance les images dans lesquelles le points sera
+		    projete pour creer les equations -->
+	            <Id Nb="1" Type="std::string"> </Id>
+		    <KeySetOrPat Nb="1" Type="std::string"> </KeySetOrPat>
+                    <ModifInc Nb="?" 
+                              RefType="ModifIncPtsFlottant"   
+                              RefFile="ParamChantierPhotogram.xml"
+                    > 
+                    </ModifInc>
+	      </PointFlottantInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier Nb="1">
+              <IsAperiCloud Type="bool" Nb="?" Def="false"> </IsAperiCloud>  <!-- Dans ce cas, court-circuite +sieur meca -->
+              <IsChoixImSec Type="bool" Nb="?" Def="false"> </IsChoixImSec>  <!-- Dans ce cas, court-circuite +sieur meca -->
+              <FileSauvParam Nb="?" Type="std::string"> </FileSauvParam>
+              <GenereErreurOnContraineCam Nb="?" Type="bool" Def="true"> </GenereErreurOnContraineCam>
+	      <!--  Juste pour fixer les ordres de grandeur dans le cas d'une aero 
+	            "toute en l'air"
+	      -->
+	      <ProfSceneChantier Nb="?" Type="double" Def="10.0"> </ProfSceneChantier>
+	      <DirectoryChantier Nb="?"  Type="std::string" Def="">  </DirectoryChantier>
+
+	      <FileChantierNameDescripteur Nb="?" Type="string"> </FileChantierNameDescripteur>
+             <!-- Si aero lie a etal-polyg, donne nom du parametre --> 
+             <NameParamEtal Nb="?" Type="std::string"> </NameParamEtal>
+
+             <PatternTracePose Nb="?" Type="std::string"> </PatternTracePose>
+             <TraceGimbalLock Nb="?" Type="bool" Def="true"> </TraceGimbalLock>
+             <MaxDistErrorPtsTerr Nb="?"  Type="double" Def="1e50"> </MaxDistErrorPtsTerr>
+             <MaxDistWarnPtsTerr Nb="?"  Type="double" Def="1e30"> </MaxDistWarnPtsTerr>
+
+             <DefPbLiaison Nb="?" RefType="ShowPbLiaison"> </DefPbLiaison>
+
+             <DoCompensation Nb="?" Type="bool" Def="true"> </DoCompensation>
+
+             <TimeLinkage Nb="?">
+                   <DeltaMax Nb="1" Type="double"> </DeltaMax>
+             </TimeLinkage>
+
+             <DebugPbCondFaisceau Nb="?" Type="bool" Def="false"> </DebugPbCondFaisceau>
+
+             <SauvAutom Nb="?" Type="std::string"> </SauvAutom>
+             <!-- Rajouter une sauvegarde sous Tmp-MM-Dir/ : def = false, pb avec calib per pose  -->
+             <SauvAutomBasic Nb="?" Type="bool" Def="false"> </SauvAutomBasic>
+
+              <!-- Physicially there should not exist points behind camera, but there can be some :
+                   for outliers, or for point at infinity
+              -->
+             <ThresholdWarnPointsBehind Nb="?" Type="double" Def="0.01"></ThresholdWarnPointsBehind>
+
+        </SectionChantier>
+
+
+        <SectionSolveur Nb="1">
+            <AllMatSym Nb="?" Type="bool" Def="true"> </AllMatSym>
+	    <ModeResolution Nb="1" Type="eModeSolveurEq"> </ModeResolution> 
+
+	    <ModeControleDescDic Nb="?" Type="eControleDescDic" Def="eCDD_Jamais"> </ModeControleDescDic> 
+            <SeuilBas_CDD  Nb="?" Type="int" Def="4"> </SeuilBas_CDD>
+            <SeuilHaut_CDD  Nb="?" Type="int" Def="10"> </SeuilHaut_CDD>
+
+            <!-- Mise au point de l'ordre AMD, sur pb images piazzabra -->
+            <InhibeAMD Nb="?" Type="bool" Def="false"> </InhibeAMD>
+            <AMDSpecInterne Nb="?" Type="bool" Def="false"> </AMDSpecInterne>
+ 
+
+            <ShowCholesky Nb="?" Def="false" Type="bool"> </ShowCholesky>
+            <!-- Dans debugage de la permutation des block de variables (en vue Cholesky) -->
+            <TestPermutVar Nb="?" Def="false" Type="bool"> </TestPermutVar>
+            <ShowPermutVar Nb="?" Def="false" Type="bool"> </ShowPermutVar>
+            <PermutIndex Nb="?" Def="true" Type="bool"> </PermutIndex>
+<!-- Si true, on ajoute une orientation interne qui a pour effet d'avoir des points
+normalises en echelle et/ou en translation -->
+            <NormaliseEqSc  Nb="?" Type="bool" Def="true"> </NormaliseEqSc>
+            <NormaliseEqTr  Nb="?" Type="bool" Def="true"> </NormaliseEqTr>
+<!-- A partir de ce B/H l'equation d'ajustement de faisceau est ecrite avec un point a l'infini -->
+            <LimBsHProj Nb="?" Type="double" Def="0.1">   </LimBsHProj>
+            <LimBsHRefut Nb="?" Type="double" Def="1e-6">   </LimBsHRefut>
+            <LimModeGL Nb="?" Type="double" Def="0.3">   </LimModeGL>
+
+<!-- Si on ne veut pas utiliser, mettre valeur <= 0 -->
+            <GridOptimKnownDist Nb="?" Type="bool" Def="false"> </GridOptimKnownDist>
+            <SLMGlob   Nb="?" RefType="SectionLevenbergMarkard"> </SLMGlob>
+            <!-- Divise les incertitudes, donc >1  Augmente l'effet , 0 est valide (verife dans Apero) !!!!     -->
+            <MultSLMGlob   Nb="?" Type="double"> </MultSLMGlob>
+
+            <Im2Aff Nb="?" Type="cElRegex_Ptr"> </Im2Aff>
+
+        </SectionSolveur>
+
+
+
+	<SectionCompensation Nb="1">
+	    <EtapeCompensation Nb="+">
+	         <!-- <NbIteration Nb="?" Type="int" Def="1"> </NbIteration> -->
+<!--  Par defaut les inconnues ont les memes contraintes a chaque etape, la section ne concerne
+      donc que les objets modifies
+-->
+		 <IterationsCompensation Nb="*" Container="std::vector">
+
+                     <CtrlTimeCompens Nb="?">
+                           <NbMin Nb="?" Type="int" Def="0"> </NbMin>
+                           <NbMax Nb="1" Type="int">         </NbMax>
+                           <SeuilEvolMoy Nb="1" Type="double">  </SeuilEvolMoy>
+                           <SeuilEvolMax Nb="?" Type="double">  </SeuilEvolMax>  <!-- Default 2*SeuilEvolMoy -->
+                           <AutoAdaptLVM Nb="?">
+                                <Mult Nb="1" Type="double">  </Mult>  <!-- MultSLMEtape sera egal a Mult * EvolMoy -->
+                                <ModeMin Nb="?" Type="bool" Def="true"> </ModeMin>
+                           </AutoAdaptLVM>
+                     </CtrlTimeCompens>
+                     <DoIt Nb="?" Type="bool" Def="true"> </DoIt> <!-- Add to make easier the control with symbol -->
+		     <SLMIter  Nb="?" RefType="SectionLevenbergMarkard"> </SLMIter>
+		     <SLMEtape  Nb="?" RefType="SectionLevenbergMarkard"> </SLMEtape>
+		     <SLMGlob   Nb="?" RefType="SectionLevenbergMarkard"> </SLMGlob>
+                     <MultSLMIter   Nb="?" Type="double"> </MultSLMIter>
+                     <MultSLMEtape   Nb="?" Type="double"> </MultSLMEtape>
+                     <MultSLMGlob   Nb="?" Type="double"> </MultSLMGlob>
+                     <Pose2Init Nb="?">
+                           <ProfMin Nb="1" Type="std::vector<int>"> </ProfMin>
+                           <Show Nb="?" Type="bool" Def="false"> </Show>
+<!-- -1 on ne complemente pas, 0 on complemente avec le pas du dernier etage -->
+                           <StepComplemAuto Nb="?" Type="int" Def="0"> </StepComplemAuto>
+                     </Pose2Init>
+                     <SetRayMaxUtileCalib Nb="*">
+                          <Name Nb="1" Type="std::string"></Name>
+                          <Ray Nb="1" Type="double"> </Ray>
+                          <IsRelatifDiag  Nb="?" Type="bool" Def="false"> </IsRelatifDiag>
+                          <ApplyOnlyFE  Nb="?" Type="bool" Def="false"> </ApplyOnlyFE>
+                     </SetRayMaxUtileCalib>
+
+
+                      <!--  Critere envisage de bascule :
+                              - sur centre (GPS)
+                              - sur points appuis
+                              - sur zone plane ou autre critere de forme(droite ?)
+                              - par fusion a posteriori de nuage ?
+                      -->
+                     <BasculeOrientation Nb="?">
+                          <AfterCompens Nb="?" Type="bool" Def="true"></AfterCompens>
+			  <PatternNameApply Nb="?" Type="std::string" Def=".*"> </PatternNameApply>
+			  <PatternNameEstim Nb="?" Type="std::string" Def=".*"> </PatternNameEstim>
+
+                          <ModeBascule Nb="1" UnionType="true">
+                               <BasculeOnPoints Nb="?">
+                          <!-- Si elle donnee, elle force le centre et tout les triplets
+                              le contiennent
+                          -->
+                                   <BascOnCentre Nb="?">
+                                        <PoseCentrale Nb="?" Type="std::string"> </PoseCentrale>
+                                        <EstimateSpeed Type="bool" Nb="?" Def="false"> </EstimateSpeed>
+                                   </BascOnCentre>
+                                   <BascOnAppuis Nb="?">
+                                        <NameRef Nb="1" Type="std::string"> </NameRef>   
+                                   </BascOnAppuis>
+                                   <ModeL2 Nb="?" Type="bool" Def="true"> </ModeL2>
+                                   <AerialDeformNonLin Nb="?" AccessorFils="false">
+                                         <!-- Notation X gd Axe, Y Petit Axe -->
+                                         <!-- Flag des polynome actif: Par ex pour Z
+                                              Z = a0 + a1 X + a2 Y + a3 XX + a4 XY + a5 YY
+                                              Si Z= F(X), a0a1a3 actif donc FlagZ= 11= 1 | 2 |8 
+                                         -->
+                                         <FlagX Nb="?" Type="int" Def="63"> </FlagX>
+                                         <FlagY Nb="?" Type="int" Def="63"> </FlagY>
+                                         <FlagZ Nb="?" Type="int" Def="63"> </FlagZ>
+                                         <ForceTrueRot Nb="?" Type="bool" Def="true"> </ForceTrueRot>
+                                         <PattEstim Nb="?" Type="std::string" Def=".*"> </PattEstim>
+                                         <Show Nb="?" Type="bool" Def="false"> </Show>
+                                   </AerialDeformNonLin>
+                               </BasculeOnPoints>
+
+                               <BasculeLiaisonOnPlan Nb="?">
+                                    <EstimPl  Nb="1" RefType="ParamEstimPlan"> </EstimPl>
+                                    <OrientInPlane Nb="?">
+                                         <DistFixEch Nb="?" Type="double"> </DistFixEch>  <!-- Si 0 , unused -->
+                                         <FileMesures Nb="1" Type="std::string"> </FileMesures>
+                                         <AlignOn Nb="?" Type="std::string" Def="ki">   </AlignOn>
+                                    </OrientInPlane>
+                               </BasculeLiaisonOnPlan>
+                          </ModeBascule>
+                     </BasculeOrientation>
+                     <!-- Fixe l'echelle, les point sont saisi en stereo -->
+                     <FixeEchelle Nb="?">
+                         <ModeFE Nb="1" UnionType="true"> 
+                              <StereoFE Nb="?">
+                                  <!-- Taille =2 necessairement -->
+                                  <HomFE Nb="+" Container="std::vector" RefType="AperoPointeStereo"> </HomFE>
+                              </StereoFE>
+                              <FEFromFile Nb="?" RefType="Apero2PointeFromFile"> </FEFromFile>
+                         </ModeFE> 
+                         <DistVraie Nb="1" Type="double"> </DistVraie>
+                     </FixeEchelle>
+
+                     <!-- Va calculer une rotation dans le plan horizontal -->
+                     <FixeOrientPlane Nb="?">
+                         <!-- On donne un couple de points, et une direction cible -->
+                         <ModeFOP Nb="1" UnionType="true"> 
+                              <!-- Cas courant, les points sont au meme Z, pas besoin de stereo -->
+                             <HorFOP Nb="?"> 
+                                  <!-- Taille =2 necessairement -->
+                                  <VecFOH Nb="+" Container="std::vector" RefType="AperoPointeMono"> </VecFOH>
+                                  <Z Nb="?" Type="double" Def="0"> </Z>
+                             </HorFOP> 
+                             
+                             <HorFromFile Nb="?" RefType="Apero2PointeFromFile"> </HorFromFile>
+
+                         </ModeFOP>
+                         <Vecteur Nb="1" Type="Pt2dr"> </Vecteur>
+                     </FixeOrientPlane>
+                     <!-- Cas basique, on conserve l'orientation globale d'une image -->
+                     <BasicOrPl Nb="?" Type="std::string"> </BasicOrPl>
+                     <BlocBascule Nb="?"> 
+                           <Pattern1 Nb="1" Type="std::string"> </Pattern1>
+                           <Pattern2 Nb="1" Type="std::string"> </Pattern2>
+                           <IdBdl Nb="1"  Type="std::string"> </IdBdl>
+                     </BlocBascule>
+
+
+                     <EstimateOrientationInitBlockCamera Nb="*">
+                         <Id Nb="1" Type="std::string"> </Id>
+                         <Show Type="bool" Nb="?" Def="false"> </Show>
+                     </EstimateOrientationInitBlockCamera>
+
+                     <MesureErreurTournante Nb="?">
+                          <Periode Nb="1" Type="int"> </Periode>
+                          <NbTest Nb="?"  Type="int"> </NbTest>
+                          <NbIter Nb="?"  Type="int" Def="4"> </NbIter>
+                          <!-- Pour l'instant ne pas changer ces valeurs par defaut -->
+                          <ApplyAppuis Nb="?" Type="bool" Def="true"> </ApplyAppuis>
+                          <ApplyLiaisons Nb="?" Type="bool" Def="false"> </ApplyLiaisons>
+                     </MesureErreurTournante>
+
+
+
+
+		     <SectionContraintes  Nb="?">
+		         <ContraintesCamerasInc Nb="*"> 
+		             <TolContrainte Nb="?" Type="double" Def="-1">  <!--  TOL -->
+			     </TolContrainte>
+			     <PatternNameApply Nb="?" Type="std::string" Def=".*"> </PatternNameApply>
+                             <!-- Si true le PatternNameApply est matche sur Nom%(Focm*10) -->
+                             <Val Nb="+" Type="eTypeContrainteCalibCamera"> </Val>
+                             <PatternRefuteur Type="cElRegex_Ptr" Nb="?"> </PatternRefuteur>
+		         </ContraintesCamerasInc> 
+
+		         <ContraintesPoses Nb="*">
+<!-- OK cSetName -->
+                             <ByPattern Type="bool" Nb="?" Def="false"> </ByPattern>
+                             <PatternRefuteur Type="std::string" Nb="?"> </PatternRefuteur>
+                             <!-- Ces tolerances sont un rappel sur la valeur initiale -->
+		             <TolAng Nb="?" Type="double" Def="-1">  </TolAng>
+		             <TolCoord Nb="?" Type="double" Def="-1">  </TolCoord>
+			     <!-- En general les contraintes ne s'applique qu'a une seule pose-->
+			     <NamePose Nb="1" Type="std::string"> </NamePose>
+                             <Val Nb="1" Type="eTypeContraintePoseCamera"> </Val>
+			     <!-- Certaines contraintes mettent en cause d'autres poses, pour
+			         l'instant inutile puis que la pose de rattachement doit etre connue, 
+			         mais prepare le cas ou il sera variable
+			     -->
+			     <PoseRattachement Nb="?" Type="std::string"> </PoseRattachement>
+		         </ContraintesPoses>
+		     </SectionContraintes>
+		     <Messages Nb="*" Type="std::string"> </Messages>
+
+                     <!-- Cree un interface de visualisation de points multiples, utilise 1ere fois
+                          avant la compensation  -->
+                 <VisuPtsMult Nb="*">
+		      <Cam1 Nb="1" Type="std::string"> </Cam1>
+                      <Id Nb="1" Type="std::string"> </Id>
+                      <SzWPrinc Nb="?" Type="int" Def="500"> </SzWPrinc>
+                      
+
+                      <SzWAux Nb="?" Type="int" Def="100"> </SzWAux>
+                      <ZoomWAux Nb="?" Type="int" Def="5"> </ZoomWAux>
+                      <NbWAux Nb="1" Type="Pt2di">  </NbWAux>
+                      <AuxEnDessous Nb="1" Type="bool"> </AuxEnDessous>
+
+                      <MaxDistReproj Nb="?" Type="double" Def="1.5"> </MaxDistReproj>
+                      <MaxDistSift Nb="?" Type="double" Def="1.0"> </MaxDistSift>
+                      <MaxDistProjCorr Nb="?" Type="double" Def="3.0"> </MaxDistProjCorr>
+
+                      <SeuilCorrel Nb="?" Type="double" Def="0.85"> </SeuilCorrel>
+                 </VisuPtsMult>
+
+                 <VerifAero Nb="*">
+                      <PatternApply Nb="1" Type="std::string"> </PatternApply>
+                      <IdBdLiaison Nb="1" Type="std::string"> </IdBdLiaison>
+                      <Pond Nb="1" RefType="PonderationPackMesure"> </Pond>
+                      <Prefixe Nb="1"  Type="std::string"> </Prefixe>
+
+                      <TypeVerif Nb="1" Type="eTypeVerif" > </TypeVerif>
+                      <SeuilTxt Nb="1" Type="double"> </SeuilTxt>
+<!--   Do  Champ -->
+
+                      <Resol Nb="1" Type="double"> </Resol>
+                      <PasR Nb="1" Type="double"> </PasR>
+                      <PasB Nb="1" Type="double"> </PasB>
+
+                 </VerifAero>
+
+                  <!-- Est fait avant la compensation -->
+		     <ExportSimulation Nb="*">
+		          <GeneratePointsTerrains Nb="1" UnionType="true">
+			      <GPtsTer_By_File Nb="?" Type="std::string"> </GPtsTer_By_File> 
+			      <GPtsTer_By_ImProf Nb="?">
+			            <Origine Nb="1" Type="Pt3dr"> </Origine>
+			            <Step  Nb="1" Type="Pt3dr"> </Step>
+				    <NbPts Nb="1" Type="int">  </NbPts>
+				    <OnGrid Nb="1" Type="bool"> </OnGrid>
+				    <File Nb="1" Type="std::string"> </File>
+				    <RandomizeInGrid Nb="?" Type="double" Def="0.0"> </RandomizeInGrid>
+				    <!-- Si non sepecifie c'est du terrain, sinon geometrie image-->
+				    <ImMaitresse Nb="?" Type="std::string"> </ImMaitresse>
+				    <DTMIsZ Nb="?" Type="bool" Def="true"> </DTMIsZ>
+			      </GPtsTer_By_ImProf>
+		          </GeneratePointsTerrains>
+		          <GenerateLiaisons Nb="*">
+			       <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
+			       <FilterIm1  Nb="?" Type="std::string" Def=".*"> </FilterIm1>
+			       <FilterIm2  Nb="?" Type="std::string" Def=".*"> </FilterIm2>
+			       <BruitIm1  Nb="1" Type="double">  </BruitIm1>
+			       <BruitIm2  Nb="1" Type="double">  </BruitIm2>
+		          </GenerateLiaisons>
+		     </ExportSimulation>
+
+                     <!-- Pour aller inspecter les cameras, les tests changeront de manier
+                     opportuniste au fil des besoins -->
+
+                     <TestInteractif Nb="?"> 
+                          <AvantCompens Nb="?" Type="bool" Def="false"> </AvantCompens>
+                          <ApresCompens Nb="?" Type="bool" Def="false"> </ApresCompens>
+                          <TestF2C2 Nb="?" Type="bool" Def="false">  </TestF2C2>
+                          <SetStepByStep Nb="?" Type="bool" Def="false">  </SetStepByStep>
+                     </TestInteractif>
+		 </IterationsCompensation>
+
+		 <SectionTracage Nb="?">
+                     <!-- Tracage en mode texte, calcul et affiche des stats sur les  couples -->
+		     <TraceCpleCam Nb="*">
+		          <Cam1 Nb="1" Type="std::string"> </Cam1>
+		          <Cam2 Nb="1" Type="std::string"> </Cam2>
+			  <TraceCpleHom Nb="*" Type="std::string"> 
+                                <Id Nb="1" Type="std::string"> </Id>
+			  </TraceCpleHom>
+		     </TraceCpleCam>
+                     <GetChar Nb="?" Type="bool" Def="true"> </GetChar>
+		 </SectionTracage>
+
+
+                <!-- 
+                 -->
+		 <SLMEtape  Nb="?" RefType="SectionLevenbergMarkard"> </SLMEtape>
+		 <SLMGlob   Nb="?" RefType="SectionLevenbergMarkard"> </SLMGlob>
+                 <MultSLMEtape   Nb="?" Type="double"> </MultSLMEtape>
+                 <MultSLMGlob   Nb="?" Type="double"> </MultSLMGlob>
+
+
+                 <SectionObservations Nb="1">
+
+                      <!-- Ici il s'agit de point d'appuis "sur", -->
+                     <ObsBlockCamRig Nb="*">
+                         <Id Nb="1" Type="std::string"> </Id>
+                         <Show Type="bool" Nb="?" Def="false"> </Show>
+                         <GlobalPond Nb="?" RefType="RigidBlockWeighting"> </GlobalPond>
+                         <RelTimePond Nb="?" RefType="RigidBlockWeighting"> </RelTimePond>
+                     </ObsBlockCamRig>
+
+                      <!-- Ici il s'agit de point d'appuis "sur", -->
+		      <ObsAppuis Nb="*">
+		             <!-- Mesure "naturelle" = Terrain -->
+	                     <NameRef Nb="1" Type="std::string"> </NameRef>
+			     <Pond Nb="1" RefType="PonderationPackMesure"> </Pond>
+ <!-- Typiquement, pour faire des rapports de calibration -->
+                             <RapportObsAppui Nb="?">
+                                 <OnlyLastIter Nb="?" Type="bool" Def="true"> </OnlyLastIter>
+                                 <FichierTxt Nb="1" Type="std::string"> </FichierTxt>
+                                 <ColPerPose Nb="?" Type="bool" Def="false"> </ColPerPose>
+                                 <SeuilColOut Nb="?" Type="double" Def="1e3"> </SeuilColOut>
+                                 <ROA_FichierImg Nb="?">
+                                     <Name Nb="1" Type="std::string"> </Name>
+                                     <Sz   Nb="1" Type="double"> </Sz>
+                                     <Exag   Nb="1" Type="double"> </Exag>
+                                     <VisuVideo Nb="?" Type="bool" Def="false"></VisuVideo>
+                                 </ROA_FichierImg>
+                             </RapportObsAppui>
+		      </ObsAppuis>
+
+		      <ObsAppuisFlottant Nb="*">
+	                     <NameRef Nb="1" Type="std::string"> </NameRef>
+			     <PondIm Nb="1" RefType="PonderationPackMesure"> </PondIm>
+
+			     <PtsShowDet Nb="*" Type="cElRegex_Ptr"> </PtsShowDet>
+                             <DetShow3D  Nb="?" Type="bool" Def="false"> </DetShow3D>
+                             <NivAlerteDetail Nb="?" Type="double" Def="1e9"> </NivAlerteDetail>
+			     <ShowMax    Nb="?" Type="bool" Def="false"> </ShowMax>
+			     <ShowSom    Nb="?" Type="bool" Def="false"> </ShowSom>
+			     <ShowUnused    Nb="?" Type="bool" Def="true"> </ShowUnused>
+
+		      </ObsAppuisFlottant>
+
+
+		      <ObsLiaisons Nb="*">
+		             <!-- Mesure "naturelle" = Image -->
+	                     <NameRef Nb="1" Type="std::string"> </NameRef>
+			     <Pond Nb="1" RefType="PonderationPackMesure"> </Pond>
+		             <!--  PondPlan Ssi la liaison a ete declaree plane -->
+			     <PondSurf Nb="?" RefType="PonderationPackMesure"> </PondSurf>
+                             <!-- TRI VALEUR Si on le donne : x =Z, y = Poids compens z=seuil -->
+                             <RappelOnZ Nb="?">  
+                                   <Z Nb="1" Type="double"> </Z>
+                                   <!-- Incertitude pour l'estimation et la compensation -->
+                                   <IncC Nb="1" Type="double"> </IncC>
+                                   <IncE Nb="?" Type="double"> </IncE>
+                                   <SeuilR Nb="?" Type="double"> </SeuilR> <!-- Seuil Rejet -->
+                                   <LayerMasq Nb="?" Type="std::string"> </LayerMasq>
+                             </RappelOnZ>
+		      </ObsLiaisons>
+
+		      <ObsCentrePDV Nb="*">
+                             <PatternApply Nb="?" Type="cElRegex_Ptr"> </PatternApply>
+			     <Pond Nb="1" RefType="PonderationPackMesure"> </Pond>
+                             <!-- Si la Ponderation Alti est differente  de la ponderation plani-->
+			     <PondAlti Nb="?" RefType="PonderationPackMesure"> </PondAlti>
+                             <ShowTestVitesse  Nb="?"  Type="bool" Def="false"> </ShowTestVitesse>
+		      </ObsCentrePDV>
+
+		      <ObsRigidGrpImage Nb="*">
+                          <RefGrp Nb="1" Type="std::string"></RefGrp>
+                          <ORGI_CentreCommun Nb="?" AccessorFils="false">
+                              <Incertitude Nb="1" Type="Pt3dr"> </Incertitude>
+                          </ORGI_CentreCommun>
+                          <ORGI_TetaCommun Nb="?" AccessorFils="false">
+                              <Incertitude Nb="1" Type="Pt3dr"> </Incertitude>
+                          </ORGI_TetaCommun>
+		      </ObsRigidGrpImage>
+ 
+                     <TxtRapDetaille Nb="?">
+                           <NameFile Nb="1" Type="std::string"> </NameFile>
+                     </TxtRapDetaille>
+
+                 </SectionObservations>
+
+		 <SectionExport Nb="?" >
+ <!-- WARN ::  Appele a partir de la cle et non du fichier effectif -->
+		     <ExportCalib Nb="*" AccessorFils="false" >
+		         <PatternSel Nb="?" Type="std::string" Def=".*" > </PatternSel>
+			 <KeyAssoc    Nb="1" Type="std::string"  > </KeyAssoc>
+                         <Prefix Nb="?" Type="std::string" Def=""> </Prefix>
+                         <Postfix Nb="?" Type="std::string" Def=""> </Postfix>
+                         <KeyIsName Nb="?" Type="bool" Def="false"> </KeyIsName>
+<!-- Ca c'est les grilles anciennes pour compatibilite SAA -->
+                         <ExportAsGrid  Nb="?">
+                               <DoExport Nb="?" Type="bool" Def="true"> </DoExport>
+                               <Name Nb="1" Type="std::string"> </Name>
+                               <XML_Supl Nb="?" Type="std::string"> </XML_Supl>
+                               <XML_Autonome Nb="?" Type="bool" Def="false"> </XML_Autonome>
+                               <RabPt  Nb="?" Type="Pt2dr" Def="Pt2dr(200,200)"> </RabPt>
+                               <Step   Nb="?" Type="Pt2dr" Def="Pt2dr(20,20)"> </Step>
+                         </ExportAsGrid>
+                         <ExportAsNewGrid Nb="?"  AccessorFils="false" RefType="ExportAsNewGrid"> </ExportAsNewGrid>
+                         <!-- Points de verifications -->
+		     </ExportCalib>
+		     <ExportPose Nb="*" AccessorFils="false" >
+                          <Force2ObsOnC Nb="?">
+                              <WhenExist Nb="?" Type="bool" Def="false"> </WhenExist> <!-- Si false et pas => erreur -->
+                          </Force2ObsOnC>
+                          <ChC Nb="?" Type="std::string"> </ChC>
+                          <ChCForceRot Nb="?" Type="bool" Def="false"> </ChCForceRot>
+                          <KeyAssoc  Nb="1" Type="std::string"> </KeyAssoc>
+			  <AddCalib   Nb="?" Type="bool" Def="true"> </AddCalib>
+                          <ExportAsNewGrid Nb="?"  AccessorFils="false" RefType="ExportAsNewGrid"> </ExportAsNewGrid>
+                          <FileExtern Nb="?" Type="std::string"> </FileExtern>
+
+                          <FileExternIsKey Nb="?" Type="bool" Def="false"></FileExternIsKey>
+
+                          <!-- Devrait etre true mais par compat def=false, si true alors
+                               FileExternIsKey aussi -->
+                          <CalcKeyFromCalib Nb="?" Type="bool" Def="false"></CalcKeyFromCalib>
+                          <RelativeNameFE Nb="?" Type="bool" Def="true"></RelativeNameFE>
+
+			  <ModeAngulaire Nb="?" Type="bool" Def="false"> </ModeAngulaire>
+		          <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
+
+                          <!-- Points de verifications -->
+			  <NbVerif    Nb="?" Type="int"  Def="0">    </NbVerif>
+			  <VerifDeterm    Nb="?" Type="Pt3di">    </VerifDeterm>
+			  <ShowWhenVerif   Nb="?" Type="bool" Def="true"> </ShowWhenVerif>
+			  <TolWhenVerif   Nb="?" Type="double" Def="1e-3"> </TolWhenVerif>
+		     </ExportPose>
+
+                     <ExportAttrPose Nb="*">
+                          <KeyAssoc  Nb="1" Type="std::string"> </KeyAssoc>
+                          <AttrSup Nb="?" Type="std::string"> </AttrSup>
+                          <PatternApply Nb="1" Type="std::string"> </PatternApply>
+                          <ExportDirVerticaleLocale Nb="?" RefType="ParamEstimPlan"> </ExportDirVerticaleLocale>
+                     </ExportAttrPose>
+
+ 
+                     <!-- + ou - les meme fonctionnalite que bascule mais lorsque l'on veut juste memoriser
+                          les valeurs sans modifier les orientations; typiquement pour definir un repere
+                          qui sera utile a la correlation -->
+                     <ExportRepereLoc Nb="*">
+                          <NameRepere  Nb="1" Type="std::string"> </NameRepere>
+                          <PatternEstimPl Nb="1" Type="std::string"> </PatternEstimPl>
+                          <EstimPlanHor Nb="1" RefType="ParamEstimPlan"> </EstimPlanHor>
+                          <!-- Defaut PatternEstimPl !! Ok si le patern est un nom d'image, sinon pb ,
+                              si vaut NoP1P2 alors on ne fait rien, convention utile pour Bascule;
+                              Si ce se termine par xml; aors interprete  comme un nom de fichier
+                              creee selon la structure SaisieBasc; ds ce cas P1 et P2 sont ignores
+                           -->
+                          <ImP1P2 Nb="?" Type="std::string"> </ImP1P2>
+                          <P1 Nb="1" Type="Pt2dr"> </P1>
+                          <P2 Nb="1" Type="Pt2dr"> </P2>
+                          <!-- -->
+                          <!-- Definit l'axe OX du repere -->
+                          <AxeDef Nb="?" Type="Pt2dr" Def="Pt2dr(1,0)"> </AxeDef>
+                          <Origine Nb="?" Type="Pt2dr"> </Origine> <!-- Def P1 , pas vraiment utile en correl -->
+                          <NameImOri Nb="?" Type="std::string"> </NameImOri>
+                          <!-- Si true P1P2 est la direction du plan qui est horizontale-->
+                          <P1P2Hor Nb="?" Type="bool" Def="false"> </P1P2Hor>
+                          <ExportOrthoCyl Nb="?">
+                               <UseIt Nb="?" Type="bool" Def="true"></UseIt>
+                               <PatternEstimAxe Nb="?" Type="std::string"> </PatternEstimAxe>
+                               <AngulCorr Nb="1" Type="bool"> </AngulCorr>
+                               <L2EstimAxe Nb="?" Type="bool" Def="true">  </L2EstimAxe>
+                          </ExportOrthoCyl>
+                     </ExportRepereLoc>
+
+                     <ExportBlockCamera Nb="*">
+                         <Id Nb="1" Type="std::string"> </Id>
+                         <NameFile Nb="1" Type="std::string"> </NameFile>
+                     </ExportBlockCamera>
+
+
+                     <ExportMesuresFromCarteProf Nb="*">
+                          <Cartes2Export Nb="+">
+                              <Im1 Nb="+" Type="std::string"> </Im1>
+                              <Nuage Nb="1"  Type="std::string"> </Nuage>
+                              <ImN Nb="*" Type="std::string"> </ImN>
+                              <FilterIm2 Nb="?" Type="std::string" Def=".*"> </FilterIm2>
+                          </Cartes2Export>
+                          <IdBdLiaisonIn Nb="1" Type="std::string"> </IdBdLiaisonIn>
+                          <!-- Le sens 12 est celui ou les premiers points sont ceux de la carte de profondeur,
+                              a priori le + courant 
+                          -->
+                          <KeyAssocLiaisons12 Nb="?" Type="std::string"> </KeyAssocLiaisons12>
+                          <KeyAssocLiaisons21 Nb="?" Type="std::string"> </KeyAssocLiaisons21>
+                          <KeyAssocAppuis Nb="?" Type="std::string"> </KeyAssocAppuis>
+                          <AppuisModeAdd Nb="?" Type="bool" Def="true"></AppuisModeAdd>
+                          <LiaisonModeAdd Nb="?" Type="bool" Def="false"></LiaisonModeAdd>
+                     </ExportMesuresFromCarteProf>
+
+                     <!-- Pour aider a comprendre la configuration relative d'un groupe d'images -->
+                     <ExportVisuConfigGrpPose Nb="*">
+		          <PatternSel Nb="+" Type="std::string"> </PatternSel>
+                          <NameFile Nb="1" Type="std::string"> </NameFile>
+                     </ExportVisuConfigGrpPose>
+
+		     <ExportPtsFlottant Nb="?" AccessorFils="false">
+		          <PatternSel Nb="?" Type="std::string" Def=".*" > </PatternSel>
+			  <NameFileXml    Nb="?" Type="std::string"  > </NameFileXml>
+			  <NameFileTxt    Nb="?" Type="std::string"  > </NameFileTxt>
+			  <TextComplTxt Nb="?" Type="std::string">  </TextComplTxt>
+		     </ExportPtsFlottant>
+
+		     <ExportImResiduLiaison Nb="*">
+			  <Signed Nb="?" Type="bool" Def="true"> </Signed>
+
+                     <!-- Partie image -->
+
+		          <!-- Les residus d'une calib, en geom image -->
+		          <PatternGlobCalIm Nb="1" Type="std::string"> </PatternGlobCalIm>
+			  <NameGlobCalIm Nb="1" Type="std::string"> </NameGlobCalIm>
+
+			  <ScaleIm  Nb="1" Type="double"> </ScaleIm>
+			  <DynIm Nb="1" Type="double">  </DynIm>
+
+		            <!-- Les residus de chaque couple en geom image -->
+                           <ResidusIndiv Nb="?">
+		                <Pattern Nb="1" Type="std::string"> </Pattern>
+				<!-- A partir de N1@N2 -->
+			        <Name Nb="1" Type="std::string"> </Name>
+                           </ResidusIndiv>
+		     </ExportImResiduLiaison>
+
+                     <ExportRedressement Nb="*">
+                           <Dyn Nb="?"  Type="double" Def="1.0">     </Dyn>
+                           <Gamma Nb="?"  Type="double" Def="1.0">     </Gamma>
+                           <TypeNum Nb="?"  Type="eTypeNumerique">     </TypeNum>
+                           <Offset Nb="?"  Type="double" Def="0.0">     </Offset>
+
+                           <PatternSel  Nb="?"  Type="cElRegex_Ptr"> </PatternSel>
+                           <KeyAssocIn  Nb="?"  Type="std::string">  </KeyAssocIn>
+
+                      <!-- Cam -> Im :  Pim= (Pcam-Offset) / Scale             -->
+                           <OffsetIm   Nb="?" Type="Pt2dr" Def="Pt2dr(0,0)"> </OffsetIm>
+                           <ScaleIm   Nb="?" Type="double" Def="1.0"> </ScaleIm>
+
+                           <KeyAssocOut Nb="1"  Type="std::string">  </KeyAssocOut>
+                           <ZSol        Nb="?"  Type="double">       </ZSol>
+                           <Resol       Nb="1"  Type="double">       </Resol>
+                           <!-- Si true, la resolution est relative / a la resolution image -->
+                           <ResolIsRel  Nb="1"  Type="bool"> </ResolIsRel>
+
+                           <!-- Si true, la resolution est relative / a la resolution image -->
+
+                           <DoTFW  Nb="?" Type="bool" Def="false"> </DoTFW>
+                           <TetaLimite Nb="1" Type="double"> </TetaLimite>
+                           <DirTetaLim Nb="?" Type="Pt3dr" Def="Pt3dr(0,0,-1)"> </DirTetaLim>
+                           <DoOnlyIfNew Nb="?" Type="bool" Def="true"> </DoOnlyIfNew>
+                     </ExportRedressement>
+
+                     <ExportNuage Nb="*">
+                          <!-- Pour l'instant par defaut mode ply -->
+                          <NameOut Nb="1" Type="std::string"> </NameOut>
+                          <!-- Si on veut avoir pour chaque image un fichier specfique des points vue par cette image-->
+                          <ExportNuageByImage Nb="?">
+                               <KeyCalc Nb="1" Type="std::string"> </KeyCalc>
+                               <!-- Si Symetrise Pts, alors les points sont ajoutes autrement que pour la vue maitresse; la valeur par defaut anticipe ce que l'on fera avec des "vrai" point multiple -->
+                               <SymPts Nb="?" Type="bool" Def="true"> </SymPts>
+                          </ExportNuageByImage>
+                          <PlyModeBin Nb="?" Def="true" Type="bool"> </PlyModeBin>
+                          <!-- Pour l'instant par defaut mode ply -->
+	                  <NameRefLiaison Nb="*" Type="std::string"> </NameRefLiaison>
+
+                          <PatternSel Nb="?" Type="std::string"> </PatternSel>  <!-- Set Or Pat -->
+
+                          <!-- Utile : 1 pour me simplifier la vie 2 en + on peut filtrer
+                               des outlayer probable
+                           -->
+			  <Pond Nb="1" RefType="PonderationPackMesure"> </Pond>
+                          <!-- Si renvoie "NoFile"  alors on utilise pas, on fait un coloriage
+                               hypso en profondeur;
+                               Si renvoie "NormalePoisson" alors on colorie avec les normale pour
+                               utilise ensuite Kazdhan-Poisson-Surface-Reconsctruction
+                             -->
+                          <KeyFileColImage Nb="1" Type="std::string"> </KeyFileColImage>
+                          <NbChan Nb="?" Type="int" Def="-1"> </NbChan>
+                          <DirCol Nb="?" Type="Pt3dr" Def="Pt3dr(0,0,1)"> </DirCol>
+                          <PerCol Nb="?" Type="double" Def="2.0"> </PerCol>
+                          <LimBSurH Nb="?" Type="double" Def="1e-2"> </LimBSurH>
+
+                          <ImExpoRef Nb="?" Type="std::string"> </ImExpoRef>
+
+                          <NuagePutCam Nb="?">
+                              <ColCadre Nb="1" Type="Pt3di"> </ColCadre>
+                              <!-- Def : ColRay = ColCadre -->
+                              <ColRay Nb="?" Type="Pt3di"> </ColRay>
+                              <Long Nb="1" Type="double"> </Long>
+                              <StepSeg Nb="1" Type="double"> </StepSeg>
+                              <StepImage Nb="?" Type="double" Def="-1.0"> </StepImage>
+                          </NuagePutCam>
+                     </ExportNuage>
+
+                     <ChoixImMM Nb="?">
+                          <ChoixImSec Nb="1">
+                               <FileImSel Nb="?" Type="std::string"> </FileImSel>
+                               <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
+                               <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
+                               <CardMaxSub Nb="?" Type="int" Def="6"> </CardMaxSub>
+                 <!-- Pls c'est faible plus il y aura d'image dans la best sol,  Score=Cover - NbIm *PenalNbIm -->
+                               <PenalNbIm Nb="?" Type="double" Def="0.3"> </PenalNbIm>
+                               <NbMin Nb="1" Type="int"> </NbMin>
+                               <IdBdl Nb="1" Type="std::string"> </IdBdl>
+                               <NbMinPtsHom  Nb="?" Type="int" Def="15"> </NbMinPtsHom>
+<!-- Pour les petits angles c'est en radian, pour les grand 1.0 correspond a 60 degres -->
+                               <TetaMinPreSel Nb="?" Type="double" Def="0.025"> </TetaMinPreSel>
+                               <TetaOpt Nb="?" Type="double" Def="0.25"> </TetaOpt>
+                               <TetaMaxPreSel Nb="?" Type="double" Def="0.80"> </TetaMaxPreSel>
+
+                               <RatioDistMin Nb="?" Type="double" Def="0.50"> </RatioDistMin>
+                               <!-- En cas d'epipolaire pour eviter les stereo verticale -->
+                               <RatioStereoVertMax Nb="?" Type="double" Def="100.0"> </RatioStereoVertMax>
+                            
+                               <Teta2Min Nb="?" Type="double" Def="0.65"> </Teta2Min>
+                               <Teta2Max Nb="?" Type="double" Def="1.1"> </Teta2Max>
+                            
+                               <NbMaxPresel Nb="?" Type="int" Def="10"> </NbMaxPresel>
+                               <NbTestPrecis Nb="?" Type="int" Def="10"> </NbTestPrecis>
+                               <!-- <NbSetPreSelAng Nb="?" Type="int" Def="5"> </NbSetPreSelAng> -->
+
+                               <NbCellOccAng Nb="?" Type="int" Def="50"> </NbCellOccAng>
+                               <NbCaseIm Nb="?" Type="int" Def="10"> </NbCaseIm>
+                               <Masq3D Nb="?" Type="std::string"> </Masq3D>
+                          </ChoixImSec>
+                     </ChoixImMM>
+
+
+		 </SectionExport>
+
+	    </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+
+
+<!--
+     TOL  :  Lorsque Tol<0, la contraintes est geree de maniere stricte, avec un systeme d'optim 
+     sous contrainte, cela suppose une resolution par matrice pleine. Sinon la contrainte
+     est geree comme un poids qui augmentera jusqu'a ce qu'elle soit satisfaite a la tolerance (pas
+     encore supporte !)
+
+     PIFRP : 
+-->
+
+
+
+<Verbatim File=".h.cpp">
+// };
+</Verbatim>
+<Verbatim File=".h">
+#endif // Define_NotApero
+</Verbatim>
+
+
+</GenCpp>
