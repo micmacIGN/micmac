@@ -188,6 +188,7 @@ protected:
 
     bool        imageLoaded();
 
+	int PixelRatio();
 private:
 
     //! Window parameters (zoom, etc.)
