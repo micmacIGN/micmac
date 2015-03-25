@@ -1,0 +1,264 @@
+<?xml version="1.0" ?>
+
+<MMCameraDataBase>
+<!-- Canon DSLR -->
+   <CameraEntry>
+        <Name>  Canon EOS 6D  </Name>
+        <SzCaptMm>   24.0 36.0 </SzCaptMm>
+        <ShortName> C6D </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  Canon EOS 5D  </Name>
+        <SzCaptMm>   24.0 36.0 </SzCaptMm>
+        <ShortName> C5D </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name> Canon EOS 5D Mark II  </Name>
+        <SzCaptMm>   24.0  36.0  </SzCaptMm>
+        <ShortName> C5Dm2 </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name> Video HD Canon EOS 5D Mark II  </Name>
+        <SzCaptMm>   24.0  36.0  </SzCaptMm>
+        <ShortName> VidC5Dm2 </ShortName>
+   </CameraEntry>
+   	<CameraEntry> 
+        <Name> Canon EOS 7D </Name>
+        <SzCaptMm> 14.9 22.3 </SzCaptMm>
+        <ShortName> C7D </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name> Canon EOS 60D  </Name>
+        <SzCaptMm>   14.9 22.3 </SzCaptMm>
+        <ShortName> C60D </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name> Canon EOS 650D  </Name>
+        <SzCaptMm>   14.9 22.3 </SzCaptMm>
+        <ShortName> C60D </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  Canon EOS 1000D </Name>
+        <SzCaptMm>    16  24  </SzCaptMm>
+        <ShortName> Ceos1000D  </ShortName>
+   </CameraEntry>
+   
+<!-- Canon Compact -->
+
+   <CameraEntry>
+        <Name>  Canon PowerShot G9 </Name>
+        <SzCaptMm>    5.6 7.84 </SzCaptMm>
+        <ShortName> CPSG10  </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  Canon PowerShot G10 </Name>
+        <SzCaptMm>    5.6 7.84 </SzCaptMm>
+        <ShortName> CPSG10  </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  Canon PowerShot G12 </Name>
+        <SzCaptMm>    5.6 7.84 </SzCaptMm>
+        <ShortName> CPSG12  </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  Canon PowerShot S90 </Name>
+        <SzCaptMm>    5.55  7.4  </SzCaptMm>
+        <ShortName> CPS90  </ShortName>
+   </CameraEntry> 
+   <CameraEntry>
+        <Name>  Canon PowerShot S110 </Name>
+        <SzCaptMm>    5.7  7.6  </SzCaptMm>
+        <ShortName> CPS110  </ShortName>
+   </CameraEntry> 
+	<CameraEntry>
+        <Name> Canon IXUS 105 </Name>
+        <SzCaptMm> 5.1 3.8 </SzCaptMm>
+        <ShortName> CI105 </ShortName>
+   </CameraEntry>  
+   
+ <!-- Nikon DSLR -->  
+ 
+   <CameraEntry>
+        <Name>  NIKON D3X   </Name>
+        <SzCaptMm>   24.0 36.0 </SzCaptMm>
+        <ShortName> ND3X  </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  NIKON D90  </Name>
+        <SzCaptMm>   15.8 23.6 </SzCaptMm>
+        <ShortName> ND5000  </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  NIKON D300   </Name>
+        <SzCaptMm>   15.8 23.6 </SzCaptMm>
+        <ShortName> ND300  </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  NIKON D3200  </Name>
+        <SzCaptMm>   16.0 24.0 </SzCaptMm>
+        <ShortName> ND3200  </ShortName>
+   </CameraEntry>
+	<CameraEntry>
+        <Name>  NIKON D5000  </Name>
+        <SzCaptMm>   16.0 24.0 </SzCaptMm>
+        <ShortName> ND5000  </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  Video HD NIKON D90  </Name>
+        <SzCaptMm>   15.8 23.6 </SzCaptMm>
+        <ShortName> ND90VIDEO  </ShortName>
+   </CameraEntry>
+   
+ <!-- Nikon Compact -->  
+ 
+   <CameraEntry>
+        <Name>  NIKON CORPORATION COOLPIX A </Name>
+        <SzCaptMm>   15.7 23.6 </SzCaptMm>
+        <ShortName> NKCA  </ShortName>
+   </CameraEntry>
+   
+<!-- Ricoh -->
+
+   <CameraEntry>
+        <Name> RICOH GR DIGITAL 2 </Name>
+        <SzCaptMm> 5.52 7.36 </SzCaptMm>
+        <ShortName> R2 </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name> Ricoh GR DIGITAL 3 </Name>
+        <SzCaptMm> 5.58 7.44 </SzCaptMm>
+        <ShortName> GR3 </ShortName>
+	</CameraEntry>
+	<CameraEntry> 
+        <Name> Ricoh GR DIGITAL 4 </Name>
+        <SzCaptMm> 5.58 7.44 </SzCaptMm>
+        <ShortName> GR4 </ShortName>
+	</CameraEntry>
+	<CameraEntry> 
+        <Name> GR DIGITAL 3 </Name> <!--Different from "Ricoh GR DIGITAL 3" ??????????-->
+        <SzCaptMm> 6.1 7.6 </SzCaptMm>
+        <ShortName> GR3 </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>  RICOH GXR A12 </Name>
+		<SzCaptMm> 15.7 23.7 </SzCaptMm>
+		<ShortName> RGXA12  </ShortName>
+	</CameraEntry>
+   
+<!-- Pentax DSLR -->
+
+	<CameraEntry>
+        <Name> PENTAX K-5  </Name>  <!--  4.807 micron -->
+        <SzCaptMm> 16.0 24.0 </SzCaptMm>
+        <ShortName> PK5 </ShortName>
+	</CameraEntry>
+   
+   
+<!-- Sony -->
+
+	<CameraEntry>
+		<Name>   NEX-7 </Name>
+		<SzCaptMm>   16 24  </SzCaptMm>
+		<ShortName> NEX-7  </ShortName>
+	</CameraEntry>
+
+<!-- Fujifilm -->   
+   
+	<CameraEntry>
+		<Name>  FUJIFILM FinePix S5Pro  </Name>
+		<SzCaptMm>   16.0 24.0 </SzCaptMm>
+		<ShortName> FjFS5P </ShortName>
+		<DevRawBasic> true </DevRawBasic>
+	</CameraEntry>
+	<CameraEntry>
+		<Name>   Fujifilm REAL 3D W1 </Name>
+		<SzCaptMm>   4.7 6.3  </SzCaptMm>
+		<ShortName> Fuji3D  </ShortName>
+	</CameraEntry>
+	
+<!-- Olympus -->
+	
+	<CameraEntry>
+		<Name>  OLYMPUS u790SW,S790SW </Name>
+		<SzCaptMm>   4.55 6.17  </SzCaptMm>
+		<ShortName> OlMu790  </ShortName>
+	</CameraEntry>
+   
+<!-- GoPro -->
+
+	<CameraEntry>
+		<Name> GoPro HD Hero </Name>
+		<SzCaptMm> 4.28 5.75 </SzCaptMm>
+		<ShortName> GoPro HD Hero </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HD2</Name>
+		<SzCaptMm> 4.69 6.24 </SzCaptMm>
+		<ShortName> GoPro HD Hero 2</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3 White Edition</Name>
+		<SzCaptMm> 6.10 8.13 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3 Silver Edition</Name>
+		<SzCaptMm> 5.64 7.53 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3 Black Edition</Name>
+		<SzCaptMm> 6.63 8.84 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3+ Silver Edition</Name>
+		<SzCaptMm> 5.64 7.53 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro HERO3+ Black Edition</Name>
+		<SzCaptMm> 6.63 8.84 </SzCaptMm>
+		<ShortName> GoPro HD Hero 3</ShortName>
+	</CameraEntry>
+	<CameraEntry>
+		<Name> GoPro YHDC5170 </Name>
+		<SzCaptMm> 2.54 5.91 </SzCaptMm>
+		<ShortName> GoPro </ShortName>
+	</CameraEntry>
+
+
+<!-- Smartphones -->   
+   
+   <CameraEntry>
+        <Name>  Apple iPhone 4 </Name>
+        <SzCaptMm>    2.6  3.8  </SzCaptMm>
+        <ShortName> AppleI4  </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name> Sony C6603 </Name>
+        <SzCaptMm> 2.5 4.4  </SzCaptMm>
+        <ShortName> Sony XperiaZ 16.9 </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name> SAMSUNG SM-N9005 </Name>
+        <SzCaptMm> 3.52 4.59 </SzCaptMm>
+        <ShortName> Samsung Galaxy Note 3 </ShortName>
+   </CameraEntry>   
+
+
+<!-- Other -->	
+	<CameraEntry>
+		<Name> Loemi </Name>
+		<SzCaptMm>  50 30 </SzCaptMm>
+		<ShortName> Loemi </ShortName>
+	</CameraEntry>
+	<CameraEntry>
+        <Name>  Phase One P 20 </Name>
+        <SzCaptMm>   36.9 36.9 </SzCaptMm>
+        <ShortName> Ph1p20  </ShortName>
+	</CameraEntry>
+
+</MMCameraDataBase>
+
+
