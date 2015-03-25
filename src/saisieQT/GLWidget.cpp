@@ -716,6 +716,7 @@ void GLWidget::applyInfos()
 
             Select(infos.selection_mode, false);
         }
+		changeHistory();
     }
 }
 
