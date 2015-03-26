@@ -40,7 +40,6 @@ typedef enum
    /*eChinese = 3,
    eArabic  = 4,
    eRussian = 5,*/
-   eEsperanto,
    eNbLang
 } eLANG;
 
@@ -59,9 +58,6 @@ typedef enum
    eNavig_Orbital,
 } eNavigationType;
 
-
-
-std::string eToString(const eLANG& langue);
 
 class cParameters
 {
@@ -89,7 +85,7 @@ public:
     void setSelectionRadius(int val)    { _radius = val;         }
     void setShiftStep(float val)        {_shiftStep = val;       }
 
-	void setPtCreationMode(qTypePts mode){ _eType = mode;        }
+    void setPtCreationMode(qTypePts mode){ _eType = mode;        }
     void setPtCreationWindowSize(double sz){ _sz = sz;           }
 
     void setLanguage(int lang)          { _lang = lang;          }
@@ -114,7 +110,7 @@ public:
     int   getSelectionRadius()          { return _radius;        }
     float getShiftStep()                { return _shiftStep;     }
 
-	qTypePts	   getPtCreationMode()        { return _eType;         }
+    qTypePts	   getPtCreationMode()        { return _eType;         }
     double getPtCreationWindowSize()    { return _sz;            }
 
     int    getLanguage()                { return _lang;          }
@@ -128,13 +124,13 @@ public:
     void    read();
     void    write();
 
-	eNavigationType eNavigation() const;
-	void setENavigation(const eNavigationType& eNavigation);
+    eNavigationType eNavigation() const;
+    void setENavigation(const eNavigationType& eNavigation);
 
 private:
-	//! Main window parameters
-	bool        _fullScreen;
-	QPoint      _position;
+    //! Main window parameters
+    bool        _fullScreen;
+    QPoint      _position;
     QPoint      _nbFen;
     QSize       _szFen;
 
@@ -154,8 +150,8 @@ private:
     float       _shiftStep;
 
     //! Point creation mode
-	qTypePts			_eType;
-	eNavigationType _eNavigation;
+    qTypePts			_eType;
+    eNavigationType _eNavigation;
     double      _sz;
 
     //! Language
@@ -188,7 +184,7 @@ signals:
     void prefixTextEdit(QString);
     void shiftStepChanged(float);
     void setCenterType(int);
-	void setNavigationType(int);
+    void setNavigationType(int);
     void langChanged(int);
 
 protected slots:
@@ -205,9 +201,9 @@ protected slots:
     void on_radioButton_centroid_toggled(bool);
     void on_radioButton_bbox_center_toggled(bool);
     void on_radioButton_origin_center_toggled(bool);
-	void on_radioButtonBall_toggled(bool val);
-	void on_radionButtonOrbital_toggled(bool);
-	void on_radioButtonBallOneTouch_toggled(bool val);
+    void on_radioButtonBall_toggled(bool val);
+    void on_radionButtonOrbital_toggled(bool);
+    void on_radioButtonBallOneTouch_toggled(bool val);
 
 
     //!other display settings
