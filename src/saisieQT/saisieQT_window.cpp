@@ -1,30 +1,6 @@
 #include "saisieQT_window.h"
 #include "ui_saisieQT_window.h"
 
-/*
-const char* SELECTION_MODE_String[SIZE_OF_SELECTION_MODE] =
-{
-	QObject::tr("subtract inside").toStdString().c_str(),
-    QObject::tr("add inside").toStdString().c_str(),
-    QObject::tr("subtract outside").toStdString().c_str(),
-    QObject::tr("add outside").toStdString().c_str(),
-    QObject::tr("invert selection").toStdString().c_str(),
-    QObject::tr("select all").toStdString().c_str(),
-    QObject::tr("select none").toStdString().c_str()
-};
-*/
-
-const char* SELECTION_MODE_String[SIZE_OF_SELECTION_MODE] =
-{
-	"subtract inside",
-	"add inside",
-	"subtract outside",
-	"add outside",
-	"invert selection",
-	"select all",
-	"select none"
-};
-
 void setStyleSheet(QApplication &app)
 {
     QFile file(app.applicationDirPath() + "/../include/qt/style.qss");
@@ -1949,13 +1925,25 @@ bool ModelObjects::insertRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
+QStringList ModelObjects::getSelectionMode()
+{
+    return (QStringList()
+            << tr("subtract inside")
+            << tr("add inside")
+            << tr("subtract outside")
+            << tr("add outside")
+            << tr("invert selection")
+            << tr("select all")
+            << tr("select none"));
+}
+
 bool ObjectsSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
     //TODO:
     return true;
 }
 
-ComboBoxDelegate::ComboBoxDelegate(const char** listCombo, int size, QObject* parent)
+ComboBoxDelegate::ComboBoxDelegate(QStringList const &listCombo, int size, QObject* parent)
     : QStyledItemDelegate(parent),
       _size(size),
       _enumString(listCombo)
@@ -1969,7 +1957,7 @@ QWidget *ComboBoxDelegate::createEditor(QWidget *parent,
     QComboBox *editor = new QComboBox(parent);
 
     for (int i = 0; i < _size; ++i)
-        editor->addItem(QString(_enumString[i]));
+        editor->addItem(_enumString[i]);
 
     return editor;
 }
