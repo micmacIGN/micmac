@@ -3,13 +3,13 @@
 
 const char* SELECTION_MODE_String[SIZE_OF_SELECTION_MODE] =
 {
-	"subtract inside",
-	"add inside",
-	"subtract outside",
-	"add outside",
-	"invert selection",
-	"select all",
-	"select none"
+    QObject::tr("subtract inside").toStdString().c_str(),
+    QObject::tr("add inside").toStdString().c_str(),
+    QObject::tr("subtract outside").toStdString().c_str(),
+    QObject::tr("add outside").toStdString().c_str(),
+    QObject::tr("invert selection").toStdString().c_str(),
+    QObject::tr("select all").toStdString().c_str(),
+    QObject::tr("select none").toStdString().c_str()
 };
 
 void setStyleSheet(QApplication &app)
@@ -65,14 +65,14 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         setImageName("");
     }
 
-	ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
-	proxyObjectModel->setSourceModel(new ModelObjects(0,currentWidget()->getHistoryManager()));
-	setModelObject(proxyObjectModel);
-	connect(currentWidget(),SIGNAL(changeHistory()),proxyObjectModel,SLOT(invalidate()));
-	connect(tableView_Objects()->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),this,SLOT(selectionObjectChanged(QItemSelection,QItemSelection)));
-	connect(tableView_Objects()->selectionModel()->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),this,SLOT(updateMask()));
+    ObjectsSFModel*     proxyObjectModel = new ObjectsSFModel(this);
+    proxyObjectModel->setSourceModel(new ModelObjects(0,currentWidget()->getHistoryManager()));
+    setModelObject(proxyObjectModel);
+    connect(currentWidget(),SIGNAL(changeHistory()),proxyObjectModel,SLOT(invalidate()));
+    connect(tableView_Objects()->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),this,SLOT(selectionObjectChanged(QItemSelection,QItemSelection)));
+    connect(tableView_Objects()->selectionModel()->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),this,SLOT(updateMask()));
 
-	tableView_Objects()->setItemDelegateForColumn(2,new ComboBoxDelegate(SELECTION_MODE_String,SIZE_OF_SELECTION_MODE));
+    tableView_Objects()->setItemDelegateForColumn(2,new ComboBoxDelegate(SELECTION_MODE_String,SIZE_OF_SELECTION_MODE));
 
     tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
     tableView_Images()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -488,53 +488,53 @@ void SaisieQtWindow::on_actionShow_names_toggled(bool show)
 
 void SaisieQtWindow::on_actionShow_Zoom_window_toggled(bool show)
 {
-	_ui->QFrame_zoom->setVisible(show);
+    _ui->QFrame_zoom->setVisible(show);
 }
 
 
 void SaisieQtWindow::on_actionShow_3D_view_toggled(bool show)
 {
-	_ui->frame_preview3D->setVisible(show);
+    _ui->frame_preview3D->setVisible(show);
 }
 
 void SaisieQtWindow::on_actionShow_list_polygons_toggled(bool show)
 {
-	tableView_Objects()->setVisible(show);
+    tableView_Objects()->setVisible(show);
 
-	if(show)
-	{
-		QList<int> sizeS;
-		sizeS << 1 << 1;
-		_ui->splitter_Tools->show();
-		_ui->splitter_GLWid_Tools->setSizes(sizeS);
-		resizeTables();
-	}
+    if(show)
+    {
+        QList<int> sizeS;
+        sizeS << 1 << 1;
+        _ui->splitter_Tools->show();
+        _ui->splitter_GLWid_Tools->setSizes(sizeS);
+        resizeTables();
+    }
 
-	else
-	{
-		QList<int> sizeS;
-		sizeS << 1 << 0;
-		_ui->splitter_Tools->hide();
-		_ui->splitter_GLWid_Tools->setSizes(sizeS);
-	}
+    else
+    {
+        QList<int> sizeS;
+        sizeS << 1 << 0;
+        _ui->splitter_Tools->hide();
+        _ui->splitter_GLWid_Tools->setSizes(sizeS);
+    }
 
 }
 
 void SaisieQtWindow::selectionObjectChanged(const QItemSelection& select, const QItemSelection& unselect)
 {
-	if(select.indexes().size()>0)
-	{
-		cPolygon* polygon	= getWidget(0)->getGLData()->currentPolygon();
-		selectInfos info	= getWidget(0)->getHistoryManager()->getSelectInfo(select.indexes()[0].row());
-		polygon->setVector(info.poly);
-		polygon->close();
-	}
-	else
-	{
-		getWidget(0)->getGLData()->currentPolygon()->clear();
-	}
+    if(select.indexes().size()>0)
+    {
+        cPolygon* polygon	= getWidget(0)->getGLData()->currentPolygon();
+        selectInfos info	= getWidget(0)->getHistoryManager()->getSelectInfo(select.indexes()[0].row());
+        polygon->setVector(info.poly);
+        polygon->close();
+    }
+    else
+    {
+        getWidget(0)->getGLData()->currentPolygon()->clear();
+    }
 
-	getWidget(0)->update();
+    getWidget(0)->update();
 }
 
 void SaisieQtWindow::on_actionShow_refuted_toggled(bool show)
@@ -881,17 +881,17 @@ void SaisieQtWindow::on_actionReset_triggered()
 
 void SaisieQtWindow::on_actionConfirm_changes_triggered()
 {
-	QItemSelection select	= tableView_Objects()->selectionModel()->selection();
-	if(select.indexes().size())
-	{
-		int id = select.indexes()[0].row();
-		selectInfos &	info	= getWidget(0)->getHistoryManager()->getSelectInfo(id);
-		cPolygon * currentPoly	= currentWidget()->getGLData()->polygon();
-		info.poly				= currentPoly->getVector();
-		currentPoly->clear();
-		updateMask();
-		tableView_Objects()->clearSelection();
-	}
+    QItemSelection select	= tableView_Objects()->selectionModel()->selection();
+    if(select.indexes().size())
+    {
+        int id = select.indexes()[0].row();
+        selectInfos &	info	= getWidget(0)->getHistoryManager()->getSelectInfo(id);
+        cPolygon * currentPoly	= currentWidget()->getGLData()->polygon();
+        info.poly				= currentPoly->getVector();
+        currentPoly->clear();
+        updateMask();
+        tableView_Objects()->clearSelection();
+    }
 }
 
 void SaisieQtWindow::on_actionRemove_inside_triggered()
@@ -909,32 +909,32 @@ void SaisieQtWindow::on_actionRemove_outside_triggered()
 
 void SaisieQtWindow::on_actionUndo_triggered(){
 
-	if (_appMode <= MASK3D)
-	{
-		currentWidget()->getHistoryManager()->undo();
-		updateMask(true);
-	}
-	else
+    if (_appMode <= MASK3D)
+    {
+        currentWidget()->getHistoryManager()->undo();
+        updateMask(true);
+    }
+    else
 
-		emit undoSgnl(true);
+        emit undoSgnl(true);
 
 }
 
 void SaisieQtWindow::on_actionRedo_triggered()
 {
-	if (_appMode <= MASK3D)
-	{
-		currentWidget()->getHistoryManager()->redo();
-		updateMask(false);
-	}
-	else
+    if (_appMode <= MASK3D)
+    {
+        currentWidget()->getHistoryManager()->redo();
+        updateMask(false);
+    }
+    else
 
-		emit undoSgnl(false);
+        emit undoSgnl(false);
 }
 
 void SaisieQtWindow::on_actionSetViewTop_triggered()
 {
-	if (_appMode == MASK3D)
+    if (_appMode == MASK3D)
         currentWidget()->setView(TOP_VIEW);
 }
 
@@ -1337,36 +1337,36 @@ void SaisieQtWindow::setUI()
         tableView_PG()->installEventFilter(this);
         tableView_Objects()->installEventFilter(this);
 
-		_ui->tableView_Objects->close();
+        _ui->tableView_Objects->close();
        // _ui->splitter_Tools->setContentsMargins(2,0,0,0);
     }
     else
     {
-		_ui->QFrame_zoom->close();
-		_ui->tableView_PG->close();
-		_ui->tableView_Images->close();
-		_ui->frame_preview3D->close();
-		_ui->tableView_Objects->hide();
-		_ui->splitter_Tools->hide();
+        _ui->QFrame_zoom->close();
+        _ui->tableView_PG->close();
+        _ui->tableView_Images->close();
+        _ui->frame_preview3D->close();
+        _ui->tableView_Objects->hide();
+        _ui->splitter_Tools->hide();
 
-		QList<int> sizeS;
-		sizeS << 1 << 0;
-		_ui->splitter_GLWid_Tools->setSizes(sizeS);
+        QList<int> sizeS;
+        sizeS << 1 << 0;
+        _ui->splitter_GLWid_Tools->setSizes(sizeS);
 
-		_ui->splitter_GLWid_Tools->setStretchFactor(0,5);
-		_ui->splitter_GLWid_Tools->setStretchFactor(1,2);
+        _ui->splitter_GLWid_Tools->setStretchFactor(0,5);
+        _ui->splitter_GLWid_Tools->setStretchFactor(1,2);
     }
 
     //TEMP:
-	hideAction(_ui->menuTools->menuAction(), false);
+    hideAction(_ui->menuTools->menuAction(), false);
 
-	if (_appMode <= MASK3D)
-	{
-		hideAction(_ui->actionShow_Zoom_window, false);
-		hideAction(_ui->actionShow_3D_view, false);
-	}
-	else
-		hideAction(_ui->actionShow_list_polygons, false);
+    if (_appMode <= MASK3D)
+    {
+        hideAction(_ui->actionShow_Zoom_window, false);
+        hideAction(_ui->actionShow_3D_view, false);
+    }
+    else
+        hideAction(_ui->actionShow_list_polygons, false);
 }
 
 bool SaisieQtWindow::eventFilter( QObject* object, QEvent* event )
@@ -1423,7 +1423,7 @@ void SaisieQtWindow::resizeTables()
 
 void SaisieQtWindow::setModelObject(QAbstractItemModel *model_Objects)
 {
-	tableView_Objects()->setModel(model_Objects);
+    tableView_Objects()->setModel(model_Objects);
 }
 
 void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images)
@@ -1654,28 +1654,28 @@ void SaisieQtWindow::updateMask(bool reloadMask)
     // TODO seg fault dans le undo à cause de la destruction des images...
 
 
-	if (currentWidget()->getHistoryManager()->size())
-	{
+    if (currentWidget()->getHistoryManager()->size())
+    {
 
-		if ((_appMode != MASK3D) && reloadMask)
-		{
-			int idx = currentWidgetIdx();
+        if ((_appMode != MASK3D) && reloadMask)
+        {
+            int idx = currentWidgetIdx();
 
-			bool showMessage = _ui->actionShow_messages->isChecked();
-			bool show_cams	 = _ui->actionShow_cams->isChecked();
+            bool showMessage = _ui->actionShow_messages->isChecked();
+            bool show_cams	 = _ui->actionShow_cams->isChecked();
 
-			currentWidget()->setGLData(NULL, showMessage, show_cams,false,false);
+            currentWidget()->setGLData(NULL, showMessage, show_cams,false,false);
 
-			_Engine->reloadMask(_appMode, idx);
+            _Engine->reloadMask(_appMode, idx);
 
-			currentWidget()->setGLData(_Engine->getGLData(idx), showMessage, show_cams, false,false);
-		}
+            currentWidget()->setGLData(_Engine->getGLData(idx), showMessage, show_cams, false,false);
+        }
 
-		currentWidget()->applyInfos();
-		_bSaved = false;
-	}
+        currentWidget()->applyInfos();
+        _bSaved = false;
+    }
 
-	resizeTables();
+    resizeTables();
 
 }
 QString SaisieQtWindow::banniere() const
@@ -1807,162 +1807,162 @@ void SaisieQtWindow::labelShowMode(bool state)
 }
 
 ModelObjects::ModelObjects(QObject *parent, HistoryManager* hMag)
-	:QAbstractTableModel(parent),
-	  _hMag(hMag)
+    :QAbstractTableModel(parent),
+      _hMag(hMag)
 {
 
 }
 
 int ModelObjects::rowCount(const QModelIndex & /*parent*/) const
 {
-	return _hMag->size();
+    return _hMag->size();
 }
 
 int ModelObjects::columnCount(const QModelIndex &parent) const
 {
-	return 3;
+    return 3;
 }
 
 QVariant ModelObjects::headerData(int section, Qt::Orientation orientation, int role) const
 {
-	if (role == Qt::DisplayRole)
-	{
-		if (orientation == Qt::Horizontal)
-		{
-			switch (section)
-			{
-				case 0:
-					return QString(tr("id"));
-				case 1:
-					return QString(tr("nb pts"));
-				case 2:
-					return QString(tr("Mode"));
-			}
-		}
-	}
-	return QVariant();
+    if (role == Qt::DisplayRole)
+    {
+        if (orientation == Qt::Horizontal)
+        {
+            switch (section)
+            {
+                case 0:
+                    return QString(tr("id"));
+                case 1:
+                    return QString(tr("nb pts"));
+                case 2:
+                    return QString(tr("Mode"));
+            }
+        }
+    }
+    return QVariant();
 }
 
 bool ModelObjects::setData(const QModelIndex& index, const QVariant& value, int role)
 {
 
-	if (role == Qt::EditRole)
-	{
-		if(index.column() == 2)
-		{
-			int id = index.row();
-			_hMag->getSelectInfo(id).selection_mode = value.toInt();
-			QModelIndex topLeft		= this->index(index.row(),index.column());
-			QModelIndex bottomRight = topLeft;
-			emit dataChanged( topLeft, bottomRight );
-		}
-	}
+    if (role == Qt::EditRole)
+    {
+        if(index.column() == 2)
+        {
+            int id = index.row();
+            _hMag->getSelectInfo(id).selection_mode = value.toInt();
+            QModelIndex topLeft		= this->index(index.row(),index.column());
+            QModelIndex bottomRight = topLeft;
+            emit dataChanged( topLeft, bottomRight );
+        }
+    }
 
-	return true;
+    return true;
 }
 
 Qt::ItemFlags ModelObjects::flags(const QModelIndex &index) const
 {
 
-	switch (index.column())
-	{
-		case 2:
-		//if(index.row() < PG_Count())
-			return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
-	}
+    switch (index.column())
+    {
+        case 2:
+        //if(index.row() < PG_Count())
+            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+    }
 
-	return QAbstractTableModel::flags(index);
+    return QAbstractTableModel::flags(index);
 }
 QVariant ModelObjects::data(const QModelIndex &index, int role) const
 {
-	if (role == Qt::DisplayRole || role == Qt::EditRole)
-	{
-		int aK = index.row();
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        int aK = index.row();
 
-		if(aK < _hMag->size())
-		{
+        if(aK < _hMag->size())
+        {
 
-			QString nonS;
-			QVector <selectInfos> sInfo = _hMag->getSelectInfos();
-			selectInfos info = sInfo[aK];
+            QString nonS;
+            QVector <selectInfos> sInfo = _hMag->getSelectInfos();
+            selectInfos info = sInfo[aK];
 
-			switch (index.column())
-			{
-				case 0:
-				{
-					return nonS.number(aK);
-				}
-				case 1:
-				{
+            switch (index.column())
+            {
+                case 0:
+                {
+                    return nonS.number(aK);
+                }
+                case 1:
+                {
 
-					return nonS.number(info.poly.size());
-				}
-				case 2:
-				{
-					return QVariant(SELECTION_MODE_String[info.selection_mode]);
-				}
-			}
-		}
-	}
+                    return nonS.number(info.poly.size());
+                }
+                case 2:
+                {
+                    return QVariant(SELECTION_MODE_String[info.selection_mode]);
+                }
+            }
+        }
+    }
 
-	if (role == Qt::BackgroundColorRole)
-	{
-		if(_hMag->getActionIdx()- 1 == index.row())
-			return QColor(Qt::darkCyan);
-	}
-	return QVariant();
+    if (role == Qt::BackgroundColorRole)
+    {
+        if(_hMag->getActionIdx()- 1 == index.row())
+            return QColor(Qt::darkCyan);
+    }
+    return QVariant();
 }
 
 bool ModelObjects::insertRows(int row, int count, const QModelIndex &parent)
 {
-	beginInsertRows(QModelIndex(), row, row+count-1);
-	endInsertRows();
-	return true;
+    beginInsertRows(QModelIndex(), row, row+count-1);
+    endInsertRows();
+    return true;
 }
 
 bool ObjectsSFModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
-	//TODO:
-	return true;
+    //TODO:
+    return true;
 }
 
 ComboBoxDelegate::ComboBoxDelegate(const char** listCombo, int size, QObject* parent)
-	: QStyledItemDelegate(parent),
-	  _size(size),
-	  _enumString(listCombo)
+    : QStyledItemDelegate(parent),
+      _size(size),
+      _enumString(listCombo)
 {
 }
 
 QWidget *ComboBoxDelegate::createEditor(QWidget *parent,
-	const QStyleOptionViewItem &/* option */,
-	const QModelIndex &/* index */) const
+    const QStyleOptionViewItem &/* option */,
+    const QModelIndex &/* index */) const
 {
-	QComboBox *editor = new QComboBox(parent);
+    QComboBox *editor = new QComboBox(parent);
 
-	for (int i = 0; i < _size; ++i)
-		editor->addItem(QString(_enumString[i]));
+    for (int i = 0; i < _size; ++i)
+        editor->addItem(QString(_enumString[i]));
 
-	return editor;
+    return editor;
 }
 
 void ComboBoxDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
-	int value = index.model()->data(index, Qt::EditRole).toInt();
+    int value = index.model()->data(index, Qt::EditRole).toInt();
 
-	QComboBox *comboBox = static_cast<QComboBox*>(editor);
-	comboBox->setCurrentIndex(value);
+    QComboBox *comboBox = static_cast<QComboBox*>(editor);
+    comboBox->setCurrentIndex(value);
 }
 
 void ComboBoxDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
-	QComboBox *comboBox = static_cast<QComboBox*>(editor);
+    QComboBox *comboBox = static_cast<QComboBox*>(editor);
 
-	  int value = comboBox->currentIndex();
+      int value = comboBox->currentIndex();
 
-	  model->setData(index, value, Qt::EditRole);
+      model->setData(index, value, Qt::EditRole);
 }
 
 void ComboBoxDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-	editor->setGeometry(option.rect);
+    editor->setGeometry(option.rect);
 }
