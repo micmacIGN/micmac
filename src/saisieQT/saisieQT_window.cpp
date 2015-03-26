@@ -1,15 +1,28 @@
 #include "saisieQT_window.h"
 #include "ui_saisieQT_window.h"
 
+/*
 const char* SELECTION_MODE_String[SIZE_OF_SELECTION_MODE] =
 {
-    QObject::tr("subtract inside").toStdString().c_str(),
+	QObject::tr("subtract inside").toStdString().c_str(),
     QObject::tr("add inside").toStdString().c_str(),
     QObject::tr("subtract outside").toStdString().c_str(),
     QObject::tr("add outside").toStdString().c_str(),
     QObject::tr("invert selection").toStdString().c_str(),
     QObject::tr("select all").toStdString().c_str(),
     QObject::tr("select none").toStdString().c_str()
+};
+*/
+
+const char* SELECTION_MODE_String[SIZE_OF_SELECTION_MODE] =
+{
+	"subtract inside",
+	"add inside",
+	"subtract outside",
+	"add outside",
+	"invert selection",
+	"select all",
+	"select none"
 };
 
 void setStyleSheet(QApplication &app)
@@ -805,6 +818,17 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
 void SaisieQtWindow::on_actionRule_toggled(bool check)
 {
+	for (int i = 0; i < nbWidgets(); ++i)
+	{
+		if(getWidget(i)->getGLData()->polygonCount() == 1)
+		{
+			cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow);
+			getWidget(i)->getGLData()->addPolygon(polyg);
+		}
+		getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
+		getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
+	}
+
 //    if(check)
 //        qDebug() << "Rules";
 
@@ -1358,7 +1382,7 @@ void SaisieQtWindow::setUI()
     }
 
     //TEMP:
-    hideAction(_ui->menuTools->menuAction(), false);
+	//hideAction(_ui->menuTools->menuAction(), false);
 
     if (_appMode <= MASK3D)
     {
@@ -1602,6 +1626,11 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
 
                 //text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
+
+				if(glW->getGLData()->getCurrentPolygonIndex() == 1)
+				{
+					text = QString(text + " \t Rule image : " + QString::number(glW->getGLData()->currentPolygon()->lenght()) + " px");
+				}
             }
     }
 
