@@ -61,7 +61,7 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
     connect(tableView_Objects()->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),this,SLOT(selectionObjectChanged(QItemSelection,QItemSelection)));
     connect(tableView_Objects()->selectionModel()->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),this,SLOT(updateMask()));
 
-    tableView_Objects()->setItemDelegateForColumn(2,new ComboBoxDelegate(SELECTION_MODE_String,SIZE_OF_SELECTION_MODE));
+    tableView_Objects()->setItemDelegateForColumn(2,new ComboBoxDelegate(ModelObjects::getSelectionMode(),SIZE_OF_SELECTION_MODE));
 
     tableView_PG()->setContextMenuPolicy(Qt::CustomContextMenu);
     tableView_Images()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -794,16 +794,16 @@ void SaisieQtWindow::on_actionAbout_triggered()
 
 void SaisieQtWindow::on_actionRule_toggled(bool check)
 {
-	for (int i = 0; i < nbWidgets(); ++i)
-	{
-		if(getWidget(i)->getGLData()->polygonCount() == 1)
-		{
-			cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow);
-			getWidget(i)->getGLData()->addPolygon(polyg);
-		}
-		getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
-		getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
-	}
+    for (int i = 0; i < nbWidgets(); ++i)
+    {
+        if(getWidget(i)->getGLData()->polygonCount() == 1)
+        {
+            cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow);
+            getWidget(i)->getGLData()->addPolygon(polyg);
+        }
+        getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
+        getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
+    }
 
 //    if(check)
 //        qDebug() << "Rules";
@@ -1358,7 +1358,7 @@ void SaisieQtWindow::setUI()
     }
 
     //TEMP:
-	//hideAction(_ui->menuTools->menuAction(), false);
+    //hideAction(_ui->menuTools->menuAction(), false);
 
     if (_appMode <= MASK3D)
     {
@@ -1603,10 +1603,10 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
                 //text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
 
-				if(glW->getGLData()->getCurrentPolygonIndex() == 1)
-				{
-					text = QString(text + " \t Rule image : " + QString::number(glW->getGLData()->currentPolygon()->lenght()) + " px");
-				}
+                if(glW->getGLData()->getCurrentPolygonIndex() == 1)
+                {
+                    text = QString(text + " \t ") + tr("Image length") + QString(" : ") + QString::number(glW->getGLData()->currentPolygon()->lenght()) + QString(" px");
+                }
             }
     }
 
@@ -1904,7 +1904,7 @@ QVariant ModelObjects::data(const QModelIndex &index, int role) const
                 }
                 case 2:
                 {
-                    return QVariant(SELECTION_MODE_String[info.selection_mode]);
+                    return QVariant(getSelectionMode()[info.selection_mode]);
                 }
             }
         }
