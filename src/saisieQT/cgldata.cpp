@@ -75,7 +75,12 @@ void cGLData::setPolygons(cData *data)
             polygon->setHelper(new cPolygonHelper(polygon, 3));
             _vPolygons.push_back(polygon);
         }
-    }
+	}
+}
+
+void cGLData::addPolygon(cPolygon* polygon)
+{
+	_vPolygons.push_back(polygon);
 }
 
 void cGLData::setData(cData *data, bool setCam, int centerType	)

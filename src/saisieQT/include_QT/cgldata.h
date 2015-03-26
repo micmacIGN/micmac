@@ -113,6 +113,8 @@ public:
 
     void        setPolygons(cData *data);
 
+	void		addPolygon(cPolygon *polygon);
+
     void        setOptionPolygons(cParameters aParams);
 
     void        drawCenter(bool white);

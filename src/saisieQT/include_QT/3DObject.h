@@ -184,6 +184,7 @@ class cPoint : public cObjectGL, public QPointF
         void glDraw();
 
         QColor colorPointState();
+
 private:
 
         float   _diameter;
@@ -425,6 +426,9 @@ class cPolygon : public cObjectGL
 
         void    normalize(bool aBool)   { _bNormalize = aBool; }
 
+		void	setAllVisible(bool visible);
+
+		float lenght();
 
     protected:
 
@@ -440,11 +444,11 @@ class cPolygon : public cObjectGL
 
         int                 _style;
 
-
-
     private:
+
         float               _pointDiameter;
-        static float        _selectionRadius;
+
+		static float        _selectionRadius;
 
         //!states if polygon is closed
         bool                _bIsClosed;

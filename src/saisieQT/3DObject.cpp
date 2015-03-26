@@ -595,7 +595,7 @@ QColor cPoint::colorPointState()
         }
     }
 
-    return color;
+	return color;
 }
 
 void cPoint::draw()
@@ -857,17 +857,20 @@ int cPolygon::getSelectedPointState()
 
 void cPolygon::add(cPoint &pt)
 {
-    if (size() < _maxSz)
+	if (size() <= _maxSz)
     {
         pt.setDiameter(_pointDiameter);
         _points.push_back(pt);
     }
+
+	if(size() > _maxSz)
+		RemoveLastPointAndClose();
 }
 
 // TODO pourquoi les fonctions : 2 add et addPoint?
 void cPolygon::add(const QPointF &pt, bool selected)
 {
-    if (size() < _maxSz)
+	if (size() <= _maxSz)
     {
 		cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, selected, _color[state_default],Qt::blue,_pointDiameter);
 
@@ -875,11 +878,13 @@ void cPolygon::add(const QPointF &pt, bool selected)
 
         _points.push_back(cPt);
     }
+	if(size() > _maxSz)
+		RemoveLastPointAndClose();
 }
 
 void cPolygon::addPoint(const QPointF &pt)
 {
-    if (size() >= 1)
+	if (size() >= 1 && size() <= _maxSz)
     {
 		cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
@@ -903,7 +908,7 @@ void cPolygon::clear()
 
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
-    if (i <= size())
+	if (i <= size()&& size() < _maxSz)
     {
         cPoint pt(value);
         pt.setDiameter(point(i-1).diameter());
@@ -914,7 +919,7 @@ void cPolygon::insertPoint(int i, const QPointF &value)
 
 void cPolygon::insertPoint()
 {
-    if ((size() >=2) && _helper->size()>1 && _bIsClosed)
+	if ((size() >=2) && _helper->size()>1 && _bIsClosed && size() < _maxSz)
     {
         int idx = -1;
         QPointF Pt1 = (*_helper)[0];
@@ -1007,7 +1012,35 @@ void cPolygon::resetSelectedPoint()
 
 bool cPolygon::pointValid()
 {
-    return ((_idx >=0) && (_idx < size()));
+	return ((_idx >=0) && (_idx < size()));
+}
+
+void cPolygon::setAllVisible(bool visible)
+{
+	setVisible(visible);
+	for (int i = 0; i < size(); ++i)
+	{
+		point(i).setVisible(visible);
+	}
+
+}
+
+float cPolygon::lenght()
+{
+	if(size() == 2 && helper()->size() > 0)
+	{
+		QLineF line(point(_idx == 0 ? 1 : 0),helper()->point(1));
+
+		return line.length();
+	}
+	else  if(size() == 2)
+	{
+		QLineF line(point(0),point(1));
+
+		return line.length();
+	}
+
+	else return 0.0;
 }
 
 int cPolygon::selectPoint(QString namePt)
@@ -1088,7 +1121,7 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
 
 void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible)
 {
-    int nbVertex = size();
+    int nbVertex = size();	
 
     if(!_bIsClosed)
     {
@@ -1112,7 +1145,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
 
             if (!ptIsVisible) pt.setVisible(false);
 
-            _helper->build(pt, insertMode);
+			_helper->build(pt, size() == _maxSz ? false : insertMode);
         }
         else                                 // select nearest polygon point
         {
