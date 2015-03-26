@@ -55,7 +55,7 @@ public:
 
     void    resizeTables();
 
-	void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
+    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
 
     void    SelectPointAllWGL(QString pointName = QString(""));
 
@@ -188,8 +188,8 @@ protected slots:
     void on_actionReset_triggered();
     void on_actionRemove_inside_triggered();
     void on_actionRemove_outside_triggered();
-	void on_actionUndo_triggered();
-	void on_actionRedo_triggered();
+    void on_actionUndo_triggered();
+    void on_actionRedo_triggered();
 
     //File Menu
     void on_actionLoad_plys_triggered();
@@ -213,24 +213,24 @@ protected slots:
 
     void setNavigationType(int val);
 
-	void on_actionShow_Zoom_window_toggled(bool show);
+    void on_actionShow_Zoom_window_toggled(bool show);
 
-	void on_actionShow_3D_view_toggled(bool show);
+    void on_actionShow_3D_view_toggled(bool show);
 
-	void on_actionShow_list_polygons_toggled(bool show);
+    void on_actionShow_list_polygons_toggled(bool show);
 
-	void selectionObjectChanged(const QItemSelection& select, const QItemSelection& unselect);
+    void selectionObjectChanged(const QItemSelection& select, const QItemSelection& unselect);
 
-	void updateMask(bool reloadMask = true);
+    void updateMask(bool reloadMask = true);
 
-	void on_actionConfirm_changes_triggered();
+    void on_actionConfirm_changes_triggered();
 
 protected:
 
     //! Connects all QT actions to slots
     void connectActions();
 
-	void setModelObject(QAbstractItemModel* model_Objects);
+    void setModelObject(QAbstractItemModel* model_Objects);
 private:
 
     void                    createRecentFileMenu();
@@ -277,78 +277,80 @@ private:
 
 class ObjectsSFModel : public QSortFilterProxyModel
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	ObjectsSFModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+    ObjectsSFModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
 
 protected:
-	bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
 
 };
 
 class ModelObjects : public QAbstractTableModel
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
 
-	ModelObjects(QObject *parent, HistoryManager* hMag);
+    ModelObjects(QObject *parent, HistoryManager* hMag);
 
-	int             rowCount(const QModelIndex &parent = QModelIndex()) const ;
+    int             rowCount(const QModelIndex &parent = QModelIndex()) const ;
 
-	int             columnCount(const QModelIndex &parent = QModelIndex()) const;
+    int             columnCount(const QModelIndex &parent = QModelIndex()) const;
 
-	QVariant        data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    QVariant        data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
-	QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
+    QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
 
-	bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+    bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
 
-	Qt::ItemFlags   flags(const QModelIndex &index) const;
+    Qt::ItemFlags   flags(const QModelIndex &index) const;
 
-	bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
+    bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
+
+    static QStringList     getSelectionMode();
 
 private:
 
-	HistoryManager *		_hMag;
+    HistoryManager *		_hMag;
 
 };
 
 class ComboBoxDelegate : public QStyledItemDelegate
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	ComboBoxDelegate(const char** listCombo,int size = 0,QObject *parent = 0);
+    ComboBoxDelegate(const QStringList &listCombo, int size = 0, QObject *parent = 0);
 
-	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-						  const QModelIndex &index) const
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                          const QModelIndex &index) const
 #if ELISE_QT_VERSION == 5
-	Q_DECL_OVERRIDE
+    Q_DECL_OVERRIDE
 #endif
-	;
+    ;
 
-	void setEditorData(QWidget *editor, const QModelIndex &index) const
+    void setEditorData(QWidget *editor, const QModelIndex &index) const
 #if ELISE_QT_VERSION == 5
-	Q_DECL_OVERRIDE
+    Q_DECL_OVERRIDE
 #endif
-	;
-	void setModelData(QWidget *editor, QAbstractItemModel *model,
-					  const QModelIndex &index) const
+    ;
+    void setModelData(QWidget *editor, QAbstractItemModel *model,
+                      const QModelIndex &index) const
 #if ELISE_QT_VERSION == 5
-	Q_DECL_OVERRIDE
+    Q_DECL_OVERRIDE
 #endif
-	;
+    ;
 
-	void updateEditorGeometry(QWidget *editor,
-		const QStyleOptionViewItem &option, const QModelIndex &index) const
+    void updateEditorGeometry(QWidget *editor,
+        const QStyleOptionViewItem &option, const QModelIndex &index) const
 #if ELISE_QT_VERSION == 5
-	Q_DECL_OVERRIDE
+    Q_DECL_OVERRIDE
 #endif
-	;
+    ;
 private:
-	int			_size;
-	const char**		_enumString;
+    int             _size;
+    QStringList		_enumString;
 };
 
 
