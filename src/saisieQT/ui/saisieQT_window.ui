@@ -418,7 +418,7 @@
      <x>0</x>
      <y>0</y>
      <width>1163</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="mouseTracking">
@@ -528,13 +528,13 @@
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>Tools</string>
+     <string>&amp;Tools</string>
     </property>
     <addaction name="actionRule"/>
    </widget>
    <widget class="QMenu" name="menuWindows">
     <property name="title">
-     <string>Windows</string>
+     <string>&amp;Windows</string>
     </property>
     <addaction name="actionShow_Zoom_window"/>
     <addaction name="actionShow_3D_view"/>
@@ -544,8 +544,8 @@
    <addaction name="menuView"/>
    <addaction name="menuSelection"/>
    <addaction name="menuWindows"/>
-   <addaction name="menuHelp"/>
    <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionFullScreen">
    <property name="checkable">
@@ -1160,7 +1160,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show list polygons</string>
+    <string>Show polygons list</string>
    </property>
    <property name="shortcut">
     <string>V</string>
