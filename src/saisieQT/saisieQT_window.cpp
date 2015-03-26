@@ -673,7 +673,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("wheel or shift + middle button"));
 
         shortcuts.push_back(tr("move"));
-        actions.push_back("middle button + move mouse");
+        actions.push_back(tr("middle button + move mouse"));
 
         shortcuts.push_back(tr("move on vertex"));
         actions.push_back(tr("Double click on vertex"));
@@ -708,7 +708,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
 
 #ifdef ELISE_Darwin
     #if ELISE_QT_VERSION >= 5
-            shortcuts.push_back("Fn+Space bar");
+            shortcuts.push_back(tr("Fn+Space bar"));
             shortcuts.push_back("Fn+D");
             shortcuts.push_back("Fn+U");
             shortcuts.push_back("Fn+Y");
@@ -784,7 +784,7 @@ void SaisieQtWindow::on_actionAbout_triggered()
         version.setNum(_hg_revision);
 
 
-    qStr += "\nApplication\t" + QApplication::applicationName() +
+    qStr += "\n" + tr("Application") + "\t" + QApplication::applicationName() +
             + "\n" +  tr("Built with \tQT ")   + QT_VERSION_STR  +
             + "\n" +  tr("Revision\t\t")    + version + "\n";
 
@@ -1455,7 +1455,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
         {
             if(!QFile(filenames[i]).exists())
             {
-                QMessageBox::critical(this, "Error", "File does not exist (or bad argument)");
+                QMessageBox::critical(this, tr("Error"), tr("File does not exist (or bad argument)"));
                 return;
             }
         }
