@@ -684,7 +684,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     _style(style),
     _pointDiameter(1.f),
     _bIsClosed(false),
-    _bSelectedPoint(false),
+	_bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
     _maxSz(maxSz)
@@ -707,7 +707,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
     _style(style),
     _pointDiameter(1.f),
     _bIsClosed(false),
-    _bSelectedPoint(false),
+	_bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
     _maxSz(maxSz)
@@ -776,7 +776,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _pointDiameter    = aP._pointDiameter;
         _selectionRadius  = aP._selectionRadius;
 
-        _bSelectedPoint   = aP._bSelectedPoint;
+		_bSelectedPoint   = aP._bSelectedPoint;
         _bShowLines       = aP._bShowLines;
         _bShowNames       = aP._bShowNames;
 
@@ -901,7 +901,7 @@ void cPolygon::clear()
 {
     _points.clear();
     _idx = -1;
-    _bSelectedPoint = false;
+	_bSelectedPoint = false;
     if(_bShowLines)_bIsClosed = false;
     if(_helper!=NULL) helper()->clear();
 }
@@ -996,13 +996,18 @@ void cPolygon::setPointSelected()
 {
 	_bSelectedPoint = true;
 
+
 	if (pointValid())
+	{
         point(_idx).setSelected(true);
+	}
 }
 
 void cPolygon::resetSelectedPoint()
 {
-    _bSelectedPoint = false;
+
+	// TODO virer _bSelectedPoint
+	_bSelectedPoint = false;
 
     if (pointValid())
         point(_idx).setSelected(false);
@@ -1067,7 +1072,7 @@ void cPolygon::selectPoint(int idx)
     if (pointValid())
     {
         point(idx).setSelected(true);
-        _bSelectedPoint = true;
+		_bSelectedPoint = true;
     }
 }
 
@@ -1107,8 +1112,7 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
                 _idx = aK;
             }
         }
-
-        if (pointValid())
+		if (pointValid())
         {
             point(_idx).setSelected(true);
 

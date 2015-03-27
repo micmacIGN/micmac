@@ -70,11 +70,11 @@ public:
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
     cPolygon* polygon(int id);
-    cPolygon* polygon();
+	cPolygon* currentPolygon();
 
     void setCursorShape(QPointF pos, QPointF mPos);
 
-	void addGlPoint(cPoint point, QPointF pt1, QPointF pt2, bool highlight);
+	void addGlPoint(cPoint point, QPointF pt1, QPointF pt2, bool highlight,int idPolygon = 0);
 
 	void setTranslation(QVector3D trans);
 

@@ -336,7 +336,7 @@ class cPolygon : public cObjectGL
         int     getSelectedPointIndex(){ return _idx; }
 
         void    setPointSelected();
-        bool    isPointSelected(){ return _bSelectedPoint; }
+		bool    isPointSelected(){ return _bSelectedPoint; }
         void    resetSelectedPoint();
 
         int     selectPoint(QString namePt);
@@ -451,10 +451,10 @@ class cPolygon : public cObjectGL
         //!states if polygon is closed
         bool                _bIsClosed;
 
-        //!states if point with index _idx is selected
-        bool                _bSelectedPoint;
+		//!states if point with index _idx is selected
+		bool                _bSelectedPoint;
 
-        //!states if segments should be displayed
+		//!states if segments should be displayed
         bool                _bShowLines;
 
         //!states if names should be displayed

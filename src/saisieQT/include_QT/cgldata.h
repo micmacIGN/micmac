@@ -33,7 +33,7 @@ public:
 
     void        normalizeCurrentPolygon(bool nrm);
 
-    void        clearPolygon();
+	void        clearCurrentPolygon();
 
     bool        isNewMask()                             { return !isImgEmpty() ? _glMaskedImage._m_newMask : true; }
 

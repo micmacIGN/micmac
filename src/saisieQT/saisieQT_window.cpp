@@ -896,8 +896,9 @@ void SaisieQtWindow::on_actionConfirm_changes_triggered()
 
 void SaisieQtWindow::on_actionRemove_inside_triggered()
 {
+
     if (_appMode > MASK3D)
-        currentWidget()->polygon()->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
+		currentWidget()->polygon(0)->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
     else
         currentWidget()->Select(SUB_INSIDE);
 }

@@ -167,6 +167,8 @@ public slots:
 
     void                undo(bool);
 
+protected:
+	bool isPolygonZero();
 private slots:
 
     void                addPoint(QPointF point);
@@ -177,7 +179,7 @@ private slots:
 
     void                changeState(int state, int idPt);
 
-    void                removePoint(QString);
+	void                removePoint(QString);
 
     void                setAutoName(QString);
 

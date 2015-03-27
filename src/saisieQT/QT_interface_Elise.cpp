@@ -75,7 +75,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     m_QTMainWindow->setModel(proxyPointGlob, proxyImageModel/*, proxyObjectModel*/);
 
-    m_QTMainWindow->resizeTables();
+	m_QTMainWindow->resizeTables();
 
     connect(((PointGlobalSFModel*)m_QTMainWindow->tableView_PG()->model())->sourceModel(),SIGNAL(pGChanged()), this, SLOT(rebuildGlPoints()));
 
@@ -273,6 +273,8 @@ void cQT_Interface::close()
     }
 }
 
+
+// todo peut etre mis dans la partie metier
 pair<int, string> cQT_Interface::IdNewPts(cCaseNamePoint *aCNP)
 {
     int aCptMax = mAppli->GetCptMax() + 1;
@@ -299,7 +301,7 @@ double cQT_Interface::PtCreationWindowSize()
 void cQT_Interface::addPoint(QPointF point)
 {
 
-    if (m_QTMainWindow->currentWidget()->hasDataLoaded() && mAppli)
+	if (m_QTMainWindow->currentWidget()->hasDataLoaded() && mAppli && isPolygonZero())
         if(cVirtualInterface::addPoint(transformation(point),currentCImage()))
         {
             emit dataChanged(true);
@@ -309,22 +311,28 @@ void cQT_Interface::addPoint(QPointF point)
 
 void cQT_Interface::removePointGlobal(cSP_PointGlob * pPg)
 {
-    if (pPg && mAppli)
+	if (pPg && mAppli && isPolygonZero())
     {
         DeletePoint( pPg );
         emit dataChanged(true);
     }
 }
 
+bool  cQT_Interface::isPolygonZero()
+{
+  return m_QTMainWindow->currentWidget()->getGLData()->getCurrentPolygonIndex() == 0;
+}
+
+
 void cQT_Interface::removePoint(QString aName)
 {
-    if (mAppli)
+	if (mAppli && isPolygonZero())
         removePointGlobal(mAppli->PGlobOfNameSVP(aName.toStdString()));
 }
 
 void cQT_Interface::movePoint(int idPt)
 {
-    if( idPt >= 0 && mAppli)
+	if( idPt >= 0 && mAppli && isPolygonZero())
     {
         cSP_PointeImage* aPIm = PointeImageInCurrentWGL(idPt);
 
@@ -341,7 +349,7 @@ void cQT_Interface::changeState(int state, int idPt)
 {
     eEtatPointeImage aState = (eEtatPointeImage)state;
 
-    if (aState!=eEPI_NonValue && idPt != -1 && mAppli)
+	if (aState!=eEPI_NonValue && idPt != -1 && mAppli && isPolygonZero())
     {
         cSP_PointeImage* aPIm = PointeImageInCurrentWGL(idPt);
 
@@ -373,7 +381,7 @@ void cQT_Interface::changeState(int state, int idPt)
 
 void cQT_Interface::changeName(QString aOldName, QString aNewName)
 {
-    if(mAppli)
+	if(mAppli)
     {
         string oldName = aOldName.toStdString();
         string newName = aNewName.toStdString();
@@ -456,7 +464,8 @@ void cQT_Interface::selectPointGlobal(int idPG)
 
 void cQT_Interface::selectPoint(int idPtCurGLW)
 {
-    selectPointGlobal(idPointGlobal(idPtCurGLW));
+	if(isPolygonZero())
+		selectPointGlobal(idPointGlobal(idPtCurGLW));
 }
 
 void cQT_Interface::selectPointGlobal(QModelIndex modelIndex)
@@ -477,7 +486,7 @@ QString cQT_Interface::namePointGlobal(int idPtGlobal)
 
 cPoint cQT_Interface::getGLPt_CurWidget(int idPt)
 {
-    return (*m_QTMainWindow->currentWidget()->getGLData()->currentPolygon())[idPt];
+	return (*m_QTMainWindow->currentWidget()->getGLData()->polygon(0))[idPt];
 }
 
 string cQT_Interface::getNameGLPt_CurWidget(int idPt)
@@ -691,7 +700,7 @@ void cQT_Interface::addGlPoint(cSP_PointeImage * aPIm, int idImag)
    QString name(aSom->NamePt().c_str());
    cPoint point(pt,name,true,aSom->Etat());
 
-   m_QTMainWindow->getWidget(idImag)->addGlPoint(point, aPt1, aPt2, aPG->HighLighted());
+   m_QTMainWindow->getWidget(idImag)->addGlPoint(point, aPt1, aPt2, aPG->HighLighted(),0);
 }
 
 void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
@@ -731,7 +740,7 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
 
 void cQT_Interface::rebuildGlPoints(bool bSave, cSP_PointeImage* aPIm)
 {
-    rebuild2DGlPoints();
+	rebuild2DGlPoints();
 
     rebuild3DGlPoints(aPIm);
 
@@ -755,7 +764,7 @@ void cQT_Interface::rebuild2DGlPoints()
             {
                 const vector<cSP_PointeImage *> &  aVP = mAppli->imageVis(t)->VP();
 
-                m_QTMainWindow->getWidget(i)->getGLData()->clearPolygon();
+				m_QTMainWindow->getWidget(i)->getGLData()->polygon(0)->clear();
 
                 for (int aK=0 ; aK<int(aVP.size()) ; aK++)
 

@@ -369,7 +369,7 @@ void cGLData::normalizeCurrentPolygon(bool nrm)
 		currentPolygon()->normalize(nrm);
 }
 
-void cGLData::clearPolygon()
+void cGLData::clearCurrentPolygon()
 {
     if(currentPolygon())
         currentPolygon()->clear();
