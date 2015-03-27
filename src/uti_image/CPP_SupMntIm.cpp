@@ -125,7 +125,7 @@ int SupMntIm_main(int argc,char ** argv)
         Fonc_Num aRes =  its_to_rgb( Virgule
                                      (
                                          fGr,
-                                         Mnt.in_proj() * DynCoul,
+                                         Mnt.in_proj().kth_proj(0) * DynCoul,
                                          Sat * 255 * ( aFin != NoVal)
                                          ));
 
