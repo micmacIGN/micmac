@@ -225,6 +225,11 @@ cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::ChangeRepDictPts(const std:
     return 0;
 }
 
+cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::DuplicateWithExter(bool IsExt)
+{
+    ELISE_ASSERT(false,"cInterfSurfaceAnalytique:: DuplicateWithExter(bool IsExt)");
+    return 0;
+}
 
 
 cXmlModeleSurfaceComplexe cInterfSurfaceAnalytique::SimpleXml(const std::string & Id) const
@@ -280,6 +285,7 @@ cTplValGesInit<Pt3dr> cInterfSurfaceAnalytique::InterDemiDroiteVisible
        }
     }
 
+
     if (ForceMatch)
     {
        if (aBestK<0)
@@ -333,11 +339,13 @@ void cInterfSurfaceAnalytique::SetUnusedAnamXCSte()
 
 int cInterfSurfaceAnalytique::SignDZSensRayCam()const
 {
+   // return mXXIsVueExt ? -1 : 1;
+   // return -1;  // Nouvelle convetion
    return mIsVueExt ? -1 : 1;
 }
 
 
-bool cInterfSurfaceAnalytique::IsVueExt() const
+bool cInterfSurfaceAnalytique::VueDeLext() const
 {
    return mIsVueExt;
 }
@@ -371,6 +379,14 @@ cCylindreRevolution::cCylindreRevolution
     mRay = euclid(mU);
     mU = mU / mRay;
     mV = mW ^ mU;
+
+    if (! isVueExt)
+    {
+       mU = - mU;
+       mV = - mV;
+    }
+/*
+*/
 }
 
 bool cCylindreRevolution::HasOrthoLoc() const
@@ -430,12 +446,24 @@ cInterfSurfaceAnalytique * cCylindreRevolution::ChangeRepDictPts(const std::map<
     return CR_ChangeRepDictPts(aDic);
 }
 
+cInterfSurfaceAnalytique * cCylindreRevolution::DuplicateWithExter(bool IsExt)
+{
+    return CR_DuplicateWithExter(IsExt);
+}
+
+
+
 
 ElSeg3D  cCylindreRevolution::Axe() const
 {
    return ElSeg3D(mP0,mP0+mW);
 }
 
+
+cCylindreRevolution * cCylindreRevolution::CR_DuplicateWithExter(bool IsExt)
+{
+   return new  cCylindreRevolution(IsExt,Axe(),POnCylInit());
+}
 
 cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::map<std::string,Pt3dr> & aDic) const
 {
@@ -447,8 +475,10 @@ cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::m
 
     if ((itTop!=aDic.end()) && (itBottom!=aDic.end()))
     {
+// UVL2E
         Pt3dr aTop  =     itTop->second;
         Pt3dr aBottom  =  itBottom->second;
+
         double aScal = aTop.y - aBottom.y;
         if (aScal<0)
         {
@@ -472,7 +502,7 @@ cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::m
                            itLeft->second                                   :
                            (itRight->second + Pt3dr(-aPerInf,0,0))          ;
 
-         cCylindreRevolution aNewCyl(IsVueExt(),aSeg,aP0OnCyl);
+         cCylindreRevolution aNewCyl(VueDeLext(),aSeg,aP0OnCyl);
          aPRight = aNewCyl.E2UVL(UVL2E(aPRight));
          aPLeft  = aNewCyl.E2UVL(UVL2E(aPLeft));
          while (aPRight.x>(aPLeft.x+aPer))  aPRight.x -= aPer;
@@ -483,7 +513,7 @@ cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::m
          aP0OnCyl = aNewCyl.UVL2E((aPRight+aPLeft)/2.0);
     }
 
-    return new cCylindreRevolution (IsVueExt(),aSeg,aP0OnCyl);
+    return new cCylindreRevolution (VueDeLext(),aSeg,aP0OnCyl);
 }
 
 
@@ -734,7 +764,7 @@ void cCylindreRevolFormel::Update_0F2D()
 {
     mCurCyl = cCylindreRevolution::WithRayFixed
               (
-                     mCyl.IsVueExt(),
+                     mCyl.VueDeLext(),
                      ElSeg3D(mOriPlkCur,mOriPlkCur+mDirPlkCur),
                      mRayCur,
                      mCyl.POnCylInit()

@@ -128,6 +128,8 @@ class cInterfSurfaceAnalytique
         // Defaut return 0
          virtual cInterfSurfaceAnalytique * ChangeRepDictPts(const std::map<std::string,Pt3dr> &) const;
 
+         virtual cInterfSurfaceAnalytique * DuplicateWithExter(bool IsExt) ;
+
 
          static cInterfSurfaceAnalytique * FromXml(const cXmlOneSurfaceAnalytique &);
 
@@ -152,7 +154,7 @@ class cInterfSurfaceAnalytique
 
          virtual ~cInterfSurfaceAnalytique();
          cInterfSurfaceAnalytique(bool isVueExt);
-         bool IsVueExt() const;
+         bool VueDeLext() const; // Change le nom pour grep / mIsVueExt
          int SignDZSensRayCam()const;
  
         // Rappiecage pour pouvoir dynamiquemnt inhiber l'anamorphose vertical sans toucher au reste
@@ -233,6 +235,9 @@ class cCylindreRevolution : public cInterfSurfaceAnalytique
 
          cInterfSurfaceAnalytique * ChangeRepDictPts(const std::map<std::string,Pt3dr> &) const;
          cCylindreRevolution *      CR_ChangeRepDictPts(const std::map<std::string,Pt3dr> &) const;
+
+         cInterfSurfaceAnalytique * DuplicateWithExter(bool IsExt) ;
+         cCylindreRevolution * CR_DuplicateWithExter(bool IsExt) ;
 
         static cCylindreRevolution WithRayFixed
                     (
