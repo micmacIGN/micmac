@@ -924,7 +924,12 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             {
 				int id = currentPolygon()->getSelectedPointIndex();
 
-				bool insertMode = currentPolygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress ;
+				bool insertMode = currentPolygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
+
+				if((event->modifiers() & Qt::ControlModifier) && getGLData()->getCurrentPolygonIndex() == 1) // SNAP RULE
+				{
+					getGLData()->polygon(0)->refreshHelper( pos, false, getZoom());
+				}
 
                 if(m_interactionMode == SELECTION)
 					currentPolygon()->refreshHelper( QPointF(pos.x(),_matrixManager.vpHeight() - pos.y()), insertMode, 1.f);
