@@ -69,7 +69,7 @@ bool cOneSurf_Casa::IsFaceExterne(const cInterfSurfaceAnalytique & anISA,double 
           aNbInt++;
    }
    double aRatio = aNbExt / double(aNbExt+aNbInt);
-   std::cout << "RATIO Ext/Int" << aRatio << "\n";
+   std::cout << "RATIO Ext/Int : " << aRatio << "\n";
    aRatio *= 100.0;
    if (aRatio<50) aRatio = 100 -aRatio;
    if (aRatio<aTol)
@@ -152,11 +152,13 @@ void cAppli_Casa::OneEtapeCompense(const cCasaEtapeCompensation & anEtape)
          for (int aK=0 ; aK<int(mVSC.size()) ; aK++)
          {
              const cInterfSurfaceAnalytique * aSurf =  &(mVSC[aK]->mISAF->CurSurf());
+             bool IsExt = mVSC[aK]->IsFaceExterne(*aSurf,mParam.PercCoherenceOrientation().Val());
+             aSurf = const_cast<cInterfSurfaceAnalytique *>(aSurf)->DuplicateWithExter(IsExt);
              aSurf =  UsePts(aSurf);
              cXmlOneSurfaceAnalytique aXmlSurf;
              aXmlSurf.XmlDescriptionAnalytique() = aSurf->Xml();
              aXmlSurf.Id() = mVSC[aK]->mName;
-             aXmlSurf.VueDeLExterieur() = mVSC[aK]->IsFaceExterne(*aSurf,mParam.PercCoherenceOrientation().Val());
+             aXmlSurf.VueDeLExterieur() = IsExt;
              aXmlModele.XmlOneSurfaceAnalytique().push_back(aXmlSurf);
          }
          MakeFileXML

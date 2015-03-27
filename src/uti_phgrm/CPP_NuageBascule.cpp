@@ -38,6 +38,25 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+static bool DebugNuageBasc = false;
+
+void NuageBascRmFile(const std::string & aName)
+{
+    if (DebugNuageBasc)
+       ELISE_fp::RmFile(aName);
+}
+
+void NuageBascRmFileIfExist(const std::string & aName)
+{
+    if (DebugNuageBasc)
+       ELISE_fp::RmFileIfExist(aName);
+}
+
+
+
+
+
+
 /*
 
 */
@@ -105,7 +124,7 @@ class cBlockBasc
         {
         }
         void Compute(const cXML_ParamNuage3DMaille &);
-        void PurgeOneExt(const std::string & anExt) { ELISE_fp::RmFileIfExist(mName+anExt); }
+        void PurgeOneExt(const std::string & anExt) { NuageBascRmFileIfExist(mName+anExt); }
         void PurgeAll()
         {
              PurgeOneExt(".xml");
@@ -179,6 +198,7 @@ int  NuageBascule_main(int argc,char ** argv)
     double mSeuilEtir = 5;
     bool   mSaveEtir = false;
     bool   mIAnaTopo = true;
+    bool   mDebug = false;
 
     ElInitArgMain
     (
@@ -196,11 +216,18 @@ int  NuageBascule_main(int argc,char ** argv)
                     << EAM(mIAnaTopo,"InternalATopo",true,"Internal purpose: dont use", eSAM_InternalUse)
                     << EAM(aSuplOut,"InternallSuplOut",true,"Internal purpose: dont use", eSAM_InternalUse)
                     << EAM(mShowCom,"ShowCom",true,"Show command, def = false")
+                    << EAM(mDebug,"Debug",true,"Debug ...")
                     << EAM(mTileFile,"TileFile",true,"Tile for Big File, def= no tiling for file < 4 Giga Byte")
                     << EAM(mParal,"Paral",true,"Do in parallel, tuning purpose, def=true", eSAM_InternalUse)
                     << EAM(mSeuilEtir,"SeuilE",true,"Threshold for stretching (def = 5.0)", eSAM_InternalUse)
                     << EAM(mSaveEtir,"SaveImEtrir",true,"Save image streching , tuning (def=false)", eSAM_InternalUse)
     );
+    if (mDebug)
+    {
+        mShowCom=true;
+        DebugNuageBasc = true;
+    }
+
 
     if (!MMVisualMode)
     {
@@ -231,11 +258,15 @@ int  NuageBascule_main(int argc,char ** argv)
        if (mIAnaTopo)
        {
            std::string aComTopo = MM3dBinFile(" TestLib TopoBasc")  + " " + aNameInInit + " " +aNameOut;
+           if (mShowCom) 
+           {
+               std::cout << "COM-TOPO " << aComTopo << "\n";
+           }
            System(aComTopo);
            std::string aPrefTopo = aDirIn +  "TopoBasc-" + StdPrefix(NameWithoutDir(aNameInInit));
            std::string aNameMTD = aPrefTopo+"-MTD.xml";
            cAnaTopoXmlBascule aATP = StdGetFromSI(aNameMTD,AnaTopoXmlBascule);
-           ELISE_fp::RmFile(aNameMTD);
+           NuageBascRmFile(aNameMTD);
 
            if (aATP.ResFromAnaTopo())
            {
@@ -272,8 +303,8 @@ int  NuageBascule_main(int argc,char ** argv)
                std::cout << "COM= "  << aCom << "\n";
                System(aCom);
                aCpt++;
-               ELISE_fp::RmFile(aPrefTopo+ aPostFZone +"-Masq.tif");
-               ELISE_fp::RmFile(aPrefTopo+ aPostFZone +".xml");
+               NuageBascRmFile(aPrefTopo+ aPostFZone +"-Masq.tif");
+               NuageBascRmFile(aPrefTopo+ aPostFZone +".xml");
            }
            return EXIT_SUCCESS;
            }
@@ -508,8 +539,6 @@ int  NuageBascule_main(int argc,char ** argv)
                      ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aIMasqGlob.in(),-aDec),aFileMasq.out());
                      ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aProfGlob.in(),-aDec),aFileProf.out());
 
-                     // ELISE_fp::RmFile(aBl.mName+"_Masq.tif");
-                     // ELISE_fp::RmFile(aBl.mName+"_Prof.tif");
                      if (aFileCorrel)
                      {
 
@@ -524,11 +553,10 @@ int  NuageBascule_main(int argc,char ** argv)
 
                         ELISE_COPY(select(aIMasqLoc.all_pts(),aIMasqLoc.in()),aCorLoc.in(),aCorGlob.out());
                         ELISE_COPY(rectangle(aDec,aDec+aSz),trans(aCorGlob.in(),-aDec),aFileCorrel->out());
-                        ELISE_fp::RmFile(aNameCorrL);
+                        NuageBascRmFile(aNameCorrL);
                      }
                 }
                 aBl.PurgeAll();
-                // ELISE_fp::RmFile(aBl.mName+".xml");
             }
             std::cout << "Basc4- Done T=" << aChrono.uval() << "\n";
        }
@@ -561,8 +589,14 @@ int  NuageBascule_main(int argc,char ** argv)
          anArgBasc.mAutoResize = AutoResize;
 
 
+         if (mDebug)
+         {
+             //std::cout << "AAAAA\n";
+         }
+
 
          cElNuage3DMaille *  aN = BasculeNuageAutoReSize(aNuageOut,aNuageIn,aDirIn,NameWithoutDir(aNameRes),anArgBasc);
+
          if (aN)
          {
             aN->Save(aNameRes);
