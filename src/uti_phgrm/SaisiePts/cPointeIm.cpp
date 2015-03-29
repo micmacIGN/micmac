@@ -87,6 +87,36 @@ bool cSP_PointeImage::BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2)
     return false;
 }
 
+bool cSP_PointeImage::BuildEpipolarLine(std::vector<Pt2dr> & aResVPt)
+{
+    if (mGl)
+    {
+        eEtatPointeImage aState = mSIm->Etat();
+
+        cCapture3D * aCap3D = mIm->Capt3d();
+
+        if (aCap3D && mGl->PG()->PS1().IsInit() && ((aState==eEPI_NonSaisi) || (aState==eEPI_Refute)))
+        {
+            std::vector<Pt3dr> aVPtIn = mGl->PG()->VPS();
+            if (aVPtIn.empty())
+            {
+                aVPtIn.push_back(mGl->PG()->PS1().Val());
+                aVPtIn.push_back(mGl->PG()->PS2().Val());
+            }
+            for (int aK=0 ; aK<int(aVPtIn.size()) ; aK++)
+            {
+                aResVPt.push_back(aCap3D->Ter2Capteur(aVPtIn[aK]));
+            }
+
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

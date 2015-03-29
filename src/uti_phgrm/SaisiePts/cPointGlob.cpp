@@ -117,10 +117,19 @@ void  cSP_PointGlob::SuprDisp()
 
 bool  cSP_PointGlob::Has3DValue() const
 {
+   return     HasStrong3DValue()
+          || mPG->P3D().IsInit() ;
+}
+
+bool  cSP_PointGlob::HasStrong3DValue() const
+{
    return     mPG->FromDico().ValWithDef(false)
           ||  mPG->Mes3DExportable().ValWithDef(false);
-
 }
+
+
+
+
 
 Pt3dr cSP_PointGlob::Best3dEstim() const 
 {
@@ -140,36 +149,19 @@ Pt3dr cSP_PointGlob::Best3dEstim() const
       {
          return mPG->Pt3DFromDico().Val();
       }
-      else if (mPG->P3D().IsInit())
-      {
-          return  mPG->P3D().Val();
-      }
+   }
+   if (mPG->P3D().IsInit())
+   {
+      return  mPG->P3D().Val();
    }
 
    ELISE_ASSERT(false,"cSP_PointGlob::Best3dEstim No Pt\n");
    return Pt3dr(0,0,0);
 }
 
-/*
-void cSP_PointGlob::ReestimVisibilite()
-{
-   if (! Has3DValue()) return;
-   Pt3dr aPTer = Best3dEstim();
-   bool Mas3DVis = true;
-   for 
-   (
-        std::map<std::string,cSP_PointeImage *>::iterator itP=mPointes.begin();
-        itP=mPointes.begin();
-        itP!=mPointes.end();
-   )
-   {
-          (*itP)->ReestimVisibilite(aPTer,Mas3DVis);
-   }
-}
-*/
-
 void cSP_PointGlob::ReCalculPoints()
 {
+
     if (! IsPtAutom())
     {
         return;
@@ -244,9 +236,25 @@ void cSP_PointGlob::ReCalculPoints()
             double aInc = 1+ mAppli.Param().IntervPercProf().Val()/100.0;
 
             aPt = aCamera->ImEtProf2Terrain(aPIm,aProf);
+
             mPG->P3D().SetVal(aPt);
-            mPG->PS1().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf*aInc));
-            mPG->PS2().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf/aInc));
+            // mPG->PS1().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf*aInc));
+            // mPG->PS2().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf/aInc));
+
+            int aNbKMoins = 20;
+            int aNbKPlus = 20;
+            std::vector<Pt3dr> aVPt;
+            for (int aK= -aNbKMoins ; aK<= aNbKPlus ; aK++)
+            {
+                double aProfK = aProf * pow(aInc,aK);
+                aVPt.push_back(aCamera->ImEtProf2Terrain(aPIm,aProfK));
+            }
+            mPG->VPS() = aVPt;
+            mPG->PS1().SetVal(aVPt[aNbKMoins+1]);
+            mPG->PS2().SetVal(aVPt[aNbKPlus-1]);
+
+            // std::cout << "TestEppoPii " << euclid( mPG->PS1().Val()-aVPt[aNbK+1]) << "\n";
+            // std::cout << "TestEppoPii " << euclid( mPG->PS2().Val()-aVPt[aNbK-1]) << "\n";
         }
         if (euclid(aPt-aP0)< 1e-9) 
         {
@@ -289,6 +297,7 @@ void cSP_PointGlob::ReCalculPoints()
         mPG->P3D().SetVal(aPt);
         mPG->PS1().SetNoInit();
         mPG->PS2().SetNoInit();
+        mPG->VPS().clear();
         mPG->Mes3DExportable().SetVal(true);
 
 

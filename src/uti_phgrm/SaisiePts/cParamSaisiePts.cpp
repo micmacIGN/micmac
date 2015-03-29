@@ -313,6 +313,17 @@ const cTplValGesInit< Pt3dr > & cPointGlob::PS2()const
 }
 
 
+std::vector< Pt3dr > & cPointGlob::VPS()
+{
+   return mVPS;
+}
+
+const std::vector< Pt3dr > & cPointGlob::VPS()const 
+{
+   return mVPS;
+}
+
+
 cTplValGesInit< double > & cPointGlob::SzRech()
 {
    return mSzRech;
@@ -421,6 +432,15 @@ void  BinaryUnDumpFromFile(cPointGlob & anObj,ELISE_fp & aFp)
         }
         else  anObj.PS2().SetNoInit();
   } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             Pt3dr aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.VPS().push_back(aVal);
+        }
+  } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -469,6 +489,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPointGlob & anObj)
     if (anObj.PS1().IsInit()) BinaryDumpInFile(aFp,anObj.PS1().Val());
     BinaryDumpInFile(aFp,anObj.PS2().IsInit());
     if (anObj.PS2().IsInit()) BinaryDumpInFile(aFp,anObj.PS2().Val());
+    BinaryDumpInFile(aFp,(int)anObj.VPS().size());
+    for(  std::vector< Pt3dr >::const_iterator iT=anObj.VPS().begin();
+         iT!=anObj.VPS().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.SzRech().IsInit());
     if (anObj.SzRech().IsInit()) BinaryDumpInFile(aFp,anObj.SzRech().Val());
     BinaryDumpInFile(aFp,anObj.Disparu().IsInit());
@@ -501,6 +527,12 @@ cElXMLTree * ToXMLTree(const cPointGlob & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PS1"),anObj.PS1().Val())->ReTagThis("PS1"));
    if (anObj.PS2().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PS2"),anObj.PS2().Val())->ReTagThis("PS2"));
+  for
+  (       std::vector< Pt3dr >::const_iterator it=anObj.VPS().begin();
+      it !=anObj.VPS().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("VPS"),(*it))->ReTagThis("VPS"));
    if (anObj.SzRech().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("SzRech"),anObj.SzRech().Val())->ReTagThis("SzRech"));
    if (anObj.Disparu().IsInit())
@@ -539,6 +571,8 @@ void xml_init(cPointGlob & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PS2(),aTree->Get("PS2",1)); //tototo 
 
+   xml_init(anObj.VPS(),aTree->GetAll("VPS",false,1));
+
    xml_init(anObj.SzRech(),aTree->Get("SzRech",1)); //tototo 
 
    xml_init(anObj.Disparu(),aTree->Get("Disparu",1)); //tototo 
@@ -546,7 +580,7 @@ void xml_init(cPointGlob & anObj,cElXMLTree * aTree)
    xml_init(anObj.FromDico(),aTree->Get("FromDico",1)); //tototo 
 }
 
-std::string  Mangling( cPointGlob *) {return "CE04521A66A37CDAFE3F";};
+std::string  Mangling( cPointGlob *) {return "9EBFCF3DC34C29ADFE3F";};
 
 
 std::list< cPointGlob > & cSetPointGlob::PointGlob()
@@ -605,7 +639,7 @@ void xml_init(cSetPointGlob & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointGlob(),aTree->GetAll("PointGlob",false,1));
 }
 
-std::string  Mangling( cSetPointGlob *) {return "0806226174F19493FF3F";};
+std::string  Mangling( cSetPointGlob *) {return "6EDC1913507224BDFF3F";};
 
 
 eEtatPointeImage & cOneSaisie::Etat()

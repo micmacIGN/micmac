@@ -635,14 +635,15 @@ void LoadTrScaleRotate
 */
 
 extern void TestOriBundle();
+extern void TestSVD3x3();
 
 int MPDtest_main (int argc,char** argv)
 {
-    
+    TestSVD3x3(); 
+/*
     cMasqBin3D::FromSaisieMasq3d("/home/marc/TMP/EPI/EXO1-Fontaine/AperiCloud_All_selectionInfo.xml");
 
 
-/*
      LoadTrScaleRotate
      (
           "/media/data2/Jeux-Test/img_0762.cr2_Ch3.tif",

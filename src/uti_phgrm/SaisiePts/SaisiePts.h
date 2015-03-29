@@ -72,6 +72,7 @@ class cSP_PointeImage
         cSP_PointGlob * Gl();
         bool  & Visible() ;
         bool BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2);
+        bool BuildEpipolarLine(std::vector<Pt2dr> &);
 
         // void ReestimVisibilite(const Pt3dr & aPTer,bool Masq3DVis);
 private :
@@ -89,6 +90,7 @@ class cSP_PointGlob
 {
      public:
           bool Has3DValue() const;
+          bool HasStrong3DValue() const;
           Pt3dr Best3dEstim() const ; // Erreur si pas de Has3DValue
           // void ReestimVisibilite();
 
@@ -199,6 +201,8 @@ public :
     bool    WVisible(const Pt2dr & aP);
     bool    WVisible(const Pt2dr & aP, eEtatPointeImage aState);
     bool    WVisible(cSP_PointeImage & aPIm);
+
+    bool    PInIm(const Pt2dr & aP);
 
     cSP_PointeImage * GetNearest(const Pt2dr & aPW,double aDSeuil,bool OnlyActif=false);
     void    SetPt(Clik aClk);
