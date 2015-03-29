@@ -365,6 +365,29 @@ const cInterfChantierNameManipulateur::tSet * cElemAppliSetFile::SetIm()
 /*                                                               */
 /*****************************************************************/
 
+std::vector<CamStenope*> cAppliWithSetImage::VCamStenope()
+{
+    std::vector<CamStenope*> aVC;
+
+    for (int aK=0; aK<int(mVSoms.size()) ; aK++)
+    {
+        aVC.push_back(mVSoms[aK]->attr().mIma->mCam);
+    }
+
+    return aVC;
+}
+
+std::vector<ElCamera *> cAppliWithSetImage::VCam()
+{
+    std::vector<ElCamera *> aVC;
+    for (int aK=0; aK<int(mVSoms.size()) ; aK++)
+    {
+        aVC.push_back(mVSoms[aK]->attr().mIma->mCam);
+    }
+
+    return aVC;
+}
+
 const  std::string BLANK(" ");
 
 std::string  cAppliWithSetImage::PatFileOfImSec() const
