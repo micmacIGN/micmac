@@ -616,6 +616,10 @@ int MergePly_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);
 int FusionCarteProf_main(int argc,char ** argv);
 int Nuage2Ply_main(int argc,char ** argv);
+int PlySphere_main(int argc,char ** argv);
+int San2Ply_main(int argc,char ** argv);
+
+
 int Pasta_main(int argc,char ** argv);
 int Pastis_main(int argc,char ** argv);
 int Porto_main(int argc,char ** argv);

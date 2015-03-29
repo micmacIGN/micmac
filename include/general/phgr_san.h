@@ -97,12 +97,53 @@ cInterfSurfaceAnalytique * SFromFile
 
          //==========================================
 
+class cParamISAPly
+{
+    public :
+       cParamISAPly();
+
+       double mSzRep;
+       double mSzSphere;
+       double mDensiteSurf;
+};
+
+class cPlyCloud
+{
+     public :
+         void PutFile(const std::string & aName);
+
+         typedef Pt3di tCol;
+         std::vector<tCol>  mVCol;
+         std::vector<Pt3dr>  mVPt;
+
+         void AddSphere(const tCol& ,const Pt3dr & aC,const double & aRay,const int & aNbPerRay);
+         void AddSeg(const tCol &,const Pt3dr & aP1,const Pt3dr & aP2,const int & aNbPerRay);
+         void AddPt(const tCol &,const Pt3dr & aPt);
+         void AddCercle(const tCol &,const Pt3dr & aC,const Pt3dr &aNorm,const double & aRay,const int & aNb);
+
+         static const tCol Red;
+         static const tCol Green;
+         static const tCol Blue;
+         static const tCol Yellow;
+         static const tCol Cyan;
+         static const tCol Magenta;
+         static const tCol Black;
+         static const tCol White;
+         static tCol Gray(const double & aGr); // Entre 0 et 1
+};
          
 class cInterfSurfaceAnalytique 
 {
     // UV coordonnee parametrique de la surface , L + ou -
     // troisiemme coordonnee (genre faisceau de normal)
      public :
+
+
+         void MakePly   (const cParamISAPly & , cPlyCloud & ,const std::vector<ElCamera *> &);
+         // aProfMoy : Prof /10 
+         virtual void V_MakePly (const cParamISAPly & , cPlyCloud & ,const std::vector<ElCamera *> &,const Box2dr & aBox,const double aProfMoy);
+
+
 
          virtual double SeuilDistPbTopo() const;
 
@@ -132,6 +173,7 @@ class cInterfSurfaceAnalytique
 
 
          static cInterfSurfaceAnalytique * FromXml(const cXmlOneSurfaceAnalytique &);
+         static cInterfSurfaceAnalytique * FromFile(const std::string &);
 
 // Pour gerer d'eventuels pb de topologie, a la faculte de modifier la boite
          virtual void AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const = 0;
@@ -147,9 +189,9 @@ class cInterfSurfaceAnalytique
 
          // Rnvoie rei:q
          cTplValGesInit<Pt3dr> InterDemiDroiteVisible(const ElSeg3D &,double aZ0) const ;
-         cTplValGesInit<Pt3dr> PImageToSurf0(const cCapture3D & aCap,const Pt2dr & aPIm) const;
+         cTplValGesInit<Pt3dr> PImageToSurf0(const cCapture3D & aCap,const Pt2dr & aPIm) const; // Coord UVL
 
-         // Si SurfExt, on selectionne les rayons rentantrant
+         // Si SurfExt, on selectionne les rayons rentantrant, coord UVL
          Pt3dr BestInterDemiDroiteVisible(const ElSeg3D &,double aZ0) const ;
 
          virtual ~cInterfSurfaceAnalytique();
@@ -162,7 +204,7 @@ class cInterfSurfaceAnalytique
      protected :
          bool mUnUseAnamXCSte;
      private :
-         cTplValGesInit<Pt3dr> InterDemiDroiteVisible(bool Force,const ElSeg3D &,double aZ0) const ;
+         cTplValGesInit<Pt3dr> InterDemiDroiteVisible(bool Force,const ElSeg3D &,double aZ0) const ;  // En UVL
          bool mIsVueExt;
 };
 
@@ -269,12 +311,14 @@ class cCylindreRevolution : public cInterfSurfaceAnalytique
          Pt3dr  PluckerDir();
          Pt3dr  PluckerOrigine();
       private :
+         void V_MakePly (const cParamISAPly & , cPlyCloud & ,const std::vector<ElCamera *> &,const Box2dr & aBox,const double aProfMoy);
 
          Pt3dr mP0; // Point sur l'axe
          double mRay;
          Pt3dr mU;  // vecteur du plan pointant sur P0
          Pt3dr mV;  //
          Pt3dr mW;  //   axe du cylinde
+         int   mSign;
 };
 
 class cCylindreRevolFormel  : public cInterfSurfAn_Formelle
