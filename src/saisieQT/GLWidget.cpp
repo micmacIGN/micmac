@@ -1048,8 +1048,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
 void GLWidget::enterEvent(QEvent *event)
 {
-    // TODO : pourquoi
-    // peut etre capter les mvts de souris en dehors de la fenetre
+    // pour avoir le focus lorsque le curseur entre dans la fenêtre (par ex. movePointWithArrows)
     setFocus(Qt::ActiveWindowFocusReason);
     setFocusPolicy(Qt::StrongFocus);
 
@@ -1256,7 +1255,7 @@ loaderImageWork::loaderImageWork(cMaskedImage<QImage>* maskedImg, cMaskedImageGL
 }
 
 
-// --- DECONSTRUCTOR ---
+// --- DESTRUCTOR ---
 loaderImageWork::~loaderImageWork() {
     // free resources
 //	qDebug("End load Tile");
