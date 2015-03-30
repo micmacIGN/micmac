@@ -1,0 +1,157 @@
+<!--
+   Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Apero-RHH-ByImIndiv.xml  DirectoryChantier=/media/data2/Test-Plan-Drones/SDTI/
+-->
+<Global >
+   <ParamApero>
+
+       <DicoLoc>
+<!--
+            <Symb>  MasterIm=Im00840.png  </Symb>
+            <Symb>  PatternIm=Im008(15|20|25|30|35|40|45|50|55|60|65|70|75|80).png  </Symb>
+-->
+
+            <Symb>  MasterIm=Im00800.png  </Symb>
+            <Symb>  PatternIm=Im008(00|05|10|30).png  </Symb>
+
+
+            <Symb>  TetaLVM=0.1 </Symb>
+            <Symb>  CentreLVM=1.0 </Symb>
+            <Symb>  Show=false </Symb>
+              
+            <KeyedNamesAssociations>
+                 <Calcs>
+                     <Arrite>  1 1 </Arrite>
+                     <Direct>
+                         <PatternTransform> (.*) </PatternTransform>
+                         <CalcName> RHH/${MasterIm}/OriPlane-$1.xml  </CalcName>
+                      </Direct>
+                 </Calcs>
+                 <Key>  LocKeyOri</Key>
+            </KeyedNamesAssociations>
+       </DicoLoc>
+
+        <ShowSection>
+            <ShowMes> ${Show} </ShowMes>
+         </ShowSection>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet>  NKS-RHH-Set-Homol@@dat@${MasterIm} </KeySet>
+                 <KeyAssoc> NKS-RHH-Assoc-CplIm2Hom@@dat     </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_ObsAppuisFlottant >
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>  RHH/${MasterIm}-Mesure-S2D.xml </KeySetOrPat>
+             </BDD_ObsAppuisFlottant>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib   </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   RHH/${MasterIm}-Calib.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+             <PoseCameraInc>
+	           <PatternName>    ${PatternIm}  </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                        <PosFromBDAppuis>
+                              <Id > Id-Appui </Id>
+                              <NbTestRansac>  100 </NbTestRansac>
+                              <!-- <DirApprox> </DirApprox> -->
+                        </PosFromBDAppuis>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+             <PointFlottantInc>
+                  <Id> Id-Appui </Id>
+                  <KeySetOrPat>   RHH/${MasterIm}-Mesure-S3D.xml  </KeySetOrPat>
+             </PointFlottantInc>
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXX </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+              <SLMGlob>
+                 <RappelOnAngles>
+                      <ParamF >
+                          <PatternNameApply> .* </PatternNameApply>
+                          <Incertitude> ${TetaLVM} </Incertitude>
+                          <OnCur> true </OnCur>
+                       </ParamF>
+                      <TetaApply> 0 </TetaApply>
+                      <TetaApply> 1 </TetaApply>
+                      <TetaApply> 2 </TetaApply>
+                </RappelOnAngles>
+                 <RappelOnCentres>
+                      <ParamF>
+                             <PatternNameApply> .* </PatternNameApply>
+                             <Incertitude> ${CentreLVM} </Incertitude>
+                             <OnCur> true </OnCur>
+                      </ParamF>
+                      <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                </RappelOnCentres>
+
+             </SLMGlob>
+
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+
+	      <EtapeCompensation>
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eAllParamFiges  </Val>
+		          </ContraintesCamerasInc>
+                          <ContraintesPoses>
+                                   <NamePose>   .* </NamePose>
+                                   <ByPattern>  true </ByPattern>
+                                   <Val>      ePoseFigee   </Val>
+                           </ContraintesPoses>
+
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <SectionObservations> </SectionObservations>
+
+
+                    <SectionExport>
+                            <ExportPose>
+                                <PatternSel> .* </PatternSel>
+                                <KeyAssoc>  LocKeyOri </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                            </ExportPose>
+                    </SectionExport>
+
+
+
+
+
+	      </EtapeCompensation>
+
+	</SectionCompensation>
+
+
+
+
+   </ParamApero>
+</Global>
+
