@@ -182,8 +182,7 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
 
 
         w.setBanniere(QString(getBanniereMM3D().c_str()));
-        QString qsVersion = __HG_REV__;
-        w.setHg_revision(qsVersion.toInt());
+        w.setHg_revision(QString(__HG_REV__));
 
         new cQT_Interface(anAppli,&w);
 

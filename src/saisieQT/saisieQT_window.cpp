@@ -769,13 +769,12 @@ void SaisieQtWindow::on_actionAbout_triggered()
         qStr.replace( "**", "  " );
 #endif
 
-        QString version;
-        version.setNum(_hg_revision);
-
+    QString version;
+    version.setNum(_hg_revision);
 
     qStr += "\n" + tr("Application") + "\t" + QApplication::applicationName() +
-            + "\n" +  tr("Built with \tQT ")   + QT_VERSION_STR  +
-            + "\n" +  tr("Revision\t\t")    + version + "\n";
+            + "\n" +  tr("Built with \tQT ") + QT_VERSION_STR  +
+            + "\n" +  tr("Revision\t\t") + version + "\n";
 
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
@@ -1428,6 +1427,18 @@ void SaisieQtWindow::setModelObject(QAbstractItemModel *model_Objects)
     tableView_Objects()->setModel(model_Objects);
 }
 
+void SaisieQtWindow::keyPressEvent(QKeyEvent *event)
+{
+    switch(event->key())
+    {
+    case Qt::Key_Return:
+        on_actionConfirm_changes_triggered();
+        break;
+    default:
+        return;
+    }
+}
+
 void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images)
 {
     tableView_PG()->setModel(model_Pg);
@@ -1660,7 +1671,6 @@ void SaisieQtWindow::updateMask(bool reloadMask)
 {
     // TODO seg fault dans le undo à cause de la destruction des images...
 
-
     if (currentWidget()->getHistoryManager()->size())
     {
 
@@ -1700,9 +1710,10 @@ int SaisieQtWindow::hg_revision() const
     return _hg_revision;
 }
 
-void SaisieQtWindow::setHg_revision(int hg_revision)
+void SaisieQtWindow::setHg_revision(QString hg_revision)
 {
-    _hg_revision = hg_revision;
+    if (hg_revision.contains("+")) hg_revision.resize(hg_revision.size()-1);
+    _hg_revision = hg_revision.toInt();
 }
 
 deviceIOImage* SaisieQtWindow::devIOImage() const
