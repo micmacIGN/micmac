@@ -647,6 +647,8 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     shortcuts.push_back("");
     actions.push_back("");
 
+    float shiftStep = _params->getShiftStep();
+
     if (_appMode == MASK3D)
     {
         shortcuts.push_back(tr("Navigation 3D"));
@@ -667,7 +669,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("move on vertex"));
         actions.push_back(tr("Double click on vertex"));
 
-        shortcuts.push_back(tr(""));
+        shortcuts.push_back("");
         actions.push_back("");
 
         shortcuts.push_back(tr("Selection Menu"));
@@ -724,9 +726,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("Drag & drop"));
         actions.push_back(tr("move selected polygon vertex"));
         shortcuts.push_back(tr("Arrow keys"));
-        actions.push_back(tr("move selected vertex"));
+        actions.push_back(tr("move selected vertex") + " (" + QString::number(shiftStep).toStdString().c_str() +" px)" + tr(" - see Settings"));
         shortcuts.push_back(tr("Alt+arrow keys"));
-        actions.push_back(tr("move selected vertex faster"));
+        actions.push_back(tr("move selected vertex") + " (" + QString::number(10.f*shiftStep).toStdString().c_str() + " px)");
         shortcuts.push_back(tr("Key W+drag"));
         actions.push_back(tr("move polygon"));
         shortcuts.push_back(Ctrl + "A");
@@ -746,6 +748,10 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("show state menu or window menu"));
         shortcuts.push_back(tr("Drag & drop"));
         actions.push_back(tr("move selected point"));
+        shortcuts.push_back(tr("Arrow keys"));
+        actions.push_back(tr("move selected point") + " (" + QString::number(shiftStep).toStdString().c_str() +" px)" + tr(" - see Settings"));
+        shortcuts.push_back(tr("Alt+arrow keys"));
+        actions.push_back(tr("move selected point") + " (" + QString::number(10.f*shiftStep).toStdString().c_str() + " px)");
     }
     if (_appMode <= MASK3D) //TEMP: TODO corriger le undo Elise
     {
@@ -754,6 +760,12 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(Ctrl + "Shift+Z");
         actions.push_back(tr("redo last action"));
     }
+
+    shortcuts.push_back("");
+    actions.push_back("");
+
+    shortcuts.push_back(tr("G / H / J keys"));
+    actions.push_back(tr("Increase / decrease / reset gamma"));
 
     _helpDialog->populateTableView(shortcuts, actions);
 }
