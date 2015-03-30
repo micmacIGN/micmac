@@ -24,7 +24,7 @@ using namespace std;
 #if ELISE_Darwin
     #include <OpenGL/gl.h>
 #else
-	#include <GL/gl.h>
+    #include <GL/gl.h>
 #endif
 
 #ifdef Int
@@ -102,5 +102,6 @@ using namespace std;
 #include <QXmlStreamReader>
 #include <QWidget>
 
+#define M_2PI	6.283185307179586232
 
 #endif // ELISE_QT_H

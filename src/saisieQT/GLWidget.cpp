@@ -886,7 +886,7 @@ float GLWidget::angleZ(QPointF mPos)
     QLineF vectorR(centerViewPort,mPos);
     QLineF vectorL(centerViewPort,lastPosWindowf);
     float angle = vectorL.angleTo(vectorR)/180.0*M_PI;
-    return angle > M_PI ?  angle - 2.0*M_PI : angle;
+    return angle > M_PI ?  angle - M_2PI : angle;
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
