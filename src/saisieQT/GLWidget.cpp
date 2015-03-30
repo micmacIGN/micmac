@@ -114,7 +114,7 @@ void GLWidget::setGLData(cGLData * aData, bool showMessage, bool showCams, bool 
         m_bDisplayMode2D = !m_GLData->isImgEmpty();
         m_bFirstAction   =  m_GLData->isNewMask();
 
-		_contextMenu.setPolygon( getGLData()->polygon());
+        _contextMenu.setPolygon( getGLData()->polygon());
 
         _matrixManager.setSceneTopo(getGLData()->getPosition(),getGLData()->getBBoxMaxSize());
 
@@ -147,16 +147,16 @@ void GLWidget::addGlPoint( cPoint point, QPointF pt1, QPointF pt2, bool highligh
     cPoint point(pt,name,true,aSom->Etat());
     */
 
-	if(getGLData()->getCurrentPolygonIndex() == 0)
-	{
-		point.setDiameter(_params->getPointDiameter() * 0.01);
+    if(getGLData()->getCurrentPolygonIndex() == 0)
+    {
+        point.setDiameter(_params->getPointDiameter() * 0.01);
 
-		point.setHighlight(highlight);
+        point.setHighlight(highlight);
 
-		if (pt1 != QPointF(0.f,0.f)) point.setEpipolar(pt1, pt2);
+        if (pt1 != QPointF(0.f,0.f)) point.setEpipolar(pt1, pt2);
 
-		getGLData()->currentPolygon()->add(point);
-	}
+        getGLData()->currentPolygon()->add(point);
+    }
 }
 
 void GLWidget::setTranslation(QVector3D trans)
@@ -259,7 +259,7 @@ void GLWidget::overlay()
                         if (pt.showName() && (pt.name() != ""))
                         {
                             QPointF wPt = _matrixManager.ImageToWindow( pt,getZoom()) + QPointF(10.f,-5.f);
-							wPt /= PixelRatio();
+                            wPt /= PixelRatio();
 
                             _messageManager.glRenderText(pt.name(),wPt, pt.isSelected() ? Qt::blue : Qt::white);
                         }
@@ -276,9 +276,9 @@ void GLWidget::overlay()
 int GLWidget::PixelRatio()
 {
 #if ELISE_QT_VERSION >= 5
-	return devicePixelRatio();
+    return devicePixelRatio();
 #else
-	return 1;
+    return 1;
 #endif
 
 }
@@ -323,7 +323,7 @@ void GLWidget::lineThicknessChanged(float val)
 {
     if (hasDataLoaded())
     {
-		polygon(0)->setLineWidth(val);
+        polygon(0)->setLineWidth(val);
 
         update();
     }
@@ -342,7 +342,7 @@ void GLWidget::pointDiameterChanged(float val)
 {
     if (hasDataLoaded())
     {
-		polygon(0)->setPointSize(val);
+        polygon(0)->setPointSize(val);
 
         update();
     }
@@ -352,7 +352,7 @@ void GLWidget::selectionRadiusChanged(int val)
 {
     if (hasDataLoaded())
     {
-		polygon(0)->setRadius(val);
+        polygon(0)->setRadius(val);
     }
 }
 
@@ -360,7 +360,7 @@ void GLWidget::shiftStepChanged(float val)
 {
     if (hasDataLoaded())
     {
-		polygon(0)->setShiftStep(val);
+        polygon(0)->setShiftStep(val);
     }
 }
 
@@ -387,8 +387,8 @@ void GLWidget::setParams(cParameters* aParams)
 {
     _params = aParams;
 
-	if(polygon(0))
-		polygon(0)->setParams(aParams);
+    if(polygon(0))
+        polygon(0)->setParams(aParams);
 }
 
 void GLWidget::checkTiles()
@@ -658,9 +658,9 @@ void GLWidget::setCursorShape(QPointF pos, QPointF mPos)
 
 void GLWidget::Select(int mode, bool saveInfos)
 {
-	if (hasDataLoaded())
+    if (hasDataLoaded())
     {
-		cPolygon *polyg = polygon(0);
+        cPolygon *polyg = polygon(0);
 
         if(mode <= ADD_OUTSIDE)
         {
@@ -683,7 +683,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         if (saveInfos) //  TODO ne marche pas avec le switch y/z
         {
-			selectInfos info(polygon(0)->getVector(),mode);
+            selectInfos info(polygon(0)->getVector(),mode);
 
             _matrixManager.exportMatrices(info);
 
@@ -694,7 +694,7 @@ void GLWidget::Select(int mode, bool saveInfos)
 
         emit maskEdited();
 
-		m_GLData->polygon()->clear();
+        m_GLData->polygon()->clear();
 
         update();
     }
@@ -795,7 +795,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
         return;
     }
 
-	m_lastClickZoom = event->pos() * PixelRatio();
+    m_lastClickZoom = event->pos() * PixelRatio();
 
 #if ELISE_QT_VERSION == 5
     setZoom(getZoom()*pow(1.1f,event->angleDelta().y() / 70.0f ));
@@ -808,7 +808,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 {
     if(hasDataLoaded())
     {
-		m_lastPosWindow = event->pos() * PixelRatio();
+        m_lastPosWindow = event->pos() * PixelRatio();
 
         m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : QPointF(m_lastPosWindow.x(),_matrixManager.vpHeight() - m_lastPosWindow.y());
 
@@ -863,7 +863,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton && hasDataLoaded())
     {
-		m_lastPosWindow = event->pos() * PixelRatio();
+        m_lastPosWindow = event->pos() * PixelRatio();
 
         m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : m_lastPosWindow;
 
@@ -894,7 +894,7 @@ float GLWidget::angleZ(QPointF mPos)
     QLineF vectorR(centerViewPort,mPos);
     QLineF vectorL(centerViewPort,lastPosWindowf);
     float angle = vectorL.angleTo(vectorR)/180.0*M_PI;
-    return angle > M_PI ?  angle - 2.0*M_PI : angle;
+    return angle > M_PI ?  angle - M_2PI : angle;
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -908,7 +908,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         QPointF mPos = event->posF();
 #endif
 
-		mPos *= PixelRatio();
+        mPos *= PixelRatio();
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, getZoom()) : mPos;
 
         if ( event->buttons() != Qt::MiddleButton )
@@ -924,7 +924,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             if (polygon()->isSelected())                    // MOVE POLYGON
             {
                 //TODO: a verifier => y inversé en 3D - OK en 2D
-				QPoint lastPos = m_lastPosWindow*PixelRatio();
+                QPoint lastPos = m_lastPosWindow*PixelRatio();
                 QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(lastPos, getZoom()) : lastPos;
                 polygon()->translate(pos - translation);
             }
@@ -932,7 +932,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             {
                 int id = polygon()->getSelectedPointIndex();
 
-				bool insertMode = polygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress ;
+                bool insertMode = polygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress ;
 
                 if(m_interactionMode == SELECTION)
                     polygon()->refreshHelper( QPointF(pos.x(),_matrixManager.vpHeight() - pos.y()), insertMode, 1.f);
@@ -952,7 +952,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (m_interactionMode == TRANSFORM_CAMERA)
         {
-			QPointF dPWin = QPointF(event->pos() * PixelRatio() - m_lastPosWindow);
+            QPointF dPWin = QPointF(event->pos() * PixelRatio() - m_lastPosWindow);
 
             if (event->buttons())
             {
@@ -989,11 +989,11 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
             }
         }
 
-        if (event->buttons() != Qt::MiddleButton)  //pour eviter le changement de label_ImagePosition_2 en mode translation		
-            emit newImagePosition( m_lastMoveImage );		
+        if (event->buttons() != Qt::MiddleButton)  //pour eviter le changement de label_ImagePosition_2 en mode translation
+            emit newImagePosition( m_lastMoveImage );
 
 
-		m_lastPosWindow = event->pos() * PixelRatio();
+        m_lastPosWindow = event->pos() * PixelRatio();
 
         update();
     }
@@ -1048,7 +1048,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
         menu.exec(event->globalPos());
 
-		polygon(0)->resetSelectedPoint();
+        polygon(0)->resetSelectedPoint();
 
         emit selectPoint(-1);
     }

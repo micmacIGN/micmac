@@ -10,7 +10,6 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
-
 typedef enum // Attention repercutions sur QT ... TODO à regler
 {
   qEPI_NonSaisi,// 0
@@ -56,6 +55,14 @@ enum object_state {
     state_invible,
     state_disabled,
     state_COUNT
+};
+
+enum point_geometry {
+    simple_circle,
+    double_circle,
+    epipolar,
+    cross,
+    no_geometry
 };
 
 #define ErrPoint cPoint(QPointF(-400000.,-400000.));
@@ -156,6 +163,7 @@ class cPoint : public cObjectGL, public QPointF
            QString name = "",
            bool showName   = false,
            int  statePoint = qEPI_NonValue,
+           int  pointGeometry = simple_circle,
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
@@ -166,9 +174,11 @@ class cPoint : public cObjectGL, public QPointF
         void draw();
 
         void setPointState(int state){ _pointState = state; }
+        void setPointGeometry(int g) { _pointGeometry = g;  }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
         int  pointState() const      { return _pointState;  }
+        int  pointGeometry() const   { return _pointGeometry;  }
         void showName(bool show)     { _bShowName = show;   }
 
         bool highlight() const       { return _highlight;   }
@@ -176,6 +186,7 @@ class cPoint : public cObjectGL, public QPointF
         void setHighlight(bool hl)   { _highlight = hl;     }
         void switchHighlight()       { _highlight = !_highlight; }
         void drawCenter(bool aBool)  { _drawCenter = aBool; }
+
 
         void setEpipolar(QPointF pt1, QPointF pt2);
 
@@ -188,6 +199,7 @@ private:
         float   _diameter;
         bool    _bShowName;
         int     _pointState;
+        int     _pointGeometry;
         bool    _highlight;
         bool    _drawCenter;
 
@@ -332,6 +344,7 @@ class cPolygon : public cObjectGL
 
         QString getSelectedPointName();
         int     getSelectedPointState();
+        int     getSelectedPointGeometry();
 
         int     getSelectedPointIndex(){ return _idx; }
 
@@ -424,9 +437,9 @@ class cPolygon : public cObjectGL
 
         void    normalize(bool aBool)   { _bNormalize = aBool; }
 
-		void	setAllVisible(bool visible);
+        void	setAllVisible(bool visible);
 
-		float lenght();
+        float lenght();
 
     protected:
 
@@ -446,7 +459,7 @@ class cPolygon : public cObjectGL
 
         float               _pointDiameter;
 
-		static float        _selectionRadius;
+        static float        _selectionRadius;
 
         //!states if polygon is closed
         bool                _bIsClosed;
