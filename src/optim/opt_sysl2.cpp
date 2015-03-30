@@ -1420,20 +1420,48 @@ template <class Type> class cSVD3x3
             Type  iR1;
             void TestSolAR1()
             {
-                std::cout  << " Rxyz="<<  ElAbs(aR1*x1 +  b*y1 +   c*z1) + ElAbs(b*x1 +  eR1*y1 +   f*z1) + ElAbs(c*x1 +    f*y1 + iR1*z1)
+                std::cout  << " Rxyz="<<  ElAbs(aR1*x1 +  b*y1 +   c*z1) 
+                                        + ElAbs(b*x1 +  eR1*y1 +   f*z1)
+                                        + ElAbs(c*x1 +    f*y1 + iR1*z1)
                            << "\n";
             }
 
             void TestSolVP1()
             {
-                std::cout  << " VPRes="<<  ElAbs(a*x1+b*y1+ c*z1 + R1*x1) + ElAbs(b*x1+e*y1+f*z1 +R1*y1) + ElAbs(c*x1+f*y1+i*z1 +R1*z1)
+                std::cout  << " VPRes="<<  ElAbs(a*x1+b*y1+ c*z1 + R1*x1) 
+                                         + ElAbs(b*x1+e*y1+f*z1 +R1*y1) 
+                                         + ElAbs(c*x1+f*y1+i*z1 +R1*z1)
                            << "\n";
             }
 
+     // Orthog a x1,y1,z1
+            Type x2O,y2O,z2O;
+            Type x3O,y3O,z3O;
 
      //   aR1  b    c       X      0
      //   b    eR1  f       Y  =   0
      //   c    f    iR1     1      0
+
+     void MakeNorm(Type &x,Type & y, Type &z)
+     {
+       Type aNorm = sqrt(x*x + y*y + z * z);
+       x /= aNorm;
+       y /= aNorm;
+       z /= aNorm;
+     }
+
+      void TestRON()
+      {
+             std::cout 
+                       << " N1 " << (x1*x1+y1*y1+z1*z1)
+                       << " N2 " << (x2O*x2O+y2O*y2O+z2O*z2O)
+                       << " N3 " << (x3O*x3O+y3O*y3O+z3O*z3O)
+                       << " S12 " << (x1*x2O+y1*y2O+z1*z2O)
+                       << " S13 " << (x1*x3O+y1*y3O+z1*z3O)
+                       << " S23 " << (x2O*x3O+y2O*y3O+z2O*z3O)
+                       << "\n";
+      }
+
 };
 
 /*
@@ -1535,7 +1563,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
              y1 = (b*c       - aR1 * f) / deltaZ;
              z1 = 1.0;
         }
-        else if (AbsDX>AbsDY)
+        else if ((AbsDX>AbsDY) && (AbsDX>AbsDZ))
         {
               x1 = 1.0;
               y1 =  (-iR1*b +f*c)/deltaX;
@@ -1550,18 +1578,36 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
      }
 
      // TestSolAR1();
-
-     // 
-     {
-       Type aNorm = sqrt(x1*x1 + y1*y1 + z1 * z1);
-       x1 /= aNorm;
-       y1 /= aNorm;
-       z1 /= aNorm;
-     }
+     MakeNorm(x1,y1,z1);
 
      TestSolVP1();
+
      {
+         Type AX1 =ElAbs(x1);
+         Type AY1 =ElAbs(y1);
+         Type AZ1 =ElAbs(z1);
+         if ( (AX1>AZ1) || (AY1>AZ1))
+         {
+               x2O = -y1;
+               y2O =  x1;
+               z2O = 0.0;
+         }
+         else 
+         {
+              x2O = -z1;
+              y2O = 0.0;
+              z2O = x1;
+         }
      }
+     MakeNorm(x2O,y2O,z2O);
+
+      x3O = y1 * z2O - z1 * y2O;
+      y3O = z1 * x2O - x1 * z2O;
+      z3O = x1 * y2O - y1 * x2O;
+
+     TestRON();
+
+     
 }
 
 ElMatrix<double> RanM33()
