@@ -324,7 +324,7 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int geometry = simple_circle, int style = LINE_NOSTIPPLE);
 
         ~cPolygon();
 
@@ -349,7 +349,7 @@ class cPolygon : public cObjectGL
         int     getSelectedPointIndex(){ return _idx; }
 
         void    setPointSelected();
-		bool    isPointSelected(){ return _bSelectedPoint; }
+        bool    isPointSelected(){ return _bSelectedPoint; }
         void    resetSelectedPoint();
 
         int     selectPoint(QString namePt);
@@ -443,7 +443,7 @@ class cPolygon : public cObjectGL
 
     protected:
 
-        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
+        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int geometry = simple_circle, int style = LINE_STIPPLE);
 
         QVector <cPoint>    _points;
 
@@ -459,15 +459,17 @@ class cPolygon : public cObjectGL
 
         float               _pointDiameter;
 
+        int                 _pointGeometry;
+
         static float        _selectionRadius;
 
         //!states if polygon is closed
         bool                _bIsClosed;
 
-		//!states if point with index _idx is selected
-		bool                _bSelectedPoint;
+        //!states if point with index _idx is selected
+        bool                _bSelectedPoint;
 
-		//!states if segments should be displayed
+        //!states if segments should be displayed
         bool                _bShowLines;
 
         //!states if names should be displayed
@@ -489,7 +491,7 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue, int pointGeometry=simple_circle);
 
         ~cPolygonHelper();
 

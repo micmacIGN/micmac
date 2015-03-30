@@ -798,7 +798,8 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
     {
         if(getWidget(i)->getGLData()->polygonCount() == 1)
         {
-            cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow);
+            cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, cross);
+            polyg->setPointSize(10);
             getWidget(i)->getGLData()->addPolygon(polyg);
         }
         getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
@@ -898,7 +899,7 @@ void SaisieQtWindow::on_actionRemove_inside_triggered()
 {
 
     if (_appMode > MASK3D)
-		currentWidget()->polygon(0)->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
+        currentWidget()->polygon(0)->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
     else
         currentWidget()->Select(SUB_INSIDE);
 }
