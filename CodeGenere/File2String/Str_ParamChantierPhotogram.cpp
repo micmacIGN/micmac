@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1638]) = {
+const char * (theNameVar_ParamChantierPhotogram[1639]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1457,13 +1457,13 @@ const char * (theNameVar_ParamChantierPhotogram[1638]) = {
 "         </pt3d>\n",
 "    </XML_LinePt3d>\n",
 "\n",
+"<!--\n",
 "    <orientation Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "          <version Nb=\"1\" Type=\"double\"></version>\n",
 "          <auxiliarydata Nb=\"1\">\n",
 "               <image_name Nb=\"1\" Type=\"std::string\"></image_name>\n",
 "               <stereopolis Nb=\"1\" Type=\"std::string\"></stereopolis>\n",
 "               <image_date Nb=\"1\" RefType=\"XML_Date\"> </image_date>\n",
-"               <!-- quelle est la structure  ? -->\n",
 "               <samples Nb=\"*\" Type=\"std::string\"> </samples>\n",
 "          </auxiliarydata>\n",
 "          <geometry Nb=\"1\">\n",
@@ -1518,6 +1518,7 @@ const char * (theNameVar_ParamChantierPhotogram[1638]) = {
 "              </intrinseque>\n",
 "          </geometry>\n",
 "    </orientation>\n",
+"-->\n",
 "\n",
 "    <!-- Pour stocker les relations \"Images/Maitresse\" \"Images/Secondaire\"-->\n",
 "\n",
