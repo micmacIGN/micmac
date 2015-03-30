@@ -1438,6 +1438,19 @@ template <class Type> class cSVD3x3
             Type x2O,y2O,z2O;
             Type x3O,y3O,z3O;
 
+     // Image des prec par AtA
+            Type Ax2O,Ay2O,Az2O;
+            Type Ax3O,Ay3O,Az3O;
+
+
+            void MulAtA(Type & xo,Type &yo,Type &zo,const Type & xi,const Type &yi,const Type &zi)
+            {
+                xo = a*xi + b*yi + c*zi;
+                yo = b*xi + e*yi + f*zi;
+                zo = c*xi + f*yi + i*zi;
+            }
+             
+
      //   aR1  b    c       X      0
      //   b    eR1  f       Y  =   0
      //   c    f    iR1     1      0
@@ -1580,7 +1593,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
      // TestSolAR1();
      MakeNorm(x1,y1,z1);
 
-     TestSolVP1();
+     //TestSolVP1();
 
      {
          Type AX1 =ElAbs(x1);
@@ -1600,12 +1613,44 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
          }
      }
      MakeNorm(x2O,y2O,z2O);
+     //TestRON();
 
-      x3O = y1 * z2O - z1 * y2O;
-      y3O = z1 * x2O - x1 * z2O;
-      z3O = x1 * y2O - y1 * x2O;
+     x3O = y1 * z2O - z1 * y2O;
+     y3O = z1 * x2O - x1 * z2O;
+     z3O = x1 * y2O - y1 * x2O;
 
-     TestRON();
+
+     MulAtA(Ax2O,Ay2O,Az2O,x2O,y2O,z2O);
+     MulAtA(Ax3O,Ay3O,Az3O,x3O,y3O,z3O);
+
+
+     Type aS22 = x2O*Ax2O +  y2O*Ay2O + z2O*Az2O;
+     Type aS23 = x2O*Ax3O +  y2O*Ay3O + z2O*Az3O;
+     Type aS33 = x3O*Ax3O +  y3O*Ay3O + z3O*Az3O;
+
+
+     if (0)
+     {
+        Type aS32 = x3O*Ax2O +  y3O*Ay2O + z3O*Az2O;
+        std::cout << "SSs " << aS23 << " " << aS32 << "\n";
+        std::cout << aS22+ aS33 << "\n"; // => Warn
+     }
+
+
+     // Calcul des Valeur Propre de la matrice reduite
+     //      aS22  aS23     Cos T           Cos T
+     //      aS23  aS33  *  Sin T   = L     Sin T
+
+     {
+          // Type 
+     }
+
+
+
+     //Type  aCA =
+/*
+*/
+
 
      
 }
