@@ -1276,8 +1276,8 @@ bool NameFilter(cInterfChantierNameManipulateur *,const cTplValGesInit<cNameFilt
 cXML_Date  XML_Date0();
 cXML_LinePt3d MM2Matis(const Pt3dr &);
 
-corientation MM2Matis(const cOrientationConique &);
-cElXMLTree * ToXmlTreeWithAttr(const corientation &);
+// corientation MM2Matis(const cOrientationConique &);
+// cElXMLTree * ToXmlTreeWithAttr(const corientation &);
 
 void DoSimplePastisSsResol(const std::string & aFullName,int aResol);
 

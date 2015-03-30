@@ -20013,4 +20013,61 @@ void xml_init(cPolyg3D & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cPolyg3D *) {return "C18FFFD663F91689FF3F";};
 
+
+int & cXML_TestImportOri::x()
+{
+   return mx;
+}
+
+const int & cXML_TestImportOri::x()const 
+{
+   return mx;
+}
+
+
+XmlXml & cXML_TestImportOri::Tree()
+{
+   return mTree;
+}
+
+const XmlXml & cXML_TestImportOri::Tree()const 
+{
+   return mTree;
+}
+
+void  BinaryUnDumpFromFile(cXML_TestImportOri & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.x(),aFp);
+    BinaryUnDumpFromFile(anObj.Tree(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXML_TestImportOri & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.x());
+    BinaryDumpInFile(aFp,anObj.Tree());
+}
+
+cElXMLTree * ToXMLTree(const cXML_TestImportOri & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XML_TestImportOri",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("x"),anObj.x())->ReTagThis("x"));
+   aRes->AddFils(::ToXMLTree(std::string("Tree"),anObj.Tree())->ReTagThis("Tree"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXML_TestImportOri & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.x(),aTree->Get("x",1)); //tototo 
+
+   xml_init(anObj.Tree(),aTree->Get("Tree",1)); //tototo 
+}
+
+std::string  Mangling( cXML_TestImportOri *) {return "9DF7C7AD2E46D1F3FE3F";};
+
 // };
