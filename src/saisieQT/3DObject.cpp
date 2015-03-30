@@ -78,7 +78,7 @@ cCircle::cCircle(QVector3D pt, QColor col, float scale, float lineWidth, bool vi
 //draw a unit circle in a given plane (0=YZ, 1=XZ, 2=XY)
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 {
-	float theta = 2.f * M_PI / float(steps);
+    float theta = M_2PI / float(steps);
     float c = cosf(theta); //precalculate the sine and cosine
     float s = sinf(theta);
 //    float t;
@@ -110,10 +110,10 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 
 void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO step Auto....
 {
-	const float theta = 2.f * M_PI / float(steps);
+    const float theta = M_2PI / float(steps);
 
     glBegin(GL_LINE_LOOP);
-	for(float t = 0.f; t <= 2.f * M_PI; t+= theta)
+    for(float t = 0.f; t <= M_2PI; t+= theta)
     {
 
 		const float x = cx + rx*sinf(t);
@@ -126,10 +126,10 @@ void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO st
 
 void glDrawEllipsed(double cx, double cy, double rx, double ry, int steps) // TODO step Auto....
 {
-	const double theta = 2.f * M_PI / double(steps);
+    const double theta = M_2PI / double(steps);
 
     glBegin(GL_LINE_LOOP);
-	for(double t = 0.f; t <= 2.f * M_PI; t+= theta)
+    for(double t = 0.f; t <= M_2PI; t+= theta)
     {
 		const float x = cx + rx*std::sin(t);
 		const float y = cy + ry*std::cos(t);
@@ -545,6 +545,7 @@ void cCamGL::draw()
 cPoint::cPoint(QPointF pos,
                QString name, bool showName,
                int state,
+               int geometry,
                bool isSelected,
                QColor color, QColor selectionColor,
                float diameter,
@@ -554,6 +555,7 @@ cPoint::cPoint(QPointF pos,
     _diameter(diameter),
     _bShowName(showName),
     _pointState(state),
+    _pointGeometry(geometry),
     _highlight(highlight),
     _drawCenter(drawCenter),
     _bEpipolar(false)
@@ -627,31 +629,55 @@ void cPoint::draw()
 
         mmProject(x(),y(),0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
 
-        glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+        //TODO: à déplacer
+        if (_highlight && ((_pointState == qEPI_Valide) || (_pointState == qEPI_NonSaisi)))
+        {
+            if (_bEpipolar)
+                _pointGeometry = epipolar;
+            else
+                _pointGeometry = double_circle;
+        }
+
+        switch(_pointGeometry)
+        {
+        case simple_circle:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            break;
+        case double_circle:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            glDrawEllipse( xp, yp, 2.f*_diameter, 2.f*_diameter);
+            break;
+        case epipolar:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            GLdouble x1,y1,z1,x2,y2,z2;
+
+            mmProject(_epipolar1.x(), _epipolar1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z1);
+            mmProject(_epipolar2.x(), _epipolar2.y(),0,mvMatrix,projMatrix,glViewport,&x2,&y2,&z2);
+
+            glBegin(GL_LINES);
+                glVertex2f(x1,y1);
+                glVertex2f(x2,y2);
+            glEnd();
+            break;
+        case cross:
+            glBegin(GL_LINE);
+                glVertex2f(xp+_diameter,yp);
+                glVertex2f(xp-_diameter,yp);
+            glEnd();
+            glBegin(GL_LINE);
+                glVertex2f(xp,yp+_diameter);
+                glVertex2f(xp,yp-_diameter);
+            glEnd();
+            break;
+        case no_geometry:
+            break;
+        }
 
         if (_drawCenter)
         {
             glBegin(GL_POINTS);
                 glVertex2d(xp, yp);
             glEnd( );
-        }
-
-		if (_highlight && ((_pointState == qEPI_Valide) || (_pointState == qEPI_NonSaisi)))
-        {
-            if (_bEpipolar)
-            {
-                GLdouble x1,y1,z1,x2,y2,z2;
-
-                mmProject(_epipolar1.x(), _epipolar1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z1);
-                mmProject(_epipolar2.x(), _epipolar2.y(),0,mvMatrix,projMatrix,glViewport,&x2,&y2,&z2);
-
-                glBegin(GL_LINES);
-                    glVertex2f(x1,y1);
-                    glVertex2f(x2,y2);
-                glEnd();
-            }
-            else
-                glDrawEllipse( xp, yp, 2.f*_diameter, 2.f*_diameter);
         }
 
         glMatrixMode(GL_PROJECTION);
@@ -684,7 +710,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     _style(style),
     _pointDiameter(1.f),
     _bIsClosed(false),
-	_bSelectedPoint(false),
+    _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
     _maxSz(maxSz)
@@ -707,7 +733,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
     _style(style),
     _pointDiameter(1.f),
     _bIsClosed(false),
-	_bSelectedPoint(false),
+    _bSelectedPoint(false),
     _bShowLines(true),
     _bShowNames(true),
     _maxSz(maxSz)
@@ -776,7 +802,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
         _pointDiameter    = aP._pointDiameter;
         _selectionRadius  = aP._selectionRadius;
 
-		_bSelectedPoint   = aP._bSelectedPoint;
+        _bSelectedPoint   = aP._bSelectedPoint;
         _bShowLines       = aP._bShowLines;
         _bShowNames       = aP._bShowNames;
 
@@ -852,7 +878,16 @@ int cPolygon::getSelectedPointState()
     {
         return point(_idx).pointState();
     }
-	else return qEPI_NonValue;
+    else return qEPI_NonValue;
+}
+
+int cPolygon::getSelectedPointGeometry()
+{
+    if (pointValid())
+    {
+        return point(_idx).pointGeometry();
+    }
+    else return no_geometry;
 }
 
 void cPolygon::add(cPoint &pt)
@@ -901,7 +936,7 @@ void cPolygon::clear()
 {
     _points.clear();
     _idx = -1;
-	_bSelectedPoint = false;
+    _bSelectedPoint = false;
     if(_bShowLines)_bIsClosed = false;
     if(_helper!=NULL) helper()->clear();
 }
@@ -996,18 +1031,13 @@ void cPolygon::setPointSelected()
 {
 	_bSelectedPoint = true;
 
-
 	if (pointValid())
-	{
         point(_idx).setSelected(true);
-	}
 }
 
 void cPolygon::resetSelectedPoint()
 {
-
-	// TODO virer _bSelectedPoint
-	_bSelectedPoint = false;
+    _bSelectedPoint = false;
 
     if (pointValid())
         point(_idx).setSelected(false);
@@ -1072,7 +1102,7 @@ void cPolygon::selectPoint(int idx)
     if (pointValid())
     {
         point(idx).setSelected(true);
-		_bSelectedPoint = true;
+        _bSelectedPoint = true;
     }
 }
 
@@ -1112,7 +1142,8 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
                 _idx = aK;
             }
         }
-		if (pointValid())
+
+        if (pointValid())
         {
             point(_idx).setSelected(true);
 

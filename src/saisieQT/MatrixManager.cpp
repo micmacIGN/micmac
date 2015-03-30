@@ -426,7 +426,7 @@ void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
     float ry = _rY;
     int sR = -1;
 
-    if(abs(_rY)>= 0 && abs(_rY)<= 2.f * M_PI)
+    if(abs(_rY)>= 0 && abs(_rY)<= M_2PI)
         sR = 1;
 
     if(eNavigation() == eNavig_Ball_OneTouch)
@@ -445,18 +445,18 @@ void MatrixManager::rotateArcBall(float rX, float rY, float rZ, float factor)
         _rZ += rZ;
     }
 
-    _rX = fmod(_rX,2*M_PI);
-    _rY = fmod(_rY,2*M_PI);
-    _rZ = fmod(_rZ,2*M_PI);
+    _rX = fmod(_rX,M_2PI);
+    _rY = fmod(_rY,M_2PI);
+    _rZ = fmod(_rZ,M_2PI);
 
     if(
-            (abs(ry)<M_PI/2.f && abs(_rY)>M_PI/2.f) ||
-            (abs(ry)>M_PI/2.f && abs(_rY)<M_PI/2.f) ||
-            (abs(ry)< 3*M_PI/2.f && abs(_rY)> 3*M_PI/2.f)||
-            (abs(ry)> 3*M_PI/2.f && abs(_rY)< 3*M_PI/2.f)
+            (abs(ry)<M_PI_2 && abs(_rY)>M_PI_2) ||
+            (abs(ry)>M_PI_2 && abs(_rY)<M_PI/2.f) ||
+            (abs(ry)< 3*M_PI_2 && abs(_rY)> 3*M_PI_2)||
+            (abs(ry)> 3*M_PI_2 && abs(_rY)< 3*M_PI_2)
             )
     {
-        if((abs(ry)< 2.f*M_PI - M_PI/4.f))
+        if((abs(ry)< M_2PI - M_PI_4))
 
             _upY = -_upY;
     }
