@@ -52,7 +52,7 @@ void cObject::setPosition(const QVector3D& aPt)  { _position = aPt;  }
 
 cObject& cObject::operator =(const cObject& aB)
 {
-	if (this != &aB)
+    if (this != &aB)
     {
         _name      = aB._name;
         _position  = aB._position;
@@ -76,7 +76,7 @@ object_state cObject::state() const
 
 void cObject::setState(object_state state)
 {
-	_state = state;
+    _state = state;
 }
 
 cObject*cObject::child(int id)
@@ -132,9 +132,9 @@ void cObject::setParent(cObject* parent)
 
 
 cCircle::cCircle(QVector3D pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
-	_dim(dim)
+    _dim(dim)
 {
-	setPosition(pt);
+    setPosition(pt);
     cObject::setColor(col);
 	setScale(QVector3D(scale,scale,scale));
     setLineWidth(lineWidth);
@@ -144,7 +144,7 @@ cCircle::cCircle(QVector3D pt, QColor col, float scale, float lineWidth, bool vi
 //draw a unit circle in a given plane (0=YZ, 1=XZ, 2=XY)
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 {
-	float theta = 2.f * M_PI / float(steps);
+    float theta = M_2PI / float(steps);
     float c = cosf(theta); //precalculate the sine and cosine
     float s = sinf(theta);
 //    float t;
@@ -176,10 +176,10 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 
 void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO step Auto....
 {
-	const float theta = 2.f * M_PI / float(steps);
+    const float theta = M_2PI / float(steps);
 
     glBegin(GL_LINE_LOOP);
-	for(float t = 0.f; t <= 2.f * M_PI; t+= theta)
+    for(float t = 0.f; t <= M_2PI; t+= theta)
     {
 
 		const float x = cx + rx*sinf(t);
@@ -192,10 +192,10 @@ void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO st
 
 void glDrawEllipsed(double cx, double cy, double rx, double ry, int steps) // TODO step Auto....
 {
-	const double theta = 2.f * M_PI / double(steps);
+    const double theta = M_2PI / double(steps);
 
     glBegin(GL_LINE_LOOP);
-	for(double t = 0.f; t <= 2.f * M_PI; t+= theta)
+    for(double t = 0.f; t <= M_2PI; t+= theta)
     {
 		const float x = cx + rx*std::sin(t);
 		const float y = cy + ry*std::cos(t);
@@ -611,6 +611,7 @@ void cCamGL::draw()
 cPoint::cPoint(QPointF pos,
                QString name, bool showName,
                int state,
+               int geometry,
                bool isSelected,
                QColor color, QColor selectionColor,
                float diameter,
@@ -620,9 +621,10 @@ cPoint::cPoint(QPointF pos,
     _diameter(diameter),
     _bShowName(showName),
     _pointState(state),
+    _pointGeometry(geometry),
     _highlight(highlight),
     _drawCenter(drawCenter),
-	_bEpipolar(false)
+    _bEpipolar(false)
 {
     setName(name);
     cObject::setColor(color);
@@ -633,7 +635,7 @@ cPoint::cPoint(QPointF pos,
 QColor cPoint::colorPointState()
 {
 
-	QColor color = getColor();
+    QColor color = getColor();
 
 	if (!isSelected())
 	{
@@ -680,12 +682,12 @@ void cPoint::setParent(cObject* parent)
 
 void cPoint::draw()
 {
-	if (isVisible())
-	{
+    if (isVisible())
+    {
 
-		QColor color =  colorPointState();
+        QColor color = colorPointState();
 
-		glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
+        glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
 
         GLdouble    mvMatrix[16];
         GLdouble    projMatrix[16];
@@ -705,9 +707,51 @@ void cPoint::draw()
 
         GLdouble xp,yp,zp;
 
-		mmProject(x(),y(),0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
+        mmProject(x(),y(),0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
 
-		glDrawEllipsed(xp, yp, _diameter, _diameter,_parent ? 64 : 16);
+        //TODO: a deplacer
+        if (_highlight && ((_pointState == qEPI_Valide) || (_pointState == qEPI_NonSaisi)))
+        {
+            if (_bEpipolar)
+                _pointGeometry = epipolar;
+            else
+                _pointGeometry = double_circle;
+        }
+
+        switch(_pointGeometry)
+        {
+        case simple_circle:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            break;
+        case double_circle:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            glDrawEllipse( xp, yp, 2.f*_diameter, 2.f*_diameter);
+            break;
+        case epipolar:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            GLdouble x1,y1,z1,x2,y2,z2;
+
+            mmProject(_epipolar1.x(), _epipolar1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z1);
+            mmProject(_epipolar2.x(), _epipolar2.y(),0,mvMatrix,projMatrix,glViewport,&x2,&y2,&z2);
+
+            glBegin(GL_LINES);
+                glVertex2f(x1,y1);
+                glVertex2f(x2,y2);
+            glEnd();
+            break;
+        case cross:
+            glBegin(GL_LINES);
+                glVertex2f(xp+_diameter,yp);
+                glVertex2f(xp-_diameter,yp);
+            glEnd();
+            glBegin(GL_LINES);
+                glVertex2f(xp,yp+_diameter);
+                glVertex2f(xp,yp-_diameter);
+            glEnd();
+            break;
+        case no_geometry:
+            break;
+        }
 
         if (_drawCenter)
         {
@@ -759,19 +803,20 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
 
 void cPoint::glDraw()
 {
-	glVertex2f(x(),y());
+    glVertex2f(x(),y());
 }
 
 //********************************************************************************
 
 float cPolygon::_selectionRadius = 10.f;
 
-cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int style):
-	_helper(new cPolygonHelper(this, 3, lineWidth)),
+cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int geometry, int style):
+    _helper(new cPolygonHelper(this, 3, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
     _pointDiameter(1.f),
+    _pointGeometry(geometry),
     _bIsClosed(false),
 	_bSelectedPoint(false),
     _bShowLines(true),
@@ -795,6 +840,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
     _idx(-1),
     _style(style),
     _pointDiameter(1.f),
+    _pointGeometry(geometry),
     _bIsClosed(false),
 	_bSelectedPoint(false),
     _bShowLines(true),
@@ -846,6 +892,7 @@ void cPolygon::draw()
         disableOptionLine();
     }
 
+
 	if(helper() != NULL)
 	{
 		helper()->draw();
@@ -862,6 +909,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
 
         _points           = aP._points;
         _pointDiameter    = aP._pointDiameter;
+        _pointGeometry    = aP._pointGeometry;
         _selectionRadius  = aP._selectionRadius;
 
 		_bSelectedPoint   = aP._bSelectedPoint;
@@ -940,7 +988,16 @@ int cPolygon::getSelectedPointState()
     {
         return point(_idx).pointState();
     }
-	else return qEPI_NonValue;
+    else return qEPI_NonValue;
+}
+
+int cPolygon::getSelectedPointGeometry()
+{
+    if (pointValid())
+    {
+        return point(_idx).pointGeometry();
+    }
+    else return no_geometry;
 }
 
 void cPolygon::add(cPoint &pt)
@@ -960,7 +1017,7 @@ void cPolygon::add(const QPointF &pt, bool selected, cPoint* lock )
 {
 	if (size() <= _maxSz)
     {
-		cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, selected, _color[state_default],Qt::blue,_pointDiameter);
+        cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, _pointGeometry, selected, _color[state_default],Qt::blue,_pointDiameter);
 
 		cPt.setParent(lock);
         cPt.drawCenter(!isLinear());
@@ -975,7 +1032,7 @@ void cPolygon::addPoint(const QPointF &pt, cPoint* lock)
 {
 	if (size() >= 1 && size() <= _maxSz)
     {
-		cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, false, _color[state_default]);
+        cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, _pointGeometry, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
 		cPt.setParent(lock);
         cPt.drawCenter(!isLinear());
@@ -1029,7 +1086,6 @@ void cPolygon::removePoint(int i)
 {
 	if(_points[i].nbChild() == 1)
 	{
-		qDebug() << "remove parent";
 		_points[i].child(0)->setParent(NULL);
 	}
 
@@ -1224,6 +1280,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
 
     if(!_bIsClosed)
     {
+        if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
 
 		if (nbVertex == 1)                  // add current mouse position to polygon (for dynamic display)
 		{
@@ -1239,28 +1296,24 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
     {
         if ( insertMode || isPointSelected()) // insert or move polygon point
         {
-
-            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]); // TODO add diameter parameter
-
-			pt.setParent(lock);
-
+            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), getSelectedPointGeometry(), isPointSelected(), _color[state_default]); // TODO add diameter parameter
             pt.setDiameter(_pointDiameter);
+			pt.setParent(lock);
 
             if (!ptIsVisible) pt.setVisible(false);
 
 			_helper->build(pt, size() == _maxSz ? false : insertMode);
         }
         else                                 // select nearest polygon point
-        {			
-			findNearestPoint(pos, _selectionRadius / zoom);
+        {
+            findNearestPoint(pos, _selectionRadius / zoom);
         }
-	}
+    }
 }
 
 int cPolygon::finalMovePoint(cPoint* lock)
 {
     int idx = _idx;
-
 
     if ((_idx>=0) && (_helper != NULL) && _helper->size())   // after point move
     {
@@ -1383,8 +1436,8 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
 
 //********************************************************************************
 
-cPolygonHelper::cPolygonHelper(cPolygon* polygon, int maxSz, float lineWidth, QColor lineColor, QColor pointColor):
-	cPolygon(maxSz, lineWidth, lineColor, pointColor, false),
+cPolygonHelper::cPolygonHelper(cPolygon* polygon, int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int pointGeometry):
+    cPolygon(maxSz, lineWidth, lineColor, pointColor, false, pointGeometry),
     _polygon(polygon)
 {
 }
@@ -1926,7 +1979,7 @@ void cMaskedImageGL::deleteTextures()
 //********************************************************************************
 
 cObjectGL::cObjectGL():
-	_glError(0)
+_glError(0)
 {}
 
 void cObjectGL::setGLColor()

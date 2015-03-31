@@ -1754,6 +1754,36 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2diSubst   &      an
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      anObj)  { return ToXMLTree(aNameTag,anObj.Val()); }
 
 
+void xml_init(XmlXml    & aXX,cElXMLTree * aTree)
+{
+   aXX.mTree = aTree->Clone();
+}
+
+cElXMLTree * cElXMLTree::Clone()
+{
+    mKind = eXMLClone;
+    cElXMLTree * aRes = new  cElXMLTree(*this);
+    aRes->mKind = eXMLClone;
+    return aRes;
+}
+
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const XmlXml &      anObj)
+{
+   return anObj.mTree->ReTagThis(aNameTag);
+}
+
+void BinaryDumpInFile(ELISE_fp &,const XmlXml &)
+{
+   ELISE_ASSERT(false,"No BinaryDumpInFilecfor XmlXml");
+}
+
+void BinaryUnDumpFromFile(XmlXml &,ELISE_fp &)
+{
+   ELISE_ASSERT(false,"No BinaryUnDumpFromFile XmlXml");
+}
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

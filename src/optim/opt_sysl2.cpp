@@ -1340,22 +1340,355 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
      return mSolL2;
 }
 
-/*
-struct cMSymCoffact3x3
-{
-    double mA;
-    double mE;
-    double mI;
-    double mB;
-    double mC;
-    double mF;
-    double mDet;
+/*********************************************************************/
+/*                                                                   */
+/*        Classe optimise pour la decomposition en valeur singuliere */
+/*   des matrices 3x3                                                */
+/*                                                                   */
+/*********************************************************************/
 
-    cMSymCoffact3x3(double ** aMat);
-    Pt3dr Inv(const double *) const;
+template <class Type> class cSVD3x3
+{
+     public :
+           cSVD3x3 (ElMatrix<double> & aMat);
+
+        // Soit A les matrice a SVD
+
+
+       // Contient la matrice A
+           Type m00, m10, m20;
+           Type m01, m11, m21;
+           Type m02, m12, m22;
+
+        // Contient la matric  A tA 
+/*
+   Avec les notatiion  "habituelle"
+
+   a  b  c     a  b  c
+   b  e  f     d  e  f
+   c  f  i     g  h  i
+*/
+           Type a;
+           Type b;
+           Type c;
+           Type e;
+           Type f;
+           Type i;
+
+   //  produit qui reviennent plusieurs fois
+           Type ae;
+           Type ei;
+           Type ia;
+           Type b2;
+           Type c2;
+           Type f2;
+
+    // Polynome caracteristique  de A tA   L^3 + K2 L^2 + K1 L + K0 = 0
+
+            Type  K0;
+            Type  K1;
+            Type  K2;
+    // Polynome reduit      Z^3 +  pZ + q , en posant L = Z - K2/3
+            Type K2Div3;
+            Type p;
+            Type q;
+
+            Type Discr;
+
+
+            Type PolRed(Type aSol) {return aSol*aSol*aSol + p*aSol + q;}
+            void TestSolRed(Type aSol)
+            {
+                 std::cout << "PolRed " << aSol <<  " => " << PolRed(aSol) << "\n";
+            }
+            Type PolInit(Type aSol) {return aSol*aSol*aSol + K2*aSol*aSol + K1*aSol + K0;}
+            void TestSolInit(Type aSol)
+            {
+                 std::cout << "PolInit " << aSol <<  " => " << PolInit(aSol) << "\n";
+            }
+
+     // ValP1 et VecP1
+            Type R1;
+            Type x1;
+            Type y1;
+            Type z1;
+
+      //  Matrice  A tA + R1 Id
+
+            Type  aR1;
+            Type  eR1;
+            Type  iR1;
+            void TestSolAR1()
+            {
+                std::cout  << " Rxyz="<<  ElAbs(aR1*x1 +  b*y1 +   c*z1) 
+                                        + ElAbs(b*x1 +  eR1*y1 +   f*z1)
+                                        + ElAbs(c*x1 +    f*y1 + iR1*z1)
+                           << "\n";
+            }
+
+            void TestSolVP1()
+            {
+                std::cout  << " VPRes="<<  ElAbs(a*x1+b*y1+ c*z1 + R1*x1) 
+                                         + ElAbs(b*x1+e*y1+f*z1 +R1*y1) 
+                                         + ElAbs(c*x1+f*y1+i*z1 +R1*z1)
+                           << "\n";
+            }
+
+     // Orthog a x1,y1,z1
+            Type x2O,y2O,z2O;
+            Type x3O,y3O,z3O;
+
+     // Image des prec par AtA
+            Type Ax2O,Ay2O,Az2O;
+            Type Ax3O,Ay3O,Az3O;
+
+
+            void MulAtA(Type & xo,Type &yo,Type &zo,const Type & xi,const Type &yi,const Type &zi)
+            {
+                xo = a*xi + b*yi + c*zi;
+                yo = b*xi + e*yi + f*zi;
+                zo = c*xi + f*yi + i*zi;
+            }
+             
+
+     //   aR1  b    c       X      0
+     //   b    eR1  f       Y  =   0
+     //   c    f    iR1     1      0
+
+     void MakeNorm(Type &x,Type & y, Type &z)
+     {
+       Type aNorm = sqrt(x*x + y*y + z * z);
+       x /= aNorm;
+       y /= aNorm;
+       z /= aNorm;
+     }
+
+      void TestRON()
+      {
+             std::cout 
+                       << " N1 " << (x1*x1+y1*y1+z1*z1)
+                       << " N2 " << (x2O*x2O+y2O*y2O+z2O*z2O)
+                       << " N3 " << (x3O*x3O+y3O*y3O+z3O*z3O)
+                       << " S12 " << (x1*x2O+y1*y2O+z1*z2O)
+                       << " S13 " << (x1*x3O+y1*y3O+z1*z3O)
+                       << " S23 " << (x2O*x3O+y2O*y3O+z2O*z3O)
+                       << "\n";
+      }
+
 };
+
+/*
+   Det =  a (ei -f2) + i(ae-b2) + e (c2-ai)
+
+   mDet = ae*i + 2 *b*f*c - (a*fh) - e * cg - i *bd;
 */
 
+template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
+{
+    double ** aDM = aMat.data();
+    double * aL0 = aDM[0];
+    double * aL1 = aDM[1];
+    double * aL2 = aDM[2];
+
+   // Memorise la matrice pour un acces direct non indexe
+    m00 = aL0[0];    m10 = aL0[1];    m20 = aL0[2];
+    m01 = aL1[0];    m11 = aL1[1];    m21 = aL1[2];
+    m02 = aL2[0];    m12 = aL2[1];    m22 = aL2[2];
+
+   // Calcul A tA
+    a = m00*m00  + m10*m10 + m20*m20 ;  // L0 . L0
+    b = m00*m01  + m10*m11 + m20*m21 ;  // L0 . L1
+    c = m00*m02  + m10*m12 + m20*m22 ;  // L0 . L2
+    e = m01*m01  + m11*m11 + m21*m21 ;  // L1 . L1
+    f = m01*m02  + m11*m12 + m21*m22 ;  // L1 . L2
+    i = m02*m02  + m12*m12 + m22*m22 ;  // L2 . L2
+
+
+   // Calcul de produit qui reviennent plusieurs fois
+    ae = a * e;
+    ei = e * i;
+    ia = a * i;
+    b2 = b * b;
+    c2 = c * c;
+    f2 = f * f;
+
+    // Polynome caracteristique   L^3 + K2 L^2 + K1 L + K0 = 0
+    K0 =  ae * i + 2 * b * f * c - a*f2 - e*c2 - i * b2; // Det
+    K1 =  ae + ei + ia - b2  -c2 - f2;  // Somme des 3 det 2x2 diag
+    K2 =  a + e + i;                    // trace
+
+    // En posant  L' = L - K2 /3
+
+    K2Div3 = K2 /3.0;
+    p =  K1 - K2* K2Div3;
+    q =  K0 + (K2/27 ) * (2*K2*K2 -9*K1);
+
+
+    // Discr tjs > 0  car mat diag
+    // Discr = q * q + (4*p*p*p)/27;
+    // Discr = - (4 *p*p*p +9 * q * q);
+
+    // Je comprends plus trop PK, mais experim p est tjs < 0, donc OK ....
+    // std::cout << "P= " << p << "\n"; ELISE_ASSERT(p<=0,"JpppPPppp");
+    if (p>0) p=0;
+    
+         
+    Type ppp = p * p * p;
+    Type ro = sqrt(-ppp/27.0);
+    Type om = acos(-q/(2*ro));
+    R1  = 2*sqrt(-p/3)*cos(om/3.0) - K2Div3;
+
+
+   //  ==== TEST si PB, verifie que R1 est bien racine du polynome carac
+   // TestSolInit(R1);
+
+/*
+    Code initial du Cardan d'apres P Julien :
+    Type y = sqrt(-p/3)*cos(om/3.0);
+    Type z = sqrt(-p)*sin(om/3.0);
+    Type R1 = 2*y ;
+    Type R2  = -y + z;
+    Type R3  = -y - z;
+*/
+
+     // A tA + R1 Id
+     aR1 = a+R1;
+     eR1 = e+R1;
+     iR1 = i+R1;
+
+     // Pour trouver le vecteur propre si par ex
+     // Si Z = 1; le systeme devient
+     //
+     //   aR1  b    c       X      0
+     //   b    eR1  f       Y  =   0
+     //   c    f    iR1     1      0
+
+
+     // On cherche le systeme des 3 le  stable
+     {
+        Type deltaZ = aR1 * eR1 - b2;    Type AbsDZ = ElAbs(deltaZ);
+        Type deltaX = eR1 * iR1 - f2;    Type AbsDX = ElAbs(deltaX);
+        Type deltaY = aR1 * iR1 - c2;    Type AbsDY = ElAbs(deltaY);
+
+        if ((AbsDZ>AbsDX) &&  (AbsDZ>AbsDY))
+        {
+             x1 = ( -eR1 * c  +b *f   ) / deltaZ;
+             y1 = (b*c       - aR1 * f) / deltaZ;
+             z1 = 1.0;
+        }
+        else if ((AbsDX>AbsDY) && (AbsDX>AbsDZ))
+        {
+              x1 = 1.0;
+              y1 =  (-iR1*b +f*c)/deltaX;
+              z1 =  (f*b - eR1*c)/deltaX;
+        }
+        else
+        {
+              x1 =  ( -iR1 * b  +c *f   ) /  deltaY;
+              y1 =  1;
+              z1 =  (c*b - aR1*f)/deltaY;
+        }
+     }
+
+     // TestSolAR1();
+     MakeNorm(x1,y1,z1);
+
+     //TestSolVP1();
+
+     {
+         Type AX1 =ElAbs(x1);
+         Type AY1 =ElAbs(y1);
+         Type AZ1 =ElAbs(z1);
+         if ( (AX1>AZ1) || (AY1>AZ1))
+         {
+               x2O = -y1;
+               y2O =  x1;
+               z2O = 0.0;
+         }
+         else 
+         {
+              x2O = -z1;
+              y2O = 0.0;
+              z2O = x1;
+         }
+     }
+     MakeNorm(x2O,y2O,z2O);
+     //TestRON();
+
+     x3O = y1 * z2O - z1 * y2O;
+     y3O = z1 * x2O - x1 * z2O;
+     z3O = x1 * y2O - y1 * x2O;
+
+
+     MulAtA(Ax2O,Ay2O,Az2O,x2O,y2O,z2O);
+     MulAtA(Ax3O,Ay3O,Az3O,x3O,y3O,z3O);
+
+
+     Type aS22 = x2O*Ax2O +  y2O*Ay2O + z2O*Az2O;
+     Type aS23 = x2O*Ax3O +  y2O*Ay3O + z2O*Az3O;
+     Type aS33 = x3O*Ax3O +  y3O*Ay3O + z3O*Az3O;
+
+
+     if (0)
+     {
+        Type aS32 = x3O*Ax2O +  y3O*Ay2O + z3O*Az2O;
+        std::cout << "SSs " << aS23 << " " << aS32 << "\n";
+        std::cout << aS22+ aS33 << "\n"; // => Warn
+     }
+
+
+     // Calcul des Valeur Propre de la matrice reduite
+     //      aS22  aS23     Cos T           Cos T
+     //      aS23  aS33  *  Sin T   = L     Sin T
+
+     {
+          // Type 
+     }
+
+
+
+     //Type  aCA =
+/*
+*/
+
+
+     
+}
+
+ElMatrix<double> RanM33()
+{
+   ElMatrix<double> aM(3,3);
+
+   for (int anX=0 ; anX<3; anX++)
+       for (int anY=0 ; anY<3; anY++)
+           aM(anX,anY) = NRrandC();
+   return aM;
+}
+void TestSVD3x3()
+{
+    double aDrMin = 1e100;
+    for (int aK=0 ; aK< 10000 ; aK++)
+    {
+         ElMatrix<double> aM = RanM33();
+         
+         cSVD3x3<REAL16> aS1(aM);
+         cSVD3x3<double> aS2(aM);
+
+         aDrMin = ElMin(aDrMin,aS2.Discr);
+         std::cout << "===========================================\n";
+         // std::cout << "================" << aDrMin << " Dif " << aS1.Discr - aS2.Discr << "\n";
+    }
+}
+
+
+
+
+
+template class cSVD3x3<double>;
+template class cSVD3x3<REAL16>;
+
+
+/***********************************************************/
 
 template <class Type> cMSymCoffact3x3<Type>::cMSymCoffact3x3(Type ** aMat)
 {
@@ -1374,9 +1707,9 @@ template <class Type> cMSymCoffact3x3<Type>::cMSymCoffact3x3(Type ** aMat)
    i  =  aMat[2][2];
 /*
 
-   a  b c
-   b  e f
-   c  f i 
+   a  b c     a  b  c
+   b  e f     d  e  f
+   c  f i     g  h  i
 
    double * aL2 =  aMat[2];
    double a =  aMat[0][0];

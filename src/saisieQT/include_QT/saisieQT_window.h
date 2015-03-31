@@ -89,7 +89,7 @@ public:
     void setDevIOImage(deviceIOImage* devIOImage);
 
     int hg_revision() const;
-    void setHg_revision(int hg_revision);
+    void setHg_revision(QString hg_revision);
 
     QString banniere() const;
     void setBanniere(const QString& banniere);
@@ -234,6 +234,8 @@ protected:
     void connectActions();
 
     void setModelObject(QAbstractItemModel* model_Objects);
+    void keyPressEvent(QKeyEvent* event);
+
 private:
 
     void                    createRecentFileMenu();

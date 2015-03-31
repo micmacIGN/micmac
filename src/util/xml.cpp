@@ -1868,6 +1868,13 @@ cElXMLTree *  cElXMLTree::Missmatch
 	std::string &  aMes
 	)
 {
+// std::cout << "VerifM " <<  ValTag() << " " << aTSpecif->ValTag() << "\n";
+        if (
+                 (aT2->ValAttr("Type","")=="XmlXml")
+              || (ValAttr("Type","")=="XmlXml")
+           )
+          return 0;
+
 	std::string aStrFalse = "false";
 	bool  aUnionType =     (!isSpecOn2)
 		&& (ValAttr("UnionType",aStrFalse)=="true") ;
@@ -1942,6 +1949,7 @@ cElXMLTree *  cElXMLTree::Missmatch
 
 void  cElXMLTree::VerifMatch(cElXMLTree* aTSpecif)
 {
+
 	std::string aMes;
 
 	cElXMLTree * aMM = Missmatch(aTSpecif,true,aMes);

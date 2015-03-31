@@ -434,6 +434,11 @@ void cZBuffer::BasculerUnTriangle(Pt2di A,Pt2di B,Pt2di C,bool TriBas)
      Pt2dr AC = C2-A2;
      REAL aDet = AB^AC;
 
+if (0 && MPD_MM())
+{
+    std::cout << "DETBasc = " << aDet  << " N " << euclid(AB)  << " " << euclid (AC) << " S " << scal(vunit(AB),vunit(AC)) << "\n";
+}
+
 
 	 //Calcul de l'etirement du triangle
      int aCoefEtire= -1;

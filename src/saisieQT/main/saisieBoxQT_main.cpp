@@ -9,13 +9,11 @@ int saisieBoxQT_main(QApplication &app, int argc, char *argv[])
 
     SaisieQtWindow w(BOX2D);
 
-	w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
-	w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+    w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+    w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
 
-
-	w.setBanniere(QString(getBanniereMM3D().c_str()));
-	QString qsVersion = __HG_REV__;
-	w.setHg_revision(qsVersion.toInt());
+    w.setBanniere(QString(getBanniereMM3D().c_str()));
+    w.setHg_revision(QString(__HG_REV__));
 
     QStringList cmdline_args = QCoreApplication::arguments();
     QString str;

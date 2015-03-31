@@ -52,6 +52,7 @@
           <NumAuto Nb="?" Type="int">  </NumAuto>
           <PS1 Nb="?" Type="Pt3dr">  </PS1>  <!-- PS1/PS2 segment d'incert -->
           <PS2 Nb="?" Type="Pt3dr">  </PS2>
+          <VPS Nb="*" Type="Pt3dr"  Container="std::vector"> </VPS>
           <SzRech  Nb="?" Type="double"> </SzRech>
           <Disparu Nb="?" Type="bool"> </Disparu>
           <FromDico Nb="?" Type="bool"> </FromDico>

@@ -292,6 +292,12 @@ bool  cWinIm::WVisible(const Pt2dr & aP)
     return (aP.x>0) && (aP.y>0) && (aP.x<mSzW.x) && (aP.y<mSzW.y);
 }
 
+bool cWinIm::PInIm(const Pt2dr & aP)
+{
+    Pt2di aSzIm = mCurIm->SzIm();
+    return (aP.x>0) && (aP.y>0) && (aP.x<aSzIm.x) && (aP.y<aSzIm.y);
+}
+
 bool  cWinIm::WVisible(const Pt2dr & aP, eEtatPointeImage aState)
 {
     return WVisible(aP) && mAppli.Interface()->Visible(aState);
@@ -349,14 +355,33 @@ void cWinIm::ShowPoint(const Pt2dr aP,eEtatPointeImage aState,cSP_PointGlob * aP
 
     if (aPG && aPG->HighLighted())
     {
+/*
         Pt2dr aP1, aP2;
-
         if (aPIm->BuildEpipolarLine(aP1, aP2))
         {
             aP1 = mScr->to_win(aP1);
             aP2 = mScr->to_win(aP2);
 
             mW.draw_seg(aP1,aP2,aLst);
+        }
+*/
+
+
+        std::vector<Pt2dr> aVPt;
+        if (aPIm->BuildEpipolarLine(aVPt))
+        {
+           std::vector<Pt2dr> aVPtW;
+           std::vector<bool>  aVOkPt;
+           Box2dr  aBoxIm = BoxImageVisible() ;
+           for (int aK=1 ; aK<int(aVPt.size()) ; aK++)
+           {
+               Seg2d aSeg(aVPt[aK-1],aVPt[aK]);
+               aSeg = aSeg.clip(aBoxIm);
+               if (! aSeg.empty())
+               {
+                 mW.draw_seg(mScr->to_win(aSeg.p0()),mScr->to_win(aSeg.p1()),aLst);
+               }
+           }
         }
         else
         {

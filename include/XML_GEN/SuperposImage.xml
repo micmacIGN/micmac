@@ -1320,6 +1320,11 @@
  </Item>
 </Polyg3D>
 
+<XML_TestImportOri Nb="1" ToReference="true" Class="true">
+   <x Type="int" Nb="1"> </x>
+   <Tree Type="XmlXml" Nb="1"> </Tree>
+</XML_TestImportOri>
+
 
 <Verbatim File=".h.cpp">
 // };

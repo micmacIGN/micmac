@@ -112,7 +112,8 @@ class cAnalyPbTopo
              cElNuage3DMaille & aNuageInit,
              cElNuage3DMaille &aNuageTarget,
              const std::string & aNameOut,
-             bool                aShow
+             bool                aShow,
+             bool                aDebug
           );
        // Utilisation pour composante connexe
          bool  GZC_V4()  const {return false;}
@@ -166,6 +167,7 @@ class cAnalyPbTopo
          cAnaTopoBascule     mATB;
          bool                mGotMasq;
          bool                mShow;
+         bool                mDebug;
 
 };
 
@@ -251,7 +253,8 @@ cAnalyPbTopo::cAnalyPbTopo
      cElNuage3DMaille & aNuageInit,
      cElNuage3DMaille &aNuageTarget,
      const std::string & aNameOut,
-     bool                aShow
+     bool                aShow,
+     bool                aDebug
 
 ) :
     mN0       (aNuageInit),
@@ -270,8 +273,13 @@ cAnalyPbTopo::cAnalyPbTopo
     mDistSeuil (mNTarget.SeuilDistPbTopo()),
     mNumZoneC (1),
     mNbMaxZone (2),
-    mShow     (aShow)
+    mShow     (aShow),
+    mDebug    (aDebug)
 {
+    if (mDebug) 
+    {
+       std::cout << "SEUIL " << mDistSeuil << "\n";
+    }
     ELISE_COPY(mImDef0.all_pts(),mN0.ImDef().in(),mImDef0.out());
 
     mN0.ProfBouchePPV();
@@ -292,6 +300,11 @@ cAnalyPbTopo::cAnalyPbTopo
         }
 
         mVPts[0] = mVPts[1];
+    }
+
+    if (mDebug)
+    {
+      Tiff_Im::CreateFromIm(mImFlag,"TopoFlag.tif");
     }
 
     ELISE_COPY(mImFlag.all_pts(),nflag_open_sym(mImFlag.in(0)),mImFlag.out());
@@ -324,6 +337,10 @@ cAnalyPbTopo::cAnalyPbTopo
                mCurATB.BoxGlob()._p1 = mCurATB.BoxGlob()._p1 + Pt2di(1,1);
                mCurATB.BoxMasq()._p1 = mCurATB.BoxMasq()._p1 + Pt2di(1,1);
 
+               if (mDebug)
+               {
+                   std::cout << mCurATB.BoxGlob() << " " << mCurATB.BoxMasq() << "\n";
+               }
                mATB.OneZonzATB().push_back(mCurATB);
                mNumZoneC = NextNumZoneC();
             }
@@ -336,7 +353,24 @@ cAnalyPbTopo::cAnalyPbTopo
          mImLab.out()
     );
 
-    if (mATB.OneZonzATB().size() > 1)
+    if (mDebug)
+    {
+        std::cout << "NB ZONE " << mATB.OneZonzATB().size() << "\n";
+        for 
+        (
+            std::list<cOneZonzATB>::const_iterator itZ=mATB.OneZonzATB().begin();
+            itZ!=mATB.OneZonzATB().end();
+            itZ++
+        )
+        {
+            std::cout << " Zone " << itZ->Num() 
+                      << " NBG " <<itZ->NbGlob() 
+                      << " NBM " << itZ->NbMasq() 
+                      << "\n";
+        }
+    }
+
+    if (mATB.OneZonzATB().size() > 0)
     {
         aRes.ResFromAnaTopo() = true;
         aRes.OneZonXmlAMTB().clear();
@@ -368,7 +402,7 @@ cAnalyPbTopo::cAnalyPbTopo
 
     if (mShow)
     {
-        Video_Win aW = Video_Win::WStd(mSz0,1.0);
+        Video_Win aW = Video_Win::WStd(mSz0,0.3);
         ELISE_COPY
         (
             aW.all_pts(),
@@ -435,6 +469,7 @@ int TopoSurf_main(int argc,char ** argv)
     std::string aNameProj ;
     std::string aNameOut ;
     bool        Show=false;
+    bool        Debug=false;
     bool        PbTopo;
 
     ElInitArgMain
@@ -445,6 +480,7 @@ int TopoSurf_main(int argc,char ** argv)
         LArgMain()  << EAM(aNameOut,"Out",true,"Name Result")
                     << EAM(Show,"Show",true,"Visualize result in Window (Def = false)")
                     << EAM(PbTopo,"PbTopo",true,"Analye Pb Topo , Def depends from Target topology")
+                    << EAM(Debug,"Debug",true,"For debug ( ;-)")
 
     );
 
@@ -469,7 +505,7 @@ int TopoSurf_main(int argc,char ** argv)
     if (PbTopo)
     {
        cElNuage3DMaille *  aN0 = cElNuage3DMaille::FromFileIm(aName0);
-       cAnalyPbTopo anAPT(aRes,*aN0,*aNProj,aNameOut,Show);
+       cAnalyPbTopo anAPT(aRes,*aN0,*aNProj,aNameOut,Show,Debug);
     }
 
      MakeFileXML(aRes,aNameOut+"-MTD.xml");

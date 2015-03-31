@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1336]) = {
+const char * (theNameVar_SuperposImage[1341]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1321,6 +1321,11 @@ const char * (theNameVar_SuperposImage[1336]) = {
 "      <Mode Type=\"int\" Nb=\"1\"></Mode>\n",
 " </Item>\n",
 "</Polyg3D>\n",
+"\n",
+"<XML_TestImportOri Nb=\"1\" ToReference=\"true\" Class=\"true\">\n",
+"   <x Type=\"int\" Nb=\"1\"> </x>\n",
+"   <Tree Type=\"XmlXml\" Nb=\"1\"> </Tree>\n",
+"</XML_TestImportOri>\n",
 "\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",

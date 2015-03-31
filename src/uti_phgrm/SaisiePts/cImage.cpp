@@ -64,8 +64,8 @@ cImage::cImage(const std::string & aName,cAppli_SaisiePts & anAppli,bool Visuali
    mCptAff       (0),
    mVisualizable (Visualizable),
    mPImsNuage         (0),
-   mPNSeuilAlti       (6.0),
-   mPNSeuilPlani      (3.0),
+   mPNSeuilAlti       (25.0),
+   mPNSeuilPlani      (5.0),
    mLastLoaded        (false),
    mCurLoaded         (false)
 {
@@ -88,7 +88,6 @@ void cImage::OnModifLoad()
 
    if (mCurLoaded)
    {
-std::cout << "LOAD " << mName << "\n";
       cMMByImNM * aMMI =   mAppli.PIMsFilter ();
       if (aMMI)
       {
@@ -99,7 +98,6 @@ std::cout << "LOAD " << mName << "\n";
    }
    else
    {
-std::cout << "Uuuuu LOAD " << mName << "\n";
        delete mPImsNuage;
        mPImsNuage =0;
    }
@@ -196,6 +194,7 @@ Pt2dr cImage::PointArbitraire()  const
        aBox = mWAff->BoxImageVisible();
    }
 #endif
+
 
    return aBox.RandomlyGenereInside();
 }

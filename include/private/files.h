@@ -1654,6 +1654,7 @@ class cElXMLTree
            static cElXMLTree * MakePereOf(const std::string & aNameTag,cElXMLTree * aFils);
 
 
+           cElXMLTree * Clone();
 	   cElXMLTree( cElXMLTree * aPere,
                        const std::string & aVal, 
                        eElXMLKindTree  aKind
@@ -1804,6 +1805,16 @@ class cElXMLTree
            eElXMLKindTree            mKind;
 };
 
+
+class XmlXml
+{
+    public :
+         cElXMLTree * mTree;
+};
+
+
+void xml_init(XmlXml    &,cElXMLTree * aTree);
+
 void xml_init(bool           &,cElXMLTree * aTree);
 void xml_init(double         &,cElXMLTree * aTree);
 void xml_init(int            &,cElXMLTree * aTree);
@@ -1841,6 +1852,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const std::vector<std::strin
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt3dr &      anObj);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt3di &      anObj);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const cElRegex_Ptr &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const XmlXml &      anObj);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const cCpleString   &      anObj);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const IntSubst   &      anObj);
@@ -1876,6 +1888,7 @@ TypeForDump(BoolSubst)
 TypeForDump(DoubleSubst)
 TypeForDump(Pt2diSubst)
 TypeForDump(Pt2drSubst)
+TypeForDump(XmlXml)
 
 /*
 */

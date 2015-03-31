@@ -513,10 +513,13 @@ void  cOriPlanePatch::TestEvalHomographie(const cElHomographie & aHom,bool Show)
              ElRotation3D aR = itS->Rot();
              aR = aR.inv();
              double aScore = ProjCostMEP(mPack,aR,0.1);
-             std::cout << "SC " <<  aScore * mFoc 
+             if (Show)
+             {
+                std::cout << "SC " <<  aScore * mFoc 
                        << " PR " << ProjCostMEP(mPack,aR,0.1) * mFoc  
                        << " Pv " << PVCostMEP(mPack,aR,0.1) * mFoc  
                        << "\n";
+             }
 /*
 */
              if (aScore<aBestScore)
@@ -1193,6 +1196,16 @@ void cOriPlanePatch::CalcAllHomAndSel()
     ElTimer aChrono2;
     for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
     {
+        tSomDualOPP * aF = mVFace[aK];
+        cAttrSomDualOPP &  anAF  = aF->attr();
+        if (anAF.mPreselH)
+        {
+            TestEvalHomographie(mVFace[aK]->attr().mHom,false);
+        }
+    }
+    if (mW)
+    {
+       std::cout << "TIME-Hom " << aChrono2.uval()   << "\n";
     }
 }
 
@@ -1200,52 +1213,14 @@ void cOriPlanePatch::CalcAllHomAndSel()
 
 void cOriPlanePatch::TestHomogrDual()
 {
-    tSomDualOPP * aFace = GetFace(P8COL::white);
-    MakeHomogrInitDual(aFace,true);
+   tSomDualOPP * aFace = GetFace(P8COL::white);
+   MakeHomogrInitDual(aFace,true);
 
    std::cout << "FACE " << aFace->attr().mOwnSc0 << "\n";
 
    TestEvalHomographie(aFace->attr().mHom,true);
-/*
-    ElTimer aChrono;
-    for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
-    {
-        MakeHomogrInitDual(mVFace[aK],false);
-    }
-    double aMinSc0 = 1e20;
-    int aNbPres = 0;
-    for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
-    {
-        tSomDualOPP * aF = mVFace[aK];
-        cAttrSomDualOPP &  anAF  = aF->attr();
-        ElSetMin(aMinSc0,anAF.mOwnSc0);
-        if (BetterScoreNumOrEg(anAF.mOwnSc0,anAF.mNum,anAF.mBestIncludeSc0,anAF.mNumBestIS0))
-        {
-            bool IsMinLoc = true;
 
-            for (tItDualAOPP itA=aF->begin(mSubGrDualFull) ; itA.go_on() ; itA++)
-            {
-                if ((*itA).s2().attr().mOwnSc0 < anAF.mOwnSc0)
-                   IsMinLoc = false;
-            }
-
-            int aCoul = IsMinLoc ? P8COL::red : P8COL::cyan;
-
-            ShowPoint(anAF.mC,2.0,aCoul);
-            ShowPoint(anAF.mC,4.0,aCoul);
-            ShowPoint(anAF.mC,6.0,aCoul);
-            if (IsMinLoc) 
-            {
-               anAF.mPreselH= true;
-               aNbPres++;
-               // std::cout << "SCORE " << anAF.mOwnSc0 << "\n";
-            }
-        }
-    }
-
-    std::cout << "TIME " << aChrono.uval()  << " NbS=" << aNbPres << " SCMin " << aMinSc0  << "\n";
-    std::cout << "FACE " << aFace->attr().mOwnSc0 << "\n";
-*/
+   std::cout << "\n";
 }
 
 

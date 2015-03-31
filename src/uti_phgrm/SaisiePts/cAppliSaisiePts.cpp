@@ -669,10 +669,10 @@ void cAppli_SaisiePts::AddPGInAllImages(cSP_PointGlob  * aSPG)
         Pt3dr aP3D(0,0,0);
         bool HasP3D = aSPG->Has3DValue() ;
         bool InMasq3D = true;
-        if (HasP3D)
+        if (HasP3D) // (aSPG->HasStrong3DValue())
         {
             aP3D = aSPG->Best3dEstim();
-            if (mMasq3DVisib)
+            if (mMasq3DVisib && aSPG->HasStrong3DValue())
             {
                InMasq3D = mMasq3DVisib->IsInMasq(aP3D);
             }
@@ -688,7 +688,6 @@ void cAppli_SaisiePts::AddPGInAllImages(cSP_PointGlob  * aSPG)
 void cAppli_SaisiePts::AddOnePGInImage
      (cSP_PointGlob  * aSPG,cImage & anI,bool WithP3D,const Pt3dr & aP3d,bool InMasq3D)
 {
-
     const cPointGlob & aPG = *(aSPG->PG());
 
     Pt2dr aPIm  = anI.PointArbitraire();
@@ -725,7 +724,6 @@ void cAppli_SaisiePts::AddOnePGInImage
         }
     }
 
-    /// std::cout << "XccByyt "<< aSPG->PG()->Name() << " " << OkInIm << "\n";
 
     cSP_PointeImage * aPointeIm = anI.PointeOfNameGlobSVP(aPG.Name());
 

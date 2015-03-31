@@ -151,6 +151,9 @@ std::string DirAndPatFileOfImSec(const std::string & aDir,const std::string & an
 class cAppliWithSetImage
 {
    public :
+      std::vector<CamStenope*> VCamStenope();
+      std::vector<ElCamera*>   VCam();
+
       CamStenope * CamOfName(const std::string & aName);
       const std::string & Dir() const;
       const std::string & Ori() const;

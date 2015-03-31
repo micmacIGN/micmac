@@ -99,6 +99,10 @@ cInterfSurfaceAnalytique * SFromFile
      return cInterfSurfaceAnalytique::FromXml(aSAN);
 }
 
+cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::FromFile(const std::string & aName)
+{
+   return  SFromFile(aName,"TheSurf");
+}
 
 
      /*****************************************/
@@ -225,6 +229,11 @@ cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::ChangeRepDictPts(const std:
     return 0;
 }
 
+cInterfSurfaceAnalytique * cInterfSurfaceAnalytique::DuplicateWithExter(bool IsExt)
+{
+    ELISE_ASSERT(false,"cInterfSurfaceAnalytique:: DuplicateWithExter(bool IsExt)");
+    return 0;
+}
 
 
 cXmlModeleSurfaceComplexe cInterfSurfaceAnalytique::SimpleXml(const std::string & Id) const
@@ -280,6 +289,7 @@ cTplValGesInit<Pt3dr> cInterfSurfaceAnalytique::InterDemiDroiteVisible
        }
     }
 
+
     if (ForceMatch)
     {
        if (aBestK<0)
@@ -333,11 +343,14 @@ void cInterfSurfaceAnalytique::SetUnusedAnamXCSte()
 
 int cInterfSurfaceAnalytique::SignDZSensRayCam()const
 {
-   return mIsVueExt ? -1 : 1;
+   // return mXXIsVueExt ? -1 : 1;
+   return -1;  // Nouvelle convetion
+   // return mIsVueExt ? -1 : 1;
+
 }
 
 
-bool cInterfSurfaceAnalytique::IsVueExt() const
+bool cInterfSurfaceAnalytique::VueDeLext() const
 {
    return mIsVueExt;
 }
@@ -351,6 +364,10 @@ cTplValGesInit<Pt3dr> cInterfSurfaceAnalytique::PImageToSurf0
 
 
 bool cInterfSurfaceAnalytique::IsAnamXCsteOfCart() const { return false; }
+
+
+
+
      /*****************************************/
      /*                                       */
      /*   cCylindreRevolution                 */
@@ -363,7 +380,8 @@ cCylindreRevolution::cCylindreRevolution
     const ElSeg3D & aSeg,
     const Pt3dr & aPOnCyl
 )  :
-    cInterfSurfaceAnalytique(isVueExt)
+    cInterfSurfaceAnalytique(isVueExt),
+    mSign  (isVueExt ? 1 : -1 )
 {
     mP0 = aSeg.ProjOrtho(aPOnCyl);
     mW = aSeg.TgNormee();
@@ -371,6 +389,24 @@ cCylindreRevolution::cCylindreRevolution
     mRay = euclid(mU);
     mU = mU / mRay;
     mV = mW ^ mU;
+
+    for( int aK=0 ; aK<0 ; aK++)
+    {
+         Pt3dr aP(NRrandC(),NRrandC(),NRrandC());
+
+         std::cout << "VERIF CYL " << euclid(aP-UVL2E(E2UVL(aP))) << " " << euclid(aP-E2UVL(UVL2E(aP))) << "\n";
+    }
+
+/*
+    if (! isVueExt)
+    {
+std::cout << "Iiiiii cCylindreRevolution::cCylindreRevolution\n";
+       mU = - mU;
+       mV = - mV;
+    }
+*/
+/*
+*/
 }
 
 bool cCylindreRevolution::HasOrthoLoc() const
@@ -430,12 +466,24 @@ cInterfSurfaceAnalytique * cCylindreRevolution::ChangeRepDictPts(const std::map<
     return CR_ChangeRepDictPts(aDic);
 }
 
+cInterfSurfaceAnalytique * cCylindreRevolution::DuplicateWithExter(bool IsExt)
+{
+    return CR_DuplicateWithExter(IsExt);
+}
+
+
+
 
 ElSeg3D  cCylindreRevolution::Axe() const
 {
    return ElSeg3D(mP0,mP0+mW);
 }
 
+
+cCylindreRevolution * cCylindreRevolution::CR_DuplicateWithExter(bool IsExt)
+{
+   return new  cCylindreRevolution(IsExt,Axe(),POnCylInit());
+}
 
 cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::map<std::string,Pt3dr> & aDic) const
 {
@@ -447,8 +495,10 @@ cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::m
 
     if ((itTop!=aDic.end()) && (itBottom!=aDic.end()))
     {
+// UVL2E
         Pt3dr aTop  =     itTop->second;
         Pt3dr aBottom  =  itBottom->second;
+
         double aScal = aTop.y - aBottom.y;
         if (aScal<0)
         {
@@ -472,7 +522,7 @@ cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::m
                            itLeft->second                                   :
                            (itRight->second + Pt3dr(-aPerInf,0,0))          ;
 
-         cCylindreRevolution aNewCyl(IsVueExt(),aSeg,aP0OnCyl);
+         cCylindreRevolution aNewCyl(VueDeLext(),aSeg,aP0OnCyl);
          aPRight = aNewCyl.E2UVL(UVL2E(aPRight));
          aPLeft  = aNewCyl.E2UVL(UVL2E(aPLeft));
          while (aPRight.x>(aPLeft.x+aPer))  aPRight.x -= aPer;
@@ -483,7 +533,7 @@ cCylindreRevolution *      cCylindreRevolution::CR_ChangeRepDictPts(const std::m
          aP0OnCyl = aNewCyl.UVL2E((aPRight+aPLeft)/2.0);
     }
 
-    return new cCylindreRevolution (IsVueExt(),aSeg,aP0OnCyl);
+    return new cCylindreRevolution (VueDeLext(),aSeg,aP0OnCyl);
 }
 
 
@@ -578,9 +628,9 @@ Pt3dr cCylindreRevolution::E2UVL(const Pt3dr & aP) const
     //   2 que Rho soit en dernier (et  donc 
     return Pt3dr
            (
-                aRhoTeta.y*mRay,
+               mSign* aRhoTeta.y*mRay,
                 aZ,
-                aRhoTeta.x-mRay
+                mSign*(aRhoTeta.x-mRay)
            );
 }
 
@@ -591,8 +641,8 @@ double cCylindreRevolution::SeuilDistPbTopo() const
 
 Pt3dr cCylindreRevolution::UVL2E(const Pt3dr & aP) const
 {
-    double aRho =  aP.z + mRay;
-    double aTeta = aP.x / mRay;
+    double aRho =  mSign*aP.z + mRay;
+    double aTeta = (mSign*aP.x) / mRay;
     double aZ = aP.y;
 
     Pt2dr aXY = Pt2dr::FromPolar(aRho,aTeta);
@@ -734,7 +784,7 @@ void cCylindreRevolFormel::Update_0F2D()
 {
     mCurCyl = cCylindreRevolution::WithRayFixed
               (
-                     mCyl.IsVueExt(),
+                     mCyl.VueDeLext(),
                      ElSeg3D(mOriPlkCur,mOriPlkCur+mDirPlkCur),
                      mRayCur,
                      mCyl.POnCylInit()
@@ -800,6 +850,203 @@ cCylindreRevolFormel & cSetEqFormelles::AllocCylindre
    return *aCRF;
 }
 
+     /*****************************************/
+     /*                                       */
+     /*           PLY  PLY PLY                */
+     /*                                       */
+     /*****************************************/
+
+void cInterfSurfaceAnalytique::V_MakePly(const cParamISAPly &, cPlyCloud &,const std::vector<ElCamera *> &,const Box2dr &,const double)
+{
+}
+
+Box2dr BoxOfCam(cInterfSurfaceAnalytique & aSurf,ElCamera & aCam)
+{
+    Pt2dr aP0 (1e30,1e30);
+    Pt2dr aP1 (-1e30,-1e30);
+    int aNb= 10;
+    Pt2dr aSz = Pt2dr (aCam.Sz());
+    for (int anX=0 ; anX <= aNb ; anX++)
+    {
+        for (int anY=0 ; anY <= aNb ; anY++)
+        {
+             Pt2dr aP = aSz.mcbyc(Pt2dr(anX/double(aNb),anY/double(aNb)));
+             cTplValGesInit<Pt3dr> aPTer = aSurf.PImageToSurf0(aCam,aP);
+             if (aPTer.IsInit())
+             {
+                Pt2dr aQ(aPTer.Val().x,aPTer.Val().y);
+                aP0.SetInf(aQ);
+                aP1.SetSup(aQ);
+             }
+        }
+    }
+
+    
+    return Box2dr(aP0,aP1);
+}
+
+void cInterfSurfaceAnalytique::MakePly(const cParamISAPly &  aParam, cPlyCloud & aPlyC,const std::vector<ElCamera *> & aVCam)
+{
+
+    Pt2dr aP0 (1e30,1e30);
+    Pt2dr aP1 (-1e30,-1e30);
+    std::vector<double> aVProf;
+
+    for (int aKC = 0 ; aKC<int(aVCam.size()) ; aKC++)
+    {
+        ElCamera & aCam =  *(aVCam[aKC]);
+        Box2dr aBox = BoxOfCam(*this,aCam);
+        aP0.SetInf(aBox._p0);
+        aP1.SetSup(aBox._p1);
+        aVProf.push_back(aCam.GetProfondeur());
+    }
+    double aProf = MedianeSup(aVProf) / 10.0;
+
+    AdaptBox(aP0,aP1);
+    Box2dr aBox(aP0,aP1);
+
+    Pt3dr anOri = UVL2E(Pt3dr(0,0,0));
+    aPlyC.AddSphere(cPlyCloud::White,anOri, aParam.mSzSphere*aProf , 8);
+
+
+    double aSzR = aParam.mSzRep * aProf;
+    aPlyC.AddSeg(cPlyCloud::Red    ,anOri,  UVL2E(Pt3dr(aSzR,0,0)),  100);
+    aPlyC.AddSeg(cPlyCloud::Green  ,anOri,  UVL2E(Pt3dr(0,aSzR,0)),  100);
+    aPlyC.AddSeg(cPlyCloud::Blue   ,anOri,  UVL2E(Pt3dr(0,0,aSzR)),  100);
+
+
+    int aNb = 150;
+    for (int anX=0 ; anX<=aNb ; anX++)
+    {
+        for (int anY=0 ; anY<=aNb ; anY++)
+        {
+            Pt2dr aP = aBox.FromCoordLoc(Pt2dr(anX/double(aNb),anY/double(aNb)));
+            aPlyC.AddPt(cPlyCloud::Black,UVL2E(Pt3dr(aP.x,aP.y,0)));
+        }
+    }
+    V_MakePly(aParam,aPlyC,aVCam,aBox,aProf);
+}
+
+
+void cCylindreRevolution::V_MakePly(const cParamISAPly &, cPlyCloud & aPlyC,const std::vector<ElCamera *> &,const Box2dr & aBox,const double)
+{
+    for (int aK=0 ; aK<2 ; aK++)
+    {
+        double aY = (aK==0) ? aBox._p0.y :  aBox._p1.y;
+        Pt3dr aC = UVL2E (Pt3dr(0,aY,-(mSign*mRay)));
+        aPlyC.AddCercle(cPlyCloud::Magenta,aC,mW,mRay,500);
+    }
+
+    double aRab = 0.2;
+    double  aY0 = barry(-aRab,aBox._p0.y,aBox._p1.y);
+    double  aY1 = barry(1+aRab,aBox._p0.y,aBox._p1.y);
+    aPlyC.AddSeg
+    (
+           cPlyCloud::Cyan,
+           UVL2E(Pt3dr(0,aY0,-(mSign*mRay))),
+           UVL2E(Pt3dr(0,aY1,-(mSign*mRay))),
+           1000
+    );
+}
+
+
+
+//  --------------- cParamISAPly ----------------------
+//
+//             Donne / a une profondeur de 10
+//
+
+cParamISAPly::cParamISAPly() :
+     mSzRep       (0.3),
+     mSzSphere    (0.05),
+     mDensiteSurf (0.1)
+{
+}
+
+
+//==================================================================
+//                     cPlyCloud
+//                     cPlyCloud
+//                     cPlyCloud
+//==================================================================
+
+
+void cPlyCloud::AddPt(const tCol & aCol,const Pt3dr & aPt)
+{
+    mVCol.push_back(aCol);
+    mVPt.push_back(aPt);
+}
+
+
+void cPlyCloud::AddSphere(const tCol& aCol,const Pt3dr & aC,const double & aRay,const int & aNbPts)
+{
+    for (int anX=-aNbPts; anX<=aNbPts ; anX++)
+    {
+       for (int anY=-aNbPts; anY<=aNbPts ; anY++)
+       {
+          for (int aZ=-aNbPts; aZ<=aNbPts ; aZ++)
+          {
+               Pt3dr aP(anX,anY,aZ);
+               aP = aP * (aRay/aNbPts);
+               if (euclid(aP) <= aRay)
+               {
+                  AddPt(aCol,aC+aP);
+               }
+          }
+       }
+    }
+}
+
+void  cPlyCloud::AddSeg(const tCol & aCol,const Pt3dr & aP1,const Pt3dr & aP2,const int & aNb)
+{
+     for (int aK=0 ; aK<= aNb ; aK++)
+         AddPt(aCol,barry(double(aK)/aNb,aP1,aP2));
+ 
+}
+
+void  cPlyCloud::AddCercle(const tCol & aCol,const Pt3dr & aC,const Pt3dr &aNorm,const double & aRay,const int & aNb) 
+{
+    Pt3dr aU,aV,aW;
+    aU = aNorm;
+    MakeRONWith1Vect(aU,aV,aW);
+    for (int aK=0 ; aK<= aNb ; aK++)
+    {
+        double aTeta = (2 * PI * aK) / aNb;
+        AddPt(aCol,aC+ (aW*cos(aTeta) + aV*sin(aTeta)) * aRay);
+    }
+}
+
+
+
+void cPlyCloud::PutFile(const std::string & aName)
+{
+    std::list<std::string> aVCom;
+    std::vector<const cElNuage3DMaille *> aVNuage;
+    cElNuage3DMaille::PlyPutFile
+    (
+          aName,
+          aVCom,
+          aVNuage,
+          &mVPt,
+          &mVCol,
+          true
+    );
+
+}
+
+const cPlyCloud::tCol cPlyCloud::White   (255,255,255);
+const cPlyCloud::tCol cPlyCloud::Black   (  0,  0,  0);
+const cPlyCloud::tCol cPlyCloud::Red     (255,  0,  0);
+const cPlyCloud::tCol cPlyCloud::Cyan    (  0,255,255);
+const cPlyCloud::tCol cPlyCloud::Green   (  0,255,  0);
+const cPlyCloud::tCol cPlyCloud::Magenta (255,  0,255);
+const cPlyCloud::tCol cPlyCloud::Blue    (  0,  0,255);
+const cPlyCloud::tCol cPlyCloud::Yellow  (255,  0,  0);
+cPlyCloud::tCol cPlyCloud::Gray(const double & aGr) 
+{
+   int Igr = ElMax(0,ElMin(255,round_ni(255*aGr)));
+   return tCol(Igr,Igr,Igr);
+}
 
 
 

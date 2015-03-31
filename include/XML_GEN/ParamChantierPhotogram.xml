@@ -1455,13 +1455,13 @@
          </pt3d>
     </XML_LinePt3d>
 
+<!--
     <orientation Nb="1" Class="true" ToReference="true">
           <version Nb="1" Type="double"></version>
           <auxiliarydata Nb="1">
                <image_name Nb="1" Type="std::string"></image_name>
                <stereopolis Nb="1" Type="std::string"></stereopolis>
                <image_date Nb="1" RefType="XML_Date"> </image_date>
-               <!-- quelle est la structure  ? -->
                <samples Nb="*" Type="std::string"> </samples>
           </auxiliarydata>
           <geometry Nb="1">
@@ -1516,6 +1516,7 @@
               </intrinseque>
           </geometry>
     </orientation>
+-->
 
     <!-- Pour stocker les relations "Images/Maitresse" "Images/Secondaire"-->
 
