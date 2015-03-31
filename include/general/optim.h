@@ -1273,6 +1273,7 @@ public:
     Type c;
     Type f;
 
+
     Type mA;
     Type mE;
     Type mI;
@@ -1281,9 +1282,12 @@ public:
     Type mF;
     Type mDet;
 
+    cMSymCoffact3x3();
     cMSymCoffact3x3(Type ** aMat);
     void CoffSetInv(Type **);
     Pt3d<Type>  CoffVecInv(const Type *) const;
+    Pt3d<Type>  CoffMul(const Type *) const;
+    void FinishCoFact();
 };
 
 class cAMD_Interf
