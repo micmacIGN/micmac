@@ -1,0 +1,1339 @@
+<GenCpp>
+
+
+<Verbatim File=".h.cpp">
+// #include "general/all.h"
+// #include "private/all.h"
+</Verbatim>
+<Verbatim  File=".h">
+#ifndef Define_NotSupIm
+#define Define_NotSupIm
+</Verbatim>
+<Verbatim File=".cpp">
+// #include "XML_GEN/SuperposImage.h"
+#include "StdAfx.h"
+</Verbatim>
+
+
+<Verbatim File=".h">
+// #include "general/all.h"
+// #include "private/all.h"
+// #include "XML_GEN/ParamChantierPhotogram.h"
+</Verbatim>
+<Verbatim File=".h.cpp">
+// 
+</Verbatim>
+
+    <enum Name="eTypeSurfaceAnalytique">
+         <eTSA_CylindreRevolution >     </eTSA_CylindreRevolution>
+    </enum>
+
+    <enum Name="eModeBoxFusion">
+         <eMBF_Union >     </eMBF_Union>
+         <eMBF_Inter >     </eMBF_Inter>
+         <eMBF_First >     </eMBF_First>
+    </enum>
+
+
+    <enum Name="eQualCloud">
+         <eQC_Out >            </eQC_Out>  
+         <eQC_ZeroCohBrd >     </eQC_ZeroCohBrd>
+         <eQC_ZeroCoh >        </eQC_ZeroCoh>
+         <eQC_ZeroCohImMul >   </eQC_ZeroCohImMul>
+         <eQC_GradFort >       </eQC_GradFort>
+         <eQC_GradFaibleC1 >   </eQC_GradFaibleC1>
+         <eQC_Bord >           </eQC_Bord>
+         <eQC_Coh1 >           </eQC_Coh1>
+         <eQC_GradFaibleC2 >   </eQC_GradFaibleC2>
+         <eQC_Coh2 >           </eQC_Coh2>
+         <eQC_Coh3 >           </eQC_Coh3>
+         <eQC_NonAff >         </eQC_NonAff>
+    </enum>
+
+
+    <LutConvertion  Nb="1"  Class="true" ToReference="true">
+         <IntervLutConvertion Nb="+"  Container="std::vector">
+              <NivIn  Nb="1" Type="int"> </NivIn>
+              <NivOut Nb="1" Type="int"> </NivOut>
+         </IntervLutConvertion>
+    </LutConvertion>
+
+
+
+    <WindowSelection Nb="1" UnionType="true"  Class="true" ToReference="true">
+            <AllPts Nb="?"  Type="std::string"> </AllPts>
+            <PtsCenter Nb="?"  Type="std::string"> </PtsCenter>
+            <Percent Nb="?"  Type="double"> </Percent>
+    </WindowSelection>
+
+     <MasqTerrain Nb="1"  Class="true" ToReference="true">
+            <Image Nb="1" Type="std::string"> </Image>
+            <XML   Nb="1" Type="std::string"> </XML>
+            <SelectPts Nb="1" RefType="WindowSelection"> </SelectPts>
+     </MasqTerrain>
+<!--
+-->
+
+    <!--  Pour creer une composition coloree -->
+
+    <ImageCmpCol   Nb="1"  Class="true" ToReference="true">
+    <!--  Si c'est la premiere image  (<ImMaitresse>), interpretee literallemenent.
+         Sinon : - si le fichier existe, interprete literallemnet
+                 - si existe pas, cle de calcul a partir du maitre
+    -->
+	<NameOrKey Type="std::string" Nb="1"> </NameOrKey>
+        <TypeTmpIn Nb="?" Type="eTypeNumerique">  </TypeTmpIn>
+
+	<!-- Il est possible (cas courant avec Gray/RGB) que l'image ayant servie
+	a la mise en geometrie soit diff de celle de la composition, d'ou le role
+	de cette correspondance -->
+	<KeyCalcNameImOfGeom Type="std::string" Nb="?"> </KeyCalcNameImOfGeom>
+
+         <!-- Box definissant les pixels mort -->
+         <BoxPixMort Nb="?">
+               <HautG Type="Pt2di" Nb="1"> </HautG>
+               <BasD  Type="Pt2di" Nb="1"> </BasD>
+          </BoxPixMort>
+
+           <FlattField Nb="?">
+               <NameFile Nb="1" Type="std::string"> </NameFile>
+               <RefValue Nb="+" Type="double"  Container="std::vector"> </RefValue>
+           </FlattField>
+<!-- Pour chaque image, on specifier le contribution de chaque canal 
+     Exemple : cannaux separes-> RVB : on aura pour chaque ImageCmpCol R : In 0 Out 0 , V  R : In 0 Out 1, ...
+               RVB -> Gray   un seul ImageCmpCol avec 2 ChannelCmpCol   In 0 Out 0, In 1 Out 0 , .....
+-->
+
+	<ChannelCmpCol Nb="*"> 
+	     <Dyn Nb="?" Type="double" Def="1.0"> </Dyn>
+	     <Offset Nb="?" Type="double" Def="0.0"> </Offset>
+	     <In  Nb="1" Type="int">  </In>
+	     <Out  Nb="1" Type="int"> </Out>
+	     <Pds  Nb="?" Type="double" Def="1.0"> </Pds>
+             <ParamBiCub Nb="?" Type="double"> </ParamBiCub> 
+	</ChannelCmpCol>
+        <NbFilter  Nb="?" Type="int" Def="0"> </NbFilter>
+        <SzFilter  Nb="?" Type="int" Def="1"> </SzFilter>
+    </ImageCmpCol>
+
+    <CreateCompColoree  Nb="1"  Class="true">
+
+        <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                   RefFile="ParamChantierPhotogram.xml"
+        >
+        </DicoLoc>
+        <MapCCC Nb="*"
+                RefType="CmdMappeur"
+                RefFile="ParamChantierPhotogram.xml"
+        >
+        </MapCCC>
+
+<!--  APPAREMENT PAS UTILISE
+        <TypeTmpOut Nb="?" Type="eTypeNumerique" Def="eTN_u_int1"> </TypeTmpOut>
+-->
+
+        <!-- Si pas donne, Bi Lin -->
+        <ParamBiCub Nb="?" Type="double"> </ParamBiCub>
+
+
+
+       <!-- Le modele de deformation est transforme en un grille dont
+       le pas est fixe par StepGrid
+       -->
+        <StepGrid Nb="1" Type="double"> </StepGrid>
+        <WorkDir Nb="1" Type="std::string">   </WorkDir>   
+
+       <!-- Pour eviter les outliers dans la moyenne log -->
+        
+        <ShowCalibsRel Nb="*" >
+            <Channel Nb="*" Type="int" Container="std::vector">>  </Channel>
+            <MaxRatio Nb="?" Type="double" Def="2.0">     </MaxRatio>
+<!--
+-->
+        </ShowCalibsRel>
+
+        <ResultCompCol Nb="*">
+            <GamaExport Nb="?" Type="double"> </GamaExport>
+            <RefGama Nb="?" Type="double" Def="256.0"> </RefGama>
+
+            <LutExport  Nb="?" RefType="LutConvertion"> </LutExport>
+<!--
+-->
+
+
+	    <KeyName  Nb="1" Type="std::string"> </KeyName>
+            <Type Nb="?" Type="eTypeNumerique" Def="eTN_u_int1"> </Type>
+            <ImResultCC Nb="1" UnionType="true">
+                <ImResultCC_Gray Nb="?" AccessorFils="false">
+                     <Channel Nb="?" Type="int" Def="0"> </Channel>
+                </ImResultCC_Gray>
+                <ImResultCC_RVB Nb="?" AccessorFils="false">
+                     <Channel Nb="?" Type="Pt3di"  Def="0,1,2"> </Channel>
+                </ImResultCC_RVB>
+                <ImResultCC_Cnes Nb="?" AccessorFils="false">
+                    <!-- SzF/ValueF sont utilise ssi NbIterFCSte est N.I. -->
+                     <ModeMedian Nb="?" Type="bool" Def="false"> </ModeMedian>
+                     <SzF Nb="?" Type="Pt2di" Def="3,3"> </SzF>
+                     <ValueF Nb="?" Type="std::string" Def="1 2 1 2 4 2 1 2 1"> </ValueF>
+                     <ChannelHF Nb="?" Type="int" Def="3"> </ChannelHF>
+                     <ChannelBF Nb="?" Type="std::vector<int>"> </ChannelBF>
+
+                      <NbIterFCSte Nb="?" Type="int" Def="1"> </NbIterFCSte>
+                      <SzIterFCSte Nb="?" Type="int"> </SzIterFCSte>
+                </ImResultCC_Cnes>
+
+                <ImResultCC_PXs Nb="?" AccessorFils="false">
+                     <!-- Defaut 0,1,2 : RGB , 3 : Panchro -->
+                     <Channel Nb="?" Type="std::vector<int>"> </Channel>
+                     <AxeRGB Nb="?" Type="Pt3dr" Def="1.0,1.0,1.0"> </AxeRGB>
+                     <Cste Nb="?" Type="double" Def="0"> </Cste>
+                     <ApprentisageAxeRGB Type="bool" Def="false" Nb="?"> </ApprentisageAxeRGB>
+                     <!-- R,G,B ou C (pour cste) -->
+                     <UnusedAppr Type="std::string" Nb="*"> </UnusedAppr>
+                </ImResultCC_PXs>
+                <ImResultCC_Thom Nb="?" AccessorFils="false">
+                      <PondThom Nb="1"  UnionType="true">
+                           <PondExp Nb="?" Type="double"> </PondExp>
+                           <PondCste Nb="?" Type="int"> </PondCste>
+                      </PondThom>
+                      <NbIterPond  Nb="?" Type="int" Def="1"> </NbIterPond>
+                      <SupressCentre  Nb="?" Type="bool" Def="false"> </SupressCentre>
+                      <ChannelHF Nb="?" Type="int" Def="3"> </ChannelHF>
+                      <ChannelBF Nb="?" Type="std::vector<int>"> </ChannelBF>
+                      <ThomAgreg Nb="1"  UnionType="true">
+                           <ThomBidouille Nb="?">
+                                 <VMin Nb="1" Type="double"> </VMin>
+                                 <PourCent Nb="1" Type="double"> </PourCent>
+                           </ThomBidouille>
+                           <MPDBidouille Nb="?">
+                                 <EcartMin Nb="1" Type="double"> </EcartMin>
+                           </MPDBidouille>
+                      </ThomAgreg>
+
+                </ImResultCC_Thom>
+            </ImResultCC>
+        </ResultCompCol>
+
+	<KeyCalcNameCalib Type="std::string" Nb="1"> </KeyCalcNameCalib>
+	<FileChantierNameDescripteur Nb="?" Type="string"> 
+	</FileChantierNameDescripteur>
+
+	<ImMaitresse Nb="1" RefType="ImageCmpCol"> </ImMaitresse>
+
+
+    <!-- Calcul des espace de travail,  -->
+
+
+        <EspaceResultSuperpCol Nb="1" UnionType="true">
+             <EnglobImMaitre Nb="?" Type="std::string"> </EnglobImMaitre> <!-- Val Unused -->
+             <EnglobAll Nb="?" Type="std::string"> </EnglobAll> <!-- Val Unused -->
+             <EnglobBoxMaitresse  Nb="?" Type="Box2di"> </EnglobBoxMaitresse>
+        </EspaceResultSuperpCol>
+
+        <BoxCalc  Nb="?" Type="Box2di"> </BoxCalc>
+        <TailleBloc Nb="?" Type="int"> </TailleBloc>
+        <KBoxParal Nb="?" Type="int"> </KBoxParal> <!-- USAGE INTERNE DONT TOUCH -->
+        <ByProcess Nb="?" Type="int"> </ByProcess>
+
+
+	<!-- Est ce que l'espace de calcul est l'union des boite? -->
+	<!-- Est ce que l'espace commun est corrige de la distorsion ? -->
+	<CorDist Nb="?" Type="bool" Def="false"> </CorDist>
+	<ScaleFus Nb="?" Type="double" Def="1.0"> </ScaleFus>
+	
+	<ImSec Nb="+" >
+	    <Im  Nb="1" RefType="ImageCmpCol"> </Im>
+
+          <!-- Peut etre soit une grille soit des points homologues -->
+	    <KeyCalcNameCorresp  Type="std::string" Nb="1"> </KeyCalcNameCorresp>
+            <OffsetPt Nb="?" Type="Pt2dr"> </OffsetPt>
+         <!-- En theorie pas utile car devrait pourvoir etre pris en compt
+	 par les mecanisme de type SubDirAutomake, mais ceux-ci ne sont pas
+	 utilises par MicMac et si on veut reprendre les Key -->
+	    <DirCalcCorrep Type="std::string" Nb="?" Def=""> </DirCalcCorrep>
+
+	    <VerifHoms Nb="?">
+	          <NameOrKeyHomologues  Type="std::string" Nb="1"> </NameOrKeyHomologues>
+		  <VisuEcart Nb="?">
+		       <SzW Nb="1" Type="double"> </SzW>
+		       <Exag Nb="1" Type="double"> </Exag>
+                       <NameFile Nb="?" Type="std::string"></NameFile>
+		       <Images2Verif Nb="?">
+		          <X Nb="1" Type="std::string"> </X>
+		          <Y Nb="1" Type="std::string"> </Y>
+		          <ExagXY Nb="1" Type="double"> </ExagXY>
+		       </Images2Verif>
+		  </VisuEcart>
+	    </VerifHoms>
+            <NbTestRansacEstimH Nb="?" Type="int" Def="30000"> </NbTestRansacEstimH>
+            <NbPtsRansacEstimH Nb="?" Type="int" Def="1000"> </NbPtsRansacEstimH>
+	    <L2EstimH Nb="?" Type="bool" Def="false"> </L2EstimH>
+	    <L1EstimH Nb="?" Type="bool" Def="false"> </L1EstimH>
+
+             <!-- Pour la ponderation iteree, x-> seuil, y -> poids
+                  en  1/sqrt(1+E2/y2)  -->
+             <PonderaL2Iter Nb="*" Type="Pt2dr"> </PonderaL2Iter>
+            
+	</ImSec>
+    </CreateCompColoree>
+
+    <!-- Pour creer un modele analytique (par ex radial) a partir
+    d'images de deformations -->
+
+<!--
+    -->
+    <GenereModeleRaster2Analytique  Nb="1"  Class="true" ToReference="true">
+        <Dir Nb="1" Type="std::string">   </Dir>   
+        <Im1 Nb="1" Type="std::string">   </Im1>   
+        <Im2 Nb="1" Type="std::string">   </Im2>   
+	<!-- En general on a tout interet a sous echantillonner les images -->
+	<SsResol  Nb="1" Type="double">  </SsResol>
+	<!-- Pas des images -->
+	<Pas Nb="1"  Type="Pt2dr">      </Pas>
+	<!-- Offset a rajouter aux images, utile en debayerisation 
+	     Si AutoCalcTr0 il est calcule par moyenne
+	     Si RoundTr0 il est arrondi au 1/2 pixel (cas Bayer)
+	-->
+	<Tr0 Nb="?"  Type="Pt2dr" Def="0,0">      </Tr0>
+	<AutoCalcTr0 Nb="?" Type="bool" Def="false"> </AutoCalcTr0>
+	<RoundTr0  Nb="?" Type="double" Def="0.5">    </RoundTr0>
+
+
+
+	<DegPoly Nb="1" Type="int">  </DegPoly>
+	<CLibre  Nb="1" Type="bool"> </CLibre>
+	<Dequant  Nb="1" Type="bool">  </Dequant>
+	
+	<SauvegardeMR2A Nb="?">
+             <NameSauvMR2A Nb="1" Type="std::string">   </NameSauvMR2A>
+	     <StepGridMR2A Nb="1" Type="double">    </StepGridMR2A>
+	     <SauvImgMR2A Nb="?" Type="std::string"> </SauvImgMR2A>
+	</SauvegardeMR2A>
+    </GenereModeleRaster2Analytique>
+
+   <!--
+
+   <GridDeform2D Nb="1"  Class="true" ToReference="true">
+       <Origine Nb="1" Type="Pt2dr"> </Origine>
+       <Step    Nb="1" Type="Pt2dr"> </Step>
+       <ImX     Nb="1" Type="Im2D_REAL8">       </ImX>
+       <ImY     Nb="1" Type="Im2D_REAL8">       </ImY>
+   </GridDeform2D>
+
+   <GridDirecteEtInverse  Nb="1"  Class="true"  ToReference="true">
+        <Directe Nb="1" RefType="GridDeform2D"> </Directe>
+        <Inverse Nb="1" RefType="GridDeform2D"> </Inverse>
+	<AdaptStep Nb="1" Type="bool">  </AdaptStep>
+   </GridDirecteEtInverse>
+   -->
+
+   <BayerGridDirecteEtInverse  Nb="1"  Class="true"  ToReference="true">
+         <Ch1  Nb="1" Type="std::string"> </Ch1>
+         <Ch2  Nb="1" Type="std::string"> </Ch2>
+         <Grid Nb="1" RefType="GridDirecteEtInverse" RefFile="ParamChantierPhotogram.xml"> </Grid>
+   </BayerGridDirecteEtInverse>
+
+   <BayerCalibGeom Nb="1"  Class="true"  ToReference="true">
+        <Grids Nb="*" RefType="BayerGridDirecteEtInverse"> </Grids>
+
+         <!-- Balance des blancs -->
+	<WB Nb="?" Type="Pt3dr"> </WB> 
+         <!-- Poids pour le gris  -->
+	<PG Nb="?" Type="Pt3dr"> </PG>   
+   </BayerCalibGeom>
+
+<!--
+     R = r0 + r1 R + r2 R2 +..   Degre own
+        + v V + b B              Degre other
+        + rv RV  +v2 V2  ....
+
+
+
+-->
+
+   <SpecifEtalRelOneChan Nb="1" Class="true"  ToReference="true">
+        <DegreOwn Nb="1" Type="int">      </DegreOwn>
+        <DegreOther Nb="1" Type="int">    </DegreOther>
+   </SpecifEtalRelOneChan>
+
+   <SpecifEtalRadiom Nb="1" Class="true"  ToReference="true">
+           <Channel Nb="*" RefType="SpecifEtalRelOneChan"> </Channel>
+   </SpecifEtalRadiom>
+
+   <EtalRelOneChan Nb="1" Class="true"  ToReference="true">
+        <PolyNRadiom Nb="*" Container="std::vector"> 
+                    <Degre Nb="+" Type="int"  Container="std::vector"> </Degre>
+                    <Val Nb="1" Type="double"> </Val>
+       </PolyNRadiom>
+   </EtalRelOneChan>
+
+   <ColorCalib Nb="1" Class="true"  ToReference="true">
+         <CalibChannel Nb="+" RefType="EtalRelOneChan"  Container="std::vector"> </CalibChannel>
+   </ColorCalib>
+
+  <!--
+         Evaluation de grille par composition
+  -->
+
+   <EvalComposeGrid   Nb="1"  Class="true">
+        <Directory Nb="?" Type="std::string" Def=""> </Directory>
+        <Dyn  Nb="1" Type="double"> </Dyn>
+        <Resol  Nb="1" Type="double"> </Resol>
+        <OneGridECG Nb="+">
+            <Name Nb="1" Type="std::string"> </Name>
+            <Direct Nb="1" Type="bool">      </Direct>
+        </OneGridECG>
+	<NameNorm Nb="?" Type="std::string"> </NameNorm>
+   </EvalComposeGrid>
+
+
+   <CalcNomFromCouple Nb="1"  Class="true"  ToReference="true">
+        <Pattern2Match Nb="1" Type="std::string"> </Pattern2Match>
+	<Separateur Nb="?" Type="std::string" Def="">    </Separateur>
+	<NameCalculated Nb="1" Type="std::string"> </NameCalculated>
+   </CalcNomFromCouple>
+
+   <CalcNomFromOne Nb="1"  Class="true"  ToReference="true">
+        <Pattern2Match Nb="1" Type="std::string"> </Pattern2Match>
+	<NameCalculated Nb="1" Type="std::string"> </NameCalculated>
+   </CalcNomFromOne>
+
+
+   <ReSynchronImage  Nb="1"  Class="true"  ToReference="true">
+       <OneResync Nb="+">
+           <Dir Nb="1"  Type="std::string">        </Dir>
+	   <PatSel Nb="1"  Type="std::string">     </PatSel>
+	   <!-- <RefIm  Nb="1"  Type="std::string">     </RefIm>  -->
+
+           <!--  Matche sur  Nom@Num -->
+	   <PatRename Nb="1"  Type="std::string">  </PatRename>
+	   <Rename    Nb="1"  Type="std::string">  </Rename>
+       </OneResync>
+       <EcartMin  Nb="1"  Type="double">  </EcartMin>
+       <EcartMax  Nb="1"  Type="double">  </EcartMax>
+
+       <!-- Fontion de ponderation pour le calcul auto des diff
+            
+       -->
+       <EcartRechAuto Nb="?" Type="double" Def="4.0"> </EcartRechAuto>
+       <SigmaRechAuto Nb="?" Type="double" Def="1.0"> </SigmaRechAuto>
+       <EcartCalcMoyRechAuto  Nb="?" Type="double" Def="1.5"> </EcartCalcMoyRechAuto>
+
+   </ReSynchronImage>
+
+
+    <!-- 
+    CASA CASA CASA CASA CASA CASA CASA CASA CASA CASA CASA CASA 
+  
+       Calcul Automatique de Surfaces Analytiques.
+
+    CASA CASA CASA CASA CASA CASA CASA CASA CASA CASA CASA CASA 
+    -->
+
+<!-- P0, P1 : axe of the cylinder, POnCyl : a point of the cylinder
+     fixing radius and origins of cylindrics coordinates -->
+
+    <XmlCylindreRevolution   Nb="1"  Class="true" ToReference="true">
+        <!-- P0-P1 , deux points sur la droite -->
+         <P0 Nb="1" Type="Pt3dr">  </P0>
+         <P1 Nb="1" Type="Pt3dr">  </P1>
+         <POnCyl  Nb="1" Type="Pt3dr"> </POnCyl>
+    </XmlCylindreRevolution>
+
+    <XmlToreRevol   Nb="1"  Class="true" ToReference="true">
+        <!-- P0-P1 , deux points sur la droite -->
+         <Cyl Nb="1" RefType="XmlCylindreRevolution"> </Cyl>
+         <POriTore  Nb="1" Type="Pt3dr"> </POriTore>
+    </XmlToreRevol>
+
+
+     <XmlOrthoCyl  Nb="1"  Class="true" ToReference="true">
+          <Repere Nb="1" RefType="RepereCartesien"  RefFile="ParamChantierPhotogram.xml"> </Repere>
+          <P0 Nb="1" Type="Pt3dr"> </P0>
+          <P1 Nb="1" Type="Pt3dr"> </P1>
+          <AngulCorr Nb="1" Type="bool"> </AngulCorr>
+     </XmlOrthoCyl>
+
+     <XmlDescriptionAnalytique Nb="1" Class="true" ToReference="true">
+               <Cyl Nb="?" RefType="XmlCylindreRevolution"> </Cyl>
+               <OrthoCyl Nb="?" RefType="XmlOrthoCyl">      </OrthoCyl>
+               <Tore Nb="?" RefType="XmlToreRevol">         </Tore>
+     </XmlDescriptionAnalytique>
+      <XmlOneSurfaceAnalytique Nb="1" Class="true" ToReference="true">
+            <XmlDescriptionAnalytique Nb="1" UnionType="true" RefType="XmlDescriptionAnalytique"> </XmlDescriptionAnalytique>
+            <!--  Ici ne rajouteront des descripteur geometrique
+                 d'emprise -->
+             <Id Nb="1" Type="std::string"> </Id>
+             <VueDeLExterieur Nb="1" Type="bool"> </VueDeLExterieur>
+      </XmlOneSurfaceAnalytique>
+
+
+    <XmlModeleSurfaceComplexe Nb="1"  Class="true" ToReference="true">
+       <XmlOneSurfaceAnalytique Nb="+" RefType="XmlOneSurfaceAnalytique"> </XmlOneSurfaceAnalytique>
+<!--
+       <XmlOneSurfaceAnalytique Nb="+">
+            <XmlDescriptionAnalytique Nb="1" UnionType="true" RefType="XmlDescriptionAnalytique"> </XmlDescriptionAnalytique>
+             <Id Nb="1" Type="std::string"> </Id>
+             <VueDeLExterieur Nb="1" Type="bool"> </VueDeLExterieur>
+       </XmlOneSurfaceAnalytique>
+-->
+    </XmlModeleSurfaceComplexe>
+
+
+    <MapName2Name  Nb="1"  Class="true" ToReference="true"  UnionType="true">
+          
+          <MapByKey Nb="?">
+               <Key Nb="1" Type="std::string"> </Key>
+               <DefIfFileNotExisting Nb="?" Type="bool" Def="false"> </DefIfFileNotExisting>
+          </MapByKey>
+          <MapN2NByAutom Nb="?">
+               <OneAutomMapN2N Nb="*" Container="std::vector">
+                      <MatchPattern Nb="1" Type="cElRegex_Ptr" > </MatchPattern>
+                      <AutomSel Nb="?" Type="cElRegex_Ptr" > </AutomSel>
+                      <Result Nb="1" Type="std::string"> </Result>
+               </OneAutomMapN2N>
+           </MapN2NByAutom>
+    </MapName2Name>
+
+
+    <XML_ParamNuage3DMaille Nb="1"  Class="true" ToReference="true">
+         <!-- Indique un facteur de sous resolution par rapport a une "hypotetique"
+         valeur d'acquisition , la ref est la resol 1 en cas de correl; en correl
+         les sous ech auront pour valeur 1 2 4 8 16 ...
+         -->
+         <SsResolRef Nb="?" Type="double" Def="1.0"> </SsResolRef>
+         <Empty Nb="?" Type="bool" Def="false"> </Empty>  <!-- Pour traiter le cas des nuage vide -->
+         <NbPixel Nb="1" Type="Pt2di"> </NbPixel>
+         <PN3M_Nuage Nb="1"   UnionType="true">
+             <Image_Point3D Nb="?" AccessorFils="false"> 
+                   <Image  Nb="1" Type="std::string"> </Image>
+                   <Masq  Nb="1" Type="std::string"> </Masq>
+             </Image_Point3D>
+             <Image_Profondeur Nb="?" AccessorFils="false">
+                   <Image  Nb="1" Type="std::string"> </Image>
+                   <Masq  Nb="1" Type="std::string"> </Masq>
+                   <Correl  Nb="?" Type="std::string"> </Correl>
+                   <OrigineAlti Nb="1" Type="double"> </OrigineAlti>
+                   <ResolutionAlti Nb="1" Type="double"> </ResolutionAlti>
+                   <!-- PL2XmlTree evite que l'appelle ToXMLTree ait une portee globale -->
+                   <GeomRestit Nb="1" Type="eModeGeomMNT" PL2XmlTree=""> </GeomRestit>
+             </Image_Profondeur>
+             <EmptyPN3M Nb="?" Type="bool"> </EmptyPN3M> <!--- Necessaire pour l'union -->
+<!--
+             <Image_MNT Nb="?" AccessorFils="false"> 
+                   <Image  Nb="1" Type="std::string"> </Image>
+                   <Masq  Nb="1" Type="std::string"> </Masq>
+                   <OrigineAlti Nb="1" Type="double"> </OrigineAlti>
+                   <ResolutionAlti Nb="1" Type="double"> </ResolutionAlti>
+                   <OriginePlani Nb="1" Type="Pt2dr"> </OriginePlani>
+                   <ResolutionPlani Nb="1" Type="Pt2dr"> </ResolutionPlani>
+             </Image_MNT>
+-->
+         </PN3M_Nuage>
+         <AttributsNuage3D Nb="*">
+                 <NameFileImage Nb="1" Type="std::string"> </NameFileImage>
+                 <AddDir2Name Nb="?" Type="bool" Def="true"> </AddDir2Name>
+                 <Dyn Nb="?" Type="double" Def="1.0">        </Dyn>
+                 <Scale Nb="?" Type="double" Def="1.0">      </Scale>
+         </AttributsNuage3D>
+
+
+          <!-- Parametre qui se rajoutent +ou-  a l'orientation : Rep Glob, Anam (a venir) -->
+          <!-- Devrait etre une union -->
+          <RepereGlob Nb="?" RefType="RepereCartesien"  RefFile="ParamChantierPhotogram.xml"> </RepereGlob>
+          <Anam Nb="?" RefType="XmlOneSurfaceAnalytique"> </Anam>
+
+
+          <!-- Les infos d'origine plani et alti sont contenus dans la similitude
+               de l'Orientation
+           -->
+          <Orientation  Nb="1"   
+                        RefType="OrientationConique"
+                        RefFile="ParamChantierPhotogram.xml"
+           >
+           </Orientation>
+
+          <!-- Devrait tjrs etre init, mais pb compatibilite anterieure -->
+           <RatioResolAltiPlani Nb="?" Type="double" Def="1.0"> </RatioResolAltiPlani>
+
+
+          <!-- Parametre specifique a un mode calcul des points, non
+              inclu dans l'orientation (qui ne decrit qu'un capteur)
+          -->
+
+          <PM3D_ParamSpecifs Nb="1" UnionType="true">
+              <ModeFaisceauxImage Nb="?">
+                  <DirFaisceaux Nb="1" Type="Pt3dr"> </DirFaisceaux>
+                  <ZIsInverse   Nb="1" Type="bool"> </ZIsInverse>
+                  <IsSpherik    Nb="?" Type="bool" Def="false"> </IsSpherik>
+                  <DirTrans     Nb="?" Type="Pt2dr"> </DirTrans>
+              </ModeFaisceauxImage>
+              <NoParamSpecif Nb="?" Type="std::string"> </NoParamSpecif>
+          </PM3D_ParamSpecifs>
+
+
+           <TolVerifNuage Nb="?" Type="double" Def="1e-3"> </TolVerifNuage>
+           <VerifNuage Nb="*">
+                 <IndIm      Nb="1" Type="Pt2dr"> </IndIm>
+                 <Profondeur Nb="1" Type="double"> </Profondeur>
+                 <PointEuclid      Nb="1" Type="Pt3dr">   </PointEuclid>
+           </VerifNuage>
+
+
+    </XML_ParamNuage3DMaille>
+
+   <MasqMesures Nb="1" Class="true" ToReference="true">
+         <NameFile Nb="1" Type="std::string"> </NameFile>
+         <NameMTD Nb="1" Type="std::string"> </NameMTD>
+   </MasqMesures>
+
+    <XML_ParamOmbrageNuage  Nb="1"  Class="true" ToReference="true">
+        <ScaleMaxPyr Nb="?" Type="int" Def="128"> </ScaleMaxPyr>
+        <StepScale      Nb="?" Type="double" Def="1.414"> </StepScale>
+        <RatioOct       Nb="?" Type="double" Def="2.0"> </RatioOct>
+        <CielVisible Nb="?">
+                <UnUsed Nb="?" Type="std::string"> </UnUsed>
+        </CielVisible>
+<!--
+-->
+    </XML_ParamOmbrageNuage>
+<!--
+-->
+
+
+    <Fichier_Trajecto  Nb="1"  Class="true" ToReference="true">
+         <!-- Nom initial , pour tracabilite -->
+         <NameInit Nb="1" Type="std::string"> </NameInit>
+         
+         <!-- Parametre de rotation permettant de revenir aux  coordonnees 
+             initiales, par exemple si passe de RGF a tangent local -->
+          <FTrajParamInit2Actuelle Nb="1">
+               <Lambda Nb="1" Type="double"> </Lambda>
+               <Orient Nb="1"
+                       RefType="OrientationExterneRigide"
+                       RefFile="ParamChantierPhotogram.xml"
+               >
+               </Orient>
+               
+          </FTrajParamInit2Actuelle>
+          <PtTrajecto Nb="*" 
+                      Container="std::map" 
+                      KeyType="std::string" 
+                      KeyGetVal="IdImage"
+          > 
+<!-- 
+<PtTrajecto Nb="*" Container="std::vector">
+-->
+              <Pt Nb="1" Type="Pt3dr"> </Pt>
+              <IdImage Nb="1" Type="std::string">  </IdImage>
+              <IdBande Nb="1" Type="std::string">  </IdBande>
+              <Time Nb="1" Type="double"> </Time>
+          </PtTrajecto>
+    </Fichier_Trajecto>
+
+
+<!--    
+      ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO
+      ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO
+      ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO - ORTHO
+-->
+
+    <CreateOrtho  Nb="1"  Class="true">
+        <!-- Truc +ou- genreaux a ttes les applis -->
+        <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                   RefFile="ParamChantierPhotogram.xml"
+        >
+        </DicoLoc>
+	<FileChantierNameDescripteur Nb="?" Type="string"> </FileChantierNameDescripteur>
+        <WorkDir Nb="1" Type="std::string">   </WorkDir>   
+
+         <KBox0 Nb="?" Type="int" Def="0"> </KBox0>
+
+
+        <SectionEntree Nb="1">
+           <FileMNT Nb="?" Type="std::string" > </FileMNT>
+           <KeySetIm Nb="1" Type="std::string"> </KeySetIm>
+           <KeyAssocMetaData  Nb="1" Type="std::string"> </KeyAssocMetaData>
+           <KeyAssocNamePC  Nb="1" Type="std::string"> </KeyAssocNamePC>
+           <KeyAssocNameIncH  Nb="1" Type="std::string"> </KeyAssocNameIncH>
+
+            <!-- Plus la valeur est faible plus c'est prioritaire -->
+           <KeyAssocPriorite  Nb="?" Type="std::string" Def="Key-Priorite-Ortho"> </KeyAssocPriorite>
+
+           <!-- Permet de rejouter un (ou plusieurs qui s'accumulent) masque binaire  qui sont utilises
+                pour selectionner les points utilises pour les mesures : ca ne masque pas l'ortho finale
+             -->
+           <ListMasqMesures Nb="*" RefType="MasqMesures"> </ListMasqMesures> 
+            <!-- Idem MasqMesures, mais fichier a charger -->
+           <FileExterneMasqMesures Nb="*" Type="std::string"></FileExterneMasqMesures>
+
+        </SectionEntree>
+
+         <SectionFiltrageIn Nb="1">
+             <!-- When this value is specified for any pixel with any channel over this threshold, it will be out of mask -->
+             <SaturThreshold Nb="?" Type="double"> </SaturThreshold>
+             <SzDilatPC Nb="?" Type="int" Def="1"> </SzDilatPC>
+             <SzOuvPC Nb="?" Type="int" Def="2"> </SzOuvPC>
+
+             <BoucheTrou Nb="?">
+                <SeuilVisib Nb="?" Type="int" Def="10"> </SeuilVisib>
+                <SeuilVisibBT Nb="?" Type="int" Def="3"> </SeuilVisibBT>
+                <CoeffPondAngul Nb="?" Type="double" Def="1.57"> </CoeffPondAngul>
+             </BoucheTrou>
+         </SectionFiltrageIn>
+
+         <SectionSorties Nb="1">
+             <!-- Pour Debug uniquement -->
+             <TestDiff Nb="?" Type="bool" Def="false"> </TestDiff>
+             <NameOrtho Nb="1" Type="std::string"> </NameOrtho>
+             <NameLabels Nb="?" Type="std::string"> </NameLabels>
+             <BoxCalc Nb="?" Type="Box2di">        </BoxCalc>
+             <SzDalle   Nb="1"  Type="int">        </SzDalle>
+             <SzBrd  Nb="1"  Type="int">           </SzBrd>
+             <SzTileResult Nb="?" Type="int" Def="17000"> </SzTileResult>
+
+             <Show Nb="?" Type="bool" Def="false"> </Show>
+
+             <DynGlob Nb="?" Type="double" Def="1.0"> </DynGlob>
+         </SectionSorties>
+
+         <SectionSimulImage Nb="?">
+              <Per1 Nb="1" Type="Pt2dr"> </Per1>
+              <Per2 Nb="?" Type="Pt2dr"> </Per2>
+              <Ampl Nb="?" Type="double" Def="1.0"> </Ampl>
+              <NoiseSSI Nb="*">
+                    <Ampl Nb="1" Type="double"> </Ampl>
+                    <Unif Nb="1" Type="bool"> </Unif>
+                    <Iter Nb="1" Type="int">    </Iter>
+                    <Sz Nb="1" Type="int">    </Sz>
+              </NoiseSSI>
+         </SectionSimulImage>
+
+
+         <SectionEgalisation Nb="?">
+               <MasqApprent Nb="?" RefType="MasqTerrain"> </MasqApprent>
+
+               <PeriodEchant Nb="?" Type="int"> </PeriodEchant>
+               <NbPEqualMoyPerImage Nb="?" Type="double" Def="1e4"> </NbPEqualMoyPerImage>
+               <SzVois  Nb="1" Type="int"> </SzVois>
+               <NameFileMesures Nb="1" Type="std::string"></NameFileMesures>
+               <UseFileMesure Nb="?" Type="bool" Def="false"> </UseFileMesure>
+               <DegresEgalVois Nb="+" Type="Pt2di"  Container="std::vector"> </DegresEgalVois>
+               <!-- Si au - un fixe les degres des canaux apres le 1er, -->
+               <DegresEgalVoisSec Nb="*" Type="Pt2di"  Container="std::vector"> </DegresEgalVoisSec>
+               <PdsRappelInit Nb="?" Type="double" Def="1e-3"> </PdsRappelInit>
+               <PdsSingularite Nb="?" Type="double" Def="1e-6"> </PdsSingularite>
+               <GlobRappInit Nb="1"> 
+                    <DoGlob Nb="?" Type="bool" Def="true"> </DoGlob>
+                    <Degres Nb="+" Type="Pt2di"  Container="std::vector"> </Degres>
+                    <!-- Si cannaux independant et ne joue pas le meme role (par ex aprs LAB)
+                    fixe les degres des cannaux "secondaire" (=apres le premier) -->  
+                    <DegresSec Nb="*" Type="Pt2di"  Container="std::vector"> </DegresSec>
+                    <PatternApply Nb="?" Type="std::string" Def=".*"> </PatternApply>
+                    <!-- Si vrai, le rappel ne se fait sur les signaux eux meme mais
+                    sur le resultat d'une egalisation basique (une seule cste mult) +ou-
+                    ce qu'on obtient avec prise en compte de ISO,Diaph,Vitesse mais
+                    + general
+                    -->
+                    <RapelOnEgalPhys Nb="?" Type="bool" Def="true"> </RapelOnEgalPhys>
+
+               </GlobRappInit>
+               <!-- Si true les cannau sont egalise globalement (pour l'instant sur la somme -->
+               <EgaliseSomCh Nb="1" Type="bool"> </EgaliseSomCh>
+
+
+               <!-- Filtrage des points par correlation  : abandonne pour l'instant-->
+                <SzMaxVois Nb="?" Type="int" Def="5"> </SzMaxVois>
+                <Use4Vois Nb="?" Type="bool" Def="true"> </Use4Vois>
+                <CorrelThreshold Nb="?" Type="double" Def="0.7"> </CorrelThreshold>
+
+               <!-- Filtrage robuste par couple -->
+                <AdjL1ByCple Nb="?" Type="bool" Def="true"> </AdjL1ByCple>
+                <PercCutAdjL1 Nb="?" Type="double" Def="70"> </PercCutAdjL1>
+                 <!-- Possibilite de limiter le facteur de coupe -->
+                <FactMajorByCutGlob Nb="?" Type="double" Def="1.5"> </FactMajorByCutGlob>
+
+         </SectionEgalisation>
+    </CreateOrtho>
+
+  <MetaDataPartiesCachees Nb="1" Class="true" ToReference="true">
+       <Done  Nb="1" Type="bool"> </Done>
+       <Offset Nb="1" Type="Pt2di"> </Offset>
+       <Sz Nb="1" Type="Pt2di"> </Sz>
+       <Pas Nb="1" Type="double">  </Pas>
+       <SeuilUse  Nb="1" Type="int">  </SeuilUse>
+       <SsResolIncH Nb="?" Type="double"> </SsResolIncH>
+  </MetaDataPartiesCachees>
+
+  <PVPN_Orientation Nb="1" UnionType="true"  Class="true" ToReference="true">
+       <!-- 1- Basique,  on donne directement les trois angle du cardan -->
+         <AngleCardan Nb="?" Type="Pt3dr"> </AngleCardan>  
+  </PVPN_Orientation>
+
+  <ParamVisuProjNuage Nb="1" Class="true" ToReference="true">
+       <WorkDir Nb="1" Type="std::string">   </WorkDir>   
+       <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                   RefFile="ParamChantierPhotogram.xml"
+       >
+       </DicoLoc>
+       <FileChantierNameDescripteur Nb="?" Type="string"> 
+       </FileChantierNameDescripteur>
+
+
+       <PVPN_ImFixe Nb="?">
+           <Orient Nb="1" RefType="PVPN_Orientation"> </Orient>
+           <Name Nb="1"  Type="std::string"></Name>
+       </PVPN_ImFixe>
+       <PVPN_Camera Nb="1">
+            <NbPixel Nb="1" Type="Pt2di"> </NbPixel>
+            <!-- En radian -->
+            <AngleDiag Nb="1" Type="double"> </AngleDiag> 
+       </PVPN_Camera>
+       <PVPN_Fond Nb="1"  UnionType="true">
+             <!-- RVB entre 0 et 1 -->
+             <FondConstant Nb="?" Type="Pt3dr"> </FondConstant>  
+       </PVPN_Fond>
+       <PVPN_Nuages Nb="*">
+             <Name Nb="1" Type="std::string"> </Name>
+       </PVPN_Nuages>
+
+       <!-- Sous echantillonage utilise pour accelerer certaine operation -->
+       <SousEchQuickN Nb="?" Type="double" Def="10"> </SousEchQuickN>
+
+  </ParamVisuProjNuage>
+
+  <PoinAvionJaune  Nb="1" Class="true" ToReference="true">
+          <x Nb="1" Type="double"> </x>
+          <y Nb="1" Type="double"> </y>
+  </PoinAvionJaune>
+  <ValueAvionJaune Nb="1" Class="true" ToReference="true">
+       <unit Nb="1" Type="std::string"></unit>
+       <source Nb="?" Type="std::string"></source>
+       <biaisCorrige Nb="?" Type="double"></biaisCorrige>
+       <value Nb="1" Type="double"></value>
+  </ValueAvionJaune>
+  <ValueXYAvionJaune Nb="1" Class="true" ToReference="true">
+       <unit Nb="1" Type="std::string"></unit>
+       <source Nb="?" Type="std::string"></source>
+       <biaisCorrige Nb="?" Type="double"></biaisCorrige>
+       <xvalue Nb="1" Type="double"></xvalue>
+       <yvalue Nb="1" Type="double"></yvalue>
+  </ValueXYAvionJaune>
+
+
+  <AvionJauneDocument Nb="1" Class="true" ToReference="true">
+          <numeroImage Nb="1" Type="std::string" ></numeroImage>
+          <navigation Nb="1">
+               <systemeGeodesique Nb="1" Type="std::string"></systemeGeodesique>
+               <projection  Nb="1" Type="std::string"></projection>
+               <sommet Nb="1" RefType="PoinAvionJaune"> </sommet>
+               <altitude Nb="1" RefType="ValueAvionJaune"> </altitude>
+               <capAvion Nb="1" RefType="ValueAvionJaune"> </capAvion>
+               <roulisAvion Nb="1" RefType="ValueAvionJaune"> </roulisAvion>
+               <tangageAvion Nb="1" RefType="ValueAvionJaune"> </tangageAvion>
+               <tempsAutopilote Nb="1" RefType="ValueAvionJaune"> </tempsAutopilote>
+          </navigation>
+          <image Nb="1">
+               <focale Nb="1" RefType="ValueAvionJaune"></focale>
+               <ouverture Nb="1" RefType="ValueAvionJaune"> </ouverture>
+               <tempsDExposition Nb="1" RefType="ValueAvionJaune"> </tempsDExposition>
+          </image>
+          <geometrieAPriori Nb="1">
+               <hauteur Nb="1" RefType="ValueAvionJaune"> </hauteur>
+               <resolution Nb="1" RefType="ValueXYAvionJaune"> </resolution>
+               <orientationAPN Nb="1" RefType="ValueAvionJaune"> </orientationAPN>
+               <coin Nb="+"  RefType="PoinAvionJaune" Container="std::vector"> </coin>
+          </geometrieAPriori>
+   </AvionJauneDocument>
+
+
+<!--
+-->
+
+  <TrAJ2_GenerateOrient Nb="1" Class="true"  ToReference="true">
+                  <Teta1FromCap Nb="?" Type="bool" Def="false"> </Teta1FromCap>
+                  <CorrecDelayGps Nb="?" Type="double"> </CorrecDelayGps>
+
+                  <ModeMatrix Nb="?" Type="bool" Def="false"> </ModeMatrix>
+                  <KeyName Nb="+" Type="std::string"> </KeyName>
+                  <SysCible Nb="1" RefType="SystemeCoord" RefFile="ParamChantierPhotogram.xml"> </SysCible>
+                  <NameCalib Nb="1" Type="std::string"> </NameCalib>
+                  <AltiSol Nb="1" Type="double">        </AltiSol>
+  </TrAJ2_GenerateOrient>
+
+   
+  <TrAJ2_ModeliseVitesse Nb="1" Class="true"  ToReference="true">
+                       <DeltaTimeMax Nb="1" Type="double"> </DeltaTimeMax>
+  </TrAJ2_ModeliseVitesse>
+
+
+  <Param_Traj_AJ  Nb="1" Class="true">
+        <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                         RefFile="ParamChantierPhotogram.xml"
+        >
+        </DicoLoc>
+
+        <TrAJ2_SectionImages Nb="*">
+              <ConvOrCam Nb="?" Type="eConventionsOrientation" Def="eConvOriLib"> </ConvOrCam>
+              <OrientationCamera Nb="1" RefType="RotationVect" RefFile="ParamChantierPhotogram.xml"> </OrientationCamera>
+              <KeySetIm Nb="1" Type="std::string"> </KeySetIm>
+              <Id Nb="1" Type="std::string"> </Id>
+        </TrAJ2_SectionImages>
+
+        <TraceImages Nb="?" Type="cElRegex_Ptr"> </TraceImages>
+        <TraceLogs Nb="?" Type="cElRegex_Ptr"> </TraceLogs>
+
+
+        <TrAJ2_SectionLog Nb="*">
+
+             <GenerateTabExemple Nb="*">
+                    <Name Nb="1" Type="std::string"> </Name>
+                    <Nb  Nb="1" Type="Pt3di"> </Nb>
+                    <ZMin  Nb="?" Type="double"> </ZMin>
+                    <ZMax  Nb="?" Type="double"> </ZMax>
+                    <DIntervZ  Nb="?" Type="double" Def="0.0"> </DIntervZ>
+                    <RandomXY Nb="?" Type="bool" Def="true"> </RandomXY>
+                    <RandomZ  Nb="?" Type="bool" Def="true"> </RandomZ>
+             </GenerateTabExemple>
+
+             <TimeMin Nb="?" Type="double"> </TimeMin> <!-- Vire les temps <, Serait utile avec Learn Stat si plein de 0 au depart -->
+             <KLogT0 Nb="?" Type="int" Def="0"> </KLogT0>  <!-- Indice du log donnant temps a soustraire, pour ramner des valeurs raisonnable -->
+             <File Nb="1" Type="std::string">   </File>
+             <Autom  Nb="1" Type="std::string">   </Autom>
+             <SysCoord Nb="1" RefType="SystemeCoord" RefFile="ParamChantierPhotogram.xml"> </SysCoord>
+             <Id Nb="1" Type="std::string"> </Id>
+
+             <SectionTime Nb="1"  UnionType="true">
+                   <NoTime Nb="?" Type="std::string"> </NoTime>  <!-- Typiquement si la log contient -->
+                   <KTime Nb="?" Type="int"> </KTime>  <!-- Mode Avion jaune , 1 seul double de temps -->
+                   <FullDate Nb="?">
+                           <!-- Moi annees jours sont optionnels -->
+                           <KYear Nb="?" Type="int">   </KYear>
+                           <DefYear Nb="?" Type="int" Def="2011"> </DefYear>
+
+                           <KMonth Nb="?" Type="int">  </KMonth>
+                           <DefMonth Nb="?" Type="int" Def="1"> </DefMonth>
+
+                           <KDay Nb="?" Type="int">    </KDay>
+                           <DefDay Nb="?" Type="int" Def="1"> </DefDay>
+
+                           <KHour Nb="1" Type="int">    </KHour>
+                           <KMin  Nb="1" Type="int">    </KMin>
+                           <KSec  Nb="1" Type="int">    </KSec>
+                           <DivSec Nb="?" Type="double" Def="1.0"> </DivSec>  <!-- Convention Survey en 1/100 sec -->
+                           <KMiliSec  Nb="?" Type="int">    </KMiliSec>
+                           <DivMiliSec Nb="?" Type="double" Def="1.0"> </DivMiliSec>
+
+                   </FullDate>
+             </SectionTime>
+
+             <KCoord1 Nb="1" Type="int"> </KCoord1>     <!-- Longitude -->
+             <DivCoord1 Nb="?" Type="double" Def="1.0"> </DivCoord1>
+             <KCoord2 Nb="1" Type="int">  </KCoord2>  <!-- Latitude  -->
+             <DivCoord2 Nb="?" Type="double" Def="1.0"> </DivCoord2>
+             <KCoord3 Nb="1" Type="int">  </KCoord3>
+             <DivCoord3 Nb="?" Type="double" Def="1.0"> </DivCoord3>
+
+             <!--  -->
+             <UnitesCoord Nb="*" Type="eUniteAngulaire" RefFile="ParamChantierPhotogram.xml" Container="std::vector"> </UnitesCoord>
+
+             <TrajAngles Nb="?">
+                 <Unites Nb="1" Type="eUniteAngulaire" RefFile="ParamChantierPhotogram.xml"> </Unites>
+                 <ConvOr Nb="1" Type="eConventionsOrientation" RefFile="ParamChantierPhotogram.xml"> </ConvOr>
+                 <KTeta1  Nb="1" Type="int"> </KTeta1>       <!-- = Teta Z = Teta12   = Yaw = ? Cap -->
+                 <!-- Si <0, Teta2 et Teta3 valent 0.0 -->
+                 <KTeta2  Nb="1" Type="int"> </KTeta2>       <!-- = Teta Y = Teta13   = Pitch =? Roulis -->
+                 <KTeta3  Nb="1" Type="int"> </KTeta3>       <!-- = Teta X = Teta23   = Roll  =? Tangage  -->
+
+                  <!-- Pour la declinaison magnetique : EN RADIAN !!!!!     -->
+                 <OffsetTeta1 Nb="?" Type="double" Def="0"> </OffsetTeta1>
+                 <OffsetTeta2 Nb="?" Type="double" Def="0"> </OffsetTeta2>
+                 <OffsetTeta3 Nb="?" Type="double" Def="0"> </OffsetTeta3>
+
+                 <!-- Souvent les angles sont donnes par rapport a un systeme different du systeme carto
+                      Donne une matrice de passage INS -> Carto 
+                 -->
+                 <RefOrTrajI2C Nb="?" RefType="RotationVect" RefFile="ParamChantierPhotogram.xml"> </RefOrTrajI2C>
+             </TrajAngles>
+
+              <!-- Pour les cas faciles ou les logs contiennent deja un identifiant d'image -->
+             <GetImInLog Nb="?">
+                   <KIm Nb="1" Type="int"> </KIm>
+             </GetImInLog>
+
+      </TrAJ2_SectionLog>
+
+
+
+        <!-- Section de Match par le temps -->
+       
+        <TrAJ2_SectionMatch Nb="*">
+              <IdIm Nb="1" Type="std::string">  </IdIm>
+              <IdLog Nb="1" Type="std::string"> </IdLog>
+
+              <!-- Requis par tous les algo de match sur le temps , interdit en MatchByName -->
+              <LearnOffset Nb="?" UnionType="true">
+                    <LearnByExample Nb="?">
+                          <!-- Im0-Log0 est un couple pour lequel on est sur du match -->
+                          <Im0 Nb="1" Type="std::string">   </Im0>
+                          <Log0 Nb="1" Type="int">  </Log0>
+                          <DeltaMinRech  Nb="1" Type="int">     </DeltaMinRech>
+                          <DeltaMaxRech  Nb="1" Type="int">     </DeltaMaxRech>
+                          <Show  Nb="?" Type="bool" Def="false">     </Show>
+                          <ShowPerc  Nb="?" Type="bool" Def="true">     </ShowPerc>
+                    </LearnByExample>
+                    <!-- L'offset est simplement le temps qui maximise le nombre
+                         de match comrise entre t1 et  t2+Ofs+[-MaxEcart,MaxEcart]
+                    -->
+                    <LearnByStatDiff Nb="?">
+                           <MaxEcart Nb="?" Type="double" Def="0.52"> </MaxEcart>
+                    </LearnByStatDiff>
+              </LearnOffset>
+
+              <AlgoMatch  Nb="1" UnionType="true">
+                  <MatchNearestIm Nb="?">
+                          <!-- Pour etre "sur", on va prendre par exe TolMatch= 0.6 
+                               et TolAmbig = 0.8, afin de selectionner des match bon et non ambigus
+                          -->
+                          <TolMatch  Nb="1" Type="double">     </TolMatch>
+                          <TolAmbig  Nb="1" Type="double">     </TolAmbig>
+                   </MatchNearestIm>
+                   <MatchByName Nb="?">
+                        <KeyLog2Im Nb="1" Type="std::string"> </KeyLog2Im>
+                   </MatchByName>
+              </AlgoMatch>
+              <ModeliseVitesse Nb="?" RefType="TrAJ2_ModeliseVitesse"> </ModeliseVitesse>
+              <GenerateOrient Nb="?" RefType="TrAJ2_GenerateOrient"> </GenerateOrient>
+        </TrAJ2_SectionMatch>
+
+
+        <TrAJ2_ConvertionAppuis Nb="*">
+             <Id Nb="1" Type="std::string"> </Id>
+
+             <TraJ2_FilesInputi_Appuis Nb="+">
+                  <KeySetOrPat Nb="1" Type="std::string"> </KeySetOrPat>
+                  <Autom Nb="1" Type="cElRegex_Ptr"> </Autom>
+                  <GetMesTer Nb="1" Type="bool">   </GetMesTer>
+                  <GetMesIm Nb="1" Type="bool">   </GetMesIm>
+                  <KIdPt Nb="1" Type="int">  </KIdPt>
+             </TraJ2_FilesInputi_Appuis>
+
+
+             <!-- Si les deux meme, alors Concat ds le meme fichier -->
+             <OutMesTer Nb="?" Type="std::string"> </OutMesTer>
+             <OutMesIm Nb="?" Type="std::string"> </OutMesIm>
+
+             <AutomComment  Nb="?" Type="cElRegex_Ptr">   </AutomComment>
+
+             <UnitesCoord Nb="*" Type="eUniteAngulaire" RefFile="ParamChantierPhotogram.xml" Container="std::vector"> </UnitesCoord>
+
+             <KIncertPlani Nb="?" Type="int" Def="-1">  </KIncertPlani>
+             <KIncertAlti Nb="?" Type="int" Def="-1">  </KIncertAlti>
+             <ValIncertPlani Nb="?" Type="double" Def="1.0"> </ValIncertPlani>
+             <ValIncertAlti Nb="?" Type="double" Def="1.0"> </ValIncertAlti>
+             <KxTer Nb="1" Type="int">  </KxTer>
+             <KyTer Nb="1" Type="int">  </KyTer>
+             <KzTer Nb="1" Type="int">  </KzTer>
+             <KIIm Nb="1" Type="int">  </KIIm>
+             <KJIm Nb="1" Type="int">  </KJIm>
+             <KIdIm  Nb="1" Type="int">  </KIdIm>
+
+             <OffsetIm Nb="?" Type="Pt2di" Def="Pt2di(0,0)">    </OffsetIm>
+             <KeyId2Im  Nb="1"  Type="std::string"> </KeyId2Im>
+             <SystemeIn Nb="1" RefType="SystemeCoord" RefFile="ParamChantierPhotogram.xml"> </SystemeIn>
+             <SystemeOut Nb="1" RefType="SystemeCoord" RefFile="ParamChantierPhotogram.xml"> </SystemeOut>
+        </TrAJ2_ConvertionAppuis>
+
+        <TrAJ2_ExportProjImage Nb="*">
+              <NameFileOut Nb="1" Type="std::string"> </NameFileOut>
+              <KeySetOrPatIm Nb="1" Type="std::string"> </KeySetOrPatIm>
+              <NameAppuis Nb="1" Type="std::string"> </NameAppuis> <!-- Flottants -->
+              <KeyAssocIm2Or Nb="1" Type="std::string"> </KeyAssocIm2Or>
+                          <!-- Im@App@I@J@X@Y@Z -->
+              <KeyGenerateTxt Nb="?" Type="std::string"> </KeyGenerateTxt>
+        </TrAJ2_ExportProjImage>
+
+
+  </Param_Traj_AJ>
+
+  <!-- Pour generer un ensemble de chaine; est l'union des KeySet (ensembles de filtres 
+       sur des fichiers existant) et des chaine literrale KeyString; encapsulee par GetStrFromGenStr
+  -->
+  <ParamGenereStr Nb="1"  Class="true"  ToReference="true"  UnionType="true">
+         <KeySet Nb="*"  Type="std::string"> </KeySet> 
+         <KeyString Nb="*"  Type="std::string"> </KeyString> 
+  </ParamGenereStr>
+
+   <!--  Pour genere les chaines de caracters "voisine" d'une autre; ces voisins sont fait des voisins
+        "fixes", calcule comme ParamGenereStr, et de voisin "variable" calcules par KeyRel;
+         encapsule dans la fonction GetStrFromGenStrRel
+    -->
+  <ParamGenereStrVois Nb="1"  Class="true"  ToReference="true"  UnionType="true">
+         <KeyRel Nb="*"  Type="std::string"> </KeyRel> 
+         <KeyString Nb="*"  Type="std::string"> </KeyString> 
+         <KeySet Nb="*"  Type="std::string"> </KeySet> 
+         <UseIt Nb="?" Type="bool" Def="false"> </UseIt> <!-- Pour anihilier dans EtapeMEC -->
+  </ParamGenereStrVois>
+
+
+  <ParamFiltreDetecRegulProf Nb="1" Class="true"   ToReference="true">
+         <SzCC Nb="?" Type="int" Def="2"> </SzCC>
+         <PondZ Nb="?" Type="double" Def="2.0"> </PondZ>
+         <Pente Nb="?" Type="double" Def="0.5"> </Pente>
+         <SeuilReg Nb="?" Type="double" Def="0.5"> </SeuilReg>
+         <V4 Nb="?" Type="bool" Def="false"> </V4>
+         <NbCCInit Nb="?" Type="int" Def="5"> </NbCCInit>
+         <NameTest Nb="?" Type="std::string"> </NameTest>
+  </ParamFiltreDetecRegulProf>
+
+  <ParamFusionMNT  Nb="1" Class="true">
+       <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                         RefFile="ParamChantierPhotogram.xml"
+        >
+        </DicoLoc>
+
+       <SectionName Nb="1">
+
+             <!-- calcule le nuage carte de prof input a partir de deux noms de fichiers l'un venant de
+                  GenereRes , l'autre de GenereInput 
+             -->
+             <KeyNuage Type="std::string" Nb="1"> </KeyNuage>
+             <!-- Doit genere le nom du fichier XML-resultat, a partir d'un declencheur -->
+             <KeyResult   Type="std::string" Nb="1"> </KeyResult>
+             <KeyResultIsLoc   Type="bool" Nb="?" Def="true"> </KeyResultIsLoc>
+
+             <!-- Definit le modele de geometrie resultant, c'est un cle d'association
+                 par defaut il sera pris sur le premier input-->
+             <ModeleNuageResult Type="std::string" Nb="?"> </ModeleNuageResult>
+
+             <!-- Defaut Identite, par exemple Nuage-IMGP7046.JPG.xml -> IMGP7046.JPG.xml -->
+             <KeyNuage2Im   Type="std::string" Nb="?" Def="NKS-Assoc-Prefix"> </KeyNuage2Im>
+       </SectionName>
+
+       <!-- Pour gerer le score pas toujours simple fonction de correlation -->
+       <SectionScoreQualite Nb="?" UnionType="true">
+           <ScoreMM1P Nb="?">
+                 <MakeFileResult Nb="?" Type="bool" Def="false"> </MakeFileResult>
+                 <PdsAR Nb="?" Type="double" Def="1.0"> </PdsAR>
+
+                 <PdsDistor Nb="?" Type="double" Def="0.5"> </PdsDistor>
+                 <AmplImDistor Nb="?" Type="double" Def="100.0"> </AmplImDistor>
+                 <!-- Score = Seuil/ (Seuil+Dist) -->
+                 <SeuilDist  Nb="?"  Type="double" Def="0.5"> </SeuilDist>
+                 
+                 <PdsDistBord Nb="?" Type="double" Def="0.25"> </PdsDistBord>
+                 <!-- Score = Min(1, D/Seuil) -->
+                 <SeuilDisBord  Nb="?" Type="double" Def="3.0"> </SeuilDisBord>
+           </ScoreMM1P>
+       </SectionScoreQualite>
+
+
+       <ParamAlgoFusionMNT Nb="1">
+           <FMNTSeuilCorrel Nb="1" Type="double"> </FMNTSeuilCorrel>
+           <FMNTGammaCorrel Nb="1" Type="double"> </FMNTGammaCorrel>
+           <KeyPdsNuage Nb="?" Type="std::string"> </KeyPdsNuage>
+
+           <SpecAlgoFMNT Nb="1">
+                <SigmaPds  Type="double" Nb="1"> </SigmaPds>
+                <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->
+                <SeuilMaxLoc Type="double" Nb="1"> </SeuilMaxLoc> <!-- Utilise pour selction MaxLoc -->
+                <SeuilCptOk Type="double" Nb="1"> </SeuilCptOk> <!-- Utilise pour Compteur Nb Image -->
+                <MaxDif Type="double" Nb="?" Def="1e9">  </MaxDif> <!-- Inutilise pour l'instant-->
+                <NBMaxMaxLoc Type="int" Nb="?" Def="5"> </NBMaxMaxLoc>
+
+                <QuickExp Nb="?" Type="bool" Def="false"> </QuickExp>
+                <FMNT_ProgDyn Nb="?">
+                       <Regul Nb="1" Type="double"> </Regul>
+                            <!-- Le cout de regul pour dun delta Z = D est
+                                 (sqrt(1 +D/S0) -1) * 2S0  ; c.a.d un cout concave, qui
+                                 en 0 est nul et de pente 1
+                             -->
+                       <Sigma0 Nb="1" Type="double"> </Sigma0>
+                       <NbDir Nb="1" Type="int"> </NbDir>
+                       <FMNT_GesNoVal Nb="?">
+                            <PenteMax Nb="1" Type="double"> </PenteMax>
+                                <!-- GainNoVal : proportion du gain max; Gain 0 privilegie le NoVal -->
+                            <CostNoVal Nb="1" Type="double"> </CostNoVal>
+                             <Trans Nb="1" Type="double"> </Trans>
+                        </FMNT_GesNoVal>
+                </FMNT_ProgDyn>
+                <ParamRegProf RefType="ParamFiltreDetecRegulProf" Nb="?"> </ParamRegProf>
+           </SpecAlgoFMNT>
+       </ParamAlgoFusionMNT>
+
+
+       <!-- Decrit tout les fichiers qui vont declencher un calcul, le nom du resultat sera
+           calculer avec KeyResult  -->
+       <GenereRes Nb="1" RefType="ParamGenereStr"> </GenereRes>
+          
+       <!-- Pour chaque declencheur, genere les inputs -->
+       <GenereInput Nb="1" RefType="ParamGenereStrVois"> </GenereInput>
+
+      <!-- Gestion du // par MkF -->
+
+       <SectionGestionChantier Nb="1">
+             <SzDalles Nb="?" Type="int" Def="2000"> </SzDalles>
+             <RecouvrtDalles Nb="?" Type="int" Def="40"> </RecouvrtDalles>
+             <ParalMkF Nb="?" Type="std::string"> </ParalMkF>
+             <ByProcess Nb="?" Type="bool" Def="false"> </ByProcess>
+
+             <!-- Ne pas utiliser, usage interne a la paralellisation -->
+             <InterneCalledByProcess  Nb="?" Type="bool" Def="false"> </InterneCalledByProcess>
+             <InterneSingleImage Nb="?" Type="std::string" Def=""> </InterneSingleImage>
+             <InterneSingleBox Nb="?" Type="int" Def="-1"> </InterneSingleBox>
+             <WorkDirPFM Nb="?" Type="std::string"> </WorkDirPFM>
+             <BoxTest Nb="?" Type="Box2di"> </BoxTest>
+       </SectionGestionChantier>
+
+
+  </ParamFusionMNT>
+
+  <ParamFusionNuage  Nb="1" Class="true">
+      <ModeMerge Nb="1" Type="eTypeMMByP"> </ModeMerge>
+      <PFNMiseAuPoint Nb="1">
+            <SzVisu  Nb="?" Type="Pt2di"> </SzVisu>
+            <!-- Visualise les diff de prof par couple -->
+            <TestImageDif Nb="?" Type="bool" Def="false"></TestImageDif>
+            <VisuGrad Nb="?" Type="bool"  Def="false"></VisuGrad>
+            <VisuLowPts Nb="?" Type="bool"  Def="false"></VisuLowPts>
+            <VisuImageCoh Nb="?" Type="bool"  Def="false"></VisuImageCoh>
+            <VisuSelect  Nb="?" Type="bool"  Def="false"> </VisuSelect> <!-- Visualise la construction des points selectionnes -->
+            <VisuEnv  Nb="?" Type="bool"  Def="false"> </VisuEnv> <!-- Visualise les enveloppes -->
+            <VisuElim  Nb="?" Type="bool"  Def="false"> </VisuElim> <!-- Visualise chaque elimination -->
+            <ImageMiseAuPoint Nb="?" Type="std::string"> </ImageMiseAuPoint> <!-- Images pour lesquelles on active la visu -->
+      </PFNMiseAuPoint>
+      <GrapheRecouvrt Nb="1"> 
+             <TauxRecMin Nb="1" Type="double"> </TauxRecMin>
+             <ExtHom Nb="?" Type="std::string" Def="dat"> </ExtHom>
+             <MinSzFilHom Nb="?" Type="int" Def="1000"> </MinSzFilHom>
+             <RecSeuilDistProf Nb="?" Type="double" Def="1.0"> </RecSeuilDistProf>
+             <NbPtsLowResume Nb="1" Type="int"> </NbPtsLowResume>
+             <CostPerImISOM Nb="?" Type="double" Def="0.2"> </CostPerImISOM>
+      </GrapheRecouvrt>
+      <ImageVariations Nb="1">
+           <V4Vois Nb="1" Type="bool"> </V4Vois>
+           <DistVois Nb="1" Type="int"> </DistVois>
+           <DynAngul Nb="1" Type="double"> </DynAngul>
+           <SeuilStrictVarIma Nb="1" Type="double"> </SeuilStrictVarIma>
+           <PenteRefutInitInPixel Nb="?" Type="double" Def="0.5"> </PenteRefutInitInPixel>
+           <ComputeIncid Nb="?" Type="bool" Def="true"> </ComputeIncid>
+           <DilateBord Nb="?" Type="int" Def="3"> </DilateBord>
+      </ImageVariations>
+      <PFM_Selection Nb="1">
+            <ElimDirectInterior Nb="?" Type="double" Def="10.0"> </ElimDirectInterior>
+            <LowRatioSelectIm Nb="?" Type="double" Def="0.001"> </LowRatioSelectIm>
+            <HighRatioSelectIm Nb="?" Type="double" Def="0.05"> </HighRatioSelectIm>
+      </PFM_Selection>
+  </ParamFusionNuage>
+
+
+  <CWWSImage Nb="1" Class="true" ToReference="true">
+      <NameIm Nb="1" Type="std::string"> </NameIm>
+      <CWWSIVois Nb="*">
+            <NameVois Nb="1" Type="std::string"> </NameVois>
+      </CWWSIVois>
+  </CWWSImage>
+
+   <ChantierAppliWithSetImage Nb="1" Class="true" ToReference="true">
+       <Images Nb="*" RefType="CWWSImage"> </Images>
+   </ChantierAppliWithSetImage>
+
+
+   <AnaTopoBascule Nb="1" Class="true" ToReference="true">
+       <OneZonzATB Nb="*">
+           <BoxGlob Type="Box2di" Nb="1"> </BoxGlob>
+           <BoxMasq Type="Box2di" Nb="1"> </BoxMasq>
+           <GermGlob Type="Pt2di" Nb="1"> </GermGlob>
+           <GermMasq Type="Pt2di" Nb="1"> </GermMasq>
+           <NbGlob Type="int" Nb="1"> </NbGlob>
+           <NbMasq Type="int" Nb="1"> </NbMasq>
+           <Num Type="int" Nb="1">  </Num>
+           <Valide Type="bool" Nb="1"> </Valide>
+       </OneZonzATB>
+   </AnaTopoBascule>
+
+   <!-- En fait on ne sauve que les XML avec masq modifie , car c'est plus simple et cela permet
+    de traiter en meme temps le cas ou il n'y a pas de pb
+   -->
+
+   <AnaTopoXmlBascule Nb="1" Class="true" ToReference="true">
+       <ResFromAnaTopo Nb="1" Type="bool"> </ResFromAnaTopo>
+       <OneZonXmlAMTB Nb="*">
+            <NameXml Nb="1" Type="std::string"> </NameXml>
+       </OneZonXmlAMTB>
+   </AnaTopoXmlBascule>
+    
+
+
+   <ParamFiltreDepthByPrgDyn Nb="1" Class="true" ToReference="true">
+        <CostNonAff Nb="?" Type="double" Def="0.5">   </CostNonAff>
+        <CostTrans Nb="?" Type="double" Def="10">     </CostTrans>
+        <CostRegul Nb="?" Type="double" Def="0.3">    </CostRegul>
+        <StepZ     Nb="1" Type="double">              </StepZ>
+        <DzMax     Nb="?" Type="double" Def="10.0">   </DzMax>
+        <NbDir     Nb="?" Type="int" Def="9">         </NbDir>
+   </ParamFiltreDepthByPrgDyn>
+
+
+  <!-- Pourra servir pour construire des affinite, homographie ... -->
+
+  <XmlAffinR2ToR  Nb="1" Class="true"  ToReference="true">
+         <CoeffX Nb="1" Type="double">   </CoeffX>
+         <CoeffY Nb="1" Type="double">   </CoeffY>
+         <Coeff1 Nb="1" Type="double">   </Coeff1>
+  </XmlAffinR2ToR>
+
+
+   <XmlHomogr  Nb="1" Class="true"  ToReference="true">
+        <X Nb="1" RefType="XmlAffinR2ToR">   </X>
+        <Y Nb="1" RefType="XmlAffinR2ToR">   </Y>
+        <Z Nb="1" RefType="XmlAffinR2ToR">   </Z>
+   </XmlHomogr>
+
+
+   <XmlRHHResLnk  Nb="1" Class="true"  ToReference="true">
+        <Hom12 Nb="1"  RefType="XmlHomogr">  </Hom12>
+        <Ok Nb="1"  Type="bool">               </Ok>
+        <Qual Nb="1"  Type="double">           </Qual>
+        <NbPts Nb="1"  Type="int">           </NbPts>
+        <EchRepP1 Nb="*" Type="Pt3dr" Container="std::vector"> </EchRepP1>
+        <PRep Nb="1" Type="Pt3dr"> </PRep>
+   </XmlRHHResLnk>
+
+
+    <XMLSaveOriRel2Im  Nb="1" ToReference="true" Class="true">
+        <!-- Rotation  :  P1 = C + R * P2, C est la base dans les coordonnes image 1 -->
+        <ParamRotation  Nb="1"  RefType="RotationVect"  RefFile="ParamChantierPhotogram.xml">  </ParamRotation>
+        <Centre Nb="1" Type="Pt3dr"> </Centre>
+        <!-- Homographie P1 => P2 -->
+        <Homogr Nb="1" RefType="XmlHomogr"> </Homogr>
+        <BOnHRatio Nb="1" Type="double"> </BOnHRatio>
+        <!-- Fov experimental, calcules sur l'ellipse d'inertie -->
+        <FOVMin Nb="1" Type="double"> </FOVMin>
+        <FOVMax Nb="1" Type="double"> </FOVMax>
+    </XMLSaveOriRel2Im>
+
+<Polyg3D  Nb="1" ToReference="true" Class="true">
+ <Item Nb="*" Container="std::vector">
+      <Pt Type="Pt3dr" Nb="*"  Container="std::vector"></Pt>
+      <Mode Type="int" Nb="1"></Mode>
+ </Item>
+</Polyg3D>
+
+<XML_TestImportOri Nb="1" ToReference="true" Class="true">
+   <x Type="int" Nb="1"> </x>
+   <Tree Type="XmlXml" Nb="1"> </Tree>
+</XML_TestImportOri>
+
+
+<Verbatim File=".h.cpp">
+// };
+</Verbatim>
+<Verbatim File=".h">
+#endif // Define_NotSupIm
+</Verbatim>
+
+</GenCpp>
+
+
+
