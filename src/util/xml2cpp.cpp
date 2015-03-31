@@ -1754,6 +1754,12 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2diSubst   &      an
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      anObj)  { return ToXMLTree(aNameTag,anObj.Val()); }
 
 
+
+XmlXml::XmlXml()
+{
+     mTree = cElXMLTree::ValueNode("XmlXml","");
+}
+
 void xml_init(XmlXml    & aXX,cElXMLTree * aTree)
 {
    aXX.mTree = aTree->Clone();
