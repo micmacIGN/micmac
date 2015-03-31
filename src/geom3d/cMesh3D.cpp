@@ -510,6 +510,11 @@ void cMesh::addEdge(int aK, int bK)
     }
 }
 
+void cMesh::removeTriangle(int idx, bool doAdjacence)
+{
+    removeTriangle(mTriangles[idx], doAdjacence);
+}
+
 void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
 {
     int index = aTri.getIdx();
@@ -775,7 +780,7 @@ void cMesh::clean()
 
     std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
     for (unsigned int var = 0; var < toRemove.size(); ++var) {
-         removeTriangle(*getTriangle(toRemove[var]));
+         removeTriangle(toRemove[var]);
     }
 
     //cout << "Removing isolated vertex" << endl;
