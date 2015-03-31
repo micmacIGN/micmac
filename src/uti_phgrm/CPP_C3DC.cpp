@@ -191,8 +191,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends on mode")
                     << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode")
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
-                    << EAM(mDefCor,"DefCor",false,"Def correlation,context depend")
-                    << EAM(mZReg,"ZReg",false,"Regularisation , context depend")
+                    << EAM(mDefCor,"DefCor",false,"Def correlation, context depend")
+                    << EAM(mZReg,"ZReg",false,"Regularisation, context depend")
     );
 
    if (MMVisualMode) return;
@@ -327,16 +327,14 @@ void cAppli_C3DC::DoAll()
     {
         switch (mType)
         {
-             case eBigMac :
-             case eMicMac :
-             case eQuickMac :
+             case eBigMac:
+             case eMicMac:
+             case eQuickMac:
                   PipelineQuickMack();
              break;
 
-             case eStatue :
-                  PipelineEpip();
-             break;
-             case eForest :
+             case eStatue:
+             case eForest:
                   PipelineEpip();
              break;
 
@@ -510,7 +508,7 @@ class cAppli_MPI2Mnt
 
 std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
 {
-    return  "Bacule" + aNameIm + ".xml" ;
+    return  "Bascule" + aNameIm + ".xml" ;
 }
 
 

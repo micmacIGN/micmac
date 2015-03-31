@@ -104,7 +104,7 @@ int TiPunch_main(int argc,char ** argv)
     bool aBin = true;
     bool aRmPoissonMesh = false;
     int aDepth = 8;
-    bool aFilter = true;
+    bool aFilter = false;
     aMode = "Statue";
 
     ElInitArgMain
@@ -116,7 +116,7 @@ int TiPunch_main(int argc,char ** argv)
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
                             << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
-                            << EAM(aFilter,"Filter",true,"Filter mesh (def=true)")
+                            << EAM(aFilter,"Filter",true,"Filter mesh (def=false)")
                             << EAM(aMode,"Mode",true,"C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
             );
 
@@ -213,11 +213,16 @@ int TiPunch_main(int argc,char ** argv)
         cout << endl;
         for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
         {
-            std::string aNameXml  = PIMsFilter->NameFileXml(eTMIN_Depth,*itS);
+            std::string aNameXml = PIMsFilter->NameFileXml(eTMIN_Merge,*itS);
 
-            vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
+            if (ELISE_fp::exist_file(aNameXml))
+            {
+                vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
 
-            cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
+                cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
+            }
+            else
+                cout << "Can't load file " << aNameXml << endl;
         }
 
         cout << endl;

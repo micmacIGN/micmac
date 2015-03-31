@@ -157,6 +157,7 @@ class cObjectGL : public cObject
             _glError = glError;
         }
 
+
     protected:
 
         float   _lineWidth;
@@ -460,7 +461,7 @@ class cPolygon : public cObjectGL
 
 		void	setAllVisible(bool visible);
 
-		float	lenght();
+        float   length();
 
     protected:
 
@@ -487,10 +488,10 @@ class cPolygon : public cObjectGL
         //!states if polygon is closed
         bool                _bIsClosed;
 
-		//!states if point with index _idx is selected
-		bool                _bSelectedPoint;
+        //!states if point with index _idx is selected
+        bool                _bSelectedPoint;
 
-		//!states if segments should be displayed
+        //!states if segments should be displayed
         bool                _bShowLines;
 
         //!states if names should be displayed
