@@ -11,7 +11,8 @@ cObject::cObject() :
 	_rotation(QVector3D(0.f,0.f,0.f)),
 	_scale(QVector3D(1.f, 1.f,1.f)),
     _alpha(0.6f),
-    _state(state_default)
+    _state(state_default),
+	_parent(NULL)
 {
     for (int iC = 0; iC < state_COUNT; ++iC)
         _color[iC] = QColor(255,255,255);
@@ -23,22 +24,35 @@ cObject::cObject(QVector3D pos, QColor color_default) :
 	_rotation(QVector3D(0.f,0.f,0.f)),
 	_scale(QVector3D(1.f, 1.f,1.f)),
     _alpha(0.6f),
-    _state(state_default)
+	_state(state_default),
+	_parent(NULL)
 {
     for (int iC = 0; iC < state_COUNT; ++iC)
         _color[iC] = color_default;
 }
 
-cObject::~cObject(){}
+cObject::~cObject()
+{
+//	for (int i = 0; i < _children.size(); ++i)
+//	{
+//		if(_children[i])
+//			_children[i]->setParent(NULL);
+//	}
+
+}
 
 QColor cObject::getColor()
 {
     return _color[state()];
 }
 
+bool cObject::isVisible()     { return (state() != state_invible); }
+
+void cObject::setPosition(const QVector3D& aPt)  { _position = aPt;  }
+
 cObject& cObject::operator =(const cObject& aB)
 {
-    if (this != &aB)
+	if (this != &aB)
     {
         _name      = aB._name;
         _position  = aB._position;
@@ -62,13 +76,65 @@ object_state cObject::state() const
 
 void cObject::setState(object_state state)
 {
-    _state = state;
+	_state = state;
 }
 
-cCircle::cCircle(QVector3D pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
-    _dim(dim)
+cObject*cObject::child(int id)
 {
-    setPosition(pt);
+	if(id >= 0 && id< _children.size())
+		return _children[id];
+	else
+		return NULL;
+}
+
+void cObject::addChild(cObject* child)
+{
+	_children.push_back(child);
+}
+
+void cObject::removeChild(cObject* child)
+{
+	int id = _children.indexOf(child);
+
+	if(id<0)
+		return;
+	else
+		_children.remove(id);
+
+}
+
+void cObject::replaceChild(int id, cObject* child)
+{
+	if(id >= 0 && id< _children.size())
+	{
+		_children[id] = child;
+		child->setParent(this);
+	}
+}
+cObject* cObject::parent() const
+{
+	return _parent;
+}
+
+void cObject::setParent(cObject* parent)
+{
+//	if(_parent)
+//		_parent->removeChild(this);
+
+	_parent = parent;
+
+	if(_parent)
+	{
+		_parent->addChild(this);
+		_position = _parent->getPosition();
+	}
+}
+
+
+cCircle::cCircle(QVector3D pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
+	_dim(dim)
+{
+	setPosition(pt);
     cObject::setColor(col);
 	setScale(QVector3D(scale,scale,scale));
     setLineWidth(lineWidth);
@@ -556,7 +622,7 @@ cPoint::cPoint(QPointF pos,
     _pointState(state),
     _highlight(highlight),
     _drawCenter(drawCenter),
-    _bEpipolar(false)
+	_bEpipolar(false)
 {
     setName(name);
     cObject::setColor(color);
@@ -567,45 +633,59 @@ cPoint::cPoint(QPointF pos,
 QColor cPoint::colorPointState()
 {
 
-    QColor color = getColor();
+	QColor color = getColor();
 
-    if (!isSelected())
-    {
-        switch(_pointState)
-        {
-		case qEPI_NonSaisi ://
-            color = Qt::yellow;
-            break;
+	if (!isSelected())
+	{
+		if(_parent)
+			color = Qt::red;
+		else
+			switch(_pointState)
+			{
+				case qEPI_NonSaisi ://
+					color = Qt::yellow;
+					break;
 
-		case qEPI_Refute ://
-            color = Qt::red;
-            break;
+				case qEPI_Refute ://
+					color = Qt::red;
+					break;
 
-		case qEPI_Douteux ://
-            color = QColor(255, 127, 0, 255);
-            break;
+				case qEPI_Douteux ://
+					color = QColor(255, 127, 0, 255);
+					break;
 
-		case  qEPI_Valide://
-            color = Qt::green;
-            break;
+				case  qEPI_Valide://
+					color = Qt::green;
+					break;
 
-		case  qEPI_Disparu://
-		case  qEPI_NonValue://
-            break;
-        }
+				case  qEPI_Disparu://
+				case  qEPI_NonValue://
+					break;
+			}
     }
 
 	return color;
 }
 
+void cPoint::setParent(cObject* parent)
+{
+	cObject::setParent(parent);
+	if(parent)
+	{
+		cPoint* pointParent = (cPoint*)parent;
+		setX(pointParent->x());
+		setY(pointParent->y());
+	}
+}
+
 void cPoint::draw()
 {
-    if (isVisible())
-    {
+	if (isVisible())
+	{
 
-        QColor color = colorPointState();
+		QColor color =  colorPointState();
 
-        glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
+		glColor4f(color.redF(),color.greenF(),color.blueF(),_alpha);
 
         GLdouble    mvMatrix[16];
         GLdouble    projMatrix[16];
@@ -625,9 +705,9 @@ void cPoint::draw()
 
         GLdouble xp,yp,zp;
 
-        mmProject(x(),y(),0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
+		mmProject(x(),y(),0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
 
-        glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+		glDrawEllipsed(xp, yp, _diameter, _diameter,_parent ? 64 : 16);
 
         if (_drawCenter)
         {
@@ -658,7 +738,16 @@ void cPoint::draw()
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
-    }
+	}
+}
+
+void cPoint::setPosition(QPointF pos)
+{
+	if(!parent())
+	{
+		setX(pos.x());
+		setY(pos.y());
+	}
 }
 
 void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
@@ -670,7 +759,7 @@ void cPoint::setEpipolar(QPointF pt1, QPointF pt2)
 
 void cPoint::glDraw()
 {
-    glVertex2f(x(),y());
+	glVertex2f(x(),y());
 }
 
 //********************************************************************************
@@ -756,7 +845,6 @@ void cPolygon::draw()
 
         disableOptionLine();
     }
-
 
 	if(helper() != NULL)
 	{
@@ -868,12 +956,13 @@ void cPolygon::add(cPoint &pt)
 }
 
 // TODO pourquoi les fonctions : 2 add et addPoint?
-void cPolygon::add(const QPointF &pt, bool selected)
+void cPolygon::add(const QPointF &pt, bool selected, cPoint* lock )
 {
 	if (size() <= _maxSz)
     {
 		cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, selected, _color[state_default],Qt::blue,_pointDiameter);
 
+		cPt.setParent(lock);
         cPt.drawCenter(!isLinear());
 
         _points.push_back(cPt);
@@ -882,19 +971,19 @@ void cPolygon::add(const QPointF &pt, bool selected)
 		RemoveLastPointAndClose();
 }
 
-void cPolygon::addPoint(const QPointF &pt)
+void cPolygon::addPoint(const QPointF &pt, cPoint* lock)
 {
 	if (size() >= 1 && size() <= _maxSz)
     {
 		cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
-
+		cPt.setParent(lock);
         cPt.drawCenter(!isLinear());
 
-        point(size()-1) = cPoint(cPt);
+		point(size()-1) = cPt;
     }
 
-    add(pt);
+	add(pt,false,lock);
 }
 
 void cPolygon::clear()
@@ -938,6 +1027,12 @@ void cPolygon::insertPoint()
 
 void cPolygon::removePoint(int i)
 {
+	if(_points[i].nbChild() == 1)
+	{
+		qDebug() << "remove parent";
+		_points[i].child(0)->setParent(NULL);
+	}
+
     _points.remove(i);
     _idx = -1;
 }
@@ -1088,7 +1183,7 @@ void cPolygon::setPointSize(float sz)
     if (helper() != NULL) helper()->setPointSize(sz);
 }
 
-bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
+cPoint* cPolygon::findNearestPoint(QPointF const &pos, float radius)
 {
     if (_bIsClosed || _bShowLines)
     {
@@ -1116,57 +1211,63 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
         {
             point(_idx).setSelected(true);
 
-            return true;
+			return &point(_idx);
         }
     }
 
-    return false;
+	return NULL;
 }
 
-void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible)
+void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible, cPoint* lock)
 {
     int nbVertex = size();	
 
     if(!_bIsClosed)
     {
-        if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
 
-            add(pos);
-
+		if (nbVertex == 1)                  // add current mouse position to polygon (for dynamic display)
+		{
+			add(pos,false,lock);
+		}
         else if (nbVertex > 1)               // replace last point by the current one
         {
-            point(nbVertex-1).setX( pos.x() );
-            point(nbVertex-1).setY( pos.y() );
-        }
+			point(nbVertex-1).setPosition(pos);
+			point(nbVertex-1).setParent(lock);
+		}
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
         if ( insertMode || isPointSelected()) // insert or move polygon point
         {
-            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]); // TODO add diameter parameter
-            pt.setDiameter(_pointDiameter);
 
+            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]); // TODO add diameter parameter
+
+			pt.setParent(lock);
+
+            pt.setDiameter(_pointDiameter);
 
             if (!ptIsVisible) pt.setVisible(false);
 
 			_helper->build(pt, size() == _maxSz ? false : insertMode);
         }
         else                                 // select nearest polygon point
-        {
-            findNearestPoint(pos, _selectionRadius / zoom);
+        {			
+			findNearestPoint(pos, _selectionRadius / zoom);
         }
-    }
+	}
 }
 
-int cPolygon::finalMovePoint()
+int cPolygon::finalMovePoint(cPoint* lock)
 {
     int idx = _idx;
+
 
     if ((_idx>=0) && (_helper != NULL) && _helper->size())   // after point move
     {
         int state = point(_idx).pointState();
 
-        point(_idx) = (*_helper)[1];
+		point(_idx) = (*_helper)[1];
+		point(idx).setParent(lock);
         point(_idx).setColor(_color[state_default]); // reset color to polygon color
         point(_idx).setPointState(state);
 
@@ -1364,7 +1465,7 @@ cRectangle::cRectangle(int maxSz, float lineWidth, QColor lineColor, int style) 
     cPolygon(maxSz, lineWidth, lineColor, Qt::red, style)
 {}
 
-void cRectangle::addPoint(const QPointF &pt)
+void cRectangle::addPoint(const QPointF &pt, cPoint* lock) // TODO add lock effect....
 {
     if (size() == 0)
     {
@@ -1375,7 +1476,7 @@ void cRectangle::addPoint(const QPointF &pt)
     }
 }
 
-void cRectangle::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible)
+void cRectangle::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible, cPoint* lock)
 {
     if (size())
     {
@@ -1825,7 +1926,7 @@ void cMaskedImageGL::deleteTextures()
 //********************************************************************************
 
 cObjectGL::cObjectGL():
-_glError(0)
+	_glError(0)
 {}
 
 void cObjectGL::setGLColor()

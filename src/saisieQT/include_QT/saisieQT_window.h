@@ -94,10 +94,13 @@ public:
     QString banniere() const;
     void setBanniere(const QString& banniere);
 
+	QString textToolBar() const;
+	void setTextToolBar(const QString& textToolBar);
+
 public slots:
 
-    //! Try to load a list of files
-    void addFiles(const QStringList& filenames, bool setGLData = true);
+	//! Try to load a list of files
+	void addFiles(const QStringList& filenames, bool setGLData = true);
 
     void zoomFactor(int aFactor);
 
@@ -271,6 +274,8 @@ private:
     int						_hg_revision;
 
     QString					_banniere;
+
+	QString					_textToolBar;
 
 };
 

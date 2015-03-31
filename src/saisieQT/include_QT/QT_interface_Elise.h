@@ -168,7 +168,14 @@ public slots:
     void                undo(bool);
 
 protected:
-	bool isPolygonZero();
+
+	bool				isPolygonZero();
+
+	float				lenghtRule();
+protected slots:
+
+	void				updateToolBar();
+
 private slots:
 
     void                addPoint(QPointF point);
