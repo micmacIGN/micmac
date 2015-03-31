@@ -1255,9 +1255,9 @@ void SaisieQtWindow::setTextToolBar(const QString& textToolBar)
 
 void SaisieQtWindow::setLayout(uint sy)
 {
-	_layout_GLwidgets->setContentsMargins(sy,sy,sy,sy);
-	_layout_GLwidgets->setHorizontalSpacing(sy);
-	_layout_GLwidgets->setVerticalSpacing(sy);
+    _layout_GLwidgets->setContentsMargins(sy,sy,sy,sy);
+    _layout_GLwidgets->setHorizontalSpacing(sy);
+    _layout_GLwidgets->setVerticalSpacing(sy);
     _ui->QFrame_OpenglLayout->setLayout(_layout_GLwidgets);
 
     int cpt=0;
@@ -1641,12 +1641,11 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
             {
                 int imHeight = glW->getGLData()->glImageMasked()._m_image->height();
 
-                //text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
 
                 if(glW->getGLData()->getCurrentPolygonIndex() == 1)
                 {
-					textRule = QString(" ") + tr("Image length") + QString(" : ") + QString::number(glW->getGLData()->currentPolygon()->lenght()) + QString(" px");
+                    textRule = QString(text + " \t ") + tr("Image length") + QString(" : ") + QString::number(glW->getGLData()->currentPolygon()->length()) + QString(" px");
                 }
             }
     }
