@@ -809,20 +809,20 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
     {
         if(getWidget(i)->getGLData()->polygonCount() == 1)
         {
-			cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, Geom_cross);
+            cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, Geom_cross);
             polyg->setPointSize(10);
             getWidget(i)->getGLData()->addPolygon(polyg);
         }
         getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
-		//getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
+        //getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
 
-		getWidget(i)->getGLData()->polygon(1)->setAllVisible(true);
+        getWidget(i)->getGLData()->polygon(1)->setAllVisible(true);
 
-		if(check)
-			_ui->label_ImagePosition_2->show();
-		else
-			_ui->label_ImagePosition_2->hide();
-	}
+        if(check)
+            _ui->label_ImagePosition_2->show();
+        else
+            _ui->label_ImagePosition_2->hide();
+    }
 
 //    if(check)
 //        qDebug() << "Rules";
@@ -1245,12 +1245,12 @@ QString SaisieQtWindow::strippedName(const QString &fullFileName)
 }
 QString SaisieQtWindow::textToolBar() const
 {
-	return _textToolBar;
+    return _textToolBar;
 }
 
 void SaisieQtWindow::setTextToolBar(const QString& textToolBar)
 {
-	_textToolBar = textToolBar;
+    _textToolBar = textToolBar;
 }
 
 void SaisieQtWindow::setLayout(uint sy)
@@ -1631,7 +1631,7 @@ void SaisieQtWindow::setAutoName(QString val)
 void SaisieQtWindow::setImagePosition(QPointF pt)
 {
     QString text(tr("Image position : "));
-	QString textRule;
+    QString textRule;
 
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
@@ -1645,13 +1645,13 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
 
                 if(glW->getGLData()->getCurrentPolygonIndex() == 1)
                 {
-                    textRule = QString(text + " \t ") + tr("Image length") + QString(" : ") + QString::number(glW->getGLData()->currentPolygon()->length()) + QString(" px");
+                    textRule = QString(text + " \t ") + tr("Image length : ") + QString::number(glW->getGLData()->currentPolygon()->length()) + QString(" px");
                 }
             }
     }
 
     _ui->label_ImagePosition_1->setText(text);
-	_ui->label_ImagePosition_2->setText(text + textRule + QString(" ") + textToolBar());
+    _ui->label_ImagePosition_2->setText(textRule + QString(" ") + textToolBar());
 }
 
 void SaisieQtWindow::setImageName(QString name)

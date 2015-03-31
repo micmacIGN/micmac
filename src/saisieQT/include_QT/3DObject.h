@@ -58,10 +58,10 @@ enum object_state {
 };
 
 enum point_geometry {
-    simple_circle,
-    double_circle,
-    epipolar,
-	Geom_cross,
+    Geom_simple_circle,
+    Geom_double_circle,
+    Geom_epipolar,
+    Geom_cross,
     no_geometry
 };
 
@@ -79,11 +79,11 @@ class cObject
         QVector3D   getRotation()   { return _rotation; }
         QColor  getColor();
         QVector3D   getScale()      { return _scale;    }
-		bool    isVisible();
+        bool    isVisible();
         bool    isSelected()    { return (state() == state_selected);}
 
         void    setName(QString name)          { _name = name;     }
-		void	setPosition(QVector3D const &aPt);
+        void	setPosition(QVector3D const &aPt);
         void    setRotation(QVector3D const &aPt)  { _rotation = aPt;  }
         void    setColor(QColor const &aCol, object_state state = state_default)   { _color[state] = aCol;    }
         void    setScale(QVector3D aScale)         { _scale = aScale; }
@@ -92,22 +92,22 @@ class cObject
 
         cObject & operator = (const cObject &);
 
-		object_state   state() const;
-		void     setState(object_state state);
+        object_state   state() const;
+        void     setState(object_state state);
 
-		cObject* child(int id = 0);
+        cObject* child(int id = 0);
 
-		int		 nbChild(){return _children.size();}
+        int		 nbChild(){return _children.size();}
 
-		void	 addChild(cObject* child);
+        void	 addChild(cObject* child);
 
-		void	 removeChild(cObject* child);
+        void	 removeChild(cObject* child);
 
-		void	 replaceChild(int id,cObject* child);
+        void	 replaceChild(int id,cObject* child);
 
-		virtual	 cObject* parent() const;
+        virtual	 cObject* parent() const;
 
-		virtual	 void	 setParent(cObject* parent);
+        virtual	 void	 setParent(cObject* parent);
 
 protected:
 
@@ -124,9 +124,9 @@ protected:
 
         object_state   _state;
 
-		QVector< cObject* > _children;
+        QVector< cObject* > _children;
 
-		cObject*			_parent;
+        cObject*			_parent;
 };
 
 class cObjectGL : public cObject
@@ -182,7 +182,7 @@ class cPoint : public cObjectGL, public QPointF
            QString name = "",
            bool showName   = false,
            int  statePoint = qEPI_NonValue,
-           int  pointGeometry = simple_circle,
+           int  pointGeometry = Geom_simple_circle,
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
@@ -206,7 +206,7 @@ class cPoint : public cObjectGL, public QPointF
         void switchHighlight()       { _highlight = !_highlight; }
         void drawCenter(bool aBool)  { _drawCenter = aBool; }
 
-		void setPosition(QPointF pos);
+        void setPosition(QPointF pos);
 
         void setEpipolar(QPointF pt1, QPointF pt2);
 
@@ -214,7 +214,7 @@ class cPoint : public cObjectGL, public QPointF
 
         QColor colorPointState();
 
-		virtual	 void	 setParent(cObject* parent);
+        virtual	 void	 setParent(cObject* parent);
 
 private:
 
@@ -346,7 +346,7 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int geometry = simple_circle, int style = LINE_NOSTIPPLE);
+        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int geometry = Geom_simple_circle, int style = LINE_NOSTIPPLE);
 
         ~cPolygon();
 
@@ -359,7 +359,7 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-		cPoint* findNearestPoint(const QPointF &pos, float getRadius = _selectionRadius);
+        cPoint* findNearestPoint(const QPointF &pos, float getRadius = _selectionRadius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
@@ -371,7 +371,7 @@ class cPolygon : public cObjectGL
         int     getSelectedPointIndex(){ return _idx; }
 
         void    setPointSelected();
-		bool    isPointSelected(){ return _bSelectedPoint; }
+        bool    isPointSelected(){ return _bSelectedPoint; }
         void    resetSelectedPoint();
 
         int     selectPoint(QString namePt);
@@ -381,8 +381,8 @@ class cPolygon : public cObjectGL
         float   getPointDiameter() { return _pointDiameter; }
 
         void    add(cPoint &pt);
-		void    add(QPointF const &pt, bool selected=false, cPoint* lock = NULL);
-		virtual void    addPoint(QPointF const &pt, cPoint* lock = NULL) ;
+        void    add(QPointF const &pt, bool selected=false, cPoint* lock = NULL);
+        virtual void    addPoint(QPointF const &pt, cPoint* lock = NULL) ;
 
         void    clear();
 
@@ -415,9 +415,9 @@ class cPolygon : public cObjectGL
         cPolygonHelper* helper() { return _helper; }
         void    setHelper(cPolygonHelper* aHelper);
 
-		virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true, cPoint* lock = NULL);
+        virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true, cPoint* lock = NULL);
 
-		int     finalMovePoint(cPoint* lock = NULL);
+        int     finalMovePoint(cPoint* lock = NULL);
 
         void    removeLastPoint();
 
@@ -459,13 +459,13 @@ class cPolygon : public cObjectGL
 
         void    normalize(bool aBool)   { _bNormalize = aBool; }
 
-		void	setAllVisible(bool visible);
+        void	setAllVisible(bool visible);
 
         float   length();
 
     protected:
 
-        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int geometry = simple_circle, int style = LINE_STIPPLE);
+        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int geometry = Geom_simple_circle, int style = LINE_STIPPLE);
 
         QVector <cPoint>    _points;
 
@@ -513,7 +513,7 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue, int pointGeometry=simple_circle);
+        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue, int pointGeometry=Geom_simple_circle);
 
         ~cPolygonHelper();
 
@@ -532,9 +532,9 @@ class cRectangle : public cPolygon
 
         cRectangle(int nbMax = 4, float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
 
-		void    addPoint(QPointF const &pt, cPoint* lock = NULL);
+        void    addPoint(QPointF const &pt, cPoint* lock = NULL);
 
-		void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false, cPoint* lock = NULL);
+        void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false, cPoint* lock = NULL);
 
         void    draw();
 };
