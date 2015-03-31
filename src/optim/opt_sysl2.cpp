@@ -1565,6 +1565,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
 
 
      // On cherche le systeme des 3 le  stable
+/*
      {
         Type deltaZ = aR1 * eR1 - b2;    Type AbsDZ = ElAbs(deltaZ);
         Type deltaX = eR1 * iR1 - f2;    Type AbsDX = ElAbs(deltaX);
@@ -1590,8 +1591,75 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
         }
      }
 
-     // TestSolAR1();
      MakeNorm(x1,y1,z1);
+     TestSolAR1();
+*/
+
+
+/*
+     {
+          double aCoef[3] ;
+          L2SysSurResol aSys(3);
+          aCoef[0] = aR1; aCoef[1] = b  ; aCoef[2] = c;  aSys.AddEquation(1,aCoef,0);
+          aCoef[0] = b  ; aCoef[1] = eR1; aCoef[2] = f;  aSys.AddEquation(1,aCoef,0);
+          aCoef[0] = c  ; aCoef[1] = f; aCoef[2] = iR1;  aSys.AddEquation(1,aCoef,0);
+
+          Type aG2 = aR1*aR1 + eR1*eR1 + iR1*iR1 + b2 + c2 +f2 ;
+          Type aDiv = 1e-15;
+          aG2 = ElMax(aG2,Type(aDiv)) * aDiv;
+          // aG2 = 1;
+
+          for (int aK=0 ; aK<3 ; aK++)
+          {
+               for (int aK2=0 ; aK2<3 ; aK2++)
+                   aCoef[aK2] = (aK2==aK);
+               aSys.AddEquation(aG2,aCoef,1);
+               // aSys.AddEquation(aG2,aCoef,-1);
+          }
+
+          bool Ok;
+          Im1D_REAL8 aSol = aSys.Solve(&Ok);
+          x1 = aSol.data()[0];
+          y1 = aSol.data()[1];
+          z1 = aSol.data()[2];
+ std::cout << "XYZ " << x1 << " "<< y1 << " " << z1 << "\n";
+          MakeNorm(x1,y1,z1);
+          TestSolAR1();
+     }
+*/
+
+     /*  Calcul robusrte ? du noyau */
+     {
+          cMSymCoffact3x3<Type> aCof;
+
+          Type aG2 = aR1*aR1 + eR1*eR1 + iR1*iR1 + b2 + c2 +f2 ;
+          Type aDiv = 1e-15;
+          aG2 = ElMax(aG2,Type(aDiv)) * aDiv;
+
+          aCof.a = aG2+ aR1 * aR1 + b2 + c2;
+          aCof.b =     (aR1 +eR1)*b  + c*f;
+          aCof.c =     b*f +c*(aR1+iR1);
+          aCof.e = aG2+ b2 + eR1*eR1+f2;
+          aCof.f =      c*b + (eR1 + iR1)* f;
+          aCof.i = aG2+ c2 +f2 + iR1*iR1;
+          aCof.FinishCoFact();
+
+
+          Type aV[3] = {1,1,1};
+          Pt3d<Type>  aP = aCof.CoffMul(aV);
+          x1 = aP.x;
+          y1 = aP.y;
+          z1 = aP.z;
+          MakeNorm(x1,y1,z1);
+          //  std::cout << "XYZ " << x1 << " "<< y1 << " " << z1 << "\n";
+          TestSolAR1();
+     }
+
+     //   aR1  b    c       X      0    aR1 |aR1 b  c #  b     b eR1 f #  c      c  f iR1
+     //   b    eR1  f       Y  =   0    b   |         #  eR1A          #  f
+     //   c    f    iR1     1      0    c   |         #  f             #  iR1
+/*
+*/
 
      //TestSolVP1();
 
@@ -1624,16 +1692,26 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
      MulAtA(Ax3O,Ay3O,Az3O,x3O,y3O,z3O);
 
 
-     Type aS22 = x2O*Ax2O +  y2O*Ay2O + z2O*Az2O;
-     Type aS23 = x2O*Ax3O +  y2O*Ay3O + z2O*Az3O;
-     Type aS33 = x3O*Ax3O +  y3O*Ay3O + z3O*Az3O;
-
-
-     if (0)
      {
-        Type aS32 = x3O*Ax2O +  y3O*Ay2O + z3O*Az2O;
-        std::cout << "SSs " << aS23 << " " << aS32 << "\n";
-        std::cout << aS22+ aS33 << "\n"; // => Warn
+         Type aS22 = x2O*Ax2O +  y2O*Ay2O + z2O*Az2O;
+         Type aS23 = x2O*Ax3O +  y2O*Ay3O + z2O*Az3O;
+         Type aS33 = x3O*Ax3O +  y3O*Ay3O + z3O*Az3O;
+
+         // Det(M + VP1 Id) 
+         Type aVP1 = -(aS22+aS33 + sqrt(ElSquare(aS22-aS33) + 4*ElSquare(aS23))) /2.0;
+ 
+
+         if (0)
+         {
+            Type aVP2 = -(aS22+aS33 - sqrt(ElSquare(aS22-aS33) + 4*ElSquare(aS23))) /2.0;
+            std::cout << "VERIF VP/ DET" << (aVP1 * aVP2 * R1  / K0)+1 << "\n";
+            std::cout << "VERIF VP/ TRACE" << (aVP1 + aVP2 + R1 ) /  K2+1 << "\n";
+
+            std::cout << "DET " << (aS22-aVP1)*(aS33-aVP1) - ElSquare(aS23) << "\n";
+            Type aS32 = x3O*Ax2O +  y3O*Ay2O + z3O*Az2O;
+            std::cout << "SSs " << aS23 << " " << aS32 << "\n";
+            std::cout << aS22+ aS33 << "\n"; // => Warn
+         }
      }
 
 
@@ -1690,6 +1768,10 @@ template class cSVD3x3<REAL16>;
 
 /***********************************************************/
 
+template <class Type> cMSymCoffact3x3<Type>::cMSymCoffact3x3()
+{
+}
+
 template <class Type> cMSymCoffact3x3<Type>::cMSymCoffact3x3(Type ** aMat)
 {
 // Pour notations voir
@@ -1705,6 +1787,11 @@ template <class Type> cMSymCoffact3x3<Type>::cMSymCoffact3x3(Type ** aMat)
    e =  aMat[1][1];
    f =  aMat[1][2];  //h
    i  =  aMat[2][2];
+   FinishCoFact();
+}
+
+template <class Type> void cMSymCoffact3x3<Type>::FinishCoFact()
+{
 /*
 
    a  b c     a  b  c
@@ -1755,6 +1842,23 @@ template <class Type> Pt3d<Type> cMSymCoffact3x3<Type>::CoffVecInv(const Type * 
 
     return Pt3d<Type>(x/mDet,y/mDet,z/mDet);
 }
+
+template <class Type> Pt3d<Type> cMSymCoffact3x3<Type>::CoffMul(const Type * aVect) const
+{
+    Type U = aVect[0];
+    Type V = aVect[1];
+    Type W = aVect[2];
+
+    Type x = mA*U + mB*V + mC*W;
+    Type y = mB*U + mE*V + mF*W;
+    Type z = mC*U + mF*V + mI*W;
+
+    return Pt3d<Type>(x,y,z);
+}
+
+
+
+
 
 template <class Type> void cMSymCoffact3x3<Type>::CoffSetInv(Type ** aMat)
 {
