@@ -809,7 +809,7 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
     {
         if(getWidget(i)->getGLData()->polygonCount() == 1)
         {
-            cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, cross);
+			cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, Geom_cross);
             polyg->setPointSize(10);
             getWidget(i)->getGLData()->addPolygon(polyg);
         }

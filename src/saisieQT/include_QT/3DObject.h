@@ -61,7 +61,7 @@ enum point_geometry {
     simple_circle,
     double_circle,
     epipolar,
-    cross,
+	Geom_cross,
     no_geometry
 };
 
