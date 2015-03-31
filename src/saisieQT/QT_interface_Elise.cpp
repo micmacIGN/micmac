@@ -1,5 +1,10 @@
 #include "QT_interface_Elise.h"
 
+Pt3dr QT2Elise(const QVector3D & aQV)
+{
+   return Pt3dr(aQV.x(),aQV.y(),aQV.z());
+}
+
 extern void NewSplit( const std::string  &  a2Stplit,std::string & aK0,std::vector<std::string>  & aSup);
 
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWindow):
@@ -800,7 +805,11 @@ float cQT_Interface::lenghtRule()
                     QVector3D pt0(p3d0->x,p3d0->y,p3d0->z);
                     QVector3D pt1(p3d1->x,p3d1->y,p3d1->z);
 
+#if ELISE_QT_VERSION >=5
                     return pt0.distanceToPoint(pt1);
+#else
+                    return euclid(QT2Elise(pt0),QT2Elise(pt1));
+#endif
                 }
             }
         }
