@@ -13,13 +13,13 @@
 
 typedef enum // Attention repercutions sur QT ... TODO à regler
 {
-  qEPI_NonSaisi,// 0
-  qEPI_Refute,// 1
-  qEPI_Douteux, // 2
-  qEPI_Valide,// 3
-  qEPI_NonValue,// 4
-  qEPI_Disparu,//5
-  qEPI_Highlight// 6
+  qEPI_NonSaisi,	// 0
+  qEPI_Refute,		// 1
+  qEPI_Douteux,		// 2
+  qEPI_Valide,		// 3
+  qEPI_NonValue,	// 4
+  qEPI_Disparu,		// 5
+  qEPI_Highlight	// 6
 } qEtatPointeImage;
 
 
@@ -72,35 +72,55 @@ class cObject
         QVector3D   getRotation()   { return _rotation; }
         QColor  getColor();
         QVector3D   getScale()      { return _scale;    }
-        bool    isVisible()     { return (state() != state_invible); }
+		bool    isVisible();
         bool    isSelected()    { return (state() == state_selected);}
 
         void    setName(QString name)          { _name = name;     }
-        void    setPosition(QVector3D const &aPt)  { _position = aPt;  }
+		void	setPosition(QVector3D const &aPt);
         void    setRotation(QVector3D const &aPt)  { _rotation = aPt;  }
         void    setColor(QColor const &aCol, object_state state = state_default)   { _color[state] = aCol;    }
         void    setScale(QVector3D aScale)         { _scale = aScale; }
         void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
         void    setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
 
-        cObject & operator = (const cObject &);
+		cObject & operator = (const cObject &);
 
-        object_state   state() const;
-        void    setState(object_state state);
+		object_state   state() const;
+		void     setState(object_state state);
+
+		cObject* child(int id = 0);
+
+		int		 nbChild(){return _children.size();}
+
+		void	 addChild(cObject* child);
+
+		void	 removeChild(cObject* child);
+
+		void	 replaceChild(int id,cObject* child);
+
+		virtual	 cObject* parent() const;
+
+		virtual	 void	 setParent(cObject* parent);
 
 protected:
 
-        QString _name;
+		QString		_name;
 
-        QVector3D  _position;
+		QVector3D	_position;
 
-        QVector3D   _rotation;
+		QVector3D   _rotation;
 
-        QColor  _color[state_COUNT];
+		QColor		_color[state_COUNT];
+
         QVector3D   _scale;
 
         float		_alpha;
+
         object_state   _state;
+
+		QVector< cObject* > _children;
+
+		cObject*			_parent;
 };
 
 class cObjectGL : public cObject
@@ -130,7 +150,6 @@ class cObjectGL : public cObject
         {
             _glError = glError;
         }
-
 
     protected:
 
@@ -177,16 +196,21 @@ class cPoint : public cObjectGL, public QPointF
         void switchHighlight()       { _highlight = !_highlight; }
         void drawCenter(bool aBool)  { _drawCenter = aBool; }
 
+		void setPosition(QPointF pos);
+
         void setEpipolar(QPointF pt1, QPointF pt2);
 
         void glDraw();
 
         QColor colorPointState();
 
+		virtual	 void	 setParent(cObject* parent);
+
 private:
 
-        float   _diameter;
-        bool    _bShowName;
+
+		float   _diameter;
+		bool    _bShowName;
         int     _pointState;
         bool    _highlight;
         bool    _drawCenter;
@@ -195,7 +219,7 @@ private:
 
         bool     _bEpipolar;
         QPointF  _epipolar1;
-        QPointF  _epipolar2;
+        QPointF  _epipolar2;		
 };
 
 class cCircle : public cObjectGL
@@ -325,7 +349,7 @@ class cPolygon : public cObjectGL
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        bool    findNearestPoint(const QPointF &pos, float getRadius = _selectionRadius);
+		cPoint* findNearestPoint(const QPointF &pos, float getRadius = _selectionRadius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
@@ -346,8 +370,8 @@ class cPolygon : public cObjectGL
         float   getPointDiameter() { return _pointDiameter; }
 
         void    add(cPoint &pt);
-        void    add(QPointF const &pt, bool selected=false);
-        virtual void    addPoint(QPointF const &pt);
+		void    add(QPointF const &pt, bool selected=false, cPoint* lock = NULL);
+		virtual void    addPoint(QPointF const &pt, cPoint* lock = NULL) ;
 
         void    clear();
 
@@ -380,9 +404,9 @@ class cPolygon : public cObjectGL
         cPolygonHelper* helper() { return _helper; }
         void    setHelper(cPolygonHelper* aHelper);
 
-        virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true);
+		virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true, cPoint* lock = NULL);
 
-        int     finalMovePoint();
+		int     finalMovePoint(cPoint* lock = NULL);
 
         void    removeLastPoint();
 
@@ -426,13 +450,13 @@ class cPolygon : public cObjectGL
 
 		void	setAllVisible(bool visible);
 
-		float lenght();
+		float	lenght();
 
     protected:
 
         cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
 
-        QVector <cPoint>    _points;
+		QVector <cPoint>	_points;
 
         cPolygonHelper*     _helper;
 
@@ -495,9 +519,9 @@ class cRectangle : public cPolygon
 
         cRectangle(int nbMax = 4, float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
 
-        void    addPoint(QPointF const &pt);
+		void    addPoint(QPointF const &pt, cPoint* lock = NULL);
 
-        void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false);
+		void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false, cPoint* lock = NULL);
 
         void    draw();
 };

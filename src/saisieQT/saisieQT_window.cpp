@@ -802,8 +802,15 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
             getWidget(i)->getGLData()->addPolygon(polyg);
         }
         getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
-        getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
-    }
+		//getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
+
+		getWidget(i)->getGLData()->polygon(1)->setAllVisible(true);
+
+		if(check)
+			_ui->label_ImagePosition_2->show();
+		else
+			_ui->label_ImagePosition_2->hide();
+	}
 
 //    if(check)
 //        qDebug() << "Rules";
@@ -1224,12 +1231,21 @@ QString SaisieQtWindow::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
 }
+QString SaisieQtWindow::textToolBar() const
+{
+	return _textToolBar;
+}
+
+void SaisieQtWindow::setTextToolBar(const QString& textToolBar)
+{
+	_textToolBar = textToolBar;
+}
 
 void SaisieQtWindow::setLayout(uint sy)
 {
-    _layout_GLwidgets->setContentsMargins(sy,sy,sy,sy);
-    _layout_GLwidgets->setHorizontalSpacing(sy);
-    _layout_GLwidgets->setVerticalSpacing(sy);
+	_layout_GLwidgets->setContentsMargins(sy,sy,sy,sy);
+	_layout_GLwidgets->setHorizontalSpacing(sy);
+	_layout_GLwidgets->setVerticalSpacing(sy);
     _ui->QFrame_OpenglLayout->setLayout(_layout_GLwidgets);
 
     int cpt=0;
@@ -1591,7 +1607,7 @@ void SaisieQtWindow::setAutoName(QString val)
 void SaisieQtWindow::setImagePosition(QPointF pt)
 {
     QString text(tr("Image position : "));
-    //QString text(tr("Zoom x Scale factor : "));
+	QString textRule;
 
     if (pt.x() >= 0.f && pt.y() >= 0.f)
     {
@@ -1606,13 +1622,13 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
 
                 if(glW->getGLData()->getCurrentPolygonIndex() == 1)
                 {
-                    text = QString(text + " \t ") + tr("Image length") + QString(" : ") + QString::number(glW->getGLData()->currentPolygon()->lenght()) + QString(" px");
+					textRule = QString(" ") + tr("Image length") + QString(" : ") + QString::number(glW->getGLData()->currentPolygon()->lenght()) + QString(" px");
                 }
             }
     }
 
     _ui->label_ImagePosition_1->setText(text);
-    _ui->label_ImagePosition_2->setText(text);
+	_ui->label_ImagePosition_2->setText(text + textRule + QString(" ") + textToolBar());
 }
 
 void SaisieQtWindow::setImageName(QString name)
@@ -1811,6 +1827,7 @@ void SaisieQtWindow::labelShowMode(bool state)
         }
     }
 }
+
 
 ModelObjects::ModelObjects(QObject *parent, HistoryManager* hMag)
     :QAbstractTableModel(parent),

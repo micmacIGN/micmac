@@ -264,7 +264,7 @@ void cGLData::draw()
     }
     else
     {
-        enableOptionLine();
+		enableOptionLine();
 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -274,18 +274,19 @@ void cGLData::draw()
 		glRotatef(cObject::getRotation().z(),0.f,0.f,1.f);
 		glTranslated(-getPosition().x(),-getPosition().y(),-getPosition().z());
 
-        for (int i=0; i<_vClouds.size();i++)
-        {
-            GLfloat oldPointSize;
-            glGetFloatv(GL_POINT_SIZE,&oldPointSize);
+		for (int i=0; i<_vClouds.size();i++)
+		{
+			GLfloat oldPointSize;
+			glGetFloatv(GL_POINT_SIZE,&oldPointSize);
 
-            if(_incFirstCloud && i == 0)
-                glPointSize(oldPointSize*3.f);
+			if(_incFirstCloud && i == 0)
+				glPointSize(oldPointSize*3.f);
 
-            _vClouds[i]->draw();
 
-            glPointSize(oldPointSize);
-        }
+			_vClouds[i]->draw();
+
+			glPointSize(oldPointSize);
+		}
 
         //cameras
         for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
@@ -298,7 +299,7 @@ void cGLData::draw()
         _pBbox->draw();
         _pGrid->draw();
 
-        disableOptionLine();
+		disableOptionLine();
     }
 }
 
@@ -361,6 +362,36 @@ void cGLData::createTiles()
 cBall* cGLData::pBall() const
 {
 	return _pBall;
+}
+
+void cGLData::saveLockRule()
+{
+	_locksRule[0] = QPointF(-1,-1);
+	_locksRule[1] = QPointF(-1,-1);
+
+	if(polygon(1))
+		for (int i = 0; i < polygon(1)->size(); ++i)
+			if(polygon(1)->point(i).parent())
+				_locksRule[i] = *((cPoint*)polygon(1)->point(i).parent());
+}
+
+void cGLData::applyLockRule()
+{
+	if(polygon(1))
+		for (int i = 0; i < polygon(1)->size(); ++i)
+		{
+			if(_locksRule[i] != QPointF(-1,-1))
+			{
+				for (int p = 0; p < polygon(0)->size(); ++p)
+				{
+					if(_locksRule[i] ==  polygon(0)->point(p))
+					{
+						polygon(1)->point(i).setParent(&polygon(0)->point(p));
+						break;
+					}
+				}
+			}
+		}
 }
 
 void cGLData::normalizeCurrentPolygon(bool nrm)

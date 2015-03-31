@@ -126,7 +126,9 @@ public:
 
 	cBall*		pBall() const;
 
+	void		saveLockRule();
 
+	void		applyLockRule();
 private:
 
 	cMaskedImageGL      _glMaskedImage;
@@ -164,6 +166,7 @@ private:
     bool        _incFirstCloud;
 //    bool        _bDrawTiles;
 
+	QPointF     _locksRule[2];
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(cGLData::options)

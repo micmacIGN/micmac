@@ -810,9 +810,16 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
             {
 
 				if(!currentPolygon()->isClosed())             // ADD POINT
+				{
 
-					currentPolygon()->addPoint(m_lastPosImage);
+					cPoint* lock = NULL;
 
+					if (getGLData()->getCurrentPolygonIndex()==1 && (event->modifiers() & Qt::ControlModifier))
+
+						lock = getGLData()->polygon(0)->findNearestPoint(m_lastPosImage, 10.f / getZoom());
+
+					currentPolygon()->addPoint(m_lastPosImage,lock);
+				}
 				else if (currentPolygon()->isLinear() && (event->modifiers() & Qt::ShiftModifier)) // INSERT POINT
 
 					currentPolygon()->insertPoint();
@@ -859,14 +866,20 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
         m_lastPosImage =  m_bDisplayMode2D ? _matrixManager.WindowToImage(m_lastPosWindow, getZoom()) : m_lastPosWindow;
 
-		int idMovePoint = currentPolygon() ? currentPolygon()->finalMovePoint() : -1; //ne pas factoriser
+		cPoint *lock = NULL;
+
+		if (getGLData()->getCurrentPolygonIndex()==1 && (event->modifiers() & Qt::ControlModifier))
+
+			lock = getGLData()->polygon(0)->findNearestPoint(m_lastPosImage, 10.f / getZoom());
+
+		int idMovePoint = currentPolygon() ? currentPolygon()->finalMovePoint(lock) : -1; //ne pas factoriser
 
 		if(currentPolygon())
 			currentPolygon()->findNearestPoint(m_lastPosImage);
 
         update();
 
-        emit movePoint(idMovePoint);
+		emit movePoint(idMovePoint);
     }
     else if ( event->button() == Qt::MiddleButton && hasDataLoaded() )
     {
@@ -926,15 +939,20 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
 				bool insertMode = currentPolygon()->isLinear() ? (event->modifiers() & Qt::ShiftModifier) : event->type() == QMouseEvent::MouseButtonPress;
 
-				if((event->modifiers() & Qt::ControlModifier) && getGLData()->getCurrentPolygonIndex() == 1) // SNAP RULE
-				{
-					getGLData()->polygon(0)->refreshHelper( pos, false, getZoom());
-				}
+				cPoint* lock = NULL;
 
-                if(m_interactionMode == SELECTION)
-					currentPolygon()->refreshHelper( QPointF(pos.x(),_matrixManager.vpHeight() - pos.y()), insertMode, 1.f);
-                else
-					currentPolygon()->refreshHelper(pos, insertMode, getZoom());
+				if((event->modifiers() & Qt::ControlModifier) && getGLData()->getCurrentPolygonIndex() == 1) // SNAP RULE
+
+					lock = getGLData()->polygon(0)->findNearestPoint(pos, 10.f / getZoom());
+
+				if(m_interactionMode == SELECTION)
+
+					currentPolygon()->refreshHelper( QPointF(pos.x(),_matrixManager.vpHeight() - pos.y()), insertMode, 1.f,lock);
+
+				else
+
+					currentPolygon()->refreshHelper(pos, insertMode, getZoom(),true,lock);
+
 
 				if (currentPolygon()->size() && m_bDisplayMode2D)
 
@@ -1112,8 +1130,13 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             {
             case Qt::Key_Delete:
 				if (currentPolygon())
-                {
-                    emit removePoint(qEPI_Disparu, m_GLData->currentPolygon()->getSelectedPointIndex());
+                {					
+					int id =  m_GLData->currentPolygon()->getSelectedPointIndex();
+					cPoint& pt = m_GLData->currentPolygon()->point(id);
+					if(pt.nbChild() && pt.child())
+						pt.child()->setParent(NULL);
+
+					emit removePoint(qEPI_Disparu,id);
 					currentPolygon()->removeSelectedPoint();
                 }
                 break;
