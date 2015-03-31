@@ -439,7 +439,7 @@ class cPolygon : public cObjectGL
 
         void	setAllVisible(bool visible);
 
-        float lenght();
+        float   length();
 
     protected:
 

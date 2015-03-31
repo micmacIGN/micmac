@@ -1060,10 +1060,9 @@ void cPolygon::setAllVisible(bool visible)
     {
         point(i).setVisible(visible);
     }
-
 }
 
-float cPolygon::lenght()
+float cPolygon::length()
 {
     if(size() == 2 && helper()->size() > 0)
     {
@@ -1071,7 +1070,7 @@ float cPolygon::lenght()
 
         return line.length();
     }
-    else  if(size() == 2)
+    else if(size() == 2)
     {
         QLineF line(point(0),point(1));
 

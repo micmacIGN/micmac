@@ -1625,12 +1625,11 @@ void SaisieQtWindow::setImagePosition(QPointF pt)
             {
                 int imHeight = glW->getGLData()->glImageMasked()._m_image->height();
 
-                //text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
                 text = QString(text + QString::number(pt.x(),'f',1) + ", " + QString::number((imHeight - pt.y()),'f',1)+" px");
 
                 if(glW->getGLData()->getCurrentPolygonIndex() == 1)
                 {
-                    text = QString(text + " \t ") + tr("Image length") + QString(" : ") + QString::number(glW->getGLData()->currentPolygon()->lenght()) + QString(" px");
+                    text = QString(text + " \t ") + tr("Image length") + QString(" : ") + QString::number(glW->getGLData()->currentPolygon()->length()) + QString(" px");
                 }
             }
     }
