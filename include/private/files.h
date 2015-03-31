@@ -1809,6 +1809,7 @@ class cElXMLTree
 class XmlXml
 {
     public :
+         XmlXml();
          cElXMLTree * mTree;
 };
 
