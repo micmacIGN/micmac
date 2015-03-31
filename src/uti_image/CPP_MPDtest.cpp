@@ -635,14 +635,23 @@ void LoadTrScaleRotate
 */
 
 extern void TestOriBundle();
+extern void TestSVD3x3();
 
 int MPDtest_main (int argc,char** argv)
 {
-    
+/*
+    cXML_TestImportOri aXIM =  StdGetFromSI("/home/mpd/TMP/Test.xml",XML_TestImportOri);
+    std::cout << "x " << aXIM.x() << "\n";
+    aXIM.Tree().mTree->StdShow(" ");
+    MakeFileXML(aXIM,"/home/mpd/TMP/Test2.xml");
+*/
+
+
+    TestSVD3x3(); 
+/*
     cMasqBin3D::FromSaisieMasq3d("/home/marc/TMP/EPI/EXO1-Fontaine/AperiCloud_All_selectionInfo.xml");
 
 
-/*
      LoadTrScaleRotate
      (
           "/media/data2/Jeux-Test/img_0762.cr2_Ch3.tif",

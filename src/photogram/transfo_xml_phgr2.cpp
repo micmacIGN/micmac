@@ -466,6 +466,7 @@ cXML_LinePt3d MM2Matis(const Pt3dr & aP)
 }
 
 
+/*
 corientation MM2Matis(const cOrientationConique & anOC)
 {
    const cOrientationExterneRigide & anOER = anOC.Externe();
@@ -533,6 +534,7 @@ cElXMLTree * ToXmlTreeWithAttr(const corientation & anOri)
 
    return aRes;
 }
+*/
 
    // = = = = = = = = = = = = = = = = = = = = = = = =
 

@@ -63,7 +63,7 @@ cProjTore::cProjTore(const cCylindreRevolution & aCyl,const Pt3dr & aPEuclInitDi
     Pt3dr aCylPOnCyl(0,aDiamCyl.y,0);
     Pt3dr anEuclPOnCyl  = mCyl.UVL2E(aCylPOnCyl);
 
-    mCyl = cCylindreRevolution(IsVueExt(),mCyl.Axe(),anEuclPOnCyl);
+    mCyl = cCylindreRevolution(VueDeLext(),mCyl.Axe(),anEuclPOnCyl);
 
     mDiamCyl = mCyl.E2UVL(mDiamEucl);
 

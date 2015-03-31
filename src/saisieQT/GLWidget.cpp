@@ -879,7 +879,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 
         update();
 
-		emit movePoint(idMovePoint);
+        emit movePoint(idMovePoint);
     }
     else if ( event->button() == Qt::MiddleButton && hasDataLoaded() )
     {
@@ -899,7 +899,7 @@ float GLWidget::angleZ(QPointF mPos)
     QLineF vectorR(centerViewPort,mPos);
     QLineF vectorL(centerViewPort,lastPosWindowf);
     float angle = vectorL.angleTo(vectorR)/180.0*M_PI;
-    return angle > M_PI ?  angle - 2.0*M_PI : angle;
+    return angle > M_PI ?  angle - M_2PI : angle;
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
@@ -1071,9 +1071,9 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
 void GLWidget::enterEvent(QEvent *event)
 {
-    // TODO : pourquoi
-    // peut etre capter les mvts de souris en dehors de la fenetre
-    setFocus(Qt::ActiveWindowFocusReason);
+    // pour avoir le focus lorsque le curseur entre dans la fenêtre (par ex. movePointWithArrows)
+	// TODO a verifier -> peut etre gerer aussi deplacement en dehors de la fenetre
+	setFocus(Qt::ActiveWindowFocusReason);
     setFocusPolicy(Qt::StrongFocus);
 
     emit overWidget(this);
@@ -1284,7 +1284,7 @@ loaderImageWork::loaderImageWork(cMaskedImage<QImage>* maskedImg, cMaskedImageGL
 }
 
 
-// --- DECONSTRUCTOR ---
+// --- DESTRUCTOR ---
 loaderImageWork::~loaderImageWork() {
     // free resources
 //	qDebug("End load Tile");

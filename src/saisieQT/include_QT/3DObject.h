@@ -10,7 +10,6 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
-
 typedef enum // Attention repercutions sur QT ... TODO à regler
 {
   qEPI_NonSaisi,	// 0
@@ -58,6 +57,14 @@ enum object_state {
     state_COUNT
 };
 
+enum point_geometry {
+    simple_circle,
+    double_circle,
+    epipolar,
+    cross,
+    no_geometry
+};
+
 #define ErrPoint cPoint(QPointF(-400000.,-400000.));
 
 class cObject
@@ -83,7 +90,7 @@ class cObject
         void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
         void    setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
 
-		cObject & operator = (const cObject &);
+        cObject & operator = (const cObject &);
 
 		object_state   state() const;
 		void     setState(object_state state);
@@ -104,14 +111,13 @@ class cObject
 
 protected:
 
-		QString		_name;
+        QString _name;
 
-		QVector3D	_position;
+        QVector3D  _position;
 
-		QVector3D   _rotation;
+        QVector3D   _rotation;
 
-		QColor		_color[state_COUNT];
-
+        QColor  _color[state_COUNT];
         QVector3D   _scale;
 
         float		_alpha;
@@ -175,6 +181,7 @@ class cPoint : public cObjectGL, public QPointF
            QString name = "",
            bool showName   = false,
            int  statePoint = qEPI_NonValue,
+           int  pointGeometry = simple_circle,
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
@@ -185,9 +192,11 @@ class cPoint : public cObjectGL, public QPointF
         void draw();
 
         void setPointState(int state){ _pointState = state; }
+        void setPointGeometry(int g) { _pointGeometry = g;  }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
         int  pointState() const      { return _pointState;  }
+        int  pointGeometry() const   { return _pointGeometry;  }
         void showName(bool show)     { _bShowName = show;   }
 
         bool highlight() const       { return _highlight;   }
@@ -208,10 +217,10 @@ class cPoint : public cObjectGL, public QPointF
 
 private:
 
-
-		float   _diameter;
-		bool    _bShowName;
+        float   _diameter;
+        bool    _bShowName;
         int     _pointState;
+        int     _pointGeometry;
         bool    _highlight;
         bool    _drawCenter;
 
@@ -219,7 +228,7 @@ private:
 
         bool     _bEpipolar;
         QPointF  _epipolar1;
-        QPointF  _epipolar2;		
+        QPointF  _epipolar2;
 };
 
 class cCircle : public cObjectGL
@@ -336,7 +345,7 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int geometry = simple_circle, int style = LINE_NOSTIPPLE);
 
         ~cPolygon();
 
@@ -356,6 +365,7 @@ class cPolygon : public cObjectGL
 
         QString getSelectedPointName();
         int     getSelectedPointState();
+        int     getSelectedPointGeometry();
 
         int     getSelectedPointIndex(){ return _idx; }
 
@@ -454,9 +464,9 @@ class cPolygon : public cObjectGL
 
     protected:
 
-        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
+        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int geometry = simple_circle, int style = LINE_STIPPLE);
 
-		QVector <cPoint>	_points;
+        QVector <cPoint>    _points;
 
         cPolygonHelper*     _helper;
 
@@ -470,7 +480,9 @@ class cPolygon : public cObjectGL
 
         float               _pointDiameter;
 
-		static float        _selectionRadius;
+        int                 _pointGeometry;
+
+        static float        _selectionRadius;
 
         //!states if polygon is closed
         bool                _bIsClosed;
@@ -500,7 +512,7 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue, int pointGeometry=simple_circle);
 
         ~cPolygonHelper();
 

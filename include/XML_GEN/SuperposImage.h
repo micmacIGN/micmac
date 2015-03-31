@@ -6059,5 +6059,33 @@ std::string  Mangling( cPolyg3D *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXML_TestImportOri
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXML_TestImportOri & anObj,cElXMLTree * aTree);
+
+
+        int & x();
+        const int & x()const ;
+
+        XmlXml & Tree();
+        const XmlXml & Tree()const ;
+    private:
+        int mx;
+        XmlXml mTree;
+};
+cElXMLTree * ToXMLTree(const cXML_TestImportOri &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXML_TestImportOri &);
+
+void  BinaryUnDumpFromFile(cXML_TestImportOri &,ELISE_fp &);
+
+std::string  Mangling( cXML_TestImportOri *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

@@ -89,6 +89,7 @@ Modification : Marc PIERROT DESEILLIGNY
 
 
 
+
 // Exemple minimaliste d'utilisation de l'interface
 
 void  ExempleUtilisationCoxRoy 

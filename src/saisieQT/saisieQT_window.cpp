@@ -647,6 +647,8 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
     shortcuts.push_back("");
     actions.push_back("");
 
+    float shiftStep = _params->getShiftStep();
+
     if (_appMode == MASK3D)
     {
         shortcuts.push_back(tr("Navigation 3D"));
@@ -667,7 +669,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("move on vertex"));
         actions.push_back(tr("Double click on vertex"));
 
-        shortcuts.push_back(tr(""));
+        shortcuts.push_back("");
         actions.push_back("");
 
         shortcuts.push_back(tr("Selection Menu"));
@@ -724,9 +726,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("Drag & drop"));
         actions.push_back(tr("move selected polygon vertex"));
         shortcuts.push_back(tr("Arrow keys"));
-        actions.push_back(tr("move selected vertex"));
+        actions.push_back(tr("move selected vertex") + " (" + QString::number(shiftStep).toStdString().c_str() +" px)" + tr(" - see Settings"));
         shortcuts.push_back(tr("Alt+arrow keys"));
-        actions.push_back(tr("move selected vertex faster"));
+        actions.push_back(tr("move selected vertex") + " (" + QString::number(10.f*shiftStep).toStdString().c_str() + " px)");
         shortcuts.push_back(tr("Key W+drag"));
         actions.push_back(tr("move polygon"));
         shortcuts.push_back(Ctrl + "A");
@@ -746,6 +748,10 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("show state menu or window menu"));
         shortcuts.push_back(tr("Drag & drop"));
         actions.push_back(tr("move selected point"));
+        shortcuts.push_back(tr("Arrow keys"));
+        actions.push_back(tr("move selected point") + " (" + QString::number(shiftStep).toStdString().c_str() +" px)" + tr(" - see Settings"));
+        shortcuts.push_back(tr("Alt+arrow keys"));
+        actions.push_back(tr("move selected point") + " (" + QString::number(10.f*shiftStep).toStdString().c_str() + " px)");
     }
     if (_appMode <= MASK3D) //TEMP: TODO corriger le undo Elise
     {
@@ -754,6 +760,12 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(Ctrl + "Shift+Z");
         actions.push_back(tr("redo last action"));
     }
+
+    shortcuts.push_back("");
+    actions.push_back("");
+
+    shortcuts.push_back(tr("G / H / J keys"));
+    actions.push_back(tr("Increase / decrease / reset gamma"));
 
     _helpDialog->populateTableView(shortcuts, actions);
 }
@@ -769,13 +781,12 @@ void SaisieQtWindow::on_actionAbout_triggered()
         qStr.replace( "**", "  " );
 #endif
 
-        QString version;
-        version.setNum(_hg_revision);
-
+    QString version;
+    version.setNum(_hg_revision);
 
     qStr += "\n" + tr("Application") + "\t" + QApplication::applicationName() +
-            + "\n" +  tr("Built with \tQT ")   + QT_VERSION_STR  +
-            + "\n" +  tr("Revision\t\t")    + version + "\n";
+            + "\n" +  tr("Built with \tQT ") + QT_VERSION_STR  +
+            + "\n" +  tr("Revision\t\t") + version + "\n";
 
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
@@ -798,7 +809,8 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
     {
         if(getWidget(i)->getGLData()->polygonCount() == 1)
         {
-            cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow);
+            cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, cross);
+            polyg->setPointSize(10);
             getWidget(i)->getGLData()->addPolygon(polyg);
         }
         getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
@@ -905,7 +917,7 @@ void SaisieQtWindow::on_actionRemove_inside_triggered()
 {
 
     if (_appMode > MASK3D)
-		currentWidget()->polygon(0)->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
+        currentWidget()->polygon(0)->removeSelectedPoint();  //TODO: actuellement on ne garde pas le point selectionné (ajouter une action)
     else
         currentWidget()->Select(SUB_INSIDE);
 }
@@ -1443,6 +1455,18 @@ void SaisieQtWindow::setModelObject(QAbstractItemModel *model_Objects)
     tableView_Objects()->setModel(model_Objects);
 }
 
+void SaisieQtWindow::keyPressEvent(QKeyEvent *event)
+{
+    switch(event->key())
+    {
+    case Qt::Key_Return:
+        on_actionConfirm_changes_triggered();
+        break;
+    default:
+        return;
+    }
+}
+
 void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images)
 {
     tableView_PG()->setModel(model_Pg);
@@ -1675,7 +1699,6 @@ void SaisieQtWindow::updateMask(bool reloadMask)
 {
     // TODO seg fault dans le undo � cause de la destruction des images...
 
-
     if (currentWidget()->getHistoryManager()->size())
     {
 
@@ -1715,9 +1738,10 @@ int SaisieQtWindow::hg_revision() const
     return _hg_revision;
 }
 
-void SaisieQtWindow::setHg_revision(int hg_revision)
+void SaisieQtWindow::setHg_revision(QString hg_revision)
 {
-    _hg_revision = hg_revision;
+    if (hg_revision.contains("+")) hg_revision.resize(hg_revision.size()-1);
+    _hg_revision = hg_revision.toInt();
 }
 
 deviceIOImage* SaisieQtWindow::devIOImage() const
@@ -1827,7 +1851,6 @@ void SaisieQtWindow::labelShowMode(bool state)
         }
     }
 }
-
 
 ModelObjects::ModelObjects(QObject *parent, HistoryManager* hMag)
     :QAbstractTableModel(parent),
