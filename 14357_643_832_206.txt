@@ -1,3 +1,0 @@
-Failed in command
-/home/mpd/MMM/culture3d/bin/mm3d  CreateEpip  IMGP7533.PEF IMGP7537.PEF AllPEF InParal=0 Degre=4  NameH=-DenseM 
-PID=14357
