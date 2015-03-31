@@ -739,7 +739,7 @@ void cPoint::draw()
                 glVertex2f(x2,y2);
             glEnd();
             break;
-        case cross:
+		case Geom_cross:
             glBegin(GL_LINES);
                 glVertex2f(xp+_diameter,yp);
                 glVertex2f(xp-_diameter,yp);
@@ -835,7 +835,7 @@ cPolygon::~cPolygon()
 	}
 }
 
-cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
+cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int geometry,int style):
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
@@ -1279,9 +1279,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
     int nbVertex = size();	
 
     if(!_bIsClosed)
-    {
-        if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
-
+    {      
 		if (nbVertex == 1)                  // add current mouse position to polygon (for dynamic display)
 		{
 			add(pos,false,lock);
