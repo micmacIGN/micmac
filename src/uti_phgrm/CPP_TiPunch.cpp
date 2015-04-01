@@ -222,7 +222,7 @@ int TiPunch_main(int argc,char ** argv)
                 cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
             }
             else
-                cout << "Can't load file " << aNameXml << endl;
+                cout << aNameXml << " does not exist" << endl;
         }
 
         cout << endl;
