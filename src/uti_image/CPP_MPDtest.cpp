@@ -639,6 +639,8 @@ extern void TestSVD3x3();
 
 int MPDtest_main (int argc,char** argv)
 {
+    TestSVD3x3(); 
+/*
    std::cout << "Hello Matis\n";
    std::string aFile = "/home/prof/Bureau/FORM-DEV-2015/Toulouse/Indent.xml";
    aFile = "/home/prof/Bureau/FORM-DEV-2015/Toulouse/Toulouse-131010_0716-simplified.ori.xml";
@@ -649,6 +651,7 @@ int MPDtest_main (int argc,char** argv)
 
    corientation anOri2;
    MakeFileXML(anOri2,"/home/prof/Bureau/FORM-DEV-2015/Toulouse/V3.xml");
+*/
 
 /*
    std::cout << anOri.sommet().easting() << "\n";
@@ -669,7 +672,6 @@ int MPDtest_main (int argc,char** argv)
 */
 
 
-    // TestSVD3x3(); 
 /*
     cMasqBin3D::FromSaisieMasq3d("/home/marc/TMP/EPI/EXO1-Fontaine/AperiCloud_All_selectionInfo.xml");
 
