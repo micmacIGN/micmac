@@ -1,10 +1,5 @@
 #include "QT_interface_Elise.h"
 
-Pt3dr QT2Elise(const QVector3D & aQV)
-{
-   return Pt3dr(aQV.x(),aQV.y(),aQV.z());
-}
-
 extern void NewSplit( const std::string  &  a2Stplit,std::string & aK0,std::vector<std::string>  & aSup);
 
 cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWindow):
@@ -773,10 +768,10 @@ void cQT_Interface::rebuild3DGlPoints(cPointGlob * selectPtGlob)
 
 void cQT_Interface::updateToolBar()
 {
-    m_QTMainWindow->setTextToolBar(tr("3D length : ") + QString::number(lenghtRule()));
+    m_QTMainWindow->setTextToolBar(tr("3D length : ") + QString::number(lengthRule()));
 }
 
-float cQT_Interface::lenghtRule()
+float cQT_Interface::lengthRule()
 {
 
     cPolygon* rule = m_QTMainWindow->currentWidget()->getGLData()->polygon(1);
@@ -802,14 +797,9 @@ float cQT_Interface::lenghtRule()
                     Pt3dr *p3d0 = pG0->PG()->P3D().PtrVal();
                     Pt3dr *p3d1 = pG1->PG()->P3D().PtrVal();
 
-                    QVector3D pt0(p3d0->x,p3d0->y,p3d0->z);
-                    QVector3D pt1(p3d1->x,p3d1->y,p3d1->z);
+                    QVector3D V(p3d1->x - p3d0->x,p3d1->y - p3d0->y,p3d1->z - p3d0->z);
 
-#if ELISE_QT_VERSION >=5
-                    return pt0.distanceToPoint(pt1);
-#else
-                    return euclid(QT2Elise(pt0),QT2Elise(pt1));
-#endif
+                    return V.length();
                 }
             }
         }

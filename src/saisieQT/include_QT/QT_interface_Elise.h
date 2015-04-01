@@ -171,7 +171,7 @@ protected:
 
 	bool				isPolygonZero();
 
-	float				lenghtRule();
+	float				lengthRule();
 protected slots:
 
 	void				updateToolBar();
