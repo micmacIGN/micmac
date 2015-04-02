@@ -1770,7 +1770,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
      //TestSolAR3();
   
 
-     if (1)
+     if (0)
      {
           ElMatrix<double> MtM = aMat * aMat.transpose();
 
@@ -1823,17 +1823,26 @@ ElMatrix<double> RanM33()
 void TestSVD3x3()
 {
     double aDrMin = 1e100;
-    for (int aK=0 ; aK< 10000 ; aK++)
+    std::vector<ElMatrix<double> > aVM;
+
+
+    for (int aK=0 ; aK< 1000 ; aK++)
     {
          ElMatrix<double> aM = RanM33();
-         
-         // cSVD3x3<REAL16> aS1(aM);
-         cSVD3x3<double> aS2(aM);
-
-         aDrMin = ElMin(aDrMin,aS2.Discr);
-         std::cout << "===========================================\n";
-         // std::cout << "================" << aDrMin << " Dif " << aS1.Discr - aS2.Discr << "\n";
+         aVM.push_back(aM);
     }
+
+    int aNb = 100;
+    ElTimer aChro3x3;
+    for (int aKt=0 ; aKt<aNb ; aKt++)
+    {
+        for (int aKM=0 ; aKM<int(aVM.size()) ; aKM++)
+        {
+             cSVD3x3<double> aS2(aVM[aKM]);
+        }
+    }
+    std::cout << "Time 3x3 : " << aChro3x3.uval() << "\n";
+         
 }
 
 
