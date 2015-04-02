@@ -38,6 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+extern bool AllowUnsortedVarIn_SetMappingCur;
+
 #define HandleGL 1
 
 /*     ==== MODELISATION MATHEMATIQUE-1 ====================
@@ -180,7 +182,7 @@ cEqObsBlockCam::cEqObsBlockCam
 
 {
 
-   //     AllowUnsortedVarIn_SetMappingCur = true;
+   AllowUnsortedVarIn_SetMappingCur = true;
 
    ELISE_ASSERT(mSet==mRotRT0->Set(),"Different sets incEqObsBlockCam");
    ELISE_ASSERT(mSet==mRotLT0->Set(),"Different sets incEqObsBlockCam");

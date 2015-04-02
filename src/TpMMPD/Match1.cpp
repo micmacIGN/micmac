@@ -83,9 +83,61 @@ int  TD_Match2_main(int argc,char ** argv)
 }
 /************************************************/
 
+/************************************************/
+
+class cCelMatch3
+{
+        public :
+
+
+        ///================================================
+        ///===== PRE-REQUIREMENT FOR 2D PROG DYN , transfer
+        ///===== from 3D volume to buffer of computation 
+        ///================================================
+        void InitTmp(const cTplCelNapPrgDyn<cCelMatch3> & aCel)
+        {
+            *this = aCel.ArgAux();
+        }
+        private :
+};
+
+
 class cTD_Match3_main
 {
      public :
+        int ToI(const double & aFl) {return round_ni(1000 *aFl);}
+
+        ///===== PRE-REQUIREMENT FOR 2D PROG DYN , transfer
+
+            typedef  cCelMatch3 tArgCelTmp;
+            typedef  cCelMatch3 tArgNappe;
+
+      ///-------- Not a PRE-REQUIREMENT but Helpull
+
+            typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
+            typedef  cTplCelOptProgDyn<tArgCelTmp>  tCelOpt;
+
+      ///-------- REQUIREMENT : kernell of computation
+           void DoConnexion
+           (
+                  const Pt2di & aPIn, const Pt2di & aPOut,
+                  ePrgSens aSens,int aRab,int aMul,
+                  tCelOpt*Input,int aInZMin,int aInZMax,
+                  tCelOpt*Ouput,int aOutZMin,int aOutZMax
+           );
+
+      /// Required : but do generally nothing
+
+          void GlobInitDir(cProg2DOptimiser<cTD_Match3_main> &) 
+          {
+              std::cout << "One New Dir\n";
+          }
+
+
+
+
+
+       //====================================
         cTD_Match3_main(int argc,char ** argv);
 
         Output  GrayW() {return (mW ? mW->ogray() : Output::onul(1));}
@@ -107,6 +159,36 @@ class cTD_Match3_main
         int         mSzW;
         int         mNbPix;
 };
+
+void cTD_Match3_main::DoConnexion
+     (
+         const Pt2di & aPIn, const Pt2di & aPOut,
+         ePrgSens aSens,int aRab,int aMul,
+         tCelOpt*Input,int aInZMin,int aInZMax,
+         tCelOpt*Ouput,int aOutZMin,int aOutZMax
+     )
+{
+    int aNbJump = 1;
+    double aRegulCost = 0.1;
+
+// =====================
+    for (int aZOut=aOutZMin ; aZOut<aOutZMax ; aZOut++)
+    {
+           int aDZMin,aDZMax;
+           ComputeIntervaleDelta
+            (
+                aDZMin,aDZMax,aZOut,aNbJump,
+                aOutZMin,aOutZMax,
+                aInZMin,aInZMax
+            );
+            for (int aDZ = aDZMin; aDZ<= aDZMax ; aDZ++)
+            {
+                 int aZIn = aZOut + aDZ;
+                 int  aICost = ToI(aRegulCost * ElAbs(aDZ) );
+                 Ouput[aZOut].UpdateCostOneArc(Input[aZIn],aSens,aICost);
+            }
+    }
+}
 
 void cTD_Match3_main::TestOnePx(int aPx)
 {
@@ -185,14 +267,37 @@ cTD_Match3_main::cTD_Match3_main(int argc,char ** argv) :
     mPxOpt.Resize(mSz1);
     mImCor.Resize(mSz1);
     mCorOpt =  Im2D_REAL4(mSz1.x,mSz1.y,-1e10);
-    
+   
     mIm2 =  Im2D_U_INT1::FromFileStd(mNameIm2);
     // if (mW) mW->clik_in();
 
+   Im2D_INT2 aNapInf(mSz1.x,mSz1.y, -mPxInterv);
+   Im2D_INT2 aNapSup(mSz1.x,mSz1.y,1+ mPxInterv);
+
+   cProg2DOptimiser<cTD_Match3_main> aPrgD(*this,aNapInf,aNapSup,0,1);
+
+   cDynTplNappe3D<tCelNap> &  aSparseVol = aPrgD.Nappe();
+   tCelNap ***  aSparsPtr = aSparseVol.Data() ;
+
     for (int aPx= -mPxInterv ; aPx <= mPxInterv ; aPx++)
-        TestOnePx(aPx);
+    {
+        TestOnePx(aPx); // Compute correl
+        float **  aDataCor = mImCor.data();
+        for (int anX=0 ; anX<mSz1.x ; anX++)
+        {
+            for (int anY=0 ; anY<mSz1.y ; anY++)
+            {
+                int aICost =  ToI (1-aDataCor[anY][anX]);
+                aSparsPtr[anY][anX][aPx].SetOwnCost(aICost);
+            }
+        }
+    }
+
+    aPrgD.DoOptim(5);  // Number of direction
+
+    aPrgD.TranfereSol(mPxOpt.data());
     
-    Tiff_Im::Create8BFromFonc("Px.tif",mSz1,mPxOpt.in()+128);
+    Tiff_Im::Create8BFromFonc("PxPrgD.tif",mSz1,mPxOpt.in()+128);
 }
 
 
@@ -203,6 +308,8 @@ int  TD_Match3_main(int argc,char ** argv)
     cTD_Match3_main  aM3(argc,argv);
     return EXIT_SUCCESS;
 }
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
