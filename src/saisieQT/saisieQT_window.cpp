@@ -784,9 +784,11 @@ void SaisieQtWindow::on_actionAbout_triggered()
     QString version;
     version.setNum(_hg_revision);
 
-    qStr += "\n" + tr("Application") + "\t" + QApplication::applicationName() +
+	QString adressbit(" " + QString::number(sizeof(int*)*8) + " bits");
+
+    qStr += "\n" + tr("Application") + "\t" + QApplication::applicationName() + adressbit +
             + "\n" +  tr("Built with \tQT ") + QT_VERSION_STR  +
-            + "\n" +  tr("Revision\t\t") + version + "\n";
+            + "\n" +  tr("Revision\t") + version + "\n";
 
     msgBox->setText(qStr);
     msgBox->setWindowTitle(QApplication::applicationName());
