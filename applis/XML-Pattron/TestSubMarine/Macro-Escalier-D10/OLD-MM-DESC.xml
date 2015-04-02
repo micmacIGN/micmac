@@ -1,0 +1,82 @@
+<!--
+
+/mnt/data/Archi/Chap-Monastier/CanonF24/
+
+    bin/Pastis  DIRECTORY  AllCpleImages -1 MkF=MkToto
+    make all -f MkToto -j2
+
+    bin/Apero /mnt/data/Archi/Chap-Monastier/Glob-Chap24-MPD-50/Apero1-Pastis.xml 
+
+
+
+    bin/ImProfAndL2App  /mnt/data/Archi/Villeneuve-les-Maguelone/StPierre100/   AllHomAppuis50-100mm Appuis/Nuage3DGeom-Im.tif 1 KPL2A=Homol2Appuis5746
+-->
+
+<Global Subst="@$#1">
+   <ChantierDescripteur
+        NameDecl="@$#1"
+
+        TheCalibGdAngle="canon-EOS5D.xml"
+        EnteteMaitresse="img_2385_MpDcraw8B_GB"
+        ImSaisieStd="img_2384_MpDcraw8B_GB.tif"
+        ImSecondaires="img_238(4|6)_MpDcraw8B_GB.tif"
+
+        ImMaitresse="${EnteteMaitresse}.tif"
+        PatternAllIm="(${ImMaitresse})|(${ImSecondaires})"
+   >
+
+
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+<!--   ENSEMBLES  -->
+
+
+    <KeyedSetsOfNames >
+          <Sets>
+                 <PatternAccepteur> ${PatternAllIm}  </PatternAccepteur>
+          </Sets>
+          <Key> AllImages </Key>
+    </KeyedSetsOfNames>
+
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+<!--   A PRIORI -->
+
+
+
+
+<!--   Associations   -->
+<!--   Associations   -->
+<!--   Associations   -->
+
+   <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> ${PatternAllIm}  </PatternTransform>
+                       <CalcName> ${TheCalibGdAngle} </CalcName>
+                 </Direct>
+             </Calcs>
+
+             <Key>   Key-Assoc-CalibOfIm </Key>
+   </KeyedNamesAssociations>
+
+
+<!--   Relations   -->
+<!--   Relations   -->
+<!--   Relations   -->
+
+
+    <KeyedSetsORels>
+       <Sets >
+            <ByAdjacence>
+                <KeySets>  AllImages   </KeySets>
+                <DeltaMax > 10000  </DeltaMax>
+                <DeltaMin > -10000 </DeltaMin>
+            </ByAdjacence>
+       </Sets>
+       <Key  > AllCpleImages </Key>
+    </KeyedSetsORels>
+
+  </ChantierDescripteur>
+</Global>
