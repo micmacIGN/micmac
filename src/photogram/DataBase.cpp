@@ -238,7 +238,7 @@ std::string  cInterfChantierNameManipulateur::DBNameTransfo
 
    std::string aName = aNameInit;
    std::string aSep = aDBNT.Separateur().Val();
-   int aMode = MMUserEnv().VersionNameCam().ValWithDef(0);
+   int aMode = MMUserEnv().VersionNameCam().ValWithDef(1);
    const cMetaDataPhoto &  aMDP = cMetaDataPhoto::CreateExiv2(mDir+aName);
    double aFoc = aMDP.FocMm(true);
 

@@ -452,12 +452,11 @@ void cLoaedImTDEpip::DoConnexion
 		    aOutZMin,aOutZMax,
 		    aInZMin,aInZMax
 		);
-        for (int aDZ = aDZMin; aDZ<= aDZMax ; aDZ++)
-        {
+               for (int aDZ = aDZMin; aDZ<= aDZMax ; aDZ++)
+               {
 			double aCost = mRegul * ElAbs(aDZ);
 			Output[aZ].UpdateCostOneArc(Input[aZ+aDZ],aSens,ToICost(aCost));
-	    }
-
+	       }
     }
 }
 
