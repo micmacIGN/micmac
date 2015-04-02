@@ -586,9 +586,21 @@ IF (MSVC)
          set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 endif()
 
+
+set(BUILD_PATH_BIN  ${PROJECT_SOURCE_DIR}/bin CACHE PATH "binaires install path")
+set(BUILD_PATH_LIB  ${PROJECT_SOURCE_DIR}/lib CACHE PATH "library install path")
+
+message(${BUILD_PATH_LIB})
+
+
+
+
 # DEFINITION : du dossier d'installation
-set(Install_Dir ${PROJECT_SOURCE_DIR}/bin)
-set(Install_Dir_lib ${PROJECT_SOURCE_DIR}/lib)
+set(Install_Dir		${BUILD_PATH_BIN})
+set(Install_Dir_lib ${BUILD_PATH_LIB})
+
+
+message(${Install_Dir_lib})
 
 # DEFINITION : du dossier des sources d'Elise
 set(ELISE_DIR src)
