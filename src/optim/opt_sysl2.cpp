@@ -1409,22 +1409,23 @@ template <class Type> class cSVD3x3
 
      // ValP1 et VecP1
             Type R1;
-            Type x1;
-            Type y1;
-            Type z1;
+            Type x1, y1, z1;
 
       //  Matrice  A tA + R1 Id
 
             Type  aR1;
             Type  eR1;
             Type  iR1;
-            void TestSolAR1()
+            void TestSolAR(Type x,Type y,Type z,Type R)
             {
-                std::cout  << " Rxyz="<<  ElAbs(aR1*x1 +  b*y1 +   c*z1) 
-                                        + ElAbs(b*x1 +  eR1*y1 +   f*z1)
-                                        + ElAbs(c*x1 +    f*y1 + iR1*z1)
+                std::cout  << " Rxyz="<<  ElAbs((a+R)*x +  b*y +   c*z) 
+                                        + ElAbs(b*x +  (e+R)*y +   f*z)
+                                        + ElAbs(c*x +    f*y + (i+R)*z)
                            << "\n";
             }
+            void TestSolAR1() {TestSolAR(x1,y1,z1,R1);}
+            void TestSolAR2() {TestSolAR(x2,y2,z2,mVP2);}
+            void TestSolAR3() {TestSolAR(x3,y3,z3,mVP3);}
 
             void TestSolVP1()
             {
@@ -1441,7 +1442,11 @@ template <class Type> class cSVD3x3
      // Image des prec par AtA
             Type Ax2O,Ay2O,Az2O;
             Type Ax3O,Ay3O,Az3O;
+            Type mVP2;
+            Type mVP3;
 
+            Type x2, y2, z2;
+            Type x3, y3, z3;
 
             void MulAtA(Type & xo,Type &yo,Type &zo,const Type & xi,const Type &yi,const Type &zi)
             {
@@ -1629,11 +1634,11 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
 */
 
      /*  Calcul robusrte ? du noyau */
+     Type aDiv = 1e-15;
      {
           cMSymCoffact3x3<Type> aCof;
 
           Type aG2 = aR1*aR1 + eR1*eR1 + iR1*iR1 + b2 + c2 +f2 ;
-          Type aDiv = 1e-15;
           aG2 = ElMax(aG2,Type(aDiv)) * aDiv;
 
           aCof.a = aG2+ aR1 * aR1 + b2 + c2;
@@ -1652,7 +1657,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
           z1 = aP.z;
           MakeNorm(x1,y1,z1);
           //  std::cout << "XYZ " << x1 << " "<< y1 << " " << z1 << "\n";
-          TestSolAR1();
+          // TestSolAR1();
      }
 
      //   aR1  b    c       X      0    aR1 |aR1 b  c #  b     b eR1 f #  c      c  f iR1
@@ -1663,6 +1668,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
 
      //TestSolVP1();
 
+     // Calcul d'un vecteur orthog
      {
          Type AX1 =ElAbs(x1);
          Type AY1 =ElAbs(y1);
@@ -1681,55 +1687,127 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
          }
      }
      MakeNorm(x2O,y2O,z2O);
-     //TestRON();
 
+     // Calcul de l'autre vecteur
      x3O = y1 * z2O - z1 * y2O;
      y3O = z1 * x2O - x1 * z2O;
      z3O = x1 * y2O - y1 * x2O;
 
+     //TestRON();
 
-     MulAtA(Ax2O,Ay2O,Az2O,x2O,y2O,z2O);
-     MulAtA(Ax3O,Ay3O,Az3O,x3O,y3O,z3O);
-
+     // Analyse de la matrice dans la base x2O .. x3O
 
      {
+         // Image par AtA de x2O .. 
+         MulAtA(Ax2O,Ay2O,Az2O,x2O,y2O,z2O);
+         MulAtA(Ax3O,Ay3O,Az3O,x3O,y3O,z3O);
+
+         // Image par AtA dans le repere x2O ...
          Type aS22 = x2O*Ax2O +  y2O*Ay2O + z2O*Az2O;
          Type aS23 = x2O*Ax3O +  y2O*Ay3O + z2O*Az3O;
          Type aS33 = x3O*Ax3O +  y3O*Ay3O + z3O*Az3O;
 
-         // Det(M + VP1 Id) 
-         Type aVP1 = -(aS22+aS33 + sqrt(ElSquare(aS22-aS33) + 4*ElSquare(aS23))) /2.0;
+         // Det(M + VP1 Id)  = 0
+         Type aDiscr   = sqrt(ElSquare(aS22-aS33) + 4*ElSquare(aS23));
+         mVP2 = -(aS22+aS33 + aDiscr) /2.0;
+         mVP3 = -(aS22+aS33 -aDiscr)/ 2.0;
  
 
          if (0)
          {
-            Type aVP2 = -(aS22+aS33 - sqrt(ElSquare(aS22-aS33) + 4*ElSquare(aS23))) /2.0;
-            std::cout << "VERIF VP/ DET" << (aVP1 * aVP2 * R1  / K0)+1 << "\n";
-            std::cout << "VERIF VP/ TRACE" << (aVP1 + aVP2 + R1 ) /  K2+1 << "\n";
+            std::cout << "DET " << (aS22+mVP2)*(aS33+mVP2) - ElSquare(aS23) << "\n";
+            std::cout << "VERIF VP/ DET" << (mVP2 * mVP3 * R1  / K0)+1 << "\n";
+            std::cout << "VERIF VP/ TRACE" << (mVP2 + mVP3 + R1 ) /  K2+1 << "\n";
 
-            std::cout << "DET " << (aS22-aVP1)*(aS33-aVP1) - ElSquare(aS23) << "\n";
             Type aS32 = x3O*Ax2O +  y3O*Ay2O + z3O*Az2O;
             std::cout << "SSs " << aS23 << " " << aS32 << "\n";
             std::cout << aS22+ aS33 << "\n"; // => Warn
          }
+
+
+         Type aS22VP = aS22 + mVP2;
+         Type aS33VP = aS33 + mVP2;
+
+         // Calcul deu noyau de la matrice reduite
+
+             //          aS22VP aS23       |           aS23   aS33VP
+             //   aS22VP                   |     aS23
+             //   aS23                     |     aS33VP
+
+         Type  aG2 =  aS22VP*aS22VP + aS33VP*aS33VP +  aS23*aS23;
+         aG2 = ElMax(aG2,Type(aDiv)) * aDiv;
+
+         Type  aMA =  aG2 + ElSquare(aS22VP) + ElSquare(aS23);
+         Type  aMB =  aS23 * (aS22VP + aS33VP);
+         Type  aMC =  aG2  + ElSquare(aS23) + ElSquare(aS33VP);
+
+          Type aDet = aMA * aMC - ElSquare(aMB);
+
+          // Image de (1,1) par l'inverse
+          Type aVpX = (aS33VP-aS23) / aDet;
+          Type aVpY = (aS22VP-aS23) / aDet;
+
+          Type aNorm = sqrt(aVpX*aVpX + aVpY*aVpY);
+          aVpX /= aNorm;
+          aVpY /= aNorm;
+          if (0)
+          {
+              Type aNX  = aS22VP * aVpX + aS23   * aVpY;
+              Type aNY  = aS23   * aVpX + aS33VP * aVpY;
+              std::cout << "VP " << (aVpX*aVpX+aVpY*aVpY-1)  << " " << aNX << " " << aNY  << "\n";
+          }
+
+          x2 =  aVpX*x2O  + aVpY*x3O;
+          y2 =  aVpX*y2O  + aVpY*y3O;
+          z2 =  aVpX*z2O  + aVpY*z3O;
+
+          //TestSolAR2();
      }
 
+     x3 = y1 * z2 - z1 * y2;
+     y3 = z1 * x2 - x1 * z2;
+     z3 = x1 * y2 - y1 * x2;
+     //TestSolAR3();
+  
 
-     // Calcul des Valeur Propre de la matrice reduite
-     //      aS22  aS23     Cos T           Cos T
-     //      aS23  aS33  *  Sin T   = L     Sin T
-
+     if (1)
      {
-          // Type 
+          ElMatrix<double> MtM = aMat * aMat.transpose();
+
+          ElMatrix<double> aDiag(3,3);
+          aDiag(0,0) = -R1;
+          aDiag(1,1) = -mVP2;
+          aDiag(2,2) = -mVP3;
+
+          Pt3dr aV1(x1,y1,z1);
+          Pt3dr aV2(x2,y2,z2);
+          Pt3dr aV3(x3,y3,z3);
+          
+          ElMatrix<double> aRot(3,3);
+          SetCol(aRot,0,aV1);
+          SetCol(aRot,1,aV2);
+          SetCol(aRot,2,aV3);
+ 
+           ElMatrix<double> aDif = MtM - aRot*aDiag*aRot.transpose();
+
+           std::cout << "Chek MtM = R D tR " << aDif.L2() << "\n";
+
+          ElMatrix<double> aSqrtDiag(3,3);
+          aSqrtDiag(0,0) = 1/ sqrt(ElAbs(R1));
+          aSqrtDiag(1,1) = 1/ sqrt(ElAbs(mVP2));
+          aSqrtDiag(2,2) = 1/ sqrt(ElAbs(mVP3));
+
+           ElMatrix<double>  aR2 =  aSqrtDiag *  aRot.transpose() * aMat;
+
+           ElMatrix<double> aDifDec = aR2*aR2.transpose() -ElMatrix<double>(3,true);
+           std::cout << "Chek dec " << aDifDec.L2() << "\n";
+           // ShowMatr("RR22",aR2*aR2.transpose() -ElMatrix<double>(3,true));
+
+          // ShowMatr("Diff",aDif);
+          // ShowMatr("xxx",MtM);
+          // ShowMatr("ddd",aRot*aDiag*aRot.transpose());
+          // std::cout << euclid(aV1) << " " << euclid(aV2) << " " << euclid(aV3) << "\n";
      }
-
-
-
-     //Type  aCA =
-/*
-*/
-
-
      
 }
 
@@ -1749,7 +1827,7 @@ void TestSVD3x3()
     {
          ElMatrix<double> aM = RanM33();
          
-         cSVD3x3<REAL16> aS1(aM);
+         // cSVD3x3<REAL16> aS1(aM);
          cSVD3x3<double> aS2(aM);
 
          aDrMin = ElMin(aDrMin,aS2.Discr);
