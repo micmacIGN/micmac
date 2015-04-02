@@ -1820,6 +1820,14 @@ ElMatrix<double> RanM33()
            aM(anX,anY) = NRrandC();
    return aM;
 }
+
+//   Time 3x3 : 0.0318749
+//   Time svdcmp : 0.199912
+//   MatEssToMulipleRot : 1.88438
+
+extern std::list<ElRotation3D>  MatEssToMulipleRot(const  ElMatrix<REAL> & aMEss,double LBase);
+
+
 void TestSVD3x3()
 {
     double aDrMin = 1e100;
@@ -1842,7 +1850,36 @@ void TestSVD3x3()
         }
     }
     std::cout << "Time 3x3 : " << aChro3x3.uval() << "\n";
+
+    ElTimer aChroMM;
+    for (int aKt=0 ; aKt<aNb ; aKt++)
+    {
+        for (int aKM=0 ; aKM<int(aVM.size()) ; aKM++)
+        {
+              aVM[aKM]* aVM[aKM];
+              aVM[aKM].transpose();
+              ElMatrix<REAL>::Rotation(0,0,1.0);
+              ElRotation3D(Pt3dr(0,0,0),aVM[aKM],true);
+        }
+    }
+    std::cout << "Time mm : " << aChroMM.uval() << "\n";
+
          
+    ElTimer aChroSVD;
+    for (int aKt=0 ; aKt<aNb ; aKt++)
+    {
+        for (int aKM=0 ; aKM<int(aVM.size()) ; aKM++)
+        {
+              ElMatrix<REAL>  aU(3,3),aLineDiag(1,3),aV(3,3);
+              svdcmp_diag(aVM[aKM],aU,aLineDiag,aV,true);
+              //MatEssToMulipleRot(aVM[aKM],1.0);
+        }
+    }
+    std::cout << "Time svd : " << aChroSVD.uval() << "\n";
+
+
+
+
 }
 
 

@@ -314,6 +314,7 @@ std::list<ElRotation3D>  MatEssToMulipleRot(const  ElMatrix<REAL> & aMEss,double
            REAL aTeta2 = PI * (kTeta+0.5);
 
            ElMatrix<REAL> aR1 = aSvd1;
+           // ElMatrix<REAL>::Rotation(0,0,aTeta2);  0.4 sur 1.46
            ElMatrix<REAL> aR2 =  ElMatrix<REAL>::Rotation(0,0,aTeta2)
 		               * aSvd2;
 
