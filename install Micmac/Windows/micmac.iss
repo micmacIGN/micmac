@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "MicMac64bits"
-#define MyAppVersion "1.0 rev 3811"
+#define MyAppVersion "1.0 rev 5348"
 #define MyAppPublisher "I.G.N."
 #define MyAppURL "http://www.ign.fr/"
 #define MyAppExeName "bin\mm3d.exe"
@@ -41,15 +41,8 @@ Source: "..\..\LISEZMOI"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\README"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\bin\*.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "..\..\bin\*.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "..\..\bin\platforms\qwindows.dll"; DestDir: "{app}\bin\platforms"; Flags: ignoreversion
-Source: "..\..\bin\imageformats\qgif.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
-Source: "..\..\bin\imageformats\qico.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
-Source: "..\..\bin\imageformats\qjpeg.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
-Source: "..\..\bin\imageformats\qmng.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
-Source: "..\..\bin\imageformats\qsvg.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
-Source: "..\..\bin\imageformats\qtga.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
-Source: "..\..\bin\imageformats\qtiff.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
-Source: "..\..\bin\imageformats\qwbmp.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
+Source: "..\..\bin\platforms\*.dll"; DestDir: "{app}\bin\platforms"; Flags: ignoreversion
+Source: "..\..\bin\imageformats\*.dll"; DestDir: "{app}\bin\imageformats"; Flags: ignoreversion
 Source: "..\..\binaire-aux\*.exe"; DestDir: "{app}\binaire-aux"; Flags: ignoreversion
 Source: "..\..\binaire-aux\*.dll"; DestDir: "{app}\binaire-aux"; Flags: ignoreversion
 Source: "..\..\data\*"; DestDir: "{app}\data"; Flags: ignoreversion
