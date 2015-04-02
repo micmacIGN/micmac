@@ -814,6 +814,8 @@
    -->
         <KnownConv Nb="?" Type="eConventionsOrientation"> </KnownConv>
         <Centre Nb="1" Type="Pt3dr"> </Centre>
+        <!-- In case Offset was given to avoid "big" coordinates -->
+        <OffsetCentre Nb="?" Type="Pt3dr"> </OffsetCentre>
         <Vitesse Nb="?" Type="Pt3dr"> </Vitesse>
         <VitesseFiable Nb="?" Type="bool" Def="true"> </VitesseFiable>
         <IncCentre Nb="?" Type="Pt3dr"> </IncCentre>
@@ -1622,6 +1624,116 @@
      <Phi Nb="1" Type="double">  </Phi>
 </Xml_OrientaRel>
 
+<!--  LECTURE DES ORIENTATIONS MATIS -->
+
+<XmlMatis_sommet  Nb="1" Class="true" ToReference="true">
+   <easting Nb="1" Type="double">   </easting>
+   <northing Nb="1" Type="double">  </northing>
+   <altitude Nb="1" Type="double">  </altitude>
+</XmlMatis_sommet>
+
+<XmlMatis_pt3d  Nb="1" Class="true" ToReference="true">
+    <x Nb="1" Type="double">  </x>
+    <y Nb="1" Type="double">  </y>
+    <z Nb="1" Type="double">  </z>
+</XmlMatis_pt3d>
+
+<XmlMatis_FormeLin  Nb="1" Class="true" ToReference="true">
+    <pt3d Nb="1" RefType="XmlMatis_pt3d"> </pt3d>
+</XmlMatis_FormeLin>
+
+<XmlMatis_mat3d Nb="1" Class="true" ToReference="true">
+    <l1 Nb="1" RefType="XmlMatis_FormeLin"> </l1>
+    <l2 Nb="1" RefType="XmlMatis_FormeLin"> </l2>
+    <l3 Nb="1" RefType="XmlMatis_FormeLin"> </l3>
+</XmlMatis_mat3d>
+
+
+<XmlMatis_quaternion Nb="1" Class="true" ToReference="true">
+    <x Nb="1" Type="double">  </x>
+    <y Nb="1" Type="double">  </y>
+    <z Nb="1" Type="double">  </z>
+    <w Nb="1" Type="double">  </w>
+</XmlMatis_quaternion>
+
+
+<XmlMatis_rotation Nb="1" Class="true" ToReference="true">
+    <Image2Ground Nb="1" Type="bool"> </Image2Ground>
+    <mat3d Nb="1" RefType="XmlMatis_mat3d"> </mat3d>
+    <quaternion Nb="?" RefType="XmlMatis_quaternion"> </quaternion>
+</XmlMatis_rotation>
+
+
+<XmlMatis_extrinseque Nb="1" Class="true" ToReference="true">
+    <systeme Nb="1" Type="std::string">    </systeme>
+    <grid_alti Nb="1" Type="std::string">  </grid_alti>
+    <sommet Nb="1" RefType="XmlMatis_sommet"> </sommet>
+    <rotation Nb="1" RefType="XmlMatis_rotation"> </rotation>
+</XmlMatis_extrinseque>
+
+<XmlMatis_P2d_cl  Nb="1" Class="true" ToReference="true">
+   <c Nb="1" Type="double">  </c>
+   <l Nb="1" Type="double">  </l>
+</XmlMatis_P2d_cl>
+<XmlMatis_ppa  Nb="1" Class="true" ToReference="true">
+   <c Nb="1" Type="double">  </c>
+   <l Nb="1" Type="double">  </l>
+   <focale Nb="1" Type="double">  </focale>
+</XmlMatis_ppa>
+
+<XmlMatis_distortion Nb="1" Class="true" ToReference="true">
+    <pps Nb="1" RefType="XmlMatis_P2d_cl"> </pps>
+    <r3 Nb="1" Type="double"> </r3>
+    <r5 Nb="1" Type="double"> </r5>
+    <r7 Nb="1" Type="double"> </r7>
+</XmlMatis_distortion>
+
+<XmlMatis_image_size Nb="1" Class="true" ToReference="true">
+    <width Nb="1" Type="int" >  </width>
+    <height Nb="1" Type="int"> </height>
+</XmlMatis_image_size>
+
+
+<XmlMatis_sensor Nb="1" Class="true" ToReference="true">
+    <name Nb="1" Type="std::string"> </name>
+    <calibration_date Nb="1" Type="std::string">  </calibration_date>
+    <serial_number Nb="1" Type="std::string">  </serial_number>
+    <image_size Nb="1" RefType="XmlMatis_image_size">  </image_size>
+    <ppa  Nb="1" RefType="XmlMatis_ppa"> </ppa>
+    <distortion  Nb="1" RefType="XmlMatis_distortion"> </distortion>
+    <pixel_size Nb="1" Type="double"> </pixel_size>
+</XmlMatis_sensor>
+
+<XmlMatis_frame  Nb="1" Class="true" ToReference="true">
+      <lambda_min Nb="1" Type="double"></lambda_min>
+      <lambda_max Nb="1" Type="double"></lambda_max>
+      <phi_min Nb="1" Type="double"></phi_min>
+      <phi_max Nb="1" Type="double"></phi_max>
+</XmlMatis_frame>
+
+<XmlMatis_spherique  Nb="1" Class="true" ToReference="true">
+   <image_size Nb="1" RefType="XmlMatis_image_size"> </image_size>
+   <ppa  Nb="1" RefType="XmlMatis_P2d_cl"> </ppa>
+   <frame Nb="1" RefType="XmlMatis_frame"> </frame>
+</XmlMatis_spherique>
+<!--
+-->
+
+<XmlMatis_intrinseque Nb="1" Class="true" ToReference="true">
+   <sensor Nb="?" RefType="XmlMatis_sensor"> </sensor>
+   <spherique Nb="?" RefType="XmlMatis_spherique"> </spherique>
+</XmlMatis_intrinseque>
+
+<XmlMatis_geometry Nb="1" Class="true" ToReference="true">
+   <extrinseque Nb="1" RefType="XmlMatis_extrinseque"> </extrinseque>
+   <intrinseque Nb="1" RefType="XmlMatis_intrinseque"> </intrinseque>
+</XmlMatis_geometry>
+
+<orientation Nb="1" Class="true" ToReference="true">
+   <version Nb="?" Type="std::string" Def="1.0">  </version>
+   <auxiliarydata Nb="1" Type="XmlXml"> </auxiliarydata>
+   <geometry Nb="1" RefType="XmlMatis_geometry"> </geometry>
+</orientation>
 
 
 <Verbatim File=".h.cpp">
