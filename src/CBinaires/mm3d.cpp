@@ -510,6 +510,8 @@ int TestNewOriImage_main(int argc,char ** argv);
 int PreparSift_Main(int argc,char ** argv);
 
 
+int MatisOri2MM_main(int argc,char ** argv);
+
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
@@ -602,6 +604,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
     aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
     aRes.push_back(cMMCom("TNO",TestNewOriImage_main,"Test New Orientation"));
+    aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
+
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);

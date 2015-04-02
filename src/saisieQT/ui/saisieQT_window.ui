@@ -418,7 +418,7 @@
      <x>0</x>
      <y>0</y>
      <width>1163</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="mouseTracking">
@@ -1112,6 +1112,9 @@
    </property>
    <property name="text">
     <string>Rule</string>
+   </property>
+   <property name="shortcut">
+    <string>R</string>
    </property>
   </action>
   <action name="actionAdd_outside">

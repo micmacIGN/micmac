@@ -56,7 +56,6 @@ public:
 };
 #endif
 
-
 #if ( ( defined WIN32 ) && ( ELISE_QT_VERSION >= 4 ) )
 int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
 {
@@ -88,8 +87,7 @@ int main(int argc, char *argv[])
     //QScreen *scrre =  QGuiApplication::primaryScreen();
 
     //qDebug() << scrre->size();
-
-    QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
+QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
         QString("SaisieMasqQT\n") +
         QString("SaisieAppuisInitQT\n") +
         QString("SaisieAppuisPredicQT\n")+
