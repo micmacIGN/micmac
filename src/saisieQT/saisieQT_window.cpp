@@ -573,6 +573,9 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         actions.push_back(tr("open .ply files"));
         shortcuts.push_back(Ctrl + "C");
         actions.push_back(tr("open .xml camera files"));
+    }
+    if ((_appMode == MASK3D) || (_appMode == MASK2D))
+    {
         shortcuts.push_back(Ctrl + "O");
         actions.push_back(tr("open image file"));
         shortcuts.push_back(Ctrl + "+S");
@@ -582,8 +585,11 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(Ctrl + "X");
         actions.push_back(tr("close files"));
     }
-    shortcuts.push_back(Ctrl + "T");
-    actions.push_back(tr("settings"));
+    if (_appMode != BOX2D)
+    {
+        shortcuts.push_back(Ctrl + "T");
+        actions.push_back(tr("settings"));
+    }
     shortcuts.push_back(Ctrl + "Q");
     actions.push_back(tr("quit"));
 
@@ -688,22 +694,31 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             shortcuts.push_back("F9");
             actions.push_back(tr("move mode / selection mode (only 3D)"));
         }
-        shortcuts.push_back(tr("Left click"));
-        actions.push_back(tr("add a vertex to polygon"));
-        shortcuts.push_back(tr("Right click"));
-        actions.push_back(tr("close polygon or delete nearest vertex"));
-        shortcuts.push_back(tr("Echap"));
-        actions.push_back(tr("delete polygon"));
-        shortcuts.push_back(tr("W+drag"));
-        actions.push_back(tr("move polygon"));
+        if (_appMode != BOX2D)
+        {
+            shortcuts.push_back(tr("Left click"));
+            actions.push_back(tr("add a vertex to polygon"));
+            shortcuts.push_back(tr("Right click"));
+            actions.push_back(tr("close polygon or delete nearest vertex"));
+            shortcuts.push_back(tr("Echap"));
+            actions.push_back(tr("delete polygon"));
+            shortcuts.push_back(tr("W+drag"));
+            actions.push_back(tr("move polygon"));
 
-#ifdef ELISE_Darwin
-    #if ELISE_QT_VERSION >= 5
-            shortcuts.push_back(tr("Fn+Space bar"));
-            shortcuts.push_back("Fn+D");
-            shortcuts.push_back("Fn+U");
-            shortcuts.push_back("Fn+Y");
-            fillStringList(actions, _appMode);
+    #ifdef ELISE_Darwin
+        #if ELISE_QT_VERSION >= 5
+                shortcuts.push_back(tr("Fn+Space bar"));
+                shortcuts.push_back("Fn+D");
+                shortcuts.push_back("Fn+U");
+                shortcuts.push_back("Fn+Y");
+                fillStringList(actions, _appMode);
+        #else
+                shortcuts.push_back(tr("Space bar"));
+                shortcuts.push_back(tr("Del"));
+                shortcuts.push_back(tr("Ctrl+Space bar"));
+                shortcuts.push_back(tr("Ctrl+Del"));
+                fillStringList(actions, _appMode);
+        #endif
     #else
             shortcuts.push_back(tr("Space bar"));
             shortcuts.push_back(tr("Del"));
@@ -711,34 +726,33 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             shortcuts.push_back(tr("Ctrl+Del"));
             fillStringList(actions, _appMode);
     #endif
-#else
-        shortcuts.push_back(tr("Space bar"));
-        shortcuts.push_back(tr("Del"));
-        shortcuts.push_back(tr("Ctrl+Space bar"));
-        shortcuts.push_back(tr("Ctrl+Del"));
-        fillStringList(actions, _appMode);
-#endif
 
-        shortcuts.push_back(tr("Shift+drag"));
-        actions.push_back(tr("insert vertex in polygon"));
-        shortcuts.push_back(Ctrl + tr("right click"));
-        actions.push_back(tr("remove last vertex"));
-        shortcuts.push_back(tr("Drag & drop"));
-        actions.push_back(tr("move selected polygon vertex"));
-        shortcuts.push_back(tr("Arrow keys"));
-        actions.push_back(tr("move selected vertex") + " (" + QString::number(shiftStep).toStdString().c_str() +" px)" + tr(" - see Settings"));
-        shortcuts.push_back(tr("Alt+arrow keys"));
-        actions.push_back(tr("move selected vertex") + " (" + QString::number(10.f*shiftStep).toStdString().c_str() + " px)");
-        shortcuts.push_back(tr("Key W+drag"));
-        actions.push_back(tr("move polygon"));
-        shortcuts.push_back(Ctrl + "A");
-        actions.push_back(tr("select all"));
-        shortcuts.push_back(Ctrl + "D");
-        actions.push_back(tr("select none"));
-        shortcuts.push_back(Ctrl + "R");
-        actions.push_back(tr("reset selection"));
-        shortcuts.push_back(Ctrl + "I");
-        actions.push_back(tr("invert selection"));
+            shortcuts.push_back(tr("Shift+drag"));
+            actions.push_back(tr("insert vertex in polygon"));
+            shortcuts.push_back(Ctrl + tr("right click"));
+            actions.push_back(tr("remove last vertex"));
+            shortcuts.push_back(tr("Drag & drop"));
+            actions.push_back(tr("move selected polygon vertex"));
+            shortcuts.push_back(tr("Arrow keys"));
+            actions.push_back(tr("move selected vertex") + " (" + QString::number(shiftStep).toStdString().c_str() +" px)" + tr(" - see Settings"));
+            shortcuts.push_back(tr("Alt+arrow keys"));
+            actions.push_back(tr("move selected vertex") + " (" + QString::number(10.f*shiftStep).toStdString().c_str() + " px)");
+            shortcuts.push_back(tr("Key W+drag"));
+            actions.push_back(tr("move polygon"));
+            shortcuts.push_back(Ctrl + "A");
+            actions.push_back(tr("select all"));
+            shortcuts.push_back(Ctrl + "D");
+            actions.push_back(tr("select none"));
+            shortcuts.push_back(Ctrl + "R");
+            actions.push_back(tr("reset selection"));
+            shortcuts.push_back(Ctrl + "I");
+            actions.push_back(tr("invert selection"));
+        }
+        else
+        {
+            shortcuts.push_back(tr("Click+drag"));
+            actions.push_back(tr("draw box, or edit box"));
+        }
     }
     else
     {
@@ -753,7 +767,7 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
         shortcuts.push_back(tr("Alt+arrow keys"));
         actions.push_back(tr("move selected point") + " (" + QString::number(10.f*shiftStep).toStdString().c_str() + " px)");
     }
-    if (_appMode <= MASK3D) //TEMP: TODO corriger le undo Elise
+    if ((_appMode == MASK3D) || (_appMode == MASK2D)) //TEMP: TODO corriger le undo Elise - Pas disponible en mode Box2D
     {
         shortcuts.push_back(Ctrl +"Z");
         actions.push_back(tr("undo last action"));
@@ -784,7 +798,7 @@ void SaisieQtWindow::on_actionAbout_triggered()
     QString version;
     version.setNum(_hg_revision);
 
-	QString adressbit(" " + QString::number(sizeof(int*)*8) + " bits");
+    QString adressbit(" " + QString::number(sizeof(int*)*8) + " bits");
 
     qStr += "\n" + tr("Application") + "\t" + QApplication::applicationName() + adressbit +
             + "\n" +  tr("Built with \tQT ") + QT_VERSION_STR  +
@@ -1285,7 +1299,7 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionShow_cams,  isMode3D);
     hideAction(_ui->actionToggleMode, isMode3D);
 
-    bool isModeMask = _appMode == MASK3D || _appMode == MASK2D;
+    bool isModeMask = _appMode == MASK3D || _appMode == MASK2D || _appMode == BOX2D;
     hideAction(_ui->actionShow_names, !isModeMask);
     hideAction(_ui->actionShow_refuted, !isModeMask);
 
@@ -1301,6 +1315,11 @@ void SaisieQtWindow::updateUI()
     hideAction(_ui->actionRemove_outside, isModeMask);
 
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
+    _ui->menuWindows->menuAction()->setVisible(_appMode != BOX2D);
+    _ui->menuTools->menuAction()->setVisible(_appMode != BOX2D);
+    _ui->menuSelection->menuAction()->setVisible(_appMode != BOX2D);
+
+    hideAction(_ui->actionSettings, _appMode != BOX2D);
 
     if (_appMode == MASK2D)
     {
