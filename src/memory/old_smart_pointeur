@@ -1,0 +1,961 @@
+/*eLiSe06/05/99
+  
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS  
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+
+#include "general/all.h"
+#include "private/all.h"
+
+
+
+
+
+#if DEBUG_SMART_POINTEUR
+
+/*************************************************************/
+/*************************************************************/
+/*************************************************************/
+/*************************************************************/
+/******************   IMPLANTATTION **************************/
+/*************************************************************/
+/*************************************************************/
+/*************************************************************/
+/*************************************************************/
+
+
+/***************** Quelques utilitaires ****************/
+
+void  Fatale_Erreur(char * mes)
+{
+   cout << "FATALE ERROR in SMART POINTERS MANIPULATION : \n";
+   cout << "[" << mes << "]\n";
+   cout << "I e-xit program \n";
+   StdEXIT(0);
+}
+
+
+/******************   Memory_seg **********************************
+
+     Quand un "Smart Pointeurs", est duplique (passage d'arguments,
+     affectations etc..) ont obtient plusieurs pointeurs referencant
+     le meme segment memoire. Il est important de garder une trace
+     de ce partage en affectant a tout les "smart pointeur" une meme
+     zone d'information. Tous les smarts pointeur referecant le
+     meme segment partageront donc le meme objet de la
+     classe Memory_Seg (= "Segment de memoire"). 
+
+     La classe Memory_Seg etant intern au fichier, on n'est pas trop
+     pointilleux sur les "public/protected/private".
+
+*******************************************************************/
+
+
+
+/*
+    Convention de representation :
+
+        - pointeur non initialise : _zone = 0;
+        - pointeur nul  _zone = &(Memory_Seg::MSEG_NULL)
+        - pointeur  sur zone  liberee : _zone->_nb_el = nb_el_killed;
+*/
+
+class Memory_Seg
+{
+
+     public :
+         enum MODE_ALLOC
+         {
+             non_alloc,
+             tab_alloc,
+             alloc_unaire
+         } MODE_ALLOC;
+
+     // methode
+         void incr_ref(void);
+         void decr_ref(void);
+         void delete_tab(void);
+         void delete_unaire(void);
+         INT  sh_ref(void) {return _nb_ref;}
+
+         inline INT     nb_el (void){return _nb_el;}
+         inline void *  get_mem (void){return _mem_seg;}
+         Memory_Seg(INT nb,void *,MODE_ALLOC);
+
+     // variable de classe
+         static Memory_Seg MSEG_NULL ;  // pour stocker le pointeur NULL
+
+
+     protected:
+
+     private :
+
+     // champs
+         void *    _mem_seg;  // la zone memoire elle meme
+         INT      _nb_el;    // le nombre d'elements
+         INT      _nb_ref;   // le nombre de pointeurs referencant la zone
+         struct
+         {
+            unsigned int mode_all : 2;
+         } _bits;
+
+     // variable de classe
+         static const INT nb_el_killed;
+
+};
+
+
+
+/*******************************************************/
+/*              Memory_Seg                             */
+/*              Memory_Seg                             */
+/*              Memory_Seg                             */
+/*              Memory_Seg                             */
+/*******************************************************/
+
+
+
+
+const INT Memory_Seg::nb_el_killed = -1;
+Memory_Seg Memory_Seg::MSEG_NULL (0,0,Memory_Seg::non_alloc);
+
+Memory_Seg::Memory_Seg(INT nb,void * mem_seg,enum MODE_ALLOC mode_all) 
+{
+    _mem_seg    = mem_seg;
+    _nb_el      = nb;
+    _nb_ref     = 1;
+    _bits.mode_all  = mode_all;
+
+   if (nb <= 0)
+   {
+      if (nb < 0)
+         Fatale_Erreur("allocation de moins de 0 elt");
+      if(mem_seg)
+         Fatale_Erreur("allocation de 0 elt avec un Ptr non null");
+   }
+}
+
+
+void Memory_Seg::delete_tab(void)
+{
+   if (_bits.mode_all == tab_alloc)
+   {
+      if (_mem_seg)
+      {
+          delete [] _mem_seg;
+          _mem_seg = (void *) 0;
+          _nb_el = nb_el_killed;
+      }
+      else if (_nb_el == nb_el_killed)
+      {
+           Fatale_Erreur("delete multiple");
+      }
+   }
+   else
+        Fatale_Erreur("delete [] d'un pointeur non initialise par new []");
+}
+
+
+void Memory_Seg::delete_unaire(void)
+{
+   if (_bits.mode_all == alloc_unaire)
+   {
+      if (_mem_seg)
+      {
+          delete _mem_seg;
+          _mem_seg = (void *) 0;
+          _nb_el = nb_el_killed;
+      }
+      else if (_nb_el == nb_el_killed)
+      {
+           Fatale_Erreur("delete multiple");
+      }
+   }
+   else
+        Fatale_Erreur("delete d'un pointeur non initialise par new");
+}
+
+
+void Memory_Seg::incr_ref(void) 
+{
+    _nb_ref++;
+}
+void Memory_Seg::decr_ref(void) 
+{
+    _nb_ref--;
+    if (_nb_ref <= 0)
+    {
+       if (_nb_ref < 0)
+           Fatale_Erreur("INTERNAL ERROR : Memory_Seg::decr_ref : nb_ref < 0");
+       if (_mem_seg)
+       {
+           if (_bits.mode_all != non_alloc)
+               Fatale_Erreur("Memoire jamais liberee");
+       }
+
+       delete this;
+    }
+}
+
+
+/*******************************************************/
+/*              Smart_Pointer_Gen                      */
+/*              Smart_Pointer_Gen                      */
+/*              Smart_Pointer_Gen                      */
+/*              Smart_Pointer_Gen                      */
+/*******************************************************/
+
+
+Smart_Pointer_Gen::Smart_Pointer_Gen(void) :
+    _zone    ((Memory_Seg *) 0),
+    _offset  (-1234)    // Bidon
+{
+}
+
+Smart_Pointer_Gen::Smart_Pointer_Gen(INT nb)
+{
+    if (nb != 0)
+       Fatale_Erreur("Convertion d'un entier != 0 en pointeur");
+
+    _offset  = 0;
+    _zone = &(Memory_Seg::MSEG_NULL);
+    incr_ref();
+}
+
+     /*=====================================================*/
+     /*              Utilititaires                          */
+     /*=====================================================*/
+
+void Smart_Pointer_Gen::incr_ref(void) const 
+{
+    if (_zone) 
+       _zone->incr_ref();
+};
+void Smart_Pointer_Gen::decr_ref(void) 
+{   
+     if (_zone)
+        _zone->decr_ref();
+};
+
+
+void Smart_Pointer_Gen::bit_copy(const Smart_Pointer_Gen & p2)
+{
+    _zone     = p2._zone;
+    _offset   = p2._offset;
+}
+
+
+
+void * Smart_Pointer_Gen::smp_mem_nul(void) const
+{
+     if (! _zone)
+        Fatale_Erreur("utilisation d'un pointeur non initialise");
+
+     if (_zone != &(Memory_Seg::MSEG_NULL))
+     {
+        void * res = _zone->get_mem();
+        if (! res)
+           Fatale_Erreur("utilisation d'une zone liberee");
+        return res;
+     }
+     return _zone->get_mem();
+
+}
+
+void * Smart_Pointer_Gen::smp_mem_nn(void) const
+{
+     if (! _zone)
+        Fatale_Erreur("utilisation d'un pointeur non initialise");
+
+     if (_zone == &(Memory_Seg::MSEG_NULL))
+        Fatale_Erreur("Operation illicite sur le pointeur NULL");
+
+
+     void * res = _zone->get_mem();
+     if (! res)
+        Fatale_Erreur("utilisation d'une zone liberee");
+
+     return res;
+}
+
+
+
+/*******************************************************/
+/*              Smart_Pointer<Type>                    */
+/*              Smart_Pointer<Type>                    */
+/*              Smart_Pointer<Type>                    */
+/*              Smart_Pointer<Type>                    */
+/*              Smart_Pointer<Type>                    */
+/*              Smart_Pointer<Type>                    */
+/*******************************************************/
+
+
+template <class Type> INT  Smart_Pointer<Type>::sh_ref(void) 
+{return _zone->sh_ref();} 
+
+
+        /**************/
+        /* Operateurs */
+        /**************/
+   //=========================================
+   // Dereferencenements "->", "*" et "[]"
+   //=========================================
+
+
+template <class Type> Type & Smart_Pointer<Type>::operator * (void)
+{
+   void * memo =  smp_mem_nn();
+
+   if ((_offset < 0) || (_offset >= _zone->nb_el()))
+      Fatale_Erreur("dereferencement hors limite");
+
+   return  ((Type *) memo)[_offset];
+}
+
+template <class Type> Type & Smart_Pointer<Type>::operator [] (INT i)
+{
+   void * memo =  smp_mem_nn();
+
+   i+= _offset;
+   if ((i< 0) || (i >= _zone->nb_el()))
+      Fatale_Erreur("dereferencement hors limite");
+
+   return  ((Type *) memo)[i];
+}
+
+
+template <class Type> Type * Smart_Pointer<Type>::operator -> (void)
+{
+   void * memo =  smp_mem_nn();
+
+   if ((_offset < 0) || (_offset >= _zone->nb_el()))
+      Fatale_Erreur("dereferencement hors limite");
+
+   return  ((Type *) memo)+_offset;
+}
+
+
+
+   //====================================
+   // Operateurs arithmetiques "+" et "-"
+   //====================================
+
+    // On accepte, pour l'instant, l'arithmetique sur le pointeur nul.
+    // Cela a peu d'interet mais semble sans danger.
+    // A voir ce qu'indique l'ANSI ou un autre machin a ce sujet.
+
+
+template <class Type> Smart_Pointer<Type>
+         operator + (const Smart_Pointer<Type> & p,INT nb)
+{
+    Smart_Pointer<Type> res;
+
+
+    p.smp_mem_nul(); // juste pour verifier que p est initialise
+
+    res = p;
+    res._offset += nb;
+    return res;
+}
+
+
+
+template <class Type> Smart_Pointer<Type> 
+         operator + (INT nb,const Smart_Pointer<Type> & p)
+{
+   return p+nb;
+}
+
+template <class Type> Smart_Pointer<Type> 
+         operator - (const Smart_Pointer<Type> & p,INT nb)
+{
+   return p+(-nb);
+}
+
+
+template <class Type> INT
+         operator - (const Smart_Pointer<Type> & p1,const Smart_Pointer<Type> & p2)
+{
+   // verifie que p1 et p2 sont initialises et valides
+   // et  que  p1 et p2 pointent sur la meme zone
+
+   if (p1.smp_mem_nul() != p2.smp_mem_nul())
+      Fatale_Erreur("soustraction de pointeurs referencant deux segments differents");
+   return p1._offset - p2._offset;
+}
+
+   //========================================
+   // Operateurs arithmetiques "+=" et "-="
+   //========================================
+
+
+template <class Type> Smart_Pointer<Type> &
+         Smart_Pointer<Type>::operator += (INT nb)
+{
+   return *this = *this +nb;
+}
+
+template <class Type> Smart_Pointer<Type> &
+         Smart_Pointer<Type>::operator -= (INT nb)
+{
+   return *this = *this +(-nb);
+}
+
+
+    //======================
+    //  p++, ++p ,p-- , --p
+    //======================
+
+
+     // ++ p
+
+template <class Type> Smart_Pointer<Type> &
+         Smart_Pointer<Type>::operator ++(void)
+{
+   return *this = *this +1;
+}
+
+  
+     //  p ++
+
+template <class Type> Smart_Pointer<Type>
+         Smart_Pointer<Type>::operator ++(INT)
+{
+   Smart_Pointer<Type> res;
+
+   res = *this;
+   *this = *this +1;
+   return res;
+}
+
+     // -- p
+
+template <class Type> Smart_Pointer<Type> &
+         Smart_Pointer<Type>::operator --(void)
+{
+   return *this = *this +-1;
+}
+
+  
+     //  p --
+
+template <class Type> Smart_Pointer<Type>
+         Smart_Pointer<Type>::operator --(INT)
+{
+   Smart_Pointer<Type> res;
+
+   res = *this;
+   *this = *this +-1;
+   return res;
+}
+
+    //=========================================================
+    //  p1 <p2, p1<=p2 etc..
+    //
+    //  On exige que les deux zones soient initialisees.
+    //
+    //  On accepte la comparaison de deux pointeurs
+    //  initialises sur des zones differentes (peut etre utile,
+    //  par exemple, dans des programmes de tris).
+    //  
+    //========================================================
+
+
+template <class Type> INT Smart_Pointer<Type>::operator<
+                           (const Smart_Pointer<Type> & p2 )
+{
+    return    ( ((Type *) smp_mem_nul()) +    _offset)
+           <  ( ((Type *) p2.smp_mem_nul()) + p2._offset);
+}
+
+template <class Type> INT Smart_Pointer<Type>::operator<=
+                           (const Smart_Pointer<Type> & p2 )
+{
+    return    ( ((Type *) smp_mem_nul()) +    _offset)
+           <= ( ((Type *) p2.smp_mem_nul()) + p2._offset);
+}
+
+template <class Type> INT Smart_Pointer<Type>::operator>
+                           (const Smart_Pointer<Type> & p2 )
+{
+    return    ( ((Type *) smp_mem_nul()) +    _offset)
+           >  ( ((Type *) p2.smp_mem_nul()) + p2._offset);
+}
+
+template <class Type> INT Smart_Pointer<Type>::operator>=
+                           (const Smart_Pointer<Type> & p2 )
+{
+    return    ( ((Type *) smp_mem_nul()) +    _offset)
+           >= ( ((Type *) p2.smp_mem_nul()) + p2._offset);
+}
+
+
+
+    //=========================================================
+    // ==, !=, !
+    //  
+    // Il n'est pas vraiment logique de considerer que deux pointeurs
+    // qui referencent deux zones differents puissent etre egaux 
+    // via des offset differents. Cependant quand on a a tester ce cas,
+    // on ne peux ni genererer une erreur ni etre incompatible avec le
+    // C. Donc, je ne vois pas autre chose que la simple comparaison des
+    // adresses.
+    //========================================================
+
+
+template <class Type> INT Smart_Pointer<Type>::operator==
+                           (const Smart_Pointer<Type> & p2 )
+{
+    return     ( ((Type *) smp_mem_nul()) +    _offset)
+           ==  ( ((Type *) p2.smp_mem_nul()) + p2._offset);
+}
+
+
+template <class Type> INT Smart_Pointer<Type>::operator!=
+                           (const Smart_Pointer<Type> & p2 )
+{
+    return     ( ((Type *) smp_mem_nul()) +    _offset)
+           !=  ( ((Type *) p2.smp_mem_nul()) + p2._offset);
+}
+
+
+template <class Type> INT Smart_Pointer<Type>::operator! (void)
+{
+    return !   ( ((Type *) smp_mem_nul()) +    _offset);
+}
+
+
+//******************************************
+// Equivalent de new,delete + initialisation
+//******************************************
+
+
+/*
+     Before deletion, zone are reset to the value _VAL_DEF. The (only) reason
+     for this is :
+
+          - for pointers of pointers (like Smart_Pointer<Smart_Pointer<INT> >),
+            this value is set to 0 (for others, it does not matters);
+
+          - the effect of "(*this)[i]=0" is do decrease the number of reference
+            on  (*this)[i], which is necessary because after deletion of the zone
+            a way to reference  (*this)[i] will have in fact disappear;
+*/
+
+template <class Type> void Smart_Pointer<Type>::delete_unaire(void)
+{
+    (*this)[-_offset] = _VAL_DEF;
+   if (! _zone)
+      Fatale_Erreur("deletion d'un pointeur non initialise");
+   if (_offset != 0)
+      Fatale_Erreur("deletion d'un pointeur decale / a l'alloc");
+
+   _zone->delete_unaire();
+}
+
+
+template <class Type> void Smart_Pointer<Type>::delete_tab(void)
+{
+    for (int i=-_offset;i<-_offset+_zone->nb_el(); i++)
+        (*this)[i] = _VAL_DEF;
+
+   if (! _zone)
+      Fatale_Erreur("deletion d'un pointeur non initialise");
+   if (_offset != 0)
+      Fatale_Erreur("deletion d'un pointeur decale / a l'alloc");
+
+   _zone->delete_tab();
+}
+
+
+
+// initialisation par allocation
+
+template <class Type> Smart_Pointer<Type>  Smart_Pointer<Type>::new_tab(INT nb) 
+{
+   Smart_Pointer<Type> res;
+
+   res._offset = 0;
+   //  res._zone   = new Memory_Seg(nb,new (Type) [nb],Memory_Seg::tab_alloc);
+   //  would be easier but, apparently, this does not work with g++ 2.7.2 on linux ??
+   {
+      Type * tab;
+      tab = new Type [nb];
+      res._zone   = new Memory_Seg(nb,tab,Memory_Seg::tab_alloc);
+   }
+   return res;
+}
+
+
+
+template <class Type> Smart_Pointer<Type>  Smart_Pointer<Type>::new_vect(INT x1,INT x2) 
+{
+  INT x_min = min(x1,x2);
+  return new_tab(max(x1,x2)-x_min) -x_min;
+}
+
+
+template <class Type> Smart_Pointer<Smart_Pointer<Type> > new_matr(Pt2di p1,Pt2di p2,Type *) 
+{
+    Pt2di p_min = Min(p1,p2),p_max = Max(p1,p2);
+    Smart_Pointer<Smart_Pointer<Type> > res =
+             Smart_Pointer<Smart_Pointer<Type> >::new_vect(p_min.y,p_max.y);
+
+    for (int y=p_min.y ; y<p_max.y ; y++)
+        res[y] =  Smart_Pointer<Type>::new_vect(p_min.x,p_max.x);
+
+   return res;
+}
+
+template <class Type> void delete_matr 
+          (Smart_Pointer<Smart_Pointer<Type> >m, Pt2di p0,Pt2di p1)
+{
+    Pt2di pmin = Min(p0,p1),pmax = Max(p0,p1);
+
+    for (int y =pmin.y; y < pmax.y; y++)
+         DELETE_VECTOR(m[y],pmin.x);
+
+     DELETE_TAB(m+pmin.y);
+}
+
+
+
+template <class Type> Smart_Pointer<Type>  Smart_Pointer<Type>::new_val(void) 
+{
+   Smart_Pointer<Type> res;
+
+   res._offset = 0;
+   res._zone   = new Memory_Seg(1, new Type ,Memory_Seg::alloc_unaire);
+   return res;
+}
+
+
+template <class Type> Smart_Pointer<Type> ADRESS_OF(Type& v)
+{
+   Smart_Pointer<Type> res;
+
+   res._offset = 0;
+   res._zone   = new Memory_Seg(1,&v,Memory_Seg::non_alloc);
+   return res;
+}
+
+template <class Type> Smart_Pointer<Type> STAT_PTR(Type* adr,INT4 nb)
+{
+   Smart_Pointer<Type> res;
+
+   res._offset = 0;
+   res._zone   = new Memory_Seg(nb,adr,Memory_Seg::non_alloc);
+   return res;
+}
+
+template <class Type> Type * Smart_Pointer<Type>::export(void)
+{
+    return ((Type *) smp_mem_nul()) + _offset ;
+}
+
+
+//     **********   " BIG THREE "  *********************
+// Affectation, destructeur et constructeur de copies. Permet de
+// compter les references sur une zone memoire; ceci afin de 
+// reperer les zones memoires non liberees. 
+
+template <class Type> Smart_Pointer<Type> &
+      Smart_Pointer<Type>::operator=(const Smart_Pointer<Type> & p2)
+{
+   p2.smp_mem_nul();
+   
+   p2.incr_ref();
+   decr_ref();
+   bit_copy(p2);
+   return *this;
+}
+
+template <class Type>   Smart_Pointer<Type>::~Smart_Pointer(void)
+{
+    decr_ref();
+}
+
+template <class Type>   Smart_Pointer<Type>::Smart_Pointer
+                            (const Smart_Pointer<Type> & p2)
+{
+   bit_copy(p2);
+   incr_ref();
+}
+
+
+
+
+#define FORCE_INST_SMART_POINTER(Un_Type)\
+{Smart_Pointer<Un_Type> p;\
+Un_Type valeur_bidon; \
+ADRESS_OF(valeur_bidon);\
+STAT_PTR(&valeur_bidon,10);\
+DELETE_TAB(p);\
+DELETE_ONE(p);\
+EXPORT(p);\
+p= 0;\
+p+3;\
+3+p;\
+p-3;\
+p-p;\
+p++;\
+++p;\
+p--;\
+--p;\
+p+=3;\
+*p;\
+p[3];\
+p==p;\
+p!=p;\
+!p;\
+p<p;\
+p<=p;\
+p>p;\
+p>=p;\
+p = NEW_TAB(10,Un_Type);\
+p = NEW_VECTEUR(0,10,Un_Type);\
+p = NEW_ONE(Un_Type);\
+}
+
+
+
+#define FORCE_INST_MATR_SMP(Un_Type)\
+{Smart_Pointer<Smart_Pointer<Un_Type> > m;\
+  m = NEW_MATRICE(Pt2di(0,0),Pt2di(2,2),Un_Type);\
+ DELETE_MATRICE(m,Pt2di(0,0),Pt2di(2,2));\
+}
+
+#define FORCE_INST_FLECHE(Un_Type,Champs)\
+{\
+   Smart_Pointer<Un_Type> p;\
+   void * truc;\
+   truc = &(p->Champs);\
+}
+
+
+
+static void SMP_Instantiate_Templates()
+{
+
+    FORCE_INST_SMART_POINTER(U_INT1);
+    FORCE_INST_SMART_POINTER(U_INT2);
+    FORCE_INST_SMART_POINTER(INT4);
+    FORCE_INST_SMART_POINTER(REAL8);
+
+    FORCE_INST_SMART_POINTER(U_INT1_Ptr);
+    FORCE_INST_MATR_SMP(U_INT1);
+
+    FORCE_INST_SMART_POINTER(INT4_Ptr);
+    FORCE_INST_MATR_SMP(INT4);
+
+    FORCE_INST_SMART_POINTER(REAL8_Ptr);
+    FORCE_INST_MATR_SMP(REAL8);
+
+    FORCE_INST_SMART_POINTER(Pt2di);
+    FORCE_INST_FLECHE(Pt2di,x);
+}
+
+
+CONST_STAT_TPL U_INT1      Smart_Pointer<U_INT1>::_VAL_DEF = 0;
+CONST_STAT_TPL U_INT2      Smart_Pointer<U_INT2>::_VAL_DEF = 0;
+CONST_STAT_TPL U_INT1_Ptr  Smart_Pointer<U_INT1_Ptr>::_VAL_DEF = 0;
+CONST_STAT_TPL Pt2di       Smart_Pointer<Pt2di>::_VAL_DEF = Pt2di(0,0);
+
+CONST_STAT_TPL INT4        Smart_Pointer<INT4>::_VAL_DEF = 0;
+CONST_STAT_TPL INT4_Ptr    Smart_Pointer<INT4_Ptr>::_VAL_DEF = 0;
+
+CONST_STAT_TPL REAL8        Smart_Pointer<REAL8>::_VAL_DEF = 0.0;
+CONST_STAT_TPL REAL8_Ptr    Smart_Pointer<REAL8_Ptr>::_VAL_DEF = 0;
+
+#else  /* DEBUG_SMART_POINTEUR */
+
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+/**********************************************************************/
+
+
+template <class Type> Type * new_vecteur_init(INT x0,INT x1,Type v)
+{
+    Type * res = NEW_VECTEUR(x0,x1,Type);
+    set_cste(res+x0,v,x1-x0);
+
+    return res;
+}
+
+void instantitiate_new_vecteur()
+{
+    new_vecteur_init(0,0,0);
+    new_vecteur_init(0,0,0.0);
+}
+
+#if (DEBUG_INTERNAL)
+
+const unsigned int maj_deb = 0xF98A523F;
+const unsigned int maj_end = 0xA57EF39D;
+
+const unsigned char maj_octet = 0xE7;
+
+const unsigned int rubbish  = 0xFEDCBAEF;
+
+bool init_rub = true;
+
+void * Elise_Calloc(size_t nmemb, size_t size)
+{
+     int nb_oct = nmemb * size;
+     INT nb8 = (nmemb * size + 7)/8; // assert 8 is the allignment constant
+     INT nb4 = nb8 *2;
+     INT unused_octet = nb4*4-nb_oct;
+
+     void * v =  calloc(nb8+2,8);
+     El_Internal.assert
+     (
+           (v!= 0) && (sizeof(unsigned int)==4),
+           EEM0 << "Impossible memory allocation " 
+                << ((INT)(nmemb * size)) 
+                << " byte"
+     );
+
+     unsigned int * res = ((unsigned int *) v) + 2;
+
+    {
+        if (init_rub)
+             for (INT i =0; i<nb4; i++) res[i] = rubbish;
+        else
+             for (INT i =0; i<nb4; i++) res[i] = 0;
+    }
+
+     res [-2] = nb4;       // Taille de la zone en entier 4
+     res[-1]  = maj_deb;   // majic nunmber
+     res[nb4] = maj_end;   // majic number
+     res[nb4+1] = unused_octet;
+     {
+          unsigned char * uc = (unsigned char *) res;
+          int nb_oct4 = 4 * nb4;
+          for (int i =  nb_oct4-unused_octet; i < nb_oct4; i++)
+              uc[i] = maj_octet;
+     }
+     return res;
+}
+void  Elise_Free(void * ptr)
+{
+     unsigned int * ip = ((unsigned int *) ptr);
+     INT nb4 = ip[-2];
+
+     El_Internal.assert
+     (
+           (ip[-1] == maj_deb) && (ip[nb4] == maj_end),
+           EEM0 << "Corrupted majic number memory management"
+     );
+     {
+          int unused_octet = ip[nb4+1];
+          unsigned char * uc = (unsigned char *) ip;
+          int nb_oct4 = 4 * nb4;
+          for (int i =  nb_oct4-unused_octet; i < nb_oct4; i++)
+               El_Internal.assert
+               (
+                     (uc[i] == maj_octet),
+                     EEM0 << "Corrupted majic number memory management (octet)"
+               );
+     }
+     for (INT i =-2; i<nb4+2; i++) ip[i] = rubbish;
+     free(ip-2);
+}
+#else
+void * Elise_Calloc(size_t nmemb, size_t size)
+{
+     return calloc(nmemb,size);
+}
+void  Elise_Free(void * ptr)
+{
+     free(ptr);
+}
+#endif
+
+void    delete_vecteur(void * v,const int x1,const int sz)
+{
+       char * mem  =  ((char *)v) + x1*sz;
+       SUB_MEM_COUNT(MC_NTAB,mem,1);
+
+       if (mem)
+          Elise_Free(mem);
+}
+
+void delete_matrice(void ** m, const Pt2di p1,const Pt2di p2,const int sz)
+{
+    Pt2di    pmax =Max(p1,p2),pmin= Min(p1,p2);
+
+    for( INT4 y=pmin.y ; y<pmax.y ; y++ )
+       delete_vecteur(m[y],pmin.x,sz);
+    DELETE_VECTOR(m,pmin.y);
+}
+
+void delete_tab_matrice(void *** m,INT nb, const Pt2di p1,const Pt2di p2,const int sz)
+{
+
+    for (INT k=0 ; k<nb ; k++)
+        delete_matrice(m[k],p1,p2,sz);
+
+    DELETE_VECTOR(m,0);
+}
+
+
+
+void *  alloc_vecteur(const int x1,const int x2,const int sz)
+{
+    ASSERT_INTERNAL( (x1<=x2),"incoherence in alloc_vecteur");
+    char * mem = (x1 == x2) ? 0 : (char *)Elise_Calloc(x2-x1,sz);
+    ADD_MEM_COUNT(MC_NTAB,mem,1);
+    return  (void *) (mem - (x1*sz));
+}
+
+void **  alloc_matrice(const Pt2di p1,const Pt2di p2,const int sz)
+{
+    void     ** res;
+
+    res = NEW_VECTEUR(p1.y,p2.y,void *);
+    for (int y = p1.y ; y< p2.y; y++)
+         res[y] = alloc_vecteur(p1.x,p2.x,sz);
+
+    return res;
+}
+
+
+void ***  alloc_tab_matrice(INT nb,const Pt2di p1,const Pt2di p2,const int sz)
+{
+    void *** res;
+
+    res = NEW_VECTEUR(0,nb,void **);
+    for (INT i=0 ; i<nb ; i++)
+        res[i] = alloc_matrice(p1,p2,sz);
+
+    return res;
+}
+
+
+#endif  /* DEBUG_SMART_POINTEUR */
+
+
+
