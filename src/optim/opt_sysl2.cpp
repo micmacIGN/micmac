@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -68,16 +68,16 @@ cGenSysSurResol::cGenSysSurResol
         mOptSym       (OptSym),
         mGereNonSym   (GereNonSym),
         mGereBloc     (GereBloc),
-	// mSetEqEmpty(true),
-	mPhaseContrainte(true),
-	mNbContrainte(0),
-	mC(1,1),
-	mE(1,1),
-	mtL(1,1),
-	mtLC(1,1),
-	mtLCE(1,1),
-	mSol(1,1),
-	mCSol(1,1),
+    // mSetEqEmpty(true),
+    mPhaseContrainte(true),
+    mNbContrainte(0),
+    mC(1,1),
+    mE(1,1),
+    mtL(1,1),
+    mtLC(1,1),
+    mtLCE(1,1),
+    mSol(1,1),
+    mCSol(1,1),
         mGP  (1,1),
         mNewCstrIsInit (false),
         mNewCstrIsTraitee (false),
@@ -124,7 +124,7 @@ void  cGenSysSurResol::AssertPhaseContrainte()
     ELISE_ASSERT
     (
         mPhaseContrainte,
-	"cGenSysSurResol::AssertPhaseContrainte "
+    "cGenSysSurResol::AssertPhaseContrainte "
     );
 }
 
@@ -133,7 +133,7 @@ void  cGenSysSurResol::AssertPhaseEquation()
     ELISE_ASSERT
     (
         ! mPhaseContrainte,
-	"cGenSysSurResol::AssertPhaseEquation"
+    "cGenSysSurResol::AssertPhaseEquation"
     );
 }
 
@@ -154,7 +154,7 @@ void cGenSysSurResol::GSSR_AddContrainteIndexee
       )
 {
     AssertPhaseContrainte();
- 
+
  // Gestion specifique des contraintes univariees
    if ((! mNewCstrIsInit) && mUseSpeciCstrUniVar)
    {
@@ -176,7 +176,7 @@ void cGenSysSurResol::GSSR_AddContrainteIndexee
        {
             aNbVarNN++;
             aKNN = y;
-       } 
+       }
    }
 
 
@@ -187,7 +187,7 @@ void cGenSysSurResol::GSSR_AddContrainteIndexee
        // std::cout << "xrt-CSTR[" << aVI[aKNN] <<"] = "  << aE/aC[aKNN]   << " C=" << aC[aKNN] << "\n";
         return;
    }
-           
+
 
  // Gestion des contrainte l'ancienne si pas univariee
 
@@ -229,18 +229,18 @@ bool  cGenSysSurResol::AcceptContrainteNonUniV() const
 
 void cGenSysSurResol::TraitementContrainteUniVar(const std::vector<int> * aVA2S)
 {
-    if (! mUseSpeciCstrUniVar) 
+    if (! mUseSpeciCstrUniVar)
        return;
     if (! mNewCstrIsInit)
        return;
-    if (mNewCstrIsTraitee) 
+    if (mNewCstrIsTraitee)
        return;
     mNewCstrIsTraitee = true;
 
 
     INT NBV = NbVar();
 
-    // La premiere fois on rajoute les equations qui feront que  le systeme ne sera pas 
+    // La premiere fois on rajoute les equations qui feront que  le systeme ne sera pas
     // degenere
     for (int aKV=0 ; aKV< NBV; aKV++)
     {
@@ -262,7 +262,7 @@ void cGenSysSurResol::TraitementContrainteUniVar(const std::vector<int> * aVA2S)
         }
     }
 // std::cout << "cGenSysSurResol::TraitementContrainteUniVar \n" ;  getchar();
-    
+
 }
 
 void cGenSysSurResol::GSSR_AddNewEquation
@@ -303,19 +303,19 @@ void cGenSysSurResol::GSSR_AddNewEquation
     if (mFirstEquation)
     {
         ComplBaseParLeHaut(mC,mNbContrainte);
-	mFirstEquation = false;
+    mFirstEquation = false;
 
         mGP.SelfSetMatrixInverse(mC,3);
 
 
-	// On rajoute des contrainte nulle sur les
-	// N derniere variable
-	   for (INT y= mLineCC ; y<NBV ; y++)
+    // On rajoute des contrainte nulle sur les
+    // N derniere variable
+       for (INT y= mLineCC ; y<NBV ; y++)
            {
                for (INT x=0 ;  x<NBV ; x++)
-	       {
+           {
                     mtL(x,0) = (x==y);
-	       }
+           }
                V_GSSR_AddNewEquation(1.0,mtL.data()[0],0.0);
            }
     }
@@ -412,11 +412,11 @@ void cGenSysSurResol::Basic_GSSR_AddNewEquation_Indexe
      )
 {
 /*
-     static int aCpt=0 ; 
+     static int aCpt=0 ;
      if (BugUPL) aCpt++;
 */
 
-     ELISE_ASSERT 
+     ELISE_ASSERT
      (
          (mNbContrainte==0) || mCstrAssumed,
          "Old contrainte in AddNewEquation_Indexe"
@@ -434,10 +434,10 @@ void cGenSysSurResol::Basic_GSSR_AddNewEquation_Indexe
             for (int aKB=0 ; aKB<(int)aVSB->size() ; aKB++)
             {
                 std::cout  << aVSB->size() << " "
-                          << (*aVSB)[aKB].I0AbsAlloc() << " " 
-                          << (*aVSB)[aKB].I1AbsAlloc() << " " 
-                          << (*aVSB)[aKB].I0AbsSolve() << " " 
-                          << (*aVSB)[aKB].I1AbsSolve() << " " 
+                          << (*aVSB)[aKB].I0AbsAlloc() << " "
+                          << (*aVSB)[aKB].I1AbsAlloc() << " "
+                          << (*aVSB)[aKB].I0AbsSolve() << " "
+                          << (*aVSB)[aKB].I1AbsSolve() << " "
                           << " BugUPL in cGenSysSurResol::BGAI " << aPds << "\n";
             }
             BasicVerifMatPos(*aVSB,aCpt);
@@ -490,7 +490,7 @@ void cGenSysSurResol::V_GSSR_AddNewEquation_Indexe
 
 bool cGenSysSurResol::GSSR_UseEqMatIndexee()
 {
-	return false;
+    return false;
 }
 
 
@@ -584,7 +584,7 @@ void L2SysSurResol::GSSR_AddEquationFitOneVar(int aNumVar,double aVal,double aPd
     if (aPds<=0) return;
     std::vector<int> aVInd;
     aVInd.push_back(aNumVar);
-    
+
     double aCoef1 = 1.0;
 
     L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&aCoef1,aVal);
@@ -650,13 +650,13 @@ Pt3dr  tCho2double(const Pt3d<tSysCho> & aP)
    return Pt3dr(aP.x,aP.y,aP.z);
 }
 */
-  
+
 
 Pt3dr ElSeg3D::L2InterFaisceaux
       (
            const std::vector<double> * aVPds,
            const std::vector<ElSeg3D> & aVS,
-	   bool * aOK,
+       bool * aOK,
            const cRapOnZ *      aRAZ ,
            cResOptInterFaisceaux * aROIF,
            const std::vector<Pt3dr> *  aVPts
@@ -804,11 +804,11 @@ void L2SysSurResol::AddEquation(REAL aPds,REAL * aCoeff,REAL aB)
 
      for (INT iVar1=0 ; iVar1<mNbVar ; iVar1++)
      {
-	 if (aCoeff[iVar1] != 0.0)  // Acceleration pour les formes creuses
-	 {
-		 VInd.push_back(iVar1);
-		 VALS.push_back(aCoeff[iVar1]);
-	 }
+     if (aCoeff[iVar1] != 0.0)  // Acceleration pour les formes creuses
+     {
+         VInd.push_back(iVar1);
+         VALS.push_back(aCoeff[iVar1]);
+     }
      }
      L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,VInd,aPds,&VALS[0],aB);
 }
@@ -942,10 +942,10 @@ void  L2SysSurResol::Indexee_QuadSet0
 
 
 void  L2SysSurResol::SoutraitProduc3x3
-     ( 
+     (
                           bool                   Sym,
-                          ElMatrix<double> &aM1, 
-                          ElMatrix<double> &aM2, 
+                          ElMatrix<double> &aM1,
+                          ElMatrix<double> &aM2,
                           const std::vector<cSsBloc> * aYVSB
 
      )
@@ -1091,7 +1091,7 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
              int X0InBloc = 0;
              for (int aKBlx=0  ; aKBlx <aDebBlx ; aKBlx++)
                  X0InBloc += (*aVSB)[aKBlx].Nb();
-             
+
 
              for (int YOut=aI0y ; YOut<aI1y ; YOut++)
              {
@@ -1135,10 +1135,10 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
             // donc x >= y, donc  partie "superieure"
             int aDebInd2 = mOptSym  ? Ind1 : 0;
             for (INT Ind2 =aDebInd2 ; Ind2<NbInd ; Ind2++)
-	    {
+        {
                  int iVar2 = aVInd[Ind2];
                  mDatatLi_Li[iVar1][iVar2] +=  aPCV1 * aCoeff[Ind2];
-	    }
+        }
         }
      }
 
@@ -1243,7 +1243,7 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
    if (mNbContrainte)
    {
 
-	INT NbVarTot = mNbVar + mNbContrainte;
+    INT NbVarTot = mNbVar + mNbContrainte;
         GaussjPrec aGP(NbVarTot,1);
         ElMatrix<REAL> & M  = aGP.M();
         ElMatrix<REAL> & b  = aGP.b();
@@ -1251,41 +1251,41 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
 
         for (INT ky=0;ky <NbVarTot ; ky++)
         {
-	   if (ky < mNbVar)
+       if (ky < mNbVar)
                b(0,ky) = mbi_Li.data()[ky];
-	   else 
-	       b(0,ky) = mE(0,mLineCC+ky-mNbVar);
+       else
+           b(0,ky) = mE(0,mLineCC+ky-mNbVar);
 
 
            for (INT kx=0;kx <NbVarTot ; kx++)
            {
-	       if ((kx<mNbVar) && (ky<mNbVar))
-	       {
+           if ((kx<mNbVar) && (ky<mNbVar))
+           {
                    M(kx,ky) = mtLi_Li.data()[kx][ky];
-	       }
-	       else if ((kx>=mNbVar) && (ky>=mNbVar))
-	       {
+           }
+           else if ((kx>=mNbVar) && (ky>=mNbVar))
+           {
                    M(kx,ky) = 0;
-	       }
-	       else 
-	       {
-		   INT X = ElMin(kx,ky);   
-		   INT Y = ElMax(kx,ky);   
-		   M(kx,ky) =  mC(X,mLineCC+Y-mNbVar);
-	       }
+           }
+           else
+           {
+           INT X = ElMin(kx,ky);
+           INT Y = ElMax(kx,ky);
+           M(kx,ky) =  mC(X,mLineCC+Y-mNbVar);
+           }
            }
         }
         bool Ok = aGP.init_rec();
-	if ( aResOk)
+    if ( aResOk)
            *aResOk = Ok;
 
-	if (Ok)
-	{
+    if (Ok)
+    {
             for (INT k=0; k<6; k++)
-	        aGP.amelior_sol();
+            aGP.amelior_sol();
             for (INT kx=0;kx <mNbVar ; kx++)
-	        mSolL2.data()[kx] = x(0,kx);
-	}
+            mSolL2.data()[kx] = x(0,kx);
+    }
         else
         {
            ELISE_ASSERT(aResOk,"Singular Matrix in  L2SysSurResol::Solve");
@@ -1332,10 +1332,10 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
     if (Ok)
     {
         for (INT k=0; k<6; k++)
-	    aGP.amelior_sol();
+        aGP.amelior_sol();
 
          for (INT kx=0;kx <mNbVar ; kx++)
-	     mSolL2.data()[kx] = x(0,kx);
+         mSolL2.data()[kx] = x(0,kx);
     }
      return mSolL2;
 }
@@ -1360,7 +1360,7 @@ template <class Type> class cSVD3x3
            Type m01, m11, m21;
            Type m02, m12, m22;
 
-        // Contient la matric  A tA 
+        // Contient la matric  A tA
 /*
    Avec les notatiion  "habituelle"
 
@@ -1418,7 +1418,7 @@ template <class Type> class cSVD3x3
             Type  iR1;
             void TestSolAR(Type x,Type y,Type z,Type R)
             {
-                std::cout  << " Rxyz="<<  ElAbs((a+R)*x +  b*y +   c*z) 
+                std::cout  << " Rxyz="<<  ElAbs((a+R)*x +  b*y +   c*z)
                                         + ElAbs(b*x +  (e+R)*y +   f*z)
                                         + ElAbs(c*x +    f*y + (i+R)*z)
                            << "\n";
@@ -1429,8 +1429,8 @@ template <class Type> class cSVD3x3
 
             void TestSolVP1()
             {
-                std::cout  << " VPRes="<<  ElAbs(a*x1+b*y1+ c*z1 + R1*x1) 
-                                         + ElAbs(b*x1+e*y1+f*z1 +R1*y1) 
+                std::cout  << " VPRes="<<  ElAbs(a*x1+b*y1+ c*z1 + R1*x1)
+                                         + ElAbs(b*x1+e*y1+f*z1 +R1*y1)
                                          + ElAbs(c*x1+f*y1+i*z1 +R1*z1)
                            << "\n";
             }
@@ -1454,7 +1454,7 @@ template <class Type> class cSVD3x3
                 yo = b*xi + e*yi + f*zi;
                 zo = c*xi + f*yi + i*zi;
             }
-             
+
 
      //   aR1  b    c       X      0
      //   b    eR1  f       Y  =   0
@@ -1470,7 +1470,7 @@ template <class Type> class cSVD3x3
 
       void TestRON()
       {
-             std::cout 
+             std::cout
                        << " N1 " << (x1*x1+y1*y1+z1*z1)
                        << " N2 " << (x2O*x2O+y2O*y2O+z2O*z2O)
                        << " N3 " << (x3O*x3O+y3O*y3O+z3O*z3O)
@@ -1536,8 +1536,8 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
     // Je comprends plus trop PK, mais experim p est tjs < 0, donc OK ....
     // std::cout << "P= " << p << "\n"; ELISE_ASSERT(p<=0,"JpppPPppp");
     if (p>0) p=0;
-    
-         
+
+
     Type ppp = p * p * p;
     Type ro = sqrt(-ppp/27.0);
     Type om = acos(-q/(2*ro));
@@ -1679,7 +1679,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
                y2O =  x1;
                z2O = 0.0;
          }
-         else 
+         else
          {
               x2O = -z1;
               y2O = 0.0;
@@ -1698,7 +1698,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
      // Analyse de la matrice dans la base x2O .. x3O
 
      {
-         // Image par AtA de x2O .. 
+         // Image par AtA de x2O ..
          MulAtA(Ax2O,Ay2O,Az2O,x2O,y2O,z2O);
          MulAtA(Ax3O,Ay3O,Az3O,x3O,y3O,z3O);
 
@@ -1711,7 +1711,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
          Type aDiscr   = sqrt(ElSquare(aS22-aS33) + 4*ElSquare(aS23));
          mVP2 = -(aS22+aS33 + aDiscr) /2.0;
          mVP3 = -(aS22+aS33 -aDiscr)/ 2.0;
- 
+
 
          if (0)
          {
@@ -1768,7 +1768,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
      y3 = z1 * x2 - x1 * z2;
      z3 = x1 * y2 - y1 * x2;
      //TestSolAR3();
-  
+
 
      if (0)
      {
@@ -1782,12 +1782,12 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
           Pt3dr aV1(x1,y1,z1);
           Pt3dr aV2(x2,y2,z2);
           Pt3dr aV3(x3,y3,z3);
-          
+
           ElMatrix<double> aRot(3,3);
           SetCol(aRot,0,aV1);
           SetCol(aRot,1,aV2);
           SetCol(aRot,2,aV3);
- 
+
            ElMatrix<double> aDif = MtM - aRot*aDiag*aRot.transpose();
 
            std::cout << "Chek MtM = R D tR " << aDif.L2() << "\n";
@@ -1808,7 +1808,7 @@ template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
           // ShowMatr("ddd",aRot*aDiag*aRot.transpose());
           // std::cout << euclid(aV1) << " " << euclid(aV2) << " " << euclid(aV3) << "\n";
      }
-     
+
 }
 
 ElMatrix<double> RanM33()
@@ -1830,7 +1830,7 @@ extern std::list<ElRotation3D>  MatEssToMulipleRot(const  ElMatrix<REAL> & aMEss
 
 void TestSVD3x3()
 {
-    double aDrMin = 1e100;
+    //double aDrMin = 1e100;
     std::vector<ElMatrix<double> > aVM;
 
 
@@ -1864,7 +1864,7 @@ void TestSVD3x3()
     }
     std::cout << "Time mm : " << aChroMM.uval() << "\n";
 
-         
+
     ElTimer aChroSVD;
     for (int aKt=0 ; aKt<aNb ; aKt++)
     {
@@ -2055,7 +2055,7 @@ template <class Type> void cMSymCoffact3x3<Type>::CoffSetInv(Type ** aMat)
       if (0)//(aEr[aNbIter-1] > aErMax)
       {
          aErMax = aEr[aNbIter-1];
-         std::cout << "#######  ##### Err= " << aEr[0] 
+         std::cout << "#######  ##### Err= " << aEr[0]
                    << " " << aEr[1]
                    << " " << aEr[aNbIter-1] << "\n";
 
@@ -2087,13 +2087,13 @@ Pt3d<double>  L2SysSurResol::Solve3x3Sym(bool * OK)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -2103,17 +2103,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
