@@ -38,6 +38,8 @@ echo "copy binaries"
 cp -R $MM_PATH/bin $PACKAGE_PATH
 mkdir $PACKAGE_PATH/binaire-aux
 cp $MM_PATH/binaire-aux/*.OSX $PACKAGE_PATH/binaire-aux/
+cp $MM_PATH/binaire-aux/PoissonRecon $PACKAGE_PATH/binaire-aux/
+cp $MM_PATH/binaire-aux/SurfaceTrimmer $PACKAGE_PATH/binaire-aux/
 
 echo "copy XML parameters file"
 mkdir $PACKAGE_PATH/include
