@@ -92,8 +92,8 @@ INCLUDE (${XINTER_DIR}/Sources.cmake)
 INCLUDE (${POISSON_DIR}/Sources.cmake)
 
 if(${WITH_ETALONPOLY})
-        INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)
-        set( LIB_ETAL_POLYG libEtalPolyg )
+	INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)
+	set( LIB_ETAL_POLYG libEtalPolyg )
 endif()
 
 # ORGANISATION des en-tetes ELISE et fichiers Xml
@@ -107,13 +107,13 @@ list(APPEND IncFiles ${QssFiles})
 
 # Construction de l'arborescence des fichiers INCLUDE
 foreach(source_file ${IncFiles})
-        get_filename_component(VarName ${source_file}  ABSOLUTE)
-        get_filename_component(NameFile ${source_file}  NAME)
+	get_filename_component(VarName ${source_file}  ABSOLUTE)
+	get_filename_component(NameFile ${source_file}  NAME)
 
-        string(REGEX REPLACE "/${NameFile}" "" includeTree ${VarName})
-        string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
-        string(REGEX REPLACE "/" "\\\\\\\\" includeTree ${includeTree})
-        source_group("${includeTree}" FILES ${source_file})
+	string(REGEX REPLACE "/${NameFile}" "" includeTree ${VarName})
+	string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
+	string(REGEX REPLACE "/" "\\\\\\\\" includeTree ${includeTree})
+	source_group("${includeTree}" FILES ${source_file})
 endforeach(source_file)
 
 # OPTION BUILD : En tetes precompiles visual studio
@@ -122,16 +122,16 @@ enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
 
 # fichiers qui n'utilisent pas les en tetes precompilées
 set(Elise_Src_Files
-        ${Elise_Src_Files}
-        ${UTIL_DIR}/win_regex.c
-        ${TIFF_DIR}/el_dcraw.c
-        ${OPTIM_DIR}/opt_mat_creuse.cpp
-        ${OPTIM_DIR}/opt_sysl2.cpp
-        ${MULLGES_DIR}/mubasic.cpp
-        ${MULLGES_DIR}/muflaguer.cpp
-        ${MULLGES_DIR}/mufmueller.cpp
-        ${MULLGES_DIR}/muvmblock.cpp
-        ${ORIPHO_DIR}/cOriMntCarto.cpp
+	${Elise_Src_Files}
+	${UTIL_DIR}/win_regex.c
+	${TIFF_DIR}/el_dcraw.c
+	${OPTIM_DIR}/opt_mat_creuse.cpp
+	${OPTIM_DIR}/opt_sysl2.cpp
+	${MULLGES_DIR}/mubasic.cpp
+	${MULLGES_DIR}/muflaguer.cpp
+	${MULLGES_DIR}/mufmueller.cpp
+	${MULLGES_DIR}/muvmblock.cpp
+	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -156,8 +156,8 @@ if(${CUDA_ENABLED})
     INCLUDE (GpGpu.cmake)
 
     cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} ${QT_ALLFILES} OPTIONS ${GENCODE_SM})
-	
-        if(${CUDA_NVTOOLS})
+
+	if(${CUDA_NVTOOLS})
 		target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY} ${OPENCL_LIBRARY})
 	else()
 		target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${OPENCL_LIBRARY})
@@ -174,8 +174,6 @@ target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
 #if( ${qt_version} EQUAL 5 )
 #    qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
 #endif()
-
-message(${BUILD_PATH_LIB})
 
 INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB} )
 
