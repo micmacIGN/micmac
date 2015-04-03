@@ -1,0 +1,445 @@
+<!--
+    Apero   /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Compense.xml DirectoryChantier=/home/marc/TMP/Mini-Cuxha/ "+SetIm=IMG_[0-9]{4}.jpg"  +AeroIn=-RTL-Bascule  +AeroOut=-RTL-Compens  +WithGCP=true +FileGCP-Gr=RTL.xml +FileGCP-Im=MesureFinale-S2D.xml +GrIncGr=0.1 +GrIncIm=0.5 +NbLiais=100
+    Innovation
+-->
+
+<Global >
+   <ParamApero>
+
+       <DicoLoc>
+           <Symb>  AeroIn=XXXXXX </Symb>
+           <Symb>  AeroOut=XXXXXX </Symb>
+           <Symb>  SetIm=XXXXXX </Symb>
+
+           <Symb>  LibParamInterne=eAllParamFiges  </Symb>
+           <Symb>  SigmaTieP=1  </Symb>
+           <Symb>  FactMaxRes=5  </Symb>
+
+
+           <eSymb>  MaxResTieP=* ${SigmaTieP} ${FactMaxRes}  </eSymb>
+
+           <Symb>  SauvAutom="" </Symb>
+           <Symb>  PropDiagU=1.0  </Symb>
+
+
+           <Symb>  Ext=dat </Symb>
+
+
+           <Symb>  CalibIn=${AeroIn} </Symb>
+           <Symb>  NbLiais=100 </Symb>
+
+           <Symb>  WithGCP=false </Symb>
+           <Symb>  FileGCP-Gr=XXXX </Symb>
+           <Symb>  FileGCP-Im=XXXX </Symb>
+           <Symb>  GrIncGr=XXXX </Symb>
+           <Symb>  GrIncIm=XXXX </Symb>
+
+           <Symb>  WithCenter=false </Symb>
+           <Symb>  BDDC=XXXX </Symb>
+           <Symb>  SigmGPS=XXXX </Symb>
+           <Symb>  SigmGPSAlti=XXXX </Symb>
+
+           <Symb>  CPI=false </Symb>
+           <Symb>  CPIInput=false </Symb>
+           <Symb>  AllFree=false </Symb>
+           <Symb>  FocFree=false </Symb>
+           <Symb>  PPFree=false </Symb>
+           <Symb>  AffineFree=false </Symb>
+
+ 	   <Symb>  PoseFigee=false </Symb>
+
+
+           <eSymb>  NotCPI=! ${CPI} </eSymb>
+           <eSymb>  DetailAppuis=0 </eSymb>
+
+           <Symb>  Viscos=1 </Symb>
+           <eSymb>  TetaLVM=/   0.1 ${Viscos} </eSymb>
+           <eSymb>  CentreLVM=/ 1.0  ${Viscos}</eSymb>
+
+           <Symb>  NbMinIterFin=4 </Symb>
+           <Symb>  NbMaxIterFin=4 </Symb>
+           <Symb>  SeuilEvolIterFin=1e50 </Symb>
+
+
+           <Symb>  WithLA=false </Symb>
+           <Symb>  LaX=0 </Symb>
+           <Symb>  LaY=0 </Symb>
+           <Symb>  LaZ=0 </Symb>
+
+           <Symb>  HasModeleAdd=false  </Symb>
+           <Symb>  ModeleAdditionnel=XXXXX  </Symb>
+
+        
+           <Symb>   DegGen=0  </Symb>
+           <eSymb>  DoPolyn1=  Or  ${AffineFree} SupEq ${DegGen} 1 </eSymb>
+           <eSymb>  DoPolyn2=  SupEq ${DegGen} 2 </eSymb>
+           <eSymb>  DoPolyn3=  SupEq ${DegGen} 3 </eSymb>
+
+
+           <Symb> DRMax=0 </Symb>
+           <eSymb> DR1Free= SupEq ${DRMax} 1 </eSymb>
+           <eSymb> DR2Free= SupEq ${DRMax} 2 </eSymb>
+           <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
+
+
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
+            </BDD_PtsLiaisons>
+
+            <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+             </BDD_Orient>
+
+
+             <#WHEN  VTEST=${WithGCP}>
+                  <BDD_ObsAppuisFlottant >
+                          <Id> Id-Appui </Id>
+                          <KeySetOrPat>  ${FileGCP-Im} </KeySetOrPat>
+                   </BDD_ObsAppuisFlottant>
+             </#WHEN>
+
+             <#WHEN  VTEST=${WithCenter}>
+                   <BDD_Centre>
+                          <Id>  Id-Centre   </Id>
+                          <KeySet>    NKS-Set-Orient@-${BDDC} </KeySet>
+                          <KeyAssoc>  NKS-Assoc-Im2Orient@-${BDDC} </KeyAssoc>
+                    </BDD_Centre>
+             </#WHEN>
+
+               
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+             <#WHEN VTEST=${WithLA}>
+                  <GpsOffset>
+                       <ValInit> ${LaX} ${LaY} ${LaZ} </ValInit>
+                       <Id>  TheIdLA </Id>
+                   </GpsOffset>
+             </#WHEN>
+
+             <CalibrationCameraInc>
+                <Name> GenerateKC-Others   </Name>
+                <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <#IF  VTEST=${CPIInput}>
+                                   <NameTag> Interne</NameTag>
+                                   <NameTag>    CalibrationInternConique </NameTag>
+                              </#IF>
+                              <AutorizeNonExisting > false </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                </CalValueInit>
+                <#WHEN VTEST=${HasModeleAdd}>
+                        <DistortionAddInc>
+                               <ModUnif>
+                                     <TypeModele> ${ModeleAdditionnel}  </TypeModele>
+                               </ModUnif>
+                        </DistortionAddInc>
+                 </#WHEN>
+
+                <CalibPerPose>
+                       <#IF VTEST=${CPI}>
+                           <KeyPose2Cal> NKS-Assoc-Id                       </KeyPose2Cal>
+                           <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                       </#IF>
+                       <#IF VTEST=${CPIInput}>
+                           <KeyInitFromPose> NKS-Assoc-Im2Orient@${AeroIn} </KeyInitFromPose>
+                           <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${CalibIn}/AutoCal@.xml  </KeyInitFromPose>
+                       </#IF>
+                </CalibPerPose>
+                <RayIsRelatifDiag  > true </RayIsRelatifDiag>
+                <RayApplyOnlyFE > true </RayApplyOnlyFE>
+                <PropDiagUtile> ${PropDiagU} </PropDiagUtile>
+             </CalibrationCameraInc>
+
+             <PoseCameraInc>
+                   <PatternName>    ${SetIm} </PatternName>
+                   <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   <#WHEN  VTEST=${WithCenter}>
+                         <IdBDCentre> Id-Centre </IdBDCentre>
+                   </#WHEN>
+                   <#WHEN VTEST=${WithLA}>
+                         <IdOffsetGPS>  TheIdLA </IdOffsetGPS>
+                   </#WHEN>
+                   
+                   <PosValueInit>
+                       <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+             <#WHEN  VTEST=${WithGCP}>
+                <PointFlottantInc>
+                     <Id> Id-Appui </Id>
+                     <KeySetOrPat>  ${FileGCP-Gr} </KeySetOrPat>
+                     <ModifInc>
+                        <OneModifIPF>
+                             <KeyName> .* </KeyName>
+                             <Incertitude> ${GrIncGr} ${GrIncGr} ${GrIncGr}  </Incertitude>
+                             <IsMult>  true </IsMult>
+                        </OneModifIPF>
+                     </ModifInc>
+                </PointFlottantInc>
+             </#WHEN>
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXX </DirectoryChantier>
+             <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
+             <SauvAutom>  ${SauvAutom} </SauvAutom>
+             <SauvAutomBasic>  true </SauvAutomBasic>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+
+              <SLMGlob> 
+                 <RappelOnAngles>
+                      <ParamF >
+                          <PatternNameApply> .* </PatternNameApply>
+                          <Incertitude> ${TetaLVM} </Incertitude>
+                          <OnCur> true </OnCur>  
+                       </ParamF>
+                      <TetaApply> 0 </TetaApply>
+                      <TetaApply> 1 </TetaApply>
+                      <TetaApply> 2 </TetaApply>
+                </RappelOnAngles>
+                 <RappelOnCentres>
+                      <ParamF> 
+                             <PatternNameApply> .* </PatternNameApply>
+                             <Incertitude> ${CentreLVM} </Incertitude>
+                             <OnCur> true </OnCur>  
+                      </ParamF>
+                      <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                </RappelOnCentres>
+
+             </SLMGlob>
+
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                   <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eAllParamFiges  </Val>
+                          </ContraintesCamerasInc>
+		          
+ 			<#WHEN VTEST=${PoseFigee}>
+			 <ContraintesPoses>
+			     <NamePose>   .* </NamePose>
+  			     <ByPattern>  true </ByPattern>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>	
+			</#WHEN>
+
+                       </SectionContraintes>
+			<#WHEN VTEST=${PoseFigee}>
+			<Messages>  External orientations of the cameras are frozen </Messages>
+			</#WHEN>
+
+                   </IterationsCompensation>
+
+                   <#WHEN VTEST=${FocFree}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberteFocale_1  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                            <Messages>  LIB  Focale </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+                   <#WHEN VTEST=${PPFree}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLib_PP_CD_10  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  PP </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+
+                   <#WHEN VTEST=${AffineFree}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_Phgr_Std_Aff  </Val>
+                                   <Val> eLiberteParamDeg_1  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  Affine </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+
+                   <#WHEN VTEST=${DR1Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR1  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR1 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+                   <#WHEN VTEST=${DR2Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR2  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR2 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+                   <#WHEN VTEST=${DR3Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR3  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR3 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+
+                   <#WHEN VTEST=${DoPolyn2}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_2      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn2 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+
+                   <#WHEN VTEST=${DoPolyn3}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberteParamDeg_3      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Polyn3 </Messages>
+                         </IterationsCompensation>
+                    </#WHEN>
+
+
+                   <#WHEN VTEST=${AllFree}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eAllParamLibres  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                            <Messages>  LIB  All </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+
+                   <IterationsCompensation>
+                        <CtrlTimeCompens>
+                              <NbMin > ${NbMinIterFin} </NbMin>
+                              <NbMax>  ${NbMaxIterFin}       </NbMax>
+                              <SeuilEvolMoy > ${SeuilEvolIterFin}  </SeuilEvolMoy>
+                        </CtrlTimeCompens>
+                    </IterationsCompensation>
+
+
+		    <SectionObservations>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   ${NbLiais}    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> ${SigmaTieP} </SigmaPond>
+				 <EcartMax>  ${MaxResTieP} </EcartMax>
+                              </Pond>
+                          </ObsLiaisons>
+
+                          <#WHEN  VTEST=${WithGCP}>
+                               <ObsAppuisFlottant>
+                                      <NameRef> Id-Appui </NameRef>
+                                      <PondIm>
+                                          <EcartMesureIndiv>  ${GrIncIm} </EcartMesureIndiv>
+                                          <Show> eNSM_Paquet     </Show>
+                                          <ModePonderation>  eL1Secured </ModePonderation>
+                                          <SigmaPond> 1.0 </SigmaPond>
+                                      </PondIm>
+
+                                      <PtsShowDet>  .* </PtsShowDet>
+                                      <DetShow3D >   ${DetailAppuis} </DetShow3D>
+                                      <ShowMax> true </ShowMax>
+                                      <ShowSom>  true</ShowSom>
+                                </ObsAppuisFlottant>
+                          </#WHEN>
+
+                          <#WHEN  VTEST=${WithCenter}>
+                               <ObsCentrePDV>
+                                   <PatternApply> .* </PatternApply>
+                                   <Pond>
+                                          <EcartMesureIndiv>  ${SigmGPS}  </EcartMesureIndiv>
+                                          <Show> eNSM_Indiv     </Show>
+                                          <ModePonderation> ePondL2 </ModePonderation>
+                                   </Pond>
+                                   <PondAlti>
+                                          <EcartMesureIndiv>  ${SigmGPSAlti}  </EcartMesureIndiv>
+                                          <Show> eNSM_Indiv     </Show>
+                                          <ModePonderation> ePondL2 </ModePonderation>
+                                   </PondAlti>
+                              </ObsCentrePDV>
+                          </#WHEN>
+
+		    </SectionObservations>
+
+                    <SectionExport>
+                            <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <#WHEN VTEST=${NotCPI}>
+                                    <FileExtern> NKS-Assoc-FromFocMm@Ori${AeroOut}/AutoCal@.xml </FileExtern>
+                                    <FileExternIsKey> true </FileExternIsKey>
+                                </#WHEN>
+                            </ExportPose>
+                            <#WHEN VTEST=${NotCPI}>
+                                 <ExportCalib>
+                                     <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                     <KeyIsName> false </KeyIsName>
+                                </ExportCalib>
+                            </#WHEN>
+                    </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
