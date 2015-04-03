@@ -1,5 +1,5 @@
 #include "general/visual_mainwindow.h"
-#include "QT_interface_Elise.h"
+//#include "QT_interface_Elise.h"  MPD : ca compile par chez moi
 
 #if (ELISE_QT_VERSION >= 4)
 
