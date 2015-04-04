@@ -1394,9 +1394,19 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
           {
              mAppli.COUT() << "PDS Surf = " << aSomPSurf << "\n";
           }
+          double aPercOk =  (100.0*aNbPdsNN)/double(aNbP);
+
+          cXmlSauvExportAperoOneIm aXmlE;
+          aXmlE.Name() = mVPoses[0]->NameCam();
+          aXmlE.Residual() = sqrt(aSEr2);
+          aXmlE.PercOk() = aPercOk;
+          aXmlE.NbPts() = aNbP;
+          aXmlE.NbPtsMul() = aNbMult;
+          mAppli.CurXmlE().OneIm().push_back(aXmlE);
+
           mAppli.COUT() << "RES:["  << mVPoses[0]->NameCam() << "]"
                 <<  " ER2 " << sqrt(aSEr2)
-                << " Nn " << (100.0*aNbPdsNN)/double(aNbP) 
+                << " Nn " <<  aPercOk
                 << " Of " << aNbP
                 << " Mul " << aNbMult
                 << " Mul-NN " << aNbMultPdsNN

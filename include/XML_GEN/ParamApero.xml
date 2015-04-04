@@ -1570,6 +1570,8 @@ normalises en echelle et/ou en translation -->
                           </ChoixImSec>
                      </ChoixImMM>
 
+                     <ExportResiduXml Nb="?" Type="std::string"> </ExportResiduXml>
+
 
 		 </SectionExport>
 
@@ -1588,6 +1590,26 @@ normalises en echelle et/ou en translation -->
      PIFRP : 
 -->
 
+<XmlSauvExportAperoOneIm Nb="1" Class="true" ToReference="true">
+     <Name Nb="1" Type="std::string"> </Name>
+     <Residual  Nb="1" Type="double"> </Residual>
+     <PercOk Nb="1" Type="double"> </PercOk>
+     <NbPts  Nb="1" Type="int">    </NbPts>
+     <NbPtsMul  Nb="1" Type="int">    </NbPtsMul>
+</XmlSauvExportAperoOneIm>
+
+<XmlSauvExportAperoOneIter Nb="1" Class="true" ToReference="true">
+    <OneIm Nb="*" RefType="XmlSauvExportAperoOneIm"> </OneIm>
+    <AverageResidual Nb="1" Type="double">  </AverageResidual>
+    <NumIter Nb="1" Type="int"> </NumIter>
+    <NumEtape Nb="1" Type="int"> </NumEtape>
+    <EvolMax Nb="?" Type="double"> </EvolMax>
+    <EvolMoy Nb="?" Type="double"> </EvolMoy>
+</XmlSauvExportAperoOneIter>
+
+<XmlSauvExportAperoGlob Nb="1" Class="true" ToReference="true">
+    <Iters Nb="*" RefType="XmlSauvExportAperoOneIter"> </Iters>
+</XmlSauvExportAperoGlob>
 
 
 <Verbatim File=".h.cpp">

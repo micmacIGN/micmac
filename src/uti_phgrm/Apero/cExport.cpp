@@ -744,6 +744,11 @@ void  cAppliApero::Export(const cSectionExport & anEx)
     {
           ExportBlockCam(*itBC);
     }
+
+    if (anEx.ExportResiduXml().IsInit())
+    {
+        MakeFileXML(mXMLExport,mDC+anEx.ExportResiduXml().Val());
+    }
 }
 
 void  cAppliApero::InitRapportDetaille(const cTxtRapDetaille & aTRD)

@@ -41,6 +41,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //  AJOUT DES OBSERVATIONS
 
+cXmlSauvExportAperoOneIter & cAppliApero::CurXmlE()
+{
+    ELISE_ASSERT(!mXMLExport.Iters().empty(),"cAppliApero::CurXmlE");
+    return mXMLExport.Iters().back();
+}
+
 void cAppliApero::AddObservations
      (
           const cSectionObservations & anSO,
@@ -48,6 +54,12 @@ void cAppliApero::AddObservations
           cStatObs & aSO
      )
 {
+   cXmlSauvExportAperoOneIter aXmlE;
+   aXmlE.NumIter() = mNbIterDone;
+   aXmlE.NumEtape() = mNbEtape;
+   mXMLExport.Iters().push_back(aXmlE);
+
+
    if (IsLastIter && anSO.TxtRapDetaille().IsInit())
    {
       InitRapportDetaille(anSO.TxtRapDetaille().Val());
@@ -847,7 +859,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
     InitLVM(mCurSLMGlob,anEC.SLMGlob(),mMulSLMGlob,anEC.MultSLMGlob());
     InitLVM(mCurSLMEtape,anEC.SLMEtape(),mMulSLMEtape,anEC.MultSLMEtape());
 
-    int aNbIterDone =0;
+    mNbIterDone =0;
     for (int aK=0 ; aK<int(anEC.IterationsCompensation().size()) ; aK++)
     {
         bool kIterLast = (aK==((int)anEC.IterationsCompensation().size()-1));
@@ -1028,7 +1040,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
 
                 if (ShowMes())
                 {
-	            COUT()  << "--- End Iter " << aNbIterDone << " ETAPE " << mNbEtape << "\n\n";
+	            COUT()  << "--- End Iter " << mNbIterDone << " ETAPE " << mNbEtape << "\n\n";
                 }
 
                 TestInteractif(anIter.TestInteractif(),false);
@@ -1064,7 +1076,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
                    }
                 }
                 aCptInIter++;
-                aNbIterDone++;
+                mNbIterDone++;
             }
         }
     }

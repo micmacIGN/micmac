@@ -938,10 +938,13 @@ double cPackObsLiaison::AddObs
    if (aS1 && (int(aPond.Show().Val()) >= int(eNSM_Iter)))
    {
        double aSqrtEr = sqrt(aSEr);
+       mAppli.CurXmlE().AverageResidual() = aSqrtEr;
        mAppli.COUT() << "| | " << " RESIDU LIAISON MOYENS = "  
                  <<  aSqrtEr << " pour " << mId ;
        if (aSO.PdsEvol())
        {
+           mAppli.CurXmlE().EvolMax().SetVal(aSO.MaxEvol());
+           mAppli.CurXmlE().EvolMoy().SetVal(aSO.MoyEvol());
            mAppli.COUT() << " Evol, Moy=" <<  aSO.MoyEvol() << " ,Max=" << aSO.MaxEvol() ;
        }
        mAppli.COUT() <<  "\n";
