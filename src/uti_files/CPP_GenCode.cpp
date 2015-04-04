@@ -647,11 +647,14 @@ extern void GenCodeEqLinariseAngle();
 extern void GenCodecEqBundleBase();
 
 
+void GenerateCodeEqRelativeGPS();
+
 
 int GenCode_main(int argc,char ** argv)
 {
-    GenCodecEqBundleBase();
-    GenCodeEqLinariseAngle();
+     GenerateCodeEqRelativeGPS();
+    // GenCodecEqBundleBase();
+    // GenCodeEqLinariseAngle();
 
 
     // GenerateCodeBlockCam();

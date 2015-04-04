@@ -115,7 +115,8 @@
     <ePoseFigee>         </ePoseFigee>
     <ePoseBaseNormee>    </ePoseBaseNormee>
     <ePoseVraieBaseNormee>    </ePoseVraieBaseNormee>
-    <eCentreFige>        </eCentreFige>
+    <eCentreFige>             </eCentreFige>
+    <eAnglesFiges>            </eAnglesFiges>
 </enum>
 
 <enum Name="eTypeVerif">
@@ -236,8 +237,19 @@
 
 <RigidBlockWeighting Nb="1" Class="true" ToReference="true">
     <PondOnTr Nb="1" Type="double"> </PondOnTr>
-   <PondOnRot Nb="1" Type="double"> </PondOnRot>
+    <PondOnRot Nb="1" Type="double"> </PondOnRot>
 </RigidBlockWeighting>
+
+<GpsRelativeWeighting Nb="1" Class="true" ToReference="true">
+<!--  le sigma0 sera egal a SigmaPerSec*Time + SigmaMin,
+      le poids sera 1/ Sigma0 ^ 2
+-->
+    <SigmaPerSec  Nb="1" Type="double" >          </SigmaPerSec>
+    <SigmaMin     Nb="1" Type="double" >          </SigmaMin>
+    <MaxResidu Nb="?" Type="double">             </MaxResidu>
+</GpsRelativeWeighting>
+
+
 
 <AperoPointeStereo Nb="1" Class="true" ToReference="true">
       <P1 Nb="1" Type="Pt2dr"> </P1>
@@ -497,8 +509,14 @@
               </LayerImageToPose>
 
 
-               <LimInfBSurHPMoy Nb="?" Def="1e-2" Type="double"> </LimInfBSurHPMoy>
-               <LimSupBSurHPMoy Nb="?" Def="2e-1" Type="double"> </LimSupBSurHPMoy>
+              <LimInfBSurHPMoy Nb="?" Def="1e-2" Type="double"> </LimInfBSurHPMoy>
+              <LimSupBSurHPMoy Nb="?" Def="2e-1" Type="double"> </LimSupBSurHPMoy>
+
+              <DeclareObsRelGPS  Nb="*">
+                  <PatternSel Nb="1" Type="std::string"> </PatternSel>
+                  <Id  Nb="1"  Type="std::string"> </Id>
+              </DeclareObsRelGPS>
+
 
 	</SectionBDD_Observation>
 
@@ -1299,6 +1317,11 @@ normalises en echelle et/ou en translation -->
                      <TxtRapDetaille Nb="?">
                            <NameFile Nb="1" Type="std::string"> </NameFile>
                      </TxtRapDetaille>
+
+                     <ObsRelGPS Nb="*">
+                          <Id Nb="1" Type="std::string"> </Id>
+                          <Pond Nb="1" RefType="GpsRelativeWeighting"> </Pond>
+                     </ObsRelGPS>
 
                  </SectionObservations>
 

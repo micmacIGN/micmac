@@ -796,6 +796,28 @@
              <CodageSymbolique Nb="?" Type="std::string"> </CodageSymbolique>
   </RotationVect>
   
+   <DatePDV  Nb="1" ToReference="true" Class="true">
+         <Annee Nb="1" Type="int">  </Annee>
+         <Mois Nb="1" Type="int"> </Mois>
+         <Jour Nb="1" Type="int">  </Jour>
+         <Heure Nb="1" Type="int">  </Heure>
+         <Minute Nb="1" Type="int">  </Minute>
+         <Seconde Nb="1" Type="double">  </Seconde>
+   </DatePDV>
+
+    <XmlHour Nb="1" Class="true" ToReference="true">
+         <H Nb="1" Type="int"> </H>
+         <M Nb="1" Type="int"> </M>
+         <S Nb="1" Type="double"> </S>
+    </XmlHour>
+    <XmlDate Nb="1" Class="true" ToReference="true">
+         <Y Nb="1" Type="int"> </Y>
+         <M Nb="1" Type="int"> </M>
+         <D Nb="1" Type="int"> </D>
+         <Hour Nb="1" RefType="XmlHour"> </Hour>
+    </XmlDate>
+
+
 
    <OrientationExterneRigide Nb="1" Class="true" ToReference="true">
         <!-- AltiSol pour compat avec orilib et tout le passe, mais quand Profondeur est defini il
@@ -807,6 +829,7 @@
         <AltiSol Nb="?" Type="double"> </AltiSol>
         <Profondeur Nb="?" Type="double"> </Profondeur>
         <Time Nb="?" Type="double" Def="0.0"> </Time>
+        <Date Nb="?" RefType="XmlDate"> </Date>
 
    <!--  Redondant avec OrientationConique quand il est utilise pour
    creer un ori a la main, necessaire quand l'orientation est a part de
@@ -832,15 +855,6 @@
 -->
    </OrientationExterneRigide>
 
-
-   <DatePDV>
-         <Annee Nb="1" Type="int">  </Annee>
-         <Mois Nb="1" Type="int"> </Mois>
-         <Jour Nb="1" Type="int">  </Jour>
-         <Heure Nb="1" Type="int">  </Heure>
-         <Minute Nb="1" Type="int">  </Minute>
-         <Seconde Nb="1" Type="double">  </Seconde>
-   </DatePDV>
 
 
 <!--  Le terme OrientationConique est tres mal choisi puisqu'en fait cela codera des
@@ -1256,19 +1270,6 @@
            <DirVertLoc Nb="?" Type="Pt3dr"> </DirVertLoc>
            <ProfInVertLoc Nb="?" Type="double"> </ProfInVertLoc>
     </ExportApero2MM>
-
-    <XmlHour Nb="1" Class="true" ToReference="true">
-         <H Nb="1" Type="int"> </H>
-         <M Nb="1" Type="int"> </M>
-         <S Nb="1" Type="double"> </S>
-    </XmlHour>
-
-    <XmlDate Nb="1" Class="true" ToReference="true">
-         <Y Nb="1" Type="int"> </Y>
-         <M Nb="1" Type="int"> </M>
-         <D Nb="1" Type="int"> </D>
-         <Hour Nb="1" RefType="XmlHour"> </Hour>
-    </XmlDate>
 
     <XmlXifInfo Nb="1" Class="true" ToReference="true">
         <HGRev Nb="1" Type="int">        </HGRev>
@@ -1729,9 +1730,27 @@
    <intrinseque Nb="1" RefType="XmlMatis_intrinseque"> </intrinseque>
 </XmlMatis_geometry>
 
+<XmlMatis_image_date Nb="1" Class="true" ToReference="true">
+    <year Nb="1" Type="int"></year>
+    <month Nb="1" Type="int"></month>
+    <day Nb="1" Type="int"></day>
+    <time_system  Nb="1" Type="std::string">  </time_system>
+    <hour Nb="1" Type="int"></hour>
+    <minute Nb="1" Type="int"></minute>
+    <second Nb="1" Type="double"></second>
+</XmlMatis_image_date>
+
+
+<XmlMatis_auxiliarydata  Nb="1" Class="true" ToReference="true">
+     <image_name Nb="1" Type="std::string"></image_name>
+     <stereopolis Nb="1" Type="XmlXml"> </stereopolis>
+     <image_date Nb="1" RefType="XmlMatis_image_date"> </image_date>
+</XmlMatis_auxiliarydata>
+
+
 <orientation Nb="1" Class="true" ToReference="true">
    <version Nb="?" Type="std::string" Def="1.0">  </version>
-   <auxiliarydata Nb="1" Type="XmlXml"> </auxiliarydata>
+   <auxiliarydata Nb="1" RefType="XmlMatis_auxiliarydata"> </auxiliarydata>
    <geometry Nb="1" RefType="XmlMatis_geometry"> </geometry>
 </orientation>
 

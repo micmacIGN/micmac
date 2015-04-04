@@ -823,8 +823,6 @@ void cAppliApero::AddObservationsRigidBlockCam
 }
 
 
-
-
 /***********************************************************/
 /*                                                         */
 /*   BRAS DE LEVIER                                        */
@@ -842,6 +840,119 @@ cAperoOffsetGPS::cAperoOffsetGPS(const cGpsOffset & aParam,cAppliApero & anAppli
 const cGpsOffset & cAperoOffsetGPS::ParamCreate() const {return mParam;}
 cBaseGPS *         cAperoOffsetGPS::BaseUnk()           {return mBaseUnk;}
 
+
+/***********************************************************/
+/*                                                         */
+/*               cCompiledObsRelGPS                        */
+/*                                                         */
+/***********************************************************/
+
+class cCmpPtrPoseTime
+{
+    public :
+      bool operator () (cPoseCam * aPC1,cPoseCam * aPC2)
+      {
+          return aPC1->Time() < aPC2->Time();
+      }
+};
+
+cCompiledObsRelGPS::cCompiledObsRelGPS
+(
+    cAppliApero &     anAppli,
+    cDeclareObsRelGPS aXML
+)   :
+    mXML  (aXML),
+    mAppli (&anAppli)
+{
+   cElRegex  anAutom(mXML.PatternSel(),10);
+
+   const std::vector<cPoseCam*> & aVP = mAppli->VecAllPose();
+
+   for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
+   {
+        cPoseCam * aPose = aVP[aKP];
+        if (anAutom.Match(aPose->Name()))
+        {
+           mVOrderedPose.push_back(aPose);
+        }
+   }
+
+   cCmpPtrPoseTime aCmp;
+   std::sort(mVOrderedPose.begin(),mVOrderedPose.end(),aCmp);
+
+   for (int aKP=1 ; aKP<int(mVOrderedPose.size()) ; aKP++)
+   {
+      cPoseCam * aPC1 = mVOrderedPose[aKP-1];
+      cPoseCam * aPC2 = mVOrderedPose[aKP];
+
+      mVObs.push_back(mAppli->SetEq().NewEqRelativeGPS(aPC1->RF(),aPC2->RF()));
+        // std::cout << "TTTT " << mVOrderedPose[aKP]->Name() << " " << mVOrderedPose[aKP]->Time() -  mVOrderedPose[aKP-1]->Time() << "\n";
+   }
+}
+
+const cDeclareObsRelGPS &             cCompiledObsRelGPS::XML() const {return mXML;}
+const std::vector<cPoseCam *> &       cCompiledObsRelGPS::VOrderedPose() const {return mVOrderedPose;}
+const std::vector<cEqRelativeGPS *> & cCompiledObsRelGPS::VObs() const {return mVObs;}
+
+
+
+
+void cAppliApero::InitObsRelGPS()
+{
+   for 
+   (
+       std::list<cDeclareObsRelGPS>::const_iterator itD=mParam.DeclareObsRelGPS().begin();
+       itD != mParam.DeclareObsRelGPS().end() ;
+       itD++
+   )
+   {
+       cCompiledObsRelGPS * anObs = new cCompiledObsRelGPS(*this,*itD);
+       const std::string  & anId = itD->Id();
+       ELISE_ASSERT(mMCORelGps[anId] ==0,"Multiple Id in DeclareObsRelGPS");
+       mMCORelGps[anId] = anObs;
+   }
+}
+
+
+void  cAppliApero::AddOneObservationsRelGPS(const cObsRelGPS & aXMLObs)
+{
+     cCompiledObsRelGPS * aCObs = mMCORelGps[aXMLObs.Id()];
+     const cGpsRelativeWeighting & aPond = aXMLObs.Pond();
+     ELISE_ASSERT(aCObs!=0,"cAppliApero::AddObservationsRelGPS cannot find id");
+     const std::vector<cPoseCam *> &  aVP = aCObs->VOrderedPose();
+     const std::vector<cEqRelativeGPS *> & aVR = aCObs->VObs();
+
+     for (int aKR = 0 ; aKR < int(aVR.size()) ; aKR++)
+     {
+         cPoseCam * aPC1 = aVP[aKR];
+         cPoseCam * aPC2 = aVP[aKR+1];
+         cEqRelativeGPS * anObs =  aVR[aKR];
+
+         Pt3dr aC1 = aPC1->ObsCentre();
+         Pt3dr aC2 = aPC2->ObsCentre();
+         Pt3dr aDif21 = aC2-aC1;
+
+         Pt3dr aResidu = anObs->Residu(aDif21);
+         if ((! aPond.MaxResidu().IsInit()) || (euclid(aResidu) < aPond.MaxResidu().Val()))
+         {
+             double aT1 = aPC1->Time();
+             double aT2 = aPC2->Time();
+             double aSigma = aPond.SigmaMin() + aPond.SigmaPerSec() * ElAbs(aT1-aT2);
+             Pt3dr aPds(1/ElSquare(aSigma),1/ElSquare(aSigma),1/ElSquare(aSigma));
+             anObs->AddObs(aDif21,aPds);
+
+             std::cout << "RELGPS " << aPC1->Name() << " " << aResidu 
+                      << " D=" << euclid(aResidu) 
+                      << " Sig0 " << aSigma<< "\n";
+         }
+     }
+}
+
+void  cAppliApero::AddObservationsRelGPS(const std::list<cObsRelGPS> & aLO)
+{
+    for (std::list<cObsRelGPS>::const_iterator itO=aLO.begin() ; itO!=aLO.end() ; itO++)
+       AddOneObservationsRelGPS(*itO);
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -8786,6 +8786,289 @@ void xml_init(cRotationVect & anObj,cElXMLTree * aTree)
 std::string  Mangling( cRotationVect *) {return "610DC83CDDDCB987FF3F";};
 
 
+int & cDatePDV::Annee()
+{
+   return mAnnee;
+}
+
+const int & cDatePDV::Annee()const 
+{
+   return mAnnee;
+}
+
+
+int & cDatePDV::Mois()
+{
+   return mMois;
+}
+
+const int & cDatePDV::Mois()const 
+{
+   return mMois;
+}
+
+
+int & cDatePDV::Jour()
+{
+   return mJour;
+}
+
+const int & cDatePDV::Jour()const 
+{
+   return mJour;
+}
+
+
+int & cDatePDV::Heure()
+{
+   return mHeure;
+}
+
+const int & cDatePDV::Heure()const 
+{
+   return mHeure;
+}
+
+
+int & cDatePDV::Minute()
+{
+   return mMinute;
+}
+
+const int & cDatePDV::Minute()const 
+{
+   return mMinute;
+}
+
+
+double & cDatePDV::Seconde()
+{
+   return mSeconde;
+}
+
+const double & cDatePDV::Seconde()const 
+{
+   return mSeconde;
+}
+
+void  BinaryUnDumpFromFile(cDatePDV & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Annee(),aFp);
+    BinaryUnDumpFromFile(anObj.Mois(),aFp);
+    BinaryUnDumpFromFile(anObj.Jour(),aFp);
+    BinaryUnDumpFromFile(anObj.Heure(),aFp);
+    BinaryUnDumpFromFile(anObj.Minute(),aFp);
+    BinaryUnDumpFromFile(anObj.Seconde(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cDatePDV & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Annee());
+    BinaryDumpInFile(aFp,anObj.Mois());
+    BinaryDumpInFile(aFp,anObj.Jour());
+    BinaryDumpInFile(aFp,anObj.Heure());
+    BinaryDumpInFile(aFp,anObj.Minute());
+    BinaryDumpInFile(aFp,anObj.Seconde());
+}
+
+cElXMLTree * ToXMLTree(const cDatePDV & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DatePDV",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Annee"),anObj.Annee())->ReTagThis("Annee"));
+   aRes->AddFils(::ToXMLTree(std::string("Mois"),anObj.Mois())->ReTagThis("Mois"));
+   aRes->AddFils(::ToXMLTree(std::string("Jour"),anObj.Jour())->ReTagThis("Jour"));
+   aRes->AddFils(::ToXMLTree(std::string("Heure"),anObj.Heure())->ReTagThis("Heure"));
+   aRes->AddFils(::ToXMLTree(std::string("Minute"),anObj.Minute())->ReTagThis("Minute"));
+   aRes->AddFils(::ToXMLTree(std::string("Seconde"),anObj.Seconde())->ReTagThis("Seconde"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cDatePDV & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Annee(),aTree->Get("Annee",1)); //tototo 
+
+   xml_init(anObj.Mois(),aTree->Get("Mois",1)); //tototo 
+
+   xml_init(anObj.Jour(),aTree->Get("Jour",1)); //tototo 
+
+   xml_init(anObj.Heure(),aTree->Get("Heure",1)); //tototo 
+
+   xml_init(anObj.Minute(),aTree->Get("Minute",1)); //tototo 
+
+   xml_init(anObj.Seconde(),aTree->Get("Seconde",1)); //tototo 
+}
+
+std::string  Mangling( cDatePDV *) {return "B6FD9D430DFA9C98FD3F";};
+
+
+int & cXmlHour::H()
+{
+   return mH;
+}
+
+const int & cXmlHour::H()const 
+{
+   return mH;
+}
+
+
+int & cXmlHour::M()
+{
+   return mM;
+}
+
+const int & cXmlHour::M()const 
+{
+   return mM;
+}
+
+
+double & cXmlHour::S()
+{
+   return mS;
+}
+
+const double & cXmlHour::S()const 
+{
+   return mS;
+}
+
+void  BinaryUnDumpFromFile(cXmlHour & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.H(),aFp);
+    BinaryUnDumpFromFile(anObj.M(),aFp);
+    BinaryUnDumpFromFile(anObj.S(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlHour & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.H());
+    BinaryDumpInFile(aFp,anObj.M());
+    BinaryDumpInFile(aFp,anObj.S());
+}
+
+cElXMLTree * ToXMLTree(const cXmlHour & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlHour",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("H"),anObj.H())->ReTagThis("H"));
+   aRes->AddFils(::ToXMLTree(std::string("M"),anObj.M())->ReTagThis("M"));
+   aRes->AddFils(::ToXMLTree(std::string("S"),anObj.S())->ReTagThis("S"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlHour & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.H(),aTree->Get("H",1)); //tototo 
+
+   xml_init(anObj.M(),aTree->Get("M",1)); //tototo 
+
+   xml_init(anObj.S(),aTree->Get("S",1)); //tototo 
+}
+
+std::string  Mangling( cXmlHour *) {return "7DE0121A11584CEAFD3F";};
+
+
+int & cXmlDate::Y()
+{
+   return mY;
+}
+
+const int & cXmlDate::Y()const 
+{
+   return mY;
+}
+
+
+int & cXmlDate::M()
+{
+   return mM;
+}
+
+const int & cXmlDate::M()const 
+{
+   return mM;
+}
+
+
+int & cXmlDate::D()
+{
+   return mD;
+}
+
+const int & cXmlDate::D()const 
+{
+   return mD;
+}
+
+
+cXmlHour & cXmlDate::Hour()
+{
+   return mHour;
+}
+
+const cXmlHour & cXmlDate::Hour()const 
+{
+   return mHour;
+}
+
+void  BinaryUnDumpFromFile(cXmlDate & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Y(),aFp);
+    BinaryUnDumpFromFile(anObj.M(),aFp);
+    BinaryUnDumpFromFile(anObj.D(),aFp);
+    BinaryUnDumpFromFile(anObj.Hour(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlDate & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Y());
+    BinaryDumpInFile(aFp,anObj.M());
+    BinaryDumpInFile(aFp,anObj.D());
+    BinaryDumpInFile(aFp,anObj.Hour());
+}
+
+cElXMLTree * ToXMLTree(const cXmlDate & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlDate",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Y"),anObj.Y())->ReTagThis("Y"));
+   aRes->AddFils(::ToXMLTree(std::string("M"),anObj.M())->ReTagThis("M"));
+   aRes->AddFils(::ToXMLTree(std::string("D"),anObj.D())->ReTagThis("D"));
+   aRes->AddFils(ToXMLTree(anObj.Hour())->ReTagThis("Hour"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlDate & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Y(),aTree->Get("Y",1)); //tototo 
+
+   xml_init(anObj.M(),aTree->Get("M",1)); //tototo 
+
+   xml_init(anObj.D(),aTree->Get("D",1)); //tototo 
+
+   xml_init(anObj.Hour(),aTree->Get("Hour",1)); //tototo 
+}
+
+std::string  Mangling( cXmlDate *) {return "C7D8067DE3BE828CFF3F";};
+
+
 cTplValGesInit< double > & cOrientationExterneRigide::AltiSol()
 {
    return mAltiSol;
@@ -8816,6 +9099,17 @@ cTplValGesInit< double > & cOrientationExterneRigide::Time()
 const cTplValGesInit< double > & cOrientationExterneRigide::Time()const 
 {
    return mTime;
+}
+
+
+cTplValGesInit< cXmlDate > & cOrientationExterneRigide::Date()
+{
+   return mDate;
+}
+
+const cTplValGesInit< cXmlDate > & cOrientationExterneRigide::Date()const 
+{
+   return mDate;
 }
 
 
@@ -8924,6 +9218,14 @@ void  BinaryUnDumpFromFile(cOrientationExterneRigide & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.Date().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Date().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Date().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.KnownConv().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.KnownConv().ValForcedForUnUmp(),aFp);
         }
@@ -8973,6 +9275,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOrientationExterneRigide & anObj)
     if (anObj.Profondeur().IsInit()) BinaryDumpInFile(aFp,anObj.Profondeur().Val());
     BinaryDumpInFile(aFp,anObj.Time().IsInit());
     if (anObj.Time().IsInit()) BinaryDumpInFile(aFp,anObj.Time().Val());
+    BinaryDumpInFile(aFp,anObj.Date().IsInit());
+    if (anObj.Date().IsInit()) BinaryDumpInFile(aFp,anObj.Date().Val());
     BinaryDumpInFile(aFp,anObj.KnownConv().IsInit());
     if (anObj.KnownConv().IsInit()) BinaryDumpInFile(aFp,anObj.KnownConv().Val());
     BinaryDumpInFile(aFp,anObj.Centre());
@@ -8997,6 +9301,8 @@ cElXMLTree * ToXMLTree(const cOrientationExterneRigide & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Profondeur"),anObj.Profondeur().Val())->ReTagThis("Profondeur"));
    if (anObj.Time().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Time"),anObj.Time().Val())->ReTagThis("Time"));
+   if (anObj.Date().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.Date().Val())->ReTagThis("Date"));
    if (anObj.KnownConv().IsInit())
       aRes->AddFils(ToXMLTree(std::string("KnownConv"),anObj.KnownConv().Val())->ReTagThis("KnownConv"));
    aRes->AddFils(ToXMLTree(std::string("Centre"),anObj.Centre())->ReTagThis("Centre"));
@@ -9025,6 +9331,8 @@ void xml_init(cOrientationExterneRigide & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Time(),aTree->Get("Time",1),double(0.0)); //tototo 
 
+   xml_init(anObj.Date(),aTree->Get("Date",1)); //tototo 
+
    xml_init(anObj.KnownConv(),aTree->Get("KnownConv",1)); //tototo 
 
    xml_init(anObj.Centre(),aTree->Get("Centre",1)); //tototo 
@@ -9040,7 +9348,7 @@ void xml_init(cOrientationExterneRigide & anObj,cElXMLTree * aTree)
    xml_init(anObj.ParamRotation(),aTree->Get("ParamRotation",1)); //tototo 
 }
 
-std::string  Mangling( cOrientationExterneRigide *) {return "492877E34265559CFE3F";};
+std::string  Mangling( cOrientationExterneRigide *) {return "028EFB08B288F0AEFF3F";};
 
 
 std::string & cModuleOrientationFile::NameFileOri()
@@ -9894,7 +10202,7 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvOri(),aTree->Get("ConvOri",1)); //tototo 
 }
 
-std::string  Mangling( cOrientationConique *) {return "68D41DD8C55E6D87FCBF";};
+std::string  Mangling( cOrientationConique *) {return "980E74B5DEA4FCCBFE3F";};
 
 
 std::string & cMNT2Cmp::NameIm()
@@ -15025,168 +15333,6 @@ void xml_init(cExportApero2MM & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cExportApero2MM *) {return "AF8050D32387CCA1FE3F";};
-
-
-int & cXmlHour::H()
-{
-   return mH;
-}
-
-const int & cXmlHour::H()const 
-{
-   return mH;
-}
-
-
-int & cXmlHour::M()
-{
-   return mM;
-}
-
-const int & cXmlHour::M()const 
-{
-   return mM;
-}
-
-
-double & cXmlHour::S()
-{
-   return mS;
-}
-
-const double & cXmlHour::S()const 
-{
-   return mS;
-}
-
-void  BinaryUnDumpFromFile(cXmlHour & anObj,ELISE_fp & aFp)
-{
-     BinaryUnDumpFromFile(anObj.H(),aFp);
-    BinaryUnDumpFromFile(anObj.M(),aFp);
-    BinaryUnDumpFromFile(anObj.S(),aFp);
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlHour & anObj)
-{
-    BinaryDumpInFile(aFp,anObj.H());
-    BinaryDumpInFile(aFp,anObj.M());
-    BinaryDumpInFile(aFp,anObj.S());
-}
-
-cElXMLTree * ToXMLTree(const cXmlHour & anObj)
-{
-  XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlHour",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("H"),anObj.H())->ReTagThis("H"));
-   aRes->AddFils(::ToXMLTree(std::string("M"),anObj.M())->ReTagThis("M"));
-   aRes->AddFils(::ToXMLTree(std::string("S"),anObj.S())->ReTagThis("S"));
-  aRes->mGXml = anObj.mGXml;
-  XMLPopContext(anObj.mGXml);
-  return aRes;
-}
-
-void xml_init(cXmlHour & anObj,cElXMLTree * aTree)
-{
-   anObj.mGXml = aTree->mGXml;
-   if (aTree==0) return;
-
-   xml_init(anObj.H(),aTree->Get("H",1)); //tototo 
-
-   xml_init(anObj.M(),aTree->Get("M",1)); //tototo 
-
-   xml_init(anObj.S(),aTree->Get("S",1)); //tototo 
-}
-
-std::string  Mangling( cXmlHour *) {return "7DE0121A11584CEAFD3F";};
-
-
-int & cXmlDate::Y()
-{
-   return mY;
-}
-
-const int & cXmlDate::Y()const 
-{
-   return mY;
-}
-
-
-int & cXmlDate::M()
-{
-   return mM;
-}
-
-const int & cXmlDate::M()const 
-{
-   return mM;
-}
-
-
-int & cXmlDate::D()
-{
-   return mD;
-}
-
-const int & cXmlDate::D()const 
-{
-   return mD;
-}
-
-
-cXmlHour & cXmlDate::Hour()
-{
-   return mHour;
-}
-
-const cXmlHour & cXmlDate::Hour()const 
-{
-   return mHour;
-}
-
-void  BinaryUnDumpFromFile(cXmlDate & anObj,ELISE_fp & aFp)
-{
-     BinaryUnDumpFromFile(anObj.Y(),aFp);
-    BinaryUnDumpFromFile(anObj.M(),aFp);
-    BinaryUnDumpFromFile(anObj.D(),aFp);
-    BinaryUnDumpFromFile(anObj.Hour(),aFp);
-}
-
-void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlDate & anObj)
-{
-    BinaryDumpInFile(aFp,anObj.Y());
-    BinaryDumpInFile(aFp,anObj.M());
-    BinaryDumpInFile(aFp,anObj.D());
-    BinaryDumpInFile(aFp,anObj.Hour());
-}
-
-cElXMLTree * ToXMLTree(const cXmlDate & anObj)
-{
-  XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlDate",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("Y"),anObj.Y())->ReTagThis("Y"));
-   aRes->AddFils(::ToXMLTree(std::string("M"),anObj.M())->ReTagThis("M"));
-   aRes->AddFils(::ToXMLTree(std::string("D"),anObj.D())->ReTagThis("D"));
-   aRes->AddFils(ToXMLTree(anObj.Hour())->ReTagThis("Hour"));
-  aRes->mGXml = anObj.mGXml;
-  XMLPopContext(anObj.mGXml);
-  return aRes;
-}
-
-void xml_init(cXmlDate & anObj,cElXMLTree * aTree)
-{
-   anObj.mGXml = aTree->mGXml;
-   if (aTree==0) return;
-
-   xml_init(anObj.Y(),aTree->Get("Y",1)); //tototo 
-
-   xml_init(anObj.M(),aTree->Get("M",1)); //tototo 
-
-   xml_init(anObj.D(),aTree->Get("D",1)); //tototo 
-
-   xml_init(anObj.Hour(),aTree->Get("Hour",1)); //tototo 
-}
-
-std::string  Mangling( cXmlDate *) {return "C7D8067DE3BE828CFF3F";};
 
 
 int & cXmlXifInfo::HGRev()
@@ -20545,6 +20691,216 @@ void xml_init(cXmlMatis_geometry & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXmlMatis_geometry *) {return "D71146A536B67EB7FD3F";};
 
 
+int & cXmlMatis_image_date::year()
+{
+   return myear;
+}
+
+const int & cXmlMatis_image_date::year()const 
+{
+   return myear;
+}
+
+
+int & cXmlMatis_image_date::month()
+{
+   return mmonth;
+}
+
+const int & cXmlMatis_image_date::month()const 
+{
+   return mmonth;
+}
+
+
+int & cXmlMatis_image_date::day()
+{
+   return mday;
+}
+
+const int & cXmlMatis_image_date::day()const 
+{
+   return mday;
+}
+
+
+std::string & cXmlMatis_image_date::time_system()
+{
+   return mtime_system;
+}
+
+const std::string & cXmlMatis_image_date::time_system()const 
+{
+   return mtime_system;
+}
+
+
+int & cXmlMatis_image_date::hour()
+{
+   return mhour;
+}
+
+const int & cXmlMatis_image_date::hour()const 
+{
+   return mhour;
+}
+
+
+int & cXmlMatis_image_date::minute()
+{
+   return mminute;
+}
+
+const int & cXmlMatis_image_date::minute()const 
+{
+   return mminute;
+}
+
+
+double & cXmlMatis_image_date::second()
+{
+   return msecond;
+}
+
+const double & cXmlMatis_image_date::second()const 
+{
+   return msecond;
+}
+
+void  BinaryUnDumpFromFile(cXmlMatis_image_date & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.year(),aFp);
+    BinaryUnDumpFromFile(anObj.month(),aFp);
+    BinaryUnDumpFromFile(anObj.day(),aFp);
+    BinaryUnDumpFromFile(anObj.time_system(),aFp);
+    BinaryUnDumpFromFile(anObj.hour(),aFp);
+    BinaryUnDumpFromFile(anObj.minute(),aFp);
+    BinaryUnDumpFromFile(anObj.second(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlMatis_image_date & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.year());
+    BinaryDumpInFile(aFp,anObj.month());
+    BinaryDumpInFile(aFp,anObj.day());
+    BinaryDumpInFile(aFp,anObj.time_system());
+    BinaryDumpInFile(aFp,anObj.hour());
+    BinaryDumpInFile(aFp,anObj.minute());
+    BinaryDumpInFile(aFp,anObj.second());
+}
+
+cElXMLTree * ToXMLTree(const cXmlMatis_image_date & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlMatis_image_date",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("year"),anObj.year())->ReTagThis("year"));
+   aRes->AddFils(::ToXMLTree(std::string("month"),anObj.month())->ReTagThis("month"));
+   aRes->AddFils(::ToXMLTree(std::string("day"),anObj.day())->ReTagThis("day"));
+   aRes->AddFils(::ToXMLTree(std::string("time_system"),anObj.time_system())->ReTagThis("time_system"));
+   aRes->AddFils(::ToXMLTree(std::string("hour"),anObj.hour())->ReTagThis("hour"));
+   aRes->AddFils(::ToXMLTree(std::string("minute"),anObj.minute())->ReTagThis("minute"));
+   aRes->AddFils(::ToXMLTree(std::string("second"),anObj.second())->ReTagThis("second"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlMatis_image_date & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.year(),aTree->Get("year",1)); //tototo 
+
+   xml_init(anObj.month(),aTree->Get("month",1)); //tototo 
+
+   xml_init(anObj.day(),aTree->Get("day",1)); //tototo 
+
+   xml_init(anObj.time_system(),aTree->Get("time_system",1)); //tototo 
+
+   xml_init(anObj.hour(),aTree->Get("hour",1)); //tototo 
+
+   xml_init(anObj.minute(),aTree->Get("minute",1)); //tototo 
+
+   xml_init(anObj.second(),aTree->Get("second",1)); //tototo 
+}
+
+std::string  Mangling( cXmlMatis_image_date *) {return "76E17B9F8B4ABCA7FDBF";};
+
+
+std::string & cXmlMatis_auxiliarydata::image_name()
+{
+   return mimage_name;
+}
+
+const std::string & cXmlMatis_auxiliarydata::image_name()const 
+{
+   return mimage_name;
+}
+
+
+XmlXml & cXmlMatis_auxiliarydata::stereopolis()
+{
+   return mstereopolis;
+}
+
+const XmlXml & cXmlMatis_auxiliarydata::stereopolis()const 
+{
+   return mstereopolis;
+}
+
+
+cXmlMatis_image_date & cXmlMatis_auxiliarydata::image_date()
+{
+   return mimage_date;
+}
+
+const cXmlMatis_image_date & cXmlMatis_auxiliarydata::image_date()const 
+{
+   return mimage_date;
+}
+
+void  BinaryUnDumpFromFile(cXmlMatis_auxiliarydata & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.image_name(),aFp);
+    BinaryUnDumpFromFile(anObj.stereopolis(),aFp);
+    BinaryUnDumpFromFile(anObj.image_date(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlMatis_auxiliarydata & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.image_name());
+    BinaryDumpInFile(aFp,anObj.stereopolis());
+    BinaryDumpInFile(aFp,anObj.image_date());
+}
+
+cElXMLTree * ToXMLTree(const cXmlMatis_auxiliarydata & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlMatis_auxiliarydata",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("image_name"),anObj.image_name())->ReTagThis("image_name"));
+   aRes->AddFils(::ToXMLTree(std::string("stereopolis"),anObj.stereopolis())->ReTagThis("stereopolis"));
+   aRes->AddFils(ToXMLTree(anObj.image_date())->ReTagThis("image_date"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlMatis_auxiliarydata & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.image_name(),aTree->Get("image_name",1)); //tototo 
+
+   xml_init(anObj.stereopolis(),aTree->Get("stereopolis",1)); //tototo 
+
+   xml_init(anObj.image_date(),aTree->Get("image_date",1)); //tototo 
+}
+
+std::string  Mangling( cXmlMatis_auxiliarydata *) {return "719D9EE0F04ABA92FF3F";};
+
+
 cTplValGesInit< std::string > & corientation::version()
 {
    return mversion;
@@ -20556,12 +20912,12 @@ const cTplValGesInit< std::string > & corientation::version()const
 }
 
 
-XmlXml & corientation::auxiliarydata()
+cXmlMatis_auxiliarydata & corientation::auxiliarydata()
 {
    return mauxiliarydata;
 }
 
-const XmlXml & corientation::auxiliarydata()const 
+const cXmlMatis_auxiliarydata & corientation::auxiliarydata()const 
 {
    return mauxiliarydata;
 }
@@ -20605,7 +20961,7 @@ cElXMLTree * ToXMLTree(const corientation & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"orientation",eXMLBranche);
    if (anObj.version().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("version"),anObj.version().Val())->ReTagThis("version"));
-   aRes->AddFils(::ToXMLTree(std::string("auxiliarydata"),anObj.auxiliarydata())->ReTagThis("auxiliarydata"));
+   aRes->AddFils(ToXMLTree(anObj.auxiliarydata())->ReTagThis("auxiliarydata"));
    aRes->AddFils(ToXMLTree(anObj.geometry())->ReTagThis("geometry"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -20624,6 +20980,6 @@ void xml_init(corientation & anObj,cElXMLTree * aTree)
    xml_init(anObj.geometry(),aTree->Get("geometry",1)); //tototo 
 }
 
-std::string  Mangling( corientation *) {return "A03AEB3BBDAD48C4FBBF";};
+std::string  Mangling( corientation *) {return "DF7FA3370998EAE8FD3F";};
 
 // };

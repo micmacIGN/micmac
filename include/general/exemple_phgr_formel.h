@@ -822,6 +822,27 @@ class cEqOffsetGPS  : public cNameSpaceEqF,
 
 };
 
+class cEqRelativeGPS  : public cNameSpaceEqF,
+                        public cObjFormel2Destroy
+
+{
+   public :
+      cEqRelativeGPS(cRotationFormelle &, cRotationFormelle &,bool CodeGen);
+
+      Pt3dr  AddObs(const Pt3dr & aDif12,const Pt3dr & aPds);
+      Pt3dr  Residu(const Pt3dr & aDif12);
+   private :
+
+      cSetEqFormelles *    mSet;
+      cRotationFormelle *  mR1;
+      cRotationFormelle *  mR2;
+      cP3d_Etat_PhgrF      mDif21;
+      cIncListInterv       mLInterv;
+      cElCompiledFonc *    mFoncEqResidu;
+
+      static const std::string  mNameType;
+};
+
 
 
 /****************************************************/

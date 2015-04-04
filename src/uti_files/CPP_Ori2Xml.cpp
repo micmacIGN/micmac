@@ -131,6 +131,20 @@ ElMatrix<double> Mat2MM(const  cXmlMatis_mat3d & aMat)
     return aRes;
 }
 
+cXmlDate  Mat2MM(const cXmlMatis_image_date & aMatis)
+{
+   cXmlDate aMM;
+
+   aMM.Y() =  aMatis.year();
+   aMM.M() = aMatis.month();
+   aMM.D() = aMatis.day();
+   aMM.Hour().H() = aMatis.hour();
+   aMM.Hour().M() = aMatis.minute();
+   aMM.Hour().S() = aMatis.second();
+
+   return aMM;
+}
+
 cCamStenopeDistRadPol * Mat2MMConik(const corientation &  aMatis)
 {
     const cXmlMatis_geometry& aGeom = aMatis.geometry();
@@ -178,6 +192,9 @@ cCamStenopeDistRadPol * Mat2MMConik(const corientation &  aMatis)
 
 int MatisOri2MM_main(int argc,char ** argv)
 {
+    static cElHour TheH0(0,0,0);
+    static cElDate TheT0(1,1,2000,TheH0);
+
     std::string aFullNameIn,aNameOut;
     double      aRounding=0 ;
     Pt3dr Offset(0,0,0);
@@ -230,12 +247,16 @@ int MatisOri2MM_main(int argc,char ** argv)
 
         // 
         aXMLMM.Interne().SetNoInit();
+        cXmlDate aMMDate = Mat2MM(aXMLMatis.auxiliarydata().image_date());
+        aXMLMM.Externe().Date().SetVal(aMMDate);
+        aXMLMM.Externe().Time().SetVal(cElDate::FromXml(aMMDate).DifInSec(TheT0));
         aXMLMM.FileInterne().SetVal(aMMNameIntr);
         aXMLMM.RelativeNameFI().SetVal(true);
 
         MakeFileXML(aXMLMM,anEASF.mDir+aNameMMCam);
 
         cCalibrationInternConique aXMLi = aMMCam->ExportCalibInterne2XmlStruct(aMMCam->Sz());
+
         MakeFileXML(aXMLi,anEASF.mDir+aMMNameIntr);
     }
     std::cout << " Offset " << Offset << "\n";

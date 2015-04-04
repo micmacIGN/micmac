@@ -3017,6 +3017,118 @@ std::string  Mangling( cRotationVect *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cDatePDV
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cDatePDV & anObj,cElXMLTree * aTree);
+
+
+        int & Annee();
+        const int & Annee()const ;
+
+        int & Mois();
+        const int & Mois()const ;
+
+        int & Jour();
+        const int & Jour()const ;
+
+        int & Heure();
+        const int & Heure()const ;
+
+        int & Minute();
+        const int & Minute()const ;
+
+        double & Seconde();
+        const double & Seconde()const ;
+    private:
+        int mAnnee;
+        int mMois;
+        int mJour;
+        int mHeure;
+        int mMinute;
+        double mSeconde;
+};
+cElXMLTree * ToXMLTree(const cDatePDV &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDatePDV &);
+
+void  BinaryUnDumpFromFile(cDatePDV &,ELISE_fp &);
+
+std::string  Mangling( cDatePDV *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlHour
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlHour & anObj,cElXMLTree * aTree);
+
+
+        int & H();
+        const int & H()const ;
+
+        int & M();
+        const int & M()const ;
+
+        double & S();
+        const double & S()const ;
+    private:
+        int mH;
+        int mM;
+        double mS;
+};
+cElXMLTree * ToXMLTree(const cXmlHour &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlHour &);
+
+void  BinaryUnDumpFromFile(cXmlHour &,ELISE_fp &);
+
+std::string  Mangling( cXmlHour *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlDate
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlDate & anObj,cElXMLTree * aTree);
+
+
+        int & Y();
+        const int & Y()const ;
+
+        int & M();
+        const int & M()const ;
+
+        int & D();
+        const int & D()const ;
+
+        cXmlHour & Hour();
+        const cXmlHour & Hour()const ;
+    private:
+        int mY;
+        int mM;
+        int mD;
+        cXmlHour mHour;
+};
+cElXMLTree * ToXMLTree(const cXmlDate &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlDate &);
+
+void  BinaryUnDumpFromFile(cXmlDate &,ELISE_fp &);
+
+std::string  Mangling( cXmlDate *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cOrientationExterneRigide
 {
     public:
@@ -3033,6 +3145,9 @@ class cOrientationExterneRigide
 
         cTplValGesInit< double > & Time();
         const cTplValGesInit< double > & Time()const ;
+
+        cTplValGesInit< cXmlDate > & Date();
+        const cTplValGesInit< cXmlDate > & Date()const ;
 
         cTplValGesInit< eConventionsOrientation > & KnownConv();
         const cTplValGesInit< eConventionsOrientation > & KnownConv()const ;
@@ -3058,6 +3173,7 @@ class cOrientationExterneRigide
         cTplValGesInit< double > mAltiSol;
         cTplValGesInit< double > mProfondeur;
         cTplValGesInit< double > mTime;
+        cTplValGesInit< cXmlDate > mDate;
         cTplValGesInit< eConventionsOrientation > mKnownConv;
         Pt3dr mCentre;
         cTplValGesInit< Pt3dr > mOffsetCentre;
@@ -4827,74 +4943,6 @@ std::string  Mangling( cExportApero2MM *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cXmlHour
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cXmlHour & anObj,cElXMLTree * aTree);
-
-
-        int & H();
-        const int & H()const ;
-
-        int & M();
-        const int & M()const ;
-
-        double & S();
-        const double & S()const ;
-    private:
-        int mH;
-        int mM;
-        double mS;
-};
-cElXMLTree * ToXMLTree(const cXmlHour &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cXmlHour &);
-
-void  BinaryUnDumpFromFile(cXmlHour &,ELISE_fp &);
-
-std::string  Mangling( cXmlHour *);
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
-class cXmlDate
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cXmlDate & anObj,cElXMLTree * aTree);
-
-
-        int & Y();
-        const int & Y()const ;
-
-        int & M();
-        const int & M()const ;
-
-        int & D();
-        const int & D()const ;
-
-        cXmlHour & Hour();
-        const cXmlHour & Hour()const ;
-    private:
-        int mY;
-        int mM;
-        int mD;
-        cXmlHour mHour;
-};
-cElXMLTree * ToXMLTree(const cXmlDate &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cXmlDate &);
-
-void  BinaryUnDumpFromFile(cXmlDate &,ELISE_fp &);
-
-std::string  Mangling( cXmlDate *);
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
 class cXmlXifInfo
 {
     public:
@@ -6641,6 +6689,86 @@ std::string  Mangling( cXmlMatis_geometry *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlMatis_image_date
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlMatis_image_date & anObj,cElXMLTree * aTree);
+
+
+        int & year();
+        const int & year()const ;
+
+        int & month();
+        const int & month()const ;
+
+        int & day();
+        const int & day()const ;
+
+        std::string & time_system();
+        const std::string & time_system()const ;
+
+        int & hour();
+        const int & hour()const ;
+
+        int & minute();
+        const int & minute()const ;
+
+        double & second();
+        const double & second()const ;
+    private:
+        int myear;
+        int mmonth;
+        int mday;
+        std::string mtime_system;
+        int mhour;
+        int mminute;
+        double msecond;
+};
+cElXMLTree * ToXMLTree(const cXmlMatis_image_date &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlMatis_image_date &);
+
+void  BinaryUnDumpFromFile(cXmlMatis_image_date &,ELISE_fp &);
+
+std::string  Mangling( cXmlMatis_image_date *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlMatis_auxiliarydata
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlMatis_auxiliarydata & anObj,cElXMLTree * aTree);
+
+
+        std::string & image_name();
+        const std::string & image_name()const ;
+
+        XmlXml & stereopolis();
+        const XmlXml & stereopolis()const ;
+
+        cXmlMatis_image_date & image_date();
+        const cXmlMatis_image_date & image_date()const ;
+    private:
+        std::string mimage_name;
+        XmlXml mstereopolis;
+        cXmlMatis_image_date mimage_date;
+};
+cElXMLTree * ToXMLTree(const cXmlMatis_auxiliarydata &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlMatis_auxiliarydata &);
+
+void  BinaryUnDumpFromFile(cXmlMatis_auxiliarydata &,ELISE_fp &);
+
+std::string  Mangling( cXmlMatis_auxiliarydata *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class corientation
 {
     public:
@@ -6652,14 +6780,14 @@ class corientation
         cTplValGesInit< std::string > & version();
         const cTplValGesInit< std::string > & version()const ;
 
-        XmlXml & auxiliarydata();
-        const XmlXml & auxiliarydata()const ;
+        cXmlMatis_auxiliarydata & auxiliarydata();
+        const cXmlMatis_auxiliarydata & auxiliarydata()const ;
 
         cXmlMatis_geometry & geometry();
         const cXmlMatis_geometry & geometry()const ;
     private:
         cTplValGesInit< std::string > mversion;
-        XmlXml mauxiliarydata;
+        cXmlMatis_auxiliarydata mauxiliarydata;
         cXmlMatis_geometry mgeometry;
 };
 cElXMLTree * ToXMLTree(const corientation &);
