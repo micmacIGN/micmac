@@ -436,6 +436,8 @@
                                      <KeyIsName> false </KeyIsName>
                                 </ExportCalib>
                             </#WHEN>
+                             <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
+
                     </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>

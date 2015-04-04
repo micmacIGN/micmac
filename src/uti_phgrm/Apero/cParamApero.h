@@ -5981,6 +5981,9 @@ class cSectionExport
 
         cTplValGesInit< cChoixImMM > & ChoixImMM();
         const cTplValGesInit< cChoixImMM > & ChoixImMM()const ;
+
+        cTplValGesInit< std::string > & ExportResiduXml();
+        const cTplValGesInit< std::string > & ExportResiduXml()const ;
     private:
         std::list< cExportCalib > mExportCalib;
         std::list< cExportPose > mExportPose;
@@ -5994,6 +5997,7 @@ class cSectionExport
         std::list< cExportRedressement > mExportRedressement;
         std::list< cExportNuage > mExportNuage;
         cTplValGesInit< cChoixImMM > mChoixImMM;
+        cTplValGesInit< std::string > mExportResiduXml;
 };
 cElXMLTree * ToXMLTree(const cSectionExport &);
 
@@ -6163,6 +6167,9 @@ class cEtapeCompensation
 
         cTplValGesInit< cChoixImMM > & ChoixImMM();
         const cTplValGesInit< cChoixImMM > & ChoixImMM()const ;
+
+        cTplValGesInit< std::string > & ExportResiduXml();
+        const cTplValGesInit< std::string > & ExportResiduXml()const ;
 
         cTplValGesInit< cSectionExport > & SectionExport();
         const cTplValGesInit< cSectionExport > & SectionExport()const ;
@@ -6462,6 +6469,114 @@ void  BinaryDumpInFile(ELISE_fp &,const cParamApero &);
 void  BinaryUnDumpFromFile(cParamApero &,ELISE_fp &);
 
 std::string  Mangling( cParamApero *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlSauvExportAperoOneIm
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlSauvExportAperoOneIm & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        double & Residual();
+        const double & Residual()const ;
+
+        double & PercOk();
+        const double & PercOk()const ;
+
+        int & NbPts();
+        const int & NbPts()const ;
+
+        int & NbPtsMul();
+        const int & NbPtsMul()const ;
+    private:
+        std::string mName;
+        double mResidual;
+        double mPercOk;
+        int mNbPts;
+        int mNbPtsMul;
+};
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneIm &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlSauvExportAperoOneIm &);
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneIm &,ELISE_fp &);
+
+std::string  Mangling( cXmlSauvExportAperoOneIm *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlSauvExportAperoOneIter
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlSauvExportAperoOneIter & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXmlSauvExportAperoOneIm > & OneIm();
+        const std::list< cXmlSauvExportAperoOneIm > & OneIm()const ;
+
+        double & AverageResidual();
+        const double & AverageResidual()const ;
+
+        int & NumIter();
+        const int & NumIter()const ;
+
+        int & NumEtape();
+        const int & NumEtape()const ;
+
+        cTplValGesInit< double > & EvolMax();
+        const cTplValGesInit< double > & EvolMax()const ;
+
+        cTplValGesInit< double > & EvolMoy();
+        const cTplValGesInit< double > & EvolMoy()const ;
+    private:
+        std::list< cXmlSauvExportAperoOneIm > mOneIm;
+        double mAverageResidual;
+        int mNumIter;
+        int mNumEtape;
+        cTplValGesInit< double > mEvolMax;
+        cTplValGesInit< double > mEvolMoy;
+};
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneIter &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlSauvExportAperoOneIter &);
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneIter &,ELISE_fp &);
+
+std::string  Mangling( cXmlSauvExportAperoOneIter *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlSauvExportAperoGlob
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlSauvExportAperoGlob & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXmlSauvExportAperoOneIter > & Iters();
+        const std::list< cXmlSauvExportAperoOneIter > & Iters()const ;
+    private:
+        std::list< cXmlSauvExportAperoOneIter > mIters;
+};
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoGlob &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlSauvExportAperoGlob &);
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoGlob &,ELISE_fp &);
+
+std::string  Mangling( cXmlSauvExportAperoGlob *);
 
 /******************************************************/
 /******************************************************/

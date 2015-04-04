@@ -1871,6 +1871,7 @@ class cAppliApero : public NROptF1vND
     public :
 
        void DebugPbConvAppui();
+        cXmlSauvExportAperoOneIter & CurXmlE();
 
         int  NumSauvAuto() const {return  mNumSauvAuto;}
         bool NumIterDebug() const;
@@ -2442,6 +2443,7 @@ class cAppliApero : public NROptF1vND
        
         cShowPbLiaison *                    mCurPbLiaison;
         int                                 mNbEtape;
+        int                                 mNbIterDone;
 
         std::vector<Pt3dr>                  mResiduCentre;
         std::vector<double>                 mRetardGpsC;
@@ -2468,6 +2470,7 @@ class cAppliApero : public NROptF1vND
         cStatObs                               mStatLastIter;
              // flag utilise lorque l'on a utilise ori non ortho
         int                                    mSqueezeDOCOAC;  
+        cXmlSauvExportAperoGlob                mXMLExport;
 };
 
 

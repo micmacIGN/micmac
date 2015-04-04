@@ -763,6 +763,7 @@
                                  <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
                                  <KeyIsName> false </KeyIsName>
                             </ExportCalib>
+                             <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
                     </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>
