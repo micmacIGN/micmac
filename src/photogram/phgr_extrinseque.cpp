@@ -451,6 +451,10 @@ cMultiContEQF    cRotationFormelle::StdContraintes()
   if (mModeContr == eRotLibre)
   {
   }
+  else if (mModeContr == eRotAngleFige)
+  {
+     AddFoncRappInit(aRes,0,3,mTolAng);
+  }
   else if (mModeContr == eRotFigee)
   {
      AddFoncRappInit(aRes,0,3,mTolAng);

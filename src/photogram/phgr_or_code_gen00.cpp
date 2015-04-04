@@ -159,6 +159,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../CodeGenere/photogram/cEqObsBaseGPS.h"
 #include "../../CodeGenere/photogram/cEqObsBaseGPS_GL.h"
+#include "../../CodeGenere/photogram/cImplEqRelativeGPS.h"
 
 #include "../../CodeGenere/photogram/cCodeBlockCam.h"
 #include "../../CodeGenere/photogram/cEqLinariseAngle.h"
@@ -635,6 +636,8 @@ void cElCompiledFonc::InitEntries()
 
      AddEntry("cEqObsBaseGPS",cEqObsBaseGPS::Alloc);
      AddEntry("cEqObsBaseGPS_GL",cEqObsBaseGPS_GL::Alloc);
+     AddEntry("cImplEqRelativeGPS",cImplEqRelativeGPS::Alloc);
+     
 
      AddEntry("cCodeBlockCam",cCodeBlockCam::Alloc);
      AddEntry("cEqLinariseAngle",cEqLinariseAngle::Alloc);

@@ -98,7 +98,8 @@ typedef enum
   ePoseFigee,
   ePoseBaseNormee,
   ePoseVraieBaseNormee,
-  eCentreFige
+  eCentreFige,
+  eAnglesFiges
 } eTypeContraintePoseCamera;
 void xml_init(eTypeContraintePoseCamera & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeContraintePoseCamera & aVal);
@@ -472,6 +473,38 @@ void  BinaryDumpInFile(ELISE_fp &,const cRigidBlockWeighting &);
 void  BinaryUnDumpFromFile(cRigidBlockWeighting &,ELISE_fp &);
 
 std::string  Mangling( cRigidBlockWeighting *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cGpsRelativeWeighting
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cGpsRelativeWeighting & anObj,cElXMLTree * aTree);
+
+
+        double & SigmaPerSec();
+        const double & SigmaPerSec()const ;
+
+        double & SigmaMin();
+        const double & SigmaMin()const ;
+
+        cTplValGesInit< double > & MaxResidu();
+        const cTplValGesInit< double > & MaxResidu()const ;
+    private:
+        double mSigmaPerSec;
+        double mSigmaMin;
+        cTplValGesInit< double > mMaxResidu;
+};
+cElXMLTree * ToXMLTree(const cGpsRelativeWeighting &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGpsRelativeWeighting &);
+
+void  BinaryUnDumpFromFile(cGpsRelativeWeighting &,ELISE_fp &);
+
+std::string  Mangling( cGpsRelativeWeighting *);
 
 /******************************************************/
 /******************************************************/
@@ -1306,6 +1339,31 @@ void  BinaryUnDumpFromFile(cLayerImageToPose &,ELISE_fp &);
 
 std::string  Mangling( cLayerImageToPose *);
 
+class cDeclareObsRelGPS
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cDeclareObsRelGPS & anObj,cElXMLTree * aTree);
+
+
+        std::string & PatternSel();
+        const std::string & PatternSel()const ;
+
+        std::string & Id();
+        const std::string & Id()const ;
+    private:
+        std::string mPatternSel;
+        std::string mId;
+};
+cElXMLTree * ToXMLTree(const cDeclareObsRelGPS &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDeclareObsRelGPS &);
+
+void  BinaryUnDumpFromFile(cDeclareObsRelGPS &,ELISE_fp &);
+
+std::string  Mangling( cDeclareObsRelGPS *);
+
 class cSectionBDD_Observation
 {
     public:
@@ -1340,6 +1398,9 @@ class cSectionBDD_Observation
 
         cTplValGesInit< double > & LimSupBSurHPMoy();
         const cTplValGesInit< double > & LimSupBSurHPMoy()const ;
+
+        std::list< cDeclareObsRelGPS > & DeclareObsRelGPS();
+        const std::list< cDeclareObsRelGPS > & DeclareObsRelGPS()const ;
     private:
         std::list< cBDD_PtsLiaisons > mBDD_PtsLiaisons;
         std::list< cBDD_PtsAppuis > mBDD_PtsAppuis;
@@ -1350,6 +1411,7 @@ class cSectionBDD_Observation
         std::list< cLayerImageToPose > mLayerImageToPose;
         cTplValGesInit< double > mLimInfBSurHPMoy;
         cTplValGesInit< double > mLimSupBSurHPMoy;
+        std::list< cDeclareObsRelGPS > mDeclareObsRelGPS;
 };
 cElXMLTree * ToXMLTree(const cSectionBDD_Observation &);
 
@@ -4744,6 +4806,31 @@ void  BinaryUnDumpFromFile(cTxtRapDetaille &,ELISE_fp &);
 
 std::string  Mangling( cTxtRapDetaille *);
 
+class cObsRelGPS
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cObsRelGPS & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+
+        cGpsRelativeWeighting & Pond();
+        const cGpsRelativeWeighting & Pond()const ;
+    private:
+        std::string mId;
+        cGpsRelativeWeighting mPond;
+};
+cElXMLTree * ToXMLTree(const cObsRelGPS &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cObsRelGPS &);
+
+void  BinaryUnDumpFromFile(cObsRelGPS &,ELISE_fp &);
+
+std::string  Mangling( cObsRelGPS *);
+
 class cSectionObservations
 {
     public:
@@ -4775,6 +4862,9 @@ class cSectionObservations
 
         cTplValGesInit< cTxtRapDetaille > & TxtRapDetaille();
         const cTplValGesInit< cTxtRapDetaille > & TxtRapDetaille()const ;
+
+        std::list< cObsRelGPS > & ObsRelGPS();
+        const std::list< cObsRelGPS > & ObsRelGPS()const ;
     private:
         std::list< cObsBlockCamRig > mObsBlockCamRig;
         std::list< cObsAppuis > mObsAppuis;
@@ -4783,6 +4873,7 @@ class cSectionObservations
         std::list< cObsCentrePDV > mObsCentrePDV;
         std::list< cObsRigidGrpImage > mObsRigidGrpImage;
         cTplValGesInit< cTxtRapDetaille > mTxtRapDetaille;
+        std::list< cObsRelGPS > mObsRelGPS;
 };
 cElXMLTree * ToXMLTree(const cSectionObservations &);
 
@@ -5968,6 +6059,9 @@ class cEtapeCompensation
         cTplValGesInit< cTxtRapDetaille > & TxtRapDetaille();
         const cTplValGesInit< cTxtRapDetaille > & TxtRapDetaille()const ;
 
+        std::list< cObsRelGPS > & ObsRelGPS();
+        const std::list< cObsRelGPS > & ObsRelGPS()const ;
+
         cSectionObservations & SectionObservations();
         const cSectionObservations & SectionObservations()const ;
 
@@ -6169,6 +6263,9 @@ class cParamApero
 
         cTplValGesInit< double > & LimSupBSurHPMoy();
         const cTplValGesInit< double > & LimSupBSurHPMoy()const ;
+
+        std::list< cDeclareObsRelGPS > & DeclareObsRelGPS();
+        const std::list< cDeclareObsRelGPS > & DeclareObsRelGPS()const ;
 
         cSectionBDD_Observation & SectionBDD_Observation();
         const cSectionBDD_Observation & SectionBDD_Observation()const ;

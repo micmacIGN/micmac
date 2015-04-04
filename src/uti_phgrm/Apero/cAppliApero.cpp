@@ -168,6 +168,9 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
         }
     }
     InitLVM(mCurSLMGlob,mParam.SLMGlob(),mMulSLMGlob,mParam.MultSLMGlob());
+
+
+    std::cout << "APPLI APERO, NbUnknown = " << mSetEq.Sys()->NbVar() << "\n";
 }
 
 
@@ -529,7 +532,7 @@ void  cAppliApero::CompileObsersvations()
   CompileAppuis();
   CompileOsbOr();
   CompileObsCentre();
-
+  InitObsRelGPS();
 }
 
 void cAppliApero::Verifs()

@@ -437,6 +437,7 @@ int  NbDegOfLib(eTypeContraintePoseCamera aContr)
          case ePoseBaseNormee : return 5;
          case ePoseVraieBaseNormee : return 5;
          case eCentreFige : return 3;
+         default : ;
      }
      ELISE_ASSERT(false,"NbDegOfLib");
      return 0;

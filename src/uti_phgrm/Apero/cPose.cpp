@@ -140,6 +140,7 @@ cPoseCam::cPoseCam
     // mObsCentre   (0,0,0),
     mHasObsOnCentre (false),
     mHasObsOnVitesse (false),
+    mLastItereHasUsedObsOnCentre (false),
     mNumTmp       (-12345678),
     mNbPtsMulNN   (-1),
     mNumBande     (0),
@@ -448,6 +449,7 @@ void cPoseCam::SetRattach(const std::string & aNameRat)
 
 void    cPoseCam::InitAvantCompens()
 {
+    mLastItereHasUsedObsOnCentre = false;
     AssertHasNotCamNonOrtho();
     if (PMoyIsInit())
     {
@@ -777,6 +779,11 @@ bool cPoseCam::HasObsOnCentre() const
    return mHasObsOnCentre;
 }
 
+bool  cPoseCam::LastItereHasUsedObsOnCentre() const
+{
+    return mLastItereHasUsedObsOnCentre;
+}
+
 void cPoseCam::AssertHasObsCentre() const
 {
    if (!mHasObsOnCentre)
@@ -892,6 +899,7 @@ else
           mHasObsOnCentre = (mObsCentre.mIncOnC.x>0) && (mObsCentre.mIncOnC.y>0) && (mObsCentre.mIncOnC.z>0);
           mHasObsOnVitesse = mHasObsOnCentre && mObsCentre.mVitFiable && mObsCentre.mVitesse.IsInit();
 
+//   std::cout << "NameBDDCCC " << mName << " HasC " << mHasObsOnCentre << "\n";
       }
    }
   
@@ -1525,6 +1533,16 @@ void cPoseCam::SetContrainte(const cContraintesPoses & aCP)
 	   mRF->SetModeRot(cNameSpaceEqF::eRotCOptFige);
       break;
 
+      case eAnglesFiges :
+           ELISE_ASSERT
+	   (
+	       (aCP.TolCoord().Val()<=0),
+	       "Tolerance angulaire avec eCentreFige"
+	   );
+           mRF->SetTolAng(aCP.TolAng().Val());
+	   mRF->SetModeRot(cNameSpaceEqF::eRotAngleFige);
+      break;
+
 
 
 
@@ -1823,6 +1841,7 @@ Pt3dr  cPoseCam::AddObsCentre
            cStatObs & aSO
       )
 {
+   mLastItereHasUsedObsOnCentre = true;
    ELISE_ASSERT(DoAddObsCentre(anObs),"cPoseCam::AddObsCentre");
 
    if (mEqOffsetGPS)

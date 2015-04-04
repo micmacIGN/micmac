@@ -58,6 +58,18 @@ void cAppliApero::AddObservations
    }
 
 
+   // On les mets avant pour que AddLevenbergMarkard sache de manier precise si le centre a
+   // ete fixe sur CETTE iteration
+   {
+       //  MajAddCoeffMatrix();
+       //  if (NumIterDebug())  MessageDebug("Avant Centre");
+       AddObservationsCentres(anSO.ObsCentrePDV(),IsLastIter,aSO);
+   }
+
+
+   {
+        AddObservationsRelGPS(anSO.ObsRelGPS());
+   }
 
    {
       // MajAddCoeffMatrix();
@@ -77,12 +89,7 @@ void cAppliApero::AddObservations
        AddObservationsAppuisFlottants(anSO.ObsAppuisFlottant(),IsLastIter,aSO);
    }
 
-   {
-       //  MajAddCoeffMatrix();
-       //  if (NumIterDebug())  MessageDebug("Avant Centre");
-
-       AddObservationsCentres(anSO.ObsCentrePDV(),IsLastIter,aSO);
-   }
+    // ANCIEN AddObservationsCentres
 
    {
        //  MajAddCoeffMatrix();
