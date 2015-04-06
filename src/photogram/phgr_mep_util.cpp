@@ -116,7 +116,7 @@ void TestQE()
 double NewExactCostMEP(Pt3dr &  anI1,const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
 
 
-Pt3dr InterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1)
+Pt3dr InterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1,bool & Ok)
 {
 /*
 TIMME :
@@ -152,6 +152,14 @@ TIMME :
 
       double aDet = a*d - b*c;
 
+      if (aDet==0)
+      {
+          Ok= false;
+          return Pt3dr(0,0,0);
+      }
+      Ok = true;
+
+
       double p = ( d * X - b * Y ) / aDet;
       double q = (-c * X + a * Y ) / aDet;
 
@@ -159,16 +167,16 @@ TIMME :
 
 }
 
-Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt3dr & aQ1,const Pt3dr & aQ2)
+Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt3dr & aQ1,const Pt3dr & aQ2,bool & Ok)
 {
     Pt3dr aBase = aR2to1.tr();
 
-    return InterSeg(Pt3dr(0,0,0),aQ1,aBase,aBase+ aR2to1.Mat()*aQ2);
+    return InterSeg(Pt3dr(0,0,0),aQ1,aBase,aBase+ aR2to1.Mat()*aQ2,Ok);
 }
 
-Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2)
+Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,bool & Ok)
 {
-    return InterSeg(aR2to1,PZ1(aP1),PZ1(aP2));
+    return InterSeg(aR2to1,PZ1(aP1),PZ1(aP2),Ok);
 }
 
 /*
@@ -185,10 +193,11 @@ Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2)
 
 */
 
-Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1)
+Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1,bool & Ok)
 {
     if (aVP0.size()==2)
-       return InterSeg(aVP0[0],aVP1[0],aVP0[1],aVP1[1]);
+       return InterSeg(aVP0[0],aVP1[0],aVP0[1],aVP1[1],Ok);
+    Ok = true ;  // FAUX => A CHANGER !!!!! 
     static Im2D_REAL8 aImMat(3,3);
     static double ** aDM = aImMat.data();
     static double & aM00 = aDM[0][0];
@@ -474,6 +483,7 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
     mSBIT12     (*mEqP3I),
     mCurRot     (ElRotation3D::Id)
 {
+  //  std::cout << "AcEqBundleBase::cEqBundleBase \n"; getchar();
   AllowUnsortedVarIn_SetMappingCur = true;
   mW2->IncInterv().SetName("Omega2");
   mc2->IncInterv().SetName("C2");
@@ -634,7 +644,12 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
 
    ELISE_ASSERT(aVP0.size()>=2,"cEqBundleBase::AddEquationGen");
    // double aDist;
-   Pt3dr aP = InterSeg(aVP0,aVP1);
+   bool OkIS;
+   Pt3dr aP = InterSeg(aVP0,aVP1,OkIS);
+   if ((! OkIS) || (ElAbs(aP.z) > 1e9))
+   {
+      return 0;
+   }
 
 
 
@@ -1367,7 +1382,9 @@ double ProjCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & 
    Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
    Pt3dr aQ2 = aR2to1.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
    Pt3dr aBase  = aR2to1.tr();
-   Pt3dr anI1 = InterSeg(Pt3dr(0,0,0),aQ1,aBase,aBase+aQ2);
+   bool Ok;
+   Pt3dr anI1 = InterSeg(Pt3dr(0,0,0),aQ1,aBase,aBase+aQ2,Ok);
+   if (! Ok) return aTetaMax;
 
    Pt3dr anI2 =  aR2to1.ImRecAff(anI1);
 
@@ -1382,7 +1399,9 @@ double QuickD48EProjCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const
    Pt3dr aQ1 = Pt3dr(aP1.x,aP1.y,1.0);
    Pt3dr aQ2 = aR2to1.Mat() * Pt3dr(aP2.x,aP2.y,1.0);
    Pt3dr aBase  = aR2to1.tr();
-   Pt3dr anI1 = InterSeg(Pt3dr(0,0,0),aQ1,aBase,aBase+aQ2);
+   bool Ok;
+   Pt3dr anI1 = InterSeg(Pt3dr(0,0,0),aQ1,aBase,aBase+aQ2,Ok);
+   if (!Ok) return aTetaMax;
 
    Pt3dr anI2 =  aR2to1.ImRecAff(anI1);
 
@@ -1552,11 +1571,15 @@ Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot)
     std::vector<double>  aVZ;
     for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
     {
-        Pt3dr anI = InterSeg(aRot,itP->P1(),itP->P2());
+        bool Ok;
+        Pt3dr anI = InterSeg(aRot,itP->P1(),itP->P2(),Ok);
 
-        aVX.push_back(anI.x);
-        aVY.push_back(anI.y);
-        aVZ.push_back(anI.z);
+        if (Ok)
+        {
+           aVX.push_back(anI.x);
+           aVY.push_back(anI.y);
+           aVZ.push_back(anI.z);
+        }
     }
     return Pt3dr
            (

@@ -115,6 +115,15 @@ void TestOriPlanePatch
          double      mScaleW
      );
 
+ElRotation3D TestcRanscMinimMatEss
+             (
+                  const ElPackHomologue & aPack,
+                  const ElPackHomologue & aPackRed,
+                  const ElPackHomologue & aPack150,
+                  const ElPackHomologue & aPack30,
+                  double aFoc
+             ) ;
+
 
 
 cNewO_CpleIm::cNewO_CpleIm
@@ -132,13 +141,16 @@ cNewO_CpleIm::cNewO_CpleIm
    mTestC2toC1  (aTestedSol),
    mPackPDist   (ToStdPack(mMergePH,true,0.1)),
    mPackPStd    (ToStdPack(mMergePH,false,0.1)),
-   mPInfI1        (1e5,1e5),
-   mPSupI1        (-1e5,-1e5),
+   mPInfI1      (1e5,1e5),
+   mPSupI1      (-1e5,-1e5),
    mPackStdRed  (PackReduit(mPackPStd,1500,500)),
+   mPack150     (PackReduit(mPackStdRed,100)),
+   mPack30      (PackReduit(mPack150,30)),
    mSysLin5     (5),
    mSysLin2     (2),
    mSysLin3     (3),
-   mLinIBI      (cInterfBundle2Image::LinearDet(mPackStdRed,FocMoy())),
+   mLinDetIBI   (cInterfBundle2Image::LinearDet(mPackStdRed,FocMoy())),
+   mBundleIBI   (cInterfBundle2Image::Bundle(mPackStdRed,FocMoy(),true)),
    mRedPvIBI    (cInterfBundle2Image::LineariseAngle(mPackStdRed,FocMoy(),true)),
    mFullPvIBI   (cInterfBundle2Image::LineariseAngle(mPackPStd,FocMoy(),true)),
    mShow        (aShow),
@@ -196,6 +208,7 @@ cNewO_CpleIm::cNewO_CpleIm
 //          ShowPack(mPackPStd,P8COL::red,2.0);
    }
 
+
    if (aHPP)
    {
       TestOriPlanePatch(FocMoy(),mPackStdRed,mW,mP0W,mScaleW);
@@ -220,6 +233,11 @@ cNewO_CpleIm::cNewO_CpleIm
     /*      TEST DES DIFFERENTES INITIALISATIONS           */
     /*******************************************************/
 
+   // = T0 ============== Nouveau test par Ransac + ME
+    {
+       ElRotation3D aMRR = TestcRanscMinimMatEss(mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
+       AmelioreSolLinear(aMRR,"Mini RE");
+    }
    // = T1 ============== Nouveau test par Ransac + ME
     {
        ElRotation3D aRR =RansacMatriceEssentielle(mPackPStd,mPackStdRed,FocMoy());
@@ -234,7 +252,6 @@ cNewO_CpleIm::cNewO_CpleIm
         aR = aR.inv();
         AmelioreSolLinear(aR,(aL2 ? "L2 Ess": "L1 Ess" ));
     }
-
 
   //  = T3 ============  Test par  homographie plane "classique" (i.e. globale) 
     double aDist ; 

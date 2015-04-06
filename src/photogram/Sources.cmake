@@ -51,6 +51,7 @@ set(Photogram_Src_Files
 	${PHOTOGR_DIR}/OriCombiBundle.cpp
 	${PHOTOGR_DIR}/phgr_mep_cocentrik.cpp
 	${PHOTOGR_DIR}/phgr_mep_patch_plane.cpp
+	${PHOTOGR_DIR}/phgr_quickm33.cpp
 )
 
 SOURCE_GROUP(Photogram FILES ${Photogram_Src_Files})

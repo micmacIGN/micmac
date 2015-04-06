@@ -750,9 +750,9 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     cGenSysSurResol
     (
          !DebugPbCondFaisceau, // true,
-         L2SYM, !L2SYM,
+         // L2SYM, !L2SYM,
    // false,false,
-//         IsSym, (! IsSym),
+         IsSym, (! IsSym),     // MPD 05-04_2015 ; avant L2SYM, sous optimale pour subsitution, voit pas pourquoi cela serait bien ???
         true
     ),
     mNbVar           (aNbVar),
@@ -768,6 +768,7 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     mNbEq            (0),
     mMaxBibi         (0)
 {
+    // std::cout << "L2SysSurResol::L2SysSurResol " << IsSym << "\n";
 }
 
 void L2SysSurResol::SetSize(INT aNbVar)
