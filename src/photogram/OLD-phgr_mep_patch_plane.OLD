@@ -167,8 +167,7 @@ class cAttrSomDualOPP
 {
     public :
           cAttrSomDualOPP() :
-              mHom            (cElHomographie::Id()),
-              mRot            (ElRotation3D::Id)
+              mHom            (cElHomographie::Id())
            {}
 
 
@@ -180,8 +179,7 @@ class cAttrSomDualOPP
               mBestIncludeSc0 (1e10),
               mNumBestIS0     (-1),
               mPreselH        (false),
-              mHom            (cElHomographie::Id()),
-              mRot            (ElRotation3D::Id)
+              mHom            (cElHomographie::Id())
           {
               ELISE_ASSERT(aFA.nb()==3,"cSomDualOPP");
               mSoms[0] = &(aFA[0]->s1());
@@ -201,8 +199,6 @@ class cAttrSomDualOPP
           int          mNumBestIS0;
           bool         mPreselH;
           cElHomographie  mHom;
-          ElRotation3D  mRot;
-          double       mScore3D;
 };
 
 class cAttrArcDualOPP
@@ -260,8 +256,11 @@ class cOriPlanePatch
          void TestHomogrDual();
          void CalcAllHomAndSel();
          void TestHomogr();
-         void ResetHom();
-         void SolveHom();
+         void TestOneGermGlob(const std::vector<tSomOPP*>  & aVSom,bool Show);
+         void TestOneGermLocal(const std::vector<tSomOPP*>  & aVSom,bool Show);
+         void AddNeigh2GL(tSomOPP *,bool WithPlanCstr);
+         void    ResetHom();
+         void  SolveHom();
          void OneIterNbSomGlob(int aNbGlobIn,int aNbGlobOut,int aNbCoul,bool Show);
 
          cInterfBundle2Image *  IBIOfNum(int aK);
@@ -274,7 +273,7 @@ class cOriPlanePatch
 
          double MoyenneEcStd(const std::vector<tSomOPP *> &) const;
          // 0 Lin ; 1 Angle ; 2 Bundle
-         void  TestEvalHomographie(tSomDualOPP  &,bool Show,int aNumBundle,int aNbIter);
+         void  TestEvalHomographie(const cElHomographie &,bool Show,int aNumBundle,int aNbIter);
          void AddHom(tSomOPP*,double aPds);
          void ReinitSom(tSomOPP* aSom);
          void ShowPoint(const Pt2dr &,double aRay,int coul) const;
@@ -496,9 +495,8 @@ void cOriPlanePatch::LocalAmelRot(const ElRotation3D & aR)
 {
 }
 
-void  cOriPlanePatch::TestEvalHomographie(tSomDualOPP & aFace,bool Show,int aNumBundle,int aNbIter)
+void  cOriPlanePatch::TestEvalHomographie(const cElHomographie & aHom,bool Show,int aNumBundle,int aNbIter)
 {
-     const cElHomographie & aHom =  aFace.attr().mHom ;
      if (0)
      {
          for (int aK=0 ; aK<int(mVExploredSom.size()) ; aK++)
@@ -552,9 +550,6 @@ void  cOriPlanePatch::TestEvalHomographie(tSomDualOPP & aFace,bool Show,int aNum
                   << " Proj "  << aPrCostIn*mFoc 
                   << " => " << ProjCostMEP(mPack,aBestR,0.1) *mFoc << "\n";
      }
-
-     aFace.attr().mScore3D = anEr;
-     aFace.attr().mRot     = aBestR;
 }
  
 
@@ -582,6 +577,281 @@ void  cOriPlanePatch::SolveHom()
 
 
 
+
+      //======================================================
+      // 
+      //      Approche Globale
+      // 
+      //======================================================
+
+void cOriPlanePatch::OneIterNbSomGlob(int aNbGlobIn,int aNbGlobOut,int aCoul,bool Show)
+{
+    int aNbIn = 0;
+    std::vector<double> aVDist;
+    for (int aK=0 ; aK< mNbSom ; aK++)
+    {
+       tSomOPP * aS = mVSom[aK];
+       if (! aS->flag_kth(mFlagVisitSomH))
+       {
+           cAttrSomOPP & anAttr = aS->attr();
+           anAttr.mEcHom = EcHom(anAttr);
+           aVDist.push_back(anAttr.mEcHom);
+       }
+       else
+          aNbIn ++;
+    }
+    double aVSeuil = KthVal(aVDist,aNbGlobIn-aNbIn);
+    
+    for (int aK=0 ; aK< mNbSom ; aK++)
+    {
+        tSomOPP * aS = mVSom[aK];
+        if ((!aS->flag_kth(mFlagVisitSomH)) &&  (aS->attr().mEcHom<=aVSeuil))
+        {
+             AddHom(aS,1.0);
+             if (Show) 
+             {
+                ShowPoint(*aS,3.0,aCoul);
+             }
+        }
+    }
+    SolveHom();
+    TestEvalHomographie(mCurHom,Show,0,5);
+}
+
+void cOriPlanePatch::TestOneGermGlob(const std::vector<tSomOPP*>  & aVSom,bool Show)
+{
+    if (Show) 
+       std::cout << "cOriPlanePatch::TestOneGermGlob " << aVSom.size() << "\n";
+    mModeAff = (aVSom.size()==3) ;
+    //mModeAff = false;
+    ResetHom();
+    for (int aK=0 ; aK<int (aVSom.size()) ; aK++)
+    {
+        AddHom(aVSom[aK],1.0);
+    }
+    SolveHom();
+
+
+    for (int aK=0 ; aK<int (aVSom.size()) ; aK++)
+    {
+        tSomOPP * aS = aVSom[aK];
+        if (Show) 
+           std::cout << "ECART " << euclid(mCurHom.Direct(aS->attr().mP1) - aS->attr().mP2) * mFoc << "\n";
+    }
+
+
+    mModeAff = false;
+
+    OneIterNbSomGlob(10,8,P8COL::red,Show);
+    OneIterNbSomGlob(23,20,P8COL::green,Show);
+    OneIterNbSomGlob(55,50,P8COL::blue,Show);
+    OneIterNbSomGlob(108,100,P8COL::cyan,Show);
+    OneIterNbSomGlob(214,200,P8COL::black,Show);
+}
+
+
+      //======================================================
+      // 
+      //      Approche Locale
+      // 
+      //======================================================
+
+void cOriPlanePatch::AddNeigh2GL(tSomOPP * aS,bool WithPlanCstr)
+{
+     for (tItAOPP itA= (*aS).begin(mSubGrFull) ; itA.go_on() ; itA++)
+     {
+         tSomOPP & aS2 = (*itA).s2();
+         cAttrSomOPP & anAtr = aS2.attr();
+         if ( 
+                (anAtr.mEcHom == TheDefautEcH)
+             && ((!WithPlanCstr)  || (aS2.nb_succ(mSubGrFlagVH) >=2))
+            )
+         {
+            anAtr.mEcHom = EcHom(anAtr);
+            mHeap.push(&aS2);
+            ShowPoint(aS2,3.0,P8COL::black);
+         }
+     }
+}
+
+void cOriPlanePatch::LocalRestimateHomogr()
+{
+    SolveHom();
+    std::vector<double> aVDist;
+    for (int aK=0 ; aK< int(mVExploredSom.size()) ; aK++)
+    {
+         cAttrSomOPP & anAtr = mVExploredSom[aK]->attr();
+         anAtr.mEcHom = EcHom(anAtr);
+         aVDist.push_back(anAtr.mEcHom);
+    }
+    
+    double aSeuilD =  KthVal(aVDist,round_ni(aVDist.size()*0.85));
+    std::vector<tSomOPP *> aNewVS;
+    
+    for (int aK=0 ; aK< int(mVExploredSom.size()) ; aK++)
+    {
+         tSomOPP * aSom = mVExploredSom[aK];
+         cAttrSomOPP & anAtr = aSom->attr();
+         if (anAtr.mEcHom< aSeuilD)
+         {
+              aNewVS.push_back(aSom);
+         }
+         else
+         {
+              AddHom(mVExploredSom[aK],-1);
+         }
+    }
+    SolveHom();
+
+
+    std::vector<tSomOPP *> aVV = mHeap.Els();
+    for (int aK=0 ; aK< int(aVV.size()) ; aK++)
+        ReinitSom(aVV[aK]);
+    mHeap.clear();
+
+    double aSomD = 0;
+    for (int aK=0 ; aK<int (aNewVS.size()) ; aK++)
+    {
+        AddNeigh2GL(aNewVS[aK],true);
+        aSomD += aNewVS[aK]->attr().mEcHom;
+    }
+
+    aSomD = sqrt(aSomD / (aNewVS.size() -4));
+    std::cout << "ECART-H " << aSomD*mFoc << "\n";
+
+
+    mVExploredSom = aNewVS;
+
+}
+
+
+
+
+
+void cOriPlanePatch::TestOneGermLocal(const std::vector<tSomOPP*>  & aVSom,bool Show)
+{
+    mVExploredSom = aVSom;
+    std::vector<Pt2di>  aVNb;
+    aVNb.push_back(Pt2di(12,10));
+    aVNb.push_back(Pt2di(23,20));
+    aVNb.push_back(Pt2di(43,40));
+    // aVNb.push_back(Pt2di(83,80));
+    // aVNb.push_back(Pt2di(55,50));
+
+
+
+    int aNbSom = 0;
+
+    mHeap.clear();
+    ResetHom();
+    for (int aK=0 ; aK<int (aVSom.size()) ; aK++)
+    {
+        AddHom(aVSom[aK],1.0);
+        
+    }
+    
+    SolveHom();
+    mModeAff = false;
+
+    for (int aK=0 ; aK<int (aVSom.size()) ; aK++)
+    {
+        aNbSom ++;
+        AddNeigh2GL(aVSom[aK],false);
+    }
+    std::cout << "ENNNNNndddddddd Init " << aVSom.size() << "\n";
+
+    int aKNb = 0;
+    while (aKNb<int(aVNb.size()))
+    {
+         tSomOPP * aS=0;
+         bool Ok = mHeap.pop(aS);
+         mVExploredSom.push_back(aS);
+         ELISE_ASSERT(Ok,"Incoh in cOriPlanePatch::TestOneGermLocal");
+         if (Show)
+         {
+             aNbSom++;
+             ShowPoint(*aS,3.0,P8COL::blue);
+             ShowPoint(*aS,5.0,P8COL::blue);
+             // std::cout << "DDDD " << sqrt(aS->attr().mEcHom) * mFoc << "\n";
+         }
+         AddNeigh2GL(aS,true);
+         AddHom(aS,1.0);
+
+            
+         if (aVNb[aKNb].x <= int(mVExploredSom.size()))
+         {
+            aKNb++;
+            LocalRestimateHomogr();
+            if (Show)
+            {
+                 mW->clik_in();
+                 std::cout << "\n";
+            }
+         }
+    }
+    TestEvalHomographie(mCurHom,Show,0,5);
+}
+
+      //======================================================
+      // 
+      //      
+      // 
+      //======================================================
+
+void cOriPlanePatch::TestHomogr()
+{
+    mW->clik_in();
+    for (int aK=0 ; aK<int(mVSom.size()) ; aK++)
+    {
+        ShowPoint(*(mVSom[aK]),3.0,P8COL::green);
+    }
+    mModeAff = false;
+
+    std::vector<tSomOPP*> aVTest;
+    if (0)
+    {
+        tSomOPP * aS0 =  GetSom(P8COL::yellow);
+        aVTest.push_back(aS0);
+        for (tItAOPP itA= (*aS0).begin(mSubGrFull) ; itA.go_on() ; itA++)
+        {
+            tSomOPP & aS2 = (*itA).s2();
+            aVTest.push_back(&aS2);
+            ShowPoint(aS2,3.0,P8COL::white);
+        }
+    }
+    else
+    {
+        int aNbPts = mModeAff ? 3 : 4;
+        Pt2dr aC (0,0);
+        for (int aK=0 ; aK< aNbPts ; aK++)
+        {
+            tSomOPP * aSom =  GetSom(P8COL::white);
+            aVTest.push_back(aSom);
+            aC  = aC +  aSom->attr().mP1;
+        }
+    }
+    if (int(aVTest.size()) <= 2) return;
+    mModeAff  = (int(aVTest.size())==3);
+
+    if (false)
+    {
+        TestOneGermGlob(aVTest,true);
+        ElTimer aChrono;
+        for (int aK=0 ; aK<100 ; aK++)
+            TestOneGermGlob(aVTest,false);
+        std::cout  << "TIME GLOB " << aChrono.uval() << "\n";
+    }
+    else
+    {
+         TestOneGermLocal(aVTest,true);
+    }
+}
+
+
+void  cOriPlanePatch::TestPt()
+{
+    GetSom(P8COL::yellow);
+}
 
      //=============================================
      //
@@ -932,7 +1202,7 @@ void cOriPlanePatch::CalcAllHomAndSel()
         cAttrSomDualOPP &  anAF  = aF->attr();
         if (anAF.mPreselH)
         {
-            TestEvalHomographie(*mVFace[aK],false,0,5);
+            TestEvalHomographie(mVFace[aK]->attr().mHom,false,0,5);
             // TestEvalHomographie(mVFace[aK]->attr().mHom,false,0,20);
         }
     }
@@ -944,7 +1214,6 @@ void cOriPlanePatch::CalcAllHomAndSel()
 
 
 
-
 void cOriPlanePatch::TestHomogrDual()
 {
    tSomDualOPP * aFace = GetFace(P8COL::white);
@@ -952,8 +1221,8 @@ void cOriPlanePatch::TestHomogrDual()
 
    std::cout << "FACE " << aFace->attr().mOwnSc0 << "\n";
 
-   TestEvalHomographie(*aFace,true,0,20);
-   TestEvalHomographie(*aFace,true,2,20);
+   TestEvalHomographie(aFace->attr().mHom,true,0,20);
+   TestEvalHomographie(aFace->attr().mHom,true,2,20);
 
    std::cout << "\n";
 }

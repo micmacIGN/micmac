@@ -1423,7 +1423,10 @@ Pt3dr RPC2D::InversePreRPCNorm(Pt3dr aPtGeoNorm, vector<vector<Pt3dr> > aMatPtsG
 	//aSatPosProj is InterSeg on (aPtGeo aPtGeoDodgeAngle)/X/(SatPosLoc SatPosLoc-normal)
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	Pt3dr aSatPosProj = InterSeg(aVPtsPlaneECEF[0], aPtECEFDodgeAngle, aSatPosLoc, aSatPosLoc - aNormal);
+        bool Ok;
+	Pt3dr aSatPosProj = InterSeg(aVPtsPlaneECEF[0], aPtECEFDodgeAngle, aSatPosLoc, aSatPosLoc - aNormal,Ok);
+        // MPD : maintenant InterSeg indique si l'intersection est degeneree, il convient sand doute de mieux gere cette erreur ....
+        ELISE_ASSERT(Ok,"Bad intersection in RPC2D::InversePreRPCNorm");
 	//cout << "aSatPosProj = " << aSatPosProj << endl;
 
 	//Computing distance between aPtGeoDodgeAngle and aSatPosProj, and aSatHeight

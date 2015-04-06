@@ -1434,6 +1434,27 @@ double MatEssResidual(const Pt2dr & aP1,const Pt2dr & aP2,double * aCoeff)
           + aCoeff[8]         ;
 
 }
+void SysAddEqMatEss(const double & aPds,const Pt2dr & aP1,const Pt2dr & aP2,L2SysSurResol & aSys )
+{
+    static double aCoeff[8];
+    const double & x1 = aP1.x;
+    const double & y1 = aP1.y;
+    const double & x2 = aP2.x;
+    const double & y2 = aP2.y;
+
+    aCoeff[0] = x1 * x2;
+    aCoeff[1] = x1 * y2;
+    aCoeff[2] = x1 *  1;
+
+    aCoeff[3] = y1 * x2;
+    aCoeff[4] = y1 * y2;
+    aCoeff[5] = y1 *  1;
+
+    aCoeff[6] =  1 * x2;
+    aCoeff[7] =  1 * y2;
+
+    aSys.AddEquation(aPds,aCoeff,-1.0);
+}
 
 void  cRansacMatriceEssentielle::OnTestMatE(int aNb)
 {
@@ -1442,32 +1463,13 @@ void  cRansacMatriceEssentielle::OnTestMatE(int aNb)
      SelectK(aNb);
      mSys.Reset();
 
-     double aCoeff[9];
-     aCoeff[8] = 1;
+     //double aCoeff[9];
+     // aCoeff[8] = 1;
 
      for (int aCpt=0; aCpt<aNb ; aCpt++)
      {
          int aK = mIndSelect[aCpt];
-         const Pt2dr & aP1 = mVP1[aK];
-         const double & x1 = aP1.x;
-         const double & y1 = aP1.y;
-         const Pt2dr & aP2 = mVP2[aK];
-         const double & x2 = aP2.x;
-         const double & y2 = aP2.y;
-         const double & aPds = mVPds[aK];
-
-         aCoeff[0] = x1 * x2;
-         aCoeff[1] = x1 * y2;
-         aCoeff[2] = x1 *  1;
-
-         aCoeff[3] = y1 * x2;
-         aCoeff[4] = y1 * y2;
-         aCoeff[5] = y1 *  1;
-
-         aCoeff[6] =  1 * x2;
-         aCoeff[7] =  1 * y2;
-
-         mSys.AddEquation(aPds,aCoeff,-1.0);
+         SysAddEqMatEss(mVPds[aK],mVP1[aK],mVP2[aK],mSys);
      }
 
      bool Ok;
@@ -1522,6 +1524,7 @@ ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPack
     return aRME.Sol();
 }
 
+/***********************************************************************/
 
 
 

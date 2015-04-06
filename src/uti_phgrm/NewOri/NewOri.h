@@ -112,6 +112,7 @@ typedef std::list<tMergeCplePt *>  tLMCplP;
 ElPackHomologue ToStdPack(const tMergeLPackH *,bool PondInvNorm,double PdsSingle=0.1);
 
 ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbInit,int aNbFin);
+ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbFin);
 
 
 class cNewO_OneIm
@@ -149,6 +150,7 @@ class cNOCompPair
 
 
 
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2);
 
 
 class cNewO_CpleIm
@@ -182,7 +184,7 @@ class cNewO_CpleIm
 
        //===================
           void  AddNewInit(const ElRotation3D & aR);
-          double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) const;
+          // double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) const;
 
 
           double CostLinear(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const;
@@ -205,6 +207,8 @@ class cNewO_CpleIm
           Pt2dr             mPInfI1;
           Pt2dr             mPSupI1;
           ElPackHomologue   mPackStdRed;
+          ElPackHomologue   mPack150;
+          ElPackHomologue   mPack30;
           
 
      // Resolution lineraire
@@ -215,7 +219,8 @@ class cNewO_CpleIm
           L2SysSurResol            mSysLin5;
           L2SysSurResol            mSysLin2;
           L2SysSurResol            mSysLin3;
-          cInterfBundle2Image *    mLinIBI;
+          cInterfBundle2Image *    mLinDetIBI;
+          cInterfBundle2Image *    mBundleIBI;
           cInterfBundle2Image *    mRedPvIBI;
           cInterfBundle2Image *    mFullPvIBI;
 

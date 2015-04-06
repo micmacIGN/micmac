@@ -535,6 +535,10 @@ struct cCdtPckR
 };
 
 
+ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbFin)
+{
+    return PackReduit(aPackIn,aPackIn.size(),aNbFin);
+}
 
 ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aNbFin)
 {

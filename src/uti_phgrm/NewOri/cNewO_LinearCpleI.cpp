@@ -63,13 +63,13 @@ double VarRel(const double & aNewEr,const double & anOldErr)
 /*                                                                     */
 /***********************************************************************/
 
-double cNewO_CpleIm::DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) const
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) 
 {
     Pt3dr aB1 = vunit(aR1.tr());
     Pt3dr aB2 = vunit(aR2.tr());
     if (scal(aB1,aB2) <0) aB1 = -aB1;
     double aDB = euclid(aB1-aB2);
-    double aDM = aR1.Mat().L2(aR2.Mat());
+    double aDM = sqrt(aR1.Mat().L2(aR2.Mat()));
 
     // std::cout << " DBase " << aDB << " DRot " << aDM << "\n";
 
@@ -129,8 +129,8 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
    ElTimer aChrono;
 
 
-   mErStd =  mLinIBI->ErrInitRobuste(aRot,PropStdErDet);  // Version robuste, sans init
-   mErStd = mLinIBI->ResiduEq(aRot,mErStd);               // Version moindres carres
+   mErStd =  mBundleIBI->ErrInitRobuste(aRot,PropStdErDet);  // Version robuste, sans init
+   mErStd = mBundleIBI->ResiduEq(aRot,mErStd);               // Version moindres carres
    
    
 
@@ -143,7 +143,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
    {
        // std::cout << "ERRR " << mErStd *FocMoy() << "\n";
        double aLastErr = mErStd;
-       ElRotation3D aNewR  = mLinIBI->OneIterEq(aRot,mErStd);
+       ElRotation3D aNewR  = mBundleIBI->OneIterEq(aRot,mErStd);
        double anAmelio = aLastErr - mErStd;
 
 
@@ -153,6 +153,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
 
        if ((anAmelio >0) || (! UseLVM))
        {
+          // Si tres proche de la meilleur sol
           if (mBestSolIsInit)
           {
               if (DistRot(aNewR,mBestSol) < 1e-4)
@@ -163,6 +164,7 @@ void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes
               }
           }
 
+          // Si tres proche de la solution precedente
           if (DistRot(aNewR,aRot) < 2e-5) 
           {
              aSqueeze = true;
