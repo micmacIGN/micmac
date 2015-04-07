@@ -168,7 +168,8 @@ class cAttrSomDualOPP
     public :
           cAttrSomDualOPP() :
               mHom            (cElHomographie::Id()),
-              mRot            (ElRotation3D::Id)
+              mRot            (ElRotation3D::Id),
+              mRotPReSel      (ElRotation3D::Id)
            {}
 
 
@@ -181,7 +182,8 @@ class cAttrSomDualOPP
               mNumBestIS0     (-1),
               mPreselH        (false),
               mHom            (cElHomographie::Id()),
-              mRot            (ElRotation3D::Id)
+              mRot            (ElRotation3D::Id),
+              mRotPReSel      (ElRotation3D::Id)
           {
               ELISE_ASSERT(aFA.nb()==3,"cSomDualOPP");
               mSoms[0] = &(aFA[0]->s1());
@@ -202,8 +204,13 @@ class cAttrSomDualOPP
           bool         mPreselH;
           cElHomographie  mHom;
           ElRotation3D  mRot;
+          ElRotation3D  mRotPReSel;
+          Pt3dr        mMedRP;
           double       mScore3D;
+          double       mMoyDist;
+          double       mMaxDist;
 };
+
 
 class cAttrArcDualOPP
 {
@@ -224,7 +231,7 @@ typedef  ElArcIterator<cAttrSomDualOPP,cAttrArcDualOPP>   tItDualAOPP;
 
 typedef tSomDualOPP * tSomDPtr;
 
-class cCmpAttrFaceOPP
+class cCmpEcHomAttrFaceOPP
 {
      public :
            bool operator () (const tSomDPtr & aPF1, const tSomDPtr & aPF2)
@@ -233,7 +240,19 @@ class cCmpAttrFaceOPP
            }
 };
 
-typedef ElHeap<tSomDPtr,cCmpAttrFaceOPP> tHeapFPP;
+class cCmpSc3DAttrFaceOPP
+{
+     public :
+           bool operator () (const tSomDPtr & aPF1, const tSomDPtr & aPF2)
+           {
+                 return aPF1->attr().mEcHom < aPF2->attr().mEcHom;
+           }
+};
+
+
+
+
+typedef ElHeap<tSomDPtr,cCmpEcHomAttrFaceOPP> tHeapFPP;
 
 
  
@@ -249,6 +268,8 @@ class cOriPlanePatch
     public :
         cOriPlanePatch(   double aFoc,
                           const ElPackHomologue & aPack,
+                          const ElPackHomologue & aPack150,
+                          const ElPackHomologue & aPack30,
                           Video_Win * aW,
                           Pt2dr       aP0W,
                           double      aScaleW
@@ -275,6 +296,7 @@ class cOriPlanePatch
          double MoyenneEcStd(const std::vector<tSomOPP *> &) const;
          // 0 Lin ; 1 Angle ; 2 Bundle
          void  TestEvalHomographie(tSomDualOPP  &,bool Show,int aNumBundle,int aNbIter);
+         void  TestEvalHomographie(const cElHomographie & aHom,tSomDualOPP & aFace,bool Show,int aNumBundle,int aNbIter);
          void AddHom(tSomOPP*,double aPds);
          void ReinitSom(tSomOPP* aSom);
          void ShowPoint(const Pt2dr &,double aRay,int coul) const;
@@ -287,6 +309,10 @@ class cOriPlanePatch
 
          void LocalRestimateHomogr();
          void LocalAmelRot(const ElRotation3D & aR);
+
+   // Appremment empire le resultat sur les rotation !!
+         void  EstimStatHom(const cElHomographie & aHom,const  std::vector<tSomOPP *> & aVS0,double &aMaxDist,double & aMoyDist);
+         cElHomographie ReestimHom(const cElHomographie & aHom, const double & aSeuilDist,double & aSigmaDist);
 
 
    //  Aproche par les faces
@@ -312,7 +338,9 @@ class cOriPlanePatch
 
 
          double                 mFoc;
-         ElPackHomologue        mPack;
+         const ElPackHomologue&       mPack;
+         const ElPackHomologue&       mPack150;
+         const ElPackHomologue&       mPack30;
          Video_Win *            mW;
          Pt2dr                  mP0W;
          double                 mScaleW;
@@ -338,8 +366,8 @@ class cOriPlanePatch
          std::vector<tSomDualOPP *> mVFace;
          std::vector<tSomDualOPP *>  mExploredFaceH;
          std::vector<tSomDualOPP *>  mSelectedFaceH;
-         cCmpAttrFaceOPP             mCmpF;
-         tHeapFPP                   mHeapF;
+         cCmpEcHomAttrFaceOPP    mCmpF;
+         tHeapFPP                mHeapF;
          int                    mFlagVisitFaceH;
          int                    mFlagSelectedFaceH;
 
@@ -498,7 +526,12 @@ void cOriPlanePatch::LocalAmelRot(const ElRotation3D & aR)
 
 void  cOriPlanePatch::TestEvalHomographie(tSomDualOPP & aFace,bool Show,int aNumBundle,int aNbIter)
 {
-     const cElHomographie & aHom =  aFace.attr().mHom ;
+      TestEvalHomographie(aFace.attr().mHom,aFace,Show,aNumBundle,aNbIter);
+}
+
+void  cOriPlanePatch::TestEvalHomographie(const cElHomographie & aHom,tSomDualOPP & aFace,bool Show,int aNumBundle,int aNbIter)
+{
+     // const cElHomographie & aHom =  aFace.attr().mHom ;
      if (0)
      {
          for (int aK=0 ; aK<int(mVExploredSom.size()) ; aK++)
@@ -580,6 +613,45 @@ void  cOriPlanePatch::SolveHom()
     mCurHom =  cElHomographie(aHX,aHY,aHZ);
 }
 
+
+void  cOriPlanePatch::EstimStatHom(const cElHomographie & aHom,const  std::vector<tSomOPP *> & aVS0,double &aMaxDist,double & aMoyDist)
+{
+    aMaxDist = 0.0;
+    aMoyDist = 0.0;
+    for (int aK=0 ; aK<int(aVS0.size()) ; aK++)
+    {
+        const cAttrSomOPP & anAtr =   aVS0[aK]->attr();
+        double aDist = euclid(aHom.Direct(anAtr.mP1) - anAtr.mP2);
+        ElSetMax(aMaxDist,aDist);
+        aMoyDist += aDist;
+    }
+
+    aMoyDist /= aVS0.size();
+}
+
+cElHomographie cOriPlanePatch::ReestimHom(const cElHomographie & aHom, const double & aSeuilDist,double & aSigmaDist)
+{
+    ResetHom();
+    for (int aK=0 ; aK<int(mVSom.size()) ; aK++)
+    {
+        const cAttrSomOPP & anAtr =   mVSom[aK]->attr();
+        double aDist = euclid(aHom.Direct(anAtr.mP1) - anAtr.mP2);
+
+        if (aDist < aSeuilDist)
+        {
+            double aPds = 1/(1+ElSquare(aDist/aSigmaDist));
+            AddHom(mVSom[aK],aPds);
+        }
+    }
+
+    SolveHom();
+    return mCurHom;
+}
+
+/*
+    double aSigma0 = aMoyDist * 2.0;
+    double aSeuil = aMaxDist * 1.5;
+*/
 
 
 
@@ -861,6 +933,8 @@ void cOriPlanePatch::MakeHomogrInitDual(tSomDualOPP * aF0,bool aShow)
     SolveHom();
     aF0->attr().mHom = mCurHom;
 
+    EstimStatHom(mCurHom,mVSelectedSom,aF0->attr().mMaxDist,aF0->attr().mMoyDist);
+
     double aScore = MoyenneEcStd(mVSelectedSom);
     cAttrSomDualOPP & anAF0 =  aF0->attr();
     anAF0.mOwnSc0 = aScore;
@@ -892,6 +966,7 @@ void cOriPlanePatch::CalcAllHomAndSel()
     }
     double aMinSc0 = 1e20;
     int aNbPres = 0;
+
     for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
     {
         tSomDualOPP * aF = mVFace[aK];
@@ -923,23 +998,42 @@ void cOriPlanePatch::CalcAllHomAndSel()
 
     if (mW)
     {
-       std::cout << "TIME " << aChrono.uval()  << " NbS=" << aNbPres << " SCMin " << aMinSc0  << "\n";
+       std::cout << "TIME-Hom " << aChrono.uval()  << " NbS=" << aNbPres << " SCMin " << aMinSc0  << "\n";
     }
     ElTimer aChrono2;
+    std::vector<tSomDualOPP*> aVPreselH;
     for (int aK=0 ; aK<int(mVFace.size()) ; aK++)
     {
         tSomDualOPP * aF = mVFace[aK];
         cAttrSomDualOPP &  anAF  = aF->attr();
         if (anAF.mPreselH)
         {
-            TestEvalHomographie(*mVFace[aK],false,0,5);
+            TestEvalHomographie(*aF,false,0,10);
+            anAF.mRotPReSel = anAF.mRot;
+            anAF.mMedRP = MedianNuage(mPack30,anAF.mRot);
+            aVPreselH.push_back(aF);
             // TestEvalHomographie(mVFace[aK]->attr().mHom,false,0,20);
         }
     }
     if (mW)
     {
-       std::cout << "TIME-Hom " << aChrono2.uval()   << "\n\n";
+       std::cout << "TIME-R0 " << aChrono2.uval()   << "\n\n";
     }
+
+    cCmpSc3DAttrFaceOPP aCmpS3d;
+    std::sort(aVPreselH.begin(),aVPreselH.end(),aCmpS3d);
+
+    
+    std::vector<tSomDualOPP*> aVSelFinale;
+    for (int aKS=0 ; (aKS<int(aVPreselH.size())) && (aVSelFinale.size() < 4)  ; aKS++)
+    {
+         bool GotNear = false;
+         for (int aKS=0 ; aKS<int(aVSelFinale.size()) ; aKS++)
+         {
+               // double aDist = DistRot
+         }
+    }
+
 }
 
 
@@ -952,8 +1046,15 @@ void cOriPlanePatch::TestHomogrDual()
 
    std::cout << "FACE " << aFace->attr().mOwnSc0 << "\n";
 
-   TestEvalHomographie(*aFace,true,0,20);
-   TestEvalHomographie(*aFace,true,2,20);
+   TestEvalHomographie(*aFace,true,0,10);
+   cElHomographie aHom = aFace->attr().mHom;
+   for (int aK=0 ; aK< 1 ; aK++)
+   {
+      aHom = ReestimHom(aHom,1.5*aFace->attr().mMaxDist,aFace->attr().mMoyDist);
+   }
+   TestEvalHomographie(aHom,*aFace,true,0,10);
+   // TestEvalHomographie(*aFace,true,2,20);
+
 
    std::cout << "\n";
 }
@@ -982,12 +1083,16 @@ cOriPlanePatch::cOriPlanePatch
 ( 
       double                  aFoc,
       const ElPackHomologue & aPack,
+      const ElPackHomologue & aPack150,
+      const ElPackHomologue & aPack30,
       Video_Win * aW,
       Pt2dr       aP0W,
       double      aScaleW
 )  :
    mFoc         (aFoc),
    mPack        (aPack),
+   mPack150     (aPack150),
+   mPack30      (aPack30),
    mW           (aW),
    mP0W         (aP0W),
    mScaleW      (aScaleW),
@@ -1116,13 +1221,15 @@ void TestOriPlanePatch
      (
          double                  aFoc,
          const ElPackHomologue & aPack,
+         const ElPackHomologue & aPack150,
+         const ElPackHomologue & aPack30,
          Video_Win * aW,
          Pt2dr       aP0W,
          double      aScaleW
             
      )
 {
-    cOriPlanePatch anOPP(aFoc,aPack,aW,aP0W,aScaleW);
+    cOriPlanePatch anOPP(aFoc,aPack,aPack150,aPack30,aW,aP0W,aScaleW);
 
 }
 

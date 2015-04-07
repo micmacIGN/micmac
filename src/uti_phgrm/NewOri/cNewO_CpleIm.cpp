@@ -110,6 +110,8 @@ void TestOriPlanePatch
      (
          double aFoc,
          const ElPackHomologue & aPack,
+         const ElPackHomologue & aPack150,
+         const ElPackHomologue & aPack30,
          Video_Win * aW,
          Pt2dr       aP0W,
          double      mScaleW
@@ -211,7 +213,7 @@ cNewO_CpleIm::cNewO_CpleIm
 
    if (aHPP)
    {
-      TestOriPlanePatch(FocMoy(),mPackStdRed,mW,mP0W,mScaleW);
+      TestOriPlanePatch(FocMoy(),mPackStdRed,mPack150,mPack30,mW,mP0W,mScaleW);
    }
    
    ShowPack(mPackPStd,P8COL::red,2.0);
