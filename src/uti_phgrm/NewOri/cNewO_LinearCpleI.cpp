@@ -63,7 +63,7 @@ double VarRel(const double & aNewEr,const double & anOldErr)
 /*                                                                     */
 /***********************************************************************/
 
-double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) 
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH) 
 {
     Pt3dr aB1 = vunit(aR1.tr());
     Pt3dr aB2 = vunit(aR2.tr());
@@ -73,7 +73,11 @@ double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2)
 
     // std::cout << " DBase " << aDB << " DRot " << aDM << "\n";
 
-   return aDB + aDM;
+   return aDB*aBSurH  + aDM;
+}
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) 
+{
+    return DistRot(aR1,aR2,1.0);
 }
 
 cNOCompPair::cNOCompPair(const Pt2dr & aP1,const Pt2dr & aP2,const double & aPds) :
