@@ -1,7 +1,8 @@
 #include "general/visual_mainwindow.h"
-//#include "QT_interface_Elise.h"  MPD : ca compile par chez moi
 
 #if (ELISE_QT_VERSION >= 4)
+
+#include "QT_interface_Elise.h"
 
 static int IntMin = -1e9;
 static int IntMax =  1e9;
