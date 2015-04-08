@@ -1,21 +1,21 @@
 /* QPBO_extra.cpp */
 /*
-    Copyright 2006-2008 Vladimir Kolmogorov (vnk@ist.ac.at).
+	Copyright 2006-2008 Vladimir Kolmogorov (vnk@ist.ac.at).
 
-    This file is part of QPBO.
+	This file is part of QPBO.
 
-    QPBO is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	QPBO is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    QPBO is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	QPBO is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with QPBO.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with QPBO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -28,7 +28,7 @@
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 
-template <>
+template <typename REAL>
 	void QPBO<REAL>::ComputeRandomPermutation(int N, int* permutation)
 {
 	int i, j, k;
@@ -44,7 +44,7 @@ template <>
 	}
 }
 
-template<>
+template <typename REAL>
 	void QPBO<REAL>::MergeMappings(int nodeNum0, int* mapping0, int* mapping1)
 {
 	int i;
@@ -64,11 +64,11 @@ template<>
 #define SET_FROM(a, i)           (a)->next = (i)->first; (i)->first = (a);
 #define REMOVE_FROM(a, i)        if ((i)->first==(a)) (i)->first=(a)->next;\
 								 else { Arc* a_TMP_REMOVE_FROM; for (a_TMP_REMOVE_FROM=i->first; ; a_TMP_REMOVE_FROM=a_TMP_REMOVE_FROM->next)\
-								                 if (a_TMP_REMOVE_FROM->next==(a)) { a_TMP_REMOVE_FROM->next=(a)->next; break; } }
+												 if (a_TMP_REMOVE_FROM->next==(a)) { a_TMP_REMOVE_FROM->next=(a)->next; break; } }
 #define SET_TO(a, j)             (a)->head = (j);
 
 
-template <>
+template <typename REAL>
 	inline void QPBO<REAL>::FixNode(Node* i, int x)
 {
 	Node* _i[2] = { i, GetMate0(i) };
@@ -98,7 +98,7 @@ template <>
 	_i[0]->first = _i[1]->first = NULL;
 }
 
-template <>
+template <typename REAL>
 	inline void QPBO<REAL>::ContractNodes(Node* i, Node* j, int swap)
 {
 	code_assert(IsNode0(i) && IsNode0(j) && swap>=0 && swap<=1);
@@ -152,7 +152,7 @@ template <>
 	}
 }
 
-template <>
+template <typename REAL>
 	int QPBO<REAL>::MergeParallelEdges(Arc* a1, Arc* a2)
 {
 	code_assert(a1->sister->head == a2->sister->head && IsNode0(a1->sister->head));
@@ -195,10 +195,10 @@ template <>
 
 		if (a1->r_cap + a1->sister->r_cap >= a2->r_cap + a2->sister->r_cap) x = 1;
 		else // swap a1 <-> a2
-		{		
+		{
 			Arc* tmp;
-			tmp = a1; a1 = a2; a2 = tmp; 
-			_a1[0] = a1; 
+			tmp = a1; a1 = a2; a2 = tmp;
+			_a1[0] = a1;
 			_a2[0] = a2;
 			tmp = _a1[1]; _a1[1] = _a2[1]; _a2[1] = tmp;
 			x = 0;
@@ -256,7 +256,7 @@ template <>
 	return x;
 }
 
-template <>
+template <typename REAL>
 	inline REAL QPBO<REAL>::DetermineSaturation(Node* i)
 {
 	Arc* a;
@@ -271,7 +271,7 @@ template <>
 	return (c1 > c2) ? c1 : c2;
 }
 
-template <>
+template <typename REAL>
 	inline void QPBO<REAL>::AddDirectedConstraint(Node* i, Node* j, int xi, int xj)
 {
 	code_assert(first_free && IsNode0(i) && IsNode0(j) && i!=j);
@@ -304,7 +304,7 @@ template <>
 	_a[1]->sister->r_cap = _a[0]->sister->r_cap;
 }
 /*
-template <>
+template <typename REAL>
 	inline bool QPBO<REAL>::AddDirectedConstraint(Arc* a, int xi, int xj)
 {
 	Node* i = a->sister->head;
@@ -327,7 +327,7 @@ template <>
 			if (a->r_cap + _a[1]->r_cap >= 2*probe_options.C) return false;
 			mark_node(_j[0]);
 			mark_node(_j[1]);
-			a->r_cap += 2*probe_options.C; 
+			a->r_cap += 2*probe_options.C;
 			_a[1]->r_cap += 2*probe_options.C;
 			return true;
 		}
@@ -336,7 +336,7 @@ template <>
 			if (a->sister->r_cap + _a[1]->sister->r_cap >= 2*probe_options.C) return false;
 			mark_node(_j[0]);
 			mark_node(_j[1]);
-			a->sister->r_cap += 2*probe_options.C; 
+			a->sister->r_cap += 2*probe_options.C;
 			_a[1]->sister->r_cap += 2*probe_options.C;
 			return true;
 		}
@@ -362,7 +362,7 @@ template <>
 	i->tr_cap += a->sister->r_cap - a->r_cap; _i[1]->tr_cap -= a->sister->r_cap - a->r_cap;
 	a->r_cap = -a->r_cap;
 
-	if (xi == 0) a->r_cap += 2*probe_options.C; 
+	if (xi == 0) a->r_cap += 2*probe_options.C;
 	else         a->sister->r_cap += 2*probe_options.C;
 
 	if (a->r_cap < 0)
@@ -388,7 +388,7 @@ template <>
 	return true;
 }
 */
-template <>
+template <typename REAL>
 	inline bool QPBO<REAL>::AddDirectedConstraint0(Arc* a, int xi, int xj)
 {
 	Node* i = a->sister->head;
@@ -411,12 +411,12 @@ template <>
 		mark_node(_j[1]);
 		if (xi == 0)
 		{
-			a->r_cap += probe_options.C; 
+			a->r_cap += probe_options.C;
 			_a[1]->r_cap += probe_options.C;
 		}
 		else
 		{
-			a->sister->r_cap += probe_options.C; 
+			a->sister->r_cap += probe_options.C;
 			_a[1]->sister->r_cap += probe_options.C;
 		}
 		return true;
@@ -468,7 +468,7 @@ template <>
 	return true;
 }
 
-template <>
+template <typename REAL>
 	inline bool QPBO<REAL>::AddDirectedConstraint1(Arc* a, int xi, int xj)
 {
 	Node* j = a->head;
@@ -487,7 +487,7 @@ template <>
 		if (a->r_cap > 0 && _a[1]->r_cap > 0) return false;
 		mark_node(_j[0]);
 		mark_node(_j[1]);
-		a->r_cap += probe_options.C; 
+		a->r_cap += probe_options.C;
 		_a[1]->r_cap += probe_options.C;
 		return true;
 	}
@@ -496,13 +496,13 @@ template <>
 		if (a->sister->r_cap > 0 && _a[1]->sister->r_cap > 0) return false;
 		mark_node(_j[0]);
 		mark_node(_j[1]);
-		a->sister->r_cap += probe_options.C; 
+		a->sister->r_cap += probe_options.C;
 		_a[1]->sister->r_cap += probe_options.C;
 		return true;
 	}
 }
 
-template <>
+template <typename REAL>
 	void QPBO<REAL>::AllocateNewEnergy(int* mapping)
 {
 	int i_index, j_index;
@@ -530,10 +530,10 @@ template <>
 	node_last[1] = nodes[1];
 	node_num = 0;
 
-	if (nodeptr_block) 
-	{ 
-		delete nodeptr_block; 
-		nodeptr_block = NULL; 
+	if (nodeptr_block)
+	{
+		delete nodeptr_block;
+		nodeptr_block = NULL;
 	}
 	if (changed_list)
 	{
@@ -561,7 +561,7 @@ template <>
 	i->user_label = i->label = 0;
 	for (i_index=0; i_index<nodeNumOld; i_index++)
 	{
-		if (mapping[i_index] >= 2) 
+		if (mapping[i_index] >= 2)
 		{
 			i = nodes[0] + (mapping[i_index]/2);
 			i->user_label = i->label = mapping[i_index] & 1;
@@ -582,7 +582,7 @@ template <>
 		} while (mapping[j_index] < 0);
 		y[x] = mapping[j_index];
 		y[1-x] = mapping[j_index] ^ 1;
-		
+
 		x = 0;
 		j_index = i_index;
 		do
@@ -620,14 +620,14 @@ template <>
 			{
 				j_index = mapping[(int)(a->head - nodes[0])] / 2;
 				code_assert(j_index > 0 && j_index < nodeNumNew);
-				AddPairwiseTerm(i_index, j_index, 
+				AddPairwiseTerm(i_index, j_index,
 					0, a->r_cap+a_mate->r_cap, a->sister->r_cap+a_mate->sister->r_cap, 0);
 			}
 			else
 			{
 				j_index = mapping[(int)(a->head - nodes[1])] / 2;
 				code_assert(j_index > 0 && j_index < nodeNumNew);
-				AddPairwiseTerm(i_index, j_index, 
+				AddPairwiseTerm(i_index, j_index,
 					a->r_cap+a_mate->r_cap, 0, 0, a->sister->r_cap+a_mate->sister->r_cap);
 			}
 		}
@@ -706,7 +706,7 @@ struct List // contains LIST_NUM lists containing integers 0,1,...,num-1. In the
 		prev[-r_from] = next[-r_from] = -r_from;
 	}
 	// i must be in the list
-	// (or -r, in which case the first element of list r is returned). 
+	// (or -r, in which case the first element of list r is returned).
 	// Returns -1 if no more elements.
 	int GetNext(int i) { return next[i]; }
 
@@ -716,13 +716,13 @@ private:
 	int* prev;
 };
 
-template <>
+template <typename REAL>
 	void QPBO<REAL>::SetMaxEdgeNum(int num)
 {
 	if (num > GetMaxEdgeNum()) reallocate_arcs(2*num);
 }
 
-template <>
+template <typename REAL>
 	bool QPBO<REAL>::Probe(int* mapping)
 {
 	int i_index, i_index_next, j_index;
@@ -780,7 +780,7 @@ template <>
 
 	maxflow();
 
-	// INVARIANTS: 
+	// INVARIANTS:
 	//    node i_index is removed <=> mapping[i_index] >= 0 <=> nodes[0][i_index].is_removed == 1
 	//    edge e is removed <=> Arc::sister does not point to the correct arc for at least one out of the 4 arcs
 
@@ -790,7 +790,7 @@ template <>
 	// After the iteration current_list becomes empty, and its former nodes are moved
 	// either to list 3 (if the node or its neighbor has changed) or to list 4.
 	//
-	// Invariants during the iteration: 
+	// Invariants during the iteration:
 	//   - i->list_flag == MASK_CURRENT              => i is in current_list
 	//   - i->list_flag == MASK_CURRENT & MASK_NEXT  => i is in current_list, after processing should be moved to list 3
 	//   - i->list_flag ==                MASK_NEXT  => i is in list 3
@@ -886,7 +886,7 @@ template <>
 				unlabeled_num --;
 			}
 
-			if (need_to_merge) 
+			if (need_to_merge)
 			{
 				// merge parallel edges incident to i
 				for (a=i->first; a; a=a->next) // mark neighbor nodes
@@ -902,7 +902,7 @@ template <>
 					if (a2 == a) continue;
 					mark_node(a->head);
 					mark_node(GetMate(a->head));
-					if (MergeParallelEdges(a2, a)==0) 
+					if (MergeParallelEdges(a2, a)==0)
 					{
 						mapping[j_index] = (int)(a - arcs[0]);
 						a_next = a->next;
@@ -996,7 +996,7 @@ template <>
 				// if is_changed, add i and its neighbors to list 3, otherwise add i to list 2 (unless it's already there)
 				if (is_changed)
 				{
-					i->list_flag |= MASK_NEXT; 
+					i->list_flag |= MASK_NEXT;
 					if (probe_options.dilation >= 1)
 					{
 						for (a=i->first; a; a=a->next)
@@ -1119,7 +1119,7 @@ template <>
 }
 
 
-template <>
+template <typename REAL>
 	void QPBO<REAL>::Probe(int* mapping, ProbeOptions& options)
 {
 	int nodeNum0 = GetNodeNum();
@@ -1166,7 +1166,7 @@ template <>
 	}
 }
 
-template <>
+template <typename REAL>
 	bool QPBO<REAL>::Improve(int N, int* order_array, int* fixed_nodes)
 {
 	int p, i_index;
@@ -1229,7 +1229,7 @@ template <>
 	{
 		i->label = what_segment(i);
 		if (i->label == what_segment(GetMate0(i))) i->label = i->user_label;
-		else if (i->label != (int)i->user_label) 
+		else if (i->label != (int)i->user_label)
 		{
 			success = true;
 			i->user_label = (unsigned int)i->label;
@@ -1239,7 +1239,7 @@ template <>
 	return success;
 }
 
-template <>
+template <typename REAL>
 	bool QPBO<REAL>::Improve()
 {
 	int* permutation = new int[node_num];
