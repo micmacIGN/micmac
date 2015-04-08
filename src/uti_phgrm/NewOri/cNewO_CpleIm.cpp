@@ -274,10 +274,12 @@ cNewO_CpleIm::cNewO_CpleIm
         }
     }
 
+    // == T4 ===========  Test Rotation pure
 
     // Test rotation pure
 
-    cResMepCoc aRCoc= MEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1,mShow);
+    cResMepCoc aRCoc= MEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1,false);
+    AmelioreSolLinear(aRCoc.mSolRot,"Cocent");
 
     if (mShow)
     {
