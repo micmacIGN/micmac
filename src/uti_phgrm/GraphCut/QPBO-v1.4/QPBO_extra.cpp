@@ -28,7 +28,7 @@
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 
-template <typename REAL>
+template <>
 	void QPBO<REAL>::ComputeRandomPermutation(int N, int* permutation)
 {
 	int i, j, k;
@@ -44,7 +44,7 @@ template <typename REAL>
 	}
 }
 
-template <typename REAL>
+template<>
 	void QPBO<REAL>::MergeMappings(int nodeNum0, int* mapping0, int* mapping1)
 {
 	int i;
@@ -68,7 +68,7 @@ template <typename REAL>
 #define SET_TO(a, j)             (a)->head = (j);
 
 
-template <typename REAL>
+template <>
 	inline void QPBO<REAL>::FixNode(Node* i, int x)
 {
 	Node* _i[2] = { i, GetMate0(i) };
@@ -98,7 +98,7 @@ template <typename REAL>
 	_i[0]->first = _i[1]->first = NULL;
 }
 
-template <typename REAL>
+template <>
 	inline void QPBO<REAL>::ContractNodes(Node* i, Node* j, int swap)
 {
 	code_assert(IsNode0(i) && IsNode0(j) && swap>=0 && swap<=1);
@@ -152,7 +152,7 @@ template <typename REAL>
 	}
 }
 
-template <typename REAL>
+template <>
 	int QPBO<REAL>::MergeParallelEdges(Arc* a1, Arc* a2)
 {
 	code_assert(a1->sister->head == a2->sister->head && IsNode0(a1->sister->head));
@@ -256,7 +256,7 @@ template <typename REAL>
 	return x;
 }
 
-template <typename REAL>
+template <>
 	inline REAL QPBO<REAL>::DetermineSaturation(Node* i)
 {
 	Arc* a;
@@ -271,7 +271,7 @@ template <typename REAL>
 	return (c1 > c2) ? c1 : c2;
 }
 
-template <typename REAL>
+template <>
 	inline void QPBO<REAL>::AddDirectedConstraint(Node* i, Node* j, int xi, int xj)
 {
 	code_assert(first_free && IsNode0(i) && IsNode0(j) && i!=j);
@@ -304,7 +304,7 @@ template <typename REAL>
 	_a[1]->sister->r_cap = _a[0]->sister->r_cap;
 }
 /*
-template <typename REAL>
+template <>
 	inline bool QPBO<REAL>::AddDirectedConstraint(Arc* a, int xi, int xj)
 {
 	Node* i = a->sister->head;
@@ -388,7 +388,7 @@ template <typename REAL>
 	return true;
 }
 */
-template <typename REAL>
+template <>
 	inline bool QPBO<REAL>::AddDirectedConstraint0(Arc* a, int xi, int xj)
 {
 	Node* i = a->sister->head;
@@ -468,7 +468,7 @@ template <typename REAL>
 	return true;
 }
 
-template <typename REAL>
+template <>
 	inline bool QPBO<REAL>::AddDirectedConstraint1(Arc* a, int xi, int xj)
 {
 	Node* j = a->head;
@@ -502,7 +502,7 @@ template <typename REAL>
 	}
 }
 
-template <typename REAL>
+template <>
 	void QPBO<REAL>::AllocateNewEnergy(int* mapping)
 {
 	int i_index, j_index;
@@ -716,13 +716,13 @@ private:
 	int* prev;
 };
 
-template <typename REAL>
+template <>
 	void QPBO<REAL>::SetMaxEdgeNum(int num)
 {
 	if (num > GetMaxEdgeNum()) reallocate_arcs(2*num);
 }
 
-template <typename REAL>
+template <>
 	bool QPBO<REAL>::Probe(int* mapping)
 {
 	int i_index, i_index_next, j_index;
@@ -1119,7 +1119,7 @@ template <typename REAL>
 }
 
 
-template <typename REAL>
+template <>
 	void QPBO<REAL>::Probe(int* mapping, ProbeOptions& options)
 {
 	int nodeNum0 = GetNodeNum();
@@ -1166,7 +1166,7 @@ template <typename REAL>
 	}
 }
 
-template <typename REAL>
+template <>
 	bool QPBO<REAL>::Improve(int N, int* order_array, int* fixed_nodes)
 {
 	int p, i_index;
@@ -1239,7 +1239,7 @@ template <typename REAL>
 	return success;
 }
 
-template <typename REAL>
+template <>
 	bool QPBO<REAL>::Improve()
 {
 	int* permutation = new int[node_num];
