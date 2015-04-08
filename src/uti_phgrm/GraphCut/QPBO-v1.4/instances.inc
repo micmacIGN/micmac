@@ -6,10 +6,6 @@
 
 // Instantiations
 
-template class QPBO<int>;
-template class QPBO<float>;
-template class QPBO<double>;
-
 template <> 
 	inline void QPBO<int>::get_type_information(const char*& type_name, const char*& type_format)
 {
@@ -30,5 +26,9 @@ template <>
 	type_name = "double";
 	type_format = "lf";
 }
+
+template class QPBO<int>;
+template class QPBO<float>;
+template class QPBO<double>;
 
 
