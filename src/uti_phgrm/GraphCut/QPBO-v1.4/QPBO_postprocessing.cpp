@@ -25,7 +25,7 @@
 #include "QPBO.h"
 
 
-template <typename REAL>
+template <>
 	void QPBO<REAL>::ComputeWeakPersistencies()
 {
 	if (stage == 0) return;
@@ -137,7 +137,7 @@ template <typename REAL>
 	}
 }
 
-template <typename REAL>
+template <>
 	void QPBO<REAL>::Stitch()
 {
 	if (stage == 0) return;
