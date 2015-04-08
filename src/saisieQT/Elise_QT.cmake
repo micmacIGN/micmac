@@ -22,7 +22,9 @@ INCLUDE_DIRECTORIES(${SAISIE_DIR}/include_QT)
                     ${SAISIE_DIR}/Settings.cpp
                     ${SAISIE_DIR}/QT_interface_Elise.cpp
                     ${SAISIE_DIR}/Tree.cpp
-                    ${SAISIE_DIR}/mmglu.cpp)
+		    ${SAISIE_DIR}/mmglu.cpp
+		    ${SAISIE_DIR}/WorkbenchWidget.cpp
+)
 
 if ( ${qt_version} EQUAL 4)
     set(vmm_SRCS ${vmm_SRCS} ${SAISIE_DIR}/gl_core_2_1.c)
@@ -49,12 +51,14 @@ endif()
        ${SAISIE_DIR}/include_QT/Settings.h
        ${SAISIE_DIR}/include_QT/QT_interface_Elise.h
        ${SAISIE_DIR}/include_QT/Tree.h
+       ${SAISIE_DIR}/include_QT/WorkbenchWidget.h
     )
 
     set (ui_toWrap
      ${SAISIE_DIR}/ui/saisieQT_window.ui
      ${SAISIE_DIR}/ui/Settings.ui
      ${SAISIE_DIR}/ui/Help.ui
+     ${SAISIE_DIR}/ui/WorkbenchWidget.ui
     )
 
    set (FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${vmm_SRCS} ${ui_toWrap} ${HEADERS_nomoc} ${HEADERS_Tomoc})
