@@ -43,6 +43,12 @@ public:
     float m_speed;
 };
 
+class deviceIOTieFile
+{
+public:
+	virtual void  load(QString aNameFile,QPolygonF& poly) = 0;
+};
+
 class deviceIOCamera
 {
 public:

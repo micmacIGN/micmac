@@ -218,6 +218,7 @@ private slots:
 class cCamHandlerElise : cCamHandler
 {
 public:
+
 	cCamHandlerElise(CamStenope *pCam) :
 		_Cam(pCam){
 
@@ -244,9 +245,34 @@ public:
 		return cQT_Interface::toQVec3D(_Cam->VraiOpticalCenter());
 	}
 
+	virtual QVector3D getRotation()
+	{
+		ElRotation3D orient = _Cam->Orient();
+
+		if(orient.IsTrueRot())
+			return QVector3D(orient.teta01(),orient.teta02(),orient.teta12());
+		else
+			return QVector3D();
+	}
+
 private:
 
 	CamStenope *_Cam;
+};
+
+class deviceIOTieFileElise : public deviceIOTieFile
+{
+public:
+	virtual void  load(QString aNameFile,QPolygonF& poly)
+	{
+		std::vector<DigeoPoint> vDigPt;
+		DigeoPoint::readDigeoFile(aNameFile.toStdString(),false,vDigPt);
+		for (int i = 0;  i < (int)vDigPt.size(); ++i)
+		{
+			DigeoPoint& d = vDigPt[i];
+			poly.push_back(QPointF(d.x,d.y));
+		}
+	}
 };
 
 class deviceIOCameraElise : deviceIOCamera
@@ -271,7 +297,6 @@ public:
 		cCamHandlerElise *camElise = new cCamHandlerElise(CamOrientGenFromFile(fi.fileName().toStdString(),_mnICNM, false));
 
 		// TODO delete 		anICNM???
-
 
 		return (cCamHandler*) camElise;
 	}

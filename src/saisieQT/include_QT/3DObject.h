@@ -320,6 +320,8 @@ public:
     virtual void getCoins(QVector3D &aP1,QVector3D &aP2,QVector3D &aP3,QVector3D &aP4, double aZ) = 0;
 
     virtual QVector3D getCenter() = 0;
+
+	virtual QVector3D getRotation() = 0;
 };
 
 
