@@ -106,10 +106,12 @@ double cNewO_CpleIm::FocMoy() const
     return 2 / aF;
 }
 
-void TestOriPlanePatch
+ElRotation3D TestOriPlanePatch
      (
          double aFoc,
          const ElPackHomologue & aPack,
+         const ElPackHomologue & aPack150,
+         const ElPackHomologue & aPack30,
          Video_Win * aW,
          Pt2dr       aP0W,
          double      mScaleW
@@ -209,10 +211,6 @@ cNewO_CpleIm::cNewO_CpleIm
    }
 
 
-   if (aHPP)
-   {
-      TestOriPlanePatch(FocMoy(),mPackStdRed,mW,mP0W,mScaleW);
-   }
    
    ShowPack(mPackPStd,P8COL::red,2.0);
    ShowPack(mPackStdRed,P8COL::blue,6.0);
@@ -232,6 +230,11 @@ cNewO_CpleIm::cNewO_CpleIm
     /*******************************************************/
     /*      TEST DES DIFFERENTES INITIALISATIONS           */
     /*******************************************************/
+   // = T00 ============== Test Patch Plan
+   {
+      ElRotation3D  aRP = TestOriPlanePatch(FocMoy(),mPackStdRed,mPack150,mPack30,mW,mP0W,mScaleW);
+      AmelioreSolLinear(aRP,"Patch Plan");
+   }
 
    // = T0 ============== Nouveau test par Ransac + ME
     {
