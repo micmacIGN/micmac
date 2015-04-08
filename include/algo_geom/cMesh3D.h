@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #include "../private/cElNuage3DMaille.h"
-#include "../../src/uti_phgrm/MaxFlow/maxflow.h"
+#include "../../src/uti_phgrm/GraphCut/MaxFlow/maxflow.h"
 
 class cMesh;
 class cVertex;
@@ -173,24 +173,24 @@ class cTriangle
         void	getVertexesIndexes(vector <int> &vList) const {vList = mTriVertex;}
         void	getVertexesIndexes(int &v1, int &v2, int &v3);
 
-        bool	getAttributes(int image_idx, vector <REAL> &ta) const;
-        map <int, vector <REAL> >	getAttributesMap() const {return mAttributes;}
-
         void    setIdx(int id) { mTriIdx = id; }
         int		getIdx() const {return mTriIdx;}
         void    decIdx() { mTriIdx--; }
 
-        void	setAttributes(int image_idx, const vector <REAL> &ta);
+        bool	getAttributes(int image_idx, vector <REAL> &ta) const; //old
+        map <int, vector <REAL> >	getAttributesMap() const {return mAttributes;} //old
 
-        bool	hasAttributes() { return (!mAttributes.empty()); }
+        void	setAttributes(int image_idx, const vector <REAL> &ta); //old
 
-        REAL	computeEnergy(int img_idx);
+        bool	hasAttributes() { return (!mAttributes.empty()); } //old
+
+        REAL	computeEnergy(int img_idx); //old
 
         size_t  getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>  getEdgesIndex() { return mTriEdges; }
-        vector<cTriangle *> getNeighbours(); //renvoie les 3 voisins (par les arêtes)
-        vector<int> getNeighbours2(); //renvoie les voisins par les sommets
+        vector<cTriangle *> getNeighbours(); //get 3 neighbors (via edges)
+        vector<int> getNeighbours2(); //get neighbors (via vertex)
 
         void    setEdgeIndex(unsigned int pos, int val);
         void    setVertexIndex(unsigned int pos, int val);
@@ -211,23 +211,25 @@ class cTriangle
         float   getCriter() { return mCriter; }
         void    setCriter(float aVal) { mCriter = aVal; }
 
+        float   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
+
 
 private:
 
         int							mTriIdx;		// triangle index
         vector <int>				mTriVertex;		// index of vertexes in pMesh->mVertexes
         vector <int>                mTriEdges;      // index of edges in pMesh->Edges
-        map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes
+        map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes //old
         static const int            mDefTextImIdx = -1;
         int                         mTextImIdx;
 
         cMesh       *               pMesh;
 
-        Pt2dr                       mText0;         //Texture Coordinates
+        Pt2dr                       mText0;         // Texture Coordinates
         Pt2dr                       mText1;
         Pt2dr                       mText2;
 
-        float                       mCriter;          // Criterion for image texture choosing (scalar product between normal and best image viewing direction, stretching)
+        float                       mCriter;        // Criterion for image texture choosing (scalar product between normal and best image viewing direction, stretching)
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -235,7 +237,7 @@ private:
 class cEdge
 {
     public:
-                 cEdge(int tri1, int tri2){mNode1 = tri1; mNode2 = tri2; /*mV1 = v1; mV2 = v2;*/}
+                 cEdge(int tri1, int tri2){mNode1 = tri1; mNode2 = tri2;}
 
                 ~cEdge();
 
@@ -252,7 +254,7 @@ class cEdge
 
     private:
 
-        int mNode1; //index du triangle
+        int mNode1; // triangle index
         int mNode2;
 };
 
@@ -269,7 +271,7 @@ class cZBuf
         void	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
         void    BasculerUnMaillage(cMesh const &aMesh, CamStenope const & aCam);
 
-        void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //soit on calcule le ZBuffer, soit le Masque (true)
+        void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //compute ZBuffer, or Mask (true)
 
         void		ComputeVisibleTrianglesIndexes();
         Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);

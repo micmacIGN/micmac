@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "TexturePacker/TexturePacker.h"
-
+#include "GraphCut/QPBO-v1.4/QPBO.h"
 
 void LoadTrScaleRotate
      (
@@ -299,7 +299,7 @@ int Tequila_main(int argc,char ** argv)
                 }
                 else if (aCrit == "Angle")
                 {
-                    criter = scal(Triangle->getNormale(true), Cam->DirK());
+                    criter = scal(Triangle->getNormale(true), Cam->DirK()); //Norme de DirK=1
                 }
 
                 if((criter < Triangle->getCriter()))
@@ -738,7 +738,7 @@ int Tequila_main(int argc,char ** argv)
 
         cout << endl;
         cout <<"********************Computing texture coordinates********************"<<endl;
-        cout <<endl;
+        cout << endl;
 
         //cout << "myMesh.getFacesNumber()= "<< myMesh.getFacesNumber() << endl;
         for(int i=0 ; i< myMesh.getFacesNumber() ; i++)                          //Ecriture des triangles
@@ -788,8 +788,75 @@ int Tequila_main(int argc,char ** argv)
     }
 
     cout << endl;
+    cout <<"**************************QPBO**************************"<<endl;
+    cout << endl;
+
+#ifdef QPBOOOOO
+
+    if (myMesh.getFacesNumber() && myMesh.getEdgesNumber())
+    {
+        QPBO<float>* q = new QPBO<float>(myMesh.getFacesNumber(), myMesh.getEdgesNumber()); // max number of nodes & edges
+
+        const int nEdges = myMesh.getEdgesNumber();
+        for (int aK=0; aK < nEdges; ++aK)
+        {
+            cEdge *edge = myMesh.getEdge(aK);
+            int n1 = edge->n1();
+            int n2 = edge->n2();
+
+            cTriangle *tri1 = myMesh.getTriangle(n1);
+            cTriangle *tri2 = myMesh.getTriangle(n2);
+
+            int curImgIdx1 = tri1->getTextureImgIndex();
+            int curImgIdx2 = tri2->getTextureImgIndex();
+
+            int newImgIdx1 = -1; //TODO
+            int newImgIdx2 = -1; //TODO
+
+            float curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
+            float curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+
+            float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
+            float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
+
+            float diff11 = newMean1 - curMean1;
+            float diff12 = newMean1 - curMean2;
+            float diff21 = newMean2 - curMean1;
+            float diff22 = newMean2 - curMean2;
+
+            q->AddNode(2); // add two nodes
+
+            q->AddUnaryTerm(n1, tri1->getCriter(), -10); // add term 2*x
+            q->AddUnaryTerm(n2, tri2->getCriter(), 6); // add term 3*(y+1)
+            q->AddPairwiseTerm(n1, n2, diff11, diff12, diff21, diff22); // add term (x+1)*(y+2)
+
+            /*q->AddNode(2); // add two nodes
+
+            q->AddUnaryTerm(0, 0, -10); // add term 2*x
+            q->AddUnaryTerm(1, 3, 6); // add term 3*(y+1)
+            q->AddPairwiseTerm(0, 1, 2, 3, 4, 6); // add term (x+1)*(y+2)
+
+            q->Solve();
+            q->ComputeWeakPersistencies();
+
+            int x = q->GetLabel(0);
+            int y = q->GetLabel(1);
+            printf("Solution: x=%d, y=%d\n", x, y);*/
+        }
+    }
+    else
+    {
+        std::cout << "Walou faces or walou edges" << std::endl;
+    }
+
+    //END QPBO
+
+#endif //QPBOOOO
+
+
+    cout << endl;
     cout <<"***********************Converting texture file***********************"<<endl;
-    cout <<endl;
+    cout << endl;
 
     std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
             + aTextOut + " " + textureName;
@@ -803,12 +870,12 @@ int Tequila_main(int argc,char ** argv)
 
     cout << endl;
     cout <<"**************************Writing ply file***************************"<<endl;
-    cout <<endl;
+    cout << endl;
 
     myMesh.write(aOut, aBin, textureName);
 
     cout<<"********************************Done*********************************"<<endl;
-    cout<<endl;
+    cout<< endl;
 
     return EXIT_SUCCESS;
 }

@@ -300,6 +300,113 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
              );
 }
 
+float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
+{
+    double sumTx = 0.f;
+    int cptPx = 0;
+
+    vector <Pt3dr> Vertex;
+    getVertexes(Vertex);
+
+    Pt2dr A2 = aCam->R3toF2(Vertex[0]);             //projection des sommets du triangle
+    Pt2dr B2 = aCam->R3toF2(Vertex[1]);
+    Pt2dr C2 = aCam->R3toF2(Vertex[2]);
+
+    if (aCam->IsInZoneUtile(A2) && aCam->IsInZoneUtile(B2) && aCam->IsInZoneUtile(C2))
+    {
+        /*cout << "img proj = "<< endl;
+        cout << A2 << endl;
+        cout << B2 << endl;
+        cout << C2 << endl;*/
+
+        Pt2dr AB = B2-A2;
+        Pt2dr AC = C2-A2;
+        REAL aDet = AB^AC;
+
+        if (aDet!=0)
+        {
+            Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
+            aP0 = Sup(aP0,Pt2di(0,0));
+            Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
+            aP1 = Inf(aP1,aCam->Sz()-Pt2di(1,1));
+
+            Pt2di aSz(aP1-aP0);
+
+            if (aImg.nb_chan() == 3)
+            {
+                //MD: NE MARCHE PAS et AUCUN INTERLOCUTEUR POUR AIDER...
+                //    DONC J'UTILISE ENCORE L'ENCLUME, à defaut de mieux.....
+
+                /*
+                Im2D_U_INT1 aImR(aSz.x,aSz.y,0);
+                Im2D_U_INT1 aImG(aSz.x,aSz.y,0);
+                Im2D_U_INT1 aImB(aSz.x,aSz.y,0);
+
+                ELISE_COPY
+                (
+                   rectangle(aP0,aP1),
+                   trans(aImg.in(),-aP0),
+                   Virgule(aImR.out(),aImG.out(),aImB.out())
+                );*/
+
+                Pt2di bSz = aImg.sz();
+
+                Im2D_U_INT1 aImR(bSz.x,bSz.y,0);
+                Im2D_U_INT1 aImG(bSz.x,bSz.y,0);
+                Im2D_U_INT1 aImB(bSz.x,bSz.y,0);
+
+                ELISE_COPY
+                (
+                   aImg.all_pts(),
+                   aImg.in(),
+                   Virgule(aImR.out(),aImG.out(),aImB.out())
+                );
+
+                U_INT1 ** aDataR = aImR.data();
+                U_INT1 ** aDataG = aImG.data();
+                U_INT1 ** aDataB = aImB.data();
+
+                for (int ay=0; ay<aSz.y; ++ay)
+                {
+                    for (int ax=0; ax<aSz.x; ++ax)
+                    {
+                        Pt2dr AP = Pt2dr(ax + aP0.x, ay + aP0.y)-A2;
+
+                        // Coordonnees barycentriques de P(x,y)
+                        REAL aPdsB = (AP^AC) / aDet;
+                        REAL aPdsC = (AB^AP) / aDet;
+                        REAL aPdsA = 1 - aPdsB - aPdsC;
+
+                        if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps)) // on est a l'intérieur du triangle
+                        {
+                            /*unsigned char red   = aDataR[ay][ax];
+                            unsigned char green = aDataG[ay][ax];
+                            unsigned char blue  = aDataB[ay][ax];*/
+
+                            unsigned char red   = aDataR[ay+ aP0.y][ax + aP0.x];
+                            unsigned char green = aDataG[ay+ aP0.y][ax + aP0.x];
+                            unsigned char blue  = aDataB[ay+ aP0.y][ax + aP0.x];
+
+                          /*  cout << "red = " << (int) red << endl;
+                            cout << "gre = " << (int) green << endl;
+                            cout << "blu = " << (int) blue << endl;
+                            cout << "****************" << endl;*/
+
+                            cptPx++;
+                            sumTx += 0.2126*(double)red + 0.7152*(double)green + 0.0722*(double)blue;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (cptPx)
+            return sumTx / (float) cptPx;
+    }
+
+    return -1.f;
+}
+
 
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
@@ -704,9 +811,25 @@ void cMesh::setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, set
 
 
             //longueur^2 de l'arete coupee par elEdge
-            E0 = 0.;//(float)square_euclid( getVertex( elEdge.v1() ), getVertex( elEdge.v2() ) ); //TODO corriger getVertex
+            vector <int> vList1, vList2, common;
+            Tri1->getVertexesIndexes(vList1);
+            Tri2->getVertexesIndexes(vList2);
 
-            aGraph.add_edge(pos1, pos2, E0, E0);
+            //l'enclume à la place du marteau
+            std::sort(vList1.begin(), vList1.end());
+            std::sort(vList2.begin(), vList2.end());
+
+            std::set_intersection(vList1.begin(), vList1.end(), vList2.begin(), vList2.end(), std::back_inserter(common));
+
+            if (common.size() == 2)
+            {
+                Pt3dr pt1, pt2;
+                getVertex( common[0] )->getPos(pt1);
+                getVertex( common[1] )->getPos(pt2);
+                E0 = (float)square_euclid( pt1, pt2 );
+
+                aGraph.add_edge(pos1, pos2, E0, E0);
+            }
             //aGraph.add_edge(pos1, pos2, 1, 1);
         }
     }
