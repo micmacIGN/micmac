@@ -522,7 +522,7 @@ void cMEPCoCentrik::Test(const ElPackHomologue & aPack,const  ElMatrix<REAL> & a
                std::cout << "C REFOPT " << ProjCostMEP(aPack,aSol2,0.1)* mFoc << "\n";
                //   ShowMatr("REF/Mat",aRef->Mat()*aMat.transpose());
           }
-          std::cout << "COST Init " <<  ProjCostMEP(aPack,aRInit,0.1)* mFoc << "\n";
+          std::cout << "COST-Init " <<  ProjCostMEP(aPack,aRInit,0.1)* mFoc << "\n";
           std::cout << "Sol  , Cost " <<   mCostVraiR * mFoc  << " Tr " << mSolVraiR.tr() << " Med " << mPMed << "\n";
      }
 

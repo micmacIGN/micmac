@@ -1025,14 +1025,15 @@ void cOriPlanePatch::CalcAllHomAndSel()
         if (anAF.mPreselH)
         {
             TestEvalHomographie(*aF,false,0,10);
-/*
-            cElHomographie aHom = aF->attr().mHom;
-            for (int aK=0 ; aK< 2 ; aK++)
+            if (0)
             {
-               aHom = ReestimHom(aHom,1.0*aF->attr().mMaxDist,aF->attr().mMoyDist);
+                cElHomographie aHom = aF->attr().mHom;
+                for (int aK=0 ; aK< 2 ; aK++)
+                {
+                   aHom = ReestimHom(aHom,1.0*aF->attr().mMaxDist,aF->attr().mMoyDist);
+                }
+                TestEvalHomographie(aHom,*aF,false,0,10);
             }
-            TestEvalHomographie(aHom,*aF,false,0,10);
-*/
             anAF.mRotPReSel = anAF.mRot;
             anAF.mMedRP = MedianNuage(mPack30,anAF.mRot);
             aVPreselH.push_back(aF);
