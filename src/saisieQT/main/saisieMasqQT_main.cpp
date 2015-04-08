@@ -38,7 +38,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
         w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
         w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
-
+		w.setDevIOTieFile((deviceIOTieFileElise*)new deviceIOTieFileElise);
 
         w.setBanniere(QString(getBanniereMM3D().c_str()));
         w.setHg_revision(QString(__HG_REV__));

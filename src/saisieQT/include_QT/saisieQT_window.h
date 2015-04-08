@@ -4,6 +4,7 @@
 #include "Elise_QT.h"
 #include "GLWidgetSet.h"
 #include "Settings.h"
+#include  "WorkbenchWidget.h"
 
 void setStyleSheet(QApplication &app);
 
@@ -96,6 +97,9 @@ public:
 
 	QString textToolBar() const;
 	void setTextToolBar(const QString& textToolBar);
+
+	deviceIOTieFile* devIOTieFile() const;
+	void setDevIOTieFile(deviceIOTieFile* devIOTieFile);
 
 public slots:
 
@@ -228,6 +232,7 @@ protected slots:
 
     void on_actionConfirm_changes_triggered();
 
+	void on_actionWorkbench_toggled(bool mode);
 protected:
 
     //! Connects all QT actions to slots
@@ -271,13 +276,17 @@ private:
 
     bool                    _bSaved;
 
-    deviceIOCamera*			_devIOCamera;
+	deviceIOCamera*			_devIOCamera;
+
+	deviceIOTieFile*		_devIOTieFile;
 
     int						_hg_revision;
 
     QString					_banniere;
 
 	QString					_textToolBar;
+
+	cWorkBenchWidget*		_workBench;
 
 };
 

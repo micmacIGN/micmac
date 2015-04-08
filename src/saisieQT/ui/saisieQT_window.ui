@@ -418,7 +418,7 @@
      <x>0</x>
      <y>0</y>
      <width>1163</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <property name="mouseTracking">
@@ -531,6 +531,7 @@
      <string>&amp;Tools</string>
     </property>
     <addaction name="actionRule"/>
+    <addaction name="actionWorkbench"/>
    </widget>
    <widget class="QMenu" name="menuWindows">
     <property name="title">
@@ -1175,6 +1176,17 @@
    </property>
    <property name="shortcut">
     <string>Return</string>
+   </property>
+  </action>
+  <action name="actionWorkbench">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Workbench</string>
+   </property>
+   <property name="shortcut">
+    <string>B</string>
    </property>
   </action>
  </widget>
