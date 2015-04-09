@@ -83,7 +83,7 @@ void cWorkBenchWidget::updateTiePoint(const QModelIndex & index)
 
 			QImage myImage;
 			myImage.load(fileImage.filePath());
-
+			
 			QPixmap pixmap = QPixmap::fromImage(myImage);
 			QPainter painter(&pixmap);
 			painter.setPen(Qt::red);
@@ -140,8 +140,9 @@ void cWorkBenchWidget::chooseImages()
 	{
 		_mainDir = QFileInfo(dirAndfiles[0]).dir();
 
-		QString		sDir	= _mainDir.absolutePath() +  QString(_mainDir.separator());
+		QString		sDir	= _mainDir.absolutePath() +  QString("/");
 		_filesImages.clear();
+
 		_filesImages	= dirAndfiles.replaceInStrings(sDir,"");
 
 		lineImages()->setText( _filesImages.join("|"));
@@ -152,7 +153,7 @@ void cWorkBenchWidget::chooseImages()
 
 		comboB_Orientations()->clear();
 		comboB_Orientations()->addItems(_oriDirectory.replaceInStrings("Ori-",""));
-
+		
 		initModelFileImages();
 
 		listViewImages()->setModel(_modelFileImage);

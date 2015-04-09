@@ -22,7 +22,9 @@
 #include <stdio.h>
 #include "QPBO.h"
 
-
+#ifdef REAL
+#undef REAL
+#endif
 
 #define INFINITE_D ((int)(((unsigned)-1)/2))		/* infinite distance to the terminal */
 
