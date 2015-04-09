@@ -24,6 +24,9 @@
 #include <string.h>
 #include "QPBO.h"
 
+#ifdef REAL
+#undef REAL
+#endif
 
 template <typename REAL>
 	void QPBO<REAL>::ComputeWeakPersistencies()
