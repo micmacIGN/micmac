@@ -397,3 +397,7 @@ CodeGenere/File2String/V0-cParamXMLNew0.cpp
 14357_643_832_206.txt
 bin32/
 lib_32/
+bin64/
+binaire-aux/vcomp100.dll
+binaire-aux/msvcr100.dll
+binaire-aux/msvcp100.dll
