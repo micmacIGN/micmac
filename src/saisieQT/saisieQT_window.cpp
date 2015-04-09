@@ -540,13 +540,13 @@ void SaisieQtWindow::on_actionToggleMode_toggled(bool mode)
 
 void SaisieQtWindow::on_actionWorkbench_toggled(bool mode)
 {
-//   qDebug() << "toto";
-
    if(!_workBench)
    {
 	   _workBench = new cWorkBenchWidget;
 	   _workBench->setDIOCamera(_devIOCamera);
 	   _workBench->setDIOTieFile(_devIOTieFile);
+	   _workBench->setDIOImage(_Engine->Loader()->devIOImageAlter());
+
    }
 
    if(mode)

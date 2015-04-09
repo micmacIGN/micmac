@@ -58,7 +58,7 @@ public:
 class deviceIOImage
 {
 public:
-	virtual QImage*	loadImage(QString aNameFile) = 0;
+	virtual QImage*	loadImage(QString aNameFile,bool OPENGL = true) = 0;
 
 	virtual QImage*	loadMask(QString aNameFile) = 0;
 

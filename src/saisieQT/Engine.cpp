@@ -32,8 +32,6 @@ void cLoader::setDevIOImageAlter(deviceIOImage* devIOImageAlter)
 	_devIOImageAlter = devIOImageAlter;
 }
 
-
-
 GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 {
 	return GlCloud::loadPly( i_ply_file, incre );

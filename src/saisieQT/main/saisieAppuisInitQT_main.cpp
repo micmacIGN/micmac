@@ -176,12 +176,6 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
         SaisieQtWindow w(POINT2D_INIT);
 
-        w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
-        w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
-
-        w.setBanniere(QString(getBanniereMM3D().c_str()));
-        w.setHg_revision(QString(__HG_REV__));
-
         new cQT_Interface(anAppli,&w);
 
         w.show();

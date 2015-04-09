@@ -31,6 +31,9 @@ public:
 	deviceIOTieFile* dIOTieFile() const;
 	void setDIOTieFile(deviceIOTieFile* dIOTieFile);
 
+	deviceIOImage* dIOImage() const;
+	void setDIOImage(deviceIOImage* dIOImage);
+
 protected:
 
 	void		initModelFileImages();
@@ -65,14 +68,13 @@ private:
 	QStringList			_oriDirectory;
 
 	QFileSystemModel*	_modelFileImage;
-
 	QFileSystemModel*	_modelFileTie;
 
 	QStringList			_filters_DIR_Ori;
 
 	deviceIOCamera*		_dIOCamera;
 	deviceIOTieFile*	_dIOTieFile;
-
+	deviceIOImage*		_dIOImage;
 };
 
 #endif // WORKBENCHWIDGET_H

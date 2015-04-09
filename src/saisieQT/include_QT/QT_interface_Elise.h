@@ -42,22 +42,11 @@ public :
 
     int                 idCImage(QString nameImage);
 
-	static void toQVec3D(Pt3dr P,QVector3D &qP)
-	{
-		qP.setX(P.x);
-		qP.setY(P.y);
-		qP.setZ(P.z);
-	}
+	static void			toQVec3D(Pt3dr P,QVector3D &qP);
 
+	static QVector3D	toQVec3D(Pt3dr P);
 
-	static QVector3D toQVec3D(Pt3dr P)
-	{
-		QVector3D qP;
-		qP.setX(P.x);
-		qP.setY(P.y);
-		qP.setZ(P.z);
-		return qP;
-	}
+	static void			connectDeviceElise(SaisieQtWindow& win);
 
 private:
 
@@ -312,7 +301,7 @@ private:
 class deviceIOImageElise : public deviceIOImage
 {
 public:
-	virtual QImage*	loadImage(QString aNameFile)
+	virtual QImage*	loadImage(QString aNameFile,bool OPENGL = true)
 	{
 		Tiff_Im aTF= Tiff_Im::StdConvGen(aNameFile.toStdString(),3,false);
 
@@ -346,7 +335,10 @@ public:
 			}
 		}
 
-		return new QImage(QGLWidget::convertToGLFormat( tempImageElIse ));
+		if(OPENGL)
+			return new QImage(QGLWidget::convertToGLFormat( tempImageElIse ));
+		else
+			return new QImage(tempImageElIse);
 	}
 
 	virtual QImage*	loadMask(QString aNameFile)

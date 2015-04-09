@@ -114,6 +114,8 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
     connect(this,SIGNAL(dataChanged(bool, cSP_PointeImage*)), this, SLOT(updateToolBar()));
 
     connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
+
+	connectDeviceElise(*m_QTMainWindow);
 }
 
 void cQT_Interface::viewSelectImages()
@@ -585,9 +587,35 @@ int cQT_Interface::idCImage(QString nameImage)
     return -1;
 }
 
+void cQT_Interface::toQVec3D(Pt3d<double> P, QVector3D& qP)
+{
+	qP.setX(P.x);
+	qP.setY(P.y);
+	qP.setZ(P.z);
+}
+
+QVector3D cQT_Interface::toQVec3D(Pt3d<double> P)
+{
+	QVector3D qP;
+	qP.setX(P.x);
+	qP.setY(P.y);
+	qP.setZ(P.z);
+	return qP;
+}
+
+void cQT_Interface::connectDeviceElise(SaisieQtWindow& win)
+{
+	win.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+	win.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+	win.setDevIOTieFile((deviceIOTieFileElise*)new deviceIOTieFileElise);
+
+	win.setBanniere(QString(getBanniereMM3D().c_str()));
+	win.setHg_revision(QString(__HG_REV__));
+}
+
 cImage * cQT_Interface::currentCImage()
 {
-    return cVirtualInterface::CImageVis(idCurrentCImage());
+	return cVirtualInterface::CImageVis(idCurrentCImage());
 }
 
 int cQT_Interface::getQTWinMode()

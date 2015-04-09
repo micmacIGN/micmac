@@ -51,10 +51,12 @@ void cWorkBenchWidget::updateTiePoint(const QModelIndex & index)
 
 	QFileInfo fileImage(_mainDir,index.data().toString());
 
+	QFileInfo fileTiePoint;
+	QPolygonF poly;
+
 	if(pastisFolder.cd("Pastis"))
 	{
 		QFileInfoList	files = pastisFolder.entryInfoList(QStringList() << QString("*") + fileImage.baseName() + QString("*"), QDir::NoDotAndDotDot | QDir::Files);
-		QFileInfo		fileTiePoint;
 		int				scale = 1e9;
 
 		for (int i = 0; i < files.size(); ++i)
@@ -76,24 +78,37 @@ void cWorkBenchWidget::updateTiePoint(const QModelIndex & index)
 				}
 			}
 		}
-		if(fileTiePoint.exists())
-		{
-			QPolygonF poly;
-			_dIOTieFile->load(fileTiePoint.filePath(),poly);
+		if(fileTiePoint.exists())		
+			_dIOTieFile->load(fileTiePoint.filePath(),poly);			
 
-			QImage myImage;
-			myImage.load(fileImage.filePath());
-			
-			QPixmap pixmap = QPixmap::fromImage(myImage);
-			QPainter painter(&pixmap);
-			painter.setPen(Qt::red);
+	}
+	if(fileImage.exists())
+	{
+		QImage image;
+		image.load(fileImage.filePath());
 
-			painter.drawPoints(poly);
+		if(image.isNull()) //TODO Attention fuite meroire
+			image = *_dIOImage->loadImage(fileImage.filePath(),false);
 
-			labeImage()->setPixmap(pixmap.scaledToWidth(min(labeImage()->width(),myImage.width())));
-		}
+		QPixmap pixmap = QPixmap::fromImage(image);
+		QPainter painter(&pixmap);
+		painter.setPen(Qt::red);
+
+		painter.drawPoints(poly);
+
+		labeImage()->setPixmap(pixmap.scaledToWidth(min(labeImage()->width(),image.width())));
 	}
 }
+deviceIOImage* cWorkBenchWidget::dIOImage() const
+{
+	return _dIOImage;
+}
+
+void cWorkBenchWidget::setDIOImage(deviceIOImage* dIOImage)
+{
+	_dIOImage = dIOImage;
+}
+
 deviceIOTieFile* cWorkBenchWidget::dIOTieFile() const
 {
 	return _dIOTieFile;

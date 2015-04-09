@@ -34,14 +34,9 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
         loadTranslation(app);
 
-        SaisieQtWindow w;
+		SaisieQtWindow win;
 
-        w.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
-        w.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
-		w.setDevIOTieFile((deviceIOTieFileElise*)new deviceIOTieFileElise);
-
-        w.setBanniere(QString(getBanniereMM3D().c_str()));
-        w.setHg_revision(QString(__HG_REV__));
+		cQT_Interface::connectDeviceElise(win);
 
 #ifdef _DEBUG
         for (int aK=0; aK < cmdline_args.size();++aK)
@@ -73,23 +68,23 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, aAttr, SzWP, aGama);
 
             if (EAMIsInit(&aPost))
-                w.setPostFix(QString(aPost.c_str()));
+				win.setPostFix(QString(aPost.c_str()));
             else
-                w.setPostFix("_Masq");
+				win.setPostFix("_Masq");
 
             if (EAMIsInit(&aAttr))
-                w.setPostFix(w.getPostFix() + QString(aAttr.c_str()));
+				win.setPostFix(win.getPostFix() + QString(aAttr.c_str()));
 
             if (EAMIsInit(&aGama))
-                w.setGamma(aGama);
+				win.setGamma(aGama);
 
             if(EAMIsInit(&aNameMasq))
-                w.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
+				win.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
 
-            w.resize(SzWP.x,SzWP.y);
+			win.resize(SzWP.x,SzWP.y);
         }
 
-        w.show();
+		win.show();
 
         if (aFullName != "")
         {
@@ -104,7 +99,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             }
             else filenames.push_back(QString(aFullName.c_str()));
 
-            w.addFiles(filenames,true);
+			win.addFiles(filenames,true);
         }
 
         return app.exec();
