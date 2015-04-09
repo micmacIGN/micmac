@@ -397,4 +397,8 @@ CodeGenere/File2String/V0-cParamXMLNew0.cpp
 14357_643_832_206.txt
 bin32/
 lib_32/
-config/chg_lib_path_Qt4.sh
+
+config/chg_lib_path_Qt4.shbin64/
+binaire-aux/vcomp100.dll
+binaire-aux/msvcr100.dll
+binaire-aux/msvcp100.dll
