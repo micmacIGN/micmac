@@ -278,15 +278,17 @@ cNewO_CpleIm::cNewO_CpleIm
 
     // Test rotation pure
 
-    cResMepCoc aRCoc= MEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1,false);
-    AmelioreSolLinear(aRCoc.mSolRot,"Cocent");
-
-    if (mShow)
     {
-       std::cout << "Ecart RPUre " << aRCoc.mCostRPure * FocMoy() << " VraiR " << aRCoc.mCostVraiRot *FocMoy();
-       if (mTestC2toC1)  
-          std::cout << " DREf (pix) " << aRCoc.mMat.L2(mTestC2toC1->Mat())  * FocMoy();
-       std::cout << "\n";
+       cResMepCoc aRCoc= MEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1,false);
+       AmelioreSolLinear(aRCoc.mSolRot,"Cocent");
+
+       if (mShow)
+       {
+          std::cout << "Ecart RPUre " << aRCoc.mCostRPure * FocMoy() << " VraiR " << aRCoc.mCostVraiRot *FocMoy();
+          if (mTestC2toC1)  
+             std::cout << " DREf (pix) " << aRCoc.mMat.L2(mTestC2toC1->Mat())  * FocMoy();
+          std::cout << "\n";
+       }
     }
 
 

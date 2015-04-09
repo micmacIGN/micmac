@@ -146,6 +146,17 @@ static const int NbRanCoCInit = 200;
 class cMEPCoCentrik
 {
      public :
+/*
+   Abandonne car par lineaire si c et d sont grands ...
+   U1 , (I + ^W ) U2, B0 + cC + dD 
+
+        void TestBarrodale(const ElPackHomologue & aPack,ElMatrix<REAL>  & aMat);
+        void OneTestBarrodale(const ElPackHomologue & aPack, ElMatrix<REAL>  & aMat,const Pt3dr &);
+        void OneItereTestBarrodale(const ElPackHomologue & aPack, ElMatrix<REAL>  & aMat,const Pt3dr &);
+*/
+
+
+
         cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aShow,const ElRotation3D * aRef );
         void OneItereRotPur(ElMatrix<REAL>  & aMat,double & aDist);
         ElRotation3D  OneTestMatr(const ElMatrix<REAL>  &,const Pt3dr & aBase,double aCost);
@@ -443,7 +454,6 @@ Pt3dr cMEPCoCentrik::ComputeBase()
     return aBest;
 }
 
-extern void TestLinariseAngle(const  ElPackHomologue & aPack,const ElRotation3D &aRot,double aFoc);
 
 
 
@@ -492,7 +502,6 @@ void cMEPCoCentrik::Test(const ElPackHomologue & aPack,const  ElMatrix<REAL> & a
           std::cout << " ============== ROTATION PURE =============\n";
      }
 
-     // TestLinariseAngle(aPack,ElRotation3D(aRef->tr(),aRef->Mat(),true),aFoc);
 
      ComputePlanBase(aMat);
      Pt3dr aN1 = ComputeBase();
@@ -512,7 +521,7 @@ void cMEPCoCentrik::Test(const ElPackHomologue & aPack,const  ElMatrix<REAL> & a
           aN3 = -aN3;
      }
      
-     if (mShow)
+     if (true || mShow)
      {
           if (aRef) 
           {
