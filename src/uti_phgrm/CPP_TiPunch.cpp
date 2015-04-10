@@ -192,7 +192,7 @@ int TiPunch_main(int argc,char ** argv)
     }
 
 
-    cMesh myMesh(poissonMesh, 1, false); //pas d'arete pour l'instant
+    cMesh myMesh(poissonMesh, false); //pas d'arete pour l'instant
 
     if (aFilter)
     {
