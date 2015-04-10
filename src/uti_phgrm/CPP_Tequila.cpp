@@ -166,6 +166,21 @@ int Tequila_main(int argc,char ** argv)
 
     if (MMVisualMode) return EXIT_SUCCESS;
 
+    cout<<endl;
+    cout<<"**************************Parameters***************************"<<endl;
+    cout<<endl;
+
+    cout << "Mode = " << aMode << endl;
+    cout << "Crit = " << aCrit << endl;
+    if (aCrit=="Angle") cout << "Angle = " << aAngleMin << endl;
+    cout << "Downscale factor = " << aZBuffSSEch  << endl;
+    cout << "Texture max size = " << aTextMaxSize << endl;
+    cout << "Write binary file = " << aBin << endl;
+    cout << "jpeg compression quality = " << aJPGcomp << endl;
+
+    cout<<endl;
+    cout<<"**************************************************************"<<endl;
+
     SplitDirAndFile(aDir,aPat,aFullName);
 
     if (!EAMIsInit(&aOut)) aOut = StdPrefix(aPly) + "_textured.ply";
@@ -559,25 +574,25 @@ int Tequila_main(int argc,char ** argv)
         cout <<"********************Computing texture coordinates********************"<<endl;
         cout << endl;
 
-        for (int aK=0; aK < nRegions; ++aK)
+        std::vector < cTextureBox2d >::const_iterator it = regions.begin();
+        for (; it != regions.end(); ++it)
         {
-            Pt2di PtTemp = -regions[aK].translation;
-            bool rotat = regions[aK].isRotated;
+            Pt2di PtTemp = -(it->translation);
 
-            Pt2dr coin(regions[aK].P0());
-            //cout << "aK= " << aK << " coin = " << coin << endl;
+            Pt2dr p0(it->P0());
+            //cout << "aK= " << aK << " coin = " << p0 << endl;
 
-            float tx = round_ni(coin.x * Scale) + PtTemp.x;
-            float ty = round_ni(coin.y * Scale) + PtTemp.y + (float) regions[aK].largeur() * Scale;
+            float tx = round_ni(p0.x * Scale) + PtTemp.x;
+            float ty = round_ni(p0.y * Scale) + PtTemp.y + (float) it->largeur() * Scale;
 
             //cout << "ty = " << ty << endl;
 
-            //cout << "nb Triangles = " << regions[aK].size() << endl;
+            //cout << "nb Triangles = " << it->sz() << endl;
 
-            const int nTriangles = regions[aK].triangles.size();
+            const int nTriangles = it->triangles.size();
             for (int bK=0; bK < nTriangles;++bK)
             {
-                int triIdx = regions[aK].triangles[bK];
+                int triIdx = it->triangles[bK];
 
                 cTriangle *Triangle = myMesh.getTriangle(triIdx);
 
@@ -600,11 +615,11 @@ int Tequila_main(int argc,char ** argv)
                     {
                         Pt2dr P1, P2, P3;
 
-                        if(rotat)
+                        if(it->isRotated)
                         {
-                            Pt2dr v1 = (Pt1 - coin)*Scale;
-                            Pt2dr v2 = (Pt2 - coin)*Scale;
-                            Pt2dr v3 = (Pt3 - coin)*Scale;
+                            Pt2dr v1 = (Pt1 - p0)*Scale;
+                            Pt2dr v2 = (Pt2 - p0)*Scale;
+                            Pt2dr v3 = (Pt3 - p0)*Scale;
 
                             P1.x = (tx + v1.y) / final_width;
                             P2.x = (tx + v2.y) / final_width;
@@ -646,13 +661,13 @@ int Tequila_main(int argc,char ** argv)
                             P3.y = 1.f - (Pt3.y*Scale+PtTemp.y) / final_height;
                         }
 
-                        if ((P1.x >=0.f) && (P1.x <= 1.f) && (P2.x >=0.f) && (P2.y <= 1.f) && (P3.x >=0.f) && (P3.y <= 1.f))
+                        //if ((P1.x >=0.f) && (P1.x <= 1.f) && (P2.x >=0.f) && (P2.y <= 1.f) && (P3.x >=0.f) && (P3.y <= 1.f))
                             Triangle->setTextureCoordinates(P1, P2, P3);
-                        else
+                       /* else
                         {
                             myMesh.removeTriangle(*Triangle);
                             updateIndex(triIdx, regions);
-                        }
+                        }*/
                     }
                     else
                     {
@@ -793,11 +808,12 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
+#ifdef QPBOOOOO
+
     cout << endl;
     cout <<"**************************QPBO**************************"<<endl;
     cout << endl;
 
-#ifdef QPBOOOOO
 
     if (myMesh.getFacesNumber() && myMesh.getEdgesNumber())
     {
