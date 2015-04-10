@@ -310,7 +310,9 @@ class cNewO_CombineCple
          typedef cFixedMergeTieP<2,Pt2dr> tMerge;
          cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  & aM,ElRotation3D * aTestSol);
 
+          const cXml_Ori2Im &  Result() const;
     private :
+          cXml_Ori2Im  mResult;
           double CostOneArc(const Pt2di &);
           double CostOneBase(const Pt3dr & aBase);
 

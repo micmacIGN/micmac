@@ -349,9 +349,11 @@ class cNO_AppliOneCple
     public :
           cNO_AppliOneCple(int argc,char **argv);
           void Show();
+          cNewO_CpleIm * CpleIm();
     private :
          typedef cFixedMergeTieP<2,Pt2dr> tMerge;
 
+         cNO_AppliOneCple(const cNO_AppliOneCple &); // N.I. 
 
          std::string          mNameIm1;
          std::string          mNameIm2;
@@ -363,15 +365,20 @@ class cNO_AppliOneCple
          std::string          mNameOriTest;
          bool                 mShow;
          bool                 mHPP;
+         cFixedMergeStruct<2,Pt2dr> mMergeStr;
+         ElRotation3D *       mTestSol;
 };
 
 
 
 
 
+
+
 cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
-   mShow (false),
-   mHPP  (true)
+   mShow    (false),
+   mHPP     (true),
+   mTestSol (0)
 {
 
    ElInitArgMain
@@ -392,12 +399,10 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    mVI.push_back(mIm1);
    mVI.push_back(mIm2);
-   cFixedMergeStruct<2,Pt2dr> aMergeStr;
-   NOMerge_AddAllCams(aMergeStr,mVI);
+   NOMerge_AddAllCams(mMergeStr,mVI);
 
-   aMergeStr.DoExport();
+   mMergeStr.DoExport();
 
-   ElRotation3D * aTestSol = 0;
    if (EAMIsInit(&mNameOriTest))
    {
       StdCorrecNameOrient(mNameOriTest,mNM->Dir());
@@ -408,11 +413,16 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
       ElRotation3D aRot = (aCam2->Orient() *aCam1->Orient().inv());   
       //   Maintenat Rot C2 =>C1; donc Rot( P(0,0,0)) donne le vecteur de Base
       aRot = aRot.inv();
-      aTestSol = new ElRotation3D(aRot);
+      mTestSol = new ElRotation3D(aRot);
    }
 
 //    cNewO_CombineCple aARI(aMergeStr,aTestSol);
-   cNewO_CpleIm aCple(mIm1,mIm2,&aMergeStr,aTestSol,mShow,mHPP);
+   cNewO_CpleIm aCple(mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
+}
+
+cNewO_CpleIm * cNO_AppliOneCple::CpleIm()
+{
+   return new cNewO_CpleIm(mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
 }
 
 void cNO_AppliOneCple::Show()
@@ -466,7 +476,10 @@ int TestNewOriImage_main(int argc,char ** argv)
    // Bench_NewOri();
    cNO_AppliOneCple anAppli(argc,argv);
    anAppli.Show();
+   cNewO_CpleIm * aCple = anAppli.CpleIm();
+
 /*
+   return new cNewO_CpleIm(mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
 */
 
    return EXIT_SUCCESS;

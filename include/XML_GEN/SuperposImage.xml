@@ -1326,6 +1326,49 @@
 </XML_TestImportOri>
 
 
+
+
+<Xml_O2IRotation Nb="1" Class="true" ToReference="true">
+     <Ori Nb="1" RefType="RotationVect"> </Ori>
+     <Centre Nb="1" Type="Pt3dr" > </Centre>
+     <Residu Nb="1" Type="double" > </Residu>
+     <PMed1   Nb="1" Type="Pt3dr"> </PMed1> <!-- P Median en coord Cam1 -->
+</Xml_O2IRotation>
+<Xml_O2IRotPure Nb="1" Class="true" ToReference="true">
+     <Ori Nb="1" RefType="RotationVect"> </Ori>
+     <Residu Nb="1" Type="double" > </Residu>
+</Xml_O2IRotPure>
+<Xml_O2IHom Nb="1" Class="true" ToReference="true">
+     <Hom Nb="1" RefType="XmlHomogr"> </Hom>
+     <Residu Nb="1" Type="double" > </Residu>
+</Xml_O2IHom>
+<Xml_O2IComputed Nb="1" Class="true" ToReference="true">
+    <Ori Nb="1"  RefType="Xml_O2IRotation">      </Ori>
+    <RPure Nb="1"  RefType="Xml_O2IRotPure" >    </RPure>
+    <Hom Nb="1" RefType="Xml_O2IHom">            </Hom>
+    <BSurH Nb="1" Type="double">   </BSurH>
+    <RecHom Nb="1" Type="double">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->
+</Xml_O2IComputed>
+
+
+<Xml_Ori2Im Nb="1" Class="true" ToReference="true">
+
+     <Im1 Nb="1" Type="std::string"  > </Im1>
+     <Im2 Nb="1" Type="std::string"  > </Im2>
+     <!-- Nom de la calibration interne optionnelle qui a ete utilisee -->
+     <Calib Nb="1" Type="std::string"  > </Calib>
+     <NbPts Nb="1" Type="int"> </NbPts>
+     <Foc1 Nb="1" Type="std::string"  > </Foc1>
+     <Foc2 Nb="1" Type="std::string"  > </Foc2>
+     <FocMoy Nb="1" Type="std::string"  > </FocMoy>
+     <Geom Nb="?" RefType="Xml_O2IComputed"> </Geom>
+</Xml_Ori2Im>
+
+
+
+
+
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>

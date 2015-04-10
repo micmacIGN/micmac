@@ -6087,5 +6087,189 @@ std::string  Mangling( cXML_TestImportOri *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_O2IRotation
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_O2IRotation & anObj,cElXMLTree * aTree);
+
+
+        cRotationVect & Ori();
+        const cRotationVect & Ori()const ;
+
+        Pt3dr & Centre();
+        const Pt3dr & Centre()const ;
+
+        double & Residu();
+        const double & Residu()const ;
+
+        Pt3dr & PMed1();
+        const Pt3dr & PMed1()const ;
+    private:
+        cRotationVect mOri;
+        Pt3dr mCentre;
+        double mResidu;
+        Pt3dr mPMed1;
+};
+cElXMLTree * ToXMLTree(const cXml_O2IRotation &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_O2IRotation &);
+
+void  BinaryUnDumpFromFile(cXml_O2IRotation &,ELISE_fp &);
+
+std::string  Mangling( cXml_O2IRotation *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_O2IRotPure
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_O2IRotPure & anObj,cElXMLTree * aTree);
+
+
+        cRotationVect & Ori();
+        const cRotationVect & Ori()const ;
+
+        double & Residu();
+        const double & Residu()const ;
+    private:
+        cRotationVect mOri;
+        double mResidu;
+};
+cElXMLTree * ToXMLTree(const cXml_O2IRotPure &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_O2IRotPure &);
+
+void  BinaryUnDumpFromFile(cXml_O2IRotPure &,ELISE_fp &);
+
+std::string  Mangling( cXml_O2IRotPure *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_O2IHom
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_O2IHom & anObj,cElXMLTree * aTree);
+
+
+        cXmlHomogr & Hom();
+        const cXmlHomogr & Hom()const ;
+
+        double & Residu();
+        const double & Residu()const ;
+    private:
+        cXmlHomogr mHom;
+        double mResidu;
+};
+cElXMLTree * ToXMLTree(const cXml_O2IHom &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_O2IHom &);
+
+void  BinaryUnDumpFromFile(cXml_O2IHom &,ELISE_fp &);
+
+std::string  Mangling( cXml_O2IHom *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_O2IComputed
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_O2IComputed & anObj,cElXMLTree * aTree);
+
+
+        cXml_O2IRotation & Ori();
+        const cXml_O2IRotation & Ori()const ;
+
+        cXml_O2IRotPure & RPure();
+        const cXml_O2IRotPure & RPure()const ;
+
+        cXml_O2IHom & Hom();
+        const cXml_O2IHom & Hom()const ;
+
+        double & BSurH();
+        const double & BSurH()const ;
+
+        double & RecHom();
+        const double & RecHom()const ;
+    private:
+        cXml_O2IRotation mOri;
+        cXml_O2IRotPure mRPure;
+        cXml_O2IHom mHom;
+        double mBSurH;
+        double mRecHom;
+};
+cElXMLTree * ToXMLTree(const cXml_O2IComputed &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_O2IComputed &);
+
+void  BinaryUnDumpFromFile(cXml_O2IComputed &,ELISE_fp &);
+
+std::string  Mangling( cXml_O2IComputed *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Ori2Im
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Ori2Im & anObj,cElXMLTree * aTree);
+
+
+        std::string & Im1();
+        const std::string & Im1()const ;
+
+        std::string & Im2();
+        const std::string & Im2()const ;
+
+        std::string & Calib();
+        const std::string & Calib()const ;
+
+        int & NbPts();
+        const int & NbPts()const ;
+
+        std::string & Foc1();
+        const std::string & Foc1()const ;
+
+        std::string & Foc2();
+        const std::string & Foc2()const ;
+
+        std::string & FocMoy();
+        const std::string & FocMoy()const ;
+
+        cTplValGesInit< cXml_O2IComputed > & Geom();
+        const cTplValGesInit< cXml_O2IComputed > & Geom()const ;
+    private:
+        std::string mIm1;
+        std::string mIm2;
+        std::string mCalib;
+        int mNbPts;
+        std::string mFoc1;
+        std::string mFoc2;
+        std::string mFocMoy;
+        cTplValGesInit< cXml_O2IComputed > mGeom;
+};
+cElXMLTree * ToXMLTree(const cXml_Ori2Im &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Ori2Im &);
+
+void  BinaryUnDumpFromFile(cXml_Ori2Im &,ELISE_fp &);
+
+std::string  Mangling( cXml_Ori2Im *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm
