@@ -48,34 +48,31 @@ static const REAL Eps = 1e-7;
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cTextRect::cTextRect(std::vector<int> aTriangles, int idx):
+cTextureBox2d::cTextureBox2d(std::vector<int> aTriangles, int idx):
     imgIdx(idx),
-    p0(Pt2di(0,0)),
-    p1(Pt2di(0,0)),
-    rotation(false),
-    translation(Pt2di(0,0)),
+    isRotated(false),
     triangles(aTriangles)
 {}
 
-void cTextRect::setRect(int aImgIdx, Pt2di aP0, Pt2di aP1)
+void cTextureBox2d::setRect(int aImgIdx, Pt2di aP0, Pt2di aP1)
 {
     imgIdx = aImgIdx;
-    p0 = aP0;
-    p1 = aP1;
+    Box2d<int>::_p0 = aP0;
+    Box2d<int>::_p1 = aP1;
 }
 
-void cTextRect::setTransfo(const Pt2di &tr, bool rot)
+void cTextureBox2d::setTransfo(const Pt2di &tr, bool rot)
 {
     translation = tr;
-    rotation  = rot;
+    isRotated  = rot;
 }
 
-bool cTextRect::operator==( const cTextRect & aTR ) const
+bool cTextureBox2d::operator==( cTextureBox2d const & aTR ) const
 {
-    return (imgIdx == aTR.imgIdx) &&
-            (p0 == aTR.p0) &&
-            (p1 == aTR.p1) &&
-            (rotation == aTR.rotation) &&
+    return  (imgIdx == aTR.imgIdx) &&
+            (Box2d<int>::_p0 == aTR._p0) &&
+            (Box2d<int>::_p1 == aTR._p1) &&
+            (isRotated == aTR.isRotated) &&
             (translation == aTR.translation) &&
             (triangles == aTR.triangles);
 }
@@ -96,14 +93,13 @@ void cTriangle::addEdge(int idx)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal):
+cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx):
     mTriIdx(TriIdx),
     mTextImIdx(mDefTextImIdx),
     pMesh(aMesh),
     mText0(Pt2dr()),
     mText1(Pt2dr()),
-    mText2(Pt2dr()),
-    mCriter(scal)
+    mText2(Pt2dr())
 {
     mTriVertex.push_back(face->verts[0]);
     mTriVertex.push_back(face->verts[1]);
@@ -296,8 +292,23 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
              (mText0      ==  aTr.mText0) &&
              (mText1      ==  aTr.mText1) &&
              (mText2      ==  aTr.mText2) &&
-             (mCriter     ==  aTr.mCriter)
+             (mMapCriter  ==  aTr.mMapCriter)
              );
+}
+
+void cTriangle::setCriter(int aK, float aVal)
+{
+    mMapCriter.insert(pair <int, float> (aK, aVal));
+}
+
+float cTriangle::getCriter(int aK)
+{
+    map<int,float>::iterator it = mMapCriter.find(aK);
+
+    if (it != mMapCriter.end())
+        return it->second;
+    else
+        return mDefValue;
 }
 
 float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
@@ -419,6 +430,16 @@ cMesh::~cMesh(){}
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
+void cMesh::initDefValue(float aVal)
+{
+    const int nTri = mTriangles.size();
+    for (int aK=0; aK < nTri;++aK)
+        mTriangles[aK].setDefValue(aVal);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
 cVertex* cMesh::getVertex(unsigned int idx)
 {
     #if _DEBUG
@@ -506,7 +527,7 @@ void cMesh::checkEdgesForVertex(int id, int aK)
     }
 }
 
-cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
+cMesh::cMesh(const std::string & Filename, bool doAdjacence)
 {
     PlyFile * thePlyFile;
     int nelems;
@@ -556,7 +577,7 @@ cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
                 ply_get_element (thePlyFile, face);
 
                 //ajout du triangle
-                addTriangle(cTriangle(this, face, j, scal));
+                addTriangle(cTriangle(this, face, j));
 
                 getVertex(face->verts[0])->addIdx(j);
                 getVertex(face->verts[1])->addIdx(j);
@@ -718,7 +739,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
 //Calcule et stocke l'angle entre Dir et Triangle (appartenant a TriIdx)
 void cMesh::setTrianglesAttribute(int img_idx, Pt3dr Dir, set <unsigned int> const &aTriIdx)
 {
-    set <unsigned int>::const_iterator itri  =aTriIdx.begin();
+    set <unsigned int>::const_iterator itri  = aTriIdx.begin();
     for(;itri!=aTriIdx.end();itri++)
     {
         cTriangle *aTri = getTriangle(*itri);
@@ -944,10 +965,10 @@ void cMesh::clean()
     }
 }
 
-std::vector<cTextRect> cMesh::getRegions()
+vector<cTextureBox2d> cMesh::getRegions()
 {
     std::set < int > triangleIdxSet;
-    std::vector < cTextRect > regions;
+    std::vector < cTextureBox2d > regions;
 
     const int nFaces = getFacesNumber();
     for (int aK=0; aK < nFaces;++aK)
@@ -988,7 +1009,7 @@ std::vector<cTextRect> cMesh::getRegions()
 
         if (myList.size() > 1)
         {
-            regions.push_back(cTextRect(myList, imgIdx));
+            regions.push_back(cTextureBox2d(myList, imgIdx));
         }
     }
 

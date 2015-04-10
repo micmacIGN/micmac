@@ -52,27 +52,24 @@ class cZBuf;
 
 typedef Graph <float,float,float> RGraph;
 
-class cTextRect
+
+class cTextureBox2d : public Box2d<int>
 {
 public:
 
-    cTextRect(std::vector <int> aTriangles, int idx);
+    cTextureBox2d (std::vector <int> aTriangles, int idx);
 
     void  setRect(int aImgIdx, Pt2di aP0, Pt2di aP1);
-    void  setTransfo(Pt2di const &tr, bool rot);
-    int   width() { return p1.x - p0.x; }
-    Pt2di size()  { return p1 - p0; }
+    void  setTransfo(const Pt2di &tr, bool rot);
 
     int imgIdx;
-    Pt2di p0; // coin hg
-    Pt2di p1; // coin bd
 
-    bool  rotation; //has texture been rotated
-    Pt2di translation; //position of texture in full texture image
+    bool  isRotated;          // has texture been rotated
+    Pt2di translation;  // position of texture in full texture image
 
     std::vector<int> triangles;
 
-    bool    operator==( const cTextRect & ) const;
+    bool    operator==( const cTextureBox2d & ) const;
 };
 
 class cMesh
@@ -80,10 +77,12 @@ class cMesh
     friend class cTriangle;
 
     public:
-                        cMesh(const string & Filename, float scal=-1.f, bool doAdjacence=true);
+                        cMesh(const string & Filename, bool doAdjacence=true);
                         cMesh(cMesh const &aMesh);
 
                         ~cMesh();
+
+        void        initDefValue(float aVal);
 
         int			getVertexNumber() const	{return (int) mVertexes.size();}
         int			getFacesNumber()  const	{return (int) mTriangles.size();}
@@ -103,14 +102,14 @@ class cMesh
         void        removeTriangle(int idx, bool doAdjacence = true);
         void        removeTriangle(cTriangle &aTri, bool doAdjacence = true);
 
-        void        setTrianglesAttribute(int img_idx, Pt3dr Dir, set <unsigned int> const &aTriIdx);
+        void        setTrianglesAttribute(int img_idx, Pt3dr Dir, set <unsigned int> const &aTriIdx); //old
 
         void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, const set<unsigned int> &aTriIdx); //TriInGraph: index of triangles in Graph
         void		setLambda(REAL aL) {mLambda = aL;}
 
         void        clean();
 
-        vector < cTextRect > getRegions();
+        vector < cTextureBox2d > getRegions();
 
         void        write(const string & aOut, bool aBin, const string & textureFilename="");
 
@@ -158,7 +157,7 @@ class cVertex
 class cTriangle
 {
     public:
-                cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal);
+                cTriangle(cMesh* aMesh, sFace * face, int TriIdx);
 
                 ~cTriangle();
 
@@ -208,12 +207,12 @@ class cTriangle
 
         bool    operator==( const cTriangle & ) const;
 
-        float   getCriter() { return mCriter; }
-        void    setCriter(float aVal) { mCriter = aVal; }
+        void    setCriter(int aK, float aVal); //set criterion value for index aK
+        float   getCriter(int aK);
 
         float   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
 
-
+        void    setDefValue(float aVal) { mDefValue = aVal; }
 private:
 
         int							mTriIdx;		// triangle index
@@ -229,7 +228,9 @@ private:
         Pt2dr                       mText1;
         Pt2dr                       mText2;
 
-        float                       mCriter;        // Criterion for image texture choosing (scalar product between normal and best image viewing direction, stretching)
+        float                       mDefValue;      // Default value of criterion for choosing best image for texturing (threshold for angle)
+
+        map <int, float>            mMapCriter;     // Map linking image index to criterion
 };
 
 //--------------------------------------------------------------------------------------------------------------
