@@ -219,8 +219,8 @@ private:
         vector <int>				mTriVertex;		// index of vertexes in pMesh->mVertexes
         vector <int>                mTriEdges;      // index of edges in pMesh->Edges
         map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes //old
-        static const int            mDefTextImIdx = -1;
-        int                         mTextImIdx;
+        static const int            mDefTextImIdx = -1; // default value of texture image index
+        int                         mTextImIdx;     // texture image index
 
         cMesh       *               pMesh;
 
