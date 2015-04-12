@@ -94,7 +94,7 @@ cNOCompPair::cNOCompPair(const Pt2dr & aP1,const Pt2dr & aP2,const double & aPds
 // void AmelioreSolLinear(const ElRotation3D & aRot);
 //  Alignement de U1,Base, RU2
 
-double  cNewO_CpleIm::CostLinear(const ElRotation3D & aRot,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax) const
+double  cNewO_OrInit2Im::CostLinear(const ElRotation3D & aRot,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax) const
 {
       double aDet = scal(aP1^(aRot.Mat()*aP2),aRot.tr());
       aDet = ElAbs(aDet);
@@ -104,12 +104,12 @@ double  cNewO_CpleIm::CostLinear(const ElRotation3D & aRot,const Pt3dr & aP1,con
       return  (aDet*aTetaMax) / (aDet + aTetaMax);
 }
 
-double cNewO_CpleIm::CostLinear(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
+double cNewO_OrInit2Im::CostLinear(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
 {
     return CostLinear(aRot,vunit(PZ1(aP1)),vunit(PZ1(aP2)),aTetaMax);
 }
 
-void cNewO_CpleIm::TestCostLinExact(const ElRotation3D & aRot)
+void cNewO_OrInit2Im::TestCostLinExact(const ElRotation3D & aRot)
 {
     for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
     {
@@ -120,7 +120,7 @@ void cNewO_CpleIm::TestCostLinExact(const ElRotation3D & aRot)
     }
 }
 
-void cNewO_CpleIm::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes)
+void cNewO_OrInit2Im::AmelioreSolLinear(ElRotation3D  aRot,const std::string & aMes)
 {
   mCurLamndaLVM =  UseLVM ? InitLVM : ValLVMUnused ;
   if (mShow )
@@ -275,7 +275,7 @@ double PdsLinear(const ElRotation3D & aRot,std::vector<cNOCompPair> & aVP)
 //      [U1,B0 + cC + d D , R0 U2] = 0     
 //      B0.(U1^R0U2) +  +c C.[U1,R0U2] + d D. [U1,R0U2] = 0
 
-Pt3dr  cNewO_CpleIm::CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
+Pt3dr  cNewO_OrInit2Im::CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
 {
     for (int aK=0 ; aK<int(mStCPairs.size()) ; aK++)
     { 
@@ -306,7 +306,7 @@ Pt3dr  cNewO_CpleIm::CalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0)
 }
 
 
-Pt3dr cNewO_CpleIm::OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0,double & anErMoy)
+Pt3dr cNewO_OrInit2Im::OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0,double & anErMoy)
 {
     cGenSysSurResol & aSys = mSysLin2;
     double aCoef[2];
@@ -347,7 +347,7 @@ Pt3dr cNewO_CpleIm::OneIterCalcBaseOfRot(ElMatrix<double> aMat,Pt3dr aTr0,double
 
 
 
-void  cNewO_CpleIm::AddNewInit(const ElRotation3D & aR)
+void  cNewO_OrInit2Im::AddNewInit(const ElRotation3D & aR)
 {
 }
 

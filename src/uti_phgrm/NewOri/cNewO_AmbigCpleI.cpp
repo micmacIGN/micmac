@@ -40,14 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
-void  cNewO_CpleIm::CalcSegAmbig()
+void  cNewO_OrInit2Im::CalcSegAmbig()
 {
     mDirAmbig =  vunit(mIA ^ mBestSol.tr());  // Le vecteur |_ au plan (0 , Base, Inter)
     mSegAmbig = ElSeg3D(mIA,mIA+mDirAmbig);
 }
 
 
-ElRotation3D  cNewO_CpleIm::SolOfAmbiguity(double aTeta)
+ElRotation3D  cNewO_OrInit2Im::SolOfAmbiguity(double aTeta)
 {
     
     ElMatrix<double> aMat = VectRotationArroundAxe(mDirAmbig,aTeta) * mBestSol.Mat();
@@ -59,12 +59,12 @@ ElRotation3D  cNewO_CpleIm::SolOfAmbiguity(double aTeta)
 
 
 
-void cNewO_CpleIm::CalcAmbig()
+void cNewO_OrInit2Im::CalcAmbig()
 {
     if (! mBestSolIsInit) 
     {
         std::cout << "For Im " << mI1->Name() << " " << mI2->Name() << "\n";
-        ELISE_ASSERT(false,"No sol cNewO_CpleIm::CalcAmbig");
+        ELISE_ASSERT(false,"No sol cNewO_OrInit2Im::CalcAmbig");
     }
 
     CalcSegAmbig();

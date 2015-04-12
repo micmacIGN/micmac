@@ -182,6 +182,7 @@ class cAttrSomDualOPP
               mDejaInH  (false),
               mNum      (aNum),
               mOwnSc0   (1e20),
+              mDoneHom        (false),
               mBestIncludeSc0 (1e10),
               mNumBestIS0     (-1),
               mPreselH        (false),
@@ -204,6 +205,7 @@ class cAttrSomDualOPP
           bool         mDejaInH ;  // Cpt in Hom
           int          mNum;
           double       mOwnSc0;
+          bool         mDoneHom;
           double       mBestIncludeSc0;
           int          mNumBestIS0;
           bool         mPreselH;
@@ -297,7 +299,7 @@ class cOriPlanePatch
          void OneIterNbSomGlob(int aNbGlobIn,int aNbGlobOut,int aNbCoul,bool Show);
 
          cInterfBundle2Image *  IBIOfNum(int aK);
-         ElRotation3D Sol() const ;
+         ElRotation3D * Sol() const ;
     private  :
 
          double EcHom(const cAttrSomOPP & anAtr) const
@@ -328,8 +330,8 @@ class cOriPlanePatch
 
 
    //  Aproche par les faces
-         void MakeHomogrInitDual(std::vector<tSomDualOPP *>,bool aModeAffine,bool aShow);
-         void MakeHomogrInitDual(tSomDualOPP *,bool aShow);
+         bool MakeHomogrInitDual(std::vector<tSomDualOPP *>,bool aModeAffine,bool aShow);
+         bool MakeHomogrInitDual(tSomDualOPP *,bool aShow);
          void ResetMakeHomDual(bool aModeAff);
          void InitHeapDual(const std::vector<tSomDualOPP *> & aVInit);
          void DualRecalculHom();
@@ -892,7 +894,7 @@ void cOriPlanePatch::DualRecalculHom()
 
 
 
-void cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool aModeAff,bool aShow)
+bool cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool aModeAff,bool aShow)
 {
   // Remise a zero des compteur globaux
    aModeAff = aModeAff && (aVInit.size() !=1); // Si Taille 1, triangle et prise en charge directe
@@ -908,8 +910,9 @@ void cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool a
    {
          tSomDualOPP * aF=0;
          bool Ok = mHeapF.pop(aF);
+         if (! Ok) return false;
 
-          aCpt = aCpt ^ (long int)(aF);
+         aCpt = aCpt ^ (long int)(aF);
 
          ELISE_ASSERT(Ok,"Incoher in pop; cOriPlanePatch::MakeHomogrInitDual");
 
@@ -924,6 +927,7 @@ void cOriPlanePatch::MakeHomogrInitDual(std::vector<tSomDualOPP *> aVInit,bool a
    if (aShow)
       std::cout << "CksS " << aCpt << "\n";
    // Re
+   return true;
 }
 
 double  cOriPlanePatch::MoyenneEcStd(const std::vector<tSomOPP *> & aV) const
@@ -941,13 +945,15 @@ bool BetterScoreNumOrEg(double aSc1,int aNum1,double aSc2,int aNum2)
    return  (aSc1 < aSc2) || ((aSc1==aSc2) && (aNum1 >= aNum2));
 }
 
-void cOriPlanePatch::MakeHomogrInitDual(tSomDualOPP * aF0,bool aShow)
+bool cOriPlanePatch::MakeHomogrInitDual(tSomDualOPP * aF0,bool aShow)
 {
     std::vector<tSomDualOPP *> aVF0;
     aVF0.push_back(aF0);
-    MakeHomogrInitDual(aVF0,true,aShow);
+    bool Ok = MakeHomogrInitDual(aVF0,true,aShow);
+    if (!Ok) return false;
     SolveHom();
     aF0->attr().mHom = mCurHom;
+    aF0->attr().mDoneHom = true;
 
     EstimStatHom(mCurHom,mVSelectedSom,aF0->attr().mMaxDist,aF0->attr().mMoyDist);
 
@@ -970,6 +976,7 @@ void cOriPlanePatch::MakeHomogrInitDual(tSomDualOPP * aF0,bool aShow)
        std::cout << "Score=" << aScore << " Nb=" << mVSelectedSom.size() << "\n";
     }
     ReinitAll();
+    return true;
 }
 
 
@@ -987,28 +994,31 @@ void cOriPlanePatch::CalcAllHomAndSel()
     {
         tSomDualOPP * aF = mVFace[aK];
         cAttrSomDualOPP &  anAF  = aF->attr();
-        ElSetMin(aMinSc0,anAF.mOwnSc0);
-        if (BetterScoreNumOrEg(anAF.mOwnSc0,anAF.mNum,anAF.mBestIncludeSc0,anAF.mNumBestIS0))
+        if (anAF.mDoneHom)
         {
-            bool IsMinLoc = true;
+           ElSetMin(aMinSc0,anAF.mOwnSc0);
+           if (BetterScoreNumOrEg(anAF.mOwnSc0,anAF.mNum,anAF.mBestIncludeSc0,anAF.mNumBestIS0))
+           {
+               bool IsMinLoc = true;
 
-            for (tItDualAOPP itA=aF->begin(mSubGrDualFull) ; itA.go_on() ; itA++)
-            {
-                if ((*itA).s2().attr().mOwnSc0 < anAF.mOwnSc0)
-                   IsMinLoc = false;
-            }
+               for (tItDualAOPP itA=aF->begin(mSubGrDualFull) ; itA.go_on() ; itA++)
+               {
+                   if ((*itA).s2().attr().mOwnSc0 < anAF.mOwnSc0)
+                      IsMinLoc = false;
+               }
 
-            int aCoul = IsMinLoc ? P8COL::red : P8COL::cyan;
+               int aCoul = IsMinLoc ? P8COL::red : P8COL::cyan;
 
-            ShowPoint(anAF.mC,2.0,aCoul);
-            ShowPoint(anAF.mC,4.0,aCoul);
-            ShowPoint(anAF.mC,6.0,aCoul);
-            if (IsMinLoc) 
-            {
-               anAF.mPreselH= true;
-               aNbPres++;
+               ShowPoint(anAF.mC,2.0,aCoul);
+               ShowPoint(anAF.mC,4.0,aCoul);
+               ShowPoint(anAF.mC,6.0,aCoul);
+               if (IsMinLoc) 
+               {
+                  anAF.mPreselH= true;
+                  aNbPres++;
                // std::cout << "SCORE " << anAF.mOwnSc0 << "\n";
-            }
+               }
+           }
         }
     }
 
@@ -1085,7 +1095,7 @@ void cOriPlanePatch::CalcAllHomAndSel()
          }
     }
 
-    if (mW)
+    if (mW && mRes)
        std::cout << " FiiiiNNN  " <<  ProjCostMEP(mPack,mRes->attr().mRot,0.1)*mFoc << "\n";
 
 }
@@ -1274,13 +1284,14 @@ cOriPlanePatch::cOriPlanePatch
 }
 
 
-ElRotation3D cOriPlanePatch::Sol() const 
+ElRotation3D * cOriPlanePatch::Sol() const 
 {
-   return mRes->attr().mRot;
+   if (! mRes) return 0;
+   return new ElRotation3D(mRes->attr().mRot);
 }
 
 
-ElRotation3D TestOriPlanePatch
+ElRotation3D * TestOriPlanePatch
      (
          double                  aFoc,
          const ElPackHomologue & aPack,
