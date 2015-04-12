@@ -1329,13 +1329,14 @@
 
 
 <Xml_O2IRotation Nb="1" Class="true" ToReference="true">
-     <Ori Nb="1" RefType="RotationVect"> </Ori>
+     <Ori Nb="1" RefType="TypeCodageMatr"> </Ori>
      <Centre Nb="1" Type="Pt3dr" > </Centre>
-     <Residu Nb="1" Type="double" > </Residu>
+     <Residu Nb="1" Type="double" > </Residu> <!-- Residu pondere par 1/(1+(R/S)^2) -->
+     <ResiduHighPerc Nb="1" Type="double" > </ResiduHighPerc>  <!-- Reisidu a X % (X entre 85 et 95) -->
      <PMed1   Nb="1" Type="Pt3dr"> </PMed1> <!-- P Median en coord Cam1 -->
 </Xml_O2IRotation>
 <Xml_O2IRotPure Nb="1" Class="true" ToReference="true">
-     <Ori Nb="1" RefType="RotationVect"> </Ori>
+     <Ori Nb="1" RefType="TypeCodageMatr"> </Ori>
      <Residu Nb="1" Type="double" > </Residu>
 </Xml_O2IRotPure>
 <Xml_O2IHom Nb="1" Class="true" ToReference="true">
@@ -1358,9 +1359,9 @@
      <!-- Nom de la calibration interne optionnelle qui a ete utilisee -->
      <Calib Nb="1" Type="std::string"  > </Calib>
      <NbPts Nb="1" Type="int"> </NbPts>
-     <Foc1 Nb="1" Type="std::string"  > </Foc1>
-     <Foc2 Nb="1" Type="std::string"  > </Foc2>
-     <FocMoy Nb="1" Type="std::string"  > </FocMoy>
+     <Foc1 Nb="1" Type="double"  > </Foc1>
+     <Foc2 Nb="1" Type="double"  > </Foc2>
+     <FocMoy Nb="1" Type="double"  > </FocMoy>
      <Geom Nb="?" RefType="Xml_O2IComputed"> </Geom>
 </Xml_Ori2Im>
 
