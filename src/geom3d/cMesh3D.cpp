@@ -949,7 +949,6 @@ void cMesh::clean()
         if (!found) //remove this point
         {
             //cout << "removing vertex : " << aK << endl;
-            ELISE_ASSERT(aK < (int) mVertexes.size(), "HHHHHHHHHHHAAAAAAAAAAAAAAAAAAAAAAAAAAa");
 
             mVertexes.erase(std::remove(mVertexes.begin(), mVertexes.end(), mVertexes[aK]), mVertexes.end());
 
@@ -1136,7 +1135,7 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
 
 void cMesh::Export(string aOut, set<unsigned int> const &triangles)
 {
-    string mode = "a"; //"w";
+    string mode = "w";  //"a";
 
     FILE * file = FopenNN(aOut, mode, "cMesh::Export");
     fprintf(file,"ply\n");
@@ -1159,7 +1158,6 @@ void cMesh::Export(string aOut, set<unsigned int> const &triangles)
         vector <Pt3dr> Pts;
         face->getVertexes(Pts);
 
-        if (Pts.size() != 3) cout << "good lord !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
         for(unsigned int aK=0; aK<Pts.size();++aK)
         {
             pt = Pts[aK];

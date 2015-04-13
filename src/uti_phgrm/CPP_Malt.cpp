@@ -311,7 +311,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
-                    << EAM(aResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)")
+                    << EAM(aResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)", eSAM_NoInit)
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)", eSAM_InternalUse)
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
