@@ -195,19 +195,19 @@ class cTriangle
         void    setVertexIndex(unsigned int pos, int val);
         void    decEdgeIndex(unsigned int pos);
 
-        static int     getDefTextureImgIndex() { return mDefTextImIdx; }
+        static int     getDefTextureImgIndex() { return mDefImIdx; }
 
-        void    setTextureImgIndex(int val) { mTextImIdx = val; }
-        int     getTextureImgIndex() { return mTextImIdx; }
+        void    setBestImgIndex(int val) { mBestImIdx = val; }
+        int     getBestImgIndex() { return mBestImIdx; }
 
         void    setTextureCoordinates(const Pt2dr &p0, const Pt2dr &p1, const Pt2dr &p2);
         void    getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2);
 
-        bool    isTextured() { return mTextImIdx != mDefTextImIdx; }
+        bool    isTextured() { return mBestImIdx != mDefImIdx; }
 
         bool    operator==( const cTriangle & ) const;
 
-        void    setCriter(int aK, float aVal); //set criterion value for index aK
+        void    insertCriter(int aK, float aVal); //set criterion value for index aK
         float   getCriter(int aK);
 
         float   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
@@ -219,8 +219,8 @@ private:
         vector <int>				mTriVertex;		// index of vertexes in pMesh->mVertexes
         vector <int>                mTriEdges;      // index of edges in pMesh->Edges
         map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes //old
-        static const int            mDefTextImIdx = -1; // default value of texture image index
-        int                         mTextImIdx;     // texture image index
+        static const int            mDefImIdx = -1; // default value of image index
+        int                         mBestImIdx;     // texture image index
 
         cMesh       *               pMesh;
 
@@ -270,7 +270,7 @@ class cZBuf
                 ~cZBuf();
 
         void	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
-        void    BasculerUnMaillage(cMesh const &aMesh, CamStenope const & aCam);
+        void    BasculerUnMaillage(cMesh &aMesh, CamStenope const & aCam);
 
         void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //compute ZBuffer, or Mask (true)
 

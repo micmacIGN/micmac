@@ -97,7 +97,7 @@ int CASA_main(int argc,char ** argv)
                     <<  EAM(aNameN2,"N2",true,"Name of optional second cloud", eSAM_IsExistFile)
                     <<  EAM(aNameN3,"N3",true,"Name of optional third cloud", eSAM_IsExistFile)
                     <<  EAM(aNameN4,"N4",true,"Name of optional fourth cloud", eSAM_IsExistFile)
-                    <<  EAM(aVPts,"PtsOri",true,"[Pts2D.xml,Ori], points and Orientation (used for seizing) to specify surface")
+                    <<  EAM(aVPts,"PtsOri",true,"[Pts2D.xml,Ori], points and Orientation (used for sizing) to specify surface")
      );
 
      if (MMVisualMode) return EXIT_SUCCESS;

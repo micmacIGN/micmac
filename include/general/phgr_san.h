@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -57,7 +57,7 @@ class cProjTore;
 
 // Decrit la facon dont une demi droite coupe une surface:
 
-typedef enum 
+typedef enum
 {
      eSurfPseudoInter, // Fausse intersection, par projection
      eSurfInterTgt,     // Intersection par tangence
@@ -73,7 +73,7 @@ class cInterSurfSegDroite
     public :
        double mLamba;
        eTypeInterSurDemiDr   mType;
-       
+
        cInterSurfSegDroite(double,eTypeInterSurDemiDr);
 };
 
@@ -131,16 +131,16 @@ class cPlyCloud
          static const tCol White;
          static tCol Gray(const double & aGr); // Entre 0 et 1
 };
-         
-class cInterfSurfaceAnalytique 
+
+class cInterfSurfaceAnalytique
 {
     // UV coordonnee parametrique de la surface , L + ou -
-    // troisiemme coordonnee (genre faisceau de normal)
+    // troisieme coordonnee (genre faisceau de normal)
      public :
 
 
          void MakePly   (const cParamISAPly & , cPlyCloud & ,const std::vector<ElCamera *> &);
-         // aProfMoy : Prof /10 
+         // aProfMoy : Prof /10
          virtual void V_MakePly (const cParamISAPly & , cPlyCloud & ,const std::vector<ElCamera *> &,const Box2dr & aBox,const double aProfMoy);
 
 
@@ -149,7 +149,7 @@ class cInterfSurfaceAnalytique
 
          // renvoie une surface identite, utile pour beneficier
          // de certaine fonction MicMac passant par l'interface
-         static cInterfSurfaceAnalytique * Identite(double aZ); 
+         static cInterfSurfaceAnalytique * Identite(double aZ);
          static cInterfSurfaceAnalytique * FromCCC(const cChCoCart & );
 
          virtual Pt3dr E2UVL(const Pt3dr & aP) const = 0;
@@ -183,7 +183,7 @@ class cInterfSurfaceAnalytique
        // si aucune "vraie" solution renvoie la droite des moindre carres et IsVraiSol = false
        // Peut etre un jour ecrire un valeur par defaut fonctionnant par dichotomie (sinon
        //  mettre virtuelle pure)
-       
+
 
          virtual  std::vector<cInterSurfSegDroite>  InterDroite(const ElSeg3D &,double aZ0) const  = 0;
 
@@ -198,8 +198,8 @@ class cInterfSurfaceAnalytique
          cInterfSurfaceAnalytique(bool isVueExt);
          bool VueDeLext() const; // Change le nom pour grep / mIsVueExt
          int SignDZSensRayCam()const;
- 
-        // Rappiecage pour pouvoir dynamiquemnt inhiber l'anamorphose vertical sans toucher au reste
+
+        // Rappiecage pour pouvoir dynamiquement inhiber l'anamorphose verticale sans toucher au reste
          void SetUnusedAnamXCSte();
      protected :
          bool mUnUseAnamXCSte;
@@ -212,10 +212,10 @@ class cInterfSurfaceAnalytique
 // Dans SAN/cylindre.cpp
 
 
-// Une cInterfSurfAn_Formelle est a la fois un allocateurs 
-// d'inconnue (comme une rotation, ici les parametre de la surface) 
-// et un equation d'observation (comme  l'equation d'appuis, ici
-// la projection d'un point 3d sur la surface). 
+// Une cInterfSurfAn_Formelle est a la fois un allocateur
+// d'inconnue (comme une rotation, ici les parametres de la surface)
+// et une equation d'observation (comme  l'equation d'appuis, ici
+// la projection d'un point 3d sur la surface).
 //
 // Rien n'empeche que d'autres equations soient utilisees sur
 // une surface.
@@ -256,7 +256,7 @@ class cInterfSurfAn_Formelle : public cElemEqFormelle,
 };
 
 
-//  Cylindre de revolution 
+//  Cylindre de revolution
 
 class cCylindreRevolution : public cInterfSurfaceAnalytique
 {
@@ -346,7 +346,7 @@ class cCylindreRevolFormel  : public cInterfSurfAn_Formelle
         Pt3dr  mDirPlk0;
         Pt3dr  mOriPlk0;
         double mRay0;
-        
+
         Pt3dr  mDirPlkCur;
         Pt3dr  mOriPlkCur;
         double mRayCur;
@@ -376,12 +376,12 @@ class cProjTore : public cInterfSurfaceAnalytique
         cXmlDescriptionAnalytique Xml() const;
    // Fonction specifique
         cXmlToreRevol  XmlTore() const;
-// En pratique identique a OrthoLocIsXCste 
+// En pratique identique a OrthoLocIsXCste
 // En theorie plus general, indique qu'il doit se desanamorphoser ...
-        bool HasOrthoLoc() const ;  
+        bool HasOrthoLoc() const ;
         bool OrthoLocIsXCste() const ; // Si vrai les ligne F(X,Y,Z0) = F(Y,Z0), la desanamorphose est automatique
 
-// Utilise dans la desanamorphose selon les ligne "verticale"  , 
+// Utilise dans la desanamorphose selon les ligne "verticale"  ,
         Pt3dr ToOrLoc(const Pt3dr & aP) const ; // Def Err fatale
         Pt3dr FromOrLoc(const Pt3dr & aP) const ; // Def Err fatale
 
@@ -393,8 +393,8 @@ class cProjTore : public cInterfSurfaceAnalytique
 
          cXmlModeleSurfaceComplexe SimpleXml(const std::string &Id) const;
          // X'  ,  Y'*D/(D-Z') , Z'
-         // UVL         <----->             X'Y'Z'          <----->   XYZ 
-         // Torique                         Cylindrique     Abs                                
+         // UVL         <----->             X'Y'Z'          <----->   XYZ
+         // Torique                         Cylindrique     Abs
          //                                              => mRToE =>
       private :
          inline Pt3dr Cyl2Tore(const Pt3dr &) const;
@@ -410,10 +410,10 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
 {
      public :
 
-        
+
          // Pour de la generation d'otrtho anOri, anOx, anOy est le plan principal
          // de redressement
-         cProjOrthoCylindrique 
+         cProjOrthoCylindrique
          (
                const cChCoCart & aL2A,
                const ElSeg3D & aSegAbs,
@@ -423,7 +423,7 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
          //  (X' , b Y' , D + c X')
 
          // Creation a partir des elements "naturels" le plan de projection et l'axe du cylindre;
-         // le P0 de la droite projete sur le plan fixe l'origine; si prio au plan la droite est 
+         // le P0 de la droite projete sur le plan fixe l'origine; si prio au plan la droite est
          // modifiee pour etre // , et lycee de versailles
 
          Pt3dr E2UVL(const Pt3dr & aP) const;
@@ -448,10 +448,10 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
          inline Pt3dr Ab2Loc(const Pt3dr &) const;
 
          inline Pt3dr Cyl2Loc(const Pt3dr &) const;
-         inline Pt3dr Loc2Cyl(const Pt3dr &) const;   
+         inline Pt3dr Loc2Cyl(const Pt3dr &) const;
          // X'  ,  Y'*D/(D-Z') , Z'
-         // UVL         <----->             X'Y'Z'          <----->   XYZ 
-         // Cylindrique                     Local                     Abs                                
+         // UVL         <----->             X'Y'Z'          <----->   XYZ
+         // Cylindrique                     Local                     Abs
          //                                              => mRToE =>
 
          cChCoCart  mL2A;
@@ -471,13 +471,13 @@ class cProjOrthoCylindrique : public cInterfSurfaceAnalytique
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -487,17 +487,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
