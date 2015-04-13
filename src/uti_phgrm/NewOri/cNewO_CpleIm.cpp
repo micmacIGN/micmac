@@ -183,6 +183,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mSysLin3     (3),
    mLinDetIBI   (cInterfBundle2Image::LinearDet(mPackStdRed,FocMoy())),
    mBundleIBI   (cInterfBundle2Image::Bundle(mPackStdRed,FocMoy(),true)),
+   mBundleIBI150   (cInterfBundle2Image::Bundle(mPack150,FocMoy(),true)),
    mRedPvIBI    (cInterfBundle2Image::LineariseAngle(mPackStdRed,FocMoy(),true)),
    mFullPvIBI   (cInterfBundle2Image::LineariseAngle(mPackPStd,FocMoy(),true)),
    mShow        (aShow),
@@ -207,6 +208,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
         return;
    }
    cXml_O2IComputed aXCmp;
+   cXml_O2ITiming & aTiming = aXCmp.Timing();
 
    if (mShow)
       std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
@@ -277,53 +279,76 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     /*******************************************************/
    // = T00 ============== Test Patch Plan
    {
+      ElTimer aChrono;
       ElRotation3D  * aRP = TestOriPlanePatch(FocMoy(),mPackStdRed,mPack150,mPack30,mW,mP0W,mScaleW);
       if (aRP)
          AmelioreSolLinear(*aRP,"Patch Plan");
+      aTiming.TimePatchP() = aChrono.uval();
    }
 
-   // = T0 ============== Nouveau test par Ransac + ME
+   // = T0 ============== Nouveau test par Ransac minimal a 8 points  + ME
     {
+       ElTimer aChrono;
        ElRotation3D aMRR = TestcRanscMinimMatEss(mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
        AmelioreSolLinear(aMRR,"Mini RE");
+       aTiming.TimeRanMin() = aChrono.uval();
     }
    // = T1 ============== Nouveau test par Ransac + ME
     {
+       ElTimer aChrono;
        ElRotation3D aRR =RansacMatriceEssentielle(mPackPStd,mPackStdRed,FocMoy());
        AmelioreSolLinear(aRR,"Ran Ess");
+       aTiming.TimeRansacStd() = aChrono.uval();
     }
 
   // = T2 ==============   Test par Matrices essentielles  "classique" 
     for (int aL2 = 0 ; aL2 < 2 ; aL2++)
     {
+        ElTimer aChrono;
         ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackStdRed.MepRelPhysStd(1.0,false)) ;
         // ElRotation3D aR =  (aL2 ? mPackPStd.MepRelPhysStd(1.0,true)  : mPackPStd.MepRelPhysStd(1.0,false)) ;
         aR = aR.inv();
         AmelioreSolLinear(aR,(aL2 ? "L2 Ess": "L1 Ess" ));
+        if (aL2)
+           aTiming.TimeL2MatEss() = aChrono.uval();
+        else
+           aTiming.TimeL1MatEss() = aChrono.uval();
     }
 
   //  = T3 ============  Test par  homographie plane "classique" (i.e. globale) 
-    double aDist ; 
-    bool   Ok;
-    cElHomographie aHom = cElHomographie::RobustInit(&aDist,mPackPStd,Ok,100,80,500);
-    aXCmp.Hom().Hom() = aHom.ToXml();
-    aXCmp.Hom().Residu() = aDist * FocMoy();
-    double aRecHom = RecouvrtHom(aHom);
-    if (mShow) 
+   
+    {
+       bool ShowDetailHom = mShow && true;
+       ElTimer aChrono;
+       double aDist ; 
+       bool   Ok;
+       // cElHomographie aHom = cElHomographie::RobustInit(&aDist,mPackPStd,Ok,100,80,500);
+       cElHomographie aHom = cElHomographie::RobustInit(aDist,(double *)0,mPack150,Ok,20,80,500);
+       if (ShowDetailHom) std::cout << "THom0= " << aChrono.uval() << "\n";
+       aXCmp.Hom().Hom() = aHom.ToXml();
+       aXCmp.Hom().Residu() = aDist * FocMoy();
+       double aRecHom = RecouvrtHom(aHom);
+       if (ShowDetailHom) std::cout << "THom1= " << aChrono.uval() << "\n";
+          if (mShow) 
        std::cout << "   #### Residu Homographie " << aDist *FocMoy()  << " Recvrt=" << aRecHom << "\n";
     
-    cResMepRelCoplan aRMC =  ElPackHomologue::MepRelCoplan(1.0,aHom,tPairPt(Pt2dr(0,0),Pt2dr(0,0)));
+       cResMepRelCoplan aRMC =  ElPackHomologue::MepRelCoplan(1.0,aHom,tPairPt(Pt2dr(0,0),Pt2dr(0,0)));
+       if (ShowDetailHom) std::cout << "THom2= " << aChrono.uval() << "\n";
 
-    const std::list<cElemMepRelCoplan>  & aLSolPl = aRMC.LElem();
+       const std::list<cElemMepRelCoplan>  & aLSolPl = aRMC.LElem();
 
-    for (std::list<cElemMepRelCoplan>::const_iterator itS = aLSolPl.begin() ; itS != aLSolPl.end() ; itS++)
-    {
-        ElRotation3D aR = itS->Rot();
-        aR = aR.inv();
-        if ( itS->PhysOk())
-        {
-            AmelioreSolLinear(aR," Plane ");
-        }
+       for (std::list<cElemMepRelCoplan>::const_iterator itS = aLSolPl.begin() ; itS != aLSolPl.end() ; itS++)
+       {
+           ElRotation3D aR = itS->Rot();
+           aR = aR.inv();
+           if ( itS->PhysOk())
+           {
+               AmelioreSolLinear(aR," Plane ");
+           }
+       }
+       if (ShowDetailHom) std::cout << "THom3= " << aChrono.uval() << "\n";
+       aTiming.TimeHomStd() = aChrono.uval();
+       aXCmp.RecHom() = aRecHom;
     }
 
     // == T4 ===========  Test Rotation pure
@@ -331,6 +356,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     // Test rotation pure
 
     {
+       ElTimer aChrono;
        cResMepCoc aRCoc= MEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1,false);
        AmelioreSolLinear(aRCoc.mSolRot,"Cocent");
 
@@ -343,6 +369,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
        }
        aXCmp.RPure().Ori() = ExportMatr(aRCoc.mMat);
        aXCmp.RPure().Residu() = aRCoc.mCostRPure * FocMoy();
+       aTiming.TimeRPure() = aChrono.uval();
     }
 
 
@@ -358,11 +385,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     double anErr = mRedPvIBI->ErrInitRobuste(mBestSol,0.75);
     ElTimer aChrono;
     anErr = mRedPvIBI->ResiduEq(mBestSol,anErr);
-    for (int aK=0 ; aK< 10 ; aK++)
+    for (int aK=0 ; aK< 6 ; aK++)
     {
          // std::cout << "ERRCur " <<  anErr*FocMoy() << "\n";
          // cInterfBundle2Image * anIBI = (aK<5) ? mRedPvIBI  : mFullPvIBI;
-         ElRotation3D aSol = mFullPvIBI->OneIterEq(mBestSol,anErr);
+         ElRotation3D aSol = mRedPvIBI->OneIterEq(mBestSol,anErr);
          mBestSol = aSol;
     }
     double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,0.90);
@@ -372,7 +399,6 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     aXCmp.Ori().Residu() = anErr * FocMoy();
     aXCmp.Ori().ResiduHighPerc() = anErr90 * FocMoy();
     aXCmp.Ori().PMed1() = mIA;
-    aXCmp.RecHom() = aRecHom;
 
     Pt3dr aC =  mBestSol.tr();
     aXCmp.BSurH() = euclid(Pt2dr(aC.x,aC.y)) / ElAbs(mIA.z);
@@ -614,6 +640,46 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    }
    
    cEl_GPAO::DoComInParal(aLCom);
+
+   cXml_O2ITiming aTiming;
+   aTiming.TimeRPure()     = 0;
+   aTiming.TimePatchP()    = 0;
+   aTiming.TimeRanMin()    = 0;
+   aTiming.TimeRansacStd() = 0;
+   aTiming.TimeL2MatEss()  = 0;
+   aTiming.TimeL1MatEss()  = 0;
+   aTiming.TimeHomStd()    = 0;
+
+   for (int aK1=0 ; aK1<int(aVIm->size()) ; aK1++)
+   {
+       const std::string & aName1 = (*aVIm)[aK1];
+       for (int aK2=0 ; aK2<int(aVIm->size()) ; aK2++)
+       {
+           const std::string & aName2 = (*aVIm)[aK2];
+           if (aName1<aName2)
+           {
+               std::string aNamOri = aDir + aNM->NameXmlOri2Im(aName1,aName2,false);
+               if ( ELISE_fp::exist_file(aNamOri))
+               {
+                   cXml_Ori2Im  aXmlOri = StdGetFromSI(aNamOri,Xml_Ori2Im);
+                   if (aXmlOri.Geom().IsInit())
+                   {
+                      const cXml_O2ITiming & aLocT = aXmlOri.Geom().Val().Timing();
+
+                      aTiming.TimeRPure()     += aLocT.TimeRPure();
+                      aTiming.TimePatchP()    += aLocT.TimePatchP();
+                      aTiming.TimeRanMin()    += aLocT.TimeRanMin();
+                      aTiming.TimeRansacStd() += aLocT.TimeRansacStd();
+                      aTiming.TimeL2MatEss()  += aLocT.TimeL2MatEss();
+                      aTiming.TimeL1MatEss()  += aLocT.TimeL1MatEss();
+                      aTiming.TimeHomStd()    += aLocT.TimeHomStd();
+                   }
+               }
+           }
+       }
+   }
+
+   MakeFileXML(aTiming,aDir + "Ori2Im/Timing2Im.xml");
 
    return EXIT_SUCCESS;
 }

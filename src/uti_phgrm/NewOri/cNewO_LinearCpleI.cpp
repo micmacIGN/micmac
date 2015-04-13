@@ -133,8 +133,9 @@ void cNewO_OrInit2Im::AmelioreSolLinear(ElRotation3D  aRot,const std::string & a
    ElTimer aChrono;
 
 
-   mErStd =  mBundleIBI->ErrInitRobuste(aRot,PropStdErDet);  // Version robuste, sans init
-   mErStd = mBundleIBI->ResiduEq(aRot,mErStd);               // Version moindres carres
+   cInterfBundle2Image * aBundle = mBundleIBI150;
+   mErStd =   aBundle->ErrInitRobuste(aRot,PropStdErDet);  // Version robuste, sans init
+   mErStd =   aBundle->ResiduEq(aRot,mErStd);               // Version moindres carres
    
    
 
@@ -147,7 +148,7 @@ void cNewO_OrInit2Im::AmelioreSolLinear(ElRotation3D  aRot,const std::string & a
    {
        // std::cout << "ERRR " << mErStd *FocMoy() << "\n";
        double aLastErr = mErStd;
-       ElRotation3D aNewR  = mBundleIBI->OneIterEq(aRot,mErStd);
+       ElRotation3D aNewR  = aBundle->OneIterEq(aRot,mErStd);
        double anAmelio = aLastErr - mErStd;
 
 
@@ -189,7 +190,7 @@ void cNewO_OrInit2Im::AmelioreSolLinear(ElRotation3D  aRot,const std::string & a
        }
 
 
-       if (aNbIter >= 9.0)
+       if (aNbIter >= 4.0)
           aCont = false;
    }
    double aCostOut = PixExactCost(aRot,0.1);

@@ -223,6 +223,7 @@ class cNewO_OrInit2Im
           L2SysSurResol            mSysLin3;
           cInterfBundle2Image *    mLinDetIBI;
           cInterfBundle2Image *    mBundleIBI;
+          cInterfBundle2Image *    mBundleIBI150;
           cInterfBundle2Image *    mRedPvIBI;
           cInterfBundle2Image *    mFullPvIBI;
 
