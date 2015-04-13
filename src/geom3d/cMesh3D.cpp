@@ -95,7 +95,7 @@ void cTriangle::addEdge(int idx)
 
 cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx):
     mTriIdx(TriIdx),
-    mTextImIdx(mDefTextImIdx),
+    mBestImIdx(mDefImIdx),
     pMesh(aMesh),
     mText0(Pt2dr()),
     mText1(Pt2dr()),
@@ -235,7 +235,7 @@ vector<int> cTriangle::getNeighbours2() //retourne un set où son index est aussi
 void cTriangle::setEdgeIndex(unsigned int pos, int val)
 {
     #if _DEBUG
-        ELISE_ASSERT(pos < mTriVertex.size(), "cTriangle::setEdgeIndex in cMesh3D.cpp")
+        ELISE_ASSERT(pos < mTriEdges.size(), "cTriangle::setEdgeIndex in cMesh3D.cpp")
     #endif
 
     mTriEdges[pos] = val;
@@ -253,7 +253,7 @@ void cTriangle::setVertexIndex(unsigned int pos, int val)
 void cTriangle::decEdgeIndex(unsigned int pos)
 {
     #if _DEBUG
-        ELISE_ASSERT(pos < mTriVertex.size(), "cTriangle::decEdgeIndex in cMesh3D.cpp")
+        ELISE_ASSERT(pos < mTriEdges.size(), "cTriangle::decEdgeIndex in cMesh3D.cpp")
     #endif
 
     mTriEdges[pos]--;
@@ -287,7 +287,7 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
     return ( (mTriIdx     ==  aTr.mTriIdx)   &&
              (mTriVertex  ==  aTr.mTriVertex) &&
              (mTriEdges   ==  aTr.mTriEdges)  &&
-             (mTextImIdx  ==  aTr.mTextImIdx) &&
+             (mBestImIdx  ==  aTr.mBestImIdx) &&
              (mAttributes ==  aTr.mAttributes) &&
              (mText0      ==  aTr.mText0) &&
              (mText1      ==  aTr.mText1) &&
@@ -296,7 +296,7 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
              );
 }
 
-void cTriangle::setCriter(int aK, float aVal)
+void cTriangle::insertCriter(int aK, float aVal)
 {
     mMapCriter.insert(pair <int, float> (aK, aVal));
 }
@@ -443,7 +443,7 @@ void cMesh::initDefValue(float aVal)
 cVertex* cMesh::getVertex(unsigned int idx)
 {
     #if _DEBUG
-        ELISE_ASSERT(idx < mVertexes.size(), "cMesh3D.cpp cMesh::getPt, out of vertex array");
+        ELISE_ASSERT(idx < mVertexes.size(), "cMesh3D.cpp cMesh::getVertex, out of vertex array");
     #endif
 
     return &(mVertexes[idx]);
@@ -948,8 +948,10 @@ void cMesh::clean()
 
         if (!found) //remove this point
         {
+            //cout << "removing vertex : " << aK << endl;
+            ELISE_ASSERT(aK < (int) mVertexes.size(), "HHHHHHHHHHHAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+
             mVertexes.erase(std::remove(mVertexes.begin(), mVertexes.end(), mVertexes[aK]), mVertexes.end());
-            aK--;
 
             for(int i=0 ; i < nbFaces; i++)
             {
@@ -960,7 +962,10 @@ void cMesh::clean()
                 if (vertex1>aK) tri->setVertexIndex(0, vertex1-1);
                 if (vertex2>aK) tri->setVertexIndex(1, vertex2-1);
                 if (vertex3>aK) tri->setVertexIndex(2, vertex3-1);
+
+                if ((vertex1 == aK) || (vertex2==aK) || (vertex3==aK)) cout << "BIG PROBLEM" << endl;
             }
+            aK--;
         }
     }
 }
@@ -977,7 +982,7 @@ vector<cTextureBox2d> cMesh::getRegions()
         int imgIdx = -1;
         if ((getTriangle(aK)->isTextured()) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
         {
-            imgIdx = getTriangle(aK)->getTextureImgIndex();;
+            imgIdx = getTriangle(aK)->getBestImgIndex();;
             myList.push_back(aK);
         }
 
@@ -987,14 +992,16 @@ vector<cTextureBox2d> cMesh::getRegions()
 
             if (Tri->isTextured())
             {
-                vector<int> neighb = Tri->getNeighbours2();
+                //cout <<"getRegions2" << endl;
+                vector<int> neighb = Tri->getNeighbours2(); //CRASH ICI
+                //cout <<"getRegions3" << endl;
 
                 bool found = false;
                 vector<int>::const_iterator it = neighb.begin();
                 for(;it!=neighb.end();++it)
                 {
                     if ((triangleIdxSet.find(*it) == triangleIdxSet.end()) &&
-                            (getTriangle(*it)->getTextureImgIndex() == imgIdx))
+                            (getTriangle(*it)->getBestImgIndex() == imgIdx))
                     {
                         found = true;
                         myList.push_back(*it);
@@ -1129,7 +1136,7 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
 
 void cMesh::Export(string aOut, set<unsigned int> const &triangles)
 {
-    string mode = "w";
+    string mode = "a"; //"w";
 
     FILE * file = FopenNN(aOut, mode, "cMesh::Export");
     fprintf(file,"ply\n");
@@ -1152,6 +1159,7 @@ void cMesh::Export(string aOut, set<unsigned int> const &triangles)
         vector <Pt3dr> Pts;
         face->getVertexes(Pts);
 
+        if (Pts.size() != 3) cout << "good lord !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
         for(unsigned int aK=0; aK<Pts.size();++aK)
         {
             pt = Pts[aK];
@@ -1160,9 +1168,8 @@ void cMesh::Export(string aOut, set<unsigned int> const &triangles)
         }
     }
 
-    int bK=0;
     it = triangles.begin();
-    for(;it!=triangles.end();++it)
+    for(int bK=0;it!=triangles.end();++it)
     {
         fprintf(file,"3 %i %i %i\n",bK,bK+1,bK+2);
         bK+=3;
@@ -1212,7 +1219,7 @@ void cZBuf::BasculerUnMaillage(cMesh const &aMesh)
     }
 }
 
-void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
+void cZBuf::BasculerUnMaillage(cMesh &aMesh, const CamStenope &aCam)
 {
     Pt2di SzRes = mSzRes / mScale;
     mRes = Im2D_REAL4(SzRes.x,SzRes.y,mDpDef);
@@ -1221,11 +1228,6 @@ void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
 
     vector <cTriangle> vTriangles;
     aMesh.getTriangles(vTriangles);
-
-    vector <bool> vTrianglesPartiels;  //0= ok 1=partiellement vu ou caché
-
-    for (unsigned int aK =0; aK<vTriangles.size();++aK)
-        vTrianglesPartiels.push_back(false);
 
     for (unsigned int aK =0; aK<vTriangles.size();++aK)
     {
@@ -1281,30 +1283,16 @@ void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
                             REAL4 aZ = (float) (zA*aPdsA + zB*aPdsB + zC*aPdsC);
                             if (aZ<mDataRes[y][x])
                             {
-                                int index = mImTriIdx.GetI(Pt2di(x,y));
-                                if (index != mIdDef) vTrianglesPartiels[index] = true;
                                 mDataRes[y][x] = aZ;
-                                mImTriIdx.SetI(Pt2di(x,y),aTri.getIdx());
+                                int index = aTri.getIdx();
+                                mImTriIdx.SetI(Pt2di(x,y),index);
+                                vTri.insert(index);
                             }
                         }
                     }
             }
         }
     }
-
-    //on enleve les triangles partiellement vus
-    for(int aK=0; aK < SzRes.x; aK++)
-        for (int bK=0; bK < SzRes.y; bK++)
-        {
-            int index = mImTriIdx.GetI(Pt2di(aK,bK));
-
-            if ((index != mIdDef) && (vTrianglesPartiels[index]))
-            {
-                mDataRes[bK][aK] = mDpDef;
-                mImTriIdx.SetI(Pt2di(aK,bK),mIdDef);
-            }
-            else if (index != mIdDef) vTri.insert(index);
-        }
 }
 
 //--------------------------------------------------------------------------------------------------------------

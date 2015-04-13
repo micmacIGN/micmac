@@ -1000,7 +1000,7 @@ template <class Type> class Box2d
      double Interiorite(const Pt2dr & aP) const;
 
 
-     Box2d(){};
+     Box2d(){}
      Box2d(Type);
      Box2d(Pt2d<Type>);
      Box2d(const Pt2d<Type> *,INT aNb);

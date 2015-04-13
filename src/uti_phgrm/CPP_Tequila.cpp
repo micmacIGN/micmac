@@ -204,6 +204,8 @@ int Tequila_main(int argc,char ** argv)
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
+        ListCam.back()->SetIdCam(NOri);
+
         cout <<"Image "<<*itS<<", with ori : "<< NOri <<endl;
     }
 
@@ -318,12 +320,12 @@ int Tequila_main(int argc,char ** argv)
                     criter = scal(Triangle->getNormale(true), Cam->DirK()); //Norme de DirK=1
                 }
 
-                if((criter < Triangle->getCriter(Triangle->getTextureImgIndex())))
+                if((criter < Triangle->getCriter(Triangle->getBestImgIndex())))
                 {
-                    Triangle->setTextureImgIndex(aK);
+                    Triangle->setBestImgIndex(aK);
                 }
 
-                Triangle->setCriter(aK,criter);
+                Triangle->insertCriter(aK,criter);
             }
         }
     }
@@ -334,7 +336,7 @@ int Tequila_main(int argc,char ** argv)
 
     for (int aK=0;aK<nFaces; aK++)
     {
-        int imgIdx = myMesh.getTriangle(aK)->getTextureImgIndex();
+        int imgIdx = myMesh.getTriangle(aK)->getBestImgIndex();
         if(imgIdx != valDef) index.insert(imgIdx);
     }
 
@@ -407,7 +409,7 @@ int Tequila_main(int argc,char ** argv)
 
             int triIdx = region->triangles[0];
             cTriangle * Tri = myMesh.getTriangle(triIdx);
-            int imgIdx = Tri->getTextureImgIndex();
+            int imgIdx = Tri->getBestImgIndex();
 
             //cout << "Image index " << imgIdx << endl;
 
@@ -439,6 +441,7 @@ int Tequila_main(int argc,char ** argv)
             {
                 //cout << "aK= " << aK << " img= " << imgIdx << " min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
                 region->setRect(imgIdx, round_down(_min), round_up(_max));
+                //cout << "region min, max = " << region->P0() << " "  << region->P1() << endl;
             }
             else
             {
@@ -501,12 +504,12 @@ int Tequila_main(int argc,char ** argv)
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
-            //cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
+            cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
 
             int x_scaled = round_ni(x * Scale);
             int y_scaled = round_ni(y * Scale);
 
-            //cout << "image position  scaled = " << x_scaled << " " << y_scaled << endl;
+            cout << "image position  scaled = " << x_scaled << " " << y_scaled << endl;
 
             int w_scaled = round_ni(w * Scale);
             int h_scaled = round_ni(h * Scale);
@@ -526,7 +529,7 @@ int Tequila_main(int argc,char ** argv)
             region->setTransfo(tr, rotated);
 
             int imgIdx = region->imgIdx;
-            //cout << "position dans l'image " << imgIdx << " = " << p0.x << " " << p0.y << endl;
+            cout << "position dans l'image " << ListCam[imgIdx]->IdCam() << " = " << p0.x << " " << p0.y << endl;
 
             Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
 
@@ -554,7 +557,19 @@ int Tequila_main(int argc,char ** argv)
             }
             else
             {
-                Fonc_Num aF = aF0;
+                LoadTrScaleRotate
+                     (
+                          aVT[imgIdx],
+                          nFileRes,
+                          p0,
+                          region->P1(),
+                          xy_scaled,
+                          1.f/Scale,  // Par ex 2 pour image 2 fois + petite
+                          0
+                     );
+
+
+               /* Fonc_Num aF = aF0;
                 while (aF.dimf_out() < aNbCh)
                     aF = Virgule(aF0,aF);
                 aF = StdFoncChScale(aF,Pt2dr(), Pt2dr(1.f/Scale,1.f/Scale));
@@ -564,7 +579,7 @@ int Tequila_main(int argc,char ** argv)
                     rectangle(xy_scaled, xy_scaled + wh_scaled),
                     trans(aF, tr),
                     nFileRes.out()
-                );
+                );*/
             }
         }
 
@@ -596,7 +611,7 @@ int Tequila_main(int argc,char ** argv)
 
                 cTriangle *Triangle = myMesh.getTriangle(triIdx);
 
-                int idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
+                int idx = Triangle->getBestImgIndex();                //Liaison avec l'image correspondante
 
                 //cout << "image pour le triangle " << i << " = " << idx << endl;
 
@@ -766,7 +781,7 @@ int Tequila_main(int argc,char ** argv)
         {
             cTriangle * Triangle = myMesh.getTriangle(i);
 
-            int idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
+            int idx = Triangle->getBestImgIndex();                //Liaison avec l'image correspondante
 
             //cout << "image pour le triangle " << i << " = " << idx << endl;
 
