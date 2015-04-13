@@ -6183,6 +6183,54 @@ std::string  Mangling( cXml_O2IHom *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_O2ITiming
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_O2ITiming & anObj,cElXMLTree * aTree);
+
+
+        double & TimeRPure();
+        const double & TimeRPure()const ;
+
+        double & TimePatchP();
+        const double & TimePatchP()const ;
+
+        double & TimeRanMin();
+        const double & TimeRanMin()const ;
+
+        double & TimeRansacStd();
+        const double & TimeRansacStd()const ;
+
+        double & TimeL2MatEss();
+        const double & TimeL2MatEss()const ;
+
+        double & TimeL1MatEss();
+        const double & TimeL1MatEss()const ;
+
+        double & TimeHomStd();
+        const double & TimeHomStd()const ;
+    private:
+        double mTimeRPure;
+        double mTimePatchP;
+        double mTimeRanMin;
+        double mTimeRansacStd;
+        double mTimeL2MatEss;
+        double mTimeL1MatEss;
+        double mTimeHomStd;
+};
+cElXMLTree * ToXMLTree(const cXml_O2ITiming &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_O2ITiming &);
+
+void  BinaryUnDumpFromFile(cXml_O2ITiming &,ELISE_fp &);
+
+std::string  Mangling( cXml_O2ITiming *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_O2IComputed
 {
     public:
@@ -6190,6 +6238,9 @@ class cXml_O2IComputed
 
         friend void xml_init(cXml_O2IComputed & anObj,cElXMLTree * aTree);
 
+
+        cXml_O2ITiming & Timing();
+        const cXml_O2ITiming & Timing()const ;
 
         cXml_O2IRotation & Ori();
         const cXml_O2IRotation & Ori()const ;
@@ -6206,6 +6257,7 @@ class cXml_O2IComputed
         double & RecHom();
         const double & RecHom()const ;
     private:
+        cXml_O2ITiming mTiming;
         cXml_O2IRotation mOri;
         cXml_O2IRotPure mRPure;
         cXml_O2IHom mHom;
