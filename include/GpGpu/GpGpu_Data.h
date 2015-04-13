@@ -810,7 +810,11 @@ TPL_T bool CuHostData3D<T>::abMalloc()
 	else if(_alignMemory)
 	{
 		T* data;
+#ifdef _MSC_VER
+	if ((data = (T*)_aligned_malloc(CData3D<T>::Sizeof(), sizeof(__m128i))) != NULL)
+#else
 		if(!posix_memalign((void **) &data, sizeof(__m128i), CData3D<T>::Sizeof()))
+#endif
 			CData3D<T>::SetPData(data);
 	}
     else
