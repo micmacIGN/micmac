@@ -65,15 +65,15 @@ void InitVPairComp(std::vector<cNOCompPair> & aV,const ElPackHomologue & aPackH)
 
 #define FONC_EXACT_COST ProjCostMEP
 
-double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
+double cNewO_OrInit2Im::ExactCost(const ElRotation3D & aRot,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) const
 {
    return FONC_EXACT_COST(aRot,aP1,aP2,aTetaMax);
 }
-double cNewO_CpleIm::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
+double cNewO_OrInit2Im::ExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
     return FONC_EXACT_COST(mPackPStd,aRot,aTetaMax);
 }
-double  cNewO_CpleIm::PixExactCost(const ElRotation3D & aRot,double aTetaMax) const
+double  cNewO_OrInit2Im::PixExactCost(const ElRotation3D & aRot,double aTetaMax) const
 {
    return ExactCost(aRot,aTetaMax) * FocMoy();
 }
@@ -82,31 +82,31 @@ double  cNewO_CpleIm::PixExactCost(const ElRotation3D & aRot,double aTetaMax) co
 
 
 
-Pt2dr cNewO_CpleIm::ToW(const Pt2dr & aP) const
+Pt2dr cNewO_OrInit2Im::ToW(const Pt2dr & aP) const
 {
      return (aP-mP0W) *mScaleW;
 }
 
 
-void cNewO_CpleIm::ShowPack(const ElPackHomologue & aPack,int aCoul,double aRay)
+void cNewO_OrInit2Im::ShowPack(const ElPackHomologue & aPack,int aCoul,double aRay)
 {
     if (! mW) return;
     for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
         mW->draw_circle_abs(ToW(itP->P1()),aRay,mW->pdisc()(aCoul));
 }
 
-void  cNewO_CpleIm::ClikIn()
+void  cNewO_OrInit2Im::ClikIn()
 {
    if (mW) mW->clik_in();
 }
 
-double cNewO_CpleIm::FocMoy() const
+double cNewO_OrInit2Im::FocMoy() const
 {
     double aF = 1/mI1->CS()->Focale() + 1/mI2->CS()->Focale();
     return 2 / aF;
 }
 
-ElRotation3D TestOriPlanePatch
+ElRotation3D * TestOriPlanePatch
      (
          double aFoc,
          const ElPackHomologue & aPack,
@@ -127,8 +127,38 @@ ElRotation3D TestcRanscMinimMatEss
              ) ;
 
 
+double cNewO_OrInit2Im::RecouvrtHom(const cElHomographie & aHom)
+{
+    int aNb = 40;
 
-cNewO_CpleIm::cNewO_CpleIm
+    CamStenope * aCS1 = mI1->CS();
+    CamStenope * aCS2 = mI2->CS();
+    Pt2dr aSz1 = Pt2dr(aCS1->Sz());
+
+    int aNbIn=0;
+    int aNbOut=0;
+
+    for (int aKx=0 ; aKx<=aNb ; aKx++)
+    {
+        for (int aKy=0 ; aKy<=aNb ; aKy++)
+        {
+            Pt2dr aP = aSz1.mcbyc(Pt2dr(aKx,aKy)/aNb);
+
+            aP = ProjStenope(aCS1->F2toDirRayonL3(aP));
+            aP = aHom.Direct(aP);
+            bool Ok = aCS2->PIsVisibleInImage(PZ1(aP));
+            if (Ok)  
+               aNbIn++;
+            else
+               aNbOut++;
+        }
+    }
+
+    return aNbIn / double(aNbIn+aNbOut);
+}
+
+
+cNewO_OrInit2Im::cNewO_OrInit2Im
 (
       cNewO_OneIm * aI1,
       cNewO_OneIm * aI2,
@@ -162,6 +192,21 @@ cNewO_CpleIm::cNewO_CpleIm
    mSegAmbig      (Pt3dr(0,0,0),Pt3dr(1,1,1)),
    mW             (0)
 {
+   mXml.Im1()   = mI1->Name();
+   mXml.Im2()   = mI2->Name();
+   mXml.Calib() =  mI1->NM().OriCal();
+   mXml.NbPts() = mPackPStd.size();
+   mXml.Foc1()  = mI1->CS()->Focale();
+   mXml.Foc2()  = mI2->CS()->Focale();
+   mXml.FocMoy() = FocMoy();
+
+   mXml.Geom().SetNoInit();
+
+   if (mXml.NbPts()<50)
+   {
+        return;
+   }
+   cXml_O2IComputed aXCmp;
 
    if (mShow)
       std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
@@ -232,8 +277,9 @@ cNewO_CpleIm::cNewO_CpleIm
     /*******************************************************/
    // = T00 ============== Test Patch Plan
    {
-      ElRotation3D  aRP = TestOriPlanePatch(FocMoy(),mPackStdRed,mPack150,mPack30,mW,mP0W,mScaleW);
-      AmelioreSolLinear(aRP,"Patch Plan");
+      ElRotation3D  * aRP = TestOriPlanePatch(FocMoy(),mPackStdRed,mPack150,mPack30,mW,mP0W,mScaleW);
+      if (aRP)
+         AmelioreSolLinear(*aRP,"Patch Plan");
    }
 
    // = T0 ============== Nouveau test par Ransac + ME
@@ -260,6 +306,12 @@ cNewO_CpleIm::cNewO_CpleIm
     double aDist ; 
     bool   Ok;
     cElHomographie aHom = cElHomographie::RobustInit(&aDist,mPackPStd,Ok,100,80,500);
+    aXCmp.Hom().Hom() = aHom.ToXml();
+    aXCmp.Hom().Residu() = aDist * FocMoy();
+    double aRecHom = RecouvrtHom(aHom);
+    if (mShow) 
+       std::cout << "   #### Residu Homographie " << aDist *FocMoy()  << " Recvrt=" << aRecHom << "\n";
+    
     cResMepRelCoplan aRMC =  ElPackHomologue::MepRelCoplan(1.0,aHom,tPairPt(Pt2dr(0,0),Pt2dr(0,0)));
 
     const std::list<cElemMepRelCoplan>  & aLSolPl = aRMC.LElem();
@@ -289,6 +341,8 @@ cNewO_CpleIm::cNewO_CpleIm
              std::cout << " DREf (pix) " << aRCoc.mMat.L2(mTestC2toC1->Mat())  * FocMoy();
           std::cout << "\n";
        }
+       aXCmp.RPure().Ori() = ExportMatr(aRCoc.mMat);
+       aXCmp.RPure().Residu() = aRCoc.mCostRPure * FocMoy();
     }
 
 
@@ -307,15 +361,25 @@ cNewO_CpleIm::cNewO_CpleIm
     for (int aK=0 ; aK< 10 ; aK++)
     {
          // std::cout << "ERRCur " <<  anErr*FocMoy() << "\n";
-         cInterfBundle2Image * anIBI = (aK<5) ? mRedPvIBI  : mFullPvIBI;
-         ElRotation3D aSol = anIBI->OneIterEq(mBestSol,anErr);
+         // cInterfBundle2Image * anIBI = (aK<5) ? mRedPvIBI  : mFullPvIBI;
+         ElRotation3D aSol = mFullPvIBI->OneIterEq(mBestSol,anErr);
          mBestSol = aSol;
     }
+    double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,0.90);
+    mIA =  MedianNuage(mPackStdRed,mBestSol);
+    aXCmp.Ori().Ori() = ExportMatr(mBestSol.Mat());
+    aXCmp.Ori().Centre() = mBestSol.tr();
+    aXCmp.Ori().Residu() = anErr * FocMoy();
+    aXCmp.Ori().ResiduHighPerc() = anErr90 * FocMoy();
+    aXCmp.Ori().PMed1() = mIA;
+    aXCmp.RecHom() = aRecHom;
+
+    Pt3dr aC =  mBestSol.tr();
+    aXCmp.BSurH() = euclid(Pt2dr(aC.x,aC.y)) / ElAbs(mIA.z);
 
     if (mShow)
-        std::cout << "EERRR FINALE " << anErr*FocMoy() << " " << aChrono.uval() << "\n";
+        std::cout << "EERRR FINALE " << anErr*FocMoy()  << " Er90 " <<  anErr90* FocMoy() << " B/H " << aXCmp.BSurH()  << aChrono.uval() << "\n";
 
-    mIA =  MedianNuage(mPackStdRed,mBestSol);
 
 
 
@@ -332,8 +396,14 @@ cNewO_CpleIm::cNewO_CpleIm
         else
            std::cout << "NO BEST SOL\n";
     }
-
     // CalcAmbig();
+
+    mXml.Geom().SetVal(aXCmp);
+}
+
+const cXml_Ori2Im &  cNewO_OrInit2Im::XmlRes() const
+{
+   return mXml;
 }
 
 
@@ -349,9 +419,12 @@ class cNO_AppliOneCple
     public :
           cNO_AppliOneCple(int argc,char **argv);
           void Show();
+          cNewO_OrInit2Im * CpleIm();
+          std::string NameXmlOri2Im(bool Bin) const;
     private :
          typedef cFixedMergeTieP<2,Pt2dr> tMerge;
 
+         cNO_AppliOneCple(const cNO_AppliOneCple &); // N.I. 
 
          std::string          mNameIm1;
          std::string          mNameIm2;
@@ -363,15 +436,22 @@ class cNO_AppliOneCple
          std::string          mNameOriTest;
          bool                 mShow;
          bool                 mHPP;
+         cFixedMergeStruct<2,Pt2dr> mMergeStr;
+         ElRotation3D *       mTestSol;
 };
 
+std::string cNO_AppliOneCple::NameXmlOri2Im(bool Bin) const
+{
+    return mNM->NameXmlOri2Im(mNameIm1,mNameIm2,Bin);
+}
 
 
 
 
 cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
-   mShow (false),
-   mHPP  (true)
+   mShow    (false),
+   mHPP     (true),
+   mTestSol (0)
 {
 
    ElInitArgMain
@@ -386,18 +466,18 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    );
 
 
-   mNM = new cNewO_NameManager("./",mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(DirOfFile(mNameIm1),mNameOriCalib,"dat");
+
+
    mIm1 = new cNewO_OneIm(*mNM,mNameIm1);
    mIm2 = new cNewO_OneIm(*mNM,mNameIm2);
 
    mVI.push_back(mIm1);
    mVI.push_back(mIm2);
-   cFixedMergeStruct<2,Pt2dr> aMergeStr;
-   NOMerge_AddAllCams(aMergeStr,mVI);
+   NOMerge_AddAllCams(mMergeStr,mVI);
 
-   aMergeStr.DoExport();
+   mMergeStr.DoExport();
 
-   ElRotation3D * aTestSol = 0;
    if (EAMIsInit(&mNameOriTest))
    {
       StdCorrecNameOrient(mNameOriTest,mNM->Dir());
@@ -408,11 +488,16 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
       ElRotation3D aRot = (aCam2->Orient() *aCam1->Orient().inv());   
       //   Maintenat Rot C2 =>C1; donc Rot( P(0,0,0)) donne le vecteur de Base
       aRot = aRot.inv();
-      aTestSol = new ElRotation3D(aRot);
+      mTestSol = new ElRotation3D(aRot);
    }
 
 //    cNewO_CombineCple aARI(aMergeStr,aTestSol);
-   cNewO_CpleIm aCple(mIm1,mIm2,&aMergeStr,aTestSol,mShow,mHPP);
+   // cNewO_OrInit2Im aCple(mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
+}
+
+cNewO_OrInit2Im * cNO_AppliOneCple::CpleIm()
+{
+   return new cNewO_OrInit2Im(mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
 }
 
 void cNO_AppliOneCple::Show()
@@ -456,8 +541,6 @@ void BenchNewFoncRot()
 
 
 
-
-
 int TestNewOriImage_main(int argc,char ** argv)
 {
    // std::cout << "WARNING LEVENBERG BADLY ASSERT ALL VAL to FIX  \n";
@@ -466,13 +549,74 @@ int TestNewOriImage_main(int argc,char ** argv)
    // Bench_NewOri();
    cNO_AppliOneCple anAppli(argc,argv);
    anAppli.Show();
-/*
-*/
+   cNewO_OrInit2Im * aCple = anAppli.CpleIm();
+   const cXml_Ori2Im &  aXml = aCple->XmlRes() ;
+    
+   MakeFileXML(aXml,anAppli.NameXmlOri2Im(true));
+   MakeFileXML(aXml,anAppli.NameXmlOri2Im(false));
 
    return EXIT_SUCCESS;
 }
 
 
+   //==============================================
+
+int TestAllNewOriImage_main(int argc,char ** argv)
+{
+   std::string aPat,aNameOriCalib;
+
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain() <<  EAMC(aPat,"Pattern"),
+        LArgMain() << EAM(aNameOriCalib,"OriCalib",true,"Orientation for calibration ")
+   );
+
+   cElemAppliSetFile anEASF(aPat);
+   const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
+   std::string aDir = anEASF.mDir;
+
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aDir,aNameOriCalib,"dat");
+
+   // Force la creation des directories
+   for (int aK=0 ; aK<int(aVIm->size())  ; aK++)
+   {
+       aNM->NameXmlOri2Im((*aVIm)[aK],(*aVIm)[aK],true);
+   }
+
+   std::list<std::string> aLCom;
+   std::string aKeyH = "NKS-Assoc-CplIm2Hom@@dat";
+   for (int aK1=0 ; aK1<int(aVIm->size()) ; aK1++)
+   {
+       const std::string & aName1 = (*aVIm)[aK1];
+       for (int aK2=0 ; aK2<int(aVIm->size()) ; aK2++)
+       {
+           const std::string & aName2 = (*aVIm)[aK2];
+           if (aName1<aName2)
+           {
+               std::string aNamOri = aDir + aNM->NameXmlOri2Im(aName1,aName2,true);
+               if (! ELISE_fp::exist_file(aNamOri))
+               {
+                    std::string aNameH12 = aDir +  anEASF.mICNM->Assoc1To2(aKeyH,aName1,aName2,true);
+                    std::string aNameH21 = aDir +  anEASF.mICNM->Assoc1To2(aKeyH,aName2,aName1,true);
+                    if (ELISE_fp::exist_file(aNameH12) && ELISE_fp::exist_file(aNameH21))
+                    {
+                        std::string aCom =   MM3dBinFile("TestLib NO_Ori2Im") + " " + aName1 + " " + aName2 + " ";
+                        if (EAMIsInit(&aNameOriCalib))
+                           aCom = aCom + " OriCalib=" + aNameOriCalib;
+
+                        aLCom.push_back(aCom);
+                    }
+               }
+           }
+       }
+   }
+   
+   cEl_GPAO::DoComInParal(aLCom);
+
+   return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

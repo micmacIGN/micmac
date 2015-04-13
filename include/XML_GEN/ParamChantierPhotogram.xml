@@ -1614,17 +1614,6 @@
 </MTDCoher>
 
 
-<Xml_OrientaRel Nb="1" Class="true" ToReference="true">
-     <!-- Euler angles -->
-     <teta01 Nb="1" Type="double"> </teta01>  <!-- Precession -->
-     <teta02 Nb="1" Type="double">  </teta02>   <!-- Nutation -->
-     <teta12  Nb="1" Type="double">  </teta12>  <!-- Rotation propre -->
-
-     <!-- Spherical coordinates of base -->
-     <Teta Nb="1" Type="double"> </Teta>
-     <Phi Nb="1" Type="double">  </Phi>
-</Xml_OrientaRel>
-
 <!--  LECTURE DES ORIENTATIONS MATIS -->
 
 <XmlMatis_sommet  Nb="1" Class="true" ToReference="true">
