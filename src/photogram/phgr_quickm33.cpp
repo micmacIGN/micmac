@@ -67,13 +67,17 @@ class cCmpcSolTmpME
 cCmpcSolTmpME TheCmpSolTmpME;
 */
 
+typedef cTplPrioByOther<ElRotation3D,double> tRotPrio;
+typedef cCmpSupPBO<ElRotation3D,double>      tCmpRotPrio;
+
+static tCmpRotPrio  TheCmpROT;
 
 
 
 /*
  Time MicroSec 516.365
 
-    aRot  = NEW_MatEss2Rot(aMat,mPack30);  => 20.5  MicroSec
+    aRot  = NEW_Mat Ess2Rot(aMat,mPack30);  => 20.5  MicroSec
        svdcmp_diag(aMEss,aSvd1,aDiag,aSvd2,true); => 1.5 MicroSec
        NEW_ SignInters(aPack,aSol,aNb1,aNb2);      =>  11 MicroSec
 
@@ -295,7 +299,6 @@ void cRanscMinimMatEss::OneTest(int aCpt)
     ElMatrix<REAL> aMat = ME_Lign2Mat(aDS);
 
     ElRotation3D aRot  = NEW_MatEss2Rot(aMat,mPack30);
-// for (int aK=0 ; aK<100 ; aK++) NEW_MatEss2Rot(aMat,mPack30);
 
 
     double aCost = 0;
@@ -318,13 +321,6 @@ void cRanscMinimMatEss::OneTest(int aCpt)
 
 // for (int aK=0 ; aK<100 ; aK++) aCost = ProjCostMEP(mPack150,aRot,0.005) * mFoc;
 
-     if (0)
-     {
-           ElRotation3D aRotNew = MatEss2Rot(aMat,mPack30).inv();
-           double aDNEW = DistRot(aRotNew,aRot);
-           // if (aDNEW > 1)
-              std::cout << "DIST OLD/NEW " << aDNEW << " " << aCost << " => " << ProjCostMEP(mPack500,aRotNew,0.005) * mFoc<< "\n";;
-     }
      if (aCost< mCostMin)
      {
         mCostMin = aCost;

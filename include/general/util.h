@@ -1604,6 +1604,8 @@ int MMNbProc();
 // returns make's return code
 bool launchMake( const std::string &i_makefile, const std::string &i_rule=std::string(), unsigned int i_nbJobs=MMNbProc(), const std::string &i_options=std::string(), bool i_stopCurrentProgramOnFail=true );
 
+
+
 #endif /* ! _ELISE_UTIL_H */
 
 
