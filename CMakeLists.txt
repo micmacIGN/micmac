@@ -289,17 +289,19 @@ else()
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
 
+	if ( ${hg_result} )
+		set(HG_REVISION_DIST "unknown")
+	endif()
+
 	message( STATUS "Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
 
 	set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
 
-	if ( NOT ${hg_result} )
-	   set( HG_REVISION_DIST \"${HG_REVISION_DIST}\" )
-	   CONFIGURE_FILE (
-	      "include/general/HG_defines.h.in"
-	      "${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
-	   )
-	endif()
+	set( HG_REVISION_DIST \"${HG_REVISION_DIST}\" )
+	CONFIGURE_FILE (
+		"include/general/HG_defines.h.in"
+		"${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
+	)
 endif()
 
 CONFIGURE_FILE (
