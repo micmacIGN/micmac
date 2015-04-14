@@ -40,10 +40,34 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-void SysAddEqMatEss(const double & aPds,const Pt2dr & aP1,const Pt2dr & aP2,L2SysSurResol & aSys );
-ElMatrix<REAL> ME_Lign2Mat(const double * aSol);
-ElRotation3D MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack);
-ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbInit,int aNbFin);
+/*
+class cSolTmpME
+{
+    public :
+        cSolTmpME(double aCost,const double * aSol) :
+            mCost (aCost),
+            mMat (ME_Lign2Mat(aSol)),
+            mRot (ElRotation3D::Id)
+        {
+        }
+
+        double mCost;
+        ElMatrix<double> mMat;
+        ElRotation3D     mRot;
+};
+class cCmpcSolTmpME
+{
+   public :
+       bool operator () (const cSolTmpME & aS1, const cSolTmpME & aS2)
+       {
+           return aS1.mCost > aS2.mCost;
+       }
+};
+
+cCmpcSolTmpME TheCmpSolTmpME;
+*/
+
+
 
 
 /*
@@ -51,7 +75,7 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbInit,int aNbFin)
 
     aRot  = NEW_MatEss2Rot(aMat,mPack30);  => 20.5  MicroSec
        svdcmp_diag(aMEss,aSvd1,aDiag,aSvd2,true); => 1.5 MicroSec
-       NEW_SignInters(aPack,aSol,aNb1,aNb2);      =>  11 MicroSec
+       NEW_ SignInters(aPack,aSol,aNb1,aNb2);      =>  11 MicroSec
 
    ProjCostMEP(mPack150,aRot,0.005)  => 20.5 micro sec
 
@@ -66,28 +90,31 @@ Avec 20 Iterations : 460 Micro sec sur la min
 
 // void C
 
-double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2);
-Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,bool & Ok);
 
 
-
-
-void  NEW_SignInters(const ElPackHomologue & aPack,const ElRotation3D & aR2to1,int & NbP1,int & NbP2)
+double  NEW_SignInters(const ElPackHomologue & aPack,const ElRotation3D & aR2to1,int & NbP1,int & NbP2)
 {
      NbP1 = 0;
      NbP2 = 0;
 
+     double aSomD=0;
+     int    aNbD=0;
      for (ElPackHomologue::const_iterator it=aPack.begin(); it!=aPack.end() ; it++)
      {
           bool Ok;
-          Pt3dr aQ1 = InterSeg(aR2to1,it->P1(),it->P2(),Ok);
+          double aD;
+          Pt3dr aQ1 = InterSeg(aR2to1,it->P1(),it->P2(),Ok,&aD);
+
           if (Ok)
           {
               Pt3dr aQ2 = aR2to1.ImRecAff(aQ1);
               NbP1 += (aQ1.z>0) ? 1 : - 1;
               NbP2 += (aQ2.z>0) ? 1 : - 1;
+              aNbD++;
+              aSomD += sqrt(aD);
           }
      }
+     return aSomD / aNbD;
 }
 
 
