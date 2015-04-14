@@ -1,0 +1,774 @@
+%==========================================================
+\documentclass[remotesensing,article,submit,moreauthors,pdftex,12pt,a4paper]{mdpi} % for use with pdfLaTeX only
+
+\setcounter{page}{1}
+\lastpage{x}
+\doinum{10.3390/------}
+\pubvolume{xx}
+\pubyear{2014}
+\history{Received: 2014 / Accepted: xx / Published: xx}
+%-----------------------------------------------------------------
+% The following line should be uncommented if the LaTeX file
+% is uploaded to arXiv.org
+%\pdfoutput=1
+%=================================================================
+% The hyperref, caption, float and color packages are already included
+\usepackage[utf8]{inputenc} % pour la gestion des accents de ci dela.
+\usepackage{amssymb,amsmath}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{caption}
+%\usepackage{tabularx}
+%\usepackage{subcaption}
+\graphicspath{{ImagesLR/}{Images/}}
+\usepackage{url}	
+\usepackage{multirow}
+\usepackage{changes}
+\colorlet{Changes@Color}{orange}
+
+% rappel, pour avoir des accents dans la biblio, il faut exporter le .bib au format "`europe centrale iso"', sinon marche pas
+
+
+%\usepackage{subfloat,psfig}
+%-----------------------------------------------------------------
+% Full title of the paper (Capitalized)
+\Title{DISCRIMINATION OF DECIDUOUS TREE SPECIES FROM TIME SERIES OF UNMANNED AERIAL SYSTEM IMAGERY}
+
+
+\Author{Jonathan Lisein $^{1,2,\star}$, Adrien Michez $^{1}$, Hugues Claessens$^{1}$ and Philippe Lejeune $^{1}$}
+
+\address{%
+$^{1}$  Laboratory of Forest Resources Management - Department of Biosytem Engineering. University of Li\`ege - Gembloux Agro-Bio Tech. 2, Passage des d\'eport\'es, 5030 Gembloux, Belgium\\
+$^{2}$ Ecole nationale des sciences g\'eographiques, 6 et 8 avenue Blaise Pascal – Cit\'e Descartes – Champs-sur-Marne – 77455 Marne la Vall\'{e}e, France \\}
+
+\corres{E-mail: jo.lisein@ulg.ac.be; Tel: +32(0)81 62 26 66, Fax: +32(0)81 62 23 01.}
+
+
+% Abstract
+\abstract{
+Technology advances can revolutionize Precision Forestry by providing accurate and fine forest information at tree level. 
+This paper addresses the question of \textit{how} and particularly \textit{when} Unmanned Aerial System (UAS) should be used in order to efficiently discriminate deciduous tree species. 
+A time series of high resolution UAS imagery was collected to cover the growing season from leaf flush to leaf fall. 
+Full benefit was taken of the temporal resolution of UAS acquisition, one of the most promising features of small drones. 
+The disparity in forest tree phenology is at the maximum during early spring and late autumn.
+But the phenology state that optimized the classification result is the one that minimizes the spectral variation within tree species groups and, at the same time, maximizes the phenologic differences between species.
+Sunlit tree crowns (5 deciduous species groups) were classified using a Random Forest approach for monotemporal, two-date and three-date combinations. 
+The end of leaf flushing was the most efficient single-date time window. 
+Multitemporal datasets definitely improve the overall classification accuracy. 
+But single-date high resolution orthophotomosaic, acquired on optimal time-windows, results in a very good overall accuracy of 84\%. 
+}
+
+% 3 to 10 keywords
+\keyword{forestry; phenology; Unmanned Aerial Systems ; UAS ; UAV; mixed broadleaved stands}
+
+% the fields PACS and MSC may be left empty or commented out if not applicable
+%\PACS{}
+%\MSC{}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+
+\subsection{Context}
+
+In the field of environmental sciences, remote sensing techniques are currently undergoing a revolution \cite{anderson_lightweight_2013}. 
+Although remote sensing data has been used for a long time to study ecological phenomena, traditional spaceborne and airborne imagery have failed to provide convenient information at a fine temporal and spatial scale \cite{anderson_lightweight_2013}. 
+Thanks to rapid technological advances, a large upsurge in the development of \textit{civil} unmanned aerial systems (UAS) has changed the story. 
+Unmanned aerial systems, also called unmanned aerial vehicles or drones, are new platforms that come in various configurations. 
+Small drones devoted to mapping purposes are versatile, cost effective and flexible. 
+They operate on users' demand and deliver very high resolution images when used with an onboard optical sensor. 
+Environmentalists have now the opportunity, at a reasonable price, to follow the development of ecological phenomena on a local scale by means of multitemporal datasets of outstanding spatial resolution.
+
+Precision Agriculture, devoted to the study of temporal and spatial variations in agricultural production, is expected to largely benefit from UAS technology \cite{hunt_acquisition_2010}. 
+Similarly, \textit{ precision forestry} can take advantage of mapping drones in order to analyze and monitor forest ecosystems on a tree-level, instead of on a stand-level \cite{drauschke_towards_2014}. 
+In forest inventory information, the forest composition is essential since tree species influence, to a large extent, numerous other forest characteristics (e.g. biomass, biodiversity, tree damage). 
+Management of mixed and uneven-aged forests could therefore particularly benefit from tree-based inventory resulting from multi-source forest inventory (combination of field inventory and remote sensing data).
+However, mapping tree species with optical imagery remains a difficult task as the spectral variation within species may be greater than between them \cite{key_comparison_2001,hill_mapping_2010, burkholder_seasonal_2011}.
+
+\subsection{Discrimination of forest species by remote sensing}
+
+
+Remote sensing is proven to be an effective approach for the tracking of phenological changes \cite{motohka_applicability_2010}. 
+Yet, no advantage has been taken of the benefits of UAS flexibility to study \textit{the timing of recurring biological events} occurring in forest ecosystems. 
+The evaluation of seasonal spectral separability among plant species has been previously studied at diverse scales (from forest stand to plant leaf). 
+Multiple platforms and sensors have been used for this purpose, from consumer-grade RGB camera to hyperspectral sensor. 
+Unfortunately, no general agreement was found to determine at best the optimal phenology time-windows for tree species discrimination. 
+Due to the operational cost of aerial hyperspectral surveys, most of the research involving such sensor types are performed with terrestrial acquisitions under laboratory conditions \cite{burkholder_seasonal_2011, masaitis_influence_2013,cole_spectral_2014}. 
+The resulting imagery differs however significantly from operational aerial images. 
+By contrast, \citeauthor{somers_multitemporal_2013} \cite{somers_multitemporal_2013} operated with a time series of 6 satellite hyperspectral data (30m GSD) to identify the most discriminant spectral wavelength for each individual phenology status. 
+Despite a lack of imagery covering all the phenological events, the automatic mapping of invasive species was proven superior for multitemporal datasets, compared to traditional monotemporal imagery.
+In addition to hyperspectral-based research, numerous studies on forest composition have been conducted on the basis of multispectral airborne and spaceborne data. 
+However, the temporal variation of species phenology was generally not taken into consideration \cite{heinzel_full_2008}. 
+For example, \citeauthor{immitzer_tree_2012} \cite{immitzer_tree_2012} used a single-date spaceborne image (acquisition date: 10 July, GSD of 50 cm for panchromatic image and of 2 m for multispectral bands) to differentiate the individual sunlit tree crowns of 10 species (5 deciduous and 5 conifers). 
+With an object-based image analysis approach, they ended up with a very promising overall classification accuracy of 82\%. 
+In addition, these authors have reviewed past research on the discrimination of temperate forest species, based on monotemporal remote sensing data. 
+The resulting classification scenarios, based on monotemporal acquisitions, are however barely comparable since species discrimination varies with the phenology stage, the species of interest, and the utilized sensor. 
+
+On the other hand, \citeauthor{hill_mapping_2010} \cite{hill_mapping_2010} used a time series of 5 multispectral Airborne Thematic Mapper images (11 bands of 2m spatial resolution) in order to classify 6 broadleaved species. 
+The class separability of temperate deciduous tree species, at the crown level, was shown to increase when using multitemporal data. 
+The optimal three-date combinations for 6 broadleaved species led to an overall classification accuracy of 84\%. 
+In this study, autumn is found to be the most efficient period to acquire monotemporal images for discrimination purposes. 
+At the forest scale, \citeauthor{zhu_accurate_2014} \cite{zhu_accurate_2014} investigated the classification of forest types (pine forest, oak forest and mixed forest) from spaceborne image time series (7 Landsat, 7 bands of 30 meters ground sample distance). 
+Their results confirm the importance of phenological information contained in multitemporal data (overall classification accuracy of 90.52\%). 
+A similar research on forest-type mapping was performed by means of satellite time series (12 MODIS images, 250 meters resolution). 
+\citeauthor{kempeneers_data_2011} \cite{kempeneers_data_2011} compared the boreal forest-type classification accuracy for each month of a year, and pointed out that the optimal acquisition window is between June and July.
+
+% With a terrestrial systems, \citeauthor{motohka_applicability_2010} have succefully tracked forest phenological changes with multiyear stand-level observations stemming from a combination of fisheye camera and hemi-spherical spectro-radiometer system set atop a tower. They aimed at testing spectral indicator of vegetation phenology, which are premiss
+
+Previous investigations on phenology change, using low aerial imagery, have remained scarce due to prohibitive operational costs. 
+The forerunner study of \citeauthor{key_comparison_2001} \cite{key_comparison_2001} examines a time series of very-high resolution aerial RGB and color infrared photographs, acquired at 9 dates across a single growing season. 
+Based on a multitemporal dataset of 36 cm spatial resolution, the classification of individual tree crowns of 4 deciduous species is investigated in order to determine the optimal acquisition timing. 
+In addition, they compared the efficiency of individual red, green, blue and infrared bands from low spectral resolution sensors. 
+As a result, the imagery of autumn colorfull foliage provided optimal monotemporal classification (overall accuracy of 76\%) and the blue band accounted the most for species separability. 
+However, the optimal two-date combination corresponds in this case to spring and midsummer. 
+
+Up to now, the use of unmanned aerial systems for precision forestry was focused on the geometric processing of image blocks, in order to deliver an orthophotomosaic and 3D information related to the canopy surface. 
+Although photogrammetry on forested area has always been a challenge, current photogrammetric techniques make it feasible to measure canopy surface height and to generate geometrically reliable orthophotomosaics, based on consumer grade overlapping UAS imagery. 
+\citeauthor{dandois_high_2013} \cite{dandois_high_2013} have therefore developed a workflow from UAS images to determine the ground elevation during leaf-off conditions, and the canopy surface elevation during leaf-on conditions. 
+The subtraction of soil elevation from the canopy surface elevation resulted in a canopy height model that is used to characterize forest maturity. 
+Canopy height models are also collected by means of a laser scanner mounted onboard a UAS \cite{jaakkola_low-cost_2010}. 
+Multitemporal laser scanning datasets thus show promising results for the measuring of biomass changes, although the high payload of laser scanning decreases dramatically the flight endurance.
+Furthermore, UAS imagery was used for classification purposes to perform the early detection of bark beetle attacks in Sitka spruce stands \cite{drauschke_towards_2014} and to discriminate tree and bush species \cite{gini_use_2014}. 
+UAS time series offer numerous opportunities for scientists and environmentalists due to both their high temporal and spatial resolution. 
+For example, \citeauthor{torres-sanchez_multitemporal_2014} \cite{torres-sanchez_multitemporal_2014} took advantage of the ease of use of a multirotor unmanned aerial vehicle to collect time series of early wheat vegetation stages. 
+An evaluation of the influence of flight altitude and phenology state on the classification accuracy (differentiation of crop and weed vegetation) was performed. 
+This study clearly illustrates the operational use of UAS in precision agriculture. 
+
+Owing their low operatial costs and high resolution, drones are measurement devices of prime interest for forest monitoring.
+Previous investigations on the changes in forest phenology still lack either an imagery covering all phenological events (temporal resolution), or the high spatial resolution required to differentiate individual trees.
+No dense time series from UAS imagery have yet been used to study the separability variation along the growing period of deciduous trees.
+Now that UAS technology is mature, the way is open for a real revolution of spatial ecology \cite{anderson_lightweight_2013}.
+%\cite{rosnell_geometric_2011} %TS of UAS imagery.
+
+\subsection{Objectives}
+
+Although the promising advances of UAS-based approaches for tree-level forest inventory, a few issues still need to be overcome. 
+First, the determination of the optimal UAS flight configuration is crucial for forested areas. 
+Numerous parameters impact the effective extraction of accurate information from UAS imagery, such as flight altitude, image overlap, resolution, and time windows during the growing season \cite{dandois_high_2013}. 
+Moreover, the underlying image processing workflow, based on photogrammetry and image classification techniques, determines the quality of the resulting high resolution thematic forest map \cite{lisein_photogrammetric_2013}.
+Our research focuses on the determination of the most efficient single-date time windows to identify deciduous tree species. 
+We collected a dense time series of UAS imagery in order to cover the different phenological states. 
+Tree crowns were manually delineated by photointerpretation, and species groups were automatically classified with their spectral response by using supervised Random Forest classifiers. 
+The comparison of classification success for the different UAS surveys makes it possible to draw general guidance regarding the appropriate time windows when UAS acquisition should be performed. 
+In addition, we investigated the efficiency of tree discrimination, based on multitemporal datasets, by comparing the classification accuracy that resulted from two-date and three-date combinations.
+ 
+Furthermore, we compared two camera systems; a normal camera (RGB camera) and a modified camera for near infra-read acquisition (denoted as CIR for Color infra-read). 
+For every UAS survey, two identical and successive flights were performed, one for each of the RGB and CIR cameras. 
+Accurate co-registration of imagery for these camera systems resulted in multispectral orthophotomosaics (blue, green, red and near infra-red bands) \cite{key_comparison_2001}. 
+Finally, we compared multispectral and multitemporal UAS imagery for the discrimination of deciduous species.
+
+
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Material and Methods}
+
+\subsection{The study site}
+
+The study area is a 130 ha broadleaved forest, located in the municipality of Grand-Leez, Belgium. 
+Stands are mixed and uneven-aged (originating from a coppice). 
+The main species is English oak(\textit{Quercus petraea} Matt. Liebl.), in mixture with a procession of broadleaved species. 
+The forest habitat conforms to the Atlantic oakwoods, and the soil material is loessal silt loams. 
+Although most of the forest is predominantly broadleaved stands, a few coniferous trees are scattered in bunches (spruce -\textit{Picea Abies} L. Karst.-, douglas-fir -\textit{Pseudotsuga Menziesii} Mirb. Franco- and larches, \textit{Larix kaempferi} Lamb. Carrière and \textit{Larix decidua} Mill).
+
+UAS operations over the forest estate of Grand-Leez were authorized by the Belgian Civil Aviation Authority. 
+Ground operations (flight preparation, take-off, and landing) took place on a microlight airfield next to the study area. 
+As the airfield and the Grand-Leez forest are located near the faculty of Gembloux Agro-Bio Tech, the study area was also devoted to the training of remote pilots. 
+
+%habitat: classification européenne corine; chênaie atlantique, sol milieu: sol limon loessique.
+
+\subsection{Unmanned Aerial System survey}
+
+\subsubsection{Description of the UAS and sensors}
+
+The Gatewing X100 small UAS (\url{www.gatewing.com}) (wingspan: 100 cm, weight: 2.2 kg, cruise speed: 80 km/h, flight height: from 100 m to 750 m, maximum flight duration: 40 minutes, catapult launch and belly landing) is a professional fixed wing UAS dedicated to rapid mapping, and able to cover a relatively large area in a single flight. 
+The flight plans (working area size and location, image overlap, flight altitude, location of take-off and landing points, wind and landing directions) are prepared on the field, prior to the aerial survey, by using a rugged tablet computer (the Ground Control Station). 
+Flights are fully automatic from takeoff to landing and complete stop, although the remote pilot has the possibility to intervene on the flight path whenever there is a risk of accident. 
+The small UAS payload is a compact camera from Ricoh (GR2, GR3 or GR4 still camera - 10 megapixel Charged Coupled Device, 6 mm focal length or 28 mm in 35 mm equivalent focal length). 
+We used five different cameras for the 20 flight surveys acquired for the time series. 
+All cameras have similiar specifications and are consumer-grade from Ricoh, from the GR2 to the GR4 models. 
+Only two cameras were adapted for near-infrared acquisition by removing the internal hot-mirror filter and adding a blue-light-blocking filter (i.e. a yellow long pass filter) \citep{aber_small-format_2010}. 
+Shutter speed and camera sensor sensitivity (ISO) are manually selected according to luminosity.
+
+
+\subsubsection{The aerial surveys}
+
+\paragraph{Plan of acquisition dates}
+
+Datasets of multitemporal UAS images were acquired for the study area from spring 2011 to autumn 2014. 
+Special attention was given to capture images at each phenology phase. 
+In particular, two temporal windows were considered essential owing the disparity in forest tree phenology: the start and the end of the growing season (early spring and mid-autumn) \cite{hill_mapping_2010, key_comparison_2001}. 
+Ten acquisition dates covered the period of active growth, from April to November. 
+We performed 2 successive flights for each survey date; one flight with the normal camera, and one flight with the modified camera for near infra-red acquisition. 
+The multitemporal dataset resulted in 20 flights acquired during 10 acquisition dates: 3 surveys were performed in spring, 3 in summer and 4 in autumn. 
+We collected a total of 10058 raw images for the present study over a period of 3 years and a half. 
+Surveys of the time series are numbered and described on table \ref{tab:TS}.
+For the sake of clarity, the surveys are ordered by day and month of acquisition, without taking the year into account. 
+The aerial surveys cover the three seasons of active growth, i.e spring, summer and autumn. 
+Previous investigations have shown that UAS image blocks of leaf-off trees are difficult to handle with photogrammetric processing, in particular because of the lack of identifiable feature points on the images. 
+Flights were therefore performed under leaf-on conditions, except in the case of surveys 1 and 10 for which a significant number of trees are leaf-off.
+We carried out the surveys during meteorological conditions that were favorable for both the UAS flight and the image acquisition.
+The inter-annual variation in phenology onset was taken into account by characterizing the acquisition dates as Growing Degree Days (GDD, base temperature of 10$^{\circ}$C). 
+Data from a meteorological station located not far from the study site (5km away) was analyzed to depict the inter-annual variation of climate. 
+Hence, we noticed that the trend in temperature evolution was well pronounced from year 2011 to 2014: in 2011, the weather was warmer than the average and got gradually more temperate over the 3 following years. 
+In addition, spring of 2013 and 2014 started late and the climate remained cold during the entire growing season. 
+The information on heat accumulation is particularly important to differentiate the surveys number 1 and 2, as both occurred on the 27th of April but during a different year. 
+Such trends highlight that the growing period of year 2011 started earlier than in 2012 (the GDD varied by twice). 
+Moreover, the inter-annual variation is emphasized by the small differences of GDD between surveys 2 and 3, eventhough survey 2 took place at the end of April and survey 3 at the end of May. 
+Finally, although survey number 9 (2012) is featured by a larger amount of growing degree days than survey number 10 (2013), a visual inspection confirmed that survey 10 occured later in the leaf-coloring and leaf-fall event, since a greater number of leaf-off trees were observed.
+
+
+\begin{table}[htbp]
+  \centering
+   \caption{Characteristics of the 20 image blocks composing the time series of UAS imagery. 
+2 successive flights were performed for all 10 acquisition dates; one flight was performed with a visible camera, and one flight was performed with a modified camera for near infra-red acquisition (respectively denoted as RGB and CIR camera). 
+The minimum and maximum altitude, GSD, and the number of images, are emphasized in red and green. 
+$\star$ Growing Degree Days. 
+$\star\star$ Ground Sample Distance [$cm/pixel$].}
+  \resizebox{\linewidth}{!}{
+    \begin{tabular}{rrrrrrrrrrr}
+     \hline
+   Survey ID    & Date  & Season & GDD$\star$  &   & Camera & Altitude $[m]$ & GSD $\star\star$  & Overlap $[\%]$ & Images & Luminosity  \\
+	& & 				&			&					&				&					&								&					&					&		changes \\
+     \hline
+     \multirow{2}{*}{1}     & \multicolumn{1}{c}{\multirow{2}[0]{*}{2012-04-27}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{spring}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{64}} & \multirow{2}{*}{\Large{$\{$}}& RGB   & 225   & 7,6   & 77    & 557   & Yes \\
+         & 		& 	 & 	&	& CIR   & 250   & 8,4   &   80    & 574   & Yes \\
+ \multirow{2}{*}{2}        & \multicolumn{1}{c}{\multirow{2}[0]{*}{2011-04-27}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{spring}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{178}} &\multirow{2}{*}{\Large{$\{$}} & RGB   & \textcolor{red}{150}   & \textcolor{red}{5}     & 75    & 641   &  \\
+				&      &  &	&  & CIR   & \textcolor{red}{150}   & \textcolor{red}{5}     & 75    & 551   & Yes \\
+\multirow{2}{*}{3}      & \multicolumn{1}{c}{\multirow{2}[0]{*}{2013-05-28}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{spring}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{183}} &\multirow{2}{*}{\Large{$\{$}} & RGB   & 249   & 8,4   & 80    & 481   &  \\
+		&    &  &  &  & CIR   & 249   & 8,4   & 80    & 481   &  \\
+ \multirow{2}{*}{4}      & \multicolumn{1}{c}{\multirow{2}[0]{*}{2012-06-05}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{summer}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{305}} &\multirow{2}{*}{\Large{$\{$}} & RGB   & 250   & 8,4   & 80    & 635   & Yes \\
+   &    &  & &  & CIR   & 250   & 8,4   & 80    & \textcolor{green}{661}   &  \\
+  \multirow{2}{*}{5}     & \multicolumn{1}{c}{\multirow{2}[0]{*}{2013-07-08}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{summer}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{491}} & \multirow{2}{*}{\Large{$\{$}}  & RGB   & \textcolor{green}{350}   & \textcolor{green}{11,8}  & 80    & 320   &  \\
+ &    &  &  &  & CIR   & \textcolor{green}{350}   & \textcolor{green}{11,8}  & 80    & 319   &  \\
+ \multirow{2}{*}{6}   & \multicolumn{1}{c}{\multirow{2}[0]{*}{2014-08-21}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{summer}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{732}} &  \multirow{2}{*}{\Large{$\{$}}   & RGB   & 225   & 7,6   & 80    & 552   &  \\
+ &   &   &  &  & CIR   & 225   & 7,6   & 80    & 552   & Yes \\
+ \multirow{2}{*}{7}     & \multicolumn{1}{c}{\multirow{2}[0]{*}{2014-09-18}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{autumn}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{897}} & \multirow{2}{*}{\Large{$\{$}} & RGB   & 225   & 7,6   & 80    &    367   &  Yes \\
+ &  &    &  &  & CIR   & 225   & 7,6   & 80    &   \textcolor{red}{172}    &   \\
+\multirow{2}{*}{8}    & \multicolumn{1}{c}{\multirow{2}[0]{*}{2013-10-01}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{autumn}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{1085}} & \multirow{2}{*}{\Large{$\{$}} & RGB   & 250   & 8,4   & 80    & 473   &  \\
+ &   &   &  &  & CIR   & 250   & 8,4   & 80    & 473   & Yes \\
+\multirow{2}{*}{9}    & \multicolumn{1}{c}{\multirow{2}[0]{*}{2012-10-22}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{autumn}} &  \multicolumn{1}{c}{\multirow{2}[0]{*}{1409}} &  \multirow{2}{*}{\Large{$\{$}} & RGB   & 225   & 7,6   & 75    & 561   &  \\
+ &   &   &  &  & CIR   & 225   & 7,6   & 75    & 560   &  \\
+\multirow{2}{*}{10}     & \multicolumn{1}{c}{\multirow{2}[0]{*}{2013-11-15}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{autumn}} & \multicolumn{1}{c}{\multirow{2}[0]{*}{1169}} & \multirow{2}{*}{\Large{$\{$}} & RGB   & 225   & 7,6   & 80    & 564   & Yes \\
+ &  &   &  &  & CIR   & 225   & 7,6   & 80    & 564   &  \\
+     \hline
+    \end{tabular}}
+  \label{tab:TS}
+\end{table}
+
+\paragraph{Georeferencing}
+
+To perform an accurate georeferencing of the entire time series, we placed 7 Ground Control Points (GCPs) around the forest prior to survey number 5. 
+The GCPs were materialized by white panels of 50x50cm, supplemented with 4 white strips of 80 cm long on their corners. 
+The coordinates of the GCPs were collected using a Leica GPS1200 GPS in static RTK mode (nominal accuracy of 1 cm in planimetry and 1.5 cm in altimetry) under the Belgian Lambert 1972 projection system.
+
+\paragraph{Dissimilarities between image blocks}
+
+Image blocks of the time series show some notable dissimilarities. 
+First, as shown on table \ref{tab:TS}, the flight configuration varied. 
+More specifically, the flight altitude, which is defined as the altitude above ground level at the take-off location, ranged from 150 to 350 meters. 
+The flight altitude directly impacts the image resolution, the image footprint, and the number of images required to cover the study area at a given image overlap. 
+The choice of the optimal altitude for this survey is thus a trade-off between the resolution and the maximum size of the area scanned during a single flight. 
+The lower the flight altitude, the higher the image resolution and the smaller the scanned area.
+We considered a flight altitude of 225 meters as optimal via a trial-and-error procedure, taking into account both the study requirements and the size of the forest.
+Such altitude allows indeed to cover the entire forest in one flight and insures a suitable resolution all at once.
+In addition, the image footprint was large enough to capture hundreds of tree crowns. 
+The number of objects on an image was thus sufficient to extract the numerous feature points that are at the basis of the entire photogrammetic workflow. 
+Conversely, tie point computation on forest images often failed when using the Gatewing X100 at an altitude of 100 meters. 
+Such failure lasted as long as the image overlap stayed below 80\%, as the distortion due to the relief displacement of the canopy was much more important. 
+The scanning area was defined on the field by drawing freehand the scanning zone on a Google earth map. 
+The survey area thus varied between aerial surveys since the operator did not always define exactly the same scanning zone. 
+The complete study area was however always photographed. 
+The number of images of survey 7-CIR was abnormally low regarding the flight altitude and overlap, due to the malfunctioning of the triggering cable which prevented image shooting at the beginning of the flight. 
+Moreover, changes in luminosity conditions between the different surveys, and between successive flight lines, result in dataset heterogeneity. 
+The image quality of some flights was affected as well by the presence of large shadows casted by trees, even though special attention was given to fly either under cloudy conditions or under solar noon. 
+Still, changes in tree phenology are more responsible than flight configuration, camera type, and luminosity conditions, for the differences between images from various acquisition dates (figure \ref{fig:TS_RawIm}).
+
+\begin{figure}
+\captionsetup[subfigure]{labelformat=empty}
+\centering
+\subfloat[][Spring - Altitude 225 m]{\includegraphics[width=0.32\linewidth]{R0027972.JPG}\label{fig:im1}}\hspace{0.01mm}
+\subfloat[][Summer - Altitude 350 m]{\includegraphics[width=0.32\linewidth]{R0017516.JPG}\label{fig:im2}}\hspace{0.01mm}
+\subfloat[][Autumn - Altitude 225 m]{\includegraphics[width=0.32\linewidth]{R0029132.JPG}\label{fig:im3}}\hspace{0.01mm}
+\caption{Individual aerial RGB images of a forest opening from survey 1 (spring), 5 (summer) and 10 (autumn).}
+\label{fig:TS_RawIm}
+\end{figure}
+
+\subsubsection{The photogrammetric workflow}
+
+The 20 image blocks are processed using \textit{Structure from Motion} and photogrammetric techniques, in order to deliver 20 georeferenced orthophotomosaics at a resolution of 20 cm/pixel. 
+%The following paragraphs give an overview of the photogrammetric processing chain. 
+Modern aerial photogrammetry starts from an unordered overlapping collection of images, and results in a fine 3D model and a orthophomosaic \citep{dandois_high_2013}. 
+The four processing steps, depicted on figure \ref{fig:workflow}, have recently been implemented efficiently in a large number of software. 
+First, the generation of tie points is subject to an extraction of feature points for each individual image, with a subsequent comparison of image features for overlapping image pairs. 
+When image features, such as tree crowns or road corners, are detected on two images, they are then considered as tie points (illustrated by red and blue dots on figure \ref{fig:workflow}). 
+Overlapping image pairs are determined using the embedded drone GPS by associating an image with all its neighboring images. 
+Secondly, the orientation of the image blocks (i.e. pose and calibration of the camera) is recovered by aerotriangulation of the tie points, using a Bundle Block Adjustment (BBA) algorithm \cite{triggs_bundle_2000}. 
+Even though the compact cameras used in this study were precalibrated in the laboratory, the internal parameters are still refined during the bundle block adjustment (self-calibrating BBA). 
+Indeed, the sensors are geometrically unstable due to both their low quality \cite{labe_geometric_2004} and the repetitive shocks caused by UAS belly landing.
+
+\begin{figure}
+\centering
+\captionsetup[subfigure]{labelformat=empty}
+\subfloat[][1. Tie points generation]{\includegraphics[width=0.3\linewidth]{tpa.png}\hspace{3mm}\includegraphics[width=0.3\linewidth]{tpb.png}}\hspace{0.01mm}\\
+\subfloat[][2. Aerotriangulation]{\includegraphics[width=0.32\linewidth]{aeroGCP.png}}\hspace{0.01mm}
+\subfloat[][3. Dense matching]{\includegraphics[width=0.32\linewidth]{densecor.png}}\hspace{0.01mm}
+\subfloat[][4. Orthorectification]{\includegraphics[width=0.29\linewidth]{OrthoGraphic1.jpg}}\hspace{0.01mm}
+\caption{Photogrammetric workflow.}
+\label{fig:workflow}
+\end{figure}
+
+Thereafter, the camera orientations are used to match small pixel windows, thus delivering a fine and dense 3D model of the canopy surface. 
+The dense matching is performed for each successive pair of images, and the resulting stereo-derived depth maps are merged to form a digital surface model over the whole scanned area. 
+Such model is a faithful representation of the relief and is used in the fourth processing step which consists in image orthorectification and mosaicking. 
+The orthorectification procedure removes the geometric distortions caused by image perspective, relief displacement, and lens distortions. 
+Finally, the orthophotomosaic resulting from true orthorectification is suitable for mapping purposes.
+
+The use of photogrammetric algorithms in vegetation areas is quite challenging, due to the numerous vegetation characteristics that hinder image matching: omissions, repetitive texture, and multi-layered and moving objects such as leaves or tree branches \cite{baltsavias_high-quality_2008}. 
+Regarding the generation of tie points, there is a clear lack of feature points from the repetitive texture of tree crowns. 
+Leaf-off conditions or a low image overlap obviously amplified such lack of tie points. 
+A preliminary test showed that these issues have an all the more negative impact if the UAS flies at a low altitude, due to a decrease in the image footprint and, consequently, a decrease in the number of objects on the photograph. 
+In addition, the abrupt vertical changes occurring between tree crowns caused multiple omissions that hinder the dense-matching process. 
+Errors on the Digital Surface Model used for orthorectification have a direct impact on the accuracy of the estimated pixel location \cite{kempeneers_geometric_2013}. The importance of an accurate canopy surface modelization is thus primordial. 
+Hence, we adjusted the dense matching strategy in order to produce an adequate model of the canopy surface. 
+For this purpose, we used the open source toolbox {\tt MICMAC} \cite{pierrot-deseilligny_multiresolution_2006} (software revision 1692). 
+We refer the readers to the research of \citeauthor{lisein_photogrammetric_2013} \cite{lisein_photogrammetric_2013} for additional details on the computation of digital surface model from UAS imagery. 
+All the remaining processing steps (i.e. processing 1, 2 and 4 of figure \ref{fig:workflow}) are handled with the commercial software Photoscan Professional version 1.0.1 (Agisoft LLC, St. Petersburg, Russia). 
+
+Dense matching was performed in image geometry solely for the image block 5-RGB with the {\tt MICMAC} tools {\tt MMByP}. 
+The resulting Digital Surface Model was used for the orthorectification process of all the other surveys. 
+The selection of the image block 5-RGB for the DSM generation is based on the fact that ground control points are only present during one acquisition date (survey 5). 
+The photogrammetric canopy surface model is generated at a 1:2 initial resolution (GSD of 22 cm).
+
+All the other flights, which did not dispose of GCPs for accurate georeferencing, were co-registered with flight 5-RGB. 
+Flight co-registration is achieved by determining the tie points between the images of one flight and the images of the {\it master} image block. 
+Image blocks are thus linked with flight 5-RGB through tie points which were mainly located on permanent structures such as roads and houses at the edge of the forest. 
+Aerotriangulation was also performed on images from different surveys, and the resulting image orientation was georeferenced using the GCPs of the {\it master} image block (5-RGB). 
+Such process ensures a good georeferencing and an accurate co-registration between the flights. 
+Aerotriangulation also takes advantage of the available photogrammetric tools, namely the automatic generation of tie points. 
+Apart for georeferencing, we also used GCPs to achieve constrained bundle block adjustment which supports both tie point and GCPs observations\footnote{the \texttt{optimize} tool of Photoscan}, in order to remove non-linear distortions that may otherwise taint the photogrammetric models \citep{wu_critical_2014}. 
+The georeferencing quality was evaluated for flight 5-RGB by means of the GCPs residuals. 
+For this purpose, GCPs were used one after the other as check points in a leave-one-out approach: 7 additional aerotriangulations, with both tie points and GCPs, were performed in order to obtain a robust measurement quality of the georeferencing. 
+The root-mean-square error of each check point location was then averaged to deliver a global estimation of georeferencing success.
+
+Photoscan parameters were set as followed: maximum 20 000 feature points per image, medium alignment quality, marker accuracy of 0.001 meter, projection accuracy of 0.1 pixel, tie point accuracy of 4 pixels, and mosaic mode for mosaicking. 
+Prior to orthorectification and mosaicking, we manually discarded the images showing a high degree of luminosity change compared to the rest of the image block. 
+Finally, in the case of very low cloud ceiling (e.g. survey 10), a few images were affected by haze when the UAS went through a cloud. 
+Such images were also discarded before orthophotomosaic computation.
+
+\subsection{Field inventory and species phenology}
+
+To evaluate the efficiency of UAS imagery for the automatic discrimination of trees, we selected five categories of the predominant forest species: English oak, birches (\textit{Betula pendula} Roth. and \textit{Betula pubescens} Ehrh.), sycamore maple (\textit{Acer pseudoplatanus} L.), common ash (\textit{Fraxinus excelsior} L.) and poplars (two distinct varieties of cultivated \textit{Populus} spp.). 
+The two birch species, silver birch and European white birch, were gathered in the same category due to their phenological similarities. 
+On the other hand, the poplar varieties were brought together as they were difficult to differentiate during field inventory. 
+
+The field inventory focuses on mature overstory trees which were clearly identifiable on the time series. 
+We first located, and discarded from the orthophotomosaics, every zone of clearcut and thinning that occurred during the acquisition of the time series. 
+Similarly, we discarded the area on the forest edge that was not visible on every orthophotomosaic. 
+The resulting study area of 80 ha was completely covered by the multitemporal dataset. 
+Subsequently, in order to achieve photointerpretation on the field, the orthophotomosaics of the time series were loaded on a rugged tablet computer with internal GPS (a Yuma Trimble\textsuperscript{\textregistered}). 
+Species identification and manual crown delineation on the time series were therefore performed on the field with the mobile field mapping software ArcPad 8.0. 
+Professional photointerpreters thus had the opportunity to zoom in and out on the different high resolution orthophotomosaics that were centered on their current location on the field, thereby facilitating the process of matching trees visible from the ground with their respective tree crowns. 
+Survey operations were carried out in spring 2014.
+Attention was paid to balance at best the tree sampling for each species and to evenly distribute tree monitoring over the whole study area. 
+The selection of inventoried trees follows two methods: on the one hand, crowns of easily identifiable trees, visible on the time series, are located on the field. 
+Subsequently, species are identified and ree crowns are delineated. 
+On the other hand, trees noticed from the ground, and with well expanded crowns, are then located and delineated on the time series. 
+
+In the case of dense multi-storied stands, the task for an operator to locate a tree crown on a map by referring to the field observations is both very tedious and error-prone. 
+A few errors in the tree crown database were therefore suspected. 
+We therefore implemented an iterative process in order to check the potential outlier crowns. 
+A first classification model was computed and an outlier measurement was attributed to each observation. 
+The tree crown with the higher outlier measurement was once more checked on the field. 
+Such procedure highlighted a few misclassified tree crowns by the field operator.
+
+In total, the discrimination of species, and the identification and delineation of tree crowns, were achieved for 577 trees of the 5 different categories: 72 birches, 186 English oaks, 142 sycamore maples, 196 common ashes and 81 poplars.
+
+The benefits of such time series for species classification are based on the capacity to differentiate tree categories through the spectral and phenological differences between English oak, birches, maple, ash and poplars trees. 
+Subtle differences in the timing of recurring biological events may be of crucial importance. 
+Such differences can occur, for instance, in the order of leafing, flowering and fruiting, or the foliage coloring and senescence. 
+The tree phenology varies according to numerous interacting factors, including the ecological conditions, the micro-climate or the vigor status of the tree.
+The main phenological characteristics of each tree category are reviewed in this paragraph. 
+English oaks at the study site are old and always dominant ($>$100 years), with well expanded tree crowns.
+A small number of oak individuals showed however some signs of bad health. 
+Ashe trees have a late leaf flushing and an early leaf senescence, in comparison to the other tree categories. 
+Moreover, some ash trees are affected by the pathogen \textit{Chalara fraxinea} \cite{husson_chalara_2011} and therefore show partial crown defoliation during the growing season. 
+Maples and English oaks have a similar timing of vegetation growth, with the onset in May and the senescence in October. 
+However, the English oaks tend to maintain their foliage longer, until November. 
+On the other hand, Birches mainly have small tree crowns and a long growing season (leafing as early as March, and late foliage senescence). 
+The two varieties of poplar present two different phenology patterns since the onset of leaf flushing and leaf fall differs. 
+In addition, one of the poplar varieties has a shorter growing period.
+Finally, the timing of phenological events is well synchronized for poplars, compared to the other species, as the cloned cultivars of each variety share the same genotype.
+
+% Peupliers : 2 cultivars car cultivés.
+% bouleau ; proximité phénologique. genus; pas un sous genre - arnaud monty - fleur bleue - 
+% chêne pedonculé. car reboisé apres déboisement 1850 tentative de mise en agriculture mais trop humide.
+% Acer pseudoplatanus uniquement. acer plane rouge automne/septembe + jaune , floraison jaune très abondante (co meriser).
+
+\subsection{Classification of tree species using Random Forest}
+
+\subsubsection{Computation of metrics}
+
+Object-based image analysis was used for the classification surveys of this research \cite{blaschke_object_2010}. 
+This method was indeed proven superior to pixel-based approaches for very-high spatial resolution. 
+The objects conform to the entire and individual tree crowns which were manually delineated. 
+The spectral response is summarized at the scale of individual tree crowns by computing descriptive statistics from the orthophotomosaics, and denoted as \textit{metrics}. 
+The mean, standard deviation, band ratios and normalized index (one band value over the sum of all the 3 bands) are extracted using the [R] statistical software (version 3.1.0) with the package {\tt raster} \cite{etten_raster:_2014}. 
+For false color orthophotomosaics, Green Normalized Difference Vegetation Index (GNDVI), Normalized Difference Vegetation Index and Normalized Green-Red Vegetation Index were computed \cite{sripada_aerial_2006,motohka_applicability_2010}. 
+Normalized Green-Red Vegetation Index, Normalized Green-Blue Index and Normalized Red-Blue Index were generated from RGB orthophotomosaics. 
+In addition, texture metrics from gray-level co-occurrence matrices were computed by means of the \textit{glcm} package (variance, homogeneity, contrast, dissimilarity, entropy, second moment and correlation).
+
+Prior to the computation of a spectral index on crown areas, we narrowed the crown polygons with a negative buffer of 50 cm in order to remove at best the crown parts which were on the crown border. 
+The spectral transmittance of the crown edge is indeed a mixture of different trees, due to the overlap of understory and overstory vegetation. 
+In addition, the crown edge is mostly affected by shadows and by misregistration errors of the different orthophotomosaics.
+Only the sunlit parts of the crowns are kept for the metrics computation, as shadows impact negatively the crown spectral response \cite{immitzer_tree_2012,heinzel_full_2008}. 
+In this study, we therefore used pixel relative intensity to remove the shadowed areas.
+Relative intensity was computed as a normalized value of pixel intensity (intensity is the sum of all the three bands), ranging from 0 to 100.
+We finally identified and discarded the darkest pixel values, considered as shadowed parts, when their relative intensity was below 20\%. 
+
+
+\subsubsection{Random Forest classification}
+
+Random Forest (RF) is a supervised and non-parametric method of classification that is widely used in the field of remote sensing (for example \cite{stumpf_object-oriented_2011,burkholder_seasonal_2011,immitzer_tree_2012, zhu_continuous_2014}). 
+In particular, the RF method has proven its efficiency in managing high dimensional problems \cite{genuer_variable_2010} (small number of observations but high number of explanatory variables). 
+RF consists in a collection of decision trees. 
+The individual classification trees are trained on a bootstrap sample of observations by randomly selecting a subset of explanatory variables (Random-Input) at each node. 
+Such random trees are subsequently aggregated together in a Random Forest (process referred to as bagging, for \textit{\textbf{b}ootstrap \textbf{agg}regat\textbf{ing}}). 
+The bagging of decision trees has the advantage of stabilizing the relation between the exploratory variables and the dependent variable. 
+Furthermore, aggregation of a few RFs together generally results in a stable response of the out of bag error. 
+Out of bag error is a prediction error estimate, based on the out of bag sample. Such sample corresponds to a set of observations which are not used to build the current individual decision trees \cite{genuer_variable_2010}. 
+This cross-validation estimation is used in this work as an indication of the classification quality, since we focused on model comparison and not on model validation. 
+The package {\tt randomForest} \cite{liaw_classification_2002}, implemented in the [R] statistical software, is used in this study. 
+In order to avoid class-imbalance problems, the sampling of observations is performed prior to every RF to obtain 50 tree crowns for each category of species. 
+
+We addressed the question of the optimal single-date on which the five categories of species are spectrally most separable. 
+We therefore performed a classification scenario at each aerial survey (one survey is made up of two flights, one RGB flight and one CIR flight). 
+A number of 20 RFs (500 decision trees) were generated at every acquisition date.
+The resulting 20 misclassification out of bag errors (OOB) were averaged for each classification scenario. 
+Moreover, two additional investigations were realized. 
+First, we compared the performance of the RGB camera and CIR camera by undertaking classification scenario solely on the basis of individual flight metrics. 
+Secondly, the added value of multitemporal data in species discrimination was evaluated by classifying tree crowns via survey pairs and trios.
+The 5 most efficient two-date and three-date combinations are compared and discussed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+
+\subsection{The time series of orthophotomosaics}
+
+Generation of the time series resulted in a co-registered collection of 10 RGB orthophotomosaics and 10 CIR orthophotomosaics. 
+A visual inspection confirmed that the georeferencing is consistent for every image block. 
+The time series is illustrated on figure \ref{fig:TS_zoomin}, with superimposed tree crowns colored by species category. 
+Orthophotomosaics of survey 5 and 9 appear locally less sharp than on the other surveys. 
+For survey 5 in particular, such difference is probably due to the higher flight altitude of the survey, resulting in a lower spatial resolution.
+Owing to the windy condition during the flight, raw images of survey 9 were affected by a smearing effect (motion blur) more pronounced than the other image block.
+As visible on figure \ref{fig:TS_zoomin}, the presence of shadows on RGB orthophotomosaics of surveys 3, 6, 8 and 9 prevents the correct visualization of understory trees and forest gaps.
+
+The most striking difference between the orthophotomosaics is the spectral variation among the images of a single block, caused by the rapid changes of luminosity conditions during a flight \cite{honkavaara_digital_2009}. 
+Orthophotomosaics affected by such issues are marked on table \ref{tab:TS}, and consist of 8 image blocks out of the total 20 image blocks. 
+The spectral information of a given species varies across the study area. 
+As a consequence, the automatic classification of tree species is expected to show weak performances when luminosity conditions change across a single orthophotomosaic.
+
+Although the image blocks are distinct in terms of flight configuration, the photogrammetric workflow removes a major part of the heterogeneity among the surveys. 
+The resolution is the same for each orthophotomosaic of the time series and the georeferencing satisfactory. 
+For flight 5-RGB, the root-mean-square error of residuals on the check point positions is 0.10 meters in altimetry, and 0.35 meters in planimetry. %0.102 meters in altimetry and 0.349 meters
+In addition, we used the same digital elevation model for the orthorectification process of all image blocks, and the resulting orthophotomosaics appear error free and present a good level of sharpness.  
+Hence, co-registration of all the surveys was a success. 
+
+\begin{figure}[H]
+\centering
+\captionsetup[subfigure]{labelformat=empty,singlelinecheck=true,margin=0pt, parskip=0pt,
+hangindent=0pt, indention=0pt}
+\subfloat[][Survey 1]{\includegraphics[width=0.36\linewidth]{ts1.png}}\hspace{5mm}
+\subfloat[][Survey 2]{\includegraphics[width=0.36\linewidth]{ts3.png}}\hspace{0.05mm}
+\subfloat[][Survey 3]{\includegraphics[width=0.36\linewidth]{ts5.png}}\hspace{5mm}
+\subfloat[][Survey 4]{\includegraphics[width=0.36\linewidth]{ts7.png}}\hspace{0.05mm}
+\subfloat[][Survey 5]{\includegraphics[width=0.36\linewidth]{ts9.png}}\hspace{5mm}
+\subfloat[][Survey 6]{\includegraphics[width=0.36\linewidth]{ts11.png}}\hspace{0.05mm}
+\caption{ Part 1 of 2. Zoom-in overview of the time series of high resolution forested orthophotomosaics (20cm GSD). The 10 RGB orthophotomosaics are illustrated. Delineated trees are colored by species; English oak: green - poplars : orange - sycamore maple : blue - common ash : white - birches : purple.}
+\label{fig:TS_zoomin}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\captionsetup[subfigure]{labelformat=empty,singlelinecheck=true,margin=0pt, parskip=0pt,
+hangindent=0pt, indention=0pt}
+\ContinuedFloat 
+\subfloat[][Survey 7]{\includegraphics[width=0.36\linewidth]{ts13.png}}\hspace{5mm}
+\subfloat[][Survey 8]{\includegraphics[width=0.36\linewidth]{ts15.png}}\hspace{0.05mm}
+\subfloat[][Survey 9]{\includegraphics[width=0.36\linewidth]{ts17.png}}\hspace{5mm}
+\subfloat[][Survey 10]{\includegraphics[width=0.36\linewidth]{ts19.png}}\hspace{0.05mm}
+\caption{Part 2 of 2. Zoom-in overview of the time series of high resolution forested orthophotomosaics (20cm GSD). The 10 RGB orthophotomosaics are illustrated. Delineated trees are colored by species; English oak: green - poplars : orange - sycamore maple : blue - common ash : white - birches : purple.}
+\label{fig:TS_zoomin}
+\end{figure}
+
+\subsection{Classification of tree species}
+
+The classification results for monotemporal surveys, and for a single camera flight, reveal a strong trend (table \ref{tab:OOB_TS}). 
+Monotemporal acquisitions enable a good discrimination of tree species, with an OOB error ranging from 15.9\% to 36.0\% across the diverse vegetation periods. 
+The best surveys are shown to be the survey 3, 4 and 2, which were all achieved at the end of the leaf-flushing event. 
+Accordingly, spring and early summer are highlighted as the optimal time windows for the discrimination of broadleaved trees. 
+On the other hand, surveys realized after June do not reach an out of bag error below 30\%. 
+
+Comparison of RGB and CIR camera efficiency to discriminate species clearly shows that the RGB camera outperforms the CIR camera. 
+Even though the differences in classification accuracy varies a lot across the time series, the CIR orthophotomosaics always presents an overall out of bag error which exceeds the performances of the RGB orthophotomosaics by 14\% in average.
+The average gain of a combined use of RGB and CIR orthophotomosaics accounts only for 4\%, over the use of RGB orthophotomosaics alone.
+
+\begin{table}
+  \centering
+  \caption{Classification error for each flight and for each survey (combination of CIR and RGB flights). Surveys in spring and early summer gave the best results and the RGB camera clearly outperforms the color infra-red camera.}
+	\resizebox{0.8\linewidth}{!}{
+	\renewcommand{\arraystretch}{0.7}
+    \begin{tabular}{rrr|lrrrrrr}
+    \hline
+      \multicolumn{1}{c}{\multirow{2}{*}{Survey}} & \multirow{2}{*}{Date} & \multicolumn{1}{c}{\multirow{2}{*}{Camera}} & \multicolumn{6}{c}{Out of bag error [$\%$]}                       & \\
+    \multicolumn{1}{c}{} &       & \multicolumn{1}{c}{} & overall & birches & English oak  & sycamore maple & common ash   & poplars \\
+		 \hline
+   \multirow{3}{*}{1}     & \multirow{3}{*}{2012-04-27} & RGB   & 33.8  &       &       &       &       &  \\
+         &       & CIR   & 39.3  &       &       &       &       &  \\
+       &       & RGB+CIR & 26.7  & 12    & 27    & 63    & 28    & \textcolor{red}{5} \\
+		 \hline
+    \multirow{3}{*}{2}     & \multirow{3}{*}{2011-04-27} & RGB   & 29.4  &       &       &       &       &  \\
+         &       & CIR   & 32.3  &       &       &       &       &  \\
+       &       & RGB+CIR & \textcolor{red}{23.4}  & 10    & 35    & 30    & 32    & 10 \\
+		 \hline
+    \multirow{3}{*}{3}     & \multirow{3}{*}{2013-05-28} & RGB   & 17.8  &       &       &       &       &  \\
+         &       & CIR   & 38.4  &       &       &       &       &  \\
+       &       & RGB+CIR & \textcolor{red}{15.9}    & \textcolor{red}{6}     & \textcolor{red}{13}    & \textcolor{red}{25}    & 29    & \textcolor{red}{5} \\
+		 \hline
+    \multirow{3}{*}{4}    & \multirow{3}{*}{2012-06-05} & RGB   & 22.1  &       &       &       &       &  \\
+         &       & CIR   & 40.6    &       &       &       &       &  \\
+       &       & RGB+CIR & \textcolor{red}{18.1}  & 11    & 25    & 28    & \textcolor{red}{17}    & 10 \\
+		 \hline
+    \multirow{3}{*}{5}    & \multirow{3}{*}{2013-07-08} & RGB   & 31.3  &       &       &       &       &  \\
+       &       & CIR   & 51.4  &       &       &       &       &  \\
+      &       & RGB+CIR & 30.1  & 23    & 32    & 31    & 38    & 28 \\
+		 \hline
+    \multirow{3}{*}{6}    & \multirow{3}{*}{2014-08-21} & RGB   & 34.8  &       &       &       &       &  \\
+        &       & CIR   & 61.5  &       &       &       &       &  \\
+     &       & RGB+CIR & 34.8    & 18    & 50    & 48    & 44    & 15 \\
+		 \hline
+    \multirow{3}{*}{7}    & \multirow{3}{*}{2014-09-18} & RGB   &   38.9    &       &       &       &       &  \\
+       &       & CIR   &   47.5    &       &       &       &       &  \\
+     &       & RGB+CIR &   33.6    &  15     &  34     &   57    &   53    & 10 \\
+		 \hline
+    \multirow{3}{*}{8}    & \multirow{3}{*}{2013-10-01} & RGB   & 32.7    &       &       &       &       &  \\
+        &       & CIR   & 53.7  &       &       &       &       &  \\
+     &       & RGB+CIR & 30.5  & 22    & 35    & 33    & 52    & 11 \\
+		 \hline
+    \multirow{3}{*}{9}    & \multirow{3}{*}{2012-10-22} & RGB   & 43.1    &       &       &       &       &  \\
+        &       & CIR   & 49  &       &       &       &       &  \\
+     &       & RGB+CIR & 36  & 40    & 47    & 43    & 37    & 12 \\
+		 \hline
+    \multirow{3}{*}{10}    & \multirow{3}{*}{2013-11-15} & RGB   & 36.7    &       &       &       &       &  \\
+        &       & CIR   & 43.5  &       &       &       &       &  \\
+     &       & RGB+CIR & 31  & 21    & 22    & 63    & 32    & 17 \\
+    \hline
+		\\
+		\multicolumn{4}{c}{average} & 18 & 32	&	42 &	36 &	 12\\
+		\hline
+    \end{tabular}}
+  \label{tab:OOB_TS}
+\end{table}
+
+The added value of multitemporal datasets is clearly significant: the lowest out of bag error for a two-date classification is 11.3\% (table \ref{tab:OOB_combi}). 
+For the three-date combinations, the accuracy of the classification increases, with a classification error of 8.8\% for the optimal combinations.
+Every date combination, illustrated in table \ref{tab:OOB_combi}, involves the survey number 3 (2013-05-28) which was demonstrated as the optimal single-date acquisition.  
+Survey 4 is also repeatedly involved in date combinations. 
+Indeed, the five best three-date combinations all consist of both surveys 3 and 4. 
+Moreover, survey 4 which occurred in early summer (2012-06-05) is identified as the second optimal monotemporal survey (table \ref{tab:OOB_TS}). 
+In addition, the overall and by-class classification error is very similar for each combination, although the two-date and three-date combinations consist of various seasons. 
+The mid-summer surveys (number 5 and 6) are the only ones that do not appear among the five preferential two-date and three-date combinations. 
+Finally, all the remaining surveys are involved at least once in the various date combinations (table \ref{tab:OOB_combi}).
+
+\begin{table}
+\centering
+ \caption{Added value of multitemporal datasets for species discrimination. The 5 best two-date combinations and the 5 best three-date combinations. Survey 3 (\textbf{2013-05-28}, highlighted in bold) was present in all the combinations, and survey 4 (\textit{2012-06-05}, in italic) was involved in all the three-date combinations.}
+\resizebox{\linewidth}{!}{
+	\renewcommand{\arraystretch}{1}
+\begin{tabular}{llllllll}
+  \hline
+													&					& \multicolumn{6}{c}{Out of bag error [$\%$]}                       \\
+  Two-date combination & seasons & overall & birches & English oak  & sycamore maple & common ash   & poplars \\ 
+  \hline
+\textbf{2013-05-28} and 2012-04-27 & early spring/spring &  11.3 & 4 & 9 & 26 & 16 & 1 \\ 
+\textbf{2013-05-28} and \textit{2012-06-05} & spring/early summer & 11.3 & 1 & 11 & 26 & 16 & 2  \\ 
+\textbf{2013-05-28} and 2014-09-18 & spring/autumn &  11.3 & 1 & 11 & 24 & 19 & 1 \\ 
+\textbf{2013-05-28} and 2013-11-15 & spring/autumn & 11.6 & 4 & 9 & 23 & 20 & 2 \\ 
+\textbf{2013-05-28} and 2011-04-27 & early spring/spring &  11.4  & 4 & 10 & 24 & 17 & 3 \\ 
+   \hline
+		\\
+		\multicolumn{3}{c}{average} & 3 & 10	&	25 &	18 &	 2\\
+		\hline
+														&					& \multicolumn{6}{c}{Out of bag error [$\%$]}                       \\
+	Three-date combination & seasons & overall & birches & English oak  & sycamore maple & common ash   & poplars  \\ 
+	  \hline
+	\textbf{2013-05-28}, \textit{2012-06-05}, 2013-10-01 & spring/early summer/autumn & 8.8 & 0 & 7 & 23 & 13 & 1 \\ 
+  \textbf{2013-05-28}, \textit{2012-06-05}, 2013-11-15 & spring/early summer/autumn & 8.8 & 1 & 8 & 21 & 13 & 1 \\ 
+  \textbf{2013-05-28}, \textit{2012-06-05}, 2012-04-27 & early spring/spring/early summer & 9 & 0 & 8 & 23 & 13 & 0 \\ 
+  \textbf{2013-05-28}, \textit{2012-06-05}, 2012-10-22 & spring/early summer/autumn & 9.1 & 1 & 9 & 20 & 14 & 1 \\ 
+  \textbf{2013-05-28}, \textit{2012-06-05}, 2014-09-18 & spring/early summer/autumn & 9.2 & 0 & 9 & 24 & 13 & 0 \\ 
+   \hline
+		\\
+		\multicolumn{3}{c}{average} & 1 & 8	&	22 &	13 &	 1\\
+		\hline
+\end{tabular}}
+ \label{tab:OOB_combi}
+\end{table}
+
+Focus must be given to the different groups of species showing variable levels of separability. 
+First, poplars and birches trees are the most spectrally separable categories. 
+By means of three-date multitemporal imagery, these groups of species are indeed discriminated with a 100\% accuracy (table \ref{tab:OOB_combi}). 
+Such result is remarkable, given that the poplar category consists of two cultivars, both caracterized by different phenology timings. 
+
+Sycamore maple is the most difficult species to discriminate, in accordance with the results on field maple of \citeauthor{hill_mapping_2010} \cite{hill_mapping_2010}. 
+Similarly, common ash is hard to identify properly (data not shown), since this tree species is often confused with sycamore maple. 
+On the other hand, English oaks are intermediate in terms of separability. 
+Finally, the confusion in species identification is most prononced between maple and ash. 
+But the spectral response of English oaks is also overlapping the spectral response of maple trees and, to a lesser extent, the one of ash trees. 
+
+On the basis of the survey rankings, we selected the most efficient orthophotomosaics for an additional and thorough visual inspection of the tree crowns. 
+Orthophotomosaics of surveys 3 and 4 are far from being the most colorful in the time series. 
+Visually, the more contrasted surveys are the ones performed at the very beginning of the vegetation growth period, and depicting a colorful autumn foliage. 
+By contrast, the spectral response of leaf-on trees during late spring and early summer is more homogenous, since all the individuals were green at these seasons. 
+The phenology status within every category of species is synchronized. 
+In addition, the variability of phenology and spectral response within each group of species is less pronounced at the end of complete leafing, compared to autumn or early spring. 
+Such results underline the importance of intra-species variations in phenology, for species discrimination.
+The disparity in forest tree phenology is at the maximum during early spring and late autumn. 
+By contrast, the disparity in phenology is at the lowest during summer. 
+The end of leaf flushing, highlighted as the optimal monotemporal time windows, minimizes the spectral variation within tree species groups and, at the same time, maximizes the phenologic differences between species.
+
+Some of the causes of phenology variability within a category of species are related to the forest sylviculture and the history of the study site. 
+The complex vertical structure of the stands generates a micro-climate that can slightly impact the phenology timing. 
+For instance, edges and gaps are numerous in the forest, and trees at these locations are less influenced by the below-canopy micro-climate. 
+The micro-climate is thus more variable in the study site than in even-aged stands. 
+In addition, an important number of common ash trees suffer from ash dieback disease (\textit{Chalara fraxinea}). 
+The visual aspect of the infected tree crowns is therefore affected \cite{waser}. 
+Defoliation is particularly visible on survey 2, on which tree crowns appear porous due to the alternation of green branches and necrotic areas. 
+
+Another variation in intra-species phenology consists of state of maturity of the trees.
+English oaks in our surveys are mainly old tree crowns, but a few are young individuals. 
+These young trees present a smaller crown, as well as a different phenology timing and a distinct spectral response. 
+
+Sycamore maples, for their part, seem to naturally present a large diversity of spectral responses. 
+Such diversity is particularly visible in autumn, when the yellow tints of maple crowns are mixed with the brown color of fruits, and with the red, green and dark green color of foliage. 
+As previously stated, poplars present only two phenological patterns, one for each cultivar.
+However, their timing of phenological events is extremely synchronized since poplar trees are cloned and have approximately the same development stage.
+
+% architecture de l'arbre (poplar et frênes)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions and Perspectives}
+
+\subsection{UAS operations and orthophotomosaic generation}
+
+A dense time series of high resolution images was collected successfully across the vegetation period by using a small UAS. 
+The tracking of phenological events such as bud burst, leaf flushing, autumn coloring and leaf fall, was made possible at an affordable price. 
+Using the Gatewing X100, we determined that the appropriate flight altitude for tree-based UAS inventory was 225 meters above ground level. 
+This altitude allows to cover the entire forest estate in one single flight with a good image resolution. 
+In total, 10 surveys were performed at different dates, with each survey consisting of 2 UAS flights: a first flight using a visible camera and a second flight using a color infra-red camera. 
+The ease of use of the small unmanned aerial vehicle used in this study allowed to collect more than 10058 raw aerial images (decimetric resolution), depicting the subtle forest changes. 
+The continuous growing of computation power, as well as the recent advances in modern photogrammetric algorithms, have gradually overcome the technological limitations for the handling of thousands of low-oblique UAS images. 
+By assembling image blocks from an individual flight, we obtained a suitable orthophotomosaic for measurements. 
+Overall, photogrammetric processing allows the removal of most of the disparity between image blocks: images shooted at an altitude of either 350 meters or 150 meters resulted in an orthophotomosaic of 20 cm resolution, regardless of the image perspective.
+However, improvements are still to be done, particularly in the mitigation of spectral variations among the images of a block, which are caused by rapid changes in luminosity conditions.
+Radiometric equalization techniques are devoted to the reduction of such spectral variations, although these algorithms still need a better fitting to the characteristics of UAS imagery.
+
+Co-registration of the whole time series, by using one image block as a master and by georeferencing with Ground Control Points, ensures a good consistency between different flights. 
+An alignment of image blocks was achieved by finding tie points between multitemporal image datasets, using structure from motion techniques. 
+An accurate georeferencing was thus performed by taking full advantage of photogrammetric techniques.
+Moreover, image dense matching, which is an essential process prior to the orthorectification, was solely carried on the master image block for the canopy surface modelization.
+The resulting Digital Surface Model was used for the whole time series, thus saving the computation time that would have been required to generate the relief for each individual image block.
+
+\subsection{Classification of species groups}
+
+Individual tree crowns were manually delineated, and a supervised classification of deciduous tree species was performed with Random Forests. 
+Across the study site of 80 ha, we carried out surveys over 577 dominant tree crowns of 5 different groups of species. 
+Forest stands were mixed and multi-layered, while forest gaps and regeneration were spread across the forest, resulting in a complex structure with various below-canopy micro-climates. 
+The optimal phenology state for the discrimination of species was demonstrated to be the end of leaf flush. 
+The intra-species phenology is well synchronized during this optimal time windows ranging from late spring to early summer. 
+At the same time, this time windows still present differences between species, whereas disparities fades away during summer. 
+Hence, we conclude that the intra-species spectral variation is of prime interest for species discrimination. 
+These results contrast with the conclusions of some previous scientific studies, in which the best monotemporal time windows was the one with the highest disparity in forest tree phenology (early spring and late autumn). 
+Although no clear statement has previously been made regarding the optimal time windows, a number of studies have highlighted the autumn season as the optimal single-date time window for species classification \citep{key_comparison_2001,hill_mapping_2010, somers_multitemporal_2013}. 
+However, these research are lacking an imagery covering all the phenological events.
+The results presented in this article are in line with the study of \citeauthor{kempeneers_data_2011} \cite{kempeneers_data_2011} where a dense time series was used as well, although there are strong differences in terms of image resolution and classification (forest-type mapping versus tree-level species classification).
+
+The use of multitemporal datasets improved considerably the overall classification accuracy. 
+The optimal survey number 3 (end of May) was present on every date combinations, while no recurring combination of seasons stands out in the best two-date and three-date combinations.
+Such consistency confirmed the importance of determining an optimal time window for species discrimination.
+
+The color infra-red camera was clearly less efficient than the RGB camera. 
+All three bands of the consumer grade CIR camera were indeed sensitive to the near infra-red light, due to an internal modification of the camera for near infra-red acquisition. 
+Redundant band sensitivity led to a spectral overlap between the bands and finally affected the performance of the camera for the discrimination of species. 
+However, the combination of CIR and RGB together proved to be interesting for species discrimination by enhancing the classification accuracy.
+In addition, the simultaneous acquisitions of RGB and CIR image blocks increased image overlap, thus influencing positively photogrammetric processing.
+The CIR camera should thus be used only in combination with the RGB camera.
+Nonetheless, the costs related to an additional flight for CIR image acquisitions make it interesting only for specific case of studies.
+
+The spectral variation within species groups was the main factor affecting the classification of species. 
+As a consequence, all the variations in tree phenology within a group of species had a negative impact on the overall classification performance. 
+For instance, the ash dieback disease had an important effect on the ash canopy spectral response, and was thus a clear issue for ash tree classification. 
+The multi-storied forest of Grand-Leez is favorable for a variety of ecological conditions and micro-climate. 
+Disparity in intra-species phenology is thus greater than in even-aged and mono-specific stands, making species discrimination more challenging. 
+Better results are expected on even-aged stands with the implemented methodology. 
+In addition, investigating the phenological variability for a given species could become a means to study the effect of ecological conditions. 
+Indeed, an even-aged and mono-specific stand which is in good health will show phenological differences mainly under changes in genetics or ecological conditions.
+
+The various categories of species showed diverse degrees of separability. 
+Birches and poplars were easily classified, whereas sycamore maple showed such a variability in phenology that distinguishing it from ash or English oak remained difficult. 
+Even inside a single sycamore maple crowns, the branches showed various colors, especially during the leaf fall and colouring stage. 
+Although the classification object in this study was the individual crown, no test regarding the appropriate scale of investigation  was performed. 
+The sycamore classification could therefore be carried out more efficiently by focusing on objects of smaller size, such as branch level.
+Future studies evaluating the effect of the object size from high resolution images on species discrimination should be investigated, in order to optimize the classification of deciduous tree crowns.
+
+\subsection{Perspectives}
+
+Monotemporal UAS imagery was considered as a promising tool for the determination of forest species, with a global classification error of 16\% at the optimal time window. 
+Biodiversity monitoring and the assessment of forest resources could greatly benefit from such accurate and automatic mapping of species at tree level. 
+The aim of this study was to define the optimal single-date time window for species discrimination. 
+The fact remains that the costs of UAS acquisition are not prohibitive, making multitemporal surveys largely affordable in the context of scientific research. 
+The value of multitemporal imagery was clearly confirmed in this study.
+
+The chosen methodology can be considered as one of the many ways to use UAS imagery for forestry purposes. 
+Numerous scientific topics can be investigated by means of such cost-effective tool. 
+The determination of tree species from spectral information is part of the various informations that can be provided by UAS imagery. 
+Tree height and crown size or shape can also be efficiently measured from drone imagery. 
+The volume of tree biomass and wood can finally be derived from these measurements through the use of allometric models.
+UAS are clearly cost-effective and non intrusive methods, and the recent advances in computer power and image software make it now possible to handle thousands of aerial images.
+
+The time series of orthophotomosaics will be used in a new study to establish guidelines for photointerpreters for the classification of forest species. 
+Orthophotomosaics shall be used as well as raw individual aerial images. 
+Such images are indeed sharper than orthophotomosaics, with a low oblique view which can help the manual determination of trees. 
+Since each image is georeferenced, switching between image and terrain geometry is not an issue. 
+In addition, the automatic classification of forest species by means of the Random Forest approach shall be extended to additional forest species.
+
+During the four years of UAS operations of this study, the Belgian legislation regarding the use of UAS did not exist. 
+Authorities have however delivered exceptional authorizations for flights beyond line of sight for this scientific research. 
+The upcoming legislation is however expected to restrict UAS flights below an upper limit of 60 meters. 
+Similar uses of UAS for the collecting of dense time series of forested areas shall therefore be limited to smaller study areas of a few hectares. 
+The authors therefore believe that, in Belgium, the use of drones in precision forestry will stay in the hand of environmentalist and forest scientist. 
+An upscale of such mapping tools for the operational monitoring of large forest estates is unlikely if the legislation starts restricting the use of civil UAS. 
+
+\section*{\noindent Acknowledgments}
+\vspace{12pt}
+
+The authors would like to acknowledge the Belgian Civil Aviation Authority, as well as the municipality of Eghezée, for providing authorization for the use of a small UAS in the present study. 
+A great thanks to Robin Genuer and Yves Brostaux for delivering training and advices on the appropriate use of Random Forests. 
+Thanks also go to C\'edric Geerts and Alain Monseur for performing UAS operations and to Coralie Mengal and Fr\'ed\'eric Henrotay for carrying out field measurements. 
+Finally, acknowledgments go to G\'eraldine Le Mire for her corrections and advice on the written English.
+
+%  Klaas P.
+
+%==========================================================
+%==========================================================
+% Back Matter (References and Notes)
+%----------------------------------------------------------
+% Style and layout of the references
+\bibliographystyle{mdpi}
+\makeatletter
+\renewcommand\@biblabel[1]{#1. }
+\makeatother
+
+\bibliography{ReconnaissanceSP}
+
+\end{document}
+
