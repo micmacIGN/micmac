@@ -458,6 +458,7 @@ extern int TD_Match3_main(int argc,char ** argv);
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
 extern int  DocEx_Introfiltr_main(int,char **);
+extern int  ImageProjection(int argc,char ** argv);
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int,char **);
 #endif
@@ -574,6 +575,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("Ortho",ServiceGeoSud_Ortho_main,"Compute a basic Ortho from a DTM and a satellite image (for GeoSud services)"));
     aRes.push_back(cMMCom("GeoSud",ServiceGeoSud_GeoSud_main,""));
     aRes.push_back(cMMCom("Surf",ServiceGeoSud_Surf_main,""));
+    aRes.push_back(cMMCom("ImageProjection",ImageProjection,"Project individual aerial images, ground is assumed to be a plane"));
 #if (ELISE_QT_VERSION >= 4)
     aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
 #endif
