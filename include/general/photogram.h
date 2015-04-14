@@ -3294,6 +3294,23 @@ class cResMepCoc
 
 cResMepCoc MEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show);
 
+class L2SysSurResol;
+void SysAddEqMatEss(const double & aPds,const Pt2dr & aP1,const Pt2dr & aP2,L2SysSurResol & aSys );
+ElMatrix<REAL> ME_Lign2Mat(const double * aSol);
+ElRotation3D MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack);
+ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbInit,int aNbFin);
+
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH);
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2);
+
+
+
+// Devrait remplacer les anciennes, on y va progressivement
+double  NEW_SignInters(const ElPackHomologue & aPack,const ElRotation3D & aR2to1,int & NbP1,int & NbP2);
+ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack);
+
+
+
 
 
 
@@ -3305,7 +3322,7 @@ cResMepCoc MEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotati
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -3321,17 +3338,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

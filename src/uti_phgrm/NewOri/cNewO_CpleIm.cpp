@@ -160,6 +160,7 @@ double cNewO_OrInit2Im::RecouvrtHom(const cElHomographie & aHom)
 
 cNewO_OrInit2Im::cNewO_OrInit2Im
 (
+      bool          aQuick,
       cNewO_OneIm * aI1,
       cNewO_OneIm * aI2,
       tMergeLPackH *      aMergeTieP,
@@ -167,6 +168,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
       bool                aShow,
       bool                aHPP
 )  :
+   mQuick       (aQuick),
    mI1          (aI1),
    mI2          (aI2),
    mMergePH     (aMergeTieP),
@@ -284,6 +286,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
       if (aRP)
          AmelioreSolLinear(*aRP,"Patch Plan");
       aTiming.TimePatchP() = aChrono.uval();
+
    }
 
    // = T0 ============== Nouveau test par Ransac minimal a 8 points  + ME
@@ -292,6 +295,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
        ElRotation3D aMRR = TestcRanscMinimMatEss(mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
        AmelioreSolLinear(aMRR,"Mini RE");
        aTiming.TimeRanMin() = aChrono.uval();
+ 
+       if (true || mShow) std::cout << "TIME RanscMinim " << aTiming.TimeRanMin() << "\n";
     }
    // = T1 ============== Nouveau test par Ransac + ME
     {
@@ -318,12 +323,21 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
   //  = T3 ============  Test par  homographie plane "classique" (i.e. globale) 
    
     {
-       bool ShowDetailHom = mShow && true;
+       bool ShowDetailHom = mShow && false;
        ElTimer aChrono;
        double aDist ; 
        bool   Ok;
        // cElHomographie aHom = cElHomographie::RobustInit(&aDist,mPackPStd,Ok,100,80,500);
-       cElHomographie aHom = cElHomographie::RobustInit(aDist,(double *)0,mPack150,Ok,20,80,500);
+       cElHomographie aHom = cElHomographie::RobustInit
+                             (
+                                 aDist,
+                                 (double *)0,
+                                 mQuick?mPack150:mPackStdRed,
+                                 Ok,
+                                 mQuick?20 :80,
+                                 80,
+                                 500
+                              );
        if (ShowDetailHom) std::cout << "THom0= " << aChrono.uval() << "\n";
        aXCmp.Hom().Hom() = aHom.ToXml();
        aXCmp.Hom().Residu() = aDist * FocMoy();
@@ -382,14 +396,15 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
 
     // Affinage solution
-    double anErr = mRedPvIBI->ErrInitRobuste(mBestSol,0.75);
+    cInterfBundle2Image * aBundle = mQuick ? mRedPvIBI  :  mFullPvIBI;
+    double anErr = aBundle->ErrInitRobuste(mBestSol,0.75);
     ElTimer aChrono;
-    anErr = mRedPvIBI->ResiduEq(mBestSol,anErr);
-    for (int aK=0 ; aK< 6 ; aK++)
+    anErr = aBundle->ResiduEq(mBestSol,anErr);
+    for (int aK=0 ; aK< (mQuick ? 6 : 10) ; aK++)
     {
          // std::cout << "ERRCur " <<  anErr*FocMoy() << "\n";
          // cInterfBundle2Image * anIBI = (aK<5) ? mRedPvIBI  : mFullPvIBI;
-         ElRotation3D aSol = mRedPvIBI->OneIterEq(mBestSol,anErr);
+         ElRotation3D aSol = aBundle->OneIterEq(mBestSol,anErr);
          mBestSol = aSol;
     }
     double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,0.90);
@@ -452,6 +467,7 @@ class cNO_AppliOneCple
 
          cNO_AppliOneCple(const cNO_AppliOneCple &); // N.I. 
 
+         bool                 mQuick;
          std::string          mNameIm1;
          std::string          mNameIm2;
          std::string          mNameOriCalib;
@@ -475,6 +491,7 @@ std::string cNO_AppliOneCple::NameXmlOri2Im(bool Bin) const
 
 
 cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
+   mQuick   (true),
    mShow    (false),
    mHPP     (true),
    mTestSol (0)
@@ -488,6 +505,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
                    << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference")
                    << EAM(mShow,"Show",true,"Orientation for test to a reference")
+                   << EAM(mQuick,"Quick",true,"Quick option adapted for UAV or easy acquisition, def = true")
                    << EAM(mHPP,"HPP",true,"Homograhic Planar Patch")
    );
 
@@ -523,7 +541,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
 cNewO_OrInit2Im * cNO_AppliOneCple::CpleIm()
 {
-   return new cNewO_OrInit2Im(mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
+   return new cNewO_OrInit2Im(mQuick,mIm1,mIm2,&mMergeStr,mTestSol,mShow,mHPP);
 }
 
 void cNO_AppliOneCple::Show()
@@ -590,6 +608,7 @@ int TestNewOriImage_main(int argc,char ** argv)
 int TestAllNewOriImage_main(int argc,char ** argv)
 {
    std::string aPat,aNameOriCalib;
+   bool aQuick=true;
 
 
    ElInitArgMain
@@ -597,6 +616,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
         argc,argv,
         LArgMain() <<  EAMC(aPat,"Pattern"),
         LArgMain() << EAM(aNameOriCalib,"OriCalib",true,"Orientation for calibration ")
+                   << EAM(aQuick,"Quick",true,"Quick option, adapted to simple acquisition")
    );
 
    cElemAppliSetFile anEASF(aPat);
@@ -631,6 +651,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                         std::string aCom =   MM3dBinFile("TestLib NO_Ori2Im") + " " + aName1 + " " + aName2 + " ";
                         if (EAMIsInit(&aNameOriCalib))
                            aCom = aCom + " OriCalib=" + aNameOriCalib;
+                        aCom = aCom + " Quick=" + ToString(aQuick);
 
                         aLCom.push_back(aCom);
                     }
