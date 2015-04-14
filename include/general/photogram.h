@@ -2099,6 +2099,7 @@ class CamStenope : public ElCamera
      Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
      Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
      void  Coins(Pt3dr &aP1, Pt3dr &aP2, Pt3dr &aP3, Pt3dr &aP4, double aZ) const;
+     void  CoinsProjZ(Pt3dr &aP1, Pt3dr &aP2, Pt3dr &aP3, Pt3dr &aP4, double aZ) const;
 
          Pt3dr  ImEtProfSpherik2Terrain(const Pt2dr & aPIm,const REAL & aProf) const; //OO
          Pt3dr  ImDirEtProf2Terrain(const Pt2dr & aPIm,const REAL & aProf,const Pt3dr & aNormPl) const; //OO
