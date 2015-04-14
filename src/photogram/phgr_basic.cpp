@@ -3277,6 +3277,15 @@ void CamStenope::Coins(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ) c
     aP4 = ImEtProf2Terrain(Pt2dr(Sz().x,Sz().y),aZ); // BAS DROIT
 }
 
+// for  aerial imagery, project the 4 camera corners on a ground surface assumed to be at Z=aZ
+void CamStenope::CoinsProjZ(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ) const
+{
+    aP1 = ImEtZ2Terrain(Pt2dr(0.f,0.f),aZ);       // HAUT GAUCHE
+    aP2 = ImEtZ2Terrain(Pt2dr(Sz().x,0.f),aZ);    // HAUT DROIT
+    aP3 = ImEtZ2Terrain(Pt2dr(0.f,Sz().y),aZ);    // BAS GAUCHE
+    aP4 = ImEtZ2Terrain(Pt2dr(Sz().x,Sz().y),aZ); // BAS DROIT
+}
+
 void ElCamera::SetSzPixel(const Pt2dr & aSzP)
 {
    mSzPixel = aSzP;
