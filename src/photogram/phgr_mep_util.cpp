@@ -116,7 +116,7 @@ void TestQE()
 double NewExactCostMEP(Pt3dr &  anI1,const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax) ;
 
 
-Pt3dr InterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1,bool & Ok)
+Pt3dr InterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1,bool & Ok,double * aSqD)
 {
 /*
 TIMME :
@@ -163,20 +163,25 @@ TIMME :
       double p = ( d * X - b * Y ) / aDet;
       double q = (-c * X + a * Y ) / aDet;
 
-     return (aP0 + aP01 * p + aQ0 +aQ01 * q) / 2.0;
+      Pt3dr aPInt = aP0 + aP01 * p;
+      Pt3dr aQInt =  aQ0 +aQ01 * q;
+
+      if (aSqD) *aSqD = square_euclid(aPInt-aQInt);
+
+      return (aPInt + aQInt) / 2.0;
 
 }
 
-Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt3dr & aQ1,const Pt3dr & aQ2,bool & Ok)
+Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt3dr & aQ1,const Pt3dr & aQ2,bool & Ok,double * aSquareD)
 {
     Pt3dr aBase = aR2to1.tr();
 
-    return InterSeg(Pt3dr(0,0,0),aQ1,aBase,aBase+ aR2to1.Mat()*aQ2,Ok);
+    return InterSeg(Pt3dr(0,0,0),aQ1,aBase,aBase+ aR2to1.Mat()*aQ2,Ok,aSquareD);
 }
 
-Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,bool & Ok)
+Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,bool & Ok,double * aSquareD)
 {
-    return InterSeg(aR2to1,PZ1(aP1),PZ1(aP2),Ok);
+    return InterSeg(aR2to1,PZ1(aP1),PZ1(aP2),Ok,aSquareD);
 }
 
 /*
@@ -196,7 +201,7 @@ Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,
 Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1,bool & Ok)
 {
     if (aVP0.size()==2)
-       return InterSeg(aVP0[0],aVP1[0],aVP0[1],aVP1[1],Ok);
+       return InterSeg(aVP0[0],aVP1[0],aVP0[1],aVP1[1],Ok,0);
     Ok = true ;  // FAUX => A CHANGER !!!!! 
     static Im2D_REAL8 aImMat(3,3);
     static double ** aDM = aImMat.data();

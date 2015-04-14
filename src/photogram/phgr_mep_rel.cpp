@@ -273,6 +273,8 @@ REAL ElPackHomologue::SignInters
 	INT &          NbP2
      ) const
 {
+     return    NEW_SignInters(*this,aRot1to2.inv(),NbP1,NbP2);
+/*
      NbP1 = 0;
      NbP2 = 0;
 
@@ -294,8 +296,15 @@ REAL ElPackHomologue::SignInters
 	  NbP1 += (aI1.z>0) ? 1 : - 1;
 	  NbP2 += (aI2.z>0) ? 1 : - 1;
      }
+     double aRes= aSomD / size();
 
-     return aSomD / size();
+     {
+        int aNN1,aNN2;
+        double aD =  NEW_SignInters(*this,aRot1to2.inv(),aNN1,aNN2);
+        std::cout << "RRrrRRrrRRRR  " << aD / aRes << "\n";
+     }
+     return aRes;
+*/
 }
 
 std::list<ElRotation3D>  MatEssToMulipleRot(const  ElMatrix<REAL> & aMEss,double LBase)
@@ -1293,6 +1302,8 @@ class cRansacMatriceEssentielle
 
 
 
+double SensDepDistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH);
+
 
 
 
@@ -1346,7 +1357,14 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    mKBest.ClearAndSetK(NbSelRotInit);
    for (int aK=0 ; aK<int(aVS.size()) ; aK++)
    {
-      aVS[aK].mRot = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
+      // ANCIENNE, plus lente ...  aVS[aK].mRot = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
+      aVS[aK].mRot = NEW_MatEss2Rot(aVS[aK].mMat,aPackRed);
+
+if (MPD_MM())
+{
+    ElRotation3D aOR = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
+    std::cout << "DDdddddd " << DistRot(aOR, aVS[aK].mRot) << " " << SensDepDistRot(aOR, aVS[aK].mRot,1.0) << "\n";
+}
 
 
 // OneIterLin(aVS[aK],aPackRed,5);
