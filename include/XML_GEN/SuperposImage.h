@@ -6095,8 +6095,8 @@ class cXml_O2IRotation
         friend void xml_init(cXml_O2IRotation & anObj,cElXMLTree * aTree);
 
 
-        cRotationVect & Ori();
-        const cRotationVect & Ori()const ;
+        cTypeCodageMatr & Ori();
+        const cTypeCodageMatr & Ori()const ;
 
         Pt3dr & Centre();
         const Pt3dr & Centre()const ;
@@ -6104,12 +6104,16 @@ class cXml_O2IRotation
         double & Residu();
         const double & Residu()const ;
 
+        double & ResiduHighPerc();
+        const double & ResiduHighPerc()const ;
+
         Pt3dr & PMed1();
         const Pt3dr & PMed1()const ;
     private:
-        cRotationVect mOri;
+        cTypeCodageMatr mOri;
         Pt3dr mCentre;
         double mResidu;
+        double mResiduHighPerc;
         Pt3dr mPMed1;
 };
 cElXMLTree * ToXMLTree(const cXml_O2IRotation &);
@@ -6131,13 +6135,13 @@ class cXml_O2IRotPure
         friend void xml_init(cXml_O2IRotPure & anObj,cElXMLTree * aTree);
 
 
-        cRotationVect & Ori();
-        const cRotationVect & Ori()const ;
+        cTypeCodageMatr & Ori();
+        const cTypeCodageMatr & Ori()const ;
 
         double & Residu();
         const double & Residu()const ;
     private:
-        cRotationVect mOri;
+        cTypeCodageMatr mOri;
         double mResidu;
 };
 cElXMLTree * ToXMLTree(const cXml_O2IRotPure &);
@@ -6179,6 +6183,54 @@ std::string  Mangling( cXml_O2IHom *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_O2ITiming
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_O2ITiming & anObj,cElXMLTree * aTree);
+
+
+        double & TimeRPure();
+        const double & TimeRPure()const ;
+
+        double & TimePatchP();
+        const double & TimePatchP()const ;
+
+        double & TimeRanMin();
+        const double & TimeRanMin()const ;
+
+        double & TimeRansacStd();
+        const double & TimeRansacStd()const ;
+
+        double & TimeL2MatEss();
+        const double & TimeL2MatEss()const ;
+
+        double & TimeL1MatEss();
+        const double & TimeL1MatEss()const ;
+
+        double & TimeHomStd();
+        const double & TimeHomStd()const ;
+    private:
+        double mTimeRPure;
+        double mTimePatchP;
+        double mTimeRanMin;
+        double mTimeRansacStd;
+        double mTimeL2MatEss;
+        double mTimeL1MatEss;
+        double mTimeHomStd;
+};
+cElXMLTree * ToXMLTree(const cXml_O2ITiming &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_O2ITiming &);
+
+void  BinaryUnDumpFromFile(cXml_O2ITiming &,ELISE_fp &);
+
+std::string  Mangling( cXml_O2ITiming *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_O2IComputed
 {
     public:
@@ -6186,6 +6238,9 @@ class cXml_O2IComputed
 
         friend void xml_init(cXml_O2IComputed & anObj,cElXMLTree * aTree);
 
+
+        cXml_O2ITiming & Timing();
+        const cXml_O2ITiming & Timing()const ;
 
         cXml_O2IRotation & Ori();
         const cXml_O2IRotation & Ori()const ;
@@ -6202,6 +6257,7 @@ class cXml_O2IComputed
         double & RecHom();
         const double & RecHom()const ;
     private:
+        cXml_O2ITiming mTiming;
         cXml_O2IRotation mOri;
         cXml_O2IRotPure mRPure;
         cXml_O2IHom mHom;
@@ -6239,14 +6295,14 @@ class cXml_Ori2Im
         int & NbPts();
         const int & NbPts()const ;
 
-        std::string & Foc1();
-        const std::string & Foc1()const ;
+        double & Foc1();
+        const double & Foc1()const ;
 
-        std::string & Foc2();
-        const std::string & Foc2()const ;
+        double & Foc2();
+        const double & Foc2()const ;
 
-        std::string & FocMoy();
-        const std::string & FocMoy()const ;
+        double & FocMoy();
+        const double & FocMoy()const ;
 
         cTplValGesInit< cXml_O2IComputed > & Geom();
         const cTplValGesInit< cXml_O2IComputed > & Geom()const ;
@@ -6255,9 +6311,9 @@ class cXml_Ori2Im
         std::string mIm2;
         std::string mCalib;
         int mNbPts;
-        std::string mFoc1;
-        std::string mFoc2;
-        std::string mFocMoy;
+        double mFoc1;
+        double mFoc2;
+        double mFocMoy;
         cTplValGesInit< cXml_O2IComputed > mGeom;
 };
 cElXMLTree * ToXMLTree(const cXml_Ori2Im &);

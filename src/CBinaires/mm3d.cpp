@@ -508,6 +508,7 @@ int ChekBigTiff_main(int,char**);
 
 
 int TestNewOriImage_main(int argc,char ** argv);
+int TestAllNewOriImage_main(int argc,char ** argv);
 int PreparSift_Main(int argc,char ** argv);
 
 
@@ -605,7 +606,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("BasculePtsInRepCam",BasculePtsInRepCam_main,"Compute GCP in cam repair"));
     aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
-    aRes.push_back(cMMCom("TNO",TestNewOriImage_main,"Test New Orientation"));
+    aRes.push_back(cMMCom("NO_Ori2Im",TestNewOriImage_main,"Test New Orientation"));
+    aRes.push_back(cMMCom("NO_AllOri2Im",TestAllNewOriImage_main,"Test New Orientation"));
     aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
 
 

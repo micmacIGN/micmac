@@ -136,6 +136,16 @@ CamStenope * cNewO_NameManager::CamOriOfName(const std::string & aNameIm,const s
      return CamOrientGenFromFile(aNameCam,mICNM);
 */
 }
+const std::string &   cNewO_NameManager::OriCal() const {return mOriCal;}
+
+
+
+std::string cNewO_NameManager::NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const
+{
+   std::string aExt = (Bin ? "xml" : "dmp");
+   return mICNM->Assoc1To2("NKS-Assoc-CplIm2OriRel@@" + aExt,aN1,aN2,true);
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

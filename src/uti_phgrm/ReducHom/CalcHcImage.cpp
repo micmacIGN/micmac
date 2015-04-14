@@ -61,8 +61,8 @@ bool cImagH::ComputeLnkHom(cLink2Img & aLnk)
       return false;
 
    bool Ok;
-   double aQual;
-   cElHomographie  aHom12 = cElHomographie::RobustInit(&aQual,aPack,Ok,NB_RANSAC_H,90.0,1000);
+   double anEcart,aQual;
+   cElHomographie  aHom12 = cElHomographie::RobustInit(anEcart,&aQual,aPack,Ok,NB_RANSAC_H,90.0,1000);
    // mLnk.push_back(cLink2Img(anI2,aNameH));
 
    if (!Ok)

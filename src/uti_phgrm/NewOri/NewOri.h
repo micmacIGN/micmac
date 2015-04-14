@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 class cNewO_OneIm;
-class cNewO_CpleIm;
+class cNewO_OrInit2Im;
 class cNewO_NameManager;
 class cNewO_Appli;
 
@@ -153,10 +153,10 @@ class cNOCompPair
 double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2);
 
 
-class cNewO_CpleIm
+class cNewO_OrInit2Im
 {
     public :
-          cNewO_CpleIm
+          cNewO_OrInit2Im
           (
                 cNewO_OneIm * aI1,
                 cNewO_OneIm * aI2,
@@ -168,6 +168,7 @@ class cNewO_CpleIm
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
           double PixExactCost(const ElRotation3D & aRot,double aTetaMax) const;
+          const cXml_Ori2Im &  XmlRes() const;
     private :
           
        //======== Amniguity ====
@@ -180,6 +181,7 @@ class cNewO_CpleIm
             Pt2dr ToW(const Pt2dr & aP) const;
             void ShowPack(const ElPackHomologue & aPack,int aCoul,double aRay);
             void ClikIn();
+            double RecouvrtHom(const cElHomographie & aHom);
 
 
        //===================
@@ -221,6 +223,7 @@ class cNewO_CpleIm
           L2SysSurResol            mSysLin3;
           cInterfBundle2Image *    mLinDetIBI;
           cInterfBundle2Image *    mBundleIBI;
+          cInterfBundle2Image *    mBundleIBI150;
           cInterfBundle2Image *    mRedPvIBI;
           cInterfBundle2Image *    mFullPvIBI;
 
@@ -244,6 +247,7 @@ class cNewO_CpleIm
           Video_Win *   mW;
           Pt2dr         mP0W;
           double        mScaleW;
+          cXml_Ori2Im   mXml;
 };
 
 
@@ -258,10 +262,12 @@ class cNewO_NameManager
            );
            CamStenope * CamOfName(const std::string & aName);
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
+           std::string NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const;
            const std::string & Dir() const;
 
            // 
            CamStenope * CamOriOfName(const std::string & aName,const std::string & anOri);
+           const std::string &  OriCal() const;
 
      private :
            cInterfChantierNameManipulateur * mICNM;

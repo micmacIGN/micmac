@@ -20071,12 +20071,12 @@ void xml_init(cXML_TestImportOri & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXML_TestImportOri *) {return "9DF7C7AD2E46D1F3FE3F";};
 
 
-cRotationVect & cXml_O2IRotation::Ori()
+cTypeCodageMatr & cXml_O2IRotation::Ori()
 {
    return mOri;
 }
 
-const cRotationVect & cXml_O2IRotation::Ori()const 
+const cTypeCodageMatr & cXml_O2IRotation::Ori()const 
 {
    return mOri;
 }
@@ -20104,6 +20104,17 @@ const double & cXml_O2IRotation::Residu()const
 }
 
 
+double & cXml_O2IRotation::ResiduHighPerc()
+{
+   return mResiduHighPerc;
+}
+
+const double & cXml_O2IRotation::ResiduHighPerc()const 
+{
+   return mResiduHighPerc;
+}
+
+
 Pt3dr & cXml_O2IRotation::PMed1()
 {
    return mPMed1;
@@ -20119,6 +20130,7 @@ void  BinaryUnDumpFromFile(cXml_O2IRotation & anObj,ELISE_fp & aFp)
      BinaryUnDumpFromFile(anObj.Ori(),aFp);
     BinaryUnDumpFromFile(anObj.Centre(),aFp);
     BinaryUnDumpFromFile(anObj.Residu(),aFp);
+    BinaryUnDumpFromFile(anObj.ResiduHighPerc(),aFp);
     BinaryUnDumpFromFile(anObj.PMed1(),aFp);
 }
 
@@ -20127,6 +20139,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_O2IRotation & anObj)
     BinaryDumpInFile(aFp,anObj.Ori());
     BinaryDumpInFile(aFp,anObj.Centre());
     BinaryDumpInFile(aFp,anObj.Residu());
+    BinaryDumpInFile(aFp,anObj.ResiduHighPerc());
     BinaryDumpInFile(aFp,anObj.PMed1());
 }
 
@@ -20137,6 +20150,7 @@ cElXMLTree * ToXMLTree(const cXml_O2IRotation & anObj)
    aRes->AddFils(ToXMLTree(anObj.Ori())->ReTagThis("Ori"));
    aRes->AddFils(::ToXMLTree(std::string("Centre"),anObj.Centre())->ReTagThis("Centre"));
    aRes->AddFils(::ToXMLTree(std::string("Residu"),anObj.Residu())->ReTagThis("Residu"));
+   aRes->AddFils(::ToXMLTree(std::string("ResiduHighPerc"),anObj.ResiduHighPerc())->ReTagThis("ResiduHighPerc"));
    aRes->AddFils(::ToXMLTree(std::string("PMed1"),anObj.PMed1())->ReTagThis("PMed1"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -20154,18 +20168,20 @@ void xml_init(cXml_O2IRotation & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Residu(),aTree->Get("Residu",1)); //tototo 
 
+   xml_init(anObj.ResiduHighPerc(),aTree->Get("ResiduHighPerc",1)); //tototo 
+
    xml_init(anObj.PMed1(),aTree->Get("PMed1",1)); //tototo 
 }
 
-std::string  Mangling( cXml_O2IRotation *) {return "20B7382122DB1199FE3F";};
+std::string  Mangling( cXml_O2IRotation *) {return "1841F7CB83BCBE96FD3F";};
 
 
-cRotationVect & cXml_O2IRotPure::Ori()
+cTypeCodageMatr & cXml_O2IRotPure::Ori()
 {
    return mOri;
 }
 
-const cRotationVect & cXml_O2IRotPure::Ori()const 
+const cTypeCodageMatr & cXml_O2IRotPure::Ori()const 
 {
    return mOri;
 }
@@ -20214,7 +20230,7 @@ void xml_init(cXml_O2IRotPure & anObj,cElXMLTree * aTree)
    xml_init(anObj.Residu(),aTree->Get("Residu",1)); //tototo 
 }
 
-std::string  Mangling( cXml_O2IRotPure *) {return "B22464E15473FFE8FD3F";};
+std::string  Mangling( cXml_O2IRotPure *) {return "0625726931755A9DFF3F";};
 
 
 cXmlHomogr & cXml_O2IHom::Hom()
@@ -20274,6 +20290,154 @@ void xml_init(cXml_O2IHom & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXml_O2IHom *) {return "A2934292B9DDD49EFE3F";};
 
 
+double & cXml_O2ITiming::TimeRPure()
+{
+   return mTimeRPure;
+}
+
+const double & cXml_O2ITiming::TimeRPure()const 
+{
+   return mTimeRPure;
+}
+
+
+double & cXml_O2ITiming::TimePatchP()
+{
+   return mTimePatchP;
+}
+
+const double & cXml_O2ITiming::TimePatchP()const 
+{
+   return mTimePatchP;
+}
+
+
+double & cXml_O2ITiming::TimeRanMin()
+{
+   return mTimeRanMin;
+}
+
+const double & cXml_O2ITiming::TimeRanMin()const 
+{
+   return mTimeRanMin;
+}
+
+
+double & cXml_O2ITiming::TimeRansacStd()
+{
+   return mTimeRansacStd;
+}
+
+const double & cXml_O2ITiming::TimeRansacStd()const 
+{
+   return mTimeRansacStd;
+}
+
+
+double & cXml_O2ITiming::TimeL2MatEss()
+{
+   return mTimeL2MatEss;
+}
+
+const double & cXml_O2ITiming::TimeL2MatEss()const 
+{
+   return mTimeL2MatEss;
+}
+
+
+double & cXml_O2ITiming::TimeL1MatEss()
+{
+   return mTimeL1MatEss;
+}
+
+const double & cXml_O2ITiming::TimeL1MatEss()const 
+{
+   return mTimeL1MatEss;
+}
+
+
+double & cXml_O2ITiming::TimeHomStd()
+{
+   return mTimeHomStd;
+}
+
+const double & cXml_O2ITiming::TimeHomStd()const 
+{
+   return mTimeHomStd;
+}
+
+void  BinaryUnDumpFromFile(cXml_O2ITiming & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.TimeRPure(),aFp);
+    BinaryUnDumpFromFile(anObj.TimePatchP(),aFp);
+    BinaryUnDumpFromFile(anObj.TimeRanMin(),aFp);
+    BinaryUnDumpFromFile(anObj.TimeRansacStd(),aFp);
+    BinaryUnDumpFromFile(anObj.TimeL2MatEss(),aFp);
+    BinaryUnDumpFromFile(anObj.TimeL1MatEss(),aFp);
+    BinaryUnDumpFromFile(anObj.TimeHomStd(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_O2ITiming & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.TimeRPure());
+    BinaryDumpInFile(aFp,anObj.TimePatchP());
+    BinaryDumpInFile(aFp,anObj.TimeRanMin());
+    BinaryDumpInFile(aFp,anObj.TimeRansacStd());
+    BinaryDumpInFile(aFp,anObj.TimeL2MatEss());
+    BinaryDumpInFile(aFp,anObj.TimeL1MatEss());
+    BinaryDumpInFile(aFp,anObj.TimeHomStd());
+}
+
+cElXMLTree * ToXMLTree(const cXml_O2ITiming & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_O2ITiming",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("TimeRPure"),anObj.TimeRPure())->ReTagThis("TimeRPure"));
+   aRes->AddFils(::ToXMLTree(std::string("TimePatchP"),anObj.TimePatchP())->ReTagThis("TimePatchP"));
+   aRes->AddFils(::ToXMLTree(std::string("TimeRanMin"),anObj.TimeRanMin())->ReTagThis("TimeRanMin"));
+   aRes->AddFils(::ToXMLTree(std::string("TimeRansacStd"),anObj.TimeRansacStd())->ReTagThis("TimeRansacStd"));
+   aRes->AddFils(::ToXMLTree(std::string("TimeL2MatEss"),anObj.TimeL2MatEss())->ReTagThis("TimeL2MatEss"));
+   aRes->AddFils(::ToXMLTree(std::string("TimeL1MatEss"),anObj.TimeL1MatEss())->ReTagThis("TimeL1MatEss"));
+   aRes->AddFils(::ToXMLTree(std::string("TimeHomStd"),anObj.TimeHomStd())->ReTagThis("TimeHomStd"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_O2ITiming & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.TimeRPure(),aTree->Get("TimeRPure",1)); //tototo 
+
+   xml_init(anObj.TimePatchP(),aTree->Get("TimePatchP",1)); //tototo 
+
+   xml_init(anObj.TimeRanMin(),aTree->Get("TimeRanMin",1)); //tototo 
+
+   xml_init(anObj.TimeRansacStd(),aTree->Get("TimeRansacStd",1)); //tototo 
+
+   xml_init(anObj.TimeL2MatEss(),aTree->Get("TimeL2MatEss",1)); //tototo 
+
+   xml_init(anObj.TimeL1MatEss(),aTree->Get("TimeL1MatEss",1)); //tototo 
+
+   xml_init(anObj.TimeHomStd(),aTree->Get("TimeHomStd",1)); //tototo 
+}
+
+std::string  Mangling( cXml_O2ITiming *) {return "F04A30659AF3BDB2FE3F";};
+
+
+cXml_O2ITiming & cXml_O2IComputed::Timing()
+{
+   return mTiming;
+}
+
+const cXml_O2ITiming & cXml_O2IComputed::Timing()const 
+{
+   return mTiming;
+}
+
+
 cXml_O2IRotation & cXml_O2IComputed::Ori()
 {
    return mOri;
@@ -20330,7 +20494,8 @@ const double & cXml_O2IComputed::RecHom()const
 
 void  BinaryUnDumpFromFile(cXml_O2IComputed & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Ori(),aFp);
+     BinaryUnDumpFromFile(anObj.Timing(),aFp);
+    BinaryUnDumpFromFile(anObj.Ori(),aFp);
     BinaryUnDumpFromFile(anObj.RPure(),aFp);
     BinaryUnDumpFromFile(anObj.Hom(),aFp);
     BinaryUnDumpFromFile(anObj.BSurH(),aFp);
@@ -20339,6 +20504,7 @@ void  BinaryUnDumpFromFile(cXml_O2IComputed & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_O2IComputed & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.Timing());
     BinaryDumpInFile(aFp,anObj.Ori());
     BinaryDumpInFile(aFp,anObj.RPure());
     BinaryDumpInFile(aFp,anObj.Hom());
@@ -20350,6 +20516,7 @@ cElXMLTree * ToXMLTree(const cXml_O2IComputed & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_O2IComputed",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.Timing())->ReTagThis("Timing"));
    aRes->AddFils(ToXMLTree(anObj.Ori())->ReTagThis("Ori"));
    aRes->AddFils(ToXMLTree(anObj.RPure())->ReTagThis("RPure"));
    aRes->AddFils(ToXMLTree(anObj.Hom())->ReTagThis("Hom"));
@@ -20365,6 +20532,8 @@ void xml_init(cXml_O2IComputed & anObj,cElXMLTree * aTree)
    anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
 
+   xml_init(anObj.Timing(),aTree->Get("Timing",1)); //tototo 
+
    xml_init(anObj.Ori(),aTree->Get("Ori",1)); //tototo 
 
    xml_init(anObj.RPure(),aTree->Get("RPure",1)); //tototo 
@@ -20376,7 +20545,7 @@ void xml_init(cXml_O2IComputed & anObj,cElXMLTree * aTree)
    xml_init(anObj.RecHom(),aTree->Get("RecHom",1)); //tototo 
 }
 
-std::string  Mangling( cXml_O2IComputed *) {return "D8BE7E79056B7EBCFCBF";};
+std::string  Mangling( cXml_O2IComputed *) {return "C0C2620C20F01FC2FCBF";};
 
 
 std::string & cXml_Ori2Im::Im1()
@@ -20423,34 +20592,34 @@ const int & cXml_Ori2Im::NbPts()const
 }
 
 
-std::string & cXml_Ori2Im::Foc1()
+double & cXml_Ori2Im::Foc1()
 {
    return mFoc1;
 }
 
-const std::string & cXml_Ori2Im::Foc1()const 
+const double & cXml_Ori2Im::Foc1()const 
 {
    return mFoc1;
 }
 
 
-std::string & cXml_Ori2Im::Foc2()
+double & cXml_Ori2Im::Foc2()
 {
    return mFoc2;
 }
 
-const std::string & cXml_Ori2Im::Foc2()const 
+const double & cXml_Ori2Im::Foc2()const 
 {
    return mFoc2;
 }
 
 
-std::string & cXml_Ori2Im::FocMoy()
+double & cXml_Ori2Im::FocMoy()
 {
    return mFocMoy;
 }
 
-const std::string & cXml_Ori2Im::FocMoy()const 
+const double & cXml_Ori2Im::FocMoy()const 
 {
    return mFocMoy;
 }
@@ -20538,6 +20707,6 @@ void xml_init(cXml_Ori2Im & anObj,cElXMLTree * aTree)
    xml_init(anObj.Geom(),aTree->Get("Geom",1)); //tototo 
 }
 
-std::string  Mangling( cXml_Ori2Im *) {return "62BB2285E6A636D4FE3F";};
+std::string  Mangling( cXml_Ori2Im *) {return "F421DE5FDEB999C2FC3F";};
 
 // };
