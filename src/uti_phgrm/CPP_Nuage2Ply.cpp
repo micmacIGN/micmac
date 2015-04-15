@@ -250,10 +250,10 @@ cAppli_San2Ply_main::cAppli_San2Ply_main (int argc,char ** argv) :
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aPat,"Pattern of image")
-                    << EAMC(anOri ,"Orientation")
+        LArgMain()  << EAMC(aPat,"Pattern of image", eSAM_IsPatFile)
+                    << EAMC(anOri ,"Orientation", eSAM_IsExistDirOri)
                     << EAMC(aNameSan,"Name of Analytical Surface"),
-        LArgMain()  << EAM(aDensity,"Density",true,"Factor proportionnal to point density")
+        LArgMain()  << EAM(aDensity,"Density",true,"Factor proportional to point density")
                     << EAM(Out,"Out",true,"Name Of result")
     );
 
@@ -274,7 +274,7 @@ cAppli_San2Ply_main::cAppli_San2Ply_main (int argc,char ** argv) :
     );
 
     aPlyC.PutFile(Out);
-    
+
 
 /*
     cPlyCloud aPC;

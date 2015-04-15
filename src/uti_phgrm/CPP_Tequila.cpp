@@ -85,7 +85,7 @@ void LoadTrScaleRotate
 }
 
 //update index in regions list, when a triangle is removed from mesh
-void updateIndex(int triIdx, std::vector < cTextRect > &regions)
+void updateIndex(int triIdx, std::vector < cTextureBox2d > &regions)
 {
     for (unsigned int cK=0; cK < regions.size();++cK)
     {
@@ -108,6 +108,7 @@ typedef enum
 {
     eAngle,
     eStretch,
+    eAAngle, //angle aigu
     eLastTC
 } eTequilaCrit;
 
@@ -128,6 +129,8 @@ std::string eToString(const eTequilaCrit & aVal)
       return  "eAngle";
    if (aVal==eStretch)
       return  "eStretch";
+   if (aVal==eAAngle)
+      return  "eAAngle";
  std::cout << "Enum = eTequilaCrit\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -136,7 +139,7 @@ std::string eToString(const eTequilaCrit & aVal)
 int Tequila_main(int argc,char ** argv)
 {
     std::string aDir, aPat, aFullName, aOri, aPly, aOut, aTextOut;
-    int aTextMaxSize = 4096;
+    int aTextMaxSize = 8192;
     int aZBuffSSEch = 2;
     int aJPGcomp = 70;
     double aAngleMin = 90.f;
@@ -166,6 +169,21 @@ int Tequila_main(int argc,char ** argv)
 
     if (MMVisualMode) return EXIT_SUCCESS;
 
+    cout<<endl;
+    cout<<"****************************Parameters******************************"<<endl;
+    cout<<endl;
+
+    cout << "Mode = " << aMode << endl;
+    cout << "Crit = " << aCrit << endl;
+    cout << "Min angle = " << aAngleMin << endl;
+    cout << "Downscale factor = " << aZBuffSSEch  << endl;
+    cout << "Texture max size = " << aTextMaxSize << endl;
+    cout << "Write binary file = " << aBin << endl;
+    cout << "jpeg compression quality = " << aJPGcomp << endl;
+
+    cout<<endl;
+    cout<<"********************************************************************"<<endl;
+
     SplitDirAndFile(aDir,aPat,aFullName);
 
     if (!EAMIsInit(&aOut)) aOut = StdPrefix(aPly) + "_textured.ply";
@@ -180,12 +198,6 @@ int Tequila_main(int argc,char ** argv)
 
     StdCorrecNameOrient(aOri,aDir);
 
-    float threshold = 0.f;
-
-    if (aCrit == "Angle") threshold = -cos(PI*aAngleMin/180.f); //angle min = cos(180 - 60) = -0.5
-    else if (aCrit == "Stretch") threshold = 1e30;
-    //cout << "threshold=" << threshold << endl;
-
     std::vector<CamStenope*> ListCam;
 
     cout << endl;
@@ -195,6 +207,8 @@ int Tequila_main(int argc,char ** argv)
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
+        ListCam.back()->SetIdCam(NOri); //Debug only
+
         cout <<"Image "<<*itS<<", with ori : "<< NOri <<endl;
     }
 
@@ -202,7 +216,24 @@ int Tequila_main(int argc,char ** argv)
     cout<<"**************************Reading ply file***************************"<<endl;
     cout<<endl;
 
-    cMesh myMesh(aPly, threshold, aMode=="Pack");
+    cMesh myMesh(aPly, aMode=="Pack");
+
+    float threshold = 0.f;
+    float angle_thresh = 0.f;
+    if (aCrit == "Angle") threshold = -cos(PI*aAngleMin/180.f); //angle min = cos(180 - 60) = -0.5
+    else if (aCrit == "Stretch")
+    {
+        threshold = 1e30;
+        angle_thresh = threshold;
+    }
+    else if (aCrit == "AAngle")
+    {
+        threshold = 0.f;
+        angle_thresh = threshold;
+    }
+    //cout << "threshold=" << threshold << endl;
+
+    myMesh.initDefValue(threshold);
 
     const int nFaces = myMesh.getFacesNumber();
     printf("Vertex number : %d - faces number : %d - edges number : %d\n\n", myMesh.getVertexNumber(), nFaces, myMesh.getEdgesNumber());
@@ -210,7 +241,7 @@ int Tequila_main(int argc,char ** argv)
     cout<<"*************************Computing Z-Buffer**************************"<< endl;
     cout<< endl;
 
-    vector <cZBuf> aZBuffers;
+    std::vector <cZBuf> aZBuffers;
 
     std::list<std::string>::const_iterator itS=aLS.begin();
     const int nCam = ListCam.size();
@@ -225,26 +256,23 @@ int Tequila_main(int argc,char ** argv)
 
         aZBuffers.push_back(aZBuffer);
 
-        set <unsigned int> *vTri = aZBuffer.getVisibleTrianglesIndexes();
+        set <int> vTri = aZBuffer.getVisibleTrianglesIndexes();
 
         if (debug)
         {
-            std::stringstream ss  ;
-            ss << aK;
+            aZBuffer.write(StdPrefix(*itS) + "_zbuf.tif");
 
-            aZBuffer.write(StdPrefix(*itS) + "_zbuf" + ss.str() + ".tif");
+            aZBuffer.writeImLabel(StdPrefix(*itS) + "_label.tif");
 
-            aZBuffer.writeImLabel(StdPrefix(*itS) + "_label" + ss.str() + ".tif");
-
-            myMesh.Export(StdPrefix(*itS) + "export" + ss.str() + ".ply", *vTri);
+            myMesh.Export(StdPrefix(*itS) + "export.ply", vTri);
         }
 
-        set <unsigned int>::const_iterator it = vTri->begin();
-        for (;it!=vTri->end();++it)
+        std::set <int>::const_iterator it = vTri.begin();
+        for (;it!=vTri.end();++it)
         {
             cTriangle * Triangle = myMesh.getTriangle(*it);
 
-            vector <Pt3dr> Vertex;
+            std::vector <Pt3dr> Vertex;
             Triangle->getVertexes(Vertex);
 
             Pt2dr D = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
@@ -254,6 +282,7 @@ int Tequila_main(int argc,char ** argv)
             if (Cam->IsInZoneUtile(D) && Cam->IsInZoneUtile(E) && Cam->IsInZoneUtile(F))
             {
                 double criter = threshold;
+                double angle  = scal(Triangle->getNormale(true), Cam->DirK()); //Norme de DirK=1
 
                 if (aCrit == "Stretch")
                 {
@@ -265,7 +294,7 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr v1n = v1 / norme;
                     Pt2dr v2n = v2 / norme;
 
-                    //coordonnees du point C dans le plan du triangle (repere orthonormé defini par Ox = BA )
+                    //coordonnees du point C dans le plan du triangle (repere orthonormé defini par Ox = AB )
                     double x = scal(v1n, v2n);
                     double y = sin(acos(x));
 
@@ -290,23 +319,50 @@ int Tequila_main(int argc,char ** argv)
                     double aV2 = square_euclid(aV);
                     double aUV = scal(aU,aV);
 
-                    //le coef d'etirement est sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2)
+                    // le coef d'etirement est sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2)
                     // mais on supprime les calculs superflus => sqrt et /2 strictement monotones
 
                     criter = aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV));
 
                     //cout << "criter = " << criter << endl;
+                    if((criter < Triangle->getBestCriter()) && (angle < angle_thresh))
+                    {
+                        Triangle->setBestImgIndex(aK);
+                    }
                 }
                 else if (aCrit == "Angle")
                 {
-                    criter = scal(Triangle->getNormale(true), Cam->DirK()); //Norme de DirK=1
+                    criter = angle;
+
+                    if(criter < Triangle->getBestCriter())
+                    {
+                        Triangle->setBestImgIndex(aK);
+                    }
+                }
+                else if (aCrit == "AAngle") //max de l'angle aigu
+                {
+                    Pt2dr DE (E - D);
+                    Pt2dr DF (F - D);
+                    Pt2dr EF (F - E);
+
+                    float DEn = euclid(DE);
+                    float DFn = euclid(DF);
+                    float EFn = euclid(EF);
+
+                    float EDF = acos(scal(DE, DF) / (DEn*DFn));
+                    float DFE = acos(scal(DF, EF) / (DFn*EFn));
+                    float DEF = acos(scal(DE,-EF) / (DEn*EFn));
+
+                    criter = min(EDF, min(DFE, DEF));
+
+                      //cout << "criter = " << criter << endl;
+                    if((criter > Triangle->getBestCriter()) && (angle < angle_thresh))
+                    {
+                        Triangle->setBestImgIndex(aK);
+                    }
                 }
 
-                if((criter < Triangle->getCriter()))
-                {
-                    Triangle->setCriter(criter);
-                    Triangle->setTextureImgIndex(aK);
-                }
+                Triangle->insertCriter(aK,criter);
             }
         }
     }
@@ -315,11 +371,15 @@ int Tequila_main(int argc,char ** argv)
 
     int valDef = cTriangle::getDefTextureImgIndex();
 
+    //int cotN =0;
     for (int aK=0;aK<nFaces; aK++)
     {
-        int imgIdx = myMesh.getTriangle(aK)->getTextureImgIndex();
+        int imgIdx = myMesh.getTriangle(aK)->getBestImgIndex();
         if(imgIdx != valDef) index.insert(imgIdx);
+      //  else cotN++;
     }
+
+    //cout << "faces non texturees = " << cotN << endl;
 
     cout << endl;
     cout << "Selected images / total : " << index.size() << " / " << aLS.size() << endl;
@@ -332,11 +392,15 @@ int Tequila_main(int argc,char ** argv)
 
     printf("\nVertex number : %d - faces number : %d \n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
 
+    cout << endl;
+    cout <<"**************************Reading images*****************************"<<endl;
+    cout << endl;
+
     Pt2di aSzMax;
-    vector <Tiff_Im> aVT;     //Vecteur contenant les images
+    std::vector <Tiff_Im> aVT;     //Vecteur contenant les images
     int aNbCh = 0;
 
-    vector <Im2D_REAL4> final_ZBufIm;
+    std::vector <Im2D_REAL4> final_ZBufIm;
     cInterpolateurIm2D<REAL4> * pInterp = new cInterpolBilineaire<REAL4>;
     std::set <int>::const_iterator it = index.begin();
     for (; it != index.end();it++)
@@ -377,33 +441,34 @@ int Tequila_main(int argc,char ** argv)
         cout <<"**********************Getting adjacent triangles*********************"<<endl;
         cout << endl;
 
-        std::vector < cTextRect > regions = myMesh.getRegions();
+        std::vector < cTextureBox2d > regions = myMesh.getRegions();
         cout << "nb regions = " << regions.size() << endl;
 
         TEXTURE_PACKER::TexturePacker *tp = TEXTURE_PACKER::createTexturePacker();
 
         for (unsigned int aK=0; aK < regions.size();++aK)
         {
+            cTextureBox2d *region = &(regions[aK]);
             //cout << "region " << aK << " nb triangles = " << regions[aK].triangles.size() << endl;
             //Calcul de la zone correspondante dans l'image
 
-            int triIdx = regions[aK].triangles[0];
+            int triIdx = region->triangles[0];
             cTriangle * Tri = myMesh.getTriangle(triIdx);
-            int imgIdx = Tri->getTextureImgIndex();
+            int imgIdx = Tri->getBestImgIndex();
 
             //cout << "Image index " << imgIdx << endl;
 
             Pt2dr _min(DBL_MAX, DBL_MAX);
             Pt2dr _max;
 
-            for (unsigned int bK=0; bK < regions[aK].triangles.size(); ++bK)
+            for (unsigned int bK=0; bK < region->triangles.size(); ++bK)
             {
-                int triIdx = regions[aK].triangles[bK];
+                int triIdx = region->triangles[bK];
                 cTriangle * Triangle = myMesh.getTriangle(triIdx);
 
                 ElCamera * Cam = ListCam[imgIdx];
 
-                vector <Pt3dr> Vertex;
+                std::vector <Pt3dr> Vertex;
                 Triangle->getVertexes(Vertex);
 
                 Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
@@ -420,7 +485,8 @@ int Tequila_main(int argc,char ** argv)
             if (_min != Pt2dr(DBL_MAX, DBL_MAX)) //TODO: gerer les triangles de bord
             {
                 //cout << "aK= " << aK << " img= " << imgIdx << " min, max = " << _min.x << ", " << _min.y << "  " <<  _max.x << ", " << _max.y << endl;
-                regions[aK].setRect(imgIdx, round_down(_min), round_up(_max));
+                region->setRect(imgIdx, round_down(_min), round_up(_max));
+                //cout << "region min, max = " << region->P0() << " "  << region->P1() << endl;
             }
             else
             {
@@ -434,12 +500,12 @@ int Tequila_main(int argc,char ** argv)
         cout <<"***************************Packing textures**************************"<<endl;
         cout << endl;
 
-        tp->setTextureCount(regions.size());
-
         const int nRegions = regions.size();
+        tp->setTextureCount(nRegions);
+
         for (int aK=0; aK < nRegions; ++aK)
         {
-            Pt2di sz = regions[aK].size();
+            Pt2di sz = regions[aK].sz();
             //cout << "aK= " << aK << " width - height " << sz.x << " " <<  sz.y << endl;
             tp->addTexture(sz.x, sz.y);
         }
@@ -455,7 +521,7 @@ int Tequila_main(int argc,char ** argv)
         if (Scale > 1.f) Scale = 1.f;
 
         printf("Scaling factor = %1.2f\n", Scale);
-        if (Scale < 0.2f) cout << "Warning: scaling factor too low, try using higher texture size (Parameter Sz)" << endl;
+        if (Scale < 0.25f) cout << "Warning: scaling factor too low, try using higher texture size (Parameter Sz)" << endl;
 
         int final_width  = round_up(width * Scale);
         int final_height = round_up(height * Scale);
@@ -477,6 +543,9 @@ int Tequila_main(int argc,char ** argv)
 
         for (int aK=0; aK< nRegions; aK++)
         {
+            cTextureBox2d *region = &(regions[aK]);
+            Pt2di p0 = region->P0();
+
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
@@ -485,27 +554,24 @@ int Tequila_main(int argc,char ** argv)
             int x_scaled = round_ni(x * Scale);
             int y_scaled = round_ni(y * Scale);
 
-            //cout << "image position  scaled = " << x_scaled << " " << y_scaled << endl;
+            //cout << "image position scaled = " << x_scaled << " " << y_scaled << endl;
 
             int w_scaled = round_ni(w * Scale);
             int h_scaled = round_ni(h * Scale);
 
             //cout << "image dimension scaled = " << w_scaled << " " << h_scaled << endl;
 
-            int p0x_scaled = round_ni(regions[aK].p0.x * Scale);
-            int p0y_scaled = round_ni(regions[aK].p0.y * Scale);
+            int p0x_scaled = round_ni(p0.x * Scale);
+            int p0y_scaled = round_ni(p0.y * Scale);
 
             Pt2di p0_scaled(p0x_scaled, p0y_scaled);
 
             Pt2di xy_scaled(x_scaled, y_scaled);
             Pt2di wh_scaled(w_scaled, h_scaled);
 
-            Pt2di tr = p0_scaled - xy_scaled;
+            int imgIdx = region->imgIdx;
 
-            regions[aK].setTransfo(tr, rotated);
-
-            int imgIdx = regions[aK].imgIdx;
-            //cout << "position dans l'image " << imgIdx << " = " << regions[aK].p0.x << " " << regions[aK].p0.y << endl;
+            //cout << "position dans l'image " << ListCam[imgIdx]->IdCam() << " = " << p0.x << " " << p0.y << endl;
 
             Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
 
@@ -516,9 +582,11 @@ int Tequila_main(int argc,char ** argv)
                 ELISE_COPY
                 (
                      aVOutInit[0]->all_pts(),
-                     StdFoncChScale(aF0,Pt2dr(regions[aK].p0),Pt2dr(1.f/Scale,1.f/Scale)),
+                     StdFoncChScale(aF0,Pt2dr(p0),Pt2dr(1.f/Scale,1.f/Scale)),
                      StdOut(aVOutInit)
                 );
+                //erreur 1 : segfault avec Sz=4096 Scale=0.24
+                //erreur 2 : "values out of range in bitmaps writing" avec Sz=16384 Scale=0.96
 
                 std::vector<Im2DGen *>   aVOutRotate;
                 for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
@@ -530,9 +598,15 @@ int Tequila_main(int argc,char ** argv)
                     trans(StdInput(aVOutRotate), -xy_scaled),
                     nFileRes.out()
                 );
+
+                region->setTransfo(xy_scaled, rotated);
             }
             else
             {
+                Pt2di tr = p0_scaled - xy_scaled;
+
+                region->setTransfo(-tr, rotated);
+
                 Fonc_Num aF = aF0;
                 while (aF.dimf_out() < aNbCh)
                     aF = Virgule(aF0,aF);
@@ -553,29 +627,33 @@ int Tequila_main(int argc,char ** argv)
         cout <<"********************Computing texture coordinates********************"<<endl;
         cout << endl;
 
-        for (int aK=0; aK < nRegions; ++aK)
+
+        Pt2dr p0_scaled, p1_scaled;
+
+        int cptTmp =0;
+        std::vector < cTextureBox2d >::const_iterator it = regions.begin();
+        for (; it != regions.end(); ++it, cptTmp++)
         {
-            Pt2di PtTemp = -regions[aK].translation;
-            bool rotat = regions[aK].rotation;
+            float tx = it->translation.x;
+            float ty = it->translation.y;
 
-            Pt2dr coin(regions[aK].p0);
-            //cout << "aK= " << aK << " coin = " << coin << endl;
-
-            float tx = round_ni(coin.x * Scale) + PtTemp.x;
-            float ty = round_ni(coin.y * Scale) + PtTemp.y + (float) regions[aK].width() * Scale;
-
-            //cout << "ty = " << ty << endl;
-
-            //cout << "nb Triangles = " << regions[aK].size() << endl;
-
-            const int nTriangles = regions[aK].triangles.size();
-            for (int bK=0; bK < nTriangles;++bK)
+            if (it->isRotated)
             {
-                int triIdx = regions[aK].triangles[bK];
+                p0_scaled = Pt2dr(it->P0())*Scale;
+                p1_scaled = Pt2dr(it->P1())*Scale;
+            }
+
+            //cout << "rotated " << it->isRotated << " translation = " << it->translation << " p0 = " <<p0_scaled << " p1 = " << p1_scaled << endl;
+
+            //cout << "nb Triangles = " << it->sz() << endl;
+
+            for (unsigned int bK=0; bK < it->triangles.size();++bK)
+            {
+                int triIdx = it->triangles[bK];
 
                 cTriangle *Triangle = myMesh.getTriangle(triIdx);
 
-                int idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
+                int idx = Triangle->getBestImgIndex();                //Liaison avec l'image correspondante
 
                 //cout << "image pour le triangle " << i << " = " << idx << endl;
 
@@ -583,83 +661,88 @@ int Tequila_main(int argc,char ** argv)
                 {
                     CamStenope *Cam = ListCam[idx];
 
-                    vector <Pt3dr> Vertex;
+                    std::vector <Pt3dr> Vertex;
                     Triangle->getVertexes(Vertex);
 
                     Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
                     Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                     Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
+                    //debug
+                    /*std::vector <int> vIndexes;
+                    Triangle->getVertexesIndexes(vIndexes);
+
+                    if ((vIndexes[0] == 7117) && (vIndexes[1] == 7115) && (vIndexes[2]==6986))
+                    {
+                        cout << "idx du triangle = " << triIdx << " region = " << cptTmp<< " bK = " << bK << " rotated " << it->isRotated << endl;
+                        cout << "nb triangles dans la region = "<< it->triangles.size()<< endl;
+                        cout << "p0 = "<< it->P0() << endl;
+                        cout << "p1 = "<< it->P1() << endl;
+                        cout << "Pt1 = " << Pt1 << endl;
+                        cout << "Pt2 = " << Pt2 << endl;
+                        cout << "Pt3 = " << Pt3 << endl;
+                        cout << "tx = " << tx << endl;
+                        cout << "ty = " << ty << endl;
+                        cout << "idcam = " << Cam->IdCam() << endl;
+                    }*/
+                    //end debug
+
                     if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
                     {
+                        Pt2dr Pt1s = Pt1*Scale;
+                        Pt2dr Pt2s = Pt2*Scale;
+                        Pt2dr Pt3s = Pt3*Scale;
+
                         Pt2dr P1, P2, P3;
 
-                        if(rotat)
+                        if(it->isRotated)
                         {
-                            Pt2dr v1 = (Pt1 - coin)*Scale;
-                            Pt2dr v2 = (Pt2 - coin)*Scale;
-                            Pt2dr v3 = (Pt3 - coin)*Scale;
+                            P1.x = (Pt1s.y + tx - p0_scaled.y) / final_width;
+                            P2.x = (Pt2s.y + tx - p0_scaled.y) / final_width;
+                            P3.x = (Pt3s.y + tx - p0_scaled.y) / final_width;
 
-                            P1.x = (tx + v1.y) / final_width;
-                            P2.x = (tx + v2.y) / final_width;
-                            P3.x = (tx + v3.y) / final_width;
-
-                            P1.y = 1.f - (ty - v1.x) / final_height;
-                            P2.y = 1.f - (ty - v2.x) / final_height;
-                            P3.y = 1.f - (ty - v3.x) / final_height;
+                            P1.y = 1.f - (-Pt1s.x + ty + p1_scaled.x) / final_height;
+                            P2.y = 1.f - (-Pt2s.x + ty + p1_scaled.x) / final_height;
+                            P3.y = 1.f - (-Pt3s.x + ty + p1_scaled.x) / final_height;
 
                            /* if (bK== 0)
                             {
                                 cout << "Pt1 = " << Pt1 << endl;
                                 cout << "Pt2 = " << Pt2 << endl;
                                 cout << "Pt3 = " << Pt3 << endl;
-
-                                cout << "v1 = " << v1 << endl;
-                                cout << "v2 = " << v2 << endl;
-                                cout << "v3 = " << v3 << endl;
-
-                                cout << "p1x = " << v1.y + PtTemp.x << endl;
-                                cout << "p2x = " << v2.y + PtTemp.x << endl;
-                                cout << "p3x = " << v3.y + PtTemp.x << endl;
-
-                                cout << "p1y = " << y1 << endl;
-                                cout << "p2y = " << y2 << endl;
-                                cout << "p3y = " << y3 << endl;
-
-                                cout << "rwidth " << rwidth << endl;
                             }*/
                         }
                         else
                         {
-                            P1.x = (Pt1.x*Scale+PtTemp.x) / final_width;
-                            P2.x = (Pt2.x*Scale+PtTemp.x) / final_width;
-                            P3.x = (Pt3.x*Scale+PtTemp.x) / final_width;
+                            P1.x = (Pt1s.x+tx) / final_width;
+                            P2.x = (Pt2s.x+tx) / final_width;
+                            P3.x = (Pt3s.x+tx) / final_width;
 
-                            P1.y = 1.f - (Pt1.y*Scale+PtTemp.y) / final_height;
-                            P2.y = 1.f - (Pt2.y*Scale+PtTemp.y) / final_height;
-                            P3.y = 1.f - (Pt3.y*Scale+PtTemp.y) / final_height;
+                            P1.y = 1.f - (Pt1s.y+ty) / final_height;
+                            P2.y = 1.f - (Pt2s.y+ty) / final_height;
+                            P3.y = 1.f - (Pt3s.y+ty) / final_height;
                         }
 
-                        if ((P1.x >=0.f) && (P1.x <= 1.f) && (P2.x >=0.f) && (P2.y <= 1.f) && (P3.x >=0.f) && (P3.y <= 1.f))
+                        //if ((P1.x >=0.f) && (P1.x <= 1.f) && (P2.x >=0.f) && (P2.y <= 1.f) && (P3.x >=0.f) && (P3.y <= 1.f))
                             Triangle->setTextureCoordinates(P1, P2, P3);
-                        else
+                        /*else
                         {
                             myMesh.removeTriangle(*Triangle);
                             updateIndex(triIdx, regions);
-                        }
+                        }*/
                     }
-                    else
+                    /*else
                     {
                         myMesh.removeTriangle(*Triangle);
                         updateIndex(triIdx, regions);
-                    }
+                    }*/
                 }
             }
         }
     }
     else if (aMode == "Basic")
     {
-        vector <Pt2dr> TabCoor;
+        std::vector <Pt2dr> TabCoor;
 
         int aNbLine = round_up(sqrt(double(aVT.size())));
         int aNbCol = round_up(aVT.size()/double(aNbLine));
@@ -745,7 +828,7 @@ int Tequila_main(int argc,char ** argv)
         {
             cTriangle * Triangle = myMesh.getTriangle(i);
 
-            int idx = Triangle->getTextureImgIndex();                //Liaison avec l'image correspondante
+            int idx = Triangle->getBestImgIndex();                //Liaison avec l'image correspondante
 
             //cout << "image pour le triangle " << i << " = " << idx << endl;
 
@@ -753,7 +836,7 @@ int Tequila_main(int argc,char ** argv)
             {
                 CamStenope * Cam = ListCam[idx];
 
-                vector <Pt3dr> Vertex;
+                std::vector <Pt3dr> Vertex;
                 Triangle->getVertexes(Vertex);
 
                 Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
@@ -787,11 +870,12 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
+#ifdef QPBOOOOO
+
     cout << endl;
     cout <<"**************************QPBO**************************"<<endl;
     cout << endl;
 
-#ifdef QPBOOOOO
 
     if (myMesh.getFacesNumber() && myMesh.getEdgesNumber())
     {
@@ -810,38 +894,49 @@ int Tequila_main(int argc,char ** argv)
             int curImgIdx1 = tri1->getTextureImgIndex();
             int curImgIdx2 = tri2->getTextureImgIndex();
 
-            int newImgIdx1 = -1; //TODO
-            int newImgIdx2 = -1; //TODO
+            if (curImgIdx1 != valDef && curImgIdx2 != valDef)
+            {
+                int newImgIdx1 = -1; //TODO
+                int newImgIdx2 = -1; //TODO
 
-            float curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
-            float curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+                float curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
+                float curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
 
-            float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
-            float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
+                float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
+                float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
 
-            float diff11 = newMean1 - curMean1;
-            float diff12 = newMean1 - curMean2;
-            float diff21 = newMean2 - curMean1;
-            float diff22 = newMean2 - curMean2;
+                float diff11 = newMean1 - curMean1;
+                float diff12 = newMean1 - curMean2;
+                float diff21 = newMean2 - curMean1;
+                float diff22 = newMean2 - curMean2;
 
-            q->AddNode(2); // add two nodes
+                q->AddNode(2); // add two nodes
 
-            q->AddUnaryTerm(n1, tri1->getCriter(), -10); // add term 2*x
-            q->AddUnaryTerm(n2, tri2->getCriter(), 6); // add term 3*(y+1)
-            q->AddPairwiseTerm(n1, n2, diff11, diff12, diff21, diff22); // add term (x+1)*(y+2)
+                q->AddUnaryTerm(n1, tri1->getCriter(curImgIdx1), tri1->getCriter(newImgIdx1)); // add term 2*x
+                q->AddUnaryTerm(n2, tri2->getCriter(curImgIdx1), tri2->getCriter(newImgIdx2)); // add term 3*(y+1)
+                q->AddPairwiseTerm(n1, n2, diff11, diff12, diff21, diff22); // add term (x+1)*(y+2)
+            }
+        }
 
-            /*q->AddNode(2); // add two nodes
+        q->Solve();
+        q->ComputeWeakPersistencies();
 
-            q->AddUnaryTerm(0, 0, -10); // add term 2*x
-            q->AddUnaryTerm(1, 3, 6); // add term 3*(y+1)
-            q->AddPairwiseTerm(0, 1, 2, 3, 4, 6); // add term (x+1)*(y+2)
+        for (int aK=0; aK < nEdges; ++aK)
+        {
+            cEdge *edge = myMesh.getEdge(aK);
+            int n1 = edge->n1();
+            int n2 = edge->n2();
 
-            q->Solve();
-            q->ComputeWeakPersistencies();
+            int x = q->GetLabel(n1);
+            int y = q->GetLabel(n2);
 
-            int x = q->GetLabel(0);
-            int y = q->GetLabel(1);
-            printf("Solution: x=%d, y=%d\n", x, y);*/
+            printf("Solution: x=%d, y=%d\n", x, y);
+
+            cTriangle *tri1 = myMesh.getTriangle(n1);
+            cTriangle *tri2 = myMesh.getTriangle(n2);
+
+            tri1->setTextureImgIndex(x);
+            tri2->setTextureImgIndex(y);
         }
     }
     else
@@ -874,8 +969,8 @@ int Tequila_main(int argc,char ** argv)
 
     myMesh.write(aOut, aBin, textureName);
 
-    cout<<"********************************Done*********************************"<<endl;
-    cout<< endl;
+    cout <<"********************************Done*********************************"<<endl;
+    cout << endl;
 
     return EXIT_SUCCESS;
 }

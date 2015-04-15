@@ -48,34 +48,31 @@ static const REAL Eps = 1e-7;
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cTextRect::cTextRect(std::vector<int> aTriangles, int idx):
+cTextureBox2d::cTextureBox2d(std::vector<int> aTriangles, int idx):
     imgIdx(idx),
-    p0(Pt2di(0,0)),
-    p1(Pt2di(0,0)),
-    rotation(false),
-    translation(Pt2di(0,0)),
+    isRotated(false),
     triangles(aTriangles)
 {}
 
-void cTextRect::setRect(int aImgIdx, Pt2di aP0, Pt2di aP1)
+void cTextureBox2d::setRect(int aImgIdx, Pt2di aP0, Pt2di aP1)
 {
     imgIdx = aImgIdx;
-    p0 = aP0;
-    p1 = aP1;
+    Box2d<int>::_p0 = aP0;
+    Box2d<int>::_p1 = aP1;
 }
 
-void cTextRect::setTransfo(const Pt2di &tr, bool rot)
+void cTextureBox2d::setTransfo(const Pt2di &tr, bool rot)
 {
     translation = tr;
-    rotation  = rot;
+    isRotated  = rot;
 }
 
-bool cTextRect::operator==( const cTextRect & aTR ) const
+bool cTextureBox2d::operator==( cTextureBox2d const & aTR ) const
 {
-    return (imgIdx == aTR.imgIdx) &&
-            (p0 == aTR.p0) &&
-            (p1 == aTR.p1) &&
-            (rotation == aTR.rotation) &&
+    return  (imgIdx == aTR.imgIdx) &&
+            (Box2d<int>::_p0 == aTR._p0) &&
+            (Box2d<int>::_p1 == aTR._p1) &&
+            (isRotated == aTR.isRotated) &&
             (translation == aTR.translation) &&
             (triangles == aTR.triangles);
 }
@@ -96,14 +93,13 @@ void cTriangle::addEdge(int idx)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx, float scal):
+cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx):
     mTriIdx(TriIdx),
-    mTextImIdx(mDefTextImIdx),
+    mBestImIdx(mDefImIdx),
     pMesh(aMesh),
     mText0(Pt2dr()),
     mText1(Pt2dr()),
-    mText2(Pt2dr()),
-    mCriter(scal)
+    mText2(Pt2dr())
 {
     mTriVertex.push_back(face->verts[0]);
     mTriVertex.push_back(face->verts[1]);
@@ -216,7 +212,7 @@ vector<cTriangle *> cTriangle::getNeighbours()
     return res;
 }
 
-vector<int> cTriangle::getNeighbours2() //retourne un set où son index est aussi contenu
+vector<int> cTriangle::getNeighbours2()
 {
     vector <int> res;
 
@@ -225,12 +221,9 @@ vector<int> cTriangle::getNeighbours2() //retourne un set où son index est aussi
         cVertex *vertex = pMesh->getVertex(mTriVertex[aK]);
 
         vector <int> *neighb = vertex->getTriIdx();
-        /*vector<int>::const_iterator it = neighb.begin();
-        for (;it!=neighb.end();++it)
-        {
+        vector<int>::const_iterator it = neighb->begin();
+        for (;it!=neighb->end();++it)
             if (*it != mTriIdx) res.push_back(*it);
-        }*/
-        res.insert(res.end(), neighb->begin(), neighb->end());
     }
 
     return res;
@@ -239,7 +232,7 @@ vector<int> cTriangle::getNeighbours2() //retourne un set où son index est aussi
 void cTriangle::setEdgeIndex(unsigned int pos, int val)
 {
     #if _DEBUG
-        ELISE_ASSERT(pos < mTriVertex.size(), "cTriangle::setEdgeIndex in cMesh3D.cpp")
+        ELISE_ASSERT(pos < mTriEdges.size(), "cTriangle::setEdgeIndex in cMesh3D.cpp")
     #endif
 
     mTriEdges[pos] = val;
@@ -257,7 +250,7 @@ void cTriangle::setVertexIndex(unsigned int pos, int val)
 void cTriangle::decEdgeIndex(unsigned int pos)
 {
     #if _DEBUG
-        ELISE_ASSERT(pos < mTriVertex.size(), "cTriangle::decEdgeIndex in cMesh3D.cpp")
+        ELISE_ASSERT(pos < mTriEdges.size(), "cTriangle::decEdgeIndex in cMesh3D.cpp")
     #endif
 
     mTriEdges[pos]--;
@@ -291,13 +284,33 @@ bool cTriangle::operator==( const cTriangle &aTr ) const
     return ( (mTriIdx     ==  aTr.mTriIdx)   &&
              (mTriVertex  ==  aTr.mTriVertex) &&
              (mTriEdges   ==  aTr.mTriEdges)  &&
-             (mTextImIdx  ==  aTr.mTextImIdx) &&
+             (mBestImIdx  ==  aTr.mBestImIdx) &&
              (mAttributes ==  aTr.mAttributes) &&
              (mText0      ==  aTr.mText0) &&
              (mText1      ==  aTr.mText1) &&
              (mText2      ==  aTr.mText2) &&
-             (mCriter     ==  aTr.mCriter)
+             (mMapCriter  ==  aTr.mMapCriter)
              );
+}
+
+void cTriangle::insertCriter(int aK, float aVal)
+{
+    mMapCriter.insert(pair <int, float> (aK, aVal));
+}
+
+float cTriangle::getCriter(int aK)
+{
+    map<int,float>::iterator it = mMapCriter.find(aK);
+
+    if (it != mMapCriter.end())
+        return it->second;
+    else
+        return mDefValue;
+}
+
+float cTriangle::getBestCriter()
+{
+    return getCriter(mBestImIdx);
 }
 
 float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
@@ -419,10 +432,20 @@ cMesh::~cMesh(){}
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
+void cMesh::initDefValue(float aVal)
+{
+    const int nTri = mTriangles.size();
+    for (int aK=0; aK < nTri;++aK)
+        mTriangles[aK].setDefValue(aVal);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------
+
 cVertex* cMesh::getVertex(unsigned int idx)
 {
     #if _DEBUG
-        ELISE_ASSERT(idx < mVertexes.size(), "cMesh3D.cpp cMesh::getPt, out of vertex array");
+        ELISE_ASSERT(idx < mVertexes.size(), "cMesh3D.cpp cMesh::getVertex, out of vertex array");
     #endif
 
     return &(mVertexes[idx]);
@@ -506,7 +529,7 @@ void cMesh::checkEdgesForVertex(int id, int aK)
     }
 }
 
-cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
+cMesh::cMesh(const std::string & Filename, bool doAdjacence)
 {
     PlyFile * thePlyFile;
     int nelems;
@@ -556,7 +579,7 @@ cMesh::cMesh(const std::string & Filename, float scal, bool doAdjacence)
                 ply_get_element (thePlyFile, face);
 
                 //ajout du triangle
-                addTriangle(cTriangle(this, face, j, scal));
+                addTriangle(cTriangle(this, face, j));
 
                 getVertex(face->verts[0])->addIdx(j);
                 getVertex(face->verts[1])->addIdx(j);
@@ -718,7 +741,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
 //Calcule et stocke l'angle entre Dir et Triangle (appartenant a TriIdx)
 void cMesh::setTrianglesAttribute(int img_idx, Pt3dr Dir, set <unsigned int> const &aTriIdx)
 {
-    set <unsigned int>::const_iterator itri  =aTriIdx.begin();
+    set <unsigned int>::const_iterator itri  = aTriIdx.begin();
     for(;itri!=aTriIdx.end();itri++)
     {
         cTriangle *aTri = getTriangle(*itri);
@@ -927,8 +950,9 @@ void cMesh::clean()
 
         if (!found) //remove this point
         {
+            //cout << "removing vertex : " << aK << endl;
+
             mVertexes.erase(std::remove(mVertexes.begin(), mVertexes.end(), mVertexes[aK]), mVertexes.end());
-            aK--;
 
             for(int i=0 ; i < nbFaces; i++)
             {
@@ -939,15 +963,18 @@ void cMesh::clean()
                 if (vertex1>aK) tri->setVertexIndex(0, vertex1-1);
                 if (vertex2>aK) tri->setVertexIndex(1, vertex2-1);
                 if (vertex3>aK) tri->setVertexIndex(2, vertex3-1);
+
+                if ((vertex1 == aK) || (vertex2==aK) || (vertex3==aK)) cout << "BIG PROBLEM" << endl;
             }
+            aK--;
         }
     }
 }
 
-std::vector<cTextRect> cMesh::getRegions()
+vector<cTextureBox2d> cMesh::getRegions()
 {
     std::set < int > triangleIdxSet;
-    std::vector < cTextRect > regions;
+    std::vector < cTextureBox2d > regions;
 
     const int nFaces = getFacesNumber();
     for (int aK=0; aK < nFaces;++aK)
@@ -956,7 +983,7 @@ std::vector<cTextRect> cMesh::getRegions()
         int imgIdx = -1;
         if ((getTriangle(aK)->isTextured()) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
         {
-            imgIdx = getTriangle(aK)->getTextureImgIndex();;
+            imgIdx = getTriangle(aK)->getBestImgIndex();;
             myList.push_back(aK);
         }
 
@@ -966,14 +993,16 @@ std::vector<cTextRect> cMesh::getRegions()
 
             if (Tri->isTextured())
             {
-                vector<int> neighb = Tri->getNeighbours2();
+                //cout <<"getRegions2" << endl;
+                vector<int> neighb = Tri->getNeighbours2(); //CRASH ICI
+                //cout <<"getRegions3" << endl;
 
                 bool found = false;
                 vector<int>::const_iterator it = neighb.begin();
                 for(;it!=neighb.end();++it)
                 {
                     if ((triangleIdxSet.find(*it) == triangleIdxSet.end()) &&
-                            (getTriangle(*it)->getTextureImgIndex() == imgIdx))
+                            (getTriangle(*it)->getBestImgIndex() == imgIdx) )
                     {
                         found = true;
                         myList.push_back(*it);
@@ -986,9 +1015,9 @@ std::vector<cTextRect> cMesh::getRegions()
             }
         }
 
-        if (myList.size() > 1)
+        if (myList.size() >= 1)
         {
-            regions.push_back(cTextRect(myList, imgIdx));
+            regions.push_back(cTextureBox2d(myList, imgIdx));
         }
     }
 
@@ -1106,9 +1135,9 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
     }
 }
 
-void cMesh::Export(string aOut, set<unsigned int> const &triangles)
+void cMesh::Export(string aOut, set<int> const &triangles)
 {
-    string mode = "w";
+    string mode = "w";  //"a";
 
     FILE * file = FopenNN(aOut, mode, "cMesh::Export");
     fprintf(file,"ply\n");
@@ -1123,7 +1152,7 @@ void cMesh::Export(string aOut, set<unsigned int> const &triangles)
 
     Pt3dr pt;
 
-    std::set<unsigned int>::const_iterator it = triangles.begin();
+    std::set<int>::const_iterator it = triangles.begin();
     for(;it!=triangles.end();++it)
     {
         cTriangle* face = getTriangle(*it);
@@ -1139,9 +1168,8 @@ void cMesh::Export(string aOut, set<unsigned int> const &triangles)
         }
     }
 
-    int bK=0;
     it = triangles.begin();
-    for(;it!=triangles.end();++it)
+    for(int bK=0;it!=triangles.end();++it)
     {
         fprintf(file,"3 %i %i %i\n",bK,bK+1,bK+2);
         bK+=3;
@@ -1191,7 +1219,7 @@ void cZBuf::BasculerUnMaillage(cMesh const &aMesh)
     }
 }
 
-void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
+void cZBuf::BasculerUnMaillage(cMesh &aMesh, const CamStenope &aCam)
 {
     Pt2di SzRes = mSzRes / mScale;
     mRes = Im2D_REAL4(SzRes.x,SzRes.y,mDpDef);
@@ -1200,11 +1228,6 @@ void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
 
     vector <cTriangle> vTriangles;
     aMesh.getTriangles(vTriangles);
-
-    vector <bool> vTrianglesPartiels;  //0= ok 1=partiellement vu ou caché
-
-    for (unsigned int aK =0; aK<vTriangles.size();++aK)
-        vTrianglesPartiels.push_back(false);
 
     for (unsigned int aK =0; aK<vTriangles.size();++aK)
     {
@@ -1260,8 +1283,6 @@ void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
                             REAL4 aZ = (float) (zA*aPdsA + zB*aPdsB + zC*aPdsC);
                             if (aZ<mDataRes[y][x])
                             {
-                                int index = mImTriIdx.GetI(Pt2di(x,y));
-                                if (index != mIdDef) vTrianglesPartiels[index] = true;
                                 mDataRes[y][x] = aZ;
                                 mImTriIdx.SetI(Pt2di(x,y),aTri.getIdx());
                             }
@@ -1270,20 +1291,6 @@ void cZBuf::BasculerUnMaillage(const cMesh &aMesh, const CamStenope &aCam)
             }
         }
     }
-
-    //on enleve les triangles partiellement vus
-    for(int aK=0; aK < SzRes.x; aK++)
-        for (int bK=0; bK < SzRes.y; bK++)
-        {
-            int index = mImTriIdx.GetI(Pt2di(aK,bK));
-
-            if ((index != mIdDef) && (vTrianglesPartiels[index]))
-            {
-                mDataRes[bK][aK] = mDpDef;
-                mImTriIdx.SetI(Pt2di(aK,bK),mIdDef);
-            }
-            else if (index != mIdDef) vTri.insert(index);
-        }
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -1374,31 +1381,17 @@ void cZBuf::BasculerUnTriangle(cTriangle &aTri, bool doMask)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cZBuf::ComputeVisibleTrianglesIndexes()
-{
-    for (int aK=0; aK < mSzRes.x; aK++)
-    {
-        for (int bK=0; bK < mSzRes.y; bK++)
-        {
-            int Idx = mImTriIdx.Val(aK,bK);
-
-            if (Idx != mIdDef)  vTri.insert(Idx);
-        }
-    }
-}
-
-//--------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------
-
 Im2D_BIN cZBuf::ComputeMask(int img_idx, cMesh &aMesh)
 {
     mImMask = Im2D_BIN (mSzRes.x, mSzRes.y, 0);
+
+    set <int> vTri = getVisibleTrianglesIndexes();
 
     #ifdef _DEBUG
         printf ("nb triangles : %d\n", vTri.size());
     #endif
 
-    set <unsigned int>::const_iterator itri  =vTri.begin();
+    set <int>::const_iterator itri  = vTri.begin();
     for(;itri!=vTri.end();itri++)
     {
         cTriangle *aTri = aMesh.getTriangle(*itri);
@@ -1452,6 +1445,24 @@ Im2D_BIN cZBuf::ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMes
     }
 
     return mImMask;
+}
+
+set<int> cZBuf::getVisibleTrianglesIndexes()
+{
+    set<int> setIdx;
+
+    Pt2di sz = mImTriIdx.sz();
+    for (int aK=0; aK < sz.x; aK++)
+    {
+        for (int bK=0; bK < sz.y; bK++)
+        {
+            int Idx = mImTriIdx.GetI(Pt2di(aK,bK));
+
+            if (Idx != mIdDef)  setIdx.insert(Idx);
+        }
+    }
+
+    return setIdx;
 }
 
 void cZBuf::write(string filename)
