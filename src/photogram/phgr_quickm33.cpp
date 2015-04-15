@@ -243,6 +243,7 @@ class cRanscMinimMatEss
 
         std::vector<ElRotation3D> mSolInterm;
         std::vector<cTestCost>    mVTC;
+        cTplKPluGrand<tRotPrio,tCmpRotPrio> mKBest;
 };
 
 extern bool ShowStatMatCond;
@@ -433,7 +434,8 @@ cRanscMinimMatEss::cRanscMinimMatEss
     mIBI30   (cInterfBundle2Image::Bundle(mPack30,aFoc,true)),
     mIBI     (cInterfBundle2Image::Bundle(mPack150,aFoc,true)),
     mMatCstrEss (8,8),
-    mDataME     (mMatCstrEss.data())
+    mDataME     (mMatCstrEss.data()),
+    mKBest      (TheCmpROT,10)
 {
     std::vector<double> aVx;
     for (ElPackHomologue::const_iterator itP=mPackAll.begin(); itP!=mPackAll.end() ; itP++)
