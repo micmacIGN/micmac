@@ -92,6 +92,7 @@ QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
         QString("SaisieAppuisInitQT\n") +
         QString("SaisieAppuisPredicQT\n")+
         QString("SaisieBascQT\n")+
+        QString("SaisieCylQT\n")+
         QString("SaisieBoxQT\n\n");
 
     if (argc > 1)
