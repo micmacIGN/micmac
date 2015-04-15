@@ -113,7 +113,7 @@ class cMesh
 
         void        write(const string & aOut, bool aBin, const string & textureFilename="");
 
-        void        Export(string aOut, set <unsigned int> const &triangles);
+        void        Export(string aOut, set <int> const &triangles);
 
 private:
 
@@ -209,6 +209,7 @@ class cTriangle
 
         void    insertCriter(int aK, float aVal); //set criterion value for index aK
         float   getCriter(int aK);
+        float   getBestCriter();
 
         float   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
 
@@ -274,11 +275,10 @@ class cZBuf
 
         void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //compute ZBuffer, or Mask (true)
 
-        void		ComputeVisibleTrianglesIndexes();
         Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
         Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
-        set <unsigned int> *    getVisibleTrianglesIndexes() {return &vTri;}
+        set<int> getVisibleTrianglesIndexes();// {return &vTri;}
 
         cElNuage3DMaille * &	Nuage() {return mNuage;}
 
@@ -307,7 +307,7 @@ class cZBuf
         float					mDpDef;			//default value for depth img (mRes)
         int                     mIdDef;			//default value for label img (mImTriIdx)
 
-        set <unsigned int>      vTri;			//list of visible triangles (contained in the label image)
+        //set <unsigned int>      vTri;			//list of visible triangles (contained in the label image)
 
         cElNuage3DMaille *		mNuage;
 

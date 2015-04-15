@@ -108,6 +108,7 @@ typedef enum
 {
     eAngle,
     eStretch,
+    eAAngle, //angle aigu
     eLastTC
 } eTequilaCrit;
 
@@ -128,6 +129,8 @@ std::string eToString(const eTequilaCrit & aVal)
       return  "eAngle";
    if (aVal==eStretch)
       return  "eStretch";
+   if (aVal==eAAngle)
+      return  "eAAngle";
  std::cout << "Enum = eTequilaCrit\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -136,7 +139,7 @@ std::string eToString(const eTequilaCrit & aVal)
 int Tequila_main(int argc,char ** argv)
 {
     std::string aDir, aPat, aFullName, aOri, aPly, aOut, aTextOut;
-    int aTextMaxSize = 4096;
+    int aTextMaxSize = 8192;
     int aZBuffSSEch = 2;
     int aJPGcomp = 70;
     double aAngleMin = 90.f;
@@ -167,19 +170,19 @@ int Tequila_main(int argc,char ** argv)
     if (MMVisualMode) return EXIT_SUCCESS;
 
     cout<<endl;
-    cout<<"**************************Parameters***************************"<<endl;
+    cout<<"****************************Parameters******************************"<<endl;
     cout<<endl;
 
     cout << "Mode = " << aMode << endl;
     cout << "Crit = " << aCrit << endl;
-    if (aCrit=="Angle") cout << "Angle = " << aAngleMin << endl;
+    cout << "Min angle = " << aAngleMin << endl;
     cout << "Downscale factor = " << aZBuffSSEch  << endl;
     cout << "Texture max size = " << aTextMaxSize << endl;
     cout << "Write binary file = " << aBin << endl;
     cout << "jpeg compression quality = " << aJPGcomp << endl;
 
     cout<<endl;
-    cout<<"**************************************************************"<<endl;
+    cout<<"********************************************************************"<<endl;
 
     SplitDirAndFile(aDir,aPat,aFullName);
 
@@ -204,7 +207,7 @@ int Tequila_main(int argc,char ** argv)
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
-        ListCam.back()->SetIdCam(NOri);
+        ListCam.back()->SetIdCam(NOri); //Debug only
 
         cout <<"Image "<<*itS<<", with ori : "<< NOri <<endl;
     }
@@ -216,8 +219,18 @@ int Tequila_main(int argc,char ** argv)
     cMesh myMesh(aPly, aMode=="Pack");
 
     float threshold = 0.f;
+    float angle_thresh = 0.f;
     if (aCrit == "Angle") threshold = -cos(PI*aAngleMin/180.f); //angle min = cos(180 - 60) = -0.5
-    else if (aCrit == "Stretch") threshold = 1e30;
+    else if (aCrit == "Stretch")
+    {
+        threshold = 1e30;
+        angle_thresh = threshold;
+    }
+    else if (aCrit == "AAngle")
+    {
+        threshold = 0.f;
+        angle_thresh = threshold;
+    }
     //cout << "threshold=" << threshold << endl;
 
     myMesh.initDefValue(threshold);
@@ -243,22 +256,19 @@ int Tequila_main(int argc,char ** argv)
 
         aZBuffers.push_back(aZBuffer);
 
-        set <unsigned int> *vTri = aZBuffer.getVisibleTrianglesIndexes();
+        set <int> vTri = aZBuffer.getVisibleTrianglesIndexes();
 
         if (debug)
         {
-            std::stringstream ss  ;
-            ss << aK;
+            aZBuffer.write(StdPrefix(*itS) + "_zbuf.tif");
 
-            aZBuffer.write(StdPrefix(*itS) + "_zbuf" + ss.str() + ".tif");
+            aZBuffer.writeImLabel(StdPrefix(*itS) + "_label.tif");
 
-            aZBuffer.writeImLabel(StdPrefix(*itS) + "_label" + ss.str() + ".tif");
-
-            myMesh.Export(StdPrefix(*itS) + "export" + ss.str() + ".ply", *vTri);
+            myMesh.Export(StdPrefix(*itS) + "export.ply", vTri);
         }
 
-        std::set <unsigned int>::const_iterator it = vTri->begin();
-        for (;it!=vTri->end();++it)
+        std::set <int>::const_iterator it = vTri.begin();
+        for (;it!=vTri.end();++it)
         {
             cTriangle * Triangle = myMesh.getTriangle(*it);
 
@@ -272,6 +282,7 @@ int Tequila_main(int argc,char ** argv)
             if (Cam->IsInZoneUtile(D) && Cam->IsInZoneUtile(E) && Cam->IsInZoneUtile(F))
             {
                 double criter = threshold;
+                double angle  = scal(Triangle->getNormale(true), Cam->DirK()); //Norme de DirK=1
 
                 if (aCrit == "Stretch")
                 {
@@ -283,7 +294,7 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr v1n = v1 / norme;
                     Pt2dr v2n = v2 / norme;
 
-                    //coordonnees du point C dans le plan du triangle (repere orthonormé defini par Ox = BA )
+                    //coordonnees du point C dans le plan du triangle (repere orthonormé defini par Ox = AB )
                     double x = scal(v1n, v2n);
                     double y = sin(acos(x));
 
@@ -308,21 +319,47 @@ int Tequila_main(int argc,char ** argv)
                     double aV2 = square_euclid(aV);
                     double aUV = scal(aU,aV);
 
-                    //le coef d'etirement est sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2)
+                    // le coef d'etirement est sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2)
                     // mais on supprime les calculs superflus => sqrt et /2 strictement monotones
 
                     criter = aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV));
 
                     //cout << "criter = " << criter << endl;
+                    if((criter < Triangle->getBestCriter()) && (angle < angle_thresh))
+                    {
+                        Triangle->setBestImgIndex(aK);
+                    }
                 }
                 else if (aCrit == "Angle")
                 {
-                    criter = scal(Triangle->getNormale(true), Cam->DirK()); //Norme de DirK=1
-                }
+                    criter = angle;
 
-                if((criter < Triangle->getCriter(Triangle->getBestImgIndex())))
+                    if(criter < Triangle->getBestCriter())
+                    {
+                        Triangle->setBestImgIndex(aK);
+                    }
+                }
+                else if (aCrit == "AAngle") //max de l'angle aigu
                 {
-                    Triangle->setBestImgIndex(aK);
+                    Pt2dr DE (E - D);
+                    Pt2dr DF (F - D);
+                    Pt2dr EF (F - E);
+
+                    float DEn = euclid(DE);
+                    float DFn = euclid(DF);
+                    float EFn = euclid(EF);
+
+                    float EDF = acos(scal(DE, DF) / (DEn*DFn));
+                    float DFE = acos(scal(DF, EF) / (DFn*EFn));
+                    float DEF = acos(scal(DE,-EF) / (DEn*EFn));
+
+                    criter = min(EDF, min(DFE, DEF));
+
+                      //cout << "criter = " << criter << endl;
+                    if((criter > Triangle->getBestCriter()) && (angle < angle_thresh))
+                    {
+                        Triangle->setBestImgIndex(aK);
+                    }
                 }
 
                 Triangle->insertCriter(aK,criter);
@@ -354,6 +391,10 @@ int Tequila_main(int argc,char ** argv)
     myMesh.clean();
 
     printf("\nVertex number : %d - faces number : %d \n", myMesh.getVertexNumber(), myMesh.getFacesNumber());
+
+    cout << endl;
+    cout <<"**************************Reading images*****************************"<<endl;
+    cout << endl;
 
     Pt2di aSzMax;
     std::vector <Tiff_Im> aVT;     //Vecteur contenant les images
@@ -480,7 +521,7 @@ int Tequila_main(int argc,char ** argv)
         if (Scale > 1.f) Scale = 1.f;
 
         printf("Scaling factor = %1.2f\n", Scale);
-        if (Scale < 0.2f) cout << "Warning: scaling factor too low, try using higher texture size (Parameter Sz)" << endl;
+        if (Scale < 0.25f) cout << "Warning: scaling factor too low, try using higher texture size (Parameter Sz)" << endl;
 
         int final_width  = round_up(width * Scale);
         int final_height = round_up(height * Scale);
@@ -508,12 +549,12 @@ int Tequila_main(int argc,char ** argv)
             int x, y, w, h;
             bool rotated = tp->getTextureLocation(aK, x, y, w, h);
 
-           // cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
+            //cout << "Texture " << aK << " at position " << x << ", " << y << " and rotated " << rotated << " width, height = " << w << " " << h << endl;
 
             int x_scaled = round_ni(x * Scale);
             int y_scaled = round_ni(y * Scale);
 
-          //  cout << "image position  scaled = " << x_scaled << " " << y_scaled << endl;
+            //cout << "image position scaled = " << x_scaled << " " << y_scaled << endl;
 
             int w_scaled = round_ni(w * Scale);
             int h_scaled = round_ni(h * Scale);
@@ -528,12 +569,9 @@ int Tequila_main(int argc,char ** argv)
             Pt2di xy_scaled(x_scaled, y_scaled);
             Pt2di wh_scaled(w_scaled, h_scaled);
 
-            Pt2di tr = p0_scaled - xy_scaled;
-
-            region->setTransfo(tr, rotated);
-
             int imgIdx = region->imgIdx;
-          //  cout << "position dans l'image " << ListCam[imgIdx]->IdCam() << " = " << p0.x << " " << p0.y << endl;
+
+            //cout << "position dans l'image " << ListCam[imgIdx]->IdCam() << " = " << p0.x << " " << p0.y << endl;
 
             Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
 
@@ -547,6 +585,8 @@ int Tequila_main(int argc,char ** argv)
                      StdFoncChScale(aF0,Pt2dr(p0),Pt2dr(1.f/Scale,1.f/Scale)),
                      StdOut(aVOutInit)
                 );
+                //erreur 1 : segfault avec Sz=4096 Scale=0.24
+                //erreur 2 : "values out of range in bitmaps writing" avec Sz=16384 Scale=0.96
 
                 std::vector<Im2DGen *>   aVOutRotate;
                 for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
@@ -558,19 +598,14 @@ int Tequila_main(int argc,char ** argv)
                     trans(StdInput(aVOutRotate), -xy_scaled),
                     nFileRes.out()
                 );
+
+                region->setTransfo(xy_scaled, rotated);
             }
             else
             {
-                /*LoadTrScaleRotate
-                     (
-                          aVT[imgIdx],
-                          nFileRes,
-                          p0,
-                          region->P1(),
-                          xy_scaled,
-                          1.f/Scale,
-                          0
-                     );*/
+                Pt2di tr = p0_scaled - xy_scaled;
+
+                region->setTransfo(-tr, rotated);
 
                 Fonc_Num aF = aF0;
                 while (aF.dimf_out() < aNbCh)
@@ -592,23 +627,27 @@ int Tequila_main(int argc,char ** argv)
         cout <<"********************Computing texture coordinates********************"<<endl;
         cout << endl;
 
+
+        Pt2dr p0_scaled, p1_scaled;
+
+        int cptTmp =0;
         std::vector < cTextureBox2d >::const_iterator it = regions.begin();
-        for (; it != regions.end(); ++it)
+        for (; it != regions.end(); ++it, cptTmp++)
         {
-            Pt2di PtTemp = -(it->translation);
+            float tx = it->translation.x;
+            float ty = it->translation.y;
 
-            Pt2dr p0(it->P0());
-            //cout << "aK= " << aK << " coin = " << p0 << endl;
+            if (it->isRotated)
+            {
+                p0_scaled = Pt2dr(it->P0())*Scale;
+                p1_scaled = Pt2dr(it->P1())*Scale;
+            }
 
-            float tx = round_ni(p0.x * Scale) + PtTemp.x;
-            float ty = round_ni(p0.y * Scale) + PtTemp.y + (float) it->largeur() * Scale;
-
-            //cout << "ty = " << ty << endl;
+            //cout << "rotated " << it->isRotated << " translation = " << it->translation << " p0 = " <<p0_scaled << " p1 = " << p1_scaled << endl;
 
             //cout << "nb Triangles = " << it->sz() << endl;
 
-            const int nTriangles = it->triangles.size();
-            for (int bK=0; bK < nTriangles;++bK)
+            for (unsigned int bK=0; bK < it->triangles.size();++bK)
             {
                 int triIdx = it->triangles[bK];
 
@@ -629,54 +668,59 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr Pt2 = Cam->R3toF2(Vertex[1]);
                     Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
+                    //debug
+                    /*std::vector <int> vIndexes;
+                    Triangle->getVertexesIndexes(vIndexes);
+
+                    if ((vIndexes[0] == 7117) && (vIndexes[1] == 7115) && (vIndexes[2]==6986))
+                    {
+                        cout << "idx du triangle = " << triIdx << " region = " << cptTmp<< " bK = " << bK << " rotated " << it->isRotated << endl;
+                        cout << "nb triangles dans la region = "<< it->triangles.size()<< endl;
+                        cout << "p0 = "<< it->P0() << endl;
+                        cout << "p1 = "<< it->P1() << endl;
+                        cout << "Pt1 = " << Pt1 << endl;
+                        cout << "Pt2 = " << Pt2 << endl;
+                        cout << "Pt3 = " << Pt3 << endl;
+                        cout << "tx = " << tx << endl;
+                        cout << "ty = " << ty << endl;
+                        cout << "idcam = " << Cam->IdCam() << endl;
+                    }*/
+                    //end debug
+
                     if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))
                     {
+                        Pt2dr Pt1s = Pt1*Scale;
+                        Pt2dr Pt2s = Pt2*Scale;
+                        Pt2dr Pt3s = Pt3*Scale;
+
                         Pt2dr P1, P2, P3;
 
                         if(it->isRotated)
                         {
-                            Pt2dr v1 = (Pt1 - p0)*Scale;
-                            Pt2dr v2 = (Pt2 - p0)*Scale;
-                            Pt2dr v3 = (Pt3 - p0)*Scale;
+                            P1.x = (Pt1s.y + tx - p0_scaled.y) / final_width;
+                            P2.x = (Pt2s.y + tx - p0_scaled.y) / final_width;
+                            P3.x = (Pt3s.y + tx - p0_scaled.y) / final_width;
 
-                            P1.x = (tx + v1.y) / final_width;
-                            P2.x = (tx + v2.y) / final_width;
-                            P3.x = (tx + v3.y) / final_width;
-
-                            P1.y = 1.f - (ty - v1.x) / final_height;
-                            P2.y = 1.f - (ty - v2.x) / final_height;
-                            P3.y = 1.f - (ty - v3.x) / final_height;
+                            P1.y = 1.f - (-Pt1s.x + ty + p1_scaled.x) / final_height;
+                            P2.y = 1.f - (-Pt2s.x + ty + p1_scaled.x) / final_height;
+                            P3.y = 1.f - (-Pt3s.x + ty + p1_scaled.x) / final_height;
 
                            /* if (bK== 0)
                             {
                                 cout << "Pt1 = " << Pt1 << endl;
                                 cout << "Pt2 = " << Pt2 << endl;
                                 cout << "Pt3 = " << Pt3 << endl;
-
-                                cout << "v1 = " << v1 << endl;
-                                cout << "v2 = " << v2 << endl;
-                                cout << "v3 = " << v3 << endl;
-
-                                cout << "p1x = " << v1.y + PtTemp.x << endl;
-                                cout << "p2x = " << v2.y + PtTemp.x << endl;
-                                cout << "p3x = " << v3.y + PtTemp.x << endl;
-
-                                cout << "p1y = " << y1 << endl;
-                                cout << "p2y = " << y2 << endl;
-                                cout << "p3y = " << y3 << endl;
-
-                                cout << "rwidth " << rwidth << endl;
                             }*/
                         }
                         else
                         {
-                            P1.x = (Pt1.x*Scale+PtTemp.x) / final_width;
-                            P2.x = (Pt2.x*Scale+PtTemp.x) / final_width;
-                            P3.x = (Pt3.x*Scale+PtTemp.x) / final_width;
+                            P1.x = (Pt1s.x+tx) / final_width;
+                            P2.x = (Pt2s.x+tx) / final_width;
+                            P3.x = (Pt3s.x+tx) / final_width;
 
-                            P1.y = 1.f - (Pt1.y*Scale+PtTemp.y) / final_height;
-                            P2.y = 1.f - (Pt2.y*Scale+PtTemp.y) / final_height;
-                            P3.y = 1.f - (Pt3.y*Scale+PtTemp.y) / final_height;
+                            P1.y = 1.f - (Pt1s.y+ty) / final_height;
+                            P2.y = 1.f - (Pt2s.y+ty) / final_height;
+                            P3.y = 1.f - (Pt3s.y+ty) / final_height;
                         }
 
                         //if ((P1.x >=0.f) && (P1.x <= 1.f) && (P2.x >=0.f) && (P2.y <= 1.f) && (P3.x >=0.f) && (P3.y <= 1.f))
@@ -687,11 +731,11 @@ int Tequila_main(int argc,char ** argv)
                             updateIndex(triIdx, regions);
                         }*/
                     }
-                    else
+                    /*else
                     {
                         myMesh.removeTriangle(*Triangle);
                         updateIndex(triIdx, regions);
-                    }
+                    }*/
                 }
             }
         }

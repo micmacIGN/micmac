@@ -212,7 +212,7 @@ vector<cTriangle *> cTriangle::getNeighbours()
     return res;
 }
 
-vector<int> cTriangle::getNeighbours2() //retourne un set où son index est aussi contenu
+vector<int> cTriangle::getNeighbours2()
 {
     vector <int> res;
 
@@ -221,12 +221,9 @@ vector<int> cTriangle::getNeighbours2() //retourne un set où son index est aussi
         cVertex *vertex = pMesh->getVertex(mTriVertex[aK]);
 
         vector <int> *neighb = vertex->getTriIdx();
-        /*vector<int>::const_iterator it = neighb.begin();
-        for (;it!=neighb.end();++it)
-        {
+        vector<int>::const_iterator it = neighb->begin();
+        for (;it!=neighb->end();++it)
             if (*it != mTriIdx) res.push_back(*it);
-        }*/
-        res.insert(res.end(), neighb->begin(), neighb->end());
     }
 
     return res;
@@ -309,6 +306,11 @@ float cTriangle::getCriter(int aK)
         return it->second;
     else
         return mDefValue;
+}
+
+float cTriangle::getBestCriter()
+{
+    return getCriter(mBestImIdx);
 }
 
 float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
@@ -1000,7 +1002,7 @@ vector<cTextureBox2d> cMesh::getRegions()
                 for(;it!=neighb.end();++it)
                 {
                     if ((triangleIdxSet.find(*it) == triangleIdxSet.end()) &&
-                            (getTriangle(*it)->getBestImgIndex() == imgIdx))
+                            (getTriangle(*it)->getBestImgIndex() == imgIdx) )
                     {
                         found = true;
                         myList.push_back(*it);
@@ -1013,7 +1015,7 @@ vector<cTextureBox2d> cMesh::getRegions()
             }
         }
 
-        if (myList.size() > 1)
+        if (myList.size() >= 1)
         {
             regions.push_back(cTextureBox2d(myList, imgIdx));
         }
@@ -1133,7 +1135,7 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
     }
 }
 
-void cMesh::Export(string aOut, set<unsigned int> const &triangles)
+void cMesh::Export(string aOut, set<int> const &triangles)
 {
     string mode = "w";  //"a";
 
@@ -1150,7 +1152,7 @@ void cMesh::Export(string aOut, set<unsigned int> const &triangles)
 
     Pt3dr pt;
 
-    std::set<unsigned int>::const_iterator it = triangles.begin();
+    std::set<int>::const_iterator it = triangles.begin();
     for(;it!=triangles.end();++it)
     {
         cTriangle* face = getTriangle(*it);
@@ -1282,9 +1284,7 @@ void cZBuf::BasculerUnMaillage(cMesh &aMesh, const CamStenope &aCam)
                             if (aZ<mDataRes[y][x])
                             {
                                 mDataRes[y][x] = aZ;
-                                int index = aTri.getIdx();
-                                mImTriIdx.SetI(Pt2di(x,y),index);
-                                vTri.insert(index);
+                                mImTriIdx.SetI(Pt2di(x,y),aTri.getIdx());
                             }
                         }
                     }
@@ -1381,31 +1381,17 @@ void cZBuf::BasculerUnTriangle(cTriangle &aTri, bool doMask)
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cZBuf::ComputeVisibleTrianglesIndexes()
-{
-    for (int aK=0; aK < mSzRes.x; aK++)
-    {
-        for (int bK=0; bK < mSzRes.y; bK++)
-        {
-            int Idx = mImTriIdx.Val(aK,bK);
-
-            if (Idx != mIdDef)  vTri.insert(Idx);
-        }
-    }
-}
-
-//--------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------
-
 Im2D_BIN cZBuf::ComputeMask(int img_idx, cMesh &aMesh)
 {
     mImMask = Im2D_BIN (mSzRes.x, mSzRes.y, 0);
+
+    set <int> vTri = getVisibleTrianglesIndexes();
 
     #ifdef _DEBUG
         printf ("nb triangles : %d\n", vTri.size());
     #endif
 
-    set <unsigned int>::const_iterator itri  =vTri.begin();
+    set <int>::const_iterator itri  = vTri.begin();
     for(;itri!=vTri.end();itri++)
     {
         cTriangle *aTri = aMesh.getTriangle(*itri);
@@ -1459,6 +1445,24 @@ Im2D_BIN cZBuf::ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMes
     }
 
     return mImMask;
+}
+
+set<int> cZBuf::getVisibleTrianglesIndexes()
+{
+    set<int> setIdx;
+
+    Pt2di sz = mImTriIdx.sz();
+    for (int aK=0; aK < sz.x; aK++)
+    {
+        for (int bK=0; bK < sz.y; bK++)
+        {
+            int Idx = mImTriIdx.GetI(Pt2di(aK,bK));
+
+            if (Idx != mIdDef)  setIdx.insert(Idx);
+        }
+    }
+
+    return setIdx;
 }
 
 void cZBuf::write(string filename)
