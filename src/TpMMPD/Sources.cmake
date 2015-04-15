@@ -12,6 +12,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/ReprojImg.cpp
 	${TDPPMD_DIR}/cPseudoIntersect.cpp
 	${TDPPMD_DIR}/Export2Ply.cpp
+	${TDPPMD_DIR}/ImageSimpleProjection.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

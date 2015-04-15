@@ -63,6 +63,7 @@ double VarRel(const double & aNewEr,const double & anOldErr)
 /*                                                                     */
 /***********************************************************************/
 
+/*
 double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH) 
 {
     Pt3dr aB1 = vunit(aR1.tr());
@@ -75,6 +76,32 @@ double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH)
 
    return aDB*aBSurH  + aDM;
 }
+
+*/
+
+double  GenDistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH,bool CorrecSens) 
+{
+    Pt3dr aB1 = vunit(aR1.tr());
+    Pt3dr aB2 = vunit(aR2.tr());
+    if (CorrecSens && (scal(aB1,aB2) <0)) aB1 = -aB1;
+    double aDB = euclid(aB1-aB2);
+    double aDM = sqrt(aR1.Mat().L2(aR2.Mat()));
+
+    // std::cout << " DBase " << aDB << " DRot " << aDM << "\n";
+
+   return aDB*aBSurH  + aDM;
+}
+
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH) 
+{
+   return GenDistRot(aR1,aR2,aBSurH,true);
+}
+
+double SensDepDistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH) 
+{
+   return GenDistRot(aR1,aR2,aBSurH,false);
+}
+
 double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2) 
 {
     return DistRot(aR1,aR2,1.0);
@@ -133,8 +160,10 @@ void cNewO_OrInit2Im::AmelioreSolLinear(ElRotation3D  aRot,const std::string & a
    ElTimer aChrono;
 
 
-   mErStd =  mBundleIBI->ErrInitRobuste(aRot,PropStdErDet);  // Version robuste, sans init
-   mErStd = mBundleIBI->ResiduEq(aRot,mErStd);               // Version moindres carres
+   cInterfBundle2Image * aBundle =  mQuick ? mBundleIBI150 : mBundleIBI;
+   double aNbIterMax = mQuick ? 4 : 9;
+   mErStd =   aBundle->ErrInitRobuste(aRot,PropStdErDet);  // Version robuste, sans init
+   mErStd =   aBundle->ResiduEq(aRot,mErStd);               // Version moindres carres
    
    
 
@@ -147,7 +176,7 @@ void cNewO_OrInit2Im::AmelioreSolLinear(ElRotation3D  aRot,const std::string & a
    {
        // std::cout << "ERRR " << mErStd *FocMoy() << "\n";
        double aLastErr = mErStd;
-       ElRotation3D aNewR  = mBundleIBI->OneIterEq(aRot,mErStd);
+       ElRotation3D aNewR  = aBundle->OneIterEq(aRot,mErStd);
        double anAmelio = aLastErr - mErStd;
 
 
@@ -189,7 +218,7 @@ void cNewO_OrInit2Im::AmelioreSolLinear(ElRotation3D  aRot,const std::string & a
        }
 
 
-       if (aNbIter >= 9.0)
+       if (aNbIter >=  aNbIterMax)
           aCont = false;
    }
    double aCostOut = PixExactCost(aRot,0.1);

@@ -248,6 +248,27 @@ template <class Type,class Compare> class cTplKPluGrand
 };
 
 
+template <class TyVal,class TyPrio> class cTplPrioByOther
+{
+     public :
+          cTplPrioByOther(const TyVal & aVal,const TyPrio & aPrio) :
+               mVal (aVal),
+               mPrio (aPrio)
+          {
+          }
+          TyVal mVal;
+          TyPrio mPrio;
+};
+
+template <class TyVal,class TyPrio>   class  cCmpSupPBO
+{
+    public :
+       bool operator () (const cTplPrioByOther<TyVal,TyPrio> & aS1, const cTplPrioByOther<TyVal,TyPrio>  & aS2)
+       {
+           return aS1.mPrio > aS2.mPrio;
+       }
+
+};
 
 
 #endif /* ! _ELISE_EXT_STL_HEAP */

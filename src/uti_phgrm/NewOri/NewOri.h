@@ -158,6 +158,7 @@ class cNewO_OrInit2Im
     public :
           cNewO_OrInit2Im
           (
+                bool aQuick,
                 cNewO_OneIm * aI1,
                 cNewO_OneIm * aI2,
                 tMergeLPackH *      aMergeTieP,
@@ -200,6 +201,7 @@ class cNewO_OrInit2Im
 
 
 
+          bool              mQuick;
           cNewO_OneIm *     mI1;
           cNewO_OneIm *     mI2;
           tMergeLPackH *    mMergePH;
@@ -223,6 +225,7 @@ class cNewO_OrInit2Im
           L2SysSurResol            mSysLin3;
           cInterfBundle2Image *    mLinDetIBI;
           cInterfBundle2Image *    mBundleIBI;
+          cInterfBundle2Image *    mBundleIBI150;
           cInterfBundle2Image *    mRedPvIBI;
           cInterfBundle2Image *    mFullPvIBI;
 

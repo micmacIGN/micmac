@@ -41,6 +41,26 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+double SensDepDistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH);
+
+void TestRotOLDME(const ElRotation3D & aR0,const ElMatrix<double> & aM0,const ElPackHomologue & aPack)
+{
+    if (! MPD_MM()) return;
+    ElRotation3D aOR = MatEss2Rot(aM0,aPack).inv();
+    double aD1 = SensDepDistRot(aOR, aR0,1.0);
+    double aD2 = DistRot(aOR, aR0,1.0);
+    double Ecart = aD1 + aD2;
+    if (Ecart > 1e-2)
+    {
+        std::cout << "ECART = " << Ecart << "\n";
+        ELISE_ASSERT(false,"SensDepDistRot");
+    }
+
+    std::cout << "TestRot " << Ecart << "\n";
+
+}
+
+
 // static bool BUG= false;
 
 void ShowMatr(const char * mes, ElMatrix<REAL> aMatr)
@@ -273,6 +293,8 @@ REAL ElPackHomologue::SignInters
 	INT &          NbP2
      ) const
 {
+     return    NEW_SignInters(*this,aRot1to2.inv(),NbP1,NbP2);
+/*
      NbP1 = 0;
      NbP2 = 0;
 
@@ -294,8 +316,15 @@ REAL ElPackHomologue::SignInters
 	  NbP1 += (aI1.z>0) ? 1 : - 1;
 	  NbP2 += (aI2.z>0) ? 1 : - 1;
      }
+     double aRes= aSomD / size();
 
-     return aSomD / size();
+     {
+        int aNN1,aNN2;
+        double aD =  NEW_SignInters(*this,aRot1to2.inv(),aNN1,aNN2);
+        std::cout << "RRrrRRrrRRRR  " << aD / aRes << "\n";
+     }
+     return aRes;
+*/
 }
 
 std::list<ElRotation3D>  MatEssToMulipleRot(const  ElMatrix<REAL> & aMEss,double LBase)
@@ -1297,6 +1326,7 @@ class cRansacMatriceEssentielle
 
 
 
+
 cRansacMatriceEssentielle::cRansacMatriceEssentielle
 (
      const ElPackHomologue & aPackFull,
@@ -1346,8 +1376,8 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    mKBest.ClearAndSetK(NbSelRotInit);
    for (int aK=0 ; aK<int(aVS.size()) ; aK++)
    {
-      aVS[aK].mRot = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
-
+      // ANCIENNE, plus lente ...  aVS[aK].mRot = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
+      aVS[aK].mRot = NEW_MatEss2Rot(aVS[aK].mMat,aPackRed);
 
 // OneIterLin(aVS[aK],aPackRed,5);
 

@@ -1343,7 +1343,24 @@
      <Hom Nb="1" RefType="XmlHomogr"> </Hom>
      <Residu Nb="1" Type="double" > </Residu>
 </Xml_O2IHom>
+
+
+
+<Xml_O2ITiming  Nb="1" Class="true" ToReference="true">
+    <TimeRPure Nb="1" Type="double">     </TimeRPure>
+    <TimePatchP Nb="1" Type="double">    </TimePatchP>
+    <TimeRanMin Nb="1" Type="double">    </TimeRanMin>
+    <TimeRansacStd Nb="1" Type="double"> </TimeRansacStd>
+    <TimeL2MatEss Nb="1" Type="double">  </TimeL2MatEss>
+    <TimeL1MatEss Nb="1" Type="double">   </TimeL1MatEss>
+    <TimeHomStd Nb="1" Type="double">     </TimeHomStd>
+</Xml_O2ITiming>
+
+
+
+
 <Xml_O2IComputed Nb="1" Class="true" ToReference="true">
+    <Timing Nb="1"  RefType="Xml_O2ITiming">     </Timing>
     <Ori Nb="1"  RefType="Xml_O2IRotation">      </Ori>
     <RPure Nb="1"  RefType="Xml_O2IRotPure" >    </RPure>
     <Hom Nb="1" RefType="Xml_O2IHom">            </Hom>
