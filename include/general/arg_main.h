@@ -725,6 +725,7 @@ int DoAllDev_main(int argc,char ** argv);
     int SaisieAppuisPredicQT_main(int argc,char ** argv);
     int SaisieBoxQT_main(int argc,char ** argv);
     int SaisieBascQT_main(int argc,char ** argv);
+    int SaisieCylQT_main(int argc,char ** argv);
 #endif
   int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
   int ServiceGeoSud_Ortho_main(int argc, char **argv);

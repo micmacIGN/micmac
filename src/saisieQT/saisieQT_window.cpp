@@ -26,8 +26,8 @@ SaisieQtWindow::SaisieQtWindow(int mode, QWidget *parent) :
         _bSaved(false),
         _devIOCamera(NULL),
         _hg_revision(69),
-		_banniere("No comment"),
-		_workBench(NULL)
+        _banniere("No comment"),
+        _workBench(NULL)
 {
     /*#ifdef ELISE_Darwin
         setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -542,17 +542,17 @@ void SaisieQtWindow::on_actionWorkbench_toggled(bool mode)
 {
    if(!_workBench)
    {
-	   _workBench = new cWorkBenchWidget;
-	   _workBench->setDIOCamera(_devIOCamera);
-	   _workBench->setDIOTieFile(_devIOTieFile);
-	   _workBench->setDIOImage(_Engine->Loader()->devIOImageAlter());
+       _workBench = new cWorkBenchWidget;
+       _workBench->setDIOCamera(_devIOCamera);
+       _workBench->setDIOTieFile(_devIOTieFile);
+       _workBench->setDIOImage(_Engine->Loader()->devIOImageAlter());
 
    }
 
    if(mode)
-	   _workBench->show();
+       _workBench->show();
    else
-	   _workBench->hide();
+       _workBench->hide();
 
 }
 
@@ -842,24 +842,24 @@ void SaisieQtWindow::on_actionRule_toggled(bool check)
 {
     for (int i = 0; i < nbWidgets(); ++i)
     {
-		if(getWidget(i)->getGLData())
-			{
-				if(getWidget(i)->getGLData()->polygonCount() == 1)
-				{
-					cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, Geom_cross);
-					polyg->setPointSize(10);
-					getWidget(i)->getGLData()->addPolygon(polyg);
-				}
-				getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
-				//getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
+        if(getWidget(i)->getGLData())
+            {
+                if(getWidget(i)->getGLData()->polygonCount() == 1)
+                {
+                    cPolygon* polyg = new cPolygon(2,1.0,Qt::yellow,Qt::yellow, Geom_cross);
+                    polyg->setPointSize(10);
+                    getWidget(i)->getGLData()->addPolygon(polyg);
+                }
+                getWidget(i)->getGLData()->setCurrentPolygonIndex(check ? 1 : 0);
+                //getWidget(i)->getGLData()->polygon(1)->setAllVisible(check);
 
-				getWidget(i)->getGLData()->polygon(1)->setAllVisible(true);
+                getWidget(i)->getGLData()->polygon(1)->setAllVisible(true);
 
-				if(check)
-					_ui->label_ImagePosition_2->show();
-				else
-					_ui->label_ImagePosition_2->hide();
-			}
+                if(check)
+                    _ui->label_ImagePosition_2->show();
+                else
+                    _ui->label_ImagePosition_2->hide();
+            }
     }
 
 //    if(check)
@@ -1283,22 +1283,22 @@ QString SaisieQtWindow::strippedName(const QString &fullFileName)
 }
 deviceIOTieFile* SaisieQtWindow::devIOTieFile() const
 {
-	return _devIOTieFile;
+    return _devIOTieFile;
 }
 
 void SaisieQtWindow::setDevIOTieFile(deviceIOTieFile* devIOTieFile)
 {
-	_devIOTieFile = devIOTieFile;
+    _devIOTieFile = devIOTieFile;
 }
 
 QString SaisieQtWindow::textToolBar() const
 {
-	return _textToolBar;
+    return _textToolBar;
 }
 
 void SaisieQtWindow::setTextToolBar(const QString& textToolBar)
 {
-	_textToolBar = textToolBar;
+    _textToolBar = textToolBar;
 }
 
 void SaisieQtWindow::setLayout(uint sy)
@@ -1349,7 +1349,7 @@ void SaisieQtWindow::updateUI()
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
     _ui->menuWindows->menuAction()->setVisible(_appMode != BOX2D);
     _ui->menuTools->menuAction()->setVisible(_appMode != BOX2D);
-    _ui->menuSelection->menuAction()->setVisible(_appMode != BOX2D);
+    _ui->menuSelection->menuAction()->setVisible(_appMode == MASK2D || _appMode == MASK2D);
 
     hideAction(_ui->actionSettings, _appMode != BOX2D);
 
