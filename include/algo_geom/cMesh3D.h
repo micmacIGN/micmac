@@ -199,6 +199,7 @@ class cTriangle
 
         void    setBestImgIndex(int val) { mBestImIdx = val; }
         int     getBestImgIndex() { return mBestImIdx; }
+        int     getBestImgIndexAfter(int aK);
 
         void    setTextureCoordinates(const Pt2dr &p0, const Pt2dr &p1, const Pt2dr &p2);
         void    getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2);
@@ -210,6 +211,7 @@ class cTriangle
         void    insertCriter(int aK, float aVal); //set criterion value for index aK
         float   getCriter(int aK);
         float   getBestCriter();
+        void    showMap(); //debug only
 
         float   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
 

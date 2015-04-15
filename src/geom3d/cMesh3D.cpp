@@ -253,8 +253,10 @@ void cTriangle::decEdgeIndex(unsigned int pos)
         ELISE_ASSERT(pos < mTriEdges.size(), "cTriangle::decEdgeIndex in cMesh3D.cpp")
     #endif
 
-    mTriEdges[pos]--;
+                mTriEdges[pos]--;
 }
+
+
 
 void cTriangle::setTextureCoordinates(Pt2dr const &p0, Pt2dr const &p1, Pt2dr const &p2)
 {
@@ -311,6 +313,42 @@ float cTriangle::getCriter(int aK)
 float cTriangle::getBestCriter()
 {
     return getCriter(mBestImIdx);
+}
+
+void cTriangle::showMap()
+{
+    cout << "********************* " << mTriIdx << " ************************* " << endl;
+    map <int, float>::const_iterator it = mMapCriter.begin();
+    for (;it != mMapCriter.end() ;++it)
+    {
+        cout << "Criter " << (*it).first << " "<< (*it).second << endl;
+    }
+    cout << endl;
+}
+
+int cTriangle::getBestImgIndexAfter(int aK)
+{
+    int res = -1;
+    map<int,float>::iterator it = mMapCriter.find(aK);
+
+    if (it != mMapCriter.end())
+    {
+        float min = FLT_MAX;
+
+        map <int, float>::const_iterator itr = mMapCriter.begin();
+        for (;itr != mMapCriter.end() ;++itr)
+        {
+            if (itr != it)
+            {
+                if (itr->second < min)
+                {
+                    min = itr->second;
+                    res = itr->first;
+                }
+            }
+        }
+    }
+    return res;
 }
 
 float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
