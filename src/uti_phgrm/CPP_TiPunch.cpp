@@ -208,22 +208,46 @@ int TiPunch_main(int argc,char ** argv)
         cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
 
         vector <cElNuage3DMaille *> vNuages;
+        vector <Im2D_U_INT1> vMasqImg;
 
 
         cout << endl;
         for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
         {
-            std::string aNameXml = PIMsFilter->NameFileXml(eTMIN_Merge,*itS);
+            std::string aNameXml  = PIMsFilter->NameFileXml(eTMIN_Merge,*itS);
 
             if (ELISE_fp::exist_file(aNameXml))
             {
                 vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
 
                 cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
+
+                std::string aNameMasqDepth = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
+
+                if (ELISE_fp::exist_file(aNameMasqDepth))
+                {
+                    Tiff_Im aImg(aNameMasqDepth.c_str());
+
+                    Pt2di sz = vNuages.back()->SzUnique();
+                    Im2D_U_INT1 aImBin(sz.x, sz.y,0);
+
+                    ELISE_COPY
+                    (
+                       aImg.all_pts(),
+                       aImg.in(),
+                       aImBin.out()
+                    );
+
+                    vMasqImg.push_back(aImBin);
+                }
+                else
+                    cout << aNameMasqDepth << " does not exist" << endl;
             }
             else
                 cout << aNameXml << " does not exist" << endl;
         }
+
+        ELISE_ASSERT(vNuages.size() == vMasqImg.size(), "Missing masq img");
 
         cout << endl;
         cout <<"**********************Filtering faces*************************"<<endl;
@@ -238,17 +262,37 @@ int TiPunch_main(int argc,char ** argv)
 
             cTriangle * Triangle = myMesh.getTriangle(aK);
 
-            vector <Pt3dr> Sommets;
-            Triangle->getVertexes(Sommets);
+            vector <Pt3dr> Vertex;
+            Triangle->getVertexes(Vertex);
 
             bool found = false;
             const int nNuages = vNuages.size();
             for(int bK=0 ; bK<nNuages; bK++)
             {
-                if (SqrDistSum(Sommets, vNuages[bK]) > 0.f)
+                ElCamera* Cam = vNuages[bK]->Cam();
+
+                Pt2dr Pt0 = Cam->R3toF2(Vertex[0]);
+                Pt2dr Pt1 = Cam->R3toF2(Vertex[1]);
+                Pt2dr Pt2 = Cam->R3toF2(Vertex[2]);
+
+                if (Cam->IsInZoneUtile(Pt0) && Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2))
                 {
-                    found = true;
-                    break;
+                    Pt2di Pt0i = round_ni(Pt0);
+                    Pt2di Pt1i = round_ni(Pt1);
+                    Pt2di Pt2i = round_ni(Pt2);
+
+                    Im2D_U_INT1* im = &(vMasqImg[bK]);
+
+                    if (im->GetI(Pt0i) || im->GetI(Pt1i) || im->GetI(Pt2i))
+                    {
+                        cout << "val = "  << im->GetI(Pt0i) << endl;
+
+                        if (SqrDistSum(Vertex, vNuages[bK]) > 0.f)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
                 }
             }
 
