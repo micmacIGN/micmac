@@ -333,7 +333,7 @@ void cElemEqFormelle::AssertSameSet(const cElemEqFormelle & anEl2)
 /*                                                          */
 /************************************************************/
 
-cSetEqFormelles::cSetEqFormelles(eTypeSysResol aType,int aNbEq) :
+cSetEqFormelles::cSetEqFormelles(eTypeSysResol aType,int aNbEq,bool CanUseCstr) :
    mSys          (0),
    mFQC          (0),
    mClosed       (false),
@@ -347,7 +347,8 @@ cSetEqFormelles::cSetEqFormelles(eTypeSysResol aType,int aNbEq) :
    mTmpBegun     (false),
    mIndIncTmp    (-1),
    mSolQuad      (1),
-   mCurSol       (1)
+   mCurSol       (1),
+   mCanUseCstr   (CanUseCstr)
 {
 }
 
@@ -751,7 +752,8 @@ void cSetEqFormelles::SetClosed()
    }
    else if (mTypeSys ==eSysPlein)
    {
-      mSys = new L2SysSurResol(mNbVar);
+      // mSys = new L2SysSurResol(mNbVar);
+      mSys = new L2SysSurResol(mNbVar,!mCanUseCstr);
    }
    else if (mTypeSys == eSysCreuxFixe)
    {

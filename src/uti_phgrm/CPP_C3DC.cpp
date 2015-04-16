@@ -116,7 +116,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mPurge              (true),
    mPlyCoul            (true),
    mMergeOut           ("C3DC.ply"),
-   mSzNorm             (2),
+   mSzNorm             (3),
    mDS                 (1.0),
    mZoomF              (1),
    mDoMerge            (DoMerge),
@@ -442,6 +442,7 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                   +   mCFPI-> mStrImOri0
                   + " ModeMerge=" + mCFPI->mStrType
                   + " DownScale=" +ToString(mDS)
+                  + " SzNorm=3"
                   + " PlyCoul=true"
                ;
 
