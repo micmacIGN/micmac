@@ -7,6 +7,8 @@
         <SzCaptMm>   24.0 36.0 </SzCaptMm>
         <ShortName> C6D </ShortName>
    </CameraEntry>
+
+
    <CameraEntry>
         <Name>  Canon EOS 5D  </Name>
         <SzCaptMm>   24.0 36.0 </SzCaptMm>
@@ -26,6 +28,11 @@
         <Name> Canon EOS 7D </Name>
         <SzCaptMm> 14.9 22.3 </SzCaptMm>
         <ShortName> C7D </ShortName>
+   </CameraEntry>
+   <CameraEntry>
+        <Name>  Canon EOS 70D  </Name>
+        <SzCaptMm>   14.9 22.3 </SzCaptMm>
+        <ShortName> C70D </ShortName>
    </CameraEntry>
    <CameraEntry>
         <Name> Canon EOS 60D  </Name>

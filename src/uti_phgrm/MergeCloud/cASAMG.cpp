@@ -390,6 +390,7 @@ std::string  cASAMG::ExportMiseAuPoint()
        aComPly = aComPly + " Attr=" + mIma->mNameIm + " RatioAttrCarte=" + ToString(mStdN->Params().SsResolRef().Val());
     }
 
+
     if (mAppli->SzNormale() >0)
     {
          aComPly =    aComPly 
