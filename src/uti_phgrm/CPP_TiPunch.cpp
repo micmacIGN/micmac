@@ -106,6 +106,8 @@ int TiPunch_main(int argc,char ** argv)
     int aDepth = 8;
     bool aFilter = false;
     aMode = "Statue";
+    int aZBuffSSEch = 2;
+    float defValZBuf = 1e9;
 
     ElInitArgMain
             (
@@ -118,6 +120,7 @@ int TiPunch_main(int argc,char ** argv)
                             << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
                             << EAM(aFilter,"Filter",true,"Filter mesh (def=false)")
                             << EAM(aMode,"Mode",true,"C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
+                            << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
             );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -208,7 +211,8 @@ int TiPunch_main(int argc,char ** argv)
         cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
 
         vector <cElNuage3DMaille *> vNuages;
-        vector <Im2D_U_INT1> vMasqImg;
+        vector <Im2D_Bits<1> > vMasqImg;
+        vector <cZBuf> vZBuffers;
 
 
         cout << endl;
@@ -219,6 +223,14 @@ int TiPunch_main(int argc,char ** argv)
             if (ELISE_fp::exist_file(aNameXml))
             {
                 vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
+                vNuages.back()->Cam()->SetIdCam(aNameXml); //debug
+
+                ElCamera * Cam = vNuages.back()->Cam();
+                cZBuf aZBuffer(Cam->Sz(), defValZBuf, aZBuffSSEch);
+
+                aZBuffer.BasculerUnMaillage(myMesh, *(dynamic_cast <CamStenope*> (Cam)));
+
+                vZBuffers.push_back(aZBuffer);
 
                 cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
 
@@ -228,8 +240,9 @@ int TiPunch_main(int argc,char ** argv)
                 {
                     Tiff_Im aImg(aNameMasqDepth.c_str());
 
-                    Pt2di sz = vNuages.back()->SzUnique();
-                    Im2D_U_INT1 aImBin(sz.x, sz.y,0);
+                    Pt2di sz = aImg.Sz2();
+
+                    Im2D_Bits<1> aImBin(sz.x, sz.y, 0);
 
                     ELISE_COPY
                     (
@@ -247,68 +260,70 @@ int TiPunch_main(int argc,char ** argv)
                 cout << aNameXml << " does not exist" << endl;
         }
 
-        ELISE_ASSERT(vNuages.size() == vMasqImg.size(), "Missing masq img");
+        ELISE_ASSERT(vNuages.size() == vMasqImg.size(), "Missing masq image");
 
         cout << endl;
         cout <<"**********************Filtering faces*************************"<<endl;
         cout << endl;
 
-        std::vector < int > toRemove;
 
-        const int nFaces = myMesh.getFacesNumber();
-        for(int aK=0; aK < nFaces; aK++)
+        std::set < int, std::greater<int> > toRemove;
+
+        const int nNuages = vNuages.size();
+        for(int bK=0 ; bK<nNuages; bK++)
         {
-            if (aK%1000 == 0) cout << aK << " / " << myMesh.getFacesNumber() << endl;
+            set <int> vTri = vZBuffers[bK].getVisibleTrianglesIndexes();
 
-            cTriangle * Triangle = myMesh.getTriangle(aK);
+            cout << "nb triangles visibles = " << vTri.size() << endl;
 
-            vector <Pt3dr> Vertex;
-            Triangle->getVertexes(Vertex);
-
-            bool found = false;
-            const int nNuages = vNuages.size();
-            for(int bK=0 ; bK<nNuages; bK++)
+            set <int>::const_iterator it = vTri.begin();
+            for(;it!=vTri.end();++it)
             {
+                cTriangle * Triangle = myMesh.getTriangle(*it);
+
+                vector <Pt3dr> Vertex;
+                Triangle->getVertexes(Vertex);
+
                 ElCamera* Cam = vNuages[bK]->Cam();
 
                 Pt2dr Pt0 = Cam->R3toF2(Vertex[0]);
                 Pt2dr Pt1 = Cam->R3toF2(Vertex[1]);
                 Pt2dr Pt2 = Cam->R3toF2(Vertex[2]);
 
-                if (Cam->IsInZoneUtile(Pt0) && Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2))
-                {
+                //if (*it==113420)
+                //{
+                    TIm2DBits<1> im = vMasqImg[bK];
+
+                    // Tiff_Im::CreateFromIm(vMasqImg[bK],"/home/mdeveau/data/toto" + ToString(bK) + ".tif");
+
                     Pt2di Pt0i = round_ni(Pt0);
                     Pt2di Pt1i = round_ni(Pt1);
                     Pt2di Pt2i = round_ni(Pt2);
 
-                    Im2D_U_INT1* im = &(vMasqImg[bK]);
-
-                    if (im->GetI(Pt0i) || im->GetI(Pt1i) || im->GetI(Pt2i))
+                    if (im.inside(Pt0i) && im.inside(Pt1i) && im.inside(Pt2i)
+                            && !im.get(Pt0i) && !im.get(Pt1i) && !im.get(Pt2i))
                     {
-                        cout << "val = "  << im->GetI(Pt0i) << endl;
+                        /* cout << "name = " << Cam->IdCam() << " bK = " << bK << endl;
 
-                        if (SqrDistSum(Vertex, vNuages[bK]) > 0.f)
-                        {
-                            found = true;
-                            break;
-                        }
+                             cout << "proj = " << Pt0 << " " << Pt1 << " " << Pt2 << endl;*/
+
+                        toRemove.insert(Triangle->getIdx());
+                        //toRemove.push_back(Triangle->getIdx());
+                        //if (SqrDistSum(Vertex, vNuages[bK]) > 0.f)
+                        //{
+                        //    found = true;
+                        //    break;
+                        //}
                     }
-                }
-            }
-
-            if (!found)
-            {
-                toRemove.push_back(Triangle->getIdx());
+                //}
             }
         }
-        cout << myMesh.getFacesNumber() << " / " << myMesh.getFacesNumber() << endl;
 
-        cout << "Removing " << toRemove.size() << endl;
+        cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << endl;
 
-        std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
-        for (unsigned int var = 0; var < toRemove.size(); ++var) {
-             myMesh.removeTriangle(*(myMesh.getTriangle(toRemove[var])), false);
-        }
+        //std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
+        set<int>::const_iterator itr = toRemove.begin();
+        for(; itr!=toRemove.end();++itr) myMesh.removeTriangle(*itr, false);
     }
 
     cout << endl;

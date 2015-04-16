@@ -739,7 +739,9 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
         }
     }
 
+    //cout << "erase" << endl;
     mTriangles.erase(std::remove(mTriangles.begin(), mTriangles.end(), aTri), mTriangles.end());
+    //cout << "apres erase" << endl;
 
     const int nbTriangles = mTriangles.size();
     for (int aK=index;aK < nbTriangles; aK++ )
@@ -747,6 +749,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
         getTriangle(aK)->decIdx();
     }
 
+    //cout << "decIdx" << endl;
     if (doAdjacence)
     {
         const int nbEdges = mEdges.size();
@@ -771,6 +774,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
             else (*triIdx)[bK] = val;
         }
     }
+    //cout << "maj triIdx" << endl;
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -1242,18 +1246,18 @@ cZBuf::~cZBuf(){}
 //--------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------
 
-void cZBuf::BasculerUnMaillage(cMesh const &aMesh)
+void cZBuf::BasculerUnMaillage(cMesh &aMesh)
 {
     mRes = Im2D_REAL4(mSzRes.x,mSzRes.y,mDpDef);
     mDataRes = mRes.data();
     mImTriIdx = Im2D_INT4(mSzRes.x,mSzRes.y, mIdDef);
 
-    vector <cTriangle> vTriangles;
-    aMesh.getTriangles(vTriangles);
+    vector <cTriangle>* vTriangles = aMesh.getTriangles();
 
-    for (unsigned int aK =0; aK<vTriangles.size();++aK)
+    const int nbTriangles = vTriangles->size();
+    for (int aK=0; aK<nbTriangles;++aK)
     {
-        BasculerUnTriangle(vTriangles[aK]);
+        BasculerUnTriangle((*vTriangles)[aK]);
     }
 }
 
@@ -1264,12 +1268,12 @@ void cZBuf::BasculerUnMaillage(cMesh &aMesh, const CamStenope &aCam)
     mDataRes = mRes.data();
     mImTriIdx = Im2D_INT4(SzRes.x,SzRes.y, mIdDef);
 
-    vector <cTriangle> vTriangles;
-    aMesh.getTriangles(vTriangles);
+    vector <cTriangle> *vTriangles = aMesh.getTriangles();
 
-    for (unsigned int aK =0; aK<vTriangles.size();++aK)
+    const int nbTriangles = vTriangles->size();
+    for (int aK=0; aK<nbTriangles;++aK)
     {
-        cTriangle aTri = vTriangles[aK];
+        cTriangle aTri = (*vTriangles)[aK];
 
         vector <Pt3dr> Sommets;
         aTri.getVertexes(Sommets);
