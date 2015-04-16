@@ -499,12 +499,14 @@ cGenerateMail::cGenerateMail(int argc,char ** argv) :
 
 
 
+    std::string aSep=";";
+
     for (int aK=0 ; aK<int(mVE.size()) ; aK++)
     {
          if (aFP==0)
          {
               aFP = FopenNN(mDir+"MailList_"+ToString(aCptF)+".txt","w","MailList::open");
-              fprintf(aFP,"marc.pierrot-deseilligny@ensg.eu\n");
+              fprintf(aFP,"marc.pierrot-deseilligny@ensg.eu%s\n",aSep.c_str());
 
          }
          if (! mVE[aK]->mBlackList)
@@ -522,7 +524,7 @@ cGenerateMail::cGenerateMail(int argc,char ** argv) :
              else
              {
                   aCptInF++;
-                  fprintf(aFP,",\n");
+                  fprintf(aFP,"%s\n",aSep.c_str());
              }
          }
     }

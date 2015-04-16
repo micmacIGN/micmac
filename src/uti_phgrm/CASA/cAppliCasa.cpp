@@ -61,7 +61,7 @@ cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
      mParam   (*aP2.mObj),
      mICNM    (aP2.mICNM),
      mDC      (aP2.mDC),
-     mSetEq   (cNameSpaceEqF::eSysPlein),
+     mSetEq   (cNameSpaceEqF::eSysPlein,1,true),
      mSAN     (0),
      mBestCyl (0)
 {
