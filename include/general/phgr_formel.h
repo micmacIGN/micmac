@@ -635,7 +635,7 @@ class cSetEqFormelles : public cNameSpaceEqF
 	  
 
               ~cSetEqFormelles();
-              cSetEqFormelles(eTypeSysResol = eSysPlein,int aNbEq=1);
+              cSetEqFormelles(eTypeSysResol = eSysPlein,int aNbEq=1,bool CanUseCstr=false);
               AllocateurDInconnues & Alloc();
               cHomogFormelle * NewHomF
 		      (const cElHomographie &,
@@ -934,6 +934,7 @@ class cSetEqFormelles : public cNameSpaceEqF
           cManipOrdInc                  mMOI;
           Im1D_REAL8                    mSolQuad;
           Im1D_REAL8                    mCurSol;
+          bool                          mCanUseCstr;
 
 
           cSetEqFormelles(const cSetEqFormelles &); // N.I.
