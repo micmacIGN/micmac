@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /*#if(ELISE_QT_VERSION >= 4)
     #ifdef Int
-        #undef Int
+    #undef Int
     #endif
 
     #include <QMessageBox>
@@ -55,43 +55,43 @@ REAL SqrDistSum(vector <Pt3dr> const & Sommets, cElNuage3DMaille* nuage)
 
     if (Sommets.size() == 3)
     {
-        ElCamera* aCam = nuage->Cam();
+    ElCamera* aCam = nuage->Cam();
 
-        Pt2dr A = aCam->R3toF2(Sommets[0]);
-        Pt2dr B = aCam->R3toF2(Sommets[1]);
-        Pt2dr C = aCam->R3toF2(Sommets[2]);
+    Pt2dr A = aCam->R3toF2(Sommets[0]);
+    Pt2dr B = aCam->R3toF2(Sommets[1]);
+    Pt2dr C = aCam->R3toF2(Sommets[2]);
 
-        Pt2dr AB = B-A;
-        Pt2dr AC = C-A;
-        REAL aDet = AB^AC;
+    Pt2dr AB = B-A;
+    Pt2dr AC = C-A;
+    REAL aDet = AB^AC;
 
-        if (aDet!=0)
+    if (aDet!=0)
+    {
+        Pt2di aP0 = round_down(Inf(A,Inf(B,C)));
+        aP0 = Sup(aP0,Pt2di(0,0));
+        Pt2di aP1 = round_up(Sup(A,Sup(B,C)));
+        aP1 = Inf(aP1,nuage->SzUnique()-Pt2di(1,1));
+
+        for (INT x=aP0.x ; x<= aP1.x ; x++)
+        for (INT y=aP0.y ; y<= aP1.y ; y++)
         {
-            Pt2di aP0 = round_down(Inf(A,Inf(B,C)));
-            aP0 = Sup(aP0,Pt2di(0,0));
-            Pt2di aP1 = round_up(Sup(A,Sup(B,C)));
-            aP1 = Inf(aP1,nuage->SzUnique()-Pt2di(1,1));
+            Pt2dr Pt(x,y);
+            Pt2dr AP = Pt-A;
 
-            for (INT x=aP0.x ; x<= aP1.x ; x++)
-                for (INT y=aP0.y ; y<= aP1.y ; y++)
-                {
-                    Pt2dr Pt(x,y);
-                    Pt2dr AP = Pt-A;
+            // Coordonnees barycentriques de P(x,y)
+            REAL aPdsB = (AP^AC) / aDet;
+            REAL aPdsC = (AB^AP) / aDet;
+            REAL aPdsA = 1 - aPdsB - aPdsC;
+            if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps) &&
+                (nuage->ImMask().GetI(Pt2di(x,y)) > 0))
+            {
+            Pt3dr Pt1 = Sommets[0]*aPdsA + Sommets[1]*aPdsB + Sommets[2]*aPdsC;
+            Pt3dr Pt2 = nuage->PreciseCapteur2Terrain(Pt);
 
-                    // Coordonnees barycentriques de P(x,y)
-                    REAL aPdsB = (AP^AC) / aDet;
-                    REAL aPdsC = (AB^AP) / aDet;
-                    REAL aPdsA = 1 - aPdsB - aPdsC;
-                    if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps) &&
-                            (nuage->ImMask().GetI(Pt2di(x,y)) > 0))
-                    {
-                        Pt3dr Pt1 = Sommets[0]*aPdsA + Sommets[1]*aPdsB + Sommets[2]*aPdsC;
-                        Pt3dr Pt2 = nuage->PreciseCapteur2Terrain(Pt);
-
-                        Res += square_euclid(Pt1, Pt2);
-                    }
-                }
+            Res += square_euclid(Pt1, Pt2);
+            }
         }
+    }
     }
     return Res;
 }
@@ -106,19 +106,22 @@ int TiPunch_main(int argc,char ** argv)
     int aDepth = 8;
     bool aFilter = false;
     aMode = "Statue";
+    int aZBuffSSEch = 1;
+    float defValZBuf = 1e9;
 
     ElInitArgMain
-            (
-                argc,argv,
-                LArgMain()  << EAMC(aPly,"Ply file", eSAM_IsExistFile),
-                LArgMain()  << EAM(aFullName,"Pattern",false,"Full Name (Dir+Pat)",eSAM_IsPatFile)
-                            << EAM(aOut,"Out",false,"Mesh name (def=plyName+ _mesh.ply)")
-                            << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
-                            << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
-                            << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
-                            << EAM(aFilter,"Filter",true,"Filter mesh (def=false)")
-                            << EAM(aMode,"Mode",true,"C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
-            );
+        (
+        argc,argv,
+        LArgMain()  << EAMC(aPly,"Ply file", eSAM_IsExistFile),
+        LArgMain()  << EAM(aFullName,"Pattern",false,"Full Name (Dir+Pat)",eSAM_IsPatFile)
+                << EAM(aOut,"Out",false,"Mesh name (def=plyName+ _mesh.ply)")
+                << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
+                << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
+                << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
+                << EAM(aFilter,"Filter",true,"Filter mesh (def=false)")
+                << EAM(aMode,"Mode",true,"C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
+                << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
+        );
 
     if (MMVisualMode) return EXIT_SUCCESS;
 
@@ -134,35 +137,35 @@ int TiPunch_main(int argc,char ** argv)
 
     if (ELISE_fp::exist_file(poissonMesh))
     {
-        /*if (MMVisualMode)
+    /*if (MMVisualMode)
+    {
+        #if(ELISE_QT_VERSION >= 4)
+          std::string question = "File " + poissonMesh + " already exists. Do you want to replace it? (y/n)";
+          QMessageBox::StandardButton reply = QMessageBox::question(NULL, "Warning", question.c_str(),
+                        QMessageBox::Yes|QMessageBox::No);
+          if (reply == QMessageBox::Yes) {
+        computeMesh = true;
+        QApplication::quit();
+          } else {
+        computeMesh = false;
+          }
+        #endif
+    }
+    else*/
+    {
+        std::string yn;
+        cout << "File " << poissonMesh << " already exists. Do you want to replace it? (y/n)" << endl;
+        cin >> yn;
+        while ((yn != "y") && (yn != "n"))
         {
-            #if(ELISE_QT_VERSION >= 4)
-              std::string question = "File " + poissonMesh + " already exists. Do you want to replace it? (y/n)";
-              QMessageBox::StandardButton reply = QMessageBox::question(NULL, "Warning", question.c_str(),
-                                            QMessageBox::Yes|QMessageBox::No);
-              if (reply == QMessageBox::Yes) {
-                computeMesh = true;
-                QApplication::quit();
-              } else {
-                computeMesh = false;
-              }
-            #endif
+        cout << "Invalid value, try again." << endl;
+        cin >> yn;
         }
-        else*/
-        {
-            std::string yn;
-            cout << "File " << poissonMesh << " already exists. Do you want to replace it? (y/n)" << endl;
-            cin >> yn;
-            while ((yn != "y") && (yn != "n"))
-            {
-                cout << "Invalid value, try again." << endl;
-                cin >> yn;
-            }
-            if (yn == "y")
-                computeMesh = true;
-            else if (yn == "n")
-                computeMesh = false;
-        }
+        if (yn == "y")
+        computeMesh = true;
+        else if (yn == "n")
+        computeMesh = false;
+    }
     }
 
     if (computeMesh)
@@ -174,11 +177,11 @@ int TiPunch_main(int argc,char ** argv)
         #endif
 
         aCom = g_externalToolHandler.get( "PoissonRecon" ).callName()
-                + std::string(" --in ") + aPly.c_str()
-                + std::string(" --out ") + poissonMesh.c_str()
-                + " --depth " + ss.str()
+            + std::string(" --in ") + aPly.c_str()
+            + std::string(" --out ") + poissonMesh.c_str()
+            + " --depth " + ss.str()
         #if USE_OPEN_MP
-                + " --threads " + sst.str()
+            + " --threads " + sst.str()
         #endif
         ;
 
@@ -190,7 +193,6 @@ int TiPunch_main(int argc,char ** argv)
 
         cout << "\nMesh built and saved in " << poissonMesh << endl;
     }
-
 
     cMesh myMesh(poissonMesh, false); //pas d'arete pour l'instant
 
@@ -208,8 +210,8 @@ int TiPunch_main(int argc,char ** argv)
         cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
 
         vector <cElNuage3DMaille *> vNuages;
-        vector <Im2D_U_INT1> vMasqImg;
-
+        vector <Im2D_BIN> vMasqImg;
+        vector <cZBuf> vZBuffers;
 
         cout << endl;
         for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
@@ -218,97 +220,133 @@ int TiPunch_main(int argc,char ** argv)
 
             if (ELISE_fp::exist_file(aNameXml))
             {
-                vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
+            vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
+            vNuages.back()->Cam()->SetIdCam(aNameXml); //debug
 
-                cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
+            ElCamera * Cam = vNuages.back()->Cam();
+            cZBuf aZBuffer(Cam->Sz(), defValZBuf, aZBuffSSEch);
 
-                std::string aNameMasqDepth = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
+            aZBuffer.BasculerUnMaillage(myMesh, *(dynamic_cast <CamStenope*> (Cam)));
 
-                if (ELISE_fp::exist_file(aNameMasqDepth))
-                {
-                    Tiff_Im aImg(aNameMasqDepth.c_str());
+            vZBuffers.push_back(aZBuffer);
 
-                    Pt2di sz = vNuages.back()->SzUnique();
-                    Im2D_U_INT1 aImBin(sz.x, sz.y,0);
+            cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
 
-                    ELISE_COPY
-                    (
-                       aImg.all_pts(),
-                       aImg.in(),
-                       aImBin.out()
-                    );
+            std::string aNameMasqDepth = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
 
-                    vMasqImg.push_back(aImBin);
-                }
-                else
-                    cout << aNameMasqDepth << " does not exist" << endl;
+            if (ELISE_fp::exist_file(aNameMasqDepth))
+            {
+                Tiff_Im aImg(aNameMasqDepth.c_str());
+
+                Pt2di sz = aImg.Sz2();
+
+                Im2D_BIN aImBin(sz.x, sz.y, 0);
+
+                ELISE_COPY
+                (
+                   aImg.all_pts(),
+                   aImg.in(),
+                   aImBin.out()
+                );
+
+                vMasqImg.push_back(aImBin);
             }
-            else
-                cout << aNameXml << " does not exist" << endl;
+            else cout << aNameMasqDepth << " does not exist" << endl;
+            }
+            else cout << aNameXml << " does not exist" << endl;
         }
 
-        ELISE_ASSERT(vNuages.size() == vMasqImg.size(), "Missing masq img");
+        ELISE_ASSERT(vNuages.size() == vMasqImg.size(), "Missing masq image");
 
         cout << endl;
         cout <<"**********************Filtering faces*************************"<<endl;
         cout << endl;
 
-        std::vector < int > toRemove;
+        std::set < int, std::greater<int> > toRemove;
 
-        const int nFaces = myMesh.getFacesNumber();
-        for(int aK=0; aK < nFaces; aK++)
+        const int nNuages = vNuages.size();
+        for(int bK=0 ; bK<nNuages; bK++)
         {
-            if (aK%1000 == 0) cout << aK << " / " << myMesh.getFacesNumber() << endl;
+            set <int> vTri = vZBuffers[bK].getVisibleTrianglesIndexes();
 
-            cTriangle * Triangle = myMesh.getTriangle(aK);
-
-            vector <Pt3dr> Vertex;
-            Triangle->getVertexes(Vertex);
-
-            bool found = false;
-            const int nNuages = vNuages.size();
-            for(int bK=0 ; bK<nNuages; bK++)
+            set <int>::const_iterator it = vTri.begin();
+            for(;it!=vTri.end();++it)
             {
-                ElCamera* Cam = vNuages[bK]->Cam();
+                cTriangle * Triangle = myMesh.getTriangle(*it);
 
-                Pt2dr Pt0 = Cam->R3toF2(Vertex[0]);
-                Pt2dr Pt1 = Cam->R3toF2(Vertex[1]);
-                Pt2dr Pt2 = Cam->R3toF2(Vertex[2]);
-
-                if (Cam->IsInZoneUtile(Pt0) && Cam->IsInZoneUtile(Pt1) && Cam->IsInZoneUtile(Pt2))
+                if (!Triangle->isViewed())
                 {
-                    Pt2di Pt0i = round_ni(Pt0);
-                    Pt2di Pt1i = round_ni(Pt1);
-                    Pt2di Pt2i = round_ni(Pt2);
+                    vector <Pt3dr> Vertex;
+                    Triangle->getVertexes(Vertex);
 
-                    Im2D_U_INT1* im = &(vMasqImg[bK]);
+                    ElCamera* Cam = vNuages[bK]->Cam();
 
-                    if (im->GetI(Pt0i) || im->GetI(Pt1i) || im->GetI(Pt2i))
+                    Pt2dr A2 = Cam->R3toF2(Vertex[0]);
+                    Pt2dr B2 = Cam->R3toF2(Vertex[1]);
+                    Pt2dr C2 = Cam->R3toF2(Vertex[2]);
+
+                    TIm2DBits<1> im = vMasqImg[bK];
+
+                    // Tiff_Im::CreateFromIm(vMasqImg[bK],"./toto" + ToString(bK) + ".tif");
+
+                    Pt2di A2i = round_ni(A2);
+                    Pt2di B2i = round_ni(B2);
+                    Pt2di C2i = round_ni(C2);
+
+                    if (im.inside(A2i) && im.inside(B2i) && im.inside(C2i))
                     {
-                        cout << "val = "  << im->GetI(Pt0i) << endl;
+                        Pt2dr AB = B2-A2;
+                        Pt2dr AC = C2-A2;
+                        REAL aDet = AB^AC;
 
-                        if (SqrDistSum(Vertex, vNuages[bK]) > 0.f)
+                        if (aDet!=0)
                         {
-                            found = true;
-                            break;
+                            Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
+                            aP0 = Sup(aP0,Pt2di(0,0));
+                            Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
+                            aP1 = Inf(aP1,im.sz()-Pt2di(1,1));
+
+                            bool doBreak = false;
+                            for (INT x=aP0.x ; x<= aP1.x ; x++)
+                            {
+
+                                for (INT y=aP0.y ; y<= aP1.y ; y++)
+                                {
+                                    Pt2dr AP = Pt2dr(x,y)-A2;
+
+                                    // Coordonnees barycentriques de P(x,y)
+                                    REAL aPdsB = (AP^AC) / aDet;
+                                    REAL aPdsC = (AB^AP) / aDet;
+                                    REAL aPdsA = 1 - aPdsB - aPdsC;
+                                    if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
+                                    {
+                                        if (im.get(Pt2di(x,y)))
+                                        {
+                                            Triangle->setViewed();
+                                            doBreak = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (doBreak) break;
+                            }
                         }
                     }
                 }
             }
-
-            if (!found)
-            {
-                toRemove.push_back(Triangle->getIdx());
-            }
         }
-        cout << myMesh.getFacesNumber() << " / " << myMesh.getFacesNumber() << endl;
 
-        cout << "Removing " << toRemove.size() << endl;
-
-        std::sort(toRemove.begin(),toRemove.end(),std::greater<int>());
-        for (unsigned int var = 0; var < toRemove.size(); ++var) {
-             myMesh.removeTriangle(*(myMesh.getTriangle(toRemove[var])), false);
+        const int nbTriangles = myMesh.getFacesNumber();
+        for (int aK=0; aK < nbTriangles;++aK)
+        {
+            cTriangle * triangle = myMesh.getTriangle(aK);
+            if (!triangle->isViewed()) toRemove.insert(aK);
         }
+
+        cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << endl;
+
+        set<int>::const_iterator itr = toRemove.begin();
+        for(; itr!=toRemove.end();++itr) myMesh.removeTriangle(*itr, false);
     }
 
     cout << endl;

@@ -88,8 +88,7 @@ class cMesh
         int			getFacesNumber()  const	{return (int) mTriangles.size();}
         int			getEdgesNumber()  const	{return (int) mEdges.size();}
 
-        void		getTriangles(vector <cTriangle> &vTriangles) const {vTriangles = mTriangles;}
-        vector <cEdge> getEdges() const { return mEdges;}
+        vector <cTriangle> *	getTriangles() { return &mTriangles; }
 
         cVertex *   getVertex(unsigned int idx);
         cTriangle *	getTriangle(unsigned int idx);
@@ -216,6 +215,10 @@ class cTriangle
         float   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
 
         void    setDefValue(float aVal) { mDefValue = aVal; }
+
+        void    setViewed() { mViewed = true; }
+        bool    isViewed() { return mViewed; }
+
 private:
 
         int							mTriIdx;		// triangle index
@@ -224,6 +227,7 @@ private:
         map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes //old
         static const int            mDefImIdx = -1; // default value of image index
         int                         mBestImIdx;     // texture image index
+        bool                        mViewed;
 
         cMesh       *               pMesh;
 
@@ -272,7 +276,7 @@ class cZBuf
 
                 ~cZBuf();
 
-        void	BasculerUnMaillage(cMesh const &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
+        void	BasculerUnMaillage(cMesh &aMesh);			//Projection du maillage dans la geometrie de aNuage, aDef: valeur par defaut de l'image resultante
         void    BasculerUnMaillage(cMesh &aMesh, CamStenope const & aCam);
 
         void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //compute ZBuffer, or Mask (true)
@@ -280,7 +284,7 @@ class cZBuf
         Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
         Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
-        set<int> getVisibleTrianglesIndexes();// {return &vTri;}
+        set<int>    getVisibleTrianglesIndexes();
 
         cElNuage3DMaille * &	Nuage() {return mNuage;}
 
