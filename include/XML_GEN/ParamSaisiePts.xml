@@ -1,0 +1,158 @@
+<GenCpp  Difndef="Define_NotSaisiPts">
+
+<Verbatim File=".h">
+// #include "general/all.h"
+// #include "private/all.h"
+</Verbatim>
+<Verbatim File=".cpp">
+#include "StdAfx.h"
+</Verbatim>
+<Verbatim File=".h.cpp">
+// 
+</Verbatim>
+
+<enum Name="eTypePts">
+    <eNSM_GeoCube>          </eNSM_GeoCube>
+    <eNSM_Plaquette>        </eNSM_Plaquette>
+    <eNSM_Pts>              </eNSM_Pts>
+    <eNSM_MaxLoc>           </eNSM_MaxLoc>
+    <eNSM_MinLoc>           </eNSM_MinLoc>
+    <eNSM_NonValue>         </eNSM_NonValue> <!-- Usage interne codage -->
+</enum>
+
+
+<enum Name="eEtatPointeImage">
+    <eEPI_NonSaisi>         </eEPI_NonSaisi>  <!-- Aucune info utilisateur -->
+    <eEPI_Refute>           </eEPI_Refute>    <!-- marque comme pas vu dans Image -->
+    <eEPI_Douteux>          </eEPI_Douteux>   <!-- marque comme tel par utilisateur -->
+    <eEPI_Valide>           </eEPI_Valide>
+    <eEPI_NonValue>         </eEPI_NonValue>  <!-- Usage interne codage -->
+    <eEPI_Disparu>          </eEPI_Disparu>   <!-- Usage interne gestion des sommets morts  -->
+    <!-- Ne pas supprimer  , voir cAppli_SaisiePts::StatePriority -->
+    <eEPI_Highlight>        </eEPI_Highlight>   <!-- Usage interne gestion des sommets morts  -->
+</enum>
+
+
+
+<SetPointGlob Nb="1" Class="true" ToReference="true">
+    <PointGlob Nb="*">
+          <Type Nb="1" Type="eTypePts"> </Type>
+          <Name Nb="1" Type="std::string"> </Name>
+          <P3D Nb="?" Type="Pt3dr"> </P3D>
+          <!-- Si pt de Dico, garde la memoire car P3D risque d'evoluer -->
+          <Pt3DFromDico Nb="?" Type="Pt3dr"> </Pt3DFromDico>
+          <!-- Si un seul pointe 2D, il y a un point 3D comme predict, mais pas mesure a exporter -->
+          <Mes3DExportable Nb="?"  Type="bool"> </Mes3DExportable>
+          <Incert Nb="?" Type="Pt3dr"> </Incert>
+          <LargeurFlou Nb="?" Type="double" Def="0.0"> </LargeurFlou>
+          <ContenuPt Nb="?"  UnionType="true">
+              <None Nb="?" Type="std::string"> </None> <!-- Pour k'sa compile -->
+          </ContenuPt>
+          <!-- Champs reserves aux points crees sans attaches terrain -->
+          <NumAuto Nb="?" Type="int">  </NumAuto>
+          <PS1 Nb="?" Type="Pt3dr">  </PS1>  <!-- PS1/PS2 segment d'incert -->
+          <PS2 Nb="?" Type="Pt3dr">  </PS2>
+          <VPS Nb="*" Type="Pt3dr"  Container="std::vector"> </VPS>
+          <SzRech  Nb="?" Type="double"> </SzRech>
+          <Disparu Nb="?" Type="bool"> </Disparu>
+          <FromDico Nb="?" Type="bool"> </FromDico>
+    </PointGlob>
+</SetPointGlob>
+
+
+<!-- Proche de SetOfMesureAppuisFlottants, mais format interne, avec option
+qui vont s'ajouter (forme, orientation, texture, fiabilite ...), donc pour ne
+pas interfere avec format utilisateur basique, on separe -->
+<SetOfSaisiePointeIm Class="true" ToReference="true"  Nb="1">
+    <SaisiePointeIm Class="true"   Nb="*">
+        <NameIm Nb="1" Type="std::string"> </NameIm>
+        <OneSaisie Nb="*">
+              <Etat Nb="1" Type="eEtatPointeImage"> </Etat>
+              <NamePt Nb="1" Type="std::string"> </NamePt>
+              <PtIm Nb="1" Type="Pt2dr"> </PtIm>
+        </OneSaisie>
+    </SaisiePointeIm>
+</SetOfSaisiePointeIm>
+
+
+
+<ParamSaisiePts  Nb="1" Class="true">
+
+        <DicoLoc  Nb="?" RefType="ChantierDescripteur"
+                         RefFile="ParamChantierPhotogram.xml"
+	> 
+	</DicoLoc>
+
+        <SectionWindows Nb="1">
+             <SzTotIm Nb="?" Type="Pt2di" Def="Pt2di(700,600)"> </SzTotIm>
+             <NbFenIm Nb="?" Type="Pt2di" Def="Pt2di(2,2)"> </NbFenIm>
+             <SzWZ Nb="?" Type="Pt2di"> </SzWZ>
+<!--
+             <SzTer Nb="?" Type="Pt2di" Def="Pt2di(400,400)"> </SzTer>
+-->
+
+             <ShowDet Nb="?" Type="bool" Def="false"></ShowDet> <!-- Affichage du nom des points -->
+             <RefInvis Nb="?" Type="bool" Def="false"></RefInvis> <!-- Affichage du nom des points -->
+        </SectionWindows>
+
+       
+
+
+        <SectionInOut Nb="1">
+              <!-- Pour recuperer des pb dans les chantiers avec des nom de point identique dans
+              differents fichier, je me laisse la possibilite de renomer les points , on ne le
+              fait que si pas deja prefixe pour limiter les pb
+              -->
+              <Prefix2Add2IdPt Nb="?" Type="std::string" Def=""> </Prefix2Add2IdPt>
+              <ImportFromDico Nb="*">
+                   <TypePt Nb="1" Type="eTypePts">   </TypePt>
+                   <File Nb="1" Type="std::string">            </File>
+                   <LargeurFlou Nb="?" Type="double" Def="0.0"> </LargeurFlou>
+              </ImportFromDico>
+              <FlouGlobEcras Nb="?"  Type="bool" Def="false"> </FlouGlobEcras>
+              <TypeGlobEcras Nb="?"  Type="bool" Def="false"> </TypeGlobEcras>
+              <NamePointesImage Nb="?" Type="std::string" Def="SP_PointesImageIm.xml"> </NamePointesImage>
+              <NamePointsGlobal Nb="?" Type="std::string" Def="SP_PointesGlobal.xml"> </NamePointsGlobal>
+
+
+               <!-- Export au format standadr -->
+               <ExportPointeImage   Nb="?" Type="std::string"> </ExportPointeImage>
+
+               <FixedName Nb="*" Type="std::string"> </FixedName>
+               <NameAuto Nb="?" Type="std::string" Def="NONE"> </NameAuto>  <!-- "" si pas de Name Auto -->
+               <EnterName Nb="?" Type="bool" Def="false"> </EnterName>  <!-- "" si pas de Name Auto -->
+        </SectionInOut>
+
+        <SectionImages Nb="1">
+              <SetOfImages Nb="1" Type="std::string"> </SetOfImages>
+              <ForceGray Nb="?" Type="bool" Def="false"> </ForceGray>
+              <!-- the conventional value NONE is equiv to no orient -->
+              <KeyAssocOri Nb="?" Type="std::string"> </KeyAssocOri>
+              <!-- Filter for visibility of points in image -->
+        </SectionImages>
+
+        <SectionTerrain Nb="1">
+             <!-- Indique, en poucentager de l'alti ou de la prof, l'intervalle d'inceritue;
+                 Par ex 10 et Prof moy de 40 => Interv Prof = [36,44.444] 
+             -->
+             <IntervPercProf Nb="?" Type="double" Def="10.0"> </IntervPercProf>
+             <ProfEstimator Nb="?"  UnionType="true">
+                 <ZMoyen Nb="?" Type="double"> </ZMoyen>
+                 <ZMoyenInIma Nb="?" Type="std::string"> </ZMoyenInIma>
+             </ProfEstimator>
+             <Masq3DFilterVis Nb="?" Type="std::string"> </Masq3DFilterVis>
+             <PIMsFilterVis Nb="?" Type="std::string">   </PIMsFilterVis>
+        </SectionTerrain>
+
+
+        <DirectoryChantier Nb="1" Type="std::string"></DirectoryChantier>
+       
+</ParamSaisiePts>
+
+
+
+<Verbatim File=".h.cpp">
+// };
+</Verbatim>
+
+</GenCpp>

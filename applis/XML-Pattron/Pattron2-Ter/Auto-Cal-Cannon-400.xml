@@ -1,0 +1,15 @@
+<!--  Calculee sur gargouilles (0) du chateau de vincennes -->
+<CalibrationInternConique>
+    <KnownConv>eConvApero_DistM2C</KnownConv>
+    <PP>2719.75047077397039 1970.64366932675125</PP>
+    <F>64000</F>
+    <SzIm>5616 3744</SzIm>
+    <CalibDistortion>
+         <ModRad>
+             <CDist>2719.75047077397039 1970.64366932675125</CDist>
+             <CoeffDist>2.21696904841772359e-09</CoeffDist>
+             <CoeffDist>-4.08655115613169879e-20</CoeffDist>
+             <CoeffDist>-1.41734288580845784e-24</CoeffDist>
+         </ModRad>
+    </CalibDistortion>
+</CalibrationInternConique>
