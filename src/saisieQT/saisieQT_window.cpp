@@ -1390,7 +1390,7 @@ void SaisieQtWindow::setUI()
     {
         if (_appMode == POINT2D_INIT)          setWindowTitle("Micmac - SaisieAppuisInitQT");
         else if (_appMode == POINT2D_PREDIC)   setWindowTitle("Micmac - SaisieAppuisPredicQT");
-        else if (_appMode == BASC)             setWindowTitle("Micmac - SaisieBascQT");
+        else if (_appMode == BASC)             setWindowTitle("Micmac - SaisieQT");
 
         hideAction(_ui->actionLoad_image, false);
         hideAction(_ui->actionSave_masks, false);

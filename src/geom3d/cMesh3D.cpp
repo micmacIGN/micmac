@@ -96,6 +96,7 @@ void cTriangle::addEdge(int idx)
 cTriangle::cTriangle(cMesh* aMesh, sFace * face, int TriIdx):
     mTriIdx(TriIdx),
     mBestImIdx(mDefImIdx),
+    mViewed(false),
     pMesh(aMesh),
     mText0(Pt2dr()),
     mText1(Pt2dr()),
