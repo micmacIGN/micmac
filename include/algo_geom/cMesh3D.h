@@ -215,6 +215,10 @@ class cTriangle
         float   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
 
         void    setDefValue(float aVal) { mDefValue = aVal; }
+
+        void    setViewed() { mViewed = true; }
+        bool    isViewed() { return mViewed; }
+
 private:
 
         int							mTriIdx;		// triangle index
@@ -223,6 +227,7 @@ private:
         map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes //old
         static const int            mDefImIdx = -1; // default value of image index
         int                         mBestImIdx;     // texture image index
+        bool                        mViewed;
 
         cMesh       *               pMesh;
 
