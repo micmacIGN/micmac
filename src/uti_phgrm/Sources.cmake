@@ -117,7 +117,6 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_MakeGrid.cpp
     ${UTI_PHGRM_DIR}/CPP_Malt.cpp
     ${UTI_PHGRM_DIR}/CPP_MMByPair.cpp
-    ${UTI_PHGRM_DIR}/CPP_Mascarpone.cpp
     ${UTI_PHGRM_DIR}/CPP_MergePly.cpp
     ${UTI_PHGRM_DIR}/CPP_MICMAC.cpp
     ${UTI_PHGRM_DIR}/CPP_Nuage2Ply.cpp

@@ -98,7 +98,7 @@ int Ori2XML_main(int argc,char ** argv)
 /*                                                          */
 /************************************************************/
 
-   // Conversions elementaires 
+   // Conversions elementaires
 
 Pt2di Mat2MM(const cXmlMatis_image_size & aSz)
 {
@@ -156,7 +156,7 @@ cCamStenopeDistRadPol * Mat2MMConik(const corientation &  aMatis)
     Pt2di aSz = Mat2MM(aSens.image_size());
     double aRay = (euclid(Pt2dr(aSz)) /2.0) *1.1;
 
-    
+
     ElDistRadiale_Pol357 aDistMM(
                             aRay,
                             Mat2MM(aDist.pps()),
@@ -202,11 +202,13 @@ int MatisOri2MM_main(int argc,char ** argv)
     ElInitArgMain
     (
            argc,argv,
-           LArgMain() << EAMC(aFullNameIn,"Full pattern")
-                      << EAMC(aNameOut,"Orientation destination"),
+           LArgMain() << EAMC(aFullNameIn,"Full pattern", eSAM_IsPatFile)
+                      << EAMC(aNameOut,"Orientation destination", eSAM_IsExistDirOri),
            LArgMain() << EAM(aRounding,"RoundingOffset",true, "Rounding factor, def none")
                       << EAM(Offset,"Offset", true, "Value of offset")
     );
+
+    if (MMVisualMode) return EXIT_SUCCESS;
 
     std::string aKeyMM = "NKS-Assoc-Im2Orient@-" + aNameOut;
     std::string aKeyMATIS = "NKS-MATIS-Assoc-Im2Orient";
@@ -240,12 +242,12 @@ int MatisOri2MM_main(int argc,char ** argv)
 
          // Creer une structur qui contient le xif ou equivalent
         cMetaDataPhoto aMTD = cMetaDataPhoto::CreateExiv2(anEASF.mDir+aNameIm);
-        std::string aMMNameIntr = "Ori-" + aNameOut + "/AutoCal" 
+        std::string aMMNameIntr = "Ori-" + aNameOut + "/AutoCal"
                                  + ToString(round_ni(aMTD.FocMm() *10)) + ".xml";
 
          aMMNameIntr =  anEASF.mICNM->Assoc1To1(aKeyCalib,aNameIm,true);
 
-        // 
+        //
         aXMLMM.Interne().SetNoInit();
         cXmlDate aMMDate = Mat2MM(aXMLMatis.auxiliarydata().image_date());
         aXMLMM.Externe().Date().SetVal(aMMDate);

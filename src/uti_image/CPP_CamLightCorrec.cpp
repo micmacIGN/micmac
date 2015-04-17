@@ -109,6 +109,8 @@ cCorCamL::cCorCamL(int argc,char** argv) :
                     << EAM(mCalibFF,"Calib",true,"Calib Variation")
    );
 
+   if (MMVisualMode) return;
+
    const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
 
    if (aSetIm->size()==1)
@@ -165,7 +167,7 @@ void cCorCamL::DoOne(const std::string & aName)
 
     Im2D_REAL4 aImDelta(1,1) ;
     TIm2D<REAL4,REAL8> aTImDelta(aImDelta);
-    if (mCalibFF) 
+    if (mCalibFF)
     {
         aImDelta.Resize(aSz);
         aTImDelta = TIm2D<REAL4,REAL8>(aImDelta);
@@ -214,7 +216,7 @@ void cCorCamL::DoOne(const std::string & aName)
            // ELISE_COPY(aImD0.all_pts(),aImD0.out());
 
            // ELISE_COPY(aWIm.all_pts(),StdFoncChScale(anIm0.in_proj(),Pt2dr(0,0),Pt2dr(aRatio,aRatio)),aWIm.ogray());
-           
+
            ELISE_COPY
            (
                 aWIm.all_pts(),
@@ -231,7 +233,7 @@ void cCorCamL::DoOne(const std::string & aName)
                 aWIm.ogray()
               );
            }
-           
+
        }
 
 
@@ -266,7 +268,7 @@ void cCorCamL::DoOne(const std::string & aName)
 
     }
 
-    // corrige de la valeur une ligne /2 
+    // corrige de la valeur une ligne /2
     int aParite=0;
     if (mDif>0)
     {
@@ -285,9 +287,9 @@ void cCorCamL::DoOne(const std::string & aName)
         Im2D_REAL8 aFiltr(3,3,aStrFitl.c_str());
         aFiltr = aFiltr.ToSom1();
         ELISE_COPY(anImEg.all_pts(),som_masq(anImEg.in_proj(),aFiltr),anImEg.out());
-        
+
 /*
-        
+
         Fonc_Num som_masq
          (
             Fonc_Num f,
@@ -317,7 +319,7 @@ void cCorCamL::DoOne(const std::string & aName)
 
     Tiff_Im::Create8BFromFonc("Eq_"+aName,aSz,anIm0.in());
 }
- 
+
 
 int CCL_main (int argc,char** argv)
 {

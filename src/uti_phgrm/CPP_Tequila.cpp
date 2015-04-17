@@ -85,7 +85,8 @@ void LoadTrScaleRotate
 }
 
 //update index in regions list, when a triangle is removed from mesh
-void updateIndex(int triIdx, std::vector < cTextureBox2d > &regions)
+//TODO : faux : on ne décale plus d'un lorsqu'on supprime un triangle
+/*void updateIndex(int triIdx, std::vector < cTextureBox2d > &regions)
 {
     for (unsigned int cK=0; cK < regions.size();++cK)
     {
@@ -95,7 +96,7 @@ void updateIndex(int triIdx, std::vector < cTextureBox2d > &regions)
             if (vtri[dK] > triIdx) regions[cK].triangles[dK]--;
         }
     }
-}
+}*/
 
 typedef enum
 {
@@ -580,8 +581,9 @@ int Tequila_main(int argc,char ** argv)
             }
             else
             {
+                regions[aK] = regions.back();
+                regions.pop_back();
                 //cout << "removing region " << aK << endl;
-                regions.erase(std::remove(regions.begin(), regions.end(), regions[aK]), regions.end());
                 aK--;
             }
         }

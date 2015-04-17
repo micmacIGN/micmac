@@ -252,10 +252,12 @@ cAppli_San2Ply_main::cAppli_San2Ply_main (int argc,char ** argv) :
         argc,argv,
         LArgMain()  << EAMC(aPat,"Pattern of image", eSAM_IsPatFile)
                     << EAMC(anOri ,"Orientation", eSAM_IsExistDirOri)
-                    << EAMC(aNameSan,"Name of Analytical Surface"),
+                    << EAMC(aNameSan,"Name of Analytical Surface", eSAM_IsExistFile),
         LArgMain()  << EAM(aDensity,"Density",true,"Factor proportional to point density")
                     << EAM(Out,"Out",true,"Name Of result")
     );
+
+    if (MMVisualMode) return;
 
     if (!EAMIsInit(&Out)) Out = StdPrefix(aNameSan) + ".ply";
 

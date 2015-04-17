@@ -274,7 +274,7 @@ int TiPunch_main(int argc,char ** argv)
             {
                 cTriangle * Triangle = myMesh.getTriangle(*it);
 
-                if (!Triangle->isViewed())
+                if (!Triangle->isTextured())
                 {
                     vector <Pt3dr> Vertex;
                     Triangle->getVertexes(Vertex);
@@ -322,7 +322,7 @@ int TiPunch_main(int argc,char ** argv)
                                     {
                                         if (im.get(Pt2di(x,y)))
                                         {
-                                            Triangle->setViewed();
+                                            Triangle->setBestImgIndex(1); //trick to check if triangle is viewed
                                             doBreak = true;
                                             break;
                                         }
@@ -340,7 +340,7 @@ int TiPunch_main(int argc,char ** argv)
         for (int aK=0; aK < nbTriangles;++aK)
         {
             cTriangle * triangle = myMesh.getTriangle(aK);
-            if (!triangle->isViewed()) toRemove.insert(aK);
+            if (!triangle->isTextured()) toRemove.insert(aK);
         }
 
         cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << endl;

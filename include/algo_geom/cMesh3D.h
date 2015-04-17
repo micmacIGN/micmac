@@ -101,11 +101,6 @@ class cMesh
         void        removeTriangle(int idx, bool doAdjacence = true);
         void        removeTriangle(cTriangle &aTri, bool doAdjacence = true);
 
-        void        setTrianglesAttribute(int img_idx, Pt3dr Dir, set <unsigned int> const &aTriIdx); //old
-
-        void		setGraph(int img_idx, RGraph &aGraph, vector <int> &aTriInGraph, const set<unsigned int> &aTriIdx); //TriInGraph: index of triangles in Graph
-        void		setLambda(REAL aL) {mLambda = aL;}
-
         void        clean();
 
         vector < cTextureBox2d > getRegions();
@@ -124,8 +119,6 @@ private:
         vector <cEdge>	    mEdges;			//aretes du graphe de voisinage
 
         set <pair <int,int> > mEdgesSet;
-
-        REAL				mLambda;
 };
 
 //--------------------------------------------------------------------------------------------------------------
@@ -173,16 +166,6 @@ class cTriangle
 
         void    setIdx(int id) { mTriIdx = id; }
         int		getIdx() const {return mTriIdx;}
-        void    decIdx() { mTriIdx--; }
-
-        bool	getAttributes(int image_idx, vector <REAL> &ta) const; //old
-        map <int, vector <REAL> >	getAttributesMap() const {return mAttributes;} //old
-
-        void	setAttributes(int image_idx, const vector <REAL> &ta); //old
-
-        bool	hasAttributes() { return (!mAttributes.empty()); } //old
-
-        REAL	computeEnergy(int img_idx); //old
 
         size_t  getEdgesNumber() { return mTriEdges.size(); }
 
@@ -192,7 +175,6 @@ class cTriangle
 
         void    setEdgeIndex(unsigned int pos, int val);
         void    setVertexIndex(unsigned int pos, int val);
-        void    decEdgeIndex(unsigned int pos);
 
         static int     getDefTextureImgIndex() { return mDefImIdx; }
 
@@ -216,18 +198,13 @@ class cTriangle
 
         void    setDefValue(float aVal) { mDefValue = aVal; }
 
-        void    setViewed() { mViewed = true; }
-        bool    isViewed() { return mViewed; }
-
 private:
 
         int							mTriIdx;		// triangle index
         vector <int>				mTriVertex;		// index of vertexes in pMesh->mVertexes
         vector <int>                mTriEdges;      // index of edges in pMesh->Edges
-        map <int, vector <REAL> >	mAttributes;	// map between image index and triangle attributes //old
         static const int            mDefImIdx = -1; // default value of image index
         int                         mBestImIdx;     // texture image index
-        bool                        mViewed;
 
         cMesh       *               pMesh;
 
@@ -282,14 +259,12 @@ class cZBuf
         void		BasculerUnTriangle(cTriangle &aTri, bool doMask = false); //compute ZBuffer, or Mask (true)
 
         Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
-        Im2D_BIN	ComputeMask(vector <int> const &TriInGraph, RGraph &aGraph, cMesh &aMesh);
 
         set<int>    getVisibleTrianglesIndexes();
 
         cElNuage3DMaille * &	Nuage() {return mNuage;}
 
         void					setSelfSz(){mSzRes = mNuage->SzUnique();} //temp
-        void					setMaxAngle(double aAngle){mMaxAngle = aAngle;}
 
         Pt2di					Sz(){return mSzRes / mScale;}
 
@@ -299,8 +274,6 @@ class cZBuf
         void                    writeImLabel(string filename);
 
     private:
-
-        double					mMaxAngle;		//threshold on angle between surface and viewing direction
 
         Pt2di					mSzRes;			//size result
 
@@ -312,8 +285,6 @@ class cZBuf
 
         float					mDpDef;			//default value for depth img (mRes)
         int                     mIdDef;			//default value for label img (mImTriIdx)
-
-        //set <unsigned int>      vTri;			//list of visible triangles (contained in the label image)
 
         cElNuage3DMaille *		mNuage;
 

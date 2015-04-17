@@ -611,7 +611,6 @@ int ChantierClip_main(int argc,char ** argv);
 int ClipIm_main(int argc,char ** argv);
 
 int GetP3d_main(int argc,char ** argv);
-int Mascarpone_main(int argc,char ** argv);
 int MergePly_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);
 int FusionCarteProf_main(int argc,char ** argv);
