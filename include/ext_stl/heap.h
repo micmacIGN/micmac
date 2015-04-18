@@ -430,6 +430,11 @@ template <class Type,class Compare> class ElHeap : private ElFifo<Type>
 
 */
 
+typedef cTplPrioByOther<ElRotation3D,double> tRotPrio;
+typedef cCmpSupPBO<ElRotation3D,double>      tCmpRotPrio;
+
+extern tCmpRotPrio  TheCmpROT;
+
 
 
 

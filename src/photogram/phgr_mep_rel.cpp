@@ -1248,9 +1248,9 @@ ElRotation3D cResolvAmbiBase::SolOrient(double & aLambda)
 
 
 
-static const int NbTirageMinimaliste = 200;
-static const int NbTirageSmall = 800;
-static const int NbTirageBig = 200;
+static const int NbTirageMinimaliste = 50;
+static const int NbTirageSmall = 100;
+static const int NbTirageBig = 20;
 
 static const int NbSelMatEss  = 80;
 static const int NbSelRotInit  = 10;
@@ -1283,168 +1283,6 @@ class cCmpcSolTmpME
 cCmpcSolTmpME TheCmpSolTmpME;
 
 
-
-
-class cRansacMatriceEssentielle
-{
-     public :
-         cRansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
-         const ElRotation3D &  Sol() const;
-
-     private :
-
-
-         void OneIterLin(cSolTmpME & aSol,const ElPackHomologue & aPack,int aNbIter);
-         void OneReducSol(int aNb,const ElPackHomologue & aPack,int aNbIter);
-         void SelectK(int aK);
-         void OnTestMatE(int aNb);
-
-         std::vector<Pt2dr> mVP1;
-         std::vector<Pt2dr> mVP2;
-         std::vector<double> mVPds;
-         std::vector<Pt2dr>  mRedVP1;
-         std::vector<Pt2dr>  mRedVP2;
-         std::vector<double> mRedVPds;
-         
-         std::vector<int>    mIndSelect;
-         std::vector<bool>   mIsSelected;
-         int                 mNbTot;
-         int                 mNbRed;
-         L2SysSurResol       mSys;
-
-         double              mCostBestTir;
-         double              mFoc;
-         double              mCostMin;
-
-         cTplKPluGrand<cSolTmpME,cCmpcSolTmpME> mKBest;
-         ElRotation3D                           mSol;
-};
-
-
-
-
-
-
-
-
-cRansacMatriceEssentielle::cRansacMatriceEssentielle
-(
-     const ElPackHomologue & aPackFull,
-     const ElPackHomologue & aPackRed,
-     double aFoc
-)  :
-   mSys(8),
-   mCostBestTir (1e10),
-   mFoc         (aFoc),
-   mKBest       (TheCmpSolTmpME,NbSelMatEss),
-   mSol         (ElRotation3D::Id)
-{
-   InitPackME(mVP1,mVP2,mVPds,aPackFull);
-   InitPackME(mRedVP1,mRedVP2,mRedVPds,aPackRed);
-   mNbTot = mVP1.size();
-   mNbRed = mRedVP1.size();
-   for (int aK=0 ; aK<mNbTot ; aK++)
-   {
-      mIsSelected.push_back(false);
-   }
-
-
-   // Adapte a donnees tres bruites, plein de petit tirages minimaliste
-   for (int aKTir=0 ; aKTir < NbTirageMinimaliste ; aKTir++)
-   {
-        OnTestMatE(8 + (aKTir%3));
-   }
-
-
-   // Adapte a donnees moyennenment bruites, plein de petit tirages
-   for (int aKTir=0 ; aKTir < NbTirageSmall ; aKTir++)
-   {
-        OnTestMatE(12+ (aKTir%20));
-   }
-
-   // Adapte a donnees assez peu bruites, tire de 8 a 50% des points
-   for (int aKTir=0 ; aKTir < NbTirageBig ; aKTir++)
-   {
-        int aNb =  round_ni( (mNbRed*0.5) * ((1+aKTir%5) / 6.0)  );
-        OnTestMatE(aNb);
-   }
-
-
-
-
-   std::vector<cSolTmpME> aVS = mKBest.Els();
-   mKBest.ClearAndSetK(NbSelRotInit);
-   for (int aK=0 ; aK<int(aVS.size()) ; aK++)
-   {
-      // ANCIENNE, plus lente ...  aVS[aK].mRot = MatEss2Rot(aVS[aK].mMat,aPackRed).inv();
-      aVS[aK].mRot = NEW_MatEss2Rot(aVS[aK].mMat,aPackRed);
-
-// OneIterLin(aVS[aK],aPackRed,5);
-
-      aVS[aK].mCost = QuickD48EProjCostMEP(aPackRed,aVS[aK].mRot,0.1) ;
-      mKBest.push(aVS[aK]);
-   }
-
-
-   OneReducSol(7,aPackRed,2);
-   OneReducSol(5,aPackRed,2);
-   OneReducSol(3,aPackRed,3);
-   OneReducSol(1,aPackRed,3);
-
-   mSol =  mKBest.Els()[0].mRot;
-}
-
-const ElRotation3D &  cRansacMatriceEssentielle::Sol() const
-{
-    return mSol;
-}
-
-void cRansacMatriceEssentielle::OneIterLin(cSolTmpME & aSol,const ElPackHomologue & aPack,int aNbIter)
-{
-     cInterfBundle2Image * aIB =  cInterfBundle2Image::LinearDet(aPack,mFoc);
-    // cInterfBundle2Image * aIB =  cInterfBundle2Image::Bundle(aPack,mFoc,true);
-    aSol.mCost = aIB->ErrInitRobuste(aSol.mRot);
-
-    for (int aKIter =0 ; aKIter < aNbIter ; aKIter++)
-    {
-        aSol.mRot = aIB->OneIterEq(aSol.mRot,aSol.mCost);
-    }
-    aSol.mCost = aIB->ErrInitRobuste(aSol.mRot);
-    delete aIB;
-
-}
-
-void cRansacMatriceEssentielle::OneReducSol(int aNb,const ElPackHomologue & aPack,int aNbIter)
-{
-   std::vector<cSolTmpME> aVS = mKBest.Els();
-   mKBest.ClearAndSetK(aNb);
-   mCostMin = 1e10;
-   for (int aK=0 ; aK<int(aVS.size()) ; aK++)
-       ElSetMin(mCostMin,aVS[aK].mCost);
-
-
-   for (int aK=0 ; aK<int(aVS.size()) ; aK++)
-   {
-      OneIterLin(aVS[aK],aPack,aNbIter);
-      mKBest.push(aVS[aK]);
-   }
-}
-
-
-void cRansacMatriceEssentielle::SelectK(int aNbSel)
-{
-     mIndSelect.clear();
-     for (int aK=0 ; aK<aNbSel ; aK++)
-     {
-          int aKSel = NRrandom3(mNbTot);
-          while (mIsSelected[aKSel]) aKSel = (1+aKSel)%mNbTot;
-          mIsSelected[aKSel] = true;
-          mIndSelect.push_back(aKSel);
-     }
-     for (int aK=0 ; aK<int(mIndSelect.size()) ; aK++)
-         mIsSelected[mIndSelect[aK]] = false;
-}
-
 double MatEssResidual(const Pt2dr & aP1,const Pt2dr & aP2,double * aCoeff)
 {
    const double & x1 = aP1.x;
@@ -1464,6 +1302,7 @@ double MatEssResidual(const Pt2dr & aP1,const Pt2dr & aP2,double * aCoeff)
           + aCoeff[8]         ;
 
 }
+
 void SysAddEqMatEss(const double & aPds,const Pt2dr & aP1,const Pt2dr & aP2,L2SysSurResol & aSys )
 {
     static double aCoeff[8];
@@ -1486,7 +1325,203 @@ void SysAddEqMatEss(const double & aPds,const Pt2dr & aP1,const Pt2dr & aP2,L2Sy
     aSys.AddEquation(aPds,aCoeff,-1.0);
 }
 
-void  cRansacMatriceEssentielle::OnTestMatE(int aNb)
+
+
+
+class cRansacMatriceEssentielle
+{
+     public :
+         cRansacMatriceEssentielle
+         (
+               bool                    Quick,
+               const ElPackHomologue & aPackFull,
+               const ElPackHomologue & aPack500,
+               const ElPackHomologue & aPack150,
+               const ElPackHomologue & aPack30,
+               double aFoc
+         );
+         const ElRotation3D &  Sol() const;
+
+     private :
+
+
+         void OneIterLin(cSolTmpME & aSol,const ElPackHomologue & aPack,int aNbIter);
+         void OneReducSol(int aNb,const ElPackHomologue & aPack,int aNbIter);
+         void SelectK(int aK);
+         void OneTestMatE(int aNb);
+
+         std::vector<Pt2dr>  mVFullP1;
+         std::vector<Pt2dr>  mVFullP2;
+         std::vector<double> mVPds;
+         std::vector<Pt2dr>  mRedVP1;
+         std::vector<Pt2dr>  mRedVP2;
+         std::vector<double> mRedVPds;
+
+         
+         std::vector<int>    mIndSelect;
+         std::vector<bool>   mIsSelected;
+         int                 mNbTot;
+         int                 mNbRed;
+         L2SysSurResol       mSys;
+
+         double              mCostBestTir;
+         double              mFoc;
+         double              mCostMin;
+
+         cTplKPluGrand<cSolTmpME,cCmpcSolTmpME> mKBest;
+         ElRotation3D                           mSol;
+         const ElPackHomologue & mPack30;
+         const ElPackHomologue & mPack150;
+         const ElPackHomologue & mPack500;
+         bool                                   mQuick;
+         cInterfBundle2Image *                  mBundle0;
+         cInterfBundle2Image *                  mBundle1;
+
+         cTplKPluGrand<tRotPrio,tCmpRotPrio> mKBestCur;
+         cTplKPluGrand<tRotPrio,tCmpRotPrio> mKBestGlob;
+
+         void BeginSerieTest(int aNbPres);
+         void EndSerieTest();
+
+        void OneReduc(int aNbSel,int aNbIter,cInterfBundle2Image *);
+};
+
+
+
+void   cRansacMatriceEssentielle::BeginSerieTest(int aNbPres)
+{
+   if (!mQuick) aNbPres *= 3;
+
+   mKBestCur.ClearAndSetK(aNbPres);
+}
+
+void   cRansacMatriceEssentielle::EndSerieTest()
+{
+   std::vector<tRotPrio>  aV0 = mKBestCur.Els();
+
+   for (int aKS=0 ; aKS<int(aV0.size()) ; aKS++)
+   {
+        ElRotation3D aRot = aV0[aKS].mVal;
+        double anEr = mBundle0->ErrInitRobuste(aRot);
+        for (int aKIt=0 ; aKIt<(mQuick?2:3) ; aKIt++)
+            aRot = mBundle0->OneIterEq(aRot,anEr);
+        tRotPrio  aRP(aRot,anEr*mFoc);
+        mKBestGlob.push(aRP);
+   }
+
+}
+
+void   cRansacMatriceEssentielle::OneReduc(int aNbSel,int aNbIter,cInterfBundle2Image *anIBI)
+{
+   std::vector<tRotPrio>  aV0 = mKBestGlob.Els();
+   mKBestGlob.ClearAndSetK(aNbSel);
+
+   for (int aKS=0 ; aKS<int(aV0.size()) ; aKS++)
+   {
+        ElRotation3D aRot = aV0[aKS].mVal;
+        double anEr = anIBI->ErrInitRobuste(aRot);
+        for (int aKIt=0 ; aKIt<aNbIter ; aKIt++)
+            aRot = mBundle0->OneIterEq(aRot,anEr);
+        tRotPrio  aRP(aRot,anEr*mFoc);
+        mKBestGlob.push(aRP);
+   }
+}
+
+
+cRansacMatriceEssentielle::cRansacMatriceEssentielle
+(
+     bool                    Quick,
+     const ElPackHomologue & aPackFull,
+     const ElPackHomologue & aPack500,
+     const ElPackHomologue & aPack150,
+     const ElPackHomologue & aPack30,
+     double aFoc
+) :
+   mSys(8),
+   mCostBestTir (1e10),
+   mFoc         (aFoc),
+   mKBest       (TheCmpSolTmpME,NbSelMatEss),
+   mSol         (ElRotation3D::Id),
+   mPack30      (aPack30),
+   mPack150     (aPack150),
+   mPack500     (aPack500),
+   mQuick       (Quick),
+   mBundle0     (cInterfBundle2Image::Bundle((Quick?aPack30:aPack150),aFoc,true)),
+   mBundle1     (cInterfBundle2Image::Bundle((Quick?aPack150:aPack500),aFoc,true)),
+   mKBestCur    (TheCmpROT,10),
+   mKBestGlob   (TheCmpROT,mQuick ? 8 : 20)
+   // mBundle0     (cInterfBundle2Image::LineariseAngle((Quick?aPack30:aPack150),aFoc,true))
+{
+   InitPackME( mVFullP1, mVFullP2,mVPds,aPackFull);
+   InitPackME(mRedVP1,mRedVP2,mRedVPds,aPack500);
+   mNbTot =  mVFullP1.size();
+   mNbRed = mRedVP1.size();
+   for (int aK=0 ; aK<mNbTot ; aK++)
+   {
+      mIsSelected.push_back(false);
+   }
+
+
+   int aMulT = mQuick ? 1  : 4 ;
+   // Adapte a donnees tres bruites, plein de petit tirages minimaliste
+   BeginSerieTest(7);
+   for (int aKTir=0 ; aKTir < (NbTirageMinimaliste*aMulT) ; aKTir++)
+   {
+        OneTestMatE(8 + (aKTir%3));
+   }
+   EndSerieTest();
+
+
+   // Adapte a donnees moyennenment bruites, plein de petit tirages
+   BeginSerieTest(7);
+   for (int aKTir=0 ; aKTir < (NbTirageSmall*aMulT) ; aKTir++)
+   {
+        OneTestMatE(12+ ((aKTir*3)%38));
+   }
+   EndSerieTest();
+
+   // Adapte a donnees assez peu bruites, tire de 8 a 50% des points
+   BeginSerieTest(7);
+   for (int aKTir=0 ; aKTir < (NbTirageBig*aMulT) ; aKTir++)
+   {
+        int aNb =  round_ni( (mNbRed*0.5) * ((1+aKTir%5) / 6.0)  );
+        OneTestMatE(aNb);
+   }
+   EndSerieTest();
+
+
+   OneReduc(mKBestGlob.Els().size()/2,3,mBundle0);
+   OneReduc(mKBestGlob.Els().size()/2,3,mBundle0);
+   OneReduc(1,3,mBundle1);
+
+   // std::vector<tRotPrio>  aV0 = mKBestGlob.Els();
+   mSol =  mKBestGlob.Els()[0].mVal;
+
+}
+
+const ElRotation3D &  cRansacMatriceEssentielle::Sol() const
+{
+    return mSol;
+}
+
+
+void cRansacMatriceEssentielle::SelectK(int aNbSel)
+{
+     mIndSelect.clear();
+     for (int aK=0 ; aK<aNbSel ; aK++)
+     {
+          int aKSel = NRrandom3(mNbTot);
+          while (mIsSelected[aKSel]) aKSel = (1+aKSel)%mNbTot;
+          mIsSelected[aKSel] = true;
+          mIndSelect.push_back(aKSel);
+     }
+     for (int aK=0 ; aK<int(mIndSelect.size()) ; aK++)
+         mIsSelected[mIndSelect[aK]] = false;
+}
+
+
+
+void  cRansacMatriceEssentielle::OneTestMatE(int aNb)
 {
      aNb = ElMax(8,ElMin(aNb,round_ni(mNbTot*0.7)));
 
@@ -1499,7 +1534,7 @@ void  cRansacMatriceEssentielle::OnTestMatE(int aNb)
      for (int aCpt=0; aCpt<aNb ; aCpt++)
      {
          int aK = mIndSelect[aCpt];
-         SysAddEqMatEss(mVPds[aK],mVP1[aK],mVP2[aK],mSys);
+         SysAddEqMatEss(mVPds[aK], mVFullP1[aK], mVFullP2[aK],mSys);
      }
 
      bool Ok;
@@ -1510,47 +1545,28 @@ void  cRansacMatriceEssentielle::OnTestMatE(int aNb)
      aDS[8] = 1;
      
 
-     if (1)
-     {
-        double aSomCoeff =0;
-        for (int aK=0; aK<9 ; aK++)
-            aSomCoeff += ElSquare(aDS[aK]);
-        aSomCoeff = sqrt(aSomCoeff);
-        for (int aK=0; aK<9 ; aK++)
-            aDS[aK] /= aSomCoeff;
-     }
+     ElMatrix<double> aMat = ME_Lign2Mat(aDS);
+     ElRotation3D aRot  = NEW_MatEss2Rot(aMat,(mQuick?mPack30:mPack150));
+     double anEr = mBundle0->ErrInitRobuste(aRot,0.75) * mFoc;
 
-     std::vector<double> aVRes;
 
-     for (int aK=0 ; aK<mNbRed ; aK++)
-     {
-          aVRes.push_back(ElAbs(MatEssResidual(mRedVP1[aK],mRedVP2[aK],aDS)));
-     }
+     tRotPrio  aRP(aRot,anEr*mFoc);
+     mKBestCur.push(aRP);
 
-     double aCostMax =   KthValProp(aVRes,PropCostEss);
 
-     double aCost = 0.0;
-     for (int aK=0 ; aK<mNbRed ; aK++)
-     {
-          aCost += CoutAttenueTetaMax(aVRes[aK],aCostMax);
-          // aCost += aVRes[aK];
-     }
-     aCost *=  mFoc/mNbRed;
-     // aCost /= mNbRed;
-
-     cSolTmpME aSolMat(aCost,aDS);
-     mKBest.push(aSolMat);
-
-     if (aCost < mCostBestTir)
-     {
-         mCostBestTir =  aCost;
-     }
 }
 
-
-ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc)
+ElRotation3D RansacMatriceEssentielle
+             (
+                    bool                    Quick,
+                    const ElPackHomologue & aPackFull,
+                    const ElPackHomologue & aPack500,
+                    const ElPackHomologue & aPack150,
+                    const ElPackHomologue & aPack30,
+                    double aFoc
+              )
 {
-    cRansacMatriceEssentielle aRME(aPack,aPackRed,aFoc);
+    cRansacMatriceEssentielle aRME(Quick,aPackFull,aPack500,aPack150,aPack30,aFoc);
     return aRME.Sol();
 }
 

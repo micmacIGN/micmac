@@ -41,6 +41,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 static double aSzW = 1200;
 
+extern ElRotation3D RansacMatriceEssentielle
+             (
+                    bool                    Quick,
+                    const ElPackHomologue & aPackFull,
+                    const ElPackHomologue & aPack500,
+                    const ElPackHomologue & aPack150,
+                    const ElPackHomologue & aPack30,
+                    double aFoc
+              );
+
+
 /***********************************************************************/
 /*                                                                     */
 /*           END LINEAR                                                */
@@ -119,6 +130,7 @@ ElRotation3D * TestOriPlanePatch
 
 ElRotation3D TestcRanscMinimMatEss
              (
+                  bool  aQuick,
                   const ElPackHomologue & aPack,
                   const ElPackHomologue & aPackRed,
                   const ElPackHomologue & aPack150,
@@ -205,6 +217,10 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
    mXml.Geom().SetNoInit();
 
+   // std::cout << "SIIZZZ " << mXml.NbPts() << "\n";
+
+   if (mShow)
+      std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
    if (mXml.NbPts()<50)
    {
         return;
@@ -212,8 +228,6 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    cXml_O2IComputed aXCmp;
    cXml_O2ITiming & aTiming = aXCmp.Timing();
 
-   if (mShow)
-      std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
 
    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
    {
@@ -280,11 +294,15 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     /*      TEST DES DIFFERENTES INITIALISATIONS           */
     /*******************************************************/
    // = T00 ============== Test Patch Plan
+
    {
       ElTimer aChrono;
-      ElRotation3D  * aRP = TestOriPlanePatch(FocMoy(),mPackStdRed,mPack150,mPack30,mW,mP0W,mScaleW);
-      if (aRP)
-         AmelioreSolLinear(*aRP,"Patch Plan");
+      if (! mQuick)
+      {
+         ElRotation3D  * aRP = TestOriPlanePatch(FocMoy(),mPackStdRed,mPack150,mPack30,mW,mP0W,mScaleW);
+         if (aRP)
+            AmelioreSolLinear(*aRP,"Patch Plan");
+      }
       aTiming.TimePatchP() = aChrono.uval();
 
    }
@@ -292,16 +310,27 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    // = T0 ============== Nouveau test par Ransac minimal a 8 points  + ME
     {
        ElTimer aChrono;
-       ElRotation3D aMRR = TestcRanscMinimMatEss(mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
+       ElRotation3D aMRR = TestcRanscMinimMatEss(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
        AmelioreSolLinear(aMRR,"Mini RE");
        aTiming.TimeRanMin() = aChrono.uval();
  
-       if (true || mShow) std::cout << "TIME RanscMinim " << aTiming.TimeRanMin() << "\n";
+       if (false &&  mShow)
+       {
+            std::cout << "TIME RanscMinim " << aTiming.TimeRanMin() << "\n";
+            getchar();
+       }
     }
    // = T1 ============== Nouveau test par Ransac + ME
     {
        ElTimer aChrono;
-       ElRotation3D aRR =RansacMatriceEssentielle(mPackPStd,mPackStdRed,FocMoy());
+       ElRotation3D aRR =RansacMatriceEssentielle(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
+/*
+       if (true ||  mShow)
+       {
+            std::cout << "TIME RansacStd " << aChrono.uval() << "\n";
+            exit(-1);
+       }
+*/
        AmelioreSolLinear(aRR,"Ran Ess");
        aTiming.TimeRansacStd() = aChrono.uval();
     }
@@ -340,7 +369,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
                               );
        if (ShowDetailHom) std::cout << "THom0= " << aChrono.uval() << "\n";
        aXCmp.Hom().Hom() = aHom.ToXml();
-       aXCmp.Hom().Residu() = aDist * FocMoy();
+       aXCmp.Hom().ResiduHom() = aDist * FocMoy();
        double aRecHom = RecouvrtHom(aHom);
        if (ShowDetailHom) std::cout << "THom1= " << aChrono.uval() << "\n";
           if (mShow) 
@@ -371,8 +400,9 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
     {
        ElTimer aChrono;
-       cResMepCoc aRCoc= MEPCoCentrik(mPackStdRed,FocMoy(),mTestC2toC1,false);
-       AmelioreSolLinear(aRCoc.mSolRot,"Cocent");
+       cResMepCoc aRCoc= MEPCoCentrik(mQuick,mPackStdRed,FocMoy(),mTestC2toC1,false);
+       if (! mQuick)
+          AmelioreSolLinear(aRCoc.mSolRot,"Cocent");
 
        if (mShow)
        {
@@ -382,7 +412,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
           std::cout << "\n";
        }
        aXCmp.RPure().Ori() = ExportMatr(aRCoc.mMat);
-       aXCmp.RPure().Residu() = aRCoc.mCostRPure * FocMoy();
+       aXCmp.RPure().ResiduRP() = aRCoc.mCostRPure * FocMoy();
        aTiming.TimeRPure() = aChrono.uval();
     }
 
@@ -411,7 +441,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     mIA =  MedianNuage(mPackStdRed,mBestSol);
     aXCmp.Ori().Ori() = ExportMatr(mBestSol.Mat());
     aXCmp.Ori().Centre() = mBestSol.tr();
-    aXCmp.Ori().Residu() = anErr * FocMoy();
+    aXCmp.Ori().ResiduOr() = anErr * FocMoy();
     aXCmp.Ori().ResiduHighPerc() = anErr90 * FocMoy();
     aXCmp.Ori().PMed1() = mIA;
 
@@ -491,7 +521,7 @@ std::string cNO_AppliOneCple::NameXmlOri2Im(bool Bin) const
 
 
 cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
-   mQuick   (true),
+   mQuick   (false),
    mShow    (false),
    mHPP     (true),
    mTestSol (0)
@@ -608,7 +638,7 @@ int TestNewOriImage_main(int argc,char ** argv)
 int TestAllNewOriImage_main(int argc,char ** argv)
 {
    std::string aPat,aNameOriCalib;
-   bool aQuick=true;
+   bool aQuick=false;
 
 
    ElInitArgMain
