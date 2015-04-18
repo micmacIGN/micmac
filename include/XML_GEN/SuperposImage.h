@@ -6101,8 +6101,8 @@ class cXml_O2IRotation
         Pt3dr & Centre();
         const Pt3dr & Centre()const ;
 
-        double & Residu();
-        const double & Residu()const ;
+        double & ResiduOr();
+        const double & ResiduOr()const ;
 
         double & ResiduHighPerc();
         const double & ResiduHighPerc()const ;
@@ -6112,7 +6112,7 @@ class cXml_O2IRotation
     private:
         cTypeCodageMatr mOri;
         Pt3dr mCentre;
-        double mResidu;
+        double mResiduOr;
         double mResiduHighPerc;
         Pt3dr mPMed1;
 };
@@ -6138,11 +6138,11 @@ class cXml_O2IRotPure
         cTypeCodageMatr & Ori();
         const cTypeCodageMatr & Ori()const ;
 
-        double & Residu();
-        const double & Residu()const ;
+        double & ResiduRP();
+        const double & ResiduRP()const ;
     private:
         cTypeCodageMatr mOri;
-        double mResidu;
+        double mResiduRP;
 };
 cElXMLTree * ToXMLTree(const cXml_O2IRotPure &);
 
@@ -6166,11 +6166,11 @@ class cXml_O2IHom
         cXmlHomogr & Hom();
         const cXmlHomogr & Hom()const ;
 
-        double & Residu();
-        const double & Residu()const ;
+        double & ResiduHom();
+        const double & ResiduHom()const ;
     private:
         cXmlHomogr mHom;
-        double mResidu;
+        double mResiduHom;
 };
 cElXMLTree * ToXMLTree(const cXml_O2IHom &);
 
