@@ -3292,7 +3292,7 @@ class cResMepCoc
           Pt3dr             mPMed;
 };
 
-cResMepCoc MEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show);
+cResMepCoc MEPCoCentrik(bool Quick,const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show);
 
 class L2SysSurResol;
 void SysAddEqMatEss(const double & aPds,const Pt2dr & aP1,const Pt2dr & aP2,L2SysSurResol & aSys );
@@ -3307,7 +3307,7 @@ double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2);
 
 // Devrait remplacer les anciennes, on y va progressivement
 double  NEW_SignInters(const ElPackHomologue & aPack,const ElRotation3D & aR2to1,int & NbP1,int & NbP2);
-ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack);
+ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack,double * aDistMin = 0);
 
 
 
