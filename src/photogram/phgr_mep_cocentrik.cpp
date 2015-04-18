@@ -157,7 +157,7 @@ class cMEPCoCentrik
 
 
 
-        cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aShow,const ElRotation3D * aRef );
+        cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aShow,const ElRotation3D * aRef,bool Quick );
         void OneItereRotPur(ElMatrix<REAL>  & aMat,double & aDist);
         ElRotation3D  OneTestMatr(const ElMatrix<REAL>  &,const Pt3dr & aBase,double aCost);
 
@@ -188,6 +188,7 @@ class cMEPCoCentrik
         Pt3dr               mPMed;
         ElRotation3D        mSolVraiR;
         double              mCostVraiR;
+        bool                mQuick;
 };
 
 
@@ -458,7 +459,7 @@ Pt3dr cMEPCoCentrik::ComputeBase()
 
 
 
-cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aShow,const ElRotation3D * aRef) :
+cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aShow,const ElRotation3D * aRef,bool Quick) :
     mPack (aPack),
     mRef  (aRef),
     mFoc  (aFoc),
@@ -467,7 +468,9 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aSho
     mEcartCo (1e9),
     mMatRPur (1,1),
     mShow    (aShow),
-    mSolVraiR (ElRotation3D::Id)
+    mSolVraiR (ElRotation3D::Id),
+    mCostVraiR (1e20),
+    mQuick    (Quick)
 {
      InitPackME(mVP1,mVP2,mVPds,aPack);
 
@@ -492,7 +495,8 @@ cMEPCoCentrik::cMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,bool aSho
      }
 
 
-     Test(aPack,mMatRPur,aRef,mEcartCo);
+     if (!mQuick)
+         Test(aPack,mMatRPur,aRef,mEcartCo);
 }
 
 void cMEPCoCentrik::Test(const ElPackHomologue & aPack,const  ElMatrix<REAL> & aMat,const ElRotation3D * aRef,double anEcart)
@@ -560,9 +564,9 @@ void cMEPCoCentrik::Test(const ElPackHomologue & aPack,const  ElMatrix<REAL> & a
 }
 
 
-cResMepCoc MEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show)
+cResMepCoc MEPCoCentrik(bool Quick,const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show)
 {
-    cMEPCoCentrik aMC(aPack,aFoc,Show,aRef);
+    cMEPCoCentrik aMC(aPack,aFoc,Show,aRef,Quick);
 
     return  cResMepCoc
             (

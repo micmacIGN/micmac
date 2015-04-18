@@ -67,10 +67,12 @@ class cCmpcSolTmpME
 cCmpcSolTmpME TheCmpSolTmpME;
 */
 
+/*
 typedef cTplPrioByOther<ElRotation3D,double> tRotPrio;
 typedef cCmpSupPBO<ElRotation3D,double>      tCmpRotPrio;
+*/
 
-static tCmpRotPrio  TheCmpROT;
+tCmpRotPrio  TheCmpROT;
 
 
 
@@ -122,7 +124,7 @@ double  NEW_SignInters(const ElPackHomologue & aPack,const ElRotation3D & aR2to1
 }
 
 
-ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack)
+ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack,double * aResDisMin)
 {
    static std::vector<ElMatrix<REAL> > TheVTeta;
    if (TheVTeta.empty())
@@ -144,6 +146,7 @@ ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue
 
 
    aSvd1.self_transpose();
+   double  aDistMin = 1e20;
 
    for (INT sign = -1; sign <=1 ; sign += 2)
    {
@@ -159,7 +162,7 @@ ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue
 
             
            INT aNb1,aNb2;
-           NEW_SignInters(aPack,aSol,aNb1,aNb2);
+           double aDist = NEW_SignInters(aPack,aSol,aNb1,aNb2);
 
 
            INT aScore = aNb1+aNb2;
@@ -167,9 +170,12 @@ ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue
            {
                aRes = aSol;
                aScMin = aScore;
+               aDistMin = aDist;
            }
       }
    }
+   if (aResDisMin) 
+      *aResDisMin = aDistMin;
    return aRes;
 }
 
@@ -201,13 +207,17 @@ struct cTCCmp1
 class cRanscMinimMatEss
 {
      public :
-         cRanscMinimMatEss(const ElPackHomologue & aPack,
+         cRanscMinimMatEss( bool aQuick,
+                           const ElPackHomologue & aPack,
                            const ElPackHomologue & aPackRed,
                            const ElPackHomologue & aPack150,
                            const ElPackHomologue & aPack30,
                            double aFoc
           );
 
+
+          void OneFiltrage(int aNbOut,int aNbIter,cInterfBundle2Image * anIbi);
+          void OneTest(int aK);
 
 
          bool AllmostEq(const ElRotation3D & aR1,const ElRotation3D & aR2) {return DistRot(aR1,aR2) < mSeuilDist;}
@@ -217,8 +227,11 @@ class cRanscMinimMatEss
          const ElPackHomologue & mPack150;
          const ElPackHomologue & mPack30;
 
+         bool                    mQuick;
+         int                     mNbTir0;
+         int                     mNbPresel0;
+         const ElPackHomologue & mPackTir0;
 
-         void OneTest(int aK);
          
          std::vector<ElCplePtsHomologues>  mDal[3][3];
          double                mFoc;
@@ -237,7 +250,7 @@ class cRanscMinimMatEss
 
          cInterfBundle2Image*  mLinIBI;
          cInterfBundle2Image*  mIBI30;
-         cInterfBundle2Image*  mIBI;
+         cInterfBundle2Image*  mIBI150;
          ElMatrix<double>      mMatCstrEss;
          double **             mDataME;
 
@@ -245,6 +258,10 @@ class cRanscMinimMatEss
         std::vector<cTestCost>    mVTC;
         cTplKPluGrand<tRotPrio,tCmpRotPrio> mKBest;
 };
+
+
+
+
 
 extern bool ShowStatMatCond;
 void cRanscMinimMatEss::OneTest(int aCpt)
@@ -300,21 +317,26 @@ void cRanscMinimMatEss::OneTest(int aCpt)
     ElMatrix<REAL> aMat = ME_Lign2Mat(aDS);
 
     ElRotation3D aRot  = NEW_MatEss2Rot(aMat,mPack30);
-
-
     double aCost = 0;
+    aCost = ProjCostMEP(mPackTir0,aRot,0.1) * mFoc;
 
-    if (0)
+
+    tRotPrio aRP(aRot,aCost);
+    mKBest.push(aRP);
+
+    return;
+
+/*
+    for (int aK=0 ; aK<100 ; aK++)
     {
-        aCost = mLinIBI->ErrInitRobuste(aRot);
-        for (int aK=0 ; aK<8 ; aK++)
-            aRot = mIBI30->OneIterEq(aRot,aCost);
-       aCost = ProjCostMEP(mPack150,aRot,0.1) * mFoc;
+       ElRotation3D aRot  = NEW_MatEss2Rot(aMat,mPack30);
+       double aCost = 0;
+       aCost = ProjCostMEP(mPack30,aRot,0.1) * mFoc;
     }
-    else
-    {
-       aCost = ProjCostMEP(mPack150,aRot,0.1) * mFoc;
-    }
+
+*/
+
+
 /*
      aRot = mIBI30->OneIterEq(aRot,aCost);
      aRot = mIBI30->OneIterEq(aRot,aCost);
@@ -331,11 +353,11 @@ void cRanscMinimMatEss::OneTest(int aCpt)
      if ((aCpt%mPerBundle) == (mPerBundle-1))
      {
         mNbBundle++;
-        double anErStd = mIBI->ErrInitRobuste(mRotMin);
+        double anErStd = mIBI150->ErrInitRobuste(mRotMin);
         for (int aK=0 ; aK<10 ; aK++)
         {
               // std::cout << "     Errrrss  " << anErStd *mFoc << "\n";
-              mRotMin = mIBI->OneIterEq(mRotMin,anErStd);
+              mRotMin = mIBI150->OneIterEq(mRotMin,anErStd);
         }
          // std::cout << "cRanscMinimMatEss::OneTest " << aCpt << " C0 " << mCostMin   << " End " << anErStd * mFoc << "\n";
         mSolInterm.push_back(mRotMin);
@@ -406,18 +428,46 @@ void cRanscMinimMatEss::OneTest(int aCpt)
 */
 }
 
+void cRanscMinimMatEss::OneFiltrage(int aNbOut,int aNbIter,cInterfBundle2Image * anIbi)
+{
+   std::vector<tRotPrio>  aV0 = mKBest.Els();
+   mKBest.ClearAndSetK(ElMax(1,aNbOut));
+
+
+   for (int aK=0 ; aK<int(aV0.size()) ; aK++)
+   {
+       ElRotation3D aRot = aV0[aK].mVal;
+       double aCost = anIbi->ErrInitRobuste(aRot);
+       for (int aK=0 ; aK< aNbIter ; aK++)
+       {
+           aRot = anIbi->OneIterEq(aRot,aCost);
+       }
+       tRotPrio  aRP(aRot,aCost*mFoc);
+       mKBest.push(aRP);
+   }
+}
+
+
+
+
+
 cRanscMinimMatEss::cRanscMinimMatEss
 (
+      bool aQuick,
       const ElPackHomologue & aPackAll,
       const ElPackHomologue & aPack500,
       const ElPackHomologue & aPack150,
       const ElPackHomologue & aPack30,
       double aFoc
 ) :
-    mPackAll (aPackAll),
-    mPack500 (aPack500),
-    mPack150 (aPack150),
-    mPack30  (aPack30 ),
+    mPackAll   (aPackAll),
+    mPack500   (aPack500),
+    mPack150   (aPack150),
+    mPack30    (aPack30 ),
+    mQuick     (aQuick),
+    mNbTir0    (mQuick ? 200 : 800),
+    mNbPresel0 (mQuick ? 20 : 40),
+    mPackTir0  (mQuick ? mPack30 : mPack150),
     mFoc     (aFoc),
     mRotMin  (ElRotation3D::Id),
     mCostMin (1e5),
@@ -432,10 +482,10 @@ cRanscMinimMatEss::cRanscMinimMatEss
     mNbUnderSD  (0),
     mLinIBI  (cInterfBundle2Image::LinearDet(mPack150,aFoc)),
     mIBI30   (cInterfBundle2Image::Bundle(mPack30,aFoc,true)),
-    mIBI     (cInterfBundle2Image::Bundle(mPack150,aFoc,true)),
+    mIBI150     (cInterfBundle2Image::Bundle(mPack150,aFoc,true)),
     mMatCstrEss (8,8),
     mDataME     (mMatCstrEss.data()),
-    mKBest      (TheCmpROT,10)
+    mKBest      (TheCmpROT,mNbPresel0)
 {
     std::vector<double> aVx;
     for (ElPackHomologue::const_iterator itP=mPackAll.begin(); itP!=mPackAll.end() ; itP++)
@@ -496,34 +546,21 @@ cRanscMinimMatEss::cRanscMinimMatEss
     }
 
 
-    ElTimer aChrono;
-    int aPerTime = 1000000000;
-
-    bool Cont = true;
-    int aK=0;
-    while (Cont)
-    {
+   for (int aK=0 ; aK<mNbTir0 ; aK++)
         OneTest(aK);
-        if ((aK%aPerTime) == (aPerTime-1))
-        {
-            std::cout << "Time MicroSec " << (aChrono.uval() / aK) * 1e6    << " NB=" << aK << "\n";
-        }
-        aK++;
-        if (mNbBundle >=mMaxBundle)
-        {
-            Cont = false;
-        }
-        else if (mNbBundle>=mMinBundle)
-        {
-            Cont = (mNbUnderSD < mNbSeuilStable);
-        }
-    }
+
+    OneFiltrage(mKBest.Els().size()/2,mQuick ? 2 : 3 , mQuick ? mIBI30 : mIBI150);
+    OneFiltrage(mKBest.Els().size()/2,mQuick ? 2 : 3 , mQuick ? mIBI30 : mIBI150);
+    OneFiltrage(1,2,mIBI150);
+    mRotMinAbs = mKBest.Els()[0].mVal;
+
     // double aSY0X0 = KthValProp
 }
 
 
 ElRotation3D TestcRanscMinimMatEss
      (
+          bool                    aQuick,
           const ElPackHomologue & aPackAll,
           const ElPackHomologue & aPack500,
           const ElPackHomologue & aPack150,
@@ -531,7 +568,7 @@ ElRotation3D TestcRanscMinimMatEss
           double aFoc
      )
 {
-    cRanscMinimMatEss aRMME(aPackAll,aPack500,aPack150,aPack30,aFoc);
+    cRanscMinimMatEss aRMME(aQuick,aPackAll,aPack500,aPack150,aPack30,aFoc);
 
    return aRMME.mRotMinAbs;
 }
