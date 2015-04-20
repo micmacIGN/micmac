@@ -814,7 +814,7 @@ vector<cTextureBox2d> cMesh::getRegions()
         int imgIdx = -1;
         if ((getTriangle(aK)->isTextured()) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
         {
-            imgIdx = getTriangle(aK)->getBestImgIndex();;
+            imgIdx = getTriangle(aK)->getBestImgIndex();
             myList.push_back(aK);
         }
 
