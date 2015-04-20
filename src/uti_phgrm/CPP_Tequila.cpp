@@ -444,7 +444,6 @@ int Tequila_main(int argc,char ** argv)
     }
 
 
-
     #ifdef QPBOOOOO
 
         cout << endl;
@@ -454,9 +453,79 @@ int Tequila_main(int argc,char ** argv)
 
         if (myMesh.getFacesNumber() && myMesh.getEdgesNumber())
         {
+            cout << "nb faces, nb edges = " << myMesh.getFacesNumber() << " " <<  myMesh.getEdgesNumber()<< endl;
             QPBO<float>* q = new QPBO<float>(myMesh.getFacesNumber(), myMesh.getEdgesNumber()); // max number of nodes & edges
 
+            int nodeId = 0;
             const int nEdges = myMesh.getEdgesNumber();
+            for (int aK=0; aK < nEdges; ++aK)
+            {
+
+
+                cEdge *edge = myMesh.getEdge(aK);
+                int n1 = edge->n1();
+                int n2 = edge->n2();
+
+                if (debug)
+                {
+                    cout << "******************edge " << aK << endl;
+                    cout << "n1 = " << n1 << endl;
+                    cout << "n2 = " << n2 << endl;
+                }
+
+                cTriangle *tri1 = myMesh.getTriangle(n1);
+                cTriangle *tri2 = myMesh.getTriangle(n2);
+
+                int curImgIdx1 = tri1->getBestImgIndex();
+                int curImgIdx2 = tri2->getBestImgIndex();
+
+                if (curImgIdx1 != valDef && curImgIdx2 != valDef)
+                {
+                    int newImgIdx1 = tri1->getBestImgIndexAfter(curImgIdx1); //TODO
+                    int newImgIdx2 = tri2->getBestImgIndexAfter(curImgIdx2); //TODO
+
+                    if (newImgIdx1 != valDef && newImgIdx2 != valDef)
+                    {
+                        float curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
+                        float curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+
+                        float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
+                        float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
+
+                        float diff11 = newMean1 - curMean1;
+                        float diff12 = newMean1 - curMean2;
+                        float diff21 = newMean2 - curMean1;
+                        float diff22 = newMean2 - curMean2;
+
+                        if (debug)
+                        {
+                            cout << "curMean1 = " << curMean1 << " newMean1 " << newMean1 << endl;
+                            cout << "curMean2 = " << curMean2 << " newMean2 " << newMean2 << endl;
+
+                            cout << "diff11 = " << diff11 << endl;
+                            cout << "diff12 = " << diff12 << endl;
+                            cout << "diff21 = " << diff21 << endl;
+                            cout << "diff22 = " << diff22 << endl;
+
+                            cout << "tri1->getCriter(curImgIdx1), tri1->getCriter(newImgIdx1) " << tri1->getCriter(curImgIdx1) << " " << tri1->getCriter(newImgIdx1)<< endl;
+                            cout << "tri2->getCriter(curImgIdx1), tri2->getCriter(newImgIdx2) " << tri2->getCriter(curImgIdx2) << " " << tri2->getCriter(newImgIdx2)<< endl;
+                            cout << "add node " << nodeId << endl;
+                        }
+
+                        q->AddNode(2); // add two nodes
+
+                        q->AddUnaryTerm(nodeId, tri1->getCriter(curImgIdx1), tri1->getCriter(newImgIdx1)); // add term 2*x
+                        q->AddUnaryTerm(nodeId+1, tri2->getCriter(curImgIdx2), tri2->getCriter(newImgIdx2)); // add term 3*(y+1)
+                        q->AddPairwiseTerm(nodeId, nodeId+1, diff11, diff12, diff21, diff22); // add term (x+1)*(y+2)
+                        nodeId += 2;
+                    }
+                }
+            }
+
+            q->Solve();
+            q->ComputeWeakPersistencies();
+
+            nodeId = 0;
             for (int aK=0; aK < nEdges; ++aK)
             {
                 cEdge *edge = myMesh.getEdge(aK);
@@ -471,47 +540,31 @@ int Tequila_main(int argc,char ** argv)
 
                 if (curImgIdx1 != valDef && curImgIdx2 != valDef)
                 {
-                    int newImgIdx1 = tri1->getBestImgIndexAfter(curImgIdx1); //TODO
-                    int newImgIdx2 = tri2->getBestImgIndexAfter(curImgIdx2); //TODO
+                    int newImgIdx1 = tri1->getBestImgIndexAfter(curImgIdx1);
+                    int newImgIdx2 = tri2->getBestImgIndexAfter(curImgIdx2);
 
-                    float curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
-                    float curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+                    if (newImgIdx1 != valDef && newImgIdx2 != valDef)
+                    {
+                        int x = q->GetLabel(nodeId);
+                        int y = q->GetLabel(nodeId+1);
 
-                    float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
-                    float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
+                        nodeId +=2;
 
-                    float diff11 = newMean1 - curMean1;
-                    float diff12 = newMean1 - curMean2;
-                    float diff21 = newMean2 - curMean1;
-                    float diff22 = newMean2 - curMean2;
+                        if (debug) printf("Solution: x=%d, y=%d\n", x, y);
 
-                    q->AddNode(2); // add two nodes
+                        cTriangle *tri1 = myMesh.getTriangle(n1);
+                        cTriangle *tri2 = myMesh.getTriangle(n2);
 
-                    q->AddUnaryTerm(n1, tri1->getCriter(curImgIdx1), tri1->getCriter(newImgIdx1)); // add term 2*x
-                    q->AddUnaryTerm(n2, tri2->getCriter(curImgIdx1), tri2->getCriter(newImgIdx2)); // add term 3*(y+1)
-                    q->AddPairwiseTerm(n1, n2, diff11, diff12, diff21, diff22); // add term (x+1)*(y+2)
+                        if (x==0) tri1->setBestImgIndex(curImgIdx1); //TODO
+                        else if (x==1) tri1->setBestImgIndex(newImgIdx1);
+
+                        if (y==0) tri2->setBestImgIndex(curImgIdx2); //TODO
+                        else if (y==1) tri2->setBestImgIndex(newImgIdx2);
+
+                        //TODO switch for bestImgIndex After bestImg
+                        //if iter > 1
+                    }
                 }
-            }
-
-            q->Solve();
-            q->ComputeWeakPersistencies();
-
-            for (int aK=0; aK < nEdges; ++aK)
-            {
-                cEdge *edge = myMesh.getEdge(aK);
-                int n1 = edge->n1();
-                int n2 = edge->n2();
-
-                int x = q->GetLabel(n1);
-                int y = q->GetLabel(n2);
-
-                printf("Solution: x=%d, y=%d\n", x, y);
-
-                cTriangle *tri1 = myMesh.getTriangle(n1);
-                cTriangle *tri2 = myMesh.getTriangle(n2);
-
-                tri1->setBestImgIndex(x);
-                tri2->setBestImgIndex(y);
             }
         }
         else
@@ -519,7 +572,7 @@ int Tequila_main(int argc,char ** argv)
             std::cout << "Walou faces or walou edges" << std::endl;
         }
 
-    #endif //QPBOOOO
+   #endif //QPBOOOO
 
 
 
