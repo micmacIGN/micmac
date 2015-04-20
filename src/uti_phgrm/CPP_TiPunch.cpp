@@ -104,10 +104,11 @@ int TiPunch_main(int argc,char ** argv)
     bool aBin = true;
     bool aRmPoissonMesh = false;
     int aDepth = 8;
-    bool aFilter = false;
+    bool aFilter = true;
     aMode = "Statue";
     int aZBuffSSEch = 1;
     float defValZBuf = 1e9;
+    bool aFilterFromBorder = true;
 
     ElInitArgMain
         (
@@ -118,9 +119,10 @@ int TiPunch_main(int argc,char ** argv)
                 << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                 << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
                 << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
-                << EAM(aFilter,"Filter",true,"Filter mesh (def=false)")
+                << EAM(aFilter,"Filter",true,"Filter mesh (def=true)")
                 << EAM(aMode,"Mode",true,"C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
                 << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
+                << EAM(aFilterFromBorder,"FFB",true,"Filter from border (def=true)")
         );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -194,7 +196,7 @@ int TiPunch_main(int argc,char ** argv)
         cout << "\nMesh built and saved in " << poissonMesh << endl;
     }
 
-    cMesh myMesh(poissonMesh, false); //pas d'arete pour l'instant
+    cMesh myMesh(poissonMesh, aFilterFromBorder);
 
     if (aFilter)
     {
@@ -336,17 +338,55 @@ int TiPunch_main(int argc,char ** argv)
             }
         }
 
-        const int nbTriangles = myMesh.getFacesNumber();
-        for (int aK=0; aK < nbTriangles;++aK)
+        if (aFilterFromBorder)
         {
-            cTriangle * triangle = myMesh.getTriangle(aK);
-            if (!triangle->isTextured()) toRemove.insert(aK);
+            myMesh.clean();
+
+            vector<cTextureBox2d> vTexBox = myMesh.getRegions();
+
+            std::set < int, std::greater<int> > toRemove;
+
+            //looking for biggest region
+            unsigned int id = 0;
+            unsigned int nbTri = vTexBox[0].triangles.size();
+            for (unsigned int aK = 1; aK < vTexBox.size();++aK)
+            {
+                if (vTexBox[aK].triangles.size() > nbTri) id = aK;
+            }
+
+            //remove other
+            for (unsigned int aK = 0; aK < vTexBox.size();++aK)
+            {
+                if (aK != id)
+                {
+                    std::vector<int> vtri = vTexBox[aK].triangles;
+                    for (unsigned int bK=0; bK < vtri.size(); ++bK)
+                    {
+
+                        toRemove.insert(vtri[bK]);
+                    }
+                }
+            }
+
+            cout << "Removing " << toRemove.size() << " faces" << endl;
+
+            std::set < int >::const_iterator itr = toRemove.begin();
+            for (; itr != toRemove.end(); ++itr) myMesh.removeTriangle(*itr);
         }
+        else
+        {
+            const int nbTriangles = myMesh.getFacesNumber();
+            for (int aK=0; aK < nbTriangles;++aK)
+            {
+                cTriangle * triangle = myMesh.getTriangle(aK);
+                if (!triangle->isTextured()) toRemove.insert(aK);
+            }
 
-        cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << endl;
+            cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << endl;
 
-        set<int>::const_iterator itr = toRemove.begin();
-        for(; itr!=toRemove.end();++itr) myMesh.removeTriangle(*itr, false);
+            set<int>::const_iterator itr = toRemove.begin();
+            for(; itr!=toRemove.end();++itr) myMesh.removeTriangle(*itr, false);
+        }
     }
 
     cout << endl;
@@ -355,8 +395,8 @@ int TiPunch_main(int argc,char ** argv)
 
     myMesh.write(aOut, aBin);
 
-    cout<<"********************************Done*********************************"<<endl;
-    cout<<endl;
+    cout <<"********************************Done*********************************"<<endl;
+    cout <<endl;
 
     if (aRmPoissonMesh)
     {
