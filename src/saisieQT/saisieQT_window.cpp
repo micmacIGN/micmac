@@ -1349,7 +1349,7 @@ void SaisieQtWindow::updateUI()
     _ui->menuStandard_views->menuAction()->setVisible(isMode3D);
     _ui->menuWindows->menuAction()->setVisible(_appMode != BOX2D);
     _ui->menuTools->menuAction()->setVisible(_appMode != BOX2D);
-    _ui->menuSelection->menuAction()->setVisible(_appMode == MASK2D || _appMode == MASK2D);
+    _ui->menuSelection->menuAction()->setVisible(_appMode == MASK2D || _appMode == MASK3D);
 
     hideAction(_ui->actionSettings, _appMode != BOX2D);
 
