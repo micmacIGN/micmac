@@ -757,7 +757,7 @@ void cMesh::clean()
 
     cout << "Removing " << toRemove.size() << " faces" <<endl;
 
-    std::set < int >::const_iterator itr = toRemove.begin();
+    std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
     for (; itr != toRemove.end(); ++itr) removeTriangle(mTriangles[*itr]);
 
     //cout << "Removing isolated vertex" << endl;
