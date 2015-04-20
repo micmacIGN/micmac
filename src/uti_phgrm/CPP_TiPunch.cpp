@@ -344,8 +344,6 @@ int TiPunch_main(int argc,char ** argv)
 
             vector<cTextureBox2d> vTexBox = myMesh.getRegions();
 
-            std::set < int, std::greater<int> > toRemove;
-
             //looking for biggest region
             unsigned int id = 0;
             unsigned int nbTri = vTexBox[0].triangles.size();
@@ -370,7 +368,7 @@ int TiPunch_main(int argc,char ** argv)
 
             cout << "Removing " << toRemove.size() << " faces" << endl;
 
-            std::set < int >::const_iterator itr = toRemove.begin();
+            std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
             for (; itr != toRemove.end(); ++itr) myMesh.removeTriangle(*itr);
         }
         else
@@ -384,7 +382,7 @@ int TiPunch_main(int argc,char ** argv)
 
             cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << endl;
 
-            set<int>::const_iterator itr = toRemove.begin();
+            set<int, std::greater<int> >::const_iterator itr = toRemove.begin();
             for(; itr!=toRemove.end();++itr) myMesh.removeTriangle(*itr, false);
         }
     }
