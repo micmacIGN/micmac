@@ -92,7 +92,7 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
                     << EAMC(Aero,"Orientation", eSAM_IsExistDirOri),
     LArgMain()
                     << EAM(Zoom,"Zoom",true,"Resolution, (Def=8, must be pow of 2)")
-                    << EAM(Repere,"Repere",true,"Local coordinate system as created with RepLocBascule")
+                    << EAM(Repere,"Repere",true,"Local coordinate system as created with RepLocBascule",eSAM_IsExistFile)
                     << EAM(DirOut,"Out",true,"Directory for output (Deg=TA)")
                     << EAM(aZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(aKNadir,"KNadir",true,"KBest image or Nadir (when exist)")
@@ -158,7 +158,7 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
         mResult = system_call(aCom.c_str());
 
     }
-    else 
+    else
     {
        mResult = EXIT_SUCCESS;
     }
