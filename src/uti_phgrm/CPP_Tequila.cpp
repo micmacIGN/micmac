@@ -492,7 +492,7 @@ int Tequila_main(int argc,char ** argv)
                         float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
                         float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
 
-                        float diff11 = newMean1 - curMean1;
+                        float diff11 = newMean1 - curMean1; //TODO ajouter lambda
                         float diff12 = newMean1 - curMean2;
                         float diff21 = newMean2 - curMean1;
                         float diff22 = newMean2 - curMean2;
