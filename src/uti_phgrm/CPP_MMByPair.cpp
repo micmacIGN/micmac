@@ -431,6 +431,8 @@ cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std
          return;
       }
    }
+   if (MMVisualMode) return;
+
    mWithOri  = ((aFlag & TheFlagNoOri)==0);
    if (argc< (mWithOri ? 2 : 1 ) )
    {
@@ -758,7 +760,7 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq)
       {
            mSetImNoMasq = mEASF.mICNM->Get(PatFileOfImSec());
       }
-         
+
 
       for (int aKI=0 ; aKI<int(mVSoms.size()) ; aKI++)
       {
@@ -1245,9 +1247,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mCalPerIm,"CalPerIm",true,"true id Calib per Im were used, def=false")
                     << EAM(mPenPerIm,"PenPerIm",true,"Penality Per Image in choice im sec")
                     << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
-		    << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
-		    << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
-		    << EAM(mZReg,"ZReg",false,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
+            << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+            << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
+            << EAM(mZReg,"ZReg",false,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
 
   );
 
@@ -1435,7 +1437,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " HasVeg=" + ToString(mHasVeget)
                          +  " HasSBG=" + ToString(mSkyBackGround)
                          +  " PurgeAtEnd=" + ToString(mPurge)
-		         +  " UseGpu=" + ToString(mUseGpu)
+                 +  " UseGpu=" + ToString(mUseGpu)
                          +  " DefCor=" + ToString(mDefCor)
                          +  " ZReg=" + ToString(mZReg)
                       ;
@@ -1539,7 +1541,7 @@ void cAppliMMByPair::DoCorrelAndBasculeStd()
                                  +  std::string(" +Im1=")    + anI1.mNameIm  + BLANK
                                  +  std::string(" +Im2=")    + anI2.mNameIm  + BLANK
                                  +  std::string(" +Zoom0=")  + ToString(mZoom0)  + BLANK
-                                 +  std::string(" +ZoomF=")  + ToString(mZoomF)  + BLANK							
+                                 +  std::string(" +ZoomF=")  + ToString(mZoomF)  + BLANK
                                ;
 
                  if (EAMIsInit(&mIntIncert))
