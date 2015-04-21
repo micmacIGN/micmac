@@ -160,7 +160,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(mSzW,"SzW",true,"Correlation window size (Def=2, equiv 5x5)")
               << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.2")
               << EAM(mStepF,"ZPas",true,"Quantification step (Def=0.5)")
-              << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)")
+              << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)",eSAM_IsPowerOf2)
               << EAM(aBoxClip,"BoxClip",true,"Define computation area (Def=[0,0,1,1] means full area) relative to image", eSAM_Normalize)
               << EAM(aBoxTer,"BoxTer",true,"Define computation area [Xmin,Ymin,Xmax,Ymax] relative to ground")
               << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=true)", eSAM_IsBool)

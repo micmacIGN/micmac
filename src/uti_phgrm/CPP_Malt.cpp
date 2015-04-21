@@ -129,7 +129,7 @@ class cAppliMalt
           std::string  mImMNT;
           std::string  mImOrtho;
           double       mZMoy;
-          bool         mIsSperik;
+          bool         mIsSpherik;
           double      mLargMin;
           Pt2dr       mSzGlob;
           std::string  mMasqIm;
@@ -191,7 +191,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mResolOrtho   (1.0),
     mImMNT        (""),
     mImOrtho      (""),
-    mIsSperik     (false),
+    mIsSpherik    (false),
     mLargMin      (25.0),
     mSzGlob       (0,0),
     mUseImSec     (false),
@@ -283,28 +283,28 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mUseMasqTA,"UseTA",true,"Use TA as Masq when it exists (Def is true)")
                     << EAM(mZoomFinal,"ZoomF",true,"Final zoom, (Def 2 in ortho,1 in MNE)",eSAM_IsPowerOf2)
                     << EAM(mZoomInit,"ZoomI",true,"Initial Zoom, (Def depends on number of images)",eSAM_NoInit)
-                    << EAM(mZPas,"ZPas",true,"Quantification step in equivalent pixel (def is 0.4)")
+                    << EAM(mZPas,"ZPas",true,"Quantification step in equivalent pixel (def=0.4)")
                     << EAM(mExe,"Exe",true,"Execute command (Def is true !!)", eSAM_IsBool)
-                    << EAM(mRep,"Repere",true,"Local system of coordinates")
-                    << EAM(mNbMinIV,"NbVI",true,"Number of Visible Image required (Def = 3)")
+                    << EAM(mRep,"Repere",true,"Local system of coordinates",eSAM_IsExistFileRP)
+                    << EAM(mNbMinIV,"NbVI",true,"Number of Visible Images required (Def = 3)")
                     << EAM(mOrthoF,"HrOr",true,"Compute High Resolution Ortho")
                     << EAM(mOrthoQ,"LrOr",true,"Compute Low Resolution Ortho")
-                    << EAM(mDirTA,"DirTA",true,"Directory of TA (for mask)")
+                    << EAM(mDirTA,"DirTA",true,"Directory of TA (for mask)",eSAM_IsDir)
                     << EAM(mPurge,"Purge",true,"Purge the directory of Results before compute")
                     << EAM(mDoMEC,"DoMEC",true,"Do the Matching")
-                    << EAM(mDoOrtho,"DoOrtho",true,"Do the Ortho (Def =mDoMEC)")
+                    << EAM(mDoOrtho,"DoOrtho",true,"Do the Ortho (Def=mDoMEC)")
                     << EAM(mUnAnam,"UnAnam",true,"Compute the un-anamorphosed DTM and ortho (Def context dependant)")
                     << EAM(mDoubleOrtho,"2Ortho",true,"Do both anamorphosed ans un-anamorphosed ortho (when applyable) ")
                     << EAM(mZincCalc,"ZInc",true,"Incertitude on Z (in proportion of average depth, def=0.3) ")
-                    << EAM(mDefCor,"DefCor",true,"Default Correlation in un correlated pixels (Def = 0.2) ")
-                    << EAM(mCostTrans,"CostTrans",true,"Cost to change from correlation to uncorrelation (Def = 2.0) ")
+                    << EAM(mDefCor,"DefCor",true,"Default Correlation in un correlated pixels (Def=0.2) ")
+                    << EAM(mCostTrans,"CostTrans",true,"Cost to change from correlation to uncorrelation (Def=2.0) ")
                     << EAM(mEtapeInit,"Etape0",true,"First Step (Def=1) ")
                     << EAM(mAffineLast,"AffineLast",true,"Affine Last Etape with Step Z/2 (Def=true) ")
                     << EAM(mResolOrtho,"ResolOrtho",true,"Resolution of ortho, relatively to images (Def=1.0; 0.5 means smaller images) ")
-                    << EAM(mImMNT,"ImMNT",true,"Filter to select images used for matching (Def All, usable with ortho) ")
-                    << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ")
+                    << EAM(mImMNT,"ImMNT",true,"Filter to select images used for matching (Def All, usable with ortho) ",eSAM_IsPatFile)
+                    << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ",eSAM_IsPatFile)
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z", eSAM_NoInit)
-                    << EAM(mIsSperik,"Spherik",true,"If true the surface for rectification is a sphere")
+                    << EAM(mIsSpherik,"Spherik",true,"If true the surface for rectification is a sphere")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq", eSAM_NoInit)
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ", eSAM_IsExistFileRP)
@@ -321,8 +321,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                     << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq", eSAM_IsExistFile)
                     << EAM(aNbProc,"NbProc",true,"Nb Proc Used")
-                    << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)")
-                    << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use")
+                    << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)", eSAM_InternalUse)
+                    << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use", eSAM_InternalUse)
                 );
 
     if (!MMVisualMode)
@@ -569,7 +569,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aNameGeom = (mImMaster=="") ?
                   "eGeomMNTEuclid" :
-                  (mIsSperik? "eGeomMNTFaisceauPrChSpherik" : (mModePB ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
+                  (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : (mModePB ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
 
       mCom =              MM3dBinFile_quotes("MICMAC")
               +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )

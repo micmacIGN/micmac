@@ -91,13 +91,13 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
     LArgMain()  << EAMC(aFullDir,"Full Image (Dir+Pat)", eSAM_IsPatFile)
                     << EAMC(Aero,"Orientation", eSAM_IsExistDirOri),
     LArgMain()
-                    << EAM(Zoom,"Zoom",true,"Resolution, (Def=8, must be pow of 2)")
+                    << EAM(Zoom,"Zoom",true,"Resolution, (Def=8, must be pow of 2)",eSAM_IsPowerOf2)
                     << EAM(Repere,"Repere",true,"Local coordinate system as created with RepLocBascule",eSAM_IsExistFile)
                     << EAM(DirOut,"Out",true,"Directory for output (Deg=TA)")
                     << EAM(aZMoy,"ZMoy",true,"Average value of Z")
                     << EAM(aKNadir,"KNadir",true,"KBest image or Nadir (when exist)")
                     << EAM(aIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
-                    << EAM(UnUseAXC,"UnUseAXC",true,"Internal use for unamophosed ortho")
+                    << EAM(UnUseAXC,"UnUseAXC",true,"Internal use for unanamorphosed ortho",eSAM_InternalUse)
     );
 
     if (!MMVisualMode)
