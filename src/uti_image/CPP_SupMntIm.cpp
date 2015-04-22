@@ -81,7 +81,7 @@ int SupMntIm_main(int argc,char ** argv)
                     << EAM(Grad,"Grad",true)
                     << EAM(CDN,"CDN",true, "Generate level curve?")
                     << EAM(aCoulCDN,"CoulCDN",true,"Interval between level curves")
-                    << EAM(aMasq,"Masq",true,"Masq of images")
+                    << EAM(aMasq,"Masq",true,"Masq of images",eSAM_IsExistFile)
     );
 
     if (!MMVisualMode)

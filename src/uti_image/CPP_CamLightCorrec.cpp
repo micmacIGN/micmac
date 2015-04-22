@@ -104,7 +104,7 @@ cCorCamL::cCorCamL(int argc,char** argv) :
         LArgMain()  << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile),
         LArgMain()  << EAM(mGama,"Gama",true,"Gama correc to invert, Def=0.55")
                     << EAM(mDif,"Dif",true,"Out Orientation, if unspecified : calc")
-                    << EAM(mVisu,"Visu",true,"Visualisation, Def=false")
+                    << EAM(mVisu,"Visu",true,"Visualization, Def=false")
                     << EAM(mFilter,"Filter",true,"0=None(Def) , 1=Filter Y, 2=Filter XY")
                     << EAM(mCalibFF,"Calib",true,"Calib Variation")
    );

@@ -42,7 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 
-// Im*_Ok => OK 
+// Im*_Ok => OK
 // Im*_Nl => Image Nulle (eliminee)
 
 
@@ -66,7 +66,7 @@ class cAppliMorito;
 class cOriMorito
 {
     public :
-        cOriMorito(); 
+        cOriMorito();
         CamStenope * mCam1;
         CamStenope * mCam2;
         std::string mNameFull;
@@ -79,7 +79,7 @@ class cAppliMorito
         cAppliMorito(int argc,char ** argv);
         void InitOneDir(const std::string & aDir,bool D1);
         const std::string & Dir() {return  mDir ;}
-        
+
 
     private :
         void InitRotM2toM1();
@@ -90,7 +90,7 @@ class cAppliMorito
 
 
         std::map<std::string,cOriMorito> mOrients;
-        std::vector<cOriMorito*> mVDpl; 
+        std::vector<cOriMorito*> mVDpl;
         std::vector<Pt3dr>       mVP1;
         std::vector<Pt3dr>       mVP2;
 
@@ -130,9 +130,9 @@ void cAppliMorito::InitOneDir(const std::string & aPat,bool aD1)
         cOriMorito & anOri = mOrients[aNameOri];
         anOri.mName = aNameOri;
         anOri.mNameFull =  anEASF.mDir + aNameOri;
-        if (aD1) 
+        if (aD1)
            anOri.mCam1 = aCS;
-        else  
+        else
            anOri.mCam2 = aCS;
    }
 }
@@ -149,20 +149,23 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
     ElInitArgMain
      (
            argc,argv,
-           LArgMain() << EAMC(mOri1,"First set of image", eSAM_IsPatFile) 
-                      << EAMC(mOri2,"Second set of image")
+           LArgMain() << EAMC(mOri1,"First set of image", eSAM_IsPatFile)
+                      << EAMC(mOri2,"Second set of image", eSAM_IsPatFile)
                       << EAMC(mOriOut,"Orientation Dir"),
            LArgMain() << EAM(mWithOutLayer,"WithOutLayer",true,"Is robust estimation requires or simply L2 (Def=false, other not supported now)")
                       << EAM(mDir,"Dir",true,"Global directory, Def=true")
-                     
+
     );
+
+    if (MMVisualMode) return;
+
     InitOneDir(mOri1,true);
     std::cout << "====================================================\n";
     InitOneDir(mOri2,false);
     mDirOutLoc =  "Ori-"  + mOriOut + "/";
     mDirOutGlob = Dir() + mDirOutLoc;
 
-    for 
+    for
     (
         std::map<std::string,cOriMorito>::iterator itO = mOrients.begin();
         itO != mOrients.end();
@@ -191,7 +194,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
      M1toC PM1 = PCam   et  M2toC PM2 = PCam
 
      PCam =  M1toC PM1 = M2toC PM2 = M1toC aM2toM1 PM2
-      
+
      =>    aM2toM1 = M1toC-1 M2toC   ; aM1toM2 = M2toC-1 M1toC
     => M1toC = M2toC * aM2toM1-1
 
@@ -199,7 +202,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
 
 void cAppliMorito::InitRotM2toM1()
 {
-   // Monde -> Cam 
+   // Monde -> Cam
    for (int aK = 0 ; aK<int(mVDpl.size()) ; aK++)
    {
        ElRotation3D aRM1toCam =  mVDpl[aK]->mCam1->Orient();
@@ -210,8 +213,8 @@ void cAppliMorito::InitRotM2toM1()
 
        if (mShow>=2)
        {
-          std::cout << "TETA : " << aLocM2toM1.teta01() << " " 
-                                 << aLocM2toM1.teta02() << " " 
+          std::cout << "TETA : " << aLocM2toM1.teta01() << " "
+                                 << aLocM2toM1.teta02() << " "
                                  << aLocM2toM1.teta12()  << "\n";
        }
    }
@@ -273,7 +276,7 @@ void cAppliMorito::ComputNewRot2()
     //  aTr + aP2 * aRatio
     //      aR2to1 * aRMtoC2.Mat()  =  aRMtoC1.Mat();
 
-   
+
    for (int aK = 0 ; aK<int(mVDpl.size()) ; aK++)
    {
        ElRotation3D aRM1toCam =  mVDpl[aK]->mCam1->Orient();
@@ -288,7 +291,7 @@ void cAppliMorito::ComputNewRot2()
        std::cout << "RESIDU R= " << aDifM.L2() << " " << euclid(aDifP) << "\n";
    }
 
-   for 
+   for
    (
       std::map<std::string,cOriMorito>::iterator itO=mOrients.begin();
       itO != mOrients.end();
@@ -343,7 +346,7 @@ void cAppliMorito::SauvCalib(const std::string & anOri)
 void cAppliMorito::Sauv()
 {
    ELISE_fp::MkDir(mDirOutGlob);
-   for 
+   for
    (
       std::map<std::string,cOriMorito>::iterator itO=mOrients.begin();
       itO != mOrients.end();

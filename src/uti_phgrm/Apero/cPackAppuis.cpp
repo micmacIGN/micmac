@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -102,14 +102,14 @@ cMTResult::cMTResult() :
 }
 
 
-void cAppliApero::AddMTResisu(const double & aDErr) 
+void cAppliApero::AddMTResisu(const double & aDErr)
 {
     if (mMTRes &&  mMTRes->IsActif())
     {
                mMTRes->AddResisu(aDErr);
     }
 }
-  
+
 void cMTResult::Show(FILE* aFP)
 {
    fprintf(aFP,"======== ERREUR EN EXTRAPOLATION ======\n\n" );
@@ -139,7 +139,7 @@ void cAppliApero::AddCamsToMTR()
 {
    for (tDiCal::iterator it=mDicoCalib.begin(); it!=mDicoCalib.end() ; it++)
        mMTRes->AddCam(it->second->PIF().DupCurPIF());
-     
+
 }
 
 /**************************************************/
@@ -155,9 +155,9 @@ void cAppliApero::AddCamsToMTR()
 std::list<Appar23> cTypeEnglob_Appuis::CreateFromXML
                    (
                          cAppliApero & anAppli,
-		         const std::string & aNameXML,
-			 const cBDD_PtsAppuis& aBd,
-			 cObserv1Im<cTypeEnglob_Appuis> &
+                 const std::string & aNameXML,
+             const cBDD_PtsAppuis& aBd,
+             cObserv1Im<cTypeEnglob_Appuis> &
                    )
 {
    std::list<Appar23>  aRes =  Xml2EL(StdGetObjFromFile<cListeAppuis1Im>
@@ -167,11 +167,11 @@ std::list<Appar23> cTypeEnglob_Appuis::CreateFromXML
                           aBd.TagExtract().Val(),
                           // "ListeAppuis1Im",
                           "ListeAppuis1Im"
-			)
+            )
                 );
 
    std::list<Appar23> aFiltered;
-   for 
+   for
    (
         std::list<Appar23>::const_iterator itA=aRes.begin();
         itA!=aRes.end();
@@ -198,7 +198,7 @@ std::list<Appar23> cTypeEnglob_Appuis::CreateFromXML
    return aRes;
 }
 
-       // 
+       //
        // cOneAppuiMul
        //
 
@@ -235,7 +235,7 @@ Pt3dr cOneAppuiMul::PInter() const
 
 
 
-       // 
+       //
        // cPackGlobAppuis
        //
 
@@ -277,7 +277,7 @@ int  cPackGlobAppuis::GetNum(const Appar23 & anAp,const cBddApp_AutoNum & anAN)
         }
     }
 
-    if (aNum>=0) 
+    if (aNum>=0)
        return aNum;
 
     return mNumCur++;
@@ -362,9 +362,9 @@ std::map<int,cOneAppuiMul *> *  cPackGlobAppuis::Apps()
 ElRotation3D cTypeEnglob_Orient::CreateFromXML
              (
                   cAppliApero &,
-	          const std::string & aNameXML,
-		  const cBDD_Orient &anArg,
-		  cObserv1Im<cTypeEnglob_Orient> & anObs
+              const std::string & aNameXML,
+          const cBDD_Orient &anArg,
+          cObserv1Im<cTypeEnglob_Orient> & anObs
              )
 {
 // std::cout << "AAAAAAAAAAAAa"  << aNameXML << "\n";
@@ -425,11 +425,11 @@ std::cout << anOER.L3() << "\n";
 }
 
 cObsCentre cTypeEnglob_Centre::CreateFromXML
-             (              
+             (
                   cAppliApero & anAppli,
-	          const std::string & aNameXML,
-		  const cBDD_Centre &anArg,
-		  cObserv1Im<cTypeEnglob_Centre> & anObs
+              const std::string & aNameXML,
+          const cBDD_Centre &anArg,
+          cObserv1Im<cTypeEnglob_Centre> & anObs
              )
 {
     cObsCentre aRes;
@@ -451,7 +451,7 @@ cObsCentre cTypeEnglob_Centre::CreateFromXML
     {
         xml_init(aRes.mVitFiable,aTreeVF);
     }
-    
+
 
     aRes.mIncOnC = Pt3dr (1,1,1);
     cElXMLTree * aTreeInc     = aFullTreeParam.GetOneOrZero("IncCentre");
@@ -478,7 +478,7 @@ cObsCentre cTypeEnglob_Centre::CreateFromXML
                              );
 
         Pt3dr anOFs = anAppli.ICNM()->GetPt3dr(aCOC.IdBase(),aBande);
-        
+
         aRes.mCentre = aRes.mCentre + anOFs;
         // std::cout << anOFs << "\n";
     }
@@ -496,7 +496,7 @@ cObsCentre cTypeEnglob_Centre::CreateFromXML
 void cObserv1ImPostInit
      (
           cObserv1Im<cTypeEnglob_Appuis> & anObs,
-	  const cBDD_PtsAppuis &           aBPA,
+      const cBDD_PtsAppuis &           aBPA,
           cAppliApero & anAppli,
           const std::string& aNameIm
      )
@@ -507,7 +507,7 @@ void cObserv1ImPostInit
       InvY( *(anObs.mVals),aBPA.SzImForInvY().Val(),aBPA.InvXY().Val() );
 
    cPoseCam *  aPose = anAppli.PoseFromName(aNameIm);
-   for 
+   for
    (
        std::list<Appar23>::iterator itL=(anObs.mVals)->begin();
        itL!=(anObs.mVals)->end();
@@ -530,7 +530,7 @@ void cObserv1ImPostInit(cObserv1Im<cTypeEnglob_Centre> &,const cBDD_Centre &,cAp
 
 
 template <class  TypeEngl>
-cObserv1Im<TypeEngl>::cObserv1Im   
+cObserv1Im<TypeEngl>::cObserv1Im
 (
       cAppliApero & anAppli,
       const std::string& aNamePack,
@@ -543,20 +543,20 @@ cObserv1Im<TypeEngl>::cObserv1Im
    mCF     (0),
    mVals(NULL)
 {
-	// NO_WARN
-	mVals = new typename TypeEngl::tObj(TypeEngl::CreateFromXML(anAppli,aNamePack,anArg,*this) );
+    // NO_WARN
+    mVals = new typename TypeEngl::tObj(TypeEngl::CreateFromXML(anAppli,aNamePack,anArg,*this) );
 
-	cObserv1ImPostInit(*this,anArg,anAppli,aNameIm);
+    cObserv1ImPostInit(*this,anArg,anAppli,aNameIm);
 }
 
-   
+
 template <class  TypeEngl>
 cObserv1Im<TypeEngl>::~cObserv1Im(){
-	if ( mVals!=NULL ) delete mVals;
+    if ( mVals!=NULL ) delete mVals;
 }
 
 template <class  TypeEngl>
-cObserv1Im<TypeEngl>::cObserv1Im   
+cObserv1Im<TypeEngl>::cObserv1Im
 (
       cAppliApero & anAppli,
       typename TypeEngl::tObj aVals,
@@ -568,7 +568,7 @@ cObserv1Im<TypeEngl>::cObserv1Im
    mCF     (0),
    mVals (NULL)
 {
-	mVals = new typename TypeEngl::tObj(aVals);
+    mVals = new typename TypeEngl::tObj(aVals);
 }
 
 template <class  TypeEngl>
@@ -594,13 +594,13 @@ const typename TypeEngl::tObj  & cObserv1Im<TypeEngl>::Vals() const
 }
 
 template <class  TypeEngl>
-typename TypeEngl::tObj  & cObserv1Im<TypeEngl>::Vals() 
+typename TypeEngl::tObj  & cObserv1Im<TypeEngl>::Vals()
 {
    return *mVals;
 }
 
 template <class  TypeEngl>
-void cObserv1Im<TypeEngl>::Compile( cAppliApero & anAppli) 
+void cObserv1Im<TypeEngl>::Compile( cAppliApero & anAppli)
 {
     if ( anAppli.PoseExist(mIm))
     {
@@ -667,16 +667,16 @@ double  cAppliApero::AddAppuisOnePose
          }
          if (int(aPPM.Show().Val()) >= int (eNSM_Indiv))
          {
-            std::cout << "| | | | RESIDU Appuis=" << aDErr  
-                       << " Pour Pts numero " << aKP 
-                       << " Id=" << itA->mNum 
-                       << " Im=" << itA->pim 
+            std::cout << "| | | | RESIDU Appuis=" << aDErr
+                       << " Pour Pts numero " << aKP
+                       << " Id=" << itA->mNum
+                       << " Im=" << itA->pim
                        << "\n";
-            if (aDErr > 1e2) 
+            if (aDErr > 1e2)
             {
                 CamStenope * aCS = aCF.NC_CameraCourante() ;
 
-                std::cout 
+                std::cout
                      << "HHIG RESIDU !!!!!   Im2=" << aCS->R3toF2( itA->pter)
                      << "Residu = "<< aResidu
                     << " Ter=" << itA->pter
@@ -707,7 +707,7 @@ double  cAppliApero::AddAppuisOnePose
 
    if (int(aPPM.Show().Val()) >= int (eNSM_Paquet))
    {
-     std::cout << "| | | RESIDU Appuis moyen =" << sqrt(aSomEr) 
+     std::cout << "| | | RESIDU Appuis moyen =" << sqrt(aSomEr)
                << " RPOND " << sqrt(aSomErPds)
                << " pour pose " << anObs->mIm << "\n";
    }
@@ -730,14 +730,14 @@ template <class TypeEngl,class TGlob> void cPackObserv1Im<TypeEngl,TGlob>::Add(c
          cObserv1Im<TypeEngl> * aO2 = mDicObs[anObs->Im()];
          if (aO2 !=0)
          {
-              std::cout << " For : " << mId << " " << anObs->Im()  <<"\n"; 
-	      ELISE_ASSERT(false,"Entree multiple\n");
+              std::cout << " For : " << mId << " " << anObs->Im()  <<"\n";
+          ELISE_ASSERT(false,"Entree multiple\n");
          }
      }
      mDicObs[anObs->Im()] = anObs;
 }
 
-template <class TypeEngl,class TGlob> 
+template <class TypeEngl,class TGlob>
 cPackObserv1Im<TypeEngl,TGlob>::cPackObserv1Im
 (
         cAppliApero & anAppli,
@@ -758,14 +758,14 @@ template <class TypeEngl,class TGlob> TGlob & cPackObserv1Im<TypeEngl,TGlob>:: G
 
 
 
-template <class TypeEngl,class TGlob>    
+template <class TypeEngl,class TGlob>
    typename TypeEngl::tArg &  cPackObserv1Im<TypeEngl,TGlob>::Arg()
 {
    ELISE_ASSERT(mArg!=0,"cPackObserv1Im<TypeEngl,TGlob>::Arg");
    return *mArg;
 }
 
-template <class TypeEngl,class TGlob> 
+template <class TypeEngl,class TGlob>
 cPackObserv1Im<TypeEngl,TGlob>::cPackObserv1Im
 (
         cAppliApero & anAppli,
@@ -779,37 +779,37 @@ cPackObserv1Im<TypeEngl,TGlob>::cPackObserv1Im
 
     anAppli.COUT() << "Pack Obs " << anArg.KeySet() << " NB " << aVName->size() << "\n";
 
-	if (1)
-	{
-		const string baseDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():anAppli.DC() );
-		for (int aK=0;aK<int(aVName->size());aK++)
-		{
-			std::string aNamePack = (*aVName)[aK];
-			std::string aNameIm  = mAppli.ICNM()->Assoc1To1(anArg.KeyAssoc(),aNamePack,false);
-			if ( mAppli.NamePoseIsKnown(aNameIm))
-			{
-				cObserv1Im<TypeEngl> * anObs= new  cObserv1Im<TypeEngl>(anAppli,baseDirectory+aNamePack,aNameIm,anArg);
-				Add(anObs);
-			}
-			else
-			{
-				static bool first = true;
-				if (first) std::cout << "WARN, For Existing file =" << aNamePack << " Im=" << aNameIm << " is not loaded\n";
-				first = false;
-				// ELISE_ASSERT(false,"Cannot find image for pack appuis");
-			}
-		}
-	}
-	else
-	{
-		// On rajoutera ici le cas ou fichier contient N Pack
-	}
+    if (1)
+    {
+        const string baseDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():anAppli.DC() );
+        for (int aK=0;aK<int(aVName->size());aK++)
+        {
+            std::string aNamePack = (*aVName)[aK];
+            std::string aNameIm  = mAppli.ICNM()->Assoc1To1(anArg.KeyAssoc(),aNamePack,false);
+            if ( mAppli.NamePoseIsKnown(aNameIm))
+            {
+                cObserv1Im<TypeEngl> * anObs= new  cObserv1Im<TypeEngl>(anAppli,baseDirectory+aNamePack,aNameIm,anArg);
+                Add(anObs);
+            }
+            else
+            {
+                static bool first = true;
+                if (first) std::cout << "WARN, For Existing file =" << aNamePack << " Im=" << aNameIm << " is not loaded\n";
+                first = false;
+                // ELISE_ASSERT(false,"Cannot find image for pack appuis");
+            }
+        }
+    }
+    else
+    {
+        // On rajoutera ici le cas ou fichier contient N Pack
+    }
 }
 
-template <class TypeEngl,class TGlob> 
+template <class TypeEngl,class TGlob>
          void cPackObserv1Im<TypeEngl,TGlob>::Compile()
 {
-   for 
+   for
    (
       typename  std::list<cObserv1Im<TypeEngl> *> ::iterator itOb = mLObs.begin();
       itOb != mLObs.end();
@@ -820,20 +820,20 @@ template <class TypeEngl,class TGlob>
    }
 }
 
-template <class TypeEngl,class TGlob> cObserv1Im<TypeEngl>  & cPackObserv1Im<TypeEngl,TGlob>::Obs (const std::string & aName) 
+template <class TypeEngl,class TGlob> cObserv1Im<TypeEngl>  & cPackObserv1Im<TypeEngl,TGlob>::Obs (const std::string & aName)
 
 {
      cObserv1Im<TypeEngl> * anObs = mDicObs[aName];
      if (anObs==0)
      {
-          std::cout << " For : " << mId << " " << aName << "\n"; 
+          std::cout << " For : " << mId << " " << aName << "\n";
           std::cout << "Size Dico " << mDicObs.size()-1 << "\n";
           ELISE_ASSERT(false,"Cannot find appuis");
      }
      return *anObs;
 }
 
-template <class TypeEngl,class TGlob> cObserv1Im<TypeEngl>  * cPackObserv1Im<TypeEngl,TGlob>::PtrObs (const std::string & aName) 
+template <class TypeEngl,class TGlob> cObserv1Im<TypeEngl>  * cPackObserv1Im<TypeEngl,TGlob>::PtrObs (const std::string & aName)
 
 {
      typename std::map<std::string,cObserv1Im<TypeEngl> *>::iterator itD = mDicObs.find(aName);
@@ -845,9 +845,9 @@ template <class TypeEngl,class TGlob> cObserv1Im<TypeEngl>  * cPackObserv1Im<Typ
 
 
 
-template <class TypeEngl,class TGlob> 
-const  typename  TypeEngl::tObj & 
-    cPackObserv1Im<TypeEngl,TGlob>::Vals (const std::string & aName) 
+template <class TypeEngl,class TGlob>
+const  typename  TypeEngl::tObj &
+    cPackObserv1Im<TypeEngl,TGlob>::Vals (const std::string & aName)
 
 {
     return Obs(aName).Vals();
@@ -882,12 +882,12 @@ template class cPackObserv1Im<cTypeEnglob_Centre,cPackGlobVide>;
 
 template <class Type,class TGlob> void cAppliApero::InitBDDPose
                       (
-		           std::map<std::string,cPackObserv1Im<Type,TGlob> *> & aDico,
+                   std::map<std::string,cPackObserv1Im<Type,TGlob> *> & aDico,
                            const std::list<typename Type::tArg>  & aL
                       )
 {
     //typedef typename Type::tArg tArg;
-    for 
+    for
     (
        typename std::list<typename Type::tArg>::const_iterator itB=aL.begin();
        // std::list<tArg>::const_iterator itB=aL.begin();
@@ -896,13 +896,13 @@ template <class Type,class TGlob> void cAppliApero::InitBDDPose
     )
     {
         NewSymb(itB->Id());
-	aDico[itB->Id()] = new cPackObserv1Im<Type,TGlob>(*this,*itB);
+    aDico[itB->Id()] = new cPackObserv1Im<Type,TGlob>(*this,*itB);
     }
 }
 
 template <class Type,class TGlob> void  cAppliApero::CompileObs1Im
                              (
-			          std::map<std::string,cPackObserv1Im<Type,TGlob> *> & aDico
+                      std::map<std::string,cPackObserv1Im<Type,TGlob> *> & aDico
                              )
 {
    for
@@ -919,7 +919,7 @@ template <class Type,class TGlob> void  cAppliApero::CompileObs1Im
 
 
     //
-    //    COMPILATION   
+    //    COMPILATION
     //
 void cAppliApero::CompileAppuis()
 {
@@ -932,13 +932,13 @@ void cAppliApero::CompileOsbOr()
 void cAppliApero::CompileObsCentre()
 {
     CompileObs1Im(mDicoCentre);
-    
+
 }
 
 
 
     //
-    //    INITIALISATION   
+    //    INITIALISATION
     //
 void cAppliApero::InitBDDAppuis()
 {
@@ -956,7 +956,7 @@ void cAppliApero::InitBDDCentre()
 {
     std::list<cBDD_Centre> aLGlob = mParam.BDD_Centre();
     std::list<cBDD_Centre>  aLClassik;
-    for 
+    for
     (
          std::list<cBDD_Centre>::const_iterator itBddC = aLGlob.begin();
          itBddC != aLGlob.end();
@@ -965,12 +965,12 @@ void cAppliApero::InitBDDCentre()
     {
          if (itBddC->ByFileTrajecto().IsInit())
          {
-            ELISE_ASSERT(false,"File trajecto no more supported, contact devlopers if required");
+            ELISE_ASSERT(false,"File trajecto no more supported, contact developers if required");
 /*
              NewSymb(itBddC->Id());
              cFichier_Trajecto * aFT = GetTrajFromString(mDC+itBddC->ByFileTrajecto().Val(),true);
 
-             cPackObserv1Im<cTypeEnglob_Centre,cPackGlobVide> * aPack = 
+             cPackObserv1Im<cTypeEnglob_Centre,cPackGlobVide> * aPack =
                             new cPackObserv1Im<cTypeEnglob_Centre,cPackGlobVide>(*this,itBddC->Id());
              mDicoCentre[itBddC->Id()] = aPack;
 
@@ -996,7 +996,7 @@ void cAppliApero::InitBDDCentre()
                          std::cout << "For Key " << anIdIm << " In " << itBddC->ByFileTrajecto().Val() << "\n";
                          ELISE_ASSERT(false,"Cannot get key");
                      }
-                     else 
+                     else
                      {
                         cObserv1Im<cTypeEnglob_Centre> * anObs = new cObserv1Im<cTypeEnglob_Centre>(*this,itPT->second.Pt(),aNIm);
                         aPack->Add(anObs);
@@ -1023,14 +1023,14 @@ void cAppliApero::InitBDDCentre()
 
 
 /*
-const std::list<Appar23> & cAppliApero::Appuis(const std::string& anId,const std::string & aName) 
+const std::list<Appar23> & cAppliApero::Appuis(const std::string& anId,const std::string & aName)
 {
    return GetEntreeNonVide(mDicoAppuis,anId,"BDD Appuis")->Vals(aName);
 }
 */
 
 
-std::list<Appar23>  cAppliApero::GetAppuisDyn(const std::string& anId,const std::string & aName) 
+std::list<Appar23>  cAppliApero::GetAppuisDyn(const std::string& anId,const std::string & aName)
 {
   {
      std::map<std::string,tPackAppuis *>::iterator itAp = mDicoAppuis.find(anId);
@@ -1149,7 +1149,7 @@ cRes1OnsAppui::cRes1OnsAppui
 (
     int aNum,
     cPoseCam * aPC,
-    Pt2dr aPIm, 
+    Pt2dr aPIm,
     Pt2dr aErIm
 )  :
    mNum  (aNum),
@@ -1180,7 +1180,7 @@ void  cAppliApero::DoRapportAppuis
       )
 {
    cPoseCam * aPC0 =  aVEr[0].mPC;
-  
+
    Pt2di aSzIm = aPC0->Calib()->SzIm();
    Pt2dr aMil  = Pt2dr(aSzIm)/2.0;
 
@@ -1263,7 +1263,7 @@ void  cAppliApero::DoRapportAppuis
    {
         const cROA_FichierImg &  aRFI = aRAO.ROA_FichierImg().Val();
         double aDZ = aRFI.Sz() / ElMax(aSzIm.x,aSzIm.y);
-        
+
         Bitm_Win aBW("Toto.tif",RGB_Gray_GlobPal(),Pt2di(Pt2dr(aSzIm)*aDZ));
         ELISE_COPY(aBW.all_pts(),P8COL::black,aBW.odisc());
         for (int aK=0 ; aK<aNbC ; aK++)
@@ -1278,7 +1278,7 @@ void  cAppliApero::DoRapportAppuis
 /*
             Elise_colour c = Elise_colour::its
                              (
-                                 0.3 + 
+                                 0.3 +
                              );
             aBW.draw_seg(aPIm,aPIm+aEr,aBW.pdisc()(P8COL::red));
 */
@@ -1369,13 +1369,13 @@ void cCompFilterProj3D::AddPose(cPoseCam *aCam)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1385,17 +1385,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

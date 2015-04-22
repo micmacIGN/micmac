@@ -1940,6 +1940,8 @@ int DoAllDev_main(int argc,char ** argv)
                     << EAM(DoDevXml,"XmlXiff",true,"Generate Xml Xif file, def=true")
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     int AFlag = cAppliWithSetImage::TheFlagNoOri;
     if (DoDev8BGr ) AFlag |= cAppliWithSetImage::TheFlagDev8BGray ;
     if (DoDev16BGr) AFlag |= cAppliWithSetImage::TheFlagDev16BGray;
