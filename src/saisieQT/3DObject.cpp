@@ -1971,8 +1971,8 @@ void cObjectGL::setGLColor()
 
 void cObjectGL::enableOptionLine()
 {
-   // glDisable(GL_DEPTH_TEST);
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glEnable (GL_LINE_SMOOTH);
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1983,7 +1983,7 @@ void cObjectGL::disableOptionLine()
 {
     glDisable(GL_BLEND);
     glDisable(GL_LINE_SMOOTH);
-    //glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 }
 
 float cObjectGL::getHalfViewPort()
