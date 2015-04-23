@@ -902,6 +902,26 @@ float GLWidget::angleZ(QPointF mPos)
     return angle > M_PI ?  angle - M_2PI : angle;
 }
 
+void GLWidget::undo()
+{
+    _historyManager.undo();
+
+    if (hasDataLoaded() && m_GLData->is3D())
+    {
+        if (_historyManager.getActionIdx() > 0)
+            resetFirstAction();
+        else
+            Select(ALL,false);
+    }
+}
+
+void GLWidget::redo()
+{
+    _historyManager.redo();
+
+    if (hasDataLoaded() && m_GLData->is3D()) resetFirstAction();
+}
+
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (hasDataLoaded())

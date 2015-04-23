@@ -969,7 +969,7 @@ void SaisieQtWindow::on_actionUndo_triggered(){
 
     if (_appMode <= MASK3D)
     {
-        currentWidget()->getHistoryManager()->undo();
+        currentWidget()->undo();
         updateMask(true);
     }
     else
@@ -982,7 +982,7 @@ void SaisieQtWindow::on_actionRedo_triggered()
 {
     if (_appMode <= MASK3D)
     {
-        currentWidget()->getHistoryManager()->redo();
+        currentWidget()->redo();
         updateMask(false);
     }
     else
