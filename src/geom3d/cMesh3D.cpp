@@ -292,7 +292,10 @@ int cTriangle::getBestImgIndexAfter(int aK)
 
 float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
 {
-    double sumTx = 0.f;
+    float sumTx = 0.f;
+    float min, max;
+    max = 0.f;
+    min = FLT_MAX;
     int cptPx = 0;
 
     vector <Pt3dr> Vertex;
@@ -363,18 +366,23 @@ float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
                             cout << "****************" << endl;*/
 
                             cptPx++;
-                            sumTx += 0.2126*(double)red + 0.7152*(double)green + 0.0722*(double)blue;
+                            float val = 0.2126*(float)red + 0.7152*(float)green + 0.0722*(float)blue;
+                            sumTx += val;
+                            if (val > max) max = val;
+                            if (val < min) min = val;
                         }
                     }
                 }
             }
         }
 
+        if (max - min > 40) return 1e9;
+
         if (cptPx)
             return sumTx / (float) cptPx;
     }
 
-    return -1.f;
+    return 1e9;
 }
 
 
