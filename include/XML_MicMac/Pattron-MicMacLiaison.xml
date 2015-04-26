@@ -1,0 +1,66 @@
+<!--  Ce fichier sert "d'armature" au programme SaisieLiaison
+      pour rappeler bin/MICMACSaisieLiaisons
+-->
+<ParamMICMAC>
+
+<Section_Terrain>  
+      <IntervParalaxe>
+             <Px1IncCalc>   1.0  </Px1IncCalc>
+      </IntervParalaxe>
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImage_EpipolairePure </GeomImages>
+     <Images >
+          <Im1 Id="Im1">  UnNomDImage1.tif  </Im1>
+          <Im2 Id="Im2">  UnNomDImage2.tif  </Im2>
+     </Images>
+     <FCND_CalcHomFromI1I2> ##### </FCND_CalcHomFromI1I2>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+	 <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+
+             <SzW >      1          </SzW>
+             <AlgoRegul>    eAlgo2PrgDyn    </AlgoRegul>
+             <Px1Regul>      2.0    </Px1Regul>
+             <Px1Pas>        0.5    </Px1Pas>
+	     <Px1DilatAlti>  2    </Px1DilatAlti>
+             <Px1DilatPlani> 2    </Px1DilatPlani>
+	     
+        </EtapeMEC>
+
+        <EtapeMEC> 
+	      <DeZoom >        1       </DeZoom> 
+	</EtapeMEC> 
+
+</Section_MEC>
+
+<Section_Results >
+    <GeomMNT> eGeomPxBiDim  </GeomMNT> 
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir > UneDirectory  </WorkDir> 
+     <!-- <TmpGeom>     Tmp-LIAISON/  </TmpGeom> -->
+     <TmpMEC>     Tmp-LIAISON/  </TmpMEC>
+     <TmpPyr>     Tmp-LIAISON/  </TmpPyr>
+     <TmpResult>  Tmp-LIAISON/  </TmpResult>
+     <ByProcess>   2 </ByProcess>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> 
+    <SL_RedrOnCur> true </SL_RedrOnCur>
+    <SL_XSzW Id="SL_XSzW"> 1000 </SL_XSzW>
+    <SL_YSzW Id="SL_YSzW"> 900 </SL_YSzW>
+    <SL_Epip Id="SL_Epip"> false </SL_Epip>
+</Section_Vrac>
+
+
+</ParamMICMAC>
+
+
