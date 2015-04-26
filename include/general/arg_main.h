@@ -743,6 +743,29 @@ int CCL_main(int argc,char ** argv);
 int TDEpip_main(int argc, char **argv);
 
 
+int TestNewOriImage_main(int argc,char ** argv);
+int TestAllNewOriImage_main(int argc,char ** argv);
+int PreparSift_Main(int argc,char ** argv);
+int CheckOneHom_main(int argc,char ** argv);
+int CheckAllHom_main(int argc,char ** argv);
+int CheckOneTiff_main(int argc,char ** argv);
+int CheckAllTiff_main(int argc,char ** argv);
+int MakeOneXmlXifInfo_main(int argc,char ** argv);
+
+int Masq3Dto2D_main(int argc,char ** argv);
+
+int CPP_AppliMergeCloud(int argc,char ** argv);
+int MMEnveloppe_Main(int argc,char ** argv);
+int PlySphere_main(int argc,char ** argv);
+int San2Ply_main(int argc,char ** argv);
+int Export2Ply_main(int argc,char **argv);
+int CASALL_main(int argc,char ** argv);
+int MatisOri2MM_main(int argc,char ** argv);
+
+extern int MMEnvStatute_main(int argc,char ** argv);
+
+
+
 
 
 
