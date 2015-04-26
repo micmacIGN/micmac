@@ -183,10 +183,44 @@ template class  cFixedMergeTieP<3,Pt2dr>;
 /**********************************************************************/
 
 template <const int TheNb,class Type> cFixedMergeStruct<TheNb,Type>::cFixedMergeStruct() :
-    mExportDone (false)
+    mExportDone (false),
+    mDeleted    (false)
 {
 }
 
+template <const int TheNb,class Type> void cFixedMergeStruct<TheNb,Type>::Delete()
+{
+    for (int aK=0 ; aK<TheNb ; aK++)
+    {
+        tMapMerge & aMap = mTheMaps[aK];
+        for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
+        {
+            tMerge * aM = anIt->second;
+            aM->SetOkForDelete();
+        }
+    }
+    std::vector<tMerge *> aV2Del;
+    for (int aK=0 ; aK<TheNb ; aK++)
+    {
+        tMapMerge & aMap = mTheMaps[aK];
+        for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
+        {
+            tMerge * aM = anIt->second;
+            if (aM->IsOk())
+            {
+               aV2Del.push_back(aM);
+               aM->SetNoOk();
+            }
+        }
+    }
+
+
+    for (int aK=0 ; aK<int(aV2Del.size()) ; aK++)
+        delete aV2Del[aK];
+
+
+    mDeleted = true;
+}
 
 
 template <const int TheNb,class Type>   void cFixedMergeStruct<TheNb,Type>::DoExport()
@@ -296,14 +330,23 @@ template <const int TheNb,class Type>  const  std::list<cFixedMergeTieP<TheNb,Ty
 
 template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::AssertExported() const
 {
+   AssertUnDeleted();
    ELISE_ASSERT(mExportDone,"cFixedMergeStruct<TheNb,Type>::AssertExported");
 }
 
 template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::AssertUnExported() const
 {
+   AssertUnDeleted();
    ELISE_ASSERT(!mExportDone,"cFixedMergeStruct<TheNb,Type>::AssertUnExported");
 }
 
+
+template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::AssertUnDeleted() const
+{
+   ELISE_ASSERT(!mDeleted,"cFixedMergeStruct<TheNb,Type>::AssertUnExported");
+}
+template class  cFixedMergeStruct<2,Pt2df>;
+template class  cFixedMergeStruct<3,Pt2df>;
 template class  cFixedMergeStruct<2,Pt2dr>;
 template class  cFixedMergeStruct<3,Pt2dr>;
 

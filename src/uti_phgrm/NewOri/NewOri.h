@@ -63,6 +63,7 @@ template <const int TheNbPts,class Type>  class cFixedMergeTieP
         const Type & GetVal(int aK)    const {return mVals[aK];}
         bool IsOk() const {return mOk;}
         void SetNoOk() {mOk=false;}
+        void SetOkForDelete() {mOk=true;}  // A n'utiliser que dans cFixedMergeStruct::delete
         int  NbArc() const {return mNbArc;}
         void IncrArc() { mNbArc++;}
         int  NbSom() const ;
@@ -82,6 +83,8 @@ template <const int TheNb,class Type> class cFixedMergeStruct
         typedef std::map<Type,tMerge *>     tMapMerge;
         typedef typename tMapMerge::iterator         tItMM;
 
+        // Pas de delete implicite dans le ~X(),  car exporte l'allocation dans
+        void Delete();
         void DoExport();
         const std::list<tMerge *> & ListMerged() const;
 
@@ -94,8 +97,10 @@ template <const int TheNb,class Type> class cFixedMergeStruct
 
 
      private :
+        cFixedMergeStruct(const cFixedMergeStruct<TheNb,Type> &);
         void AssertExported() const;
         void AssertUnExported() const;
+        void AssertUnDeleted() const;
 
         tMapMerge                           mTheMaps[TheNb];
         Type                                mEnvInf[TheNb];
@@ -103,6 +108,7 @@ template <const int TheNb,class Type> class cFixedMergeStruct
         int                                 mNbSomOfIm[TheNb];
         std::vector<int>                    mStatArc;
         bool                                mExportDone;
+        bool                                mDeleted;
         std::list<tMerge *>                 mLM;
 };
 
@@ -272,10 +278,11 @@ class cNewO_NameManager
            const std::string &  OriCal() const;
 
      private :
-           cInterfChantierNameManipulateur * mICNM;
-           std::string                       mDir;
-           std::string                       mOriCal;
-           std::string                       mPostHom;
+           cInterfChantierNameManipulateur *  mICNM;
+           std::string                        mDir;
+           std::string                        mOriCal;
+           std::string                        mPostHom;
+           std::map<std::string,CamStenope *> mDicoCam;
 };
 
 
