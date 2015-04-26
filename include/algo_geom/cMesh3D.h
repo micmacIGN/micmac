@@ -167,6 +167,11 @@ class cTriangle
         void    setIdx(int id) { mTriIdx = id; }
         int		getIdx() const {return mTriIdx;}
 
+
+        void    setIdxQPBO(int id) { mIdxQPBO = id; }
+        int		getIdxQPBO() const {return mIdxQPBO;}
+
+
         size_t  getEdgesNumber() { return mTriEdges.size(); }
 
         vector <int>  getEdgesIndex() { return mTriEdges; }
@@ -215,6 +220,7 @@ private:
         float                       mDefValue;      // Default value of criterion for choosing best image for texturing (threshold for angle)
 
         map <int, float>            mMapCriter;     // Map linking image index to criterion
+        int                         mIdxQPBO;
 };
 
 //--------------------------------------------------------------------------------------------------------------

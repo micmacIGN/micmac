@@ -143,11 +143,14 @@ int Tequila_main(int argc,char ** argv)
     int aTextMaxSize = 8192;
     int aZBuffSSEch = 2;
     int aJPGcomp = 70;
-    double aAngleMin = 90.f;
+    double aAngleMax = 90.f;
     bool aBin = true;
     std::string aMode = "Pack";
     std::string aCrit = "Angle";
     bool aFilter = false;
+    bool aDoGraphCut = false;
+    double aLambda = 0.1;
+    int aNbIter = 2;
 
     bool debug = false;
     float defValZBuf = 1e9;
@@ -160,12 +163,15 @@ int Tequila_main(int argc,char ** argv)
                             << EAMC(aPly,"Ply file", eSAM_IsExistFile),
                 LArgMain()  << EAM(aOut,"Out",true,"Textured mesh name (def=plyName+ _textured.ply)")
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
+                            << EAM(aDoGraphCut,"Optim",true,"Graph-cut optimization (def=false)")
+                            << EAM(aLambda,"Lambda", true,"Lambda (def=0.1)")
+                            << EAM(aNbIter,"Iter", true,"Optimization iteration number (def=2)")
                             << EAM(aFilter,"Filter",true,"Remove border faces (def=false)")
                             << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def=4096)")
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
-                            << EAM(aAngleMin, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=90)")
+                            << EAM(aAngleMax, "Angle", true, "Threshold angle, in degree, between triangle normal and image viewing direction (def=90)")
                             << EAM(aMode,"Mode", true, "Mode (def = Pack)", eSAM_None, ListOfVal(eLastTM))
                             << EAM(aCrit,"Crit", true, "Texture choosing criterion (def = Angle)", eSAM_None, ListOfVal(eLastTC))
              );
@@ -178,7 +184,7 @@ int Tequila_main(int argc,char ** argv)
 
     cout << "Mode = " << aMode << endl;
     cout << "Crit = " << aCrit << endl;
-    cout << "Min angle = " << aAngleMin << endl;
+    cout << "Max angle = " << aAngleMax << endl;
     cout << "Downscale factor = " << aZBuffSSEch  << endl;
     cout << "Texture max size = " << aTextMaxSize << endl;
     cout << "Write binary file = " << aBin << endl;
@@ -223,7 +229,8 @@ int Tequila_main(int argc,char ** argv)
 
     float threshold = 0.f;
     float angle_thresh = 0.f;
-    if (aCrit == "Angle") threshold = -cos(PI*aAngleMin/180.f); //angle min = cos(180 - 60) = -0.5
+    float angleMax = -cos(PI*aAngleMax/180.f);//angle min = cos(180 - 60) = -0.5
+    if (aCrit == "Angle") threshold = angleMax;
     else if (aCrit == "Stretch")
     {
         threshold = 1e30;
@@ -443,84 +450,161 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
-
-
-    #ifdef QPBOOOOO
+    if (aDoGraphCut)
+    {
 
         cout << endl;
-        cout <<"**************************QPBO**************************"<<endl;
+        cout <<"***************************Optimization******************************"<<endl;
         cout << endl;
 
+        float mte = 1e9; //mean texture exception
 
-        if (myMesh.getFacesNumber() && myMesh.getEdgesNumber())
+
+        const int nTriangles = myMesh.getFacesNumber();
+        const int nEdges = myMesh.getEdgesNumber();
+        if (nTriangles && nEdges)
         {
-            QPBO<float>* q = new QPBO<float>(myMesh.getFacesNumber(), myMesh.getEdgesNumber()); // max number of nodes & edges
+            cout << "nb faces, nb edges = " << nTriangles << " " <<  nEdges << endl;
 
-            const int nEdges = myMesh.getEdgesNumber();
-            for (int aK=0; aK < nEdges; ++aK)
+            for (int optIter=0; optIter < aNbIter; optIter++)
             {
-                cEdge *edge = myMesh.getEdge(aK);
-                int n1 = edge->n1();
-                int n2 = edge->n2();
+                cout << "Iteration " << optIter+1 << "/" << aNbIter << endl;
 
-                cTriangle *tri1 = myMesh.getTriangle(n1);
-                cTriangle *tri2 = myMesh.getTriangle(n2);
-
-                int curImgIdx1 = tri1->getBestImgIndex();
-                int curImgIdx2 = tri2->getBestImgIndex();
-
-                if (curImgIdx1 != valDef && curImgIdx2 != valDef)
+                for(int aCam=0; aCam< nCam;++aCam)
                 {
-                    int newImgIdx1 = tri1->getBestImgIndexAfter(curImgIdx1); //TODO
-                    int newImgIdx2 = tri2->getBestImgIndexAfter(curImgIdx2); //TODO
+                    QPBO<float>* q = new QPBO<float>(nTriangles, nEdges); // max number of nodes & edges
 
-                    float curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
-                    float curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+                    CamStenope *Cam = ListCam[aCam];
 
-                    float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
-                    float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
+                    set <int> vTri = aZBuffers[aCam].getVisibleTrianglesIndexes();
 
-                    float diff11 = newMean1 - curMean1;
-                    float diff12 = newMean1 - curMean2;
-                    float diff21 = newMean2 - curMean1;
-                    float diff22 = newMean2 - curMean2;
+                    for(int aK=0; aK < nTriangles; ++aK)
+                    {
+                        q->AddNode(1); // add node
 
-                    q->AddNode(2); // add two nodes
+                        cTriangle *tri = myMesh.getTriangle(aK);
+                        tri->setIdxQPBO(aK);
 
-                    q->AddUnaryTerm(n1, tri1->getCriter(curImgIdx1), tri1->getCriter(newImgIdx1)); // add term 2*x
-                    q->AddUnaryTerm(n2, tri2->getCriter(curImgIdx1), tri2->getCriter(newImgIdx2)); // add term 3*(y+1)
-                    q->AddPairwiseTerm(n1, n2, diff11, diff12, diff21, diff22); // add term (x+1)*(y+2)
+                        if (vTri.find(aK) != vTri.end())
+                        {
+                            //TODO: deja calculee plus haut, a stocker dans le triangle...
+                            double angle  = scal(tri->getNormale(true), Cam->DirK()); //Norme de DirK=1
+
+                            if (angle < angleMax)
+                            {
+                                int curImgIdx = tri->getBestImgIndex();
+
+                                if (curImgIdx != valDef)
+                                {
+                                    int newImgIdx = aCam; //tri->getBestImgIndexAfter(curImgIdx);
+
+                                    if (newImgIdx != valDef )
+                                    {
+                                        float curCrit = tri->getCriter(curImgIdx);
+                                        float newCrit = tri->getCriter(newImgIdx);
+
+                                        q->AddUnaryTerm(aK, curCrit*curCrit, newCrit*newCrit); // add term 2*x
+                                    }
+                                    else q->AddUnaryTerm(aK, 300, 300);
+                                }
+                                else q->AddUnaryTerm(aK, 300, 300);
+                            }
+                            else
+                                q->AddUnaryTerm(aK, 300, 300);
+                        }
+                        else
+                            q->AddUnaryTerm(aK, 300, 300);
+                    }
+
+                    for (int aK=0; aK < nEdges; ++aK)
+                    {
+                        cEdge *edge = myMesh.getEdge(aK);
+
+                        cTriangle *tri1 = myMesh.getTriangle(edge->n1());
+                        cTriangle *tri2 = myMesh.getTriangle(edge->n2());
+
+                        if ((vTri.find(edge->n1()) != vTri.end()) &&
+                                (vTri.find(edge->n2()) != vTri.end()) )
+                        {
+                            int curImgIdx1 = tri1->getBestImgIndex();
+                            int curImgIdx2 = tri2->getBestImgIndex();
+
+                            if (curImgIdx1 != valDef && curImgIdx2 != valDef)
+                            {
+                                int newImgIdx1 = aCam; //tri1->getBestImgIndexAfter(curImgIdx1);
+                                int newImgIdx2 = aCam; //tri2->getBestImgIndexAfter(curImgIdx2);
+
+                                if (newImgIdx1 != valDef && newImgIdx2 != valDef)
+                                {
+                                    float curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
+                                    float curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+
+                                    float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
+                                    float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
+
+                                    if ((curMean1 != mte) && (curMean2 != mte) && (newMean1 != mte) && (newMean2 != mte))
+                                    {
+                                        float diff11 = aLambda*fabs(curMean1 - curMean2);
+                                        float diff12 = aLambda*fabs(curMean1 - newMean2);
+                                        float diff21 = aLambda*fabs(newMean1 - curMean2);
+                                        float diff22 = aLambda*fabs(newMean1 - newMean2);
+
+                                        if (debug)
+                                        {
+                                            cout << "curMean1 = " << curMean1 << " newMean1 " << newMean1 << endl;
+                                            cout << "curMean2 = " << curMean2 << " newMean2 " << newMean2 << endl;
+
+                                            cout << "diff11 = " << diff11 << endl;
+                                            cout << "diff12 = " << diff12 << endl;
+                                            cout << "diff21 = " << diff21 << endl;
+                                            cout << "diff22 = " << diff22 << endl;
+
+                                            cout << "tri1->getCriter(curImgIdx1), tri1->getCriter(newImgIdx1) " << tri1->getCriter(curImgIdx1) << " " << tri1->getCriter(newImgIdx1)<< endl;
+                                            cout << "tri2->getCriter(curImgIdx1), tri2->getCriter(newImgIdx2) " << tri2->getCriter(curImgIdx2) << " " << tri2->getCriter(newImgIdx2)<< endl;
+                                        }
+
+                                        q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), diff11, diff12, diff21, diff22); // add term (x+1)*(y+2)
+                                    }
+                                    else
+                                        q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), 300,300,300,300); // add term (x+1)*(y+2)
+                                }
+                                else
+                                    q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), 300,300,300,300); // add term (x+1)*(y+2))
+                            }
+                            else
+                                q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), 300,300,300,300); // add term (x+1)*(y+2))
+                        }
+                        else
+                            q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), 300,300,300,300); // add term (x+1)*(y+2))
+                    }
+
+                    cout << "Solve for image "<< aCam+1 << "/"<< nCam << endl;
+                    q->Solve();
+                    q->ComputeWeakPersistencies();
+
+                    for (int aK=0; aK < nTriangles; ++aK)
+                    {
+                        cTriangle *tri = myMesh.getTriangle(aK);
+
+                        int curImgIdx = tri->getBestImgIndex();
+
+                        if (curImgIdx != valDef)
+                        {
+                            int x = q->GetLabel(tri->getIdxQPBO());
+
+                            //if (debug) printf("Solution: x=%d, y=%d\n", x, y);
+
+                            if (x==1) tri->setBestImgIndex(aCam);
+                        }
+                    }
                 }
-            }
-
-            q->Solve();
-            q->ComputeWeakPersistencies();
-
-            for (int aK=0; aK < nEdges; ++aK)
-            {
-                cEdge *edge = myMesh.getEdge(aK);
-                int n1 = edge->n1();
-                int n2 = edge->n2();
-
-                int x = q->GetLabel(n1);
-                int y = q->GetLabel(n2);
-
-                printf("Solution: x=%d, y=%d\n", x, y);
-
-                cTriangle *tri1 = myMesh.getTriangle(n1);
-                cTriangle *tri2 = myMesh.getTriangle(n2);
-
-                tri1->setBestImgIndex(x);
-                tri2->setBestImgIndex(y);
             }
         }
         else
         {
             std::cout << "Walou faces or walou edges" << std::endl;
         }
-
-    #endif //QPBOOOO
-
+    }
 
 
 
@@ -665,20 +749,24 @@ int Tequila_main(int argc,char ** argv)
 
             //cout << "position dans l'image " << ListCam[imgIdx]->IdCam() << " = " << p0.x << " " << p0.y << endl;
 
-            Fonc_Num aF0 = aVT[imgIdx].in_proj() * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
+            Fonc_Num aF0 = aVT[imgIdx].in_proj()  * (final_ZBufIm[imgIdx].in_proj()!=defValZBuf);
 
             if (rotated)
             {
                 std::vector<Im2DGen *> aVOutInit = nFileRes.VecOfIm(Pt2di(h_scaled, w_scaled));
 
+                Fonc_Num Fonc = StdFoncChScale(aF0,Pt2dr(p0),Pt2dr(1.f/Scale,1.f/Scale));
+                Fonc = Max(0,Min(255,Fonc));
+                //TODO: Si ce n'est pas une image sur 8 Bits, il est plus propre de lire les bornes avant de faire le max min
+                //Fonc_Num Tronque(GenIm::type_el,Fonc_Num);
+
                 ELISE_COPY
                 (
                      aVOutInit[0]->all_pts(),
-                     StdFoncChScale(aF0,Pt2dr(p0),Pt2dr(1.f/Scale,1.f/Scale)),
+                     Fonc,
                      StdOut(aVOutInit)
                 );
-                //erreur 1 : segfault avec Sz=4096 Scale=0.24
-                //erreur 2 : "values out of range in bitmaps writing" avec Sz=16384 Scale=0.96
+                //erreur : segfault avec Sz=4096 Scale=0.24
 
                 std::vector<Im2DGen *>   aVOutRotate;
                 for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
@@ -761,10 +849,10 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
                     //debug
-                    /*std::vector <int> vIndexes;
+                    std::vector <int> vIndexes;
                     Triangle->getVertexesIndexes(vIndexes);
 
-                    if ((vIndexes[0] == 7117) && (vIndexes[1] == 7115) && (vIndexes[2]==6986))
+                    if ((vIndexes[0] == 14473) && (vIndexes[1] == 14473) && (vIndexes[2]==15050))
                     {
                         cout << "idx du triangle = " << triIdx << " region = " << cptTmp<< " bK = " << bK << " rotated " << it->isRotated << endl;
                         cout << "nb triangles dans la region = "<< it->triangles.size()<< endl;
@@ -776,7 +864,7 @@ int Tequila_main(int argc,char ** argv)
                         cout << "tx = " << tx << endl;
                         cout << "ty = " << ty << endl;
                         cout << "idcam = " << Cam->IdCam() << endl;
-                    }*/
+                    }
                     //end debug
 
                     if (Cam->IsInZoneUtile(Pt1) || Cam->IsInZoneUtile(Pt2) || Cam->IsInZoneUtile(Pt3))

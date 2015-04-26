@@ -292,7 +292,7 @@ int cTriangle::getBestImgIndexAfter(int aK)
 
 float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
 {
-    double sumTx = 0.f;
+    float sumTx = 0.f;
     int cptPx = 0;
 
     vector <Pt3dr> Vertex;
@@ -320,36 +320,20 @@ float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
             Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
             aP1 = Inf(aP1,aCam->Sz()-Pt2di(1,1));
 
-            Pt2di aSz(aP1-aP0);
-
             if (aImg.nb_chan() == 3)
             {
-                //MD: NE MARCHE PAS et AUCUN INTERLOCUTEUR POUR AIDER...
-                //    DONC J'UTILISE ENCORE L'ENCLUME, à defaut de mieux.....
+                Pt2di aSz(aP1-aP0);
 
-                /*
                 Im2D_U_INT1 aImR(aSz.x,aSz.y,0);
                 Im2D_U_INT1 aImG(aSz.x,aSz.y,0);
                 Im2D_U_INT1 aImB(aSz.x,aSz.y,0);
 
+                //Crop in aImg from aP0 to aP1
                 ELISE_COPY
                 (
-                   rectangle(aP0,aP1),
-                   trans(aImg.in(),-aP0),
-                   Virgule(aImR.out(),aImG.out(),aImB.out())
-                );*/
-
-                Pt2di bSz = aImg.sz();
-
-                Im2D_U_INT1 aImR(bSz.x,bSz.y,0);
-                Im2D_U_INT1 aImG(bSz.x,bSz.y,0);
-                Im2D_U_INT1 aImB(bSz.x,bSz.y,0);
-
-                ELISE_COPY
-                (
-                   aImg.all_pts(),
-                   aImg.in(),
-                   Virgule(aImR.out(),aImG.out(),aImB.out())
+                    rectangle(Pt2di(0,0), aSz),
+                    trans(aImg.in_proj(), aP0),
+                    Virgule(aImR.out(),aImG.out(),aImB.out())
                 );
 
                 U_INT1 ** aDataR = aImR.data();
@@ -369,13 +353,9 @@ float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
 
                         if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps)) // on est a l'intérieur du triangle
                         {
-                            /*unsigned char red   = aDataR[ay][ax];
+                            unsigned char red   = aDataR[ay][ax];
                             unsigned char green = aDataG[ay][ax];
-                            unsigned char blue  = aDataB[ay][ax];*/
-
-                            unsigned char red   = aDataR[ay+ aP0.y][ax + aP0.x];
-                            unsigned char green = aDataG[ay+ aP0.y][ax + aP0.x];
-                            unsigned char blue  = aDataB[ay+ aP0.y][ax + aP0.x];
+                            unsigned char blue  = aDataB[ay][ax];
 
                           /*  cout << "red = " << (int) red << endl;
                             cout << "gre = " << (int) green << endl;
@@ -383,7 +363,7 @@ float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
                             cout << "****************" << endl;*/
 
                             cptPx++;
-                            sumTx += 0.2126*(double)red + 0.7152*(double)green + 0.0722*(double)blue;
+                            sumTx += 0.2126*(float)red + 0.7152*(float)green + 0.0722*(float)blue;
                         }
                     }
                 }
@@ -394,7 +374,7 @@ float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
             return sumTx / (float) cptPx;
     }
 
-    return -1.f;
+    return 1e9;
 }
 
 
@@ -757,7 +737,7 @@ void cMesh::clean()
 
     cout << "Removing " << toRemove.size() << " faces" <<endl;
 
-    std::set < int >::const_iterator itr = toRemove.begin();
+    std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
     for (; itr != toRemove.end(); ++itr) removeTriangle(mTriangles[*itr]);
 
     //cout << "Removing isolated vertex" << endl;
@@ -814,7 +794,7 @@ vector<cTextureBox2d> cMesh::getRegions()
         int imgIdx = -1;
         if ((getTriangle(aK)->isTextured()) && (triangleIdxSet.find(aK) == triangleIdxSet.end()))
         {
-            imgIdx = getTriangle(aK)->getBestImgIndex();;
+            imgIdx = getTriangle(aK)->getBestImgIndex();
             myList.push_back(aK);
         }
 

@@ -150,10 +150,12 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
      (
            argc,argv,
            LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile)
-                      << EAMC(mCalib,"Calibration Dir"),
+                      << EAMC(mCalib,"Calibration Dir",eSAM_IsExistDirOri),
            LArgMain() << EAM(mSzLim,"SzInit",true,"Sz of initial interval (Def=50)")
                       << EAM(mOverlapProp,"OverLap",true,"Prop overlap (Def=0.1) ")
     );
+
+    if (MMVisualMode) return;
 
     mEASF.Init(mFullName);
     mVNames = mEASF.SetIm();

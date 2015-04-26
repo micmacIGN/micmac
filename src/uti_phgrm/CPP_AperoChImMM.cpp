@@ -72,7 +72,7 @@ int AperoChImMM_main(int argc,char ** argv)
                     << EAM(aTetaOpt,"TetaOpt",true,"Optimal angle of stereoscopy, in radian, def=0.17 (+or- 10 degree)")
                     << EAM(aMasq3D,"Masq3D",true,"Masq3D for tie points selection")
                     << EAM(mVecDep,"VecDep",true,"Fixed Vec of deplacement (adapted to video like acquisition) ")
-                    << EAM(OnlyVecDep,"OnlyVecDep",true,"Only vec dep (internal purpose) ")
+                    << EAM(OnlyVecDep,"OnlyVecDep",true,"Only vec dep (internal purpose) ",eSAM_InternalUse)
     );
 
 

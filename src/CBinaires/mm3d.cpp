@@ -365,9 +365,9 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("SaisieBasc",SaisieBasc_main," Interactive tool to capture information on the scene"));
        aRes.push_back(cMMCom("SaisieCyl",SaisieCyl_main," Interactive tool to capture information on the scene for cylinders"));
        aRes.push_back(cMMCom("SaisieMasq",SaisieMasq_main," Interactive tool to capture masq"));
-       aRes.push_back(cMMCom("SaisiePts",SaisiePts_main," Tool to capture GCP (low level, not recommanded)"));
-       aRes.push_back(cMMCom("SEL",SEL_main," Tool to visualise tie points"));
-       aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main," Low level version of SEL, not recommanded"));
+       aRes.push_back(cMMCom("SaisiePts",SaisiePts_main," Tool to capture GCP (low level, not recommended)"));
+       aRes.push_back(cMMCom("SEL",SEL_main," Tool to visualize tie points"));
+       aRes.push_back(cMMCom("MICMACSaisieLiaisons",MICMACSaisieLiaisons_main," Low level version of SEL, not recommended"));
 
 #ifdef ETA_POLYGON
 
@@ -391,7 +391,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
        aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo"));
-       aRes.push_back(cMMCom("DIV",Devideo_main,"Developpement d'Images Video (require ffmpeg)"));
+       aRes.push_back(cMMCom("DIV",Devideo_main,"Videos development (require ffmpeg)"));
        aRes.push_back(cMMCom("Liquor",Liquor_main,"Orientation specialized for linear acquisition"));
        aRes.push_back(cMMCom("Morito",Morito_main,"Merge set of Orientations with common values"));
        aRes.push_back(cMMCom("Donuts",Donuts_main,"Cyl to Torus (Donuts like)"));
@@ -401,7 +401,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("PIMs2Mnt",MPI2Mnt_main,"Generate Mnt from Per Image Matchings"));
 
 
-       aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force devlopment of all tif/xif file"));
+       aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force development of all tif/xif file"));
 
    }
 

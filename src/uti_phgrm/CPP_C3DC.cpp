@@ -189,7 +189,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mTuning,"Tuning",true,"Will disappear one day ...",eSAM_InternalUse)
                     << EAM(mPurge,"Purge",true,"Purge result, (Def=true)")
                     << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends on mode")
-                    << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode")
+                    << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode",eSAM_IsPowerOf2)
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def correlation, context depend")
                     << EAM(mZReg,"ZReg",false,"Regularisation, context depend")
@@ -351,7 +351,7 @@ void cAppli_C3DC::DoAll()
 int C3DC_main(int argc,char ** argv)
 {
     cAppli_C3DC anAppli(argc,argv,true);
-    anAppli.DoAll();
+    if (!MMVisualMode) anAppli.DoAll();
     return EXIT_SUCCESS;
 }
 
@@ -359,7 +359,7 @@ int C3DC_main(int argc,char ** argv)
 int MPI_main(int argc,char ** argv)
 {
     cAppli_C3DC anAppli(argc,argv,false);
-    anAppli.DoAll();
+    if (!MMVisualMode) anAppli.DoAll();
     return EXIT_SUCCESS;
 }
 
@@ -429,12 +429,14 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
    ElInitArgMain
    (
         argc,argv,
-        LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)"),
+        LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)",eSAM_None,ListOfVal(eNbTypeMMByP)),
         LArgMain()
                     << EAM(mDS,"DS",true,"Dowscale, Def=1.0")
                     << EAM(mMergeOut,"Out",true,"Ply File Results")
-                    << EAM(mPat,"Pat",true,"Pattern for selecting images (Def=All image in files)")
+                    << EAM(mPat,"Pat",true,"Pattern for selecting images (Def=All image in files)",eSAM_IsPatFile)
     );
+
+    if(MMVisualMode) return;
 
     mCFPI = new cChantierFromMPI(mName,mDS,mPat);
 
@@ -463,7 +465,7 @@ void cAppli_MPI2Ply::DoAll()
 int MPI2Ply_main(int argc,char ** argv)
 {
     cAppli_MPI2Ply anAppli(argc,argv);
-    anAppli.DoAll();
+    if (!MMVisualMode) anAppli.DoAll();
     return EXIT_SUCCESS;
 }
 
@@ -645,15 +647,17 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
    ElInitArgMain
    (
         argc,argv,
-        LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)"),
+        LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)",eSAM_None,ListOfVal(eNbTypeMMByP)),  //pas gerable par les vCommandes...
         LArgMain()
                     << EAM(mDS,"DS",true,"Downscale, Def=1.0")
-                    << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
-                    << EAM(mPat,"Pat",true,"Pattern, def = all existing clouds")
+                    << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)",eSAM_IsExistFileRP)
+                    << EAM(mPat,"Pat",true,"Pattern, def = all existing clouds", eSAM_IsPatFile)
                     << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to return only ortho)")
                     << EAM(mDoOrtho,"DoOrtho",true,"Generate ortho photo,  def=false")
-                    << EAM(mDebug,"Debug",true,"Debug !!!")
+                    << EAM(mDebug,"Debug",true,"Debug !!!",eSAM_InternalUse)
    );
+
+   if (MMVisualMode) return;
 
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
    mDirApp = mCFPI->mFullDirChantier;
@@ -683,7 +687,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
 int MPI2Mnt_main(int argc,char ** argv)
 {
     cAppli_MPI2Mnt anAppli(argc,argv);
-    anAppli.DoAll();
+    if (!MMVisualMode) anAppli.DoAll();
 
 
     return EXIT_SUCCESS;

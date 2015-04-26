@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -67,7 +67,7 @@ cProjTore::cProjTore(const cCylindreRevolution & aCyl,const Pt3dr & aPEuclInitDi
 
     mDiamCyl = mCyl.E2UVL(mDiamEucl);
 
-    if (ShowTore) 
+    if (ShowTore)
     {
        std::cout << " DiamEuclInit " << aPEuclInitDiamTor << " " << mDiamEucl << "\n";
        std::cout << " P0 " << mCyl.P0() << "\n";
@@ -84,7 +84,7 @@ cProjTore::cProjTore(const cCylindreRevolution & aCyl,const Pt3dr & aPEuclInitDi
       |        ||    |
       |        ||  -------- * Diam
                      Z
-                     
+
 */
 
 Pt3dr cProjTore::Cyl2Tore(const Pt3dr & aP) const // Loc2Cyl
@@ -129,11 +129,11 @@ Pt3dr cProjTore::Tore2Cyl(const Pt3dr  & aP) const  // :Cyl2Loc : ToOrLoc
 Pt3dr cProjTore::ToOrLoc(const Pt3dr & aP) const { return Tore2Cyl(aP); }
 Pt3dr cProjTore::UVL2E(const Pt3dr & aP) const { return mCyl.UVL2E(Tore2Cyl(aP)); }
 
-std::vector<cInterSurfSegDroite>  cProjTore::InterDroite(const ElSeg3D & aSeg,double aZ0) const 
+std::vector<cInterSurfSegDroite>  cProjTore::InterDroite(const ElSeg3D & aSeg,double aZ0) const
 {
    return mCyl.InterDroite(aSeg,aZ0);
 }
-  
+
 
 
 
@@ -142,7 +142,7 @@ std::vector<cInterSurfSegDroite>  cProjTore::InterDroite(const ElSeg3D & aSeg,do
 bool  cProjTore::HasOrthoLoc()     const {return true;}
 bool  cProjTore::OrthoLocIsXCste() const {return true;}
 
-void cProjTore::AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const 
+void cProjTore::AdaptBox(Pt2dr & aP0,Pt2dr & aP1) const
 {
    mCyl.AdaptBox(aP0,aP1);
 }
@@ -214,12 +214,15 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
      (
            argc,argv,
            LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile)
-                      << EAMC(mOri,"Orientation Dir")
-                      << EAMC(mNameCyl,"Name of XML cylinder"),
+                      << EAMC(mOri,"Orientation Dir", eSAM_IsExistDirOri)
+                      << EAMC(mNameCyl,"Name of XML cylinder", eSAM_IsExistFileRP),
            LArgMain() << EAM(mOut,"Out",true,"Out Put, Def = Tore_{NameCyl}")
                       << EAM(mShow,"Show",true,"Show details")
                       << EAM(mCheck,"Check",true,"Show details")
     );
+
+    if (MMVisualMode) return;
+
     ShowTore = mShow;
 
     if (!EAMIsInit(&mOut))
@@ -233,7 +236,7 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
 
     cXmlCylindreRevolution * aXmlCyl = aXmlSA.XmlDescriptionAnalytique().Cyl().PtrVal();
     ELISE_ASSERT(aXmlCyl!=0,"Cannot find XmlCylindreRevolution in Donnuts");
-    
+
     cCylindreRevolution aCyl = cCylindreRevolution::FromXml(aXmlSA,*aXmlCyl);
 
 
@@ -295,15 +298,15 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
 
 
 /*
-             std::cout << " Tor[C] " << aISA.E2UVL(aCS->PseudoOpticalCenter()) 
+             std::cout << " Tor[C] " << aISA.E2UVL(aCS->PseudoOpticalCenter())
                        << " Cyl[C] " << aCyl.E2UVL(aCS->PseudoOpticalCenter())
                        << "\n";
 */
 
-             std::cout 
-                       << "E2U o U2E: " << EcartInv  
-                       << " Rot;" << EcartON        
-                        << " Dir " << EcartDir     
+             std::cout
+                       << "E2U o U2E: " << EcartInv
+                       << " Rot;" << EcartON
+                        << " Dir " << EcartDir
                        ;
 
              ElSeg3D aSeg = aCS->Capteur2RayTer(aCS->Sz()/2.0);
@@ -319,7 +322,7 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
                 std::cout  << " Int XXXXXX ";
                 aNbNonInter++;
              }
-             std::cout 
+             std::cout
                        << "\n";
 
              IndQual = ElMax(IndQual,EcartInv + EcartON + EcartDir);
@@ -329,7 +332,7 @@ cAppliDonuts::cAppliDonuts(int argc,char **argv) :
         std::cout << "   NonInter = " << aNbNonInter  << "\n";
     }
 
-    
+
 }
 
 int Donuts_main(int argc,char **argv)
@@ -348,13 +351,13 @@ int Donuts_main(int argc,char **argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -364,17 +367,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
