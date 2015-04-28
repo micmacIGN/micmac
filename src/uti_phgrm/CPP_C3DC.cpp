@@ -108,6 +108,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          double          mDefCor;
          double          mZReg;
          std::string     mArgSupEpip;
+         std::string     mFilePair;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -193,6 +194,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def correlation, context depend")
                     << EAM(mZReg,"ZReg",false,"Regularisation, context depend")
+                    << EAM(mFilePair,"FilePair",false,"Expicit pairs of files (as in Tapioca)")
     );
 
    if (MMVisualMode) return;
@@ -216,7 +218,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    if (! EAMIsInit(&mMergeOut)) mMergeOut = "C3DC_"+ mStrType + ".ply";
 
    mStrImOri0  =  BLANK + QUOTE(mEASF.mFullName) +  BLANK + Ori() + BLANK;
-   mStrImOriApSec = BLANK +  DirAndPatFileOfImSec() +  BLANK + Ori() + BLANK;
+   mStrImOriApSec = BLANK +  DirAndPatFileMMByP() +  BLANK + Ori() + BLANK;
    mArgMasq3D = "";
    if (EAMIsInit(&mMasq3D))
        mArgMasq3D = std::string(" Masq3D=" + mMasq3D + BLANK) ;
@@ -229,6 +231,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
            +  mStrImOri0
            +  mArgMasq3D
            +  " UseGpu=" + ToString(mUseGpu);
+   if (EAMIsInit(&mFilePair))
+       mBaseComMMByP  += " FilePair=" + mFilePair;
 
 
    //=====================================

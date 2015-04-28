@@ -1493,7 +1493,7 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
         itK++
             )
         {
-            ELISE_ASSERT(mEquivs[itK->KeyClass()]==0,"Non unique key for KeyedSetsORels");
+            ELISE_ASSERT(mEquivs[itK->KeyClass()]==0,"Non unique key for ClassEquivDescripteur");
             mEquivs[itK->KeyClass()]= new cStrRelEquiv(*aGlob,*itK);
         }
 

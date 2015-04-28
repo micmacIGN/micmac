@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 const std::string TheDIRMergeEPI(){return  "MTD-Image-";}
 
+const std::string cAppliWithSetImage::TheMMByPairNameCAWSI =  "MMByPairCAWSI.xml";
+const std::string cAppliWithSetImage::TheMMByPairNameFiles =  "MMByPairFiles.xml";
 
 extern double DynCptrFusDepthMap;
 
@@ -51,6 +53,10 @@ std::string DirAndPatFileOfImSec(const std::string & aDir,const std::string & an
    return aDir + "%" + PatFileOfImSec(anOri);
 }
 
+std::string DirAndPatFileMMByP(const std::string & aDir)
+{
+   return aDir + "%NKS-Set-OfFile@" + cAppliWithSetImage::TheMMByPairNameFiles;
+}
 
 
 
@@ -119,8 +125,13 @@ class cAppliMMByPair : public cAppliWithSetImage
       int mZoom0;
       int mZoomF;
       bool mParalMMIndiv;
+      std::string mFilePair;
       bool mDelaunay;
-      bool mAddMMImSec;
+      // Avant mAddMMImSec  ; maintenant on separe l'execution de AperoImSec (mRunAperoImSec) de l'ajout des arc ; car parfois
+      // meme si on ne veut pas rajouter les arcs (par ex parce que controle explicite des paires par FilePair) on a besoin
+      // des autres donnees generees
+      bool mRunAperoImSec;
+      bool mAddCpleImSec;
       int mDiffInStrip;
       bool mStripIsFirt;
       std::string  mMasterImages;
@@ -401,12 +412,16 @@ std::string  cAppliWithSetImage::DirAndPatFileOfImSec() const
 }
 
 
+std::string  cAppliWithSetImage::DirAndPatFileMMByP() const
+{
+   return ::DirAndPatFileMMByP(mEASF.mDir);
+}
+
 void cAppliWithSetImage::Develop(bool EnGray,bool Cons16B)
 {
     Paral_Tiff_Dev(mEASF.mDir,*mEASF.SetIm(),(EnGray?1:3),Cons16B);
 }
 
-const std::string cAppliWithSetImage::TheMMByPairNameCAWSI =  "MMByPairCAWSI.xml";
 
 cAppliWithSetImage::cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI)  :
    mSym       (true),
@@ -537,6 +552,7 @@ bool  cAppliWithSetImage::CAWSI_AcceptIm(const std::string & aName) const
 
 void cAppliWithSetImage::SaveCAWSI(const std::string & aName)
 {
+   cListOfName aLON;
    cChantierAppliWithSetImage aCAWSI;
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
@@ -549,8 +565,12 @@ void cAppliWithSetImage::SaveCAWSI(const std::string & aName)
            aWSI.CWWSIVois().push_back(aV);
        }
        aCAWSI.Images().push_back(aWSI);
+       aLON.Name().push_back(aWSI.NameIm());
    }
    MakeFileXML(aCAWSI,Dir()+aName);
+   MakeFileXML(aLON,Dir()+TheMMByPairNameFiles);
+
+
 }
 
 
@@ -733,7 +753,7 @@ void cAppliWithSetImage::AddDelaunayCple()
 
 }
 
-void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq)
+void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bool AddCple)
 {
       std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
                          + BLANK + QUOTE(mEASF.mFullName)
@@ -761,21 +781,24 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq)
            mSetImNoMasq = mEASF.mICNM->Get(PatFileOfImSec());
       }
 
-
-      for (int aKI=0 ; aKI<int(mVSoms.size()) ; aKI++)
+      if (AddCple)
       {
-          const std::string & aName1 = mVSoms[aKI]->attr().mIma->mNameIm;
-          cImSecOfMaster aISOM = StdGetISOM(mEASF.mICNM,aName1,mOri);
-          const std::list<std::string > *  aLIm = GetBestImSec(aISOM,-1,-1,10000,true);
-          if (aLIm)
-          {
-             for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
+
+         for (int aKI=0 ; aKI<int(mVSoms.size()) ; aKI++)
+         {
+             const std::string & aName1 = mVSoms[aKI]->attr().mIma->mNameIm;
+             cImSecOfMaster aISOM = StdGetISOM(mEASF.mICNM,aName1,mOri);
+             const std::list<std::string > *  aLIm = GetBestImSec(aISOM,-1,-1,10000,true);
+             if (aLIm)
              {
-                 const std::string & aName2 = *itN;
-                 if( ImIsKnown(aName1) && ImIsKnown(aName2))
-                    AddPair(ImOfName(aName1),ImOfName(aName2));
+                for (std::list<std::string>::const_iterator itN=aLIm->begin(); itN!=aLIm->end() ; itN++)
+                {
+                    const std::string & aName2 = *itN;
+                    if( ImIsKnown(aName1) && ImIsKnown(aName2))
+                       AddPair(ImOfName(aName1),ImOfName(aName2));
+                }
              }
-          }
+         }
       }
 
 }
@@ -834,6 +857,34 @@ bool  cAppliWithSetImage::CpleHasMasterSelected(tSomAWSI* aS1,tSomAWSI* aS2) con
     return MasterSelected(aS1) || MasterSelected(aS2);
 }
 
+
+void cAppliWithSetImage::AddFilePair(const std::string & aFilePair)
+{
+     cSauvegardeNamedRel aSNR = StdGetFromPCP(mEASF.mDir+aFilePair,SauvegardeNamedRel);
+     for
+     (
+         std::vector<cCpleString>::const_iterator itC=aSNR.Cple().begin();
+         itC!=aSNR.Cple().end();
+         itC++
+     )
+     {
+         AddPair(itC->N1(),itC->N2(),true);
+     }
+
+}
+
+void cAppliWithSetImage::AddPair(const std::string & aN1,const std::string & aN2,bool aSVP)
+{
+    if (ImIsKnown(aN1) && ImIsKnown(aN2))
+    {
+         AddPair(ImOfName(aN1),ImOfName(aN2));
+         return;
+    }
+    if (aSVP) return;
+    std::cout << "For Names " << aN1 << " " << aN2 << " \n";
+    ELISE_ASSERT(false,"cannot associate images in cAppliWithSetImage::AddPair")
+    // ImIsKnown
+}
 
 
 
@@ -1128,7 +1179,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mZoomF        (1),
     mParalMMIndiv (false),
     mDelaunay     (false),
-    mAddMMImSec   (false),
+    mRunAperoImSec(false),
+    mAddCpleImSec (false),
     mDiffInStrip  (1),
     mStripIsFirt  (true),
     mDirBasc      ("MTD-Nuage"),
@@ -1172,7 +1224,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      else if (mType==eStatue)
      {
         mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
-        mAddMMImSec = true;
+        mAddCpleImSec = true;
         mHasVeget = false;
         mSkyBackGround = true;
         mRIE2Do = true;
@@ -1182,7 +1234,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      else if (mType==eForest)
      {
         mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
-        mAddMMImSec = true;
+        mAddCpleImSec = true;
         mHasVeget = true;
         mSkyBackGround = false;
         mRIE2Do = true;
@@ -1194,7 +1246,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      else if (mMacType)
      {
         mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
-        mAddMMImSec = true;
+        mAddCpleImSec = true;
         mHasVeget = false;
         mSkyBackGround = true;
         mRIE2Do = false;
@@ -1221,7 +1273,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64",eSAM_IsPowerOf2)
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1",eSAM_IsPowerOf2)
                     << EAM(mDelaunay,"Delaunay",true,"Add Delaunay edges in pair to match, Def=true on ground")
-                    << EAM(mAddMMImSec,"MMImSec",true,"Add pair from AperoChImSecMM,  Def=true in mode Statue")
+                    << EAM(mFilePair,"FilePair",true,"Add a File containing explicit pair (as in Tapioca, a <SauvegardeNamedRel> struct ...")
+                    << EAM(mAddCpleImSec,"MMImSec",true,"Add pair from AperoChImSecMM,  Def=true in mode Statue")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip, first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
                     << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
@@ -1247,14 +1300,25 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mCalPerIm,"CalPerIm",true,"true id Calib per Im were used, def=false")
                     << EAM(mPenPerIm,"PenPerIm",true,"Penality Per Image in choice im sec")
                     << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
-            << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
-            << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
-            << EAM(mZReg,"ZReg",false,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
+                    << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
+                    << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
+                    << EAM(mZReg,"ZReg",false,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
 
   );
 
+  // Par defaut c'est le meme comportement
+  mRunAperoImSec=mAddCpleImSec;
+
   if (!MMVisualMode)
   {
+      if (EAMIsInit(&mFilePair))
+      {
+          if (!EAMIsInit(&mDelaunay)) mDelaunay = false;
+          if (!EAMIsInit(&mAddCpleImSec)) mAddCpleImSec = false;
+      }
+
+
+
       mExeRIE = mRIE2Do;
 
       if (EAMIsInit(&mMasterImages))
@@ -1283,13 +1347,21 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       }
       if (mDelaunay)
          AddDelaunayCple();
-      if (mAddMMImSec)
+      if (mRunAperoImSec)
       {
-         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq);
+         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq,mAddCpleImSec);
       }
 
-
+      if (EAMIsInit(&mFilePair))
+      {
+          AddFilePair(mFilePair);
+      }
       FilterImageIsolated();
+
+      // mVSoms
+
+
+
 
       mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 
@@ -1634,7 +1706,8 @@ void cAppliMMByPair::DoFusionEpip()
                            ;
 
             aLCom.push_back(aCom);
-            // std::cout << aCom << "\n";
+            if (mShow)
+                std::cout << aCom << "\n";
 
        }
        cEl_GPAO::DoComInParal(aLCom);

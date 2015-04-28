@@ -302,6 +302,8 @@ void cAppliMergeCloud::OneStepSelection()
              }
           }
       }
+
+
       if (aBestSom)
       {
            cASAMG * aBestA = aBestSom->attr();
