@@ -169,6 +169,7 @@
           </Sets>
           <Key> NKS-Set-Homol-Filtered </Key>
     </KeyedSetsOfNames>
+
 <!--
 -->
 
@@ -550,7 +551,7 @@
                 <Separateur > % </Separateur>
              </Direct>
 	     <Inverse>
-                <PatternTransform>  Ori2Im#1/DirIm_$1/$2.#2 </PatternTransform>
+                <PatternTransform>  Ori2Im#1/DirIm_(.*)/(.*).#2 </PatternTransform>
                 <CalcName> $1  </CalcName>
                 <CalcName> $2  </CalcName>
 	     </Inverse>
@@ -559,6 +560,16 @@
 	<SubDirAutoMake> Ori2Im#1 </SubDirAutoMake>
 	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
     </KeyedNamesAssociations>
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> DirIm_(.*)/(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   Ori2Im#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-CplIm2OriRel </Key>
+    </KeyedSetsOfNames>
 
 
                <!--  Gestion des nom lies aux focales -->

@@ -84,6 +84,9 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
 
         bool IsFE;
         FromString(IsFE,mICNM->Assoc1To1("NKS-IsFishEye",aName,true));
+        std::string aNameCal = "CamF" + ToString(aFPix) +"_Sz"+ToString(aSzIm) + "FE"+ToString(IsFE);
+        if (DicBoolFind(mDicoCam,aNameCal))
+           return mDicoCam[aNameCal];
         CamStenope * aRes = 0;
 
         if (IsFE)
@@ -108,14 +111,19 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
              aRes = new CamStenopeIdeale(false,aFPix,aPP,aPAF);
         }
         aRes->SetSz(aSzIm);
+        mDicoCam[aNameCal] =  aRes;
         return aRes;
    }
 
 
    std::string  aNC = mICNM->StdNameCalib(mOriCal,aName);
 
+   if (DicBoolFind(mDicoCam,aNC))
+      return mDicoCam[aNC];
 
-   return CamOrientGenFromFile(aNC,mICNM);
+   mDicoCam[aNC] =  CamOrientGenFromFile(aNC,mICNM);
+
+   return mDicoCam[aNC];
 }
 /*
 */

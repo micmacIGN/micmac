@@ -346,7 +346,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("Im2XYZ",Im2XYZ_main," tool to transform a 2D point (text file) to their 3D cloud homologous"));
        aRes.push_back(cMMCom("SplitMPO",SplitMPO_main,"tool to develop MPO stereo format in pair of images"));
 
-       aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images - work in progress!", cArgLogCom(3)));
+       aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images", cArgLogCom(3)));
        aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
 
 #if (ELISE_QT_VERSION >= 4)
@@ -481,38 +481,11 @@ int  Idem_main(int argc,char ** argv);
 extern int BasculePtsInRepCam_main(int argc,char ** argv);
 extern int BasculeCamsInRepCam_main(int argc,char ** argv);
 
-
-
-int MakeOneXmlXifInfo_main(int argc,char ** argv);
-
-int Masq3Dto2D_main(int argc,char ** argv);
-
-int CPP_AppliMergeCloud(int argc,char ** argv);
-int MMEnveloppe_Main(int argc,char ** argv);
-int PlySphere_main(int argc,char ** argv);
-int San2Ply_main(int argc,char ** argv);
-int Export2Ply_main(int argc,char **argv);
-int CASALL_main(int argc,char ** argv);
-extern int MMEnvStatute_main(int argc,char ** argv);
-
-
-int CheckOneHom_main(int argc,char ** argv);
-int CheckAllHom_main(int argc,char ** argv);
-int CheckOneTiff_main(int argc,char ** argv);
-int CheckAllTiff_main(int argc,char ** argv);
-
-
 int CheckOneOrient_main(int argc,char ** argv);
 int CheckAllOrient_main(int argc,char ** argv);
 int ChekBigTiff_main(int,char**);
+int GenTriplet_main(int argc,char ** argv);
 
-
-int TestNewOriImage_main(int argc,char ** argv);
-int TestAllNewOriImage_main(int argc,char ** argv);
-int PreparSift_Main(int argc,char ** argv);
-
-
-int MatisOri2MM_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -608,6 +581,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
     aRes.push_back(cMMCom("NO_Ori2Im",TestNewOriImage_main,"Test New Orientation"));
     aRes.push_back(cMMCom("NO_AllOri2Im",TestAllNewOriImage_main,"Test New Orientation"));
+    aRes.push_back(cMMCom("NO_GenTripl",GenTriplet_main,"New Orientation : select triplet"));
     aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
 
 

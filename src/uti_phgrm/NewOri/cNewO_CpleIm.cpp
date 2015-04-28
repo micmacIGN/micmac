@@ -141,7 +141,7 @@ ElRotation3D TestcRanscMinimMatEss
 
 double cNewO_OrInit2Im::RecouvrtHom(const cElHomographie & aHom)
 {
-    int aNb = 40;
+    int aNb = NbRecHom;
 
     CamStenope * aCS1 = mI1->CS();
     CamStenope * aCS2 = mI2->CS();
@@ -221,7 +221,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
    if (mShow)
       std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
-   if (mXml.NbPts()<50)
+   if (mXml.NbPts()<NbMinPts2Im)
    {
         return;
    }
