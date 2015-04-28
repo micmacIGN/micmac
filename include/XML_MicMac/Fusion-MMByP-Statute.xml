@@ -153,7 +153,7 @@ mm3d MergeDepthMap /home/marc/MMM/culture3d/include/XML_MicMac/Fusion-MMByP-Stat
 
 
     <GenereRes> 
-            <KeyString> NuageImProf_LeChantier_Etape_1.xml </KeyString>
+            <KeyString> MTD-Image-${ImMaster}/NuageImProf_LeChantier_Etape_1.xml </KeyString>
     </GenereRes>
 
     <GenereInput> 
