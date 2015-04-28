@@ -95,6 +95,7 @@ int CptDet=0;
 
 void cASAMG::SetSelected(int aNivSel,int aNivElim,tMCSom * aSom)
 {
+
     // 1 - On cree le masq de bits des pixel a effacer
     Im2D_Bits<1> aMasq2Sel(mSz.x,mSz.y,0);
     TIm2DBits<1> aTM2Sel(aMasq2Sel);
