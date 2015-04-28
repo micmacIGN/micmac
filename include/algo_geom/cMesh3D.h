@@ -165,12 +165,7 @@ class cTriangle
         void	getVertexesIndexes(int &v1, int &v2, int &v3);
 
         void    setIdx(int id) { mTriIdx = id; }
-        int		getIdx() const {return mTriIdx;}
-
-
-        void    setIdxQPBO(int id) { mIdxQPBO = id; }
-        int		getIdxQPBO() const {return mIdxQPBO;}
-
+        int		Idx() const {return mTriIdx;}
 
         size_t  getEdgesNumber() { return mTriEdges.size(); }
 
@@ -185,7 +180,7 @@ class cTriangle
 
         void    setBestImgIndex(int val) { mBestImIdx = val; }
         int     getBestImgIndex() { return mBestImIdx; }
-        int     getBestImgIndexAfter(int aK);
+       // int     getBestImgIndexAfter(int aK);
 
         void    setTextureCoordinates(const Pt2dr &p0, const Pt2dr &p1, const Pt2dr &p2);
         void    getTextureCoordinates(Pt2dr &p0, Pt2dr &p1, Pt2dr &p2);
@@ -220,7 +215,6 @@ private:
         float                       mDefValue;      // Default value of criterion for choosing best image for texturing (threshold for angle)
 
         map <int, float>            mMapCriter;     // Map linking image index to criterion
-        int                         mIdxQPBO;
 };
 
 //--------------------------------------------------------------------------------------------------------------

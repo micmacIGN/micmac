@@ -332,10 +332,10 @@ int Tequila_main(int argc,char ** argv)
                     // le coef d'etirement est sqrt((aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV)))/2)
                     // mais on supprime les calculs superflus => sqrt et /2 strictement monotones
 
-                    criter = aU2+aV2+sqrt(ElSquare(aU2-aV2)+4*ElSquare(aUV));
+                    criter = aU2+aV2+sqrt(ElSquare(aU2-aV2)+4.f*ElSquare(aUV));
 
                     //cout << "criter = " << criter << endl;
-                    if((criter < Triangle->getBestCriter()) && (angle < angle_thresh))
+                    if((criter < Triangle->getBestCriter()) && (angle < angleMax))
                     {
                         Triangle->setBestImgIndex(aK);
                     }
@@ -376,8 +376,6 @@ int Tequila_main(int argc,char ** argv)
             }
         }
     }
-
-
 
     std::set <int> index; //liste des index de cameras utilisees
 
@@ -457,14 +455,15 @@ int Tequila_main(int argc,char ** argv)
         cout <<"***************************Optimization******************************"<<endl;
         cout << endl;
 
-        float mte = 1e9; //mean texture exception
-
+        float mte = 1e9; //mean texture exception (triangle projects outside image)
+        float curCrit, newCrit, curMean1, curMean2, newMean1, newMean2, diff11, diff12, diff21, diff22;
+        int n1, n2, curImgIdx1, curImgIdx2, newImgIdx1, newImgIdx2;
 
         const int nTriangles = myMesh.getFacesNumber();
         const int nEdges = myMesh.getEdgesNumber();
         if (nTriangles && nEdges)
         {
-            cout << "nb faces, nb edges = " << nTriangles << " " <<  nEdges << endl;
+            //cout << "nb faces, nb edges = " << nTriangles << " " <<  nEdges << endl;
 
             for (int optIter=0; optIter < aNbIter; optIter++)
             {
@@ -474,136 +473,110 @@ int Tequila_main(int argc,char ** argv)
                 {
                     QPBO<float>* q = new QPBO<float>(nTriangles, nEdges); // max number of nodes & edges
 
-                    CamStenope *Cam = ListCam[aCam];
-
-                    set <int> vTri = aZBuffers[aCam].getVisibleTrianglesIndexes();
-
                     for(int aK=0; aK < nTriangles; ++aK)
                     {
-                        q->AddNode(1); // add node
+                        q->AddNode(1);
 
                         cTriangle *tri = myMesh.getTriangle(aK);
-                        tri->setIdxQPBO(aK);
 
-                        if (vTri.find(aK) != vTri.end())
+                        int curImgIdx = tri->getBestImgIndex();
+
+                        if ((curImgIdx != valDef) && (tri->getCriter(aCam) != threshold))
                         {
-                            //TODO: deja calculee plus haut, a stocker dans le triangle...
-                            double angle  = scal(tri->getNormale(true), Cam->DirK()); //Norme de DirK=1
-
-                            if (angle < angleMax)
+                            if (aCrit == "Angle")
                             {
-                                int curImgIdx = tri->getBestImgIndex();
-
-                                if (curImgIdx != valDef)
-                                {
-                                    int newImgIdx = aCam; //tri->getBestImgIndexAfter(curImgIdx);
-
-                                    if (newImgIdx != valDef )
-                                    {
-                                        float curCrit = tri->getCriter(curImgIdx);
-                                        float newCrit = tri->getCriter(newImgIdx);
-
-                                        q->AddUnaryTerm(aK, curCrit*curCrit, newCrit*newCrit); // add term 2*x
-                                    }
-                                    else q->AddUnaryTerm(aK, 300, 300);
-                                }
-                                else q->AddUnaryTerm(aK, 300, 300);
+                                curCrit = 1.f / tri->getCriter(curImgIdx);
+                                newCrit = 1.f / tri->getCriter(aCam);
                             }
                             else
-                                q->AddUnaryTerm(aK, 300, 300);
+                            {
+                                curCrit = tri->getCriter(curImgIdx);
+                                newCrit = tri->getCriter(aCam);
+                            }
+
+                            q->AddUnaryTerm(aK, curCrit*curCrit, newCrit*newCrit);
                         }
-                        else
-                            q->AddUnaryTerm(aK, 300, 300);
+                        else q->AddUnaryTerm(aK, 300, 300);
                     }
+
+                    set <int> vTri = aZBuffers[aCam].getVisibleTrianglesIndexes();
 
                     for (int aK=0; aK < nEdges; ++aK)
                     {
                         cEdge *edge = myMesh.getEdge(aK);
 
-                        cTriangle *tri1 = myMesh.getTriangle(edge->n1());
-                        cTriangle *tri2 = myMesh.getTriangle(edge->n2());
+                        n1 = edge->n1();
+                        n2 = edge->n2();
 
-                        if ((vTri.find(edge->n1()) != vTri.end()) &&
-                                (vTri.find(edge->n2()) != vTri.end()) )
+                        cTriangle *tri1 = myMesh.getTriangle(n1);
+                        cTriangle *tri2 = myMesh.getTriangle(n2);
+
+                        curImgIdx1 = tri1->getBestImgIndex();
+                        curImgIdx2 = tri2->getBestImgIndex();
+
+                        if ((curImgIdx1 != valDef) && (curImgIdx2 != valDef) &&
+                            (vTri.find(n1) != vTri.end()) &&
+                            (vTri.find(n2) != vTri.end()) )
                         {
-                            int curImgIdx1 = tri1->getBestImgIndex();
-                            int curImgIdx2 = tri2->getBestImgIndex();
+                            newImgIdx1 = aCam; //tri1->getBestImgIndexAfter(curImgIdx1);
+                            newImgIdx2 = aCam; //tri2->getBestImgIndexAfter(curImgIdx2);
 
-                            if (curImgIdx1 != valDef && curImgIdx2 != valDef)
+                            curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]); //TODO: calculer une seule fois...
+                            curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+
+                            newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
+                            newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
+
+                            if ((curMean1 != mte) && (curMean2 != mte) && (newMean1 != mte) && (newMean2 != mte))
                             {
-                                int newImgIdx1 = aCam; //tri1->getBestImgIndexAfter(curImgIdx1);
-                                int newImgIdx2 = aCam; //tri2->getBestImgIndexAfter(curImgIdx2);
+                                diff11 = aLambda*fabs(curMean1 - curMean2);
+                                diff12 = aLambda*fabs(curMean1 - newMean2);
+                                diff21 = aLambda*fabs(newMean1 - curMean2);
+                                diff22 = aLambda*fabs(newMean1 - newMean2);
 
-                                if (newImgIdx1 != valDef && newImgIdx2 != valDef)
-                                {
-                                    float curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
-                                    float curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+                                #ifdef _DEBUG
+                                    cout << "image " << aCam << endl;
+                                    cout << "curMean1 = " << curMean1 << " newMean1 " << newMean1 << endl;
+                                    cout << "curMean2 = " << curMean2 << " newMean2 " << newMean2 << endl;
 
-                                    float newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
-                                    float newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
+                                    cout << "diff11 = " << diff11 << endl;
+                                    cout << "diff12 = " << diff12 << endl;
+                                    cout << "diff21 = " << diff21 << endl;
+                                    cout << "diff22 = " << diff22 << endl;
 
-                                    if ((curMean1 != mte) && (curMean2 != mte) && (newMean1 != mte) && (newMean2 != mte))
-                                    {
-                                        float diff11 = aLambda*fabs(curMean1 - curMean2);
-                                        float diff12 = aLambda*fabs(curMean1 - newMean2);
-                                        float diff21 = aLambda*fabs(newMean1 - curMean2);
-                                        float diff22 = aLambda*fabs(newMean1 - newMean2);
+                                    cout << "tri1->getCriter(curImgIdx1)) " << tri1->getCriter(curImgIdx1) << endl;
+                                    cout << "tri2->getCriter(curImgIdx1)) " << tri2->getCriter(curImgIdx2) << endl;
+                                #endif
 
-                                        if (debug)
-                                        {
-                                            cout << "curMean1 = " << curMean1 << " newMean1 " << newMean1 << endl;
-                                            cout << "curMean2 = " << curMean2 << " newMean2 " << newMean2 << endl;
-
-                                            cout << "diff11 = " << diff11 << endl;
-                                            cout << "diff12 = " << diff12 << endl;
-                                            cout << "diff21 = " << diff21 << endl;
-                                            cout << "diff22 = " << diff22 << endl;
-
-                                            cout << "tri1->getCriter(curImgIdx1), tri1->getCriter(newImgIdx1) " << tri1->getCriter(curImgIdx1) << " " << tri1->getCriter(newImgIdx1)<< endl;
-                                            cout << "tri2->getCriter(curImgIdx1), tri2->getCriter(newImgIdx2) " << tri2->getCriter(curImgIdx2) << " " << tri2->getCriter(newImgIdx2)<< endl;
-                                        }
-
-                                        q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), diff11, diff12, diff21, diff22); // add term (x+1)*(y+2)
-                                    }
-                                    else
-                                        q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), 300,300,300,300); // add term (x+1)*(y+2)
-                                }
-                                else
-                                    q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), 300,300,300,300); // add term (x+1)*(y+2))
+                                q->AddPairwiseTerm(tri1->Idx(), tri2->Idx(), diff11, diff12, diff21, diff22);
                             }
-                            else
-                                q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), 300,300,300,300); // add term (x+1)*(y+2))
+                            else q->AddPairwiseTerm(tri1->Idx(), tri2->Idx(), 300,300,300,300);
                         }
-                        else
-                            q->AddPairwiseTerm(tri1->getIdxQPBO(), tri2->getIdxQPBO(), 300,300,300,300); // add term (x+1)*(y+2))
+                        else q->AddPairwiseTerm(tri1->Idx(), tri2->Idx(), 300,300,300,300);
                     }
 
                     cout << "Solve for image "<< aCam+1 << "/"<< nCam << endl;
                     q->Solve();
-                    q->ComputeWeakPersistencies();
+                    //q->ComputeWeakPersistencies();
 
                     for (int aK=0; aK < nTriangles; ++aK)
                     {
                         cTriangle *tri = myMesh.getTriangle(aK);
 
-                        int curImgIdx = tri->getBestImgIndex();
-
-                        if (curImgIdx != valDef)
+                        if (tri->getBestImgIndex() != valDef)
                         {
-                            int x = q->GetLabel(tri->getIdxQPBO());
+                            int x = q->GetLabel(tri->Idx());
 
-                            //if (debug) printf("Solution: x=%d, y=%d\n", x, y);
+                            //if (debug) printf("Solution: x=%d\n", x);
 
                             if (x==1) tri->setBestImgIndex(aCam);
                         }
                     }
+                    delete q;
                 }
             }
         }
-        else
-        {
-            std::cout << "Walou faces or walou edges" << std::endl;
-        }
+        else std::cout << "Walou faces or walou edges" << std::endl;
     }
 
 
