@@ -42,6 +42,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+//================ SEUILS ==============
+
+// Nombre de point pour echantillonner le recouvrt / homogr
+#define NbRecHom 40
+#define NbMinPts2Im 50
+
+
+//=====================================
+
 class cNewO_OneIm;
 class cNewO_OrInit2Im;
 class cNewO_NameManager;

@@ -100,7 +100,7 @@ template <const int TheNb> void NOMerge_AddAllCams
 /*                                                                    */
 /**********************************************************************/
 
-template <const int TheNbPts,class Type>   cFixedMergeTieP<TheNbPts,Type>:: cFixedMergeTieP() :
+template <const int TheNbPts,class Type>   cFixedMergeTieP<TheNbPts,Type>::cFixedMergeTieP() :
            mOk     (true),
            mNbArc  (0)
 {
@@ -113,6 +113,7 @@ template <const int TheNbPts,class Type>   cFixedMergeTieP<TheNbPts,Type>:: cFix
 template <const int TheNbPts,class Type>   
 void cFixedMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs)
 {
+
      if ((!mOk) || (! anEl2.mOk))
      {
          mOk = anEl2.mOk = false;
@@ -124,7 +125,9 @@ void cFixedMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedMergeTieP<TheNbPts,Typ
          if ( mTabIsInit[aK] && anEl2.mTabIsInit[aK] )
          {
             // Ce cas ne devrait pas se produire, il doivent avoir ete fusionnes
-            ELISE_ASSERT(false,"cFixedMergeTieP");
+            ELISE_ASSERT(mVals[aK]!= anEl2.mVals[aK],"cFixedMergeTieP");
+            mOk = anEl2.mOk = false;
+            return;
          }
          else if ( (!mTabIsInit[aK]) && anEl2.mTabIsInit[aK] )
          {
@@ -175,6 +178,8 @@ int cFixedMergeTieP<TheNbPts,Type>::NbSom() const
 
 template class  cFixedMergeTieP<2,Pt2dr>;
 template class  cFixedMergeTieP<3,Pt2dr>;
+template class  cFixedMergeTieP<2,Pt2df>;
+template class  cFixedMergeTieP<3,Pt2df>;
 
 /**********************************************************************/
 /*                                                                    */
@@ -277,15 +282,19 @@ template <const int TheNb,class Type>   void cFixedMergeStruct<TheNb,Type>::DoEx
 template <const int TheNb,class Type>
         void cFixedMergeStruct<TheNb,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
 {
+
+             ELISE_ASSERT((aK1!=aK2) && (aK1>=0) && (aK1<TheNb) && (aK2>=0) && (aK2<TheNb),"cFixedMergeStruct::AddArc Index illicit");
+
              AssertUnExported();
              tMapMerge & aMap1 = mTheMaps[aK1];
-             tItMM anIt1  = mTheMaps[aK1].find(aV1);
+             tItMM anIt1  = aMap1.find(aV1);
              tMerge * aM1 = (anIt1 != aMap1.end()) ? anIt1->second : 0;
 
              tMapMerge & aMap2 = mTheMaps[aK2];
-             tItMM anIt2  = mTheMaps[aK2].find(aV2);
+             tItMM anIt2  = aMap2.find(aV2);
              tMerge * aM2 =  (anIt2 != aMap2.end()) ? anIt2->second : 0;
              tMerge * aMerge = 0;
+
 
              if ((aM1==0) && (aM2==0))
              {
@@ -501,14 +510,39 @@ void  NO_MergeTO_Test4_Basic(int aK)
     ELISE_ASSERT((*aRes.begin())->NbSom()==4,"NO_MergeTO_Test4_Basic");
 }
 
+
+template<const int TheNb> void Bench_RandNewOri(int aNbTir,int aMaxVal)
+{
+    
+    cFixedMergeStruct<TheNb,int> aMap;
+
+    for (int aK=0 ; aK< aNbTir ; aK++)
+    {
+        int aInd1 = NRrandom3(TheNb);
+        int aInd2 = NRrandom3(TheNb);
+        if (aInd1 != aInd2)
+        {
+           aMap.AddArc(NRrandom3(aMaxVal),aInd1,NRrandom3(aMaxVal),aInd2);
+        }
+    }
+}
+
 void Bench_NewOri()
 {
+
+   for (int aK=0 ; aK<10000000 ; aK++)
+   {
+       std::cout << " Bench_NewOri " << aK << "\n";
+       Bench_RandNewOri<3>(100,6);
+       Bench_RandNewOri<4>(100,7);
+   }
+   std::cout << "All Fine New Ori\n";
+
    for (int aK=0 ; aK< 10 ; aK++)
    {
      NO_MergeTO_Test2_Basic(aK);
      NO_MergeTO_Test4_Basic(aK);
    }
-   std::cout << "All Fine New Ori\n";
 }
 
 

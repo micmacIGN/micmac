@@ -636,11 +636,14 @@ void LoadTrScaleRotate
 
 extern void TestOriBundle();
 extern void TestSVD3x3();
+extern void Bench_NewOri();
 
 int MPDtest_main (int argc,char** argv)
 {
-    TestSVD3x3(); 
+    Bench_NewOri();
 /*
+
+    TestSVD3x3(); 
    std::cout << "Hello Matis\n";
    std::string aFile = "/home/prof/Bureau/FORM-DEV-2015/Toulouse/Indent.xml";
    aFile = "/home/prof/Bureau/FORM-DEV-2015/Toulouse/Toulouse-131010_0716-simplified.ori.xml";
