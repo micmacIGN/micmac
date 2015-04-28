@@ -366,7 +366,7 @@ int TiPunch_main(int argc,char ** argv)
                 }
             }
 
-            cout << "Removing " << toRemove.size() << " faces" << endl;
+            cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << " faces" << endl;
 
             std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
             for (; itr != toRemove.end(); ++itr) myMesh.removeTriangle(*itr);
@@ -380,7 +380,7 @@ int TiPunch_main(int argc,char ** argv)
                 if (!triangle->isTextured()) toRemove.insert(aK);
             }
 
-            cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << endl;
+            cout << "Removing " << toRemove.size() << " / " << nbTriangles << " faces" << endl;
 
             set<int, std::greater<int> >::const_iterator itr = toRemove.begin();
             for(; itr!=toRemove.end();++itr) myMesh.removeTriangle(*itr, false);

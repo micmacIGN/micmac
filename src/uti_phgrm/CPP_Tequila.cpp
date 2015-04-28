@@ -246,7 +246,7 @@ int Tequila_main(int argc,char ** argv)
     myMesh.initDefValue(threshold);
 
     const int nFaces = myMesh.getFacesNumber();
-    printf("Vertex number : %d - faces number : %d - edges number : %d\n\n", myMesh.getVertexNumber(), nFaces, myMesh.getEdgesNumber());
+    printf("Vertex : %d - faces : %d - edges : %d\n\n", myMesh.getVertexNumber(), nFaces, myMesh.getEdgesNumber());
 
     cout<<"*************************Computing Z-Buffer**************************"<< endl;
     cout<< endl;
