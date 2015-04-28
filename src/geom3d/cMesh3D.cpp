@@ -265,7 +265,7 @@ void cTriangle::showMap()
     cout << endl;
 }
 
-int cTriangle::getBestImgIndexAfter(int aK)
+/*int cTriangle::getBestImgIndexAfter(int aK)
 {
     int res = -1;
     map<int,float>::iterator it = mMapCriter.find(aK);
@@ -288,13 +288,10 @@ int cTriangle::getBestImgIndexAfter(int aK)
         }
     }
     return res;
-}
+}*/
 
 float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
 {
-    float sumTx = 0.f;
-    int cptPx = 0;
-
     vector <Pt3dr> Vertex;
     getVertexes(Vertex);
 
@@ -304,6 +301,9 @@ float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
 
     if (aCam->IsInZoneUtile(A2) && aCam->IsInZoneUtile(B2) && aCam->IsInZoneUtile(C2))
     {
+        float sumTx = 0.f;
+        int cptPx = 0;
+
         /*cout << "img proj = "<< endl;
         cout << A2 << endl;
         cout << B2 << endl;
@@ -604,7 +604,7 @@ void cMesh::removeTriangle(int idx, bool doAdjacence)
 
 void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
 {
-    int triIndex = aTri.getIdx();
+    int triIndex = aTri.Idx();
 
     if (doAdjacence)
     {
@@ -727,7 +727,7 @@ void cMesh::clean()
                    }
                }
                if (found)
-                   triangleIdxSet.insert(Tri->getIdx());
+                   triangleIdxSet.insert(Tri->Idx());
            }
        }
 
@@ -822,7 +822,7 @@ vector<cTextureBox2d> cMesh::getRegions()
                     }
                 }
                 if (found)
-                    triangleIdxSet.insert(Tri->getIdx());
+                    triangleIdxSet.insert(Tri->Idx());
             }
         }
 
@@ -845,11 +845,7 @@ void cMesh::write(const string & aOut, bool aBin, const string & textureFilename
     FILE * file = FopenNN(aOut, mode, "cMesh::write");
     fprintf(file,"ply\n");
     fprintf(file,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
-    if (hasTexture)
-    {
-        fprintf(file,"comment UV Mapping generated\n");
-        fprintf(file,"comment TextureFile %s\n", textureFilename.c_str());
-    }
+    if (hasTexture) fprintf(file,"comment TextureFile %s\n", textureFilename.c_str());
     fprintf(file,"element vertex %i\n", getVertexNumber());
     fprintf(file,"property float x\n");
     fprintf(file,"property float y\n");
@@ -1095,7 +1091,7 @@ void cZBuf::BasculerUnMaillage(cMesh &aMesh, const CamStenope &aCam)
                             if (aZ<mDataRes[y][x])
                             {
                                 mDataRes[y][x] = aZ;
-                                mImTriIdx.SetI(Pt2di(x,y),aTri.getIdx());
+                                mImTriIdx.SetI(Pt2di(x,y),aTri.Idx());
                             }
                         }
                     }
@@ -1181,7 +1177,7 @@ void cZBuf::BasculerUnTriangle(cTriangle &aTri, bool doMask)
                         if (aZ>mDataRes[y][x])
                         {
                             mDataRes[y][x] = aZ;
-                            mImTriIdx.SetI(Pt2di(x,y),aTri.getIdx());
+                            mImTriIdx.SetI(Pt2di(x,y),aTri.Idx());
                         }
                     }
                 }
