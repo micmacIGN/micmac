@@ -260,7 +260,7 @@ class cZBuf
 
         Im2D_BIN	ComputeMask(int img_idx, cMesh &aMesh);
 
-        set<int>    getVisibleTrianglesIndexes();
+        void getVisibleTrianglesIndexes(set<int> &setIdx);
 
         cElNuage3DMaille * &	Nuage() {return mNuage;}
 

@@ -735,7 +735,7 @@ void cMesh::clean()
        for(;it!=myList.end();++it) toRemove.insert(*it);
    }
 
-    cout << "Removing " << toRemove.size() << " faces" <<endl;
+    cout << "Removing " << toRemove.size() << " / " << nFaces << " faces" <<endl;
 
     std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
     for (; itr != toRemove.end(); ++itr) removeTriangle(mTriangles[*itr]);
@@ -1185,10 +1185,8 @@ void cZBuf::BasculerUnTriangle(cTriangle &aTri, bool doMask)
     }
 }
 
-set<int> cZBuf::getVisibleTrianglesIndexes()
+void cZBuf::getVisibleTrianglesIndexes(set<int> & setIdx)
 {
-    set<int> setIdx;
-
     Pt2di sz = mImTriIdx.sz();
     for (int aK=0; aK < sz.x; aK++)
     {
@@ -1199,8 +1197,6 @@ set<int> cZBuf::getVisibleTrianglesIndexes()
             if (Idx != mIdDef)  setIdx.insert(Idx);
         }
     }
-
-    return setIdx;
 }
 
 void cZBuf::write(string filename)

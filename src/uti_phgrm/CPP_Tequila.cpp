@@ -266,7 +266,8 @@ int Tequila_main(int argc,char ** argv)
 
         aZBuffers.push_back(aZBuffer);
 
-        set <int> vTri = aZBuffer.getVisibleTrianglesIndexes();
+        set <int> vTri;
+        aZBuffer.getVisibleTrianglesIndexes(vTri);
 
         if (debug)
         {
@@ -499,7 +500,8 @@ int Tequila_main(int argc,char ** argv)
                         else q->AddUnaryTerm(aK, 300, 300);
                     }
 
-                    set <int> vTri = aZBuffers[aCam].getVisibleTrianglesIndexes();
+                    set <int> vTri;
+                    aZBuffers[aCam].getVisibleTrianglesIndexes(vTri);
 
                     for (int aK=0; aK < nEdges; ++aK)
                     {
