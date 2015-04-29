@@ -145,6 +145,7 @@ class cElemAppliSetFile
 
 std::string PatFileOfImSec(const std::string & anOri);
 std::string DirAndPatFileOfImSec(const std::string & aDir,const std::string & anOri);
+std::string DirAndPatFileMMByP(const std::string & aDir);
 
 
 
@@ -175,7 +176,11 @@ class cAppliWithSetImage
       cAppliWithSetImage(int argc,char ** argv,int aFlag,const std::string & aNameCAWSI="");
       std::string PatFileOfImSec() const;
       std::string DirAndPatFileOfImSec() const;
+      std::string DirAndPatFileMMByP() const;
       void SuppressSom(tSomAWSI & aSom);
+
+      static const std::string TheMMByPairNameCAWSI;
+      static const std::string TheMMByPairNameFiles;
 
    protected :
 
@@ -196,7 +201,8 @@ class cAppliWithSetImage
 
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
-      void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq);
+      void AddFilePair(const std::string & aFilePair);
+      void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq,bool AddCple);
 
 
 
@@ -206,6 +212,7 @@ class cAppliWithSetImage
       void VerifAWSI();
       void ComputeStripPair(int);
       void AddPair(tSomAWSI * anI1,tSomAWSI * anI2);
+      void AddPair(const std::string & aN1,const std::string & aN2,bool aSVP);
 
       bool        mSym;
       bool        mShow;
@@ -244,7 +251,6 @@ class cAppliWithSetImage
       bool mModeHelp;
       std::string  mMasq3D;
 
-      static const std::string TheMMByPairNameCAWSI;
 
 
    private :

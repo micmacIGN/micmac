@@ -861,8 +861,12 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
     {
        std::string aNameNuageIn =   mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true);
 
-       if (! ELISE_fp::exist_file(aNameNuageIn))
+
+       if ( ELISE_fp::exist_file(mICNM->Dir() +aNameNuageIn))
+       // if ( ! ELISE_fp::exist_file(aNameNuageIn))
           aNameNuageIn =  mICNM->Dir() + aNameNuageIn;
+
+
        mNuage = StdGetObjFromFile<cXML_ParamNuage3DMaille>
                 (
                      //mParam.ModeleNuageResult().Val(),
@@ -917,6 +921,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
             GenTFW(aAfM2C.inv(),StdPrefix(mNameTif) + ".tfw");
         }
     }
+
 
 
    mZIsInv = false;
@@ -1038,6 +1043,7 @@ template <class Type> double cFusionCarteProf<Type>::ToZSauv(double aZ) const
    // if (mZIsInv) aZ = 1/aZ;
    return  (aZ -mIP->OrigineAlti()) / mIP->ResolutionAlti();
 }
+// aZ = mIP.OrigineAlti() +  aZ * mIP.ResolutionAlti();
 
 
 template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2di & aBoxIn,const Box2di & aBoxOut)
@@ -1277,6 +1283,7 @@ if (aPk.P()>MaxP)
                
                 if (aZ>=0)
                 {
+
                    aTImFus.oset(aQ0,ToZSauv(aCol.ArgAux().Z()));
                    aTImMasq.oset(aQ0,1);
                    const cElPile & aPz = (*anIt)[aZ];
