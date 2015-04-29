@@ -19,6 +19,10 @@ Pat=TS_35_50[0-5].CR2
    <Symb> DeZoom=XXXXX </Symb>
    <Symb> RepereIsAnam=false </Symb>
    <Symb> RepereIsCart=false </Symb>
+   
+     <!-- Handling of image masq for the ortho -->
+    <Symb>  UseGlobMasqPerIm=false </Symb>
+    <Symb>  GlobMasqPerIm="XXXXXX" </Symb>
 
    <Symb>  PrefixBasc=PIMs-TmpBasc/PIMs- </Symb>
    <Symb>  FOM=${PrefixBasc}ZNUM-Merged.xml </Symb>
@@ -75,6 +79,16 @@ Pat=TS_35_50[0-5].CR2
                <FCND_GeomCalc>   NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>  
          </FCND_Mode_GeomIm>
      </NomsGeometrieImage>
+     
+          <#WHEN VTEST=${UseGlobMasqPerIm}>
+         <MasqImageIn>
+             <OneMasqueImage>
+                 <PatternSel> ${Pat}   </PatternSel>
+                 <NomMasq>  ${GlobMasqPerIm}    </NomMasq>
+             </OneMasqueImage>
+         </MasqImageIn>
+     </#WHEN>
+     
 </Section_PriseDeVue>
 <!--  *************************************************************
        Parametres fixant le comportement

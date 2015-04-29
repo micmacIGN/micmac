@@ -302,7 +302,7 @@ void cAppli_C3DC::ReadType(const std::string & aType)
 }
 
 void  cAppli_C3DC::PipelineQuickMack()
-{
+{  
     ExeCom(mBaseComMMByP + " Do=AMP " + mStrZ0ZF);
     ExeCom(mBaseComEnv + " DownScale=" + ToString(mDS));
     DoMergeAndPly();
@@ -504,6 +504,7 @@ class cAppli_MPI2Mnt
          bool                     mRepIsAnam;
          bool                     mDoMnt;
          bool                     mDoOrtho;
+		 std::string			  mMasqImGlob;
          bool                     mDebug;
 };
 
@@ -550,7 +551,8 @@ void cAppli_MPI2Mnt::DoOrtho()
                          +    " +DeZoom=" +ToString(mDeZoom)   + BLANK
                          +    " WorkDir=" + mDirApp
                       ;
-
+	if (EAMIsInit(&mMasqImGlob)) aCom +=  " +UseGlobMasqPerIm=1  +GlobMasqPerIm="+mMasqImGlob;
+	 
     if (EAMIsInit(&mRep))
     {
            aCom +=  " +Repere="+mRep;
@@ -640,6 +642,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mRepIsAnam   (false),
     mDoMnt       (true),
     mDoOrtho     (false),
+    mMasqImGlob (""),
     mDebug       (false)
 {
    ElInitArgMain
@@ -650,8 +653,9 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mDS,"DS",true,"Downscale, Def=1.0")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)")
                     << EAM(mPat,"Pat",true,"Pattern, def = all existing clouds")
-                    << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to return only ortho)")
+                    << EAM(mDoMnt,"DoMnt",true,"Compute DTM , def=true (use false to return only ortho)")
                     << EAM(mDoOrtho,"DoOrtho",true,"Generate ortho photo,  def=false")
+                    << EAM(mMasqImGlob,"MasqImGlob",true,"Global Masq for ortho: if used, give full name of masq (e.g. MasqGlob.tif) ")
                     << EAM(mDebug,"Debug",true,"Debug !!!")
    );
 
