@@ -341,14 +341,16 @@ int MMEnvStatute_main(int argc,char ** argv)
    (
         argc,argv,
         LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)",eSAM_IsPatFile),
-        LArgMain()  << EAM(aPIMsDirName,"PIMsDirName",true,"Name of PIMs directory (Statue for PIMs-Statue, Forest for PIMs-Forest")
+        LArgMain()  << EAM(aPIMsDirName,"PIMsDirName",true,"Name of PIMs directory (Statue for PIMs-Statue, Forest for PIMs-Forest", eSAM_None, ListOfVal(eNbTypeMMByP))
    );
+
+   if (MMVisualMode) return EXIT_SUCCESS;
 
    std::string aDir,aNamIm;
    SplitDirAndFile(aDir,aNamIm,aFullName);
 
    cMMByImNM * aGlobIN = cMMByImNM::ForGlobMerge(aDir,1.0,aPIMsDirName);
-  
+
    cMMByImNM * aLocIN = cMMByImNM::ForMTDMerge(aDir,aNamIm,"MTDTmp");
 
 
