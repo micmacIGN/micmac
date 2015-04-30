@@ -77,6 +77,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+
+static const int  TMaxNbCase = TNbCaseP1 * TNbCaseP1;
+
 class cGTrip_AttrSom;
 class cGTrip_AttrASym;
 class cGTrip_AttrArc;
@@ -108,16 +111,22 @@ class cGTrip_AttrSom
 
          void InitTriplet(tSomGT*,tArcGT *);
          void FreeTriplet();
+         void InitNb(const std::vector<Pt2df> & aVP1);
+         const int &  Nb(int aK) {return mNb[aK];}
 
 
      private :
          void TripletAddArc(tArcGT *,int aNum1,int aNum2);
-         int            mNum;
-         std::string    mName;
-         cNewO_OneIm *  mIm;
-         Pt3dr          mC3;
 
-         tMapM * mMerged;
+         cAppli_GenTriplet * mAppli;
+         int            mNum;
+         std::string         mName;
+         cNewO_OneIm *       mIm;
+         Pt3dr               mC3;
+         tMapM *             mMerged;
+
+         int mNb[TMaxNbCase];
+         int mDens[TMaxNbCase];
 };
 
 class cGTrip_AttrASym
@@ -194,6 +203,8 @@ class cAppli_GenTriplet
        cNewO_NameManager & NM() {return *mNM;}
 
        int ToIndex(const Pt2df &  aP) const;
+       int NbCases() const {return mNbCases;}
+       tSomGT * CurS1() {return mCurS1;}
     private :
        bool  AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3);
        void  GenTriplet(tArcGT & anArc);
@@ -214,11 +225,15 @@ class cAppli_GenTriplet
        std::vector<tSomGT *>         mVSomVois;
        int                           mFlagVois;
        tArcGT *                      mCurArc;
+       tSomGT *                      mCurS1;
+       tSomGT *                      mCurS2;
        bool                          mShow;
        Pt2df                         mPInf;
        Pt2df                         mPSup;
-       double                        mStep;
-       Pt2di                         mSz;
+       double                        mStepCases;
+       Pt2di                         mSzCases;
+       int                           mNbCases;
+       int                           mPds[TMaxNbCase];
 };
 
 /*********************************************************/
@@ -228,9 +243,10 @@ class cAppli_GenTriplet
 /*********************************************************/
 
 cGTrip_AttrSom::cGTrip_AttrSom(int aNum,const std::string & aNameIm,cAppli_GenTriplet & anAppli) :
-     mNum (aNum),
-     mName (aNameIm),
-     mIm   (new cNewO_OneIm(anAppli.NM(),mName))
+     mAppli  (&anAppli),
+     mNum    (aNum),
+     mName   (aNameIm),
+     mIm     (new cNewO_OneIm(anAppli.NM(),mName))
 {
 }
 
@@ -245,6 +261,17 @@ void cGTrip_AttrSom::TripletAddArc(tArcGT * anArc,int aNum1,int aNum2)
 }
 
 
+void cGTrip_AttrSom::InitNb(const std::vector<Pt2df> & aVP1)
+{
+    for (int aK=0 ;  aK< TMaxNbCase ; aK++)
+        mNb[aK] = 0;
+
+    for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
+    {
+        mNb[mAppli->ToIndex(aVP1[aK])] ++;
+    }
+}
+ 
 
 
 void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
@@ -279,12 +306,30 @@ void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
           }
           if ((*itM)->NbArc()==3 ) aNb33++;
       }
+      FreeTriplet();
+
       // std::list<cFixedMergeTieP<3,Pt2df> >
       if (int(aVP1.size()) <TNbMinPMul) 
       {
-         FreeTriplet();
          return;
       }
+
+
+      InitNb(aVP1);
+
+      int aNbC = mAppli->NbCases();
+      int * aNbGlob =  mAppli->CurS1()->attr().mNb;
+      for (int aK=0 ; aK< aNbC ; aK++)
+      {
+           double aDens = double(mNb[aK]) / double(ElMax(1,aNbGlob[aK]));
+           aDens = ElMin(1.0,aDens);
+           aDens = (aDens * TAttenDens) / (aDens * TAttenDens +1) ;
+           mDens[aK] = round_ni( (TQuant * aDens * (TAttenDens+1)) / TAttenDens);
+
+      }
+
+
+
       // std::cout << "InitTriplet " << aNb << " " << aNb3 << " " << aNb33 << "\n";
 
       // Pour qu'il y ait intersection 
@@ -328,9 +373,7 @@ void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       mC3 = (aC31 + aC32) / 2.0;
 
 
-      std::cout << "DDDDd " << euclid(aC31-aC32) << "\n";
-
-      FreeTriplet();
+      // std::cout << "DDDDd " << euclid(aC31-aC32) << "\n";
 }
 
 
@@ -338,6 +381,7 @@ void cGTrip_AttrSom:: FreeTriplet()
 {
    mMerged->Delete();
    delete mMerged;
+   mMerged = 0;
 }
 
 
@@ -365,16 +409,30 @@ void cAppli_GenTriplet::AddSomTmp(tSomGT & aS)
 }
 
 
+int cAppli_GenTriplet::ToIndex(const Pt2df &  aP0) const
+{
+    Pt2di aP =  round_down((aP0-mPInf)/mStepCases);
+    aP.x  = ElMax(0,ElMin(mSzCases.x,aP.x));
+    aP.y  = ElMax(0,ElMin(mSzCases.y,aP.y));
+    return aP.x + aP.y * mSzCases.x;
+}
+
 void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
 {
     if (!anArc.attr().IsDirASym() ) return;
     mCurArc = & anArc; 
+    mCurS1  = & (anArc.s1());
+    mCurS2  = & (anArc.s2());
 
     mPInf = anArc.attr().ASym().InfP1();
     mPSup = anArc.attr().ASym().SupP1();
     Pt2df aPLarg = mPSup-mPInf;
-    mStep = ElMax(aPLarg.x,aPLarg.y) / TNbCaseP1;
-    mSz = Pt2di(round_up(aPLarg.x/mStep),round_up(aPLarg.y/mStep));
+    mStepCases = ElMax(aPLarg.x,aPLarg.y) / TNbCaseP1;
+    mSzCases = Pt2di(round_up(aPLarg.x/mStepCases),round_up(aPLarg.y/mStepCases));
+    mSzCases = Inf(mSzCases,Pt2di(TNbCaseP1,TNbCaseP1));
+    mNbCases = mSzCases.x * mSzCases.y;
+
+     mCurS1->attr().InitNb(mCurArc->attr().VP1());
 
 
     for(tItAGT itA=anArc.s1().begin(mSubAll) ; itA.go_on() ; itA++)

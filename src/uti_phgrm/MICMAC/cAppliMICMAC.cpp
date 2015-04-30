@@ -46,6 +46,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 // Test commit
 
 
+const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & aCAWSI,const std::string & aName)
+{
+   for (std::list<cCWWSImage>::const_iterator itW=aCAWSI.Images().begin() ; itW!=aCAWSI.Images().end() ; itW++)
+   {
+       if (itW->NameIm()==aName) 
+          return &(*itW);
+   }
+   return 0;
+}
+
 bool GlobDebugMM=false;
 Pt2di PBug(47,112);
 bool IsPBug(const Pt2di &aP)
@@ -1231,7 +1241,25 @@ void cAppliMICMAC::InitImages()
     }
 
 
-   if (ImSecCalcApero().IsInit())
+   if (     ImageSecByCAWSI().IsInit()
+         && ELISE_fp::exist_file(WorkDir() + ImageSecByCAWSI().Val())
+      )
+   {
+      cChantierAppliWithSetImage aCAWSI = StdGetFromSI(WorkDir()+ ImageSecByCAWSI().Val(),ChantierAppliWithSetImage);
+      int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
+      for (int aKV=0 ; aKV<aNbPDV ; aKV++)
+      {
+          const cCWWSImage * aWI = GetFromCAWSI(aCAWSI,mPrisesDeVue[aKV]->Name());
+          if (aWI)
+          {
+              for (std::list<cCWWSIVois>::const_iterator itW=aWI->CWWSIVois().begin() ; itW!=aWI->CWWSIVois().end() ; itW++)
+              {
+                   AddAnImage(itW->NameVois());
+              }
+          }
+      }
+   }
+   else if (ImSecCalcApero().IsInit())
    {
        const cImSecCalcApero & aISCA = ImSecCalcApero().Val();
        int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
@@ -1295,6 +1323,15 @@ void cAppliMICMAC::InitImages()
                AddAnImage(aSBR[aKV2]);
            }
        }
+   }
+
+
+   
+   if (0)
+   {
+      for (int aK=0 ; aK<int(mPrisesDeVue.size()) ; aK++)
+          std::cout << "====IMAGES : " << mPrisesDeVue[aK]->Name() << "\n";
+      getchar();
    }
 }
 

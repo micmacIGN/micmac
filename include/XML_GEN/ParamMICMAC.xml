@@ -672,6 +672,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
              <ImPat Nb="*" Type="std::string">   </ImPat>
              <!-- Utilise le mecanisem ImSecOfMaster d'Apero -->
+
+             <ImageSecByCAWSI Nb="?" Type="std::string"> </ImageSecByCAWSI>
              <ImSecCalcApero Nb="?">
                   <Key Nb="1" Type="std::string"> </Key>
                   <!-- Si Pas donne utilise Score  -->

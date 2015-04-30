@@ -1508,6 +1508,9 @@ class cImages
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
 
+        cTplValGesInit< std::string > & ImageSecByCAWSI();
+        const cTplValGesInit< std::string > & ImageSecByCAWSI()const ;
+
         std::string & Key();
         const std::string & Key()const ;
 
@@ -1548,6 +1551,7 @@ class cImages
         cTplValGesInit< std::string > mIm2;
         cTplValGesInit< cFCND_CalcIm2fromIm1 > mFCND_CalcIm2fromIm1;
         std::list< std::string > mImPat;
+        cTplValGesInit< std::string > mImageSecByCAWSI;
         cTplValGesInit< cImSecCalcApero > mImSecCalcApero;
         cTplValGesInit< cParamGenereStrVois > mRelGlobSelecteur;
         cTplValGesInit< cNameFilter > mFilter;
@@ -1868,6 +1872,9 @@ class cSection_PriseDeVue
 
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
+
+        cTplValGesInit< std::string > & ImageSecByCAWSI();
+        const cTplValGesInit< std::string > & ImageSecByCAWSI()const ;
 
         std::string & Key();
         const std::string & Key()const ;
@@ -6714,6 +6721,9 @@ class cParamMICMAC
 
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
+
+        cTplValGesInit< std::string > & ImageSecByCAWSI();
+        const cTplValGesInit< std::string > & ImageSecByCAWSI()const ;
 
         std::string & Key();
         const std::string & Key()const ;

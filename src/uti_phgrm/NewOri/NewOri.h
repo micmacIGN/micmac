@@ -55,7 +55,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define  TNbCaseP1  7  // Nombre de case sur lesquelle on discretise
 #define  TQuant     50 // Valeur de quantification
 #define  TBSurHLim  0.15  // Valeur d'attenuation du gain en B/H
-#define  TNbMinPMul  8  // Nombre de point triple minimal pour un triplet
+#define  TNbMinPMul 8  // Nombre de point triple minimal pour un triplet
+#define  TAttenDens 3.0
 
 
 //=====================================
