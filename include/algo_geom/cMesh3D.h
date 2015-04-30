@@ -169,7 +169,7 @@ class cTriangle
 
         size_t  getEdgesNumber() { return mTriEdges.size(); }
 
-        vector <int>  getEdgesIndex() { return mTriEdges; }
+        vector <int>*  getEdgesIndex() { return &mTriEdges; }
         vector<cTriangle *> getNeighbours(); //get 3 neighbors (via edges)
         vector<int> getNeighbours2(); //get neighbors (via vertex)
 
@@ -194,7 +194,7 @@ class cTriangle
         float   getBestCriter();
         void    showMap(); //debug only
 
-        float   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
+        Pt3dr   meanTexture(CamStenope *, Tiff_Im &); // mean texture inside triangle
 
         void    setDefValue(float aVal) { mDefValue = aVal; }
 

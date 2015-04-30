@@ -100,7 +100,7 @@ int TiPunch_main(int argc,char ** argv)
 {
     bool verbose = true;
 
-    std::string aDir, aPat, aFullName, aPly, aOut, aMode, aCom;
+    string aDir, aPat, aFullName, aPly, aOut, aMode, aCom;
     bool aBin = true;
     bool aRmPoissonMesh = false;
     int aDepth = 8;
@@ -133,7 +133,7 @@ int TiPunch_main(int argc,char ** argv)
 
     stringstream ss;
     ss << aDepth;
-    std::string poissonMesh = StdPrefix(aPly) + "_poisson_depth" + ss.str() +".ply";
+    string poissonMesh = StdPrefix(aPly) + "_poisson_depth" + ss.str() +".ply";
 
     bool computeMesh = true;
 
@@ -155,7 +155,7 @@ int TiPunch_main(int argc,char ** argv)
     }
     else*/
     {
-        std::string yn;
+        string yn;
         cout << "File " << poissonMesh << " already exists. Do you want to replace it? (y/n)" << endl;
         cin >> yn;
         while ((yn != "y") && (yn != "n"))
@@ -179,8 +179,8 @@ int TiPunch_main(int argc,char ** argv)
         #endif
 
         aCom = g_externalToolHandler.get( "PoissonRecon" ).callName()
-            + std::string(" --in ") + aPly.c_str()
-            + std::string(" --out ") + poissonMesh.c_str()
+            + string(" --in ") + aPly.c_str()
+            + string(" --out ") + poissonMesh.c_str()
             + " --depth " + ss.str()
         #if USE_OPEN_MP
             + " --threads " + sst.str()
@@ -203,7 +203,7 @@ int TiPunch_main(int argc,char ** argv)
         ELISE_ASSERT(EAMIsInit(&aFullName),"Filter=true and image pattern is missing");
 
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-        std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
+        list<string>  aLS = aICNM->StdGetListOfFile(aPat);
 
         bool help;
         eTypeMMByP  type;
@@ -216,11 +216,12 @@ int TiPunch_main(int argc,char ** argv)
         vector <cZBuf> vZBuffers;
 
         cout << endl;
-        for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
+        for (list<string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
         {
-            std::string aNameXml  = PIMsFilter->NameFileXml(eTMIN_Merge,*itS);
+            string aNameXml  = PIMsFilter->NameFileXml(eTMIN_Merge,*itS);
+            string aNameMasqDepth = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
 
-            if (ELISE_fp::exist_file(aNameXml))
+            if (ELISE_fp::exist_file(aNameXml) && ELISE_fp::exist_file(aNameMasqDepth))
             {
                 vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
                 vNuages.back()->Cam()->SetIdCam(aNameXml); //debug
@@ -232,30 +233,24 @@ int TiPunch_main(int argc,char ** argv)
 
                 vZBuffers.push_back(aZBuffer);
 
-                cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
+                cout << "Image " << *itS << " with masq " << aNameMasqDepth << endl;
 
-                std::string aNameMasqDepth = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
+                Tiff_Im aImg(aNameMasqDepth.c_str());
 
-                if (ELISE_fp::exist_file(aNameMasqDepth))
-                {
-                    Tiff_Im aImg(aNameMasqDepth.c_str());
+                Pt2di sz = aImg.Sz2();
 
-                    Pt2di sz = aImg.Sz2();
+                Im2D_BIN aImBin(sz.x, sz.y, 0);
 
-                    Im2D_BIN aImBin(sz.x, sz.y, 0);
+                ELISE_COPY
+                (
+                   aImg.all_pts(),
+                   aImg.in(),
+                   aImBin.out()
+                );
 
-                    ELISE_COPY
-                    (
-                       aImg.all_pts(),
-                       aImg.in(),
-                       aImBin.out()
-                    );
-
-                    vMasqImg.push_back(aImBin);
-                }
-                else cout << aNameMasqDepth << " does not exist" << endl;
+                vMasqImg.push_back(aImBin);
             }
-            else cout << aNameXml << " does not exist" << endl;
+            else cout << aNameXml << " or " << aNameMasqDepth << " does not exist" << endl;
         }
 
         ELISE_ASSERT(vNuages.size() == vMasqImg.size(), "Missing masq image");
@@ -326,6 +321,14 @@ int TiPunch_main(int argc,char ** argv)
                                     {
                                         if (im.get(Pt2di(x,y)))
                                         {
+                                            /*if (Triangle->Idx() == 46614)
+                                            {
+                                                cout << "ok " << bK << " " << x << " " << y  << endl;
+                                                cout << "A2  = " << A2 << endl;
+                                                cout << "B2  = " << B2 << endl;
+                                                cout << "C2  = " << C2 << endl;
+                                            }*/
+
                                             Triangle->setBestImgIndex(1); //trick to check if triangle is viewed
                                             doBreak = true;
                                             break;
@@ -340,7 +343,19 @@ int TiPunch_main(int argc,char ** argv)
             }
         }
 
-        std::set < int, std::greater<int> > toRemove;
+        /*
+        //TODO devrait suffire mais reste un bug (rotation des masques ?)
+
+        set < int > stri;
+        const int nbTriangles = myMesh.getFacesNumber();
+        for (int aK=0; aK < nbTriangles;++aK)
+        {
+            cTriangle * triangle = myMesh.getTriangle(aK);
+            if (triangle->isTextured()) stri.insert(aK);
+        }
+        myMesh.Export(aOut,stri);*/
+
+        set < int, greater<int> > toRemove;
 
         if (aFilterFromBorder)
         {
@@ -370,7 +385,7 @@ int TiPunch_main(int argc,char ** argv)
 
             cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << " faces" << endl;
 
-            std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
+            set < int, greater<int> >::const_iterator itr = toRemove.begin();
             for (; itr != toRemove.end(); ++itr) myMesh.removeTriangle(*itr);
         }
         else
@@ -384,7 +399,7 @@ int TiPunch_main(int argc,char ** argv)
 
             cout << "Removing " << toRemove.size() << " / " << nbTriangles << " faces" << endl;
 
-            set<int, std::greater<int> >::const_iterator itr = toRemove.begin();
+            set<int, greater<int> >::const_iterator itr = toRemove.begin();
             for(; itr!=toRemove.end();++itr) myMesh.removeTriangle(*itr, false);
         }
     }
@@ -400,7 +415,7 @@ int TiPunch_main(int argc,char ** argv)
 
     if (aRmPoissonMesh)
     {
-        aCom = std::string(SYS_RM) + " " + poissonMesh;
+        aCom = string(SYS_RM) + " " + poissonMesh;
         system_call(aCom.c_str());
     }
 
