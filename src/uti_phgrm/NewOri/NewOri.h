@@ -46,7 +46,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // Nombre de point pour echantillonner le recouvrt / homogr
 #define NbRecHom 40
+// Nombre de point minimum pour etudier un couple
 #define NbMinPts2Im 50
+
+
+//  Sur les triplets
+
+#define  TNbCaseP1  7  // Nombre de case sur lesquelle on discretise
+#define  TQuant     50 // Valeur de quantification
+#define  TBSurHLim  0.15  // Valeur d'attenuation du gain en B/H
+#define  TNbMinPMul  8  // Nombre de point triple minimal pour un triplet
 
 
 //=====================================
