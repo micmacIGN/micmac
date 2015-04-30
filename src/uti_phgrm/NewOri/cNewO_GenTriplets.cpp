@@ -37,6 +37,44 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+
+/*
+    Cout de recouvrement pour les triplets :
+
+    Pour un arc donne S1S2, la distribution P1 est calculée de manière linéaire
+
+       P1, x y  => K  = (x -x0) / (x1-x0)  + (x -x0) / (x1-x0) * Nx
+
+   Pour chaque Sommet S3 on calcule aussi la distribution des point multiple sur I1 : Nb3(K)
+
+
+   Une fonction de ponderation des case est calculee :
+
+     Pds(K) = srqt(Nb1(aK))  et un Poids entier PdsI(K) = E(100 * Pds(K)/Max(Pds(aK)))
+
+  Une fonction de densitee est calculée :
+
+     D(aK) = Nb3(aK) /  Nb(aK)
+ 
+  Pour attenue cette fonction, avecun coeff A (A=10, signifie que a partir de 1/10 on diminue l'influence) :
+
+     D'(aK) = A * D(K) /( A D +1)
+
+  Et la Valeur entiere :
+
+     DI(aK) = E(100 *  D'(aK) * (A+1)/A)
+
+
+  Le Gain qu'apporte un triplet sur une case , soit D12 la distance entre  les deux sommets
+
+   Soit DLim la valeur d'attenation du B/H  D'12 = D12 * DLim (D12+DLim)
+ 
+   Gain = Dens1 * ( D12 * Dens2 +  DLim * (1-D12))
+
+
+
+*/
+
 #include "NewOri.h"
 
 class cGTrip_AttrSom;
@@ -69,7 +107,7 @@ class cGTrip_AttrSom
          cNewO_OneIm & Im() {return *mIm;}
 
          void InitTriplet(tSomGT*,tArcGT *);
-         void EndTriplet();
+         void FreeTriplet();
 
 
      private :
@@ -77,6 +115,7 @@ class cGTrip_AttrSom
          int            mNum;
          std::string    mName;
          cNewO_OneIm *  mIm;
+         Pt3dr          mC3;
 
          tMapM * mMerged;
 };
@@ -114,6 +153,7 @@ class cGTrip_AttrArc
         bool IsDirASym() const {return mASDir;}
         std::vector<Pt2df> & VP1() {return mASDir ? mASym->VP1() : mASym->VP2();}
         std::vector<Pt2df> & VP2() {return mASDir ? mASym->VP2() : mASym->VP1();}
+        const ElRotation3D & Rot() const {return mRot;}
 
     private  :
         ElRotation3D      mRot;
@@ -152,11 +192,12 @@ class cAppli_GenTriplet
        cAppli_GenTriplet(int argc,char ** argv);
        void  GenTriplet();
        cNewO_NameManager & NM() {return *mNM;}
+
+       int ToIndex(const Pt2df &  aP) const;
     private :
        bool  AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3);
        void  GenTriplet(tArcGT & anArc);
        void AddSomTmp(tSomGT & aS);
-       void AddSomVoisTmp(tSomGT & aS1,tSomGT & aS2);
 
        tGrGT                mGrT;
        tSubGrGT             mSubAll;
@@ -174,6 +215,10 @@ class cAppli_GenTriplet
        int                           mFlagVois;
        tArcGT *                      mCurArc;
        bool                          mShow;
+       Pt2df                         mPInf;
+       Pt2df                         mPSup;
+       double                        mStep;
+       Pt2di                         mSz;
 };
 
 /*********************************************************/
@@ -189,46 +234,113 @@ cGTrip_AttrSom::cGTrip_AttrSom(int aNum,const std::string & aNameIm,cAppli_GenTr
 {
 }
 
-void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anArc)
-{
-       mMerged = new  tMapM;
-
-      TripletAddArc(anArc,0,1);
-      tGrGT & aGr = aSom->gr();
-
-      TripletAddArc(aGr.arc_s1s2(anArc->s1(),*aSom),0,2);
-      TripletAddArc(aGr.arc_s1s2(anArc->s2(),*aSom),1,2);
-
-      mMerged->DoExport();
-      const tListM aLM =  mMerged->ListMerged();
-      int aNb=0;
-      int aNb3=0;
-      int aNb33=0;
-      for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
-      {
-          aNb++;
-          if ((*itM)->NbSom()==3 ) aNb3++;
-          if ((*itM)->NbArc()==3 ) aNb33++;
-      }
-      // std::list<cFixedMergeTieP<3,Pt2df> >
-      std::cout << "InitTriplet " << aNb << " " << aNb3 << " " << aNb33 << "\n";
-
-
-
-
-      mMerged->Delete();
-      delete mMerged;
-      // std::cout << "cGTrip_AttrSom::InitTriplet\n";
-}
-
 void cGTrip_AttrSom::TripletAddArc(tArcGT * anArc,int aNum1,int aNum2)
 {
+     ELISE_ASSERT(anArc!=0,"cGTrip_AttrSom::TripletAddArc, arc=0");
      std::vector<Pt2df> &  aVP1 =  anArc->attr().VP1();
      std::vector<Pt2df> &  aVP2 =  anArc->attr().VP2();
 
      for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
          mMerged->AddArc(aVP1[aK],aNum1,aVP2[aK],aNum2);
 }
+
+
+
+
+void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
+{
+      tGrGT & aGr = aSom->gr();
+      tArcGT* anA13 = aGr.arc_s1s2(anA12->s1(),*aSom);
+      tArcGT* anA23 = aGr.arc_s1s2(anA12->s2(),*aSom);
+
+      static std::vector<Pt2df> aVP1;
+      static std::vector<Pt2df> aVP2;
+      static std::vector<Pt2df> aVP3;
+      aVP1.clear();
+      aVP2.clear();
+      aVP3.clear();
+
+
+      mMerged = new  tMapM;
+      TripletAddArc(anA12,0,1);
+      TripletAddArc(anA13,0,2);
+      TripletAddArc(anA23,1,2);
+      mMerged->DoExport();
+
+      const tListM aLM =  mMerged->ListMerged();
+      int aNb33=0;
+      for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
+      {
+          if ((*itM)->NbSom()==3 )
+          {
+              aVP1.push_back((*itM)->GetVal(0));
+              aVP2.push_back((*itM)->GetVal(1));
+              aVP3.push_back((*itM)->GetVal(2));
+          }
+          if ((*itM)->NbArc()==3 ) aNb33++;
+      }
+      // std::list<cFixedMergeTieP<3,Pt2df> >
+      if (int(aVP1.size()) <TNbMinPMul) 
+      {
+         FreeTriplet();
+         return;
+      }
+      // std::cout << "InitTriplet " << aNb << " " << aNb3 << " " << aNb33 << "\n";
+
+      // Pour qu'il y ait intersection 
+      // Det(L C1C3 + C12,  R3U3, ,R2U) = 0
+      std::vector<double> aVL13; 
+      std::vector<double> aVL23; 
+      std::vector<double> aVLInv; 
+      ElRotation3D aR21 = anA12->attr().Rot();
+      ElRotation3D aR31 = anA13->attr().Rot();
+      ElRotation3D aR32 = anA23->attr().Rot();
+      ElRotation3D aR31Bis =  aR21 * aR32;
+
+
+      Pt3dr aC1(0,0,0);
+      Pt3dr aC2 = aR21.tr();
+      Pt3dr aC3 = aR31.tr();
+      Pt3dr aV3Bis = aR31Bis.tr() - aC2;
+
+
+      int aStep = ElMin(10,ElMax(1,int(aVP1.size())/50));
+
+      for (int aKL=0 ; aKL<int(aVP1.size()) ; aKL+=aStep)
+      {
+          Pt3dr aU31(aR31.ImVect(Pt3dr(aVP3[aKL].x,aVP3[aKL].y,1.0)));
+          Pt3dr aU2(aR21.ImVect(Pt3dr(aVP2[aKL].x,aVP2[aKL].y,1.0)));
+
+          Pt3dr aU1(Pt3dr(aVP1[aKL].x,aVP1[aKL].y,1.0));
+          Pt3dr aU31Bis(aR31Bis.ImVect(Pt3dr(aVP3[aKL].x,aVP3[aKL].y,1.0)));
+
+
+          double aDet = Det(aC2,aU31,aU2);
+          if (aDet)
+              aVL13.push_back(Det(aC3,aU31,aU2) / aDet);
+
+          aDet =  Det(aV3Bis,aU31Bis,aU1);
+          if (aDet)
+              aVL23.push_back( -Det(aC2,aU31Bis,aU1) /aDet);
+      }
+      Pt3dr aC31 = aC3 / MedianeSup(aVL13);
+      Pt3dr aC32 = aC2 + aV3Bis * MedianeSup(aVL23);
+      mC3 = (aC31 + aC32) / 2.0;
+
+
+      std::cout << "DDDDd " << euclid(aC31-aC32) << "\n";
+
+      FreeTriplet();
+}
+
+
+void cGTrip_AttrSom:: FreeTriplet()
+{
+   mMerged->Delete();
+   delete mMerged;
+}
+
+
 
 /*
          void InitTriplet();
@@ -252,27 +364,27 @@ void cAppli_GenTriplet::AddSomTmp(tSomGT & aS)
    aS.attr().InitTriplet(&aS,mCurArc);
 }
 
-void cAppli_GenTriplet::AddSomVoisTmp(tSomGT & aS1,tSomGT & aS2)
-{
-   for( tItAGT itA=aS1.begin(mSubAll) ; itA.go_on() ; itA++)
-   {
-       tSomGT & aS3 = (*itA).s2();
-       if (mGrT.arc_s1s2(aS2,aS3))
-       {
-          AddSomTmp(aS3);
-       }
-   }
-
-   
-}
 
 void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
 {
     if (!anArc.attr().IsDirASym() ) return;
     mCurArc = & anArc; 
-    AddSomVoisTmp(anArc.s1(),anArc.s2());
+
+    mPInf = anArc.attr().ASym().InfP1();
+    mPSup = anArc.attr().ASym().SupP1();
+    Pt2df aPLarg = mPSup-mPInf;
+    mStep = ElMax(aPLarg.x,aPLarg.y) / TNbCaseP1;
+    mSz = Pt2di(round_up(aPLarg.x/mStep),round_up(aPLarg.y/mStep));
 
 
+    for(tItAGT itA=anArc.s1().begin(mSubAll) ; itA.go_on() ; itA++)
+    {
+       tSomGT & aS3 = (*itA).s2();
+       if (mGrT.arc_s1s2(anArc.s2(),aS3))
+       {
+          AddSomTmp(aS3);
+       }
+    }
 
 
     // Vider les structure temporaires

@@ -336,17 +336,19 @@ void  cMMByImNM::ModifIp(eTypeMMByImNM aType,cImage_Profondeur & anIp,const std:
 int MMEnvStatute_main(int argc,char ** argv)
 {
    std::string aFullName;
+   std::string aPIMsDirName;
    ElInitArgMain
    (
         argc,argv,
         LArgMain()  << EAMC(aFullName,"Full Directory (Dir+Pattern)",eSAM_IsPatFile),
-        LArgMain()
+        LArgMain()  << EAM(aPIMsDirName,"PIMsDirName",true,"Name of PIMs directory (Statue for PIMs-Statue, Forest for PIMs-Forest")
    );
 
    std::string aDir,aNamIm;
    SplitDirAndFile(aDir,aNamIm,aFullName);
 
-   cMMByImNM * aGlobIN = cMMByImNM::ForGlobMerge(aDir,1.0,"Statue");
+   cMMByImNM * aGlobIN = cMMByImNM::ForGlobMerge(aDir,1.0,aPIMsDirName);
+  
    cMMByImNM * aLocIN = cMMByImNM::ForMTDMerge(aDir,aNamIm,"MTDTmp");
 
 

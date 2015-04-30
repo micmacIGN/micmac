@@ -163,6 +163,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       double       mDefCor;
       double       mZReg;
       bool mSuprImNoMasq;
+      std::string mPIMsDirName;
 };
 
 /*****************************************************************/
@@ -731,7 +732,7 @@ void  cAppliWithSetImage::MakeStripStruct(const std::string & aPairByStrip,bool 
       bool OkNum = FromString(anI.mNumInBande,aNumInBande);
       ELISE_ASSERT(OkNum,"Num in bande is not numeric");
       if (mShow)
-         std::cout << " Strip " << anI.mNameIm << " " << aBande <<  ";;" << anI.mNumInBande << "\n";
+         std::cout << " Image " << anI.mNameIm << " belongs to strip " << aBande <<  " and its number in the strip is " << anI.mNumInBande << "\n";
       anI.mBande = aBande;
   }
 }
@@ -1201,7 +1202,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mUseGpu        (false),
     mDefCor        (0.5),
     mZReg          (0.05),
-    mSuprImNoMasq  (false)
+    mSuprImNoMasq  (false),
+    mPIMsDirName   ("Statue") // used in MMEnvStatute for differenciating PIMs-Forest from PIMs-Statue
 
 {
   if ((argc>=2) && (!mModeHelp))
@@ -1242,6 +1244,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         mSuprImNoMasq = true;
         mDefCor = 0.2;
         mZReg   = 0.02;
+        mPIMsDirName="Forest"; // for MMEnvStatute
      }
      else if (mMacType)
      {
@@ -1725,7 +1728,7 @@ void cAppliMMByPair::DoFusionEpip()
        for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
        {
             std::string aNameIm = (*anITS).attr().mIma->mNameIm;
-            std::string aCom =      MMBinFile(MM3DStr) + " TestLib MMEnvStatute " + aNameIm;
+            std::string aCom =      MMBinFile(MM3DStr) + " TestLib MMEnvStatute " + aNameIm + " PIMsDirName=" + mPIMsDirName;
             aLCom.push_back(aCom);
             std::cout << aCom << "\n";
 
