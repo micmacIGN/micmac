@@ -65,15 +65,13 @@
      <GeomImages> eGeomImageOri </GeomImages>
      <Images >
           <Im1> ${Im1} </Im1>
-         <ImSecCalcApero>
+          <ImageSecByCAWSI> MMByPairCAWSI.xml </ImageSecByCAWSI>
+          <ImSecCalcApero>
                <Key> NKS-Assoc-ImSec@${ImSec} </Key>
                <NbMin>  1 </NbMin>
                <NbMax>  4 </NbMax>
                <OnEmpty> eOEISA_exit </OnEmpty>
           </ImSecCalcApero>
-<!--
-          <ImPat> IMG_0055.CR2 </ImPat>
--->
 
      </Images>
 

@@ -250,6 +250,7 @@ class cAppliWithSetImage
       double mPenPerIm;
       bool mModeHelp;
       std::string  mMasq3D;
+      std::vector<std::string>         mVNameFinal;
 
 
 
@@ -296,6 +297,10 @@ double ResolOfAff(const ElAffin2D & anAff);
 Box2dr BoxTerOfNu(const cXML_ParamNuage3DMaille & aNu);
 double ResolOfNu(const cXML_ParamNuage3DMaille & aNu);
 
+
+class cChantierAppliWithSetImage;
+class cCWWSImage;
+const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & ,const std::string & );
 
 
 
