@@ -55,43 +55,43 @@ REAL SqrDistSum(vector <Pt3dr> const & Sommets, cElNuage3DMaille* nuage)
 
     if (Sommets.size() == 3)
     {
-    ElCamera* aCam = nuage->Cam();
+        ElCamera* aCam = nuage->Cam();
 
-    Pt2dr A = aCam->R3toF2(Sommets[0]);
-    Pt2dr B = aCam->R3toF2(Sommets[1]);
-    Pt2dr C = aCam->R3toF2(Sommets[2]);
+        Pt2dr A = aCam->R3toF2(Sommets[0]);
+        Pt2dr B = aCam->R3toF2(Sommets[1]);
+        Pt2dr C = aCam->R3toF2(Sommets[2]);
 
-    Pt2dr AB = B-A;
-    Pt2dr AC = C-A;
-    REAL aDet = AB^AC;
+        Pt2dr AB = B-A;
+        Pt2dr AC = C-A;
+        REAL aDet = AB^AC;
 
-    if (aDet!=0)
-    {
-        Pt2di aP0 = round_down(Inf(A,Inf(B,C)));
-        aP0 = Sup(aP0,Pt2di(0,0));
-        Pt2di aP1 = round_up(Sup(A,Sup(B,C)));
-        aP1 = Inf(aP1,nuage->SzUnique()-Pt2di(1,1));
-
-        for (INT x=aP0.x ; x<= aP1.x ; x++)
-        for (INT y=aP0.y ; y<= aP1.y ; y++)
+        if (aDet!=0)
         {
-            Pt2dr Pt(x,y);
-            Pt2dr AP = Pt-A;
+            Pt2di aP0 = round_down(Inf(A,Inf(B,C)));
+            aP0 = Sup(aP0,Pt2di(0,0));
+            Pt2di aP1 = round_up(Sup(A,Sup(B,C)));
+            aP1 = Inf(aP1,nuage->SzUnique()-Pt2di(1,1));
 
-            // Coordonnees barycentriques de P(x,y)
-            REAL aPdsB = (AP^AC) / aDet;
-            REAL aPdsC = (AB^AP) / aDet;
-            REAL aPdsA = 1 - aPdsB - aPdsC;
-            if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps) &&
-                (nuage->ImMask().GetI(Pt2di(x,y)) > 0))
+            for (INT x=aP0.x ; x<= aP1.x ; x++)
+            for (INT y=aP0.y ; y<= aP1.y ; y++)
             {
-            Pt3dr Pt1 = Sommets[0]*aPdsA + Sommets[1]*aPdsB + Sommets[2]*aPdsC;
-            Pt3dr Pt2 = nuage->PreciseCapteur2Terrain(Pt);
+                Pt2dr Pt(x,y);
+                Pt2dr AP = Pt-A;
 
-            Res += square_euclid(Pt1, Pt2);
+                // Coordonnees barycentriques de P(x,y)
+                REAL aPdsB = (AP^AC) / aDet;
+                REAL aPdsC = (AB^AP) / aDet;
+                REAL aPdsA = 1 - aPdsB - aPdsC;
+                if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps) &&
+                    (nuage->ImMask().GetI(Pt2di(x,y)) > 0))
+                {
+                Pt3dr Pt1 = Sommets[0]*aPdsA + Sommets[1]*aPdsB + Sommets[2]*aPdsC;
+                Pt3dr Pt2 = nuage->PreciseCapteur2Terrain(Pt);
+
+                Res += square_euclid(Pt1, Pt2);
+                }
             }
         }
-    }
     }
     return Res;
 }
@@ -100,7 +100,7 @@ int TiPunch_main(int argc,char ** argv)
 {
     bool verbose = true;
 
-    std::string aDir, aPat, aFullName, aPly, aOut, aMode, aCom;
+    string aDir, aPat, aFullName, aPly, aOut, aMode, aCom;
     bool aBin = true;
     bool aRmPoissonMesh = false;
     int aDepth = 8;
@@ -115,14 +115,14 @@ int TiPunch_main(int argc,char ** argv)
         argc,argv,
         LArgMain()  << EAMC(aPly,"Ply file", eSAM_IsExistFile),
         LArgMain()  << EAM(aFullName,"Pattern",false,"Full Name (Dir+Pat)",eSAM_IsPatFile)
-                << EAM(aOut,"Out",false,"Mesh name (def=plyName+ _mesh.ply)")
-                << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
-                << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
-                << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
-                << EAM(aFilter,"Filter",true,"Filter mesh (def=true)")
-                << EAM(aMode,"Mode",true,"C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
-                << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
-                << EAM(aFilterFromBorder,"FFB",true,"Filter from border (def=true)")
+                    << EAM(aOut,"Out",false,"Mesh name (def=plyName+ _mesh.ply)")
+                    << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
+                    << EAM(aDepth,"Depth",true,"Maximum reconstruction depth for PoissonRecon (def=8)")
+                    << EAM(aRmPoissonMesh,"Rm",true,"Remove intermediary Poisson mesh (def=false)")
+                    << EAM(aFilter,"Filter",true,"Filter mesh (def=true)")
+                    << EAM(aMode,"Mode",true,"C3DC mode (def=Statue)", eSAM_None,ListOfVal(eNbTypeMMByP))
+                    << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
+                    << EAM(aFilterFromBorder,"FFB",true,"Filter from border (def=true)")
         );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -133,7 +133,7 @@ int TiPunch_main(int argc,char ** argv)
 
     stringstream ss;
     ss << aDepth;
-    std::string poissonMesh = StdPrefix(aPly) + "_poisson_depth" + ss.str() +".ply";
+    string poissonMesh = StdPrefix(aPly) + "_poisson_depth" + ss.str() +".ply";
 
     bool computeMesh = true;
 
@@ -155,7 +155,7 @@ int TiPunch_main(int argc,char ** argv)
     }
     else*/
     {
-        std::string yn;
+        string yn;
         cout << "File " << poissonMesh << " already exists. Do you want to replace it? (y/n)" << endl;
         cin >> yn;
         while ((yn != "y") && (yn != "n"))
@@ -179,8 +179,8 @@ int TiPunch_main(int argc,char ** argv)
         #endif
 
         aCom = g_externalToolHandler.get( "PoissonRecon" ).callName()
-            + std::string(" --in ") + aPly.c_str()
-            + std::string(" --out ") + poissonMesh.c_str()
+            + string(" --in ") + aPly.c_str()
+            + string(" --out ") + poissonMesh.c_str()
             + " --depth " + ss.str()
         #if USE_OPEN_MP
             + " --threads " + sst.str()
@@ -203,7 +203,7 @@ int TiPunch_main(int argc,char ** argv)
         ELISE_ASSERT(EAMIsInit(&aFullName),"Filter=true and image pattern is missing");
 
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-        std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
+        list<string>  aLS = aICNM->StdGetListOfFile(aPat);
 
         bool help;
         eTypeMMByP  type;
@@ -216,28 +216,25 @@ int TiPunch_main(int argc,char ** argv)
         vector <cZBuf> vZBuffers;
 
         cout << endl;
-        for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
+        for (list<string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
         {
-            std::string aNameXml  = PIMsFilter->NameFileXml(eTMIN_Merge,*itS);
+            string aNameXml  = PIMsFilter->NameFileXml(eTMIN_Merge,*itS);
+            string aNameMasqDepth = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
 
-            if (ELISE_fp::exist_file(aNameXml))
+            if (ELISE_fp::exist_file(aNameXml) && ELISE_fp::exist_file(aNameMasqDepth))
             {
-            vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
-            vNuages.back()->Cam()->SetIdCam(aNameXml); //debug
+                vNuages.push_back(cElNuage3DMaille::FromFileIm(aNameXml,"XML_ParamNuage3DMaille"));
+                vNuages.back()->Cam()->SetIdCam(aNameXml); //debug
 
-            ElCamera * Cam = vNuages.back()->Cam();
-            cZBuf aZBuffer(Cam->Sz(), defValZBuf, aZBuffSSEch);
+                ElCamera * Cam = vNuages.back()->Cam();
+                cZBuf aZBuffer(Cam->Sz(), defValZBuf, aZBuffSSEch);
 
-            aZBuffer.BasculerUnMaillage(myMesh, *(dynamic_cast <CamStenope*> (Cam)));
+                aZBuffer.BasculerUnMaillage(myMesh, *(dynamic_cast <CamStenope*> (Cam)));
 
-            vZBuffers.push_back(aZBuffer);
+                vZBuffers.push_back(aZBuffer);
 
-            cout << "Image " << *itS << ", with nuage " << aNameXml << endl;
+                cout << "Image " << *itS << " with masq " << aNameMasqDepth << endl;
 
-            std::string aNameMasqDepth = PIMsFilter->NameFileMasq(eTMIN_Depth,*itS);
-
-            if (ELISE_fp::exist_file(aNameMasqDepth))
-            {
                 Tiff_Im aImg(aNameMasqDepth.c_str());
 
                 Pt2di sz = aImg.Sz2();
@@ -253,9 +250,7 @@ int TiPunch_main(int argc,char ** argv)
 
                 vMasqImg.push_back(aImBin);
             }
-            else cout << aNameMasqDepth << " does not exist" << endl;
-            }
-            else cout << aNameXml << " does not exist" << endl;
+            else cout << aNameXml << " or " << aNameMasqDepth << " does not exist" << endl;
         }
 
         ELISE_ASSERT(vNuages.size() == vMasqImg.size(), "Missing masq image");
@@ -264,12 +259,14 @@ int TiPunch_main(int argc,char ** argv)
         cout <<"**********************Filtering faces*************************"<<endl;
         cout << endl;
 
-        std::set < int, std::greater<int> > toRemove;
+        Pt2dr A2, B2, C2, AB, AC;
+        Pt2di A2i, B2i, C2i, aP0, aP1;
 
         const int nNuages = vNuages.size();
         for(int bK=0 ; bK<nNuages; bK++)
         {
-            set <int> vTri = vZBuffers[bK].getVisibleTrianglesIndexes();
+            set <int> vTri;
+            vZBuffers[bK].getVisibleTrianglesIndexes(vTri);
 
             set <int>::const_iterator it = vTri.begin();
             for(;it!=vTri.end();++it)
@@ -283,29 +280,29 @@ int TiPunch_main(int argc,char ** argv)
 
                     ElCamera* Cam = vNuages[bK]->Cam();
 
-                    Pt2dr A2 = Cam->R3toF2(Vertex[0]);
-                    Pt2dr B2 = Cam->R3toF2(Vertex[1]);
-                    Pt2dr C2 = Cam->R3toF2(Vertex[2]);
+                    A2 = Cam->R3toF2(Vertex[0]);
+                    B2 = Cam->R3toF2(Vertex[1]);
+                    C2 = Cam->R3toF2(Vertex[2]);
 
-                    TIm2DBits<1> im = vMasqImg[bK];
+                    TIm2DBits<1> im (vMasqImg[bK]);
 
                     // Tiff_Im::CreateFromIm(vMasqImg[bK],"./toto" + ToString(bK) + ".tif");
 
-                    Pt2di A2i = round_ni(A2);
-                    Pt2di B2i = round_ni(B2);
-                    Pt2di C2i = round_ni(C2);
+                    A2i = round_ni(A2);
+                    B2i = round_ni(B2);
+                    C2i = round_ni(C2);
 
                     if (im.inside(A2i) && im.inside(B2i) && im.inside(C2i))
                     {
-                        Pt2dr AB = B2-A2;
-                        Pt2dr AC = C2-A2;
+                        AB = B2-A2;
+                        AC = C2-A2;
                         REAL aDet = AB^AC;
 
                         if (aDet!=0)
                         {
-                            Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
+                            aP0 = round_down(Inf(A2,Inf(B2,C2)));
                             aP0 = Sup(aP0,Pt2di(0,0));
-                            Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
+                            aP1 = round_up(Sup(A2,Sup(B2,C2)));
                             aP1 = Inf(aP1,im.sz()-Pt2di(1,1));
 
                             bool doBreak = false;
@@ -324,6 +321,14 @@ int TiPunch_main(int argc,char ** argv)
                                     {
                                         if (im.get(Pt2di(x,y)))
                                         {
+                                            /*if (Triangle->Idx() == 46614)
+                                            {
+                                                cout << "ok " << bK << " " << x << " " << y  << endl;
+                                                cout << "A2  = " << A2 << endl;
+                                                cout << "B2  = " << B2 << endl;
+                                                cout << "C2  = " << C2 << endl;
+                                            }*/
+
                                             Triangle->setBestImgIndex(1); //trick to check if triangle is viewed
                                             doBreak = true;
                                             break;
@@ -338,10 +343,25 @@ int TiPunch_main(int argc,char ** argv)
             }
         }
 
+        /*
+        //TODO devrait suffire mais reste un bug (rotation des masques ?)
+
+        set < int > stri;
+        const int nbTriangles = myMesh.getFacesNumber();
+        for (int aK=0; aK < nbTriangles;++aK)
+        {
+            cTriangle * triangle = myMesh.getTriangle(aK);
+            if (triangle->isTextured()) stri.insert(aK);
+        }
+        myMesh.Export(aOut,stri);*/
+
+        set < int, greater<int> > toRemove;
+
         if (aFilterFromBorder)
         {
             myMesh.clean();
 
+            //after clean, some isolated triangles can remain, we remove them by keeping only the biggest region
             vector<cTextureBox2d> vTexBox = myMesh.getRegions();
 
             //looking for biggest region
@@ -357,18 +377,15 @@ int TiPunch_main(int argc,char ** argv)
             {
                 if (aK != id)
                 {
-                    std::vector<int> vtri = vTexBox[aK].triangles;
-                    for (unsigned int bK=0; bK < vtri.size(); ++bK)
-                    {
-
-                        toRemove.insert(vtri[bK]);
-                    }
+                    vector<int> *vtri = &(vTexBox[aK].triangles);
+                    vector<int>::const_iterator it = vtri->begin();
+                    for (;it!=vtri->end();++it) toRemove.insert(*it);
                 }
             }
 
             cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << " faces" << endl;
 
-            std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
+            set < int, greater<int> >::const_iterator itr = toRemove.begin();
             for (; itr != toRemove.end(); ++itr) myMesh.removeTriangle(*itr);
         }
         else
@@ -382,7 +399,7 @@ int TiPunch_main(int argc,char ** argv)
 
             cout << "Removing " << toRemove.size() << " / " << nbTriangles << " faces" << endl;
 
-            set<int, std::greater<int> >::const_iterator itr = toRemove.begin();
+            set<int, greater<int> >::const_iterator itr = toRemove.begin();
             for(; itr!=toRemove.end();++itr) myMesh.removeTriangle(*itr, false);
         }
     }
@@ -398,7 +415,7 @@ int TiPunch_main(int argc,char ** argv)
 
     if (aRmPoissonMesh)
     {
-        aCom = std::string(SYS_RM) + " " + poissonMesh;
+        aCom = string(SYS_RM) + " " + poissonMesh;
         system_call(aCom.c_str());
     }
 

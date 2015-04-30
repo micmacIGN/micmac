@@ -61,7 +61,7 @@ void LoadTrScaleRotate
      Pt2dr aVIn = Pt2dr(aP2Int-aP1Int);
      Pt2di aSzOutInit = round_ni(aVIn / aScale);
 
-     std::vector<Im2DGen *>   aVOutInit = aTifOut.VecOfIm(aSzOutInit);
+     vector<Im2DGen *>   aVOutInit = aTifOut.VecOfIm(aSzOutInit);
 
      ELISE_COPY
      (
@@ -70,7 +70,7 @@ void LoadTrScaleRotate
           StdOut(aVOutInit)
      );
 
-     std::vector<Im2DGen *> aVOutRotate;
+     vector<Im2DGen *> aVOutRotate;
      for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
           aVOutRotate.push_back(aVOutInit[aK]->ImRotate(aRot));
 
@@ -86,7 +86,7 @@ void LoadTrScaleRotate
 
 //update index in regions list, when a triangle is removed from mesh
 //TODO : faux : on ne décale plus d'un lorsqu'on supprime un triangle
-/*void updateIndex(int triIdx, std::vector < cTextureBox2d > &regions)
+/*void updateIndex(int triIdx, vector < cTextureBox2d > &regions)
 {
     for (unsigned int cK=0; cK < regions.size();++cK)
     {
@@ -113,18 +113,18 @@ typedef enum
     eLastTC
 } eTequilaCrit;
 
-std::string eToString(const eTequilaMode & aVal)
+string eToString(const eTequilaMode & aVal)
 {
    if (aVal==eBasic)
       return  "eBasic";
    if (aVal==ePack)
       return  "ePack";
- std::cout << "Enum = eTequilaMode\n";
+ cout << "Enum = eTequilaMode\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
 }
 
-std::string eToString(const eTequilaCrit & aVal)
+string eToString(const eTequilaCrit & aVal)
 {
    if (aVal==eAngle)
       return  "eAngle";
@@ -132,24 +132,24 @@ std::string eToString(const eTequilaCrit & aVal)
       return  "eStretch";
    if (aVal==eAAngle)
       return  "eAAngle";
- std::cout << "Enum = eTequilaCrit\n";
+ cout << "Enum = eTequilaCrit\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
 }
 
 int Tequila_main(int argc,char ** argv)
 {
-    std::string aDir, aPat, aFullName, aOri, aPly, aOut, aTextOut;
+    string aDir, aPat, aFullName, aOri, aPly, aOut, aTextOut;
     int aTextMaxSize = 8192;
     int aZBuffSSEch = 2;
     int aJPGcomp = 70;
     double aAngleMax = 90.f;
     bool aBin = true;
-    std::string aMode = "Pack";
-    std::string aCrit = "Angle";
+    string aMode = "Pack";
+    string aCrit = "Angle";
     bool aFilter = false;
     bool aDoGraphCut = false;
-    double aLambda = 0.1;
+    double aLambda = 0.01;
     int aNbIter = 2;
 
     bool debug = false;
@@ -164,7 +164,7 @@ int Tequila_main(int argc,char ** argv)
                 LArgMain()  << EAM(aOut,"Out",true,"Textured mesh name (def=plyName+ _textured.ply)")
                             << EAM(aBin,"Bin",true,"Write binary ply (def=true)")
                             << EAM(aDoGraphCut,"Optim",true,"Graph-cut optimization (def=false)")
-                            << EAM(aLambda,"Lambda", true,"Lambda (def=0.1)")
+                            << EAM(aLambda,"Lambda", true,"Lambda (def=0.01)")
                             << EAM(aNbIter,"Iter", true,"Optimization iteration number (def=2)")
                             << EAM(aFilter,"Filter",true,"Remove border faces (def=false)")
                             << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
@@ -198,21 +198,21 @@ int Tequila_main(int argc,char ** argv)
     if (!EAMIsInit(&aOut)) aOut = StdPrefix(aPly) + "_textured.ply";
     if (!EAMIsInit(&aTextOut)) aTextOut = StdPrefix(aPly) + "_UVtexture.tif";
 
-    std::string textureName = StdPrefix(aTextOut) + ".jpg ";
-    std::stringstream st;
+    string textureName = StdPrefix(aTextOut) + ".jpg ";
+    stringstream st;
     st << aJPGcomp;
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    std::list<std::string>  aLS = aICNM->StdGetListOfFile(aPat);
+    list<string>  aLS = aICNM->StdGetListOfFile(aPat);
 
     StdCorrecNameOrient(aOri,aDir);
 
-    std::vector<CamStenope*> ListCam;
+    vector<CamStenope*> ListCam;
 
     cout << endl;
-    for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
+    for (list<string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++)
     {
-        std::string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri,*itS,true);
+        string NOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri,*itS,true);
 
         ListCam.push_back(CamOrientGenFromFile(NOri,aICNM));
 
@@ -251,9 +251,9 @@ int Tequila_main(int argc,char ** argv)
     cout<<"*************************Computing Z-Buffer**************************"<< endl;
     cout<< endl;
 
-    std::vector <cZBuf> aZBuffers;
+    vector <cZBuf> aZBuffers;
 
-    std::list<std::string>::const_iterator itS=aLS.begin();
+    list<string>::const_iterator itS=aLS.begin();
     const int nCam = ListCam.size();
     for(int aK=0 ; aK<nCam; aK++, itS++)
     {
@@ -266,7 +266,8 @@ int Tequila_main(int argc,char ** argv)
 
         aZBuffers.push_back(aZBuffer);
 
-        set <int> vTri = aZBuffer.getVisibleTrianglesIndexes();
+        set <int> vTri;
+        aZBuffer.getVisibleTrianglesIndexes(vTri);
 
         if (debug)
         {
@@ -277,12 +278,12 @@ int Tequila_main(int argc,char ** argv)
             myMesh.Export(StdPrefix(*itS) + "export.ply", vTri);
         }
 
-        std::set <int>::const_iterator it = vTri.begin();
+        set <int>::const_iterator it = vTri.begin();
         for (;it!=vTri.end();++it)
         {
             cTriangle * Triangle = myMesh.getTriangle(*it);
 
-            std::vector <Pt3dr> Vertex;
+            vector <Pt3dr> Vertex;
             Triangle->getVertexes(Vertex);
 
             Pt2dr D = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
@@ -344,6 +345,8 @@ int Tequila_main(int argc,char ** argv)
                 {
                     criter = angle;
 
+                    //if (Triangle->Idx() == 14591)  cout << "aK = " << aK << " " << criter << " < " << Triangle->getBestCriter() <<  endl;
+
                     if(criter < Triangle->getBestCriter())
                     {
                         Triangle->setBestImgIndex(aK);
@@ -377,7 +380,7 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
-    std::set <int> index; //liste des index de cameras utilisees
+    set <int> index; //liste des index de cameras utilisees
 
     int valDef = cTriangle::getDefTextureImgIndex();
 
@@ -410,16 +413,16 @@ int Tequila_main(int argc,char ** argv)
     cout << endl;
 
     Pt2di aSzMax;
-    std::vector <Tiff_Im> aVT;     //Vecteur contenant les images
+    vector <Tiff_Im> aVT;     //Vecteur contenant les images
     int aNbCh = 0;
 
-    std::vector <Im2D_REAL4> final_ZBufIm;
+    vector <Im2D_REAL4> final_ZBufIm;
     cInterpolateurIm2D<REAL4> * pInterp = new cInterpolBilineaire<REAL4>;
-    std::set <int>::const_iterator it = index.begin();
+    set <int>::const_iterator it = index.begin();
     for (; it != index.end();it++)
     {
         int bK=0;
-        for (std::list<std::string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++, bK++)
+        for (list<string>::const_iterator itS=aLS.begin(); itS!=aLS.end() ; itS++, bK++)
         {
             if (*it == bK)
             {
@@ -448,16 +451,22 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
+    /*cTriangle* trin = myMesh.getTriangle(14591);
+    vector<int> som;
+    trin->getVertexesIndexes(som);
+    cout << "sommets = " << som[0] << " "<< som[1] << " " << som[2] << endl;
+    cout << "img idx before = " << trin->getBestImgIndex() << endl;*/
+
     if (aDoGraphCut)
     {
-
         cout << endl;
         cout <<"***************************Optimization******************************"<<endl;
         cout << endl;
 
-        float mte = 1e9; //mean texture exception (triangle projects outside image)
-        float curCrit, newCrit, curMean1, curMean2, newMean1, newMean2, diff11, diff12, diff21, diff22;
-        int n1, n2, curImgIdx1, curImgIdx2, newImgIdx1, newImgIdx2;
+        Pt3dr mte(1e9,1e9,1e9); //mean texture exception (triangle projects outside image)
+        float curCrit, newCrit, diff00, diff01, diff10, diff11;
+        Pt3dr curMean0, curMean1, newMean0, newMean1;
+        int n0, n1, curImgIdx0, curImgIdx1, newImgIdx0, newImgIdx1;
 
         const int nTriangles = myMesh.getFacesNumber();
         const int nEdges = myMesh.getEdgesNumber();
@@ -473,12 +482,16 @@ int Tequila_main(int argc,char ** argv)
                 {
                     QPBO<float>* q = new QPBO<float>(nTriangles, nEdges); // max number of nodes & edges
 
+                    set <int> vTri;
+                    aZBuffers[aCam].getVisibleTrianglesIndexes(vTri);
+
+                    //if (aCam==7 && (vTri.find(14591) != vTri.end()) ) cout << "the triangle is visible" << endl;
+
                     for(int aK=0; aK < nTriangles; ++aK)
                     {
                         q->AddNode(1);
 
                         cTriangle *tri = myMesh.getTriangle(aK);
-
                         int curImgIdx = tri->getBestImgIndex();
 
                         if ((curImgIdx != valDef) && (tri->getCriter(aCam) != threshold))
@@ -499,65 +512,64 @@ int Tequila_main(int argc,char ** argv)
                         else q->AddUnaryTerm(aK, 300, 300);
                     }
 
-                    set <int> vTri = aZBuffers[aCam].getVisibleTrianglesIndexes();
-
                     for (int aK=0; aK < nEdges; ++aK)
                     {
                         cEdge *edge = myMesh.getEdge(aK);
 
-                        n1 = edge->n1();
-                        n2 = edge->n2();
+                        n0 = edge->n1();
+                        n1 = edge->n2();
 
+                        cTriangle *tri0 = myMesh.getTriangle(n0);
                         cTriangle *tri1 = myMesh.getTriangle(n1);
-                        cTriangle *tri2 = myMesh.getTriangle(n2);
 
+                        curImgIdx0 = tri0->getBestImgIndex();
                         curImgIdx1 = tri1->getBestImgIndex();
-                        curImgIdx2 = tri2->getBestImgIndex();
 
-                        if ((curImgIdx1 != valDef) && (curImgIdx2 != valDef) &&
-                            (vTri.find(n1) != vTri.end()) &&
-                            (vTri.find(n2) != vTri.end()) )
+                        if ((curImgIdx0 != valDef) && (curImgIdx1 != valDef) &&
+                            (vTri.find(n0) != vTri.end()) &&
+                            (vTri.find(n1) != vTri.end()) )
                         {
+                            newImgIdx0 = aCam; //tri0->getBestImgIndexAfter(curImgIdx0);
                             newImgIdx1 = aCam; //tri1->getBestImgIndexAfter(curImgIdx1);
-                            newImgIdx2 = aCam; //tri2->getBestImgIndexAfter(curImgIdx2);
 
-                            curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]); //TODO: calculer une seule fois...
-                            curMean2 = tri2->meanTexture(ListCam[curImgIdx2], aVT[curImgIdx2]);
+                            curMean0 = tri0->meanTexture(ListCam[curImgIdx0], aVT[curImgIdx0]); //TODO: calculer une seule fois...
+                            curMean1 = tri1->meanTexture(ListCam[curImgIdx1], aVT[curImgIdx1]);
 
+                            newMean0 = tri0->meanTexture(ListCam[newImgIdx0], aVT[newImgIdx0]);
                             newMean1 = tri1->meanTexture(ListCam[newImgIdx1], aVT[newImgIdx1]);
-                            newMean2 = tri2->meanTexture(ListCam[newImgIdx2], aVT[newImgIdx2]);
 
-                            if ((curMean1 != mte) && (curMean2 != mte) && (newMean1 != mte) && (newMean2 != mte))
+                            if ((curMean0 == mte) || (curMean1 == mte) || (newMean0 == mte) || (newMean1 == mte))
+                                q->AddPairwiseTerm(tri0->Idx(), tri1->Idx(), 300,300,300,300);
+                            else
                             {
-                                diff11 = aLambda*fabs(curMean1 - curMean2);
-                                diff12 = aLambda*fabs(curMean1 - newMean2);
-                                diff21 = aLambda*fabs(newMean1 - curMean2);
-                                diff22 = aLambda*fabs(newMean1 - newMean2);
+                                diff00 = aLambda*(fabs(curMean0.x - curMean1.x) + fabs(curMean0.y - curMean1.y) + fabs(curMean0.z - curMean1.z));
+                                diff01 = aLambda*(fabs(curMean0.x - newMean1.x) + fabs(curMean0.y - newMean1.y) + fabs(curMean0.z - newMean1.z));
+                                diff10 = aLambda*(fabs(newMean0.x - curMean1.x) + fabs(newMean0.y - curMean1.y) + fabs(newMean0.z - curMean1.z));
+                                diff11 = aLambda*(fabs(newMean0.x - newMean1.x) + fabs(newMean0.y - newMean1.y) + fabs(newMean0.z - newMean1.z));
 
                                 #ifdef _DEBUG
                                     cout << "image " << aCam << endl;
+                                    cout << "curMean0 = " << curMean0 << " newMean0 " << newMean0 << endl;
                                     cout << "curMean1 = " << curMean1 << " newMean1 " << newMean1 << endl;
-                                    cout << "curMean2 = " << curMean2 << " newMean2 " << newMean2 << endl;
 
+                                    cout << "diff00 = " << diff00 << endl;
+                                    cout << "diff01 = " << diff01 << endl;
+                                    cout << "diff10 = " << diff10 << endl;
                                     cout << "diff11 = " << diff11 << endl;
-                                    cout << "diff12 = " << diff12 << endl;
-                                    cout << "diff21 = " << diff21 << endl;
-                                    cout << "diff22 = " << diff22 << endl;
 
-                                    cout << "tri1->getCriter(curImgIdx1)) " << tri1->getCriter(curImgIdx1) << endl;
-                                    cout << "tri2->getCriter(curImgIdx1)) " << tri2->getCriter(curImgIdx2) << endl;
+                                    cout << "tri0->getCriter(curImgIdx0)) " << tri0->getCriter(curImgIdx0) << endl;
+                                    cout << "tri1->getCriter(curImgIdx0)) " << tri1->getCriter(curImgIdx1) << endl;
                                 #endif
 
-                                q->AddPairwiseTerm(tri1->Idx(), tri2->Idx(), diff11, diff12, diff21, diff22);
+                                q->AddPairwiseTerm(tri0->Idx(), tri1->Idx(), diff00, diff01, diff10, diff11);
                             }
-                            else q->AddPairwiseTerm(tri1->Idx(), tri2->Idx(), 300,300,300,300);
                         }
-                        else q->AddPairwiseTerm(tri1->Idx(), tri2->Idx(), 300,300,300,300);
+                        else q->AddPairwiseTerm(tri0->Idx(), tri1->Idx(), 300,300,300,300);
                     }
 
-                    cout << "Solve for image "<< aCam+1 << "/"<< nCam << endl;
+                    cout << "Solving for image "<< aCam+1 << "/"<< nCam << endl;
                     q->Solve();
-                    //q->ComputeWeakPersistencies();
+                    q->ComputeWeakPersistencies();
 
                     for (int aK=0; aK < nTriangles; ++aK)
                     {
@@ -576,12 +588,12 @@ int Tequila_main(int argc,char ** argv)
                 }
             }
         }
-        else std::cout << "Walou faces or walou edges" << std::endl;
+        else cout << "Walou faces or walou edges" << endl;
     }
 
 
-
-
+    //cout << "img idx = " << trin->getBestImgIndex() << endl;
+    //cout << "***************************************************************" << endl;
 
     if (aMode == "Pack")
     {
@@ -589,8 +601,8 @@ int Tequila_main(int argc,char ** argv)
         cout <<"**********************Getting adjacent triangles*********************"<<endl;
         cout << endl;
 
-        std::vector < cTextureBox2d > regions = myMesh.getRegions();
-        cout << "nb regions = " << regions.size() << endl;
+        vector < cTextureBox2d > regions = myMesh.getRegions();
+        cout << regions.size() << " regions found" << endl;
 
         TEXTURE_PACKER::TexturePacker *tp = TEXTURE_PACKER::createTexturePacker();
 
@@ -616,7 +628,7 @@ int Tequila_main(int argc,char ** argv)
 
                 ElCamera * Cam = ListCam[imgIdx];
 
-                std::vector <Pt3dr> Vertex;
+                vector <Pt3dr> Vertex;
                 Triangle->getVertexes(Vertex);
 
                 Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
@@ -726,7 +738,7 @@ int Tequila_main(int argc,char ** argv)
 
             if (rotated)
             {
-                std::vector<Im2DGen *> aVOutInit = nFileRes.VecOfIm(Pt2di(h_scaled, w_scaled));
+                vector<Im2DGen *> aVOutInit = nFileRes.VecOfIm(Pt2di(h_scaled, w_scaled));
 
                 Fonc_Num Fonc = StdFoncChScale(aF0,Pt2dr(p0),Pt2dr(1.f/Scale,1.f/Scale));
                 Fonc = Max(0,Min(255,Fonc));
@@ -741,7 +753,7 @@ int Tequila_main(int argc,char ** argv)
                 );
                 //erreur : segfault avec Sz=4096 Scale=0.24
 
-                std::vector<Im2DGen *>   aVOutRotate;
+                vector<Im2DGen *>   aVOutRotate;
                 for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
                      aVOutRotate.push_back(aVOutInit[aK]->ImRotate(3));
 
@@ -784,7 +796,7 @@ int Tequila_main(int argc,char ** argv)
         Pt2dr p0_scaled, p1_scaled;
 
         int cptTmp =0;
-        std::vector < cTextureBox2d >::const_iterator it = regions.begin();
+        vector < cTextureBox2d >::const_iterator it = regions.begin();
         for (; it != regions.end(); ++it, cptTmp++)
         {
             float tx = it->translation.x;
@@ -814,7 +826,7 @@ int Tequila_main(int argc,char ** argv)
                 {
                     CamStenope *Cam = ListCam[idx];
 
-                    std::vector <Pt3dr> Vertex;
+                    vector <Pt3dr> Vertex;
                     Triangle->getVertexes(Vertex);
 
                     Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
@@ -822,7 +834,7 @@ int Tequila_main(int argc,char ** argv)
                     Pt2dr Pt3 = Cam->R3toF2(Vertex[2]);
 
                     //debug
-                    std::vector <int> vIndexes;
+                    vector <int> vIndexes;
                     Triangle->getVertexesIndexes(vIndexes);
 
                     if ((vIndexes[0] == 14473) && (vIndexes[1] == 14473) && (vIndexes[2]==15050))
@@ -895,7 +907,7 @@ int Tequila_main(int argc,char ** argv)
     }
     else if (aMode == "Basic")
     {
-        std::vector <Pt2dr> TabCoor;
+        vector <Pt2dr> TabCoor;
 
         int aNbLine = round_up(sqrt(double(aVT.size())));
         int aNbCol = round_up(aVT.size()/double(aNbLine));
@@ -937,7 +949,7 @@ int Tequila_main(int argc,char ** argv)
         {
             Pt2di ptK(aK % aNbCol, aK / aNbCol);
 
-            //std::cout << "WRITE " << aVT[aK].name() << "\n";
+            //cout << "WRITE " << aVT[aK].name() << "\n";
 
             Pt2di aP0 (
                         (ptK.x*aSz.x) / aNbCol,
@@ -989,7 +1001,7 @@ int Tequila_main(int argc,char ** argv)
             {
                 CamStenope * Cam = ListCam[idx];
 
-                std::vector <Pt3dr> Vertex;
+                vector <Pt3dr> Vertex;
                 Triangle->getVertexes(Vertex);
 
                 Pt2dr Pt1 = Cam->R3toF2(Vertex[0]);             //projection des sommets du triangle
@@ -1027,14 +1039,14 @@ int Tequila_main(int argc,char ** argv)
     cout <<"***********************Converting texture file***********************"<<endl;
     cout << endl;
 
-    std::string aCom =  g_externalToolHandler.get( "convert" ).callName() + std::string(" -quality ") + st.str() + " "
+    string aCom =  g_externalToolHandler.get( "convert" ).callName() + string(" -quality ") + st.str() + " "
             + aTextOut + " " + textureName;
 
     if (debug) cout << "COM= " << aCom << endl;
 
     system_call(aCom.c_str());
 
-    aCom = std::string(SYS_RM) + " " + aTextOut;
+    aCom = string(SYS_RM) + " " + aTextOut;
     system_call(aCom.c_str());
 
     cout << endl;
