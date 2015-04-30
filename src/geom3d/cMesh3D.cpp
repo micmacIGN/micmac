@@ -290,7 +290,7 @@ void cTriangle::showMap()
     return res;
 }*/
 
-float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
+Pt3dr cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
 {
     vector <Pt3dr> Vertex;
     getVertexes(Vertex);
@@ -301,7 +301,8 @@ float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
 
     if (aCam->IsInZoneUtile(A2) && aCam->IsInZoneUtile(B2) && aCam->IsInZoneUtile(C2))
     {
-        float sumTx = 0.f;
+        //float sum = 0.f;
+        Pt3dr sum;
         int cptPx = 0;
 
         /*cout << "img proj = "<< endl;
@@ -353,28 +354,30 @@ float cTriangle::meanTexture(CamStenope *aCam, Tiff_Im &aImg)
 
                         if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps)) // on est a l'intérieur du triangle
                         {
-                            unsigned char red   = aDataR[ay][ax];
+                            /* unsigned char red   = aDataR[ay][ax];
                             unsigned char green = aDataG[ay][ax];
                             unsigned char blue  = aDataB[ay][ax];
 
-                          /*  cout << "red = " << (int) red << endl;
+                            cout << "red = " << (int) red << endl;
                             cout << "gre = " << (int) green << endl;
                             cout << "blu = " << (int) blue << endl;
                             cout << "****************" << endl;*/
 
+                            //sum += 0.2126*(float)red + 0.7152*(float)green + 0.0722*(float)blue;
+                            sum.x += (float) aDataR[ay][ax];
+                            sum.y += (float) aDataG[ay][ax];
+                            sum.z += (float) aDataB[ay][ax];
                             cptPx++;
-                            sumTx += 0.2126*(float)red + 0.7152*(float)green + 0.0722*(float)blue;
                         }
                     }
                 }
             }
         }
 
-        if (cptPx)
-            return sumTx / (float) cptPx;
+        if (cptPx) return sum / (float) cptPx;
     }
 
-    return 1e9;
+    return Pt3dr(1e9,1e9,1e9);
 }
 
 
@@ -608,9 +611,9 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
 
     if (doAdjacence)
     {
-        vector <int> edges = aTri.getEdgesIndex();
+        vector <int> *edges = aTri.getEdgesIndex();
 
-       /* cout << "triangle à retirer= " << index << endl;
+       /* cout << "triangle à retirer= " << triIndex << endl;
         cout << "nombre d'edges à retirer =  " << edges.size() << endl;*/
 
        /* for (unsigned int aK=0; aK< edges.size(); aK++)
@@ -620,9 +623,9 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
         }*/
 
         const int nTriangles = mTriangles.size();
-        for (unsigned int aK=0; aK< edges.size(); aK++)
+        for (unsigned int aK=0; aK< edges->size(); aK++)
         {
-            int edgeIndex = edges[aK];
+            int edgeIndex = (*edges)[aK];
 
             cEdge *e = getEdge(edgeIndex);
 
@@ -642,20 +645,19 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
 
                 for (int bK=0;bK < nTriangles; bK++ )
                 {
-                    vector <int> vIdx = getTriangle(bK)->getEdgesIndex();
-                    for(unsigned int cK=0; cK< vIdx.size();++cK)
+                    vector <int> *vIdx = getTriangle(bK)->getEdgesIndex();
+                    for(unsigned int cK=0; cK< vIdx->size();++cK)
                     {
-                        if (vIdx[cK] == backEdgeIdx) getTriangle(bK)->setEdgeIndex(cK, edgeIndex);
+                        if ((*vIdx)[cK] == backEdgeIdx) getTriangle(bK)->setEdgeIndex(cK, edgeIndex);
                     }
                 }
 
-                for (unsigned int bK=aK+1; bK < edges.size();++bK)
+                for (unsigned int bK=aK+1; bK < edges->size();++bK)
                 {
-                    if (edges[bK] == backEdgeIdx) edges[bK] = edgeIndex;
+                    if ((*edges)[bK] == backEdgeIdx) (*edges)[bK] = edgeIndex;
                 }
+                aK--;
             }
-            else
-                cout << "impossible error !!!!!!" << endl;
         }
     }
 
@@ -1055,46 +1057,44 @@ void cZBuf::BasculerUnMaillage(cMesh &aMesh, const CamStenope &aCam)
 
             if (aDet!=0)
             {
-
-               /* Pt2di A2i = round_down(A2);
+                Pt2di A2i = round_down(A2);
                 Pt2di B2i = round_down(B2);
                 Pt2di C2i = round_down(C2);
 
                  //On verifie que le triangle se projete entierement dans l'image
                  //TODO: gerer les triangles de bord
-                if (A2i.x < 0 || B2i.x < 0 || C2i.x < 0 || A2i.y < 0 || B2i.y < 0 || C2i.y < 0 || A2i.x >= mSzRes.x || B2i.x >= mSzRes.x || C2i.x >= mSzRes.x || A2i.y >= mSzRes.y  || B2i.y >= mSzRes.y  || C2i.y >= mSzRes.y)
-                     return;*/
+                if (A2i.x >= 0 && B2i.x >= 0 && C2i.x >= 0 && A2i.y >= 0 && B2i.y >= 0 && C2i.y >= 0 && A2i.x < SzRes.x && B2i.x < SzRes.x && C2i.x < SzRes.x && A2i.y < SzRes.y  && B2i.y < SzRes.y  && C2i.y < SzRes.y)
+                {
+                    Pt3dr center = aCam.OrigineProf();
+                    REAL zA = euclid(Sommets[0] - center);  //repris de ElNuage3DMaille ProfOfPtE()
+                    REAL zB = euclid(Sommets[1] - center);
+                    REAL zC = euclid(Sommets[2] - center);
 
-                Pt3dr center = aCam.OrigineProf();
-                REAL zA = euclid(Sommets[0] - center);  //repris de ElNuage3DMaille ProfOfPtE()
-                REAL zB = euclid(Sommets[1] - center);
-                REAL zC = euclid(Sommets[2] - center);
+                    Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
+                    aP0 = Sup(aP0,Pt2di(0,0));
+                    Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
+                    aP1 = Inf(aP1,SzRes-Pt2di(1,1));
 
-                Pt2di aP0 = round_down(Inf(A2,Inf(B2,C2)));
-                aP0 = Sup(aP0,Pt2di(0,0));
-                Pt2di aP1 = round_up(Sup(A2,Sup(B2,C2)));
-                aP1 = Inf(aP1,SzRes-Pt2di(1,1));
-
-
-                for (INT x=aP0.x ; x<= aP1.x ; x++)
-                    for (INT y=aP0.y ; y<= aP1.y ; y++)
-                    {
-                        Pt2dr AP = Pt2dr(x,y)-A2;
-
-                        // Coordonnees barycentriques de P(x,y)
-                        REAL aPdsB = (AP^AC) / aDet;
-                        REAL aPdsC = (AB^AP) / aDet;
-                        REAL aPdsA = 1 - aPdsB - aPdsC;
-                        if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
+                    for (INT x=aP0.x ; x<= aP1.x ; x++)
+                        for (INT y=aP0.y ; y<= aP1.y ; y++)
                         {
-                            REAL4 aZ = (float) (zA*aPdsA + zB*aPdsB + zC*aPdsC);
-                            if (aZ<mDataRes[y][x])
+                            Pt2dr AP = Pt2dr(x,y)-A2;
+
+                            // Coordonnees barycentriques de P(x,y)
+                            REAL aPdsB = (AP^AC) / aDet;
+                            REAL aPdsC = (AB^AP) / aDet;
+                            REAL aPdsA = 1 - aPdsB - aPdsC;
+                            if ((aPdsA>-Eps) && (aPdsB>-Eps) && (aPdsC>-Eps))
                             {
-                                mDataRes[y][x] = aZ;
-                                mImTriIdx.SetI(Pt2di(x,y),aTri.Idx());
+                                REAL4 aZ = (float) (zA*aPdsA + zB*aPdsB + zC*aPdsC);
+                                if (aZ<mDataRes[y][x])
+                                {
+                                    mDataRes[y][x] = aZ;
+                                    mImTriIdx.SetI(Pt2di(x,y),aTri.Idx());
+                                }
                             }
                         }
-                    }
+                }
             }
         }
     }
