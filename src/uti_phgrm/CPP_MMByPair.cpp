@@ -567,6 +567,7 @@ void cAppliWithSetImage::SaveCAWSI(const std::string & aName)
        }
        aCAWSI.Images().push_back(aWSI);
        aLON.Name().push_back(aWSI.NameIm());
+       mVNameFinal.push_back(aWSI.NameIm());
    }
    MakeFileXML(aCAWSI,Dir()+aName);
    MakeFileXML(aLON,Dir()+TheMMByPairNameFiles);
@@ -1174,7 +1175,7 @@ int ClipIm_main(int argc,char ** argv)
 
 
 cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
-    cAppliWithSetImage (argc-2,argv+2,TheFlagDev16BGray|TheFlagAcceptProblem),
+    cAppliWithSetImage (argc-2,argv+2, TheFlagDev16BGray|TheFlagAcceptProblem),
     mDo           ("APMCRF"),
     mZoom0        (64),
     mZoomF        (1),
@@ -1369,6 +1370,10 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 
       SaveCAWSI(TheMMByPairNameCAWSI);
+
+      // Paral_Tiff_Dev(mEASF.mDir,mVNameFinal,1,true);
+      // Paral_Tiff_Dev(mEASF.mDir,mVNameFinal,3,false); // On en aura sans doute besoin tot ou tard
+
   }
 }
 

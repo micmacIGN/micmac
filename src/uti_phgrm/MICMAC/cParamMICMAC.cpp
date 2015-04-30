@@ -4709,6 +4709,17 @@ const std::list< std::string > & cImages::ImPat()const
 }
 
 
+cTplValGesInit< std::string > & cImages::ImageSecByCAWSI()
+{
+   return mImageSecByCAWSI;
+}
+
+const cTplValGesInit< std::string > & cImages::ImageSecByCAWSI()const 
+{
+   return mImageSecByCAWSI;
+}
+
+
 std::string & cImages::Key()
 {
    return ImSecCalcApero().Val().Key();
@@ -4878,6 +4889,14 @@ void  BinaryUnDumpFromFile(cImages & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.ImageSecByCAWSI().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ImageSecByCAWSI().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ImageSecByCAWSI().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.ImSecCalcApero().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.ImSecCalcApero().ValForcedForUnUmp(),aFp);
         }
@@ -4939,6 +4958,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cImages & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.ImageSecByCAWSI().IsInit());
+    if (anObj.ImageSecByCAWSI().IsInit()) BinaryDumpInFile(aFp,anObj.ImageSecByCAWSI().Val());
     BinaryDumpInFile(aFp,anObj.ImSecCalcApero().IsInit());
     if (anObj.ImSecCalcApero().IsInit()) BinaryDumpInFile(aFp,anObj.ImSecCalcApero().Val());
     BinaryDumpInFile(aFp,anObj.RelGlobSelecteur().IsInit());
@@ -4969,6 +4990,8 @@ cElXMLTree * ToXMLTree(const cImages & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("ImPat"),(*it))->ReTagThis("ImPat"));
+   if (anObj.ImageSecByCAWSI().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ImageSecByCAWSI"),anObj.ImageSecByCAWSI().Val())->ReTagThis("ImageSecByCAWSI"));
    if (anObj.ImSecCalcApero().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ImSecCalcApero().Val())->ReTagThis("ImSecCalcApero"));
    if (anObj.RelGlobSelecteur().IsInit())
@@ -4999,6 +5022,8 @@ void xml_init(cImages & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ImPat(),aTree->GetAll("ImPat",false,1));
 
+   xml_init(anObj.ImageSecByCAWSI(),aTree->Get("ImageSecByCAWSI",1)); //tototo 
+
    xml_init(anObj.ImSecCalcApero(),aTree->Get("ImSecCalcApero",1)); //tototo 
 
    xml_init(anObj.RelGlobSelecteur(),aTree->Get("RelGlobSelecteur",1)); //tototo 
@@ -5012,7 +5037,7 @@ void xml_init(cImages & anObj,cElXMLTree * aTree)
    xml_init(anObj.Im3Superp(),aTree->Get("Im3Superp",1)); //tototo 
 }
 
-std::string  Mangling( cImages *) {return "785EA8A11D8992D1FE3F";};
+std::string  Mangling( cImages *) {return "F57B9FC8D5C28BD2FE3F";};
 
 
 std::string & cFCND_Mode_GeomIm::FCND_GeomCalc()
@@ -6048,6 +6073,17 @@ const std::list< std::string > & cSection_PriseDeVue::ImPat()const
 }
 
 
+cTplValGesInit< std::string > & cSection_PriseDeVue::ImageSecByCAWSI()
+{
+   return Images().ImageSecByCAWSI();
+}
+
+const cTplValGesInit< std::string > & cSection_PriseDeVue::ImageSecByCAWSI()const 
+{
+   return Images().ImageSecByCAWSI();
+}
+
+
 std::string & cSection_PriseDeVue::Key()
 {
    return Images().ImSecCalcApero().Val().Key();
@@ -6520,7 +6556,7 @@ void xml_init(cSection_PriseDeVue & anObj,cElXMLTree * aTree)
    xml_init(anObj.ClassEquivalenceImage(),aTree->Get("ClassEquivalenceImage",1)); //tototo 
 }
 
-std::string  Mangling( cSection_PriseDeVue *) {return "48838ADACA4E40A7FCBF";};
+std::string  Mangling( cSection_PriseDeVue *) {return "C0DC225C17839DB3F93F";};
 
 
 int & cEchantillonagePtsInterets::FreqEchantPtsI()
@@ -26682,6 +26718,17 @@ const std::list< std::string > & cParamMICMAC::ImPat()const
 }
 
 
+cTplValGesInit< std::string > & cParamMICMAC::ImageSecByCAWSI()
+{
+   return Section_PriseDeVue().Images().ImageSecByCAWSI();
+}
+
+const cTplValGesInit< std::string > & cParamMICMAC::ImageSecByCAWSI()const 
+{
+   return Section_PriseDeVue().Images().ImageSecByCAWSI();
+}
+
+
 std::string & cParamMICMAC::Key()
 {
    return Section_PriseDeVue().Images().ImSecCalcApero().Val().Key();
@@ -29050,6 +29097,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "6E81EF182D40AEEAFD3F";};
+std::string  Mangling( cParamMICMAC *) {return "CE8DD1A31E45EFB2FD3F";};
 
 // Quelque chose

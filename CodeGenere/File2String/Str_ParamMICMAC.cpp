@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2134]) = {
+const char * (theNameVar_ParamMICMAC[2136]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -674,6 +674,8 @@ const char * (theNameVar_ParamMICMAC[2134]) = {
 "\n",
 "             <ImPat Nb=\"*\" Type=\"std::string\">   </ImPat>\n",
 "             <!-- Utilise le mecanisem ImSecOfMaster d'Apero -->\n",
+"\n",
+"             <ImageSecByCAWSI Nb=\"?\" Type=\"std::string\"> </ImageSecByCAWSI>\n",
 "             <ImSecCalcApero Nb=\"?\">\n",
 "                  <Key Nb=\"1\" Type=\"std::string\"> </Key>\n",
 "                  <!-- Si Pas donne utilise Score  -->\n",
