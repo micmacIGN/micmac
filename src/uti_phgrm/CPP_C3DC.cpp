@@ -194,7 +194,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def correlation, context depend")
                     << EAM(mZReg,"ZReg",false,"Regularisation, context depend")
-                    << EAM(mFilePair,"FilePair",false,"Expicit pairs of files (as in Tapioca)")
+                    << EAM(mFilePair,"FilePair",false,"Explicit pairs of files (as in Tapioca)", eSAM_IsExistFileRP)
     );
 
    if (MMVisualMode) return;
@@ -306,7 +306,7 @@ void cAppli_C3DC::ReadType(const std::string & aType)
 }
 
 void  cAppli_C3DC::PipelineQuickMack()
-{  
+{
     ExeCom(mBaseComMMByP + " Do=AMP " + mStrZ0ZF);
     ExeCom(mBaseComEnv + " DownScale=" + ToString(mDS));
     DoMergeAndPly();
@@ -510,7 +510,7 @@ class cAppli_MPI2Mnt
          bool                     mRepIsAnam;
          bool                     mDoMnt;
          bool                     mDoOrtho;
-		 std::string			  mMasqImGlob;
+         std::string			  mMasqImGlob;
          bool                     mDebug;
 };
 
@@ -557,8 +557,8 @@ void cAppli_MPI2Mnt::DoOrtho()
                          +    " +DeZoom=" +ToString(mDeZoom)   + BLANK
                          +    " WorkDir=" + mDirApp
                       ;
-	if (EAMIsInit(&mMasqImGlob)) aCom +=  " +UseGlobMasqPerIm=1  +GlobMasqPerIm="+mMasqImGlob;
-	 
+    if (EAMIsInit(&mMasqImGlob)) aCom +=  " +UseGlobMasqPerIm=1  +GlobMasqPerIm="+mMasqImGlob;
+
     if (EAMIsInit(&mRep))
     {
            aCom +=  " +Repere="+mRep;
@@ -661,7 +661,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mPat,"Pat",true,"Pattern, def = all existing clouds", eSAM_IsPatFile)
                     << EAM(mDoMnt,"DoMnt",true," Compute DTM , def=true (use false to return only ortho)")
                     << EAM(mDoOrtho,"DoOrtho",true,"Generate ortho photo,  def=false")
-                    << EAM(mMasqImGlob,"MasqImGlob",true,"Global Masq for ortho: if used, give full name of masq (e.g. MasqGlob.tif) ")
+                    << EAM(mMasqImGlob,"MasqImGlob",true,"Global Masq for ortho: if used, give full name of masq (e.g. MasqGlob.tif) ",eSAM_IsExistFileRP)
                     << EAM(mDebug,"Debug",true,"Debug !!!",eSAM_InternalUse)
    );
 
