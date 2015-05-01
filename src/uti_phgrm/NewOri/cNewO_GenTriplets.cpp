@@ -72,13 +72,57 @@ Header-MicMac-eLiSe-25/06/2007*/
    Gain = Dens1 * ( D12 * Dens2 +  DLim * (1-D12))
 
 
+*/
+/*
+
+ ========= Mul = 8.1e+07 ========
+Name IMG_2504.JPG G=0.0196207 0.88
+Name IMG_2503.JPG G=0.0347822 0.86
+Name IMG_2502.JPG G=0.112891 0.74
+Name IMG_2496.JPG G=0.0674496 0.74
+Name DIMG_2501.JPG G=0.142832 0.41
+Name DIMG_2500.JPG G=0.1728 0.45
+Name DIMG_2497.JPG G=0.0743467 0.16
+
+========= Mul = 2.43134e+08 ========
+Name IMG_2504.JPG G=0.0220429 0.88
+Name IMG_2503.JPG G=0.0363437 0.86
+Name IMG_2502.JPG G=0.121419 0.74
+Name IMG_2496.JPG G=0.0641779 0.74
+Name DIMG_2501.JPG G=0.153869 0.41
+Name DIMG_2500.JPG G=0.18435 0.45
+Name DIMG_2497.JPG G=0.0810178 0.16
+
+ ========= Mul = 2.35824e+07 ========
+Name IMG_2504.JPG G=0.0217589 0.88
+Name IMG_2503.JPG G=0.0362673 0.86
+Name IMG_2502.JPG G=0.119493 0.74
+Name IMG_2496.JPG G=0.0656142 0.74
+Name DIMG_2501.JPG G=0.153839 0.41
+Name DIMG_2500.JPG G=0.183932 0.45
+Name DIMG_2497.JPG G=0.0813725 0.16
+
+ ========= Mul = 4.71648e+07 ========
+Name IMG_2504.JPG G=0.0218826 0.885
+Name IMG_2503.JPG G=0.0364782 0.865
+Name IMG_2502.JPG G=0.118685 0.735
+Name IMG_2496.JPG G=0.0656142 0.74
+Name DIMG_2501.JPG G=0.155715 0.415
+Name DIMG_2500.JPG G=0.183932 0.45
+Name DIMG_2497.JPG G=0.0839154 0.165
+
+
 
 */
+
+
+
 
 #include "NewOri.h"
 
 
 static const int  TMaxNbCase = TNbCaseP1 * TNbCaseP1;
+static const int  TMaxGain = 2e9;
 
 class cGTrip_AttrSom;
 class cGTrip_AttrASym;
@@ -109,11 +153,17 @@ class cGTrip_AttrSom
          const std::string & Name() const {return mName;}
          cNewO_OneIm & Im() {return *mIm;}
 
-         void InitTriplet(tSomGT*,tArcGT *);
+         bool InitTriplet(tSomGT*,tArcGT *);
          void FreeTriplet();
          void InitNb(const std::vector<Pt2df> & aVP1);
          const int &  Nb(int aK) {return mNb[aK];}
+         const Pt3dr  & C3() const {return mC3;}
 
+
+         void UpdateCost(tSomGT * aSomThis,tSomGT *aSomSel);
+         bool & SomTest() {return mTest;}
+         int  GainGlob() const {return mGainGlob;}
+         int * Dens() {return  mDens;}
 
      private :
          void TripletAddArc(tArcGT *,int aNum1,int aNum2);
@@ -127,19 +177,25 @@ class cGTrip_AttrSom
 
          int mNb[TMaxNbCase];
          int mDens[TMaxNbCase];
+         int mGain[TMaxNbCase];
+         int mGainGlob;
+         bool mTest;
 };
 
 class cGTrip_AttrASym
 {
      public :
         cGTrip_AttrASym(const cXml_Ori2Im & aXml) :
-              mXML (aXml)
+             mXML   (aXml),
+             mTest  (false)
         {
         }
         std::vector<Pt2df> & VP1() {return mVP1;}
         std::vector<Pt2df> & VP2() {return mVP2;}
         Pt2df & InfP1() {return mInfP1;}
         Pt2df & SupP1() {return mSupP1;}
+        const cXml_Ori2Im & Xml() const {return mXML;}
+        bool  & ArcTest() {return mTest;}
      private  :
         cGTrip_AttrASym(const cGTrip_AttrASym & aXml) ; // N.I.
         cXml_Ori2Im mXML;
@@ -147,6 +203,7 @@ class cGTrip_AttrASym
         std::vector<Pt2df> mVP2;
         Pt2df              mInfP1;
         Pt2df              mSupP1;
+        bool              mTest;
 };
 
 class cGTrip_AttrArc
@@ -205,10 +262,31 @@ class cAppli_GenTriplet
        int ToIndex(const Pt2df &  aP) const;
        int NbCases() const {return mNbCases;}
        tSomGT * CurS1() {return mCurS1;}
+       tSomGT * CurS2() {return mCurS2;}
+
+       int GainBSurH(tSomGT * aS1,tSomGT * aS2);
+       int * Pds() {return mPds;}
+       bool  CurTestArc() const {return  mCurTestArc;}
+       double  MulQuant() const {return  mMulQuant;}
+
+
+       void TestS3()
+       {
+            if (mSomTest3)
+            {
+               int * aD = mSomTest3->attr().Dens();
+               std::cout << "------------------------------------ --------mSomTest3 " << aD[0] << "\n";
+            }
+       }
+
     private :
+
+
        bool  AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3);
        void  GenTriplet(tArcGT & anArc);
        void AddSomTmp(tSomGT & aS);
+
+        tSomGT * GetNextSom();
 
        tGrGT                mGrT;
        tSubGrGT             mSubAll;
@@ -217,16 +295,23 @@ class cAppli_GenTriplet
        cElemAppliSetFile    mEASF;
        cNewO_NameManager *  mNM;
        std::map<std::string,tSomGT *> mMapS;
-       std::vector<tSomGT *>          mVecS;
+       std::vector<tSomGT *>          mVecAllSom;
+       //std::vector<tSomGT *>          m;
 
        std::set<cTripletInt>          mTriplets;
 
        // Voisin de l'arc, hors de l'arc lui meme
        std::vector<tSomGT *>         mVSomVois;
+       std::vector<tSomGT *>         mVSomEnCourse;
+       std::vector<tSomGT *>         mVSomSelected;
        int                           mFlagVois;
        tArcGT *                      mCurArc;
+       bool                          mCurTestArc;
+       Pt3dr                         mCurPMed;
+       double                        mHautBase;
        tSomGT *                      mCurS1;
        tSomGT *                      mCurS2;
+       tSomGT *                      mSomTest3;
        bool                          mShow;
        Pt2df                         mPInf;
        Pt2df                         mPSup;
@@ -234,6 +319,13 @@ class cAppli_GenTriplet
        Pt2di                         mSzCases;
        int                           mNbCases;
        int                           mPds[TMaxNbCase];
+       std::string                   mNameTest1;
+       std::string                   mNameTest2;
+       std::string                   mNameTest3;
+       double                        mMulQuant;
+       double                        mTimeLoadHom;
+       double                        mTimeMerge;
+       double                        mTimeSelec;
 };
 
 /*********************************************************/
@@ -246,7 +338,8 @@ cGTrip_AttrSom::cGTrip_AttrSom(int aNum,const std::string & aNameIm,cAppli_GenTr
      mAppli  (&anAppli),
      mNum    (aNum),
      mName   (aNameIm),
-     mIm     (new cNewO_OneIm(anAppli.NM(),mName))
+     mIm     (new cNewO_OneIm(anAppli.NM(),mName)),
+     mTest   (false)
 {
 }
 
@@ -274,7 +367,8 @@ void cGTrip_AttrSom::InitNb(const std::vector<Pt2df> & aVP1)
  
 
 
-void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
+
+bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
 {
       tGrGT & aGr = aSom->gr();
       tArcGT* anA13 = aGr.arc_s1s2(anA12->s1(),*aSom);
@@ -311,23 +405,8 @@ void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       // std::list<cFixedMergeTieP<3,Pt2df> >
       if (int(aVP1.size()) <TNbMinPMul) 
       {
-         return;
+         return false;
       }
-
-
-      InitNb(aVP1);
-
-      int aNbC = mAppli->NbCases();
-      int * aNbGlob =  mAppli->CurS1()->attr().mNb;
-      for (int aK=0 ; aK< aNbC ; aK++)
-      {
-           double aDens = double(mNb[aK]) / double(ElMax(1,aNbGlob[aK]));
-           aDens = ElMin(1.0,aDens);
-           aDens = (aDens * TAttenDens) / (aDens * TAttenDens +1) ;
-           mDens[aK] = round_ni( (TQuant * aDens * (TAttenDens+1)) / TAttenDens);
-
-      }
-
 
 
       // std::cout << "InitTriplet " << aNb << " " << aNb3 << " " << aNb33 << "\n";
@@ -348,6 +427,12 @@ void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       Pt3dr aC3 = aR31.tr();
       Pt3dr aV3Bis = aR31Bis.tr() - aC2;
 
+     // C'est refait a chaque fois, pas grave ...
+      mAppli->CurS1()->attr().mC3 = aC1;
+      mAppli->CurS2()->attr().mC3 = aC2;
+
+
+      // Calul du centre
 
       int aStep = ElMin(10,ElMax(1,int(aVP1.size())/50));
 
@@ -373,9 +458,73 @@ void cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       mC3 = (aC31 + aC32) / 2.0;
 
 
-      // std::cout << "DDDDd " << euclid(aC31-aC32) << "\n";
+
+     // Calcul gain et densite
+
+      int aGain1 = mAppli->GainBSurH( mAppli->CurS1(),aSom);
+      int aGain2 = mAppli->GainBSurH( mAppli->CurS2(),aSom);
+      int aGain = ElMin(aGain1,aGain2);
+
+
+      InitNb(aVP1);
+      int aNbC = mAppli->NbCases();
+      int * aNbGlob =  mAppli->CurS1()->attr().mNb;
+      int * aPdsGlob = mAppli->Pds();
+      mGainGlob = 0;
+      for (int aK=0 ; aK< aNbC ; aK++)
+      {
+           double aDens = double(mNb[aK]) / double(ElMax(1,aNbGlob[aK]));
+           aDens = ElMin(1.0,aDens);
+           aDens = (aDens * TAttenDens) / (aDens * TAttenDens +1) ;
+           mDens[aK] = round_ni( (TQuant * aDens * (TAttenDens+1)) / TAttenDens);
+
+if (mDens[aK] <0)
+{
+   std::cout << "ZZZZZzzz " << mDens[aK] << "\n"; getchar();
+}
+           mGain[aK] = mDens[aK] * TQuant * aGain;
+           mGainGlob +=  mGain[aK] * aPdsGlob[aK];
+
+if (mGainGlob<0)
+{
+    std::cout << "mGainGlob  " << mGainGlob << "\n"; getchar();
+}
+      }
+
+      if (mAppli->CurTestArc())
+      {
+                       //     D * D * Pds
+          static bool First = true;
+          double aMulQ = mAppli->MulQuant();
+          if (First) 
+             std::cout << " ========= Mul = " << aMulQ << " ========\n";
+           First = false;
+          
+          
+          double aFlg = double(mGainGlob) / aMulQ;
+          std::cout << "Name " << aSom->attr().Name() << " G=" << aFlg  << " " << aGain / double(TQuantBsH)  << "\n";
+      }
+
+      return true;
 }
 
+
+void  cGTrip_AttrSom::UpdateCost(tSomGT * aSomThis,tSomGT *aSomSel)
+{
+
+      int aNbC = mAppli->NbCases();
+      mGainGlob = 0;
+      int aNewGain =  mAppli->GainBSurH(aSomThis,aSomSel);
+      int * aPdsGlob = mAppli->Pds();
+      int * aDens2 = aSomSel->attr().mDens;
+
+      for (int aK=0 ; aK< aNbC ; aK++)
+      {
+           int aD2 =  aDens2[aK];
+           ElSetMin(mGain[aK], mDens[aK] * ( aNewGain * aD2 + TQuant*(TQuant-aD2)));
+           mGainGlob +=  mGain[aK] * aPdsGlob[aK];
+      }
+}
 
 void cGTrip_AttrSom:: FreeTriplet()
 {
@@ -405,22 +554,78 @@ void cAppli_GenTriplet::AddSomTmp(tSomGT & aS)
    mVSomVois.push_back(&aS);
 
 
-   aS.attr().InitTriplet(&aS,mCurArc);
+   if (aS.attr().InitTriplet(&aS,mCurArc))
+      mVSomEnCourse.push_back(&aS) ;
+}
+
+
+int cAppli_GenTriplet::GainBSurH(tSomGT * aS1,tSomGT * aS2)
+{
+    double aBSH = euclid(aS1->attr().C3()-aS2->attr().C3()) / mHautBase;
+
+    return round_ni(TQuantBsH * aBSH  / (aBSH + TBSurHLim));
 }
 
 
 int cAppli_GenTriplet::ToIndex(const Pt2df &  aP0) const
 {
     Pt2di aP =  round_down((aP0-mPInf)/mStepCases);
-    aP.x  = ElMax(0,ElMin(mSzCases.x,aP.x));
-    aP.y  = ElMax(0,ElMin(mSzCases.y,aP.y));
-    return aP.x + aP.y * mSzCases.x;
+    aP.x  = ElMax(0,ElMin(mSzCases.x-1,aP.x));
+    aP.y  = ElMax(0,ElMin(mSzCases.y-1,aP.y));
+
+    int aRes = aP.x + aP.y * mSzCases.x;
+    ELISE_ASSERT(aRes>=0 && aRes<mNbCases,"cAppli_GenTriplet::ToIndex");
+    return aRes;
 }
+
+
+tSomGT * cAppli_GenTriplet::GetNextSom()
+{
+   if (mVSomEnCourse.empty()) return 0;
+   if (mVSomSelected.size() > TNbMaxTriplet) return 0;
+
+   int aGainMax=-1;
+   tSomGT * aRes=0;
+   int aIndexRes = -1;
+
+//std::cout << "GMMaax " << aGainMax << "\n";
+   for (int aK=0 ; aK<int(mVSomEnCourse.size()) ; aK++)
+   {
+//std::cout << "GGGGlob " << mVSomEnCourse[aK]->attr().GainGlob() << "\n";
+        if (mVSomEnCourse[aK]->attr().GainGlob() > aGainMax)
+        {
+            aRes = mVSomEnCourse[aK];
+            aIndexRes = aK;
+            aGainMax = aRes->attr().GainGlob();
+        }
+   }
+   ELISE_ASSERT(aRes != 0,"cAppli_GenTriplet::GetNextSom");
+
+   if (aGainMax < (TGainSeuil * mMulQuant)) return 0;
+
+   mVSomEnCourse.erase(mVSomEnCourse.begin()+aIndexRes);
+   mVSomSelected.push_back(aRes);
+   
+   for (int aK=0 ; aK<int(mVSomEnCourse.size()) ; aK++)
+   {
+      tSomGT * aSom = mVSomEnCourse[aK];
+      aSom->attr().UpdateCost(aSom,aRes);
+   }
+
+   return aRes;
+}
+
 
 void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
 {
     if (!anArc.attr().IsDirASym() ) return;
     mCurArc = & anArc; 
+    mCurTestArc = anArc.attr().ASym().ArcTest();
+
+
+    mCurPMed = mCurArc->attr().ASym().Xml().Geom().Val().Ori().PMed1();
+    mHautBase = euclid(mCurPMed);
+
     mCurS1  = & (anArc.s1());
     mCurS2  = & (anArc.s2());
 
@@ -431,10 +636,25 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     mSzCases = Pt2di(round_up(aPLarg.x/mStepCases),round_up(aPLarg.y/mStepCases));
     mSzCases = Inf(mSzCases,Pt2di(TNbCaseP1,TNbCaseP1));
     mNbCases = mSzCases.x * mSzCases.y;
+    ELISE_ASSERT(mNbCases<=TMaxNbCase,"cAppli_GenTriplet::GenTriplet");
 
-     mCurS1->attr().InitNb(mCurArc->attr().VP1());
+    mMulQuant  = mNbCases *pow(TQuant,3) * TQuantBsH;
+    ELISE_ASSERT(mMulQuant<TMaxGain,"Owerflow in cAppli_GenTriplet::GenTriplet");
+
+    mCurS1->attr().InitNb(mCurArc->attr().VP1());
+    int aNbMax = 0;
+    for (int aK=0 ; aK<mNbCases ; aK++)
+    {
+        ElSetMax(aNbMax,mCurS1->attr().Nb(aK));
+    }
+    for (int aK=0 ; aK<mNbCases ; aK++)
+    {
+        double aPds = mCurS1->attr().Nb(aK) / double(aNbMax);
+        mPds[aK] = round_ni(TQuant*sqrt(aPds));
+    }
 
 
+    ElTimer aChroMerge;
     for(tItAGT itA=anArc.s1().begin(mSubAll) ; itA.go_on() ; itA++)
     {
        tSomGT & aS3 = (*itA).s2();
@@ -443,7 +663,17 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
           AddSomTmp(aS3);
        }
     }
+    mTimeMerge += aChroMerge.uval();
 
+
+    if (mCurTestArc) std::cout << " -*-*-*-*-*-*-*-*-\n";
+    ElTimer aChroSel;
+    while (tSomGT * aSom = GetNextSom())
+    {
+        if (mCurTestArc)
+           std::cout << " SEL " << aSom->attr().Name()  << " G " << aSom->attr().GainGlob() / mMulQuant << "\n";
+    }
+    mTimeSelec += aChroSel.uval();
 
     // Vider les structure temporaires
     for (int aKS=0 ; aKS<int(mVSomVois.size()) ; aKS++)
@@ -451,20 +681,31 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
        mVSomVois[aKS]->flag_set_kth_false(mFlagVois);
     }
     mVSomVois.clear();
+    mVSomEnCourse.clear();
+    mVSomSelected.clear();
     mCurArc = 0;
+
+    if (mCurTestArc)
+    {
+        getchar();
+    }
 }
 
 
 void cAppli_GenTriplet::GenTriplet()
 {
-   for (int aKS=0 ; aKS<int(mVecS.size()) ; aKS++)
+   ElTimer aTimeGT;
+   for (int aKS=0 ; aKS<int(mVecAllSom.size()) ; aKS++)
    {
-       std::cout << "ONE SOOMM  GT " << mVecS.size() - aKS << " \n";
-       for( tItAGT itA=mVecS[aKS]->begin(mSubAll) ; itA.go_on() ; itA++)
+       std::cout << "ONE SOOMM  GT " << mVecAllSom.size() - aKS << " \n";
+       for( tItAGT itA=mVecAllSom[aKS]->begin(mSubAll) ; itA.go_on() ; itA++)
        {
              GenTriplet(*itA);
        }
    }
+
+   if (mShow)
+      std::cout << "Load " << mTimeLoadHom << " Merge " << mTimeMerge << " Selec " << mTimeSelec << " GenTripl " << aTimeGT.uval() << "\n";
 }
 
 bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3)
@@ -493,10 +734,16 @@ void  AddPackToMerge(CamStenope * aCS1,CamStenope * aCS2,const ElPackHomologue &
 }
 
 cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
-    mGrT      (),
-    mFlagVois (mGrT.alloc_flag_som()),
-    mShow     (true)
+    mGrT        (),
+    mFlagVois   (mGrT.alloc_flag_som()),
+    mCurS1      (0),
+    mCurS2      (0),
+    mSomTest3   (0),
+    mShow       (true),
+    mTimeMerge  (0.0),
+    mTimeSelec  (0.0)
 {
+   ElTimer aChronoLoad;
 
    ElInitArgMain
    (
@@ -504,6 +751,9 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
         LArgMain() <<  EAMC(mFullName,"Pattern"),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
                    << EAM(mShow,"Show",true,"Show intermediar message ")
+                   << EAM(mNameTest1,"Test1",true,"Name of first test image")
+                   << EAM(mNameTest2,"Test2",true,"Name of second test image")
+                   << EAM(mNameTest3,"Test3",true,"Name of second test image")
    );
 
    mEASF.Init(mFullName);
@@ -515,7 +765,13 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
    {
         const std::string & aName = (aVIm)[aKIm];
         tSomGT & aS = mGrT.new_som(cGTrip_AttrSom(aKIm,aName,*this));
-        mVecS.push_back(&aS);
+        if ((aName==mNameTest1) || (aName==mNameTest2))
+        {
+            aS.attr().SomTest() = true;
+        }
+        else if (aName==mNameTest3)
+             mSomTest3 = & aS;
+        mVecAllSom.push_back(&aS);
         mMapS[aName] = &aS;
    }
 
@@ -556,6 +812,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                   const cXml_O2IRotation & aXO = aXmlO.Geom().Val().Ori();
                   ElRotation3D aR(aXO.Centre(),ImportMat(aXO.Ori()),true);
                   cGTrip_AttrASym * anASym  =  new  cGTrip_AttrASym(aXmlO);
+                  anASym->ArcTest() = (aS1->attr().SomTest() && aS2->attr().SomTest());
                   anASym->VP1().reserve(aNbSym);
                   anASym->VP2().reserve(aNbSym);
 
@@ -593,7 +850,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
            std::cout << "AAAAAAAAAAAA " << aSetCple->size() - aKC << "\n";
         }
    }
-    // getchar();
+   mTimeLoadHom = aChronoLoad.uval();
 }
 
 
