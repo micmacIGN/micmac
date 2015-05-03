@@ -377,6 +377,9 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       static std::vector<Pt2df> aVP1;
       static std::vector<Pt2df> aVP2;
       static std::vector<Pt2df> aVP3;
+
+
+/*
       aVP1.clear();
       aVP2.clear();
       aVP3.clear();
@@ -400,16 +403,85 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
           }
           if ((*itM)->NbArc()==3 ) aNb33++;
       }
-      FreeTriplet();
 
-      // std::list<cFixedMergeTieP<3,Pt2df> >
+
+      FreeTriplet();
       if (int(aVP1.size()) <TNbMinPMul) 
       {
          return false;
       }
 
 
-      // std::cout << "InitTriplet " << aNb << " " << aNb3 << " " << aNb33 << "\n";
+      {
+            std::vector<Pt2df> aVQ1;
+            std::vector<Pt2df> aVQ2;
+            std::vector<Pt2df> aVQ3;
+
+            bool OK = mAppli->NM().LoadTriplet
+                      (
+                           anA12->s1().attr().mIm,anA12->s2().attr().mIm, mIm,
+                           &aVQ1,&aVQ2,&aVQ3
+                      );
+
+
+            ELISE_ASSERT(OK,".LoadTriplet");
+            ELISE_ASSERT( aVP1.size() == aVQ1.size(),".LoadTriplet");
+
+            double aDif11=0;
+            double aDif22=0;
+            double aDif33=0;
+            for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
+            {
+                aDif11 += euclid(aVP1[aK]-aVQ1[aK]);
+                aDif22 += euclid(aVP2[aK]-aVQ2[aK]);
+                aDif33 += euclid(aVP3[aK]-aVQ3[aK]);
+            }
+
+
+            std::cout << "OK " <<  OK  << " " << aDif11 << " " << aDif22 << " " << aDif33  << "\n";
+            if (aDif11>1e-5)
+            {
+               std::map<Pt2df,Pt2df> aMapP2;
+               std::map<Pt2df,Pt2df> aMapQ2;
+               std::map<Pt2df,Pt2df> aMapP3;
+               std::map<Pt2df,Pt2df> aMapQ3;
+
+               for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
+               {
+                    aMapP2[aVP1[aK]] = aVP2[aK];
+                    aMapP3[aVP1[aK]] = aVP3[aK];
+                    aMapQ2[aVQ1[aK]] = aVQ2[aK];
+                    aMapQ3[aVQ1[aK]] = aVQ3[aK];
+               }
+
+               double aDif2=0;
+               double aDif3=0;
+               for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
+               {
+                    aDif2 += euclid(aMapP2[aVP1[aK]],aMapQ2[aVP1[aK]]);
+                    aDif3 += euclid(aMapP3[aVP1[aK]],aMapQ3[aVP1[aK]]);
+               }
+
+               std::cout << "********** " << aDif2 << " " << aDif3 << "\n";
+               ELISE_ASSERT(aDif2<1e-10,"aDif2");
+               ELISE_ASSERT(aDif3<1e-10,"aDif3");
+
+            }
+      }
+*/
+
+
+      bool OK = mAppli->NM().LoadTriplet
+                (
+                     anA12->s1().attr().mIm,anA12->s2().attr().mIm, mIm,
+                     &aVP1,&aVP2,&aVP3
+                );
+
+       if (! OK) return false;
+
+
+
+      // std::cout << "initTriplet " << aNb << " " << aNb3 << " " << aNb33 << "\n";
 
       // Pour qu'il y ait intersection 
       // Det(L C1C3 + C12,  R3U3, ,R2U) = 0
@@ -478,17 +550,9 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
            aDens = (aDens * TAttenDens) / (aDens * TAttenDens +1) ;
            mDens[aK] = round_ni( (TQuant * aDens * (TAttenDens+1)) / TAttenDens);
 
-if (mDens[aK] <0)
-{
-   std::cout << "ZZZZZzzz " << mDens[aK] << "\n"; getchar();
-}
            mGain[aK] = mDens[aK] * TQuant * aGain;
            mGainGlob +=  mGain[aK] * aPdsGlob[aK];
 
-if (mGainGlob<0)
-{
-    std::cout << "mGainGlob  " << mGainGlob << "\n"; getchar();
-}
       }
 
       if (mAppli->CurTestArc())
@@ -535,10 +599,6 @@ void cGTrip_AttrSom:: FreeTriplet()
 
 
 
-/*
-         void InitTriplet();
-         void EndTriplet();
-*/
 /*********************************************************/
 /*                                                       */
 /*              cAppli_GenTriplet                        */
@@ -791,6 +851,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                cXml_Ori2Im aXmlO = StdGetFromSI(mEASF.mDir+(*aSetCple)[aKC],Xml_Ori2Im);
                if (aXmlO.Geom().IsInit())
                {
+/*
                   CamStenope * aCS1 = aS1->attr().Im().CS();
                   CamStenope * aCS2 = aS2->attr().Im().CS();
                   ElPackHomologue  aPck1 = mNM->PackOfName(aN1,aN2);
@@ -807,12 +868,33 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                       const cFixedMergeTieP<2,Pt2df> & aM = **itM;
                       if (aM.NbArc() ==2) aNbSym++;
                   }
+*/
                   
 
                   const cXml_O2IRotation & aXO = aXmlO.Geom().Val().Ori();
                   ElRotation3D aR(aXO.Centre(),ImportMat(aXO.Ori()),true);
                   cGTrip_AttrASym * anASym  =  new  cGTrip_AttrASym(aXmlO);
                   anASym->ArcTest() = (aS1->attr().SomTest() && aS2->attr().SomTest());
+
+                  std::vector<Pt2df> & aVP1 = anASym->VP1();
+                  std::vector<Pt2df> & aVP2 = anASym->VP2();
+
+                  mNM->LoadHomFloats(&(aS1->attr().Im()),&(aS2->attr().Im()),&aVP1,&aVP2);
+
+                  Pt2df aInfP1(1e20,1e20);
+                  Pt2df aSupP1(-1e20,-1e20);
+                  for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
+                  {
+                      const Pt2df & aP1 = aVP1[aKP];
+                      aInfP1 = Inf(aInfP1,aP1);
+                      aSupP1 = Sup(aSupP1,aP1);
+                  }
+                  anASym->InfP1() = aInfP1;
+                  anASym->SupP1() = aSupP1;
+
+                  mGrT.add_arc(*aS1,*aS2,cGTrip_AttrArc(aR,anASym,true),cGTrip_AttrArc(aR.inv(),anASym,false));
+
+/*
                   anASym->VP1().reserve(aNbSym);
                   anASym->VP2().reserve(aNbSym);
 
@@ -836,11 +918,12 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                   anASym->SupP1() = aSupP1;
 
                   
-
-
-
-                  mGrT.add_arc(*aS1,*aS2,cGTrip_AttrArc(aR,anASym,true),cGTrip_AttrArc(aR.inv(),anASym,false));
+                  std::vector<Pt2df>  aNVP1;
+                  std::vector<Pt2df>  aNVP2;
+                  mNM->LoadHomFloats(&(aS1->attr().Im()),&(aS2->attr().Im()),&aNVP1,&aNVP2);
                   aMap.Delete();
+*/
+
                }
 
            }
@@ -851,6 +934,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
         }
    }
    mTimeLoadHom = aChronoLoad.uval();
+   std::cout << "TIME LOAD " << mTimeLoadHom << "\n";
 }
 
 

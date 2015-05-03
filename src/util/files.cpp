@@ -163,6 +163,7 @@ static void DebugFileOpen(INT delta,const std::string & aName)
 
 bool ELISE_fp::MkDirSvp(const std::string & aName )
 {
+    if (IsDirectory(aName)) return true;
 #if (ELISE_unix)
 	long long int res = mkdir(aName.c_str(),0X7FFFFFFF);
 #endif
@@ -1027,6 +1028,8 @@ void ELISE_fp::read(void *ptr,tFileOffset size, tFileOffset nmemb,const char* fo
 				tFileOffset old_offset = tell();
 			#endif
 
+// std::cout << "TEELLL " << tell() << " SZ " << size.BasicLLO() << " NBM " << nmemb.BasicLLO() << "\n";
+
 			tFileOffset nb_read = fread(ptr,size.BasicLLO(),nmemb.BasicLLO(),_fp);
 			#ifdef __DEBUG
 				ELISE_ASSERT( old_offset+nmemb*size==tell(), "old_offset+nmemb*size==tell()" );
@@ -1641,6 +1644,8 @@ void ELISE_fp::write(const Seg2d & aS)
 
 void ELISE_fp::write(const bool & aBool) { write_INT4(aBool); }
 bool ELISE_fp::read(bool *) {return (read_INT4() != 0);}
+
+FILE *  ELISE_fp::FP() {return _fp;}
 
 
 

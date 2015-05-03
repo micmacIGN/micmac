@@ -300,6 +300,18 @@ class cNewO_NameManager
            // 
            CamStenope * CamOriOfName(const std::string & aName,const std::string & anOri);
            const std::string &  OriCal() const;
+           cInterfChantierNameManipulateur *  ICNM();
+
+
+           // Dand cNewO_PointsTriples.cpp , a cote de cAppli_GenPTripleOneImage::GenerateHomFloat
+           std::string Dir3P(bool WithMakeDir=false);
+           std::string Dir3POneImage(cNewO_OneIm *,bool WithMakeDir=false);
+           std::string Dir3PDeuxImage(cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string NameHomFloat(cNewO_OneIm * ,cNewO_OneIm * );
+
+           void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
+           std::string NameTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           bool LoadTriplet(cNewO_OneIm * ,cNewO_OneIm *,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3);
 
      private :
            cInterfChantierNameManipulateur *  mICNM;
@@ -307,6 +319,8 @@ class cNewO_NameManager
            std::string                        mOriCal;
            std::string                        mPostHom;
            std::map<std::string,CamStenope *> mDicoCam;
+
+           static const std::string  NameDirPtsTriple;
 };
 
 

@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+
 cNewO_NameManager::cNewO_NameManager
 (
      const std::string  & aDir,
@@ -69,6 +70,11 @@ ElPackHomologue cNewO_NameManager::PackOfName(const std::string & aN1,const std:
     return ElPackHomologue::FromFile(aNameH);
 }
 
+cInterfChantierNameManipulateur *  cNewO_NameManager::ICNM()
+{
+   return mICNM;
+}
+
 
 CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName) 
 {
@@ -79,7 +85,7 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
    {
         std::vector<double> aPAF;
         double aFPix  = aMTD.FocPix();
-        Pt2di  aSzIm  = aMTD.TifSzIm();
+        Pt2di  aSzIm  = aMTD.XifSzIm();
         Pt2dr  aPP = Pt2dr(aSzIm) / 2.0;
 
         bool IsFE;
@@ -153,6 +159,10 @@ std::string cNewO_NameManager::NameXmlOri2Im(const std::string & aN1,const std::
    std::string aExt = (Bin ? "xml" : "dmp");
    return mICNM->Assoc1To2("NKS-Assoc-CplIm2OriRel@@" + aExt,aN1,aN2,true);
 }
+
+
+
+
 
 
 
