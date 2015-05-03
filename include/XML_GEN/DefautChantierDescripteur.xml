@@ -160,6 +160,19 @@
           <Key> NKS-Set-Homol </Key>
     </KeyedSetsOfNames>
 
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> Pastis#3/(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   Homol#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-HomolOfOneImage </Key>
+    </KeyedSetsOfNames>
+
+
+
     <KeyedSetsOfNames >
           <IsParametrized>  true </IsParametrized>
           <Sets>

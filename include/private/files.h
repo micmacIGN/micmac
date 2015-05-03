@@ -137,6 +137,7 @@ class  ELISE_fp
 
        public :
 
+         FILE * FP() ; // DEBUG, sinon a eviter absolument , court-circuite tout ...
          typedef enum
          {
                READ        = 0,
