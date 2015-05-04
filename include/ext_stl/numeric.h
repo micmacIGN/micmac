@@ -47,10 +47,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 template <class Type> void  Rank3(int * aRnk, const Type & aN0,const Type & aN1,const Type & aN2)
 {
-
+     int Inf10 = (aN1<aN0);
+     int Inf20 = (aN2<aN0);
+     int Inf21 = (aN2<aN1);
+     aRnk[0] = Inf10 + Inf20;
+     aRnk[1] = (1-Inf10) +  Inf21;
+     aRnk[2] = (1-Inf20) + (1-Inf21);
+/*
      aRnk[0] = (aN0>aN1)  +  (aN0>aN2);
      aRnk[1] = (aN0<=aN1) +  (aN1>aN2);
      aRnk[2] = (aN0<=aN2)  +  (aN1<=aN2);
+*/
 }
 
 template <class Type> class cTplTriplet
@@ -61,17 +68,17 @@ template <class Type> class cTplTriplet
                  mV1 (aV1),
                  mV2 (aV2)
             {
-                  if (mV0>mV1) ElSwap(mV0,mV1);
-                  if (mV0>mV2) ElSwap(mV0,mV2);
-                  if (mV1>mV2) ElSwap(mV1,mV2);
+                  if (mV1<mV0) ElSwap(mV0,mV1);
+                  if (mV2<mV0) ElSwap(mV0,mV2);
+                  if (mV2<mV1) ElSwap(mV1,mV2);
             }
 
             bool operator < (const cTplTriplet<Type> & aT2) const
             {
                 if (mV0 < aT2.mV0) return true;
-                if (mV0 > aT2.mV0) return false;
+                if (aT2.mV0 < mV0) return false;
                 if (mV1 < aT2.mV1) return true;
-                if (mV1 > aT2.mV1) return false;
+                if (aT2.mV1 < mV1) return false;
                 return mV2 < aT2.mV2;
             }
 
@@ -88,9 +95,9 @@ template <class Type> class cTplTripletByRef
                  mV1 (&aV1),
                  mV2 (&aV2)
             {
-                  if (*mV0>*mV1) ElSwap(mV0,mV1);
-                  if (*mV0>*mV2) ElSwap(mV0,mV2);
-                  if (*mV1>*mV2) ElSwap(mV1,mV2);
+                  if (*mV1<*mV0) ElSwap(mV0,mV1);
+                  if (*mV2<*mV0) ElSwap(mV0,mV2);
+                  if (*mV2<*mV1) ElSwap(mV1,mV2);
             }
 
             const Type * mV0;
