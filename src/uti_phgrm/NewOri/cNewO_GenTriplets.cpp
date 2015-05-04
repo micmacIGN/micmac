@@ -150,12 +150,13 @@ class cGTrip_AttrSom
 
          const int & Num() const {return mNum;}
          const std::string & Name() const {return mName;}
-         cNewO_OneIm & Im() {return *mIm;}
+         cNewO_OneIm & Im() const {return *mIm;}
 
          bool InitTriplet(tSomGT*,tArcGT *);
          void InitNb(const std::vector<Pt2df> & aVP1);
          const int &  Nb(int aK) {return mNb[aK];}
          const Pt3dr  & C3() const {return mC3;}
+         ElRotation3D R3() const {return ElRotation3D(mC3,mM3,true);}
 
 
          void UpdateCost(tSomGT * aSomThis,tSomGT *aSomSel);
@@ -437,6 +438,7 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       Pt3dr aC31 = aC3 / MedianeSup(aVL13);
       Pt3dr aC32 = aC2 + aV3Bis * MedianeSup(aVL23);
       mC3 = (aC31 + aC32) / 2.0;
+      mM3 =  NearestRotation((aR31.Mat() + aR31Bis.Mat())*0.5);
 
 
 
@@ -668,13 +670,80 @@ void cAppli_GenTriplet::GenTriplet()
       std::cout << "Load " << mTimeLoadHom << " Merge " << mTimeMerge << " Selec " << mTimeSelec << " GenTripl " << aTimeGT.uval() << "\n";
 }
 
-bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3)
+bool operator < (const tSomGT & aS1,const tSomGT & aS2)
 {
-   cTripletInt aTr(aS1.attr().Num(),aS2.attr().Num(),aS3.attr().Num());
+    return aS1.attr().Name() < aS2.attr().Name();
+}
+
+cXml_Rotation El2Xml(const ElRotation3D & aRot)
+{
+  cXml_Rotation aRes;
+  aRes.Centre() = aRot.tr();
+  aRes.Ori() = ExportMatr(aRot.Mat());
+  return aRes;
+}
+
+void SegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP)
+{
+   aV1.push_back(aR.ImAff(Pt3dr(0,0,0)));
+   aV2.push_back(aR.ImAff(Pt3dr(aP.x,aP.y,1.0)));
+}
+
+bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3Ori)
+{
+   cTplTripletByRef<tSomGT> aTBR(aS1Ori,aS2Ori,aS3Ori);
+   const cGTrip_AttrSom & aA1 = aTBR.mV0->attr();
+   const cGTrip_AttrSom & aA2 = aTBR.mV1->attr();
+   const cGTrip_AttrSom & aA3 = aTBR.mV2->attr();
+
+   ELISE_ASSERT(aA1.Name() < aA2.Name(),"cAppli_GenTriplet::AddTriplet");
+   ELISE_ASSERT(aA2.Name() < aA3.Name(),"cAppli_GenTriplet::AddTriplet");
+
+   cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());
    if (mMapTriplets.find(aTr) != mMapTriplets.end())
       return false;
 
+
+   ElRotation3D aR1Inv = aA1.R3().inv();
+
+   ElRotation3D aR2 = aR1Inv*aA2.R3();
+   ElRotation3D aR3 = aR1Inv*aA3.R3();
+   if (1)
+   {
+      ElRotation3D aR1 = aR1Inv*aA1.R3();
+      static std::vector<Pt2df> aVP1;
+      static std::vector<Pt2df> aVP2;
+      static std::vector<Pt2df> aVP3;
+
+
+      bool OK = NM().LoadTriplet
+                (
+                     &aA1.Im(),&aA2.Im(), &aA3.Im(),
+                     &aVP1,&aVP2,&aVP3
+                );
+
+       for (int aK=0 ; aK< int(aVP1.size()) ; aK++)
+       {
+           std::vector<Pt3dr> aW1;
+           std::vector<Pt3dr> aW2;
+           SegOfRot(aW1,aW2,aR1,aVP1[aK]);
+           SegOfRot(aW1,aW2,aR2,aVP2[aK]);
+           SegOfRot(aW1,aW2,aR3,aVP3[aK]);
+           bool OkI;
+           Pt3dr aI = InterSeg(aW1,aW2,OkI);
+           if (OkI)
+           {
+              std::cout << aI << "\n";
+
+           }
+       }
+       ELISE_ASSERT(OK,".LoadTriplet");
+   }
    cResTriplet aRT;
+   aRT.mXml.Ori2On1() = El2Xml(aR2);
+   aRT.mXml.Ori3On1() = El2Xml(aR3);
+
+
    mMapTriplets[aTr] =  aRT;
    
    return true;
