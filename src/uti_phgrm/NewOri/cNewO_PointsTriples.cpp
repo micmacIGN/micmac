@@ -87,33 +87,16 @@ std::string cNewO_NameManager::NameHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI
 typedef const std::string * tCPString;
 typedef std::pair<std::string,std::string>  tPairStr;
 
-class cNO_P3_NameM
+template <class Type> void  Rank3(int * aRnk, const Type & aN0,const Type & aN1,const Type & aN2)
 {
-       public :
-          cNO_P3_NameM
-          (
-               const std::string & aN0,
-               const std::string & aN1,
-               const std::string & aN2
-          );
-
-      // private :
-
-          int mRank[3];
-          
-};
-
-cNO_P3_NameM::cNO_P3_NameM
-(
-               const std::string & aN0,
-               const std::string & aN1,
-               const std::string & aN2
-) 
-{
-     mRank[0] = (aN0>aN1)  +  (aN0>aN2);
-     mRank[1] = (aN0<=aN1) +  (aN1>aN2);
-     mRank[2] = (aN0<=aN2)  +  (aN1<=aN2);
+    
+     aRnk[0] = (aN0>aN1)  +  (aN0>aN2);
+     aRnk[1] = (aN0<=aN1) +  (aN1>aN2);
+     aRnk[2] = (aN0<=aN2)  +  (aN1<=aN2);
 }
+
+
+
 
 std::string cNewO_NameManager::NameTriplet(cNewO_OneIm * aI1,cNewO_OneIm * aI2,cNewO_OneIm * aI3,bool WithMakeDir)
 {
@@ -130,8 +113,8 @@ typedef cNewO_OneIm *        tPtrNIm;
 
 bool cNewO_NameManager::LoadTriplet(cNewO_OneIm * anI1 ,cNewO_OneIm * anI2,cNewO_OneIm * anI3,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3)
 {
-   cNO_P3_NameM aP3N(anI1->Name(),anI2->Name(),anI3->Name());
-   int * aRnk = aP3N.mRank;
+   int aRnk[3] ; 
+   Rank3(aRnk,anI1->Name(),anI2->Name(),anI3->Name());
 
    tPtrNIm aVIm[3];
    aVIm[aRnk[0]] =  anI1;
