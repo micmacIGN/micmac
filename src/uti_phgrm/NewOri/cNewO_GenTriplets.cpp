@@ -154,7 +154,6 @@ class cGTrip_AttrSom
          cNewO_OneIm & Im() {return *mIm;}
 
          bool InitTriplet(tSomGT*,tArcGT *);
-         void FreeTriplet();
          void InitNb(const std::vector<Pt2df> & aVP1);
          const int &  Nb(int aK) {return mNb[aK];}
          const Pt3dr  & C3() const {return mC3;}
@@ -166,7 +165,6 @@ class cGTrip_AttrSom
          int * Dens() {return  mDens;}
 
      private :
-         void TripletAddArc(tArcGT *,int aNum1,int aNum2);
 
          cAppli_GenTriplet * mAppli;
          int            mNum;
@@ -343,16 +341,6 @@ cGTrip_AttrSom::cGTrip_AttrSom(int aNum,const std::string & aNameIm,cAppli_GenTr
 {
 }
 
-void cGTrip_AttrSom::TripletAddArc(tArcGT * anArc,int aNum1,int aNum2)
-{
-     ELISE_ASSERT(anArc!=0,"cGTrip_AttrSom::TripletAddArc, arc=0");
-     std::vector<Pt2df> &  aVP1 =  anArc->attr().VP1();
-     std::vector<Pt2df> &  aVP2 =  anArc->attr().VP2();
-
-     for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
-         mMerged->AddArc(aVP1[aK],aNum1,aVP2[aK],aNum2);
-}
-
 
 void cGTrip_AttrSom::InitNb(const std::vector<Pt2df> & aVP1)
 {
@@ -377,98 +365,6 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       static std::vector<Pt2df> aVP1;
       static std::vector<Pt2df> aVP2;
       static std::vector<Pt2df> aVP3;
-
-
-/*
-      aVP1.clear();
-      aVP2.clear();
-      aVP3.clear();
-
-
-      mMerged = new  tMapM;
-      TripletAddArc(anA12,0,1);
-      TripletAddArc(anA13,0,2);
-      TripletAddArc(anA23,1,2);
-      mMerged->DoExport();
-
-      const tListM aLM =  mMerged->ListMerged();
-      int aNb33=0;
-      for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
-      {
-          if ((*itM)->NbSom()==3 )
-          {
-              aVP1.push_back((*itM)->GetVal(0));
-              aVP2.push_back((*itM)->GetVal(1));
-              aVP3.push_back((*itM)->GetVal(2));
-          }
-          if ((*itM)->NbArc()==3 ) aNb33++;
-      }
-
-
-      FreeTriplet();
-      if (int(aVP1.size()) <TNbMinPMul) 
-      {
-         return false;
-      }
-
-
-      {
-            std::vector<Pt2df> aVQ1;
-            std::vector<Pt2df> aVQ2;
-            std::vector<Pt2df> aVQ3;
-
-            bool OK = mAppli->NM().LoadTriplet
-                      (
-                           anA12->s1().attr().mIm,anA12->s2().attr().mIm, mIm,
-                           &aVQ1,&aVQ2,&aVQ3
-                      );
-
-
-            ELISE_ASSERT(OK,".LoadTriplet");
-            ELISE_ASSERT( aVP1.size() == aVQ1.size(),".LoadTriplet");
-
-            double aDif11=0;
-            double aDif22=0;
-            double aDif33=0;
-            for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
-            {
-                aDif11 += euclid(aVP1[aK]-aVQ1[aK]);
-                aDif22 += euclid(aVP2[aK]-aVQ2[aK]);
-                aDif33 += euclid(aVP3[aK]-aVQ3[aK]);
-            }
-
-
-            std::cout << "OK " <<  OK  << " " << aDif11 << " " << aDif22 << " " << aDif33  << "\n";
-            if (aDif11>1e-5)
-            {
-               std::map<Pt2df,Pt2df> aMapP2;
-               std::map<Pt2df,Pt2df> aMapQ2;
-               std::map<Pt2df,Pt2df> aMapP3;
-               std::map<Pt2df,Pt2df> aMapQ3;
-
-               for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
-               {
-                    aMapP2[aVP1[aK]] = aVP2[aK];
-                    aMapP3[aVP1[aK]] = aVP3[aK];
-                    aMapQ2[aVQ1[aK]] = aVQ2[aK];
-                    aMapQ3[aVQ1[aK]] = aVQ3[aK];
-               }
-
-               double aDif2=0;
-               double aDif3=0;
-               for (int aK=0 ; aK<int(aVP1.size()) ; aK++)
-               {
-                    aDif2 += euclid(aMapP2[aVP1[aK]],aMapQ2[aVP1[aK]]);
-                    aDif3 += euclid(aMapP3[aVP1[aK]],aMapQ3[aVP1[aK]]);
-               }
-
-               std::cout << "********** " << aDif2 << " " << aDif3 << "\n";
-               ELISE_ASSERT(aDif2<1e-10,"aDif2");
-               ELISE_ASSERT(aDif3<1e-10,"aDif3");
-
-            }
-      }
-*/
 
 
       bool OK = mAppli->NM().LoadTriplet
@@ -589,15 +485,6 @@ void  cGTrip_AttrSom::UpdateCost(tSomGT * aSomThis,tSomGT *aSomSel)
            mGainGlob +=  mGain[aK] * aPdsGlob[aK];
       }
 }
-
-void cGTrip_AttrSom:: FreeTriplet()
-{
-   mMerged->Delete();
-   delete mMerged;
-   mMerged = 0;
-}
-
-
 
 /*********************************************************/
 /*                                                       */
@@ -893,36 +780,6 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                   anASym->SupP1() = aSupP1;
 
                   mGrT.add_arc(*aS1,*aS2,cGTrip_AttrArc(aR,anASym,true),cGTrip_AttrArc(aR.inv(),anASym,false));
-
-/*
-                  anASym->VP1().reserve(aNbSym);
-                  anASym->VP2().reserve(aNbSym);
-
-                  Pt2df aInfP1(1e20,1e20);
-                  Pt2df aSupP1(-1e20,-1e20);
-                  for (std::list<cFixedMergeTieP<2,Pt2df> *>::const_iterator itM = aLM.begin() ; itM!=aLM.end() ; itM++)
-                  {
-                      const cFixedMergeTieP<2,Pt2df> & aM = **itM;
-                      if (aM.NbArc() ==2)
-                      {
-                         Pt2df aP1 = aM.GetVal(0);
-                         Pt2df aP2 = aM.GetVal(1);
-                         anASym->VP1().push_back(aP1);
-                         anASym->VP2().push_back(aP2);
-                         aInfP1 = Inf(aInfP1,aP1);
-                         aSupP1 = Sup(aSupP1,aP1);
-                         // SetSup(aSupP1,aP1);
-                      }
-                  }
-                  anASym->InfP1() = aInfP1;
-                  anASym->SupP1() = aSupP1;
-
-                  
-                  std::vector<Pt2df>  aNVP1;
-                  std::vector<Pt2df>  aNVP2;
-                  mNM->LoadHomFloats(&(aS1->attr().Im()),&(aS2->attr().Im()),&aNVP1,&aNVP2);
-                  aMap.Delete();
-*/
 
                }
 
