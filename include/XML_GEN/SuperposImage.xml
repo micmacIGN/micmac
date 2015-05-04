@@ -1383,6 +1383,33 @@
 </Xml_Ori2Im>
 
 
+<Xml_Rotation Nb="1" Class="true" ToReference="true">
+     <Ori Nb="1" RefType="TypeCodageMatr"> </Ori>
+     <Centre Nb="1" Type="Pt3dr" > </Centre>
+</Xml_Rotation>
+
+
+<Xml_Ori3ImInit  Nb="1" Class="true" ToReference="true">
+    <Ori2On1 Nb="1"  RefType="Xml_Rotation"> </Ori2On1>
+    <Ori3On1 Nb="1"  RefType="Xml_Rotation"> </Ori3On1>
+    <NbTriplet Nb="1" Type="int"> </NbTriplet>
+    <ResiduTriplet Nb="1" Type="double"> </ResiduTriplet>
+</Xml_Ori3ImInit>
+
+<Xml_OneTriplet  Nb="1" Class="true" ToReference="true">
+       <Name1 Nb="1" Type="std::string"> </Name1>
+       <Name2 Nb="1" Type="std::string"> </Name2>
+       <Name3 Nb="1" Type="std::string"> </Name3>
+</Xml_OneTriplet>
+
+
+<!-- Représente uniquement la "topologie" des triplets selectionnes -->
+
+<Xml_TopoTriplet Nb="1" Class="true" ToReference="true">
+       <Triplets  Nb="*" RefType="Xml_OneTriplet"> </Triplets>
+</Xml_TopoTriplet>
+
+
 
 
 

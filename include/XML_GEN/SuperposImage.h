@@ -6327,5 +6327,125 @@ std::string  Mangling( cXml_Ori2Im *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_Rotation
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Rotation & anObj,cElXMLTree * aTree);
+
+
+        cTypeCodageMatr & Ori();
+        const cTypeCodageMatr & Ori()const ;
+
+        Pt3dr & Centre();
+        const Pt3dr & Centre()const ;
+    private:
+        cTypeCodageMatr mOri;
+        Pt3dr mCentre;
+};
+cElXMLTree * ToXMLTree(const cXml_Rotation &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Rotation &);
+
+void  BinaryUnDumpFromFile(cXml_Rotation &,ELISE_fp &);
+
+std::string  Mangling( cXml_Rotation *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Ori3ImInit
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Ori3ImInit & anObj,cElXMLTree * aTree);
+
+
+        cXml_Rotation & Ori2On1();
+        const cXml_Rotation & Ori2On1()const ;
+
+        cXml_Rotation & Ori3On1();
+        const cXml_Rotation & Ori3On1()const ;
+
+        int & NbTriplet();
+        const int & NbTriplet()const ;
+
+        double & ResiduTriplet();
+        const double & ResiduTriplet()const ;
+    private:
+        cXml_Rotation mOri2On1;
+        cXml_Rotation mOri3On1;
+        int mNbTriplet;
+        double mResiduTriplet;
+};
+cElXMLTree * ToXMLTree(const cXml_Ori3ImInit &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Ori3ImInit &);
+
+void  BinaryUnDumpFromFile(cXml_Ori3ImInit &,ELISE_fp &);
+
+std::string  Mangling( cXml_Ori3ImInit *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_OneTriplet
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OneTriplet & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name1();
+        const std::string & Name1()const ;
+
+        std::string & Name2();
+        const std::string & Name2()const ;
+
+        std::string & Name3();
+        const std::string & Name3()const ;
+    private:
+        std::string mName1;
+        std::string mName2;
+        std::string mName3;
+};
+cElXMLTree * ToXMLTree(const cXml_OneTriplet &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OneTriplet &);
+
+void  BinaryUnDumpFromFile(cXml_OneTriplet &,ELISE_fp &);
+
+std::string  Mangling( cXml_OneTriplet *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_TopoTriplet
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_TopoTriplet & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_OneTriplet > & Triplets();
+        const std::list< cXml_OneTriplet > & Triplets()const ;
+    private:
+        std::list< cXml_OneTriplet > mTriplets;
+};
+cElXMLTree * ToXMLTree(const cXml_TopoTriplet &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_TopoTriplet &);
+
+void  BinaryUnDumpFromFile(cXml_TopoTriplet &,ELISE_fp &);
+
+std::string  Mangling( cXml_TopoTriplet *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

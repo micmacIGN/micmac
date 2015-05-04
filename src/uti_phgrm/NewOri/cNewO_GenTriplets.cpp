@@ -127,7 +127,6 @@ static const int  TMaxGain = 2e9;
 class cGTrip_AttrSom;
 class cGTrip_AttrASym;
 class cGTrip_AttrArc;
-class cTripletInt;
 class cAppli_GenTriplet;
 
 typedef  ElSom<cGTrip_AttrSom,cGTrip_AttrArc>         tSomGT;
@@ -147,7 +146,7 @@ class cGTrip_AttrSom
      public :
          cGTrip_AttrSom(int aNum,const std::string & aNameIm,cAppli_GenTriplet & anAppli) ;
 
-         cGTrip_AttrSom() {}
+         cGTrip_AttrSom() : mM3(1,1)  {}
 
          const int & Num() const {return mNum;}
          const std::string & Name() const {return mName;}
@@ -171,6 +170,7 @@ class cGTrip_AttrSom
          std::string         mName;
          cNewO_OneIm *       mIm;
          Pt3dr               mC3;
+         ElMatrix<double>    mM3;
          tMapM *             mMerged;
 
          int mNb[TMaxNbCase];
@@ -225,6 +225,14 @@ class cGTrip_AttrArc
         bool              mASDir;
 };
 
+
+class cResTriplet
+{
+    public :
+        cXml_Ori3ImInit  mXml;
+};
+
+/*
 class cTripletInt
 {
     public :
@@ -248,6 +256,8 @@ class cTripletInt
         int mK3;
         int mK2;
 };
+*/
+typedef cTplTriplet<int> cTripletInt;
 
 
 class cAppli_GenTriplet
@@ -296,7 +306,7 @@ class cAppli_GenTriplet
        std::vector<tSomGT *>          mVecAllSom;
        //std::vector<tSomGT *>          m;
 
-       std::set<cTripletInt>          mTriplets;
+       std::map<cTripletInt,cResTriplet>  mMapTriplets;
 
        // Voisin de l'arc, hors de l'arc lui meme
        std::vector<tSomGT *>         mVSomVois;
@@ -337,6 +347,7 @@ cGTrip_AttrSom::cGTrip_AttrSom(int aNum,const std::string & aNameIm,cAppli_GenTr
      mNum    (aNum),
      mName   (aNameIm),
      mIm     (new cNewO_OneIm(anAppli.NM(),mName)),
+     mM3     (3,3),
      mTest   (false)
 {
 }
@@ -397,7 +408,9 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
 
      // C'est refait a chaque fois, pas grave ...
       mAppli->CurS1()->attr().mC3 = aC1;
+      mAppli->CurS1()->attr().mM3 = ElMatrix<double>(3,true);
       mAppli->CurS2()->attr().mC3 = aC2;
+      mAppli->CurS2()->attr().mM3 = aR21.Mat();
 
 
       // Calul du centre
@@ -658,13 +671,16 @@ void cAppli_GenTriplet::GenTriplet()
 bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3)
 {
    cTripletInt aTr(aS1.attr().Num(),aS2.attr().Num(),aS3.attr().Num());
-   if (mTriplets.find(aTr) != mTriplets.end())
+   if (mMapTriplets.find(aTr) != mMapTriplets.end())
       return false;
 
-   mTriplets.insert(aTr);
+   cResTriplet aRT;
+   mMapTriplets[aTr] =  aRT;
    
    return true;
 }
+/*
+*/
 
 
 void  AddPackToMerge(CamStenope * aCS1,CamStenope * aCS2,const ElPackHomologue & aPack,cFixedMergeStruct<2,Pt2df> &   aMap,int aInd0)

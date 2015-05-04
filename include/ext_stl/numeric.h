@@ -42,6 +42,63 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_EXT_STL_NUMERICS_H
 #define _ELISE_EXT_STL_NUMERICS_H
 
+
+
+
+template <class Type> void  Rank3(int * aRnk, const Type & aN0,const Type & aN1,const Type & aN2)
+{
+
+     aRnk[0] = (aN0>aN1)  +  (aN0>aN2);
+     aRnk[1] = (aN0<=aN1) +  (aN1>aN2);
+     aRnk[2] = (aN0<=aN2)  +  (aN1<=aN2);
+}
+
+template <class Type> class cTplTriplet
+{
+     public :
+            cTplTriplet(const Type & aV0,const Type & aV1,const Type &aV2) :
+                 mV0 (aV0),
+                 mV1 (aV1),
+                 mV2 (aV2)
+            {
+                  if (mV0>mV1) ElSwap(mV0,mV1);
+                  if (mV0>mV2) ElSwap(mV0,mV2);
+                  if (mV1>mV2) ElSwap(mV1,mV2);
+            }
+
+            bool operator < (const cTplTriplet<Type> & aT2) const
+            {
+                if (mV0 < aT2.mV0) return true;
+                if (mV0 > aT2.mV0) return false;
+                if (mV1 < aT2.mV1) return true;
+                if (mV1 > aT2.mV1) return false;
+                return mV2 < aT2.mV2;
+            }
+
+            Type  mV0;
+            Type  mV1;
+            Type  mV2;
+};
+//  !!!  NE PEUX PAS ETRE COPIEE .....
+template <class Type> class cTplTripletByRef
+{
+     public :
+            cTplTripletByRef(const Type & aV0,const Type & aV1,const Type &aV2) :
+                 mV0 (&aV0),
+                 mV1 (&aV1),
+                 mV2 (&aV2)
+            {
+                  if (*mV0>*mV1) ElSwap(mV0,mV1);
+                  if (*mV0>*mV2) ElSwap(mV0,mV2);
+                  if (*mV1>*mV2) ElSwap(mV1,mV2);
+            }
+
+            const Type * mV0;
+            const Type * mV1;
+            const Type * mV2;
+};
+
+
 // ElMedian directement pompes sur __median de G++-stl,
 // car je ne suis pas sur que ce soit standard
 
