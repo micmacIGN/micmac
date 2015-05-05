@@ -885,6 +885,65 @@ void RPC::Validity2Dto3D(RPC2D aRPC2D)
 	height_off = aRPC2D.height_off;
 }
 
+void RPC::ComputeNormFactors(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, double aHMin, double aHMax)
+{
+	vector<double> aPtsGeoX, aPtsGeoY, aPtsImX, aPtsImY;
+	for (u_int i = 0; i < aMatPtsIm.size(); i++)
+	{
+		for (u_int j = 0; j < aMatPtsIm[0].size(); j++)
+		{
+			aPtsImX.push_back(aMatPtsIm[i][j].x);
+			aPtsImY.push_back(aMatPtsIm[i][j].y);
+
+			//convert to geodetic
+			//WGS84 ellipsoid
+			double a = 6378137;
+			double b = (1 - 1 / 298.257223563)*a;
+			double WGSCorFact = 0.99330562;
+
+			Pt3dr aPtGeo;
+			Pt3dr aPtECEF=aMatPtsECEF[i][j];
+			double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
+			aPtGeo.y = asin(aPtECEF.z / r) * 180 / M_PI; //degrees
+			aPtGeo.x = acos(aPtECEF.x / (r*cos(aPtGeo.y * M_PI / 180))) * 180 / M_PI;//degrees
+			if (aPtECEF.y < 0)//"Western emisphere"
+				aPtGeo.x = -aPtGeo.x;
+			//to geodetic
+			aPtGeo.y = atan(tan(aPtGeo.y *M_PI / 180) / WGSCorFact) * 180 / M_PI;
+
+			//Filling vectors
+			aPtsGeoX.push_back(aPtGeo.x);
+			aPtsGeoY.push_back(aPtGeo.y);
+		}
+	}
+
+	//Find Mins and Maxs
+	Pt2dr aPtGeoMin(*std::min_element(aPtsGeoX.begin(), aPtsGeoX.end()), *std::min_element(aPtsGeoY.begin(), aPtsGeoY.end()));
+	Pt2dr aPtGeoMax(*std::max_element(aPtsGeoX.begin(), aPtsGeoX.end()), *std::max_element(aPtsGeoY.begin(), aPtsGeoY.end()));
+	Pt2dr aPtImMin(*std::min_element(aPtsImX.begin(), aPtsImX.end()), *std::min_element(aPtsImY.begin(), aPtsImY.end()));
+	Pt2dr aPtImMax(*std::max_element(aPtsImX.begin(), aPtsImX.end()), *std::max_element(aPtsImY.begin(), aPtsImY.end()));
+	first_lon = aPtGeoMin.x;
+	first_lat = aPtGeoMin.y;
+	first_col = aPtImMin.x;
+	first_row = aPtImMin.y;
+	last_lon = aPtGeoMax.x;
+	last_lat = aPtGeoMax.y;
+	last_col = aPtImMax.x;
+	last_row = aPtImMax.y;
+	//Compute scales and offsets
+	long_scale = (aPtGeoMax.x - aPtGeoMin.x) / 2;
+	lat_scale = (aPtGeoMax.y - aPtGeoMin.y) / 2;
+	samp_scale = (aPtImMax.x - aPtImMin.x) / 2;
+	line_scale = (aPtImMax.y - aPtImMin.y) / 2;
+	long_off = (aPtGeoMax.x + aPtGeoMin.x) / 2;;
+	lat_off = (aPtGeoMax.y + aPtGeoMin.y) / 2;
+	samp_off = (aPtImMax.x + aPtImMin.x) / 2;
+	line_off = (aPtImMax.y + aPtImMin.y) / 2;
+	height_scale = (aHMax - aHMin) / 2;
+	height_off = (aHMax + aHMin) / 2;
+}
+
+
 vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
 {
 	//Generating a gridSize*gridSize grid on the normalized space with random normalized heights
@@ -904,6 +963,80 @@ vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
 
 	return aGridNorm;
 }
+
+//Use lattice points and satellite positions to generate points to be inputed in GCP2Direct and GCP2Inverse
+vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, vector<vector<Pt3dr> > aMatSatPos, int nbLayers, double aHMin, double aHMax)
+{
+	//WGS84 ellipsoid
+	double a = 6378137;
+	double b = (1 - 1 / 298.257223563)*a;
+	double WGSCorFact = 0.99330562;
+
+	vector<vector<Pt3dr> > aMatPtsNorm;
+	vector<Pt3dr> aVectPtsGeo, aVectPtsIm;
+	int nbLatticePts = aMatPtsIm.size()*aMatPtsIm[0].size();
+
+	for (u_int i = 0; i < aMatPtsIm.size(); i++){
+		vector<Pt3dr> aVectPt;
+		for (u_int j = 0; j < aMatPtsIm[0].size(); j++){
+
+			//Image point 3D coordinates object created (identical for all grid levels)
+			Pt3dr aPtIm; aPtIm.x = aMatPtsIm[i][j].x; aPtIm.y = aMatPtsIm[i][j].y;
+
+			//Line of Sight LOS computed
+			Pt3dr aLOS = aMatSatPos[i][j] - aMatPtsECEF[i][j];
+			//Norming aLOS
+			aLOS = aLOS / sqrt(aLOS.x*aLOS.x + aLOS.y*aLOS.y + aLOS.z*aLOS.z);
+
+			//for each layer of grid
+			for (u_int height = aHMin; height <= aHMax; height = height + (aHMax-aHMin)/(nbLayers-1))
+			{
+				//ECEF coord points are computed
+				Pt3dr aPtECEF = aMatPtsECEF[i][j] + aLOS*height;
+
+				//Coordinates are transformed to geocentric
+
+				Pt3dr aPtGeo;
+				double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
+				aPtGeo.y = asin(aPtECEF.z / r) * 180 / M_PI; //degrees
+				aPtGeo.x = acos(aPtECEF.x / (r*cos(aPtGeo.y * M_PI / 180))) * 180 / M_PI;//degrees
+				if (aPtECEF.y < 0)//"Western emisphere"
+					aPtGeo.x = -aPtGeo.x;
+				aPtGeo.z = r - sqrt(a*a*b*b / (a*a*sin(aPtGeo.y * M_PI / 180)*sin(aPtGeo.y * M_PI / 180) + b*b*cos(aPtGeo.y * M_PI / 180)*cos(aPtGeo.y * M_PI / 180)));//(distance from point to earth center)-(distance from ellipsoide to earth center)
+				//to geodetic
+				aPtGeo.y = atan(tan(aPtGeo.y *M_PI / 180) / WGSCorFact) * 180 / M_PI;
+
+				aVectPtsGeo.push_back(aPtGeo);
+
+				//Image point 3D coordinates are recorded
+				aPtIm.z = aPtGeo.z;
+				aVectPtsIm.push_back(aPtIm);
+			}
+
+		}
+	}
+
+	//Normalization
+	for (u_int i = 0; i < aVectPtsIm.size(); i++)
+	{
+
+		aVectPtsGeo[i].x = (aVectPtsGeo[i].x - long_off) / long_scale;
+		aVectPtsGeo[i].y = (aVectPtsGeo[i].y - lat_off) / lat_scale;
+		aVectPtsGeo[i].z = (aVectPtsGeo[i].z - height_off) / height_scale;
+
+		aVectPtsIm[i].x = (aVectPtsIm[i].x - samp_off) / samp_scale;
+		aVectPtsIm[i].y = (aVectPtsIm[i].y - line_off) / line_scale;
+		aVectPtsIm[i].z = (aVectPtsIm[i].z - height_off) / height_scale;
+	}
+
+
+
+	aMatPtsNorm.push_back(aVectPtsGeo);
+	aMatPtsNorm.push_back(aVectPtsIm);
+
+	return aMatPtsNorm;
+}
+
 
 //Take GCPs in normalized space to compute f in ground=f(image)
 void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
