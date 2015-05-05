@@ -41,8 +41,90 @@ vector<vector<Pt2dr> > ReadLatticeIm(string aTxtImage)
 	return aMatIm;
 }
 
-//reads the txt file with lattice point in geocentric coordinates and transforms them into geodetic (unit : degrees)
+//reads the txt file with lattice point in geocentric coordinates and transforms them into ECEF coordinates
 vector<vector<Pt3dr> > ReadLatticeGeo(string aTxtLong, string aTxtLat)
+{
+	//Reading the file
+	vector<vector<Pt3dr> > aMatGeoGeocentric;
+	vector<vector<Pt3dr> > aMatGeo;
+	//Reading longitudes of lattice pts
+	std::ifstream fic1(aTxtLong.c_str());
+	while (!fic1.eof() && fic1.good())
+	{
+		double L1, L2, L3, L4, L5, L6, L7, L8, L9, L10, L11;
+		fic1 >> L1 >> L2 >> L3 >> L4 >> L5 >> L6 >> L7 >> L8 >> L9 >> L10 >> L11;
+		vector<Pt3dr> aVectPts;
+		//for (u_int i = 0; i < 11; i++)
+		//{
+		//		
+		//}
+		Pt3dr aPt1(L1, 0.0, 0.0); aVectPts.push_back(aPt1);
+		Pt3dr aPt2(L2, 0.0, 0.0); aVectPts.push_back(aPt2);
+		Pt3dr aPt3(L3, 0.0, 0.0); aVectPts.push_back(aPt3);
+		Pt3dr aPt4(L4, 0.0, 0.0); aVectPts.push_back(aPt4);
+		Pt3dr aPt5(L5, 0.0, 0.0); aVectPts.push_back(aPt5);
+		Pt3dr aPt6(L6, 0.0, 0.0); aVectPts.push_back(aPt6);
+		Pt3dr aPt7(L7, 0.0, 0.0); aVectPts.push_back(aPt7);
+		Pt3dr aPt8(L8, 0.0, 0.0); aVectPts.push_back(aPt8);
+		Pt3dr aPt9(L9, 0.0, 0.0); aVectPts.push_back(aPt9);
+		Pt3dr aPt10(L10, 0.0, 0.0); aVectPts.push_back(aPt10);
+		Pt3dr aPt11(L11, 0.0, 0.0); aVectPts.push_back(aPt11);
+
+		aMatGeoGeocentric.push_back(aVectPts);
+	}
+	//Reading latitudes of lattice pts
+	std::ifstream fic2(aTxtLat.c_str());
+	u_int k = 0;
+	while (!fic2.eof() && fic2.good())
+	{
+		double L1, L2, L3, L4, L5, L6, L7, L8, L9, L10, L11;
+		fic2 >> L1 >> L2 >> L3 >> L4 >> L5 >> L6 >> L7 >> L8 >> L9 >> L10 >> L11;
+		double WGSCorFact = 0.99330562;
+		//cout << setprecision(15) << "pi = " << M_PI << endl;
+		//geocentric->geodetic
+		aMatGeoGeocentric[k][0].y = L1 ;
+		aMatGeoGeocentric[k][1].y = L2 ;
+		aMatGeoGeocentric[k][2].y = L3 ;
+		aMatGeoGeocentric[k][3].y = L4 ;
+		aMatGeoGeocentric[k][4].y = L5 ;
+		aMatGeoGeocentric[k][5].y = L6 ;
+		aMatGeoGeocentric[k][6].y = L7 ;
+		aMatGeoGeocentric[k][7].y = L8 ;
+		aMatGeoGeocentric[k][8].y = L9 ;
+		aMatGeoGeocentric[k][9].y = L10;
+		aMatGeoGeocentric[k][10].y = L11;
+		//std::cout << "Ligne " << i << " : " << aMatGeo[i] << endl;
+		k++;
+	}
+
+	//Convert to ECEF
+	double a = 6378137;
+	double b = (1 - 1 / 298.257223563)*a;
+	for (u_int i = 0; i < aMatGeoGeocentric.size(); i++){
+		vector<Pt3dr> aVectPt;
+		for (u_int j = 0; j < aMatGeoGeocentric[0].size(); j++){
+			Pt3dr aPt;
+			double aSinLat = sin(aMatGeoGeocentric[i][j].y*M_PI / 180);
+			double aCosLat = cos(aMatGeoGeocentric[i][j].y*M_PI / 180);
+			double aSinLon = sin(aMatGeoGeocentric[i][j].x*M_PI / 180);
+			double aCosLon = cos(aMatGeoGeocentric[i][j].x*M_PI / 180);
+			double r = sqrt(a*a*b*b / (a*a*aSinLat*aSinLat + b*b*aCosLat*aCosLat));
+			aPt.x = r*aCosLat*aCosLon;
+			aPt.y = r*aCosLat*aSinLon;
+			aPt.z = r*aSinLat;
+			aVectPt.push_back(aPt);
+		}
+		aMatGeo.push_back(aVectPt);
+	}
+
+	std::cout << "Loaded " << aMatGeo.size()*aMatGeo[0].size() << " lattice points in geodetic coordinates" << endl;
+
+	return aMatGeo;
+}
+
+
+//OLD reads the txt file with lattice point in geocentric coordinates and transforms them into geodetic (unit : degrees)
+vector<vector<Pt3dr> > ReadLatticeGeo_OLD(string aTxtLong, string aTxtLat)
 {
 	//Reading the file
 	vector<vector<Pt3dr> > aMatGeo;
@@ -101,7 +183,7 @@ vector<vector<Pt3dr> > ReadLatticeGeo(string aTxtLong, string aTxtLat)
 	return aMatGeo;
 }
 
-//reads the txt file with the satellite positions
+//reads the txt file with the satellite positions in ECEF coordinates
 vector<vector<Pt3dr> > ReadSatPos(string aTxtSatPos)
 {
 	//Reading the file
@@ -142,6 +224,9 @@ int Aster2Grid_main(int argc, char ** argv)
 	double stepPixel = 25.f;
 	double stepCarto = 500.f;//equals to image resolution in cm
 
+	//Object being worked on
+	RPC aRPC3D;
+
 	//Reading the arguments
 	ElInitArgMain
 		(
@@ -163,11 +248,42 @@ int Aster2Grid_main(int argc, char ** argv)
 		<< EAM(binaire, "Bin", true, "Export Grid in binaries (Def=True)")
 		);
 
-	//TODO : READ THIS FROM HDF
+	////TODO : READ THIS FROM HDF
 	//Reading files
 	vector<vector<Pt2dr> > aMatPtsIm = ReadLatticeIm(aTxtImage);// cout << aMatPtsIm << endl;
-	vector<vector<Pt3dr> > aMatPtsGeo = ReadLatticeGeo(aTxtLong, aTxtLat);// cout << aMatPtsGeo << endl;
+	vector<vector<Pt3dr> > aMatPtsECEF = ReadLatticeGeo(aTxtLong, aTxtLat);// cout << aMatPtsGeo << endl;
 	vector<vector<Pt3dr> > aMatSatPos = ReadSatPos(aTxtSatPos);
+	////END TODO
+
+	//Find Validity and normalization values
+	aRPC3D.ComputeNormFactors(aMatPtsIm, aMatPtsECEF, aHMin, aHMax);
+
+	//Generate 2 vectors :
+	//1 - vectorized nbLayers grids in lon lat z
+	//2 - associated image coordinates
+	vector<vector<Pt3dr> > aGridNorm = aRPC3D.GenerateNormLineOfSightGrid(aMatPtsIm, aMatPtsECEF, aMatSatPos, nbLayers, aHMin, aHMax);
+
+	//Compute Direct and Inverse RPC
+	aRPC3D.GCP2Direct(aGridNorm[0], aGridNorm[1]);
+	cout << "Direct RPC estimated" << endl;
+	aRPC3D.GCP2Inverse(aGridNorm[0], aGridNorm[1]);
+	cout << "Inverse RPC estimated" << endl;
+	aRPC3D.info();
+
+	//Computing Grid
+	aRPC3D.RPC2Grid(nbLayers, aHMin, aHMax, refineCoef, aNameIm, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
+
+
+	
+	/*OLD METHOD*/
+	/*
+
+	////TODO : READ THIS FROM HDF
+	//Reading files
+	vector<vector<Pt2dr> > aMatPtsIm = ReadLatticeIm(aTxtImage);// cout << aMatPtsIm << endl;
+	vector<vector<Pt3dr> > aMatPtsECEF = ReadLatticeGeo_OLD(aTxtLong, aTxtLat);// cout << aMatPtsGeo << endl;
+	vector<vector<Pt3dr> > aMatSatPos = ReadSatPos(aTxtSatPos);
+	////END TODO
 
 	RPC2D aRPC2D;
 	RPC aRPC3D;
@@ -290,6 +406,6 @@ int Aster2Grid_main(int argc, char ** argv)
 
 	//Computing Grid
 	aRPC3D.RPC2Grid(nbLayers, aHMin, aHMax, refineCoef, aNameIm, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
-
+	*/
 	return 0;
 }
