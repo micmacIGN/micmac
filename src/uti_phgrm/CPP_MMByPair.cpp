@@ -132,6 +132,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       // des autres donnees generees
       bool mRunAperoImSec;
       bool mAddCpleImSec;
+      bool mAddCpleLine;
       int mDiffInStrip;
       bool mStripIsFirt;
       std::string  mMasterImages;
@@ -875,6 +876,47 @@ void cAppliWithSetImage::AddFilePair(const std::string & aFilePair)
 
 }
 
+
+void cAppliWithSetImage::AddLinePair(int aDif)
+{
+    for (tItSAWSI it1=mGrIm.begin(mSubGrAll); it1.go_on() ; it1++)
+    {
+		//image 1
+        cImaMM & anI1 = *((*it1).attr().mIma);
+        for (tItSAWSI it2=mGrIm.begin(mSubGrAll); it2.go_on() ; it2++)
+        {
+			//image 2
+            cImaMM & anI2 = *((*it2).attr().mIma);
+			
+			std::string aName1(anI1.mNameIm);
+			std::string aName2(anI2.mNameIm);
+			int aN1 = 0;
+			int aN2 = 0;	
+			//retreive the numeric part of the two image names in order to compare them.
+			for (int i = 0; aName1[i]; ++i)
+				if (aName1[i] >= '0' && aName1[i] <= '9' )
+				aN1 = aN1 * 10 + (aName1[i] - '0');
+			for (int i = 0; aName2[i]; ++i)
+				if ( aName2[i] >= '0' && aName2[i] <= '9' )
+				aN2 = aN2 * 10 + (aName2[i] - '0');
+			int ecart = std::abs(aN1-aN2);
+			
+			// test if numerical value from the image name are closed each other
+			if ((aN1>aN2) && (ecart<=aDif))
+			{
+				 AddPair(&(*it1),&(*it2));
+				 std::cout << "Adding the following image pair: " << aName1 << " and " << aName2 << " \n";
+             } 
+             
+             if ((aN1=0) || (aN2=0)) 
+				ELISE_ASSERT(false,"Cannot extrat numeric value from image names (in order to determine pair of subsequent images)");
+         }    
+     }
+     // todo; warning message if no couple found, or if no numeric part in image name
+}
+
+
+
 void cAppliWithSetImage::AddPair(const std::string & aN1,const std::string & aN2,bool aSVP)
 {
     if (ImIsKnown(aN1) && ImIsKnown(aN2))
@@ -1183,6 +1225,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDelaunay     (false),
     mRunAperoImSec(false),
     mAddCpleImSec (false),
+    mAddCpleLine  (false),
     mDiffInStrip  (1),
     mStripIsFirt  (true),
     mDirBasc      ("MTD-Nuage"),
@@ -1236,16 +1279,21 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      }
      else if (mType==eForest)
      {
-        mStrQualOr = "High"; // Depuis les essais de Calib Per Im, il semble pas besoin de ca ?
-        mAddCpleImSec = true;
+        mStrQualOr = "High"; 
+        // do not add the segondary images computed by apero, but do the computation of pair because some data are required anyway (for mask computation based on tie points for e.g)
+        mAddCpleImSec = false;
+        // do the computation whitout adding the pairs
+        mRunAperoImSec= true;
         mHasVeget = true;
         mSkyBackGround = false;
         mRIE2Do = true;
+        //mZoom0 = 32;
         mZoomF = 4;
         mSuprImNoMasq = true;
         mDefCor = 0.2;
         mZReg   = 0.02;
         mPIMsDirName="Forest"; // for MMEnvStatute
+        mAddCpleLine=true;
      }
      else if (mMacType)
      {
@@ -1277,8 +1325,9 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64",eSAM_IsPowerOf2)
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final, Def=1",eSAM_IsPowerOf2)
                     << EAM(mDelaunay,"Delaunay",true,"Add Delaunay edges in pair to match, Def=true on ground")
-                    << EAM(mFilePair,"FilePair",true,"Add a File containing explicit pair (as in Tapioca, a <SauvegardeNamedRel> struct ...")
+                    << EAM(mFilePair,"FilePair",true,"Add a File containing explicit image pair (as in Tapioca, a <SauvegardeNamedRel> struct ...")
                     << EAM(mAddCpleImSec,"MMImSec",true,"Add pair from AperoChImSecMM,  Def=true in mode Statue")
+                    << EAM(mAddCpleLine,"ImLine",true,"Add pair for successive images, based on the numeric value in the image name, Def=true in mode Forest")
                     << EAM(mPairByStrip,"ByStrip",true,"Pair in same strip, first () : strip, second () : num in strip (or reverse with StripIsFisrt)")
                     << EAM(mStripIsFirt,"StripIsFisrt",true,"If true : first expr is strip, second is num in strip Def=true")
                     << EAM(mDiffInStrip,"DeltaStrip",true,"Delta in same strip (Def=1,apply with mPairByStrip)")
@@ -1306,12 +1355,13 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mPurge,"Purge",true,"Purge unused temporay files (Def=true, may be incomplete during some times)")
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
-                    << EAM(mZReg,"ZReg",false,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
+                    << EAM(mZReg,"ZReg",true,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
 
   );
 
   // Par defaut c'est le meme comportement
-  mRunAperoImSec=mAddCpleImSec;
+	if (!EAMIsInit(&mRunAperoImSec))
+		mRunAperoImSec=mAddCpleImSec;
 
   if (!MMVisualMode)
   {
@@ -1320,8 +1370,6 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
           if (!EAMIsInit(&mDelaunay)) mDelaunay = false;
           if (!EAMIsInit(&mAddCpleImSec)) mAddCpleImSec = false;
       }
-
-
 
       mExeRIE = mRIE2Do;
 
@@ -1337,6 +1385,11 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
 
       mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
 
+
+	  if (mAddCpleLine)
+      {
+          AddLinePair(1);
+      }
 
       if (mModeHelp)
           StdEXIT(0);
@@ -1363,9 +1416,6 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       FilterImageIsolated();
 
       // mVSoms
-
-
-
 
       mNbStep = round_ni(log2(mZoom0/double(mZoomF))) + 3 ;
 
@@ -1517,7 +1567,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " HasVeg=" + ToString(mHasVeget)
                          +  " HasSBG=" + ToString(mSkyBackGround)
                          +  " PurgeAtEnd=" + ToString(mPurge)
-                 +  " UseGpu=" + ToString(mUseGpu)
+						 +  " UseGpu=" + ToString(mUseGpu)
                          +  " DefCor=" + ToString(mDefCor)
                          +  " ZReg=" + ToString(mZReg)
                       ;

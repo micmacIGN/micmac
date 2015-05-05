@@ -194,7 +194,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def correlation, context depend")
                     << EAM(mZReg,"ZReg",false,"Regularisation, context depend")
-                    << EAM(mFilePair,"FilePair",false,"Explicit pairs of files (as in Tapioca)", eSAM_IsExistFileRP)
+                    << EAM(mFilePair,"FilePair",false,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
     );
 
    if (MMVisualMode) return;
