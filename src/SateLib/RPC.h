@@ -239,7 +239,8 @@ public:
                 std::cout << "first_row    : " << first_row << " | last_row   : " << last_row << std::endl;
                 std::cout << "first_col    : " << first_col << " | last_col   : " << last_col << std::endl;
                 std::cout << "first_lon    : " << first_lon << " | last_lon   : " << last_lon << std::endl;
-                std::cout << "first_lat    : " << first_lat << " | last_lat   : " << last_lat << std::endl;
+				std::cout << "first_lat    : " << first_lat << " | last_lat   : " << last_lat << std::endl;
+				std::cout << "first_height : " << first_height << " | last_height   : " << last_height << std::endl;
                 std::cout << "direct_samp_num_coef : " << direct_samp_num_coef << std::endl;
                 std::cout << "direct_samp_den_coef : " << direct_samp_den_coef << std::endl;
                 std::cout << "direct_line_num_coef : " << direct_line_num_coef << std::endl;
@@ -260,9 +261,11 @@ public:
         void ReconstructValidity();
 
                 //Construction of RPCs
+				vector<vector<Pt3dr> > GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, vector<vector<Pt3dr> > aMatSatPos, int nbLayers, double aHMin, double aHMax);
                 vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
                 void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
                 void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
+				void ComputeNormFactors(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, double aHMin, double aHMax);
                 void Validity2Dto3D(RPC2D aRPC2D);
 
 };
