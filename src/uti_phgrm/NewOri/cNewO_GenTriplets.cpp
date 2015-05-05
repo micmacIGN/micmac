@@ -38,84 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-/*
-    Cout de recouvrement pour les triplets :
-
-    Pour un arc donne S1S2, la distribution P1 est calculée de manière linéaire
-
-       P1, x y  => K  = (x -x0) / (x1-x0)  + (x -x0) / (x1-x0) * Nx
-
-   Pour chaque Sommet S3 on calcule aussi la distribution des point multiple sur I1 : Nb3(K)
-
-
-   Une fonction de ponderation des case est calculee :
-
-     Pds(K) = srqt(Nb1(aK))  et un Poids entier PdsI(K) = E(100 * Pds(K)/Max(Pds(aK)))
-
-  Une fonction de densitee est calculée :
-
-     D(aK) = Nb3(aK) /  Nb(aK)
- 
-  Pour attenue cette fonction, avecun coeff A (A=10, signifie que a partir de 1/10 on diminue l'influence) :
-
-     D'(aK) = A * D(K) /( A D +1)
-
-  Et la Valeur entiere :
-
-     DI(aK) = E(100 *  D'(aK) * (A+1)/A)
-
-
-  Le Gain qu'apporte un triplet sur une case , soit D12 la distance entre  les deux sommets
-
-   Soit DLim la valeur d'attenation du B/H  D'12 = D12 * DLim (D12+DLim)
- 
-   Gain = Dens1 * ( D12 * Dens2 +  DLim * (1-D12))
-
-
-*/
-/*
-
- ========= Mul = 8.1e+07 ========
-Name IMG_2504.JPG G=0.0196207 0.88
-Name IMG_2503.JPG G=0.0347822 0.86
-Name IMG_2502.JPG G=0.112891 0.74
-Name IMG_2496.JPG G=0.0674496 0.74
-Name DIMG_2501.JPG G=0.142832 0.41
-Name DIMG_2500.JPG G=0.1728 0.45
-Name DIMG_2497.JPG G=0.0743467 0.16
-
-========= Mul = 2.43134e+08 ========
-Name IMG_2504.JPG G=0.0220429 0.88
-Name IMG_2503.JPG G=0.0363437 0.86
-Name IMG_2502.JPG G=0.121419 0.74
-Name IMG_2496.JPG G=0.0641779 0.74
-Name DIMG_2501.JPG G=0.153869 0.41
-Name DIMG_2500.JPG G=0.18435 0.45
-Name DIMG_2497.JPG G=0.0810178 0.16
-
- ========= Mul = 2.35824e+07 ========
-Name IMG_2504.JPG G=0.0217589 0.88
-Name IMG_2503.JPG G=0.0362673 0.86
-Name IMG_2502.JPG G=0.119493 0.74
-Name IMG_2496.JPG G=0.0656142 0.74
-Name DIMG_2501.JPG G=0.153839 0.41
-Name DIMG_2500.JPG G=0.183932 0.45
-Name DIMG_2497.JPG G=0.0813725 0.16
-
- ========= Mul = 4.71648e+07 ========
-Name IMG_2504.JPG G=0.0218826 0.885
-Name IMG_2503.JPG G=0.0364782 0.865
-Name IMG_2502.JPG G=0.118685 0.735
-Name IMG_2496.JPG G=0.0656142 0.74
-Name DIMG_2501.JPG G=0.155715 0.415
-Name DIMG_2500.JPG G=0.183932 0.45
-Name DIMG_2497.JPG G=0.0839154 0.165
-
-
-
-*/
-
-
 
 
 #include "NewOri.h"
@@ -663,6 +585,11 @@ cXml_Rotation El2Xml(const ElRotation3D & aRot)
   aRes.Centre() = aRot.tr();
   aRes.Ori() = ExportMatr(aRot.Mat());
   return aRes;
+}
+
+ElRotation3D Xml2El(const cXml_Rotation & aXml)
+{
+  return ElRotation3D(aXml.Centre(),ImportMat(aXml.Ori()),true);
 }
 
 void SegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP)

@@ -646,7 +646,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
         argc,argv,
         LArgMain() <<  EAMC(aPat,"Pattern"),
         LArgMain() << EAM(aNameOriCalib,"OriCalib",true,"Orientation for calibration ")
-                   << EAM(aQuick,"Quick",true,"Quick option, adapted to simple acquisition")
+                   << EAM(aQuick,"Quick",true,"Quick option, adapted to simple acquisition (def=false)")
    );
 
    cElemAppliSetFile anEASF(aPat);

@@ -48,21 +48,27 @@ class cImOfTriplet ;
 class cImOfTriplet 
 {
    public :
-         cImOfTriplet(cAppliOptimTriplet &,const std::string &,const ElRotation3D & aR);
+         cImOfTriplet(cAppliOptimTriplet &,cNewO_OneIm *,const ElRotation3D & aR);
+         cNewO_OneIm * Im() {return mIm;}
+         const ElRotation3D & Rot() {return mRot;}
+         cAppliOptimTriplet &Appli() {return mAppli;}
    private :
+         cAppliOptimTriplet & mAppli;
+         cNewO_OneIm * mIm;
+         ElRotation3D  mRot;
 };
 
 
 class cPairOfTriplet 
 {
      public :
-          cPairOfTriplet(cNewO_OneIm * aI1,cNewO_OneIm *aI2,cAppliOptimTriplet & anAppli);
+          cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2);
      private :
           cAppliOptimTriplet & mAppli;
-          cNewO_OneIm *        mIm1;
-          cNewO_OneIm *        mIm2;
-          std::vector<Pt2df>   mVP1;
-          std::vector<Pt2df>   mVP2;
+          cImOfTriplet *        mIm1;
+          cImOfTriplet *        mIm2;
+          std::vector<Pt2df>    mVP1;
+          std::vector<Pt2df>    mVP2;
 };
 
 
@@ -72,16 +78,32 @@ class cAppliOptimTriplet
           cAppliOptimTriplet(int argc,char ** argv);
           cNewO_NameManager * NM() {return mNM;}
       private :
-          std::string mN1;
-          std::string mN2;
-          std::string mN3;
           std::string mNameOriCalib;
           std::string mDir;
           cNewO_NameManager * mNM;
-          cNewO_OneIm * mIm1;
-          cNewO_OneIm * mIm2;
-          cNewO_OneIm * mIm3;
+          cImOfTriplet *   mIm1;
+          cImOfTriplet *   mIm2;
+          cImOfTriplet *   mIm3;
+          cPairOfTriplet * mP12;
+          cPairOfTriplet * mP13;
+          cPairOfTriplet * mP23;
 };
+
+/**************************************************/
+/*                                                */
+/*            cImOfTriplet                        */
+/*                                                */
+/**************************************************/
+
+cImOfTriplet::cImOfTriplet(cAppliOptimTriplet & anAppli,cNewO_OneIm * anIm,const ElRotation3D & aR) :
+    mAppli (anAppli),
+    mIm    (anIm),
+    mRot   (aR)
+{
+}
+/*
+*/
+
 
 /**************************************************/
 /*                                                */
@@ -89,11 +111,15 @@ class cAppliOptimTriplet
 /*                                                */
 /**************************************************/
 
-/*
-cPairOfTriplet::cPairOfTriplet(cNewO_OneIm * aI1,cNewO_OneIm *aI2,cAppliOptimTriplet & anAppli):
+cPairOfTriplet::cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2) :
+    mAppli (aI1->Appli()),
+    mIm1   (aI1),
+    mIm2   (aI2)
 {
+   mAppli.NM()->LoadHomFloats(mIm1->Im(),mIm2->Im(),&mVP1,&mVP2);
+
+    std::cout << "cPairOfTriplet " << mVP1.size() << " " << mVP2.size() << "\n";
 }
-*/
 
 
 /**************************************************/
@@ -107,34 +133,43 @@ cPairOfTriplet::cPairOfTriplet(cNewO_OneIm * aI1,cNewO_OneIm *aI2,cAppliOptimTri
 cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
     mDir ("./")
 {
+   std::string aN1,aN2,aN3;
    ElInitArgMain
    (
         argc,argv,
-        LArgMain() << EAMC(mN1,"Image one")
-                   << EAMC(mN2,"Image two")
-                   << EAMC(mN3,"Image three"),
+        LArgMain() << EAMC(aN1,"Image one")
+                   << EAMC(aN2,"Image two")
+                   << EAMC(aN3,"Image three"),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
                    << EAM(mDir,"OriCalib",true,"Orientation for calibration ")
    );
+   cTplTriplet<std::string> a3S(aN1,aN2,aN3);
 
    mNM = new cNewO_NameManager(mDir,mNameOriCalib,"dat");
 
-   mIm1 = new cNewO_OneIm(*mNM,mN1);
-   mIm2 = new cNewO_OneIm(*mNM,mN2);
-   mIm3 = new cNewO_OneIm(*mNM,mN3);
+   cNewO_OneIm * aIm1 = new cNewO_OneIm(*mNM,a3S.mV0);
+   cNewO_OneIm * aIm2 = new cNewO_OneIm(*mNM,a3S.mV1);
+   cNewO_OneIm * aIm3 = new cNewO_OneIm(*mNM,a3S.mV2);
 
+   std::string  aName3R = mNM->NameOriInitTriplet(true,aIm1,aIm2,aIm3);
+   cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
+
+   mIm1 = new  cImOfTriplet(*this,aIm1,ElRotation3D::Id);
+   mIm2 = new  cImOfTriplet(*this,aIm2,Xml2El(aXml3Ori.Ori2On1()));
+   mIm3 = new  cImOfTriplet(*this,aIm3,Xml2El(aXml3Ori.Ori3On1()));
+
+   mP12 = new cPairOfTriplet(mIm1,mIm2);
+   mP13 = new cPairOfTriplet(mIm1,mIm3);
+   mP23 = new cPairOfTriplet(mIm2,mIm3);
 }
 
 
 
-/*
-int GenTriplet_main(int argc,char ** argv)
+int CPP_OptimTriplet_main(int argc,char ** argv)
 {
-   cAppli_GenTriplet anAppli(argc,argv);
-   anAppli.GenTriplet();
+   cAppliOptimTriplet anAppli(argc,argv);
    return EXIT_SUCCESS;
 }
-*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
