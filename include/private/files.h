@@ -2010,7 +2010,11 @@ template <class Type> void BinUndumpObj(Type & anObj,const std::string & aFile)
 
      std::string aVerifMangling;
      BinaryUnDumpFromFile(aVerifMangling,aFPIn);
-     ELISE_ASSERT(aVerifMangling==Mangling((Type*)0),"Type has changed between Dump/Undump")
+     if (aVerifMangling!=Mangling((Type*)0))
+     {
+        std::cout << "For file " << aFile << "\n";
+        ELISE_ASSERT(false,"Type has changed between Dump/Undump")
+     }
 
 
      BinaryUnDumpFromFile(anObj,aFPIn);

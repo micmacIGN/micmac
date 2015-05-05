@@ -492,6 +492,7 @@ int CPP_GenOneHomFloat(int argc,char ** argv);
 int CPP_GenAllHomFloat(int argc,char ** argv);
 int CPP_GenOneImP3(int argc,char ** argv);
 int CPP_GenAllImP3(int argc,char ** argv);
+int CPP_OptimTriplet_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -594,6 +595,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("NO_AllHomFloat",CPP_GenAllHomFloat,"New Orientation : generate float point of all image"));
     aRes.push_back(cMMCom("NO_OneImTriplet",CPP_GenOneImP3,"New Orientation : generate triple of one image"));
     aRes.push_back(cMMCom("NO_AllImTriplet",CPP_GenAllImP3,"New Orientation : generate triple of all imaget"));
+    aRes.push_back(cMMCom("NO_OneImOptTrip",CPP_OptimTriplet_main,"New Orientation : otimize triplet"));
 
     aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
 
