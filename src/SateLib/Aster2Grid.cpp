@@ -217,7 +217,7 @@ int Aster2Grid_main(int argc, char ** argv)
 	std::string aTxtImage, aTxtLong, aTxtLat, aTxtSatPos, aNameIm;
 	std::string inputSyst = "+proj=longlat +datum=WGS84 "; //input syst proj4
 	std::string targetSyst;//output syst proj4
-	std::string refineCoef = "processing/refineCoef.txt";
+	std::string refineCoef = "";
 	bool binaire = true;
 	int nbLayers;
 	double aHMin = 0, aHMax = 3000;
