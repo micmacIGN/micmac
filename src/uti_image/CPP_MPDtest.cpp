@@ -638,10 +638,40 @@ extern void TestOriBundle();
 extern void TestSVD3x3();
 extern void Bench_NewOri();
 
+void BenchSort3()
+{
+   for (int aK=0 ; aK<1000000 ; aK++)
+   {
+       int Tab[3];
+       for (int aK=0 ; aK<3 ; aK++)
+           Tab[aK] = NRrandom3(4);
+
+       int aRnk[3]; 
+       Rank3(aRnk,Tab[0],Tab[1],Tab[2]);
+       int Sort[3];
+      
+       for (int aK=0 ; aK<3 ; aK++)
+           Sort[aRnk[aK]] = Tab[aK];
+       ELISE_ASSERT(Sort[0] <= Sort[1],"BenchSort3");
+       ELISE_ASSERT(Sort[1] <= Sort[2],"BenchSort3");
+
+       cTplTriplet<int> aTT(Tab[0],Tab[1],Tab[2]);
+       ELISE_ASSERT(aTT.mV0 <= aTT.mV1,"BenchSort3");
+       ELISE_ASSERT(aTT.mV1 <= aTT.mV2,"BenchSort3");
+
+       cTplTripletByRef<int> aPtrTT(Tab[0],Tab[1],Tab[2]);
+       ELISE_ASSERT(*aPtrTT.mV0 <= *aPtrTT.mV1,"BenchSort3");
+       ELISE_ASSERT(*aPtrTT.mV1 <= *aPtrTT.mV2,"BenchSort3");
+   }
+   std::cout << "DONE BenchSort3\n";
+}
+
+
 int MPDtest_main (int argc,char** argv)
 {
-    Bench_NewOri();
+   BenchSort3();
 /*
+    Bench_NewOri();
 
     TestSVD3x3(); 
    std::cout << "Hello Matis\n";
