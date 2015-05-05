@@ -87,62 +87,6 @@ std::string cNewO_NameManager::NameHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI
 typedef const std::string * tCPString;
 typedef std::pair<std::string,std::string>  tPairStr;
 
-/*
-template <class Type> void  Rank3(int * aRnk, const Type & aN0,const Type & aN1,const Type & aN2)
-{
-    
-     aRnk[0] = (aN0>aN1)  +  (aN0>aN2);
-     aRnk[1] = (aN0<=aN1) +  (aN1>aN2);
-     aRnk[2] = (aN0<=aN2)  +  (aN1<=aN2);
-}
-
-template <class Type> class cTplTriplet
-{
-     public :
-            cTplTriplet(const Type & aV0,const Type & aV1,const Type &aV2) :
-                 mV0 (aV0),
-                 mV1 (aV1),
-                 mV2 (aV2)
-            {
-                  if (mV0>mV1) ElSwap(mV0,mV1);
-                  if (mV0>mV2) ElSwap(mV0,mV2);
-                  if (mV1>mV2) ElSwap(mV1,mV2);
-            }
-
-            bool operator < (const cTplTriplet<Type> & aT2) const
-            {
-                if (mV0 < aT2.mV0) return true;
-                if (mV0 > aT2.mV0) return false;
-                if (mV1 < aT2.mV1) return true;
-                if (mV1 > aT2.mV1) return false;
-                return mV2 < aT2.mV2;
-            }
-
-            Type  mV0;
-            Type  mV1;
-            Type  mV2;
-};
-
-template <class Type> class cTplTripletByRef
-{
-     public :
-            cTplTripletByRef(const Type & aV0,const Type & aV1,const Type &aV2) :
-                 mV0 (&aV0),
-                 mV1 (&aV1),
-                 mV2 (&aV2)
-            {
-                  if (*mV0>*mV1) ElSwap(mV0,mV1);
-                  if (*mV0>*mV2) ElSwap(mV0,mV2);
-                  if (*mV1>*mV2) ElSwap(mV1,mV2);
-            }
-
-            const Type * mV0;
-            const Type * mV1;
-            const Type * mV2;
-};
-*/
-
-
 
 
 
@@ -155,14 +99,35 @@ void F()
 
 
 
-std::string cNewO_NameManager::NameTriplet(cNewO_OneIm * aI1,cNewO_OneIm * aI2,cNewO_OneIm * aI3,bool WithMakeDir)
+std::string cNewO_NameManager::NameAttribTriplet
+            (
+               const std::string & aPrefix,const std::string & aPost,
+               cNewO_OneIm * aI1,cNewO_OneIm * aI2,cNewO_OneIm * aI3,
+               bool WithMakeDir
+            )
+               
 {
-    ELISE_ASSERT(aI1->Name()<aI2->Name(),"cNO_P3_NameM::NameTriplet");
-    ELISE_ASSERT(aI2->Name()<aI3->Name(),"cNO_P3_NameM::NameTriplet");
+    ELISE_ASSERT(aI1->Name()<aI2->Name(),"cNO_P3_NameM::NameAttribTriplet");
+    ELISE_ASSERT(aI2->Name()<aI3->Name(),"cNO_P3_NameM::NameAttribTriplet");
 
     std::string aDir = Dir3PDeuxImage(aI1,aI2,WithMakeDir);
 
-    return aDir + "Triplet-" + aI3->Name() + mOriCal + ".dat";
+    return aDir + "Triplet-" + aPrefix + "-" + aI3->Name() + mOriCal + "." + aPost;
+}
+
+std::string cNewO_NameManager::NameHomTriplet(cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
+{
+    return NameAttribTriplet("Hom","dat",aI1,aI2,aI3,WithMakeDir);
+}
+
+std::string cNewO_NameManager::NameOriInitTriplet(bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
+{
+    return NameAttribTriplet("Ori0",(ModeBin ? "dmp" : "xml"),aI1,aI2,aI3,WithMakeDir);
+}
+
+std::string cNewO_NameManager::NameTopoTriplet(bool aModeBin)
+{
+    return Dir3P() + "ListeTriplets." + (aModeBin ? "dmp" : "xml");
 }
 
 typedef std::vector<Pt2df> * tPtrVPt2df;
@@ -178,9 +143,8 @@ bool cNewO_NameManager::LoadTriplet(cNewO_OneIm * anI1 ,cNewO_OneIm * anI2,cNewO
    aVIm[aRnk[1]] =  anI2;
    aVIm[aRnk[2]] =  anI3;
 
-   std::string aName3 = NameTriplet(aVIm[0],aVIm[1],aVIm[2]);
+   std::string aName3 = NameHomTriplet(aVIm[0],aVIm[1],aVIm[2]);
    if (! ELISE_fp::exist_file(aName3)) return false;
-   //  std::string aNameT = NameTriplet(*(aP3N.mNames[0]),*(aP3N.mNames[1]),(aP3N.mNames[2]));
 
    tPtrVPt2df aVPt[3];
    aVPt[aRnk[0]] =  aVP1;
@@ -356,7 +320,7 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
    if (!ELISE_fp::exist_file(aNameH12)) return;
 
 
-   std::string aName3 = mNM->NameTriplet(mCam,mVCams[aKC1],mVCams[aKC2]);
+   std::string aName3 = mNM->NameHomTriplet(mCam,mVCams[aKC1],mVCams[aKC2]);
    if (ELISE_fp::exist_file(aName3)) return;
 
    tMapM aMap;

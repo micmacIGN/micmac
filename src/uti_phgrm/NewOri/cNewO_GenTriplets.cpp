@@ -233,31 +233,6 @@ class cResTriplet
         cXml_Ori3ImInit  mXml;
 };
 
-/*
-class cTripletInt
-{
-    public :
-       cTripletInt(int aK1,int aK2, int aK3) :
-              mK1 (ElMin3(aK1,aK2,aK3)),
-              mK3 (ElMax3(aK1,aK2,aK3)),
-              mK2 (aK1+aK2+aK3-mK1-mK3)
-        {
-        }
-
-        bool operator < (const cTripletInt & aT2) const
-        {
-             if (mK1 < aT2.mK1) return true;
-             if (mK1 > aT2.mK1) return false;
-             if (mK2 < aT2.mK2) return true;
-             if (mK2 > aT2.mK2) return false;
-             return mK3 < aT2.mK3;
-        }
-
-        int mK1;
-        int mK3;
-        int mK2;
-};
-*/
 typedef cTplTriplet<int> cTripletInt;
 
 
@@ -287,11 +262,11 @@ class cAppli_GenTriplet
                std::cout << "------------------------------------ --------mSomTest3 " << aD[0] << "\n";
             }
        }
+       bool  AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3);
 
     private :
 
 
-       bool  AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3);
        void  GenTriplet(tArcGT & anArc);
        void AddSomTmp(tSomGT & aS);
 
@@ -308,6 +283,7 @@ class cAppli_GenTriplet
        //std::vector<tSomGT *>          m;
 
        std::map<cTripletInt,cResTriplet>  mMapTriplets;
+       cXml_TopoTriplet                   mTopoTriplets;
 
        // Voisin de l'arc, hors de l'arc lui meme
        std::vector<tSomGT *>         mVSomVois;
@@ -632,10 +608,12 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     ElTimer aChroSel;
     while (tSomGT * aSom = GetNextSom())
     {
+        AddTriplet(*aSom,mCurArc->s1(),mCurArc->s2());
         if (mCurTestArc)
            std::cout << " SEL " << aSom->attr().Name()  << " G " << aSom->attr().GainGlob() / mMulQuant << "\n";
     }
     mTimeSelec += aChroSel.uval();
+
 
     // Vider les structure temporaires
     for (int aKS=0 ; aKS<int(mVSomVois.size()) ; aKS++)
@@ -665,6 +643,10 @@ void cAppli_GenTriplet::GenTriplet()
              GenTriplet(*itA);
        }
    }
+   for (int aK=0 ; aK <2 ; aK++)
+   {
+       MakeFileXML(mTopoTriplets,mNM->NameTopoTriplet(aK==0));
+   }
 
    if (mShow)
       std::cout << "Load " << mTimeLoadHom << " Merge " << mTimeMerge << " Selec " << mTimeSelec << " GenTripl " << aTimeGT.uval() << "\n";
@@ -689,6 +671,14 @@ void SegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation
    aV2.push_back(aR.ImAff(Pt3dr(aP.x,aP.y,1.0)));
 }
 
+double Residu(const cGTrip_AttrSom & anA , const ElRotation3D aR,const Pt3dr & aPTer,const Pt2df & aP)
+{
+    Pt3dr aQ = aR.ImRecAff(aPTer);
+    Pt2df aProj (aQ.x/aQ.z,aQ.y/aQ.z);
+    double aD = euclid(aProj,aP);
+    return aD * anA.Im().CS()->Focale();
+}
+
 bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3Ori)
 {
    cTplTripletByRef<tSomGT> aTBR(aS1Ori,aS2Ori,aS3Ori);
@@ -700,7 +690,7 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
    ELISE_ASSERT(aA2.Name() < aA3.Name(),"cAppli_GenTriplet::AddTriplet");
 
    cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());
-   if (mMapTriplets.find(aTr) != mMapTriplets.end())
+   if ((mMapTriplets.find(aTr) != mMapTriplets.end()))
       return false;
 
 
@@ -708,7 +698,10 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
 
    ElRotation3D aR2 = aR1Inv*aA2.R3();
    ElRotation3D aR3 = aR1Inv*aA3.R3();
-   if (1)
+
+   double aResidu=-1;
+   int    aNbTriplet=-1;
+   if (true)
    {
       ElRotation3D aR1 = aR1Inv*aA1.R3();
       static std::vector<Pt2df> aVP1;
@@ -716,12 +709,14 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
       static std::vector<Pt2df> aVP3;
 
 
-      bool OK = NM().LoadTriplet
+       bool OK = NM().LoadTriplet
                 (
                      &aA1.Im(),&aA2.Im(), &aA3.Im(),
                      &aVP1,&aVP2,&aVP3
                 );
+       ELISE_ASSERT(OK,".LoadTriplet");
 
+       std::vector<double> aVRes;
        for (int aK=0 ; aK< int(aVP1.size()) ; aK++)
        {
            std::vector<Pt3dr> aW1;
@@ -733,18 +728,36 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
            Pt3dr aI = InterSeg(aW1,aW2,OkI);
            if (OkI)
            {
-              std::cout << aI << "\n";
+              double aRes1 = Residu(aA1,aR1,aI,aVP1[aK]);
+              double aRes2 = Residu(aA2,aR2,aI,aVP2[aK]);
+              double aRes3 = Residu(aA3,aR3,aI,aVP3[aK]);
+              aVRes.push_back((aRes1+aRes2+aRes3)/3.0);
 
            }
        }
-       ELISE_ASSERT(OK,".LoadTriplet");
+       aResidu = MedianeSup(aVRes);
+       aNbTriplet = aVP1.size();
    }
+
+
    cResTriplet aRT;
    aRT.mXml.Ori2On1() = El2Xml(aR2);
    aRT.mXml.Ori3On1() = El2Xml(aR3);
+   aRT.mXml.ResiduTriplet() = aResidu;
+   aRT.mXml.NbTriplet() = aNbTriplet;
 
+   for (int aK=0 ; aK <2 ; aK++)
+   {
+      MakeFileXML(aRT.mXml,mNM->NameOriInitTriplet((aK==0),&(aA1.Im()),&(aA2.Im()),&(aA3.Im())));
+   }
 
    mMapTriplets[aTr] =  aRT;
+
+   cXml_OneTriplet aTri;
+   aTri.Name1() = aA1.Name();
+   aTri.Name2() = aA2.Name();
+   aTri.Name3() = aA3.Name();
+   mTopoTriplets.Triplets().push_back(aTri);
    
    return true;
 }

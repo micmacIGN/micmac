@@ -310,10 +310,18 @@ class cNewO_NameManager
            std::string NameHomFloat(cNewO_OneIm * ,cNewO_OneIm * );
 
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
-           std::string NameTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string NameHomTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string NameOriInitTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string NameTopoTriplet(bool ModeBin);
+
+
            bool LoadTriplet(cNewO_OneIm * ,cNewO_OneIm *,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3);
 
      private :
+
+           std::string NameAttribTriplet(const std::string & aPrefix,const std::string & aPost,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+
+
            cInterfChantierNameManipulateur *  mICNM;
            std::string                        mDir;
            std::string                        mOriCal;
