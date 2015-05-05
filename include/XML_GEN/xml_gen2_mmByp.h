@@ -203,8 +203,7 @@ class cAppliWithSetImage
       void AddDelaunayCple();
       void AddFilePair(const std::string & aFilePair);
       void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq,bool AddCple);
-
-
+	  void AddLinePair(int);
 
 
       void DoPyram();
