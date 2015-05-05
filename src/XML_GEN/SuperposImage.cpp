@@ -20709,4 +20709,282 @@ void xml_init(cXml_Ori2Im & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_Ori2Im *) {return "C862C5F1957699B7FC3F";};
 
+
+cTypeCodageMatr & cXml_Rotation::Ori()
+{
+   return mOri;
+}
+
+const cTypeCodageMatr & cXml_Rotation::Ori()const 
+{
+   return mOri;
+}
+
+
+Pt3dr & cXml_Rotation::Centre()
+{
+   return mCentre;
+}
+
+const Pt3dr & cXml_Rotation::Centre()const 
+{
+   return mCentre;
+}
+
+void  BinaryUnDumpFromFile(cXml_Rotation & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Ori(),aFp);
+    BinaryUnDumpFromFile(anObj.Centre(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Rotation & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Ori());
+    BinaryDumpInFile(aFp,anObj.Centre());
+}
+
+cElXMLTree * ToXMLTree(const cXml_Rotation & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_Rotation",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.Ori())->ReTagThis("Ori"));
+   aRes->AddFils(::ToXMLTree(std::string("Centre"),anObj.Centre())->ReTagThis("Centre"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_Rotation & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Ori(),aTree->Get("Ori",1)); //tototo 
+
+   xml_init(anObj.Centre(),aTree->Get("Centre",1)); //tototo 
+}
+
+std::string  Mangling( cXml_Rotation *) {return "6AE57A7C092DC3F5FDBF";};
+
+
+cXml_Rotation & cXml_Ori3ImInit::Ori2On1()
+{
+   return mOri2On1;
+}
+
+const cXml_Rotation & cXml_Ori3ImInit::Ori2On1()const 
+{
+   return mOri2On1;
+}
+
+
+cXml_Rotation & cXml_Ori3ImInit::Ori3On1()
+{
+   return mOri3On1;
+}
+
+const cXml_Rotation & cXml_Ori3ImInit::Ori3On1()const 
+{
+   return mOri3On1;
+}
+
+
+int & cXml_Ori3ImInit::NbTriplet()
+{
+   return mNbTriplet;
+}
+
+const int & cXml_Ori3ImInit::NbTriplet()const 
+{
+   return mNbTriplet;
+}
+
+
+double & cXml_Ori3ImInit::ResiduTriplet()
+{
+   return mResiduTriplet;
+}
+
+const double & cXml_Ori3ImInit::ResiduTriplet()const 
+{
+   return mResiduTriplet;
+}
+
+void  BinaryUnDumpFromFile(cXml_Ori3ImInit & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Ori2On1(),aFp);
+    BinaryUnDumpFromFile(anObj.Ori3On1(),aFp);
+    BinaryUnDumpFromFile(anObj.NbTriplet(),aFp);
+    BinaryUnDumpFromFile(anObj.ResiduTriplet(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Ori3ImInit & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Ori2On1());
+    BinaryDumpInFile(aFp,anObj.Ori3On1());
+    BinaryDumpInFile(aFp,anObj.NbTriplet());
+    BinaryDumpInFile(aFp,anObj.ResiduTriplet());
+}
+
+cElXMLTree * ToXMLTree(const cXml_Ori3ImInit & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_Ori3ImInit",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.Ori2On1())->ReTagThis("Ori2On1"));
+   aRes->AddFils(ToXMLTree(anObj.Ori3On1())->ReTagThis("Ori3On1"));
+   aRes->AddFils(::ToXMLTree(std::string("NbTriplet"),anObj.NbTriplet())->ReTagThis("NbTriplet"));
+   aRes->AddFils(::ToXMLTree(std::string("ResiduTriplet"),anObj.ResiduTriplet())->ReTagThis("ResiduTriplet"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_Ori3ImInit & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Ori2On1(),aTree->Get("Ori2On1",1)); //tototo 
+
+   xml_init(anObj.Ori3On1(),aTree->Get("Ori3On1",1)); //tototo 
+
+   xml_init(anObj.NbTriplet(),aTree->Get("NbTriplet",1)); //tototo 
+
+   xml_init(anObj.ResiduTriplet(),aTree->Get("ResiduTriplet",1)); //tototo 
+}
+
+std::string  Mangling( cXml_Ori3ImInit *) {return "9A918B05E203FCB8FE3F";};
+
+
+std::string & cXml_OneTriplet::Name1()
+{
+   return mName1;
+}
+
+const std::string & cXml_OneTriplet::Name1()const 
+{
+   return mName1;
+}
+
+
+std::string & cXml_OneTriplet::Name2()
+{
+   return mName2;
+}
+
+const std::string & cXml_OneTriplet::Name2()const 
+{
+   return mName2;
+}
+
+
+std::string & cXml_OneTriplet::Name3()
+{
+   return mName3;
+}
+
+const std::string & cXml_OneTriplet::Name3()const 
+{
+   return mName3;
+}
+
+void  BinaryUnDumpFromFile(cXml_OneTriplet & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Name1(),aFp);
+    BinaryUnDumpFromFile(anObj.Name2(),aFp);
+    BinaryUnDumpFromFile(anObj.Name3(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_OneTriplet & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Name1());
+    BinaryDumpInFile(aFp,anObj.Name2());
+    BinaryDumpInFile(aFp,anObj.Name3());
+}
+
+cElXMLTree * ToXMLTree(const cXml_OneTriplet & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_OneTriplet",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name1"),anObj.Name1())->ReTagThis("Name1"));
+   aRes->AddFils(::ToXMLTree(std::string("Name2"),anObj.Name2())->ReTagThis("Name2"));
+   aRes->AddFils(::ToXMLTree(std::string("Name3"),anObj.Name3())->ReTagThis("Name3"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_OneTriplet & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Name1(),aTree->Get("Name1",1)); //tototo 
+
+   xml_init(anObj.Name2(),aTree->Get("Name2",1)); //tototo 
+
+   xml_init(anObj.Name3(),aTree->Get("Name3",1)); //tototo 
+}
+
+std::string  Mangling( cXml_OneTriplet *) {return "3993B9DFF40742DEFE3F";};
+
+
+std::list< cXml_OneTriplet > & cXml_TopoTriplet::Triplets()
+{
+   return mTriplets;
+}
+
+const std::list< cXml_OneTriplet > & cXml_TopoTriplet::Triplets()const 
+{
+   return mTriplets;
+}
+
+void  BinaryUnDumpFromFile(cXml_TopoTriplet & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_OneTriplet aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Triplets().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_TopoTriplet & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Triplets().size());
+    for(  std::list< cXml_OneTriplet >::const_iterator iT=anObj.Triplets().begin();
+         iT!=anObj.Triplets().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_TopoTriplet & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_TopoTriplet",eXMLBranche);
+  for
+  (       std::list< cXml_OneTriplet >::const_iterator it=anObj.Triplets().begin();
+      it !=anObj.Triplets().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Triplets"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_TopoTriplet & anObj,cElXMLTree * aTree)
+{
+   anObj.mGXml = aTree->mGXml;
+   if (aTree==0) return;
+
+   xml_init(anObj.Triplets(),aTree->GetAll("Triplets",false,1));
+}
+
+std::string  Mangling( cXml_TopoTriplet *) {return "8998B01898888FA8FF3F";};
+
 // };
