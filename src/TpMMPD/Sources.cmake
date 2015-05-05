@@ -10,6 +10,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/Surf.cpp
 	${TDPPMD_DIR}/cTD_Epip.cpp
 	${TDPPMD_DIR}/ReprojImg.cpp
+	${TDPPMD_DIR}/kugelhupf.cpp
 	${TDPPMD_DIR}/cPseudoIntersect.cpp
 	${TDPPMD_DIR}/Export2Ply.cpp
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
