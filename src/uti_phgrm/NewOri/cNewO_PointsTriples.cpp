@@ -87,33 +87,73 @@ std::string cNewO_NameManager::NameHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI
 typedef const std::string * tCPString;
 typedef std::pair<std::string,std::string>  tPairStr;
 
-class cNO_P3_NameM
+/*
+template <class Type> void  Rank3(int * aRnk, const Type & aN0,const Type & aN1,const Type & aN2)
 {
-       public :
-          cNO_P3_NameM
-          (
-               const std::string & aN0,
-               const std::string & aN1,
-               const std::string & aN2
-          );
+    
+     aRnk[0] = (aN0>aN1)  +  (aN0>aN2);
+     aRnk[1] = (aN0<=aN1) +  (aN1>aN2);
+     aRnk[2] = (aN0<=aN2)  +  (aN1<=aN2);
+}
 
-      // private :
+template <class Type> class cTplTriplet
+{
+     public :
+            cTplTriplet(const Type & aV0,const Type & aV1,const Type &aV2) :
+                 mV0 (aV0),
+                 mV1 (aV1),
+                 mV2 (aV2)
+            {
+                  if (mV0>mV1) ElSwap(mV0,mV1);
+                  if (mV0>mV2) ElSwap(mV0,mV2);
+                  if (mV1>mV2) ElSwap(mV1,mV2);
+            }
 
-          int mRank[3];
-          
+            bool operator < (const cTplTriplet<Type> & aT2) const
+            {
+                if (mV0 < aT2.mV0) return true;
+                if (mV0 > aT2.mV0) return false;
+                if (mV1 < aT2.mV1) return true;
+                if (mV1 > aT2.mV1) return false;
+                return mV2 < aT2.mV2;
+            }
+
+            Type  mV0;
+            Type  mV1;
+            Type  mV2;
 };
 
-cNO_P3_NameM::cNO_P3_NameM
-(
-               const std::string & aN0,
-               const std::string & aN1,
-               const std::string & aN2
-) 
+template <class Type> class cTplTripletByRef
 {
-     mRank[0] = (aN0>aN1)  +  (aN0>aN2);
-     mRank[1] = (aN0<=aN1) +  (aN1>aN2);
-     mRank[2] = (aN0<=aN2)  +  (aN1<=aN2);
+     public :
+            cTplTripletByRef(const Type & aV0,const Type & aV1,const Type &aV2) :
+                 mV0 (&aV0),
+                 mV1 (&aV1),
+                 mV2 (&aV2)
+            {
+                  if (*mV0>*mV1) ElSwap(mV0,mV1);
+                  if (*mV0>*mV2) ElSwap(mV0,mV2);
+                  if (*mV1>*mV2) ElSwap(mV1,mV2);
+            }
+
+            const Type * mV0;
+            const Type * mV1;
+            const Type * mV2;
+};
+*/
+
+
+
+
+
+
+void F()
+{
+    cTplTriplet<int> aTP(1,2,3);
+    cTplTripletByRef<int> aTP2(1,2,3);
 }
+
+
 
 std::string cNewO_NameManager::NameTriplet(cNewO_OneIm * aI1,cNewO_OneIm * aI2,cNewO_OneIm * aI3,bool WithMakeDir)
 {
@@ -130,8 +170,8 @@ typedef cNewO_OneIm *        tPtrNIm;
 
 bool cNewO_NameManager::LoadTriplet(cNewO_OneIm * anI1 ,cNewO_OneIm * anI2,cNewO_OneIm * anI3,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3)
 {
-   cNO_P3_NameM aP3N(anI1->Name(),anI2->Name(),anI3->Name());
-   int * aRnk = aP3N.mRank;
+   int aRnk[3] ; 
+   Rank3(aRnk,anI1->Name(),anI2->Name(),anI3->Name());
 
    tPtrNIm aVIm[3];
    aVIm[aRnk[0]] =  anI1;

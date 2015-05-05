@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_DefautChantierDescripteur[2934]) = {
+const char * (theNameVar_DefautChantierDescripteur[2947]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",
 "      Un exemple avec utilisation des fonctionnalites arithmetique\n",
@@ -161,6 +161,19 @@ const char * (theNameVar_DefautChantierDescripteur[2934]) = {
 "	  </Sets>\n",
 "          <Key> NKS-Set-Homol </Key>\n",
 "    </KeyedSetsOfNames>\n",
+"\n",
+"\n",
+"    <KeyedSetsOfNames >\n",
+"          <IsParametrized>  true </IsParametrized>\n",
+"          <Sets> \n",
+"                 <PatternAccepteur> Pastis#3/(.*)\\.(#2)  </PatternAccepteur>\n",
+"		 <SubDir>   Homol#1/ </SubDir>\n",
+"                 <NivSubDir> 2 </NivSubDir>\n",
+"	  </Sets>\n",
+"          <Key> NKS-Set-HomolOfOneImage </Key>\n",
+"    </KeyedSetsOfNames>\n",
+"\n",
+"\n",
 "\n",
 "    <KeyedSetsOfNames >\n",
 "          <IsParametrized>  true </IsParametrized>\n",
