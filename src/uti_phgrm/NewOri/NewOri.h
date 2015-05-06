@@ -295,6 +295,7 @@ class cNewO_NameManager
            CamStenope * CamOfName(const std::string & aName);
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
            std::string NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const;
+           std::string  NameTimingOri2Im() const;
            const std::string & Dir() const;
 
            // 
@@ -408,6 +409,10 @@ class cNewO_CombineCple
 
 extern Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
 ElMatrix<double> TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,double & anEcart);
+
+void AddSegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP);
+double Residu(cNewO_OneIm  * anIm , const ElRotation3D & aR,const Pt3dr & aPTer,const Pt2df & aP);
+
 
 
 

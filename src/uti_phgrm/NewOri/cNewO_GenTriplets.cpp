@@ -592,18 +592,18 @@ ElRotation3D Xml2El(const cXml_Rotation & aXml)
   return ElRotation3D(aXml.Centre(),ImportMat(aXml.Ori()),true);
 }
 
-void SegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP)
+void AddSegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP)
 {
    aV1.push_back(aR.ImAff(Pt3dr(0,0,0)));
    aV2.push_back(aR.ImAff(Pt3dr(aP.x,aP.y,1.0)));
 }
 
-double Residu(const cGTrip_AttrSom & anA , const ElRotation3D aR,const Pt3dr & aPTer,const Pt2df & aP)
+double Residu(cNewO_OneIm  * anIm , const ElRotation3D & aR,const Pt3dr & aPTer,const Pt2df & aP)
 {
     Pt3dr aQ = aR.ImRecAff(aPTer);
     Pt2df aProj (aQ.x/aQ.z,aQ.y/aQ.z);
     double aD = euclid(aProj,aP);
-    return aD * anA.Im().CS()->Focale();
+    return aD * anIm->CS()->Focale();
 }
 
 bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3Ori)
@@ -648,16 +648,16 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
        {
            std::vector<Pt3dr> aW1;
            std::vector<Pt3dr> aW2;
-           SegOfRot(aW1,aW2,aR1,aVP1[aK]);
-           SegOfRot(aW1,aW2,aR2,aVP2[aK]);
-           SegOfRot(aW1,aW2,aR3,aVP3[aK]);
+           AddSegOfRot(aW1,aW2,aR1,aVP1[aK]);
+           AddSegOfRot(aW1,aW2,aR2,aVP2[aK]);
+           AddSegOfRot(aW1,aW2,aR3,aVP3[aK]);
            bool OkI;
            Pt3dr aI = InterSeg(aW1,aW2,OkI);
            if (OkI)
            {
-              double aRes1 = Residu(aA1,aR1,aI,aVP1[aK]);
-              double aRes2 = Residu(aA2,aR2,aI,aVP2[aK]);
-              double aRes3 = Residu(aA3,aR3,aI,aVP3[aK]);
+              double aRes1 = Residu(&aA1.Im(),aR1,aI,aVP1[aK]);
+              double aRes2 = Residu(&aA2.Im(),aR2,aI,aVP2[aK]);
+              double aRes3 = Residu(&aA3.Im(),aR3,aI,aVP3[aK]);
               aVRes.push_back((aRes1+aRes2+aRes3)/3.0);
 
            }
@@ -729,6 +729,8 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
    );
 
    mEASF.Init(mFullName);
+   StdCorrecNameOrient(mNameOriCalib,mEASF.mDir);
+
    mNM = new cNewO_NameManager(mEASF.mDir,mNameOriCalib,"dat");
 
    cInterfChantierNameManipulateur::tSet  aVIm = *(mEASF.SetIm());
@@ -747,8 +749,8 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
         mMapS[aName] = &aS;
    }
 
-   const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get("NKS-Set-CplIm2OriRel@@dmp");
-   std::string aKeyCple2I = "NKS-Assoc-CplIm2OriRel@@dmp";
+   const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get("NKS-Set-CplIm2OriRel@"+mNameOriCalib+"@dmp");
+   std::string aKeyCple2I = "NKS-Assoc-CplIm2OriRel@"+mNameOriCalib+"@dmp";
    for (int aKC=0 ; aKC<int(aSetCple->size());  aKC++)
    {
         std::pair<std::string,std::string> aPair = mEASF.mICNM->Assoc2To1(aKeyCple2I,(*aSetCple)[aKC],false);
