@@ -198,6 +198,7 @@ extern int Kugelhupf_main(int , char **);
 extern int SimpleFusionCarte_main(int , char **);
 
 
+extern int CPP_Martini_main(int , char **);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -320,6 +321,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image",cArgLogCom(2)));
+       aRes.push_back(cMMCom("Martini",CPP_Martini_main," New orientation initialisation (uncomplete, still in dev...) ",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image",cArgLogCom(2,"../")));
        // aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));

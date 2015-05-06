@@ -52,10 +52,12 @@ class cImOfTriplet
          cNewO_OneIm * Im() {return mIm;}
          const ElRotation3D & Rot() {return mRot;}
          cAppliOptimTriplet &Appli() {return mAppli;}
+         std::vector<Pt2df> &  VPOf3() {return mVPOf3;}  // Points triples
    private :
          cAppliOptimTriplet & mAppli;
          cNewO_OneIm * mIm;
          ElRotation3D  mRot;
+         std::vector<Pt2df>    mVPOf3;
 };
 
 
@@ -63,6 +65,9 @@ class cPairOfTriplet
 {
      public :
           cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2);
+          double ResiduMoy();
+          const ElRotation3D & R1() const {return mIm1->Rot();}
+          const ElRotation3D & R2() const {return mIm2->Rot();}
      private :
           cAppliOptimTriplet & mAppli;
           cImOfTriplet *        mIm1;
@@ -77,6 +82,7 @@ class cAppliOptimTriplet
       public :
           cAppliOptimTriplet(int argc,char ** argv);
           cNewO_NameManager * NM() {return mNM;}
+          double ResiduTriplet();
       private :
           std::string mNameOriCalib;
           std::string mDir;
@@ -122,6 +128,28 @@ cPairOfTriplet::cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2) :
 }
 
 
+double cPairOfTriplet::ResiduMoy()
+{
+    std::vector<double> aVRes;
+    for (int aK=0 ; aK<int(mVP1.size()) ; aK++)
+    {
+        std::vector<Pt3dr> aW1;
+        std::vector<Pt3dr> aW2;
+        AddSegOfRot(aW1,aW2,R1(),mVP1[aK]);
+        AddSegOfRot(aW1,aW2,R2(),mVP2[aK]);
+        bool OkI;
+        Pt3dr aI = InterSeg(aW1,aW2,OkI);
+        if (OkI)
+        {
+            double aRes1 = Residu(mIm1->Im(),R1(),aI,mVP1[aK]);
+            double aRes2 = Residu(mIm2->Im(),R2(),aI,mVP2[aK]);
+
+            aVRes.push_back((aRes1+aRes2)/2.0);
+        }
+    }
+    return MedianeSup(aVRes);
+}
+
 /**************************************************/
 /*                                                */
 /*            cAppliOptimTriplet                  */
@@ -129,6 +157,7 @@ cPairOfTriplet::cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2) :
 /**************************************************/
 
 
+double ResiduTriplet();
 
 cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
     mDir ("./")
@@ -141,7 +170,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
                    << EAMC(aN2,"Image two")
                    << EAMC(aN3,"Image three"),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
-                   << EAM(mDir,"OriCalib",true,"Orientation for calibration ")
+                   << EAM(mDir,"Dir",true,"Directoru, Def=./ ")
    );
    cTplTriplet<std::string> a3S(aN1,aN2,aN3);
 
@@ -161,9 +190,24 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
    mP12 = new cPairOfTriplet(mIm1,mIm2);
    mP13 = new cPairOfTriplet(mIm1,mIm3);
    mP23 = new cPairOfTriplet(mIm2,mIm3);
+
+   mNM->LoadTriplet(mIm1->Im(),mIm2->Im(),mIm3->Im(),&mIm1->VPOf3(),&mIm2->VPOf3(),&mIm3->VPOf3());
+   
+   std::cout << "NB TRIPLE " << mIm2->VPOf3().size() << "\n";
+
+
+   if (1)
+   {
+      std::cout << "RESIDU/PAIRES " << mP12->ResiduMoy() << " " << mP13->ResiduMoy() << " " << mP23->ResiduMoy() << " " << "\n";
+   }
 }
 
 
+/**************************************************/
+/*                                                */
+/*            ::                                  */
+/*                                                */
+/**************************************************/
 
 int CPP_OptimTriplet_main(int argc,char ** argv)
 {

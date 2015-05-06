@@ -730,7 +730,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
        }
    }
 
-   MakeFileXML(aTiming,aDir + "Ori2Im/Timing2Im.xml");
+   MakeFileXML(aTiming,aDir +   aNM->NameTimingOri2Im());
 
    return EXIT_SUCCESS;
 }

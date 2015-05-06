@@ -39,6 +39,80 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
+class cAppli_Martini
+{
+      public :
+          cAppli_Martini(int argc,char ** argv);
+          void DoAll();
+          void Banniere();
+      private :
+
+          void StdCom(const std::string & aCom,const std::string & aPost="");
+          std::string mNameOriCalib;
+          std::string mPat;
+          bool        mExe;
+};
+
+void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
+{
+    std::string  aFullCom = MM3dBinFile_quotes( "TestLib ") + aCom + " "   + mPat;
+    if (EAMIsInit(&mNameOriCalib))  aFullCom = aFullCom + " OriCalib=" + mNameOriCalib;
+
+    aFullCom = aFullCom + aPost;
+
+
+    if (mExe)
+       System(aFullCom);
+    else
+       std::cout << "COM= " << aFullCom << "\n";
+
+}
+
+void cAppli_Martini::Banniere()
+{
+  std::cout <<  "\n";
+    std::cout <<  " *********************************************\n";
+    std::cout <<  " *     MART-ingale d'                        *\n"; 
+    std::cout <<  " *     INI-tialisation                       *\n";
+    std::cout <<  " *********************************************\n\n";
+
+}
+
+void cAppli_Martini::DoAll()
+{
+     StdCom("NO_AllOri2Im"," Quick=false ");
+     StdCom("NO_AllHomFloat");
+     StdCom("NO_AllImTriplet");
+     StdCom("NO_GenTripl");
+}
+
+
+
+
+
+cAppli_Martini::cAppli_Martini(int argc,char ** argv) :
+    mExe (true)
+{
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain() << EAMC(mPat,"Image Pat"),
+        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
+                   << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
+   );
+
+}
+
+
+int CPP_Martini_main(int argc,char ** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+   cAppli_Martini anAppli(argc,argv);
+   anAppli.DoAll();
+   anAppli.Banniere();
+   return EXIT_SUCCESS;
+}
+
 
 
 
