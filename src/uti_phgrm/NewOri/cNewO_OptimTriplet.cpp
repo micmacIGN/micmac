@@ -157,7 +157,32 @@ double cPairOfTriplet::ResiduMoy()
 /**************************************************/
 
 
-double ResiduTriplet();
+double cAppliOptimTriplet::ResiduTriplet()
+{
+    std::vector<double> aVRes;
+    for (int aK=0 ; aK<int(mIm1->VPOf3().size()) ; aK++)
+    {
+        std::vector<Pt3dr> aW1;
+        std::vector<Pt3dr> aW2;
+        AddSegOfRot(aW1,aW2,mIm1->Rot(),mIm1->VPOf3()[aK]);
+        AddSegOfRot(aW1,aW2,mIm2->Rot(),mIm2->VPOf3()[aK]);
+        AddSegOfRot(aW1,aW2,mIm3->Rot(),mIm3->VPOf3()[aK]);
+        bool OkI;
+        Pt3dr aI = InterSeg(aW1,aW2,OkI);
+        if (OkI)
+        {
+            double aRes1 = Residu(mIm1->Im(),mIm1->Rot(),aI,mIm1->VPOf3()[aK]);
+            double aRes2 = Residu(mIm2->Im(),mIm2->Rot(),aI,mIm2->VPOf3()[aK]);
+            double aRes3 = Residu(mIm3->Im(),mIm3->Rot(),aI,mIm3->VPOf3()[aK]);
+/*
+            double aRes2 = Residu(mIm2->Im(),R2(),aI,mVP2[aK]);
+*/
+
+            aVRes.push_back((aRes1+aRes2+aRes3)/3.0);
+        }
+    }
+    return MedianeSup(aVRes);
+}
 
 cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
     mDir ("./")
@@ -193,7 +218,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
 
    mNM->LoadTriplet(mIm1->Im(),mIm2->Im(),mIm3->Im(),&mIm1->VPOf3(),&mIm2->VPOf3(),&mIm3->VPOf3());
    
-   std::cout << "NB TRIPLE " << mIm2->VPOf3().size() << "\n";
+   std::cout << "NB TRIPLE " << mIm2->VPOf3().size()  << " Resi3: " <<  ResiduTriplet() << "\n";
 
 
    if (1)

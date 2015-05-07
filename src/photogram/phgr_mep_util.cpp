@@ -308,70 +308,6 @@ class cScalEEF : public cElemEqFormelle,
 /*                                                          */
 /************************************************************/
 
-/*
-class cBundleOptim
-{
-      public :
-
-            cBundleOptim();
-     // Retourne le residu ;
-     // Si err < 0, fait juste le calcul avec un estimation robuste
-     // Sinon mets a jour et estime au moindre carre pondere en fonction de Err
-           double AddPackAndSolve(const ElPackHomologue &  aPack,const ElRotation3D  & aRotB,double anErr) ;
-
-
-     // Derniere solution calculee
-           virtual ElRotation3D  VBO_CurSol() const = 0 ;
-           virtual double  VBO_AddEquation12(const Pt2dr & aP1,const Pt2dr & aP2,double aPds) = 0;
-           virtual double  VBO_ResiduEquation12(const Pt2dr & aP1,const Pt2dr & aP2) = 0;
-           virtual void    VBO_InitNewRot(const ElRotation3D & aRot) = 0;
-           virtual void    VBO_SolveResetUpdate() = 0;
-
-      protected :
-           bool mPhaseEq  ;
-           virtual void    VBO_SetPhaseEquation() = 0;
-};
-
-
-cBundleOptim:: cBundleOptim() :
-    mPhaseEq (false)
-{
-}
-
-double cBundleOptim::AddPackAndSolve(const ElPackHomologue &  aPack,const ElRotation3D  & aRotB,double anErr)
-{
-    if ((! mPhaseEq)  && (anErr>0))
-    {
-       mPhaseEq = true;
-       VBO_SetPhaseEquation();
-    }
-    double aSomPds=0;
-    double aSomErr=0;
-    VBO_InitNewRot(aRotB);
-    std::vector<double> aVRes;
-    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
-    {
-         double aRes = VBO_ResiduEquation12(itP->P1(),itP->P2());
-         if (anErr >0)
-         {
-             double aPds = itP->Pds() / (1+ElSquare(aRes/anErr));
-             VBO_AddEquation12(itP->P1(),itP->P2(),aPds);
-             aSomPds += aPds;
-             aSomErr += aPds * ElSquare(aRes);
-         }
-         else
-            aVRes.push_back(aRes);
-    }
-
-    if (anErr >0)
-    {
-       VBO_SolveResetUpdate();
-       mPhaseEq = false;
-       return sqrt(aSomErr / aSomPds);
-    }
-    return KthValProp(aVRes,ThePropERRInit);
-}
-*/
 
 
 /************************************************************/
@@ -461,6 +397,8 @@ class cEqBundleBase  : public cNameSpaceEqF,
        cEqfP3dIncTmp *       mEq2P3I;
        cSubstitueBlocIncTmp  mSBIT12;
        ElRotation3D          mCurRot;
+
+       std::string           mNameEq3;
 };
 
 
@@ -486,7 +424,9 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
     mEqP3I      (mSetEq->Pt3dIncTmp()),
     mEq2P3I     (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
     mSBIT12     (*mEqP3I),
-    mCurRot     (ElRotation3D::Id)
+    mCurRot     (ElRotation3D::Id),
+
+    mNameEq3    ("cEqBBCamThird" + mPostAccel)
 {
   //  std::cout << "AcEqBundleBase::cEqBundleBase \n"; getchar();
   AllowUnsortedVarIn_SetMappingCur = true;
