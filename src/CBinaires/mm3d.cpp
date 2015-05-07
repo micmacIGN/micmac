@@ -194,9 +194,11 @@ public :
 
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
+extern int Kugelhupf_main(int , char **);
 extern int SimpleFusionCarte_main(int , char **);
 
 
+extern int CPP_Martini_main(int , char **);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -220,6 +222,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
+       aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
@@ -318,6 +321,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("Tapioca",Tapioca_main," Interface to Pastis for tie point detection and matching",cArgLogCom(3)));
        aRes.push_back(cMMCom("Tarama",Tarama_main," Compute a rectified image",cArgLogCom(2)));
+       aRes.push_back(cMMCom("Martini",CPP_Martini_main," New orientation initialisation (uncomplete, still in dev...) ",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image",cArgLogCom(2,"../")));
        // aRes.push_back(cMMCom("Tawny",Tawny_main," Interface to Porto to generate ortho-image"));
@@ -490,6 +494,7 @@ int CPP_GenOneHomFloat(int argc,char ** argv);
 int CPP_GenAllHomFloat(int argc,char ** argv);
 int CPP_GenOneImP3(int argc,char ** argv);
 int CPP_GenAllImP3(int argc,char ** argv);
+int CPP_OptimTriplet_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -592,6 +597,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("NO_AllHomFloat",CPP_GenAllHomFloat,"New Orientation : generate float point of all image"));
     aRes.push_back(cMMCom("NO_OneImTriplet",CPP_GenOneImP3,"New Orientation : generate triple of one image"));
     aRes.push_back(cMMCom("NO_AllImTriplet",CPP_GenAllImP3,"New Orientation : generate triple of all imaget"));
+    aRes.push_back(cMMCom("NO_OneImOptTrip",CPP_OptimTriplet_main,"New Orientation : otimize triplet"));
 
     aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
 

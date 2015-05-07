@@ -38,84 +38,6 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-/*
-    Cout de recouvrement pour les triplets :
-
-    Pour un arc donne S1S2, la distribution P1 est calculée de manière linéaire
-
-       P1, x y  => K  = (x -x0) / (x1-x0)  + (x -x0) / (x1-x0) * Nx
-
-   Pour chaque Sommet S3 on calcule aussi la distribution des point multiple sur I1 : Nb3(K)
-
-
-   Une fonction de ponderation des case est calculee :
-
-     Pds(K) = srqt(Nb1(aK))  et un Poids entier PdsI(K) = E(100 * Pds(K)/Max(Pds(aK)))
-
-  Une fonction de densitee est calculée :
-
-     D(aK) = Nb3(aK) /  Nb(aK)
- 
-  Pour attenue cette fonction, avecun coeff A (A=10, signifie que a partir de 1/10 on diminue l'influence) :
-
-     D'(aK) = A * D(K) /( A D +1)
-
-  Et la Valeur entiere :
-
-     DI(aK) = E(100 *  D'(aK) * (A+1)/A)
-
-
-  Le Gain qu'apporte un triplet sur une case , soit D12 la distance entre  les deux sommets
-
-   Soit DLim la valeur d'attenation du B/H  D'12 = D12 * DLim (D12+DLim)
- 
-   Gain = Dens1 * ( D12 * Dens2 +  DLim * (1-D12))
-
-
-*/
-/*
-
- ========= Mul = 8.1e+07 ========
-Name IMG_2504.JPG G=0.0196207 0.88
-Name IMG_2503.JPG G=0.0347822 0.86
-Name IMG_2502.JPG G=0.112891 0.74
-Name IMG_2496.JPG G=0.0674496 0.74
-Name DIMG_2501.JPG G=0.142832 0.41
-Name DIMG_2500.JPG G=0.1728 0.45
-Name DIMG_2497.JPG G=0.0743467 0.16
-
-========= Mul = 2.43134e+08 ========
-Name IMG_2504.JPG G=0.0220429 0.88
-Name IMG_2503.JPG G=0.0363437 0.86
-Name IMG_2502.JPG G=0.121419 0.74
-Name IMG_2496.JPG G=0.0641779 0.74
-Name DIMG_2501.JPG G=0.153869 0.41
-Name DIMG_2500.JPG G=0.18435 0.45
-Name DIMG_2497.JPG G=0.0810178 0.16
-
- ========= Mul = 2.35824e+07 ========
-Name IMG_2504.JPG G=0.0217589 0.88
-Name IMG_2503.JPG G=0.0362673 0.86
-Name IMG_2502.JPG G=0.119493 0.74
-Name IMG_2496.JPG G=0.0656142 0.74
-Name DIMG_2501.JPG G=0.153839 0.41
-Name DIMG_2500.JPG G=0.183932 0.45
-Name DIMG_2497.JPG G=0.0813725 0.16
-
- ========= Mul = 4.71648e+07 ========
-Name IMG_2504.JPG G=0.0218826 0.885
-Name IMG_2503.JPG G=0.0364782 0.865
-Name IMG_2502.JPG G=0.118685 0.735
-Name IMG_2496.JPG G=0.0656142 0.74
-Name DIMG_2501.JPG G=0.155715 0.415
-Name DIMG_2500.JPG G=0.183932 0.45
-Name DIMG_2497.JPG G=0.0839154 0.165
-
-
-
-*/
-
-
 
 
 #include "NewOri.h"
@@ -233,31 +155,6 @@ class cResTriplet
         cXml_Ori3ImInit  mXml;
 };
 
-/*
-class cTripletInt
-{
-    public :
-       cTripletInt(int aK1,int aK2, int aK3) :
-              mK1 (ElMin3(aK1,aK2,aK3)),
-              mK3 (ElMax3(aK1,aK2,aK3)),
-              mK2 (aK1+aK2+aK3-mK1-mK3)
-        {
-        }
-
-        bool operator < (const cTripletInt & aT2) const
-        {
-             if (mK1 < aT2.mK1) return true;
-             if (mK1 > aT2.mK1) return false;
-             if (mK2 < aT2.mK2) return true;
-             if (mK2 > aT2.mK2) return false;
-             return mK3 < aT2.mK3;
-        }
-
-        int mK1;
-        int mK3;
-        int mK2;
-};
-*/
 typedef cTplTriplet<int> cTripletInt;
 
 
@@ -287,11 +184,11 @@ class cAppli_GenTriplet
                std::cout << "------------------------------------ --------mSomTest3 " << aD[0] << "\n";
             }
        }
+       bool  AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3);
 
     private :
 
 
-       bool  AddTriplet(tSomGT & aS1,tSomGT & aS2,tSomGT & aS3);
        void  GenTriplet(tArcGT & anArc);
        void AddSomTmp(tSomGT & aS);
 
@@ -308,6 +205,7 @@ class cAppli_GenTriplet
        //std::vector<tSomGT *>          m;
 
        std::map<cTripletInt,cResTriplet>  mMapTriplets;
+       cXml_TopoTriplet                   mTopoTriplets;
 
        // Voisin de l'arc, hors de l'arc lui meme
        std::vector<tSomGT *>         mVSomVois;
@@ -632,10 +530,12 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     ElTimer aChroSel;
     while (tSomGT * aSom = GetNextSom())
     {
+        AddTriplet(*aSom,mCurArc->s1(),mCurArc->s2());
         if (mCurTestArc)
            std::cout << " SEL " << aSom->attr().Name()  << " G " << aSom->attr().GainGlob() / mMulQuant << "\n";
     }
     mTimeSelec += aChroSel.uval();
+
 
     // Vider les structure temporaires
     for (int aKS=0 ; aKS<int(mVSomVois.size()) ; aKS++)
@@ -665,6 +565,10 @@ void cAppli_GenTriplet::GenTriplet()
              GenTriplet(*itA);
        }
    }
+   for (int aK=0 ; aK <2 ; aK++)
+   {
+       MakeFileXML(mTopoTriplets,mNM->NameTopoTriplet(aK==0));
+   }
 
    if (mShow)
       std::cout << "Load " << mTimeLoadHom << " Merge " << mTimeMerge << " Selec " << mTimeSelec << " GenTripl " << aTimeGT.uval() << "\n";
@@ -683,10 +587,23 @@ cXml_Rotation El2Xml(const ElRotation3D & aRot)
   return aRes;
 }
 
-void SegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP)
+ElRotation3D Xml2El(const cXml_Rotation & aXml)
+{
+  return ElRotation3D(aXml.Centre(),ImportMat(aXml.Ori()),true);
+}
+
+void AddSegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP)
 {
    aV1.push_back(aR.ImAff(Pt3dr(0,0,0)));
    aV2.push_back(aR.ImAff(Pt3dr(aP.x,aP.y,1.0)));
+}
+
+double Residu(cNewO_OneIm  * anIm , const ElRotation3D & aR,const Pt3dr & aPTer,const Pt2df & aP)
+{
+    Pt3dr aQ = aR.ImRecAff(aPTer);
+    Pt2df aProj (aQ.x/aQ.z,aQ.y/aQ.z);
+    double aD = euclid(aProj,aP);
+    return aD * anIm->CS()->Focale();
 }
 
 bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3Ori)
@@ -700,7 +617,7 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
    ELISE_ASSERT(aA2.Name() < aA3.Name(),"cAppli_GenTriplet::AddTriplet");
 
    cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());
-   if (mMapTriplets.find(aTr) != mMapTriplets.end())
+   if ((mMapTriplets.find(aTr) != mMapTriplets.end()))
       return false;
 
 
@@ -708,7 +625,10 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
 
    ElRotation3D aR2 = aR1Inv*aA2.R3();
    ElRotation3D aR3 = aR1Inv*aA3.R3();
-   if (1)
+
+   double aResidu=-1;
+   int    aNbTriplet=-1;
+   if (true)
    {
       ElRotation3D aR1 = aR1Inv*aA1.R3();
       static std::vector<Pt2df> aVP1;
@@ -716,35 +636,55 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
       static std::vector<Pt2df> aVP3;
 
 
-      bool OK = NM().LoadTriplet
+       bool OK = NM().LoadTriplet
                 (
                      &aA1.Im(),&aA2.Im(), &aA3.Im(),
                      &aVP1,&aVP2,&aVP3
                 );
+       ELISE_ASSERT(OK,".LoadTriplet");
 
+       std::vector<double> aVRes;
        for (int aK=0 ; aK< int(aVP1.size()) ; aK++)
        {
            std::vector<Pt3dr> aW1;
            std::vector<Pt3dr> aW2;
-           SegOfRot(aW1,aW2,aR1,aVP1[aK]);
-           SegOfRot(aW1,aW2,aR2,aVP2[aK]);
-           SegOfRot(aW1,aW2,aR3,aVP3[aK]);
+           AddSegOfRot(aW1,aW2,aR1,aVP1[aK]);
+           AddSegOfRot(aW1,aW2,aR2,aVP2[aK]);
+           AddSegOfRot(aW1,aW2,aR3,aVP3[aK]);
            bool OkI;
            Pt3dr aI = InterSeg(aW1,aW2,OkI);
            if (OkI)
            {
-              std::cout << aI << "\n";
+              double aRes1 = Residu(&aA1.Im(),aR1,aI,aVP1[aK]);
+              double aRes2 = Residu(&aA2.Im(),aR2,aI,aVP2[aK]);
+              double aRes3 = Residu(&aA3.Im(),aR3,aI,aVP3[aK]);
+              aVRes.push_back((aRes1+aRes2+aRes3)/3.0);
 
            }
        }
-       ELISE_ASSERT(OK,".LoadTriplet");
+       aResidu = MedianeSup(aVRes);
+       aNbTriplet = aVP1.size();
    }
+
+
    cResTriplet aRT;
    aRT.mXml.Ori2On1() = El2Xml(aR2);
    aRT.mXml.Ori3On1() = El2Xml(aR3);
+   aRT.mXml.ResiduTriplet() = aResidu;
+   aRT.mXml.NbTriplet() = aNbTriplet;
 
+   for (int aK=0 ; aK <2 ; aK++)
+   {
+      MakeFileXML(aRT.mXml,mNM->NameOriInitTriplet((aK==0),&(aA1.Im()),&(aA2.Im()),&(aA3.Im())));
+   }
 
    mMapTriplets[aTr] =  aRT;
+
+   cXml_OneTriplet aTri;
+   aTri.Name1() = aA1.Name();
+   aTri.Name2() = aA2.Name();
+   aTri.Name3() = aA3.Name();
+   mTopoTriplets.Triplets().push_back(aTri);
    
    return true;
 }
@@ -789,6 +729,8 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
    );
 
    mEASF.Init(mFullName);
+   StdCorrecNameOrient(mNameOriCalib,mEASF.mDir);
+
    mNM = new cNewO_NameManager(mEASF.mDir,mNameOriCalib,"dat");
 
    cInterfChantierNameManipulateur::tSet  aVIm = *(mEASF.SetIm());
@@ -807,8 +749,8 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
         mMapS[aName] = &aS;
    }
 
-   const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get("NKS-Set-CplIm2OriRel@@dmp");
-   std::string aKeyCple2I = "NKS-Assoc-CplIm2OriRel@@dmp";
+   const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get("NKS-Set-CplIm2OriRel@"+mNameOriCalib+"@dmp");
+   std::string aKeyCple2I = "NKS-Assoc-CplIm2OriRel@"+mNameOriCalib+"@dmp";
    for (int aKC=0 ; aKC<int(aSetCple->size());  aKC++)
    {
         std::pair<std::string,std::string> aPair = mEASF.mICNM->Assoc2To1(aKeyCple2I,(*aSetCple)[aKC],false);
