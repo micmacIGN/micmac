@@ -1,0 +1,231 @@
+<GenCpp>
+	<Verbatim  File=".h">
+	#ifndef Define_NotDigeo
+	#define Define_NotDigeo
+	</Verbatim>
+
+	<Verbatim File=".cpp">
+	#include "StdAfx.h"
+	#include "cParamDigeo.h"
+	</Verbatim>
+
+	<Verbatim File=".h">
+	#include "XML_GEN/all.h"
+	</Verbatim>
+
+	<Verbatim File=".h.cpp">
+	//
+	</Verbatim>
+
+	<enum Name="eTypeTopolPt">
+		<eTtpSommet>     </eTtpSommet>  
+		<eTtpCuvette>    </eTtpCuvette> 
+		<eTtpCol>        </eTtpCol>
+		<eTtpCorner>      </eTtpCorner>
+		<eSiftMaxDog>     </eSiftMaxDog>
+		<eSiftMinDog>     </eSiftMinDog>
+	</enum>
+
+	<enum Name="eReducDemiImage">
+		<eRDI_121>     </eRDI_121>  
+		<eRDI_010>     </eRDI_010>  
+		<eRDI_11>     </eRDI_11>  
+	</enum>
+
+	<enum Name="eTest12345">
+		<eTest12345_A>     </eTest12345_A>  
+		<eTest12345_B>     </eTest12345_B>  
+		<eTest12345_C>     </eTest12345_C>  
+	</enum>
+
+	<ParamExtractCaracIm  Nb="1" Class="true" ToReference="true">
+		<SzMinImDeZoom Nb="?" Type="int" Def="500">  </SzMinImDeZoom>
+	</ParamExtractCaracIm>
+
+	<ParamVisuCarac  Nb="1" Class="true" ToReference="true" AccessorFils="false">
+		<!-- Nombre de niveau gris alloues a  la visualisation en gris -->
+		<DynGray Nb="?" Type="int" Def="128">  </DynGray>
+		<Dir Nb="1" Type="std::string"> </Dir>
+		<Zoom Nb="?" Def="1" Type="int"> </Zoom>
+		<Dyn Nb="1"  Type="double"> </Dyn>
+		<Prefix Nb="?" Type="std::string" Def="VisuCarac_"></Prefix>
+		<ShowCaracEchec Nb="?" Def="false" Type="bool"></ShowCaracEchec>
+	</ParamVisuCarac>
+
+	<ParamDigeo  Nb="1" Class="true">
+		<DicoLoc Nb="?" RefType="ChantierDescripteur" RefFile="ParamChantierPhotogram.xml">
+		</DicoLoc>
+
+		<DigeoSectionImages Nb="1">
+			<ImageDigeo Nb="*">
+				<VisuCarac Nb="?"  RefType="ParamVisuCarac" > </VisuCarac>
+
+				<KeyOrPat Nb="1" Type="std::string"> </KeyOrPat>
+				<!-- Pas utilise pour l'instant, sans doute prevu pour modele geometrique -->
+				<KeyCalcCalib Nb="?" Type="std::string"> </KeyCalcCalib>
+				<!-- La BoxImR1 est donnee / a la resol 1 -->
+				<BoxImR1 Nb="?" Type="Box2di">  </BoxImR1>
+				<!-- ResolInit=0.5 signifie des images deux fois plus grandes -->
+				<ResolInit Nb="?" Type="double" Def="1.0"> </ResolInit>
+
+				<!-- Pour l'instant pas utilise, mais pour pouvoir commencer
+				a organiser la structure -->
+				<PredicteurGeom Nb="?" UnionType="true">
+					<Unused Nb="?" Type="std::string"> </Unused> 
+				</PredicteurGeom>
+				<!-- Si la taille mémoire de l'image est inférieure a ce seuil, le fichier est lu en 1 bloc-->
+				<NbOctetLimitLoadImageOnce Nb="?" Type="double" Def="1e8"> </NbOctetLimitLoadImageOnce>
+			</ImageDigeo>
+			
+			<PyramideImage Nb="1">
+				<TypeNumeriqueOfNiv Nb="*">
+					<Type  Nb="1"  Type="eTypeNumerique"> </Type>
+					<Niv Nb="1" Type="int"> </Niv>
+				</TypeNumeriqueOfNiv>
+
+				<!-- En maximisant la dynamique compatible avec le type d'image,
+				permet d'avoir une plus grande precision; Def = true pour (u_)?int[12] -->
+
+				<MaximDyn Nb="?" Type="bool"> </MaximDyn>
+				<!-- Parfois l'image contient des valeurs "parasites" qui 
+				rendent inoperante la MaximDyn, si c'est le cas on peut fixer un 
+				max theorique (par ex 1<<12) en cam Dyn
+				-->
+				<ValMaxForDyn Nb="?" Type="double"> </ValMaxForDyn>
+
+				<ReducDemiImage Nb="?" Type="eReducDemiImage" Def="eRDI_121"> </ReducDemiImage>
+
+				<TypePyramide Nb="1" UnionType="true">
+					<NivPyramBasique Nb="?" Type="int"> </NivPyramBasique>
+					<PyramideGaussienne  Nb="?">
+						<NbByOctave Def="3" Nb="?"  Type="int"> </NbByOctave>
+
+						<Sigma0 Nb="?" Type="double" Def="1.6"> </Sigma0>
+						<!-- le papier de Lowe semble indiquer un smooting identique à chaque octave -->
+						<SigmaN Nb="?" Type="double"> </SigmaN>
+
+						<NbInLastOctave Nb="?"  Type="int"> </NbInLastOctave>
+						<!-- Pour la premiere octave on peut supprimer ou rajouter 
+						(avec val<0) des frequence grace a ce tag -->
+						<IndexFreqInFirstOctave Nb="?" Type="int" Def="0"> </IndexFreqInFirstOctave>
+						<NivOctaveMax  Nb="1"  Type="int">  </NivOctaveMax> <!-- Par ex 8, 32 ..-->
+
+						<!-- A priori ca me semble + "logique" du point de vue de la continuite
+						vis a vis de l'echelle que la toute premiere image soit convoluee
+						par le sigma initial, mais c'est pas tres clair, donc ce parametre
+						permet de regler ca :
+						- si il vaut 0 pas de convolution;
+						- si il vaut -1 : convolution par le sigma initial (1.0 si
+						IndexFreqInFirstOctave est pas specifie)
+						- si >0 convolution par la valeur
+						- sinon erreur
+						-->
+						<ConvolFirstImage Nb="?" Type="double" Def="-1"> </ConvolFirstImage>
+						<EpsilonGauss Nb="?" Type="double" Def="1e-3"> </EpsilonGauss>
+						<NbShift  Nb="?" Type="int" Def="15"> </NbShift>
+						<SurEchIntegralGauss Nb="?" Type="int" Def="10"> </SurEchIntegralGauss>
+						<ConvolIncrem Nb="?" Type="bool" Def="true"> </ConvolIncrem>
+					</PyramideGaussienne>
+				</TypePyramide>
+			</PyramideImage>
+		</DigeoSectionImages>
+
+		<SectionCaracImages Nb="1">
+			<!-- Juste pour pouvoir eventuellement squeezer en amont tout le calcul
+			-->
+			<ComputeCarac Nb="1" Type="bool"> </ComputeCarac>
+			<CaracTopo Nb="?">
+				<OneCarac Nb="*">
+					<Type Nb="1" Type="eTypeTopolPt"> </Type>
+				</OneCarac>
+			</CaracTopo>
+			<SiftCarac Nb="?">
+				<DoMax Nb="?" Type="bool" Def="true"> </DoMax>
+				<DoMin Nb="?" Type="bool" Def="true"> </DoMin>
+
+				<NivEstimGradMoy Nb="?" Def="4" Type="int"></NivEstimGradMoy>
+				<!-- 8 Correspond a peu pres a la valeur 10 de Tr 2 / det de Lowe -->
+				<RatioAllongMin Nb="?" Def="8.0" Type="double"> </RatioAllongMin>
+				<RatioGrad Nb="?" Def="0.01" Type="double"> </RatioGrad>
+			</SiftCarac>
+		</SectionCaracImages>
+
+		<!-- Cette section gère les fonctionnalites permettant de faire
+		des tests de perfomances ou de bon fonctionnement
+		-->
+
+		<SectionTest Nb="?">
+			<GenereRandomRect Nb="?">
+				<NbRect Nb="1" Type="int"></NbRect>
+				<SzRect Nb="1" Type="int"></SzRect>
+			</GenereRandomRect>
+			
+			<GenereCarroyage Nb="?">
+				<PerX Nb="1" Type="int"></PerX>
+				<PerY Nb="1" Type="int"></PerY>
+			</GenereCarroyage>
+			
+			<GenereAllRandom Nb="?">
+				<SzFilter Nb="1" Type="int"> </SzFilter>  
+			</GenereAllRandom>
+			
+			<VerifExtrema Nb="?" Type="bool" Def="false"></VerifExtrema>
+			
+			<DigeoTestOutput Nb="?">
+				<OutputGaussians Nb="?" Type="bool" Def="false"></OutputGaussians>
+				<OutputGaussiansDirectory Nb="?" Type="std::string" Def="gaussians"></OutputGaussiansDirectory>
+				<OutputTiles Nb="?" Type="bool" Def="false"></OutputTiles>
+				<OutputTilesDirectory Nb="?" Type="std::string" Def="tiles"></OutputTilesDirectory>
+			</DigeoTestOutput>
+		</SectionTest>
+
+		<SectionWorkSpace Nb="1">
+			<DirectoryChantier Nb="?"  Type="std::string" Def="">  </DirectoryChantier>
+			
+			<SauvPyram Nb="?">
+				<Dir Nb="?" Type="std::string" Def=""> </Dir>
+				<Glob Nb="?" Type="bool" Def="true"> </Glob>
+				<Key Nb="?" Type="std::string" Def="Key-Assoc-Pyram-MM"> </Key>
+				<!-- <=0 si pas used -->
+				<StripTifFile Nb="?" Type="int" Def="100"> </StripTifFile>
+				<Force8B Nb="?" Type="bool" Def="false">   </Force8B>
+				<Dyn  Nb="?" Type="double" Def="1.0"> </Dyn>
+			</SauvPyram>
+
+			<DigeoDecoupageCarac Nb="?">
+				<SzDalle Nb="1" Type="int"> </SzDalle>
+				<Bord Nb="1" Type="int">    </Bord>
+			</DigeoDecoupageCarac>
+
+			<!-- A priori, on a interet a ce que tous les convol soit compilees; on se fait
+			insulter si ce n'est pas le cas; sauf si ExigeCodeCompile indique que c'est sciemment -->
+			<ExigeCodeCompile Nb="?" Type="bool" Def="true"></ExigeCodeCompile>
+			
+			<GenereCodeConvol Nb="?">
+				<DirectoryCodeConvol Nb="?" Type="std::string" Def="src/uti_image/Digeo/"> </DirectoryCodeConvol>
+				<FileBaseCodeConvol Nb="?" Type="std::string" Def="GenConvolSpec"> </FileBaseCodeConvol>
+				<ModifGCC Nb="*"  Container="std::vector">
+					<NbByOctave Nb="1" Type="int"> </NbByOctave>
+					<ConvolIncrem Nb="1" Type="bool"> </ConvolIncrem>
+					<TypeNum Nb="1" Type="eTypeNumerique"> </TypeNum>
+				</ModifGCC>
+			</GenereCodeConvol>
+
+			<ShowTimes Nb="?" Type="int" Def="0"> </ShowTimes>
+
+			<FenVisu Nb="*">
+				<Name Nb="1" Type="std::string"> </Name>
+				<Sz  Nb="1" Type="Pt2di"> </Sz>
+			</FenVisu>
+
+			<!-- Pas de raison, hors mis au point/test, de changer cette val -->
+			<ShowConvolSpec Nb="?" Type="bool" Def="false"> </ShowConvolSpec>
+
+			<Verbose Nb="?" Type="bool" Def="false"> </Verbose>
+		</SectionWorkSpace>
+	</ParamDigeo>
+
+	<Verbatim File=".h">
+	#endif // Define_NotDigeo
+	</Verbatim>
+</GenCpp>
