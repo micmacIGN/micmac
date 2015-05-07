@@ -924,10 +924,12 @@ void RPC::ComputeNormFactors(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3
 	Pt2dr aPtImMax(*std::max_element(aPtsImX.begin(), aPtsImX.end()), *std::max_element(aPtsImY.begin(), aPtsImY.end()));
 	first_lon = aPtGeoMin.x;
 	first_lat = aPtGeoMin.y;
+	first_height = aHMin;
 	first_col = aPtImMin.x;
 	first_row = aPtImMin.y;
 	last_lon = aPtGeoMax.x;
 	last_lat = aPtGeoMax.y;
+	last_height = aHMax;
 	last_col = aPtImMax.x;
 	last_row = aPtImMax.y;
 	//Compute scales and offsets
