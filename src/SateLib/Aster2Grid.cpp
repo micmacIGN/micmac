@@ -79,9 +79,6 @@ vector<vector<Pt3dr> > ReadLatticeGeo(string aTxtLong, string aTxtLat)
 	{
 		double L1, L2, L3, L4, L5, L6, L7, L8, L9, L10, L11;
 		fic2 >> L1 >> L2 >> L3 >> L4 >> L5 >> L6 >> L7 >> L8 >> L9 >> L10 >> L11;
-		double WGSCorFact = 0.99330562;
-		//cout << setprecision(15) << "pi = " << M_PI << endl;
-		//geocentric->geodetic
 		aMatGeoGeocentric[k][0].y = L1 ;
 		aMatGeoGeocentric[k][1].y = L2 ;
 		aMatGeoGeocentric[k][2].y = L3 ;
@@ -93,7 +90,6 @@ vector<vector<Pt3dr> > ReadLatticeGeo(string aTxtLong, string aTxtLat)
 		aMatGeoGeocentric[k][8].y = L9 ;
 		aMatGeoGeocentric[k][9].y = L10;
 		aMatGeoGeocentric[k][10].y = L11;
-		//std::cout << "Ligne " << i << " : " << aMatGeo[i] << endl;
 		k++;
 	}
 
@@ -219,6 +215,7 @@ int Aster2Grid_main(int argc, char ** argv)
 	std::string targetSyst;//output syst proj4
 	std::string refineCoef = "";
 	bool binaire = true;
+	bool expDIMAP = false;
 	int nbLayers;
 	double aHMin = 0, aHMax = 3000;
 	double stepPixel = 25.f;
@@ -246,6 +243,7 @@ int Aster2Grid_main(int argc, char ** argv)
 		<< EAM(stepCarto, "stepCarto", true, "Step in m (carto) (Def=50m)")
 		<< EAM(refineCoef, "refineCoef", true, "File of Coef to refine Grid")
 		<< EAM(binaire, "Bin", true, "Export Grid in binaries (Def=True)")
+		<< EAM(expDIMAP, "expDIMAP", true, "Export RPC file in DIMAP format (Def=False)")
 		);
 
 	////TODO : READ THIS FROM HDF
@@ -269,6 +267,14 @@ int Aster2Grid_main(int argc, char ** argv)
 	aRPC3D.GCP2Inverse(aGridNorm[0], aGridNorm[1]);
 	cout << "Inverse RPC estimated" << endl;
 	aRPC3D.info();
+
+	//Export RPC
+	if (expDIMAP == true)
+	{
+		std::string aNameDIMAP = "RPC_" + StdPrefix(aNameIm) + ".xml";
+		aRPC3D.WriteAirbusRPC(aNameDIMAP);
+		cout << "RPC exported in DIMAP format as : " << aNameDIMAP << endl;
+	}
 
 	//Computing Grid
 	aRPC3D.RPC2Grid(nbLayers, aHMin, aHMax, refineCoef, aNameIm, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
