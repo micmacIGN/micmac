@@ -354,6 +354,7 @@ void cAppli_C3DC::DoAll()
 
 int C3DC_main(int argc,char ** argv)
 {
+
     cAppli_C3DC anAppli(argc,argv,true);
     if (!MMVisualMode) anAppli.DoAll();
     return EXIT_SUCCESS;
@@ -512,7 +513,16 @@ class cAppli_MPI2Mnt
          bool                     mDoOrtho;
          std::string			  mMasqImGlob;
          bool                     mDebug;
+         void ExeCom(const std::string & aCom);
 };
+
+void cAppli_MPI2Mnt::ExeCom(const std::string & aCom)
+{
+   if (mDebug)
+      std::cout << aCom << "\n\n";
+   else
+      System(aCom);
+}
 
 std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
 {
@@ -523,9 +533,9 @@ std::string cAppli_MPI2Mnt::NameBascOfIm(const std::string & aNameIm)
 
 void cAppli_MPI2Mnt::DoAll()
 {
-    if (mDoMnt && (!mDebug) ) DoMTD();
+    if (mDoMnt  ) DoMTD();
     mParamTarget =  StdGetFromSI(mTargetGeom,XML_ParamNuage3DMaille);
-    if (mDoMnt && (!mDebug) ) DoBascule();
+    if (mDoMnt  ) DoBascule();
     if (mDoMnt ) DoMerge();
 
 
@@ -568,10 +578,7 @@ void cAppli_MPI2Mnt::DoOrtho()
               aCom += " +RepereIsCart=true";
     }
 
-    if (mDebug)
-        std::cout << "COMORTHO= " << aCom << "\n";
-    else
-        System(aCom);
+    ExeCom(aCom);
 
 }
 
@@ -585,10 +592,7 @@ void cAppli_MPI2Mnt::DoMerge()
 
                       ;
 
-    if (mDebug)
-       std::cout << aCom << "\n";
-    else
-        System(aCom);
+        ExeCom(aCom);
 
 }
 
@@ -600,7 +604,7 @@ void cAppli_MPI2Mnt::DoBascule()
 
 
 
-    std::cout << "DIRAP " << mDirApp << " NBI " << mSetIm->size() << "\n";
+    // std::cout << "DIRAP " << mDirApp << " NBI " << mSetIm->size() << "\n";
 
     for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
     {
@@ -612,8 +616,14 @@ void cAppli_MPI2Mnt::DoBascule()
                              +   "Paral=0 ";
 
            aLCom.push_back(aCom);
+           if (mDebug &&(aK<2)) 
+              std::cout << aCom << "\n\n";
     }
-    cEl_GPAO::DoComInParal(aLCom);
+    if (mDebug)
+    {
+    }
+    else
+       cEl_GPAO::DoComInParal(aLCom);
 
     // SMDM
 
@@ -634,7 +644,7 @@ void cAppli_MPI2Mnt::DoMTD()
                           + " ZoomF=" + ToString(mDeZoom)
                        ;
 
-   System(aCom);
+    ExeCom(aCom);
 }
 
 cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
@@ -694,6 +704,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
 
 int MPI2Mnt_main(int argc,char ** argv)
 {
+    MMD_InitArgcArgv(argc,argv);
+
     cAppli_MPI2Mnt anAppli(argc,argv);
     if (!MMVisualMode) anAppli.DoAll();
 

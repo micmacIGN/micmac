@@ -1973,7 +1973,7 @@ void cEtapeMecComp::RemplitXMLNuage
         {
            aIP.Correl().SetNoInit();
         }
-        aIP.OrigineAlti() =  mGeomTer.OrigineAlti();
+        aIP.OrigineAlti() =  mGeomTer.OrigineAlti4Export();
         aIP.ResolutionAlti() =    mGeomTer.ResolutionAlti();
         aIP.GeomRestit() = mAppli.GeomMNT();
 
