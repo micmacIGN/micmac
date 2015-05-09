@@ -57,7 +57,7 @@ extern std::string SubstArgcArvGlob(int aKSubst,std::string aSubst);
 
 
 std::string GetUnikId();
-std::string Dir2Write();
+std::string Dir2Write(const std::string  DirChantier = "./" );
 
 void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage);
 #define ElEXIT(aCode,aMessage) ElExit(__LINE__,__FILE__,aCode,aMessage)

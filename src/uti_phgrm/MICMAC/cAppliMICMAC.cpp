@@ -342,10 +342,24 @@ cAppliMICMAC::cAppliMICMAC
    mMakeMaskImNadir  (0),
    mMaxPrecision     (0),
    mGLOBMasq3D       (0),
-   mGLOBNuage        (0)
+   mGLOBNuage        (0),
+   mCorrecAlti4ExportIsInit (false),
+   mValmCorrecAlti4Export   (0.0)
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {
+      mDeZoomMax =1;
+      mDeZoomMin =1<<20;
+      for (std::list<cEtapeMEC>::const_iterator itE=  EtapeMEC().begin() ;  itE!= EtapeMEC().end() ; itE++)
+      {
+            int aDz = itE->DeZoom();
+            if (aDz !=-1)
+            {
+                 ElSetMax(mDeZoomMax,aDz);
+                 ElSetMin(mDeZoomMin,aDz);
+            }
+       }
+
        GlobDebugMM = DebugMM().Val();
 
         mDoTheMEC = DoMEC().Val();
@@ -776,6 +790,8 @@ void cAppliMICMAC::VerifOneEtapes(const cEtapeMEC & anEt)
 void cAppliMICMAC::VerifEtapes() 
 {
 std::cout << "==============================cAppliMICMAC::VerifEtapes \n";
+/*
+   // DEPLACE PLUS HAUT
    mDeZoomMax =1;
    mDeZoomMin =1<<20;
    for (std::list<cEtapeMEC>::const_iterator itE=  EtapeMEC().begin() ;  itE!= EtapeMEC().end() ; itE++)
@@ -787,6 +803,7 @@ std::cout << "==============================cAppliMICMAC::VerifEtapes \n";
               ElSetMin(mDeZoomMin,aDz);
          }
     }
+*/
    std::list<cEtapeMEC>::const_iterator itE = EtapeMEC().begin();
    ELISE_ASSERT(itE->DeZoom()==-1,"Etape Init, Resol != -1");
 
@@ -1152,6 +1169,7 @@ for (int aK=0 ; aK<10 ; aK++)
 
          ELISE_ASSERT(mRepCorrel==0,"Ajouter gestion du repere correl sur Masque Image Nadir");
 
+
          double aZMoy = -1e30;
          if (IntervAltimetrie().IsInit())
          {
@@ -1160,7 +1178,27 @@ for (int aK=0 ; aK<10 ; aK++)
                 aZMoy = anIA->ZMoyen().Val();
          }
          ELISE_ASSERT(aZMoy>-1e29,"No ZMoyen in Nadir Masq");
+
+
+         double aResol = -1e30;
+         if (Planimetrie().IsInit())
+         {
+              cPlanimetrie * anIP  = Planimetrie().PtrVal();
+              if (anIP->ResolutionTerrain().IsInit())
+              {
+                   aResol = StdRound(anIP->ResolutionTerrain().Val()).RVal();
+                   double aRR = aResol * mDeZoomMin;
+                   aZMoy = round_ni((aZMoy/aRR)) * aRR;
+                   anIP->ResolutionTerrain().SetVal(aResol);
+              }
+         }
+         ELISE_ASSERT(aResol>-1e29,"No Resol in Nadir Masq");
+
+
+
          mAnamSA = cInterfSurfaceAnalytique::Identite(aZMoy);
+         mCorrecAlti4ExportIsInit = true;
+         mValmCorrecAlti4Export = aZMoy;
     }
 }
 

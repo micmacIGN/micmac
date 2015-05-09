@@ -1018,7 +1018,20 @@ const REAL *  cGeomDiscFPx::V0Px() const
 }
 
 Pt2di cGeomDiscFPx::NbPixel() const { return mSzDz; }
-double cGeomDiscFPx::OrigineAlti() const { return  mV0Px[0]; }
+double cGeomDiscFPx::OrigineAlti4Export() const 
+{ 
+    if (mAp->mCorrecAlti4ExportIsInit)
+       return mAp->mValmCorrecAlti4Export;
+    return  OrigineAlti4Compute();
+}
+
+
+double cGeomDiscFPx::OrigineAlti4Compute() const 
+{
+    return  mV0Px[0]; 
+}
+
+
 double cGeomDiscFPx::ResolutionAlti() const { return  mStepAbs[0]; }
 
 void cGeomDiscFPx::SetOriResolPlani(Pt2dr & aOriP,Pt2dr & aResolP) const
@@ -1037,7 +1050,7 @@ void cGeomDiscFPx::RemplitOri(cFileOriMnt & aFOM,bool DoZAbs) const
 {
   aFOM.NombrePixels()    = NbPixel();
   SetOriResolPlani(aFOM.OriginePlani() ,aFOM.ResolutionPlani());
-  aFOM.OrigineAlti()     = OrigineAlti();
+  aFOM.OrigineAlti()     = OrigineAlti4Export();
   aFOM.ResolutionAlti()  = ResolutionAlti();
 
   if (DoZAbs)
@@ -1045,6 +1058,7 @@ void cGeomDiscFPx::RemplitOri(cFileOriMnt & aFOM,bool DoZAbs) const
       aFOM.OrigineAlti()     = 0;
       aFOM.ResolutionAlti()  = 1.0;
   }
+
 
 /*
   aFOM.NombrePixels()    = mSzDz;

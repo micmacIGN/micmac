@@ -418,6 +418,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aKeyOri = "NKS-Assoc-Im2Orient@-" + mOri;
       double aSomZM = 0;
+      double aSomResol = 0;
       int    aNbZM = 0;
 
 
@@ -443,6 +444,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               if (aCS->AltisSolIsDef())
               {
                   aSomZM += aCS->GetAltiSol();
+                  aSomResol +=  aCS->ResolutionSol();
                   aNbZM++;
               }
 
@@ -468,7 +470,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               ELISE_ASSERT(aNbZM!=0,"Cannot get ZMoy with IncMax");
               ZMoyInit = true;
               mZMoy = aSomZM / aNbZM;
-
+          }
+      }
+      bool ResolTerrainIsInit = EAMIsInit(&aResolTerrain);
+      if (!ResolTerrainIsInit)
+      {
+          if (IncMaxInit)
+          {
+              ELISE_ASSERT(aNbZM!=0,"Cannot get ZMoy with IncMax");
+              ResolTerrainIsInit = true;
+              aResolTerrain = aSomResol / aNbZM;
           }
       }
 
@@ -754,7 +765,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
       }
 
-      if (EAMIsInit(&aResolTerrain))
+      if (ResolTerrainIsInit)
       {
           mCom  =    mCom + " +UseResolTerrain=true "
                   +  std::string(" +ResolTerrain=") + ToString(aResolTerrain);

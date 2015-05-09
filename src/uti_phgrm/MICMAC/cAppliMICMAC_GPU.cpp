@@ -637,7 +637,7 @@ void cAppliMICMAC::DoInitAdHoc(const Box2di & aBox)
         mAhEpsilon = EpsilonCorrelation().Val();
 
         mGeomDFPx->SetOriResolPlani(mOriPlani,mStepPlani);
-        mOrigineZ = mGeomDFPx->OrigineAlti();
+        mOrigineZ = mGeomDFPx->OrigineAlti4Compute();
         mStepZ = mGeomDFPx->ResolutionAlti();
 
         mFirstZIsInit = false;

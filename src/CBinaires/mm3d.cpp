@@ -200,6 +200,8 @@ extern int SimpleFusionCarte_main(int , char **);
 
 extern int CPP_Martini_main(int , char **);
 
+extern int CPP_SetExif(int argc,char **argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -406,6 +408,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 
        aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force development of all tif/xif file"));
+       aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)"));
 
    }
 

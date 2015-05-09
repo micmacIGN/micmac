@@ -898,7 +898,14 @@ class cGeomDiscFPx : public  cGeomDiscR2
          void RemplitOri(cFileOriMnt & aFOM,bool DoZAbs) const;
 
          Pt2di NbPixel() const;
-         double OrigineAlti() const ;
+
+// Devrait etre identiques , mais a cause de surface analytique semi triviale, pour elle : en calcul vaut 0 car le Z Moyen
+// est pris dans la surface , mais a l'export il faut le remettre
+         double OrigineAlti4Compute() const ;
+         double OrigineAlti4Export() const ;
+
+
+
          double ResolutionAlti() const ;
 
          void SetOriResolPlani(Pt2dr & aOriP,Pt2dr & aResolP) const;
@@ -3690,6 +3697,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
          cMasqBin3D *      mGLOBMasq3D;
          cElNuage3DMaille* mGLOBNuage;
 
+         bool mCorrecAlti4ExportIsInit;
+         double mValmCorrecAlti4Export;
 };
 
 std::string  StdNameFromCple

@@ -666,11 +666,73 @@ void BenchSort3()
    std::cout << "DONE BenchSort3\n";
 }
 
+void PartitionRenato(int argc,char** argv)
+{
+    std::string aName;
+    double  aPropSzW=0.1,aSeuil=75;
+    double aPropExag = 0.1;
+    int aNbIter = 3;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aName,"Name Input"),
+        LArgMain()  <<  EAM(aPropSzW,"PropSzW",true,"Prop Size of W, def =0.1")
+                     <<  EAM(aSeuil,"Seuil",true,"Threshold beetween Black & White, Def=75")
+    );
+    
+
+    Tiff_Im aTIn = Tiff_Im::UnivConvStd(aName);
+    Pt2di aSz = aTIn.sz();
+    int aSzW = round_ni((euclid(aSz)*aPropSzW) / sqrt(aNbIter));
+    Im2D_REAL4 anIm0(aSz.x,aSz.y);
+    Im2D_REAL4 anIm1(aSz.x,aSz.y);
+    Im2D_U_INT1 aImInside(aSz.x,aSz.y,1);
+
+    ELISE_COPY(anIm0.all_pts(),255-aTIn.in(),anIm0.out());
+
+    int aNbF = 3;
+    for (int aKF=0 ; aKF<aNbF ; aKF++)
+    {
+        Im2D_REAL4 anImFond(aSz.x,aSz.y);
+        Fonc_Num aFIn = anIm0.in(0);
+        for (int aK=0 ; aK<aNbIter ; aK++)
+           aFIn = (rect_som(aFIn,aSzW)*aImInside.in(0)) / Max(1.0,rect_som(aImInside.in(0),aSzW));
+
+       ELISE_COPY(anImFond.all_pts(),aFIn,anImFond.out());
+       if (aKF == (aNbF-1))
+       {
+              Fonc_Num aF = anIm0.in()-anImFond.in();
+              aF = aF / aSeuil;
+              aF = (aF -0.1) / (1-2*aPropExag);
+              aF = Max(0.0,Min(1.0,aF));
+              ELISE_COPY(anIm1.all_pts(),255.0 *(1-aF),anIm1.out());
+       }
+       else
+       {
+            ELISE_COPY
+            (
+                 aImInside.all_pts(),
+                 anIm0.in() < anImFond.in()+aSeuil,
+                 aImInside.out()
+            );
+       }
+       
+    }
+    
+
+
+    Tiff_Im::Create8BFromFonc(std::string("Bin-")+StdPrefix(aName)+".tif",aTIn.sz(),anIm1.in());
+}
+
+
+
+
 
 int MPDtest_main (int argc,char** argv)
 {
-   BenchSort3();
+   PartitionRenato(argc,argv);
 /*
+   B/EenchSort3();
     Bench_NewOri();
 
     TestSVD3x3(); 

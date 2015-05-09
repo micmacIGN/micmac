@@ -114,7 +114,7 @@ bool TestFileOpen(const std::string & aFile)
 // afin que des process concurent ne s'ecrasent pas
 //
 
-std::string Dir2Write()
+std::string Dir2Write(const std::string  DirChantier)
 {
     static bool First = true;
     static std::string aRes;
@@ -122,13 +122,13 @@ std::string Dir2Write()
     {
         First = false;
 
-        aRes = "./Tmp-MM-Dir/TestOpenMMmmmm" + mm_getstrpid();
+        aRes =  DirChantier + "Tmp-MM-Dir/TestOpenMMmmmm" + mm_getstrpid();
         if (TestFileOpen(aRes))
-           return "./Tmp-MM-Dir/";
+           return  DirChantier + "Tmp-MM-Dir/";
 
-        aRes = "./TestOpenMMmmmm" + mm_getstrpid();
+        aRes = DirChantier +  "TestOpenMMmmmm" + mm_getstrpid();
         if (TestFileOpen(aRes))
-           return "./";
+           return  DirChantier;
 
         for (int aK=0 ; aK<MemoArgc; aK++)
         {
