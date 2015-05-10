@@ -373,7 +373,7 @@ class cElNuage3DMaille : public cCapture3D
                     const Pt3dr& anOffset = Pt3dr(0,0,0)
                ) ;
 
-        void Std_AddAttrFromFile(const std::string & aName,double aDyn=1,double aScale=1);
+        void Std_AddAttrFromFile(const std::string & aName,double aDyn=1,double aScale=1,bool ForceRGB=false);
 
 
         cElNuage3DMaille * ReScaleAndClip(double aScale);
@@ -481,7 +481,8 @@ class cElNuage3DMaille : public cCapture3D
                                int                              aFlagChannel,
                                const std::vector<std::string> & aNameProps,
                                double aDyn=1,
-                               double aScale=1
+                               double aScale=1,
+                               bool ForceRGB=false
                              );
         void PlyHeader(FILE *,bool aModeBin) const;
         void PlyPutDataVertex(FILE *,bool aModeBin, int aAddNormale,bool DoublePrec,const Pt3dr & anOffset) const;

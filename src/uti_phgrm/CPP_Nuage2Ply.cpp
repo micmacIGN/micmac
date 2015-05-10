@@ -77,6 +77,7 @@ int Nuage2Ply_main(int argc,char ** argv)
 
     std::string  aNeighMask;
     int NormByC = 0;
+    bool ForceRGB=true;
 
     ElInitArgMain
     (
@@ -102,6 +103,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work properly with meshlab or cloud compare")
                     << EAM(anOffset,"Offs", true, "Offset in points to limit 32 Bits accuracy problem")
                     << EAM(aNeighMask,"NeighMask",true,"Mask for neighboors when larger than point selection (for normals computation)")
+                    << EAM(ForceRGB,"ForceRGB",true,"Force RGB even with gray image (Def=true because of bug in QT)")
     );
 
     if (!MMVisualMode)
@@ -157,7 +159,7 @@ int Nuage2Ply_main(int argc,char ** argv)
             }
             //std::cout << "RR " << aRx <<  " " << aRy << " SZss " << aSzNuage << aSzImage << "\n"; getchar();
        }
-       aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
+       aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio,ForceRGB);
     }
 
     // ATTENTION , SI &aNeighMask => IL FAUT QUE aRes soit egal a aNuage SANS passer par ReScaleAndClip

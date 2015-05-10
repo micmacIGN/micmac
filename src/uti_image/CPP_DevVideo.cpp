@@ -50,7 +50,9 @@ class cAppliDevideo;
 // Im*_Ok => OK
 // Im*_Nl => Image Nulle (eliminee)
 
+// POUR L'INSTANT LES IMAGES DOIVENT AVOIR UN NOM FIGE AVEC Im_0000_
 
+// ffmpeg -i MVI_0101.MOV Im_0000_%5d_Ok.png
 
 //=================================================
 
@@ -480,7 +482,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     mMMPatImOk = NamePat("Ok");
 
 
-//    *** std::cout << mMMPatImDev << " " << mMMPatImOk << "\n"; getchar();
+// std::cout << mMMPatImDev << " " << mMMPatImOk << "\n"; getchar();
     {
         const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImDev);
         for (int aK=0 ; aK<int(aVN->size()) ; aK++)

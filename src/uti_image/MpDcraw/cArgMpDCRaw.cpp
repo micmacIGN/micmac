@@ -342,6 +342,33 @@ void  cArgMpDCRaw::DevJpg()
 
     VoidSystem(aCom.c_str());
 
+    // Permet de forcer la creation de RGB meme si image en Niv Gris;  inhibe car gere au niveau du ply;
+    // a remettre ei autre logiciel a probleme
+    if (0 && (! EnGray))
+    {
+        Tiff_Im aTF(aTmp.c_str());
+        int aNbC = aTF.nb_chan();
+        if (aNbC != 3)
+        {
+            std::string aTmp2 = StdPrefix(aTmp+"Gray.tif");
+            ELISE_fp::MvFile(aTmp,aTmp2);
+            aTF = Tiff_Im(aTmp2.c_str());
+            Tiff_Im aTFCol
+                    (
+                        aTmp.c_str(),
+                        aTF.sz(),
+                        aTF.type_el(),
+                        Tiff_Im::No_Compr,
+                        Tiff_Im::RGB
+                    );
+// ¿Tiff_Im::Tiff_Im(const char*, Pt2di, Tiff_Im::COMPR_TYPE, GenIm::type_el, Tiff_Im::PH_INTER_TYPE)¿
+// Tiff_Im::Tiff_Im(const char*, Pt2di, GenIm::type_el, Tiff_Im::COMPR_TYPE, Tiff_Im::PH_INTER_TYPE, L_Arg_Opt_Tiff)
+
+             ELISE_COPY(aTFCol.all_pts(),Virgule(aTF.in(),aTF.in(),aTF.in()),aTFCol.out());
+             ELISE_fp::RmFile(aTmp2);
+        }
+    }
+
 
     Tiff_Im aFTmp(aTmp.c_str());
     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
