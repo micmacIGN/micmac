@@ -1264,13 +1264,14 @@ void cElNuage3DMaille::Std_AddAttrFromFile
      (
            const std::string &            aName,
            double aDyn,
-           double aScale
+           double aScale,
+           bool   ForceRGB
      )
 {
     std::vector<std::string> aVS;
     Tiff_Im aTF = Tiff_Im::UnivConvStd(aName);
 
-    if (aTF.phot_interp()==Tiff_Im::RGB)
+    if ((aTF.phot_interp()==Tiff_Im::RGB) || ForceRGB)
     {
        AddGrpeLyaer(3,NameWithoutDir(aName));
        aVS.push_back("red");
@@ -1282,7 +1283,7 @@ void cElNuage3DMaille::Std_AddAttrFromFile
        AddGrpeLyaer(1,NameWithoutDir(aName));
        aVS.push_back("gray");
     }
-    AddAttrFromFile(aName,0xFFFF,aVS,aDyn,aScale);
+    AddAttrFromFile(aName,0xFFFF,aVS,aDyn,aScale,ForceRGB);
 }
 
 void cElNuage3DMaille::AddAttrFromFile
@@ -1291,13 +1292,15 @@ void cElNuage3DMaille::AddAttrFromFile
            int                              aFlagChannel,
            const std::vector<std::string> & aNameProps,
            double aDyn,
-           double aScale
+           double aScale,
+           bool ForceRGB
      )
 {
     AssertNoEmptyData();
     Tiff_Im aTF = Tiff_Im::UnivConvStd(aName);
     GenIm::type_el aTEl = aTF.type_el();
-    int aNbC = aTF.nb_chan();
+    int aNbCOri= aTF.nb_chan();
+    int aNbC = ForceRGB ? 3 : aNbCOri ;
 
     Output anOutGlog = Output::onul(1); // Initialisation par ce qu'il faut
     int aNbAdded = 0;
@@ -1320,6 +1323,8 @@ void cElNuage3DMaille::AddAttrFromFile
     }
 
     Fonc_Num aF = aTF.in_proj();
+
+
     if (aScale !=1)
     {
         aF = StdFoncChScale
@@ -1337,6 +1342,11 @@ void cElNuage3DMaille::AddAttrFromFile
     }
     aF = Tronque(aTEl,aF);
 
+
+    if (ForceRGB && (aNbCOri==1))
+    {
+        aF = Virgule(aF,aF,aF);
+    }
     // ELISE_COPY(aTF.all_pts(),aF,anOutGlog);
     ELISE_COPY(rectangle(Pt2di(0,0),mSzData),aF,anOutGlog);
 }
