@@ -348,6 +348,23 @@ class cScalEEF : public cElemEqFormelle,
 // gcc: warning: non-static data member initializers only available with -std=c++11 or -std=gnu++11
 #define ThePropERRInit       0.80
 
+class cEqBundleBase;
+
+class cEqSupBB
+{
+     public :
+       cEqSupBB(cEqBundleBase & ,int aK);
+
+       cEqBundleBase &       mBB;
+       std::string           mNameEq3;
+       cSetEqFormelles *     mSetEq;
+       cSetEqFormelles *     mSetEq3;  
+};
+
+
+
+
+
 class cEqBundleBase  : public cNameSpaceEqF,
                        public cObjFormel2Destroy
 {
@@ -362,11 +379,17 @@ class cEqBundleBase  : public cNameSpaceEqF,
        double AddEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel,double aPds);
        double ResiduEquation(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel);
        const std::string & NameEq1() const;
+
+       bool UseAccelCoordCste() const {return mUseAccelCoordCste;}
+       const std::string PostAccel () const {return mPostAccel;}
     protected :
        // virtual Pt2dr    AddEquationGen(const Pt3dr & aP1,const Pt3dr & aP2,double aPds,bool WithEq) = 0;
 
        double    AddEquationGen(const std::vector<Pt2dr> & aP2,const std::vector<bool> & aVSel, double aPds,bool WithEq);
        double    AddEquation12Gen(const Pt2dr & aP1,const Pt2dr & aP2, double aPds,bool WithEq);
+
+
+       bool  mUseAccelCoordCste;
 
        ElMatrix<double> mR2;
        double           mFoc;
@@ -398,13 +421,19 @@ class cEqBundleBase  : public cNameSpaceEqF,
        cSubstitueBlocIncTmp  mSBIT12;
        ElRotation3D          mCurRot;
 
-       std::string           mNameEq3;
 };
 
 
+cEqSupBB::cEqSupBB(cEqBundleBase & aBB,int aK) :
+     mBB      (aBB),
+     mNameEq3 ( "cEqBBCamThird" + mBB.PostAccel ())
+{
+
+}
 
 
 cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste) :
+    mUseAccelCoordCste (UseAccelCoordCste),
     mR2         (1,1),
     mFoc        (aFoc),
     mSetEq      (new cSetEqFormelles(TypeSysLin)),
@@ -424,9 +453,7 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
     mEqP3I      (mSetEq->Pt3dIncTmp()),
     mEq2P3I     (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
     mSBIT12     (*mEqP3I),
-    mCurRot     (ElRotation3D::Id),
-
-    mNameEq3    ("cEqBBCamThird" + mPostAccel)
+    mCurRot     (ElRotation3D::Id)
 {
   //  std::cout << "AcEqBundleBase::cEqBundleBase \n"; getchar();
   AllowUnsortedVarIn_SetMappingCur = true;
