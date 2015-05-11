@@ -226,7 +226,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
-       aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
+       // aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
        aRes.push_back(cMMCom("cod",cod_main," Do some stuff"));
        aRes.push_back(cMMCom("vic",vicod_main," Do some stuff"));
        aRes.push_back(cMMCom("genmail",genmail_main," Do some stuff"));
