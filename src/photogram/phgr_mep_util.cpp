@@ -353,13 +353,18 @@ class cEqBundleBase;
 class cEqSupBB
 {
      public :
-       cEqSupBB(cEqBundleBase & ,int aK);
+       cEqSupBB(cEqBundleBase & ,int aK,const ElRotation3D & aRot);
 
-       cEqBundleBase &       mBB;
+       cEqBundleBase *       mBB;
        std::string           mNameEq3;
-       cSetEqFormelles *     mSetEq;
        cSetEqFormelles *     mSetEq3;  
+       ElRotation3D          mR0;
+       cPt3dEEF *            mC3;
+       cPt3dEEF *            mW3;
+       cP2d_Etat_PhgrF       mI3;  
+       cEqfP3dIncTmp *       mEq3P3I;
 };
+
 
 
 
@@ -381,7 +386,12 @@ class cEqBundleBase  : public cNameSpaceEqF,
        const std::string & NameEq1() const;
 
        bool UseAccelCoordCste() const {return mUseAccelCoordCste;}
+       bool DoGenCode() const {return mDoGenCode;}
        const std::string PostAccel () const {return mPostAccel;}
+
+       cSetEqFormelles * SetEqSec() {return mDoGenCode ? new cSetEqFormelles(TypeSysLin) : mSetEq;}
+       cEqfP3dIncTmp   * PtIncSec(cSetEqFormelles * aSetSec)  {return mDoGenCode ? aSetSec->Pt3dIncTmp() : mEqP3I;}
+
     protected :
        // virtual Pt2dr    AddEquationGen(const Pt3dr & aP1,const Pt3dr & aP2,double aPds,bool WithEq) = 0;
 
@@ -390,6 +400,7 @@ class cEqBundleBase  : public cNameSpaceEqF,
 
 
        bool  mUseAccelCoordCste;
+       bool  mDoGenCode;
 
        ElMatrix<double> mR2;
        double           mFoc;
@@ -424,20 +435,30 @@ class cEqBundleBase  : public cNameSpaceEqF,
 };
 
 
-cEqSupBB::cEqSupBB(cEqBundleBase & aBB,int aK) :
-     mBB      (aBB),
-     mNameEq3 ( "cEqBBCamThird" + mBB.PostAccel ())
+cEqSupBB::cEqSupBB(cEqBundleBase & aBB,int aK,const ElRotation3D & aRot) :
+     mBB       (&aBB),
+     mNameEq3  ("cEqBBCamThird" + mBB->PostAccel ()),
+     mSetEq3   (mBB->SetEqSec()),
+     mR0       (aRot),
+     mC3       (new cPt3dEEF(*mSetEq3,mR0.tr(),mBB->UseAccelCoordCste())),
+     mW3       (new cPt3dEEF(*mSetEq3,Pt3dr(0,0,0),mBB->UseAccelCoordCste())),
+     mI3       ("I" + ToString(aK)),
+     mEq3P3I   (mBB->PtIncSec(mSetEq3))
 {
-
+    mC3->IncInterv().SetName("C3");
+    mW3->IncInterv().SetName("Omega3");
+    // mLInterv1
 }
 
 
 cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste) :
     mUseAccelCoordCste (UseAccelCoordCste),
+    mDoGenCode         (DoGenCode),
     mR2         (1,1),
     mFoc        (aFoc),
     mSetEq      (new cSetEqFormelles(TypeSysLin)),
-    mSetEq2     ( DoGenCode ? new cSetEqFormelles(TypeSysLin) : mSetEq),
+    // mSetEq2     ( DoGenCode ? new cSetEqFormelles(TypeSysLin) : mSetEq),
+    mSetEq2     (SetEqSec()),
     mW2         (new cPt3dEEF(*mSetEq2,Pt3dr(0,0,0),UseAccelCoordCste)),
     mB2         ("VecB2"),
     mc2         (new cScalEEF (*mSetEq2,0,UseAccelCoordCste)),
@@ -451,7 +472,7 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
     mNameEq1    ("cEqBBCamFirst" + mPostAccel),
     mNameEq2    ("cEqBBCamSecond" + mPostAccel),
     mEqP3I      (mSetEq->Pt3dIncTmp()),
-    mEq2P3I     (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
+    mEq2P3I     (PtIncSec(mSetEq2)), //  (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
     mSBIT12     (*mEqP3I),
     mCurRot     (ElRotation3D::Id)
 {
