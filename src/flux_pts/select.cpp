@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -92,8 +92,8 @@ template <class Type> const Pack_Of_Pts * Std_Flux_Interface<Type>::next()
 }
 
 #if ElTemplateInstantiation
-	template class Std_Flux_Of_Points<INT>;
-	template class Std_Flux_Of_Points<REAL>;
+    template class Std_Flux_Of_Points<INT>;
+    template class Std_Flux_Of_Points<REAL>;
 #endif
 
 template class Std_Flux_Interface<INT>;
@@ -222,9 +222,9 @@ const Pack_Of_Pts * select_RLE_Computed::next()
                 _finished = true;
                 return _pack;
              }
-             Std_Pack_Of_Pts<INT> *pack_vals  = 
+             Std_Pack_Of_Pts<INT> *pack_vals  =
                    SAFE_DYNC(Std_Pack_Of_Pts<INT>  *,const_cast<Pack_Of_Pts *>(_fonc->values(pack_gen)));
-    
+
              pack_gen->select_tab(_pack,pack_vals->_pts[0]);
         }
         return _pack;
@@ -237,7 +237,7 @@ const Pack_Of_Pts * select_RLE_Computed::next()
 
         Std_Pack_Of_Pts<INT> *pack_vals  =
              SAFE_DYNC(Std_Pack_Of_Pts<INT>*,const_cast<Pack_Of_Pts *>(_fonc->values(pack_gen)));
-   
+
         _pack->set_nb(0);
         pack_gen->select_tab(_pack,pack_vals->_pts[0]);
         return _pack;
@@ -267,7 +267,7 @@ select_RLE_Computed::select_RLE_Computed
      if (flx->type() == Pack_Of_Pts::real)
         _pack =  Std_Pack_Of_Pts<REAL>::new_pck(flx->dim(),sz_buf());
      else
-	    _pack =  Std_Pack_Of_Pts<INT>::new_pck(flx->dim(),sz_buf());
+        _pack =  Std_Pack_Of_Pts<INT>::new_pck(flx->dim(),sz_buf());
 
     _delta_buf = sz_buf() - flx->sz_buf();
 }
@@ -308,7 +308,7 @@ Flux_Pts_Computed * select_Not_Comp::compute(const Arg_Flux_Pts_Comp & arg)
 {
     Flux_Pts_Computed * flx;
     Fonc_Num_Computed * fonc;
-    
+
     flx =  _flux.compute(arg);
     Arg_Fonc_Num_Comp arg_fonc = Arg_Fonc_Num_Comp(flx);
     fonc = _fonc.compute(arg_fonc);
@@ -318,11 +318,11 @@ Flux_Pts_Computed * select_Not_Comp::compute(const Arg_Flux_Pts_Comp & arg)
 
     ASSERT_TJS_USER
     (     fonc->idim_out() == 1,
-          "select can handle only 1_dimentionnal fonc"
+          "select can handle only 1_dimensional fonc"
     );
 
     bool rebuf = (flx->type() == Pack_Of_Pts::rle) ? _rebuf_rle : _rebuf_not_rle;
-    Flux_Pts_Computed * res = 
+    Flux_Pts_Computed * res =
            new  select_RLE_Computed(flx,fonc,rebuf);
 
     return  rebuf                                      ?
@@ -340,13 +340,13 @@ Flux_Pts select(Flux_Pts flx,Fonc_Num fonc)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -356,17 +356,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -83,7 +83,7 @@ Tiff_Im gray_file_red_centred(Tiff_Im aTif,const std::string & aName)
 }
 
 
- // Handle "only" a dimention max of 30 for bitmaps.
+ // Handle "only" a dimension max of 30 for bitmaps.
 
 INT PTS_00000000000000[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 

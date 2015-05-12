@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
    Cas d'utilisation des espaces :
 
-      - Ful Im1  - Ful Im2  
+      - Ful Im1  - Ful Im2
 
       - Ful Im1 Decoupe  -  Im2 asservi
 
@@ -58,7 +58,7 @@ Header-MicMac-eLiSe-25/06/2007*/
          - asservissement avec BoxIm (caso
 
 
-        - Decoupage + 
+        - Decoupage +
 */
 
 #ifndef _ELISE_DIGEO_H_
@@ -99,11 +99,11 @@ class cOctaveDigeo;
 template <class Type> class cTplOctDig ;
 
 /*
-        std::vector<cTplImInMem<Type> *>  mVTplIms; 
+        std::vector<cTplImInMem<Type> *>  mVTplIms;
         std::vector<Type **>  mVDatas;
         Type ***              mCube;
         cTplImInMem<Type> *  mImBase;   => premiere image de l'octave
-    
+
 */
 
 
@@ -198,7 +198,7 @@ Im1D_REAL8 DeConvol(int aDemISz2,Im1D_REAL8 aI1,Im1D_REAL8 aI3);
 
 // Convolution C1 et C2 = indexe 0,  lent ; pour verif DeConvol
 Im1D_REAL8 Convol(Im1D_REAL8 aI1,int aC1,Im1D_REAL8 aI2,int aC2);
-// Parametrage stantdard 
+// Parametrage stantdard
 Im1D_REAL8 Convol(Im1D_REAL8 aI1,Im1D_REAL8 aI2);
 
 // Force l'image �  une integrale donnee
@@ -303,21 +303,21 @@ class cImInMem
          int mN0, mN1, mN2, mN3, mN4, mN5, mN6, mN7;
 
          int mFileTheoricalMaxValue;
-         
+
          unsigned char *mUsed_points_map;
      private :
         cImInMem(const cImInMem &);  // N.I.
      public:
-			virtual bool load_raw( const string &i_filename ){ return true; }
-	 #ifdef __DEBUG_DIGEO_STATS
-	    unsigned int mCount_eTES_Uncalc,
-			 mCount_eTES_instable_unsolvable,
-			 mCount_eTES_instable_tooDeepRecurrency,
-			 mCount_eTES_instable_outOfImageBound,
-			 mCount_eTES_GradFaible,
-			 mCount_eTES_TropAllonge,
-			 mCount_eTES_Ok;
-	 #endif
+            virtual bool load_raw( const string &i_filename ){ return true; }
+     #ifdef __DEBUG_DIGEO_STATS
+        unsigned int mCount_eTES_Uncalc,
+             mCount_eTES_instable_unsolvable,
+             mCount_eTES_instable_tooDeepRecurrency,
+             mCount_eTES_instable_outOfImageBound,
+             mCount_eTES_GradFaible,
+             mCount_eTES_TropAllonge,
+             mCount_eTES_Ok;
+     #endif
 };
 
 
@@ -379,7 +379,7 @@ template <class Type> class cTplImInMem : public cImInMem
                    cTplImInMem<Type> & aNext1,
                    cTplImInMem<Type> & aNext2
              );
-         static void MakeClassConvolSpec(bool Increm,double aSigma,FILE *,FILE *,tBase* aFilter,int aDeb,int aFin,int aNbShit); 
+         static void MakeClassConvolSpec(bool Increm,double aSigma,FILE *,FILE *,tBase* aFilter,int aDeb,int aFin,int aNbShit);
      private :
 
         void ResizeBasic(const Pt2di & aSz);
@@ -389,17 +389,17 @@ template <class Type> class cTplImInMem : public cImInMem
 
 /*
         SetConvolBordX :
- 
-          Pour la "colonne" X, calcul dans ImOut toute les convolution en gerant 
+
+          Pour la "colonne" X, calcul dans ImOut toute les convolution en gerant
        les effets de bord :
 
        aDebX  , aFinX : borne du filtre, typiquement de -SzKer , + SzKer (inclus)
 
-  Utilise 
-  
+  Utilise
+
 template <class tBase> tBase ClipForConvol(int aSz,int aKXY,tBase * aData,int & aDeb,int & aFin) :
 
-    Clip l'intervalle (genre [-SzKe,+SzK] au depart) pour que la convol ne deborde 
+    Clip l'intervalle (genre [-SzKe,+SzK] au depart) pour que la convol ne deborde
     pas de [0,aSz[
 
 
@@ -461,8 +461,8 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
 
          void saveDoG( const std::string &i_directory ) const;
          void loadDoG( const std::string &i_directory );
-         
-			bool load_raw( const string &i_filename );
+
+            bool load_raw( const string &i_filename );
 
          cTplOctDig<Type> & mTOct;
          tIm    mIm;
@@ -473,7 +473,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
          Type **    mData;
          tBase      mDogPC;  // Dif of Gauss du pixel courrant
 
-         std::vector<tBase> mDoG;	 
+         std::vector<tBase> mDoG;
      private :
           cTplImInMem(const cTplImInMem<Type> &);  // N.I.
           void ExploiteExtrem(int anX,int anY);
@@ -558,7 +558,7 @@ class cOctaveDigeo
         bool saveGaussians( string i_directory, const string &i_basename ) const;
     protected :
         static cOctaveDigeo * AllocGen(cOctaveDigeo * Mere,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
-       
+
         cOctaveDigeo(cOctaveDigeo * OctUp,GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax);
 
 
@@ -590,7 +590,7 @@ template <class Type> class cTplOctDig  : public cOctaveDigeo
 
          cImInMem * FirstImage();
          cTplImInMem<Type> * TypedFirstImage();
-        
+
 
          cOctaveDigeo * AllocDown(GenIm::type_el,cImDigeo &,int aNiv,Pt2di aSzMax) ;
          cTplImInMem<Type> * TypedGetImOfSigma(double aSig);
@@ -627,14 +627,14 @@ Fonc_Num norm_grad(Fonc_Num f);
 class cInterfImageAbs
 {
 public:
-	static cInterfImageAbs* create(std::string const &aName);	
-	
-	virtual Pt2di sz()const=0;
-	virtual int bitpp()const=0;
-	virtual GenIm::type_el type_el()const=0;
-	virtual double Som()const=0;
-	virtual TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const=0;
-	virtual TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const=0;
+    static cInterfImageAbs* create(std::string const &aName);
+
+    virtual Pt2di sz()const=0;
+    virtual int bitpp()const=0;
+    virtual GenIm::type_el type_el()const=0;
+    virtual double Som()const=0;
+    virtual TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const=0;
+    virtual TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const=0;
 
 };
 
@@ -643,26 +643,26 @@ class cInterfImageTiff:public cInterfImageAbs
 private:
     std_unique_ptr<Tiff_Im> mTifF;
 public:
-	cInterfImageTiff(std::string const &aName);
-	
-	~cInterfImageTiff()
-	{}
-	Pt2di sz()const
-	{
-		return mTifF->sz();
-	}
-	int bitpp()const
-	{
-		return mTifF->bitpp();
-	}
-	GenIm::type_el type_el()const
-	{
-		return mTifF->type_el();
-	}
-	
-	double Som()const;
-	TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const;
-	TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const;
+    cInterfImageTiff(std::string const &aName);
+
+    ~cInterfImageTiff()
+    {}
+    Pt2di sz()const
+    {
+        return mTifF->sz();
+    }
+    int bitpp()const
+    {
+        return mTifF->bitpp();
+    }
+    GenIm::type_el type_el()const
+    {
+        return mTifF->type_el();
+    }
+
+    double Som()const;
+    TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const;
+    TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const;
 };
 
 class cInterfImageLoader:public cInterfImageAbs
@@ -670,18 +670,18 @@ class cInterfImageLoader:public cInterfImageAbs
 private:
     std_unique_ptr<cInterfModuleImageLoader> mLoader;
 public:
-	cInterfImageLoader(std::string const &aName);
-	~cInterfImageLoader()
-	{}
-	Pt2di sz()const
-	{
-		return Std2Elise(mLoader->Sz(1));
-	}
-	int bitpp()const;
-	GenIm::type_el type_el()const;
-	double Som()const;
-	TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const;
-	TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const;
+    cInterfImageLoader(std::string const &aName);
+    ~cInterfImageLoader()
+    {}
+    Pt2di sz()const
+    {
+        return Std2Elise(mLoader->Sz(1));
+    }
+    int bitpp()const;
+    GenIm::type_el type_el()const;
+    double Som()const;
+    TIm2D<float,double>* cropReal4(Pt2di const &P0, Pt2di const &SzCrop)const;
+    TIm2D<U_INT1,INT>* cropUInt1(Pt2di const &P0, Pt2di const &SzCrop)const;
 };
 
 
@@ -703,7 +703,7 @@ class cImDigeo
         cAppliDigeo &  Appli();
         const Box2di & BoxImCalc() const;
 
- // Pour pouvoir se dimentionner au "pire" des cas, chaque image est
+ // Pour pouvoir se dimensionner au "pire" des cas, chaque image est
  // d'abord notifiee de l'existence d'une box
         void NotifUseBox(const Box2di &);
         void AllocImages();
@@ -716,8 +716,8 @@ class cImDigeo
        const cImageDigeo &  IMD();  // La structure XML !!!
        double Resol() const;
        cVisuCaracDigeo  *  CurVisu();
-       cOctaveDigeo & GetOctOfDZ(int aDZ); 
-       cOctaveDigeo * SVPGetOctOfDZ(int aDZ); 
+       cOctaveDigeo & GetOctOfDZ(int aDZ);
+       cOctaveDigeo * SVPGetOctOfDZ(int aDZ);
 
        const Pt2di& SzCur() const;
        const Pt2di& P0Cur() const;
@@ -734,9 +734,9 @@ class cImDigeo
        double SigmaN() const;
        double InitialDeltaSigma() const;
 
-	// Modif Greg pour le support JP2
-	//Tiff_Im TifF();
-	int bitpp()const{return mInterfImage->bitpp();}
+    // Modif Greg pour le support JP2
+    //Tiff_Im TifF();
+    int bitpp()const{return mInterfImage->bitpp();}
      private :
 
 
@@ -750,8 +750,8 @@ class cImDigeo
         int                           mNum;
         std::vector<cImInMem *>       mVIms;
 //        Tiff_Im *                     mTifF;
-	cInterfImageAbs *             mInterfImage;
-		double                        mResol;
+    cInterfImageAbs *             mInterfImage;
+        double                        mResol;
 
         Pt2di                         mSzGlobR1;
         Box2di                        mBoxGlobR1;
@@ -770,14 +770,14 @@ class cImDigeo
         bool                         mG2MoyIsCalc;
         double                       mGradMoy;
         double                       mDyn;
-		REAL8			  			 mMaxValue; // valeur max d'un pixel, utilisée pour la normalisation du gradient
+        REAL8			  			 mMaxValue; // valeur max d'un pixel, utilisée pour la normalisation du gradient
         Im2DGen *                    mFileInMem;
         double                       mSigma0; // sigma of the first level of each octave (in the octave's space)
         double                       mSigmaN; // nominal sigma value of source image
         double                       mInitialDeltaSigma;
      private :
         cImDigeo(const cImDigeo &);  // N.I.
-        
+
 };
 
 template <class Type> class cConvolSpec
@@ -806,7 +806,7 @@ template <class Type> class cConvolSpec
     private :
         bool Match(tBase *  aDFilter,int aDebX,int aFinX,int  aNbShitX,bool ForGC);
         static std::vector<cConvolSpec<Type> *>   theVec;
-        
+
 
         int mNbShift;
         int mDeb;
@@ -818,7 +818,7 @@ template <class Type> class cConvolSpec
         tBase *             mDataCoeff;
         bool                mSym;
         bool                mFirstGet;
-        
+
 
         cConvolSpec(const cConvolSpec<Type> &); // N.I.
 };
@@ -831,16 +831,16 @@ template <class Type> class cConvolSpec
 class cVisuCaracDigeo
 {
      public :
-        cVisuCaracDigeo(cAppliDigeo &,Pt2di aSz,int aZ,Fonc_Num aF,const cParamVisuCarac &); 
+        cVisuCaracDigeo(cAppliDigeo &,Pt2di aSz,int aZ,Fonc_Num aF,const cParamVisuCarac &);
         void Save(const std::string&);
-        void SetPtsCarac 
+        void SetPtsCarac
              (
                  const Pt2dr & aP,
                  bool aMax,
                  double aSigma,
                  int  aIndSigma,
                  eTypeExtreSift
-                 
+
              );
      private :
         cAppliDigeo &      mAppli;
@@ -856,7 +856,7 @@ class cVisuCaracDigeo
 
 class cAppliDigeo : public cParamDigeo
 {
-    public : 
+    public :
        friend cAppliDigeo * DigeoCPP
               (
                     const std::string & aFullNameIm,
@@ -864,7 +864,7 @@ class cAppliDigeo : public cParamDigeo
               );
 
        cAppliDigeo
-       ( 
+       (
               cResultSubstAndStdGetFile<cParamDigeo> aParam,
               cAppliDigeo *                          aMaterAppli,
               cModifGCC *                            aModif,
@@ -958,16 +958,16 @@ template <> inline void cAppliDigeo::upNbSlowConvolutionsUsed<REAL4>() { mNbSlow
 //#define __WITH_GAUSS_SEP_FILTER
 
 #ifdef __WITH_GAUSS_SEP_FILTER
-	#define InstantiateClassTplDigeo(aClass)\
-	template  class aClass<U_INT2>;\
-	template  class aClass<REAL4>;\
-	template  class aClass<U_INT1>;\
-	template  class aClass<REAL8>;\
-	template  class aClass<INT>;
+    #define InstantiateClassTplDigeo(aClass)\
+    template  class aClass<U_INT2>;\
+    template  class aClass<REAL4>;\
+    template  class aClass<U_INT1>;\
+    template  class aClass<REAL8>;\
+    template  class aClass<INT>;
 #else
-	#define InstantiateClassTplDigeo(aClass)\
-	template  class aClass<U_INT2>;\
-	template  class aClass<REAL4>;
+    #define InstantiateClassTplDigeo(aClass)\
+    template  class aClass<U_INT2>;\
+    template  class aClass<REAL4>;
 #endif
 
 // =========================  INTERFACE EXTERNE ======================
@@ -1022,7 +1022,7 @@ correspondances d'images pour la reconstruction du relief.
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1033,16 +1033,16 @@ titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
 associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
 manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
 utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
 logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -41,15 +41,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /**
  * SimplePredict: project ground points on oriented cameras
- * 
+ *
  * Inputs:
  *  - pattern of images
  *  - Ori
  *  - ground points xml file
- * 
+ *
  * Output:
  *  - 2d predicted points on all images
- * 
+ *
  * Call example:
  *   mm3d SimplePredict ".*.tif" Ori-Basc/ Polygone_GCP.xml
  *
@@ -64,7 +64,7 @@ Header-MicMac-eLiSe-25/06/2007*/
  *   mm3d SaisieAppuisInitQT "GS1_15_1_60_rrx00.1.*.tif" Ori-RadialStd/ Dico-Appuis_Polyg2009.xml saisieInit.xml
  *   GCPBascule ".*.tif" Ori-RadialStd/ Ori-Basc/ Polygone_GCP.xml saisieInit.xml
  *   mm3d SimplePredict ".*.tif" Ori-Ori-Basc/ Polygone_GCP.xml  ExportPolyIGN=1 PrefixeNomImageSize=18
- * 
+ *
  * */
 
 /**
@@ -149,6 +149,8 @@ int SimplePredict_main(int argc,char ** argv)
                  << EAM(aPrefixeNomImageSize,"PrefixeNomImageSize",true,"Size of PrefixeNomImage in param.txt")
     );
 
+  if (MMVisualMode) return EXIT_SUCCESS;
+
   MakeFileDirCompl(aOriIn);
   std::cout<<"OrinIn dir: "<<aOriIn<<std::endl;
 
@@ -186,7 +188,7 @@ int SimplePredict_main(int argc,char ** argv)
 
   //create structure for 2d points:
   cSetOfMesureAppuisFlottants aMes2dList;
-  
+
   std::ofstream outFile;//for ExportPolyIGN
 
   for (unsigned int i=0;i<aSetIm.size();i++)
@@ -238,7 +240,7 @@ int SimplePredict_main(int argc,char ** argv)
 
 /* Footer-MicMac-eLiSe-25/06/2007
 
-   Ce logiciel est un programme informatique servant à la mise en
+   Ce logiciel est un programme informatique servant �  la mise en
    correspondances d'images pour la reconstruction du relief.
 
    Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -254,17 +256,17 @@ int SimplePredict_main(int argc,char ** argv)
    titulaire des droits patrimoniaux et les concédants successifs.
 
    A cet égard  l'attention de l'utilisateur est attirée sur les risques
-   associés au chargement,  à l'utilisation,  à la modification et/ou au
-   développement et à la reproduction du logiciel par l'utilisateur étant
-   donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-   manipuler et qui le réserve donc à des développeurs et des professionnels
+   associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+   développement et �  la reproduction du logiciel par l'utilisateur étant
+   donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+   manipuler et qui le réserve donc �  des développeurs et des professionnels
    avertis possédant  des  connaissances  informatiques approfondies.  Les
-   utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-   logiciel à leurs besoins dans des conditions permettant d'assurer la
+   utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+   logiciel �  leurs besoins dans des conditions permettant d'assurer la
    sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-   à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+   �  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-   Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+   Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
    pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
    termes.
    Footer-MicMac-eLiSe-25/06/2007/*/
