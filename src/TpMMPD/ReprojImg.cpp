@@ -45,12 +45,12 @@ Header-MicMac-eLiSe-25/06/2007*/
  *  - correlation directory with reference image DEM
  *  - reference image name
  *  - name of image to reproject
- * 
+ *
  * Output:
  *  - image reprojected into reference orientation
- * 
+ *
  * */
- 
+
 //color value class
 class cReprojColor
 {
@@ -130,7 +130,7 @@ cReprojColorImg::~cReprojColorImg()
     delete mImgRT;
     delete mImgGT;
     delete mImgBT;
-} 
+}
 
 cReprojColor cReprojColorImg::get(Pt2di pt)
 {
@@ -193,7 +193,7 @@ class cRefImReprojImg
     (
       std::string aOriIn,std::string aDepthRefImageName,
       std::string aNameRefImage,
-      std::string * aAutoMaskImageName, 
+      std::string * aAutoMaskImageName,
       cInterfChantierNameManipulateur * aICNM
     );
     Pt2di getSize(){return mRefImgSz;}
@@ -218,7 +218,7 @@ class cRefImReprojImg
 cRefImReprojImg::cRefImReprojImg
       ( std::string aOriIn,std::string aDepthRefImageName,
         std::string aNameRefImage,
-        std::string * aAutoMaskImageName, 
+        std::string * aAutoMaskImageName,
         cInterfChantierNameManipulateur * aICNM):
   mNameRefImage     (aNameRefImage),
   mDepthRefImageName(aDepthRefImageName),
@@ -233,7 +233,7 @@ cRefImReprojImg::cRefImReprojImg
 {
   std::string aOriRef=aOriIn+"Orientation-"+mNameRefImage+".xml";
   mCamRef=CamOrientGenFromFile(aOriRef,aICNM);
-  
+
   std::cout<<"DepthRefImageName: "<<mDepthRefImageName<<std::endl;
   Tiff_Im aRefDepthTiffIm(mDepthRefImageName.c_str());
   Pt2di aRefDepthImgSz=aRefDepthTiffIm.sz();
@@ -241,7 +241,7 @@ cRefImReprojImg::cRefImReprojImg
   std::cout<<"mRefTiffIm.nb_chan(): "<<mRefTiffIm.nb_chan()<<std::endl;
 
   ELISE_COPY(mDepthImage.all_pts(),aRefDepthTiffIm.in(),mDepthImage.out());
-  
+
   //automask part
   if (EAMIsInit(aAutoMaskImageName))
   {
@@ -255,8 +255,8 @@ cRefImReprojImg::cRefImReprojImg
     std::cout<<"No AutoMask"<<std::endl;
     ELISE_COPY(mAutoMaskImage.all_pts(),1,mAutoMaskImage.out());
   }
-  
-  
+
+
 }
 
 //----------------------------------------------------------------------------
@@ -268,7 +268,7 @@ int ReprojImg_main(int argc,char ** argv)
     std::string aNameRepImage;//name of image to reproject
     std::string aDepthRefImageName;//reference image DEM file name
     std::string aAutoMaskImageName; //automask image filename
-    
+
     ElInitArgMain
     (
     argc,argv,
@@ -281,28 +281,30 @@ int ReprojImg_main(int argc,char ** argv)
     LArgMain()  << EAM(aAutoMaskImageName,"AutoMask",true,"AutoMask filename", eSAM_IsExistFile)
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     MakeFileDirCompl(aOriIn);
     std::cout<<"OrinIn dir: "<<aOriIn<<std::endl;
     //get orientation file name
     std::string aOriRep=aOriIn+"Orientation-"+aNameRepImage+".xml";
-    
+
     // Initialize name manipulator & files
     std::string aDir;
     std::string aRefImgTmpName;
     SplitDirAndFile(aDir,aRefImgTmpName,aNameRefImage);
     std::cout<<"Working dir: "<<aDir<<std::endl;
     std::cout<<"RefImgTmpName: "<<aRefImgTmpName<<std::endl;
-    
+
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
     cRefImReprojImg aRefIm(aOriIn,aDepthRefImageName,aNameRefImage,&aAutoMaskImageName,aICNM);
 
     CamStenope * aCamRep=CamOrientGenFromFile(aOriRep,aICNM);
-     
+
     std::string aNameRepImageTif = NameFileStd(aNameRepImage,3,false,true,true,true);
     cReprojColorImg aRepIm(aNameRepImageTif.c_str());
     Pt2di aRepImgSz=aRepIm.sz();
-    
+
     //Output image
     cReprojColorImg aOutputIm(aRefIm.getSize());
 
@@ -310,7 +312,7 @@ int ReprojImg_main(int argc,char ** argv)
     Im2D_U_INT1 aMaskRepIm(aRefIm.getSize().x,aRefIm.getSize().y);
     //access to each pixel value
     U_INT1 ** aMaskRepImData=aMaskRepIm.data();
-    
+
     cReprojColor black(0,0,0);
     //for each pixel of reference image,
      for (int anY=0 ; anY<aRefIm.getSize().y ; anY++)
@@ -319,15 +321,15 @@ int ReprojImg_main(int argc,char ** argv)
          {
               //create 2D point in Ref image
               Pt2di aPImRef(anX,anY);
-              
-              //check if depth exists 
-              if (aRefIm.getAutoMask()->get(aPImRef)!=1) 
+
+              //check if depth exists
+              if (aRefIm.getAutoMask()->get(aPImRef)!=1)
               {
                 aOutputIm.set(aPImRef,black);
                 aMaskRepImData[anY][anX]=0;
                 continue;
               }
-              
+
               //get depth in aRefDepthTiffIm
               float aProf=1/aRefIm.getDepth()->get(aPImRef);
               //get 3D point
@@ -342,7 +344,7 @@ int ReprojImg_main(int argc,char ** argv)
                 std::cout<<"For pixel ("<<anX<<" "<<anY<<"): z="<<aProf<<std::endl;
                 std::cout<<"Reprojection is ("<<aPImRep.x<<" "<<aPImRep.y<<")"<<std::endl;
               }*/
-              
+
               //TODO: create output mask?
               if ((aPImRep.x<0) ||(aPImRep.x>=aRepImgSz.x-1) ||(aPImRep.y<0) ||(aPImRep.y>=aRepImgSz.y-1))
               {
@@ -350,7 +352,7 @@ int ReprojImg_main(int argc,char ** argv)
                 aMaskRepImData[anY][anX]=0;
                 continue;
               }
-              
+
               //get color of this point in Rep image
               cReprojColor color=aRepIm.getr(aPImRep);
               //copy this color into output image
@@ -358,19 +360,19 @@ int ReprojImg_main(int argc,char ** argv)
               aMaskRepImData[anY][anX]=255;
          }
      }
-    
+
     std::cout<<"Write reproj image..."<<std::endl;
     aOutputIm.write(aNameRefImage+"_"+aNameRepImage+".tif");
     Tiff_Im::CreateFromIm(aMaskRepIm,aNameRefImage+"_"+aNameRepImage+"_mask.tif");//TODO: make a xml file? convert to indexed colors?
     //TODO: create image difference!
     //use MM2D for image analysis
-    
+
     return EXIT_SUCCESS;
 }
 
 /* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -386,17 +388,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007/*/
