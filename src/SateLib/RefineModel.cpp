@@ -347,12 +347,12 @@ public:
                         else
                         {
                             ImageMeasure imMes1(P1,Cam1);
-                            ImageMeasure imMes2(P2,Cam2);
+							ImageMeasure imMes2(P2, Cam2);
 
-                            bool found = false;
+							bool found = false;
 
                             if (mapCameras.size() > 2)
-                            {
+							{
                                 //algo brute force (à améliorer)
                                 for (size_t aK=0; aK < nObs(); ++aK)
                                 {
@@ -406,6 +406,7 @@ public:
 
         cout << "mapCameras.size= " << mapCameras.size() << endl;
     }
+
 
     ///
     /// \brief image distance sum for all tie points (to compute RMS)
@@ -471,20 +472,21 @@ public:
             {
                 cout << "curRMS = "<<curRMS<<" / iniRMS = "<<iniRMS<<endl;
                 cout << "No improve: end at iteration "<< iteration <<endl;
-                return false;
-            }
 
-            //ecriture dans un fichier des coefficients en vue d'affiner la grille
-            //consommateur en temps => todo: stocker les parametres de l'iteration n-1
-            map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
-            for (size_t aK=0; iter != mapCameras.end();++iter, ++aK)
-            {
-                AffCamera* cam = iter->second;
-                string name = StdPrefixGen(cam->name());
-                ofstream fic(("refine/" + name + ".txt").c_str());
-                fic << setprecision(15);
-                fic << cam->vP[0] <<" "<< cam->vP[1] <<" "<< cam->vP[2] <<" "<< cam->vP[3] <<" "<< cam->vP[4] <<" "<< cam->vP[5] <<" "<<endl;
-            }
+				//ecriture dans un fichier des coefficients en vue d'affiner la grille
+				//consommateur en temps => todo: stocker les parametres de l'iteration n-1
+				map<int, AffCamera *>::const_iterator iter = mapCameras.begin();
+				for (size_t aK = 0; iter != mapCameras.end(); ++iter, ++aK)
+				{
+					AffCamera* cam = iter->second;
+					string name = StdPostfix(cam->name());
+					ofstream fic(("refine/" + name + "_refineCoef.txt").c_str());
+					cout << "Writing refineCoef file : refine" + name + "_refineCoef.txt" << endl;
+					fic << setprecision(15);
+					fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[3] << " " << cam->vP[4] << " " << cam->vP[5] << " " << endl;
+				}
+				return false;
+			}
             cout << "RMS_after = " << curRMS << endl;
             iteration++;
             return true;
