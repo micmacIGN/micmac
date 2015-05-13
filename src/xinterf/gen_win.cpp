@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -100,10 +100,10 @@ Output_Computed * DE_GW_Not_Comp::compute(const Arg_Output_Comp & arg)
       ASSERT_TJS_USER
       (
            arg.flux()->dim() == 2,
-           "need 2-dimentionnal sets to write in raster Graphic Window"
+           "need 2-dimensional sets to write in raster Graphic Window"
       );
 
-      // get the general representation of window 
+      // get the general representation of window
       Data_El_Geom_GWin  * geom = _ew.degeow();
       ASSERT_TJS_USER
       (
@@ -113,7 +113,7 @@ Output_Computed * DE_GW_Not_Comp::compute(const Arg_Output_Comp & arg)
       Data_Elise_Gra_Win * degw = _ew.degraw();
       degw->_degd->reinit_cp();
       degw->warn_graph();
-    
+
 
       (degw->sop()).pal_is_loaded(_pal);
       Data_Elise_Palette *   dep  = _pal.dep();
@@ -125,7 +125,7 @@ Output_Computed * DE_GW_Not_Comp::compute(const Arg_Output_Comp & arg)
               case Pack_Of_Pts::rle   :
                      res = degw->rle_out_comp(geom,arg,dep);
               break;
-  
+
            case Pack_Of_Pts::integer   :
 
               INT v[Elise_Std_Max_Dim];
@@ -218,7 +218,7 @@ Output El_Window::out(Elise_Palette pal)
 
    if (degeow()->_dnext)
       o = o | degeow()->_next.out(pal);
-   
+
    return  o;
 }
 
@@ -308,7 +308,7 @@ Pt2dr El_Window::W2U(Pt2di aP)
 
 void El_Window::draw_ellipse_loc
      (
-	 Pt2dr aCentre,REAL A,REAL B,REAL C,Line_St aLst,
+     Pt2dr aCentre,REAL A,REAL B,REAL C,Line_St aLst,
          INT Nb
       )
 {
@@ -318,10 +318,10 @@ void El_Window::draw_ellipse_loc
    for (INT aK= 0 ; aK<= Nb ; aK++)
    {
         Pt2dr P = aCentre+ImAppSym(A,B,C,Pt2dr::FromPolar(1.0,(aK*2*PI)/Nb));
-	if (aK !=0)
+    if (aK !=0)
            draw_seg(LastP,P,aLst);
-	// cout << LastP << P << "\n";
-	LastP = P;
+    // cout << LastP << P << "\n";
+    LastP = P;
    }
 }
 
@@ -337,7 +337,7 @@ void El_Window::fixed_string(Pt2dr pt,const char * name,Col_Pal col,bool draw_im
 }
 
 
-Elise_Set_Of_Palette  El_Window::sop() 
+Elise_Set_Of_Palette  El_Window::sop()
 {
    return degraw()->sop();
 }
@@ -380,7 +380,7 @@ void El_Window::draw_arrow
      )
 {
      draw_seg(p0,p1,LAxe);
-  
+
      Pt2dr q0 = barry(1-pos,p0,p1);
      Pt2dr dir_pte = Pt2dr::FromPolar(1.0,teta);
      Pt2dr tgt = vunit(p0-p1) * size_pointe;
@@ -454,7 +454,7 @@ Data_El_Geom_GWin::Data_El_Geom_GWin
 
      Link between the doc X11_coord.tex and function elise :
 
-      -  E+ : round_up, E- : round_down, I+  : round_ni, 
+      -  E+ : round_up, E- : round_down, I+  : round_ni,
       -  E++ : round_Uup, E-- : round_Ddown,
 
       -  rto_window_geom : FWx, FWy:
@@ -503,7 +503,7 @@ Pt2dr Data_El_Geom_GWin::prto_window_geom(Pt2dr p) const
 
 Pt2dr Data_El_Geom_GWin::to_user_geom(Pt2di p) const
 {
-    return Pt2dr 
+    return Pt2dr
           (
              rto_user_geom(p.x,_tr.x,_sc.x),
              rto_user_geom(p.y,_tr.y,_sc.y)
@@ -589,7 +589,7 @@ void Data_El_Geom_GWin::draw_seg
        Pt2dr p1,
        Pt2dr p2,
        Data_Line_St * lst,
-       bool auto_flush 
+       bool auto_flush
 )
 {
      if (_dnext)
@@ -597,7 +597,7 @@ void Data_El_Geom_GWin::draw_seg
 
      _degw->set_line_style(lst);
      _degw->_inst_draw_seg
-     ( 
+     (
           prto_window_geom(p1),
           prto_window_geom(p2)
      );
@@ -612,7 +612,7 @@ void Data_El_Geom_GWin::draw_circle
        Pt2dr radius,
        Data_Line_St * lst,
        bool r_loc ,
-       bool auto_flush 
+       bool auto_flush
 )
 {
      if (_dnext)
@@ -620,7 +620,7 @@ void Data_El_Geom_GWin::draw_circle
 
      _degw->set_line_style(lst);
      if (r_loc)
-        radius =     prto_window_geom(radius) 
+        radius =     prto_window_geom(radius)
                   -  prto_window_geom(Pt2dr(0.0,0.0));
      radius = Pt2dr(ElAbs(radius.x),ElAbs(radius.y));
 
@@ -635,7 +635,7 @@ void Data_El_Geom_GWin::draw_seg_cliped
        Pt2dr p1,
        Data_Line_St * lst,
        Box2dr         box,
-       bool auto_flush 
+       bool auto_flush
 )
 {
    if (_dnext)
@@ -693,7 +693,7 @@ void Data_El_Geom_GWin::draw_polyl
 (
      const REAL *     x,
      const REAL *     y,
-     INT              nb, 
+     INT              nb,
      Data_Line_St *   lst,
      bool             circ,
      bool             auto_flush
@@ -724,7 +724,7 @@ void Data_El_Geom_GWin::draw_polyl
     }
     if (nb_buf > 1)
        _degw->_inst_draw_polyl(xbuf,ybuf,nb_buf);
-       
+
     if (circ && ( nb > 1))
         _degw->_inst_draw_seg
          (
@@ -741,7 +741,7 @@ void Data_El_Geom_GWin::draw_polyl_cliped
 (
          const REAL * x,const REAL *y,INT nb,Box2dr box, Data_Line_St * lst,
          bool circ,
-         bool auto_flush 
+         bool auto_flush
 )
 {
     if (_dnext)
@@ -758,9 +758,9 @@ void Data_El_Geom_GWin::draw_polyl_cliped
     for (INT k0 = 0; k0 <nb-1 ;)
     {
         INT k1 = k0;
-        while 
+        while
         (
-                 (k1<nb-1) 
+                 (k1<nb-1)
               && (box.inside(Pt2dr(x[k1],y[k1])))
               && (box.inside(Pt2dr(x[k1+1],y[k1+1])))
         )
@@ -779,7 +779,7 @@ void Data_El_Geom_GWin::draw_polyl_cliped
              {
                   Pt2dr p0 = prto_window_geom(seg.p0());
                   Pt2dr p1 = prto_window_geom(seg.p1());
-     
+
                   x0[nb_buf]   =    p0.x;
                   y0[nb_buf]   =    p0.y;
                   x1[nb_buf]   =    p1.x;
@@ -886,7 +886,7 @@ void Data_Elise_Gra_Win::set_sop(Elise_Set_Of_Palette sop)
 
 
         /*   _inst_draw_rectangle, _inst_draw_polyl, _inst_draw_poly_segs
-              
+
             The default values of some drawing functions. They are
           unoptimals because they just call back elementary primitives
           (like "_inst_draw_seg") and consequently do not take
@@ -1028,13 +1028,13 @@ const Pt2dr Video_Win::_sc11(1.0,1.0);
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1044,17 +1044,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -300,7 +300,7 @@ void KernelPrepareCorrel(float aStepPix, ushort mNbByPix, float* mSom, float* mS
 
         aGlobSom    += aSom     * aPdsK;
         aGlobSomSqr += aSomSqr  * aPdsK;
-        aGlobPds    += aPdsK    * aNbP;
+		aGlobPds    += aPdsK    * aNbP; // TODO peut etre précalculer
 
         // indice dans le cache
 		const uint3     p3d        =   make_uint3(ptTer.x,ptTer.y,aPhase*mNbByPix + aKS);

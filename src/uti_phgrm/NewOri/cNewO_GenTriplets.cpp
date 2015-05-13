@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -262,7 +262,7 @@ void cGTrip_AttrSom::InitNb(const std::vector<Pt2df> & aVP1)
         mNb[mAppli->ToIndex(aVP1[aK])] ++;
     }
 }
- 
+
 
 
 
@@ -289,11 +289,11 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
 
       // std::cout << "initTriplet " << aNb << " " << aNb3 << " " << aNb33 << "\n";
 
-      // Pour qu'il y ait intersection 
+      // Pour qu'il y ait intersection
       // Det(L C1C3 + C12,  R3U3, ,R2U) = 0
-      std::vector<double> aVL13; 
-      std::vector<double> aVL23; 
-      std::vector<double> aVLInv; 
+      std::vector<double> aVL13;
+      std::vector<double> aVL23;
+      std::vector<double> aVLInv;
       ElRotation3D aR21 = anA12->attr().Rot();
       ElRotation3D aR31 = anA13->attr().Rot();
       ElRotation3D aR32 = anA23->attr().Rot();
@@ -369,11 +369,11 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
                        //     D * D * Pds
           static bool First = true;
           double aMulQ = mAppli->MulQuant();
-          if (First) 
+          if (First)
              std::cout << " ========= Mul = " << aMulQ << " ========\n";
            First = false;
-          
-          
+
+
           double aFlg = double(mGainGlob) / aMulQ;
           std::cout << "Name " << aSom->attr().Name() << " G=" << aFlg  << " " << aGain / double(TQuantBsH)  << "\n";
       }
@@ -465,7 +465,7 @@ tSomGT * cAppli_GenTriplet::GetNextSom()
 
    mVSomEnCourse.erase(mVSomEnCourse.begin()+aIndexRes);
    mVSomSelected.push_back(aRes);
-   
+
    for (int aK=0 ; aK<int(mVSomEnCourse.size()) ; aK++)
    {
       tSomGT * aSom = mVSomEnCourse[aK];
@@ -479,7 +479,7 @@ tSomGT * cAppli_GenTriplet::GetNextSom()
 void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
 {
     if (!anArc.attr().IsDirASym() ) return;
-    mCurArc = & anArc; 
+    mCurArc = & anArc;
     mCurTestArc = anArc.attr().ASym().ArcTest();
 
 
@@ -685,7 +685,7 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
    aTri.Name2() = aA2.Name();
    aTri.Name3() = aA3.Name();
    mTopoTriplets.Triplets().push_back(aTri);
-   
+
    return true;
 }
 /*
@@ -720,13 +720,15 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
    ElInitArgMain
    (
         argc,argv,
-        LArgMain() <<  EAMC(mFullName,"Pattern"),
-        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
-                   << EAM(mShow,"Show",true,"Show intermediar message ")
-                   << EAM(mNameTest1,"Test1",true,"Name of first test image")
-                   << EAM(mNameTest2,"Test2",true,"Name of second test image")
-                   << EAM(mNameTest3,"Test3",true,"Name of second test image")
+        LArgMain() <<  EAMC(mFullName,"Pattern", eSAM_IsPatFile),
+        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration", eSAM_IsExistDirOri)
+                   << EAM(mShow,"Show",true,"Show intermediary message")
+                   << EAM(mNameTest1,"Test1",true,"Name of first test image", eSAM_IsExistFile)
+                   << EAM(mNameTest2,"Test2",true,"Name of second test image", eSAM_IsExistFile)
+                   << EAM(mNameTest3,"Test3",true,"Name of second test image", eSAM_IsExistFile)
    );
+
+   if (MMVisualMode) return;
 
    mEASF.Init(mFullName);
    StdCorrecNameOrient(mNameOriCalib,mEASF.mDir);
@@ -783,7 +785,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                       if (aM.NbArc() ==2) aNbSym++;
                   }
 */
-                  
+
 
                   const cXml_O2IRotation & aXO = aXmlO.Geom().Val().Ori();
                   ElRotation3D aR(aXO.Centre(),ImportMat(aXO.Ori()),true);
@@ -832,13 +834,13 @@ int GenTriplet_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -848,17 +850,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

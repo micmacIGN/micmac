@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -68,8 +68,8 @@ void InitVPairComp(std::vector<cNOCompPair> & aV,const ElPackHomologue & aPackH)
 }
 
 //   Rot C2 =>C1; donc Rot( P(0,0,0)) donne le vecteur de Base dans C1
-//   aRot  : M2C pour cam2 
-//   U1  
+//   aRot  : M2C pour cam2
+//   U1
 //
 //  Formule exacte et programmation simple et claire pour bench
 //
@@ -159,7 +159,7 @@ double cNewO_OrInit2Im::RecouvrtHom(const cElHomographie & aHom)
             aP = ProjStenope(aCS1->F2toDirRayonL3(aP));
             aP = aHom.Direct(aP);
             bool Ok = aCS2->PIsVisibleInImage(PZ1(aP));
-            if (Ok)  
+            if (Ok)
                aNbIn++;
             else
                aNbOut++;
@@ -274,7 +274,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    }
 
 
-   
+
    ShowPack(mPackPStd,P8COL::red,2.0);
    ShowPack(mPackStdRed,P8COL::blue,6.0);
    // ClikIn();
@@ -313,7 +313,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
        ElRotation3D aMRR = TestcRanscMinimMatEss(mQuick,mPackPStd,mPackStdRed,mPack150,mPack30,FocMoy());
        AmelioreSolLinear(aMRR,"Mini RE");
        aTiming.TimeRanMin() = aChrono.uval();
- 
+
        if (false &&  mShow)
        {
             std::cout << "TIME RanscMinim " << aTiming.TimeRanMin() << "\n";
@@ -335,7 +335,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
        aTiming.TimeRansacStd() = aChrono.uval();
     }
 
-  // = T2 ==============   Test par Matrices essentielles  "classique" 
+  // = T2 ==============   Test par Matrices essentielles  "classique"
     for (int aL2 = 0 ; aL2 < 2 ; aL2++)
     {
         ElTimer aChrono;
@@ -349,12 +349,12 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
            aTiming.TimeL1MatEss() = aChrono.uval();
     }
 
-  //  = T3 ============  Test par  homographie plane "classique" (i.e. globale) 
-   
+  //  = T3 ============  Test par  homographie plane "classique" (i.e. globale)
+
     {
        bool ShowDetailHom = mShow && false;
        ElTimer aChrono;
-       double aDist ; 
+       double aDist ;
        bool   Ok;
        // cElHomographie aHom = cElHomographie::RobustInit(&aDist,mPackPStd,Ok,100,80,500);
        cElHomographie aHom = cElHomographie::RobustInit
@@ -372,9 +372,9 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
        aXCmp.Hom().ResiduHom() = aDist * FocMoy();
        double aRecHom = RecouvrtHom(aHom);
        if (ShowDetailHom) std::cout << "THom1= " << aChrono.uval() << "\n";
-          if (mShow) 
+          if (mShow)
        std::cout << "   #### Residu Homographie " << aDist *FocMoy()  << " Recvrt=" << aRecHom << "\n";
-    
+
        cResMepRelCoplan aRMC =  ElPackHomologue::MepRelCoplan(1.0,aHom,tPairPt(Pt2dr(0,0),Pt2dr(0,0)));
        if (ShowDetailHom) std::cout << "THom2= " << aChrono.uval() << "\n";
 
@@ -407,7 +407,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
        if (mShow)
        {
           std::cout << "Ecart RPUre " << aRCoc.mCostRPure * FocMoy() << " VraiR " << aRCoc.mCostVraiRot *FocMoy();
-          if (mTestC2toC1)  
+          if (mTestC2toC1)
              std::cout << " DREf (pix) " << aRCoc.mMat.L2(mTestC2toC1->Mat())  * FocMoy();
           std::cout << "\n";
        }
@@ -495,7 +495,7 @@ class cNO_AppliOneCple
     private :
          typedef cFixedMergeTieP<2,Pt2dr> tMerge;
 
-         cNO_AppliOneCple(const cNO_AppliOneCple &); // N.I. 
+         cNO_AppliOneCple(const cNO_AppliOneCple &); // N.I.
 
          bool                 mQuick;
          std::string          mNameIm1;
@@ -530,15 +530,16 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    ElInitArgMain
    (
         argc,argv,
-        LArgMain() <<  EAMC(mNameIm1,"Name First Image")
-                   <<  EAMC(mNameIm2,"Name Second Image"),
-        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ")
-                   << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference")
-                   << EAM(mShow,"Show",true,"Orientation for test to a reference")
+        LArgMain() <<  EAMC(mNameIm1,"Name First Image", eSAM_IsExistFile)
+                   <<  EAMC(mNameIm2,"Name Second Image", eSAM_IsExistFile),
+        LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration", eSAM_IsExistDirOri)
+                   << EAM(mNameOriTest,"OriTest",true,"Orientation for test to a reference", eSAM_IsExistDirOri)
+                   << EAM(mShow,"Show",true,"Show")
                    << EAM(mQuick,"Quick",true,"Quick option adapted for UAV or easy acquisition, def = true")
                    << EAM(mHPP,"HPP",true,"Homograhic Planar Patch")
    );
 
+   if (MMVisualMode) return;
 
    mNM = new cNewO_NameManager(DirOfFile(mNameIm1),mNameOriCalib,"dat");
 
@@ -559,7 +560,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
       CamStenope * aCam2 = mNM->CamOriOfName(mNameIm2,mNameOriTest);
       // aCam2->Orient() : M =>C2  ;  aCam1->Orient().inv() :  C1=>M
       // Donc la aRot = C1=>C2
-      ElRotation3D aRot = (aCam2->Orient() *aCam1->Orient().inv());   
+      ElRotation3D aRot = (aCam2->Orient() *aCam1->Orient().inv());
       //   Maintenat Rot C2 =>C1; donc Rot( P(0,0,0)) donne le vecteur de Base
       aRot = aRot.inv();
       mTestSol = new ElRotation3D(aRot);
@@ -607,7 +608,7 @@ void BenchNewFoncRot()
         Pt3dr aIC = aR.ImAff(aC);
         Pt3dr  aV0 = vunit(aC-aPC);
         Pt3dr  aV1 = vunit(aIC-aPC);
-        
+
         std::cout << "INV " << euclid(A-aR.ImAff(A)) << " " << euclid(B-aR.ImAff(B)) << "\n";
         std::cout << "Orth " << scal(aSeg.Tgt(),aV1)  << "Teta " << cos(aTeta) - scal(aV0,aV1)<< "\n";
     }
@@ -625,7 +626,7 @@ int TestNewOriImage_main(int argc,char ** argv)
    anAppli.Show();
    cNewO_OrInit2Im * aCple = anAppli.CpleIm();
    const cXml_Ori2Im &  aXml = aCple->XmlRes() ;
-    
+
    MakeFileXML(aXml,anAppli.NameXmlOri2Im(true));
    MakeFileXML(aXml,anAppli.NameXmlOri2Im(false));
 
@@ -689,7 +690,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
            }
        }
    }
-   
+
    cEl_GPAO::DoComInParal(aLCom);
 
    cXml_O2ITiming aTiming;
@@ -737,13 +738,13 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -753,17 +754,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
