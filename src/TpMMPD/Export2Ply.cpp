@@ -106,6 +106,8 @@ int Export2Ply_main(int argc,char ** argv)
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     char * aLine;
     int aCpt=0;
     std::vector<Pt3dr> aPoints;

@@ -139,7 +139,7 @@ string eToString(const eTequilaCrit & aVal)
 
 int Tequila_main(int argc,char ** argv)
 {
-    string aDir, aPat, aFullName, aOri, aPly, aOut, aTextOut;
+    string aDir, aPat, aFullName, aOri, aPly, aOut, aNameOut;
     int aTextMaxSize = 8192;
     int aZBuffSSEch = 2;
     int aJPGcomp = 70;
@@ -167,7 +167,7 @@ int Tequila_main(int argc,char ** argv)
                             << EAM(aLambda,"Lambda", true,"Lambda (def=0.01)")
                             << EAM(aNbIter,"Iter", true,"Optimization iteration number (def=2)")
                             << EAM(aFilter,"Filter",true,"Remove border faces (def=false)")
-                            << EAM(aTextOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
+                            << EAM(aNameOut,"Texture",true,"Texture name (def=plyName + _UVtexture.jpg)")
                             << EAM(aTextMaxSize,"Sz",true,"Texture max size (def=4096)")
                             << EAM(aZBuffSSEch,"Scale", true, "Z-buffer downscale factor (def=2)",eSAM_InternalUse)
                             << EAM(aJPGcomp, "QUAL", true, "jpeg compression quality (def=70)")
@@ -196,9 +196,9 @@ int Tequila_main(int argc,char ** argv)
     SplitDirAndFile(aDir,aPat,aFullName);
 
     if (!EAMIsInit(&aOut)) aOut = StdPrefix(aPly) + "_textured.ply";
-    if (!EAMIsInit(&aTextOut)) aTextOut = StdPrefix(aPly) + "_UVtexture.tif";
+    if (!EAMIsInit(&aNameOut)) aNameOut = StdPrefix(aPly) + "_UVtexture.tif";
 
-    string textureName = StdPrefix(aTextOut) + ".jpg ";
+    string textureName = StdPrefix(aNameOut) + ".jpg ";
     stringstream st;
     st << aJPGcomp;
 
@@ -451,6 +451,10 @@ int Tequila_main(int argc,char ** argv)
         }
     }
 
+    Tiff_Im::PH_INTER_TYPE aPhI = Tiff_Im::RGBPalette;
+
+    if (aVT.size()) aPhI = aVT[0].phot_interp();
+
     /*cTriangle* trin = myMesh.getTriangle(14591);
     vector<int> som;
     trin->getVertexesIndexes(som);
@@ -693,13 +697,22 @@ int Tequila_main(int argc,char ** argv)
         cout <<"***************************Writing texture***************************"<<endl;
         cout << endl;
 
-        Tiff_Im  nFileRes
+        Tiff_Im  TiffOut = (aPhI == Tiff_Im::RGBPalette)  ?
+                Tiff_Im
                 (
-                    aTextOut.c_str(),
+                    aNameOut.c_str(),
                     Pt2di( final_width, final_height ),
                     GenIm::u_int1,
                     Tiff_Im::No_Compr,
                     Tiff_Im::RGB
+                ) :
+                Tiff_Im
+                (
+                    aNameOut.c_str(),
+                    Pt2di( final_width, final_height ),
+                    GenIm::u_int1,
+                    Tiff_Im::No_Compr,
+                    aPhI
                 );
 
         for (int aK=0; aK< nRegions; aK++)
@@ -738,7 +751,7 @@ int Tequila_main(int argc,char ** argv)
 
             if (rotated)
             {
-                vector<Im2DGen *> aVOutInit = nFileRes.VecOfIm(Pt2di(h_scaled, w_scaled));
+                vector<Im2DGen *> aVOutInit = TiffOut.VecOfIm(Pt2di(h_scaled, w_scaled));
 
                 Fonc_Num Fonc = StdFoncChScale(aF0,Pt2dr(p0),Pt2dr(1.f/Scale,1.f/Scale));
                 Fonc = Max(0,Min(255,Fonc));
@@ -761,7 +774,7 @@ int Tequila_main(int argc,char ** argv)
                 (
                     rectangle(xy_scaled, xy_scaled + wh_scaled),
                     trans(StdInput(aVOutRotate), -xy_scaled),
-                    nFileRes.out()
+                    TiffOut.out()
                 );
 
                 region->setTransfo(xy_scaled, rotated);
@@ -781,7 +794,7 @@ int Tequila_main(int argc,char ** argv)
                 (
                     rectangle(xy_scaled, xy_scaled + wh_scaled),
                     trans(aF, tr),
-                    nFileRes.out()
+                    TiffOut.out()
                 );
             }
         }
@@ -931,18 +944,23 @@ int Tequila_main(int argc,char ** argv)
 
         //cout << "SZ = " << aSz << " :: " << aNbCol << " X " << aNbLine  << "\n";
 
-        Tiff_Im::PH_INTER_TYPE aPhI = aVT[0].phot_interp();
-        if (aNbCh==3)
-            aPhI = Tiff_Im::RGB;
-
-        Tiff_Im  FileRes
+        Tiff_Im  TiffOut = (aPhI == Tiff_Im::RGBPalette)  ?
+                Tiff_Im
                 (
-                    aTextOut.c_str(),
+                    aNameOut.c_str(),
+                    aSz,
+                    GenIm::u_int1,
+                    Tiff_Im::No_Compr,
+                    Tiff_Im::RGB
+                ) :
+                Tiff_Im
+                (
+                    aNameOut.c_str(),
                     aSz,
                     GenIm::u_int1,
                     Tiff_Im::No_Compr,
                     aPhI
-                    );
+                );
 
         const int nImg = aVT.size();
         for (int aK=0 ; aK< nImg ; aK++)
@@ -971,7 +989,7 @@ int Tequila_main(int argc,char ** argv)
                     (
                         rectangle(aP0,aP1),
                         aF ,
-                        FileRes.out()
+                        TiffOut.out()
                         );
 
             Pt2dr Coord = ptK.mcbyc(aVT[aK].sz())*Scale;
@@ -1040,13 +1058,13 @@ int Tequila_main(int argc,char ** argv)
     cout << endl;
 
     string aCom =  g_externalToolHandler.get( "convert" ).callName() + string(" -quality ") + st.str() + " "
-            + aTextOut + " " + textureName;
+            + aNameOut + " " + textureName;
 
     if (debug) cout << "COM= " << aCom << endl;
 
     system_call(aCom.c_str());
 
-    aCom = string(SYS_RM) + " " + aTextOut;
+    aCom = string(SYS_RM) + " " + aNameOut;
     system_call(aCom.c_str());
 
     cout << endl;
