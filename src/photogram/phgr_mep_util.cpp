@@ -353,16 +353,17 @@ class cEqBundleBase;
 class cEqSupBB
 {
      public :
-       cEqSupBB(cEqBundleBase & ,int aK,const ElRotation3D & aRot);
+       cEqSupBB(cEqBundleBase & ,int aK);
 
        cEqBundleBase *       mBB;
        std::string           mNameEq3;
        cSetEqFormelles *     mSetEq3;  
-       ElRotation3D          mR0;
        cPt3dEEF *            mC3;
        cPt3dEEF *            mW3;
        cP2d_Etat_PhgrF       mI3;  
+       cP3d_Etat_PhgrF       mC3Init;
        cEqfP3dIncTmp *       mEq3P3I;
+       cIncListInterv        mLInterv3;
 };
 
 
@@ -432,22 +433,27 @@ class cEqBundleBase  : public cNameSpaceEqF,
        cSubstitueBlocIncTmp  mSBIT12;
        ElRotation3D          mCurRot;
 
+       std::vector<cEqSupBB *>  mVEqSup;
 };
 
 
-cEqSupBB::cEqSupBB(cEqBundleBase & aBB,int aK,const ElRotation3D & aRot) :
+cEqSupBB::cEqSupBB(cEqBundleBase & aBB,int aK) :
      mBB       (&aBB),
      mNameEq3  ("cEqBBCamThird" + mBB->PostAccel ()),
      mSetEq3   (mBB->SetEqSec()),
-     mR0       (aRot),
-     mC3       (new cPt3dEEF(*mSetEq3,mR0.tr(),mBB->UseAccelCoordCste())),
+     mC3       (new cPt3dEEF(*mSetEq3,Pt3dr(0,0,0),mBB->UseAccelCoordCste())),
      mW3       (new cPt3dEEF(*mSetEq3,Pt3dr(0,0,0),mBB->UseAccelCoordCste())),
      mI3       ("I" + ToString(aK)),
+     mC3Init   ("CInit"+ToString(aK)),
      mEq3P3I   (mBB->PtIncSec(mSetEq3))
 {
     mC3->IncInterv().SetName("C3");
     mW3->IncInterv().SetName("Omega3");
     // mLInterv1
+    mLInterv3.AddInterv(mC3->IncInterv());
+    mLInterv3.AddInterv(mW3->IncInterv());
+    mLInterv3.AddInterv(mEq3P3I->IncInterv());
+    
 }
 
 
@@ -489,6 +495,10 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
   mLInterv2.AddInterv(md2->IncInterv());
   mLInterv2.AddInterv(mEq2P3I->IncInterv());
 
+  for (int aKES=0 ; aKES<mNbCamSup ; aKES++)
+  {
+       mVEqSup.push_back(new cEqSupBB(*this,aKES+3));
+  }
 
   if (DoGenCode)
   {
