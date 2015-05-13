@@ -427,10 +427,11 @@ class cEqBundleBase  : public cNameSpaceEqF,
        std::string           mNameEq2;
 
        std::vector<cElCompiledFonc *>     mVFEsResid;
-       cEqfP3dIncTmp *       mEqP3I;
-       cEqfP3dIncTmp *       mEq2P3I;
-       cSubstitueBlocIncTmp  mSBIT12;
-       ElRotation3D          mCurRot;
+       cEqfP3dIncTmp *          mEqP3I;
+       cEqfP3dIncTmp *          mEq2P3I;
+       cSubstitueBlocIncTmp     mSBIT12;
+       ElRotation3D             mCurRot;
+       std::vector<cEqSupBB*>   mEqSupBB;
 
 };
 
