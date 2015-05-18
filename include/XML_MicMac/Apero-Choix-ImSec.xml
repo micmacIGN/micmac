@@ -1,0 +1,197 @@
+<!--
+Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  DirectoryChantier=/home/marc/TMP/ExempleDoc/Boudha/ +AeroIn=-Test-3 +PatternAllIm="IMG_[0-9]{4}\.tif"
+
+Apero  /home/marc/MMM/culture3d/include/XML_MicMac/Apero-Choix-ImSec.xml  DirectoryChantier=/home/marc/TMP/Versailles/  +AeroIn=-All +PatternAllIm="IMGP[0-9]{4}.PEF" +Ext=dat Out=-All
+                               <TetaMinPreSel> 0.025</TetaMinPreSel>
+                               <TetaOpt > 0.17 </TetaOpt>
+-->
+<Global>
+   <ParamApero>
+
+       <DicoLoc>
+            <Symb>  AeroIn=XXXX  </Symb>
+            <Symb>  Out=XXXX  </Symb>
+            <Symb>  PatternAllIm=XXXX  </Symb>
+            <Symb>  Ext=XXXX  </Symb>
+            <Symb>  SeuilP3d=1.5  </Symb>
+            <Symb>  PatternExport=.*   </Symb>
+            <Symb>  CalPerIm=false   </Symb>
+
+
+            <Symb>  FocMin=0 </Symb>
+            <Symb>  FocMax=1000000 </Symb>
+            <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
+
+            <Symb>  PenalNbIm=0.3333   </Symb>
+            <Symb>  TetaOpt=0.17   </Symb>  <!-- 10 degre, why not -->
+            <Symb>  UseMasq3D=false   </Symb>  <!-- 10 degre, why not -->
+            <Symb>  Masq3D=XXXX   </Symb>  <!-- 10 degre, why not -->
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+            <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
+            </BDD_PtsLiaisons>
+            <BDD_Orient>
+                  <Id>  Or-Init   </Id>
+                  <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+                  <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+            </BDD_Orient>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> GenerateKC-CalPerIm   </Name>
+                   <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                               <NameTag>    Interne </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                   <CalibPerPose>
+                         <KeyPose2Cal> NKS-Assoc-Id </KeyPose2Cal>
+                         <KeyInitFromPose> NKS-Assoc-Im2Orient@${AeroIn} </KeyInitFromPose>
+                   </CalibPerPose>
+             </CalibrationCameraInc>
+
+             <CalibrationCameraInc>
+                   <Name> GenerateKC-CalPerFoc   </Name>
+                   <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > true </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                   </CalValueInit>
+                   <CalibPerPose>
+                         <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                         <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroIn}/AutoCal@.xml  </KeyInitFromPose>
+                   </CalibPerPose>
+             </CalibrationCameraInc>
+
+
+             <PoseCameraInc>
+                   <PatternName>     ${SetIm}   </PatternName>
+
+                   <CalcNameCalibAux>
+                        <CalcNameOnExistingTag>
+                               <KeyCalcFileOriExt>  NKS-Assoc-Im2Orient@${AeroIn} </KeyCalcFileOriExt>
+                               <KeyCalcName >  NKS-Assoc-Cste@GenerateKC-CalPerFoc      </KeyCalcName>
+                               <TagExist>    FileInterne      </TagExist>
+                               <TagNotExist> Interne      </TagNotExist>
+                               <ExigCohTags> true  </ExigCohTags>
+                        </CalcNameOnExistingTag>
+                   </CalcNameCalibAux>
+                   <CalcNameCalibAux>
+                        <CalcNameOnExistingTag>
+                               <KeyCalcFileOriExt>  NKS-Assoc-Im2Orient@${AeroIn} </KeyCalcFileOriExt>
+                               <KeyCalcName >  NKS-Assoc-Cste@GenerateKC-CalPerIm      </KeyCalcName>
+                               <TagExist>    Interne      </TagExist>
+                               <TagNotExist> FileInterne      </TagNotExist>
+                               <ExigCohTags> true  </ExigCohTags>
+                        </CalcNameOnExistingTag>
+                   </CalcNameCalibAux>
+
+                   <PosValueInit>
+                            <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                   </PosValueInit>
+             </PoseCameraInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+             <IsChoixImSec> true </IsChoixImSec>
+<!--
+-->
+	     <DirectoryChantier> ThisDir </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+                   <IterationsCompensation>
+                      <SectionContraintes>
+                         <ContraintesCamerasInc>
+                              <Val> eAllParamFiges  </Val>
+                          </ContraintesCamerasInc>
+                          <ContraintesPoses>
+                             <NamePose>   .* </NamePose>
+                             <ByPattern>   true </ByPattern>
+                             <Val>      ePoseFigee   </Val>
+                          </ContraintesPoses>
+                      </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                 <ModePonderation>  eL1Secured </ModePonderation>
+                                 <SigmaPond> 2.0 </SigmaPond>
+                                 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+                    </SectionObservations>
+
+                   <SectionExport>
+                     <ChoixImMM>
+                          <ChoixImSec>
+                               <FileImSel> Ori${Out}/FileImSel.xml </FileImSel>
+                               <KeyAssoc> NKS-Assoc-ImSec@${Out}  </KeyAssoc>
+                               <PatternSel>  ${PatternExport}  </PatternSel>
+                               <NbMin >  4 </NbMin>
+                               <IdBdl > Id_Pastis_Hom </IdBdl>
+                               <NbMinPtsHom > 15 </NbMinPtsHom>
+                               <TetaMinPreSel> 0.025</TetaMinPreSel>
+                               <TetaOpt > ${TetaOpt} </TetaOpt>
+                               <TetaMaxPreSel> 0.8 </TetaMaxPreSel>
+                               <NbMaxPresel>  15</NbMaxPresel>
+                               <NbTestPrecis>  15</NbTestPrecis>
+                               <PenalNbIm> ${PenalNbIm} </PenalNbIm>
+                               <#WHEN VTEST=${UseMasq3D}>
+                                    <Masq3D> ${Masq3D} </Masq3D>
+                               </#WHEN>
+                          </ChoixImSec>
+                     </ChoixImMM>
+                     <ExportNuage>
+                          <PatternSel> .* </PatternSel>
+
+                          <NameOut>  Ori${Out}/Pts3d.dat  </NameOut>
+                          <ExportNuageByImage>
+                               <KeyCalc> NKS-Assoc-Pts3dIm@${Out} </KeyCalc>
+                               <SymPts> true </SymPts>
+                          </ExportNuageByImage>
+
+
+                          <PlyModeBin> true </PlyModeBin>
+                          <NameRefLiaison> Id_Pastis_Hom </NameRefLiaison>
+                          <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <EcartMax> ${SeuilP3d} </EcartMax>
+                          </Pond>
+                          <KeyFileColImage> NKS-Assoc-Cste@NoAttr   </KeyFileColImage>
+                     </ExportNuage>
+
+                   </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+
+   </ParamApero>
+</Global>
+
