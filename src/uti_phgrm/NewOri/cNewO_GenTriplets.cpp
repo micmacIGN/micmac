@@ -498,7 +498,7 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     mNbCases = mSzCases.x * mSzCases.y;
     ELISE_ASSERT(mNbCases<=TMaxNbCase,"cAppli_GenTriplet::GenTriplet");
 
-    mMulQuant  = mNbCases *pow(TQuant,3) * TQuantBsH;
+    mMulQuant  = mNbCases *pow((float)TQuant,3) * TQuantBsH;
     ELISE_ASSERT(mMulQuant<TMaxGain,"Owerflow in cAppli_GenTriplet::GenTriplet");
 
     mCurS1->attr().InitNb(mCurArc->attr().VP1());
