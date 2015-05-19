@@ -2,7 +2,7 @@
 
 int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 {
-    MMD_InitArgcArgv(argc,argv);
+    //MMD_InitArgcArgv(argc,argv); //already done in SaisieQT_main.cpp ?
 
     Pt2di SzWP = Pt2di(900,700);
     std::string aFullName ="";
@@ -34,9 +34,9 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
         loadTranslation(app);
 
-		SaisieQtWindow win;
+        SaisieQtWindow win;
 
-		cQT_Interface::connectDeviceElise(win);
+        cQT_Interface::connectDeviceElise(win);
 
 #ifdef _DEBUG
         for (int aK=0; aK < cmdline_args.size();++aK)
@@ -68,23 +68,23 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, aAttr, SzWP, aGama);
 
             if (EAMIsInit(&aPost))
-				win.setPostFix(QString(aPost.c_str()));
+                win.setPostFix(QString(aPost.c_str()));
             else
-				win.setPostFix("_Masq");
+                win.setPostFix("_Masq");
 
             if (EAMIsInit(&aAttr))
-				win.setPostFix(win.getPostFix() + QString(aAttr.c_str()));
+                win.setPostFix(win.getPostFix() + QString(aAttr.c_str()));
 
             if (EAMIsInit(&aGama))
-				win.setGamma(aGama);
+                win.setGamma(aGama);
 
             if(EAMIsInit(&aNameMasq))
-				win.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
+                win.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
 
-			win.resize(SzWP.x,SzWP.y);
+            win.resize(SzWP.x,SzWP.y);
         }
 
-		win.show();
+        win.show();
 
         if (aFullName != "")
         {
@@ -99,7 +99,7 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             }
             else filenames.push_back(QString(aFullName.c_str()));
 
-			win.addFiles(filenames,true);
+            win.addFiles(filenames,true);
         }
 
         return app.exec();
