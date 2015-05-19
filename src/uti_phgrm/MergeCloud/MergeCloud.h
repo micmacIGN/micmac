@@ -121,7 +121,7 @@ class cASAMG
       void TestDifProf(const cASAMG & aNE) const;
 
       cImaMM *     IMM(); 
-      const cOneSolImageSec &  SolOfCostPerIm(double aCost);
+      const cOneSolImageSec *  SolOfCostPerIm(double aCost);
       const cImSecOfMaster &  ISOM() const;
 
       void AddCloseVois(cASAMG *);

@@ -284,7 +284,7 @@ bool  cASAMG::IsSelected() const {return mNivSelected >=0;}
 int  cASAMG::NivSelected() const {return mNivSelected ;}
 
 
-const cOneSolImageSec &  cASAMG::SolOfCostPerIm(double aCostPerIm)
+const cOneSolImageSec *  cASAMG::SolOfCostPerIm(double aCostPerIm)
 {
    double aBestGain = -1e10;
    const cOneSolImageSec * aSol=0;
@@ -299,10 +299,10 @@ const cOneSolImageSec &  cASAMG::SolOfCostPerIm(double aCostPerIm)
        if (aGain > aBestGain)
        {
            aBestGain = aGain;
-           aSol = &(*itS);
+           aSol = & (*itS);
        }
    }
-   return *aSol;
+   return aSol;
 }
 
 
