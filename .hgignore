@@ -402,3 +402,6 @@ config/chg_lib_path_Qt4.shbin64/
 binaire-aux/vcomp100.dll
 binaire-aux/msvcr100.dll
 binaire-aux/msvcp100.dll
+Documentation/DocProg/Doc_Qt_tools.synctex.gz
+Documentation/DocProg/Doc_Qt_tools.log
+Documentation/DocProg/Doc_Qt_tools.out
