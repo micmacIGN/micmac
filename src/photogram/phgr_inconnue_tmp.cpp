@@ -828,7 +828,16 @@ void cSubstitueBlocIncTmp::AddInc(const cIncListInterv & anILI)
       else
       {
           // On a besoin de connaitre l'ordre Tmp/Non Tmp pour la gestion des sym
-          ELISE_ASSERT(mVSBlTmp[0].I0AbsAlloc()>=aSB.I1AbsAlloc(),"cSubstitueBlocIncTmp::AddInc recouvrement / TMP ");
+          if (mVSBlTmp[0].I0AbsAlloc()<aSB.I1AbsAlloc())
+          {
+
+                // std::cout << " HHHHHhhhh " << mVSBlTmp[0].I0AbsAlloc() << " " << aSB.I1AbsAlloc() << "\n";
+                ELISE_ASSERT
+                (
+                     mVSBlTmp[0].I0AbsAlloc()>=aSB.I1AbsAlloc(),
+                     "cSubstitueBlocIncTmp::AddInc recouvrement / TMP "
+                );
+          }
       }
 
       for (int aK=0 ; aK<int(mSBlNonTmp.size()) ; aK++)

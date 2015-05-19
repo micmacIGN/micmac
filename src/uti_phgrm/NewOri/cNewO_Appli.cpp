@@ -51,6 +51,7 @@ class cAppli_Martini
           std::string mNameOriCalib;
           std::string mPat;
           bool        mExe;
+          ElTimer     aChrono;
 };
 
 void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
@@ -66,6 +67,7 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
     else
        std::cout << "COM= " << aFullCom << "\n";
 
+    std::cout << " DONE " << aCom << " in time " << aChrono.uval() << "\n";
 }
 
 void cAppli_Martini::Banniere()
@@ -83,7 +85,7 @@ void cAppli_Martini::DoAll()
      StdCom("NO_AllOri2Im"," Quick=false ");
      StdCom("NO_AllHomFloat");
      StdCom("NO_AllImTriplet");
-     StdCom("NO_GenTripl");
+     StdCom("NO_GenTripl"," Show=false");
 }
 
 

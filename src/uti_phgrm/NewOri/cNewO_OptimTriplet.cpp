@@ -53,7 +53,9 @@ class cImOfTriplet
          const ElRotation3D & Rot() {return mRot;}
          cAppliOptimTriplet &Appli() {return mAppli;}
          std::vector<Pt2df> &  VPOf3() {return mVPOf3;}  // Points triples
+         double Foc() const {return mIm->CS()->Focale();}
    private :
+         cImOfTriplet(const cImOfTriplet&); // N.I.
          cAppliOptimTriplet & mAppli;
          cNewO_OneIm * mIm;
          ElRotation3D  mRot;
@@ -66,14 +68,17 @@ class cPairOfTriplet
      public :
           cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2);
           double ResiduMoy();
-          const ElRotation3D & R1() const {return mIm1->Rot();}
-          const ElRotation3D & R2() const {return mIm2->Rot();}
+          const ElRotation3D & R1()  const  {return mIm1->Rot();}
+          const ElRotation3D & R2()  const  {return mIm2->Rot();}
+          const tMultiplePF & Homs() const  {return mHoms;}
      private :
+          cPairOfTriplet(const  cPairOfTriplet&); // N.I.
           cAppliOptimTriplet & mAppli;
           cImOfTriplet *        mIm1;
           cImOfTriplet *        mIm2;
           std::vector<Pt2df>    mVP1;
           std::vector<Pt2df>    mVP2;
+          tMultiplePF           mHoms;
 };
 
 
@@ -84,6 +89,7 @@ class cAppliOptimTriplet
           cNewO_NameManager * NM() {return mNM;}
           double ResiduTriplet();
       private :
+          cAppliOptimTriplet(const cAppliOptimTriplet&); // N.I.
           std::string mNameOriCalib;
           std::string mDir;
           cNewO_NameManager * mNM;
@@ -93,6 +99,9 @@ class cAppliOptimTriplet
           cPairOfTriplet * mP12;
           cPairOfTriplet * mP13;
           cPairOfTriplet * mP23;
+
+          tMultiplePF      mH123;
+          double           mFoc;
 };
 
 /**************************************************/
@@ -124,7 +133,10 @@ cPairOfTriplet::cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2) :
 {
    mAppli.NM()->LoadHomFloats(mIm1->Im(),mIm2->Im(),&mVP1,&mVP2);
 
-    std::cout << "cPairOfTriplet " << mVP1.size() << " " << mVP2.size() << "\n";
+   mHoms.push_back(&mVP1);
+   mHoms.push_back(&mVP2);
+
+   std::cout << "cPairOfTriplet " << mVP1.size() << " " << mVP2.size() << "\n";
 }
 
 
@@ -169,6 +181,15 @@ double cAppliOptimTriplet::ResiduTriplet()
         AddSegOfRot(aW1,aW2,mIm3->Rot(),mIm3->VPOf3()[aK]);
         bool OkI;
         Pt3dr aI = InterSeg(aW1,aW2,OkI);
+
+if (false && (aK==0))
+{
+   std::cout << "I1 " << mIm1->VPOf3()[aK] << " I2" << mIm2->VPOf3()[aK] << " I3" << mIm3->VPOf3()[aK] << "\n";
+   std::cout << "SSS0 "  << aW1[0] << aW2[0] << "\n";
+   std::cout << "SSS1 "  << aW1[1] << aW2[1] <<  " D " << euclid( aW1[1]) << "\n";
+   std::cout << "SSS2 "  << aW1[2] << aW2[2] << " D " << euclid( aW1[2])  << "\n";
+   std::cout << "Ddddddddddd " <<  euclid( aW1[1]) << " " <<  euclid( aW1[2])  << "\n";
+}
         if (OkI)
         {
             double aRes1 = Residu(mIm1->Im(),mIm1->Rot(),aI,mIm1->VPOf3()[aK]);
@@ -220,8 +241,26 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
 
    mNM->LoadTriplet(mIm1->Im(),mIm2->Im(),mIm3->Im(),&mIm1->VPOf3(),&mIm2->VPOf3(),&mIm3->VPOf3());
 
-   std::cout << "NB TRIPLE " << mIm2->VPOf3().size()  << " Resi3: " <<  ResiduTriplet() << "\n";
+   mH123.push_back(&mIm1->VPOf3());
+   mH123.push_back(&mIm2->VPOf3());
+   mH123.push_back(&mIm3->VPOf3());
 
+
+   mFoc =  1/ (  (1.0/mIm1->Foc()+1.0/mIm2->Foc()+1.0/mIm3->Foc()) / 3.0 ) ;
+
+   std::cout << "NB TRIPLE " << mIm2->VPOf3().size()  << " Resi3: " <<  ResiduTriplet() << " F " << mFoc << "\n";
+
+
+   TestBundle3Image
+   (
+        mFoc,
+        mIm2->Rot(),
+        mIm3->Rot(),
+        mH123,
+        mP12->Homs(),
+        mP13->Homs(),
+        mP23->Homs()
+   );
 
    if (1)
    {

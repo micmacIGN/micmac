@@ -84,8 +84,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqLinariseAngle_AccelCsteCoord.cpp"
 #include "../../CodeGenere/photogram/cEqBBCamFirst.cpp"
 #include "../../CodeGenere/photogram/cEqBBCamSecond.cpp"
+#include "../../CodeGenere/photogram/cEqBBCamThird.cpp"
 #include "../../CodeGenere/photogram/cEqBBCamFirst_AccelCsteCoord.cpp"
 #include "../../CodeGenere/photogram/cEqBBCamSecond_AccelCsteCoord.cpp"
+#include "../../CodeGenere/photogram/cEqBBCamThird_AccelCsteCoord.cpp"
 
 //=======================  Droite ========================
 

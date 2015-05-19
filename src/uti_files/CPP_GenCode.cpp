@@ -652,8 +652,8 @@ void GenerateCodeEqRelativeGPS();
 
 int GenCode_main(int argc,char ** argv)
 {
-     GenerateCodeEqRelativeGPS();
-    // GenCodecEqBundleBase();
+     // GenerateCodeEqRelativeGPS();
+    GenCodecEqBundleBase();
     // GenCodeEqLinariseAngle();
 
 

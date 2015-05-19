@@ -159,6 +159,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mDoTiePM0;      // Do model initial wih MMTieP ..
       int          mTimes;
       bool         mDebugCreatE;
+      bool         mDebugMM1P;
       bool         mPurge;
       bool         mUseGpu;
       double       mDefCor;
@@ -1242,6 +1243,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mDoTiePM0     (false),
     mTimes        (1),
     mDebugCreatE  (false),
+    mDebugMM1P    (false),
     mPurge        (! MPD_MM()),
     mUseGpu        (false),
     mDefCor        (0.5),
@@ -1345,6 +1347,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mTimes,"TimesExe",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip", eSAM_InternalUse)
+                    << EAM(mDebugMM1P,"DebugMM1P",true,"Debug Create This programm", eSAM_InternalUse)
                     << EAM(mDoOMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
                     << EAM(mHasVeget,"HasVeg",true,"Scene contains vegetation (Def=true on Ground)")
                     << EAM(mSkyBackGround,"HasSBG",true,"Scene has sky (or homogeneous) background (Def=false on Ground)")
@@ -1439,8 +1442,17 @@ void cAppliMMByPair::DoCorrelEpip()
              bool ToDo,Done,Begun;
              std::string aCom =  MatchEpipOnePair(*itA,ToDo,Done,Begun);
              if (aCom != "")
-                aLCom.push_back(aCom);
+             {
+                if (mDebugMM1P)
+                   std::cout << "CommMM1P: " << aCom << "\n";
+                else
+                   aLCom.push_back(aCom);
+             }
         }
+   }
+   if (mDebugMM1P)
+   {
+       exit(EXIT_SUCCESS);
    }
    if (mParalMMIndiv)
    {
