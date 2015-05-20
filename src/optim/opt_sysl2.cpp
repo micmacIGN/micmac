@@ -668,6 +668,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
    }
    static L2SysSurResol aSys(3);
    aSys.GSSR_Reset(false);
+   int aNbEq=0;
 
    for (int aKS=0; aKS<int(aVS.size()); aKS++)
    {
@@ -675,6 +676,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
       if (aPds > 0)
       {
          aSys.GSSR_Add_EqInterDroite3D (aVS[aKS].TgNormee(),aVS[aKS].P0(),aPds);
+         aNbEq+=2;
       }
    }
 
@@ -682,6 +684,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
    {
        double aCoeff[3]={0,0,1};
        aSys.AddEquation(1/ElSquare(aRAZ->IncEstim()),aCoeff,aRAZ->Z());
+       aNbEq+=1;
    }
 
    if (aVPts)
@@ -691,8 +694,10 @@ Pt3dr ElSeg3D::L2InterFaisceaux
        for (int aK=0 ; aK<aNb ; aK+=2)
        {
             aSys.GSSR_AddEquationPoint3D((*aVPts)[aK],(*aVPts)[aK+1]);
+            aNbEq +=3;
        }
    }
+   ELISE_ASSERT(aNbEq>=3,"Not Enouh Equation in ElSeg3D::L2InterFaisceaux");
 
    if (aROIF)
    {
