@@ -270,6 +270,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
              }
          }
          ELISE_COPY(aImW.all_pts(),aImW.in(),mW->ogray());
+         // TestNewSel(mPackPStd);
 //          ShowPack(mPackPStd,P8COL::red,2.0);
    }
 
