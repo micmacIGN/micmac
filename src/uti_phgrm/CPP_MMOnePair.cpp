@@ -60,6 +60,7 @@ class cMMOnePair
       std::string NameAutoM(int aStep,std::string aPost = "" ) {return "AutoMask_LeChantier_Num_" + ToString(ElMin(aStep,mStepEnd-1)) + aPost +".tif";}
 
       bool             mExe;
+      bool             mShow;
       bool             mMM1PInParal;
       int              mZoom0;
       int              mZoomF;
@@ -143,6 +144,7 @@ class cAppliMMOnePair : public cMMOnePair,
 
 cMMOnePair::cMMOnePair(int argc,char ** argv) :
     mExe          (true),
+    mShow         (false),
     mMM1PInParal  (true),
     mZoom0        (64),
     mZoomF        (1),
@@ -181,6 +183,7 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAMC(mNameIm2Init,"Name Im2", eSAM_IsExistFile)
                     << EAMC(mNameOriInit,"Orientation (if NONE, work directly on epipolar)", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mExe,"Exe",true,"Execute Commands, else only print them (Def=true)", eSAM_IsBool)
+                    << EAM(mShow,"Show",true,"Show Commande", eSAM_IsBool)
                     << EAM(mZoom0,"Zoom0",true,"Zoom Init (Def=64)",eSAM_IsPowerOf2)
                     << EAM(mZoomF,"ZoomF",true,"Zoom Final (Def=1)",eSAM_IsPowerOf2)
                     << EAM(mCreateEpip,"CreateE",true," Create Epipolar (def = true when appliable)", eSAM_IsBool)
@@ -209,6 +212,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
                     << EAM(mDefCor,"DefCor",false,"Def cor (Def=0.5)")
                     << EAM(mZReg,"ZReg",false,"Regularisation factor (Def=0.05)")
   );
+
+  if (!mExe) mShow = true;
 
   if (MMVisualMode) return;
 
@@ -292,8 +297,8 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
 
 
 
-             System(aCom);  //cMMOnePair Car sinon la non existence des epi, bloque le reste a cause a AppliWitSetImage
-            //  ExeCom(aCom);
+             // System(aCom);  //cMMOnePair Car sinon la non existence des epi, bloque le reste a cause a AppliWitSetImage
+             ExeCom(aCom);
        }
   }
   else
@@ -312,13 +317,21 @@ cMMOnePair::cMMOnePair(int argc,char ** argv) :
 void cMMOnePair::ExeCom(const std::string & aCom)
 {
     mNbCommand++;
+    if (mShow)
+    {
+        std::cout << "================= COM " << mNbCommand << " ================\n";
+        std::cout << aCom << "\n";
+    }
     if (mExe)
     {
-         System(aCom);
-         return;
+        // ExeCom(aCom);
+        System(aCom);
+        return;
     }
-    std::cout << "================= COM " << mNbCommand << " ================\n";
-    std::cout << aCom << "\n";
+    if (mShow)
+    {
+            std::cout << " Done COM : " << mNbCommand << " \n";
+    }
 }
 
 
@@ -337,8 +350,9 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
     if (! EAMIsInit(&mZoom0))
     {
        mZoom0 = DeZoomOfSize(7e4);
-       // std::cout  << "ZZ " << mZoom0 << "\n";
     }
+    mZoom0 = ElMax(mZoom0,mZoomF);
+    // std::cout  << "ZZ " << mZoom0 << "\n"; getchar();
 
     mVZoom.push_back(-1);
     for (int aDZ = mZoom0 ; aDZ >= mZoomF ; aDZ /=2)
@@ -679,8 +693,6 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
 
 
 /*
-     if (EAMIsInit(&mMasq3D))
-     {
           std::string aNameNuage =   mEASF.mDir+LocDirMec2Im(aNamA,aNamB) + "NuageImProf_Chantier-Ori_Etape_"+ ToString(aStep) +".xml";
           std::string aCom =   MM3dBinFile("TestLib")
                            + " Masq3Dto2D "
@@ -689,7 +701,7 @@ void cAppliMMOnePair::SauvMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                            + aNameNew
                            + " MasqNuage=" + aNameNew;
 
-          System(aCom);
+          S-ystem(aCom);
      }
 */
 

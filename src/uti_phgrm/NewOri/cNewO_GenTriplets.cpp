@@ -559,7 +559,8 @@ void cAppli_GenTriplet::GenTriplet()
    ElTimer aTimeGT;
    for (int aKS=0 ; aKS<int(mVecAllSom.size()) ; aKS++)
    {
-       std::cout << "ONE SOOMM  GT " << mVecAllSom.size() - aKS << " \n";
+       if (mShow) 
+          std::cout << "ONE SOOMM  GT " << mVecAllSom.size() - aKS << " \n";
        for( tItAGT itA=mVecAllSom[aKS]->begin(mSubAll) ; itA.go_on() ; itA++)
        {
              GenTriplet(*itA);
@@ -616,15 +617,16 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
    ELISE_ASSERT(aA1.Name() < aA2.Name(),"cAppli_GenTriplet::AddTriplet");
    ELISE_ASSERT(aA2.Name() < aA3.Name(),"cAppli_GenTriplet::AddTriplet");
 
-   cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());
-   if ((mMapTriplets.find(aTr) != mMapTriplets.end()))
-      return false;
-
 
    ElRotation3D aR1Inv = aA1.R3().inv();
 
    ElRotation3D aR2 = aR1Inv*aA2.R3();
    ElRotation3D aR3 = aR1Inv*aA3.R3();
+
+   double aD = euclid(aR2.tr());
+   aR2 = ElRotation3D(aR2.tr()/aD,aR2.Mat(),true);
+   aR3 = ElRotation3D(aR3.tr()/aD,aR3.Mat(),true);
+
 
    double aResidu=-1;
    int    aNbTriplet=-1;
@@ -665,6 +667,18 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
        aResidu = MedianeSup(aVRes);
        aNbTriplet = aVP1.size();
    }
+
+   cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());
+   {
+      std::map<cTripletInt,cResTriplet>::iterator  itM = mMapTriplets.find(aTr) ;
+
+      if (  (itM != mMapTriplets.end()) && (itM->second.mXml.ResiduTriplet() < aResidu))
+      {
+         return false;
+      }
+   }
+
+
 
 
    cResTriplet aRT;
@@ -834,7 +848,7 @@ int GenTriplet_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant a  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -850,17 +864,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
