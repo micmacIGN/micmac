@@ -1986,6 +1986,7 @@ void ToFOMOriStdRound(double & aVal,const double & aResol)
     double aDif = ElAbs(aRatio-aIR);
     // std::cout << "ORI ToFOMStdRound; Dif= " << aDif << "\n";
     ELISE_ASSERT(aDif < 1e-7,"ORI ToFOMStdRound");
+    //
 
     aVal = aResol * aIR;
 }

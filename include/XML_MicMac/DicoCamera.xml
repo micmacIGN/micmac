@@ -20,11 +20,16 @@
         <ShortName> C5Dm2 </ShortName>
    </CameraEntry>
    <CameraEntry>
+        <Name> Canon EOS 5D Mark III  </Name>
+        <SzCaptMm>   24.0  36.0  </SzCaptMm>
+        <ShortName> C5Dm3 </ShortName>
+   </CameraEntry>
+   <CameraEntry>
         <Name> Video HD Canon EOS 5D Mark II  </Name>
         <SzCaptMm>   24.0  36.0  </SzCaptMm>
         <ShortName> VidC5Dm2 </ShortName>
    </CameraEntry>
-   	<CameraEntry> 
+   <CameraEntry> 
         <Name> Canon EOS 7D </Name>
         <SzCaptMm> 14.9 22.3 </SzCaptMm>
         <ShortName> C7D </ShortName>
@@ -38,6 +43,11 @@
         <Name> Canon EOS 60D  </Name>
         <SzCaptMm>   14.9 22.3 </SzCaptMm>
         <ShortName> C60D </ShortName>
+   </CameraEntry>
+   <CameraEntry> 
+        <Name> Canon EOS 70D </Name>
+        <SzCaptMm> 15 22.5 </SzCaptMm>
+        <ShortName> C70D </ShortName>
    </CameraEntry>
    <CameraEntry>
         <Name> Canon EOS 650D  </Name>
