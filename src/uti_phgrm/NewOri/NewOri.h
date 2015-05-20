@@ -201,6 +201,9 @@ class cNewO_OrInit2Im
           double PixExactCost(const ElRotation3D & aRot,double aTetaMax) const;
           const cXml_Ori2Im &  XmlRes() const;
     private :
+
+
+           void TestNewSel(const ElPackHomologue & aPack);
           
        //======== Amniguity ====
             void CalcAmbig();
