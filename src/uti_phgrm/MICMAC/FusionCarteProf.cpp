@@ -857,6 +857,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
           mVC.push_back(new cLoadedCP<Type>(*this,anId,aStrFus[aK],aK));
     }
 
+
     if (mParam.ModeleNuageResult().IsInit())
     {
        std::string aNameNuageIn =   mICNM->Assoc1To1(mParam.ModeleNuageResult().Val(),anId,true);
@@ -910,7 +911,8 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
 
          aSomResolAlti /=  mVC.size();
          aSomOriAlti /=  mVC.size();
-         //  std::cout << "MOYYYY " << aSomOriAlti  << " " << aSomResolAlti << "\n";
+         // std::cout << "MOYYYY " << aSomOriAlti  << " " << aSomResolAlti << "\n";
+         // std::cout << "AAAAAAAAAkkKKKKK " <<  mVC[0]->NameNuage()  << "\n"; getchar();
 
          mNuage.Image_Profondeur().Val().ResolutionAlti() = aSomResolAlti;
          mNuage.Image_Profondeur().Val().OrigineAlti() = aSomOriAlti;

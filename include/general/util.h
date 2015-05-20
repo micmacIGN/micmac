@@ -285,6 +285,8 @@ inline INT arrondi_sup(INT a,INT b)
    return ((a+b-1)/b)*b;
 }
 
+ 
+
 double arrondi_inf(double aVal,double aPer);
 double arrondi_sup(double aVal,double aPer);
 double arrondi_ni(double aVal,double aPer);

@@ -1971,7 +1971,11 @@ void ToFOMResolStdRound(double & aVal)
    double aNewV = aDec.RVal();
    double aDif = ElAbs(aNewV-aVal)/(ElAbs(aVal)) ;
    // std::cout << "RESOL ToFOMStdRound; Dif= " << aDif << "\n";
-   ELISE_ASSERT(aDif < 1e-7,"RESOL ToFOMStdRound");
+   if (aDif >= 1e-7)
+   {
+       std::cout << "ToFOMResolStdRound:: " << aVal  << " => " << aNewV << " Dif=" << aDif << "\n";
+       ELISE_ASSERT(aDif < 1e-7,"RESOL ToFOMStdRound");
+   }
 
    aVal = aNewV * aSign;
 }
@@ -1985,7 +1989,10 @@ void ToFOMOriStdRound(double & aVal,const double & aResol)
     double aIR = round_ni(aRatio);
     double aDif = ElAbs(aRatio-aIR);
     // std::cout << "ORI ToFOMStdRound; Dif= " << aDif << "\n";
-    ELISE_ASSERT(aDif < 1e-7,"ORI ToFOMStdRound");
+    if (aDif>= 1e-7)
+    {
+       ELISE_ASSERT(aDif < 1e-7,"ORI ToFOMStdRound");
+    }
 
     aVal = aResol * aIR;
 }
