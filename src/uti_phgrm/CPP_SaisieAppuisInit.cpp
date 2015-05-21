@@ -54,7 +54,9 @@ void SaisieAppuisInit(int argc, char ** argv,
                       std::string &aPrefix2Add,
                       bool &aForceGray,
                       double &aZMoy,
-                      double &aZInc)
+                      double &aZInc,
+                      std::string & aInputSec
+                      )
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -73,6 +75,7 @@ void SaisieAppuisInit(int argc, char ** argv,
                       << EAM(aModeOri,"OriMode", true, "Orientation type (GRID) (Def=Std)")
                       << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
                       << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
+                      << EAM(aInputSec,"InputSec",true,"PIMs filter used for visibility", eSAM_NoInit)
     );
 
     if (!MMVisualMode)
@@ -131,8 +134,10 @@ int SaisieAppuisInit_main(int argc,char ** argv)
   aPrefix2Add = "";
   bool aForceGray = true;
   double aZMoy,aZInc;
+  std::string aInputSec;
 
-  SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, anOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc);
+
+  SaisieAppuisInit(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, anOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc,aInputSec);
 
   if (!MMVisualMode)
   {
@@ -166,6 +171,13 @@ int SaisieAppuisInit_main(int argc,char ** argv)
 
       if (EAMIsInit(&aPrefix2Add))
          aCom = aCom + " +Pref2Add=" + aPrefix2Add;
+
+
+       if (EAMIsInit(&aInputSec))
+       {
+           aCom = aCom + " +WithInputSec=true  +InputSec=" + aInputSec + " ";
+       }
+
 
       std::cout << aCom << "\n";
 

@@ -352,6 +352,9 @@ class cSectionInOut
         cTplValGesInit< std::string > & NamePointsGlobal();
         const cTplValGesInit< std::string > & NamePointsGlobal()const ;
 
+        cTplValGesInit< std::string > & PatternNameInputsSec();
+        const cTplValGesInit< std::string > & PatternNameInputsSec()const ;
+
         cTplValGesInit< std::string > & ExportPointeImage();
         const cTplValGesInit< std::string > & ExportPointeImage()const ;
 
@@ -370,6 +373,7 @@ class cSectionInOut
         cTplValGesInit< bool > mTypeGlobEcras;
         cTplValGesInit< std::string > mNamePointesImage;
         cTplValGesInit< std::string > mNamePointsGlobal;
+        cTplValGesInit< std::string > mPatternNameInputsSec;
         cTplValGesInit< std::string > mExportPointeImage;
         std::list< std::string > mFixedName;
         cTplValGesInit< std::string > mNameAuto;
@@ -531,6 +535,9 @@ class cParamSaisiePts
 
         cTplValGesInit< std::string > & NamePointsGlobal();
         const cTplValGesInit< std::string > & NamePointsGlobal()const ;
+
+        cTplValGesInit< std::string > & PatternNameInputsSec();
+        const cTplValGesInit< std::string > & PatternNameInputsSec()const ;
 
         cTplValGesInit< std::string > & ExportPointeImage();
         const cTplValGesInit< std::string > & ExportPointeImage()const ;

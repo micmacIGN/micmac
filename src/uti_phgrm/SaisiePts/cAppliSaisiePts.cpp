@@ -355,6 +355,19 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
 
     Tiff_Im::SetDefTileFile(100000);
 
+    if (mParam.PatternNameInputsSec().IsInit())
+    {
+        const std::string & aPat = mParam.PatternNameInputsSec().Val();
+        std::string aPost = StdPostfix(aPat);
+        ELISE_ASSERT(aPost=="xml","cAppli_SaisiePts::InitPG Input sup requires xml postfix");
+        std::string aPref = StdPrefix(aPat);
+        mGlobLInputSec  =  *(mICNM->Get("Tmp-SL-Glob-" + aPref  +".xml"));
+        mPtImInputSec   =  *(mICNM->Get("Tmp-SL-Im-" + aPref  +".xml"));
+
+        // std::cout << " SSSSSSSssssssssssSSSS\n"; getchar();
+
+    }
+
     InitImages();
     InitInPuts();
 
@@ -418,6 +431,12 @@ void cAppli_SaisiePts::InitImages()
 
     mNameSauvPtIm = mDC + mParam.NamePointesImage().Val();
     mDupNameSauvPtIm = mNameSauvPtIm + ".dup";
+
+
+    InitImages(mNameSauvPtIm);
+    for(int aKIm=0 ;  aKIm<int(mPtImInputSec.size()) ; aKIm++)
+       InitImages(mPtImInputSec[aKIm]);
+/*
     if (ELISE_fp::exist_file(mNameSauvPtIm))
     {
         mSOSPI = StdGetObjFromFile<cSetOfSaisiePointeIm>
@@ -427,19 +446,105 @@ void cAppli_SaisiePts::InitImages()
                     "SetOfSaisiePointeIm",
                     "SetOfSaisiePointeIm"
                     );
-        for
-        (
+    }
+*/
+    for
+    (
              std::list<cSaisiePointeIm>::iterator itS=mSOSPI.SaisiePointeIm().begin();
              itS != mSOSPI.SaisiePointeIm().end();
              itS++
-        )
-        {
-            // std::cout << " GGGGGhUjj " << itS->NameIm() << " " <<  itS->OneSaisie().size() << "\n";
-            AddImageOfImOfName(itS->NameIm(),false);
-        }
+    )
+    {
+       AddImageOfImOfName(itS->NameIm(),false);
     }
     mNbImTot = mImagesTot.size();
 }
+
+cSaisiePointeIm * GetPointeFromName(cSetOfSaisiePointeIm & aSSPI,const std::string & aNameIm)
+{
+    for (std::list<cSaisiePointeIm>::iterator itS=aSSPI.SaisiePointeIm().begin() ; itS!=aSSPI.SaisiePointeIm().end() ; itS++)
+    {
+        if (itS->NameIm() == aNameIm)
+           return &(*itS);
+    }
+    return 0;
+}
+
+cOneSaisie * GetSaisiePtFromName(cSaisiePointeIm & aSPI,const std::string & aNamePt)
+{
+   for (std::list<cOneSaisie>::iterator itO=aSPI.OneSaisie().begin() ; itO!=aSPI.OneSaisie().end() ; itO++)
+   {
+        if (itO->NamePt() == aNamePt)
+           return &(*itO);
+   }
+   return 0;
+}
+
+double PrioOfEtat(eEtatPointeImage aState)
+{
+    switch(aState)
+    {
+        case   eEPI_Refute : return 3;
+        case eEPI_Valide : return 2;
+        case   eEPI_Douteux : return 1;
+        case   eEPI_NonSaisi : return 0;
+        case eEPI_Highlight : return 0.1;
+        case  eEPI_Disparu : return -1;
+        case  eEPI_NonValue : return -2;
+    }
+
+    return -10;
+}
+
+
+void cAppli_SaisiePts::InitImages(const std::string & aName)
+{
+    if (! ELISE_fp::exist_file(aName)) return;
+
+    cSetOfSaisiePointeIm aNewSOSPI =  StdGetObjFromFile<cSetOfSaisiePointeIm>
+                                      (
+                                           aName,
+                                           StdGetFileXMLSpec("ParamSaisiePts.xml"),
+                                           "SetOfSaisiePointeIm",
+                                           "SetOfSaisiePointeIm"
+                                       );
+
+     for
+     (
+             std::list<cSaisiePointeIm>::iterator itS=aNewSOSPI.SaisiePointeIm().begin();
+             itS != aNewSOSPI.SaisiePointeIm().end();
+             itS++
+     )
+     {
+         cSaisiePointeIm  * aSPI = GetPointeFromName(mSOSPI,itS->NameIm());
+         if (aSPI==0)
+         {
+              mSOSPI.SaisiePointeIm().push_back(*itS);
+         }
+         else
+         {
+             for (std::list<cOneSaisie>::iterator itO=itS->OneSaisie().begin() ; itO!=itS->OneSaisie().end() ; itO++)
+             {
+                  cOneSaisie * aSPt = GetSaisiePtFromName(*aSPI,itO->NamePt());
+                  if (aSPt==0)
+                  {
+                       aSPI->OneSaisie().push_back(*itO);
+                  }
+                  else
+                  {
+                      std::cout << "MULTIPLE SEIZING IN INPUT For Im: " << itS->NameIm() << " Pt: " <<  itO->NamePt() << "\n";
+                      if (PrioOfEtat(itO->Etat()) > PrioOfEtat(aSPt->Etat()))
+                         *aSPt = *itO;
+                  }
+             }
+         }
+     }
+
+}
+
+
+
+
 
 void   cAppli_SaisiePts::AddImageOfImOfName (const std::string & aName,bool Visualisable)
 {
@@ -528,46 +633,24 @@ cSP_PointGlob * cAppli_SaisiePts::AddPointGlob(cPointGlob aPG,bool OkRessuscite,
     return 0;
 }
 
+
 void cAppli_SaisiePts::InitPG()
 {
-
     mNameSauvPG = mDC + mParam.NamePointsGlobal().Val();
     mDupNameSauvPG = mNameSauvPG + ".dup";
+    InitPG(mParam.NamePointsGlobal().Val());
 
-    // std::cout << "TTttttcs::InitPG"  << mNameSauvPG << " " << ELISE_fp::exist_file(mNameSauvPG) << "\n";
-    if (ELISE_fp::exist_file(mNameSauvPG))
+    for (int aK=0 ; aK<int(mGlobLInputSec.size()) ; aK++)
     {
-        cSetPointGlob aSPG = StdGetObjFromFile<cSetPointGlob>
-                (
-                    mNameSauvPG,
-                    StdGetFileXMLSpec("ParamSaisiePts.xml"),
-                    "SetPointGlob",
-                    "SetPointGlob"
-                    );
-
-        for
-                (
-                 std::list<cPointGlob>::iterator itP=aSPG.PointGlob().begin();
-                 itP!=aSPG.PointGlob().end();
-                 itP++
-                 )
-        {
-            if ( itP->Disparu().ValWithDef(false)  && (! itP->FromDico().ValWithDef(false)))
-            {
-            }
-            else
-            {
-                AddPointGlob(*itP,false,true);
-            }
-        }
+        InitPG(mGlobLInputSec[aK]);
     }
 
     for
-            (
-             std::list<cImportFromDico>::iterator itIm=mParam.ImportFromDico().begin();
-             itIm != mParam.ImportFromDico().end();
-             itIm++
-             )
+    (
+         std::list<cImportFromDico>::iterator itIm=mParam.ImportFromDico().begin();
+         itIm != mParam.ImportFromDico().end();
+         itIm++
+    )
     {
         cDicoAppuisFlottant aDic = StdGetObjFromFile<cDicoAppuisFlottant>
                 (
@@ -600,11 +683,59 @@ void cAppli_SaisiePts::InitPG()
             if (mParam.TypeGlobEcras().Val())
                 aNPG->PG()->Type() = aPG.Type();
 
-
         }
+    }
 
+}
+
+
+void  cAppli_SaisiePts::InitPG(const std::string & aName)
+{
+
+    // mNameSauvPG = mDC + mParam.NamePointsGlobal().Val();
+
+/*
+if (MPD_MM())
+{
+    std::cout << "AAAA : " << aName << "\n";
+    getchar();
+}
+*/
+
+    // std::cout << "TTttttcs::InitPG"  << mNameSauvPG << " " << ELISE_fp::exist_file(mNameSauvPG) << "\n";
+    if (ELISE_fp::exist_file(aName))
+    {
+        cSetPointGlob aSPG = StdGetObjFromFile<cSetPointGlob>
+                (
+                    aName,
+                    StdGetFileXMLSpec("ParamSaisiePts.xml"),
+                    "SetPointGlob",
+                    "SetPointGlob"
+                    );
+
+        for
+                (
+                 std::list<cPointGlob>::iterator itP=aSPG.PointGlob().begin();
+                 itP!=aSPG.PointGlob().end();
+                 itP++
+                 )
+        {
+            if ( itP->Disparu().ValWithDef(false)  && (! itP->FromDico().ValWithDef(false)))
+            {
+            }
+            else
+            {
+                AddPointGlob(*itP,false,true);
+            }
+        }
     }
 }
+
+
+
+
+
+
 
 void cAppli_SaisiePts::InitPointeIm()
 {

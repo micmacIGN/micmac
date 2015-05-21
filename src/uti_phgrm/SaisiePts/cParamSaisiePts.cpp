@@ -1147,6 +1147,17 @@ const cTplValGesInit< std::string > & cSectionInOut::NamePointsGlobal()const
 }
 
 
+cTplValGesInit< std::string > & cSectionInOut::PatternNameInputsSec()
+{
+   return mPatternNameInputsSec;
+}
+
+const cTplValGesInit< std::string > & cSectionInOut::PatternNameInputsSec()const 
+{
+   return mPatternNameInputsSec;
+}
+
+
 cTplValGesInit< std::string > & cSectionInOut::ExportPointeImage()
 {
    return mExportPointeImage;
@@ -1244,6 +1255,14 @@ void  BinaryUnDumpFromFile(cSectionInOut & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.PatternNameInputsSec().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PatternNameInputsSec().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PatternNameInputsSec().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.ExportPointeImage().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.ExportPointeImage().ValForcedForUnUmp(),aFp);
         }
@@ -1294,6 +1313,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionInOut & anObj)
     if (anObj.NamePointesImage().IsInit()) BinaryDumpInFile(aFp,anObj.NamePointesImage().Val());
     BinaryDumpInFile(aFp,anObj.NamePointsGlobal().IsInit());
     if (anObj.NamePointsGlobal().IsInit()) BinaryDumpInFile(aFp,anObj.NamePointsGlobal().Val());
+    BinaryDumpInFile(aFp,anObj.PatternNameInputsSec().IsInit());
+    if (anObj.PatternNameInputsSec().IsInit()) BinaryDumpInFile(aFp,anObj.PatternNameInputsSec().Val());
     BinaryDumpInFile(aFp,anObj.ExportPointeImage().IsInit());
     if (anObj.ExportPointeImage().IsInit()) BinaryDumpInFile(aFp,anObj.ExportPointeImage().Val());
     BinaryDumpInFile(aFp,(int)anObj.FixedName().size());
@@ -1328,6 +1349,8 @@ cElXMLTree * ToXMLTree(const cSectionInOut & anObj)
       aRes->AddFils(::ToXMLTree(std::string("NamePointesImage"),anObj.NamePointesImage().Val())->ReTagThis("NamePointesImage"));
    if (anObj.NamePointsGlobal().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NamePointsGlobal"),anObj.NamePointsGlobal().Val())->ReTagThis("NamePointsGlobal"));
+   if (anObj.PatternNameInputsSec().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PatternNameInputsSec"),anObj.PatternNameInputsSec().Val())->ReTagThis("PatternNameInputsSec"));
    if (anObj.ExportPointeImage().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ExportPointeImage"),anObj.ExportPointeImage().Val())->ReTagThis("ExportPointeImage"));
   for
@@ -1362,6 +1385,8 @@ void xml_init(cSectionInOut & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NamePointsGlobal(),aTree->Get("NamePointsGlobal",1),std::string("SP_PointesGlobal.xml")); //tototo 
 
+   xml_init(anObj.PatternNameInputsSec(),aTree->Get("PatternNameInputsSec",1)); //tototo 
+
    xml_init(anObj.ExportPointeImage(),aTree->Get("ExportPointeImage",1)); //tototo 
 
    xml_init(anObj.FixedName(),aTree->GetAll("FixedName",false,1));
@@ -1371,7 +1396,7 @@ void xml_init(cSectionInOut & anObj,cElXMLTree * aTree)
    xml_init(anObj.EnterName(),aTree->Get("EnterName",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cSectionInOut *) {return "45686146B6F56584FE3F";};
+std::string  Mangling( cSectionInOut *) {return "6893DC8923E8CFF6FD3F";};
 
 
 std::string & cSectionImages::SetOfImages()
@@ -1830,6 +1855,17 @@ const cTplValGesInit< std::string > & cParamSaisiePts::NamePointsGlobal()const
 }
 
 
+cTplValGesInit< std::string > & cParamSaisiePts::PatternNameInputsSec()
+{
+   return SectionInOut().PatternNameInputsSec();
+}
+
+const cTplValGesInit< std::string > & cParamSaisiePts::PatternNameInputsSec()const 
+{
+   return SectionInOut().PatternNameInputsSec();
+}
+
+
 cTplValGesInit< std::string > & cParamSaisiePts::ExportPointeImage()
 {
    return SectionInOut().ExportPointeImage();
@@ -2078,6 +2114,6 @@ void xml_init(cParamSaisiePts & anObj,cElXMLTree * aTree)
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamSaisiePts *) {return "46D7A90EDA917184FE3F";};
+std::string  Mangling( cParamSaisiePts *) {return "703535767D2CBBE8FE3F";};
 
 // };
