@@ -15,7 +15,8 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       double &aFlou,
                       bool &aForceGray,
                       double &aZMoy,
-                      double &aZInc);
+                      double &aZInc,
+                      std::string & aInputSec);
 
 
 using namespace std;
@@ -66,6 +67,7 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
     std::string aMasq3D,aPIMsFilter;
     double aFlou=0.;
     double aZMoy, aZInc;
+    std::string aInputSec;
 
     bool aForceGray = false;
 
@@ -83,7 +85,7 @@ int saisieAppuisPredicQT_main(QApplication &app, int argc, char *argv[])
         argv[0] = (char*) "SaisieAppuisPredicQT";
     }
 
-    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aMasq3D,aPIMsFilter,aFlou, aForceGray, aZMoy, aZInc);
+    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aMasq3D,aPIMsFilter,aFlou, aForceGray, aZMoy, aZInc, aInputSec);
 
     if (!MMVisualMode)
     {

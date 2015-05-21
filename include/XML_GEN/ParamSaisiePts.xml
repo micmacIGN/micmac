@@ -113,6 +113,7 @@ pas interfere avec format utilisateur basique, on separe -->
               <TypeGlobEcras Nb="?"  Type="bool" Def="false"> </TypeGlobEcras>
               <NamePointesImage Nb="?" Type="std::string" Def="SP_PointesImageIm.xml"> </NamePointesImage>
               <NamePointsGlobal Nb="?" Type="std::string" Def="SP_PointesGlobal.xml"> </NamePointsGlobal>
+              <PatternNameInputsSec     Nb="?" Type="std::string"> </PatternNameInputsSec>  <!-- Si on veut ajouter des saisies externes -->
 
 
                <!-- Export au format standadr -->
