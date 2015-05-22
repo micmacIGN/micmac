@@ -431,6 +431,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (! mModePB)
       {
+          // MPD : Ajout le 22/05/2015; car peut creer pb  si l'utilisateur a purge la directory
+          MakeXmlXifInfo(mFullName,mICNM);
           for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
           {
               const std::string & aNameIm = (*mSetIm)[aKIm];

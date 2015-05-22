@@ -417,6 +417,8 @@ void AddSegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotat
 double Residu(cNewO_OneIm  * anIm , const ElRotation3D & aR,const Pt3dr & aPTer,const Pt2df & aP);
 
 
+std::vector<int>  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin);
+
 
 
 
