@@ -1560,7 +1560,7 @@ void SaisieQtWindow::loadPlyIn3DPrev(const QStringList &filenames, cData *dataCa
         {
             loadPly(filenames);
             threeDWidget()->getGLData()->clearClouds();
-            dataCache->computeBBox(1);
+            dataCache->computeCenterAndBBox(1);
             threeDWidget()->getGLData()->setData(dataCache,false, _params->getSceneCenterType());
             threeDWidget()->resetView(false,false,false,false,true);
             option3DPreview();

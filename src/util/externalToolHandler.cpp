@@ -76,7 +76,7 @@ void ExternalToolHandler::initPathDirectories()
     do
     {
         if ( ( *itPath )=='\0' ){ *itPath=ELISE_CAR_ENV; ok=false; }
-        if ( ( *itPath )==ELISE_CAR_ENV ) // ELISE_CAR_ENV is the separator for directories in PATH, it is system dependant
+        if ( ( *itPath )==ELISE_CAR_ENV ) // ELISE_CAR_ENV is the separator for directories in PATH, it is system dependent
         {
             *itPath=0;
             // we got a possible new entry
@@ -242,9 +242,9 @@ int CheckDependencies_main(int argc,char ** argv)
     cout << "address size : " << sizeof(int*)*8 << " bits" << endl;
     cout << endl;
 
-	#ifdef __TRACE_SYSTEM__
-		cout << "--- __TRACE_SYSTEM__ = " << __TRACE_SYSTEM__ << endl << endl;
-	#endif
+    #ifdef __TRACE_SYSTEM__
+        cout << "--- __TRACE_SYSTEM__ = " << __TRACE_SYSTEM__ << endl << endl;
+    #endif
 
     #ifdef USE_OPEN_MP
         cout << "--- OpenMP enabled\n" << endl;

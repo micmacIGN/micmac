@@ -70,7 +70,6 @@ Documentation/DocRef/*.aux
 Documentation/DocUtil/*.aux
 Documentation/DocProg/*.aux
 Documentation/Generalites/*.aux
-Documentation/Generalites/QuickStartSimplified-Tools.log
 include/XML_User/DicoCamera.xml
 cppcheck.txt
 repport.txt
@@ -402,6 +401,3 @@ config/chg_lib_path_Qt4.shbin64/
 binaire-aux/vcomp100.dll
 binaire-aux/msvcr100.dll
 binaire-aux/msvcp100.dll
-Documentation/DocProg/Doc_Qt_tools.synctex.gz
-Documentation/DocProg/Doc_Qt_tools.log
-Documentation/DocProg/Doc_Qt_tools.out

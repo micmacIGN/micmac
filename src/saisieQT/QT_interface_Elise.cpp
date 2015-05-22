@@ -51,7 +51,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     rebuildGlCamera();
 
-    _data->computeBBox();
+    _data->computeCenterAndBBox();
 
     Init();
 
