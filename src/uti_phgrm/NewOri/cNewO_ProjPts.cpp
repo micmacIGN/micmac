@@ -745,9 +745,10 @@ template<class TypePt> class   cTplSelecPt
         }
 
         void UpdateDistPtsAdd(const TypePt & aNewP);
-        void SelectN(int aN);
+        void SelectN(int aN,double aDistArret = -1);
         const std::vector<int>  & VSel() const {return mVSel;}
 
+        double DistMinSelMoy() const;
 
     private :
         double Pds(int aK) {return mVPds ? (*mVPds)[aK] : 1.0;}
@@ -758,14 +759,16 @@ template<class TypePt> class   cTplSelecPt
         std::vector<cCdtSelect>     mVPresel;
         int                         mNbPts;
         int                         mNbPres;
-        std::vector<int>            mVSel;
+        cResIPR                     mRes;
+        std::vector<int> &          mVSel;
         
 };
 
 template<class TypePt> cTplSelecPt<TypePt>::cTplSelecPt(const std::vector<TypePt> & aVPts,const std::vector<double> * aVPds) :
      mVPts  (&aVPts),
      mVPds  (aVPds),
-     mNbPts (mVPts->size())
+     mNbPts (mVPts->size()),
+     mVSel  (mRes.mVSel)
 {
 }
 
@@ -825,12 +828,13 @@ template<class TypePt> void cTplSelecPt<TypePt>::UpdateDistPtsAdd(const TypePt &
 }
 
 
-template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel)
+template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel,double aDistArret)
 {
     int aNbSomSel = ElMin(mNbPres,aTargetNbSel);
     mVSel.clear();
+    bool Cont = true;
 
-    for (int aKSel=0 ; aKSel<aNbSomSel ; aKSel++)
+    for (int aKSel=0 ; (aKSel<aNbSomSel) && Cont ; aKSel++)
     {
          // Recherche du cdt le plus loin
          double aMaxDMin = 0;
@@ -851,9 +855,24 @@ template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel)
 
          UpdateDistPtsAdd(PSel(*aBest));
          mVSel.push_back(aBest->mNum);
+
+         //    aKSom>50 => pour que la dist puisse etre fiable;  aKSom%10 pour gagner du temps
+         if ( (aDistArret>0) && (aKSel>50)  && ((aKSel%10)==0) )
+         {
+             Cont = (DistMinSelMoy() > aDistArret);
+         }
     }
 }
 
+template<class TypePt> double cTplSelecPt<TypePt>::DistMinSelMoy() const
+{
+    double aSom = 0.0;
+    for (int aKS=0 ; aKS<int(mVSel.size()) ; aKS++)
+    {
+          aSom += mVPresel[aKS].mDMin;
+    }
+    return aSom / mVSel.size();
+}
 
 
 template<class TypePt> std::vector<int>  TplIndPackReduit(const std::vector<TypePt> & aVPts,int aNbMaxInit,int aNbFin,const std::vector<double> * aVPds = 0)
