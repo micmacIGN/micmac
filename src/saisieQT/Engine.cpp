@@ -15,26 +15,26 @@ void cLoader::setPostFix(QString str)
 }
 deviceIOCamera* cLoader::devIOCamera() const
 {
-	return _devIOCamera;
+    return _devIOCamera;
 }
 
 void cLoader::setDevIOCamera(deviceIOCamera* devIOCamera)
 {
-	_devIOCamera = devIOCamera;
+    _devIOCamera = devIOCamera;
 }
 deviceIOImage* cLoader::devIOImageAlter() const
 {
-	return _devIOImageAlter;
+    return _devIOImageAlter;
 }
 
 void cLoader::setDevIOImageAlter(deviceIOImage* devIOImageAlter)
 {
-	_devIOImageAlter = devIOImageAlter;
+    _devIOImageAlter = devIOImageAlter;
 }
 
 GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 {
-	return GlCloud::loadPly( i_ply_file, incre );
+    return GlCloud::loadPly( i_ply_file, incre );
 }
 
 void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor)
@@ -44,34 +44,34 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
 
 //	qDebug() << chro->elapsed() << " begin";
 
-	QImageReader reader(aNameFile);
+    QImageReader reader(aNameFile);
 
 //	qDebug() << chro->elapsed() << " start read";
 
 //	DUMP(reader.supportsOption(QImageIOHandler::ClipRect))
 //	DUMP(reader.supportsOption(QImageIOHandler::ScaledSize))
 
-	QSize rescaledSize	= reader.size()*scaleFactor;
-	QSize FullSize		= reader.size();
+    QSize rescaledSize	= reader.size()*scaleFactor;
+    QSize FullSize		= reader.size();
 
-	//reader.setScaledSize(rescaledSize );
+    //reader.setScaledSize(rescaledSize );
 
-	maskedImg->_m_image			= new QImage(FullSize,QImage::Format_RGB888);
+    maskedImg->_m_image			= new QImage(FullSize,QImage::Format_RGB888);
 
-	maskedImg->_loadedImageRescaleFactor = scaleFactor;
-	maskedImg->_fullSize = reader.size();
+    maskedImg->_loadedImageRescaleFactor = scaleFactor;
+    maskedImg->_fullSize = reader.size();
 
-	QSize tempSize = FullSize;
+    QSize tempSize = FullSize;
 
-	QImage tempImage(tempSize,QImage::Format_RGB888);
+    QImage tempImage(tempSize,QImage::Format_RGB888);
 
-	if (!reader.read(&tempImage))
-	{
-		if(maskedImg->_m_image )
-			delete maskedImg->_m_image;
+    if (!reader.read(&tempImage))
+    {
+        if(maskedImg->_m_image )
+            delete maskedImg->_m_image;
 
-		maskedImg->_m_image = new QImage( aNameFile);
-	}
+        maskedImg->_m_image = new QImage( aNameFile);
+    }
 
     // TODO: message d'erreur (non bloquant)
     // foo: Can not read scanlines from a tiled image.
@@ -79,34 +79,34 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
     // bug Qt non resolu
     // work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
 
-	if (maskedImg->_m_image->isNull() && _devIOImageAlter)
+    if (maskedImg->_m_image->isNull() && _devIOImageAlter)
     {
-		delete maskedImg->_m_image;
+        delete maskedImg->_m_image;
 
-		maskedImg->_m_image = _devIOImageAlter->loadImage(aNameFile);
-		maskedImg->_fullSize = maskedImg->_m_image->size(); // TODO ATTENTION _fullSize surement inutile
+        maskedImg->_m_image = _devIOImageAlter->loadImage(aNameFile);
+        maskedImg->_fullSize = maskedImg->_m_image->size(); // TODO ATTENTION _fullSize surement inutile
 
     }
-	else
-	{
-		if(maskedImg->_m_image )
-			delete maskedImg->_m_image;
+    else
+    {
+        if(maskedImg->_m_image )
+            delete maskedImg->_m_image;
 
-		maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));		
-		maskedImg->_fullSize = maskedImg->_m_image->size();
-	}
+        maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));
+        maskedImg->_fullSize = maskedImg->_m_image->size();
+    }
 
-	if(scaleFactor <1.f)
-		maskedImg->_m_rescaled_image = new QImage(maskedImg->_m_image->scaled(rescaledSize,Qt::IgnoreAspectRatio));
+    if(scaleFactor <1.f)
+        maskedImg->_m_rescaled_image = new QImage(maskedImg->_m_image->scaled(rescaledSize,Qt::IgnoreAspectRatio));
 
-	//MASK
+    //MASK
     QFileInfo fi(aNameFile);
 
     QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif";
 
-	maskedImg->setName(fi.fileName());
+    maskedImg->setName(fi.fileName());
 
-	loadMask(mask_filename, maskedImg,scaleFactor);
+    loadMask(mask_filename, maskedImg,scaleFactor);
 
 }
 
@@ -117,49 +117,49 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float 
     if (QFile::exists(aNameFile))
     {
 
-		maskedImg->_m_newMask = false;
+        maskedImg->_m_newMask = false;
 
-		QImageReader reader(aNameFile);
+        QImageReader reader(aNameFile);
 
-		reader.setScaledSize(reader.size()*scaleFactor);
+        reader.setScaledSize(reader.size()*scaleFactor);
 
-		if(maskedImg->_m_rescaled_mask )
-			delete maskedImg->_m_rescaled_mask;
+        if(maskedImg->_m_rescaled_mask )
+            delete maskedImg->_m_rescaled_mask;
 
-		maskedImg->_m_rescaled_mask = new QImage(reader.scaledSize(), QImage::Format_Mono);
-		QImage tempMask(reader.scaledSize(), QImage::Format_Mono);
+        maskedImg->_m_rescaled_mask = new QImage(reader.scaledSize(), QImage::Format_Mono);
+        QImage tempMask(reader.scaledSize(), QImage::Format_Mono);
 
-		if ((!reader.read(&tempMask) || tempMask.isNull()) && _devIOImageAlter)
+        if ((!reader.read(&tempMask) || tempMask.isNull()) && _devIOImageAlter)
         {
 
-			maskedImg->_m_rescaled_mask = _devIOImageAlter->loadMask(aNameFile);
+            maskedImg->_m_rescaled_mask = _devIOImageAlter->loadMask(aNameFile);
 
-			if(maskedImg->_m_rescaled_mask == NULL)
+            if(maskedImg->_m_rescaled_mask == NULL)
 
-				QMessageBox::critical(NULL, "cLoader::loadMask",QObject::tr("Cannot load mask image"));
+                QMessageBox::critical(NULL, "cLoader::loadMask",QObject::tr("Cannot load mask image"));
 
         }
         else
 
-			*(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
+            *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
 
     }
     else
     {
-		if(scaleFactor<1.f) // TODO Mask c'est quoi la différence ....
-		{
-			QImage tempMask(maskedImg->_m_rescaled_image->size(),QImage::Format_Mono);
-			maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
-			tempMask.fill(Qt::white);
-			*(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
-		}
-		else
-		{
-			QImage tempMask(maskedImg->_m_image->size(),QImage::Format_Mono);
-			maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
-			tempMask.fill(Qt::white);
-			*(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
-		}
+        if(scaleFactor<1.f) // TODO Mask c'est quoi la différence ....
+        {
+            QImage tempMask(maskedImg->_m_rescaled_image->size(),QImage::Format_Mono);
+            maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
+            tempMask.fill(Qt::white);
+            *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
+        }
+        else
+        {
+            QImage tempMask(maskedImg->_m_image->size(),QImage::Format_Mono);
+            maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
+            tempMask.fill(Qt::white);
+            *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
+        }
     }
 }
 
@@ -201,10 +201,10 @@ void cLoader::setFilenameOut(QString str)
 
 cCamHandler* cLoader::loadCamera(QString aNameFile)
 {
-	if(_devIOCamera)
-		return _devIOCamera->loadCamera(aNameFile);
-	else
-		return NULL;
+    if(_devIOCamera)
+        return _devIOCamera->loadCamera(aNameFile);
+    else
+        return NULL;
 }
 
 //****************************************
@@ -227,8 +227,7 @@ void cEngine::loadClouds(QStringList filenames, int* incre)
     for (int i=0;i<filenames.size();++i)
         _Data->addCloud(_Loader->loadCloud(filenames[i].toStdString(), incre));
 
-    _Data->computeBBox();
-    _Data->computeCloudsCenter();
+    _Data->computeCenterAndBBox();
 }
 
 void cEngine::loadCameras(QStringList filenames, int *incre)
@@ -236,12 +235,12 @@ void cEngine::loadCameras(QStringList filenames, int *incre)
     for (int i=0;i<filenames.size();++i)
     {
 
-		 if (incre) *incre = 100.0f*(float)i/filenames.size();
-		 cCamHandler* cam = _Loader->loadCamera(filenames[i]);
+         if (incre) *incre = 100.0f*(float)i/filenames.size();
+         cCamHandler* cam = _Loader->loadCamera(filenames[i]);
          if (cam) _Data->addCamera(cam);
     }
 
-    _Data->computeBBox();
+    _Data->computeCenterAndBBox();
 }
 
 //#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
@@ -262,31 +261,31 @@ bool cEngine::extGLIsSupported(const char* strExt)
 }
 cLoader* cEngine::Loader() const
 {
-	return _Loader;
+    return _Loader;
 }
 
 void cEngine::setLoader(cLoader* Loader)
 {
-	_Loader = Loader;
+    _Loader = Loader;
 }
 
 
 void cEngine::loadImages(QStringList filenames, int* incre)
 {
-	float scaleFactor = computeScaleFactor(filenames);
+    float scaleFactor = computeScaleFactor(filenames);
 
-	for (int i=0;i<filenames.size();++i)
+    for (int i=0;i<filenames.size();++i)
     {
         if (incre) *incre = 100.0f*(float)i/filenames.size();
-		loadImage(filenames[i],scaleFactor);
+        loadImage(filenames[i],scaleFactor);
     }
 }
 
 void  cEngine::loadImage(QString imgName,float scaleFactor )
 {
-	QMaskedImage *maskedImg =  new QMaskedImage(_params->getGamma());
+    QMaskedImage *maskedImg =  new QMaskedImage(_params->getGamma());
 
-	_Loader->loadImage(imgName, maskedImg,scaleFactor);
+    _Loader->loadImage(imgName, maskedImg,scaleFactor);
 
     _Data->pushBackMaskedImage(maskedImg);
 }
@@ -352,7 +351,7 @@ void cEngine::do3DMasks()
 
         string aOut = _Loader->getFilenamesOut()[cK].toStdString();
 #ifdef _DEBUG
-		printf ("Saving %s\n", aOut.c_str());
+        printf ("Saving %s\n", aOut.c_str());
 #endif
 
         Tiff_Im::CreateFromIm(mask, aOut);
@@ -374,7 +373,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
     {
         QString aOut = _Loader->getFilenamesOut()[idCur];
 
-		float scaleFactor = _vGLData[idCur]->glImageMasked().getLoadedImageRescaleFactor();
+        float scaleFactor = _vGLData[idCur]->glImageMasked().getLoadedImageRescaleFactor();
 
         if (scaleFactor != 1.f)
         {
@@ -394,10 +393,10 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
             return;
         }
 
-		if(Loader()->devIOImageAlter())
-			Loader()->devIOImageAlter()->doMaskImage(Mask,aOut);
+        if(Loader()->devIOImageAlter())
+            Loader()->devIOImageAlter()->doMaskImage(Mask,aOut);
 
-	/*
+    /*
         cFileOriMnt anOri;
 
         anOri.NameFileMnt()		= aOut.toStdString();
@@ -409,7 +408,7 @@ void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
         anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
 
         MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
-		*/
+        */
 
 //        if (!isFirstAction)
 //            _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
@@ -440,17 +439,17 @@ void cEngine::saveMask(ushort idCur, bool isFirstAction)
 void cEngine::unloadAll()
 {
     _Data->clearAll();
-	//qDeleteAll(_vGLData);
+    //qDeleteAll(_vGLData);
 
-	// TODO ATTENTION le delete n'est pas fait
+    // TODO ATTENTION le delete n'est pas fait
 
-	for (int var = 0; var < _vGLData.size(); ++var)
-	{
-		if(_vGLData[var])
-			delete _vGLData[var];
+    for (int var = 0; var < _vGLData.size(); ++var)
+    {
+        if(_vGLData[var])
+            delete _vGLData[var];
 
-		_vGLData[var] = NULL;
-	}
+        _vGLData[var] = NULL;
+    }
 
     _vGLData.clear();
 }
@@ -470,7 +469,7 @@ void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
     _vGLData.clear();
 
     for (int aK = 0; aK < _Data->getNbImages();++aK)
-		_vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode));
+        _vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode));
 
     if (_Data->is3D())
         _vGLData.push_back(new cGLData(_Data, aParams,appMode));
@@ -485,7 +484,7 @@ void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
     if (_Data->is3D())
         _vGLData[aK] = new cGLData(_Data, aParams,appMode);
     else
-		_vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode);
+        _vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode);
 }
 
 cGLData* cEngine::getGLData(int WidgetIndex)
@@ -552,7 +551,7 @@ float cEngine::computeScaleFactor(QStringList& filenames)
         {
             QSize imageSize = getData()->getMaskedImage(aK)._m_image->size();
 
-			//sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
+            //sizeMemoryTexture_kb += imageSize.width()*imageSize.width()*4/1024;
         }
 
         //sizeMemoryTexture_kb = widthMax*heightMax*4/1024;
@@ -582,15 +581,15 @@ float cEngine::computeScaleFactor(QStringList& filenames)
     int heightMax             = 0;
 
     //for (int i=0;i<filenames.size();++i)
-	int nbImgs = filenames.size();
+    int nbImgs = filenames.size();
 
 
     for (int aK=0; aK< nbImgs;++aK)
     {
-		QImageReader imageReader(filenames[aK]);
+        QImageReader imageReader(filenames[aK]);
 //        QSize imageSize = getData()->getMaskedImage(aK)._m_image->size();
 
-		QSize imageSize = imageReader.size();
+        QSize imageSize = imageReader.size();
 
         widthMax  = max(imageSize.width(),widthMax);
         heightMax = max(imageSize.height(),heightMax);
@@ -619,15 +618,15 @@ float cEngine::computeScaleFactor(QStringList& filenames)
         //cout << "scale factor = " << scaleFactor << endl;
     }
 
-	if (scaleFactor != 1.f && nbImgs==1)
-	{
-		scaleFactor /= 2.f;
-	}
+    if (scaleFactor != 1.f && nbImgs==1)
+    {
+        scaleFactor /= 2.f;
+    }
 
     //scaleFactor = min(scaleFactor,scaleFactorVRAM); // TODO A GERER
 
 
-	return scaleFactor;
+    return scaleFactor;
 
 //    for (int aK=0; aK< nbImgs;++aK)
 //    {
