@@ -1526,12 +1526,12 @@ void SaisieQtWindow::setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *
     tableView_Images()->setModel(model_Images);
 }
 
-void SaisieQtWindow::SelectPointAllWGL(QString pointName)
+void SaisieQtWindow::selectPointAllWGL(QString pointName)
 {
     emit selectPoint(pointName);
 }
 
-void SaisieQtWindow::SetDataToGLWidget(int idGLW, cGLData *glData)
+void SaisieQtWindow::setDataToGLWidget(int idGLW, cGLData *glData)
 {
     if (glData)
     {
@@ -1635,45 +1635,6 @@ void SaisieQtWindow::closeEvent(QCloseEvent *event)
     event->accept();
 
     QMainWindow::closeEvent(event);
-}
-
-void SaisieQtWindow::redraw(bool nbWidgetsChanged)
-{
-    if (nbWidgetsChanged)
-    {
-        delete _layout_GLwidgets;
-        _layout_GLwidgets = new QGridLayout;
-
-        int newWidgetNb = _params->getNbFen().x()*_params->getNbFen().y();
-        int col =  _layout_GLwidgets->columnCount();
-        int row =  _layout_GLwidgets->rowCount();
-
-        if (col < _params->getNbFen().x() || row < _params->getNbFen().y())
-        {
-            widgetSetResize(newWidgetNb);
-
-            int cpt = 0;
-            for (; cpt < nbWidgets();++cpt)
-                _layout_GLwidgets->removeWidget(getWidget(cpt));
-
-            cpt = 0;
-            for (int aK =0; aK < _params->getNbFen().x();++aK)
-                for (int bK =0; bK < _params->getNbFen().y();++bK)
-                {
-                    _layout_GLwidgets->addWidget(getWidget(cpt), bK, aK);
-
-                    if (cpt < _Engine->getData()->getNbImages())
-                        getWidget(cpt)->setGLData(_Engine->getGLData(cpt),_ui->actionShow_messages->isChecked(), _ui->actionShow_cams->isChecked(),true,true,params()->eNavigation());
-
-                    cpt++;
-                }
-            _ui->QFrame_OpenglLayout->setLayout(_layout_GLwidgets);
-        }
-        else
-        {
-            //TODO
-        }
-    }
 }
 
 void SaisieQtWindow::setAutoName(QString val)
