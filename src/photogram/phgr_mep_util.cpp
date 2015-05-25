@@ -948,7 +948,8 @@ class cBundle3Image
                const tMultiplePF  & aH123,
                const tMultiplePF  & aH12,
                const tMultiplePF  & aH13,
-               const tMultiplePF  & aH23
+               const tMultiplePF  & aH23,
+               double  aPds3
          );
         double  RobustEr2Glob(double aProp);
         double  RobustEr3(double aProp);
@@ -967,7 +968,6 @@ class cBundle3Image
         const cPairB3Im  &  P13() const {return mP13;}
         const cPairB3Im  &  P23() const {return mP23;}
 
-        static const double MaxSurPond3;
         static const double PropErInit;
         static const double CoeffPdsErr;
 
@@ -1009,7 +1009,6 @@ cPairB3Im::cPairB3Im(const tMultiplePF  & aHom,int aIndA,int aIndB,int aIndC) :
 
 
 
-const double cBundle3Image::MaxSurPond3 = 10.0;
 const double cBundle3Image::PropErInit =  0.75;
 const double cBundle3Image::CoeffPdsErr =  2.0;
 
@@ -1022,7 +1021,8 @@ cBundle3Image::cBundle3Image
      const tMultiplePF  & aH123,
      const tMultiplePF  & aH12,
      const tMultiplePF  & aH13,
-     const tMultiplePF  & aH23
+     const tMultiplePF  & aH23,
+     const double         aSurPds3
 ) :
    mFoc      (aFoc),
    mR12Init  (aR12),
@@ -1036,12 +1036,11 @@ cBundle3Image::cBundle3Image
    mP23      (aH23,1,2,0),
    mEqBB     (new cEqBundleBase(false,1,aFoc,true)),
    mBufPts   (3),
-   mBufSel   (3)
+   mBufSel   (3),
+   mPds3     (aSurPds3)
 {
    mEqBB->InitNewR2R3(mR12Init,mR13Init);
-   mPds3 =  ElMin(MaxSurPond3,(mP12.mNb+mP13.mNb+mP23.mNb)/double(mNb123));
-
-   std::cout << "PDS3 " << mPds3 << "\n";
+   // mPds3 =  ElMin(MaxSurPond3,(mP12.mNb+mP13.mNb+mP23.mNb)/double(mNb123));
 }
 
 Pt2dr F2D(const Pt2df & aP) {return Pt2dr(aP.x,aP.y);}
@@ -1075,7 +1074,7 @@ double cBundle3Image::OneIter3(double anErrStd)
      {
           double anErr = AddEq3Pt(aK,0);
           double aPds =  PdsErr(anErr,anErrStd);
-          AddEq3Pt(aK,aPds);
+          AddEq3Pt(aK,aPds*mPds3);
           aSomP += aPds;
           aSomEP += aPds * anErr;
      }
@@ -1154,7 +1153,8 @@ void TestBundle3Image
           const tMultiplePF  & aH123,
           const tMultiplePF  & aH12,
           const tMultiplePF  & aH13,
-          const tMultiplePF  & aH23
+          const tMultiplePF  & aH23,
+          double  aPds3
      )
 {
 
@@ -1162,7 +1162,7 @@ void TestBundle3Image
     for (int aK=0 ; aK<5 ; aK++)
     {
         double aMul = 1e-2*pow(10,-aK);
-        cBundle3Image aB3(aFoc,PerturRot(aR12,aMul),PerturRot(aR13,aMul),aH123,aH12,aH13,aH23);
+        cBundle3Image aB3(aFoc,PerturRot(aR12,aMul),PerturRot(aR13,aMul),aH123,aH12,aH13,aH23,aPds3);
 
         double anEr3 = aB3.RobustEr3(aProp);
         double anEr2 = aB3.RobustEr2Glob(aProp);
@@ -1182,6 +1182,37 @@ void TestBundle3Image
     }
 }
 
+
+void SolveBundle3Image
+     (
+          double               aFoc,
+          ElRotation3D & aR12,
+          ElRotation3D & aR13,
+          const tMultiplePF  & aH123,
+          const tMultiplePF  & aH12,
+          const tMultiplePF  & aH13,
+          const tMultiplePF  & aH23,
+          double  aPds3
+     )
+{
+
+    double aProp = cBundle3Image::PropErInit;
+    cBundle3Image aB3(aFoc,aR12,aR13,aH123,aH12,aH13,aH23,aPds3);
+
+    double anEr3 = aB3.RobustEr3(aProp);
+    double anEr2 = aB3.RobustEr2Glob(aProp);
+
+    for (int anIter = 0 ; anIter<10 ; anIter ++)
+    {
+           anEr3 = aB3.OneIter3(anEr3); 
+           anEr2 = aB3.OneIter2Glob(anEr2); 
+           std::vector<ElRotation3D>  aVR = aB3.BB().GenSolveResetUpdate(); 
+           aB3.BB().InitNewR2R3(aVR[0],aVR[1]);
+           // std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << "\n";
+           aR12 = aVR[0];
+           aR13 = aVR[1];
+    }
+}
 
 
 

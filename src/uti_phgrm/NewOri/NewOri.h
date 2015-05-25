@@ -47,7 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 // Nombre de point pour echantillonner le recouvrt / homogr
 #define NbRecHom 40
 // Nombre de point minimum pour etudier un couple
-#define NbMinPts2Im 50
+#define NbMinPts2Im 20
 
 
 //  Sur les triplets
@@ -56,11 +56,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define  TQuant     30 // Valeur de quantification
 #define  TQuantBsH  100 // Valeur de quantification
 #define  TBSurHLim  0.15  // Valeur d'attenuation du gain en B/H
-#define  TNbMinPMul 8  // Nombre de point triple minimal pour un triplet
+//  #define  TNbMinPMul 8  // Nombre de point triple minimal pour un triplet
 #define  TAttenDens 3.0
 
-#define TNbMinTriplet 5
-#define TNbMaxTriplet 20
+#define TNbMinTriplet 3    // Nombre de point triple minimal pour un triplet
+#define TNbMaxTriplet 20   // Nombre maximal de triplet calcule
 #define TGainSeuil    5e-3
 
 
@@ -298,6 +298,8 @@ class cNewO_NameManager
            CamStenope * CamOfName(const std::string & aName);
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
            std::string NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const;
+           cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2);
+
            std::string  NameTimingOri2Im() const;
            const std::string & Dir() const;
 
@@ -423,7 +425,9 @@ class  cResIPR
          double           mDistMoy;
 };
 
-std::vector<int>  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin);
+cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin);
+cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin,const cResIPR & aResExist,const std::vector<Pt2df> & aVPtsExist);
+
 
 
 

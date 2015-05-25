@@ -520,6 +520,10 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
        tSomGT & aS3 = (*itA).s2();
        if (mGrT.arc_s1s2(anArc.s2(),aS3))
        {
+          if (mCurTestArc) 
+          {
+             std::cout << "Push " <<  aS3.attr().Name() << "\n";
+          }
           AddSomTmp(aS3);
        }
     }
