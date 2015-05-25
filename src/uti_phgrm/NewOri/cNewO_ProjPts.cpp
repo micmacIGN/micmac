@@ -729,6 +729,8 @@ class cCdtSelect
 };
 
 
+static double DefDistArret = -1;
+
 template<class TypePt> class   cTplSelecPt
 {
     public :
@@ -745,10 +747,11 @@ template<class TypePt> class   cTplSelecPt
         }
 
         void UpdateDistPtsAdd(const TypePt & aNewP);
-        void SelectN(int aN,double aDistArret = -1);
+        void SelectN(int aN,double aDistArret = DefDistArret);
         const std::vector<int>  & VSel() const {return mVSel;}
 
-        double DistMinSelMoy() const;
+        double DistMinSelMoy();
+        cResIPR & Res() {return mRes;}
 
     private :
         double Pds(int aK) {return mVPds ? (*mVPds)[aK] : 1.0;}
@@ -864,38 +867,69 @@ template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel,double
     }
 }
 
-template<class TypePt> double cTplSelecPt<TypePt>::DistMinSelMoy() const
+template<class TypePt> double cTplSelecPt<TypePt>::DistMinSelMoy() 
 {
     double aSom = 0.0;
     for (int aKS=0 ; aKS<int(mVSel.size()) ; aKS++)
     {
           aSom += mVPresel[aKS].mDMin;
     }
-    return aSom / mVSel.size();
+    mRes.mDistMoy = aSom / mVSel.size();
+    return mRes.mDistMoy;
 }
 
 
-template<class TypePt> std::vector<int>  TplIndPackReduit(const std::vector<TypePt> & aVPts,int aNbMaxInit,int aNbFin,const std::vector<double> * aVPds = 0)
+template<class TypePt> cResIPR  TplIndPackReduit
+                                (
+                                     const std::vector<TypePt> & aVPts,
+                                     int aNbMaxInit,
+                                     int aNbFin, 
+                                     const cResIPR * aResExist = 0,
+                                     const std::vector<TypePt> * aVPtsExist = 0
+                                )
 {
-    cTplSelecPt<TypePt> aSel(aVPts,aVPds);
+    cTplSelecPt<TypePt> aSel(aVPts);
     aSel.InitPresel(aNbMaxInit);
     aSel.CalcPond();
-    aSel.SelectN(aNbFin);
+
+    double aDistArret = DefDistArret;
+    if (aResExist)
+    {
+       for (int aK=0 ; aK<int(aResExist->mVSel.size()) ; aK++)
+       {
+           aSel.UpdateDistPtsAdd((*aVPtsExist)[aResExist->mVSel[aK]]);
+       }
+       aDistArret = aResExist->mDistMoy;
+    }
 
 
-    return aSel.VSel();
+    aSel.SelectN(aNbFin,aDistArret);
+    aSel.DistMinSelMoy();
+    aSel.Res().mDistMoy *= sqrt(aSel.VSel().size()/double(aNbFin));
+
+    return aSel.Res();
 }
 
 
-std::vector<int>  IndPackReduit(const std::vector<Pt2dr> & aV,int aNbMaxInit,int aNbFin)
+
+cResIPR  IndPackReduit(const std::vector<Pt2dr> & aV,int aNbMaxInit,int aNbFin)
 {
    return TplIndPackReduit(aV,aNbMaxInit,aNbFin);
 }
 
-std::vector<int>  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin)
+cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin)
 {
    return TplIndPackReduit(aV,aNbMaxInit,aNbFin);
 }
+
+cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin,const cResIPR & aResExist,const std::vector<Pt2df> & aVPtsExist)
+{
+   cResIPR aRes = TplIndPackReduit(aV,aNbMaxInit,aNbFin,&aResExist,&aVPtsExist);
+   return aRes;
+}
+
+
+
 
 
 void cNewO_OrInit2Im::TestNewSel(const ElPackHomologue & aPack)
@@ -909,7 +943,7 @@ void cNewO_OrInit2Im::TestNewSel(const ElPackHomologue & aPack)
      for (int aK=0 ; aK<int(aVPts.size()) ; aK++)
         mW->draw_circle_abs(ToW(aVPts[aK]),2.0,mW->pdisc()(P8COL::green));
 
-     std::vector<int>  aVSel = TplIndPackReduit(aVPts,1500,500);
+     std::vector<int>  aVSel = TplIndPackReduit(aVPts,1500,500).mVSel;
      for (int aK=0 ; aK<int(aVSel.size()) ; aK++)
      {
          Pt2dr aP = ToW(aVPts[aVSel[aK]]);
@@ -930,7 +964,7 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aN
    }
 
    ElPackHomologue aRes;
-   std::vector<int>  aVSel = TplIndPackReduit(aVP1,aNbMaxInit,aNbFin);
+   std::vector<int>  aVSel = TplIndPackReduit(aVP1,aNbMaxInit,aNbFin).mVSel;
    for (int aK=0 ; aK<int(aVSel.size()) ; aK++)
    {
          ElCplePtsHomologues aCple(aVP1[aVSel[aK]],aVP2[aVSel[aK]]);
@@ -939,6 +973,8 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aN
 
    return aRes;
 }
+
+
 
 
 

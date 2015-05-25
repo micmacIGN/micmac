@@ -156,7 +156,7 @@ const std::string &   cNewO_NameManager::OriCal() const {return mOriCal;}
 
 std::string cNewO_NameManager::NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const
 {
-   std::string aExt = (Bin ? "xml" : "dmp");
+   std::string aExt = (Bin ? "dmp" : "xml");
    return mICNM->Assoc1To2("NKS-Assoc-CplIm2OriRel@"+ mOriCal +"@" + aExt,aN1,aN2,true);
 }
 
@@ -165,6 +165,10 @@ std::string cNewO_NameManager::NameTimingOri2Im() const
     return "Ori2Im" + mOriCal + "/Timing2Im.xml";
 }
 
+cXml_Ori2Im cNewO_NameManager::GetOri2Im(const std::string & aN1,const std::string & aN2)
+{
+   return StdGetFromSI(mDir + NameXmlOri2Im(aN1,aN2,true),Xml_Ori2Im);
+}
 
 
 

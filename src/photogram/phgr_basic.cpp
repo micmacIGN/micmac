@@ -3872,6 +3872,7 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
                     Pt3dr * aDirApprox
           )
 {
+
      ELISE_ASSERT(PR3.size() == PF2.size(),"CombinatoireOFPA Dif Size");
      ELISE_ASSERT(INT(PR3.size())>=4,"CombinatoireOFPA, Size Insuffisant");
 
@@ -3924,6 +3925,7 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
                  REAL aDist;
                  INT  aNbSol;
                          ElRotation3D   aRot = OrientFromPtsAppui(TousDevant,L3,L2,&aDist,&aNbSol);
+
 
 if (0)
 {
@@ -4013,7 +4015,9 @@ ElRotation3D  CamStenope::RansacOFPA
     ElSTDNS list<Pt2dr> PF2;
 
     ToSepList(PR3,PF2,P23);
-    return CombinatoireOFPAGen(TousDevant,NbTest,PR3,PF2,Res_Dmin,true,aDirApprox);
+    ElRotation3D aR =  CombinatoireOFPAGen(TousDevant,NbTest,PR3,PF2,Res_Dmin,true,aDirApprox);
+
+    return  aR;
 }
 
 
