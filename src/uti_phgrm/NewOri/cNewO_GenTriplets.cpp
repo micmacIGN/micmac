@@ -264,6 +264,8 @@ void cGTrip_AttrSom::InitNb(const std::vector<Pt2df> & aVP1)
 }
 
 
+extern void  CoordInterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1,bool & Ok,double &p , double & q);
+
 
 
 bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
@@ -313,8 +315,14 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
 
 
       // Calul du centre
+ 
+      // Methode qui n'utilisent pas les points multiples, OK mais degeneree avec sommet alignes
+      //  C2  + L C3, U2 , U3 colineaire
+     
 
       int aStep = ElMin(10,ElMax(1,int(aVP1.size())/50));
+
+      std::vector<double> aVLByInt;
 
       for (int aKL=0 ; aKL<int(aVP1.size()) ; aKL+=aStep)
       {
@@ -332,10 +340,36 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
           aDet =  Det(aV3Bis,aU31Bis,aU1);
           if (aDet)
               aVL23.push_back( -Det(aC2,aU31Bis,aU1) /aDet);
+
+
+          bool OkI;
+          Pt3dr aPInt12 = InterSeg(aC1,aC1+aU1,aC2,aC2+aU2,OkI);
+          if (OkI)
+          {
+              // La vrai C3 est a la fois sur la droite C1C3 et sur le rayon partant de l'intersection et porte
+              // par U3, on calcule
+              double p,q;
+              CoordInterSeg(aC1,aC3,aPInt12,aPInt12+aU31,OkI,p,q);
+              if (OkI)
+              {
+                 aVLByInt.push_back(p);
+              }
+
+               // Pt3dr aPseudoC3 = InterSeg(aC1,aC3,
+               //  L C3 + K U3 = aPInt12
+          }
+          
       }
+
       Pt3dr aC31 = aC3 / MedianeSup(aVL13);
       Pt3dr aC32 = aC2 + aV3Bis * MedianeSup(aVL23);
       mC3 = (aC31 + aC32) / 2.0;
+      Pt3dr aC3I = aC3 *  MedianeSup(aVLByInt);
+
+      // std::cout << "DDDDD " << euclid(mC3-aC3I)  << " " << aC3I << "\n";
+
+     // Finalement on prefere celui par point multiple, qui n'est pas degenere en cas de sommets alignes
+      mC3 = aC3I;
       mM3 =  NearestRotation((aR31.Mat() + aR31Bis.Mat())*0.5);
 
 
