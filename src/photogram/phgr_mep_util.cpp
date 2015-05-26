@@ -172,6 +172,51 @@ TIMME :
 
 }
 
+void  CoordInterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1,bool & Ok,double &p , double & q)
+{
+     // (P0 + p (P1-P0) ) - (Q0+ q(Q1-Q0)) .  (P1-P0) = 0
+     // (P0 + p (P1-P0) ) - (Q0+ q(Q1-Q0)) .  (Q1-Q0) = 0
+      Pt3dr aP01 = aP1 -aP0;
+      Pt3dr aQ01 = aQ1 -aQ0;
+      // Normale
+
+      Pt3dr aPQ = aQ0 - aP0;
+
+      //    a p + b q = X
+      //    c p + d q = Y
+
+      double a = scal(aP01,aP01);
+      double b = -scal(aQ01,aP01);
+      double c = -b;
+      double d = -scal(aQ01,aQ01);
+      double X = scal(aPQ,aP01);
+      double Y = scal(aPQ,aQ01);
+
+
+     //  p      (d  -b)  X
+     //  q  =   (-c  a)  Y
+
+
+      double aDet = a*d - b*c;
+
+      if (aDet==0)
+      {
+          Ok= false;
+          return ;
+      }
+      Ok = true;
+
+
+      p = ( d * X - b * Y ) / aDet;
+      q = (-c * X + a * Y ) / aDet;
+}
+
+
+
+
+
+
+
 Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt3dr & aQ1,const Pt3dr & aQ2,bool & Ok,double * aSquareD)
 {
     Pt3dr aBase = aR2to1.tr();
