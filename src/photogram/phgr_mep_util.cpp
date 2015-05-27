@@ -1206,7 +1206,7 @@ void TestBundle3Image
     double aProp = cBundle3Image::PropErInit;
     for (int aK=0 ; aK<5 ; aK++)
     {
-        double aMul = 1e-2*pow(10,-aK);
+        double aMul = 1e-2*pow((float) 10,-aK);
         cBundle3Image aB3(aFoc,PerturRot(aR12,aMul),PerturRot(aR13,aMul),aH123,aH12,aH13,aH23,aPds3);
 
         double anEr3 = aB3.RobustEr3(aProp);

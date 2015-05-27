@@ -65,8 +65,11 @@ class cImOfTriplet
          std::vector<Pt2df> &  VRedPtOf3() {return mVRedPtOf3;}  // Points triples
          double Foc() const {return mIm->CS()->Focale();}
 
+#if (ELISE_X11)
          void InitW(const Pt2dr & aSzMax);
+#endif
          Video_Win * W() {return mW;}
+
          void SetReduce(const cResIPR & aResIPR);
          int NbR() {return mVRedPtOf3.size();}
          int NbF() {return mVFullPtOf3.size();}
@@ -198,11 +201,13 @@ cImOfTriplet::cImOfTriplet(int aNum,cAppliOptimTriplet & anAppli,cNewO_OneIm * a
 }
 /*
 */
+#if (ELISE_X11) 
 void cImOfTriplet::InitW(const Pt2dr & aSzMax)
 {
       mW  = new Video_Win (Video_Win::LoadTiffWSzMax(mIm->Name(),aSzMax,mZoomW));
       mW->set_title(mIm->Name().c_str());
 }
+#endif
 
 void  cImOfTriplet::SetReduce(const cResIPR & aResIPR)
 {
@@ -593,6 +598,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
       std::cout << "R Glob " << ResiduGlob() << "\n";
    }
 
+   #if (ELISE_X11)
 
    if (EAMIsInit(&mSzShow))
    {
@@ -621,6 +627,8 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
 
       mIm2->W()->clik_in();
    }
+
+   #endif
 
 /*
    SolveBundle3Image
