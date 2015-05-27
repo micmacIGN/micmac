@@ -6242,8 +6242,8 @@ class cXml_O2IComputed
         cXml_O2ITiming & Timing();
         const cXml_O2ITiming & Timing()const ;
 
-        cXml_O2IRotation & Ori();
-        const cXml_O2IRotation & Ori()const ;
+        cXml_O2IRotation & OrientAff();
+        const cXml_O2IRotation & OrientAff()const ;
 
         cXml_O2IRotPure & RPure();
         const cXml_O2IRotPure & RPure()const ;
@@ -6258,7 +6258,7 @@ class cXml_O2IComputed
         const double & RecHom()const ;
     private:
         cXml_O2ITiming mTiming;
-        cXml_O2IRotation mOri;
+        cXml_O2IRotation mOrientAff;
         cXml_O2IRotPure mRPure;
         cXml_O2IHom mHom;
         double mBSurH;

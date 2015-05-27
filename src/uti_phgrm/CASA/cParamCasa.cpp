@@ -57,8 +57,8 @@ cElXMLTree * ToXMLTree(const cNuageByImage & anObj)
 
 void xml_init(cNuageByImage & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameMasqSup(),aTree->Get("NameMasqSup",1)); //tototo 
 
@@ -187,8 +187,8 @@ cElXMLTree * ToXMLTree(const cSectionLoadNuage & anObj)
 
 void xml_init(cSectionLoadNuage & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NuageByImage(),aTree->GetAll("NuageByImage",false,1));
 
@@ -303,8 +303,8 @@ cElXMLTree * ToXMLTree(const cSectionEstimSurf & anObj)
 
 void xml_init(cSectionEstimSurf & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.TypeSurf(),aTree->Get("TypeSurf",1)); //tototo 
 
@@ -466,8 +466,8 @@ cElXMLTree * ToXMLTree(const cSectionInitModele & anObj)
 
 void xml_init(cSectionInitModele & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
 
@@ -543,8 +543,8 @@ cElXMLTree * ToXMLTree(const cCasaEtapeCompensation & anObj)
 
 void xml_init(cCasaEtapeCompensation & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NbIter(),aTree->Get("NbIter",1),int(1)); //tototo 
 
@@ -627,8 +627,8 @@ cElXMLTree * ToXMLTree(const cCasaSectionCompensation & anObj)
 
 void xml_init(cCasaSectionCompensation & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.CasaEtapeCompensation(),aTree->GetAll("CasaEtapeCompensation",false,1));
 
@@ -761,8 +761,8 @@ cElXMLTree * ToXMLTree(const cParamCasa & anObj)
 
 void xml_init(cParamCasa & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DicoLoc(),aTree->Get("DicoLoc",1)); //tototo 
 
