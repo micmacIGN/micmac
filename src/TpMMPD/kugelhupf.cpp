@@ -262,6 +262,8 @@ int Kugelhupf_main(int argc,char ** argv)
   int aSearchIncertitudePx=5;//Search incertitude
   double aSearchStepPx=0.5;//Search step
  
+  bool verbose=false;
+
   std::cout<<"Kugelhupf (Klics Ubuesques Grandement Evites, Lent, Hasardeux mais Utilisable pour Points Fiduciaux): Automatic fiducial point determination"<<std::endl;
   
 
@@ -276,6 +278,8 @@ int Kugelhupf_main(int argc,char ** argv)
      << EAM(aSearchIncertitudePx,"SearchIncertitude",true,"Search incertitude in pixels (Def=5)")
      << EAM(aSearchStepPx,"SearchStep",true,"Search step in pixels (Def=0.5)")
     );
+    
+  if (MMVisualMode) return EXIT_SUCCESS;
 
   std::cout<<"aFiducPtsFileName: "<<aFiducPtsFileName<<std::endl;
 
@@ -343,8 +347,11 @@ int Kugelhupf_main(int argc,char ** argv)
 
     for (std::list<cOneMesureAF1I>::iterator itP=aMainImg.getAllFP().OneMesureAF1I().begin(); itP != aMainImg.getAllFP().OneMesureAF1I().end(); itP ++)
     {
-      std::cout<<"."<<std::flush;
-      //std::cout<<"  Target "<<itP->NamePt()<<"  "<<itP->PtIm()<<"\n";
+      if (verbose)
+        std::cout<<"  Target "<<itP->NamePt()<<"  "<<itP->PtIm()<<"\n";
+      else
+        std::cout<<"."<<std::flush;
+
       aTargetIm.getFromIm(aMainImg.getIm(),itP->PtIm().x,itP->PtIm().y);
 
       double aCoefCorrelMax=-1.0;
@@ -360,23 +367,29 @@ int Kugelhupf_main(int argc,char ** argv)
         for (double y=-aSearchIncertitudePx;y<=aSearchIncertitudePx;y+=aStepApprox)
         {
           aTargetImSearch.getFromIm(aImg->getIm(),itP->PtIm().x+x,itP->PtIm().y+y);
-          //std::cout<<aTargetIm.CrossCorrelation(aTargetImSearch)<<"     ";
+          if (verbose)
+            std::cout<<aTargetIm.CrossCorrelation(aTargetImSearch)<<"     ";
           aTmpCoefCorrel=aTargetIm.CrossCorrelation(aTargetImSearch);
           if (aTmpCoefCorrel>aCoefCorrelMax)
           {
+            if (verbose)
+              std::cout<<"   new best\n";
             aCoefCorrelMax=aTmpCoefCorrel;
             aBestPtApprox.PtIm()=Pt2dr(itP->PtIm().x+x,itP->PtIm().y+y);
           }
         }
-        //std::cout<<std::endl;
+        if (verbose)
+          std::cout<<std::endl;
       }
+      aCoefCorrelMax=-1.0;
  
       for (double x=-aStepApprox*2;x<=aStepApprox*2;x+=aSearchStepPx)
       {
         for (double y=-aStepApprox*2;y<=aStepApprox*2;y+=aSearchStepPx)
         {
           aTargetImSearch.getFromIm(aImg->getIm(),aBestPtApprox.PtIm().x+x,aBestPtApprox.PtIm().y+y);
-          //std::cout<<aTargetIm.CrossCorrelation(aTargetImSearch)<<"     ";
+          if (verbose)
+            std::cout<<aTargetIm.CrossCorrelation(aTargetImSearch)<<"     ";
           aTmpCoefCorrel=aTargetIm.CrossCorrelation(aTargetImSearch);
           if (aTmpCoefCorrel>aCoefCorrelMax)
           {
@@ -384,9 +397,11 @@ int Kugelhupf_main(int argc,char ** argv)
             aBestPt.PtIm()=Pt2dr(aBestPtApprox.PtIm().x+x,aBestPtApprox.PtIm().y+y);
           }
         }
-        //std::cout<<std::endl;
+        if (verbose)
+          std::cout<<std::endl;
       }
-      //std::cout<<"Best: "<<aBestPt.PtIm()<<" ("<<aCoefCorrelMax<<")\n";
+      if (verbose)
+        std::cout<<"Best: "<<aBestPt.PtIm()<<" ("<<aCoefCorrelMax<<")\n";
       if (aCoefCorrelMax>0.9)
       {
         aImg->getAllFP().OneMesureAF1I().push_back(aBestPt);
