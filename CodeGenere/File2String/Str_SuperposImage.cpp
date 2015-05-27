@@ -1363,7 +1363,7 @@ const char * (theNameVar_SuperposImage[1429]) = {
 "\n",
 "<Xml_O2IComputed Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "    <Timing Nb=\"1\"  RefType=\"Xml_O2ITiming\">     </Timing>\n",
-"    <Ori Nb=\"1\"  RefType=\"Xml_O2IRotation\">      </Ori>\n",
+"    <OrientAff Nb=\"1\"  RefType=\"Xml_O2IRotation\">      </OrientAff>\n",
 "    <RPure Nb=\"1\"  RefType=\"Xml_O2IRotPure\" >    </RPure>\n",
 "    <Hom Nb=\"1\" RefType=\"Xml_O2IHom\">            </Hom>\n",
 "    <BSurH Nb=\"1\" Type=\"double\">   </BSurH>\n",

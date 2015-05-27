@@ -721,7 +721,24 @@ void PartitionRenato(int argc,char** argv)
 
 int MPDtest_main (int argc,char** argv)
 {
-   PartitionRenato(argc,argv);
+/*
+cXml_Ori2Im aXmlOri0;
+MakeFileXML(aXmlOri0,aName);
+*/
+std::string aName = "Test.xml";
+cXml_Ori2Im  aXmlOri = StdGetFromSI(aName,Xml_Ori2Im);
+
+
+/*
+   std::string aName = "/home/marc/TMP/EPI/EXO1-Fontaine/Ori2ImAll/DirIm_AIMG_2470.JPG/AIMG_2472.JPG.xml";
+   cXml_Ori2Im  aXmlOri = StdGetFromSI(aName,Xml_Ori2Im);
+*/
+
+
+
+
+
+   // PartitionRenato(argc,argv);
 /*
    B/EenchSort3();
     Bench_NewOri();
