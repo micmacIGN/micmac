@@ -1,7 +1,9 @@
 #include "TexturePacker.h"
 #include <assert.h>
 
-#pragma warning(disable:4100 4244)
+#ifndef __GNUC__
+    #pragma warning(disable:4100 4244)
+#endif
 
 namespace TEXTURE_PACKER
 {
@@ -56,7 +58,7 @@ public:
       mLongestEdge = hit;
   }
 
-  bool isPlaced(void) const { return mPlaced; };
+  bool isPlaced(void) const { return mPlaced; }
 
   void place(int x,int y,bool flipped)
   {

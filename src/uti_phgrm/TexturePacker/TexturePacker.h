@@ -90,6 +90,7 @@ public:
 
   virtual bool  getTextureLocation(int index,int &x,int &y,int &wid,int &hit) = 0; // returns true if the texture has been rotated 90 degrees
 
+  virtual ~TexturePacker(){}
 };
 
 
