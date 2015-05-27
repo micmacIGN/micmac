@@ -116,8 +116,8 @@ cElXMLTree * ToXMLTree(const cTD2REF & anObj)
 
 void xml_init(cTD2REF & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.K(),aTree->Get("K",1)); //tototo 
 
@@ -173,8 +173,8 @@ cElXMLTree * ToXMLTree(const cCompos & anObj)
 
 void xml_init(cCompos & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.A(),aTree->Get("A",1)); //tototo 
 
@@ -431,8 +431,8 @@ cElXMLTree * ToXMLTree(const cTestDump & anObj)
 
 void xml_init(cTestDump & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.I(),aTree->Get("I",1),int(128)); //tototo 
 
@@ -488,8 +488,8 @@ cElXMLTree * ToXMLTree(const cR5 & anObj)
 
 void xml_init(cR5 & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.IdImage(),aTree->Get("IdImage",1)); //tototo 
 }
@@ -562,8 +562,8 @@ cElXMLTree * ToXMLTree(const cTestNoDump & anObj)
 
 void xml_init(cTestNoDump & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.R5(),aTree->GetAll("R5",false,1),"IdImage");
 
