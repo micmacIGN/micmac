@@ -57,7 +57,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //                <Centre>2.20813991647144192 -0.622937523946268445 -7.29642287586240545</Centre>
 //  Orientation-IMGP7041.JPG
 //               <Centre>2.23797875030617188 0.257920861375460941 -7.46202393391516239</Centre>
-// Dist ->2  
+// Dist ->2
 // 9.78319836420305178e-05  -> 1E-4
 
 // mResolPlaniReel
@@ -579,7 +579,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
    }
 
 
-   
+
    std::vector<cElPile> aRes;
    for (int aK=0 ; aK<int(aResTmp.size()) ; aK++)
    {
@@ -603,7 +603,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
 /*                                                                    */
 /**********************************************************************/
 
-//template <class Type> Show(const Type & 
+//template <class Type> Show(const Type &
 
 
 
@@ -1186,7 +1186,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
 
                 aLVP.push_back(aVPile);
                 aTImNb.oset(aQ0,aVPile.size());
-                
+
                 if (isDebug)
                 {
                    std::cout << "PBUG " << aQ0   <<  " In:" << aPCel.size()  << " Out:" << aVPile.size() << "\n";
@@ -1207,7 +1207,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
    if (ShowTime)
       std::cout << " Init Cost time= " << aChrono.uval() << "\n";
 
-   // Cas ou on fait de programmation dynamique 
+   // Cas ou on fait de programmation dynamique
    if (1)
    {
        // 1- Remplir la nappe avec les cellules
@@ -1250,8 +1250,8 @@ if (aPk.P()>MaxP)
 
                              if (isDebug)
                              {
-                                 std::cout << "Fill Pill, Kz " << aKz << " , Z " 
-                                           << aTabP[aKz].ArgAux().Z() 
+                                 std::cout << "Fill Pill, Kz " << aKz << " , Z "
+                                           << aTabP[aKz].ArgAux().Z()
                                            <<  " CostInit " << ToICost(ElMax(0.0,ElMin(1.0,1.0-aPk.P())))
                                            <<  " PrgdCost=" << ToRCost(aTabP[aKz].OwnCost()) << "\n";
                              }
@@ -1282,7 +1282,7 @@ if (aPk.P()>MaxP)
                 {
                     std::cout << "Sortie Kz " << aZ << " Z " <<  aCol.ArgAux().Z() << "\n";
                 }
-               
+
                 if (aZ>=0)
                 {
 
@@ -1534,6 +1534,8 @@ cSimpleFusionCarte::cSimpleFusionCarte(int argc,char ** argv) :
                       << EAM(mNameOut,"Out",true,"Result, Def=Fusion.xml")
 
     );
+
+    if (MMVisualMode) return;
 
     mEASF.Init(mFullName);
 

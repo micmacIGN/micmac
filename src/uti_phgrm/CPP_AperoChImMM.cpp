@@ -75,6 +75,7 @@ int AperoChImMM_main(int argc,char ** argv)
                     << EAM(OnlyVecDep,"OnlyVecDep",true,"Only vec dep (internal purpose) ",eSAM_InternalUse)
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
 
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );

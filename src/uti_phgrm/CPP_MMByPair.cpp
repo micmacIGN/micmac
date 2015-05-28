@@ -190,6 +190,8 @@ int TiffDev_main(int argc,char ** argv)
                     << EAM(ExigNoCompr,"ENC",true,"Exig No Compr")
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     Tiff_Im::StdConvGen(aNameFile,aNbChan,B16,ExigNoCompr);
 
     return 0;
@@ -882,36 +884,36 @@ void cAppliWithSetImage::AddLinePair(int aDif)
 {
     for (tItSAWSI it1=mGrIm.begin(mSubGrAll); it1.go_on() ; it1++)
     {
-		//image 1
+        //image 1
         cImaMM & anI1 = *((*it1).attr().mIma);
         for (tItSAWSI it2=mGrIm.begin(mSubGrAll); it2.go_on() ; it2++)
         {
-			//image 2
+            //image 2
             cImaMM & anI2 = *((*it2).attr().mIma);
-			
-			std::string aName1(anI1.mNameIm);
-			std::string aName2(anI2.mNameIm);
-			int aN1 = 0;
-			int aN2 = 0;	
-			//retreive the numeric part of the two image names in order to compare them.
-			for (int i = 0; aName1[i]; ++i)
-				if (aName1[i] >= '0' && aName1[i] <= '9' )
-				aN1 = aN1 * 10 + (aName1[i] - '0');
-			for (int i = 0; aName2[i]; ++i)
-				if ( aName2[i] >= '0' && aName2[i] <= '9' )
-				aN2 = aN2 * 10 + (aName2[i] - '0');
-			int ecart = std::abs(aN1-aN2);
-			
-			// test if numerical value from the image name are closed each other
-			if ((aN1>aN2) && (ecart<=aDif))
-			{
-				 AddPair(&(*it1),&(*it2));
-				 std::cout << "Adding the following image pair: " << aName1 << " and " << aName2 << " \n";
-             } 
-             
-             if ((aN1=0) || (aN2=0)) 
-				ELISE_ASSERT(false,"Cannot extrat numeric value from image names (in order to determine pair of subsequent images)");
-         }    
+
+            std::string aName1(anI1.mNameIm);
+            std::string aName2(anI2.mNameIm);
+            int aN1 = 0;
+            int aN2 = 0;
+            //retreive the numeric part of the two image names in order to compare them.
+            for (int i = 0; aName1[i]; ++i)
+                if (aName1[i] >= '0' && aName1[i] <= '9' )
+                aN1 = aN1 * 10 + (aName1[i] - '0');
+            for (int i = 0; aName2[i]; ++i)
+                if ( aName2[i] >= '0' && aName2[i] <= '9' )
+                aN2 = aN2 * 10 + (aName2[i] - '0');
+            int ecart = std::abs(aN1-aN2);
+
+            // test if numerical value from the image name are closed each other
+            if ((aN1>aN2) && (ecart<=aDif))
+            {
+                 AddPair(&(*it1),&(*it2));
+                 std::cout << "Adding the following image pair: " << aName1 << " and " << aName2 << " \n";
+             }
+
+             if ((aN1=0) || (aN2=0))
+                ELISE_ASSERT(false,"Cannot extrat numeric value from image names (in order to determine pair of subsequent images)");
+         }
      }
      // todo; warning message if no couple found, or if no numeric part in image name
 }
@@ -1161,6 +1163,7 @@ int ClipIm_main(int argc,char ** argv)
         LArgMain()  << EAM(aNameOut,"Out",true)
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
 
     // Tiff_Im tiff = Tiff_Im::BasicConvStd(aNameIn.c_str());
     Tiff_Im tiff = Tiff_Im::UnivConvStd(aNameIn.c_str());
@@ -1281,7 +1284,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
      }
      else if (mType==eForest)
      {
-        mStrQualOr = "High"; 
+        mStrQualOr = "High";
         // do not add the segondary images computed by apero, but do the computation of pair because some data are required anyway (for mask computation based on tie points for e.g)
         mAddCpleImSec = false;
         // do the computation whitout adding the pairs
@@ -1321,7 +1324,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   ElInitArgMain
   (
         argc,argv,
-        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP,"e"))
+        LArgMain()  << EAMC(mStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeMMByP))
                     << EAMC(mEASF.mFullName,"Full Name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()  << EAM(mZoom0,"Zoom0",true,"Zoom Init, Def=64",eSAM_IsPowerOf2)
@@ -1363,8 +1366,8 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   );
 
   // Par defaut c'est le meme comportement
-	if (!EAMIsInit(&mRunAperoImSec))
-		mRunAperoImSec=mAddCpleImSec;
+    if (!EAMIsInit(&mRunAperoImSec))
+        mRunAperoImSec=mAddCpleImSec;
 
   if (!MMVisualMode)
   {
@@ -1389,7 +1392,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
       mQualOr = Str2eTypeQuality("eQual_"+mStrQualOr);
 
 
-	  if (mAddCpleLine)
+      if (mAddCpleLine)
       {
           AddLinePair(1);
       }
@@ -1581,7 +1584,7 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " HasVeg=" + ToString(mHasVeget)
                          +  " HasSBG=" + ToString(mSkyBackGround)
                          +  " PurgeAtEnd=" + ToString(mPurge)
-						 +  " UseGpu=" + ToString(mUseGpu)
+                         +  " UseGpu=" + ToString(mUseGpu)
                          +  " DefCor=" + ToString(mDefCor)
                          +  " ZReg=" + ToString(mZReg)
                       ;
@@ -2041,7 +2044,7 @@ int ChantierClip_main(int argc,char ** argv)
    MMD_InitArgcArgv(argc,argv);
    cAppliClipChantier anAppli(argc,argv);
 
-   BanniereMM3D();
+   if (!MMVisualMode) BanniereMM3D();
 
    return 1;
 }

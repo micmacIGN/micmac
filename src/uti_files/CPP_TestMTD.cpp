@@ -66,9 +66,11 @@ int TestMTD_main(int argc,char ** argv)
     ElInitArgMain
     (
     argc,argv,
-    LArgMain()  << EAMC(aNameIm,"Image name"),
+    LArgMain()  << EAMC(aNameIm,"Image name", eSAM_IsPatFile),
     LArgMain()
     );
+
+    if (MMVisualMode) return EXIT_SUCCESS;
 
     std::string aDir,aPat;
     SplitDirAndFile(aDir,aPat,aNameIm);

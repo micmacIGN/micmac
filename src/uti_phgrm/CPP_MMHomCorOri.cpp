@@ -545,7 +545,7 @@ int MMHomCorOri_main(int argc,char ** argv)
 {
    cAppli_HomCorOri anAppli (argc,argv);
 
-   if (! anAppli.AllDone())
+   if (! anAppli.AllDone() && !MMVisualMode)
    {
        anAppli.DoMatch();
        anAppli.Load();

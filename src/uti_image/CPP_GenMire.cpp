@@ -118,6 +118,8 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
                     << EAM(mDoCircle,"DoC", true, "Add Circle")
     );
 
+    if (MMVisualMode) return;
+
     Fonc_Num aFonc=0;
     std::string aDefFile="GenMire.tif";
     bool aDefDoCercle = false;
@@ -218,7 +220,7 @@ cAppliGenMire::cAppliGenMire (int argc,char** argv) :
     else
     {
           std::cout << "Allowed Key Word : \n";
-          std::cout << "   " << aTextMatch  << " for texture adeuate for matching\n";
+          std::cout << "   " << aTextMatch  << " for texture adequate for matching\n";
           std::cout << "   " << aCalibGray  << " for gray calibration\n";
           ElEXIT(1,"cAppliGenMire::cAppliGenMire");
     }
@@ -265,6 +267,8 @@ int GrayTexture_main (int argc,char** argv)
                     << EAM(aPdsImMacro,"PdsMI",true,"Pds of Macro Image when used (Def=1)")
 
    );
+
+   if (MMVisualMode) return EXIT_SUCCESS;
 
    ELISE_ASSERT((aVRand.size()%2)==0,"Must have even size");
 

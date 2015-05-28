@@ -1452,8 +1452,8 @@ void cAppli_Ori_Txt2Xml_main::GenerateOrientInit()
                             + " +AeroOut=" + std::string("GenFromC")
                             + " +BDDC=" + mOriOut
                             + " +ImC=" +  aS1->attr().mCam->mNameIm
-                            + " +ImSec=" + QUOTE("(" +aPatVois +")") 
-		            + " +ImSauv=" + aS1->attr().mCam->mNameIm ;
+                            + " +ImSec=" + QUOTE("(" +aPatVois +")")
+                    + " +ImSauv=" + aS1->attr().mCam->mNameIm ;
 
 //  "mm3d Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Apero-ModelInitFromCenter.xml  DirectoryChantier=
 
@@ -1473,7 +1473,7 @@ int Ori_Txt2Xml_main(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv,3);
     cAppli_Ori_Txt2Xml_main(argc,argv);
-    BanniereMM3D();
+    if (!MMVisualMode) BanniereMM3D();
     return 0;
 }
 

@@ -107,7 +107,7 @@ cCEM_OneIm_Epip::cCEM_OneIm_Epip (cCoherEpi_main * aCEM,const std::string & aNam
     if (aCEM->Masq3d())
     {
         ELISE_ASSERT(mCple,"Masq3 require orientaion !!");
-        std::string aNameCam =   aCEM->ICNM()->Dir() 
+        std::string aNameCam =   aCEM->ICNM()->Dir()
                                + aCEM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-Epi",mNameImMatched,true);
         mCam = CamOrientGenFromFile(aNameCam,aCEM->ICNM());
     }
@@ -138,7 +138,7 @@ void cCEM_OneIm_Epip::UsePack(const ElPackHomologue & aPack)
 }
 
 
-Pt3dr  cCEM_OneIm_Epip::To3d(const Pt2di & anI,const Pt3dr *) const 
+Pt3dr  cCEM_OneIm_Epip::To3d(const Pt2di & anI,const Pt3dr *) const
 {
     cCEM_OneIm_Epip * aE2 = static_cast<cCEM_OneIm_Epip*> (mConj);
     CamStenope * aCam2 = aE2->mCam;
@@ -332,7 +332,7 @@ void cCEM_OneIm::PostInit()
               &(aVCoulNu),
               true
            );
-           std::cout << "WWWAAIIt " << mDirM << " " << mNNOri << " " << aCptIn << "\n"; 
+           std::cout << "WWWAAIIt " << mDirM << " " << mNNOri << " " << aCptIn << "\n";
            std::cout << aName << "\n";
 
            getchar();
@@ -594,6 +594,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
                     << EAM(aNameMasq3D,"Masq3D",true,"3D masq to enhance filtering")
    );
 
+    if (MMVisualMode) return;
 
    if (EAMIsInit(&aNameMasq3D)) mMasq3d = cMasqBin3D::FromSaisieMasq3d(mDir + aNameMasq3D);
    mNoOri  =  (mOri  == "NONE");

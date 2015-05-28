@@ -375,7 +375,7 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
            mIm2 =  (*anITS).attr().mIma;
         aK++;
     }
-    ELISE_ASSERT(aK==2,"Expect exaclty 2 images in cAppliMMOnePair");
+    ELISE_ASSERT(aK==2,"Expect exactly 2 images in cAppliMMOnePair");
     // mIm1 = mImages[0];
     // mIm2 = mImages[1];
 
