@@ -659,14 +659,6 @@ int SateLib_main(int argc, char ** argv)
     return 0;
 }
 
-void CMD_Assert(std::string arg, std::vector<std::string> cmds)
-{
-    if (std::find(cmds.begin(), cmds.end(), arg)!=cmds.end())
-    {
-        ELISE_ASSERT(false, (arg + std::string(" not available")).c_str() );
-    }
-}
-
 //=====================================
 
 int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
@@ -694,8 +686,11 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
                               std::string("vSaisiePts"), std::string("vScriptCalib"), std::string("vSift"),
                               std::string("vSysCoordPolyn"), std::string("vTestChantier"), std::string("vvic")
                             };
-       std::vector <std::string> noVisualCmds(cmds, cmds + 19);
-       CMD_Assert(argv[1],noVisualCmds);
+       std::vector <std::string> vCmds(cmds, cmds + 19);
+       if (std::find(vCmds.begin(), vCmds.end(), argv[1])!=vCmds.end())
+       {
+           ELISE_ASSERT(false, (argv[1] + std::string(" not available")).c_str() );
+       }
 
        MMVisualMode = true;
        argv[1]++;
