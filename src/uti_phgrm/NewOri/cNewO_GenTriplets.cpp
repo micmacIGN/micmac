@@ -517,7 +517,7 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     mCurTestArc = anArc.attr().ASym().ArcTest();
 
 
-    mCurPMed = mCurArc->attr().ASym().Xml().Geom().Val().Ori().PMed1();
+    mCurPMed = mCurArc->attr().ASym().Xml().Geom().Val().OrientAff().PMed1();
     mHautBase = euclid(mCurPMed);
 
     mCurS1  = & (anArc.s1());
@@ -839,7 +839,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
 */
 
 
-                  const cXml_O2IRotation & aXO = aXmlO.Geom().Val().Ori();
+                  const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
                   ElRotation3D aR(aXO.Centre(),ImportMat(aXO.Ori()),true);
                   cGTrip_AttrASym * anASym  =  new  cGTrip_AttrASym(aXmlO);
                   anASym->ArcTest() = (aS1->attr().SomTest() && aS2->attr().SomTest());

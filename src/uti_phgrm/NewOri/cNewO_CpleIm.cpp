@@ -440,11 +440,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     }
     double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,0.90);
     mIA =  MedianNuage(mPackStdRed,mBestSol);
-    aXCmp.Ori().Ori() = ExportMatr(mBestSol.Mat());
-    aXCmp.Ori().Centre() = mBestSol.tr();
-    aXCmp.Ori().ResiduOr() = anErr * FocMoy();
-    aXCmp.Ori().ResiduHighPerc() = anErr90 * FocMoy();
-    aXCmp.Ori().PMed1() = mIA;
+    aXCmp.OrientAff().Ori() = ExportMatr(mBestSol.Mat());
+    aXCmp.OrientAff().Centre() = mBestSol.tr();
+    aXCmp.OrientAff().ResiduOr() = anErr * FocMoy();
+    aXCmp.OrientAff().ResiduHighPerc() = anErr90 * FocMoy();
+    aXCmp.OrientAff().PMed1() = mIA;
 
     Pt3dr aC =  mBestSol.tr();
     aXCmp.BSurH() = euclid(Pt2dr(aC.x,aC.y)) / ElAbs(mIA.z);

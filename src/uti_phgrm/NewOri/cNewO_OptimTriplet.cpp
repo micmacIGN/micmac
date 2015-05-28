@@ -238,7 +238,7 @@ cPairOfTriplet::cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2,cImOfTriplet
 
    std::string aNameOri = mAppli.NM()->NameXmlOri2Im(mIm1->Im()->Name(),mIm2->Im()->Name(),true);
    cXml_Ori2Im aXmlO =  mAppli.NM()->GetOri2Im(mIm1->Im()->Name(),mIm2->Im()->Name());
-   const cXml_O2IRotation & aXO = aXmlO.Geom().Val().Ori();
+   const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
    mR12Pair =    ElRotation3D (aXO.Centre(),ImportMat(aXO.Ori()),true);
 
    //  std::cout << "NNNNNNNNNNNNnn " << aNameOri << " " << aXmlO.Geom().IsInit()  << "\n";
@@ -372,7 +372,7 @@ void cAppliOptimTriplet::TestOPA(cPairOfTriplet & aPair)
     CamStenopeIdeale aCSI = CamStenopeIdeale::CameraId(true,ElRotation3D::Id);
 
     double anEcart;
-    ElRotation3D aR3 = aCSI.RansacOFPA(true,100,aL32,&anEcart);
+    ElRotation3D aR3 = aCSI.RansacOFPA(true,200,aL32,&anEcart);
     aR3 = aR3.inv();
 
     std::vector<ElRotation3D> aVR(3,ElRotation3D::Id);
@@ -576,20 +576,26 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
 
 
    mBestResidu =  ResiduGlob();
-   for (int aKP=0 ; aKP<int(mPairs.size()) ; aKP++)
-   {
-       TestOPA(*(mPairs[aKP]));
-   }
 /*
    TestOPA(*mP12);
 */
-
-
 
    if (mShow) 
    {
       std::cout << "Time reduc " << aChrono.uval()   << "  Pds3=" << mPds3 << "\n";
    }
+
+   for (int aKP=0 ; aKP<int(mPairs.size()) ; aKP++)
+   {
+       TestOPA(*(mPairs[aKP]));
+   }
+
+   if (mShow) 
+   {
+      std::cout << "Time opa " << aChrono.uval()   << "\n";
+   }
+
+
 
    if (mShow)
    {
@@ -655,6 +661,14 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
    );
 
 
+   cXml_Ori3ImInit aXml;
+   aXml.Ori2On1() = El2Xml(mIm2->Ori());
+   aXml.Ori3On1() = El2Xml(mIm3->Ori());
+   aXml.ResiduTriplet() = ResiduGlob();
+   aXml.NbTriplet() = mRedH123[0]->size();
+
+   MakeFileXML(aXml,mNM->NameOriOptimTriplet(false,aIm1,aIm2,aIm3,false));
+   MakeFileXML(aXml,mNM->NameOriOptimTriplet( true,aIm1,aIm2,aIm3,false));
 
 
 
@@ -680,10 +694,16 @@ int CPP_OptimTriplet_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
+int CPP_AllOptimTriplet_main(int argc,char ** argv)
+{
+   
+   return EXIT_SUCCESS;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -699,17 +719,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

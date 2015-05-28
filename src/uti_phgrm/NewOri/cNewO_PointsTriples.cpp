@@ -125,9 +125,20 @@ std::string cNewO_NameManager::NameOriInitTriplet(bool ModeBin,cNewO_OneIm *aI1,
     return NameAttribTriplet("Ori0",(ModeBin ? "dmp" : "xml"),aI1,aI2,aI3,WithMakeDir);
 }
 
+std::string cNewO_NameManager::NameOriOptimTriplet(bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
+{
+    return NameAttribTriplet("OriOpt",(ModeBin ? "dmp" : "xml"),aI1,aI2,aI3,WithMakeDir);
+}
+
+
+
+
+
+
+
 std::string cNewO_NameManager::NameTopoTriplet(bool aModeBin)
 {
-    return Dir3P() + "ListeTriplets." + (aModeBin ? "dmp" : "xml");
+    return Dir3P() + "ListeTriplets" + mOriCal +"." + (aModeBin ? "dmp" : "xml");
 }
 
 typedef std::vector<Pt2df> * tPtrVPt2df;

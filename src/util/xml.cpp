@@ -1391,8 +1391,12 @@ void cElXMLTree::VerifCreation()
 	}
 }
 
+
+// extern bool BUGGET;
+
 cElXMLTree * cElXMLTree::Get(const std::string & aName,int aDepthMax)
 {
+// if (BUGGET) std::cout <<  "cElXMLTree::Get " << mValTag  << " " << aName << "\n";
 	if (aName==mValTag)
 		return this;
 
