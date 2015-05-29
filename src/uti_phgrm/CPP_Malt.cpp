@@ -385,6 +385,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       replace( mFullName.begin(), mFullName.end(), '\\', '/' );
 #endif
       SplitDirAndFile(mDir,mIms,mFullName);
+      std::string aFullNameCorrc = mDir + mIms;
       setInputDirectory(mDir);
       mOutputDirectory = (isUsingSeparateDirectories()?MMOutputDirectory():mDir);
 
