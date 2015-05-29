@@ -57,7 +57,7 @@ struct sMatrixCellCost
 
     void PointIncre(uint2 pt,short2 ptZ)
     {
-		ushort maxNappe = 1024;
+		ushort maxNappe = 2048;
 
         ushort dZ   = abs(count(ptZ));
         _ptZ[pt]    = make_short3(ptZ.x,ptZ.y,0);
