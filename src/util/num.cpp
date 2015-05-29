@@ -474,6 +474,12 @@ double arrondi_ni(double aVal,double aPer)
 }
 
 
+Pt2dr arrondi_ni(const Pt2dr & aP,double aPer)
+{
+    return Pt2dr(arrondi_ni(aP.x,aPer),arrondi_ni(aP.y,aPer));
+}
+
+
 REAL Pow(REAL x,INT i)
 {
     if (i>0)

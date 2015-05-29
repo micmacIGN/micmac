@@ -172,6 +172,51 @@ TIMME :
 
 }
 
+void  CoordInterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1,bool & Ok,double &p , double & q)
+{
+     // (P0 + p (P1-P0) ) - (Q0+ q(Q1-Q0)) .  (P1-P0) = 0
+     // (P0 + p (P1-P0) ) - (Q0+ q(Q1-Q0)) .  (Q1-Q0) = 0
+      Pt3dr aP01 = aP1 -aP0;
+      Pt3dr aQ01 = aQ1 -aQ0;
+      // Normale
+
+      Pt3dr aPQ = aQ0 - aP0;
+
+      //    a p + b q = X
+      //    c p + d q = Y
+
+      double a = scal(aP01,aP01);
+      double b = -scal(aQ01,aP01);
+      double c = -b;
+      double d = -scal(aQ01,aQ01);
+      double X = scal(aPQ,aP01);
+      double Y = scal(aPQ,aQ01);
+
+
+     //  p      (d  -b)  X
+     //  q  =   (-c  a)  Y
+
+
+      double aDet = a*d - b*c;
+
+      if (aDet==0)
+      {
+          Ok= false;
+          return ;
+      }
+      Ok = true;
+
+
+      p = ( d * X - b * Y ) / aDet;
+      q = (-c * X + a * Y ) / aDet;
+}
+
+
+
+
+
+
+
 Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt3dr & aQ1,const Pt3dr & aQ2,bool & Ok,double * aSquareD)
 {
     Pt3dr aBase = aR2to1.tr();
@@ -317,6 +362,18 @@ class cScalEEF : public cElemEqFormelle,
 /************************************************************/
 
 /*
+    aVDir[1] = mR2 * Pt3dr(aVPts[1].x,aVPts[1].y,1);
+    mI2.SetEtat(ProjStenope(aVDir[1]));
+    aVP0.push_back(mB2Cur);
+    aVP1.push_back(mB2Cur+aVDir[1]);
+    aNbP++;
+
+    mR2 = aRot.Mat();
+    mB2Cur =  aRot.tr();
+
+    Pt3d<Fonc_Num> aP2 =  aPIGlob + (mW2->mP ^ aPIGlob) - mB2.PtF() - mC2.PtF()*mc2->mS - mD2.PtF()*md2->mS ;
+
+
     R2  :  C2toC1
 
     P sur  C1M  U1M
@@ -353,19 +410,25 @@ class cEqBundleBase;
 class cEqSupBB
 {
      public :
-       cEqSupBB(cEqBundleBase & ,int aK,const ElRotation3D & aRot);
+       cEqSupBB(cEqBundleBase & ,int aK);
+       void AllocInterv();
+       void PostInit();
+       void InitNewRot(const ElRotation3D & aRot);
 
        cEqBundleBase *       mBB;
        std::string           mNameEq3;
        cSetEqFormelles *     mSetEq3;  
-       ElRotation3D          mR0;
        cPt3dEEF *            mC3;
        cPt3dEEF *            mW3;
        cP2d_Etat_PhgrF       mI3;  
+       cP3d_Etat_PhgrF       mC3Init;
        cEqfP3dIncTmp *       mEq3P3I;
+       cIncListInterv        mLInterv3;
+       ElMatrix<double>      mR3;
+       ElRotation3D          mCurRot;
+       Pt3dr                 mCurC3;
+       cElCompiledFonc *     mEq;
 };
-
-
 
 
 
@@ -375,8 +438,13 @@ class cEqBundleBase  : public cNameSpaceEqF,
 {
     public :
        cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste = false);  // Nb de cam en plus des 2 minim
+
+//  InitNewRot = InitNewR2 , mais interface commune pour 2 image
        void    InitNewRot(const ElRotation3D & aRot);
+       void    InitNewR2R3(const ElRotation3D & aR2,const ElRotation3D & aR3);
+
        ElRotation3D SolveResetUpdate();
+       std::vector<ElRotation3D> GenSolveResetUpdate();
        double AddEquation12(const Pt2dr & aP1,const Pt2dr & aP2,double aPds);
        double ResiduEquation12(const Pt2dr & aP1,const Pt2dr & aP2);
        ElRotation3D  CurSol() const;
@@ -389,13 +457,16 @@ class cEqBundleBase  : public cNameSpaceEqF,
        bool DoGenCode() const {return mDoGenCode;}
        const std::string PostAccel () const {return mPostAccel;}
 
+       cSetEqFormelles * SetEqPrinc() {return  mSetEq;}
        cSetEqFormelles * SetEqSec() {return mDoGenCode ? new cSetEqFormelles(TypeSysLin) : mSetEq;}
        cEqfP3dIncTmp   * PtIncSec(cSetEqFormelles * aSetSec)  {return mDoGenCode ? aSetSec->Pt3dIncTmp() : mEqP3I;}
+       double    AddEquationGen(const std::vector<Pt2dr> & aP2,const std::vector<bool> & aVSel, double aPds,bool WithEq);
 
     protected :
+       void    InitNewR2(const ElRotation3D & aRot);
+       void    InitNewR3(int aK,const ElRotation3D & aRot);
        // virtual Pt2dr    AddEquationGen(const Pt3dr & aP1,const Pt3dr & aP2,double aPds,bool WithEq) = 0;
 
-       double    AddEquationGen(const std::vector<Pt2dr> & aP2,const std::vector<bool> & aVSel, double aPds,bool WithEq);
        double    AddEquation12Gen(const Pt2dr & aP1,const Pt2dr & aP2, double aPds,bool WithEq);
 
 
@@ -419,37 +490,70 @@ class cEqBundleBase  : public cNameSpaceEqF,
        cP2d_Etat_PhgrF   mI1;  // tRot ^ U1
        cP2d_Etat_PhgrF   mI2;
 
-       cIncListInterv        mLInterv1;
-       cIncListInterv        mLInterv2;
+       cIncListInterv           mLInterv1;
+       cIncListInterv           mLInterv2;
+       std::vector<cIncListInterv*>  mVLInterv;
        int                   mNbCamSup;
        std::string           mPostAccel;
        std::string           mNameEq1;
        std::string           mNameEq2;
 
-       std::vector<cElCompiledFonc *>     mVFEsResid;
-       cEqfP3dIncTmp *       mEqP3I;
-       cEqfP3dIncTmp *       mEq2P3I;
-       cSubstitueBlocIncTmp  mSBIT12;
-       ElRotation3D          mCurRot;
-
+       std::vector<cElCompiledFonc *>         mVFEsResid;
+       cEqfP3dIncTmp *                        mEqP3I;
+       cEqfP3dIncTmp *                        mEq2P3I;
+       // cSubstitueBlocIncTmp *                 mSBIT12;
+       std::map<int,cSubstitueBlocIncTmp *>   mMapBufSub;
+       ElRotation3D             mCurRot;
+       std::vector<cEqSupBB *>  mVEqSup;
 };
 
 
-cEqSupBB::cEqSupBB(cEqBundleBase & aBB,int aK,const ElRotation3D & aRot) :
+cEqSupBB::cEqSupBB(cEqBundleBase & aBB,int aK) :
      mBB       (&aBB),
      mNameEq3  ("cEqBBCamThird" + mBB->PostAccel ()),
      mSetEq3   (mBB->SetEqSec()),
-     mR0       (aRot),
-     mC3       (new cPt3dEEF(*mSetEq3,mR0.tr(),mBB->UseAccelCoordCste())),
+     mC3       (new cPt3dEEF(*mSetEq3,Pt3dr(0,0,0),mBB->UseAccelCoordCste())),
      mW3       (new cPt3dEEF(*mSetEq3,Pt3dr(0,0,0),mBB->UseAccelCoordCste())),
      mI3       ("I" + ToString(aK)),
-     mEq3P3I   (mBB->PtIncSec(mSetEq3))
+     mC3Init   ("CInit"+ToString(aK)),
+     mR3       (3,3),
+     mCurRot   (ElRotation3D::Id)
 {
     mC3->IncInterv().SetName("C3");
     mW3->IncInterv().SetName("Omega3");
-    // mLInterv1
 }
 
+void cEqSupBB::AllocInterv()
+{
+    mEq3P3I  =   mBB->PtIncSec(mSetEq3);
+    mLInterv3.AddInterv(mC3->IncInterv());
+    mLInterv3.AddInterv(mW3->IncInterv());
+    mLInterv3.AddInterv(mEq3P3I->IncInterv());
+}
+
+    
+void cEqSupBB::PostInit()
+{
+    mEq  = cElCompiledFonc::AllocFromName(mNameEq3);
+    ELISE_ASSERT(mEq != 0,"Cannot allocate cEqSupBB::PostInit");
+    mEq->SetMappingCur(mLInterv3,mBB->SetEqPrinc());
+    mI3.InitAdr(*mEq);
+    mC3Init.InitAdr(*mEq);
+}
+
+void cEqSupBB::InitNewRot(const ElRotation3D & aRot)
+{
+    mCurRot = aRot;
+    mR3 = aRot.Mat();
+    mW3->mP0 = Pt3dr(0,0,0);
+
+    mCurC3 = mCurRot.tr();
+    mC3->mP0 = Pt3dr(0,0,0);
+    mC3Init.SetEtat(mCurC3);
+}
+
+
+extern bool ShowStatMatCond;
 
 cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAccelCoordCste) :
     mUseAccelCoordCste (UseAccelCoordCste),
@@ -467,15 +571,23 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
     mD2         ("VecD2"),
     mI1         ("I1"),
     mI2         ("I2"),
-    mNbCamSup   (aNbCamSup),
+    mNbCamSup   (DoGenCode ? 1 : aNbCamSup),
     mPostAccel   (UseAccelCoordCste ? "_AccelCsteCoord" : ""),
     mNameEq1    ("cEqBBCamFirst" + mPostAccel),
     mNameEq2    ("cEqBBCamSecond" + mPostAccel),
-    mEqP3I      (mSetEq->Pt3dIncTmp()),
-    mEq2P3I     (PtIncSec(mSetEq2)), //  (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
-    mSBIT12     (*mEqP3I),
+    // mEqP3I      (mSetEq->Pt3dIncTmp()),
+    // mEq2P3I     (PtIncSec(mSetEq2)), //  (DoGenCode ? mSetEq2->Pt3dIncTmp() : mEqP3I ),
+    // mSBIT12     (new cSubstitueBlocIncTmp(*mEqP3I)),
     mCurRot     (ElRotation3D::Id)
+    
 {
+  ShowStatMatCond = false;
+  for (int aKES=0 ; aKES<mNbCamSup ; aKES++)
+  {
+       mVEqSup.push_back(new cEqSupBB(*this,aKES+3));
+  }
+  mEqP3I    =  mSetEq->Pt3dIncTmp();
+  mEq2P3I   =  PtIncSec(mSetEq2);
   //  std::cout << "AcEqBundleBase::cEqBundleBase \n"; getchar();
   AllowUnsortedVarIn_SetMappingCur = true;
   mW2->IncInterv().SetName("Omega2");
@@ -489,12 +601,23 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
   mLInterv2.AddInterv(md2->IncInterv());
   mLInterv2.AddInterv(mEq2P3I->IncInterv());
 
+  mVLInterv.push_back(&mLInterv1);
+  mVLInterv.push_back(&mLInterv2);
+
+  for (int aKI=0 ; aKI<int(mVEqSup.size()) ; aKI++)
+  {
+       cEqSupBB * aEBB = mVEqSup[aKI];
+       aEBB->AllocInterv();
+       mVLInterv.push_back(&(aEBB->mLInterv3));
+  }
+
 
   if (DoGenCode)
   {
       double aFact = 1.0;
       std::vector<Fonc_Num> aVR1;
       std::vector<Fonc_Num> aVR2;
+      std::vector<Fonc_Num> aVR3;
       {
           Pt3d<Fonc_Num>  aPIGlob = mEqP3I->PF();
           Pt3d<Fonc_Num> aP1 = aPIGlob ;
@@ -507,6 +630,18 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
           aVR2.push_back(aFact*(mI2.PtF().x - aP2.x / aP2.z));
           aVR2.push_back(aFact*(mI2.PtF().y - aP2.y / aP2.z));
       }
+
+      cEqSupBB & aESBB = *(mVEqSup[0]);
+      {
+          Pt3d<Fonc_Num>  aPIGlob =  aESBB.mEq3P3I->PF();
+          Pt3d<Fonc_Num> aP3 =  aPIGlob + (aESBB.mW3->mP ^ aPIGlob) - (aESBB.mC3->mP+ aESBB.mC3Init.PtF());
+          aVR3.push_back(aFact*(aESBB.mI3.PtF().x - aP3.x / aP3.z));
+          aVR3.push_back(aFact*(aESBB.mI3.PtF().y - aP3.y / aP3.z));
+      }
+
+
+
+
       cElCompileFN::DoEverything
       (
           DIRECTORY_GENCODE_FORMEL,
@@ -523,13 +658,38 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
           mLInterv2  ,
           UseAccelCoordCste
       );
+      cElCompileFN::DoEverything
+      (
+          DIRECTORY_GENCODE_FORMEL,
+          aESBB.mNameEq3,
+          aVR3,
+          aESBB.mLInterv3  ,
+          UseAccelCoordCste
+      );
+
+
+
+
       return;
   }
 
-  // Buf de subst d'inconnues
-  mSBIT12.AddInc(mLInterv1);
-  mSBIT12.AddInc(mLInterv2);
-  mSBIT12.Close();
+  //mMapBufSub[3] = new cSubstitueBlocIncTmp(*mEqP3I); 
+  for (int aFlag=0 ; aFlag<(1<<mVLInterv.size()) ; aFlag++)
+  {
+       if (NbBitsOfFlag(aFlag)>=2) 
+       {
+           cSubstitueBlocIncTmp * aBuf = new cSubstitueBlocIncTmp(*mEqP3I);
+           mMapBufSub[aFlag] = aBuf;
+           for (int aP=1,aK=0 ; aP<= aFlag  ; aP *=2,aK++)
+           {
+               if (aP& aFlag)
+               {
+                  aBuf->AddInc(*(mVLInterv[aK]));
+               }
+           }
+           aBuf->Close();
+       }
+  }
 
   // Maintenant, sinon recouvrt avec Tmp
 
@@ -547,10 +707,20 @@ cEqBundleBase::cEqBundleBase(bool DoGenCode,int aNbCamSup,double aFoc,bool UseAc
   mC2.InitAdr(*mVFEsResid.back());
   mD2.InitAdr(*mVFEsResid.back());
   mI2.InitAdr(*mVFEsResid.back());
-   //======================
 
-  mSetEq->AddFonct(mVFEsResid[0]);
-  mSetEq->AddFonct(mVFEsResid[1]);
+
+
+  for (int aK=0 ; aK<int(mVEqSup.size()); aK++)
+  {
+      mVEqSup[aK]->PostInit();
+      mVFEsResid.push_back(mVEqSup[aK]->mEq);
+  }
+
+   //======================
+  for (int aK=0 ; aK<int(mVFEsResid.size()); aK++)
+  {
+      mSetEq->AddFonct(mVFEsResid[aK]);
+  }
   mSetEq->AddObj2Kill(this);
 
 
@@ -563,7 +733,7 @@ const std::string & cEqBundleBase::NameEq1() const {return mNameEq1;}
      // =========================== GESTION ROTATION =================
 
 
-void  cEqBundleBase::InitNewRot(const ElRotation3D & aRot)
+void  cEqBundleBase::InitNewR2(const ElRotation3D & aRot)
 {
      mSetEq->ResetUpdate(1.0);
      mCurRot  = aRot;
@@ -587,15 +757,61 @@ void  cEqBundleBase::InitNewRot(const ElRotation3D & aRot)
 
 
 
+void cEqBundleBase::InitNewR3(int aK,const ElRotation3D & aRot)
+{
+      mVEqSup[aK]->InitNewRot(aRot);
+}
+
+void     cEqBundleBase::InitNewR2R3(const ElRotation3D & aR2,const ElRotation3D & aR3)
+{
+    ELISE_ASSERT(mNbCamSup==1,"cEqBundleBase::InitNewRot");
+    InitNewR2(aR2);
+    InitNewR3(0,aR3);
+
+}
+
+
+void  cEqBundleBase::InitNewRot(const ElRotation3D & aRot)
+{
+    ELISE_ASSERT(mNbCamSup==0,"cEqBundleBase::InitNewRot");
+    InitNewR2(aRot);
+}
+
+
 ElRotation3D  cEqBundleBase::SolveResetUpdate()
 {
-    // std::cout << " SOLLLL C2 " << mc2->mS0  << " D2 " << md2->mS0 << "\n";
-    // std::cout << " SOL W2 " << mW2->mP0 << "\n";
-
+/*
     mSetEq->SolveResetUpdate();
     Pt3dr aNewB0 =  vunit(mB2.GetVal() + mC2.GetVal()*mc2->mS0 + mD2.GetVal()*md2->mS0);
     ElMatrix<double> aNewR = NearestRotation( gaussj(ElMatrix<double>(3,true)+MatProVect(mW2->mP0)) * mR2);
     return  ElRotation3D (aNewB0,aNewR,true);
+*/
+    ELISE_ASSERT(mNbCamSup==0,"cEqBundleBase::InitNewRot");
+    return GenSolveResetUpdate()[0];
+}
+
+
+std::vector<ElRotation3D> cEqBundleBase::GenSolveResetUpdate()
+{
+    std::vector<ElRotation3D> aRes;
+    mSetEq->SolveResetUpdate();
+    Pt3dr aNewB0 =  mB2.GetVal() + mC2.GetVal()*mc2->mS0 + mD2.GetVal()*md2->mS0;
+    double aLambda = euclid(aNewB0);
+    aNewB0  = aNewB0 / aLambda;
+    ElMatrix<double> aNewR = NearestRotation( gaussj(ElMatrix<double>(3,true)+MatProVect(mW2->mP0)) * mR2);
+    aRes.push_back(ElRotation3D (aNewB0,aNewR,true));
+
+    for (int aKEB=0 ; aKEB<int(mVEqSup.size()); aKEB++)
+    {
+       cEqSupBB & aESBB = *(mVEqSup[aKEB]);
+       Pt3dr aNewB3 =  (aESBB.mC3Init.GetVal() + aESBB.mC3->mP0)/aLambda;
+       ElMatrix<double> aNewR3 = NearestRotation( gaussj(ElMatrix<double>(3,true)+MatProVect(aESBB.mW3->mP0)) * aESBB.mR3);
+       aRes.push_back(ElRotation3D (aNewB3,aNewR3,true));
+       // (aESBB.mC3->mP+ aESBB.mC3Init.PtF())
+    }
+
+
+    return  aRes;
 }
 
 
@@ -606,20 +822,26 @@ ElRotation3D  cEqBundleBase::SolveResetUpdate()
 
 double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel, double aPds,bool WithEq)
 {
+
+
+
+   ELISE_ASSERT((2+mNbCamSup) ==  int(aVPts.size()),"cEqBundleBase::AddEquationGen");
+   ELISE_ASSERT(aVSel.size() ==  aVPts.size(),"cEqBundleBase::AddEquationGen");
+
    int aFlag=0;
 
    std::vector<double> aVPds; // Deux poids, car deux mesures poru chaque camera
-   aVPds.push_back(aPds);
-   aVPds.push_back(aPds);
    double aRes = 0;
    static Pt3dr    aVDir[9];
    int aNbP=0;
    std::vector<Pt3dr> aVP0;
    std::vector<Pt3dr> aVP1;
 
+   double aDMax2 = 0.0;
    if (aVSel[0])
    {
        aVDir[0] =  Pt3dr(aVPts[0].x,aVPts[0].y,1);
+       ElSetMax(aDMax2,square_euclid(aVDir[0]));
        mI1.SetEtat(ProjStenope(aVDir[0]));
        aVP0.push_back(Pt3dr(0,0,0));
        aVP1.push_back(aVDir[0]);
@@ -629,10 +851,25 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
    if (aVSel[1])
    {
        aVDir[1] = mR2 * Pt3dr(aVPts[1].x,aVPts[1].y,1);
+       ElSetMax(aDMax2,square_euclid(aVDir[1]));
        mI2.SetEtat(ProjStenope(aVDir[1]));
        aVP0.push_back(mB2Cur);
        aVP1.push_back(mB2Cur+aVDir[1]);
        aNbP++;
+   }
+
+   for (int aKEB=0 ; aKEB<int(mVEqSup.size()) ; aKEB++)
+   {
+       int aKIm = aKEB+2;
+       if (aVSel[aKIm])
+       {
+           cEqSupBB & anESB = *(mVEqSup[aKEB]);
+           aVDir[aKIm] = anESB.mR3 * Pt3dr(aVPts[aKIm].x,aVPts[aKIm].y,1);
+           anESB.mI3.SetEtat(ProjStenope(aVDir[aKIm]));
+           aVP0.push_back(anESB.mCurC3);
+           aVP1.push_back(anESB.mCurC3+aVDir[aKIm]);
+           aNbP++;
+       }
    }
 
    ELISE_ASSERT(aVP0.size()>=2,"cEqBundleBase::AddEquationGen");
@@ -644,15 +881,17 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
       return 0;
    }
 
-
+   aPds /= aDMax2;
+   aVPds.push_back(aPds);
+   aVPds.push_back(aPds);
 
    mEqP3I->InitVal(aP);
 
    for (int aK=0 ; aK<int (aVPts.size())  ; aK++)
    {
-      aFlag |= (1<<aK);
       if (aVSel[aK])
       {
+         aFlag |= (1<<aK);
          mI1.SetEtat(ProjStenope(aVDir[aK]));
          const std::vector<REAL> & aVRES =      WithEq                                              ?
                                                 mSetEq->VAddEqFonctToSys(mVFEsResid[aK],aVPds,false) :
@@ -671,7 +910,10 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
 
    if (WithEq)
    {
-      if (aFlag== 3) mSBIT12.DoSubst();
+      // if (aFlag== 3) mSBIT12->DoSubst();
+      cSubstitueBlocIncTmp * aBuf = mMapBufSub[aFlag];
+      ELISE_ASSERT(aBuf!=0," Flag in cEqBundleBase::AddEquationGen");
+      aBuf->DoSubst();
    }
 
    return aRes;
@@ -719,6 +961,306 @@ void GenCodecEqBundleBase()
     anEla = new  cEqBundleBase (true,0,0.0,false);
     delete anEla;
 }
+
+
+/************************************************************/
+/*                                                          */
+/*           cBundle3Image                                  */
+/*                                                          */
+/************************************************************/
+
+typedef std::vector<std::vector<Pt2df> *> tMultiplePF;
+
+class cPairB3Im
+{
+    public :
+        cPairB3Im(const tMultiplePF  & aHom,int aIndA,int aIndB,int aIndC) ;
+        tMultiplePF  mHoms;
+        int          mIndA;
+        int          mIndB;
+        int          mIndC; // Exclus
+        int          mNb;
+};
+
+class cBundle3Image
+{
+     public :
+         cBundle3Image
+         (
+               double               aFoc,
+               const ElRotation3D & aR12,
+               const ElRotation3D & aR13,
+               const tMultiplePF  & aH123,
+               const tMultiplePF  & aH12,
+               const tMultiplePF  & aH13,
+               const tMultiplePF  & aH23,
+               double  aPds3
+         );
+        double  RobustEr2Glob(double aProp);
+        double  RobustEr3(double aProp);
+
+        double OneIter3(double anErStd);
+        double OneIter2Glob(double anErStd);
+
+
+        double PdsErr(const double & anErr,const double & anErrStd) const
+        {
+           return  1.0 / (1 + ElSquare(anErr/( CoeffPdsErr *anErrStd)));
+        }
+ 
+
+        const cPairB3Im  &  P12() const {return mP12;}
+        const cPairB3Im  &  P13() const {return mP13;}
+        const cPairB3Im  &  P23() const {return mP23;}
+
+        static const double PropErInit;
+        static const double CoeffPdsErr;
+
+        cEqBundleBase&   BB() {return   *mEqBB;}
+   private :
+        double OneIter2(const cPairB3Im &,double anErStd);
+
+        double  RobustEr2(const cPairB3Im & aPair,double aProp);
+        double  AddEq2Pt(const cPairB3Im &,int aK,double aPds);
+        double  AddEq3Pt(int aK,double aPds);
+
+
+        double             mFoc;
+        ElRotation3D       mR12Init;
+        ElRotation3D       mR13Init;
+        ElRotation3D       mR12Cur;
+        ElRotation3D       mR13Cur;
+        tMultiplePF        mH123;
+        int                mNb123;
+        cPairB3Im          mP12;
+        cPairB3Im          mP13;
+        cPairB3Im          mP23;
+        cEqBundleBase*     mEqBB;
+        std::vector<Pt2dr> mBufPts;
+        std::vector<bool>  mBufSel;
+  //  "Sur ponderation" des triplets
+        double             mPds3;
+};
+
+
+cPairB3Im::cPairB3Im(const tMultiplePF  & aHom,int aIndA,int aIndB,int aIndC) :
+    mHoms (aHom),
+    mIndA (aIndA),
+    mIndB (aIndB),
+    mIndC (aIndC),
+    mNb   (aHom[0]->size())
+{
+}
+
+
+
+const double cBundle3Image::PropErInit =  0.75;
+const double cBundle3Image::CoeffPdsErr =  2.0;
+
+// double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel, double aPds,bool WithEq)
+cBundle3Image::cBundle3Image
+(
+     double aFoc,
+     const ElRotation3D & aR12,
+     const ElRotation3D & aR13,
+     const tMultiplePF  & aH123,
+     const tMultiplePF  & aH12,
+     const tMultiplePF  & aH13,
+     const tMultiplePF  & aH23,
+     const double         aSurPds3
+) :
+   mFoc      (aFoc),
+   mR12Init  (aR12),
+   mR13Init  (aR13),
+   mR12Cur   (aR12),
+   mR13Cur   (aR13),
+   mH123     (aH123),
+   mNb123    (aH123[0]->size()),
+   mP12      (aH12,0,1,2),
+   mP13      (aH13,0,2,1),
+   mP23      (aH23,1,2,0),
+   mEqBB     (new cEqBundleBase(false,1,aFoc,true)),
+   mBufPts   (3),
+   mBufSel   (3),
+   mPds3     (aSurPds3)
+{
+   mEqBB->InitNewR2R3(mR12Init,mR13Init);
+   // mPds3 =  ElMin(MaxSurPond3,(mP12.mNb+mP13.mNb+mP23.mNb)/double(mNb123));
+}
+
+Pt2dr F2D(const Pt2df & aP) {return Pt2dr(aP.x,aP.y);}
+
+double  cBundle3Image::AddEq3Pt(int aK,double aPds)
+{
+    mBufPts[0] =   F2D((*(mH123[0]))[aK]);
+    mBufPts[1] =   F2D((*(mH123[1]))[aK]);
+    mBufPts[2] =   F2D((*(mH123[2]))[aK]);
+    mBufSel[0] = mBufSel[1] = mBufSel[2] = true;
+    bool AddEq = aPds>0;
+    double aRes =  mEqBB->AddEquationGen(mBufPts,mBufSel,AddEq?aPds:1.0,AddEq);
+    return aRes;
+}
+double  cBundle3Image::RobustEr3(double aProp)
+{
+     std::vector<double>  aVRes;
+     for (int aK=0 ; aK<mNb123 ; aK++)
+     {
+          aVRes.push_back(AddEq3Pt(aK,0));
+     }
+     return KthValProp(aVRes,aProp);
+}
+
+
+double cBundle3Image::OneIter3(double anErrStd)
+{
+     double aSomP = 0;
+     double aSomEP = 0;
+     for (int aK=0 ; aK<mNb123 ; aK++)
+     {
+          double anErr = AddEq3Pt(aK,0);
+          double aPds =  PdsErr(anErr,anErrStd);
+          AddEq3Pt(aK,aPds*mPds3);
+          aSomP += aPds;
+          aSomEP += aPds * anErr;
+     }
+     return aSomEP / aSomP;
+}
+
+
+double  cBundle3Image::AddEq2Pt(const cPairB3Im & aP,int aK,double aPds)
+{
+    mBufPts[aP.mIndA] =   F2D((*(aP.mHoms[0]))[aK]);
+    mBufPts[aP.mIndB] =   F2D((*(aP.mHoms[1]))[aK]);
+    mBufSel[aP.mIndA] = true;
+    mBufSel[aP.mIndB] = true;
+    mBufSel[aP.mIndC] = false;
+    bool AddEq = aPds>0;
+    double aRes =  mEqBB->AddEquationGen(mBufPts,mBufSel,AddEq?aPds:1.0,AddEq);
+    return aRes;
+}
+double  cBundle3Image::RobustEr2(const cPairB3Im & aPair,double aProp)
+{
+     std::vector<double>  aVRes;
+     for (int aK=0 ; aK<aPair.mNb ; aK++)
+     {
+          aVRes.push_back(AddEq2Pt(aPair,aK,0));
+     }
+     return KthValProp(aVRes,aProp);
+}
+double cBundle3Image::OneIter2(const cPairB3Im & aPair,double anErrStd)
+{
+     double aSomP = 0;
+     double aSomEP = 0;
+     for (int aK=0 ; aK<aPair.mNb ; aK++)
+     {
+          double anErr = AddEq2Pt(aPair,aK,0);
+          double aPds =  PdsErr(anErr,anErrStd);
+          AddEq2Pt(aPair,aK,aPds);
+          aSomP += aPds;
+          aSomEP += aPds * anErr;
+     }
+     return aSomEP / aSomP;
+}
+
+double  cBundle3Image::RobustEr2Glob(double aProp)
+{
+    double aRes =    RobustEr2(mP12,aProp)  * mP12.mNb
+                  +  RobustEr2(mP13,aProp)  * mP13.mNb
+                  +  RobustEr2(mP23,aProp)  * mP23.mNb ;
+
+    return aRes / (mP12.mNb + mP13.mNb + mP23.mNb);
+}
+
+double cBundle3Image::OneIter2Glob(double anErStd)
+{
+    double aRes =    OneIter2(mP12,anErStd)  * mP12.mNb
+                  +  OneIter2(mP13,anErStd)  * mP13.mNb
+                  +  OneIter2(mP23,anErStd)  * mP23.mNb ;
+
+    return aRes / (mP12.mNb + mP13.mNb + mP23.mNb);
+}
+
+ElRotation3D PerturRot(const ElRotation3D & aR,double aMul)
+{
+    return ElRotation3D
+           (
+              aR.tr()+Pt3dr(NRrandC(),NRrandC(),NRrandC()) * aMul,
+              aR.Mat() * ElMatrix<double>::Rotation(NRrandC()*aMul,NRrandC()*aMul,NRrandC()*aMul),
+              true
+           );
+}
+
+void TestBundle3Image
+     (
+          double               aFoc,
+          const ElRotation3D & aR12,
+          const ElRotation3D & aR13,
+          const tMultiplePF  & aH123,
+          const tMultiplePF  & aH12,
+          const tMultiplePF  & aH13,
+          const tMultiplePF  & aH23,
+          double  aPds3
+     )
+{
+
+    double aProp = cBundle3Image::PropErInit;
+    for (int aK=0 ; aK<5 ; aK++)
+    {
+        double aMul = 1e-2*pow((float) 10,-aK);
+        cBundle3Image aB3(aFoc,PerturRot(aR12,aMul),PerturRot(aR13,aMul),aH123,aH12,aH13,aH23,aPds3);
+
+        double anEr3 = aB3.RobustEr3(aProp);
+        double anEr2 = aB3.RobustEr2Glob(aProp);
+
+        for (int anIter = 0 ; anIter<8 ; anIter ++)
+        {
+           anEr3 = aB3.OneIter3(anEr3); 
+           anEr2 = aB3.OneIter2Glob(anEr2); 
+           std::vector<ElRotation3D>  aVR = aB3.BB().GenSolveResetUpdate(); 
+           aB3.BB().InitNewR2R3(aVR[0],aVR[1]);
+           std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << "\n";
+        }
+
+
+        std::cout << "  ======================================== \n\n";
+        getchar();
+    }
+}
+
+
+void SolveBundle3Image
+     (
+          double               aFoc,
+          ElRotation3D & aR12,
+          ElRotation3D & aR13,
+          const tMultiplePF  & aH123,
+          const tMultiplePF  & aH12,
+          const tMultiplePF  & aH13,
+          const tMultiplePF  & aH23,
+          double  aPds3
+     )
+{
+
+    double aProp = cBundle3Image::PropErInit;
+    cBundle3Image aB3(aFoc,aR12,aR13,aH123,aH12,aH13,aH23,aPds3);
+
+    double anEr3 = aB3.RobustEr3(aProp);
+    double anEr2 = aB3.RobustEr2Glob(aProp);
+
+    for (int anIter = 0 ; anIter<10 ; anIter ++)
+    {
+           anEr3 = aB3.OneIter3(anEr3); 
+           anEr2 = aB3.OneIter2Glob(anEr2); 
+           std::vector<ElRotation3D>  aVR = aB3.BB().GenSolveResetUpdate(); 
+           aB3.BB().InitNewR2R3(aVR[0],aVR[1]);
+           // std::cout << "Er3 " <<  anEr3*aFoc  << " Er2 " << anEr2*aFoc   << "\n";
+           aR12 = aVR[0];
+           aR13 = aVR[1];
+    }
+}
+
+
+
 
 
 /************************************************************/
@@ -1691,7 +2233,7 @@ void TestLinariseAngle(const  ElPackHomologue & aPack,const ElRotation3D &aRef,d
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -1707,17 +2249,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

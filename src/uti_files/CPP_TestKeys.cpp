@@ -66,11 +66,12 @@ int TestSet_main(int argc,char ** argv)
 
     ElInitArgMain
     (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
-    LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def=10)")
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
+        LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def=10)")
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
 
 #if (ELISE_windows)
     replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );

@@ -32,8 +32,6 @@ public:
 
     void labelShowMode(bool state);
 
-    void refreshPts();
-
     void setLayout(uint sy);
 
     bool loadPly(const QStringList& filenames);
@@ -58,9 +56,9 @@ public:
 
     void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
 
-    void    SelectPointAllWGL(QString pointName = QString(""));
+    void    selectPointAllWGL(QString pointName = QString(""));
 
-    void    SetDataToGLWidget(int idGLW, cGLData *glData);
+    void    setDataToGLWidget(int idGLW, cGLData *glData);
 
     void    loadPlyIn3DPrev(const QStringList &filenames,cData* dataCache);
 
@@ -95,16 +93,16 @@ public:
     QString banniere() const;
     void setBanniere(const QString& banniere);
 
-	QString textToolBar() const;
-	void setTextToolBar(const QString& textToolBar);
+    QString textToolBar() const;
+    void setTextToolBar(const QString& textToolBar);
 
-	deviceIOTieFile* devIOTieFile() const;
-	void setDevIOTieFile(deviceIOTieFile* devIOTieFile);
+    deviceIOTieFile* devIOTieFile() const;
+    void setDevIOTieFile(deviceIOTieFile* devIOTieFile);
 
 public slots:
 
-	//! Try to load a list of files
-	void addFiles(const QStringList& filenames, bool setGLData = true);
+    //! Try to load a list of files
+    void addFiles(const QStringList& filenames, bool setGLData = true);
 
     void zoomFactor(int aFactor);
 
@@ -119,8 +117,6 @@ public slots:
     cEngine* getEngine(){return _Engine;}
 
     void closeEvent(QCloseEvent *event);
-
-    void redraw(bool nbWidgetsChanged=false);
 
     void setAutoName(QString);
 
@@ -139,7 +135,7 @@ signals:
 
     void selectPoint(QString pointName);
 
-    void setName(QString); //signal coming from cSettingsDlg throw MainWindow
+    void setName(QString); //signal coming from cSettingsDlg through MainWindow
 
     void imagesAdded(int, bool);
 
@@ -232,7 +228,7 @@ protected slots:
 
     void on_actionConfirm_changes_triggered();
 
-	void on_actionWorkbench_toggled(bool mode);
+    void on_actionWorkbench_toggled(bool mode);
 protected:
 
     //! Connects all QT actions to slots
@@ -276,17 +272,17 @@ private:
 
     bool                    _bSaved;
 
-	deviceIOCamera*			_devIOCamera;
+    deviceIOCamera*			_devIOCamera;
 
-	deviceIOTieFile*		_devIOTieFile;
+    deviceIOTieFile*		_devIOTieFile;
 
     int						_hg_revision;
 
     QString					_banniere;
 
-	QString					_textToolBar;
+    QString					_textToolBar;
 
-	cWorkBenchWidget*		_workBench;
+    cWorkBenchWidget*		_workBench;
 
 };
 

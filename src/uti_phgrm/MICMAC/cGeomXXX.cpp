@@ -835,6 +835,9 @@ if ( 0 )
       aBox = mBoxEngl;
   }
   aBox = RoundCoord(aBox);
+
+  aBox._p0 = arrondi_ni(aBox._p0,mResol*mAp->DeZoomMin());
+  aBox._p1 = arrondi_ni(aBox._p1,mResol*mAp->DeZoomMin());
   mP0 = aBox._p0;
   mP1 = aBox._p1;
   mBoxEngl  = aBox;  // A priori redondance entre les 2

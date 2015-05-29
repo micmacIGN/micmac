@@ -1459,6 +1459,10 @@ inline double GenCoutAttenueTetaMax(const double & aVal,const double & aVMax)
       return CoutAttenueTetaMax(aVal,aVMax);
 }
 
+Pt2dr arrondi_ni(const Pt2dr & aP,double aPer);
+
+
+
 
 #endif //  _ELISE_INCLUDE_GENERAL_PTXD_H_
 

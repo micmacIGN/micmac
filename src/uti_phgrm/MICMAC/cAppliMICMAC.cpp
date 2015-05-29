@@ -1159,6 +1159,7 @@ for (int aK=0 ; aK<10 ; aK++)
     }
     else
     {
+
       // Il y a un probleme avec l'utilisation des surfaces analytique identite car une surface doit etre telle que
       // la surface moyenne est L=0, donc elle doit etre centree sur le ZMoyen, qui est inconnu ici; repousser la
       // creation des surface semble aussi assez complique; bref ca se mord la queue de facon difficile a contourner,
@@ -1195,6 +1196,7 @@ for (int aK=0 ; aK<10 ; aK++)
          ELISE_ASSERT(aResol>-1e29,"No Resol in Nadir Masq");
 
 
+// std::cout << "GGGGGGGGGGGg  RR " << aResol  << " ZZZ " << aZMoy << " \n"; getchar();
 
          mAnamSA = cInterfSurfaceAnalytique::Identite(aZMoy);
          mCorrecAlti4ExportIsInit = true;

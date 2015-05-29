@@ -208,8 +208,15 @@ int SimplePredict_main(int argc,char ** argv)
 
     for (std::list< cOneAppuisDAF >::iterator itP=aOneAppuisDAFList.begin(); itP != aOneAppuisDAFList.end(); itP ++)
     {
-      //std::cout<<"  point "<<itP->NamePt()<<" "<<itP->Pt()<<"\n";
+      std::cout<<"  point "<<itP->NamePt()<<" "<<itP->Pt()<<" => ";
+      std::cout<<" L3: "<<aIm.getCam()->R3toL3(itP->Pt())<<"  => ";
       Pt2dr aPtProj = aIm.getCam()->R3toF2(itP->Pt());
+      std::cout<<"  F2: "<<aPtProj<<"\n";
+      if (!  aIm.getCam()->Devant(itP->Pt()) )
+      {
+         std::cout<<"       On the back\n";
+         continue;
+      }
 
       //save it only inside picture
       if ((aPtProj.x>=0) && (aPtProj.y>=0) && (aPtProj.x<aIm.getCam()->Sz().x) && (aPtProj.y<aIm.getCam()->Sz().y) )

@@ -264,6 +264,8 @@ void cGTrip_AttrSom::InitNb(const std::vector<Pt2df> & aVP1)
 }
 
 
+extern void  CoordInterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1,bool & Ok,double &p , double & q);
+
 
 
 bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
@@ -313,8 +315,14 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
 
 
       // Calul du centre
+ 
+      // Methode qui n'utilisent pas les points multiples, OK mais degeneree avec sommet alignes
+      //  C2  + L C3, U2 , U3 colineaire
+     
 
       int aStep = ElMin(10,ElMax(1,int(aVP1.size())/50));
+
+      std::vector<double> aVLByInt;
 
       for (int aKL=0 ; aKL<int(aVP1.size()) ; aKL+=aStep)
       {
@@ -332,10 +340,36 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
           aDet =  Det(aV3Bis,aU31Bis,aU1);
           if (aDet)
               aVL23.push_back( -Det(aC2,aU31Bis,aU1) /aDet);
+
+
+          bool OkI;
+          Pt3dr aPInt12 = InterSeg(aC1,aC1+aU1,aC2,aC2+aU2,OkI);
+          if (OkI)
+          {
+              // La vrai C3 est a la fois sur la droite C1C3 et sur le rayon partant de l'intersection et porte
+              // par U3, on calcule
+              double p,q;
+              CoordInterSeg(aC1,aC3,aPInt12,aPInt12+aU31,OkI,p,q);
+              if (OkI)
+              {
+                 aVLByInt.push_back(p);
+              }
+
+               // Pt3dr aPseudoC3 = InterSeg(aC1,aC3,
+               //  L C3 + K U3 = aPInt12
+          }
+          
       }
+
       Pt3dr aC31 = aC3 / MedianeSup(aVL13);
       Pt3dr aC32 = aC2 + aV3Bis * MedianeSup(aVL23);
       mC3 = (aC31 + aC32) / 2.0;
+      Pt3dr aC3I = aC3 *  MedianeSup(aVLByInt);
+
+      // std::cout << "DDDDD " << euclid(mC3-aC3I)  << " " << aC3I << "\n";
+
+     // Finalement on prefere celui par point multiple, qui n'est pas degenere en cas de sommets alignes
+      mC3 = aC3I;
       mM3 =  NearestRotation((aR31.Mat() + aR31Bis.Mat())*0.5);
 
 
@@ -483,7 +517,7 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     mCurTestArc = anArc.attr().ASym().ArcTest();
 
 
-    mCurPMed = mCurArc->attr().ASym().Xml().Geom().Val().Ori().PMed1();
+    mCurPMed = mCurArc->attr().ASym().Xml().Geom().Val().OrientAff().PMed1();
     mHautBase = euclid(mCurPMed);
 
     mCurS1  = & (anArc.s1());
@@ -498,7 +532,7 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     mNbCases = mSzCases.x * mSzCases.y;
     ELISE_ASSERT(mNbCases<=TMaxNbCase,"cAppli_GenTriplet::GenTriplet");
 
-    mMulQuant  = mNbCases *pow(TQuant,3) * TQuantBsH;
+    mMulQuant  = mNbCases *pow((float)TQuant,3) * TQuantBsH;
     ELISE_ASSERT(mMulQuant<TMaxGain,"Owerflow in cAppli_GenTriplet::GenTriplet");
 
     mCurS1->attr().InitNb(mCurArc->attr().VP1());
@@ -520,6 +554,10 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
        tSomGT & aS3 = (*itA).s2();
        if (mGrT.arc_s1s2(anArc.s2(),aS3))
        {
+          if (mCurTestArc) 
+          {
+             std::cout << "Push " <<  aS3.attr().Name() << "\n";
+          }
           AddSomTmp(aS3);
        }
     }
@@ -559,7 +597,8 @@ void cAppli_GenTriplet::GenTriplet()
    ElTimer aTimeGT;
    for (int aKS=0 ; aKS<int(mVecAllSom.size()) ; aKS++)
    {
-       std::cout << "ONE SOOMM  GT " << mVecAllSom.size() - aKS << " \n";
+       if (mShow) 
+          std::cout << "ONE SOOMM  GT " << mVecAllSom.size() - aKS << " \n";
        for( tItAGT itA=mVecAllSom[aKS]->begin(mSubAll) ; itA.go_on() ; itA++)
        {
              GenTriplet(*itA);
@@ -616,15 +655,16 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
    ELISE_ASSERT(aA1.Name() < aA2.Name(),"cAppli_GenTriplet::AddTriplet");
    ELISE_ASSERT(aA2.Name() < aA3.Name(),"cAppli_GenTriplet::AddTriplet");
 
-   cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());
-   if ((mMapTriplets.find(aTr) != mMapTriplets.end()))
-      return false;
-
 
    ElRotation3D aR1Inv = aA1.R3().inv();
 
    ElRotation3D aR2 = aR1Inv*aA2.R3();
    ElRotation3D aR3 = aR1Inv*aA3.R3();
+
+   double aD = euclid(aR2.tr());
+   aR2 = ElRotation3D(aR2.tr()/aD,aR2.Mat(),true);
+   aR3 = ElRotation3D(aR3.tr()/aD,aR3.Mat(),true);
+
 
    double aResidu=-1;
    int    aNbTriplet=-1;
@@ -665,6 +705,18 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
        aResidu = MedianeSup(aVRes);
        aNbTriplet = aVP1.size();
    }
+
+   cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());
+   {
+      std::map<cTripletInt,cResTriplet>::iterator  itM = mMapTriplets.find(aTr) ;
+
+      if (  (itM != mMapTriplets.end()) && (itM->second.mXml.ResiduTriplet() < aResidu))
+      {
+         return false;
+      }
+   }
+
+
 
 
    cResTriplet aRT;
@@ -787,7 +839,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
 */
 
 
-                  const cXml_O2IRotation & aXO = aXmlO.Geom().Val().Ori();
+                  const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
                   ElRotation3D aR(aXO.Centre(),ImportMat(aXO.Ori()),true);
                   cGTrip_AttrASym * anASym  =  new  cGTrip_AttrASym(aXmlO);
                   anASym->ArcTest() = (aS1->attr().SomTest() && aS2->attr().SomTest());
@@ -834,7 +886,7 @@ int GenTriplet_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant a  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -850,17 +902,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

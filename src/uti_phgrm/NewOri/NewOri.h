@@ -47,7 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 // Nombre de point pour echantillonner le recouvrt / homogr
 #define NbRecHom 40
 // Nombre de point minimum pour etudier un couple
-#define NbMinPts2Im 50
+#define NbMinPts2Im 20
 
 
 //  Sur les triplets
@@ -56,11 +56,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define  TQuant     30 // Valeur de quantification
 #define  TQuantBsH  100 // Valeur de quantification
 #define  TBSurHLim  0.15  // Valeur d'attenuation du gain en B/H
-#define  TNbMinPMul 8  // Nombre de point triple minimal pour un triplet
+//  #define  TNbMinPMul 8  // Nombre de point triple minimal pour un triplet
 #define  TAttenDens 3.0
 
-#define TNbMinTriplet 5
-#define TNbMaxTriplet 20
+#define TNbMinTriplet 3    // Nombre de point triple minimal pour un triplet
+#define TNbMaxTriplet 20   // Nombre maximal de triplet calcule
 #define TGainSeuil    5e-3
 
 
@@ -201,6 +201,9 @@ class cNewO_OrInit2Im
           double PixExactCost(const ElRotation3D & aRot,double aTetaMax) const;
           const cXml_Ori2Im &  XmlRes() const;
     private :
+
+
+           void TestNewSel(const ElPackHomologue & aPack);
           
        //======== Amniguity ====
             void CalcAmbig();
@@ -295,6 +298,8 @@ class cNewO_NameManager
            CamStenope * CamOfName(const std::string & aName);
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
            std::string NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const;
+           cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2);
+
            std::string  NameTimingOri2Im() const;
            const std::string & Dir() const;
 
@@ -313,6 +318,7 @@ class cNewO_NameManager
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
            std::string NameHomTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameOriInitTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+           std::string NameOriOptimTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameTopoTriplet(bool ModeBin);
 
 
@@ -412,6 +418,16 @@ ElMatrix<double> TestMEPCoCentrik(const ElPackHomologue & aPack,double aFoc,cons
 
 void AddSegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP);
 double Residu(cNewO_OneIm  * anIm , const ElRotation3D & aR,const Pt3dr & aPTer,const Pt2df & aP);
+
+class  cResIPR
+{
+    public :
+         std::vector<int> mVSel;
+         double           mDistMoy;
+};
+
+cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin);
+cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin,const cResIPR & aResExist,const std::vector<Pt2df> & aVPtsExist);
 
 
 

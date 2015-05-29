@@ -818,18 +818,18 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
 
 void cAppliPastis::Exec()
 {
-	string filename1 = mOutputDirectory+CurF1();
-	string filename2 = mOutputDirectory+CurF2();
-	if ( isUsingSeparateDirectories() )
-	{
-		if ( !ELISE_fp::exist_file( filename1 ) ) filename1 = DirChantier()+CurF1();
-		if ( !ELISE_fp::exist_file( filename2 ) ) filename2 = DirChantier()+CurF2();
-	}
+    string filename1 = mOutputDirectory+CurF1();
+    string filename2 = mOutputDirectory+CurF2();
+    if ( isUsingSeparateDirectories() )
+    {
+        if ( !ELISE_fp::exist_file( filename1 ) ) filename1 = DirChantier()+CurF1();
+        if ( !ELISE_fp::exist_file( filename2 ) ) filename2 = DirChantier()+CurF2();
+    }
 
-	mSzIm1 = Tiff_Im::StdConvGen(filename1,1,false).sz();
-	mSzIm2 = Tiff_Im::StdConvGen(filename2,1,false).sz();
+    mSzIm1 = Tiff_Im::StdConvGen(filename1,1,false).sz();
+    mSzIm2 = Tiff_Im::StdConvGen(filename2,1,false).sz();
 
-	ExecSz(mSzPastis,false);
+    ExecSz(mSzPastis,false);
 }
 
 void cAppliPastis::ExecSz(double aSzMaxApp,bool)
@@ -986,10 +986,10 @@ cAppliPastis::cAppliPastis(int argc,char ** argv,bool FBD) :
                       << EAM(mSsRes,"SsRes",true)
                       << EAM(mExt,"Ext",true)
                       << EAM(mNKS,"NKS",true)
-                      
+
                       << EAM(mDetectingTool,PASTIS_DETECT_ARGUMENT_NAME.c_str(),true)
                       << EAM(mMatchingTool,PASTIS_MATCH_ARGUMENT_NAME.c_str(),true)
-                      
+
                       << EAM(mIgnoreMax,PASTIS_IGNORE_MAX_NAME.c_str(),true)
                       << EAM(mIgnoreMin,PASTIS_IGNORE_MIN_NAME.c_str(),true)
                       << EAM(mIgnoreUnknown,PASTIS_IGNORE_UNKNOWN_NAME.c_str(),true)

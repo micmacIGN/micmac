@@ -109,6 +109,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          double          mZReg;
          std::string     mArgSupEpip;
          std::string     mFilePair;
+         bool                     mDebugMMByP;
 };
 
 cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
@@ -123,7 +124,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mDoMerge            (DoMerge),
    mMMIN               (0),
    mUseGpu	       (false),
-   mArgSupEpip         ("")
+   mArgSupEpip         (""),
+   mDebugMMByP         (false)
 {
 
 
@@ -192,9 +194,10 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mDS,"DownScale",true,"DownScale of Final result, Def depends on mode")
                     << EAM(mZoomF,"ZoomF",true,"Zoom final, Def depends on mode",eSAM_IsPowerOf2)
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
-                    << EAM(mDefCor,"DefCor",false,"Def correlation, context depend")
-                    << EAM(mZReg,"ZReg",false,"Regularisation, context depend")
-                    << EAM(mFilePair,"FilePair",false,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
+                    << EAM(mDefCor,"DefCor",true,"Def correlation, context depend")
+                    << EAM(mZReg,"ZReg",true,"Regularisation, context depend")
+                    << EAM(mFilePair,"FilePair",true,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
+                    << EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
     );
 
    if (MMVisualMode) return;
@@ -231,6 +234,9 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
            +  mStrImOri0
            +  mArgMasq3D
            +  " UseGpu=" + ToString(mUseGpu);
+   if (mDebugMMByP)
+      mBaseComMMByP = mBaseComMMByP + " DebugMMByP=true";
+
    if (EAMIsInit(&mFilePair))
        mBaseComMMByP  += " FilePair=" + mFilePair;
 
@@ -316,6 +322,12 @@ void  cAppli_C3DC::PipelineQuickMack()
 void  cAppli_C3DC::PipelineEpip()
 {
     ExeCom(mBaseComMMByP + " Purge=" + ToString(mPurge) + " Do=APMCR ZoomF=" + ToString(mZoomF) + mArgSupEpip  );
+    if (mDebugMMByP) 
+    {
+       exit(EXIT_SUCCESS);
+    }
+
+
     ExeCom(mBaseComEnv + " Glob=false");
     ExeCom(mBaseComMMByP + " Purge=" +  ToString(mPurge) + " Do=F " );
     DoMergeAndPly();

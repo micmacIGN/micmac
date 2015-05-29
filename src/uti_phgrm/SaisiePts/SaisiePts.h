@@ -602,12 +602,14 @@ private :
 
 
          void InitImages();
+         void InitImages(const std::string &);
 
          void InitInPuts();
          void AddOnePGInImage(cSP_PointGlob * aSPG,cImage & anI,bool WithP3D,const Pt3dr & aP3d,bool InMasq3D);
 
 
          void InitPG();
+         void InitPG(const std::string &);
          void InitPointeIm();
 
          cParamSaisiePts &                     mParam;
@@ -646,6 +648,9 @@ private :
          Im2D_INT4                         mImRechAlgo;
          cMasqBin3D *                      mMasq3DVisib;
          cMMByImNM *                       mPIMsFilter;
+
+         std::vector<std::string>          mGlobLInputSec;
+         std::vector<std::string>          mPtImInputSec;
 };
 
 

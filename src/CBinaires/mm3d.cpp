@@ -679,8 +679,18 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    {
        ELISE_ASSERT(ELISE_QT_VERSION > 0, std::string("Qt not installed, " + std::string(argv[1]) + " not available").c_str() );
 
-       ELISE_ASSERT(argv[1]!=std::string("vMICMAC"), std::string("vMICMAC not available").c_str() );
-       ELISE_ASSERT(argv[1]!=std::string("vApero"), std::string("vApero not available").c_str() );
+       std::string cmds[] = { std::string("vMICMAC"), std::string("vApero"), std::string("vAnn"), std::string("vCalibFinale"),
+                              std::string("vCalibInit"), std::string("vMergeDepthMap"), std::string("vPastis"),
+                              std::string("vPointeInitPolyg"), std::string("vPorto"), std::string("vRechCibleDRad"),
+                              std::string("vRechCibleInit"), std::string("vReduc2MM"), std::string("vReducHom"),
+                              std::string("vSaisiePts"), std::string("vScriptCalib"), std::string("vSift"),
+                              std::string("vSysCoordPolyn"), std::string("vTestChantier"), std::string("vvic")
+                            };
+       std::vector <std::string> vCmds(cmds, cmds + 19);
+       if (std::find(vCmds.begin(), vCmds.end(), argv[1])!=vCmds.end())
+       {
+           ELISE_ASSERT(false, (argv[1] + std::string(" not available")).c_str() );
+       }
 
        MMVisualMode = true;
        argv[1]++;

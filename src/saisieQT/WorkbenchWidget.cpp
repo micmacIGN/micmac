@@ -87,7 +87,7 @@ void cWorkBenchWidget::updateTiePoint(const QModelIndex & index)
         QImage image;
         image.load(fileImage.filePath());
 
-        if(image.isNull()) //TODO Attention fuite meroire
+        if(image.isNull()) //TODO Attention fuite memoire
             image = *_dIOImage->loadImage(fileImage.filePath(),false);
 
         QPixmap pixmap = QPixmap::fromImage(image);

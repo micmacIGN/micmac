@@ -99,7 +99,6 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   {
     QApplication app(argc, argv);
 
-    std::cout<<"MMVisualMode"<<std::endl;
     LArgMain LAM;
     LAM << EAMC(mStrCorrelGeomType,"Correlation type",eSAM_None,ListOfVal(eNbTypeVals));
 

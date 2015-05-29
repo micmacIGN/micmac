@@ -51,7 +51,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     rebuildGlCamera();
 
-    _data->computeBBox();
+    _data->computeCenterAndBBox();
 
     Init();
 
@@ -115,7 +115,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
     connect(m_QTMainWindow->tableView_PG(),SIGNAL(entered(QModelIndex)), this, SLOT(selectPointGlobal(QModelIndex)));
 
-	connectDeviceElise(*m_QTMainWindow);
+    connectDeviceElise(*m_QTMainWindow);
 }
 
 void cQT_Interface::viewSelectImages()
@@ -446,7 +446,7 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
 
             if (!isDisplayed(images[aKW]))
             {
-                m_QTMainWindow->SetDataToGLWidget(idPg == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
+                m_QTMainWindow->setDataToGLWidget(idPg == THISWIN ? CURRENT_IDW : aKW,getGlData(images[aKW]));
                 images[aKW]->SetLoaded();
             }
 
@@ -487,7 +487,7 @@ void cQT_Interface::selectPointGlobal(int idPG)
             m_QTMainWindow->resizeTables();
         }
 
-        m_QTMainWindow->SelectPointAllWGL(!mAppli->PGlob(idPG) ? QString("") : namePointGlobal(idPG));
+        m_QTMainWindow->selectPointAllWGL(!mAppli->PGlob(idPG) ? QString("") : namePointGlobal(idPG));
         rebuild3DGlPoints((cPointGlob*) (!mAppli->PGlob(idPG) ? NULL : mAppli->PGlob(idPG)->PG()));
     }
 }
@@ -589,33 +589,33 @@ int cQT_Interface::idCImage(QString nameImage)
 
 void cQT_Interface::toQVec3D(Pt3d<double> P, QVector3D& qP)
 {
-	qP.setX(P.x);
-	qP.setY(P.y);
-	qP.setZ(P.z);
+    qP.setX(P.x);
+    qP.setY(P.y);
+    qP.setZ(P.z);
 }
 
 QVector3D cQT_Interface::toQVec3D(Pt3d<double> P)
 {
-	QVector3D qP;
-	qP.setX(P.x);
-	qP.setY(P.y);
-	qP.setZ(P.z);
-	return qP;
+    QVector3D qP;
+    qP.setX(P.x);
+    qP.setY(P.y);
+    qP.setZ(P.z);
+    return qP;
 }
 
 void cQT_Interface::connectDeviceElise(SaisieQtWindow& win)
 {
-	win.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
-	win.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
-	win.setDevIOTieFile((deviceIOTieFileElise*)new deviceIOTieFileElise);
+    win.setDevIOCamera((deviceIOCamera*)new deviceIOCameraElise);
+    win.setDevIOImage((deviceIOImageElise*)new deviceIOImageElise);
+    win.setDevIOTieFile((deviceIOTieFileElise*)new deviceIOTieFileElise);
 
-	win.setBanniere(QString(getBanniereMM3D().c_str()));
-	win.setHg_revision(QString(__HG_REV__));
+    win.setBanniere(QString(getBanniereMM3D().c_str()));
+    win.setHg_revision(QString(__HG_REV__));
 }
 
 cImage * cQT_Interface::currentCImage()
 {
-	return cVirtualInterface::CImageVis(idCurrentCImage());
+    return cVirtualInterface::CImageVis(idCurrentCImage());
 }
 
 int cQT_Interface::getQTWinMode()

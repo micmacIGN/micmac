@@ -680,7 +680,7 @@ void writeHeader(FILE * aFP, int aNelems, int aType, bool aBin)
 
         ElFclose(aFP);
 
-        if ( glist!=NULL ) delete [] glist;
+        if ( glist!=NULL ) delete glist;
         if ( plist!=NULL ) delete plist;
 
         return EXIT_SUCCESS;

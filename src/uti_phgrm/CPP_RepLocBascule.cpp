@@ -65,7 +65,7 @@ int RepLocBascule_main(int argc,char ** argv)
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile )
                     << EAMC(AeroIn,"Input orientation", eSAM_IsExistDirOri)
-                    << EAMC(FileMesures,"Images measures xml file, set \"HOR\" if horizonatl line is wanted, \"NONE\" if unused ", eSAM_IsExistFile)
+                    << EAMC(FileMesures,"Image measures xml file, set \"HOR\" if horizontal line is wanted, \"NONE\" if unused ", eSAM_IsExistFile)
                     << EAMC(RepereOut,"Output xml file", eSAM_IsOutputFile),
     LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true,"Are tie points in ascii mode ? (Def=false)")

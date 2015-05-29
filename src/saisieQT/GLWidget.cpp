@@ -533,7 +533,7 @@ void GLWidget::setZoom(float val)
 {
     if (imageLoaded())
 
-        zoomClip( val ); // TODO c'est quoi ce truc????
+        zoomClip( val );
 
     setEnabled(false);
 
@@ -1267,7 +1267,7 @@ void GLWidget::dropEvent(QDropEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
 
-    if (mimeData->hasFormat("text/uri-list")) // TODO peut etre deplacer factoriser la gestion de drop fichier!!!
+    if (mimeData->hasFormat("text/uri-list")) // TODO peut etre deplacer
     {
         QByteArray data = mimeData->data("text/uri-list");
         QStringList fileNames = QUrl::fromPercentEncoding(data).split(QRegExp("\\n+"),QString::SkipEmptyParts);

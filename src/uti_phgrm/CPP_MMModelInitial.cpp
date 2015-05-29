@@ -812,6 +812,8 @@ int MMInitialModel_main(int argc,char ** argv)
                     << EAM(aDoPyram,"DoPyram",true,"Do Pyram (set false when //izing)  ", eSAM_IsBool)
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     #if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
     #endif

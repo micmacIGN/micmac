@@ -3310,6 +3310,32 @@ double  NEW_SignInters(const ElPackHomologue & aPack,const ElRotation3D & aR2to1
 ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack,double * aDistMin = 0);
 
 
+typedef std::vector<std::vector<Pt2df> *> tMultiplePF;
+
+void TestBundle3Image
+     (
+          double               aFoc,
+          const ElRotation3D & aR12,
+          const ElRotation3D & aR13,
+          const tMultiplePF  & aH123,
+          const tMultiplePF  & aH12,
+          const tMultiplePF  & aH13,
+          const tMultiplePF  & aH23,
+          double aPds3
+     );
+
+void SolveBundle3Image
+     (
+          double               aFoc,
+          ElRotation3D & aR12,
+          ElRotation3D & aR13,
+          const tMultiplePF  & aH123,
+          const tMultiplePF  & aH12,
+          const tMultiplePF  & aH13,
+          const tMultiplePF  & aH23,
+          double aPds3
+     );
+
 
 
 

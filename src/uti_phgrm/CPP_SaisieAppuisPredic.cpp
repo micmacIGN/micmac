@@ -58,7 +58,8 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       double &aFlou,
                       bool &aForceGray,
                       double &aZMoy,
-                      double &aZInc)
+                      double &aZInc,
+                      std::string & aInputSec)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -79,6 +80,7 @@ void SaisieAppuisPredic(int argc, char ** argv,
                             << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
                             << EAM(aMasq3D,"Masq3D",true,"3D Masq used for visibility", eSAM_NoInit)
                             << EAM(PIMsFilter,"PIMsF",true,"PIMs filter used for visibility", eSAM_NoInit)
+                            << EAM(aInputSec,"InputSec",true,"PIMs filter used for visibility", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -127,12 +129,13 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
     std::string aMasq3D,aPIMsFilter;
     bool aForceGray = true;
     double aZMoy,aZInc;
+    std::string aInputSec;
 
     double aFlou=0.0;
 
     std::string aTypePts="Pts";
 
-    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc);
+    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc,aInputSec);
 
     if(!MMVisualMode)
     {
@@ -173,7 +176,12 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
         if (EAMIsInit(&aTypePts))
             aCom = aCom + std::string(" +TypeGlobEcras=true");
         if (EAMIsInit(&aForceGray))
-            aCom = aCom + " +ForceGray=" + ToString(aForceGray);
+           aCom = aCom + " +ForceGray=" + ToString(aForceGray);
+
+        if (EAMIsInit(&aInputSec))
+        {
+           aCom = aCom + " +WithInputSec=true  +InputSec=" + aInputSec + " ";
+        }
 
         std::cout << aCom << "\n";
 

@@ -70,7 +70,6 @@ Documentation/DocRef/*.aux
 Documentation/DocUtil/*.aux
 Documentation/DocProg/*.aux
 Documentation/Generalites/*.aux
-Documentation/Generalites/QuickStartSimplified-Tools.log
 include/XML_User/DicoCamera.xml
 cppcheck.txt
 repport.txt

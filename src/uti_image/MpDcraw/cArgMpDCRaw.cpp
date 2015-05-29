@@ -134,7 +134,6 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
 
 
 
-
      if (mImRef!="")
      {
          std::string aFulIR = DirChantier() +  mImRef;
@@ -384,9 +383,9 @@ void  cArgMpDCRaw::DevJpg()
          if (! OkCam)
          {
              Pt2di aSz = aFTmp.sz();
-             // On fait l'hypothese que image prise par un droitier en position standard , 
+             // On fait l'hypothese que image prise par un droitier en position standard ,
              // la haut de l'image doit aller a droite
-             if (aSz.y > aSz.x) 
+             if (aSz.y > aSz.x)
              {
                  anACam = 270;
                  OkCam = true;
@@ -396,7 +395,7 @@ void  cArgMpDCRaw::DevJpg()
          if (Ok && OkCam)
          {
              if ((anA!=anACam) && (anA==0))
-             { 
+             {
                  int aDA = anACam - anA;
                  if (aDA<0) aDA += 360;
                  // Im2DGen aImIn = aFTmp.ReadIm();
@@ -557,8 +556,8 @@ double cArgMpDCRaw::Dyn() const
    return mDyn;
 }
 
-double cArgMpDCRaw::Gamma( const std::string& aNameIm) const 
-{ 
+double cArgMpDCRaw::Gamma( const std::string& aNameIm) const
+{
    if (! EAMIsInit(const_cast<void *>((void *)&mGammaCorrec)))
    {
          if (!  mCons16Bits)
@@ -570,7 +569,7 @@ double cArgMpDCRaw::Gamma( const std::string& aNameIm) const
          }
    }
 
-    return mGammaCorrec; 
+    return mGammaCorrec;
 }
 
 

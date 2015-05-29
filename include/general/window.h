@@ -215,6 +215,8 @@ class Video_Win   :  public El_Window
          static Video_Win  WStd(Pt2di sz,REAL zoom,bool all_pal= true,bool SetClikCoord = true);
          static Video_Win  WStd(Pt2di sz,REAL zoom,Video_Win,bool SetClikCoord = true);
          static Video_Win  WSzMax(Pt2dr aSzTarget,Pt2dr aSzMax);
+         static Video_Win  WSzMax(Pt2dr aSzTarget,Pt2dr aSzMax,double & aZoom);
+         static Video_Win  LoadTiffWSzMax(const std::string &aNameTiff,Pt2dr aSzMax,double & aZoom);
 
          static Video_Win *  PtrWStd(Pt2di sz,bool all_pal= true,const Pt2dr & aScale=Pt2dr(1,1));
 
