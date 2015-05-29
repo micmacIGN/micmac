@@ -91,7 +91,12 @@ struct Rect
 		pt1 = make_int2(p1x,p1y);
     }
 
-    __device__ __host__ Rect(const Rect& rect)
+	__device__ __host__
+	///
+	/// \brief Rect operateur de copie
+	/// \param rect rectangle à copier
+	///
+	Rect(const Rect& rect)
     {
         pt0 = rect.pt0;
         pt1 = rect.pt1;
@@ -103,14 +108,29 @@ struct Rect
         return make_uint2(abs(pt1-pt0));
     }
 
+	///
+	/// \brief operator ==
+	/// \param other rectangle à comparer
+	/// \return vraie si le rectangle est identique
+	///
     bool operator==(const Rect &other) const {
         return ( this->pt0.x == other.pt0.x && this->pt0.y == other.pt0.y && this->pt1.x == other.pt1.x && this->pt1.y == other.pt1.y);
     }
 
+	///
+	/// \brief operator !=
+	/// \param other rectangle à comparer
+	/// \return vraie si le rectangle est différent
+	///
     bool operator!=(const Rect &other) const {
         return !(*this == other);
     }
 
+	///
+	/// \brief erode Erode le rectangle par le paramètre a
+	/// \param a
+	/// \return
+	///
     Rect erode(int a)
     {
         pt0 = pt0 + a;
@@ -119,6 +139,11 @@ struct Rect
         return *this;
     }
 
+	///
+	/// \brief SetMaxMin si le point de coordonnées x y est en dehors du rectangle, le rectangle est ajusté pour contenir ce point
+	/// \param x
+	/// \param y
+	///
     void SetMaxMin(int x, int y)
     {
 
@@ -129,11 +154,21 @@ struct Rect
         if (pt1.y < y) pt1.y = y;
     }
 
+
+	///
+	/// \brief inside Vérifie si le point pt est à l'intérieure
+	/// \param pt
+	/// \return
+	///
     bool inside(int2 pt)
     {
         return (pt.x>= pt0.x) && (pt.x < pt1.x ) && (pt.y>= pt0.y) && (pt.y < pt1.y);
     }
 
+	///
+	/// \brief si le rectangle rect est en dehors du rectangle, le rectangle est ajusté pour contenir ce rectangle
+	/// \param rect
+	///
     void SetMaxMin(Rect rect)
     {
 
@@ -144,6 +179,11 @@ struct Rect
         if (pt1.y < rect.pt1.y) pt1.y = rect.pt1.y;
     }
 
+
+	///
+	/// \brief SetMaxMinInc si le rectangle rect + 1 est en dehors du rectangle, le rectangle est ajusté pour contenir ce rectangle
+	/// \param rect
+	///
     void SetMaxMinInc(Rect rect)
     {
 
@@ -156,12 +196,21 @@ struct Rect
         if (pt1.y < rect.pt1.y) pt1.y = rect.pt1.y;
     }
 
+	///
+	/// \brief area
+	/// \return la surface du rectangle
+	///
     uint area()
     {
         uint2 dim =  dimension();
         return dim.x * dim.y;
     }
 
+	///
+	/// \brief operator =
+	/// \param copy
+	/// \return
+	///
     Rect& operator=(const Rect &copy)
     {
 
@@ -171,7 +220,11 @@ struct Rect
         return *this;
     }
 
-	__device__ __host__ void out()
+	__device__ __host__
+	///
+	/// \brief out Affichage console de membres du rectangle
+	///
+	void out()
 	{
 		printf("[(%d,%d)(%d,%d)]",pt0.x ,pt0.y,pt1.x,pt1.y);
 	}
@@ -240,6 +293,9 @@ struct Bar<val, T>														\
 	}																	\
 };
 
+///
+/// \cond
+///
 template<int val, typename T>
 struct Bar
 {
@@ -276,6 +332,8 @@ struct Bar
 	 return a - __opMult(div);
  }
 };
+/// \endcond
+
 
 __div_mult(1,0)
 __div_mult(2,1)

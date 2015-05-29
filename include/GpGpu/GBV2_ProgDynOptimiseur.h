@@ -20,7 +20,7 @@
 /**************************************************/
 typedef unsigned int tCost;
 
-///
+/// \cond
 /// \brief The cGBV2_CelOptimProgDyn class
 ///
 class cGBV2_CelOptimProgDyn
@@ -228,6 +228,8 @@ private :
 
 };
 //}
+/// \endcond
+
 #endif //H_GBV2_PROGDUNOPTIMISEUR
 
 

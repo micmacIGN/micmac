@@ -1,7 +1,11 @@
- file(GLOB_RECURSE IncuhCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.cuh  )
- file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
- list(APPEND IncCudaFiles ${IncuhCudaFiles})
 
+## Include gpugpu header .h and .cuh
+file(GLOB_RECURSE IncuhCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.cuh  )
+file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
+list(APPEND IncCudaFiles ${IncuhCudaFiles})
+
+
+##
 if (MSVC12)
 	GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\12.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 elseif (MSVC11)
@@ -13,17 +17,19 @@ elseif (MSVC90)
 elseif (MSVC80)
     GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 endif()
- 
+
+#
+# FoundCapa bin for found capabilities of video cards
+
+# Define variable global for build FoundCapa on windows
 if (MSVC12 OR MSVC11 OR MSVC10 OR MSVC90 OR MSVC80)
     set( ENV{PATH} "${VS_DIR}\\VC\\bin;C:\\Windows\\System32;${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}\\CMakeTmp\\" )
 endif() 
 
-#message("Start 1er process") 
-
+# verif if FoundCapa.exe exists --
 if( EXISTS "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa.exe")
 
-#message("Found ")
-
+# run FoundCapa.exe windows
 execute_process( COMMAND "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa.exe"
                  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
                  RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
@@ -31,6 +37,7 @@ execute_process( COMMAND "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/F
 
 else()
 
+# build and run FoundCapa mac and LINUX
 execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "-o=FoundCapa" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu"  "--run" 
                  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
                  RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
