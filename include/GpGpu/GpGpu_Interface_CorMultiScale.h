@@ -122,6 +122,9 @@ struct const_Param_Cor_MS
 
 
 #define NBEPIIMAGE 2
+///
+/// \brief The dataCorrelMS struct
+///
 struct dataCorrelMS
 {
     dataCorrelMS();
@@ -141,7 +144,7 @@ struct dataCorrelMS
 
     ///
     /// \brief _uInterval_Z
-    ///
+	///
     CuUnifiedData3D<short2>        _uInterval_Z;
 
     ///
@@ -154,6 +157,9 @@ struct dataCorrelMS
 	///
 	CuUnifiedData3D<ushort>         _uCostu;
 
+	///
+	/// \brief _uPit
+	///
 	CuUnifiedData3D<uint>			_uPit;
 
 	///
