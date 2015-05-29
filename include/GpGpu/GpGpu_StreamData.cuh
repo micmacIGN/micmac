@@ -125,7 +125,11 @@ public:
 	///
 	void reverse();
 
-    void                __device__  output();
+	void                __device__
+	///
+	/// \brief output Affiche dans la console les caractéristiques du stream
+	///
+	output();
 
 private:
 
@@ -177,8 +181,6 @@ void SimpleStream<T>::SetOrAddValue(int id, T value)
         AddValue(id,value);
 }
 
-
-
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::SetOrAddValue(int id, T setValue, T addValue)
 {
@@ -187,7 +189,6 @@ void SimpleStream<T>::SetOrAddValue(int id, T setValue, T addValue)
     else
         AddValue(id,addValue);
 }
-
 
 template<class T> __device__
 void SimpleStream<T>::output()
