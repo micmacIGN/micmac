@@ -57,9 +57,18 @@ struct sMatrixCellCost
 
     void PointIncre(uint2 pt,short2 ptZ)
     {
+		ushort maxNappe = 1024;
+
         ushort dZ   = abs(count(ptZ));
         _ptZ[pt]    = make_short3(ptZ.x,ptZ.y,0);
-        _dZ[pt]     = dZ;
+		_dZ[pt]     = dZ;
+
+		if(dZ > maxNappe)
+		{
+			_dZ[pt] = maxNappe;
+			dZ		= maxNappe;
+			_ptZ[pt] = make_short3(ptZ.x,ptZ.x + maxNappe,0);
+		}
 
         // NAPPEMAX
         if(_maxDz < dZ) // Calcul de la taille de la Nappe Max pour le calcul Gpu
