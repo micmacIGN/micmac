@@ -125,6 +125,7 @@ int TiPunch_main(int argc,char ** argv)
                     << EAM(aFilterFromBorder,"FFB",true,"Filter from border (def=true)")
         );
 
+
     if (MMVisualMode) return EXIT_SUCCESS;
 
     SplitDirAndFile(aDir,aPat,aFullName);
@@ -205,10 +206,13 @@ int TiPunch_main(int argc,char ** argv)
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
         list<string>  aLS = aICNM->StdGetListOfFile(aPat);
 
+
+
         bool help;
         eTypeMMByP  type;
         StdReadEnum(help,type,aMode,eNbTypeMMByP);
 
+        // cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
         cMMByImNM *PIMsFilter = cMMByImNM::FromExistingDirOrMatch(aDir + "PIMs-" + aMode + ELISE_CAR_DIR,false);
 
         vector <cElNuage3DMaille *> vNuages;
@@ -250,7 +254,7 @@ int TiPunch_main(int argc,char ** argv)
 
                 vMasqImg.push_back(aImBin);
             }
-            else cout << aNameXml << " or " << aNameMasqDepth << " does not exist" << endl;
+            else cout << aNameXml << " or " << aNameMasqDepth << " does not exist for " << *itS << endl;
         }
 
         ELISE_ASSERT(vNuages.size() == vMasqImg.size(), "Missing masq image");
@@ -357,10 +361,13 @@ int TiPunch_main(int argc,char ** argv)
 
         set < int, greater<int> > toRemove;
 
+
         if (aFilterFromBorder)
         {
+// MPD : bloque ds myMesh.clean ?? std::cout << "TTtttttt\n";
             myMesh.clean();
 
+//  MPD :  std::cout << "  aaaaaaa \n";
             //after clean, some isolated triangles can remain, we remove them by keeping only the biggest region
             vector<cTextureBox2d> vTexBox = myMesh.getRegions();
 
@@ -386,7 +393,13 @@ int TiPunch_main(int argc,char ** argv)
             cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << " faces" << endl;
 
             set < int, greater<int> >::const_iterator itr = toRemove.begin();
-            for (; itr != toRemove.end(); ++itr) myMesh.removeTriangle(*itr);
+            int aCpt = toRemove.size();
+            for (; itr != toRemove.end(); ++itr)
+            {
+                  myMesh.removeTriangle(*itr);
+                  aCpt--;
+                  // if (aCpt%100==0) std::cout << "Still " << aCpt << " to do \n";
+            }
         }
         else
         {

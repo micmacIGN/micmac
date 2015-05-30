@@ -86,6 +86,7 @@ void cAppli_Martini::DoAll()
      StdCom("NO_AllHomFloat");
      StdCom("NO_AllImTriplet");
      StdCom("NO_GenTripl"," Show=false");
+     StdCom("NO_AllImOptTrip");
 }
 
 

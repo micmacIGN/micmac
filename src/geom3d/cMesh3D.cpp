@@ -740,7 +740,13 @@ void cMesh::clean()
     cout << "Removing " << toRemove.size() << " / " << nFaces << " faces" <<endl;
 
     std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
-    for (; itr != toRemove.end(); ++itr) removeTriangle(mTriangles[*itr]);
+    int aCpt = toRemove.size();
+    for (; itr != toRemove.end(); ++itr)
+    {
+         removeTriangle(mTriangles[*itr]);
+         aCpt--;
+         if ((aCpt%100)==0) std::cout << "removeTriangle still " << aCpt << " to do \n";
+    }
 
     //cout << "Removing isolated vertex" << endl;
 

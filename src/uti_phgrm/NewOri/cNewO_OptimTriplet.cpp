@@ -345,6 +345,8 @@ void cAppliOptimTriplet::TestOPA(cPairOfTriplet & aPair)
     const std::vector<Pt2df> & aVP3 = *(mRedH123[aI3]);
     ElRotation3D aR2 = aPair.R12Pair();
 
+    if ( aVP1.size() < 4) return;
+
     for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
     {
         std::vector<Pt3dr> aVA;
@@ -528,6 +530,11 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
    cNewO_OneIm * aIm2 = new cNewO_OneIm(*mNM,a3S.mV1);
    cNewO_OneIm * aIm3 = new cNewO_OneIm(*mNM,a3S.mV2);
 
+   std::string aNameSauveXml = mNM->NameOriOptimTriplet(false,aIm1,aIm2,aIm3,false);
+   std::string aNameSauveBin = mNM->NameOriOptimTriplet(true ,aIm1,aIm2,aIm3,false);
+   if (ELISE_fp::exist_file(aNameSauveXml) && ELISE_fp::exist_file(aNameSauveBin))
+      return ;
+
    std::string  aName3R = mNM->NameOriInitTriplet(true,aIm1,aIm2,aIm3);
    cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
 
@@ -667,8 +674,8 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
    aXml.ResiduTriplet() = ResiduGlob();
    aXml.NbTriplet() = mRedH123[0]->size();
 
-   MakeFileXML(aXml,mNM->NameOriOptimTriplet(false,aIm1,aIm2,aIm3,false));
-   MakeFileXML(aXml,mNM->NameOriOptimTriplet( true,aIm1,aIm2,aIm3,false));
+   MakeFileXML(aXml,aNameSauveXml);
+   MakeFileXML(aXml,aNameSauveBin);
 
 
 
@@ -696,6 +703,69 @@ int CPP_OptimTriplet_main(int argc,char ** argv)
 
 int CPP_AllOptimTriplet_main(int argc,char ** argv)
 {
+   ElTimer aChrono;
+   std::string aFullPat,aNameCalib;
+   bool inParal=true;
+
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain() << EAMC(aFullPat,"Pattern"),
+        LArgMain() << EAM(aNameCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
+                   << EAM(inParal,"Paral",true,"Execute in parallel ", eSAM_IsBool)
+    );
+
+   cElemAppliSetFile anEASF(aFullPat);
+   const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
+   std::set<std::string> aSetName(aVIm->begin(),aVIm->end());
+   std::string aDir = anEASF.mDir;
+
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aDir,aNameCalib,"dat");
+   cXml_TopoTriplet aXml3 =  StdGetFromSI(aNM->NameTopoTriplet(true),Xml_TopoTriplet);
+   int aNb3 = aXml3.Triplets().size();
+   std::list<std::string> aLCom;
+
+   int aNb= 0 ;
+   for 
+   (
+      std::list<cXml_OneTriplet>::const_iterator it3=aXml3.Triplets().begin() ;
+      it3 !=aXml3.Triplets().end() ;
+      it3++
+   )
+   {
+         aNb++;
+         if (
+                    DicBoolFind(aSetName,it3->Name1())
+                &&  DicBoolFind(aSetName,it3->Name2())
+                &&  DicBoolFind(aSetName,it3->Name3())
+            )
+         {
+            std::string aCom =   MM3dBinFile("TestLib NO_OneImOptTrip") 
+                            + " " + it3->Name1() 
+                            + " " + it3->Name2() 
+                            + " " + it3->Name3()  ;
+            if (EAMIsInit(&aNameCalib))
+               aCom +=  " OriCalib=" + aNameCalib;
+            if (inParal)
+            {
+                aLCom.push_back(aCom);
+                if ((aNb%100) == 0)
+                {
+                    cEl_GPAO::DoComInParal(aLCom);
+                    aLCom.clear();
+                    std::cout << "Optim triplets Done " << aNb << " out of " << aNb3 << "\n";
+                }
+            }
+            else
+            {
+                std::cout << "COM " << aCom << "\n";
+                System(aCom);
+            }
+         }
+
+   }
+   cEl_GPAO::DoComInParal(aLCom);
+ 
    
    return EXIT_SUCCESS;
 }
