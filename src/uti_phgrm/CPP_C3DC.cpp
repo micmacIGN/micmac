@@ -687,6 +687,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mDebug,"Debug",true,"Debug !!!",eSAM_InternalUse)
    );
 
+   if (mDoOrtho && (!EAMIsInit(&mDoMnt))) mDoMnt = mDoOrtho;
+
    if (MMVisualMode) return;
 
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
