@@ -833,14 +833,17 @@ template<class TypePt> void cTplSelecPt<TypePt>::UpdateDistPtsAdd(const TypePt &
 
 template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel,double aDistArret)
 {
+
     int aNbSomSel = ElMin(mNbPres,aTargetNbSel);
     mVSel.clear();
     bool Cont = true;
 
+
+
     for (int aKSel=0 ; (aKSel<aNbSomSel) && Cont ; aKSel++)
     {
          // Recherche du cdt le plus loin
-         double aMaxDMin = 0;
+         double aMaxDMin = -1;
          cCdtSelect * aBest = 0;
          for (int aKSom = 0 ; aKSom <mNbPres ; aKSom++)
          {

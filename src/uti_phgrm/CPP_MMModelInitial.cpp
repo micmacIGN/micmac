@@ -233,6 +233,11 @@ std::string SuppressCarDirEnd(const std::string & aDirOri)
 
 cMMByImNM *  cMMByImNM::FromExistingDirOrMatch(const std::string & aNameDirOri,bool Svp,double aDS,const std::string & aDir0)
 {
+
+// std::cout << "cMMByImNM::FromExistingDirOrMatch " << aNameDirOri << "\n"; getchar();
+// ./PIMs-QuickMac/
+
+
      if (StrIsPImsDIr(aNameDirOri))
      {
          static cElRegex aRegDS(PrefixMPI + "DS(.*)_(.*)",10);
