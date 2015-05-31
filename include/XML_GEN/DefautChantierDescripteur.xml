@@ -554,6 +554,7 @@
     </KeyedNamesAssociations>
 
 
+<!--
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>
         <Calcs>
@@ -582,6 +583,38 @@
                  <NivSubDir> 2 </NivSubDir>
 	  </Sets>
           <Key> NKS-Set-CplIm2OriRel </Key>
+    </KeyedSetsOfNames>
+-->
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> NewOriTmp#1/$1/OriRel-$2.#2  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+	     <Inverse>
+                <PatternTransform>  NewOriTmp#1/(.*)/OriRel-(.*).#2 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  NKS-Assoc-NewOri-CplIm2OriRel </Key>
+<!--
+	<SubDirAutoMake> Ori2Im#1 </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+-->
+    </KeyedNamesAssociations>
+
+    <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> (.*)/OriRel-(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   NewOriTmp#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-NewOri-CplIm2OriRel </Key>
     </KeyedSetsOfNames>
 
 

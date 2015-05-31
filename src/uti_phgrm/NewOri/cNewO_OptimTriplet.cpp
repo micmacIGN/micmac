@@ -175,6 +175,7 @@ class cAppliOptimTriplet
           Pt2dr            mSzShow;
           int              mNbMaxSel;
           bool             mShow;
+          bool             mQuick;
           double           mPds3;
           double           mBestResidu;
 };
@@ -498,7 +499,8 @@ double cAppliOptimTriplet::ResiduGlob()
 cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
     mDir      ("./"),
     mNbMaxSel (DefNbMaxSel),
-    mShow     (true)
+    mShow     (true),
+    mQuick    (false)
 {
    ElTimer aChrono;
    std::string aN1,aN2,aN3;
@@ -513,6 +515,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
                    << EAM(mSzShow,"SzShow",true,"Sz of window to show the result in window (Def=none)")
                    << EAM(mNbMaxSel,"NbPts",true,"Nb of selected points")
                    << EAM(mShow,"Show",true,"Show Message")
+                   << EAM(mQuick,"Quick",true,"Quick version")
    );
    if (! EAMIsInit(&mShow))
        mShow  = EAMIsInit(&mSzShow);
@@ -522,7 +525,7 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv)  :
 
    cTplTriplet<std::string> a3S(aN1,aN2,aN3);
 
-   mNM = new cNewO_NameManager(mDir,mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mQuick,mDir,mNameOriCalib,"dat");
 
    
 
@@ -706,6 +709,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    ElTimer aChrono;
    std::string aFullPat,aNameCalib;
    bool inParal=true;
+   bool Quick = false;
 
    ElInitArgMain
    (
@@ -713,6 +717,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
         LArgMain() << EAMC(aFullPat,"Pattern"),
         LArgMain() << EAM(aNameCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(inParal,"Paral",true,"Execute in parallel ", eSAM_IsBool)
+                   << EAM(Quick,"Quick",true,"Quick version", eSAM_IsBool)
     );
 
    cElemAppliSetFile anEASF(aFullPat);
@@ -720,7 +725,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    std::set<std::string> aSetName(aVIm->begin(),aVIm->end());
    std::string aDir = anEASF.mDir;
 
-   cNewO_NameManager * aNM =  new cNewO_NameManager(aDir,aNameCalib,"dat");
+   cNewO_NameManager * aNM =  new cNewO_NameManager(Quick,aDir,aNameCalib,"dat");
    cXml_TopoTriplet aXml3 =  StdGetFromSI(aNM->NameTopoTriplet(true),Xml_TopoTriplet);
    int aNb3 = aXml3.Triplets().size();
    std::list<std::string> aLCom;
@@ -746,6 +751,8 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                             + " " + it3->Name3()  ;
             if (EAMIsInit(&aNameCalib))
                aCom +=  " OriCalib=" + aNameCalib;
+
+            aCom += " Quick=" + ToString(Quick);
             if (inParal)
             {
                 aLCom.push_back(aCom);

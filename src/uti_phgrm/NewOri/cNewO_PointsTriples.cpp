@@ -40,41 +40,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 
-/*******************************************************************/
-/*                                                                 */
-/*             cNewO_NameManager : nom des cples                   */
-/*                                                                 */
-/*******************************************************************/
-
-const std::string  cNewO_NameManager::NameDirPtsTriple = "P3Homol/";
-
-std::string  cNewO_NameManager::Dir3P(bool WithMakeDir)
-{
-    std::string aRes = mDir + NameDirPtsTriple ;
-    if (WithMakeDir)  ELISE_fp::MkDir(aRes);
-    return aRes;
-}
-
-std::string  cNewO_NameManager::Dir3POneImage(cNewO_OneIm * anIm,bool WithMakeDir)
-{
-    std::string aRes = Dir3P(WithMakeDir) + anIm->Name() + "/";
-    if (WithMakeDir)  ELISE_fp::MkDir(aRes);
-    return aRes;
-}
-
-
-std::string  cNewO_NameManager::Dir3PDeuxImage(cNewO_OneIm * anI1,cNewO_OneIm * anI2,bool WithMakeDir)
-{
-    std::string aRes = Dir3POneImage(anI1,WithMakeDir) + anI2->Name() + "/";
-    if (WithMakeDir)  ELISE_fp::MkDir(aRes);
-    return aRes;
-}
-
-std::string cNewO_NameManager::NameHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI2)
-{
-   return Dir3PDeuxImage(anI1,anI2,false) + "HomFloatSym" + mOriCal + ".dat";
-}
-
 
 /*******************************************************************/
 /*                                                                 */
@@ -99,47 +64,6 @@ void F()
 
 
 
-std::string cNewO_NameManager::NameAttribTriplet
-            (
-               const std::string & aPrefix,const std::string & aPost,
-               cNewO_OneIm * aI1,cNewO_OneIm * aI2,cNewO_OneIm * aI3,
-               bool WithMakeDir
-            )
-
-{
-    ELISE_ASSERT(aI1->Name()<aI2->Name(),"cNO_P3_NameM::NameAttribTriplet");
-    ELISE_ASSERT(aI2->Name()<aI3->Name(),"cNO_P3_NameM::NameAttribTriplet");
-
-    std::string aDir = Dir3PDeuxImage(aI1,aI2,WithMakeDir);
-
-    return aDir + "Triplet-" + aPrefix + "-" + aI3->Name() + mOriCal + "." + aPost;
-}
-
-std::string cNewO_NameManager::NameHomTriplet(cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
-{
-    return NameAttribTriplet("Hom","dat",aI1,aI2,aI3,WithMakeDir);
-}
-
-std::string cNewO_NameManager::NameOriInitTriplet(bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
-{
-    return NameAttribTriplet("Ori0",(ModeBin ? "dmp" : "xml"),aI1,aI2,aI3,WithMakeDir);
-}
-
-std::string cNewO_NameManager::NameOriOptimTriplet(bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
-{
-    return NameAttribTriplet("OriOpt",(ModeBin ? "dmp" : "xml"),aI1,aI2,aI3,WithMakeDir);
-}
-
-
-
-
-
-
-
-std::string cNewO_NameManager::NameTopoTriplet(bool aModeBin)
-{
-    return Dir3P() + "ListeTriplets" + mOriCal +"." + (aModeBin ? "dmp" : "xml");
-}
 
 typedef std::vector<Pt2df> * tPtrVPt2df;
 typedef cNewO_OneIm *        tPtrNIm;
@@ -216,6 +140,7 @@ class cAppli_GenPTripleOneImage
            // std::map<tPairStr>
            std::vector<std::vector<Pt2df> >  mVP1;
            std::vector<std::vector<Pt2df> >  mVP2;
+           bool                              mQuick;
 };
 
 class cCmpPtrIOnName
@@ -227,19 +152,21 @@ static cCmpPtrIOnName TheCmpPtrIOnName;
 
 
 cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
-    mSeuilNbArc (2)
+    mSeuilNbArc (2),
+    mQuick      (false)
 {
    ElInitArgMain
    (
         argc,argv,
         LArgMain() << EAMC(mFullName,"Name of Image", eSAM_IsExistFile),
         LArgMain() << EAM(mOriCalib,"OriCalib",true,"Calibration directory", eSAM_IsExistDirOri)
+                   << EAM(mQuick,"Quick",true,"Quick version", eSAM_IsBool)
    );
 
    if (MMVisualMode) return;
 
    SplitDirAndFile(mDir,mName,mFullName);
-   mNM  = new cNewO_NameManager(mDir,mOriCalib,"dat");
+   mNM  = new cNewO_NameManager(mQuick,mDir,mOriCalib,"dat");
    mDir3P = mNM->Dir3P(false);
    ELISE_ASSERT(ELISE_fp::IsDirectory(mDir3P),"Dir point triple");
 
@@ -519,11 +446,13 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
    MMD_InitArgcArgv(argc,argv);
 
    std::string aFullName,anOriCalib;
+   bool aQuick;
    ElInitArgMain
    (
         argc,argv,
         LArgMain() << EAMC(aFullName,"Name of Image"),
         LArgMain() << EAM(anOriCalib,"OriCalib",true,"Calibration directory ")
+                   << EAM(aQuick,"Quick",true,"Quick version")
    );
 
    cElemAppliSetFile anEASF(aFullName);
@@ -532,7 +461,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
       MakeXmlXifInfo(aFullName,anEASF.mICNM);
    }
 
-   cNewO_NameManager aNM(anEASF.mDir,anOriCalib,"dat");
+   cNewO_NameManager aNM(aQuick,anEASF.mDir,anOriCalib,"dat");
    aNM.Dir3P(true);
    const cInterfChantierNameManipulateur::tSet * aSetIm = anEASF.SetIm();
 
@@ -542,6 +471,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
         std::string aCom =   MM3dBinFile_quotes( "TestLib ") + aComIm + " "  + anEASF.mDir+(*aSetIm)[aKIm] ;
 
         if (EAMIsInit(&anOriCalib))  aCom = aCom + " OriCalib=" + anOriCalib;
+        aCom += " Quick=" +ToString(aQuick);
         aLCom.push_back(aCom);
 
         //std::cout << aCom << "\n";

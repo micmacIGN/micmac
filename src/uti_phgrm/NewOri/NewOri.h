@@ -291,13 +291,21 @@ class cNewO_NameManager
      public :
            cNewO_NameManager
            (
+               bool  Quick,
                const std::string  & aDir,
                const std::string  & anOri,
                const std::string  & PostTxt
            );
            CamStenope * CamOfName(const std::string & aName);
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
+
+           std::string KeySetCpleOri() const ;
+           std::string KeyAssocCpleOri() const ;
+
+
            std::string NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const;
+           std::string NameXmlOri2Im(cNewO_OneIm* aI1,cNewO_OneIm* aI2,bool Bin) const;
+
            cXml_Ori2Im GetOri2Im(const std::string & aN1,const std::string & aN2);
 
            std::string  NameTimingOri2Im() const;
@@ -310,8 +318,11 @@ class cNewO_NameManager
 
 
            // Dand cNewO_PointsTriples.cpp , a cote de cAppli_GenPTripleOneImage::GenerateHomFloat
-           std::string Dir3P(bool WithMakeDir=false);
-           std::string Dir3POneImage(cNewO_OneIm *,bool WithMakeDir=false);
+           std::string Dir3P(bool WithMakeDir=false) const;
+           std::string Dir3POneImage(cNewO_OneIm *,bool WithMakeDir=false) const;
+           std::string Dir3POneImage(const std::string & aName,bool WithMakeDir=false) const;
+
+
            std::string Dir3PDeuxImage(cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameHomFloat(cNewO_OneIm * ,cNewO_OneIm * );
 
@@ -331,11 +342,13 @@ class cNewO_NameManager
 
            cInterfChantierNameManipulateur *  mICNM;
            std::string                        mDir;
-           std::string                        mOriCal;
+           std::string                        mPrefOriCal;
            std::string                        mPostHom;
            std::map<std::string,CamStenope *> mDicoCam;
-
-           static const std::string  NameDirPtsTriple;
+           static const std::string           PrefixDirTmp;
+           std::string                        mDirTmp;
+           std::string                        mPostfixDir;
+           bool                               mQuick;
 };
 
 

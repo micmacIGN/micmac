@@ -515,7 +515,8 @@ class cNO_AppliOneCple
 
 std::string cNO_AppliOneCple::NameXmlOri2Im(bool Bin) const
 {
-    return mNM->NameXmlOri2Im(mNameIm1,mNameIm2,Bin);
+    // return mNM->NameXmlOri2Im(mNameIm1,mNameIm2,Bin);
+    return mNM->NameXmlOri2Im(mIm1,mIm2,Bin);
 }
 
 
@@ -542,7 +543,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    if (MMVisualMode) return;
 
-   mNM = new cNewO_NameManager(DirOfFile(mNameIm1),mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mQuick,DirOfFile(mNameIm1),mNameOriCalib,"dat");
 
 
    mIm1 = new cNewO_OneIm(*mNM,mNameIm1);
@@ -655,13 +656,16 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
    std::string aDir = anEASF.mDir;
 
-   cNewO_NameManager * aNM =  new cNewO_NameManager(aDir,aNameOriCalib,"dat");
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aQuick,aDir,aNameOriCalib,"dat");
 
    // Force la creation des directories
    for (int aK=0 ; aK<int(aVIm->size())  ; aK++)
    {
        aNM->NameXmlOri2Im((*aVIm)[aK],(*aVIm)[aK],true);
    }
+
+/*
+*/
 
    std::list<std::string> aLCom;
    std::string aKeyH = "NKS-Assoc-CplIm2Hom@@dat";
