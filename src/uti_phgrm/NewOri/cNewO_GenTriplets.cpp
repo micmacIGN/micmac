@@ -233,6 +233,7 @@ class cAppli_GenTriplet
        double                        mTimeLoadHom;
        double                        mTimeMerge;
        double                        mTimeSelec;
+       bool                          mQuick;
 };
 
 /*********************************************************/
@@ -765,7 +766,8 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mSomTest3   (0),
     mShow       (true),
     mTimeMerge  (0.0),
-    mTimeSelec  (0.0)
+    mTimeSelec  (0.0),
+    mQuick      (false)
 {
    ElTimer aChronoLoad;
 
@@ -778,6 +780,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                    << EAM(mNameTest1,"Test1",true,"Name of first test image", eSAM_IsExistFile)
                    << EAM(mNameTest2,"Test2",true,"Name of second test image", eSAM_IsExistFile)
                    << EAM(mNameTest3,"Test3",true,"Name of second test image", eSAM_IsExistFile)
+                   << EAM(mQuick,"Quick",true,"Quick version", eSAM_IsBool)
    );
 
    if (MMVisualMode) return;
@@ -785,7 +788,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
    mEASF.Init(mFullName);
    StdCorrecNameOrient(mNameOriCalib,mEASF.mDir);
 
-   mNM = new cNewO_NameManager(mEASF.mDir,mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mQuick,mEASF.mDir,mNameOriCalib,"dat");
 
    cInterfChantierNameManipulateur::tSet  aVIm = *(mEASF.SetIm());
    std::sort(aVIm.begin(),aVIm.end());
@@ -803,13 +806,19 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
         mMapS[aName] = &aS;
    }
 
-   const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get("NKS-Set-CplIm2OriRel@"+mNameOriCalib+"@dmp");
-   std::string aKeyCple2I = "NKS-Assoc-CplIm2OriRel@"+mNameOriCalib+"@dmp";
+   // const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get("NKS-Set-CplIm2OriRel@"+mNameOriCalib+"@dmp");
+   // std::string aKeyCple2I = "NKS-Assoc-CplIm2OriRel@"+mNameOriCalib+"@dmp";
+
+   const cInterfChantierNameManipulateur::tSet *  aSetCple =  mEASF.mICNM->Get(mNM->KeySetCpleOri());
+   std::string aKeyCple2I = mNM->KeyAssocCpleOri();
+
+
    for (int aKC=0 ; aKC<int(aSetCple->size());  aKC++)
    {
         std::pair<std::string,std::string> aPair = mEASF.mICNM->Assoc2To1(aKeyCple2I,(*aSetCple)[aKC],false);
         std::string aN1 = aPair.first;
         std::string aN2 = aPair.second;
+
         tSomGT * aS1 = mMapS[aN1];
         tSomGT * aS2 = mMapS[aN2];
         if (aS1 && aS2)
