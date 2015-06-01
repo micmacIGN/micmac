@@ -773,13 +773,6 @@ public:
     void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = GpGpuTools::SetValue<T>(), float sample = 1.0f, float factor = 1.0f);
 
 	///
-	/// \brief SetPageLockedMemory
-	/// \param page
-	///  Initilisation de l'option de mémoire paginée
-	///  TODO attention fonction doublée
-    void SetPageLockedMemory(bool page){ _pgLockMem = page; }
-
-	///
 	/// \brief pLData
 	/// \param layer
 	/// \return  le pointeur du calque pointée
