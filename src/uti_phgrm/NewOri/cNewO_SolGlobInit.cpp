@@ -61,6 +61,7 @@ class cNOSolIn_AttrSom
          cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolInit & anAppli);
          cNOSolIn_AttrSom() {}
          std::vector<cNOSolIn_Triplet *> & V3() {return mV3;}
+         cNewO_OneIm * Im() {return mIm;}
      private :
          std::string                      mName;
          cAppli_NewSolGolInit *           mAppli;
@@ -72,11 +73,13 @@ class cNOSolIn_AttrSom
 class cNOSolIn_Triplet
 {
       public :
-          cNOSolIn_Triplet(tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3);
+          cNOSolIn_Triplet(tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit &);
       private :
-          tSomNSI * mS1;
-          tSomNSI * mS2;
-          tSomNSI * mS3;
+          tSomNSI *     mS1;
+          tSomNSI *     mS2;
+          tSomNSI *     mS3;
+          ElRotation3D  mR2on1;
+          ElRotation3D  mR3on1;
 };
 
 
@@ -110,6 +113,7 @@ class cAppli_NewSolGolInit
         cElemAppliSetFile    mEASF;
         cNewO_NameManager  * mNM;
         bool                 mQuick;
+        bool                 mTest;
  
         tGrNSI               mGr;
         std::map<std::string,tSomNSI *> mMapS;
@@ -134,10 +138,12 @@ cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolIni
 /*                                                                         */
 /***************************************************************************/
 
-cNOSolIn_Triplet::cNOSolIn_Triplet(tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3) :
+cNOSolIn_Triplet::cNOSolIn_Triplet(tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit & aTrip) :
     mS1 (aS1),
     mS2 (aS2),
-    mS3 (aS3)
+    mS3 (aS3),
+    mR2on1 (Xml2El(aTrip.Ori2On1())),
+    mR3on1 (Xml2El(aTrip.Ori3On1()))
 {
 }
 
@@ -161,7 +167,8 @@ cNOSolIn_AttrArc::cNOSolIn_AttrArc(cNOSolIn_AttrASym * anASym) :
 /***************************************************************************/
 
 cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
-    mQuick (true)
+    mQuick (true),
+    mTest  (true)
 {
    ElInitArgMain
    (
@@ -169,6 +176,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
         LArgMain() << EAMC(mFullPat,"Pattern"),
         LArgMain() << EAM(mOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mQuick,"Quick",true,"Quick version",eSAM_IsBool)
+                   << EAM(mTest,"Test",true,"Test for tuning",eSAM_IsBool)
    );
 
 
@@ -198,7 +206,20 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
             tSomNSI * aS3 = mMapS[it3->Name3()];
             if (aS1 && aS2 && aS3)
             {
-                 cNOSolIn_Triplet * aTriplet = new cNOSolIn_Triplet(aS1,aS2,aS3);
+
+
+                 std::string  aN3 = mNM->NameOriGenTriplet
+                                    (
+                                        mQuick,
+                                        !mTest,
+                                        aS1->attr().Im(),
+                                        aS2->attr().Im(),
+                                        aS3->attr().Im()
+                                    );
+                 cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aN3,Xml_Ori3ImInit);
+
+
+                 cNOSolIn_Triplet * aTriplet = new cNOSolIn_Triplet(aS1,aS2,aS3,aXml3Ori);
 
                  aS1->attr().V3().push_back(aTriplet);
                  aS2->attr().V3().push_back(aTriplet);
@@ -211,6 +232,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 int CPP_NewSolGolInit_main(int argc, char ** argv)
 {
     cAppli_NewSolGolInit anAppli(argc,argv);
+    return EXIT_SUCCESS;
 }
 
 
