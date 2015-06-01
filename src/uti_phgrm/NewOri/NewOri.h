@@ -330,6 +330,9 @@ class cNewO_NameManager
            std::string NameHomTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameOriInitTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameOriOptimTriplet(bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
+
+           std::string NameOriGenTriplet(bool Quick,bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *);
+
            std::string NameTopoTriplet(bool ModeBin);
 
 

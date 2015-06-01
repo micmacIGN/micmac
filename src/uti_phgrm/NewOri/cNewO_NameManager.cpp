@@ -276,6 +276,13 @@ std::string cNewO_NameManager::NameTopoTriplet(bool aModeBin)
     return Dir3P() + "ListeTriplets" + mPrefOriCal +"." + (aModeBin ? "dmp" : "xml");
 }
 
+std::string cNewO_NameManager::NameOriGenTriplet(bool Quick,bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3)
+{
+   return Quick                                    ?
+          NameOriInitTriplet (ModeBin,aI1,aI2,aI3) :
+          NameOriOptimTriplet(ModeBin,aI1,aI2,aI3) ;
+}
+
 
 
 
