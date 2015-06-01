@@ -594,12 +594,23 @@ public:
 	///
     T&              operator[](uint3 pt);
 
+	///
+	/// \brief operator []
+	/// \param pt1D
+	/// \return  La valeur en position pt1D
+	///
     T&              operator[](uint pt1D)   {   return (CData<T>::pData())[pt1D];       }
 
+	///
+	/// \brief operator []
+	/// \param pt1D
+	/// \return La valeur en position pt1D
+	///
     T&              operator[](int pt1D)    {   return (CData<T>::pData())[(uint)pt1D]; }
 
 protected:
 
+	/// \cond
     virtual bool    abMalloc()  = 0;
 
     virtual bool    abDealloc() = 0;
@@ -608,6 +619,7 @@ protected:
     uint			Sizeof(){return GetSize() * sizeof(T);}
 
     void            bInit(uint2 dim = make_uint2(0), uint l = 0);
+	/// \endcond
 };
 
 TPL_T void CData3D<T>::OutputInfo()
@@ -698,10 +710,12 @@ TPL_T T &CData3D<T>::operator [](uint3 pt)
     return (CData<T>::pData())[pt.z * struct2D::GetSize() + to1D(make_uint2(pt.x,pt.y),GetDimension())];
 }
 
+/// \cond
 TPL_T void CData3D<T>::bInit(uint2 dim, uint l)
 {
     if(size(dim) && l) Malloc(dim,l);
 }
+/// \endcond
 
 /// \class CuHostData3D
 /// \brief Tableau 3D d elements contenue la memoire du Host.
@@ -711,21 +725,37 @@ class CuHostData3D : public CData3D<T>
 {
 public:
 
+	///
+	/// \brief CuHostData3D Constructeur
+	/// \param pgLockMem Option de mémoire paginée
+	/// \param alignMemory Option de mémoire alignée
+	///
 	CuHostData3D(bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){init(pgLockMem,alignMemory);}
 
-    /// \brief constructeur avec initialisation de la dimension de la structure
-    /// \param dimX : Dimension 1D a initialiser
-    /// \param dimY : Dimension 1D a initialiser
-    /// \param l : Taille de la 3eme dimension
+	/// \brief CuHostData3D
+	/// \param dimX Dimension 1D a initialiser
+	/// \param dimY Dimension 1D a initialiser
+	/// \param l Taille de la 3eme dimension
+	/// \param pgLockMem Option de mémoire paginée
+	/// \param alignMemory Option de mémoire alignée
+	///
 	CuHostData3D(uint dimX, uint dimY = 1, uint l = 1, bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){init(pgLockMem,alignMemory,make_uint2(dimX,dimY),l);}
 
-    /// \brief constructeur avec initialisation de la dimension de la structure
-    /// \param dim : Dimension 2D a initialiser
-    /// \param l : Taille de la 3eme dimension
+	///
+	/// \brief CuHostData3D
+	/// \param dim Dimension 2D a initialiser
+	/// \param l
+	/// \param pgLockMem
+	/// \param alignMemory
+	///
 	CuHostData3D(uint2 dim, uint l = 1, bool pgLockMem = NOPAGLOCKMEM,bool alignMemory = NOALIGNM128){ init(pgLockMem,alignMemory,dim,l);}
 
-    /// \brief constructeur avec initialisation de la dimension de la structure
-    /// \param dim : Dimension 3D a initialiser
+
+	/// \brief CuHostData3D
+	/// \param dim
+	/// \param pgLockMem
+	/// \param alignMemory
+	///
 	CuHostData3D(uint3 dim,bool pgLockMem = NOPAGLOCKMEM ,bool alignMemory = NOALIGNM128 ){init(pgLockMem,alignMemory,make_uint2(dim.x,dim.y),dim.z);}
 
     bool Memset(int val);
@@ -742,16 +772,49 @@ public:
     /// \brief Affiche un Z du tableau dans la console
     void OutputValues(uint level = 0, uint plan = XY, Rect rect = NEGARECT, uint offset = 3, T defaut = GpGpuTools::SetValue<T>(), float sample = 1.0f, float factor = 1.0f);
 
+	///
+	/// \brief SetPageLockedMemory
+	/// \param page
+	///  Initilisation de l'option de mémoire paginée
+	///  TODO attention fonction doublée
     void SetPageLockedMemory(bool page){ _pgLockMem = page; }
 
+	///
+	/// \brief pLData
+	/// \param layer
+	/// \return  le pointeur du calque pointée
+	///
     T*   pLData(uint layer){ return CData<T>::pData() + layer*size(CData3D<T>::GetDimension());}
 
+	///
+	/// \brief saveImage Sauvegaerder l'image l sur le disque
+	/// \param nameImage Nom de la sauvergarde
+	/// \param layer Identifiant de calque
+	/// \return
+	///
     bool saveImage(string nameImage,ushort layer = 0);
 
+	///
+	/// \brief pgLockMem
+	/// \return Option de mémoire paginée
+	///
 	bool pgLockMem() const;
+	///
+	/// \brief setPgLockMem
+	/// \param pgLockMem
+	///
 	void setPgLockMem(bool pgLockMem);
 
+	///
+	/// \brief alignMemory
+	/// \return Option de mémoire alignée
+	///
 	bool alignMemory() const;
+
+	///
+	/// \brief setAlignMemory
+	/// \param alignMemory
+	///
 	void setAlignMemory(bool alignMemory);
 
 protected:
@@ -1346,8 +1409,9 @@ private:
 template <class T, class context> class ImageLayeredGpGpu {};
 
 template <class T>
-/// \class ImageLayeredGpGpu
-/// \brief Cette classe est une pile d'image 2D directement liable a une texture GpGpu
+///
+/// \brief The ImageLayeredGpGpu<T, cudaContext> class
+///  Cette classe est une pile d'image 2D directement liable a une texture dans un context CUDA
 class ImageLayeredGpGpu <T, cudaContext> :  public DecoratorImage<cudaContext>
 {
 

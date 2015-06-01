@@ -51,11 +51,22 @@ template<int typecontext>
 class vGpuContext
 {
 public:
+	///
+	/// \brief typeContext
+	/// \return Le type du contexte
+	///
     int typeContext()
     {
         return typecontext;
     }
+	///
+	/// \brief _nbArg
+	/// Nombre d'arguments du kernel
     static unsigned short       _nbArg;
+
+	///
+	/// \brief _kernelArgs
+	/// Vecteur des arguments du kernel
     static std::vector<void*>   _kernelArgs;
 };
 
@@ -103,16 +114,20 @@ public:
 
     CGpGpuContext(){}
 
-    /// \brief créer le context en fonction de < class context > du template
-    ///  si context = cudaContext alors un context cuda est créé
-    ///  si context = openClContext alors un context openCl est créé
-    static void createContext();
+
+
+	/// \brief createContext créer le context en fonction de < class context > du template
+	///  si context = cudaContext alors un context cuda est créé
+	///  si context = openClContext alors un context openCl est créé
+	static void createContext();
 
     /// \brief deleteContext Détruit le context créé
     static void deleteContext(){}
 
-    /// \brief Sortie console de la memoire du device
-    static  void OutputInfoGpuMemory(){}
+	///
+	/// \brief OutputInfoGpuMemory Sortie console de la memoire du device
+	///
+	static  void OutputInfoGpuMemory(){}
 
     /// \brief Sortie console de la version Cuda utilisé dans cette compilation du logiciel
     static  void check_Cuda(){}
@@ -254,14 +269,11 @@ bool CGpGpuContext<openClContext>::errorDump(int tErr,string erName)
     return errorGpGpu(tErr,erName,"openCl");
 }
 #endif
-
+/// \cond
 template<class context>
 void CGpGpuContext<context>::createContext(){}
 
 template <> inline
-///
-/// \brief CGpGpuContext<cudaContext>::OutputInfoGpuMemory renvoie dans la console la mémoire GpGpu utilisée
-///
 void CGpGpuContext<cudaContext>::OutputInfoGpuMemory()
 {
     size_t free;
@@ -269,6 +281,7 @@ void CGpGpuContext<cudaContext>::OutputInfoGpuMemory()
     checkCudaErrors( cudaMemGetInfo(&free, &total));
     cout << "Memoire video       : " << (float)free / pow(2.0f,20) << " / " << (float)total / pow(2.0f,20) << "Mo" << endl;
 }
+
 
 template <> inline
 ///
@@ -345,11 +358,13 @@ void CGpGpuContext<cudaContext>::deleteContext()
 {
     checkCudaErrors( cudaDeviceReset() );
 }
-
+/// \endcond
 #if OPENCL_ENABLED
+
+/// \cond
 template <> inline
 ///
-/// \brief CGpGpuContext<openClContext>::createContext
+/// \brief CGpGpuContext::createContext
 ///  Créer le contexte OpenCL
 void CGpGpuContext<openClContext>::createContext() {
 
@@ -404,6 +419,7 @@ void CGpGpuContext<openClContext>::deleteContext()
         printf("CONTEXT OPENCL RELEASE\n");
 }
 
+/// \endcond
 template <> inline
 ///
 /// \brief CGpGpuContext<openClContext>::contextOpenCL
@@ -491,7 +507,7 @@ void CGpGpuContext<openClContext>::createKernel(string fileName,string kernelNam
 }
 
 template <> inline
-///
+/// \cond
 /// \brief CGpGpuContext<openClContext>::launchKernel
 /// Lance le Kernel OpenCL
 ///
@@ -507,7 +523,7 @@ void CGpGpuContext<openClContext>::launchKernel()
     errorDump(error,"Enqueue");
 
 }
-
+/// \endcond
 template <>
 template <class T> inline
 ///
@@ -545,6 +561,7 @@ void CGpGpuContext<openClContext>::addKernelArgSDK( CData<T> &arg)
 
 }
 
+
 #endif
 
 template<>
@@ -561,14 +578,14 @@ void CGpGpuContext<cudaContext>::addKernelArgSDK( CData<T> &arg)
 }
 
 template <> inline
-///
+/// \cond
 /// \brief CGpGpuContext<cudaContext>::launchKernel
 /// Lance le kernel Cuda
 void CGpGpuContext<cudaContext>::launchKernel()
 {
     kMultTab();
 }
-
+/// \endcond
 template <>
 template <class T> inline
 ///

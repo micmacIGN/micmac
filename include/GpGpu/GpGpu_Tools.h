@@ -1,6 +1,9 @@
 #ifndef GPGPUTOOLS_H
 #define GPGPUTOOLS_H
 
+/** @addtogroup GpGpuDoc */
+/*@{*/
+
 #include "GpGpu/GpGpu_CommonHeader.h"
 
 using namespace std;
@@ -57,6 +60,13 @@ public:
 
 
     template <class T>
+	///
+	/// \brief AddArray Additionner une valeur a toutes composantes d'un tableau
+	/// \param data
+	/// \param dimImage
+	/// \param factor
+	/// \return
+	///
     static T*			AddArray(T* data, uint2 dimImage, float factor);
 
     ///	\brief			Sortie console d'une donnees
@@ -68,10 +78,17 @@ public:
     ///  \param         factor : facteur multiplicatif
     ///  \return        renvoie un pointeur sur le tableau resultant
 
+	/// \cond
 
-    ///	\brief			Obtenir la valeur dans un tableau en fonction de ses coordonnees
-    template <class T>
-    static T			GetArrayValue(T* data, uint3 pt, uint3 dim);
+	template <class T>
+	///
+	/// \brief GetArrayValue Obtenir la valeur dans un tableau en fonction de ses coordonnees
+	/// \param data
+	/// \param pt
+	/// \param dim
+	/// \return
+	///
+	static T			GetArrayValue(T* data, uint3 pt, uint3 dim);
 
 
     template <class T>
@@ -92,17 +109,15 @@ public:
     template <class T>
     static T			SetValue(float defaut = 0.0f){return (T)defaut;}
 
-    ///	\brief			Sortie console formater d'une valeur
-    /// \param          value : valeur a afficher
-    ///  \param         offset : nombre de chiffre apres la virgule
-    ///  \param         defaut : valeur affichee par un caractere speciale
-    ///  \param         factor : facteur multiplicatif
     template <class T>
     static void			OutputValue(T value, uint offset = 3, T defaut = SetValue<T>(0.0f), float factor = 1.0f);
+/// \endcond
 
-
-    ///	\brief			Retour chariot
-    static void			OutputReturn(char * out /*= ""*/);
+	///
+	/// \brief OutputReturn Retour chariot
+	/// \param out
+	///
+	static void			OutputReturn(char * out /*= ""*/);
 
     ///	\brief			multiplie par un facteur
     static float		fValue( float value,float factor );
@@ -125,18 +140,33 @@ public:
     //static void			check_Cuda();
 
 #ifdef NVTOOLS
+	///
+	/// \brief NvtxR_Push Pousser une fonction pour le profiling
+	/// \param message
+	/// \param color
+	///
 	static void  NvtxR_Push(const char* message, int32_t color);
 #else
+	///
+	/// \brief NvtxR_Push
+	/// \param message
+	/// \param color
+	///
 	static void  NvtxR_Push(const char* message, int color){}
 #endif
 
+	///
+	/// \brief Nvtx_RangePop Retirer une fonction du profiling
+	///
 	static void	Nvtx_RangePop();
 
+	/// \cond
     template <class T>
     static T            getMaxArray(T *data, uint2 dim);
 
     template <class T>
 	static T            getMinArray(T *data, uint2 dim);
+	/// \endcond
 };
 
 template <class T>
@@ -147,6 +177,8 @@ void GpGpuTools::Memcpy2Dto1D( T** dataImage2D, T* dataImage1D, uint2 dimDest, u
         memcpy(  dataImage1D + dimDest.x * j , dataImage2D[j],  dimSource.x * sizeof(T));
 }
 
+/// \cond
+// TODO ???
 template <> inline
 uint2    GpGpuTools::SetValue(float defaut){return make_uint2((uint)defaut);}
 
@@ -173,6 +205,13 @@ void GpGpuTools::OutputValue( T value, uint offset, T defaut, float factor)
 }
 
 template <> inline
+///
+/// \brief GpGpuTools::OutputValue Affiche une valeur
+/// \param value
+/// \param offset
+/// \param defaut
+/// \param factor
+///
 void GpGpuTools::OutputValue( float value, uint offset, float defaut, float factor)
 {
 #ifndef DISPLAYOUTPUT
@@ -231,7 +270,15 @@ void GpGpuTools::OutputValue( float value, uint offset, float defaut, float fact
 
 }
 
-template<> inline void GpGpuTools::OutputValue( short2 value, uint offset, short2 defaut, float factor)
+template<> inline
+///
+/// \brief GpGpuTools::OutputValue Affiche une valeur
+/// \param value
+/// \param offset
+/// \param defaut
+/// \param factor
+///
+void GpGpuTools::OutputValue( short2 value, uint offset, short2 defaut, float factor)
 {
     std::cout << "[" << value.x << "," << value.y << "]";
 }
@@ -319,7 +366,7 @@ void GpGpuTools::OutputArray(T* data, uint3 dim, uint plan, uint level, Rect rec
     }
     std::cout << "==================================================================================\n";
 }	
-
+/// \endcond
 
 template <class T>
 static void OutputArray(CuHostData3D<T> &data, uint Z, uint offset, float defaut, float sample, float factor)
@@ -361,6 +408,7 @@ T* GpGpuTools::AddArray( T* data, uint2 dim, float factor )
 
 }
 
+/// \cond
 template <class T>
 T GpGpuTools::getMinArray( T* data, uint2 dim )
 {
@@ -390,6 +438,7 @@ T GpGpuTools::getMaxArray( T* data, uint2 dim )
 
     return max;
 }
+/// \endcond
 
 template <class T>
 bool GpGpuTools::Array1DtoImageFile( T* dataImage,const char* fileName, uint2 dimImage )
@@ -410,6 +459,6 @@ bool GpGpuTools::Array1DtoImageFile(T* dataImage,const char* fileName, uint2 dim
     return r;
 }
 
-
+/*@}*/
 
 #endif /*GPGPUTOOLS_H*/
