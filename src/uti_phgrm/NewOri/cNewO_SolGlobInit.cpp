@@ -208,6 +208,10 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 }
 
 
+int CPP_NewSolGolInit_main(int argc, char ** argv)
+{
+    cAppli_NewSolGolInit anAppli(argc,argv);
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
