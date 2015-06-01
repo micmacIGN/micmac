@@ -72,18 +72,47 @@ public:
     ///
     bool            GetPreComp();
 
+	///
+	/// \brief UseMultiThreading
+	/// \return La valeur de l'option sur l'utilisation du parallélisme CPU
+	///
     bool            UseMultiThreading();
 
+	///
+	/// \brief GetIdBuf
+	/// \return L'identifiant du buffer courrant
+	///
     bool            GetIdBuf();
+	///
+	/// \brief SwitchIdBuffer
+	/// Changer de buffer
     void            SwitchIdBuffer();
+	///
+	/// \brief ResetIdBuffer
+	/// Réinitialise l'identifiant du buffer
     void            ResetIdBuffer();
 
+	///
+	/// \brief freezeCompute
+	/// Stoppe le calcul
     virtual void    freezeCompute() = 0;
 
+
+	///
+	/// \brief SetProgress
+	/// \param expected_count
+	/// Définir la progression
     void            SetProgress(unsigned long expected_count);
 
+	///
+	/// \brief IncProgress Incrémenter la progression
+	/// \param inc
+	///
     void            IncProgress(uint inc = 1);
 
+	///
+	/// \brief simpleJob
+	/// Lance le processus de gpu
     void            simpleJob();
 
 private:

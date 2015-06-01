@@ -223,7 +223,7 @@ void SimpleStream<T>::readFrom(S *sharedBuffer,uint delta)
     for(ushort i = 0; i < _sizeBuffer; i += WARPSIZE)
         *(sharedBuffer + sgn(i)) = *(gLocal+sgn(i));
 }
-
+/// \cond
 
 template<class T>
 template<class S> __device__
@@ -251,7 +251,7 @@ void SimpleStream<ushort2>::readFrom(S *sharedBuffer,uint delta)
 
 
 }
-
+/// \endcond
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::incre()
 {

@@ -2,13 +2,21 @@
 
 #include "GpGpu/GpGpu_Data.h"
 
+/** @addtogroup GpGpuDoc */
+/*@{*/
+
+///
+/// \brief The invParamCorrel struct
+/// Paramètres invariants de la corrélation
 struct invParamCorrel
 {
 
     /// \brief  Nombre d'images
     uint        nbImages;
 
-    ///
+	///
+	/// \brief nbClass
+	/// Nombre de classes équivalentes
     ushort      nbClass;
 
     /// \brief  Valeur entiere incorrect
@@ -32,6 +40,9 @@ struct invParamCorrel
     /// \brief  Epsilon
     float       mAhEpsilon;
 
+	///
+	/// \brief init
+	/// Initialisation des paramètres
     void init()
     {
         nbImages = 0 ;
@@ -72,6 +83,9 @@ struct invParamCorrel
     }
 };
 
+///
+/// \brief The HDParamCorrel struct
+/// Paramètres de corrélation
 struct HDParamCorrel
 {
 
@@ -122,8 +136,14 @@ struct pCorGpu
         invPC.init();
     }
 
+	///
+	/// \brief invPC
+	/// paramètres invariants
     invParamCorrel invPC;
 
+	///
+	/// \brief HdPc
+	/// Paramètre de corrélation
     HDParamCorrel  HdPc;
 
     /// \brief  Le nombre de Z calculer en parallele
@@ -193,4 +213,7 @@ struct pCorGpu
         std::cout << "\n";
         std::cout << "----------------------------------------------------------\n";
     }
+
+
 };
+/*@}*/
