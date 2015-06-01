@@ -44,6 +44,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cOrientationCon.h"
 
 
+void ShowPoly(cElPolygone  aPoly)
+{
+  std::list<std::vector<Pt2dr> > aLC = aPoly.Contours();
+  std::list<bool> aLH = aPoly.IsHole();
+  std::list<bool>::iterator itH = aLH.begin();
+  for( std::list<std::vector<Pt2dr> >::iterator itC=aLC.begin() ; itC!=aLC.end() ; itC++)
+  {
+       std::vector<Pt2dr> aC = *itC;
+       std::cout << "H=" << ((*itH) ? "Hole" : "Fill") << "\n";
+       for (int aK= 0 ; aK<int(aC.size()) ; aK++)
+           std::cout << aC[aK] ;
+       std::cout << "\n";
+       itH++;
+  }
+}
+
 /*****************************************/
 /*                                       */
 /*            cGeomBasculement3D         */
@@ -380,9 +396,10 @@ void cGeomImage::PostInitVirtual(const std::vector<cModGeomComp *> & aVM)
    cElPolygone aPol2;
    aPol2.AddContour(cGeomImage::EmpriseImage(),false);
 
-    cElPolygone aPol12 = aPol1 * aPol2;
+   cElPolygone aPol12 = aPol1 * aPol2;
 
    mContourIm = aPol12.ContSMax();
+
 
 /*
 for (int aK=0; aK<int(mContourIm.size()) ; aK++)
@@ -474,7 +491,15 @@ void cGeomImage::PostInit()
 // std::cout << mBoxTerPx0._p0 << " " << mBoxTerPx0._p1 << "\n";
 // std::cout << " F " << CanCal << " DDDDDDDDDDD "<< aPx0[0] << " " << aPx0[1] << "\n";
 // getchar();
+
     mPolygTerPx0.AddContour(mContourTer,false);
+
+/*
+std::cout << " EEEEEE mPolygTerPx0 \n";
+ShowPoly(mPolygTerPx0);
+getchar();
+*/
+
     InstPostInit();
 
 }
@@ -873,6 +898,7 @@ bool  cGeomImage::IntersectEmprTer
    {
       return false;
    }
+
 
    cElPolygone aPolInter = PolygTerPx0() * aGeo2.PolygTerPx0();
    const std::list<cElPolygone::tContour> & aContInter = aPolInter.Contours();
@@ -1749,9 +1775,10 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
   {
 
       static Video_Win * aW = 0; 
-      // if (aW==0)  aW =  Video_Win::PtrWStd(Pt2di(700,500));
+      // if (aW==0)  aW =  Video_Win::PtrWStd(Pt2di(900,900));
 
-      Pt2dr aSzImR1 = Pt2dr(mOri->Sz());
+      //Pt2dr aSzImR1 = Pt2dr(mOri->Sz());
+      Pt2dr aSzImR1 = Pt2dr(mOri->SzPixel());
       Pt2di aSzR = round_up(aSzImR1/mAnDeZoomM);
       Im2D_Bits<1> aMi(aSzR.x,aSzR.y,0);
       TIm2DBits<1> aTMi(aMi);
@@ -1773,8 +1800,10 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
       {
           for (aP.x=0 ; aP.x <aSzR.x ; aP.x++)
           {
+
+
               Pt2dr aPF =Pt2dr(aP)*mAnDeZoomM;
-              if (mOri->IsInZoneUtile(aPF))
+              if (mOri->IsInZoneUtile(aPF,true)) // TRUE POU PIXEL
               {
                  ElSeg3D aSeg = mOri->F2toRayonR3(aPF);
               // donne le point, en coordonne UV d'intersection rayon incident surf L=0
@@ -1798,6 +1827,7 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
               }
           }
       }
+
       if (aW)
       {
           // std::string aNameIm = mPDV.NameMasqOfResol(mAnDeZoomM);
@@ -1835,6 +1865,8 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
       // en testant plusieur points
       //  On espere que c'est devenu inutile avec le produit scalaire fait dans le 2 sens, mais on maintient quand meme avec une valeur de seuil
       // tres forte sur aMulRay
+
+      if (0)  // JE COMPRENDS PLUS TROP A QUOI CA SERT ET CA CREE DES PBS .....
       {
            Pt2dr  aPExtr0Glob (1e20,1e20);
            Pt2dr  aPExtr1Glob (-1e20,-1e20);
@@ -1850,11 +1882,17 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
            {
                for (int aKY=1 ; aKY<aNbXY ; aKY++)
                {
+
+// bool TEST = (aKX==aNbXY /2) && (aKY==aNbXY /2) && (MPD_MM()) ;
+bool TEST = (aKX==2) && (aKY==2) && (MPD_MM()) ;
+
                    Pt2dr aPds(double(aKX)/aNbXY,double(aKY)/aNbXY);
-                   Pt2dr aCdg = aPds.mcbyc(Pt2dr(mOri->Sz()));
+                   Pt2dr aCdg = aPds.mcbyc(Pt2dr(mOri->SzPixel()));
                    ElSeg3D aSegA = mOri->F2toRayonR3(aCdg);
                    cTplValGesInit<Pt3dr> aPGI3A = mAnamSA->InterDemiDroiteVisible(aSegA,0);
 
+
+if (TEST) std::cout << "CDDDGGGg " << aCdg << "\n";
                    if (aPGI3A.IsInit())
                    {
                         bool AllOk=true;
@@ -1885,6 +1923,7 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
                                AllOk= false;
                             }
                         }
+if (TEST) std::cout << "ALLAOOOK  " << aCdg  << " " << AllOk  << " " << aPExtr0 << " " << aPExtr1 << "\n";
 
                         if (AllOk)
                         {

@@ -1415,6 +1415,7 @@ void cAppliMICMAC::PostInitGeom()
                for (tIterPDV itFI2=mPrisesDeVue.begin(); itFI2!=itFI1; itFI2++)
                {
                    cGeomImage * aGeom2 = & ((*itFI2)->Geom());
+
                    Pt2dr aPTer;
                    double aSurf;
                    if (aGeom1->IntersectEmprTer(*aGeom2,aPTer,&aSurf))
