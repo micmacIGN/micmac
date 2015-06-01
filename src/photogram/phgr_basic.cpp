@@ -1694,17 +1694,18 @@ void ElCamera::SetParamGrid(const NS_ParamChantierPhotogram::cParamForGrid & aPa
    mRayonInvGrid = aParam.RayonInv();
 }
 
-bool ElCamera::IsInZoneUtile(const Pt2dr & aQ) const
+bool ElCamera::IsInZoneUtile(const Pt2dr & aQ,bool Pixel) const
 {
    // Pt2dr aP = mZoneUtilInPixel ? DComplM2C(aQ) : aQ;
     Pt2dr aP = aQ;
-   Pt2di aSz = Sz();
+   Pt2di aSz = Pixel ?  Pt2di(SzPixel()) : Sz() ;
    if ((aP.x<=0)  || (aP.y<=0) || (aP.x>=aSz.x) || (aP.y>=aSz.y))
       return false;
    if (mRayonUtile <= 0) return true;
 
    return euclid(aP-Sz()/2.0) < mRayonUtile;
 }
+
 
 bool ElCamera::HasRayonUtile() const
 {
