@@ -44,7 +44,6 @@ struct const_Param_Cor_MS
     /// taille des vignettes
     ushort  size_aVV[NBSCALE];
 
-
     ///
     /// \brief aVPds
     /// poid des vignettes
@@ -99,12 +98,12 @@ struct const_Param_Cor_MS
     uint    maxDeltaZ;
 
 	///
-	/// \brief aSeuilHC ???
+	/// \brief aSeuilHC option
 	///
     float   aSeuilHC;
 
 	///
-	/// \brief aSeuilBC ???
+	/// \brief aSeuilBC option
 	///
     float   aSeuilBC;
 
@@ -185,11 +184,6 @@ struct const_Param_Cor_MS
 	/// \brief dealloc
 	/// Désallocation de la mémoire
     void dealloc();
-
-    //    __device__ uint3 dim3Cache()
-//    {
-//        return make_uint3(_dimTerrain.x,_dimTerrain.y,aNbScale);
-//    }
 
 };
 

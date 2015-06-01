@@ -37,7 +37,7 @@ SData2Correl::SData2Correl():
     for (int i = 0; i < SIZERING; ++i)
     {
         _hVolumeCost[i].SetName("_hVolumeCost_0",i);
-        _hVolumeCost[i].SetPageLockedMemory(true);
+		_hVolumeCost[i].setPgLockMem(true);
     }
     _hVolumeProj.SetName("_hVolumeProj");
 
