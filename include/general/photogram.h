@@ -1708,7 +1708,7 @@ class ElCamera : public cCapture3D
           static const Pt2di   TheSzUndef ;
           const std::vector<Pt2dr> &  ContourUtile() ;
           bool  HasRayonUtile() const;
-          bool IsInZoneUtile(const Pt2dr & aP) const;
+          bool IsInZoneUtile(const Pt2dr & aP,bool Pixel=false) const;
           bool     GetZoneUtilInPixel() const;
 
           double  RayonUtile() const;
