@@ -1988,10 +1988,15 @@ void ToFOMOriStdRound(double & aVal,const double & aResol)
 //    double aIR = aDec.RVal();
     double aIR = round_ni(aRatio);
     double aDif = ElAbs(aRatio-aIR);
-    // std::cout << "ORI ToFOMStdRound; Dif= " << aDif << "\n";
+    // MPD : 01/06/2015 , Brutal-inélegant-dangdereux mais efficace
+    // L'origine du pb vient d'arrondi avec les "grande" coordonnes (type lambert) et petite
+    // resol (genre < au mm); Bon ce serait + propre de gere des calcul exact ou au moins precis dans les XML
+    // mais sans soute toute une chaine a remonter ...
     if (aDif>= 1e-7)
     {
-       ELISE_ASSERT(aDif < 1e-7,"ORI ToFOMStdRound");
+       std::cout << "Waring supciciousrs round, DIF " << aDif  << " at " << __LINE__ << " of " << __FILE__ << "\n";
+       if (aDif>= 1e-2)
+          ELISE_ASSERT(false,"ORI ToFOMStdRound");
     }
 
     aVal = aResol * aIR;

@@ -552,6 +552,7 @@ void cAppli_MPI2Mnt::DoAll()
 
 
     //============== Generation d'un Ori
+
     cXML_ParamNuage3DMaille aN =   StdGetFromSI(mDirApp+mDirBasc +mNameMerge,XML_ParamNuage3DMaille);
     cFileOriMnt  aFOM = ToFOM(aN,true);
     MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMasq);
