@@ -11,6 +11,7 @@ set(uti_phgrm_NewOri_Src_Files
     ${UTI_PHGRM_NEW_ORI}/cNewO_GenTriplets.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_PointsTriples.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_OptimTriplet.cpp
+    ${UTI_PHGRM_NEW_ORI}/cNewO_SolGlobInit.cpp
 )
 
 

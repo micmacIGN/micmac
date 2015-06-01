@@ -40,25 +40,44 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+const std::string  cNewO_NameManager::PrefixDirTmp = "NewOriTmp";
+
 
 cNewO_NameManager::cNewO_NameManager
 (
+     bool                 Quick,
      const std::string  & aDir,
      const std::string  & anOriCal,
      const std::string  & aPostHom
 ) :
-    mICNM      (cInterfChantierNameManipulateur::BasicAlloc(aDir)),
-    mDir       (aDir),
-    mOriCal    (anOriCal),
-    mPostHom   (aPostHom)
+    mICNM        (cInterfChantierNameManipulateur::BasicAlloc(aDir)),
+    mDir         (aDir),
+    mPrefOriCal  (anOriCal),
+    mPostHom     (aPostHom),
+    mQuick       (Quick)
 {
-   StdCorrecNameOrient(mOriCal,mDir);
+   StdCorrecNameOrient(mPrefOriCal,mDir);
+   mPostfixDir    =   mPrefOriCal + std::string(mQuick ? "Quick" : "Std");
+   mDirTmp      =   std::string(PrefixDirTmp) + mPostfixDir + "/";
 }
 
 const std::string & cNewO_NameManager::Dir() const
 {
    return mDir;
 }
+
+
+std::string cNewO_NameManager::KeySetCpleOri() const
+{
+   return "NKS-Set-NewOri-CplIm2OriRel@"+mPostfixDir +"@dmp";
+}
+
+std::string cNewO_NameManager::KeyAssocCpleOri() const
+{
+   return "NKS-Assoc-NewOri-CplIm2OriRel@"+mPostfixDir +"@dmp";
+}
+
+
 
 
 ElPackHomologue cNewO_NameManager::PackOfName(const std::string & aN1,const std::string & aN2) const
@@ -81,7 +100,7 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
 
    cMetaDataPhoto aMTD = cMetaDataPhoto::CreateExiv2(mDir+aName);
 
-   if (mOriCal =="")
+   if (mPrefOriCal =="")
    {
         std::vector<double> aPAF;
         double aFPix  = aMTD.FocPix();
@@ -122,7 +141,7 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
    }
 
 
-   std::string  aNC = mICNM->StdNameCalib(mOriCal,aName);
+   std::string  aNC = mICNM->StdNameCalib(mPrefOriCal,aName);
 
    if (DicBoolFind(mDicoCam,aNC))
       return mDicoCam[aNC];
@@ -150,24 +169,111 @@ CamStenope * cNewO_NameManager::CamOriOfName(const std::string & aNameIm,const s
      return CamOrientGenFromFile(aNameCam,mICNM);
 */
 }
-const std::string &   cNewO_NameManager::OriCal() const {return mOriCal;}
+const std::string &   cNewO_NameManager::OriCal() const {return mPrefOriCal;}
 
 
+
+std::string cNewO_NameManager::NameXmlOri2Im(cNewO_OneIm* aI1,cNewO_OneIm* aI2,bool Bin) const
+{
+    return NameXmlOri2Im(aI1->Name(),aI2->Name(),Bin);
+}
 
 std::string cNewO_NameManager::NameXmlOri2Im(const std::string & aN1,const std::string & aN2,bool Bin) const
 {
-   std::string aExt = (Bin ? "dmp" : "xml");
-   return mICNM->Assoc1To2("NKS-Assoc-CplIm2OriRel@"+ mOriCal +"@" + aExt,aN1,aN2,true);
+    return Dir3POneImage(aN1,true) + "OriRel-" + aN2 +  (Bin ? ".dmp" : ".xml");
 }
+/*
+*/
+
+
+
+/*
+*/
 
 std::string cNewO_NameManager::NameTimingOri2Im() const
 {
-    return "Ori2Im" + mOriCal + "/Timing2Im.xml";
+    return  Dir3P(true)  + "Timing2Im.xml";
 }
 
 cXml_Ori2Im cNewO_NameManager::GetOri2Im(const std::string & aN1,const std::string & aN2)
 {
    return StdGetFromSI(mDir + NameXmlOri2Im(aN1,aN2,true),Xml_Ori2Im);
+}
+
+
+/************************  TRIPLETS *****************/
+
+std::string  cNewO_NameManager::Dir3P(bool WithMakeDir) const
+{
+    std::string aRes = mDir + mDirTmp ;
+    if (WithMakeDir)  ELISE_fp::MkDir(aRes);
+    return aRes;
+}
+
+std::string  cNewO_NameManager::Dir3POneImage(const std::string & aName,bool WithMakeDir) const
+{
+    std::string aRes = Dir3P(WithMakeDir) + aName + "/";
+    if (WithMakeDir)  ELISE_fp::MkDir(aRes);
+    return aRes;
+}
+
+std::string  cNewO_NameManager::Dir3POneImage(cNewO_OneIm * anIm,bool WithMakeDir) const
+{
+    return Dir3POneImage(anIm->Name(),WithMakeDir);
+}
+
+
+
+
+std::string  cNewO_NameManager::Dir3PDeuxImage(cNewO_OneIm * anI1,cNewO_OneIm * anI2,bool WithMakeDir)
+{
+    std::string aRes = Dir3POneImage(anI1,WithMakeDir) + anI2->Name() + "/";
+    if (WithMakeDir)  ELISE_fp::MkDir(aRes);
+    return aRes;
+}
+
+std::string cNewO_NameManager::NameHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI2)
+{
+   return Dir3PDeuxImage(anI1,anI2,false) + "HomFloatSym"  + ".dat";
+}
+
+
+//========================
+
+std::string cNewO_NameManager::NameAttribTriplet
+            (
+               const std::string & aPrefix,const std::string & aPost,
+               cNewO_OneIm * aI1,cNewO_OneIm * aI2,cNewO_OneIm * aI3,
+               bool WithMakeDir
+            )
+
+{
+    ELISE_ASSERT(aI1->Name()<aI2->Name(),"cNO_P3_NameM::NameAttribTriplet");
+    ELISE_ASSERT(aI2->Name()<aI3->Name(),"cNO_P3_NameM::NameAttribTriplet");
+
+    std::string aDir = Dir3PDeuxImage(aI1,aI2,WithMakeDir);
+
+    return aDir + "Triplet-" + aPrefix + "-" + aI3->Name() + "." + aPost;
+}
+
+std::string cNewO_NameManager::NameHomTriplet(cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
+{
+    return NameAttribTriplet("Hom","dat",aI1,aI2,aI3,WithMakeDir);
+}
+
+std::string cNewO_NameManager::NameOriInitTriplet(bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
+{
+    return NameAttribTriplet("Ori0",(ModeBin ? "dmp" : "xml"),aI1,aI2,aI3,WithMakeDir);
+}
+
+std::string cNewO_NameManager::NameOriOptimTriplet(bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3,bool WithMakeDir)
+{
+    return NameAttribTriplet("OriOpt",(ModeBin ? "dmp" : "xml"),aI1,aI2,aI3,WithMakeDir);
+}
+
+std::string cNewO_NameManager::NameTopoTriplet(bool aModeBin)
+{
+    return Dir3P() + "ListeTriplets" + mPrefOriCal +"." + (aModeBin ? "dmp" : "xml");
 }
 
 

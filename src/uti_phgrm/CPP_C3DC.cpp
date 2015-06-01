@@ -552,6 +552,7 @@ void cAppli_MPI2Mnt::DoAll()
 
 
     //============== Generation d'un Ori
+
     cXML_ParamNuage3DMaille aN =   StdGetFromSI(mDirApp+mDirBasc +mNameMerge,XML_ParamNuage3DMaille);
     cFileOriMnt  aFOM = ToFOM(aN,true);
     MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMasq);
@@ -686,6 +687,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Global Masq for ortho: if used, give full name of masq (e.g. MasqGlob.tif) ",eSAM_IsExistFileRP)
                     << EAM(mDebug,"Debug",true,"Debug !!!",eSAM_InternalUse)
    );
+
+   if (mDoOrtho && (!EAMIsInit(&mDoMnt))) mDoMnt = mDoOrtho;
 
    if (MMVisualMode) return;
 

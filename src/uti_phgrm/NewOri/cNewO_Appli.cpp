@@ -51,6 +51,7 @@ class cAppli_Martini
           std::string mNameOriCalib;
           std::string mPat;
           bool        mExe;
+          bool        mQuick;
           ElTimer     aChrono;
 };
 
@@ -58,6 +59,7 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
 {
     std::string  aFullCom = MM3dBinFile_quotes( "TestLib ") + aCom + " "   + mPat;
     if (EAMIsInit(&mNameOriCalib))  aFullCom = aFullCom + " OriCalib=" + mNameOriCalib;
+    aFullCom += " Quick=" + ToString(mQuick);
 
     aFullCom = aFullCom + aPost;
 
@@ -82,10 +84,14 @@ void cAppli_Martini::Banniere()
 
 void cAppli_Martini::DoAll()
 {
-     StdCom("NO_AllOri2Im"," Quick=false ");
+     StdCom("NO_AllOri2Im");
      StdCom("NO_AllHomFloat");
      StdCom("NO_AllImTriplet");
      StdCom("NO_GenTripl"," Show=false");
+     if (! mQuick)
+     {
+        StdCom("NO_AllImOptTrip");
+     }
 }
 
 
@@ -93,7 +99,8 @@ void cAppli_Martini::DoAll()
 
 
 cAppli_Martini::cAppli_Martini(int argc,char ** argv) :
-    mExe (true)
+    mExe   (true),
+    mQuick (false)
 {
    ElInitArgMain
    (
@@ -101,6 +108,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv) :
         LArgMain() << EAMC(mPat,"Image Pat", eSAM_IsPatFile),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
+                   << EAM(mQuick,"Quick",true,"Quick version")
    );
 }
 
