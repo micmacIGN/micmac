@@ -259,8 +259,9 @@ template <class Type> void cTplImInMem<Type>::LoadFile(Fonc_Num aFonc,const Box2
 		const double aSigmD = mImGlob.InitialDeltaSigma();
 		if ( aSigmD!=0. )
 		{
-			Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
-			SetConvolSepXY( true, aSigmD, *this, aIKerD, mNbShift );
+			//~ Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
+			//~ SetConvolSepXY( true, aSigmD, *this, aIKerD, mNbShift );
+			mAppli.convolve(mIm,aSigmD,mIm);
 		}
 	}
 }

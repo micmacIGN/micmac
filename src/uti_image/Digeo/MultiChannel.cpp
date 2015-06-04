@@ -1,5 +1,6 @@
-#include "StdAfx.h"
 #include "MultiChannel.h"
+
+#include "StdAfx.h"
 
 using namespace std;
 
@@ -449,18 +450,16 @@ bool MultiChannel<U_INT2>::write_pnm( const string &i_filename ) const
 	if ( !f ) return false;
 	write_pnm_header( f, mWidth, mHeight, mChannels.size(), 65535 );
 
-	size_t nbPix = ( (size_t)mWidth )*( (size_t)mHeight );
-
-	if ( !MSBF_PROCESSOR() && mChannels.size()==1 )
+	if ( MSBF_PROCESSOR() && mChannels.size()==1 )
 	{
-		f.write( (const char *)mChannels[0]->data_lin(), nbPix*2 );
+		f.write( (const char *)mChannels[0]->data_lin(), nbPixels()*2 );
 		return true;
 	}
 
 	const size_t nbVal = nbValues();
 	U_INT2 *buffer = new U_INT2[nbVal];
 	toTupleArray(buffer);
-	if ( MSBF_PROCESSOR() ) __array_byte_inv2( buffer, nbVal );
+	if ( !MSBF_PROCESSOR() ) __array_byte_inv2( buffer, nbVal );
 
 	f.write( (const char *)buffer, nbVal*2 );
 	delete [] buffer;
@@ -580,10 +579,16 @@ bool multi_channels_read_header( const string &i_filename, FileFormat_t &o_forma
 		o_height = tiff.sz().x;
 		o_nbChannels = tiff.nb_chan();
 		o_type = tiff.type_el();
+		return true;
+	}
+
+	if ( multi_channels_read_pnm_header( i_filename, o_width, o_height, o_nbChannels, o_type ) )
+	{
+		o_format = FF_Pnm;
+		return true;
 	}
 
 	o_format = FF_Unknown;
-
 	return false;
 }
 

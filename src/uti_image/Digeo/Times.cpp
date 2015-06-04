@@ -1,5 +1,6 @@
-#include "StdAfx.h"
 #include "Times.h"
+
+#include <iomanip>
 
 using namespace std;
 
@@ -32,6 +33,17 @@ void MapTimes::Record::printTimes( const string &i_prefix, ostream &io_ostream )
 	}
 }
 
+bool MapTimes::Record::hasRecord( const std::string &aName ) const
+{
+	list<ItRecord>::const_iterator itChild = mSubRecords.begin();
+	while ( itChild!=mSubRecords.end() )
+	{
+		if ( (**itChild).mName==aName || (**itChild).hasRecord(aName) ) return true;
+		itChild++;
+	}
+	return false;
+}
+
 
 //----------------------------------------------------------------------
 // methods of class MapTimes
@@ -62,18 +74,19 @@ list<MapTimes::ItRecord>::iterator MapTimes::getRecord( const string &i_name, li
 	return i_list.end();
 }
 
-double MapTimes::stop( const char *i_name )
+double MapTimes::stop( const char *aName )
 {
+	const string name(aName);
 	if ( mCurrent==mRecords.begin() )
 	#ifdef __DEBUG_TIMES
 		__elise_debug_error( true, "MapTimes::stop: mCurrent==mRecords.begin() (stopping a Record never started)");
+		__elise_debug_error( mCurrent->hasRecord(name), "MapTimes::stop: record of name [" << name << "] has a descendant with the same name" );
 	#else
-		return;
+		return 0.;
 	#endif
 
 	double t = mCurrent->mTimer.uval();
 
-	const string name(i_name);
 	list<ItRecord>::iterator record = getRecord( name, mCurrent->mFather->mSubRecords );
 
 	if ( record==mCurrent->mFather->mSubRecords.end() )
@@ -89,7 +102,7 @@ double MapTimes::stop( const char *i_name )
 		// there is already a record with this name at this level
 		(**record).mTime += t;
 		ItRecord newCurrent = mCurrent->mFather;
-		mRecords.erase( mCurrent );
+		mRecords.erase(mCurrent);
 		mCurrent = newCurrent;
 	}
 
@@ -98,16 +111,28 @@ double MapTimes::stop( const char *i_name )
 
 void MapTimes::printTimes( const string &i_prefix, ostream &io_ostream ) const
 {
-	list<Record>::const_iterator it = mRecords.begin();
-	if ( it!=mRecords.end() ) (*it++).printTimes( i_prefix, io_ostream );
-	while ( it!=mRecords.end() )
-	{
-		if ( it->mSubRecords.begin()!=it->mSubRecords.end() )
-		{
-			io_ostream << endl;
-			io_ostream << i_prefix << it->mName << endl;
-			it->printTimes( i_prefix+'\t', io_ostream );
-		}
-		it++;
-	}
+	if ( mRecords.begin()!=mRecords.end() ) mRecords.front().printTimes( i_prefix, io_ostream );
 }
+
+double MapTimes::getRecordTime( const std::string &aName ) const
+{
+	list<Record>::const_iterator itRecord = mRecords.begin();
+	while ( itRecord!=mRecords.end() )
+	{
+		if ( itRecord->mName==aName ) return itRecord->mTime;
+		itRecord++;
+	}
+	return 0.;
+}
+
+#ifdef ELISE_unix
+	double getTime(){ return ElTimeOfDay(); }
+#else
+	#include <sys/time.h>
+	double getTime()
+	{
+		struct timeval tv;
+		gettimeofday( &tv, NULL ); 
+		return tv.tv_sec+( tv.tv_usec/1e6 );
+	}
+#endif

@@ -1,13 +1,19 @@
 #ifndef __MULTI_CHANNEL__
 #define __MULTI_CHANNEL__
 
-#define __DEBUG_MULTI_CHANNEL
+#ifdef NO_ELISE
+	#include "TypeTraits.h"
+#else
+	#include "StdAfx.h"
+#endif
+
+#include "debug.h"
 
 typedef enum{
 	FF_Raw,
 	FF_Tiff,
 	FF_Jpeg2000,
-	FF_Pgm,
+	FF_Pnm,
 	FF_Unknown
 } FileFormat_t;
 

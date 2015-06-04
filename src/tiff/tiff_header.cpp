@@ -764,7 +764,9 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
               fp.write_INT4(8);
         }
     }
+
     write_all_tiff_tag(this,fp);
+
     fp.close();
 
 }

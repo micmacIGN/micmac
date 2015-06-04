@@ -17,6 +17,10 @@ set(uti_image_Digeo_Src_Files
     ${UTI_IMAGE_DIGEO_DIR}/Expression.cpp
     ${UTI_IMAGE_DIGEO_DIR}/Times.cpp
     ${UTI_IMAGE_DIGEO_DIR}/MultiChannel.cpp
+    ${UTI_IMAGE_DIGEO_DIR}/GaussianConvolutionKernel1D.cpp
+#    ${UTI_IMAGE_DIGEO_DIR}/Convolution.cpp
+    ${UTI_IMAGE_DIGEO_DIR}/cConvolSpec.cpp
+    ${UTI_IMAGE_DIGEO_DIR}/ConvolutionKernel1D.cpp
 )
 
 

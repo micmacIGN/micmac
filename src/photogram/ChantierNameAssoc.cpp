@@ -397,13 +397,11 @@ bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
         nbRead = fread( buffer, 1, 500, f );
         if ( nbRead>0 )
         {
-            buffer[nbRead-1] = '\0';
+            buffer[nbRead] = '\0';
             o_result.append( string( buffer ) );
         }
     }
-    pclose( f );
-
-    return true;
+    return ( pclose( f )==EXIT_SUCCESS );
 }
 #endif
 
@@ -411,9 +409,9 @@ bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
     #include <mach-o/dyld.h>
 #endif
 
-static std::string ArgvMMDir;
-static std::string CurrentProgramFullName;
-static std::string CurrentProgramSubcommand = "unknown";
+std::string ArgvMMDir;
+std::string CurrentProgramFullName;
+std::string CurrentProgramSubcommand = "unknown";
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
     static bool First=true;

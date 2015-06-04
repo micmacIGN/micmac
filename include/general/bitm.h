@@ -2002,6 +2002,8 @@ class cIm2DInter
 };
 
 
+#define TBASE typename El_CTypeTraits<tData>::tBase
+
 #endif //   _ELISE_GENERAL_BITM_H_
 
 

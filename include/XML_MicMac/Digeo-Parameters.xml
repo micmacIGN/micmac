@@ -46,7 +46,7 @@
 			</TypeNumeriqueOfNiv>
 			-->
 			<TypeNumeriqueOfNiv>
-				<Type> eTN_float </Type>
+				<Type> eTN_u_int2 </Type>
 				<Niv> -2  </Niv>
 			</TypeNumeriqueOfNiv>
 			<MaximDyn > ${MaxDyn} </MaximDyn>
@@ -75,7 +75,6 @@
 					<SampledConvolutionKernels> true </SampledConvolutionKernels>
 					-->
 					<ConvolIncrem> ${Incremental} </ConvolIncrem>
-					<SampledConvolutionKernels> true </SampledConvolutionKernels>
 				</PyramideGaussienne>
 			</TypePyramide>
 		</PyramideImage>

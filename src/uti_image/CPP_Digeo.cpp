@@ -70,7 +70,7 @@ int Digeo_main( int argc, char **argv )
 
 	cAppliDigeo appli;
 	appli.times()->start();
-	appli.loadImage( inputName );
+	appli.loadImage(inputName);
 	appli.times()->stop("pyramid structure");
 
 	cImDigeo &image = appli.getImage();
@@ -108,11 +108,13 @@ int Digeo_main( int argc, char **argv )
 
 	appli.mergeOutputs();
 
-	if ( appli.doGenerateConvolutionCode() )
+	if ( appli.isVerbose() )
 	{
-		appli.generate_convolution_code<U_INT2>();
-		appli.generate_convolution_code<REAL4>();
+		unsigned int nbSlowConvolutions = appli.nbSlowConvolutionsUsed<U_INT2>()+appli.nbSlowConvolutionsUsed<REAL4>();
+		if (nbSlowConvolutions) cout << "--- " << nbSlowConvolutions << " slow convolutions" << endl;
 	}
+	if ( appli.doGenerateConvolutionCode() )
+		appli.generateConvolutionCode();
 	else if ( appli.isVerbose() && ( appli.nbSlowConvolutionsUsed<U_INT2>()!=0 || appli.nbSlowConvolutionsUsed<REAL4>()!=0 ) )
 		cout << "skipping convolution code generation" << endl;
 
@@ -131,7 +133,7 @@ int Digeo_main( int argc, char **argv )
 		cout << "\tsave :" << saveTime << endl;
 	}
 
-	cout << "nb computed gradient = " << appli.nbComputedGradients() << endl;
+	if ( appli.isVerbose() ) cout << "--- " << appli.nbComputedGradients() << " gradient" << (appli.nbComputedGradients()?'s':'\0') << endl;
 
 	return EXIT_SUCCESS;
 }

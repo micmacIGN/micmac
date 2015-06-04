@@ -47,7 +47,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                      */
 /****************************************/
 
-Im1D_REAL8 MakeSom1( Im1D_REAL8 &i_vector );
+Im1D_REAL8 MakeSom( Im1D_REAL8 &i_vector, double i_dstSum )
+{
+	double aSomActuelle;
+	Im1D_REAL8 aRes( i_vector.tx() );
+	ELISE_COPY( i_vector.all_pts(), i_vector.in(), sigma(aSomActuelle) );
+	ELISE_COPY( i_vector.all_pts(), i_vector.in()*( i_dstSum/aSomActuelle ), aRes.out() );
+	return aRes;
+}
+
+Im1D_REAL8 MakeSom1( Im1D_REAL8 &i_vector )
+{
+	return MakeSom(i_vector,1.);
+}
 
 //  K3-C3 = K1-C1 + K2-C2
 
@@ -120,7 +132,8 @@ Im1D_REAL8 Convol(Im1D_REAL8 aI1,Im1D_REAL8 aI2)
 
    // Pour utiliser un filtre sur les bord, clip les intervalle
    // pour ne pas deborder et renvoie la somme partielle
-template <class tBase> tBase ClipForConvol(int aSz,int aKXY,tBase * aData,int & aDeb,int & aFin)
+template <class tBase>
+tBase ClipForConvol( int aSz, int aKXY, const tBase * aData, int & aDeb, int &aFin )
 {
     ElSetMax(aDeb,-aKXY);
     ElSetMin(aFin,aSz-1-aKXY);
@@ -137,7 +150,7 @@ template <class tBase> tBase ClipForConvol(int aSz,int aKXY,tBase * aData,int & 
    // Produit scalaire basique d'un filtre lineaire avec une ligne
    // et une colonne image
 template <class Type,class tBase> 
-inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,const int & aDeb,const int & aFin)
+inline tBase CorrelLine( tBase aSom, const Type *aData1, const tBase *aData2, const int & aDeb, const int &aFin )
 {
 
 
@@ -147,24 +160,17 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
    return aSom;
 }
 
-template <class Type,class tBase> cConvolSpec<Type> * 
-         ToCompKer
-         (
-              Im1D<tBase,tBase>   aKern,
-              int                 aNbShitXY,
-              double              aSigma = 1.0,  // Pour commentaire dans le .h
-              bool                Increm = false  // Pour commentaire dans le .h
-         )
+template <class Type,class tBase>
+cConvolSpec<Type> * ToCompKer( const tBase *aKernel, int aKernelSize, int aNbShift )
 {
-    int aSzKer = aKern.tx();
-    ELISE_ASSERT(aSzKer%2,"Taille paire pour ::SetConvolSepXY");
-    aSzKer /= 2;
+	ELISE_ASSERT( aKernelSize%2, "ToCompKer: kernel size should be odd" );
+	aKernelSize /= 2;
 
-    tBase * aData = aKern.data() + aSzKer;
-    while (aSzKer && (aData[aSzKer]==0) && (aData[-aSzKer]==0))
-          aSzKer--;
+	const tBase * aData = aKernel+aKernelSize;
+	while ( aKernelSize && (aData[aKernelSize]==0) && (aData[-aKernelSize]==0) )
+		aKernelSize--;
 
-    return   cConvolSpec<Type>::GetOrCreate(aData,-aSzKer,aSzKer,aNbShitXY,false) ;
+	return cConvolSpec<Type>::GetOrCreate( aData, -aKernelSize, aKernelSize, aNbShift, false ) ;
 }
 
 
@@ -174,6 +180,9 @@ template <class Type,class tBase> cConvolSpec<Type> *
 /*                                      */
 /****************************************/
 
+inline REAL InitFromDiv(REAL,REAL *) { return 0; }
+inline INT  InitFromDiv(INT aDiv,INT *) { return aDiv/2; }
+
 // anX must not be lesser than 0
 template <class Type> 
 void  cTplImInMem<Type>::SetConvolBordX
@@ -181,7 +190,7 @@ void  cTplImInMem<Type>::SetConvolBordX
           Im2D<Type,tBase> aImOut,
           Im2D<Type,tBase> aImIn,
           int anX,
-          tBase * aDFilter,int aDebX,int aFinX
+          const tBase * aDFilter,int aDebX,int aFinX
       )
 {
     tBase aDiv = ClipForConvol(aImOut.tx(),anX,aDFilter,aDebX,aFinX);
@@ -321,131 +330,7 @@ void cTplImInMem<Type>::SelfSetConvolSepY
     }
 }
 
-template <class tData, class tBase> 
-void  SetConvolBordX( Im2D<tData,tBase> aImOut, Im2D<tData,tBase> aImIn, int anX, tBase * aDFilter, int aDebX,int aFinX )
-{
-    tBase aDiv = ClipForConvol(aImOut.tx(),anX,aDFilter,aDebX,aFinX);
-    tData ** aDOut = aImOut.data();
-    tData ** aDIn = aImIn.data();
-
-    const tBase aSom = InitFromDiv(aDiv,(tBase*)0);
-
-    int aSzY = aImOut.ty();
-    for (int anY=0 ; anY<aSzY ; anY++)
-        aDOut[anY][anX] = CorrelLine(aSom,aDIn[anY]+anX,aDFilter,aDebX,aFinX) / aDiv;
-}
-
-template <class tData, class tBase> 
-void SetConvolSepX( const Im2D<tData,tBase> &i_src, int aNbShitY, cConvolSpec<tData> *aCS, Im2D<tData,tBase> &o_dst )
-{
-    int aSzX = i_src.tx();
-    int aSzY = i_src.ty();
-    int aX0 = std::min( -aCS->Deb(), aSzX );
-
-    int anX;
-    for (anX=0; anX <aX0 ; anX++)
-        SetConvolBordX(o_dst,i_src,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
-
-    int aX1 = std::max( aSzX-aCS->Fin(), anX );
-    for (anX =aX1; anX <aSzX ; anX++) // max car aX1 peut être < aX0 voir negatif et faire planter
-        SetConvolBordX(o_dst,i_src,anX,aCS->DataCoeff(),aCS->Deb(),aCS->Fin());
-   
-    // const tBase aSom = InitFromDiv(ShiftG(tBase(1),aNbShitX),(tBase*)0);
-    for (int anY=0 ; anY<aSzY ; anY++)
-    {
-        tData * aDOut = o_dst.data()[anY];
-        tData * aDIn =  i_src.data()[anY];
-        aCS->Convol(aDOut,aDIn,aX0,aX1);
-    }
-}
-
-template <class tData, class tBase> 
-void SelfSetConvolSepY( Im2D<tData,tBase> &i_image, int aNbShitY, cConvolSpec<tData> *aCS )
-{
-    Im2D<tData,tBase> aBufIn(i_image.ty(),PackTranspo);
-    Im2D<tData,tBase> aBufOut(i_image.ty(),PackTranspo);
-
-    tData ** aData =  i_image.data();
-
-	#ifdef __DEBUG_DIGEO
-		for ( int y=0; y<i_image.ty(); y++ )
-		{
-			if ( aData[y]!=i_image.data_lin()+y*i_image.tx() )
-			{
-				cerr << "Im2D: check line failed for line " << y << endl;
-				exit(-1);
-			}
-		}
-		if ( i_image.linearDataAllocatedSize()!=(i_image.tx()+PackTranspo)*i_image.ty() )
-		{
-			cerr << "Im2D: linearDataAllocatedSize = " << i_image.linearDataAllocatedSize() << " != (i_image.tx()+PackTranspo)*i_image.ty() = " << (i_image.tx()+PackTranspo)*i_image.ty() << endl;
-			exit(-1);
-		}
-	#endif
-
-	// __DEL
-	for ( int i=0; i<PackTranspo; i++ )
-		for ( int y=0; y<i_image.ty(); y++ )
-			aData[y][i_image.tx()+i] = 0;
-
-    for (int anX = 0; anX<i_image.tx() ; anX+=PackTranspo)
-    {
-         // Il n'y a pas de debordement car les images  sont predementionnee 
-         // d'un Rab de PackTranspo;  voir ResizeBasic
-
-         tData * aL0 = aBufIn.data()[0];
-         tData * aL1 = aBufIn.data()[1];
-         tData * aL2 = aBufIn.data()[2];
-         tData * aL3 = aBufIn.data()[3];
-         for (int aY=0 ; aY<i_image.ty() ; aY++)
-         {
-             tData * aL = aData[aY]+anX;
-             *(aL0)++ = *(aL++);
-             *(aL1)++ = *(aL++);
-             *(aL2)++ = *(aL++);
-             *(aL3)++ = *(aL++);
-         }
-
-         SetConvolSepX(aBufIn,aNbShitY,aCS,aBufOut);
-
-         aL0 = aBufOut.data()[0];
-         aL1 = aBufOut.data()[1];
-         aL2 = aBufOut.data()[2];
-         aL3 = aBufOut.data()[3];
-
-         for (int aY=0 ; aY<i_image.ty() ; aY++)
-         {
-             tData * aL = aData[aY]+anX;
-             *(aL)++ = *(aL0++);
-             *(aL)++ = *(aL1++);
-             *(aL)++ = *(aL2++);
-             *(aL)++ = *(aL3++);
-         }
-    }
-}
-
-template <class tData, class tBase> 
-void safe_SelfSetConvolSepY( Im2D<tData,tBase> &i_image, int aNbShitY, cConvolSpec<tData> *aCS, Im2D<tData,tBase> &io_temporary1, Im2D<tData,tBase> &io_temporary2 )
-{
-	#ifdef __DEBUG_DIGEO
-		Pt2di tranposeSize( i_image.ty(), i_image.tx() );
-		if ( io_temporary1.sz()!=tranposeSize || io_temporary2.sz()!=tranposeSize )
-			elise_debug_warning( "safe_SelfSetConvolSepY: temporary images do not have correct size: " << io_temporary1.sz() << " or " << io_temporary2.sz() << " != " << i_image.sz() );
-	#endif
-	io_temporary1.Resize( i_image.ty(), i_image.tx() );
-	io_temporary2.Resize( i_image.ty(), i_image.tx() );
-
-	for ( int y=0; y<i_image.ty(); y++ )
-		for ( int x=0; x<i_image.tx(); x++ )
-			io_temporary1.data()[x][y] = i_image.data()[y][x];
-
-	SetConvolSepX( io_temporary1, aNbShitY, aCS, io_temporary2 );
-
-	for ( int y=0; y<i_image.ty(); y++ )
-		for ( int x=0; x<i_image.tx(); x++ )
-			i_image.data()[y][x] = io_temporary2.data()[x][y];
-}
-
+/*
 template <class Type> 
 void cTplImInMem<Type>::SetConvolSepXY
      (
@@ -456,19 +341,20 @@ void cTplImInMem<Type>::SetConvolSepXY
           int  aNbShitXY
      )
 {
-   ELISE_ASSERT(mSz==aImIn.mSz,"Size im diff in ::SetConvolSepXY");
+	ELISE_ASSERT(mSz==aImIn.mSz,"Size im diff in ::SetConvolSepXY");
 
 	mAppli.times()->start();
 
-   cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>( aKerXY, aNbShitXY, aSigma, Increm );
+	cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>( aKerXY, aNbShitXY, aSigma, Increm );
 
-    if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
+	if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
 
-    SetConvolSepX(aImIn,aNbShitXY,aCS);
-    SelfSetConvolSepY(aNbShitXY,aCS);
+	SetConvolSepX(aImIn,aNbShitXY,aCS);
+	SelfSetConvolSepY(aNbShitXY,aCS);
 
-    mAppli.times()->stop("gaussian convolution");
+	mAppli.times()->stop("gaussian convolution");
 }
+*/
 
 /*
 void TestConvol()
@@ -480,13 +366,12 @@ void TestConvol()
 
    // ELISE_COPY(aI1.all_pts(),FX==aT1,aI1.out());
    // ELISE_COPY(aI2.all_pts(),FX==aT2,aI2.out());
-  
+
    Im1D_REAL8  aI3 = Convol(aI1,aI2);
 
    Im1D_REAL8 aI2B = DeConvol(2,aI1,aI3);
 
    Im1D_REAL8 aI4 = Convol(aI1,aI2B);
-
 
    for (int aK=0 ; aK<ElMax(aI3.tx(),aI4.tx()) ; aK++)
    {
@@ -501,17 +386,6 @@ void TestConvol()
    }
 }
 */
-
-#include "GaussianConvolutionKernel.h"
-
-template <class Type> inline Im1D<typename El_CTypeTraits<Type>::tBase,typename El_CTypeTraits<Type>::tBase> cTplImInMem<Type>::ImGaussianKernel(double aSigma)
-{
-	if ( mAppli.useSampledConvolutionKernels() )
-		return SampledGaussianKernel<typename El_CTypeTraits<Type>::tBase>( aSigma, mAppli.gaussianNbShift() );
-	else
-		return DigeoGaussianKernel<typename El_CTypeTraits<Type>::tBase>( aSigma, mAppli.gaussianNbShift(), mAppli.gaussianEpsilon(), mAppli.gaussianSurEch() );
-}
-
 
 template <class Type> 
 void cTplImInMem<Type>::ReduceGaussienne()
@@ -538,16 +412,20 @@ void cTplImInMem<Type>::ReduceGaussienne()
 
     //==============================================
 
-    if ( !mAppli.doIncrementalConvolution() )
-    {
-       Im1D<tBase,tBase> aIKerTotD =  ImGaussianKernel(mResolOctaveBase);
-       SetConvolSepXY(false,mResolOctaveBase,*(mTOct.TypedFirstImage()),aIKerTotD,mNbShift);
-       return;
-    }
+	double sigma;
+	tIm *src;
+	if ( !mAppli.doIncrementalConvolution() )
+	{
+		sigma = sqrt(ElSquare(mResolOctaveBase)-ElSquare(mTMere->mResolOctaveBase));
+		src = &mTMere->mIm;
+	}
+	else
+	{
+		sigma = mResolOctaveBase;
+		src = &mTOct.TypedFirstImage()->mIm;
+	}
 
-    double aSigmD =  sqrt(ElSquare(mResolOctaveBase) - ElSquare(mTMere->mResolOctaveBase));
-    Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
-    SetConvolSepXY(true,aSigmD,*mTMere,aIKerD,mNbShift);
+	mAppli.convolve( *src, sigma, mIm );
 
 /*
     Im1D_REAL8        aRealKerD =  ToRealKernel(aIKerD);
