@@ -622,9 +622,17 @@ class cMemPartMICMAC
 
         cTplValGesInit< double > & BSurHGlob();
         const cTplValGesInit< double > & BSurHGlob()const ;
+
+        cTplValGesInit< int > & DeZoomLast();
+        const cTplValGesInit< int > & DeZoomLast()const ;
+
+        cTplValGesInit< int > & NumLastEtape();
+        const cTplValGesInit< int > & NumLastEtape()const ;
     private:
         cTplValGesInit< int > mNbMaxImageOn1Point;
         cTplValGesInit< double > mBSurHGlob;
+        cTplValGesInit< int > mDeZoomLast;
+        cTplValGesInit< int > mNumLastEtape;
 };
 cElXMLTree * ToXMLTree(const cMemPartMICMAC &);
 
@@ -1500,6 +1508,9 @@ class cImages
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
 
+        cTplValGesInit< std::string > & ImageSecByCAWSI();
+        const cTplValGesInit< std::string > & ImageSecByCAWSI()const ;
+
         std::string & Key();
         const std::string & Key()const ;
 
@@ -1540,6 +1551,7 @@ class cImages
         cTplValGesInit< std::string > mIm2;
         cTplValGesInit< cFCND_CalcIm2fromIm1 > mFCND_CalcIm2fromIm1;
         std::list< std::string > mImPat;
+        cTplValGesInit< std::string > mImageSecByCAWSI;
         cTplValGesInit< cImSecCalcApero > mImSecCalcApero;
         cTplValGesInit< cParamGenereStrVois > mRelGlobSelecteur;
         cTplValGesInit< cNameFilter > mFilter;
@@ -1861,6 +1873,9 @@ class cSection_PriseDeVue
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
 
+        cTplValGesInit< std::string > & ImageSecByCAWSI();
+        const cTplValGesInit< std::string > & ImageSecByCAWSI()const ;
+
         std::string & Key();
         const std::string & Key()const ;
 
@@ -2111,6 +2126,9 @@ class cCorrelMultiScale
         friend void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & UseGpGpu();
+        const cTplValGesInit< bool > & UseGpGpu()const ;
+
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;
 
@@ -2123,6 +2141,7 @@ class cCorrelMultiScale
         std::vector< cOneParamCMS > & OneParamCMS();
         const std::vector< cOneParamCMS > & OneParamCMS()const ;
     private:
+        cTplValGesInit< bool > mUseGpGpu;
         cTplValGesInit< bool > mModeDense;
         cTplValGesInit< bool > mUseWAdapt;
         cTplValGesInit< bool > mModeMax;
@@ -2733,6 +2752,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        cTplValGesInit< bool > & UseGpGpu();
+        const cTplValGesInit< bool > & UseGpGpu()const ;
 
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;
@@ -4204,6 +4226,9 @@ class cEtapeMEC
 
         cTplValGesInit< int > & SzBlocAH();
         const cTplValGesInit< int > & SzBlocAH()const ;
+
+        cTplValGesInit< bool > & UseGpGpu();
+        const cTplValGesInit< bool > & UseGpGpu()const ;
 
         cTplValGesInit< bool > & ModeDense();
         const cTplValGesInit< bool > & ModeDense()const ;
@@ -6696,6 +6721,9 @@ class cParamMICMAC
 
         std::list< std::string > & ImPat();
         const std::list< std::string > & ImPat()const ;
+
+        cTplValGesInit< std::string > & ImageSecByCAWSI();
+        const cTplValGesInit< std::string > & ImageSecByCAWSI()const ;
 
         std::string & Key();
         const std::string & Key()const ;

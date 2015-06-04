@@ -185,6 +185,7 @@ cFiltrageDepthByProgDyn::cFiltrageDepthByProgDyn(Im2D_REAL4 aImDepth,Im2D_U_INT1
     mNbDir            (aParam.NbDir().Val()),
     mResult           (mSz.x,mSz.y)
 {
+// std::cout << "PARM COST REG " << mParamCostRegul << "\n";
    Im2D_INT2 aImMin(mSz.x,mSz.y,0);
    Im2D_INT2 aImMax(mSz.x,mSz.y);  
    ELISE_COPY(aImMax.all_pts(),1+(mImLabel.in()!=0),aImMax.out());

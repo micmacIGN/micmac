@@ -54,6 +54,8 @@ int tiff_info_main(int argc,char ** argv)
         LArgMain()  << EAM(MaxMin,"MaxMin",true)
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
 /*
        if (StdPostfix(Name)=="tif")
        {

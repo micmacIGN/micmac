@@ -2,7 +2,7 @@
 
 int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 {
-    MMD_InitArgcArgv(argc,argv);
+    //MMD_InitArgcArgv(argc,argv); //already done in SaisieQT_main.cpp ?
 
     Pt2di SzWP = Pt2di(900,700);
     std::string aFullName ="";
@@ -34,14 +34,16 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
 
         loadTranslation(app);
 
-        SaisieQtWindow w;
+        SaisieQtWindow win;
+
+        cQT_Interface::connectDeviceElise(win);
 
 #ifdef _DEBUG
         for (int aK=0; aK < cmdline_args.size();++aK)
             cout << "arguments : " << cmdline_args[aK].toStdString().c_str() << endl;
 #endif
 
-        if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+        if (cmdline_args.back().contains("help"))
         {
             QString help =  app.applicationName() +" [filename] [option=]\n\n"
                     "* [filename] string\t: open file (image or ply or camera xml)\n\n"
@@ -53,8 +55,8 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
                     "* [Name=Attr] string\t: string to add to postfix\n\n"
                     "Example: mm3d " + app.applicationName() + " IMG.tif SzW=[1200,800] Name=PLAN Gama=1.5\n\n"
                     "NB: \n"
-                    "1: "+ app.applicationName() + " can be run without any argument\n"
-                    "2: visual interface for argument edition available with command: mm3d v" + app.applicationName() + "\n\n";
+                    + app.applicationName() + " can be run without any argument\n"
+                    "Visual interface for argument edition available with command: mm3d v" + app.applicationName() + "\n\n";
 
             return helpMessage(app, help);
         }
@@ -66,30 +68,38 @@ int saisieMasqQT_main(QApplication &app, int argc, char *argv[])
             saisieMasq_ElInitArgMain(argc, argv, aFullName, aPost, aNameMasq, aAttr, SzWP, aGama);
 
             if (EAMIsInit(&aPost))
-                w.setPostFix(QString(aPost.c_str()));
+                win.setPostFix(QString(aPost.c_str()));
             else
-                w.setPostFix("_Masq");
+                win.setPostFix("_Masq");
 
             if (EAMIsInit(&aAttr))
-                w.setPostFix(w.getPostFix() + QString(aAttr.c_str()));
+                win.setPostFix(win.getPostFix() + QString(aAttr.c_str()));
 
             if (EAMIsInit(&aGama))
-                w.setGamma(aGama);
+                win.setGamma(aGama);
 
             if(EAMIsInit(&aNameMasq))
-                w.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
+                win.getEngine()->setFilenameOut(QString(aNameMasq.c_str()));
 
-            w.resize(SzWP.x,SzWP.y);
+            win.resize(SzWP.x,SzWP.y);
         }
 
-        w.show();
+        win.show();
 
         if (aFullName != "")
         {
             QStringList filenames;
-            filenames.push_back(QString(aFullName.c_str()));
 
-            w.addFiles(filenames,true);
+            if (aFullName == "-l")
+            {
+                QSettings settings;
+                QStringList files = settings.value("recentFileList").toStringList();
+
+                filenames.push_back(files.first());
+            }
+            else filenames.push_back(QString(aFullName.c_str()));
+
+            win.addFiles(filenames,true);
         }
 
         return app.exec();

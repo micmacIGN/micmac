@@ -134,6 +134,8 @@ int TestCam_main(int argc,char ** argv)
                     << EAM(TDINV,"TDINV",true,"Test Dist Inv",eSAM_NoInit)
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     SplitDirAndFile(aNameDir,aNameCam,aFullName);
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);

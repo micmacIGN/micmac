@@ -140,6 +140,7 @@ cPoseCam::cPoseCam
     // mObsCentre   (0,0,0),
     mHasObsOnCentre (false),
     mHasObsOnVitesse (false),
+    mLastItereHasUsedObsOnCentre (false),
     mNumTmp       (-12345678),
     mNbPtsMulNN   (-1),
     mNumBande     (0),
@@ -448,6 +449,7 @@ void cPoseCam::SetRattach(const std::string & aNameRat)
 
 void    cPoseCam::InitAvantCompens()
 {
+    mLastItereHasUsedObsOnCentre = false;
     AssertHasNotCamNonOrtho();
     if (PMoyIsInit())
     {
@@ -777,6 +779,11 @@ bool cPoseCam::HasObsOnCentre() const
    return mHasObsOnCentre;
 }
 
+bool  cPoseCam::LastItereHasUsedObsOnCentre() const
+{
+    return mLastItereHasUsedObsOnCentre;
+}
+
 void cPoseCam::AssertHasObsCentre() const
 {
    if (!mHasObsOnCentre)
@@ -846,6 +853,15 @@ bool cPoseCam::IsId(const ElAffin2D & anAff) const
 /*
 */
 
+
+class cTransfo3DIdent : public cTransfo3D
+{
+     public :
+          std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> & aSrc) const {return aSrc;}
+
+};
+
+
 extern bool DebugOFPA;
 extern int aCPTOkOFA ;
 extern int aCPTNotOkOFA ;
@@ -883,6 +899,7 @@ else
           mHasObsOnCentre = (mObsCentre.mIncOnC.x>0) && (mObsCentre.mIncOnC.y>0) && (mObsCentre.mIncOnC.z>0);
           mHasObsOnVitesse = mHasObsOnCentre && mObsCentre.mVitFiable && mObsCentre.mVitesse.IsInit();
 
+//   std::cout << "NameBDDCCC " << mName << " HasC " << mHasObsOnCentre << "\n";
       }
    }
   
@@ -917,6 +934,7 @@ else
    }
 
     bool isAPC =  mAppli.Param().IsAperiCloud().Val();
+    bool isForISec =  mAppli.Param().IsChoixImSec().Val();
     bool initFromBD = false;
 
     if (mPCI->PosId().IsInit())
@@ -1256,7 +1274,10 @@ else
                    }
 	           bool L2 = aPack.size() > mAppli.Param().SeuilL1EstimMatrEss().Val();
                    double aDGen;
-// std::cout << "TEST MEPS STD " << mName << "\n";
+/*
+std::cout << "TEST MEPS STD " << mName  << " L2 " << L2  
+          << " " <<  mAppli.Param().SeuilL1EstimMatrEss().Val()<< "\n";
+*/
 	           aOrRel0 = aLI.TestSolPlane().Val()               ? 
                               aPack.MepRelGenSsOpt(aLBase,L2,aDGen) :
                              aPack.MepRelPhysStd(aLBase,L2)         ;
@@ -1347,6 +1368,30 @@ else
 
 //GUIMBAL
 
+    if (isForISec && (! aRot.IsTrueRot()))
+    {
+        CamStenope* aCS =    (mCalib->PIF().DupCurPIF());
+        aCS->UnNormalize();
+
+        aCS->SetProfondeur(aProfPose);
+        aCS->SetAltiSol(anAltiSol);
+        aCS->SetOrientation(aRot.inv());
+        aCS->SetIdCam(mName);
+        std::vector<ElCamera *> aVCam;
+        aVCam.push_back(aCS);
+        cTransfo3DIdent aTransfo;
+        ElCamera::ChangeSys(aVCam,aTransfo,true,true);
+
+        ElRotation3D aRMod = aCS->Orient();
+        // mCF->SetCurRot(aRMod.inv());
+        aRot = aRMod.inv();
+
+// ShowMatr("Entree",aRot.Mat());
+// ShowMatr("Sortie",aRMod.inv().Mat());
+// getchar();
+    }
+
+
     double aLMG = mAppli.Param().LimModeGL().Val();
     if ((aLMG>0) && (GuimbalAnalyse(aRot,false)<aLMG))
     {
@@ -1355,6 +1400,9 @@ else
     }
 
     mCF->SetCurRot(aRot);
+
+
+
 
     if (isAPC)
     {
@@ -1483,6 +1531,16 @@ void cPoseCam::SetContrainte(const cContraintesPoses & aCP)
 	   );
            mRF->SetTolCentre(aCP.TolCoord().Val());
 	   mRF->SetModeRot(cNameSpaceEqF::eRotCOptFige);
+      break;
+
+      case eAnglesFiges :
+           ELISE_ASSERT
+	   (
+	       (aCP.TolCoord().Val()<=0),
+	       "Tolerance angulaire avec eCentreFige"
+	   );
+           mRF->SetTolAng(aCP.TolAng().Val());
+	   mRF->SetModeRot(cNameSpaceEqF::eRotAngleFige);
       break;
 
 
@@ -1783,6 +1841,7 @@ Pt3dr  cPoseCam::AddObsCentre
            cStatObs & aSO
       )
 {
+   mLastItereHasUsedObsOnCentre = true;
    ELISE_ASSERT(DoAddObsCentre(anObs),"cPoseCam::AddObsCentre");
 
    if (mEqOffsetGPS)

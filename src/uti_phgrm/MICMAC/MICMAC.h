@@ -898,7 +898,14 @@ class cGeomDiscFPx : public  cGeomDiscR2
          void RemplitOri(cFileOriMnt & aFOM,bool DoZAbs) const;
 
          Pt2di NbPixel() const;
-         double OrigineAlti() const ;
+
+// Devrait etre identiques , mais a cause de surface analytique semi triviale, pour elle : en calcul vaut 0 car le Z Moyen
+// est pris dans la surface , mais a l'export il faut le remettre
+         double OrigineAlti4Compute() const ;
+         double OrigineAlti4Export() const ;
+
+
+
          double ResolutionAlti() const ;
 
          void SetOriResolPlani(Pt2dr & aOriP,Pt2dr & aResolP) const;
@@ -2998,8 +3005,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
         /// \param interZ
         /// \param idBuf
         ///
-        void Tabul_Projection(int Z,  uint &interZ, ushort idBuf);
-        void setVolumeCost(int interZ0, int interZ1, ushort idBuf);
+        void Tabul_Projection(short Z,  ushort& interZ, ushort idBuf);
+        void setVolumeCost(short interZ0, short interZ1, ushort idBuf);
         void Tabul_Images(int Z, uint &interZ, ushort idBuf);
 
 #endif
@@ -3191,6 +3198,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
         void MakeResultOfEtape(cEtapeMecComp &);
+        void MakeDequantSpecial();
         void DoMasq3D(cEtapeMecComp & anEtape,const cMMUseMasq3D &);
 
 
@@ -3240,6 +3248,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
         ///========================================
 
         void GenereOrientationMnt();
+        std::string   NameOrientationMnt(cEtapeMecComp * itE);
+
         void GenereOrientationMnt(cEtapeMecComp *);
         void SauvParam();
         void MakeFileFDC();
@@ -3292,7 +3302,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
                         const ElAffin2D & aSPM2PO,
                         const cMakeOrthoParImage &,
                         cPriseDeVue &,
-                        cMicMacZbuf &,
+                        cMicMacZbuf *,
                         cMetaDataPartiesCachees & aMDPC
                        );
 
@@ -3360,6 +3370,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 				// predictif)
 
         cEtapeMecComp *         mCurEtape; // Pour eviter de la passer
+        cEtapeMecComp *         mPrecEtape; // Pour eviter de la passer
                                 // tout le temps en parametre
          const cEtiqBestImage *  mEBI;
 
@@ -3670,7 +3681,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 	// GPGPU
 #ifdef CUDA_ENABLED
         GpGpuInterfaceCorrel	IMmGg;
-        GpGpuInterfaceCensus    interface_Census_GPU;
+        GpGpu_Interface_Cor_MS    interface_Census_GPU;
 #endif	
 
          cMMTP *  mMMTP;
@@ -3686,6 +3697,8 @@ class cAppliMICMAC  : public   cParamMICMAC,
          cMasqBin3D *      mGLOBMasq3D;
          cElNuage3DMaille* mGLOBNuage;
 
+         bool mCorrecAlti4ExportIsInit;
+         double mValmCorrecAlti4Export;
 };
 
 std::string  StdNameFromCple

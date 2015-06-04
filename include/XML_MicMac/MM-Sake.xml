@@ -48,7 +48,6 @@
     <Symb> X1Ter=1 </Symb>
     <Symb> Y1Ter=1 </Symb>
 
-    <Symb> CalcMEC=true </Symb>
     <Symb> ModeGeomMNT=eGeomMNTEuclid </Symb>
     <Symb> EZA=true </Symb>
     <Symb> NbProc=MMNbProc </Symb>
@@ -192,14 +191,14 @@
             <DirOrtho> ${DirOrtho} </DirOrtho>
             <MakeMTDMaskOrtho>
               <Mesures>
-                <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbSteps}.tif   </NameFile>
+                <NameFile> ../${DirMEC}AutoMask_LeChantier_Num_${NbStepsQ}.tif   </NameFile>
                 <NameMTD>  ../${DirMEC}Z_Num${NbStepsQ}_DeZoom${ZoomF}_LeChantier.xml  </NameMTD>
               </Mesures>
             </MakeMTDMaskOrtho>
              <ResolRelOrhto> ${ResolOrtho} </ResolRelOrhto>
              <OrthoBiCub> -1.5  </OrthoBiCub>
              <KeyCalcInput> NKS-Assoc-Id </KeyCalcInput>
-             <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ortho_ </KeyCalcOutput>
+             <KeyCalcOutput> NKS-Assoc-AddDirAndPref@${DirOrtho}@Ort_ </KeyCalcOutput>
              <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@${DirOrtho}@Incid_ </KeyCalcIncidHor>
              <ResolIm> 1.0 </ResolIm>
              <CalcIncAZMoy> true </CalcIncAZMoy>
@@ -212,7 +211,7 @@
 
   <Section_Results>
     <GeomMNT> ${ModeGeomMNT} </GeomMNT>
-    <DoMEC> ${CalcMEC} </DoMEC>
+    <DoMEC> true </DoMEC>
   </Section_Results>
 
   <Section_WorkSpace>

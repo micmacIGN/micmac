@@ -64,6 +64,8 @@ int MakePlancheImage_main(int argc,char ** argv)
                     <<  EAM(aForceGray,"Gray",true,"Force result to gray image")
    );
 
+   if (MMVisualMode) return EXIT_SUCCESS;
+
    aRes = aDir + aRes;
 
    cInterfChantierNameManipulateur * anICM=

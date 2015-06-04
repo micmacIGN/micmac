@@ -167,6 +167,14 @@ void ShowAuthorizedModel()
        std::cout << "   " << Modele[aKM] << "\n";
 }
 
+std::list<std::string> GetAuthorizedModel()
+{
+    std::list<std::string> list;
+    for (int aKM=0 ; aKM<NbModele ; aKM++)
+        list.push_back(std::string(Modele[aKM]));
+    return list;
+}
+
 bool GlobLibAff = true;
 
 bool GlobLibDec = true;
@@ -266,7 +274,7 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 
         IsAutoCal = (aMod==Modele[4]);
         IsFigee   = (aMod==Modele[5]);
-       
+
         eModAutom = "eCalibAutomNone";
     }
     else if (aMod==Modele[8])  //  FraserBasic
@@ -383,7 +391,7 @@ int Tapas_main(int argc,char ** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+        LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,GetAuthorizedModel())
                     << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
         LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(AeroOut,"Out",true, "Directory of Output Orientation", eSAM_IsOutputDirOri)
@@ -401,8 +409,8 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(MOI,"MOI",true,"MOI", eSAM_IsBool)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ",eSAM_InternalUse)
                     << EAM(Debug,"Debug",true,"Partial file for debug", eSAM_InternalUse)
-                    << EAM(GlobDRadMaxUSer,"DegRadMax",true,"Max degree of radial, defaut dependant of model")
-                    << EAM(GlobDegGen,"DegGen",true,"Max degree of general polynome, defaut dependant of model (generally 0 or 1)")
+                    << EAM(GlobDRadMaxUSer,"DegRadMax",true,"Max degree of radial, default model dependent")
+                    << EAM(GlobDegGen,"DegGen",true,"Max degree of general polynome, default model dependent (generally 0 or 1)")
                     << EAM(GlobLibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
                     << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
                     << EAM(GlobLibPP  ,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
@@ -482,7 +490,7 @@ int Tapas_main(int argc,char ** argv)
             ELISE_ASSERT(aImMinMax.size()==2,"ImMinMax size mut be 2");
             aSetIm =  "NKS-Set-OfPatternAndFocAndInterv" + aParamPatFocSetIm + "@" + aImMinMax[0] + "@" + aImMinMax[1];
         }
-    
+
 
        std::string aCom =     MM3dBinFile_quotes( "Apero" )
                            + ToStrBlkCorr( MMDir()+"include"+ELISE_CAR_DIR+"XML_MicMac"+ELISE_CAR_DIR+ aNameFileApero ) + " "

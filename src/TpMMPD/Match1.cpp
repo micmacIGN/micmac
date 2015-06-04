@@ -37,604 +37,280 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "StdAfx.h"
 #include "TpPPMD.h"
 
-/*
-void f (int a,int X=0);
-void f (int X=0,int Y =1);
-void f (int X=0,int a,int Y =1);
-*/
-
-const float Beaucoup=1e20;
-
-bool  VignetteInImage(int aSzW,const cTD_Im & aIm1,const Pt2di & aP1)
+inline double PdsV(double aDxy)
 {
-	Pt2di aSzIm = aIm1.Sz();
-	
-	return      (aP1.x >= aSzW)
-	          && (aP1.x < aSzIm.x - aSzW)
-	          && (aP1.y >= aSzW)
-			  && (aP1.y < aSzIm.y - aSzW);
-/*
-	aIm1.Ok(aP1.x-aSzW,aP1.y)
-	        &&  aIm1.Ok(aP1.x+aSzW,aP1.y)
-	        &&  aIm1.Ok(aP1.x,aP1.y-aSzW)
-	        &&  aIm1.Ok(aP1.x,aP1.y+);
-*/
-
+	return (aDxy==0) ? 2 : 1;
 }
 
-
-
-
-
-float SimilByCorrel
-      (
-         int aSzW,
-         const cTD_Im & aIm1,const Pt2di & aP1,
-         const cTD_Im & aIm2,const Pt2di & aP2
-      )
+int  TD_Match1_main(int argc,char ** argv)
 {
-    if (! 	VignetteInImage(aSzW,aIm1,aP1)) return Beaucoup;
-    if (! 	VignetteInImage(aSzW,aIm2,aP2)) return Beaucoup;
-
-	RMat_Inertie aMat;
+	std::string aName ="/home/prof/Bureau/CalibCoul/_DSC0323_Bayer_8Bits.tif";
+    cTD_Im  anIm = cTD_Im::FromString(aName);
     
-    Pt2di aDP;
-    for (aDP.x= -aSzW ; aDP.x<= aSzW ; aDP.x++)
+    Pt2di aSz = anIm.Sz();
+    cTD_Im  anImOut(aSz.x,aSz.y);
+    for (int anX=1 ; anX<aSz.x -1; anX++)
     {
-        for (aDP.y= -aSzW ; aDP.y<= aSzW ; aDP.y++)
-        {
-			float aV1 = aIm1.GetVal(aP1+aDP);
-			float aV2 = aIm2.GetVal(aP2+aDP);
-			aMat.add_pt_en_place(aV1,aV2,1.0);
+		for (int anY=1 ; anY<aSz.y -1; anY++)
+		{
+		    double aVal = 0;
+		    for (int aDx=-1; aDx <= 1 ; aDx++)
+		    {
+			   for (int aDy=-1; aDy <= 1 ; aDy++)
+		       {
+				   double aP = PdsV(aDx) * PdsV(aDy);
+				   aVal += aP * anIm.GetVal(anX+aDx,anY+aDy);
+			   }
+			}
+		    anImOut.SetVal(anX,anY,aVal/16.0);
 		}
 	}
-
-	return 1-aMat.correlation();
-}
-
-float SimilMultiW
-      (
-         const cTD_Im & aIm1,const Pt2di & aP1,
-         const cTD_Im & aIm2,const Pt2di & aP2
-      )
-{
-	
-	float aS1 = SimilByCorrel(1,aIm1,aP1,aIm2,aP2);
-    float aS2 = SimilByCorrel(2,aIm1,aP1,aIm2,aP2);
-    float aS4 = SimilByCorrel(4,aIm1,aP1,aIm2,aP2);
-
-	return std::max(aS1,std::max(aS2,aS4));
-}
-
-
-
-
-float SimilByDif
-      (
-         int aSzW,
-         const cTD_Im & aIm1,const Pt2di & aP1,
-         const cTD_Im & aIm2,const Pt2di & aP2
-      )
-{
-    if (! 	VignetteInImage(aSzW,aIm1,aP1)) return Beaucoup;
-    if (! 	VignetteInImage(aSzW,aIm2,aP2)) return Beaucoup;
-
-    float aSom = 0;
     
-    Pt2di aDP;
-    for (aDP.x= -aSzW ; aDP.x<= aSzW ; aDP.x++)
-        for (aDP.y= -aSzW ; aDP.y<= aSzW ; aDP.y++)
-			aSom += fabs(aIm1.GetVal(aP1+aDP)-aIm2.GetVal(aP2+aDP));
-
-	return aSom;
+  
+    std::string NameOut = "/home/prof/Bureau/CalibCoul/DeBayer.tif";
+    
+    anImOut.Save(NameOut);
+    
+    return EXIT_SUCCESS;
 }
 
-class cTD_OneScale
+
+int  TD_Match2_main(int argc,char ** argv)
 {
-	public :
-		const static int DefSzW=-1;
-		
-		cTD_OneScale() : // Uniquement pour pouvoir faire des vector
-		   mIm (1,1)
-		 {
-		 }
-		
-         void FillInertie
-		 (
-			RMat_Inertie &aMat,
-			const Pt2di & aP1,
-			const cTD_OneScale & aIm2,const Pt2di & aP2
-		 ) const
-		 {
-			Pt2di aDP;
-			for (aDP.x= -mSzW ; aDP.x<= mSzW ; aDP.x+=mStepW)
-			{
-				for (aDP.y= -mSzW ; aDP.y<= mSzW ; aDP.y+=mStepW)
-				{
-					float aV1 = this->mIm.GetVal(aP1+aDP);
-					float aV2 =   aIm2.mIm.GetVal(aP2+aDP);
-					aMat.add_pt_en_place(aV1,aV2,mPdsByPix);
-				}
-			 }
-		  }
-		  
-		  float SimilByCorrel
-		  (
-		    const Pt2di & aP1,
-			const cTD_OneScale & aIm2,const Pt2di & aP2
-		  ) const
-		  {
-			  RMat_Inertie aMat;
-			  FillInertie(aMat,aP1,aIm2,aP2);
-			  
-			  return 1- aMat.correlation();
-		  }
-		  
-		  //double Correl
-	
-		cTD_OneScale
-		(
-		     const cTD_Im & anIm,
-		     double aPds,
-		     int aScale,
-		     int aNbIter,
-		     int aSzW
-		 ) :
-		   mIm  (anIm),
-		   mFullW (false),
-		   mPds   (aPds),
-		   mScale (aScale * std::sqrt((double)aNbIter)),
-		   mSzW  ((aSzW==DefSzW) ? round_ni(aSzW) : aSzW),
-		   mPdsByPix (mPds/( mFullW ? ElSquare(1+2*mSzW): 9)),
-		   mStepW    (mFullW ? 1 :mSzW )
-		{
-			std::cout << "PDS = " << aPds << " SZW " << aSzW << "\n";
-			if (aScale >0)
-			   mIm = mIm.ImageMoy(aScale,aNbIter);
-		}
-	
-		
-		cTD_Im  mIm;
-		bool   mFullW;
-		double mPds;
-		double mScale;
-		int     mSzW;
-		double mPdsByPix;
-		int     mStepW;
+    return EXIT_SUCCESS;
+}
+/************************************************/
+
+/************************************************/
+
+class cCelMatch3
+{
+        public :
+
+
+        ///================================================
+        ///===== PRE-REQUIREMENT FOR 2D PROG DYN , transfer
+        ///===== from 3D volume to buffer of computation 
+        ///================================================
+        void InitTmp(const cTplCelNapPrgDyn<cCelMatch3> & aCel)
+        {
+            *this = aCel.ArgAux();
+        }
+        private :
 };
 
-class cTD_PyrMultiScale
+
+class cTD_Match3_main
 {
-	public :
-	
-		cTD_PyrMultiScale(const cTD_Im & aIm0) :
-			mIm0    (aIm0),
-			mSzWMax (0),
-			mNbIm   (0),
-			mSomPds (0)
-		{
-		}
-		bool InPyram(const Pt2di & aP) const
-		{
-			return VignetteInImage(mSzWMax,mIm0,aP);
-		}
-		
-		float SimilByCatCorrel
-			  (
-				const Pt2di & aP1,
-				const cTD_PyrMultiScale & aPyr2,
-				const Pt2di & aP2
-				) const 
-		{
-			if ((!InPyram(aP1)) || (!aPyr2.InPyram(aP2)))
-				return 2 ;
-			
-			RMat_Inertie aMat;
-			for (int aK=0 ; aK<mNbIm ; aK++)
-			{
-				const cTD_OneScale&  aSC1 = mVecIms[aK];
-				const cTD_OneScale&  aSC2 = aPyr2.mVecIms[aK];
+     public :
+        int ToI(const double & aFl) {return round_ni(1000 *aFl);}
 
-				aSC1.FillInertie(aMat,aP1,aSC2,aP2);
-			}
-			
-			return 1-aMat.correlation();
-		}
-		
-		
-		float SimilBySomCorrel
-			  (
-				const Pt2di & aP1,
-				const cTD_PyrMultiScale & aPyr2,
-				const Pt2di & aP2
-				) const 
-		{
-			if ((!InPyram(aP1)) || (!aPyr2.InPyram(aP2)))
-				return 2 ;
-			double aRes = 0;
-			
-			for (int aK=0 ; aK<mNbIm ; aK++)
-			{
-				const cTD_OneScale&  aSC1 = mVecIms[aK];
-				const cTD_OneScale&  aSC2 = aPyr2.mVecIms[aK];
+        ///===== PRE-REQUIREMENT FOR 2D PROG DYN , transfer
 
-				aRes += aSC1.mPds * aSC1.SimilByCorrel(aP1,aSC2,aP2);
-			}
-			
-			return aRes / mSomPds;
-		}
-				
-	
-		
-		void AddScale 
-			(
-				double aPds,
-				int aScale,
-				int aNbIter,
-				int aSzW
-			) 
-		{
-			mVecIms.push_back(cTD_OneScale(mIm0,aPds,aScale,aNbIter,aSzW));
-			mNbIm++;
-			mSzWMax = max(mSzWMax,mVecIms.back().mSzW);
-			mSomPds += aPds;
-		}
-			   
-		cTD_Im						 mIm0;
-		std::vector<cTD_OneScale>  mVecIms;
-		int							 mSzWMax;
-		int							 mNbIm;
-		double                      mSomPds;
+            typedef  cCelMatch3 tArgCelTmp;
+            typedef  cCelMatch3 tArgNappe;
+
+      ///-------- Not a PRE-REQUIREMENT but Helpull
+
+            typedef  cTplCelNapPrgDyn<tArgNappe>    tCelNap;
+            typedef  cTplCelOptProgDyn<tArgCelTmp>  tCelOpt;
+
+      ///-------- REQUIREMENT : kernell of computation
+           void DoConnexion
+           (
+                  const Pt2di & aPIn, const Pt2di & aPOut,
+                  ePrgSens aSens,int aRab,int aMul,
+                  tCelOpt*Input,int aInZMin,int aInZMax,
+                  tCelOpt*Ouput,int aOutZMin,int aOutZMax
+           );
+
+      /// Required : but do generally nothing
+
+          void GlobInitDir(cProg2DOptimiser<cTD_Match3_main> &) 
+          {
+              std::cout << "One New Dir\n";
+          }
+
+
+
+
+
+       //====================================
+        cTD_Match3_main(int argc,char ** argv);
+
+        Output  GrayW() {return (mW ? mW->ogray() : Output::onul(1));}
+
+        void TestOnePx(int aPx);
+
+        Im2D_U_INT1 mIm1;
+        Im2D_U_INT1 mIm2;
+        Im2D_REAL4  mImCor;
+        Im2D_INT2   mPxOpt;
+        Im2D_REAL4  mCorOpt;
+
+
+
+        Pt2di       mSz1;
+        Pt2di       mSz2;
+        int         mPxInterv;
+        Video_Win*  mW;
+        int         mSzW;
+        int         mNbPix;
 };
 
-class cPairPyramMS
+void cTD_Match3_main::DoConnexion
+     (
+         const Pt2di & aPIn, const Pt2di & aPOut,
+         ePrgSens aSens,int aRab,int aMul,
+         tCelOpt*Input,int aInZMin,int aInZMax,
+         tCelOpt*Ouput,int aOutZMin,int aOutZMax
+     )
 {
-	public :
-		cPairPyramMS(const cTD_Im & aIm1,const cTD_Im & aIm2) :
-			mPyr1 (aIm1),
-			mPyr2 (aIm2)
-		{
-		}
-		
-		float SimilBySomCorrel
-			  (
-				const Pt2di & aP1,
-				const Pt2di & aP2
-			) const 
-		{
-			return mPyr1.SimilBySomCorrel(aP1,mPyr2,aP2);
-		}
-		
-		float SimilByCatCorrel
-			  (
-				const Pt2di & aP1,
-				const Pt2di & aP2
-			) const 
-		{
-			return mPyr1.SimilByCatCorrel(aP1,mPyr2,aP2);
-		}		
-			
-		void AddScale 
-			(
-				double aPds,
-				int aScale,
-				int aNbIter,
-				int aSzW
-			) 
-		{
-			mPyr1.AddScale(aPds,aScale,aNbIter,aSzW);
-			mPyr2.AddScale(aPds,aScale,aNbIter,aSzW);	
-		}
-		cTD_PyrMultiScale mPyr1;
-		cTD_PyrMultiScale mPyr2;
+    int aNbJump = 1;
+    double aRegulCost = 0.1;
 
-};
+// =====================
+    for (int aZOut=aOutZMin ; aZOut<aOutZMax ; aZOut++)
+    {
+           int aDZMin,aDZMax;
+           ComputeIntervaleDelta
+            (
+                aDZMin,aDZMax,aZOut,aNbJump,
+                aOutZMin,aOutZMax,
+                aInZMin,aInZMax
+            );
+            for (int aDZ = aDZMin; aDZ<= aDZMax ; aDZ++)
+            {
+                 int aZIn = aZOut + aDZ;
+                 int  aICost = ToI(aRegulCost * ElAbs(aDZ) );
+                 Ouput[aZOut].UpdateCostOneArc(Input[aZIn],aSens,aICost);
+            }
+    }
+}
+
+void cTD_Match3_main::TestOnePx(int aPx)
+{
+
+     Fonc_Num aFTransIm2 = trans(mIm2.in(0),Pt2di(aPx,0));
+
+   // aFTransIm2 = trans(mIm1.in(0),Pt2di(aPx,0));
+
+     Fonc_Num  aF1 = rect_som(mIm1.in(0),mSzW) / mNbPix;
+     Fonc_Num  aF2 = rect_som(aFTransIm2,mSzW) / mNbPix;
+     Fonc_Num  aF11 = rect_som(Square(mIm1.in(0)),mSzW) / mNbPix;
+     Fonc_Num  aF22 = rect_som(Square(aFTransIm2),mSzW) / mNbPix;
+     Fonc_Num  aF12 = rect_som(mIm1.in(0)*aFTransIm2,mSzW) / mNbPix;
+
+     aF11 = aF11 - Square(aF1);
+     aF22 = aF22 - Square(aF2);
+     aF12 = aF12 - aF1 * aF2;
+
+     Fonc_Num  aFCor = aF12 / sqrt(Max(1e-5,aF11*aF22));
+     
+     ELISE_COPY
+     (
+         mIm1.all_pts(),
+         aFCor,
+         mImCor.out() | ( GrayW() << (Max(0 ,Min(255,(1+mImCor.in()) * 100))))
+     );
+
+     ELISE_COPY
+     (
+         select(mIm1.all_pts(), mImCor.in() > mCorOpt.in()),
+         Virgule(mImCor.in(),aPx),
+         Virgule(mCorOpt.out(),mPxOpt.out())
+     );
+}
+
+
+cTD_Match3_main::cTD_Match3_main(int argc,char ** argv) :
+    mIm1      (1,1),
+    mIm2      (1,1),
+    mImCor    (1,1),
+    mPxOpt    (1,1),
+    mCorOpt   (1,1),
+    mPxInterv (50),
+    mW        (0),
+    mSzW      (3)
+{
+    std::string mNameIm1,mNameIm2;
+    bool Visu=true;
+
+    ElInitArgMain
+    (
+           argc,argv,
+           LArgMain() << EAMC(mNameIm1,"Name Im1")
+                      << EAMC(mNameIm2,"Name Im2"),
+           LArgMain() << EAM(mPxInterv,"PxI",true, "Paralax intervall")
+                      << EAM(Visu,"Visu",true,"Interactive visualisation")
+                      << EAM(mSzW,"SzW",true,"Size of correlation window")
+    );
+
+    mNbPix = ElSquare(1+2*mSzW);
+    Tiff_Im aTif1(mNameIm1.c_str());
+    Tiff_Im aTif2(mNameIm2.c_str());
+    mSz1 = aTif1.sz();
+    mSz2 = aTif2.sz();
+
+    if (Visu)
+       mW = Video_Win::PtrWStd(mSz1);
+
+    mIm1 = Im2D_U_INT1(mSz1.x,mSz1.y);
+    ELISE_COPY
+    (
+        mIm1.all_pts(),
+        aTif1.in(),
+        mIm1.out() | GrayW()
+    );
+    mPxOpt.Resize(mSz1);
+    mImCor.Resize(mSz1);
+    mCorOpt =  Im2D_REAL4(mSz1.x,mSz1.y,-1e10);
+   
+    mIm2 =  Im2D_U_INT1::FromFileStd(mNameIm2);
+    // if (mW) mW->clik_in();
+
+   Im2D_INT2 aNapInf(mSz1.x,mSz1.y, -mPxInterv);
+   Im2D_INT2 aNapSup(mSz1.x,mSz1.y,1+ mPxInterv);
+
+   cProg2DOptimiser<cTD_Match3_main> aPrgD(*this,aNapInf,aNapSup,0,1);
+
+   cDynTplNappe3D<tCelNap> &  aSparseVol = aPrgD.Nappe();
+   tCelNap ***  aSparsPtr = aSparseVol.Data() ;
+
+    for (int aPx= -mPxInterv ; aPx <= mPxInterv ; aPx++)
+    {
+        TestOnePx(aPx); // Compute correl
+        float **  aDataCor = mImCor.data();
+        for (int anX=0 ; anX<mSz1.x ; anX++)
+        {
+            for (int anY=0 ; anY<mSz1.y ; anY++)
+            {
+                int aICost =  ToI (1-aDataCor[anY][anX]);
+                aSparsPtr[anY][anX][aPx].SetOwnCost(aICost);
+            }
+        }
+    }
+
+    aPrgD.DoOptim(5);  // Number of direction
+
+    aPrgD.TranfereSol(mPxOpt.data());
+    
+    Tiff_Im::Create8BFromFonc("PxPrgD.tif",mSz1,mPxOpt.in()+128);
+}
 
 
 
 int  TD_Match3_main(int argc,char ** argv)
 {
-	bool ByCorrel = false;
-    std::string aNameI1,aNameI2;
-    int aDeltaPax=100;
-    int aSzW = 5;
-    
-    
-     ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aNameI1,"Name Im1")
-					<< EAMC(aNameI2,"Name Im2"),
-        LArgMain()  << EAM(aDeltaPax,"DPax",true,"Delta paralax")
-                    << EAM(aSzW,"SzW",true,"Size of Window, Def=5")
-                    << EAM(ByCorrel,"ByCorrel",true,"By correlation")
-    );
-    
-     cTD_Im aI1 = cTD_Im::FromString(aNameI1);
-     cTD_Im aI2 = cTD_Im::FromString(aNameI2);
-
-	cPairPyramMS  aPPMS(aI1,aI2);
-		
-	// 	AddScale (Pds, int aScale,int aNbIter,int aSzW) 
-
-	aPPMS.AddScale(4,0,1,1);
-	aPPMS.AddScale(2,1,4,2);
-	aPPMS.AddScale(1,2,4,4);
-	aPPMS.AddScale(0.5,4,4,8);
-	aPPMS.AddScale(0.25,8,4,16);
-
-
-
-	
-
-    
-    Pt2di aP;
-    // on charger nos deux images
-    // image 1
-    Pt2di aSz = aI1.Sz();
-    std::string aNameMasqIm1 = std::string("Masq_") + aNameI1;
-    cTD_Im aIMasq(aSz.x,aSz.y); 
-    if (ELISE_fp::exist_file(aNameMasqIm1))
-    {
-		aIMasq = cTD_Im::FromString(aNameMasqIm1);
-	}
-	else
-	{
-	  for (aP.x=0; aP.x < aSz.x ; aP.x++)
-      {
-		for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
-		{
-			aIMasq.SetVal(aP.x,aP.y,1);
-		}
-	  }
-	}    
-    
-   
-
-    
-    // image 2
-    
-   //aI1 = aI1.ImageMoy(aSzW,1);
-   // aI2 = aI2.ImageMoy(aSzW,1);
-    
-    // on crée un image pour stocker le résultat de la corrélation 
-    cTD_Im aICorelMin = cTD_Im(aSz.x, aSz.y);
-     // on crée la carte de profondeur
-    cTD_Im aIProf = cTD_Im(aSz.x, aSz.y);
-    
-    for (aP.x=0; aP.x < aSz.x ; aP.x++)
-    {
-		if ((aP.x%50)==0) std::cout << "Reste " << aSz.x-aP.x << "\n";
-		for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
-		{
-		    float aSimMin = Beaucoup;
-		    int aPaxOpt=0;
-		    Pt2di aPPax(0,0);
-		    if (aIMasq.GetVal(aP.x,aP.y))
-		    {
-				for ( aPPax.x = -aDeltaPax ; aPPax.x<=aDeltaPax ; aPPax.x++)
-				{
-					Pt2di aP2 = aP+aPPax;
-					if (1)
-					{
-						// float aSimil =  aPPMS.SimilBySomCorrel(aP,aP2);
-						float aSimil =  aPPMS.SimilByCatCorrel(aP,aP2);
-	
-									
-						//float aDiff =	SimilMultiW(aI1,aP,aI2,aP2);
-						if  (aSimil < aSimMin)
-						{
-							aSimMin = aSimil;
-							aPaxOpt = aPPax.x;
-						}
-					}
-				}
-	    	} 
-			aIProf.SetVal(aP.x,aP.y,aPaxOpt);
-		}
-	}
-	
-	std::string aNameRes = "CartePax";
-	aNameRes += std::string("_SzW") + ToString(aSzW);
-	aNameRes +=  ByCorrel ? "Correl" :  "Dif";
-	aNameRes += ".tif";
-		
-    aIProf.Save(aNameRes );
-    
-    System("to8Bits " + aNameRes + " Circ=1 Dyn=10");
-    
-	return EXIT_SUCCESS;
-}
-
-
-
-
-
-// +Pt2di(3,4)
-
-int  TD_Match1_main(int argc,char ** argv)
-{
-	bool ByCorrel = false;
-    std::string aNameI1,aNameI2;
-    int aDeltaPax=100;
-    int aSzW = 5;
-    
-    
-     ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aNameI1,"Name Im1")
-					<< EAMC(aNameI2,"Name Im2"),
-        LArgMain()  << EAM(aDeltaPax,"DPax",true,"Delta paralax")
-                    << EAM(aSzW,"SzW",true,"Size of Window, Def=5")
-                    << EAM(ByCorrel,"ByCorrel",true,"By correlation")
-    );
-    Pt2di aP;
-    // on charger nos deux images
-    // image 1
-    cTD_Im aI1 = cTD_Im::FromString(aNameI1);
-    Pt2di aSz = aI1.Sz();
-    std::string aNameMasqIm1 = std::string("Masq_") + aNameI1;
-    cTD_Im aIMasq(aSz.x,aSz.y); 
-    if (ELISE_fp::exist_file(aNameMasqIm1))
-    {
-		aIMasq = cTD_Im::FromString(aNameMasqIm1);
-	}
-	else
-	{
-	  for (aP.x=0; aP.x < aSz.x ; aP.x++)
-      {
-		for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
-		{
-			aIMasq.SetVal(aP.x,aP.y,1);
-		}
-	  }
-	}    
-    
-   
-
-    
-    // image 2
-    cTD_Im aI2 = cTD_Im::FromString(aNameI2);
-    
-   //aI1 = aI1.ImageMoy(aSzW,1);
-   // aI2 = aI2.ImageMoy(aSzW,1);
-    
-    // on crée un image pour stocker le résultat de la corrélation 
-    cTD_Im aICorelMin = cTD_Im(aSz.x, aSz.y);
-     // on crée la carte de profondeur
-    cTD_Im aIProf = cTD_Im(aSz.x, aSz.y);
-    
-    for (aP.x=0; aP.x < aSz.x ; aP.x++)
-    {
-		if ((aP.x%50)==0) std::cout << "Reste " << aSz.x-aP.x << "\n";
-		for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
-		{
-		    float aDiffMin = Beaucoup;
-		    int aPaxOpt=0;
-		    Pt2di aPPax(0,0);
-		    if (aIMasq.GetVal(aP.x,aP.y))
-		    {
-				for ( aPPax.x = -aDeltaPax ; aPPax.x<=aDeltaPax ; aPPax.x++)
-				{
-					Pt2di aP2 = aP+aPPax;
-					if (1)
-					{
-						float aDiff =  ByCorrel ?
-									SimilByCorrel(aSzW,aI1,aP,aI2,aP2):			                
-									SimilByDif(aSzW,aI1,aP,aI2,aP2);
-									
-						//float aDiff =	SimilMultiW(aI1,aP,aI2,aP2);
-						if  (aDiff < aDiffMin)
-						{
-							aDiffMin = aDiff;
-							aPaxOpt = aPPax.x;
-						}
-					}
-				}
-	    	} 
-			aIProf.SetVal(aP.x,aP.y,aPaxOpt);
-		}
-	}
-	
-	std::string aNameRes = "CartePax";
-	aNameRes += std::string("_SzW") + ToString(aSzW);
-	aNameRes +=  ByCorrel ? "Correl" :  "Dif";
-	aNameRes += ".tif";
-		
-    aIProf.Save(aNameRes );
-    
-    System("to8Bits " + aNameRes + " Circ=1 Dyn=10");
-    
-	return EXIT_SUCCESS;
-}
-
-int  TD_Match2_main(int argc,char ** argv)
-{
-
-    std::string aNameI1,aNameI2;
-    int aDeltaPax=100;
-    int aSzW = 5;
-    
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aNameI1,"Name Im1")
-					<< EAMC(aNameI2,"Name Im2"),
-        LArgMain()  << EAM(aDeltaPax,"DPax",true,"Delta paralax")
-                    << EAM(aSzW,"SzW",true,"Size of Window, Def=5")
-    );
-    
-       // image 1
-    cTD_Im aI1 = cTD_Im::FromString(aNameI1);
-    // image 2
-    cTD_Im aI2 = cTD_Im::FromString(aNameI2);
-    
-    //dimension de nos images, sera utile pour nos boucles
-    Pt2di aSz = aI1.Sz();
-    
-    cTD_Im aIBestScore(aSz.x,aSz.y);
-    cTD_Im aIBestPax(aSz.x,aSz.y);
-    Pt2di aP;    
-
-    for (aP.x=0; aP.x < aSz.x ; aP.x++)
-    {
-		for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
-		{
-		   aIBestScore.SetVal(aP.x,aP.y,Beaucoup);
-		   aIBestPax.SetVal(aP.x,aP.y,sin((float)aP.x)*30*sin((float)aP.y));
-		}
-	}
-    
-    Pt2di aPPax;
-    for ( aPPax.x = -aDeltaPax ; aPPax.x<=aDeltaPax ; aPPax.x++)
-	{
-		std::cout << "Pax= " << aPPax.x << "\n";
-		
-	// Calculer images des valeurs absolue des difference trans
-		cTD_Im aImDif(aSz.x,aSz.y);
-
-		for (aP.x=0; aP.x < aSz.x ; aP.x++)
-		{
-			for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
-			{
-				Pt2di aPTr = aP + aPPax;
-				float aDif = 256;
-				if (aI2.Ok(aPTr.x,aPTr.y))
-				{
-					 aDif = aI1.GetVal(aP) - aI2.GetVal(aPTr);
-				}
-				aImDif.SetVal(aP.x,aP.y,std::fabs(aDif));
-			}
-		}
-		
-
-		 //  Calculer l'image moyenne
-		 
-		 cTD_Im aImDifMoy = aImDif.ImageMoy(aSzW,1);
-
-		 // Mettre a jour aIBestScore et aIBestPax
-		 
-		 
-		for (aP.x=0; aP.x < aSz.x ; aP.x++)
-		{
-			for (aP.y=0 ; aP.y < aSz.y ; aP.y++)
-			{
-				float aDif =aImDifMoy.GetVal(aP);
-				if (aDif<aIBestScore.GetVal(aP))
-				{
-					 aIBestScore.SetVal(aP.x,aP.y,aDif);
-					 aIBestPax.SetVal(aP.x,aP.y,aPPax.x);
-				}
-			}
-		}
-	}
-	aIBestPax.Save("CartePax2.tif");
-	
+    std::cout << "TD_Match3_main \n";
+    cTD_Match3_main  aM3(argc,argv);
     return EXIT_SUCCESS;
 }
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

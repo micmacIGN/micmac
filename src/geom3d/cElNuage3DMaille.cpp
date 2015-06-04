@@ -237,7 +237,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mResolGlob     (0)
 
 {
-//  std::cout   << "WXCRT " << mSz << aParam.Image_Profondeur().Val().Image() << "\n";
+
 
 
     if (aParam.RepereGlob().IsInit())
@@ -535,6 +535,7 @@ Im2D_Bits<1>   cElNuage3DMaille::ImDef()
 {
    return mImDef;
 }
+
 
 Pt3dr  cElNuage3DMaille::Loc2Glob(const Pt3dr & aP) const
 {
@@ -1263,13 +1264,14 @@ void cElNuage3DMaille::Std_AddAttrFromFile
      (
            const std::string &            aName,
            double aDyn,
-           double aScale
+           double aScale,
+           bool   ForceRGB
      )
 {
     std::vector<std::string> aVS;
     Tiff_Im aTF = Tiff_Im::UnivConvStd(aName);
 
-    if (aTF.phot_interp()==Tiff_Im::RGB)
+    if ((aTF.phot_interp()==Tiff_Im::RGB) || ForceRGB)
     {
        AddGrpeLyaer(3,NameWithoutDir(aName));
        aVS.push_back("red");
@@ -1281,7 +1283,7 @@ void cElNuage3DMaille::Std_AddAttrFromFile
        AddGrpeLyaer(1,NameWithoutDir(aName));
        aVS.push_back("gray");
     }
-    AddAttrFromFile(aName,0xFFFF,aVS,aDyn,aScale);
+    AddAttrFromFile(aName,0xFFFF,aVS,aDyn,aScale,ForceRGB);
 }
 
 void cElNuage3DMaille::AddAttrFromFile
@@ -1290,13 +1292,15 @@ void cElNuage3DMaille::AddAttrFromFile
            int                              aFlagChannel,
            const std::vector<std::string> & aNameProps,
            double aDyn,
-           double aScale
+           double aScale,
+           bool ForceRGB
      )
 {
     AssertNoEmptyData();
     Tiff_Im aTF = Tiff_Im::UnivConvStd(aName);
     GenIm::type_el aTEl = aTF.type_el();
-    int aNbC = aTF.nb_chan();
+    int aNbCOri= aTF.nb_chan();
+    int aNbC = ForceRGB ? 3 : aNbCOri ;
 
     Output anOutGlog = Output::onul(1); // Initialisation par ce qu'il faut
     int aNbAdded = 0;
@@ -1319,6 +1323,8 @@ void cElNuage3DMaille::AddAttrFromFile
     }
 
     Fonc_Num aF = aTF.in_proj();
+
+
     if (aScale !=1)
     {
         aF = StdFoncChScale
@@ -1336,6 +1342,11 @@ void cElNuage3DMaille::AddAttrFromFile
     }
     aF = Tronque(aTEl,aF);
 
+
+    if (ForceRGB && (aNbCOri==1))
+    {
+        aF = Virgule(aF,aF,aF);
+    }
     // ELISE_COPY(aTF.all_pts(),aF,anOutGlog);
     ELISE_COPY(rectangle(Pt2di(0,0),mSzData),aF,anOutGlog);
 }
@@ -1539,9 +1550,22 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     if (aCoeffEtire > 0)
         aBasc.InitDynEtirement(aCoeffEtire);
     Pt2di anOfOut;
-    Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
+    bool Ok;
+    Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef,&Ok);
+
+
+    if (!Ok)
+    {
+        return 0;
+    }
     cElNuage3DMaille * aNuageRes = this;
 
+
+
+if (MPD_MM())
+{
+    std::cout << "AAAAAAbbsc " << aMntBasc.sz() << "\n";
+}
 
     // Pt2di anOfOutInit= anOfOut;
     if (AutoResize)
@@ -1707,7 +1731,28 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
 #endif
 
-
+void TestNuage(const cElNuage3DMaille * aNu,const std::string & aMes)
+{
+    int aCpt=0;
+    Pt2di aSz = aNu->SzUnique();
+    Pt2di aP;
+    Im2D_U_INT1 aIm(aSz.x,aSz.y,0);
+    TIm2D<U_INT1,INT> aTIm(aIm);
+    for ( aP.x=0 ; aP.x<aSz.x ; aP.x++)
+    {
+        for ( aP.y=0 ; aP.y<aSz.y ; aP.y++)
+        {
+             if (aNu->IndexHasContenu(aP))
+             {
+                aTIm.oset(aP,1);
+                aCpt++;
+             }
+        }
+    }
+    Tiff_Im::CreateFromIm(aIm,aMes+".tif");
+    std::cout << "TestNu "  << aMes << " Sz " << aNu->SzUnique() << " NbOk " << aCpt << "\n";
+    getchar();
+}
 
 cElNuage3DMaille *  BasculeNuageAutoReSize
                     (
@@ -1780,13 +1825,16 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
    delete aParamIn;
 
 
-
    if (aNIn->IsEmpty())
    {
        return 0;
    }
 
     cElNuage3DMaille * aRes = aNOut->BasculeInThis(&aGeomOutOri,aNIn,true,anArgBasc.mDynEtir,0,0,-1,anArgBasc.mAutoResize,&aVAttrIm);
+
+   if (! aRes) return 0;
+
+
 
     if (anArgBasc.mDynEtir>0)
     {
@@ -1802,12 +1850,13 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        TIm2D<U_INT1,INT> aTImEtir(aImEt);
        Pt2di aSz = aImEt.sz();
        cOptimLabelBinaire * anOLB = cOptimLabelBinaire::ProgDyn(aSz,0.0,1.0);
-       //cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSz,0.0,0.0);
+       // cOptimLabelBinaire * anOLB = cOptimLabelBinaire::CoxRoy(aSz,0.0,1.0);
        Pt2di aP;
        double aSeuil = anArgBasc.mSeuilEtir;
 // aSeuil = 0.9;
 // std::cout << "SEUIILLL " << aSeuil << "\n";
        double aDynSeuil = 0.5 / ElMax(aSeuil,1-aSeuil);
+
 
        for (aP.x=0 ; aP.x<aSz.x ; aP.x++)
        {
@@ -1874,12 +1923,16 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 /*
 */
 
-double DynProfInPixel(const cXML_ParamNuage3DMaille & aNuage)
+double Resol(const cXML_ParamNuage3DMaille & aNuage)
 {
    ElAffin2D  aM2C =    Xml2EL(aNuage.Orientation().OrIntImaM2C());
    ElAffin2D aC2M = aM2C.inv();
+   return (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
+}
 
-   double aSzPixel = (euclid(aC2M.I10()) + euclid(aC2M.I01()))/2.0;
+double DynProfInPixel(const cXML_ParamNuage3DMaille & aNuage)
+{
+   double aSzPixel = Resol(aNuage);
 
    return (aSzPixel * aNuage.RatioResolAltiPlani().Val()) / (aNuage.Image_Profondeur().Val().ResolutionAlti());
 
@@ -1890,6 +1943,111 @@ double cElNuage3DMaille::DynProfInPixel() const
    return ::DynProfInPixel(Params());
 }
 
+
+double cElNuage3DMaille::SeuilDistPbTopo() const
+{
+   if (mAnam) 
+   {
+      return mAnam->SeuilDistPbTopo() / Resol(Params());
+   }
+   return 0;
+}
+
+
+void ToFOMResolStdRound(double & aVal)
+{
+   if (ElAbs(aVal) < 1e-20) return;
+   
+   int aSign=1;
+   if (aVal<0)
+   {
+        aVal =-aVal;
+        aSign=-1;
+   }
+
+
+
+   cDecimal aDec = StdRound(aVal);
+   double aNewV = aDec.RVal();
+   double aDif = ElAbs(aNewV-aVal)/(ElAbs(aVal)) ;
+   // std::cout << "RESOL ToFOMStdRound; Dif= " << aDif << "\n";
+   if (aDif >= 1e-7)
+   {
+       std::cout << "ToFOMResolStdRound:: " << aVal  << " => " << aNewV << " Dif=" << aDif << "\n";
+       ELISE_ASSERT(aDif < 1e-7,"RESOL ToFOMStdRound");
+   }
+
+   aVal = aNewV * aSign;
+}
+
+void ToFOMOriStdRound(double & aVal,const double & aResol)
+{
+    double aRatio = aVal / aResol;
+
+//	cDecimal aDec = StdRound(aRatio);
+//    double aIR = aDec.RVal();
+    double aIR = round_ni(aRatio);
+    double aDif = ElAbs(aRatio-aIR);
+    // MPD : 01/06/2015 , Brutal-inélegant-dangdereux mais efficace
+    // L'origine du pb vient d'arrondi avec les "grande" coordonnes (type lambert) et petite
+    // resol (genre < au mm); Bon ce serait + propre de gere des calcul exact ou au moins precis dans les XML
+    // mais sans soute toute une chaine a remonter ...
+    if (aDif>= 1e-7)
+    {
+       std::cout << "Waring supciciousrs round, DIF " << aDif  << " at " << __LINE__ << " of " << __FILE__ << "\n";
+       if (aDif>= 1e-2)
+          ELISE_ASSERT(false,"ORI ToFOMStdRound");
+    }
+
+    aVal = aResol * aIR;
+}
+
+
+cFileOriMnt ToFOM(const cXML_ParamNuage3DMaille & aXML,bool StdRound)
+{
+    cFileOriMnt aRes;
+    ELISE_ASSERT(aXML.Image_Profondeur().IsInit(),"ToFOM => Image_Profondeur");
+    const cImage_Profondeur & anIP= aXML.Image_Profondeur().Val();
+    aRes.NameFileMnt() = anIP.Image();
+    aRes.NameFileMasque() = anIP.Masq();
+    aRes.NombrePixels() = aXML.NbPixel();
+    // aRes.NameFileMnt() = 
+
+    double anOriA = anIP.OrigineAlti();
+    double aResA = anIP.ResolutionAlti();
+
+    ElAffin2D  anAff = Xml2EL(aXML.Orientation().OrIntImaM2C());
+    anAff = anAff.inv();
+
+    Pt2dr anOriPlani = anAff.I00();
+    // std::cout << "ORIPLANI " << anOriPlani << "\n";
+    // Pt2dr 
+    Pt2dr aResolPlani(anAff.I10().x,anAff.I01().y);
+    // std::cout << "RESOL LANI " << aResolPlani << "\n";
+
+    double anErr = (ElAbs(anAff.I10().y) + ElAbs(anAff.I01().x)) / euclid(aResolPlani);
+    ELISE_ASSERT(anErr<1e-7,"ToFOM Affinite non inv");
+    
+
+    if (StdRound)
+    {
+        ToFOMResolStdRound(aResolPlani.x);
+        ToFOMResolStdRound(aResolPlani.y);
+        ToFOMResolStdRound(aResA);
+
+        ToFOMOriStdRound(anOriPlani.x,aResolPlani.x);
+        ToFOMOriStdRound(anOriPlani.y,aResolPlani.y);
+        ToFOMOriStdRound(anOriA,aResA);
+    }
+
+    aRes.OriginePlani() = anOriPlani;
+    aRes.ResolutionPlani() = aResolPlani;
+    aRes.OrigineAlti() = anOriA;
+    aRes.ResolutionAlti() = aResA;
+    aRes.Geometrie() = anIP.GeomRestit();
+
+    return aRes;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

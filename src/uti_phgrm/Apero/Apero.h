@@ -441,6 +441,8 @@ class cPoseCam
           bool     PreInit() const;
 
           bool HasObsOnCentre() const;
+          bool LastItereHasUsedObsOnCentre() const;
+          
           bool HasObsOnVitesse() const;
           const Pt3dr  & ObsCentre() const;
           Pt3dr   Vitesse() const;
@@ -548,6 +550,7 @@ class cPoseCam
           cObsCentre                   mObsCentre;
           bool                         mHasObsOnCentre;
           bool                         mHasObsOnVitesse;
+          bool                         mLastItereHasUsedObsOnCentre;
 
           int                          mNumTmp; // Entre autre dans bloc bascule
           // Pour qualifier les Pack Pts Mul
@@ -1062,7 +1065,7 @@ class cObsLiaisonMultiple
           void ClearAggregImage();
 
 
-           Pt3dr CentreNuage(const cMasqBin3D * =0 ) const;
+           Pt3dr CentreNuage(const cMasqBin3D * ,int * aNb) const;
 
 
 
@@ -1844,12 +1847,31 @@ class cParamBascBloc
 };
 
 
+class cCompiledObsRelGPS
+{
+    public :
+        cCompiledObsRelGPS(
+               cAppliApero &,
+               cDeclareObsRelGPS
+        );
+        const cDeclareObsRelGPS & XML() const;
+        const std::vector<cPoseCam *> &       VOrderedPose() const;
+        const std::vector<cEqRelativeGPS *> & VObs() const;
+
+    private :
+        std::vector<cPoseCam *>        mVOrderedPose;
+        std::vector<cEqRelativeGPS *>  mVObs;
+        cDeclareObsRelGPS mXML;
+        cAppliApero *     mAppli;
+};
+
 
 class cAppliApero : public NROptF1vND
 {
     public :
 
        void DebugPbConvAppui();
+        cXmlSauvExportAperoOneIter & CurXmlE();
 
         int  NumSauvAuto() const {return  mNumSauvAuto;}
         bool NumIterDebug() const;
@@ -2125,6 +2147,7 @@ class cAppliApero : public NROptF1vND
 	void InitInconnues();
 	void InitCalibCam();
 	void InitOffsGps();
+	void InitObsRelGPS ();
 	void InitPoses();
 	void InitSurf();
 
@@ -2227,6 +2250,9 @@ class cAppliApero : public NROptF1vND
         void AddObservationsAppuisFlottants(const std::list<cObsAppuisFlottant> &,bool IsLastIter,cStatObs & aSO);
         void AddObservationsCentres(const std::list<cObsCentrePDV> &,bool IsLastIter,cStatObs & aSO);
 
+        void AddOneObservationsRelGPS(const cObsRelGPS &);
+        void AddObservationsRelGPS(const std::list<cObsRelGPS> & aLO);
+
         void AddObservationsRigidGrp(const std::list<cObsRigidGrpImage> &,bool IsLastIter,cStatObs & aSO);
         void AddObservationsRigidGrp(const cObsRigidGrpImage &,bool IsLastIter,cStatObs & aSO);
 
@@ -2251,7 +2277,7 @@ class cAppliApero : public NROptF1vND
         void  ExportVisuConfigPose(const cExportVisuConfigGrpPose & anEVCGP);
 
         void ExportImMM(const cChoixImMM &);
-        void ExportImSecMM(const cChoixImMM &,cPoseCam *,const cMasqBin3D * aMasq3D);
+        bool ExportImSecMM(const cChoixImMM &,cPoseCam *,const cMasqBin3D * aMasq3D);
 
          void ExportMesuresFromCarteProf(const cExportMesuresFromCarteProf&);
          void ExportMesuresFromCarteProf
@@ -2351,6 +2377,8 @@ class cAppliApero : public NROptF1vND
         std::vector<cPoseCam*> mVecPose;
         std::vector<cPoseCam*> mTimeVP; // Triee selon le temps
 
+        std::map<std::string,cCompiledObsRelGPS *> mMCORelGps;
+
     // Utilise pour connaitre les poses pour lesquels des images te chargees
     // (lorsque l'on recherche  a affiner les pts mul par re-correl)
         std::vector<cPoseCam*> mVecLoadedPose;
@@ -2415,6 +2443,7 @@ class cAppliApero : public NROptF1vND
        
         cShowPbLiaison *                    mCurPbLiaison;
         int                                 mNbEtape;
+        int                                 mNbIterDone;
 
         std::vector<Pt3dr>                  mResiduCentre;
         std::vector<double>                 mRetardGpsC;
@@ -2441,6 +2470,7 @@ class cAppliApero : public NROptF1vND
         cStatObs                               mStatLastIter;
              // flag utilise lorque l'on a utilise ori non ortho
         int                                    mSqueezeDOCOAC;  
+        cXmlSauvExportAperoGlob                mXMLExport;
 };
 
 

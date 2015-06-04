@@ -134,7 +134,6 @@ cArgMpDCRaw::cArgMpDCRaw(int argc,char ** argv) :
 
 
 
-
      if (mImRef!="")
      {
          std::string aFulIR = DirChantier() +  mImRef;
@@ -342,6 +341,33 @@ void  cArgMpDCRaw::DevJpg()
 
     VoidSystem(aCom.c_str());
 
+    // Permet de forcer la creation de RGB meme si image en Niv Gris;  inhibe car gere au niveau du ply;
+    // a remettre ei autre logiciel a probleme
+    if (0 && (! EnGray))
+    {
+        Tiff_Im aTF(aTmp.c_str());
+        int aNbC = aTF.nb_chan();
+        if (aNbC != 3)
+        {
+            std::string aTmp2 = StdPrefix(aTmp+"Gray.tif");
+            ELISE_fp::MvFile(aTmp,aTmp2);
+            aTF = Tiff_Im(aTmp2.c_str());
+            Tiff_Im aTFCol
+                    (
+                        aTmp.c_str(),
+                        aTF.sz(),
+                        aTF.type_el(),
+                        Tiff_Im::No_Compr,
+                        Tiff_Im::RGB
+                    );
+// ¿Tiff_Im::Tiff_Im(const char*, Pt2di, Tiff_Im::COMPR_TYPE, GenIm::type_el, Tiff_Im::PH_INTER_TYPE)¿
+// Tiff_Im::Tiff_Im(const char*, Pt2di, GenIm::type_el, Tiff_Im::COMPR_TYPE, Tiff_Im::PH_INTER_TYPE, L_Arg_Opt_Tiff)
+
+             ELISE_COPY(aTFCol.all_pts(),Virgule(aTF.in(),aTF.in(),aTF.in()),aTFCol.out());
+             ELISE_fp::RmFile(aTmp2);
+        }
+    }
+
 
     Tiff_Im aFTmp(aTmp.c_str());
     cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aFullNJPG);
@@ -357,9 +383,9 @@ void  cArgMpDCRaw::DevJpg()
          if (! OkCam)
          {
              Pt2di aSz = aFTmp.sz();
-             // On fait l'hypothese que image prise par un droitier en position standard , 
+             // On fait l'hypothese que image prise par un droitier en position standard ,
              // la haut de l'image doit aller a droite
-             if (aSz.y > aSz.x) 
+             if (aSz.y > aSz.x)
              {
                  anACam = 270;
                  OkCam = true;
@@ -369,7 +395,7 @@ void  cArgMpDCRaw::DevJpg()
          if (Ok && OkCam)
          {
              if ((anA!=anACam) && (anA==0))
-             { 
+             {
                  int aDA = anACam - anA;
                  if (aDA<0) aDA += 360;
                  // Im2DGen aImIn = aFTmp.ReadIm();
@@ -530,8 +556,8 @@ double cArgMpDCRaw::Dyn() const
    return mDyn;
 }
 
-double cArgMpDCRaw::Gamma( const std::string& aNameIm) const 
-{ 
+double cArgMpDCRaw::Gamma( const std::string& aNameIm) const
+{
    if (! EAMIsInit(const_cast<void *>((void *)&mGammaCorrec)))
    {
          if (!  mCons16Bits)
@@ -543,7 +569,7 @@ double cArgMpDCRaw::Gamma( const std::string& aNameIm) const
          }
    }
 
-    return mGammaCorrec; 
+    return mGammaCorrec;
 }
 
 

@@ -1,4 +1,6 @@
 #include "cgldata.h"
+#include <limits>
+
 
 
 void cGLData::setOptionPolygons(cParameters aParams)
@@ -20,9 +22,10 @@ cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, i
     _pAxis(NULL),
     _pBbox(NULL),
     _pGrid(NULL),
-    _bbox_center(Pt3dr(0.,0.,0.)),
-    _clouds_center(Pt3dr(0.,0.,0.)),
-    _appMode(appMode)
+	_bbox_center(QVector3D(0.,0.,0.)),
+	_clouds_center(QVector3D(0.,0.,0.)),
+	_appMode(appMode)
+//    _bDrawTiles(false)
 {
     if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
     else _glMaskedImage._m_mask->setVisible(true);
@@ -40,15 +43,16 @@ cGLData::cGLData(cData *data, cParameters aParams, int appMode):
     _pAxis(new cAxis),
     _pBbox(new cBBox),
     _pGrid(new cGrid),
-    _bbox_center(Pt3dr(0.,0.,0.)),
-    _clouds_center(Pt3dr(0.,0.,0.)),
+	_bbox_center(QVector3D(0.,0.,0.)),
+	_clouds_center(QVector3D(0.,0.,0.)),
     _appMode(appMode),
     _diam(1.f),
-    _incFirstCloud(false)
+	_incFirstCloud(false)
+//    _bDrawTiles(false)
 {
     initOptions(appMode);
 
-    setData(data, true, aParams.getSceneCenterType());
+	setData(data, true, aParams.getSceneCenterType());
 
     setPolygons(data);
 
@@ -71,10 +75,15 @@ void cGLData::setPolygons(cData *data)
             polygon->setHelper(new cPolygonHelper(polygon, 3));
             _vPolygons.push_back(polygon);
         }
-    }
+	}
 }
 
-void cGLData::setData(cData *data, bool setCam, int centerType)
+void cGLData::addPolygon(cPolygon* polygon)
+{
+	_vPolygons.push_back(polygon);
+}
+
+void cGLData::setData(cData *data, bool setCam, int centerType	)
 {
     for (int aK = 0; aK < data->getNbClouds(); ++aK)
     {
@@ -84,7 +93,7 @@ void cGLData::setData(cData *data, bool setCam, int centerType)
     }
 
     float sc = data->getBBoxMaxSize() / 1.5f;
-    Pt3dr scale(sc, sc, sc);
+	QVector3D scale(sc, sc, sc);
 
     _pBall->setScale(scale);
     _pAxis->setScale(scale);
@@ -95,7 +104,7 @@ void cGLData::setData(cData *data, bool setCam, int centerType)
     if(setCam)
         for (int i=0; i< data->getNbCameras(); i++)
         {
-            cCam *pCam = new cCam(data->getCamera(i), sc);
+			cCamGL *pCam = new cCamGL(data->getCamera(i), sc);
 
             _vCams.push_back(pCam);
         }
@@ -105,6 +114,7 @@ void cGLData::setData(cData *data, bool setCam, int centerType)
     setCloudsCenter(data->getCloudsCenter());
 
     switchCenterByType(centerType);
+
 }
 
 bool cGLData::incFirstCloud() const
@@ -117,9 +127,14 @@ void cGLData::setIncFirstCloud(bool incFirstCloud)
     _incFirstCloud = incFirstCloud;
 }
 
-cMaskedImageGL &cGLData::glImage()
+cMaskedImageGL &cGLData::glImageMasked()
 {
     return _glMaskedImage;
+}
+
+QVector<cMaskedImageGL *> cGLData::glTiles()
+{
+    return _glMaskedTiles;
 }
 
 cPolygon *cGLData::polygon(int id)
@@ -169,19 +184,55 @@ void cGLData::initOptions(int appMode)
 
 cGLData::~cGLData()
 {
-    _glMaskedImage.deleteTextures();
-    _glMaskedImage.deallocImages();
 
-    qDeleteAll(_vCams);
-    _vCams.clear();
+	_glMaskedImage.deleteTextures();
+	_glMaskedImage.deallocImages();
 
-    if(_pBall != NULL) delete _pBall;
-    if(_pAxis != NULL) delete _pAxis;
-    if(_pBbox != NULL) delete _pBbox;
-    if(_pGrid != NULL) delete _pGrid;
+	for (int aK=0; aK < _glMaskedTiles.size();++aK)
+	{
+		_glMaskedTiles[aK]->deleteTextures();
+		_glMaskedTiles[aK]->deallocImages();
 
-    //pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
-    _vClouds.clear();
+		if(_glMaskedTiles[aK])
+			delete _glMaskedTiles[aK];
+
+		_glMaskedTiles[aK] = NULL;
+
+	}
+
+	_glMaskedTiles.clear();
+
+	for (int aK=0; aK < _vCams.size();++aK)
+	{
+
+		if(_vCams[aK])
+			delete _vCams[aK];
+
+		_vCams[aK] = NULL;
+
+	}
+
+	_vCams.clear();
+
+	for (int aK=0; aK < _vPolygons.size();++aK)
+	{
+
+		if(_vPolygons[aK])
+			delete _vPolygons[aK];
+
+		_vPolygons[aK] = NULL;
+
+	}
+
+	_vPolygons.clear();
+
+	if(_pBall != NULL) delete _pBall;
+	if(_pAxis != NULL) delete _pAxis;
+	if(_pBbox != NULL) delete _pBbox;
+	if(_pGrid != NULL) delete _pGrid;
+
+	//pas de delete des pointeurs dans Clouds c'est Data qui s'en charge
+	_vClouds.clear();
 }
 
 void outMatrix4X4(GLdouble *mvMatrix)
@@ -198,31 +249,44 @@ void cGLData::draw()
 {
 
     if(!is3D())
-        glImage().draw();
+    {
+		if (glImageMasked().glImage()->isVisible())
+			glImageMasked().draw();
+        else
+        {
+			for (int aK=0; aK< glTiles().size(); ++aK)
+				glTiles()[aK]->draw();
+
+			 glImageMasked().glImage()->setVisible(false);
+			 glImageMasked().draw();
+
+        }
+    }
     else
     {
-        enableOptionLine();
+		enableOptionLine();
 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
-        glTranslated(getPosition().x,getPosition().y,getPosition().z);
-        glRotatef(cObject::getRotation().x,1.f,0.f,0.f);
-        glRotatef(cObject::getRotation().y,0.f,1.f,0.f);
-        glRotatef(cObject::getRotation().z,0.f,0.f,1.f);
-        glTranslated(-getPosition().x,-getPosition().y,-getPosition().z);
+		glTranslated(getPosition().x(),getPosition().y(),getPosition().z());
+		glRotatef(cObject::getRotation().x(),1.f,0.f,0.f);
+		glRotatef(cObject::getRotation().y(),0.f,1.f,0.f);
+		glRotatef(cObject::getRotation().z(),0.f,0.f,1.f);
+		glTranslated(-getPosition().x(),-getPosition().y(),-getPosition().z());
 
-        for (int i=0; i<_vClouds.size();i++)
-        {
-            GLfloat oldPointSize;
-            glGetFloatv(GL_POINT_SIZE,&oldPointSize);
+		for (int i=0; i<_vClouds.size();i++)
+		{
+			GLfloat oldPointSize;
+			glGetFloatv(GL_POINT_SIZE,&oldPointSize);
 
-            if(_incFirstCloud && i == 0)
-                glPointSize(oldPointSize*3.f);
+			if(_incFirstCloud && i == 0)
+				glPointSize(oldPointSize*3.f);
 
-            _vClouds[i]->draw();
 
-            glPointSize(oldPointSize);
-        }
+			_vClouds[i]->draw();
+
+			glPointSize(oldPointSize);
+		}
 
         //cameras
         for (int i=0; i< _vCams.size();i++) _vCams[i]->draw();
@@ -235,7 +299,7 @@ void cGLData::draw()
         _pBbox->draw();
         _pGrid->draw();
 
-        disableOptionLine();
+		disableOptionLine();
     }
 }
 
@@ -263,19 +327,86 @@ void cGLData::drawCenter(bool white)
 
 }
 
-void cGLData::normalizeCurrentPolygon(bool nrm)
+void cGLData::createTiles()
 {
-    if(currentPolygon())
-        currentPolygon()->normalize(nrm);
+    int maxTextureSize;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+	maxTextureSize /= 2;
+
+
+	QSize fullSize	= _glMaskedImage.fullSize();
+
+
+	unsigned int nbTilesX = 6*qCeil((float) fullSize.width() / maxTextureSize);
+	unsigned int nbTilesY = 6*qCeil((float) fullSize.height()/ maxTextureSize);
+
+//	nbTilesX /= 2;
+//	nbTilesY /= 2;
+//    cout << "tile size : " << fullRes_image_sizeX/ nbTilesX << " " <<  fullRes_image_sizeY/ nbTilesY << endl;
+
+	QSize stile(fullSize.width()/nbTilesX,fullSize.height()/nbTilesY);
+
+
+//    cout << "NB TILES (ROW - COL) = " << nbTilesX << "x" << nbTilesY << endl;
+
+    for (unsigned int aK=0; aK< nbTilesX; aK++)
+        for (unsigned int bK=0; bK< nbTilesY; bK++)
+        {
+			QRectF rect(QPointF(aK*stile.width(), bK*stile.height()),QPointF((aK+1)*stile.width(), (bK+1)*stile.height()));
+
+            cMaskedImageGL* tile = new cMaskedImageGL(rect);
+
+            _glMaskedTiles.push_back(tile);
+        }
+}
+cBall* cGLData::pBall() const
+{
+	return _pBall;
 }
 
-void cGLData::clearPolygon()
+void cGLData::saveLockRule()
+{
+	_locksRule[0] = QPointF(-1,-1);
+	_locksRule[1] = QPointF(-1,-1);
+
+	if(polygon(1))
+		for (int i = 0; i < polygon(1)->size(); ++i)
+			if(polygon(1)->point(i).parent())
+				_locksRule[i] = *((cPoint*)polygon(1)->point(i).parent());
+}
+
+void cGLData::applyLockRule()
+{
+	if(polygon(1))
+		for (int i = 0; i < polygon(1)->size(); ++i)
+		{
+			if(_locksRule[i] != QPointF(-1,-1))
+			{
+				for (int p = 0; p < polygon(0)->size(); ++p)
+				{
+					if(_locksRule[i] ==  polygon(0)->point(p))
+					{
+						polygon(1)->point(i).setParent(&polygon(0)->point(p));
+						break;
+					}
+				}
+			}
+		}
+}
+
+void cGLData::normalizeCurrentPolygon(bool nrm)
+{
+	if(currentPolygon())
+		currentPolygon()->normalize(nrm);
+}
+
+void cGLData::clearCurrentPolygon()
 {
     if(currentPolygon())
         currentPolygon()->clear();
 }
 
-void cGLData::setGlobalCenter(Pt3d<double> aCenter)
+void cGLData::setGlobalCenter(QVector3D aCenter)
 {
     setPosition(aCenter);
     _pBall->setPosition(aCenter);
@@ -296,7 +427,7 @@ void cGLData::switchCenterByType(int val)
             setGlobalCenter(_bbox_center);
             break;
         case eOriginCenter:
-            setGlobalCenter(Pt3dr(0.,0.,0.));
+			setGlobalCenter(QVector3D(0.,0.,0.));
             break;
     }
 }
@@ -312,8 +443,8 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 
     for (int aK=0; aK < _vClouds.size();++aK)
     {
-        float sqrD;
-        float dist = FLT_MAX;
+
+		float dist = std::numeric_limits<float>::max();
         idx2 = -1; // TODO a verifier, pourquoi init a -1 , probleme si plus 2 nuages...
         QPointF proj;
 
@@ -323,7 +454,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
         {
             mm.getProjection(proj, a_cloud->getVertex( bK ).getPosition());
 
-            sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
+			const float sqrD = (proj.x()-pos.x())*(proj.x()-pos.x()) + (proj.y()-pos.y())*(proj.y()-pos.y());
 
             if (sqrD < dist )
             {
@@ -338,34 +469,40 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
     {
         //final center:
         GlCloud *a_cloud = _vClouds[idx1];
-        Pt3dr Pt = a_cloud->getVertex( idx2 ).getPosition();
+		QVector3D Pt = a_cloud->getVertex( idx2 ).getPosition();
 
         setGlobalCenter(Pt);
-        mm.resetAllMatrix(Pt);
+		mm.resetAllMatrix(Pt,false);
+
         return true;
     }
 
     return false;
 }
 
-void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
+void cGLData::editImageMask(int mode, cPolygon *polyg, bool m_bFirstAction)
 {
     QPainter    p;
-    QBrush SBrush(Qt::black);
-    QBrush NSBrush(Qt::white);
+
     QRect  rect = getMask()->rect();
+    QRectF rectPoly;
 
     p.begin(getMask());
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.setPen(Qt::NoPen);
 
-    QPolygonF polyDraw(polyg.getVector());
+	QPolygonF polyDraw(polyg->getVector());
     QPainterPath path;
 
-    if (_glMaskedImage.getLoadedImageRescaleFactor() < 1.f)
+    float scaleFactor = _glMaskedImage.getLoadedImageRescaleFactor();
+    QTransform trans;
+
+    if ( scaleFactor < 1.f )
     {
-        QTransform trans;
-        trans=trans.scale(_glMaskedImage.getLoadedImageRescaleFactor(),_glMaskedImage.getLoadedImageRescaleFactor());
+        rectPoly = polyDraw.boundingRect();
+
+        trans = trans.scale(scaleFactor,scaleFactor);
+
         polyDraw = trans.map(polyDraw);
     }
 
@@ -381,26 +518,33 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
         path = path.subtracted(inner);
     }
 
+//	QColor colorSelect(Qt::white);
+//	QColor colorUnSelect(Qt::black);
+
+
+	QColor colorSelect(Qt::black);
+	QColor colorUnSelect(Qt::white);
+
     if(mode == ADD_INSIDE || mode == ADD_OUTSIDE)
     {
         if (m_bFirstAction)
-            p.fillRect(rect, Qt::white);
+			p.fillRect(rect, colorSelect);
 
-        p.setBrush(SBrush);
+		p.setBrush(QBrush(colorUnSelect));
         p.drawPath(path);
     }
     else if(mode == SUB_INSIDE || mode == SUB_OUTSIDE)
     {
-        p.setBrush(NSBrush);
+		p.setBrush(QBrush(colorSelect));
         p.drawPath(path);
     }
     else if(mode == ALL)
 
-        p.fillRect(rect, Qt::black);
+		p.fillRect(rect, colorUnSelect);
 
     else if(mode == NONE)
 
-        p.fillRect(rect, Qt::white);
+		p.fillRect(rect, colorSelect);
 
     p.end();
 
@@ -409,9 +553,34 @@ void cGLData::editImageMask(int mode, cPolygon &polyg, bool m_bFirstAction)
 
     _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
     _glMaskedImage._m_mask->createTexture(getMask());
+
+//    if ( getDrawTiles() )
+//    {
+
+//        for (int aK=0; aK < glTiles().size(); ++aK)
+//        {
+//            cMaskedImageGL * tile = glTiles()[aK];
+//            cImageGL * glMaskTile = tile->glMask();
+
+//            QVector3D pos = glMaskTile->getPosition();
+//            QSize sz  = glMaskTile->getSize();
+//            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
+
+//            if (rectImg.intersects(rectPoly))
+//            {
+//                QRect rescaled_rect = trans.mapRect(rectImg.toAlignedRect());
+
+//                QImage mask_crop = getMask()->copy(rescaled_rect).scaled(sz, Qt::KeepAspectRatio);
+
+//                tile->getMaskedImage()->_m_mask = &mask_crop;
+
+//                glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
+//            }
+//        }
+//    }
 }
 
-void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, MatrixManager &mm)
+void cGLData::editCloudMask(int mode, cPolygon *polyg, bool m_bFirstAction, MatrixManager &mm)
 {
 
     QPointF P2D;
@@ -424,12 +593,12 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
         for (uint bK=0; bK < (uint) a_cloud->size();++bK)
         {
             GlVertex &P  = a_cloud->getVertex( bK );
-            Pt3dr  Pt = P.getPosition();
+			QVector3D  Pt = P.getPosition();
 
-            if(getRotation().x != 0)
+			if(getRotation().x() != 0)
             {
                 Pt = Pt - getPosition() ;
-                Pt = Pt3dr(Pt.x,Pt.z,-Pt.y);
+				Pt = QVector3D(Pt.x(),Pt.z(),-Pt.y());
                 Pt = Pt + getPosition() ;
             }
 
@@ -437,7 +606,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
             {
             case ADD_INSIDE:
                 mm.getProjection(P2D, Pt);
-                pointInside = polyg.isPointInsidePoly(P2D);
+				pointInside = polyg->isPointInsidePoly(P2D);
                 if (m_bFirstAction)
                     P.setVisible(pointInside);
                 else
@@ -445,7 +614,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
                 break;
             case ADD_OUTSIDE:
                 mm.getProjection(P2D, Pt);
-                pointInside = polyg.isPointInsidePoly(P2D);
+				pointInside = polyg->isPointInsidePoly(P2D);
                 if (m_bFirstAction)
                     P.setVisible(!pointInside);
                 else
@@ -455,7 +624,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
                 if (P.isVisible())
                 {
                     mm.getProjection(P2D, Pt);
-                    pointInside = polyg.isPointInsidePoly(P2D);
+					pointInside = polyg->isPointInsidePoly(P2D);
                     P.setVisible(!pointInside);
                 }
                 break;
@@ -463,7 +632,7 @@ void cGLData::editCloudMask(int mode, cPolygon &polyg, bool m_bFirstAction, Matr
                 if (P.isVisible())
                 {
                     mm.getProjection(P2D, Pt);
-                    pointInside = polyg.isPointInsidePoly(P2D);
+					pointInside = polyg->isPointInsidePoly(P2D);
                     P.setVisible(pointInside);
                 }
                 break;

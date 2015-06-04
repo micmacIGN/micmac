@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -47,11 +47,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /***********************************************************************/
 /***********************************************************************/
-/***                                                                 ***/ 
-/***                                                                 ***/ 
-/***              Tile_F2d                                           ***/ 
-/***                                                                 ***/ 
-/***                                                                 ***/ 
+/***                                                                 ***/
+/***                                                                 ***/
+/***              Tile_F2d                                           ***/
+/***                                                                 ***/
+/***                                                                 ***/
 /***********************************************************************/
 /***********************************************************************/
 
@@ -68,7 +68,7 @@ Tile_F2d::Tile_F2d(Packed_Flux_Of_Byte * pfob) :
        //======================
        // Tile_F2d::read_seg
        //======================
-  
+
        // This def value is adapted to uncompressed file
 
 
@@ -88,7 +88,7 @@ void Tile_F2d::write_seg(Fich_Im2d *,void * buf,INT x0,INT x1)
         // Tile_F2d::seek_in_line
         //======================
 
-        // This def value may be really un-optimal; 
+        // This def value may be really un-optimal;
         // but :
         //        o it allows a fast adaptation to many formats
         //        o there is sometine no much better to do
@@ -129,7 +129,7 @@ void Tile_F2d::seek_pack_line(Fich_Im2d * fich,INT y0,INT y1,bool read_mode)
         // Tile_F2d::r_new_line
         //=========================
 
-        //  this message is usefull, for example with  CCITT bi-dimentionnal
+        //  this message is usefull, for example with  CCITT bi-dimensional
         //  coding where some specials actions are to be made for each new-line
 
 void Tile_F2d::r_new_line(Fich_Im2d *,INT)
@@ -151,7 +151,7 @@ void Tile_F2d::w_end_line(Fich_Im2d *,INT)
         // Tile_F2d::new_tile
         //=========================
 
-        //  this message is usefull, for the file 
+        //  this message is usefull, for the file
         //  that  are really tiled; with TIFF file, for example
         //  the file will be reinitialized using tiles offset tags
 
@@ -209,18 +209,18 @@ void Tile_F2d::w_use_this_tile(class Fich_Im2d *)
 
 /***********************************************************************/
 /***********************************************************************/
-/***                                                                 ***/ 
-/***                                                                 ***/ 
-/***              Fich_Im2d                                          ***/ 
-/***                                                                 ***/ 
-/***                                                                 ***/ 
+/***                                                                 ***/
+/***                                                                 ***/
+/***              Fich_Im2d                                          ***/
+/***                                                                 ***/
+/***                                                                 ***/
 /***********************************************************************/
 /***********************************************************************/
 
 
 Fich_Im2d::Fich_Im2d
 (
-      Flux_Pts_Computed * flx, 
+      Flux_Pts_Computed * flx,
       char *              usr_buf,
       Pt2di               sz_file,
       Pt2di               sz_tiles,
@@ -240,7 +240,7 @@ Fich_Im2d::Fich_Im2d
      ASSERT_TJS_USER
      (
           flx->dim() == 2,
-          "Writing a 2-dimentionnal file with a non 2 dimentional flux"
+          "Writing a 2-dimensional file with a non 2 dimensional flux"
      );
 
      _sz_el    = sz_el;
@@ -308,10 +308,10 @@ void Fich_Im2d::assert_not_wc(bool ) const
 void Fich_Im2d::read_write_buf(const RLE_Pack_Of_Pts * pack,bool read_mode)
 {
 /*
-std::cout << "Fich_Im2d::read_write_buf " << pack->y()  
+std::cout << "Fich_Im2d::read_write_buf " << pack->y()
                                << " " << pack->vx0()
                                << " " << pack->x1()
-			       << "\n";
+                   << "\n";
 */
 
     INT mYCurPack = pack->pt0()[1];
@@ -323,7 +323,7 @@ std::cout << "Fich_Im2d::read_write_buf " << pack->y()
     INT mX1CurPack = mX0CurPack + nb;
 
     //  itxK mCurItY : indice de dalles
-    
+
     INT itx0 = mX0CurPack     / _sztx;
     INT itx1 = (mX1CurPack-1) / _sztx;
     INT mCurItY  =  mYCurPack     / _sz_til.y;
@@ -355,7 +355,7 @@ std::cout << "Fich_Im2d::read_write_buf " << pack->y()
 
          if (tile->_last_til_Y != mCurItY)
          {
-            tile->_last_til_Y = mCurItY; 
+            tile->_last_til_Y = mCurItY;
             if (read_mode)
                tile->r_new_tile(this);
             else
@@ -367,17 +367,17 @@ std::cout << "Fich_Im2d::read_write_buf " << pack->y()
          INT x0t = ElMax(0,mX0CurPack-it*_sztx);
          INT x1t = ElMin(mX1CurPack-it*_sztx,tile->_sz_tile_log);
          INT nbt = x1t-x0t;
-         
 
-	 if ( _compressed)
-	 {
+
+     if ( _compressed)
+     {
             ASSERT_INTERNAL
             (
                   (yt > tile->_last_y)
                || ((yt == tile->_last_y) && (x0t >= tile->_last_x )),
                "Standard File 2d can only handle forward flux \n"
             );
-	 }
+     }
 
          if (yt > tile->_last_y)
          {
@@ -405,7 +405,7 @@ std::cout << "Fich_Im2d::read_write_buf " << pack->y()
              else
                 tile->w_new_line(this,yt);
          }
-             
+
          if (tile->_last_x != x0t)
          {
              assert_not_wc(read_mode);
@@ -438,10 +438,10 @@ std::cout << "Fich_Im2d::read_write_buf " << pack->y()
                        2) recopier buf dans un buffer local
                        2) padder avec des zero
             */
-    
+
             // Rustine pour gerer le cas ou on ecrit, par ex, en little-indian sur un fichier
-	    // cree en big-indian  (cas courrant en calcul distribue).  Pour faire simple tou
-	    // en garantissant de ne pas modifier la donnee, on fait deux inversion
+        // cree en big-indian  (cas courrant en calcul distribue).  Pour faire simple tou
+        // en garantissant de ne pas modifier la donnee, on fait deux inversion
             if (_byte_inversed)
             {
                 byte_inv_tab( _buf+sum_xt*_sz_el,(_sz_el)/ _dim_out,(x1t-x0t)*_dim_out);
@@ -502,7 +502,7 @@ const Pack_Of_Pts * Fich_Im2d::pre_traite
                     (
                          const Pack_Of_Pts * values,
                          Pack_Of_Pts *       ,
-                         Pack_Of_Pts *       
+                         Pack_Of_Pts *
                     )
 {
    return values;
@@ -510,11 +510,11 @@ const Pack_Of_Pts * Fich_Im2d::pre_traite
 
 /***********************************************************************/
 /***********************************************************************/
-/***                                                                 ***/ 
-/***                                                                 ***/ 
-/***              Std_Bitm_Fich_Im_2d                                ***/ 
-/***                                                                 ***/ 
-/***                                                                 ***/ 
+/***                                                                 ***/
+/***                                                                 ***/
+/***              Std_Bitm_Fich_Im_2d                                ***/
+/***                                                                 ***/
+/***                                                                 ***/
 /***********************************************************************/
 /***********************************************************************/
 
@@ -592,11 +592,11 @@ void Std_Bitm_Fich_Im_2d::output_transfere(const Std_Pack_Of_Pts_Gen * pack)
 
 /***********************************************************************/
 /***********************************************************************/
-/***                                                                 ***/ 
-/***                                                                 ***/ 
-/***              Fonc_Fich_Im2d<Type>                               ***/ 
-/***                                                                 ***/ 
-/***                                                                 ***/ 
+/***                                                                 ***/
+/***                                                                 ***/
+/***              Fonc_Fich_Im2d<Type>                               ***/
+/***                                                                 ***/
+/***                                                                 ***/
 /***********************************************************************/
 /***********************************************************************/
 template <class Type> class Fonc_Fich_Im2d :  public Fonc_Num_Comp_TPL<Type>
@@ -636,7 +636,7 @@ template <class Type>  Fonc_Fich_Im2d<Type>::~Fonc_Fich_Im2d()
       delete _f2d;
 }
 
-template <class Type> const Pack_Of_Pts *  
+template <class Type> const Pack_Of_Pts *
                       Fonc_Fich_Im2d<Type>::values
                       (const Pack_Of_Pts * pack_pts)
 {
@@ -656,10 +656,10 @@ template <class Type> const Pack_Of_Pts *
 
     this->_pack_out->set_nb(pack_pts->nb());
     _f2d->read_write_buf(rle_pts,true);
-    
+
     // eventuellement modifiable , par defaut :
-    // effectue  un unstrip (par ex, convertion d'un U_INT1* = RVBRVB 
-    // a un INT ** = RRRR.. VVV.. BBB.. 
+    // effectue  un unstrip (par ex, convertion d'un U_INT1* = RVBRVB
+    // a un INT ** = RRRR.. VVV.. BBB..
     //
     // si _spec_transf est defini, fait un appel a _spec_tranf
     // par ex, TGA : convertion ad hoc pour les 16 ou 32 bits
@@ -692,7 +692,7 @@ Fonc_Num_Computed * fonc_num_std_f2d
 {
      Fonc_Num_Computed * res;
 
-     if (f2d->integral_type())                    
+     if (f2d->integral_type())
         res = new Fonc_Fich_Im2d<INT> (arg,f2d,with_def_val);
      else
         res = new Fonc_Fich_Im2d<REAL>(arg,f2d,with_def_val);
@@ -716,11 +716,11 @@ Fonc_Num_Computed * fonc_num_std_f2d
 
 /***********************************************************************/
 /***********************************************************************/
-/***                                                                 ***/ 
-/***                                                                 ***/ 
-/***                  Out_Fich_Im2d                                  ***/ 
-/***                                                                 ***/ 
-/***                                                                 ***/ 
+/***                                                                 ***/
+/***                                                                 ***/
+/***                  Out_Fich_Im2d                                  ***/
+/***                                                                 ***/
+/***                                                                 ***/
 /***********************************************************************/
 /***********************************************************************/
 
@@ -761,7 +761,7 @@ Out_Fich_Im2d::Out_Fich_Im2d
 
      _f2d = f2d;
 
-     Pack_Of_Pts::type_pack tp = 
+     Pack_Of_Pts::type_pack tp =
                  f2d->integral_type() ?
                  Pack_Of_Pts::integer :
                  Pack_Of_Pts::real    ;
@@ -804,11 +804,11 @@ Output_Computed * out_std_f2d
                          Fich_Im2d *            f2d
                   )
 {
-	ELISE_ASSERT
-	(
-		f2d->dim_out()<= arg.fonc()->idim_out(),
-		"Insufficient image channel when wrintig in Image-File"
-	);
+    ELISE_ASSERT
+    (
+        f2d->dim_out()<= arg.fonc()->idim_out(),
+        "Insufficient image channel when wrintig in Image-File"
+    );
 
     Output_Computed * res = new Out_Fich_Im2d (arg,f2d) ;
     res = out_adapt_type_fonc
@@ -833,13 +833,13 @@ Output_Computed * out_std_f2d
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -849,17 +849,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

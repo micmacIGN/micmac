@@ -50,6 +50,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "ext_stl/numeric.h"
 
 
+bool BugZ0=false;
+
 
 extern bool DebugCamBil;
 
@@ -597,8 +599,12 @@ void ReinitStatCondFaisceau()
    aVBSurH.clear();
 }
 
+bool ShowStatMatCond = true;
 void ShowStatCondFaisceau(bool aShowVect)
 {
+     if (!ShowStatMatCond) return;
+
+
      std::cout << "Cond = " << aMaxCond  
                << "  Moy = " << (aSomCond/aNbCond) 
                << "  SupS = " << (double(aNb100)/double(aNbCond))
@@ -824,7 +830,16 @@ void cSubstitueBlocIncTmp::AddInc(const cIncListInterv & anILI)
       else
       {
           // On a besoin de connaitre l'ordre Tmp/Non Tmp pour la gestion des sym
-          ELISE_ASSERT(mVSBlTmp[0].I0AbsAlloc()>=aSB.I1AbsAlloc(),"cSubstitueBlocIncTmp::AddInc recouvrement / TMP ");
+          if (mVSBlTmp[0].I0AbsAlloc()<aSB.I1AbsAlloc())
+          {
+
+                // std::cout << " HHHHHhhhh " << mVSBlTmp[0].I0AbsAlloc() << " " << aSB.I1AbsAlloc() << "\n";
+                ELISE_ASSERT
+                (
+                     mVSBlTmp[0].I0AbsAlloc()>=aSB.I1AbsAlloc(),
+                     "cSubstitueBlocIncTmp::AddInc recouvrement / TMP "
+                );
+          }
       }
 
       for (int aK=0 ; aK<int(mSBlNonTmp.size()) ; aK++)
@@ -878,6 +893,14 @@ void cSubstitueBlocIncTmp::Close()
    cCmpSsBloc aCmp;
    std::sort(mSBlNonTmp.begin(),mSBlNonTmp.end(),aCmp);
 
+/*
+   std::cout << "CloseCSB, SIZE " << mVSBlTmp.size() << " " << mSBlNonTmp.size() << "\n";
+   for (int aK=0 ; aK< int(mSBlNonTmp.size()) ; aK++)
+   {
+      const cSsBloc &aBl = mSBlNonTmp[aK];
+      std::cout << "SSSBL " << aBl.I0AbsAlloc() << " " << aBl.I1AbsAlloc() << "\n";
+   }
+*/
 }
 
 
@@ -1157,7 +1180,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
        )
 {
 
-if (0) 
+if (BugZ0) 
 {
     std::cout << "====== cManipPt3TerInc::CalcPTerInterFaisceau ====\n";
     for (int aK=0 ; aK< int(aVPds.size()) ; aK++)
@@ -1210,6 +1233,7 @@ if (0)
 	    else 
 	    {
                aVS.push_back(aSeg);
+               if (BugZ0) std::cout << "SEG " << aSeg.P0() << " " << aSeg.P1() << "\n";
             }
          }
    }
@@ -1306,15 +1330,29 @@ if (0)
 
       Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(aPtrVPds,aVS,&OK,aRAZ,aParam.mProjIsInit ? &aROIF : 0,aPAbs);
 
+      if (BugZ0)
+      {
+           std::cout << "RES1 " << aRes << "\n";
+      }
+
       if (OK)
       {
          for (int aK=0 ; aK< int(aVPds.size()) ; aK++)
          {
-             aPMod[aK] = aVPds[aK]/aVCC[aK]->ResolSolOfPt(aRes);
+             aPMod[aK] = aVPds[aK]/ElMax(1e-60,ElAbs(aVCC[aK]->ResolSolOfPt(aRes)));
+
+             if (BugZ0) 
+             {
+                    std::cout << "MMOD " << aPMod[aK] << " " << aVPds[aK] << " " << aVCC[aK]->ResolSolOfPt(aRes) << "\n";
+             }
          }
          aRes =  ElSeg3D::L2InterFaisceaux(&aPMod,aVS,&OK,aRAZ,aParam.mProjIsInit ? &aROIF : 0,aPAbs);
       }
 
+      if (BugZ0)
+      {
+           std::cout << "RES2 " << aRes << "\n";
+      }
 
       aParam.mTer = aRes;
       aParam.mHaut = euclid(aParam.mTer-aSomC);
@@ -1424,6 +1462,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                   (CptUPL==707009) || (CptUPL==707008)
               ) ;
 
+   // BugZ0 = (CptUPL==3921255);
 
 
 
@@ -1481,6 +1520,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               (WithApp ? &aVAppui : 0),
                               &mResidus.mMesPb
                          );
+
+
    if (UPL_DCC()) std::cout << "================== mResidus.mPTer " <<mResidus.mPTer  << " " << mResidus.mBSurH << "\n";
           mResidus.mBSurH  = mPPP.mBsH;
           if (BugNanFE)

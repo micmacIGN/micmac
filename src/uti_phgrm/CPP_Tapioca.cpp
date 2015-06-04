@@ -158,15 +158,24 @@ void DoDevelopp(int aSz1,int aSz2)
 }
 
 
-void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename )
+void getPastisGrayscaleFilename
+     (
+          const std::string & aParamDir,
+          const string &i_baseName,
+          int i_resolution,
+          string &o_grayscaleFilename
+     )
 {
+    // SFS
     if ( i_resolution<=0 )
     {
-        o_grayscaleFilename = NameFileStd( aParamDir+i_baseName, 1, false, true, false );
+        // o_grayscaleFilename = NameFileStd( aParamDir+i_baseName, 1, false, true, false );
+        o_grayscaleFilename = PastisNameFileStd( aParamDir+i_baseName);
         return;
     }
 
-    Tiff_Im aFileInit = Tiff_Im::StdConvGen( aParamDir+i_baseName, 1, false );
+    // Tiff_Im aFileInit = Tiff_Im::StdConvGen( aParamDir+i_baseName, 1, false );
+    Tiff_Im aFileInit = PastisTif(aParamDir+i_baseName);
     Pt2di 	imageSize = aFileInit.sz();
 
     double scaleFactor = double( i_resolution ) / double( ElMax( imageSize.x, imageSize.y ) );
@@ -383,7 +392,7 @@ int All(int argc,char ** argv, const std::string &aArg="")
     return 0;
 }
 
-// Variant de tapioca adatee au lignes resserrees type video
+// Variante de tapioca adaptee aux lignes resserees type video
 
 
 int Line(int argc,char ** argv, const std::string &aArg="")
@@ -889,14 +898,31 @@ int Graph_(int argc,char ** argv, const std::string &aArg="")
         return EXIT_SUCCESS;
 }
 
+void Del_MkTapioca(string MkFT)
+{
+    //Delete MkTapioca
+    if (!MkFT.empty())
+    {
+        std::string cmdDLMkTapioca;
+    #if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
+        cmdDLMkTapioca = "rm " + MkFT;
+    #endif
+    #if (ELISE_windows)
+        replace(MkFT.begin(), MkFT.end(), '/', '\\');
+        cmdDLMkTapioca = "del /Q " + MkFT;
+    #endif
+        system_call(cmdDLMkTapioca.c_str());
+    }
+}
+
 int Tapioca_main(int argc,char ** argv)
 {
 #if(ELISE_QT_VERSION >= 4)
 
-    QApplication app(argc, argv);
-
     if (MMVisualMode)
     {
+        QApplication app(argc, argv);
+
         QStringList items;
 
         for (int aK=0; aK < aNbType; ++aK)
@@ -984,31 +1010,36 @@ int Tapioca_main(int argc,char ** argv)
 
     if (TheType == Type[0])
     {
-        int aRes = MultiEch(argc,argv,TheType);
+        int aRes = MultiEch(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[1])
     {
-        int aRes = All(argc,argv,TheType);
+        int aRes = All(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[2])
     {
-        int aRes = Line(argc,argv,TheType);
+        int aRes = Line(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[3])
     {
-        int aRes = File(argc,argv,TheType);
+        int aRes = File(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }
     else if (TheType == Type[4])
     {
-        int aRes = Graph_(argc,argv,TheType);
+        int aRes = Graph_(argc, argv, TheType);
+        Del_MkTapioca(MkFT);
         BanniereMM3D();
         return aRes;
     }

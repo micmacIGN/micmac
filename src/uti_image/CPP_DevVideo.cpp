@@ -47,10 +47,12 @@ class cAppliDevideo;
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 // ffmpeg -i MVI_0247.MOV Im_0247_%5d_Ok.png
 
-// Im*_Ok => OK 
+// Im*_Ok => OK
 // Im*_Nl => Image Nulle (eliminee)
 
+// POUR L'INSTANT LES IMAGES DOIVENT AVOIR UN NOM FIGE AVEC Im_0000_
 
+// ffmpeg -i MVI_0101.MOV Im_0000_%5d_Ok.png
 
 //=================================================
 
@@ -129,7 +131,7 @@ int  CalcAutoCorrel_main(int argc,char ** argv)
         MakeFileXML(aMTD,aNameXml);
 
     }
-    
+
     return EXIT_SUCCESS;
 }
 
@@ -139,7 +141,7 @@ int  CalcAutoCorrel_main(int argc,char ** argv)
 
 
 static const int  TheSzDecoup = 300; // Taille de decoupe pour limiter taille et temps de Fenetre de temps
-static const double ThePropRechPiv = 0.1; 
+static const double ThePropRechPiv = 0.1;
 
 
 
@@ -269,7 +271,7 @@ void cOneImageVideo::LoadAutoCorrel()
     mAutoCor = GetAutoCorrel(aMDTI,2);
 }
 
-    
+
    // mNamePtsSift =mAppli->NamePtsSift(this);
 
 class cCmpIVPtrOnAC
@@ -323,7 +325,7 @@ void cOneImageVideo::CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> & a
            aEcartMoy += ElAbs(aVOIV[aK]->mAutoCor-aVMed) * aVOIV[aK]->mPdsAutoCor;
       }
       aEcartMoy /= aSomPds;
-      
+
       mNormAC = (mAutoCor-aVMed)/aEcartMoy;
 
       std::cout << mNameOk << " " << mAutoCor << " Med " << aVMed  << " NAC " << mNormAC << "\n";
@@ -346,12 +348,12 @@ double cOneImageVideo::PdsAutoCor() const {return mPdsAutoCor;}
 
 
 
-void cOneImageVideo::SetLongPred(int aL) 
+void cOneImageVideo::SetLongPred(int aL)
 {
     mLongPred = aL;
 }
 
-void cOneImageVideo::InitOk() 
+void cOneImageVideo::InitOk()
 {
    if (mLongPred<0)
    {
@@ -391,7 +393,7 @@ void cOneImageVideo::UpdateCheminOpt(int aS0,int aS1,const std::vector<cOneImage
         double aGainArc = mNormAC +  aPred.mNormAC - (aDeltaL + 2*ElSquare(aDeltaL)) * 1.0;
         for (int aKSolP=0 ; aKSolP<int(aPred.mSols.size())  ; aKSolP++)
         {
-            while (int(mSols.size()) <= (aKSolP+1)) 
+            while (int(mSols.size()) <= (aKSolP+1))
             {
                 mSols.push_back(cSolChemOptImV(-1e30));
             }
@@ -443,27 +445,28 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
      mMinMax         (0,100000000)
 {
 
-
-    std::cout << "BEGIN Devideo \n";
     ElInitArgMain
      (
            argc,argv,
            LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile) ,
            LArgMain() << EAM(mTargetRate,"Rate",true,"Rate final Def=4")
                       << EAM(mNumVid,"NumVid",true,"Num of video, def = 00 ")
-                      << EAM(mParamSzSift,"ParamSzSift",true,"Parameter used for sift devlopment, def=-1 (Highest)")
+                      << EAM(mParamSzSift,"ParamSzSift",true,"Parameter used for sift development, def=-1 (Highest)")
                       << EAM(mPatNumber,"PatNumber",true,"Pat number (reduce number for test)")
                       << EAM(mMinMax,"MinMax",true,"Min Max numbers (reduce number for test)")
     );
 
-   
+    if (MMVisualMode) return;
+
+    std::cout << "BEGIN Devideo \n";
+
     mEASF.Init(mFullName);
-    if (!EAMIsInit(&mNumVid)) 
+    if (!EAMIsInit(&mNumVid))
     {
         mNumVid = ExtractDigit(StdPrefix(mEASF.mPat),"0000");
     }
 
-    if (!EAMIsInit(&mPatNumber)) 
+    if (!EAMIsInit(&mPatNumber))
     {
         mPatNumber = mNumVid +"_" + "[0-9]{5}";
     }
@@ -473,13 +476,13 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
 
     ELISE_fp::MkDir(Dir()+"Tmp-MM-Dir/");
 
-    
+
     mMMPatImDev = NamePat("Ok|Nl");
     mAutoMM =  new cElRegex(mMMPatImDev,10);
     mMMPatImOk = NamePat("Ok");
 
 
-//    *** std::cout << mMMPatImDev << " " << mMMPatImOk << "\n"; getchar();
+// std::cout << mMMPatImDev << " " << mMMPatImOk << "\n"; getchar();
     {
         const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImDev);
         for (int aK=0 ; aK<int(aVN->size()) ; aK++)
@@ -508,8 +511,8 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
             mVName.push_back((*aVN)[aK]);
         }
     }
-    
-    
+
+
     // developpement des images
 
     for (int aK=0 ; aK<int(mVName.size()) ; aK++)
@@ -560,7 +563,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
         int aPivPrec = PivotAPriori(aKI-1);
         int aPiv  = PivotAPriori(aKI);
         int aPivNext = PivotAPriori(aKI+1);
-        
+
         int aPiv0 =  round_ni(barry(ThePropRechPiv,aPivPrec,aPiv));
         int aPiv1 =  ElMax(aPiv+1,round_ni(barry(ThePropRechPiv,aPivNext,aPiv)));
         int aPivMax = -1;
@@ -584,7 +587,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     vPivot.push_back(PivotAPriori(mNbInterv));
 
 
-    // ============= optimisation dans chaque intervalle === 
+    // ============= optimisation dans chaque intervalle ===
 
     mVIms[0]->SetLongPred(0);
     for (int aK=1 ; aK<= mNbInterv ; aK++)
@@ -601,7 +604,6 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
 }
 
 
-extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename );
 
 std::string  cAppliDevideo::NamePtsSift( cOneImageVideo * anOIV)
 {

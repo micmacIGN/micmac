@@ -287,6 +287,8 @@ class Fonc_Num : public  PRC0
 	 INT  NumCoord() const; // En qq sorte la fonc inverse de kth_coord, 
 	                        // => Erreur si pas une fonc coord
      void show(std::ostream & os) const;
+     Fonc_Num Simplify() ;
+     void inspect() const;  // debug
      bool is0() const;
      bool is1() const;
      bool IsCsteRealDim1(REAL & aVal) const;
@@ -375,7 +377,7 @@ template <> inline Fonc_Num ElAbs   (Fonc_Num ) {ELISE_ASSERT(false,"ElMax(Fonc_
 
      // coordinates functions 
 
-extern Fonc_Num kth_coord(INT);
+extern Fonc_Num kth_coord(INT,bool HasAlwaysInitialValue=false,double InitialValue=0);
 extern const Fonc_Num FX;  // FX = kth_coord(0)
 extern const Fonc_Num FY;  // FY = kth_coord(1)
 extern const Fonc_Num FZ;  // FY = kth_coord(2)

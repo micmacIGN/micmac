@@ -1,5 +1,24 @@
 #include "saisieQT_main.h"
 
+extern void SaisieAppuisInit(int argc, char ** argv,
+                      Pt2di &aSzW,
+                      Pt2di &aNbFen,
+                      std::string &aFullName,
+                      std::string &aDir,
+                      std::string &aName,
+                      std::string &aNamePt,
+                      std::string &anOri,
+                      std::string &aModeOri,
+                      std::string &anOut,
+                      std::string &aNameAuto,
+                      std::string &aPrefix2Add,
+                      bool &aForceGray,
+                      double &aZMoy,
+                      double &aZInc,
+                      std::string & aInputSec
+                      );
+
+
 //extern const char * theNameVar_ParamApero[];
 
 int SaisiePts_main2(int argc,char ** argv)
@@ -40,7 +59,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
 
     QStringList cmdline_args = QCoreApplication::arguments();
 
-    if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    if (cmdline_args.back().contains("help"))
     {
         QString help = "Mandatory unnamed args :\n"
                  "* string :: {Full name (Dir+Pattern)}\n"
@@ -96,8 +115,10 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
         MMVisualMode = true;
         argv[0] = (char*) "SaisieAppuisInitQT";
     }
+    
+    std::string aInputSec;
 
-    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc);
+    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc,aInputSec);
 
     if (!MMVisualMode)
     {
@@ -113,7 +134,7 @@ int saisieAppuisInitQT_main(QApplication &app, int argc, char *argv[])
              cVirtualInterface::ComputeNbFen(aNbFen, aNbW);
         }
 
-        updateSettings(settings, aSzWin, aNbFen, aForceGray);
+        updateSettings(settings, aSzWin,aNbFen, aForceGray);
 
         settings.beginGroup("Misc");
         settings.setValue("defPtName", QString(aNameAuto.c_str()));

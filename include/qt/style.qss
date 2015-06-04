@@ -190,9 +190,28 @@ QComboBox::down-arrow
     height: 5px;
 }
 
+
+QGroupBox 
+{
+	 border: 1px solid gray;
+	 /*border-radius: 5px;*/
+	margin-top: 5px;
+}
+
+QGroupBox::title {
+   subcontrol-origin: margin;
+   /* subcontrol-position: top;*/ /* position at the top center */
+   margin : 4 4 4 4px;
+    padding: 0 0px;
+	left: 6px;
+	top: -8px;
+/*    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                      stop: 0 #FFOECE, stop: 1 #FFFFFF);*/
+}
+
 QGroupBox:focus, QTextEdit:focus
 {
-	border: 2px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
+	border: 1px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
 }
 
 QScrollBar:horizontal 

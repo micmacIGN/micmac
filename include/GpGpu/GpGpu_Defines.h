@@ -4,10 +4,11 @@
 
 #include "GpGpu_BuildOptions.h"
 
-
 typedef unsigned char pixel;
+#include <string>
 
 #define NOPAGLOCKMEM false
+#define NOALIGNM128	 false
 #define WARPSIZE    32
 #define SIZERING    2
 #define INTDEFAULT	-64
@@ -43,11 +44,8 @@ typedef unsigned char pixel;
 
 
 
-
-
-
 template<class T>
-void dump_Type(T var)
+__device__ __host__ inline void dump_Type(T var)
 {
 
     printf("Warning dump var not define for this type\n");
@@ -55,82 +53,113 @@ void dump_Type(T var)
 }
 
 template<>
-inline void dump_Type<uint2>(uint2 var)
+__device__ __host__ inline void dump_Type<uint2>(uint2 var)
 {
-    printf("[%u,%u]\n",var.x,var.y);
+    printf("[%u,%u]",var.x,var.y);
 }
 
 template<>
-inline void dump_Type<int2>(int2 var)
+__device__ __host__ inline void dump_Type<uint3>(uint3 var)
 {
-    printf("[%d,%d]\n",var.x,var.y);
+    printf("[%u,%u,%u]",var.x,var.y,var.z);
+}
+
+
+template<>
+__device__ __host__ inline void dump_Type<dim3>(dim3 var)
+{
+    printf("[%u,%u,%u]",var.x,var.y,var.z);
 }
 
 template<>
-inline void dump_Type<uint>(uint var)
+__device__ __host__ inline void dump_Type<Rect>(Rect var)
 {
-    printf("%u\n",var);
+    var.out();
+}
+
+
+template<>
+__device__ __host__ inline void dump_Type<int2>(int2 var)
+{
+    printf("[%d,%d]",var.x,var.y);
 }
 
 template<>
-inline void dump_Type<ushort>(ushort var)
+__device__ __host__ inline void dump_Type<uint>(uint var)
 {
-    printf("%u\n",var);
+    printf("%u",var);
 }
 
 template<>
-inline void dump_Type<int>(int var)
+__device__ __host__ inline void dump_Type<ushort>(ushort var)
 {
-    printf("%d\n",var);
+    printf("%u",var);
 }
 
 template<>
-inline void dump_Type<float2>(float2 var)
+__device__ __host__ inline void dump_Type<int>(int var)
 {
-    printf("[%f,%f]\n",var.x,var.y);
+    printf("%d",var);
 }
 
 template<>
-inline void dump_Type<float>(float var)
+__device__ __host__ inline void dump_Type<float2>(float2 var)
 {
-    printf("%f\n",var);
+    printf("[%f,%f]",var.x,var.y);
 }
 
 template<>
-inline void dump_Type<double>(double var)
+__device__ __host__ inline void dump_Type<float>(float var)
 {
-    printf("%f\n",var);
+    printf("%f",var);
 }
 
 template<>
-inline void dump_Type<bool>(bool var)
+__device__ __host__ inline void dump_Type<double>(double var)
 {
-    printf("%s\n",var ? "true" : "false");
+    printf("%f",var);
 }
 
 template<>
-inline void dump_Type<const char*>(const char* var)
+__device__ __host__ inline void dump_Type<bool>(bool var)
 {
-    cout << var;
+    printf("%s",var ? "true" : "false");
+}
+
+template<>
+__device__ __host__ inline void dump_Type<const char*>(const char* var)
+{
+    printf("%s",var);
+}
+
+template<>
+__device__ __host__ inline void dump_Type<const std::string &>(const std::string &var)
+{
+    printf("%s",var.c_str());
 }
 
 
-template<class T>
+template<class T> __device__ __host__ inline
 void dump_variable(T var,const char* nameVariable)
 {
     printf("%s\t= \t",nameVariable);
     dump_Type(var);
+     printf("\n");
 }
 
-template<> inline
+template<> __device__ __host__ inline
 void dump_variable(const char* var,const char* nameVariable)
 {
     dump_Type(var);
+    printf("\n");
 }
 
-#define DUMP(varname) dump_variable(varname,#varname);
-#define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
-#define CUDA_DUMP_INT_ALL(varname) printf("%s = %d\n", #varname, varname);
+#define DUMP(varname)   dump_variable(varname,#varname);
+#define DUMPI(varname)  dump_Type(varname);
+
+
+//#define CUDA_DUMP_INT(varname) if(!threadIdx.x) printf("%s = %d\n", #varname, varname);
+//#define CUDA_DUMP_INT_ALL(varname) printf("%s = %d\n", #varname, varname);
 
 //#define DUMP_UINT(varname) printf("%s = %u\n", #varname, varname);
 //#define DUMP_UINT2(varname) printf("%s = [%u,%u]\n", #varname, varname.x,varname.y);
@@ -138,7 +167,7 @@ void dump_variable(const char* var,const char* nameVariable)
 //#define DUMP_INT(varname) printf("%s = %d\n", #varname, varname);
 //#define DUMP_FLOAT2(varname) printf("%s = [%f,%f]\n", #varname, varname.x,varname.y);
 //#define DUMP_FLOAT(varname) printf("%s = %f\n", #varname, varname);
-#define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
+//#define DUMP_POINTER(varname) printf("%s = %p\n", #varname, varname);
 #define DUMP_LINE printf("-----------------------------------\n");
 #define DUMP_END printf("\n");
 
@@ -227,7 +256,7 @@ void dump_variable(const char* var,const char* nameVariable)
 //}
 
 
-#if OPM_ENABLED
+#if USE_OPEN_MP
     #if ELISE_windows
         #define OMP_NT0 __pragma("omp parallel for num_threads(8)")
         #define OMP_NT1 __pragma("omp parallel for num_threads(4)")
@@ -257,11 +286,6 @@ inline std::string className(const std::string& prettyFunction)
 
     return prettyFunction.substr(begin,end);
 }
-
-#ifdef CUDA_ENABLED
-//    #define SAVEPLY
-//      #define DEBUG_GPGPU
-#endif
 
 //
 #define __CLASS_NAME__ className(__PRETTY_FUNCTION__)

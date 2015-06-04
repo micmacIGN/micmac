@@ -1,6 +1,6 @@
 <ParamFusionNuage>
 
-      <ModeMerge> eMMC_QuickMac </ModeMerge>
+      <ModeMerge> eQuickMac </ModeMerge>
 
       <PFNMiseAuPoint>
           <SzVisu> 1200 800  </SzVisu>

@@ -89,6 +89,8 @@ int Campari_main(int argc,char ** argv)
     bool  AffineFree = false;
     bool  AllFree = false;
 
+    bool  PoseFigee = false;
+
     double aSigmaTieP = 1;
     double aFactResElimTieP = 5;
 
@@ -103,6 +105,7 @@ int Campari_main(int argc,char ** argv)
 
     int aDegAdd = 0;
     int aDegFree = 0;
+    int aDrMax = 0;
 
     ElInitArgMain
     (
@@ -126,7 +129,9 @@ int Campari_main(int argc,char ** argv)
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
                     << EAM(aDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
-                    << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters")
+                    << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters generiqs")
+                    << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
+ 		    << EAM(PoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
 
     );
 
@@ -169,6 +174,8 @@ int Campari_main(int argc,char ** argv)
         if (AllFree) aCom    += " +AllFree=true ";
         if (ExpTxt) aCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
 
+ 	if (PoseFigee) aCom    += " +PoseFigee=true ";
+
         if (EAMIsInit(&aFactResElimTieP))
            aCom =  aCom+ " +FactMaxRes=" + ToString(aFactResElimTieP);
 
@@ -194,6 +201,7 @@ int Campari_main(int argc,char ** argv)
         }
         if (aDegAdd>0)  aCom = aCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(aDegAdd);
         if (aDegFree>0)  aCom = aCom + " +DegGen=" +  ToString(aDegFree);
+        if (aDrMax>0)   aCom = aCom + " +DRMax=" +  ToString(aDrMax);
 
         if (EAMIsInit(&EmGPS))
         {
@@ -233,12 +241,46 @@ int Campari_main(int argc,char ** argv)
 }
 
 
+int AperoProg_main(int argc,char ** argv)
+{
+    MMD_InitArgcArgv(argc,argv);
+
+    std::string aFullDir= "";
+    std::string AeroIn= "";
+    std::string AeroOut="";
+
+
+    /*double aSigmaTieP = 1;
+    double aFactResElimTieP = 5;
+    double Viscos = 1.0;
+    bool ExpTxt = false;*/
+
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile)
+                     << EAMC(AeroIn,"Input Orientation", eSAM_IsExistDirOri)
+                     << EAMC(AeroOut,"Output Orientation", eSAM_IsOutputDirOri),
+         LArgMain()
+    );
+    if (!MMVisualMode)
+    {
+        std::string aDir,aPat;
+    #if (ELISE_windows)
+         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
+    #endif
+        SplitDirAndFile(aDir,aPat,aFullDir);
+        StdCorrecNameOrient(AeroIn,aDir);
+    }
+
+    return EXIT_SUCCESS;
+}
 
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant \C3  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -254,17 +296,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
+développement et \C3  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
+manipuler et qui le réserve donc \C3  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
+logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

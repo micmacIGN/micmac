@@ -6,9 +6,11 @@ mm3d TestLib CASALL  ~/MMM/culture3d/include/XML_MicMac/ParamCasa.xml DirectoryC
         <DicoLoc> 
                <Symb>  UseN2=false </Symb>
                <Symb>  UseN3=false </Symb>
+               <Symb>  UseN4=false </Symb>
                <Symb>  N1=XXXX  </Symb>
                <Symb>  N2=XXXX  </Symb>
                <Symb>  N3=XXXX  </Symb>
+               <Symb>  N4=XXXX  </Symb>
                <Symb>  Out=XXXX  </Symb>
                <Symb>  UsePts=false  </Symb>
                <Symb>  PtsOri=XXX  </Symb>
@@ -30,6 +32,11 @@ mm3d TestLib CASALL  ~/MMM/culture3d/include/XML_MicMac/ParamCasa.xml DirectoryC
                <#WHEN VTEST=${UseN3}>
                      <NuageByImage>
                            <NameXMLNuage> ${N3} </NameXMLNuage>
+                     </NuageByImage>
+               </#WHEN>
+               <#WHEN VTEST=${UseN4}>
+                     <NuageByImage>
+                           <NameXMLNuage> ${N4} </NameXMLNuage>
                      </NuageByImage>
                </#WHEN>
 	   </SectionLoadNuage>

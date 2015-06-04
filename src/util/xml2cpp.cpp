@@ -1038,8 +1038,10 @@ void cElXMLTree::GenCppClass
 
    fprintf(aFileCpp,"void xml_init(%s & anObj,cElXMLTree * aTree)\n",aNOC.c_str());
    fprintf(aFileCpp,"{\n");
-   fprintf(aFileCpp,"   anObj.mGXml = aTree->mGXml;\n");
+// Modif MPD, intervertion des deux ligne precedente, ne buggait pas immediatement (comme devrait !)
+// mais la correction semble resoudre un bug differe dans la lecture des xml ????
    fprintf(aFileCpp,"   if (aTree==0) return;\n");
+   fprintf(aFileCpp,"   anObj.mGXml = aTree->mGXml;\n");
 
    for
    (
@@ -1344,6 +1346,11 @@ void xml_init(Box2di & aVal,cElXMLTree * aTree)
 
 void xml_init(Pt3dr & aP,cElXMLTree * aTree)
 {
+/*
+std::cout << "AAAAAAAAAaa\n";
+std::cout << "AAAAAAAAAaa " << aTree << "\n";
+std::cout << "AAAAAAAAAaa " << aTree->Contenu() << "\n";
+*/
    int aNb = sscanf(aTree->Contenu().c_str(),"%lf %lf %lf %s",&aP.x,&aP.y,&aP.z,aBuf);
 
    if (aNb!=3)
@@ -1752,6 +1759,42 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const IntSubst   &      anOb
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const DoubleSubst   &      anObj) { return ToXMLTree(aNameTag,anObj.Val()); }
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2diSubst   &      anObj)  { return ToXMLTree(aNameTag,anObj.Val()); }
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt2drSubst   &      anObj)  { return ToXMLTree(aNameTag,anObj.Val()); }
+
+
+
+XmlXml::XmlXml()
+{
+     mTree = cElXMLTree::ValueNode("XmlXml","");
+}
+
+void xml_init(XmlXml    & aXX,cElXMLTree * aTree)
+{
+   aXX.mTree = aTree->Clone();
+}
+
+cElXMLTree * cElXMLTree::Clone()
+{
+    mKind = eXMLClone;
+    cElXMLTree * aRes = new  cElXMLTree(*this);
+    aRes->mKind = eXMLClone;
+    return aRes;
+}
+
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const XmlXml &      anObj)
+{
+   return anObj.mTree->ReTagThis(aNameTag);
+}
+
+void BinaryDumpInFile(ELISE_fp &,const XmlXml &)
+{
+   ELISE_ASSERT(false,"No BinaryDumpInFilecfor XmlXml");
+}
+
+void BinaryUnDumpFromFile(XmlXml &,ELISE_fp &)
+{
+   ELISE_ASSERT(false,"No BinaryUnDumpFromFile XmlXml");
+}
 
 
 

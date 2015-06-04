@@ -67,6 +67,9 @@ int Prep4masq_main(int argc,char ** argv)
             LArgMain()  << EAMC(aFullPattern,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
             LArgMain()
         );
+
+        if (MMVisualMode) return EXIT_SUCCESS;
+
         std::string aDir,aPatIm;
         SplitDirAndFile(aDir,aPatIm,aFullPattern);
 
@@ -109,6 +112,59 @@ int Prep4masq_main(int argc,char ** argv)
 }
 
 
+int CPP_SetExif(int argc,char **argv)
+{
+    std::string aPat,aCam;
+    int aFoc,aF35;
+    bool aPurge=true;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aPat,"Pattern of images", eSAM_IsPatFile),
+        LArgMain()  << EAM(aFoc,"F",true,"Focal lenght")
+                    << EAM(aF35,"F35",true,"Focal lenght equiv 35mm")
+                    << EAM(aCam,"Cam",true,"Camera model")
+                    << EAM(aPurge,"Purge",true,"Purge created exiv2 command file (Def=true)")
+    );
+    if (MMVisualMode) return EXIT_SUCCESS;
+
+    cElemAppliSetFile anEASF(aPat);
+
+    std::string aNameFile =  Dir2Write(anEASF.mDir) + "ExivBatchFile.txt";
+    FILE * aFP = FopenNN(aNameFile,"w","CPP_SetExif");
+
+    if (EAMIsInit(&aFoc))
+         fprintf(aFP,"set Exif.Photo.FocalLength  Short  %d\n",aFoc);
+
+    if (EAMIsInit(&aFoc))
+         fprintf(aFP,"set Exif.Photo.FocalLengthIn35mmFilm Short  %d\n",aF35);
+
+    if (EAMIsInit(&aCam))
+         fprintf(aFP,"set Exif.Image.Model  Ascii  \"%s\"\n",aCam.c_str());
+
+    fclose(aFP);
+
+
+    std::list<std::string> aLCom;
+    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
+
+    for (int aKIm=0 ; aKIm<int(aVIm->size()) ; aKIm++)
+    {
+        std::string aCom ="exiv2 -m " + aNameFile + " " + (*aVIm)[aKIm];
+        // std::cout << aCom<< "\n";
+        aLCom.push_back(aCom);
+        System(aCom);
+    }
+    cEl_GPAO::DoComInParal(aLCom);
+
+
+    if (aPurge)
+       ELISE_fp::RmFileIfExist(aNameFile);
+
+
+    return EXIT_SUCCESS;
+}
 
 
 

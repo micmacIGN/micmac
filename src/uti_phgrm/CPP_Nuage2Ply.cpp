@@ -77,6 +77,7 @@ int Nuage2Ply_main(int argc,char ** argv)
 
     std::string  aNeighMask;
     int NormByC = 0;
+    bool ForceRGB=true;
 
     ElInitArgMain
     (
@@ -102,6 +103,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work properly with meshlab or cloud compare")
                     << EAM(anOffset,"Offs", true, "Offset in points to limit 32 Bits accuracy problem")
                     << EAM(aNeighMask,"NeighMask",true,"Mask for neighboors when larger than point selection (for normals computation)")
+                    << EAM(ForceRGB,"ForceRGB",true,"Force RGB even with gray image (Def=true because of bug in QT)")
     );
 
     if (!MMVisualMode)
@@ -157,7 +159,7 @@ int Nuage2Ply_main(int argc,char ** argv)
             }
             //std::cout << "RR " << aRx <<  " " << aRy << " SZss " << aSzNuage << aSzImage << "\n"; getchar();
        }
-       aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio);
+       aNuage->Std_AddAttrFromFile(anAttr1,aDyn,aRatio,ForceRGB);
     }
 
     // ATTENTION , SI &aNeighMask => IL FAUT QUE aRes soit egal a aNuage SANS passer par ReScaleAndClip
@@ -225,38 +227,88 @@ int PlySphere_main(int argc,char ** argv)
         LArgMain()  << EAM(aNbPts,"NbPts",true,"Number of Pts / direc (Def=5, give 1000 points)")
     );
 
-    std::vector<Pt3di> aVCol;
-    std::vector<Pt3dr> aVpt;
-    for (int anX=-aNbPts; anX<=aNbPts ; anX++)
-    {
-       for (int anY=-aNbPts; anY<=aNbPts ; anY++)
-       {
-          for (int aZ=-aNbPts; aZ<=aNbPts ; aZ++)
-          {
-               Pt3dr aP(anX,anY,aZ);
-               aP = aP * (aRay/aNbPts);
-               if (euclid(aP) <= aRay)
-               {
-                  aVpt.push_back(aC+aP);
-                  aVCol.push_back(aCoul);
-               }
-          }
-       }
-    }
-    std::list<std::string> aVCom;
-    std::vector<const cElNuage3DMaille *> aVNuage;
-    cElNuage3DMaille::PlyPutFile
-    (
-          Out,
-          aVCom,
-          aVNuage,
-          &aVpt,
-          &aVCol,
-          true
-    );
+
+    cPlyCloud aPC;
+    aPC.AddSphere(aCoul,aC,aRay,aNbPts);
+    aPC.PutFile(Out);
 
     return 1;
 }
+
+class cAppli_San2Ply_main : public cAppliWithSetImage
+{
+    public :
+        cAppli_San2Ply_main(int argc,char ** argv);
+};
+
+cAppli_San2Ply_main::cAppli_San2Ply_main (int argc,char ** argv) :
+    cAppliWithSetImage(argc-1,argv+1,0)
+{
+    std::string Out;
+    double aDensity = 1.0;
+    std::string aPat,anOri,aNameSan;
+
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aPat,"Pattern of image", eSAM_IsPatFile)
+                    << EAMC(anOri ,"Orientation", eSAM_IsExistDirOri)
+                    << EAMC(aNameSan,"Name of Analytical Surface", eSAM_IsExistFile),
+        LArgMain()  << EAM(aDensity,"Density",true,"Factor proportional to point density")
+                    << EAM(Out,"Out",true,"Name Of result")
+    );
+
+    if (MMVisualMode) return;
+
+    if (!EAMIsInit(&Out)) Out = StdPrefix(aNameSan) + ".ply";
+
+    std::cout << "NB IMAG " << mEASF.SetIm()->size() << "\n";
+
+    cInterfSurfaceAnalytique * aSurf = cInterfSurfaceAnalytique::FromFile(aNameSan);
+
+    cPlyCloud aPlyC;
+    cParamISAPly aParam;
+
+    aSurf->MakePly
+    (
+          aParam,
+          aPlyC,
+          VCam()
+    );
+
+    aPlyC.PutFile(Out);
+
+
+/*
+    cPlyCloud aPC;
+    aPC.AddSphere(aCoul,aC,aRay,aNbPts);
+    aPC.PutFile(Out);
+
+    return 1;
+*/
+}
+/*
+*/
+
+int San2Ply_main(int argc,char ** argv)
+{
+    cAppli_San2Ply_main anAppli(argc,argv);
+    return EXIT_SUCCESS;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

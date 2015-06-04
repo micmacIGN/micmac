@@ -462,6 +462,8 @@ int ConvertCalib_main(int argc, char** argv)
                    << EAM(FocFree,"FocFree",true,"Focal free (def=true)")
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
    std::string aNameImage = aCalibOut;
    std::string aDirTmp = DirOfFile(aCalibIn) + "Ori-ConvCalib/";
    ELISE_fp::MkDir(aDirTmp);

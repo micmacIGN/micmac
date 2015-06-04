@@ -115,12 +115,62 @@ void  cSP_PointGlob::SuprDisp()
     }
 }
 
+bool  cSP_PointGlob::Has3DValue() const
+{
+   return     HasStrong3DValue()
+          || mPG->P3D().IsInit() ;
+}
+
+bool  cSP_PointGlob::HasStrong3DValue() const
+{
+   return     mPG->FromDico().ValWithDef(false)
+          ||  mPG->Mes3DExportable().ValWithDef(false);
+}
+
+
+
+
+
+Pt3dr cSP_PointGlob::Best3dEstim() const 
+{
+   if (mPG->Mes3DExportable().ValWithDef(false))
+   {
+      ELISE_ASSERT(mPG->P3D().IsInit(),"P3D :: cSP_PointGlob::Best3dEstim");
+      return mPG->P3D().Val();
+   }
+   if (mPG->FromDico().ValWithDef(false))
+   {
+/*
+      ELISE_ASSERT(mPG->Pt3DFromDico().IsInit(),"Pt3DFromDico :: cSP_PointGlob::Best3dEstim");
+      return mPG->Pt3DFromDico().Val();
+*/
+     // Modif MPD pour compatibilite avec anciens fichiers deja crees avant masq3D
+      if (mPG->Pt3DFromDico().IsInit())
+      {
+         return mPG->Pt3DFromDico().Val();
+      }
+   }
+   if (mPG->P3D().IsInit())
+   {
+      return  mPG->P3D().Val();
+   }
+
+   ELISE_ASSERT(false,"cSP_PointGlob::Best3dEstim No Pt\n");
+   return Pt3dr(0,0,0);
+}
+
 void cSP_PointGlob::ReCalculPoints()
 {
-    if (! IsPtAutom()) return;
+
+    if (! IsPtAutom())
+    {
+        return;
+    }
 
     if (! mAppli.HasOrientation() )
+    {
        return;
+    }
 
     Pt3dr aP0 = mPG->P3D().ValWithDef(Pt3dr(1234.67,1.56e69,-6.87e24));
 
@@ -151,7 +201,9 @@ void cSP_PointGlob::ReCalculPoints()
     }
 
     if (aVOK.size() == 0)
+    {
        return;
+    }
 
     if (aVOK.size() == 1)
     {
@@ -184,11 +236,30 @@ void cSP_PointGlob::ReCalculPoints()
             double aInc = 1+ mAppli.Param().IntervPercProf().Val()/100.0;
 
             aPt = aCamera->ImEtProf2Terrain(aPIm,aProf);
+
             mPG->P3D().SetVal(aPt);
-            mPG->PS1().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf*aInc));
-            mPG->PS2().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf/aInc));
+            // mPG->PS1().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf*aInc));
+            // mPG->PS2().SetVal(aCamera->ImEtProf2Terrain(aPIm,aProf/aInc));
+
+            int aNbKMoins = 20;
+            int aNbKPlus = 20;
+            std::vector<Pt3dr> aVPt;
+            for (int aK= -aNbKMoins ; aK<= aNbKPlus ; aK++)
+            {
+                double aProfK = aProf * pow(aInc,aK);
+                aVPt.push_back(aCamera->ImEtProf2Terrain(aPIm,aProfK));
+            }
+            mPG->VPS() = aVPt;
+            mPG->PS1().SetVal(aVPt[aNbKMoins+1]);
+            mPG->PS2().SetVal(aVPt[aNbKPlus-1]);
+
+            // std::cout << "TestEppoPii " << euclid( mPG->PS1().Val()-aVPt[aNbK+1]) << "\n";
+            // std::cout << "TestEppoPii " << euclid( mPG->PS2().Val()-aVPt[aNbK-1]) << "\n";
         }
-        if (euclid(aPt-aP0)< 1e-9) return;
+        if (euclid(aPt-aP0)< 1e-9) 
+        {
+            return;
+        }
     }
 
     if (aVOK.size() > 1)
@@ -226,14 +297,16 @@ void cSP_PointGlob::ReCalculPoints()
         mPG->P3D().SetVal(aPt);
         mPG->PS1().SetNoInit();
         mPG->PS2().SetNoInit();
+        mPG->VPS().clear();
         mPG->Mes3DExportable().SetVal(true);
 
 
-        if (euclid(aPt-aP0)< 1e-9) return;
+        if (euclid(aPt-aP0)< 1e-9)
+        {
+            return;
+        }
     }
-
     mAppli.AddPGInAllImages(this);
-
     mAppli.RedrawAllWindows();
 }
 

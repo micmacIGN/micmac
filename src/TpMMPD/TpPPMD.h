@@ -41,6 +41,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+/*
+   *  Debayerisation
+   *  TD Ransc
+   *  Appariement
+
+*/
+
 /* ===========================================
 
    Ce fichier contient la definition de quelques classes donnant acces au fonctionallité
@@ -129,6 +136,7 @@ class cTD_Im
 
 
         void Save(const std::string &);
+        void SaveRGB(const std::string &,cTD_Im &,cTD_Im &);
 
         float GetVal(int anX,int anY) const {return mTIm.get(Pt2di(anX,anY));}
 

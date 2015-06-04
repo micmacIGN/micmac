@@ -75,7 +75,7 @@ cXmlAffinR2ToR cElComposHomographie::ToXml() const
 
 bool  cElComposHomographie::HasNan() const
 {
-    return isnan(mX) || isnan(mY) || isnan(m1);
+    return std_isnan(mX) || std_isnan(mY) || std_isnan(m1);
 }
 
 void cElComposHomographie::Show(const std::string & aMes)
@@ -588,7 +588,7 @@ template <class TVal> TVal MedianeSup(std::vector<TVal> & aV)
 }
 */
 
-cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomologue & aPack,bool & Ok ,int aNbTestEstim, double aPerc,int aNbMaxPts)
+cElHomographie  cElHomographie::RobustInit(double & aDMIn,double * aQuality,const ElPackHomologue & aPack,bool & Ok ,int aNbTestEstim, double aPerc,int aNbMaxPts)
 {
    cElHomographie aRes = cElHomographie::Id();
    Ok = false;
@@ -639,7 +639,7 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
       return aRes;
 
 
-   double aDMIn = 1e30;
+   aDMIn = 1e30;
    int aNbPts = aVAll.size();
    int aNbKth = ElMax(1,ElMin(aNbPts-1,round_ni((aPerc/100.0) * aNbPts)));
    std::vector<double> aVDist;
@@ -722,49 +722,52 @@ cElHomographie  cElHomographie::RobustInit(double * aQuality,const ElPackHomolog
        aRes = cElHomographie(aPckPds,true);
    }
 
-   std::vector<double> aVEstim;
-   int aNbTestValid = 71;
-   for (int aKTest = 0 ; aKTest <aNbTestValid ; aKTest++)
+   if (aQuality)
    {
-       ElPackHomologue aPckPdsA;
-       ElPackHomologue aPckPdsB;
-       cRandNParmiQ  aSelec(aNbPtsTot/2,aNbPtsTot);
+      std::vector<double> aVEstim;
+      int aNbTestValid = 71;
+      for (int aKTest = 0 ; aKTest <aNbTestValid ; aKTest++)
+      {
+          ElPackHomologue aPckPdsA;
+          ElPackHomologue aPckPdsB;
+          cRandNParmiQ  aSelec(aNbPtsTot/2,aNbPtsTot);
 
-       for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
-       {
-           Pt2dr aP1 = itH->P1();
-           Pt2dr aP2 = itH->P2();
-           double aDist = QuickDist(aP2 -aRes.Direct(aP1));
-           aVDist.push_back(aDist);
+          for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
+          {
+              Pt2dr aP1 = itH->P1();
+              Pt2dr aP2 = itH->P2();
+              double aDist = QuickDist(aP2 -aRes.Direct(aP1));
+              aVDist.push_back(aDist);
 
-           double aPds = 1/ sqrt(1+ ElSquare(aDist/aDMIn));
-           // if (NRrandom3() > 0.5) 
-           if (aSelec.GetNext())
-               aPckPdsA.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
-           else
-               aPckPdsB.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+              double aPds = 1/ sqrt(1+ ElSquare(aDist/aDMIn));
+              // if (NRrandom3() > 0.5) 
+              if (aSelec.GetNext())
+                  aPckPdsA.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+              else
+                  aPckPdsB.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
 
            
-       }
-       cElHomographie aResA = cElHomographie(aPckPdsA,true);
-       cElHomographie aResB = cElHomographie(aPckPdsB,true);
+          }
+          cElHomographie aResA = cElHomographie(aPckPdsA,true);
+          cElHomographie aResB = cElHomographie(aPckPdsB,true);
 
-       double aSomDist = 0; 
-       for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
-       {
-           Pt2dr aP1 = itH->P1();
+          double aSomDist = 0; 
+          for (ElPackHomologue::tCstIter itH=aPack.begin() ; itH!=aPack.end() ; itH++)
+          {
+              Pt2dr aP1 = itH->P1();
 
-           Pt2dr  aQ   = aRes.Direct(aP1);
-           Pt2dr  aQA  = aResA.Direct(aP1);
-           Pt2dr  aQB  = aResB.Direct(aP1);
-           double aDist = (QuickDist(aQ-aQA) + QuickDist(aQ-aQB) + QuickDist(aQB-aQA)) / 3.0;
-           aSomDist += aDist;
-       }
-       aSomDist /= aNbPtsTot;
-       aVEstim.push_back(aSomDist);
+              Pt2dr  aQ   = aRes.Direct(aP1);
+              Pt2dr  aQA  = aResA.Direct(aP1);
+              Pt2dr  aQB  = aResB.Direct(aP1);
+              double aDist = (QuickDist(aQ-aQA) + QuickDist(aQ-aQB) + QuickDist(aQB-aQA)) / 3.0;
+              aSomDist += aDist;
+          }
+          aSomDist /= aNbPtsTot;
+          aVEstim.push_back(aSomDist);
+      }
+      *aQuality  = MedianeSup(aVEstim);
    }
 
-   *aQuality  = MedianeSup(aVEstim);
 
    Ok= true;
    return aRes;
@@ -937,7 +940,7 @@ bool cDistHomographieRadiale::OwnInverse(Pt2dr & aP) const
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -953,17 +956,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -52,7 +52,7 @@ public:
     cMessages2DGL*      getMessageManager() { return &_messageManager; }
     MatrixManager*      getMatrixManager()  { return &_matrixManager;  }
 
-    void        setGLData(cGLData* aData, bool showMessage = true, bool showCams = true, bool doZoom = true, bool resetPoly = true);
+    void        setGLData(cGLData* aData, bool showMessage = true, bool showCams = true, bool doZoom = true, bool resetPoly = true, int nav = eNavig_Ball);
     cGLData*    getGLData(){ return m_GLData; }
 
     void setBackgroundColors(QColor const &col0, QColor const &col1)
@@ -61,22 +61,22 @@ public:
         _BGColor1 = col1;
     }
 
-    float imWidth() { return m_GLData->glImage()._m_image->width();  }
-    float imHeight(){ return m_GLData->glImage()._m_image->height(); }
+    float imWidth() { return m_GLData->glImageMasked()._m_image->width();  }
+    float imHeight(){ return m_GLData->glImageMasked()._m_image->height(); }
 
-    bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glImage()._m_image->isPtInside(pt); }
+    bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glImageMasked()._m_image->isPtInside(pt); }
 
     GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }
 
     cPolygon* polygon(int id);
-    cPolygon* polygon();
+    cPolygon* currentPolygon();
 
     void setCursorShape(QPointF pos, QPointF mPos);
 
-    void addGlPoint(QPointF pt, cOneSaisie *aSom, QPointF pt1, QPointF pt2, bool highlight);
+    void addGlPoint(cPoint point, QPointF pt1, QPointF pt2, bool highlight,int idPolygon = 0);
 
-    void setTranslation(Pt3dr trans);
+    void setTranslation(QVector3D trans);
 
     ContextMenu *contextMenu();
 
@@ -87,12 +87,22 @@ public:
     void overlay();
 
     bool isFirstAction() { return m_bFirstAction; }
+    void resetFirstAction() { m_bFirstAction = true; }
 
     int  getWindowMeanValue(QPoint pos, int r = 7); //pos = image position, r = half size of window
 
-    QRectF viewportToImageProjection();
+    void setZone(QRectF aRect);
+
+    void checkTiles(); //compute tiles if needed
+
+    float angleZ(QPointF mPos);
+
+    void  undo();
+    void  redo();
 
 public slots:
+
+    void createLoadedTexture(cMaskedImageGL* _tile);
 
     void centerViewportOnImagePosition(QPointF pt, float zoom = -1);
 
@@ -110,6 +120,8 @@ public slots:
     void selectPoint(QString namePt);
 
     void setCenterType(int);
+
+    void setNavigationType(int val);
 
 signals:
 
@@ -134,10 +146,14 @@ signals:
 
     void maskEdited();
 
+    void changeHistory();
+
 protected:
     //! inherited from QGLWidget
     void resizeGL(int w, int h);
     void paintGL();
+
+    void initializeGL();
 
     //! inherited from QWidget
     void mouseDoubleClickEvent  (QMouseEvent *event);
@@ -160,7 +176,8 @@ protected:
     //! Current interaction mode (with mouse)
     int  m_interactionMode;
 
-    bool m_bFirstAction;
+    bool m_bFirstAction; //warning: false if mask is loaded
+    bool m_bMaskEdited;
 
     //! Data to display
     cGLData    *m_GLData;
@@ -176,6 +193,7 @@ protected:
 
     bool        imageLoaded();
 
+    int PixelRatio();
 private:
 
     //! Window parameters (zoom, etc.)
@@ -207,7 +225,29 @@ private:
 
     cParameters* _params;
 
-   // QPainter*   _painter;
+};
+
+class loaderImageWork : public QObject
+{
+    Q_OBJECT
+
+public:
+    loaderImageWork(QMaskedImage * maskedImg, cMaskedImageGL * tile, QRect &rect);
+    ~loaderImageWork();
+
+public slots:
+    void process();
+
+signals:
+    void finished(cMaskedImageGL* _tile);
+    void finished();
+    void error(QString err);
+
+private:
+    QMaskedImage *	_maskedImg;
+    cMaskedImageGL* _tile;
+    QRect			_rect;
+
 };
 
 #endif  /* _GLWIDGET_H */

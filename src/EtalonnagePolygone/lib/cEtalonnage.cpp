@@ -449,6 +449,8 @@ cEtalonnage::cEtalonnage
    pCamDRad          (0),
    mModeDist         (aModeDist)
 {
+   AllowUnsortedVarIn_SetMappingCur=true;
+   
    std::vector<double> NoParAdd;
    cTplValGesInit<std::string> aUseless;
    mICNM  =cInterfChantierNameManipulateur::StdAlloc(0,0,mDir,aUseless);
@@ -816,7 +818,9 @@ void cEtalonnage::CalculModeleRadiale
                       }
 
 	              if (aK >= 15)
-                          PIFDR()->SetCDistPPLie();
+                  {
+                          PIFDR()->SetCDistPPLie(1e-1);
+                  }
 
 	              if (aK >= 20)
 		      {

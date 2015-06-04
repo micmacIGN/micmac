@@ -113,7 +113,6 @@ cEqOffsetGPS::cEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS & aBase,bool doGenCo
      mRot->IncInterv().SetName("Orient");
      mBase->IncInterv().SetName("Base");
 
-
      mLInterv.AddInterv(mRot->IncInterv());
      mLInterv.AddInterv(mBase->IncInterv());
 
@@ -126,7 +125,6 @@ cEqOffsetGPS::cEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS & aBase,bool doGenCo
      mFoncEqResidu = cElCompiledFonc::AllocFromName(mNameType);
      ELISE_ASSERT(mFoncEqResidu!=0,"Cannot allocate cEqObsBaseGPS");
      mFoncEqResidu->SetMappingCur(mLInterv,mSet);
-
      //  GL 
      mGPS.InitAdr(*mFoncEqResidu);
      mSet->AddFonct(mFoncEqResidu);
@@ -247,6 +245,105 @@ void GenerateCodeEqOffsetGPS()
     GenerateCodeEqOffsetGPS(true);
 }
 
+
+/*****************************************************/
+/*                                                   */
+/*       cEqRelativeGPS                              */
+/*                                                   */
+/*****************************************************/
+
+const std::string cEqRelativeGPS::mNameType = "cImplEqRelativeGPS";
+
+cEqRelativeGPS::cEqRelativeGPS
+(
+     cRotationFormelle & aR1,
+     cRotationFormelle & aR2,
+     bool CodeGen
+) :
+   mSet   (aR1.Set()),
+   mR1    (&aR1),
+   mR2    (&aR2),
+   mDif21 ("Dif21")
+
+{
+    ELISE_ASSERT(mSet==(mR2->Set()),"Different unknown in cEqRelativeGPS");
+
+    mR1->IncInterv().SetName("Ori1");
+    mR2->IncInterv().SetName("Ori2");
+   
+    mLInterv.AddInterv(mR1->IncInterv());
+    mLInterv.AddInterv(mR2->IncInterv());
+
+    if (CodeGen)
+    {
+         Pt3d<Fonc_Num>  aResidu = mR2->COpt() - mR1->COpt() - mDif21.PtF();
+         std::vector<Fonc_Num> aV;
+         aV.push_back(aResidu.x);
+         aV.push_back(aResidu.y);
+         aV.push_back(aResidu.z);
+
+         cElCompileFN::DoEverything
+         (
+             DIRECTORY_GENCODE_FORMEL,  // Directory ou est localise le code genere
+             mNameType,  // donne les noms de .cpp et .h  de classe
+             aV,  // expressions formelles 
+             mLInterv  // intervalle de reference
+         );
+         return;
+    }
+
+    mFoncEqResidu = cElCompiledFonc::AllocFromName(mNameType);
+    ELISE_ASSERT(mFoncEqResidu!=0,"Cannot allocate cEqObsBaseGPS");
+    mFoncEqResidu->SetMappingCur(mLInterv,mSet);
+     //  GL 
+    mDif21.InitAdr(*mFoncEqResidu);
+    mSet->AddFonct(mFoncEqResidu);
+}
+
+cEqRelativeGPS * cSetEqFormelles::NewEqRelativeGPS
+                 (
+                     cRotationFormelle & aR1, 
+                     cRotationFormelle & aR2
+                 )
+{
+   ELISE_ASSERT(this==aR1.Set(),"NewEqRelativeGPS  multiple set");
+   cEqRelativeGPS * aRes = new cEqRelativeGPS(aR1,aR2,false);
+
+   AddObj2Kill(aRes);
+   return aRes;
+}
+
+Pt3dr    cEqRelativeGPS::AddObs(const Pt3dr & aDif12,const Pt3dr & aPds)
+{
+
+     std::vector<double> aVPds;
+     aVPds.push_back(aPds.x);
+     aVPds.push_back(aPds.y);
+     aVPds.push_back(aPds.z);
+
+     const std::vector<REAL> & aResidu =  mSet->VAddEqFonctToSys(mFoncEqResidu,aVPds,false);
+     return Pt3dr(aResidu.at(0),aResidu.at(1),aResidu.at(2));
+}
+
+Pt3dr  cEqRelativeGPS::Residu(const Pt3dr & aDif12)
+{
+     mDif21.SetEtat(aDif12);
+     const std::vector<REAL> & aResidu =  mSet->VResiduSigne(mFoncEqResidu);
+     return Pt3dr(aResidu.at(0),aResidu.at(1),aResidu.at(2));
+}
+
+
+
+
+void GenerateCodeEqRelativeGPS()
+{
+     cSetEqFormelles aSet;
+     ElRotation3D aRot(Pt3dr(0,0,0),0,0,0);
+     cRotationFormelle * aRF1 = aSet.NewRotation (cNameSpaceEqF::eRotLibre,aRot);
+     cRotationFormelle * aRF2 = aSet.NewRotation (cNameSpaceEqF::eRotLibre,aRot);
+
+     new cEqRelativeGPS(*aRF1,*aRF2,true);
+}
 
 // cEqOffsetGPS::cEqOffsetGPS(cRotationFormelle & aRF,Pt3d<Fonc_Num>  &aBase)
 

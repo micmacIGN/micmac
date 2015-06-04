@@ -1,4 +1,4 @@
-QT_DIR=/Users/admin/Qt/5.3/clang_64
+QT_DIR=/Users/admin/dev/Qt5.4.1/5.4/clang_64
 FRAMEWORKS_FROM_BIN_PATH=../Frameworks
 MM_PATH=..
 PACKAGE_PATH=$1
@@ -38,6 +38,8 @@ echo "copy binaries"
 cp -R $MM_PATH/bin $PACKAGE_PATH
 mkdir $PACKAGE_PATH/binaire-aux
 cp $MM_PATH/binaire-aux/*.OSX $PACKAGE_PATH/binaire-aux/
+cp $MM_PATH/binaire-aux/PoissonRecon $PACKAGE_PATH/binaire-aux/
+cp $MM_PATH/binaire-aux/SurfaceTrimmer $PACKAGE_PATH/binaire-aux/
 
 echo "copy XML parameters file"
 mkdir $PACKAGE_PATH/include

@@ -1,36 +1,54 @@
 #include "3DObject.h"
 #include "SaisieGlsl.glsl"
+#include <limits>
+
+
+
 
 cObject::cObject() :
     _name(""),
-    _position(Pt3dr(0.f,0.f,0.f)),
-    _rotation(Pt3dr(0.f,0.f,0.f)),
-    _scale(Pt3dr(1.f, 1.f,1.f)),
+    _position(QVector3D(0.f,0.f,0.f)),
+    _rotation(QVector3D(0.f,0.f,0.f)),
+    _scale(QVector3D(1.f, 1.f,1.f)),
     _alpha(0.6f),
-    _state(state_default)
+    _state(state_default),
+    _parent(NULL)
 {
     for (int iC = 0; iC < state_COUNT; ++iC)
         _color[iC] = QColor(255,255,255);
 }
 
-cObject::cObject(Pt3dr pos, QColor color_default) :
+cObject::cObject(QVector3D pos, QColor color_default) :
     _name(""),
     _position(pos),
-    _rotation(Pt3dr(0.f,0.f,0.f)),
-    _scale(Pt3dr(1.f, 1.f,1.f)),
+    _rotation(QVector3D(0.f,0.f,0.f)),
+    _scale(QVector3D(1.f, 1.f,1.f)),
     _alpha(0.6f),
-    _state(state_default)
+    _state(state_default),
+    _parent(NULL)
 {
     for (int iC = 0; iC < state_COUNT; ++iC)
         _color[iC] = color_default;
 }
 
-cObject::~cObject(){}
+cObject::~cObject()
+{
+//	for (int i = 0; i < _children.size(); ++i)
+//	{
+//		if(_children[i])
+//			_children[i]->setParent(NULL);
+//	}
+
+}
 
 QColor cObject::getColor()
 {
     return _color[state()];
 }
+
+bool cObject::isVisible()     { return (state() != state_invible); }
+
+void cObject::setPosition(const QVector3D& aPt)  { _position = aPt;  }
 
 cObject& cObject::operator =(const cObject& aB)
 {
@@ -61,12 +79,64 @@ void cObject::setState(object_state state)
     _state = state;
 }
 
-cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
+cObject*cObject::child(int id)
+{
+    if(id >= 0 && id< _children.size())
+        return _children[id];
+    else
+        return NULL;
+}
+
+void cObject::addChild(cObject* child)
+{
+    _children.push_back(child);
+}
+
+void cObject::removeChild(cObject* child)
+{
+    int id = _children.indexOf(child);
+
+    if(id<0)
+        return;
+    else
+        _children.remove(id);
+
+}
+
+void cObject::replaceChild(int id, cObject* child)
+{
+    if(id >= 0 && id< _children.size())
+    {
+        _children[id] = child;
+        child->setParent(this);
+    }
+}
+cObject* cObject::parent() const
+{
+    return _parent;
+}
+
+void cObject::setParent(cObject* parent)
+{
+//	if(_parent)
+//		_parent->removeChild(this);
+
+    _parent = parent;
+
+    if(_parent)
+    {
+        _parent->addChild(this);
+        _position = _parent->getPosition();
+    }
+}
+
+
+cCircle::cCircle(QVector3D pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
     _dim(dim)
 {
     setPosition(pt);
     cObject::setColor(col);
-    setScale(Pt3dr(scale,scale,scale));
+    setScale(QVector3D(scale,scale,scale));
     setLineWidth(lineWidth);
     cObject::setVisible(vis);
 }
@@ -74,10 +144,10 @@ cCircle::cCircle(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool
 //draw a unit circle in a given plane (0=YZ, 1=XZ, 2=XY)
 void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 {
-    float theta = 2.f * PI / float(steps);
+    float theta = M_2PI / float(steps);
     float c = cosf(theta); //precalculate the sine and cosine
     float s = sinf(theta);
-    float t;
+//    float t;
 
     float x = r; //we start at angle = 0
     float y = 0;
@@ -97,7 +167,7 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
         glVertex3fv(P);
 
         //apply the rotation matrix
-        t = x;
+        float t = x;
         x = c * x - s * y;
         y = s * t + c * y;
     }
@@ -106,34 +176,31 @@ void glDrawUnitCircle(uchar dim, float cx, float cy, float r, int steps)
 
 void glDrawEllipse(float cx, float cy, float rx, float ry, int steps) // TODO step Auto....
 {
-    float theta = 2.f * PI / float(steps);
-
-    float x,y,z = 0.f;
+    const float theta = M_2PI / float(steps);
 
     glBegin(GL_LINE_LOOP);
-    for(float t = 0.f; t <= 2.f * PI; t+= theta)
+    for(float t = 0.f; t <= M_2PI; t+= theta)
     {
-        x = cx + rx*sinf(t);
-        y = cy + ry*cosf(t);
 
-        glVertex3f(x,y,z);
+        const float x = cx + rx*sinf(t);
+        const float y = cy + ry*cosf(t);
+
+        glVertex3f(x,y,0.f);
     }
     glEnd();
 }
 
 void glDrawEllipsed(double cx, double cy, double rx, double ry, int steps) // TODO step Auto....
 {
-    double theta = 2.f * PI / double(steps);
-
-    double x,y,z = 0.f;
+    const double theta = M_2PI / double(steps);
 
     glBegin(GL_LINE_LOOP);
-    for(double t = 0.f; t <= 2.f * PI; t+= theta)
+    for(double t = 0.f; t <= M_2PI; t+= theta)
     {
-        x = cx + rx*std::sin(t);
-        y = cy + ry*std::cos(t);
+        const float x = cx + rx*std::sin(t);
+        const float y = cy + ry*std::cos(t);
 
-        glVertex3d(x,y,z);
+        glVertex3d(x,y,0.f);
     }
     glEnd();
 }
@@ -158,20 +225,20 @@ void cCircle::draw()
 
     glEndList();
 
-    glTranslatef(_position.x,_position.y,_position.z);
-    glScalef(_scale.x,_scale.y,_scale.z);
+    glTranslatef(_position.x(),_position.y(),_position.z());
+    glScalef(_scale.x(),_scale.y(),_scale.z());
 
     glCallList(list);
 
     glPopMatrix();
 }
 
-cCross::cCross(Pt3d<double> pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
+cCross::cCross(QVector3D pt, QColor col, float scale, float lineWidth, bool vis, int dim) :
     _dim(dim)
 {
     setPosition(pt);
     cObject::setColor(col);
-    setScale(Pt3dr(scale, scale, scale));
+    setScale(QVector3D(scale, scale, scale));
     setLineWidth(lineWidth);
     cObject::setVisible(vis);
 }
@@ -217,15 +284,15 @@ void cCross::draw()
 
     glEndList();
 
-    glTranslatef(_position.x,_position.y,_position.z);
-    glScalef(_scale.x,_scale.y,_scale.z);
+    glTranslatef(_position.x(),_position.y(),_position.z());
+    glScalef(_scale.x(),_scale.y(),_scale.z());
 
     glCallList(list);
 
     glPopMatrix();
 }
 
-cBall::cBall(Pt3dr pt, float scale, bool isVis, float lineWidth)
+cBall::cBall(QVector3D pt, float scale, bool isVis, float lineWidth)
 {
     cObject::setVisible(isVis);
 
@@ -263,7 +330,7 @@ void cBall::draw()
     }
 }
 
-void cBall::setPosition(Pt3dr const &aPt)
+void cBall::setPosition(QVector3D const &aPt)
 {
     _cl0->setPosition(aPt);
     _cl1->setPosition(aPt);
@@ -274,7 +341,7 @@ void cBall::setPosition(Pt3dr const &aPt)
     _cr2->setPosition(aPt);
 }
 
-Pt3dr cBall::getPosition()
+QVector3D cBall::getPosition()
 {
     return _cl0->getPosition();
 }
@@ -293,21 +360,31 @@ void cBall::setVisible(bool aVis)
     _cr2->setVisible(aVis);
 }
 
-void cBall::setScale(Pt3dr aScale)
+void cBall::setScale(float aScale)
 {
-    _cl0->setScale(aScale);
-    _cl1->setScale(aScale);
-    _cl2->setScale(aScale);
+    QVector3D pScale(aScale,aScale,aScale);
+    setScale(pScale);
 
-    _cr0->setScale(aScale);
-    _cr1->setScale(aScale);
-    _cr2->setScale(aScale);
 }
 
-cAxis::cAxis(Pt3dr pt, float scale, float lineWidth)
+void cBall::setScale(QVector3D aScale)
+{
+    if(_cl0 && _cl1 && _cl2 && _cr0 && _cr1 && _cr2)
+    {
+        _cl0->setScale(aScale);
+        _cl1->setScale(aScale);
+        _cl2->setScale(aScale);
+
+        _cr0->setScale(aScale);
+        _cr1->setScale(aScale);
+        _cr2->setScale(aScale);
+    }
+}
+
+cAxis::cAxis(QVector3D pt, float scale, float lineWidth)
 {
     _position = pt;
-    _scale    = Pt3dr(scale, scale, scale);
+    _scale    = QVector3D(scale, scale, scale);
     setLineWidth(lineWidth);
 }
 
@@ -341,8 +418,8 @@ void cAxis::draw()
 
         glEndList();
 
-        glTranslatef(_position.x,_position.y,_position.z);
-        glScalef(_scale.x,_scale.y,_scale.z);
+        glTranslatef(_position.x(),_position.y(),_position.z());
+        glScalef(_scale.x(),_scale.y(),_scale.z());
 
         glCallList(dihedron);
 
@@ -350,7 +427,7 @@ void cAxis::draw()
     }
 }
 
-cBBox::cBBox(Pt3dr pt, Pt3dr min, Pt3dr max, float lineWidth)
+cBBox::cBBox(QVector3D pt, QVector3D min, QVector3D max, float lineWidth)
 {
     _position = pt;
     _min = min;
@@ -360,7 +437,7 @@ cBBox::cBBox(Pt3dr pt, Pt3dr min, Pt3dr max, float lineWidth)
     setLineWidth(lineWidth);
 }
 
-void cBBox::set(Pt3dr min, Pt3dr max)
+void cBBox::set(QVector3D min, QVector3D max)
 {
     _min = min;
     _max = max;
@@ -382,52 +459,52 @@ void cBBox::draw()
 
         setGLColor();
 
-        Pt3dr P1(_min);
-        Pt3dr P2(_min.x, _min.y, _max.z);
-        Pt3dr P3(_min.x, _max.y, _max.z);
-        Pt3dr P4(_min.x, _max.y, _min.z);
-        Pt3dr P5(_max.x, _min.y, _min.z);
-        Pt3dr P6(_max.x, _max.y, _min.z);
-        Pt3dr P7(_max);
-        Pt3dr P8(_max.x, _min.y, _max.z);
+        QVector3D P1(_min);
+        QVector3D P2(_min.x(), _min.y(), _max.z());
+        QVector3D P3(_min.x(), _max.y(), _max.z());
+        QVector3D P4(_min.x(), _max.y(), _min.z());
+        QVector3D P5(_max.x(), _min.y(), _min.z());
+        QVector3D P6(_max.x(), _max.y(), _min.z());
+        QVector3D P7(_max);
+        QVector3D P8(_max.x(), _min.y(), _max.z());
 
         glBegin(GL_LINES);
 
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P1.x(), P1.y(), P1.z());
+        glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P3.x, P3.y, P3.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P3.x(), P3.y(), P3.z());
+        glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(P1.x(), P1.y(), P1.z());
+        glVertex3d(P4.x(), P4.y(), P4.z());
 
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P5.x, P5.y, P5.z);
+        glVertex3d(P1.x(), P1.y(), P1.z());
+        glVertex3d(P5.x(), P5.y(), P5.z());
 
-        glVertex3d(P7.x, P7.y, P7.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P7.x(), P7.y(), P7.z());
+        glVertex3d(P3.x(), P3.y(), P3.z());
 
-        glVertex3d(P7.x, P7.y, P7.z);
-        glVertex3d(P6.x, P6.y, P6.z);
+        glVertex3d(P7.x(), P7.y(), P7.z());
+        glVertex3d(P6.x(), P6.y(), P6.z());
 
-        glVertex3d(P8.x, P8.y, P8.z);
-        glVertex3d(P5.x, P5.y, P5.z);
+        glVertex3d(P8.x(), P8.y(), P8.z());
+        glVertex3d(P5.x(), P5.y(), P5.z());
 
-        glVertex3d(P7.x, P7.y, P7.z);
-        glVertex3d(P8.x, P8.y, P8.z);
+        glVertex3d(P7.x(), P7.y(), P7.z());
+        glVertex3d(P8.x(), P8.y(), P8.z());
 
-        glVertex3d(P5.x, P5.y, P5.z);
-        glVertex3d(P6.x, P6.y, P6.z);
+        glVertex3d(P5.x(), P5.y(), P5.z());
+        glVertex3d(P6.x(), P6.y(), P6.z());
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P6.x, P6.y, P6.z);
+        glVertex3d(P4.x(), P4.y(), P4.z());
+        glVertex3d(P6.x(), P6.y(), P6.z());
 
-        glVertex3d(P8.x, P8.y, P8.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P8.x(), P8.y(), P8.z());
+        glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P4.x(), P4.y(), P4.z());
+        glVertex3d(P3.x(), P3.y(), P3.z());
 
         glEnd();
 
@@ -441,11 +518,11 @@ void cBBox::draw()
     }
 }
 
-cCam::cCam(CamStenope *pCam, float scale,  object_state state, float lineWidth) :
+cCamGL::cCamGL(cCamHandler *pCam, float scale,  object_state state, float lineWidth) :
     _pointSize(5.f),
     _Cam(pCam)
 {
-    _scale = Pt3dr(scale, scale, scale);
+    _scale = QVector3D(scale, scale, scale);
 
     setState(state);
     cObject::setColor(QColor("red"));
@@ -453,7 +530,7 @@ cCam::cCam(CamStenope *pCam, float scale,  object_state state, float lineWidth) 
     setLineWidth(lineWidth);
 }
 
-void cCam::draw()
+void cCamGL::draw()
 {
     if (isVisible())
     {
@@ -473,9 +550,9 @@ void cCam::draw()
 
         glPointSize(_pointSize);
 
-        Pt3dr C  = _Cam->VraiOpticalCenter();
-        Pt3dr P1, P2, P3, P4;
-        _Cam->Coins(P1, P2, P3, P4, _scale.z*.05f);
+        QVector3D C  = _Cam->getCenter();
+        QVector3D P1, P2, P3, P4;
+        _Cam->getCoins(P1, P2, P3, P4, _scale.z()*.05f);
 
         glBegin(GL_LINES);
         //perspective cone
@@ -487,37 +564,37 @@ void cCam::draw()
             glColor3f(color.redF(),color.greenF(),color.blueF());
         }
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P1.x, P1.y, P1.z);
+        glVertex3d(C.x(), C.y(), C.z());
+        glVertex3d(P1.x(), P1.y(), P1.z());
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(C.x(), C.y(), C.z());
+        glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(C.x(), C.y(), C.z());
+        glVertex3d(P3.x(), P3.y(), P3.z());
 
-        glVertex3d(C.x, C.y, C.z);
-        glVertex3d(P4.x, P4.y, P4.z);
+        glVertex3d(C.x(), C.y(), C.z());
+        glVertex3d(P4.x(), P4.y(), P4.z());
 
         //Image
 
         setGLColor();
 
-        glVertex3d(P1.x, P1.y, P1.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P1.x(), P1.y(), P1.z());
+        glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P2.x, P2.y, P2.z);
+        glVertex3d(P4.x(), P4.y(), P4.z());
+        glVertex3d(P2.x(), P2.y(), P2.z());
 
-        glVertex3d(P3.x, P3.y, P3.z);
-        glVertex3d(P1.x, P1.y, P1.z);
+        glVertex3d(P3.x(), P3.y(), P3.z());
+        glVertex3d(P1.x(), P1.y(), P1.z());
 
-        glVertex3d(P4.x, P4.y, P4.z);
-        glVertex3d(P3.x, P3.y, P3.z);
+        glVertex3d(P4.x(), P4.y(), P4.z());
+        glVertex3d(P3.x(), P3.y(), P3.z());
         glEnd();
 
         glBegin(GL_POINTS);
-        glVertex3d(C.x, C.y, C.z);
+        glVertex3d(C.x(), C.y(), C.z());
         glEnd();
 
         glEndList();
@@ -534,6 +611,7 @@ void cCam::draw()
 cPoint::cPoint(QPointF pos,
                QString name, bool showName,
                int state,
+               int geometry,
                bool isSelected,
                QColor color, QColor selectionColor,
                float diameter,
@@ -543,6 +621,7 @@ cPoint::cPoint(QPointF pos,
     _diameter(diameter),
     _bShowName(showName),
     _pointState(state),
+    _pointGeometry(geometry),
     _highlight(highlight),
     _drawCenter(drawCenter),
     _bEpipolar(false)
@@ -560,31 +639,45 @@ QColor cPoint::colorPointState()
 
     if (!isSelected())
     {
-        switch(_pointState)
-        {
-        case eEPI_NonSaisi :
-            color = Qt::yellow;
-            break;
-
-        case eEPI_Refute :
+        if(_parent)
             color = Qt::red;
-            break;
+        else
+            switch(_pointState)
+            {
+                case qEPI_NonSaisi ://
+                    color = Qt::yellow;
+                    break;
 
-        case eEPI_Douteux :
-            color = QColor(255, 127, 0, 255);
-            break;
+                case qEPI_Refute ://
+                    color = Qt::red;
+                    break;
 
-        case eEPI_Valide :
-            color = Qt::green;
-            break;
+                case qEPI_Douteux ://
+                    color = QColor(255, 127, 0, 255);
+                    break;
 
-        case eEPI_Disparu  :
-        case eEPI_NonValue :
-            break;
-        }
+                case  qEPI_Valide://
+                    color = Qt::green;
+                    break;
+
+                case  qEPI_Disparu://
+                case  qEPI_NonValue://
+                    break;
+            }
     }
 
     return color;
+}
+
+void cPoint::setParent(cObject* parent)
+{
+    cObject::setParent(parent);
+    if(parent)
+    {
+        cPoint* pointParent = (cPoint*)parent;
+        setX(pointParent->x());
+        setY(pointParent->y());
+    }
 }
 
 void cPoint::draw()
@@ -616,7 +709,49 @@ void cPoint::draw()
 
         mmProject(x(),y(),0,mvMatrix,projMatrix,glViewport,&xp,&yp,&zp);
 
-        glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+        //TODO: a deplacer
+        if (_highlight && ((_pointState == qEPI_Valide) || (_pointState == qEPI_NonSaisi)))
+        {
+            if (_bEpipolar)
+                _pointGeometry = Geom_epipolar;
+            else
+                _pointGeometry = Geom_double_circle;
+        }
+
+        switch(_pointGeometry)
+        {
+        case Geom_simple_circle:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            break;
+        case Geom_double_circle:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            glDrawEllipse( xp, yp, 2.f*_diameter, 2.f*_diameter);
+            break;
+        case Geom_epipolar:
+            glDrawEllipsed(xp, yp, _diameter, _diameter,16);
+            GLdouble x1,y1,z1,x2,y2,z2;
+
+            mmProject(_epipolar1.x(), _epipolar1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z1);
+            mmProject(_epipolar2.x(), _epipolar2.y(),0,mvMatrix,projMatrix,glViewport,&x2,&y2,&z2);
+
+            glBegin(GL_LINES);
+                glVertex2f(x1,y1);
+                glVertex2f(x2,y2);
+            glEnd();
+            break;
+        case Geom_cross:
+            glBegin(GL_LINES);
+                glVertex2f(xp+_diameter,yp);
+                glVertex2f(xp-_diameter,yp);
+            glEnd();
+            glBegin(GL_LINES);
+                glVertex2f(xp,yp+_diameter);
+                glVertex2f(xp,yp-_diameter);
+            glEnd();
+            break;
+        case no_geometry:
+            break;
+        }
 
         if (_drawCenter)
         {
@@ -625,28 +760,19 @@ void cPoint::draw()
             glEnd( );
         }
 
-        if (_highlight && ((_pointState == eEPI_Valide) || (_pointState == eEPI_NonSaisi)))
-        {
-            if (_bEpipolar)
-            {
-                GLdouble x1,y1,z1,x2,y2,z2;
-
-                mmProject(_epipolar1.x(), _epipolar1.y(),0,mvMatrix,projMatrix,glViewport,&x1,&y1,&z1);
-                mmProject(_epipolar2.x(), _epipolar2.y(),0,mvMatrix,projMatrix,glViewport,&x2,&y2,&z2);
-
-                glBegin(GL_LINES);
-                    glVertex2f(x1,y1);
-                    glVertex2f(x2,y2);
-                glEnd();
-            }
-            else
-                glDrawEllipse( xp, yp, 2.f*_diameter, 2.f*_diameter);
-        }
-
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
+    }
+}
+
+void cPoint::setPosition(QPointF pos)
+{
+    if(!parent())
+    {
+        setX(pos.x());
+        setY(pos.y());
     }
 }
 
@@ -666,12 +792,13 @@ void cPoint::glDraw()
 
 float cPolygon::_selectionRadius = 10.f;
 
-cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int style):
+cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int geometry, int style):
     _helper(new cPolygonHelper(this, 3, lineWidth)),
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
     _pointDiameter(1.f),
+    _pointGeometry(geometry),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
@@ -682,11 +809,20 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor, QColor pointCol
     setLineWidth(lineWidth);
 }
 
-cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style):
+cPolygon::~cPolygon()
+{
+    if(_helper)
+    {
+        delete _helper;
+    }
+}
+
+cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int geometry, int style):
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
     _pointDiameter(1.f),
+    _pointGeometry(geometry),
     _bIsClosed(false),
     _bSelectedPoint(false),
     _bShowLines(true),
@@ -703,6 +839,7 @@ cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointCo
 
 void cPolygon::draw()
 {
+
     for (int aK=0; aK < size();++aK)
         point(aK).draw();
 
@@ -737,7 +874,11 @@ void cPolygon::draw()
         disableOptionLine();
     }
 
-    if(helper() != NULL)  helper()->draw();
+
+    if(helper() != NULL)
+    {
+        helper()->draw();
+    }
 }
 
 cPolygon & cPolygon::operator = (const cPolygon &aP)
@@ -750,6 +891,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
 
         _points           = aP._points;
         _pointDiameter    = aP._pointDiameter;
+        _pointGeometry    = aP._pointGeometry;
         _selectionRadius  = aP._selectionRadius;
 
         _bSelectedPoint   = aP._bSelectedPoint;
@@ -772,7 +914,7 @@ cPolygon & cPolygon::operator = (const cPolygon &aP)
     return *this;
 }
 
-void cPolygon::close()
+void cPolygon::RemoveLastPointAndClose()
 {
     int sz = size();
 
@@ -787,6 +929,11 @@ void cPolygon::close()
     _bSelectedPoint = false;
 }
 
+void cPolygon::close()
+{
+    _bIsClosed = true;
+}
+
 void cPolygon::removeNearestOrClose(QPointF pos)
 {
     if (_bIsClosed)
@@ -798,7 +945,7 @@ void cPolygon::removeNearestOrClose(QPointF pos)
         if (size() < 3) _bIsClosed = false;
     }
     else // close polygon
-        close();
+        RemoveLastPointAndClose();
 }
 
 void cPolygon::removeSelectedPoint()
@@ -823,44 +970,59 @@ int cPolygon::getSelectedPointState()
     {
         return point(_idx).pointState();
     }
-    else return eEPI_NonValue;
+    else return qEPI_NonValue;
+}
+
+int cPolygon::getSelectedPointGeometry()
+{
+    if (pointValid())
+    {
+        return point(_idx).pointGeometry();
+    }
+    else return no_geometry;
 }
 
 void cPolygon::add(cPoint &pt)
 {
-    if (size() < _maxSz)
+    if (size() <= _maxSz)
     {
         pt.setDiameter(_pointDiameter);
         _points.push_back(pt);
     }
+
+    if(size() > _maxSz)
+        RemoveLastPointAndClose();
 }
 
 // TODO pourquoi les fonctions : 2 add et addPoint?
-void cPolygon::add(const QPointF &pt, bool selected)
+void cPolygon::add(const QPointF &pt, bool selected, cPoint* lock )
 {
-    if (size() < _maxSz)
+    if (size() <= _maxSz)
     {
-        cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, selected, _color[state_default],Qt::blue,_pointDiameter);
+        cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, _pointGeometry, selected, _color[state_default],Qt::blue,_pointDiameter);
 
+        cPt.setParent(lock);
         cPt.drawCenter(!isLinear());
 
         _points.push_back(cPt);
     }
+    if(size() > _maxSz)
+        RemoveLastPointAndClose();
 }
 
-void cPolygon::addPoint(const QPointF &pt)
+void cPolygon::addPoint(const QPointF &pt, cPoint* lock)
 {
-    if (size() >= 1)
+    if (size() >= 1 && size() <= _maxSz)
     {
-        cPoint cPt( pt, _defPtName, _bShowNames, eEPI_NonValue, false, _color[state_default]);
+        cPoint cPt( pt, _defPtName, _bShowNames, qEPI_NonValue, _pointGeometry, false, _color[state_default]);
         cPt.setDiameter(_pointDiameter);
-
+        cPt.setParent(lock);
         cPt.drawCenter(!isLinear());
 
-        point(size()-1) = cPoint(cPt);
+        point(size()-1) = cPt;
     }
 
-    add(pt);
+    add(pt,false,lock);
 }
 
 void cPolygon::clear()
@@ -874,7 +1036,7 @@ void cPolygon::clear()
 
 void cPolygon::insertPoint(int i, const QPointF &value)
 {
-    if (i <= size())
+    if (i <= size()&& size() < _maxSz)
     {
         cPoint pt(value);
         pt.setDiameter(point(i-1).diameter());
@@ -885,7 +1047,7 @@ void cPolygon::insertPoint(int i, const QPointF &value)
 
 void cPolygon::insertPoint()
 {
-    if ((size() >=2) && _helper->size()>1 && _bIsClosed)
+    if ((size() >=2) && _helper->size()>1 && _bIsClosed && size() < _maxSz)
     {
         int idx = -1;
         QPointF Pt1 = (*_helper)[0];
@@ -904,6 +1066,11 @@ void cPolygon::insertPoint()
 
 void cPolygon::removePoint(int i)
 {
+    if(_points[i].nbChild() == 1)
+    {
+        _points[i].child(0)->setParent(NULL);
+    }
+
     _points.remove(i);
     _idx = -1;
 }
@@ -944,26 +1111,6 @@ const QVector<QPointF> cPolygon::getImgCoordVector(const cMaskedImageGL &img)
     return points;
 }
 
-//transforms into terrain coordinates if FileOriMNT exists, else transforms into image coordinates
-const QVector<QPointF> cPolygon::transfoTerrain(const cMaskedImageGL &img)
-{
-    QVector <QPointF> res = getImgCoordVector(img);
-
-    if (img._m_FileOriMnt.NameFileMnt() != "")
-    {
-        for (int aK=0; aK < res.size(); ++aK)
-        {
-            Pt2dr ptImage(res[aK].x(), res[aK].y());
-
-            Pt2dr ptTerrain = ToMnt(img._m_FileOriMnt, ptImage);
-
-            res[aK]=  QPointF(ptTerrain.x, ptTerrain.y);
-        }
-    }
-
-    return res;
-}
-
 void cPolygon::setVector(const QVector<QPointF> &aPts)
 {
     _points.clear();
@@ -973,16 +1120,26 @@ void cPolygon::setVector(const QVector<QPointF> &aPts)
     }
 }
 
+void cPolygon::setHelper(cPolygonHelper* aHelper) {
+
+    _helper = aHelper;
+}
+
 void cPolygon::setPointSelected()
 {
     _bSelectedPoint = true;
 
+
     if (pointValid())
+    {
         point(_idx).setSelected(true);
+    }
 }
 
 void cPolygon::resetSelectedPoint()
 {
+
+    // TODO virer _bSelectedPoint
     _bSelectedPoint = false;
 
     if (pointValid())
@@ -994,6 +1151,34 @@ void cPolygon::resetSelectedPoint()
 bool cPolygon::pointValid()
 {
     return ((_idx >=0) && (_idx < size()));
+}
+
+void cPolygon::setAllVisible(bool visible)
+{
+    setVisible(visible);
+    for (int i = 0; i < size(); ++i)
+    {
+        point(i).setVisible(visible);
+    }
+
+}
+
+float cPolygon::length()
+{
+    if(size() == 2 && helper()->size() > 0)
+    {
+        QLineF line(point(_idx == 0 ? 1 : 0),helper()->point(1));
+
+        return line.length();
+    }
+    else  if(size() == 2)
+    {
+        QLineF line(point(0),point(1));
+
+        return line.length();
+    }
+
+    else return 0.0;
 }
 
 int cPolygon::selectPoint(QString namePt)
@@ -1036,23 +1221,23 @@ void cPolygon::setPointSize(float sz)
     if (helper() != NULL) helper()->setPointSize(sz);
 }
 
-bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
+cPoint* cPolygon::findNearestPoint(QPointF const &pos, float radius)
 {
     if (_bIsClosed || _bShowLines)
     {
         resetSelectedPoint();
 
-        float dist, dist2, x, y, dx, dy;
+        float dist2, x, y;
         dist2 = radius*radius;
         x = pos.x();
         y = pos.y();
 
         for (int aK = 0; aK < size(); ++aK)
         {
-            dx = x - point(aK).x();
-            dy = y - point(aK).y();
+            const float dx = x - point(aK).x();
+            const float dy = y - point(aK).y();
 
-            dist = dx * dx + dy * dy;
+            const float dist = dx * dx + dy * dy;
 
             if  (dist < dist2)
             {
@@ -1065,40 +1250,40 @@ bool cPolygon::findNearestPoint(QPointF const &pos, float radius)
         {
             point(_idx).setSelected(true);
 
-            return true;
+            return &point(_idx);
         }
     }
 
-    return false;
+    return NULL;
 }
 
-void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible)
+void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible, cPoint* lock)
 {
     int nbVertex = size();
 
     if(!_bIsClosed)
     {
-        if (nbVertex == 1)                   // add current mouse position to polygon (for dynamic display)
-
-            add(pos);
-
+        if (nbVertex == 1)                  // add current mouse position to polygon (for dynamic display)
+        {
+            add(pos,false,lock);
+        }
         else if (nbVertex > 1)               // replace last point by the current one
         {
-            point(nbVertex-1).setX( pos.x() );
-            point(nbVertex-1).setY( pos.y() );
+            point(nbVertex-1).setPosition(pos);
+            point(nbVertex-1).setParent(lock);
         }
     }
     else if(nbVertex)                        // move vertex or insert vertex (dynamic display) en cours d'operation
     {
         if ( insertMode || isPointSelected()) // insert or move polygon point
         {
-            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), isPointSelected(), _color[state_default]); // TODO add diameter parameter
+            cPoint pt( pos, getSelectedPointName(), _bShowNames, getSelectedPointState(), getSelectedPointGeometry(), isPointSelected(), _color[state_default]); // TODO add diameter parameter
             pt.setDiameter(_pointDiameter);
-
+            pt.setParent(lock);
 
             if (!ptIsVisible) pt.setVisible(false);
 
-            _helper->build(pt, insertMode);
+            _helper->build(pt, size() == _maxSz ? false : insertMode);
         }
         else                                 // select nearest polygon point
         {
@@ -1107,7 +1292,7 @@ void cPolygon::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIs
     }
 }
 
-int cPolygon::finalMovePoint()
+int cPolygon::finalMovePoint(cPoint* lock)
 {
     int idx = _idx;
 
@@ -1116,6 +1301,7 @@ int cPolygon::finalMovePoint()
         int state = point(_idx).pointState();
 
         point(_idx) = (*_helper)[1];
+        point(idx).setParent(lock);
         point(_idx).setColor(_color[state_default]); // reset color to polygon color
         point(_idx).setPointState(state);
 
@@ -1231,9 +1417,13 @@ bool cPolygon::isPointInsidePoly(const QPointF& P)
 
 //********************************************************************************
 
-cPolygonHelper::cPolygonHelper(cPolygon* polygon, int maxSz, float lineWidth, QColor lineColor, QColor pointColor):
-    cPolygon(maxSz, lineWidth, lineColor, pointColor, false),
+cPolygonHelper::cPolygonHelper(cPolygon* polygon, int maxSz, float lineWidth, QColor lineColor, QColor pointColor, int pointGeometry):
+    cPolygon(maxSz, lineWidth, lineColor, pointColor, false, pointGeometry),
     _polygon(polygon)
+{
+}
+
+cPolygonHelper::~cPolygonHelper()
 {
 }
 
@@ -1263,11 +1453,11 @@ void cPolygonHelper::build(cPoint const &pos, bool insertMode)
 
     if (insertMode)
     {
-        float dist, dist2 = FLT_MAX;
+        float dist2 = std::numeric_limits<float>::max();
         int idx = -1;
         for (int aK =0; aK < sz; ++aK)
         {
-            dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%sz], pos);
+            const float dist = segmentDistToPoint((*_polygon)[aK], (*_polygon)[(aK + 1)%sz], pos);
 
             if (dist < dist2)
             {
@@ -1309,7 +1499,7 @@ cRectangle::cRectangle(int maxSz, float lineWidth, QColor lineColor, int style) 
     cPolygon(maxSz, lineWidth, lineColor, Qt::red, style)
 {}
 
-void cRectangle::addPoint(const QPointF &pt)
+void cRectangle::addPoint(const QPointF &pt, cPoint* lock) // TODO add lock effect....
 {
     if (size() == 0)
     {
@@ -1320,7 +1510,7 @@ void cRectangle::addPoint(const QPointF &pt)
     }
 }
 
-void cRectangle::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible)
+void cRectangle::refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible, cPoint* lock)
 {
     if (size())
     {
@@ -1377,19 +1567,18 @@ void cRectangle::draw()
 //invalid GL list index
 const GLuint GL_INVALID_LIST_ID = (~0);
 
-cImageGL::cImageGL(float scaleFactor,float gamma) :
-    _scaleFactor(scaleFactor),
-    _originX(0.f),
-    _originY(0.f),
+cImageGL::cImageGL(float gamma) :
     _texture(GL_INVALID_LIST_ID),
     _gamma(gamma)
 {
+    setPosition(QVector3D(0,0,0));
+
     _program.addShaderFromSourceCode(QGLShader::Vertex,vertexShader);
     _program.addShaderFromSourceCode(QGLShader::Fragment,fragmentGamma);
     _program.link();
 
-    _texLocation    = _program.uniformLocation("tex");
-    _gammaLocation  = _program.uniformLocation("gamma");
+    _texLocation   = _program.uniformLocation("tex");
+    _gammaLocation = _program.uniformLocation("gamma");
 }
 
 cImageGL::~cImageGL()
@@ -1403,7 +1592,7 @@ cImageGL::~cImageGL()
 
 void cImageGL::drawQuad(QColor color)
 {
-     drawQuad(_originX, _originY, width(), height(), color);
+    drawQuad(getPosition().x(), getPosition().y(), width(), height(), color);
 }
 
 void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat glh, QColor color)
@@ -1428,13 +1617,18 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
 void cImageGL::draw()
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, _texture );
 
-    if(_gamma != 1.0f)
+    if(_texture != GL_INVALID_LIST_ID)
     {
-        _program.bind();
-        _program.setUniformValue(_texLocation, GLint(0));
-        _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
+        glBindTexture( GL_TEXTURE_2D, _texture );
+
+        if(_gamma != 1.0f)
+        {
+            _program.bind();
+            _program.setUniformValue(_texLocation, GLint(0));
+            _program.setUniformValue(_gammaLocation, GLfloat(1.0f/_gamma));
+        }
+
     }
 
     drawQuad(Qt::white);
@@ -1445,11 +1639,6 @@ void cImageGL::draw()
     glDisable(GL_TEXTURE_2D);
 }
 
-void cImageGL::setGLPosition(GLfloat originX, GLfloat originY)
-{
-    _originX = originX;
-    _originY = originY;
-}
 
 void cImageGL::setSize(QSize size)
 {
@@ -1458,7 +1647,8 @@ void cImageGL::setSize(QSize size)
 
 void cImageGL::draw(QColor color)
 {
-    drawQuad(color);
+    if(isVisible())
+        drawQuad(color);
 }
 
 bool cImageGL::isPtInside(const QPointF &pt)
@@ -1468,6 +1658,10 @@ bool cImageGL::isPtInside(const QPointF &pt)
 
 void cImageGL::createTexture(QImage * pImg)
 {
+
+    if(!pImg || pImg->isNull())
+        return;
+
     glGenTextures(1, getTexture() );
 
     ImageToTexture(pImg);
@@ -1475,20 +1669,22 @@ void cImageGL::createTexture(QImage * pImg)
 
 void cImageGL::ImageToTexture(QImage *pImg)
 {
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture( GL_TEXTURE_2D, _texture );
 
+    glEnable(GL_TEXTURE_2D);
+
+    glBindTexture( GL_TEXTURE_2D, _texture );
     if (pImg->format() == QImage::Format_Indexed8)
         glTexImage2D( GL_TEXTURE_2D, 0, 3, pImg->width(), pImg->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, pImg->bits());
     else
         glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
 
-    GLenum glErrorT = glGetError();
+
+    /*GLenum glErrorT = glGetError();
     if(glErrorT == GL_OUT_OF_MEMORY)
     {
         setGlError(glErrorT);
         printf("GL_OUT_OF_MEMORY \n");
-    }
+    }*/
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glBindTexture( GL_TEXTURE_2D, 0);
@@ -1497,9 +1693,11 @@ void cImageGL::ImageToTexture(QImage *pImg)
 
 void cImageGL::deleteTexture()
 {
+
     if(_texture != GL_INVALID_LIST_ID)
         glDeleteTextures(1,&_texture);
     _texture = GL_INVALID_LIST_ID;
+
 }
 
 void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
@@ -1536,193 +1734,219 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 
 //********************************************************************************
 
-
+//TODO: un seul constructeur ?
 cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
-    _qMaskedImage(qMaskedImage),
-    _tiles(NULL),
-    _mask_tiles(NULL)
+    _qMaskedImage(qMaskedImage)
 {
-
     _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
-    _m_mask     = new cImageGL(_loadedImageRescaleFactor );
-    _m_image    = new cImageGL(_loadedImageRescaleFactor,qMaskedImage->_gamma);
+    _m_mask     = new cImageGL();
+    _m_image    = new cImageGL(qMaskedImage->_gamma);
     _m_newMask  = qMaskedImage->_m_newMask;
-
-    _m_FileOriMnt = qMaskedImage->_m_FileOriMnt;
 
     cObjectGL::setName(qMaskedImage->name());
 }
 
+cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
+    _qMaskedImage(NULL)
+{
+    _m_image = new cImageGL();
+    _m_mask  = new cImageGL();
+
+    _m_image->setVisible(false);
+    _m_mask->setVisible(false);
+
+    QVector3D pos(aRect.topLeft().x(), aRect.topLeft().y(), 0.f);
+
+    QSize size((int) aRect.width(), (int) aRect.height());
+
+    _m_image->setPosition(pos);
+    _m_image->setSize(size);
+    _m_mask->setPosition(pos);
+    _m_mask->setSize(size);
+}
+
+cMaskedImageGL::~cMaskedImageGL()
+{
+    _mutex.tryLock();
+    _mutex.unlock();
+}
 
 void cMaskedImageGL::draw()
 {
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE,GL_ZERO);
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_DEPTH_TEST);
 
-    glColor4f(1.0f,1.0f,1.0f,1.0f);
-
-    //bool tileMode = glImage()->getZoom() > getLoadedImageRescaleFactor();
+    if(glImage()->isVisible())
+    {
+        glBlendFunc(GL_ONE,GL_ZERO);
+        glImage()->draw();
+    }
 
     if(glMask() != NULL && glMask()->isVisible())
     {
-        //if(tileMode)
-        //    drawTiles(_mask_tiles);
-        //else
-            glMask()->draw();
 
-        glBlendFunc(GL_ONE,GL_ONE);
-        glMask()->draw(QColor(128,255,128));
-        glBlendFunc(GL_DST_COLOR,GL_ZERO);
-        glColor4f(1.0f,1.0f,1.0f,1.0f);
+#if (ELISE_QT_VERSION == 5)
+        QOpenGLContext* context = QOpenGLContext::currentContext();
+        QOpenGLFunctions* glFunctions = context->functions();
+        glFunctions->glBlendColor(1.f, 0.1f, 1.f, 1.0f);
+        glFunctions->glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+        glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
+        glMask()->draw();
+
+        glFunctions->glBlendEquation(GL_FUNC_ADD);
+        glFunctions->glBlendColor(0.f, 0.2f, 0.f, 1.0f);
+        glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
+        glMask()->draw();
+#elif (ELISE_QT_VERSION == 4)
+
+        glBlendColor(1.f, 0.1f, 1.f, 1.0f);
+        glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+        glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
+        glMask()->draw();
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendColor(0.f, 0.2f, 0.f, 1.0f);
+        glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
+        glMask()->draw();
+#endif
     }
 
-    //if(tileMode)
-        //drawTiles(_tiles);
-    //else
-        glImage()->draw();
-
-
     glDisable(GL_BLEND);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
 }
 
-void cMaskedImageGL::drawTiles(cImageGL* tiles)
+/*void cMaskedImageGL::drawMaskTiles()
 {
-    if (tiles == NULL) cout << "tiles null" << endl;
-    else
-    for (int aK = 0; aK < 4; ++aK)
-        tiles[aK].draw();
-}
-
-QSize cMaskedImageGL::getTilesSize()
-{
-//    QPoint nbFen = (1,1); //_params->getNbFen();
-
-    //cout << "nbFen : " << nbFen.x() << " " << nbFen.y() << endl;
-
-    int maxTextureSize;
-
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-
-    maxTextureSize /= 2;
-
-//    int maxTileSizeX = maxTextureSize / (2 * nbFen.x());
-//    int maxTileSizeY = maxTextureSize / (2 * nbFen.y());
-
-//    cout << "maxTileSize : " << maxTileSizeX << " " << maxTileSizeY << endl;
-
-    int fullRes_image_sizeX = _m_image->width();
-    int fullRes_image_sizeY = _m_image->height();
-
-//    cout << " fullRes_image_size " << fullRes_image_sizeX << " " << fullRes_image_sizeY << endl;
-
-    int nbTilesX = qCeil((float) fullRes_image_sizeX / maxTextureSize);
-    int nbTilesY = qCeil((float) fullRes_image_sizeY / maxTextureSize);
-
-//    cout << "tile size : " << fullRes_image_sizeX/ nbTilesX << " " <<  fullRes_image_sizeY/ nbTilesY << endl;
-
-    int tileWidth  = fullRes_image_sizeX / nbTilesX;
-    int tileHeight = fullRes_image_sizeY / nbTilesY;
-
-//    cout << "NB ROW - COL = " << nbTilesX << " " << nbTilesY << endl;
-
-    for (int aK=0; aK< nbTilesX; aK++)
-        for (int bK=0; bK< nbTilesY; bK++)
-            _vTilesRect.push_back(QRectF(QPointF(aK*tileWidth, bK*tileHeight),QPointF((aK+1)*tileWidth, (bK+1)*tileHeight)));
-
-    return QSize( tileWidth, tileHeight );
-}
-
-void cMaskedImageGL::createTexturesTiles()
-{
-    //on cherche seulement les tiles intersectées et on crée les textures pour ces tiles
-
-    QVector <QRectF> tilesToDraw;
-
-    //recherche des tiles intersectées
-    for (int aK=0; aK< _vTilesRect.size(); aK++)
+    for (unsigned int aK=0; aK <_vTiles.size();++aK)
     {
-        if (_vTilesRect[aK].intersects(_rectImage))
-        {
-            tilesToDraw.push_back(_vTilesRect[aK]);
+        if (_vTiles[aK].getMaskTile()->isVisible())
+            _vTiles[aK].getMaskTile()->draw();
+    }
+}
 
-            cout << "viewport intersects rect " << aK << endl;
+void cMaskedImageGL::drawImgTiles()
+{
+    for (unsigned int aK=0; aK <_vTiles.size();++aK)
+    {
+        if (_vTiles[aK].getImgTile()->isVisible())
+        {
+            if(*(_vTiles[aK].getImgTile()->getTexture() )==  GL_INVALID_LIST_ID)
+                _vTiles[aK].getImgTile()->draw(Qt::red);
+            else
+            {
+                _vTiles[aK].getImgTile()->draw();
+            }
+        }
+    }
+}*/
+
+/*void cMaskedImageGL::drawTiles(cImageGL* tiles)
+{
+    for (int aK = 0; aK < 4; ++aK)
+    {
+        if (tiles[aK].isVisible())
+        {
+            if(*(tiles[aK].getTexture() )==  GL_INVALID_LIST_ID)
+                tiles[aK].draw(Qt::red);
+            else
+                tiles[aK].draw();
         }
     }
 
-    // création des textures et set des positions GL
-    for (int aK=0; aK < tilesToDraw.size(); ++aK)
-    {
-        QImage cropIJ = _qMaskedImage->_m_image->copy(tilesToDraw[aK].toAlignedRect());
-        getTile(aK).createTexture(&cropIJ);
+//    {
+//        tiles[0].draw(Qt::red);
+//        tiles[1].draw(Qt::blue);
+//        tiles[2].draw(Qt::green);
+//        tiles[3].draw(Qt::yellow);
+//    }
+}*/
 
-        //TODO: set origin = coin haut gauche de chaque tile
-        //float posX, posY;
-        //QPointF topLeft = _vTilesRect[aK].topLeft();
 
-        //convert image coordinates into gl coordinates
-        // ?? utiliser matrixManager->ImageToWindow ou :
-
-        // posX = topLeft.x() / _qMaskedImage->_m_image->width();
-        // posY = topLeft.y() / _qMaskedImage->_m_image->height();
-
-        // getTile(aK).setGLPosition(posX, posY);
-    }
-}
 
 void cMaskedImageGL::createTextures()
 {
-    if( glMask() && glMask()->isVisible())
+    _mutex.tryLock();
+    if( _qMaskedImage)
     {
-        glMask()->createTexture( _qMaskedImage->_m_rescaled_mask );
-        glMask()->setSize( _qMaskedImage->_m_mask->size() );
-    }
-
-    if(glImage() && glImage()->isVisible())
-    {
-        glImage()->createTexture( _qMaskedImage->_m_rescaled_image );
-        glImage()->setSize( _qMaskedImage->_m_image->size() );
-    }
-
-    if(getLoadedImageRescaleFactor()<1.f)
-    {
-        QSize tileSize = getTilesSize();
-
-        for (int aK = 0; aK < 4; aK++)
+        if( glMask() && glMask()->isVisible() )
         {
-            getTile(aK).setSize(tileSize);
+
+            glMask()->createTexture( _qMaskedImage->_m_rescaled_mask );
+
+            if(!_qMaskedImage->_fullSize.isNull())
+            {
+                glMask()->setSize( _qMaskedImage->_fullSize);
+            }
+            else
+                glMask()->setSize( _qMaskedImage->_m_mask->size() );
+        }
+        if(glImage() && glImage()->isVisible())
+        {
+            if(getLoadedImageRescaleFactor() < 1.f)
+                glImage()->createTexture( _qMaskedImage->_m_rescaled_image );
+            else
+                glImage()->createTexture( _qMaskedImage->_m_image );
+
+            if(!_qMaskedImage->_fullSize.isNull())
+            {
+                glImage()->setSize( _qMaskedImage->_fullSize );
+            }
+            else
+                glImage()->setSize( _qMaskedImage->_m_image->size() );
+
         }
     }
+    _mutex.unlock();
 }
 
-void cMaskedImageGL::setZone(float aVal, QRectF rectImage)
+void cMaskedImageGL::createFullImageTexture()
 {
-    if (_m_image)
-        _m_image->setZoom(aVal);
-    _rectImage = rectImage;
+    if(glImage() && glImage()->isVisible())
+    {
+        _mutex.tryLock();
+        if(_qMaskedImage)
+        {
+            glImage()->createTexture( _qMaskedImage->_m_image );
+            delete _qMaskedImage;
+            _qMaskedImage = NULL;
+        }
+        _mutex.unlock();
+    }
 
-    //cout << "rect Image = " << _rectImage.topLeft().x() << " " <<  _rectImage.topLeft().y() << " " << _rectImage.bottomRight().x() << " " << _rectImage.bottomRight().y() << endl;
 }
 
-cImageGL &cMaskedImageGL::getTile(int aK)
+void cMaskedImageGL::copyImage(QMaskedImage* image, QRect& rect)
 {
-    if (_tiles)
-        return _tiles[aK];
+    _mutex.tryLock();
+    if(!_qMaskedImage)
+        _qMaskedImage = new QMaskedImage();
 
-    _tiles = new cImageGL[4];
-    return _tiles[aK];
+    _qMaskedImage->_m_image = new QImage(rect.size(),QImage::Format_Mono);
+
+    QImage* tImage = getMaskedImage()->_m_image;
+
+    QImage* sourceImage = image->_m_image;
+
+    *(tImage) = sourceImage->copy(rect);
+
+    _mutex.unlock();
 }
 
-cImageGL &cMaskedImageGL::getMaskTile(int aK)
+QSize cMaskedImageGL::fullSize()
 {
-    if (_mask_tiles)
-        return _mask_tiles[aK];
 
-    _mask_tiles = new cImageGL[4];
-    return _mask_tiles[aK];
+    _mutex.tryLock();
+    if(getMaskedImage() && !getMaskedImage()->_fullSize.isNull())
+    {
+        QSize lfullSize	= _qMaskedImage->_fullSize;
+        return lfullSize;
+    }
+    else
+        return glImage()->getSize();
+
+    _mutex.unlock();
 }
 
 void cMaskedImageGL::deleteTextures()
@@ -1747,8 +1971,8 @@ void cObjectGL::setGLColor()
 
 void cObjectGL::enableOptionLine()
 {
-   // glDisable(GL_DEPTH_TEST);
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glEnable (GL_LINE_SMOOTH);
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1759,7 +1983,7 @@ void cObjectGL::disableOptionLine()
 {
     glDisable(GL_BLEND);
     glDisable(GL_LINE_SMOOTH);
-    //glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 }
 
 float cObjectGL::getHalfViewPort()
@@ -1897,7 +2121,7 @@ void cMessages2DGL::glRenderText(QString text, QPointF pt, QColor color)
     glwid->renderText ( pt.x(), pt.y(), text);
 }
 
-cGrid::cGrid(Pt3dr pt, Pt3dr scale)
+cGrid::cGrid(QVector3D pt, QVector3D scale)
 {
     _position = pt;
     _scale    = scale;
@@ -1911,29 +2135,29 @@ void cGrid::draw()
         int nbGridX = 10;
         int nbGridZ = 10;
 
-        float scaleX = getScale().x / nbGridX;
-        float scaleZ = getScale().z / nbGridZ;
+        float scaleX = getScale().x() / nbGridX;
+        float scaleZ = getScale().z() / nbGridZ;
 
-        Pt3dr pt;
+        QVector3D pt;
 
-        pt.x = getPosition().x - ((float)nbGridX * 0.5f) * scaleX;
-        pt.y = getPosition().y ;
-        pt.z = getPosition().z - ((float)nbGridZ * 0.5f) * scaleZ;
+        pt.setX( getPosition().x() - ((float)nbGridX * 0.5f) * scaleX);
+        pt.setY( getPosition().y() );
+        pt.setZ(getPosition().z() - ((float)nbGridZ * 0.5f) * scaleZ);
 
         glBegin(GL_LINES);
         glColor3f(.25,.25,.25);
         for(int i=0;i<=nbGridX;i++)
         {
             //if (i==0) { glColor3f(.6,.3,.3); } else { glColor3f(.25,.25,.25); };
-            glVertex3f((float)i * scaleX + pt.x,pt.y,pt.z);
-            glVertex3f((float)i * scaleX + pt.x,pt.y,(float)nbGridZ * scaleZ+ pt.z);
+            glVertex3f((float)i * scaleX + pt.x(),pt.y(),pt.z());
+            glVertex3f((float)i * scaleX + pt.x(),pt.y(),(float)nbGridZ * scaleZ+ pt.z());
         }
 
         for(int i=0;i<=nbGridZ;i++)
         {
             //if (i==0) { glColor3f(.3,.3,.6); } else { glColor3f(.25,.25,.25); };
-            glVertex3f( pt.x,pt.y,(float)i * scaleZ + pt.z);
-            glVertex3f((float)nbGridX* scaleX+pt.x,pt.y,(float)i * scaleZ + pt.z);
+            glVertex3f( pt.x(),pt.y(),(float)i * scaleZ + pt.z());
+            glVertex3f((float)nbGridX* scaleX+pt.x(),pt.y(),(float)i * scaleZ + pt.z());
         };
         glEnd();
     }

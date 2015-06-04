@@ -161,6 +161,8 @@ class cPIF_Bilin;
 class cEqOffsetGPS;
 class cBaseGPS;
 class cEqObsBlockCam;
+class cEqRelativeGPS;
+
 
 
 //   Il n'avait pas ete prevu de renumeroter les intervales. Quand le besoin
@@ -355,7 +357,8 @@ class cNameSpaceEqF
 	          eRotFigee,
 	          eRotBaseU,
 	          eRotPseudoBaseU,
-                  eRotCOptFige
+                  eRotCOptFige,
+                  eRotAngleFige
 	     } eModeContrRot;
 	     typedef enum
 	     {
@@ -632,7 +635,7 @@ class cSetEqFormelles : public cNameSpaceEqF
 	  
 
               ~cSetEqFormelles();
-              cSetEqFormelles(eTypeSysResol = eSysPlein,int aNbEq=1);
+              cSetEqFormelles(eTypeSysResol = eSysPlein,int aNbEq=1,bool CanUseCstr=false);
               AllocateurDInconnues & Alloc();
               cHomogFormelle * NewHomF
 		      (const cElHomographie &,
@@ -669,6 +672,10 @@ class cSetEqFormelles : public cNameSpaceEqF
                cBaseGPS * NewBaseGPS(const Pt3dr & aV0);
                cEqOffsetGPS * NewEqOffsetGPS(cRotationFormelle & aRF,cBaseGPS  &aBase,bool Code2Gen = false);
                cEqOffsetGPS * NewEqOffsetGPS(cCameraFormelle & aRF,cBaseGPS  &aBase);
+
+               cEqRelativeGPS * NewEqRelativeGPS(cRotationFormelle & aR1,
+                                                 cRotationFormelle & aR2);
+
 
                cEqObsBlockCam * NewEqBlockCal( cRotationFormelle & aRotRT0,
                                                cRotationFormelle & aRotLT0,
@@ -927,6 +934,7 @@ class cSetEqFormelles : public cNameSpaceEqF
           cManipOrdInc                  mMOI;
           Im1D_REAL8                    mSolQuad;
           Im1D_REAL8                    mCurSol;
+          bool                          mCanUseCstr;
 
 
           cSetEqFormelles(const cSetEqFormelles &); // N.I.

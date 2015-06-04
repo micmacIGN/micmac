@@ -129,7 +129,7 @@ class cAppliMalt
           std::string  mImMNT;
           std::string  mImOrtho;
           double       mZMoy;
-          bool         mIsSperik;
+          bool         mIsSpherik;
           double      mLargMin;
           Pt2dr       mSzGlob;
           std::string  mMasqIm;
@@ -191,7 +191,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mResolOrtho   (1.0),
     mImMNT        (""),
     mImOrtho      (""),
-    mIsSperik     (false),
+    mIsSpherik    (false),
     mLargMin      (25.0),
     mSzGlob       (0,0),
     mUseImSec     (false),
@@ -205,10 +205,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 #if(ELISE_QT_VERSION >= 4)
 
-    QApplication app(argc, argv);
-
     if (MMVisualMode)
     {
+        QApplication app(argc, argv);
+
         LArgMain LAM;
         LAM << EAMC(mStrType,"Correlation mode",eSAM_None,ListOfVal(eTMalt_NbVals,"eTMalt_"));
 
@@ -263,6 +263,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     int aNbProc = NbProcSys();
     double mPenalSelImBestNadir = -1;
 
+    bool ForceNoIncid = false;
+
 
     ElInitArgMain
     (
@@ -281,36 +283,36 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mUseMasqTA,"UseTA",true,"Use TA as Masq when it exists (Def is true)")
                     << EAM(mZoomFinal,"ZoomF",true,"Final zoom, (Def 2 in ortho,1 in MNE)",eSAM_IsPowerOf2)
                     << EAM(mZoomInit,"ZoomI",true,"Initial Zoom, (Def depends on number of images)",eSAM_NoInit)
-                    << EAM(mZPas,"ZPas",true,"Quantification step in equivalent pixel (def is 0.4)")
+                    << EAM(mZPas,"ZPas",true,"Quantification step in equivalent pixel (def=0.4)")
                     << EAM(mExe,"Exe",true,"Execute command (Def is true !!)", eSAM_IsBool)
-                    << EAM(mRep,"Repere",true,"Local system of coordinates")
-                    << EAM(mNbMinIV,"NbVI",true,"Number of Visible Image required (Def = 3)")
+                    << EAM(mRep,"Repere",true,"Local system of coordinates",eSAM_IsExistFileRP)
+                    << EAM(mNbMinIV,"NbVI",true,"Number of Visible Images required (Def = 3)")
                     << EAM(mOrthoF,"HrOr",true,"Compute High Resolution Ortho")
                     << EAM(mOrthoQ,"LrOr",true,"Compute Low Resolution Ortho")
-                    << EAM(mDirTA,"DirTA",true,"Directory of TA (for mask)")
+                    << EAM(mDirTA,"DirTA",true,"Directory of TA (for mask)",eSAM_IsDir)
                     << EAM(mPurge,"Purge",true,"Purge the directory of Results before compute")
                     << EAM(mDoMEC,"DoMEC",true,"Do the Matching")
-                    << EAM(mDoOrtho,"DoOrtho",true,"Do the Ortho (Def =mDoMEC)")
-                    << EAM(mUnAnam,"UnAnam",true,"Compute the un-anamorphosed DTM and ortho (Def context dependant)")
+                    << EAM(mDoOrtho,"DoOrtho",true,"Do the Ortho (Def=mDoMEC)")
+                    << EAM(mUnAnam,"UnAnam",true,"Compute the un-anamorphosed DTM and ortho (Def context dependent)")
                     << EAM(mDoubleOrtho,"2Ortho",true,"Do both anamorphosed ans un-anamorphosed ortho (when applyable) ")
                     << EAM(mZincCalc,"ZInc",true,"Incertitude on Z (in proportion of average depth, def=0.3) ")
-                    << EAM(mDefCor,"DefCor",true,"Default Correlation in un correlated pixels (Def = 0.2) ")
-                    << EAM(mCostTrans,"CostTrans",true,"Cost to change from correlation to uncorrelation (Def = 2.0) ")
+                    << EAM(mDefCor,"DefCor",true,"Default Correlation in un correlated pixels (Def=0.2) ")
+                    << EAM(mCostTrans,"CostTrans",true,"Cost to change from correlation to uncorrelation (Def=2.0) ")
                     << EAM(mEtapeInit,"Etape0",true,"First Step (Def=1) ")
                     << EAM(mAffineLast,"AffineLast",true,"Affine Last Etape with Step Z/2 (Def=true) ")
                     << EAM(mResolOrtho,"ResolOrtho",true,"Resolution of ortho, relatively to images (Def=1.0; 0.5 means smaller images) ")
-                    << EAM(mImMNT,"ImMNT",true,"Filter to select images used for matching (Def All, usable with ortho) ")
-                    << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ")
+                    << EAM(mImMNT,"ImMNT",true,"Filter to select images used for matching (Def All, usable with ortho) ",eSAM_IsPatFile)
+                    << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ",eSAM_IsPatFile)
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z", eSAM_NoInit)
-                    << EAM(mIsSperik,"Spherik",true,"If true the surface for rectification is a sphere")
+                    << EAM(mIsSpherik,"Spherik",true,"If true the surface for rectification is a sphere")
                     << EAM(mLargMin,"WMI",true,"Mininum width of reduced images (to fix ZoomInit)")
                     << EAM(mMasqIm,"MasqIm",true,"Masq per Im; Def None; Use \"Masq\" for standard result of SaisieMasq", eSAM_NoInit)
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Glob Masq per Im : if uses, give full name of masq (for ex toto.tif) ", eSAM_IsExistFileRP)
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
-                    << EAM(aResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)")
-                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependant,tuning purpose)", eSAM_InternalUse)
+                    << EAM(aResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)", eSAM_NoInit)
+                    << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependent,tuning purpose)", eSAM_InternalUse)
                     << EAM(mGenCubeCorrel,"GCC",true,"Generate export for Cube Correlation")
                     << EAM(mEZA,"EZA",true,"Export Z Absolute")
                     << EAM(mEquiv,"Equiv",true,"Equivalent classes, as a set of pattern, def=None")
@@ -319,7 +321,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mSzRec,"SzRec",true,"Sz of overlap between computation tiles, Def=50; for some rare side effects")
                     << EAM(mMasq3D,"Masq3D",true,"Name of 3D Masq", eSAM_IsExistFile)
                     << EAM(aNbProc,"NbProc",true,"Nb Proc Used")
-                    << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)")
+                    << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)", eSAM_InternalUse)
+                    << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use", eSAM_InternalUse)
                 );
 
     if (!MMVisualMode)
@@ -382,6 +385,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       replace( mFullName.begin(), mFullName.end(), '\\', '/' );
 #endif
       SplitDirAndFile(mDir,mIms,mFullName);
+      std::string aFullNameCorrc = mDir + mIms;
       setInputDirectory(mDir);
       mOutputDirectory = (isUsingSeparateDirectories()?MMOutputDirectory():mDir);
 
@@ -415,6 +419,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aKeyOri = "NKS-Assoc-Im2Orient@-" + mOri;
       double aSomZM = 0;
+      double aSomResol = 0;
       int    aNbZM = 0;
 
 
@@ -427,6 +432,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (! mModePB)
       {
+          // MPD : Ajout le 22/05/2015; car peut creer pb  si l'utilisateur a purge la directory
+          MakeXmlXifInfo(mFullName,mICNM);
           for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
           {
               const std::string & aNameIm = (*mSetIm)[aKIm];
@@ -440,6 +447,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               if (aCS->AltisSolIsDef())
               {
                   aSomZM += aCS->GetAltiSol();
+                  aSomResol +=  aCS->ResolutionSol();
                   aNbZM++;
               }
 
@@ -465,7 +473,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               ELISE_ASSERT(aNbZM!=0,"Cannot get ZMoy with IncMax");
               ZMoyInit = true;
               mZMoy = aSomZM / aNbZM;
-
+          }
+      }
+      bool ResolTerrainIsInit = EAMIsInit(&aResolTerrain);
+      if (!ResolTerrainIsInit)
+      {
+          if (IncMaxInit)
+          {
+              ELISE_ASSERT(aNbZM!=0,"Cannot get ZMoy with IncMax");
+              ResolTerrainIsInit = true;
+              aResolTerrain = aSomResol / aNbZM;
           }
       }
 
@@ -533,7 +550,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aFileMM = "MM-Malt.xml";
 
-      if (0) 
+      if (0)
       {
           std::cout << "TTTTESSTTTTTT  MALT  !!!!!!!!\n";//   getchar();
           aFileMM = "Test-MM-Malt.xml";
@@ -566,7 +583,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aNameGeom = (mImMaster=="") ?
                   "eGeomMNTEuclid" :
-                  (mIsSperik? "eGeomMNTFaisceauPrChSpherik" : (mModePB ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
+                  (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : (mModePB ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
 
       mCom =              MM3dBinFile_quotes("MICMAC")
               +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )
@@ -751,7 +768,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +Y1Clip=") + ToString(aBoxClip._p1.y) ;
       }
 
-      if (EAMIsInit(&aResolTerrain))
+      if (ResolTerrainIsInit)
       {
           mCom  =    mCom + " +UseResolTerrain=true "
                   +  std::string(" +ResolTerrain=") + ToString(aResolTerrain);
@@ -803,7 +820,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          mCom   =  mCom + " +DoIncid=true +DoMaskNadir=true ";
       }
 
-      if (DoIncid)  
+      if (DoIncid && (!ForceNoIncid))
       {
          mCom   =  mCom + " +DoIncid=true ";
       }
@@ -832,8 +849,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           if (mImOrtho !="") mComOA =  mComOA + std::string(" +ImOrtho=") + mImOrtho;
           std::cout << "\n\n" << mComOA << "\n";
 
-           mComTaramaOA =     MMBinFile("Tarama") + " " 
-                           +  mFullName           + " "
+           mComTaramaOA =     MMBinFile("Tarama") + " "
+                           +  QUOTE(mFullName)           + " "
                            +  mOri                + " "
                            + std::string(" Zoom=16 ")
                            + std::string(" Out=TA-UnAnam ")

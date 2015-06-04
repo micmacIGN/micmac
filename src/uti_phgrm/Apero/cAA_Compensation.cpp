@@ -41,6 +41,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //  AJOUT DES OBSERVATIONS
 
+cXmlSauvExportAperoOneIter & cAppliApero::CurXmlE()
+{
+    ELISE_ASSERT(!mXMLExport.Iters().empty(),"cAppliApero::CurXmlE");
+    return mXMLExport.Iters().back();
+}
+
 void cAppliApero::AddObservations
      (
           const cSectionObservations & anSO,
@@ -48,6 +54,12 @@ void cAppliApero::AddObservations
           cStatObs & aSO
      )
 {
+   cXmlSauvExportAperoOneIter aXmlE;
+   aXmlE.NumIter() = mNbIterDone;
+   aXmlE.NumEtape() = mNbEtape;
+   mXMLExport.Iters().push_back(aXmlE);
+
+
    if (IsLastIter && anSO.TxtRapDetaille().IsInit())
    {
       InitRapportDetaille(anSO.TxtRapDetaille().Val());
@@ -58,6 +70,18 @@ void cAppliApero::AddObservations
    }
 
 
+   // On les mets avant pour que AddLevenbergMarkard sache de manier precise si le centre a
+   // ete fixe sur CETTE iteration
+   {
+       //  MajAddCoeffMatrix();
+       //  if (NumIterDebug())  MessageDebug("Avant Centre");
+       AddObservationsCentres(anSO.ObsCentrePDV(),IsLastIter,aSO);
+   }
+
+
+   {
+        AddObservationsRelGPS(anSO.ObsRelGPS());
+   }
 
    {
       // MajAddCoeffMatrix();
@@ -77,12 +101,7 @@ void cAppliApero::AddObservations
        AddObservationsAppuisFlottants(anSO.ObsAppuisFlottant(),IsLastIter,aSO);
    }
 
-   {
-       //  MajAddCoeffMatrix();
-       //  if (NumIterDebug())  MessageDebug("Avant Centre");
-
-       AddObservationsCentres(anSO.ObsCentrePDV(),IsLastIter,aSO);
-   }
+    // ANCIEN AddObservationsCentres
 
    {
        //  MajAddCoeffMatrix();
@@ -840,7 +859,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
     InitLVM(mCurSLMGlob,anEC.SLMGlob(),mMulSLMGlob,anEC.MultSLMGlob());
     InitLVM(mCurSLMEtape,anEC.SLMEtape(),mMulSLMEtape,anEC.MultSLMEtape());
 
-    int aNbIterDone =0;
+    mNbIterDone =0;
     for (int aK=0 ; aK<int(anEC.IterationsCompensation().size()) ; aK++)
     {
         bool kIterLast = (aK==((int)anEC.IterationsCompensation().size()-1));
@@ -1021,7 +1040,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
 
                 if (ShowMes())
                 {
-	            COUT()  << "--- End Iter " << aNbIterDone << " ETAPE " << mNbEtape << "\n\n";
+	            COUT()  << "--- End Iter " << mNbIterDone << " ETAPE " << mNbEtape << "\n\n";
                 }
 
                 TestInteractif(anIter.TestInteractif(),false);
@@ -1057,7 +1076,7 @@ void  cAppliApero::DoOneEtapeCompensation(const cEtapeCompensation & anEC)
                    }
                 }
                 aCptInIter++;
-                aNbIterDone++;
+                mNbIterDone++;
             }
         }
     }

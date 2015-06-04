@@ -257,7 +257,12 @@ cMasq3DOrthoRaster * cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const
         aMin.SetInf(aP2);
         aZAM = ElMax(aZAM,ElAbs(aQ3.z));
     }
-    ELISE_ASSERT(aZAM<1e-5,"Planarity in cMasq3DOrthoRaster::ByPolyg3D");
+
+    if (aZAM>1e-5)
+    {
+        std::string aStrEr = " Error=" + ToString(aZAM);
+        cElWarning::PlanarityInMasq3d.AddWarn(aStrEr,__LINE__,__FILE__);
+    }
 
     Pt2dr aSzR = aMax-aMin;
     double aLarg = ElMax(aSzR.x,aSzR.y);
@@ -363,12 +368,18 @@ bool cMasq3DEmpileMasqPart::IsInMasq(const Pt3dr & aP) const
 
 
 #include "MatrixManager.h"
+
+
+
+
+/*
+  ANCIENNE FORME  => A CONSERVER AU CAS OU
+
 cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::string & aName)
 {
-   // QString filename = "/home/marc/TMP/EPI/Champs/AperiCloud_All2_selectionInfo.xml";
    QString filename = aName.c_str();
    HistoryManager *HM = new HistoryManager();
-   MatrixManager *MM = new MatrixManager();
+   MatrixManager *MM = new MatrixManager(eNavig_Ball);
    bool Ok = HM->load(filename);
    if (!Ok)
    {
@@ -403,9 +414,11 @@ cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::strin
           for (int bK=0;bK < Infos.poly.size();++bK)
           {
              QPointF pt = Infos.poly[bK];
-             Pt3dr q0;
-             MM->getInverseProjection(q0, pt, 0.0);
-             aVP3.push_back(q0);
+
+			 QVector3D qPt;
+			 //Pt3dr q0;
+			 MM->getInverseProjection(qPt, pt, 0.0);
+			 aVP3.push_back(Pt3dr(qPt.x(),qPt.y(),qPt.z()));
           }
 
           aVMP.push_back(cMasq3DOrthoRaster::ByPolyg3D((SELECTION_MODE) Infos.selection_mode,aVP3,300.0));
@@ -413,6 +426,48 @@ cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::strin
    }
    return new cMasq3DEmpileMasqPart(aVMP);
 }
+*/
+
+
+cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::string & aNameOri)
+{
+   cInterfChantierNameManipulateur*  anICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aNameOri));
+
+   std::string aName = anICNM->Assoc1To1("NKS-Assoc-CorrecMasq3D",aNameOri,true);
+   if (aName=="NONE")
+   {
+       std::cout << "For name = " << aName << "\n";
+       ELISE_ASSERT(false,"Cannot get std name mask");
+   }
+   cPolyg3D aP3D = StdGetFromSI(aName,Polyg3D);
+   bool Cont=true;
+   int aK0 =  aP3D.Item().size()-1;
+   for ( ; (aK0>=0) && Cont ; aK0--)
+   {
+      SELECTION_MODE aMode = (SELECTION_MODE) aP3D.Item()[aK0].Mode();
+      if (IsModeConst(aMode))
+         Cont = false;
+   }
+   aK0++;
+
+   std::vector<cMasq3DPartiel * > aVMP;
+   for (int aK= aK0; aK<int(aP3D.Item().size());++aK)
+   {
+      const cItem  &Infos = aP3D.Item()[aK];
+      SELECTION_MODE aMode = (SELECTION_MODE) Infos.Mode();
+      if (IsModeGlobal(aMode))
+      {
+           aVMP.push_back(new cMasq3DConst(aMode));
+      }
+      else
+      {
+          aVMP.push_back(cMasq3DOrthoRaster::ByPolyg3D(aMode,aP3D.Item()[aK].Pt(),300.0));
+      }
+   }
+
+   return new cMasq3DEmpileMasqPart(aVMP);
+}
+
 
 void Test3dQT()
 {

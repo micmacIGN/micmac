@@ -2,14 +2,30 @@
 
 int saisieBascQT_main(QApplication &app, int argc, char *argv[])
 {
-    MMD_InitArgcArgv(argc,argv);
-
-    app.setApplicationName("SaisieBascQT");
-    app.setOrganizationName("Culture3D");
-
     QStringList cmdline_args = QCoreApplication::arguments();
 
-    if ((cmdline_args.size() == 3) && (cmdline_args.back().contains("help")))
+    QString aMode = "0";
+    if (argc>1)
+    {
+        string str = string(argv[argc-1]);
+        unsigned int pos = str.find("Mode=");
+        if(pos != string::npos)
+        {
+            aMode=QString::fromStdString(str.substr(pos + sizeof("Mode=") -1, 1));
+            argc--;
+        }
+    }
+
+    MMD_InitArgcArgv(argc,argv);
+
+    if (aMode == "0")
+        app.setApplicationName("SaisieBascQT");
+    else if (aMode == "1")
+        app.setApplicationName("SaisieCylQT");
+
+    app.setOrganizationName("Culture3D");
+
+    if (cmdline_args.back().contains("help"))
     {
         QString help = "Mandatory unnamed args :\n"
                  "* string :: {Full Name (Dir+Pattern)}\n"
@@ -78,7 +94,8 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
                 << QString("+SzWx=") + QString::number(aSzWin.x)
                 << QString("+SzWy=") + QString::number(aSzWin.y)
                 << QString("+NbFx=") + QString::number(aNbFen.x)
-                << QString("+NbFy=") + QString::number(aNbFen.y);
+                << QString("+NbFy=") + QString::number(aNbFen.y)
+                << QString("+Mode=") + aMode;
 
         char **output;
 

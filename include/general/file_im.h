@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -41,10 +41,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /*
     As I do not know standards for manipulating "Images" of
-   dimention "1,2,3,..." (== array), we define a simple format.
+   dimension "1,2,3,..." (== array), we define a simple format.
 */
 
-//    Elis_File_Im is actually a smart pointer to Data_Elis_File_Im 
+//    Elis_File_Im is actually a smart pointer to Data_Elis_File_Im
 //  that realy contain  the information.
 
 #ifndef _ELISE_FILEIM_H  // general
@@ -67,16 +67,16 @@ class ElGenFileIm :  public PRC0,
           INT              Dim()       const;
           const int *      Sz()        const;
           INT              NbChannel() const;
-		  Pt2di 			Sz2() const;  // Error if Dim != 1
+          Pt2di 			Sz2() const;  // Error if Dim != 1
 
 
       // caracteristique physique liees a la  representation
-      // des valeurs numeriques 
+      // des valeurs numeriques
 
           bool       SigneType()      const;
           bool       IntegralType()   const ;
           int        NbBits()         const;
-		  GenIm::type_el type_el();
+          GenIm::type_el type_el();
 
     // carateristique d'organisation du fichier
 
@@ -104,8 +104,8 @@ template <class Type>  Im2D<Type,typename El_CTypeTraits<Type>::tBase> LoadFileI
 
 class Elise_Tiled_File_Im_2D;
 class Data_Elise_File_Im;
- 
-class Elise_File_Im : public ElGenFileIm 
+
+class Elise_File_Im : public ElGenFileIm
 {
       friend class DataGenIm;
       friend class Data_Elise_File_Im;
@@ -119,7 +119,7 @@ class Elise_File_Im : public ElGenFileIm
          Elise_File_Im
          (
                const char *     name,
-               INT        dim,        // 2 for usual images 
+               INT        dim,        // 2 for usual images
                INT *      sz,         // tx,ty for usual images
                GenIm::type_el,        // U_INT1,INT ....
                INT        dim_out,    // 1 for gray level, 3 for RVB ...
@@ -128,8 +128,8 @@ class Elise_File_Im : public ElGenFileIm
                bool       create = false      // if does not exist
          );
 
-         
-          // _szd0 : the "physical" size in first dim,  currently 
+
+          // _szd0 : the "physical" size in first dim,  currently
           //        _szd0 = sz[0] and this  assumed when _szd0 is given
           //         the default values -1; however, it can differ
           //         for padding reason (for example, with a 1 bits images,
@@ -193,14 +193,14 @@ class Elise_File_Im : public ElGenFileIm
 
         virtual Elise_Rect box() const;
 
-		Elise_Tiled_File_Im_2D  to_elise_tiled(bool byte_ordered = true);
-		Tiff_Im to_tiff(bool byte_ordered = true);
+        Elise_Tiled_File_Im_2D  to_elise_tiled(bool byte_ordered = true);
+        Tiff_Im to_tiff(bool byte_ordered = true);
 
       private  :
 
          Elise_File_Im(Data_Elise_File_Im *);
-         
-         static Elise_File_Im pnm 
+
+         static Elise_File_Im pnm
                 (
                    const char *,
                    char **   comment,
@@ -215,7 +215,7 @@ class Elise_File_Im : public ElGenFileIm
           }
 };
 
-class Elise_Tiled_File_Im_2D : public ElGenFileIm 
+class Elise_Tiled_File_Im_2D : public ElGenFileIm
 {
 
       public :
@@ -224,11 +224,11 @@ class Elise_Tiled_File_Im_2D : public ElGenFileIm
        2- To specify the paramater of a file to create.
    */
          virtual ~Elise_Tiled_File_Im_2D();
-	 static const bool DefCLT         = false;
-	 static const bool DefChunk       = true;
-	 static const int  DefOffset0     = 0;
-	 static const bool DefCreate      = false;
-	 static const bool DefByteOrdered = true;
+     static const bool DefCLT         = false;
+     static const bool DefChunk       = true;
+     static const int  DefOffset0     = 0;
+     static const bool DefCreate      = false;
+     static const bool DefByteOrdered = true;
 
          Elise_Tiled_File_Im_2D
          (
@@ -239,7 +239,7 @@ class Elise_Tiled_File_Im_2D : public ElGenFileIm
                Pt2di            sz_tiles               ,
                bool             clip_last_tile = DefCLT,         // false ,
                bool             chunk          = DefChunk,       // true  ,
-               tFileOffset              offset_0       = DefOffset0,     // 0     ,  
+               tFileOffset              offset_0       = DefOffset0,     // 0     ,
                bool             create         = DefCreate,      // false ,
                bool             byte_ordered   = DefByteOrdered  // true
          );
@@ -255,7 +255,7 @@ class Elise_Tiled_File_Im_2D : public ElGenFileIm
           static Elise_Tiled_File_Im_2D  sun_raster(const char *);
           static Elise_Tiled_File_Im_2D Thom (const char * name_file);
 
-		  Tiff_Im to_tiff();
+          Tiff_Im to_tiff();
 
       private  :
 
@@ -355,7 +355,7 @@ class  Tga_Im : public PRC0
       Tga_Im(const char * name);
       Fonc_Num              in();
       Fonc_Num              in(INT);
-  
+
       bool                im_present() const;
       type_of_image       toi()        const;
 
@@ -400,7 +400,7 @@ class  Bmp_Im : public PRC0
       Disc_Pal   pal() const ;  // error when bpp() == 24
       mode_compr  compr();
       Pt2di       sz();
-  
+
       bool                im_present() const;
       // type_of_image       toi()        const;
 
@@ -417,7 +417,7 @@ class  ThomParam
       public :
            ThomParam(const char * name_file);
            Elise_Tiled_File_Im_2D   file(const char * );
-                                                                                          
+
       //private :
            std::string ORIGINE,OBJECTIF,DATE,FORMAT;
            INT MAXIMG,MINIMG,mCOULEUR,mCAMERA;
@@ -427,7 +427,7 @@ class  ThomParam
            INT OFFSET;
            std::string MERE;
            INT BLANC;
-	   INT BIDON;
+       INT BIDON;
            INT BYTEORD;
 };
 
@@ -450,13 +450,13 @@ void ThomCorrigeCourrantObscur(Im2D_U_INT2,const Box2di&);
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -466,17 +466,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

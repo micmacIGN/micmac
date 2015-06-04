@@ -158,6 +158,42 @@ extern bool BugFE; // pour debuguer les pb de non inversibilite des dist fortes
 extern bool BugAZL; // pour debuguer les pb d'AZL
 extern bool BugGL; // pour debuguer les pb de Guimbal Lock
 
+
+class cProjCple
+{
+     public :
+          cProjCple(const Pt3dr &,const Pt3dr &,double aPds);
+          const Pt3dr & P1() const;
+          const Pt3dr & P2() const;
+
+          static cProjCple Spherik(const ElCamera & aCam1,const Pt2dr & ,const ElCamera & aCam2,const Pt2dr &,double aPds);
+          static cProjCple Projection(const ElCamera & aCam1,const Pt2dr & ,const ElCamera & aCam2,const Pt2dr &,double aPds);
+     private :
+           Pt3dr  mP1;
+           Pt3dr  mP2;
+           double mPds;
+};
+
+class cProjListHom
+{
+     public :
+          typedef std::vector<cProjCple>      tCont;
+          typedef tCont::iterator           tIter;
+          typedef tCont::const_iterator     tCstIter;
+          tCstIter & begin() const;
+          tCstIter & end() const;
+
+          cProjListHom(  const ElCamera & aCam1,const ElPackHomologue & aPack12,
+                         const ElCamera & aCam2,const ElPackHomologue & aPack21,
+                         bool Spherik
+                      );
+     public :
+          tCont       mLClpe;
+          bool        mSpherik;
+};
+
+
+
 class cNupletPtsHomologues
 {
      public :
@@ -429,7 +465,7 @@ class ElPackHomologue : public cPackNupletsHom
                        const ElRotation3D & aRot1to2,
                        INT &                NbP1,
                        INT &                NbP2
-                  );
+                  ) const;
 
              tPairPt  PMed() const;
 
@@ -840,7 +876,7 @@ class cElHomographie
 
           // Renvoie sa representation matricielle en coordonnees homogenes
           ElMatrix<REAL>  MatCoordHom() const;
-          static cElHomographie  RobustInit(double * aQuality,const ElPackHomologue & aPack,bool & Ok ,int aNbTestEstim, double aPerc,int aNbMaxPts);
+          static cElHomographie  RobustInit(double & anEcart,double * aQuality,const ElPackHomologue & aPack,bool & Ok ,int aNbTestEstim, double aPerc,int aNbMaxPts);
 
           static cElHomographie SomPondHom(const std::vector<cElHomographie> & aVH,const std::vector<double> & aVP);
 
@@ -1672,7 +1708,7 @@ class ElCamera : public cCapture3D
           static const Pt2di   TheSzUndef ;
           const std::vector<Pt2dr> &  ContourUtile() ;
           bool  HasRayonUtile() const;
-          bool IsInZoneUtile(const Pt2dr & aP) const;
+          bool IsInZoneUtile(const Pt2dr & aP,bool Pixel=false) const;
           bool     GetZoneUtilInPixel() const;
 
           double  RayonUtile() const;
@@ -2063,6 +2099,7 @@ class CamStenope : public ElCamera
      Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
      Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
      void  Coins(Pt3dr &aP1, Pt3dr &aP2, Pt3dr &aP3, Pt3dr &aP4, double aZ) const;
+     void  CoinsProjZ(Pt3dr &aP1, Pt3dr &aP2, Pt3dr &aP3, Pt3dr &aP4, double aZ) const;
 
          Pt3dr  ImEtProfSpherik2Terrain(const Pt2dr & aPIm,const REAL & aProf) const; //OO
          Pt3dr  ImDirEtProf2Terrain(const Pt2dr & aPIm,const REAL & aProf,const Pt3dr & aNormPl) const; //OO
@@ -2585,7 +2622,8 @@ class cResMepRelCoplan
            cElemMepRelCoplan & BestSol();
            void AddSol(const cElemMepRelCoplan &);
            const std::list<ElRotation3D> &  LRot() const;
-       const std::vector<cElemMepRelCoplan> & VElOk() const;
+           const std::vector<cElemMepRelCoplan> & VElOk() const;
+           const std::list<cElemMepRelCoplan>    & LElem() const;
         private :
            std::list<cElemMepRelCoplan>    mLElem;
            std::vector<cElemMepRelCoplan>  mVElOk;
@@ -3171,6 +3209,134 @@ class cCamStenopeBilin : public CamStenope
 };
 
 
+/*
+   Teste , equivalence de :
+
+       PVExactCostMEP Pt3dr   : 0.376684  => 3/4 fois + rapide
+       PVExactCostMEP Pt2drA  : 0.679608
+       ExactCostMEP           : 1.27514
+
+  A Faire QuasiExactCostFaiscMEP
+*/
+       
+
+double QuickD48EProjCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double ProjCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double DistDroiteCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double PVCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double PVCostMEP(const ElRotation3D & aR2to1 ,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax);
+double LinearCostMEP(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,double aTetaMax);
+double LinearCostMEP(const ElRotation3D & aR2to1 ,const Pt3dr & aP1,const Pt3dr & aP2,double aTetaMax);
+
+
+double QuickD48EProjCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double ProjCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double DistDroiteCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double PVCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+double LinearCostMEP(const ElPackHomologue & aPack,const ElRotation3D & aRot,double aTetaMax);
+
+
+
+Pt3dr MedianNuage(const ElPackHomologue & aPack,const ElRotation3D & aRot);
+ElRotation3D RansacMatriceEssentielle(const ElPackHomologue & aPack,const ElPackHomologue & aPackRed,double aFoc);
+
+void InitPackME
+     (
+          std::vector<Pt2dr> & aVP1,
+          std::vector<Pt2dr>  &aVP2,
+          std::vector<double>  &aVPds,
+          const  ElPackHomologue & aPack
+     );
+
+
+
+class  cInterfBundle2Image
+{
+     public :
+           cInterfBundle2Image(int mNbCple,double aFoc);
+           double ErrInitRobuste(const ElRotation3D &aRot,double aProp = 0.75);
+           ElRotation3D   OneIterEq(const  ElRotation3D &aRot,double & anErrStd);
+           double         ResiduEq(const  ElRotation3D &aRot,const double & anErrStd);
+
+           static cInterfBundle2Image * LineariseAngle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCste0);
+           static cInterfBundle2Image * LinearDet(const  ElPackHomologue & aPack,double aFoc);
+           static cInterfBundle2Image * Bundle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCoordCste);
+           virtual  ~cInterfBundle2Image();
+
+           virtual const std::string & VIB2I_NameType() = 0 ;
+           virtual double VIB2I_PondK(const int & aK) const = 0;
+           virtual double VIB2I_ErrorK(const ElRotation3D &aRot,const int & aK) const = 0;
+           virtual double VIB2I_AddObsK(const int & aK,const double & aPds) =0;
+           virtual void   VIB2I_InitNewRot(const ElRotation3D &aRot) = 0;
+           virtual ElRotation3D    VIB2I_Solve() = 0;
+
+     protected :
+
+           void   OneIterEqGen(const  ElRotation3D &aRot,double & anErrStd,bool AddEq);
+           int    mNbCple;
+           double mFoc;
+     private :
+
+};
+
+class cResMepCoc
+{
+     public :
+
+          cResMepCoc(ElMatrix<double> & aMat,double aCostRPur,const ElRotation3D & aR,double aCostVraiRot,Pt3dr aPMed);
+
+          ElMatrix<double>  mMat;
+          double            mCostRPure;
+          ElRotation3D      mSolRot;
+          double            mCostVraiRot;
+          Pt3dr             mPMed;
+};
+
+cResMepCoc MEPCoCentrik(bool Quick,const ElPackHomologue & aPack,double aFoc,const ElRotation3D * aRef,bool Show);
+
+class L2SysSurResol;
+void SysAddEqMatEss(const double & aPds,const Pt2dr & aP1,const Pt2dr & aP2,L2SysSurResol & aSys );
+ElMatrix<REAL> ME_Lign2Mat(const double * aSol);
+ElRotation3D MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack);
+ElPackHomologue PackReduit(const ElPackHomologue & aPack,int aNbInit,int aNbFin);
+
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH);
+double DistRot(const ElRotation3D & aR1,const ElRotation3D & aR2);
+
+
+
+// Devrait remplacer les anciennes, on y va progressivement
+double  NEW_SignInters(const ElPackHomologue & aPack,const ElRotation3D & aR2to1,int & NbP1,int & NbP2);
+ElRotation3D  NEW_MatEss2Rot(const  ElMatrix<REAL> & aMEss,const ElPackHomologue & aPack,double * aDistMin = 0);
+
+
+typedef std::vector<std::vector<Pt2df> *> tMultiplePF;
+
+void TestBundle3Image
+     (
+          double               aFoc,
+          const ElRotation3D & aR12,
+          const ElRotation3D & aR13,
+          const tMultiplePF  & aH123,
+          const tMultiplePF  & aH12,
+          const tMultiplePF  & aH13,
+          const tMultiplePF  & aH23,
+          double aPds3
+     );
+
+void SolveBundle3Image
+     (
+          double               aFoc,
+          ElRotation3D & aR12,
+          ElRotation3D & aR13,
+          const tMultiplePF  & aH123,
+          const tMultiplePF  & aH12,
+          const tMultiplePF  & aH13,
+          const tMultiplePF  & aH23,
+          double aPds3
+     );
+
+
 
 
 
@@ -3182,7 +3348,7 @@ class cCamStenopeBilin : public CamStenope
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -3198,17 +3364,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

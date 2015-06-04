@@ -3,179 +3,133 @@
 
 #include "GpGpu/GpGpu_Data.h"
 
-using namespace std;
-
-static __constant__ ushort  dMapIndex[WARPSIZE];
-
-/// \class CDeviceStream
-/// \brief Classe gerant un flux de données en memoire video
-template< class T >
-class CDeviceStream
-{
-public:
-
-    __device__ CDeviceStream(T* buf,T* stream, uint sizeStream):
-        _bufferData(buf),
-        _streamData(stream),
-        _curStreamId(0),
-        _curBufferId(WARPSIZE),
-        _sizeStream(sizeStream)
-    {}
-
-    __device__ virtual short getLen2ReadAV(short2 &index)
-    {
-        index = make_short2(0,0);
-        return 1;
-    }
-
-    __device__ virtual short getLen2ReadAR(short2 &index)
-    {
-        index = make_short2(0,0);
-        return 1;
-    }
-
-    template<bool sens, class D> __device__ short2 read(D* destData, ushort tid, T def);
-
-private:
-
-    template<bool sens> __device__ short vec(){ return 1 - 2 * !sens; }
-
-    template<bool sens> __device__ short GetNbToCopy(ushort nTotal,ushort nCopied)
-    {
-        return min(nTotal - nCopied , MaxReadBuffer<sens>());
-    }
-
-    template<bool sens> __device__ ushort MaxReadBuffer()
-    {
-        return sens ? ((ushort)WARPSIZE - _curBufferId) : _curBufferId;
-    }
-
-
-    T*                          _bufferData;
-    T*                          _streamData;
-    uint                        _curStreamId;
-    ushort                      _curBufferId;
-    uint                        _sizeStream;
-};
-
-template< class T > template<bool sens, class D>  __device__
-short2 CDeviceStream<T>::read(D *destData, ushort tid, T def)
-{
-    short2  index;
-    ushort  NbCopied    = 0 , NbTotalToCopy = sens ? getLen2ReadAV(index) : getLen2ReadAR(index);
-    short   PitSens     = !sens * WARPSIZE;
-
-    while(NbCopied < NbTotalToCopy)
-    {
-        ushort NbToCopy = GetNbToCopy<sens>(NbTotalToCopy,NbCopied);
-
-        if(!NbToCopy)
-        {
-            uint idStream =_curStreamId + threadIdx.x - 2 * PitSens;
-            if(idStream < _sizeStream)
-                _bufferData[threadIdx.x] = _streamData[idStream];
-            _curBufferId   = PitSens;            
-            _curStreamId   = _curStreamId  + (vec<sens>()<<5); // * 32
-
-            NbToCopy = GetNbToCopy<sens>(NbTotalToCopy,NbCopied);
-        }
-
-        ushort idDest = tid + (sens ? NbCopied : NbTotalToCopy - NbCopied - NbToCopy);
-
-        if(!(idDest>>8)) // < 256
-        {
-            if (tid < NbToCopy && idDest < NbTotalToCopy)
-                destData[idDest] = _bufferData[_curBufferId + tid - !sens * NbToCopy];
-            else if (idDest >= NbTotalToCopy)
-                destData[idDest] = def;
-
-        }
-        _curBufferId  = _curBufferId + vec<sens>() * NbToCopy;
-        NbCopied     += NbToCopy;
-   }
-
-   return index;
-}
-
-
-template< class T >
-class CDeviceDataStream : public CDeviceStream<T>
-{
-public:
-
-    __device__ CDeviceDataStream(T* buf,T* stream,short2* bufId,short2* streamId, uint sizeStream, uint sizeStreamId):
-        CDeviceStream<T>(buf,stream,sizeStream),
-        _streamIndex(bufId,streamId,sizeStreamId)
-    {}
-
-
-    __device__ short getLen2ReadAV(short2 &index)
-    {       
-
-        _streamIndex.read<eAVANT>(&index,0,make_short2(0,0));
-
-        return diffYX(index);
-    }
-
-    __device__ short getLen2ReadAR(short2 &index)
-    {
-
-        _streamIndex.read<eARRIERE>(&index,0,make_short2(0,0));
-
-        return diffYX(index);
-    }
-
-private:
-
-    CDeviceStream<short2>       _streamIndex;
-
-};
-
 #define sgn s<sens>
 #define max_cost 1e9
 
-template< bool sens,class T>
-__device__ inline int s(T v)
+template<bool sens>
+__device__ inline int s(int v)
 {
-    return sens ? v : -v;
+	return 0;
+}
+
+template<>
+__device__ inline int s<true>(int v)
+{
+	return v;
+}
+
+template<>
+__device__ inline int s<false>(int v)
+{
+	return -v ;
 }
 
 template<class T>
+///
+/// \brief The SimpleStream class
+/// Strucure de donnée 1D avec lecture par flux
+/// Permet une lecture optimisée des données en mémoire globale
+/// Les Données sont mis en cache en mémoire partagée
 class SimpleStream
 {
 public:
 
-    __device__ SimpleStream(   T*      globalStream,
-                    ushort  sizeBuffer);
+	///
+	/// \brief SimpleStream
+	/// \param globalStream Pointeur sur les données en mémoire globale
+	/// \param sizeBuffer Dimension du buffer en mémoire partagée
+	/// \return
+	///
+    __device__ SimpleStream(   T*      globalStream,ushort  sizeBuffer);
 
-    template<bool sens> __device__ void read(T* sharedBuffer);
 
-    template<bool sens,class S>
-                        __device__ void readFrom(S* sharedBuffer,uint delta = 0);
+	template<bool sens> __device__
+	///
+	/// \brief read Lire les données et les mettre dans le buffer de la mémoire partagée
+	/// \param sharedBuffer
+	///
+	void read(T* sharedBuffer);
 
-    template<bool sens> __device__ void incre();
+	template<bool sens,class S> __device__
+	///
+	/// \brief readFrom Lire les données et les mettre dans le buffer de la mémoire partagée avec un decalage delta
+	/// \param sharedBuffer
+	/// \param delta Décalage
+	///
+	void readFrom(S* sharedBuffer,uint delta = 0);
 
-    template<bool sens> __device__ void ReverseIncre();
+	template<bool sens> __device__
+	///
+	/// \brief incre Incrémente le pointeur de la mémoire globale de la taille du buffer
+	///
+	void incre();
 
-    T                   __device__  GetValue(int id);
+	template<bool sens> __device__
+	///
+	/// \brief ReverseIncre Décrémente le pointeur de la mémoire globale de la taille du buffer
+	///
+	void ReverseIncre();
+	T                   __device__
+	///
+	/// \brief GetValue Obtenir la valeur à l'index id
+	/// \param id
+	/// \return Retourne la valeur
+	GetValue(int id);
 
-    void                __device__  SetValue(int id, T value);
+	void                __device__
+	///
+	/// \brief SetValue Affecte la valeur à l'index id
+	/// \param id
+	/// \param value La valeur
+	///
+	SetValue(int id, T value);
 
-    void                __device__  SubValue(int id, T value);
+	void                __device__
+	///
+	/// \brief SubValue Soustrait la valeur à la donnée situé à l'index id
+	/// \param id
+	/// \param value
+	///
+	SubValue(int id, T value);
 
-    void                __device__  AddValue(int id, T value);
+	void                __device__
+	///
+	/// \brief AddValue Additione la valeur à la donnée situé à l'index id
+	/// \param id
+	/// \param value
+	///
+	AddValue(int id, T value);
 
-    template<bool sens> __device__ void SetOrAddValue(int id, T value);
+	template<bool sens> __device__ void
+	///
+	/// \brief SetOrAddValue Affecte si sens == true et additionne si sens == false
+	/// \param id
+	/// \param value
+	///
+	SetOrAddValue(int id, T value);
 
-    template<bool sens> __device__ void SetOrAddValue(int id, T setValue,T addValue);
+	template<bool sens> __device__
+	///
+	/// \brief SetOrAddValue Affecte si sens == true et additionne si sens == false
+	/// \param id
+	/// \param setValue
+	/// \param addValue
+	///
+	void SetOrAddValue(int id, T setValue,T addValue);
 
     //long int                __device__  GetGiD(){return _idG;}
 
-    template<bool sens> __device__  void reverse();
+	template<bool sens> __device__
+	///
+	/// \brief reverse Prépare pour le sens de lecture
+	///
+	void reverse();
 
-    void                __device__  output();
-
-
+	void                __device__
+	///
+	/// \brief output Affiche dans la console les caractéristiques du stream
+	///
+	output();
 
 private:
 
@@ -236,7 +190,6 @@ void SimpleStream<T>::SetOrAddValue(int id, T setValue, T addValue)
         AddValue(id,addValue);
 }
 
-
 template<class T> __device__
 void SimpleStream<T>::output()
 {
@@ -270,7 +223,7 @@ void SimpleStream<T>::readFrom(S *sharedBuffer,uint delta)
     for(ushort i = 0; i < _sizeBuffer; i += WARPSIZE)
         *(sharedBuffer + sgn(i)) = *(gLocal+sgn(i));
 }
-
+/// \cond
 
 template<class T>
 template<class S> __device__
@@ -298,7 +251,7 @@ void SimpleStream<ushort2>::readFrom(S *sharedBuffer,uint delta)
 
 
 }
-
+/// \endcond
 template<class T> template<bool sens> __device__
 void SimpleStream<T>::incre()
 {

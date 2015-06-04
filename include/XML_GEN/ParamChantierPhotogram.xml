@@ -18,10 +18,6 @@
 <Verbatim File=".h.cpp">
 // NO MORE
 </Verbatim>
-   <enum Name="eC3DC_Types">
-       <eC3DC_QuickMac>  </eC3DC_QuickMac>
-       <eC3DC_Statute>   </eC3DC_Statute>
-   </enum>
 
    <enum Name="eNewTypeMalt">
        <eTMalt_Ortho>     </eTMalt_Ortho>
@@ -42,8 +38,8 @@
            <eTT_FraserBasic> </eTT_FraserBasic>
            <eTT_FishEyeBasic> </eTT_FishEyeBasic>
            <eTT_FE_EquiSolBasic> </eTT_FE_EquiSolBasic>
-                   <eTT_RadGen7x2> </eTT_RadGen7x2>
-                   <eTT_RadGen11x2> </eTT_RadGen11x2>
+           <eTT_RadGen7x2> </eTT_RadGen7x2>
+           <eTT_RadGen11x2> </eTT_RadGen11x2>
            <eTT_RadGen15x2> </eTT_RadGen15x2>
            <eTT_RadGen19x2> </eTT_RadGen19x2>
            <eTT_NbVals> </eTT_NbVals>
@@ -52,8 +48,12 @@
    <enum Name="eTypeMMByP">
        <eGround>         </eGround>
        <eStatue>         </eStatue>
+       <eForest>         </eForest>
        <eTestIGN>        </eTestIGN>
        <eQuickMac>       </eQuickMac>
+       <eMicMac>         </eMicMac>
+       <eBigMac>         </eBigMac>
+       <eMTDTmp>         </eMTDTmp>  <!-- Internal, pour stocker les fusion temporaire entre Epi -->
        <eNbTypeMMByP>    </eNbTypeMMByP>
    </enum>
 
@@ -795,6 +795,28 @@
              <!-- Code les rotatuion simple perm + inv de signe sous la forme i-j-k ou ji-k etc .. -->
              <CodageSymbolique Nb="?" Type="std::string"> </CodageSymbolique>
   </RotationVect>
+  
+   <DatePDV  Nb="1" ToReference="true" Class="true">
+         <Annee Nb="1" Type="int">  </Annee>
+         <Mois Nb="1" Type="int"> </Mois>
+         <Jour Nb="1" Type="int">  </Jour>
+         <Heure Nb="1" Type="int">  </Heure>
+         <Minute Nb="1" Type="int">  </Minute>
+         <Seconde Nb="1" Type="double">  </Seconde>
+   </DatePDV>
+
+    <XmlHour Nb="1" Class="true" ToReference="true">
+         <H Nb="1" Type="int"> </H>
+         <M Nb="1" Type="int"> </M>
+         <S Nb="1" Type="double"> </S>
+    </XmlHour>
+    <XmlDate Nb="1" Class="true" ToReference="true">
+         <Y Nb="1" Type="int"> </Y>
+         <M Nb="1" Type="int"> </M>
+         <D Nb="1" Type="int"> </D>
+         <Hour Nb="1" RefType="XmlHour"> </Hour>
+    </XmlDate>
+
 
 
    <OrientationExterneRigide Nb="1" Class="true" ToReference="true">
@@ -807,6 +829,7 @@
         <AltiSol Nb="?" Type="double"> </AltiSol>
         <Profondeur Nb="?" Type="double"> </Profondeur>
         <Time Nb="?" Type="double" Def="0.0"> </Time>
+        <Date Nb="?" RefType="XmlDate"> </Date>
 
    <!--  Redondant avec OrientationConique quand il est utilise pour
    creer un ori a la main, necessaire quand l'orientation est a part de
@@ -814,6 +837,8 @@
    -->
         <KnownConv Nb="?" Type="eConventionsOrientation"> </KnownConv>
         <Centre Nb="1" Type="Pt3dr"> </Centre>
+        <!-- In case Offset was given to avoid "big" coordinates -->
+        <OffsetCentre Nb="?" Type="Pt3dr"> </OffsetCentre>
         <Vitesse Nb="?" Type="Pt3dr"> </Vitesse>
         <VitesseFiable Nb="?" Type="bool" Def="true"> </VitesseFiable>
         <IncCentre Nb="?" Type="Pt3dr"> </IncCentre>
@@ -830,15 +855,6 @@
 -->
    </OrientationExterneRigide>
 
-
-   <DatePDV>
-         <Annee Nb="1" Type="int">  </Annee>
-         <Mois Nb="1" Type="int"> </Mois>
-         <Jour Nb="1" Type="int">  </Jour>
-         <Heure Nb="1" Type="int">  </Heure>
-         <Minute Nb="1" Type="int">  </Minute>
-         <Seconde Nb="1" Type="double">  </Seconde>
-   </DatePDV>
 
 
 <!--  Le terme OrientationConique est tres mal choisi puisqu'en fait cela codera des
@@ -949,6 +965,11 @@
          <!-- Si donne, on ajoute @Foc, arrondi entier, multipliee par AddFocMul -->
          <AddFocMul  Nb="?" Type="double"> </AddFocMul>
          <Separateur Nb="?" Type="std::string" Def="%"> </Separateur>
+         <NewKeyId     Nb="?" Type="std::string"> </NewKeyId>
+         <NewKeyIdAdd  Nb="?" Type="std::string"> </NewKeyIdAdd>
+      <!-- Val def depend avec VersionNameCam >= 1 -->
+         <NewAddNameCam Nb="?" Type="bool">  </NewAddNameCam>   <!--   true si V>=1 -->
+         <NewFocMul  Nb="?" Type="double">  </NewFocMul>        <!--  1000 si >=1, 1 sinon -->
    </DataBaseNameTransfo>
 
    <!--
@@ -1042,9 +1063,18 @@
          <AutoInverseBySym Nb="?"  Type="bool" Def="false"> </AutoInverseBySym>
    </AssocNameToName>
 
+
+   <EtatPims Nb="1" Class="true" ToReference="true" >
+         <NameOri Nb="?" Type="std::string"> </NameOri>
+   </EtatPims>
+
+   <ListOfName Nb="1" Class="true" ToReference="true" >
+        <Name Nb="*" Type="std::string"> </Name>
+   </ListOfName>
+
    <SetNameDescriptor  Nb="1" Class="true" ToReference="true" >
          <AddDirCur Nb="?" Type="bool" Def="true"> </AddDirCur>
-         <PatternAccepteur Nb="+" Type="std::string"> </PatternAccepteur>
+         <PatternAccepteur Nb="*" Type="std::string"> </PatternAccepteur>
          <PatternRefuteur Nb="*" Type="std::string">  </PatternRefuteur>
          <NivSubDir Nb="?" Type="int" Def="1">      </NivSubDir>
          <!-- Nom complet : si true la directory est incluse -->
@@ -1054,6 +1084,7 @@
          <!-- Permet d'ajouter des noms tels quels , sans qu'il
           existent en tant que fichiers -->
          <Name   Nb="*" Type="std::string"> </Name>
+         <NamesFileLON Nb="*" Type="std::string"> </NamesFileLON>
 
          <!-- Min Max :utiliser plutot Filter -->
          <Min Nb="?" Type="std::string"> </Min>
@@ -1239,19 +1270,6 @@
            <DirVertLoc Nb="?" Type="Pt3dr"> </DirVertLoc>
            <ProfInVertLoc Nb="?" Type="double"> </ProfInVertLoc>
     </ExportApero2MM>
-
-    <XmlHour Nb="1" Class="true" ToReference="true">
-         <H Nb="1" Type="int"> </H>
-         <M Nb="1" Type="int"> </M>
-         <S Nb="1" Type="double"> </S>
-    </XmlHour>
-
-    <XmlDate Nb="1" Class="true" ToReference="true">
-         <Y Nb="1" Type="int"> </Y>
-         <M Nb="1" Type="int"> </M>
-         <D Nb="1" Type="int"> </D>
-         <Hour Nb="1" RefType="XmlHour"> </Hour>
-    </XmlDate>
 
     <XmlXifInfo Nb="1" Class="true" ToReference="true">
         <HGRev Nb="1" Type="int">        </HGRev>
@@ -1440,13 +1458,13 @@
          </pt3d>
     </XML_LinePt3d>
 
+<!--
     <orientation Nb="1" Class="true" ToReference="true">
           <version Nb="1" Type="double"></version>
           <auxiliarydata Nb="1">
                <image_name Nb="1" Type="std::string"></image_name>
                <stereopolis Nb="1" Type="std::string"></stereopolis>
                <image_date Nb="1" RefType="XML_Date"> </image_date>
-               <!-- quelle est la structure  ? -->
                <samples Nb="*" Type="std::string"> </samples>
           </auxiliarydata>
           <geometry Nb="1">
@@ -1501,6 +1519,7 @@
               </intrinseque>
           </geometry>
     </orientation>
+-->
 
     <!-- Pour stocker les relations "Images/Maitresse" "Images/Secondaire"-->
 
@@ -1575,8 +1594,10 @@
          <UseSeparateDirectories Nb="?" Type="bool" Def="false"> </UseSeparateDirectories>
          <OutputDirectory  Nb="?" Type="std::string">  </OutputDirectory>
          <LogDirectory  Nb="?" Type="std::string">  </LogDirectory>
+         <VersionNameCam Nb="?" Type="int" Def="0"> </VersionNameCam>
     </MMUserEnvironment>
 
+<!--
 <SelectionInfos Nb="1" Class="true" ToReference="true">
  <Item Nb="*">
       <Scale Nb="1" Type="double"></Scale>
@@ -1586,11 +1607,141 @@
       <Mode Nb="1" Type="int"></Mode>
  </Item>
 </SelectionInfos>
+-->
 
 <MTDCoher  Nb="1" Class="true" ToReference="true">
      <Dec2 Nb="1" Type="Pt2di"> </Dec2>
 </MTDCoher>
 
+
+<!--  LECTURE DES ORIENTATIONS MATIS -->
+
+<XmlMatis_sommet  Nb="1" Class="true" ToReference="true">
+   <easting Nb="1" Type="double">   </easting>
+   <northing Nb="1" Type="double">  </northing>
+   <altitude Nb="1" Type="double">  </altitude>
+</XmlMatis_sommet>
+
+<XmlMatis_pt3d  Nb="1" Class="true" ToReference="true">
+    <x Nb="1" Type="double">  </x>
+    <y Nb="1" Type="double">  </y>
+    <z Nb="1" Type="double">  </z>
+</XmlMatis_pt3d>
+
+<XmlMatis_FormeLin  Nb="1" Class="true" ToReference="true">
+    <pt3d Nb="1" RefType="XmlMatis_pt3d"> </pt3d>
+</XmlMatis_FormeLin>
+
+<XmlMatis_mat3d Nb="1" Class="true" ToReference="true">
+    <l1 Nb="1" RefType="XmlMatis_FormeLin"> </l1>
+    <l2 Nb="1" RefType="XmlMatis_FormeLin"> </l2>
+    <l3 Nb="1" RefType="XmlMatis_FormeLin"> </l3>
+</XmlMatis_mat3d>
+
+
+<XmlMatis_quaternion Nb="1" Class="true" ToReference="true">
+    <x Nb="1" Type="double">  </x>
+    <y Nb="1" Type="double">  </y>
+    <z Nb="1" Type="double">  </z>
+    <w Nb="1" Type="double">  </w>
+</XmlMatis_quaternion>
+
+
+<XmlMatis_rotation Nb="1" Class="true" ToReference="true">
+    <Image2Ground Nb="1" Type="bool"> </Image2Ground>
+    <mat3d Nb="1" RefType="XmlMatis_mat3d"> </mat3d>
+    <quaternion Nb="?" RefType="XmlMatis_quaternion"> </quaternion>
+</XmlMatis_rotation>
+
+
+<XmlMatis_extrinseque Nb="1" Class="true" ToReference="true">
+    <systeme Nb="1" Type="std::string">    </systeme>
+    <grid_alti Nb="1" Type="std::string">  </grid_alti>
+    <sommet Nb="1" RefType="XmlMatis_sommet"> </sommet>
+    <rotation Nb="1" RefType="XmlMatis_rotation"> </rotation>
+</XmlMatis_extrinseque>
+
+<XmlMatis_P2d_cl  Nb="1" Class="true" ToReference="true">
+   <c Nb="1" Type="double">  </c>
+   <l Nb="1" Type="double">  </l>
+</XmlMatis_P2d_cl>
+<XmlMatis_ppa  Nb="1" Class="true" ToReference="true">
+   <c Nb="1" Type="double">  </c>
+   <l Nb="1" Type="double">  </l>
+   <focale Nb="1" Type="double">  </focale>
+</XmlMatis_ppa>
+
+<XmlMatis_distortion Nb="1" Class="true" ToReference="true">
+    <pps Nb="1" RefType="XmlMatis_P2d_cl"> </pps>
+    <r3 Nb="1" Type="double"> </r3>
+    <r5 Nb="1" Type="double"> </r5>
+    <r7 Nb="1" Type="double"> </r7>
+</XmlMatis_distortion>
+
+<XmlMatis_image_size Nb="1" Class="true" ToReference="true">
+    <width Nb="1" Type="int" >  </width>
+    <height Nb="1" Type="int"> </height>
+</XmlMatis_image_size>
+
+
+<XmlMatis_sensor Nb="1" Class="true" ToReference="true">
+    <name Nb="1" Type="std::string"> </name>
+    <calibration_date Nb="1" Type="std::string">  </calibration_date>
+    <serial_number Nb="1" Type="std::string">  </serial_number>
+    <image_size Nb="1" RefType="XmlMatis_image_size">  </image_size>
+    <ppa  Nb="1" RefType="XmlMatis_ppa"> </ppa>
+    <distortion  Nb="1" RefType="XmlMatis_distortion"> </distortion>
+    <pixel_size Nb="1" Type="double"> </pixel_size>
+</XmlMatis_sensor>
+
+<XmlMatis_frame  Nb="1" Class="true" ToReference="true">
+      <lambda_min Nb="1" Type="double"></lambda_min>
+      <lambda_max Nb="1" Type="double"></lambda_max>
+      <phi_min Nb="1" Type="double"></phi_min>
+      <phi_max Nb="1" Type="double"></phi_max>
+</XmlMatis_frame>
+
+<XmlMatis_spherique  Nb="1" Class="true" ToReference="true">
+   <image_size Nb="1" RefType="XmlMatis_image_size"> </image_size>
+   <ppa  Nb="1" RefType="XmlMatis_P2d_cl"> </ppa>
+   <frame Nb="1" RefType="XmlMatis_frame"> </frame>
+</XmlMatis_spherique>
+<!--
+-->
+
+<XmlMatis_intrinseque Nb="1" Class="true" ToReference="true">
+   <sensor Nb="?" RefType="XmlMatis_sensor"> </sensor>
+   <spherique Nb="?" RefType="XmlMatis_spherique"> </spherique>
+</XmlMatis_intrinseque>
+
+<XmlMatis_geometry Nb="1" Class="true" ToReference="true">
+   <extrinseque Nb="1" RefType="XmlMatis_extrinseque"> </extrinseque>
+   <intrinseque Nb="1" RefType="XmlMatis_intrinseque"> </intrinseque>
+</XmlMatis_geometry>
+
+<XmlMatis_image_date Nb="1" Class="true" ToReference="true">
+    <year Nb="1" Type="int"></year>
+    <month Nb="1" Type="int"></month>
+    <day Nb="1" Type="int"></day>
+    <time_system  Nb="1" Type="std::string">  </time_system>
+    <hour Nb="1" Type="int"></hour>
+    <minute Nb="1" Type="int"></minute>
+    <second Nb="1" Type="double"></second>
+</XmlMatis_image_date>
+
+
+<XmlMatis_auxiliarydata  Nb="1" Class="true" ToReference="true">
+     <image_name Nb="1" Type="std::string"></image_name>
+     <stereopolis Nb="1" Type="XmlXml"> </stereopolis>
+     <image_date Nb="1" RefType="XmlMatis_image_date"> </image_date>
+</XmlMatis_auxiliarydata>
+
+
+<orientation Nb="1" Class="true" ToReference="true">
+   <version Nb="?" Type="std::string" Def="1.0">  </version>
+   <auxiliarydata Nb="1" RefType="XmlMatis_auxiliarydata"> </auxiliarydata>
+   <geometry Nb="1" RefType="XmlMatis_geometry"> </geometry>
+</orientation>
 
 
 <Verbatim File=".h.cpp">

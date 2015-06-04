@@ -31,6 +31,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MatchQM.xml +Im1=IMGP7053.JPG 
      <eSymb> DoZoom2=InfEq ${ZoomF} 2 </eSymb> 
      <eSymb> LastEtape= - 4 Int Log2 ${ZoomF}  </eSymb>
 
+    <Symb>  UseGpu=false </Symb>
+    <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
+
 </DicoLoc>
 
 <Section_Terrain>  
@@ -124,6 +127,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MatchQM.xml +Im1=IMGP7053.JPG 
                      <SzBlocAH> 400000 </SzBlocAH>
                      <CorrelMultiScale>
                             <ModeDense> true </ModeDense>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <UseWAdapt> true </UseWAdapt>
                             <OneParamCMS>
                                  <SzW> 1 1 </SzW>

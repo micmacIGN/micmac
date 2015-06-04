@@ -3,6 +3,9 @@
 
 #include "general/CMake_defines.h"
 
+#include <string>
+
+using namespace std;
 
 #if (ELISE_windows & ELISE_MinGW)
     #include "QTCore/qt_windows.h"
@@ -12,6 +15,10 @@
 #ifdef _WIN32
 #define NOMINMAX
 #include "windows.h"
+#endif
+
+#if ELISE_QT_VERSION == 4
+#include <gl_core_2_1.h>
 #endif
 
 #if ELISE_Darwin
@@ -30,7 +37,11 @@
 #include <QColor>
 #include <QCheckBox>
 #include <QComboBox>
+#if ELISE_QT_VERSION == 5
+#include <QtConcurrent/QtConcurrentRun>
+#elif ELISE_QT_VERSION == 4
 #include <QtConcurrentRun>
+#endif
 #include <QDebug>
 #include <QDir>
 #include <QDomDocument>
@@ -48,9 +59,9 @@
 #include <QGLBuffer>
 
 #if ELISE_QT_VERSION == 5
+#include <QOpenGLFunctions>
 #include <QOpenGLContext>
 #endif
-
 
 #include <QGridLayout>
 #include <QtGui>
@@ -84,10 +95,13 @@
 #include <QSpinBox>
 #include <QStandardItemModel>
 #include <QStyle>
+#include <QStyledItemDelegate>
 #include <QSortFilterProxyModel>
 #include <QUrl>
 #include <QVector>
 #include <QXmlStreamReader>
 #include <QWidget>
+
+#define M_2PI	6.283185307179586232
 
 #endif // ELISE_QT_H

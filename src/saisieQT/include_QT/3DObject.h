@@ -4,7 +4,24 @@
 #include "Settings.h"
 #include "mmglu.h"
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+
 #define QMaskedImage cMaskedImage<QImage>
+
+typedef enum // Attention repercutions sur QT ... TODO à regler
+{
+  qEPI_NonSaisi,	// 0
+  qEPI_Refute,		// 1
+  qEPI_Douteux,		// 2
+  qEPI_Valide,		// 3
+  qEPI_NonValue,	// 4
+  qEPI_Disparu,		// 5
+  qEPI_Highlight	// 6
+} qEtatPointeImage;
+
+
 
 //! Interaction mode (only in 3D)
 enum INTERACTION_MODE {
@@ -25,9 +42,9 @@ enum SELECTION_MODE { SUB_INSIDE,
                       ADD_OUTSIDE,
                       INVERT,
                       ALL,
-                      NONE
+                      NONE,
+                      SIZE_OF_SELECTION_MODE
                     };
-
 
 // TODO GERER les etats avec des flags
 enum object_state {
@@ -40,49 +57,76 @@ enum object_state {
     state_COUNT
 };
 
+enum point_geometry {
+    Geom_simple_circle,
+    Geom_double_circle,
+    Geom_epipolar,
+    Geom_cross,
+    no_geometry
+};
+
 #define ErrPoint cPoint(QPointF(-400000.,-400000.));
 
 class cObject
 {
     public:
         cObject();
-        cObject(Pt3dr pt, QColor color_default);
+        cObject(QVector3D pt, QColor color_default);
         virtual ~cObject();
 
         QString name()          { return _name;     }
-        Pt3dr   getPosition()   { return _position; }
-        Pt3dr   getRotation()   { return _rotation; }
+        QVector3D   getPosition()   { return _position; }
+        QVector3D   getRotation()   { return _rotation; }
         QColor  getColor();
-        Pt3dr   getScale()      { return _scale;    }
-        bool    isVisible()     { return (state() != state_invible); }
+        QVector3D   getScale()      { return _scale;    }
+        bool    isVisible();
         bool    isSelected()    { return (state() == state_selected);}
 
         void    setName(QString name)          { _name = name;     }
-        void    setPosition(Pt3dr const &aPt)  { _position = aPt;  }
-        void    setRotation(Pt3dr const &aPt)  { _rotation = aPt;  }
+        void	setPosition(QVector3D const &aPt);
+        void    setRotation(QVector3D const &aPt)  { _rotation = aPt;  }
         void    setColor(QColor const &aCol, object_state state = state_default)   { _color[state] = aCol;    }
-        void    setScale(Pt3dr aScale)         { _scale = aScale; }
+        void    setScale(QVector3D aScale)         { _scale = aScale; }
         void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
         void    setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
 
         cObject & operator = (const cObject &);
 
         object_state   state() const;
-        void    setState(object_state state);
+        void     setState(object_state state);
+
+        cObject* child(int id = 0);
+
+        int		 nbChild(){return _children.size();}
+
+        void	 addChild(cObject* child);
+
+        void	 removeChild(cObject* child);
+
+        void	 replaceChild(int id,cObject* child);
+
+        virtual	 cObject* parent() const;
+
+        virtual	 void	 setParent(cObject* parent);
 
 protected:
 
         QString _name;
 
-        Pt3dr   _position;
+        QVector3D  _position;
 
-        Pt3dr   _rotation;
+        QVector3D   _rotation;
 
         QColor  _color[state_COUNT];
-        Pt3dr   _scale;
+        QVector3D   _scale;
 
-        float   _alpha;
+        float		_alpha;
+
         object_state   _state;
+
+        QVector< cObject* > _children;
+
+        cObject*			_parent;
 };
 
 class cObjectGL : public cObject
@@ -91,8 +135,9 @@ class cObjectGL : public cObject
 
         cObjectGL();
 
-        cObjectGL(Pt3dr pos, QColor color_default) :
+        cObjectGL(QVector3D pos, QColor color_default) :
             cObject(pos, color_default),
+            _lineWidth(1),
             _glError(0)
         {}
 
@@ -136,7 +181,8 @@ class cPoint : public cObjectGL, public QPointF
     cPoint(QPointF pos = QPointF(0.f,0.f),
            QString name = "",
            bool showName   = false,
-           int  statePoint = eEPI_NonValue,
+           int  statePoint = qEPI_NonValue,
+           int  pointGeometry = Geom_simple_circle,
            bool isSelected = false,
            QColor color = Qt::red,
            QColor selectionColor = Qt::blue,
@@ -147,9 +193,11 @@ class cPoint : public cObjectGL, public QPointF
         void draw();
 
         void setPointState(int state){ _pointState = state; }
+        void setPointGeometry(int g) { _pointGeometry = g;  }
         float diameter()             { return _diameter;    }
         void setDiameter(float val)  { _diameter = val;     }
         int  pointState() const      { return _pointState;  }
+        int  pointGeometry() const   { return _pointGeometry;  }
         void showName(bool show)     { _bShowName = show;   }
 
         bool highlight() const       { return _highlight;   }
@@ -158,16 +206,22 @@ class cPoint : public cObjectGL, public QPointF
         void switchHighlight()       { _highlight = !_highlight; }
         void drawCenter(bool aBool)  { _drawCenter = aBool; }
 
+        void setPosition(QPointF pos);
+
         void setEpipolar(QPointF pt1, QPointF pt2);
 
         void glDraw();
 
         QColor colorPointState();
+
+        virtual	 void	 setParent(cObject* parent);
+
 private:
 
         float   _diameter;
         bool    _bShowName;
         int     _pointState;
+        int     _pointGeometry;
         bool    _highlight;
         bool    _drawCenter;
 
@@ -181,7 +235,7 @@ private:
 class cCircle : public cObjectGL
 {
     public:
-        cCircle(Pt3dr, QColor, float, float, bool, int dim);
+        cCircle(QVector3D, QColor, float, float, bool, int dim);
         cCircle(int dim);
 
         void    draw();
@@ -194,7 +248,7 @@ class cCircle : public cObjectGL
 class cCross : public cObjectGL
 {
     public:
-        cCross(Pt3dr, QColor, float, float, bool, int dim);
+        cCross(QVector3D, QColor, float, float, bool, int dim);
 
         void    draw();
 
@@ -206,17 +260,18 @@ class cBall : public cObjectGL
 {
     public:
 
-        cBall(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, bool isVis = true, float lineWidth = 1.f);
+        cBall(QVector3D pt = QVector3D(0.f,0.f,0.f), float scale = 1.f, bool isVis = true, float lineWidth = 1.f);
         ~cBall();
 
-        void    setPosition(Pt3dr const &aPt);
-        Pt3dr   getPosition();
+        void    setPosition(QVector3D const &aPt);
+        QVector3D   getPosition();
         void    setVisible(bool aVis);
-        void    setScale(Pt3dr aScale);
+        void    setScale(QVector3D aScale);
 
         void    draw();
 
-    private:
+        void setScale(float aScale);
+private:
 
         cCircle *_cl0;
         cCircle *_cl1;
@@ -230,7 +285,7 @@ class cBall : public cObjectGL
 class cAxis : public cObjectGL
 {
     public:
-        cAxis(Pt3dr pt = Pt3dr(0.f,0.f,0.f), float scale = 1.f, float lineWidth = 1.f);
+        cAxis(QVector3D pt = QVector3D(0.f,0.f,0.f), float scale = 1.f, float lineWidth = 1.f);
 
         void    draw();
 };
@@ -238,7 +293,7 @@ class cAxis : public cObjectGL
 class cGrid : public cObjectGL
 {
     public:
-        cGrid(Pt3dr pt = Pt3dr(0.f,0.f,0.f), Pt3dr scale = Pt3dr(1.f,1.f,1.f));
+        cGrid(QVector3D pt = QVector3D(0.f,0.f,0.f), QVector3D scale = QVector3D(1.f,1.f,1.f));
 
         void    draw();
 };
@@ -246,21 +301,34 @@ class cGrid : public cObjectGL
 class cBBox : public cObjectGL
 {
     public:
-        cBBox(Pt3dr pt = Pt3dr(0.f,0.f,0.f), Pt3dr min= Pt3dr(0.f,0.f,0.f), Pt3dr max= Pt3dr(1.f,1.f,1.f), float lineWidth = 1.f);
+        cBBox(QVector3D pt = QVector3D(0.f,0.f,0.f), QVector3D min= QVector3D(0.f,0.f,0.f), QVector3D max= QVector3D(1.f,1.f,1.f), float lineWidth = 1.f);
 
         void    draw();
 
-        void set(Pt3d<double> min, Pt3d<double> max);
+        void set(QVector3D min, QVector3D max);
 
     private:
-        Pt3dr   _min;
-        Pt3dr   _max;
+        QVector3D   _min;
+        QVector3D   _max;
 };
 
-class cCam : public cObjectGL
+class cCamHandler
+{
+public:
+    virtual ~cCamHandler(){}
+
+    virtual void getCoins(QVector3D &aP1,QVector3D &aP2,QVector3D &aP3,QVector3D &aP4, double aZ) = 0;
+
+    virtual QVector3D getCenter() = 0;
+
+	virtual QVector3D getRotation() = 0;
+};
+
+
+class cCamGL : public cObjectGL
 {
     public:
-        cCam(CamStenope *pCam, float scale, object_state state = state_default, float lineWidth = 1.f);
+        cCamGL(cCamHandler *pCam, float scale, object_state state = state_default, float lineWidth = 1.f);
 
         void    draw();
 
@@ -269,7 +337,7 @@ class cCam : public cObjectGL
     private:
         float   _pointSize;
 
-        CamStenope *_Cam;
+        cCamHandler *_Cam;
 };
 
 class cPolygonHelper;
@@ -280,21 +348,27 @@ class cPolygon : public cObjectGL
 {
     public:
 
-        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int style = LINE_NOSTIPPLE);
+        cPolygon(int maxSz = INT_MAX, float lineWidth = 1.0f, QColor lineColor = Qt::green, QColor pointColor = Qt::red, int geometry = Geom_simple_circle, int style = LINE_NOSTIPPLE);
+
+        ~cPolygon();
+
 
         virtual void draw();
+
+        void    RemoveLastPointAndClose();
 
         void    close();
 
         bool    isPointInsidePoly(const QPointF& P);
 
-        bool    findNearestPoint(const QPointF &pos, float getRadius = _selectionRadius);
+        cPoint* findNearestPoint(const QPointF &pos, float getRadius = _selectionRadius);
 
         void    removeNearestOrClose(QPointF pos); //remove nearest point, or close polygon
         void    removeSelectedPoint();
 
         QString getSelectedPointName();
         int     getSelectedPointState();
+        int     getSelectedPointGeometry();
 
         int     getSelectedPointIndex(){ return _idx; }
 
@@ -309,8 +383,8 @@ class cPolygon : public cObjectGL
         float   getPointDiameter() { return _pointDiameter; }
 
         void    add(cPoint &pt);
-        void    add(QPointF const &pt, bool selected=false);
-        virtual void    addPoint(QPointF const &pt);
+        void    add(QPointF const &pt, bool selected=false, cPoint* lock = NULL);
+        virtual void    addPoint(QPointF const &pt, cPoint* lock = NULL) ;
 
         void    clear();
 
@@ -341,11 +415,11 @@ class cPolygon : public cObjectGL
         void    setVector(QVector <QPointF> const &aPts);
 
         cPolygonHelper* helper() { return _helper; }
-        void    setHelper(cPolygonHelper* aHelper) { _helper = aHelper; }
+        void    setHelper(cPolygonHelper* aHelper);
 
-        virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true);
+        virtual void refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = true, cPoint* lock = NULL);
 
-        int     finalMovePoint();
+        int     finalMovePoint(cPoint* lock = NULL);
 
         void    removeLastPoint();
 
@@ -387,10 +461,13 @@ class cPolygon : public cObjectGL
 
         void    normalize(bool aBool)   { _bNormalize = aBool; }
 
+        void	setAllVisible(bool visible);
+
+        float   length();
 
     protected:
 
-        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int style = LINE_STIPPLE);
+        cPolygon(int nbMax, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int geometry = Geom_simple_circle, int style = LINE_STIPPLE);
 
         QVector <cPoint>    _points;
 
@@ -402,10 +479,12 @@ class cPolygon : public cObjectGL
 
         int                 _style;
 
-
-
     private:
+
         float               _pointDiameter;
+
+        int                 _pointGeometry;
+
         static float        _selectionRadius;
 
         //!states if polygon is closed
@@ -436,7 +515,9 @@ class cPolygonHelper : public cPolygon
 {
     public:
 
-        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue);
+        cPolygonHelper(cPolygon* polygon, int nbMax, float lineWidth = 1.0f, QColor lineColor = Qt::blue, QColor pointColor = Qt::blue, int pointGeometry=Geom_simple_circle);
+
+        ~cPolygonHelper();
 
         void   build(const cPoint &pos, bool insertMode);
 
@@ -453,9 +534,9 @@ class cRectangle : public cPolygon
 
         cRectangle(int nbMax = 4, float lineWidth = 1.0f, QColor lineColor = Qt::green, int style = LINE_NOSTIPPLE);
 
-        void    addPoint(QPointF const &pt);
+        void    addPoint(QPointF const &pt, cPoint* lock = NULL);
 
-        void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false);
+        void    refreshHelper(QPointF pos, bool insertMode, float zoom, bool ptIsVisible = false, cPoint* lock = NULL);
 
         void    draw();
 };
@@ -464,7 +545,7 @@ class cImageGL : public cObjectGL
 {
     public:
 
-        cImageGL(float scaleFactor=1.f, float gamma = 1.f);
+        cImageGL(float gamma = 1.f);
         ~cImageGL();
 
         void    draw(QColor color);
@@ -475,8 +556,8 @@ class cImageGL : public cObjectGL
 
         void    draw();
 
-        void    setGLPosition(GLfloat originX, GLfloat originY);
         void    setSize(QSize size);
+        QSize   getSize() { return _size; }
 
         void    createTexture(QImage *pImg);
 
@@ -500,21 +581,12 @@ class cImageGL : public cObjectGL
 
         static  void drawGradientBackground(int w,int h,QColor c1,QColor c2);
 
-        void    setZoom(float aVal) { _zoom = aVal; }
-        float   getZoom(){ return _zoom; }
-
 private:
-
-        float   _scaleFactor;
-        float   _zoom;
 
         QGLShaderProgram _program;
 
         int     _texLocation;
         int     _gammaLocation;
-
-        GLfloat _originX;
-        GLfloat _originY;
 
         QSize   _size;
 
@@ -537,33 +609,38 @@ public:
         _m_rescaled_mask(NULL),
         _m_newMask(true),
         _gamma(gamma),
-        _loadedImageRescaleFactor(sFactor)
-    {}
+        _loadedImageRescaleFactor(sFactor),
+        _loading(false)
+    {
+
+    }
 
     ~cMaskedImage()
-    {}
+    {
+        deallocImages();
+    }
 
     void deallocImages()
     {
         if(_m_image != NULL)
         {
-            _m_image = NULL;
             delete _m_image;
+            _m_image = NULL;
         }
         if(_m_mask != NULL)
         {
-            _m_mask = NULL;
             delete _m_mask;
+            _m_mask = NULL;
         }
         if(_m_rescaled_image != NULL)
         {
-            _m_rescaled_image = NULL;
             delete _m_rescaled_image;
+            _m_rescaled_image = NULL;
         }
         if(_m_rescaled_mask != NULL)
         {
-            _m_rescaled_mask = NULL;
             delete _m_rescaled_mask;
+            _m_rescaled_mask = NULL;
         }
     }
 
@@ -573,11 +650,14 @@ public:
     T           *_m_rescaled_image;
     T           *_m_rescaled_mask;
 
-    cFileOriMnt  _m_FileOriMnt;
-
     bool        _m_newMask;
     float       _gamma;
     float       _loadedImageRescaleFactor;
+
+
+    QSize		_fullSize;
+    //QImageReader *_imageReader;
+    bool		_loading;
 
 };
 
@@ -587,13 +667,19 @@ class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 public:
 
     cMaskedImageGL():
-        _qMaskedImage(NULL),
-        _tiles(NULL),
-        _mask_tiles(NULL){}
+        _qMaskedImage(NULL)
+    {}
 
     cMaskedImageGL(QMaskedImage *qMaskedImage);
 
-    /*void setScale(Pt3dr aScale)
+    cMaskedImageGL(const QRectF & aRect);
+
+    ~cMaskedImageGL();
+
+//    ~cMaskedImageGL()
+//    {}
+
+    /*void setScale(QVector3D aScale)
     {
         _m_image->setScale(aScale);
         _m_mask->setScale(aScale);
@@ -605,36 +691,29 @@ public:
 
     void  draw();
 
-    void  drawTiles(cImageGL* tiles);
-
     void  deleteTextures();
 
     void  createTextures();
 
-    void  setZone(float aVal, QRectF rectImage); // TODO Attention ne semble pas à la bonne place
+    void  createFullImageTexture();
 
-    cMaskedImage<QImage> * getMaskedImage() { return _qMaskedImage; }
+    QMaskedImage* getMaskedImage() { return _qMaskedImage; }
+    void          setMaskedImage(QMaskedImage * aMaskedImage) { _qMaskedImage = aMaskedImage; }
 
-    cImageGL& getTile(int aK);
-    cImageGL& getMaskTile(int aK);
+    cImageGL*   glImage()  { return _m_image; }
+    cImageGL*   glMask()   { return _m_mask;  }
+
+    void		copyImage(cMaskedImage<QImage>* image, QRect& rect);
+
+    QSize		fullSize();
 
 private:
 
-    QRectF       _rectImage;
+    QMaskedImage *_qMaskedImage;
 
-    cImageGL*   glImage()   {return _m_image;}
-    cImageGL*   glMask()    {return _m_mask;}
-
-    cMaskedImage<QImage> *_qMaskedImage;
-
-    cImageGL*               _tiles;
-    cImageGL*               _mask_tiles;
-
-    QVector <QRectF>    _vTilesRect;
-
-    QSize               getTilesSize();
-    void                createTexturesTiles();
+    QMutex			_mutex;
 };
+
 //====================================================================================
 
 //! Default message positions on screen
@@ -649,7 +728,8 @@ enum MessagePosition {  LOWER_LEFT_MESSAGE,
 struct MessageToDisplay
 {
     MessageToDisplay():
-        color(Qt::white)
+        color(Qt::white),
+        position(LOWER_CENTER_MESSAGE)
     {}
 
     //! Message
@@ -669,7 +749,9 @@ public:
     cMessages2DGL(QGLWidget *glw):
         _bDrawMessages(true),
         m_font(QFont("Arial", 10, QFont::Normal, false)),
-        glwid(glw)
+        glwid(glw),
+        w(0),
+        h(0)
     {}
 
     void draw();
@@ -698,7 +780,7 @@ public:
 
     void showMessages(bool show) { _bDrawMessages = show; }
 
-    int size(){ return m_messagesToDisplay.size(); }
+    size_t size(){ return m_messagesToDisplay.size(); }
 
     void    glRenderText(QString text,QPointF pt,QColor color);
 

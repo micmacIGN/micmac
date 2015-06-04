@@ -371,6 +371,7 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
                }
                else
                {
+
 	          MakeFileXML(anOC,aNXml,Engl);
                }
 
@@ -497,7 +498,7 @@ void cAppliApero::ExportOrthoCyl
     cXmlOneSurfaceAnalytique OneSurf;
 
     OneSurf.Id() = "TheSurf";
-    OneSurf.VueDeLExterieur() = aPOC.IsVueExt();
+    OneSurf.VueDeLExterieur() = aPOC.VueDeLext();
     OneSurf.XmlDescriptionAnalytique() = aPOC.Xml();
     cXmlModeleSurfaceComplexe aCplxSur;
     aCplxSur.XmlOneSurfaceAnalytique().push_back(OneSurf);
@@ -742,6 +743,11 @@ void  cAppliApero::Export(const cSectionExport & anEx)
     )
     {
           ExportBlockCam(*itBC);
+    }
+
+    if (anEx.ExportResiduXml().IsInit())
+    {
+        MakeFileXML(mXMLExport,mDC+anEx.ExportResiduXml().Val());
     }
 }
 

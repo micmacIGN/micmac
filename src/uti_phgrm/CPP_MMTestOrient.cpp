@@ -93,7 +93,7 @@ int MMTestOrient_main(int argc,char ** argv)
                     << EAMC(anIm2,"Second Image", eSAM_IsExistFile)
                     << EAMC(AeroIn,"Orientation", eSAM_IsExistFile),
     LArgMain()  << EAM(aDir,"Dir",true,"Directory, Def=./")
-                    << EAM(Zoom0,"Zoom0",true,"Zoom init, pow of 2  in [128,8], Def depend of size")
+                    << EAM(Zoom0,"Zoom0",true,"Zoom init, pow of 2  in [128,8], Def depend of size", eSAM_IsPowerOf2)
                     << EAM(ZoomF,"ZoomF",true,"Zoom init,  pow of 2  in [4,1], Def=2",eSAM_IsPowerOf2)
                     << EAM(mModePB,"PB",true,"Push broom sensor")
                     << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO), Mandatory in PB", eSAM_NoInit)
@@ -101,6 +101,8 @@ int MMTestOrient_main(int argc,char ** argv)
                     << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
                     << EAM(ShowCom,"ShowCom",true,"Show MicMac command (tuning purpose)")
     );
+
+    if (MMVisualMode) return EXIT_SUCCESS;
 
     if (!mModePB)
     {

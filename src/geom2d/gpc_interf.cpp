@@ -122,6 +122,11 @@ void cElPolygone::AddContour(const tContour & aCont,bool isHole)
    mIsHole.push_back(isHole);
 }
 
+const std::list<bool> &     cElPolygone::IsHole()
+{
+   return  mIsHole;
+}
+
 cElPolygone::cElPolygone()
 {
 }

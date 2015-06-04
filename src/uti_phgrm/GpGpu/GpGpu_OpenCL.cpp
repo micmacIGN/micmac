@@ -97,30 +97,33 @@ void main_SDK()
     CGpGpuContext<context>::check_Cuda();
 }
 
-int main()
+void UnitTest___CPP11()
 {
-
-    eprintf(0,5,68,4);
-
+#ifndef NOCUDA_X11
     CStructure<3> testS;
-
-    DUMP(testS.getDimension())
-    DUMP(testS.getNbLayer())
-    DUMP_LINE
-
-    testS.setDimension((uint)3);
+#else
+    CStructure<10> testS;
+#endif
 
     DUMP(testS.getDimension())
             DUMP(testS.getNbLayer())
             DUMP_LINE
 
-    testS.setDimension(20,5);
+            testS.setDimension(3);
 
     DUMP(testS.getDimension())
             DUMP(testS.getNbLayer())
             DUMP_LINE
 
-    testS.setDimension(18.3f,5555.f);
+            testS.setDimension(20,5);
+
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
+            DUMP_LINE
+
+        #ifdef NOCUDA_X11
+            testS.setDimension(3,5,5,8,223,4);
+#endif
 
     DUMP(testS.getDimension())
             DUMP(testS.getNbLayer())
@@ -128,19 +131,62 @@ int main()
 
             testS.setDimension(2,5,88);
 
-            DUMP(testS.getDimension())
-                    DUMP(testS.getNbLayer())
+    DUMP(testS.getDimension())
+            DUMP(testS.getNbLayer())
 
-                    DUMP(testS.getSize())
-                    DUMP_LINE
+            DUMP(testS.getSize())
+            DUMP_LINE
 
-    return 0;
+}
 
-//    DUMP(typeid(cudaContext).name())
+void UnitTest___MultiContext()
+{
+	CuHostData3D<int2> bufferHost;
+
+	CuDeviceData3D<float3> bufferDevice(10,"fata");
+
+	bufferDevice.OutputInfo();
+	bufferHost.OutputInfo();
+
+	bufferHost.Malloc(make_uint2(5,5),1);
+
+	bufferHost.Fill(make_int2(5,8));
+
+	bufferHost.OutputValues();
 
 #if OPENCL_ENABLED
-    main_SDK<openClContext>();
+	main_SDK<openClContext>();
 #endif
-    main_SDK<cudaContext>();
-    return 0;
+	main_SDK<cudaContext>();
+}
+
+
+void UnitTest___SGPU()
+{
+	DUMP(sgpu::__mult<32>(64))
+
+	ushort dZ = 286;
+
+	ushort _maxDz = sgpu::__mult<WARPSIZE>(sgpu::__iDivUp<WARPSIZE>(dZ));
+
+
+	DUMP(_maxDz)
+
+			_maxDz = iDivUp32(dZ) * WARPSIZE;
+
+	DUMP(_maxDz)
+
+			DUMP(sgpu::__div<32>(_maxDz))
+			DUMP(sgpu::__multipleSup<32>(_maxDz))
+			DUMP(sgpu::__multipleSup<34>(_maxDz))
+}
+
+int main()
+{
+
+	UnitTest___SGPU();
+
+	//UnitTest___MultiContext()
+
+	return 0;
 }

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2131]) = {
+const char * (theNameVar_ParamMICMAC[2136]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -29,7 +29,7 @@ const char * (theNameVar_ParamMICMAC[2131]) = {
 "       Trois type de geometrie interviennent\n",
 "\n",
 "\n",
-"       - La géométrie image est liée à l'instrument d'acquisition\n",
+"       - La géométrie image est liée �  l'instrument d'acquisition\n",
 "       (conique ou barette, calibration ...); elle est definie\n",
 "       dans la section <Section_PriseDeVue> par le champss\n",
 "      GeomImages qui doit etre dans l'enumeration eGeomImage.\n",
@@ -384,6 +384,8 @@ const char * (theNameVar_ParamMICMAC[2131]) = {
 "   <MemPartMICMAC Nb=\"1\" Class=\"true\">\n",
 "       <NbMaxImageOn1Point Nb=\"?\" Type=\"int\"> </NbMaxImageOn1Point>\n",
 "       <BSurHGlob  Nb=\"?\" Type=\"double\"> </BSurHGlob>\n",
+"       <DeZoomLast  Nb=\"?\" Type=\"int\"> </DeZoomLast>\n",
+"       <NumLastEtape  Nb=\"?\" Type=\"int\"> </NumLastEtape>\n",
 "   </MemPartMICMAC>\n",
 "\n",
 "\n",
@@ -672,6 +674,8 @@ const char * (theNameVar_ParamMICMAC[2131]) = {
 "\n",
 "             <ImPat Nb=\"*\" Type=\"std::string\">   </ImPat>\n",
 "             <!-- Utilise le mecanisem ImSecOfMaster d'Apero -->\n",
+"\n",
+"             <ImageSecByCAWSI Nb=\"?\" Type=\"std::string\"> </ImageSecByCAWSI>\n",
 "             <ImSecCalcApero Nb=\"?\">\n",
 "                  <Key Nb=\"1\" Type=\"std::string\"> </Key>\n",
 "                  <!-- Si Pas donne utilise Score  -->\n",
@@ -917,7 +921,8 @@ const char * (theNameVar_ParamMICMAC[2131]) = {
 "                <EpsilonMulMoyenne Nb=\"?\" Type=\"double\" Def=\"0.0\"> </EpsilonMulMoyenne>\n",
 "\n",
 "                <SzBlocAH Nb=\"?\" Type=\"int\" Def=\"40\"> </SzBlocAH>\n",
-"                <CorrelMultiScale Nb=\"?\">\n",
+"                <CorrelMultiScale Nb=\"?\">                      \n",
+"                      <UseGpGpu Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseGpGpu>\n",
 "                      <ModeDense Nb=\"?\" Type=\"bool\"> </ModeDense>\n",
 "                      <!-- Si true un indicateur de forme est calcule sur l'image maitresse pour choisir quel type de fenetre est utilise -->\n",
 "                      <UseWAdapt Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseWAdapt>\n",

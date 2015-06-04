@@ -1,6 +1,6 @@
 set(UTI_PHGRM_APERO_DIR ${UTI_PHGRM_DIR}/Apero)
 set(UTI_PHGRM_MICMAC_DIR ${UTI_PHGRM_DIR}/MICMAC)
-set(UTI_PHGRM_MAXFLOW_DIR ${UTI_PHGRM_DIR}/MaxFlow)
+set(UTI_PHGRM_GRAPHCUT_DIR ${UTI_PHGRM_DIR}/GraphCut)
 set(UTI_PHGRM_REDUCHOM_DIR ${UTI_PHGRM_DIR}/ReducHom)
 set(UTI_PHGRM_RHH_DIR ${UTI_PHGRM_DIR}/RHH)
 set(UTI_PHGRM_CASA_DIR ${UTI_PHGRM_DIR}/CASA)
@@ -11,12 +11,19 @@ set(UTI_PHGRM_GPGPU_DIR ${UTI_PHGRM_DIR}/GpGpu)
 
 set(UTI_PHGRM_FUSION_NUAGES ${UTI_PHGRM_DIR}/FusionNuage)
 set(UTI_PHGRM_MERGE_CLOUD ${UTI_PHGRM_DIR}/MergeCloud)
+set(UTI_PHGRM_NEW_ORI ${UTI_PHGRM_DIR}/NewOri)
+set(UTI_PHGRM_TEXT_DIR ${UTI_PHGRM_DIR}/TexturePacker)
+
+set(UTI_PHGRM_MAXFLOW_DIR ${UTI_PHGRM_GRAPHCUT_DIR}/MaxFlow)
+set(UTI_PHGRM_QPBO_DIR ${UTI_PHGRM_GRAPHCUT_DIR}/QPBO-v1.4)
 
 set(SrcGrp_Uti_PHGRM uti_phgrm)
+set(SrcGrp_Graph_Cut uti_phgrm/GraphCut)
 
 INCLUDE (${UTI_PHGRM_APERO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MICMAC_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MAXFLOW_DIR}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_QPBO_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_REDUCHOM_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_RHH_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_PORTO_DIR}/Sources.cmake)
@@ -24,11 +31,13 @@ INCLUDE (${UTI_PHGRM_SAISIEPTS_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_FUSION_NUAGES}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_MERGE_CLOUD}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_CASA_DIR}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_NEW_ORI}/Sources.cmake)
+INCLUDE (${UTI_PHGRM_TEXT_DIR}/Sources.cmake)
 
 #define __CUDA_API_VERSION 0x5050
 
 if(${CUDA_ENABLED})
-        set(OptionCuda 1)
+	set(OptionCuda 1)
 
 #        if("${CUDA_VERSION}" MATCHES "6.0")
 #            set(__CUDA_API_VERSION 0x6000)
@@ -58,11 +67,22 @@ else()
     set(OPENCL_ENABLED  0)
 endif()
 
+if(${CUDA_CPP11THREAD_NOBOOSTTHREAD})
+    set(CPP11THREAD_NOBOOSTTHREAD 1)
+else()
+    set(CPP11THREAD_NOBOOSTTHREAD  0)
+endif()
+
+if(${CUDA_NVTOOLS})
+    set(NVTOOLS 1)
+else()
+    set(NVTOOLS  0)
+endif()
 
 if(${WITH_OPEN_MP})
-    set(OPM_ENABLED 1)
+    set(USE_OPEN_MP 1)
 else()
-    set(OPM_ENABLED 0)
+    set(USE_OPEN_MP 0)
 endif()
 
 configure_file(
@@ -97,7 +117,6 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_MakeGrid.cpp
     ${UTI_PHGRM_DIR}/CPP_Malt.cpp
     ${UTI_PHGRM_DIR}/CPP_MMByPair.cpp
-    ${UTI_PHGRM_DIR}/CPP_Mascarpone.cpp
     ${UTI_PHGRM_DIR}/CPP_MergePly.cpp
     ${UTI_PHGRM_DIR}/CPP_MICMAC.cpp
     ${UTI_PHGRM_DIR}/CPP_Nuage2Ply.cpp
@@ -113,8 +132,10 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Tapioca.cpp
     ${UTI_PHGRM_DIR}/CPP_Tarama.cpp
     ${UTI_PHGRM_DIR}/CPP_Tawny.cpp
+    ${UTI_PHGRM_DIR}/CPP_Tequila.cpp
     ${UTI_PHGRM_DIR}/CPP_TestCam.cpp
     ${UTI_PHGRM_DIR}/CPP_TestChantier.cpp
+    ${UTI_PHGRM_DIR}/CPP_TiPunch.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieMasq.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieQT.cpp
     ${UTI_PHGRM_DIR}/CPP_SaisieAppuisPredic.cpp
@@ -138,21 +159,24 @@ SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Applis FILES ${Applis_phgrm_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Apero FILES ${uti_phgrm_Apero_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\MicMac FILES ${uti_phgrm_MICMAC_Src_Files})
-SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\MaxFlow FILES ${uti_phgrm_MaxFlow_Src_Files})
+SOURCE_GROUP(${SrcGrp_Graph_Cut}\\MaxFlow FILES ${uti_phgrm_MaxFlow_Src_Files})
+SOURCE_GROUP(${SrcGrp_Graph_Cut}\\QPBO FILES ${uti_phgrm_qpbo_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Porto FILES ${uti_phgrm_Porto_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\ReducHom FILES ${uti_phgrm_Porto_Src_Files})
 
 if(${CUDA_ENABLED})
-        SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${uti_phgrm_GpGpu_Src_Files})
-        SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${GpGpuTools_Src_Files})
+	SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${uti_phgrm_GpGpu_Src_Files})
+	SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${GpGpuTools_Src_Files})
 endif()
 
 list( APPEND uti_phgrm_Src_Files ${Applis_phgrm_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Apero_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MICMAC_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_MaxFlow_Src_Files} )
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_qpbo_Src_Files} )
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Porto_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_RHH_Src_Files})
 list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Casa_Src_Files})
+list( APPEND uti_phgrm_Src_Files ${uti_phgrm_Text_Src_Files})
 list( APPEND Elise_Src_Files ${uti_phgrm_Src_Files})

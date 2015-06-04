@@ -1,4 +1,5 @@
 #include "Data.h"
+#include <limits>
 
 cData::cData()
 {
@@ -25,8 +26,7 @@ void cData::replaceCloud(GlCloud *cloud, int id)
     if(id < _Clouds.size())
     {
         _Clouds[id] = cloud;
-        computeBBox(id);
-        computeCloudsCenter(id);
+        computeCenterAndBBox(id);
     }
 }
 
@@ -37,18 +37,19 @@ void cData::addReplaceCloud(GlCloud *cloud, int id)
     else
         addCloud(cloud);
 
-    computeBBox(id);
-    computeCloudsCenter(id);
+    computeCenterAndBBox(id);
 }
 
-void cData::addCamera(CamStenope * aCam)
+void cData::addCamera(cCamHandler * aCam)
 {
     _Cameras.push_back(aCam);
 }
 
-void cData::pushBackMaskedImage(QMaskedImage maskedImage)
+void cData::pushBackMaskedImage(QMaskedImage *maskedImage)
 {
+
     _MaskedImages.push_back(maskedImage);
+
 }
 
 void cData::clearClouds()
@@ -70,13 +71,27 @@ void cData::clearCameras()
 
 void cData::clearImages()
 {
+    //qDeleteAll(_MaskedImages);
+
+    for (int idQMImg = 0; idQMImg < _MaskedImages.size(); ++idQMImg)
+    {
+        if(_MaskedImages[idQMImg])
+            delete _MaskedImages[idQMImg];
+        _MaskedImages[idQMImg] = NULL;
+    }
+
     _MaskedImages.clear();
     reset();
 }
 
 void cData::clearObjects()
 {
-    qDeleteAll(_vPolygons);
+    for (int idpoly = 0; idpoly < _vPolygons.size(); ++idpoly)
+    {
+        if(_vPolygons[idpoly])
+            delete _vPolygons[idpoly];
+        _vPolygons[idpoly] = NULL;
+    }
 
     _vPolygons.clear();
 
@@ -109,7 +124,11 @@ void cData::clear(int aK)
             _Cameras[aK] = NULL;
         }
     }
-    if (_MaskedImages.size())   _MaskedImages[aK].deallocImages();
+    if (_MaskedImages.size())
+    {
+        if(_MaskedImages[aK])
+            delete _MaskedImages[aK];
+    }
 }
 
 int cData::idPolygon(cPolygon *polygon)
@@ -119,8 +138,16 @@ int cData::idPolygon(cPolygon *polygon)
 
 void cData::reset()
 {
-    _min.x = _min.y = _min.z =  FLT_MAX;
-    _max.x = _max.y = _max.z = -FLT_MAX;
+
+    _min.setX(std::numeric_limits<float>::max());
+    _min.setY(std::numeric_limits<float>::max());
+    _min.setZ(std::numeric_limits<float>::max());
+    _max.setX(-std::numeric_limits<float>::max());
+    _max.setY(-std::numeric_limits<float>::max());
+    _max.setZ(-std::numeric_limits<float>::max());
+
+//    _min.x = _min.y = _min.z =  FLT_MAX;
+//    _max.x = _max.y = _max.z = -FLT_MAX;
 }
 
 void cData::cleanCameras()
@@ -144,24 +171,30 @@ int cData::getCloudsSize()
     return sizeClouds;
 }
 
-void cData::getMinMax(Pt3dr pt)
+void cData::getMinMax(QVector3D pt)
 {
-    if (pt.x > _max.x) _max.x = pt.x;
-    if (pt.x < _min.x) _min.x = pt.x;
-    if (pt.y > _max.y) _max.y = pt.y;
-    if (pt.y < _min.y) _min.y = pt.y;
-    if (pt.z > _max.z) _max.z = pt.z;
-    if (pt.z < _min.z) _min.z = pt.z;
+    if (pt.x() > _max.x()) _max.setX(pt.x());
+    if (pt.x() < _min.x()) _min.setX(pt.x());
+    if (pt.y() > _max.y()) _max.setY(pt.y());
+    if (pt.y() < _min.y()) _min.setY(pt.y());
+    if (pt.z() > _max.z()) _max.setZ(pt.z());
+    if (pt.z() < _min.z()) _min.setZ(pt.z());
 }
 
 //compute bounding box
-void cData::computeBBox(int idCloud)
+void cData::computeCenterAndBBox(int idCloud)
 {
+    QVector3D sum(0.,0.,0.);
+    int cpt = 0;
+
     for (int bK=0; bK < _Clouds.size();++bK)
     {
         if(idCloud == -1 || bK == idCloud)
         {
             GlCloud * aCloud = _Clouds[bK];
+
+            sum = sum + aCloud->getSum();
+            cpt += aCloud->size();
 
             for (int aK=0; aK < aCloud->size(); ++aK)
             {
@@ -173,13 +206,13 @@ void cData::computeBBox(int idCloud)
     if(idCloud == -1)
     for (int  cK=0; cK < _Cameras.size();++cK)
     {
-        CamStenope * aCam= _Cameras[cK];
+        cCamHandler * aCam = _Cameras[cK];
 
-        QVector <Pt3dr> vert;
-        Pt3dr c1, c2, c3, c4;
+        QVector <QVector3D> vert;
+        QVector3D c1, c2, c3, c4;
 
-        aCam->Coins(c1,c2,c3,c4,1.f);
-        vert.push_back(aCam->VraiOpticalCenter());
+        aCam->getCoins(c1,c2,c3,c4,1.f);
+        vert.push_back(aCam->getCenter());
         vert.push_back(c1);
         vert.push_back(c2);
         vert.push_back(c3);
@@ -189,47 +222,8 @@ void cData::computeBBox(int idCloud)
         {
             getMinMax(vert[aK]);
         }
-    }
-}
 
-// compute BBox center
-Pt3dr cData::getBBoxCenter()
-{
-    return Pt3dr((_min.x + _max.x) * .5f, (_min.y + _max.y) * .5f, (_min.z + _max.z) * .5f);
-}
-
-// compute BB max size
-float cData::getBBoxMaxSize()
-{
-    return max(_max.x-_min.x, max(_max.y-_min.y, _max.z-_min.z));
-}
-
-//compute data centroid
-void cData::computeCloudsCenter(int idCloud)
-{
-    Pt3dr sum(0.,0.,0.);
-    int cpt = 0;
-
-    for (int bK=0; bK < _Clouds.size();++bK)
-    {
-        if(idCloud == -1 || bK == idCloud)
-        {
-            GlCloud * aCloud = _Clouds[bK];
-
-            sum = sum + aCloud->getSum();
-            cpt += aCloud->size();
-        }
-    }
-
-    if(idCloud == -1)
-    for (int  cK=0; cK < _Cameras.size();++cK)
-    {
-        CamStenope * aCam= _Cameras[cK];
-
-        Pt3dr c1, c2, c3, c4;
-
-        aCam->Coins(c1,c2,c3,c4,1.f);
-        sum = sum + aCam->VraiOpticalCenter();
+        sum = sum + aCam->getCenter();
         sum = sum + c1;
         sum = sum + c2;
         sum = sum + c3;
@@ -241,3 +235,14 @@ void cData::computeCloudsCenter(int idCloud)
     _centroid = sum / cpt;
 }
 
+// compute BBox center
+QVector3D cData::getBBoxCenter()
+{
+    return QVector3D((_min.x() + _max.x()) * .5f, (_min.y() + _max.y()) * .5f, (_min.z() + _max.z()) * .5f);
+}
+
+// compute BB max size
+float cData::getBBoxMaxSize()
+{
+    return max(_max.x()-_min.x(), max(_max.y()-_min.y(), _max.z()-_min.z()));
+}

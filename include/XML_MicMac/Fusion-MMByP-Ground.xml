@@ -84,8 +84,8 @@
 
 
    <SectionGestionChantier>
-             <SzDalles >  1300 </SzDalles>
-             <RecouvrtDalles> 150  </RecouvrtDalles>
+             <SzDalles >  1000 </SzDalles>
+             <RecouvrtDalles> 100  </RecouvrtDalles>
              <ParalMkF> MkFusion.txt </ParalMkF> 
              <WorkDirPFM> XXXX </WorkDirPFM>
 <!--

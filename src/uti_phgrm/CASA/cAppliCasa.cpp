@@ -61,7 +61,7 @@ cAppli_Casa::cAppli_Casa(cResultSubstAndStdGetFile<cParamCasa> aP2) :
      mParam   (*aP2.mObj),
      mICNM    (aP2.mICNM),
      mDC      (aP2.mDC),
-     mSetEq   (cNameSpaceEqF::eSysPlein),
+     mSetEq   (cNameSpaceEqF::eSysPlein,1,true),
      mSAN     (0),
      mBestCyl (0)
 {
@@ -106,6 +106,10 @@ const cInterfSurfaceAnalytique *  cAppli_Casa::UsePts(const cInterfSurfaceAnalyt
 
    std::map<std::string,Pt3dr> aDico;
 
+
+   // 1 On fait le calcul des points a Surface 0
+
+
    for 
    (
       std::list<cMesureAppuiFlottant1Im>::const_iterator itM = aSMAF.MesureAppuiFlottant1Im().begin();
@@ -123,6 +127,7 @@ const cInterfSurfaceAnalytique *  cAppli_Casa::UsePts(const cInterfSurfaceAnalyt
          )
          {
              cTplValGesInit<Pt3dr> aPTer = aSurf->PImageToSurf0(*aCS,itO->PtIm());
+
              if (aPTer.IsInit())
              {
                  // Pt3dr aPLoc = aPTer.Val();
@@ -132,6 +137,9 @@ const cInterfSurfaceAnalytique *  cAppli_Casa::UsePts(const cInterfSurfaceAnalyt
              }
          }
    }
+
+
+
    
 
    return aSurf->ChangeRepDictPts(aDico);

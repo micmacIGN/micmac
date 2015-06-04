@@ -13,6 +13,30 @@
     #pragma GCC diagnostic ignored "-Wunused-result"
 #endif
 
+
+std::string baseName(std::string const &aName)
+{
+    //on recupere l'extension
+    int placePoint = -1;
+    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    {
+        if (aName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    std::string base = std::string("");
+    if (placePoint!=-1)
+    {
+        base.assign(aName.begin(),aName.begin()+placePoint);
+    }
+    else
+    {
+        base = aName;
+    }
+    return base;
+}
+
 Pt2di getImageSize(std::string const &aName)
 {
     //on recupere l'extension
@@ -36,7 +60,7 @@ Pt2di getImageSize(std::string const &aName)
     if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
     {
         //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
-        std::auto_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName));
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
         if (aRes.get())
         {
             return Std2Elise(aRes->Sz(1));
@@ -47,6 +71,107 @@ Pt2di getImageSize(std::string const &aName)
     Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
     return aTif.sz();
 }
+
+void getImageInfo(std::string const &aName,Pt2di &Size,int &NbCanaux)
+{
+    Size.x = 0;
+    Size.y = 0;
+    NbCanaux = 0;
+    //on recupere l'extension
+    int placePoint = -1;
+    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    {
+        if (aName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    std::string ext = std::string("");
+    if (placePoint!=-1)
+    {
+        ext.assign(aName.begin()+placePoint+1,aName.end());
+    }
+    //std::cout << "Extension : "<<ext<<std::endl;
+    
+#if defined (__USE_JP2__)
+    // on teste l'extension
+    if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+    {
+        //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get())
+        {
+            Size = Std2Elise(aRes->Sz(1));
+            NbCanaux = aRes->NbCanaux();
+            return;
+        }
+    }
+#endif
+    
+    Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
+    Size = aTif.sz();
+
+}
+
+
+template <class Type,class TyBase>
+std::vector<TIm2D<Type,TyBase>* > createVTIm2DFromFile(std::string const &aName, Pt2di const &PminCrop,Pt2di const &SzCrop)
+{
+    std::vector<TIm2D<Type,TyBase>* > vPtr;
+    //on recupere l'extension
+    int placePoint = -1;
+    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    {
+        if (aName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    std::string ext = std::string("");
+    if (placePoint!=-1)
+    {
+        ext.assign(aName.begin()+placePoint+1,aName.end());
+    }
+    //std::cout << "Extension : "<<ext<<std::endl;
+    
+#if defined (__USE_JP2__)
+    // on teste l'extension
+    if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+    {
+        //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get()!=NULLPTR)
+        {
+            int mFlagLoadedIms=0;
+            std::vector<sLowLevelIm<Type> > vSLLI;
+
+            for(size_t i=0;i<aRes->NbCanaux();++i)
+            {
+                TIm2D<Type,TyBase> * ptr = new TIm2D<Type,TyBase>(SzCrop);
+                vPtr.push_back(ptr);
+                vSLLI.push_back(sLowLevelIm<Type>
+                               (
+                                ptr->_the_im.data_lin(),
+                                ptr->_the_im.data(),
+                                Elise2Std(ptr->sz())
+                                ));
+                mFlagLoadedIms += (1<<i);
+            }
+            aRes->LoadNCanaux(vSLLI,mFlagLoadedIms,
+                                  1,//deZoom
+                                  cInterfModuleImageLoader::tPInt(0,0),//aP0Im
+                                  cInterfModuleImageLoader::tPInt(PminCrop.x,PminCrop.y),//aP0File
+                                  cInterfModuleImageLoader::tPInt(SzCrop.x,SzCrop.y));
+        }
+    }
+#endif
+    
+//    std_unique_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(SzCrop));
+//    Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
+//    ELISE_COPY(anTIm2D->_the_im.all_pts(),trans(aTif.in(),PminCrop),anTIm2D->_the_im.out());
+    return vPtr;
+}
+
 
 template <class Type,class TyBase>
 TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName, Pt2di const &PminCrop,Pt2di const &SzCrop)
@@ -72,10 +197,10 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName, Pt2di const &P
     if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
     {
         //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
-        std::auto_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName));
-        if (aRes.get()!=NULL)
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get()!=NULLPTR)
         {
-            std::auto_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(SzCrop));
+            std_unique_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(SzCrop));
             aRes->LoadCanalCorrel(sLowLevelIm<Type>
                                   (
                                    anTIm2D->_the_im.data_lin(),
@@ -91,12 +216,72 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName, Pt2di const &P
     }
 #endif
 
-    std::auto_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(SzCrop));
+    std_unique_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(SzCrop));
     Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
     ELISE_COPY(anTIm2D->_the_im.all_pts(),trans(aTif.in(),PminCrop),anTIm2D->_the_im.out());
     return anTIm2D.release();
 }
 
+
+template <class Type,class TyBase>
+std::vector<TIm2D<Type,TyBase>* > createVTIm2DFromFile(std::string const &aName)
+{
+    std::vector<TIm2D<Type,TyBase>* > vPtr;
+    //on recupere l'extension
+    int placePoint = -1;
+    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    {
+        if (aName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    std::string ext = std::string("");
+    if (placePoint!=-1)
+    {
+        ext.assign(aName.begin()+placePoint+1,aName.end());
+    }
+    //std::cout << "Extension : "<<ext<<std::endl;
+    
+#if defined (__USE_JP2__)
+    // on teste l'extension
+    if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+    {
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get()!=NULLPTR)
+        {
+            Pt2di aSz = Std2Elise(aRes->Sz(1));
+            
+            
+            int mFlagLoadedIms=0;
+            std::vector<sLowLevelIm<Type> > vSLLI;
+            
+            for(size_t i=0;i<aRes->NbCanaux();++i)
+            {
+                TIm2D<Type,TyBase> * ptr = new TIm2D<Type,TyBase>(aSz);
+                vPtr.push_back(ptr);
+                vSLLI.push_back(sLowLevelIm<Type>
+                               (
+                                ptr->_the_im.data_lin(),
+                                ptr->_the_im.data(),
+                                Elise2Std(ptr->sz())
+                                ));
+                mFlagLoadedIms += (1<<i);
+            }
+            
+            aRes->LoadNCanaux(vSLLI,mFlagLoadedIms,
+                                  1,//deZoom
+                                  cInterfModuleImageLoader::tPInt(0,0),//aP0Im
+                                  cInterfModuleImageLoader::tPInt(0,0),//aP0File
+                                  cInterfModuleImageLoader::tPInt(aSz.x,aSz.y));
+        }
+    }
+#endif
+    return vPtr;
+    // Attention la version FromFileStd ne fonctionne pas avec une image couleur??
+    //return new TIm2D<Type,TyBase>(Im2D<Type,TyBase>::FromFileStd(aName));
+    //return new TIm2D<Type,TyBase>(Im2D<Type,TyBase>::FromFileBasic(aName));
+}
 
 template <class Type,class TyBase>
 TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName)
@@ -121,11 +306,11 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName)
     // on teste l'extension
     if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
     {
-        std::auto_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName));
-        if (aRes.get()!=NULL)
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get()!=NULLPTR)
         {
             Pt2di aSz = Std2Elise(aRes->Sz(1));
-            std::auto_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(aSz));
+            std_unique_ptr<TIm2D<Type,TyBase> > anTIm2D(new TIm2D<Type,TyBase>(aSz));
             aRes->LoadCanalCorrel(sLowLevelIm<Type>
                                    (
                                     anTIm2D->_the_im.data_lin(),
@@ -254,8 +439,8 @@ int TP2GCP(std::string const &aNameFileMNT,
     // Chargement du MNT
     cFileOriMnt aMntOri=  StdGetFromPCP(aNameFileMNT,FileOriMnt);
     std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
-    std::auto_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
-    if (aMntImg.get()==NULL)
+    std_unique_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
+    if (aMntImg.get()==NULLPTR)
     {
         cerr << "Error in "<<aMntOri.NameFileMnt()<<std::endl;
         return EXIT_FAILURE;
@@ -264,7 +449,7 @@ int TP2GCP(std::string const &aNameFileMNT,
     // Chargement de l'Ortho
     cFileOriMnt aOrthoOri=  StdGetFromPCP(aNameFileOrtho,FileOriMnt);
     std::cout << "Taille de l'ortho : "<<aOrthoOri.NombrePixels().x<<" "<<aOrthoOri.NombrePixels().y<<std::endl;
-    std::auto_ptr<TIm2D<U_INT1,INT4> > OrthoImg(NULL);
+    std_unique_ptr<TIm2D<U_INT1,INT4> > OrthoImg(NULLPTR);
     Pt2di OrthoSz = getImageSize(aOrthoOri.NameFileMnt());
     if (OrthoSz.x * OrthoSz.y < SzMaxImg)
     {
@@ -295,7 +480,7 @@ int TP2GCP(std::string const &aNameFileMNT,
     std::cout << "Nombre de points dans l'image : "<<keypointsImage.size()<<std::endl;
 
     // Chargement de la grille et de l'image
-    std::auto_ptr<TIm2D<U_INT1,INT4> > img(NULL);
+    std_unique_ptr<TIm2D<U_INT1,INT4> > img(NULLPTR);
     Pt2di ImgSz = getImageSize(aNameFileImage);
     if (ImgSz.x * ImgSz.y < SzMaxImg)
     {
@@ -309,7 +494,7 @@ int TP2GCP(std::string const &aNameFileMNT,
 
     // Chargement de la grille et de l'image
     ElAffin2D oriIntImaM2C;
-    std::auto_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
+    std_unique_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
 
     bool verbose=true;
 
@@ -457,7 +642,7 @@ int TP2GCP(std::string const &aNameFileMNT,
                 Pt2di PminCrop((int)round_ni(cmin-1.),(int)round_ni(lmin-1.));
                 Pt2di SzCrop((int)round_ni(cmax-PminCrop.x+2),(int)round_ni(lmax-PminCrop.y+2));
                 //std::cout << "Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
-                std::auto_ptr<TIm2D<U_INT1,INT4> > cropImg(createTIm2DFromFile<U_INT1,INT4>(aNameFileImage,PminCrop,SzCrop));
+                std_unique_ptr<TIm2D<U_INT1,INT4> > cropImg(createTIm2DFromFile<U_INT1,INT4>(aNameFileImage,PminCrop,SzCrop));
                 if (cropImg.get()==NULL)
                 {
                     cerr << "Error in "<<aNameFileImage<<" Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
@@ -580,6 +765,7 @@ Pt3dr Img2Terrain(ElCamera *aCamera, TIm2D<REAL4,REAL8> *mnt, cFileOriMnt const 
                   double Zinit,
                   Pt2di const &Pimg)
 {
+    bool verbose = false;
     int itMax = 10;
     double seuilZ = 1.;
     double NoData = -9999.;
@@ -594,18 +780,20 @@ Pt3dr Img2Terrain(ElCamera *aCamera, TIm2D<REAL4,REAL8> *mnt, cFileOriMnt const 
     while((it<itMax)&&!fin)
     {
         Pterr = aCamera->F2AndZtoR3(Pt2dr(Pimg.x,Pimg.y),Z);
-        //std::cout << "it: "<<it<<" Pterr: "<<Pterr.x<<" "<<Pterr.y<<" "<<Pterr.z<<std::endl;
+        if (verbose) std::cout << "it: "<<it<<" Pterr: "<<Pterr.x<<" "<<Pterr.y<<" "<<Pterr.z<<std::endl;
         // Position dans le MNT
         Pmnt.x = (Pterr.x-ori.OriginePlani().x)/ori.ResolutionPlani().x;
         Pmnt.y = (Pterr.y-ori.OriginePlani().y)/ori.ResolutionPlani().y;
-        //std::cout << "Pmnt : "<<Pmnt<<std::endl;
+        if (verbose) std::cout << "Pmnt : "<<Pmnt<<std::endl;
         double vAlti = mnt->getr(Pmnt,NoData);
         if (vAlti == NoData)
         {
             std::cout << "Attention, le MNT ne couvre pas la zone : "<<Pmnt.x<<" "<<Pmnt.y<<std::endl;
         }
         double alti = vAlti*ori.ResolutionAlti() + ori.OrigineAlti();
+        if (verbose) std::cout << "alti : "<<alti<<std::endl;
         fin = (std::abs(alti - Z)<=seuilZ);
+        if (verbose) std::cout << "alti : "<<alti<<" Z : "<<Z<<" seuilZ "<<seuilZ<<" fin: "<<fin<<std::endl;
         Z = alti;
         ++it;
     }
@@ -621,39 +809,44 @@ int Ortho(std::string const &aNameFileMNT,
           double resolution,
           std::string const &aNameResult)
 {
-    int SzMaxImg = 4000 * 4000;
-
+    int SzMaxImg = 10000 * 10000;
+    
     // Chargement du MNT
     cFileOriMnt aMntOri=  StdGetFromPCP(aNameFileMNT,FileOriMnt);
     std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
-    std::auto_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
+    std::cout << "Chargement du fichier : "<<aMntOri.NameFileMnt()<<std::endl;
+    std_unique_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
+    std::cout << "Fin du chargement"<<std::endl;
     if (aMntImg.get()==NULL)
     {
         cerr << "Error in "<<aMntOri.NameFileMnt()<<std::endl;
         return EXIT_FAILURE;
     }
-
+    
     // Chargement de la grille et de l'image
-    std::auto_ptr<TIm2D<U_INT1,INT4> > img(NULL);
-    Pt2di ImgSz = getImageSize(aNameFileImage);
-    if (ImgSz.x * ImgSz.y < SzMaxImg)
-    {
-        img.reset(createTIm2DFromFile<U_INT1,INT4>(aNameFileImage));
-        if (img.get()==NULL)
-        {
-            cerr << "Error in "<<aNameFileImage<<std::endl;
-            return EXIT_FAILURE;
-        }
-    }
+    Pt2di ImgSz;
+    int ImgNbC;
+    getImageInfo(aNameFileImage,ImgSz,ImgNbC);
 
+    
+    std::cout << "Taille de l'image "<<aNameFileImage<<" : "<<ImgSz.x <<" "<<ImgSz.y<<" x "<<ImgNbC<<std::endl;
+    
+    std::vector<TIm2D<U_INT2,INT4>* > vBuffer;
+    Pt2di bufferMin(0,0);
+    Pt2di bufferMax(0,0);
+    int tailleBuffer=8000;
+    int margeBuffer=100;
+    
     // Chargement de la grille et de l'image
+    std::cout << "Chargement de la grille..."<<std::endl;
     ElAffin2D oriIntImaM2C;
-    std::auto_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
-
-//	bool verbose=true;
-
+    std_unique_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
+    std::cout << "...Fin"<<std::endl;
+    
+    //	bool verbose=true;
+    
     // Recherche l'emprise de l'ortho a calculer
-
+    
     double NoData = 0;
     double ZMoy = 0.;
     double xmin,ymin,xmax,ymax;
@@ -699,38 +892,244 @@ int Ortho(std::string const &aNameFileMNT,
             ymax = Pterr.y;
     }
     std::cout << "Emprise Terrain de l'image : "<<xmin<<" "<<ymin<<" "<<xmax<<" "<<ymax<<std::endl;
-    Pt2dr P0Ortho(round_ni(xmin),round_ni(ymin));
+    Pt2dr P0Ortho(round_ni(xmin),round_ni(ymax));
     Pt2di SzOrtho((int)round_ni((xmax-xmin)/resolution),(int)round_ni((ymax-ymin)/resolution));
     std::cout << "Ortho : "<<P0Ortho.x<<" "<<P0Ortho.y<<" / "<<SzOrtho.x<<" "<<SzOrtho.y<<std::endl;
-
-    // Creation de l'image
-    TIm2D<U_INT1,INT4> anTIm2D(SzOrtho);
-
-    // Remplissage de l'image
-    for(int l=0;l<SzOrtho.y;++l)
+    
+	if (( (unsigned int)SzOrtho.x*(unsigned int)SzOrtho.y )<(unsigned int)SzMaxImg)
     {
-        for(int c=0;c<SzOrtho.x;++c)
+        std::cout << "Ortho n est pas trop grande, on peut la traiter en une fois"<<std::endl;
+        // Creation de l'image
+        std::vector<TIm2D<U_INT2,INT4>*> vPtrOrtho;
+		for(size_t c=0;c<(unsigned int)ImgNbC;++c)
         {
-            Pt2di Portho(c,l);
-            Pt3dr Pterr;
-            Pterr.x = P0Ortho.x + c * resolution;
-            Pterr.x = P0Ortho.y + l * resolution;
-            // Position dans le MNT
-            Pt2dr Pmnt;
-            Pmnt.x = (Pterr.x-aMntOri.OriginePlani().x)/aMntOri.ResolutionPlani().x;
-            Pmnt.y = (Pterr.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
-            Pterr.z = aMntImg->getr(Pmnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
-            // Position dans l'image
-//			Pt2dr Pimg = aCamera->R3toF2(Pterr);
-            double radio = img->getr(Pt2dr(c,l),NoData);
-            anTIm2D.oset(Portho,(int)radio);
+            vPtrOrtho.push_back(new TIm2D<U_INT2,INT4>(SzOrtho));
         }
+        
+        
+        // Remplissage de l'image
+        std::cout << "Debut du remplissage de l ortho"<<std::endl;
+        for(int l=0;l<SzOrtho.y;++l)
+        {
+            for(int c=0;c<SzOrtho.x;++c)
+            {
+                Pt2di Portho(c,l);
+                Pt3dr Pterr;
+                Pterr.x = P0Ortho.x + c * resolution;
+                Pterr.y = P0Ortho.y - l * resolution;
+                // Position dans le MNT
+                Pt2dr Pmnt;
+                Pmnt.x = (Pterr.x-aMntOri.OriginePlani().x)/aMntOri.ResolutionPlani().x;
+                Pmnt.y = (Pterr.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
+                Pterr.z = aMntImg->getr(Pmnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
+                // Position dans l'image
+                Pt2dr Pimg = aCamera->R3toF2(Pterr);
+                
+                if ((Pimg.x<0)||(Pimg.y<0)||(Pimg.x>=ImgSz.x)||(Pimg.y>=ImgSz.y))
+                    continue;
+                
+                // On regarde si le pixel demande est dans le buffer en memoire
+                if ((vBuffer.size()==0)||
+                    ((Pimg.x<bufferMin.x)||(Pimg.x>=bufferMax.x)||(Pimg.y<bufferMin.y)||(Pimg.y>=bufferMax.y)))
+                {
+                    unsigned int minx = (unsigned int)std::max(0,(int)Pimg.x-margeBuffer);
+                    unsigned int miny = (unsigned int)std::max(0,(int)Pimg.y-margeBuffer);
+                    unsigned int maxx = (unsigned int)std::min((int)ImgSz.x ,(int)minx + tailleBuffer + 2*margeBuffer);
+                    unsigned int maxy = (unsigned int)std::min((int)ImgSz.y ,(int)miny + tailleBuffer + 2*margeBuffer);
+                    bufferMin.x = minx;
+                    bufferMin.y = miny;
+                    bufferMax.x = maxx;
+                    bufferMax.y = maxy;
+					//Pt2di SzBuffer = bufferMax-bufferMin;
+                    // on purge
+                    for(size_t i=0;i<vBuffer.size();++i)
+                    {
+                        delete vBuffer[i];
+                    }
+                    vBuffer.clear();
+					if (((maxx-minx)>(unsigned int)0)&&((maxy-miny)>(unsigned int)0))
+                    {
+                        vBuffer = createVTIm2DFromFile<U_INT2,INT4>(aNameFileImage,bufferMin,bufferMax-bufferMin);
+                    }
+                }
+                if ((vBuffer.size()!=0)&&
+                    ((Pimg.x>bufferMin.x)&&(Pimg.x<bufferMax.x)&&(Pimg.y>bufferMin.y)&&(Pimg.y<bufferMax.y)))
+                {
+                    // on peut utiliser le buffer en memoire
+                    for(size_t i=0;i<vBuffer.size();++i)
+                    {
+                        double radio = vBuffer[i]->getr(Pt2dr(Pimg.x-bufferMin.x,Pimg.y-bufferMin.y),NoData);
+                        vPtrOrtho[i]->oset(Portho,(int)radio);
+                    }
+                }
+            }
+        }
+        std::cout << "Fin du remplissage de l ortho"<<std::endl;
+        // Sauvegarde
+
+        if (vPtrOrtho.size()==1)
+        {
+            Tiff_Im out(aNameResult.c_str(), vPtrOrtho[0]->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+            ELISE_COPY(vPtrOrtho[0]->_the_im.all_pts(),vPtrOrtho[0]->_the_im.in(),out.out());
+        }
+        else if (vPtrOrtho.size()==3)
+        {
+            Tiff_Im out(aNameResult.c_str(), vPtrOrtho[0]->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::RGB,Tiff_Im::Empty_ARG);
+            ELISE_COPY(vPtrOrtho[0]->_the_im.all_pts(),Virgule(vPtrOrtho[0]->_the_im.in(),vPtrOrtho[1]->_the_im.in(),vPtrOrtho[2]->_the_im.in()),out.out());
+        }
+        
+        // Liberation de la memoire
+        for(size_t i=0;i<vPtrOrtho.size();++i)
+        {
+            delete vPtrOrtho[i];
+        }
+        vPtrOrtho.clear();
+        for(size_t i=0;i<vBuffer.size();++i)
+        {
+            delete vBuffer[i];
+        }
+        vBuffer.clear();
     }
+    else
+    {
+        int tailleDalle = 5000;
+        std::cout << "Il faut daller le traitement"<<std::endl;
+        int NbX = SzOrtho.x / tailleDalle;
+        if (NbX*tailleDalle < SzOrtho.x)
+            ++NbX;
+        int NbY = SzOrtho.y / tailleDalle;
+        if (NbY*tailleDalle < SzOrtho.y)
+            ++NbY;
+        
+		//int nbDalles = NbX*NbY;
+        
+        for(int nx = 0;nx<NbX;++nx)
+        {
+            for(int ny = 0;ny<NbY;++ny)
+            {
+                std::cout << "Traitement de la dalle : "<<nx<<" x "<<ny<<std::endl;
+                int cmin = nx*tailleDalle;
+                int lmin = ny*tailleDalle;
+                int cmax = std::min(cmin+tailleDalle,SzOrtho.x);
+                int lmax = std::min(lmin+tailleDalle,SzOrtho.y);
+                Pt2di SzDalleOrtho(cmax-cmin,lmax-lmin);
+                Pt2dr P0DalleOrtho;
+                P0DalleOrtho.x = P0Ortho.x + cmin*resolution;
+                P0DalleOrtho.y = P0Ortho.y - lmin*resolution;
+                
+                std::ostringstream oss;
+                oss << baseName(aNameResult)<<"_"<<nx<<"x"<<ny;
+                std::string aNameDalle = oss.str();
+                
+                // Creation de l'image
+                std::vector<TIm2D<U_INT2,INT4>*> vPtrOrtho;
+				for(size_t c=0;c<(unsigned int)ImgNbC;++c)
+                {
+                    vPtrOrtho.push_back(new TIm2D<U_INT2,INT4>(SzDalleOrtho));
+                }
+                
+                
+                // Remplissage de l'image
+                std::cout << "Debut du remplissage de l ortho"<<std::endl;
+                for(int l=0;l<SzDalleOrtho.y;++l)
+                {
+                    for(int c=0;c<SzDalleOrtho.x;++c)
+                    {
+                        Pt2di Portho(c,l);
+                        Pt3dr Pterr;
+                        Pterr.x = P0DalleOrtho.x + c * resolution;
+                        Pterr.y = P0DalleOrtho.y - l * resolution;
+                        // Position dans le MNT
+                        Pt2dr Pmnt;
+                        Pmnt.x = (Pterr.x-aMntOri.OriginePlani().x)/aMntOri.ResolutionPlani().x;
+                        Pmnt.y = (Pterr.y-aMntOri.OriginePlani().y)/aMntOri.ResolutionPlani().y;
+                        Pterr.z = aMntImg->getr(Pmnt,NoData)*aMntOri.ResolutionAlti() + aMntOri.OrigineAlti();
+                        // Position dans l'image
+                        Pt2dr Pimg = aCamera->R3toF2(Pterr);
+                        
+                        if ((Pimg.x<0)||(Pimg.y<0)||(Pimg.x>=ImgSz.x)||(Pimg.y>=ImgSz.y))
+                            continue;
+                        
+                        // On regarde si le pixel demande est dans le buffer en memoire
+                        if ((vBuffer.size()==0)||
+                            ((Pimg.x<bufferMin.x)||(Pimg.x>=bufferMax.x)||(Pimg.y<bufferMin.y)||(Pimg.y>=bufferMax.y)))
+                        {
+                            unsigned int minx = (unsigned int)std::max(0,(int)Pimg.x-margeBuffer);
+                            unsigned int miny = (unsigned int)std::max(0,(int)Pimg.y-margeBuffer);
+                            unsigned int maxx = (unsigned int)std::min((int)ImgSz.x ,(int)minx + tailleBuffer + 2*margeBuffer);
+                            unsigned int maxy = (unsigned int)std::min((int)ImgSz.y ,(int)miny + tailleBuffer + 2*margeBuffer);
+							if (((maxx-minx)>(unsigned int)0)&&((maxy-miny)>(unsigned int)0))
+                            {
+                                bufferMin.x = minx;
+                                bufferMin.y = miny;
+                                bufferMax.x = maxx;
+                                bufferMax.y = maxy;
+								//Pt2di SzBuffer = bufferMax-bufferMin;
+                                // on purge
+                                for(size_t i=0;i<vBuffer.size();++i)
+                                {
+                                    delete vBuffer[i];
+                                }
+                                vBuffer.clear();
+                                vBuffer = createVTIm2DFromFile<U_INT2,INT4>(aNameFileImage,bufferMin,bufferMax-bufferMin);
+                                std::cout << ".";
+                            }
+                        }
+                        if ((vBuffer.size()!=0)&&
+                            ((Pimg.x>bufferMin.x)&&(Pimg.x<bufferMax.x)&&(Pimg.y>bufferMin.y)&&(Pimg.y<bufferMax.y)))
+                        {
+                            // on peut utiliser le buffer en memoire
+                            for(size_t i=0;i<vBuffer.size();++i)
+                            {
+                                double radio = vBuffer[i]->getr(Pt2dr(Pimg.x-bufferMin.x,Pimg.y-bufferMin.y),NoData);
+                                vPtrOrtho[i]->oset(Portho,(int)radio);
+                            }
+                        }
+                    }
+                }
+                std::cout << "Fin du remplissage de l ortho"<<std::endl;
+                // Sauvegarde
+                
+                if (vPtrOrtho.size()==1)
+                {
+                    Tiff_Im out((aNameDalle+".tif").c_str(), vPtrOrtho[0]->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
+                    ELISE_COPY(vPtrOrtho[0]->_the_im.all_pts(),vPtrOrtho[0]->_the_im.in(),out.out());
+                }
+                else if (vPtrOrtho.size()==3)
+                {
+                    Tiff_Im out((aNameDalle+".tif").c_str(), vPtrOrtho[0]->sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::RGB,Tiff_Im::Empty_ARG);
+                    ELISE_COPY(vPtrOrtho[0]->_the_im.all_pts(),Virgule(vPtrOrtho[0]->_the_im.in(),vPtrOrtho[1]->_the_im.in(),vPtrOrtho[2]->_the_im.in()),out.out());
+                }
+                
+                //TFW
+                {
+                    
+                    cFileOriMnt aMntOri;
+                    
+                    aMntOri.OriginePlani()=P0DalleOrtho;
+                    aMntOri.ResolutionPlani()=Pt2dr(resolution,-resolution);
+                    aMntOri.NameFileMnt()=aNameDalle;
+                    aMntOri.NombrePixels()=SzDalleOrtho;
+                    
+                    GenTFW(aMntOri,(aNameDalle+".tfw").c_str());
 
-    // Sauvegarde
-    Tiff_Im out(aNameResult.c_str(), anTIm2D.sz(),GenIm::u_int1,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
-    ELISE_COPY(anTIm2D._the_im.all_pts(),anTIm2D._the_im.in(),out.out());
-
+                }
+                
+                // Liberation de la memoire
+                for(size_t i=0;i<vPtrOrtho.size();++i)
+                {
+                    delete vPtrOrtho[i];
+                }
+                vPtrOrtho.clear();
+                for(size_t i=0;i<vBuffer.size();++i)
+                {
+                    delete vBuffer[i];
+                }
+                vBuffer.clear();
+            }
+        }
+        
+    }
     return EXIT_SUCCESS;
 }
 
@@ -820,7 +1219,7 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
     std::cout << "Taille de l'image  : "<<ImgSz.x<<" x "<<ImgSz.y<<std::endl;
     if (nbPoints == 0)
     {
-        nbPoints = sqrt(ImgSz.x*ImgSz.y);
+        nbPoints = sqrt((float)ImgSz.x*ImgSz.y);
     }
     int tailleDalle = 4000;
     int NbX = ImgSz.x / tailleDalle;
@@ -848,8 +1247,8 @@ int ServiceGeoSud_Surf_main(int argc, char **argv){
 
             Pt2di PminCrop(cmin,lmin);
             Pt2di SzCrop(cmax-cmin,lmax-lmin);
-            std::auto_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>(aFullName,PminCrop,SzCrop));
-            if (cropImg.get()==NULL)
+            std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>(aFullName,PminCrop,SzCrop));
+            if (cropImg.get()==NULLPTR)
             {
                 cerr << "Error in "<<aFullName<<" Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
                 return EXIT_FAILURE;
@@ -910,9 +1309,9 @@ int debug(int argc, char **argv)
 {
     std::string nomDalleOrtho("Dalle_0x0_ortho.tif");
     // Chargement de l'ortho
-    std::auto_ptr<TIm2D<U_INT1,INT4> > OrthoImg(createTIm2DFromFile<U_INT1,INT4>(nomDalleOrtho));
+    std_unique_ptr<TIm2D<U_INT1,INT4> > OrthoImg(createTIm2DFromFile<U_INT1,INT4>(nomDalleOrtho));
     std::cout << "Chargement de OrthoImg : "<<nomDalleOrtho<<std::endl;
-    if (OrthoImg.get()==NULL)
+    if (OrthoImg.get()==NULLPTR)
     {
         cerr << "Error in "<<nomDalleOrtho<<std::endl;
         return EXIT_FAILURE;
@@ -951,6 +1350,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
     std::string aHttpProxy;
     std::string aGRIDExt("GRI");
     std::string aFileMnt;
+    bool aExportMM = false;
 
     double ZMoy = 0.;
     double seuilPixel=20;
@@ -959,14 +1359,15 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
     ElInitArgMain
     (
-     argc, argv,
-     LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)")
-     << EAMC(aKeyGPP,"GPP Key"),
-     LArgMain()
-     << EAM(aGRIDExt,"Grid",true,"GRID ext")
-     << EAM(aFileMnt,"Mnt",true,"xml file (FileOriMnt) for the DTM")
-     << EAM(aHttpProxy,"Proxy",true,"http proxy for GPP access")
-     );
+         argc, argv,
+         LArgMain() << EAMC(aFullName,"Full Name (Dir+Pat)")
+                    << EAMC(aKeyGPP,"GPP Key"),
+         LArgMain()
+                    << EAM(aGRIDExt,"Grid",true,"GRID file extension")
+                    << EAM(aFileMnt,"Mnt",true,"xml file (FileOriMnt) for the DTM")
+                    << EAM(aHttpProxy,"Proxy",true,"http proxy for GPP access")
+                    << EAM(aExportMM,"ExportMM", true, "export GCP and tie-points in MicMac xml format (def=false)")
+    );
 
     //double seuilPixel2 = pow(seuilPixel,2);
 
@@ -1022,7 +1423,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 placePoint = l;
             }
         }
-        std::string ext = std::string("");
+        //std::string ext = std::string("");
         if (placePoint!=-1)
         {
             std::string baseName;
@@ -1042,7 +1443,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
             // Chargement de la grille et de l'image
             ElAffin2D oriIntImaM2C;
-            std::auto_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
+            std_unique_ptr<ElCamera> aCamera(new cCameraModuleOrientation(new OrientationGrille(aNameFileGrid),ImgSz,oriIntImaM2C));
 
 
             // On cherche l'emprise de l'image
@@ -1140,14 +1541,14 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         }
     }
 
-    // On arrondi
+    // On arrondit
     xminChantier = (int)(xminChantier-1);
     xmaxChantier = (int)(xmaxChantier+1);
     yminChantier = (int)(yminChantier-1);
     ymaxChantier = (int)(ymaxChantier+1);
 
 
-    
+
     std::string gppAccess;
     {
         std::ostringstream oss;
@@ -1156,7 +1557,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             oss << "-x "<<aHttpProxy;
         gppAccess = oss.str();
     }
-    
+
     // Chargement du MNT
     cFileOriMnt aMntOri;
     if (!aFileMnt.empty())
@@ -1170,12 +1571,12 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         int NCmnt = (xmaxChantier-xminChantier)/resolutionMnt + 1;
         int NLmnt = (ymaxChantier-yminChantier)/resolutionMnt + 1;
         std::ostringstream oss;
-        
+
         //wget http://wxs.ign.fr -e use_proxy=yes -e http_proxy=http://relay-gpp3-i-interco.sca.gpp.priv.atos.fr:3128{quote}
         //curl -o ./mnt_tmp2.tif -H="Referer: http://localhost" -x http://relay-gpp3-i-interco.sca.gpp.priv.atos.fr:3128 "http://wxs-i.ign.fr/7gr31kqe5xttprd2g7zbkqgo/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX=43.278259,3.103180,43.411264,3.366021&CRS=EPSG:4326&WIDTH=500&HEIGHT=350"
-        
+
         oss << std::fixed << gppAccess<<" -o mnt_25m.tif  \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
-        
+
         //oss << std::fixed << "curl -o mnt_25m.tif -H='Referer: http://localhost' \"http://wxs-i.ign.fr/"<<aKeyGPP<<"/geoportail/r/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=ELEVATION.ELEVATIONGRIDCOVERAGE&STYLES=normal&FORMAT=image/geotiff&BBOX="<< xminChantier<<","<<yminChantier<<","<<xminChantier+NCmnt*resolutionMnt<<","<<yminChantier+NLmnt*resolutionMnt<<"&CRS=EPSG:2154&WIDTH="<<NCmnt<<"&HEIGHT="<<NLmnt<<"\"";
         std::cout << "commande : "<<oss.str()<<std::endl;
         system(oss.str().c_str());
@@ -1183,10 +1584,12 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
         aMntOri.ResolutionPlani()=Pt2dr(resolutionMnt,-resolutionMnt);
         aMntOri.NameFileMnt()=std::string("mnt_25m.tif");
         aMntOri.NombrePixels()=Pt2di(NCmnt,NLmnt);
+        aMntOri.OrigineAlti()=0;
+        aMntOri.ResolutionAlti()=1.;
     }
     std::cout << "Taille du MNT : "<<aMntOri.NombrePixels().x<<" "<<aMntOri.NombrePixels().y<<std::endl;
-    std::auto_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
-    if (aMntImg.get()==NULL)
+    std_unique_ptr<TIm2D<REAL4,REAL8> > aMntImg(createTIm2DFromFile<REAL4,REAL8>(aMntOri.NameFileMnt()));
+    if (aMntImg.get()==NULLPTR)
     {
         cerr << "Error in "<<aMntOri.NameFileMnt()<<std::endl;
         return EXIT_FAILURE;
@@ -1270,8 +1673,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             oss << "Dalle_"<<c<<"x"<<l;
             std::string nomDalle = oss.str();
             std::string nomDalleOrtho = nomDalle+"_ortho.tif";
-            std::string nomDalleMntBil = nomDalle+"_mnt.bil";
-            std::string nomDalleMntHdr = nomDalle+"_mnt.hdr";
+            //std::string nomDalleMntBil = nomDalle+"_mnt.bil";
+            //std::string nomDalleMntHdr = nomDalle+"_mnt.hdr";
             std::string nomDallePoi = nomDalle+"_ortho.dat";
 
             int ncDalle = std::min(tailleDalle,NC-c*tailleDalle);
@@ -1301,9 +1704,9 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
             // Chargement de l'ortho
             std::cout << "Chargement de la dalle d'ortho: ..."<<std::endl;
-            std::auto_ptr<TIm2D<U_INT1,INT4> > OrthoImg(createTIm2DFromFile<U_INT1,INT4>(nomDalleOrtho));
+            std_unique_ptr<TIm2D<U_INT1,INT4> > OrthoImg(createTIm2DFromFile<U_INT1,INT4>(nomDalleOrtho));
             std::cout << "Chargement de OrthoImg : "<<nomDalleOrtho<<std::endl;
-            if (OrthoImg.get()==NULL)
+            if (OrthoImg.get()==NULLPTR)
             {
                 cerr << "Error in "<<nomDalleOrtho<<std::endl;
                 return EXIT_FAILURE;
@@ -1360,7 +1763,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
             }
              */
 
-                        // Chargement des points d'interet dans l'ortho
+            // Chargement des points d'interet dans l'ortho
             vector<DigeoPoint> keypointsOrtho;
 
             if ( !DigeoPoint::readDigeoFile( nomDalle+"_ortho.dat", true, keypointsOrtho ) ){
@@ -1371,6 +1774,9 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
             double NoData = -9999.;
 
+            // Export sous forme de dico appuis et mesures
+            cSetOfMesureAppuisFlottants aSetDicoMesure;
+            cDicoAppuisFlottant  aDicoAppuis;
 
             // on parcourt les points sift de l'ortho
             vector<DigeoPoint>::const_iterator itKP,finKP=keypointsOrtho.end();
@@ -1420,6 +1826,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                 //Tiff_Im debugFenOrtho_out("debug_ortho.tif", debugFenOrtho.sz(),GenIm::u_int2,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
                 //ELISE_COPY(debugFenOrtho._the_im.all_pts(),debugFenOrtho._the_im.in(),debugFenOrtho_out.out());
 
+
+
                 int numImg = 1;
                 std::list<std::string>::const_iterator itLF=aLFile.begin();
                 std::list<std::string>::const_iterator itLFPoi=aLFilePoi.begin();
@@ -1434,7 +1842,11 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
                     //std::cout << "Point Image : "<<pImg.x<<" "<<pImg.y<<std::endl;
 
-                    // Autre approche: on teste tous le voisinage
+                    cMesureAppuiFlottant1Im aDicoMesure;
+                    //cout << "Img name: " << *itLF << endl;
+                    aDicoMesure.NameIm()= *itLF;
+
+                    // Autre approche: on teste tout le voisinage
 #if 1
 
                     // On prepare le crop
@@ -1493,8 +1905,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         continue;
 
                     //std::cout << "Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
-                    std::auto_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>((*itLF),PminCrop,SzCrop));
-                    if (cropImg.get()==NULL)
+                    std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>((*itLF),PminCrop,SzCrop));
+                    if (cropImg.get()==NULLPTR)
                     {
                         cerr << "Error in "<<(*itLF)<<" Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
                         return EXIT_FAILURE;
@@ -1566,6 +1978,19 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         std::cout << "Point : "<<ptMaxCorrel.x<<" "<<ptMaxCorrel.y<<" Correl="<<coefmax<<std::endl;
                         ficAppuis << idAmer <<" "<<numImg<<" "<<ptMaxCorrel.y<<" "<<ptMaxCorrel.x<<" 5.00e-01  5.00e-01 0"<<std::endl;
                         usePt=true;
+
+                        if (aExportMM)
+                        {
+                            cOneMesureAF1I aMesure;
+
+                            aMesure.PtIm()=ptMaxCorrel;
+
+                            std::ostringstream oss;
+                            oss << idAmer;
+                            aMesure.NamePt()=oss.str();
+
+                            aDicoMesure.OneMesureAF1I().push_back(aMesure);
+                        }
                     }
 #else
                       // Chargement des points d'interet dans l'image
@@ -1637,8 +2062,8 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         Pt2di PminCrop((int)round_ni(cmin-1.),(int)round_ni(lmin-1.));
                         Pt2di SzCrop((int)round_ni(cmax-PminCrop.x+2),(int)round_ni(lmax-PminCrop.y+2));
                         std::cout << "Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
-                        std::auto_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>((*itLF),PminCrop,SzCrop));
-                        if (cropImg.get()==NULL)
+                        std_unique_ptr<TIm2D<U_INT2,INT4> > cropImg(createTIm2DFromFile<U_INT2,INT4>((*itLF),PminCrop,SzCrop));
+                        if (cropImg.get()==NULLPTR)
                         {
                             cerr << "Error in "<<(*itLF)<<" Crop : "<<PminCrop.x<<" "<<PminCrop.y<<" / "<<SzCrop.x<<" "<<SzCrop.y<<std::endl;
                             return EXIT_FAILURE;
@@ -1655,6 +2080,21 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                         {
                             std::cout << "Point Dmin : "<<ptHomoDmin.x<<" "<<ptHomoDmin.y<<" Correl="<<coef<<std::endl;
                             ficAppuis << idAmer <<" "<<numImg<<" "<<ptHomoDmin.y<<" "<<ptHomoDmin.x<<" 5.00e-01  5.00e-01 0"<<std::endl;
+                            //TODO: a verifier greg: il manque usePt =true; ?
+                            //vraiment jamais utilisé a cause du #if ?
+
+                            if (aExportMM)
+                            {
+                                cOneMesureAF1I aMesure;
+
+                                aMesure.PtIm()=ptMaxCorrel;
+
+                                std::ostringstream oss;
+                                oss << idAmer;
+                                aMesure.NamePt()=oss.str();
+
+                                aDicoMesure.OneMesureAF1I().push_back(aMesure);
+                            }
                         }
                     }
 #endif
@@ -1662,12 +2102,35 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
                     ++itCamera;
                     ++itPoi;
                     ++numImg;
+
+                    if (aExportMM && usePt) aSetDicoMesure.MesureAppuiFlottant1Im().push_back(aDicoMesure);
                 }
                 if (usePt)
                 {
                     ficAmers << std::fixed << idAmer<<" "<< pt3.x<<" "<<pt3.y<<" "<<pt3.z<<" 0.0 0.0 0.0 0.1 0.1 0.1 1"<<std::endl;
+
+                    if (aExportMM)
+                    {
+                        cOneAppuisDAF aOAD;
+                        aOAD.Pt() = pt3;
+                        std::ostringstream oss;
+                        oss << idAmer;
+                        aOAD.NamePt() = oss.str();
+                        aOAD.Incertitude() = Pt3dr(1,1,1);
+
+                        aDicoAppuis.OneAppuisDAF().push_back(aOAD);
+                    }
+
                     ++idAmer;
                 }
+            }
+
+            if (aExportMM)
+            {
+                std::string aBaseNameResult = "measures"; //TODO: mettre en arg optionnel
+
+                MakeFileXML(aDicoAppuis,aBaseNameResult+"-S3D.xml");
+                MakeFileXML(aSetDicoMesure,aBaseNameResult+"-S2D.xml");
             }
         }
     }
