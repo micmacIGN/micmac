@@ -46,6 +46,9 @@ int Dequant_main(int argc,char ** argv)
      Pt2di aP0Glob(0,0),aSzGlob(0,0);
      INT aSzMaxDalles = 3000;
      INT aSzRecDalles = 300;
+     bool TraitSpecCuv = true;
+     double aDyn=1.0;
+     double aOffs=0.0;
 
      ElInitArgMain
      (
@@ -54,8 +57,11 @@ int Dequant_main(int argc,char ** argv)
            LArgMain() << EAM(aNameOut,"Out",true)
                       << EAM(aP0Glob,"P0",true)
                       << EAM(aSzGlob,"Sz",true)
-              << EAM(aSzMaxDalles,"SzMaxDalles",true)
-              << EAM(aSzRecDalles,"SzRecDalles",true)
+                      << EAM(aSzMaxDalles,"SzMaxDalles",true)
+                      << EAM(aSzRecDalles,"SzRecDalles",true)
+                      << EAM(TraitSpecCuv,"TraitSpecCuv",true)
+                      << EAM(aDyn,"Dyn",true)
+                      << EAM(aOffs,"Offs",true)
     );
 
     if (!MMVisualMode)
@@ -94,11 +100,11 @@ int Dequant_main(int argc,char ** argv)
          Pt2di aP0In = aBoxIn.P0();
 
 
-             aDeq.SetTraitSpecialCuv(true);
+             aDeq.SetTraitSpecialCuv(TraitSpecCuv);
              aDeq.DoDequantif(aSzIn, trans(aFileIn.in(),aP0In),1);
 
 
-             Fonc_Num aFoncRes = aDeq.ImDeqReelle();
+             Fonc_Num aFoncRes = aOffs + aDyn *aDeq.ImDeqReelle();
 
              Box2di aBoxOut = aDecoup.KthIntervOut(aKDec);
              ELISE_COPY

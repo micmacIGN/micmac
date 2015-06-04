@@ -234,6 +234,7 @@ DATA_tiff_header::DATA_tiff_header(const char * name)
          break;
 
          default :
+              BasicErrorHandler();
               printf("XX=%x\n",byte_order_flag);
               Tjs_El_User.ElAssert
               (  0,
@@ -764,9 +765,7 @@ DATA_Tiff_Ifd::DATA_Tiff_Ifd
               fp.write_INT4(8);
         }
     }
-
     write_all_tiff_tag(this,fp);
-
     fp.close();
 
 }
@@ -2144,6 +2143,17 @@ bool   Tiff_Im::IsNameInternalTile(const std::string & aNameTiled,cInterfChantie
     return aNameNoTiled != "NONE";
 }
 
+Tiff_Im  Tiff_Im::Dupl(const std::string& aName)
+{
+   return Tiff_Im
+          (
+              aName.c_str(),
+              sz(),
+              type_el(),
+              mode_compr(),
+              phot_interp()
+          );
+}
 
 
 

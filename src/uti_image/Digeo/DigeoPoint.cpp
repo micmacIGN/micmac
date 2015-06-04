@@ -1,4 +1,91 @@
-#include "StdAfx.h"
+#ifdef __NO_ELISE
+	#include "DigeoPoint.h"
+
+	#include <algorithm>
+
+	// return the smallest integral value >= r
+	INT round_up(REAL r)
+	{
+		INT i = (INT) r;
+		return i + (i < r);
+	}
+
+	// return the highest integral value <= r
+	INT round_down(REAL r)
+	{
+		INT i = (INT) r;
+		return i - (i > r);
+	}
+
+	void byte_inv_2(void * t)
+	{
+		std::swap
+		(
+			((char *) t)[0],
+			((char *) t)[1]
+		);
+	}
+
+	void byte_inv_4(void * t)
+	{
+		std::swap
+		(
+			((char *) t)[0],
+			((char *) t)[3]
+		);
+		std::swap
+		(
+			((char *) t)[1],
+			((char *) t)[2]
+		);
+	}
+
+	void byte_inv_8(void * t)
+	{
+		std::swap
+		(
+			((char *) t)[0],
+			((char *) t)[7]
+		);
+		std::swap
+		(
+			((char *) t)[1],
+			((char *) t)[6]
+		);
+		std::swap
+		(
+			((char *) t)[2],
+			((char *) t)[5]
+		);
+		std::swap
+		(
+			((char *) t)[3],
+			((char *) t)[4]
+		);
+	}
+
+	bool MSBF_PROCESSOR()
+	{
+		static bool init = false;
+		static bool res  = true; // bidon
+
+		if (! init)
+		{
+			U_INT2 ui2=0;
+			char * c = (char *) &ui2;
+
+			c[0] = 0;
+			c[1] = 1;
+
+
+			res  = (ui2 == 1);
+			init = true;
+		}
+		return res;
+	}
+#else
+	#include "StdAfx.h"
+#endif
 
 #include <fstream>
 
@@ -8,7 +95,7 @@ unsigned char DigeoPoint::sm_uchar_descriptor[DIGEO_DESCRIPTOR_SIZE];
 REAL8 DigeoPoint::sm_real8_descriptor[DIGEO_DESCRIPTOR_SIZE];
 unsigned int DigeoPoint::nbDetectTypes = (int)DigeoPoint::DETECT_UNKNOWN+1; // this is why DETECT_UNKNOWN must stay the last of the enum
 
-/*
+
 class DigeoFileHeader : public VersionedFileHeader
 {
 public:
@@ -23,15 +110,12 @@ public:
 		read_known( VFH_Digeo, io_stream );
 		io_stream.read( (char*)&m_nbPoints, 4 );
 		io_stream.read( (char*)&m_descriptorSize, 4 );
-		m_reverseByteOrder = ( isMSBF()!=MSBF_PROCESSOR() );
-		if ( m_reverseByteOrder )
-		{
+		if ( ( m_reverseByteOrder=(isMSBF()!=MSBF_PROCESSOR()) ) ){
 			byte_inv_4( &m_nbPoints );
 			byte_inv_4( &m_descriptorSize );
 		}
 	}
 };
-*/
 
 void DigeoPoint::addDescriptor( REAL8 i_angle )
 {
@@ -75,8 +159,7 @@ void DigeoPoint::write_v0( ostream &output ) const
 {
 	REAL4 float_values[4] = { (REAL4)x, (REAL4)y, (REAL4)scale, 0.f };
 	const size_t nbAngles = entries.size();
-	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ )
-	{
+	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ ){
 		float_values[3] = (REAL4)entries[iAngle].angle;
 		output.write( (char*)float_values, 4*4 );
 
@@ -94,8 +177,7 @@ void DigeoPoint::write_v1( ostream &output, bool reverseByteOrder ) const
 {
 	REAL8 real8_values[] = { x, y, scale };
 	INT2 int2_values[] = { (INT2)type, (INT2)entries.size() };
-	if ( reverseByteOrder )
-	{
+	if ( reverseByteOrder ){
 		byte_inv_8( real8_values );   // x
 		byte_inv_8( real8_values+1 ); // y
 		byte_inv_8( real8_values+2 ); // scale
@@ -107,14 +189,12 @@ void DigeoPoint::write_v1( ostream &output, bool reverseByteOrder ) const
 
 	const size_t nbAngles = entries.size();
 	REAL8 angle;
-	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ )
-	{
+	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ ){
 		angle = entries[iAngle].angle;
 
 		// reverse byte order if necessary
 		const REAL8 *descriptor_to_write = entries[iAngle].descriptor;
-		if ( reverseByteOrder )
-		{
+		if ( reverseByteOrder ){
 			byte_inv_8( &angle );
 			memcpy( sm_real8_descriptor, descriptor_to_write, 8*DIGEO_DESCRIPTOR_SIZE );
 			REAL8 *it = sm_real8_descriptor;
@@ -160,8 +240,7 @@ void DigeoPoint::read_v1( std::istream &output, bool reverseByteOrder )
 	INT2 int2_values[2];
 	output.read( (char*)int2_values, 2*2 );
 
-	if ( reverseByteOrder )
-	{
+	if ( reverseByteOrder ){
 		byte_inv_8( real8_values );
 		byte_inv_8( real8_values+1 );
 		byte_inv_8( real8_values+2 );
@@ -177,14 +256,12 @@ void DigeoPoint::read_v1( std::istream &output, bool reverseByteOrder )
 
 	// read angle
 	const size_t nbAngles = entries.size();
-	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ )
-	{
+	for ( size_t iAngle=0; iAngle<nbAngles; iAngle++ ){
 		// read angle and descriptor
 		output.read( (char*)entries[iAngle].all, 8*(DIGEO_DESCRIPTOR_SIZE+1) );
 
 		// reverse byte order if necessary
-		if ( reverseByteOrder )
-		{
+		if ( reverseByteOrder ){
 			REAL8 *it = entries[iAngle].all;
 			int i = DIGEO_DESCRIPTOR_SIZE+1;
 			while (i--) byte_inv_8( it++ );
@@ -196,37 +273,26 @@ void DigeoPoint::read_v1( std::istream &output, bool reverseByteOrder )
 // reading functions
 //----
 
-void readDigeoFile_v0( istream &stream, bool i_multipleAngles, vector<DigeoPoint> &o_vector )
+void readDigeoFile_v0( istream &stream, const DigeoFileHeader &header, bool i_multipleAngles, vector<DigeoPoint> &o_vector )
 {   
 	// read points
-	U_INT4 nbPoints, descriptorSize;
-	stream.read( (char*)&nbPoints, 4 );
-	stream.read( (char*)&descriptorSize, 4 );
-
-	o_vector.resize(nbPoints);
+	o_vector.resize( header.m_nbPoints );
+	if ( header.m_nbPoints==0 ) return;
 	DigeoPoint *itPoint = o_vector.data();
-	size_t iPoint = o_vector.size();
+	U_INT4 iPoint = header.m_nbPoints;
 	while ( iPoint-- ) (*itPoint++).read_v0( stream );
-
+	
 	if ( i_multipleAngles ) DigeoPoint::uniqueToMultipleAngles(o_vector);
 }
 
-void readDigeoFile_v1( istream &stream, bool i_reverseByteOrder, bool i_multipleAngles, vector<DigeoPoint> &o_vector )
+void readDigeoFile_v1( istream &stream, const DigeoFileHeader &header, bool i_multipleAngles, vector<DigeoPoint> &o_vector )
 {
 	// read points
-	U_INT4 nbPoints, descriptorSize;
-	stream.read( (char*)&nbPoints, 4 );
-	stream.read( (char*)&descriptorSize, 4 );
-	if ( i_reverseByteOrder )
-	{
-		byte_inv_4( &nbPoints );
-		byte_inv_4( &descriptorSize );
-	}
-
-	o_vector.resize( nbPoints );
-	DigeoPoint *itPoint = o_vector.data();
-	size_t iPoint = o_vector.size();
-	while ( iPoint-- ) ( *itPoint++ ).read_v1( stream, i_reverseByteOrder );
+	o_vector.resize( header.m_nbPoints );
+	if ( header.m_nbPoints==0 ) return;
+	DigeoPoint *itPoint = &o_vector[0];
+	U_INT4 iPoint = header.m_nbPoints;
+	while ( iPoint-- ) ( *itPoint++ ).read_v1( stream, header.m_reverseByteOrder );
 	if ( !i_multipleAngles ) DigeoPoint::multipleToUniqueAngle(o_vector);
 }
 
@@ -237,14 +303,13 @@ bool DigeoPoint::readDigeoFile( const string &i_filename, bool i_allowMultipleAn
 	ifstream f( i_filename.c_str(), ios::binary );
 	if ( !f ) return false;
 
-	VersionedFileHeader header;
-	if ( !header.read_known( VFH_Digeo, f ) ) return false;
+	DigeoFileHeader header;
+	header.read(f);
 	if ( o_header!=NULL ) *o_header=header;
-	bool reverseByteOrder = ( header.isMSBF()!=MSBF_PROCESSOR() );
 
 	switch ( header.version() ){
-	case 0: readDigeoFile_v0( f, i_allowMultipleAngles, o_list ); break;
-	case 1: readDigeoFile_v1( f, reverseByteOrder, i_allowMultipleAngles, o_list ); break;
+	case 0: readDigeoFile_v0( f, header, i_allowMultipleAngles, o_list ); break;
+	case 1: readDigeoFile_v1( f, header, i_allowMultipleAngles, o_list ); break;
 	default: cerr << "ERROR: writeDigeoFile : unkown version number " << header.version() << endl; return false;
 	}
 	return true;
@@ -289,34 +354,25 @@ void writeDigeoFile_v1( std::ostream &stream, const vector<DigeoPoint> &i_list, 
 {
 	bool reverseByteOrder = ( MSBF_PROCESSOR()!=i_writeBigEndian );
 
+	VersionedFileHeader header( VFH_Digeo, 1, i_writeBigEndian );
+	header.write(stream);
+
 	// same has v0
 	U_INT4 nbPoints = (U_INT4)i_list.size(),
-	       descriptorSize = (U_INT4)DIGEO_DESCRIPTOR_SIZE;
-	if ( reverseByteOrder )
-	{
-		byte_inv_4( &nbPoints );
-		byte_inv_4( &descriptorSize );
-	}
+	descriptorSize = (U_INT4)DIGEO_DESCRIPTOR_SIZE;
 	stream.write( (char*)&nbPoints, 4 );
 	stream.write( (char*)&descriptorSize, 4 );
 
 	// write points
 	if ( i_list.size()==0 ) return;
-	const DigeoPoint *itPoint = i_list.data();
-	size_t iPoint = i_list.size();
-	while ( iPoint-- ) ( *itPoint++ ).write_v1( stream, reverseByteOrder );
+	const DigeoPoint *itPoint = &i_list[0];
+	while ( nbPoints-- ) ( *itPoint++ ).write_v1( stream, reverseByteOrder );
 }
 
 bool DigeoPoint::writeDigeoFile( const string &i_filename, const vector<DigeoPoint> &i_list, U_INT4 i_version, bool i_writeBigEndian )
 {
 	ofstream f( i_filename.c_str(), ios::binary );
 	if ( !f ) return false;
-
-	if ( i_version>0 )
-	{
-		VersionedFileHeader header( VFH_Digeo, i_version, i_writeBigEndian );
-		header.write(f);
-	}
 
 	switch( i_version ){
 	case 0: writeDigeoFile_v0( f, i_list ); break;
@@ -382,7 +438,6 @@ void DigeoPoint::removeDuplicates( vector<DigeoPoint> &io_points, int i_gridDime
 	// tag duplicates with a scale of -1 (invalid value)
 
 	// get x,y min/max and remove duplicated angles
-	ElTimer chrono, totalChrono;
 	REAL8 minx = io_points[0].x, maxx = io_points[0].x,
 	      maxy = io_points[0].y, miny = io_points[0].y;
 	DigeoPoint *it0 = io_points.data();

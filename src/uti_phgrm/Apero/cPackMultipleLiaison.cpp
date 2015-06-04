@@ -745,8 +745,9 @@ int  cObsLiaisonMultiple::IndOfCam(const cPoseCam * aCam) const
 }
 
 
-Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D) const
+Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D,int * aNb) const
 {
+
   std::vector<double> aVPds;
 
   const CamStenope &   aCS  = *(mPose1->CurCam());
@@ -756,6 +757,7 @@ Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D) const
   for (int aKPt=0 ; aKPt<int(mVPMul.size()) ;aKPt++)
   {
       cOnePtsMult& anOPM = *(mVPMul[aKPt]);
+
       if (anOPM.MemPds() >0)
       {
            Pt3dr aPI = anOPM.QuickInter(aVPds);
@@ -767,7 +769,15 @@ Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D) const
       }
   }
 
-  ELISE_ASSERT(aVProf.size()!=0,"cObsLiaisonMultiple::CentreNuage No Point");
+  if (aNb)
+  {
+      *aNb = aVProf.size();
+      if (*aNb==0) return Pt3dr(0,0,0);
+  }
+  else
+  {
+      ELISE_ASSERT(aVProf.size()!=0,"cObsLiaisonMultiple::CentreNuage No Point");
+  }
 
   aPMoy = aPMoy/double(aVProf.size());
   
@@ -1084,7 +1094,7 @@ double cObsLiaisonMultiple::AddObsLM
 
         bool aOldMemPtOk = aPM->MemPtOk();
         Pt3dr aOldMemPt  = aPM->MemPt();
-        if (Add2C)
+        if (Add2C )
         {
            aPM->SetMemPtOk(false);
            aPM->MemPt() =  NoMemPt;
@@ -1140,7 +1150,7 @@ double cObsLiaisonMultiple::AddObsLM
                    if (aVP[aKPose]->RotIsInit())
                    {
 	              aResidu += square_euclid(aRes.mEcIm[aKPose]);//  *ElSquare(aScN);
-                      if (isnan(aResidu))
+                      if (std_isnan(aResidu))
                       {
                           std::cout <<  aRes.mEcIm[aKPose] << " " << aKPose << " " << aVP[aKPose]->Name() << "\n";
                           std::cout << "CPT= " << aCpt << "\n";
@@ -1283,7 +1293,8 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                    aPM->MemPds() = aPdsIm;
                 }
 
-                if (((aPdsIm >0) &&  Add2C) && isInF3D)
+
+                if (((aPdsIm >0) &&  (Add2C)) && isInF3D)
                 {
                     aNbPdsNN++;   
                     aNbMultPdsNN += (aNbRInit>=3);
@@ -1383,9 +1394,19 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
           {
              mAppli.COUT() << "PDS Surf = " << aSomPSurf << "\n";
           }
+          double aPercOk =  (100.0*aNbPdsNN)/double(aNbP);
+
+          cXmlSauvExportAperoOneIm aXmlE;
+          aXmlE.Name() = mVPoses[0]->NameCam();
+          aXmlE.Residual() = sqrt(aSEr2);
+          aXmlE.PercOk() = aPercOk;
+          aXmlE.NbPts() = aNbP;
+          aXmlE.NbPtsMul() = aNbMult;
+          mAppli.CurXmlE().OneIm().push_back(aXmlE);
+
           mAppli.COUT() << "RES:["  << mVPoses[0]->NameCam() << "]"
                 <<  " ER2 " << sqrt(aSEr2)
-                << " Nn " << (100.0*aNbPdsNN)/double(aNbP) 
+                << " Nn " <<  aPercOk
                 << " Of " << aNbP
                 << " Mul " << aNbMult
                 << " Mul-NN " << aNbMultPdsNN
@@ -2180,7 +2201,7 @@ std::map<std::string,cObsLiaisonMultiple *> & cPackObsLiaison::DicoMul()
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -2196,17 +2217,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

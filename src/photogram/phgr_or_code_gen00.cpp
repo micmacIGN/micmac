@@ -159,8 +159,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../CodeGenere/photogram/cEqObsBaseGPS.h"
 #include "../../CodeGenere/photogram/cEqObsBaseGPS_GL.h"
+#include "../../CodeGenere/photogram/cImplEqRelativeGPS.h"
 
 #include "../../CodeGenere/photogram/cCodeBlockCam.h"
+#include "../../CodeGenere/photogram/cEqLinariseAngle.h"
+#include "../../CodeGenere/photogram/cEqLinariseAngle_AccelCsteCoord.h"
+
+#include "../../CodeGenere/photogram/cEqBBCamFirst.h"
+#include "../../CodeGenere/photogram/cEqBBCamSecond.h"
+#include "../../CodeGenere/photogram/cEqBBCamThird.h"
+#include "../../CodeGenere/photogram/cEqBBCamFirst_AccelCsteCoord.h"
+#include "../../CodeGenere/photogram/cEqBBCamSecond_AccelCsteCoord.h"
+#include "../../CodeGenere/photogram/cEqBBCamThird_AccelCsteCoord.h"
 
 //=======================  Droite ========================
 
@@ -629,8 +639,18 @@ void cElCompiledFonc::InitEntries()
 
      AddEntry("cEqObsBaseGPS",cEqObsBaseGPS::Alloc);
      AddEntry("cEqObsBaseGPS_GL",cEqObsBaseGPS_GL::Alloc);
+     AddEntry("cImplEqRelativeGPS",cImplEqRelativeGPS::Alloc);
+     
 
      AddEntry("cCodeBlockCam",cCodeBlockCam::Alloc);
+     AddEntry("cEqLinariseAngle",cEqLinariseAngle::Alloc);
+     AddEntry("cEqLinariseAngle_AccelCsteCoord",cEqLinariseAngle_AccelCsteCoord::Alloc);
+     AddEntry("cEqBBCamFirst",cEqBBCamFirst::Alloc);
+     AddEntry("cEqBBCamSecond",cEqBBCamSecond::Alloc);
+     AddEntry("cEqBBCamThird",cEqBBCamThird::Alloc);
+     AddEntry("cEqBBCamFirst_AccelCsteCoord",cEqBBCamFirst_AccelCsteCoord::Alloc);
+     AddEntry("cEqBBCamSecond_AccelCsteCoord",cEqBBCamSecond_AccelCsteCoord::Alloc);
+     AddEntry("cEqBBCamThird_AccelCsteCoord",cEqBBCamThird_AccelCsteCoord::Alloc);
 
      FULL_NEW_ADD_ENTRY(Fraser_PPaEqPPs)
      FULL_NEW_ADD_ENTRY(Four7x2);

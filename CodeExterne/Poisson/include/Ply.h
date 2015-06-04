@@ -39,7 +39,9 @@
 #endif
 #endif*/
 
-#define _strdup strdup
+#ifdef __GNUC__
+	#define _strdup strdup
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>

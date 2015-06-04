@@ -611,11 +611,14 @@ int ChantierClip_main(int argc,char ** argv);
 int ClipIm_main(int argc,char ** argv);
 
 int GetP3d_main(int argc,char ** argv);
-int Mascarpone_main(int argc,char ** argv);
 int MergePly_main(int argc,char ** argv);
 int MICMAC_main(int argc,char ** argv);
 int FusionCarteProf_main(int argc,char ** argv);
 int Nuage2Ply_main(int argc,char ** argv);
+int PlySphere_main(int argc,char ** argv);
+int San2Ply_main(int argc,char ** argv);
+
+
 int Pasta_main(int argc,char ** argv);
 int Pastis_main(int argc,char ** argv);
 int Porto_main(int argc,char ** argv);
@@ -640,8 +643,10 @@ int Tapas_main(int argc,char ** argv);
 int Tapioca_main(int argc,char ** argv);
 int Tarama_main(int argc,char ** argv);
 int Tawny_main(int argc,char ** argv);
+int Tequila_main(int argc,char ** argv);
 int TestCam_main(int argc,char ** argv);
 int TestChantier_main(int argc,char ** argv);
+int TiPunch_main(int argc,char ** argv);
 int ScaleNuage_main(int argc,char ** argv);
 int SysCoordPolyn_main(int argc,char ** argv);
 int Gri2Bin_main(int argc,char ** argv);
@@ -679,12 +684,12 @@ int New_Tapas_main(int,char **);
 int GCPCtrl_main(int,char **);
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 
-
-int NewRefineModel_main(int argc, char **argv);
-int RefineModel_main(int argc, char **argv);
 int AddAffinity_main(int argc, char **argv);
 
-int Sake_main(int argc,char ** argv);
+int Sake_main(int argc, char ** argv);
+int SateLib_main(int argc, char ** argv);
+
+int DoAllDev_main(int argc,char ** argv);
 
 
 
@@ -719,18 +724,46 @@ int Sake_main(int argc,char ** argv);
     int SaisieAppuisPredicQT_main(int argc,char ** argv);
     int SaisieBoxQT_main(int argc,char ** argv);
     int SaisieBascQT_main(int argc,char ** argv);
+    int SaisieCylQT_main(int argc,char ** argv);
 #endif
-    int Dimap2Grid_main(int argc, char **argv);
   int ServiceGeoSud_TP2GCP_main(int argc, char **argv);
   int ServiceGeoSud_Ortho_main(int argc, char **argv);
   int ServiceGeoSud_GeoSud_main(int argc, char **argv);
   int ServiceGeoSud_Surf_main(int argc, char **argv);
 
+int TopoSurf_main(int argc, char **argv);
+
 int  CalcAutoCorrel_main(int argc,char ** argv);
 int CPP_AppliMergeCloud(int argc,char ** argv);
 int C3DC_main(int argc,char ** argv);
+int MPI_main(int argc,char ** argv);
+int MPI2Ply_main(int argc,char ** argv);
+int MPI2Mnt_main(int argc,char ** argv);
 int CCL_main(int argc,char ** argv);
 int TDEpip_main(int argc, char **argv);
+
+
+int TestNewOriImage_main(int argc,char ** argv);
+int TestAllNewOriImage_main(int argc,char ** argv);
+int PreparSift_Main(int argc,char ** argv);
+int CheckOneHom_main(int argc,char ** argv);
+int CheckAllHom_main(int argc,char ** argv);
+int CheckOneTiff_main(int argc,char ** argv);
+int CheckAllTiff_main(int argc,char ** argv);
+int MakeOneXmlXifInfo_main(int argc,char ** argv);
+
+int Masq3Dto2D_main(int argc,char ** argv);
+
+int CPP_AppliMergeCloud(int argc,char ** argv);
+int MMEnveloppe_Main(int argc,char ** argv);
+int PlySphere_main(int argc,char ** argv);
+int San2Ply_main(int argc,char ** argv);
+int Export2Ply_main(int argc,char **argv);
+int CASALL_main(int argc,char ** argv);
+int MatisOri2MM_main(int argc,char ** argv);
+
+extern int MMEnvStatute_main(int argc,char ** argv);
+
 
 
 

@@ -46,6 +46,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 // Test commit
 
 
+const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & aCAWSI,const std::string & aName)
+{
+   for (std::list<cCWWSImage>::const_iterator itW=aCAWSI.Images().begin() ; itW!=aCAWSI.Images().end() ; itW++)
+   {
+       if (itW->NameIm()==aName) 
+          return &(*itW);
+   }
+   return 0;
+}
+
 bool GlobDebugMM=false;
 Pt2di PBug(47,112);
 bool IsPBug(const Pt2di &aP)
@@ -287,6 +297,7 @@ cAppliMICMAC::cAppliMICMAC
    mAutomNomPyr    (0),
    mEtape00        (0),
    mCurEtape       (0),
+   mPrecEtape      (0),
    mEBI            (0),
    mCurMAI         (0),
    mGeomDFPx       (NULL),
@@ -331,10 +342,24 @@ cAppliMICMAC::cAppliMICMAC
    mMakeMaskImNadir  (0),
    mMaxPrecision     (0),
    mGLOBMasq3D       (0),
-   mGLOBNuage        (0)
+   mGLOBNuage        (0),
+   mCorrecAlti4ExportIsInit (false),
+   mValmCorrecAlti4Export   (0.0)
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {
+      mDeZoomMax =1;
+      mDeZoomMin =1<<20;
+      for (std::list<cEtapeMEC>::const_iterator itE=  EtapeMEC().begin() ;  itE!= EtapeMEC().end() ; itE++)
+      {
+            int aDz = itE->DeZoom();
+            if (aDz !=-1)
+            {
+                 ElSetMax(mDeZoomMax,aDz);
+                 ElSetMin(mDeZoomMin,aDz);
+            }
+       }
+
        GlobDebugMM = DebugMM().Val();
 
         mDoTheMEC = DoMEC().Val();
@@ -525,6 +550,12 @@ cAppliMICMAC::cAppliMICMAC
         return;
     }
 
+    if ( (! CalledByProcess().Val()))
+    {
+        mMemPart.DeZoomLast().SetVal(mEtapesMecComp.back()->DeZoomTer());
+        mMemPart.NumLastEtape().SetVal(mEtapesMecComp.back()->Num());
+        SauvMemPart();
+     }
 
     {
         SauvEtatAvancement(false);
@@ -759,6 +790,8 @@ void cAppliMICMAC::VerifOneEtapes(const cEtapeMEC & anEt)
 void cAppliMICMAC::VerifEtapes() 
 {
 std::cout << "==============================cAppliMICMAC::VerifEtapes \n";
+/*
+   // DEPLACE PLUS HAUT
    mDeZoomMax =1;
    mDeZoomMin =1<<20;
    for (std::list<cEtapeMEC>::const_iterator itE=  EtapeMEC().begin() ;  itE!= EtapeMEC().end() ; itE++)
@@ -770,6 +803,7 @@ std::cout << "==============================cAppliMICMAC::VerifEtapes \n";
               ElSetMin(mDeZoomMin,aDz);
          }
     }
+*/
    std::list<cEtapeMEC>::const_iterator itE = EtapeMEC().begin();
    ELISE_ASSERT(itE->DeZoom()==-1,"Etape Init, Resol != -1");
 
@@ -913,7 +947,9 @@ void cAppliMICMAC::InitMemPart()
 
 void cAppliMICMAC::SauvMemPart()
 {
-   if (DoNotMemPart())
+   if (       (DoNotMemPart())
+         ||   ( CalledByProcess().Val())
+      )
        return;
 
     cElXMLTree * aTree = ToXMLTree(mMemPart);
@@ -1108,8 +1144,22 @@ void cAppliMICMAC::InitAnamSA()
        }
        ELISE_ASSERT(!mRepCorrel,"Anam and RepCorrel incompatibles");
     }
+    else if (mRepCorrel!=0)
+    {
+
+/*
+for (int aK=0 ; aK<10 ; aK++)
+        std::cout << mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(1,0,0)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(0,1,0)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << mRepCorrel->FromLoc(Pt3dr(0,0,1)) - mRepCorrel->FromLoc(Pt3dr(0,0,0))
+                  << "\n";
+*/
+        mAnamSA = cInterfSurfaceAnalytique::FromCCC(*mRepCorrel);
+    }
     else
     {
+
       // Il y a un probleme avec l'utilisation des surfaces analytique identite car une surface doit etre telle que
       // la surface moyenne est L=0, donc elle doit etre centree sur le ZMoyen, qui est inconnu ici; repousser la
       // creation des surface semble aussi assez complique; bref ca se mord la queue de facon difficile a contourner,
@@ -1120,6 +1170,7 @@ void cAppliMICMAC::InitAnamSA()
 
          ELISE_ASSERT(mRepCorrel==0,"Ajouter gestion du repere correl sur Masque Image Nadir");
 
+
          double aZMoy = -1e30;
          if (IntervAltimetrie().IsInit())
          {
@@ -1128,7 +1179,28 @@ void cAppliMICMAC::InitAnamSA()
                 aZMoy = anIA->ZMoyen().Val();
          }
          ELISE_ASSERT(aZMoy>-1e29,"No ZMoyen in Nadir Masq");
+
+
+         double aResol = -1e30;
+         if (Planimetrie().IsInit())
+         {
+              cPlanimetrie * anIP  = Planimetrie().PtrVal();
+              if (anIP->ResolutionTerrain().IsInit())
+              {
+                   aResol = StdRound(anIP->ResolutionTerrain().Val()).RVal();
+                   double aRR = aResol * mDeZoomMin;
+                   aZMoy = round_ni((aZMoy/aRR)) * aRR;
+                   anIP->ResolutionTerrain().SetVal(aResol);
+              }
+         }
+         ELISE_ASSERT(aResol>-1e29,"No Resol in Nadir Masq");
+
+
+// std::cout << "GGGGGGGGGGGg  RR " << aResol  << " ZZZ " << aZMoy << " \n"; getchar();
+
          mAnamSA = cInterfSurfaceAnalytique::Identite(aZMoy);
+         mCorrecAlti4ExportIsInit = true;
+         mValmCorrecAlti4Export = aZMoy;
     }
 }
 
@@ -1209,7 +1281,25 @@ void cAppliMICMAC::InitImages()
     }
 
 
-   if (ImSecCalcApero().IsInit())
+   if (     ImageSecByCAWSI().IsInit()
+         && ELISE_fp::exist_file(WorkDir() + ImageSecByCAWSI().Val())
+      )
+   {
+      cChantierAppliWithSetImage aCAWSI = StdGetFromSI(WorkDir()+ ImageSecByCAWSI().Val(),ChantierAppliWithSetImage);
+      int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
+      for (int aKV=0 ; aKV<aNbPDV ; aKV++)
+      {
+          const cCWWSImage * aWI = GetFromCAWSI(aCAWSI,mPrisesDeVue[aKV]->Name());
+          if (aWI)
+          {
+              for (std::list<cCWWSIVois>::const_iterator itW=aWI->CWWSIVois().begin() ; itW!=aWI->CWWSIVois().end() ; itW++)
+              {
+                   AddAnImage(itW->NameVois());
+              }
+          }
+      }
+   }
+   else if (ImSecCalcApero().IsInit())
    {
        const cImSecCalcApero & aISCA = ImSecCalcApero().Val();
        int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
@@ -1274,6 +1364,15 @@ void cAppliMICMAC::InitImages()
            }
        }
    }
+
+
+   
+   if (0)
+   {
+      for (int aK=0 ; aK<int(mPrisesDeVue.size()) ; aK++)
+          std::cout << "====IMAGES : " << mPrisesDeVue[aK]->Name() << "\n";
+      getchar();
+   }
 }
 
 
@@ -1316,6 +1415,7 @@ void cAppliMICMAC::PostInitGeom()
                for (tIterPDV itFI2=mPrisesDeVue.begin(); itFI2!=itFI1; itFI2++)
                {
                    cGeomImage * aGeom2 = & ((*itFI2)->Geom());
+
                    Pt2dr aPTer;
                    double aSurf;
                    if (aGeom1->IntersectEmprTer(*aGeom2,aPTer,&aSurf))

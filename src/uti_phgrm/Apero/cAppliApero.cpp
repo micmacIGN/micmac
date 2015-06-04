@@ -127,10 +127,11 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
           mLogFile.open(mLogName.c_str(),ios::out|ios::ate|ios::app);
      }
 
-     if (mParam.IsAperiCloud().Val())
+     if (mParam.IsAperiCloud().Val()) 
      {
          AcceptFalseRot = true;
-         SetSqueezeDOCOAC();
+         if (mParam.IsAperiCloud().Val())
+            SetSqueezeDOCOAC();
      }
 
 
@@ -167,6 +168,9 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
         }
     }
     InitLVM(mCurSLMGlob,mParam.SLMGlob(),mMulSLMGlob,mParam.MultSLMGlob());
+
+
+    std::cout << "APPLI APERO, NbUnknown = " << mSetEq.Sys()->NbVar() << "\n";
 }
 
 
@@ -528,7 +532,7 @@ void  cAppliApero::CompileObsersvations()
   CompileAppuis();
   CompileOsbOr();
   CompileObsCentre();
-
+  InitObsRelGPS();
 }
 
 void cAppliApero::Verifs()

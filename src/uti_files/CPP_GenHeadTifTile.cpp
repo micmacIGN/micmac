@@ -57,6 +57,8 @@ int Genere_Header_TiffFile_main(int argc,char ** argv)
            LArgMain() << EAM(aRes,"Out",true,"Name of result")
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     std::string aDir,aFileIn;
     SplitDirAndFile(aDir,aFileIn,aFullFileIn);
 

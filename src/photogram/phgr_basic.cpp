@@ -716,7 +716,7 @@ REAL  StatElPackH::SomD2 () const { return mSomD2;}
 
 void Verif(const double & aV,const std::string & aName)
 {
-    if (isnan(aV))
+    if (std_isnan(aV))
     {
         std::cout << "in File " << aName << "\n";
         ELISE_ASSERT(false,"Pb in Pt reading");
@@ -1694,17 +1694,18 @@ void ElCamera::SetParamGrid(const NS_ParamChantierPhotogram::cParamForGrid & aPa
    mRayonInvGrid = aParam.RayonInv();
 }
 
-bool ElCamera::IsInZoneUtile(const Pt2dr & aQ) const
+bool ElCamera::IsInZoneUtile(const Pt2dr & aQ,bool Pixel) const
 {
    // Pt2dr aP = mZoneUtilInPixel ? DComplM2C(aQ) : aQ;
     Pt2dr aP = aQ;
-   Pt2di aSz = Sz();
+   Pt2di aSz = Pixel ?  Pt2di(SzPixel()) : Sz() ;
    if ((aP.x<=0)  || (aP.y<=0) || (aP.x>=aSz.x) || (aP.y>=aSz.y))
       return false;
    if (mRayonUtile <= 0) return true;
 
    return euclid(aP-Sz()/2.0) < mRayonUtile;
 }
+
 
 bool ElCamera::HasRayonUtile() const
 {
@@ -3277,6 +3278,15 @@ void CamStenope::Coins(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ) c
     aP4 = ImEtProf2Terrain(Pt2dr(Sz().x,Sz().y),aZ); // BAS DROIT
 }
 
+// for  aerial imagery, project the 4 camera corners on a ground surface assumed to be at Z=aZ
+void CamStenope::CoinsProjZ(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double aZ) const
+{
+    aP1 = ImEtZ2Terrain(Pt2dr(0.f,0.f),aZ);       // HAUT GAUCHE
+    aP2 = ImEtZ2Terrain(Pt2dr(Sz().x,0.f),aZ);    // HAUT DROIT
+    aP3 = ImEtZ2Terrain(Pt2dr(0.f,Sz().y),aZ);    // BAS GAUCHE
+    aP4 = ImEtZ2Terrain(Pt2dr(Sz().x,Sz().y),aZ); // BAS DROIT
+}
+
 void ElCamera::SetSzPixel(const Pt2dr & aSzP)
 {
    mSzPixel = aSzP;
@@ -3863,6 +3873,7 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
                     Pt3dr * aDirApprox
           )
 {
+
      ELISE_ASSERT(PR3.size() == PF2.size(),"CombinatoireOFPA Dif Size");
      ELISE_ASSERT(INT(PR3.size())>=4,"CombinatoireOFPA, Size Insuffisant");
 
@@ -3915,6 +3926,7 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
                  REAL aDist;
                  INT  aNbSol;
                          ElRotation3D   aRot = OrientFromPtsAppui(TousDevant,L3,L2,&aDist,&aNbSol);
+
 
 if (0)
 {
@@ -4004,7 +4016,9 @@ ElRotation3D  CamStenope::RansacOFPA
     ElSTDNS list<Pt2dr> PF2;
 
     ToSepList(PR3,PF2,P23);
-    return CombinatoireOFPAGen(TousDevant,NbTest,PR3,PF2,Res_Dmin,true,aDirApprox);
+    ElRotation3D aR =  CombinatoireOFPAGen(TousDevant,NbTest,PR3,PF2,Res_Dmin,true,aDirApprox);
+
+    return  aR;
 }
 
 

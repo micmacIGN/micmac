@@ -1,9 +1,10 @@
 #ifndef SAISIEQTWINDOW_H
 #define SAISIEQTWINDOW_H
 
+#include "Elise_QT.h"
 #include "GLWidgetSet.h"
 #include "Settings.h"
-#include "Tree.h"
+#include  "WorkbenchWidget.h"
 
 void setStyleSheet(QApplication &app);
 
@@ -27,15 +28,9 @@ public:
 
     void runProgressDialog(QFuture<void> future);
 
-    void readSettings();
-
-    void writeSettings();
-
     void applyParams();
 
     void labelShowMode(bool state);
-
-    void refreshPts();
 
     void setLayout(uint sy);
 
@@ -59,11 +54,11 @@ public:
 
     void    resizeTables();
 
-    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images/*, QAbstractItemModel *model_Objects*/);
+    void    setModel(QAbstractItemModel *model_Pg, QAbstractItemModel *model_Images);
 
-    void    SelectPointAllWGL(QString pointName = QString(""));
+    void    selectPointAllWGL(QString pointName = QString(""));
 
-    void    SetDataToGLWidget(int idGLW, cGLData *glData);
+    void    setDataToGLWidget(int idGLW, cGLData *glData);
 
     void    loadPlyIn3DPrev(const QStringList &filenames,cData* dataCache);
 
@@ -82,9 +77,27 @@ public:
 
     cParameters *params() const;
 
-    void setParams(cParameters *params);
+    void    setParams(cParameters *params);
 
 
+
+    deviceIOCamera* devIOCamera() const;
+    void setDevIOCamera(deviceIOCamera* devIOCamera);
+
+    deviceIOImage* devIOImage() const;
+    void setDevIOImage(deviceIOImage* devIOImage);
+
+    int hg_revision() const;
+    void setHg_revision(QString hg_revision);
+
+    QString banniere() const;
+    void setBanniere(const QString& banniere);
+
+    QString textToolBar() const;
+    void setTextToolBar(const QString& textToolBar);
+
+    deviceIOTieFile* devIOTieFile() const;
+    void setDevIOTieFile(deviceIOTieFile* devIOTieFile);
 
 public slots:
 
@@ -105,8 +118,6 @@ public slots:
 
     void closeEvent(QCloseEvent *event);
 
-    void redraw(bool nbWidgetsChanged=false);
-
     void setAutoName(QString);
 
     void setGamma(float);
@@ -124,7 +135,7 @@ signals:
 
     void selectPoint(QString pointName);
 
-    void setName(QString); //signal coming from cSettingsDlg throw MainWindow
+    void setName(QString); //signal coming from cSettingsDlg through MainWindow
 
     void imagesAdded(int, bool);
 
@@ -180,8 +191,8 @@ protected slots:
     void on_actionReset_triggered();
     void on_actionRemove_inside_triggered();
     void on_actionRemove_outside_triggered();
-    void on_actionUndo_triggered(){ undo(); }
-    void on_actionRedo_triggered(){ undo(false); }
+    void on_actionUndo_triggered();
+    void on_actionRedo_triggered();
 
     //File Menu
     void on_actionLoad_plys_triggered();
@@ -203,10 +214,28 @@ protected slots:
     void resizeEvent(QResizeEvent *);
     void moveEvent(QMoveEvent *);
 
+    void setNavigationType(int val);
+
+    void on_actionShow_Zoom_window_toggled(bool show);
+
+    void on_actionShow_3D_view_toggled(bool show);
+
+    void on_actionShow_list_polygons_toggled(bool show);
+
+    void selectionObjectChanged(const QItemSelection& select, const QItemSelection& unselect);
+
+    void updateMask(bool reloadMask = true);
+
+    void on_actionConfirm_changes_triggered();
+
+    void on_actionWorkbench_toggled(bool mode);
 protected:
 
     //! Connects all QT actions to slots
     void connectActions();
+
+    void setModelObject(QAbstractItemModel* model_Objects);
+    void keyPressEvent(QKeyEvent* event);
 
 private:
 
@@ -215,8 +244,6 @@ private:
     void                    setCurrentFile(const QString &fileName);
     void                    updateRecentFileActions();
     QString                 strippedName(const QString &fullFileName);
-
-    void                    undo(bool undo = true);
 
     int *                   _incre;
 
@@ -245,5 +272,98 @@ private:
 
     bool                    _bSaved;
 
+    deviceIOCamera*			_devIOCamera;
+
+    deviceIOTieFile*		_devIOTieFile;
+
+    int						_hg_revision;
+
+    QString					_banniere;
+
+    QString					_textToolBar;
+
+    cWorkBenchWidget*		_workBench;
+
 };
+
+
+class ObjectsSFModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+public:
+    ObjectsSFModel(QObject *parent = 0): QSortFilterProxyModel(parent){}
+
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+
+};
+
+class ModelObjects : public QAbstractTableModel
+{
+    Q_OBJECT
+public:
+
+    ModelObjects(QObject *parent, HistoryManager* hMag);
+
+    int             rowCount(const QModelIndex &parent = QModelIndex()) const ;
+
+    int             columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+    QVariant        data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+    QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
+
+    bool            setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+
+    Qt::ItemFlags   flags(const QModelIndex &index) const;
+
+    bool            insertRows(int row, int count, const QModelIndex & parent = QModelIndex());
+
+    static QStringList     getSelectionMode();
+
+private:
+
+    HistoryManager *		_hMag;
+
+};
+
+class ComboBoxDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+
+public:
+    ComboBoxDelegate(const QStringList &listCombo, int size = 0, QObject *parent = 0);
+
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+                          const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+    Q_DECL_OVERRIDE
+#endif
+    ;
+
+    void setEditorData(QWidget *editor, const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+    Q_DECL_OVERRIDE
+#endif
+    ;
+    void setModelData(QWidget *editor, QAbstractItemModel *model,
+                      const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+    Q_DECL_OVERRIDE
+#endif
+    ;
+
+    void updateEditorGeometry(QWidget *editor,
+        const QStyleOptionViewItem &option, const QModelIndex &index) const
+#if ELISE_QT_VERSION == 5
+    Q_DECL_OVERRIDE
+#endif
+    ;
+private:
+    int             _size;
+    QStringList		_enumString;
+};
+
+
 #endif // MAINWINDOW_H

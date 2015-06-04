@@ -57,7 +57,7 @@ extern std::string SubstArgcArvGlob(int aKSubst,std::string aSubst);
 
 
 std::string GetUnikId();
-std::string Dir2Write();
+std::string Dir2Write(const std::string  DirChantier = "./" );
 
 void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage);
 #define ElEXIT(aCode,aMessage) ElExit(__LINE__,__FILE__,aCode,aMessage)
@@ -284,6 +284,8 @@ inline INT arrondi_sup(INT a,INT b)
 {
    return ((a+b-1)/b)*b;
 }
+
+ 
 
 double arrondi_inf(double aVal,double aPer);
 double arrondi_sup(double aVal,double aPer);
@@ -519,6 +521,8 @@ class cRandNParmiQ
         int mN;
         int mQ;
 };
+
+std::vector<int> RandPermut(int aN);
 
 
 extern void NRrandom3InitOfTime();
@@ -1601,6 +1605,8 @@ int MMNbProc();
 // i_rule can be an empty string, if so, make will launch the makefile's default rule
 // returns make's return code
 bool launchMake( const std::string &i_makefile, const std::string &i_rule=std::string(), unsigned int i_nbJobs=MMNbProc(), const std::string &i_options=std::string(), bool i_stopCurrentProgramOnFail=true );
+
+
 
 #endif /* ! _ELISE_UTIL_H */
 

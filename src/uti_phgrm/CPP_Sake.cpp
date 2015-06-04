@@ -57,7 +57,7 @@ class cAppliSake
     std::string   mImPat, mDir, mMaskIm, mDirMEC, mPyr, mDirOrtho, mModeOri, mOriFileExtension;
     double        mZInc, mZMoy, mStepF, mRegul, mResolOrtho;
     int           mSzW, mZoomI, mZoomF;
-    bool          mCalcMEC, mEZA, mExe;
+    bool          mEZA, mExe, mCalcMosaO;
     std::string   mInstruct;
     std::string   mImgs;
     eTypeSake     mCorrelGeomType;
@@ -87,17 +87,18 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   mSzW              (2),
   mZoomI            (32),
   mZoomF            (1),
-  mCalcMEC          (true),
   mEZA              (true),
   mExe              (true),
+  mCalcMosaO        (false),
   mUseMastIm        (false),
   mMastIm           ("")
 {
 #if(ELISE_QT_VERSION >= 4)
-  QApplication app(argc, argv);
+
   if (MMVisualMode)
   {
-    std::cout<<"MMVisualMode"<<std::endl;
+    QApplication app(argc, argv);
+
     LArgMain LAM;
     LAM << EAMC(mStrCorrelGeomType,"Correlation type",eSAM_None,ListOfVal(eNbTypeVals));
 
@@ -108,8 +109,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
     list<string> liste_valeur_enum = listPossibleValues(aArg);
 
     QStringList items;
-    list<string>::iterator it=liste_valeur_enum.begin();
-    for (; it != liste_valeur_enum.end(); ++it)
+    for (list<string>::iterator it=liste_valeur_enum.begin(); it != liste_valeur_enum.end(); ++it)
       items << QString((*it).c_str());
 
     setStyleSheet(app);
@@ -155,17 +155,17 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(mZMoy,"ZMoy",true,"Average value of Z (Def=1000.0)")
               << EAM(mZInc,"ZInc",true,"Initial uncertainty on Z (Def=1000.0)")
               << EAM(mModeOri,"ModeOri", true, "Orientation type (GRID or RTO; Def=GRID)", eSAM_NoInit)
-              << EAM(mMaskIm,"Mask",true,"Mask file")
+              << EAM(mMaskIm,"Mask",true,"Mask file", eSAM_IsExistFile)
               << EAM(mSzW,"SzW",true,"Correlation window size (Def=2, equiv 5x5)")
               << EAM(mRegul,"ZRegul",true,"Regularization factor (Def=0.2")
               << EAM(mStepF,"ZPas",true,"Quantification step (Def=0.5)")
-              << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)")
+              << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)",eSAM_IsPowerOf2)
               << EAM(aBoxClip,"BoxClip",true,"Define computation area (Def=[0,0,1,1] means full area) relative to image", eSAM_Normalize)
               << EAM(aBoxTer,"BoxTer",true,"Define computation area [Xmin,Ymin,Xmax,Ymax] relative to ground")
               << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=true)", eSAM_IsBool)
-              << EAM(mCalcMEC,"DoMEC",true,"Compute the matching (Def=true)", eSAM_IsBool)
-              << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/")
+              << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/)")
               << EAM(mDirOrtho,"DirOrtho",true,"Orthos subdirectory if OrthoIm (Def=Ortho-${DirMEC})")
+              << EAM(mCalcMosaO,"DoOrthoM",true,"Compute the ortho mosaic if OrthoIm (Def=false)", eSAM_IsBool)
               << EAM(aNbProcUsed,"NbProc",true,"Number of cores used for computation (Def=MMNbProc)")
               << EAM(mExe,"Exe",true,"Execute command (Def=true)", eSAM_IsBool)
   );
@@ -234,8 +234,10 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
     if (mStrCorrelGeomType=="OrthoIm")
     {
-      mInstruct = mInstruct + std::string(" +CalcOrtho=true");
-      mInstruct = mInstruct + std::string(" +DirOrtho=") + mDirOrtho;
+      mInstruct = mInstruct + std::string(" +CalcOrtho=true")
+                    + std::string(" +DirOrtho=") + mDirOrtho
+                    + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
+                    + std::string(" +CalcMosaO=") + (mCalcMosaO ? "true" : "false");
     }
 
     if (EAMIsInit(&mMaskIm))
@@ -288,10 +290,8 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
     mNbStepsQ = 2 + round_ni(log2(mZoomI/mZoomF)) + 1;
 
-    mInstruct = mInstruct + std::string(" +CalcMEC=") + (mCalcMEC ? "true" : "false")
-                          + std::string(" +EZA=") + (mEZA ? "true" : "false")
+    mInstruct = mInstruct + std::string(" +EZA=") + (mEZA ? "true" : "false")
                           + std::string(" +ZoomF=") + ToString(mZoomF)
-                          + std::string(" +ResolOrtho=") + ToString(1.0/mZoomF)
                           + std::string(" +NbStepsQ=") + ToString(mNbStepsQ)
                           + std::string(" +Exe=") + (mExe ? "true" : "false")
                           + std::string(" +NbProc=") + ToString(aNbProcUsed)
@@ -299,7 +299,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
     ShowParamVal();
 
-    std::cout<<"** "<<mInstruct<<" **"<<std::endl;
+    std::cout<<mInstruct<<std::endl;
   }
 }
 
@@ -369,7 +369,7 @@ int Sake_main(int argc,char ** argv)
 
 /* Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -385,17 +385,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007/*/

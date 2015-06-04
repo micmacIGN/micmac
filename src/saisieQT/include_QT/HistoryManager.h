@@ -4,8 +4,6 @@
 #include "Elise_QT.h"
 #include <iostream>
 
-
-
 struct selectInfos
 {
     selectInfos(){}
@@ -35,6 +33,8 @@ public:
 
     //! Get the selection infos stack
     QVector <selectInfos> getSelectInfos(){ return _infos; }
+
+	selectInfos& getSelectInfo(int id){ return _infos[id]; }
 
     int    getActionIdx(){ return _actionIdx; }
 

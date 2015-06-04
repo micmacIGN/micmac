@@ -736,8 +736,16 @@ INT GenFileInitArgs
 
     INT aLine = 0;
     bool cont = true;
+    size_t buflen=0;
     while (cont && fgets(buf,SzBuf,fp))
     {
+        buflen = strlen(buf); //remove all endline chars
+        while ( (buflen>0) && ((buf[buflen-1]=='\r')||(buf[buflen-1]=='\n')) )
+        {
+            buf[buflen-1]= '\0';
+            buflen--;
+        }
+        
         if (*buf == StopCar)
             cont = false;
         else

@@ -80,6 +80,8 @@ int mmxv_main(int argc,char ** argv)
     LArgMain()
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     std::string aPost = StrToLower(StdPostfix(aNameIm));
     if ((aPost=="tif") || (aPost=="tiff"))
     {

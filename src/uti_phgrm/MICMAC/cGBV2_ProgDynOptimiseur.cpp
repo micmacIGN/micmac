@@ -108,7 +108,7 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
         Im2D_INT2       aPxMin,
         Im2D_INT2       aPxMax
 ) :
-    cSurfaceOptimiseur ( mAppli,mLT,1e4,anEqX,anEqY,false,false),
+	cSurfaceOptimiseur ( mAppli,mLT,1e4,anEqX,anEqY,false,false),
     mXMin       (aPxMin),
     mXMax       (aPxMax),
     mSz         (mXMin.sz()),
@@ -133,7 +133,7 @@ cGBV2_ProgDynOptimiseur::cGBV2_ProgDynOptimiseur
     IGpuOpt._preFinalCost1D.ReallocIf(IGpuOpt._poInitCost.Size());
     IGpuOpt._FinalDefCor.ReallocIf(IGpuOpt._poInitCost._dZ.GetDimension());
     IGpuOpt._poInitCost.ReallocData();
-    IGpuOpt._poInitCost.fillCostInit(10123);
+	IGpuOpt._poInitCost.fillCostInit(10123);//TODO PEUT ETRE VIRER
 #endif
 }
 
@@ -149,12 +149,43 @@ void cGBV2_ProgDynOptimiseur::Local_SetCout(Pt2di aPTer,int *aPX,REAL aCost,int 
 
 #if CUDA_ENABLED
     Pt2di z     = Px2Point(aPX);
-    int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
-    IGpuOpt._poInitCost[pt] = cGBV2_TabulCost::CostR2I(aCost);
+	int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
+	IGpuOpt._poInitCost[pt] = cGBV2_TabulCost::CostR2I(aCost);
 #else
     mMatrCel[aPTer][Px2Point(aPX)].SetCostInit(cGBV2_TabulCost::CostR2I(aCost));
 #endif
 }
+
+#if CUDA_ENABLED
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, int aPX, ushort aCost,pixel pix)
+{
+	Pt2di z     = Px2Point(&aPX);
+	int3 pt = make_int3(aPTer.x,aPTer.y,z.x);
+	IGpuOpt._poInitCost[pt] = aCost;
+	(*mMemoCorrel)[aPTer][z]= pix;
+
+}
+
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, ushort* aCost, pixel* pix)
+{
+	ushort	size		= IGpuOpt._poInitCost.DZ(aPTer);
+	ushort* costDest	= IGpuOpt._poInitCost[aPTer];
+
+	memcpy(costDest,aCost,sizeof(ushort)*size);
+
+	pixel * pixDest	= (*mMemoCorrel)[aPTer][0] + (*mMemoCorrel)[aPTer].Box()._p0.x;
+
+	memcpy(pixDest,pix,sizeof(pixel)*size);
+}
+
+void cGBV2_ProgDynOptimiseur::gLocal_SetCout(Pt2di aPTer, ushort* aCost)
+{
+	ushort	size		= IGpuOpt._poInitCost.DZ(aPTer);
+	ushort* costDest	= IGpuOpt._poInitCost[aPTer];
+
+	memcpy(costDest,aCost,sizeof(ushort)*size);
+}
+#endif
 
 void cGBV2_ProgDynOptimiseur::BalayageOneSens
 (
@@ -451,183 +482,173 @@ void cGBV2_ProgDynOptimiseur::SolveOneEtape(int aNbDir)
 
 #if CUDA_ENABLED
         SolveAllDirectionGpu(aNbDir);
-#else
-    // Parcours dans toutes les directions
-    for (int aKDir=0 ; aKDir<mNbDir ; aKDir++)
-    {
-        mPdsProgr = (1.0+aKDir) / mNbDir;
-        double aTeta =   (aKDir*PI)/mNbDir;
 
-        Pt2dr aP = Pt2dr::FromPolar(100.0,aTeta);
-        // On le met la parce que en toute rigueur ca depend de la
-        // direction, mais pour l'instant on ne gere pas cette dependance
-        // Tabulation des couts de transition
-        for (int aKP=0 ; aKP<mNbPx ; aKP++)
-        {
-            mTabCost[aKP].Reset
-                    (
-                        mCostRegul[aKP],
-                        mCostRegul_Quad[aKP]
-                        );
-        }
-        // Balayage dans une direction aP
-        BalayageOneDirection(aP);
-    }
 #endif
-
-    //GpGpuTools::NvtxR_Push("Agregation",0x330000AA);
-    Pt2di aPTer;
-
-    // --> TODO Cette etape peut etre  mise dans la partie cuda
-
-    for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
-    {
-        for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
-        {
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
-            const Box2di &  aBox = aMat.Box();
-            Pt2di aPRX;
-
-                for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
-                {
-
-                    tCost & aCF = aMat[aPRX].CostFinal();
-                    //if (mModeAgr==ePrgDAgrSomme) // Mode somme
-                    {
-                        aCF /= mNbDir;
-
-                    }
-                    aMat[aPRX].SetCostInit(aCF);
-                    aCF = 0;
-                }
-
-                #ifdef CUDA_ENABLED
-                         if(mHasMaskAuto)
-                              IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
-                #endif
-        }
-    }
-    //nvtxRangePop();
-
 }
-#if CUDA_ENABLED
 
+#if CUDA_ENABLED
 void cGBV2_ProgDynOptimiseur::copyCells_Mat2Stream(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, uint idBuf)
 {
 
-    //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
+    GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAAFF33);
 
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
     const std::vector<Pt2di>* aVPt;
     uint idLine = 0;
     while ((aVPt = mLMR.Next()))
-    {
-        uint    pitStrm = 0;
-        uint    lLine   = aVPt->size();
-        short3* index   = d2Opt.s_Index().pData() + d2Opt.param(idBuf)[idLine].y;
+    {		
+		const uint	lLine    = aVPt->size();
+		short3*		index    = d2Opt.s_Index().pData()		 + d2Opt.param(idBuf)[idLine].y;
+		ushort* destCostInit = d2Opt.s_InitCostVol().pData() + d2Opt.param(idBuf)[idLine].x;
 
         for (uint aK= 0 ; aK < lLine; aK++)
         {
             Pt2di ptTer = (Pt2di)(*aVPt)[aK];
-
-#ifndef CLAMPDZ
             ushort dZ   = mCellCost.DZ(ptTer);
-            index[aK]   = mCellCost.PtZ(ptTer);
-#else
-            ushort dZ   = min(costInit1D.DZ(ptTer),costInit1D._maxDz);
+			index[aK]   = mCellCost.PtZ(ptTer);
 
-            if(dZ == costInit1D._maxDz )
-                index[aK]   = make_short2(costInit1D.PtZ(ptTer).x,costInit1D.PtZ(ptTer).x + costInit1D._maxDz);
-            else
-                index[aK]   = costInit1D.PtZ(ptTer);
-#endif
+			memcpy(destCostInit,mCellCost[ptTer],dZ * sizeof(ushort));
 
-            uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
-
-            ushort* desrCostInit = d2Opt.s_InitCostVol().pData()+idStrm;
-
-            memcpy(desrCostInit,mCellCost[ptTer],dZ * sizeof(ushort));
-
-            pitStrm += dZ;
+			destCostInit += dZ;
         }
 
         idLine++;
     }
 
-    //nvtxRangePop();
+    GpGpuTools::Nvtx_RangePop();
 }
 
-//#define OUTPUTDEFCOR
+template<bool final> inline
+void cGBV2_ProgDynOptimiseur::agregation(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
+{
 
+}
+
+template<> inline
+void cGBV2_ProgDynOptimiseur::agregation<false>(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
+{
+	finalCost += forceCost;
+}
+
+template<> inline
+void cGBV2_ProgDynOptimiseur::agregation<true>(uint& finalCost,uint& forceCost,cGBV2_CelOptimProgDyn *  cell,int apx,tCost & aCostMin,Pt2di &aPRXMin,const int& z)
+{
+	//const uint aCost = (finalCost  + forceCost)/mNbDir;
+
+	finalCost   = (finalCost  + forceCost)/mNbDir;
+
+	//cell[apx].SetCostInit(aCost);
+
+//	if (aCost<aCostMin)
+//	{
+//		aCostMin = aCost;
+//		aPRXMin = Pt2di(z + apx,0);
+//	}
+}
+
+template<bool final> inline
+void cGBV2_ProgDynOptimiseur::maskAuto(const Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
+{
+
+}
+
+template<> inline
+void cGBV2_ProgDynOptimiseur::maskAuto<false>(const Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
+{
+
+}
+
+
+template<> inline
+void cGBV2_ProgDynOptimiseur::maskAuto<true>(const Pt2di& ptTer, tCost& aCostMin,Pt2di	&aPRXMin)
+{
+	if(mHasMaskAuto)
+	{
+		/* CUDA_DEFCOR Officiel*/
+		IGpuOpt._FinalDefCor[make_uint2(ptTer.x,ptTer.y)] /= mNbDir;
+		tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(ptTer.x,ptTer.y)];
+		bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
+		mTMask->oset(ptTer,(!NoVal)  && ( mLTCur->IsInMasq(ptTer)));
+
+
+		int aCorI = CostI2CorExport(aCostMin);
+		if(!mLTCur->IsInMasq(ptTer))
+		{
+			aCorI = 0;
+		}
+
+		if(mImCor->Im2D<U_INT1,INT>::Inside(ptTer))
+			mImCor->SetI(ptTer,aCorI);
+
+	}
+
+	mDataImRes[0][ptTer.y][ptTer.x] = aPRXMin.x;
+}
+
+
+void dump32 (__m128i m, const string & prefix = string ())
+{
+	int *i = (int *) &m;
+	cout << prefix << i[0] << ' ' << i[1] << ' ' << i[2] << ' ' << i[3] << endl;
+}
+
+template<bool final>
 void cGBV2_ProgDynOptimiseur::copyCells_Stream2Mat(Pt2di aDirI, Data2Optimiz<CuHostData3D,2>  &d2Opt, sMatrixCellCost<ushort> &mCellCost, CuHostData3D<uint> &costFinal1D,CuHostData3D<uint> &FinalDefCor, uint idBuf)
 {
-    //GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
+    GpGpuTools::NvtxR_Push(__FUNCTION__,0xFFAA0033);
 
-    //nvtxMarkA("Start INIT");
     mLMR.Init(aDirI,Pt2di(0,0),mSz);
 
     const std::vector<Pt2di>* aVPt;
     uint idLine = 0;
-#ifdef OUTPUTDEFCOR
-    uint iii = 40;
-#endif
 
     while ((aVPt = mLMR.Next()))
     {
-        uint    pitStrm         = 0;
-        uint    lenghtLine      = aVPt->size();
-        uint    piTStream_Alti  = d2Opt.param(idBuf)[idLine].y; // Position dans le stream des altitudes/defCor
 
-#ifdef OUTPUTDEFCOR
-        if(idLine == iii)
-            DUMP_UINT(lenghtLine)
-#endif
+		const uint  lenghtLine		= aVPt->size();
+		const uint3 param			= d2Opt.param(idBuf)[idLine];
+		const uint  piTStream_Alti	= param.y;											// Position dans le stream des altitudes/defCor
+		const uint*	forCo			= d2Opt.s_ForceCostVol(idBuf).pData() + param.x ;
 
         for (uint aK= 0 ; aK < lenghtLine; aK++)
         {
 
-            Pt2di ptTer = (Pt2di)(*aVPt)[aK];
-            #ifndef CLAMPDZ
-            ushort dZ   = mCellCost.DZ(ptTer);
-            #else
-            ushort dZ   =  min(costInit1D.DZ(ptTer),costInit1D._maxDz);
-            #endif
+			const Pt2di		ptTer	= (Pt2di)(*aVPt)[aK];
+			const ushort	dZ		= mCellCost.DZ(ptTer);
+			uint*			finCo	= costFinal1D.pData() + mCellCost.Pit(ptTer);
+			const uint		defCor	= (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
 
-            // position dans le stream cout force....
-            uint idStrm = d2Opt.param(idBuf)[idLine].x + pitStrm;
-            uint *forCo = d2Opt.s_ForceCostVol(idBuf).pData() + idStrm; // TODO A verifier car devrait deja calculer dans les parametres...
-            uint *finCo = costFinal1D.pData() + mCellCost.Pit(ptTer);
+			FinalDefCor[make_uint2(ptTer.x,ptTer.y)] += defCor;
 
+//			const int z		= mCellCost.PtZ(ptTer).x;
+//			cGBV2_CelOptimProgDyn *  cell = mMatrCel[ptTer][0] + z;
+//			tCost   aCostMin = tCost(1e9);
+//			Pt2di	aPRXMin;
+//			for ( int aPx = 0 ; aPx < dZ ; aPx++)
+//				agregation<final>(finCo[aPx],forCo[aPx],cell,aPx,aCostMin,aPRXMin,z);
 
-            uint defCorr = (d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]);
+			for ( int aPx = 0 ; aPx < dZ ; aPx++,forCo++,finCo++)
+				*finCo += *forCo;
 
-            FinalDefCor[make_uint2(ptTer.x,ptTer.y)] += defCorr;
+//			for ( int aPx = 0 ; aPx < dZ ; aPx+=4)
+//			{
+//						__m128i a = _mm_load_si128( (const __m128i *)(finCo + aPx) );
+//						__m128i b = _mm_load_si128( (const __m128i *)(forCo + aPx) );
+//						__m128i  resultAD = _mm_add_epi32 (a, b);
+//						__m128i  *dest = (__m128i*)(finCo + aPx);
+//						_mm_store_si128(dest,resultAD);
+//			}
 
-#ifdef OUTPUTDEFCOR
-            if(idLine == iii)
-            {
-                //uint minPrevCost = d2Opt.s_DefCor(idBuf).pData()[piTStream_Alti + aK]/ mCostDefMasked;
+			//maskAuto<final>(ptTer,aCostMin,aPRXMin);
 
-                //uint minPrevCost = (minCost == 0) ? 2 : minCost / mCostDefMasked;
-                DUMP_UINT(minCost)
-            }
-#endif
-
-
-            for ( int aPx = 0 ; aPx < dZ ; aPx++)
-                finCo[aPx] += forCo[aPx];
-
-            pitStrm += dZ;
+//			forCo += dZ;
 
         }
 
         idLine++;
     }
-#ifdef OUTPUTDEFCOR
-   DUMP_LINE
-#endif
 
-    //nvtxRangePop();
+    GpGpuTools::Nvtx_RangePop();
 
 }
 
@@ -668,10 +689,14 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
     int     aKPreDir    = 0;
     bool    idPreCo     = false;
 
-    IGpuOpt.SetCompute(true);
+	if(mHasMaskAuto)
+	{
+		mMaskCalcDone = true;
+		mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
+	}
+//	mTMask			= new TIm2DBits<1>(mMaskCalc);
 
-    //direction(aNbDir, 0);
-    //GpGpuTools::OutputInfoGpuMemory();
+	IGpuOpt.SetCompute(true);
 
     while (aKDir < aNbDir)
     {
@@ -697,18 +722,12 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
                 for (uint aK = 0 ; aK < lenghtLine; aK++)
                 {
-                    #ifndef CLAMPDZ
-                        sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
-                    #else
-//                        if(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]) > IGpuOpt._poInitCost._maxDz)
-//                                printf("AAAAAAAAAAAAAA : %d\n",IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]));
-                        sizeStreamLine += min(IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]),IGpuOpt._poInitCost._maxDz);
-                    #endif
+					 sizeStreamLine += IGpuOpt._poInitCost.DZ((Pt2di)(*aVPt)[aK]);
                 }
 
                 // PREDEFCOR
-                pitIdStream += iDivUp32(lenghtLine)     << 5;
-                pitStream   += iDivUp32(sizeStreamLine) << 5;
+				pitIdStream += sgpu::__multipleSup<32>(lenghtLine);
+				pitStream   += sgpu::__multipleSup<32>(sizeStreamLine);
 
                 idLine++;
             }
@@ -738,31 +757,17 @@ void cGBV2_ProgDynOptimiseur::SolveAllDirectionGpu(int aNbDir)
 
         if(IGpuOpt.GetDataToCopy())
         {
-            copyCells_Stream2Mat(direction(aNbDir,aKDir),IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,IGpuOpt._preFinalCost1D,IGpuOpt._FinalDefCor,!IGpuOpt.GetIdBuf());
-            IGpuOpt.SetDataToCopy(false);
-            aKDir++;
+
+//			if(aNbDir == aKDir+1)
+//				copyCells_Stream2Mat<true>(direction(aNbDir,aKDir),IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,IGpuOpt._preFinalCost1D,IGpuOpt._FinalDefCor,!IGpuOpt.GetIdBuf());
+//			else
+				copyCells_Stream2Mat<false>(direction(aNbDir,aKDir),IGpuOpt.HData2Opt(),IGpuOpt._poInitCost,IGpuOpt._preFinalCost1D,IGpuOpt._FinalDefCor,!IGpuOpt.GetIdBuf());
+			IGpuOpt.SetDataToCopy(false);
+			aKDir++;
         }
     }
 
     IGpuOpt.freezeCompute();
-
-    //GpGpuTools::NvtxR_Push("FinalCost",0xFF883300);
-    for (uint line = 0 ; line < (uint)mSz.y; line++)
-        for (uint aK = 0 ; aK < (uint)mSz.x; aK++)
-        {
-            Pt2di ptd(aK,line);
-            uint2 ptTer     = make_uint2(aK,line);
-
-            tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[ptd];
-            short3  pDe      = IGpuOpt._poInitCost.PtZ(ptTer);
-            short2 ptZ      = make_short2(pDe.x,pDe.y);
-            uint* finalCost = IGpuOpt._preFinalCost1D.pData() + IGpuOpt._poInitCost.Pit(ptTer) - ptZ.x ;
-
-            for ( int aPx = ptZ.x ; aPx < ptZ.y ; aPx++)
-                 aMat[Pt2di(aPx,0)].SetCostFinal(finalCost[aPx]);
-        }
-
-    ////nvtxRangePop();
 
 }
 #endif
@@ -783,6 +788,9 @@ void cGBV2_ProgDynOptimiseur::writePoint(FILE* aFP,  Pt3dr            aP,Pt3di  
 void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
 {
 
+	// TODO ATTENTION BUG QUAND PAS DE param AUTOMASK DANS LE FICHIER XML (voir revision 4858)
+
+	mImCor = &aImCor;
     // double aVPentes[theDimPxMax];
     const cModulationProgDyn &  aModul = mEtape.EtapeMEC().ModulationProgDyn().Val();
 
@@ -797,7 +805,6 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
    if(mHasMaskAuto)
    {
        const cArgMaskAuto & anAMA  = aModul.ArgMaskAuto().Val();
-       //AmplifKL = anAMA.AmplKLPostTr().Val();
        mCostDefMasked = CostR2I(mAppli.CurCorrelToCout(anAMA.ValDefCorrel()));
        mCostTransMaskNoMask = CostR2I(anAMA.CostTrans());
    }
@@ -825,251 +832,101 @@ void cGBV2_ProgDynOptimiseur::Local_SolveOpt(Im2D_U_INT1 aImCor)
         mMaxEc[aKP] = ElMax(1,round_ni(aPente));
     }
 
-    int nbDirection = 0;
-
     for
     (
         std::list<cEtapeProgDyn>::const_iterator itE=aModul.EtapeProgDyn().begin();
         itE!=aModul.EtapeProgDyn().end();
-        itE++
+		++itE
     )
     {
-        nbDirection = itE->NbDir().Val();
+		const int nbDirection = itE->NbDir().Val();
         SolveOneEtape(nbDirection);
     }
-//GpGpuTools::NvtxR_Push(__FUNCTION__,0x335A0033);
-//Im2D_INT4 aDupRes(mSz.x,mSz.y);
 
-    ////////////////////////////////////////////////////////////////////////////////
-    //  write ply file
-    //  Mode Ecriture : binaire ou non
+	Pt2di aPTer;
+
+	if(mHasMaskAuto)
+	{
+		mMaskCalcDone = true;
+		mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
+	}
+
+	TIm2DBits<1>    aTMask(mMaskCalc);
+#ifdef CUDA_ENABLED
+	GpGpuTools::NvtxR_Push("Recolt",0xFF8833FF);
+#endif
+	for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
+	{
+		for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
+		{
+#ifdef CUDA_ENABLED
+
+			tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
+			const Box2di &  aBox = aMat.Box();
+			Pt2di aPRX;
+			Pt2di aPRXMin;
+			tCost   aCostMin = tCost(1e9);
+			uint* finalCost = IGpuOpt._preFinalCost1D.pData() + IGpuOpt._poInitCost.Pit(aPTer) - aBox._p0.x ;
+
+			for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
+			{
+
+				//					aMat[Pt2di(aPRX.x,0)].SetCostFinal(finalCost[aPRX.x]);
+				//					tCost & aCF = aMat[aPRX].CostFinal();
+				//					aCF /= mNbDir;
+
+				aMat[aPRX].SetCostInit(finalCost[aPRX.x]/mNbDir);
+
+				//
+				tCost aCost = aMat[aPRX].GetCostInit();
+
+				if (aCost<aCostMin)
+				{
+					aCostMin = aCost;
+					aPRXMin = aPRX;
+				}
+			}
+
+			if(mHasMaskAuto)
+			{
+				// CUDA_DEFCOR Officiel
+				IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)] /= mNbDir;
+				tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
+				bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
+				aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
 
 
+				int aCorI = CostI2CorExport(aCostMin);
+				if(!mLTCur->IsInMasq(aPTer))
+				{
+					aCorI = 0;
+				}
 
-#ifdef SAVEPLY
-    bool deZoom = mEtape.EtapeMEC().DeZoom() == 128;
-    FILE * aFP = NULL;
-    bool aBin= true;
-    if(deZoom)
-    {
+				if(aImCor.Im2D<U_INT1,INT>::Inside(aPTer))
+					aImCor.SetI(aPTer,aCorI);
 
-        //printf("SAVEEEEEEEEEEEE PLY\n");
+			}
 
-        int random_file = rand()%100;
-
-
-        //int Number = 123;       // number to be converted to a string
-
-        string Result;          // string which will contain the result
-
-        ostringstream convert;   // stream used for the conversion
-
-        convert << random_file;      // insert the textual representation of 'Number' in the characters in the stream
-
-        Result = convert.str(); // set 'Result' to the contents of the stream
-
-        string aNameOut = "defCor_" + Result + ".ply";
-
-        string mode = aBin ? "wb" : "w";
-        aFP = FopenNN(aNameOut,mode,"MergePly");
-
-        //Header
-        fprintf(aFP,"ply\n");
-        string aBinSpec = MSBF_PROCESSOR() ? "binary_big_endian":"binary_little_endian" ;
-
-        fprintf(aFP,"format %s 1.0\n",aBin?aBinSpec.c_str():"ascii");
-
-        fprintf(aFP,"comment author: Gerald\n");
-        fprintf(aFP,"comment object: Nappe\n");
-
-        //fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y*3);
-        fprintf(aFP,"element vertex %d\n", mSz.x*mSz.y);
-        fprintf(aFP,"property float x\n");
-        fprintf(aFP,"property float y\n");
-        fprintf(aFP,"property float z\n");
-
-        fprintf(aFP,"property uchar red\n");
-        fprintf(aFP,"property uchar green\n");
-        fprintf(aFP,"property uchar blue\n");
-
-        fprintf(aFP,"element face %d\n",0);
-        fprintf(aFP,"property list uchar int vertex_indices\n");
-        fprintf(aFP,"end_header\n");
-    }
+			mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
 
 #endif
 
-    //////////////////////////////////////////////////////////////////////
+		}
+	}
 
-    {
-        Pt2di aPTer;
+#ifdef CUDA_ENABLED
+	GpGpuTools::Nvtx_RangePop();
+#endif
 
-        if(mHasMaskAuto)
-        {
-            mMaskCalcDone = true;
-            mMaskCalc = Im2D_Bits<1>(mSz.x,mSz.y);
-        }
+#ifdef CUDA_ENABLED
+		GpGpuTools::NvtxR_Push("Comble Trou",0xFF883300);
 
-        TIm2DBits<1>    aTMask(mMaskCalc);
-
-        for (aPTer.y=0 ; aPTer.y<mSz.y ; aPTer.y++)
-        {
-            for (aPTer.x=0 ; aPTer.x<mSz.x ; aPTer.x++)
-            {
-                tCGBV2_tMatrCelPDyn &  aMat = mMatrCel[aPTer];
-                const Box2di &  aBox = aMat.Box();
-                Pt2di aPRX;
-                Pt2di aPRXMin;
-                tCost   aCostMin = tCost(1e9);
-               // tCost   agreMin  = 0;
-                //for (aPRX.y=aBox._p0.y ;aPRX.y<aBox._p1.y; aPRX.y++)
-                {
-                    for (aPRX.x=aBox._p0.x ;aPRX.x<aBox._p1.x; aPRX.x++)
-                    {
-                        tCost aCost = aMat[aPRX].GetCostInit();
-                        //agreMin += aCost;
-                        if (aCost<aCostMin)
-                        {
-
-                            aCostMin = aCost;
-                            aPRXMin = aPRX;
-                        }
-                    }
-                }
-
-                #ifdef CUDA_ENABLED
-                if(mHasMaskAuto)
-                {
-                    /* CUDA_DEFCOR Officiel*/
-
-                    tCost defCOf = IGpuOpt._FinalDefCor[make_uint2(aPTer.x,aPTer.y)];
-                    bool NoVal   = defCOf <  aCostMin; // verifier que je n'ajoute pas 2 fois cost init def cor!!!!!
-                    aTMask.oset(aPTer,(!NoVal)  && ( mLTCur->IsInMasq(aPTer)));
-
-
-                    int aCorI = CostI2CorExport(aCostMin);
-                    if(!mLTCur->IsInMasq(aPTer))
-                    {
-                        aCorI = 0;
-                    }
-
-                    if(aImCor.Im2D<U_INT1,INT>::Inside(aPTer))
-                        aImCor.SetI(aPTer,aCorI);
-
-                }
-                #endif
-
-                mDataImRes[0][aPTer.y][aPTer.x] = aPRXMin.x;
-
-            }
-        }
-
-        /* officiel COMBLE TROU */
+		/* officiel COMBLE TROU */
         if (mHasMaskAuto)
             CombleTrouPrgDyn(aModul,mMaskCalc,mLTCur->ImMasqTer(),mImRes[0]);
 
-/*
-        Rect zone(0,0,mSz.x,mSz.y);
-        uint2   pTer;
-        uint    maxITSPI = 64;
 
-        for (pTer.y=0 ; pTer.y<(uint)mSz.y ; pTer.y++)
-        {
-            for (pTer.x=0 ; pTer.x<(uint)mSz.x ; pTer.x++)
-            {
-
-                int2 curPT          = make_int2(pTer);
-
-                uint minCOR = 10000;
-
-                if(!aTMask.getOK(Pt2di(pTer.x,pTer.y)))
-                {
-                    int zMin    = 1e9;
-                    bool findZ  = false;
-
-                    ushort  iteSpi   = 1;
-                    int zMax    = 0;
-                    int zMoyen  = 0;
-                    int pond    = 0;
-
-                    while((!findZ || iteSpi < maxITSPI) && (iteSpi < maxITSPI) )
-                    {
-                        bool pair   = (iteSpi % 2) == 0;
-                        int vec     = (float)iteSpi/2.f + 0.5f;
-                        int sign    = (vec % 2) == 0 ? 1 : -1;
-                        int2 tr     = make_int2(sign * pair,sign * !pair);
-
-                        for (int i = 0; i < vec; ++i,curPT += tr)
-                        {
-                            if(zone.inside(curPT) && IGpuOpt._FinalDefCor[make_uint2(curPT)] >= ((float)minCOR*2.0f))
-                            {
-                                zMin = min(zMin,mDataImRes[0][curPT.y][curPT.x]);
-                                zMax = max(zMax,mDataImRes[0][curPT.y][curPT.x]);
-                                zMoyen += mDataImRes[0][curPT.y][curPT.x];
-                                pond++;
-
-                                if(!findZ)
-                                    findZ  = true;
-                            }
-                        }
-
-                        iteSpi++;
-                    }
-                    //mDataImRes[0][pTer.y][pTer.x] = zMin;
-                    //IGpuOpt._FinalDefCor[pTer] = 30000;
-                    if(findZ) /// TODO!!!! : costinit a defcor si minimum !!!!
-                        mDataImRes[0][pTer.y][pTer.x] = zMoyen/pond;
-
-                }
-
-#ifdef SAVEPLY
-
-        //uint2 pTer;
-
-        if(deZoom)
-        {
-            Pt3dr aP(float(pTer.x),float(pTer.y),float(mDataImRes[0][pTer.y][pTer.x]));
-            //Pt3dr aPMax(float(pTer.x),float(pTer.y),float(aBox._p1.x));
-            //Pt3dr aPMin(float(pTer.x),float(pTer.y),float(aBox._p0.x));
-            Pt3di aW(255,255,255);
-            Pt3di aR(255,0,0);
-            Pt3di aG(0,255,0);
-            Pt3di aB(0,0,255);
-
-            if (aBin)
-            {
-                //writePoint(aFP, aP, cI > clamp ? Pt3di(255,(float)255.f*(cI-clamp)/(10000-clamp),0) : aG);
-                //writePoint(aFP, aP, Pt3di(255,(float)255.f*(finalDefCor/10000 ),0));
-
-                //writePoint(aFP, aP, finalDefCor == 0 ? aG : aR);
-
-                float colorll = (float)256 - (float)256.f*(finalDefCor)/(qualiMAx);
-
-                writePoint(aFP, aP, finalDefCor > minCOR  ? Pt3di(256 - colorll,colorll,0) : aB);
-
-
-                //writePoint(aFP, aP, finalDefCor > 10000 ? finalDefCor -  : aR);
-                //                    writePoint(aFP, aPMax, aR);
-                //                    writePoint(aFP, aPMin, aG);
-            }
-            else
-                fprintf(aFP,"%.3f %.3f %.3f %d %d %d\n",aP.x,aP.y,aP.z,aW.x,aW.y,aW.z);
-        }
-#endif
-            }
-
-        }
-*/
-
-    }
-//nvtxRangePop();
-
-    ////////////////////////////////////
-    ///
-    ///CLOSE PLY...
-#ifdef SAVEPLY
-    if(deZoom && aFP !=NULL)
-        ElFclose(aFP);
+		GpGpuTools::Nvtx_RangePop();
 #endif
 
 //    if (0)

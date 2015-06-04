@@ -95,7 +95,7 @@ public slots:
     void onSaisieButtonPressed(int, bool normalize);
     void _adjustSize(int);
 
-    void onRectanglePositionChanged(QVector <QPointF>);
+    void onRectanglePositionChanged(QVector <QPointF> pointsTerrain);
     void onSaisieQtWindowClosed();
 
     void setShowDialog(int state);
@@ -118,7 +118,10 @@ protected:
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent* event);
 
-    int          id_unique;
+    void checkGeoref(QString aNameFile);
+
+    cFileOriMnt  _m_FileOriMnt;
+
     string       argv_recup;
 
     QToolBox*    toolBox;
@@ -140,6 +143,7 @@ protected:
     bool                _showDialog; //do we show "Job done" at the end of process
 
     bool                _bMaltGeomImg;
+    const QVector<QPointF> transfoTerrain(QVector<QPointF> res);
 };
 
 list<string> listPossibleValues(const cMMSpecArg & anArg);

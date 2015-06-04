@@ -323,7 +323,7 @@ Data_TGA_File::Data_TGA_File(const char * name)
                  
             default :  elise_fatal_error
                         (
-                          "unknown image type fied in TGA file",
+                          "unknown image type field in TGA file",
                               __FILE__,__LINE__
                         );
      }

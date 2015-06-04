@@ -4,6 +4,7 @@
 #include <helper_functions.h>
 #include <helper_math.h>
 
+
 #ifdef __GNUC__
 #define SUPPRESS_NOT_USED_WARN __attribute__ ((unused))
 #else
@@ -90,26 +91,46 @@ struct Rect
 		pt1 = make_int2(p1x,p1y);
     }
 
-    __device__ __host__ Rect(const Rect& rect)
+	__device__ __host__
+	///
+	/// \brief Rect operateur de copie
+	/// \param rect rectangle à copier
+	///
+	Rect(const Rect& rect)
     {
         pt0 = rect.pt0;
         pt1 = rect.pt1;
     }
 
     /// \brief Renvoie la dimension du rectangle
-	uint2 dimension()
+	const uint2 dimension()  const
 	{
         return make_uint2(abs(pt1-pt0));
     }
 
+	///
+	/// \brief operator ==
+	/// \param other rectangle à comparer
+	/// \return vraie si le rectangle est identique
+	///
     bool operator==(const Rect &other) const {
         return ( this->pt0.x == other.pt0.x && this->pt0.y == other.pt0.y && this->pt1.x == other.pt1.x && this->pt1.y == other.pt1.y);
     }
 
+	///
+	/// \brief operator !=
+	/// \param other rectangle à comparer
+	/// \return vraie si le rectangle est différent
+	///
     bool operator!=(const Rect &other) const {
         return !(*this == other);
     }
 
+	///
+	/// \brief erode Erode le rectangle par le paramètre a
+	/// \param a
+	/// \return
+	///
     Rect erode(int a)
     {
         pt0 = pt0 + a;
@@ -118,6 +139,11 @@ struct Rect
         return *this;
     }
 
+	///
+	/// \brief SetMaxMin si le point de coordonnées x y est en dehors du rectangle, le rectangle est ajusté pour contenir ce point
+	/// \param x
+	/// \param y
+	///
     void SetMaxMin(int x, int y)
     {
 
@@ -128,11 +154,21 @@ struct Rect
         if (pt1.y < y) pt1.y = y;
     }
 
+
+	///
+	/// \brief inside Vérifie si le point pt est à l'intérieure
+	/// \param pt
+	/// \return
+	///
     bool inside(int2 pt)
     {
         return (pt.x>= pt0.x) && (pt.x < pt1.x ) && (pt.y>= pt0.y) && (pt.y < pt1.y);
     }
 
+	///
+	/// \brief si le rectangle rect est en dehors du rectangle, le rectangle est ajusté pour contenir ce rectangle
+	/// \param rect
+	///
     void SetMaxMin(Rect rect)
     {
 
@@ -143,6 +179,11 @@ struct Rect
         if (pt1.y < rect.pt1.y) pt1.y = rect.pt1.y;
     }
 
+
+	///
+	/// \brief SetMaxMinInc si le rectangle rect + 1 est en dehors du rectangle, le rectangle est ajusté pour contenir ce rectangle
+	/// \param rect
+	///
     void SetMaxMinInc(Rect rect)
     {
 
@@ -155,12 +196,21 @@ struct Rect
         if (pt1.y < rect.pt1.y) pt1.y = rect.pt1.y;
     }
 
+	///
+	/// \brief area
+	/// \return la surface du rectangle
+	///
     uint area()
     {
         uint2 dim =  dimension();
         return dim.x * dim.y;
     }
 
+	///
+	/// \brief operator =
+	/// \param copy
+	/// \return
+	///
     Rect& operator=(const Rect &copy)
     {
 
@@ -170,14 +220,15 @@ struct Rect
         return *this;
     }
 
-#ifdef __cplusplus
-
+	__device__ __host__
+	///
+	/// \brief out Affichage console de membres du rectangle
+	///
 	void out()
 	{
-        std::cout << "[(" << pt0.x << "," <<  pt0.y << ")" << "(" << pt1.x << "," <<  pt1.y << ")] ";
+		printf("[(%d,%d)(%d,%d)]",pt0.x ,pt0.y,pt1.x,pt1.y);
 	}
 
-#endif
 };
 
 static int iDivUp(int a, int b)
@@ -194,6 +245,157 @@ SUPPRESS_NOT_USED_WARN static int iDivUp32(uint a)
     //return (a % b != 0) ? (a / b + 1) : (a / b);
 }
 
+template<int val>
+int __nBitRotation()
+{
+	printf("ERROR __nBitRotation no define for %d\n",val);
+	return 0;
+}
+
+#define __div_mult(val,rot)												\
+template<>																\
+inline int __nBitRotation<val>()										\
+{																		\
+	return rot;															\
+}																		\
+template<typename T>													\
+struct Bar<val, T>														\
+{																		\
+	inline __device__ __host__											\
+	T __opDiv( T const& a) const										\
+	{																	\
+		return  a >> rot ;												\
+	}																	\
+	inline __device__ __host__											\
+	T __opMult( T const& a) const										\
+	{																	\
+		return  a << rot ;												\
+	}																	\
+	inline __device__ __host__											\
+	T __opMult2( T const& a) const										\
+	{																	\
+	   T tmp;															\
+	   tmp.x = a.x >> rot;											\
+	   tmp.y = a.y >> rot;											\
+	   return  tmp ;													\
+	}																	\
+	inline __device__ __host__											\
+	T _iDivUp( T const& a) const										\
+	{																	\
+		const T div = __opDiv(a);										\
+		return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);		\
+	}																	\
+	inline __device__ __host__											\
+	T _modulo( T const& a) const										\
+	{																	\
+		const T div = __opDiv(a);										\
+		return a - __opMult(div);										\
+	}																	\
+};
+
+///
+/// \cond
+///
+template<int val, typename T>
+struct Bar
+{
+ inline __device__ __host__
+ T __opDiv( T const& a) const
+ {
+	return a/val ;
+ }
+ inline __device__ __host__
+ T __opMult( T const& a) const
+ {
+	return  a*val ;
+ }
+
+ inline __device__ __host__
+ T __opMult2( T const& a) const
+ {
+	T tmp;
+	tmp.x = val*a.x;
+	tmp.y = val*a.y;
+	return  tmp ;
+ }
+
+ inline __device__ __host__
+ T _iDivUp( T const& a) const
+ {
+	 const T div = __opDiv(a);
+	 return ((a - (__opMult(div))) != 0) ? (div + 1) : (div);
+ }
+ inline __device__ __host__
+ T _modulo( T const& a) const
+ {
+	 const T div = __opDiv(a);
+	 return a - __opMult(div);
+ }
+};
+/// \endcond
+
+
+__div_mult(1,0)
+__div_mult(2,1)
+__div_mult(4,2)
+__div_mult(8,3)
+__div_mult(16,4)
+__div_mult(32,5)
+__div_mult(64,6)
+__div_mult(128,7)
+__div_mult(256,8)
+__div_mult(512,9)
+__div_mult(1024,10)
+
+namespace sgpu
+{
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __div(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b.__opDiv(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __mult(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b.__opMult(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __mult2(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b.__opMult2(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __iDivUp(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b._iDivUp(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __mod(T const& a)
+	{
+		const Bar<fraction, T> b;
+		return b._modulo(a);
+	}
+
+	template<int fraction, typename T>
+	inline __device__ __host__
+	T __multipleSup(T const& a)
+	{
+		return sgpu::__mult<fraction>(sgpu::__iDivUp<fraction>(a));
+	}
+}
 
 SUPPRESS_NOT_USED_WARN static uint2 iDivUp(uint2 a, uint b)
 {
@@ -247,7 +449,7 @@ inline __host__ __device__ uint2 operator/(uint2 a, int b)
 
 inline __host__ __device__ int2 operator*(int a, ushort2 b)
 {
-    return a * make_int2(b);
+	return a * make_int2(b);
 }
 
 inline __host__ __device__ ushort2 operator*(ushort2 a, int b )
@@ -290,9 +492,25 @@ inline __host__ __device__ int2 operator+(int2 a, uint2 b)
 	return make_int2(a.x + b.x, a.y + b.y);
 }
 
+inline __host__ __device__ uint2 operator+(uint2 a, int2 b)
+{
+    return make_uint2((int)a.x + b.x,(int)a.y + b.y);
+}
+
 inline __host__ __device__ uint2 operator+(uint2 a, ushort2 b)
 {
     return make_uint2(a.x + b.x, a.y + b.y);
+}
+
+
+inline __host__ __device__ int2 operator+(int2 a, short2 b)
+{
+    return make_int2(a.x + b.x, a.y + b.y);
+}
+
+inline __host__ __device__ int2 operator+(int2 a, ushort2 b)
+{
+    return make_int2(a.x + b.x, a.y + b.y);
 }
 
 inline __host__ __device__ uint2 operator+(uint2 a, short2 b)
@@ -303,6 +521,16 @@ inline __host__ __device__ uint2 operator+(uint2 a, short2 b)
 inline __host__ __device__ ushort2 operator+(ushort2 a, int b)
 {
     return make_ushort2(a.x + b, a.y + b);
+}
+
+inline __host__ __device__ float2 operator+(float2 a, uint2 b)
+{
+    return make_float2(a.x + (float)b.x, a.y + (float)b.y);
+}
+
+inline __host__ __device__ float2 operator+(float2 a, int2 b)
+{
+    return make_float2(a.x + (float)b.x, a.y + (float)b.y);
 }
 
 inline __host__ __device__ uint2 make_uint2(dim3 a)
@@ -319,6 +547,18 @@ inline __host__ __device__ short2 make_short2(uint3 a)
 {
 	return make_short2((short)a.x,(short)a.y);
 }
+
+inline __host__ __device__ short2 make_short2(float a)
+{
+    return make_short2((short)a,(short)a);
+}
+
+
+inline __host__ __device__ ushort2 make_ushort2(float a)
+{
+    return make_ushort2((ushort)a,(ushort)a);
+}
+
 
 inline __host__ __device__ int2 operator-(const uint3 a, uint2 b)
 {
@@ -346,6 +586,10 @@ inline __host__ __device__ uint2 operator-(uint2 a, int2 b)
     return make_uint2(a.x - b.x, a.y - b.y);
 }
 
+inline __host__ __device__ uint2 operator-(const uint2 &a, ushort2 b)
+{
+	return make_uint2(a.x - b.x, a.y - b.y);
+}
 
 inline __host__ __device__ short2 operator+(short2 a, uint2 b)
 {
@@ -484,6 +728,11 @@ inline __host__ __device__ bool aI(int2 a, int2 b)
 	return ((a.x < b.x) && (a.y < b.y));
 }
 
+inline __host__ __device__ bool aI(int2 a, uint2 b)
+{
+	return ((a.x < (int)b.x) && (a.y < (int)b.y));
+}
+
 inline __host__ __device__ bool aIE(int2 a, int2 b)
 {
     return ((a.x <= b.x) && (a.y <= b.y));
@@ -515,5 +764,63 @@ inline __host__ __device__ uint to1D( uint3 c2D, uint3 dim)
 {
     return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
 }
+
+inline __host__ __device__ uint to1D( uint3 c2D, uint2 dim)
+{
+    return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( int3 c2D, uint2 dim)
+{
+    return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
+}
+
+
+inline __host__ __device__ uint to1D( int3 c2D, uint3 dim)
+{
+    return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( uint3 c2D, int2 dim)
+{
+    return (dim.y * c2D.z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( uint2 c2D, uint z, uint2 dim)
+{
+    return (dim.y * z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( uint2 c2D, ushort z, uint2 dim)
+{
+    return (dim.y * z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( int2 c2D, ushort z, uint2 dim)
+{
+    return (dim.y * z + c2D.y) * dim.x + c2D.x;
+}
+
+inline __host__ __device__ uint to1D( int x, int y, uint2 dim)
+{
+    return y * dim.x + x;
+}
+
+inline __host__ __device__ float2 f2X( float x)
+{
+    return make_float2(x,0);
+}
+
+inline __host__ __device__ uint2 ui2X( int x)
+{
+    return make_uint2((uint)x,0);
+}
+
+inline __host__ __device__ int2 i2X( int x)
+{
+    return make_int2((int)x,0);
+}
+
+
 
 

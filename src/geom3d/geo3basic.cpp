@@ -264,7 +264,9 @@ cElPlan3D RobustePlan3D
           (
              const std::vector<Pt3dr> & aVPts,
              const std::vector<double> * aVPondInit,
-             double anEffort
+             double anEffort,
+             double aRatioTirage ,
+             int    aNbStepLin
           )
 {
     if (aVPts.size() < 3)
@@ -274,7 +276,7 @@ cElPlan3D RobustePlan3D
     }
 
 
-    int aNbTirage = sqrt(anEffort);
+    int aNbTirage = sqrt(anEffort*aRatioTirage);
     int aNbPTest = ElMin(int(aVPts.size()),round_up(anEffort/aNbTirage));
     std::vector<int> aIndPts; GetNRandParmiQ(aIndPts,aNbPTest,aVPts.size());
 
@@ -313,7 +315,7 @@ cElPlan3D RobustePlan3D
     
     double aDistMin=1e-10; // Juste anti plantage au cas ou seulement 3 pt
     double aDistMoy = ElMax(aDistMin,aBestDist);
-    for (int aTime=0  ; aTime <7 ; aTime++)
+    for (int aTime=0  ; aTime < aNbStepLin ; aTime++)
     {
         // std::cout << "RRRpplDMoy " << aDistMoy << "\n";
         std::vector<double> aPds;

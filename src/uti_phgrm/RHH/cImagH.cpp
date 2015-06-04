@@ -115,7 +115,8 @@ cXmlRHHResLnk  ComputeHomographie
   }
 
 
-  cElHomographie   aHom = cElHomographie::RobustInit(&(aRes.Qual()),aPack,aRes.Ok(),NB_RANSAC_H,90.0,1000);
+  double anEcart;
+  cElHomographie   aHom = cElHomographie::RobustInit(anEcart,&(aRes.Qual()),aPack,aRes.Ok(),NB_RANSAC_H,90.0,1000);
   int aNbPts = aPack.size();
   aRes.NbPts() = aNbPts;
 

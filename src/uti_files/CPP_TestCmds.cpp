@@ -152,6 +152,8 @@ int TestCmds_main(int argc,char ** argv)
         LArgMain()  << EAM(aDataSet,"Data set",true,"Data sets:\n\n 0=/Boudha (default)\n 1=/StreetSaintMartin\n 2=/Vincennes\n 3=/MiniCuxha\n")
     );
 
+    if (MMVisualMode) return EXIT_SUCCESS;
+
     if(CheckForMM3D())
     {
         MkFile = "makefile";

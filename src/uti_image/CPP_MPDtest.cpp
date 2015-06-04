@@ -56,15 +56,6 @@ void f()
 
 
 
-
-#if (0)
-#endif
-
-
-
-
-
-
 // To put in bench file
 
 void Bench_Rank()
@@ -557,27 +548,255 @@ void TestNtt(const std::string &aName)
 
 
 
-extern void getPastisGrayscaleFilename(const std::string & aParamDir, const string &i_baseName, int i_resolution, string &o_grayscaleFilename );
 extern void getKeypointFilename( const string &i_basename, int i_resolution, string &o_keypointsName );
+
+
+
+int Jeremy_main( int argc, char **argv )
+{
+    if ( argc<2 ) return EXIT_FAILURE;
+
+    Tiff_Im tiff(argv[1]);
+    cout << '[' << argv[1] << "]: sz = " << tiff.sz() << 'x' << tiff.nb_chan() << ' ' << eToString(tiff.type_el()) << endl;
+    Im2DGen image = tiff.ReadIm();
+    cout << '[' << argv[1] << "]: sz = " << image.sz() << ' ' << eToString(image.TypeEl()) << endl;
+
+    ELISE_COPY
+    (
+        image.all_pts(),
+        Virgule( image.in(), image.in(), image.in() ),
+        Tiff_Im(
+            "toto.tif",
+            image.sz(),
+            image.TypeEl(),
+            Tiff_Im::No_Compr,
+            Tiff_Im::RGB,
+            ArgOpTiffMDP(argv[1])/*Tiff_Im::Empty_ARG*/ ).out()
+    );
+
+    return EXIT_SUCCESS;
+}
+
+
+/*
+void LoadTrScaleRotate
+     (
+          const std::string & aNameIn,
+          const std::string & aNameOut,
+          const Pt2di & aP1Int,
+          const Pt2di & aP2Int,
+          const Pt2di & aP1Out,
+          double      aScale,  // Par ex 2 pour image 2 fois + petite
+          int         aRot
+     )
+{
+     Tiff_Im aTifIn(aNameIn.c_str());
+     Tiff_Im aTifOut(aNameOut.c_str());
+
+     int aNbCh = aTifIn.nb_chan();
+     ELISE_ASSERT(aTifOut.nb_chan()==aNbCh,"LoadTrScaleRotate nb channel diff");
+
+
+     Pt2dr aVIn  = Pt2dr(aP2Int-aP1Int);
+     Pt2di aSzOutInit = round_ni(aVIn / aScale);
+
+     std::vector<Im2DGen *>   aVOutInit = aTifOut.VecOfIm(aSzOutInit);
+     
+     ELISE_COPY
+     (
+          aVOutInit[0]->all_pts(),
+          StdFoncChScale(aTifIn.in_proj(),Pt2dr(aP1Int),Pt2dr(aScale,aScale)),
+          StdOut(aVOutInit)
+     );
+
+     std::vector<Im2DGen *>   aVOutRotate;
+     for (int aK=0 ; aK<int(aVOutInit.size()) ; aK++)
+          aVOutRotate.push_back(aVOutInit[aK]->ImRotate(aRot));
+
+     Pt2di aSzOutRotat = aVOutRotate[0]->sz();
+
+
+     ELISE_COPY
+     (
+         rectangle(aP1Out,aP1Out+aSzOutRotat),
+         trans(StdInput(aVOutRotate), -aP1Out),
+         aTifOut.out()
+     );
+}
+*/
+
+extern void TestOriBundle();
+extern void TestSVD3x3();
+extern void Bench_NewOri();
+
+void BenchSort3()
+{
+   for (int aK=0 ; aK<1000000 ; aK++)
+   {
+       int Tab[3];
+       for (int aK=0 ; aK<3 ; aK++)
+           Tab[aK] = NRrandom3(4);
+
+       int aRnk[3]; 
+       Rank3(aRnk,Tab[0],Tab[1],Tab[2]);
+       int Sort[3];
+      
+       for (int aK=0 ; aK<3 ; aK++)
+           Sort[aRnk[aK]] = Tab[aK];
+       ELISE_ASSERT(Sort[0] <= Sort[1],"BenchSort3");
+       ELISE_ASSERT(Sort[1] <= Sort[2],"BenchSort3");
+
+       cTplTriplet<int> aTT(Tab[0],Tab[1],Tab[2]);
+       ELISE_ASSERT(aTT.mV0 <= aTT.mV1,"BenchSort3");
+       ELISE_ASSERT(aTT.mV1 <= aTT.mV2,"BenchSort3");
+
+       cTplTripletByRef<int> aPtrTT(Tab[0],Tab[1],Tab[2]);
+       ELISE_ASSERT(*aPtrTT.mV0 <= *aPtrTT.mV1,"BenchSort3");
+       ELISE_ASSERT(*aPtrTT.mV1 <= *aPtrTT.mV2,"BenchSort3");
+   }
+   std::cout << "DONE BenchSort3\n";
+}
+
+void PartitionRenato(int argc,char** argv)
+{
+    std::string aName;
+    double  aPropSzW=0.1,aSeuil=75;
+    double aPropExag = 0.1;
+    int aNbIter = 3;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aName,"Name Input"),
+        LArgMain()  <<  EAM(aPropSzW,"PropSzW",true,"Prop Size of W, def =0.1")
+                     <<  EAM(aSeuil,"Seuil",true,"Threshold beetween Black & White, Def=75")
+    );
+    
+
+    Tiff_Im aTIn = Tiff_Im::UnivConvStd(aName);
+    Pt2di aSz = aTIn.sz();
+    int aSzW = round_ni((euclid(aSz)*aPropSzW) / sqrt(aNbIter));
+    Im2D_REAL4 anIm0(aSz.x,aSz.y);
+    Im2D_REAL4 anIm1(aSz.x,aSz.y);
+    Im2D_U_INT1 aImInside(aSz.x,aSz.y,1);
+
+    ELISE_COPY(anIm0.all_pts(),255-aTIn.in(),anIm0.out());
+
+    int aNbF = 3;
+    for (int aKF=0 ; aKF<aNbF ; aKF++)
+    {
+        Im2D_REAL4 anImFond(aSz.x,aSz.y);
+        Fonc_Num aFIn = anIm0.in(0);
+        for (int aK=0 ; aK<aNbIter ; aK++)
+           aFIn = (rect_som(aFIn,aSzW)*aImInside.in(0)) / Max(1.0,rect_som(aImInside.in(0),aSzW));
+
+       ELISE_COPY(anImFond.all_pts(),aFIn,anImFond.out());
+       if (aKF == (aNbF-1))
+       {
+              Fonc_Num aF = anIm0.in()-anImFond.in();
+              aF = aF / aSeuil;
+              aF = (aF -0.1) / (1-2*aPropExag);
+              aF = Max(0.0,Min(1.0,aF));
+              ELISE_COPY(anIm1.all_pts(),255.0 *(1-aF),anIm1.out());
+       }
+       else
+       {
+            ELISE_COPY
+            (
+                 aImInside.all_pts(),
+                 anIm0.in() < anImFond.in()+aSeuil,
+                 aImInside.out()
+            );
+       }
+       
+    }
+    
+
+
+    Tiff_Im::Create8BFromFonc(std::string("Bin-")+StdPrefix(aName)+".tif",aTIn.sz(),anIm1.in());
+}
+
+
+
 
 
 int MPDtest_main (int argc,char** argv)
 {
 /*
+cXml_Ori2Im aXmlOri0;
+MakeFileXML(aXmlOri0,aName);
+*/
+std::string aName = "Test.xml";
+cXml_Ori2Im  aXmlOri = StdGetFromSI(aName,Xml_Ori2Im);
+
+
+/*
+   std::string aName = "/home/marc/TMP/EPI/EXO1-Fontaine/Ori2ImAll/DirIm_AIMG_2470.JPG/AIMG_2472.JPG.xml";
+   cXml_Ori2Im  aXmlOri = StdGetFromSI(aName,Xml_Ori2Im);
+*/
+
+
+
+
+
+   // PartitionRenato(argc,argv);
+/*
+   B/EenchSort3();
+    Bench_NewOri();
+
+    TestSVD3x3(); 
+   std::cout << "Hello Matis\n";
+   std::string aFile = "/home/prof/Bureau/FORM-DEV-2015/Toulouse/Indent.xml";
+   aFile = "/home/prof/Bureau/FORM-DEV-2015/Toulouse/Toulouse-131010_0716-simplified.ori.xml";
+   //aFile = "/home/prof/Bureau/FORM-DEV-2015/Toulouse/Toulouse-131010_0716-00-00001_0000000.ori.xml";
+   corientation anOri = StdGetFromPCP(aFile,orientation);
+
+   std::cout << "V " << anOri.version().Val() << "\n";
+
+   corientation anOri2;
+   MakeFileXML(anOri2,"/home/prof/Bureau/FORM-DEV-2015/Toulouse/V3.xml");
+*/
+
+/*
+   std::cout << anOri.sommet().easting() << "\n";
+   anOri.sommet().easting() = 0;
+   MakeFileXML(anOri,"/home/prof/Bureau/FORM-DEV-2015/Toulouse/V2.xml");
+*/
+   
+
+/*
+   
+    corientation anOri =  StdGetFromPCP("/home/prof/Bureau/FORM-DEV-2015/Toulouse/Simple.xml",orientation);
+
+   std::cout << "V = " << anOri.version().Val() << "\n";
+    cXML_TestImportOri aXIM =  StdGetFromSI("/home/mpd/TMP/Test.xml",XML_TestImportOri);
+    std::cout << "x " << aXIM.x() << "\n";
+    aXIM.Tree().mTree->StdShow(" ");
+    MakeFileXML(aXIM,"/home/mpd/TMP/Test2.xml");
+*/
+
+
+/*
+    cMasqBin3D::FromSaisieMasq3d("/home/marc/TMP/EPI/EXO1-Fontaine/AperiCloud_All_selectionInfo.xml");
+
+
+     LoadTrScaleRotate
+     (
+          "/media/data2/Jeux-Test/img_0762.cr2_Ch3.tif",
+          "/media/data2/Jeux-Test/img_0762.cr2_Ch3_Scaled.tif",
+          Pt2di(1500,1500),
+          Pt2di(2100,2400),
+          Pt2di(500,500),
+          3.0,
+          1
+     );
+*/
+          
+/*
+   TestOriBundle();
+    Jeremy_main(argc,argv);
    cCalibrationInterneRadiale aXmlDr;
    aXmlDr.CDist() = Pt2dr(3,4);
 */
-
-    cJPPTest aJPP;
-    aJPP.Name() =  "Jean-Pierre";
-    aJPP.LN().push_back(1);
-    aJPP.LN().push_back(2);
-    MakeFileXML(aJPP,"Test.xml");
-
-    
-    cJPPTest aJP2 = StdGetFromPCP("Test.xml",JPPTest);
-    std::cout << "NAME " << aJP2.Name() << "\n";
-    
 
 
 /*
@@ -605,12 +824,13 @@ int MPDtest_main (int argc,char** argv)
 #if (ELISE_QT_VERSION >= 4)
 
 #endif
+    cElWarning::ShowWarns("MPDTest.txt");
   
    return 0;
 
 }
 
-auto_ptr<char> toto;
+std_unique_ptr<char> toto;
 
 #endif
 

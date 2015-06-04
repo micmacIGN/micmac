@@ -910,12 +910,6 @@ void cAppliApero::BasculePoints
    delete aPtrBNL;
 }
 
-extern    cElPlan3D RobustePlan3D
-          (
-             const std::vector<Pt3dr> & aVPts,
-             const std::vector<double> * aVPond,
-             double anEffort
-          );
 
      //---------------------------------------------
      //     BasculeLiaison
@@ -1251,11 +1245,15 @@ Pt2dr  cAppliApero::GetVecHor(const cHorFOP &  aH)
   return Pt2dr(aP2.x-aP1.x,aP2.y-aP1.y);
 }
 
+std::string AddDirIfRequired(const std::string & aDir,const std::string & aFile);
+
+
 cSetOfMesureAppuisFlottants cAppliApero::StdGetMAF(const std::string & aName)
 {
    return StdGetObjFromFile<cSetOfMesureAppuisFlottants>
           (
-              mDC+aName,
+              AddDirIfRequired(mDC,aName),
+              //mDC+aName,
               StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
               "SetOfMesureAppuisFlottants",
               "SetOfMesureAppuisFlottants"
@@ -1267,7 +1265,8 @@ cMesureAppuiFlottant1Im cAppliApero::StdGetOneMAF(const std::string & aName)
 {
    return StdGetObjFromFile<cMesureAppuiFlottant1Im>
           (
-              mDC+aName,
+              // mDC+aName,
+              AddDirIfRequired(mDC,aName),
               StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
               "MesureAppuiFlottant1Im",
               "MesureAppuiFlottant1Im"

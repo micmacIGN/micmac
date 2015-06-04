@@ -83,7 +83,7 @@ Tiff_Im gray_file_red_centred(Tiff_Im aTif,const std::string & aName)
 }
 
 
- // Handle "only" a dimention max of 30 for bitmaps.
+ // Handle "only" a dimension max of 30 for bitmaps.
 
 INT PTS_00000000000000[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
@@ -1366,7 +1366,7 @@ Im2DGen*   Im2D<Type,TyBase>::ImRotate(int aIndexRot) const
          aRot = aRot * Pt2di(0,1);
     }
 
-    Pt2di aP0(1e9,1e9),aP1(-1e9,-1e9);
+    Pt2di aP0((int)1e9,(int)1e9),aP1((int)-1e9,(int)-1e9);
     Box2di aBox(Pt2di(0,0),Pt2di(tx()-1,ty()-1));
 
     Pt2di aCoins[4];
@@ -1743,11 +1743,6 @@ void Im2D<Type,TyBase>:: ReadAndPushTif
    ELISE_COPY(aFile.all_pts(),aFile.in(),anOut);
 }
 
-template <class Type,class TyBase>
-INT Im2D<Type,TyBase>::linearDataAllocatedSize() const { return di2d()->DataGenImType<Type,TyBase>::allocatedSize(); }
-
-template <class Type,class TyBase>
-INT Im2D<Type,TyBase>::dataAllocatedSize() const { return di2d()->DataIm2DGen::allocatedSize(); }
 
 
 

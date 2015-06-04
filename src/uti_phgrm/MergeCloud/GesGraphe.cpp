@@ -83,27 +83,31 @@ void  cAppliMergeCloud::CreateGrapheConx()
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
        tMCSom * aS1 =  mVSoms[aK];
-       const cOneSolImageSec &   aSol = aS1->attr()->SolOfCostPerIm(mParam.CostPerImISOM().Val());
 
-       for 
-       (
-           std::list<std::string>::const_iterator itS=aSol.Images().begin();
-           itS !=aSol.Images().end();
-           itS++
-       )
+       const cOneSolImageSec *   aSol = aS1->attr()->SolOfCostPerIm(mParam.CostPerImISOM().Val());
+
+       if (aSol)
        {
-            tMCSom *  aS2 = SomOfName(*itS);
-            if (aS2)
-            {
-                tMCArc * anArc = mGr.arc_s1s2(*aS1,*aS2);
-                if (anArc)
+           for 
+           (
+               std::list<std::string>::const_iterator itS=aSol->Images().begin();
+               itS !=aSol->Images().end();
+               itS++
+           )
+           {
+                tMCSom *  aS2 = SomOfName(*itS);
+                if (aS2)
                 {
-                   // anArc->sym_flag_set_kth_true(mFlagCloseN);
-                   anArc->flag_set_kth_true(mFlagCloseN);
-                   aS1->attr()->AddCloseVois(aS2->attr());
+                    tMCArc * anArc = mGr.arc_s1s2(*aS1,*aS2);
+                    if (anArc)
+                    {
+                       // anArc->sym_flag_set_kth_true(mFlagCloseN);
+                       anArc->flag_set_kth_true(mFlagCloseN);
+                       aS1->attr()->AddCloseVois(aS2->attr());
+                    }
+                    // std::cout << "AAAaA  :" << anArc << "\n";
                 }
-                // std::cout << "AAAaA  :" << anArc << "\n";
-            }
+           }
        }
    }
 

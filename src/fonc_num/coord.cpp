@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -87,7 +87,7 @@ cSimpleFoncNum::cSimpleFoncNum(INT aDim)  :
 {
 }
 
-void cSimpleFoncNum::AcceptDim(INT aDim) const 
+void cSimpleFoncNum::AcceptDim(INT aDim) const
 {
    ELISE_ASSERT(aDim == mDim,"cSimpleFoncNum::AcceptDim");
 }
@@ -145,11 +145,11 @@ const Pack_Of_Pts * RLE_cSimpleFoncNum::values(const Pack_Of_Pts * aPack)
 
    for (INT aD=0 ; aD<nb ; aD++)
       mPtsIn[aD] = rle_pack->pt0()[aD];
-   
+
    for (INT aK=0 ; aK<nb ; aK++)
    {
        aValOut[aK]=  mSFN.SFN_Calc(&mPtsIn[0]);
-       mPtsIn[0] ++;   
+       mPtsIn[0] ++;
    }
    return _pack_out;
 }
@@ -220,7 +220,7 @@ class cSimpleFoncNum_NotComp : public Fonc_Num_Not_Comp
 
            virtual bool integral_fonc (bool iflux) const { return false; }
            virtual INT dimf_out() const { return 1;}
-           void VarDerNN(ElGrowingSetInd & aSet) const 
+           void VarDerNN(ElGrowingSetInd & aSet) const
            {
                ELISE_ASSERT(false,"cSimpleFoncNum_NotComp::VarDerNN");
            }
@@ -265,7 +265,7 @@ class RLE_Coord_Computed_kth : public  Fonc_Num_Comp_TPL<INT>
 {
        public :
 
-            const Pack_Of_Pts * values(const Pack_Of_Pts *); 
+            const Pack_Of_Pts * values(const Pack_Of_Pts *);
 
             RLE_Coord_Computed_kth(const Arg_Fonc_Num_Comp & arg,INT k):
                   Fonc_Num_Comp_TPL<INT>(arg,1,arg.flux()),
@@ -348,20 +348,39 @@ template <class Type>
 /*                                                    */
 /******************************************************/
 
+bool FnumCoorUseCsteVal = false;
+
 class Fonc_Coord_Not_Comp : public Fonc_Num_Not_Comp
 {
        public :
 
-            Fonc_Coord_Not_Comp(INT k) :
-                _kth (k)
+            Fonc_Coord_Not_Comp(INT k,bool HasAlwaysSameVal,double aVal) :
+                _kth (k),
+                mHASV (HasAlwaysSameVal),
+                mVal  (aVal)
             {
+            }
+            void inspect() const
+            {
+                std::cout << "INSPECT " << mHASV << " " << FnumCoorUseCsteVal << " " << mVal << " " << _kth << "\n";
+            }
+
+            virtual bool  is0() const
+            {
+                 return mHASV && FnumCoorUseCsteVal && (mVal==0);
+            }
+            virtual bool  is1() const
+            {
+                 return mHASV && FnumCoorUseCsteVal && (mVal==1);
             }
 
             virtual Fonc_Num_Computed * compute(const Arg_Fonc_Num_Comp &);
 
 
        private :
-           INT _kth;
+           INT    _kth;
+           bool   mHASV;
+           double mVal;
 
            virtual bool integral_fonc (bool iflux) const
            {
@@ -385,7 +404,7 @@ class Fonc_Coord_Not_Comp : public Fonc_Num_Not_Comp
                return _kth;
            }
 
-           virtual void show(ostream & os) const 
+           virtual void show(ostream & os) const
            {
                os << "X" << _kth;
            }
@@ -396,20 +415,20 @@ class Fonc_Coord_Not_Comp : public Fonc_Num_Not_Comp
            virtual INT CmpFormelIfSameKind(Fonc_Num_Not_Comp *);
 
 
-             
+
 
            REAL ValFonc(const PtsKD & pts) const
            {
              return  pts(_kth);
-           }     
-	   INT DegrePoly() const {return 1;}
+           }
+       INT DegrePoly() const {return 1;}
 };
 
 Fonc_Num_Computed * Fonc_Coord_Not_Comp::compute(const Arg_Fonc_Num_Comp & arg)
 {
     INT dim = arg.flux()->dim();
 
-    Tjs_El_User.ElAssert 
+    Tjs_El_User.ElAssert
     (
        _kth< dim,
        EEM0 << " fonc coordinate (FX,FY ...) incompatible with flux\n"
@@ -435,7 +454,11 @@ Fonc_Num_Computed * Fonc_Coord_Not_Comp::compute(const Arg_Fonc_Num_Comp & arg)
 
 void  Fonc_Coord_Not_Comp::compile (cElCompileFN & anEnv)
 {
-    anEnv.PutVarNum(_kth);
+// std::cout << "UuUcompile K: " << _kth << " Has "  << mHASV << " Use " << FnumCoorUseCsteVal << "\n";
+    if (mHASV && FnumCoorUseCsteVal)
+          anEnv << mVal ;
+    else
+       anEnv.PutVarNum(_kth);
 }
 
 
@@ -455,10 +478,10 @@ INT Fonc_Coord_Not_Comp::CmpFormelIfSameKind(Fonc_Num_Not_Comp * aF2)
 /*                                                    */
 /******************************************************/
 
-Fonc_Num kth_coord(INT k)
+Fonc_Num kth_coord(INT k,bool HasAlwaysSameValue,double InitialValue)
 {
     ELISE_ASSERT(k>=0,"KthCoord<0");
-    return new Fonc_Coord_Not_Comp(k);
+    return new Fonc_Coord_Not_Comp(k,HasAlwaysSameValue,InitialValue);
 }
 
 const Fonc_Num FX = kth_coord(0);
@@ -466,21 +489,19 @@ const Fonc_Num FY = kth_coord(1);
 const Fonc_Num FZ = kth_coord(2);
 
 
-/*************************************************************/
-/*                                                           */
 /*  "CONCATENATION OF COORDINATE OF FUNCTIONS"               */
 /*    That is, let f1 and f2 be two function :               */
 /*       f1 : p ->  (x1, ... ,xn1)                           */
 /*       f2 : p ->  (x'0, ... ,x'n2)                         */
 /*                                                           */
 /*     we define (f1,f2) as the function (with a n1+n2       */
-/*     dimentionnal results) as :                            */  
+/*     dimensional results) as :                            */
 /*                                                           */
 /*       (f1,f2) : p ->  (x1, ... ,xn1,x'1, ... , x'n2)      */
 /*                                                           */
 /*************************************************************/
 
-template <class Type> class CatCoord_Fonc_Compute 
+template <class Type> class CatCoord_Fonc_Compute
                         : public  Fonc_Num_Comp_TPL<Type>
 {
 
@@ -510,7 +531,7 @@ template <class Type> class CatCoord_Fonc_Compute
              CatCoord_Fonc_Compute
              (
                   const Arg_Fonc_Num_Comp & arg,
-                  Fonc_Num_Computed       * f0, 
+                  Fonc_Num_Computed       * f0,
                   Fonc_Num_Computed       * f1
              ):
                   Fonc_Num_Comp_TPL<Type>
@@ -528,7 +549,7 @@ template <class Type> class CatCoord_Fonc_Compute
              }
 
           private :
-             Fonc_Num_Computed * (_tf[2]);  
+             Fonc_Num_Computed * (_tf[2]);
 };
 
 
@@ -567,7 +588,7 @@ class CatCoord_Fonc_Num_Not_Comp : public Fonc_Num_Not_Comp
 
            virtual bool integral_fonc (bool iflux) const
            {
-                return 
+                return
                               _f0.integral_fonc(iflux)
                          &&   _f1.integral_fonc(iflux);
            }
@@ -600,18 +621,18 @@ class CatCoord_Fonc_Num_Not_Comp : public Fonc_Num_Not_Comp
                 return 0;
            }
 
-           virtual void show(ostream & os) const 
+           virtual void show(ostream & os) const
            {
               _f0.show(os);
               os << ",";
               _f1.show(os);
            }
 
-           virtual bool  is0() const 
+           virtual bool  is0() const
            {
                  return _f0.is0()&&_f1.is0();
            }
-           virtual bool  is1() const 
+           virtual bool  is1() const
            {
                  return _f0.is1()&&_f1.is1();
            }
@@ -636,13 +657,13 @@ class RLE_Inside_Comp : public  Fonc_Num_Comp_TPL<INT>
       public :
            RLE_Inside_Comp(const Arg_Fonc_Num_Comp & arg,INT * p0,INT *p1);
 
-           virtual ~RLE_Inside_Comp() 
+           virtual ~RLE_Inside_Comp()
            {
                delete _cliped;
            }
 
       private :
-           const Pack_Of_Pts * values(const Pack_Of_Pts *); 
+           const Pack_Of_Pts * values(const Pack_Of_Pts *);
 
 
 
@@ -674,7 +695,7 @@ const Pack_Of_Pts * RLE_Inside_Comp::values(const Pack_Of_Pts * pts)
      INT * v = _pack_out->_pts[0];
      INT i0 = _cliped->clip(rpts,_p0,_p1);
      INT nbc  = _cliped->nb();
-  
+
      set_cste(v,0,i0);
      set_cste(v+i0,1,nbc);
      INT i1 = i0+nbc;
@@ -683,14 +704,14 @@ const Pack_Of_Pts * RLE_Inside_Comp::values(const Pack_Of_Pts * pts)
 }
 
 
-template <class Type> class Std_Inside_Comp : 
+template <class Type> class Std_Inside_Comp :
                              public  Fonc_Num_Comp_TPL<INT>
 {
       public :
            Std_Inside_Comp(const Arg_Fonc_Num_Comp & arg,INT * p0,INT *p1);
       private :
 
-           const Pack_Of_Pts * values(const Pack_Of_Pts *); 
+           const Pack_Of_Pts * values(const Pack_Of_Pts *);
 
 
 
@@ -712,7 +733,7 @@ template <class Type> Std_Inside_Comp<Type>::Std_Inside_Comp
       convert(_p1,p1,arg.flux()->dim());
 }
 
-template <class Type> const Pack_Of_Pts * 
+template <class Type> const Pack_Of_Pts *
         Std_Inside_Comp<Type>::values(const Pack_Of_Pts * gen_pts)
 {
         const Std_Pack_Of_Pts<Type> *  pts =
@@ -726,7 +747,7 @@ template <class Type> const Pack_Of_Pts *
              pts->dim(),
              _p0,
              _p1
-              
+
         );
         _pack_out->set_nb(gen_pts->nb());
         return _pack_out;
@@ -776,7 +797,7 @@ class Inside_Not_Comp : public Fonc_Num_Not_Comp
                  ELISE_ASSERT(false,"No Val Deriv for inside");
                  return 0;
            }
-           virtual void show(ostream & os) const 
+           virtual void show(ostream & os) const
            {
                os << "inside()";
            }
@@ -794,11 +815,11 @@ Inside_Not_Comp::Inside_Not_Comp(const INT * p0,const INT * p1,INT dim)
 Fonc_Num_Computed * Inside_Not_Comp::compute (const Arg_Fonc_Num_Comp & arg)
 {
 
-      Tjs_El_User.ElAssert 
+      Tjs_El_User.ElAssert
       (
             (_dim == arg.flux()->dim()),
              EEM0 << " inside fonction : dim of object != dim of flux\n"
-                  << "    ( dim obj = " <<  _dim 
+                  << "    ( dim obj = " <<  _dim
                   << ", dim flux = " <<   arg.flux()->dim() << ")"
       );
       switch(arg.flux()->type())
@@ -845,7 +866,7 @@ Fonc_Num  Identite(INT dim)
 
 template <class Type> Fonc_Num TpleCsteNDim(const Type & aVal, int aDim)
 {
-   Fonc_Num aRes(aVal); 
+   Fonc_Num aRes(aVal);
    for (INT d = 1; d<aDim ; d++)
        aRes = Virgule(aRes,Fonc_Num(aVal));
 
@@ -858,13 +879,13 @@ Fonc_Num CsteNDim(int    aVal,INT aDim) {return TpleCsteNDim<int>(aVal,aDim);}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -874,17 +895,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -58,6 +58,8 @@ int  StatIm_main(int argc,char ** argv)
         LArgMain()      <<  EAM(aSz,"Sz",true,"Size of rectangle (Def=[1,1])")
     );
 
+    if(MMVisualMode) return EXIT_SUCCESS;
+
     Tiff_Im tiff = Tiff_Im::StdConv(Name);
 
 

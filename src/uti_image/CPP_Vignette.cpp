@@ -533,6 +533,8 @@ int  Vignette_main(int argc,char ** argv)
                         << EAM(InCal,"InCal",true,"Name of folder with vignette calibration tif file (if previously computed)", eSAM_IsDir)
                         << EAM(DoCor,"DoCor",true,"Use the computed parameters to correct images (Defaut=false)")
         );
+        if (MMVisualMode) return EXIT_SUCCESS;
+
         if(aDirOut!="Vignette/"){aDirOut=aDirOut + "/";}
         if(InCal!=""){InCal=InCal + "/";}
 

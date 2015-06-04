@@ -115,7 +115,8 @@
     <ePoseFigee>         </ePoseFigee>
     <ePoseBaseNormee>    </ePoseBaseNormee>
     <ePoseVraieBaseNormee>    </ePoseVraieBaseNormee>
-    <eCentreFige>        </eCentreFige>
+    <eCentreFige>             </eCentreFige>
+    <eAnglesFiges>            </eAnglesFiges>
 </enum>
 
 <enum Name="eTypeVerif">
@@ -236,8 +237,19 @@
 
 <RigidBlockWeighting Nb="1" Class="true" ToReference="true">
     <PondOnTr Nb="1" Type="double"> </PondOnTr>
-   <PondOnRot Nb="1" Type="double"> </PondOnRot>
+    <PondOnRot Nb="1" Type="double"> </PondOnRot>
 </RigidBlockWeighting>
+
+<GpsRelativeWeighting Nb="1" Class="true" ToReference="true">
+<!--  le sigma0 sera egal a SigmaPerSec*Time + SigmaMin,
+      le poids sera 1/ Sigma0 ^ 2
+-->
+    <SigmaPerSec  Nb="1" Type="double" >          </SigmaPerSec>
+    <SigmaMin     Nb="1" Type="double" >          </SigmaMin>
+    <MaxResidu Nb="?" Type="double">             </MaxResidu>
+</GpsRelativeWeighting>
+
+
 
 <AperoPointeStereo Nb="1" Class="true" ToReference="true">
       <P1 Nb="1" Type="Pt2dr"> </P1>
@@ -497,8 +509,14 @@
               </LayerImageToPose>
 
 
-               <LimInfBSurHPMoy Nb="?" Def="1e-2" Type="double"> </LimInfBSurHPMoy>
-               <LimSupBSurHPMoy Nb="?" Def="2e-1" Type="double"> </LimSupBSurHPMoy>
+              <LimInfBSurHPMoy Nb="?" Def="1e-2" Type="double"> </LimInfBSurHPMoy>
+              <LimSupBSurHPMoy Nb="?" Def="2e-1" Type="double"> </LimSupBSurHPMoy>
+
+              <DeclareObsRelGPS  Nb="*">
+                  <PatternSel Nb="1" Type="std::string"> </PatternSel>
+                  <Id  Nb="1"  Type="std::string"> </Id>
+              </DeclareObsRelGPS>
+
 
 	</SectionBDD_Observation>
 
@@ -874,6 +892,7 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
               <IsAperiCloud Type="bool" Nb="?" Def="false"> </IsAperiCloud>  <!-- Dans ce cas, court-circuite +sieur meca -->
+              <IsChoixImSec Type="bool" Nb="?" Def="false"> </IsChoixImSec>  <!-- Dans ce cas, court-circuite +sieur meca -->
               <FileSauvParam Nb="?" Type="std::string"> </FileSauvParam>
               <GenereErreurOnContraineCam Nb="?" Type="bool" Def="true"> </GenereErreurOnContraineCam>
 	      <!--  Juste pour fixer les ordres de grandeur dans le cas d'une aero 
@@ -1299,6 +1318,11 @@ normalises en echelle et/ou en translation -->
                            <NameFile Nb="1" Type="std::string"> </NameFile>
                      </TxtRapDetaille>
 
+                     <ObsRelGPS Nb="*">
+                          <Id Nb="1" Type="std::string"> </Id>
+                          <Pond Nb="1" RefType="GpsRelativeWeighting"> </Pond>
+                     </ObsRelGPS>
+
                  </SectionObservations>
 
 		 <SectionExport Nb="?" >
@@ -1515,6 +1539,7 @@ normalises en echelle et/ou en translation -->
 
                      <ChoixImMM Nb="?">
                           <ChoixImSec Nb="1">
+                               <FileImSel Nb="?" Type="std::string"> </FileImSel>
                                <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
                                <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>
                                <CardMaxSub Nb="?" Type="int" Def="6"> </CardMaxSub>
@@ -1545,6 +1570,8 @@ normalises en echelle et/ou en translation -->
                           </ChoixImSec>
                      </ChoixImMM>
 
+                     <ExportResiduXml Nb="?" Type="std::string"> </ExportResiduXml>
+
 
 		 </SectionExport>
 
@@ -1563,6 +1590,26 @@ normalises en echelle et/ou en translation -->
      PIFRP : 
 -->
 
+<XmlSauvExportAperoOneIm Nb="1" Class="true" ToReference="true">
+     <Name Nb="1" Type="std::string"> </Name>
+     <Residual  Nb="1" Type="double"> </Residual>
+     <PercOk Nb="1" Type="double"> </PercOk>
+     <NbPts  Nb="1" Type="int">    </NbPts>
+     <NbPtsMul  Nb="1" Type="int">    </NbPtsMul>
+</XmlSauvExportAperoOneIm>
+
+<XmlSauvExportAperoOneIter Nb="1" Class="true" ToReference="true">
+    <OneIm Nb="*" RefType="XmlSauvExportAperoOneIm"> </OneIm>
+    <AverageResidual Nb="1" Type="double">  </AverageResidual>
+    <NumIter Nb="1" Type="int"> </NumIter>
+    <NumEtape Nb="1" Type="int"> </NumEtape>
+    <EvolMax Nb="?" Type="double"> </EvolMax>
+    <EvolMoy Nb="?" Type="double"> </EvolMoy>
+</XmlSauvExportAperoOneIter>
+
+<XmlSauvExportAperoGlob Nb="1" Class="true" ToReference="true">
+    <Iters Nb="*" RefType="XmlSauvExportAperoOneIter"> </Iters>
+</XmlSauvExportAperoGlob>
 
 
 <Verbatim File=".h.cpp">

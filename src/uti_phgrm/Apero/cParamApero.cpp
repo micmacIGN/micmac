@@ -319,6 +319,8 @@ eTypeContraintePoseCamera  Str2eTypeContraintePoseCamera(const std::string & aNa
       return ePoseVraieBaseNormee;
    else if (aName=="eCentreFige")
       return eCentreFige;
+   else if (aName=="eAnglesFiges")
+      return eAnglesFiges;
   else
   {
       cout << aName << " is not a correct value for enum eTypeContraintePoseCamera\n" ;
@@ -342,6 +344,8 @@ std::string  eToString(const eTypeContraintePoseCamera & anObj)
       return  "ePoseVraieBaseNormee";
    if (anObj==eCentreFige)
       return  "eCentreFige";
+   if (anObj==eAnglesFiges)
+      return  "eAnglesFiges";
  std::cout << "Enum = eTypeContraintePoseCamera\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -364,7 +368,7 @@ void  BinaryUnDumpFromFile(eTypeContraintePoseCamera & anObj,ELISE_fp & aFp)
    anObj=(eTypeContraintePoseCamera) aIVal;
 }
 
-std::string  Mangling( eTypeContraintePoseCamera *) {return "F1D4828D90A04399FD3F";};
+std::string  Mangling( eTypeContraintePoseCamera *) {return "56693E40073CC98CFC3F";};
 
 eTypeVerif  Str2eTypeVerif(const std::string & aName)
 {
@@ -801,8 +805,8 @@ cElXMLTree * ToXMLTree(const cPowPointLiaisons & anObj)
 
 void xml_init(cPowPointLiaisons & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -864,8 +868,8 @@ cElXMLTree * ToXMLTree(const cOptimizationPowel & anObj)
 
 void xml_init(cOptimizationPowel & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PowPointLiaisons(),aTree->GetAll("PowPointLiaisons",false,1));
 }
@@ -960,8 +964,8 @@ cElXMLTree * ToXMLTree(const cShowPbLiaison & anObj)
 
 void xml_init(cShowPbLiaison & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NbMinPtsMul(),aTree->Get("NbMinPtsMul",1)); //tototo 
 
@@ -1281,8 +1285,8 @@ cElXMLTree * ToXMLTree(const cPonderationPackMesure & anObj)
 
 void xml_init(cPonderationPackMesure & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.EcartMesureIndiv(),aTree->Get("EcartMesureIndiv",1)); //tototo 
 
@@ -1429,8 +1433,8 @@ cElXMLTree * ToXMLTree(const cParamEstimPlan & anObj)
 
 void xml_init(cParamEstimPlan & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.AttrSup(),aTree->Get("AttrSup",1)); //tototo 
 
@@ -1492,8 +1496,8 @@ cElXMLTree * ToXMLTree(const cRigidBlockWeighting & anObj)
 
 void xml_init(cRigidBlockWeighting & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PondOnTr(),aTree->Get("PondOnTr",1)); //tototo 
 
@@ -1501,6 +1505,88 @@ void xml_init(cRigidBlockWeighting & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cRigidBlockWeighting *) {return "8CA27CA959BFF0ADFD3F";};
+
+
+double & cGpsRelativeWeighting::SigmaPerSec()
+{
+   return mSigmaPerSec;
+}
+
+const double & cGpsRelativeWeighting::SigmaPerSec()const 
+{
+   return mSigmaPerSec;
+}
+
+
+double & cGpsRelativeWeighting::SigmaMin()
+{
+   return mSigmaMin;
+}
+
+const double & cGpsRelativeWeighting::SigmaMin()const 
+{
+   return mSigmaMin;
+}
+
+
+cTplValGesInit< double > & cGpsRelativeWeighting::MaxResidu()
+{
+   return mMaxResidu;
+}
+
+const cTplValGesInit< double > & cGpsRelativeWeighting::MaxResidu()const 
+{
+   return mMaxResidu;
+}
+
+void  BinaryUnDumpFromFile(cGpsRelativeWeighting & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.SigmaPerSec(),aFp);
+    BinaryUnDumpFromFile(anObj.SigmaMin(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.MaxResidu().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.MaxResidu().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.MaxResidu().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cGpsRelativeWeighting & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.SigmaPerSec());
+    BinaryDumpInFile(aFp,anObj.SigmaMin());
+    BinaryDumpInFile(aFp,anObj.MaxResidu().IsInit());
+    if (anObj.MaxResidu().IsInit()) BinaryDumpInFile(aFp,anObj.MaxResidu().Val());
+}
+
+cElXMLTree * ToXMLTree(const cGpsRelativeWeighting & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GpsRelativeWeighting",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("SigmaPerSec"),anObj.SigmaPerSec())->ReTagThis("SigmaPerSec"));
+   aRes->AddFils(::ToXMLTree(std::string("SigmaMin"),anObj.SigmaMin())->ReTagThis("SigmaMin"));
+   if (anObj.MaxResidu().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MaxResidu"),anObj.MaxResidu().Val())->ReTagThis("MaxResidu"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cGpsRelativeWeighting & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.SigmaPerSec(),aTree->Get("SigmaPerSec",1)); //tototo 
+
+   xml_init(anObj.SigmaMin(),aTree->Get("SigmaMin",1)); //tototo 
+
+   xml_init(anObj.MaxResidu(),aTree->Get("MaxResidu",1)); //tototo 
+}
+
+std::string  Mangling( cGpsRelativeWeighting *) {return "26A929420A8405AAFF3F";};
 
 
 Pt2dr & cAperoPointeStereo::P1()
@@ -1577,8 +1663,8 @@ cElXMLTree * ToXMLTree(const cAperoPointeStereo & anObj)
 
 void xml_init(cAperoPointeStereo & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.P1(),aTree->Get("P1",1)); //tototo 
 
@@ -1638,8 +1724,8 @@ cElXMLTree * ToXMLTree(const cAperoPointeMono & anObj)
 
 void xml_init(cAperoPointeMono & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Pt(),aTree->Get("Pt",1)); //tototo 
 
@@ -1709,8 +1795,8 @@ cElXMLTree * ToXMLTree(const cApero2PointeFromFile & anObj)
 
 void xml_init(cApero2PointeFromFile & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.File(),aTree->Get("File",1)); //tototo 
 
@@ -1809,8 +1895,8 @@ cElXMLTree * ToXMLTree(const cParamForceRappel & anObj)
 
 void xml_init(cParamForceRappel & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PatternNameApply(),aTree->Get("PatternNameApply",1)); //tototo 
 
@@ -1886,8 +1972,8 @@ cElXMLTree * ToXMLTree(const cRappelOnAngles & anObj)
 
 void xml_init(cRappelOnAngles & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ParamF(),aTree->Get("ParamF",1)); //tototo 
 
@@ -1952,8 +2038,8 @@ cElXMLTree * ToXMLTree(const cRappelOnCentres & anObj)
 
 void xml_init(cRappelOnCentres & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ParamF(),aTree->Get("ParamF",1)); //tototo 
 
@@ -1995,8 +2081,8 @@ cElXMLTree * ToXMLTree(const cRappelOnIntrinseque & anObj)
 
 void xml_init(cRappelOnIntrinseque & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ParamF(),aTree->Get("ParamF",1)); //tototo 
 }
@@ -2118,8 +2204,8 @@ cElXMLTree * ToXMLTree(const cSectionLevenbergMarkard & anObj)
 
 void xml_init(cSectionLevenbergMarkard & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.RappelOnAngles(),aTree->GetAll("RappelOnAngles",false,1));
 
@@ -2237,8 +2323,8 @@ cElXMLTree * ToXMLTree(const cSetOrientationInterne & anObj)
 
 void xml_init(cSetOrientationInterne & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.KeyFile(),aTree->Get("KeyFile",1)); //tototo 
 
@@ -2332,8 +2418,8 @@ cElXMLTree * ToXMLTree(const cExportAsNewGrid & anObj)
 
 void xml_init(cExportAsNewGrid & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Step(),aTree->Get("Step",1)); //tototo 
 
@@ -2409,8 +2495,8 @@ cElXMLTree * ToXMLTree(const cShowSection & anObj)
 
 void xml_init(cShowSection & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ShowMes(),aTree->Get("ShowMes",1),bool(true)); //tototo 
 
@@ -2466,8 +2552,8 @@ cElXMLTree * ToXMLTree(const cSzImForInvY & anObj)
 
 void xml_init(cSzImForInvY & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.SzIm1(),aTree->Get("SzIm1",1)); //tototo 
 
@@ -2523,8 +2609,8 @@ cElXMLTree * ToXMLTree(const cSplitLayer & anObj)
 
 void xml_init(cSplitLayer & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.IdLayer(),aTree->Get("IdLayer",1)); //tototo 
 
@@ -2844,8 +2930,8 @@ cElXMLTree * ToXMLTree(const cBDD_PtsLiaisons & anObj)
 
 void xml_init(cBDD_PtsLiaisons & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.TestForMatin(),aTree->Get("TestForMatin",1)); //tototo 
 
@@ -2917,8 +3003,8 @@ cElXMLTree * ToXMLTree(const cBddApp_AutoNum & anObj)
 
 void xml_init(cBddApp_AutoNum & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DistFusion(),aTree->Get("DistFusion",1)); //tototo 
 
@@ -3125,8 +3211,8 @@ cElXMLTree * ToXMLTree(const cBDD_PtsAppuis & anObj)
 
 void xml_init(cBDD_PtsAppuis & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -3295,8 +3381,8 @@ cElXMLTree * ToXMLTree(const cBDD_ObsAppuisFlottant & anObj)
 
 void xml_init(cBDD_ObsAppuisFlottant & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.OffsetIm(),aTree->Get("OffsetIm",1),Pt2dr(Pt2dr(0,0))); //tototo 
 
@@ -3397,8 +3483,8 @@ cElXMLTree * ToXMLTree(const cBDD_Orient & anObj)
 
 void xml_init(cBDD_Orient & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -3481,8 +3567,8 @@ cElXMLTree * ToXMLTree(const cCalcOffsetCentre & anObj)
 
 void xml_init(cCalcOffsetCentre & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.IdBase(),aTree->Get("IdBase",1)); //tototo 
 
@@ -3702,8 +3788,8 @@ cElXMLTree * ToXMLTree(const cBDD_Centre & anObj)
 
 void xml_init(cBDD_Centre & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -3799,8 +3885,8 @@ cElXMLTree * ToXMLTree(const cFilterProj3D & anObj)
 
 void xml_init(cFilterProj3D & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -3929,8 +4015,8 @@ cElXMLTree * ToXMLTree(const cLayerTerrain & anObj)
 
 void xml_init(cLayerTerrain & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.KeyAssocGeoref(),aTree->Get("KeyAssocGeoref",1),std::string("KeyStd-Assoc-ChangExt@xml")); //tototo 
 
@@ -4162,8 +4248,8 @@ cElXMLTree * ToXMLTree(const cLayerImageToPose & anObj)
 
 void xml_init(cLayerImageToPose & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -4181,6 +4267,63 @@ void xml_init(cLayerImageToPose & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cLayerImageToPose *) {return "C8573647DED717BFFB3F";};
+
+
+std::string & cDeclareObsRelGPS::PatternSel()
+{
+   return mPatternSel;
+}
+
+const std::string & cDeclareObsRelGPS::PatternSel()const 
+{
+   return mPatternSel;
+}
+
+
+std::string & cDeclareObsRelGPS::Id()
+{
+   return mId;
+}
+
+const std::string & cDeclareObsRelGPS::Id()const 
+{
+   return mId;
+}
+
+void  BinaryUnDumpFromFile(cDeclareObsRelGPS & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.PatternSel(),aFp);
+    BinaryUnDumpFromFile(anObj.Id(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cDeclareObsRelGPS & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.PatternSel());
+    BinaryDumpInFile(aFp,anObj.Id());
+}
+
+cElXMLTree * ToXMLTree(const cDeclareObsRelGPS & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"DeclareObsRelGPS",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("PatternSel"),anObj.PatternSel())->ReTagThis("PatternSel"));
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cDeclareObsRelGPS & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.PatternSel(),aTree->Get("PatternSel",1)); //tototo 
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+}
+
+std::string  Mangling( cDeclareObsRelGPS *) {return "BACAA294FA32E5D4FD3F";};
 
 
 std::list< cBDD_PtsLiaisons > & cSectionBDD_Observation::BDD_PtsLiaisons()
@@ -4281,6 +4424,17 @@ const cTplValGesInit< double > & cSectionBDD_Observation::LimSupBSurHPMoy()const
    return mLimSupBSurHPMoy;
 }
 
+
+std::list< cDeclareObsRelGPS > & cSectionBDD_Observation::DeclareObsRelGPS()
+{
+   return mDeclareObsRelGPS;
+}
+
+const std::list< cDeclareObsRelGPS > & cSectionBDD_Observation::DeclareObsRelGPS()const 
+{
+   return mDeclareObsRelGPS;
+}
+
 void  BinaryUnDumpFromFile(cSectionBDD_Observation & anObj,ELISE_fp & aFp)
 {
    { int aNb;
@@ -4362,6 +4516,15 @@ void  BinaryUnDumpFromFile(cSectionBDD_Observation & anObj,ELISE_fp & aFp)
         }
         else  anObj.LimSupBSurHPMoy().SetNoInit();
   } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cDeclareObsRelGPS aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.DeclareObsRelGPS().push_back(aVal);
+        }
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionBDD_Observation & anObj)
@@ -4412,6 +4575,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionBDD_Observation & anObj)
     if (anObj.LimInfBSurHPMoy().IsInit()) BinaryDumpInFile(aFp,anObj.LimInfBSurHPMoy().Val());
     BinaryDumpInFile(aFp,anObj.LimSupBSurHPMoy().IsInit());
     if (anObj.LimSupBSurHPMoy().IsInit()) BinaryDumpInFile(aFp,anObj.LimSupBSurHPMoy().Val());
+    BinaryDumpInFile(aFp,(int)anObj.DeclareObsRelGPS().size());
+    for(  std::list< cDeclareObsRelGPS >::const_iterator iT=anObj.DeclareObsRelGPS().begin();
+         iT!=anObj.DeclareObsRelGPS().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
 }
 
 cElXMLTree * ToXMLTree(const cSectionBDD_Observation & anObj)
@@ -4464,6 +4633,12 @@ cElXMLTree * ToXMLTree(const cSectionBDD_Observation & anObj)
       aRes->AddFils(::ToXMLTree(std::string("LimInfBSurHPMoy"),anObj.LimInfBSurHPMoy().Val())->ReTagThis("LimInfBSurHPMoy"));
    if (anObj.LimSupBSurHPMoy().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("LimSupBSurHPMoy"),anObj.LimSupBSurHPMoy().Val())->ReTagThis("LimSupBSurHPMoy"));
+  for
+  (       std::list< cDeclareObsRelGPS >::const_iterator it=anObj.DeclareObsRelGPS().begin();
+      it !=anObj.DeclareObsRelGPS().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("DeclareObsRelGPS"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -4471,8 +4646,8 @@ cElXMLTree * ToXMLTree(const cSectionBDD_Observation & anObj)
 
 void xml_init(cSectionBDD_Observation & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.BDD_PtsLiaisons(),aTree->GetAll("BDD_PtsLiaisons",false,1));
 
@@ -4491,9 +4666,11 @@ void xml_init(cSectionBDD_Observation & anObj,cElXMLTree * aTree)
    xml_init(anObj.LimInfBSurHPMoy(),aTree->Get("LimInfBSurHPMoy",1),double(1e-2)); //tototo 
 
    xml_init(anObj.LimSupBSurHPMoy(),aTree->Get("LimSupBSurHPMoy",1),double(2e-1)); //tototo 
+
+   xml_init(anObj.DeclareObsRelGPS(),aTree->GetAll("DeclareObsRelGPS",false,1));
 }
 
-std::string  Mangling( cSectionBDD_Observation *) {return "62AC719242F50C8FFE3F";};
+std::string  Mangling( cSectionBDD_Observation *) {return "228AF613402608A5FD3F";};
 
 
 Pt3dr & cGpsOffset::ValInit()
@@ -4542,8 +4719,8 @@ cElXMLTree * ToXMLTree(const cGpsOffset & anObj)
 
 void xml_init(cGpsOffset & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ValInit(),aTree->Get("ValInit",1)); //tototo 
 
@@ -4654,8 +4831,8 @@ cElXMLTree * ToXMLTree(const cCalibAutomNoDist & anObj)
 
 void xml_init(cCalibAutomNoDist & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.TypeDist(),aTree->Get("TypeDist",1)); //tototo 
 
@@ -4823,8 +5000,8 @@ cElXMLTree * ToXMLTree(const cCalValueInit & anObj)
 
 void xml_init(cCalValueInit & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.CalFromValues(),aTree->Get("CalFromValues",1)); //tototo 
 
@@ -4888,8 +5065,8 @@ cElXMLTree * ToXMLTree(const cAddParamAFocal & anObj)
 
 void xml_init(cAddParamAFocal & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Coeffs(),aTree->GetAll("Coeffs",false,1));
 }
@@ -4952,8 +5129,8 @@ cElXMLTree * ToXMLTree(const cCalibPerPose & anObj)
 
 void xml_init(cCalibPerPose & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.KeyPose2Cal(),aTree->Get("KeyPose2Cal",1)); //tototo 
 
@@ -5360,8 +5537,8 @@ cElXMLTree * ToXMLTree(const cCalibrationCameraInc & anObj)
 
 void xml_init(cCalibrationCameraInc & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
 
@@ -5437,8 +5614,8 @@ cElXMLTree * ToXMLTree(const cUseForBundle & anObj)
 
 void xml_init(cUseForBundle & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.GlobalBundle(),aTree->Get("GlobalBundle",1)); //tototo 
 
@@ -5548,8 +5725,8 @@ cElXMLTree * ToXMLTree(const cBlockCamera & anObj)
 
 void xml_init(cBlockCamera & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameFile(),aTree->Get("NameFile",1)); //tototo 
 
@@ -5717,8 +5894,8 @@ cElXMLTree * ToXMLTree(const cMEP_SPEC_MST & anObj)
 
 void xml_init(cMEP_SPEC_MST & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Show(),aTree->Get("Show",1),bool(false)); //tototo 
 
@@ -5782,15 +5959,15 @@ cElXMLTree * ToXMLTree(const cApplyOAI & anObj)
 
 void xml_init(cApplyOAI & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Cstr(),aTree->Get("Cstr",1)); //tototo 
 
    xml_init(anObj.PatternApply(),aTree->Get("PatternApply",1)); //tototo 
 }
 
-std::string  Mangling( cApplyOAI *) {return "00FFCC2EB427F8ACF9BF";};
+std::string  Mangling( cApplyOAI *) {return "97D73F5D3DFBBD94FE3F";};
 
 
 cOptimizationPowel & cOptimizeAfterInit::ParamOptim()
@@ -5857,15 +6034,15 @@ cElXMLTree * ToXMLTree(const cOptimizeAfterInit & anObj)
 
 void xml_init(cOptimizeAfterInit & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ParamOptim(),aTree->Get("ParamOptim",1)); //tototo 
 
    xml_init(anObj.ApplyOAI(),aTree->GetAll("ApplyOAI",false,1));
 }
 
-std::string  Mangling( cOptimizeAfterInit *) {return "4E79FF12AB2A92A2FF3F";};
+std::string  Mangling( cOptimizeAfterInit *) {return "1E84110660378D81FF3F";};
 
 
 std::string & cCalcNameOnExistingTag::KeyCalcFileOriExt()
@@ -5965,8 +6142,8 @@ cElXMLTree * ToXMLTree(const cCalcNameOnExistingTag & anObj)
 
 void xml_init(cCalcNameOnExistingTag & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.KeyCalcFileOriExt(),aTree->Get("KeyCalcFileOriExt",1)); //tototo 
 
@@ -6101,8 +6278,8 @@ cElXMLTree * ToXMLTree(const cCalcNameCalibAux & anObj)
 
 void xml_init(cCalcNameCalibAux & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.CalcNameOnExistingTag(),aTree->Get("CalcNameOnExistingTag",1)); //tototo 
 
@@ -6181,8 +6358,8 @@ cElXMLTree * ToXMLTree(const cPosFromBDAppuis & anObj)
 
 void xml_init(cPosFromBDAppuis & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -6562,8 +6739,8 @@ cElXMLTree * ToXMLTree(const cLiaisonsInit & anObj)
 
 void xml_init(cLiaisonsInit & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.OnZonePlane(),aTree->Get("OnZonePlane",1)); //tototo 
 
@@ -6651,8 +6828,8 @@ cElXMLTree * ToXMLTree(const cPoseFromLiaisons & anObj)
 
 void xml_init(cPoseFromLiaisons & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.LiaisonsInit(),aTree->GetAll("LiaisonsInit",false,1));
 }
@@ -6720,8 +6897,8 @@ cElXMLTree * ToXMLTree(const cMesurePIFRP & anObj)
 
 void xml_init(cMesurePIFRP & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Ap1(),aTree->Get("Ap1",1)); //tototo 
 
@@ -6830,8 +7007,8 @@ cElXMLTree * ToXMLTree(const cInitPIFRP & anObj)
 
 void xml_init(cInitPIFRP & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.MesurePIFRP(),aTree->Get("MesurePIFRP",1)); //tototo 
 
@@ -7016,8 +7193,8 @@ cElXMLTree * ToXMLTree(const cPoseInitFromReperePlan & anObj)
 
 void xml_init(cPoseInitFromReperePlan & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.OnZonePlane(),aTree->Get("OnZonePlane",1)); //tototo 
 
@@ -7333,8 +7510,8 @@ cElXMLTree * ToXMLTree(const cPosValueInit & anObj)
 
 void xml_init(cPosValueInit & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PosId(),aTree->Get("PosId",1)); //tototo 
 
@@ -8306,8 +8483,8 @@ cElXMLTree * ToXMLTree(const cPoseCameraInc & anObj)
 
 void xml_init(cPoseCameraInc & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.OrInterne(),aTree->Get("OrInterne",1)); //tototo 
 
@@ -8364,7 +8541,7 @@ void xml_init(cPoseCameraInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.PosValueInit(),aTree->Get("PosValueInit",1)); //tototo 
 }
 
-std::string  Mangling( cPoseCameraInc *) {return "4A9A6411357EC3CCFF3F";};
+std::string  Mangling( cPoseCameraInc *) {return "8C3D2E8989573383FF3F";};
 
 
 std::string & cGroupeDePose::KeyPose2Grp()
@@ -8436,8 +8613,8 @@ cElXMLTree * ToXMLTree(const cGroupeDePose & anObj)
 
 void xml_init(cGroupeDePose & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.KeyPose2Grp(),aTree->Get("KeyPose2Grp",1)); //tototo 
 
@@ -8518,8 +8695,8 @@ cElXMLTree * ToXMLTree(const cLiaisonsApplyContrainte & anObj)
 
 void xml_init(cLiaisonsApplyContrainte & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameRef(),aTree->Get("NameRef",1)); //tototo 
 
@@ -8572,8 +8749,8 @@ cElXMLTree * ToXMLTree(const cInitSurf & anObj)
 
 void xml_init(cInitSurf & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ZonePlane(),aTree->Get("ZonePlane",1)); //tototo 
 }
@@ -8656,8 +8833,8 @@ cElXMLTree * ToXMLTree(const cSurfParamInc & anObj)
 
 void xml_init(cSurfParamInc & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.LiaisonsApplyContrainte(),aTree->GetAll("LiaisonsApplyContrainte",false,1));
 
@@ -8736,8 +8913,8 @@ cElXMLTree * ToXMLTree(const cPointFlottantInc & anObj)
 
 void xml_init(cPointFlottantInc & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -9129,8 +9306,8 @@ cElXMLTree * ToXMLTree(const cSectionInconnues & anObj)
 
 void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.SeuilAutomFE(),aTree->Get("SeuilAutomFE",1),double(-1)); //tototo 
 
@@ -9159,7 +9336,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "7CF1FD7469307BD5FDBF";};
+std::string  Mangling( cSectionInconnues *) {return "C886663C298C9BAFFBBF";};
 
 
 double & cTimeLinkage::DeltaMax()
@@ -9194,8 +9371,8 @@ cElXMLTree * ToXMLTree(const cTimeLinkage & anObj)
 
 void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DeltaMax(),aTree->Get("DeltaMax",1)); //tototo 
 }
@@ -9211,6 +9388,17 @@ cTplValGesInit< bool > & cSectionChantier::IsAperiCloud()
 const cTplValGesInit< bool > & cSectionChantier::IsAperiCloud()const 
 {
    return mIsAperiCloud;
+}
+
+
+cTplValGesInit< bool > & cSectionChantier::IsChoixImSec()
+{
+   return mIsChoixImSec;
+}
+
+const cTplValGesInit< bool > & cSectionChantier::IsChoixImSec()const 
+{
+   return mIsChoixImSec;
 }
 
 
@@ -9424,6 +9612,14 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.IsChoixImSec().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.IsChoixImSec().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.IsChoixImSec().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.FileSauvParam().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.FileSauvParam().ValForcedForUnUmp(),aFp);
         }
@@ -9563,6 +9759,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
 {
     BinaryDumpInFile(aFp,anObj.IsAperiCloud().IsInit());
     if (anObj.IsAperiCloud().IsInit()) BinaryDumpInFile(aFp,anObj.IsAperiCloud().Val());
+    BinaryDumpInFile(aFp,anObj.IsChoixImSec().IsInit());
+    if (anObj.IsChoixImSec().IsInit()) BinaryDumpInFile(aFp,anObj.IsChoixImSec().Val());
     BinaryDumpInFile(aFp,anObj.FileSauvParam().IsInit());
     if (anObj.FileSauvParam().IsInit()) BinaryDumpInFile(aFp,anObj.FileSauvParam().Val());
     BinaryDumpInFile(aFp,anObj.GenereErreurOnContraineCam().IsInit());
@@ -9605,6 +9803,8 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionChantier",eXMLBranche);
    if (anObj.IsAperiCloud().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("IsAperiCloud"),anObj.IsAperiCloud().Val())->ReTagThis("IsAperiCloud"));
+   if (anObj.IsChoixImSec().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("IsChoixImSec"),anObj.IsChoixImSec().Val())->ReTagThis("IsChoixImSec"));
    if (anObj.FileSauvParam().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("FileSauvParam"),anObj.FileSauvParam().Val())->ReTagThis("FileSauvParam"));
    if (anObj.GenereErreurOnContraineCam().IsInit())
@@ -9646,10 +9846,12 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
 
 void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.IsAperiCloud(),aTree->Get("IsAperiCloud",1),bool(false)); //tototo 
+
+   xml_init(anObj.IsChoixImSec(),aTree->Get("IsChoixImSec",1),bool(false)); //tototo 
 
    xml_init(anObj.FileSauvParam(),aTree->Get("FileSauvParam",1)); //tototo 
 
@@ -9686,7 +9888,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ThresholdWarnPointsBehind(),aTree->Get("ThresholdWarnPointsBehind",1),double(0.01)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "0673D69BDEB761C5FF3F";};
+std::string  Mangling( cSectionChantier *) {return "4F2EF2C4DB4B58DFFE3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -10158,8 +10360,8 @@ cElXMLTree * ToXMLTree(const cSectionSolveur & anObj)
 
 void xml_init(cSectionSolveur & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.AllMatSym(),aTree->Get("AllMatSym",1),bool(true)); //tototo 
 
@@ -10260,8 +10462,8 @@ cElXMLTree * ToXMLTree(const cAutoAdaptLVM & anObj)
 
 void xml_init(cAutoAdaptLVM & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Mult(),aTree->Get("Mult",1)); //tototo 
 
@@ -10408,8 +10610,8 @@ cElXMLTree * ToXMLTree(const cCtrlTimeCompens & anObj)
 
 void xml_init(cCtrlTimeCompens & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NbMin(),aTree->Get("NbMin",1),int(0)); //tototo 
 
@@ -10503,8 +10705,8 @@ cElXMLTree * ToXMLTree(const cPose2Init & anObj)
 
 void xml_init(cPose2Init & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ProfMin(),aTree->Get("ProfMin",1)); //tototo 
 
@@ -10608,8 +10810,8 @@ cElXMLTree * ToXMLTree(const cSetRayMaxUtileCalib & anObj)
 
 void xml_init(cSetRayMaxUtileCalib & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
 
@@ -10687,8 +10889,8 @@ cElXMLTree * ToXMLTree(const cBascOnCentre & anObj)
 
 void xml_init(cBascOnCentre & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PoseCentrale(),aTree->Get("PoseCentrale",1)); //tototo 
 
@@ -10730,8 +10932,8 @@ cElXMLTree * ToXMLTree(const cBascOnAppuis & anObj)
 
 void xml_init(cBascOnAppuis & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameRef(),aTree->Get("NameRef",1)); //tototo 
 }
@@ -10895,8 +11097,8 @@ cElXMLTree * ToXMLTree(const cAerialDeformNonLin & anObj)
 
 void xml_init(cAerialDeformNonLin & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.FlagX(),aTree->Get("FlagX",1),int(63)); //tototo 
 
@@ -11057,8 +11259,8 @@ cElXMLTree * ToXMLTree(const cBasculeOnPoints & anObj)
 
 void xml_init(cBasculeOnPoints & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.BascOnCentre(),aTree->Get("BascOnCentre",1)); //tototo 
 
@@ -11150,8 +11352,8 @@ cElXMLTree * ToXMLTree(const cOrientInPlane & anObj)
 
 void xml_init(cOrientInPlane & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DistFixEch(),aTree->Get("DistFixEch",1)); //tototo 
 
@@ -11251,8 +11453,8 @@ cElXMLTree * ToXMLTree(const cBasculeLiaisonOnPlan & anObj)
 
 void xml_init(cBasculeLiaisonOnPlan & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.EstimPl(),aTree->Get("EstimPl",1)); //tototo 
 
@@ -11458,8 +11660,8 @@ cElXMLTree * ToXMLTree(const cModeBascule & anObj)
 
 void xml_init(cModeBascule & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.BasculeOnPoints(),aTree->Get("BasculeOnPoints",1)); //tototo 
 
@@ -11724,8 +11926,8 @@ cElXMLTree * ToXMLTree(const cBasculeOrientation & anObj)
 
 void xml_init(cBasculeOrientation & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.AfterCompens(),aTree->Get("AfterCompens",1),bool(true)); //tototo 
 
@@ -11789,8 +11991,8 @@ cElXMLTree * ToXMLTree(const cStereoFE & anObj)
 
 void xml_init(cStereoFE & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.HomFE(),aTree->GetAll("HomFE",false,1));
 }
@@ -11873,8 +12075,8 @@ cElXMLTree * ToXMLTree(const cModeFE & anObj)
 
 void xml_init(cModeFE & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.StereoFE(),aTree->Get("StereoFE",1)); //tototo 
 
@@ -11963,8 +12165,8 @@ cElXMLTree * ToXMLTree(const cFixeEchelle & anObj)
 
 void xml_init(cFixeEchelle & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ModeFE(),aTree->Get("ModeFE",1)); //tototo 
 
@@ -12047,8 +12249,8 @@ cElXMLTree * ToXMLTree(const cHorFOP & anObj)
 
 void xml_init(cHorFOP & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.VecFOH(),aTree->GetAll("VecFOH",false,1));
 
@@ -12144,8 +12346,8 @@ cElXMLTree * ToXMLTree(const cModeFOP & anObj)
 
 void xml_init(cModeFOP & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.HorFOP(),aTree->Get("HorFOP",1)); //tototo 
 
@@ -12245,8 +12447,8 @@ cElXMLTree * ToXMLTree(const cFixeOrientPlane & anObj)
 
 void xml_init(cFixeOrientPlane & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ModeFOP(),aTree->Get("ModeFOP",1)); //tototo 
 
@@ -12316,8 +12518,8 @@ cElXMLTree * ToXMLTree(const cBlocBascule & anObj)
 
 void xml_init(cBlocBascule & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Pattern1(),aTree->Get("Pattern1",1)); //tototo 
 
@@ -12384,8 +12586,8 @@ cElXMLTree * ToXMLTree(const cEstimateOrientationInitBlockCamera & anObj)
 
 void xml_init(cEstimateOrientationInitBlockCamera & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -12519,8 +12721,8 @@ cElXMLTree * ToXMLTree(const cMesureErreurTournante & anObj)
 
 void xml_init(cMesureErreurTournante & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Periode(),aTree->Get("Periode",1)); //tototo 
 
@@ -12655,8 +12857,8 @@ cElXMLTree * ToXMLTree(const cContraintesCamerasInc & anObj)
 
 void xml_init(cContraintesCamerasInc & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.TolContrainte(),aTree->Get("TolContrainte",1),double(-1)); //tototo 
 
@@ -12831,8 +13033,8 @@ cElXMLTree * ToXMLTree(const cContraintesPoses & anObj)
 
 void xml_init(cContraintesPoses & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ByPattern(),aTree->Get("ByPattern",1),bool(false)); //tototo 
 
@@ -12849,7 +13051,7 @@ void xml_init(cContraintesPoses & anObj,cElXMLTree * aTree)
    xml_init(anObj.PoseRattachement(),aTree->Get("PoseRattachement",1)); //tototo 
 }
 
-std::string  Mangling( cContraintesPoses *) {return "50794920F02521CDFD3F";};
+std::string  Mangling( cContraintesPoses *) {return "B6172DE91F7E698BFE3F";};
 
 
 std::list< cContraintesCamerasInc > & cSectionContraintes::ContraintesCamerasInc()
@@ -12934,15 +13136,15 @@ cElXMLTree * ToXMLTree(const cSectionContraintes & anObj)
 
 void xml_init(cSectionContraintes & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ContraintesCamerasInc(),aTree->GetAll("ContraintesCamerasInc",false,1));
 
    xml_init(anObj.ContraintesPoses(),aTree->GetAll("ContraintesPoses",false,1));
 }
 
-std::string  Mangling( cSectionContraintes *) {return "7C0602C9F840D3F8FE3F";};
+std::string  Mangling( cSectionContraintes *) {return "B80C02D83D46D5FEFE3F";};
 
 
 std::string & cVisuPtsMult::Cam1()
@@ -13180,8 +13382,8 @@ cElXMLTree * ToXMLTree(const cVisuPtsMult & anObj)
 
 void xml_init(cVisuPtsMult & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Cam1(),aTree->Get("Cam1",1)); //tototo 
 
@@ -13353,8 +13555,8 @@ cElXMLTree * ToXMLTree(const cVerifAero & anObj)
 
 void xml_init(cVerifAero & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PatternApply(),aTree->Get("PatternApply",1)); //tototo 
 
@@ -13535,8 +13737,8 @@ cElXMLTree * ToXMLTree(const cGPtsTer_By_ImProf & anObj)
 
 void xml_init(cGPtsTer_By_ImProf & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Origine(),aTree->Get("Origine",1)); //tototo 
 
@@ -13710,8 +13912,8 @@ cElXMLTree * ToXMLTree(const cGeneratePointsTerrains & anObj)
 
 void xml_init(cGeneratePointsTerrains & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.GPtsTer_By_File(),aTree->Get("GPtsTer_By_File",1)); //tototo 
 
@@ -13827,8 +14029,8 @@ cElXMLTree * ToXMLTree(const cGenerateLiaisons & anObj)
 
 void xml_init(cGenerateLiaisons & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.KeyAssoc(),aTree->Get("KeyAssoc",1)); //tototo 
 
@@ -14018,8 +14220,8 @@ cElXMLTree * ToXMLTree(const cExportSimulation & anObj)
 
 void xml_init(cExportSimulation & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.GeneratePointsTerrains(),aTree->Get("GeneratePointsTerrains",1)); //tototo 
 
@@ -14139,8 +14341,8 @@ cElXMLTree * ToXMLTree(const cTestInteractif & anObj)
 
 void xml_init(cTestInteractif & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.AvantCompens(),aTree->Get("AvantCompens",1),bool(false)); //tototo 
 
@@ -15338,8 +15540,8 @@ cElXMLTree * ToXMLTree(const cIterationsCompensation & anObj)
 
 void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.CtrlTimeCompens(),aTree->Get("CtrlTimeCompens",1)); //tototo 
 
@@ -15388,7 +15590,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "5E5688A1694FD9ABFE3F";};
+std::string  Mangling( cIterationsCompensation *) {return "F5CCAF025DB43583FF3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -15423,8 +15625,8 @@ cElXMLTree * ToXMLTree(const cTraceCpleHom & anObj)
 
 void xml_init(cTraceCpleHom & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 }
@@ -15510,8 +15712,8 @@ cElXMLTree * ToXMLTree(const cTraceCpleCam & anObj)
 
 void xml_init(cTraceCpleCam & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Cam1(),aTree->Get("Cam1",1)); //tototo 
 
@@ -15596,8 +15798,8 @@ cElXMLTree * ToXMLTree(const cSectionTracage & anObj)
 
 void xml_init(cSectionTracage & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.TraceCpleCam(),aTree->GetAll("TraceCpleCam",false,1));
 
@@ -15708,8 +15910,8 @@ cElXMLTree * ToXMLTree(const cObsBlockCamRig & anObj)
 
 void xml_init(cObsBlockCamRig & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -15806,8 +16008,8 @@ cElXMLTree * ToXMLTree(const cROA_FichierImg & anObj)
 
 void xml_init(cROA_FichierImg & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
 
@@ -15989,8 +16191,8 @@ cElXMLTree * ToXMLTree(const cRapportObsAppui & anObj)
 
 void xml_init(cRapportObsAppui & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.OnlyLastIter(),aTree->Get("OnlyLastIter",1),bool(true)); //tototo 
 
@@ -16174,8 +16376,8 @@ cElXMLTree * ToXMLTree(const cObsAppuis & anObj)
 
 void xml_init(cObsAppuis & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameRef(),aTree->Get("NameRef",1)); //tototo 
 
@@ -16380,8 +16582,8 @@ cElXMLTree * ToXMLTree(const cObsAppuisFlottant & anObj)
 
 void xml_init(cObsAppuisFlottant & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameRef(),aTree->Get("NameRef",1)); //tototo 
 
@@ -16518,8 +16720,8 @@ cElXMLTree * ToXMLTree(const cRappelOnZ & anObj)
 
 void xml_init(cRappelOnZ & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Z(),aTree->Get("Z",1)); //tototo 
 
@@ -16682,8 +16884,8 @@ cElXMLTree * ToXMLTree(const cObsLiaisons & anObj)
 
 void xml_init(cObsLiaisons & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameRef(),aTree->Get("NameRef",1)); //tototo 
 
@@ -16798,8 +17000,8 @@ cElXMLTree * ToXMLTree(const cObsCentrePDV & anObj)
 
 void xml_init(cObsCentrePDV & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PatternApply(),aTree->Get("PatternApply",1)); //tototo 
 
@@ -16845,8 +17047,8 @@ cElXMLTree * ToXMLTree(const cORGI_CentreCommun & anObj)
 
 void xml_init(cORGI_CentreCommun & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Incertitude(),aTree->Get("Incertitude",1)); //tototo 
 }
@@ -16886,8 +17088,8 @@ cElXMLTree * ToXMLTree(const cORGI_TetaCommun & anObj)
 
 void xml_init(cORGI_TetaCommun & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Incertitude(),aTree->Get("Incertitude",1)); //tototo 
 }
@@ -16973,8 +17175,8 @@ cElXMLTree * ToXMLTree(const cObsRigidGrpImage & anObj)
 
 void xml_init(cObsRigidGrpImage & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.RefGrp(),aTree->Get("RefGrp",1)); //tototo 
 
@@ -17018,13 +17220,70 @@ cElXMLTree * ToXMLTree(const cTxtRapDetaille & anObj)
 
 void xml_init(cTxtRapDetaille & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameFile(),aTree->Get("NameFile",1)); //tototo 
 }
 
 std::string  Mangling( cTxtRapDetaille *) {return "57C6422C1B465E84FD3F";};
+
+
+std::string & cObsRelGPS::Id()
+{
+   return mId;
+}
+
+const std::string & cObsRelGPS::Id()const 
+{
+   return mId;
+}
+
+
+cGpsRelativeWeighting & cObsRelGPS::Pond()
+{
+   return mPond;
+}
+
+const cGpsRelativeWeighting & cObsRelGPS::Pond()const 
+{
+   return mPond;
+}
+
+void  BinaryUnDumpFromFile(cObsRelGPS & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Id(),aFp);
+    BinaryUnDumpFromFile(anObj.Pond(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cObsRelGPS & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Id());
+    BinaryDumpInFile(aFp,anObj.Pond());
+}
+
+cElXMLTree * ToXMLTree(const cObsRelGPS & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ObsRelGPS",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+   aRes->AddFils(ToXMLTree(anObj.Pond())->ReTagThis("Pond"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cObsRelGPS & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+
+   xml_init(anObj.Pond(),aTree->Get("Pond",1)); //tototo 
+}
+
+std::string  Mangling( cObsRelGPS *) {return "900F479610F790BFFC3F";};
 
 
 std::list< cObsBlockCamRig > & cSectionObservations::ObsBlockCamRig()
@@ -17114,6 +17373,17 @@ const cTplValGesInit< cTxtRapDetaille > & cSectionObservations::TxtRapDetaille()
    return mTxtRapDetaille;
 }
 
+
+std::list< cObsRelGPS > & cSectionObservations::ObsRelGPS()
+{
+   return mObsRelGPS;
+}
+
+const std::list< cObsRelGPS > & cSectionObservations::ObsRelGPS()const 
+{
+   return mObsRelGPS;
+}
+
 void  BinaryUnDumpFromFile(cSectionObservations & anObj,ELISE_fp & aFp)
 {
    { int aNb;
@@ -17178,6 +17448,15 @@ void  BinaryUnDumpFromFile(cSectionObservations & anObj,ELISE_fp & aFp)
         }
         else  anObj.TxtRapDetaille().SetNoInit();
   } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cObsRelGPS aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.ObsRelGPS().push_back(aVal);
+        }
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionObservations & anObj)
@@ -17220,6 +17499,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionObservations & anObj)
         BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.TxtRapDetaille().IsInit());
     if (anObj.TxtRapDetaille().IsInit()) BinaryDumpInFile(aFp,anObj.TxtRapDetaille().Val());
+    BinaryDumpInFile(aFp,(int)anObj.ObsRelGPS().size());
+    for(  std::list< cObsRelGPS >::const_iterator iT=anObj.ObsRelGPS().begin();
+         iT!=anObj.ObsRelGPS().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
 }
 
 cElXMLTree * ToXMLTree(const cSectionObservations & anObj)
@@ -17264,6 +17549,12 @@ cElXMLTree * ToXMLTree(const cSectionObservations & anObj)
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("ObsRigidGrpImage"));
    if (anObj.TxtRapDetaille().IsInit())
       aRes->AddFils(ToXMLTree(anObj.TxtRapDetaille().Val())->ReTagThis("TxtRapDetaille"));
+  for
+  (       std::list< cObsRelGPS >::const_iterator it=anObj.ObsRelGPS().begin();
+      it !=anObj.ObsRelGPS().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ObsRelGPS"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -17271,8 +17562,8 @@ cElXMLTree * ToXMLTree(const cSectionObservations & anObj)
 
 void xml_init(cSectionObservations & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ObsBlockCamRig(),aTree->GetAll("ObsBlockCamRig",false,1));
 
@@ -17287,9 +17578,11 @@ void xml_init(cSectionObservations & anObj,cElXMLTree * aTree)
    xml_init(anObj.ObsRigidGrpImage(),aTree->GetAll("ObsRigidGrpImage",false,1));
 
    xml_init(anObj.TxtRapDetaille(),aTree->Get("TxtRapDetaille",1)); //tototo 
+
+   xml_init(anObj.ObsRelGPS(),aTree->GetAll("ObsRelGPS",false,1));
 }
 
-std::string  Mangling( cSectionObservations *) {return "7C704FA505EE3E80FF3F";};
+std::string  Mangling( cSectionObservations *) {return "7135C9CE7F79E2CAFE3F";};
 
 
 cTplValGesInit< bool > & cExportAsGrid::DoExport()
@@ -17439,8 +17732,8 @@ cElXMLTree * ToXMLTree(const cExportAsGrid & anObj)
 
 void xml_init(cExportAsGrid & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DoExport(),aTree->Get("DoExport",1),bool(true)); //tototo 
 
@@ -17694,8 +17987,8 @@ cElXMLTree * ToXMLTree(const cExportCalib & anObj)
 
 void xml_init(cExportCalib & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PatternSel(),aTree->Get("PatternSel",1),std::string(".*")); //tototo 
 
@@ -17756,8 +18049,8 @@ cElXMLTree * ToXMLTree(const cForce2ObsOnC & anObj)
 
 void xml_init(cForce2ObsOnC & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.WhenExist(),aTree->Get("WhenExist",1),bool(false)); //tototo 
 }
@@ -18153,8 +18446,8 @@ cElXMLTree * ToXMLTree(const cExportPose & anObj)
 
 void xml_init(cExportPose & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Force2ObsOnC(),aTree->Get("Force2ObsOnC",1)); //tototo 
 
@@ -18284,8 +18577,8 @@ cElXMLTree * ToXMLTree(const cExportAttrPose & anObj)
 
 void xml_init(cExportAttrPose & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.KeyAssoc(),aTree->Get("KeyAssoc",1)); //tototo 
 
@@ -18400,8 +18693,8 @@ cElXMLTree * ToXMLTree(const cExportOrthoCyl & anObj)
 
 void xml_init(cExportOrthoCyl & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.UseIt(),aTree->Get("UseIt",1),bool(true)); //tototo 
 
@@ -18685,8 +18978,8 @@ cElXMLTree * ToXMLTree(const cExportRepereLoc & anObj)
 
 void xml_init(cExportRepereLoc & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameRepere(),aTree->Get("NameRepere",1)); //tototo 
 
@@ -18760,8 +19053,8 @@ cElXMLTree * ToXMLTree(const cExportBlockCamera & anObj)
 
 void xml_init(cExportBlockCamera & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
@@ -18890,8 +19183,8 @@ cElXMLTree * ToXMLTree(const cCartes2Export & anObj)
 
 void xml_init(cCartes2Export & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Im1(),aTree->GetAll("Im1",false,1));
 
@@ -19084,8 +19377,8 @@ cElXMLTree * ToXMLTree(const cExportMesuresFromCarteProf & anObj)
 
 void xml_init(cExportMesuresFromCarteProf & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Cartes2Export(),aTree->GetAll("Cartes2Export",false,1));
 
@@ -19169,8 +19462,8 @@ cElXMLTree * ToXMLTree(const cExportVisuConfigGrpPose & anObj)
 
 void xml_init(cExportVisuConfigGrpPose & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PatternSel(),aTree->GetAll("PatternSel",false,1));
 
@@ -19290,8 +19583,8 @@ cElXMLTree * ToXMLTree(const cExportPtsFlottant & anObj)
 
 void xml_init(cExportPtsFlottant & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.PatternSel(),aTree->Get("PatternSel",1),std::string(".*")); //tototo 
 
@@ -19351,8 +19644,8 @@ cElXMLTree * ToXMLTree(const cResidusIndiv & anObj)
 
 void xml_init(cResidusIndiv & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Pattern(),aTree->Get("Pattern",1)); //tototo 
 
@@ -19504,8 +19797,8 @@ cElXMLTree * ToXMLTree(const cExportImResiduLiaison & anObj)
 
 void xml_init(cExportImResiduLiaison & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Signed(),aTree->Get("Signed",1),bool(true)); //tototo 
 
@@ -19873,8 +20166,8 @@ cElXMLTree * ToXMLTree(const cExportRedressement & anObj)
 
 void xml_init(cExportRedressement & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Dyn(),aTree->Get("Dyn",1),double(1.0)); //tototo 
 
@@ -19967,8 +20260,8 @@ cElXMLTree * ToXMLTree(const cExportNuageByImage & anObj)
 
 void xml_init(cExportNuageByImage & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.KeyCalc(),aTree->Get("KeyCalc",1)); //tototo 
 
@@ -20084,8 +20377,8 @@ cElXMLTree * ToXMLTree(const cNuagePutCam & anObj)
 
 void xml_init(cNuagePutCam & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ColCadre(),aTree->Get("ColCadre",1)); //tototo 
 
@@ -20477,8 +20770,8 @@ cElXMLTree * ToXMLTree(const cExportNuage & anObj)
 
 void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NameOut(),aTree->Get("NameOut",1)); //tototo 
 
@@ -20508,6 +20801,17 @@ void xml_init(cExportNuage & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cExportNuage *) {return "1D1246AE13F3CB95FF3F";};
+
+
+cTplValGesInit< std::string > & cChoixImSec::FileImSel()
+{
+   return mFileImSel;
+}
+
+const cTplValGesInit< std::string > & cChoixImSec::FileImSel()const 
+{
+   return mFileImSel;
+}
 
 
 std::string & cChoixImSec::KeyAssoc()
@@ -20720,7 +21024,15 @@ const cTplValGesInit< std::string > & cChoixImSec::Masq3D()const
 
 void  BinaryUnDumpFromFile(cChoixImSec & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.KeyAssoc(),aFp);
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.FileImSel().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.FileImSel().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.FileImSel().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.KeyAssoc(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -20855,6 +21167,8 @@ void  BinaryUnDumpFromFile(cChoixImSec & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cChoixImSec & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.FileImSel().IsInit());
+    if (anObj.FileImSel().IsInit()) BinaryDumpInFile(aFp,anObj.FileImSel().Val());
     BinaryDumpInFile(aFp,anObj.KeyAssoc());
     BinaryDumpInFile(aFp,anObj.PatternSel().IsInit());
     if (anObj.PatternSel().IsInit()) BinaryDumpInFile(aFp,anObj.PatternSel().Val());
@@ -20896,6 +21210,8 @@ cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ChoixImSec",eXMLBranche);
+   if (anObj.FileImSel().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("FileImSel"),anObj.FileImSel().Val())->ReTagThis("FileImSel"));
    aRes->AddFils(::ToXMLTree(std::string("KeyAssoc"),anObj.KeyAssoc())->ReTagThis("KeyAssoc"));
    if (anObj.PatternSel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PatternSel"),anObj.PatternSel().Val())->ReTagThis("PatternSel"));
@@ -20938,8 +21254,10 @@ cElXMLTree * ToXMLTree(const cChoixImSec & anObj)
 
 void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.FileImSel(),aTree->Get("FileImSel",1)); //tototo 
 
    xml_init(anObj.KeyAssoc(),aTree->Get("KeyAssoc",1)); //tototo 
 
@@ -20980,7 +21298,18 @@ void xml_init(cChoixImSec & anObj,cElXMLTree * aTree)
    xml_init(anObj.Masq3D(),aTree->Get("Masq3D",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImSec *) {return "B8BF064D7BFB859EFE3F";};
+std::string  Mangling( cChoixImSec *) {return "18FC9C5CD45967BCFE3F";};
+
+
+cTplValGesInit< std::string > & cChoixImMM::FileImSel()
+{
+   return ChoixImSec().FileImSel();
+}
+
+const cTplValGesInit< std::string > & cChoixImMM::FileImSel()const 
+{
+   return ChoixImSec().FileImSel();
+}
 
 
 std::string & cChoixImMM::KeyAssoc()
@@ -21224,13 +21553,13 @@ cElXMLTree * ToXMLTree(const cChoixImMM & anObj)
 
 void xml_init(cChoixImMM & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ChoixImSec(),aTree->Get("ChoixImSec",1)); //tototo 
 }
 
-std::string  Mangling( cChoixImMM *) {return "D02CD6D50C6A7BB7F83F";};
+std::string  Mangling( cChoixImMM *) {return "665E56E5ED9E40F6FD3F";};
 
 
 std::list< cExportCalib > & cSectionExport::ExportCalib()
@@ -21351,6 +21680,17 @@ std::list< cExportNuage > & cSectionExport::ExportNuage()
 const std::list< cExportNuage > & cSectionExport::ExportNuage()const 
 {
    return mExportNuage;
+}
+
+
+cTplValGesInit< std::string > & cSectionExport::FileImSel()
+{
+   return ChoixImMM().Val().ChoixImSec().FileImSel();
+}
+
+const cTplValGesInit< std::string > & cSectionExport::FileImSel()const 
+{
+   return ChoixImMM().Val().ChoixImSec().FileImSel();
 }
 
 
@@ -21584,6 +21924,17 @@ const cTplValGesInit< cChoixImMM > & cSectionExport::ChoixImMM()const
    return mChoixImMM;
 }
 
+
+cTplValGesInit< std::string > & cSectionExport::ExportResiduXml()
+{
+   return mExportResiduXml;
+}
+
+const cTplValGesInit< std::string > & cSectionExport::ExportResiduXml()const 
+{
+   return mExportResiduXml;
+}
+
 void  BinaryUnDumpFromFile(cSectionExport & anObj,ELISE_fp & aFp)
 {
    { int aNb;
@@ -21692,6 +22043,14 @@ void  BinaryUnDumpFromFile(cSectionExport & anObj,ELISE_fp & aFp)
         }
         else  anObj.ChoixImMM().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ExportResiduXml().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ExportResiduXml().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ExportResiduXml().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionExport & anObj)
@@ -21760,6 +22119,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionExport & anObj)
         BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.ChoixImMM().IsInit());
     if (anObj.ChoixImMM().IsInit()) BinaryDumpInFile(aFp,anObj.ChoixImMM().Val());
+    BinaryDumpInFile(aFp,anObj.ExportResiduXml().IsInit());
+    if (anObj.ExportResiduXml().IsInit()) BinaryDumpInFile(aFp,anObj.ExportResiduXml().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionExport & anObj)
@@ -21830,6 +22191,8 @@ cElXMLTree * ToXMLTree(const cSectionExport & anObj)
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("ExportNuage"));
    if (anObj.ChoixImMM().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ChoixImMM().Val())->ReTagThis("ChoixImMM"));
+   if (anObj.ExportResiduXml().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ExportResiduXml"),anObj.ExportResiduXml().Val())->ReTagThis("ExportResiduXml"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21837,8 +22200,8 @@ cElXMLTree * ToXMLTree(const cSectionExport & anObj)
 
 void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ExportCalib(),aTree->GetAll("ExportCalib",false,1));
 
@@ -21863,9 +22226,11 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportNuage(),aTree->GetAll("ExportNuage",false,1));
 
    xml_init(anObj.ChoixImMM(),aTree->Get("ChoixImMM",1)); //tototo 
+
+   xml_init(anObj.ExportResiduXml(),aTree->Get("ExportResiduXml",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "3E9D5BDBA274BF85FE3F";};
+std::string  Mangling( cSectionExport *) {return "8B1DFF84BF0106ACFF3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -22044,6 +22409,17 @@ const cTplValGesInit< cTxtRapDetaille > & cEtapeCompensation::TxtRapDetaille()co
 }
 
 
+std::list< cObsRelGPS > & cEtapeCompensation::ObsRelGPS()
+{
+   return SectionObservations().ObsRelGPS();
+}
+
+const std::list< cObsRelGPS > & cEtapeCompensation::ObsRelGPS()const 
+{
+   return SectionObservations().ObsRelGPS();
+}
+
+
 cSectionObservations & cEtapeCompensation::SectionObservations()
 {
    return mSectionObservations;
@@ -22173,6 +22549,17 @@ std::list< cExportNuage > & cEtapeCompensation::ExportNuage()
 const std::list< cExportNuage > & cEtapeCompensation::ExportNuage()const 
 {
    return SectionExport().Val().ExportNuage();
+}
+
+
+cTplValGesInit< std::string > & cEtapeCompensation::FileImSel()
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().FileImSel();
+}
+
+const cTplValGesInit< std::string > & cEtapeCompensation::FileImSel()const 
+{
+   return SectionExport().Val().ChoixImMM().Val().ChoixImSec().FileImSel();
 }
 
 
@@ -22407,6 +22794,17 @@ const cTplValGesInit< cChoixImMM > & cEtapeCompensation::ChoixImMM()const
 }
 
 
+cTplValGesInit< std::string > & cEtapeCompensation::ExportResiduXml()
+{
+   return SectionExport().Val().ExportResiduXml();
+}
+
+const cTplValGesInit< std::string > & cEtapeCompensation::ExportResiduXml()const 
+{
+   return SectionExport().Val().ExportResiduXml();
+}
+
+
 cTplValGesInit< cSectionExport > & cEtapeCompensation::SectionExport()
 {
    return mSectionExport;
@@ -22532,8 +22930,8 @@ cElXMLTree * ToXMLTree(const cEtapeCompensation & anObj)
 
 void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.IterationsCompensation(),aTree->GetAll("IterationsCompensation",false,1));
 
@@ -22552,7 +22950,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "1554A05EB9668D8AFF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "6667317D3FD9EB93FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -22605,13 +23003,13 @@ cElXMLTree * ToXMLTree(const cSectionCompensation & anObj)
 
 void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "300F541D3151F4E9FB3F";};
+std::string  Mangling( cSectionCompensation *) {return "E6C3107A028D7DA2FD3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -22790,6 +23188,17 @@ const cTplValGesInit< double > & cParamApero::LimSupBSurHPMoy()const
 }
 
 
+std::list< cDeclareObsRelGPS > & cParamApero::DeclareObsRelGPS()
+{
+   return SectionBDD_Observation().DeclareObsRelGPS();
+}
+
+const std::list< cDeclareObsRelGPS > & cParamApero::DeclareObsRelGPS()const 
+{
+   return SectionBDD_Observation().DeclareObsRelGPS();
+}
+
+
 cSectionBDD_Observation & cParamApero::SectionBDD_Observation()
 {
    return mSectionBDD_Observation;
@@ -22963,6 +23372,17 @@ cTplValGesInit< bool > & cParamApero::IsAperiCloud()
 const cTplValGesInit< bool > & cParamApero::IsAperiCloud()const 
 {
    return SectionChantier().IsAperiCloud();
+}
+
+
+cTplValGesInit< bool > & cParamApero::IsChoixImSec()
+{
+   return SectionChantier().IsChoixImSec();
+}
+
+const cTplValGesInit< bool > & cParamApero::IsChoixImSec()const 
+{
+   return SectionChantier().IsChoixImSec();
 }
 
 
@@ -23521,8 +23941,8 @@ cElXMLTree * ToXMLTree(const cParamApero & anObj)
 
 void xml_init(cParamApero & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DicoLoc(),aTree->Get("DicoLoc",1)); //tototo 
 
@@ -23545,6 +23965,327 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "7844EF179092ABA2FF3F";};
+std::string  Mangling( cParamApero *) {return "0149905D354A8582FD3F";};
+
+
+std::string & cXmlSauvExportAperoOneIm::Name()
+{
+   return mName;
+}
+
+const std::string & cXmlSauvExportAperoOneIm::Name()const 
+{
+   return mName;
+}
+
+
+double & cXmlSauvExportAperoOneIm::Residual()
+{
+   return mResidual;
+}
+
+const double & cXmlSauvExportAperoOneIm::Residual()const 
+{
+   return mResidual;
+}
+
+
+double & cXmlSauvExportAperoOneIm::PercOk()
+{
+   return mPercOk;
+}
+
+const double & cXmlSauvExportAperoOneIm::PercOk()const 
+{
+   return mPercOk;
+}
+
+
+int & cXmlSauvExportAperoOneIm::NbPts()
+{
+   return mNbPts;
+}
+
+const int & cXmlSauvExportAperoOneIm::NbPts()const 
+{
+   return mNbPts;
+}
+
+
+int & cXmlSauvExportAperoOneIm::NbPtsMul()
+{
+   return mNbPtsMul;
+}
+
+const int & cXmlSauvExportAperoOneIm::NbPtsMul()const 
+{
+   return mNbPtsMul;
+}
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneIm & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Name(),aFp);
+    BinaryUnDumpFromFile(anObj.Residual(),aFp);
+    BinaryUnDumpFromFile(anObj.PercOk(),aFp);
+    BinaryUnDumpFromFile(anObj.NbPts(),aFp);
+    BinaryUnDumpFromFile(anObj.NbPtsMul(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlSauvExportAperoOneIm & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,anObj.Residual());
+    BinaryDumpInFile(aFp,anObj.PercOk());
+    BinaryDumpInFile(aFp,anObj.NbPts());
+    BinaryDumpInFile(aFp,anObj.NbPtsMul());
+}
+
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneIm & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlSauvExportAperoOneIm",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(::ToXMLTree(std::string("Residual"),anObj.Residual())->ReTagThis("Residual"));
+   aRes->AddFils(::ToXMLTree(std::string("PercOk"),anObj.PercOk())->ReTagThis("PercOk"));
+   aRes->AddFils(::ToXMLTree(std::string("NbPts"),anObj.NbPts())->ReTagThis("NbPts"));
+   aRes->AddFils(::ToXMLTree(std::string("NbPtsMul"),anObj.NbPtsMul())->ReTagThis("NbPtsMul"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlSauvExportAperoOneIm & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.Residual(),aTree->Get("Residual",1)); //tototo 
+
+   xml_init(anObj.PercOk(),aTree->Get("PercOk",1)); //tototo 
+
+   xml_init(anObj.NbPts(),aTree->Get("NbPts",1)); //tototo 
+
+   xml_init(anObj.NbPtsMul(),aTree->Get("NbPtsMul",1)); //tototo 
+}
+
+std::string  Mangling( cXmlSauvExportAperoOneIm *) {return "029F800C8A9FB184FF3F";};
+
+
+std::list< cXmlSauvExportAperoOneIm > & cXmlSauvExportAperoOneIter::OneIm()
+{
+   return mOneIm;
+}
+
+const std::list< cXmlSauvExportAperoOneIm > & cXmlSauvExportAperoOneIter::OneIm()const 
+{
+   return mOneIm;
+}
+
+
+double & cXmlSauvExportAperoOneIter::AverageResidual()
+{
+   return mAverageResidual;
+}
+
+const double & cXmlSauvExportAperoOneIter::AverageResidual()const 
+{
+   return mAverageResidual;
+}
+
+
+int & cXmlSauvExportAperoOneIter::NumIter()
+{
+   return mNumIter;
+}
+
+const int & cXmlSauvExportAperoOneIter::NumIter()const 
+{
+   return mNumIter;
+}
+
+
+int & cXmlSauvExportAperoOneIter::NumEtape()
+{
+   return mNumEtape;
+}
+
+const int & cXmlSauvExportAperoOneIter::NumEtape()const 
+{
+   return mNumEtape;
+}
+
+
+cTplValGesInit< double > & cXmlSauvExportAperoOneIter::EvolMax()
+{
+   return mEvolMax;
+}
+
+const cTplValGesInit< double > & cXmlSauvExportAperoOneIter::EvolMax()const 
+{
+   return mEvolMax;
+}
+
+
+cTplValGesInit< double > & cXmlSauvExportAperoOneIter::EvolMoy()
+{
+   return mEvolMoy;
+}
+
+const cTplValGesInit< double > & cXmlSauvExportAperoOneIter::EvolMoy()const 
+{
+   return mEvolMoy;
+}
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoOneIter & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXmlSauvExportAperoOneIm aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OneIm().push_back(aVal);
+        }
+  } ;
+    BinaryUnDumpFromFile(anObj.AverageResidual(),aFp);
+    BinaryUnDumpFromFile(anObj.NumIter(),aFp);
+    BinaryUnDumpFromFile(anObj.NumEtape(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.EvolMax().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.EvolMax().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.EvolMax().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.EvolMoy().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.EvolMoy().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.EvolMoy().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlSauvExportAperoOneIter & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.OneIm().size());
+    for(  std::list< cXmlSauvExportAperoOneIm >::const_iterator iT=anObj.OneIm().begin();
+         iT!=anObj.OneIm().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.AverageResidual());
+    BinaryDumpInFile(aFp,anObj.NumIter());
+    BinaryDumpInFile(aFp,anObj.NumEtape());
+    BinaryDumpInFile(aFp,anObj.EvolMax().IsInit());
+    if (anObj.EvolMax().IsInit()) BinaryDumpInFile(aFp,anObj.EvolMax().Val());
+    BinaryDumpInFile(aFp,anObj.EvolMoy().IsInit());
+    if (anObj.EvolMoy().IsInit()) BinaryDumpInFile(aFp,anObj.EvolMoy().Val());
+}
+
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoOneIter & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlSauvExportAperoOneIter",eXMLBranche);
+  for
+  (       std::list< cXmlSauvExportAperoOneIm >::const_iterator it=anObj.OneIm().begin();
+      it !=anObj.OneIm().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneIm"));
+   aRes->AddFils(::ToXMLTree(std::string("AverageResidual"),anObj.AverageResidual())->ReTagThis("AverageResidual"));
+   aRes->AddFils(::ToXMLTree(std::string("NumIter"),anObj.NumIter())->ReTagThis("NumIter"));
+   aRes->AddFils(::ToXMLTree(std::string("NumEtape"),anObj.NumEtape())->ReTagThis("NumEtape"));
+   if (anObj.EvolMax().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("EvolMax"),anObj.EvolMax().Val())->ReTagThis("EvolMax"));
+   if (anObj.EvolMoy().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("EvolMoy"),anObj.EvolMoy().Val())->ReTagThis("EvolMoy"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlSauvExportAperoOneIter & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.OneIm(),aTree->GetAll("OneIm",false,1));
+
+   xml_init(anObj.AverageResidual(),aTree->Get("AverageResidual",1)); //tototo 
+
+   xml_init(anObj.NumIter(),aTree->Get("NumIter",1)); //tototo 
+
+   xml_init(anObj.NumEtape(),aTree->Get("NumEtape",1)); //tototo 
+
+   xml_init(anObj.EvolMax(),aTree->Get("EvolMax",1)); //tototo 
+
+   xml_init(anObj.EvolMoy(),aTree->Get("EvolMoy",1)); //tototo 
+}
+
+std::string  Mangling( cXmlSauvExportAperoOneIter *) {return "3699F30AC428459AFF3F";};
+
+
+std::list< cXmlSauvExportAperoOneIter > & cXmlSauvExportAperoGlob::Iters()
+{
+   return mIters;
+}
+
+const std::list< cXmlSauvExportAperoOneIter > & cXmlSauvExportAperoGlob::Iters()const 
+{
+   return mIters;
+}
+
+void  BinaryUnDumpFromFile(cXmlSauvExportAperoGlob & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXmlSauvExportAperoOneIter aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Iters().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlSauvExportAperoGlob & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Iters().size());
+    for(  std::list< cXmlSauvExportAperoOneIter >::const_iterator iT=anObj.Iters().begin();
+         iT!=anObj.Iters().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXmlSauvExportAperoGlob & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlSauvExportAperoGlob",eXMLBranche);
+  for
+  (       std::list< cXmlSauvExportAperoOneIter >::const_iterator it=anObj.Iters().begin();
+      it !=anObj.Iters().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Iters"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlSauvExportAperoGlob & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Iters(),aTree->GetAll("Iters",false,1));
+}
+
+std::string  Mangling( cXmlSauvExportAperoGlob *) {return "D0E6B5EC893BD587FDBF";};
 
 // };

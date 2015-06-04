@@ -13,23 +13,28 @@ int helpMessage(const QApplication &app, QString text)
 #endif
 }
 
-#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION==5 ) )
+#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION>=4 ) )
 class Win32CommandLineConverter
 {
 private:
-    std::unique_ptr<char*[]> argv_;
-    std::vector<std::unique_ptr<char[]>> storage_;
+    char** argv_;
+    std::vector<char*> storage_;
 public:
     Win32CommandLineConverter()
     {
         LPWSTR cmd_line = GetCommandLineW();
+
         int argc;
+
         LPWSTR* w_argv = CommandLineToArgvW(cmd_line, &argc);
-        argv_ = std::unique_ptr<char*[]>(new char*[argc]);
+
+        argv_ = new char*[argc];
+
         storage_.reserve(argc);
+
         for(int i=0; i<argc; ++i) {
             storage_.push_back(ConvertWArg(w_argv[i]));
-            argv_[i] = storage_.back().get();
+            argv_[i] = storage_.back();
         }
         LocalFree(w_argv);
     }
@@ -39,20 +44,19 @@ public:
     }
     char** argv() const
     {
-        return argv_.get();
+        return argv_;
     }
-    static std::unique_ptr<char[]> ConvertWArg(LPWSTR w_arg)
+    static char* ConvertWArg(LPWSTR w_arg)
     {
         int size = WideCharToMultiByte(CP_UTF8, 0, w_arg, -1, nullptr, 0, nullptr, nullptr);
-        std::unique_ptr<char[]> ret(new char[size]);
-        WideCharToMultiByte(CP_UTF8, 0, w_arg, -1, ret.get(), size, nullptr, nullptr);
+        char* ret = new char[size];
+        WideCharToMultiByte(CP_UTF8, 0, w_arg, -1, ret, size, nullptr, nullptr);
         return ret;
     }
 };
 #endif
 
-
-#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION == 5 ) )
+#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION >= 4 ) )
 int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
 {
     Win32CommandLineConverter cmd_line;
@@ -78,20 +82,25 @@ int main(int argc, char *argv[])
 
     setStyleSheet(app);
 
-    QStringList cmdline_args = QCoreApplication::arguments();
+    //qDebug() << "Number of screens:" << QGuiApplication::screens().size();
 
-    QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
-            QString("SaisieMasqQT\n") +
-            QString("SaisieAppuisInitQT\n") +
-            QString("SaisieAppuisPredicQT\n")+
-            QString("SaisieBascQT\n")+
-            QString("SaisieBoxQT\n\n");
+    //QScreen *scrre =  QGuiApplication::primaryScreen();
 
-    if (cmdline_args.size() > 1)
+    //qDebug() << scrre->size();
+QString cmds = QObject::tr("Allowed commands:") + "\n\n" +
+        QString("SaisieMasqQT\n") +
+        QString("SaisieAppuisInitQT\n") +
+        QString("SaisieAppuisPredicQT\n")+
+        QString("SaisieBascQT\n")+
+        QString("SaisieCylQT\n")+
+        QString("SaisieBoxQT\n\n");
+
+    if (argc > 1)
     {
-        for (int i=0; i < cmdline_args.size(); ++i)
+        for (int i=0; i < argc; ++i)
         {
-            QString str = cmdline_args[i];
+            QString str(argv[i]);
+
 #ifdef _DEBUG
             cout << "\ncommand: " << str.toStdString().c_str()<<endl;
 #endif
@@ -142,11 +151,11 @@ QStringList getFilenames(string aDir, string aName)
     QStringList filenames;
 
     for
-    (
+        (
         list<string>::iterator itS=aNamelist.begin();
-        itS!=aNamelist.end();
-        itS++
-    )
+    itS!=aNamelist.end();
+    itS++
+        )
         filenames.push_back( QString((aDir + *itS).c_str()));
 
     return filenames;
@@ -187,7 +196,7 @@ void loadTranslation(QApplication &app)
         else
         {
             QMessageBox::critical(NULL, "Error", "Can't load translation file: " + sLang + "\n" +
-                                         "In: " + path);
+                "In: " + path);
         }
     }
 }

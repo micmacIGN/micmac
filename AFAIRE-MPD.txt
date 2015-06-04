@@ -41,6 +41,7 @@ EVOLUTIONS :
   * Convert Calib
   * Equation de rigidite
 
+  * DoAllDev
   * Pipeline full auto => presque ...
 
 Torsion de bande : FAITS

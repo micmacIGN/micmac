@@ -39,6 +39,7 @@ set(NEIGH_DIR "neighboor")
 set(OP_BUF_DIR "op_buf")
 set(OPTIM_DIR "optim")
 set(SAMPLESLIBELISE_DIR "SamplesLibElise")
+set(SATELIB_DIR "SateLib")
 set(UTI_FILES_DIR "uti_files")
 set(UTI_IMAGE_DIR "uti_image")
 set(UTI_PHGRM_DIR "uti_phgrm")
@@ -70,6 +71,7 @@ INCLUDE (${OPERATOR_DIR}/Sources.cmake)
 INCLUDE (${OPTIM_DIR}/Sources.cmake)
 INCLUDE (${UTI_FILES_DIR}/Sources.cmake)
 INCLUDE (${SAMPLESLIBELISE_DIR}/Sources.cmake)
+INCLUDE (${SATELIB_DIR}/Sources.cmake)
 INCLUDE (${UTI_IMAGE_DIR}/Sources.cmake)
 INCLUDE (${UTI_PHGRM_DIR}/Sources.cmake)
 INCLUDE (${ORIPHO_DIR}/Sources.cmake)
@@ -90,8 +92,8 @@ INCLUDE (${XINTER_DIR}/Sources.cmake)
 INCLUDE (${POISSON_DIR}/Sources.cmake)
 
 if(${WITH_ETALONPOLY})
-        INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)
-        set( LIB_ETAL_POLYG libEtalPolyg )
+	INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)
+	set( LIB_ETAL_POLYG libEtalPolyg )
 endif()
 
 # ORGANISATION des en-tetes ELISE et fichiers Xml
@@ -105,13 +107,13 @@ list(APPEND IncFiles ${QssFiles})
 
 # Construction de l'arborescence des fichiers INCLUDE
 foreach(source_file ${IncFiles})
-        get_filename_component(VarName ${source_file}  ABSOLUTE)
-        get_filename_component(NameFile ${source_file}  NAME)
+	get_filename_component(VarName ${source_file}  ABSOLUTE)
+	get_filename_component(NameFile ${source_file}  NAME)
 
-        string(REGEX REPLACE "/${NameFile}" "" includeTree ${VarName})
-        string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
-        string(REGEX REPLACE "/" "\\\\\\\\" includeTree ${includeTree})
-        source_group("${includeTree}" FILES ${source_file})
+	string(REGEX REPLACE "/${NameFile}" "" includeTree ${VarName})
+	string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
+	string(REGEX REPLACE "/" "\\\\\\\\" includeTree ${includeTree})
+	source_group("${includeTree}" FILES ${source_file})
 endforeach(source_file)
 
 # OPTION BUILD : En tetes precompiles visual studio
@@ -120,16 +122,16 @@ enable_precompiled_headers_msvc(StdAfx.h Elise_Src_Files)
 
 # fichiers qui n'utilisent pas les en tetes precompilées
 set(Elise_Src_Files
-        ${Elise_Src_Files}
-        ${UTIL_DIR}/win_regex.c
-        ${TIFF_DIR}/el_dcraw.c
-        ${OPTIM_DIR}/opt_mat_creuse.cpp
-        ${OPTIM_DIR}/opt_sysl2.cpp
-        ${MULLGES_DIR}/mubasic.cpp
-        ${MULLGES_DIR}/muflaguer.cpp
-        ${MULLGES_DIR}/mufmueller.cpp
-        ${MULLGES_DIR}/muvmblock.cpp
-        ${ORIPHO_DIR}/cOriMntCarto.cpp
+	${Elise_Src_Files}
+	${UTIL_DIR}/win_regex.c
+	${TIFF_DIR}/el_dcraw.c
+	${OPTIM_DIR}/opt_mat_creuse.cpp
+	${OPTIM_DIR}/opt_sysl2.cpp
+	${MULLGES_DIR}/mubasic.cpp
+	${MULLGES_DIR}/muflaguer.cpp
+	${MULLGES_DIR}/mufmueller.cpp
+	${MULLGES_DIR}/muvmblock.cpp
+	${ORIPHO_DIR}/cOriMntCarto.cpp
 )
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -153,23 +155,27 @@ include(${SAISIE_DIR}/Elise_QT.cmake)
 if(${CUDA_ENABLED})
     INCLUDE (GpGpu.cmake)
 
-    cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_tomoc} ${HEADERS_nomoc} ${saisie_ui} OPTIONS ${GENCODE_SM})
+    cuda_add_library( ${libElise} ${Elise_Src_Files} ${IncFiles} ${QT_ALLFILES} OPTIONS ${GENCODE_SM})
 
-    target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY} ${OPENCL_LIBRARY})
+	if(${CUDA_NVTOOLS})
+		target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY} ${OPENCL_LIBRARY})
+	else()
+		target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${OPENCL_LIBRARY})
+	endif()
 
 else()
 
-    add_library( ${libElise}  ${Elise_Src_Files} ${IncFiles} ${vmm_SRCS} ${RC_SRCS} ${HEADERS_moced} ${HEADERS_tomoc} ${HEADERS_nomoc} ${saisie_ui})
+    add_library( ${libElise}  ${Elise_Src_Files} ${IncFiles} ${QT_ALLFILES})
 
 endif()
 
 target_link_libraries(${libElise} ${OPENGL_LIBRARIES} ${QT_LIBRARIES})
 
-if( ${qt_version} EQUAL 5 )
-    qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
-endif()
+#if( ${qt_version} EQUAL 5 )
+#    qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
+#endif()
 
-INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${Install_Dir_lib} )
+INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB} )
 
 
 # OPTION BUILD : En tetes precompilees pour gcc
@@ -188,7 +194,6 @@ if (WITH_INTERFACE)
     ADD_SUBDIRECTORY(interface)
 endif()
 
-#if (WITH_SAISIEQT)
 if ( NOT ${qt_version} EQUAL 0)
     ADD_SUBDIRECTORY(saisieQT)
 endif()

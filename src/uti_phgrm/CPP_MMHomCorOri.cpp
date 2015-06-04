@@ -498,7 +498,7 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
     mIm2       (1,1),
     mMasq      (1,1),
     mTMasq     (mMasq),
-    mMatch     (false)
+    mMatch     (true)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -510,7 +510,7 @@ cAppli_HomCorOri::cAppli_HomCorOri (int argc,char ** argv) :
                     << EAMC(mNameIm2,"Second Image", eSAM_IsExistFile)
                     << EAMC(mOri,"Orientation", eSAM_IsExistFile),
                 LArgMain()  << EAM(mMatch,"Match",true,"Do matching (Def = true)", eSAM_IsBool)
-                    << EAM(mZoomFinal,"ZoomF", true, "Zoom Final")
+                    << EAM(mZoomFinal,"ZoomF", true, "Zoom Final",eSAM_IsPowerOf2)
     );
 
     if (mZoomFinal==2)
@@ -545,7 +545,7 @@ int MMHomCorOri_main(int argc,char ** argv)
 {
    cAppli_HomCorOri anAppli (argc,argv);
 
-   if (! anAppli.AllDone())
+   if (! anAppli.AllDone() && !MMVisualMode)
    {
        anAppli.DoMatch();
        anAppli.Load();

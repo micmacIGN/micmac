@@ -379,6 +379,8 @@ struct cCiblePointeScore
 	   cCamIncEtalonage * mCam;
 };
 
+extern bool AllowUnsortedVarIn_SetMappingCur;
+
 class cEtalonnage
 {
 	public :

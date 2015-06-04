@@ -136,6 +136,12 @@ class Config_Freeman_Or
 };
 
 
+const std::vector<Pt3di> &  Dir6Cube();
+const std::vector<Pt3di> &  Dir8Cube();
+const std::vector<Pt3di> &  Dir14Cube();
+const std::vector<Pt3di> &  Dir26Cube();
+
+
 #endif
 
 /*Footer-MicMac-eLiSe-25/06/2007

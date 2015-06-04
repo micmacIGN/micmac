@@ -42,9 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_NUAGE_3D_MAILLE_  // general
 #define _ELISE_NUAGE_3D_MAILLE_
 
-// Classe d'interface, les classe "concrete" derivee sont definie dans
+// Classe d'interface, les classes "concretes" derivees sont definies dans
 // un ".cpp".  Pour creer un objet il faut passer
-// par les allocateur static
+// par les allocateurs static
 
 
    class cXML_ParamNuage3DMaille;
@@ -63,6 +63,9 @@ cXML_ParamNuage3DMaille CropAndSousEch
                              double aSc
                         );
 
+
+class cFileOriMnt;
+cFileOriMnt ToFOM(const cXML_ParamNuage3DMaille &,bool StdRound);
 
 
 class  cBasculeNuage;
@@ -161,6 +164,8 @@ double DynProfInPixel(const cXML_ParamNuage3DMaille &);
 class cElNuage3DMaille : public cCapture3D
 {
      public :
+        // return 0 si pas de pb
+        virtual double SeuilDistPbTopo() const;
 
         bool  CaptHasData(const Pt2dr &) const ;
         Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
@@ -176,6 +181,7 @@ class cElNuage3DMaille : public cCapture3D
         double ResolSolGlob() const;
 
 
+
         ElCamera *   Cam() const;
         cRawNuage   GetRaw() const;
    // Lecture-Creation  globale
@@ -183,7 +189,8 @@ class cElNuage3DMaille : public cCapture3D
         static cElNuage3DMaille * FromFileIm(const std::string & aFile);
         void Save(const std::string & Name);  // Name+Prof.tif   Name+Masq.tif
         virtual cElNuage3DMaille * Clone() const = 0;
-   // Parcour par des iterateurs
+        virtual void ProfBouchePPV() = 0;
+   // Parcourt par des iterateurs
 
         typedef Pt2di tIndex2D;
         typedef Pt3di tTri;
@@ -240,7 +247,7 @@ class cElNuage3DMaille : public cCapture3D
                  //  TERRAIN  => NUAGE
          Pt2dr   Terrain2Index(const Pt3dr &) const;
 
-                 // VIA LES PROFONDEUR
+                 // VIA LES PROFONDEURS
          virtual bool HasProfondeur() const = 0;
          virtual void    SetProfOfIndex(const tIndex2D & aP,double ) ;
          virtual bool    SetProfOfIndexIfSup(const tIndex2D & aP,double ) ;
@@ -254,7 +261,7 @@ class cElNuage3DMaille : public cCapture3D
          virtual void    SetProfEuclidOfIndex(const tIndex2D & aP,double ) ;
 
 
-         // Renvoie en Z avec une dynamique telle que Dz de 1 correpsonde a 1 Pixel,
+         // Renvoie en Z avec une dynamique telle que Dz de 1 corresponde a 1 Pixel,
          // tape dans Im2D Gen
          virtual double  ProfEnPixel(const tIndex2D & aP) const ;
          virtual double  ProfInterpEnPixel(const Pt2dr & aP) const ;
@@ -298,7 +305,7 @@ class cElNuage3DMaille : public cCapture3D
         // permet de memoriser la deuxieme valeur pour eventuelle transparence
 
         // Nouvelle modif pour permettre de resize au + pres le resultat
-        // Si resize, se fait en renvyant une nouvelle version
+        // Si resize, se fait en renvoyant une nouvelle version
 
         cElNuage3DMaille *   BasculeInThis
                (
@@ -331,11 +338,11 @@ class cElNuage3DMaille : public cCapture3D
 */
 
 
-        // A priori l'indexation est  independante d'un espace geometrique sous jacente,
+        // A priori l'indexation est independante d'un espace geometrique sous jacent,
         // cependant en general il y a une correlation forte entre les 2. Si c'est le
         // cas, ces trois fonctions remplissent le role;
         //
-        // Tyiquement les coordonnees plani seront l'espace image (ou terrain) du nuage
+        // Typiquement les coordonnees plani seront l'espace image (ou terrain) du nuage
         // et la transfo sera le clip-scale donne par l'orientation interne
         //
         virtual bool IndexIsPlani() const ;
@@ -366,7 +373,7 @@ class cElNuage3DMaille : public cCapture3D
                     const Pt3dr& anOffset = Pt3dr(0,0,0)
                ) ;
 
-        void Std_AddAttrFromFile(const std::string & aName,double aDyn=1,double aScale=1);
+        void Std_AddAttrFromFile(const std::string & aName,double aDyn=1,double aScale=1,bool ForceRGB=false);
 
 
         cElNuage3DMaille * ReScaleAndClip(double aScale);
@@ -383,7 +390,7 @@ class cElNuage3DMaille : public cCapture3D
         //
         //  Un ElCamera a deja la bonne interface pour definir la
         //  geometrie d'acquisition du nuage. Si c'est un nuage en geometrie
-        // camera  stenope c'est trivial. Si c'est un nuage en terrain, on
+        // camera stenope c'est trivial. Si c'est un nuage en terrain, on
         // le fera avec un camera de projection orthographique
 
         cElNuage3DMaille
@@ -474,7 +481,8 @@ class cElNuage3DMaille : public cCapture3D
                                int                              aFlagChannel,
                                const std::vector<std::string> & aNameProps,
                                double aDyn=1,
-                               double aScale=1
+                               double aScale=1,
+                               bool ForceRGB=false
                              );
         void PlyHeader(FILE *,bool aModeBin) const;
         void PlyPutDataVertex(FILE *,bool aModeBin, int aAddNormale,bool DoublePrec,const Pt3dr & anOffset) const;
@@ -579,7 +587,7 @@ class cZBuffer
 
         // OrigineIn, StepIn, ...  : parametrise la discretisation du terrain
         // Ne sert qu'a definir la grille, en aucune maniere une espace;
-        // on peut raoujter a OrigineIn (ou OrigineOut) n'importe quel multiple
+        // on peut rajouter a OrigineIn (ou OrigineOut) n'importe quel multiple
         // de StepIn  (vs StepOut) ca NE DEVRAIT RIEN CHANGER (a verifier quand meme
         // car commentaire a posteriori)
 
@@ -598,7 +606,8 @@ class cZBuffer
                        Pt2di & aOffset_Out_00,
                        Pt2di aP0In,
                        Pt2di aP1In,
-                       float aZDef  // aZDef doit etre suffisement bas
+                       float aZDef,  // aZDef doit etre suffisement bas
+                       bool  * Ok  = 0
                    );
 
         Im2D_REAL4 ZCaches
@@ -613,7 +622,7 @@ class cZBuffer
 
         // Initialise d'abord un basculement "standard", ensuite utilise
         // un schema iteratif, pour calculer le basculement d'un
-        // interploateur specifie par ZInterpofXY
+        // interpolateur specifie par ZInterpofXY
         Im2D_REAL4 BasculerAndInterpoleInverse
                    (
                        Pt2di & aOffset_Out_00,
@@ -711,7 +720,7 @@ class cZBuffer
 
         double       mEpsIntInv;
 
-        //    (A B)  est l'inverse de la matrice qui envoie un pixe (1,0) (0,1) Z=Moyen vers l'espace d'arrivee
+        //    (A B)  est l'inverse de la matrice qui envoie un pixel (1,0) (0,1) Z=Moyen vers l'espace d'arrivee
         //    (C D)
         TIm2D<REAL8,REAL8>   mTImDef_00;
         TIm2D<REAL8,REAL8>   mTImDef_10;
@@ -754,6 +763,8 @@ template <class Type> void WriteType(FILE * aFP,Type f)
 
 cElNuage3DMaille * NuageWithoutDataWithModel(const std::string & aName,const std::string & aModel);
 cElNuage3DMaille * NuageWithoutData(const std::string & aName);
+cElNuage3DMaille * NuageWithoutData(const cXML_ParamNuage3DMaille & aParam,const std::string & aName) ;
+
 cXML_ParamNuage3DMaille XML_Nuage(const std::string & aName);
 bool GeomCompatForte(cElNuage3DMaille * aN1,cElNuage3DMaille *aN2);
 

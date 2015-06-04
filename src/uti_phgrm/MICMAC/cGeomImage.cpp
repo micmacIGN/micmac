@@ -44,6 +44,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cOrientationCon.h"
 
 
+void ShowPoly(cElPolygone  aPoly)
+{
+  std::list<std::vector<Pt2dr> > aLC = aPoly.Contours();
+  std::list<bool> aLH = aPoly.IsHole();
+  std::list<bool>::iterator itH = aLH.begin();
+  for( std::list<std::vector<Pt2dr> >::iterator itC=aLC.begin() ; itC!=aLC.end() ; itC++)
+  {
+       std::vector<Pt2dr> aC = *itC;
+       std::cout << "H=" << ((*itH) ? "Hole" : "Fill") << "\n";
+       for (int aK= 0 ; aK<int(aC.size()) ; aK++)
+           std::cout << aC[aK] ;
+       std::cout << "\n";
+       itH++;
+  }
+}
+
 /*****************************************/
 /*                                       */
 /*            cGeomBasculement3D         */
@@ -355,6 +371,7 @@ void cGeomImage::SetDeZoomIm(int aDeZoom)
 
 Pt2dr cGeomImage::CurObj2Im(Pt2dr aPTer,const REAL * aPx) const
 {
+
    return Objet2ImageInit_Euclid(aPTer,aPx)/double(mDeZoom) - Pt2dr(mP0Clip);
 }
 
@@ -379,9 +396,10 @@ void cGeomImage::PostInitVirtual(const std::vector<cModGeomComp *> & aVM)
    cElPolygone aPol2;
    aPol2.AddContour(cGeomImage::EmpriseImage(),false);
 
-    cElPolygone aPol12 = aPol1 * aPol2;
+   cElPolygone aPol12 = aPol1 * aPol2;
 
    mContourIm = aPol12.ContSMax();
+
 
 /*
 for (int aK=0; aK<int(mContourIm.size()) ; aK++)
@@ -473,7 +491,15 @@ void cGeomImage::PostInit()
 // std::cout << mBoxTerPx0._p0 << " " << mBoxTerPx0._p1 << "\n";
 // std::cout << " F " << CanCal << " DDDDDDDDDDD "<< aPx0[0] << " " << aPx0[1] << "\n";
 // getchar();
+
     mPolygTerPx0.AddContour(mContourTer,false);
+
+/*
+std::cout << " EEEEEE mPolygTerPx0 \n";
+ShowPoly(mPolygTerPx0);
+getchar();
+*/
+
     InstPostInit();
 
 }
@@ -873,6 +899,7 @@ bool  cGeomImage::IntersectEmprTer
       return false;
    }
 
+
    cElPolygone aPolInter = PolygTerPx0() * aGeo2.PolygTerPx0();
    const std::list<cElPolygone::tContour> & aContInter = aPolInter.Contours();
 
@@ -1019,6 +1046,7 @@ Pt2dr cGeomImage::ImageAndPx2Obj_Euclid(Pt2dr aPIm,const REAL * aPx) const
 
 Pt2dr cGeomImage::Objet2ImageInit_Euclid(Pt2dr aPTer,const REAL * aPx) const
 {
+
     Pt2dr aPIm ;
     if (mRC)
     {
@@ -1747,9 +1775,10 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
   {
 
       static Video_Win * aW = 0; 
-      // if (aW==0)  aW =  Video_Win::PtrWStd(Pt2di(700,500));
+      // if (aW==0)  aW =  Video_Win::PtrWStd(Pt2di(900,900));
 
-      Pt2dr aSzImR1 = Pt2dr(mOri->Sz());
+      //Pt2dr aSzImR1 = Pt2dr(mOri->Sz());
+      Pt2dr aSzImR1 = Pt2dr(mOri->SzPixel());
       Pt2di aSzR = round_up(aSzImR1/mAnDeZoomM);
       Im2D_Bits<1> aMi(aSzR.x,aSzR.y,0);
       TIm2DBits<1> aTMi(aMi);
@@ -1771,8 +1800,10 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
       {
           for (aP.x=0 ; aP.x <aSzR.x ; aP.x++)
           {
+
+
               Pt2dr aPF =Pt2dr(aP)*mAnDeZoomM;
-              if (mOri->IsInZoneUtile(aPF))
+              if (mOri->IsInZoneUtile(aPF,true)) // TRUE POU PIXEL
               {
                  ElSeg3D aSeg = mOri->F2toRayonR3(aPF);
               // donne le point, en coordonne UV d'intersection rayon incident surf L=0
@@ -1796,6 +1827,7 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
               }
           }
       }
+
       if (aW)
       {
           // std::string aNameIm = mPDV.NameMasqOfResol(mAnDeZoomM);
@@ -1828,42 +1860,88 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
       // Precaution anti inifini, pour eviter que sur des interection razante la boite soit 
       // trop grande, on refait un calcul en prenant le cone epsilon du milieue de l'image que l'on 
       // dilatera de 3/epsilon
+      //
+      //  En fait, avec le milieu on ne trouve pas toujours d'intersection, donc on modifie le code 
+      // en testant plusieur points
+      //  On espere que c'est devenu inutile avec le produit scalaire fait dans le 2 sens, mais on maintient quand meme avec une valeur de seuil
+      // tres forte sur aMulRay
+
+      if (0)  // JE COMPRENDS PLUS TROP A QUOI CA SERT ET CA CREE DES PBS .....
       {
-           Pt2dr  aPExtr0 (1e20,1e20);
-           Pt2dr  aPExtr1 (-1e20,-1e20);
-           Pt2dr aMil = mOri->Sz() / 2.0;
-           ElSeg3D aSegA = mOri->F2toRayonR3(aMil);
-           cTplValGesInit<Pt3dr> aPGI3A = mAnamSA->InterDemiDroiteVisible(aSegA,0);
-           if (! aPGI3A.IsInit())
+           Pt2dr  aPExtr0Glob (1e20,1e20);
+           Pt2dr  aPExtr1Glob (-1e20,-1e20);
+           double aSurfMin = 1e60;
+           bool BoxGlobInit = false;
+
+           int aNbXY = 10;
+           int aNbRay = 20;
+           double aRay = euclid(mOri->Sz())/2.0;
+           double aMulRay = 6.0;
+
+           for (int aKX=1 ; aKX<aNbXY ; aKX++)
            {
-               std::cout << "For Image=" << mPDV.Name() << "\n";
-               ELISE_ASSERT(false,"Milieu a Pb dans Anam");
-            }
-           Pt3dr aP3A = aPGI3A.Val();
-           Pt2dr aP2A(aP3A.x,aP3A.y);
+               for (int aKY=1 ; aKY<aNbXY ; aKY++)
+               {
 
-           int aNb = 100;
-           double aMul = euclid(aMil*3.0);
+// bool TEST = (aKX==aNbXY /2) && (aKY==aNbXY /2) && (MPD_MM()) ;
+bool TEST = (aKX==2) && (aKY==2) && (MPD_MM()) ;
+
+                   Pt2dr aPds(double(aKX)/aNbXY,double(aKY)/aNbXY);
+                   Pt2dr aCdg = aPds.mcbyc(Pt2dr(mOri->SzPixel()));
+                   ElSeg3D aSegA = mOri->F2toRayonR3(aCdg);
+                   cTplValGesInit<Pt3dr> aPGI3A = mAnamSA->InterDemiDroiteVisible(aSegA,0);
 
 
-           for (int aK=0 ; aK< aNb ; aK++)
-           {
-               Pt2dr aDep =  Pt2dr::FromPolar(1.0,(2*PI*aK)/aNb);
-               Pt2dr aPB = aMil + aDep;
-               ElSeg3D aSegB = mOri->F2toRayonR3(aPB);
-               cTplValGesInit<Pt3dr>  aPGI3B  =  mAnamSA->InterDemiDroiteVisible(aSegB,0);
-               ELISE_ASSERT(aPGI3B.IsInit(),"Milieu a Pb dans Anam");
-               Pt3dr aP3B = aPGI3B.Val();
-               Pt2dr aP2B (aP3B.x,aP3B.y);
+if (TEST) std::cout << "CDDDGGGg " << aCdg << "\n";
+                   if (aPGI3A.IsInit())
+                   {
+                        bool AllOk=true;
+                        Pt2dr  aPExtr0 (1e20,1e20);
+                        Pt2dr  aPExtr1 (-1e20,-1e20);
+                        Pt3dr aP3A = aPGI3A.Val();
+                        Pt2dr aP2A(aP3A.x,aP3A.y);
 
-               Pt2dr aPExtr = aP2A + (aP2B-aP2A) * aMul;
-               aPExtr0.SetInf(aPExtr);
-               aPExtr1.SetSup(aPExtr);
+                        double aMul = aRay * aMulRay;
+
+                        for (int aK=0 ; aK< aNbRay ; aK++)
+                        {
+                            Pt2dr aDep =  Pt2dr::FromPolar(1.0,(2*PI*aK)/aNbRay);
+                            Pt2dr aPB = aCdg + aDep;
+                            ElSeg3D aSegB = mOri->F2toRayonR3(aPB);
+                            cTplValGesInit<Pt3dr>  aPGI3B  =  mAnamSA->InterDemiDroiteVisible(aSegB,0);
+                            if (aPGI3B.IsInit())
+                            {
+                                Pt3dr aP3B = aPGI3B.Val();
+                                Pt2dr aP2B (aP3B.x,aP3B.y);
+
+                                Pt2dr aPExtr = aP2A + (aP2B-aP2A) * aMul;
+                                aPExtr0.SetInf(aPExtr);
+                                aPExtr1.SetSup(aPExtr);
+                            }
+                            else
+                            {
+                               AllOk= false;
+                            }
+                        }
+if (TEST) std::cout << "ALLAOOOK  " << aCdg  << " " << AllOk  << " " << aPExtr0 << " " << aPExtr1 << "\n";
+
+                        if (AllOk)
+                        {
+                            double aSurf = (aPExtr1.x-aPExtr0.x) * (aPExtr1.y-aPExtr0.y);
+                            if (aSurf<aSurfMin)
+                            {
+                                aSurfMin = aSurf;
+                                aPExtr0Glob = aPExtr0;
+                                aPExtr1Glob = aPExtr1;
+                                BoxGlobInit = true;
+                            }
+                        }
+                   }
+               }
            }
-
-
-           aP0Ter.SetSup(aPExtr0);
-           aP1Ter.SetInf(aPExtr1);
+           ELISE_ASSERT(BoxGlobInit,"Cannot compute box in cGeomImage_Terrain_Ori::Init0MasqAnamSA");
+           aP0Ter.SetSup(aPExtr0Glob);
+           aP1Ter.SetInf(aPExtr1Glob);
       }
 
 

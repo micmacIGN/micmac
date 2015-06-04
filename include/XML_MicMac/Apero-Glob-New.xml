@@ -707,9 +707,10 @@
 	      <EtapeCompensation>
 
 
+                   <!-- MPD CHANGEMENT du 22/05/2015 (avant 1e-7/1e-9) pour limiter pv VP<0 ds Cholesky -->
                    <#IF VTEST=${AffineAll}>
-                        <MultSLMEtape> 1e-7 </MultSLMEtape>
-                        <MultSLMEtape> 1e-9   </MultSLMEtape>
+                        <MultSLMEtape> 1e-3 </MultSLMEtape>
+                        <MultSLMEtape> 1e-5   </MultSLMEtape>
                    </#IF>
 
                    <IterationsCompensation> 
@@ -763,6 +764,7 @@
                                  <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori${AeroOut}/AutoCal@.xml </KeyAssoc>
                                  <KeyIsName> false </KeyIsName>
                             </ExportCalib>
+                             <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
                     </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>

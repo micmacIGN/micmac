@@ -42,13 +42,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#ifdef SAISIE_QT
 #if ELISE_QT_VERSION >= 4
 
-int runCmd(int argc,char ** argv, std::string cmdName)
+int runCmd(int argc,char ** argv, std::string cmdName, int aMode=-1)
 {
     std::string aCom = std::string("\"") + MMBin() + "SaisieQT" + std::string("\" ") + cmdName;
 
     for (int i = 1; i < argc; ++i)
 
         aCom += std::string(" ") + QUOTE(argv[i]);
+
+    if (aMode != -1) aCom += std::string(" Mode=") + QUOTE(ToString(aMode));
 
     System(aCom.c_str());
 
@@ -82,9 +84,17 @@ int SaisieAppuisPredicQT_main(int argc,char ** argv)
 int SaisieBascQT_main(int argc,char ** argv)
 {
     if (MMVisualMode)
-        return runCmd(argc, argv, "vSaisieBascQT");
+        return runCmd(argc, argv, "vSaisieBascQT", 0);
     else
-        return runCmd(argc, argv, "SaisieBascQT");
+        return runCmd(argc, argv, "SaisieBascQT", 0);
+}
+
+int SaisieCylQT_main(int argc,char ** argv)
+{
+    if (MMVisualMode)
+        return runCmd(argc, argv, "vSaisieBascQT", 1);
+    else
+        return runCmd(argc, argv, "SaisieBascQT", 1);
 }
 
 int SaisieBoxQT_main(int argc,char ** argv)

@@ -5,7 +5,7 @@
 
     www.micmac.ign.fr
 
-   
+
     Copyright : Institut Geographique National
     Author : Marc Pierrot Deseilligny
     Contributors : Gregoire Maillet, Didier Boldo.
@@ -17,12 +17,12 @@
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
 [2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
-    d'images, adapte au contexte geograhique" to appears in 
+    d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
 Francais :
 
-   MicMac est un logiciel de mise en correspondance d'image adapte 
+   MicMac est un logiciel de mise en correspondance d'image adapte
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
@@ -68,16 +68,16 @@ cGenSysSurResol::cGenSysSurResol
         mOptSym       (OptSym),
         mGereNonSym   (GereNonSym),
         mGereBloc     (GereBloc),
-	// mSetEqEmpty(true),
-	mPhaseContrainte(true),
-	mNbContrainte(0),
-	mC(1,1),
-	mE(1,1),
-	mtL(1,1),
-	mtLC(1,1),
-	mtLCE(1,1),
-	mSol(1,1),
-	mCSol(1,1),
+    // mSetEqEmpty(true),
+    mPhaseContrainte(true),
+    mNbContrainte(0),
+    mC(1,1),
+    mE(1,1),
+    mtL(1,1),
+    mtLC(1,1),
+    mtLCE(1,1),
+    mSol(1,1),
+    mCSol(1,1),
         mGP  (1,1),
         mNewCstrIsInit (false),
         mNewCstrIsTraitee (false),
@@ -124,7 +124,7 @@ void  cGenSysSurResol::AssertPhaseContrainte()
     ELISE_ASSERT
     (
         mPhaseContrainte,
-	"cGenSysSurResol::AssertPhaseContrainte "
+    "cGenSysSurResol::AssertPhaseContrainte "
     );
 }
 
@@ -133,7 +133,7 @@ void  cGenSysSurResol::AssertPhaseEquation()
     ELISE_ASSERT
     (
         ! mPhaseContrainte,
-	"cGenSysSurResol::AssertPhaseEquation"
+    "cGenSysSurResol::AssertPhaseEquation"
     );
 }
 
@@ -154,7 +154,7 @@ void cGenSysSurResol::GSSR_AddContrainteIndexee
       )
 {
     AssertPhaseContrainte();
- 
+
  // Gestion specifique des contraintes univariees
    if ((! mNewCstrIsInit) && mUseSpeciCstrUniVar)
    {
@@ -176,7 +176,7 @@ void cGenSysSurResol::GSSR_AddContrainteIndexee
        {
             aNbVarNN++;
             aKNN = y;
-       } 
+       }
    }
 
 
@@ -187,7 +187,7 @@ void cGenSysSurResol::GSSR_AddContrainteIndexee
        // std::cout << "xrt-CSTR[" << aVI[aKNN] <<"] = "  << aE/aC[aKNN]   << " C=" << aC[aKNN] << "\n";
         return;
    }
-           
+
 
  // Gestion des contrainte l'ancienne si pas univariee
 
@@ -229,18 +229,18 @@ bool  cGenSysSurResol::AcceptContrainteNonUniV() const
 
 void cGenSysSurResol::TraitementContrainteUniVar(const std::vector<int> * aVA2S)
 {
-    if (! mUseSpeciCstrUniVar) 
+    if (! mUseSpeciCstrUniVar)
        return;
     if (! mNewCstrIsInit)
        return;
-    if (mNewCstrIsTraitee) 
+    if (mNewCstrIsTraitee)
        return;
     mNewCstrIsTraitee = true;
 
 
     INT NBV = NbVar();
 
-    // La premiere fois on rajoute les equations qui feront que  le systeme ne sera pas 
+    // La premiere fois on rajoute les equations qui feront que  le systeme ne sera pas
     // degenere
     for (int aKV=0 ; aKV< NBV; aKV++)
     {
@@ -262,7 +262,7 @@ void cGenSysSurResol::TraitementContrainteUniVar(const std::vector<int> * aVA2S)
         }
     }
 // std::cout << "cGenSysSurResol::TraitementContrainteUniVar \n" ;  getchar();
-    
+
 }
 
 void cGenSysSurResol::GSSR_AddNewEquation
@@ -303,19 +303,19 @@ void cGenSysSurResol::GSSR_AddNewEquation
     if (mFirstEquation)
     {
         ComplBaseParLeHaut(mC,mNbContrainte);
-	mFirstEquation = false;
+    mFirstEquation = false;
 
         mGP.SelfSetMatrixInverse(mC,3);
 
 
-	// On rajoute des contrainte nulle sur les
-	// N derniere variable
-	   for (INT y= mLineCC ; y<NBV ; y++)
+    // On rajoute des contrainte nulle sur les
+    // N derniere variable
+       for (INT y= mLineCC ; y<NBV ; y++)
            {
                for (INT x=0 ;  x<NBV ; x++)
-	       {
+           {
                     mtL(x,0) = (x==y);
-	       }
+           }
                V_GSSR_AddNewEquation(1.0,mtL.data()[0],0.0);
            }
     }
@@ -412,11 +412,11 @@ void cGenSysSurResol::Basic_GSSR_AddNewEquation_Indexe
      )
 {
 /*
-     static int aCpt=0 ; 
+     static int aCpt=0 ;
      if (BugUPL) aCpt++;
 */
 
-     ELISE_ASSERT 
+     ELISE_ASSERT
      (
          (mNbContrainte==0) || mCstrAssumed,
          "Old contrainte in AddNewEquation_Indexe"
@@ -434,10 +434,10 @@ void cGenSysSurResol::Basic_GSSR_AddNewEquation_Indexe
             for (int aKB=0 ; aKB<(int)aVSB->size() ; aKB++)
             {
                 std::cout  << aVSB->size() << " "
-                          << (*aVSB)[aKB].I0AbsAlloc() << " " 
-                          << (*aVSB)[aKB].I1AbsAlloc() << " " 
-                          << (*aVSB)[aKB].I0AbsSolve() << " " 
-                          << (*aVSB)[aKB].I1AbsSolve() << " " 
+                          << (*aVSB)[aKB].I0AbsAlloc() << " "
+                          << (*aVSB)[aKB].I1AbsAlloc() << " "
+                          << (*aVSB)[aKB].I0AbsSolve() << " "
+                          << (*aVSB)[aKB].I1AbsSolve() << " "
                           << " BugUPL in cGenSysSurResol::BGAI " << aPds << "\n";
             }
             BasicVerifMatPos(*aVSB,aCpt);
@@ -490,7 +490,7 @@ void cGenSysSurResol::V_GSSR_AddNewEquation_Indexe
 
 bool cGenSysSurResol::GSSR_UseEqMatIndexee()
 {
-	return false;
+    return false;
 }
 
 
@@ -584,7 +584,7 @@ void L2SysSurResol::GSSR_AddEquationFitOneVar(int aNumVar,double aVal,double aPd
     if (aPds<=0) return;
     std::vector<int> aVInd;
     aVInd.push_back(aNumVar);
-    
+
     double aCoef1 = 1.0;
 
     L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&aCoef1,aVal);
@@ -650,13 +650,13 @@ Pt3dr  tCho2double(const Pt3d<tSysCho> & aP)
    return Pt3dr(aP.x,aP.y,aP.z);
 }
 */
-  
+
 
 Pt3dr ElSeg3D::L2InterFaisceaux
       (
            const std::vector<double> * aVPds,
            const std::vector<ElSeg3D> & aVS,
-	   bool * aOK,
+       bool * aOK,
            const cRapOnZ *      aRAZ ,
            cResOptInterFaisceaux * aROIF,
            const std::vector<Pt3dr> *  aVPts
@@ -668,6 +668,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
    }
    static L2SysSurResol aSys(3);
    aSys.GSSR_Reset(false);
+   int aNbEq=0;
 
    for (int aKS=0; aKS<int(aVS.size()); aKS++)
    {
@@ -675,6 +676,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
       if (aPds > 0)
       {
          aSys.GSSR_Add_EqInterDroite3D (aVS[aKS].TgNormee(),aVS[aKS].P0(),aPds);
+         aNbEq+=2;
       }
    }
 
@@ -682,6 +684,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
    {
        double aCoeff[3]={0,0,1};
        aSys.AddEquation(1/ElSquare(aRAZ->IncEstim()),aCoeff,aRAZ->Z());
+       aNbEq+=1;
    }
 
    if (aVPts)
@@ -691,8 +694,10 @@ Pt3dr ElSeg3D::L2InterFaisceaux
        for (int aK=0 ; aK<aNb ; aK+=2)
        {
             aSys.GSSR_AddEquationPoint3D((*aVPts)[aK],(*aVPts)[aK+1]);
+            aNbEq +=3;
        }
    }
+   ELISE_ASSERT(aNbEq>=3,"Not Enouh Equation in ElSeg3D::L2InterFaisceaux");
 
    if (aROIF)
    {
@@ -750,9 +755,9 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     cGenSysSurResol
     (
          !DebugPbCondFaisceau, // true,
-         L2SYM, !L2SYM,
+         // L2SYM, !L2SYM,
    // false,false,
-//         IsSym, (! IsSym),
+         IsSym, (! IsSym),     // MPD 05-04_2015 ; avant L2SYM, sous optimale pour subsitution, voit pas pourquoi cela serait bien ???
         true
     ),
     mNbVar           (aNbVar),
@@ -768,6 +773,7 @@ L2SysSurResol::L2SysSurResol(INT aNbVar,bool IsSym) :
     mNbEq            (0),
     mMaxBibi         (0)
 {
+    // std::cout << "L2SysSurResol::L2SysSurResol " << IsSym << "\n";
 }
 
 void L2SysSurResol::SetSize(INT aNbVar)
@@ -804,11 +810,11 @@ void L2SysSurResol::AddEquation(REAL aPds,REAL * aCoeff,REAL aB)
 
      for (INT iVar1=0 ; iVar1<mNbVar ; iVar1++)
      {
-	 if (aCoeff[iVar1] != 0.0)  // Acceleration pour les formes creuses
-	 {
-		 VInd.push_back(iVar1);
-		 VALS.push_back(aCoeff[iVar1]);
-	 }
+     if (aCoeff[iVar1] != 0.0)  // Acceleration pour les formes creuses
+     {
+         VInd.push_back(iVar1);
+         VALS.push_back(aCoeff[iVar1]);
+     }
      }
      L2SysSurResol::V_GSSR_AddNewEquation_Indexe(0,0,0,VInd,aPds,&VALS[0],aB);
 }
@@ -942,10 +948,10 @@ void  L2SysSurResol::Indexee_QuadSet0
 
 
 void  L2SysSurResol::SoutraitProduc3x3
-     ( 
+     (
                           bool                   Sym,
-                          ElMatrix<double> &aM1, 
-                          ElMatrix<double> &aM2, 
+                          ElMatrix<double> &aM1,
+                          ElMatrix<double> &aM2,
                           const std::vector<cSsBloc> * aYVSB
 
      )
@@ -1091,7 +1097,7 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
              int X0InBloc = 0;
              for (int aKBlx=0  ; aKBlx <aDebBlx ; aKBlx++)
                  X0InBloc += (*aVSB)[aKBlx].Nb();
-             
+
 
              for (int YOut=aI0y ; YOut<aI1y ; YOut++)
              {
@@ -1135,10 +1141,10 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
             // donc x >= y, donc  partie "superieure"
             int aDebInd2 = mOptSym  ? Ind1 : 0;
             for (INT Ind2 =aDebInd2 ; Ind2<NbInd ; Ind2++)
-	    {
+        {
                  int iVar2 = aVInd[Ind2];
                  mDatatLi_Li[iVar1][iVar2] +=  aPCV1 * aCoeff[Ind2];
-	    }
+        }
         }
      }
 
@@ -1243,7 +1249,7 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
    if (mNbContrainte)
    {
 
-	INT NbVarTot = mNbVar + mNbContrainte;
+    INT NbVarTot = mNbVar + mNbContrainte;
         GaussjPrec aGP(NbVarTot,1);
         ElMatrix<REAL> & M  = aGP.M();
         ElMatrix<REAL> & b  = aGP.b();
@@ -1251,41 +1257,41 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
 
         for (INT ky=0;ky <NbVarTot ; ky++)
         {
-	   if (ky < mNbVar)
+       if (ky < mNbVar)
                b(0,ky) = mbi_Li.data()[ky];
-	   else 
-	       b(0,ky) = mE(0,mLineCC+ky-mNbVar);
+       else
+           b(0,ky) = mE(0,mLineCC+ky-mNbVar);
 
 
            for (INT kx=0;kx <NbVarTot ; kx++)
            {
-	       if ((kx<mNbVar) && (ky<mNbVar))
-	       {
+           if ((kx<mNbVar) && (ky<mNbVar))
+           {
                    M(kx,ky) = mtLi_Li.data()[kx][ky];
-	       }
-	       else if ((kx>=mNbVar) && (ky>=mNbVar))
-	       {
+           }
+           else if ((kx>=mNbVar) && (ky>=mNbVar))
+           {
                    M(kx,ky) = 0;
-	       }
-	       else 
-	       {
-		   INT X = ElMin(kx,ky);   
-		   INT Y = ElMax(kx,ky);   
-		   M(kx,ky) =  mC(X,mLineCC+Y-mNbVar);
-	       }
+           }
+           else
+           {
+           INT X = ElMin(kx,ky);
+           INT Y = ElMax(kx,ky);
+           M(kx,ky) =  mC(X,mLineCC+Y-mNbVar);
+           }
            }
         }
         bool Ok = aGP.init_rec();
-	if ( aResOk)
+    if ( aResOk)
            *aResOk = Ok;
 
-	if (Ok)
-	{
+    if (Ok)
+    {
             for (INT k=0; k<6; k++)
-	        aGP.amelior_sol();
+            aGP.amelior_sol();
             for (INT kx=0;kx <mNbVar ; kx++)
-	        mSolL2.data()[kx] = x(0,kx);
-	}
+            mSolL2.data()[kx] = x(0,kx);
+    }
         else
         {
            ELISE_ASSERT(aResOk,"Singular Matrix in  L2SysSurResol::Solve");
@@ -1332,30 +1338,569 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
     if (Ok)
     {
         for (INT k=0; k<6; k++)
-	    aGP.amelior_sol();
+        aGP.amelior_sol();
 
          for (INT kx=0;kx <mNbVar ; kx++)
-	     mSolL2.data()[kx] = x(0,kx);
+         mSolL2.data()[kx] = x(0,kx);
     }
      return mSolL2;
 }
 
-/*
-struct cMSymCoffact3x3
-{
-    double mA;
-    double mE;
-    double mI;
-    double mB;
-    double mC;
-    double mF;
-    double mDet;
+/*********************************************************************/
+/*                                                                   */
+/*        Classe optimise pour la decomposition en valeur singuliere */
+/*   des matrices 3x3                                                */
+/*                                                                   */
+/*********************************************************************/
 
-    cMSymCoffact3x3(double ** aMat);
-    Pt3dr Inv(const double *) const;
+template <class Type> class cSVD3x3
+{
+     public :
+           cSVD3x3 (ElMatrix<double> & aMat);
+
+        // Soit A les matrice a SVD
+
+
+       // Contient la matrice A
+           Type m00, m10, m20;
+           Type m01, m11, m21;
+           Type m02, m12, m22;
+
+        // Contient la matric  A tA
+/*
+   Avec les notatiion  "habituelle"
+
+   a  b  c     a  b  c
+   b  e  f     d  e  f
+   c  f  i     g  h  i
+*/
+           Type a;
+           Type b;
+           Type c;
+           Type e;
+           Type f;
+           Type i;
+
+   //  produit qui reviennent plusieurs fois
+           Type ae;
+           Type ei;
+           Type ia;
+           Type b2;
+           Type c2;
+           Type f2;
+
+    // Polynome caracteristique  de A tA   L^3 + K2 L^2 + K1 L + K0 = 0
+
+            Type  K0;
+            Type  K1;
+            Type  K2;
+    // Polynome reduit      Z^3 +  pZ + q , en posant L = Z - K2/3
+            Type K2Div3;
+            Type p;
+            Type q;
+
+            Type Discr;
+
+
+            Type PolRed(Type aSol) {return aSol*aSol*aSol + p*aSol + q;}
+            void TestSolRed(Type aSol)
+            {
+                 std::cout << "PolRed " << aSol <<  " => " << PolRed(aSol) << "\n";
+            }
+            Type PolInit(Type aSol) {return aSol*aSol*aSol + K2*aSol*aSol + K1*aSol + K0;}
+            void TestSolInit(Type aSol)
+            {
+                 std::cout << "PolInit " << aSol <<  " => " << PolInit(aSol) << "\n";
+            }
+
+     // ValP1 et VecP1
+            Type R1;
+            Type x1, y1, z1;
+
+      //  Matrice  A tA + R1 Id
+
+            Type  aR1;
+            Type  eR1;
+            Type  iR1;
+            void TestSolAR(Type x,Type y,Type z,Type R)
+            {
+                std::cout  << " Rxyz="<<  ElAbs((a+R)*x +  b*y +   c*z)
+                                        + ElAbs(b*x +  (e+R)*y +   f*z)
+                                        + ElAbs(c*x +    f*y + (i+R)*z)
+                           << "\n";
+            }
+            void TestSolAR1() {TestSolAR(x1,y1,z1,R1);}
+            void TestSolAR2() {TestSolAR(x2,y2,z2,mVP2);}
+            void TestSolAR3() {TestSolAR(x3,y3,z3,mVP3);}
+
+            void TestSolVP1()
+            {
+                std::cout  << " VPRes="<<  ElAbs(a*x1+b*y1+ c*z1 + R1*x1)
+                                         + ElAbs(b*x1+e*y1+f*z1 +R1*y1)
+                                         + ElAbs(c*x1+f*y1+i*z1 +R1*z1)
+                           << "\n";
+            }
+
+     // Orthog a x1,y1,z1
+            Type x2O,y2O,z2O;
+            Type x3O,y3O,z3O;
+
+     // Image des prec par AtA
+            Type Ax2O,Ay2O,Az2O;
+            Type Ax3O,Ay3O,Az3O;
+            Type mVP2;
+            Type mVP3;
+
+            Type x2, y2, z2;
+            Type x3, y3, z3;
+
+            void MulAtA(Type & xo,Type &yo,Type &zo,const Type & xi,const Type &yi,const Type &zi)
+            {
+                xo = a*xi + b*yi + c*zi;
+                yo = b*xi + e*yi + f*zi;
+                zo = c*xi + f*yi + i*zi;
+            }
+
+
+     //   aR1  b    c       X      0
+     //   b    eR1  f       Y  =   0
+     //   c    f    iR1     1      0
+
+     void MakeNorm(Type &x,Type & y, Type &z)
+     {
+       Type aNorm = sqrt(x*x + y*y + z * z);
+       x /= aNorm;
+       y /= aNorm;
+       z /= aNorm;
+     }
+
+      void TestRON()
+      {
+             std::cout
+                       << " N1 " << (x1*x1+y1*y1+z1*z1)
+                       << " N2 " << (x2O*x2O+y2O*y2O+z2O*z2O)
+                       << " N3 " << (x3O*x3O+y3O*y3O+z3O*z3O)
+                       << " S12 " << (x1*x2O+y1*y2O+z1*z2O)
+                       << " S13 " << (x1*x3O+y1*y3O+z1*z3O)
+                       << " S23 " << (x2O*x3O+y2O*y3O+z2O*z3O)
+                       << "\n";
+      }
+
 };
+
+/*
+   Det =  a (ei -f2) + i(ae-b2) + e (c2-ai)
+
+   mDet = ae*i + 2 *b*f*c - (a*fh) - e * cg - i *bd;
 */
 
+template <class Type> cSVD3x3<Type>::cSVD3x3 (ElMatrix<double> & aMat)
+{
+    double ** aDM = aMat.data();
+    double * aL0 = aDM[0];
+    double * aL1 = aDM[1];
+    double * aL2 = aDM[2];
+
+   // Memorise la matrice pour un acces direct non indexe
+    m00 = aL0[0];    m10 = aL0[1];    m20 = aL0[2];
+    m01 = aL1[0];    m11 = aL1[1];    m21 = aL1[2];
+    m02 = aL2[0];    m12 = aL2[1];    m22 = aL2[2];
+
+   // Calcul A tA
+    a = m00*m00  + m10*m10 + m20*m20 ;  // L0 . L0
+    b = m00*m01  + m10*m11 + m20*m21 ;  // L0 . L1
+    c = m00*m02  + m10*m12 + m20*m22 ;  // L0 . L2
+    e = m01*m01  + m11*m11 + m21*m21 ;  // L1 . L1
+    f = m01*m02  + m11*m12 + m21*m22 ;  // L1 . L2
+    i = m02*m02  + m12*m12 + m22*m22 ;  // L2 . L2
+
+
+   // Calcul de produit qui reviennent plusieurs fois
+    ae = a * e;
+    ei = e * i;
+    ia = a * i;
+    b2 = b * b;
+    c2 = c * c;
+    f2 = f * f;
+
+    // Polynome caracteristique   L^3 + K2 L^2 + K1 L + K0 = 0
+    K0 =  ae * i + 2 * b * f * c - a*f2 - e*c2 - i * b2; // Det
+    K1 =  ae + ei + ia - b2  -c2 - f2;  // Somme des 3 det 2x2 diag
+    K2 =  a + e + i;                    // trace
+
+    // En posant  L' = L - K2 /3
+
+    K2Div3 = K2 /3.0;
+    p =  K1 - K2* K2Div3;
+    q =  K0 + (K2/27 ) * (2*K2*K2 -9*K1);
+
+
+    // Discr tjs > 0  car mat diag
+    // Discr = q * q + (4*p*p*p)/27;
+    // Discr = - (4 *p*p*p +9 * q * q);
+
+    // Je comprends plus trop PK, mais experim p est tjs < 0, donc OK ....
+    // std::cout << "P= " << p << "\n"; ELISE_ASSERT(p<=0,"JpppPPppp");
+    if (p>0) p=0;
+
+
+    Type ppp = p * p * p;
+    Type ro = sqrt(-ppp/27.0);
+    Type om = acos(-q/(2*ro));
+    R1  = 2*sqrt(-p/3)*cos(om/3.0) - K2Div3;
+
+
+   //  ==== TEST si PB, verifie que R1 est bien racine du polynome carac
+   // TestSolInit(R1);
+
+/*
+    Code initial du Cardan d'apres P Julien :
+    Type y = sqrt(-p/3)*cos(om/3.0);
+    Type z = sqrt(-p)*sin(om/3.0);
+    Type R1 = 2*y ;
+    Type R2  = -y + z;
+    Type R3  = -y - z;
+*/
+
+     // A tA + R1 Id
+     aR1 = a+R1;
+     eR1 = e+R1;
+     iR1 = i+R1;
+
+     // Pour trouver le vecteur propre si par ex
+     // Si Z = 1; le systeme devient
+     //
+     //   aR1  b    c       X      0
+     //   b    eR1  f       Y  =   0
+     //   c    f    iR1     1      0
+
+
+     // On cherche le systeme des 3 le  stable
+/*
+     {
+        Type deltaZ = aR1 * eR1 - b2;    Type AbsDZ = ElAbs(deltaZ);
+        Type deltaX = eR1 * iR1 - f2;    Type AbsDX = ElAbs(deltaX);
+        Type deltaY = aR1 * iR1 - c2;    Type AbsDY = ElAbs(deltaY);
+
+        if ((AbsDZ>AbsDX) &&  (AbsDZ>AbsDY))
+        {
+             x1 = ( -eR1 * c  +b *f   ) / deltaZ;
+             y1 = (b*c       - aR1 * f) / deltaZ;
+             z1 = 1.0;
+        }
+        else if ((AbsDX>AbsDY) && (AbsDX>AbsDZ))
+        {
+              x1 = 1.0;
+              y1 =  (-iR1*b +f*c)/deltaX;
+              z1 =  (f*b - eR1*c)/deltaX;
+        }
+        else
+        {
+              x1 =  ( -iR1 * b  +c *f   ) /  deltaY;
+              y1 =  1;
+              z1 =  (c*b - aR1*f)/deltaY;
+        }
+     }
+
+     MakeNorm(x1,y1,z1);
+     TestSolAR1();
+*/
+
+
+/*
+     {
+          double aCoef[3] ;
+          L2SysSurResol aSys(3);
+          aCoef[0] = aR1; aCoef[1] = b  ; aCoef[2] = c;  aSys.AddEquation(1,aCoef,0);
+          aCoef[0] = b  ; aCoef[1] = eR1; aCoef[2] = f;  aSys.AddEquation(1,aCoef,0);
+          aCoef[0] = c  ; aCoef[1] = f; aCoef[2] = iR1;  aSys.AddEquation(1,aCoef,0);
+
+          Type aG2 = aR1*aR1 + eR1*eR1 + iR1*iR1 + b2 + c2 +f2 ;
+          Type aDiv = 1e-15;
+          aG2 = ElMax(aG2,Type(aDiv)) * aDiv;
+          // aG2 = 1;
+
+          for (int aK=0 ; aK<3 ; aK++)
+          {
+               for (int aK2=0 ; aK2<3 ; aK2++)
+                   aCoef[aK2] = (aK2==aK);
+               aSys.AddEquation(aG2,aCoef,1);
+               // aSys.AddEquation(aG2,aCoef,-1);
+          }
+
+          bool Ok;
+          Im1D_REAL8 aSol = aSys.Solve(&Ok);
+          x1 = aSol.data()[0];
+          y1 = aSol.data()[1];
+          z1 = aSol.data()[2];
+ std::cout << "XYZ " << x1 << " "<< y1 << " " << z1 << "\n";
+          MakeNorm(x1,y1,z1);
+          TestSolAR1();
+     }
+*/
+
+     /*  Calcul robusrte ? du noyau */
+     Type aDiv = 1e-15;
+     {
+          cMSymCoffact3x3<Type> aCof;
+
+          Type aG2 = aR1*aR1 + eR1*eR1 + iR1*iR1 + b2 + c2 +f2 ;
+          aG2 = ElMax(aG2,Type(aDiv)) * aDiv;
+
+          aCof.a = aG2+ aR1 * aR1 + b2 + c2;
+          aCof.b =     (aR1 +eR1)*b  + c*f;
+          aCof.c =     b*f +c*(aR1+iR1);
+          aCof.e = aG2+ b2 + eR1*eR1+f2;
+          aCof.f =      c*b + (eR1 + iR1)* f;
+          aCof.i = aG2+ c2 +f2 + iR1*iR1;
+          aCof.FinishCoFact();
+
+
+          Type aV[3] = {1,1,1};
+          Pt3d<Type>  aP = aCof.CoffMul(aV);
+          x1 = aP.x;
+          y1 = aP.y;
+          z1 = aP.z;
+          MakeNorm(x1,y1,z1);
+          //  std::cout << "XYZ " << x1 << " "<< y1 << " " << z1 << "\n";
+          // TestSolAR1();
+     }
+
+     //   aR1  b    c       X      0    aR1 |aR1 b  c #  b     b eR1 f #  c      c  f iR1
+     //   b    eR1  f       Y  =   0    b   |         #  eR1A          #  f
+     //   c    f    iR1     1      0    c   |         #  f             #  iR1
+/*
+*/
+
+     //TestSolVP1();
+
+     // Calcul d'un vecteur orthog
+     {
+         Type AX1 =ElAbs(x1);
+         Type AY1 =ElAbs(y1);
+         Type AZ1 =ElAbs(z1);
+         if ( (AX1>AZ1) || (AY1>AZ1))
+         {
+               x2O = -y1;
+               y2O =  x1;
+               z2O = 0.0;
+         }
+         else
+         {
+              x2O = -z1;
+              y2O = 0.0;
+              z2O = x1;
+         }
+     }
+     MakeNorm(x2O,y2O,z2O);
+
+     // Calcul de l'autre vecteur
+     x3O = y1 * z2O - z1 * y2O;
+     y3O = z1 * x2O - x1 * z2O;
+     z3O = x1 * y2O - y1 * x2O;
+
+     //TestRON();
+
+     // Analyse de la matrice dans la base x2O .. x3O
+
+     {
+         // Image par AtA de x2O ..
+         MulAtA(Ax2O,Ay2O,Az2O,x2O,y2O,z2O);
+         MulAtA(Ax3O,Ay3O,Az3O,x3O,y3O,z3O);
+
+         // Image par AtA dans le repere x2O ...
+         Type aS22 = x2O*Ax2O +  y2O*Ay2O + z2O*Az2O;
+         Type aS23 = x2O*Ax3O +  y2O*Ay3O + z2O*Az3O;
+         Type aS33 = x3O*Ax3O +  y3O*Ay3O + z3O*Az3O;
+
+         // Det(M + VP1 Id)  = 0
+         Type aDiscr   = sqrt(ElSquare(aS22-aS33) + 4*ElSquare(aS23));
+         mVP2 = -(aS22+aS33 + aDiscr) /2.0;
+         mVP3 = -(aS22+aS33 -aDiscr)/ 2.0;
+
+
+         if (0)
+         {
+            std::cout << "DET " << (aS22+mVP2)*(aS33+mVP2) - ElSquare(aS23) << "\n";
+            std::cout << "VERIF VP/ DET" << (mVP2 * mVP3 * R1  / K0)+1 << "\n";
+            std::cout << "VERIF VP/ TRACE" << (mVP2 + mVP3 + R1 ) /  K2+1 << "\n";
+
+            Type aS32 = x3O*Ax2O +  y3O*Ay2O + z3O*Az2O;
+            std::cout << "SSs " << aS23 << " " << aS32 << "\n";
+            std::cout << aS22+ aS33 << "\n"; // => Warn
+         }
+
+
+         Type aS22VP = aS22 + mVP2;
+         Type aS33VP = aS33 + mVP2;
+
+         // Calcul deu noyau de la matrice reduite
+
+             //          aS22VP aS23       |           aS23   aS33VP
+             //   aS22VP                   |     aS23
+             //   aS23                     |     aS33VP
+
+         Type  aG2 =  aS22VP*aS22VP + aS33VP*aS33VP +  aS23*aS23;
+         aG2 = ElMax(aG2,Type(aDiv)) * aDiv;
+
+         Type  aMA =  aG2 + ElSquare(aS22VP) + ElSquare(aS23);
+         Type  aMB =  aS23 * (aS22VP + aS33VP);
+         Type  aMC =  aG2  + ElSquare(aS23) + ElSquare(aS33VP);
+
+          Type aDet = aMA * aMC - ElSquare(aMB);
+
+          // Image de (1,1) par l'inverse
+          Type aVpX = (aS33VP-aS23) / aDet;
+          Type aVpY = (aS22VP-aS23) / aDet;
+
+          Type aNorm = sqrt(aVpX*aVpX + aVpY*aVpY);
+          aVpX /= aNorm;
+          aVpY /= aNorm;
+          if (0)
+          {
+              Type aNX  = aS22VP * aVpX + aS23   * aVpY;
+              Type aNY  = aS23   * aVpX + aS33VP * aVpY;
+              std::cout << "VP " << (aVpX*aVpX+aVpY*aVpY-1)  << " " << aNX << " " << aNY  << "\n";
+          }
+
+          x2 =  aVpX*x2O  + aVpY*x3O;
+          y2 =  aVpX*y2O  + aVpY*y3O;
+          z2 =  aVpX*z2O  + aVpY*z3O;
+
+          //TestSolAR2();
+     }
+
+     x3 = y1 * z2 - z1 * y2;
+     y3 = z1 * x2 - x1 * z2;
+     z3 = x1 * y2 - y1 * x2;
+     //TestSolAR3();
+
+
+     if (0)
+     {
+          ElMatrix<double> MtM = aMat * aMat.transpose();
+
+          ElMatrix<double> aDiag(3,3);
+          aDiag(0,0) = -R1;
+          aDiag(1,1) = -mVP2;
+          aDiag(2,2) = -mVP3;
+
+          Pt3dr aV1(x1,y1,z1);
+          Pt3dr aV2(x2,y2,z2);
+          Pt3dr aV3(x3,y3,z3);
+
+          ElMatrix<double> aRot(3,3);
+          SetCol(aRot,0,aV1);
+          SetCol(aRot,1,aV2);
+          SetCol(aRot,2,aV3);
+
+           ElMatrix<double> aDif = MtM - aRot*aDiag*aRot.transpose();
+
+           std::cout << "Chek MtM = R D tR " << aDif.L2() << "\n";
+
+          ElMatrix<double> aSqrtDiag(3,3);
+          aSqrtDiag(0,0) = 1/ sqrt(ElAbs(R1));
+          aSqrtDiag(1,1) = 1/ sqrt(ElAbs(mVP2));
+          aSqrtDiag(2,2) = 1/ sqrt(ElAbs(mVP3));
+
+           ElMatrix<double>  aR2 =  aSqrtDiag *  aRot.transpose() * aMat;
+
+           ElMatrix<double> aDifDec = aR2*aR2.transpose() -ElMatrix<double>(3,true);
+           std::cout << "Chek dec " << aDifDec.L2() << "\n";
+           // ShowMatr("RR22",aR2*aR2.transpose() -ElMatrix<double>(3,true));
+
+          // ShowMatr("Diff",aDif);
+          // ShowMatr("xxx",MtM);
+          // ShowMatr("ddd",aRot*aDiag*aRot.transpose());
+          // std::cout << euclid(aV1) << " " << euclid(aV2) << " " << euclid(aV3) << "\n";
+     }
+
+}
+
+ElMatrix<double> RanM33()
+{
+   ElMatrix<double> aM(3,3);
+
+   for (int anX=0 ; anX<3; anX++)
+       for (int anY=0 ; anY<3; anY++)
+           aM(anX,anY) = NRrandC();
+   return aM;
+}
+
+//   Time 3x3 : 0.0318749
+//   Time svdcmp : 0.199912
+//   MatEssToMulipleRot : 1.88438
+
+extern std::list<ElRotation3D>  MatEssToMulipleRot(const  ElMatrix<REAL> & aMEss,double LBase);
+
+
+void TestSVD3x3()
+{
+    //double aDrMin = 1e100;
+    std::vector<ElMatrix<double> > aVM;
+
+
+    for (int aK=0 ; aK< 1000 ; aK++)
+    {
+         ElMatrix<double> aM = RanM33();
+         aVM.push_back(aM);
+    }
+
+    int aNb = 100;
+    ElTimer aChro3x3;
+    for (int aKt=0 ; aKt<aNb ; aKt++)
+    {
+        for (int aKM=0 ; aKM<int(aVM.size()) ; aKM++)
+        {
+             cSVD3x3<double> aS2(aVM[aKM]);
+        }
+    }
+    std::cout << "Time 3x3 : " << aChro3x3.uval() << "\n";
+
+    ElTimer aChroMM;
+    for (int aKt=0 ; aKt<aNb ; aKt++)
+    {
+        for (int aKM=0 ; aKM<int(aVM.size()) ; aKM++)
+        {
+              aVM[aKM]* aVM[aKM];
+              aVM[aKM].transpose();
+              ElMatrix<REAL>::Rotation(0,0,1.0);
+              ElRotation3D(Pt3dr(0,0,0),aVM[aKM],true);
+        }
+    }
+    std::cout << "Time mm : " << aChroMM.uval() << "\n";
+
+
+    ElTimer aChroSVD;
+    for (int aKt=0 ; aKt<aNb ; aKt++)
+    {
+        for (int aKM=0 ; aKM<int(aVM.size()) ; aKM++)
+        {
+              ElMatrix<REAL>  aU(3,3),aLineDiag(1,3),aV(3,3);
+              svdcmp_diag(aVM[aKM],aU,aLineDiag,aV,true);
+              //MatEssToMulipleRot(aVM[aKM],1.0);
+        }
+    }
+    std::cout << "Time svd : " << aChroSVD.uval() << "\n";
+
+
+
+
+}
+
+
+
+
+
+template class cSVD3x3<double>;
+template class cSVD3x3<REAL16>;
+
+
+/***********************************************************/
+
+template <class Type> cMSymCoffact3x3<Type>::cMSymCoffact3x3()
+{
+}
 
 template <class Type> cMSymCoffact3x3<Type>::cMSymCoffact3x3(Type ** aMat)
 {
@@ -1372,11 +1917,16 @@ template <class Type> cMSymCoffact3x3<Type>::cMSymCoffact3x3(Type ** aMat)
    e =  aMat[1][1];
    f =  aMat[1][2];  //h
    i  =  aMat[2][2];
+   FinishCoFact();
+}
+
+template <class Type> void cMSymCoffact3x3<Type>::FinishCoFact()
+{
 /*
 
-   a  b c
-   b  e f
-   c  f i 
+   a  b c     a  b  c
+   b  e f     d  e  f
+   c  f i     g  h  i
 
    double * aL2 =  aMat[2];
    double a =  aMat[0][0];
@@ -1422,6 +1972,23 @@ template <class Type> Pt3d<Type> cMSymCoffact3x3<Type>::CoffVecInv(const Type * 
 
     return Pt3d<Type>(x/mDet,y/mDet,z/mDet);
 }
+
+template <class Type> Pt3d<Type> cMSymCoffact3x3<Type>::CoffMul(const Type * aVect) const
+{
+    Type U = aVect[0];
+    Type V = aVect[1];
+    Type W = aVect[2];
+
+    Type x = mA*U + mB*V + mC*W;
+    Type y = mB*U + mE*V + mF*W;
+    Type z = mC*U + mF*V + mI*W;
+
+    return Pt3d<Type>(x,y,z);
+}
+
+
+
+
 
 template <class Type> void cMSymCoffact3x3<Type>::CoffSetInv(Type ** aMat)
 {
@@ -1494,7 +2061,7 @@ template <class Type> void cMSymCoffact3x3<Type>::CoffSetInv(Type ** aMat)
       if (0)//(aEr[aNbIter-1] > aErMax)
       {
          aErMax = aEr[aNbIter-1];
-         std::cout << "#######  ##### Err= " << aEr[0] 
+         std::cout << "#######  ##### Err= " << aEr[0]
                    << " " << aEr[1]
                    << " " << aEr[aNbIter-1] << "\n";
 
@@ -1526,13 +2093,13 @@ Pt3d<double>  L2SysSurResol::Solve3x3Sym(bool * OK)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
 En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -1542,17 +2109,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

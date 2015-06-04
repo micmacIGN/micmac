@@ -148,7 +148,7 @@ void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur
 
    const std::vector<std::string> * aVS =  0 ;
 
-   if (IsPostfixed(aPat) && (StdPostfix(aPat)=="xml"))
+   if (IsPostfixed(aPat) && (StdPostfix(aPat)=="xml") && ELISE_fp::exist_file(aFullPat))
    {
       cSauvegardeNamedRel * aSNR =  OptionalGetObjFromFile_WithLC<cSauvegardeNamedRel>
                                     (
@@ -201,6 +201,7 @@ void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur
       cEl_GPAO::DoComInParal(aLCom);
 
 }
+
 
 int MakeMultipleXmlXifInfo_main(int argc,char ** argv)
 {

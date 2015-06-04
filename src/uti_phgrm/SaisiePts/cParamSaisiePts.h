@@ -86,6 +86,9 @@ class cPointGlob
         cTplValGesInit< Pt3dr > & P3D();
         const cTplValGesInit< Pt3dr > & P3D()const ;
 
+        cTplValGesInit< Pt3dr > & Pt3DFromDico();
+        const cTplValGesInit< Pt3dr > & Pt3DFromDico()const ;
+
         cTplValGesInit< bool > & Mes3DExportable();
         const cTplValGesInit< bool > & Mes3DExportable()const ;
 
@@ -110,6 +113,9 @@ class cPointGlob
         cTplValGesInit< Pt3dr > & PS2();
         const cTplValGesInit< Pt3dr > & PS2()const ;
 
+        std::vector< Pt3dr > & VPS();
+        const std::vector< Pt3dr > & VPS()const ;
+
         cTplValGesInit< double > & SzRech();
         const cTplValGesInit< double > & SzRech()const ;
 
@@ -122,6 +128,7 @@ class cPointGlob
         eTypePts mType;
         std::string mName;
         cTplValGesInit< Pt3dr > mP3D;
+        cTplValGesInit< Pt3dr > mPt3DFromDico;
         cTplValGesInit< bool > mMes3DExportable;
         cTplValGesInit< Pt3dr > mIncert;
         cTplValGesInit< double > mLargeurFlou;
@@ -129,6 +136,7 @@ class cPointGlob
         cTplValGesInit< int > mNumAuto;
         cTplValGesInit< Pt3dr > mPS1;
         cTplValGesInit< Pt3dr > mPS2;
+        std::vector< Pt3dr > mVPS;
         cTplValGesInit< double > mSzRech;
         cTplValGesInit< bool > mDisparu;
         cTplValGesInit< bool > mFromDico;
@@ -344,6 +352,9 @@ class cSectionInOut
         cTplValGesInit< std::string > & NamePointsGlobal();
         const cTplValGesInit< std::string > & NamePointsGlobal()const ;
 
+        cTplValGesInit< std::string > & PatternNameInputsSec();
+        const cTplValGesInit< std::string > & PatternNameInputsSec()const ;
+
         cTplValGesInit< std::string > & ExportPointeImage();
         const cTplValGesInit< std::string > & ExportPointeImage()const ;
 
@@ -362,6 +373,7 @@ class cSectionInOut
         cTplValGesInit< bool > mTypeGlobEcras;
         cTplValGesInit< std::string > mNamePointesImage;
         cTplValGesInit< std::string > mNamePointsGlobal;
+        cTplValGesInit< std::string > mPatternNameInputsSec;
         cTplValGesInit< std::string > mExportPointeImage;
         std::list< std::string > mFixedName;
         cTplValGesInit< std::string > mNameAuto;
@@ -454,9 +466,17 @@ class cSectionTerrain
 
         cTplValGesInit< cProfEstimator > & ProfEstimator();
         const cTplValGesInit< cProfEstimator > & ProfEstimator()const ;
+
+        cTplValGesInit< std::string > & Masq3DFilterVis();
+        const cTplValGesInit< std::string > & Masq3DFilterVis()const ;
+
+        cTplValGesInit< std::string > & PIMsFilterVis();
+        const cTplValGesInit< std::string > & PIMsFilterVis()const ;
     private:
         cTplValGesInit< double > mIntervPercProf;
         cTplValGesInit< cProfEstimator > mProfEstimator;
+        cTplValGesInit< std::string > mMasq3DFilterVis;
+        cTplValGesInit< std::string > mPIMsFilterVis;
 };
 cElXMLTree * ToXMLTree(const cSectionTerrain &);
 
@@ -516,6 +536,9 @@ class cParamSaisiePts
         cTplValGesInit< std::string > & NamePointsGlobal();
         const cTplValGesInit< std::string > & NamePointsGlobal()const ;
 
+        cTplValGesInit< std::string > & PatternNameInputsSec();
+        const cTplValGesInit< std::string > & PatternNameInputsSec()const ;
+
         cTplValGesInit< std::string > & ExportPointeImage();
         const cTplValGesInit< std::string > & ExportPointeImage()const ;
 
@@ -554,6 +577,12 @@ class cParamSaisiePts
 
         cTplValGesInit< cProfEstimator > & ProfEstimator();
         const cTplValGesInit< cProfEstimator > & ProfEstimator()const ;
+
+        cTplValGesInit< std::string > & Masq3DFilterVis();
+        const cTplValGesInit< std::string > & Masq3DFilterVis()const ;
+
+        cTplValGesInit< std::string > & PIMsFilterVis();
+        const cTplValGesInit< std::string > & PIMsFilterVis()const ;
 
         cSectionTerrain & SectionTerrain();
         const cSectionTerrain & SectionTerrain()const ;
