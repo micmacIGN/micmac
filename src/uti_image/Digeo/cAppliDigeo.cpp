@@ -68,7 +68,17 @@ void cAppliDigeo::loadParametersFromFile( const string &i_templateFilename, cons
 
 	return ;
 }
- 
+
+template <class tData>
+void cAppliDigeo::allocateConvolutionHandler( ConvolutionHandler<tData> *&o_convolutionHandler )
+{
+	o_convolutionHandler = new ConvolutionHandler<tData>;
+	unsigned int nbCompiledConvolutions = o_convolutionHandler->nbConvolutions();
+	if ( isVerbose() )
+		cout << "--- " << nbCompiledConvolutions << " compiled convolution" << (nbCompiledConvolutions>1?'s':'\0')
+		     << " of type " << El_CTypeTraits<tData>::Name() << endl;
+}
+
 cAppliDigeo::cAppliDigeo():
 	mParamDigeo  (NULL),
 	mImage       (NULL),
@@ -88,7 +98,9 @@ cAppliDigeo::cAppliDigeo():
 	mDoGenerateConvolutionCode(true),
 	mDoRawTestOutput(false),
 	mTimes( NULL ),
-	mUseSampledConvolutionKernels(false)
+	mUseSampledConvolutionKernels(false),
+	mConvolutionHandler_uint2(NULL),
+	mConvolutionHandler_real4(NULL)
 {
 	MapTimes *times = new MapTimes;
 	times->start();
@@ -115,12 +127,9 @@ cAppliDigeo::cAppliDigeo():
 		if (aPyramideGaussienne.SampledConvolutionKernels().IsInit() && aPyramideGaussienne.SampledConvolutionKernels().Val() ) mUseSampledConvolutionKernels = true;
 	}
 	mDoComputeCarac = Params().ComputeCarac();
-	if ( Params().GenereCodeConvol().IsInit() )
-		mDoGenerateConvolutionCode = true;
-	
+	if ( Params().GenereCodeConvol().IsInit() ) mDoGenerateConvolutionCode = true;
 
 	processTestSection();
-	InitConvolSpec();
 
 	if ( Params().GenereCodeConvol().IsInit() )
 	{
@@ -132,24 +141,56 @@ cAppliDigeo::cAppliDigeo():
 
 	if ( isVerbose() )
 	{
-		cout << "saving tiles               : " << (doSaveTiles()?"yes":"no") << endl;
-		cout << "saving gaussians           : " << (doSaveGaussians()?"yes":"no") << endl;
-		cout << "saving gradients           : " << (doSaveGradients()?"yes":"no") << endl;
-		cout << "force gradient computation : " << (doForceGradientComputation()?"yes":"no") << endl;
-		cout << "refinement                 : " << eToString(mRefinementMethod) << endl;
-		cout << "downsampling               : " << eToString(Params().ReducDemiImage().Val()) << endl;
+		cout << "saving tiles                      : " << (doSaveTiles()?"yes":"no") << endl;
+		cout << "saving gaussians                  : " << (doSaveGaussians()?"yes":"no") << endl;
+		cout << "saving gradients                  : " << (doSaveGradients()?"yes":"no") << endl;
+		cout << "force gradient computation        : " << (doForceGradientComputation()?"yes":"no") << endl;
+		cout << "refinement                        : " << eToString(mRefinementMethod) << endl;
+		cout << "downsampling                      : " << eToString(Params().ReducDemiImage().Val()) << endl;
+		cout << "gaussian kernels                  : " << ( useSampledConvolutionKernels()?"sampled":"integral" ) << endl;
+		if ( !useSampledConvolutionKernels() )
+		{
+			cout << "\tnb shift : " << mGaussianNbShift << endl;
+			cout << "\tepsilon  : " << mGaussianEpsilon << endl;
+			cout << "\tsurEch   : " << mGaussianSurEch << endl;
+		}
 	}
+
+	const cTypePyramide & aTP = Params().TypePyramide();
+	if ( aTP.NivPyramBasique().IsInit() )
+		mDzLastOctave = aTP.NivPyramBasique().Val();
+	else if ( aTP.PyramideGaussienne().IsInit() )
+	{
+		mDzLastOctave = aTP.PyramideGaussienne().Val().NivOctaveMax();
+		for ( int dz=1; dz<=mDzLastOctave; dz<<=1 )
+		{
+			GenIm::type_el type = TypeOfDeZoom(dz);
+			if ( type==GenIm::u_int2 && mConvolutionHandler_uint2==NULL ) allocateConvolutionHandler(mConvolutionHandler_uint2);
+			if ( type==GenIm::real4 && mConvolutionHandler_real4==NULL ) allocateConvolutionHandler(mConvolutionHandler_real4);
+			mOctaveTypes.push_back(type);
+		}
+	}
+	else
+		ELISE_ASSERT( false, "cImDigeo::AllocImages PyramideImage" );
 
 	times->stop("appli construction");
 	if ( !doShowTimes() ) delete times;
 }
 
+GenIm::type_el cAppliDigeo::octaveType( int iOctave ) const
+{
+	__elise_debug_error( iOctave<0 || iOctave>=(int)mOctaveTypes.size(), "cAppliDigeo::octaveType: iOctave out of range: " << iOctave << "(max " << mOctaveTypes.size() );
+	return mOctaveTypes[iOctave];
+}
+
 cAppliDigeo::~cAppliDigeo()
 {
-	if ( mParamDigeo!=NULL ) delete mParamDigeo;
-	if ( mICNM!=NULL ) delete mICNM;
-	if ( mExpressionIntegerDictionnary!=NULL ) delete mExpressionIntegerDictionnary;
-	if ( mTimes!=NULL ) delete mTimes;
+	delete mParamDigeo;
+	delete mICNM;
+	delete mExpressionIntegerDictionnary;
+	delete mTimes;
+	delete mConvolutionHandler_uint2;
+	delete mConvolutionHandler_real4;
 }
 
 int cAppliDigeo::nbLevels() const { return mNbLevels; }
@@ -515,12 +556,6 @@ void cAppliDigeo::processTestSection()
 	}
 }
 
-void cAppliDigeo::InitConvolSpec()
-{
-	__InitConvolSpec<U_INT2>();
-	__InitConvolSpec<REAL4>();
-}
-
 string cAppliDigeo::getConvolutionClassesFilename( string i_type )
 {
 	return mConvolutionCodeFileBase+i_type+".classes.h";
@@ -590,42 +625,92 @@ double cAppliDigeo::gaussianEpsilon() const { return mGaussianEpsilon; }
 int    cAppliDigeo::gaussianSurEch() const { return mGaussianSurEch; }
 bool   cAppliDigeo::useSampledConvolutionKernels() const { return mUseSampledConvolutionKernels; }
 
-template <class T>
-bool cAppliDigeo::generate_convolution_code()
+GenIm::type_el cAppliDigeo::TypeOfDeZoom(int aDZ) const
 {
-	if ( nbSlowConvolutionsUsed<T>()==0 ) return true;
-
-	const string typeName = El_CTypeTraits<T>::Name();
-	if ( isVerbose() ) __elise_warning( nbSlowConvolutionsUsed<T>() << " slow convolutions of type " << typeName << " have been used" );
-
-	string lowerTypeName = El_CTypeTraits<T>::Name();
-	for ( size_t i=0; i<lowerTypeName.length(); i++ ) lowerTypeName[i] = ::tolower(lowerTypeName[i]);
-
-	string classFilename = getConvolutionClassesFilename( lowerTypeName );
-	string instantiationsFilename = getConvolutionInstantiationsFilename( lowerTypeName );
-	if ( !ELISE_fp::exist_file( classFilename ) || !ELISE_fp::exist_file( instantiationsFilename ) )
+	GenIm::type_el aRes = GenIm::no_type;
+	int aDZMax = -10000000;
+	std::list<cTypeNumeriqueOfNiv>::const_iterator itP=Params().TypeNumeriqueOfNiv().begin();
+	while ( itP!=Params().TypeNumeriqueOfNiv().end() )
 	{
-		__elise_warning( "source code do not seem to be available, no convolution code generated for type " << typeName );
-		return false;
+		int aNiv = itP->Niv();
+		if  ( (aNiv>=aDZMax) && (aNiv<=aDZ) )
+		{
+			aRes = Xml2EL(itP->Type());
+			aDZMax = aNiv;
+		}
+		itP++;
 	}
-	
-	if ( !cConvolSpec<T>::generate_classes( classFilename ) )
-	{
-		__elise_warning( "generated convolution couldn't be saved to " << classFilename );
-		return false;
-	}
+	return aRes;
+}
 
-	if ( !cConvolSpec<T>::generate_instantiations( instantiationsFilename ) )
-	{
-		__elise_warning( "generated convolution couldn't be saved to " << instantiationsFilename );
-		return false;
-	}
-	if ( isVerbose() ) cout << "convolution code has been generated for type " << typeName << ", compile again to improve speed with the same parameters" << endl;
+bool cAppliDigeo::generateConvolutionCode() const
+{
+	if ( mConvolutionHandler_uint2!=NULL && !generateConvolutionCode(*mConvolutionHandler_uint2) ) return false;
+	if ( mConvolutionHandler_real4!=NULL && !generateConvolutionCode(*mConvolutionHandler_real4) ) return false;
 	return true;
 }
 
-template bool cAppliDigeo::generate_convolution_code<U_INT2>();
-template bool cAppliDigeo::generate_convolution_code<REAL4>();
+template <class T>
+void cAppliDigeo::createGaussianKernel( double aSigma, ConvolutionKernel1D<T> &oKernel ) const
+{
+	if ( useSampledConvolutionKernels() )
+		sampledGaussianKernel<T>( aSigma, gaussianNbShift(), oKernel );
+	else
+		integralGaussianKernel<T>( aSigma, gaussianNbShift(), gaussianEpsilon(), gaussianSurEch(), oKernel );
+}
+
+template <class tData>
+void cAppliDigeo::convolve( const Im2D<tData,TBASE> &aSrc, double aSigma, const Im2D<tData,TBASE> &oDst )
+{
+	__elise_debug_error( aSrc.tx()!=oDst.tx() || aSrc.ty()!=oDst.ty(), "cAppliDigeo::convolve<" << El_CTypeTraits<tData>::Name() << ">: aSrc.sz() = " << aSrc.sz() << " != oDst.sz() = " << oDst.sz() );
+
+	ConvolutionKernel1D<TBASE> kernel;
+	createGaussianKernel(aSigma,kernel);
+
+	__elise_debug_error( convolutionHandler<tData>()==NULL, "cAppliDigeo::convolve<" << El_CTypeTraits<tData>::Name() << ">: convolutionHandler<tData>()==NULL" );
+
+	cConvolSpec<tData> *convolution1d = convolutionHandler<tData>()->getConvolution(kernel);
+
+	if ( !convolution1d->IsCompiled() ) upNbSlowConvolutionsUsed<tData>();
+
+	convolution<tData>( (const tData **)aSrc.data(), aSrc.tx(), aSrc.ty(), *convolution1d, oDst.data() );
+}
+
+template <class tData>
+bool cAppliDigeo::generateConvolutionCode( const ConvolutionHandler<tData> &aConvolutionHandler ) const
+{
+	if ( aConvolutionHandler.nbConvolutionsNotCompiled()==0 ) return true;
+
+	const string codeFilename = MMDir()+"src/uti_image/Digeo/"+ConvolutionHandler<tData>::defaultCodeBasename();
+	if ( aConvolutionHandler.generateCode(codeFilename) )
+	{
+		if ( isVerbose() ) cout << "--- convolution code generated in " << codeFilename << endl;
+		return true;
+	}
+
+	__elise_warning( "an error occured while generating convolution code for type " << El_CTypeTraits<tData>::Name() );
+
+	return false;
+}
+
+template <class T>
+ConvolutionHandler<T> * cAppliDigeo::convolutionHandler()
+{
+	__elise_debug_error(true, "cAppliDigeo::convolutionHandler<" << El_CTypeTraits<T>::Name() << ">: unhandled type " );
+	return NULL;
+}
+
+template <> ConvolutionHandler<U_INT2> * cAppliDigeo::convolutionHandler(){ return mConvolutionHandler_uint2; }
+template <> ConvolutionHandler<REAL4> * cAppliDigeo::convolutionHandler(){ return mConvolutionHandler_real4; }
+
+// cAppliDigeo template methods
+template void cAppliDigeo::createGaussianKernel<INT>( double aSigma, ConvolutionKernel1D<INT> &oKernel ) const;
+template void cAppliDigeo::convolve<U_INT2>( const Im2D<U_INT2,INT> &aSrc, double aSigma, const Im2D<U_INT2,INT> &oDst );
+template bool cAppliDigeo::generateConvolutionCode<U_INT2>( const ConvolutionHandler<U_INT2> &aConvolutionHandler ) const;
+
+template void cAppliDigeo::createGaussianKernel<REAL>( double aSigma, ConvolutionKernel1D<REAL> &oKernel ) const;
+template void cAppliDigeo::convolve<REAL4>( const Im2D<REAL4,REAL> &aSrc, double aSigma, const Im2D<REAL4,REAL> &oDst );
+template bool cAppliDigeo::generateConvolutionCode<REAL4>( const ConvolutionHandler<REAL4> &aConvolutionHandler ) const;
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

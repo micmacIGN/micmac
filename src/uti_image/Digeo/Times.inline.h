@@ -11,24 +11,32 @@ inline Times::~Times(){}
 // methods of class NoTimes
 //----------------------------------------------------------------------
 
-double NoTimes::stop( const char *i_name ){ return 0.; }
+inline double NoTimes::stop( const char *i_name ){ return 0.; }
 
-void NoTimes::start(){}
+inline void NoTimes::start(){}
 
-void NoTimes::clear(){}
+inline void NoTimes::clear(){}
 
 
 //----------------------------------------------------------------------
 // methods of class MapTimes::Record
 //----------------------------------------------------------------------
 
-MapTimes::Record::Record(){}
+inline MapTimes::Record::Record(){}
 
 
 //----------------------------------------------------------------------
 // methods of class MapTimes
 //----------------------------------------------------------------------
 
-void MapTimes::clear() { mRecords.clear(); }
+inline void MapTimes::clear() { mRecords.clear(); }
 
-double MapTimes::totalTime() const { return mRecords.begin()->totalTime(); }
+inline double MapTimes::totalTime() const { return mRecords.begin()->totalTime(); }
+
+#ifndef ELISE_unix
+	inline Timer::Timer():mRecordedTime(getTime()){}
+
+	inline void Timer::reinit(){ mRecordedTime = getTime(); }
+
+	inline double Timer::uval(){ return getTime()-mRecordedTime; }
+#endif

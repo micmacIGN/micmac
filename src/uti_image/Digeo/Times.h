@@ -1,7 +1,27 @@
 #ifndef __TIMES__
 #define __TIMES__
 
-#define __DEBUG_TIMES
+#include "debug.h"
+
+#ifdef NO_ELISE
+	#include <list>
+	#include <string>
+	#include <iostream>
+
+	class Timer
+	{
+	public:
+		double mRecordedTime;
+
+		Timer();
+		void reinit();
+		double uval();
+	};
+#else
+	#include "StdAfx.h"
+
+	typedef ElTimer Timer;
+#endif
 
 class Times
 {
@@ -15,47 +35,50 @@ public:
 class NoTimes : public Times
 {
 public:
-	inline void clear();
-	inline void start();
-	inline double stop( const char *i_name );
+	void clear();
+	void start();
+	double stop( const char *i_name );
 };
 
 class MapTimes : public Times
 {
 private:
 	class Record;
-
-	typedef list<Record>::iterator ItRecord;
+	typedef std::list<Record>::iterator ItRecord;
 
 	class Record
 	{
 	public:
-		string         mName;
-		double         mTime;
-		ElTimer        mTimer;
-		list<ItRecord> mSubRecords;
-		ItRecord       mFather;
+		std::string         mName;
+		double              mTime;
+		Timer               mTimer;
+		std::list<ItRecord> mSubRecords;
+		ItRecord            mFather;
 
-		inline Record();
+		Record();
 		double totalTime() const;
-		void printTimes( const string &i_prefix, ostream &io_ostream ) const;
+		void printTimes( const std::string &i_prefix, std::ostream &io_ostream ) const;
+		bool hasRecord( const std::string &i_name ) const;
 	};
 
 
 	// return i_list.end() if a record of that name does not exist
-	static list<ItRecord>::iterator getRecord( const string &i_name, list<ItRecord> &i_list );
+	static std::list<ItRecord>::iterator getRecord( const std::string &i_name, std::list<ItRecord> &i_list );
 
-	list<Record> mRecords;
-	ItRecord     mCurrent;
+	std::list<Record> mRecords;
+	ItRecord          mCurrent;
 
 public:
 	MapTimes();
-	inline void clear();
+	void clear();
 	void start();
 	double stop( const char *i_name );
-	inline double totalTime() const;
+	double totalTime() const;
 	void printTimes( const std::string &i_prefix=std::string(), std::ostream &io_ostream=std::cout ) const;
+	double getRecordTime( const std::string &aName ) const;
 };
+
+double getTime();
 
 #include "Times.inline.h"
 

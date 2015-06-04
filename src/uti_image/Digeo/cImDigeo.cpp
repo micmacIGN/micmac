@@ -104,14 +104,14 @@ cInterfImageAbs* cInterfImageAbs::create( std::string const &aName, unsigned int
 	// on teste l'extension
 	if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
 	{
-		return (cInterfImageAbs*) new cInterfImageLoader(aName, aMaxLoadAll);
+		return new cInterfImageLoader( aName, aMaxLoadAll );
 	}
 #endif
-	return (cInterfImageAbs*) new cInterfImageTiff( aName, aMaxLoadAll );
+	return new cInterfImageTiff( aName, aMaxLoadAll );
 }
 
 cInterfImageTiff::cInterfImageTiff( std::string const &aName, unsigned int aMaxSizeForFullLoad ):
-	mTiff(new Tiff_Im(Tiff_Im::StdConvGen( aName, 1, true ) ) ) // 1 = nb channels, true = keep 16 bits values
+	mTiff( new Tiff_Im( Tiff_Im::StdConvGen( aName, 1, true ) ) ) // 1 = nb channels, true = keep 16 bits values
 {
 	ELISE_ASSERT( mTiff.get()!=NULL, "cInterfImageTiff::cInterfImageTiff: cannot load TIFF image" );
 
@@ -177,18 +177,16 @@ Im2DGen cInterfImageTiff::getWindow( Pt2di const &P0, Pt2di windowSize )
 
 cInterfImageLoader::cInterfImageLoader( std::string const &aName, unsigned int aMaxSizeForFullLoad )
 {
-	#if defined (__USE_JP2__)
+	#ifdef __USE_JP2__
 		mLoader.reset( new JP2ImageLoader(aName) );
-	#endif
-	ELISE_ASSERT( mLoader.get()!=NULL, "cInterfImageLoader::cInterfImageLoader: cannot load JPEG2000 image" );
 
-	cInterfModuleImageLoader &loader = *mLoader.get();
+		cInterfModuleImageLoader &loader = *mLoader.get();
 
-	ELISE_ASSERT( loader.PreferedTypeOfResol(1)==eUnsignedChar, "cInterfImageLoader::cInterfImageLoader: only one-channel uint8 jpeg2000 images are handled" );
+		ELISE_ASSERT( loader.PreferedTypeOfResol(1)==eUnsignedChar, "cInterfImageLoader::cInterfImageLoader: only one-channel uint8 jpeg2000 images are handled" );
 
-	const JP2ImageLoader::tPInt &sz = loader.Sz(1);
-	if ( (unsigned int)( sz.real()*sz.imag() )<aMaxSizeForFullLoad )
-	{
+		const JP2ImageLoader::tPInt &sz = loader.Sz(1);
+		if ( (unsigned int)( sz.real()*sz.imag() )>aMaxSizeForFullLoad ) return;
+
 		/*
 		// load all image in memory
 		mFullImage.reset( new Im2D<REAL4,REAL>( sz.real(), sz.imag() ) );
@@ -212,8 +210,8 @@ cInterfImageLoader::cInterfImageLoader( std::string const &aName, unsigned int a
 			cInterfModuleImageLoader::tPInt(0,0), //aP0Im
 			cInterfModuleImageLoader::tPInt(0,0), //aP0File
 			sz );
-		return;
-	}
+	#endif
+	ELISE_ASSERT( false, "cInterfImageLoader::cInterfImageLoader: no JPEG2000 image loader available" );
 }
 
 int cInterfImageLoader::bitpp()const
@@ -410,7 +408,6 @@ cImDigeo::cImDigeo
   //mBoxImCalc   ( round_ni(Pt2dr(mBoxImR1._p0)/mResol), round_ni(Pt2dr(mBoxImR1._p1)/mResol) ),
   mBoxImCalc   ( Pt2dr(0.,0.), Pt2dr() ),
   mSzMax       (0,0),
-  mNiv         (0),
   mG2MoyIsCalc (false),
   mDyn         (1.0),
   mFileInMem   (NULL),
@@ -421,14 +418,6 @@ cImDigeo::cImDigeo
 	mBoxImCalc = Box2di( Pt2di(0,0), Pt2di( mInterfImage->sz().x, mInterfImage->sz().y ) );
 
 	SplitDirAndFile( mDirectory, mBasename, mFullname );
-
-    const cTypePyramide & aTP = mAppli.Params().TypePyramide();
-    if (aTP.NivPyramBasique().IsInit())
-       mNiv = aTP.NivPyramBasique().Val();
-    else if (aTP.PyramideGaussienne().IsInit())
-       mNiv = aTP.PyramideGaussienne().Val().NivOctaveMax();
-    else
- 	ELISE_ASSERT(false,"cImDigeo::AllocImages PyramideImage");
 
     if ( Appli().isVerbose() )
     {
@@ -484,43 +473,19 @@ double cImDigeo::InitialDeltaSigma() const { return mInitialDeltaSigma; }
 
 void cImDigeo::NotifUseBox(const Box2di & aBox) { mSzMax.SetSup( aBox.sz() ); }
 
-GenIm::type_el  cImDigeo::TypeOfDeZoom(int aDZ) const
-{
-   //GenIm::type_el aRes = mTiff->type_el();
-	GenIm::type_el aRes = mInterfImage->type_el();
-	if ( !type_im_integral(aRes) ) return aRes;
-
-   if ( aRes==GenIm::int4 ) return GenIm::real8;
-
-   int aDZMax = -10000000;
-   for 
-   (
-       std::list<cTypeNumeriqueOfNiv>::const_iterator itP=mAppli.Params().TypeNumeriqueOfNiv().begin();
-       itP!=mAppli.Params().TypeNumeriqueOfNiv().end();
-       itP++
-   )
-   {
-      int aNiv = itP->Niv();
-      if  ((aNiv>=aDZMax) && (aNiv<=aDZ))
-      {
-         aRes = Xml2EL(itP->Type());
-         aDZMax = aNiv;
-      }
-   }
-   return aRes;
-}
-
 void cImDigeo::AllocImages()
 {
    Pt2di aSz = mSzMax;
    int aNivDZ = 0;
 
+	const int lastPace = mAppli.lastDz();
    cOctaveDigeo * aLastOct = 0;
-   for (int aDz = 1 ; aDz <=mNiv ; aDz*=2)
+   int iOctave = 0;
+   for ( int aDz = 1 ; aDz <=lastPace; aDz*=2 )
    {
        cOctaveDigeo * anOct =   aLastOct                                                   ?
-                                aLastOct->AllocDown(TypeOfDeZoom(aDz),*this,aDz,aSz)       :
-                                cOctaveDigeo::AllocTop(TypeOfDeZoom(aDz),*this,aDz,aSz)       ;
+                                aLastOct->AllocDown( mAppli.octaveType(iOctave),*this,aDz,aSz)       :
+                                cOctaveDigeo::AllocTop( mAppli.octaveType(iOctave),*this,aDz,aSz)       ;
        mOctaves.push_back(anOct);
        const cTypePyramide & aTP = mAppli.Params().TypePyramide();
        if (aTP.NivPyramBasique().IsInit())
@@ -534,18 +499,20 @@ void cImDigeo::AllocImages()
        {
             const cPyramideGaussienne &  aPG = aTP.PyramideGaussienne().Val();
             int aNbIm = aPG.NbByOctave().Val();
-            if (aPG.NbInLastOctave().IsInit() && (aDz*2>mNiv)) aNbIm = aPG.NbInLastOctave().Val();
+            if (aPG.NbInLastOctave().IsInit() && (aDz*2>lastPace)) aNbIm = aPG.NbInLastOctave().Val();
             int aK0 = 0;
             if (aDz==1) aK0 = aPG.IndexFreqInFirstOctave().Val();
             anOct->SetNbImOri(aNbIm);
 
-            if ( mAppli.isVerbose() ){
-                cout << "octave " << mOctaves.size()-1 << " (" << type_elToString( TypeOfDeZoom( aDz ) ) << ")" << endl;
+            if ( mAppli.isVerbose() )
+            {
+                cout << "octave " << mOctaves.size()-1 << " (" << eToString( mAppli.octaveType(iOctave) ) << ")" << endl;
                 cout << "\tsampling pace    = " << aDz << endl;
                 cout << "\tnumber of levels = " << aNbIm << endl;
             }
 
-            for (int aK=aK0 ; aK< aNbIm+3 ; aK++){
+            for (int aK=aK0 ; aK< aNbIm+3 ; aK++)
+            {
                 double aSigma =  mSigma0*pow(2.0,aK/double(aNbIm));
                 //mVIms.push_back(cImInMem::Alloc (*this,aSz,TypeOfDeZoom(aDz), *anOct,aSigma));
                 mVIms.push_back((anOct->AllocIm(aSigma,aK,aNivDZ*aNbIm+(aK-aK0))));
@@ -555,6 +522,7 @@ void cImDigeo::AllocImages()
        aNivDZ++;
 
        aLastOct = anOct;
+       iOctave++;
    }
 
    for (int aK=1 ; aK<int(mVIms.size()) ; aK++)
@@ -588,6 +556,9 @@ void save_tiff( const string &i_filename, Im2DGen i_img, bool i_rgb )
 
 void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
+	__elise_debug_error( mInterfImage==NULL, "cImDigeo::LoadImageAndPyram: mInterfImage: mInterfImage==NULL" );
+	__elise_debug_error( mOctaves.size()==0, "cImDigeo::LoadImageAndPyram: mInterfImage: mOctaves.size()==0" );
+
     const cTypePyramide & aTP = mAppli.Params().TypePyramide();
 
     mBoxCurIn = aBoxIn;
@@ -611,7 +582,6 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
        mOctaves[aK]->SetBoxInOut(aBoxIn,aBoxOut);
 
 	Fonc_Num aF;
-
 	if ( mResol==1. )
 		aF = mInterfImage->getWindow( mP0Cur, mSzCur ).in_proj();
 	else
@@ -620,9 +590,10 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
 		int marginX = 0, marginY = 0;
 		//Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur, 1, marginX, marginY ); // 1 = askedMargin
+
 		Im2DGen window = mInterfImage->getWindow( mP0Cur, mSzCur );
 		aF = StdFoncChScale_Bilin( window.in_proj(), Pt2dr( (REAL)marginX,(REAL)marginY ), Pt2dr(mResol,mResol) );
-	};
+	}
 
 	//mOctaves[0]->FirstImage()->LoadFile(aF,aBoxIn,GenIm::u_int1/*mInterfImage->type_el()*/);
 	mOctaves[0]->FirstImage()->LoadFile(aF,mBoxCurOut,GenIm::real4/*mInterfImage->type_el()*/);
@@ -653,7 +624,7 @@ void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 
 	mAppli.times()->start();
 
-    for (int aK=0 ; aK< int(mVIms.size()) ; aK++)
+    for ( int aK=0 ; aK< int(mVIms.size()) ; aK++ )
     {
        if ( aK>0 )
        {

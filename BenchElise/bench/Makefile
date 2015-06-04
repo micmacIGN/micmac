@@ -75,9 +75,6 @@ OBJ = b_0_35.o\
       b_0_55.o\
       b_0_54_1.o
 
-multichannel: multichannel.cpp ../../lib/libelise.a
-	$(CXX) $(CCFLAG) $(INC_DIR) multichannel.cpp $(LIB_DIR) $(LIBS) -o multichannel
-
 .cpp.o:
 	$(CXX) -c $(CCFLAG) $(INC_DIR) $< -o $@
 

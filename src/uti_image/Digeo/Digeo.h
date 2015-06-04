@@ -65,18 +65,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_DIGEO_H_
 
 #include "StdAfx.h"
-//#include <memory>
-//#include <cctype>
 
 #define __DEBUG_DIGEO
+
+#include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
 
 #include "cParamDigeo.h"
 #include "DigeoPoint.h"
 #include "Expression.h"
 #include "Times.h"
 #include "MultiChannel.h"
-
-#include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
+#include "GaussianConvolutionKernel1D.h"
+#include "cConvolSpec.h"
 
 #define DIGEO_ORIENTATION_NB_BINS 36
 #define DIGEO_ORIENTATION_WINDOW_FACTOR 1.5
@@ -177,16 +177,6 @@ class cPtsCaracDigeo
        double        mScale;
        double        mLocalScale;
 };
-
-   // Permt de shifter les entiers (+ rapide que la div) sans rien faire pour
-   // les flottants
-inline double ShiftDr(const double & aD,const int &) { return aD; }
-inline double ShiftG(const double & aD,const int &) { return aD; }
-inline double InitFromDiv(double ,double *) { return 0; }
-
-inline int ShiftDr(const int & aD,const int & aShift) { return aD >> aShift; }
-inline int ShiftG(const int & aD,const int & aShift) { return aD << aShift; }
-inline int InitFromDiv(int aDiv,int *) { return aDiv/2; }
 
 
 /*****************************************************************/
@@ -353,12 +343,10 @@ template <class Type> class cTplImInMem : public cImInMem
         typedef Im2D<Type,tBase>   tIm;
         typedef TIm2D<Type,tBase>  tTIm;
         typedef cTplImInMem<Type>  tTImMem;
-        Im1D<tBase,tBase> ImGaussianKernel(double aSigma);
-
 
         cTplImInMem(cImDigeo &,const Pt2di & aSz,GenIm::type_el,cTplOctDig<Type> &,double aResolOctaveBase,int aKInOct,int IndexSigma);
 
-
+/*
         void SetConvolSepXY
              (
                   bool   Increm,  // Increm et Sigma, renseignement sur l'origine du noyau
@@ -367,7 +355,7 @@ template <class Type> class cTplImInMem : public cImInMem
                   Im1D<tBase,tBase> aKerXY,
                   int  aNbShitXY
              );
-
+*/
 
         //tTIm  & TIm() {return TIm;}
         //const tTIm  & TIm() const {return TIm;}
@@ -431,7 +419,7 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
                   Im2D<Type,tBase> aImOut,
                   Im2D<Type,tBase> aImIn,
                   int aX,
-                  tBase *,int DebX,int aFinX
+                  const tBase *,int DebX,int aFinX
              );
 
         static void SetConvolSepX
@@ -781,8 +769,6 @@ class cImDigeo
      private :
         void DoSiftExtract();
 
-        GenIm::type_el  TypeOfDeZoom(int aDZ) const;
-
         std::string                   mFullname;
         std::string                   mBasename;
         std::string                   mDirectory;
@@ -805,7 +791,7 @@ class cImDigeo
         Box2di                        mBoxCurOut;
         std::vector<cOctaveDigeo *>   mOctaves;
         Pt2di                         mSzMax;
-        int                           mNiv;
+        //~ int                           mNiv;
 
         bool                         mG2MoyIsCalc;
         double                       mGradMoy;
@@ -822,51 +808,6 @@ class cImDigeo
         cImDigeo(const cImDigeo &);  // N.I.
 };
 
-template <class Type> class cConvolSpec
-{
-    public :
-        typedef typename El_CTypeTraits<Type>::tBase tBase;
-
-        virtual void Convol(Type * Out,Type * In,int aK0,int aK1) ;
-
-        virtual void ConvolCol(Type * Out,Type **In,int aX0,int aX1,int anYIn) ;
-
-        static cConvolSpec<Type> * GetExisting(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
-        static cConvolSpec<Type> * GetOrCreate(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
-        static bool generate_classes( const string &i_filename  );
-        static bool generate_instantiations( const string &i_filename  );
-
-        cConvolSpec(tBase* aFilter,int aDeb,int aFin,int aNbShitX,bool ForGC);
-        virtual bool IsCompiled() const;
-        int Deb() const;
-        int Fin() const;
-        bool Sym() const;
-        tBase *  DataCoeff();
-    protected :
-
-    private :
-        bool Match(tBase *  aDFilter,int aDebX,int aFinX,int  aNbShitX,bool ForGC);
-        static std::vector<cConvolSpec<Type> *>   theVec;
-        
-        int mNbShift;
-        int mDeb;
-        int mFin;
-        std::vector<tBase>  mCoeffs;
-// Quand on veut les generer, certain existent deja, pour ne pas les confondre dans la gestion
-// de l'unicite, on rajoute ce booleen
-        bool mForGC;
-        tBase *             mDataCoeff;
-        bool                mSym;
-        bool                mFirstGet;
-        
-
-        cConvolSpec(const cConvolSpec<Type> &); // N.I.
-};
-
-// include compiled kernels
-#include "GenConvolSpec_u_int2.classes.h"
-#include "GenConvolSpec_real4.classes.h"
-
 class cAppliDigeo
 {
     public:
@@ -882,8 +823,9 @@ class cAppliDigeo
         string getConvolutionInstantiationsFilename( string i_type );
         const cParamDigeo & Params() const;
         cParamDigeo & Params();
-       bool MultiBloc() const;
-       void loadImage( const string &i_filename );
+        bool MultiBloc() const;
+        void loadImage( const string &i_filename );
+        GenIm::type_el octaveType(int aDZ) const;
 
        cSiftCarac *  RequireSiftCarac();
        cSiftCarac *  SiftCarac();
@@ -946,17 +888,32 @@ class cAppliDigeo
        const Expression & tiledOutputGradientAngleExpression() const;
        const Expression & mergedOutputGradientAngleExpression() const;
 
+       template <class tData>
+       bool generateConvolutionCode( const ConvolutionHandler<tData> &aConvolutionHandler ) const;
+       bool generateConvolutionCode() const;
+
+       template <class tData>
+       ConvolutionHandler<tData> * convolutionHandler();
+
        template <class T>
-       bool generate_convolution_code();
+       void createGaussianKernel( double aSigma, ConvolutionKernel1D<T> &oKernel ) const;
+
+       template <class tData>
+       void convolve( const Im2D<tData,TBASE> &aSrc, double aSigma, const Im2D<tData,TBASE> &oDst );
+
+       int lastDz() const { return mDzLastOctave; }
+
+       template <class tData>
+       void allocateConvolutionHandler( ConvolutionHandler<tData> *&o_convolutionHandler );
 
     private :
        void InitAllImage();
-       static void InitConvolSpec();
        template <class T> inline static void __InitConvolSpec(){}
        void AllocImages();
        void processImageName( const string &i_imageFullname );
        void processTestSection();
        void loadParametersFromFile( const string &i_templateFilename, const string &i_parametersFilename );
+       GenIm::type_el TypeOfDeZoom(int aDZ) const;
 
        // replace variables depending of XML parameters and input image name
        void expressions_partial_completion();
@@ -1020,6 +977,10 @@ class cAppliDigeo
        double                            mGaussianEpsilon;
        int                               mGaussianSurEch;
        bool                              mUseSampledConvolutionKernels;
+       ConvolutionHandler<U_INT2>      * mConvolutionHandler_uint2;
+       ConvolutionHandler<REAL4>       * mConvolutionHandler_real4;
+       vector<GenIm::type_el>            mOctaveTypes;
+       int                               mDzLastOctave;
 
      private :
         cAppliDigeo(const cAppliDigeo &);  // N.I.
@@ -1047,9 +1008,6 @@ void drawWindow( unsigned char *io_dst, unsigned int i_dstW, unsigned int i_dstH
 
 void save_tiff( const string &i_filename, Im2DGen i_img, bool i_rgb=false );
 
-#include "GenConvolSpec_u_int2.instantiations.h"
-#include "GenConvolSpec_real4.instantiations.h"
-
 template <> inline unsigned int cAppliDigeo::nbSlowConvolutionsUsed<U_INT2>() const { return mNbSlowConvolutionsUsed_uint2; }
 template <> inline unsigned int cAppliDigeo::nbSlowConvolutionsUsed<REAL4>() const { return mNbSlowConvolutionsUsed_real4; }
 
@@ -1062,12 +1020,6 @@ template  class aClass<REAL4>;
 
 #define InstantiateFunctionTplDigeo(DataType,ComputeType)\
 template <> void gradient<DataType,ComputeType>( const Im2D<DataType,ComputeType> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
-
-template <class Type>
-Im1D<Type,Type> DigeoGaussianKernel( double aSigma, int aNbShift, double aEpsilon, int aSurEch );
-
-template <class Type>
-Im1D<Type,Type> SampledGaussianKernel( double aSigma, int aNbShift );
 
 
 // =========================  INTERFACE EXTERNE ======================
