@@ -27,17 +27,17 @@
        Trois type de geometrie interviennent
 
 
-       - La géométrie image est liée �  l'instrument d'acquisition
+       - La geometrie image est liee a l'instrument d'acquisition
        (conique ou barette, calibration ...); elle est definie
        dans la section <Section_PriseDeVue> par le champss
       GeomImages qui doit etre dans l'enumeration eGeomImage.
 
-       - La géométrie de mise en correspondance qui
+       - La geometrie de mise en correspondance qui
        a une influence forte sur l'algorithmie, elle
        est definie dans  <section_MEC>, par le champs
        GeomMEC qui doit etre dans l'enumeration eModeGeomMEC
 	
-       - la géométrie du MNT resultat (par exemple
+       - la geometrie du MNT resultat (par exemple
        cartographique ou euclidien local), elle est
        definie dans  <Section_Results> par le champs
        GeoMNT qui doit etre dans l'enumeration
