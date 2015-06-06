@@ -244,6 +244,11 @@
 		<ShortName> GoPro </ShortName>
 	</CameraEntry>
 
+	<CameraEntry>
+		<Name> GoProVideoLM  </Name>  <!-- Go Pro used for Lalane Mayeul internship, dont know which one -->
+		<SzCaptMm> 4.9  8.7 </SzCaptMm>
+		<ShortName> GoProVideoLM </ShortName>
+	</CameraEntry>
 
 <!-- Smartphones -->   
    
