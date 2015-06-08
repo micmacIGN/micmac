@@ -901,10 +901,10 @@ public:
             double iniRMS = sqrt(res/numObs);
             //cout << "RMS_ini = " << iniRMS << endl;
 
-           // double dA0 = 0.5;
+            double dA0 = 0.5;
             double dA1 = 0.01;
             double dA2 = 0.01;
-           // double dB0 = 0.5;
+            double dB0 = 0.5;
             double dB1 = 0.01;
             double dB2 = 0.01;
             double dX = 0.1;
@@ -961,10 +961,10 @@ public:
                     double b1 = cam->vP[4];
                     double b2 = cam->vP[5];
 
-                    //Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aObs->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
+                    Pt2dr vdA0 = Pt2dr(1./dA0,1./dA0) * (aObs->computeImageDifference(bK,pt,a0+dA0,a1,a2,b0,b1,b2)-D);
                     Pt2dr vdA1 = Pt2dr(1./dA1,1./dA1) * (aObs->computeImageDifference(bK,pt,a0,a1+dA1,a2,b0,b1,b2)-D);
                     Pt2dr vdA2 = Pt2dr(1./dA2,1./dA2) * (aObs->computeImageDifference(bK,pt,a0,a1,a2+dA2,b0,b1,b2)-D);
-                    //Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (aObs->computeImageDifference(bK,pt,a0,a1,a2,b0+dB0,b1,b2)-D);
+                    Pt2dr vdB0 = Pt2dr(1./dB0,1./dB0) * (aObs->computeImageDifference(bK,pt,a0,a1,a2,b0+dB0,b1,b2)-D);
                     Pt2dr vdB1 = Pt2dr(1./dB1,1./dB1) * (aObs->computeImageDifference(bK,pt,a0,a1,a2,b0,b1+dB1,b2)-D);
                     Pt2dr vdB2 = Pt2dr(1./dB2,1./dB2) * (aObs->computeImageDifference(bK,pt,a0,a1,a2,b0,b1,b2+dB2)-D);
 
@@ -975,11 +975,11 @@ public:
                     if (cam->index() !=0)
                     {
 
-                        //obs(0,0) = vdA0.x;
+                        obs(0,0) = vdA0.x;
                         obs(1,0) = vdA1.x;
                         obs(2,0) = vdA2.x;
 
-                        //obs(3,0) = vdB0.x;
+                        obs(3,0) = vdB0.x;
                         obs(4,0) = vdB1.x;
                         obs(5,0) = vdB2.x;
 
@@ -994,11 +994,11 @@ public:
                     if (cam->index() !=0)
                     {
 
-                        //obs(0,0) = vdA0.y;
+                        obs(0,0) = vdA0.y;
                         obs(1,0) = vdA1.y;
                         obs(2,0) = vdA2.y;
 
-                        //obs(3,0) = vdB0.y;
+                        obs(3,0) = vdB0.y;
                         obs(4,0) = vdB1.y;
                         obs(5,0) = vdB2.y;
 
