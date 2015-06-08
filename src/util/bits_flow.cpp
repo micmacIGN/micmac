@@ -459,6 +459,50 @@ void byte_inv_8(void * t)
      );
 }
 
+void byte_inv_16(void * t)
+{
+     ElSwap
+     (
+          ((char *) t)[0],
+          ((char *) t)[15]
+     );
+     ElSwap
+     (
+          ((char *) t)[1],
+          ((char *) t)[14]
+     );
+     ElSwap
+     (
+          ((char *) t)[2],
+          ((char *) t)[13]
+     );
+     ElSwap
+     (
+          ((char *) t)[3],
+          ((char *) t)[12]
+     );
+     ElSwap
+     (
+          ((char *) t)[4],
+          ((char *) t)[11]
+     );
+     ElSwap
+     (
+          ((char *) t)[5],
+          ((char *) t)[10]
+     );
+     ElSwap
+     (
+          ((char *) t)[6],
+          ((char *) t)[9]
+     );
+     ElSwap
+     (
+          ((char *) t)[7],
+          ((char *) t)[8]
+     );
+}
+
 void byte_inv_tab(void * t,INT byte_by_el,INT nb_el)
 {
    if (byte_by_el == 1)
