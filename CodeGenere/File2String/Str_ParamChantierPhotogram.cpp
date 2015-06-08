@@ -1596,7 +1596,7 @@ const char * (theNameVar_ParamChantierPhotogram[1759]) = {
 "         <UseSeparateDirectories Nb=\"?\" Type=\"bool\" Def=\"false\"> </UseSeparateDirectories>\n",
 "         <OutputDirectory  Nb=\"?\" Type=\"std::string\">  </OutputDirectory>\n",
 "         <LogDirectory  Nb=\"?\" Type=\"std::string\">  </LogDirectory>\n",
-"         <VersionNameCam Nb=\"?\" Type=\"int\" Def=\"0\"> </VersionNameCam>\n",
+"         <VersionNameCam Nb=\"?\" Type=\"int\" Def=\"1\"> </VersionNameCam>\n",
 "    </MMUserEnvironment>\n",
 "\n",
 "<!--\n",

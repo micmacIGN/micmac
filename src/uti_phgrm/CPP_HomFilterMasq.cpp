@@ -103,14 +103,15 @@ int HomFilterMasq_main(int argc,char ** argv)
     bool AcceptNoMask;
     std::string aPostIn= "";
     std::string aPostOut= "MasqFiltered";
-
+    std::string aOriMasq3D,aNameMasq3D;
+    cMasqBin3D * aMasq3D = 0;
 
 
     ElInitArgMain
     (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile),
-    LArgMain()
+        argc,argv,
+        LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile),
+        LArgMain()
                     << EAM(PostPlan,"PostPlan",true,"Post to plan, Def : toto ->toto_Masq.tif like with SaisieMasq")
                     << EAM(MasqGlob,"GlobalMasq",true,"Global Masq to add to all image")
                     << EAM(KeyCalcMasq,"KeyCalculMasq",true,"For tuning masq per image")
@@ -120,7 +121,8 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
                     << EAM(aPostIn,"PostIn",true,"Post for Input dir Hom, Def=")
                     << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFiltered")
-
+                    << EAM(aOriMasq3D,"OriMasq3D",true,"Orientation for Masq 3D")
+                    << EAM(aNameMasq3D,"Masq3D",true,"File of Masq3D, Def=AperiCloud_${OriMasq3D}.ply")
     );
 
     #if (ELISE_windows)
@@ -133,11 +135,22 @@ int HomFilterMasq_main(int argc,char ** argv)
     }
 
     if (!EAMIsInit(&AcceptNoMask))
-       AcceptNoMask = EAMIsInit(&MasqGlob);
+       AcceptNoMask = EAMIsInit(&MasqGlob) || EAMIsInit(&aOriMasq3D);
 
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
+    std::string aKeyOri;
+    if (EAMIsInit(&aOriMasq3D))
+    {
+        anICNM->CorrecNameOrient(aOriMasq3D);
+        if (! EAMIsInit(&aNameMasq3D))
+        {
+              aNameMasq3D = aDir + "AperiCloud_" + aOriMasq3D + ".ply";
+        }
+        aMasq3D = cMasqBin3D::FromSaisieMasq3d(aDir+aNameMasq3D);
+        aKeyOri = "NKS-Assoc-Im2Orient@" + aOriMasq3D;
+    }
 
     Im2D_Bits<1>  aImMasqGlob(1,1);
     if (EAMIsInit(&MasqGlob))
@@ -146,6 +159,9 @@ int HomFilterMasq_main(int argc,char ** argv)
 
     const std::vector<std::string> *  aVN = anICNM->Get(aPat);
     std::vector<Im2D_Bits<1> >  aVMasq;
+
+     std::vector<CamStenope *> aVCam;
+
 
     for (int aKN = 0 ; aKN<int(aVN->size()) ; aKN++)
     {
@@ -184,6 +200,10 @@ int HomFilterMasq_main(int argc,char ** argv)
 
         aVMasq.push_back(aImMasq);
         // Tiff_Im::CreateFromIm(aImMasq,"SousRes"+aNameMasq);
+        if (aMasq3D!=0)
+        {
+            aVCam.push_back(anICNM->StdCamOfNames(aNameIm,aOriMasq3D));
+        }
     }
 
     std::string anExt = ExpTxt ? "txt" : "dat";
@@ -231,7 +251,16 @@ int HomFilterMasq_main(int argc,char ** argv)
                       Pt2di aQ1 = round_ni(aP1/aResol);
                       Pt2di aQ2 = round_ni(aP2/aResol);
 
-                      if ((aMasq1.get(aQ1,0) && aMasq2.get(aQ2,0)) || (! UseMasq))
+                      bool Ok = ((aMasq1.get(aQ1,0) && aMasq2.get(aQ2,0)) || (! UseMasq));
+
+                      if (Ok &&  aMasq3D)
+                      {
+                          Pt3dr  aPTer= aVCam[aKN1]->PseudoInter(aP1,*(aVCam[aKN2]),aP2);
+                          if (! aMasq3D->IsInMasq(aPTer))
+                             Ok = false;
+                      }  
+
+                      if (Ok)
                       {
                           ElCplePtsHomologues aCple(aP1,aP2);
                           aPackOut.Cple_Add(aCple);

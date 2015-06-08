@@ -88,13 +88,16 @@ class cNOSolIn_Triplet
 class cNOSolIn_AttrASym
 {
      public :
+         void AddTriplet(cNOSolIn_Triplet * aTrip);
      private :
+         std::vector<cNOSolIn_Triplet *> mV3;
            
 };
 class cNOSolIn_AttrArc
 {
      public :
            cNOSolIn_AttrArc(cNOSolIn_AttrASym *);
+           cNOSolIn_AttrASym * ASym() {return mASym;}
      private :
            cNOSolIn_AttrASym * mASym;
 };
@@ -107,6 +110,7 @@ class cAppli_NewSolGolInit
         cNewO_NameManager & NM() {return *mNM;}
 
     private :
+        tArcNSI *              Arc(tSomNSI *,tSomNSI *,cNOSolIn_Triplet *);
 
         std::string          mFullPat;
         std::string          mOriCalib;
@@ -147,11 +151,21 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,cons
 {
 }
 
-
-
 /***************************************************************************/
 /*                                                                         */
 /*                 cNOSolIn_AttrASym                                       */
+/*                                                                         */
+/***************************************************************************/
+
+
+void  cNOSolIn_AttrASym::AddTriplet(cNOSolIn_Triplet * aTrip)
+{
+    mV3.push_back(aTrip); 
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*                 cNOSolIn_AttrArc                                        */
 /*                                                                         */
 /***************************************************************************/
 
@@ -165,6 +179,22 @@ cNOSolIn_AttrArc::cNOSolIn_AttrArc(cNOSolIn_AttrASym * anASym) :
 /*                 cAppli_NewSolGolInit                                    */
 /*                                                                         */
 /***************************************************************************/
+
+tArcNSI  * cAppli_NewSolGolInit::Arc(tSomNSI * aS1,tSomNSI * aS2,cNOSolIn_Triplet * aTripl)
+{
+     tArcNSI * anArc = mGr.arc_s1s2(*aS1,*aS2);
+     if (anArc==0)
+     {
+         cNOSolIn_AttrASym * anAttrSym = new cNOSolIn_AttrASym;
+         cNOSolIn_AttrArc anAttr12(anAttrSym);
+         cNOSolIn_AttrArc anAttr21(anAttrSym);
+         anArc = &(mGr.add_arc(*aS1,*aS2,anAttr12,anAttr21));
+     }
+     anArc->attr().ASym()->AddTriplet(aTripl);
+
+     return anArc;
+}
+
 
 cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mQuick (true),
