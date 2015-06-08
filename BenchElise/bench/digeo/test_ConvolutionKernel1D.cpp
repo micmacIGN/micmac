@@ -1,5 +1,7 @@
 #include "ConvolutionKernel1D.h"
 
+#include "base_types.h"
+
 #include <iostream>
 
 using namespace std;

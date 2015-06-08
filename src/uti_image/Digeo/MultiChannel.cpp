@@ -34,7 +34,7 @@ void MultiChannel<tData>::set( const MultiChannel<tData> &i_b )
 }
 
 template <class tData>
-void MultiChannel<tData>::set( size_t i_iChannel, const Im2D<tData,MultiChannel<tData>::tBase > &i_im2d )
+void MultiChannel<tData>::set( size_t i_iChannel, const Im2D<tData,tBase> &i_im2d )
 {
 	__elise_debug_error( i_iChannel>=mChannels.size(), "MultiChannel::set(Im2D): i_iChannel>=mChannels.size()" );
 	__elise_debug_error( i_im2d.tx()!=mWidth, "MultiChannel::set(Im2D): i_im2d.tx()!=mWidth" );

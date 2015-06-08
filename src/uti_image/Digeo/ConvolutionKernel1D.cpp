@@ -1,7 +1,9 @@
 #include "ConvolutionKernel1D.h"
 
-#ifndef ELISE_unix
+#ifdef NO_ELISE
 	#include "base_types.h"
+#else
+	#include "StdAfx.h"
 #endif
 #include "debug.h"
 

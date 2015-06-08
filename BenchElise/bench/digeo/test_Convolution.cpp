@@ -13,6 +13,8 @@
 
 using namespace std;
 
+const string digeoDirectory = "../../../src/uti_image/Digeo/";
+
 U_INT2 generate_random_uint2(){ return (U_INT2)( rand()%65536 ); }
 
 void write_pgm_header( ofstream &f, int w, int h, int vmax )
@@ -108,7 +110,7 @@ int main0( int argc, char **argv )
 
 	ConvolutionKernel1D<INT> kernel;
 	sampledGaussianKernel( 2., 15, kernel );
-	cConvolSpec<U_INT1> *convolSpec = convolutionHandler.getKernel(kernel);
+	cConvolSpec<U_INT1> *convolSpec = convolutionHandler.getConvolution(kernel);
 
 	//srand(time(NULL));
 
@@ -149,7 +151,7 @@ int main0( int argc, char **argv )
 	cout << "nbIter = " << nbIter-1 << endl;
 
 	size_t nbNewConvolutions = convolutionHandler.nbConvolutionsNotCompiled();
-	if ( nbNewConvolutions && convolutionHandler.generateCode() ) cout << "--- " << nbNewConvolutions << " new convolution" << (nbNewConvolutions>1?'s':'\0') << " generated" << endl;
+	if ( nbNewConvolutions && convolutionHandler.generateCode( digeoDirectory+convolutionHandler.defaultCodeBasename() ) ) cout << "--- " << nbNewConvolutions << " new convolution" << (nbNewConvolutions>1?'s':'\0') << " generated" << endl;
 	delete_data_lines(image);
 	delete_data_lines(image2);
 
@@ -182,12 +184,12 @@ void compare_compiled_not_compiled( int aWidth, int aHeight, unsigned int aNbIte
 	ConvolutionHandler<tData> convolutionHandler;
 	ConvolutionKernel1D<TBASE> kernel;
 	sampledGaussianKernel( 2., 15, kernel );
-	cConvolSpec<tData> *convolSpec = convolutionHandler.getKernel(kernel);
+	cConvolSpec<tData> *convolSpec = convolutionHandler.getConvolution(kernel);
 
 	if ( !convolSpec->IsCompiled() )
 	{
 		__elise_warning( "convolution is not compiled, generating code and skiping 'compiled' VS 'not compiled' comparison" );
-		convolutionHandler.generateCode();
+		convolutionHandler.generateCode( digeoDirectory+convolutionHandler.defaultCodeBasename() );
 		return;
 	}
 
@@ -280,7 +282,7 @@ protected:
 	void updateFromSigma()
 	{
 		sampledGaussianKernel( mSigma, 15, mKernel );
-		mCompiledConvolution = mHandler.getKernel(mKernel);
+		mCompiledConvolution = mHandler.getConvolution(mKernel);
 		mNotCompiledConvolution.set(*mCompiledConvolution);
 	}
 
@@ -476,13 +478,20 @@ void times_along_set( string aBasename, SetIterator<tData> &aSetIterator )
 	if ( hasNotCompiledConvolutions )
 	{
 		__elise_warning( "some convolutions are not compiled: generating code (compiled times will not be relevant)" );
-		aSetIterator.handler().generateCode();
+		aSetIterator.handler().generateCode( digeoDirectory+aSetIterator.handler().defaultCodeBasename() );
 	}
 }
 
 int main( int argc, char **argv )
 {
-	const unsigned int nbIterations = 30;
+	const int width = 1024, height = 1024;
+	const double sigma0 = 0.1, sigma1 = 10., sigmaPace = 0.1;
+	unsigned int nbIterations = 30;
+	const string outputBasename = "sigma_convolution_times";
+
+	if ( argc>1 ) nbIterations = atoi( argv[1] );
+	if ( nbIterations<1 ) __elise_error( "invalid number of iterations : " << nbIterations );
+
 	//const bool doOutputImages = false;
 
 	//srand(time(NULL)); // for diamond_square generation
@@ -496,25 +505,20 @@ int main( int argc, char **argv )
 	*/
 
 
-	const int width = 1024, height = 1024;
-	const double sigma0 = 0.1, sigma1 = 10., sigmaPace = 0.1;
-	const string outputBasename = "sigma_convolution_times";
+	//~ SigmaSetIterator<U_INT1> sigmaSet_ui1( width, height, sigma0, sigma1, sigmaPace, nbIterations );
+	//~ times_along_set(outputBasename,sigmaSet_ui1);
+//~ 
+	//~ SigmaSetIterator<U_INT2> sigmaSet_ui2( width, height, sigma0, sigma1, sigmaPace, nbIterations );
+	//~ times_along_set(outputBasename,sigmaSet_ui2);
+//~ 
+	//~ SigmaSetIterator<REAL4> sigmaSet_r4( width, height, sigma0, sigma1, sigmaPace, nbIterations );
+	//~ times_along_set(outputBasename,sigmaSet_r4);
 
-	SigmaSetIterator<U_INT1> sigmaSet_ui1( width, height, sigma0, sigma1, sigmaPace, nbIterations );
-	times_along_set(outputBasename,sigmaSet_ui1);
 
-	SigmaSetIterator<U_INT2> sigmaSet_ui2( width, height, sigma0, sigma1, sigmaPace, nbIterations );
-	times_along_set(outputBasename,sigmaSet_ui2);
-
-	SigmaSetIterator<REAL4> sigmaSet_r4( width, height, sigma0, sigma1, sigmaPace, nbIterations );
-	times_along_set(outputBasename,sigmaSet_r4);
-
-/*
 	const double sigma = 2.;
 	const int width0 = 128, height0 = 128, width1 = 6400, height1 = 6400, widthPace = 128, heightPace = 128;
 	ImageSizeSetIterator<U_INT1> imageSizeSet( width0, height0, sigma, widthPace, heightPace, width1, height1, nbIterations );
 	times_along_set("image_size_convolution_times.txt",imageSizeSet);
-*/
 
 	return EXIT_SUCCESS;
 }
