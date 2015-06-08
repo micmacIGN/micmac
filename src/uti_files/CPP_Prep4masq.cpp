@@ -115,7 +115,7 @@ int Prep4masq_main(int argc,char ** argv)
 int CPP_SetExif(int argc,char **argv)
 {
     std::string aPat,aCam;
-    int aFoc,aF35;
+    double aFoc,aF35;
     bool aPurge=true;
 
     ElInitArgMain
@@ -134,11 +134,15 @@ int CPP_SetExif(int argc,char **argv)
     std::string aNameFile =  Dir2Write(anEASF.mDir) + "ExivBatchFile.txt";
     FILE * aFP = FopenNN(aNameFile,"w","CPP_SetExif");
 
-    if (EAMIsInit(&aFoc))
-         fprintf(aFP,"set Exif.Photo.FocalLength  Short  %d\n",aFoc);
+    int aMul=1000;
 
     if (EAMIsInit(&aFoc))
-         fprintf(aFP,"set Exif.Photo.FocalLengthIn35mmFilm Short  %d\n",aF35);
+         fprintf(aFP,"set Exif.Photo.FocalLength  Rational  %d/%d\n",round_ni(aFoc*aMul),aMul);
+
+   
+    if (EAMIsInit(&aFoc))
+         // fprintf(aFP,"set Exif.Photo.FocalLengthIn35mmFilm Short  %d\n",aF35);
+         fprintf(aFP,"set Exif.Photo.FocalLengthIn35mmFilm Rational  %d/%d\n",round_ni(aF35*aMul),aMul);
 
     if (EAMIsInit(&aCam))
          fprintf(aFP,"set Exif.Image.Model  Ascii  \"%s\"\n",aCam.c_str());
