@@ -515,7 +515,7 @@ bool ConvolutionHandler<tData>::generateCode( const string &i_filename ) const
 }
 
 template <class tData>
-cConvolSpec<tData> * ConvolutionHandler<tData>::getExistingKernel( const ConvolutionKernel1D<TBASE> &aKernel )
+cConvolSpec<tData> * ConvolutionHandler<tData>::getExistingConvolution( const ConvolutionKernel1D<TBASE> &aKernel )
 {
 	typename list<cConvolSpec<tData> *>::iterator itKernel = mConvolutions.begin();
 	while ( itKernel!=mConvolutions.end() )
@@ -529,7 +529,7 @@ cConvolSpec<tData> * ConvolutionHandler<tData>::getExistingKernel( const Convolu
 template <class tData>
 cConvolSpec<tData> * ConvolutionHandler<tData>::getConvolution( const ConvolutionKernel1D<TBASE> &aKernel )
 {
-	cConvolSpec<tData> *aRes = getExistingKernel(aKernel);
+	cConvolSpec<tData> *aRes = getExistingConvolution(aKernel);
 	if ( aRes!=NULL ) return aRes;
 
 	mConvolutions.push_back( new cConvolSpec<tData>(aKernel) );

@@ -50,7 +50,7 @@ INT add_error( INT i_v, double i_dimensionFactor )
 template <class tDataSrc, class tDataDst>
 void ramp( const tDataSrc *i_src, int i_width, int i_height, const tDataSrc i_srcMin, const tDataSrc i_srcMax, const tDataDst i_dstMin, const tDataDst i_dstMax, tDataDst *o_dst )
 {
-	typedef typename TypeTraits<tDataSrc>::tBase tBaseSrc;
+	//~ typedef typename TypeTraits<tDataSrc>::tBase tBaseSrc;
 	typedef typename TypeTraits<tDataDst>::tBase tBaseDst;
 
 	const double srcMin = (double)i_srcMin;

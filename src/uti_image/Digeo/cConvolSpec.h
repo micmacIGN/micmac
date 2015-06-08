@@ -65,7 +65,7 @@ public:
 	ConvolutionHandler<tData> & operator =( const ConvolutionHandler<tData> &aSrc );
 
 	cConvolSpec<tData> * getConvolution( const ConvolutionKernel1D<TBASE> &aKernel );
-	cConvolSpec<tData> * getExistingKernel( const ConvolutionKernel1D<TBASE> &aKernel );
+	cConvolSpec<tData> * getExistingConvolution( const ConvolutionKernel1D<TBASE> &aKernel );
 
 	static std::string defaultCodeBasename();
 	bool generateCode( const std::string &i_filename=defaultCodeBasename() ) const;
