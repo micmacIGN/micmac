@@ -41,23 +41,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //#define __DEBUG_DIGEO_OLD_REFINE
 
-/*
-int F()
-{
-}
-class aClasse
-{
-    int X;
-    int Y;
-
-    aClasse() :
-      Y (1),
-      X (2)
-    {
-    }
-};
-*/
-
 /****************************************/
 /*                                      */
 /*             cTplOctDig               */
@@ -181,70 +164,53 @@ cTplImInMem<Type> *  cTplOctDig<Type>::TypedGetImOfSigma(double aSig)
 template <class Type>  
 cTplImInMem<Type> * cTplOctDig<Type>::AllocTypedIm(double aResolOctaveBase,int aK,int IndexSigma)
 {
-  cTplImInMem<Type> *   aRes = new  cTplImInMem<Type>(mIm,mSzMax,mType,*this,aResolOctaveBase,aK,IndexSigma);
-  if (!mVTplIms.empty())
-  {
-     aRes->SetMereSameDZ(mVTplIms.back());
-  }
+	cTplImInMem<Type> *   aRes = new  cTplImInMem<Type>(mIm,mSzMax,mType,*this,aResolOctaveBase,aK,IndexSigma);
 
-  // aRes->SetOrigOct(mImBase);
-  mVTplIms.push_back(aRes);
-  mVIms.push_back(aRes);
+	if ( !mVTplIms.empty() ) aRes->SetMereSameDZ(mVTplIms.back());
 
-  // std::cout << "::AllocTypedIm " << aResolOctaveBase << " " << aK << " " << IndexSigma << "\n";
+	mVTplIms.push_back(aRes);
+	mVIms.push_back(aRes);
 
-  return aRes;
+	return aRes;
 }
-
 
 template <class Type>
 void cTplOctDig<Type>::PostPyram() 
 {
-    for ( size_t aKIm=0; aKIm<mVTplIms.size(); aKIm++ )
-        mVDatas.push_back(mVTplIms[aKIm]->TIm().data());
+	if ( mVTplIms.size()==0 ) return;
 
-    // compute differences of gaussians
-    for ( size_t aKIm=0 ; aKIm<mVTplIms.size()-1; aKIm++ )
-        mVTplIms[aKIm]->computeDoG( *mVTplIms[aKIm+1] );
+	for ( size_t aKIm=0; aKIm<mVTplIms.size(); aKIm++ )
+		mVDatas.push_back(mVTplIms[aKIm]->TIm().data());
 
-    mCube = &(mVDatas[0]);
+	// compute differences of gaussians
+	for ( size_t aKIm=0 ; aKIm<mVTplIms.size()-1; aKIm++ )
+		mVTplIms[aKIm]->computeDoG( *mVTplIms[aKIm+1] );
+
+	mCube = &(mVDatas[0]);
 }
 
 template <class Type>
-Type *** cTplOctDig<Type>::Cube()
-{
-   return mCube;
-}
+Type *** cTplOctDig<Type>::Cube(){ return mCube; }
 
 template <class Type>
-   cImInMem * cTplOctDig<Type>::FirstImage()
-{
-    return TypedFirstImage();
-}
-
+cImInMem * cTplOctDig<Type>::FirstImage() { return TypedFirstImage(); }
 
 template <class Type>
-     cTplImInMem<Type> * cTplOctDig<Type>::TypedFirstImage()
-{
-   return mVTplIms[0];
-}
-
+cTplImInMem<Type> * cTplOctDig<Type>::TypedFirstImage() { return mVTplIms[0]; }
 
 template <class Type>  cTplOctDig<U_INT2> * cTplOctDig<Type>::U_Int2_This()
 {
-   if (mType==GenIm::u_int2)
-      return reinterpret_cast<cTplOctDig<U_INT2> *> (this);
-   return 0;
+   if ( mType==GenIm::u_int2 ) return reinterpret_cast<cTplOctDig<U_INT2> *> (this);
+   return NULL;
 }
 
 template <class Type>  cTplOctDig<REAL4> * cTplOctDig<Type>::REAL4_This()
 {
-   if (mType==GenIm::real4)
-      return reinterpret_cast<cTplOctDig<REAL4> *> (this);
-   return 0;
+	if ( mType==GenIm::real4 ) return reinterpret_cast<cTplOctDig<REAL4> *> (this);
+   return NULL;
 }
 
-template <class Type> const std::vector<cTplImInMem<Type> *> &  cTplOctDig<Type>::VTplIms() const {return mVTplIms;}
+template <class Type> const std::vector<cTplImInMem<Type> *> &  cTplOctDig<Type>::VTplIms() const { return mVTplIms; }
 
 // INSTANTIATION FORCEE
 
@@ -265,7 +231,8 @@ cOctaveDigeo::cOctaveDigeo(cOctaveDigeo * anOctUp,GenIm::type_el aType,cImDigeo 
    mNiv      (aNiv),
    mSzMax    (aSzMax),
    mNbImOri  (-1),
-   mBoxImCalc  (mIm.BoxImCalc()._p0/mNiv,mIm.BoxImCalc()._p1/mNiv)
+   mBoxImCalc  (mIm.BoxImCalc()._p0/mNiv,mIm.BoxImCalc()._p1/mNiv),
+   mTrueSamplingPace( aNiv*anIm.Resol() )
 {
 }
 
@@ -277,9 +244,9 @@ void cOctaveDigeo::SetBoxInOut(const Box2di & aBoxIn,const Box2di & aBoxOut)
    mBoxCurOut = Box2di(aBoxOut._p0/mNiv,aBoxOut._p1/mNiv);
 }
 
-const Box2di  &  cOctaveDigeo::BoxImCalc () const {return mBoxImCalc;}
-const Box2dr  &  cOctaveDigeo::BoxCurIn  () const {return mBoxCurIn;}
-const Box2di  &  cOctaveDigeo::BoxCurOut () const {return mBoxCurOut;}
+const Box2di  &  cOctaveDigeo::BoxImCalc () const { return mBoxImCalc; }
+const Box2dr  &  cOctaveDigeo::BoxCurIn  () const { return mBoxCurIn; }
+const Box2di  &  cOctaveDigeo::BoxCurOut () const { return mBoxCurOut; }
 
 Pt2dr  cOctaveDigeo::ToPtImCalc(const Pt2dr& aP0) const
 {
@@ -293,9 +260,11 @@ Pt2dr  cOctaveDigeo::ToPtImR1(const Pt2dr& aP0) const
 
 bool cOctaveDigeo::Pt2Sauv(const Pt2dr& aP0) const
 {
-   return mIm.PtResolCalcSauv(ToPtImCalc(aP0));
-}
+	// __DEL
+	return true;
 
+   //return mIm.PtResolCalcSauv(ToPtImCalc(aP0));
+}
 
 int cOctaveDigeo::NbImOri() const
 {
@@ -303,10 +272,7 @@ int cOctaveDigeo::NbImOri() const
    return mNbImOri;
 }
 
-int cOctaveDigeo::lastLevelIndex() const
-{
-   return mLastLevelIndex;
-}
+int cOctaveDigeo::lastLevelIndex() const { return mLastLevelIndex; }
 
 void cOctaveDigeo::SetNbImOri(int aNbImOri)
 {
@@ -314,35 +280,29 @@ void cOctaveDigeo::SetNbImOri(int aNbImOri)
    mLastLevelIndex = aNbImOri+2;
 }
 
-const std::vector<cImInMem *> &  cOctaveDigeo::VIms()
-{
-   return mVIms;
-}
+const std::vector<cImInMem *> &  cOctaveDigeo::VIms() const { return mVIms; }
+
+std::vector<cImInMem *> &  cOctaveDigeo::VIms() { return mVIms; }
 
 bool cOctaveDigeo::OkForSift(int aK) const
 {
   return     (aK>=1) 
           && (aK+2<int(mVIms.size()))
           && mAppli.SiftCarac()
-          && mAppli.PyramideGaussienne().IsInit();
+          && mAppli.Params().PyramideGaussienne().IsInit();
 }
 
 
 void cOctaveDigeo::DoAllExtract(int aK)
-{   
-    mVIms.at(aK)->VPtsCarac().clear();
-    if (OkForSift(aK))
-    {
-          DoSiftExtract(aK,*(mAppli.SiftCarac()));
-    }
+{
+	mVIms.at(aK)->featurePoints().clear();
+	if ( OkForSift(aK) ) DoSiftExtract( aK, *(mAppli.SiftCarac()) );
 }
 
 void cOctaveDigeo::DoAllExtract()
 {
-   for (int aKIm=0 ; aKIm<int(mVIms.size()) ; aKIm++)
-   {
-       DoAllExtract(aKIm);
-   }
+	for (int aKIm=0 ; aKIm<int(mVIms.size()) ; aKIm++)
+		DoAllExtract(aKIm);
 }
 
 REAL8 cOctaveDigeo::GetMaxValue() const{ return mIm.GetMaxValue(); }
@@ -350,6 +310,8 @@ REAL8 cOctaveDigeo::GetMaxValue() const{ return mIm.GetMaxValue(); }
 int cOctaveDigeo::NbIm() const { return mVIms.size(); }
 cImInMem * cOctaveDigeo::KthIm(int aK) const { return mVIms.at(aK); }
 int  cOctaveDigeo::Niv() const { return mNiv; }
+
+double cOctaveDigeo::trueSamplingPace() const { return mTrueSamplingPace; }
 
 cOctaveDigeo * cOctaveDigeo::AllocGen
            (
@@ -382,26 +344,6 @@ cOctaveDigeo * cOctaveDigeo::AllocTop
 
 const cImDigeo & cOctaveDigeo::ImDigeo() const { return mIm; }
 
-bool cOctaveDigeo::saveGaussians( string i_directory, const string &i_basename ) const
-{
-	// put i_directory in a proper form
-	if ( i_directory.length()==0 ) i_directory="./";
-	else{
-		char lastChar = *i_directory.rbegin();
-		if ( lastChar=='/' || lastChar=='\\' ) i_directory.resize( i_directory.length()-1 );
-		// create the directory to store gaussians if it does not exist
-		if ( !ELISE_fp::IsDirectory( i_directory ) && !ELISE_fp::MkDirSvp( i_directory ) ) return false;
-		i_directory.append("/");
-	}
-
-	// add octave sampling pace to the filename
-	stringstream ss;
-	ss << i_directory << i_basename << "_DZ"  << setw(3) << setfill('0') << Niv();
-	
-	for ( size_t i=0; i<mVIms.size(); i++ )
-		if ( !mVIms[i]->saveGaussian_pgm( ss.str() ) ) return false;
-	return true;
-}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

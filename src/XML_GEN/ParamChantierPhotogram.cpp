@@ -19312,7 +19312,7 @@ void xml_init(cMMUserEnvironment & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.LogDirectory(),aTree->Get("LogDirectory",1)); //tototo 
 
-   xml_init(anObj.VersionNameCam(),aTree->Get("VersionNameCam",1),int(0)); //tototo 
+   xml_init(anObj.VersionNameCam(),aTree->Get("VersionNameCam",1),int(1)); //tototo 
 }
 
 std::string  Mangling( cMMUserEnvironment *) {return "BD12249D67431BC5FE3F";};
