@@ -1095,6 +1095,8 @@ Pt2di   cDecoupageInterv2D::SzMaxIn() const
     return SzMaxIn(mSzBrd);
 }
 
+int cDecoupageInterv2D::NbX() const { return mNbX; }
+
 /*
 template <> Pt2d<double>::Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
 template <> Pt2d<float>::Pt2d(const Pt2d<INT>& p) : x (p.x), y (p.y) {};
