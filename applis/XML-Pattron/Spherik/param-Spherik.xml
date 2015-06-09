@@ -1,0 +1,193 @@
+<!-- 
+      Parametrage pour les points de liaison pour une triangulation.
+   Il s'agit de l'etape 0, elle doit etre suivie de 1, 2 et 3.
+   Cette etape 0 ne va que jusqu'a la resolution 16 et les 
+   les orientation exportees ne laisse libre que le cap.
+
+       Ce fichier a ete mis au point pour un vol drone heliporte.
+   Les valeus suivie d'un "#" en commentaire doivent etre modifiee
+   pour utilisation sur d'autre mission (terrestre, aerien ...)
+
+   #N : indique une modification numerique, une fois les valeurs 
+   fixees pour un type de chantier, il n'est pas necessaire de les
+   modifier pour un autre.
+
+   #S : indique une modification de nom;
+               <NV> NumImC 0071 </NV> <NV> NumImVois "(007[1-5])"  </NV>  
+               <NV> NumAux "(007[6-9])"  </NV>
+-->
+<ParamMICMAC 
+      Subst="@$#1"
+      NameDecl="@$#1"
+
+      NumImC="@0071"
+      NumImVois="@(007[1-5])"
+      NumAux="@(007[6-9])"
+      NumRefCol="@0071"
+      Dyn="@0.02"
+      Newprog="true"
+      TmpMEC="Spherik-${Newprog}/"
+>
+<Section_Terrain>  
+
+    <!--   Px1IncCalc : l'incertitude est liee au terrain elle est en metre,
+          ici 10 m c'est bcp pour un helico a 30 m.
+
+          Px2IncCalc : en pixel, c'est lie au defaut de mise en place
+     -->
+    
+    <IntervAltimetrie>
+        <ZIncCalc>   0.0 </ZIncCalc>    <!-- metres -->
+        <ZIncZonage>   0.0 </ZIncZonage>    <!-- metres -->
+    </IntervAltimetrie>
+
+    <Planimetrie>
+
+    </Planimetrie>
+    <IntervSpecialZInv >
+             <MulZMin> 0.3 </MulZMin>
+             <MulZMax> 3  </MulZMax>
+    </IntervSpecialZInv>
+
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <Im1 >    DSC_2083.NEF </Im1>  
+          <ImPat >  DSC_[0-9]{4}.NEF </ImPat>  
+     </Images>
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>   NKS-Assoc-Im2Orient@-Grid-AutoCal </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<ChantierFullImage1>  true </ChantierFullImage1>
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+	    <DynamiqueCorrel> eCoeffCorrelStd </DynamiqueCorrel>
+	    <AggregCorr> eAggregSymetrique </AggregCorr>
+
+            <SzW >       1               </SzW>
+
+	    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+            <ZRegul>  0.1     </ZRegul>
+	    <ZPas>   0.5     </ZPas>
+            <ZDilatAlti>  4  </ZDilatAlti>
+	    <ZDilatPlani> 5  </ZDilatPlani>
+
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+            <Gen8Bits_Px1> false </Gen8Bits_Px1>
+
+            <ModulationProgDyn Portee="Globale">
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   10               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   10.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+	</EtapeMEC>
+
+	<EtapeMEC> <DeZoom >  64    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  32    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  16                </DeZoom> </EtapeMEC>
+
+	<EtapeMEC> <DeZoom >  8                </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  4                </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  2                </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  1                </DeZoom> </EtapeMEC>
+
+
+
+</Section_MEC>
+<Section_Results >
+
+
+
+    <GeomMNT> eGeomMNTFaisceauPrChSpherik </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <!--
+    <DoNothingBut>
+	<ButDoOriMNT>  true </ButDoOriMNT>
+    </DoNothingBut>
+    -->
+    <!--
+    -->
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC > ${TmpMEC} </TmpMEC>
+     <TmpPyr > Pyram/ </TmpPyr>
+     <TmpResult > ${TmpMEC} </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  1000  </SzDalleMax>
+     <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+     <ByProcess> 0 </ByProcess>
+     <NomChantier> Geom-Im-${NumImC} </NomChantier>
+<!--
+     <FirstEtapeMEC> 5 </FirstEtapeMEC>
+     <LastEtapeMEC> 5 </LastEtapeMEC>
+-->
+
+    <PostProcess>
+         <NameMkF>  MkToto </NameMkF>
+         <OneCmdPar>
+             <OneCmdSer>  echo  ${ThisDir} </OneCmdSer>
+<!--
+             <OneCmdSer> bin/MpDcraw ${ThisDir}${PrefixImages}${NumImC}.CR2 16B=0 Dyn=${Dyn} CB=1 ImRef=F035_${PrefixImages}${NumRefCol}.CR2 WB=[1,1.1,1.3]   </OneCmdSer>
+             <OneCmdSer> bin/ScaleIm ${ThisDir}${PrefixImages}${NumImC}_MpDcraw8B_CB.tif 2.0  </OneCmdSer>
+             <OneCmdSer>  bin/GrShade ${ThisDir}GeoI/Z_Num7_DeZoom2_Geom-Im-${NumImC}.tif Mask=Masq_Geom-Im-${NumImC}_DeZoom2.tif ModeOmbre=IgnE </OneCmdSer>
+             <OneCmdSer>echo bin/SaisieMasq ${ThisDir}GeoI/Z_Num7_DeZoom2_Geom-Im-${NumImC}Shade.tif Name=${ThisDir}MasqPly_${NumImC}.tif</OneCmdSer>
+             <OneCmdSer>  bin/Nuage2Ply ${ThisDir}GeoI/NuageImProf_Geom-Im-${NumImC}_Etape_7.xml Attr=${ThisDir}${PrefixImages}${NumImC}_MpDcraw8B_CB_Scaled.tif  Mask=${ThisDir}MasqPly_${NumImC}.tif Scale=1 </OneCmdSer>
+
+
+-->
+
+<!--
+             <OneCmdSer>echo convert ${ThisDir}GeoI/Masq_Geom-Im-${NumImC}_DeZoom2.tif -compress None ${ThisDir}MasqPly_${NumImC}.tif </OneCmdSer>
+-->
+          </OneCmdPar>
+    </PostProcess>
+
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+</Section_Vrac>
+
+</ParamMICMAC>
+
