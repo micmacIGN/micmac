@@ -274,6 +274,7 @@ bool FoncIsMailSep(int aC)
 */
            || (!isascii(aC))
            || (aC==10)
+           || (aC==92)
           ;
 }
 
