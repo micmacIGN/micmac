@@ -70,19 +70,6 @@ class cNOSolIn_AttrSom
 
 };
 
-class cNOSolIn_Triplet
-{
-      public :
-          cNOSolIn_Triplet(tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit &);
-      private :
-          tSomNSI *     mS1;
-          tSomNSI *     mS2;
-          tSomNSI *     mS3;
-          ElRotation3D  mR2on1;
-          ElRotation3D  mR3on1;
-};
-
-
 
 
 class cNOSolIn_AttrASym
@@ -103,6 +90,20 @@ class cNOSolIn_AttrArc
 };
 
 
+class cNOSolIn_Triplet
+{
+      public :
+          cNOSolIn_Triplet(tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit &);
+          void SetArc(int aK,tArcNSI *);
+      private :
+          tSomNSI *     mSoms[3];
+          tArcNSI *     mArcs[3];
+          ElRotation3D  mR2on1;
+          ElRotation3D  mR3on1;
+};
+
+
+
 class cAppli_NewSolGolInit
 {
     public :
@@ -110,8 +111,7 @@ class cAppli_NewSolGolInit
         cNewO_NameManager & NM() {return *mNM;}
 
     private :
-        tArcNSI *              Arc(tSomNSI *,tSomNSI *,cNOSolIn_Triplet *);
-
+        void                 CreateArc(tSomNSI *,tSomNSI *,cNOSolIn_Triplet *,int aK);
         std::string          mFullPat;
         std::string          mOriCalib;
         cElemAppliSetFile    mEASF;
@@ -138,17 +138,22 @@ cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolIni
 
 /***************************************************************************/
 /*                                                                         */
-/*                 cNOSolIn_AttrSom                                        */
+/*                 cNOSolIn_Triplet                                        */
 /*                                                                         */
 /***************************************************************************/
 
 cNOSolIn_Triplet::cNOSolIn_Triplet(tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit & aTrip) :
-    mS1 (aS1),
-    mS2 (aS2),
-    mS3 (aS3),
     mR2on1 (Xml2El(aTrip.Ori2On1())),
     mR3on1 (Xml2El(aTrip.Ori3On1()))
 {
+   mSoms[0] = aS1;
+   mSoms[1] = aS2;
+   mSoms[2] = aS3;
+}
+
+void cNOSolIn_Triplet::SetArc(int aK,tArcNSI * anArc)
+{
+   mArcs[aK] = anArc;
 }
 
 /***************************************************************************/
@@ -180,7 +185,7 @@ cNOSolIn_AttrArc::cNOSolIn_AttrArc(cNOSolIn_AttrASym * anASym) :
 /*                                                                         */
 /***************************************************************************/
 
-tArcNSI  * cAppli_NewSolGolInit::Arc(tSomNSI * aS1,tSomNSI * aS2,cNOSolIn_Triplet * aTripl)
+void   cAppli_NewSolGolInit::CreateArc(tSomNSI * aS1,tSomNSI * aS2,cNOSolIn_Triplet * aTripl,int aK)
 {
      tArcNSI * anArc = mGr.arc_s1s2(*aS1,*aS2);
      if (anArc==0)
@@ -191,8 +196,9 @@ tArcNSI  * cAppli_NewSolGolInit::Arc(tSomNSI * aS1,tSomNSI * aS2,cNOSolIn_Triple
          anArc = &(mGr.add_arc(*aS1,*aS2,anAttr12,anAttr21));
      }
      anArc->attr().ASym()->AddTriplet(aTripl);
+     aTripl->SetArc(aK,anArc);
 
-     return anArc;
+     // return anArc;
 }
 
 
@@ -254,6 +260,9 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                  aS1->attr().V3().push_back(aTriplet);
                  aS2->attr().V3().push_back(aTriplet);
                  aS3->attr().V3().push_back(aTriplet);
+                 CreateArc(aS1,aS2,aTriplet,0);
+                 CreateArc(aS2,aS3,aTriplet,1);
+                 CreateArc(aS3,aS1,aTriplet,2);
             }
     }
 }
