@@ -637,7 +637,7 @@ void cAppliWithSetImage::SuppressSom(tSomAWSI & aSom)
 
 
 
-void cAppliWithSetImage::FilterImageIsolated()
+void cAppliWithSetImage::FilterImageIsolated(bool AnalysConexions)
 {
    std::vector<tSomAWSI *> aRes;
 
@@ -653,8 +653,8 @@ void cAppliWithSetImage::FilterImageIsolated()
 
    for (tItSAWSI anITS=mGrIm.begin(mSubGrAll); anITS.go_on() ; anITS++)
    {
-       if ((*anITS).nb_succ(mSubGrAll) ==0)
-       {
+          if ( AnalysConexions && ((*anITS).nb_succ(mSubGrAll) ==0))
+          {
            //std::map<std::string,tSomAWSI *>::iterator itS = mDicIm.find((*anITS).attr().mIma->mNameIm);
            //ELISE_ASSERT(itS!=mDicIm.end(),"Incoherence in cAppliWithSetImage::FilterImageIsolated");
 /*
@@ -662,16 +662,21 @@ void cAppliWithSetImage::FilterImageIsolated()
            ELISE_ASSERT(aNbEr==1,"Incoherence in cAppliWithSetImage::FilterImageIsolated");
            (*anITS).remove();
 */
-           SuppressSom(*anITS);
-       }
-       else
-       {
-           aRes.push_back(&(*anITS));
-       }
+              SuppressSom(*anITS);
+          }
+          else
+          {
+              aRes.push_back(&(*anITS));
+          }
    }
    mVSoms = aRes;
 }
 
+
+
+/*
+cInterfChantierNameManipulateur
+*/
 cInterfChantierNameManipulateur * cAppliWithSetImage::ICNM()
 {
    return mEASF.mICNM;
@@ -787,6 +792,8 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bo
            mSetImNoMasq = mEASF.mICNM->Get(PatFileOfImSec());
       }
 
+
+      FilterImageIsolated(false); // MPD 10/06/2015 => Sinon avec les points hors masque cela bugue a l'etape suivante
       if (AddCple)
       {
 
@@ -2031,7 +2038,6 @@ int MMByPair_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv);
    cAppliMMByPair anAppli(argc,argv);
-
 
    int aRes = anAppli.Exe();
    BanniereMM3D();
