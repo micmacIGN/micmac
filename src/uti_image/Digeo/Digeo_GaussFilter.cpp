@@ -47,7 +47,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                      */
 /****************************************/
 
-Im1D_REAL8 MakeSom1(Im1D_REAL8 aIm);
+Im1D_REAL8 MakeSom( Im1D_REAL8 &i_vector, double i_dstSum )
+{
+	double aSomActuelle;
+	Im1D_REAL8 aRes( i_vector.tx() );
+	ELISE_COPY( i_vector.all_pts(), i_vector.in(), sigma(aSomActuelle) );
+	ELISE_COPY( i_vector.all_pts(), i_vector.in()*( i_dstSum/aSomActuelle ), aRes.out() );
+	return aRes;
+}
+
+Im1D_REAL8 MakeSom1( Im1D_REAL8 &i_vector )
+{
+	return MakeSom(i_vector,1.);
+}
 
 //  K3-C3 = K1-C1 + K2-C2
 
@@ -118,165 +130,10 @@ Im1D_REAL8 Convol(Im1D_REAL8 aI1,Im1D_REAL8 aI2)
    return Convol(aI1,aI1.tx()/2,aI2,aI2.tx()/2);
 }
 
-
-
-
-Im1D_REAL8 MakeSom(Im1D_REAL8 aIm,double aSomCible)
-{
-    double aSomActuelle;
-    Im1D_REAL8 aRes(aIm.tx());
-    ELISE_COPY(aIm.all_pts(),aIm.in(),sigma(aSomActuelle));
-    ELISE_COPY(aIm.all_pts(),aIm.in()*(aSomCible/aSomActuelle),aRes.out());
-    return aRes;
-}
-
-Im1D_REAL8 MakeSom1(Im1D_REAL8 aIm)
-{
-    return MakeSom(aIm,1.0);
-}
- 
-
-Im1D_REAL8  GaussianKernel(double aSigma,int aNb,int aSurEch)
-{
-   Im1D_REAL8 aRes(2*aNb+1);
-
-   for (int aK=0 ; aK<=aNb ; aK++)
-   {
-        double aSom = 0;
-        for (int aKE =-aSurEch ; aKE<=aSurEch ; aKE++)
-        {
-            double aX = aK-aNb + aKE/double(2*aSurEch+1);
-            double aG = exp(-ElSquare(aX/aSigma)/2.0);
-            aSom += aG;
-        }
-        aRes.data()[aK] =  aRes.data()[2*aNb-aK] = aSom;
-   }
-   
-
-   return MakeSom1(aRes);
-}
-
-int NbElemForGausKern(double aSigma,double aResidu)
-{
-   return round_up( sqrt(-2*log(aResidu))*aSigma);
-}
-
-Im1D_REAL8  GaussianKernelFromResidu(double aSigma,double aResidu,int aSurEch)
-{
-   return GaussianKernel(aSigma,NbElemForGausKern( aSigma,aResidu),aSurEch);
-}
-
-// Methode pour avoir la "meilleure" approximation entiere d'une image reelle
-// avec somme imposee. Tres sous optimal, mais a priori utilise uniquement sur de
-// toute petites images
-
-Im1D_INT4 ToIntegerKernel(Im1D_REAL8 aRK,int aMul,bool aForceSym)
-{
-    aRK = MakeSom1(aRK);
-    int aSz=aRK.tx();
-    Im1D_INT4 aIK(aSz);
-
-    int aSom;
-    ELISE_COPY(aIK.all_pts(),round_ni(aRK.in()*aMul),aIK.out()|sigma(aSom));
-
-    int *    aDI = aIK.data();
-    double * aDR = aRK.data();
-    while (aSom != aMul)
-    {
-
-        int toAdd = aMul-aSom;
-        int aSign = (toAdd>0) ? 1 : -1;
-        int aKBest=-1;
-        double aDeltaMin = 1e20;
-
-        if (aForceSym && (ElAbs(toAdd)==1) )
-        {
-            ELISE_ASSERT((aSz%2),"ToIntegerKernel Sym");
-            aKBest=  aSz/2;
-        }
-        else
-        {
-           for (int aK=0 ; aK<aSz ; aK++)
-           {
-               double aDelta =  ((aDI[aK]/double(aMul)) -aDR[aK]) * aSign;
-               if ((aDelta < aDeltaMin) && (aDI[aK]+aSign >=0))
-               {
-                  aDeltaMin = aDelta;
-                  aKBest= aK;
-               }
-           }
-        }
-
-        ELISE_ASSERT(aKBest!=-1,"Inco(1) in ToIntegerKernel");
-
-        aDI[aKBest] += aSign;
-        aSom += aSign;
-
-        if (aForceSym && (aSom!=aMul))
-        {
-           int aKSym = aSz - aKBest-1;
-           if (aKSym!=aKBest)
-           {
-               aDI[aKSym] += aSign;
-               aSom += aSign;
-           }
-        } 
-    }
-    return aIK;
-}
-
-Im1D_INT4  ToOwnKernel(Im1D_REAL8 aRK,int & aShift,bool aForceSym,int *)
-{
-     return ToIntegerKernel(aRK,1<<aShift,aForceSym);
-}
-Im1D_REAL8  ToOwnKernel(Im1D_REAL8 aRK,int & aShift,bool aForceSym,double *)
-{
-    return aRK;
-}
-
-Im1D_REAL8 ToRealKernel(Im1D_INT4 aIK)
-{
-   Im1D_REAL8 aRK(aIK.tx());
-   ELISE_COPY(aIK.all_pts(),aIK.in(),aRK.out());
-   return MakeSom1(aRK);
-}
-
-Im1D_REAL8 ToRealKernel(Im1D_REAL8 aRK)
-{
-   return aRK;
-}
-
-
-/*
-   // Permt de shifter les entiers (+ rapide que la div) sans rien faire pour
-   // les flottants
-inline double ShiftDr(const double & aD,const int &) { return aD; }
-inline double ShiftG(const double & aD,const int &) { return aD; }
-inline double InitFromDiv(double ,double *) { return 0; }
-
-inline int ShiftDr(const int & aD,const int & aShift) { return aD >> aShift; }
-inline int ShiftG(const int & aD,const int & aShift) { return aD << aShift; }
-inline int InitFromDiv(int aDiv,int *) { return aDiv/2; }
-*/
-
-
-
-/*
-
    // Pour utiliser un filtre sur les bord, clip les intervalle
    // pour ne pas deborder et renvoie la somme partielle
-template <class tBase> tBase ClipForConvol(int aSz,int aKXY,tBase * aData,int & aDeb,int & aFin)
-{
-    ElSetMax(aDeb,-aKXY);
-    ElSetMin(aFin,aSz-1-aKXY);
-*/
-
-
-
-
-   // Pour utiliser un filtre sur les bord, clip les intervalle
-   // pour ne pas deborder et renvoie la somme partielle
-template <class tBase> tBase ClipForConvol(int aSz,int aKXY,tBase * aData,int & aDeb,int & aFin)
+template <class tBase>
+tBase ClipForConvol( int aSz, int aKXY, const tBase * aData, int & aDeb, int &aFin )
 {
     ElSetMax(aDeb,-aKXY);
     ElSetMin(aFin,aSz-1-aKXY);
@@ -293,7 +150,7 @@ template <class tBase> tBase ClipForConvol(int aSz,int aKXY,tBase * aData,int & 
    // Produit scalaire basique d'un filtre lineaire avec une ligne
    // et une colonne image
 template <class Type,class tBase> 
-inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,const int & aDeb,const int & aFin)
+inline tBase CorrelLine( tBase aSom, const Type *aData1, const tBase *aData2, const int & aDeb, const int &aFin )
 {
 
 
@@ -303,116 +160,28 @@ inline tBase CorrelLine(tBase aSom,const Type * aData1,const tBase *  aData2,con
    return aSom;
 }
 
-//#define __DEBUG_OUTPUT_KERNELS
-
-#ifdef __DEBUG_OUTPUT_KERNELS
-	string __kernel_output_filename = "kernels.raw";
-#endif
-
-template <class Type> Im1D<Type,Type> ImageGaussianKernel ( double aSigma, int aNbShift, double anEpsilon, int aSurEch )
+template <class Type,class tBase>
+cConvolSpec<Type> * ToCompKer( const tBase *aKernel, int aKernelSize, int aNbShift )
 {
-	#ifdef __DEBUG_OUTPUT_KERNELS
-		{
-			ofstream f( __kernel_output_filename.c_str(), ios::binary|ios::app );
-			
-			Im1D_REAL8 aKerD = GaussianKernelFromResidu(aSigma,anEpsilon,aSurEch);
-			Im1D<Type,Type> aKerT = ToOwnKernel(aKerD,aNbShift,true,(Type *)0);
+	ELISE_ASSERT( aKernelSize%2, "ToCompKer: kernel size should be odd" );
+	aKernelSize /= 2;
 
-			// digeo type
-			f.put(0);
-			// type name
-			string typeName = El_CTypeTraits<Type>::Name();
-			U_INT4 ui4 = (U_INT4)typeName.length();
-			f.write( (char*)&ui4, 4 );
-			f.write( typeName.c_str(), ui4 );
-			// sigma
-			REAL8 r8 = (REAL8)aSigma;
-			f.write( (char*)&r8, 8 );
-			// nb coefficients
-			ui4 = (U_INT4)aKerD.tx();
-			f.write( (char*)&ui4, 4 );
-			// REAL8 coefficients
-			f.write( (char*)aKerD.data(), aKerD.tx()*8 );
-			// nbShift
-			ui4 = (U_INT4)aNbShift;
-			f.write( (char*)&ui4, 4 );
-			// residue
-			r8 = (REAL8)anEpsilon;
-			f.write( (char*)&r8, 8 );
-			// surEch
-			ui4 = (U_INT4)aSurEch;
-			f.write( (char*)&ui4, 4 );
-			// Type coefficients
-			f.write( (char*)aKerT.data(), aKerT.tx()*sizeof(Type) );
-		}
-	#endif
-	
-    Im1D_REAL8 aKerD = GaussianKernelFromResidu(aSigma,anEpsilon,aSurEch);
-    return ToOwnKernel(aKerD,aNbShift,true,(Type *)0);
+	const tBase * aData = aKernel+aKernelSize;
+	while ( aKernelSize && (aData[aKernelSize]==0) && (aData[-aKernelSize]==0) )
+		aKernelSize--;
+
+	return cConvolSpec<Type>::GetOrCreate( aData, -aKernelSize, aKernelSize, aNbShift, false ) ;
 }
 
-template <class Type,class tBase> cConvolSpec<Type> * 
-         ToCompKer
-         (
-              Im1D<tBase,tBase>   aKern,
-              int                 aNbShitXY,
-              FILE *              aFileH = 0,
-              FILE *              aFileCPP = 0,
-              double              aSigma = 1.0,  // Pour commentaire dans le .h
-              bool                Increm = false  // Pour commentaire dans le .h
-         )
-{
-    int aSzKer = aKern.tx();
-    ELISE_ASSERT(aSzKer%2,"Taille paire pour ::SetConvolSepXY");
-    aSzKer /= 2;
-
-    tBase * aData = aKern.data() + aSzKer;
-    while (aSzKer && (aData[aSzKer]==0) && (aData[-aSzKer]==0))
-          aSzKer--;
-
-    if (aFileH!= 0)
-    {
-       cTplImInMem<Type>::MakeClassConvolSpec
-       (
-           Increm,
-           aSigma,
-           aFileH,
-           aFileCPP,
-           aData,
-           -aSzKer,
-           aSzKer,
-           aNbShitXY
-       );
-    }
-    return   cConvolSpec<Type>::GetOrCreate(aData,-aSzKer,aSzKer,aNbShitXY,false) ;
-}
-
-template <class Type,class tBase> cConvolSpec<Type> *  GaussCS(double aSigma,int aNbShift,double anEpsilon,int aSurEch)
-{
-   return ToCompKer<Type,tBase>
-          (
-                ImageGaussianKernel<tBase>(aSigma,aNbShift,anEpsilon,aSurEch),
-                aNbShift
-          );
-}
-
-#ifdef __WITH_GAUSS_SEP_FILTER
-	cConvolSpec<INT>*   IGausCS(double aSigma,double anEpsilon)
-	{
-		 return GaussCS<int,int>(aSigma,15,anEpsilon,10);
-	}
-
-	cConvolSpec<double>*  RGausCS(double aSigma,double anEpsilon)
-	{
-		 return GaussCS<double,double>(aSigma,0,anEpsilon,10);
-	}
-#endif
 
 /****************************************/
 /*                                      */
 /*             cTplImInMem              */
 /*                                      */
 /****************************************/
+
+inline REAL InitFromDiv(REAL,REAL *) { return 0; }
+inline INT  InitFromDiv(INT aDiv,INT *) { return aDiv/2; }
 
 // anX must not be lesser than 0
 template <class Type> 
@@ -421,7 +190,7 @@ void  cTplImInMem<Type>::SetConvolBordX
           Im2D<Type,tBase> aImOut,
           Im2D<Type,tBase> aImIn,
           int anX,
-          tBase * aDFilter,int aDebX,int aFinX
+          const tBase * aDFilter,int aDebX,int aFinX
       )
 {
     tBase aDiv = ClipForConvol(aImOut.tx(),anX,aDFilter,aDebX,aFinX);
@@ -447,6 +216,17 @@ void cTplImInMem<Type>::SetConvolSepX
      )
 {
     ELISE_ASSERT(aImOut.sz()==aImIn.sz(),"Sz in SetConvolSepX");
+    
+    // __DEL
+    Im2D<Type,tBase> src = aImIn;
+    if ( aImOut.data_lin()==aImIn.data_lin() )
+    {
+		 Im2D<Type,tBase> newSrc( aImIn.tx()+PackTranspo, aImIn.ty() );
+		 newSrc.Resize( aImIn.sz() );
+		 memcpy( newSrc.data_lin(), aImIn.data_lin(), aImIn.tx()*aImIn.ty()*sizeof(Type) );
+		 aImIn = newSrc;
+	 }
+
     int aSzX = aImOut.tx();
     int aSzY = aImOut.ty();
     int aX0 = std::min( -aCS->Deb(), aSzX );
@@ -499,6 +279,22 @@ void cTplImInMem<Type>::SelfSetConvolSepY
 
     Type ** aData =  mIm.data();
 
+	#ifdef __DEBUG_DIGEO
+		for ( int y=0; y<mIm.ty(); y++ )
+		{
+			if ( aData[y]!=mIm.data_lin()+y*mIm.tx() )
+			{
+				cerr << "cTplImInMem: check line failed for line " << y << endl;
+				exit(-1);
+			}
+		}
+		if ( mIm.linearDataAllocatedSize()<(mIm.tx()+PackTranspo)*mIm.ty() )
+		{
+			cerr << "cTplImInMem: linearDataAllocatedSize = " << mIm.linearDataAllocatedSize() << " < (i_image.tx()+PackTranspo)*i_image.ty() = " << (mIm.tx()+PackTranspo)*mIm.ty() << endl;
+			exit(-1);
+		}
+	#endif
+
     for (int anX = 0; anX<mSz.x ; anX+=PackTranspo)
     {
          // Il n'y a pas de debordement car les images  sont predementionnee 
@@ -534,6 +330,7 @@ void cTplImInMem<Type>::SelfSetConvolSepY
     }
 }
 
+/*
 template <class Type> 
 void cTplImInMem<Type>::SetConvolSepXY
      (
@@ -544,67 +341,37 @@ void cTplImInMem<Type>::SetConvolSepXY
           int  aNbShitXY
      )
 {
-   ELISE_ASSERT(mSz==aImIn.mSz,"Size im diff in ::SetConvolSepXY");
-   //bool aGCC = mAppli.GenereCodeConvol().IsInit();
+	ELISE_ASSERT(mSz==aImIn.mSz,"Size im diff in ::SetConvolSepXY");
 
-   cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>
-                             (
-                                aKerXY, aNbShitXY,
-                                mAppli.FileGGC_H(),
-                                mAppli.FileGGC_Cpp(),
-                                aSigma, Increm
-                             );
+	mAppli.times()->start();
 
-    /*
-    if (mAppli.ShowConvolSpec().Val())
-       std::cout << "CS = " << aCS << "\n";
-    if (mAppli.ExigeCodeCompile().Val() )
-    {
-       //  std::cout << "CODE-COMPILED " << aCS->IsCompiled() << "\n";
-       if (!aCS->IsCompiled()) 
-       {
-          std::cout << "For Sigma = " <<  aSigma << " Increm " << Increm << "\n";
-          ELISE_ASSERT(false,"cannot find code compiled\n");
-       }
-    }
-    */
+	cConvolSpec<Type> * aCS=  ToCompKer<Type,tBase>( aKerXY, aNbShitXY, aSigma, Increm );
 
-    if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
+	if ( !aCS->IsCompiled() ) mAppli.upNbSlowConvolutionsUsed<Type>();
 
-    ElTimer aChrono;
-    SetConvolSepX(aImIn,aNbShitXY,aCS);
-    
-    double aTX = aChrono.uval();
-    aChrono.reinit();
+	SetConvolSepX(aImIn,aNbShitXY,aCS);
+	SelfSetConvolSepY(aNbShitXY,aCS);
 
-    SelfSetConvolSepY(aNbShitXY,aCS);
-
-    double aTY = aChrono.uval();
-    aChrono.reinit();
-
-    if (mAppli.ShowTimes().Val() > 100)
-    {
-         std::cout << "Time convol , X : " << aTX << " , Y : " << aTY <<   " SzK " << aKerXY.tx() << "\n";
-    }
+	mAppli.times()->stop("gaussian convolution");
 }
+*/
 
-
+/*
 void TestConvol()
 {
    int aT1 = 5;
    int aT2 = 3;
-   Im1D_REAL8  aI1 = GaussianKernel(2.0,aT1,10);
-   Im1D_REAL8  aI2 = GaussianKernel(1.0,aT2,10);
+   Im1D_REAL8  aI1 = DigeoGaussianKernel(2.0,aT1,10);
+   Im1D_REAL8  aI2 = DigeoGaussianKernel(1.0,aT2,10);
 
    // ELISE_COPY(aI1.all_pts(),FX==aT1,aI1.out());
    // ELISE_COPY(aI2.all_pts(),FX==aT2,aI2.out());
-  
+
    Im1D_REAL8  aI3 = Convol(aI1,aI2);
 
    Im1D_REAL8 aI2B = DeConvol(2,aI1,aI3);
 
    Im1D_REAL8 aI4 = Convol(aI1,aI2B);
-
 
    for (int aK=0 ; aK<ElMax(aI3.tx(),aI4.tx()) ; aK++)
    {
@@ -618,27 +385,11 @@ void TestConvol()
                  << "\n";
    }
 }
-
-
-
-template <class Type> Im1D<typename El_CTypeTraits<Type>::tBase,typename El_CTypeTraits<Type>::tBase> cTplImInMem<Type>::ImGaussianKernel(double aSigma)
-{
-   const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
-   return ImageGaussianKernel<typename El_CTypeTraits<Type>::tBase>
-          (
-              aSigma,
-              aPG.NbShift().Val(),
-              aPG.EpsilonGauss().Val(),
-              aPG.SurEchIntegralGauss().Val()
-          );
-}
-
+*/
 
 template <class Type> 
 void cTplImInMem<Type>::ReduceGaussienne()
 {
-    const cPyramideGaussienne aPG = mAppli.TypePyramide().PyramideGaussienne().Val();
- 
     if (mKInOct==0)
     {
          // cTplOctDig<Type>* anOcUp = mTOct.OctUp();
@@ -648,36 +399,33 @@ void cTplImInMem<Type>::ReduceGaussienne()
          {
               // cTplImInMem<Type> *  aMere = anOcUp->TypedGetImOfSigma(2.0);
               cImInMem *  aMere = anOcUp->GetImOfSigma(2.0);
+
               VMakeReduce_010(*aMere);
+              //MakeReduce( *aMere, mAppli.Params().ReducDemiImage().Val() );
          }
          else
          {
              ELISE_ASSERT(false,"::ReduceGaussienne No OctUp");
          }
-
          return;
     }
 
     //==============================================
 
+	double sigma;
+	tIm *src;
+	if ( !mAppli.doIncrementalConvolution() )
+	{
+		sigma = sqrt(ElSquare(mResolOctaveBase)-ElSquare(mTMere->mResolOctaveBase));
+		src = &mTMere->mIm;
+	}
+	else
+	{
+		sigma = mResolOctaveBase;
+		src = &mTOct.TypedFirstImage()->mIm;
+	}
 
-    bool isIncrem = aPG.ConvolIncrem().Val();
-    if (mAppli.ModifGCC())
-       isIncrem = mAppli.ModifGCC()->ConvolIncrem();
-
-
-    if (! isIncrem)
-    {
-       Im1D<tBase,tBase> aIKerTotD =  ImGaussianKernel(mResolOctaveBase);
-       SetConvolSepXY(false,mResolOctaveBase,*(mTOct.TypedFirstImage()),aIKerTotD,mNbShift);
-       return;
-    }
-
-
-
-    double aSigmD =  sqrt(ElSquare(mResolOctaveBase) - ElSquare(mTMere->mResolOctaveBase));
-    Im1D<tBase,tBase> aIKerD = ImGaussianKernel(aSigmD);
-    SetConvolSepXY(true,aSigmD,*mTMere,aIKerD,mNbShift);
+	mAppli.convolve( *src, sigma, mIm );
 
 /*
     Im1D_REAL8        aRealKerD =  ToRealKernel(aIKerD);
