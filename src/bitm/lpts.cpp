@@ -54,7 +54,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 Data_Liste_Pts_Gen::~Data_Liste_Pts_Gen(){}
 
 Data_Liste_Pts_Gen::Data_Liste_Pts_Gen(const DataGenIm * gi,INT dim) :
-
        _gi       (gi),
        _dim      (dim),
        _nb_last  (0),

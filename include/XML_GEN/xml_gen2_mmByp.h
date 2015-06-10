@@ -188,7 +188,8 @@ class cAppliWithSetImage
       bool CAWSI_AcceptIm(const std::string & aName) const;
       bool CAWSI_AcceptCpleIm(const std::string & aN1,const std::string &  aN2) const;
       
-      void FilterImageIsolated();
+      // Si AnalysConexion = false, revoit juste le SET 
+      void FilterImageIsolated(bool AnalysConexions=true);
       void Develop(bool EnGray,bool En16B);
       bool MasterSelected(const std::string & aName) const;
       bool MasterSelected(tSomAWSI* aSom) const;
