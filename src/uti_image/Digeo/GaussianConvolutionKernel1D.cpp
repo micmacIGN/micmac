@@ -270,7 +270,7 @@ template <> void sampledGaussianKernel( double aSigma, int aNbShift, Convolution
 
 template void sampledGaussianKernel<INT>( double aSigma, int aNbShift, ConvolutionKernel1D<INT> &oKernel );
 template void integralGaussianKernel<INT>( double aSigma, int aNbShift, double aEpsilon, int aSurEch, ConvolutionKernel1D<INT> &oKernel );
-	
+
 #if ELISE_windows && _MSC_VER>=_MSC_VER_2013
 	template void integralGaussianKernel<REAL>( double aSigma, int aNbShift, double aEpsilon, int aSurEch, ConvolutionKernel1D<REAL> &oKernel );
 	template void sampledGaussianKernel<REAL>( double aSigma, int aNbShift, ConvolutionKernel1D<REAL> &oKernel );
