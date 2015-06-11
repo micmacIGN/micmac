@@ -222,8 +222,6 @@ void cAppli_NewSolGolInit::SetNeighTriplet(cNOSolIn_Triplet * aTripl)
         SetCurNeigh3(aKS);
         SetCurNeigh2(aKS);
     }
-
-    
 }
 
 
