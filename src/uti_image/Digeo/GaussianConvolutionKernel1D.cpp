@@ -134,7 +134,7 @@ static void check_is_valid( const string &aType, double aSigma, const vector<REA
 	if ( aKernel.size()==0 ) return;
 	bool isOk = true;
 	for ( size_t i=0; i<aKernel.size(); i++ )
-		if ( isnan(aKernel[i]) || isinf(aKernel[i]) )
+		if ( std::isnan(aKernel[i]) || std::isinf(aKernel[i]) )
 		{
 			isOk = false;
 			break;

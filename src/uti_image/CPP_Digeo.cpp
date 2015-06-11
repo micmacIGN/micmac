@@ -59,16 +59,32 @@ int Digeo_main( int argc, char **argv )
 {
 	ElTimer chrono;
 
-	if ( argc!=4 )
+	if ( argc<4 )
 	{
 		cerr << "Digeo: usage : mm3d Digeo input_filename -o output_filename" << endl;
 		return EXIT_FAILURE;
 	}
 
-	std::string inputName  = argv[1];
-	std::string outputName = argv[3];
+	// LAID>>>
+	argv++;
+	string parametersFile = cAppliDigeo::defaultParameterFile();
+	if ( argc>=4 && memcmp( argv[0], "Param=", 6 )==0 )
+	{
+		size_t length = strlen( argv[0] );
+		bool paramIsOK = false;
+		if ( length>6 )
+		{
+			parametersFile.assign( (*argv++)+6, length-6 );
+			if ( ELISE_fp::exist_file(parametersFile) ) paramIsOK = true;
+		}
+		ELISE_ASSERT( paramIsOK, "value for parameter \"Param\" must be an existing file name" );
+	}
+	// <<<LAID
 
-	cAppliDigeo appli;
+	std::string inputName  = argv[0];
+	std::string outputName = argv[2];
+
+	cAppliDigeo appli(parametersFile);
 	appli.times()->start();
 	appli.loadImage(inputName);
 	appli.times()->stop("pyramid structure");

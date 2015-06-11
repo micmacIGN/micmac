@@ -79,7 +79,9 @@ void cAppliDigeo::allocateConvolutionHandler( ConvolutionHandler<tData> *&o_conv
 		     << " of type " << El_CTypeTraits<tData>::Name() << endl;
 }
 
-cAppliDigeo::cAppliDigeo():
+string cAppliDigeo::defaultParameterFile(){ return Basic_XML_MM_File("Digeo-Parameters.xml"); }
+
+cAppliDigeo::cAppliDigeo( const string &i_parametersFilename ):
 	mParamDigeo  (NULL),
 	mImage       (NULL),
 	mICNM        (NULL),
@@ -105,10 +107,18 @@ cAppliDigeo::cAppliDigeo():
 	MapTimes *times = new MapTimes;
 	times->start();
 
-	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), Basic_XML_MM_File( "Digeo-Parameters.xml" ) );
+	loadParametersFromFile( StdGetFileXMLSpec( "ParamDigeo.xml" ), i_parametersFilename );
 
 	mSiftCarac = Params().SiftCarac().PtrVal();
 	mVerbose = Params().Verbose().Val();
+
+	if ( isVerbose() )
+	{
+		cout << "--- using ";
+		if ( i_parametersFilename==Basic_XML_MM_File("Digeo-Parameters.xml") ) cout << " default ";
+		cout << "parameters file [" << i_parametersFilename << ']' << endl;
+	}
+
 	if ( Params().ConvolIncrem().IsInit() )
 		mDoIncrementalConvolution = Params().ConvolIncrem().Val();
 	if ( Params().SiftCarac().IsInit() && Params().SiftCarac().Val().RefinementMethod().IsInit() )
