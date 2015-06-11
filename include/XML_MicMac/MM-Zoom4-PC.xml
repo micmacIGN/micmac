@@ -1,0 +1,9 @@
+   <EtapeMEC>
+                <DeZoom >        4        </DeZoom>
+                 <GenerePartiesCachees Portee="Globale" >
+                        <SeuilUsePC> 6 </SeuilUsePC>
+                        <ByMkF> true </ByMkF>
+                 </GenerePartiesCachees>
+     </EtapeMEC>
+
+
