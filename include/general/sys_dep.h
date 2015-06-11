@@ -118,6 +118,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #endif
 
 #if ELISE_windows
+	#define _MSC_VER_2015 1900
+	#define _MSC_VER_2013 1800
+	#define _MSC_VER_2012 1700
+	#define _MSC_VER_2010 1600
+
     #define SYS_MV "move"
     #define SYS_RM "del"
     #define SYS_CP "copy"
@@ -132,6 +137,10 @@ Header-MicMac-eLiSe-25/06/2007*/
     // the character separating directories in PATH environment variable
     #define ELISE_CAR_ENV ';'
     #define isinf(x) (!_finite(x))
+
+	#if _MSC_VER<_MSC_VER_2013
+		double round( double aX );
+	#endif
 #else
     #include <cmath>
     #define std_isnan std::isnan
