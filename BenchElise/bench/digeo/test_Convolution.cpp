@@ -504,17 +504,18 @@ int main( int argc, char **argv )
 	compare_compiled_not_compiled<REAL4>( width, height, nbIterations, doOutputImages );
 	*/
 
+	cout << "*********************************** time along sigma ***********************************" << endl;
+	SigmaSetIterator<U_INT1> sigmaSet_ui1( width, height, sigma0, sigma1, sigmaPace, nbIterations );
+	times_along_set(outputBasename,sigmaSet_ui1);
 
-	//~ SigmaSetIterator<U_INT1> sigmaSet_ui1( width, height, sigma0, sigma1, sigmaPace, nbIterations );
-	//~ times_along_set(outputBasename,sigmaSet_ui1);
-//~ 
-	//~ SigmaSetIterator<U_INT2> sigmaSet_ui2( width, height, sigma0, sigma1, sigmaPace, nbIterations );
-	//~ times_along_set(outputBasename,sigmaSet_ui2);
-//~ 
-	//~ SigmaSetIterator<REAL4> sigmaSet_r4( width, height, sigma0, sigma1, sigmaPace, nbIterations );
-	//~ times_along_set(outputBasename,sigmaSet_r4);
+	SigmaSetIterator<U_INT2> sigmaSet_ui2( width, height, sigma0, sigma1, sigmaPace, nbIterations );
+	times_along_set(outputBasename,sigmaSet_ui2);
 
+	SigmaSetIterator<REAL4> sigmaSet_r4( width, height, sigma0, sigma1, sigmaPace, nbIterations );
+	times_along_set(outputBasename,sigmaSet_r4);
 
+	cout << endl;
+	cout << "********************************* time along image size ********************************" << endl;
 	const double sigma = 2.;
 	const int width0 = 128, height0 = 128, width1 = 6400, height1 = 6400, widthPace = 128, heightPace = 128;
 	ImageSizeSetIterator<U_INT1> imageSizeSet( width0, height0, sigma, widthPace, heightPace, width1, height1, nbIterations );

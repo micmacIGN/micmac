@@ -40,6 +40,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+#if ELISE_windows && _MSC_VER<_MSC_VER_2013
+	// visual c++ <2013
+	double round( double aX ){ return aX<0. ? ceil(aX-0.5) : floor(aX+0.5); }
+#endif
+
 void cElErrorHandlor::OnError()
 {
 }

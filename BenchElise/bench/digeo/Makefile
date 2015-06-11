@@ -1,13 +1,17 @@
 CXX ?= clang++
-CXX_FLAGS += -Wall -O3 -DNO_ELISE
-LINK_FLAGS += -Wall
-DIGEO_DIR=../../../src/uti_image/Digeo
-CPP_FILES = test_ConvolutionKernel1D.cpp test_GaussianConvolutionKernel1D.cpp test_Convolution.cpp\
+CXX_FLAGS += -std=c++11 -Wall -O3 -DNO_ELISE
+LINK_FLAGS += -Wall -L$(ELISE_LIBRARY_DIR) -lelise
+ELISE_ROOT_DIR=../../..
+ELISE_LIBRARY_DIR=$(ELISE_ROOT_DIR)/lib
+ELISE_INCLUDE_DIR=$(ELISE_ROOT_DIR)/include
+DIGEO_DIR=$(ELISE_ROOT_DIR)/src/uti_image/Digeo
+CPP_FILES = rotate.cpp\
+ test_ConvolutionKernel1D.cpp test_GaussianConvolutionKernel1D.cpp test_Convolution.cpp\
  $(DIGEO_DIR)/ConvolutionKernel1D.cpp $(DIGEO_DIR)/GaussianConvolutionKernel1D.cpp $(DIGEO_DIR)/cConvolSpec.cpp $(DIGEO_DIR)/Times.cpp 
 D_FILES = $(CPP_FILES:.cpp=.d)
 O_FILES = $(CPP_FILES:.cpp=.o)
-ALL_CXX_FLAGS = $(CXX_FLAGS) -I$(DIGEO_DIR)
-EXECUTABLES = test_ConvolutionKernel1D test_GaussianConvolutionKernel1D test_Convolution
+ALL_CXX_FLAGS = $(CXX_FLAGS) -I$(DIGEO_DIR) -I$(ELISE_INCLUDE_DIR)
+EXECUTABLES = test_ConvolutionKernel1D test_GaussianConvolutionKernel1D test_Convolution rotate
 
 all: $(EXECUTABLES)
 
@@ -23,6 +27,9 @@ depends: $(D_FILES)
 	$(CXX) $(ALL_CXX_FLAGS) -MM $< > $@.tmp;\
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.tmp > $@;\
 	rm $@.tmp
+
+rotate: rotate.o
+	$(CXX) $(LINK_FLAGS) rotate.o -lelise -o rotate
 
 test_ConvolutionKernel1D: test_ConvolutionKernel1D.o ConvolutionKernel1D.o
 	$(CXX) $(LINK_FLAGS) test_ConvolutionKernel1D.o ConvolutionKernel1D.o -o test_ConvolutionKernel1D
@@ -49,7 +56,7 @@ Times.o: $(DIGEO_DIR)/Times.cpp
 	$(CXX) -c $(ALL_CXX_FLAGS) $< -o $@
 
 clean_depends:
-	rm -f *.d
+	rm -f $(D_FILES)
 	rm -f *.tmp
 
 clean: clean_depends
@@ -58,4 +65,3 @@ clean: clean_depends
 	rm -f *.txt
 	rm -f *.jpg
 	rm -f *.exe
-

@@ -66,7 +66,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#define __DEBUG_DIGEO
+#define __DEBUG
+#ifdef __DEBUG
+	#define __DEBUG_DIGEO
+#endif
 
 #include "../../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
 
@@ -811,7 +814,7 @@ class cImDigeo
 class cAppliDigeo
 {
     public:
-       cAppliDigeo();
+       cAppliDigeo( const string &i_parametersFilename );
        ~cAppliDigeo();
 
         cInterfChantierNameManipulateur * ICNM();
@@ -906,6 +909,7 @@ class cAppliDigeo
        template <class tData>
        void allocateConvolutionHandler( ConvolutionHandler<tData> *&o_convolutionHandler );
 
+       static string defaultParameterFile();
     private :
        void InitAllImage();
        template <class T> inline static void __InitConvolSpec(){}
