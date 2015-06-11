@@ -160,7 +160,7 @@ unsigned int getNbShift( const T *aKernel, size_t aSize )
 {
 	T sum = 0;
 	while ( aSize-- ) sum += *aKernel++;
-	unsigned int res = (unsigned int)( log(sum)/log(2.) );
+	unsigned int res = (unsigned int)( log((double)sum)/log(2.) );
 
 	__elise_debug_warning( sum!=(1<<res), "getNbShift: sum!=(1<<res)" );
 
