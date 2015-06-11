@@ -1954,6 +1954,36 @@ double cElNuage3DMaille::SeuilDistPbTopo() const
 }
 
 
+// Pour teni compt du fait que la resolution a pu etre multipliee,
+// Ex 0.12 initiale , on finit a DeZoom 2, donc devienr 0.24 qui n'est pas un chiffre rond
+// (on peut avoir 23, 48, 96, 192  .... comme chifre rond)
+
+bool ToFOMMulResolStdRound(double & aVal0,int aMul)
+{
+    double aVDiv = aVal0 / aMul;
+
+    cDecimal aDec = StdRound(aVDiv);
+    double aNewV = aDec.RVal();
+    double aDif = ElAbs(aNewV-aVDiv)/(ElAbs(aVDiv)) ;
+
+    if (aDif<1e-5)
+    {
+        aVal0 = aNewV * aMul;
+        return true;
+    }
+    return false;
+}
+
+bool ToFOMMulResolStdRound(double & aVal0)
+{
+   for (int aP=1 ; aP<64 ; aP*=2)
+   {
+       if (ToFOMMulResolStdRound(aVal0,aP))
+           return true;
+   }
+   return false;
+}
+
 void ToFOMResolStdRound(double & aVal)
 {
    if (ElAbs(aVal) < 1e-20) return;
@@ -1965,19 +1995,14 @@ void ToFOMResolStdRound(double & aVal)
         aSign=-1;
    }
 
-
-
-   cDecimal aDec = StdRound(aVal);
-   double aNewV = aDec.RVal();
-   double aDif = ElAbs(aNewV-aVal)/(ElAbs(aVal)) ;
-   // std::cout << "RESOL ToFOMStdRound; Dif= " << aDif << "\n";
-   if (aDif >= 1e-7)
+    
+   if ( ! ToFOMMulResolStdRound(aVal))
    {
-       std::cout << "ToFOMResolStdRound:: " << aVal  << " => " << aNewV << " Dif=" << aDif << "\n";
-       ELISE_ASSERT(aDif < 1e-7,"RESOL ToFOMStdRound");
+       std::cout << "ToFOMResolStdRound:: " << aVal  << "\n";
+       ELISE_ASSERT(false,"RESOL ToFOMStdRound");
    }
 
-   aVal = aNewV * aSign;
+   aVal *=  aSign;
 }
 
 void ToFOMOriStdRound(double & aVal,const double & aResol)
