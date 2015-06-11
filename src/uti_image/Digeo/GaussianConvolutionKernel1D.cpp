@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include <math.h>
 #include <sstream>
 
 using namespace std;
@@ -175,7 +176,7 @@ void integralGaussianKernel( double aStandardDeviation, int aNbElements, int aSu
 
 int integralGaussianKernelNbElements( double aSigma, double aResidu )
 {
-	return ceil( sqrt(-2*log(aResidu))*aSigma );
+	return (int)ceil( sqrt(-2*log(aResidu))*aSigma );
 }
 
 void integralGaussianKernelFromResidue( double aSigma, double aResidu, int aSurEch, vector<REAL> &oKernel )
@@ -269,7 +270,9 @@ template <> void sampledGaussianKernel( double aSigma, int aNbShift, Convolution
 //----------------------------------------------------------------------
 
 template void sampledGaussianKernel<INT>( double aSigma, int aNbShift, ConvolutionKernel1D<INT> &oKernel );
-template void sampledGaussianKernel<REAL>( double aSigma, int aNbShift, ConvolutionKernel1D<REAL> &oKernel );
-
 template void integralGaussianKernel<INT>( double aSigma, int aNbShift, double aEpsilon, int aSurEch, ConvolutionKernel1D<INT> &oKernel );
-template void integralGaussianKernel<REAL>( double aSigma, int aNbShift, double aEpsilon, int aSurEch, ConvolutionKernel1D<REAL> &oKernel );
+	
+#if ELISE_windows && _MSC_VER>=_MSC_VER_2013
+	template void integralGaussianKernel<REAL>( double aSigma, int aNbShift, double aEpsilon, int aSurEch, ConvolutionKernel1D<REAL> &oKernel );
+	template void sampledGaussianKernel<REAL>( double aSigma, int aNbShift, ConvolutionKernel1D<REAL> &oKernel );
+#endif
