@@ -190,6 +190,10 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <eSymb> InParal= Neq 0 ${NbProc} </eSymb>
 
 
+     <Symb> UsePtDebug=false </Symb>
+     <Symb> PtDebugX=-10000000 </Symb>
+     <Symb> PtDebugY=-10000000 </Symb>
+
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -547,6 +551,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 <!--
 -->
     <ZoomMakeTA> 8 </ZoomMakeTA>
+    <OrthoTA> true </OrthoTA>
+
     <IncludeFileLoc>  ${FileDoNothing} </IncludeFileLoc>
     <#WHEN VTEST=${DoNotMEC}>
         <DoNothingBut>
@@ -620,7 +626,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 </Section_WorkSpace>
 
 
-<Section_Vrac> </Section_Vrac>
+<Section_Vrac> 
+    <#WHEN VTEST=${UsePtDebug}>
+        <PtDebug>  ${PtDebugX} ${PtDebugY} </PtDebug>
+    </#WHEN>
+  
+</Section_Vrac>
 
 
 </ParamMICMAC>

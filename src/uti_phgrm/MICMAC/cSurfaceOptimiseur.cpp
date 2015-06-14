@@ -266,6 +266,7 @@ cSurfaceOptimiseur * cSurfaceOptimiseur::Alloc
 void cSurfaceOptimiseur::SetCout(Pt2di aPTer,int * aPX,REAL aCost,int aLabel)
 {
 
+
    if ((aLabel !=0) && (! mEBI))
    {
         ELISE_ASSERT(false,"cSurfaceOptimiseur::SetCout ilicit labeling");

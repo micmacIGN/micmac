@@ -493,6 +493,7 @@ void cTplLoadedImage<TypeEl>::LoadImInGeomTerr
    );
    cLineariseProj aLP;
 
+
    for (int anY0 = mP0TerCorMarge.y; anY0<mP1TerCorMarge.y ; anY0+=aSzBloc)
    {
        int anY1 = ElMin(mP1TerCorMarge.y,anY0+aSzBloc);
@@ -1026,18 +1027,6 @@ void cTplLoadedImage<TypeEl>::AddToStat
     Pt2di aPTerInit = aPTer;
     aPTer = QuickTer2Cor(aPTer);
 
-/*
-    if (0  && mUsePC)
-    {
-       if (mWPC==0)
-       {
-          mWPC = Video_Win::PtrWStd(mImPC.sz());
-          mWPC->set_title(mPDV.Name().c_str());
-       }
-       int aCoul = IsVisible(aPTerInit) ? P8COL::green : P8COL::red;
-       mWPC->draw_circle_loc(aPTerInit,1.0,mWPC->pdisc()(aCoul));
-    }
-*/
 
     if (! mTMasqImTer.get(aPTer))
        return;

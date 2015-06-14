@@ -190,6 +190,8 @@ void cAppliMICMAC::MakeFileTA()
 
     int aNKB = TAUseMasqNadirKBest().ValWithDef(-1);
 
+
+
     for (tCsteIterPDV itFI=PdvBegin(); itFI!=PdvEnd(); itFI++)
     {
         if (aSelector->IsSetIn((*itFI)->Name()))
@@ -249,8 +251,20 @@ void cAppliMICMAC::MakeFileTA()
           Pt3dr aTNCentr;
           if (OrthoTA().Val())
           {
-              aSegCentral = aGeomIm.FaisceauPersp((aIm.sz()*aDeZoom)/2.0);
-              aTNCentr = aSegCentral.TgNormee();
+              CamStenope *  aCS = aGeomIm.GetOri();
+              if (aCS)
+              {
+                   Pt2dr aPP =  aCS->PP();
+                   aPP = aCS->DistDirecte(aPP);
+                   // std::cout << "CSS  " <<  aPP <<  aCS->PP() << aCS->F2toDirRayonR3(aPP) <<  " " <<  aCS->F2toDirRayonL3(aPP) << "\n";
+                   aTNCentr = aCS->F2toDirRayonR3(aPP);
+              }
+              else
+              {
+                 Pt2dr aPC = (aIm.sz()*aDeZoom)/2.0;
+                 aSegCentral = aGeomIm.FaisceauPersp(aPC);
+                 aTNCentr = aSegCentral.TgNormee();
+              }
           }
 
          double aPdsT1 = 0.7;
@@ -262,6 +276,7 @@ void cAppliMICMAC::MakeFileTA()
                // std::cout << "NNaddirr " << aMasqNadir.sz() << " " <<  aIm.sz() << "\n";
                ELISE_ASSERT(euclid(aMasqNadir.sz(),aIm.sz()) <2,"Taille incoherente dans masq nadir TA");
           }
+
 
           for (int aX = aP0.x; aX< aP1.x ; aX++)
           {

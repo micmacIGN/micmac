@@ -46,6 +46,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 // Test commit
 
 
+
+
 const cCWWSImage * GetFromCAWSI(const cChantierAppliWithSetImage & aCAWSI,const std::string & aName)
 {
    for (std::list<cCWWSImage>::const_iterator itW=aCAWSI.Images().begin() ; itW!=aCAWSI.Images().end() ; itW++)
@@ -583,6 +585,8 @@ cAppliMICMAC::~cAppliMICMAC()
 	if ( mGeomDFPx!=NULL ) delete mGeomDFPx;
 	if ( mGeomDFPxInit!=NULL ) delete mGeomDFPxInit;
 }
+
+
 
 
 cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)

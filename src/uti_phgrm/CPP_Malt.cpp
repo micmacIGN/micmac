@@ -265,6 +265,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
     bool ForceNoIncid = false;
 
+    Pt2di  aPtDebug;
 
     ElInitArgMain
     (
@@ -323,6 +324,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(aNbProc,"NbProc",true,"Nb Proc Used")
                     << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)", eSAM_InternalUse)
                     << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use", eSAM_InternalUse)
+                    << EAM(aPtDebug,"PtDebug",true,"Internal Use (Point of debuging)", eSAM_InternalUse)
                 );
 
     if (!MMVisualMode)
@@ -652,6 +654,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +UseGlobMasqPerIm=true")
                   +  std::string(" +GlobMasqPerIm=") + mMasqImGlob
                   ;
+      }
+
+      if (EAMIsInit(&aPtDebug))
+      {
+          mCom =  mCom
+                  + "  +UsePtDebug=true"
+                  + " +PtDebugX=" + ToString(aPtDebug.x)
+                  + " +PtDebugY=" + ToString(aPtDebug.y)
+                  + std::string(" ");
       }
 
       if (EAMIsInit(&mModeOri))

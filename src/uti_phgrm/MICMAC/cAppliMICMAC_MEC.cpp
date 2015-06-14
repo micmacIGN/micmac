@@ -1385,6 +1385,7 @@ void   cAppliMICMAC::CalcCorrelByRect(Box2di aBox,int * aPx)
           for (aP.x =aBox._p0.x; aP.x<aBox._p1.x ; aP.x++)
           {
               // if (mLTer->OkPx(aP,aPx))
+
               if (mLTer->IsInMasqOfPx(aP))
               {
                  mNbPointByRectGen++;
@@ -1399,6 +1400,7 @@ void   cAppliMICMAC::CalcCorrelByRect(Box2di aBox,int * aPx)
                         (*itFI)->LoadedIm().AddToStat(*mStatGlob,aP);
                  }
                  REAL aCost = mStatGlob->Cout();
+
                  mSurfOpt->SetCout(aP,aPx,aCost);
               }
           }

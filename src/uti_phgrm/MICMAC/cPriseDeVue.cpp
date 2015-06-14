@@ -830,6 +830,7 @@ Tiff_Im     cPriseDeVue::FileImMasqOfResol(int aDz) const
 {
    std::string aName = NameMasqOfResol(aDz);
 
+
    Pt2di aSz = Std2Elise(mIMIL->Sz(aDz));
    if (! ELISE_fp::exist_file(aName))
    {

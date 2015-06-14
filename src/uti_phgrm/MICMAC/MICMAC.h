@@ -1034,8 +1034,12 @@ class cGeomBasculement3D
     private :
 };
 
+
+#define PUBLIC_FOR_DEBUG public
+
+
 class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT en geometrie image
-                   private cGeomImageData,
+                   PUBLIC_FOR_DEBUG cGeomImageData,
                    public  ElDistortion22_Gen
 {
     public :
@@ -1464,6 +1468,7 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 
          // Fonction "fondamentale", a definir dans les derivees
          //  ne tient compte  ni du DeZoom ni du ClipImage
+// public :
          virtual Pt2dr Objet2ImageInit_NonEuclid(Pt2dr aP,const REAL * aPx) const=0;
 
          // Indique si la geometrie connait sa Px moyenne (cas altisol
@@ -2233,7 +2238,7 @@ class cLineariseProj
           bool  Continuer() const;
           void  NexStep();
 
-     private :
+      private :
           bool   mUseDer;
           int    mDimPx;
           Pt2dr  mDerX;
@@ -3797,6 +3802,7 @@ void CombleTrouPrgDyn (
          Im2D_Bits<1>  aMaskTer,
          Im2D_INT2     aImZ
      );
+
 
 
 

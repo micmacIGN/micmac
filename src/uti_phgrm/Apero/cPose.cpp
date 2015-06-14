@@ -175,6 +175,33 @@ cPoseCam::cPoseCam
    if (ELISE_fp::exist_file(mAppli.OutputDirectory()+ aNamePtsIm))
    {
        cMesureAppuiFlottant1Im aMesCam = mAppli.StdGetOneMAF(aNamePtsCam);
+
+       // Correction du bug apparu lors du stage de Tibaut Sauter, lorsque les marques ont une origine tres
+       // loin de zero, la box images est tres differente de par ex [0,0] [23x23], du coup le distorsion n'est pas coupe
+       // au bon endroit
+       Pt2dr aPMin(1e9,1e9);
+       for 
+       (
+           std::list<cOneMesureAF1I>::iterator itAp = aMesCam.OneMesureAF1I().begin(); 
+           itAp != aMesCam.OneMesureAF1I().end();
+           itAp++
+       )
+       {
+           aPMin = Inf(aPMin,itAp->PtIm());
+       }
+
+       for 
+       (
+           std::list<cOneMesureAF1I>::iterator itAp = aMesCam.OneMesureAF1I().begin(); 
+           itAp != aMesCam.OneMesureAF1I().end();
+           itAp++
+       )
+       {
+           itAp->PtIm() = itAp->PtIm()-aPMin;
+       }
+
+
+
        cMesureAppuiFlottant1Im aMesIm  = mAppli.StdGetOneMAF(aNamePtsIm);
 
        ElPackHomologue  aPack = PackFromCplAPF(aMesIm,aMesCam);
