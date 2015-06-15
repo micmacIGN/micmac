@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1625]) = {
+const char * (theNameVar_ParamApero[1626]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1541,6 +1541,7 @@ const char * (theNameVar_ParamApero[1625]) = {
 "\n",
 "                     <ChoixImMM Nb=\"?\">\n",
 "                          <ChoixImSec Nb=\"1\">\n",
+"                               <KeyExistingFile Nb=\"?\" Type=\"std::string\"> </KeyExistingFile>\n",
 "                               <FileImSel Nb=\"?\" Type=\"std::string\"> </FileImSel>\n",
 "                               <KeyAssoc Nb=\"1\" Type=\"std::string\"> </KeyAssoc>\n",
 "                               <PatternSel Nb=\"?\" Type=\"std::string\" Def=\".*\"> </PatternSel>\n",

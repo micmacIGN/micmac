@@ -42,9 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cAppli_Martini
 {
       public :
-          cAppli_Martini(int argc,char ** argv);
+          cAppli_Martini(int argc,char ** argv,bool Quick);
           void DoAll();
-          void Banniere();
+          void Banniere(bool Quick);
       private :
 
           void StdCom(const std::string & aCom,const std::string & aPost="");
@@ -72,13 +72,25 @@ void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
     std::cout << " DONE " << aCom << " in time " << aChrono.uval() << "\n";
 }
 
-void cAppli_Martini::Banniere()
+void cAppli_Martini::Banniere(bool Quick)
 {
-  std::cout <<  "\n";
-    std::cout <<  " *********************************************\n";
-    std::cout <<  " *     MART-ingale d'                        *\n";
-    std::cout <<  " *     INI-tialisation                       *\n";
-    std::cout <<  " *********************************************\n\n";
+    if (Quick)
+    {
+        std::cout <<  "\n";
+        std::cout <<  " *********************************************\n";
+        std::cout <<  " *     MART-ingale d'                        *\n";
+        std::cout <<  " *     INI-tialisation                       *\n";
+        std::cout <<  " *********************************************\n\n";
+    }
+    else
+    {
+        std::cout <<  "\n";
+        std::cout <<  " *********************************************\n";
+        std::cout <<  " *     MARTIN                                *\n";
+        std::cout <<  " *     Gale d'                               *\n";
+        std::cout <<  " *     IN-itialisation (stronger version)    *\n"; 
+        std::cout <<  " *********************************************\n\n";
+    }
 
 }
 
@@ -98,9 +110,9 @@ void cAppli_Martini::DoAll()
 
 
 
-cAppli_Martini::cAppli_Martini(int argc,char ** argv) :
+cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
     mExe   (true),
-    mQuick (false)
+    mQuick (Quick)
 {
    ElInitArgMain
    (
@@ -108,20 +120,36 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv) :
         LArgMain() << EAMC(mPat,"Image Pat", eSAM_IsPatFile),
         LArgMain() << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
-                   << EAM(mQuick,"Quick",true,"Quick version")
+                   // << EAM(mQuick,"Quick",true,"Quick version")
    );
 }
 
 
-int CPP_Martini_main(int argc,char ** argv)
+int CPP_Gene_Martini_main(int argc,char ** argv,bool Quick)
 {
    MMD_InitArgcArgv(argc,argv);
-   cAppli_Martini anAppli(argc,argv);
+   cAppli_Martini anAppli(argc,argv,Quick);
    if (MMVisualMode) return EXIT_SUCCESS;
    anAppli.DoAll();
-   anAppli.Banniere();
+   anAppli.Banniere(Quick);
    return EXIT_SUCCESS;
 }
+
+int CPP_Martini_main(int argc,char ** argv)
+{
+    return CPP_Gene_Martini_main(argc,argv,true);
+}
+
+
+int CPP_MartiniGin_main(int argc,char ** argv)
+{
+    return CPP_Gene_Martini_main(argc,argv,false);
+}
+
+
+
+
+
 
 
 

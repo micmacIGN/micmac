@@ -630,11 +630,6 @@ void cAppliApero::ExportRepereLoc(const cExportRepereLoc & anERL)
 
 void  cAppliApero::Export(const cSectionExport & anEx)
 {
-
-    if (anEx.ChoixImMM().IsInit())
-    {
-       ExportImMM(anEx.ChoixImMM().Val());
-    }
     for
     (
          std::list<cExportMesuresFromCarteProf>::const_iterator itM = anEx.ExportMesuresFromCarteProf().begin();
@@ -748,6 +743,11 @@ void  cAppliApero::Export(const cSectionExport & anEx)
     if (anEx.ExportResiduXml().IsInit())
     {
         MakeFileXML(mXMLExport,mDC+anEx.ExportResiduXml().Val());
+    }
+
+    if (anEx.ChoixImMM().IsInit())
+    {
+       ExportImMM(anEx.ChoixImMM().Val());
     }
 }
 

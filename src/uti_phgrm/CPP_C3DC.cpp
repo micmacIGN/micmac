@@ -624,21 +624,29 @@ void cAppli_MPI2Mnt::DoBascule()
     for (int aK=0 ; aK<int(mSetIm->size()) ; aK++)
     {
          std::string aNameIm =  (*mSetIm)[aK];
-         std::string aCom =      MM3dBinFile("NuageBascule ")
-                             +   mCFPI->mFullDirPIm+   "Nuage-Depth-"+ aNameIm +  ".xml" + BLANK
+         std::string aNameBascInput = mCFPI->mFullDirPIm+   "Nuage-Depth-"+ aNameIm +  ".xml";
+
+         if (ELISE_fp::exist_file(aNameBascInput))
+         {
+             std::string aCom =      MM3dBinFile("NuageBascule ")
+                             // +   mCFPI->mFullDirPIm+   "Nuage-Depth-"+ aNameIm +  ".xml" + BLANK
+                             +   aNameBascInput + BLANK
                              +   mTargetGeom + BLANK
                              +   mDirApp+mDirBasc + NameBascOfIm(aNameIm) + BLANK
                              +   "Paral=0 ";
 
-           aLCom.push_back(aCom);
-           if (mDebug &&(aK<2)) 
-              std::cout << aCom << "\n\n";
+               aLCom.push_back(aCom);
+               if (mDebug &&(aK<2)) 
+                  std::cout << aCom << "\n\n";
+          }
     }
     if (mDebug)
     {
     }
     else
+    {
        cEl_GPAO::DoComInParal(aLCom);
+    }
 
     // SMDM
 

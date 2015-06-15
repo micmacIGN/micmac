@@ -593,6 +593,13 @@ bool DebugPVII = false;
 
 bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cMasqBin3D * aMasq3D)
 {
+
+   if (aCIM.KeyExistingFile().IsInit())
+   {
+        std::string aNameFile =   mICNM->Assoc1To1(aCIM.KeyExistingFile().Val(),aPC0->Name(),true);
+        if (! ELISE_fp::exist_file(aNameFile))
+           return false;
+   }
    bool Test = (aPC0->Name()==std::string ("IMGP3450.PEF"));
    cPoseCam* aP44=0;
 

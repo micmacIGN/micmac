@@ -1539,6 +1539,7 @@ normalises en echelle et/ou en translation -->
 
                      <ChoixImMM Nb="?">
                           <ChoixImSec Nb="1">
+                               <KeyExistingFile Nb="?" Type="std::string"> </KeyExistingFile>
                                <FileImSel Nb="?" Type="std::string"> </FileImSel>
                                <KeyAssoc Nb="1" Type="std::string"> </KeyAssoc>
                                <PatternSel Nb="?" Type="std::string" Def=".*"> </PatternSel>

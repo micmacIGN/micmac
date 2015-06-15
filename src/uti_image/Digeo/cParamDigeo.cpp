@@ -231,8 +231,8 @@ cElXMLTree * ToXMLTree(const cImageDigeo & anObj)
 
 void xml_init(cImageDigeo & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ResolInit(),aTree->Get("ResolInit",1),double(1.0)); //tototo 
 
@@ -288,8 +288,8 @@ cElXMLTree * ToXMLTree(const cTypeNumeriqueOfNiv & anObj)
 
 void xml_init(cTypeNumeriqueOfNiv & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Type(),aTree->Get("Type",1)); //tototo 
 
@@ -584,8 +584,8 @@ cElXMLTree * ToXMLTree(const cPyramideGaussienne & anObj)
 
 void xml_init(cPyramideGaussienne & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NbByOctave(),aTree->Get("NbByOctave",1),int(3)); //tototo 
 
@@ -811,8 +811,8 @@ cElXMLTree * ToXMLTree(const cTypePyramide & anObj)
 
 void xml_init(cTypePyramide & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.NivPyramBasique(),aTree->Get("NivPyramBasique",1)); //tototo 
 
@@ -1109,8 +1109,8 @@ cElXMLTree * ToXMLTree(const cPyramideImage & anObj)
 
 void xml_init(cPyramideImage & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.TypeNumeriqueOfNiv(),aTree->GetAll("TypeNumeriqueOfNiv",false,1));
 
@@ -1403,8 +1403,8 @@ cElXMLTree * ToXMLTree(const cDigeoSectionImages & anObj)
 
 void xml_init(cDigeoSectionImages & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ImageDigeo(),aTree->Get("ImageDigeo",1)); //tototo 
 
@@ -1446,8 +1446,8 @@ cElXMLTree * ToXMLTree(const cOneCarac & anObj)
 
 void xml_init(cOneCarac & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Type(),aTree->Get("Type",1)); //tototo 
 }
@@ -1505,8 +1505,8 @@ cElXMLTree * ToXMLTree(const cCaracTopo & anObj)
 
 void xml_init(cCaracTopo & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.OneCarac(),aTree->GetAll("OneCarac",false,1));
 }
@@ -1670,8 +1670,8 @@ cElXMLTree * ToXMLTree(const cSiftCarac & anObj)
 
 void xml_init(cSiftCarac & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DoMax(),aTree->Get("DoMax",1),bool(true)); //tototo 
 
@@ -1844,8 +1844,8 @@ cElXMLTree * ToXMLTree(const cSectionCaracImages & anObj)
 
 void xml_init(cSectionCaracImages & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.ComputeCarac(),aTree->Get("ComputeCarac",1)); //tototo 
 
@@ -2151,8 +2151,8 @@ cElXMLTree * ToXMLTree(const cDigeoTestOutput & anObj)
 
 void xml_init(cDigeoTestOutput & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.OutputGaussians(),aTree->Get("OutputGaussians",1),bool(false)); //tototo 
 
@@ -2378,8 +2378,8 @@ cElXMLTree * ToXMLTree(const cSectionTest & anObj)
 
 void xml_init(cSectionTest & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.VerifExtrema(),aTree->Get("VerifExtrema",1),bool(false)); //tototo 
 
@@ -2545,8 +2545,8 @@ cElXMLTree * ToXMLTree(const cSauvPyram & anObj)
 
 void xml_init(cSauvPyram & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Dir(),aTree->Get("Dir",1),std::string("")); //tototo 
 
@@ -2610,8 +2610,8 @@ cElXMLTree * ToXMLTree(const cDigeoDecoupageCarac & anObj)
 
 void xml_init(cDigeoDecoupageCarac & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.SzDalle(),aTree->Get("SzDalle",1)); //tototo 
 
@@ -2685,8 +2685,8 @@ cElXMLTree * ToXMLTree(const cGenereCodeConvol & anObj)
 
 void xml_init(cGenereCodeConvol & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DirectoryCodeConvol(),aTree->Get("DirectoryCodeConvol",1),std::string("src/uti_image/Digeo/")); //tototo 
 
@@ -2985,8 +2985,8 @@ cElXMLTree * ToXMLTree(const cSectionWorkSpace & anObj)
 
 void xml_init(cSectionWorkSpace & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.SauvPyram(),aTree->Get("SauvPyram",1)); //tototo 
 
@@ -3816,8 +3816,8 @@ cElXMLTree * ToXMLTree(const cParamDigeo & anObj)
 
 void xml_init(cParamDigeo & anObj,cElXMLTree * aTree)
 {
-   anObj.mGXml = aTree->mGXml;
    if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.DicoLoc(),aTree->Get("DicoLoc",1)); //tototo 
 

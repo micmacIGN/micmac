@@ -5705,6 +5705,9 @@ class cChoixImSec
         friend void xml_init(cChoixImSec & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< std::string > & KeyExistingFile();
+        const cTplValGesInit< std::string > & KeyExistingFile()const ;
+
         cTplValGesInit< std::string > & FileImSel();
         const cTplValGesInit< std::string > & FileImSel()const ;
 
@@ -5765,6 +5768,7 @@ class cChoixImSec
         cTplValGesInit< std::string > & Masq3D();
         const cTplValGesInit< std::string > & Masq3D()const ;
     private:
+        cTplValGesInit< std::string > mKeyExistingFile;
         cTplValGesInit< std::string > mFileImSel;
         std::string mKeyAssoc;
         cTplValGesInit< std::string > mPatternSel;
@@ -5801,6 +5805,9 @@ class cChoixImMM
 
         friend void xml_init(cChoixImMM & anObj,cElXMLTree * aTree);
 
+
+        cTplValGesInit< std::string > & KeyExistingFile();
+        const cTplValGesInit< std::string > & KeyExistingFile()const ;
 
         cTplValGesInit< std::string > & FileImSel();
         const cTplValGesInit< std::string > & FileImSel()const ;
@@ -5915,6 +5922,9 @@ class cSectionExport
 
         std::list< cExportNuage > & ExportNuage();
         const std::list< cExportNuage > & ExportNuage()const ;
+
+        cTplValGesInit< std::string > & KeyExistingFile();
+        const cTplValGesInit< std::string > & KeyExistingFile()const ;
 
         cTplValGesInit< std::string > & FileImSel();
         const cTplValGesInit< std::string > & FileImSel()const ;
@@ -6101,6 +6111,9 @@ class cEtapeCompensation
 
         std::list< cExportNuage > & ExportNuage();
         const std::list< cExportNuage > & ExportNuage()const ;
+
+        cTplValGesInit< std::string > & KeyExistingFile();
+        const cTplValGesInit< std::string > & KeyExistingFile()const ;
 
         cTplValGesInit< std::string > & FileImSel();
         const cTplValGesInit< std::string > & FileImSel()const ;
