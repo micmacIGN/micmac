@@ -3198,6 +3198,17 @@ const cTplValGesInit< double > & cPlanimetrie::ResolutionTerrain()const
 }
 
 
+cTplValGesInit< bool > & cPlanimetrie::RoundSpecifiedRT()
+{
+   return mRoundSpecifiedRT;
+}
+
+const cTplValGesInit< bool > & cPlanimetrie::RoundSpecifiedRT()const 
+{
+   return mRoundSpecifiedRT;
+}
+
+
 cTplValGesInit< std::string > & cPlanimetrie::FilterEstimTerrain()
 {
    return mFilterEstimTerrain;
@@ -3301,6 +3312,14 @@ void  BinaryUnDumpFromFile(cPlanimetrie & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.RoundSpecifiedRT().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RoundSpecifiedRT().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.RoundSpecifiedRT().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.FilterEstimTerrain().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.FilterEstimTerrain().ValForcedForUnUmp(),aFp);
         }
@@ -3338,6 +3357,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPlanimetrie & anObj)
     if (anObj.RatioResolImage().IsInit()) BinaryDumpInFile(aFp,anObj.RatioResolImage().Val());
     BinaryDumpInFile(aFp,anObj.ResolutionTerrain().IsInit());
     if (anObj.ResolutionTerrain().IsInit()) BinaryDumpInFile(aFp,anObj.ResolutionTerrain().Val());
+    BinaryDumpInFile(aFp,anObj.RoundSpecifiedRT().IsInit());
+    if (anObj.RoundSpecifiedRT().IsInit()) BinaryDumpInFile(aFp,anObj.RoundSpecifiedRT().Val());
     BinaryDumpInFile(aFp,anObj.FilterEstimTerrain().IsInit());
     if (anObj.FilterEstimTerrain().IsInit()) BinaryDumpInFile(aFp,anObj.FilterEstimTerrain().Val());
     BinaryDumpInFile(aFp,anObj.MasqueTerrain().IsInit());
@@ -3362,6 +3383,8 @@ cElXMLTree * ToXMLTree(const cPlanimetrie & anObj)
       aRes->AddFils(::ToXMLTree(std::string("RatioResolImage"),anObj.RatioResolImage().Val())->ReTagThis("RatioResolImage"));
    if (anObj.ResolutionTerrain().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ResolutionTerrain"),anObj.ResolutionTerrain().Val())->ReTagThis("ResolutionTerrain"));
+   if (anObj.RoundSpecifiedRT().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("RoundSpecifiedRT"),anObj.RoundSpecifiedRT().Val())->ReTagThis("RoundSpecifiedRT"));
    if (anObj.FilterEstimTerrain().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("FilterEstimTerrain"),anObj.FilterEstimTerrain().Val())->ReTagThis("FilterEstimTerrain"));
    if (anObj.MasqueTerrain().IsInit())
@@ -3386,6 +3409,8 @@ void xml_init(cPlanimetrie & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ResolutionTerrain(),aTree->Get("ResolutionTerrain",1)); //tototo 
 
+   xml_init(anObj.RoundSpecifiedRT(),aTree->Get("RoundSpecifiedRT",1)); //tototo 
+
    xml_init(anObj.FilterEstimTerrain(),aTree->Get("FilterEstimTerrain",1),std::string(".*")); //tototo 
 
    xml_init(anObj.MasqueTerrain(),aTree->Get("MasqueTerrain",1)); //tototo 
@@ -3393,7 +3418,7 @@ void xml_init(cPlanimetrie & anObj,cElXMLTree * aTree)
    xml_init(anObj.RecouvrementMinimal(),aTree->Get("RecouvrementMinimal",1)); //tototo 
 }
 
-std::string  Mangling( cPlanimetrie *) {return "2879B778D57998DBFF3F";};
+std::string  Mangling( cPlanimetrie *) {return "C0F9749E630C0AB9FB3F";};
 
 
 cTplValGesInit< double > & cRugositeMNT::EnergieExpCorrel()
@@ -3881,6 +3906,17 @@ const cTplValGesInit< double > & cSection_Terrain::ResolutionTerrain()const
 }
 
 
+cTplValGesInit< bool > & cSection_Terrain::RoundSpecifiedRT()
+{
+   return Planimetrie().Val().RoundSpecifiedRT();
+}
+
+const cTplValGesInit< bool > & cSection_Terrain::RoundSpecifiedRT()const 
+{
+   return Planimetrie().Val().RoundSpecifiedRT();
+}
+
+
 cTplValGesInit< std::string > & cSection_Terrain::FilterEstimTerrain()
 {
    return Planimetrie().Val().FilterEstimTerrain();
@@ -4203,7 +4239,7 @@ void xml_init(cSection_Terrain & anObj,cElXMLTree * aTree)
    xml_init(anObj.RugositeMNT(),aTree->Get("RugositeMNT",1)); //tototo 
 }
 
-std::string  Mangling( cSection_Terrain *) {return "475775426CF8C89DFD3F";};
+std::string  Mangling( cSection_Terrain *) {return "D2CAA26C77848BF0FD3F";};
 
 
 cElRegex_Ptr & cOneMasqueImage::PatternSel()
@@ -26388,6 +26424,17 @@ const cTplValGesInit< double > & cParamMICMAC::ResolutionTerrain()const
 }
 
 
+cTplValGesInit< bool > & cParamMICMAC::RoundSpecifiedRT()
+{
+   return Section_Terrain().Planimetrie().Val().RoundSpecifiedRT();
+}
+
+const cTplValGesInit< bool > & cParamMICMAC::RoundSpecifiedRT()const 
+{
+   return Section_Terrain().Planimetrie().Val().RoundSpecifiedRT();
+}
+
+
 cTplValGesInit< std::string > & cParamMICMAC::FilterEstimTerrain()
 {
    return Section_Terrain().Planimetrie().Val().FilterEstimTerrain();
@@ -29097,6 +29144,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "CE8DD1A31E45EFB2FD3F";};
+std::string  Mangling( cParamMICMAC *) {return "A55493E8D69A68AFFE3F";};
 
 // Quelque chose

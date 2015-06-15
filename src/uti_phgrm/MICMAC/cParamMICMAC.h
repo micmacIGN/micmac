@@ -1088,6 +1088,9 @@ class cPlanimetrie
         cTplValGesInit< double > & ResolutionTerrain();
         const cTplValGesInit< double > & ResolutionTerrain()const ;
 
+        cTplValGesInit< bool > & RoundSpecifiedRT();
+        const cTplValGesInit< bool > & RoundSpecifiedRT()const ;
+
         cTplValGesInit< std::string > & FilterEstimTerrain();
         const cTplValGesInit< std::string > & FilterEstimTerrain()const ;
 
@@ -1110,6 +1113,7 @@ class cPlanimetrie
         std::list< cListePointsInclus > mListePointsInclus;
         cTplValGesInit< double > mRatioResolImage;
         cTplValGesInit< double > mResolutionTerrain;
+        cTplValGesInit< bool > mRoundSpecifiedRT;
         cTplValGesInit< std::string > mFilterEstimTerrain;
         cTplValGesInit< cMasqueTerrain > mMasqueTerrain;
         cTplValGesInit< double > mRecouvrementMinimal;
@@ -1263,6 +1267,9 @@ class cSection_Terrain
 
         cTplValGesInit< double > & ResolutionTerrain();
         const cTplValGesInit< double > & ResolutionTerrain()const ;
+
+        cTplValGesInit< bool > & RoundSpecifiedRT();
+        const cTplValGesInit< bool > & RoundSpecifiedRT()const ;
 
         cTplValGesInit< std::string > & FilterEstimTerrain();
         const cTplValGesInit< std::string > & FilterEstimTerrain()const ;
@@ -6631,6 +6638,9 @@ class cParamMICMAC
 
         cTplValGesInit< double > & ResolutionTerrain();
         const cTplValGesInit< double > & ResolutionTerrain()const ;
+
+        cTplValGesInit< bool > & RoundSpecifiedRT();
+        const cTplValGesInit< bool > & RoundSpecifiedRT()const ;
 
         cTplValGesInit< std::string > & FilterEstimTerrain();
         const cTplValGesInit< std::string > & FilterEstimTerrain()const ;

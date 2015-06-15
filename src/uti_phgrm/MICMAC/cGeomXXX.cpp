@@ -413,11 +413,14 @@ void cGeomDiscFPx::PostInit()
   ELISE_ASSERT(aNbResolGot," Resolution pas trouvee");
   mResol /= aNbResolGot;
   double aResolNotRound = mResol;
+
   SetResol(mResol,mAp->GeoRefAutoRoundResol().ValWithDef(mAp->GeomMNT()==eGeomMNTEuclid)) ;
+
+
+
   if (aFileExt)
   {
        SetUnroundResol(ElAbs(aFileExt->ResolutionPlani().x));
-       // mResol = ElAbs(aFileExt->ResolutionPlani().x);
        //  Attention -(-x) != x  avec les flottant 
        ELISE_ASSERT
        (
@@ -434,8 +437,9 @@ void cGeomDiscFPx::PostInit()
      if  (mAp->ResolutionTerrain().IsInit())
      {
          SetUnroundResol(mAp->ResolutionTerrain().Val());
+         if (mAp->RoundSpecifiedRT().ValWithDef(false))
+             SetResol(mResol,true);
      }
-     //     mResol = mAp->ResolutionTerrain().Val();
   } 
   mRCoordIsInit =  mAp->GeoRefAutoRoundBox().ValWithDef(true);
 
@@ -835,6 +839,7 @@ if ( 0 )
       aBox = mBoxEngl;
   }
   aBox = RoundCoord(aBox);
+
 
   aBox._p0 = arrondi_ni(aBox._p0,mResol*mAp->DeZoomMin());
   aBox._p1 = arrondi_ni(aBox._p1,mResol*mAp->DeZoomMin());
