@@ -193,6 +193,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb> UsePtDebug=false </Symb>
      <Symb> PtDebugX=-10000000 </Symb>
      <Symb> PtDebugY=-10000000 </Symb>
+     <Symb> RSRT=false </Symb>
 
 </DicoLoc>
 
@@ -215,6 +216,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
            <#WHEN VTEST=${UseResolTerrain}>
                   <ResolutionTerrain> ${ResolTerrain} </ResolutionTerrain>
            </#WHEN>
+           <RoundSpecifiedRT>  ${RSRT} </RoundSpecifiedRT>
            <IncludeFileLoc>  ${FileMasqT} </IncludeFileLoc>
            <FilterEstimTerrain> ${ImMNT} </FilterEstimTerrain>
 		   

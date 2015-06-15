@@ -478,6 +478,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           }
       }
       bool ResolTerrainIsInit = EAMIsInit(&aResolTerrain);
+      bool aRSRT = false;
       if (!ResolTerrainIsInit)
       {
           if (IncMaxInit)
@@ -485,6 +486,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               ELISE_ASSERT(aNbZM!=0,"Cannot get ZMoy with IncMax");
               ResolTerrainIsInit = true;
               aResolTerrain = aSomResol / aNbZM;
+              aRSRT = true;
           }
       }
 
@@ -631,6 +633,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               + std::string(" +Geom=") + aNameGeom
               ;
 
+      mCom = mCom + " +RSRT=" + ToString(aRSRT);
 
       if (! mDoOrtho)
       {

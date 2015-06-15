@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2136]) = {
+const char * (theNameVar_ParamMICMAC[2137]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -541,6 +541,7 @@ const char * (theNameVar_ParamMICMAC[2136]) = {
 "              -->\n",
 "             <RatioResolImage Nb=\"?\" Type=\"double\"> </RatioResolImage>\n",
 "             <ResolutionTerrain Nb=\"?\" Type=\"double\"> </ResolutionTerrain>\n",
+"             <RoundSpecifiedRT  Nb=\"?\" Type=\"bool\"> </RoundSpecifiedRT>\n",
 "\n",
 "             <!-- Parfois on peut souhaiter que des images \n",
 "                  (par exemple HR servant a l'ortho) ne soient\n",

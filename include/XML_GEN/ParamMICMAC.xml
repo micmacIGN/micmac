@@ -539,6 +539,7 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
               -->
              <RatioResolImage Nb="?" Type="double"> </RatioResolImage>
              <ResolutionTerrain Nb="?" Type="double"> </ResolutionTerrain>
+             <RoundSpecifiedRT  Nb="?" Type="bool"> </RoundSpecifiedRT>
 
              <!-- Parfois on peut souhaiter que des images 
                   (par exemple HR servant a l'ortho) ne soient
