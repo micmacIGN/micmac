@@ -1363,7 +1363,7 @@
     <Timing Nb="1"  RefType="Xml_O2ITiming">     </Timing>
     <OrientAff Nb="1"  RefType="Xml_O2IRotation">      </OrientAff>
     <RPure Nb="1"  RefType="Xml_O2IRotPure" >    </RPure>
-    <Hom Nb="1" RefType="Xml_O2IHom">            </Hom>
+    <HomWithR Nb="1" RefType="Xml_O2IHom">            </HomWithR>
     <BSurH Nb="1" Type="double">   </BSurH>
     <RecHom Nb="1" Type="double">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->
 </Xml_O2IComputed>

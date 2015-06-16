@@ -1365,7 +1365,7 @@ const char * (theNameVar_SuperposImage[1429]) = {
 "    <Timing Nb=\"1\"  RefType=\"Xml_O2ITiming\">     </Timing>\n",
 "    <OrientAff Nb=\"1\"  RefType=\"Xml_O2IRotation\">      </OrientAff>\n",
 "    <RPure Nb=\"1\"  RefType=\"Xml_O2IRotPure\" >    </RPure>\n",
-"    <Hom Nb=\"1\" RefType=\"Xml_O2IHom\">            </Hom>\n",
+"    <HomWithR Nb=\"1\" RefType=\"Xml_O2IHom\">            </HomWithR>\n",
 "    <BSurH Nb=\"1\" Type=\"double\">   </BSurH>\n",
 "    <RecHom Nb=\"1\" Type=\"double\">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->\n",
 "</Xml_O2IComputed>\n",
