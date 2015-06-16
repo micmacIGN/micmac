@@ -369,8 +369,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
                                  500
                               );
        if (ShowDetailHom) std::cout << "THom0= " << aChrono.uval() << "\n";
-       aXCmp.Hom().Hom() = aHom.ToXml();
-       aXCmp.Hom().ResiduHom() = aDist * FocMoy();
+       aXCmp.HomWithR().Hom() = aHom.ToXml();
+       aXCmp.HomWithR().ResiduHom() = aDist * FocMoy();
        double aRecHom = RecouvrtHom(aHom);
        if (ShowDetailHom) std::cout << "THom1= " << aChrono.uval() << "\n";
           if (mShow)
@@ -715,7 +715,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
            const std::string & aName2 = (*aVIm)[aK2];
            if (aName1<aName2)
            {
-               std::string aNamOri = aDir + aNM->NameXmlOri2Im(aName1,aName2,false);
+               std::string aNamOri = aDir + aNM->NameXmlOri2Im(aName1,aName2,true);
                if ( ELISE_fp::exist_file(aNamOri))
                {
                    cXml_Ori2Im  aXmlOri = StdGetFromSI(aNamOri,Xml_Ori2Im);

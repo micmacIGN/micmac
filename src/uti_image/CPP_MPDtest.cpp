@@ -717,16 +717,25 @@ void PartitionRenato(int argc,char** argv)
 
 
 
+void PdBump()
+{
+   std::string aPref = "/home/mpd/MMM/culture3d/Documentation/OriRel-IMGP0492.JPG.xml";
+
+   cXml_Ori2Im  aXmlOri = StdGetFromSI(aPref,Xml_Ori2Im);
+
+}
+
 
 
 int MPDtest_main (int argc,char** argv)
 {
+    PdBump();
 /*
 cXml_Ori2Im aXmlOri0;
 MakeFileXML(aXmlOri0,aName);
-*/
 std::string aName = "Test.xml";
 cXml_Ori2Im  aXmlOri = StdGetFromSI(aName,Xml_Ori2Im);
+*/
 
 
 /*

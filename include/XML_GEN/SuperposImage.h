@@ -6248,8 +6248,8 @@ class cXml_O2IComputed
         cXml_O2IRotPure & RPure();
         const cXml_O2IRotPure & RPure()const ;
 
-        cXml_O2IHom & Hom();
-        const cXml_O2IHom & Hom()const ;
+        cXml_O2IHom & HomWithR();
+        const cXml_O2IHom & HomWithR()const ;
 
         double & BSurH();
         const double & BSurH()const ;
@@ -6260,7 +6260,7 @@ class cXml_O2IComputed
         cXml_O2ITiming mTiming;
         cXml_O2IRotation mOrientAff;
         cXml_O2IRotPure mRPure;
-        cXml_O2IHom mHom;
+        cXml_O2IHom mHomWithR;
         double mBSurH;
         double mRecHom;
 };
