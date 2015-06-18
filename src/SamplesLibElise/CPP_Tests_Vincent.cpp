@@ -114,7 +114,7 @@ class VT_AppSelTieP : public cAppliWithSetImage
     private :
 
         std::string 					  mFullName, mOri, mDir, mPat, mNameOri;
-		double 							  minAngle, mLmin, mLmax, mLmoy;
+		double 							  distMax, mLmin, mLmax, mLmoy;
 		bool 							  ShowStats;
 		cInterfChantierNameManipulateur * mICNM;
 		std::list<std::string> 			  mLFile;
@@ -360,10 +360,33 @@ float AngleBetween3Pts(Pt3dr pt1, Pt3dr pt2, Pt3dr ptCent)
 	return angle;
 }
 
+double Dist2Line (Pt3dr pt1, Pt3dr pt2, Pt3dr pt3, Pt3dr pt4)
+{
+	float a = pt3.x - pt2.x;
+	float b = pt3.y - pt2.y;
+	float c = pt3.z - pt2.z;
+    float d = pt2.x - pt1.x;
+    float e = pt2.y - pt1.y;
+    float f = pt2.z - pt1.z;
+    float g = pt4.x - pt3.x;
+    float h = pt4.y - pt3.y;
+    float i = pt4.z - pt3.z;
+    float j = e * i - f * h;
+    float k = f * g - d * i;
+    float l = d * h - e * g;
+    float m = sqrt(j * j + k * k + l * l);
+    float n = j / m;
+    float o = k / m;
+    float p = l / m;
+    float q = a * n + b * o + c * p;
+    float dt = fabs(q);
+    
+    return dt;	
+}
 
 VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is used to initialize the images
     cAppliWithSetImage (argc-1,argv+1,0),		// it has to be used without the first argument (name of the command)
-	minAngle(10),
+	distMax(0.005),
 	ShowStats(false)
 {
 	std::string homName("");
@@ -373,10 +396,7 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 		argc,argv,
 		LArgMain()  << EAMC(mFullName,"Full Name (Dir+Pat)")
 					<< EAMC(mOri,"Orientation"),
-		LArgMain()  << EAM(minAngle,"Angle",true,"Angle under which TieP will be rejected (Default = 10)")
-					<< EAM(homName,"Homol",true,"Homol folder suffix")
-					<< EAM(NbVI,"NbVI",true,"Number of Visible Image required (Def = 3, not functional higher so far)")
-					<< EAM(ShowStats,"ShowStats",true,"Show statistics for TieP  selection based on angle")
+		LArgMain()  << EAM(distMax,"Dist",true,"Maximum distance between two bundles")
 	);
 
 	// Initialize name manipulator & files
@@ -389,8 +409,10 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 	StdCorrecNameOrient(mOri,mDir);
 
 	// Get the name of tie points name using the key
-    std::string mKey = "NKS-Assoc-CplIm2Hom@" + homName + "@dat";
+    std::string mKey = "NKS-Assoc-CplIm2Hom@@dat";
     std::string aNameH ;
+    int i=0;
+    int j=0;
 	for (
 			  std::list<std::string>::iterator itS1=mLFile.begin();
 			  itS1!=mLFile.end();
@@ -398,19 +420,19 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 		)
 	 {			// Parcours liste d'image
 		VT_Img * mImg1 = new  VT_Img(*this,*itS1,mOri);
-		Pt3dr mCentre1 = mImg1->CentreOptique();
+		
 		for (
 			  std::list<std::string>::iterator itS2=mLFile.begin();
 			  itS2!=mLFile.end();
 			  itS2++
 		)
 		{
+			
 			std::string mPatHom = mDir + "Homol/Pastis" + *itS1 + "/" + *itS2 + ".dat";
 			if (LocalFileExists(mPatHom.c_str()))
-			{				
-			//	cout << "Couple : " << *itS1 << " & " << *itS2 ; 
+			{
+				
 				VT_Img * mImg2 = new  VT_Img(*this,*itS2,mOri);
-				Pt3dr mCentre2 = mImg2->CentreOptique();
 				aNameH =  mDir
 					   +  mICNM->Assoc1To2
 								(
@@ -424,18 +446,59 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
 				mLmin = 999;
 				mLmax = 0;
 				mLmoy = 0;
-				int cpt1 = 0;
-				int cpt2 = 0;
+				i=0 ;
 				for (
 					   ElPackHomologue::iterator iTH = aPack.begin();
 					   iTH != aPack.end();
 					   iTH++
 					 )
 				{	
+					i++;
  				    Pt2dr aP1 = iTH->P1();
 				    Pt2dr aP2 = iTH->P2();				
 					aPair.first = mImg1;
-					aPair.second = mImg2; 
+					aPair.second = mImg2;
+					Pt3dr pt1 = mImg1->mCam->F2AndZtoR3(aP1,1);
+					Pt3dr pt2 = mImg1->mCam->F2AndZtoR3(aP1,101);
+					Pt3dr pt3 = mImg2->mCam->F2AndZtoR3(aP2,1);
+					Pt3dr pt4 = mImg2->mCam->F2AndZtoR3(aP2,101);
+					
+					double dist=Dist2Line(pt1,pt2,pt3,pt4);
+					if (dist<distMax)
+					{
+						mMapH[aPair].Cple_Add(ElCplePtsHomologues(aP1,aP2)); 
+					    j++;
+					}
+					
+				    else
+				    {
+					    mMapH_no[aPair].Cple_Add(ElCplePtsHomologues(aP1,aP2));
+					}
+				}
+				cout << "Couple : " << *itS1 << " & " << *itS2 << "   =>   From " << i << " bundles " << j << " intersect under " << distMax << endl; 
+				i = 0;
+				j = 0;
+			}
+		}
+	}
+	
+	std::ostringstream myS;
+	myS << distMax;
+	
+	std::ostringstream myS2;
+	myS2 << NbVI;
+	std::string aKey = "NKS-Assoc-CplIm2Hom@_Dist" + myS.str() + "@dat";
+    for (tMapH::iterator itM=mMapH.begin(); itM!=mMapH.end() ; itM++)       // browse the dictionnary
+    {	// write in file
+        VT_Img * aIm1 = itM->first.first;       // img1
+        VT_Img * aIm2 = itM->first.second;      // img2
+        std::string aNameH = mICNM->Assoc1To2(aKey,aIm1->mName,aIm2->mName,true);      
+        itM->second.StdPutInFile(aNameH);      // save pt_im1 & pt_im2 in that file
+        std::cout << aNameH << "\n";
+    }
+	
+	cout << "END" << endl;
+	/*
 				    Pt3dr aTer = mImg1->mCam->PseudoInter(aP1,*(mImg2->mCam),aP2);
 				    float mAngle = AngleBetween3Pts(mCentre1,mCentre2,aTer);
 				    if (mAngle > minAngle )
@@ -637,7 +700,7 @@ VT_AppSelTieP::VT_AppSelTieP(int argc, char** argv):    // cAppliWithSetImage is
         itM->second.StdPutInFile(aNameH);      // save pt_im1 & pt_im2 in that file
         std::cout << aNameH << "\n";
     }
-    /* aKey = "NKS-Assoc-CplIm2Hom@_" + myS.str() + "txt@txt";
+    aKey = "NKS-Assoc-CplIm2Hom@_" + myS.str() + "txt@txt";
     for (tMapH::iterator itM=mMapH.begin(); itM!=mMapH.end() ; itM++)       // browse the dictionnary
     {
         VT_Img * aIm1 = itM->first.first;       // img1
@@ -1023,22 +1086,37 @@ int NLD_main(int argc, char** argv)
 
 
 
-
+bool IsInVector(std::string id, vector <std::string> aVec)
+{
+	bool result=true;
+	for (unsigned int i=0; i<aVec.size(); i++)
+	{
+		if (id == aVec[i])
+		{
+			result = false;
+		}
+	}
+	return result;
+}
 
 
 int ResToTxt_main(int argc, char** argv)
 {
 /* Transforme résidus de GCPBascule (utiliser GCPBasc ... | tee myFile.txt) en un fichier "NamePt dX dY dZ sigmaX sY sZ eMoyPixel eMaxPixel")*/
-	string mNameIn, mNameOut("");
+	string aNameIn, aNameOut(""), aGCP(""), aMesIm("");
+	
 	ElInitArgMain
 	(
 		argc,argv,
-		LArgMain()  << EAMC(mNameIn,"Name of the residuals file"),
-		LArgMain()  << EAM(mNameOut,"Out",true,"File to save the results")
+		LArgMain()  << EAMC(aNameIn,"Name of the residuals file")
+					<< EAMC(aMesIm,"Image measurements file"),
+		LArgMain()  << EAM(aNameOut,"Out",true,"File to save the results")
 	);
 	
-	ifstream fin (mNameIn.c_str());
-	ofstream fout (mNameOut.c_str(),ios::out);
+	ifstream fin (aNameIn.c_str());
+	ofstream fout (aNameOut.c_str(),ios::out);
+	string tmpNameOut=aNameOut+"_GCP";
+	ofstream fout2 (tmpNameOut.c_str(),ios::out);
 	string 	 mRead;
 	int 	 i=0, j=0;
 	double   rImMoy(0),
@@ -1049,49 +1127,101 @@ int ResToTxt_main(int argc, char** argv)
 	Pt3dr 	 ptRes, 
 			 ptPres;
 	vector <Pt3dr> ptResLs;
-	vector <double> rImMoyLs,
-					rImMaxLs;
-			 
+	vector <Pt3dr> ptResLs_GCP;
+	vector <double> rImMoyLs,rImMaxLs;				
+	vector <double> rImMoyLs_GCP,rImMaxLs_GCP;				
+	
+	
+	cSetOfMesureAppuisFlottants dDico=  StdGetFromPCP(aMesIm,SetOfMesureAppuisFlottants);
+	std::list<cMesureAppuiFlottant1Im> & dLGCP =  dDico.MesureAppuiFlottant1Im();
+	vector <std::string> aListOfChk;
+	
+	for 
+	(
+		 std::list<cMesureAppuiFlottant1Im>::iterator iT1= dLGCP.begin();
+		 iT1 != dLGCP.end();
+		 iT1++
+	)
+	{
+		for
+		(
+			std::list<cOneMesureAF1I>::iterator iT2 = iT1->OneMesureAF1I().begin();
+			iT2 != iT1->OneMesureAF1I().end();
+			iT2++
+		)
+		{
+			aListOfChk.push_back(iT2->NamePt());
+		}
+	}
+	
+	bool isCheckPoint=false;		 
 	while (fin >> mRead){
 
-		if (mRead == "--NamePt"){i++;}
+		if (mRead == "--NamePt"){
+			isCheckPoint=false;
+			i++;}
 		else if (mRead == "For"){i=0;}
 		else if (mRead == "Ctrl"){j++;}
 		if (i!=0){i++;}
 		if (j!=0){j++;}
 		
-		if (i==3){fout << mRead << " ";}	// Id
-		if (i==6)		// [rX,rY,rZ]
+		if (i==3){
+			isCheckPoint=IsInVector(mRead,aListOfChk);
+			if (isCheckPoint){fout << mRead << " ";}	// Id
+			else {fout2 << mRead << " ";}}
+		else if (i==6)		// [rX,rY,rZ]
 		{
 			ptRes = SplitToPt3dr (mRead);
-			ptResLs.push_back(ptRes);
-			fout << ptRes.x << " " << ptRes.y << " " << ptRes.z << " ";
+			if (isCheckPoint)
+			{						
+				ptResLs.push_back(ptRes);	
+				fout << ptRes.x << " " << ptRes.y << " " << ptRes.z << " ";
+			}
+			else {
+				ptResLs_GCP.push_back(ptRes);
+				fout2 << ptRes.x << " " << ptRes.y << " " << ptRes.z << " ";}
 		}
-		if (i==13)
+		else if (i==13)
 		{				// [pX,pY,pZ]
 			ptPres = SplitToPt3dr (mRead);
-			fout << ptPres.x << " " << ptPres.y << " " << ptPres.z << " ";
+			if (isCheckPoint)
+			{			
+				fout << ptPres.x << " " << ptPres.y << " " << ptPres.z << " ";
+			}
+			else {fout2 <<  ptPres.x << " " << ptPres.y << " " << ptPres.z << " ";}
 		}
-		if (i==20)		// rImMoy
+		else if (i==20)		// rImMoy
 		{
-			fout << mRead << " ";
-			rImMoyLs.push_back(atof(mRead.c_str()));
+			if (isCheckPoint)
+			{	
+				rImMoyLs.push_back(atof(mRead.c_str()));		
+				fout << mRead << " ";
+			}
+			else {
+				rImMoyLs_GCP.push_back(atof(mRead.c_str()));
+				fout2 << mRead << " ";}
 		}
-		if (i==25)
+		else if (i==25)
 		{				// rImMax
-			fout << mRead << "\n";
-			rImMoyLs.push_back(atof(mRead.c_str()));
+			if (isCheckPoint)
+			{	
+				rImMoyLs.push_back(atof(mRead.c_str()));
+				fout << mRead << "\n";
+			}
+			else { 				
+				rImMoyLs_GCP.push_back(atof(mRead.c_str()));
+				fout2 <<  mRead << "\n";}
 		}
 		
 		if (j==3)
 		{
 			fout << mRead << " ";
 		}
-		if (j==5)
+		else if (j==5)
 		{
 			fout << mRead << " ";
 		}
-		if (j==6)
+		else if (j==6)
 		{				// [pX,pY,pZ]
 			ptRes = SplitToPt3dr (mRead.substr(2,mRead.size()-2));
 			ptResLs.push_back(ptRes);
@@ -1100,6 +1230,7 @@ int ResToTxt_main(int argc, char** argv)
 		}
 	}
 	
+	//CP
 	for (unsigned int i=0;i<ptResLs.size();i++)
 	{
 		ptRes = ptResLs[i];
@@ -1112,13 +1243,60 @@ int ResToTxt_main(int argc, char** argv)
 			rImMoy += rImMoyLs[i];
 		}
 	}
-	rXmoy = rXmoy/ptResLs.size();
-	rYmoy = rYmoy/ptResLs.size();
-	rZmoy = rZmoy/ptResLs.size();
-	rXYZ = rXYZ/ptResLs.size();
+	rXmoy  = rXmoy/ptResLs.size();
+	rYmoy  = rYmoy/ptResLs.size();
+	rZmoy  = rZmoy/ptResLs.size();
+	rXYZ   = rXYZ/ptResLs.size();
 	rImMoy = rImMoy/ptResLs.size();
 	
-	fout << "\nMEAN ABSOLUTE ERROR :\n"
+	fout << "\nCHECK POINTS => MEAN ABSOLUTE ERROR :\n"
+		 << "X : " << rXmoy
+		 <<" m\nY : " << rYmoy
+		 <<" m\nZ : " << rZmoy
+		 <<" m\nXYZ : " << rXYZ ;
+		 if (rImMoyLs.size()>0)
+		 {
+			 fout <<" m\nImage : " << rImMoy ;
+		 }
+	fout << " pixel\n"; 
+	fout.close();
+	
+	cout << "\nCHECK POINTS => MEAN ABSOLUTE ERROR :\n"
+	 << "X : " << rXmoy
+	 <<" m\nY : " << rYmoy
+	 <<" m\nZ : " << rZmoy
+	 <<" m\nXYZ : " << rXYZ << " m";
+	 if (rImMoyLs.size()>0)
+	 {
+		 cout <<" m\nImage : " << rImMoy << " pixel" ;
+	 }
+	 cout << "\n";
+		 
+	rXmoy=0;
+	rYmoy=0;
+	rZmoy=0;
+	rXYZ=0;
+	rImMoy=0;
+	//GCP
+	for (unsigned int i=0;i<ptResLs.size();i++)
+	{
+		ptRes = ptResLs_GCP[i];
+		rXmoy += fabs(ptRes.x);
+		rYmoy += fabs(ptRes.y);
+		rZmoy += fabs(ptRes.z);
+		rXYZ  += sqrt(ptRes.x*ptRes.x + ptRes.y*ptRes.y + ptRes.z*ptRes.z);
+		if (rImMoyLs.size()>0)
+		{
+			rImMoy += rImMoyLs[i];
+		}
+	}
+	rXmoy  = rXmoy/ptResLs_GCP.size();
+	rYmoy  = rYmoy/ptResLs_GCP.size();
+	rZmoy  = rZmoy/ptResLs_GCP.size();
+	rXYZ   = rXYZ/ptResLs_GCP.size();
+	rImMoy = rImMoy/ptResLs_GCP.size();
+	
+	fout2 << "\nGROUND CONTROL POINTS => MEAN ABSOLUTE ERROR :\n"
 		 << "X : " << rXmoy
 		 <<" m\nY : " << rYmoy
 		 <<" m\nZ : " << rZmoy
@@ -1130,12 +1308,12 @@ int ResToTxt_main(int argc, char** argv)
 	fout << " pixel\n"; 
 	fout.close();
 		  
-	cout << "\nMEAN ABSOLUTE ERROR :\n"
+	cout << "\nGROUND CONTROL POINTS => MEAN ABSOLUTE ERROR :\n"
 		 << "X : " << rXmoy
 		 <<" m\nY : " << rYmoy
 		 <<" m\nZ : " << rZmoy
 		 <<" m\nXYZ : " << rXYZ << " m";
-		 if (rImMoyLs.size()>0)
+		 if (rImMoyLs_GCP.size()>0)
 		 {
 			 cout <<" m\nImage : " << rImMoy << " pixel" ;
 		 }
@@ -1208,7 +1386,7 @@ void Idem_Banniere()
 
 float GiveStats(vector <pair <std::string,float> > mes, string want)
 {
-    float total=0, ecart, moyenne, variance, stdev, max=mes[0].second;
+    float total=0, ecart=0, moyenne=0, variance=0, stdev=0, max=mes[0].second;
 	
 	for(unsigned int i=0; i<mes.size() ; i++)
 	{
@@ -1236,6 +1414,7 @@ float GiveStats(vector <pair <std::string,float> > mes, string want)
 
 int Idem_main(int argc, char** argv)
 {
+	/*
 	std::string aGCP, 
 				aMNT, 
 				aOrthoName(" "),
@@ -1300,8 +1479,8 @@ int Idem_main(int argc, char** argv)
 	}
 	
 	std::sort (aListOfApp.begin(), aListOfApp.end());
-	vector<std::string> bListOfApp;
-	bListOfApp.push_back(aListOfApp[0]);
+	vector<std::string> bListOfChk;
+	bListOfChk.push_back(aListOfApp[0]);
 	int i=0;
 	
 	for
@@ -1313,7 +1492,7 @@ int Idem_main(int argc, char** argv)
 	{
 		if (bListOfApp[i] != *iT)
 		{
-			bListOfApp.push_back(*iT);
+			bListOfChk.push_back(*iT);
 			i++;
 		}
 	}	
@@ -1371,7 +1550,6 @@ int Idem_main(int argc, char** argv)
 			aListOfDiff.push_back(aMNTinterpoled);
 		}
 	}
-	
 	
 // Différence entre appuis et contrôle	
 	vector <pair <std::string,float> > ListOfDiffAppuis, ListOfDiffControl;
@@ -1611,7 +1789,7 @@ int Idem_main(int argc, char** argv)
 	}
 
 	Idem_Banniere();
-	
+	*/
 	return EXIT_SUCCESS;
 }
 
