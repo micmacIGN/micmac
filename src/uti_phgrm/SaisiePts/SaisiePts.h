@@ -96,7 +96,7 @@ class cSP_PointGlob
 
           cSP_PointGlob(cAppli_SaisiePts &,cPointGlob * aPG);
           cPointGlob * PG();
-          void AddAPointe(cSP_PointeImage *);
+          void AddAGlobPointe(cSP_PointeImage *);
 
           void ReCalculPoints();
           void SuprDisp();
@@ -133,7 +133,7 @@ class cImage
         cCapture3D *       Capt3d();
         ElCamera *         CaptCam();
         cElNuage3DMaille * CaptNuage();
-        void AddAPointe(cOneSaisie *,cSP_PointGlob *,bool FromFile);
+        void AddAImPointe(cOneSaisie *,cSP_PointGlob *,bool FromFile);
         const std::string & Name() const;
         bool InImage(const Pt2dr & aP);
         Pt2di  SzIm() const;

@@ -219,6 +219,7 @@ cPoseCam::cPoseCam
        cAperoOffsetGPS * anOfs = mAppli.OffsetNNOfName(aPCI.IdOffsetGPS().Val());
        mEqOffsetGPS =  mAppli.SetEq().NewEqOffsetGPS(*mCF,*(anOfs->BaseUnk()));
    }
+
 }
 
 cEqOffsetGPS *   cPoseCam::EqOffsetGPS()
@@ -864,6 +865,7 @@ bool cPoseCam::IsId(const ElAffin2D & anAff) const
     Pt2dr aCoins[4];
     aBox.Corners(aCoins);
     double aDiag = euclid(aSz);
+    // double aDiag2 = 0;
 
     double aDMax = 0.0;
 
@@ -1868,6 +1870,7 @@ Pt3dr  cPoseCam::AddObsCentre
            cStatObs & aSO
       )
 {
+
    mLastItereHasUsedObsOnCentre = true;
    ELISE_ASSERT(DoAddObsCentre(anObs),"cPoseCam::AddObsCentre");
 

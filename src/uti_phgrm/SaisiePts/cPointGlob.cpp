@@ -61,12 +61,12 @@ cPointGlob * cSP_PointGlob::PG()
    return mPG;
 }
 
-void cSP_PointGlob::AddAPointe(cSP_PointeImage * aPIm)
+void cSP_PointGlob::AddAGlobPointe(cSP_PointeImage * aPIm)
 {
     ELISE_ASSERT
     (
         mPointes.find(aPIm->Image()->Name())==mPointes.end(),
-        "Multiple add AddAPointe"
+        "Multiple add AddAGlobPointe"
     );
     mPointes[aPIm->Image()->Name()] = aPIm;
 }

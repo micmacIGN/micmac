@@ -58,7 +58,12 @@ Pt2dr cWinIm::FindPoint(const Pt2dr & aPIm,eTypePts aType,double aSz,cPointGlob 
 
 void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
 {
-    Pt2dr aPGlob = FindPoint(mScr->to_user(aPW),aType,aSz,0);
+    Pt2dr aPIm = mScr->to_user(aPW);
+
+    if (! mCurIm->PtInImage(aPIm)) return ;
+
+
+    Pt2dr aPGlob = FindPoint(aPIm,aType,aSz,0);
 
     if (aPGlob==mAppli.Interface()->PtEchec) return;
 
@@ -67,11 +72,8 @@ void  cWinIm::CreatePoint(const Pt2dr & aPW,eTypePts aType,double aSz)
     cCaseNamePoint * aCNP = mAppli.Interface()->GetIndexNamePoint();
 
     if (aCNP && aCNP->mFree && (aCNP->mTCP != eCaseCancel))
-
         mCurIm->CreatePGFromPointeMono(aPGlob,aType,aSz,aCNP);
-
     else
-
         ((cX11_Interface*)mAppli.Interface())->MenuNamePoint()->W().lower();
 }
 

@@ -291,6 +291,7 @@ class cAppli_Ori_Txt2Xml_main
          std::string         mGenOrFromC;
          bool                mComputeOrFromC;
          bool                mComputeCple;
+         bool                mAcceptNonExitsingImage;
 };
 
 void cAppli_Ori_Txt2Xml_main::operator()(tSomVois* aS1,tSomVois* aS2,bool)  // Delaunay Call back
@@ -695,7 +696,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
     mCalibByFile     (true),
     mOffsetXY        (0,0),
     mGenOrFromC      (),
-    mComputeOrFromC  (false)
+    mComputeOrFromC  (false),
+    mAcceptNonExitsingImage  (false)
 {
 
     bool Help;
@@ -755,6 +757,8 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
                       << EAM(mOffsetXY,"OffsetXY",true,"Offset to substract from X,Y (To avoid possible round off error)")
 
                       << EAM(mGenOrFromC,"CalOFC",true,"When specified compute initial orientation from centers (in Ori-GenFromC) Ori-${CalOFC}, must contains internal calibrations")
+                      << EAM(mAcceptNonExitsingImage,"OkNoIm",true,"Do not create error if image does not exist (def = false)")
+                      << EAM(mSzV,"SzW",true,"Size for visualisation")
     );
 
     if (MMVisualMode) return;
@@ -1023,7 +1027,27 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
     const cMetaDataPhoto * aMTD0 = 0;
     while ((aLine = aFIn.std_fgets()))
     {
+        bool Ok = false;
+        std::string aNameIm;
         if (aReadApp.Decode(aLine) && (aCpt>=mCptMin) && (aCpt<mCptMax))
+        {
+             aNameIm =  mICNM->Assoc1To1(mKeyName2Image,aReadApp.mName,true);
+             if (! ELISE_fp::exist_file(aNameIm))
+             {
+                   std::cout << " ==== NOT EXISTING ======  " << aNameIm << "\n";
+                   if (!mAcceptNonExitsingImage)
+                   {
+                        ELISE_ASSERT(false,"This image does not exist");
+                   }
+             }
+             else
+             {
+                Ok = true;
+             }
+        }
+
+
+        if (Ok)
         {
 
            if (aReadApp.IsDef(aReadApp.mPt) && (EAMIsInit(&mOffsetXY)))
@@ -1039,7 +1063,8 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
            cTxtCam  & aNewCam = *(new cTxtCam);
            mVCam.push_back(&aNewCam);
            aNewCam.mNum = mNbCam;
-           aNewCam.mNameIm = mICNM->Assoc1To1(mKeyName2Image,aReadApp.mName,true);
+           aNewCam.mNameIm = aNameIm;
+ 
 
            aNewCam.mNameOri = NameOrientation(mOriOut,aNewCam);
 
@@ -1309,7 +1334,7 @@ void cAppli_Ori_Txt2Xml_main::SauvRel()
     if (mW)
     {
        std::cout << "CLIK IN WINDOW\n";
-       // mW->clik_in();
+       mW->clik_in();
     }
 }
 

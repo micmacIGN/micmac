@@ -455,6 +455,16 @@ void cWinIm::Redraw()
 
 void cWinIm::RedrawGrabSetPosPt()
 {
+        // mOldPt = mNewPt;
+        // mNewPt = aClk._pt;
+
+    Pt2dr aPIm =mScr->to_user(mNewPt) ;
+    if (mCurIm->PtInImage(mNewPt))
+    {
+         mNewPt = mOldPt;
+         return;
+    }
+
     Pt2dr aPBox(5,5);
     ShowPoint(Pt2dr(mNewPt),mStatePtCur,0,0);
     mScr->LoadAndVisuIm(Pt2di(mOldPt-aPBox),Pt2di(mOldPt+aPBox),mModeRelication);

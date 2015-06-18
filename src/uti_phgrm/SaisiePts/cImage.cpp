@@ -287,7 +287,7 @@ cSP_PointeImage * cImage::PointeOfNameGlobSVP(const std::string & aNameGlob)
     return anIt->second;
 }
 
-void cImage::AddAPointe(cOneSaisie * anOS,cSP_PointGlob * aPG,bool FromFile)
+void cImage::AddAImPointe(cOneSaisie * anOS,cSP_PointGlob * aPG,bool FromFile)
 {
    if (PointeOfNameGlobSVP(aPG->PG()->Name()))
        return;
@@ -307,7 +307,7 @@ void cImage::AddAPointe(cOneSaisie * anOS,cSP_PointGlob * aPG,bool FromFile)
    cSP_PointeImage * aPIm = new cSP_PointeImage(anOS,this,aPG);
    mPointes[aPG->PG()->Name()] = aPIm;
    mVP.push_back(aPIm);
-   aPG->AddAPointe(aPIm);
+   aPG->AddAGlobPointe(aPIm);
 }
 
 
@@ -346,6 +346,7 @@ void  cImage::SetPrio(double aPrio)
 
 bool cImage::PtInImage(const Pt2dr aP)
 {
+   if (mCapt3d && (!mCapt3d->CaptHasData(aP))) return false; 
    return    (aP.x>0)
           && (aP.y>0)
           && (aP.x<SzIm().x)
@@ -408,7 +409,7 @@ cSP_PointGlob * cImage::CreatePGFromPointeMono(Pt2dr  aPtIm,eTypePts aType,doubl
     cSP_PointeImage * aPIm = PointeOfNameGlobSVP(aSPG->PG()->Name());
     if (aPIm==0)
     {
-        std::cout << "Name " << aSPG->PG()->Name() << "\n";
+        std::cout << "For-Name " << aSPG->PG()->Name()  << " SzDico = " << mPointes.size() << "\n";
         ELISE_ASSERT(aPIm!=0,"Incoherence (2) in cImage::CreatePGFromPointeMono");
     }
     aPIm->Saisie()->Etat() = eEPI_Valide;

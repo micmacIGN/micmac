@@ -694,13 +694,6 @@ void  cAppli_SaisiePts::InitPG(const std::string & aName)
 
     // mNameSauvPG = mDC + mParam.NamePointsGlobal().Val();
 
-/*
-if (MPD_MM())
-{
-    std::cout << "AAAA : " << aName << "\n";
-    getchar();
-}
-*/
 
     // std::cout << "TTttttcs::InitPG"  << mNameSauvPG << " " << ELISE_fp::exist_file(mNameSauvPG) << "\n";
     if (ELISE_fp::exist_file(aName))
@@ -780,7 +773,7 @@ void cAppli_SaisiePts::InitPointeIm()
                     if (aPG)
                     {
 
-                        anIm->AddAPointe(&(*itOS),aPG,true);
+                        anIm->AddAImPointe(&(*itOS),aPG,true);
                     }
                 }
             }
@@ -816,9 +809,11 @@ void cAppli_SaisiePts::AddPGInAllImages(cSP_PointGlob  * aSPG)
     }
 }
 
+
 void cAppli_SaisiePts::AddOnePGInImage
      (cSP_PointGlob  * aSPG,cImage & anI,bool WithP3D,const Pt3dr & aP3d,bool InMasq3D)
 {
+
     const cPointGlob & aPG = *(aSPG->PG());
 
     Pt2dr aPIm  = anI.PointArbitraire();
@@ -835,8 +830,11 @@ void cAppli_SaisiePts::AddOnePGInImage
             {
                 aPIm =  aCapt3D->Ter2Capteur(aP3d); //  : anI.PointArbitraire();
 
+//=======================================
 
-                if (! aCapt3D->PIsVisibleInImage(aP3d))
+
+
+                if (! aCapt3D->PIsVisibleInImage(aP3d)) 
                 {
                     OkInIm = false;
                 }
@@ -881,7 +879,7 @@ void cAppli_SaisiePts::AddOnePGInImage
             anOS.Etat() = eEPI_NonSaisi;
             anOS.NamePt() = aPG.Name();
             anOS.PtIm() = aPIm;
-            anI.AddAPointe(&anOS,aSPG,false);
+            anI.AddAImPointe(&anOS,aSPG,false);
         }
     }
 }

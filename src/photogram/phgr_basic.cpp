@@ -1535,12 +1535,13 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
 
    if (GetZoneUtilInPixel() )
    {
+       Pt2dr aSz = SzPixel();
        Pt2dr aPQ = NormM2C(aPI0) ;
        double aRab = 0.8;
-       Pt2dr aMil = Pt2dr(mSz)/2.0;
+       Pt2dr aMil = Pt2dr(aSz)/2.0;
    
        aPQ =  aMil+ (aPQ-aMil) * aRab;
-       if ((aPQ.x <0)  || (aPQ.y<0) || (aPQ.x>mSz.x) || (aPQ.y>mSz.y)) return false;
+       if ((aPQ.x <0)  || (aPQ.y<0) || (aPQ.x>aSz.x) || (aPQ.y>aSz.y)) return false;
     }
 
 
@@ -1554,11 +1555,12 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
   // std::cout << "AAAAAA " << aPF0 << " " << mZoneUtilInPixel << "\n";
    if ( (!GetZoneUtilInPixel()) && ( ! IsInZoneUtile(aPF0))) return false;
 
+
    Pt2dr aPF1 = DComplM2C(aPF0);
 
    // MPD le 17/06/2014 : je ne comprend plus le [1], qui fait planter les camera ortho
    // a priori la zone utile se juge a la fin
-   if (GetZoneUtilInPixel() && ( ! IsInZoneUtile(aPF1))) return false;
+   if (GetZoneUtilInPixel() && ( ! IsInZoneUtile(aPF1,true))) return false;
 
 
    Pt2dr aI0Again = DistInverse(aPF1);
@@ -1696,14 +1698,19 @@ void ElCamera::SetParamGrid(const NS_ParamChantierPhotogram::cParamForGrid & aPa
 
 bool ElCamera::IsInZoneUtile(const Pt2dr & aQ,bool Pixel) const
 {
+   
    // Pt2dr aP = mZoneUtilInPixel ? DComplM2C(aQ) : aQ;
     Pt2dr aP = aQ;
    Pt2di aSz = Pixel ?  Pt2di(SzPixel()) : Sz() ;
    if ((aP.x<=0)  || (aP.y<=0) || (aP.x>=aSz.x) || (aP.y>=aSz.y))
       return false;
-   if (mRayonUtile <= 0) return true;
 
-   return euclid(aP-Sz()/2.0) < mRayonUtile;
+   double aR = mRayonUtile;
+   if (aR <= 0) return true;
+   if (Pixel) aR *= mScaleAfnt;
+
+
+   return euclid(aP-aSz/2.0) < aR;
 }
 
 
