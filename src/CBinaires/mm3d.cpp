@@ -632,6 +632,7 @@ int SampleLibElise_main(int argc, char ** argv)
 extern int RPC_main(int argc, char ** argv);
 extern int NewRefineModel_main(int argc, char **argv);
 extern int RefineModel_main(int argc, char **argv);
+extern int RefineJitter_main(int argc, char **argv);
 extern int Dimap2Grid_main(int argc, char **argv);
 extern int DigitalGlobe2Grid_main(int argc, char **argv);
 extern int Aster2Grid_main(int argc, char **argv);
@@ -646,7 +647,8 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
     aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "WARNING: NON FUNCTIONAL, will Create a Grid file from the meta-data of an Aster Images"));
     aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
-    aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
+	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
+	aRes.push_back(cMMCom("RefineJitter", RefineJitter_main, "/!\ V0.01 Highly experimental /!\ Refine a grid with Affine + jitter model based on SIFT obs"));
     aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
 
     cCmpMMCom CmpMMCom;
