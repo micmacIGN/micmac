@@ -96,10 +96,15 @@ void cAppli_Martini::Banniere(bool Quick)
 
 void cAppli_Martini::DoAll()
 {
+     //  Calcul de toute les orientations relatives entre paires d'images
      StdCom("NO_AllOri2Im");
+     // Homologues flottants
      StdCom("NO_AllHomFloat");
+     // Generation des triplet de points hom flottants
      StdCom("NO_AllImTriplet");
+     // Generation  des triplet
      StdCom("NO_GenTripl"," Show=false");
+     // Optimisation des triplets
      if (! mQuick)
      {
         StdCom("NO_AllImOptTrip");
