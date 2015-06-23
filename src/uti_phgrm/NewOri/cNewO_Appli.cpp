@@ -57,7 +57,7 @@ class cAppli_Martini
 
 void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
 {
-    std::string  aFullCom = MM3dBinFile_quotes( "TestLib ") + aCom + " "   + mPat;
+    std::string  aFullCom = MM3dBinFile_quotes( "TestLib ") + aCom + " "   + QUOTE(mPat);
     if (EAMIsInit(&mNameOriCalib))  aFullCom = aFullCom + " OriCalib=" + mNameOriCalib;
     aFullCom += " Quick=" + ToString(mQuick);
 

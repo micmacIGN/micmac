@@ -708,10 +708,12 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
    }
 
    cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());
+   bool aNewTriplet = false;
    {
       std::map<cTripletInt,cResTriplet>::iterator  itM = mMapTriplets.find(aTr) ;
 
-      if (  (itM != mMapTriplets.end()) && (itM->second.mXml.ResiduTriplet() < aResidu))
+      aNewTriplet =  (itM == mMapTriplets.end());
+      if (  (!aNewTriplet) && (itM->second.mXml.ResiduTriplet() < aResidu))
       {
          return false;
       }
@@ -737,7 +739,8 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
    aTri.Name1() = aA1.Name();
    aTri.Name2() = aA2.Name();
    aTri.Name3() = aA3.Name();
-   mTopoTriplets.Triplets().push_back(aTri);
+   if (aNewTriplet)
+      mTopoTriplets.Triplets().push_back(aTri);
 
    return true;
 }
