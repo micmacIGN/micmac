@@ -2,6 +2,10 @@
 #include "ui_Settings.h"
 #include "ui_Help.h"
 
+#ifdef _DEBUG
+	#include <iostream>
+#endif
+
 cSettingsDlg::cSettingsDlg(QWidget *parent, cParameters *params, int appMode) : QDialog(parent)
   , _ui(new Ui::SettingsDialog)
   , lineItemHidden(false)
