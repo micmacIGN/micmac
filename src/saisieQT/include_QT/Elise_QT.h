@@ -101,6 +101,7 @@ using namespace std;
 #include <QVector>
 #include <QXmlStreamReader>
 #include <QWidget>
+#include <QtGlobal>
 
 #define M_2PI	6.283185307179586232
 
