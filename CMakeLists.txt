@@ -275,34 +275,36 @@ endif()
 # MERCURIAL
 find_program(MERCURIAL_EXECUTABLE hg DOC "Emplacement de gestionnaire de versions Mercurial")
 
-if(NOT MERCURIAL_EXECUTABLE)
-	message( STATUS "Mercurial (hg) cannot be found" )
-else()
-	# Affiche la revision MICMAC
-	EXECUTE_PROCESS(
-		COMMAND
-		${MERCURIAL_EXECUTABLE} identify --num
-		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-		RESULT_VARIABLE hg_result
-		OUTPUT_VARIABLE HG_REVISION_DIST
-		ERROR_QUIET
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+if (NOT HG_REVISION_DIST)
+	if(NOT MERCURIAL_EXECUTABLE)
+		message( STATUS "Mercurial (hg) cannot be found" )
+		set( HG_REVISION_DIST "unknown_no_hg" )
+	else()
+		# Affiche la revision MICMAC
+		EXECUTE_PROCESS(
+			COMMAND
+			${MERCURIAL_EXECUTABLE} identify --num
+			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+			RESULT_VARIABLE hg_result
+			OUTPUT_VARIABLE HG_REVISION_DIST
+			ERROR_QUIET
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
 
-	if ( ${hg_result} )
-		set(HG_REVISION_DIST "unknown")
+		if ( ${hg_result} )
+			set(HG_REVISION_DIST "unknown_hg_failed")
+		endif()
 	endif()
-
-	message( STATUS "Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
-
-	set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
-
-	set( HG_REVISION_DIST \"${HG_REVISION_DIST}\" )
-	CONFIGURE_FILE (
-		"include/general/HG_defines.h.in"
-		"${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
-	)
 endif()
+message( STATUS "Derniere revision mercurial de MicMac : " ${HG_REVISION_DIST})
+
+set(HG_REV ${HG_REVISION_DIST} CACHE STRING "Revision" FORCE)
+
+set( HG_REVISION_DIST \"${HG_REVISION_DIST}\" )
+CONFIGURE_FILE (
+	"include/general/HG_defines.h.in"
+	"${CMAKE_SOURCE_DIR}/include/general/HG_defines.h"
+)
 
 CONFIGURE_FILE (
 	"include/general/CMake_defines.h.in"
