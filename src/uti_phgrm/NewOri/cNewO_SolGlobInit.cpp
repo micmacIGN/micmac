@@ -186,6 +186,7 @@ class cAppli_NewSolGolInit
         int                     mFlag3;
         int                     mFlag2;
         cNOSolIn_Triplet *      mTestTrip;
+        cNOSolIn_Triplet *      mTestTrip2;
         int                     mNbSom;
         int                     mNbArc;
         int                     mNbTrip;
@@ -203,7 +204,7 @@ cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolIni
    mAppli       (&anAppli),
    mIm          (new cNewO_OneIm(mAppli->NM(),mName)),
    mCurRot      (ElRotation3D::Id),
-   mTestRot      (ElRotation3D::Id)
+   mTestRot     (ElRotation3D::Id)
 {
    ReInit();
 }
@@ -312,14 +313,14 @@ void cAppli_NewSolGolInit::TestInitRot(tArcNSI * anArc,const cLinkTripl & aLnk)
       // Mp = M' coordonnees monde du triplet
       // M = coordonnees mondes courrament construite
       // La tranfo M' -> peut etre construite de deux maniere
-      ElRotation3D aR1Mp2M  = aLnk.S1()->attr().CurRot().inv() * aLnk.m3->RotOfSom(aLnk.S1());
-      ElRotation3D aR2Mp2M  = aLnk.S2()->attr().CurRot().inv() * aLnk.m3->RotOfSom(aLnk.S2());
+      ElRotation3D aR1Mp2M  = aLnk.S1()->attr().CurRot() * aLnk.m3->RotOfSom(aLnk.S1()).inv();
+      ElRotation3D aR2Mp2M  = aLnk.S2()->attr().CurRot() * aLnk.m3->RotOfSom(aLnk.S2()).inv();
 
 
       // ElRotation3D aTest = aR1Mp2M * aR2Mp2M.inv();
       // ElMatrix<double> aMT = aTest.Mat() -  ElMatrix<double>(3,true);
       ElMatrix<double>  aMT = aR1Mp2M.Mat() - aR2Mp2M.Mat();
-      std::cout << "DIST MAT " << aMT.L2() << "\n";
+      std::cout << "DIST MAT " << aMT.L2()  << " IsTrip2=" << (mTestTrip2==aLnk.m3)  << "S3 " << aLnk.S3()->attr().Im()->Name() << "\n";
 
       if (mTest)
       {
@@ -334,10 +335,10 @@ void cAppli_NewSolGolInit::TestInitRot(tArcNSI * anArc,const cLinkTripl & aLnk)
           std::cout <<  aLnk.S1()->attr().Im()->Name() << " " <<  aLnk.m3->KSom(aLnk.mK1)->attr().Im()->Name() << "\n";
           std::cout <<  aLnk.S2()->attr().Im()->Name() << " " <<  aLnk.m3->KSom(aLnk.mK2)->attr().Im()->Name() << "\n";
           std::cout <<  aLnk.S3()->attr().Im()->Name() << " " <<  aLnk.m3->KSom(aLnk.mK3)->attr().Im()->Name() << "\n";
-*/
           std::cout <<  anArc->s1().attr().Im()->Name() << " " <<  anArc->s2().attr().Im()->Name() << "\n";
           std::cout <<  aLnk.S3()->attr().Im()->Name()  << " " <<  aLnk.m3  << "\n";
           getchar();
+*/
       }
      // :Pt3dr 
 }
@@ -354,11 +355,12 @@ void cAppli_NewSolGolInit::SetNeighTriplet(cNOSolIn_Triplet * aTripl)
     aTripl->InitRot3Som();
 
 
+
     //  On recheche les sommet voisin 
     for (int aKA=0 ; aKA< 3 ; aKA++)
     {
          tArcNSI *  anA = aTripl->KArc(aKA);
-         if (mTest) std::cout << "================ ARC ===== " << anA->s1().attr().Im()->Name() << " " <<  anA->s2().attr().Im()->Name() << "\n";
+         if (aTripl==mTestTrip) std::cout << "================ ARC ===== " << anA->s1().attr().Im()->Name() << " " <<  anA->s2().attr().Im()->Name() << "\n";
 
          std::vector<cLinkTripl> &  aLK3 = anA->attr().ASym()->Lnk3() ;
          for (int aK3=0 ; aK3 <int(aLK3.size()) ; aK3++)
@@ -416,6 +418,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mFlag3      (mGr.alloc_flag_som()),
     mFlag2      (mGr.alloc_flag_som()),
     mTestTrip   (0),
+    mTestTrip2  (0),
     mNbSom      (0),
     mNbArc      (0),
     mNbTrip     (0)
@@ -423,6 +426,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
    std::string aNameT1;
    std::string aNameT2;
    std::string aNameT3;
+   std::string aNameT4;
+
 
    ElInitArgMain
    (
@@ -434,8 +439,11 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                    << EAM(aNameT1,"Test1",true,"Name of first test image",eSAM_IsBool)
                    << EAM(aNameT2,"Test2",true,"Name of second test image",eSAM_IsBool)
                    << EAM(aNameT3,"Test3",true,"Name of third test image",eSAM_IsBool)
+                   << EAM(aNameT4,"Test4",true,"Name of fourth test image",eSAM_IsBool)
    );
 
+   cTplTriplet<std::string> aKTest1(aNameT1,aNameT2,aNameT3);
+   cTplTriplet<std::string> aKTest2(aNameT1,aNameT2,aNameT4);
 
    mEASF.Init(mFullPat);
    mNM = new cNewO_NameManager(mQuick,mEASF.mDir,mOriCalib,"dat");
@@ -449,7 +457,11 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
        mNbSom++;
        if (mTest)
        {
-           ElMatrix<double> aR =  ElMatrix<double>::Rotation(aKIm,aKIm*10,aKIm*100);
+           ElMatrix<double> aR =  ElMatrix<double>::Rotation(aKIm+0.5,aKIm*10,aKIm*100);
+           if (aName==aKTest1.mV0) 
+           {
+                aR= ElMatrix<double>::Rotation(0,0,0);
+           }
            aSom.attr().TestRot() = ElRotation3D(Pt3dr(0,0,0),aR,true);
        }
    }
@@ -468,13 +480,16 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
             tSomNSI * aS2 = mMapS[it3->Name2()];
             tSomNSI * aS3 = mMapS[it3->Name3()];
 
-ELISE_ASSERT(it3->Name1()<it3->Name2(),"AAAAAAAAAAAAaUyTR\n");
-ELISE_ASSERT(it3->Name2()<it3->Name3(),"AAAAAAAAAAAAa0578\n");
+            ELISE_ASSERT(it3->Name1()<it3->Name2(),"Incogeherence cAppli_NewSolGolInit\n");
+            ELISE_ASSERT(it3->Name2()<it3->Name3(),"Incogeherence cAppli_NewSolGolInit\n");
 
-if ((it3->Name1()=="IMGP9586.PEF") && (it3->Name2()=="IMGP9591.PEF") && (it3->Name3()=="IMGP9592.PEF"))
-{
-    std::cout << "KkkkkkkkkkkkkkkkkKKKkkkkkkkkkkkkkkkkkkkkkkkkkkKkkkkkkkkkkkkkkkkkkkkkkkk\n";
-}
+
+            cTplTriplet<std::string> anIdTri(it3->Name1(),it3->Name2(),it3->Name3());
+
+            if ((aKTest1==anIdTri) || (aKTest2==anIdTri))
+            {
+                // std::cout << "WWWWWW " << it3->Name1() << "==" << it3->Name2() << "==" << it3->Name3() << "\n";
+            }
 
 
 
@@ -498,7 +513,7 @@ if ((it3->Name1()=="IMGP9586.PEF") && (it3->Name2()=="IMGP9591.PEF") && (it3->Na
                      ElRotation3D aR2 = aS2->attr().TestRot();
                      ElRotation3D aR3 = aS3->attr().TestRot();
                      ElRotation3D aR2On1 =  aR1.inv() * aR2;
-                     ElRotation3D aR3On1 =  aR1.inv() * aR1;
+                     ElRotation3D aR3On1 =  aR1.inv() * aR3;
                      aXml3Ori.Ori2On1() =  El2Xml(aR2On1);
                      aXml3Ori.Ori3On1() =  El2Xml(aR3On1);
                  }
@@ -514,9 +529,13 @@ if ((it3->Name1()=="IMGP9586.PEF") && (it3->Name2()=="IMGP9591.PEF") && (it3->Na
                  CreateArc(aS2,aS3,aTriplet,1,2,0);
                  CreateArc(aS3,aS1,aTriplet,2,0,1);
 
-                 if ((it3->Name1()==aNameT1) && (it3->Name2()==aNameT2) && (it3->Name3()==aNameT3))
+                 if (aKTest1==anIdTri)
                  {
                      mTestTrip = aTriplet;
+                 }
+                 if (aKTest2==anIdTri)
+                 {
+                     mTestTrip2 = aTriplet;
                  }
             }
     }
