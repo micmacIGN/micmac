@@ -8,6 +8,10 @@
 #include "GpGpu/GpGpu_Tools.h"
 #endif
 
+#if (ELISE_QT_VERSION >= 4)
+	#include "Elise_QT.h"
+#endif
+
 ExternalToolHandler g_externalToolHandler;
 
 using namespace std;
@@ -251,7 +255,7 @@ int CheckDependencies_main(int argc,char ** argv)
     #endif
 
     #if ELISE_QT_VERSION != 0
-        cout << "--- Qt enabled : " << ELISE_QT_VERSION << endl << endl;
+		cout << "--- Qt enabled : " << qVersion() << endl << endl;
     #endif
 
     #if defined __USE_JP2__

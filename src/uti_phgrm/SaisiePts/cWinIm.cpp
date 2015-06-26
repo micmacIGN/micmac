@@ -458,8 +458,8 @@ void cWinIm::RedrawGrabSetPosPt()
         // mOldPt = mNewPt;
         // mNewPt = aClk._pt;
 
-    Pt2dr aPIm =mScr->to_user(mNewPt) ;
-    if (mCurIm->PtInImage(mNewPt))
+    Pt2dr aPIm = mScr->to_user(mNewPt) ;
+    if ( !mCurIm->PtInImage(aPIm) )
     {
          mNewPt = mOldPt;
          return;
