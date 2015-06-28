@@ -3329,11 +3329,14 @@ void SolveBundle3Image
           double               aFoc,
           ElRotation3D & aR12,
           ElRotation3D & aR13,
+          Pt3dr &        aPMed,
+          double &       aBOnH,
           const tMultiplePF  & aH123,
           const tMultiplePF  & aH12,
           const tMultiplePF  & aH13,
           const tMultiplePF  & aH23,
-          double aPds3
+          double aPds3,
+          int aNbIter
      );
 
 

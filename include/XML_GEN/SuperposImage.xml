@@ -1394,6 +1394,8 @@
     <Ori3On1 Nb="1"  RefType="Xml_Rotation"> </Ori3On1>
     <NbTriplet Nb="1" Type="int"> </NbTriplet>
     <ResiduTriplet Nb="1" Type="double"> </ResiduTriplet>
+    <BSurH Nb="1" Type="double"> </BSurH>
+    <PMed Nb="1" Type="Pt3dr"> </PMed>
 </Xml_Ori3ImInit>
 
 <Xml_OneTriplet  Nb="1" Class="true" ToReference="true">

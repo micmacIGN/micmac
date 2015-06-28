@@ -238,6 +238,13 @@ std::string cNewO_NameManager::NameHomFloat(cNewO_OneIm * anI1,cNewO_OneIm * anI
 }
 
 
+
+std::string cNewO_NameManager::NameTripletsOfCple(cNewO_OneIm * anI1,cNewO_OneIm * anI2,bool ModeBin)
+{
+     return  Dir3PDeuxImage(anI1,anI2,false) + "ImsOfTriplets." + std::string(ModeBin ? "dmp" : "xml");
+}
+
+
 //========================
 
 std::string cNewO_NameManager::NameAttribTriplet
@@ -275,6 +282,13 @@ std::string cNewO_NameManager::NameTopoTriplet(bool aModeBin)
 {
     return Dir3P() + "ListeTriplets" + mPrefOriCal +"." + (aModeBin ? "dmp" : "xml");
 }
+
+std::string cNewO_NameManager::NameCpleOfTopoTriplet(bool aModeBin)
+{
+    return Dir3P() + "ListeCpleOfTriplets" + mPrefOriCal +"." + (aModeBin ? "dmp" : "xml");
+}
+
+
 
 std::string cNewO_NameManager::NameOriGenTriplet(bool Quick,bool ModeBin,cNewO_OneIm *aI1,cNewO_OneIm *aI2,cNewO_OneIm *aI3)
 {

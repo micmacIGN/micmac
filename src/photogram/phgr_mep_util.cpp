@@ -462,6 +462,9 @@ class cEqBundleBase  : public cNameSpaceEqF,
        cEqfP3dIncTmp   * PtIncSec(cSetEqFormelles * aSetSec)  {return mDoGenCode ? aSetSec->Pt3dIncTmp() : mEqP3I;}
        double    AddEquationGen(const std::vector<Pt2dr> & aP2,const std::vector<bool> & aVSel, double aPds,bool WithEq);
 
+       bool OkLastI() const {return mOkLastI;}
+       Pt3dr LastI() const {ELISE_ASSERT(mOkLastI,"No PI in  cEqBundleBase"); return mLastI;}
+
     protected :
        void    InitNewR2(const ElRotation3D & aRot);
        void    InitNewR3(int aK,const ElRotation3D & aRot);
@@ -505,6 +508,9 @@ class cEqBundleBase  : public cNameSpaceEqF,
        std::map<int,cSubstitueBlocIncTmp *>   mMapBufSub;
        ElRotation3D             mCurRot;
        std::vector<cEqSupBB *>  mVEqSup;
+
+       bool                     mOkLastI;
+       Pt3dr                    mLastI;
 };
 
 
@@ -874,9 +880,8 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
 
    ELISE_ASSERT(aVP0.size()>=2,"cEqBundleBase::AddEquationGen");
    // double aDist;
-   bool OkIS;
-   Pt3dr aP = InterSeg(aVP0,aVP1,OkIS);
-   if ((! OkIS) || (ElAbs(aP.z) > 1e9))
+   mLastI = InterSeg(aVP0,aVP1,mOkLastI);
+   if ((! mOkLastI) || (ElAbs(mLastI.z) > 1e9))
    {
       return 0;
    }
@@ -885,7 +890,7 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
    aVPds.push_back(aPds);
    aVPds.push_back(aPds);
 
-   mEqP3I->InitVal(aP);
+   mEqP3I->InitVal(mLastI);
 
    for (int aK=0 ; aK<int (aVPts.size())  ; aK++)
    {
@@ -996,6 +1001,7 @@ class cBundle3Image
                const tMultiplePF  & aH23,
                double  aPds3
          );
+        ~cBundle3Image();
         double  RobustEr2Glob(double aProp);
         double  RobustEr3(double aProp);
 
@@ -1017,6 +1023,10 @@ class cBundle3Image
         static const double CoeffPdsErr;
 
         cEqBundleBase&   BB() {return   *mEqBB;}
+
+        std::vector<double>  mXI;
+        std::vector<double>  mYI;
+        std::vector<double>  mZI;
    private :
         double OneIter2(const cPairB3Im &,double anErStd);
 
@@ -1039,7 +1049,7 @@ class cBundle3Image
         std::vector<Pt2dr> mBufPts;
         std::vector<bool>  mBufSel;
   //  "Sur ponderation" des triplets
-        double             mPds3;
+        double               mPds3;
 };
 
 
@@ -1056,6 +1066,11 @@ cPairB3Im::cPairB3Im(const tMultiplePF  & aHom,int aIndA,int aIndB,int aIndC) :
 
 const double cBundle3Image::PropErInit =  0.75;
 const double cBundle3Image::CoeffPdsErr =  2.0;
+
+cBundle3Image::~cBundle3Image()
+{
+   delete mEqBB;
+}
 
 // double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const std::vector<bool> & aVSel, double aPds,bool WithEq)
 cBundle3Image::cBundle3Image
@@ -1113,6 +1128,9 @@ double  cBundle3Image::RobustEr3(double aProp)
 
 double cBundle3Image::OneIter3(double anErrStd)
 {
+     mXI.clear();
+     mYI.clear();
+     mZI.clear();
      double aSomP = 0;
      double aSomEP = 0;
      for (int aK=0 ; aK<mNb123 ; aK++)
@@ -1122,6 +1140,13 @@ double cBundle3Image::OneIter3(double anErrStd)
           AddEq3Pt(aK,aPds*mPds3);
           aSomP += aPds;
           aSomEP += aPds * anErr;
+          if (mEqBB->OkLastI())
+          {
+               Pt3dr aP = mEqBB->LastI();
+               mXI.push_back(aP.x);
+               mYI.push_back(aP.y);
+               mZI.push_back(aP.z);
+          }
      }
      return aSomEP / aSomP;
 }
@@ -1233,11 +1258,14 @@ void SolveBundle3Image
           double               aFoc,
           ElRotation3D & aR12,
           ElRotation3D & aR13,
+          Pt3dr &        aPMed,
+          double &       aBOnH,
           const tMultiplePF  & aH123,
           const tMultiplePF  & aH12,
           const tMultiplePF  & aH13,
           const tMultiplePF  & aH23,
-          double  aPds3
+          double  aPds3,
+          int     aNbIter
      )
 {
 
@@ -1247,7 +1275,7 @@ void SolveBundle3Image
     double anEr3 = aB3.RobustEr3(aProp);
     double anEr2 = aB3.RobustEr2Glob(aProp);
 
-    for (int anIter = 0 ; anIter<10 ; anIter ++)
+    for (int anIter = 0 ; anIter<aNbIter ; anIter ++)
     {
            anEr3 = aB3.OneIter3(anEr3); 
            anEr2 = aB3.OneIter2Glob(anEr2); 
@@ -1257,6 +1285,33 @@ void SolveBundle3Image
            aR12 = aVR[0];
            aR13 = aVR[1];
     }
+
+
+    aPMed.x =  MedianeSup(aB3.mXI);
+    aPMed.y =  MedianeSup(aB3.mYI);
+    aPMed.z =  MedianeSup(aB3.mZI);
+
+    aBOnH = 0.0; 
+    double aDMax= 0.0;
+    std::vector<Pt3dr> aVC;
+    aVC.push_back(Pt3dr(0,0,0));
+    aVC.push_back(aR12.tr());
+    aVC.push_back(aR13.tr());
+
+    for (int aK=0 ; aK<3 ; aK++)
+    {
+        Pt3dr aV1 = aVC[aK];
+        Pt3dr aV2 = aVC[(aK+1)%3];
+        double aDist = euclid(aV1-aV2);
+        double  aBonHLoc = aDist/euclid(aPMed);
+        aBOnH = ElMax(aBOnH,aBonHLoc);
+        aDMax = ElMax(aDMax,aDist);
+    }
+
+    aR12.tr() =   aR12.tr() / aDMax;
+    aR13.tr() =   aR13.tr() / aDMax;
+    aPMed     =   aPMed / aDMax;
+
 }
 
 
