@@ -206,6 +206,7 @@ class cAppli_GenTriplet
 
        std::map<cTripletInt,cResTriplet>  mMapTriplets;
        cXml_TopoTriplet                   mTopoTriplets;
+       std::map<cCpleString,cListOfName>  mTriOfCple;
 
        // Voisin de l'arc, hors de l'arc lui meme
        std::vector<tSomGT *>         mVSomVois;
@@ -476,8 +477,9 @@ int cAppli_GenTriplet::ToIndex(const Pt2df &  aP0) const
 
 tSomGT * cAppli_GenTriplet::GetNextSom()
 {
+   int aNbMaxTriplet = mQuick ? TQuickNbMaxTriplet : TStdNbMaxTriplet;
    if (mVSomEnCourse.empty()) return 0;
-   if (mVSomSelected.size() > TNbMaxTriplet) return 0;
+   if (int(mVSomSelected.size()) > aNbMaxTriplet) return 0;
 
    int aGainMax=-1;
    tSomGT * aRes=0;
@@ -610,6 +612,22 @@ void cAppli_GenTriplet::GenTriplet()
        MakeFileXML(mTopoTriplets,mNM->NameTopoTriplet(aK==0));
    }
 
+   cSauvegardeNamedRel aLCple;
+   for (std::map<cCpleString,cListOfName>::const_iterator itCpl3=mTriOfCple.begin() ; itCpl3!=mTriOfCple.end() ; itCpl3++)
+   {
+       const cCpleString & aCple = itCpl3->first;
+       cNewO_OneIm * aIm1 = &mMapS[aCple.N1()]->attr().Im();
+       cNewO_OneIm * aIm2 = &mMapS[aCple.N2()]->attr().Im();
+       for (int aKBin=0; aKBin<2; aKBin++)
+       {
+          std::string aNameTri = mNM->NameTripletsOfCple(aIm1,aIm2,(aKBin==0));
+          MakeFileXML(itCpl3->second,aNameTri);
+       }
+       aLCple.Cple().push_back(aCple);
+   }
+   MakeFileXML(aLCple,mNM->NameCpleOfTopoTriplet(true));
+   MakeFileXML(aLCple,mNM->NameCpleOfTopoTriplet(false));
+  
    if (mShow)
       std::cout << "Load " << mTimeLoadHom << " Merge " << mTimeMerge << " Selec " << mTimeSelec << " GenTripl " << aTimeGT.uval() << "\n";
 }
@@ -740,7 +758,11 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
    aTri.Name2() = aA2.Name();
    aTri.Name3() = aA3.Name();
    if (aNewTriplet)
+   {
       mTopoTriplets.Triplets().push_back(aTri);
+      cCpleString aCple(aTri.Name1(),aTri.Name2());
+      mTriOfCple[aCple].Name().push_back(aTri.Name3());
+   }
 
    return true;
 }

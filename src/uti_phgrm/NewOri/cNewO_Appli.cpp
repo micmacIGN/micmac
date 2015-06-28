@@ -105,10 +105,7 @@ void cAppli_Martini::DoAll()
      // Generation  des triplet
      StdCom("NO_GenTripl"," Show=false");
      // Optimisation des triplets
-     if (! mQuick)
-     {
-        StdCom("NO_AllImOptTrip");
-     }
+     StdCom("NO_AllImOptTrip");
 }
 
 

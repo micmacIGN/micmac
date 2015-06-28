@@ -60,9 +60,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define  TAttenDens 3.0
 
 #define TNbMinTriplet 3    // Nombre de point triple minimal pour un triplet
-#define TNbMaxTriplet 20   // Nombre maximal de triplet calcule
+#define TStdNbMaxTriplet 20   // Nombre maximal de triplet calcule
+#define TQuickNbMaxTriplet 8   // Nombre maximal de triplet calcule
 #define TGainSeuil    5e-3
 
+#define NbMaxATT 100000
+#define FactAttCohMed 3.0
 
 //=====================================
 
@@ -323,6 +326,7 @@ class cNewO_NameManager
            std::string Dir3POneImage(const std::string & aName,bool WithMakeDir=false) const;
 
 
+           std::string NameTripletsOfCple(cNewO_OneIm *,cNewO_OneIm *,bool Bin);
            std::string Dir3PDeuxImage(cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameHomFloat(cNewO_OneIm * ,cNewO_OneIm * );
 
@@ -334,6 +338,7 @@ class cNewO_NameManager
            std::string NameOriGenTriplet(bool Quick,bool ModeBin,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *);
 
            std::string NameTopoTriplet(bool ModeBin);
+           std::string NameCpleOfTopoTriplet(bool ModeBin);
 
 
            bool LoadTriplet(cNewO_OneIm * ,cNewO_OneIm *,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3);

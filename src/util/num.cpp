@@ -1065,6 +1065,17 @@ double FromSzW2FactExp(double aSzW,double mCurNbIterFenSpec)
    return aRes;
 }
 
+double MoyHarmonik(const double & aV1,const double & aV2)
+{
+    return  1.0 /  (  ((1.0/aV1) + (1.0/aV2)) / 2.0) ;
+}
+
+double MoyHarmonik(const double & aV1,const double & aV2,const double & aV3)
+{
+    return  1.0 /  (  ((1.0/aV1) + (1.0/aV2) + (1.0/aV3)) / 2.0) ;
+}
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

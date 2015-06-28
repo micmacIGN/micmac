@@ -1607,6 +1607,9 @@ int MMNbProc();
 bool launchMake( const std::string &i_makefile, const std::string &i_rule=std::string(), unsigned int i_nbJobs=MMNbProc(), const std::string &i_options=std::string(), bool i_stopCurrentProgramOnFail=true );
 
 
+double MoyHarmonik(const double & aV1,const double & aV2);
+double MoyHarmonik(const double & aV1,const double & aV2,const double & aV3);
+
 
 #endif /* ! _ELISE_UTIL_H */
 
