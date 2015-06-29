@@ -72,7 +72,7 @@ class cSP_PointeImage
         cSP_PointGlob * Gl();
         bool  & Visible() ;
         bool BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2);
-        bool BuildEpipolarLine(std::vector<Pt2dr> &);
+        bool BuildEpipolarLine(std::vector<Pt2dr> &,std::vector<bool> & aV3InCap);
 
         // void ReestimVisibilite(const Pt3dr & aPTer,bool Masq3DVis);
 private :

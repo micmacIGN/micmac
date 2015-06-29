@@ -87,7 +87,7 @@ bool cSP_PointeImage::BuildEpipolarLine(Pt2dr &pt1, Pt2dr &pt2)
     return false;
 }
 
-bool cSP_PointeImage::BuildEpipolarLine(std::vector<Pt2dr> & aResVPt)
+bool cSP_PointeImage::BuildEpipolarLine(std::vector<Pt2dr> & aResVPt,std::vector<bool> & aV3DInCap)
 {
     if (mGl)
     {
@@ -97,6 +97,8 @@ bool cSP_PointeImage::BuildEpipolarLine(std::vector<Pt2dr> & aResVPt)
 
         if (aCap3D && mGl->PG()->PS1().IsInit() && ((aState==eEPI_NonSaisi) || (aState==eEPI_Refute)))
         {
+            aResVPt.clear();
+            aV3DInCap.clear();
             std::vector<Pt3dr> aVPtIn = mGl->PG()->VPS();
             if (aVPtIn.empty())
             {
@@ -105,6 +107,7 @@ bool cSP_PointeImage::BuildEpipolarLine(std::vector<Pt2dr> & aResVPt)
             }
             for (int aK=0 ; aK<int(aVPtIn.size()) ; aK++)
             {
+                aV3DInCap.push_back(aCap3D->PIsVisibleInImage(aVPtIn[aK]));
                 aResVPt.push_back(aCap3D->Ter2Capteur(aVPtIn[aK]));
             }
 
