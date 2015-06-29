@@ -43,6 +43,140 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+class cNewO_NameManager;
+
+class cVecPt2fMemorySwap
+{
+     public :
+        typedef std::pair<std::vector<Pt2df>,std::vector<Pt2df> >  tVal;
+        typedef int                                                tId;
+        typedef std::pair<cNewO_NameManager *, std::pair<cNewO_OneIm *,cNewO_OneIm *> >            tCreate;
+
+        static tVal * Create(const tCreate &);
+        static double SizeOf(const std::pair<std::vector<Pt2df>,std::vector<Pt2df> > & aPair) 
+        {
+              const std::vector<Pt2df> & aV = aPair.first;
+              return 2* (sizeof(Pt2df) * aV.size() + sizeof(aV));
+        }
+        
+
+     private :
+
+};
+
+/*
+cVecPt2fMemorySwap::cVecPt2fMemorySwap(cNewO_NameManager * aNM) :
+   mNM (aNM)
+{
+}
+*/
+
+std::pair<std::vector<Pt2df>,std::vector<Pt2df> >  * cVecPt2fMemorySwap::Create(const tCreate & aCreate)
+{
+    tVal * aRes = new tVal;
+    aCreate.first->LoadHomFloats(aCreate.second.first,aCreate.second.second,&(aRes->first),&(aRes->second));
+
+    return aRes;
+}
+
+
+template <class Type> class cMemorySwap
+{
+    public :
+
+        typedef typename Type::tVal     tVal;
+        typedef          int            tId;
+        typedef typename Type::tCreate  tCreate;
+
+        cMemorySwap(double aSzRam,int aReserve);
+
+
+        tVal * AllocateObject(const tCreate &,const tId &);
+
+
+    
+    private :
+         int                   TheSizeListInt;
+         double                mSzRam;
+         double                mSzLoaded;
+         std::vector<tVal *>   mLoaded; 
+         std::vector<int>      mHisto; 
+         ElPackList<tId,20>    mListIdLoad;
+        //  std::list<tId>        mListIdLoad;
+};
+
+
+
+
+template <class Type>    cMemorySwap<Type>::cMemorySwap(double aSzRam,int aReserve)  :
+    TheSizeListInt (sizeof(tId)+1),    // Quasi  sizeof(tId) grace au packing
+    mSzRam         (aSzRam),
+    mSzLoaded      (0),
+    mLoaded        (aReserve,(tVal *)0),
+    mHisto         (aReserve,0)
+{
+}
+
+template <class Type> typename Type::tVal * cMemorySwap<Type>::AllocateObject(const tCreate & anArgCreate,const tId & anId)
+{
+    // Augmentation du vecteur
+    for (int aK=mLoaded.size()  ; aK<=anId; aK++)
+    {
+       mLoaded.push_back(0);
+       mHisto.push_back(0);
+    }
+
+     mHisto[anId] ++;
+     mListIdLoad.push_back(anId);
+     mSzLoaded += TheSizeListInt;
+
+     // S'il est charge on le renvoie
+     if (mLoaded[anId]) 
+     {
+        return mLoaded[anId];
+     }
+
+     tVal *  aRes = Type::Create(anArgCreate);
+
+     double aSzL = Type::SizeOf(*aRes);
+     mSzLoaded += aSzL ;
+
+     while ((mSzLoaded > mSzRam) && (! mListIdLoad.size() >=2))
+     {
+          int anId = mListIdLoad.pop_front();
+          mHisto[anId] --;
+          mSzLoaded -= TheSizeListInt;
+
+          if (mHisto[anId] ==0)
+          {
+              tVal * a2Del = mLoaded[anId];
+              mSzLoaded -= Type::SizeOf(a2Del);
+              delete a2Del;
+              mLoaded[anId] = 0;
+          }
+     }
+
+
+     mLoaded[anId] = aRes;
+
+     return aRes;
+}
+
+
+
+void TestF()
+{
+    cMemorySwap<cVecPt2fMemorySwap>  aMS(1e9,107);
+}
+
+
+
+
+
+
+
+
+
 static const int  TMaxNbCase = TNbCaseP1 * TNbCaseP1;
 static const int  TMaxGain = 2e9;
 
