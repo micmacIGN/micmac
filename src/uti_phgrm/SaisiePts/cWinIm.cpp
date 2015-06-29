@@ -368,18 +368,23 @@ void cWinIm::ShowPoint(const Pt2dr aP,eEtatPointeImage aState,cSP_PointGlob * aP
 
 
         std::vector<Pt2dr> aVPt;
-        if (aPIm->BuildEpipolarLine(aVPt))
+        std::vector<bool>  aVOkPt;
+        if (aPIm->BuildEpipolarLine(aVPt,aVOkPt))
         {
            std::vector<Pt2dr> aVPtW;
-           std::vector<bool>  aVOkPt;
            Box2dr  aBoxIm = BoxImageVisible() ;
            for (int aK=1 ; aK<int(aVPt.size()) ; aK++)
            {
-               Seg2d aSeg(aVPt[aK-1],aVPt[aK]);
-               aSeg = aSeg.clip(aBoxIm);
-               if (! aSeg.empty())
+               if (aVOkPt[aK-1]||aVOkPt[aK])
                {
-                 mW.draw_seg(mScr->to_win(aSeg.p0()),mScr->to_win(aSeg.p1()),aLst);
+                   Seg2d aSeg(aVPt[aK-1],aVPt[aK]);
+                   aSeg = aSeg.clip(aBoxIm);
+                   if (! aSeg.empty())
+                   {
+                       Pt2dr aPW1 = mScr->to_win(aSeg.p0());
+                       Pt2dr aPW2 = mScr->to_win(aSeg.p1());
+                       mW.draw_seg(aPW1,aPW2,aLst);
+                   }
                }
            }
         }
@@ -459,6 +464,9 @@ void cWinIm::RedrawGrabSetPosPt()
         // mNewPt = aClk._pt;
 
     Pt2dr aPIm = mScr->to_user(mNewPt) ;
+
+
+    // if (mCurIm->PtInImage(mNewPt))
     if ( !mCurIm->PtInImage(aPIm) )
     {
          mNewPt = mOldPt;

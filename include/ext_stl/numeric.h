@@ -423,6 +423,8 @@ template <class TVal> TVal KthValProp(std::vector<TVal> & aV,double aProp)
     return KthVal(VData(aV),aV.size(),ElMax(0,ElMin(int(aV.size()-1),round_ni(aV.size()*aProp))));
 }
 
+double MedianPond(std::vector<Pt2df> &  aV);
+
 
 
 #endif  // _ELISE_EXT_STL_NUMERICS_H
