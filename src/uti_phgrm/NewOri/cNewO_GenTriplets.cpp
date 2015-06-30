@@ -128,7 +128,6 @@ void cSwappablePairVPts::Swap_Create(const Swap_tArgCreate & anArg)
     mVP2 = new std::vector<Pt2df>;
     anArg.mNM->LoadHomFloats(anArg.mI1,anArg.mI2,mVP1,mVP2);
 
-
     if (Swap_NbCreate()==0)
     {
        for (int aKP=0 ; aKP<int(mVP1->size()) ; aKP++)
@@ -321,29 +320,12 @@ class cGTrip_AttrASym
              mTest  (false)
         {
         }
-/*
-        std::vector<Pt2df> & VP1() {ELISE_ASSERT(mSPV.Swap_Loaded(),"XXXXX"); return *(mSPV.mVP1);}
-        std::vector<Pt2df> & VP2() {ELISE_ASSERT(mSPV.Swap_Loaded(),"XXXXX"); return *(mSPV.mVP2);}
-        Pt2df & InfP1() {return mSPV.mInfP1;}
-        Pt2df & SupP1() {return mSPV.mSupP1;}
-*/
-        std::vector<Pt2df> & VP1() {return mVP1;}
-        std::vector<Pt2df> & VP2() {return mVP2;}
-        Pt2df & InfP1() {return mInfP1;}
-        Pt2df & SupP1() {return mSupP1;}
         const cXml_Ori2Im & Xml() const {return mXML;}
         bool  & ArcTest() {return mTest;}
 
-        cSwappablePairVPts * SPV() {return &mSPV;}
      private  :
         cGTrip_AttrASym(const cGTrip_AttrASym & aXml) ; // N.I.
         cXml_Ori2Im mXML;
-
-        cSwappablePairVPts mSPV;
-        std::vector<Pt2df> mVP1;
-        std::vector<Pt2df> mVP2;
-        Pt2df              mInfP1;
-        Pt2df              mSupP1;
 
         bool              mTest;
 };
@@ -359,8 +341,6 @@ class cGTrip_AttrArc
         }
         cGTrip_AttrASym & ASym() {return *mASym;}
         bool IsDirASym() const {return mASDir;}
-        std::vector<Pt2df> & VP1() {return mASDir ? mASym->VP1() : mASym->VP2();}
-        std::vector<Pt2df> & VP2() {return mASDir ? mASym->VP2() : mASym->VP1();}
         const ElRotation3D & Rot() const {return mRot;}
 
     private  :
@@ -418,7 +398,6 @@ class cAppli_GenTriplet
        void AddSomTmp(tSomGT & aS);
 
        tSomGT * GetNextSom();
-       void SwapLoadArc(tArcGT *);
 
        tGrGT                mGrT;
        tSubGrGT             mSubAll;
@@ -670,14 +649,6 @@ void  cGTrip_AttrSom::UpdateCost(tSomGT * aSomThis,tSomGT *aSomSel)
 /*********************************************************/
 
 
-void cAppli_GenTriplet::SwapLoadArc(tArcGT * anArc)
-{
-    cArgCreateSPV anArg(mNM,&(S1ASym(anArc)->attr().Im()),&(S2ASym(anArc)->attr().Im()));
-
-    mAllocSwap.ReAllocateObject(anArc->attr().ASym().SPV(),anArg);
-
-// cNewO_NameManager * aNM,cNewO_OneIm *anI1,cNewO_OneIm * anI2) :
-}
 
 void cAppli_GenTriplet::AddSomTmp(tSomGT & aS)
 {
@@ -755,6 +726,22 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
 {
     if (!anArc.attr().IsDirASym() ) return;
     mCurArc = & anArc;
+
+
+
+    std::vector<Pt2df> aVP1,aVP2;
+    mNM->LoadHomFloats(&(anArc.s1().attr().Im()),&(anArc.s2().attr().Im()),&aVP1,&aVP2);
+
+    mPInf = Pt2df(1e20,1e20);
+    mPSup = Pt2df(-1e20,-1e20);
+
+    for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
+    {
+        const Pt2df & aP1 = aVP1[aKP];
+        mPInf = Inf(mPInf,aP1);
+        mPSup = Sup(mPSup,aP1);
+    }
+
     mCurTestArc = anArc.attr().ASym().ArcTest();
 
 
@@ -764,8 +751,6 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     mCurS1  = & (anArc.s1());
     mCurS2  = & (anArc.s2());
 
-    mPInf = anArc.attr().ASym().InfP1();
-    mPSup = anArc.attr().ASym().SupP1();
     Pt2df aPLarg = mPSup-mPInf;
     mStepCases = ElMax(aPLarg.x,aPLarg.y) / TNbCaseP1;
     mSzCases = Pt2di(round_up(aPLarg.x/mStepCases),round_up(aPLarg.y/mStepCases));
@@ -776,7 +761,8 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     mMulQuant  = mNbCases *pow((float)TQuant,3) * TQuantBsH;
     ELISE_ASSERT(mMulQuant<TMaxGain,"Owerflow in cAppli_GenTriplet::GenTriplet");
 
-    mCurS1->attr().InitNb(mCurArc->attr().VP1());
+    // mCurS1->attr().InitNb(mCurArc->attr().VPts1());
+    mCurS1->attr().InitNb(aVP1);
     int aNbMax = 0;
     for (int aK=0 ; aK<mNbCases ; aK++)
     {
@@ -830,27 +816,6 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     {
         getchar();
     }
-    if (MPD_MM())
-    {
-        double aSomDiff=0;
-        for (std::list<cXml_OneTriplet>::const_iterator it3=mTopoTriplets.Triplets().begin() ; it3!=mTopoTriplets.Triplets().end() ; it3++)
-        {
-            std::string aBase = "NewOriTmpQuick/";
-            std::string aNameTri = aBase+it3->Name1() + "/" + it3->Name2() + "/Triplet-OriOpt-" + it3->Name3() + ".dmp";
-
-            cXml_Ori3ImInit aXmlNew = StdGetFromSI(aNameTri,Xml_Ori3ImInit);
-            cXml_Ori3ImInit aXmlOld = StdGetFromSI("ORI-"+aNameTri,Xml_Ori3ImInit);
-
-            double aDiff = ElAbs( aXmlNew.ResiduTriplet() - aXmlOld.ResiduTriplet());
-            aDiff +=  euclid(aXmlNew.Ori2On1().Centre()-aXmlOld.Ori2On1().Centre());
-            aDiff +=  euclid(aXmlNew.Ori3On1().Centre()-aXmlOld.Ori3On1().Centre());
-            aDiff +=  euclid(aXmlNew.Ori2On1().Ori().L1()-aXmlOld.Ori2On1().Ori().L1());
-            aDiff +=  euclid(aXmlNew.Ori3On1().Ori().L1()-aXmlOld.Ori3On1().Ori().L1());
-            ELISE_ASSERT(aDiff<1e-5,"Check in SwapTriplet");
-            aSomDiff+= aDiff;
-        }
-        std::cout << "SOM DIFF= " << aSomDiff << "\n";
-    }
 }
 
 
@@ -890,6 +855,30 @@ void cAppli_GenTriplet::GenTriplet()
   
    if (mShow)
       std::cout << "Load " << mTimeLoadHom << " Merge " << mTimeMerge << " Selec " << mTimeSelec << " GenTripl " << aTimeGT.uval() << "\n";
+    if (MPD_MM())
+    {
+        double aSomDiff=0;
+        for (std::list<cXml_OneTriplet>::const_iterator it3=mTopoTriplets.Triplets().begin() ; it3!=mTopoTriplets.Triplets().end() ; it3++)
+        {
+            std::string aBase = "NewOriTmpQuick/";
+            std::string aNameTri = aBase+it3->Name1() + "/" + it3->Name2() + "/Triplet-OriOpt-" + it3->Name3() + ".dmp";
+
+            cXml_Ori3ImInit aXmlNew = StdGetFromSI(aNameTri,Xml_Ori3ImInit);
+            cXml_Ori3ImInit aXmlOld = StdGetFromSI("ORI-"+aNameTri,Xml_Ori3ImInit);
+
+            double aDiff = ElAbs( aXmlNew.ResiduTriplet() - aXmlOld.ResiduTriplet());
+            aDiff +=  euclid(aXmlNew.Ori2On1().Centre()-aXmlOld.Ori2On1().Centre());
+            aDiff +=  euclid(aXmlNew.Ori3On1().Centre()-aXmlOld.Ori3On1().Centre());
+            aDiff +=  euclid(aXmlNew.Ori2On1().Ori().L1()-aXmlOld.Ori2On1().Ori().L1());
+            aDiff +=  euclid(aXmlNew.Ori3On1().Ori().L1()-aXmlOld.Ori3On1().Ori().L1());
+            ELISE_ASSERT(aDiff<1e-5,"Check in SwapTriplet");
+            aSomDiff+= aDiff;
+        }
+        cXml_TopoTriplet aOld3 = StdGetFromSI("ORI-NewOriTmpQuick/ListeTriplets.xml",Xml_TopoTriplet);
+        ELISE_ASSERT(aOld3.Triplets().size() == mTopoTriplets.Triplets().size(),"Chexk Size Triple")
+
+        std::cout << "SOM DIFF= " << aSomDiff << "\n";
+    }
 }
 
 bool operator < (const tSomGT & aS1,const tSomGT & aS2)
@@ -1107,6 +1096,7 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
         std::pair<std::string,std::string> aPair = mEASF.mICNM->Assoc2To1(aKeyCple2I,(*aSetCple)[aKC],false);
         std::string aN1 = aPair.first;
         std::string aN2 = aPair.second;
+        ELISE_ASSERT(aN1<aN2,"Order in Hom");
 
         tSomGT * aS1 = mMapS[aN1];
         tSomGT * aS2 = mMapS[aN2];
@@ -1122,30 +1112,9 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                   cGTrip_AttrASym * anASym  =  new  cGTrip_AttrASym(aXmlO);
                   anASym->ArcTest() = (aS1->attr().SomTest() && aS2->attr().SomTest());
 
-                  std::vector<Pt2df> & aVP1 = anASym->VP1();
-                  std::vector<Pt2df> & aVP2 = anASym->VP2();
-
-                  mNM->LoadHomFloats(&(aS1->attr().Im()),&(aS2->attr().Im()),&aVP1,&aVP2);
-
-                  Pt2df aInfP1(1e20,1e20);
-                  Pt2df aSupP1(-1e20,-1e20);
-                  for (int aKP=0 ; aKP<int(aVP1.size()) ; aKP++)
-                  {
-                      const Pt2df & aP1 = aVP1[aKP];
-                      aInfP1 = Inf(aInfP1,aP1);
-                      aSupP1 = Sup(aSupP1,aP1);
-                  }
-                  anASym->InfP1() = aInfP1;
-                  anASym->SupP1() = aSupP1;
-
-
                   tArcGT  * anArc = &( mGrT.add_arc(*aS1,*aS2,cGTrip_AttrArc(aR,anASym,true),cGTrip_AttrArc(aR.inv(),anASym,false)));
 
                   if (aKC%2) anArc = &(anArc->arc_rec());
-
-                  //  SwapLoadArc(anArc);
-
-
                }
 
            }
