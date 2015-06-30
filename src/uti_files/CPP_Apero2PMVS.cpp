@@ -154,7 +154,7 @@ void Apero2PMVS(string aFullPattern, string aOri)
         fclose(f);
 
         delete aCS;
-        // delete anICNM;
+        // delete anICNM; => OBJET A NE PAS DETRUIRE ...
     }//end of "for each image"
 
     //Undistorting the images with Drunk

@@ -64,7 +64,9 @@ class cBaseSwappable
 {
      public :
          int & Swap_HeapIndex() {return mHeapIndex;}
-         unsigned long int & Swap_IndLastLoaded() {return mIndLastLoaded;}
+         const int & Swap_HeapIndex() const {return mHeapIndex;}
+         _INT8 & Swap_IndLastLoaded() {return mIndLastLoaded;}
+         const _INT8 & Swap_IndLastLoaded() const {return mIndLastLoaded;}
          bool& Swap_Deletable() {return mDeletable;}
          int & Swap_NbCreate() {return mNbCreate;}
 
@@ -77,7 +79,7 @@ class cBaseSwappable
 
       private:
          int mHeapIndex;
-         unsigned long int mIndLastLoaded;
+         _INT8 mIndLastLoaded;
          bool mDeletable;
          int  mNbCreate;
 };
@@ -169,8 +171,8 @@ template <class Type> class cMemorySwap
         void  ReAllocateObject(Type *,const tCreate & anArg);
     
     private :
-        double                mSzRam;
-        double                mSzLoaded;
+        _INT8       mSzRam;
+        _INT8       mSzLoaded;
         cHeapSwapCmpIndLoad<Type> mCmp;
         ElHeap<Type *,cHeapSwapCmpIndLoad<Type>,cHeapSwapIndex<Type> > mHeap;
         unsigned long int     mCpt;
@@ -319,19 +321,30 @@ class cGTrip_AttrASym
              mTest  (false)
         {
         }
+/*
+        std::vector<Pt2df> & VP1() {ELISE_ASSERT(mSPV.Swap_Loaded(),"XXXXX"); return *(mSPV.mVP1);}
+        std::vector<Pt2df> & VP2() {ELISE_ASSERT(mSPV.Swap_Loaded(),"XXXXX"); return *(mSPV.mVP2);}
+        Pt2df & InfP1() {return mSPV.mInfP1;}
+        Pt2df & SupP1() {return mSPV.mSupP1;}
+*/
         std::vector<Pt2df> & VP1() {return mVP1;}
         std::vector<Pt2df> & VP2() {return mVP2;}
         Pt2df & InfP1() {return mInfP1;}
         Pt2df & SupP1() {return mSupP1;}
         const cXml_Ori2Im & Xml() const {return mXML;}
         bool  & ArcTest() {return mTest;}
+
+        cSwappablePairVPts * SPV() {return &mSPV;}
      private  :
         cGTrip_AttrASym(const cGTrip_AttrASym & aXml) ; // N.I.
         cXml_Ori2Im mXML;
+
+        cSwappablePairVPts mSPV;
         std::vector<Pt2df> mVP1;
         std::vector<Pt2df> mVP2;
         Pt2df              mInfP1;
         Pt2df              mSupP1;
+
         bool              mTest;
 };
 
@@ -355,6 +368,10 @@ class cGTrip_AttrArc
         cGTrip_AttrASym * mASym;
         bool              mASDir;
 };
+
+tSomGT * S1ASym(tArcGT * anArc) {return anArc->attr().IsDirASym() ? &(anArc->s1()) : &(anArc->s2());}
+tSomGT * S2ASym(tArcGT * anArc) {return anArc->attr().IsDirASym() ? &(anArc->s2()) : &(anArc->s1());}
+
 
 
 class cResTriplet
@@ -400,7 +417,8 @@ class cAppli_GenTriplet
        void  GenTriplet(tArcGT & anArc);
        void AddSomTmp(tSomGT & aS);
 
-        tSomGT * GetNextSom();
+       tSomGT * GetNextSom();
+       void SwapLoadArc(tArcGT *);
 
        tGrGT                mGrT;
        tSubGrGT             mSubAll;
@@ -443,6 +461,8 @@ class cAppli_GenTriplet
        double                        mTimeMerge;
        double                        mTimeSelec;
        bool                          mQuick;
+       double                        mRamAllowed;
+       cMemorySwap<cSwappablePairVPts>  mAllocSwap;
 };
 
 /*********************************************************/
@@ -649,6 +669,16 @@ void  cGTrip_AttrSom::UpdateCost(tSomGT * aSomThis,tSomGT *aSomSel)
 /*                                                       */
 /*********************************************************/
 
+
+void cAppli_GenTriplet::SwapLoadArc(tArcGT * anArc)
+{
+    cArgCreateSPV anArg(mNM,&(S1ASym(anArc)->attr().Im()),&(S2ASym(anArc)->attr().Im()));
+
+    mAllocSwap.ReAllocateObject(anArc->attr().ASym().SPV(),anArg);
+
+// cNewO_NameManager * aNM,cNewO_OneIm *anI1,cNewO_OneIm * anI2) :
+}
+
 void cAppli_GenTriplet::AddSomTmp(tSomGT & aS)
 {
    if ( aS.flag_kth(mFlagVois))
@@ -800,6 +830,27 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     {
         getchar();
     }
+    if (MPD_MM())
+    {
+        double aSomDiff=0;
+        for (std::list<cXml_OneTriplet>::const_iterator it3=mTopoTriplets.Triplets().begin() ; it3!=mTopoTriplets.Triplets().end() ; it3++)
+        {
+            std::string aBase = "NewOriTmpQuick/";
+            std::string aNameTri = aBase+it3->Name1() + "/" + it3->Name2() + "/Triplet-OriOpt-" + it3->Name3() + ".dmp";
+
+            cXml_Ori3ImInit aXmlNew = StdGetFromSI(aNameTri,Xml_Ori3ImInit);
+            cXml_Ori3ImInit aXmlOld = StdGetFromSI("ORI-"+aNameTri,Xml_Ori3ImInit);
+
+            double aDiff = ElAbs( aXmlNew.ResiduTriplet() - aXmlOld.ResiduTriplet());
+            aDiff +=  euclid(aXmlNew.Ori2On1().Centre()-aXmlOld.Ori2On1().Centre());
+            aDiff +=  euclid(aXmlNew.Ori3On1().Centre()-aXmlOld.Ori3On1().Centre());
+            aDiff +=  euclid(aXmlNew.Ori2On1().Ori().L1()-aXmlOld.Ori2On1().Ori().L1());
+            aDiff +=  euclid(aXmlNew.Ori3On1().Ori().L1()-aXmlOld.Ori3On1().Ori().L1());
+            ELISE_ASSERT(aDiff<1e-5,"Check in SwapTriplet");
+            aSomDiff+= aDiff;
+        }
+        std::cout << "SOM DIFF= " << aSomDiff << "\n";
+    }
 }
 
 
@@ -830,6 +881,7 @@ void cAppli_GenTriplet::GenTriplet()
        {
           std::string aNameTri = mNM->NameTripletsOfCple(aIm1,aIm2,(aKBin==0));
           MakeFileXML(itCpl3->second,aNameTri);
+
        }
        aLCple.Cple().push_back(aCple);
    }
@@ -956,7 +1008,8 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
 
    for (int aK=0 ; aK <2 ; aK++)
    {
-      MakeFileXML(aRT.mXml,mNM->NameOriInitTriplet((aK==0),&(aA1.Im()),&(aA2.Im()),&(aA3.Im())));
+      std::string aNameTri = mNM->NameOriInitTriplet((aK==0),&(aA1.Im()),&(aA2.Im()),&(aA3.Im()));
+      MakeFileXML(aRT.mXml,aNameTri);
    }
 
    mMapTriplets[aTr] =  aRT;
@@ -991,6 +1044,7 @@ void  AddPackToMerge(CamStenope * aCS1,CamStenope * aCS2,const ElPackHomologue &
     }
 }
 
+
 cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mGrT        (),
     mFlagVois   (mGrT.alloc_flag_som()),
@@ -1000,7 +1054,9 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
     mShow       (true),
     mTimeMerge  (0.0),
     mTimeSelec  (0.0),
-    mQuick      (false)
+    mQuick      (true), 
+    mRamAllowed (4e9),
+    mAllocSwap  (mRamAllowed)
 {
    ElTimer aChronoLoad;
 
@@ -1082,7 +1138,13 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                   anASym->InfP1() = aInfP1;
                   anASym->SupP1() = aSupP1;
 
-                  mGrT.add_arc(*aS1,*aS2,cGTrip_AttrArc(aR,anASym,true),cGTrip_AttrArc(aR.inv(),anASym,false));
+
+                  tArcGT  * anArc = &( mGrT.add_arc(*aS1,*aS2,cGTrip_AttrArc(aR,anASym,true),cGTrip_AttrArc(aR.inv(),anASym,false)));
+
+                  if (aKC%2) anArc = &(anArc->arc_rec());
+
+                  //  SwapLoadArc(anArc);
+
 
                }
 
