@@ -60,7 +60,28 @@ class cArgCreateSPV
          cNewO_OneIm *       mI2;
 };
 
-class cSwappablePairVPts
+class cBaseSwappable
+{
+     public :
+         int & Swap_HeapIndex() {return mHeapIndex;}
+         unsigned long int & Swap_IndLastLoaded() {return mIndLastLoaded;}
+         bool& Swap_Deletable() {return mDeletable;}
+         int & Swap_NbCreate() {return mNbCreate;}
+
+        cBaseSwappable() :
+             mDeletable (false),
+             mNbCreate (0)
+        {
+        }
+
+      private:
+         int mHeapIndex;
+         unsigned long int mIndLastLoaded;
+         bool mDeletable;
+         int  mNbCreate;
+};
+
+class cSwappablePairVPts : public cBaseSwappable
 {
      public :
    // Pre-requis
@@ -74,13 +95,8 @@ class cSwappablePairVPts
              mVP2=0;
          }
          bool Swap_Loaded() {return mVP1!=0;}
-
-
-         int & Swap_HeapIndex() {return mHeapIndex;}
-         unsigned long int & Swap_IndLastLoaded() {return mIndLastLoaded;}
-         bool& Swap_Deletable() {return mDeletable;}
          void Swap_Create(const Swap_tArgCreate & anArg);
-
+         int  Swap_SizeOf();
 
    //======================
 
@@ -90,9 +106,6 @@ class cSwappablePairVPts
          {
          }
 
-         int mHeapIndex;
-         unsigned long int mIndLastLoaded;
-         bool mDeletable;
          std::vector<Pt2df> * mVP1; 
          std::vector<Pt2df> * mVP2; 
 };
@@ -103,14 +116,14 @@ class cSwappablePairVPts
 template <class Type> class cHeapSwapIndex
 {
      public :
-        static void SetIndex(Type & aP,int i) { aP.Swap_HeapIndex()=i;}
-        static int  Index(const Type &aP) { return aP.Swap_HeapIndex(); }
+        static void SetIndex(Type * aP,int i) { aP->Swap_HeapIndex()=i;}
+        static int  Index(const Type *aP) { return aP->Swap_HeapIndex(); }
 };
 
 template <class Type> class cHeapSwapCmpIndLoad
 {
     public :
-      bool operator() (const Type & aP1,const Type & aP2) {return aP1.Swap_IndLastLoaded() < aP2.Swap_IndLastLoaded();}
+      bool operator() (const Type * aP1,const Type * aP2) {return aP1->Swap_IndLastLoaded() < aP2->Swap_IndLastLoaded();}
 };
 
 
@@ -120,41 +133,51 @@ template <class Type> class cMemorySwap
 {
     public :
 
-        typedef typename Type::tCreate  tCreate;
-
+        typedef typename Type::Swap_tArgCreate  tCreate;
         cMemorySwap(double aSzRam);
-
-
-        void  ReAllocateObject(Type &);
-
-
+        void  ReAllocateObject(Type *,const tCreate & anArg);
     
     private :
-         double                mSzRam;
-         double                mSzLoaded;
-         // ElHeap<Type,cHeapCmpSmallerY,cHeapIndByZ> mHeap;
-         
-        //  std::list<tId>        mListIdLoad;
+        double                mSzRam;
+        double                mSzLoaded;
+        cHeapSwapCmpIndLoad<Type> mCmp;
+        ElHeap<Type *,cHeapSwapCmpIndLoad<Type>,cHeapSwapIndex<Type> > mHeap;
+        unsigned long int     mCpt;
 };
 
-#if (0)
 
 
 
-template <class Type>    cMemorySwap<Type>::cMemorySwap(double aSzRam,int aReserve)  :
-    TheSizeIndexation (30),    // Au PIF, tas + 
+
+
+template <class Type>    cMemorySwap<Type>::cMemorySwap(double aSzRam) :
     mSzRam         (aSzRam),
     mSzLoaded      (0),
-    mHeap          (cHeapCmpSmallerY::TheOne)
+    mCmp           (),
+    mHeap          (mCmp),
+    mCpt           (0)
 {
 }
 
-template <class Type> typename Type::tVal * cMemorySwap<Type>::AllocateObject(const tCreate & anArgCreate,const tId & anId)
+template <class Type> void cMemorySwap<Type>::ReAllocateObject(Type * anObj,const tCreate & anArg)
 {
     // Augmentation du vecteur
+    anObj->Swap_IndLastLoaded() =  mCpt++;
+    mHeap.MajOrAdd(anObj);
+    
+
+    if (anObj->Swap_Loaded())
+    {
+         return;
+    }
+
+    anObj->Swap_Create(anArg);
+    anObj->Swap_NbCreate()++;
+    mSzLoaded += anObj->Swap_SizeOf();
 
 
      // S'il est charge on le renvoie
+/*
      typename std::map<int,tVal *>::iterator anIt = mLoaded.find(anId);
      if (anIt != mLoaded.end())
      {
@@ -169,19 +192,6 @@ template <class Type> typename Type::tVal * cMemorySwap<Type>::AllocateObject(co
 
      while ((mSzLoaded > mSzRam) && (! mLoaded.empty()))
      {
-/*
-          int anId = mListIdLoad.pop_front();
-          mHisto[anId] --;
-          mSzLoaded -= TheSizeIndexation;
-
-          if (mHisto[anId] ==0)
-          {
-              tVal * a2Del = mLoaded[anId];
-              mSzLoaded -= Type::SizeOf(a2Del);
-              delete a2Del;
-              mLoaded[anId] = 0;
-          }
-*/
      }
 
 
@@ -191,17 +201,19 @@ template <class Type> typename Type::tVal * cMemorySwap<Type>::AllocateObject(co
 
 
    return 0;
+*/
 }
 
 
 
 void TestF()
 {
-    cMemorySwap<cVecPt2fMemorySwap>  aMS(1e9,107);
+    cMemorySwap<cSwappablePairVPts>  aMS(1e6);
 }
 
 
 
+#if (0)
 cHeapCmpSmallerY cHeapCmpSmallerY::TheOne;
 #endif
 
