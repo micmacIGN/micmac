@@ -69,6 +69,7 @@ class cBaseSwappable
          int & Swap_NbCreate() {return mNbCreate;}
 
         cBaseSwappable() :
+             mHeapIndex (HEAP_NO_INDEX),
              mDeletable (false),
              mNbCreate (0)
         {
@@ -161,7 +162,6 @@ template <class Type>    cMemorySwap<Type>::cMemorySwap(double aSzRam) :
 
 template <class Type> void cMemorySwap<Type>::ReAllocateObject(Type * anObj,const tCreate & anArg)
 {
-    // Augmentation du vecteur
     anObj->Swap_IndLastLoaded() =  mCpt++;
     mHeap.MajOrAdd(anObj);
     
