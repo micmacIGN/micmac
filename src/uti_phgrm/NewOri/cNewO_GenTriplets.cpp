@@ -103,13 +103,43 @@ class cSwappablePairVPts : public cBaseSwappable
 
          cSwappablePairVPts() :
             mVP1 (0),
-            mVP2 (0)
+            mVP2 (0),
+            mInfP1 ( 1e20, 1e20),
+            mSupP1 (-1e20,-1e20)
          {
          }
 
          std::vector<Pt2df> * mVP1; 
          std::vector<Pt2df> * mVP2; 
+         Pt2df                mInfP1;
+         Pt2df                mSupP1;
 };
+
+int  cSwappablePairVPts::Swap_SizeOf()
+{
+    return 2 * (sizeof(Pt2df) * mVP1->size() + sizeof(std::vector<Pt2df>));
+}
+
+void cSwappablePairVPts::Swap_Create(const Swap_tArgCreate & anArg)
+{
+    mVP1 = new std::vector<Pt2df>;
+    mVP2 = new std::vector<Pt2df>;
+    anArg.mNM->LoadHomFloats(anArg.mI1,anArg.mI2,mVP1,mVP2);
+
+
+    if (Swap_NbCreate()==0)
+    {
+       for (int aKP=0 ; aKP<int(mVP1->size()) ; aKP++)
+       {
+            const Pt2df & aP1 = (*mVP1)[aKP];
+            mInfP1 = Inf(mInfP1,aP1);
+            mSupP1 = Sup(mSupP1,aP1);
+       }
+    }
+}
+
+
+
 
 //  x => Id ; y => Prio ; z => Heap Index
 
@@ -163,6 +193,7 @@ template <class Type>    cMemorySwap<Type>::cMemorySwap(double aSzRam) :
 template <class Type> void cMemorySwap<Type>::ReAllocateObject(Type * anObj,const tCreate & anArg)
 {
     anObj->Swap_IndLastLoaded() =  mCpt++;
+    int aCurCpt =  anObj->Swap_IndLastLoaded() ;
     mHeap.MajOrAdd(anObj);
     
 
@@ -173,35 +204,37 @@ template <class Type> void cMemorySwap<Type>::ReAllocateObject(Type * anObj,cons
 
     anObj->Swap_Create(anArg);
     anObj->Swap_NbCreate()++;
+    anObj->Swap_Deletable() = false;
     mSzLoaded += anObj->Swap_SizeOf();
 
-
-     // S'il est charge on le renvoie
-/*
-     typename std::map<int,tVal *>::iterator anIt = mLoaded.find(anId);
-     if (anIt != mLoaded.end())
-     {
-        return anIt.second;
-     }
-
-     mSzLoaded += TheSizeIndexation;
-     tVal *  aRes = Type::Create(anArgCreate);
-
-     double aSzL = Type::SizeOf(*aRes);
-     mSzLoaded += aSzL ;
-
-     while ((mSzLoaded > mSzRam) && (! mLoaded.empty()))
-     {
-     }
-
-
-     mLoaded[anId] = aRes;
-
-     return aRes;
-
-
-   return 0;
-*/
+    bool Cont = true;
+    while (Cont)
+    {
+       if (mSzLoaded <mSzRam)
+       {
+          Cont = false;
+       }
+       else
+       {
+          Type * aPop;
+          bool aGot = mHeap.pop(aPop);
+          ELISE_ASSERT(aGot,"Heap empty in cMemorySwap<Type>::ReAllocateObject");
+          if (aPop->Swap_Deletable())
+          {
+              mSzLoaded -= anObj->Swap_SizeOf();
+              anObj->Swap_Delete();
+          }
+          else
+          {
+               if (aPop->Swap_IndLastLoaded() >= aCurCpt)
+               {
+                   Cont = false;
+               }
+               aPop->Swap_IndLastLoaded() =  mCpt++;
+               mHeap.MajOrAdd(aPop);
+          }
+       }
+    }
 }
 
 
@@ -1028,26 +1061,6 @@ cAppli_GenTriplet::cAppli_GenTriplet(int argc,char ** argv) :
                cXml_Ori2Im aXmlO = StdGetFromSI(mEASF.mDir+(*aSetCple)[aKC],Xml_Ori2Im);
                if (aXmlO.Geom().IsInit())
                {
-/*
-                  CamStenope * aCS1 = aS1->attr().Im().CS();
-                  CamStenope * aCS2 = aS2->attr().Im().CS();
-                  ElPackHomologue  aPck1 = mNM->PackOfName(aN1,aN2);
-                  ElPackHomologue  aPck2 = mNM->PackOfName(aN2,aN1);
-
-                  cFixedMergeStruct<2,Pt2df>   aMap;
-                  AddPackToMerge(aCS1,aCS2,aPck1,aMap,0);
-                  AddPackToMerge(aCS2,aCS1,aPck2,aMap,1);
-                  aMap.DoExport();
-                  const  std::list<cFixedMergeTieP<2,Pt2df> *> &  aLM = aMap.ListMerged();
-                  int aNbSym = 0;
-                  for (std::list<cFixedMergeTieP<2,Pt2df> *>::const_iterator itM = aLM.begin() ; itM!=aLM.end() ; itM++)
-                  {
-                      const cFixedMergeTieP<2,Pt2df> & aM = **itM;
-                      if (aM.NbArc() ==2) aNbSym++;
-                  }
-*/
-
-
                   const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
                   ElRotation3D aR(aXO.Centre(),ImportMat(aXO.Ori()),true);
                   cGTrip_AttrASym * anASym  =  new  cGTrip_AttrASym(aXmlO);
