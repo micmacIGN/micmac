@@ -696,6 +696,7 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
 {
    std::vector<cLinkTripl> & aVL = anArc->attr().ASym()->Lnk3();
 
+   // Impression de la matrice
    if (Test)
    {
        for (int aK1=0 ; aK1<int(aVL.size()) ; aK1++)
@@ -710,6 +711,7 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
        }
    }
 
+   // Remplissage de la structure de calul du noyau
    mCompKG.SetN(aVL.size());
    for (int aK1=0 ; aK1<int(aVL.size()) ; aK1++)
    {
@@ -733,27 +735,38 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
    double aBSurH0 =  aVL[aKK].m3->BOnH();
    ElRotation3D aR0 = aVR[aKK];
    double aD0 = euclid(aR0.tr());
+   double aSomD =0.0;
 
-
+   
    for (int aNBIter = 0 ; aNBIter<4 ; aNBIter++)
    {
         ElMatrix<double> aSomMat(3,3,0.0);
         double aSomPds = 0.0;
         Pt3dr   aSomTr (0,0,0);
+        aSomD = 0;
         for (int aK=0 ; aK<int(aVL.size()) ; aK++)
         {
              double aD =  DistanceRot(aR0,aVR[aK],aBSurH0);
+             aSomD += aD;
+
+             //   std::cout << " IMm=" << aVL[aK].S3()->attr().Im()->Name() << " D=" << aD << "\n";
              if (aD < 6 * mCoherMed12)
              {
                    double aPds = 1 /(1 + ElSquare(aD*(2*mCoherMed12)));
+                   aSomPds += aPds;
+                   aSomTr  = aSomTr  + (vunit(aVR[aK].tr()) * aD0) * aPds;
+                   aSomMat = aSomMat + aVR[aK].Mat() * aPds;
              } 
         }
+        if (aSomPds>0)
+           aR0 = ElRotation3D(aSomTr/aSomPds,aSomMat*(1/aSomPds),true);
    }
+   aSomD /= aVL.size();
 
 
    if (Test)
    {
-      std::cout <<  "KERNEL " <<   aVL[aKK].S3()->attr().Im()->Name() << "\n";
+      std::cout <<  "KERNEL " <<   aVL[aKK].S3()->attr().Im()->Name() <<  " D=" << aSomD << " R/M" << aSomD/ mCoherMed12 << "\n";
    }
 
 
