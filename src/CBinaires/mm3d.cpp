@@ -650,7 +650,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "WARNING: NON FUNCTIONAL, will Create a Grid file from the meta-data of an Aster Images"));
     aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
-	aRes.push_back(cMMCom("RefineJitter", RefineJitter_main, "/!\ V0.01 Highly experimental /!\ Refine a grid with Affine + jitter model based on SIFT obs"));
+	aRes.push_back(cMMCom("RefineJitter", RefineJitter_main, "/!\\ V0.01 Highly experimental /!\\ Refine a grid with Affine + jitter model based on SIFT obs"));
     aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
 
     cCmpMMCom CmpMMCom;
