@@ -109,6 +109,7 @@ void Apero2PMVS(string aFullPattern, string aOri)
     string cmdDRUNK,cmdConv;
     list<string> ListDrunk,ListConvert;
 
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
     //Computing PMVS orientations and writing lists of DRUNK and Convert commands
     for(int i=0;i<nbIm;i++)
     {
@@ -136,7 +137,6 @@ void Apero2PMVS(string aFullPattern, string aOri)
         string aNameCam="Ori-"+aOri+"/Orientation-"+aFullName+".xml";
 
         //Loading the camera
-        cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
         CamStenope * aCS = CamOrientGenFromFile(aNameCam,anICNM);
 
         //Compute the Computer Vision calibration matrix
@@ -154,7 +154,7 @@ void Apero2PMVS(string aFullPattern, string aOri)
         fclose(f);
 
         delete aCS;
-        delete anICNM;
+        // delete anICNM; => OBJET A NE PAS DETRUIRE ...
     }//end of "for each image"
 
     //Undistorting the images with Drunk

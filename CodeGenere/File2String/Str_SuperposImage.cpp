@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1429]) = {
+const char * (theNameVar_SuperposImage[1431]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1396,6 +1396,8 @@ const char * (theNameVar_SuperposImage[1429]) = {
 "    <Ori3On1 Nb=\"1\"  RefType=\"Xml_Rotation\"> </Ori3On1>\n",
 "    <NbTriplet Nb=\"1\" Type=\"int\"> </NbTriplet>\n",
 "    <ResiduTriplet Nb=\"1\" Type=\"double\"> </ResiduTriplet>\n",
+"    <BSurH Nb=\"1\" Type=\"double\"> </BSurH>\n",
+"    <PMed Nb=\"1\" Type=\"Pt3dr\"> </PMed>\n",
 "</Xml_Ori3ImInit>\n",
 "\n",
 "<Xml_OneTriplet  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

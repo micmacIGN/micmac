@@ -57,7 +57,7 @@ class cAppli_Martini
 
 void cAppli_Martini::StdCom(const std::string & aCom,const std::string & aPost)
 {
-    std::string  aFullCom = MM3dBinFile_quotes( "TestLib ") + aCom + " "   + mPat;
+    std::string  aFullCom = MM3dBinFile_quotes( "TestLib ") + aCom + " "   + QUOTE(mPat);
     if (EAMIsInit(&mNameOriCalib))  aFullCom = aFullCom + " OriCalib=" + mNameOriCalib;
     aFullCom += " Quick=" + ToString(mQuick);
 
@@ -96,14 +96,16 @@ void cAppli_Martini::Banniere(bool Quick)
 
 void cAppli_Martini::DoAll()
 {
+     //  Calcul de toute les orientations relatives entre paires d'images
      StdCom("NO_AllOri2Im");
+     // Homologues flottants
      StdCom("NO_AllHomFloat");
+     // Generation des triplet de points hom flottants
      StdCom("NO_AllImTriplet");
+     // Generation  des triplet
      StdCom("NO_GenTripl"," Show=false");
-     if (! mQuick)
-     {
-        StdCom("NO_AllImOptTrip");
-     }
+     // Optimisation des triplets
+     StdCom("NO_AllImOptTrip");
 }
 
 

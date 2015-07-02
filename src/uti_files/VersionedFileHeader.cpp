@@ -54,9 +54,6 @@ VersionedFileHeader::VersionedFileHeader( VFH_Type i_type, uint32_t i_version, b
 
 bool VersionedFileHeader::read_raw( std::istream &io_istream )
 {
-	m_magicNumber = m_version = 0;
-	m_isMSBF = ( MSBF_PROCESSOR()?1:0 );
-
 	char c;
 	io_istream.get(c);
 	if ( c!=-70 ) return false;
@@ -81,6 +78,8 @@ bool VersionedFileHeader::read_unknown( std::istream &io_istream, VFH_Type &o_id
 	     isMSBF_!=isMSBF() )
 	{
 		// reading failed, rewind to starting point and reset error flags
+		m_magicNumber = m_version = 0;
+		m_isMSBF = ( MSBF_PROCESSOR()?1:0 );
 		io_istream.seekg( pos );
 		io_istream.setstate( state );
 		return false;
@@ -94,15 +93,15 @@ bool VersionedFileHeader::read_known( VFH_Type i_type, std::istream &io_istream 
 	streampos pos   = io_istream.tellg();
 	ios_base::iostate state = io_istream.rdstate();
 
-	if ( !read_raw( io_istream ) )
+	if ( !read_raw(io_istream) || m_magicNumber!=(isMSBF()?g_versioned_headers_list[i_type].magic_number_MSBF:g_versioned_headers_list[i_type].magic_number_LSBF) )
 	{
 		// reading failed, rewind to starting point and reset error flags
-		io_istream.seekg( pos );
-		io_istream.setstate( state );
-	}
-
-	if ( m_magicNumber!=0 && m_magicNumber!=(isMSBF()?g_versioned_headers_list[i_type].magic_number_MSBF:g_versioned_headers_list[i_type].magic_number_LSBF) )
+		m_magicNumber = m_version = 0;
+		m_isMSBF = ( MSBF_PROCESSOR()?1:0 );
+		io_istream.seekg(pos);
+		io_istream.setstate(state);
 		return false;
+	}
 
 	return true;
 }

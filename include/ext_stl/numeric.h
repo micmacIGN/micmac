@@ -82,6 +82,11 @@ template <class Type> class cTplTriplet
                 return mV2 < aT2.mV2;
             }
 
+            bool operator == (const cTplTriplet<Type> & aT2) const
+            {
+                  return  (mV0==aT2.mV0) &&  (mV1==aT2.mV1) && (mV2==aT2.mV2);
+            }
+
             Type  mV0;
             Type  mV1;
             Type  mV2;
@@ -417,6 +422,8 @@ template <class TVal> TVal KthValProp(std::vector<TVal> & aV,double aProp)
 {
     return KthVal(VData(aV),aV.size(),ElMax(0,ElMin(int(aV.size()-1),round_ni(aV.size()*aProp))));
 }
+
+double MedianPond(std::vector<Pt2df> &  aV);
 
 
 

@@ -20810,12 +20810,36 @@ const double & cXml_Ori3ImInit::ResiduTriplet()const
    return mResiduTriplet;
 }
 
+
+double & cXml_Ori3ImInit::BSurH()
+{
+   return mBSurH;
+}
+
+const double & cXml_Ori3ImInit::BSurH()const 
+{
+   return mBSurH;
+}
+
+
+Pt3dr & cXml_Ori3ImInit::PMed()
+{
+   return mPMed;
+}
+
+const Pt3dr & cXml_Ori3ImInit::PMed()const 
+{
+   return mPMed;
+}
+
 void  BinaryUnDumpFromFile(cXml_Ori3ImInit & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Ori2On1(),aFp);
     BinaryUnDumpFromFile(anObj.Ori3On1(),aFp);
     BinaryUnDumpFromFile(anObj.NbTriplet(),aFp);
     BinaryUnDumpFromFile(anObj.ResiduTriplet(),aFp);
+    BinaryUnDumpFromFile(anObj.BSurH(),aFp);
+    BinaryUnDumpFromFile(anObj.PMed(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Ori3ImInit & anObj)
@@ -20824,6 +20848,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Ori3ImInit & anObj)
     BinaryDumpInFile(aFp,anObj.Ori3On1());
     BinaryDumpInFile(aFp,anObj.NbTriplet());
     BinaryDumpInFile(aFp,anObj.ResiduTriplet());
+    BinaryDumpInFile(aFp,anObj.BSurH());
+    BinaryDumpInFile(aFp,anObj.PMed());
 }
 
 cElXMLTree * ToXMLTree(const cXml_Ori3ImInit & anObj)
@@ -20834,6 +20860,8 @@ cElXMLTree * ToXMLTree(const cXml_Ori3ImInit & anObj)
    aRes->AddFils(ToXMLTree(anObj.Ori3On1())->ReTagThis("Ori3On1"));
    aRes->AddFils(::ToXMLTree(std::string("NbTriplet"),anObj.NbTriplet())->ReTagThis("NbTriplet"));
    aRes->AddFils(::ToXMLTree(std::string("ResiduTriplet"),anObj.ResiduTriplet())->ReTagThis("ResiduTriplet"));
+   aRes->AddFils(::ToXMLTree(std::string("BSurH"),anObj.BSurH())->ReTagThis("BSurH"));
+   aRes->AddFils(::ToXMLTree(std::string("PMed"),anObj.PMed())->ReTagThis("PMed"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -20851,9 +20879,13 @@ void xml_init(cXml_Ori3ImInit & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbTriplet(),aTree->Get("NbTriplet",1)); //tototo 
 
    xml_init(anObj.ResiduTriplet(),aTree->Get("ResiduTriplet",1)); //tototo 
+
+   xml_init(anObj.BSurH(),aTree->Get("BSurH",1)); //tototo 
+
+   xml_init(anObj.PMed(),aTree->Get("PMed",1)); //tototo 
 }
 
-std::string  Mangling( cXml_Ori3ImInit *) {return "9A918B05E203FCB8FE3F";};
+std::string  Mangling( cXml_Ori3ImInit *) {return "2369A9C67B4D84A0FF3F";};
 
 
 std::string & cXml_OneTriplet::Name1()

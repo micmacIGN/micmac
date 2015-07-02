@@ -238,7 +238,7 @@ bool DigeoPoint::readDigeoFile( const string &i_filename, bool i_allowMultipleAn
 	if ( !f ) return false;
 
 	VersionedFileHeader header;
-	if ( !header.read_known( VFH_Digeo, f ) ) return false;
+	header.read_known(VFH_Digeo,f);
 	if ( o_header!=NULL ) *o_header=header;
 	bool reverseByteOrder = ( header.isMSBF()!=MSBF_PROCESSOR() );
 

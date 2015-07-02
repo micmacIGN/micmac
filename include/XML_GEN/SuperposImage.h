@@ -6374,11 +6374,19 @@ class cXml_Ori3ImInit
 
         double & ResiduTriplet();
         const double & ResiduTriplet()const ;
+
+        double & BSurH();
+        const double & BSurH()const ;
+
+        Pt3dr & PMed();
+        const Pt3dr & PMed()const ;
     private:
         cXml_Rotation mOri2On1;
         cXml_Rotation mOri3On1;
         int mNbTriplet;
         double mResiduTriplet;
+        double mBSurH;
+        Pt3dr mPMed;
 };
 cElXMLTree * ToXMLTree(const cXml_Ori3ImInit &);
 
