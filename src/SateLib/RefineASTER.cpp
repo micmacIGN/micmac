@@ -24,7 +24,7 @@ public:
 
 		//Affinity parameters
 		// the 6 parameters of affinity
-		vP.push_back(1);// Col : Constant
+		vP.push_back(0);// Col : Constant
 		//vP.push_back(1);// Col : Param*Col
 		//vP.push_back(0);// Col : Param*Row
 
@@ -70,7 +70,7 @@ public:
 
 		cout << "Updated solution: " << endl;
 		for (size_t aK = 0; aK< vP.size(); aK++)
-			cout << vP[aK] << " ";
+			cout << setprecision(15) << vP[aK] << " ";
 		cout << endl;
 	}
 
@@ -210,13 +210,13 @@ Pt2dr ObservationASTER::computeImageDifference(int index, Pt3dr pt)
 	Pt2dr proj = cam->Camera()->R3toF2(pt);
 
 	Pt2dr imageDiff = ptImgC - proj;
-
+	/*
 	ofstream fic;
 	fic.open("refineASTER/imageDiff.txt", ofstream::app);
 	//cout << "Writing refineCoef file : refineASTER/imageDiff.txt" << endl;
 	fic << setprecision(15);
 	fic << ptImg.x << " " << ptImg.y << " " << ptImgC.x << " " << ptImgC.y << " " << imageDiff.x << " " << imageDiff.y << endl;
-
+	*/
 	return imageDiff;
 }
 
@@ -379,7 +379,7 @@ public:
 						//cout << "P1 = "<<P1.x<<" " <<P1.y << endl;
 						//cout << "P2 = "<<P2.x<<" " <<P2.y << endl;
 
-						if ((filter) && (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 100.))
+						if ((filter) && (compute2DGroundDifference(P1, Cam1, P2, Cam2) > 2500.))//compute2DGroundDifference returns the square of the distance
 						{
 							rPts_nb++;
 							//cout << "Couple with 2D ground difference > 10 rejected" << endl;
@@ -963,9 +963,9 @@ public:
 			double dY0 = 0.05;
 			//double dY1 = 0.1;
 			//double dY2 = 0.1;
-			double dSY0 = 0.05;
-			double dSY1 = 1;
-			double dSY2 = 0.05;
+			//double dSY0 = 0.05;
+			//double dSY1 = 1;
+			//double dSY2 = 0.05;
 
 			//Get number of cameras to estimate
 			int nbCam = 0;
@@ -1024,9 +1024,9 @@ public:
 
 					double X0 = cam->vP[0];
 					double Y0 = cam->vP[1];
-					double SY0 = cam->vP[2];
-					double SY1 = cam->vP[3];
-					double SY2 = cam->vP[4];
+					//double SY0 = cam->vP[2];
+					//double SY1 = cam->vP[3];
+					//double SY2 = cam->vP[4];
 
 					/* FOR INFO :
 					Pt2dr ptImgC(aX0 + aX1 * ptImg.x + aX2 * ptImg.y + aSX0 * sin(2 * M_PI  * ptImg.x / aSX1 + aSX2),
