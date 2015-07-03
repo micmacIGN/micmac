@@ -204,6 +204,8 @@ extern int CPP_MartiniGin_main(int , char **);
 
 extern int CPP_SetExif(int argc,char **argv);
 
+extern int GenerateAppLiLiaison_main(int argc,char **argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -401,6 +403,9 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
        aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo"));
+       aRes.push_back(cMMCom("Genepi",GenerateAppLiLiaison_main," Generate 3D/2d synthetical points from orientation"));
+
+
        aRes.push_back(cMMCom("DIV",Devideo_main,"Videos development (require ffmpeg)"));
        aRes.push_back(cMMCom("Liquor",Liquor_main,"Orientation specialized for linear acquisition"));
        aRes.push_back(cMMCom("Morito",Morito_main,"Merge set of Orientations with common values"));

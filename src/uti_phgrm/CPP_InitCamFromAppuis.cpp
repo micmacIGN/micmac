@@ -192,11 +192,11 @@ int Init11Param_Main(int argc,char ** argv)
                  cDistModStdPhpgr aDPhg(aDR);
                  aDPhg.b1() = (aFX-aFY)/ aFY;
                  aDPhg.b2() = aSkew / aFY;
-                 aCS = new cCamStenopeModStdPhpgr(true,aFY,aPP,aDPhg,aPAF);
+                 aCS = new cCamStenopeModStdPhpgr(false,aFY,aPP,aDPhg,aPAF);
              }
              else
              {
-                  aCS = new cCamStenopeDistRadPol(true,(aFX+aFY)/2.0,aPP,aDR,aPAF);
+                  aCS = new cCamStenopeDistRadPol(false,(aFX+aFY)/2.0,aPP,aDR,aPAF);
              }
 
              if (aCS)

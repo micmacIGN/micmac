@@ -13,6 +13,7 @@
             <Symb> DRMax=10 </Symb>
             <Symb> DegGen=10 </Symb>
 
+
             <eSymb> DR1Free= SupEq ${DRMax} 1 </eSymb>
             <eSymb> DR2Free= SupEq ${DRMax} 2 </eSymb>
             <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
@@ -32,7 +33,10 @@
             <eSymb> DGen6Free= SupEq ${DegGen} 6 </eSymb>
             <eSymb> DGen7Free= SupEq ${DegGen} 7 </eSymb>
             <eSymb> DGen8Free= SupEq ${DegGen} 8 </eSymb>
-       </DicoLoc>
+
+
+            <eSymb> LibDec=false </eSymb>
+       </DicoLoc> 
 
        <SectionBDD_Observation>
            <BDD_Orient>
@@ -172,6 +176,21 @@
                         </IterationsCompensation>
                         <IterationsCompensation> </IterationsCompensation>
                     </#WHEN>
+
+
+                     <#WHEN VTEST=${LibDec}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_Dec1      </Val>
+                                        <Val> eLiberte_Phgr_Std_Dec      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Decentrik </Messages>
+                         </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
+
 
                     <#WHEN VTEST=${DGen1Free}>
                         <IterationsCompensation> 
