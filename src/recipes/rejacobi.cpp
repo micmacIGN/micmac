@@ -665,6 +665,7 @@ std::pair<ElMatrix<double>, ElMatrix<double> > QRDecomp(const ElMatrix<double> &
        }
    }
 
+
    return std::pair<ElMatrix<double>, ElMatrix<double> >(aQ,aR); 
 }
 
@@ -732,7 +733,21 @@ std::pair<ElMatrix<double>, ElMatrix<double> > RQDecomp(const ElMatrix<double> &
    //  ShowMatr("BBBB",aR.transpose());
    // ShowMatr("CCCC",InvertLine(InvertCol(aR.transpose())));
 
-   return std::pair<ElMatrix<double>, ElMatrix<double> > (InvertLine(InvertCol(aR.transpose())),InvertLine(aQ.transpose()));
+  ElMatrix<double> aR2 = InvertLine(InvertCol(aR.transpose()));
+  ElMatrix<double> aQ2 = InvertLine(aQ.transpose());
+
+  // std::cout <<  "RRrrRRr " << aR2.Det() << " " << aQ2.Det() << "\n";
+  if ( aN<=3)
+  {
+       if (aQ2.Det() < 0)
+       {
+            aR2 =  aR2 * -1;
+            aQ2 =  aQ2 * -1;
+       }
+  }
+
+  return std::pair<ElMatrix<double>, ElMatrix<double> > (aR2,aQ2);
+   // return std::pair<ElMatrix<double>, ElMatrix<double> > (InvertLine(InvertCol(aR.transpose())),InvertLine(aQ.transpose()));
 }
 
 
