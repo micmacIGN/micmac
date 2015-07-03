@@ -431,52 +431,15 @@ cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
 }
 
 
-int ConvertCalib_main(int argc, char** argv)
+void GenerateMesure2D3D(CamStenope * aCamIn,int aNbXY,int aNbProf,const std::string & aNameIm,cDicoAppuisFlottant & aDAF,cMesureAppuiFlottant1Im & aMAF)
 {
-   // virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
-   // for (int aK=0 ; aK<argc ; aK++)
-   //     std::cout << " # " << argv[aK] << "\n";
 
-    std::string aCalibIn;
-    std::string aCalibOut;
-    int aNbXY=20;
-    int aNbProf=2;
-    int aDRMax;
-    int aDegGen;
-    std::string aNameCalibOut =  "Out-ConvCal.xml";
-    bool PPFree = true;
-    bool CDFree = true;
-    bool FocFree = true;
-
-    ElInitArgMain
-    (
-       argc,argv,
-       LArgMain()  << EAMC(aCalibIn, "Input Calibration",eSAM_IsExistFile)
-                   << EAMC(aCalibOut,"Output calibration",eSAM_IsExistFile),
-       LArgMain()  << EAM(aNbXY,"NbXY",true,"Number of point of the Grid")
-                   << EAM(aNbProf,"NbProf",true,"Number of depth")
-                   << EAM(aDRMax,"DRMax",true,"Max degree of radial dist (def=depend Output calibration)")
-                   << EAM(aDegGen,"DegGen",true,"Max degree of generik polynom (def=depend Output calibration)")
-                   << EAM(PPFree,"PPFree",true,"Principal point free (Def=true)")
-                   << EAM(CDFree,"CDFree",true,"Distorsion center free (def=true)")
-                   << EAM(FocFree,"FocFree",true,"Focal free (def=true)")
-    );
-
-    if (MMVisualMode) return EXIT_SUCCESS;
-
-   std::string aNameImage = aCalibOut;
-   std::string aDirTmp = DirOfFile(aCalibIn) + "Ori-ConvCalib/";
-   ELISE_fp::MkDir(aDirTmp);
-
-   CamStenope * aCamIn =  Std_Cal_From_File(aCalibIn);
    Pt2dr aSzPix = aCamIn->SzPixel();
 
    Pt2di aPInt;
    double aEps = 1e-2;
-   cDicoAppuisFlottant aDAF;
    double anInc = 1/ euclid(aSzPix);
-   cMesureAppuiFlottant1Im aMAF;
-   aMAF.NameIm() = aNameImage;
+   aMAF.NameIm() = aNameIm;
    for (aPInt.x=0 ; aPInt.x<= aNbXY ; aPInt.x++)
    {
        for (aPInt.y=0 ; aPInt.y<= aNbXY ; aPInt.y++)
@@ -505,11 +468,140 @@ int ConvertCalib_main(int argc, char** argv)
               cOneMesureAF1I aM1;
               aM1.NamePt() = aNamePt;
               aM1.PtIm() = aPIm;
-          aMAF.OneMesureAF1I().push_back(aM1);
+               aMAF.OneMesureAF1I().push_back(aM1);
 
            }
        }
    }
+}
+
+class cAppli_GenerateAppuisLiaison : public cAppliWithSetImage
+{
+    public :
+        cAppli_GenerateAppuisLiaison(int argc, char** argv);
+
+        std::string mNameIm,mNameOri;
+        int mNbXY,mNbProf;
+};
+ 
+
+
+cAppli_GenerateAppuisLiaison::cAppli_GenerateAppuisLiaison(int argc, char** argv) :
+      cAppliWithSetImage (argc-1,argv+1,0),
+      mNbXY    (20),
+      mNbProf  (3)
+{
+
+    ElInitArgMain
+    (
+       argc,argv,
+       LArgMain()  << EAMC(mNameIm, "Image",eSAM_IsExistFile)
+                   << EAMC(mNameOri, "Orientation",eSAM_IsExistFile),
+       LArgMain()  << EAM(mNbXY,"NbXY",true,"Number of point of the Grid")
+                   << EAM(mNbProf,"NbProf",true,"Number of depth")
+    );
+    std::string aPref = "Genepi-";
+
+     for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
+     {
+          cImaMM * anIm = mVSoms[aK]->attr().mIma;
+          cDicoAppuisFlottant aDAF;
+          cMesureAppuiFlottant1Im aMAF;
+          GenerateMesure2D3D(anIm->mCam,mNbXY,mNbProf,anIm->mNameIm,aDAF,aMAF);
+          cSetOfMesureAppuisFlottants  aSMAF;
+          aSMAF.MesureAppuiFlottant1Im().push_back(aMAF);
+          MakeFileXML(aDAF, aPref+ anIm->mNameIm + "-Mes3D.xml");
+          MakeFileXML(aSMAF, aPref+ anIm->mNameIm + "-Mes2D.xml");
+        
+     }
+}
+
+
+
+
+int GenerateAppLiLiaison_main(int argc, char** argv)
+{
+     cAppli_GenerateAppuisLiaison anAppli(argc,argv);
+/*
+    std::string aNameCam,aNameOri;
+    int aNbXY = 20,aNbProf = 3;
+
+    ElInitArgMain
+    (
+       argc,argv,
+       LArgMain()  << EAMC(aNameIm, "Image",eSAM_IsExistFile),
+                   << EAMC(aNameOri, "Orientation",eSAM_IsExistFile),
+       LArgMain()  << EAM(aNbXY,"NbXY",true,"Number of point of the Grid")
+                   << EAM(aNbProf,"NbProf",true,"Number of depth")
+    );
+
+    CamStenope * aCam = BasicCamOrientGenFromFile(aNameCam);
+    cDicoAppuisFlottant aDAF;
+    cMesureAppuiFlottant1Im aMAF;
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    GenerateMesure2D3D(aCam,aNbXY,aNbProf,aNameIm,aDAF,aMAF);
+*/
+
+
+
+    std::cout << "*******************************\n";
+    std::cout << "*                             *\n";
+    std::cout << "*     GENE-rate               *\n";
+    std::cout << "*     P-oints 3D and          *\n";
+    std::cout << "*     I-mage projectctio,     *\n";
+    std::cout << "*                             *\n";
+    std::cout << "*******************************\n";
+
+    return EXIT_SUCCESS;
+}
+
+int ConvertCalib_main(int argc, char** argv)
+{
+   // virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
+   // for (int aK=0 ; aK<argc ; aK++)
+   //     std::cout << " # " << argv[aK] << "\n";
+
+    std::string aCalibIn;
+    std::string aCalibOut;
+    int aNbXY=20;
+    int aNbProf=2;
+    int aDRMax;
+    int aDegGen;
+    std::string aNameCalibOut =  "Out-ConvCal.xml";
+    bool PPFree = true;
+    bool CDFree = true;
+    bool FocFree = true;
+    bool DecFree = true;
+
+    
+
+    ElInitArgMain
+    (
+       argc,argv,
+       LArgMain()  << EAMC(aCalibIn, "Input Calibration",eSAM_IsExistFile)
+                   << EAMC(aCalibOut,"Output calibration",eSAM_IsExistFile),
+       LArgMain()  << EAM(aNbXY,"NbXY",true,"Number of point of the Grid")
+                   << EAM(aNbProf,"NbProf",true,"Number of depth")
+                   << EAM(aDRMax,"DRMax",true,"Max degree of radial dist (def=depend Output calibration)")
+                   << EAM(aDegGen,"DegGen",true,"Max degree of generik polynom (def=depend Output calibration)")
+                   << EAM(PPFree,"PPFree",true,"Principal point free (Def=true)")
+                   << EAM(CDFree,"CDFree",true,"Distorsion center free (def=true)")
+                   << EAM(FocFree,"FocFree",true,"Focal free (def=true)")
+                   << EAM(DecFree,"DecFree",true,"Decentrik free (def=true when appliable)")
+    );
+
+    if (MMVisualMode) return EXIT_SUCCESS;
+
+   std::string aNameImage = aCalibOut;
+   std::string aDirTmp = DirOfFile(aCalibIn) + "Ori-ConvCalib/";
+   ELISE_fp::MkDir(aDirTmp);
+
+   CamStenope * aCamIn =  Std_Cal_From_File(aCalibIn);
+   cDicoAppuisFlottant aDAF;
+   cMesureAppuiFlottant1Im aMAF;
+
+   GenerateMesure2D3D(aCamIn,aNbXY,aNbProf,aNameImage,aDAF,aMAF);
    cCalibrationInternConique aCICOut = StdGetFromPCP(aCalibOut,CalibrationInternConique);
    cLibertOfCalib  aLOC = GetDefDegreeOfCalib(aCICOut.CalibDistortion().back());
    if (!EAMIsInit(&aDRMax) ) aDRMax = aLOC.mDegRad;
@@ -535,6 +627,7 @@ int ConvertCalib_main(int argc, char** argv)
                        + " +CDFree="   + ToString(CDFree)
                        + " +DRMax=" + ToString(aDRMax)
                        + " +DegGen=" + ToString(aDegGen)
+                       + " +LibDec=" + ToString(DecFree)
                       ;
 
 
