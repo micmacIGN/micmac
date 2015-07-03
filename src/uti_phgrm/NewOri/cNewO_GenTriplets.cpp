@@ -855,13 +855,13 @@ void cAppli_GenTriplet::GenTriplet()
   
    if (mShow)
       std::cout << "Load " << mTimeLoadHom << " Merge " << mTimeMerge << " Selec " << mTimeSelec << " GenTripl " << aTimeGT.uval() << "\n";
-    if (MPD_MM())
+    if (0)
     {
         double aSomDiff=0;
         for (std::list<cXml_OneTriplet>::const_iterator it3=mTopoTriplets.Triplets().begin() ; it3!=mTopoTriplets.Triplets().end() ; it3++)
         {
             std::string aBase = "NewOriTmpQuick/";
-            std::string aNameTri = aBase+it3->Name1() + "/" + it3->Name2() + "/Triplet-OriOpt-" + it3->Name3() + ".dmp";
+            std::string aNameTri = aBase+it3->Name1() + "/" + it3->Name2() + "/Triplet-Ori0-" + it3->Name3() + ".dmp";
 
             cXml_Ori3ImInit aXmlNew = StdGetFromSI(aNameTri,Xml_Ori3ImInit);
             cXml_Ori3ImInit aXmlOld = StdGetFromSI("ORI-"+aNameTri,Xml_Ori3ImInit);

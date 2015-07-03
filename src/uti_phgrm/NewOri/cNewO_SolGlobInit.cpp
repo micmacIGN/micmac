@@ -647,9 +647,10 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
                 }
           }
     }
-    // std::cout << "NBTTT " << aNbTT << "\n";
+    std::cout << "NBTTT " << aNbTT  <<  " => " << NbMaxATT << "\n";
 
-    cRandNParmiQ aSel(aNbTT,ElMin(aNbTT,NbMaxATT));
+    // cRandNParmiQ aSel(aNbTT,ElMin(aNbTT,NbMaxATT));
+    cRandNParmiQ aSel(ElMin(aNbTT,NbMaxATT),aNbTT);
     // std::vector<float> aVC;
     std::vector<Pt2df> aVPAB;
     std::vector<Pt2df> aVP12;
@@ -689,7 +690,19 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
           }
     }
     mCoherMedAB =  MedianPond(aVPAB);
-    mCoherMed12 =  MedianPond(aVP12);
+    int aKMed;
+    mCoherMed12 =  MedianPond(aVP12,&aKMed);
+
+
+    if (1)
+    {
+       for (int aK=0 ; aK<100 ; aK++)
+       {
+            int aKH = (aVP12.size() * aK) /100;
+            std::cout << " Med " << aK << " = " << aVP12[aKH] << "\n";
+       }
+       std::cout << "MEDIAN=" << mCoherMed12  << " Prop=" << aKMed/double(aVP12.size()) << "\n";
+    }
 }
 
 void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
@@ -738,7 +751,8 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
    double aSomD =0.0;
 
    
-   for (int aNBIter = 0 ; aNBIter<4 ; aNBIter++)
+   int aNbIter = 4;
+   for (int aKIter = 0 ; aKIter<(aNbIter) ; aKIter++)
    {
         ElMatrix<double> aSomMat(3,3,0.0);
         double aSomPds = 0.0;
@@ -749,14 +763,16 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
              double aD =  DistanceRot(aR0,aVR[aK],aBSurH0);
              aSomD += aD;
 
-             //   std::cout << " IMm=" << aVL[aK].S3()->attr().Im()->Name() << " D=" << aD << "\n";
+              double aPds = 0;
              if (aD < 6 * mCoherMed12)
              {
-                   double aPds = 1 /(1 + ElSquare(aD*(2*mCoherMed12)));
+                   aPds = 1 /(1 + ElSquare(aD*(2*mCoherMed12)));
                    aSomPds += aPds;
                    aSomTr  = aSomTr  + (vunit(aVR[aK].tr()) * aD0) * aPds;
                    aSomMat = aSomMat + aVR[aK].Mat() * aPds;
              } 
+             if (Test && (aKIter==(aNbIter-1)))
+                 std::cout << " IMm=" << aVL[aK].S3()->attr().Im()->Name() << "Pds=" << aPds << " D=" << aD << "\n";
         }
         if (aSomPds>0)
            aR0 = ElRotation3D(aSomTr/aSomPds,aSomMat*(1/aSomPds),true);
@@ -766,7 +782,7 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
 
    if (Test)
    {
-      std::cout <<  "KERNEL " <<   aVL[aKK].S3()->attr().Im()->Name() <<  " D=" << aSomD << " R/M" << aSomD/ mCoherMed12 << "\n";
+      std::cout <<  "KERNEL " <<   aVL[aKK].S3()->attr().Im()->Name() <<  " D=" << aSomD << " R/M=" << aSomD/ mCoherMed12 << "\n";
    }
 
 
