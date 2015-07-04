@@ -56,6 +56,25 @@ Parametre de Tapas :
 
 #define  NbModele 10
 
+int TestNameCalib_main(int argc,char ** argv)
+{
+    std::string aFullNameIm,aNameCalib="TestNameCalib";
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFullNameIm, "Name of images", eSAM_IsPatFile),
+        LArgMain()  << EAM(aNameCalib,"Nb",true,"Name of caib (def=TestNameCalib)")
+    );
+
+    std::string aDir,aNameIm;
+
+    SplitDirAndFile(aDir,aNameIm,aFullNameIm);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    std::cout << aICNM->StdNameCalib(aNameCalib,aNameIm) << "\n";
+
+    return EXIT_SUCCESS;
+}
 
 int TestSet_main(int argc,char ** argv)
 {
@@ -98,8 +117,7 @@ int TestSet_main(int argc,char ** argv)
     }
 
 
-
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 

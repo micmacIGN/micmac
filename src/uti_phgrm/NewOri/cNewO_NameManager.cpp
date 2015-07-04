@@ -95,23 +95,21 @@ cInterfChantierNameManipulateur *  cNewO_NameManager::ICNM()
 }
 
 
-CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName) 
+CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal) 
 {
-
-   cMetaDataPhoto aMTD = cMetaDataPhoto::CreateExiv2(mDir+aName);
-
-   if (mPrefOriCal =="")
+   if (aPrefOriCal =="")
    {
+        cMetaDataPhoto aMTD = cMetaDataPhoto::CreateExiv2(Dir() +aName);
         std::vector<double> aPAF;
         double aFPix  = aMTD.FocPix();
         Pt2di  aSzIm  = aMTD.XifSzIm();
         Pt2dr  aPP = Pt2dr(aSzIm) / 2.0;
 
         bool IsFE;
-        FromString(IsFE,mICNM->Assoc1To1("NKS-IsFishEye",aName,true));
+        FromString(IsFE,Assoc1To1("NKS-IsFishEye",aName,true));
         std::string aNameCal = "CamF" + ToString(aFPix) +"_Sz"+ToString(aSzIm) + "FE"+ToString(IsFE);
-        if (DicBoolFind(mDicoCam,aNameCal))
-           return mDicoCam[aNameCal];
+        if (DicBoolFind(mMapName2Calib,aNameCal))
+           return mMapName2Calib[aNameCal];
         CamStenope * aRes = 0;
 
         if (IsFE)
@@ -136,20 +134,27 @@ CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName)
              aRes = new CamStenopeIdeale(false,aFPix,aPP,aPAF);
         }
         aRes->SetSz(aSzIm);
-        mDicoCam[aNameCal] =  aRes;
+        mMapName2Calib[aNameCal] =  aRes;
         return aRes;
    }
 
+   std::string  aNC = StdNameCalib(aPrefOriCal,aName);
 
-   std::string  aNC = mICNM->StdNameCalib(mPrefOriCal,aName);
+   if (DicBoolFind(mMapName2Calib,aNC))
+      return mMapName2Calib[aNC];
 
-   if (DicBoolFind(mDicoCam,aNC))
-      return mDicoCam[aNC];
+   mMapName2Calib[aNC] =  CamOrientGenFromFile(aNC,this);
 
-   mDicoCam[aNC] =  CamOrientGenFromFile(aNC,mICNM);
-
-   return mDicoCam[aNC];
+   return mMapName2Calib[aNC];
 }
+
+CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName) 
+{
+    return mICNM->GlobCalibOfName(aName,mPrefOriCal);
+}
+
+
+
 /*
 */
 CamStenope *  cInterfChantierNameManipulateur::StdCamOfNames(const std::string & aNameIm,const std::string & anOri)
