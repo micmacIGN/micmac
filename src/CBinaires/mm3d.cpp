@@ -205,6 +205,10 @@ extern int CPP_MartiniGin_main(int , char **);
 extern int CPP_SetExif(int argc,char **argv);
 
 extern int GenerateAppLiLiaison_main(int argc,char **argv);
+extern int TestNameCalib_main(int argc,char ** argv);
+extern int Init3App_Main(int argc,char ** argv);
+
+
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -339,6 +343,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("TestChantier",TestChantier_main," Test global acquisition"));
 
        aRes.push_back(cMMCom("TestKey",TestSet_main," Test Keys for Sets and Assoc"));
+       aRes.push_back(cMMCom("TestNameCalib",TestNameCalib_main," Test Name of calibration"));
        aRes.push_back(cMMCom("TestMTD",TestMTD_main," Test meta data of image"));
        aRes.push_back(cMMCom("TestCmds",TestCmds_main," Test MM3D commands on micmac_data sets"));
 
@@ -403,6 +408,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("MMXmlXif",MakeMultipleXmlXifInfo_main," Generate Xml from Xif (internal use mainly)"));
        aRes.push_back(cMMCom("Init11P",Init11Param_Main," Init Internal & External from GCP using 11-parameters algo"));
+       aRes.push_back(cMMCom("Aspro",Init3App_Main," Init  External orientation of calibrated camera from GCP "));
        aRes.push_back(cMMCom("Genepi",GenerateAppLiLiaison_main," Generate 3D/2d synthetical points from orientation"));
 
 

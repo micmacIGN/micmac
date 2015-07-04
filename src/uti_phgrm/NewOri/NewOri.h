@@ -352,7 +352,7 @@ class cNewO_NameManager
            std::string                        mDir;
            std::string                        mPrefOriCal;
            std::string                        mPostHom;
-           std::map<std::string,CamStenope *> mDicoCam;
+           // std::map<std::string,CamStenope *> mDicoCam;
            static const std::string           PrefixDirTmp;
            std::string                        mDirTmp;
            std::string                        mPostfixDir;

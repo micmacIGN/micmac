@@ -202,8 +202,11 @@ class cInterfChantierNameManipulateur
 {
      public :
 
-         std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);
-         CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);
+
+
+         std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);  // =>  Ori-XX/AutoCal ...
+         CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
+         CamStenope * GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal); // No Dist if aPrefOriCal=""
 
          std::list<std::string> GetListImByDelta(const cListImByDelta &,const std::string & aN0);
 
@@ -401,6 +404,7 @@ class cInterfChantierNameManipulateur
           cMakeDataBase  *  mMkDB;
 
           static cInterfChantierNameManipulateur * TheGlob;
+          std::map<std::string,CamStenope *>       mMapName2Calib; // Utilise avec GlobCamOfName
 };
 
 
