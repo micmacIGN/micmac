@@ -71,7 +71,9 @@ class cComputecKernelGraph
          void SetN(int aN);
          void AddCost(int aK1,int aK2,double aPds1,double aPds2,double aDist);
 
+
          int GetKernel();
+         int GetKernelGen();
 
          // void DupIn(const cComputecKernelGraph & );
     private :
@@ -109,8 +111,22 @@ void cComputecKernelGraph::AddCost(int aK1,int aK2,double aPds1,double aPds2,dou
      mDCostSom[aK2]      += aDist*aPds2;
 }
 
+int  cComputecKernelGraph::GetKernelGen()
+{
+   if (mNb>=3) return GetKernel();
+   if (mNb==1) return 0;
+
+   if (mNb==2)
+   {
+       return (mDPdsSom[0] > mDPdsSom[1]) ? 0 : 1;
+   }
+   ELISE_ASSERT(false,"cComputecKernelGraph::GetKernelGen");
+   return -1;
+}
+
 int  cComputecKernelGraph::GetKernel()
 {
+    ELISE_ASSERT(mNb>=3,"cComputecKernelGraph::GetKernel");
     int aKBest=-1;
     for (int anIter=2 ; anIter < mNb ; anIter++)
     {
@@ -150,7 +166,7 @@ int  cComputecKernelGraph::GetKernel()
 
 void cComputecKernelGraph::SetN(int aN)
 {
-    ELISE_ASSERT(aN>=3,"cComputecKernelGraph::SetN");
+    // ELISE_ASSERT(aN>=3,"cComputecKernelGraph::SetN");
     mNb = aN;
     mCostArc.Resize(Pt2di(aN,aN));
     mPdsArc.Resize(Pt2di(aN,aN));
@@ -245,17 +261,26 @@ class cNOSolIn_AttrASym
      public :
          void AddTriplet(cNOSolIn_Triplet * aTrip,int aK1,int aK2,int aK3);
          std::vector<cLinkTripl> & Lnk3() {return mLnk3;}
+         ElRotation3D &    EstimC2toC1() {return mEstimC2toC1;}
+         cNOSolIn_AttrASym();
      private :
          std::vector<cLinkTripl> mLnk3;
+         ElRotation3D            mEstimC2toC1;
            
 };
+
+
+
 class cNOSolIn_AttrArc
 {
      public :
-           cNOSolIn_AttrArc(cNOSolIn_AttrASym *);
+           cNOSolIn_AttrArc(cNOSolIn_AttrASym *,bool OrASym);
            cNOSolIn_AttrASym * ASym() {return mASym;}
+           ElRotation3D  EstimC2toC1() {return mOrASym ? mASym->EstimC2toC1() :  mASym->EstimC2toC1().inv();}
+          
      private :
            cNOSolIn_AttrASym * mASym;
+           bool                mOrASym;
 };
 
 
@@ -278,6 +303,9 @@ class cNOSolIn_Triplet
           }
           double BOnH() const {return mBOnH;}
           int  Nb3() const {return mNb3;}
+
+          void CoherFromArcs();
+          void CheckArcsSom();
 
           
 
@@ -311,8 +339,10 @@ class cAppli_NewSolGolInit
         void SetCurNeigh2(tSomNSI *);
 
         void                 CreateArc(tSomNSI *,tSomNSI *,cNOSolIn_Triplet *,int aK0,int aK1,int aK2);
-        void EstimCoherenceMed();
+        void   EstimCoherenceMed();
+        void   EstimRotsInit();
         void    InitRotOfArc(tArcNSI * anArc,bool Test);
+
 
 
 
@@ -332,6 +362,7 @@ class cAppli_NewSolGolInit
 // Variables temporaires pour charger un triplet 
         std::vector<tSomNSI *>  mVCur3;  // Tripelt courrant
         std::vector<tSomNSI *>  mVCur2;  // Adjcent au triplet courant
+        std::vector<cNOSolIn_Triplet*> mV3;
         int                     mFlag3;
         int                     mFlag2;
         cNOSolIn_Triplet *      mTestTrip;
@@ -346,6 +377,8 @@ class cAppli_NewSolGolInit
         double                  mCoherMed12;       
  
 };
+void AssertArcOriented(tArcNSI *);
+ElRotation3D RotationC2toC1(tArcNSI * anArc,cNOSolIn_Triplet * aTri);
 
 /***************************************************************************/
 /*                                                                         */
@@ -404,7 +437,36 @@ void cNOSolIn_Triplet::InitRot3Som()
      mSoms[2]->attr().CurRot() = mR3on1;
 }
 
+void cNOSolIn_Triplet::CheckArcsSom()
+{
+   for (int aK=0 ; aK<3 ; aK++)
+   {
+      tSomNSI  * aS1 = mSoms[aK];
+      tSomNSI  * aS2 = mSoms[(aK+1)%3];
+      tSomNSI  * aS3 = mSoms[(aK+2)%3];
 
+      tSomNSI *  aSA1 = & (mArcs[aK]->s1());
+      tSomNSI *  aSA2 = & (mArcs[aK]->s2());
+
+      ELISE_ASSERT((aS1!=aSA1) && (aS1!=aSA2),"cNOSolIn_Triplet::CheckArcsSom");
+
+      ELISE_ASSERT( (aS2==aSA1) ,"cNOSolIn_Triplet::CheckArcsSom");
+      ELISE_ASSERT( (aS3==aSA2) ,"cNOSolIn_Triplet::CheckArcsSom");
+   }
+}
+
+void  cNOSolIn_Triplet::CoherFromArcs()
+{
+   for (int aK=0 ; aK<3 ; aK++)
+   {
+       ElRotation3D aRArc2to1 = mArcs[aK]->attr().EstimC2toC1();
+
+       ElRotation3D aRTri2to1 = RotationC2toC1(mArcs[aK],this);
+
+       std::cout << "Tri " << aK << " D=" << DistanceRot(aRArc2to1,aRTri2to1,mBOnH) << "\n";
+     
+   }
+}
 
 /***************************************************************************/
 /*                                                                         */
@@ -418,6 +480,12 @@ void  cNOSolIn_AttrASym::AddTriplet(cNOSolIn_Triplet * aTrip,int aK1,int aK2,int
     mLnk3.push_back(cLinkTripl(aTrip,aK1,aK2,aK3));
 }
 
+
+cNOSolIn_AttrASym::cNOSolIn_AttrASym() :
+    mEstimC2toC1 (ElRotation3D::Id)            
+{
+}
+
 tSomNSI * cLinkTripl::S1() const {return  m3->KSom(mK1);}
 tSomNSI * cLinkTripl::S2() const {return  m3->KSom(mK2);}
 tSomNSI * cLinkTripl::S3() const {return  m3->KSom(mK3);}
@@ -428,8 +496,9 @@ tSomNSI * cLinkTripl::S3() const {return  m3->KSom(mK3);}
 /*                                                                         */
 /***************************************************************************/
 
-cNOSolIn_AttrArc::cNOSolIn_AttrArc(cNOSolIn_AttrASym * anASym) :
-   mASym (anASym)
+cNOSolIn_AttrArc::cNOSolIn_AttrArc(cNOSolIn_AttrASym * anASym,bool OrASym) :
+   mASym   (anASym),
+   mOrASym (OrASym)
 {
 }
 
@@ -464,6 +533,14 @@ void cAppli_NewSolGolInit::SetCurNeigh2(tSomNSI * aSom)
 
 */
 
+void AssertArcOriented(tArcNSI * anArc)
+{
+      tSomNSI * aS1 = &anArc->s1();
+      tSomNSI * aS2 = &anArc->s2();
+      ELISE_ASSERT(aS1<aS2,"AssertArcOriented");
+}
+
+
 
 ElRotation3D RotationC2toC1(tArcNSI * anArc,cNOSolIn_Triplet * aTri)
 {
@@ -474,6 +551,7 @@ ElRotation3D RotationC2toC1(tArcNSI * anArc,cNOSolIn_Triplet * aTri)
 
 double DistCoherence1to2 (tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Triplet * aTriB)
 {
+     AssertArcOriented(anArc);
      return DistanceRot
             (
                 RotationC2toC1(anArc,aTriA),  
@@ -485,6 +563,8 @@ double DistCoherence1to2 (tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Trip
 
 double DistCoherenceAtoB(tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Triplet * aTriB)
 {
+      AssertArcOriented(anArc);
+
       const ElRotation3D  &  aR1A =  aTriA->RotOfSom(&anArc->s1());   // Cam1 => MondA
       const ElRotation3D  &  aR2A =  aTriA->RotOfSom(&anArc->s2());   // Cam2 => MondA
       const ElRotation3D  &  aR1B =  aTriB->RotOfSom(&anArc->s1());   // Cam1 => MondB
@@ -618,8 +698,8 @@ void   cAppli_NewSolGolInit::CreateArc(tSomNSI * aS1,tSomNSI * aS2,cNOSolIn_Trip
      if (anArc==0)
      {
          cNOSolIn_AttrASym * anAttrSym = new cNOSolIn_AttrASym;
-         cNOSolIn_AttrArc anAttr12(anAttrSym);
-         cNOSolIn_AttrArc anAttr21(anAttrSym);
+         cNOSolIn_AttrArc anAttr12(anAttrSym,true);
+         cNOSolIn_AttrArc anAttr21(anAttrSym,false);
          anArc = &(mGr.add_arc(*aS1,*aS2,anAttr12,anAttr21));
          mNbArc ++;
      }
@@ -627,6 +707,22 @@ void   cAppli_NewSolGolInit::CreateArc(tSomNSI * aS1,tSomNSI * aS2,cNOSolIn_Trip
      aTripl->SetArc(aK3,anArc);
 
      // return anArc;
+}
+
+void cAppli_NewSolGolInit::EstimRotsInit()
+{
+    for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
+    {
+          tSomNSI * aS1 = &(*anItS);
+          for (tItANSI anItA=aS1->begin(mSubAll) ; anItA.go_on(); anItA++)
+          {
+                tSomNSI * aS2 = &((*anItA).s2());
+                if (aS1 < aS2)
+                {
+                    InitRotOfArc(&(*anItA),false);
+                }
+          }
+    }
 }
 
 void  cAppli_NewSolGolInit::EstimCoherenceMed()
@@ -694,7 +790,7 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
     mCoherMed12 =  MedianPond(aVP12,&aKMed);
 
 
-    if (1)
+    if (0)
     {
        for (int aK=0 ; aK<100 ; aK++)
        {
@@ -744,7 +840,7 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
        aVR.push_back(RotationC2toC1(anArc,aVL[aK1].m3));
    }
    
-   int aKK = mCompKG.GetKernel();
+   int aKK = mCompKG.GetKernelGen();
    double aBSurH0 =  aVL[aKK].m3->BOnH();
    ElRotation3D aR0 = aVR[aKK];
    double aD0 = euclid(aR0.tr());
@@ -766,13 +862,14 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
               double aPds = 0;
              if (aD < 6 * mCoherMed12)
              {
-                   aPds = 1 /(1 + ElSquare(aD*(2*mCoherMed12)));
-                   aSomPds += aPds;
-                   aSomTr  = aSomTr  + (vunit(aVR[aK].tr()) * aD0) * aPds;
-                   aSomMat = aSomMat + aVR[aK].Mat() * aPds;
+                   aPds = 1 /(1 + ElSquare(aD/(2*mCoherMed12)));
+                   double aPdsPop = aPds * aVL[aK].m3->Nb3();
+                   aSomPds += aPdsPop;
+                   aSomTr  = aSomTr  + (vunit(aVR[aK].tr()) * aD0) * aPdsPop;
+                   aSomMat = aSomMat + aVR[aK].Mat() * aPdsPop;
              } 
              if (Test && (aKIter==(aNbIter-1)))
-                 std::cout << " IMm=" << aVL[aK].S3()->attr().Im()->Name() << "Pds=" << aPds << " D=" << aD << "\n";
+                 std::cout << " IMm=" << aVL[aK].S3()->attr().Im()->Name() << " Pds=" << aPds << " D=" << aD << "\n";
         }
         if (aSomPds>0)
            aR0 = ElRotation3D(aSomTr/aSomPds,aSomMat*(1/aSomPds),true);
@@ -785,8 +882,7 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
       std::cout <<  "KERNEL " <<   aVL[aKK].S3()->attr().Im()->Name() <<  " D=" << aSomD << " R/M=" << aSomD/ mCoherMed12 << "\n";
    }
 
-
-
+   anArc->attr().ASym()->EstimC2toC1() = aR0;
 }
 
 
@@ -919,6 +1015,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 
 
                  cNOSolIn_Triplet * aTriplet = new cNOSolIn_Triplet(aS1,aS2,aS3,aXml3Ori);
+                 mV3.push_back(aTriplet);
 /*
                  aS1->attr().AddTriplet(aTriplet,1,2,0);
                  aS2->attr().AddTriplet(aTriplet,0,2,1);
@@ -927,6 +1024,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                  CreateArc(aS1,aS2,aTriplet,0,1,2);
                  CreateArc(aS2,aS3,aTriplet,1,2,0);
                  CreateArc(aS3,aS1,aTriplet,2,0,1);
+
+                 aTriplet->CheckArcsSom();
 
                  if (aKTest1==anIdTri)
                  {
@@ -938,10 +1037,10 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                  }
             }
     }
+    std::cout << "LOADED GRAPH\n";
 
 
     EstimCoherenceMed();
-
     std::cout << "COHERENCE MED, DAB  " << mCoherMedAB  * 1000  << " D12 " << mCoherMed12  * 1000 << "\n";
 
 
@@ -949,17 +1048,23 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     {
           mTestArc = mGr.arc_s1s2(*mTestS1,*mTestS2);
     }
-
-
-    if (mTestArc)
+    if ( 0 && mTestArc)
     {
           InitRotOfArc(mTestArc,true);
     }
+    EstimRotsInit();
+    std::cout << "Rots init \n";
+
+
+
+
 
     if (mTestTrip)
     {
         std::cout << "mTestTrip " << mTestTrip << "\n";
 
+        mTestTrip->CoherFromArcs();
+/*
         std::cout <<  "GLOB NbS = " <<  mNbSom 
                  << " NbA " << mNbArc  << ",Da=" <<   (2.0 *mNbArc)  / (mNbSom*mNbSom) 
 
@@ -974,6 +1079,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
             if (  mVCur2[aK]->flag_kth(mFlag3)) std::cout << " *** ";
             std::cout << "\n";
         }
+*/
     }
    
 }
