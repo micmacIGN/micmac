@@ -555,7 +555,10 @@ void cAppli_MPI2Mnt::DoAll()
 
     cXML_ParamNuage3DMaille aN =   StdGetFromSI(mDirApp+mDirBasc +mNameMerge,XML_ParamNuage3DMaille);
 
-
+    if (mDebug)
+    {
+       std::cout  << "NUAGE MERGE " << mDirApp+mDirBasc +mNameMerge << "\n";
+    }
     cFileOriMnt  aFOM = ToFOM(aN,true);
     MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMasq);
 
