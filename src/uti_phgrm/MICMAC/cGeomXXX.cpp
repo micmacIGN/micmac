@@ -886,6 +886,29 @@ if ( 0 )
 
   /// std::cout << "RESOOL " << mResol << " " << mRRIsInit << " " << mRCoordIsInit << "\n"; getchar();
 
+
+   {
+       double aRCor = mResol * mAp->DeZoomMin();
+       mAp->mValmCorrecAlti4Export = aRCor * round_ni(mAp->mValmCorrecAlti4Export/aRCor);
+   }
+
+if (0 && MPD_MM())
+{
+    std::cout << "OOoorrri " << mV0Px[0] << "\n";
+    std::cout << "Reessol " <<  mResol  << "\n";
+    std::cout << OrigineAlti4Export() << " " << OrigineAlti4Compute() << " " << mAp->DeZoomMin() << "\n";
+    
+    Pt2dr aP0 = mBoxEngl._p0 / mResol;
+    Pt2dr aP1 = mBoxEngl._p1 / mResol;
+    
+    std::cout << mBoxEngl._p0 << mBoxEngl._p1  << " " << aP0.x - round_ni(aP0.x) <<  " " << aP0.y - round_ni(aP0.y) << "\n";
+    std::cout << mBoxEngl._p0 << mBoxEngl._p1  << " " << aP1.x - round_ni(aP1.x) <<  " " << aP1.y - round_ni(aP1.y) << "\n";
+
+    std::cout << mBoxEngl._p0  - Pt2dr(round_ni(mBoxEngl._p0)) << "\n";
+    getchar();
+}
+
+
   delete aFileExt;
 }
 

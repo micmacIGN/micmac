@@ -74,7 +74,8 @@ int Devlop_main(int argc,char ** argv)
     std::string aPref = StdPrefix(aPatFile);
 
 
-    std::string aCom = MMBin() + " " + MM3DStr + " MapCmd ";
+    // std::string aCom = MMBin() + " " + MM3DStr + " MapCmd "; => le blanc fait planter
+    std::string aCom = MMBin() +  MM3DStr + " MapCmd ";
     std::string aPat= QUOTE("P=" + aDir+ "("+aPref+")." + aPost);
 
     // if (aNameOut =="") aNameOut = "\\$1" + (aPostAdd=="None"?"":aPostAdd)  + ".tif" ;
