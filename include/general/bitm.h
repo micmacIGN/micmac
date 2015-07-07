@@ -2010,6 +2010,34 @@ class cIm2DInter
 };
 
 
+// Calcul robuste d'un element moyen comme etant celui qui minimise la somme des distance
+class cComputecKernelGraph
+{
+    public :
+         cComputecKernelGraph();
+         void SetN(int aN);
+         void AddCost(int aK1,int aK2,double aPds1,double aPds2,double aDist);
+
+
+         int GetKernel();
+         int GetKernelGen();
+
+         // void DupIn(const cComputecKernelGraph & );
+    private :
+         Im2D_REAL8      mPdsArc;
+         Im2D_REAL8      mCostArc;
+         Im1D_REAL8      mPdsSom;
+         Im1D_REAL8      mCostSom;
+
+         double **       mDPdsArc;
+         double **       mDCostArc;
+         double *        mDPdsSom;
+         double *        mDCostSom;
+         int             mNb;
+};
+
+
+
 #define TBASE typename El_CTypeTraits<tData>::tBase
 
 #endif //   _ELISE_GENERAL_BITM_H_

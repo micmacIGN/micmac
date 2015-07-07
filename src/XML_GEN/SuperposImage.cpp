@@ -21019,4 +21019,325 @@ void xml_init(cXml_TopoTriplet & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_TopoTriplet *) {return "8998B01898888FA8FF3F";};
 
+
+double & cXml_SLSRay::IndCol()
+{
+   return mIndCol;
+}
+
+const double & cXml_SLSRay::IndCol()const 
+{
+   return mIndCol;
+}
+
+
+Pt3dr & cXml_SLSRay::P1()
+{
+   return mP1;
+}
+
+const Pt3dr & cXml_SLSRay::P1()const 
+{
+   return mP1;
+}
+
+
+Pt3dr & cXml_SLSRay::P2()
+{
+   return mP2;
+}
+
+const Pt3dr & cXml_SLSRay::P2()const 
+{
+   return mP2;
+}
+
+void  BinaryUnDumpFromFile(cXml_SLSRay & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.IndCol(),aFp);
+    BinaryUnDumpFromFile(anObj.P1(),aFp);
+    BinaryUnDumpFromFile(anObj.P2(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SLSRay & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.IndCol());
+    BinaryDumpInFile(aFp,anObj.P1());
+    BinaryDumpInFile(aFp,anObj.P2());
+}
+
+cElXMLTree * ToXMLTree(const cXml_SLSRay & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_SLSRay",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("IndCol"),anObj.IndCol())->ReTagThis("IndCol"));
+   aRes->AddFils(::ToXMLTree(std::string("P1"),anObj.P1())->ReTagThis("P1"));
+   aRes->AddFils(::ToXMLTree(std::string("P2"),anObj.P2())->ReTagThis("P2"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_SLSRay & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.IndCol(),aTree->Get("IndCol",1)); //tototo 
+
+   xml_init(anObj.P1(),aTree->Get("P1",1)); //tototo 
+
+   xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
+}
+
+std::string  Mangling( cXml_SLSRay *) {return "004804A8DCBF1BA1FBBF";};
+
+
+double & cXml_OneLineSLS::IndLine()
+{
+   return mIndLine;
+}
+
+const double & cXml_OneLineSLS::IndLine()const 
+{
+   return mIndLine;
+}
+
+
+std::vector< cXml_SLSRay > & cXml_OneLineSLS::Rays()
+{
+   return mRays;
+}
+
+const std::vector< cXml_SLSRay > & cXml_OneLineSLS::Rays()const 
+{
+   return mRays;
+}
+
+void  BinaryUnDumpFromFile(cXml_OneLineSLS & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.IndLine(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_SLSRay aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Rays().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_OneLineSLS & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.IndLine());
+    BinaryDumpInFile(aFp,(int)anObj.Rays().size());
+    for(  std::vector< cXml_SLSRay >::const_iterator iT=anObj.Rays().begin();
+         iT!=anObj.Rays().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_OneLineSLS & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_OneLineSLS",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("IndLine"),anObj.IndLine())->ReTagThis("IndLine"));
+  for
+  (       std::vector< cXml_SLSRay >::const_iterator it=anObj.Rays().begin();
+      it !=anObj.Rays().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Rays"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_OneLineSLS & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.IndLine(),aTree->Get("IndLine",1)); //tototo 
+
+   xml_init(anObj.Rays(),aTree->GetAll("Rays",false,1));
+}
+
+std::string  Mangling( cXml_OneLineSLS *) {return "400084BE18ADACC5FA3F";};
+
+
+cTplValGesInit< bool > & cXml_ScanLineSensor::LineImIsScanLine()
+{
+   return mLineImIsScanLine;
+}
+
+const cTplValGesInit< bool > & cXml_ScanLineSensor::LineImIsScanLine()const 
+{
+   return mLineImIsScanLine;
+}
+
+
+cTplValGesInit< bool > & cXml_ScanLineSensor::GroundSystemIsEuclid()
+{
+   return mGroundSystemIsEuclid;
+}
+
+const cTplValGesInit< bool > & cXml_ScanLineSensor::GroundSystemIsEuclid()const 
+{
+   return mGroundSystemIsEuclid;
+}
+
+
+Pt2di & cXml_ScanLineSensor::ImSz()
+{
+   return mImSz;
+}
+
+const Pt2di & cXml_ScanLineSensor::ImSz()const 
+{
+   return mImSz;
+}
+
+
+bool & cXml_ScanLineSensor::P1P2IsAltitude()
+{
+   return mP1P2IsAltitude;
+}
+
+const bool & cXml_ScanLineSensor::P1P2IsAltitude()const 
+{
+   return mP1P2IsAltitude;
+}
+
+
+Pt2di & cXml_ScanLineSensor::GridSz()
+{
+   return mGridSz;
+}
+
+const Pt2di & cXml_ScanLineSensor::GridSz()const 
+{
+   return mGridSz;
+}
+
+
+Pt2dr & cXml_ScanLineSensor::StepGrid()
+{
+   return mStepGrid;
+}
+
+const Pt2dr & cXml_ScanLineSensor::StepGrid()const 
+{
+   return mStepGrid;
+}
+
+
+std::vector< cXml_OneLineSLS > & cXml_ScanLineSensor::Lines()
+{
+   return mLines;
+}
+
+const std::vector< cXml_OneLineSLS > & cXml_ScanLineSensor::Lines()const 
+{
+   return mLines;
+}
+
+void  BinaryUnDumpFromFile(cXml_ScanLineSensor & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.LineImIsScanLine().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.LineImIsScanLine().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.LineImIsScanLine().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.GroundSystemIsEuclid().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.GroundSystemIsEuclid().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.GroundSystemIsEuclid().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.ImSz(),aFp);
+    BinaryUnDumpFromFile(anObj.P1P2IsAltitude(),aFp);
+    BinaryUnDumpFromFile(anObj.GridSz(),aFp);
+    BinaryUnDumpFromFile(anObj.StepGrid(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_OneLineSLS aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Lines().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ScanLineSensor & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.LineImIsScanLine().IsInit());
+    if (anObj.LineImIsScanLine().IsInit()) BinaryDumpInFile(aFp,anObj.LineImIsScanLine().Val());
+    BinaryDumpInFile(aFp,anObj.GroundSystemIsEuclid().IsInit());
+    if (anObj.GroundSystemIsEuclid().IsInit()) BinaryDumpInFile(aFp,anObj.GroundSystemIsEuclid().Val());
+    BinaryDumpInFile(aFp,anObj.ImSz());
+    BinaryDumpInFile(aFp,anObj.P1P2IsAltitude());
+    BinaryDumpInFile(aFp,anObj.GridSz());
+    BinaryDumpInFile(aFp,anObj.StepGrid());
+    BinaryDumpInFile(aFp,(int)anObj.Lines().size());
+    for(  std::vector< cXml_OneLineSLS >::const_iterator iT=anObj.Lines().begin();
+         iT!=anObj.Lines().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_ScanLineSensor & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ScanLineSensor",eXMLBranche);
+   if (anObj.LineImIsScanLine().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("LineImIsScanLine"),anObj.LineImIsScanLine().Val())->ReTagThis("LineImIsScanLine"));
+   if (anObj.GroundSystemIsEuclid().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("GroundSystemIsEuclid"),anObj.GroundSystemIsEuclid().Val())->ReTagThis("GroundSystemIsEuclid"));
+   aRes->AddFils(::ToXMLTree(std::string("ImSz"),anObj.ImSz())->ReTagThis("ImSz"));
+   aRes->AddFils(::ToXMLTree(std::string("P1P2IsAltitude"),anObj.P1P2IsAltitude())->ReTagThis("P1P2IsAltitude"));
+   aRes->AddFils(::ToXMLTree(std::string("GridSz"),anObj.GridSz())->ReTagThis("GridSz"));
+   aRes->AddFils(::ToXMLTree(std::string("StepGrid"),anObj.StepGrid())->ReTagThis("StepGrid"));
+  for
+  (       std::vector< cXml_OneLineSLS >::const_iterator it=anObj.Lines().begin();
+      it !=anObj.Lines().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Lines"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ScanLineSensor & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.LineImIsScanLine(),aTree->Get("LineImIsScanLine",1),bool(true)); //tototo 
+
+   xml_init(anObj.GroundSystemIsEuclid(),aTree->Get("GroundSystemIsEuclid",1),bool(true)); //tototo 
+
+   xml_init(anObj.ImSz(),aTree->Get("ImSz",1)); //tototo 
+
+   xml_init(anObj.P1P2IsAltitude(),aTree->Get("P1P2IsAltitude",1)); //tototo 
+
+   xml_init(anObj.GridSz(),aTree->Get("GridSz",1)); //tototo 
+
+   xml_init(anObj.StepGrid(),aTree->Get("StepGrid",1)); //tototo 
+
+   xml_init(anObj.Lines(),aTree->GetAll("Lines",false,1));
+}
+
+std::string  Mangling( cXml_ScanLineSensor *) {return "4EA4B07306947293FF3F";};
+
 // };

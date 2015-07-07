@@ -1412,6 +1412,30 @@
 </Xml_TopoTriplet>
 
 
+<Xml_SLSRay  Nb="1" Class="true" ToReference="true">
+     <IndCol Nb="1" Type="double"> </IndCol>
+     <P1 Nb="1"  Type="Pt3dr"> </P1>
+     <P2 Nb="1"   Type="Pt3dr"> </P2>
+</Xml_SLSRay>
+
+<Xml_OneLineSLS  Nb="1" Class="true" ToReference="true">
+     <IndLine Nb="1" Type="double"> </IndLine>
+     <Rays Nb="*" RefType="Xml_SLSRay" Container="std::vector"> </Rays>
+</Xml_OneLineSLS>
+
+
+
+
+<Xml_ScanLineSensor Nb="1" Class="true" ToReference="true">
+     <LineImIsScanLine Type="bool" Def="true" Nb="?"> </LineImIsScanLine>
+     <GroundSystemIsEuclid Type="bool" Def="true" Nb="?"> </GroundSystemIsEuclid>
+     <ImSz Nb="1" Type="Pt2di"> </ImSz>
+     <P1P2IsAltitude Nb="1" Type="bool"> </P1P2IsAltitude>
+     <GridSz Nb="1" Type="Pt2di"> </GridSz>
+     <StepGrid Nb="1" Type="Pt2dr"> </StepGrid>
+     <Lines Nb="*" RefType="Xml_OneLineSLS" Container="std::vector"> </Lines>
+</Xml_ScanLineSensor>
+
 
 
 
