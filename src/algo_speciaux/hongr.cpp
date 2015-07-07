@@ -2014,6 +2014,108 @@ void MAJREC()         /* mise a jour des parametres de recouvrement et des minim
 
 
 
+cComputecKernelGraph::cComputecKernelGraph() :
+    mPdsArc  (1,1),
+    mCostArc (1,1),
+    mPdsSom  (1),
+    mCostSom (1)
+{
+}
+
+void cComputecKernelGraph::AddCost(int aK1,int aK2,double aPds1,double aPds2,double aDist)
+{
+     mDPdsArc[aK1][aK2]  += aPds1;
+     mDPdsArc[aK2][aK1]  += aPds2;
+     mDPdsSom[aK1]       += aPds1;
+     mDPdsSom[aK2]       += aPds2;
+
+     mDCostArc[aK1][aK2] += aDist*aPds1;
+     mDCostArc[aK2][aK1] += aDist*aPds2;
+     mDCostSom[aK1]      += aDist*aPds1;
+     mDCostSom[aK2]      += aDist*aPds2;
+}
+
+int  cComputecKernelGraph::GetKernelGen()
+{
+   if (mNb>=3) return GetKernel();
+   if (mNb==1) return 0;
+
+   if (mNb==2)
+   {
+       return (mDPdsSom[0] > mDPdsSom[1]) ? 0 : 1;
+   }
+   ELISE_ASSERT(false,"cComputecKernelGraph::GetKernelGen");
+   return -1;
+}
+
+int  cComputecKernelGraph::GetKernel()
+{
+    ELISE_ASSERT(mNb>=3,"cComputecKernelGraph::GetKernel");
+    int aKBest=-1;
+    for (int anIter=2 ; anIter < mNb ; anIter++)
+    {
+         int aKWorst=-1;
+         double aBestCost = 1e9;
+         double aWortCost = -1e9;
+         for (int aK=0 ; aK<mNb ; aK++)
+         {
+             if (mDPdsSom[aK] >0)
+             {
+                double aCost =  mDCostSom[aK]  / mDPdsSom[aK];
+                if (aCost>aWortCost)
+                {
+                     aWortCost = aCost;
+                     aKWorst = aK;
+                }
+                if (aCost< aBestCost)
+                {
+                     aBestCost = aCost;
+                     aKBest = aK;
+                }
+             }
+         }
+         ELISE_ASSERT((aKWorst>=0) && (aKBest>=0),"cComputecKernelGraph::GetKernel");
+         for (int aK=0 ; aK<mNb ; aK++)
+         {
+              mDPdsSom[aK] -=  mDPdsArc [aK][aKWorst];
+              mDCostSom[aK] -= mDCostArc[aK][aKWorst];
+         }
+         mDPdsSom[aKWorst] = -1;
+
+
+    }
+    return aKBest;
+}
+
+
+void cComputecKernelGraph::SetN(int aN)
+{
+    // ELISE_ASSERT(aN>=3,"cComputecKernelGraph::SetN");
+    mNb = aN;
+    mCostArc.Resize(Pt2di(aN,aN));
+    mPdsArc.Resize(Pt2di(aN,aN));
+    mPdsSom.Resize(aN);
+    mCostSom.Resize(aN);
+
+    mDPdsArc = mPdsArc.data();
+    mDCostArc = mCostArc.data();
+    mDPdsSom = mPdsSom.data();
+    mDCostSom = mCostSom.data();
+
+    for (int anX=0 ; anX < aN ; anX++)
+    {
+       mDPdsSom[anX] = 0.0;
+       mDCostSom[anX] = 0.0;
+       for (int anY=0 ; anY < aN ; anY++)
+       {
+           mDCostArc[anY][anX] = 0.0;
+           mDPdsArc[anY][anX] = 0.0;
+       }
+    }
+}
+
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en
