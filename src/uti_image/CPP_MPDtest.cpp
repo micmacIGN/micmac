@@ -729,8 +729,18 @@ void PdBump()
 
 int MPDtest_main (int argc,char** argv)
 {
-    PdBump();
+
+   cXml_ScanLineSensor  aSensor = StdGetFromSI("/home/marc/TMP/EPI/TestSens.xml",Xml_ScanLineSensor);
+
+   MakeFileXML(aSensor,"/home/marc/TMP/EPI/TestSens.dmp");
+
+   aSensor =  StdGetFromSI("/home/marc/TMP/EPI/TestSens.dmp",Xml_ScanLineSensor);
+
+
+   std::cout <<  aSensor.Lines().begin()->Rays().begin()->P1() << "\n";
+
 /*
+    PdBump();
 cXml_Ori2Im aXmlOri0;
 MakeFileXML(aXmlOri0,aName);
 std::string aName = "Test.xml";

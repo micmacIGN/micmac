@@ -6455,5 +6455,113 @@ std::string  Mangling( cXml_TopoTriplet *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_SLSRay
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SLSRay & anObj,cElXMLTree * aTree);
+
+
+        double & IndCol();
+        const double & IndCol()const ;
+
+        Pt3dr & P1();
+        const Pt3dr & P1()const ;
+
+        Pt3dr & P2();
+        const Pt3dr & P2()const ;
+    private:
+        double mIndCol;
+        Pt3dr mP1;
+        Pt3dr mP2;
+};
+cElXMLTree * ToXMLTree(const cXml_SLSRay &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SLSRay &);
+
+void  BinaryUnDumpFromFile(cXml_SLSRay &,ELISE_fp &);
+
+std::string  Mangling( cXml_SLSRay *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_OneLineSLS
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OneLineSLS & anObj,cElXMLTree * aTree);
+
+
+        double & IndLine();
+        const double & IndLine()const ;
+
+        std::vector< cXml_SLSRay > & Rays();
+        const std::vector< cXml_SLSRay > & Rays()const ;
+    private:
+        double mIndLine;
+        std::vector< cXml_SLSRay > mRays;
+};
+cElXMLTree * ToXMLTree(const cXml_OneLineSLS &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OneLineSLS &);
+
+void  BinaryUnDumpFromFile(cXml_OneLineSLS &,ELISE_fp &);
+
+std::string  Mangling( cXml_OneLineSLS *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ScanLineSensor
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ScanLineSensor & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< bool > & LineImIsScanLine();
+        const cTplValGesInit< bool > & LineImIsScanLine()const ;
+
+        cTplValGesInit< bool > & GroundSystemIsEuclid();
+        const cTplValGesInit< bool > & GroundSystemIsEuclid()const ;
+
+        Pt2di & ImSz();
+        const Pt2di & ImSz()const ;
+
+        bool & P1P2IsAltitude();
+        const bool & P1P2IsAltitude()const ;
+
+        Pt2di & GridSz();
+        const Pt2di & GridSz()const ;
+
+        Pt2dr & StepGrid();
+        const Pt2dr & StepGrid()const ;
+
+        std::vector< cXml_OneLineSLS > & Lines();
+        const std::vector< cXml_OneLineSLS > & Lines()const ;
+    private:
+        cTplValGesInit< bool > mLineImIsScanLine;
+        cTplValGesInit< bool > mGroundSystemIsEuclid;
+        Pt2di mImSz;
+        bool mP1P2IsAltitude;
+        Pt2di mGridSz;
+        Pt2dr mStepGrid;
+        std::vector< cXml_OneLineSLS > mLines;
+};
+cElXMLTree * ToXMLTree(const cXml_ScanLineSensor &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ScanLineSensor &);
+
+void  BinaryUnDumpFromFile(cXml_ScanLineSensor &,ELISE_fp &);
+
+std::string  Mangling( cXml_ScanLineSensor *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm
