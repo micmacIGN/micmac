@@ -43,22 +43,51 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-void GenerateOneSol(cNOSolIn_Triplet * aTri)
+
+void cAppli_NewSolGolInit::NumeroteCC()
 {
-}
-
-
-
-void cAppli_NewSolGolInit::GenerateAllSol()
-{
-    double aBestCoh = 1e10;
-    cNOSolIn_Triplet * aTri = 0;
+    int aNumCC = 0;
+    for (int  aK3=0 ; aK3<int (mV3.size()) ; aK3++)
+    {
+        cNOSolIn_Triplet * aTri0 = mV3[aK3];
+        if ( !aTri0->Flag().kth(mFlag3CC))
+        {
+            // std::vector<cNOSolIn_Triplet*> * aCC = new std::vector<cNOSolIn_Triplet*>;
+            mVCC.push_back(new cCC_TripSom);
+            std::vector<cNOSolIn_Triplet*> * aCC = &(mVCC.back()->mTri);
+            aCC->push_back(aTri0);
+            aTri0->Flag().set_kth_true(mFlag3CC);
+            aTri0->NumCC() = aNumCC;
+            int aKCur = 0;
+            while (aKCur!=int(aCC->size()))
+            {
+               cNOSolIn_Triplet * aTri1 = (*aCC)[aKCur];
+               for (int aKA=0 ; aKA<3 ; aKA++)
+               {
+                  std::vector<cLinkTripl> &  aLnk = aTri1->KArc(aKA)->attr().ASym()->Lnk3();
+                  for (int aKL=0 ; aKL<int(aLnk.size()) ; aKL++)
+                  {
+                     cNOSolIn_Triplet * aTri2 = aLnk[aKL].m3;
+                     if (! aTri2->Flag().kth(mFlag3CC))
+                     {
+                        aCC->push_back(aTri2);
+                        aTri2->Flag().set_kth_true(mFlag3CC);
+                        aTri2->NumCC() = aNumCC;
+                     }
+                  }
+               }
+               aKCur++;
+            }
+            aNumCC++;
+        }
+    }
 
     for (int  aK3=0 ; aK3<int (mV3.size()) ; aK3++)
     {
+         mV3[aK3]->Flag().set_kth_false(mFlag3CC);
     }
+    std::cout << "NUMMMCCCC " <<  aNumCC << "\n";
 }
-
 
 
 

@@ -109,7 +109,7 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(cAppli_NewSolGolInit* anAppli,tSomNSI * aS1,t
     mBOnH  (aTrip.BSurH()),
     mNb3   (aTrip.NbTriplet()),
     mPMed  (aTrip.PMed()),
-    mAlive (true)
+    mNumCC (-1)
 {
    mSoms[0] = aS1;
    mSoms[1] = aS2;
@@ -202,8 +202,9 @@ tSomNSI * cLinkTripl::S1() const {return  m3->KSom(mK1);}
 tSomNSI * cLinkTripl::S2() const {return  m3->KSom(mK2);}
 tSomNSI * cLinkTripl::S3() const {return  m3->KSom(mK3);}
 
-void cNOSolIn_AttrASym::PostInit()
+void cNOSolIn_AttrASym::PostInit(bool Show)
 {
+   std::vector<double> aVBSurH;
    for (int aKL=0 ; aKL<int(mLnk3.size()) ; aKL++)
    {
         cLinkTripl & aLnk = mLnk3[aKL];
@@ -217,9 +218,14 @@ void cNOSolIn_AttrASym::PostInit()
         double aD2M =  euclid(aR2.tr()-aTri.PMed());
 
         double aBOnH = aD12/((aD1M+aD2M)/2.0);
+        aVBSurH.push_back(aBOnH);
 
-        std::cout << "B/H " << aBOnH << "\n";
+        if (Show)
+        {
+           std::cout << "B/H " << aBOnH << "\n";
+        }
    }
+   mBOnH = MedianeSup(aVBSurH);
 }
 
 /***************************************************************************/
@@ -492,6 +498,7 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
                 {
                     int aNbT = (*anItA).attr().ASym()->Lnk3().size();
                      aNbTT += (aNbT*(aNbT-1)) / 2;
+                     (*anItA).attr().ASym()->PostInit(false);
                 }
           }
     }
@@ -654,7 +661,9 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mTestArc    (0),
     mNbSom      (0),
     mNbArc      (0),
-    mNbTrip     (0)
+    mNbTrip     (0),
+    mFlag3Alive (mAllocFlag3.flag_alloc()),
+    mFlag3CC    (mAllocFlag3.flag_alloc())
 {
    std::string aNameT1;
    std::string aNameT2;
@@ -804,7 +813,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     if ( 1 && mTestArc)
     {
           InitRotOfArc(mTestArc,true);
-          mTestArc->attr().ASym()->PostInit();
+          mTestArc->attr().ASym()->PostInit(true);
 
     }
     EstimRotsInit();
@@ -842,6 +851,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
         }
 */
     }
+
+    NumeroteCC();
    
 }
 
