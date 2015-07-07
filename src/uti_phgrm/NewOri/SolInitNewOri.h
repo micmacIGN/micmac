@@ -112,10 +112,11 @@ class cNOSolIn_AttrASym
          std::vector<cLinkTripl> & Lnk3() {return mLnk3;}
          ElRotation3D &    EstimC2toC1() {return mEstimC2toC1;}
          cNOSolIn_AttrASym();
-         void PostInit();
+         void PostInit(bool Show);
      private :
          std::vector<cLinkTripl> mLnk3;
          ElRotation3D            mEstimC2toC1;
+         double                  mBOnH;
 
 };
 
@@ -161,6 +162,8 @@ class cNOSolIn_Triplet
 
            void Show(const std::string & aMes) const ;
            const Pt3dr &  PMed() const {return mPMed;}
+           ElTabFlag & Flag() {return   mTabFlag;}
+          int & NumCC() {return mNumCC;}
 
 
       private :
@@ -173,8 +176,9 @@ class cNOSolIn_Triplet
           int           mNb3;
           Pt3dr         mPMed;
    // Gere les triplets qui vont etre desactives
-          bool          mAlive;
           double        mCost;
+          ElTabFlag     mTabFlag;
+          int           mNumCC;
 };
 
 
@@ -188,6 +192,13 @@ class cCmpPtrTriplOnCost
 };
 
 
+class cCC_TripSom
+{
+    public :
+        std::vector<cNOSolIn_Triplet *> mTri;
+        std::vector<tSomNSI *>          mSoms;
+};
+
 class cAppli_NewSolGolInit
 {
     public :
@@ -197,8 +208,7 @@ class cAppli_NewSolGolInit
 
     private :
 
-        void GenerateOneSol(cNOSolIn_Triplet * aTri);
-        void GenerateAllSol();
+        void NumeroteCC();
 
 
         void FinishNeighTriplet();
@@ -236,6 +246,7 @@ class cAppli_NewSolGolInit
         std::vector<tSomNSI *>  mVCur3;  // Tripelt courrant
         std::vector<tSomNSI *>  mVCur2;  // Adjcent au triplet courant
         std::vector<cNOSolIn_Triplet*> mV3;
+        std::vector<cCC_TripSom *> mVCC;
         int                     mFlag3;
         int                     mFlag2;
         cNOSolIn_Triplet *      mTestTrip;
@@ -248,6 +259,9 @@ class cAppli_NewSolGolInit
         int                     mNbTrip;
         double                  mCoherMedAB;
         double                  mCoherMed12;
+        ElFlagAllocator         mAllocFlag3;
+        int                     mFlag3Alive;
+        int                     mFlag3CC;
 
 };
 
