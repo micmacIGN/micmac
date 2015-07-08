@@ -42,6 +42,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "SolInitNewOri.h"
 
 
+void cAppli_NewSolGolInit::ResetFlagCC()
+{
+
+    for (int  aK3=0 ; aK3<int (mV3.size()) ; aK3++)
+    {
+         mV3[aK3]->Flag().set_kth_false(mFlag3CC);
+    }
+}
 
 
 void cAppli_NewSolGolInit::NumeroteCC()
@@ -53,42 +61,101 @@ void cAppli_NewSolGolInit::NumeroteCC()
         if ( !aTri0->Flag().kth(mFlag3CC))
         {
             // std::vector<cNOSolIn_Triplet*> * aCC = new std::vector<cNOSolIn_Triplet*>;
-            mVCC.push_back(new cCC_TripSom);
-            std::vector<cNOSolIn_Triplet*> * aCC = &(mVCC.back()->mTri);
-            aCC->push_back(aTri0);
+            cCC_TripSom * aNewCC3S = new cCC_TripSom;
+            aNewCC3S->mNumCC = aNumCC;
+            mVCC.push_back(aNewCC3S);
+            std::vector<cNOSolIn_Triplet*> * aCC3 = &(aNewCC3S->mTri);
+            std::vector<tSomNSI *> * aCCS = &(aNewCC3S->mSoms);
+
+            // Calcul des triplets 
+            aCC3->push_back(aTri0);
             aTri0->Flag().set_kth_true(mFlag3CC);
             aTri0->NumCC() = aNumCC;
             int aKCur = 0;
-            while (aKCur!=int(aCC->size()))
+            while (aKCur!=int(aCC3->size()))
             {
-               cNOSolIn_Triplet * aTri1 = (*aCC)[aKCur];
+               cNOSolIn_Triplet * aTri1 = (*aCC3)[aKCur];
                for (int aKA=0 ; aKA<3 ; aKA++)
                {
                   std::vector<cLinkTripl> &  aLnk = aTri1->KArc(aKA)->attr().ASym()->Lnk3();
                   for (int aKL=0 ; aKL<int(aLnk.size()) ; aKL++)
                   {
+                     if (SetFlagAdd(*aCC3,aLnk[aKL].m3,mFlag3CC))
+                     {
+                          aLnk[aKL].m3->NumCC() = aNumCC;
+                     }
+/*
                      cNOSolIn_Triplet * aTri2 = aLnk[aKL].m3;
                      if (! aTri2->Flag().kth(mFlag3CC))
                      {
-                        aCC->push_back(aTri2);
+                        aCC3->push_back(aTri2);
                         aTri2->Flag().set_kth_true(mFlag3CC);
                         aTri2->NumCC() = aNumCC;
                      }
+*/
                   }
                }
                aKCur++;
             }
+
+            // Calcul des sommets 
+            int aFlagSom = mGr.alloc_flag_som();
+            for (int aKT=0 ; aKT<int(aCC3->size()) ; aKT++)
+            {
+                cNOSolIn_Triplet * aTri = (*aCC3)[aKT];
+                for (int aKS=0 ;  aKS<3 ; aKS++)
+                {
+                    SetFlagAdd(*aCCS,aTri->KSom(aKS),aFlagSom);
+                }
+            }
+            FreeAllFlag(*aCCS,aFlagSom);
+            mGr.free_flag_som(aFlagSom);
+
+            std::cout << "NbTriii " << aCC3->size() << " NbSooom " << aCCS->size() << "\n";
             aNumCC++;
         }
     }
-
-    for (int  aK3=0 ; aK3<int (mV3.size()) ; aK3++)
-    {
-         mV3[aK3]->Flag().set_kth_false(mFlag3CC);
-    }
+    FreeAllFlag(mV3,mFlag3CC);
+    // ResetFlagCC();
     std::cout << "NUMMMCCCC " <<  aNumCC << "\n";
 }
 
+
+void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
+{
+    
+    for (int aKS=0 ; aKS<3 ; aKS++)
+    {
+        // aGerm->
+    }
+}
+
+
+
+void  cAppli_NewSolGolInit::CalculOrient(cCC_TripSom * aCC)
+{
+     cNOSolIn_Triplet * aGerm0 =0;
+     double aBesCoherCost = 1e30;
+
+     for (int aK=0 ; aK<(aCC->mTri.size()) ; aK++)
+     {
+         cNOSolIn_Triplet * aTri = aCC->mTri[aK];
+         if (aTri->Cost()<aBesCoherCost)
+         {
+             aBesCoherCost = aTri->Cost();
+             aGerm0 = aTri;
+         }
+     }
+
+     CalculOrient(aGerm0);
+}
+
+
+void  cAppli_NewSolGolInit::CalculOrient()
+{
+    for (int aKC=0 ;  aKC<int(mVCC.size()) ; aKC++)
+       CalculOrient(mVCC[aKC]);
+}
 
 
 
