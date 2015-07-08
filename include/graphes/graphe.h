@@ -537,6 +537,41 @@ template <class AttrSom,class AttrArc> class ElSomIterator
 };
 
 
+/*  Utilitaire  permettant de manipuler de maniere ensembliste des container de Type * gracea des flag
+*/
+
+     // Deux adaptateurs sur les sommets
+
+template <class T1,class T2> inline bool ValFlag(ElSom<T1,T2> & aSom,int aFlagSom)
+{
+   return aSom.flag_kth(aFlagSom);
+}
+template <class T1,class T2> inline void  SetFlag(ElSom<T1,T2> & aSom,int aFlag,bool aVal)
+{
+   return aSom.flag_set_kth(aFlag,aVal);
+}
+
+     // Deux fonctions de manipulation
+
+template <class TypeVal,class TypeCont> inline bool SetFlagAdd(TypeCont & aCont,TypeVal * aVal,int aFlag)
+{
+    if (! ValFlag(*aVal,aFlag))
+    {
+        SetFlag(*aVal,aFlag,true);
+        aCont.push_back(aVal);
+        return true;
+    }
+    return false;
+}
+
+template <class TypeCont> inline void FreeAllFlag(TypeCont & aCont,int aFlag)
+{
+    for (typename TypeCont::iterator it=aCont.begin() ; it!=aCont.end() ; it++)
+    {
+        SetFlag(**it,aFlag,false);
+    }
+}
+
 
 #endif // _ELISE_GRAPHES_GRAPHE_H
 

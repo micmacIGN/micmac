@@ -697,7 +697,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
          if (mType==eGeomImage)
          {
-              cRepereCartesien aRC = StdGetFromPCP(mDir+mRep,RepereCartesien);
+               cRepereCartesien aRC = StdGetFromPCP(mDir+mRep,RepereCartesien);
                mCom =  mCom
                        + std::string(" +SpecDirFaisc=true")
                        + std::string(" +DirFaisX=") + ToString(-aRC.Oz().x)

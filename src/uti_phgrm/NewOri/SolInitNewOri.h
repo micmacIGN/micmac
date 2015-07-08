@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_SOLINIT_NEW_ORI_H
 
 
+
 class cLinkTripl;
 class cNOSolIn_AttrSom;
 class cNOSolIn_AttrASym;
@@ -181,6 +182,16 @@ class cNOSolIn_Triplet
           int           mNumCC;
 };
 
+inline bool ValFlag(cNOSolIn_Triplet & aTrip,int aFlagSom)
+{
+   return aTrip.Flag().kth(aFlagSom);
+}
+inline void  SetFlag(cNOSolIn_Triplet & aTrip,int aFlag,bool aVal)
+{
+    aTrip.Flag().set_kth(aFlag,aVal);
+}
+
+
 
 class cCmpPtrTriplOnCost
 {
@@ -197,6 +208,7 @@ class cCC_TripSom
     public :
         std::vector<cNOSolIn_Triplet *> mTri;
         std::vector<tSomNSI *>          mSoms;
+        int                             mNumCC;
 };
 
 class cAppli_NewSolGolInit
@@ -208,7 +220,12 @@ class cAppli_NewSolGolInit
 
     private :
 
+        void  CalculOrient();
+        void  CalculOrient(cCC_TripSom * aCC);
+        void  CalculOrient(cNOSolIn_Triplet * aCC);
+
         void NumeroteCC();
+        void ResetFlagCC();
 
 
         void FinishNeighTriplet();

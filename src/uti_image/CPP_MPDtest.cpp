@@ -726,10 +726,69 @@ void PdBump()
 }
 
 
+void TestMax(int argc,char** argv)
+{
+    std::string aNameIm; 
+    int aSzW = 32;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name Input"),
+        LArgMain() <<  EAM(aSzW,"SzW",true,"Taille de la fenetre")
+    );
+
+    Tiff_Im aTIn = Tiff_Im::StdConvGen(aNameIm,1,true);
+    Pt2di aSz = aTIn.sz();
+
+    Im2D_U_INT2 aIm(aSz.x,aSz.y);
+    ELISE_COPY(aTIn.all_pts(),aTIn.in(),aIm.out());
+
+
+    Im2D_U_INT1 aImMax(aSz.x,aSz.y,0);
+    Im2D_U_INT1 aImMin(aSz.x,aSz.y,0);
+    
+
+    Fonc_Num aF = aIm.in(-10000) + FX/100.0 + FY/1000.0;
+
+    ELISE_COPY(aImMax.all_pts(),aF==rect_max(aF,aSzW),aImMax.out());
+
+     
+    Tiff_Im aTIn8B = Tiff_Im::StdConvGen(aNameIm,1,false);
+
+
+    std::string aNameMax ="Max-" + aNameIm;
+    Tiff_Im aResMax
+            (
+                aNameMax.c_str(),
+                aSz,
+                GenIm::u_int1,
+                Tiff_Im::No_Compr,
+                Tiff_Im::RGB
+            );
+
+   ELISE_COPY
+   (
+        aResMax.all_pts(),
+        Virgule
+        (
+            aTIn8B.in(),
+            aTIn8B.in(),
+            255*dilat_32(aImMax.in(0),5)
+        ),
+        aResMax.out()
+   );
+
+
+}
+
 
 int MPDtest_main (int argc,char** argv)
 {
 
+   TestMax(argc,argv);
+
+/*
    cXml_ScanLineSensor  aSensor = StdGetFromSI("/home/marc/TMP/EPI/TestSens.xml",Xml_ScanLineSensor);
 
    MakeFileXML(aSensor,"/home/marc/TMP/EPI/TestSens.dmp");
@@ -738,6 +797,7 @@ int MPDtest_main (int argc,char** argv)
 
 
    std::cout <<  aSensor.Lines().begin()->Rays().begin()->P1() << "\n";
+*/
 
 /*
     PdBump();
