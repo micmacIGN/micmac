@@ -20,10 +20,10 @@ class DigeoPoint
 public:
 	typedef enum
 	{
-		DETECT_LOCAL_MIN,
-		DETECT_LOCAL_MAX,
-		DETECT_UNKNOWN // this one must stay the last type of the enum, new types must be added before
-	} DetectType;
+		DETECT_UNKNOWN = 0,
+		DETECT_LOCAL_MIN = 1,
+		DETECT_LOCAL_MAX = 2
+	} DetectType; // do not forget to change DigeoPoint::nbDetectTypes in DigeoPoint.cpp when adding a new type
 
 	typedef union{
 		struct{
@@ -42,7 +42,7 @@ public:
 
 	static unsigned char sm_uchar_descriptor[DIGEO_DESCRIPTOR_SIZE];
 	static REAL8 sm_real8_descriptor[DIGEO_DESCRIPTOR_SIZE];
-	static unsigned int nbDetectTypes;
+	static const unsigned int nbDetectTypes;
 
 	inline DigeoPoint();
 
@@ -60,7 +60,7 @@ public:
 	inline REAL8 * descriptor( size_t i_index );
 	inline const Entry & entry( size_t i_index ) const;
 	inline Entry & entry( size_t i_index );
-	
+
 	// setters
 	inline void setAngle( size_t i_index, REAL8 i_angle );
 	inline void setDescriptor( size_t i_index, const REAL8 *i_descriptor );
@@ -89,6 +89,8 @@ public:
 
 	// remove duplicated points and duplicated entries for the same point
 	static void removeDuplicates( std::vector<DigeoPoint> &io_points, int i_gridSize=100 );
+
+	double minDescriptorDistance2( const DigeoPoint &aPoint ) const;
 };
 
 std::ostream & operator <<( std::ostream &s, const DigeoPoint &p );

@@ -48,7 +48,9 @@ Header-MicMac-eLiSe-25/06/2007*/
    Classe pour 
 */
 
-#define DEBUG true
+#ifndef DEBUG
+	#define DEBUG true
+#endif
 
 template <class Type,class TAttrLnk> class cMergingNode;
 template <class Type,class TAttrLnk> class IndexMergingNode;

@@ -36,9 +36,9 @@ void MultiChannel<tData>::set( const MultiChannel<tData> &i_b )
 template <class tData>
 void MultiChannel<tData>::set( size_t i_iChannel, const Im2D<tData,tBase> &i_im2d )
 {
-	__elise_debug_error( i_iChannel>=mChannels.size(), "MultiChannel::set(Im2D): i_iChannel>=mChannels.size()" );
-	__elise_debug_error( i_im2d.tx()!=mWidth, "MultiChannel::set(Im2D): i_im2d.tx()!=mWidth" );
-	__elise_debug_error( i_im2d.ty()!=mHeight, "MultiChannel::set(Im2D): i_im2d.ty()!=mHeight" );
+	ELISE_DEBUG_ERROR( i_iChannel>=mChannels.size(), "MultiChannel::set(Im2D)", "i_iChannel>=mChannels.size()" );
+	ELISE_DEBUG_ERROR( i_im2d.tx()!=mWidth, "MultiChannel::set(Im2D)", "i_im2d.tx()!=mWidth" );
+	ELISE_DEBUG_ERROR( i_im2d.ty()!=mHeight, "MultiChannel::set(Im2D)", "i_im2d.ty()!=mHeight" );
 
 	memcpy( mChannels[i_iChannel]->data_lin(), i_im2d.data_lin(), (size_t)mWidth*(size_t)mHeight*sizeof(tData) );
 }
@@ -54,9 +54,9 @@ void MultiChannel<tData>::link( Im2D<tData,tBase> &i_im2d )
 template <class tData>
 void MultiChannel<tData>::resize( int i_width, int i_height, int i_nbChannels )
 {
-	__elise_debug_error( i_width<0, "MultiChannel: resize(int,int,int): invalid width : " << i_width );
-	__elise_debug_error( i_height<0, "MultiChannel: resize(int,int,int): invalid height : " << i_height );
-	__elise_debug_error( i_nbChannels<0, "MultiChannel: resize(int,int,int): invalid number of channels : " << i_nbChannels );
+	ELISE_DEBUG_ERROR( i_width<0, "MultiChannel::resize(int,int,int)", "invalid width : " << i_width );
+	ELISE_DEBUG_ERROR( i_height<0, "MultiChannel::resize(int,int,int)", "invalid height : " << i_height );
+	ELISE_DEBUG_ERROR( i_nbChannels<0, "MultiChannel::resize(int,int,int)", "invalid number of channels : " << i_nbChannels );
 
 	if ( mWidth==i_width && mHeight==i_height && mChannels.size()==(size_t)i_nbChannels ) return;
 
@@ -78,7 +78,7 @@ void MultiChannel<tData>::resize( int i_width, int i_height, int i_nbChannels )
 	while ( i<newChannels.size() )
 	{
 		newChannels[i++] = new Im2D<tData,tBase>(i_width,i_height);
-		__elise_debug_error( newChannels[i-1]==NULL, "MultiChannel: resize(int,int,int): allocation failed" );
+		ELISE_DEBUG_ERROR( newChannels[i-1]==NULL, "MultiChannel::resize(int,int,int)", "allocation failed" );
 	}
 
 	mChannels.swap(newChannels);
@@ -158,7 +158,7 @@ bool MultiChannel<tData>::write_raw( const string &i_filename, U_INT4 i_version,
 	switch( i_version ){
 	case 1: write_raw_v1( f, reverseByteOrder ); return true;
 	default:
-		__elise_debug_warning( true, "MultiChannel::write_raw: unkown version number " << i_version);
+		ELISE_DEBUG_ERROR( true, "MultiChannel::write_raw", "unkown version number " << i_version);
 		return false;
 	}
 }
@@ -197,7 +197,7 @@ bool multi_channels_read_raw_header( const string &i_filename, int &o_width, int
 		multi_channels_read_raw_header_v1( f, reverseByteOrder, o_width, o_height, o_nbChannels, o_type );
 		break;
 	default:
-		__elise_debug_warning( true, "multi_channels_read_raw_header: unknown version number " << header.version() );
+		ELISE_DEBUG_WARNING( true, "multi_channels_read_raw_header", "unknown version number " << header.version() );
 		return false;
 	}
 	return true;
@@ -240,7 +240,7 @@ bool MultiChannel<tData>::read_raw( const string &i_filename, VersionedFileHeade
 	VersionedFileHeader header;
 	if ( !header.read_known( VFH_RawIm2D, f ) )
 	{
-		__elise_debug_warning( true, "MultiChannel<tData>::read_raw: cannot read versioned file header" );
+		ELISE_DEBUG_ERROR( true, "MultiChannel<tData>::read_raw", "cannot read versioned file header" );
 		return false;
 	}
 	if ( o_header!=NULL ) *o_header=header;
@@ -250,7 +250,7 @@ bool MultiChannel<tData>::read_raw( const string &i_filename, VersionedFileHeade
 	case 1:
 		return read_raw_v1( f, reverseByteOrder );
 	default:
-		__elise_debug_warning( true, "im2d_read_raw(iostream &, vector<Im2DGen*> &, VersionedFileHeader *): unknown version number "<<header.version() );
+		ELISE_DEBUG_ERROR( true, "im2d_read_raw(iostream &, vector<Im2DGen*> &, VersionedFileHeader *)", "nknown version number " << header.version() );
 		return false;
 	}
 }
@@ -277,7 +277,7 @@ bool MultiChannel<tData>::read_tiff( Tiff_Im &i_tiff ) // Tiff_Im is not const b
 template <class tData>
 bool MultiChannel<tData>::write_tiff( const string &i_filename ) const
 {
-	__elise_debug_error( typeEl()!=GenIm::u_int2 && typeEl()!=GenIm::u_int1, "MultiChannel: write_tiff: unhandled type " << eToString( typeEl() ) );
+	ELISE_DEBUG_ERROR( typeEl()!=GenIm::u_int2 && typeEl()!=GenIm::u_int1, "MultiChannel: write_tiff", "unhandled type " << eToString( typeEl() ) );
 
 	GenIm::type_el tiffOutputType = ( sizeof(tData)>1 ? GenIm::u_int2 : GenIm::u_int1 );
 	Fonc_Num inFonc;
@@ -319,14 +319,14 @@ bool MultiChannel<tData>::write_tiff( const string &i_filename ) const
 template <class tData>
 bool MultiChannel<tData>::write_pnm( const string &i_filename ) const
 {
-	__elise_debug_error( false, "MultiChannel: write_pnm: unhandled type : " << eToString( typeEl() ) );
+	ELISE_DEBUG_ERROR( false, "MultiChannel::write_pnm", "unhandled type : " << eToString( typeEl() ) );
 	return false;
 }
 
 void write_pnm_header( ostream &io_ostream, int i_width, int i_height, size_t i_nbChannels, int i_maxValue )
 {
-	__elise_debug_error( i_nbChannels!=1 && i_nbChannels!=3, "MultiChannel: write_pnm_header: invalid number of channels : " << i_nbChannels );
-	__elise_debug_error( i_maxValue!=255 && i_maxValue!=65535, "MultiChannel: write_pnm_header: invalid max value : " << i_maxValue );
+	ELISE_DEBUG_ERROR( i_nbChannels!=1 && i_nbChannels!=3, "MultiChannel::write_pnm_header", "invalid number of channels : " << i_nbChannels );
+	ELISE_DEBUG_ERROR( i_maxValue!=255 && i_maxValue!=65535, "MultiChannel::write_pnm_header", "invalid max value : " << i_maxValue );
 
 	io_ostream << (i_nbChannels==1?"P5":"P6") << endl;
 	io_ostream << i_width << ' ' << i_height << endl;
@@ -378,7 +378,7 @@ bool multi_channels_read_pnm_header( istream &io_istream, int &o_width, int &o_h
 	__pnm_read_values( io_istream, values, o_comments );
 	if ( values.size()!=4 )
 	{
-		__elise_debug_error( true, "multi_channels_read_pnm_header: invalid number of values : " << values.size() );
+		ELISE_DEBUG_ERROR( true, "multi_channels_read_pnm_header", "invalid number of values : " << values.size() );
 		return false;
 	}
 
@@ -388,7 +388,7 @@ bool multi_channels_read_pnm_header( istream &io_istream, int &o_width, int &o_h
 	else if ( id=="P6" ) o_nbChannels = 3;
 	else
 	{
-		__elise_debug_error( true, "multi_channels_read_pnm_header: unknown id : " << id );
+		ELISE_DEBUG_ERROR( true, "multi_channels_read_pnm_header", "unknown id : " << id );
 		return false;
 	}
 
@@ -400,7 +400,7 @@ bool multi_channels_read_pnm_header( istream &io_istream, int &o_width, int &o_h
 	else if ( maxValue==65535 ) o_type = GenIm::u_int2;
 	else
 	{
-		__elise_debug_error( true, "multi_channels_read_pnm_header: invalid max value : " << maxValue );
+		ELISE_DEBUG_ERROR( true, "multi_channels_read_pnm_header", "invalid max value : " << maxValue );
 		return false;
 	}
 
@@ -412,7 +412,7 @@ bool multi_channels_read_pnm_header( const string &i_filename, int &o_width, int
 	ifstream f( i_filename.c_str(), ios::binary );
 	if ( !f )
 	{
-		__elise_debug_error( true, "multi_channels_read_pnm_header: cannot open file [" << i_filename << ']' );
+		ELISE_DEBUG_ERROR( true, "multi_channels_read_pnm_header", "cannot open file [" << i_filename << ']' );
 		return false;
 	}
 	return multi_channels_read_pnm_header( f, o_width, o_height, o_nbChannels, o_type, o_comments );
@@ -421,7 +421,7 @@ bool multi_channels_read_pnm_header( const string &i_filename, int &o_width, int
 template <>
 bool MultiChannel<U_INT1>::write_pnm( const string &i_filename ) const
 {
-	__elise_debug_error( mChannels.size()!=1 && mChannels.size()!=3 , "MultiChannel: write_pnm<U_INT1>: nbChannels() = " << nbChannels() << " (should be 1 or 3)" );
+	ELISE_DEBUG_ERROR( mChannels.size()!=1 && mChannels.size()!=3 , "MultiChannel<U_INT1>::write_pnm", "nbChannels() = " << nbChannels() << " (should be 1 or 3)" );
 
 	ofstream f( i_filename.c_str(), ios::binary );
 	if ( !f ) return false;
@@ -444,7 +444,7 @@ bool MultiChannel<U_INT1>::write_pnm( const string &i_filename ) const
 template <>
 bool MultiChannel<U_INT2>::write_pnm( const string &i_filename ) const
 {
-	__elise_debug_error( mChannels.size()!=1 && mChannels.size()!=3, "MultiChannel: write_pnm<U_INT2>: nbChannels() = " << nbChannels() << " (should be 1 or 3)" );
+	ELISE_DEBUG_ERROR( mChannels.size()!=1 && mChannels.size()!=3, "MultiChannel<U_INT2>::write_pnm", "nbChannels() = " << nbChannels() << " (should be 1 or 3)" );
 
 	ofstream f( i_filename.c_str(), ios::binary );
 	if ( !f ) return false;
@@ -470,7 +470,7 @@ bool MultiChannel<U_INT2>::write_pnm( const string &i_filename ) const
 template <class tData>
 bool MultiChannel<tData>::read_pnm( const string &i_filename, list<string> *o_comments )
 {
-	__elise_debug_error( true, "read_pnm<" << El_CTypeTraits<tData>::Name() << ">: type inconsistent with pnm formats, only U_INT1 and U_INT2 are allowed" );
+	ELISE_DEBUG_ERROR( true, "MultiChannel<" << El_CTypeTraits<tData>::Name() << ">::read_pnm", "type inconsistent with pnm formats, only U_INT1 and U_INT2 are allowed" );
 	return false;
 }
 
@@ -484,19 +484,19 @@ bool MultiChannel<U_INT1>::read_pnm( const string &i_filename, list<string> *o_c
 
 	if ( !f )
 	{
-		__elise_debug_error( true, "MultiChannel<U_INT1>::read_pnm: cannot open file [" << i_filename << "] for reading" );
+		ELISE_DEBUG_ERROR( true, "MultiChannel<U_INT1>::read_pnm", "cannot open file [" << i_filename << "] for reading" );
 		return false;
 	}
 
 	if ( !multi_channels_read_pnm_header( f, width, height, nbChannels, type, o_comments ) )
 	{
-		__elise_debug_error( true, "MultiChannel<U_INT1>::read_pnm: cannot read pnm header in [" << i_filename << ']' );
+		ELISE_DEBUG_ERROR( true, "MultiChannel<U_INT1>::read_pnm", "cannot read pnm header in [" << i_filename << ']' );
 		return false;
 	}
 
 	if ( type!=GenIm::u_int1 )
 	{
-		__elise_debug_error( true, "MultiChannel<U_INT1>::read_pnm: incompatible image type " << eToString(type) );
+		ELISE_DEBUG_ERROR( true, "MultiChannel<U_INT1>::read_pnm", "incompatible image type " << eToString(type) );
 		return false;
 	}
 
@@ -524,19 +524,19 @@ bool MultiChannel<U_INT2>::read_pnm( const string &i_filename, list<string> *o_c
 
 	if ( !f )
 	{
-		__elise_debug_error( true, "MultiChannel<U_INT2>::read_pnm: cannot open file [" << i_filename << "] for reading" );
+		ELISE_DEBUG_ERROR( true, "MultiChannel<U_INT2>::read_pnm", "cannot open file [" << i_filename << "] for reading" );
 		return false;
 	}
 
 	if ( !multi_channels_read_pnm_header( f, width, height, nbChannels, type, o_comments ) )
 	{
-		__elise_debug_error( true, "MultiChannel<U_INT2>::read_pnm: cannot read pnm header in [" << i_filename << ']' );
+		ELISE_DEBUG_ERROR( true, "MultiChannel<U_INT2>::read_pnm", "cannot read pnm header in [" << i_filename << ']' );
 		return false;
 	}
 
 	if ( type!=GenIm::u_int2 )
 	{
-		__elise_debug_error( true, "MultiChannel<U_INT2>::read_pnm: incompatible image type " << eToString(type) );
+		ELISE_DEBUG_ERROR( true, "MultiChannel<U_INT2>::read_pnm", "incompatible image type " << eToString(type) );
 		return false;
 	}
 
@@ -596,13 +596,13 @@ bool multi_channels_read_header( const string &i_filename, FileFormat_t &o_forma
 template <class tData>
 void MultiChannel<tData>::duplicateLastChannel( size_t i_nbDuplicates )
 {
-	__elise_debug_error( mChannels.size()==0, "duplicateLastChannel: mChannels.size()==0" );
+	ELISE_DEBUG_ERROR( mChannels.size()==0, "MultiChannel<tData>::duplicateLastChannel", "mChannels.size()==0" );
 
 	const tData *src = mChannels.back()->data_lin();
 	size_t i = mChannels.size();
 	resize( mWidth, mHeight, mChannels.size()+i_nbDuplicates );
 
-	__elise_debug_error( src!=mChannels[i-1]->data_lin(), "duplicateLastChannel: resize has reallocated image memory" );
+	ELISE_DEBUG_ERROR( src!=mChannels[i-1]->data_lin(), "MultiChannel<tData>::duplicateLastChannel", "resize has reallocated image memory" );
 
 	const size_t nbBytes = (size_t)mWidth*(size_t)mHeight*sizeof(tData);
 	while ( i<mChannels.size() )

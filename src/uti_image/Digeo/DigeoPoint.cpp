@@ -6,7 +6,7 @@ using namespace std;
 
 unsigned char DigeoPoint::sm_uchar_descriptor[DIGEO_DESCRIPTOR_SIZE];
 REAL8 DigeoPoint::sm_real8_descriptor[DIGEO_DESCRIPTOR_SIZE];
-unsigned int DigeoPoint::nbDetectTypes = (int)DigeoPoint::DETECT_UNKNOWN+1; // this is why DETECT_UNKNOWN must stay the last of the enum
+const unsigned int DigeoPoint::nbDetectTypes = 3; // this is why DETECT_UNKNOWN must stay the last of the enum
 
 /*
 class DigeoFileHeader : public VersionedFileHeader
@@ -242,11 +242,21 @@ bool DigeoPoint::readDigeoFile( const string &i_filename, bool i_allowMultipleAn
 	if ( o_header!=NULL ) *o_header=header;
 	bool reverseByteOrder = ( header.isMSBF()!=MSBF_PROCESSOR() );
 
-	switch ( header.version() ){
-	case 0: readDigeoFile_v0( f, i_allowMultipleAngles, o_list ); break;
-	case 1: readDigeoFile_v1( f, reverseByteOrder, i_allowMultipleAngles, o_list ); break;
-	default: cerr << "ERROR: writeDigeoFile : unkown version number " << header.version() << endl; return false;
+	try
+	{
+		switch ( header.version() )
+		{
+		case 0: readDigeoFile_v0( f, i_allowMultipleAngles, o_list ); break;
+		case 1: readDigeoFile_v1( f, reverseByteOrder, i_allowMultipleAngles, o_list ); break;
+		default: cerr << "ERROR: writeDigeoFile : unkown version number " << header.version() << endl; return false;
+		}
 	}
+	catch ( const bad_alloc &e )
+	{
+		//~ cerr << "WARNING: DigeoPoint::readDigeoFile: not enough memory to load file [" << i_filename <<']' << endl;
+		return false;
+	}
+
 	return true;
 }
 
@@ -529,6 +539,35 @@ void DigeoPoint::removePointsOfType( DetectType i_type, vector<DigeoPoint> &io_p
 	}
 	io_points.swap( res );
 }
+
+double distance2_128( const REAL8 *a, const REAL8 *b )
+{
+	double result = 0., d;
+	int i = 128;
+	while ( i-- )
+	{
+		d = (*a++)-(*b++);
+		result += d*d;
+	}
+	return result;
+}
+
+double DigeoPoint::minDescriptorDistance2( const DigeoPoint &aPoint ) const
+{
+	double minDistance2 = numeric_limits<double>::max();
+	const Entry *itEntry0 = aPoint.entries.data();
+	size_t iEntry0 = aPoint.entries.size();
+	while ( iEntry0-- )
+	{
+		const REAL8 *descriptor0 = itEntry0->descriptor;
+		const Entry *itEntry1 = entries.data();
+		size_t iEntry1 = entries.size();
+		while ( iEntry1-- )
+			ElSetMin( minDistance2, distance2_128( (*itEntry1++).descriptor, descriptor0 ) );
+	}
+	return minDistance2;
+}
+
 
 // --------------------------------------------------------------
 // DigeoPoint related functions

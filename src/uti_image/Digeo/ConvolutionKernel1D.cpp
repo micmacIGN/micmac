@@ -49,8 +49,8 @@ inline void ConvolutionKernel1D<T>::set( const std::vector<T> &aCoefficients, si
 template <class T>
 void ConvolutionKernel1D<T>::set( const T *aCoefficients, size_t aSize, size_t aCenter, unsigned int aNbShift )
 {
-	__elise_debug_error( aSize==0, "ConvolutionKernel1D<T>::set: aSize==0" );
-	__elise_debug_error( aCenter>=aSize, "ConvolutionKernel1D<T>::set: aCenter = " << aCenter << ", out of range (max " << aSize-1 << ')' );
+	ELISE_DEBUG_ERROR( aSize==0, "ConvolutionKernel1D<T>::set", "aSize==0" );
+	ELISE_DEBUG_ERROR( aCenter>=aSize, "ConvolutionKernel1D<T>::set", "aCenter = " << aCenter << ", out of range (max " << aSize-1 << ')' );
 
 	// remove left zeros
 	while ( *aCoefficients==0 && aSize>1 )
@@ -162,7 +162,7 @@ unsigned int getNbShift( const T *aKernel, size_t aSize )
 	while ( aSize-- ) sum += *aKernel++;
 	unsigned int res = (unsigned int)( log((double)sum)/log(2.) );
 
-	__elise_debug_warning( sum!=(1<<res), "getNbShift: sum!=(1<<res)" );
+	ELISE_DEBUG_WARNING( sum!=(1<<res), "getNbShift", "sum!=(1<<res)" );
 
 	return res;
 }
