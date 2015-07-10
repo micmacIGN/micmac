@@ -66,7 +66,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#define __DEBUG
 #ifdef __DEBUG
 	#define __DEBUG_DIGEO
 #endif

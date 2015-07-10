@@ -146,10 +146,10 @@ Im2DGen cInterfImageAbs::getWindow( Pt2di P0, const Pt2di &windowSize, int asked
 {
 	#ifdef __DEBUG_DIGEO
 		Pt2di _p1 = P0+windowSize;
-		__elise_debug_error( P0.x<0, "cInterfImageAbs::getWindow: P0.x = " << P0.x << " <0" );
-		__elise_debug_error( _p1.x>sz().x, "cInterfImageAbs::getWindow: _p1.x = " << _p1.x << " > i_src.sz().x = " << sz() );
-		__elise_debug_error( P0.y<0, "cInterfImageAbs::getWindow: P0.y = " << P0.y << " <0" );
-		__elise_debug_error( _p1.y>sz().y, "cInterfImageAbs::getWindow: _p1.y = " << _p1.y << " > i_src.sz().y = " << sz() );
+		ELISE_DEBUG_ERROR( P0.x<0, "cInterfImageAbs::getWindow", "P0.x = " << P0.x << " <0" );
+		ELISE_DEBUG_ERROR( _p1.x>sz().x, "cInterfImageAbs::getWindow", "_p1.x = " << _p1.x << " > i_src.sz().x = " << sz() );
+		ELISE_DEBUG_ERROR( P0.y<0, "cInterfImageAbs::getWindow", "P0.y = " << P0.y << " <0" );
+		ELISE_DEBUG_ERROR( _p1.y>sz().y, "cInterfImageAbs::getWindow", "_p1.y = " << _p1.y << " > i_src.sz().y = " << sz() );
 	#endif
 
 	Pt2di p0( P0.x-askedMargin, P0.y-askedMargin );
@@ -556,8 +556,8 @@ void save_tiff( const string &i_filename, Im2DGen i_img, bool i_rgb )
 
 void cImDigeo::LoadImageAndPyram(const Box2di & aBoxIn,const Box2di & aBoxOut)
 {
-	__elise_debug_error( mInterfImage==NULL, "cImDigeo::LoadImageAndPyram: mInterfImage: mInterfImage==NULL" );
-	__elise_debug_error( mOctaves.size()==0, "cImDigeo::LoadImageAndPyram: mInterfImage: mOctaves.size()==0" );
+	ELISE_DEBUG_ERROR( mInterfImage==NULL, "cImDigeo::LoadImageAndPyram", "mInterfImage==NULL" );
+	ELISE_DEBUG_ERROR( mOctaves.size()==0, "cImDigeo::LoadImageAndPyram", "mOctaves.size()==0" );
 
     const cTypePyramide & aTP = mAppli.Params().TypePyramide();
 
