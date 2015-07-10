@@ -42,6 +42,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
+#define CstSeuilMedianArc 0.02
+#define MulSeuilMedianArc 2.0
+
+
+
 class cLinkTripl;
 class cNOSolIn_AttrSom;
 class cNOSolIn_AttrASym;
@@ -94,6 +99,7 @@ class cNOSolIn_AttrSom
          ElRotation3D & CurRot() {return mCurRot;}
          ElRotation3D & TestRot() {return mTestRot;}
          
+         std::vector<cLinkTripl> & Lnk3() {return mLnk3;}
 
      private :
          std::string                      mName;
@@ -103,6 +109,8 @@ class cNOSolIn_AttrSom
          double                           mCurCostMin;
          ElRotation3D                     mCurRot;
          ElRotation3D                     mTestRot;
+
+         double                           mGainByArc;
 };
 
 
@@ -156,7 +164,7 @@ class cNOSolIn_Triplet
           }
           double BOnH() const {return mBOnH;}
           int  Nb3() const {return mNb3;}
-          double  Cost() const {return mCost;}
+          double  CostArc() const {return mCostArc;}
 
           void CalcCoherFromArcs(bool Test);
           void CheckArcsSom();
@@ -177,7 +185,7 @@ class cNOSolIn_Triplet
           int           mNb3;
           Pt3dr         mPMed;
    // Gere les triplets qui vont etre desactives
-          double        mCost;
+          double        mCostArc;
           ElTabFlag     mTabFlag;
           int           mNumCC;
 };
@@ -198,7 +206,7 @@ class cCmpPtrTriplOnCost
    public :
        bool operator () (const  cNOSolIn_Triplet * aT1,const  cNOSolIn_Triplet * aT2)
        {
-           return aT1->Cost() < aT2->Cost() ;
+           return aT1->CostArc() < aT2->CostArc() ;
        }
 };
 
@@ -220,9 +228,12 @@ class cAppli_NewSolGolInit
 
     private :
 
+        bool  TripletIsValide(cNOSolIn_Triplet *);
+
         void  CalculOrient();
         void  CalculOrient(cCC_TripSom * aCC);
         void  CalculOrient(cNOSolIn_Triplet * aCC);
+        bool  AddSOrCur(tSomNSI *);
 
         void NumeroteCC();
         void ResetFlagCC();
@@ -241,6 +252,8 @@ class cAppli_NewSolGolInit
         void   EstimCoherenceMed();
         void   EstimRotsInit();
         void   EstimCoheTriplet();
+        void   FilterTripletValide(std::vector<cLinkTripl > &);
+        void   FilterTripletValide();
         void    InitRotOfArc(tArcNSI * anArc,bool Test);
 
 
@@ -280,6 +293,11 @@ class cAppli_NewSolGolInit
         int                     mFlag3Alive;
         int                     mFlag3CC;
 
+
+
+        int                    mFlagSOrCur;
+        std::vector<tSomNSI*>  mVSOrCur;
+        double                 mSeuilCostArc;
 };
 
 

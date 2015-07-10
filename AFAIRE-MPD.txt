@@ -501,6 +501,10 @@ dans un fichier et de l'utiliser comme si c'était un pattern, c'est une fonctio
 faire communiquer les outils les uns avec les autres. Mais elle pourrait être interessante si on pouvait
 editer ces fichiers.
 
+3- Projet photogrammétrie (Recherche ?)
+
+Evaluation de l'utilisation de MicMac pour faire de la métrologie industrielle.
+
 
 
 

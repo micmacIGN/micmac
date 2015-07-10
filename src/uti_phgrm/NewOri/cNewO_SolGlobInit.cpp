@@ -80,7 +80,8 @@ cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolIni
    mAppli       (&anAppli),
    mIm          (new cNewO_OneIm(mAppli->NM(),mName)),
    mCurRot      (ElRotation3D::Id),
-   mTestRot     (ElRotation3D::Id)
+   mTestRot     (ElRotation3D::Id),
+   mGainByArc   (0.0)
 {
    ReInit();
 }
@@ -166,14 +167,14 @@ void  cNOSolIn_Triplet::CalcCoherFromArcs(bool Test)
      
    }
 
-   mCost = aSomD;
+   mCostArc = aSomD;
 }
 
 
 void cNOSolIn_Triplet::Show(const std::string &aMes) const 
 {
     std::cout << aMes
-              << " Trii " << mCost  << " CREL " <<  ((mCost /3) / mAppli->CoherMed12())
+              << " Trii " << mCostArc  << " CREL " <<  ((mCostArc /3) / mAppli->CoherMed12())
               << " "  << mSoms[0]->attr().Im()->Name() 
               << " "  << mSoms[1]->attr().Im()->Name() 
               << " "  << mSoms[2]->attr().Im()->Name() 
@@ -339,6 +340,10 @@ double DistCoherenceAtoB(tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Tripl
 }
 
 
+bool cAppli_NewSolGolInit::TripletIsValide(cNOSolIn_Triplet * aTri)
+{
+    return aTri->CostArc() < mSeuilCostArc;
+}
 
 
 
@@ -462,15 +467,70 @@ void cAppli_NewSolGolInit::EstimRotsInit()
     }
 }
 
+void cAppli_NewSolGolInit::FilterTripletValide(std::vector<cLinkTripl > & aV)
+{
+    std::vector<cLinkTripl > aNewV ;
+    for (int aKL=0 ; aKL<int(aV.size()) ; aKL++)
+    {
+        if (TripletIsValide(aV[aKL].m3))
+        {
+           aNewV.push_back(aV[aKL]);
+        }
+    }
+
+// std::cout <<"FilterTripletValid " << aV.size() << " => " << aNewV.size() << "\n";
+
+    aV = aNewV;
+}
+
+void cAppli_NewSolGolInit::FilterTripletValide()
+{
+    std::vector<cNOSolIn_Triplet*> aNewV3;
+
+    for (int aK=0 ; aK<int(mV3.size()) ; aK++)
+       if (TripletIsValide(mV3[aK]))
+          aNewV3.push_back(mV3[aK]);
+
+   std::cout << "HGGLLObb::FilterTripletValide " << mV3.size() << "=======>>>> " << aNewV3.size() << "\n";
+
+   mV3 = aNewV3;
+
+   for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
+   {
+          tSomNSI * aS1 = &(*anItS);
+          FilterTripletValide(aS1->attr().Lnk3());
+          for (tItANSI anItA=aS1->begin(mSubAll) ; anItA.go_on(); anItA++)
+          {
+                if ((*anItA).attr().IsOrASym())
+                {
+                    FilterTripletValide((*anItA).attr().ASym()->Lnk3());
+                }
+          }
+/*
+*/
+   }
+}
+
+
+
 void  cAppli_NewSolGolInit::EstimCoheTriplet()
 {
+    std::vector<double> aVCost3A;
     for (int aK=0  ; aK<int(mV3.size()) ; aK++)
     {
          mV3[aK]->CalcCoherFromArcs(false);
+         aVCost3A.push_back(mV3[aK]->CostArc());
     }
+
+    double aMed = MedianeSup(aVCost3A);
+    mSeuilCostArc = CstSeuilMedianArc + MulSeuilMedianArc * aMed;
+
+
+for (int aK=0 ; aK<100 ; aK++) std::cout << "!!!!!!!!!!!!!!! mSeuilCostArc !!!!!!!!!!\n";
+     // mSeuilCostArc = aMed / 8.0;
+
     cCmpPtrTriplOnCost aCmp;
     std::sort(mV3.begin(),mV3.end(),aCmp);
-
     if (1)
     {
        int aNb= 20;
@@ -479,10 +539,16 @@ void  cAppli_NewSolGolInit::EstimCoheTriplet()
             int aKS = (aK * (mV3.size()-1)) / aNb;
              mV3[aKS]->Show(ToString(aKS)) ;
        }
+       std::cout << "COST ;  S3A= " << mSeuilCostArc  << " M3A " << aMed << "\n";
     }
 }
 
 
+/***********************************************************
+    Evaluation statistique des coherence moyennes         
+    Pour chaque triplet , et chacun de ces 3 arcs on  calcule une valeur,
+on en prend la mediane. Avec les grand jeu de donnees on en prend que 100000 au max
+***********************************************************/
 
 void  cAppli_NewSolGolInit::EstimCoherenceMed()
 {
@@ -778,10 +844,11 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 
                  cNOSolIn_Triplet * aTriplet = new cNOSolIn_Triplet(this,aS1,aS2,aS3,aXml3Ori);
                  mV3.push_back(aTriplet);
-/*
+
                  aS1->attr().AddTriplet(aTriplet,1,2,0);
                  aS2->attr().AddTriplet(aTriplet,0,2,1);
                  aS3->attr().AddTriplet(aTriplet,0,1,2);
+/*
 */
                  CreateArc(aS1,aS2,aTriplet,0,1,2);
                  CreateArc(aS2,aS3,aTriplet,1,2,0);
@@ -823,9 +890,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     EstimCoheTriplet();
     std::cout << "Triplets Init \n";
 
-   
-
-
+    FilterTripletValide();
+    std::cout << "Filer done \n";
 
 
 

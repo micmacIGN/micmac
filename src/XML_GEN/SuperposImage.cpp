@@ -21234,6 +21234,17 @@ const Pt2dr & cXml_ScanLineSensor::StepGrid()const
 }
 
 
+cTplValGesInit< Pt2dr > & cXml_ScanLineSensor::OriGrid()
+{
+   return mOriGrid;
+}
+
+const cTplValGesInit< Pt2dr > & cXml_ScanLineSensor::OriGrid()const 
+{
+   return mOriGrid;
+}
+
+
 std::vector< cXml_OneLineSLS > & cXml_ScanLineSensor::Lines()
 {
    return mLines;
@@ -21266,6 +21277,14 @@ void  BinaryUnDumpFromFile(cXml_ScanLineSensor & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.P1P2IsAltitude(),aFp);
     BinaryUnDumpFromFile(anObj.GridSz(),aFp);
     BinaryUnDumpFromFile(anObj.StepGrid(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OriGrid().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OriGrid().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OriGrid().SetNoInit();
+  } ;
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -21287,6 +21306,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ScanLineSensor & anObj)
     BinaryDumpInFile(aFp,anObj.P1P2IsAltitude());
     BinaryDumpInFile(aFp,anObj.GridSz());
     BinaryDumpInFile(aFp,anObj.StepGrid());
+    BinaryDumpInFile(aFp,anObj.OriGrid().IsInit());
+    if (anObj.OriGrid().IsInit()) BinaryDumpInFile(aFp,anObj.OriGrid().Val());
     BinaryDumpInFile(aFp,(int)anObj.Lines().size());
     for(  std::vector< cXml_OneLineSLS >::const_iterator iT=anObj.Lines().begin();
          iT!=anObj.Lines().end();
@@ -21307,6 +21328,8 @@ cElXMLTree * ToXMLTree(const cXml_ScanLineSensor & anObj)
    aRes->AddFils(::ToXMLTree(std::string("P1P2IsAltitude"),anObj.P1P2IsAltitude())->ReTagThis("P1P2IsAltitude"));
    aRes->AddFils(::ToXMLTree(std::string("GridSz"),anObj.GridSz())->ReTagThis("GridSz"));
    aRes->AddFils(::ToXMLTree(std::string("StepGrid"),anObj.StepGrid())->ReTagThis("StepGrid"));
+   if (anObj.OriGrid().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("OriGrid"),anObj.OriGrid().Val())->ReTagThis("OriGrid"));
   for
   (       std::vector< cXml_OneLineSLS >::const_iterator it=anObj.Lines().begin();
       it !=anObj.Lines().end();
@@ -21335,9 +21358,11 @@ void xml_init(cXml_ScanLineSensor & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.StepGrid(),aTree->Get("StepGrid",1)); //tototo 
 
+   xml_init(anObj.OriGrid(),aTree->Get("OriGrid",1),Pt2dr(Pt2dr(0,0))); //tototo 
+
    xml_init(anObj.Lines(),aTree->GetAll("Lines",false,1));
 }
 
-std::string  Mangling( cXml_ScanLineSensor *) {return "4EA4B07306947293FF3F";};
+std::string  Mangling( cXml_ScanLineSensor *) {return "B848536DE6351DA5FB3F";};
 
 // };

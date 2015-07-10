@@ -6541,6 +6541,9 @@ class cXml_ScanLineSensor
         Pt2dr & StepGrid();
         const Pt2dr & StepGrid()const ;
 
+        cTplValGesInit< Pt2dr > & OriGrid();
+        const cTplValGesInit< Pt2dr > & OriGrid()const ;
+
         std::vector< cXml_OneLineSLS > & Lines();
         const std::vector< cXml_OneLineSLS > & Lines()const ;
     private:
@@ -6550,6 +6553,7 @@ class cXml_ScanLineSensor
         bool mP1P2IsAltitude;
         Pt2di mGridSz;
         Pt2dr mStepGrid;
+        cTplValGesInit< Pt2dr > mOriGrid;
         std::vector< cXml_OneLineSLS > mLines;
 };
 cElXMLTree * ToXMLTree(const cXml_ScanLineSensor &);
