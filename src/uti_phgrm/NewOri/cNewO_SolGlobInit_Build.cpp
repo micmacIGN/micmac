@@ -42,6 +42,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "SolInitNewOri.h"
 
 
+/**********************************************************/
+/*                                                        */
+/*          Composantes connexes                          */
+/*                                                        */
+/**********************************************************/
+
 void cAppli_NewSolGolInit::ResetFlagCC()
 {
 
@@ -58,6 +64,7 @@ void cAppli_NewSolGolInit::NumeroteCC()
     for (int  aK3=0 ; aK3<int (mV3.size()) ; aK3++)
     {
         cNOSolIn_Triplet * aTri0 = mV3[aK3];
+
         if ( !aTri0->Flag().kth(mFlag3CC))
         {
             // std::vector<cNOSolIn_Triplet*> * aCC = new std::vector<cNOSolIn_Triplet*>;
@@ -120,14 +127,33 @@ void cAppli_NewSolGolInit::NumeroteCC()
     std::cout << "NUMMMCCCC " <<  aNumCC << "\n";
 }
 
+/**********************************************************/
+/*                                                        */
+/*          Orientation                                   */
+/*                                                        */
+/**********************************************************/
+
+bool  cAppli_NewSolGolInit::AddSOrCur(tSomNSI * aSom)
+{
+    return SetFlagAdd(mVSOrCur,aSom,mFlagSOrCur);
+}
+
 
 void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
 {
+    mFlagSOrCur = mGr.alloc_flag_som();
+    
     
     for (int aKS=0 ; aKS<3 ; aKS++)
     {
+         AddSOrCur(aGerm->KSom(aKS));
         // aGerm->
     }
+
+
+     mGr.free_flag_som(mFlagSOrCur);
+     mVSOrCur.clear();
+     FreeAllFlag(mVSOrCur,mFlagSOrCur);
 }
 
 
@@ -140,9 +166,9 @@ void  cAppli_NewSolGolInit::CalculOrient(cCC_TripSom * aCC)
      for (int aK=0 ; aK<(aCC->mTri.size()) ; aK++)
      {
          cNOSolIn_Triplet * aTri = aCC->mTri[aK];
-         if (aTri->Cost()<aBesCoherCost)
+         if (aTri->CostArc()<aBesCoherCost)
          {
-             aBesCoherCost = aTri->Cost();
+             aBesCoherCost = aTri->CostArc();
              aGerm0 = aTri;
          }
      }

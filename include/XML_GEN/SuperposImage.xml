@@ -1433,6 +1433,7 @@
      <P1P2IsAltitude Nb="1" Type="bool"> </P1P2IsAltitude>
      <GridSz Nb="1" Type="Pt2di"> </GridSz>
      <StepGrid Nb="1" Type="Pt2dr"> </StepGrid>
+     <OriGrid Nb="?" Type="Pt2dr" Def="Pt2dr(0,0)"> </OriGrid>
      <Lines Nb="*" RefType="Xml_OneLineSLS" Container="std::vector"> </Lines>
 </Xml_ScanLineSensor>
 

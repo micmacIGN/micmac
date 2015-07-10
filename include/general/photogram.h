@@ -1443,10 +1443,20 @@ class cCorrRefracAPost
          bool       mIntegDist;
 };
 
+// La plus basique des classes, normalement tout doit pouvoir etre redefini 
+// a partir de ca
+
+class cBasicGeomCap3D
+{
+    public :
+      virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
+      virtual Pt2di    SzBasicCapt3D() const = 0;
+};
 
 //  Classe qui permet de manipuler de manière via une interface uniforme une image,
 // ou un nuage de point
-class cCapture3D
+
+class cCapture3D : public cBasicGeomCap3D
 {
    public :
       virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const =0;
@@ -1476,6 +1486,7 @@ class ElCamera : public cCapture3D
          const bool &   IsScanned() const;
          void  SetScanned(bool mIsSC);
 
+         Pt2di    SzBasicCapt3D() const; 
          bool  CaptHasData(const Pt2dr &) const ;
          Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
          bool     PIsVisibleInImage   (const Pt3dr & aP) const ;

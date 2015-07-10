@@ -167,6 +167,7 @@ class cElNuage3DMaille : public cCapture3D
         // return 0 si pas de pb
         virtual double SeuilDistPbTopo() const;
 
+        Pt2di    SzBasicCapt3D() const;
         bool  CaptHasData(const Pt2dr &) const ;
         Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
          bool     PIsVisibleInImage   (const Pt3dr & aP) const ;

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1455]) = {
+const char * (theNameVar_SuperposImage[1456]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1435,6 +1435,7 @@ const char * (theNameVar_SuperposImage[1455]) = {
 "     <P1P2IsAltitude Nb=\"1\" Type=\"bool\"> </P1P2IsAltitude>\n",
 "     <GridSz Nb=\"1\" Type=\"Pt2di\"> </GridSz>\n",
 "     <StepGrid Nb=\"1\" Type=\"Pt2dr\"> </StepGrid>\n",
+"     <OriGrid Nb=\"?\" Type=\"Pt2dr\" Def=\"Pt2dr(0,0)\"> </OriGrid>\n",
 "     <Lines Nb=\"*\" RefType=\"Xml_OneLineSLS\" Container=\"std::vector\"> </Lines>\n",
 "</Xml_ScanLineSensor>\n",
 "\n",

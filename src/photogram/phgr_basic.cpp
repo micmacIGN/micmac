@@ -1586,6 +1586,12 @@ double  ElCamera::ResolSolGlob() const
     return ResolutionSol();
 }
 
+Pt2di    ElCamera::SzBasicCapt3D() const
+{
+    return Sz();
+}
+
+
 
 bool  ElCamera::CaptHasData(const Pt2dr & aP) const
 {

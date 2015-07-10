@@ -310,6 +310,12 @@ bool cElNuage3DMaille::IsEmpty()
     return true;
 }
 
+Pt2di    cElNuage3DMaille::SzBasicCapt3D() const
+{
+   return SzGeom();
+}
+
+
 bool  cElNuage3DMaille::CaptHasData(const Pt2dr & aP) const
 {
     return IndexHasContenuForInterpol(aP);
