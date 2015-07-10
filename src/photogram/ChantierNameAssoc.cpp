@@ -577,7 +577,8 @@ int CalcNbProcSys()
 
 int NbProcSys()
 {
-    static int aRes = ElMin(CalcNbProcSys(),MMUserEnv().NbMaxProc().Val());
+    static int aRes = CalcNbProcSys();
+    if ( MMUserEnv().NbMaxProc().IsInit() ) ElSetMin( aRes, MMUserEnv().NbMaxProc().Val() );
 
     return aRes;
 }
@@ -603,15 +604,19 @@ const cMMUserEnvironment & MMUserEnv()
     {
         std::string aName = XML_User_Or_MicMac("MM-Environment.xml");
 
-        cMMUserEnvironment aMME =  StdGetObjFromFile<cMMUserEnvironment>
+        if ( !ELISE_fp::exist_file(aName) )
+             aRes = new cMMUserEnvironment;
+        else
+        {
+             cMMUserEnvironment aMME =  StdGetObjFromFile<cMMUserEnvironment>
                                    (
                                        aName,
                                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
                                        "MMUserEnvironment",
                                        "MMUserEnvironment"
-                    );
-        aRes = new cMMUserEnvironment(aMME);
-
+                                   );
+             aRes = new cMMUserEnvironment(aMME);
+        }
     }
     return *aRes;
 }

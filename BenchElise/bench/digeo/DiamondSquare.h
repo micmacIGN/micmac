@@ -114,10 +114,10 @@ template <> void diamond_square( U_INT2 **i_data, int i_width, int i_height, U_I
 		#ifdef __DEBUG
 			const INT vmax = 65535;
 		#endif
-		__elise_debug_error( rect.v0<0 || rect.v0>vmax, "diamond_square: rect.v0 = " << rect.v0 << " vmax = " << vmax );
-		__elise_debug_error( rect.v1<0 || rect.v1>vmax, "diamond_square: rect.v1 = " << rect.v1 << " vmax = " << vmax );
-		__elise_debug_error( rect.v2<0 || rect.v2>vmax, "diamond_square: rect.v2 = " << rect.v2 << " vmax = " << vmax );
-		__elise_debug_error( rect.v3<0 || rect.v3>vmax, "diamond_square: rect.v3 = " << rect.v3 << " vmax = " << vmax );
+		ELISE_DEBUG_ERROR( rect.v0<0 || rect.v0>vmax, "diamond_square", "rect.v0 = " << rect.v0 << " vmax = " << vmax );
+		ELISE_DEBUG_ERROR( rect.v1<0 || rect.v1>vmax, "diamond_square", "rect.v1 = " << rect.v1 << " vmax = " << vmax );
+		ELISE_DEBUG_ERROR( rect.v2<0 || rect.v2>vmax, "diamond_square", "rect.v2 = " << rect.v2 << " vmax = " << vmax );
+		ELISE_DEBUG_ERROR( rect.v3<0 || rect.v3>vmax, "diamond_square", "rect.v3 = " << rect.v3 << " vmax = " << vmax );
 
 		i_data[rect.p0.y][rect.p0.x] = (U_INT2)rect.v0;
 		i_data[rect.p0.y][rect.p1.x] = (U_INT2)rect.v1;

@@ -22,83 +22,6 @@ template <> inline REAL4 TypeInfo<REAL4>::nmax(){ return (REAL4)1; }
 template <> inline REAL8 TypeInfo<REAL8>::nmin(){ return (REAL8)0; }
 template <> inline REAL8 TypeInfo<REAL8>::nmax(){ return (REAL8)1; }
 
-/*
-template <class T>
-class DiamondSquareRectangle
-{
-public:
-	Pt2di p0, p1;
-	T v0, v1, v2, v3;
-
-	DiamondSquareRectangle( const Pt2di &i_p0, const Pt2di &i_p1, T i_v0, T i_v1, T i_v2, T i_v3 ):
-		p0(i_p0), p1(i_p1),
-		v0(i_v0), v1(i_v1), v2(i_v2), v3(i_v3){}
-};
-
-template <class tData>
-tData add_error( typename El_CTypeTraits<tData>::tBase i_v, double i_dimensionFactor )
-{
-	typedef typename El_CTypeTraits<tData>::tBase tBase;
-	const int maxErrorPercentage_1 = 71; // actually max error percentage +1
-	tBase dataMax = (tBase)( numeric_limits<tData>::is_integer ? numeric_limits<tData>::max() : 1 );
-	const double scale = i_dimensionFactor*( ( (double)dataMax )/100. );
-	const double ek = 0.;
-
-	tBase e = (tBase)( ( (double)(rand()%maxErrorPercentage_1) )*scale + ek );
-	if ( rand()%2==0 ) e = -e;
-	tBase res = i_v+e;
-	if ( res<0 ) res = 0;
-	if ( res>dataMax ) res = dataMax;
-	return res;
-}
-
-template <class tData>
-void diamond_square( tData **i_data, int i_width, int i_height, tData i_v0, tData i_v1, tData i_v2, tData i_v3 )
-{
-	typedef typename El_CTypeTraits<tData>::tBase tBase;
-	cout << (tBase)i_v0 << ' ' << (tBase)i_v1 << ' ' << (tBase)i_v2 << ' ' << (tBase)i_v3 << endl;
-
-	list<DiamondSquareRectangle<tBase> > rectangles;
-	rectangles.push_back( DiamondSquareRectangle<tBase>( Pt2di(0,0), Pt2di(i_width-1,i_height-1), (tBase)i_v0, (tBase)i_v1, (tBase)i_v2, (tBase)i_v3 ) );
-
-	const double maxDimension = (double)min<int>( i_width, i_height );
-	while ( rectangles.begin()!=rectangles.end() )
-	{
-		DiamondSquareRectangle<tBase> rect = rectangles.front();
-		rectangles.pop_front();
-
-		#ifdef __DEBUG
-			tBase vmax = (tBase)( numeric_limits<tData>::is_integer ? numeric_limits<tData>::max() : 1 );
-		#endif
-		__elise_debug_error( rect.v0<0 || rect.v0>vmax, "diamond_square: rect.v0 = " << rect.v0 << " vmax = " << vmax );
-		__elise_debug_error( rect.v1<0 || rect.v1>vmax, "diamond_square: rect.v1 = " << rect.v1 << " vmax = " << vmax );
-		__elise_debug_error( rect.v2<0 || rect.v2>vmax, "diamond_square: rect.v2 = " << rect.v2 << " vmax = " << vmax );
-		__elise_debug_error( rect.v3<0 || rect.v3>vmax, "diamond_square: rect.v3 = " << rect.v3 << " vmax = " << vmax );
-
-		i_data[rect.p0.y][rect.p0.x] = (tData)rect.v0;
-		i_data[rect.p0.y][rect.p1.x] = (tData)rect.v1;
-		i_data[rect.p1.y][rect.p0.x] = (tData)rect.v2;
-		i_data[rect.p1.y][rect.p1.x] = (tData)rect.v3;
-
-		Pt2di rectSize = rect.p1-rect.p0+Pt2di(1,1);
-		const double dimensionFactor = ( (double)min<int>( rectSize.x, rectSize.y ) )/maxDimension;
-		tBase iv0 = add_error<tData>( ( rect.v0+rect.v1 )/2, 0 ),
-		      iv1 = add_error<tData>( ( rect.v0+rect.v2 )/2, 0 ),
-		      iv2 = add_error<tData>( ( rect.v1+rect.v3 )/2, 0 ),
-		      iv3 = add_error<tData>( ( rect.v2+rect.v3 )/2, 0 ),
-		      iv4 = add_error<tData>( ( rect.v0+rect.v1+rect.v2+rect.v3 )/4, dimensionFactor );
-		Pt2di ip = ( rect.p0+rect.p1 )/2;
-		if ( rectSize.x>2 || rectSize.y>2 )
-		{
-			rectangles.push_back( DiamondSquareRectangle<tBase>( rect.p0, ip, rect.v0, iv0, iv1, iv4 ) );
-			rectangles.push_back( DiamondSquareRectangle<tBase>( Pt2di(ip.x,rect.p0.y), Pt2di(rect.p1.x,ip.y), iv0, rect.v1, iv4, iv2 ) );
-			rectangles.push_back( DiamondSquareRectangle<tBase>( Pt2di(rect.p0.x,ip.y), Pt2di(ip.x,rect.p1.y), iv1, iv4, rect.v2, iv3 ) );
-			rectangles.push_back( DiamondSquareRectangle<tBase>( ip, rect.p1, iv4, iv2, iv3, rect.v3 ) );
-		}
-	}
-}
-*/
-
 class DiamondSquareRectangle
 {
 public:
@@ -174,10 +97,10 @@ template <> void diamond_square( U_INT2 **i_data, int i_width, int i_height, U_I
 		#ifdef __DEBUG
 			const INT vmax = 65535;
 		#endif
-		__elise_debug_error( rect.v0<0 || rect.v0>vmax, "diamond_square: rect.v0 = " << rect.v0 << " vmax = " << vmax );
-		__elise_debug_error( rect.v1<0 || rect.v1>vmax, "diamond_square: rect.v1 = " << rect.v1 << " vmax = " << vmax );
-		__elise_debug_error( rect.v2<0 || rect.v2>vmax, "diamond_square: rect.v2 = " << rect.v2 << " vmax = " << vmax );
-		__elise_debug_error( rect.v3<0 || rect.v3>vmax, "diamond_square: rect.v3 = " << rect.v3 << " vmax = " << vmax );
+		ELISE_DEBUG_ERROR( rect.v0<0 || rect.v0>vmax, "diamond_square", "rect.v0 = " << rect.v0 << " vmax = " << vmax );
+		ELISE_DEBUG_ERROR( rect.v1<0 || rect.v1>vmax, "diamond_square", "rect.v1 = " << rect.v1 << " vmax = " << vmax );
+		ELISE_DEBUG_ERROR( rect.v2<0 || rect.v2>vmax, "diamond_square", "rect.v2 = " << rect.v2 << " vmax = " << vmax );
+		ELISE_DEBUG_ERROR( rect.v3<0 || rect.v3>vmax, "diamond_square", "rect.v3 = " << rect.v3 << " vmax = " << vmax );
 
 		i_data[rect.p0.y][rect.p0.x] = (U_INT2)rect.v0;
 		i_data[rect.p0.y][rect.p1.x] = (U_INT2)rect.v1;
@@ -291,7 +214,7 @@ void test_digeo_convolution( const tData **i_src, int i_width, int i_height, tBa
 		if ( !convolution( (const tData **)src->data(), src->tx(), src->ty(), kernel, dst->data() ) )
 		{
 			usedSlowConvolution = true;
-			__elise_warning( "using slow convolution for type " << El_CTypeTraits<tData>::Name() << ", sigma = " << sigma );
+			ELISE_WARNING( "using slow convolution for type " << El_CTypeTraits<tData>::Name() << ", sigma = " << sigma );
 		}
 
 		//save_to_raw( *dst, outputName<tData>(nbConvolutions,".tif") );
@@ -327,7 +250,7 @@ void test_convolution()
 		if ( !convolution( (const tData **)src->data(), src->tx(), src->ty(), kernel, dst->data() ) )
 		{
 			usedSlowConvolution = true;
-			__elise_warning( "using slow convolution for type " << El_CTypeTraits<tData>::Name() << ", sigma = " << sigma );
+			ELISE_WARNING( "using slow convolution for type " << El_CTypeTraits<tData>::Name() << ", sigma = " << sigma );
 		}
 
 		//save_to_raw( *dst, outputName<tData>(nbConvolutions,".tif") );
