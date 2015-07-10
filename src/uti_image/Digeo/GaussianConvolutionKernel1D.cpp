@@ -1,10 +1,28 @@
 #include "GaussianConvolutionKernel1D.h"
-#include "debug.h"
+#ifdef NO_ELISE 
+	#include "debug.h"
+#else
+	#include "StdAfx.h"
+#endif
 
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
 #include <sstream>
+
+#ifdef NO_ELISE
+	#if ELISE_windows
+		#define std_isnan _isnan
+		#define std_isinf isinf
+		#if _MSC_VER<_MSC_VER_2013
+			double round( double aX );
+		#endif
+	#else
+		#include <cmath>
+		#define std_isnan std::isnan
+		#define std_isinf std::isinf
+	#endif
+#endif
 
 using namespace std;
 
@@ -25,10 +43,10 @@ void normalize( REAL *aArray, size_t aSize )
 void ToIntegerKernel( vector<REAL> aSrcKernel, int aMul, bool aForceSym, vector<INT> &aDstKernel )
 {
 	int aSz = (int)aSrcKernel.size();
-	__elise_debug_error( aForceSym && (aSz%2==0), "ToIntegerKernel: force symmetry on an odd sized kernel" );
+	ELISE_DEBUG_ERROR( aForceSym && (aSz%2==0), "ToIntegerKernel", "force symmetry on an odd sized kernel" );
 	if ( aSz==0 )
 	{
-		__elise_debug_warning( true, "ToIntegerKernel: empty kernel" );
+		ELISE_DEBUG_WARNING( true, "ToIntegerKernel", "empty kernel" );
 		return;
 	}
 
@@ -71,7 +89,7 @@ void ToIntegerKernel( vector<REAL> aSrcKernel, int aMul, bool aForceSym, vector<
 			}
 			if ( aKBest==-1 )
 			{
-				__elise_debug_warning( true, "ToIntegerKernel: no suitable element found for adjustment" );
+				ELISE_DEBUG_WARNING( true, "ToIntegerKernel", "no suitable element found for adjustment" );
 				return;
 			}
 

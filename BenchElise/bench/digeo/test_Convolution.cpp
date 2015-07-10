@@ -188,18 +188,18 @@ void compare_compiled_not_compiled( int aWidth, int aHeight, unsigned int aNbIte
 
 	if ( !convolSpec->IsCompiled() )
 	{
-		__elise_warning( "convolution is not compiled, generating code and skiping 'compiled' VS 'not compiled' comparison" );
+		ELISE_WARNING( "convolution is not compiled, generating code and skiping 'compiled' VS 'not compiled' comparison" );
 		convolutionHandler.generateCode( digeoDirectory+convolutionHandler.defaultCodeBasename() );
 		return;
 	}
 
 	cConvolSpec<tData> convolSpecNotCompiled(*convolSpec);
-	if ( convolSpecNotCompiled.IsCompiled() ) __elise_error( "convolSpecNotCompiled.IsCompiled() = true" );
+	if ( convolSpecNotCompiled.IsCompiled() ) ELISE_ERROR_EXIT( "convolSpecNotCompiled.IsCompiled() = true" );
 
 	/*
 	disabled until there is a comparison between convolutions (ie. cConvolSpec inherits from ConvolutionKernel)
 
-	if ( !convolSpec->Match(convolSpecNotCompiled) ) __elise_error( "!convolSpec->Match(convolSpecNotCompiled)" );
+	if ( !convolSpec->Match(convolSpecNotCompiled) ) ELISE_WARNING( "!convolSpec->Match(convolSpecNotCompiled)" );
 	{
 		__elise_warning( "compiled and not compiled convolution do not Match" );
 		for ( int i=convolSpec->Deb(); i<=convolSpec->Fin(); i++ )
@@ -245,7 +245,7 @@ void compare_compiled_not_compiled( int aWidth, int aHeight, unsigned int aNbIte
 	delete_data_lines(dst0);
 	delete_data_lines(dst1);
 
-	if ( diff!=0 ) __elise_error( "compare_compiled_not_compiled: diff = " << diff );
+	if ( diff!=0 ) ELISE_ERROR_EXIT( "compare_compiled_not_compiled: diff = " << diff );
 	cout << "time ratio : " << times.getRecordTime("not compiled")/times.getRecordTime("compiled") << endl;
 
 	times.printTimes();
@@ -298,9 +298,9 @@ public:
 		mImageHeight(0),
 		mNbIterations(aNbIterations)
 	{
-		if ( aWidth<=0 || aHeight<=0 ) __elise_error( "SetIterator::SetIterator: invalid size " << aWidth << 'x' << aHeight );
-		if ( aSigma<=0. ) __elise_error( "SetIterator::SetIterator: invalid sigma " << aSigma );
-		if ( aNbIterations<=0 ) __elise_error( "SetIterator::SetIterator: invalid number of iterations " << aNbIterations );
+		if ( aWidth<=0 || aHeight<=0 ) ELISE_ERROR_EXIT( "SetIterator::SetIterator: invalid size " << aWidth << 'x' << aHeight );
+		if ( aSigma<=0. ) ELISE_ERROR_EXIT( "SetIterator::SetIterator: invalid sigma " << aSigma );
+		if ( aNbIterations<=0 ) ELISE_ERROR_EXIT( "SetIterator::SetIterator: invalid number of iterations " << aNbIterations );
 
 		generateImage(aWidth,aHeight);
 		updateFromSigma();
@@ -331,7 +331,7 @@ public:
 		mSigma0(aSigma0), mSigma1(aSigma1), mSigmaPace(aSigmaPace)
 	{
 		if ( aSigma0<=0. || aSigmaPace<=0. )
-			__elise_error("SigmaSetIterator::SigmaSetIterator: invalid parameters aSigma0="<<aSigma0 << " aSigma1=" << aSigma1 << " aSigmaPace=" << aSigmaPace);
+			ELISE_ERROR_EXIT("SigmaSetIterator::SigmaSetIterator: invalid parameters aSigma0="<<aSigma0 << " aSigma1=" << aSigma1 << " aSigmaPace=" << aSigmaPace);
 		SetIterator<tData>::generateImage(SetIterator<tData>::mImageWidth,SetIterator<tData>::mImageHeight);
 	}
 
@@ -361,7 +361,7 @@ public:
 		mWidth0(aWidth0), mHeight0(aHeight0), mWidth1(aWidth1), mHeight1(aHeight1), mWidthPace(aWidthPace), mHeightPace(aHeightPace)
 	{
 		if ( aWidthPace<=0 || aHeightPace<=0 )
-			__elise_error("ImageSizeSetIterator::ImageSizeSetIterator: invalid parameters aWidthPace=" << aWidthPace << " aHeightPace=" << aHeightPace);
+			ELISE_ERROR_EXIT("ImageSizeSetIterator::ImageSizeSetIterator: invalid parameters aWidthPace=" << aWidthPace << " aHeightPace=" << aHeightPace);
 		SetIterator<tData>::generateImage(SetIterator<tData>::mImageWidth,SetIterator<tData>::mImageHeight);
 	}
 
@@ -418,7 +418,7 @@ void times_along_set( string aBasename, SetIterator<tData> &aSetIterator )
 		const cConvolSpec<tData> &compiledConvolution = aSetIterator.compiledConvolution();
 		const cConvolSpec<tData> &notCompiledConvolution = aSetIterator.notCompiledConvolution();
 
-		if ( width==0 || height==0 ) __elise_error( "times_along_set: invalid image size " << width << 'x' << height );
+		if ( width==0 || height==0 ) ELISE_ERROR_EXIT( "times_along_set: invalid image size " << width << 'x' << height );
 
 		cout << width << 'x' << height << ' ' << sigma << endl;
 
@@ -477,7 +477,7 @@ void times_along_set( string aBasename, SetIterator<tData> &aSetIterator )
 
 	if ( hasNotCompiledConvolutions )
 	{
-		__elise_warning( "some convolutions are not compiled: generating code (compiled times will not be relevant)" );
+		ELISE_WARNING( "some convolutions are not compiled: generating code (compiled times will not be relevant)" );
 		aSetIterator.handler().generateCode( digeoDirectory+aSetIterator.handler().defaultCodeBasename() );
 	}
 }
@@ -490,7 +490,7 @@ int main( int argc, char **argv )
 	const string outputBasename = "sigma_convolution_times";
 
 	if ( argc>1 ) nbIterations = atoi( argv[1] );
-	if ( nbIterations<1 ) __elise_error( "invalid number of iterations : " << nbIterations );
+	if ( nbIterations<1 ) ELISE_ERROR_EXIT( "invalid number of iterations : " << nbIterations );
 
 	//const bool doOutputImages = false;
 

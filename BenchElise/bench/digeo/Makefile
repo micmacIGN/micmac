@@ -1,6 +1,5 @@
 CXX ?= clang++
 CXX_FLAGS += -std=c++11 -Wall -O3 -DNO_ELISE
-LINK_FLAGS += -Wall -L$(ELISE_LIBRARY_DIR) -lelise
 ELISE_ROOT_DIR=../../..
 ELISE_LIBRARY_DIR=$(ELISE_ROOT_DIR)/lib
 ELISE_INCLUDE_DIR=$(ELISE_ROOT_DIR)/include
@@ -11,11 +10,13 @@ CPP_FILES = rotate.cpp\
 D_FILES = $(CPP_FILES:.cpp=.d)
 O_FILES = $(CPP_FILES:.cpp=.o)
 ALL_CXX_FLAGS = $(CXX_FLAGS) -I$(DIGEO_DIR) -I$(ELISE_INCLUDE_DIR)
-EXECUTABLES = test_ConvolutionKernel1D test_GaussianConvolutionKernel1D test_Convolution rotate
+EXECUTABLES = test_ConvolutionKernel1D test_GaussianConvolutionKernel1D test_Convolution rotate dumb_matcher
+LIB_X11 = -lX11
+LINK_FLAGS = -Wall -L$(ELISE_LIBRARY_DIR) -lelise $(LIB_X11)
 
 all: $(EXECUTABLES)
 
-debug: CXX_FLAGS += -DDEBUG
+debug: DEBUG_FLAGS += -D__DEBUG
 debug: all
 
 -include $(D_FILES)
@@ -28,8 +29,14 @@ depends: $(D_FILES)
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.tmp > $@;\
 	rm $@.tmp
 
-rotate: rotate.o
-	$(CXX) $(LINK_FLAGS) rotate.o -lelise -o rotate
+rotate.o: rotate.cpp
+	$(CXX) -c -std=c++11 $(DEBUG_FLAGS) -Wall -O3 -I$(DIGEO_DIR) -I$(ELISE_INCLUDE_DIR) rotate.cpp -o rotate.o
+
+rotate: rotate.o $(ELISE_LIBRARY_DIR)/libelise.a
+	$(CXX) rotate.o $(LINK_FLAGS) -o rotate
+
+dumb_matcher: dumb_matcher.o $(ELISE_LIBRARY_DIR)/libelise.a
+	$(CXX) dumb_matcher.o $(LINK_FLAGS) -o dumb_matcher
 
 test_ConvolutionKernel1D: test_ConvolutionKernel1D.o ConvolutionKernel1D.o
 	$(CXX) $(LINK_FLAGS) test_ConvolutionKernel1D.o ConvolutionKernel1D.o -o test_ConvolutionKernel1D
@@ -53,7 +60,7 @@ Times.o: $(DIGEO_DIR)/Times.cpp
 	$(CXX) -c $(ALL_CXX_FLAGS) $(DIGEO_DIR)/Times.cpp -o Times.o
 
 %.o: %.cpp
-	$(CXX) -c $(ALL_CXX_FLAGS) $< -o $@
+	$(CXX) -c $(DEBUG_FLAGS) $(ALL_CXX_FLAGS) $< -o $@
 
 clean_depends:
 	rm -f $(D_FILES)
@@ -65,3 +72,4 @@ clean: clean_depends
 	rm -f *.txt
 	rm -f *.jpg
 	rm -f *.exe
+	rm -fr output

@@ -112,13 +112,13 @@ int getNbShift( const tData *i_data, size_t i_nbElements )
 {
 	typedef typename El_CTypeTraits<tData>::tBase tBase;
 
-	__elise_debug_error( !numeric_limits<tData>::is_integer, "getNbShift: data type " << El_CTypeTraits<tData>::Name() << " is not integer" );
+	ELISE_DEBUG_ERROR( !numeric_limits<tData>::is_integer, "getNbShift", "data type " << El_CTypeTraits<tData>::Name() << " is not integer" );
 
 	tBase sum = (tBase)0;
 	while ( i_nbElements-- ) sum += (tBase)( *i_data++ );
 	int nbShift = round_ni( log(sum)/log(2) );
 
-	__elise_debug_error( sum!=(1<<nbShift), "getNbShift: sum = " << sum << " is not a power of 2" );
+	ELISE_DEBUG_ERROR( sum!=(1<<nbShift), "getNbShift", "sum = " << sum << " is not a power of 2" );
 
 	return nbShift;
 }
@@ -333,7 +333,7 @@ void LegacyConvolution_transpose_real( const tData *i_src, const int i_width, co
 {
 	typedef typename El_CTypeTraits<tData>::tBase tBase;
 
-	__elise_debug_error( i_kernel.size()%2==0, "LegacyConvolution_transpose<" << El_CTypeTraits<tData>::Name() << ">: i_kernel.size()%2==0" );
+	ELISE_DEBUG_ERROR( i_kernel.size()%2==0, "LegacyConvolution_transpose<" << El_CTypeTraits<tData>::Name() << ">", "i_kernel.size()%2==0" );
 
 	// convolve along columns, save transpose
 	// filter is (2*W+1) by 1
@@ -389,7 +389,7 @@ void LegacyConvolution_transpose_integer( const tData *i_src, const int i_width,
 {
 	typedef typename El_CTypeTraits<tData>::tBase tBase;
 
-	__elise_debug_error( i_kernel.size()%2==0, "LegacyConvolution_transpose<" << El_CTypeTraits<tData>::Name() << ">: i_kernel.size()%2==0" );
+	ELISE_DEBUG_ERROR( i_kernel.size()%2==0, "LegacyConvolution_transpose<" << El_CTypeTraits<tData>::Name() << ">", "i_kernel.size()%2==0" );
 
 	// convolve along columns, save transpose
 	// filter is (2*W+1) by 1

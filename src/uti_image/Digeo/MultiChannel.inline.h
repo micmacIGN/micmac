@@ -52,9 +52,10 @@ inline void MultiChannel<tData>::Iterator::operator +=( int i_offset)
 template <class tData>
 inline bool MultiChannel<tData>::Iterator::operator ==( const Iterator &i_it ) const
 {
-	__elise_debug_error(
+	ELISE_DEBUG_ERROR(
 		( mIterators.size()==0 || i_it.mIterators.size()==0 ),
-		( "MultiChannel::Iterator::operator ==(const Iterator &): mIterator.size()==0 || i_it.mIterators.size()==0" ) );
+		"MultiChannel::Iterator::operator ==(const Iterator &)",
+		"mIterator.size()==0 || i_it.mIterators.size()==0" );
 	return mIterators[0]==i_it.mIterators[0];
 }
 
@@ -67,8 +68,9 @@ inline void MultiChannel<tData>::Iterator::operator -=( int i_offset){ *this += 
 template <class tData>
 inline tData & MultiChannel<tData>::Iterator::operator [] ( size_t i_index )
 {
-	__elise_debug_error(
+	ELISE_DEBUG_ERROR(
 		i_index>=mIterators.size(),
+		"MultiChannel<tData>::Iterator::operator []",
 		"MultiChannel::Iterator::operator[](size_t): index "<<i_index<<" out of range [0,"<<mIterators.size()-1<<"]" );
 	return *mIterators[i_index];
 }
@@ -76,11 +78,10 @@ inline tData & MultiChannel<tData>::Iterator::operator [] ( size_t i_index )
 template <class tData>
 inline const tData & MultiChannel<tData>::Iterator::operator [] ( size_t i_index ) const
 {
-	#ifdef __DEBUG
-		__elise_debug_error(
-			i_index>=mIterators.size(),
-			"MultiChannel::Iterator::operator[](size_t) const: index "<<i_index<<" out of range [0,"<<mIterators.size()-1<<"]" );
-	#endif
+	ELISE_DEBUG_ERROR(
+		i_index>=mIterators.size(),
+		"MultiChannel<tData>::Iterator::operator []",
+		"MultiChannel::Iterator::operator[](size_t) const: index "<<i_index<<" out of range [0,"<<mIterators.size()-1<<"]" );
 	return *mIterators[i_index];
 }
 
@@ -130,33 +131,24 @@ inline int MultiChannel<tData>::height() const { return mHeight; }
 template <class tData>
 inline size_t MultiChannel<tData>::nbChannels() const { return mChannels.size(); }
 
-/*
-template <class tData>
-inline Im2D<tData,typename MultiChannel<tData>::tBase> & MultiChannel<tData>::operator []( size_t i_iChannel )
-{
-	__elise_debug_error( i_iChannel>=mChannels.size(), "Im2D<tData,tBase> MultiChannel::channel(size_t)" );
-	return *mChannels[i_iChannel];
-}
-*/
-
 template <class tData>
 inline const Im2D<tData,typename MultiChannel<tData>::tBase> & MultiChannel<tData>::operator []( size_t i_iChannel ) const
 {
-	__elise_debug_error( i_iChannel>=mChannels.size(), "const Im2D<tData,tBase> MultiChannel::operator [](size_t) const : i_iChannel>=mChannels.size()" );
+	ELISE_DEBUG_ERROR( i_iChannel>=mChannels.size(), "const Im2D<tData,tBase> MultiChannel::operator [](size_t) const", "i_iChannel>=mChannels.size()" );
 	return *mChannels[i_iChannel];
 }
 
 template <class tData>
 tData ** MultiChannel<tData>::data( size_t i_iChannel ) const
 {
-	__elise_debug_error( i_iChannel>=mChannels.size(), "tData ** MultiChannel::data(size_t) const : i_iChannel>=mChannels.size()" );
+	ELISE_DEBUG_ERROR( i_iChannel>=mChannels.size(), "tData ** MultiChannel::data(size_t) const", "i_iChannel>=mChannels.size()" );
 	return mChannels[i_iChannel]->data();
 }
 
 template <class tData>
 tData * MultiChannel<tData>::data_lin( size_t i_iChannel ) const
 {
-	__elise_debug_error( i_iChannel>=mChannels.size(), "tData * MultiChannel::data_lin(size_t) const : i_iChannel>=mChannels.size()" );
+	ELISE_DEBUG_ERROR( i_iChannel>=mChannels.size(), "tData * MultiChannel::data_lin(size_t) const", "i_iChannel>=mChannels.size()" );
 	return mChannels[i_iChannel]->data_lin();
 }
 

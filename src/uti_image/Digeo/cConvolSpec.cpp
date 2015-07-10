@@ -679,7 +679,7 @@ inline int getNbShift( const INT *i_data, size_t i_nbElements )
 	while ( i_nbElements-- ) sum += *i_data++;
 	int nbShift = (int)( log((double)sum)/log(2.)+0.5 );
 
-	__elise_debug_error( sum!=(1<<nbShift), "getNbShift: sum = " << sum << " != 2^" << nbShift );
+	ELISE_DEBUG_ERROR( sum!=(1<<nbShift), "getNbShift", "sum = " << sum << " != 2^" << nbShift );
 
 	return nbShift;
 }
@@ -814,7 +814,7 @@ void convolution( const tData **aSrcData, const int aWidth, const int aHeight, c
 template <class tData>
 void legacy_convolution_transpose( const tData *i_src, const int i_width, const int i_height, const vector<TBASE> &i_kernel, int i_nbShift, tData *o_dst )
 {
-	__elise_debug_error( i_kernel.size()%2==0, "LegacyConvolution_transpose<" << TypeTraits<tData>::Name() << ">: i_kernel.size()%2==0" );
+	ELISE_DEBUG_ERROR( i_kernel.size()%2==0, "LegacyConvolution_transpose<" << TypeTraits<tData>::Name() << ">", "i_kernel.size()%2==0" );
 
 	// convolve along columns, save transpose
 	// filter is (2*W+1) by 1
