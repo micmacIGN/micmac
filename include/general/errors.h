@@ -52,6 +52,4 @@
 	std::cerr << ELISE_RED_WARNING << msg << std::endl;\
 }
 
-#include "errors.inline.h"
-
 #endif
