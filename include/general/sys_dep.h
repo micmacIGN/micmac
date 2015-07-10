@@ -144,7 +144,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #else
     #include <cmath>
     #define std_isnan std::isnan
-    #define std_isinf std::isnan
+    #define std_isinf std::isinf
 #endif
 
 template <class Type> bool BadNumber(const Type & aVal) {return (std_isnan(aVal)||std_isinf(aVal));}

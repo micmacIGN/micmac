@@ -79,8 +79,8 @@ double MapTimes::stop( const char *aName )
 	const string name(aName);
 	if ( mCurrent==mRecords.begin() )
 	#ifdef __DEBUG_TIMES
-		__elise_debug_error( true, "MapTimes::stop: mCurrent==mRecords.begin() (stopping a Record never started)");
-		__elise_debug_error( mCurrent->hasRecord(name), "MapTimes::stop: record of name [" << name << "] has a descendant with the same name" );
+		ELISE_DEBUG_ERROR( true, "MapTimes::stop", "mCurrent==mRecords.begin() (stopping a Record never started)");
+		ELISE_DEBUG_ERROR( mCurrent->hasRecord(name), "MapTimes::stop", "record of name [" << name << "] has a descendant with the same name" );
 	#else
 		return 0.;
 	#endif
