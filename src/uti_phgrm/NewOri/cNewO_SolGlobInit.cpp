@@ -150,6 +150,8 @@ void cNOSolIn_Triplet::CheckArcsSom()
 void  cNOSolIn_Triplet::CalcCoherFromArcs(bool Test)
 {
    double aSomD = 0.0;
+   double aTabD[3];
+
    for (int aK=0 ; aK<3 ; aK++)
    {
        ElRotation3D aRArc2to1 = mArcs[aK]->attr().EstimC2toC1();
@@ -158,6 +160,7 @@ void  cNOSolIn_Triplet::CalcCoherFromArcs(bool Test)
        double aD = DistanceRot(aRArc2to1,aRTri2to1,mBOnH);
 
        aSomD += aD;
+       aTabD[aK] = aD;
 
        if (Test) 
        {
@@ -167,6 +170,9 @@ void  cNOSolIn_Triplet::CalcCoherFromArcs(bool Test)
      
    }
 
+   mCostArcMed = ElMedian(aTabD[0],aTabD[1],aTabD[2]);
+
+
    mCostArc = aSomD;
 }
 
@@ -174,7 +180,7 @@ void  cNOSolIn_Triplet::CalcCoherFromArcs(bool Test)
 void cNOSolIn_Triplet::Show(const std::string &aMes) const 
 {
     std::cout << aMes
-              << " Trii " << mCostArc  << " CREL " <<  ((mCostArc /3) / mAppli->CoherMed12())
+              << " Trii " << mCostArc  << " MED " << mCostArcMed << " CREL " <<  ((mCostArc /3) / mAppli->CoherMed12())
               << " "  << mSoms[0]->attr().Im()->Name() 
               << " "  << mSoms[1]->attr().Im()->Name() 
               << " "  << mSoms[2]->attr().Im()->Name() 
@@ -342,7 +348,7 @@ double DistCoherenceAtoB(tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Tripl
 
 bool cAppli_NewSolGolInit::TripletIsValide(cNOSolIn_Triplet * aTri)
 {
-    return aTri->CostArc() < mSeuilCostArc;
+    return  (aTri->CostArc() < mSeuilCostArc) ||  ((aTri->CostArcMed()*PenalMedMed) < mSeuilCostArc);
 }
 
 
@@ -478,8 +484,6 @@ void cAppli_NewSolGolInit::FilterTripletValide(std::vector<cLinkTripl > & aV)
         }
     }
 
-// std::cout <<"FilterTripletValid " << aV.size() << " => " << aNewV.size() << "\n";
-
     aV = aNewV;
 }
 
@@ -491,7 +495,7 @@ void cAppli_NewSolGolInit::FilterTripletValide()
        if (TripletIsValide(mV3[aK]))
           aNewV3.push_back(mV3[aK]);
 
-   std::cout << "HGGLLObb::FilterTripletValide " << mV3.size() << "=======>>>> " << aNewV3.size() << "\n";
+   std::cout << "FilterTripletValide " << mV3.size() << " => " << aNewV3.size() << "\n";
 
    mV3 = aNewV3;
 
@@ -525,9 +529,6 @@ void  cAppli_NewSolGolInit::EstimCoheTriplet()
     double aMed = MedianeSup(aVCost3A);
     mSeuilCostArc = CstSeuilMedianArc + MulSeuilMedianArc * aMed;
 
-
-for (int aK=0 ; aK<100 ; aK++) std::cout << "!!!!!!!!!!!!!!! mSeuilCostArc !!!!!!!!!!\n";
-     // mSeuilCostArc = aMed / 8.0;
 
     cCmpPtrTriplOnCost aCmp;
     std::sort(mV3.begin(),mV3.end(),aCmp);
@@ -920,6 +921,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 
     NumeroteCC();
    
+    CalculOrient();
+
 }
 
 

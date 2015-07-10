@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define CstSeuilMedianArc 0.02
 #define MulSeuilMedianArc 2.0
+#define PenalMedMed       2.0
 
 
 
@@ -162,9 +163,24 @@ class cNOSolIn_Triplet
                 ELISE_ASSERT(false," RotOfSom");
                 return ElRotation3D::Id;
           }
+          const ElRotation3D & RotOfK(int aK) const
+          {
+                switch (aK)
+                {
+                      case 0 : return ElRotation3D::Id;
+                      case 1 : return mR2on1;
+                      case 2 : return mR3on1;
+                }
+                ELISE_ASSERT(false," RotOfSom");
+                return ElRotation3D::Id;
+          }
+
+
+
           double BOnH() const {return mBOnH;}
           int  Nb3() const {return mNb3;}
           double  CostArc() const {return mCostArc;}
+          double  CostArcMed() const {return mCostArcMed;}
 
           void CalcCoherFromArcs(bool Test);
           void CheckArcsSom();
@@ -186,6 +202,7 @@ class cNOSolIn_Triplet
           Pt3dr         mPMed;
    // Gere les triplets qui vont etre desactives
           double        mCostArc;
+          double        mCostArcMed;
           ElTabFlag     mTabFlag;
           int           mNumCC;
 };
@@ -228,12 +245,14 @@ class cAppli_NewSolGolInit
 
     private :
 
+        void FreeSet(std::vector<tSomNSI*>  &,int aFlag);
+
         bool  TripletIsValide(cNOSolIn_Triplet *);
 
         void  CalculOrient();
         void  CalculOrient(cCC_TripSom * aCC);
         void  CalculOrient(cNOSolIn_Triplet * aCC);
-        bool  AddSOrCur(tSomNSI *);
+        void  AddSOrCur(tSomNSI *,const ElRotation3D &);
 
         void NumeroteCC();
         void ResetFlagCC();
@@ -295,8 +314,10 @@ class cAppli_NewSolGolInit
 
 
 
-        int                    mFlagSOrCur;
+        int                    mFlagSOrCur;  // Ceux qui sont orientes
         std::vector<tSomNSI*>  mVSOrCur;
+        int                    mFlagSOrCdt;  // Ceux qui sont candidats
+        std::vector<tSomNSI*>  mVSOrCdt;
         double                 mSeuilCostArc;
 };
 

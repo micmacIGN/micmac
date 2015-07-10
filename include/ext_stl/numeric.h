@@ -117,12 +117,14 @@ template <class Type> class cTplTripletByRef
 template <class T>
 inline const T& ElMedian(const T& a, const T& b, const T& c) {
   if (a < b)
+  {
     if (b < c)
       return b;
     else if (a < c)
       return c;
     else
       return a;
+  }
   else if (a < c)
     return a;
   else if (b < c)
@@ -134,12 +136,14 @@ inline const T& ElMedian(const T& a, const T& b, const T& c) {
 template <class T, class Compare>
 inline const T& ElMedian(const T& a, const T& b, const T& c, Compare comp) {
   if (comp(a, b))
+  {
     if (comp(b, c))
       return b;
     else if (comp(a, c))
       return c;
     else
       return a;
+  }
   else if (comp(a, c))
     return a;
   else if (comp(b, c))

@@ -133,27 +133,61 @@ void cAppli_NewSolGolInit::NumeroteCC()
 /*                                                        */
 /**********************************************************/
 
-bool  cAppli_NewSolGolInit::AddSOrCur(tSomNSI * aSom)
+void  cAppli_NewSolGolInit::AddSOrCur(tSomNSI * aSom,const ElRotation3D & aR)
 {
-    return SetFlagAdd(mVSOrCur,aSom,mFlagSOrCur);
+   std::cout << "ADDSOOm " << aSom->attr().Im()->Name() << "\n";
+
+    // ELISE_ASSERT(Added,"cAppli_NewSolGolInit::AddSOrCur");
+    aSom->attr().CurRot() = aR;
+
+    for (tItANSI anItA=aSom->begin(mSubAll) ; anItA.go_on(); anItA++)
+    {
+         tSomNSI * aS2 = & (*anItA).s2();
+         if  (aS2->flag_kth(mFlagSOrCur))
+         {
+              std::cout << "  S2 " << aS2->attr().Im()->Name() << "\n";
+              std::vector<cLinkTripl> & aVLnK = (*anItA).attr().ASym()->Lnk3() ;
+              for (int aKL=0 ; aKL<int(aVLnK.size()) ; aKL++)
+              {
+                  tSomNSI * aS3 = aVLnK[aKL].S3();
+                  if (! aS3->flag_kth(mFlagSOrCur))
+                  {
+                      
+                      std::cout << "    S3  " << aS3->attr().Im()->Name() << "\n";
+                  }
+              }
+         }
+    }
+}
+
+void  cAppli_NewSolGolInit::FreeSet(std::vector<tSomNSI*>  & aV,int aFlag)
+{
+    FreeAllFlag(aV,aFlag);
+    mGr.free_flag_som(aFlag);
+    aV.clear();
 }
 
 
 void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
 {
     mFlagSOrCur = mGr.alloc_flag_som();
+    mFlagSOrCdt = mGr.alloc_flag_som();
     
     
     for (int aKS=0 ; aKS<3 ; aKS++)
     {
-         AddSOrCur(aGerm->KSom(aKS));
+         SetFlagAdd(mVSOrCur,aGerm->KSom(aKS),mFlagSOrCur);
+    }
+
+    for (int aKS=0 ; aKS<3 ; aKS++)
+    {
+         AddSOrCur(aGerm->KSom(aKS),aGerm->RotOfK(aKS));
         // aGerm->
     }
 
 
-     mGr.free_flag_som(mFlagSOrCur);
-     mVSOrCur.clear();
-     FreeAllFlag(mVSOrCur,mFlagSOrCur);
+    FreeSet(mVSOrCur,mFlagSOrCur);
+    FreeSet(mVSOrCdt,mFlagSOrCdt);
 }
 
 
