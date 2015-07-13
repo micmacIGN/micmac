@@ -76,12 +76,14 @@ double DistanceRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSu
 /***************************************************************************/
 
 cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolInit & anAppli) :
-   mName        (aName),
-   mAppli       (&anAppli),
-   mIm          (new cNewO_OneIm(mAppli->NM(),mName)),
-   mCurRot      (ElRotation3D::Id),
-   mTestRot     (ElRotation3D::Id),
-   mGainByArc   (0.0)
+   mName          (aName),
+   mAppli         (&anAppli),
+   mIm            (new cNewO_OneIm(mAppli->NM(),mName)),
+   mCurRot        (ElRotation3D::Id),
+   mTestRot       (ElRotation3D::Id),
+   mSomGainByTriplet  (0.0),
+   mNbGainByTriplet   (0),
+   mCalcGainByTriplet (0.0)
 {
    ReInit();
 }
@@ -94,6 +96,19 @@ void cNOSolIn_AttrSom::ReInit()
 void cNOSolIn_AttrSom::AddTriplet(cNOSolIn_Triplet * aTrip,int aK1,int aK2,int aK3)
 {
     mLnk3.push_back(cLinkTripl(aTrip,aK1,aK2,aK3));
+}
+
+void cNOSolIn_AttrSom::ResetGainByTriplet()
+{
+   mSomGainByTriplet = 0;
+   mNbGainByTriplet = 0;
+}
+
+void  cNOSolIn_AttrSom::AddGainByTriplet(const double & aVal)
+{
+    mSomGainByTriplet += aVal;
+    mNbGainByTriplet += 1;
+    mCalcGainByTriplet = mSomGainByTriplet / sqrt(mNbGainByTriplet);
 }
 
 
@@ -526,12 +541,27 @@ void  cAppli_NewSolGolInit::EstimCoheTriplet()
          aVCost3A.push_back(mV3[aK]->CostArc());
     }
 
-    double aMed = MedianeSup(aVCost3A);
-    mSeuilCostArc = CstSeuilMedianArc + MulSeuilMedianArc * aMed;
+    mMedTripletCostA = MedianeSup(aVCost3A);
+    mSeuilCostArc = CstSeuilMedianArc + MulSeuilMedianArc * mMedTripletCostA;
 
 
-    cCmpPtrTriplOnCost aCmp;
+    // double aCostNorMax = mSeuilCostArc / (mSeuilCostArc+mMedTripletCostA);
+
+    cNO_CmpPtrTriplOnCost aCmp;
     std::sort(mV3.begin(),mV3.end(),aCmp);
+
+    for (int aK=0  ; aK<int(mV3.size()) ; aK++)
+    {
+        cNOSolIn_Triplet & a3 = *(mV3[aK]);
+        double aCost = a3.CostArc() ;
+        aCost = aCost/ (aCost+mMedTripletCostA);
+        // aCost = aCost / aCostNorMax;
+        a3.GainArc() = ElMax(0.0,1-aCost);
+
+        // double aR = 
+    }
+
+
     if (1)
     {
        int aNb= 20;
@@ -540,7 +570,7 @@ void  cAppli_NewSolGolInit::EstimCoheTriplet()
             int aKS = (aK * (mV3.size()-1)) / aNb;
              mV3[aKS]->Show(ToString(aKS)) ;
        }
-       std::cout << "COST ;  S3A= " << mSeuilCostArc  << " M3A " << aMed << "\n";
+       std::cout << "COST ;  S3A= " << mSeuilCostArc  << " M3A " << mMedTripletCostA << "\n";
     }
 }
 
@@ -686,7 +716,7 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
              double aD =  DistanceRot(aR0,aVR[aK],aBSurH0);
              aSomD += aD;
 
-              double aPds = 0;
+             double aPds = 0;
              if (aD < 6 * mCoherMed12)
              {
                    aPds = 1 /(1 + ElSquare(aD/(2*mCoherMed12)));
@@ -714,11 +744,13 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
 
 
 
+static cNO_CmpSomByGainBy3 TheCmp3;
 
 cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mQuick      (true),
     mTest       (true),
     mSimul      (false),
+    mIterLocEstimRot (true),
     mFlag3      (mGr.alloc_flag_som()),
     mFlag2      (mGr.alloc_flag_som()),
     mTestTrip   (0),
@@ -730,7 +762,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mNbArc      (0),
     mNbTrip     (0),
     mFlag3Alive (mAllocFlag3.flag_alloc()),
-    mFlag3CC    (mAllocFlag3.flag_alloc())
+    mFlag3CC    (mAllocFlag3.flag_alloc()),
+    mHeapSom    (TheCmp3)
 {
    std::string aNameT1;
    std::string aNameT2;
@@ -752,6 +785,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                    << EAM(aNameT4,"Test4",true,"Name of fourth test image",eSAM_IsBool)
                    << EAM(mSimul,"Simul",true,"Simulation of perfect triplet",eSAM_IsBool)
                    << EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
+                   << EAM(mIterLocEstimRot,"ILER",true,"Iter Estim Loc, Def=true, tuning purpose",eSAM_IsBool)
    );
 
    cTplTriplet<std::string> aKTest1(aNameT1,aNameT2,aNameT3);
@@ -871,7 +905,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 
 
     EstimCoherenceMed();
-    std::cout << "COHERENCE MED, DAB  " << mCoherMedAB  * 1000  << " D12 " << mCoherMed12  * 1000 << "\n";
+    std::cout << "COHERENCE MED, DAB  " << mCoherMedAB    << " D12 " << mCoherMed12   << "\n";
 
 
     if (mTestS1 && mTestS2)
