@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define CstSeuilMedianArc 0.02
 #define MulSeuilMedianArc 2.0
 #define PenalMedMed       2.0
+#define NbInitEvalRot     3
 
 
 
@@ -102,6 +103,15 @@ class cNOSolIn_AttrSom
          
          std::vector<cLinkTripl> & Lnk3() {return mLnk3;}
 
+         int  & HeapIndex() {return mHeapIndex;}
+
+         ElRotation3D EstimRot(tSomNSI *);
+
+         double  CalcGainByTriplet() const {return mCalcGainByTriplet;}
+         int     NbGainByTriplet() const {return mNbGainByTriplet;}
+         void ResetGainByTriplet();
+         void AddGainByTriplet(const double &);
+
      private :
          std::string                      mName;
          cAppli_NewSolGolInit *           mAppli;
@@ -111,8 +121,33 @@ class cNOSolIn_AttrSom
          ElRotation3D                     mCurRot;
          ElRotation3D                     mTestRot;
 
-         double                           mGainByArc;
+         double                           mSomGainByTriplet;
+         int                              mNbGainByTriplet;
+         double                           mCalcGainByTriplet;
+
+         int                              mHeapIndex;
 };
+
+class cNO_CmpSomByGainBy3
+{
+      public :
+          bool operator()(tSomNSI * aS1,tSomNSI * aS2)
+          {
+               return aS1->attr().CalcGainByTriplet() > aS2->attr().CalcGainByTriplet();
+          }
+};
+class  cNO_HeapIndSom_NSI
+{
+    public :
+           static void SetIndex(tSomNSI * aV,int i) {   aV->attr().HeapIndex()=i;}
+           static int  Index(tSomNSI * aV)
+           {
+                return aV->attr().HeapIndex();
+           }
+
+};
+
+typedef ElHeap<tSomNSI*,cNO_CmpSomByGainBy3,cNO_HeapIndSom_NSI> tHeapSomNSI;
 
 
 class cNOSolIn_AttrASym
@@ -177,10 +212,11 @@ class cNOSolIn_Triplet
 
 
 
-          double BOnH() const {return mBOnH;}
+          float BOnH() const {return mBOnH;}
           int  Nb3() const {return mNb3;}
-          double  CostArc() const {return mCostArc;}
-          double  CostArcMed() const {return mCostArcMed;}
+          float  CostArc() const {return mCostArc;}
+          float& GainArc()          {return mGainArc;}
+          float  CostArcMed() const {return mCostArcMed;}
 
           void CalcCoherFromArcs(bool Test);
           void CheckArcsSom();
@@ -192,17 +228,19 @@ class cNOSolIn_Triplet
 
 
       private :
+          cNOSolIn_Triplet(const cNOSolIn_Triplet &); // N.I. 
           cAppli_NewSolGolInit * mAppli;
           tSomNSI *     mSoms[3];
           tArcNSI *     mArcs[3];
           ElRotation3D  mR2on1;
           ElRotation3D  mR3on1;
-          double        mBOnH;
+          float        mBOnH;
           int           mNb3;
           Pt3dr         mPMed;
    // Gere les triplets qui vont etre desactives
-          double        mCostArc;
-          double        mCostArcMed;
+          float        mCostArc;
+          float        mGainArc;
+          float        mCostArcMed;
           ElTabFlag     mTabFlag;
           int           mNumCC;
 };
@@ -218,7 +256,7 @@ inline void  SetFlag(cNOSolIn_Triplet & aTrip,int aFlag,bool aVal)
 
 
 
-class cCmpPtrTriplOnCost
+class cNO_CmpPtrTriplOnCost
 {
    public :
        bool operator () (const  cNOSolIn_Triplet * aT1,const  cNOSolIn_Triplet * aT2)
@@ -228,7 +266,7 @@ class cCmpPtrTriplOnCost
 };
 
 
-class cCC_TripSom
+class cNO_CC_TripSom
 {
     public :
         std::vector<cNOSolIn_Triplet *> mTri;
@@ -242,17 +280,30 @@ class cAppli_NewSolGolInit
         cAppli_NewSolGolInit(int , char **);
         cNewO_NameManager & NM() {return *mNM;}
         double  CoherMed12() const {return  mCoherMed12;}
+        double  CoherMedAB() const {return  mCoherMedAB;}
+        int     FlagSOrCur() const {return  mFlagSOrCur;}  // Ceux qui sont orientes
+        bool    IterLocEstimRot() const  {return mIterLocEstimRot;}
+        int     Flag3UsedForOri() {return               mFlag3UsedForOri;}
+        std::vector<cNOSolIn_Triplet*> & V3Use4Ori () {return mV3Use4Ori;}
+        std::vector<double> & VDistEstimRot() {return mVDistEstimRot;}
+
+
 
     private :
 
         void FreeSet(std::vector<tSomNSI*>  &,int aFlag);
+        void FreeTriplet(std::vector<cNOSolIn_Triplet*>  &,int aFlag);
 
         bool  TripletIsValide(cNOSolIn_Triplet *);
 
         void  CalculOrient();
-        void  CalculOrient(cCC_TripSom * aCC);
+        void  CalculOrient(cNO_CC_TripSom * aCC);
         void  CalculOrient(cNOSolIn_Triplet * aCC);
         void  AddSOrCur(tSomNSI *,const ElRotation3D &);
+        tSomNSI * GetBestSom();
+
+        void ReMoyByTriplet();
+        double ReMoyOneTriplet(cNOSolIn_Triplet * aCC);
 
         void NumeroteCC();
         void ResetFlagCC();
@@ -285,6 +336,7 @@ class cAppli_NewSolGolInit
         bool                 mQuick;
         bool                 mTest;
         bool                 mSimul;
+        bool                 mIterLocEstimRot;
 
         tGrNSI               mGr;
         tSubGrNSI            mSubAll;
@@ -295,7 +347,7 @@ class cAppli_NewSolGolInit
         std::vector<tSomNSI *>  mVCur3;  // Tripelt courrant
         std::vector<tSomNSI *>  mVCur2;  // Adjcent au triplet courant
         std::vector<cNOSolIn_Triplet*> mV3;
-        std::vector<cCC_TripSom *> mVCC;
+        std::vector<cNO_CC_TripSom *> mVCC;
         int                     mFlag3;
         int                     mFlag2;
         cNOSolIn_Triplet *      mTestTrip;
@@ -308,17 +360,25 @@ class cAppli_NewSolGolInit
         int                     mNbTrip;
         double                  mCoherMedAB;
         double                  mCoherMed12;
+        double                  mMedTripletCostA;
         ElFlagAllocator         mAllocFlag3;
         int                     mFlag3Alive;
         int                     mFlag3CC;
+        int                     mFlag3UsedForOri;
+        std::vector<cNOSolIn_Triplet*> mV3Use4Ori;
+        std::vector<double>            mVDistEstimRot;
 
 
 
-        int                    mFlagSOrCur;  // Ceux qui sont orientes
-        std::vector<tSomNSI*>  mVSOrCur;
-        int                    mFlagSOrCdt;  // Ceux qui sont candidats
-        std::vector<tSomNSI*>  mVSOrCdt;
-        double                 mSeuilCostArc;
+        int                     mFlagSOrCur;  // Ceux qui sont orientes
+        std::vector<tSomNSI*>   mVSOrCur;
+        int                     mFlagSOrCdt;  // Ceux qui sont candidats
+        std::vector<tSomNSI*>   mVSOrCdt;
+        double                  mSeuilCostArc;
+        tHeapSomNSI             mHeapSom;
+
+        int                     mFlagSOrGerm;  // Ceux qui sont orientes
+        std::vector<tSomNSI*>   mVSOrGerm;
 };
 
 
