@@ -49,6 +49,22 @@ cNewO_OneIm::cNewO_OneIm
    mCS   (aNM.CamOfName(aName)),
    mName (aName)
 {
+
+
+    static std::set<CamStenope*> aSetSave;
+
+    if (aSetSave.find(mCS) == aSetSave.end())
+    {
+        aSetSave.insert(mCS);
+        std::string  aNameCal = mNM->ICNM()->StdNameCalib(mNM->OriOut(),aName);
+        if (! ELISE_fp::exist_file(aNameCal))
+        {
+             cCalibrationInternConique aCIC = mCS->ExportCalibInterne2XmlStruct(mCS->Sz());
+             MakeFileXML(aCIC,aNameCal);
+
+        }
+        // std::cout << "cNewO_OneIm::cNewO_OneIm : " << aNameCal << "\n"; getchar();
+    }
 }
 
 CamStenope * cNewO_OneIm::CS() 

@@ -513,7 +513,7 @@ void cAppli_NewSolGolInit::FilterTripletValide()
        if (TripletIsValide(mV3[aK]))
           aNewV3.push_back(mV3[aK]);
 
-   std::cout << "FilterTripletValide " << mV3.size() << " => " << aNewV3.size() << "\n";
+   // std::cout << "FilterTripletValide " << mV3.size() << " => " << aNewV3.size() << "\n";
 
    mV3 = aNewV3;
 
@@ -565,7 +565,7 @@ void  cAppli_NewSolGolInit::EstimCoheTriplet()
     }
 
 
-    if (1)
+    if (0)
     {
        int aNb= 20;
        for (int aK=0 ; aK<= aNb ; aK++)
@@ -602,7 +602,7 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
                 }
           }
     }
-    std::cout << "NBTTT " << aNbTT  <<  " => " << NbMaxATT << "\n";
+    // std::cout << "NBTTT " << aNbTT  <<  " => " << NbMaxATT << "\n";
 
     // cRandNParmiQ aSel(aNbTT,ElMin(aNbTT,NbMaxATT));
     cRandNParmiQ aSel(ElMin(aNbTT,NbMaxATT),aNbTT);
@@ -767,7 +767,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mFlag3Alive (mAllocFlag3.flag_alloc()),
     mFlag3CC    (mAllocFlag3.flag_alloc()),
     mHeapSom    (TheCmp3),
-    mLastPdsMedRemoy  (0.0)
+    mLastPdsMedRemoy  (0.0),
+    mActiveRemoy      (true)
 {
    std::string aNameT1;
    std::string aNameT2;
@@ -790,6 +791,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                    << EAM(mSimul,"Simul",true,"Simulation of perfect triplet",eSAM_IsBool)
                    << EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
                    << EAM(mIterLocEstimRot,"ILER",true,"Iter Estim Loc, Def=true, tuning purpose",eSAM_IsBool)
+                   << EAM(mActiveRemoy,"AR",true,"Active Remoy, Def=true, tuning purpose",eSAM_IsBool)
    );
 
    cTplTriplet<std::string> aKTest1(aNameT1,aNameT2,aNameT3);
@@ -909,7 +911,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 
 
     EstimCoherenceMed();
-    std::cout << "COHERENCE MED, DAB  " << mCoherMedAB    << " D12 " << mCoherMed12   << "\n";
+    // std::cout << "COHERENCE MED, DAB  " << mCoherMedAB    << " D12 " << mCoherMed12   << "\n";
 
 
     if (mTestS1 && mTestS2)
@@ -923,14 +925,14 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
 
     }
     EstimRotsInit();
-    std::cout << "Rots init \n";
+    // std::cout << "Rots init \n";
 
 
     EstimCoheTriplet();
-    std::cout << "Triplets Init \n";
+    // std::cout << "Triplets Init \n";
 
     FilterTripletValide();
-    std::cout << "Filer done \n";
+    // std::cout << "Filer done \n";
 
 
 
@@ -958,15 +960,47 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     }
 
     NumeroteCC();
+
+    std::cout << "Begin calc orient\n";
    
     CalculOrient();
 
 }
 
 
+void cAppli_NewSolGolInit::Save()
+{
+    for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
+    {
+        cNewO_OneIm * anI = (*anItS).attr().Im();
+        std::string aNameIm = anI->Name();
+        CamStenope * aCS = anI->CS();
+        aCS->SetOrientation((*anItS).attr().CurRot().inv());
+
+        cOrientationConique anOC =  aCS->StdExportCalibGlob();
+        anOC.Interne().SetNoInit();
+        anOC.FileInterne().SetVal(mNM->ICNM()->StdNameCalib(mNM->OriOut(),aNameIm));
+
+
+        Pt3dr aPMed =  (*anItS).attr().SomPMedReM() ;
+        double aD = euclid(aPMed-(*anItS).attr().CurRot().tr());
+
+        anOC.Externe().AltiSol().SetVal(aPMed.z);
+        anOC.Externe().Profondeur().SetVal(aD);
+        
+        std::string aNameOri = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+mNM->OriOut(),aNameIm,true);
+      
+        MakeFileXML(anOC,aNameOri);
+    }
+}
+
+
+
+
 int CPP_NewSolGolInit_main(int argc, char ** argv)
 {
     cAppli_NewSolGolInit anAppli(argc,argv);
+    anAppli.Save();
     return EXIT_SUCCESS;
 
 /*

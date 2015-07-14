@@ -109,13 +109,13 @@ void cAppli_NewSolGolInit::NumeroteCC()
             FreeAllFlag(*aCCS,aFlagSom);
             mGr.free_flag_som(aFlagSom);
 
-            std::cout << "NbTriii " << aCC3->size() << " NbSooom " << aCCS->size() << "\n";
+            // std::cout << "NbTriii " << aCC3->size() << " NbSooom " << aCCS->size() << "\n";
             aNumCC++;
         }
     }
     FreeAllFlag(mV3,mFlag3CC);
     // ResetFlagCC();
-    std::cout << "NUMMMCCCC " <<  aNumCC << "\n";
+    // std::cout << "NUMMMCCCC " <<  aNumCC << "\n";
 }
 
 /**********************************************************/
@@ -132,7 +132,7 @@ void cAppli_NewSolGolInit::NumeroteCC()
 void  cAppli_NewSolGolInit::AddSOrCur(tSomNSI * aSom,const ElRotation3D & aR)
 {
 
-    std::cout << "ADDSOOm " << aSom->attr().Im()->Name() << "\n";
+    // std::cout << "ADDSOOm " << aSom->attr().Im()->Name() << "\n";
 
     SetFlagAdd(mVSOrCur,aSom,mFlagSOrCur);
     // ELISE_ASSERT(Added,"cAppli_NewSolGolInit::AddSOrCur");
@@ -246,24 +246,27 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
 
      double aSomDist =  aSomDistTr + aSomDistMat;
      double anEcart = ElMax(mLastPdsMedRemoy,mCoherMed12);
-     if (aSomDist < (6*anEcart))
+     if (aSomDist < (10*anEcart))
      {
         double aPds = 1 / (1+ElSquare(aSomDist/(2*anEcart)));
 
         for (int aKS=0 ; aKS<3 ; aKS++)
         {
      //  aTr + aMTri2Cur * PTri * aLambda = PCur
+             tSomNSI * aSom =  aTri->KSom(aKS);
 
              Pt3dr  aTrK = aOffsTr + aMTri2Cur*aVCTri[aKS] * aLambda;
+             ElMatrix<double> aMK = aMTri2Cur * aTri->RotOfSom(aSom).Mat();
+
             // ElMatrix<double> aMKTri2Cur = aRCur.Mat() * aRTri.Mat().transpose();
 
+             aSom->attr().SomPdsReMoy() += aPds;
+             aSom->attr().SomTrReMoy () = aSom->attr().SomTrReMoy () + aTrK * aPds;
+             aSom->attr().SomMatReMoy() = aSom->attr().SomMatReMoy() + aMK * aPds;
 
-            tSomNSI * aSom =  aTri->KSom(aKS);
-            aSom->attr().SomPdsReMoy() += aPds;
 
-
-             std::cout << "JJJJJ " << euclid(aSom->attr().CurRot().tr()-aTrK) << " " << "\n";
-            // aSom->SomTrReMoy()
+             Pt3dr aPMed = aOffsTr + aMTri2Cur* aTri->PMed() * aLambda;
+             aSom->attr().SomPMedReM () = aSom->attr().SomPMedReM () + aPMed * aPds;
         }
      }
 
@@ -274,26 +277,48 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
 
 void cAppli_NewSolGolInit::ReMoyByTriplet()
 {
+    mLastEcartReMoy.clear();
     for (int aKS=0 ; aKS <  int(mVSOrCur.size()) ; aKS++)
     {
         tSomNSI * aSom = mVSOrCur[aKS];
         aSom->attr().SomPdsReMoy() = 0;
         aSom->attr().SomTrReMoy () = Pt3dr(0,0,0);
+        aSom->attr().SomPMedReM () = Pt3dr(0,0,0);
         aSom->attr().SomMatReMoy() = ElMatrix<double>(3,3,0.0);
     }
 
-
-    std::vector<double> aVD;
     for (int aK3=0 ; aK3<int(mV3Use4Ori.size()) ; aK3++)
     {
         double aDist = ReMoyOneTriplet(mV3Use4Ori[aK3]);
-        aVD.push_back(aDist);
+        mLastEcartReMoy.push_back(aDist);
     }
 
-    mLastPdsMedRemoy = MedianeSup(aVD);
+    mLastPdsMedRemoy = MedianeSup(mLastEcartReMoy);
 
-    std::cout << " cAppli_NewSolGolInit::ReMoyByTriplet    ========== " << mLastPdsMedRemoy  << " " << mCoherMed12 << "\n";
-    getchar();
+
+    for (int aKS=0 ; aKS <  int(mVSOrCur.size()) ; aKS++)
+    {
+        tSomNSI * aSom = mVSOrCur[aKS];
+        // A faire avant modif du poid
+        aSom->attr().SomPMedReM() = aSom->attr().SomPMedReM() / aSom->attr().SomPdsReMoy();
+        double aPdsThis = ElMax(0.01, aSom->attr().SomPdsReMoy() * 0.1);
+        aSom->attr().SomPdsReMoy() += aPdsThis;
+        aSom->attr().SomTrReMoy ()  = aSom->attr().SomTrReMoy ()  +  aSom->attr().CurRot().tr() * aPdsThis;
+        aSom->attr().SomMatReMoy ()  = aSom->attr().SomMatReMoy ()  +  aSom->attr().CurRot().Mat() * aPdsThis;
+
+        Pt3dr aTr =  aSom->attr().SomTrReMoy () / aSom->attr().SomPdsReMoy();
+        ElMatrix<double> aMat = NearestRotation(aSom->attr().SomMatReMoy () * (1.0/aSom->attr().SomPdsReMoy()));
+
+        // std::cout << "ppppPDS " << aSom->attr().SomPdsReMoy() << "\n";
+        // aSom->attr().SomTrReMoy () = Pt3dr(0,0,0);
+        // aSom->attr().SomMatReMoy() = ElMatrix<double>(3,3,0.0);
+        // std::cout << "EUCLID " << euclid(aTr-aSom->attr().CurRot().tr()) << " " << sqrt(aMat.L2(aSom->attr().CurRot().Mat())) << "\n";
+        if (mActiveRemoy)
+           aSom->attr().CurRot() = ElRotation3D(aTr,aMat,true);
+    }
+
+
+
 }
 
 /*
@@ -489,9 +514,7 @@ ElRotation3D cNOSolIn_AttrSom::EstimRot(tSomNSI * aSom)
      }
 
 
-     std::cout << "HSomm " << Im()->Name()  
-               << " G=" << aSom->attr().CalcGainByTriplet() 
-               << " NbL=" << aCpt  << " on " << mLnk3.size() << "\n";
+     // std::cout << "HSomm " << Im()->Name()  << " G=" << aSom->attr().CalcGainByTriplet() << " NbL=" << aCpt  << " on " << mLnk3.size() << "\n";
 
      // getchar();
 
@@ -553,12 +576,17 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
     {
          ElRotation3D aRot = aSom->attr().EstimRot(aSom);
          AddSOrCur(aSom,aRot);
-         ReMoyByTriplet();
-
-         std::cout << "NB TRI " << mV3Use4Ori.size() << " on " << mV3.size() << "\n";
-         std::cout << "NB SOM " << mVSOrCur.size() << " on " << mGr.nb_som() << "\n";
+         for (int aK=0 ; aK<3 ; aK++)
+             ReMoyByTriplet();
     }
 
+    for (int aK=0 ; aK<20 ; aK++)
+        ReMoyByTriplet();
+
+
+
+    double aEc80 = KthValProp(mLastEcartReMoy,0.8);
+    std::cout << "ReMoy  Med=" << mLastPdsMedRemoy  << "  80%=" << aEc80  << " Ec80/Med12 " << aEc80/mCoherMed12 << "\n";
 
     FreeSet(mVSOrCur,mFlagSOrCur);
     FreeSet(mVSOrCdt,mFlagSOrCdt);

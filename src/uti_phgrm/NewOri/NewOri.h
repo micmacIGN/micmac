@@ -297,7 +297,8 @@ class cNewO_NameManager
                bool  Quick,
                const std::string  & aDir,
                const std::string  & anOri,
-               const std::string  & PostTxt
+               const std::string  & PostTxt,
+               const std::string  & anOriOut=""  // Def => Martini / MartiniGin
            );
            CamStenope * CamOfName(const std::string & aName);
            ElPackHomologue PackOfName(const std::string & aN1,const std::string & aN2) const;
@@ -317,6 +318,7 @@ class cNewO_NameManager
            // 
            CamStenope * CamOriOfName(const std::string & aName,const std::string & anOri);
            const std::string &  OriCal() const;
+           const std::string &  OriOut() const;
            cInterfChantierNameManipulateur *  ICNM();
 
 
@@ -343,6 +345,7 @@ class cNewO_NameManager
 
            bool LoadTriplet(cNewO_OneIm * ,cNewO_OneIm *,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3);
 
+
      private :
 
            std::string NameAttribTriplet(const std::string & aPrefix,const std::string & aPost,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
@@ -357,6 +360,7 @@ class cNewO_NameManager
            std::string                        mDirTmp;
            std::string                        mPostfixDir;
            bool                               mQuick;
+           std::string                        mOriOut;
 };
 
 

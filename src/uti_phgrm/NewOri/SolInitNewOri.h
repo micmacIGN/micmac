@@ -117,6 +117,7 @@ class cNOSolIn_AttrSom
          double&            SomPdsReMoy () {return mSomPdsReMoy;}
          Pt3dr&             SomTrReMoy  () {return mSomTrReMoy;}
          ElMatrix<double>&  SomMatReMoy () {return mSomMatReMoy;}
+         Pt3dr&             SomPMedReM  () {return mSomPMedReM;}
 
 
      private :
@@ -136,6 +137,7 @@ class cNOSolIn_AttrSom
 
          double                           mSomPdsReMoy;
          Pt3dr                            mSomTrReMoy;
+         Pt3dr                            mSomPMedReM;
          ElMatrix<double>                 mSomMatReMoy;
 };
 
@@ -298,6 +300,8 @@ class cAppli_NewSolGolInit
         std::vector<cNOSolIn_Triplet*> & V3Use4Ori () {return mV3Use4Ori;}
         std::vector<double> & VDistEstimRot() {return mVDistEstimRot;}
 
+        void Save();
+
 
 
     private :
@@ -391,6 +395,8 @@ class cAppli_NewSolGolInit
         int                     mFlagSOrGerm;  // Ceux qui sont orientes
         std::vector<tSomNSI*>   mVSOrGerm;
         double                  mLastPdsMedRemoy;
+        std::vector<double>     mLastEcartReMoy;
+        bool                    mActiveRemoy;
 };
 
 
