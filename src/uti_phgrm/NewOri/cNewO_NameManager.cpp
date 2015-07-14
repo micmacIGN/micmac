@@ -48,22 +48,34 @@ cNewO_NameManager::cNewO_NameManager
      bool                 Quick,
      const std::string  & aDir,
      const std::string  & anOriCal,
-     const std::string  & aPostHom
+     const std::string  & aPostHom,
+     const std::string  & aOriOut
 ) :
     mICNM        (cInterfChantierNameManipulateur::BasicAlloc(aDir)),
     mDir         (aDir),
     mPrefOriCal  (anOriCal),
     mPostHom     (aPostHom),
-    mQuick       (Quick)
+    mQuick       (Quick),
+    mOriOut      (aOriOut)
 {
+   if (mOriOut=="") 
+      mOriOut = mQuick ? "Martini" : "MartiniGin";
+
    StdCorrecNameOrient(mPrefOriCal,mDir);
    mPostfixDir    =   mPrefOriCal + std::string(mQuick ? "Quick" : "Std");
    mDirTmp      =   std::string(PrefixDirTmp) + mPostfixDir + "/";
+
+   ELISE_fp::MkDir(mDir+"Ori-"+mOriOut+"/");
 }
 
 const std::string & cNewO_NameManager::Dir() const
 {
    return mDir;
+}
+
+const std::string & cNewO_NameManager::OriOut() const
+{
+   return mOriOut;
 }
 
 
@@ -97,6 +109,9 @@ cInterfChantierNameManipulateur *  cNewO_NameManager::ICNM()
 
 CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal) 
 {
+   // std::cout << "cInterfChantierNameManipulateur::GlobCalibOfName \n"; getchar();
+
+
    if (aPrefOriCal =="")
    {
         cMetaDataPhoto aMTD = cMetaDataPhoto::CreateExiv2(Dir() +aName);
