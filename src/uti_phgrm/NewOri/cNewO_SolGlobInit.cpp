@@ -83,7 +83,10 @@ cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolIni
    mTestRot       (ElRotation3D::Id),
    mSomGainByTriplet  (0.0),
    mNbGainByTriplet   (0),
-   mCalcGainByTriplet (0.0)
+   mCalcGainByTriplet (0.0),
+   mSomPdsReMoy       (0.0),
+   mSomTrReMoy        (0,0,0),
+   mSomMatReMoy       (3,3,0.0)
 {
    ReInit();
 }
@@ -763,7 +766,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mNbTrip     (0),
     mFlag3Alive (mAllocFlag3.flag_alloc()),
     mFlag3CC    (mAllocFlag3.flag_alloc()),
-    mHeapSom    (TheCmp3)
+    mHeapSom    (TheCmp3),
+    mLastPdsMedRemoy  (0.0)
 {
    std::string aNameT1;
    std::string aNameT2;
