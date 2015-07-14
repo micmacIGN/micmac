@@ -91,7 +91,8 @@ class cNOSolIn_AttrSom
          cNOSolIn_AttrSom(const std::string & aName,cAppli_NewSolGolInit & anAppli);
          cNOSolIn_AttrSom() :
              mCurRot (ElRotation3D::Id),
-             mTestRot (ElRotation3D::Id)
+             mTestRot (ElRotation3D::Id),
+             mSomMatReMoy       (3,3,0.0)
          {}
 
          void AddTriplet(cNOSolIn_Triplet *,int aK0,int aK1,int aK2);
@@ -112,6 +113,12 @@ class cNOSolIn_AttrSom
          void ResetGainByTriplet();
          void AddGainByTriplet(const double &);
 
+
+         double&            SomPdsReMoy () {return mSomPdsReMoy;}
+         Pt3dr&             SomTrReMoy  () {return mSomTrReMoy;}
+         ElMatrix<double>&  SomMatReMoy () {return mSomMatReMoy;}
+
+
      private :
          std::string                      mName;
          cAppli_NewSolGolInit *           mAppli;
@@ -126,6 +133,10 @@ class cNOSolIn_AttrSom
          double                           mCalcGainByTriplet;
 
          int                              mHeapIndex;
+
+         double                           mSomPdsReMoy;
+         Pt3dr                            mSomTrReMoy;
+         ElMatrix<double>                 mSomMatReMoy;
 };
 
 class cNO_CmpSomByGainBy3
@@ -379,6 +390,7 @@ class cAppli_NewSolGolInit
 
         int                     mFlagSOrGerm;  // Ceux qui sont orientes
         std::vector<tSomNSI*>   mVSOrGerm;
+        double                  mLastPdsMedRemoy;
 };
 
 

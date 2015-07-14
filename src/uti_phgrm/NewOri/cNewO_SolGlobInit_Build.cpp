@@ -223,13 +223,13 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
      double aLambda = aSomDCur / aSomDTri;
 
 
-     //  aTr + aMTri2Cur * PTri * aLambda = PCur
-     Pt3dr aTr(0,0,0);
+     //  aOffsTr + aMTri2Cur * PTri * aLambda = PCur
+     Pt3dr aOffsTr(0,0,0);
      for (int aKS=0 ; aKS<3 ; aKS++)
      {
-          aTr =  aTr + aVCCur[aKS] - aMTri2Cur*aVCTri[aKS] * aLambda;
+          aOffsTr =  aOffsTr + aVCCur[aKS] - aMTri2Cur*aVCTri[aKS] * aLambda;
      }
-     aTr = aTr / 3.0;
+     aOffsTr = aOffsTr / 3.0;
 
 
      double aSomDistMat = 0; 
@@ -237,19 +237,52 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
      for (int aKS=0 ; aKS<3 ; aKS++)
      {
           aSomDistMat += aMTri2Cur.L2(aVM[aKS]);
-          aSomDistTr += euclid(aVCCur[aKS]-aTr - aMTri2Cur*aVCTri[aKS] * aLambda);
+          aSomDistTr += euclid(aVCCur[aKS]-aOffsTr - aMTri2Cur*aVCTri[aKS] * aLambda);
      }
      aSomDistTr /=  (aLambda*2);
      aSomDistTr  *= aTri->BOnH();
 
      aSomDistMat = sqrt(aSomDistMat/2.0);
 
-     return aSomDistTr + aSomDistMat;
+     double aSomDist =  aSomDistTr + aSomDistMat;
+     double anEcart = ElMax(mLastPdsMedRemoy,mCoherMed12);
+     if (aSomDist < (6*anEcart))
+     {
+        double aPds = 1 / (1+ElSquare(aSomDist/(2*anEcart)));
+
+        for (int aKS=0 ; aKS<3 ; aKS++)
+        {
+     //  aTr + aMTri2Cur * PTri * aLambda = PCur
+
+             Pt3dr  aTrK = aOffsTr + aMTri2Cur*aVCTri[aKS] * aLambda;
+            // ElMatrix<double> aMKTri2Cur = aRCur.Mat() * aRTri.Mat().transpose();
+
+
+            tSomNSI * aSom =  aTri->KSom(aKS);
+            aSom->attr().SomPdsReMoy() += aPds;
+
+
+             std::cout << "JJJJJ " << euclid(aSom->attr().CurRot().tr()-aTrK) << " " << "\n";
+            // aSom->SomTrReMoy()
+        }
+     }
+
+
+     return aSomDist;
 }
 
 
 void cAppli_NewSolGolInit::ReMoyByTriplet()
 {
+    for (int aKS=0 ; aKS <  int(mVSOrCur.size()) ; aKS++)
+    {
+        tSomNSI * aSom = mVSOrCur[aKS];
+        aSom->attr().SomPdsReMoy() = 0;
+        aSom->attr().SomTrReMoy () = Pt3dr(0,0,0);
+        aSom->attr().SomMatReMoy() = ElMatrix<double>(3,3,0.0);
+    }
+
+
     std::vector<double> aVD;
     for (int aK3=0 ; aK3<int(mV3Use4Ori.size()) ; aK3++)
     {
@@ -257,7 +290,10 @@ void cAppli_NewSolGolInit::ReMoyByTriplet()
         aVD.push_back(aDist);
     }
 
-    std::cout << " cAppli_NewSolGolInit::ReMoyByTriplet    ========== " << MedianeSup(aVD)  << " " << mCoherMed12 << "\n";
+    mLastPdsMedRemoy = MedianeSup(aVD);
+
+    std::cout << " cAppli_NewSolGolInit::ReMoyByTriplet    ========== " << mLastPdsMedRemoy  << " " << mCoherMed12 << "\n";
+    getchar();
 }
 
 /*
@@ -520,6 +556,7 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
          ReMoyByTriplet();
 
          std::cout << "NB TRI " << mV3Use4Ori.size() << " on " << mV3.size() << "\n";
+         std::cout << "NB SOM " << mVSOrCur.size() << " on " << mGr.nb_som() << "\n";
     }
 
 
