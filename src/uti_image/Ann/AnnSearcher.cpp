@@ -185,7 +185,8 @@ bool write_matches_ascii( const std::string &i_filename, const vector<DigeoPoint
 	const DigeoPoint *p0 = i_array0.data(),
 	                 *q0 = i_array1.data(),
 	                 *p, *q;
-	while ( itCouple!=i_matchingCouples.end() ){
+	while ( itCouple!=i_matchingCouples.end() )
+	{
 		p = p0+itCouple->x;
 		q = q0+( itCouple++ )->y;
 		f << p->x << '\t' << p->y << '\t' << q->x << '\t' << q->y << endl;
@@ -331,21 +332,24 @@ DigeoTypedVectors::DigeoTypedVectors( const vector<DigeoPoint> &i_points ):
 	m_points( (int)DigeoPoint::DETECT_UNKNOWN+1 )
 {
 	// count the number of points of each type
-	vector<unsigned int> countTypes( DigeoPoint::nbDetectTypes, 0 );
+	vector<unsigned int> countTypes(DigeoPoint::nbDetectTypes, 0);
 	const DigeoPoint *itSrc = i_points.data();
 	size_t iPoint = i_points.size();
 	while ( iPoint-- ) countTypes[(size_t)( *itSrc++ ).type]++;
 
 	// resize vectors
-	for ( size_t iType=0; iType<DigeoPoint::nbDetectTypes; iType++ ){
-		m_points[iType].resize( countTypes[iType] );
+	m_points.resize(DigeoPoint::nbDetectTypes);
+	for ( unsigned int iType=0; iType<DigeoPoint::nbDetectTypes; iType++ )
+	{
+		m_points[iType].resize(countTypes[iType]);
 		countTypes[iType] = 0;
 	}
-	
+
 	// copy points
 	itSrc = i_points.data();
 	iPoint = i_points.size();
-	while ( iPoint-- ){
+	while ( iPoint-- )
+	{
 		const size_t iType = (size_t)itSrc->type;
 		m_points[iType][countTypes[iType]++] = *itSrc;
 		itSrc++;
@@ -355,7 +359,8 @@ DigeoTypedVectors::DigeoTypedVectors( const vector<DigeoPoint> &i_points ):
 		size_t total = m_points[0].size();
 		for ( size_t iType=1; iType<DigeoPoint::nbDetectTypes; iType++ )
 			total += m_points[iType].size();
-		if ( total!=i_points.size() ){
+		if ( total!=i_points.size() )
+		{
 			cerr << "DEBUG_ERROR: DigeoTypedVectors::DigeoTypedVectors: split is incorrect" << endl;
 			exit(1);
 		}

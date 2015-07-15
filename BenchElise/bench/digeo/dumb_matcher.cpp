@@ -23,26 +23,29 @@ void print_is_different_v128( const string aPrefix, const REAL8 *a, const REAL8 
 	cout << endl;
 }
 
-class MatchPoint
+class GraphPoint
 {
 public:
 	const DigeoPoint *mPoint;
-	list<MatchPoint*> mNearestNeighbours;
+	list<GraphPoint*> mNearestNeighbours;
 	double mNeighbourDistance;
 
 	// statistic data
-	list<MatchPoint*> mBackwardNeighbours; // a list of points considering this point as a neighbours
+	list<GraphPoint*> mBackwardNeighbours; // a list of points considering this point as a neighbours
 	bool mHasBeenWritten;
 
-	MatchPoint( const DigeoPoint *aPoint=NULL ):
+	GraphPoint( const DigeoPoint *aPoint=NULL ):
 		mPoint(aPoint),
 		mNeighbourDistance( numeric_limits<REAL>::max() ),
 		mHasBeenWritten(false){}
 
-	bool tryNeighbour( MatchPoint *aNeighbour, double aDistance )
+	bool tryNeighbour( GraphPoint *aNeighbour, double aDistance )
 	{
 		if ( aDistance==mNeighbourDistance )
+		{
+			ELISE_DEBUG_ERROR(true, "tryNeighbour", "two neighbours with the same descriptor distance");
 			mNearestNeighbours.push_back(aNeighbour);
+		}
 		else if ( aDistance<mNeighbourDistance )
 		{
 			mNearestNeighbours.clear();
@@ -53,50 +56,35 @@ public:
 		return false;
 	}
 
-	bool tryNeighbour( MatchPoint &aNeighbour )
+	bool tryNeighbour( GraphPoint &aNeighbour )
 	{
 		return tryNeighbour( &aNeighbour, mPoint->minDescriptorDistance2( *aNeighbour.mPoint ) );
 	}
 
 	const REAL8 *descriptor() const
 	{
-		ELISE_DEBUG_ERROR( mPoint==NULL, "MatchPoint::descriptor", "mPoint==NULL" );
-		ELISE_DEBUG_ERROR( mPoint->entries.size()!=1, "MatchPoint::descriptor", "mPoint->entries.size()!=1" );
+		ELISE_DEBUG_ERROR( mPoint==NULL, "GraphPoint::descriptor", "mPoint==NULL" );
+		ELISE_DEBUG_ERROR( mPoint->entries.size()!=1, "GraphPoint::descriptor", "mPoint->entries.size()!=1" );
 		return mPoint->entries[0].descriptor;
-	}
-
-	void writeMatches( ostream &aStream )
-	{
-		if (mHasBeenWritten) return;
-
-		list<MatchPoint*>::const_iterator itNeighbour = mNearestNeighbours.begin();
-		while ( itNeighbour!=mNearestNeighbours.end() )
-		{
-			MatchPoint &neighbour = **itNeighbour++;
-			const DigeoPoint &p1 = *neighbour.mPoint;
-			aStream << mPoint->x << ' ' << mPoint->y << ' ' << p1.x << ' ' << p1.y << endl;
-			mHasBeenWritten = true;
-			neighbour.mHasBeenWritten = true;
-		}
 	}
 
 	void addBackwardNeighbours()
 	{
-		list<MatchPoint*>::const_iterator itNeighbour = mNearestNeighbours.begin();
+		list<GraphPoint*>::const_iterator itNeighbour = mNearestNeighbours.begin();
 		while ( itNeighbour!=mNearestNeighbours.end() ) (**itNeighbour++).mBackwardNeighbours.push_back(this);
 	}
 
-	bool isNeighbour( const MatchPoint *aPoint ) const
+	bool isNeighbour( const GraphPoint *aPoint ) const
 	{
-		list<MatchPoint*>::const_iterator itNeighbour = mNearestNeighbours.begin();
+		list<GraphPoint*>::const_iterator itNeighbour = mNearestNeighbours.begin();
 		while ( itNeighbour!=mNearestNeighbours.end() )
 			if ( *itNeighbour++==aPoint ) return true;
 		return false;
 	}
 
-	bool isBackwardNeighbour( const MatchPoint *aPoint ) const
+	bool isBackwardNeighbour( const GraphPoint *aPoint ) const
 	{
-		list<MatchPoint*>::const_iterator itNeighbour = mBackwardNeighbours.begin();
+		list<GraphPoint*>::const_iterator itNeighbour = mBackwardNeighbours.begin();
 		while ( itNeighbour!=mBackwardNeighbours.end() )
 			if ( *itNeighbour++==this ) return true;
 		return false;
@@ -105,7 +93,7 @@ public:
 	size_t removeOneWayLinks()
 	{
 		size_t nbRemoved = 0;
-		list<MatchPoint*>::iterator itNeighbour = mNearestNeighbours.begin();
+		list<GraphPoint*>::iterator itNeighbour = mNearestNeighbours.begin();
 		while ( itNeighbour!=mNearestNeighbours.end() )
 		{
 			if ( !(**itNeighbour).isNeighbour(this) )
@@ -118,9 +106,28 @@ public:
 		}
 		return nbRemoved;
 	}
+
+	void toPointMatchVector( PointMatch *&oMatches )
+	{
+		if (mHasBeenWritten) return;
+
+		const Pt2dr p(mPoint->x, mPoint->y);
+		list<GraphPoint*>::iterator itSrc = mNearestNeighbours.begin();
+		while ( itSrc!=mNearestNeighbours.end() )
+		{
+			GraphPoint &neighbour = **itSrc++;
+			if ( neighbour.mHasBeenWritten ) continue;
+
+			const DigeoPoint &p1 = *neighbour.mPoint;
+			*oMatches++ = PointMatch(p, Pt2dr(p1.x, p1.y));
+
+			mHasBeenWritten = true;
+			neighbour.mHasBeenWritten = true;
+		}
+	}
 };
 
-void print_nbNeighbours_histogram( const vector<MatchPoint> &aVector )
+void print_nbNeighbours_histogram( const vector<GraphPoint> &aVector )
 {
 	cout << "histogram:" << endl;
 
@@ -138,11 +145,11 @@ void print_nbNeighbours_histogram( const vector<MatchPoint> &aVector )
 		cout << i << ": " << histogram[i] << endl;
 }
 
-void print_irregulars( vector<MatchPoint> &aPoints )
+void print_irregulars( vector<GraphPoint> &aPoints )
 {
 	for ( size_t iPoint=0; iPoint<aPoints.size(); iPoint++ )
 	{
-		MatchPoint &point = aPoints[iPoint];
+		GraphPoint &point = aPoints[iPoint];
 		const size_t nbBackwardNeigbours = point.mBackwardNeighbours.size();
 		if ( nbBackwardNeigbours!=1 || nbBackwardNeigbours!=1 )
 		{
@@ -153,7 +160,7 @@ void print_irregulars( vector<MatchPoint> &aPoints )
 //~ 
 			//~ const REAL8 *descriptor = point.mPoint->entries[0].descriptor;
 			//~ print_v128( "", descriptor );
-			//~ list<MatchPoint*>::iterator itNeighbour = point.mBackwardNeighbours.begin();
+			//~ list<GraphPoint*>::iterator itNeighbour = point.mBackwardNeighbours.begin();
 			//~ size_t iNeighbour = 0;
 			//~ while ( itNeighbour!=point.mBackwardNeighbours.end() )
 			//~ {
@@ -188,38 +195,54 @@ void count_types( const vector<DigeoPoint> &aPoints )
 		cout << '\t' << DetectType_to_string( (DigeoPoint::DetectType)i ) << "(" << i << "): " << count[i] << endl;
 }
 
-class MatchPointPack
+size_t nbMatches( const vector<GraphPoint> &aPoints )
+{
+	size_t result = 0;
+	size_t iPoint = aPoints.size();
+	const GraphPoint *it = aPoints.data();
+	while ( iPoint-- ) result += (*it++).mNearestNeighbours.size();
+	return result;
+}
+
+void toPointMatchVector( vector<GraphPoint> &oMatches, PointMatch *&oDst )
+{
+	size_t i = oMatches.size();
+	GraphPoint *it = oMatches.data();
+	while (i--) (*it++).toPointMatchVector(oDst);
+}
+
+class GraphPointPack
 {
 public:
 	vector<DigeoPoint> mPoints0, mPoints1;
-	vector<MatchPoint> mMatchPoints0, mMatchPoints1;
+	vector<GraphPoint> mGraphPoints0, mGraphPoints1;
 	bool mHasBeenWritten;
 
-	MatchPointPack():mHasBeenWritten(false){}
+	GraphPointPack():mHasBeenWritten(false){}
 
-	static void initMatchPoints( const vector<DigeoPoint> &aPoints, vector<MatchPoint> &oMatchPoints )
+	static void initGraphPoints( const vector<DigeoPoint> &aPoints, vector<GraphPoint> &oGraphPoints )
 	{
 		size_t iPoint = aPoints.size();
-		oMatchPoints.resize(iPoint);
+		oGraphPoints.resize(iPoint);
 		const DigeoPoint *itPoint = aPoints.data();
-		MatchPoint *itMatchPoint = oMatchPoints.data();
+		GraphPoint *itGraphPoint = oGraphPoints.data();
 		while ( iPoint-- )
-			(*itMatchPoint++).mPoint = itPoint++;
+			(*itGraphPoint++).mPoint = itPoint++;
 	}
 
-	void initMatchPoints()
+	void initGraphPoints()
 	{
-		initMatchPoints(mPoints0,mMatchPoints0);
-		initMatchPoints(mPoints1,mMatchPoints1);
+		initGraphPoints(mPoints0, mGraphPoints0);
+		initGraphPoints(mPoints1, mGraphPoints1);
 	}
 
-	static void attemptMatching( vector<MatchPoint> &aPoints0, vector<MatchPoint> &aPoints1 )
+	static void attemptMatching( vector<GraphPoint> &aPoints0, vector<GraphPoint> &aPoints1 )
 	{
 		size_t iPoint0 = aPoints0.size();
-		MatchPoint *itPoint0 = aPoints0.data();
+		GraphPoint *itPoint0 = aPoints0.data();
 		while ( iPoint0-- )
 		{
-			MatchPoint *itPoint1 = aPoints1.data();
+			GraphPoint *itPoint1 = aPoints1.data();
 			size_t iPoint1 = aPoints1.size();
 			while ( iPoint1-- ) itPoint0->tryNeighbour( *itPoint1++ );
 			itPoint0++;
@@ -228,70 +251,70 @@ public:
 
 	void attemptMatchingBothWays()
 	{
-		attemptMatching(mMatchPoints0,mMatchPoints1);
-		attemptMatching(mMatchPoints1,mMatchPoints0);
+		attemptMatching(mGraphPoints0,mGraphPoints1);
+		attemptMatching(mGraphPoints1,mGraphPoints0);
 	}
 
-	static void writeMatches( ostream &aStream, MatchPoint *aPoints, size_t aNbPoints )
+	size_t nbMatches() const
 	{
-		while ( aNbPoints-- ) (*aPoints++).writeMatches(aStream);
+		return ::nbMatches(mGraphPoints0); //+::nbMatches(mGraphPoints1);
 	}
 
-	static bool writeMatches( vector<MatchPoint> &aPoints0, vector<MatchPoint> &aPoints1, const string &aFilename )
+	void toPointMatchVector( vector<PointMatch> &oMatches )
 	{
-		ofstream f( aFilename.c_str() );
-		if ( !f ) return false;
-		writeMatches( f, aPoints0.data(), aPoints0.size() );
-		writeMatches( f, aPoints1.data(), aPoints1.size() );
+		oMatches.resize(nbMatches());
+		PointMatch *itDst = oMatches.data();
 
-		//~ cout << "writeMatches: " << nbWritten << " matches written in [" << aFilename << ']' << endl;
+		if (mHasBeenWritten) resetHasBeenWritten();
 
-		return true;
+		::toPointMatchVector(mGraphPoints0, itDst);
+		//~ ::toPointMatchVector(mGraphPoints1, itDst);
 	}
 
-	static void resetHasBeenWritten( vector<MatchPoint> &aPoints )
+	static void resetHasBeenWritten( vector<GraphPoint> &aPoints )
 	{
-		MatchPoint *itPoint = aPoints.data();
+		GraphPoint *itPoint = aPoints.data();
 		size_t iPoint = aPoints.size();
 		while ( iPoint-- ) (*itPoint++).mHasBeenWritten = false;
 	}
 
 	void resetHasBeenWritten()
 	{
-		resetHasBeenWritten(mMatchPoints0);
-		resetHasBeenWritten(mMatchPoints1);
+		resetHasBeenWritten(mGraphPoints0);
+		resetHasBeenWritten(mGraphPoints1);
 	}
 
 	void writeMatches( const string &aFilename )
 	{
-		if (mHasBeenWritten) resetHasBeenWritten();
-		mHasBeenWritten = writeMatches(mMatchPoints0,mMatchPoints1,aFilename);
+		vector<PointMatch> pointMatches;
+		toPointMatchVector(pointMatches);
+		mHasBeenWritten = writeMatchesFile(aFilename, pointMatches);
 	}
 
-	static void addBackwardNeighbours( vector<MatchPoint> &aPoints )
+	static void addBackwardNeighbours( vector<GraphPoint> &aPoints )
 	{
-		MatchPoint *itPoint = aPoints.data();
+		GraphPoint *itPoint = aPoints.data();
 		size_t iPoint = aPoints.size();
 		while ( iPoint-- ) (*itPoint++).addBackwardNeighbours();
 	}
 
 	void addBackwardNeighbours()
 	{
-		addBackwardNeighbours(mMatchPoints0);
-		addBackwardNeighbours(mMatchPoints1);
+		addBackwardNeighbours(mGraphPoints0);
+		addBackwardNeighbours(mGraphPoints1);
 	}
 
-	static void clearBackwardNeigbours( vector<MatchPoint> &aPoints )
+	static void clearBackwardNeigbours( vector<GraphPoint> &aPoints )
 	{
-		MatchPoint *itPoint = aPoints.data();
+		GraphPoint *itPoint = aPoints.data();
 		size_t iPoint = aPoints.size();
 		while ( iPoint-- ) (*itPoint++).mBackwardNeighbours.clear();
 	}
 
 	void clearBackwardNeigbours()
 	{
-		clearBackwardNeigbours(mMatchPoints0);
-		clearBackwardNeigbours(mMatchPoints1);
+		clearBackwardNeigbours(mGraphPoints0);
+		clearBackwardNeigbours(mGraphPoints1);
 	}
 
 	void getBackwardNeighbours()
@@ -300,10 +323,10 @@ public:
 		addBackwardNeighbours();
 	}
 
-	static size_t removeOneWayLinks( vector<MatchPoint> &aPoints )
+	static size_t removeOneWayLinks( vector<GraphPoint> &aPoints )
 	{
 		size_t nbRemoved = 0;
-		MatchPoint *itPoint = aPoints.data();
+		GraphPoint *itPoint = aPoints.data();
 		size_t iPoint = aPoints.size();
 		while ( iPoint-- ) nbRemoved += (*itPoint++).removeOneWayLinks();
 		return nbRemoved;
@@ -311,8 +334,8 @@ public:
 
 	size_t removeOneWayLinks()
 	{
-		size_t nbRemoved = removeOneWayLinks(mMatchPoints0);
-		nbRemoved += removeOneWayLinks(mMatchPoints1);
+		size_t nbRemoved = removeOneWayLinks(mGraphPoints0);
+		nbRemoved += removeOneWayLinks(mGraphPoints1);
 		return nbRemoved;
 	}
 };
@@ -382,7 +405,7 @@ void loadDigeoPoints( const string &aFilename, vector<DigeoPoint> &oPoints )
 	cout << "[" << aFilename << "]: " << oPoints.size() << " points" << endl;
 }
 
-void writeMatches( MatchPointPack &oPack, const string &aFilename )
+void writeMatches( GraphPointPack &oPack, const string &aFilename )
 {
 	oPack.writeMatches(aFilename);
 	if ( !oPack.mHasBeenWritten ) ELISE_ERROR_EXIT( "cannot open file [" << aFilename << "] to write matches" );
@@ -399,20 +422,20 @@ int main( int argc, char **argv )
 
 	if ( !ELISE_fp::exist_file(srcFilename1) ) ELISE_ERROR_RETURN( "input file [" << srcFilename1 << "] does not exist" );
 
-	MatchPointPack matchPack;
+	GraphPointPack matchPack;
 	loadDigeoPoints( srcFilename0, matchPack.mPoints0 );
 	loadDigeoPoints( srcFilename1, matchPack.mPoints1 );
-	matchPack.initMatchPoints();
+	matchPack.initGraphPoints();
 	matchPack.attemptMatchingBothWays();
 	cout << matchPack.removeOneWayLinks() << " one-way links removed" << endl;
 	writeMatches(matchPack,dstFilename);
 
 	matchPack.getBackwardNeighbours();
-	print_nbNeighbours_histogram(matchPack.mMatchPoints0);
-	print_nbNeighbours_histogram(matchPack.mMatchPoints1);
+	print_nbNeighbours_histogram(matchPack.mGraphPoints0);
+	print_nbNeighbours_histogram(matchPack.mGraphPoints1);
 
-	print_irregulars(matchPack.mMatchPoints0);
-	print_irregulars(matchPack.mMatchPoints1);
+	print_irregulars(matchPack.mGraphPoints0);
+	print_irregulars(matchPack.mGraphPoints1);
 
 	return EXIT_SUCCESS;
 }
