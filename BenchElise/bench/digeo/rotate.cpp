@@ -3,6 +3,7 @@
 #define __DRAW_POINTS
 #define __CHECK_MULTIPLICATION
 #define __SAVE_THEORICAL_POINTS
+//~ #define __PRINT_COMMANDS
 
 using namespace std;
 
@@ -521,14 +522,18 @@ inline string makeMatchesFilename( const string &aImageBasename0, const string &
 
 void systemChecked( const string &aCommand, const string &aFilename )
 {
+	#ifdef __PRINT_COMMANDS
+		cout << "command[" << aCommand << ']' << endl;
+	#endif
+
 	int result = system( aCommand.c_str() );
 	if ( result!=0 ) ELISE_ERROR_EXIT( "command [" << aCommand << "] failed with value " << result );
 	if ( !ELISE_fp::exist_file(aFilename) ) ELISE_ERROR_EXIT( "command [" << aCommand << "] failed to create file " << aFilename );
 }
 
-void computePointsOfInterest( const string &aSrcFilename, const string &aDstFilename )
+void computePointsOfInterest( const string &aSrcFilename, const string &aDstFilename, const string &aPrefix=string() )
 {
-	cout << "--- computing points of interest for file [" << aSrcFilename << "] -> [" << aDstFilename << ']' << endl;
+	cout << aPrefix << "--- computing points of interest for file [" << aSrcFilename << "] -> [" << aDstFilename << ']' << endl;
 	string command = string("../../../bin/mm3d Sift ") + aSrcFilename + " -o " + aDstFilename + " >/dev/null";
 	//~ string command = string("../../../bin/mm3d Digeo ") + aSrcFilename + " -o " + aDstFilename + " >/dev/null";
 	systemChecked(command,aDstFilename);
@@ -536,8 +541,8 @@ void computePointsOfInterest( const string &aSrcFilename, const string &aDstFile
 
 void computeMatches( const string &aSrcFilename0, const string &aSrcFilename1, const string &aDstFilename )
 {
-	cout << "--- computing matches for file [" << aSrcFilename0 << "], [" << aSrcFilename1 << "] -> [" << aDstFilename << ']' << endl;
-	//~ string command = string("../../../bin/mm3d Ann ") + aSrcFilename0 + " " + aSrcFilename1 + " " + aDstFilename + " >/dev/null";
+	cout << '\t' << "--- computing matches for file [" << aSrcFilename0 << "], [" << aSrcFilename1 << "] -> [" << aDstFilename << ']' << endl;
+	//~ string command = string("../../../bin/mm3d Ann -newFormat ") + aSrcFilename0 + " " + aSrcFilename1 + " " + aDstFilename + " >/dev/null";
 	string command = string("./dumb_matcher ") + aSrcFilename0 + " " + aSrcFilename1 + " " + aDstFilename + " >/dev/null";
 	systemChecked(command,aDstFilename);
 }
@@ -617,22 +622,19 @@ void trim( string &io_str )
 
 void computePointsImages( const string &aFilename, const Matrix33R &aMatrix, vector<double> &oDifferences )
 {
-	list<pair<Pt2dr,Pt2dr> > matches;
-	readMatches(aFilename,matches);
-
-	// __DEL
-	cout << "--- [" << aFilename << "]: " << matches.size() << " matches" << endl;
+	vector<PointMatch> matches;
+	readMatchesFile(aFilename,matches);
+	cout << '\t' << "--- [" << aFilename << "]: " << matches.size() << " matches" << endl;
 
 	oDifferences.resize(matches.size());
 	double *itDifference = oDifferences.data();
 
-	list<pair<Pt2dr,Pt2dr> >::const_iterator it = matches.begin();
-	*itDifference++ = difference(it->first, aMatrix, it->second);
-	it++;
-	while ( it!=matches.end() )
+	const PointMatch *itMatch = matches.data();
+	size_t iMatch = matches.size();
+	while ( iMatch-- )
 	{
-		*itDifference++ = difference(it->first, aMatrix, it->second);
-		it++;
+		*itDifference++ = difference(itMatch->first, aMatrix, itMatch->second);
+		itMatch++;
 	}
 }
 
@@ -670,7 +672,7 @@ void drawMatches( const string &aMatchesFilename, const string &aSrcImageFilenam
 
 	saveTiffRgb(copySrc, src, src, aDstImageFilename0);
 	saveTiffRgb(dst, dst, copyDst, aDstImageFilename1);
-	cout << "--- ploted matches written to [" << aDstImageFilename0 << "] and [" << aDstImageFilename1 << ']' << endl;
+	cout << '\t' << "--- ploted matches written to [" << aDstImageFilename0 << "] and [" << aDstImageFilename1 << ']' << endl;
 }
 
 inline string plotFilename( const string &aFilename, const string &aOutputDirectory )
@@ -803,14 +805,14 @@ void stringToIntegerSet( const string &aStr, int &oV0, int &oV1 )
 
 void statDifferences( const vector<vector<double> > &aDifferences )
 {
-	double overAllMinDiff = numeric_limits<double>::max(), overAllMaxDiff = -numeric_limits<double>::max();
+	double overAllMinDiff = numeric_limits<double>::max(), overAllMaxDiff = 0.;
 	double overAllMeanDiff = 0.;
 	size_t overAllNbDiff = 0;
 
 	cout << "--- stats format: index min max mean" << endl;
 	for ( size_t i=0; i<aDifferences.size(); i++ )
 	{
-		double minDiff = numeric_limits<double>::max(), maxDiff = -numeric_limits<double>::max();
+		double minDiff = numeric_limits<double>::max(), maxDiff = 0.;
 		double meanDiff = 0.;
 
 		const vector<double> &differences = aDifferences[i];
@@ -818,11 +820,8 @@ void statDifferences( const vector<vector<double> > &aDifferences )
 		size_t iDiff = differences.size();
 		while ( iDiff-- )
 		{
-			if ( *itDiff<minDiff )
-				minDiff = *itDiff;
-			else if ( *itDiff>maxDiff )
-				maxDiff = *itDiff;
-
+			if ( *itDiff<minDiff ) minDiff = *itDiff;
+			if ( *itDiff>maxDiff ) maxDiff = *itDiff;
 			meanDiff += *itDiff++;
 		}
 		overAllMeanDiff += meanDiff;
@@ -831,10 +830,8 @@ void statDifferences( const vector<vector<double> > &aDifferences )
 
 		cerr << i << ' ' << minDiff << ' ' << maxDiff << ' ' << meanDiff << endl;
 
-		if ( minDiff<overAllMinDiff )
-			overAllMinDiff = minDiff;
-		else if ( maxDiff>overAllMaxDiff )
-			overAllMaxDiff = maxDiff;
+		if ( minDiff<overAllMinDiff ) overAllMinDiff = minDiff;
+		if ( maxDiff>overAllMaxDiff ) overAllMaxDiff = maxDiff;
 	}
 
 	overAllMeanDiff /= (double)overAllNbDiff;
@@ -844,10 +841,6 @@ void statDifferences( const vector<vector<double> > &aDifferences )
 
 int main( int argc, char **argv )
 {
-	//~ __checkMatrices_Rational();
-	//~ __checkMatrices_double();
-	//~ return EXIT_SUCCESS;
-
 	if (argc<5) print_usage(argv[0]);
 
 	const string srcImageFilename = argv[1];
@@ -883,8 +876,8 @@ int main( int argc, char **argv )
 		const string dstImageFilename = dstDirectory+dstImageBasename;
 
 		Tiff_Im tiff( srcImageFilename.c_str() );
-		cout << "--- [" << srcImageFilename << "]: " << tiff.sz().x << 'x' << tiff.sz().y << 'x' << tiff.nb_chan() << endl;
-		cout << "--- angle (radian): " << angleRadian << endl;
+		cout << '\t' << "--- angle (degree): " << angleDegree << endl;
+		cout << '\t' << "--- [" << srcImageFilename << "]: " << tiff.sz().x << 'x' << tiff.sz().y << 'x' << tiff.nb_chan() << endl;
 
 		Matrix33R directMatrix, inverseMatrix;
 		Pt2di dstImageSize;
@@ -900,9 +893,9 @@ int main( int argc, char **argv )
 			theoricalPoints = srcPoints;
 			transformPoints(theoricalPoints, directMatrix);
 			if ( !DigeoPoint::writeDigeoFile(dstPointsFilename, theoricalPoints) ) ELISE_ERROR_RETURN( "cannot save points to file [" << dstPointsFilename << ']' );
-			cout << "--- theorical transformed points saved to [" << dstPointsFilename << "]" << endl;
+			cout << '\t' << "--- theorical transformed points saved to [" << dstPointsFilename << "]" << endl;
 		#else
-			computePointsOfInterest(dstImageFilename, dstPointsFilename);
+			computePointsOfInterest(dstImageFilename, dstPointsFilename, "\t");
 		#endif
 
 		string matchesFilename = makeMatchesFilename(srcImageBasename, dstImageBasename, dstDirectory);
@@ -917,6 +910,8 @@ int main( int argc, char **argv )
 		#endif
 
 		computePointsImages(matchesFilename, directMatrix, *itDifferences++);
+
+		cout << endl;
 	}
 
 	statDifferences(differences);
