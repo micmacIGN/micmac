@@ -476,6 +476,7 @@ extern int  TD_Sol3(int argc,char ** argv);
 extern int TD_Match1_main(int argc,char ** argv);
 extern int TD_Match2_main(int argc,char ** argv);
 extern int TD_Match3_main(int argc,char ** argv);
+extern int TestER_main(int argc,char ** argv);
 
 extern int  DocEx_Intro0_main(int,char **);
 extern int  DocEx_Introd2_main(int,char **);
@@ -485,7 +486,6 @@ extern int  ImageRectification(int argc,char ** argv);
 extern int  DocEx_Introanalyse_main(int,char **);
 #endif
 extern int VisuCoupeEpip_main(int,char **);
-
 
 int ExoSimulTieP_main(int argc, char** argv);
 int ExoMCI_main(int argc, char** argv);
@@ -541,6 +541,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Ortho2TieP",Ortho2TieP_main,"Select Tie Points from the orthophotography"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
    aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
+   aRes.push_back(cMMCom("TestER",TestER_main,"ER test workplace"));
    aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));
    aRes.push_back(cMMCom("LucasChCloud",LucasChCloud_main,"Examples functions modifying cloud "));
@@ -624,6 +625,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
 
 
+
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
 
@@ -650,6 +652,7 @@ extern int Dimap2Grid_main(int argc, char **argv);
 extern int DigitalGlobe2Grid_main(int argc, char **argv);
 extern int Aster2Grid_main(int argc, char **argv);
 extern int AsterDestrip_main(int argc, char **argv);
+extern int RPCtoBundle_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
@@ -663,7 +666,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("RefineJitter", RefineJitter_main, "/!\\ V0.01 Highly experimental /!\\ Refine a grid with Affine + jitter model based on SIFT obs"));
     aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
-
+    aRes.push_back(cMMCom("RPCtoBundle", RPCtoBundle_main, "Export a satellite image to a grid of bundles"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
 

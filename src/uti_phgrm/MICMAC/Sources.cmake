@@ -52,5 +52,6 @@ set(uti_phgrm_MICMAC_Src_Files
 #    ${UTI_PHGRM_MICMAC_DIR}/TestParamMICMAC.cpp
     ${UTI_PHGRM_MICMAC_DIR}/uti_MICMAC.cpp
 #    ${UTI_PHGRM_MICMAC_DIR}/VisuSuperpGrid.cpp
+    ${UTI_PHGRM_MICMAC_DIR}/CameraRPC.cpp
 )
 

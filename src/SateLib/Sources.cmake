@@ -6,6 +6,7 @@ set(SateLib_Src_Files
 	${SATELIB_DIR}/RefineASTER.cpp
 	${SATELIB_DIR}/DigitalGlobe2Grid.cpp
 	${SATELIB_DIR}/Aster2Grid.cpp
+        ${SATELIB_DIR}/CPP_RPCtoBundle.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
