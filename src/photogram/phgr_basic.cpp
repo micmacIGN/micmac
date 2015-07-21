@@ -4152,7 +4152,48 @@ void  CamStenope::Set_GPS_Orientation_From_Appuis
      SetOrientation(aSol.inv());
 }
 
+void  CamStenope::ExpImp2Bundle(const Pt2di aGridSz, const std::string aName) const
+{
+    cXml_ScanLineSensor aSLS;
 
+    double aZ = GetAltiSol();
+    if (! ALTISOL_IS_DEF(aZ))
+        aSLS.P1P2IsAltitude() = false;
+    else
+	aSLS.P1P2IsAltitude() = true;
+
+    aSLS.LineImIsScanLine() = false;
+    aSLS.GroundSystemIsEuclid() = true;
+    aSLS.ImSz() = SzBasicCapt3D();
+
+    aSLS.GridSz() = aGridSz;
+
+    aSLS.StepGrid() = Pt2dr( double(SzBasicCapt3D().x)/aGridSz.x ,
+		             double(SzBasicCapt3D().y)/aGridSz.y );
+
+    //
+    int aGr=0, aGc=0;
+    for( aGr=0; aGr<aGridSz.x; aGr++ )
+    {
+        cXml_OneLineSLS aOL;
+	aOL.IndLine() = aGr;
+	for( aGc=0; aGc<aGridSz.y; aGc++ )
+	{
+	    cXml_SLSRay aOR;
+	    aOR.IndCol() = aGc;
+
+	    aOR.P1() = ImEtZ2Terrain(Pt2dr(aGr, aGc) , aZ+100);
+            aOR.P2() = ImEtZ2Terrain(Pt2dr(aGr, aGc) , aZ);
+
+	    aOL.Rays().push_back(aOR);
+	}
+	aSLS.Lines().push_back(aOL);
+    }
+
+    //export to XML format
+    std::string aXMLFiTmp = "Bundle_" + aName;//see in what form the txt would be provided
+    MakeFileXML(aSLS, aXMLFiTmp);
+}
 
 
 

@@ -413,6 +413,8 @@ void RPC::ReadDimap(std::string const &filename)
             buffer10 >> line_off;
         }
     }
+    IS_DIR_INI=true;
+    IS_INV_INI=true;
 }
 
 vector<Pt2dr> RPC::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std::string inputSyst)const
@@ -897,8 +899,8 @@ void RPC::ComputeNormFactors(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3
 
 			//convert to geodetic
 			//WGS84 ellipsoid
-			double a = 6378137;
-			double b = (1 - 1 / 298.257223563)*a;
+			//double a = 6378137;
+			//double b = (1 - 1 / 298.257223563)*a;
 			double WGSCorFact = 0.99330562;
 
 			Pt3dr aPtGeo;
@@ -966,6 +968,29 @@ vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
 	return aGridNorm;
 }
 
+//this GenerateRandNormGrid allows to create rectangular grids
+vector<Pt3dr> RPC::GenerateRandNormGrid(const Pt2di &aGridSz)
+{
+    //Generating a grid on the normalized space with random normalized heights
+    vector<Pt3dr> aGridNorm;
+
+    srand(time(NULL));//Initiate the rand value
+    int aR, aC;
+    for (aR = 0; aR <= aGridSz.x; aR++)
+    {
+        for (aC = 0; aC <= aGridSz.y; aC++)
+	{
+	    Pt3dr aPt;
+	    aPt.x = (double(aR) - (aGridSz.x / 2)) / (aGridSz.x / 2);
+	    aPt.y = (double(aC) - (aGridSz.y / 2)) / (aGridSz.y / 2);
+	    aPt.z = double(rand() % 2000 - 1000) / 1000;
+	    aGridNorm.push_back(aPt);
+	}
+    }
+
+    return(aGridNorm);
+}
+
 //Use lattice points and satellite positions to generate points to be inputed in GCP2Direct and GCP2Inverse
 vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, vector<vector<Pt3dr> > aMatSatPos, int nbLayers, double aHMin, double aHMax)
 {
@@ -976,7 +1001,7 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > a
 
 	vector<vector<Pt3dr> > aMatPtsNorm;
 	vector<Pt3dr> aVectPtsGeo, aVectPtsIm;
-	int nbLatticePts = aMatPtsIm.size()*aMatPtsIm[0].size();
+	//int nbLatticePts = aMatPtsIm.size()*aMatPtsIm[0].size();
 
 	for (u_int i = 0; i < aMatPtsIm.size(); i++){
 		vector<Pt3dr> aVectPt;
@@ -1284,10 +1309,146 @@ void RPC::ReadRPB(std::string const &filename)
             inverse_samp_den_coef.push_back(aCoef);
         }
     }
+
+    IS_INV_INI=true;
 }
 
+void RPC::ReadASCII(std::string const &filename)
+{
+    std::ifstream ASCIIfi(filename.c_str());
+    ELISE_ASSERT(ASCIIfi.good(), " ASCII file not found ");
+    
+    std::string line;
+    std::string a, b;
+    int aC;
+    double aCoefTmp;
 
 
+    //Line Offset
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> line_off >> b;}
+    
+    //Samp Offset
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> samp_off >> b;}    
+
+    //Lat Offset
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> lat_off >> b;}
+
+    //Lon Offset 
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> long_off >> b;}
+
+    //Height Offset 
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> height_off >> b;}
+
+    //Line Scale
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> line_scale >> b;}
+
+    //Sample Scale
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> samp_scale >> b;}
+
+    //Lat Scale
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> lat_scale >> b;}
+
+    //Lon Scale
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> long_scale >> b;}
+
+    //Height Scale
+    {std::istringstream iss;
+    std::getline(ASCIIfi, line);
+    iss.str(line);
+    iss >> a >> height_scale >> b;}
+
+    //Inverse_line_num_coef
+    for(aC=0; aC<20; aC++)
+    {
+	std::istringstream iss;
+	std::getline(ASCIIfi, line);
+	iss.str(line);
+        iss >> a >> aCoefTmp;
+    	inverse_line_num_coef.push_back(aCoefTmp);
+    }
+
+    //Inverse_line_den_coef 
+    for(aC=0; aC<20; aC++)
+    {
+	std::istringstream iss;
+        std::getline(ASCIIfi, line);
+	iss.str(line);
+	iss >> a >> aCoefTmp;
+	inverse_line_den_coef.push_back(aCoefTmp);
+    }
+
+    //Inverse_samp_num_coef
+    for(aC=0; aC<20; aC++)
+    {
+	std::istringstream iss;
+        std::getline(ASCIIfi, line);
+	iss.str(line);
+	iss >> a >>  aCoefTmp;
+	inverse_samp_num_coef.push_back(aCoefTmp);
+    }
+
+    //Inverse_samp_den_coef 
+    for(aC=0; aC<20; aC++)
+    {
+	std::istringstream iss;
+        std::getline(ASCIIfi, line);
+	iss.str(line);
+	iss >> a >> std::skipws >> aCoefTmp;
+	inverse_samp_den_coef.push_back(aCoefTmp);
+    }
+
+    IS_INV_INI=true;
+}
+
+void RPC::InverseToDirectRPC(const Pt2di &aGridSz)
+{
+    //Check if indirect exists
+    ELISE_ASSERT(IS_INV_INI,"No inverse RPC's for conversion in RPC::InverseToDirectRPC");
+
+    /* What follows is re-writen from DigitalGlobe2Grid */
+    /****************************************************/
+
+    //Generate a random grid on the normalized spac 
+    vector<Pt3dr> aGridGeoNorm = GenerateRandNormGrid(aGridSz);
+
+    //Converting the points to image space
+    u_int aG;
+    vector<Pt3dr> aGridImNorm;
+    for (aG = 0; aG < aGridGeoNorm.size(); aG++)
+        aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[aG]));
+    
+    GCP2Direct(aGridGeoNorm, aGridImNorm);
+    ReconstructValidity();
+
+    IS_DIR_INI=true;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                             Function for RPC2D                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

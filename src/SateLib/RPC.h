@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 //Important note:
 //pt.x is either the column in image space or the longitude in geographic coordinates or the easting  in projected coordinates
 //pt.y is either the row    in image space or the latitude  in geographic coordinates or the northing in projected coordinates
+#ifndef _CRPC2D_H_
+#define _CRPC2D_H_
+
 class RPC2D
 {
 public:
@@ -126,13 +129,18 @@ public:
                 indirErrBiasRow(0),
                 indirErrBiasCol(0),
                 dirErrBiasX(0),
-                dirErrBiasY(0)
+                dirErrBiasY(0),
+		IS_DIR_INI(false),
+		IS_INV_INI(false)
         {
         }
         double indirErrBiasRow;
         double indirErrBiasCol;
         double dirErrBiasX;
         double dirErrBiasY;
+
+        bool IS_DIR_INI;
+	bool IS_INV_INI;
 
         Pt3dr DirectRPCNorm(Pt3dr)const;
         Pt3dr InverseRPCNorm(Pt3dr)const;
@@ -260,16 +268,22 @@ public:
         void ReadRPB(std::string const &filename);
         void ReconstructValidity();
 
+	//For IKONOS/CartoSat
+	void ReadASCII(std::string const &filename);
+	
+	void InverseToDirectRPC(const Pt2di &aGridSz);
+
                 //Construction of RPCs
 				vector<vector<Pt3dr> > GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, vector<vector<Pt3dr> > aMatSatPos, int nbLayers, double aHMin, double aHMax);
                 vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
+                vector<Pt3dr> GenerateRandNormGrid(const Pt2di &aGridSz);
                 void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
                 void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
 				void ComputeNormFactors(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, double aHMin, double aHMax);
                 void Validity2Dto3D(RPC2D aRPC2D);
-
 };
 
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
