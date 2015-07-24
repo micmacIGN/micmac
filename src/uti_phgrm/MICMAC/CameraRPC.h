@@ -49,7 +49,7 @@ class CameraRPC: public cCapture3D
 {
 	public:
 		//CameraRPC();
-		CameraRPC(std::string const &aNameFile, const std::string &aModeRPC, const Pt2di &aGridSz);
+		CameraRPC(std::string const &aNameFile, const std::string &aModeRPC, const Pt2di &aGridSz, std::string const &aMetaFile=" ");
 		//CameraRPC(RPC * aRPC);
 		~CameraRPC(){}
 
@@ -62,6 +62,9 @@ class CameraRPC: public cCapture3D
 		Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
 		Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const;
 
+                Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aProf) const;
+		Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
+
 		double ResolSolOfPt(const Pt3dr &) const ;
         	double ResolSolGlob() const ;
 		bool  CaptHasData(const Pt2dr &) const;
@@ -72,23 +75,39 @@ class CameraRPC: public cCapture3D
 		Pt2di SzBasicCapt3D() const;
 
 		void ExpImp2Bundle(const std::string & aSysOut, 
-				   const std::string & aName, 
 				   std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
 
+		void OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave);
+
+                void SetProfondeur(double aP);
+		double GetProfondeur() const;
+                bool ProfIsDef() const;
+                void SetAltiSol(double aZ);
+		double GetAltiSol() const;
+		bool AltisSolIsDef() const;
+
+        protected:
+		bool   mProfondeurIsDef;
+		double mProfondeur;
+		bool   mAltisSolIsDef;
+		double mAltiSol;
+
+		bool   mOptCentLineIsDef;
+
+		bool   mGridSzIsDef;
 	private:
 		RPC        * mRPC;
+		ElSeg3D    * mOpticalCenterLine;
+		
 		Pt2di        mGridSz;
+                std::string  mCamNom; 
 
 		ElSeg3D F2toRayonLPH(Pt3dr &aP0,Pt3dr & aP1) const;
 		void LPHtoR3(const std::string & aSysOut);
 
-		bool IsP1P2IsAltitude() const;
-		//void Export2Grid(std::string const &aName, int aStepGrid, ) const;
 
-		// Vector of intersected perspective centres
-		//vector<Pt3dr> mVCentre;
-//	protected :
-	        // ElProjStenope  _PrSten;	
+                void AssertRPCDirInit() const;
+		void AssertRPCInvInit() const;
 };
 
 #endif

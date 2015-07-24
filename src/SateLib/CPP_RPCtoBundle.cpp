@@ -40,67 +40,87 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../uti_phgrm/MICMAC/CameraRPC.h"
 
-//class cSatI_Appli;
-
-void RPCtoBundle_ElInitArgMain(int argc,char ** argv, 
-		                   std::string &aFullName,
-				   std::string &aModeRPC, 
-				   std::string &aDir, 
-				   std::string &aPat, 
-				   std::string &aCSysOut,
-				   Pt2di &aGridSz)
+class cSatI_Appli
 {
+    public:
+        cSatI_Appli(int argc,char ** argv);
+
+        cInterfChantierNameManipulateur * mICNM;
+	std::string mCSysOut;
+        std::list<std::string> mListFile;
+        std::string mModeRPC;
+	std::string mMetadata;
+	Pt2di mGridSz;
+};
+
+cSatI_Appli::cSatI_Appli(int argc,char ** argv)
+{
+    std::string aFullName;
+    std::string aDir;
+    std::string aPat;
+
     ElInitArgMain
     (
-        argc, argv,
-        LArgMain() << EAMC(aFullName,"RPC file full name (Dir+Pat)")
-                   << EAMC(aCSysOut,"Output cartographic coordinate system (proj format)"),
-	LArgMain() << EAM(aGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[5,8]")
-	           << EAM(aModeRPC, "ModeRPC", true, "The RPC convention (PLEIADE,SPOT,QUICKBIRD,WORLDVIEW,IKONOS,CARTOSAT)")
-    );		
+         argc, argv,
+         LArgMain() << EAMC(aFullName,"RPC file full name (Dir+Pat)")
+                    << EAMC(mCSysOut,"Output cartographic coordinate system (proj format)"),
+         LArgMain() << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[5,8]")
+                    << EAM(mModeRPC, "ModeRPC", true, "The RPC convention (PLEIADE,SPOT,QUICKBIRD,WORLDVIEW,IKONOS,CARTOSAT)")
+		    << EAM(mMetadata, "Meta", true, "Sensor metadata file, other than the RPC; Valid for IKONOS and CARTOSAT")
+    );		      
 
     SplitDirAndFile(aDir, aPat, aFullName);
 
     //validate the RPC mode
-    if (aModeRPC=="PLEIADE") {}
-    else if (aModeRPC=="SPOT") {}
-    else if (aModeRPC=="QUICKBIRD") {}
-    else if (aModeRPC=="WORLDVIEW") {}
-    else if (aModeRPC=="IKONOS") {}
-    else if (aModeRPC=="CARTOSAT") {}
-    else {ELISE_ASSERT(false,"Unknown RPC mode");}
+    if (mModeRPC=="PLEIADE") {}
+    else if (mModeRPC=="SPOT") {}
+    else if (mModeRPC=="QUICKBIRD") {}
+    else if (mModeRPC=="WORLDVIEW") {}
+    else if (mModeRPC=="IKONOS") {}
+    else if (mModeRPC=="CARTOSAT") {}
+    else {ELISE_ASSERT(false,"Unknown RPC mode");}    
+
+
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    mListFile = mICNM->StdGetListOfFile(aPat);
 }
+
 
 int RPCtoBundle_main(int argc,char ** argv)
 {
 
-    cInterfChantierNameManipulateur * aICNM;
-    std::string aFullName;
-    std::string aDir;
-    std::string aPat;
-    std::string aCSysOut;
-    std::list<std::string> aListFile;
-    std::string aModeRPC;
-
-    Pt2di aGridSz;
-
-    RPCtoBundle_ElInitArgMain(argc,argv,aFullName,aModeRPC,aDir,aPat,aCSysOut,aGridSz);
-
-    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    aListFile = aICNM->StdGetListOfFile(aPat);
+    cSatI_Appli aApps(argc,argv);
 
     std::cout << "Processed images:" << std::endl;
-    for(std::list<std::string>::iterator itL = aListFile.begin(); itL != aListFile.end(); itL++ )   
+    for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
+		                         itL != aApps.mListFile.end(); 
+					 itL++ )   
     {
 	std::cout << " - " << *itL << std::endl;
-        CameraRPC aCurCam(*itL,aModeRPC,aGridSz);
-	aCurCam.ExpImp2Bundle(aCSysOut,*itL);
+        CameraRPC aCurCam(*itL,aApps.mModeRPC,aApps.mGridSz);
+	aCurCam.ExpImp2Bundle(aApps.mCSysOut);
     }
 
 
     return EXIT_SUCCESS;
 }
  
+int RPCtoOpticalCenter_main(int argc,char ** argv)
+{
+
+    cSatI_Appli aApps(argc,argv);
+
+
+    for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
+		                         itL != aApps.mListFile.end(); 
+					 itL++ )
+    {
+       CameraRPC aCamRPC(*itL,aApps.mModeRPC,aApps.mGridSz,aApps.mMetadata);
+       aCamRPC.OpticalCenterLineTer(aApps.mCSysOut, true);
+    }
+
+    return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

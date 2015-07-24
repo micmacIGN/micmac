@@ -47,13 +47,13 @@ int TestER_main(int argc,char ** argv)
     std::string aNameOri;
     std::list<std::string> aListFile;
 
-    Pt2di aSzW;
+    Pt2di aGridSz;
 
     ElInitArgMain
     (
         argc, argv,
         LArgMain() << EAMC(aFullName,"Orientation file full name (Dir+OriPattern)"),
-        LArgMain() << EAM(aSzW,"SzW",true)
+        LArgMain() << EAM(aGridSz,"GrSz",true)
     );
     
     SplitDirAndFile(aDir, aNameOri, aFullName);
@@ -65,7 +65,7 @@ int TestER_main(int argc,char ** argv)
     for(std::list<std::string>::iterator itL = aListFile.begin(); itL != aListFile.end(); itL++ )
     {
         CamStenope * aCurCamSten = CamStenope::StdCamFromFile(true, aDir+(*itL), aICNM);
-        aCurCamSten->ExpImp2Bundle(aSzW, *itL);
+        aCurCamSten->ExpImp2Bundle(aGridSz, *itL);
     }
 
     return EXIT_SUCCESS;
