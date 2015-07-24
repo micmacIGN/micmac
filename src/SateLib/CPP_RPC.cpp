@@ -205,7 +205,12 @@ Pt3dr RPC::InverseRPC(Pt3dr Pgeo, std::vector<double> vRefineCoef)const
     Pimg.y = PimNorm.y * line_scale + line_off;
     Pimg.z = Pgeo.z;
 
-    Pt3dr PimgRefined = ptRefined(Pimg, vRefineCoef);
+    //If the 'refining' coefficients are available
+    Pt3dr PimgRefined;
+    if(vRefineCoef.size())
+       PimgRefined = ptRefined(Pimg, vRefineCoef);
+    else
+       PimgRefined = Pimg;
 
     return PimgRefined;
 }
@@ -1387,9 +1392,9 @@ void RPC::ReadASCII(std::string const &filename)
     //Inverse_line_num_coef
     for(aC=0; aC<20; aC++)
     {
-	std::istringstream iss;
-	std::getline(ASCIIfi, line);
-	iss.str(line);
+		std::istringstream iss;
+		std::getline(ASCIIfi, line);
+		iss.str(line);
         iss >> a >> aCoefTmp;
     	inverse_line_num_coef.push_back(aCoefTmp);
     }
@@ -1397,35 +1402,142 @@ void RPC::ReadASCII(std::string const &filename)
     //Inverse_line_den_coef 
     for(aC=0; aC<20; aC++)
     {
-	std::istringstream iss;
+		std::istringstream iss;
         std::getline(ASCIIfi, line);
-	iss.str(line);
-	iss >> a >> aCoefTmp;
-	inverse_line_den_coef.push_back(aCoefTmp);
+		iss.str(line);
+		iss >> a >> aCoefTmp;
+		inverse_line_den_coef.push_back(aCoefTmp);
     }
 
     //Inverse_samp_num_coef
     for(aC=0; aC<20; aC++)
     {
-	std::istringstream iss;
+		std::istringstream iss;
         std::getline(ASCIIfi, line);
-	iss.str(line);
-	iss >> a >>  aCoefTmp;
-	inverse_samp_num_coef.push_back(aCoefTmp);
+		iss.str(line);
+		iss >> a >>  aCoefTmp;
+		inverse_samp_num_coef.push_back(aCoefTmp);
     }
 
     //Inverse_samp_den_coef 
     for(aC=0; aC<20; aC++)
     {
-	std::istringstream iss;
+		std::istringstream iss;
         std::getline(ASCIIfi, line);
-	iss.str(line);
-	iss >> a >> std::skipws >> aCoefTmp;
-	inverse_samp_den_coef.push_back(aCoefTmp);
+		iss.str(line);
+		iss >> a >> std::skipws >> aCoefTmp;
+		inverse_samp_den_coef.push_back(aCoefTmp);
     }
 
     IS_INV_INI=true;
 }
+
+int RPC::ReadASCIIMetaData(std::string const &metafilename, std::string const &filename)
+{
+
+    std::ifstream MetaFi(metafilename.c_str());
+    ELISE_ASSERT(MetaFi.good(), " ASCII metadata file not found in RPC::ReadASCIIMetaData");
+
+    bool aMetaIsFound=false;
+
+    std::string line=" ";
+    std::string a, b, c, d;
+
+    std::string aToMatchOne = "Product";
+    std::string aToMatchTwo = "Metadata";
+    std::string aToMatchThree = "Component";
+    std::string aToMatchFour = "File";
+    std::string aToMatchFive = "Name:";
+    std::string aToMatchSix = "Columns:";
+
+
+
+    while(MetaFi.good())
+    {
+		std::getline(MetaFi, line);
+		std::istringstream iss;
+		iss.str(line);
+		iss >> a >> b >> c;
+		if( a==aToMatchOne &&
+	    	b==aToMatchThree &&
+	    	c==aToMatchTwo )
+		{
+	    	std::getline(MetaFi, line);
+	    	std::istringstream iss2;    
+	    	iss2.str(line);
+	    	iss2 >> a >> b >> c >> d;
+	
+	    	while(MetaFi.good())
+	    	{
+				//iterate to line "Component File Name:"
+	        	if( !((a==aToMatchThree) &&
+                     (b==aToMatchFour) &&
+                     (c==aToMatchFive)))
+	        	{
+		    		std::getline(MetaFi, line);
+		    		std::istringstream iss3;
+		    		iss3.str(line);
+		    		iss3 >> a >> b >> c >> d;
+	        	}
+				else
+				{
+
+		    		//check if the filenames correspond
+		    		if(d.substr(0,d.length()-4)==filename.substr(0,filename.length()-4))
+		    		{
+
+						while(MetaFi.good())
+						{
+			    			//find the Columns and Rows
+			    			std::getline(MetaFi, line);
+				    		std::istringstream iss4;
+			    			iss4.str(line);
+			    			iss4 >> a >> b >> c;
+
+
+			    			//columns
+			    			if(a==aToMatchSix)
+			    			{
+			        			this->first_col=0;
+                    			this->last_col=std::atof(b.c_str())-1;	
+			    
+			        			//rows
+			        			std::getline(MetaFi, line);
+			        			std::istringstream iss5;
+			        			iss5.str(line);
+			        			iss5 >> a >> b >> c;
+
+			        			this->first_row=0;
+			        			this->last_row=std::atof(b.c_str())-1;
+
+								aMetaIsFound=true;
+
+								MetaFi.close();
+
+								return EXIT_SUCCESS;
+			    			}
+						}
+		    		}
+		    		else
+		    		{
+		        		std::getline(MetaFi, line);
+						std::istringstream iss6;
+						iss6.str(line);
+						iss6 >> a >> b >> c >> d;
+
+		    		}
+				}
+	    	}
+		}
+
+    }
+    MetaFi.close();
+
+    ELISE_ASSERT(!aMetaIsFound, " no metadata found in RPC::ReadASCIIMetaData");
+
+    return EXIT_FAILURE;
+}
+
 
 void RPC::InverseToDirectRPC(const Pt2di &aGridSz)
 {
@@ -1445,7 +1557,6 @@ void RPC::InverseToDirectRPC(const Pt2di &aGridSz)
         aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[aG]));
     
     GCP2Direct(aGridGeoNorm, aGridImNorm);
-    ReconstructValidity();
 
     IS_DIR_INI=true;
 }
