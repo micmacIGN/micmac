@@ -214,9 +214,11 @@ int SimplePredict_main(int argc,char ** argv)
       std::cout<<"  F2: "<<aPtProj<<"\n";
       if (!  aIm.getCam()->Devant(itP->Pt()) )
       {
-         std::cout<<"       On the back\n";
+         //std::cout<<"       On the back\n";
          continue;
       }
+      if (! aIm.getCam()->PIsVisibleInImage(itP->Pt()) )
+        continue;
 
       //save it only inside picture
       if ((aPtProj.x>=0) && (aPtProj.y>=0) && (aPtProj.x<aIm.getCam()->Sz().x) && (aPtProj.y<aIm.getCam()->Sz().y) )
