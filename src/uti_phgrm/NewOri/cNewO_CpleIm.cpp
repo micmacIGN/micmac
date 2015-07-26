@@ -207,6 +207,26 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mSegAmbig      (Pt3dr(0,0,0),Pt3dr(1,1,1)),
    mW             (0)
 {
+    // Sauvegarde des point hom flottants 
+    {
+        const tLMCplP & aLM = mMergePH->ListMerged();
+        tVP2f aVP1;
+        tVP2f aVP2;
+        tVUI1 aVNb;
+ 
+         for ( tLMCplP::const_iterator itC=aLM.begin() ; itC!=aLM.end() ; itC++)
+         {
+             const Pt2dr & aP1 = (*itC)->GetVal(0);
+             const Pt2dr & aP2 = (*itC)->GetVal(1);
+             aVP1.push_back(Pt2df(aP1.x,aP1.y));
+             aVP2.push_back(Pt2df(aP2.x,aP2.y));
+             aVNb.push_back((*itC)->NbArc());
+         }
+         mI1->NM().Dir3PDeuxImage(mI1,mI2,true);
+         std::string aNameH = mI1->NM().NameHomFloat(mI1,mI2);
+         mI1->NM().WriteCouple(aNameH,aVP1,aVP2,aVNb);
+    }
+
    mXml.Im1()   = mI1->Name();
    mXml.Im2()   = mI2->Name();
    mXml.Calib() =  mI1->NM().OriCal();
@@ -471,6 +491,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     // CalcAmbig();
 
     mXml.Geom().SetVal(aXCmp);
+
 }
 
 const cXml_Ori2Im &  cNewO_OrInit2Im::XmlRes() const
@@ -669,6 +690,9 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
    std::list<std::string> aLCom;
    std::string aKeyH = "NKS-Assoc-CplIm2Hom@@dat";
+   int aCptCom = 1;
+   int aNbVideCom = 200;
+   ElTimer aChrono;
    for (int aK1=0 ; aK1<int(aVIm->size()) ; aK1++)
    {
        const std::string & aName1 = (*aVIm)[aK1];
@@ -691,6 +715,14 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 
                         aLCom.push_back(aCom);
                     }
+                    if ((aCptCom%aNbVideCom)==0)
+                    {
+                       cEl_GPAO::DoComInParal(aLCom);
+                       aLCom.clear();
+                       int aNbIm = aVIm->size();
+                       std::cout << "    Done  "  << aCptCom  << " on " <<  (aNbIm *(aNbIm-1)) /2  << " in T=" << aChrono.uval() << "\n";
+                    }
+                    aCptCom++;
                }
            }
        }
@@ -706,6 +738,10 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    aTiming.TimeL2MatEss()  = 0;
    aTiming.TimeL1MatEss()  = 0;
    aTiming.TimeHomStd()    = 0;
+
+
+   std::map<std::string,cListOfName > aMLCpleOk;
+   cSauvegardeNamedRel                aLCple;
 
    for (int aK1=0 ; aK1<int(aVIm->size()) ; aK1++)
    {
@@ -730,13 +766,31 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                       aTiming.TimeL2MatEss()  += aLocT.TimeL2MatEss();
                       aTiming.TimeL1MatEss()  += aLocT.TimeL1MatEss();
                       aTiming.TimeHomStd()    += aLocT.TimeHomStd();
+
+                      aMLCpleOk[aName1].Name().push_back(aName2);
+                      aMLCpleOk[aName2].Name().push_back(aName1);
+                      cCpleString aCple;
+                      aLCple.Cple().push_back(cCpleString(aName1,aName2));
                    }
                }
            }
        }
    }
 
+   for
+   (
+       std::map<std::string,cListOfName >::const_iterator  itM=aMLCpleOk.begin();
+       itM !=aMLCpleOk.end();
+       itM++
+   )
+   {
+          MakeFileXML(itM->second,aDir + aNM->NameListeImOrientedWith(itM->first,true));
+          MakeFileXML(itM->second,aDir + aNM->NameListeImOrientedWith(itM->first,false));
+   }
+
    MakeFileXML(aTiming,aDir +   aNM->NameTimingOri2Im());
+   MakeFileXML(aLCple,aDir +   aNM->NameListeCpleOriented(true));
+   MakeFileXML(aLCple,aDir +   aNM->NameListeCpleOriented(false));
 
    return EXIT_SUCCESS;
 }

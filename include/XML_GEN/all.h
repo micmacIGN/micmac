@@ -206,7 +206,7 @@ class cInterfChantierNameManipulateur
 
          std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);  // =>  Ori-XX/AutoCal ...
          CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
-         CamStenope * GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal); // No Dist if aPrefOriCal=""
+         CamStenope * GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal,bool ModeFraser /* Genre un Fraser Basixc ss dist*/ ); // No Dist if aPrefOriCal=""
 
          std::list<std::string> GetListImByDelta(const cListImByDelta &,const std::string & aN0);
 

@@ -397,6 +397,7 @@ class cAppli_NewSolGolInit
         double                  mLastPdsMedRemoy;
         std::vector<double>     mLastEcartReMoy;
         bool                    mActiveRemoy;
+        ElTimer                 mChrono;
 };
 
 

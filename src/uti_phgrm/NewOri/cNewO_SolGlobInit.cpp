@@ -907,7 +907,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                  }
             }
     }
-    std::cout << "LOADED GRAPH\n";
+    std::cout << "LOADED GRAPH " << mChrono.uval() << "\n";
 
 
     EstimCoherenceMed();
@@ -965,6 +965,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
    
     CalculOrient();
 
+    std::cout << " Done Calc , T= " << mChrono.uval() << "\n";
 }
 
 
@@ -992,6 +993,7 @@ void cAppli_NewSolGolInit::Save()
       
         MakeFileXML(anOC,aNameOri);
     }
+    std::cout << " Done Save , T= " << mChrono.uval() << "\n";
 }
 
 

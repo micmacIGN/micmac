@@ -59,7 +59,7 @@ cNewO_NameManager::cNewO_NameManager
     mOriOut      (aOriOut)
 {
    if (mOriOut=="") 
-      mOriOut = mQuick ? "Martini" : "MartiniGin";
+      mOriOut = (mQuick ? "Martini" : "MartiniGin") + anOriCal;
 
    StdCorrecNameOrient(mPrefOriCal,mDir);
    mPostfixDir    =   mPrefOriCal + std::string(mQuick ? "Quick" : "Std");
@@ -107,7 +107,7 @@ cInterfChantierNameManipulateur *  cNewO_NameManager::ICNM()
 }
 
 
-CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal) 
+CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal,bool aModeFraser) 
 {
    // std::cout << "cInterfChantierNameManipulateur::GlobCalibOfName \n"; getchar();
 
@@ -127,10 +127,10 @@ CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string 
            return mMapName2Calib[aNameCal];
         CamStenope * aRes = 0;
 
+        std::vector<double> aVP;
+        std::vector<double> aVE;
         if (IsFE)
         {
-            std::vector<double> aVP;
-            std::vector<double> aVE;
             aVE.push_back(aFPix);
             aVP.push_back(aPP.x);
             aVP.push_back(aPP.y);
@@ -146,7 +146,11 @@ CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string 
         }
         else
         {
-             aRes = new CamStenopeIdeale(false,aFPix,aPP,aPAF);
+// std::cout << "aModeFraseraModeFraser " << aModeFraser << "\n"; getchar();
+             if (aModeFraser)
+                aRes = new cCam_Fraser_PPaEqPPs(false,aFPix,aPP,Pt2dr(aSzIm),aPAF,&aVP,&aVE);
+             else
+                aRes = new CamStenopeIdeale(false,aFPix,aPP,aPAF);
         }
         aRes->SetSz(aSzIm);
         mMapName2Calib[aNameCal] =  aRes;
@@ -165,7 +169,7 @@ CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string 
 
 CamStenope * cNewO_NameManager::CamOfName(const std::string  & aName) 
 {
-    return mICNM->GlobCalibOfName(aName,mPrefOriCal);
+    return mICNM->GlobCalibOfName(aName,mPrefOriCal,true);
 }
 
 
@@ -204,6 +208,34 @@ std::string cNewO_NameManager::NameXmlOri2Im(const std::string & aN1,const std::
 }
 /*
 */
+
+std::string cNewO_NameManager::NameListeImOrientedWith(const std::string & aName,bool Bin) const
+{
+    return Dir3POneImage(aName) + "ListOrientedsWith-" + aName + (Bin ? ".dmp" : ".xml");
+}
+
+std::string cNewO_NameManager::NameListeCpleOriented(bool Bin) const
+{
+    return Dir3P() + "ListCpleOriented"+ (Bin ? ".dmp" : ".xml");
+}
+
+std::list<std::string>  cNewO_NameManager::ListeCompleteTripletTousOri(const std::string & aN1,const std::string & aN2) const
+{
+    cListOfName aL1 = StdGetFromPCP(NameListeImOrientedWith(aN1,true),ListOfName);
+    cListOfName aL2 = StdGetFromPCP(NameListeImOrientedWith(aN2,true),ListOfName);
+
+    std::set<std::string>  aS1(aL1.Name().begin(),aL1.Name().end());
+
+
+    std::list<std::string> aRes;
+
+    for  (std::list<std::string>::const_iterator it2=aL2.Name().begin() ; it2!=aL2.Name().end() ; it2++)
+        if (DicBoolFind(aS1,*it2))
+           aRes.push_back(*it2);
+
+    return  aRes;
+}
+
 
 
 

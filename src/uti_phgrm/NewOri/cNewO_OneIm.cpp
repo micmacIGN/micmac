@@ -81,6 +81,10 @@ const cNewO_NameManager&  cNewO_OneIm::NM() const
     return * mNM;
 }
 
+cNewO_NameManager&  cNewO_OneIm::NM() 
+{
+    return * mNM;
+}
     
 
 

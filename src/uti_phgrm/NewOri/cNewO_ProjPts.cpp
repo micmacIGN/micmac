@@ -133,7 +133,8 @@ void cFixedMergeTieP<TheNbPts,Type>::FusionneInThis(cFixedMergeTieP<TheNbPts,Typ
          {
             mVals[aK] = anEl2.mVals[aK] ;
             mTabIsInit[aK] = true;
-            Tabs[aK][mVals[aK]] = this;
+            // GT::  Tabs[aK][mVals[aK]] = this;
+            Tabs[aK].GT_SetVal(mVals[aK],this);
          }
      }
 }
@@ -176,8 +177,9 @@ int cFixedMergeTieP<TheNbPts,Type>::NbSom() const
    return aRes;
 }
 
-template class  cFixedMergeTieP<2,Pt2dr>;
-template class  cFixedMergeTieP<3,Pt2dr>;
+// template class  cFixedMergeTieP<2,Pt2dr>;
+// template class  cFixedMergeTieP<3,Pt2dr>;
+
 template class  cFixedMergeTieP<2,Pt2df>;
 template class  cFixedMergeTieP<3,Pt2df>;
 
@@ -198,16 +200,35 @@ template <const int TheNb,class Type> void cFixedMergeStruct<TheNb,Type>::Delete
     for (int aK=0 ; aK<TheNb ; aK++)
     {
         tMapMerge & aMap = mTheMaps[aK];
+// NEW GT
+        for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
+        {
+            tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
+            aM->SetOkForDelete();
+        }
+/* GT::
         for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
         {
             tMerge * aM = anIt->second;
             aM->SetOkForDelete();
         }
+*/
     }
     std::vector<tMerge *> aV2Del;
     for (int aK=0 ; aK<TheNb ; aK++)
     {
         tMapMerge & aMap = mTheMaps[aK];
+// NEW GT
+        for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
+        {
+            tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
+            if (aM->IsOk())
+            {
+               aV2Del.push_back(aM);
+               aM->SetNoOk();
+            }
+        }
+/* GT::
         for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
         {
             tMerge * aM = anIt->second;
@@ -217,6 +238,7 @@ template <const int TheNb,class Type> void cFixedMergeStruct<TheNb,Type>::Delete
                aM->SetNoOk();
             }
         }
+*/
     }
 
 
@@ -236,6 +258,18 @@ template <const int TheNb,class Type>   void cFixedMergeStruct<TheNb,Type>::DoEx
     for (int aK=0 ; aK<TheNb ; aK++)
     {
         tMapMerge & aMap = mTheMaps[aK];
+
+// NEW GT
+        for (tItMM anIt = aMap.GT_Begin() ; anIt != aMap.GT_End() ; anIt++)
+        {
+            tMerge * aM = tMapMerge::GT_GetValOfIt(anIt);
+            if (aM->IsOk())
+            {
+               mLM.push_back(aM);
+               aM->SetNoOk();
+            }
+        }
+/* GT::
         for (tItMM anIt = aMap.begin() ; anIt != aMap.end() ; anIt++)
         {
             tMerge * aM = anIt->second;
@@ -245,6 +279,7 @@ template <const int TheNb,class Type>   void cFixedMergeStruct<TheNb,Type>::DoEx
                aM->SetNoOk();
             }
         }
+*/
     }
 
     for (int aK=0 ; aK<TheNb ; aK++)
@@ -279,6 +314,8 @@ template <const int TheNb,class Type>   void cFixedMergeStruct<TheNb,Type>::DoEx
 
 
 
+
+
 template <const int TheNb,class Type>
         void cFixedMergeStruct<TheNb,Type>::AddArc(const Type & aV1,int aK1,const Type & aV2,int aK2)
 {
@@ -287,20 +324,25 @@ template <const int TheNb,class Type>
 
              AssertUnExported();
              tMapMerge & aMap1 = mTheMaps[aK1];
-             tItMM anIt1  = aMap1.find(aV1);
-             tMerge * aM1 = (anIt1 != aMap1.end()) ? anIt1->second : 0;
+             tMerge * aM1 = aMap1.GT_GetVal(aV1);
+//  GT::            tItMM anIt1  = aMap1.find(aV1);
+//  GT::            tMerge * aM1 = (anIt1 != aMap1.end()) ? anIt1->second : 0;
 
              tMapMerge & aMap2 = mTheMaps[aK2];
-             tItMM anIt2  = aMap2.find(aV2);
-             tMerge * aM2 =  (anIt2 != aMap2.end()) ? anIt2->second : 0;
-             tMerge * aMerge = 0;
+             tMerge * aM2 = aMap2.GT_GetVal(aV2);
+//  GT::            tItMM anIt2  = aMap2.find(aV2);
+//  GT::            tMerge * aM2 =  (anIt2 != aMap2.end()) ? anIt2->second : 0;
+            tMerge * aMerge = 0;
+             
 
 
              if ((aM1==0) && (aM2==0))
              {
                  aMerge = new tMerge;
-                 aMap1[aV1] = aMerge;
-                 aMap2[aV2] = aMerge;
+                 aMap1.GT_SetVal(aV1,aMerge);
+                 aMap2.GT_SetVal(aV2,aMerge);
+                 //  GT::aMap1[aV1] = aMerge;
+                 //  GT::aMap2[aV2] = aMerge;
              }
              else if ((aM1!=0) && (aM2!=0))
              {
@@ -320,11 +362,15 @@ template <const int TheNb,class Type>
              }
              else if ((aM1==0) && (aM2!=0))
              {
-                 aMerge = mTheMaps[aK1][aV1] = aM2;
+                 // GT:: aMerge = mTheMaps[aK1][aV1] = aM2;
+                 aMerge = aM2;
+                 mTheMaps[aK1].GT_SetVal(aV1,aM2);
              }
              else
              {
-                 aMerge =  mTheMaps[aK2][aV2] = aM1;
+                 // GT :: aMerge =  mTheMaps[aK2][aV2] = aM1;
+                 aMerge = aM1;
+                 mTheMaps[aK2].GT_SetVal(aV2,aM1);
              }
              aMerge->AddArc(aV1,aK1,aV2,aK2);
 }
@@ -356,8 +402,11 @@ template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::Asser
 }
 template class  cFixedMergeStruct<2,Pt2df>;
 template class  cFixedMergeStruct<3,Pt2df>;
-template class  cFixedMergeStruct<2,Pt2dr>;
-template class  cFixedMergeStruct<3,Pt2dr>;
+// template class  cFixedMergeStruct<2,Pt2dr>;
+// template class  cFixedMergeStruct<3,Pt2dr>;
+
+
+template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<2,Pt2df> >;
 
 
 /**********************************************************************************************/
@@ -571,6 +620,7 @@ ElPackHomologue ToStdPack(const tMergeLPackH * aMPack,bool PondInvNorm,double aP
     ElPackHomologue aRes;
 
     const tLMCplP & aLM = aMPack->ListMerged();
+
     for ( tLMCplP::const_iterator itC=aLM.begin() ; itC!=aLM.end() ; itC++)
     {
         const Pt2dr & aP0 = (*itC)->GetVal(0);
@@ -590,124 +640,6 @@ ElPackHomologue ToStdPack(const tMergeLPackH * aMPack,bool PondInvNorm,double aP
     return aRes;
 }
 
-
-/*
-struct cCdtPckR
-{
-      public :
-        cCdtPckR(const Pt2dr& aP1,const Pt2dr & aP2,const double & aPds) :
-            mP1       (aP1),
-            mP2       (aP2),
-            mPds0     (aPds),
-            mPdsOccup (0.0),
-            mDMin     (1e10),
-            mTaken    (false)
-         {
-         }
-         Pt2dr  mP1;
-         Pt2dr  mP2;
-         double mPds0;
-         double mPdsOccup;
-         double mDMin;
-         bool   mTaken;
-};
-
-
-
-ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aNbFin)
-{
-
-    //------------------------------------------------------------------------
-    // A- 1- Preselrection purement aleatoire d'un nombre raisonnable depoints
-    //------------------------------------------------------------------------
-
-    std::vector<cCdtPckR> aVPres;
-
-    RMat_Inertie aMat;
-
-    {
-       cRandNParmiQ aSelec(aNbMaxInit,aPackIn.size());
-       for (ElPackHomologue::const_iterator itP=aPackIn.begin() ; itP!=aPackIn.end() ; itP++)
-       {
-            if (aSelec.GetNext())
-            {
-               cCdtPckR aPair(itP->P1(),itP->P2(),itP->Pds());
-               aVPres.push_back(aPair);
-               Pt2dr aP1 = aPair.mP1;
-               aMat.add_pt_en_place(aP1.x,aP1.y);
-            }
-       }
-    }
-    aMat = aMat.normalize();
-    int aNbSomTot = int(aVPres.size());
-
-    double aSurfType  =  sqrt (aMat.s11()* aMat.s22() - ElSquare(aMat.s12()));
-    double aDistType = sqrt(aSurfType/aNbSomTot);
-
-
-
-    //------------------------------------------------------------------------
-    // A-2   Calcul d'une fonction de deponderation  
-    //------------------------------------------------------------------------
-
-    for (int aKS1 = 0 ; aKS1 <aNbSomTot ; aKS1++)
-    {
-        for (int aKS2 = aKS1 ; aKS2 <aNbSomTot ; aKS2++)
-        {
-           // sqrt pour attenuer la ponderation
-           double aDist = sqrt(dist48_euclid( aVPres[aKS1].mP1-aVPres[aKS2].mP1) );
-           // double aDist =  dist48_euclid( aVPres[aKS1].mP1-aVPres[aKS2].mP1) ;
-           // double  aDist=1;
-           double aPds = 1 / (aDistType+aDist);
-           aVPres[aKS1].mPdsOccup += aPds;
-           aVPres[aKS2].mPdsOccup += aPds;
-        }
-    }
-    for (int aKSom = 0 ; aKSom <aNbSomTot ; aKSom++)
-    {
-       aVPres[aKSom].mPdsOccup *= aVPres[aKSom].mPds0;
-    }
-
-
-    int aNbSomSel = ElMin(aNbSomTot,aNbFin);
-
-    //------------------------------------------------------------------------
-    // A-3  Calcul de aNbSomSel points biens repartis
-    //------------------------------------------------------------------------
-
-    ElTimer aChrono;
-    ElPackHomologue aRes;
-    for (int aKSel=0 ; aKSel<aNbSomSel ; aKSel++)
-    {
-         // Recherche du cdt le plus loin
-         double aMaxDMin = 0;
-         cCdtPckR * aBest = 0;
-         for (int aKSom = 0 ; aKSom <aNbSomTot ; aKSom++)
-         {
-             cCdtPckR & aCdt = aVPres[aKSom];
-             double aDist = aCdt.mDMin *  aCdt.mPdsOccup;
-             if ((!aCdt.mTaken) &&  (aDist > aMaxDMin))
-             {
-                 aMaxDMin = aDist;
-                 aBest = & aCdt;
-             }
-         }
-         ELISE_ASSERT(aBest!=0,"cNewO_CombineCple");
-         aBest->mTaken = true;
-         for (int aKSom = 0 ; aKSom <aNbSomTot ; aKSom++)
-         {
-             cCdtPckR & aCdt = aVPres[aKSom];
-             aCdt.mDMin = ElMin(aCdt.mDMin,dist48(aCdt.mP1-aBest->mP1));
-         }
-         ElCplePtsHomologues aCple(aBest->mP1,aBest->mP2,aBest->mPds0);
-         aRes.Cple_Add(aCple);
-
-         // mVCdtSel.push_back(aBest);
-    }
-
-    return aRes;
-}
-*/
 
 
 class cCdtSelect
@@ -840,6 +772,7 @@ template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel,double
 
 
 
+
     for (int aKSel=0 ; (aKSel<aNbSomSel) && Cont ; aKSel++)
     {
          // Recherche du cdt le plus loin
@@ -849,6 +782,7 @@ template<class TypePt> void cTplSelecPt<TypePt>::SelectN(int aTargetNbSel,double
          {
              cCdtSelect & aCdt = mVPresel[aKSom];
              double aDist = aCdt.mDMin *  aCdt.mPdsOccup;
+
              if ((!aCdt.mTaken) &&  (aDist > aMaxDMin))
              {
                  aMaxDMin = aDist;
@@ -881,6 +815,15 @@ template<class TypePt> double cTplSelecPt<TypePt>::DistMinSelMoy()
     return mRes.mDistMoy;
 }
 
+cResIPR cResIPRIdent(int aNb)
+{
+   cResIPR aRes;
+   for (int aK=0 ; aK< aNb ; aK++)
+       aRes.mVSel.push_back(aK);
+   aRes.mDistMoy = 0;
+   return aRes;
+
+}
 
 template<class TypePt> cResIPR  TplIndPackReduit
                                 (
@@ -891,6 +834,13 @@ template<class TypePt> cResIPR  TplIndPackReduit
                                      const std::vector<TypePt> * aVPtsExist = 0
                                 )
 {
+    // risque d'avoir des degeneresnce
+    if (aVPts.size() <= 5)
+    {
+        return cResIPRIdent(aVPts.size());
+    }
+
+
     cTplSelecPt<TypePt> aSel(aVPts);
     aSel.InitPresel(aNbMaxInit);
     aSel.CalcPond();
@@ -973,6 +923,7 @@ ElPackHomologue PackReduit(const ElPackHomologue & aPackIn,int aNbMaxInit,int aN
          ElCplePtsHomologues aCple(aVP1[aVSel[aK]],aVP2[aVSel[aK]]);
          aRes.Cple_Add(aCple);
    }
+
 
    return aRes;
 }

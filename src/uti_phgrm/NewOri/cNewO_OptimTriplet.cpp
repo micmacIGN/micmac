@@ -254,6 +254,7 @@ cPairOfTriplet::cPairOfTriplet(cImOfTriplet * aI1,cImOfTriplet *aI2,cImOfTriplet
 {
    mAppli.NM()->LoadHomFloats(mIm1->Im(),mIm2->Im(),&mFullVP1,&mFullVP2);
 
+
    mFullHoms.push_back(&mFullVP1);
    mFullHoms.push_back(&mFullVP2);
 
@@ -303,7 +304,7 @@ double cPairOfTriplet::ResiduMoy()
 }
 
 void cPairOfTriplet::SetPackRed(bool IsFirst,int aNbMaxInit,int aNbFin,const cResIPR & aIPRInit, const std::vector<Pt2df> & aVRed)
-{
+{ 
     cResIPR aIPR = IndPackReduit((IsFirst?mFullVP1:mFullVP2),aNbMaxInit,aNbFin,aIPRInit,aVRed);
     ReducePts(mVRedP1,mFullVP1,aIPR.mVSel);
     ReducePts(mVRedP2,mFullVP2,aIPR.mVSel);
@@ -426,24 +427,6 @@ void cAppliOptimTriplet::TestOPA(cPairOfTriplet & aPair)
          for (int aK=0 ; aK<3 ; aK++)
              mIms[aK]->SetOri(aVR[aK]);
     }
-
-/*
-
-    std::cout << "GLOB " <<  ResiduGlob(aVR[0],aVR[1],aVR[2])  << aVR[0].tr() << " " << euclid(aVR[1].tr())  << "\n";
-    std::cout << " OPA, Dist=" << anEcart * mFoc  << " Time " << aChrono.uval() << "\n"; 
-getchar();
-mBestResidu
-*/
-
-/*
-    ElRotation3D  OrientFromPtsAppui
-              (
-                                bool TousDevant,
-                 const ElSTDNS list<Appar23> & P32 ,
-                 REAL * Ecart = 0,
-                 INT  * NbSol    = 0
-              );
-*/
 }
 
 
@@ -548,13 +531,10 @@ cAppliOptimTriplet::cAppliOptimTriplet(int argc,char ** argv,bool QuitExist)  :
 
    if (mN3== KeyCple )
    {
-// std::cout << "AAAAAAaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
-// mQuitExist = false;
       std::string  aNameLON = mNM->NameTripletsOfCple(mNoIm1,mNoIm2,true);
       cListOfName aLON  = StdGetFromPCP(aNameLON,ListOfName);
       for (std::list<std::string>::const_iterator itN =aLON.Name().begin() ; itN!=aLON.Name().end() ; itN++)
       {
-// std::cout << "BbbbbbbbbbbbbbbBBbbbbbbbbbbbbb " <<  *itN << "\n";
          mN3 = *itN;
          m3S = cTplTriplet<std::string> (mN1,mN2,mN3);
          Execute();
@@ -623,6 +603,7 @@ void cAppliOptimTriplet::Execute()
 
    mNM->LoadTriplet(mIm1->Im(),mIm2->Im(),mIm3->Im(),&mIm1->VFullPtOf3(),&mIm2->VFullPtOf3(),&mIm3->VFullPtOf3());
 
+
    if (EAMIsInit(&mSzShow) && (!EAMIsInit(&mNbMaxSel)))
    {
       mNbMaxSel = ModeShowNbMaxSel;
@@ -633,10 +614,10 @@ void cAppliOptimTriplet::Execute()
    int aNb3 = round_up(CoutAttenueTetaMax(mIm2->VFullPtOf3().size() ,mNbMaxSel));
    
 
-   // std::cout << "SELLLL " << mNbMaxSel << " => " << aNb3  << " TOT = " << mIm2->VFullPtOf3().size() << "\n";
    mNbMaxSel = aNb3;
 
   //  mSel3 = IndPackReduit(mIm2->VFullPtOf3(),mNbMaxInit,mNbMaxSel);
+
    mSel3 = IndPackReduit(mIm2->VFullPtOf3(),mNbMaxInit,mNbMaxSel);
 
    for (int aK=0 ; aK<3 ; aK++)
@@ -801,6 +782,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    std::string aFullPat,aNameCalib;
    bool inParal=true;
    bool Quick = false;
+   bool Debug  = false;
 
    ElInitArgMain
    (
@@ -809,6 +791,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
         LArgMain() << EAM(aNameCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
                    << EAM(inParal,"Paral",true,"Execute in parallel ", eSAM_IsBool)
                    << EAM(Quick,"Quick",true,"Quick version", eSAM_IsBool)
+                   << EAM(Debug,"Debug",true,"Debugging mode (tuning purpose)", eSAM_IsBool)
     );
 
    cElemAppliSetFile anEASF(aFullPat);
@@ -847,7 +830,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
                 {
                     cEl_GPAO::DoComInParal(aLCom);
                     aLCom.clear();
-                    std::cout << "Optim triplets Done " << aNb << " pairs out of " << aNb2 << "\n";
+                    std::cout << "Optim triplets Done " << aNb << " pairs out of " << aNb2  << " in " << aChrono.uval() << "\n";
                 }
             }
             else

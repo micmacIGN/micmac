@@ -572,12 +572,17 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
     }
 
     tSomNSI * aSom;
+    int aCpt = 0;
     while ((aSom = GetBestSom()))
     {
          ElRotation3D aRot = aSom->attr().EstimRot(aSom);
          AddSOrCur(aSom,aRot);
          for (int aK=0 ; aK<3 ; aK++)
              ReMoyByTriplet();
+
+         aCpt++;
+         if ((aCpt % 20)==0)
+            std::cout << "          CalculOrient, done " << aCpt << "soms , T=" << mChrono.uval() << "\n";
     }
 
     for (int aK=0 ; aK<20 ; aK++)
@@ -614,6 +619,7 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
 
 void  cAppli_NewSolGolInit::CalculOrient(cNO_CC_TripSom * aCC)
 {
+     std::cout << "    CC of CalculOrient , Nb Som " << aCC->mSoms.size() << "\n";
      cNOSolIn_Triplet * aGerm0 =0;
      double aBesCoherCost = 1e30;
 

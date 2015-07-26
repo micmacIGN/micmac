@@ -99,13 +99,15 @@ void cAppli_Martini::DoAll()
      //  Calcul de toute les orientations relatives entre paires d'images
      StdCom("NO_AllOri2Im");
      // Homologues flottants
-     StdCom("NO_AllHomFloat");
+     // StdCom("NO_AllHomFloat"); => Supprime, pris en compte dans NO_AllOri2Im
      // Generation des triplet de points hom flottants
      StdCom("NO_AllImTriplet");
      // Generation  des triplet
      StdCom("NO_GenTripl"," Show=false");
      // Optimisation des triplets
      StdCom("NO_AllImOptTrip");
+     // Solution initiale (et probablement definitive)
+     StdCom("NO_SolInit3");
 }
 
 
@@ -124,6 +126,18 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
                    << EAM(mExe,"Exe",true,"Execute commands, def=true (if false, only print)")
                    // << EAM(mQuick,"Quick",true,"Quick version")
    );
+
+
+  // Force la creation des auto cal
+    cElemAppliSetFile anEASF(mPat);
+    StdCorrecNameOrient(mNameOriCalib,anEASF.mDir);
+
+    cNewO_NameManager aNM(mQuick,anEASF.mDir,mNameOriCalib,"dat");
+    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
+    for (int aK=0 ; aK<int(aVIm->size()) ; aK++)
+    {
+          cNewO_OneIm (aNM,(*aVIm)[aK]);
+    }
 }
 
 

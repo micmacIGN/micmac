@@ -74,13 +74,62 @@ class cNewO_OrInit2Im;
 class cNewO_NameManager;
 class cNewO_Appli;
 
+typedef std::vector<Pt2df> tVP2f;
+typedef const tVP2f   tCVP2f;
+typedef std::vector<U_INT1> tVUI1;
+typedef const tVUI1 tCVUI1;
+
+template <class TypeIndex,class TypeVal> class  cGenTabByMapPtr
+{
+   private :
+      typedef std::map<TypeIndex,TypeVal *>     tMap;
+
+   public :
+      typedef typename tMap::iterator           GT_tIter;
+
+      GT_tIter  GT_Begin()    {return mMap.begin();}
+      GT_tIter  GT_End()      {return mMap.end();}
+      static TypeVal * GT_GetValOfIt(const GT_tIter & anIter) {return anIter->second;}
+
+      inline TypeVal *  GT_GetVal(const TypeIndex & anIndex) 
+      {
+         GT_tIter anIter = mMap.find(anIndex);
+
+         return (anIter!=mMap.end()) ? anIter->second : 0;
+      }
+      inline void GT_SetVal(const TypeIndex & anIndex,TypeVal * aVal)
+      {
+         mMap[anIndex] = aVal;
+/*
+for (int aK=0 ; aK<10 ; aK++)
+{
+     GT_tIter anIter = mMap.find(anIndex);
+     mMap.erase(anIter);
+     mMap[anIndex] = aVal;
+}
+
+*/
+      }
+
+      cGenTabByMapPtr() 
+      {
+      }
+
+   private :
+      cGenTabByMapPtr(const cGenTabByMapPtr<TypeIndex,TypeVal> &); // N.I.
+
+      tMap    mMap;
+};
+
+#define DefcTpl_GT cGenTabByMapPtr
 
 
 template <const int TheNbPts,class Type>  class cFixedMergeTieP
 {
      public :
        typedef cFixedMergeTieP<TheNbPts,Type> tMerge;
-       typedef std::map<Type,tMerge *>     tMapMerge;
+       //  typedef std::map<Type,tMerge *>     tMapMerge;
+       typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
 
        cFixedMergeTieP() ;
        void FusionneInThis(cFixedMergeTieP<TheNbPts,Type> & anEl2,tMapMerge * Tabs);
@@ -103,12 +152,16 @@ template <const int TheNbPts,class Type>  class cFixedMergeTieP
         int   mNbArc;
 };
 
+
+
 template <const int TheNb,class Type> class cFixedMergeStruct
 {
      public :
         typedef cFixedMergeTieP<TheNb,Type> tMerge;
-        typedef std::map<Type,tMerge *>     tMapMerge;
-        typedef typename tMapMerge::iterator         tItMM;
+
+        typedef  DefcTpl_GT<Type,tMerge> tMapMerge;
+        //   typedef std::map<Type,tMerge *>     tMapMerge;
+        typedef typename tMapMerge::GT_tIter         tItMM;
 
         // Pas de delete implicite dans le ~X(),  car exporte l'allocation dans
         void Delete();
@@ -160,6 +213,7 @@ class cNewO_OneIm
             CamStenope * CS();
             const std::string & Name() const;
             const cNewO_NameManager&  NM() const;
+            cNewO_NameManager&  NM() ;
     private :
             cNewO_NameManager*  mNM;
             CamStenope *        mCS;
@@ -328,9 +382,16 @@ class cNewO_NameManager
            std::string Dir3POneImage(const std::string & aName,bool WithMakeDir=false) const;
 
 
+           // Liste des image tels que  N3-N1 et N3-N2 soient oriente
+           std::list<std::string > ListeCompleteTripletTousOri(const std::string & aN1,const std::string & aN2) const;
+
+
            std::string NameTripletsOfCple(cNewO_OneIm *,cNewO_OneIm *,bool Bin);
            std::string Dir3PDeuxImage(cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
            std::string NameHomFloat(cNewO_OneIm * ,cNewO_OneIm * );
+
+           std::string NameListeImOrientedWith(const std::string &,bool Bin) const;
+           std::string NameListeCpleOriented(bool Bin) const;
 
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);
            std::string NameHomTriplet(cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
@@ -344,9 +405,17 @@ class cNewO_NameManager
 
 
            bool LoadTriplet(cNewO_OneIm * ,cNewO_OneIm *,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2,std::vector<Pt2df> * aVP3);
+           
 
+           void WriteTriplet(const std::string & aNameFile,tCVP2f &,tCVP2f &,tCVP2f &,tCVUI1 &);
+           void WriteCouple(const std::string & aNameFile,tCVP2f &,tCVP2f &,tCVUI1 &);
 
      private :
+
+           void WriteTriplet(const std::string & aNameFile,tCVP2f &,tCVP2f &,tCVP2f *,tCVUI1 &);
+
+
+
 
            std::string NameAttribTriplet(const std::string & aPrefix,const std::string & aPost,cNewO_OneIm *,cNewO_OneIm *,cNewO_OneIm *,bool WithMakeDir=false);
 
@@ -450,6 +519,8 @@ class  cResIPR
          std::vector<int> mVSel;
          double           mDistMoy;
 };
+
+cResIPR cResIPRIdent(int aNb);
 
 cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin);
 cResIPR  IndPackReduit(const std::vector<Pt2df> & aV,int aNbMaxInit,int aNbFin,const cResIPR & aResExist,const std::vector<Pt2df> & aVPtsExist);
