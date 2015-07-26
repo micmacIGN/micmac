@@ -2117,7 +2117,7 @@ class CamStenope : public ElCamera
          Pt3dr Im1DirEtProf2_To_Terrain  //OO
                (Pt2dr p1,const CamStenope &  ph2,double prof2,const Pt3dr & aDir) const;
          Pt3dr Im1EtProfSpherik2_To_Terrain (Pt2dr p1,const CamStenope &  ph2,double prof2) const;
-
+    void ExpImp2Bundle(const Pt2di aGridSz, const std::string aName) const;
 
      double ProfInDir(const Pt3dr & aP,const Pt3dr &) const; // OO
 

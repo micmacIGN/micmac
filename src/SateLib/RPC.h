@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 //Important note:
 //pt.x is either the column in image space or the longitude in geographic coordinates or the easting  in projected coordinates
 //pt.y is either the row    in image space or the latitude  in geographic coordinates or the northing in projected coordinates
+#ifndef _CRPC_H_
+#define _CRPC_H_
+
 class RPC2D
 {
 public:
@@ -119,14 +122,26 @@ public:
         //Boundaries of RPC validity for image space
         double first_row, first_col, last_row, last_col;
         //Boundaries of RPC validity for geo space
-        double first_lon, first_lat, first_height, last_lon, last_lat, last_height;
+        double first_lon, first_lat, last_lon, last_lat, first_height, last_height;
 
         //Errors indicated in DIMAP files
         RPC() :
+		first_row(0),
+		first_col(0),
+		last_row(0),
+		last_col(0),
+		first_lon(0),
+		first_lat(0),
+		last_lon(0),
+		last_lat(0),
+		first_height(0),
+		last_height(0),
                 indirErrBiasRow(0),
                 indirErrBiasCol(0),
                 dirErrBiasX(0),
-                dirErrBiasY(0)
+                dirErrBiasY(0),
+		IS_DIR_INI(false),
+		IS_INV_INI(false)
         {
         }
         double indirErrBiasRow;
@@ -134,10 +149,13 @@ public:
         double dirErrBiasX;
         double dirErrBiasY;
 
+        bool IS_DIR_INI;
+	bool IS_INV_INI;
+
         Pt3dr DirectRPCNorm(Pt3dr)const;
         Pt3dr InverseRPCNorm(Pt3dr)const;
         Pt3dr DirectRPC(Pt3dr)const;
-        Pt3dr InverseRPC(Pt3dr, std::vector<double> vRefineCoef)const;
+        Pt3dr InverseRPC(Pt3dr, std::vector<double> vRefineCoef=std::vector<double>()) const;
 
         int RPC2Grid(int nbLayers, int altiMin, int altiMax, std::string refineCoef, std::string aNameFile, double stepPixel, double stepCarto, std::string targetSyst, std::string inputSyst, bool binaire);
 
@@ -258,18 +276,27 @@ public:
 
         //For DigitalGlobe data
         void ReadRPB(std::string const &filename);
-        void ReconstructValidity();
+        void ReadXML(std::string const &filename);
+	void ReconstructValidity();
+
+	//For IKONOS/CartoSat
+	void ReadASCII(std::string const &filename);
+        int  ReadASCIIMetaData(std::string const &metafilename, std::string const &filename);
+        
+	//For all but Dimap
+	void InverseToDirectRPC(const Pt2di &aGridSz);
 
                 //Construction of RPCs
 				vector<vector<Pt3dr> > GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, vector<vector<Pt3dr> > aMatSatPos, int nbLayers, double aHMin, double aHMax);
                 vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
+                vector<Pt3dr> GenerateRandNormGrid(const Pt2di &aGridSz);
                 void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
                 void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
 				void ComputeNormFactors(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, double aHMin, double aHMax);
                 void Validity2Dto3D(RPC2D aRPC2D);
-
 };
 
+#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

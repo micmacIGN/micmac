@@ -214,9 +214,10 @@ class cScannedImage
        cInterfChantierNameManipulateur * aICNM,
        std::string aXmlDir
       );
+    void load();
     Pt2di getSize(){return mImgSz;}
-    TIm2D<U_INT1,INT4> * getImT(){return & mImT;}
-    Im2D<U_INT1,INT4> * getIm(){return & mIm;}
+    TIm2D<U_INT1,INT4> * getImT(){if (!mIsLoaded) load();return & mImT;}
+    Im2D<U_INT1,INT4> * getIm(){if (!mIsLoaded) load();return & mIm;}
     cMesureAppuiFlottant1Im & getAllFP(){return mAllFP;}//all fiducial points
     std::string getName(){return mName;}
     std::string getXmlFileName(){return mXmlFileName;}
@@ -233,6 +234,7 @@ class cScannedImage
     Pt2di              mImgSz;
     TIm2D<U_INT1,INT4> mImT;
     Im2D<U_INT1,INT4>  mIm;
+    bool mIsLoaded;
 };
 
 
@@ -246,10 +248,17 @@ cScannedImage::cScannedImage
   mTiffIm           (mNameImageTif.c_str()),
   mImgSz            (mTiffIm.sz()),
   mImT              (mImgSz),
-  mIm               (mImT._the_im)
+  mIm               (mImT._the_im),
+  mIsLoaded         (false)
 {
   //std::cout<<"ScannedImageName: "<<mName<<std::endl;
-  ELISE_COPY(mIm.all_pts(),mTiffIm.in(),mIm.out());
+  
+}
+
+void cScannedImage::load()
+{
+    ELISE_COPY(mIm.all_pts(),mTiffIm.in(),mIm.out());
+    mIsLoaded=true;
 }
 
 //----------------------------------------------------------------------------
@@ -261,6 +270,7 @@ int Kugelhupf_main(int argc,char ** argv)
   int aTargetHalfSzPx=64;//target size in pixel
   int aSearchIncertitudePx=5;//Search incertitude
   double aSearchStepPx=0.5;//Search step
+  double aThreshold=0.9;//limit to accept a correlation
  
   bool verbose=false;
 
@@ -277,6 +287,7 @@ int Kugelhupf_main(int argc,char ** argv)
      LArgMain()  << EAM(aTargetHalfSzPx,"TargetHalfSize",true,"Target half size in pixels (Def=64)")
      << EAM(aSearchIncertitudePx,"SearchIncertitude",true,"Search incertitude in pixels (Def=5)")
      << EAM(aSearchStepPx,"SearchStep",true,"Search step in pixels (Def=0.5)")
+     << EAM(aThreshold,"Threshold",true,"Limit to accept a correlation (Def=0.90)")
     );
     
   if (MMVisualMode) return EXIT_SUCCESS;
@@ -402,11 +413,12 @@ int Kugelhupf_main(int argc,char ** argv)
       }
       if (verbose)
         std::cout<<"Best: "<<aBestPt.PtIm()<<" ("<<aCoefCorrelMax<<")\n";
-      if (aCoefCorrelMax>0.9)
+      if (aCoefCorrelMax>aThreshold)
       {
         aImg->getAllFP().OneMesureAF1I().push_back(aBestPt);
       }else{
-        std::cout<<"Bad match on "<<itP->NamePt()<<": "<<aCoefCorrelMax<<std::endl;
+        std::cout<<"Bad match on "<<itP->NamePt()<<": "<<aCoefCorrelMax<<"/"<<aThreshold<<std::endl;
+        break;
       }
     }
     std::cout<<"\n";
