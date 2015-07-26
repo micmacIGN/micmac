@@ -65,12 +65,31 @@ class cNewSom_GenTripletOfCple
 
 };
 
+struct cAGTC_Pds
+{
+    public :
+
+           Pt2df               mPInf;
+           Pt2df               mPSup;
+           double              mStepCases;
+           Pt2di               mSzCases;
+           int                 mNbCases;
+           double              mMulQuant;
+           int                 mPdsCase[TMaxNbCase];
+           int                 mNb[TMaxNbCase];
+
+           int ToIndexVP(const Pt2df &  aP0) const;
+           void Init(const std::vector<Pt2df> &  aVP);
+           void InitNb(int  * aNb,const std::vector<Pt2df> & );
+};
+
+
 class cNewAppli_GenTripletOfCple
 {
       public :
            cNewAppli_GenTripletOfCple(int argc,char ** argv);
            cNewO_NameManager * NM() {return mNM;}
-           int ToIndexVP1(const Pt2df &  aP0) const;
+           // int ToIndexVP1(const Pt2df &  aP0) const;
 
       public :
            std::string mN1;
@@ -86,14 +105,21 @@ class cNewAppli_GenTripletOfCple
            std::vector<Pt2df>  mVP1;
            std::vector<Pt2df>  mVP2;
 
+           cAGTC_Pds           mPds1;
+           cAGTC_Pds           mPds2;
+
  // Va permettre de creer des indexe pour avoir une fonction de densite tenant compte de la densite 
  // de VP1
+/*
            Pt2df               mPInf;
            Pt2df               mPSup;
            double              mStepCases;
            Pt2di               mSzCases;
            int                 mNbCases;
            double              mMulQuant;
+           int                 mPdsCase1[TMaxNbCase];
+           int                 mPdsCase2[TMaxNbCase];
+*/
 
 };
 
@@ -112,11 +138,11 @@ cNewSom_GenTripletOfCple::cNewSom_GenTripletOfCple(cNewAppli_GenTripletOfCple & 
 
 /***************************************************************/
 /*                                                             */
-/*               cNewAppli_GenTripletOfCple                    */
+/*               cNewSom_GenTripletOfCple                      */
 /*                                                             */
 /***************************************************************/
 
-int cNewAppli_GenTripletOfCple::ToIndexVP1(const Pt2df &  aP0) const
+int cAGTC_Pds::ToIndexVP(const Pt2df &  aP0) const
 {
     Pt2di aP =  round_down((aP0-mPInf)/mStepCases);
     aP.x  = ElMax(0,ElMin(mSzCases.x-1,aP.x));
@@ -127,9 +153,90 @@ int cNewAppli_GenTripletOfCple::ToIndexVP1(const Pt2df &  aP0) const
     return aRes;
 }
 
+void cAGTC_Pds::Init(const std::vector<Pt2df> &  aVP)
+{
+   // Calcul des valeur permettant d'indexer les points
+   mPInf = Pt2df(1e20,1e20);
+   mPSup = Pt2df(-1e20,-1e20);
+
+   for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
+   {
+       const Pt2df & aPt = aVP[aKP];
+       mPInf = Inf(mPInf,aPt);
+       mPSup = Sup(mPSup,aPt);
+   }
+
+   Pt2df aPLarg = mPSup-mPInf;
+   mStepCases = ElMax(aPLarg.x,aPLarg.y) / TNbCaseP1;
+   mSzCases = Pt2di(round_up(aPLarg.x/mStepCases),round_up(aPLarg.y/mStepCases));
+   mSzCases = Inf(mSzCases,Pt2di(TNbCaseP1,TNbCaseP1));
+   mNbCases = mSzCases.x * mSzCases.y;
+   ELISE_ASSERT(mNbCases<=TMaxNbCase,"cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple  : mNbCases");
+
+   // Le MulQuant est un majoration/estimation du maximum du gain quantifie, il est egal a
+   //    NbCase  => car somme sur les case
+   //  * TQuant  => mPdsCase
+   //  * TQuant  => Densite
+   //  * TQuant  => Gain
+   //  * TQuantBsH  => Dans Gain B/H
+   mMulQuant  = mNbCases *pow((float)TQuant,3) * TQuantBsH;
+   ELISE_ASSERT(mMulQuant<TMaxGain,"cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple mMulQuant");
+
+   InitNb(mNb,aVP);
+
+   // Creation d'un ponderation quantifie prop a la racine carree
+   // de la population
+
+   int aNbMax = 0;
+   for (int aK=0 ; aK<mNbCases ; aK++)
+   {
+        ElSetMax(aNbMax,mNb[aK]);
+   }
+   for (int aK=0 ; aK<mNbCases ; aK++)
+   {
+        double aPds = mNb[aK] / double(aNbMax);
+        mPds[aK] = round_ni(TQuant*sqrt(aPds));
+   }
+
+}
+
+
+void cAGTC_Pds::InitNb(int  * aNb,const std::vector<Pt2df> & aVP)
+{
+    for (int aK=0 ;  aK< TMaxNbCase ; aK++)
+        aNb[aK] = 0;
+
+    for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+    {
+        aNb[ToIndexVP(aVP[aK])] ++;
+    }
+}
+
+
+
+/***************************************************************/
+/*                                                             */
+/*               cNewAppli_GenTripletOfCple                    */
+/*                                                             */
+/***************************************************************/
+
+/*
+int cNewAppli_GenTripletOfCple::ToIndexVP1(const Pt2df &  aP0) const
+{
+    Pt2di aP =  round_down((aP0-mPInf)/mStepCases);
+    aP.x  = ElMax(0,ElMin(mSzCases.x-1,aP.x));
+    aP.y  = ElMax(0,ElMin(mSzCases.y-1,aP.y));
+
+    int aRes = aP.x + aP.y * mSzCases.x;
+    ELISE_ASSERT(aRes>=0 && aRes<mNbCases,"cAppli_GenTriplet::ToIndex");
+    return aRes;
+}
+*/
+
 
 cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
-     mDir ("./")
+    mDir        ("./"),
+    mQuick      (true)
 {
    ElInitArgMain
    (
@@ -154,29 +261,8 @@ cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
    mI2 = new cNewO_OneIm(*mNM,mN2);
    mNM->LoadHomFloats(mI1,mI2,&mVP1,&mVP2);
 
-   mPInf = Pt2df(1e20,1e20);
-   mPSup = Pt2df(-1e20,-1e20);
-
-   for (int aKP=0 ; aKP<int(mVP1.size()) ; aKP++)
-   {
-       const Pt2df & aP1 = mVP1[aKP];
-       mPInf = Inf(mPInf,aP1);
-       mPSup = Sup(mPSup,aP1);
-   }
-
-
-   Pt2df aPLarg = mPSup-mPInf;
-   mStepCases = ElMax(aPLarg.x,aPLarg.y) / TNbCaseP1;
-   mSzCases = Pt2di(round_up(aPLarg.x/mStepCases),round_up(aPLarg.y/mStepCases));
-   mSzCases = Inf(mSzCases,Pt2di(TNbCaseP1,TNbCaseP1));
-   mNbCases = mSzCases.x * mSzCases.y;
-   ELISE_ASSERT(mNbCases<=TMaxNbCase,"cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple  : mNbCases");
-
-   mMulQuant  = mNbCases *pow((float)TQuant,3) * TQuantBsH;
-   ELISE_ASSERT(mMulQuant<TMaxGain,"cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple mMulQuant");
-
-
-
+   mPds1.Init(mVP1);
+   mPds2.Init(mVP2);
 
 
    std::list<std::string >  aL3 = mNM->ListeCompleteTripletTousOri(mN1,mN2);
