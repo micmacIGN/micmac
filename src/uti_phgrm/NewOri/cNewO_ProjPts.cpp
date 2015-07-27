@@ -402,8 +402,8 @@ template <const int TheNb,class Type>  void cFixedMergeStruct<TheNb,Type>::Asser
 }
 template class  cFixedMergeStruct<2,Pt2df>;
 template class  cFixedMergeStruct<3,Pt2df>;
-// template class  cFixedMergeStruct<2,Pt2dr>;
-// template class  cFixedMergeStruct<3,Pt2dr>;
+template class  cFixedMergeStruct<2,Pt2dr>;
+template class  cFixedMergeStruct<3,Pt2dr>;
 
 
 template class cGenTabByMapPtr<Pt2df, cFixedMergeTieP<2,Pt2df> >;

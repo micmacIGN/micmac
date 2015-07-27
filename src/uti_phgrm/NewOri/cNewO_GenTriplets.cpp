@@ -50,6 +50,14 @@ static const int  TMaxGain = 2e9;
 class cNewSom_GenTripletOfCple;
 class cNewAppli_GenTripletOfCple;
 
+
+struct cNSGT_Link
+{
+    public :
+          cNSGT_Link(cNewAppli_GenTripletOfCple &,const std::string & aN3);
+};
+
+
 class cNewSom_GenTripletOfCple
 {
     public :
@@ -65,9 +73,15 @@ class cNewSom_GenTripletOfCple
 
 };
 
-struct cAGTC_Pds
+struct cGTC_OneBaseIm
 {
     public :
+
+           cGTC_OneBaseIm(const ElRotation3D &,cNewO_OneIm * anIm,const std::vector<Pt2df> & aVP);
+
+           ElRotation3D                mOri;
+           cNewO_OneIm *               mIm;
+           const std::vector<Pt2df>  * mVPts;
 
            Pt2df               mPInf;
            Pt2df               mPSup;
@@ -104,9 +118,13 @@ class cNewAppli_GenTripletOfCple
            cNewO_OneIm *       mI2;
            std::vector<Pt2df>  mVP1;
            std::vector<Pt2df>  mVP2;
+           cXml_Ori2Im         mXlm_Ori2Im;
+           cXml_O2IComputed *  mXmlGeom;
 
-           cAGTC_Pds           mPds1;
-           cAGTC_Pds           mPds2;
+           cGTC_OneBaseIm *         mBase1;
+           cGTC_OneBaseIm *         mBase2;
+
+           std::vector<cNewSom_GenTripletOfCple *>  mVS3;
 
  // Va permettre de creer des indexe pour avoir une fonction de densite tenant compte de la densite 
  // de VP1
@@ -134,15 +152,16 @@ cNewSom_GenTripletOfCple::cNewSom_GenTripletOfCple(cNewAppli_GenTripletOfCple & 
     mN3     (aN3),
     mI3     (new cNewO_OneIm(*(mAppli->NM()),mN3))
 {
+        std::cout << "NAME " << mN3 << "\n"; 
 }
 
 /***************************************************************/
 /*                                                             */
-/*               cNewSom_GenTripletOfCple                      */
+/*               cGTC_OneBaseIm                                */
 /*                                                             */
 /***************************************************************/
 
-int cAGTC_Pds::ToIndexVP(const Pt2df &  aP0) const
+int cGTC_OneBaseIm::ToIndexVP(const Pt2df &  aP0) const
 {
     Pt2di aP =  round_down((aP0-mPInf)/mStepCases);
     aP.x  = ElMax(0,ElMin(mSzCases.x-1,aP.x));
@@ -153,8 +172,12 @@ int cAGTC_Pds::ToIndexVP(const Pt2df &  aP0) const
     return aRes;
 }
 
-void cAGTC_Pds::Init(const std::vector<Pt2df> &  aVP)
+cGTC_OneBaseIm::cGTC_OneBaseIm(const ElRotation3D & anOri,cNewO_OneIm * anIm,const std::vector<Pt2df> & aVP):
+   mOri  (anOri),
+   mIm   (anIm),
+   mVPts (&aVP)
 {
+
    // Calcul des valeur permettant d'indexer les points
    mPInf = Pt2df(1e20,1e20);
    mPSup = Pt2df(-1e20,-1e20);
@@ -195,13 +218,13 @@ void cAGTC_Pds::Init(const std::vector<Pt2df> &  aVP)
    for (int aK=0 ; aK<mNbCases ; aK++)
    {
         double aPds = mNb[aK] / double(aNbMax);
-        //mPds[aK] = round_ni(TQuant*sqrt(aPds));
+        mPdsCase[aK] = round_ni(TQuant*sqrt(aPds));
    }
 
 }
 
 
-void cAGTC_Pds::InitNb(int  * aNb,const std::vector<Pt2df> & aVP)
+void cGTC_OneBaseIm::InitNb(int  * aNb,const std::vector<Pt2df> & aVP)
 {
     for (int aK=0 ;  aK< TMaxNbCase ; aK++)
         aNb[aK] = 0;
@@ -260,17 +283,28 @@ cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple(int argc,char ** argv) :
    mI1 = new cNewO_OneIm(*mNM,mN1);
    mI2 = new cNewO_OneIm(*mNM,mN2);
    mNM->LoadHomFloats(mI1,mI2,&mVP1,&mVP2);
+   mXlm_Ori2Im = StdGetFromSI(mNM->NameXmlOri2Im(mI1,mI2,true),Xml_Ori2Im);
+   mXmlGeom = mXlm_Ori2Im.Geom().PtrVal();
 
-   mPds1.Init(mVP1);
-   mPds2.Init(mVP2);
+   ELISE_ASSERT(mXmlGeom!=0,"Unoriented Init in cNewAppli_GenTripletOfCple::cNewAppli_GenTripletOfCple");
+   // mI1.mOri = ElRotation::Id;
+   // mR2 = Xml2ElRot(mXmlGeom->OrientAff());
+
+
+   mBase1 = new cGTC_OneBaseIm(ElRotation3D::Id,mI1,mVP1);
+   mBase2 = new cGTC_OneBaseIm(Xml2ElRot(mXmlGeom->OrientAff()),mI2,mVP2);
+   
 
 
    std::list<std::string >  aL3 = mNM->ListeCompleteTripletTousOri(mN1,mN2);
    for (std::list<std::string>::const_iterator it3=aL3.begin() ; it3!=aL3.end() ; it3++)
    {
-        std::cout << "NAME " << *it3 << "\n"; 
+       mVS3.push_back( new cNewSom_GenTripletOfCple(*this,*it3));
    }
 }
+
+
+
 
 int CPP_NewGenTriOfCple(int argc,char ** argv)
 {

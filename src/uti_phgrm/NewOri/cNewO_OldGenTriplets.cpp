@@ -933,6 +933,13 @@ ElRotation3D Xml2El(const cXml_Rotation & aXml)
   return ElRotation3D(aXml.Centre(),ImportMat(aXml.Ori()),true);
 }
 
+ElRotation3D Xml2ElRot(const cXml_O2IRotation & aXml)
+{
+  return ElRotation3D(aXml.Centre(),ImportMat(aXml.Ori()),true);
+}
+
+
+
 void AddSegOfRot(std::vector<Pt3dr> & aV1,std::vector<Pt3dr> & aV2,const ElRotation3D & aR,const Pt2df &  aP)
 {
    aV1.push_back(aR.ImAff(Pt3dr(0,0,0)));

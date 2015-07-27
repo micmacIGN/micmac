@@ -1091,6 +1091,7 @@ ElMatrix<double> ImportMat(const cTypeCodageMatr & aCM);
 
 cXml_Rotation El2Xml(const ElRotation3D & aRot);
 ElRotation3D Xml2El(const cXml_Rotation & aXml);
+ElRotation3D Xml2ElRot(const cXml_O2IRotation & aXml);
 
 
 
