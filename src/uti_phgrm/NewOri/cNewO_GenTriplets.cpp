@@ -195,7 +195,7 @@ void cAGTC_Pds::Init(const std::vector<Pt2df> &  aVP)
    for (int aK=0 ; aK<mNbCases ; aK++)
    {
         double aPds = mNb[aK] / double(aNbMax);
-        mPds[aK] = round_ni(TQuant*sqrt(aPds));
+        //mPds[aK] = round_ni(TQuant*sqrt(aPds));
    }
 
 }
