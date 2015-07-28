@@ -48,12 +48,14 @@ class cSatI_Appli
         cInterfChantierNameManipulateur * mICNM;
 	std::string mCSysOut;
         std::list<std::string> mListFile;
-        std::string mModeRPC;
+        std::string mModeOri;
 	std::string mMetadata;
 	Pt2di mGridSz;
 };
 
-cSatI_Appli::cSatI_Appli(int argc,char ** argv)
+cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
+	mCSysOut(""),
+	mMetadata("")
 {
     std::string aFullName;
     std::string aDir;
@@ -62,22 +64,24 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv)
     ElInitArgMain
     (
          argc, argv,
-         LArgMain() << EAMC(aFullName,"RPC file full name (Dir+Pat)")
-                    << EAMC(mCSysOut,"Output cartographic coordinate system (proj format)"),
-         LArgMain() << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[5,8]")
-                    << EAM(mModeRPC, "ModeRPC", true, "The RPC convention (PLEIADE,SPOT,QUICKBIRD,WORLDVIEW,IKONOS,CARTOSAT)")
-		    << EAM(mMetadata, "Meta", true, "Sensor metadata file, other than the RPC; Valid for IKONOS and CARTOSAT")
+         LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE/RAY_BUNDLES) full name (Dir+Pat)", eSAM_IsExistFile),
+         LArgMain() << EAM(mModeOri, "ModeOri", true, "The RPC convention (PLEIADE,SPOT,QUICKBIRD,WORLDVIEW,IKONOS,CARTOSAT,SPICE)")
+	            << EAM(mCSysOut, "Proj", true, "Output cartographic coordinate system (proj format)")
+                    << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[5,8]", eSAM_NoInit)
+		    << EAM(mMetadata, "Meta", true, "Sensor metadata file, other than the RPC; Valid for IKONOS and CARTOSAT", eSAM_IsExistFile)
     );		      
 
     SplitDirAndFile(aDir, aPat, aFullName);
 
-    //validate the RPC mode
-    if (mModeRPC=="PLEIADE") {}
-    else if (mModeRPC=="SPOT") {}
-    else if (mModeRPC=="QUICKBIRD") {}
-    else if (mModeRPC=="WORLDVIEW") {}
-    else if (mModeRPC=="IKONOS") {}
-    else if (mModeRPC=="CARTOSAT") {}
+
+    //validate the RPC mode 
+    if (mModeOri=="PLEIADE") {}
+    else if (mModeOri=="SPOT") {}
+    else if (mModeOri=="QUICKBIRD") {}
+    else if (mModeOri=="WORLDVIEW") {}
+    else if (mModeOri=="IKONOS") {}
+    else if (mModeOri=="CARTOSAT") {}
+    else if (mModeOri=="SPICE") {}
     else {ELISE_ASSERT(false,"Unknown RPC mode");}    
 
 
@@ -86,26 +90,34 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv)
 }
 
 
-int RPCtoBundle_main(int argc,char ** argv)
+int SATtoBundle_main(int argc,char ** argv)
 {
 
     cSatI_Appli aApps(argc,argv);
 
-    std::cout << "Processed images:" << std::endl;
     for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
 		                         itL != aApps.mListFile.end(); 
 					 itL++ )   
     {
-	std::cout << " - " << *itL << std::endl;
-        CameraRPC aCurCam(*itL,aApps.mModeRPC,aApps.mGridSz);
-	aCurCam.ExpImp2Bundle(aApps.mCSysOut);
+	//Earth satellite
+	if(aApps.mModeOri!="SPICE")
+	{
+            CameraRPC aCurCam(*itL,aApps.mModeOri,aApps.mGridSz);
+	    aCurCam.ExpImp2Bundle(aApps.mCSysOut);
+	}
+	//other planets
+	else
+	{
+    	    //from SPICE to cXml_ScanLineSensor
+    	    //responsible: Antoine Lucas
+	}
     }
 
 
     return EXIT_SUCCESS;
 }
  
-int RPCtoOpticalCenter_main(int argc,char ** argv)
+int SATtoOpticalCenter_main(int argc,char ** argv)
 {
 
     cSatI_Appli aApps(argc,argv);
@@ -115,12 +127,61 @@ int RPCtoOpticalCenter_main(int argc,char ** argv)
 		                         itL != aApps.mListFile.end(); 
 					 itL++ )
     {
-       CameraRPC aCamRPC(*itL,aApps.mModeRPC,aApps.mGridSz,aApps.mMetadata);
-       aCamRPC.OpticalCenterLineTer(aApps.mCSysOut, true);
+       //Earth satellite
+       if(aApps.mModeOri!="SPICE")
+       {
+           CameraRPC aCamRPC(*itL,aApps.mModeOri,aApps.mGridSz,aApps.mMetadata);
+           aCamRPC.OpticalCenterLineTer(aApps.mCSysOut, true);
+       }
+       //other planets
+       else
+       {
+	   std::string aDirTmp = "PBoptCenter";
+	   std::string aSaveFile = aDirTmp + "/PlanetOpticalCentersTer" + ".txt";
+	   
+	   std::vector<Pt3dr> aOpticalCenters;
+
+    	   //read the cXml_ScanLineSensor
+	   cXml_ScanLineSensor aSLS = StdGetFromSI(*itL,Xml_ScanLineSensor);
+           
+	   std::vector< cXml_OneLineSLS >::iterator aLIt;
+	   std::vector< cXml_SLSRay >::iterator     aSIt;
+	   for(aLIt=aSLS.Lines().begin(); aLIt<aSLS.Lines().end(); aLIt++)
+	   {
+	       std::vector<ElSeg3D> aVS;
+	       std::vector<double>  aVPds;
+
+	       for(aSIt=aLIt->Rays().begin(); aSIt<aLIt->Rays().end(); aSIt++)
+	       {
+                   aVPds.push_back(0.5);
+	           aVS.push_back( ElSeg3D(aSIt->P1(), aSIt->P2()) );
+
+	       }
+
+               //intersect
+	       bool aIsOK;
+	       aOpticalCenters.push_back(ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK));
+
+	   }
+
+           //save output
+           std::ofstream aFO(aSaveFile.c_str());
+	   aFO << std::setprecision(15);
+
+	   unsigned int i;
+	   for(i=0; i<aOpticalCenters.size(); i++)
+               aFO << aOpticalCenters.at(i).x
+		   << " " << aOpticalCenters.at(i).y
+		   << " " << aOpticalCenters.at(i).z
+		   << "\n";
+
+	   aFO.close();
+       }
     }
 
     return EXIT_SUCCESS;
 }
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

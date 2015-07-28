@@ -39,12 +39,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "CameraRPC.h"
 
+/***********************************************************************/
+/*                           CameraRPC                                 */
+/***********************************************************************/
+
 /* Image coordinates order: [Sample, Line] = [x, y]*/
 
 CameraRPC::CameraRPC(std::string const &aNameFile, const  std::string &aModeRPC, const Pt2di &aGridSz, std::string const &aMetaFile) :
        mProfondeurIsDef(false),	
        mAltisSolIsDef(false),
-       mOptCentLineIsDef(false),
+       mOptCentersIsDef(false),
        mGridSzIsDef(true),
        mGridSz(aGridSz),
        mCamNom(aNameFile.substr(0,aNameFile.size()-4))
@@ -56,9 +60,9 @@ CameraRPC::CameraRPC(std::string const &aNameFile, const  std::string &aModeRPC,
        mRPC->ReadDimap(aNameFile);
    else if(aModeRPC=="QUICKBIRD" || aModeRPC=="WORLDVIEW" )
    {
-       mRPC->ReadRPB(aNameFile);
+       mRPC->ReadXML(aNameFile);
        //read the xml
-       mRPC->InverseToDirectRPC(mGridSz);
+       //mRPC->InverseToDirectRPC(mGridSz);
    }
    else if(aModeRPC=="IKONOS" || aModeRPC=="CARTOSAT")
    {
@@ -72,7 +76,11 @@ CameraRPC::CameraRPC(std::string const &aNameFile, const  std::string &aModeRPC,
 
 
 }
-
+CameraRPC::~CameraRPC()
+{
+	delete mRPC;
+	delete mOpticalCenters;
+}
 
 Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
 {
@@ -359,7 +367,7 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
     std::string aDirTmp = "PBoptCenter";
     std::string aSavGeo = aDirTmp + "/bundleGridGeo" + mCamNom + ".txt";
     std::string aSavUCS = aDirTmp + "/bundleGridUCS" + mCamNom + ".txt";
-    std::string aSaveFile = aDirTmp + "/OpticalCenterLineTer" + mCamNom + ".txt";
+    std::string aSaveFile = aDirTmp + "/OpticalCentersTer" + mCamNom + ".txt";
     
 
     //define a default grid size unless previously defined
@@ -413,6 +421,8 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 
 
     //do the intersection on respective segments in the user-def CS
+    mOpticalCenters = new std::vector<Pt3dr>();
+    
     int aCntTmp=0;
     for( aL=0; aL<mGridSz.y; aL++)
     {
@@ -432,12 +442,13 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 
 	//intersect
 	bool aIsOK;
-        aVPts.push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
+	mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
 
 	if(aIsOK==false)
 	    std::cout << "not intersected in CameraRPC::OpticalCenterLineTer" << std::endl;
 
     }
+    mOptCentersIsDef = true; 
 
     if(aIfSave)
     {
@@ -445,18 +456,89 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
         aFO << std::setprecision(15);
 
         unsigned int i;	
-	for(i=0; i<aVPts.size(); i++)
-	    aFO << aVPts.at(i).x 
-		<< " " << aVPts.at(i).y 
-		<< " " << aVPts.at(i).z
+	for(i=0; i<mOpticalCenters->size(); i++)
+	    aFO << mOpticalCenters->at(i).x 
+		<< " " << mOpticalCenters->at(i).y 
+		<< " " << mOpticalCenters->at(i).z
 		<< "\n";
 	
         aFO.close();
 
     }
 
-    mOpticalCenterLine = new ElSeg3D(Pt3dr(0,0,1),Pt3dr(0,0,2));
-    mOptCentLineIsDef = true; 
+
+}
+
+
+/***********************************************************************/
+/*                        BundleCameraRPC                              */
+/***********************************************************************/
+
+BundleCameraRPC::BundleCameraRPC(cCapture3D * aCam) : mCam(aCam)
+{}
+
+Pt2dr BundleCameraRPC::Ter2Capteur(const Pt3dr & aP) const
+{
+	return(mCam->Ter2Capteur(aP));
+}
+
+bool BundleCameraRPC::PIsVisibleInImage(const Pt3dr & aP) const
+{
+	return(mCam->PIsVisibleInImage(aP));
+}
+
+ElSeg3D BundleCameraRPC::Capteur2RayTer(const Pt2dr & aP) const
+{
+	return(mCam->Capteur2RayTer(aP));
+}
+Pt2di BundleCameraRPC::SzBasicCapt3D() const
+{
+	return(mCam->SzBasicCapt3D());
+}
+
+bool  BundleCameraRPC::HasRoughCapteur2Terrain() const
+{
+	return(mCam->HasRoughCapteur2Terrain());
+}
+
+bool  BundleCameraRPC::HasPreciseCapteur2Terrain() const
+{
+	return(mCam->HasPreciseCapteur2Terrain());
+}
+
+Pt3dr BundleCameraRPC::RoughCapteur2Terrain   (const Pt2dr & aP) const
+{
+	return(mCam->RoughCapteur2Terrain(aP));
+}
+
+Pt3dr BundleCameraRPC::PreciseCapteur2Terrain   (const Pt2dr & aP) const
+{
+	return(mCam->PreciseCapteur2Terrain(aP));
+}
+
+double BundleCameraRPC::ResolSolOfPt(const Pt3dr & aP) const
+{
+	return(mCam->ResolSolOfPt(aP));
+}
+
+double BundleCameraRPC::ResolSolGlob() const
+{
+	return(mCam->ResolSolGlob());
+}
+
+bool  BundleCameraRPC::CaptHasData(const Pt2dr & aP) const
+{
+	return(mCam->CaptHasData(aP));
+}
+
+Pt2dr BundleCameraRPC::ImRef2Capteur   (const Pt2dr & aP) const
+{
+	return(mCam->ImRef2Capteur(aP));
+}
+
+double BundleCameraRPC::ResolImRefFromCapteur() const
+{
+	return(mCam->ResolImRefFromCapteur());
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007
