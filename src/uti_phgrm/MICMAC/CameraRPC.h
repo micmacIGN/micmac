@@ -50,8 +50,7 @@ class CameraRPC: public cCapture3D
 	public:
 		//CameraRPC();
 		CameraRPC(std::string const &aNameFile, const std::string &aModeRPC, const Pt2di &aGridSz, std::string const &aMetaFile=" ");
-		//CameraRPC(RPC * aRPC);
-		~CameraRPC(){}
+		~CameraRPC();
 
 		Pt2dr Ter2Capteur   (const Pt3dr & aP) const;
 		ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
@@ -92,12 +91,12 @@ class CameraRPC: public cCapture3D
 		bool   mAltisSolIsDef;
 		double mAltiSol;
 
-		bool   mOptCentLineIsDef;
+		bool   mOptCentersIsDef;
 
 		bool   mGridSzIsDef;
 	private:
-		RPC        * mRPC;
-		ElSeg3D    * mOpticalCenterLine;
+		RPC                * mRPC;
+		std::vector<Pt3dr> * mOpticalCenters;
 		
 		Pt2di        mGridSz;
                 std::string  mCamNom; 
@@ -108,6 +107,33 @@ class CameraRPC: public cCapture3D
 
                 void AssertRPCDirInit() const;
 		void AssertRPCInvInit() const;
+};
+
+class BundleCameraRPC : public cCapture3D
+{
+	public:
+	    BundleCameraRPC(cCapture3D * aCam);
+	    ~BundleCameraRPC(){};
+
+	    Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
+	    bool     PIsVisibleInImage   (const Pt3dr & aP) const;
+	    ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
+	    Pt2di    SzBasicCapt3D() const; 
+
+	    bool  HasRoughCapteur2Terrain() const;
+	    bool  HasPreciseCapteur2Terrain() const;
+	    Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
+	    Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const;
+
+	    double ResolSolOfPt(const Pt3dr &) const ;
+            double ResolSolGlob() const ;
+	    bool  CaptHasData(const Pt2dr &) const;
+
+            Pt2dr ImRef2Capteur   (const Pt2dr & aP) const;
+            double ResolImRefFromCapteur() const;
+
+	private:
+	    cCapture3D * mCam;
 };
 
 #endif

@@ -141,7 +141,8 @@ public:
                 dirErrBiasX(0),
                 dirErrBiasY(0),
 		IS_DIR_INI(false),
-		IS_INV_INI(false)
+		IS_INV_INI(false),
+		mNumTile(1)
         {
         }
         double indirErrBiasRow;
@@ -151,6 +152,8 @@ public:
 
         bool IS_DIR_INI;
 	bool IS_INV_INI;
+        
+	int mNumTile;
 
         Pt3dr DirectRPCNorm(Pt3dr)const;
         Pt3dr InverseRPCNorm(Pt3dr)const;

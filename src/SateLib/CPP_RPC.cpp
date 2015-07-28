@@ -1318,6 +1318,76 @@ void RPC::ReadRPB(std::string const &filename)
     IS_INV_INI=true;
 }
 
+void RPC::ReadXML(std::string const &filename)
+{
+
+    cElXMLTree tree(filename.c_str());
+
+    cElXMLTree* nodes = tree.GetUnique(std::string("NUMROWS"));
+    first_row = 0;
+    last_row = std::atof(nodes->GetUniqueVal().c_str()) - 1;
+
+
+    nodes = tree.GetUnique(std::string("NUMCOLUMNS"));
+    first_col = 0;
+    last_col = std::atof(nodes->GetUniqueVal().c_str()) - 1;
+
+
+    nodes = tree.GetUnique(std::string("NUMTILES"));
+    mNumTile = std::atoi(nodes->GetUniqueVal().c_str());
+   
+    
+    nodes = tree.GetUnique(std::string("ERRBIAS"));
+    dirErrBiasX = std::atof(nodes->GetUniqueVal().c_str());
+    dirErrBiasY = dirErrBiasX;
+
+    nodes = tree.GetUnique(std::string("LINEOFFSET"));
+    line_off = std::atof(nodes->GetUniqueVal().c_str());
+
+    nodes = tree.GetUnique(std::string("SAMPOFFSET"));
+    samp_off = std::atof(nodes->GetUniqueVal().c_str());
+    
+
+    nodes = tree.GetUnique(std::string("LATOFFSET"));
+    lat_off = std::atof(nodes->GetUniqueVal().c_str());
+
+
+    nodes = tree.GetUnique(std::string("LONGOFFSET"));
+    long_off = std::atof(nodes->GetUniqueVal().c_str());
+    
+
+    nodes = tree.GetUnique(std::string("HEIGHTOFFSET"));
+    height_off = std::atof(nodes->GetUniqueVal().c_str());
+   
+
+    nodes = tree.GetUnique(std::string("LINESCALE"));
+    line_scale = std::atof(nodes->GetUniqueVal().c_str());
+
+
+    nodes = tree.GetUnique(std::string("SAMPSCALE"));
+    samp_scale = std::atof(nodes->GetUniqueVal().c_str());
+    
+    
+    nodes = tree.GetUnique(std::string("LATSCALE"));
+    lat_scale = std::atof(nodes->GetUniqueVal().c_str());
+    
+    
+    nodes = tree.GetUnique(std::string("LONGSCALE"));
+    long_scale = std::atof(nodes->GetUniqueVal().c_str());
+
+
+    nodes = tree.GetUnique(std::string("HEIGHTSCALE"));
+    height_scale = std::atof(nodes->GetUniqueVal().c_str());
+    
+
+    //RPC coefficients
+    nodes = tree.GetUnique(std::string("LINENUMCOEF"));
+    
+    std::cout << "til " << nodes->GetUniqueVal() << std::endl;
+       
+    
+}
+
 void RPC::ReadASCII(std::string const &filename)
 {
     std::ifstream ASCIIfi(filename.c_str());
