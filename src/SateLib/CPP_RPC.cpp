@@ -30,7 +30,7 @@ licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
 
 English :
 
-MicMa cis an open source software specialized in image matching
+MicMac is an open source software specialized in image matching
 for research in geographic information. MicMac is built on the
 eLiSe image library. MicMac is governed by the  "Cecill-B licence".
 See below and http://www.cecill.info.
@@ -1338,11 +1338,13 @@ void RPC::ReadXML(std::string const &filename)
    
     
     nodes = tree.GetUnique(std::string("ERRBIAS"));
-    dirErrBiasX = std::atof(nodes->GetUniqueVal().c_str());
-    dirErrBiasY = dirErrBiasX;
+    indirErrBiasRow = std::atof(nodes->GetUniqueVal().c_str());
+    indirErrBiasCol = dirErrBiasX;
+
 
     nodes = tree.GetUnique(std::string("LINEOFFSET"));
     line_off = std::atof(nodes->GetUniqueVal().c_str());
+
 
     nodes = tree.GetUnique(std::string("SAMPOFFSET"));
     samp_off = std::atof(nodes->GetUniqueVal().c_str());
@@ -1381,11 +1383,79 @@ void RPC::ReadXML(std::string const &filename)
     
 
     //RPC coefficients
+    inverse_line_num_coef.resize(20);
+    inverse_line_den_coef.resize(20);
+    inverse_samp_num_coef.resize(20);
+    inverse_samp_den_coef.resize(20);
+
     nodes = tree.GetUnique(std::string("LINENUMCOEF"));
+    {std::istringstream iss;
+     iss.str(nodes->GetUniqueVal());
+
+     iss >> inverse_line_num_coef.at(0) >> inverse_line_num_coef.at(1) 
+	 >> inverse_line_num_coef.at(2) >> inverse_line_num_coef.at(3)
+	 >> inverse_line_num_coef.at(4) >> inverse_line_num_coef.at(5)
+	 >> inverse_line_num_coef.at(6) >> inverse_line_num_coef.at(7)
+	 >> inverse_line_num_coef.at(8) >> inverse_line_num_coef.at(9)
+	 >> inverse_line_num_coef.at(10) >> inverse_line_num_coef.at(11)
+	 >> inverse_line_num_coef.at(12) >> inverse_line_num_coef.at(13)
+	 >> inverse_line_num_coef.at(14) >> inverse_line_num_coef.at(15)
+	 >> inverse_line_num_coef.at(16) >> inverse_line_num_coef.at(17)
+	 >> inverse_line_num_coef.at(18) >> inverse_line_num_coef.at(19);
+
+    }
+
+    nodes = tree.GetUnique(std::string("LINEDENCOEF"));
+    {std::istringstream iss;
+     iss.str(nodes->GetUniqueVal());
+
+     iss >> inverse_line_den_coef.at(0) >> inverse_line_den_coef.at(1)
+	 >> inverse_line_den_coef.at(2) >> inverse_line_den_coef.at(3)
+         >> inverse_line_den_coef.at(4) >> inverse_line_den_coef.at(5)
+	 >> inverse_line_den_coef.at(6) >> inverse_line_den_coef.at(7)
+	 >> inverse_line_den_coef.at(8) >> inverse_line_den_coef.at(9)
+	 >> inverse_line_den_coef.at(10) >> inverse_line_den_coef.at(11)
+	 >> inverse_line_den_coef.at(12) >> inverse_line_den_coef.at(13)
+	 >> inverse_line_den_coef.at(14) >> inverse_line_den_coef.at(15)
+	 >> inverse_line_den_coef.at(16) >> inverse_line_den_coef.at(17)
+	 >> inverse_line_den_coef.at(18) >> inverse_line_den_coef.at(19);	 
+    }
+
+    nodes = tree.GetUnique(std::string("SAMPNUMCOEF"));
+    {std::istringstream iss;
+     iss.str(nodes->GetUniqueVal());
+
+     iss >> inverse_samp_num_coef.at(0) >> inverse_samp_num_coef.at(1)
+	 >> inverse_samp_num_coef.at(2) >> inverse_samp_num_coef.at(3)
+	 >> inverse_samp_num_coef.at(4) >> inverse_samp_num_coef.at(5)
+	 >> inverse_samp_num_coef.at(6) >> inverse_samp_num_coef.at(7)
+	 >> inverse_samp_num_coef.at(8) >> inverse_samp_num_coef.at(9)
+	 >> inverse_samp_num_coef.at(10) >> inverse_samp_num_coef.at(11)
+	 >> inverse_samp_num_coef.at(12) >> inverse_samp_num_coef.at(13)
+	 >> inverse_samp_num_coef.at(14) >> inverse_samp_num_coef.at(15)
+	 >> inverse_samp_num_coef.at(16) >> inverse_samp_num_coef.at(17)
+	 >> inverse_samp_num_coef.at(18) >> inverse_samp_num_coef.at(19);
+
+    }
+
+    nodes = tree.GetUnique(std::string("SAMPDENCOEF"));
+    {std::istringstream iss;
+     iss.str(nodes->GetUniqueVal());
+
+     iss >> inverse_samp_den_coef.at(0) >> inverse_samp_den_coef.at(1)
+	 >> inverse_samp_den_coef.at(2) >> inverse_samp_den_coef.at(3)
+	 >> inverse_samp_den_coef.at(4) >> inverse_samp_den_coef.at(5)
+	 >> inverse_samp_den_coef.at(6) >> inverse_samp_den_coef.at(7)
+	 >> inverse_samp_den_coef.at(8) >> inverse_samp_den_coef.at(9)
+	 >> inverse_samp_den_coef.at(10) >> inverse_samp_den_coef.at(11)
+	 >> inverse_samp_den_coef.at(12) >> inverse_samp_den_coef.at(13)
+	 >> inverse_samp_den_coef.at(14) >> inverse_samp_den_coef.at(15)
+	 >> inverse_samp_den_coef.at(16) >> inverse_samp_den_coef.at(17)
+	 >> inverse_samp_den_coef.at(18) >> inverse_samp_den_coef.at(19);
     
-    std::cout << "til " << nodes->GetUniqueVal() << std::endl;
+    }
        
-    
+    IS_INV_INI = true; 
 }
 
 void RPC::ReadASCII(std::string const &filename)
@@ -1611,7 +1681,7 @@ int RPC::ReadASCIIMetaData(std::string const &metafilename, std::string const &f
 
 void RPC::InverseToDirectRPC(const Pt2di &aGridSz)
 {
-    //Check if indirect exists
+    //Check if inverse exists
     ELISE_ASSERT(IS_INV_INI,"No inverse RPC's for conversion in RPC::InverseToDirectRPC");
 
     /* What follows is re-writen from DigitalGlobe2Grid */

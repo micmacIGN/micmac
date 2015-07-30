@@ -54,8 +54,9 @@ class cSatI_Appli
 };
 
 cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
-	mCSysOut(""),
-	mMetadata("")
+	mCSysOut("+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"),//def: rgf93-lambert-93
+	mMetadata(""),
+	mGridSz(Pt2di(10,8))
 {
     std::string aFullName;
     std::string aDir;
@@ -64,9 +65,9 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
     ElInitArgMain
     (
          argc, argv,
-         LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE/RAY_BUNDLES) full name (Dir+Pat)", eSAM_IsExistFile),
-         LArgMain() << EAM(mModeOri, "ModeOri", true, "The RPC convention (PLEIADE,SPOT,QUICKBIRD,WORLDVIEW,IKONOS,CARTOSAT,SPICE)")
-	            << EAM(mCSysOut, "Proj", true, "Output cartographic coordinate system (proj format)")
+         LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE) full name (Dir+Pat)", eSAM_IsExistFile)
+                    << EAMC(mModeOri, "The RPC convention (PLEIADE,SPOT,QUICKBIRD,WORLDVIEW,IKONOS,CARTOSAT,SPICE)"),
+	 LArgMain() << EAM(mCSysOut,"proj","true", "Output cartographic coordinate system (proj format)")
                     << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[5,8]", eSAM_NoInit)
 		    << EAM(mMetadata, "Meta", true, "Sensor metadata file, other than the RPC; Valid for IKONOS and CARTOSAT", eSAM_IsExistFile)
     );		      
