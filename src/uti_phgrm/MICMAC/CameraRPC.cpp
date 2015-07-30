@@ -43,13 +43,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                           CameraRPC                                 */
 /***********************************************************************/
 
-/* Image coordinates order: [Sample, Line] = [x, y]*/
+/* Image coordinates order: [Line, Sample] = [row, col] =  [x, y]*/
 
 CameraRPC::CameraRPC(std::string const &aNameFile, const  std::string &aModeRPC, const Pt2di &aGridSz, std::string const &aMetaFile) :
        mProfondeurIsDef(false),	
        mAltisSolIsDef(false),
        mOptCentersIsDef(false),
        mGridSzIsDef(true),
+       mOpticalCenters(0),
        mGridSz(aGridSz),
        mCamNom(aNameFile.substr(0,aNameFile.size()-4))
 {
@@ -61,14 +62,13 @@ CameraRPC::CameraRPC(std::string const &aNameFile, const  std::string &aModeRPC,
    else if(aModeRPC=="QUICKBIRD" || aModeRPC=="WORLDVIEW" )
    {
        mRPC->ReadXML(aNameFile);
-       //read the xml
-       //mRPC->InverseToDirectRPC(mGridSz);
+       mRPC->InverseToDirectRPC(Pt2di(50,50));
    }
    else if(aModeRPC=="IKONOS" || aModeRPC=="CARTOSAT")
    {
        mRPC->ReadASCII(aNameFile);
        mRPC->ReadASCIIMetaData(aMetaFile, aNameFile);
-       mRPC->InverseToDirectRPC(mGridSz);
+       mRPC->InverseToDirectRPC(Pt2di(50,50));
    }
    else {ELISE_ASSERT(false,"Unknown RPC mode");}
 
@@ -114,7 +114,7 @@ ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
     if(AltisSolIsDef())
         aZ = mAltiSol;
     
-    Pt3dr aP1RayL3(aP.x, aP.y, aZ+1000), 
+    Pt3dr aP1RayL3(aP.x, aP.y, aZ+1), 
 	  aP2RayL3(aP.x, aP.y, aZ);
 
     return F2toRayonLPH(aP1RayL3, aP2RayL3);
@@ -274,11 +274,11 @@ void CameraRPC::ExpImp2Bundle(const std::string & aSysOut,
 	
 		//create the bundle grid in geodetic CS & save	
 		ElSeg3D aSegTmp(Pt3dr(0,0,0),Pt3dr(0,0,0));
-		for( aL=0; aL<mGridSz.y; aL++ )
-			for( aS=0; aS<mGridSz.x; aS++ )
+		for( aL=0; aL<mGridSz.x; aL++ )
+			for( aS=0; aS<mGridSz.y; aS++ )
 			{
 
-				aSegTmp = Capteur2RayTer( Pt2dr(aS*aGridStep.x,aL*aGridStep.y) );
+				aSegTmp = Capteur2RayTer( Pt2dr(aS*aGridStep.y,aL*aGridStep.x) );
 				aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n" 
 				    << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
 
@@ -308,8 +308,8 @@ void CameraRPC::ExpImp2Bundle(const std::string & aSysOut,
 
 		aGridToExp.resize(mGridSz.y);
 		int aCntTmp=0;
-		for( aL=0; aL<mGridSz.y; aL++ )
-			for( aS=0; aS<mGridSz.x; aS++ )
+		for( aL=0; aL<mGridSz.x; aL++ )
+			for( aS=0; aS<mGridSz.y; aS++ )
 			{
 				aGridToExp.at(aL).push_back ( ElSeg3D(aPtsTmp.at(aCntTmp), 
 							              aPtsTmp.at(aCntTmp+1)) );
@@ -335,14 +335,14 @@ void CameraRPC::ExpImp2Bundle(const std::string & aSysOut,
 
 		aSLS.GridSz() = mGridSz;	
 
-		for( aL=0; aL<mGridSz.y; aL++ )
+		for( aL=0; aL<mGridSz.x; aL++ )
 		{
 			cXml_OneLineSLS aOL;
-			aOL.IndLine() = aL*aGridStep.y;
-			for( aS=0; aS<mGridSz.x; aS++ )
+			aOL.IndLine() = aL*aGridStep.x;
+			for( aS=0; aS<mGridSz.y; aS++ )
 			{
 				cXml_SLSRay aOR;
-				aOR.IndCol() = aS*aGridStep.x;
+				aOR.IndCol() = aS*aGridStep.y;
 
 				aOR.P1() = aGridToExp.at(aL).at(aS).P0();
 				aOR.P2() = aGridToExp.at(aL).at(aS).P1();
@@ -385,13 +385,11 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
     aFO << std::setprecision(15);
 
     ElSeg3D aSegTmp(Pt3dr(0,0,0), Pt3dr(0,0,0));
-    for( aL=0; aL<mGridSz.y; aL++)
+    for( aL=0; aL<mGridSz.x; aL++)
     {
-        std::vector<ElSeg3D> aVSgeo;
-
-	for( aS=0; aS<mGridSz.x; aS++)
+	for( aS=0; aS<mGridSz.y; aS++)
 	{
-	    aSegTmp = Capteur2RayTer( Pt2dr(aS*aGridStep.x, aL*aGridStep.y));
+	    aSegTmp = Capteur2RayTer( Pt2dr( aS*aGridStep.y, aL*aGridStep.x));
             aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n"   
                 << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
 	}
@@ -422,14 +420,17 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 
     //do the intersection on respective segments in the user-def CS
     mOpticalCenters = new std::vector<Pt3dr>();
-    
+    //cRapOnZ * aRAZ = new cRapOnZ(680000.0,10,10,"");
+    //cResOptInterFaisceaux * aROIF;
+
     int aCntTmp=0;
-    for( aL=0; aL<mGridSz.y; aL++)
+    for( aL=0; aL<mGridSz.x; aL++)
     {
 	std::vector<ElSeg3D> aVS;
 	std::vector<double>  aVPds;
 
-        for( aS=0; aS<mGridSz.x; aS++)
+        
+	for( aS=0; aS<mGridSz.y; aS++)
 	{
 	    aVPds.push_back(0.5);
             aVS.push_back( ElSeg3D(aPtsTmp.at(aCntTmp),
@@ -442,7 +443,10 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 
 	//intersect
 	bool aIsOK;
+	//mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK, aRAZ) );
 	mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
+
+
 
 	if(aIsOK==false)
 	    std::cout << "not intersected in CameraRPC::OpticalCenterLineTer" << std::endl;
@@ -468,7 +472,6 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 
 
 }
-
 
 /***********************************************************************/
 /*                        BundleCameraRPC                              */
