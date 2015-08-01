@@ -36,7 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "Apero.h"
+
 
 template  class ElGraphe<NS_ParamApero::cPoseCam*,NS_ParamApero::cAttrArcPose>;
 template  class ElTabDyn<ElSom<NS_ParamApero::cPoseCam*, NS_ParamApero::cAttrArcPose> >;
