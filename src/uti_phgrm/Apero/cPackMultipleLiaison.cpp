@@ -36,7 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "Apero.h"
+
 
 template  class ElQT<NS_ParamApero::cOnePtsMult *,Pt2dr,NS_ParamApero::cFctrPtsOfPMul> ;
 

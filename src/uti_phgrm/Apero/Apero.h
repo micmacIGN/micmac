@@ -37,6 +37,12 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#ifndef _APERO_H_
+#define _APERO_H_
+#include "StdAfx.h"
+#include "cParamApero.h"
+
+
 
 extern bool ResidualStepByStep ;
 
@@ -2477,6 +2483,9 @@ class cAppliApero : public NROptF1vND
 
 
 #define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)
+
+#endif //  _APERO_H_
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

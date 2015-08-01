@@ -36,7 +36,8 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+#include "Apero.h"
+
 
 Pt2dr aDebugPIm(915.982,2820.98);
 Pt2dr aDebugPL3(-0.339882,0.170243);

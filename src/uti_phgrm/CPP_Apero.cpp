@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
+#include "Apero/Apero.h"
 
 
 extern bool L2SYM;
