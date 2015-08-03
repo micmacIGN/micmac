@@ -208,6 +208,8 @@ extern int GenerateAppLiLiaison_main(int argc,char **argv);
 extern int TestNameCalib_main(int argc,char ** argv);
 extern int Init3App_Main(int argc,char ** argv);
 
+extern int  CPP_CmpOriCam_main(int argc, char** argv);
+
 
 
 
@@ -229,7 +231,8 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("BatchFDC",BatchFDC_main," Tool for batching a set of commands"));
        aRes.push_back(cMMCom("Campari",Campari_main," Interface to Apero, for compensation of heterogeneous measures",cArgLogCom(2)));
        aRes.push_back(cMMCom("ChgSysCo",ChgSysCo_main," Change coordinate system of orientation",cArgLogCom(2)));
-       aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Do some stuff"));
+       aRes.push_back(cMMCom("CmpCalib",CmpCalib_main," Compare two  calibrations"));
+       aRes.push_back(cMMCom("CmpOri",CPP_CmpOriCam_main," Compare two sets of orientation"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));

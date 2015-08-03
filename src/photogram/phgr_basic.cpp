@@ -1436,6 +1436,23 @@ Pt2dr cCorrRefracAPost::CorrC2M(const Pt2dr & aP0) const
            mCamEstim->L3toF2(aP);
 }
 
+/*************************************************/
+/*                                               */
+/*    cBasicGeomCap3D                            */
+/*                                               */
+/*************************************************/
+
+
+bool   cBasicGeomCap3D::HasOpticalCenterOfPixel() const
+{
+   return true;
+}
+
+Pt3dr    cBasicGeomCap3D::OpticalCenterOfPixel(const Pt2dr & aP) const
+{
+    ELISE_ASSERT(false,"cBasicGeomCap3D::OpticalCenterOfPixel");
+    return Pt3dr(0,0,0);
+}
 
 
 /*************************************************/
@@ -3513,6 +3530,11 @@ Pt3dr CamStenope::PseudoOpticalCenter() const
     return _orient.ImRecAff(Pt3dr(0,0,0));
 }
 
+Pt3dr    CamStenope::OpticalCenterOfPixel(const Pt2dr & aP) const 
+{
+   return PseudoOpticalCenter();
+}
+
 bool CamStenope::UseAFocal() const
 {
      return mUseAF;
@@ -4738,6 +4760,12 @@ void  ElProjIdentite::Rayon(Pt2dr aP,Pt3dr &p0,Pt3dr & p1) const
 ElProjIdentite ElProjIdentite::TheOne;
 
            //  cCameraOrtho
+
+bool    cCameraOrtho::HasOpticalCenterOfPixel() const
+{
+   return false;
+}
+
 
 cCameraOrtho::cCameraOrtho(const Pt2di & aSz) :
    ElCamera(false,eProjectionOrtho)
