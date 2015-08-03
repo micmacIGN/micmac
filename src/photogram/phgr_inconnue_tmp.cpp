@@ -940,8 +940,22 @@ cParamPtProj::cParamPtProj(double aSeuilBsH,double aSeuilBsHRefut,bool aDebug) :
    mSeuilBsH  (aSeuilBsH),
    mSeuilBsHRefut  (aSeuilBsHRefut),
    mProjIsInit (false),
-   wDist       (true)
+   wDist       (true),
+   mInitBasePPP (false),
+   mInitHautPPP (false)
 {
+}
+
+void cParamPtProj::SetHautPPP(const double & aH) 
+{
+   mHautPPP = aH; 
+   mInitHautPPP=true;
+}
+
+void cParamPtProj::SetBasePPP(const double & aB) 
+{
+    mBasePPP = aB;  
+    mInitBasePPP=true;
 }
 
 /************************************************************/
@@ -1213,6 +1227,11 @@ if (BugZ0)
         {
             Pt2dr aPIm = aNuple.PK(aK);
         // ElSeg3D aSeg ;
+
+
+// Apparemmnt les cCamStenopeGrid ne sont plus utilisee pour simplifier le code et faciliter vers 
+// une transition vers  CapteurBasic 
+/*
             cCamStenopeGrid * aCSG =  mVCamVis[aK]->PIF().CamGrid();
             if (aCSG)
             {
@@ -1220,8 +1239,12 @@ if (BugZ0)
             }
             else
             {
-              aSeg = aVCC[aK]->F2toRayonR3(aPIm);
+               //  aSeg = aVCC[aK]->F2toRayonR3(aPIm); Modif SatBundle
+
+               aSeg = aVCC[aK]->Capteur2RayTer(aPIm);
             }
+*/
+            aSeg = aVCC[aK]->Capteur2RayTer(aPIm);
 
         // cCamStenopeGrid * aCSG =  mVCamVis[aK]->PIF().CamGrid();
 	    if (mEqSurf)
@@ -1244,6 +1267,7 @@ if (BugZ0)
    Pt3dr aSomT(0,0,0);
    Pt3dr aSomT2(0,0,0);
    double aSP = 0;
+   double aSomPdsC = 0;
    double aSP2 = 0;
  // std::cout << "BsssHH " << aParam.mSeuilBsHRefut  << " "  << aParam.mSeuilBsH << " " << CanUseProjectifP<< "\n";
    if (((aParam.mSeuilBsH > 0) || (aParam.mSeuilBsHRefut>0)) && (CanUseProjectifP))
@@ -1256,12 +1280,15 @@ if (BugZ0)
           aSomT2 = aSomT2 + Pcoord2(aT) *aPds;
           aSP += aPds;
           aSP2 += ElSquare(aPds);
-          aSomC = aSomC + aVCC[aK]->PseudoOpticalCenter() * aPds;
+          if (aVCC[aK]->HasOpticalCenterOfPixel())
+          {
+             aSomPdsC += aPds;
+             aSomC = aSomC + aVCC[aK]->OpticalCenterOfPixel(aNuple.PK(aK)) * aPds;
+          }
       }
       aSomT = aSomT / aSP;
       aSomT2 = aSomT2 / aSP;
       aSomT2 = aSomT2 - Pcoord2(aSomT);
-      aSomC = aSomC / aSP;
       // Ce debiaisement est necessaire, par exemple si tous les poids sauf 1 sont
       // presque nuls
       double aDebias = 1 - aSP2/ElSquare(aSP);
@@ -1355,9 +1382,13 @@ if (BugZ0)
       }
 
       aParam.mTer = aRes;
-      aParam.mHaut = euclid(aParam.mTer-aSomC);
-
-      aParam.mBase = aParam.mBsH * aParam.mHaut;
+      if (aSomPdsC!=0)
+      {
+         aSomC = aSomC / aSomPdsC;
+         double aHaut = euclid(aParam.mTer-aSomC);
+         aParam.SetHautPPP(aHaut);
+         aParam.SetBasePPP(aParam.mBsH * aHaut);
+     }
 
 
       int aKPb=-1;

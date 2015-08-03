@@ -648,13 +648,20 @@ class cParamPtProj
        Pt3dr  mI;
        Pt3dr  mJ;
        Pt3dr  mK;
-       double mBase;
-       double mHaut;
        
        bool   wDist;
        Pt2dr  mNDP0;
        Pt2dr  mNDdx;
        Pt2dr  mNDdy;
+       void SetHautPPP(const double & aH);
+       void SetBasePPP(const double &);
+  private :
+  // Attention ces deux valeurs, privees ne sont pas forcement calculees,
+  // ajouter verif si on veut y donner acces !!
+       double mBasePPP;
+       bool   mInitBasePPP;
+       double mHautPPP;
+       bool   mInitHautPPP;
 };
 
 class cRapOnZ

@@ -1451,7 +1451,15 @@ class cBasicGeomCap3D
     public :
       virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
       virtual Pt2di    SzBasicCapt3D() const = 0;
+
+  // Optical center 
+      virtual bool     HasOpticalCenterOfPixel() const; // 1 - They are not alway defined
+// When they are, they may vary, as with push-broom, Def fatal erreur (=> Ortho cam)
+      virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ; 
 };
+
+
+
 
 //  Classe qui permet de manipuler de manière via une interface uniforme une image,
 // ou un nuage de point
@@ -1854,6 +1862,8 @@ class cCameraOrtho : public ElCamera
          bool  HasOrigineProf() const;
          double ResolutionSol() const ;
          double ResolutionSol(const Pt3dr &) const ;
+
+         virtual bool     HasOpticalCenterOfPixel() const; // 
     private :
          double SzDiffFinie() const;
        cCameraOrtho(const Pt2di & aSz);
@@ -2104,6 +2114,7 @@ class CamStenope : public ElCamera
      Pt2dr PP() const ;
      Pt3dr VraiOpticalCenter() const;
      Pt3dr PseudoOpticalCenter() const;
+     Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ; 
      Pt3dr OpticalVarCenterIm(const Pt2dr &) const;
      Pt3dr OpticalVarCenterTer(const Pt3dr &) const;
      Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
