@@ -288,7 +288,7 @@ void cOneVisuPMul::DoOnePMul(cOnePtsMult & aPM )
 
 
    double                    aDistPdsErr = 0.25;
-   std::vector<CamStenope *> aVCS;
+   std::vector<cBasicGeomCap3D *> aVCS;
    cNupletPtsHomologues      aNewNuple(0,1.0);
    std::vector<double>       aVPdsNew;
    std::vector<double>       aVCorrel;
@@ -410,7 +410,7 @@ ElTimer aChr;
        bool OkPts = true;
        bool IsSift = false;
 
-       Pt2dr aPImAbs = aVCS[aKPose]->R3toF2(aNewP);
+       Pt2dr aPImAbs = aVCS[aKPose]->Ter2Capteur(aNewP);
 
        double aDistProj = euclid(aPImAbs,aNewNuple.PK(aKPose));
        if (aDistProj > mVMP.MaxDistReproj().Val())

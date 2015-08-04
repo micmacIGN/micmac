@@ -996,7 +996,7 @@ cManipPt3TerInc::cManipPt3TerInc
 
 void VerifSizeCamPtPds
      (
-           std::vector<CamStenope *>    aVCams,
+           std::vector<cBasicGeomCap3D *>    aVCams,
            const cNupletPtsHomologues & aNuple,
            const std::vector<double> &  aVPds,
            std::vector<Pt3dr> *         aVAp
@@ -1045,7 +1045,7 @@ class cCmpX
 Pt3dr CalcPTerIFC_Robuste
       (
            double                       aDistPdsErr,
-           std::vector<CamStenope *>    aVCC,
+           std::vector<cBasicGeomCap3D *>    aVCC,
            const cNupletPtsHomologues & aNuple,
            const std::vector<double> &  aVPds
       )
@@ -1106,9 +1106,9 @@ void cManipPt3TerInc::SetMulPdsGlob(double aMul)
    mMulGlobPds = aMul;
 }
 
-std::vector<CamStenope *> cManipPt3TerInc::VCamCur()
+std::vector<cBasicGeomCap3D *> cManipPt3TerInc::VCamCur()
 {
-   std::vector<CamStenope *> aRes;
+   std::vector<cBasicGeomCap3D *> aRes;
    for (int aK=0 ; aK<int(mVCamVis.size()) ; aK++)
        aRes.push_back(mVCamVis[aK]->NC_CameraCourante());
    return aRes;
@@ -1155,7 +1155,7 @@ void InspectInterFaisc
 
 bool OkReproj
      (  
-          const std::vector<CamStenope *> &  aVCam,
+          const std::vector<cBasicGeomCap3D *> &  aVCam,
           const std::vector<double> &  aVPds,
           const Pt3dr &                aPTer,
           int & aKP
@@ -1166,9 +1166,11 @@ bool OkReproj
    {
        if (aVPds[aK] >0)
        {
-           CamStenope & aCam = *(aVCam[aK]);
-           Pt2dr aProj = aCam.R3toF2(aPTer);
-           if (! aCam.IsInZoneUtile(aProj))
+           cBasicGeomCap3D & aCam = *(aVCam[aK]);
+           // Pt2dr aProj = aCam.Ter2Capteur(aPTer);
+           // if (! aCam.CaptHasData(aProj))
+ // Semble + robuste de se baser sur la visibilite car reprojection peut etre degeneree
+           if (! aCam.PIsVisibleInImage(aPTer))
            {
               aKP = aK;
               return false;
@@ -1205,7 +1207,7 @@ if (BugZ0)
 }
 
 
-   std::vector<CamStenope *>  aVCC = VCamCur();
+   std::vector<cBasicGeomCap3D *>  aVCC = VCamCur();
    VerifSizeCamPtPds(aVCC,aNuple,aVPds,aPAbs);
 
    std::vector<ElSeg3D> aVS;
