@@ -1450,6 +1450,7 @@ class cBasicGeomCap3D
 {
     public :
       virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
+      virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const =0;
       virtual Pt2di    SzBasicCapt3D() const = 0;
 
   // Optical center 
@@ -1467,7 +1468,6 @@ class cBasicGeomCap3D
 class cCapture3D : public cBasicGeomCap3D
 {
    public :
-      virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const =0;
       virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const =0;
       virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
 
