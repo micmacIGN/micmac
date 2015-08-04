@@ -1056,7 +1056,7 @@ Pt3dr CalcPTerIFC_Robuste
 
    std::vector<Pt2dr> aVAbscPds;
 
-   ElSeg3D aSeg0 = aVCC[0]->F2toRayonR3(aNuple.PK(0));
+   ElSeg3D aSeg0 = aVCC[0]->Capteur2RayTer(aNuple.PK(0));
 
 
    int aK;
@@ -1064,15 +1064,15 @@ Pt3dr CalcPTerIFC_Robuste
    {
        if (aVPds[aK] != 0)
        {
-          ElSeg3D aSegK = aVCC[aK]->F2toRayonR3(aNuple.PK(aK));
+          ElSeg3D aSegK = aVCC[aK]->Capteur2RayTer(aNuple.PK(aK));
           double aA0,aAK;
           aSeg0.AbscissesPseudoInter(aA0,aAK,aSegK);
 
           Pt3dr aP0 = aSeg0.PtOfAbsc(aA0);
           Pt3dr aPK = aSegK.PtOfAbsc(aAK);
 
-          Pt2dr aPIm0 = aVCC[0]->R3toF2(aP0);
-          Pt2dr aPImK = aVCC[0]->R3toF2(aPK);
+          Pt2dr aPIm0 = aVCC[0]->Ter2Capteur(aP0);
+          Pt2dr aPImK = aVCC[0]->Ter2Capteur(aPK);
 
           double aDist  =euclid(aPIm0,aPImK);
           double aDistDir = euclid(aSeg0.TgNormee()-aSegK.TgNormee());
