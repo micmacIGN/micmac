@@ -692,7 +692,7 @@ class cManipPt3TerInc
 	    bool                           aClose = true
         );
 
-        std::vector<CamStenope *> VCamCur();
+        std::vector<cBasicGeomCap3D *> VCamCur();
 
 
 	const cResiduP3Inc & UsePointLiaison
@@ -778,7 +778,7 @@ class cManipPt3TerInc
 Pt3dr CalcPTerIFC_Robuste
       (
            double                       aDistPdsErr,
-           std::vector<CamStenope *>    aVCC,
+           std::vector<cBasicGeomCap3D *>    aVCC,
            const cNupletPtsHomologues & aNuple,
            const std::vector<double> &  aVPds
       );
