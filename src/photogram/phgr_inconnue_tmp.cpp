@@ -968,7 +968,7 @@ cManipPt3TerInc::cManipPt3TerInc
 (
         cSetEqFormelles &              aSet,
         cSurfInconnueFormelle *         anEqSurf,
-        std::vector<cCameraFormelle *> aVCamVis,
+        std::vector<cGenPDVFormelle *> aVCamVis,
         bool                           aClose
 )  :
    mSet        (aSet),
@@ -1110,7 +1110,7 @@ std::vector<cBasicGeomCap3D *> cManipPt3TerInc::VCamCur()
 {
    std::vector<cBasicGeomCap3D *> aRes;
    for (int aK=0 ; aK<int(mVCamVis.size()) ; aK++)
-       aRes.push_back(mVCamVis[aK]->NC_CameraCourante());
+       aRes.push_back(mVCamVis[aK]->GPF_NC_CurBGCap3D());
    return aRes;
 }
 
@@ -1447,7 +1447,7 @@ if (BugZ0)
    }
 }
 
-const std::vector<cCameraFormelle *> &  
+const std::vector<cGenPDVFormelle *> &  
        cManipPt3TerInc::VCamVis() const
 {
    return mVCamVis;
@@ -1594,13 +1594,20 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
 	int aNbNN =0;
         for (int aK=0 ; aK<int(mVCamVis.size()) ; aK++)
         {
-            if (euclid(mResidus.mPTer-mVCamVis[aK]->NC_CameraCourante()->PseudoOpticalCenter())<1e-5)
-              aVPdsIm[aK] = 0;
+            cBasicGeomCap3D * aBGC3d = mVCamVis[aK]->GPF_NC_CurBGCap3D();
+
+            if (aBGC3d->HasOpticalCenterOfPixel())
+            {
+
+               Pt3dr aCOpt = aBGC3d->OpticalCenterOfPixel(aNuple.PK(aK));
+               if (euclid(mResidus.mPTer-aCOpt)<1e-5)
+                 aVPdsIm[aK] = 0;
+            }
 	    if (aVPdsIm[aK]>0) 
             {
 	       aNbNN++;
             }
-if (UPL_DCC())  std::cout  << "==================== Pds " << aVPdsIm[aK] << "\n";
+            if (UPL_DCC())  std::cout  << "==================== Pds " << aVPdsIm[aK] << "\n";
         }
 	// if ((aNbNN<2)  && (!mEqSurf) && (! aPtApuis))
         // 	AddEq=0;

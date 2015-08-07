@@ -1454,6 +1454,15 @@ Pt3dr    cBasicGeomCap3D::OpticalCenterOfPixel(const Pt2dr & aP) const
     return Pt3dr(0,0,0);
 }
 
+void cBasicGeomCap3D::Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer)
+{
+    double aStep = ResolSolOfPt(aTer) / 10.0;
+
+    aDx = (Ter2Capteur(Pt3dr(aTer.x+aStep,aTer.y,aTer.z)) - aPIm) / aStep;
+    aDy = (Ter2Capteur(Pt3dr(aTer.x,aTer.y+aStep,aTer.z)) - aPIm) / aStep;
+    aDz = (Ter2Capteur(Pt3dr(aTer.x,aTer.y,aTer.z+aStep)) - aPIm) / aStep;
+}
+
 
 /*************************************************/
 /*                                               */

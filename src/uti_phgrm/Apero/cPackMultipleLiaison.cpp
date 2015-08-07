@@ -148,7 +148,7 @@ cOneCombinMult::cOneCombinMult
 (
     cSurfInconnueFormelle  * anEqS,
     const std::vector<cPoseCam *> & aVP,
-    const std::vector<cCameraFormelle *>  & aVCF ,
+    const std::vector<cGenPDVFormelle *>  & aVCF ,
     const tFixedSetInt & aFlag
 )   :
    mPLiaisTer (new cManipPt3TerInc(aVCF[0]->Set(),anEqS,aVCF)),
@@ -927,7 +927,7 @@ cOneCombinMult *  cObsLiaisonMultiple::AddAFlag(const cOnePtsMult & aPM)
     if (aRes!=0)
        return aRes;
 
-    std::vector<cCameraFormelle *>  aVCF;
+    std::vector<cGenPDVFormelle *>  aVCF;
     std::vector<cPoseCam *>  aVP;
     for (int aK=0 ; aK <int(mVPoses.size()) ; aK++)
     {

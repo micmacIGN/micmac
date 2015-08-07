@@ -52,6 +52,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 const bool AFocalAcceptNoDist = false;
 
+
+
+
 /************************************************************/
 /*                                                          */
 /*                 cPolynome1VarFormel                      */
@@ -600,6 +603,24 @@ ElRotation3D cRotationFormelle::CurRot(REAL aT)
            );
 }
 
+/************************************************************/
+/*                                                          */
+/*                 cGenPDVFormelle                          */
+/*                                                          */
+/************************************************************/
+
+cSetEqFormelles & cGenPDVFormelle::Set()
+{
+   return mSet;
+}
+
+
+cGenPDVFormelle::cGenPDVFormelle(cSetEqFormelles & aSet) :
+   mSet  (aSet)
+{
+}
+
+
 
 /************************************************************/
 /*                                                          */
@@ -943,9 +964,9 @@ cCameraFormelle::cCameraFormelle
      bool  GenCodeAppui,
      bool  HasEqDroite
 )  :
+   cGenPDVFormelle(*(anIntr.Set())),
    pCamAttach  (aCamAtt),
    mIntr       (anIntr),
-   mSet        (*(mIntr.Set())),
    mRot        (mSet.NewRotation(aMode,aRot, ((pCamAttach==0) ? 0 : pCamAttach->mRot),aName)),
    mName       (aName),
 
@@ -1258,10 +1279,6 @@ void cCameraFormelle::SetModeRot(eModeContrRot aMode)
      mRot->SetModeRot(aMode);
 }
 
-cSetEqFormelles & cCameraFormelle::Set()
-{
-   return mSet;
-}
 
 Pt3d<Fonc_Num> cCameraFormelle::COptF()
 {
@@ -1298,6 +1315,17 @@ const CamStenope * cCameraFormelle::CameraCourante()  const
 CamStenope * cCameraFormelle::NC_CameraCourante() 
 {
    return mCameraCourante;
+}
+
+
+const cBasicGeomCap3D * cCameraFormelle::GPF_CurBGCap3D() const 
+{
+    return CameraCourante();
+}
+
+cBasicGeomCap3D * cCameraFormelle::GPF_NC_CurBGCap3D() 
+{
+    return NC_CameraCourante();
 }
 
 

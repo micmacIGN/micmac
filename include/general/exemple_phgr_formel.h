@@ -688,7 +688,7 @@ class cManipPt3TerInc
 	(
             cSetEqFormelles &              aSet,
 	    cSurfInconnueFormelle *,             // Peut valoir 0 (souvent le cas)
-	    std::vector<cCameraFormelle *> aVCamVis,
+	    std::vector<cGenPDVFormelle *> aVCamVis,
 	    bool                           aClose = true
         );
 
@@ -719,7 +719,7 @@ class cManipPt3TerInc
 				  bool           aUseAppAsInit
 			     );
 
-        const std::vector<cCameraFormelle *> &   VCamVis() const;
+        const std::vector<cGenPDVFormelle *> &   VCamVis() const;
 
   // Utilisation "standard", enchaine les 4 prec
 
@@ -767,7 +767,7 @@ class cManipPt3TerInc
         cSetEqFormelles &                mSet;
         cEqfP3dIncTmp  *                 mP3Inc;
 	cSurfInconnueFormelle *          mEqSurf;
-        std::vector<cCameraFormelle *>   mVCamVis;
+        std::vector<cGenPDVFormelle *>   mVCamVis;
 	cResiduP3Inc                     mResidus;
         cSubstitueBlocIncTmp             mSubst;
         bool                             mTerIsInit;

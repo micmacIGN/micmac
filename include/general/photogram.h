@@ -1460,6 +1460,10 @@ class cBasicGeomCap3D
       virtual bool     HasOpticalCenterOfPixel() const; // 1 - They are not alway defined
 // When they are, they may vary, as with push-broom, Def fatal erreur (=> Ortho cam)
       virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ; 
+
+// Compute the differential, defaut value compute it by finite difference,at step ResolSolOfPt, 
+// to accelerate it is note centered en reuse the value PIm
+      virtual void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);
 };
 
 

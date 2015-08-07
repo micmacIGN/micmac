@@ -122,7 +122,7 @@ void cOneAppuisFlottant::DoAMD(cAMD_Interf *)
 void  cOneAppuisFlottant::Compile()
 {
     mNupl = new cNupletPtsHomologues(mCams.size(),1.0);
-    std::vector<cCameraFormelle *> aVCF;
+    std::vector<cGenPDVFormelle *> aVCF;
 
     for (int aK=0; aK<int(mCams.size()) ; aK++)
     {
