@@ -1552,10 +1552,31 @@ class cPoint3DInc : public cNameSpaceEqF,
 };
 
 
-class cCameraFormelle :  public cNameSpaceEqF ,
+class cGenPDVFormelle : public cNameSpaceEqF ,
                          public cObjFormel2Destroy
 {
+    public :
+	  virtual const cBasicGeomCap3D * GPF_CurBGCap3D() const =0;
+	  virtual cBasicGeomCap3D * GPF_NC_CurBGCap3D() =0;
+	  virtual Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite)=0;
+	  virtual cIncListInterv & IntervAppuisPtsInc() =0; 
+
+          cGenPDVFormelle(cSetEqFormelles & aSet);
+          cSetEqFormelles & Set();
+
+    protected :
+          cSetEqFormelles &           mSet;
+    private :
+          cGenPDVFormelle(const cGenPDVFormelle &) ; // N.I.
+};
+
+
+
+class cCameraFormelle :  public cGenPDVFormelle
+{
      public :
+	  virtual const cBasicGeomCap3D * GPF_CurBGCap3D() const ;
+	  virtual       cBasicGeomCap3D * GPF_NC_CurBGCap3D() ;
           
           void PrepareEqFForPointIm(const cIncListInterv &,cElCompiledFonc *,const Pt2dr &,bool EqDroite,int aKCam);  // Transmet a Intrinseque
           ElAffin2D & ResiduM2C();
@@ -1582,7 +1603,6 @@ class cCameraFormelle :  public cNameSpaceEqF ,
           cRotationFormelle &       RF();
           cParamIntrinsequeFormel & PIF();
 
-          cSetEqFormelles & Set();
           const std::string & Name() const;
           eModeContrRot  ModeRot() const;
 	  void SetModeRot(eModeContrRot);
@@ -1688,7 +1708,6 @@ class cCameraFormelle :  public cNameSpaceEqF ,
           );
           cCameraFormelle   *         pCamAttach;
           cParamIntrinsequeFormel &   mIntr;
-          cSetEqFormelles &           mSet;
           cRotationFormelle *         mRot;
 	  std::string                 mName;
 

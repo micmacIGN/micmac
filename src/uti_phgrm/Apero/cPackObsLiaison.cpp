@@ -258,7 +258,7 @@ void  cObservLiaison_1Cple::Compile
     // mCpleR1 = anAppli.SetEq().NewCpleCam(*(mPose1->CF()),*(mPose2->CF()),cNameSpaceEqF::eResiduIm1);
     // mCpleR2 = anAppli.SetEq().NewCpleCam(*(mPose1->CF()),*(mPose2->CF()),cNameSpaceEqF::eResiduIm2);
 
-    std::vector<cCameraFormelle *>  aVCF;
+    std::vector<cGenPDVFormelle *>  aVCF;
     aVCF.push_back(mPose1->CamF());
     aVCF.push_back(mPose2->CamF());
 

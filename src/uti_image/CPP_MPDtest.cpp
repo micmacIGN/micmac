@@ -782,13 +782,15 @@ void TestMax(int argc,char** argv)
 
 }
 
+void TestBGC3M2D();
+
 
 int MPDtest_main (int argc,char** argv)
 {
-
-   TestMax(argc,argv);
+   TestBGC3M2D();
 
 /*
+   TestMax(argc,argv);
    cXml_ScanLineSensor  aSensor = StdGetFromSI("/home/marc/TMP/EPI/TestSens.xml",Xml_ScanLineSensor);
 
    MakeFileXML(aSensor,"/home/marc/TMP/EPI/TestSens.dmp");

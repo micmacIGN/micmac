@@ -331,7 +331,13 @@ class cCompileAOI
 
 class cPoseCdtImSec;
 
-class cPoseCam
+class cGenPoseCam
+{
+    public :
+};
+
+
+class cPoseCam : public cGenPoseCam
 {
      public :
 
@@ -873,7 +879,7 @@ class cOneCombinMult
 	(
 	       cSurfInconnueFormelle  *        anEqS,
 	       const std::vector<cPoseCam *> & aVP,
-	       const std::vector<cCameraFormelle *>  & aVCF ,
+	       const std::vector<cGenPDVFormelle *>  & aVCF ,
 	       const tFixedSetInt &                    aFlag
         );
 	cManipPt3TerInc * LiaisTer();
