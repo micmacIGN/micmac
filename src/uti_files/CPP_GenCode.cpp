@@ -38,6 +38,18 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+extern void GenCodeEqProjGen(int );
+void GenCodeEqProjGen()
+{
+    GenCodeEqProjGen(1);
+    GenCodeEqProjGen(2);
+    GenCodeEqProjGen(3);
+    GenCodeEqProjGen(4);
+    GenCodeEqProjGen(5);
+    GenCodeEqProjGen(6);
+    GenCodeEqProjGen(7);
+}
+
 
 //================== ELLIPSE =====================================
 
@@ -649,11 +661,12 @@ extern void GenCodecEqBundleBase();
 
 void GenerateCodeEqRelativeGPS();
 
-
 int GenCode_main(int argc,char ** argv)
 {
-     // GenerateCodeEqRelativeGPS();
-    GenCodecEqBundleBase();
+    GenCodeEqProjGen();
+    
+    // GenerateCodeEqRelativeGPS();
+    // GenCodecEqBundleBase();
     // GenCodeEqLinariseAngle();
 
 

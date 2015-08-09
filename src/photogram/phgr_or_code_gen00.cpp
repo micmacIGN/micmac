@@ -172,6 +172,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqBBCamSecond_AccelCsteCoord.h"
 #include "../../CodeGenere/photogram/cEqBBCamThird_AccelCsteCoord.h"
 
+
+// ========================= Bundle Gen 2D ==========================
+
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg1.h"
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg2.h"
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg3.h"
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg4.h"
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg5.h"
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg6.h"
+#include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg7.h"
+
 //=======================  Droite ========================
 
 #include "../../CodeGenere/photogram/cEqAppui_Droite_GL__PTInc_M2CNoVar.h"
@@ -651,6 +662,17 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqBBCamFirst_AccelCsteCoord",cEqBBCamFirst_AccelCsteCoord::Alloc);
      AddEntry("cEqBBCamSecond_AccelCsteCoord",cEqBBCamSecond_AccelCsteCoord::Alloc);
      AddEntry("cEqBBCamThird_AccelCsteCoord",cEqBBCamThird_AccelCsteCoord::Alloc);
+
+     AddEntry("cGen2DBundleEgProj_Deg1",cGen2DBundleEgProj_Deg1::Alloc);
+     AddEntry("cGen2DBundleEgProj_Deg2",cGen2DBundleEgProj_Deg2::Alloc);
+     AddEntry("cGen2DBundleEgProj_Deg3",cGen2DBundleEgProj_Deg3::Alloc);
+     AddEntry("cGen2DBundleEgProj_Deg4",cGen2DBundleEgProj_Deg4::Alloc);
+     AddEntry("cGen2DBundleEgProj_Deg5",cGen2DBundleEgProj_Deg5::Alloc);
+     AddEntry("cGen2DBundleEgProj_Deg6",cGen2DBundleEgProj_Deg6::Alloc);
+     AddEntry("cGen2DBundleEgProj_Deg7",cGen2DBundleEgProj_Deg7::Alloc);
+
+
+
 
      FULL_NEW_ADD_ENTRY(Fraser_PPaEqPPs)
      FULL_NEW_ADD_ENTRY(Four7x2);
