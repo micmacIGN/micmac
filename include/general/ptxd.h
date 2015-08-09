@@ -297,6 +297,7 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
 
       // operator * est deja surcharge
       Pt2d<Type> mul (const Type & aL) const { return Pt2d<Type>(x*aL,y*aL);}
+      Pt2d<Type> div (const Type & aL) const { return Pt2d<Type>(x/aL,y/aL);}
 
 
          // binaires,  PtxPt => scalaire
