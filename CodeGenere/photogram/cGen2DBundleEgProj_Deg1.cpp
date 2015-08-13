@@ -39,9 +39,9 @@ void cGen2DBundleEgProj_Deg1::ComputeVal()
    double tmp20_ = (tmp17_)-mLocCentr_y;
    double tmp21_ = (tmp20_)/mLocAmpl;
 
-  mVal[0] = tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp19_)*(tmp21_);
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp19_)*(tmp21_))-mLocPIm_x;
 
-  mVal[1] = tmp17_+mCompCoord[6]+mCompCoord[7]+mCompCoord[8]*(tmp19_)*(tmp21_);
+  mVal[1] = (tmp17_+mCompCoord[6]+mCompCoord[7]+mCompCoord[8]*(tmp19_)*(tmp21_))-mLocPIm_y;
 
 }
 
@@ -89,7 +89,7 @@ void cGen2DBundleEgProj_Deg1::ComputeValDeriv()
    double tmp38_ = (tmp37_)/tmp21_;
    double tmp39_ = (tmp23_)*(tmp20_);
 
-  mVal[0] = tmp11_+mCompCoord[3]+mCompCoord[4]+tmp24_*(tmp20_);
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+tmp24_*(tmp20_))-mLocPIm_x;
 
   mCompDer[0][0] = mLocGradX_x+(tmp26_)*tmp12_*(tmp20_)+(tmp29_)*tmp24_;
   mCompDer[0][1] = mLocGradY_x+(tmp32_)*tmp12_*(tmp20_)+(tmp34_)*tmp24_;
@@ -100,7 +100,7 @@ void cGen2DBundleEgProj_Deg1::ComputeValDeriv()
   mCompDer[0][6] = 0;
   mCompDer[0][7] = 0;
   mCompDer[0][8] = 0;
-  mVal[1] = tmp18_+mCompCoord[6]+mCompCoord[7]+tmp30_*(tmp20_);
+  mVal[1] = (tmp18_+mCompCoord[6]+mCompCoord[7]+tmp30_*(tmp20_))-mLocPIm_y;
 
   mCompDer[1][0] = mLocGradX_y+(tmp26_)*tmp27_*(tmp20_)+(tmp29_)*tmp30_;
   mCompDer[1][1] = mLocGradY_y+(tmp32_)*tmp27_*(tmp20_)+(tmp34_)*tmp30_;
@@ -128,6 +128,8 @@ void cGen2DBundleEgProj_Deg1::SetGradY_x(double aVal){ mLocGradY_x = aVal;}
 void cGen2DBundleEgProj_Deg1::SetGradY_y(double aVal){ mLocGradY_y = aVal;}
 void cGen2DBundleEgProj_Deg1::SetGradZ_x(double aVal){ mLocGradZ_x = aVal;}
 void cGen2DBundleEgProj_Deg1::SetGradZ_y(double aVal){ mLocGradZ_y = aVal;}
+void cGen2DBundleEgProj_Deg1::SetPIm_x(double aVal){ mLocPIm_x = aVal;}
+void cGen2DBundleEgProj_Deg1::SetPIm_y(double aVal){ mLocPIm_y = aVal;}
 void cGen2DBundleEgProj_Deg1::SetPTerInit_x(double aVal){ mLocPTerInit_x = aVal;}
 void cGen2DBundleEgProj_Deg1::SetPTerInit_y(double aVal){ mLocPTerInit_y = aVal;}
 void cGen2DBundleEgProj_Deg1::SetPTerInit_z(double aVal){ mLocPTerInit_z = aVal;}
@@ -147,6 +149,8 @@ double * cGen2DBundleEgProj_Deg1::AdrVarLocFromString(const std::string & aName)
    if (aName == "GradY_y") return & mLocGradY_y;
    if (aName == "GradZ_x") return & mLocGradZ_x;
    if (aName == "GradZ_y") return & mLocGradZ_y;
+   if (aName == "PIm_x") return & mLocPIm_x;
+   if (aName == "PIm_y") return & mLocPIm_y;
    if (aName == "PTerInit_x") return & mLocPTerInit_x;
    if (aName == "PTerInit_y") return & mLocPTerInit_y;
    if (aName == "PTerInit_z") return & mLocPTerInit_z;

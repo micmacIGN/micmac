@@ -20,6 +20,8 @@ class cGen2DBundleEgProj_Deg6: public cElCompiledFonc
       void SetGradY_y(double);
       void SetGradZ_x(double);
       void SetGradZ_y(double);
+      void SetPIm_x(double);
+      void SetPIm_y(double);
       void SetPTerInit_x(double);
       void SetPTerInit_y(double);
       void SetPTerInit_z(double);
@@ -40,6 +42,8 @@ class cGen2DBundleEgProj_Deg6: public cElCompiledFonc
       double mLocGradY_y;
       double mLocGradZ_x;
       double mLocGradZ_y;
+      double mLocPIm_x;
+      double mLocPIm_y;
       double mLocPTerInit_x;
       double mLocPTerInit_y;
       double mLocPTerInit_z;

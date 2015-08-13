@@ -95,6 +95,23 @@ template <class Type> Pt2d<Type> Pt2d<Type>::FromTab(const std::vector<Type> & a
 {
     return FromTab(&(aV[0]));
 }
+
+
+template <class Type>   std::vector<Type> Pt2d<Type>::ToTab() const
+{
+    std::vector<Type> aV;
+    aV.push_back(x);
+    aV.push_back(y);
+
+    return aV;
+}
+
+
+
+
+
+
+
 REAL  average_euclid_line_seed (Pt2di p)
 {
       return euclid(p) / dist8(p);
@@ -588,8 +605,15 @@ template <class Type> Pt3d<Type> Pt3d<Type>::FromTab(const std::vector<Type> & a
     return FromTab(&(aV[0]));
 }
 
+template <class Type>   std::vector<Type> Pt3d<Type>::ToTab() const
+{
+    std::vector<Type> aV;
+    aV.push_back(x);
+    aV.push_back(y);
+    aV.push_back(z);
 
-
+    return aV;
+}
 
 
 template <class Type> Type  Pt3d<Type>::instantiate()

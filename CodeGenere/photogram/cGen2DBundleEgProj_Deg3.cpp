@@ -43,9 +43,9 @@ void cGen2DBundleEgProj_Deg3::ComputeVal()
    double tmp24_ = VCube(tmp13_);
    double tmp25_ = VCube(tmp21_);
 
-  mVal[0] = tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp13_)*(tmp21_)+mCompCoord[6]+mCompCoord[7]*(tmp13_)*(tmp21_)+mCompCoord[8]*tmp22_*tmp23_+mCompCoord[9]+mCompCoord[10]*(tmp13_)*(tmp21_)+mCompCoord[11]*tmp22_*tmp23_+mCompCoord[12]*tmp24_*tmp25_;
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp13_)*(tmp21_)+mCompCoord[6]+mCompCoord[7]*(tmp13_)*(tmp21_)+mCompCoord[8]*tmp22_*tmp23_+mCompCoord[9]+mCompCoord[10]*(tmp13_)*(tmp21_)+mCompCoord[11]*tmp22_*tmp23_+mCompCoord[12]*tmp24_*tmp25_)-mLocPIm_x;
 
-  mVal[1] = tmp19_+mCompCoord[13]+mCompCoord[14]+mCompCoord[15]*(tmp13_)*(tmp21_)+mCompCoord[16]+mCompCoord[17]*(tmp13_)*(tmp21_)+mCompCoord[18]*tmp22_*tmp23_+mCompCoord[19]+mCompCoord[20]*(tmp13_)*(tmp21_)+mCompCoord[21]*tmp22_*tmp23_+mCompCoord[22]*tmp24_*tmp25_;
+  mVal[1] = (tmp19_+mCompCoord[13]+mCompCoord[14]+mCompCoord[15]*(tmp13_)*(tmp21_)+mCompCoord[16]+mCompCoord[17]*(tmp13_)*(tmp21_)+mCompCoord[18]*tmp22_*tmp23_+mCompCoord[19]+mCompCoord[20]*(tmp13_)*(tmp21_)+mCompCoord[21]*tmp22_*tmp23_+mCompCoord[22]*tmp24_*tmp25_)-mLocPIm_y;
 
 }
 
@@ -143,7 +143,7 @@ void cGen2DBundleEgProj_Deg3::ComputeValDeriv()
    double tmp88_ = tmp87_*tmp23_;
    double tmp89_ = tmp45_*tmp44_;
 
-  mVal[0] = tmp11_+mCompCoord[3]+mCompCoord[4]+tmp26_*(tmp21_)+mCompCoord[6]+tmp32_*(tmp21_)+tmp34_*tmp23_+mCompCoord[9]+tmp36_*(tmp21_)+tmp42_*tmp23_+tmp46_*tmp44_;
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+tmp26_*(tmp21_)+mCompCoord[6]+tmp32_*(tmp21_)+tmp34_*tmp23_+mCompCoord[9]+tmp36_*(tmp21_)+tmp42_*tmp23_+tmp46_*tmp44_)-mLocPIm_x;
 
   mCompDer[0][0] = mLocGradX_x+(tmp28_)*tmp24_*(tmp21_)+(tmp31_)*tmp26_+(tmp28_)*tmp29_*(tmp21_)+(tmp31_)*tmp32_+tmp38_*tmp33_*tmp23_+tmp41_*tmp34_+(tmp28_)*tmp35_*(tmp21_)+(tmp31_)*tmp36_+tmp38_*tmp39_*tmp23_+tmp41_*tmp42_+tmp76_*tmp43_*tmp44_+tmp79_*tmp46_;
   mCompDer[0][1] = mLocGradY_x+(tmp48_)*tmp24_*(tmp21_)+(tmp50_)*tmp26_+(tmp48_)*tmp29_*(tmp21_)+(tmp50_)*tmp32_+tmp52_*tmp33_*tmp23_+tmp54_*tmp34_+(tmp48_)*tmp35_*(tmp21_)+(tmp50_)*tmp36_+tmp52_*tmp39_*tmp23_+tmp54_*tmp42_+tmp82_*tmp43_*tmp44_+tmp84_*tmp46_;
@@ -168,7 +168,7 @@ void cGen2DBundleEgProj_Deg3::ComputeValDeriv()
   mCompDer[0][20] = 0;
   mCompDer[0][21] = 0;
   mCompDer[0][22] = 0;
-  mVal[1] = tmp19_+mCompCoord[13]+mCompCoord[14]+tmp66_*(tmp21_)+mCompCoord[16]+tmp68_*(tmp21_)+tmp70_*tmp23_+mCompCoord[19]+tmp72_*(tmp21_)+tmp74_*tmp23_+tmp80_*tmp44_;
+  mVal[1] = (tmp19_+mCompCoord[13]+mCompCoord[14]+tmp66_*(tmp21_)+mCompCoord[16]+tmp68_*(tmp21_)+tmp70_*tmp23_+mCompCoord[19]+tmp72_*(tmp21_)+tmp74_*tmp23_+tmp80_*tmp44_)-mLocPIm_y;
 
   mCompDer[1][0] = mLocGradX_y+(tmp28_)*tmp65_*(tmp21_)+(tmp31_)*tmp66_+(tmp28_)*tmp67_*(tmp21_)+(tmp31_)*tmp68_+tmp38_*tmp69_*tmp23_+tmp41_*tmp70_+(tmp28_)*tmp71_*(tmp21_)+(tmp31_)*tmp72_+tmp38_*tmp73_*tmp23_+tmp41_*tmp74_+tmp76_*tmp77_*tmp44_+tmp79_*tmp80_;
   mCompDer[1][1] = mLocGradY_y+(tmp48_)*tmp65_*(tmp21_)+(tmp50_)*tmp66_+(tmp48_)*tmp67_*(tmp21_)+(tmp50_)*tmp68_+tmp52_*tmp69_*tmp23_+tmp54_*tmp70_+(tmp48_)*tmp71_*(tmp21_)+(tmp50_)*tmp72_+tmp52_*tmp73_*tmp23_+tmp54_*tmp74_+tmp82_*tmp77_*tmp44_+tmp84_*tmp80_;
@@ -210,6 +210,8 @@ void cGen2DBundleEgProj_Deg3::SetGradY_x(double aVal){ mLocGradY_x = aVal;}
 void cGen2DBundleEgProj_Deg3::SetGradY_y(double aVal){ mLocGradY_y = aVal;}
 void cGen2DBundleEgProj_Deg3::SetGradZ_x(double aVal){ mLocGradZ_x = aVal;}
 void cGen2DBundleEgProj_Deg3::SetGradZ_y(double aVal){ mLocGradZ_y = aVal;}
+void cGen2DBundleEgProj_Deg3::SetPIm_x(double aVal){ mLocPIm_x = aVal;}
+void cGen2DBundleEgProj_Deg3::SetPIm_y(double aVal){ mLocPIm_y = aVal;}
 void cGen2DBundleEgProj_Deg3::SetPTerInit_x(double aVal){ mLocPTerInit_x = aVal;}
 void cGen2DBundleEgProj_Deg3::SetPTerInit_y(double aVal){ mLocPTerInit_y = aVal;}
 void cGen2DBundleEgProj_Deg3::SetPTerInit_z(double aVal){ mLocPTerInit_z = aVal;}
@@ -229,6 +231,8 @@ double * cGen2DBundleEgProj_Deg3::AdrVarLocFromString(const std::string & aName)
    if (aName == "GradY_y") return & mLocGradY_y;
    if (aName == "GradZ_x") return & mLocGradZ_x;
    if (aName == "GradZ_y") return & mLocGradZ_y;
+   if (aName == "PIm_x") return & mLocPIm_x;
+   if (aName == "PIm_y") return & mLocPIm_y;
    if (aName == "PTerInit_x") return & mLocPTerInit_x;
    if (aName == "PTerInit_y") return & mLocPTerInit_y;
    if (aName == "PTerInit_z") return & mLocPTerInit_z;

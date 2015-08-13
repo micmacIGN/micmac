@@ -38,16 +38,16 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-extern void GenCodeEqProjGen(int );
+extern void GenCodeEqProjGen(int,bool GenCode,bool GenCodeAttach );
 void GenCodeEqProjGen()
 {
-    GenCodeEqProjGen(1);
-    GenCodeEqProjGen(2);
-    GenCodeEqProjGen(3);
-    GenCodeEqProjGen(4);
-    GenCodeEqProjGen(5);
-    GenCodeEqProjGen(6);
-    GenCodeEqProjGen(7);
+   for (int aMode=0 ; aMode<2 ; aMode++)
+   {
+       for (int aDeg=1 ; aDeg<8 ; aDeg++)
+       {
+           GenCodeEqProjGen(aDeg,aMode==0,aMode==1);
+       }
+   }
 }
 
 

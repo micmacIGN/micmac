@@ -328,6 +328,7 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
      void to_tab(Type (& t)[2] ) const;
      static Pt2d<Type> FromTab(const Type *);
      static Pt2d<Type> FromTab(const std::vector<Type> &);
+     std::vector<Type> ToTab() const;
      Output sigma();
      Output VMax();
      Output VMin();
@@ -760,6 +761,7 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
 
      void to_tab(Type (& t)[3] ) const;
      static Pt3d<Type> FromTab(const Type *);
+     std::vector<Type> ToTab() const;
      static Pt3d<Type> FromTab(const std::vector<Type> &);
 
 

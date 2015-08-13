@@ -3367,6 +3367,29 @@ void SolveBundle3Image
 
 
 
+void Merge2Pack
+     (
+          std::vector<Pt2dr> & aVP1,
+          std::vector<Pt2dr> & aVP2,
+          int aSeuil,
+          const ElPackHomologue & aPack1,
+          const ElPackHomologue & aPack2
+     );
+
+void Merge3Pack
+     (
+          std::vector<Pt2dr> & aVP1,
+          std::vector<Pt2dr> & aVP2,
+          std::vector<Pt2dr> & aVP3,
+          int aSeuil,
+          const std::vector<Pt2dr> & aV12,
+          const std::vector<Pt2dr> & aV21,
+          const std::vector<Pt2dr> & aV13,
+          const std::vector<Pt2dr> & aV31,
+          const std::vector<Pt2dr> & aV23,
+          const std::vector<Pt2dr> & aV32
+     );
+
 
 
 #endif // !  _ELISE_GENERAL_PHOTOGRAM_H

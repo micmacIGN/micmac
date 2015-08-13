@@ -47,14 +47,31 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                            */
 /**************************************************************/
 
+template <const int TheNb,class Type> void NOMerge_AddVect
+                                           (
+                                                cFixedMergeStruct<TheNb,Type> & aMap,
+                                                const std::vector<Type> & aV1, int aK1,
+                                                const std::vector<Type> & aV2, int aK2
+                                           )
+{
+    ELISE_ASSERT(aV1.size()==aV2.size(),"NOMerge_AddVect");
+    for ( int aKV=0 ; aKV<int(aV1.size()) ; aKV++)
+    {
+         aMap.AddArc(aV1[aKV],aK1,aV2[aKV],aK2);
+    }
+}
+
+
+
+
 
 
 template <const int TheNb> void NOMerge_AddPackHom
                            (
                                 cFixedMergeStruct<TheNb,Pt2dr> & aMap,
                                 const ElPackHomologue & aPack,
-                                const ElCamera & aCam1,int aK1,
-                                const ElCamera & aCam2,int aK2
+                                const ElCamera * aCam1,int aK1,
+                                const ElCamera * aCam2,int aK2
                            )
 {
     for 
@@ -67,12 +84,32 @@ template <const int TheNb> void NOMerge_AddPackHom
          ElCplePtsHomologues aCple = itH->ToCple();
          Pt2dr aP1 =  aCple.P1();
          Pt2dr aP2 =  aCple.P2();
-         aP1 =  ProjStenope(aCam1.F2toDirRayonL3(aP1));
-         aP2 =  ProjStenope(aCam2.F2toDirRayonL3(aP2));
+         if (aCam1)
+         {
+             aP1 =  ProjStenope(aCam1->F2toDirRayonL3(aP1));
+         }
+         if (aCam2)
+         {
+            aP2 =  ProjStenope(aCam2->F2toDirRayonL3(aP2));
+         }
          aMap.AddArc(aP1,aK1,aP2,aK2);
     }
 }
 
+
+
+
+
+template <const int TheNb> void NOMerge_AddPackHom
+                           (
+                                cFixedMergeStruct<TheNb,Pt2dr> & aMap,
+                                const ElPackHomologue & aPack,
+                                const ElCamera & aCam1,int aK1,
+                                const ElCamera & aCam2,int aK2
+                           )
+{
+    NOMerge_AddPackHom(aMap,aPack,&aCam1,aK1,&aCam2,aK2);
+}
 
 
 template <const int TheNb> void NOMerge_AddAllCams
@@ -93,6 +130,70 @@ template <const int TheNb> void NOMerge_AddAllCams
     }
 }
 
+
+void Merge2Pack
+     (
+          std::vector<Pt2dr> & aVP1,
+          std::vector<Pt2dr> & aVP2,
+          int aSeuil,
+          const ElPackHomologue & aPack1,
+          const ElPackHomologue & aPack2
+     )
+{
+    cFixedMergeStruct<2,Pt2dr> aMergeStr;
+    const ElCamera  * aPtrCam = (const ElCamera *)NULL;
+// NOMerge_AddPackHom
+    NOMerge_AddPackHom(aMergeStr,aPack1,aPtrCam,0,aPtrCam,1);
+    NOMerge_AddPackHom(aMergeStr,aPack2,aPtrCam,1,aPtrCam,0);
+
+    aMergeStr.DoExport();
+
+    const std::list<cFixedMergeTieP<2,Pt2dr> *> & aLM = aMergeStr.ListMerged();
+    for (std::list<cFixedMergeTieP<2,Pt2dr> *>::const_iterator itM=aLM.begin(); itM!=aLM.end() ; itM++)
+    {
+        if (((*itM)->NbSom()==2) && ((*itM)->NbArc()>=aSeuil))
+        {
+            aVP1.push_back((*itM)->GetVal(0));
+            aVP2.push_back((*itM)->GetVal(1));
+        }
+    }
+
+}
+
+void Merge3Pack
+     (
+          std::vector<Pt2dr> & aVP1,
+          std::vector<Pt2dr> & aVP2,
+          std::vector<Pt2dr> & aVP3,
+          int aSeuil,
+          const std::vector<Pt2dr> & aV12,
+          const std::vector<Pt2dr> & aV21,
+          const std::vector<Pt2dr> & aV13,
+          const std::vector<Pt2dr> & aV31,
+          const std::vector<Pt2dr> & aV23,
+          const std::vector<Pt2dr> & aV32
+     )
+{
+    cFixedMergeStruct<3,Pt2dr> aMergeStr;
+
+    NOMerge_AddVect(aMergeStr,aV12,0,aV21,1);
+    NOMerge_AddVect(aMergeStr,aV13,0,aV31,2);
+    NOMerge_AddVect(aMergeStr,aV23,1,aV32,2);
+
+    aMergeStr.DoExport();
+
+    const std::list<cFixedMergeTieP<3,Pt2dr> *> & aLM = aMergeStr.ListMerged();
+    for (std::list<cFixedMergeTieP<3,Pt2dr> *>::const_iterator itM=aLM.begin(); itM!=aLM.end() ; itM++)
+    {
+        if (((*itM)->NbSom()==3) && ((*itM)->NbArc()>=aSeuil))
+        {
+            aVP1.push_back((*itM)->GetVal(0));
+            aVP2.push_back((*itM)->GetVal(1));
+            aVP3.push_back((*itM)->GetVal(2));
+        }
+    }
+
+}
 
 /**********************************************************************/
 /*                                                                    */

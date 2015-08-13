@@ -98,6 +98,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg6.cpp"
 #include "../../CodeGenere/photogram/cGen2DBundleEgProj_Deg7.cpp"
 
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg1.cpp"
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg2.cpp"
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg3.cpp"
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg4.cpp"
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg5.cpp"
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg6.cpp"
+#include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg7.cpp"
 //=======================  Droite ========================
 
 

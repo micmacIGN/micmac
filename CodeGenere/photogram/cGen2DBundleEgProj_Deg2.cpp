@@ -41,9 +41,9 @@ void cGen2DBundleEgProj_Deg2::ComputeVal()
    double tmp22_ = ElSquare(tmp13_);
    double tmp23_ = ElSquare(tmp21_);
 
-  mVal[0] = tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp13_)*(tmp21_)+mCompCoord[6]+mCompCoord[7]*(tmp13_)*(tmp21_)+mCompCoord[8]*tmp22_*tmp23_;
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp13_)*(tmp21_)+mCompCoord[6]+mCompCoord[7]*(tmp13_)*(tmp21_)+mCompCoord[8]*tmp22_*tmp23_)-mLocPIm_x;
 
-  mVal[1] = tmp19_+mCompCoord[9]+mCompCoord[10]+mCompCoord[11]*(tmp13_)*(tmp21_)+mCompCoord[12]+mCompCoord[13]*(tmp13_)*(tmp21_)+mCompCoord[14]*tmp22_*tmp23_;
+  mVal[1] = (tmp19_+mCompCoord[9]+mCompCoord[10]+mCompCoord[11]*(tmp13_)*(tmp21_)+mCompCoord[12]+mCompCoord[13]*(tmp13_)*(tmp21_)+mCompCoord[14]*tmp22_*tmp23_)-mLocPIm_y;
 
 }
 
@@ -114,7 +114,7 @@ void cGen2DBundleEgProj_Deg2::ComputeValDeriv()
    double tmp61_ = tmp60_*(tmp21_);
    double tmp62_ = tmp33_*tmp32_;
 
-  mVal[0] = tmp11_+mCompCoord[3]+mCompCoord[4]+tmp24_*(tmp21_)+mCompCoord[6]+tmp30_*(tmp21_)+tmp34_*tmp32_;
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+tmp24_*(tmp21_)+mCompCoord[6]+tmp30_*(tmp21_)+tmp34_*tmp32_)-mLocPIm_x;
 
   mCompDer[0][0] = mLocGradX_x+(tmp26_)*tmp22_*(tmp21_)+(tmp29_)*tmp24_+(tmp26_)*tmp27_*(tmp21_)+(tmp29_)*tmp30_+tmp49_*tmp31_*tmp32_+tmp52_*tmp34_;
   mCompDer[0][1] = mLocGradY_x+(tmp36_)*tmp22_*(tmp21_)+(tmp38_)*tmp24_+(tmp36_)*tmp27_*(tmp21_)+(tmp38_)*tmp30_+tmp55_*tmp31_*tmp32_+tmp57_*tmp34_;
@@ -131,7 +131,7 @@ void cGen2DBundleEgProj_Deg2::ComputeValDeriv()
   mCompDer[0][12] = 0;
   mCompDer[0][13] = 0;
   mCompDer[0][14] = 0;
-  mVal[1] = tmp19_+mCompCoord[9]+mCompCoord[10]+tmp45_*(tmp21_)+mCompCoord[12]+tmp47_*(tmp21_)+tmp53_*tmp32_;
+  mVal[1] = (tmp19_+mCompCoord[9]+mCompCoord[10]+tmp45_*(tmp21_)+mCompCoord[12]+tmp47_*(tmp21_)+tmp53_*tmp32_)-mLocPIm_y;
 
   mCompDer[1][0] = mLocGradX_y+(tmp26_)*tmp44_*(tmp21_)+(tmp29_)*tmp45_+(tmp26_)*tmp46_*(tmp21_)+(tmp29_)*tmp47_+tmp49_*tmp50_*tmp32_+tmp52_*tmp53_;
   mCompDer[1][1] = mLocGradY_y+(tmp36_)*tmp44_*(tmp21_)+(tmp38_)*tmp45_+(tmp36_)*tmp46_*(tmp21_)+(tmp38_)*tmp47_+tmp55_*tmp50_*tmp32_+tmp57_*tmp53_;
@@ -165,6 +165,8 @@ void cGen2DBundleEgProj_Deg2::SetGradY_x(double aVal){ mLocGradY_x = aVal;}
 void cGen2DBundleEgProj_Deg2::SetGradY_y(double aVal){ mLocGradY_y = aVal;}
 void cGen2DBundleEgProj_Deg2::SetGradZ_x(double aVal){ mLocGradZ_x = aVal;}
 void cGen2DBundleEgProj_Deg2::SetGradZ_y(double aVal){ mLocGradZ_y = aVal;}
+void cGen2DBundleEgProj_Deg2::SetPIm_x(double aVal){ mLocPIm_x = aVal;}
+void cGen2DBundleEgProj_Deg2::SetPIm_y(double aVal){ mLocPIm_y = aVal;}
 void cGen2DBundleEgProj_Deg2::SetPTerInit_x(double aVal){ mLocPTerInit_x = aVal;}
 void cGen2DBundleEgProj_Deg2::SetPTerInit_y(double aVal){ mLocPTerInit_y = aVal;}
 void cGen2DBundleEgProj_Deg2::SetPTerInit_z(double aVal){ mLocPTerInit_z = aVal;}
@@ -184,6 +186,8 @@ double * cGen2DBundleEgProj_Deg2::AdrVarLocFromString(const std::string & aName)
    if (aName == "GradY_y") return & mLocGradY_y;
    if (aName == "GradZ_x") return & mLocGradZ_x;
    if (aName == "GradZ_y") return & mLocGradZ_y;
+   if (aName == "PIm_x") return & mLocPIm_x;
+   if (aName == "PIm_y") return & mLocPIm_y;
    if (aName == "PTerInit_x") return & mLocPTerInit_x;
    if (aName == "PTerInit_y") return & mLocPTerInit_y;
    if (aName == "PTerInit_z") return & mLocPTerInit_z;

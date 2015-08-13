@@ -45,9 +45,9 @@ void cGen2DBundleEgProj_Deg4::ComputeVal()
    double tmp26_ = VPow4(tmp13_);
    double tmp27_ = VPow4(tmp21_);
 
-  mVal[0] = tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp13_)*(tmp21_)+mCompCoord[6]+mCompCoord[7]*(tmp13_)*(tmp21_)+mCompCoord[8]*tmp22_*tmp23_+mCompCoord[9]+mCompCoord[10]*(tmp13_)*(tmp21_)+mCompCoord[11]*tmp22_*tmp23_+mCompCoord[12]*tmp24_*tmp25_+mCompCoord[13]+mCompCoord[14]*(tmp13_)*(tmp21_)+mCompCoord[15]*tmp22_*tmp23_+mCompCoord[16]*tmp24_*tmp25_+mCompCoord[17]*tmp26_*tmp27_;
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp13_)*(tmp21_)+mCompCoord[6]+mCompCoord[7]*(tmp13_)*(tmp21_)+mCompCoord[8]*tmp22_*tmp23_+mCompCoord[9]+mCompCoord[10]*(tmp13_)*(tmp21_)+mCompCoord[11]*tmp22_*tmp23_+mCompCoord[12]*tmp24_*tmp25_+mCompCoord[13]+mCompCoord[14]*(tmp13_)*(tmp21_)+mCompCoord[15]*tmp22_*tmp23_+mCompCoord[16]*tmp24_*tmp25_+mCompCoord[17]*tmp26_*tmp27_)-mLocPIm_x;
 
-  mVal[1] = tmp19_+mCompCoord[18]+mCompCoord[19]+mCompCoord[20]*(tmp13_)*(tmp21_)+mCompCoord[21]+mCompCoord[22]*(tmp13_)*(tmp21_)+mCompCoord[23]*tmp22_*tmp23_+mCompCoord[24]+mCompCoord[25]*(tmp13_)*(tmp21_)+mCompCoord[26]*tmp22_*tmp23_+mCompCoord[27]*tmp24_*tmp25_+mCompCoord[28]+mCompCoord[29]*(tmp13_)*(tmp21_)+mCompCoord[30]*tmp22_*tmp23_+mCompCoord[31]*tmp24_*tmp25_+mCompCoord[32]*tmp26_*tmp27_;
+  mVal[1] = (tmp19_+mCompCoord[18]+mCompCoord[19]+mCompCoord[20]*(tmp13_)*(tmp21_)+mCompCoord[21]+mCompCoord[22]*(tmp13_)*(tmp21_)+mCompCoord[23]*tmp22_*tmp23_+mCompCoord[24]+mCompCoord[25]*(tmp13_)*(tmp21_)+mCompCoord[26]*tmp22_*tmp23_+mCompCoord[27]*tmp24_*tmp25_+mCompCoord[28]+mCompCoord[29]*(tmp13_)*(tmp21_)+mCompCoord[30]*tmp22_*tmp23_+mCompCoord[31]*tmp24_*tmp25_+mCompCoord[32]*tmp26_*tmp27_)-mLocPIm_y;
 
 }
 
@@ -176,7 +176,7 @@ void cGen2DBundleEgProj_Deg4::ComputeValDeriv()
    double tmp119_ = tmp118_*tmp25_;
    double tmp120_ = tmp59_*tmp58_;
 
-  mVal[0] = tmp11_+mCompCoord[3]+mCompCoord[4]+tmp28_*(tmp21_)+mCompCoord[6]+tmp34_*(tmp21_)+tmp36_*tmp23_+mCompCoord[9]+tmp38_*(tmp21_)+tmp44_*tmp23_+tmp46_*tmp25_+mCompCoord[13]+tmp48_*(tmp21_)+tmp50_*tmp23_+tmp56_*tmp25_+tmp60_*tmp58_;
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+tmp28_*(tmp21_)+mCompCoord[6]+tmp34_*(tmp21_)+tmp36_*tmp23_+mCompCoord[9]+tmp38_*(tmp21_)+tmp44_*tmp23_+tmp46_*tmp25_+mCompCoord[13]+tmp48_*(tmp21_)+tmp50_*tmp23_+tmp56_*tmp25_+tmp60_*tmp58_)-mLocPIm_x;
 
   mCompDer[0][0] = mLocGradX_x+(tmp30_)*tmp26_*(tmp21_)+(tmp33_)*tmp28_+(tmp30_)*tmp31_*(tmp21_)+(tmp33_)*tmp34_+tmp40_*tmp35_*tmp23_+tmp43_*tmp36_+(tmp30_)*tmp37_*(tmp21_)+(tmp33_)*tmp38_+tmp40_*tmp41_*tmp23_+tmp43_*tmp44_+tmp52_*tmp45_*tmp25_+tmp55_*tmp46_+(tmp30_)*tmp47_*(tmp21_)+(tmp33_)*tmp48_+tmp40_*tmp49_*tmp23_+tmp43_*tmp50_+tmp52_*tmp53_*tmp25_+tmp55_*tmp56_+tmp107_*tmp57_*tmp58_+tmp110_*tmp60_;
   mCompDer[0][1] = mLocGradY_x+(tmp62_)*tmp26_*(tmp21_)+(tmp64_)*tmp28_+(tmp62_)*tmp31_*(tmp21_)+(tmp64_)*tmp34_+tmp66_*tmp35_*tmp23_+tmp68_*tmp36_+(tmp62_)*tmp37_*(tmp21_)+(tmp64_)*tmp38_+tmp66_*tmp41_*tmp23_+tmp68_*tmp44_+tmp70_*tmp45_*tmp25_+tmp72_*tmp46_+(tmp62_)*tmp47_*(tmp21_)+(tmp64_)*tmp48_+tmp66_*tmp49_*tmp23_+tmp68_*tmp50_+tmp70_*tmp53_*tmp25_+tmp72_*tmp56_+tmp113_*tmp57_*tmp58_+tmp115_*tmp60_;
@@ -211,7 +211,7 @@ void cGen2DBundleEgProj_Deg4::ComputeValDeriv()
   mCompDer[0][30] = 0;
   mCompDer[0][31] = 0;
   mCompDer[0][32] = 0;
-  mVal[1] = tmp19_+mCompCoord[18]+mCompCoord[19]+tmp89_*(tmp21_)+mCompCoord[21]+tmp91_*(tmp21_)+tmp93_*tmp23_+mCompCoord[24]+tmp95_*(tmp21_)+tmp97_*tmp23_+tmp99_*tmp25_+mCompCoord[28]+tmp101_*(tmp21_)+tmp103_*tmp23_+tmp105_*tmp25_+tmp111_*tmp58_;
+  mVal[1] = (tmp19_+mCompCoord[18]+mCompCoord[19]+tmp89_*(tmp21_)+mCompCoord[21]+tmp91_*(tmp21_)+tmp93_*tmp23_+mCompCoord[24]+tmp95_*(tmp21_)+tmp97_*tmp23_+tmp99_*tmp25_+mCompCoord[28]+tmp101_*(tmp21_)+tmp103_*tmp23_+tmp105_*tmp25_+tmp111_*tmp58_)-mLocPIm_y;
 
   mCompDer[1][0] = mLocGradX_y+(tmp30_)*tmp88_*(tmp21_)+(tmp33_)*tmp89_+(tmp30_)*tmp90_*(tmp21_)+(tmp33_)*tmp91_+tmp40_*tmp92_*tmp23_+tmp43_*tmp93_+(tmp30_)*tmp94_*(tmp21_)+(tmp33_)*tmp95_+tmp40_*tmp96_*tmp23_+tmp43_*tmp97_+tmp52_*tmp98_*tmp25_+tmp55_*tmp99_+(tmp30_)*tmp100_*(tmp21_)+(tmp33_)*tmp101_+tmp40_*tmp102_*tmp23_+tmp43_*tmp103_+tmp52_*tmp104_*tmp25_+tmp55_*tmp105_+tmp107_*tmp108_*tmp58_+tmp110_*tmp111_;
   mCompDer[1][1] = mLocGradY_y+(tmp62_)*tmp88_*(tmp21_)+(tmp64_)*tmp89_+(tmp62_)*tmp90_*(tmp21_)+(tmp64_)*tmp91_+tmp66_*tmp92_*tmp23_+tmp68_*tmp93_+(tmp62_)*tmp94_*(tmp21_)+(tmp64_)*tmp95_+tmp66_*tmp96_*tmp23_+tmp68_*tmp97_+tmp70_*tmp98_*tmp25_+tmp72_*tmp99_+(tmp62_)*tmp100_*(tmp21_)+(tmp64_)*tmp101_+tmp66_*tmp102_*tmp23_+tmp68_*tmp103_+tmp70_*tmp104_*tmp25_+tmp72_*tmp105_+tmp113_*tmp108_*tmp58_+tmp115_*tmp111_;
@@ -263,6 +263,8 @@ void cGen2DBundleEgProj_Deg4::SetGradY_x(double aVal){ mLocGradY_x = aVal;}
 void cGen2DBundleEgProj_Deg4::SetGradY_y(double aVal){ mLocGradY_y = aVal;}
 void cGen2DBundleEgProj_Deg4::SetGradZ_x(double aVal){ mLocGradZ_x = aVal;}
 void cGen2DBundleEgProj_Deg4::SetGradZ_y(double aVal){ mLocGradZ_y = aVal;}
+void cGen2DBundleEgProj_Deg4::SetPIm_x(double aVal){ mLocPIm_x = aVal;}
+void cGen2DBundleEgProj_Deg4::SetPIm_y(double aVal){ mLocPIm_y = aVal;}
 void cGen2DBundleEgProj_Deg4::SetPTerInit_x(double aVal){ mLocPTerInit_x = aVal;}
 void cGen2DBundleEgProj_Deg4::SetPTerInit_y(double aVal){ mLocPTerInit_y = aVal;}
 void cGen2DBundleEgProj_Deg4::SetPTerInit_z(double aVal){ mLocPTerInit_z = aVal;}
@@ -282,6 +284,8 @@ double * cGen2DBundleEgProj_Deg4::AdrVarLocFromString(const std::string & aName)
    if (aName == "GradY_y") return & mLocGradY_y;
    if (aName == "GradZ_x") return & mLocGradZ_x;
    if (aName == "GradZ_y") return & mLocGradZ_y;
+   if (aName == "PIm_x") return & mLocPIm_x;
+   if (aName == "PIm_y") return & mLocPIm_y;
    if (aName == "PTerInit_x") return & mLocPTerInit_x;
    if (aName == "PTerInit_y") return & mLocPTerInit_y;
    if (aName == "PTerInit_z") return & mLocPTerInit_z;
