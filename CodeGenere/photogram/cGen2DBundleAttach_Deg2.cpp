@@ -15,46 +15,45 @@ cGen2DBundleAttach_Deg2::cGen2DBundleAttach_Deg2():
 
 void cGen2DBundleAttach_Deg2::ComputeVal()
 {
-   double tmp0_ = mLocPFixV_x-mLocCentr_x;
+   double tmp0_ = mLocPFixV_y-mLocCentr_y;
    double tmp1_ = (tmp0_)/mLocAmpl;
-   double tmp2_ = mLocPFixV_y-mLocCentr_y;
+   double tmp2_ = mLocPFixV_x-mLocCentr_x;
    double tmp3_ = (tmp2_)/mLocAmpl;
    double tmp4_ = ElSquare(tmp1_);
    double tmp5_ = ElSquare(tmp3_);
 
-  mVal[0] = (mCompCoord[0]+mCompCoord[1]+mCompCoord[2]*(tmp1_)*(tmp3_)+mCompCoord[3]+mCompCoord[4]*(tmp1_)*(tmp3_)+mCompCoord[5]*tmp4_*tmp5_)-mLocFixedV_x;
+  mVal[0] = (mCompCoord[0]+mCompCoord[1]*(tmp1_)+mCompCoord[2]*(tmp3_)+mCompCoord[3]*tmp4_+mCompCoord[4]*(tmp3_)*(tmp1_)+mCompCoord[5]*tmp5_)-mLocFixedV_x;
 
-  mVal[1] = (mCompCoord[6]+mCompCoord[7]+mCompCoord[8]*(tmp1_)*(tmp3_)+mCompCoord[9]+mCompCoord[10]*(tmp1_)*(tmp3_)+mCompCoord[11]*tmp4_*tmp5_)-mLocFixedV_y;
+  mVal[1] = (mCompCoord[6]+mCompCoord[7]*(tmp1_)+mCompCoord[8]*(tmp3_)+mCompCoord[9]*tmp4_+mCompCoord[10]*(tmp3_)*(tmp1_)+mCompCoord[11]*tmp5_)-mLocFixedV_y;
 
 }
 
 
 void cGen2DBundleAttach_Deg2::ComputeValDeriv()
 {
-   double tmp0_ = mLocPFixV_x-mLocCentr_x;
+   double tmp0_ = mLocPFixV_y-mLocCentr_y;
    double tmp1_ = (tmp0_)/mLocAmpl;
-   double tmp2_ = mLocPFixV_y-mLocCentr_y;
+   double tmp2_ = mLocPFixV_x-mLocCentr_x;
    double tmp3_ = (tmp2_)/mLocAmpl;
-   double tmp4_ = (tmp1_)*(tmp3_);
-   double tmp5_ = ElSquare(tmp1_);
-   double tmp6_ = ElSquare(tmp3_);
-   double tmp7_ = tmp5_*tmp6_;
+   double tmp4_ = ElSquare(tmp1_);
+   double tmp5_ = ElSquare(tmp3_);
+   double tmp6_ = (tmp3_)*(tmp1_);
 
-  mVal[0] = (mCompCoord[0]+mCompCoord[1]+mCompCoord[2]*(tmp1_)*(tmp3_)+mCompCoord[3]+mCompCoord[4]*(tmp1_)*(tmp3_)+mCompCoord[5]*tmp5_*tmp6_)-mLocFixedV_x;
+  mVal[0] = (mCompCoord[0]+mCompCoord[1]*(tmp1_)+mCompCoord[2]*(tmp3_)+mCompCoord[3]*tmp4_+mCompCoord[4]*(tmp3_)*(tmp1_)+mCompCoord[5]*tmp5_)-mLocFixedV_x;
 
   mCompDer[0][0] = 1;
-  mCompDer[0][1] = 1;
-  mCompDer[0][2] = tmp4_;
-  mCompDer[0][3] = 1;
-  mCompDer[0][4] = tmp4_;
-  mCompDer[0][5] = tmp7_;
+  mCompDer[0][1] = tmp1_;
+  mCompDer[0][2] = tmp3_;
+  mCompDer[0][3] = tmp4_;
+  mCompDer[0][4] = tmp6_;
+  mCompDer[0][5] = tmp5_;
   mCompDer[0][6] = 0;
   mCompDer[0][7] = 0;
   mCompDer[0][8] = 0;
   mCompDer[0][9] = 0;
   mCompDer[0][10] = 0;
   mCompDer[0][11] = 0;
-  mVal[1] = (mCompCoord[6]+mCompCoord[7]+mCompCoord[8]*(tmp1_)*(tmp3_)+mCompCoord[9]+mCompCoord[10]*(tmp1_)*(tmp3_)+mCompCoord[11]*tmp5_*tmp6_)-mLocFixedV_y;
+  mVal[1] = (mCompCoord[6]+mCompCoord[7]*(tmp1_)+mCompCoord[8]*(tmp3_)+mCompCoord[9]*tmp4_+mCompCoord[10]*(tmp3_)*(tmp1_)+mCompCoord[11]*tmp5_)-mLocFixedV_y;
 
   mCompDer[1][0] = 0;
   mCompDer[1][1] = 0;
@@ -63,11 +62,11 @@ void cGen2DBundleAttach_Deg2::ComputeValDeriv()
   mCompDer[1][4] = 0;
   mCompDer[1][5] = 0;
   mCompDer[1][6] = 1;
-  mCompDer[1][7] = 1;
-  mCompDer[1][8] = tmp4_;
-  mCompDer[1][9] = 1;
-  mCompDer[1][10] = tmp4_;
-  mCompDer[1][11] = tmp7_;
+  mCompDer[1][7] = tmp1_;
+  mCompDer[1][8] = tmp3_;
+  mCompDer[1][9] = tmp4_;
+  mCompDer[1][10] = tmp6_;
+  mCompDer[1][11] = tmp5_;
 }
 
 

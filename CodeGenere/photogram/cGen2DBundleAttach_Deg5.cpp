@@ -15,9 +15,9 @@ cGen2DBundleAttach_Deg5::cGen2DBundleAttach_Deg5():
 
 void cGen2DBundleAttach_Deg5::ComputeVal()
 {
-   double tmp0_ = mLocPFixV_x-mLocCentr_x;
+   double tmp0_ = mLocPFixV_y-mLocCentr_y;
    double tmp1_ = (tmp0_)/mLocAmpl;
-   double tmp2_ = mLocPFixV_y-mLocCentr_y;
+   double tmp2_ = mLocPFixV_x-mLocCentr_x;
    double tmp3_ = (tmp2_)/mLocAmpl;
    double tmp4_ = ElSquare(tmp1_);
    double tmp5_ = ElSquare(tmp3_);
@@ -28,18 +28,18 @@ void cGen2DBundleAttach_Deg5::ComputeVal()
    double tmp10_ = VPow5(tmp1_);
    double tmp11_ = VPow5(tmp3_);
 
-  mVal[0] = (mCompCoord[0]+mCompCoord[1]+mCompCoord[2]*(tmp1_)*(tmp3_)+mCompCoord[3]+mCompCoord[4]*(tmp1_)*(tmp3_)+mCompCoord[5]*tmp4_*tmp5_+mCompCoord[6]+mCompCoord[7]*(tmp1_)*(tmp3_)+mCompCoord[8]*tmp4_*tmp5_+mCompCoord[9]*tmp6_*tmp7_+mCompCoord[10]+mCompCoord[11]*(tmp1_)*(tmp3_)+mCompCoord[12]*tmp4_*tmp5_+mCompCoord[13]*tmp6_*tmp7_+mCompCoord[14]*tmp8_*tmp9_+mCompCoord[15]+mCompCoord[16]*(tmp1_)*(tmp3_)+mCompCoord[17]*tmp4_*tmp5_+mCompCoord[18]*tmp6_*tmp7_+mCompCoord[19]*tmp8_*tmp9_+mCompCoord[20]*tmp10_*tmp11_)-mLocFixedV_x;
+  mVal[0] = (mCompCoord[0]+mCompCoord[1]*(tmp1_)+mCompCoord[2]*(tmp3_)+mCompCoord[3]*tmp4_+mCompCoord[4]*(tmp3_)*(tmp1_)+mCompCoord[5]*tmp5_+mCompCoord[6]*tmp6_+mCompCoord[7]*(tmp3_)*tmp4_+mCompCoord[8]*tmp5_*(tmp1_)+mCompCoord[9]*tmp7_+mCompCoord[10]*tmp8_+mCompCoord[11]*(tmp3_)*tmp6_+mCompCoord[12]*tmp5_*tmp4_+mCompCoord[13]*tmp7_*(tmp1_)+mCompCoord[14]*tmp9_+mCompCoord[15]*tmp10_+mCompCoord[16]*(tmp3_)*tmp8_+mCompCoord[17]*tmp5_*tmp6_+mCompCoord[18]*tmp7_*tmp4_+mCompCoord[19]*tmp9_*(tmp1_)+mCompCoord[20]*tmp11_)-mLocFixedV_x;
 
-  mVal[1] = (mCompCoord[21]+mCompCoord[22]+mCompCoord[23]*(tmp1_)*(tmp3_)+mCompCoord[24]+mCompCoord[25]*(tmp1_)*(tmp3_)+mCompCoord[26]*tmp4_*tmp5_+mCompCoord[27]+mCompCoord[28]*(tmp1_)*(tmp3_)+mCompCoord[29]*tmp4_*tmp5_+mCompCoord[30]*tmp6_*tmp7_+mCompCoord[31]+mCompCoord[32]*(tmp1_)*(tmp3_)+mCompCoord[33]*tmp4_*tmp5_+mCompCoord[34]*tmp6_*tmp7_+mCompCoord[35]*tmp8_*tmp9_+mCompCoord[36]+mCompCoord[37]*(tmp1_)*(tmp3_)+mCompCoord[38]*tmp4_*tmp5_+mCompCoord[39]*tmp6_*tmp7_+mCompCoord[40]*tmp8_*tmp9_+mCompCoord[41]*tmp10_*tmp11_)-mLocFixedV_y;
+  mVal[1] = (mCompCoord[21]+mCompCoord[22]*(tmp1_)+mCompCoord[23]*(tmp3_)+mCompCoord[24]*tmp4_+mCompCoord[25]*(tmp3_)*(tmp1_)+mCompCoord[26]*tmp5_+mCompCoord[27]*tmp6_+mCompCoord[28]*(tmp3_)*tmp4_+mCompCoord[29]*tmp5_*(tmp1_)+mCompCoord[30]*tmp7_+mCompCoord[31]*tmp8_+mCompCoord[32]*(tmp3_)*tmp6_+mCompCoord[33]*tmp5_*tmp4_+mCompCoord[34]*tmp7_*(tmp1_)+mCompCoord[35]*tmp9_+mCompCoord[36]*tmp10_+mCompCoord[37]*(tmp3_)*tmp8_+mCompCoord[38]*tmp5_*tmp6_+mCompCoord[39]*tmp7_*tmp4_+mCompCoord[40]*tmp9_*(tmp1_)+mCompCoord[41]*tmp11_)-mLocFixedV_y;
 
 }
 
 
 void cGen2DBundleAttach_Deg5::ComputeValDeriv()
 {
-   double tmp0_ = mLocPFixV_x-mLocCentr_x;
+   double tmp0_ = mLocPFixV_y-mLocCentr_y;
    double tmp1_ = (tmp0_)/mLocAmpl;
-   double tmp2_ = mLocPFixV_y-mLocCentr_y;
+   double tmp2_ = mLocPFixV_x-mLocCentr_x;
    double tmp3_ = (tmp2_)/mLocAmpl;
    double tmp4_ = ElSquare(tmp1_);
    double tmp5_ = ElSquare(tmp3_);
@@ -47,37 +47,42 @@ void cGen2DBundleAttach_Deg5::ComputeValDeriv()
    double tmp7_ = VCube(tmp3_);
    double tmp8_ = VPow4(tmp1_);
    double tmp9_ = VPow4(tmp3_);
-   double tmp10_ = (tmp1_)*(tmp3_);
-   double tmp11_ = tmp4_*tmp5_;
-   double tmp12_ = tmp6_*tmp7_;
-   double tmp13_ = tmp8_*tmp9_;
-   double tmp14_ = VPow5(tmp1_);
-   double tmp15_ = VPow5(tmp3_);
-   double tmp16_ = tmp14_*tmp15_;
+   double tmp10_ = VPow5(tmp1_);
+   double tmp11_ = VPow5(tmp3_);
+   double tmp12_ = (tmp3_)*(tmp1_);
+   double tmp13_ = (tmp3_)*tmp4_;
+   double tmp14_ = tmp5_*(tmp1_);
+   double tmp15_ = (tmp3_)*tmp6_;
+   double tmp16_ = tmp5_*tmp4_;
+   double tmp17_ = tmp7_*(tmp1_);
+   double tmp18_ = (tmp3_)*tmp8_;
+   double tmp19_ = tmp5_*tmp6_;
+   double tmp20_ = tmp7_*tmp4_;
+   double tmp21_ = tmp9_*(tmp1_);
 
-  mVal[0] = (mCompCoord[0]+mCompCoord[1]+mCompCoord[2]*(tmp1_)*(tmp3_)+mCompCoord[3]+mCompCoord[4]*(tmp1_)*(tmp3_)+mCompCoord[5]*tmp4_*tmp5_+mCompCoord[6]+mCompCoord[7]*(tmp1_)*(tmp3_)+mCompCoord[8]*tmp4_*tmp5_+mCompCoord[9]*tmp6_*tmp7_+mCompCoord[10]+mCompCoord[11]*(tmp1_)*(tmp3_)+mCompCoord[12]*tmp4_*tmp5_+mCompCoord[13]*tmp6_*tmp7_+mCompCoord[14]*tmp8_*tmp9_+mCompCoord[15]+mCompCoord[16]*(tmp1_)*(tmp3_)+mCompCoord[17]*tmp4_*tmp5_+mCompCoord[18]*tmp6_*tmp7_+mCompCoord[19]*tmp8_*tmp9_+mCompCoord[20]*tmp14_*tmp15_)-mLocFixedV_x;
+  mVal[0] = (mCompCoord[0]+mCompCoord[1]*(tmp1_)+mCompCoord[2]*(tmp3_)+mCompCoord[3]*tmp4_+mCompCoord[4]*(tmp3_)*(tmp1_)+mCompCoord[5]*tmp5_+mCompCoord[6]*tmp6_+mCompCoord[7]*(tmp3_)*tmp4_+mCompCoord[8]*tmp5_*(tmp1_)+mCompCoord[9]*tmp7_+mCompCoord[10]*tmp8_+mCompCoord[11]*(tmp3_)*tmp6_+mCompCoord[12]*tmp5_*tmp4_+mCompCoord[13]*tmp7_*(tmp1_)+mCompCoord[14]*tmp9_+mCompCoord[15]*tmp10_+mCompCoord[16]*(tmp3_)*tmp8_+mCompCoord[17]*tmp5_*tmp6_+mCompCoord[18]*tmp7_*tmp4_+mCompCoord[19]*tmp9_*(tmp1_)+mCompCoord[20]*tmp11_)-mLocFixedV_x;
 
   mCompDer[0][0] = 1;
-  mCompDer[0][1] = 1;
-  mCompDer[0][2] = tmp10_;
-  mCompDer[0][3] = 1;
-  mCompDer[0][4] = tmp10_;
-  mCompDer[0][5] = tmp11_;
-  mCompDer[0][6] = 1;
-  mCompDer[0][7] = tmp10_;
-  mCompDer[0][8] = tmp11_;
-  mCompDer[0][9] = tmp12_;
-  mCompDer[0][10] = 1;
-  mCompDer[0][11] = tmp10_;
-  mCompDer[0][12] = tmp11_;
-  mCompDer[0][13] = tmp12_;
-  mCompDer[0][14] = tmp13_;
-  mCompDer[0][15] = 1;
-  mCompDer[0][16] = tmp10_;
-  mCompDer[0][17] = tmp11_;
-  mCompDer[0][18] = tmp12_;
-  mCompDer[0][19] = tmp13_;
-  mCompDer[0][20] = tmp16_;
+  mCompDer[0][1] = tmp1_;
+  mCompDer[0][2] = tmp3_;
+  mCompDer[0][3] = tmp4_;
+  mCompDer[0][4] = tmp12_;
+  mCompDer[0][5] = tmp5_;
+  mCompDer[0][6] = tmp6_;
+  mCompDer[0][7] = tmp13_;
+  mCompDer[0][8] = tmp14_;
+  mCompDer[0][9] = tmp7_;
+  mCompDer[0][10] = tmp8_;
+  mCompDer[0][11] = tmp15_;
+  mCompDer[0][12] = tmp16_;
+  mCompDer[0][13] = tmp17_;
+  mCompDer[0][14] = tmp9_;
+  mCompDer[0][15] = tmp10_;
+  mCompDer[0][16] = tmp18_;
+  mCompDer[0][17] = tmp19_;
+  mCompDer[0][18] = tmp20_;
+  mCompDer[0][19] = tmp21_;
+  mCompDer[0][20] = tmp11_;
   mCompDer[0][21] = 0;
   mCompDer[0][22] = 0;
   mCompDer[0][23] = 0;
@@ -99,7 +104,7 @@ void cGen2DBundleAttach_Deg5::ComputeValDeriv()
   mCompDer[0][39] = 0;
   mCompDer[0][40] = 0;
   mCompDer[0][41] = 0;
-  mVal[1] = (mCompCoord[21]+mCompCoord[22]+mCompCoord[23]*(tmp1_)*(tmp3_)+mCompCoord[24]+mCompCoord[25]*(tmp1_)*(tmp3_)+mCompCoord[26]*tmp4_*tmp5_+mCompCoord[27]+mCompCoord[28]*(tmp1_)*(tmp3_)+mCompCoord[29]*tmp4_*tmp5_+mCompCoord[30]*tmp6_*tmp7_+mCompCoord[31]+mCompCoord[32]*(tmp1_)*(tmp3_)+mCompCoord[33]*tmp4_*tmp5_+mCompCoord[34]*tmp6_*tmp7_+mCompCoord[35]*tmp8_*tmp9_+mCompCoord[36]+mCompCoord[37]*(tmp1_)*(tmp3_)+mCompCoord[38]*tmp4_*tmp5_+mCompCoord[39]*tmp6_*tmp7_+mCompCoord[40]*tmp8_*tmp9_+mCompCoord[41]*tmp14_*tmp15_)-mLocFixedV_y;
+  mVal[1] = (mCompCoord[21]+mCompCoord[22]*(tmp1_)+mCompCoord[23]*(tmp3_)+mCompCoord[24]*tmp4_+mCompCoord[25]*(tmp3_)*(tmp1_)+mCompCoord[26]*tmp5_+mCompCoord[27]*tmp6_+mCompCoord[28]*(tmp3_)*tmp4_+mCompCoord[29]*tmp5_*(tmp1_)+mCompCoord[30]*tmp7_+mCompCoord[31]*tmp8_+mCompCoord[32]*(tmp3_)*tmp6_+mCompCoord[33]*tmp5_*tmp4_+mCompCoord[34]*tmp7_*(tmp1_)+mCompCoord[35]*tmp9_+mCompCoord[36]*tmp10_+mCompCoord[37]*(tmp3_)*tmp8_+mCompCoord[38]*tmp5_*tmp6_+mCompCoord[39]*tmp7_*tmp4_+mCompCoord[40]*tmp9_*(tmp1_)+mCompCoord[41]*tmp11_)-mLocFixedV_y;
 
   mCompDer[1][0] = 0;
   mCompDer[1][1] = 0;
@@ -123,26 +128,26 @@ void cGen2DBundleAttach_Deg5::ComputeValDeriv()
   mCompDer[1][19] = 0;
   mCompDer[1][20] = 0;
   mCompDer[1][21] = 1;
-  mCompDer[1][22] = 1;
-  mCompDer[1][23] = tmp10_;
-  mCompDer[1][24] = 1;
-  mCompDer[1][25] = tmp10_;
-  mCompDer[1][26] = tmp11_;
-  mCompDer[1][27] = 1;
-  mCompDer[1][28] = tmp10_;
-  mCompDer[1][29] = tmp11_;
-  mCompDer[1][30] = tmp12_;
-  mCompDer[1][31] = 1;
-  mCompDer[1][32] = tmp10_;
-  mCompDer[1][33] = tmp11_;
-  mCompDer[1][34] = tmp12_;
-  mCompDer[1][35] = tmp13_;
-  mCompDer[1][36] = 1;
-  mCompDer[1][37] = tmp10_;
-  mCompDer[1][38] = tmp11_;
-  mCompDer[1][39] = tmp12_;
-  mCompDer[1][40] = tmp13_;
-  mCompDer[1][41] = tmp16_;
+  mCompDer[1][22] = tmp1_;
+  mCompDer[1][23] = tmp3_;
+  mCompDer[1][24] = tmp4_;
+  mCompDer[1][25] = tmp12_;
+  mCompDer[1][26] = tmp5_;
+  mCompDer[1][27] = tmp6_;
+  mCompDer[1][28] = tmp13_;
+  mCompDer[1][29] = tmp14_;
+  mCompDer[1][30] = tmp7_;
+  mCompDer[1][31] = tmp8_;
+  mCompDer[1][32] = tmp15_;
+  mCompDer[1][33] = tmp16_;
+  mCompDer[1][34] = tmp17_;
+  mCompDer[1][35] = tmp9_;
+  mCompDer[1][36] = tmp10_;
+  mCompDer[1][37] = tmp18_;
+  mCompDer[1][38] = tmp19_;
+  mCompDer[1][39] = tmp20_;
+  mCompDer[1][40] = tmp21_;
+  mCompDer[1][41] = tmp11_;
 }
 
 
