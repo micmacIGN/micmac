@@ -946,11 +946,11 @@ void ShowSpectrSys(cSetEqFormelles & aSetEq)
         aVPMin = ElMin(aVPMin,aValP);
         aVPMax = ElMax(aVPMax,aValP);
 
-        std::cout << "Valp "  << aValP << "\n";
+        std::cout << "Valp[" << aK << "]= "  << aValP << "\n";
     }
 
     std::cout << "Det=" << aDet  << " VPMin=" << aVPMin << " VPMax=" << aVPMax << "\n";
-    getchar();
+    // getchar();
 }
 
 void cAppliApero::DebugPbConvAppui()

@@ -39,10 +39,23 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Apero.h"
 
+bool DebugBundleGen=false;
+
 class cBGC3_Modif2D ; //   : public cBasicGeomCap3D
 class cPolynomial_BGC3M2D ;//  : public cBGC3_Modif2D
 class cPolynBGC3M2D_Formelle; // : public cGenPDVFormelle
 class cOneEq_PBGC3M2DF;
+
+
+/*
+
+   N ((i,j)+D(i,j)) = R N(i,j) = (I + W e ^ N(i,j))
+  
+   (Id + J * D(i,j) )  = I + W e ^ N(i,j))
+
+    D(i,j) = J-1 (W ^
+
+*/
 
 class cBGC3_Modif2D  : public cBasicGeomCap3D
 {
@@ -54,6 +67,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
 
            virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const ;
            virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const ;
+           Pt2dr            Ter2CapteurSsCorrec   (const Pt3dr & aP) const ;
            virtual Pt2di    SzBasicCapt3D() const ;
            virtual double ResolSolOfPt(const Pt3dr &) const ;
            virtual bool  CaptHasData(const Pt2dr &) const ;
@@ -66,6 +80,8 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
 
            inline Pt2dr CamInit2CurIm(const Pt2dr & aP) const{return aP+DeltaCamInit2CurIm(aP);}
            inline Pt2dr CurIm2CamInit(const Pt2dr & aP) const{return aP+DeltaCurIm2CamInit(aP);}
+
+           cBasicGeomCap3D * CamSsCor();
 
       protected  : 
             cBasicGeomCap3D * mCam0;
@@ -85,7 +101,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
 class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
 {
       public : 
-           cPolynomial_BGC3M2D(cBasicGeomCap3D * aCam0,int aDegree);
+           cPolynomial_BGC3M2D(cBasicGeomCap3D * aCam0,int aDegree,double aRandomPert);
            Pt2dr DeltaCamInit2CurIm(const Pt2dr & aP) const ;
            inline Pt2dr ToPNorm(const Pt2dr aP) const {return (aP-mCenter)/mAmpl;}
            inline Pt2dr FromPNorm(const Pt2dr aP) const {return aP*mAmpl + mCenter;}
@@ -97,8 +113,8 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            inline const int & DegreMax()   const {return mDegreMax;}
            inline const double  &       Ampl() const {return mAmpl;}
            inline const Pt2dr &      Center() const {return mCenter;}
-      private : 
            void Show() const;
+      private : 
            void Show(const std::string & aMes,const std::vector<double> & aCoef) const;
            void ShowMonome(const std::string & , int aDeg) const;
            void SetPow(const Pt2dr & aPN) const;
@@ -142,31 +158,40 @@ class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
          friend class cOneEq_PBGC3M2DF;
 
          cPolynBGC3M2D_Formelle(cSetEqFormelles & aSet,cPolynomial_BGC3M2D aCam0,bool GenCode,bool GenCodeAttach);
-         void GenerateCode(Pt2d<Fonc_Num>,const std::string &);
+         void GenerateCode(Pt2d<Fonc_Num>,const std::string &,cIncListInterv &);
+         cIncListInterv & IntervAppuisPtsInc() ;
+         void PostInit();
+         const cBasicGeomCap3D * GPF_CurBGCap3D() const ;
+         cBasicGeomCap3D * GPF_NC_CurBGCap3D() ;
+         Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite);
+         
+         const cPolynomial_BGC3M2D *  TypedCamCur() const { return & mCamCur; }
+         cPolynomial_BGC3M2D *  TypedCamCur() { return & mCamCur; }
+         void AddEqAttachGlob(double aPds,bool Cur,int aNbPts);
     private :
          cPolynBGC3M2D_Formelle(const cPolynBGC3M2D_Formelle &); // N.I.
 
 
    // ==> To unvirtualize cGenPDVFormelle 
-         const cBasicGeomCap3D * GPF_CurBGCap3D() const ;
-         cBasicGeomCap3D * GPF_NC_CurBGCap3D() ;
          Pt2d<Fonc_Num>  FormProj();
          Pt2d<Fonc_Num>  FixedVal();
-         Pt2d<Fonc_Num>  FormalCorrec(Pt2d<Fonc_Num> aPF);
+         Pt2d<Fonc_Num>  FormalCorrec(Pt2d<Fonc_Num> aPF,cVarEtat_PhgrF aFAmpl,cP2d_Etat_PhgrF aFCenter);
 
 
-         Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite);
-         cIncListInterv & IntervAppuisPtsInc() ;
+         void AddEqAttach(Pt2dr aPIm,double aPds,bool Cur);
 
-         cPolynomial_BGC3M2D mCam0;
+         cBasicGeomCap3D *   mCamSsCorr;
+         cPolynomial_BGC3M2D mCamInit;
          cPolynomial_BGC3M2D mCamCur;
 
 
 
          cEqfP3dIncTmp * mEqP3I;
 
-         cVarEtat_PhgrF    mFAmpl;
-         cP2d_Etat_PhgrF   mFCentr;
+         cVarEtat_PhgrF    mFAmplAppui;
+         cVarEtat_PhgrF    mFAmplAttach;
+         cP2d_Etat_PhgrF   mFCentrAppui;
+         cP2d_Etat_PhgrF   mFCentrAttach;
 
          cP3d_Etat_PhgrF   mFP3DInit;
          cP2d_Etat_PhgrF   mFProjInit;
@@ -185,8 +210,10 @@ class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
          cOneEq_PBGC3M2DF    mCompY;
          std::string         mNameType;
          std::string         mNameAttach;
-         cIncListInterv      mLInterv;
+         cIncListInterv      mLIntervResiduApp;
+         cIncListInterv      mLIntervAttach;
          cElCompiledFonc *   mFoncEqResidu;
+         cElCompiledFonc *   mFoncEqAttach;
 };
 
 
@@ -221,8 +248,19 @@ Fonc_Num  cOneEq_PBGC3M2DF::FormProjCor(Pt2d<Fonc_Num> aP)
    Fonc_Num aRes = 0;
    for (int aK=0 ; aK<int(mVFCoef.size()) ; aK++)
    {
-       aRes = aRes + mVFCoef[aK] * PowI(aP.x,mCamCur->DegX(aK)) *  PowI(aP.y,mCamCur->DegX(aK));
+       aRes = aRes + mVFCoef[aK] * PowI(aP.x,mCamCur->DegX(aK)) *  PowI(aP.y,mCamCur->DegY(aK));
    }
+
+/*
+{
+    std::cout << "cOneEq_PBGC3M2DF::FormProjCor \n";
+
+    aRes.show(std::cout);
+    getchar();
+}
+*/
+
+
    return aRes;
 }
 
@@ -239,11 +277,14 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
         bool                GenCodeAttach
 ) :
    cGenPDVFormelle (aSet),
-   mCam0           (aCam0),
+   mCamSsCorr      (aCam0.CamSsCor()),
+   mCamInit        (aCam0),
    mCamCur         (aCam0),
-   mEqP3I          (GenCodeAttach ? 0 : mSet.Pt3dIncTmp()),
-   mFAmpl          ("Ampl"),
-   mFCentr         ("Centr"),
+   mEqP3I          (GenCode ?  mSet.Pt3dIncTmp() : 0),
+   mFAmplAppui     ("Ampl"),
+   mFAmplAttach    ("Ampl"),
+   mFCentrAppui    ("Centr"),
+   mFCentrAttach   ("Centr"),
    mFP3DInit       ("PTerInit"),
    mFProjInit      ("ProjInit"),
    mFGradX         ("GradX"),
@@ -255,41 +296,61 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
    mCompX          (*this,mCamCur.Cx()),
    mCompY          (*this,mCamCur.Cy()),
    mNameType       ("cGen2DBundleEgProj_Deg"+ToString(mCamCur.DegreMax())),
-   mNameAttach     ("cGen2DBundleAttach_Deg"+ToString(mCamCur.DegreMax()))
+   mNameAttach     ("cGen2DBundleAttach_Deg"+ToString(mCamCur.DegreMax())),
+   mFoncEqResidu   (0),
+   mFoncEqAttach   (0)
 {
+    AllowUnsortedVarIn_SetMappingCur = true;
     mCompX.IncInterv().SetName("CX");
     mCompY.IncInterv().SetName("CY");
     if (mEqP3I)
     {
-       mLInterv.AddInterv(mEqP3I->IncInterv());
+       mLIntervResiduApp.AddInterv(mEqP3I->IncInterv());
     }
-    mLInterv.AddInterv(mCompX.IncInterv());
-    mLInterv.AddInterv(mCompY.IncInterv());
+    mLIntervResiduApp.AddInterv(mCompX.IncInterv());
+    mLIntervResiduApp.AddInterv(mCompY.IncInterv());
+    mLIntervAttach.AddInterv(mCompX.IncInterv());
+    mLIntervAttach.AddInterv(mCompY.IncInterv());
 
     if (GenCode)
     {
-        GenerateCode(FormProj()-mObsPix.PtF(),mNameType);
+        GenerateCode(FormProj()-mObsPix.PtF(),mNameType,mLIntervResiduApp);
         return;
     } 
     if (GenCodeAttach)
     {
-        GenerateCode(FixedVal(),mNameAttach);
+        GenerateCode(FixedVal(),mNameAttach,mLIntervAttach);
         return;
     } 
+}
+
+void cPolynBGC3M2D_Formelle::PostInit()
+{
+    if (mFoncEqResidu!=0) return ;
+
+    mEqP3I  = mSet.Pt3dIncTmp();
+    mLIntervResiduApp.AddInterv(mEqP3I->IncInterv());
 
     mFoncEqResidu = cElCompiledFonc::AllocFromName(mNameType);
-    if (mFoncEqResidu==0)
+    mFoncEqAttach = cElCompiledFonc::AllocFromName(mNameAttach);
+    if ((mFoncEqResidu==0) || (mFoncEqAttach==0))
     {
-       std::cout << "NAME = " << mNameType << "\n";
+       std::cout << "NAME = " << mNameType << " , " << mNameAttach << "\n";
        ELISE_ASSERT(false,"Can Get Code Comp for cCameraFormelle::cEqAppui");
     }
 
 
-    mFoncEqResidu->SetMappingCur(mLInterv,&mSet);
+    mFoncEqResidu->SetMappingCur(mLIntervResiduApp,&mSet);
+    mFoncEqAttach->SetMappingCur(mLIntervAttach,&mSet);
     mSet.AddFonct(mFoncEqResidu);
+    mSet.AddFonct(mFoncEqAttach);
 
-    mFAmpl.InitAdr(*mFoncEqResidu);
-    mFCentr.InitAdr(*mFoncEqResidu);
+    mFAmplAppui.InitAdr(*mFoncEqResidu);
+    mFCentrAppui.InitAdr(*mFoncEqResidu);
+    mFAmplAttach.InitAdr(*mFoncEqAttach);
+    mFCentrAttach.InitAdr(*mFoncEqAttach);
+
+
     mFP3DInit.InitAdr(*mFoncEqResidu);
     mFProjInit.InitAdr(*mFoncEqResidu);
     mFGradX.InitAdr(*mFoncEqResidu);
@@ -297,17 +358,24 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
     mFGradZ.InitAdr(*mFoncEqResidu);
     mObsPix.InitAdr(*mFoncEqResidu);
 
-    mFAmpl.SetEtat(mCamCur.Ampl());
-    mFCentr.SetEtat(mCamCur.Center());
+    mPtFixVal.InitAdr(*mFoncEqAttach);
+    mFixedVal.InitAdr(*mFoncEqAttach);
+
+    mFAmplAppui.SetEtat(mCamCur.Ampl());
+    mFCentrAppui.SetEtat(mCamCur.Center());
+    mFAmplAttach.SetEtat(mCamCur.Ampl());
+    mFCentrAttach.SetEtat(mCamCur.Center());
+
+
     mSet.AddObj2Kill(this);
 }
 
 cBasicGeomCap3D * cPolynBGC3M2D_Formelle::GPF_NC_CurBGCap3D() { return & mCamCur; }
 const cBasicGeomCap3D *  cPolynBGC3M2D_Formelle::GPF_CurBGCap3D() const { return & mCamCur; }
 
-Pt2d<Fonc_Num>  cPolynBGC3M2D_Formelle::FormalCorrec(Pt2d<Fonc_Num> aPF)
+Pt2d<Fonc_Num>  cPolynBGC3M2D_Formelle::FormalCorrec(Pt2d<Fonc_Num> aPF,cVarEtat_PhgrF aFAmpl,cP2d_Etat_PhgrF aFCenter)
 {
-   Pt2d<Fonc_Num> aPPN =  (aPF-mFCentr.PtF()).div(mFAmpl.FN());
+   Pt2d<Fonc_Num> aPPN =  (aPF-aFCenter.PtF()).div(aFAmpl.FN());
    return    Pt2d<Fonc_Num>
              (
                  mCompX.FormProjCor(aPPN),
@@ -329,20 +397,18 @@ Pt2d<Fonc_Num>  cPolynBGC3M2D_Formelle::FormProj()
 
    
 
-   // Pt2d<Fonc_Num>  aPPN = (aProj-mFCentr.PtF()).div(mFAmpl.FN());
-
-   return    aProj + FormalCorrec(aProj);
+   return    aProj + FormalCorrec(aProj,mFAmplAppui,mFCentrAppui);
 }
 
 
 Pt2d<Fonc_Num>  cPolynBGC3M2D_Formelle::FixedVal()
 {
-   return  FormalCorrec(mPtFixVal.PtF()) - mFixedVal.PtF();
+   return  FormalCorrec(mPtFixVal.PtF(),mFAmplAttach,mFCentrAttach) - mFixedVal.PtF();
 }
 
 
 
-void  cPolynBGC3M2D_Formelle::GenerateCode(Pt2d<Fonc_Num> aFormP,const std::string & aName)
+void  cPolynBGC3M2D_Formelle::GenerateCode(Pt2d<Fonc_Num> aFormP,const std::string & aName,cIncListInterv & anInterv)
 {
 /*
     Pt2d<Fonc_Num>  aFProj =  FormProj() - mObsPix.PtF();
@@ -356,23 +422,58 @@ void  cPolynBGC3M2D_Formelle::GenerateCode(Pt2d<Fonc_Num> aFormP,const std::stri
         DIRECTORY_GENCODE_FORMEL,  // Directory ou est localise le code genere
         aName,  // donne les noms de fichier .cpp et .h ainsi que les nom de classe
         aFormP.ToTab(),  // expressions formelles 
-        mLInterv  // intervalle de reference
+        anInterv  // intervalle de reference
     );
 
+}
+
+
+void cPolynBGC3M2D_Formelle::AddEqAttach(Pt2dr aPIm,double aPds,bool Cur)
+{
+   PostInit();
+   mPtFixVal.SetEtat(aPIm);
+   Pt2dr aValFix = Cur ? mCamCur.DeltaCamInit2CurIm(aPIm) : Pt2dr(0,0);
+   mFixedVal.SetEtat(aValFix);
+
+   mSet.VAddEqFonctToSys(mFoncEqAttach,aPds,false) ;
+}
+
+void cPolynBGC3M2D_Formelle::AddEqAttachGlob(double aPds,bool Cur,int aNbPts)
+{
+    Pt2dr aSzIm = Pt2dr(mCamCur.SzBasicCapt3D());
+    std::vector<Pt2dr> aVP;
+    for (int aKx=0 ; aKx< aNbPts ; aKx++)
+    {
+        for (int aKy=0 ; aKy< aNbPts ; aKy++)
+        {
+             double aPdsX = (aKx+0.5)/aNbPts;
+             double aPdsY = (aKy+0.5)/aNbPts;
+             Pt2dr aP = aSzIm.mcbyc(Pt2dr(aPdsX,aPdsY));
+             if (mCamCur.CaptHasData(aP))
+             {
+                aVP.push_back(aP);
+             }
+        }
+    }
+    for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
+    {
+         AddEqAttach(aVP[aKP],aPds/aVP.size(),Cur);
+    }
 }
 
 
 
 Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds, cParamPtProj & aPPP,bool IsEqDroite)
 {
+   ELISE_ASSERT(!IsEqDroite,"cPolynBGC3M2D_Formelle::AddEqAppuisInc do not handle lines equation");
 /*
 */
     Pt2dr aGx,aGy,aGz;
 
     Pt3dr aPTer = aPPP.mTer;
-    Pt2dr aProjIm = mCamCur.Ter2Capteur(aPTer);
+    Pt2dr aProjIm = mCamSsCorr->Ter2Capteur(aPTer);
     mFProjInit.SetEtat(aProjIm);
-    mCamCur.Diff(aGx,aGy,aGz,aProjIm,aPTer);
+    mCamSsCorr->Diff(aGx,aGy,aGz,aProjIm,aPTer);
 
     mFP3DInit.SetEtat(aPTer);
     mFProjInit.SetEtat(aProjIm);
@@ -393,6 +494,13 @@ Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds
     else
     {
        aVRes = mSet.VResiduSigne(mFoncEqResidu);
+       
+       if (1)
+       {
+           // Pt2dr aPRoj = 
+           // Pt2dr 
+           // std::cout << "VRES " << aVRes << "\n";
+       }
     }
 
 
@@ -403,7 +511,8 @@ Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds
 
 cIncListInterv & cPolynBGC3M2D_Formelle::IntervAppuisPtsInc() 
 {
-   return mLInterv;
+     PostInit();
+     return mLIntervResiduApp;
 }
 
 /***************************************************************/
@@ -427,6 +536,12 @@ Pt2dr  cBGC3_Modif2D::Ter2Capteur(const Pt3dr & aP) const
 {
     return CamInit2CurIm(mCam0->Ter2Capteur(aP));
 }
+
+Pt2dr  cBGC3_Modif2D::Ter2CapteurSsCorrec(const Pt3dr & aP) const
+{
+    return mCam0->Ter2Capteur(aP);
+}
+
 
 
 Pt2di  cBGC3_Modif2D::SzBasicCapt3D() const
@@ -473,6 +588,11 @@ Pt2dr   cBGC3_Modif2D::DeltaCurIm2CamInit(const Pt2dr & aP) const
 
 
     return aSol;
+}
+
+cBasicGeomCap3D *   cBGC3_Modif2D::CamSsCor()
+{
+    return mCam0;
 }
 
 // ==========================================================
@@ -527,7 +647,7 @@ Pt2dr cPolynomial_BGC3M2D::DeltaCamInit2CurIm(const Pt2dr & aP0) const
 
 
 
-cPolynomial_BGC3M2D::cPolynomial_BGC3M2D(cBasicGeomCap3D * aCam0,int aDegreeMax) :
+cPolynomial_BGC3M2D::cPolynomial_BGC3M2D(cBasicGeomCap3D * aCam0,int aDegreeMax,double aRandPerturb) :
     cBGC3_Modif2D (aCam0),
     mDegreMax     (aDegreeMax),
     mCenter       (Pt2dr(mSz)/2.0),
@@ -541,8 +661,16 @@ cPolynomial_BGC3M2D::cPolynomial_BGC3M2D(cBasicGeomCap3D * aCam0,int aDegreeMax)
           for (int aDegX=0 ; aDegX<= aDegreeTot ; aDegX++)
           {
               int aDegY=aDegreeTot - aDegX;
-              mCx.push_back(0);
-              mCy.push_back(0);
+
+              double aVx=0,aVy=0;
+              if (aRandPerturb)
+              {
+                 aVx = aRandPerturb * NRrandC();
+                 aVy = aRandPerturb * NRrandC();
+              }
+
+              mCx.push_back(aVx);
+              mCy.push_back(aVy);
               if (aCpt>=int(mDegX.size()))
               {
                   mDegX.push_back(aDegX);
@@ -592,6 +720,7 @@ void cPolynomial_BGC3M2D::Show(const std::string & aMes,const std::vector<double
           ShowMonome("Y",mDegY[aK]);
           // if (mDegX[aK]) std::cout << "X^" << mDegX[aK];
           // if (mDegY[aK]) std::cout << "Y^" << mDegY[aK];
+          std::cout << "      ADR=" << &aCoef[aK] << "\n";
           std::cout << "\n";
      }
 }
@@ -603,11 +732,11 @@ void TestBGC3M2D()
    CamStenope * aCS = BasicCamOrientGenFromFile(aName);
 
    
-   cPolynomial_BGC3M2D  aP1(aCS,1);
-   cPolynomial_BGC3M2D  aP2(aCS,0);
-   cPolynomial_BGC3M2D  aP2Bis(aCS,3);
-   cPolynomial_BGC3M2D  aP3(aCS,2);
-   cPolynomial_BGC3M2D  aP4(aCS,1);
+   cPolynomial_BGC3M2D  aP1(aCS,1,0.0);
+   cPolynomial_BGC3M2D  aP2(aCS,0,0.0);
+   cPolynomial_BGC3M2D  aP2Bis(aCS,3,0.0);
+   cPolynomial_BGC3M2D  aP3(aCS,2,0.0);
+   cPolynomial_BGC3M2D  aP4(aCS,1,0.0);
 }
 
 void GenCodeEqProjGen(int aDeg,bool GenCode,bool GenCodeAttach)
@@ -617,7 +746,7 @@ void GenCodeEqProjGen(int aDeg,bool GenCode,bool GenCodeAttach)
     CamStenopeIdeale aCSI(false,1.0,Pt2dr(0,0),aPAF);
     aCSI.SetSz(Pt2di(100,100));
 
-    cPolynomial_BGC3M2D aPolCSI(&aCSI,aDeg);
+    cPolynomial_BGC3M2D aPolCSI(&aCSI,aDeg,0.0);
 
     new cPolynBGC3M2D_Formelle(*aSet,aPolCSI,GenCode,GenCodeAttach);
 }
@@ -642,32 +771,46 @@ class cCamTest_PBGC3M2DF
        cTest_PBGC3M2DF *       mAppli; 
        cImaMM *                mIma;
        CamStenope *            mCS0;
+       CamStenope *            mCSCur;
        cPolynomial_BGC3M2D     mPolCam;
        cPolynBGC3M2D_Formelle  mFPC;
        int                     mK;
+
+       void Show();
 };
 
-class cCpleCTest_PBGC3M2DF
+void cCamTest_PBGC3M2DF::Show()
+{
+   mFPC.TypedCamCur()->Show();
+}
+
+class cSetCTest_PBGC3M2DF
 {
     public :
-         cCamTest_PBGC3M2DF * mCam1;
-         cCamTest_PBGC3M2DF * mCam2;
-         ElPackHomologue      mPack12;     
-         ElPackHomologue      mPack21;     
-         std::vector<Pt2dr>   mVP1;
-         std::vector<Pt2dr>   mVP2;
+         std::vector<cCamTest_PBGC3M2DF *>   mVCams;
+         ElPackHomologue        mPack12;     
+         ElPackHomologue        mPack21;     
+         std::vector<Pt2dr>     mVP[3];
+         cSubstitueBlocIncTmp * mBufSub;
+
+         const cBasicGeomCap3D * KCamCur(int aKC) const {return mVCams[aKC]->mFPC.GPF_CurBGCap3D();}
+         
 };
 
+/*
 class cTriTest_PBGC3M2DF
 {
     public :
-         cCamTest_PBGC3M2DF * mCam1;
-         cCamTest_PBGC3M2DF * mCam2;
-         cCamTest_PBGC3M2DF * mCam3;
-         std::vector<Pt2dr>   mVP1;
-         std::vector<Pt2dr>   mVP2;
-         std::vector<Pt2dr>   mVP3;
+         std::vector<cCamTest_PBGC3M2DF *>   mVCams;
+         // cCamTest_PBGC3M2DF *   mCam1;
+         // cCamTest_PBGC3M2DF *   mCam2;
+         // cCamTest_PBGC3M2DF *   mCam3;
+         std::vector<Pt2dr>     mVP1;
+         std::vector<Pt2dr>     mVP2;
+         std::vector<Pt2dr>     mVP3;
+         cSubstitueBlocIncTmp * mBufSub;
 };
+*/
 
 class cTest_PBGC3M2DF : public cAppliWithSetImage
 {
@@ -675,27 +818,36 @@ class cTest_PBGC3M2DF : public cAppliWithSetImage
        cTest_PBGC3M2DF(int argc,char ** argv);
     // private :
        cSetEqFormelles *                       mSet;
+       cEqfP3dIncTmp *                         mEqP3I;
        std::string                             mPat;
        std::string                             mOri;
        std::vector<cCamTest_PBGC3M2DF *>       mVCT;
-       std::vector<cCpleCTest_PBGC3M2DF *>     mVCpleT;
-       std::vector<cTriTest_PBGC3M2DF *>       mVTriT;
-       std::map<Pt2di,cCpleCTest_PBGC3M2DF *>  mMapCpleT;
+       std::vector<cSetCTest_PBGC3M2DF *>      mVCpleT;
+       std::vector<cSetCTest_PBGC3M2DF *>      mVTriT;
+       std::map<Pt2di,cSetCTest_PBGC3M2DF *>  mMapCpleT;
        int                                     mDeg;
        int                                     mNbSom;
+       double                                  mPerturbAng;
+       double                                  mPerturbPol;
+       CamStenope *                            CamPerturb(CamStenope *);
 
        bool HasArc(int aK1, int aK2)
        {
             if (aK1>aK2) ElSwap(aK1,aK2);
             return DicBoolFind(mMapCpleT,Pt2di(aK1,aK2));
        }
+       double RandAngle() {return mPerturbAng * NRrandC();}
+
+       void OneIterBundle();
+       double AddBundle(const  std::vector<cSetCTest_PBGC3M2DF *> & aVS,double anErr);
 };
 
 cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,int aK) :
    mAppli   (& anAppli),
    mIma     (& anIma),
    mCS0     (mIma->mCam),
-   mPolCam  (mCS0,anAppli.mDeg),
+   mCSCur   (mAppli->CamPerturb(mCS0)),
+   mPolCam  (mCSCur,anAppli.mDeg,anAppli.mPerturbPol),
    mFPC     (*(mAppli->mSet),mPolCam,false,false),
    mK       (aK)
 {
@@ -703,11 +855,110 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
 }
 
 
-cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
-    cAppliWithSetImage(argc-1,argv+1,0),
-    mSet (new cSetEqFormelles(cNameSpaceEqF::eSysPlein)),
-    mDeg (3)
+CamStenope * cTest_PBGC3M2DF::CamPerturb(CamStenope * aCS0)
 {
+   CamStenope * aCS = aCS0->Dupl();
+   ElRotation3D  aR =aCS->Orient();
+
+   // int i = 3 +  5* 4;
+
+   ElMatrix<double> aMPert = ElMatrix<double>::Rotation(RandAngle(),RandAngle(),RandAngle());
+   aR = ElRotation3D(aR.tr(),aR.Mat()*aMPert,true);
+   aCS->SetOrientation(aR);
+
+   return aCS;
+}
+
+double cTest_PBGC3M2DF::AddBundle(const  std::vector<cSetCTest_PBGC3M2DF *> & aVS,double aErrStd)
+{
+    std::vector<double> aVEr;
+    for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+    {
+       cSetCTest_PBGC3M2DF * aSet = aVS[aKS];
+       int aNbCam = aSet->mVCams.size();
+       int aNbP = aSet->mVP[0].size();
+       for (int aKP=0 ; aKP<aNbP ; aKP++)
+       {
+          std::vector<Pt3dr> aVP0;
+          std::vector<Pt3dr> aVP1;
+          for (int aKC=0 ; aKC<aNbCam ; aKC++)
+          {
+              // ElSeg3D aSeg = aSet->mVCams[aKC]->mFPC.GPF_CurBGCap3D()->Capteur2RayTer(aSet->mVP[aKC][aKP]);
+              ElSeg3D aSeg = aSet->KCamCur(aKC)->Capteur2RayTer(aSet->mVP[aKC][aKP]);
+              aVP0.push_back(aSeg.P0());
+              aVP1.push_back(aSeg.P1());
+          }
+          bool Ok;
+          Pt3dr  aPImTer = InterSeg(aVP0,aVP1,Ok);
+          double anEr = 0;
+          for (int aKC=0 ; aKC<aNbCam ; aKC++)
+          {
+              Pt2dr aPIm = aSet->mVP[aKC][aKP];
+              cParamPtProj aPPP(1.0,1.0,false);
+              aPPP.mTer = aPImTer;
+
+              Pt2dr aPAp = aSet->mVCams[aKC]->mFPC.AddEqAppuisInc(aPIm,0,aPPP,false);
+              anEr += euclid(aPAp);
+          }
+          anEr /= aNbCam;
+          aVEr.push_back(anEr);
+          
+          if ((aErrStd >0) && (anEr< (10 * aErrStd)))
+          {
+              double aPds = 1 /(1 + ElSquare(anEr/aErrStd));
+              for (int aKC=0 ; aKC<aNbCam ; aKC++)
+              {
+                  Pt2dr aPIm = aSet->mVP[aKC][aKP];
+                  cParamPtProj aPPP(1.0,1.0,false);
+                  aPPP.mTer = aPImTer;
+                  aSet->mVCams[aKC]->mFPC.AddEqAppuisInc(aPIm,aPds,aPPP,false);
+              }
+              aSet->mBufSub->DoSubst();
+          }
+       }
+    }
+    return KthValProp(aVEr,0.75);
+}
+
+void cTest_PBGC3M2DF::OneIterBundle()
+{
+   // mVCT[0]->Show();
+   mSet->SetPhaseEquation();
+
+   for (int aKC=0 ; aKC<int(mVCT.size()) ; aKC++)
+   {
+       mVCT[aKC]->mFPC.AddEqAttachGlob(1e-1,true,20);
+       mVCT[aKC]->mFPC.AddEqAttachGlob(1e-3,false,20);
+   }
+/*
+*/
+
+   double aErCple = AddBundle(mVCpleT,-1);
+   std::cout << "ERCPLE " << aErCple << "\n";
+   AddBundle(mVCpleT,aErCple);
+
+
+   if (mVTriT.size())
+   {
+       double aErrTri = AddBundle(mVTriT,-1);
+       AddBundle(mVTriT,aErrTri);
+       std::cout << "ER TRI " << aErrTri  << "\n";
+   }
+
+DebugBundleGen = true;
+   std::cout << "\n";
+   mSet->SolveResetUpdate();
+
+}
+
+cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
+    cAppliWithSetImage   (argc-1,argv+1,0),
+    mSet                 (new cSetEqFormelles(cNameSpaceEqF::eSysPlein)),
+    mDeg                 (3),
+    mPerturbAng          (0.01),
+    mPerturbPol          (0.0)
+{
+   //  cSubstitueBlocIncTmp::AddInc recouvrement / TMP
    ElInitArgMain
    (
         argc,argv,
@@ -715,6 +966,8 @@ cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
                     << EAMC(mOri,"Orientation", eSAM_IsExistDirOri),
         LArgMain()
                     << EAM(mDeg,"Degre", true,"Degre of polynomial correction (Def=3)")
+                    << EAM(mPerturbAng,"PertAng", true,"Angle Perturbation")
+                    << EAM(mPerturbPol,"PertPol", true,"Polynomial Perturbation")
    );
    mNbSom = mVSoms.size();
 
@@ -723,6 +976,7 @@ cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
        mVCT.push_back(new cCamTest_PBGC3M2DF(*mVSoms[aK]->attr().mIma,*this,aK));
    }
 
+   mEqP3I  =  mSet->Pt3dIncTmp();
    std::string aKey = "NKS-Assoc-CplIm2Hom@@dat";
 
    for (int aK1=0 ;  aK1 <mNbSom ; aK1++)
@@ -735,18 +989,28 @@ cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
             std::string aN21 =  mEASF.mICNM->Assoc1To2(aKey,aC2->mIma->mNameIm,aC1->mIma->mNameIm,true);
             if (ELISE_fp::exist_file(aN12) && ELISE_fp::exist_file(aN21))
             {
-                 cCpleCTest_PBGC3M2DF * aCple = new cCpleCTest_PBGC3M2DF;
+                 cSetCTest_PBGC3M2DF * aCple = new cSetCTest_PBGC3M2DF;
                  aCple->mPack12 =  ElPackHomologue::FromFile(aN12);
                  aCple->mPack21 =  ElPackHomologue::FromFile(aN21);
-                 aCple->mCam1 =  aC1;
-                 aCple->mCam2 =  aC2;
-                 Merge2Pack(aCple->mVP1,aCple->mVP2,1,aCple->mPack12,aCple->mPack21);
+                 aCple->mVCams.push_back(aC1);
+                 aCple->mVCams.push_back(aC2);
+
+
+                 Merge2Pack(aCple->mVP[0],aCple->mVP[1],1,aCple->mPack12,aCple->mPack21);
 
                  std::cout << aN12 << " " << aN21 
                           << " Sz0= " << aCple->mPack12.size() << " " << aCple->mPack21.size() 
-                          << " SzM= " << aCple->mVP1.size()  << "\n";
-                 if (aCple->mVP1.size() )
+                          << " SzM= " << aCple->mVP[0].size()  << "\n";
+                 if (aCple->mVP[0].size() )
                  {
+                     cSubstitueBlocIncTmp * aBS = new cSubstitueBlocIncTmp(*mEqP3I);
+                     aCple->mBufSub =  aBS;
+                     aBS->AddInc(aC1->mFPC.IntervAppuisPtsInc());
+                     aBS->AddInc(aC2->mFPC.IntervAppuisPtsInc());
+                     aBS->Close();
+
+// aBuf->AddInc(*(mVLInterv[aK]));
+
                      mVCpleT.push_back(aCple);
                      mMapCpleT[Pt2di(aK1,aK2)] = aCple;
                  }
@@ -763,38 +1027,65 @@ cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
            {
                if (HasArc(aK1,aK2) && HasArc(aK1,aK3) && HasArc(aK2,aK3))
                {
-                   cTriTest_PBGC3M2DF * aTri = new cTriTest_PBGC3M2DF;
-                   aTri->mCam1 = mVCT[aK1];         
+                   cSetCTest_PBGC3M2DF * aTri = new cSetCTest_PBGC3M2DF;
+                   cCamTest_PBGC3M2DF * aC1 = mVCT[aK1];         
+                   cCamTest_PBGC3M2DF * aC2 = mVCT[aK2];         
+                   cCamTest_PBGC3M2DF * aC3 = mVCT[aK3];         
+                   aTri->mVCams.push_back(aC1);
+                   aTri->mVCams.push_back(aC2);
+                   aTri->mVCams.push_back(aC3);
+
+                   /*aTri->mCam1 = mVCT[aK1];         
                    aTri->mCam2 = mVCT[aK2];         
-                   aTri->mCam3 = mVCT[aK3];         
-                   cCpleCTest_PBGC3M2DF * aCp12 = mMapCpleT[Pt2di(aK1,aK2)];
-                   cCpleCTest_PBGC3M2DF * aCp13 = mMapCpleT[Pt2di(aK1,aK3)];
-                   cCpleCTest_PBGC3M2DF * aCp23 = mMapCpleT[Pt2di(aK2,aK3)];
+                   aTri->mCam3 = mVCT[aK3];          */
+                   cSetCTest_PBGC3M2DF * aCp12 = mMapCpleT[Pt2di(aK1,aK2)];
+                   cSetCTest_PBGC3M2DF * aCp13 = mMapCpleT[Pt2di(aK1,aK3)];
+                   cSetCTest_PBGC3M2DF * aCp23 = mMapCpleT[Pt2di(aK2,aK3)];
 
 
 
                    Merge3Pack
                    (
-                        aTri->mVP1,aTri->mVP2,aTri->mVP3,
+                        aTri->mVP[0],aTri->mVP[1],aTri->mVP[2],
                         3,
-                        aCp12->mVP1, aCp12->mVP2,
-                        aCp13->mVP1, aCp13->mVP2,
-                        aCp23->mVP1, aCp23->mVP2
+                        aCp12->mVP[0], aCp12->mVP[1],
+                        aCp13->mVP[0], aCp13->mVP[1],
+                        aCp23->mVP[0], aCp23->mVP[1]
                    );
-                   if (aTri->mVP1.size() > 5)
+                   if (aTri->mVP[0].size() > 5)
                    {
+                       cSubstitueBlocIncTmp * aBS = new cSubstitueBlocIncTmp(*mEqP3I);
+                       aTri->mBufSub =  aBS;
+                       aBS->AddInc(aC1->mFPC.IntervAppuisPtsInc());
+                       aBS->AddInc(aC2->mFPC.IntervAppuisPtsInc());
+                       aBS->AddInc(aC3->mFPC.IntervAppuisPtsInc());
+
+                       // aBS->AddInc(aC2->mFPC.IntervAppuisPtsInc());
+                       // aBS->AddInc(aC3->mFPC.IntervAppuisPtsInc());
+                       aBS->Close();
+
+
                        mVTriT.push_back(aTri);
-                       std::cout  << aTri->mCam1->mIma->mNameIm  << " "
-                                  << aTri->mCam2->mIma->mNameIm  << " "
-                                  << aTri->mCam3->mIma->mNameIm  << " "
-                                  <<  aTri->mVP1.size()  << "\n";
+                       std::cout  << aC1->mIma->mNameIm  << " "
+                                  << aC2->mIma->mNameIm  << " "
+                                  << aC3->mIma->mNameIm  << " "
+                                  <<  aTri->mVP[0].size()  << " "
+                                  <<  aTri->mVP[1].size()  << " "
+                                  <<  aTri->mVP[2].size()  << "\n";
                    }
                }
            }
        }
    }
+/*
+*/
 
+   mSet->SetClosed();
 
+   for (int aK=0 ; aK<100 ; aK++)
+   {
+      OneIterBundle();
+   }
 }
 
 int CPP_TestBundleGen(int argc,char ** argv)  

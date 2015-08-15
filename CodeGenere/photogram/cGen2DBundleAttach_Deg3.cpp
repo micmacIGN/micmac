@@ -15,48 +15,48 @@ cGen2DBundleAttach_Deg3::cGen2DBundleAttach_Deg3():
 
 void cGen2DBundleAttach_Deg3::ComputeVal()
 {
-   double tmp0_ = mLocPFixV_x-mLocCentr_x;
+   double tmp0_ = mLocPFixV_y-mLocCentr_y;
    double tmp1_ = (tmp0_)/mLocAmpl;
-   double tmp2_ = mLocPFixV_y-mLocCentr_y;
+   double tmp2_ = mLocPFixV_x-mLocCentr_x;
    double tmp3_ = (tmp2_)/mLocAmpl;
    double tmp4_ = ElSquare(tmp1_);
    double tmp5_ = ElSquare(tmp3_);
    double tmp6_ = VCube(tmp1_);
    double tmp7_ = VCube(tmp3_);
 
-  mVal[0] = (mCompCoord[0]+mCompCoord[1]+mCompCoord[2]*(tmp1_)*(tmp3_)+mCompCoord[3]+mCompCoord[4]*(tmp1_)*(tmp3_)+mCompCoord[5]*tmp4_*tmp5_+mCompCoord[6]+mCompCoord[7]*(tmp1_)*(tmp3_)+mCompCoord[8]*tmp4_*tmp5_+mCompCoord[9]*tmp6_*tmp7_)-mLocFixedV_x;
+  mVal[0] = (mCompCoord[0]+mCompCoord[1]*(tmp1_)+mCompCoord[2]*(tmp3_)+mCompCoord[3]*tmp4_+mCompCoord[4]*(tmp3_)*(tmp1_)+mCompCoord[5]*tmp5_+mCompCoord[6]*tmp6_+mCompCoord[7]*(tmp3_)*tmp4_+mCompCoord[8]*tmp5_*(tmp1_)+mCompCoord[9]*tmp7_)-mLocFixedV_x;
 
-  mVal[1] = (mCompCoord[10]+mCompCoord[11]+mCompCoord[12]*(tmp1_)*(tmp3_)+mCompCoord[13]+mCompCoord[14]*(tmp1_)*(tmp3_)+mCompCoord[15]*tmp4_*tmp5_+mCompCoord[16]+mCompCoord[17]*(tmp1_)*(tmp3_)+mCompCoord[18]*tmp4_*tmp5_+mCompCoord[19]*tmp6_*tmp7_)-mLocFixedV_y;
+  mVal[1] = (mCompCoord[10]+mCompCoord[11]*(tmp1_)+mCompCoord[12]*(tmp3_)+mCompCoord[13]*tmp4_+mCompCoord[14]*(tmp3_)*(tmp1_)+mCompCoord[15]*tmp5_+mCompCoord[16]*tmp6_+mCompCoord[17]*(tmp3_)*tmp4_+mCompCoord[18]*tmp5_*(tmp1_)+mCompCoord[19]*tmp7_)-mLocFixedV_y;
 
 }
 
 
 void cGen2DBundleAttach_Deg3::ComputeValDeriv()
 {
-   double tmp0_ = mLocPFixV_x-mLocCentr_x;
+   double tmp0_ = mLocPFixV_y-mLocCentr_y;
    double tmp1_ = (tmp0_)/mLocAmpl;
-   double tmp2_ = mLocPFixV_y-mLocCentr_y;
+   double tmp2_ = mLocPFixV_x-mLocCentr_x;
    double tmp3_ = (tmp2_)/mLocAmpl;
    double tmp4_ = ElSquare(tmp1_);
    double tmp5_ = ElSquare(tmp3_);
-   double tmp6_ = (tmp1_)*(tmp3_);
-   double tmp7_ = tmp4_*tmp5_;
-   double tmp8_ = VCube(tmp1_);
-   double tmp9_ = VCube(tmp3_);
-   double tmp10_ = tmp8_*tmp9_;
+   double tmp6_ = VCube(tmp1_);
+   double tmp7_ = VCube(tmp3_);
+   double tmp8_ = (tmp3_)*(tmp1_);
+   double tmp9_ = (tmp3_)*tmp4_;
+   double tmp10_ = tmp5_*(tmp1_);
 
-  mVal[0] = (mCompCoord[0]+mCompCoord[1]+mCompCoord[2]*(tmp1_)*(tmp3_)+mCompCoord[3]+mCompCoord[4]*(tmp1_)*(tmp3_)+mCompCoord[5]*tmp4_*tmp5_+mCompCoord[6]+mCompCoord[7]*(tmp1_)*(tmp3_)+mCompCoord[8]*tmp4_*tmp5_+mCompCoord[9]*tmp8_*tmp9_)-mLocFixedV_x;
+  mVal[0] = (mCompCoord[0]+mCompCoord[1]*(tmp1_)+mCompCoord[2]*(tmp3_)+mCompCoord[3]*tmp4_+mCompCoord[4]*(tmp3_)*(tmp1_)+mCompCoord[5]*tmp5_+mCompCoord[6]*tmp6_+mCompCoord[7]*(tmp3_)*tmp4_+mCompCoord[8]*tmp5_*(tmp1_)+mCompCoord[9]*tmp7_)-mLocFixedV_x;
 
   mCompDer[0][0] = 1;
-  mCompDer[0][1] = 1;
-  mCompDer[0][2] = tmp6_;
-  mCompDer[0][3] = 1;
-  mCompDer[0][4] = tmp6_;
-  mCompDer[0][5] = tmp7_;
-  mCompDer[0][6] = 1;
-  mCompDer[0][7] = tmp6_;
-  mCompDer[0][8] = tmp7_;
-  mCompDer[0][9] = tmp10_;
+  mCompDer[0][1] = tmp1_;
+  mCompDer[0][2] = tmp3_;
+  mCompDer[0][3] = tmp4_;
+  mCompDer[0][4] = tmp8_;
+  mCompDer[0][5] = tmp5_;
+  mCompDer[0][6] = tmp6_;
+  mCompDer[0][7] = tmp9_;
+  mCompDer[0][8] = tmp10_;
+  mCompDer[0][9] = tmp7_;
   mCompDer[0][10] = 0;
   mCompDer[0][11] = 0;
   mCompDer[0][12] = 0;
@@ -67,7 +67,7 @@ void cGen2DBundleAttach_Deg3::ComputeValDeriv()
   mCompDer[0][17] = 0;
   mCompDer[0][18] = 0;
   mCompDer[0][19] = 0;
-  mVal[1] = (mCompCoord[10]+mCompCoord[11]+mCompCoord[12]*(tmp1_)*(tmp3_)+mCompCoord[13]+mCompCoord[14]*(tmp1_)*(tmp3_)+mCompCoord[15]*tmp4_*tmp5_+mCompCoord[16]+mCompCoord[17]*(tmp1_)*(tmp3_)+mCompCoord[18]*tmp4_*tmp5_+mCompCoord[19]*tmp8_*tmp9_)-mLocFixedV_y;
+  mVal[1] = (mCompCoord[10]+mCompCoord[11]*(tmp1_)+mCompCoord[12]*(tmp3_)+mCompCoord[13]*tmp4_+mCompCoord[14]*(tmp3_)*(tmp1_)+mCompCoord[15]*tmp5_+mCompCoord[16]*tmp6_+mCompCoord[17]*(tmp3_)*tmp4_+mCompCoord[18]*tmp5_*(tmp1_)+mCompCoord[19]*tmp7_)-mLocFixedV_y;
 
   mCompDer[1][0] = 0;
   mCompDer[1][1] = 0;
@@ -80,15 +80,15 @@ void cGen2DBundleAttach_Deg3::ComputeValDeriv()
   mCompDer[1][8] = 0;
   mCompDer[1][9] = 0;
   mCompDer[1][10] = 1;
-  mCompDer[1][11] = 1;
-  mCompDer[1][12] = tmp6_;
-  mCompDer[1][13] = 1;
-  mCompDer[1][14] = tmp6_;
-  mCompDer[1][15] = tmp7_;
-  mCompDer[1][16] = 1;
-  mCompDer[1][17] = tmp6_;
-  mCompDer[1][18] = tmp7_;
-  mCompDer[1][19] = tmp10_;
+  mCompDer[1][11] = tmp1_;
+  mCompDer[1][12] = tmp3_;
+  mCompDer[1][13] = tmp4_;
+  mCompDer[1][14] = tmp8_;
+  mCompDer[1][15] = tmp5_;
+  mCompDer[1][16] = tmp6_;
+  mCompDer[1][17] = tmp9_;
+  mCompDer[1][18] = tmp10_;
+  mCompDer[1][19] = tmp7_;
 }
 
 
