@@ -15,10 +15,10 @@ cGen2DBundleAttach_Deg1::cGen2DBundleAttach_Deg1():
 
 void cGen2DBundleAttach_Deg1::ComputeVal()
 {
-   double tmp0_ = mLocPFixV_y-mLocCentr_y;
-   double tmp1_ = (tmp0_)/mLocAmpl;
-   double tmp2_ = mLocPFixV_x-mLocCentr_x;
-   double tmp3_ = (tmp2_)/mLocAmpl;
+   double tmp0_ = mLocPFixV_y-mLocCentrFixV_y;
+   double tmp1_ = (tmp0_)/mLocAmplFixV;
+   double tmp2_ = mLocPFixV_x-mLocCentrFixV_x;
+   double tmp3_ = (tmp2_)/mLocAmplFixV;
 
   mVal[0] = (mCompCoord[0]+mCompCoord[1]*(tmp1_)+mCompCoord[2]*(tmp3_))-mLocFixedV_x;
 
@@ -29,10 +29,10 @@ void cGen2DBundleAttach_Deg1::ComputeVal()
 
 void cGen2DBundleAttach_Deg1::ComputeValDeriv()
 {
-   double tmp0_ = mLocPFixV_y-mLocCentr_y;
-   double tmp1_ = (tmp0_)/mLocAmpl;
-   double tmp2_ = mLocPFixV_x-mLocCentr_x;
-   double tmp3_ = (tmp2_)/mLocAmpl;
+   double tmp0_ = mLocPFixV_y-mLocCentrFixV_y;
+   double tmp1_ = (tmp0_)/mLocAmplFixV;
+   double tmp2_ = mLocPFixV_x-mLocCentrFixV_x;
+   double tmp3_ = (tmp2_)/mLocAmplFixV;
 
   mVal[0] = (mCompCoord[0]+mCompCoord[1]*(tmp1_)+mCompCoord[2]*(tmp3_))-mLocFixedV_x;
 
@@ -58,9 +58,9 @@ void cGen2DBundleAttach_Deg1::ComputeValDerivHessian()
   ELISE_ASSERT(false,"Foncteur cGen2DBundleAttach_Deg1 Has no Der Sec");
 }
 
-void cGen2DBundleAttach_Deg1::SetAmpl(double aVal){ mLocAmpl = aVal;}
-void cGen2DBundleAttach_Deg1::SetCentr_x(double aVal){ mLocCentr_x = aVal;}
-void cGen2DBundleAttach_Deg1::SetCentr_y(double aVal){ mLocCentr_y = aVal;}
+void cGen2DBundleAttach_Deg1::SetAmplFixV(double aVal){ mLocAmplFixV = aVal;}
+void cGen2DBundleAttach_Deg1::SetCentrFixV_x(double aVal){ mLocCentrFixV_x = aVal;}
+void cGen2DBundleAttach_Deg1::SetCentrFixV_y(double aVal){ mLocCentrFixV_y = aVal;}
 void cGen2DBundleAttach_Deg1::SetFixedV_x(double aVal){ mLocFixedV_x = aVal;}
 void cGen2DBundleAttach_Deg1::SetFixedV_y(double aVal){ mLocFixedV_y = aVal;}
 void cGen2DBundleAttach_Deg1::SetPFixV_x(double aVal){ mLocPFixV_x = aVal;}
@@ -70,9 +70,9 @@ void cGen2DBundleAttach_Deg1::SetPFixV_y(double aVal){ mLocPFixV_y = aVal;}
 
 double * cGen2DBundleAttach_Deg1::AdrVarLocFromString(const std::string & aName)
 {
-   if (aName == "Ampl") return & mLocAmpl;
-   if (aName == "Centr_x") return & mLocCentr_x;
-   if (aName == "Centr_y") return & mLocCentr_y;
+   if (aName == "AmplFixV") return & mLocAmplFixV;
+   if (aName == "CentrFixV_x") return & mLocCentrFixV_x;
+   if (aName == "CentrFixV_y") return & mLocCentrFixV_y;
    if (aName == "FixedV_x") return & mLocFixedV_x;
    if (aName == "FixedV_y") return & mLocFixedV_y;
    if (aName == "PFixV_x") return & mLocPFixV_x;
