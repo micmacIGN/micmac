@@ -51,7 +51,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern bool DebugCamBil;
 
-extern bool DebugBundleGen;
 
 /************************************************************/
 /*                                                          */

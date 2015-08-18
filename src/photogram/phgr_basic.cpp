@@ -1448,6 +1448,11 @@ bool   cBasicGeomCap3D::HasOpticalCenterOfPixel() const
    return true;
 }
 
+bool  cBasicGeomCap3D::CaptHasDataGeom(const Pt2dr &) const
+{
+   return true;
+}
+
 Pt3dr    cBasicGeomCap3D::OpticalCenterOfPixel(const Pt2dr & aP) const
 {
     ELISE_ASSERT(false,"cBasicGeomCap3D::OpticalCenterOfPixel");

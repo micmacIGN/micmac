@@ -34,10 +34,10 @@ void cGen2DBundleEgProj_Deg7::ComputeVal()
    double tmp15_ = tmp13_+tmp14_;
    double tmp16_ = mLocGradZ_y*(tmp5_);
    double tmp17_ = tmp15_+tmp16_;
-   double tmp18_ = (tmp17_)-mLocCentr_y;
-   double tmp19_ = (tmp18_)/mLocAmpl;
-   double tmp20_ = (tmp11_)-mLocCentr_x;
-   double tmp21_ = (tmp20_)/mLocAmpl;
+   double tmp18_ = (tmp17_)-mLocCentrApp_y;
+   double tmp19_ = (tmp18_)/mLocAmplApp;
+   double tmp20_ = (tmp11_)-mLocCentrApp_x;
+   double tmp21_ = (tmp20_)/mLocAmplApp;
    double tmp22_ = ElSquare(tmp19_);
    double tmp23_ = ElSquare(tmp21_);
    double tmp24_ = VCube(tmp19_);
@@ -78,10 +78,10 @@ void cGen2DBundleEgProj_Deg7::ComputeValDeriv()
    double tmp15_ = tmp13_+tmp14_;
    double tmp16_ = mLocGradZ_y*(tmp5_);
    double tmp17_ = tmp15_+tmp16_;
-   double tmp18_ = (tmp17_)-mLocCentr_y;
-   double tmp19_ = (tmp18_)/mLocAmpl;
-   double tmp20_ = (tmp11_)-mLocCentr_x;
-   double tmp21_ = (tmp20_)/mLocAmpl;
+   double tmp18_ = (tmp17_)-mLocCentrApp_y;
+   double tmp19_ = (tmp18_)/mLocAmplApp;
+   double tmp20_ = (tmp11_)-mLocCentrApp_x;
+   double tmp21_ = (tmp20_)/mLocAmplApp;
    double tmp22_ = ElSquare(tmp19_);
    double tmp23_ = ElSquare(tmp21_);
    double tmp24_ = VCube(tmp19_);
@@ -93,12 +93,12 @@ void cGen2DBundleEgProj_Deg7::ComputeValDeriv()
    double tmp30_ = VPow6(tmp19_);
    double tmp31_ = VPow6(tmp21_);
    double tmp32_ = mCompCoord[4];
-   double tmp33_ = ElSquare(mLocAmpl);
+   double tmp33_ = ElSquare(mLocAmplApp);
    double tmp34_ = mCompCoord[5];
-   double tmp35_ = mLocGradX_y*mLocAmpl;
+   double tmp35_ = mLocGradX_y*mLocAmplApp;
    double tmp36_ = (tmp35_)/tmp33_;
    double tmp37_ = mCompCoord[6];
-   double tmp38_ = mLocGradX_x*mLocAmpl;
+   double tmp38_ = mLocGradX_x*mLocAmplApp;
    double tmp39_ = (tmp38_)/tmp33_;
    double tmp40_ = mCompCoord[7];
    double tmp41_ = tmp40_*(tmp21_);
@@ -173,9 +173,9 @@ void cGen2DBundleEgProj_Deg7::ComputeValDeriv()
    double tmp110_ = mCompCoord[37];
    double tmp111_ = tmp110_*tmp31_;
    double tmp112_ = mCompCoord[38];
-   double tmp113_ = mLocGradY_y*mLocAmpl;
+   double tmp113_ = mLocGradY_y*mLocAmplApp;
    double tmp114_ = (tmp113_)/tmp33_;
-   double tmp115_ = mLocGradY_x*mLocAmpl;
+   double tmp115_ = mLocGradY_x*mLocAmplApp;
    double tmp116_ = (tmp115_)/tmp33_;
    double tmp117_ = 2*(tmp114_);
    double tmp118_ = tmp117_*(tmp19_);
@@ -197,9 +197,9 @@ void cGen2DBundleEgProj_Deg7::ComputeValDeriv()
    double tmp134_ = tmp133_*tmp28_;
    double tmp135_ = 6*(tmp116_);
    double tmp136_ = tmp135_*tmp29_;
-   double tmp137_ = mLocGradZ_y*mLocAmpl;
+   double tmp137_ = mLocGradZ_y*mLocAmplApp;
    double tmp138_ = (tmp137_)/tmp33_;
-   double tmp139_ = mLocGradZ_x*mLocAmpl;
+   double tmp139_ = mLocGradZ_x*mLocAmplApp;
    double tmp140_ = (tmp139_)/tmp33_;
    double tmp141_ = 2*(tmp138_);
    double tmp142_ = tmp141_*(tmp19_);
@@ -475,9 +475,9 @@ void cGen2DBundleEgProj_Deg7::ComputeValDerivHessian()
   ELISE_ASSERT(false,"Foncteur cGen2DBundleEgProj_Deg7 Has no Der Sec");
 }
 
-void cGen2DBundleEgProj_Deg7::SetAmpl(double aVal){ mLocAmpl = aVal;}
-void cGen2DBundleEgProj_Deg7::SetCentr_x(double aVal){ mLocCentr_x = aVal;}
-void cGen2DBundleEgProj_Deg7::SetCentr_y(double aVal){ mLocCentr_y = aVal;}
+void cGen2DBundleEgProj_Deg7::SetAmplApp(double aVal){ mLocAmplApp = aVal;}
+void cGen2DBundleEgProj_Deg7::SetCentrApp_x(double aVal){ mLocCentrApp_x = aVal;}
+void cGen2DBundleEgProj_Deg7::SetCentrApp_y(double aVal){ mLocCentrApp_y = aVal;}
 void cGen2DBundleEgProj_Deg7::SetGradX_x(double aVal){ mLocGradX_x = aVal;}
 void cGen2DBundleEgProj_Deg7::SetGradX_y(double aVal){ mLocGradX_y = aVal;}
 void cGen2DBundleEgProj_Deg7::SetGradY_x(double aVal){ mLocGradY_x = aVal;}
@@ -496,9 +496,9 @@ void cGen2DBundleEgProj_Deg7::SetProjInit_y(double aVal){ mLocProjInit_y = aVal;
 
 double * cGen2DBundleEgProj_Deg7::AdrVarLocFromString(const std::string & aName)
 {
-   if (aName == "Ampl") return & mLocAmpl;
-   if (aName == "Centr_x") return & mLocCentr_x;
-   if (aName == "Centr_y") return & mLocCentr_y;
+   if (aName == "AmplApp") return & mLocAmplApp;
+   if (aName == "CentrApp_x") return & mLocCentrApp_x;
+   if (aName == "CentrApp_y") return & mLocCentrApp_y;
    if (aName == "GradX_x") return & mLocGradX_x;
    if (aName == "GradX_y") return & mLocGradX_y;
    if (aName == "GradY_x") return & mLocGradY_x;
