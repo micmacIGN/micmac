@@ -1,0 +1,1044 @@
+/*eLiSe06/05/99
+
+     Copyright (C) 1999 Marc PIERROT DESEILLIGNY
+
+   eLiSe : Elements of a Linux Image Software Environment
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+  Author: Marc PIERROT DESEILLIGNY    IGN/MATIS
+Internet: Marc.Pierrot-Deseilligny@ign.fr
+   Phone: (33) 01 43 98 81 28
+eLiSe06/05/99*/
+
+
+#include "/home/demo/ELISE/include/general/all.h"
+#include "/home/demo/ELISE/include/private/all.h"
+#include "/home/demo/ELISE/include/ext_stl/fifo.h"
+
+
+class ElTabFlag
+{
+     public :
+        ElTabFlag() : _flag(0) {}
+        bool  kth(INT k)           {return (_flag & (1<<k)) != 0 ;}
+        void  set_kth_true(INT k)  {_flag |=  1<< k ; }
+        void  set_kth_false(INT k) {_flag &=  (~ (1<< k)) ; }
+        void  set_kth(INT k,bool val)
+        {
+              if (val) 
+                 set_kth_true(k);
+              else
+                 set_kth_false(k);
+        }
+        
+
+     private :
+        INT  _flag;
+};
+
+class ElFlagAllocator
+{
+      public :
+         INT   flag_alloc();
+         void  flag_free(INT);
+      private :
+          ElTabFlag _flag;
+};
+
+INT ElFlagAllocator::flag_alloc()
+{
+    for (INT k =0; k<32 ; k++)
+        if (! _flag.kth(k))
+        {
+             _flag.set_kth_true(k);
+             return k;
+        }
+    ELISE_ASSERT(false,"ElFlagAllocator::flag_alloc");
+    return -1;
+}
+
+void ElFlagAllocator::flag_free(INT k)
+{
+      ELISE_ASSERT(_flag.kth(k),"ElFlagAllocator::flag_free");
+     _flag.set_kth_false(k);
+}
+
+/***************************************************************/
+
+
+template <class T> class ElTabDyn;
+
+#define PRIVATE private
+
+template <class T> class ElTabDyn 
+{
+    public :
+      ElTabDyn() : _tvals (0), _nb(0) {}
+      ~ElTabDyn();
+      INT nb() { return _nb;}
+
+      T & operator [] (int k)
+      {
+         ELISE_ASSERT((k>=0)&&(k<_nb),"ElTabDyn indexing");
+         return _tvals[i0(k)][i1(k)][i2(k)];
+      }
+      void augment_index();
+
+
+    PRIVATE:
+
+      T ** & t1(INT k) {return  _tvals [i0(k)]       ;}
+      T *  & t2(INT k) {return  _tvals [i0(k)][i1(k)];}
+
+      INT   i0(INT k){return  k/v2    ;}
+      INT   i1(INT k){return (k/v1)%v1;}
+      INT   i2(INT k){return  k%v1    ;}
+
+        
+      T *** _tvals;
+      INT   _nb;
+
+      enum
+      {
+            NB = 256,
+
+            v1 = NB,
+            v2 = v1*v1,
+            v3 = v2*v1
+      };
+};
+
+
+template<class T> ElTabDyn<T>::~ElTabDyn()
+{
+    if (_tvals)
+    {
+         for (INT k0 =0 ; k0<NB ; k0++) 
+         {
+             if (_tvals[k0])
+             {
+                 for (INT k1 =0 ; k1<NB ; k1++) 
+                 {
+                      if (_tvals[k0][k1])
+                      {
+                         STD_DELETE_TAB(_tvals[k0][k1]);
+                      }
+                         
+                 }
+                 STD_DELETE_TAB(_tvals[k0]);
+             }
+         }
+         STD_DELETE_TAB(_tvals);
+    }
+}
+
+template<class T> void ElTabDyn<T>::augment_index()
+{
+    if (! _tvals) 
+    {
+       _tvals     =  STD_NEW_TAB(NB,T**); 
+        MEM_RAZ(_tvals,NB);
+     }
+    if (! t1(_nb) ) 
+    {
+         t1(_nb)  =  STD_NEW_TAB(NB,T*) ;
+        MEM_RAZ(t1(_nb),NB);
+    }
+    if (! t2(_nb) ) 
+    {
+        t2(_nb)  =  STD_NEW_TAB(NB,T);
+    }
+    
+    _nb++;
+}
+
+template class ElTabDyn<int>;
+
+
+template <class AttrSom,class AttrArc> class ElGraphe;
+template <class AttrSom,class AttrArc> class ElArc;
+template <class AttrSom,class AttrArc> class ElSom;
+template <class AttrSom,class AttrArc> class ElSubGraphe;
+template <class AttrSom,class AttrArc> class ElSomIterator;
+template <class AttrSom,class AttrArc> class ElArcIterator;
+
+template <class AttrSom,class AttrArc> class ElSubGraphe 
+{
+     public :
+          typedef ElSomIterator<AttrSom,AttrArc>  TSomIter;
+          typedef ElArc<AttrSom,AttrArc>          TArc;
+          typedef ElSom<AttrSom,AttrArc>          TSom;
+
+          // friend TSomIter;
+
+          virtual bool   in(TSom &)  {return true;}
+          virtual bool   in(TArc &)  {return true;} 
+          virtual REAL   pds(TArc &) {return 1.0;} 
+          virtual REAL   pds(TSom &) {return 0.0;} 
+          virtual Pt2dr  pt(TSom &)
+          {
+                ELISE_ASSERT(false,"ElSubGraphe::pt");
+                return Pt2dr();
+          }
+
+     PRIVATE :
+
+};
+
+
+
+template <class AttrSom,class AttrArc> class ElArc 
+{
+      public :
+            typedef ElArc<AttrSom,AttrArc>          TArc;
+            typedef ElSom<AttrSom,AttrArc>          TSom;
+            typedef ElGraphe<AttrSom,AttrArc>       TGraphe;
+            typedef ElArcIterator<AttrSom,AttrArc>  TArcIter;
+
+            friend TSom;
+            friend TGraphe;
+            friend TArcIter;
+
+            TSom & s1()        { return _s1;}
+            TSom & s2()        { return _s2;}
+            AttrArc & attr()   { return _attr;}
+            void    remove();
+
+            bool  flag_kth(INT k)               {return _flag.kth(k);  }
+            void  flag_set_kth_true(INT k)      {_flag.set_kth_true(k);}
+            void  flag_set_kth_false(INT k)     {_flag.set_kth_false(k);}
+            void  flag_set_kth(INT k,bool val)  {_flag.set_kth(k,val);}
+
+      PRIVATE :
+
+            ElArc(TSom & s1,TSom & s2,const AttrArc & attr):
+                 _s1     (s1),
+                 _s2     (s2),
+                 _next   (0),
+                 _attr   (attr)
+            {
+            }
+
+            TSom &          _s1;
+            TSom &          _s2;
+            ElArc *      _next;
+            AttrArc      _attr;
+            ElTabFlag    _flag;
+};
+
+template <class AttrSom,class AttrArc> class ElArcIterator
+{
+     public :
+            typedef ElArc<AttrSom,AttrArc>        TArc;
+            typedef ElSom<AttrSom,AttrArc>        TSom;
+            typedef ElGraphe<AttrSom,AttrArc>     TGraphe;
+            typedef ElSubGraphe<AttrSom,AttrArc>  TSubGraphe;
+
+            friend TSom;
+
+            void operator ++ (INT) 
+            {
+                 do 
+                 {
+                    _a = _a->_next;
+                 }
+                 while 
+                 (  
+                          _a 
+                       && ((!_sub_gr.in(*_a))  || (!_sub_gr.in(_a->s2())))
+                 );
+            }
+            bool   operator == (const ElArcIterator & it2) { return _a == it2._a;}
+            bool   operator != (const ElArcIterator & it2) { return _a != it2._a;}
+            TArc & operator *() {return  * _a;}
+
+            bool  go_on() { return _a != 0;}
+
+            
+
+     PRIVATE :
+            ElArcIterator(TSubGraphe & sub_gr,TArc * a) :
+                    _sub_gr (sub_gr),
+                    _a (a)
+           {
+           }
+
+           void init_on()
+           {
+                while(_a && ((!_sub_gr.in(*_a))||(!_sub_gr.in(_a->s2()))))
+                   _a = _a->_next;
+           }
+            
+            TSubGraphe & _sub_gr;
+            TArc *        _a;
+};
+
+
+
+template <class AttrSom,class AttrArc> class  ElSom 
+{
+       public :
+
+            typedef ElArc<AttrSom,AttrArc>          TArc;
+            typedef ElSom<AttrSom,AttrArc>          TSom;
+            typedef ElGraphe<AttrSom,AttrArc>       TGraphe;
+            typedef ElSubGraphe<AttrSom,AttrArc>    TSubGraphe;
+            typedef ElArcIterator<AttrSom,AttrArc>  TArcIter;
+            typedef ElSomIterator<AttrSom,AttrArc>  TSomIter;
+
+            friend TArc;
+            friend TGraphe;
+            friend TSubGraphe;
+            friend ElTabDyn<TSom>;
+            friend TSomIter;
+
+            TArcIter begin(TSubGraphe & sub) 
+            { 
+                 TArcIter res(sub , (sub.in(*this)?_succ:0));
+                 res.init_on();
+                 return res;
+            }
+
+            TArcIter end(TSubGraphe & sub) { return TArcIter(sub,0);}
+
+            void remove();
+            AttrSom & attr() {return _attr;} 
+            INT num () const {return _num;}
+            TGraphe  & gr() {return *_gr;}
+
+            bool  flag_kth(INT k)               {return _flag.kth(k);  }
+            void  flag_set_kth_true(INT k)      {_flag.set_kth_true(k);}
+            void  flag_set_kth_false(INT k)     {_flag.set_kth_false(k);}
+            void  flag_set_kth(INT k,bool val)  {_flag.set_kth(k,val);}
+
+       PRIVATE :
+
+            ~ElSom();
+            TArc * _remove_succ(TSom *);
+
+            ElSom() : _gr(0), _succ(0) {}
+
+            ElSom(TGraphe* gr,const AttrSom & attr,INT Num) ;
+
+            bool         _alive;
+            TGraphe *    _gr;
+            TArc  *      _succ;
+            AttrSom      _attr;
+            INT          _num;
+            ElTabFlag    _flag;
+            bool really_in(TSubGraphe & sub){return _alive && sub.in(*this);}
+};
+
+
+
+template <class AttrSom,class AttrArc>
+         ElSom<AttrSom,AttrArc>::ElSom
+         (
+               ElGraphe<AttrSom,AttrArc> * gr,
+               const AttrSom & attr,
+               INT             Num
+         ) :
+                 _alive   (true),
+                 _gr      (gr),
+                 _succ    (0),
+                 _attr    (attr),
+                 _num     (Num)
+{
+}
+
+
+template <class  AttrSom,class AttrArc> class ElGraphe 
+{
+       public :
+
+            typedef ElArc<AttrSom,AttrArc>          TArc;
+            typedef ElSom<AttrSom,AttrArc>          TSom;
+            typedef ElGraphe<AttrSom,AttrArc>       TGraphe;
+            typedef ElSomIterator<AttrSom,AttrArc>  TSomIter;
+            typedef ElSubGraphe<AttrSom,AttrArc>    TSubGraphe;
+
+            friend TArc;
+            friend TSom;
+            friend TSomIter;
+
+            TSom & new_som(const AttrSom & attr);
+
+            ElGraphe() : _larc_free(0) {}
+
+            TSomIter begin(TSubGraphe & sub) 
+                     { TSomIter it(*this,sub,-1); it++; return it;}
+            TSomIter end(TSubGraphe & sub)   
+                     { return TSomIter(*this,sub,_tsom.nb());}
+
+             INT   nb_som_phys() {return _tsom.nb();}
+
+             TArc * arc_s1s2(TSom & s1,TSom & s2);
+
+             TArc & add_arc(TSom & s1,TSom &s2,const AttrArc & a1 ,const AttrArc & a2)
+             {
+                   ELISE_ASSERT(s1._gr==this&&s2._gr==this,"add_arc");
+                   ELISE_ASSERT(s1._alive&&s2._alive,"KILLED SOM");
+                   ELISE_ASSERT(! arc_s1s2(s1,s2),"add_arc : ARC EXIST");
+
+                   _add_arc(s2,s1,a2);
+                   return _add_arc(s1,s2,a1);
+             }
+             TArc & add_arc(TSom & s1,TSom &s2,const AttrArc & a)
+             {
+                  return add_arc(s1,s2,a,a);
+             }
+             ~ElGraphe();
+
+             INT   alloc_flag_som() {return _flag_som_alloc.flag_alloc();}
+             INT   alloc_flag_arc() {return _flag_arc_alloc.flag_alloc();}
+
+             void    free_flag_som(INT k) { _flag_som_alloc.flag_free(k);}
+             void    free_flag_arc(INT k) { _flag_arc_alloc.flag_free(k);}
+            
+
+
+       PRIVATE :
+
+            void add_free(TArc * la){la->_next = _larc_free; _larc_free = la;}
+            TArc & _add_arc(TSom & s1,TSom &s2,const AttrArc & a1);
+            static void kill_arc(TArc * la);
+
+            TArc *          _larc_free;
+            ElTabDyn<TSom>  _tsom;
+            ElFilo<INT>     _free_number;
+
+            ElFlagAllocator   _flag_som_alloc;
+            ElFlagAllocator   _flag_arc_alloc;
+           
+};
+
+
+template <class AttrSom,class AttrArc>
+         ElSom<AttrSom,AttrArc>::~ElSom()
+{
+     TGraphe::kill_arc(_succ);
+}
+
+template <class  AttrSom,class AttrArc> 
+         ElGraphe<AttrSom,AttrArc>::~ElGraphe()
+{
+     kill_arc(_larc_free);
+}
+
+template <class  AttrSom,class AttrArc> 
+         void  ElGraphe<AttrSom,AttrArc>::kill_arc(ElArc<AttrSom,AttrArc> * la)
+{
+     while (la)
+     {
+           TArc * next = la->_next;
+           DELETE_ONE(la);
+           la = next;
+     }
+}
+
+template <class  AttrSom,class AttrArc> 
+         ElArc<AttrSom,AttrArc>*  ElGraphe<AttrSom,AttrArc>::arc_s1s2
+         (
+                ElSom<AttrSom,AttrArc> & s1,
+                ElSom<AttrSom,AttrArc> & s2
+         )
+{
+     TArc * a =s1._succ  ;  
+     for 
+     ( 
+                                                 ;  
+           a && (&(a->s2()) !=  (TSom *) &(s2))  ; 
+           a=a->_next
+      );
+
+      return a;
+}
+
+
+template <class  AttrSom,class AttrArc> 
+         ElArc<AttrSom,AttrArc>&  ElGraphe<AttrSom,AttrArc>::_add_arc
+         (
+                ElSom<AttrSom,AttrArc> & s1,
+                ElSom<AttrSom,AttrArc> & s2,
+                const AttrArc &          attr
+         )
+{
+
+     TArc * res = 0;
+     if (_larc_free)
+     {
+         TArc * res = _larc_free;
+         _larc_free = _larc_free->_next;
+         res = new (res) TArc  (s1,s2,attr);
+     }
+     else
+         res = CLASS_NEW_ONE(TArc,(s1,s2,attr));
+     res->_next = s1._succ;
+    s1._succ = res;
+    return * res;
+}
+
+template <class  AttrSom,class AttrArc> 
+  ElSom<AttrSom,AttrArc> & ElGraphe<AttrSom,AttrArc>::new_som(const AttrSom & attr)
+{
+    if (_free_number.empty())
+    {
+         _free_number.pushlast(_tsom.nb());
+         _tsom.augment_index();
+    }
+    INT num = _free_number.poplast();
+    _tsom[num] = TSom(this,attr,num);
+    return _tsom[num];
+}
+
+template <class AttrSom,class AttrArc> 
+          ElArc<AttrSom,AttrArc> * ElSom<AttrSom,AttrArc>::_remove_succ
+                                   (ElSom<AttrSom,AttrArc> * s2)
+{
+
+     for ( TArc * prec=0,*a =_succ  ;  a  ;  prec=a,a=a->_next)
+         if (&(a->s2()) == s2)
+         {
+             if (prec)
+                 prec->_next = a->_next;
+             else
+                 _succ = a->_next;
+             a->s1()._gr->add_free(a);
+             return a;
+         }
+
+     return 0;
+}
+
+template <class AttrSom,class AttrArc> 
+         void  ElArc<AttrSom,AttrArc>::remove()
+{
+     TSom & S1 = s1();
+     TSom & S2 = s2();
+     ELISE_ASSERT(S1._alive&&S2._alive,"ElArc::remove()");
+     if ((S1._remove_succ(&S2)==0)||(S2._remove_succ(&S1)==0))
+     {
+        ELISE_ASSERT(false,"ElArc::remove()(Internal error ??? maybe)");
+     }
+}
+
+
+template <class AttrSom,class AttrArc> void ElSom<AttrSom,AttrArc>::remove()
+{
+   _alive = false;
+   _gr->_free_number.pushlast(_num);
+   for (TArc * la = _succ; la; )
+   {
+         la->_s2._remove_succ(&la->_s1);
+         TArc * next = la->_next;
+         _gr->add_free(la);
+         la = next;
+    }
+    _succ = 0;
+}
+
+
+
+
+template <class AttrSom,class AttrArc> class ElSomIterator
+{
+     public :
+            typedef ElArc<AttrSom,AttrArc>        TArc;
+            typedef ElSom<AttrSom,AttrArc>        TSom;
+            typedef ElGraphe<AttrSom,AttrArc>     TGraphe;
+            typedef ElSubGraphe<AttrSom,AttrArc>  TSubGraphe;
+
+            friend TGraphe;
+
+            void operator ++ (INT) 
+            {
+                 do 
+                      _k++ ;
+                 while 
+                 (
+                        (_k<_gr.nb_som_phys())
+                     && ( !(_gr._tsom[_k].really_in(_sub_gr)))
+                 );
+            }
+            bool   operator == (const ElSomIterator & it2) { return _k == it2._k;}
+            bool   operator != (const ElSomIterator & it2) { return _k != it2._k;}
+            TSom & operator *() {return _gr._tsom[_k];}
+
+            bool  go_on() { return _k < _gr.nb_som_phys();}
+            
+
+     PRIVATE :
+
+            ElSomIterator(TGraphe & gr,TSubGraphe & sub_gr,INT k) :
+                    _gr(gr),
+                    _sub_gr (sub_gr),
+                    _k (k)
+           {
+           }
+            
+            TGraphe & _gr;
+            TSubGraphe & _sub_gr;
+            INT  _k;
+
+};
+
+
+/*****************************************************/
+/*                                                   */
+/*       ALGOS                                       */
+/*                                                   */
+/*****************************************************/
+template <class Type> class ElPartition;
+
+template <class Type> class ElSubFilo
+{
+     public :
+         friend ElPartition<Type>; 
+
+         INT nb() { return _i2-_i1;}
+         Type & operator [] (int k) {return _f[k-_i1];}
+         
+     private :
+         ElSubFilo(ElFilo<Type> & f,INT i1,INT i2) : _f(f), _i1(i1), _i2(i2) {}
+
+         ElFilo<Type> &    _f;
+         INT               _i1;
+         INT               _i2;
+};
+
+template <class Type> class ElPartition
+{
+     private :
+           INT nb() {return  _adr.nb()-1;}
+           ElSubFilo<Type> operator[](INT k)
+           {
+               return ElSubFilo<Type>(_f,_adr[k],_adr[k+1]);
+           }
+
+           void add(const Type & v) {_f.pushlast(v);}
+           void close_cur()
+           {
+                _adr.pushlast(_f.nb());
+           }
+
+           ElPartition() {_adr.pushlast(0);}
+
+     public  :
+           ElFilo<Type>    _f;
+           ElFilo<INT>     _adr;
+};
+
+template class ElPartition<int>;
+
+
+         // FACES
+
+template <class  AttrSom,class AttrArc> 
+         ElArc<AttrSom,AttrArc> *  succ_trigo
+                                   (
+                                       ElArc<AttrSom,AttrArc>       & a,
+                                       ElSubGraphe<AttrSom,AttrArc> & sub
+                                   )
+{
+      REAL teta = -10;
+      ElSom<AttrSom,AttrArc> * succ = 0;
+      ElSom<AttrSom,AttrArc> & s2 = a.s2();
+      Pt2dr  p1 = sub.pt(a.s1());
+      Pt2dr  p2 = sub.pt(s2);
+      Pt2dr v12 = p2-p1;
+      
+      for
+      ( 
+           ElArcIterator<AttrSom,AttrArc> it = s2.begin(sub);
+           it.go_on();
+           it++
+      )
+      {
+           ElSom<AttrSom,AttrArc> & s3 = (*it).s2();
+           REAL new_teta = angle(v12,sub.pt(s3)-p2);
+           if (new_teta < teta)
+           {
+               teta = new_teta; 
+               succ = &s3;
+           }
+      }
+      ELISE_ASSERT(succ,"No SUCC in succ_trigo");
+      return  s2.gr().arc_s1s2(s2,*succ);
+}
+
+
+template <class  AttrSom,class AttrArc> 
+         void  face_trigo
+         (
+               ElArc<AttrSom,AttrArc>       &       arc_init,
+               ElSubGraphe<AttrSom,AttrArc> &       sub,
+               ElFilo<ElArc<AttrSom,AttrArc> *>  &  res
+         )
+{
+      ElArc<AttrSom,AttrArc> * a0 =  &arc_init;
+      ElArc<AttrSom,AttrArc> * a  = a0;
+
+      res.pushlast(a0);
+      do 
+      {
+            a = succ_trigo(*a,sub);
+            res.pushlast(a);
+      }
+      while  (a != a0);
+}
+
+
+
+
+
+
+void f
+    (
+         ElArc<INT,INT> & a,
+         ElSubGraphe<INT,INT> & sub,
+         ElFilo<ElArc<INT,INT> *>  &  filo
+    )
+{
+      succ_trigo(a,sub); 
+      face_trigo(a,sub,filo);
+}
+
+
+/*
+
+
+template class ElSom<int,int>;
+template class ElArc<int,int>;
+template class ElGraphe<int,int>;
+template class ElSomIterator<int,int>;
+template class ElArcIterator<int,int>;
+
+*/
+
+
+
+template class ElSom<int,int>;
+
+
+
+static void test_alloc_tab_dyn(INT nb)
+{
+     All_Memo_counter MC_INIT;
+     stow_memory_counter(MC_INIT);
+     {
+         ElGraphe<INT,INT> Gr;
+
+          for (INT k =0; k<nb; k++)
+              Gr.new_som(k);
+     }
+     verif_memory_state(MC_INIT);
+}
+
+static void test_alloc_tab_dyn()
+{
+
+     test_alloc_tab_dyn(0);
+     test_alloc_tab_dyn(1);
+     test_alloc_tab_dyn(10);
+     test_alloc_tab_dyn(256);
+     test_alloc_tab_dyn(512);
+     test_alloc_tab_dyn(256*256);
+     test_alloc_tab_dyn(256*256+1);
+     test_alloc_tab_dyn(256*256-1);
+     test_alloc_tab_dyn(1000);
+     test_alloc_tab_dyn(200000);
+}
+
+
+class VerifIter
+{
+      public :
+          static INT cple(INT v1,INT v2) 
+          { 
+                return  (v1 < v2) ? (1000*v1+v2) : (v1+1023*v2);
+          }
+          typedef ElSomIterator<INT,INT>  SIter;
+          typedef ElArcIterator<INT,INT>  AIter;
+          typedef ElSom<INT,INT>          TSom;
+          typedef ElArc<INT,INT>          TArc;
+          typedef ElSubGraphe<INT,INT>    SubGrAll;
+
+          static  bool in_atsom(INT attr)  { return  attr %2  == 0;}
+          static  bool in_atarc(INT attr)  { return  (attr %7)%3  == 0;}
+          // static  bool in_atarc(INT attr)  { return  true;}
+
+          class SSgrS2 : public SubGrAll
+          {
+               public :
+                  bool in(TSom & s)  { return  in_atsom(s.attr());}
+                  bool in(TArc & a)  { return  in_atarc(a.attr());}
+          };
+
+          TSom &  add_som(INT k) 
+          {
+              _s+= k;
+              if (in_atsom(k)) _s2+= k;
+              return _gr.new_som(k);
+          }
+
+          TArc &    add_arc(TSom & s1, TSom & s2)
+          {
+              INT a12 = cple(s1.attr(),s2.attr());
+              INT a21 = cple(s2.attr(),s1.attr());
+              if (in_atsom( s1.attr()) && in_atsom(s2.attr()))
+              {
+                  if (in_atarc(a12)) _sa2  += a12;
+                  if (in_atarc(a21)) _sa2  += a21;
+              }
+              _sa += a12+a21;
+              return  _gr.add_arc(s1,s2,a12,a21);
+          }
+
+          void   check_remove_arc(TArc & a)
+          {
+                TSom & s1 = a.s1();
+                TSom & s2 = a.s2();
+                INT a12 = cple(s1.attr(),s2.attr());
+                INT a21 = cple(s2.attr(),s1.attr());
+                if (in_atsom( s1.attr()) && in_atsom(s2.attr()))
+                {
+                    if (in_atarc(a12)) _sa2  -= a12;
+                    if (in_atarc(a21)) _sa2  -= a21;
+                }
+                _sa -= a12+a21;
+          }
+
+          void   remove_arc(TArc & a)
+          {
+                check_remove_arc(a);
+                a.remove();
+          }
+
+          void remove_som(TSom & s)
+          {
+              INT k = s.attr();
+              _s-= k;
+              if (in_atsom(k)) _s2-= k;
+ 
+              SubGrAll  All;
+              for (AIter it = s.begin(All); it.go_on() ; it++)
+                  check_remove_arc(*it);
+              s.remove();
+          }
+          
+
+          void verif_som ()
+          {
+              SubGrAll  All;
+              SIter End = _gr.end(All);
+              INT s =0;
+
+              for (SIter it = _gr.begin(All); it != End; it++)
+              {
+                  s+= (*it).attr();
+              }
+              BENCH_ASSERT(s == _s);
+
+              SSgrS2 Gr2;
+              INT s2 = 0;
+              for (SIter it = _gr.begin(Gr2); it.go_on(); it++)
+                  s2 += (*it).attr();
+              BENCH_ASSERT(s2 == _s2);
+          }
+
+          void verif_arc ()
+          {
+              SubGrAll  All;
+              SIter End = _gr.end(All);
+              REAL sa =0;
+              INT nb_12 = 0;
+              INT nb_21 = 0;
+
+              for (SIter it = _gr.begin(All); it != End; it++)
+              {
+                  TSom & s = (*it);
+                  for (AIter ait = s.begin(All); ait.go_on(); ait++)
+                  {
+                      TArc & a = (*ait);
+                      sa += a.attr();
+                      INT n1 = a.s1().num();
+                      INT n2 = a.s2().num();
+                      BENCH_ASSERT(n1!=n2);
+                      if (n1>n2) 
+                         nb_12 ++; 
+                      else 
+                         nb_21++;
+                  }
+              }
+              BENCH_ASSERT(sa == _sa);
+              BENCH_ASSERT(nb_12 == nb_21);
+
+              SSgrS2 Gr2;
+              REAL sa2 = 0.0;;
+              for (SIter it = _gr.begin(Gr2); it != End; it++)
+              {
+                  TSom & s = (*it);
+                  AIter AEnd = s.end(Gr2);
+                  for (AIter ait = s.begin(Gr2); ait != AEnd; ait++)
+                  {
+                      TArc & a = (*ait);
+                      sa2 += a.attr();
+                  }
+              }
+              BENCH_ASSERT(sa2 == _sa2);
+           }
+          
+
+          VerifIter() : _s (0) , _s2(0), _sa(0.0) ,_sa2(0.0) {}
+          ElGraphe<INT,INT> & gr () {return _gr;};
+          void verif_alloc_arc();
+          void verif_arc_s1s2();
+
+      PRIVATE :
+          ElGraphe<INT,INT> _gr;
+          INT    _s;
+          INT    _s2;
+          REAL    _sa;
+          REAL    _sa2;
+};
+
+
+void  VerifIter::verif_arc_s1s2()
+{
+     INT NBS = 50;
+     INT NBV = 6;
+
+     ElFilo<TSom *> ts;
+     for (INT k=0; k<NBS ; k++)
+     {
+         TSom & s = add_som(k);
+         ts.pushlast(&s);
+     }
+
+     for (INT k1=0; k1<NBS ; k1++)
+     {
+          for (INT k2=k1+1; (k2<NBS) && (k2<(k1+NBV)) ; k2++)
+              add_arc(*ts[k1],*ts[k2]);
+     }
+
+     for (INT k1=0; k1<NBS ; k1++)
+          for (INT k2= 0; k2<NBS ; k2++)
+          {
+              TArc * a= _gr.arc_s1s2(*ts[k1],*ts[k2]);
+              BENCH_ASSERT
+              (
+                   (a==0) == ((k1==k2) || (ElAbs(k1-k2)>=NBV))
+              );
+              if (a)
+                 BENCH_ASSERT
+                 (
+                          (a->s1().attr() == k1)
+                       && (a->s2().attr() == k2)
+                 );
+          }
+}
+
+
+void VerifIter::verif_alloc_arc()
+{
+     INT NBS = 1000;
+     for (INT k = 0; k < NBS ; k++)
+          add_som(k);
+
+     SubGrAll  All;
+     SIter End = _gr.end(All);
+     for (SIter it1 = _gr.begin(All); it1 != End; it1++)
+     {
+          SIter it2 = it1;
+          it2++;
+          for (INT k=0 ;(it2 != End) && (k<4) ; it2++,k++)
+          {
+               add_arc(*it1,*it2);
+          }
+     }
+     verif_arc();
+
+     INT nbrem=0;
+     for (SIter its=_gr.begin(All) ; its!=End ; its++)
+     {
+          TSom & s1 = *its;
+          AIter AEnd = s1.end(All);
+          for (AIter ita = s1.begin(All); ita != AEnd ; ita++)
+          {
+                TArc & a = (*ita);
+                TSom & s2 = a.s2();
+                if (s2.attr() == s1.attr()+1)
+                {
+                    nbrem++;
+                    remove_arc(a);
+                }
+          }
+     }
+     verif_arc();
+
+     for (SIter its=_gr.begin(All) ; its.go_on() ; its++)
+     {
+          TSom & s = *its;
+          INT k = s.attr();
+          if (   ((k>=100) && (k<200))
+               || (NRrandom3() < 0.333)
+             )
+             remove_som(s);
+     }
+     verif_som();
+     verif_arc();
+}
+
+
+static void test_gra_iter()
+{
+     VerifIter  vi; 
+     for (INT k = 0; k < 10000 ; k++)
+     {
+           vi.add_som(k);
+           if (k%1000 == 4) vi.verif_som();
+     }
+}
+
+
+void test_graphe()
+{
+      {
+           VerifIter vi;
+           vi.verif_arc_s1s2();
+      }
+      {
+           VerifIter vi;
+           vi.verif_alloc_arc();
+      }
+      test_gra_iter();
+      test_alloc_tab_dyn();
+}
+
+
+int main(int,char **)
+{
+     All_Memo_counter MC_INIT;
+     stow_memory_counter(MC_INIT);
+     test_graphe();
+           
+     verif_memory_state(MC_INIT);
+
+}
+
+
+
+
