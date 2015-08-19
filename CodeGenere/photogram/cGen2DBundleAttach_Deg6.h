@@ -11,9 +11,9 @@ class cGen2DBundleAttach_Deg6: public cElCompiledFonc
       void ComputeValDeriv();
       void ComputeValDerivHessian();
       double * AdrVarLocFromString(const std::string &);
-      void SetAmpl(double);
-      void SetCentr_x(double);
-      void SetCentr_y(double);
+      void SetAmplFixV(double);
+      void SetCentrFixV_x(double);
+      void SetCentrFixV_y(double);
       void SetFixedV_x(double);
       void SetFixedV_y(double);
       void SetPFixV_x(double);
@@ -24,9 +24,9 @@ class cGen2DBundleAttach_Deg6: public cElCompiledFonc
       static cElCompiledFonc *  Alloc();
    private :
 
-      double mLocAmpl;
-      double mLocCentr_x;
-      double mLocCentr_y;
+      double mLocAmplFixV;
+      double mLocCentrFixV_x;
+      double mLocCentrFixV_y;
       double mLocFixedV_x;
       double mLocFixedV_y;
       double mLocPFixV_x;

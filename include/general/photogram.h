@@ -1454,6 +1454,8 @@ class cBasicGeomCap3D
       virtual Pt2di    SzBasicCapt3D() const = 0;
       virtual double ResolSolOfPt(const Pt3dr &) const = 0;
       virtual bool  CaptHasData(const Pt2dr &) const = 0;
+      //  Def return true, mean that the geometry is ok independently of the image data
+      virtual bool  CaptHasDataGeom(const Pt2dr &) const ;
       virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const =0;
 
   // Optical center 

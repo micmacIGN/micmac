@@ -51,6 +51,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern bool DebugCamBil;
 
+
 /************************************************************/
 /*                                                          */
 /*                    cNameSpaceEqF                         */
@@ -1035,6 +1036,20 @@ void cSetEqFormelles::ShowVar()
 
 void cSetEqFormelles::SolveResetUpdate(double ExpectResidu,bool *OK)
 {
+if (0)
+{
+    std::cout << "cSetEqFormelles::SolveResetUpdate " << ExpectResidu << " " << OK << "\n";
+    ShowVar();
+    ShowSpectrSys(*this);
+    for (INT aK=0 ; aK < mAlloc.CurInc(); aK++)
+    {
+	    std::cout << "DIAG[" << aK <<"]= "  << mSys->GetElemQuad(aK,aK) << "\n";
+    }
+
+    getchar();
+
+}
+ 
     Solve(ExpectResidu,OK);
     ResetUpdate(1.0);
 }

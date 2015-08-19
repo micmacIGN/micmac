@@ -193,6 +193,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cGen2DBundleAttach_Deg7.h"
 
 
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg1.h"
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg2.h"
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg3.h"
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg4.h"
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg5.h"
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg6.h"
+#include "../../CodeGenere/photogram/cGen2DBundleAtRot_Deg7.h"
+
+
+
 //=======================  Droite ========================
 
 #include "../../CodeGenere/photogram/cEqAppui_Droite_GL__PTInc_M2CNoVar.h"
@@ -690,6 +700,13 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cGen2DBundleAttach_Deg6",cGen2DBundleAttach_Deg6::Alloc);
      AddEntry("cGen2DBundleAttach_Deg7",cGen2DBundleAttach_Deg7::Alloc);
 
+     AddEntry("cGen2DBundleAtRot_Deg1",cGen2DBundleAtRot_Deg1::Alloc);
+     AddEntry("cGen2DBundleAtRot_Deg2",cGen2DBundleAtRot_Deg2::Alloc);
+     AddEntry("cGen2DBundleAtRot_Deg3",cGen2DBundleAtRot_Deg3::Alloc);
+     AddEntry("cGen2DBundleAtRot_Deg4",cGen2DBundleAtRot_Deg4::Alloc);
+     AddEntry("cGen2DBundleAtRot_Deg5",cGen2DBundleAtRot_Deg5::Alloc);
+     AddEntry("cGen2DBundleAtRot_Deg6",cGen2DBundleAtRot_Deg6::Alloc);
+     AddEntry("cGen2DBundleAtRot_Deg7",cGen2DBundleAtRot_Deg7::Alloc);
 
      FULL_NEW_ADD_ENTRY(Fraser_PPaEqPPs)
      FULL_NEW_ADD_ENTRY(Four7x2);

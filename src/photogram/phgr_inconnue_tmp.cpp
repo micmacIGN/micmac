@@ -683,10 +683,6 @@ if(DebugCamBil)
   getchar();
 }
    cGenSysSurResol & aSys =  *(aSet->Sys());
-/*
-*/
-  // ELISE_ASSERT(aNbBloc==int(aVY.size()),"Sz inc in cBufSubstIncTmp::DoSubst");
-   // Resize(aSet,aVX.size(),aVY.size());
    int aNbX = aX_SBlTmp[0].Nb();
    Resize(aSet,aNbX,aNbBloc);
 
@@ -833,12 +829,19 @@ void cSubstitueBlocIncTmp::AddInc(const cIncListInterv & anILI)
           if (mVSBlTmp[0].I0AbsAlloc()<aSB.I1AbsAlloc())
           {
 
-                // std::cout << " HHHHHhhhh " << mVSBlTmp[0].I0AbsAlloc() << " " << aSB.I1AbsAlloc() << "\n";
-                ELISE_ASSERT
-                (
-                     mVSBlTmp[0].I0AbsAlloc()>=aSB.I1AbsAlloc(),
-                     "cSubstitueBlocIncTmp::AddInc recouvrement / TMP "
-                );
+                if ( mVSBlTmp[0].I0AbsAlloc()<aSB.I1AbsAlloc())
+                {
+                    std::cout << " BasOrderInterval Tmp:" 
+                              << mVSBlTmp[0].I0AbsAlloc() 
+                              << " - " << mVSBlTmp[0].I1AbsAlloc() 
+                              << " NoTmp " << aSB.I0AbsAlloc() 
+                              << "  " << aSB.I1AbsAlloc() << "\n";
+                    ELISE_ASSERT
+                    (
+                         mVSBlTmp[0].I0AbsAlloc()>=aSB.I1AbsAlloc(),
+                         "cSubstitueBlocIncTmp::AddInc recouvrement / TMP "
+                    );
+                }
           }
       }
 
