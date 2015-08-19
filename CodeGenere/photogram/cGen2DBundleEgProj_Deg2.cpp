@@ -18,32 +18,32 @@ void cGen2DBundleEgProj_Deg2::ComputeVal()
 {
    double tmp0_ = mCompCoord[0];
    double tmp1_ = tmp0_-mLocPTerInit_x;
-   double tmp2_ = mLocGradX_x*(tmp1_);
-   double tmp3_ = mLocProjInit_x+tmp2_;
-   double tmp4_ = mCompCoord[1];
-   double tmp5_ = tmp4_-mLocPTerInit_y;
-   double tmp6_ = mLocGradY_x*(tmp5_);
-   double tmp7_ = tmp3_+tmp6_;
-   double tmp8_ = mCompCoord[2];
-   double tmp9_ = tmp8_-mLocPTerInit_z;
-   double tmp10_ = mLocGradZ_x*(tmp9_);
-   double tmp11_ = tmp7_+tmp10_;
-   double tmp12_ = (tmp11_)-mLocCentr_x;
-   double tmp13_ = (tmp12_)/mLocAmpl;
-   double tmp14_ = mLocGradX_y*(tmp1_);
-   double tmp15_ = mLocProjInit_y+tmp14_;
-   double tmp16_ = mLocGradY_y*(tmp5_);
+   double tmp2_ = mCompCoord[1];
+   double tmp3_ = tmp2_-mLocPTerInit_y;
+   double tmp4_ = mCompCoord[2];
+   double tmp5_ = tmp4_-mLocPTerInit_z;
+   double tmp6_ = mLocGradX_x*(tmp1_);
+   double tmp7_ = mLocProjInit_x+tmp6_;
+   double tmp8_ = mLocGradY_x*(tmp3_);
+   double tmp9_ = tmp7_+tmp8_;
+   double tmp10_ = mLocGradZ_x*(tmp5_);
+   double tmp11_ = tmp9_+tmp10_;
+   double tmp12_ = mLocGradX_y*(tmp1_);
+   double tmp13_ = mLocProjInit_y+tmp12_;
+   double tmp14_ = mLocGradY_y*(tmp3_);
+   double tmp15_ = tmp13_+tmp14_;
+   double tmp16_ = mLocGradZ_y*(tmp5_);
    double tmp17_ = tmp15_+tmp16_;
-   double tmp18_ = mLocGradZ_y*(tmp9_);
-   double tmp19_ = tmp17_+tmp18_;
-   double tmp20_ = (tmp19_)-mLocCentr_y;
-   double tmp21_ = (tmp20_)/mLocAmpl;
-   double tmp22_ = ElSquare(tmp13_);
+   double tmp18_ = (tmp17_)-mLocCentrApp_y;
+   double tmp19_ = (tmp18_)/mLocAmplApp;
+   double tmp20_ = (tmp11_)-mLocCentrApp_x;
+   double tmp21_ = (tmp20_)/mLocAmplApp;
+   double tmp22_ = ElSquare(tmp19_);
    double tmp23_ = ElSquare(tmp21_);
 
-  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+mCompCoord[5]*(tmp13_)*(tmp21_)+mCompCoord[6]+mCompCoord[7]*(tmp13_)*(tmp21_)+mCompCoord[8]*tmp22_*tmp23_)-mLocPIm_x;
+  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]*(tmp19_)+mCompCoord[5]*(tmp21_)+mCompCoord[6]*tmp22_+mCompCoord[7]*(tmp21_)*(tmp19_)+mCompCoord[8]*tmp23_)-mLocPIm_x;
 
-  mVal[1] = (tmp19_+mCompCoord[9]+mCompCoord[10]+mCompCoord[11]*(tmp13_)*(tmp21_)+mCompCoord[12]+mCompCoord[13]*(tmp13_)*(tmp21_)+mCompCoord[14]*tmp22_*tmp23_)-mLocPIm_y;
+  mVal[1] = (tmp17_+mCompCoord[9]+mCompCoord[10]*(tmp19_)+mCompCoord[11]*(tmp21_)+mCompCoord[12]*tmp22_+mCompCoord[13]*(tmp21_)*(tmp19_)+mCompCoord[14]*tmp23_)-mLocPIm_y;
 
 }
 
@@ -52,90 +52,89 @@ void cGen2DBundleEgProj_Deg2::ComputeValDeriv()
 {
    double tmp0_ = mCompCoord[0];
    double tmp1_ = tmp0_-mLocPTerInit_x;
-   double tmp2_ = mLocGradX_x*(tmp1_);
-   double tmp3_ = mLocProjInit_x+tmp2_;
-   double tmp4_ = mCompCoord[1];
-   double tmp5_ = tmp4_-mLocPTerInit_y;
-   double tmp6_ = mLocGradY_x*(tmp5_);
-   double tmp7_ = tmp3_+tmp6_;
-   double tmp8_ = mCompCoord[2];
-   double tmp9_ = tmp8_-mLocPTerInit_z;
-   double tmp10_ = mLocGradZ_x*(tmp9_);
-   double tmp11_ = tmp7_+tmp10_;
-   double tmp12_ = (tmp11_)-mLocCentr_x;
-   double tmp13_ = (tmp12_)/mLocAmpl;
-   double tmp14_ = mLocGradX_y*(tmp1_);
-   double tmp15_ = mLocProjInit_y+tmp14_;
-   double tmp16_ = mLocGradY_y*(tmp5_);
+   double tmp2_ = mCompCoord[1];
+   double tmp3_ = tmp2_-mLocPTerInit_y;
+   double tmp4_ = mCompCoord[2];
+   double tmp5_ = tmp4_-mLocPTerInit_z;
+   double tmp6_ = mLocGradX_x*(tmp1_);
+   double tmp7_ = mLocProjInit_x+tmp6_;
+   double tmp8_ = mLocGradY_x*(tmp3_);
+   double tmp9_ = tmp7_+tmp8_;
+   double tmp10_ = mLocGradZ_x*(tmp5_);
+   double tmp11_ = tmp9_+tmp10_;
+   double tmp12_ = mLocGradX_y*(tmp1_);
+   double tmp13_ = mLocProjInit_y+tmp12_;
+   double tmp14_ = mLocGradY_y*(tmp3_);
+   double tmp15_ = tmp13_+tmp14_;
+   double tmp16_ = mLocGradZ_y*(tmp5_);
    double tmp17_ = tmp15_+tmp16_;
-   double tmp18_ = mLocGradZ_y*(tmp9_);
-   double tmp19_ = tmp17_+tmp18_;
-   double tmp20_ = (tmp19_)-mLocCentr_y;
-   double tmp21_ = (tmp20_)/mLocAmpl;
-   double tmp22_ = mCompCoord[5];
-   double tmp23_ = ElSquare(mLocAmpl);
-   double tmp24_ = tmp22_*(tmp13_);
-   double tmp25_ = mLocGradX_x*mLocAmpl;
+   double tmp18_ = (tmp17_)-mLocCentrApp_y;
+   double tmp19_ = (tmp18_)/mLocAmplApp;
+   double tmp20_ = (tmp11_)-mLocCentrApp_x;
+   double tmp21_ = (tmp20_)/mLocAmplApp;
+   double tmp22_ = mCompCoord[4];
+   double tmp23_ = ElSquare(mLocAmplApp);
+   double tmp24_ = mCompCoord[5];
+   double tmp25_ = mLocGradX_y*mLocAmplApp;
    double tmp26_ = (tmp25_)/tmp23_;
-   double tmp27_ = mCompCoord[7];
-   double tmp28_ = mLocGradX_y*mLocAmpl;
+   double tmp27_ = mCompCoord[6];
+   double tmp28_ = mLocGradX_x*mLocAmplApp;
    double tmp29_ = (tmp28_)/tmp23_;
-   double tmp30_ = tmp27_*(tmp13_);
-   double tmp31_ = mCompCoord[8];
-   double tmp32_ = ElSquare(tmp21_);
-   double tmp33_ = ElSquare(tmp13_);
-   double tmp34_ = tmp31_*tmp33_;
-   double tmp35_ = mLocGradY_x*mLocAmpl;
+   double tmp30_ = mCompCoord[7];
+   double tmp31_ = tmp30_*(tmp21_);
+   double tmp32_ = mCompCoord[8];
+   double tmp33_ = mLocGradY_y*mLocAmplApp;
+   double tmp34_ = (tmp33_)/tmp23_;
+   double tmp35_ = mLocGradY_x*mLocAmplApp;
    double tmp36_ = (tmp35_)/tmp23_;
-   double tmp37_ = mLocGradY_y*mLocAmpl;
+   double tmp37_ = mLocGradZ_y*mLocAmplApp;
    double tmp38_ = (tmp37_)/tmp23_;
-   double tmp39_ = mLocGradZ_x*mLocAmpl;
+   double tmp39_ = mLocGradZ_x*mLocAmplApp;
    double tmp40_ = (tmp39_)/tmp23_;
-   double tmp41_ = mLocGradZ_y*mLocAmpl;
-   double tmp42_ = (tmp41_)/tmp23_;
-   double tmp43_ = (tmp13_)*(tmp21_);
+   double tmp41_ = ElSquare(tmp19_);
+   double tmp42_ = ElSquare(tmp21_);
+   double tmp43_ = mCompCoord[10];
    double tmp44_ = mCompCoord[11];
-   double tmp45_ = tmp44_*(tmp13_);
-   double tmp46_ = mCompCoord[13];
-   double tmp47_ = tmp46_*(tmp13_);
-   double tmp48_ = 2*(tmp26_);
-   double tmp49_ = tmp48_*(tmp13_);
-   double tmp50_ = mCompCoord[14];
-   double tmp51_ = 2*(tmp29_);
-   double tmp52_ = tmp51_*(tmp21_);
-   double tmp53_ = tmp50_*tmp33_;
-   double tmp54_ = 2*(tmp36_);
-   double tmp55_ = tmp54_*(tmp13_);
-   double tmp56_ = 2*(tmp38_);
-   double tmp57_ = tmp56_*(tmp21_);
-   double tmp58_ = 2*(tmp40_);
-   double tmp59_ = tmp58_*(tmp13_);
-   double tmp60_ = 2*(tmp42_);
-   double tmp61_ = tmp60_*(tmp21_);
-   double tmp62_ = tmp33_*tmp32_;
+   double tmp45_ = 2*(tmp26_);
+   double tmp46_ = tmp45_*(tmp19_);
+   double tmp47_ = mCompCoord[12];
+   double tmp48_ = mCompCoord[13];
+   double tmp49_ = tmp48_*(tmp21_);
+   double tmp50_ = 2*(tmp29_);
+   double tmp51_ = tmp50_*(tmp21_);
+   double tmp52_ = mCompCoord[14];
+   double tmp53_ = 2*(tmp34_);
+   double tmp54_ = tmp53_*(tmp19_);
+   double tmp55_ = 2*(tmp36_);
+   double tmp56_ = tmp55_*(tmp21_);
+   double tmp57_ = 2*(tmp38_);
+   double tmp58_ = tmp57_*(tmp19_);
+   double tmp59_ = 2*(tmp40_);
+   double tmp60_ = tmp59_*(tmp21_);
+   double tmp61_ = (tmp21_)*(tmp19_);
 
-  mVal[0] = (tmp11_+mCompCoord[3]+mCompCoord[4]+tmp24_*(tmp21_)+mCompCoord[6]+tmp30_*(tmp21_)+tmp34_*tmp32_)-mLocPIm_x;
+  mVal[0] = (tmp11_+mCompCoord[3]+tmp22_*(tmp19_)+tmp24_*(tmp21_)+tmp27_*tmp41_+tmp31_*(tmp19_)+tmp32_*tmp42_)-mLocPIm_x;
 
-  mCompDer[0][0] = mLocGradX_x+(tmp26_)*tmp22_*(tmp21_)+(tmp29_)*tmp24_+(tmp26_)*tmp27_*(tmp21_)+(tmp29_)*tmp30_+tmp49_*tmp31_*tmp32_+tmp52_*tmp34_;
-  mCompDer[0][1] = mLocGradY_x+(tmp36_)*tmp22_*(tmp21_)+(tmp38_)*tmp24_+(tmp36_)*tmp27_*(tmp21_)+(tmp38_)*tmp30_+tmp55_*tmp31_*tmp32_+tmp57_*tmp34_;
-  mCompDer[0][2] = mLocGradZ_x+(tmp40_)*tmp22_*(tmp21_)+(tmp42_)*tmp24_+(tmp40_)*tmp27_*(tmp21_)+(tmp42_)*tmp30_+tmp59_*tmp31_*tmp32_+tmp61_*tmp34_;
+  mCompDer[0][0] = mLocGradX_x+(tmp26_)*tmp22_+(tmp29_)*tmp24_+tmp46_*tmp27_+(tmp29_)*tmp30_*(tmp19_)+(tmp26_)*tmp31_+tmp51_*tmp32_;
+  mCompDer[0][1] = mLocGradY_x+(tmp34_)*tmp22_+(tmp36_)*tmp24_+tmp54_*tmp27_+(tmp36_)*tmp30_*(tmp19_)+(tmp34_)*tmp31_+tmp56_*tmp32_;
+  mCompDer[0][2] = mLocGradZ_x+(tmp38_)*tmp22_+(tmp40_)*tmp24_+tmp58_*tmp27_+(tmp40_)*tmp30_*(tmp19_)+(tmp38_)*tmp31_+tmp60_*tmp32_;
   mCompDer[0][3] = 1;
-  mCompDer[0][4] = 1;
-  mCompDer[0][5] = tmp43_;
-  mCompDer[0][6] = 1;
-  mCompDer[0][7] = tmp43_;
-  mCompDer[0][8] = tmp62_;
+  mCompDer[0][4] = tmp19_;
+  mCompDer[0][5] = tmp21_;
+  mCompDer[0][6] = tmp41_;
+  mCompDer[0][7] = tmp61_;
+  mCompDer[0][8] = tmp42_;
   mCompDer[0][9] = 0;
   mCompDer[0][10] = 0;
   mCompDer[0][11] = 0;
   mCompDer[0][12] = 0;
   mCompDer[0][13] = 0;
   mCompDer[0][14] = 0;
-  mVal[1] = (tmp19_+mCompCoord[9]+mCompCoord[10]+tmp45_*(tmp21_)+mCompCoord[12]+tmp47_*(tmp21_)+tmp53_*tmp32_)-mLocPIm_y;
+  mVal[1] = (tmp17_+mCompCoord[9]+tmp43_*(tmp19_)+tmp44_*(tmp21_)+tmp47_*tmp41_+tmp49_*(tmp19_)+tmp52_*tmp42_)-mLocPIm_y;
 
-  mCompDer[1][0] = mLocGradX_y+(tmp26_)*tmp44_*(tmp21_)+(tmp29_)*tmp45_+(tmp26_)*tmp46_*(tmp21_)+(tmp29_)*tmp47_+tmp49_*tmp50_*tmp32_+tmp52_*tmp53_;
-  mCompDer[1][1] = mLocGradY_y+(tmp36_)*tmp44_*(tmp21_)+(tmp38_)*tmp45_+(tmp36_)*tmp46_*(tmp21_)+(tmp38_)*tmp47_+tmp55_*tmp50_*tmp32_+tmp57_*tmp53_;
-  mCompDer[1][2] = mLocGradZ_y+(tmp40_)*tmp44_*(tmp21_)+(tmp42_)*tmp45_+(tmp40_)*tmp46_*(tmp21_)+(tmp42_)*tmp47_+tmp59_*tmp50_*tmp32_+tmp61_*tmp53_;
+  mCompDer[1][0] = mLocGradX_y+(tmp26_)*tmp43_+(tmp29_)*tmp44_+tmp46_*tmp47_+(tmp29_)*tmp48_*(tmp19_)+(tmp26_)*tmp49_+tmp51_*tmp52_;
+  mCompDer[1][1] = mLocGradY_y+(tmp34_)*tmp43_+(tmp36_)*tmp44_+tmp54_*tmp47_+(tmp36_)*tmp48_*(tmp19_)+(tmp34_)*tmp49_+tmp56_*tmp52_;
+  mCompDer[1][2] = mLocGradZ_y+(tmp38_)*tmp43_+(tmp40_)*tmp44_+tmp58_*tmp47_+(tmp40_)*tmp48_*(tmp19_)+(tmp38_)*tmp49_+tmp60_*tmp52_;
   mCompDer[1][3] = 0;
   mCompDer[1][4] = 0;
   mCompDer[1][5] = 0;
@@ -143,11 +142,11 @@ void cGen2DBundleEgProj_Deg2::ComputeValDeriv()
   mCompDer[1][7] = 0;
   mCompDer[1][8] = 0;
   mCompDer[1][9] = 1;
-  mCompDer[1][10] = 1;
-  mCompDer[1][11] = tmp43_;
-  mCompDer[1][12] = 1;
-  mCompDer[1][13] = tmp43_;
-  mCompDer[1][14] = tmp62_;
+  mCompDer[1][10] = tmp19_;
+  mCompDer[1][11] = tmp21_;
+  mCompDer[1][12] = tmp41_;
+  mCompDer[1][13] = tmp61_;
+  mCompDer[1][14] = tmp42_;
 }
 
 
@@ -156,9 +155,9 @@ void cGen2DBundleEgProj_Deg2::ComputeValDerivHessian()
   ELISE_ASSERT(false,"Foncteur cGen2DBundleEgProj_Deg2 Has no Der Sec");
 }
 
-void cGen2DBundleEgProj_Deg2::SetAmpl(double aVal){ mLocAmpl = aVal;}
-void cGen2DBundleEgProj_Deg2::SetCentr_x(double aVal){ mLocCentr_x = aVal;}
-void cGen2DBundleEgProj_Deg2::SetCentr_y(double aVal){ mLocCentr_y = aVal;}
+void cGen2DBundleEgProj_Deg2::SetAmplApp(double aVal){ mLocAmplApp = aVal;}
+void cGen2DBundleEgProj_Deg2::SetCentrApp_x(double aVal){ mLocCentrApp_x = aVal;}
+void cGen2DBundleEgProj_Deg2::SetCentrApp_y(double aVal){ mLocCentrApp_y = aVal;}
 void cGen2DBundleEgProj_Deg2::SetGradX_x(double aVal){ mLocGradX_x = aVal;}
 void cGen2DBundleEgProj_Deg2::SetGradX_y(double aVal){ mLocGradX_y = aVal;}
 void cGen2DBundleEgProj_Deg2::SetGradY_x(double aVal){ mLocGradY_x = aVal;}
@@ -177,9 +176,9 @@ void cGen2DBundleEgProj_Deg2::SetProjInit_y(double aVal){ mLocProjInit_y = aVal;
 
 double * cGen2DBundleEgProj_Deg2::AdrVarLocFromString(const std::string & aName)
 {
-   if (aName == "Ampl") return & mLocAmpl;
-   if (aName == "Centr_x") return & mLocCentr_x;
-   if (aName == "Centr_y") return & mLocCentr_y;
+   if (aName == "AmplApp") return & mLocAmplApp;
+   if (aName == "CentrApp_x") return & mLocCentrApp_x;
+   if (aName == "CentrApp_y") return & mLocCentrApp_y;
    if (aName == "GradX_x") return & mLocGradX_x;
    if (aName == "GradX_y") return & mLocGradX_y;
    if (aName == "GradY_x") return & mLocGradY_x;
