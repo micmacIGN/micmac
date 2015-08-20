@@ -1466,6 +1466,8 @@ class cBasicGeomCap3D
 // Compute the differential, defaut value compute it by finite difference,at step ResolSolOfPt, 
 // to accelerate it is note centered en reuse the value PIm
       virtual void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);
+
+      static cBasicGeomCap3D * StdGetFromFile(const std::string &);
 };
 
 
@@ -1533,6 +1535,7 @@ class ElCamera : public cCapture3D
          cVerifOrient MakeVerif( int aNbVerif,double aProf,const char *,const Pt3di  * aNbDeterm=0) const;
          cOrientationConique  StdExportCalibGlob(bool Matr) const;
          cOrientationConique  StdExportCalibGlob() const;
+         std::string StdExport2File(cInterfChantierNameManipulateur *,const std::string & aDirOri,const std::string & aNameIm);  // Test -> Ori-R
 
       virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;
       virtual  Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;

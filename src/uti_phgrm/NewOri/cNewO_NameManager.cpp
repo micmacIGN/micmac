@@ -187,11 +187,6 @@ CamStenope *  cInterfChantierNameManipulateur::StdCamOfNames(const std::string &
 CamStenope * cNewO_NameManager::CamOriOfName(const std::string & aNameIm,const std::string & anOri)
 {
     return mICNM->StdCamOfNames(aNameIm,anOri);
-/*
-     std::string aKey = "NKS-Assoc-Im2Orient@-"+ anOri ;
-     std::string aNameCam =  mICNM->Assoc1To1(aKey,aNameIm,true);
-     return CamOrientGenFromFile(aNameCam,mICNM);
-*/
 }
 const std::string &   cNewO_NameManager::OriCal() const {return mPrefOriCal;}
 

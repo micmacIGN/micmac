@@ -1353,6 +1353,16 @@ class cCpleString
         std::string mN2;
 };
 
+class cMonomXY
+{
+     public :
+         cMonomXY(double,int,int);
+         cMonomXY();
+         double mCoeff; 
+         int mDegX; 
+         int mDegY; 
+};
+
 class cXmlHour;
 class cXmlDate;
 

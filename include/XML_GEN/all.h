@@ -201,12 +201,15 @@ class cResulMSO
 class cInterfChantierNameManipulateur
 {
      public :
+    typedef  std::string             tKey;
 
 
 
+         std::string NameOriStenope(const tKey & aKeyOri,const std::string & aNameIm);
          std::string StdNameCalib(const std::string & anOri,const std::string & aNameIm);  // =>  Ori-XX/AutoCal ...
          CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
-         CamStenope * GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal,bool ModeFraser /* Genre un Fraser Basixc ss dist*/ ); // No Dist if aPrefOriCal=""
+         CamStenope * GlobCalibOfName(const std::string  & aNameIm,const std::string & aPrefOriCal,bool ModeFraser /* Genre un Fraser Basixc ss dist*/ ); // No Dist if aPrefOriCal=""
+
 
          std::list<std::string> GetListImByDelta(const cListImByDelta &,const std::string & aN0);
 
@@ -240,7 +243,6 @@ class cInterfChantierNameManipulateur
         virtual ~cInterfChantierNameManipulateur();
         typedef  std::vector<std::string>   tNuplet;
         typedef  std::vector<std::string>   tSet;
-    typedef  std::string             tKey;
 
         virtual  cTplValGesInit<cResBoxMatr> GetBoxOfMatr(const tKey&,const std::string&)=0;
 
@@ -272,6 +274,7 @@ class cInterfChantierNameManipulateur
         virtual const bool  * SetIsIn(const tKey & aKey,const std::string & aName) =0;
         virtual bool AssocHasKey(const tKey & aKey) const = 0;
         std::string StdKeyOrient(const tKey &); // Elle meme si existe sinon NKS
+
         virtual bool SetHasKey(const tKey & aKey) const = 0;
     //  Renvoie true si c'est un fichier et pas une cle
     //  Renvoie false si c'est une cle et pas un fichier
