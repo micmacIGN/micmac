@@ -125,6 +125,7 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            static  cPolynomial_BGC3M2D * NewFromFile(const std::string &);
       private : 
            void SetMonom(const cMonomXY & aMon,std::vector<double> &);
+           void SetMonom(const std::vector<cMonomXY> & aMon,std::vector<double> &);
 
            void Show(const std::string & aMes,const std::vector<double> & aCoef) const;
            void ShowMonome(const std::string & , int aDeg) const;

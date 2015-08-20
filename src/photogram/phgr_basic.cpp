@@ -1468,6 +1468,8 @@ void cBasicGeomCap3D::Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPI
     aDz = (Ter2Capteur(Pt3dr(aTer.x,aTer.y,aTer.z+aStep)) - aPIm) / aStep;
 }
 
+CamStenope * cBasicGeomCap3D::DownCastCS() { return 0; }
+
 /*
     Orientation-_MG_0131.CR2.xml              => Camera Stenope Standard
     UnCor-Orientation-_MG_0065.CR2.xml        => Copie de Camera Stenope Standard
@@ -1479,7 +1481,37 @@ void cBasicGeomCap3D::Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPI
      ???  => Initial RPC
 */
 
+// Fonction globale a remetre en cPolynomial_BGC3M2D::NewFromFile lorque (si ?)  la classe sera vue par tout le monde
+cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName);  
+
+
+cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName)
+{
+    static cElRegex  ThePattMMCS(".*/Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
+    static cElRegex  ThePattGBMM(".*/Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
+   
+    if (ThePattMMCS.Match(aName))
+    {
+        cElXMLTree aTreeBase (aName);
+        // cElXMLTree *  aTreeOri = aTreeBase.GetOneOrZero("OrientationConique");
+
+        if (aTreeBase.GetOneOrZero("OrientationConique"))
+        {
+             return BasicCamOrientGenFromFile(aName);
+        }
+    }
+
+    if (ThePattGBMM.Match(aName))
+    {
+        return cPolynomial_BGC3M2DNewFromFile(aName);
+    }
+
+
+    return 0;
+}
 /*
+
+
 cBasicGeomCap3D * StdGetFromFile(const std::string & aName)
 {
     
@@ -1488,6 +1520,11 @@ cBasicGeomCap3D * StdGetFromFile(const std::string & aName)
         
     }
 }
+
+
+
+
+
 */
 
 
@@ -3114,6 +3151,8 @@ cCalibrationInternConique  ElCamera::ExportCalibInterne2XmlStruct(Pt2di aSzIm) c
 /*              CamStenope                                     */
 /*                                                             */
 /***************************************************************/
+
+CamStenope * CamStenope::DownCastCS() { return this; }
 
 double  CamStenope::GetRoughProfondeur() const
 {

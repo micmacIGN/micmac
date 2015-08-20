@@ -1003,7 +1003,7 @@ void cPolynomial_BGC3M2D::Save(const std::string & aDirLoc) const
 void   cPolynomial_BGC3M2D::SetMonom(const cMonomXY & aMon,std::vector<double> & aVCoef)
 {
     int aNbGot=0;
-    for (int aK=0 ; aK<aVCoef.size() ; aK++)
+    for (int aK=0 ; aK<int(aVCoef.size()) ; aK++)
     {
         if ((mDegX[aK] == aMon.mDegX) && (mDegY[aK] == aMon.mDegY))
         {
@@ -1013,13 +1013,35 @@ void   cPolynomial_BGC3M2D::SetMonom(const cMonomXY & aMon,std::vector<double> &
     }
     ELISE_ASSERT(aNbGot==1,"cPolynomial_BGC3M2D::SetMonom");
 }
+
+void   cPolynomial_BGC3M2D::SetMonom(const std::vector<cMonomXY> & aVMon,std::vector<double> & aVCoef)
+{
+    for (int aK=0 ; aK<int(aVMon.size()) ; aK++)
+        SetMonom(aVMon[aK],aVCoef);
+}
   
-/*
 cPolynomial_BGC3M2D * cPolynomial_BGC3M2D::NewFromFile(const std::string & aName)
 {
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
+
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor());
+
+
+    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot());
+
+    aRes->SetMonom(aXML.CorX().Monomes(),aRes->mCx);
+    aRes->SetMonom(aXML.CorY().Monomes(),aRes->mCy);
+
+    return aRes;
     
 }
+
+cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName) 
+{
+  return cPolynomial_BGC3M2D::NewFromFile(aName);
+}
+
+/*
 */
 
 
