@@ -211,6 +211,8 @@ extern int Init3App_Main(int argc,char ** argv);
 extern int  CPP_CmpOriCam_main(int argc, char** argv);
 
 
+extern int CPP_ConvertBundleGen(int argc,char ** argv);
+
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -427,6 +429,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("AllDev",DoAllDev_main,"Force development of all tif/xif file"));
        aRes.push_back(cMMCom("SetExif",CPP_SetExif,"Modification of exif file (requires exiv2)"));
+       aRes.push_back(cMMCom("Convert2GenBundle",CPP_ConvertBundleGen,"Import RPC or other to MicMac format, for adjustment, matching ..."));
 
    }
 

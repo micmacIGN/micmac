@@ -1833,6 +1833,7 @@ void xml_init(std::vector<std::string>   &,cElXMLTree * aTree);
 void xml_init(cElRegex_Ptr &,cElXMLTree * aTree);
 
 void xml_init(cCpleString &,cElXMLTree * aTree);
+void xml_init(cMonomXY &,cElXMLTree * aTree);
 
 void xml_init(BoolSubst &,cElXMLTree * aTree);
 void xml_init(IntSubst &,cElXMLTree * aTree);
@@ -1857,6 +1858,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const cElRegex_Ptr &      an
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const XmlXml &      anObj);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const cCpleString   &      anObj);
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const cMonomXY   &      anObj);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const IntSubst   &      anObj);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const BoolSubst   &      anObj);
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const DoubleSubst   &      anObj);
@@ -1885,6 +1887,7 @@ TypeForDump(Pt3dr)
 TypeForDump(Pt3di)
 TypeForDump(cElRegex_Ptr)
 TypeForDump(cCpleString)
+TypeForDump(cMonomXY)
 TypeForDump(IntSubst)
 TypeForDump(BoolSubst)
 TypeForDump(DoubleSubst)

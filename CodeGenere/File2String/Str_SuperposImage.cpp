@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1456]) = {
+const char * (theNameVar_SuperposImage[1470]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1439,6 +1439,20 @@ const char * (theNameVar_SuperposImage[1456]) = {
 "     <Lines Nb=\"*\" RefType=\"Xml_OneLineSLS\" Container=\"std::vector\"> </Lines>\n",
 "</Xml_ScanLineSensor>\n",
 "\n",
+"\n",
+"<Xml_PolynXY  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"      <Monomes Nb=\"*\" Type=\"cMonomXY\"  Container=\"std::vector\"> </Monomes>\n",
+"</Xml_PolynXY>\n",
+"\n",
+"<Xml_CamGenPolBundle Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"    <NameCamSsCor  Type=\"std::string\" Nb=\"1\" > </NameCamSsCor>\n",
+"    <NameIma  Type=\"std::string\" Nb=\"1\" > </NameIma>\n",
+"    <DegreTot Type=\"int\" Nb=\"1\"> </DegreTot>\n",
+"    <Center Nb=\"1\" Type=\"Pt2dr\"> </Center>\n",
+"    <Ampl Nb=\"1\" Type=\"double\"> </Ampl>\n",
+"    <CorX Nb=\"1\" RefType=\"Xml_PolynXY\"> </CorX>\n",
+"    <CorY Nb=\"1\" RefType=\"Xml_PolynXY\"> </CorY>\n",
+"</Xml_CamGenPolBundle>\n",
 "\n",
 "\n",
 "\n",

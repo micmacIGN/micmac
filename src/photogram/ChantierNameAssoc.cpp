@@ -1891,6 +1891,13 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
         return "NKS-Assoc-Im2Orient@" + aKey;
     }
 
+    std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri,const std::string & aNameIm)
+    {
+           std::string aKey = StdKeyOrient(aKeyOri);
+           return Assoc1To1(aKey,aNameIm,true);
+    }
+ 
+
 
     std::vector<std::string>  cInterfChantierNameManipulateur::GetSetOfRel(const tKey & aKey,const std::string & aStr0,bool Sym)
     {

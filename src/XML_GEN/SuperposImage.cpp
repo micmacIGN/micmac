@@ -21365,4 +21365,200 @@ void xml_init(cXml_ScanLineSensor & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_ScanLineSensor *) {return "B848536DE6351DA5FB3F";};
 
+
+std::vector< cMonomXY > & cXml_PolynXY::Monomes()
+{
+   return mMonomes;
+}
+
+const std::vector< cMonomXY > & cXml_PolynXY::Monomes()const 
+{
+   return mMonomes;
+}
+
+void  BinaryUnDumpFromFile(cXml_PolynXY & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cMonomXY aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Monomes().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_PolynXY & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Monomes().size());
+    for(  std::vector< cMonomXY >::const_iterator iT=anObj.Monomes().begin();
+         iT!=anObj.Monomes().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_PolynXY & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_PolynXY",eXMLBranche);
+  for
+  (       std::vector< cMonomXY >::const_iterator it=anObj.Monomes().begin();
+      it !=anObj.Monomes().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Monomes"),(*it))->ReTagThis("Monomes"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_PolynXY & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Monomes(),aTree->GetAll("Monomes",false,1));
+}
+
+std::string  Mangling( cXml_PolynXY *) {return "A67869CD09817180FD3F";};
+
+
+std::string & cXml_CamGenPolBundle::NameCamSsCor()
+{
+   return mNameCamSsCor;
+}
+
+const std::string & cXml_CamGenPolBundle::NameCamSsCor()const 
+{
+   return mNameCamSsCor;
+}
+
+
+std::string & cXml_CamGenPolBundle::NameIma()
+{
+   return mNameIma;
+}
+
+const std::string & cXml_CamGenPolBundle::NameIma()const 
+{
+   return mNameIma;
+}
+
+
+int & cXml_CamGenPolBundle::DegreTot()
+{
+   return mDegreTot;
+}
+
+const int & cXml_CamGenPolBundle::DegreTot()const 
+{
+   return mDegreTot;
+}
+
+
+Pt2dr & cXml_CamGenPolBundle::Center()
+{
+   return mCenter;
+}
+
+const Pt2dr & cXml_CamGenPolBundle::Center()const 
+{
+   return mCenter;
+}
+
+
+double & cXml_CamGenPolBundle::Ampl()
+{
+   return mAmpl;
+}
+
+const double & cXml_CamGenPolBundle::Ampl()const 
+{
+   return mAmpl;
+}
+
+
+cXml_PolynXY & cXml_CamGenPolBundle::CorX()
+{
+   return mCorX;
+}
+
+const cXml_PolynXY & cXml_CamGenPolBundle::CorX()const 
+{
+   return mCorX;
+}
+
+
+cXml_PolynXY & cXml_CamGenPolBundle::CorY()
+{
+   return mCorY;
+}
+
+const cXml_PolynXY & cXml_CamGenPolBundle::CorY()const 
+{
+   return mCorY;
+}
+
+void  BinaryUnDumpFromFile(cXml_CamGenPolBundle & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameCamSsCor(),aFp);
+    BinaryUnDumpFromFile(anObj.NameIma(),aFp);
+    BinaryUnDumpFromFile(anObj.DegreTot(),aFp);
+    BinaryUnDumpFromFile(anObj.Center(),aFp);
+    BinaryUnDumpFromFile(anObj.Ampl(),aFp);
+    BinaryUnDumpFromFile(anObj.CorX(),aFp);
+    BinaryUnDumpFromFile(anObj.CorY(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_CamGenPolBundle & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameCamSsCor());
+    BinaryDumpInFile(aFp,anObj.NameIma());
+    BinaryDumpInFile(aFp,anObj.DegreTot());
+    BinaryDumpInFile(aFp,anObj.Center());
+    BinaryDumpInFile(aFp,anObj.Ampl());
+    BinaryDumpInFile(aFp,anObj.CorX());
+    BinaryDumpInFile(aFp,anObj.CorY());
+}
+
+cElXMLTree * ToXMLTree(const cXml_CamGenPolBundle & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_CamGenPolBundle",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameCamSsCor"),anObj.NameCamSsCor())->ReTagThis("NameCamSsCor"));
+   aRes->AddFils(::ToXMLTree(std::string("NameIma"),anObj.NameIma())->ReTagThis("NameIma"));
+   aRes->AddFils(::ToXMLTree(std::string("DegreTot"),anObj.DegreTot())->ReTagThis("DegreTot"));
+   aRes->AddFils(::ToXMLTree(std::string("Center"),anObj.Center())->ReTagThis("Center"));
+   aRes->AddFils(::ToXMLTree(std::string("Ampl"),anObj.Ampl())->ReTagThis("Ampl"));
+   aRes->AddFils(ToXMLTree(anObj.CorX())->ReTagThis("CorX"));
+   aRes->AddFils(ToXMLTree(anObj.CorY())->ReTagThis("CorY"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_CamGenPolBundle & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameCamSsCor(),aTree->Get("NameCamSsCor",1)); //tototo 
+
+   xml_init(anObj.NameIma(),aTree->Get("NameIma",1)); //tototo 
+
+   xml_init(anObj.DegreTot(),aTree->Get("DegreTot",1)); //tototo 
+
+   xml_init(anObj.Center(),aTree->Get("Center",1)); //tototo 
+
+   xml_init(anObj.Ampl(),aTree->Get("Ampl",1)); //tototo 
+
+   xml_init(anObj.CorX(),aTree->Get("CorX",1)); //tototo 
+
+   xml_init(anObj.CorY(),aTree->Get("CorY",1)); //tototo 
+}
+
+std::string  Mangling( cXml_CamGenPolBundle *) {return "C8E31598BA07CEACFDBF";};
+
 // };

@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _APERO_H_
 #include "StdAfx.h"
 #include "cParamApero.h"
+#include "BundleGen.h"
 
 
 
