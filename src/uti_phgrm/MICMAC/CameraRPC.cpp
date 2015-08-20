@@ -57,8 +57,16 @@ CameraRPC::CameraRPC(std::string const &aNameFile, const  std::string &aModeRPC,
    
    mRPC = new RPC();
    
-   if (aModeRPC=="PLEIADE" || aModeRPC=="SPOT")
+   if (aModeRPC=="PLEIADE")
+   {
        mRPC->ReadDimap(aNameFile);
+       mRPC->ReconstructValidity();
+   }
+   else if(aModeRPC=="SPOT")//OK for SPOT in Dimap2 format, otherwise CameraAffine
+   {
+       mRPC->ReadDimap(aNameFile);   
+       mRPC->ReconstructValidity(); 
+   }
    else if(aModeRPC=="QUICKBIRD" || aModeRPC=="WORLDVIEW" )
    {
        mRPC->ReadXML(aNameFile);
@@ -110,11 +118,12 @@ ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
 {
     AssertRPCDirInit(); 
 
-    double aZ = 0;
+    double aZ = mRPC->first_height+1;//beginning of the height validity zone
     if(AltisSolIsDef())
         aZ = mAltiSol;
     
-    Pt3dr aP1RayL3(aP.x, aP.y, aZ+1), 
+    Pt3dr aP1RayL3(aP.x, aP.y, 
+		   aZ+double(mRPC->last_height - mRPC->first_height)/2),//middle of the height validity zones 
 	  aP2RayL3(aP.x, aP.y, aZ);
 
     return F2toRayonLPH(aP1RayL3, aP2RayL3);
@@ -128,11 +137,6 @@ ElSeg3D CameraRPC::F2toRayonLPH(Pt3dr &aP0,Pt3dr & aP1) const
 bool   CameraRPC::HasRoughCapteur2Terrain() const
 {
     return ProfIsDef();
-}
-
-bool  CameraRPC::HasPreciseCapteur2Terrain() const
-{
-    return false;
 }
 
 Pt3dr CameraRPC::RoughCapteur2Terrain(const Pt2dr & aP) const
@@ -149,11 +153,26 @@ Pt3dr CameraRPC::RoughCapteur2Terrain(const Pt2dr & aP) const
 
 Pt3dr CameraRPC::ImEtProf2Terrain(const Pt2dr & aP,double aProf) const
 {
-    //get pseudooptical center in R3, 
-    //get the line in R3 and 
-    //do return( OPT + Line*aProf )
+    AssertRPCDirInit();
 
-    return Pt3dr(0,0,0);
+    if(mOptCentersIsDef)
+    {
+        //find the  sensor's mean Z-position
+	unsigned int aK;
+	double aMeanZ(mOpticalCenters->at(0).z);
+	for(aK=1; aK<mOpticalCenters->size(); aK++)
+	    aMeanZ += mOpticalCenters->at(aK).z;
+
+	aMeanZ = double(aMeanZ)/mOpticalCenters->size();
+
+        return(mRPC->InverseRPC(Pt3dr(aP.x, aP.y, aMeanZ-mProfondeur)));
+    }
+    else
+    {
+        ELISE_ASSERT(false,"CameraRPC::ImEtProf2Terrain no data about the sensor positon");
+	
+	return(Pt3dr(0,0,0));
+    }
 }
 
 Pt3dr CameraRPC::ImEtZ2Terrain(const Pt2dr & aP,double aZ) const
@@ -161,11 +180,6 @@ Pt3dr CameraRPC::ImEtZ2Terrain(const Pt2dr & aP,double aZ) const
     AssertRPCDirInit();
 
     return(mRPC->InverseRPC(Pt3dr(aP.x, aP.y, aZ)));
-}
-
-Pt3dr CameraRPC::PreciseCapteur2Terrain   (const Pt2dr & aP) const
-{
-    return Pt3dr(0,0,0);//PtOfIndexInterpol(aP);
 }
 
 void CameraRPC::SetProfondeur(double aP)
@@ -202,29 +216,14 @@ bool CameraRPC::AltisSolIsDef() const
 
 double CameraRPC::ResolSolOfPt(const Pt3dr & aP) const
 {
-    //Pt2dr aPIm = Ter2Capteur(aP);
-    //ElSeg3D aSeg = Capteur2RayTer(aPIm+Pt2dr(1,0));
+    //to do
     return 1.0;//aSeg.DistDoite(aP);
-}
-
-double CameraRPC::ResolSolGlob() const
-{
-    return(0.0);
 }
 
 bool  CameraRPC::CaptHasData(const Pt2dr & aP) const
 {
+    //to do
     return true;//IndexHasContenuForInterpol(aP);
-}
-
-Pt2dr CameraRPC::ImRef2Capteur   (const Pt2dr & aP) const
-{
-    return Pt2dr(0,0);//aP / mParams.SsResolRef().Val();
-}
-
-double  CameraRPC::ResolImRefFromCapteur() const
-{
-    return  0.0;//mParams.SsResolRef().Val();
 }
 
 void CameraRPC::AssertRPCDirInit() const
@@ -241,8 +240,8 @@ Pt2di CameraRPC::SzBasicCapt3D() const
 {
     ELISE_ASSERT(mRPC!=0,"RPCs were not initialized in CameraRPC::SzBasicCapt3D()");
 
-    return  (Pt2di(mRPC->last_row - mRPC->first_row,
- 	           mRPC->last_col - mRPC->first_col));
+    return  (Pt2di(mRPC->last_row,
+ 	           mRPC->last_col));
 }
 
 /* Export to xml following the cXml_ScanLineSensor standard 
@@ -357,9 +356,8 @@ void CameraRPC::ExpImp2Bundle(const std::string & aSysOut,
 	}		    
 }
 
-//for every grid line get some ElSeg3D and 
-//intersect them
-//at the end fit a line in all intersections
+/* For a defined image grid, 
+ * extrude to rays and intersect at the line of optical centers */
 void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 {
     int aL, aS;
@@ -389,10 +387,12 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
     {
 	for( aS=0; aS<mGridSz.y; aS++)
 	{
+	    //std::cout << aS*aGridStep.y << " " << aL*aGridStep.x << " - ";
 	    aSegTmp = Capteur2RayTer( Pt2dr( aS*aGridStep.y, aL*aGridStep.x));
             aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n"   
                 << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
 	}
+	//std::cout << "\n";
     }
     aFO.close();
 
@@ -422,7 +422,7 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
     mOpticalCenters = new std::vector<Pt3dr>();
     //cRapOnZ * aRAZ = new cRapOnZ(680000.0,10,10,"");
     //cResOptInterFaisceaux * aROIF;
-
+    std::cout.precision(15);
     int aCntTmp=0;
     for( aL=0; aL<mGridSz.x; aL++)
     {
@@ -435,11 +435,13 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 	    aVPds.push_back(0.5);
             aVS.push_back( ElSeg3D(aPtsTmp.at(aCntTmp),
 				   aPtsTmp.at(aCntTmp+1)) );
-            
+
+	   // std::cout << aPtsTmp.at(aCntTmp) << " " << aPtsTmp.at(aCntTmp+1) << " - ";
 	    aCntTmp++;
 	    aCntTmp++;
 
 	}
+	//std::cout << "\n";
 
 	//intersect
 	bool aIsOK;
@@ -471,6 +473,167 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
     }
 
 
+}
+
+
+/***********************************************************************/
+/*                           CameraAffine                              */
+/***********************************************************************/
+CameraAffine::CameraAffine(std::string const &file)
+{
+   cElXMLTree tree(file.c_str()); 
+   cElXMLTree* nodes;
+   std::list<cElXMLTree*> nodesFilAll;
+
+   //camera affine parameters
+   nodes = tree.GetUnique(std::string("Direct_Location_Model"));
+
+   nodesFilAll = nodes->GetAll("lc");
+   std::list<cElXMLTree*>::const_iterator aK;
+   for( aK=nodesFilAll.begin(); aK!=nodesFilAll.end(); aK++ )
+      mCDir_LON.push_back(std::atof((*aK)->Contenu().c_str()));
+
+   nodesFilAll = nodes->GetAll("pc");
+   for( aK=nodesFilAll.begin(); aK!=nodesFilAll.end(); aK++ )
+       mCDir_LAT.push_back(std::atof((*aK)->Contenu().c_str()));
+
+
+   nodes = tree.GetUnique(std::string("Reverse_Location_Model"));
+
+   nodesFilAll = nodes->GetAll("lc");
+   for( aK=nodesFilAll.begin(); aK!=nodesFilAll.end(); aK++ )
+       mCInv_Line.push_back(std::atof((*aK)->Contenu().c_str()));
+
+   nodesFilAll = nodes->GetAll("pc");
+   for( aK=nodesFilAll.begin(); aK!=nodesFilAll.end(); aK++ )
+       mCInv_Sample.push_back(std::atof((*aK)->Contenu().c_str()));
+
+
+   //validity zones
+   std::vector<double> aValTmp;
+   nodes = tree.GetUnique(std::string("Dataset_Frame"));
+   nodesFilAll = nodes->GetAll("FRAME_LON");
+   for( aK=nodesFilAll.begin(); aK!=nodesFilAll.end(); aK++ )
+       aValTmp.push_back(std::atof((*aK)->Contenu().c_str()));
+
+   mLON0 = (*std::min_element(aValTmp.begin(), aValTmp.end()));
+   mLONn = (*std::max_element(aValTmp.begin(), aValTmp.end()));
+   aValTmp.clear();   
+
+   nodesFilAll = nodes->GetAll("FRAME_LAT");
+   for( aK=nodesFilAll.begin(); aK!=nodesFilAll.end(); aK++ )
+       aValTmp.push_back(std::atof((*aK)->Contenu().c_str()));
+
+   mLAT0 = (*std::min_element(aValTmp.begin(), aValTmp.end()));
+   mLATn = (*std::max_element(aValTmp.begin(), aValTmp.end()));
+   aValTmp.clear();
+
+   //row
+   nodesFilAll = nodes->GetAll("FRAME_ROW");
+   for( aK=nodesFilAll.begin(); aK!=nodesFilAll.end(); aK++ )
+        aValTmp.push_back(std::atof((*aK)->Contenu().c_str()));
+
+   mROW0 = (*std::min_element(aValTmp.begin(), aValTmp.end()));
+   mROWn = (*std::max_element(aValTmp.begin(), aValTmp.end()));
+   aValTmp.clear();
+
+   //col
+   nodesFilAll = nodes->GetAll("FRAME_COL");
+   for( aK=nodesFilAll.begin(); aK!=nodesFilAll.end(); aK++ )
+        aValTmp.push_back(std::atof((*aK)->Contenu().c_str()));
+
+   mCOL0 = (*std::min_element(aValTmp.begin(), aValTmp.end()));
+   mCOLn = (*std::max_element(aValTmp.begin(), aValTmp.end()));
+   aValTmp.clear();
+
+   //sensor size
+   nodes = tree.GetUnique("NROWS");
+   mSz.x = std::atoi(nodes->GetUniqueVal().c_str());
+   nodes = tree.GetUnique("NCOLS");
+   mSz.y = std::atoi(nodes->GetUniqueVal().c_str());
+
+}
+
+ElSeg3D CameraAffine::Capteur2RayTer(const Pt2dr & aP) const
+{
+    return( ElSeg3D(Pt3dr(0,0,0), Pt3dr(0,0,0)) );
+}
+
+Pt2dr CameraAffine::Ter2Capteur   (const Pt3dr & aP) const
+{
+    return(Pt2dr(0,0));
+}
+
+Pt2di CameraAffine::SzBasicCapt3D() const
+{
+    return(mSz);
+}
+
+double CameraAffine::ResolSolOfPt(const Pt3dr &) const
+{
+    return( 0.0 );
+}
+
+bool CameraAffine::CaptHasData(const Pt2dr &) const
+{
+    return(true);
+}
+
+bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP) const
+{
+    return(true);
+}
+
+Pt3dr CameraAffine::OpticalCenterOfPixel(const Pt2dr & aP) const
+{
+    return(Pt3dr(0,0,0));
+}
+
+bool  CameraAffine::HasOpticalCenterOfPixel() const
+{
+    return(true);
+}
+
+void CameraAffine::Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer)
+{}
+
+void CameraAffine::ShowInfo()
+{
+    unsigned int aK=0;
+
+    std::cout << "CameraAffine info:" << std::endl;
+    std::cout << "===============================================" << std::endl;
+    std::cout << "------------------direct model\n";
+    std::cout << "lambda = ";
+    for(aK=0; aK<mCDir_LON.size(); aK++)
+	    std::cout << "(" << aK << ") " << mCDir_LON.at(aK) << "\n ";
+
+    std::cout << "\n";
+
+    std::cout << "phi = ";
+    for(aK=0; aK<mCDir_LAT.size(); aK++)
+	    std::cout << "(" << aK << ") " << mCDir_LAT.at(aK) << "\n ";
+
+    std::cout << "\n------------------inverse model\n";
+    std::cout << "line = ";
+    for(aK=0; aK<mCInv_Line.size(); aK++)
+	    std::cout << "(" << aK << ") " << mCInv_Line.at(aK) << "\n ";
+
+    std::cout << "\n";
+
+    std::cout << "line = ";
+    for(aK=0; aK<mCInv_Sample.size(); aK++)
+	    std::cout << "(" << aK << ") " << mCInv_Sample.at(aK) << "\n ";
+
+    std::cout << "\n------------------validity zones\n";
+    std::cout << "LAT = (" << mLAT0 << " - " << mLATn << ")\n";
+    std::cout << "LON = (" << mLON0 << " - " << mLONn << ")\n";
+    std::cout << "ROW = (" << mROW0 << " - " << mROWn << ")\n";
+    std::cout << "COL = (" << mCOL0 << " - " << mCOLn << ")\n";
+
+    std::cout << "\n------------------image dimension\n";
+    std::cout << "(nrows,ncols) = (" << mSz.x << ", " << mSz.y << ")\n";
+    std::cout << "=================================================" << std::endl;
 }
 
 /***********************************************************************/

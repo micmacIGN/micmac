@@ -273,14 +273,14 @@ public:
                 std::cout << "===========================================================" << std::endl;
         }
 
-        //For Dimap
+        //For Dimap v2
         void ReadDimap(std::string const &filename);
         void WriteAirbusRPC(std::string aFileOut);
+	void ReconstructValidity();
 
         //For DigitalGlobe data
         void ReadRPB(std::string const &filename);
         void ReadXML(std::string const &filename);
-	void ReconstructValidity();
 
 	//For IKONOS/CartoSat
 	void ReadASCII(std::string const &filename);

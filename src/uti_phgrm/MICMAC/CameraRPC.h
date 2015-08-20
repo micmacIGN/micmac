@@ -45,11 +45,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../../include/XML_GEN/SuperposImage.h"
 
 
-class CameraRPC: public cCapture3D
+class CameraRPC: public cBasicGeomCap3D
 {
 	public:
 		//CameraRPC();
-		CameraRPC(std::string const &aNameFile, const std::string &aModeRPC, const Pt2di &aGridSz, std::string const &aMetaFile=" ");
+		CameraRPC(std::string const &aNameFile, const std::string &aModeRPC, const Pt2di &aGridSz, std::string const &aMetaFile=0);
 		~CameraRPC();
 
 		Pt2dr Ter2Capteur   (const Pt3dr & aP) const;
@@ -57,20 +57,13 @@ class CameraRPC: public cCapture3D
 		bool     PIsVisibleInImage   (const Pt3dr & aP) const;
 
 		bool  HasRoughCapteur2Terrain() const;
-		bool  HasPreciseCapteur2Terrain() const;
 		Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
-		Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const;
 
-                Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aProf) const;
 		Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
-
+                Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aProf) const;
 		double ResolSolOfPt(const Pt3dr &) const ;
-        	double ResolSolGlob() const ;
 		bool  CaptHasData(const Pt2dr &) const;
 
-		Pt2dr ImRef2Capteur   (const Pt2dr & aP) const;
-		double ResolImRefFromCapteur() const;
-		
 		Pt2di SzBasicCapt3D() const;
 
 		void ExpImp2Bundle(const std::string & aSysOut, 
@@ -107,6 +100,48 @@ class CameraRPC: public cCapture3D
 
                 void AssertRPCDirInit() const;
 		void AssertRPCInvInit() const;
+};
+
+//dimap v1 - Simplified_Location_Model
+class CameraAffine : public cBasicGeomCap3D
+{
+    public:
+            CameraAffine(std::string const &aNameFile);
+            ~CameraAffine(){};
+
+	    ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
+            Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
+            Pt2di    SzBasicCapt3D() const;
+	    double ResolSolOfPt(const Pt3dr &) const;
+	    bool  CaptHasData(const Pt2dr &) const;
+	    bool     PIsVisibleInImage   (const Pt3dr & aP) const;
+
+	    bool     HasOpticalCenterOfPixel() const;
+	    Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ;
+	    void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);
+
+            //print the CameraAffine parameters 
+            void ShowInfo();
+
+    private:
+	    /* Affine param */
+	    //direct model
+	    std::vector<double> mCDir_LON;//lambda
+	    std::vector<double> mCDir_LAT;//phi
+
+	    //inverse model
+	    std::vector<double> mCInv_Line;
+	    std::vector<double> mCInv_Sample;
+
+	    /* Validity zones */
+	    double mLAT0, mLATn, mLON0, mLONn;
+	    double mROW0, mROWn, mCOL0, mCOLn;
+
+
+            Pt2di        mSz;
+	    std::string  mCamNom;
+
+
 };
 
 class BundleCameraRPC : public cCapture3D

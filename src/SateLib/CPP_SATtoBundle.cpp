@@ -51,6 +51,8 @@ class cSatI_Appli
         std::string mModeOri;
 	std::string mMetadata;
 	Pt2di mGridSz;
+
+	std::vector<std::string> mValidByGCP;
 };
 
 cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
@@ -68,8 +70,9 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
          LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE) full name (Dir+Pat)", eSAM_IsExistFile)
                     << EAMC(mModeOri, "The RPC convention (PLEIADE,SPOT,QUICKBIRD,WORLDVIEW,IKONOS,CARTOSAT,SPICE)"),
 	 LArgMain() << EAM(mCSysOut,"proj","true", "Output cartographic coordinate system (proj format)")
-                    << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[5,8]", eSAM_NoInit)
+                    << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[10,10]", eSAM_NoInit)
 		    << EAM(mMetadata, "Meta", true, "Sensor metadata file, other than the RPC; Valid for IKONOS and CARTOSAT", eSAM_IsExistFile)
+		    << EAM(mValidByGCP, "VGCP", true, "Validate the prj fn with the provided GCPs [GrMes.xml,ImMes.xml]; optical centers not retrieved", eSAM_NoInit )
     );		      
 
     SplitDirAndFile(aDir, aPat, aFullName);
@@ -118,11 +121,8 @@ int SATtoBundle_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
  
-int SATtoOpticalCenter_main(int argc,char ** argv)
+int SATtoOpticalCenter_main(cSatI_Appli &aApps)
 {
-
-    cSatI_Appli aApps(argc,argv);
-
 
     for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
 		                         itL != aApps.mListFile.end(); 
@@ -181,6 +181,114 @@ int SATtoOpticalCenter_main(int argc,char ** argv)
     }
 
     return EXIT_SUCCESS;
+}
+
+void SATbackrpjGCP_main(cSatI_Appli &aApps)
+{
+    //input and backprojected image observations
+    cSetOfMesureAppuisFlottants aDicoImCmp;
+
+    //read GCPs xy
+    cDicoAppuisFlottant aDicoGr = StdGetFromPCP(aApps.mValidByGCP.at(0),
+		                                DicoAppuisFlottant );
+
+    //read GCPs XYZ
+    cSetOfMesureAppuisFlottants aDicoIm = StdGetFromPCP(aApps.mValidByGCP.at(1),
+		                                        SetOfMesureAppuisFlottants);
+
+    //std::cout << aDicoIm.OneAppuisDAF().begin()->NamePt() << " " << 
+//	         aDicoIm.OneAppuisDAF().begin()->Pt() << "\n";
+    //std::cout << aSetDicoMesure.MesureAppuiFlottant1Im().begin()->NameIm() << "\n";
+
+    std::list<cMesureAppuiFlottant1Im> aMAFL;
+
+    for(std::list<std::string>::iterator itL = aApps.mListFile.begin(); 
+		                         itL != aApps.mListFile.end(); 
+					 itL++ )
+    {
+	if(aApps.mModeOri!="SPICE")
+	{
+            CameraRPC aCamRPC(*itL,aApps.mModeOri,aApps.mGridSz,aApps.mMetadata);
+
+            cMesureAppuiFlottant1Im aImCur;
+	    aImCur.NameIm() = *itL;
+
+	    //for all images
+	    std::list<cMesureAppuiFlottant1Im>::const_iterator aImIt;
+	    for( aImIt=aDicoIm.MesureAppuiFlottant1Im().begin();
+                 aImIt!=aDicoIm.MesureAppuiFlottant1Im().end(); aImIt++)
+	    {
+                
+		if( *itL == aImIt->NameIm() )
+	        {
+	            cMesureAppuiFlottant1Im aMAFcur;
+                    aMAFcur.NameIm() = aImIt->NameIm();
+		    std::list<cOneMesureAF1I> aOMcur;
+
+		    //for all points
+	            std::list<cOneMesureAF1I>::const_iterator aImPtIt;
+		    for(aImPtIt=aImIt->OneMesureAF1I().begin(); 
+		        aImPtIt!=aImIt->OneMesureAF1I().end(); aImPtIt++)
+		    {
+		        //find ground coordintes XYZ
+		        std::list<cOneAppuisDAF>::const_iterator aGrPtIt;
+		        for(aGrPtIt=aDicoGr.OneAppuisDAF().begin();
+		            aGrPtIt!=aDicoGr.OneAppuisDAF().end(); aGrPtIt++)
+		        {
+		            if(aImPtIt->NamePt() == aGrPtIt->NamePt())
+			    {
+		                //backproject
+		                cOneMesureAF1I aPtCurCmp;
+				aPtCurCmp.NamePt() = aGrPtIt->NamePt() + "_bprj";
+                                aPtCurCmp.PtIm() = aCamRPC.Ter2Capteur(aGrPtIt->Pt());
+
+                            	
+                                //push the original img observation
+		                aOMcur.push_back(*aImPtIt);
+
+				//push the backprojected obs
+				aOMcur.push_back(aPtCurCmp);
+				std::cout << aGrPtIt->NamePt() << "\n";        
+			    }
+		        }
+		    }
+                    aMAFcur.OneMesureAF1I() = aOMcur;
+                    aMAFL.push_back(aMAFcur);
+
+		    std::cout << "size " << aMAFL.size() << "\n"; 
+		    std::cout << aImIt->NameIm(); 
+	        }
+	    }
+            aDicoImCmp.MesureAppuiFlottant1Im() = aMAFL;
+
+
+        }
+    }
+    //export to XML format
+    std::string aNameTmp = aApps.mValidByGCP.at(0).substr(0,aApps.mValidByGCP.at(0).size()-4);
+    
+    MakeFileXML(aDicoImCmp,  
+		            aNameTmp + "_bprj.xml");
+}
+
+/* Validate the projection function
+ * - using the provided GCPs, or
+ * - by intersecting picture elements at the optical centers*/
+int SATvalid_main(int argc,char ** argv)
+{
+    cSatI_Appli aApps(argc,argv);
+
+    //validation by GCPs
+    if (EAMIsInit(&aApps.mValidByGCP))
+    {
+        SATbackrpjGCP_main(aApps);
+    }
+    //validation by intersection
+    else
+        SATtoOpticalCenter_main(aApps);
+    
+    return EXIT_SUCCESS;
+
 }
 
 

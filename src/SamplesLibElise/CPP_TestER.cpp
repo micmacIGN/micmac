@@ -38,8 +38,33 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include "../uti_phgrm/MICMAC/CameraRPC.h"
+
 
 int TestER_main(int argc,char ** argv)
+{
+    //cInterfChantierNameManipulateur * aICNM;
+    std::string aFullName;
+    std::string aDir;
+    std::string aNameOri;
+    std::list<std::string> aListFile;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aFullName,"Orientation file full name (Dir+OriPattern)"),
+	LArgMain()
+    );
+
+    std::cout << aFullName << std::endl;
+
+    CameraAffine aCamAF(aFullName);
+    aCamAF.ShowInfo();
+
+    return EXIT_SUCCESS;
+}
+//test export of a CamStenope into bundles of rays
+int TestER_main2(int argc,char ** argv)
 {
     cInterfChantierNameManipulateur * aICNM;
     std::string aFullName;

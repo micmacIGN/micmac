@@ -666,7 +666,7 @@ extern int DigitalGlobe2Grid_main(int argc, char **argv);
 extern int Aster2Grid_main(int argc, char **argv);
 extern int AsterDestrip_main(int argc, char **argv);
 extern int SATtoBundle_main(int argc,char ** argv);
-extern int SATtoOpticalCenter_main(int argc,char ** argv);
+extern int SATvalid_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
@@ -681,7 +681,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("RefineJitter", RefineJitter_main, "/!\\ V0.01 Highly experimental /!\\ Refine a grid with Affine + jitter model based on SIFT obs"));
     aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
     aRes.push_back(cMMCom("SATtoBundle", SATtoBundle_main, "Export a satellite image to a grid of bundles"));
-    aRes.push_back(cMMCom("SATtoOptCenter", SATtoOpticalCenter_main, "Retrieve the pushbroom sensors' line of optical center"));
+    aRes.push_back(cMMCom("SATValid", SATvalid_main, "Validate the prj function by either retrieving the line of optical centers or the provided GCPs"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
 

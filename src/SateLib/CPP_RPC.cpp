@@ -1454,7 +1454,41 @@ void RPC::ReadXML(std::string const &filename)
 	 >> inverse_samp_den_coef.at(18) >> inverse_samp_den_coef.at(19);
     
     }
-       
+     
+    cElXMLTree* nodesFilOne; 
+    
+    nodes = tree.GetUnique(std::string("BAND_P"));
+    nodesFilOne = nodes->GetUnique("ULLON");
+    first_lon = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+
+    nodesFilOne = nodes->GetUnique("URLON");
+    last_lon = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    
+    nodesFilOne = nodes->GetUnique("ULLAT");
+    last_lat = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+
+    nodesFilOne = nodes->GetUnique("LLLAT");
+    first_lat = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+
+/*    std::vector<double> aHMM;
+
+    nodesFilOne = nodes->GetUnique("ULHAE");
+    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
+
+    nodesFilOne = nodes->GetUnique("URHAE");
+    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
+
+    nodesFilOne = nodes->GetUnique("LRHAE");
+    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
+
+    nodesFilOne = nodes->GetUnique("LLHAE");
+    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
+
+    first_height = (*std::min_element(aHMM.begin(), aHMM.end()));
+    last_height  = (*std::max_element(aHMM.begin(), aHMM.end())); */
+    first_height = -1*height_scale + height_off;
+    last_height = 1*height_scale + height_off;
+
     IS_INV_INI = true; 
 }
 
@@ -1474,7 +1508,7 @@ void RPC::ReadASCII(std::string const &filename)
     std::getline(ASCIIfi, line);
     iss.str(line);
     iss >> a >> line_off >> b;}
-    
+
     //Samp Offset
     {std::istringstream iss;
     std::getline(ASCIIfi, line);
@@ -1529,6 +1563,9 @@ void RPC::ReadASCII(std::string const &filename)
     iss.str(line);
     iss >> a >> height_scale >> b;}
 
+    first_height = -1*height_scale + height_off;
+    last_height = 1*height_scale + height_off;
+
     //Inverse_line_num_coef
     for(aC=0; aC<20; aC++)
     {
@@ -1582,6 +1619,7 @@ int RPC::ReadASCIIMetaData(std::string const &metafilename, std::string const &f
 
     std::string line=" ";
     std::string a, b, c, d;
+    std::vector<double> avLat, avLon;
 
     std::string aToMatchOne = "Product";
     std::string aToMatchTwo = "Metadata";
@@ -1589,7 +1627,7 @@ int RPC::ReadASCIIMetaData(std::string const &metafilename, std::string const &f
     std::string aToMatchFour = "File";
     std::string aToMatchFive = "Name:";
     std::string aToMatchSix = "Columns:";
-
+    std::string aToMatchSev = "Coordinate:";
 
 
     while(MetaFi.good())
@@ -1628,7 +1666,10 @@ int RPC::ReadASCIIMetaData(std::string const &metafilename, std::string const &f
 
 						while(MetaFi.good())
 						{
-			    			//find the Columns and Rows
+
+			    			//find
+						// the Columns and Rows
+						// the coords of the corners
 			    			std::getline(MetaFi, line);
 				    		std::istringstream iss4;
 			    			iss4.str(line);
@@ -1656,6 +1697,89 @@ int RPC::ReadASCIIMetaData(std::string const &metafilename, std::string const &f
 
 								return EXIT_SUCCESS;
 			    			}
+						else if(a==aToMatchSev)
+						{
+						    //corner1
+						    std::getline(MetaFi, line);
+						    {std::istringstream issl0;
+						    issl0.str(line);
+						    issl0 >> a >> b >> c;}
+                                                    std::cout << b << std::endl;
+							
+						    avLat.push_back(std::atof(b.c_str()));
+						    
+						    std::getline(MetaFi, line);
+						    {std::istringstream issl0;
+						    issl0.str(line);
+						    issl0 >> a >> b >> c;}
+                                                    std::cout << b << std::endl;
+                                                   
+						    avLon.push_back(std::atof(b.c_str()));
+						    
+						    //corner2 
+						    std::getline(MetaFi, line); 
+						    std::getline(MetaFi, line);
+						    {std::istringstream issl0;
+						    issl0.str(line);
+						    issl0 >> a >> b >> c;}
+                                                    std::cout << b << std::endl;
+
+						    avLat.push_back(std::atof(b.c_str()));
+
+						    std::getline(MetaFi, line);
+						    {std::istringstream issl0;
+						    issl0.str(line);
+						    issl0 >> a >> b >> c;}
+                                                    std::cout << b << std::endl;
+
+						    avLon.push_back(std::atof(b.c_str()));
+
+						    //corner3
+						    std::getline(MetaFi, line);
+						    std::getline(MetaFi, line);
+					            {std::istringstream issl0;
+					            issl0.str(line);
+					            issl0 >> a >> b >> c;}
+                                                    std::cout << b << std::endl;
+
+					            avLat.push_back(std::atof(b.c_str()));
+
+						    std::getline(MetaFi, line);
+					            {std::istringstream issl0;
+					            issl0.str(line);
+					            issl0 >> a >> b >> c;}
+                                                    std::cout << b << std::endl;
+
+					            avLon.push_back(std::atof(b.c_str()));	    
+                                              
+						    //corner4
+						    std::getline(MetaFi, line);
+						    std::getline(MetaFi, line);
+						    {std::istringstream issl0;
+					            issl0.str(line);
+                                                    issl0 >> a >> b >> c;}
+						    std::cout << b << std::endl;
+
+						    avLat.push_back(std::atof(b.c_str()));
+
+						    std::getline(MetaFi, line);
+						    {std::istringstream issl0;
+					            issl0.str(line);
+						    issl0 >> a >> b >> c;}
+						    std::cout << b << std::endl;
+
+						    avLon.push_back(std::atof(b.c_str()));
+
+
+						    first_lon = *std::min_element(avLon.begin(),avLon.end());
+						    last_lon  = *std::max_element(avLon.begin(),avLon.end());
+
+						    first_lat = *std::min_element(avLat.begin(),avLat.end()); 
+						    last_lat  = *std::max_element(avLat.begin(),avLat.end());
+
+
+						    
+						}
 						}
 		    		}
 		    		else
