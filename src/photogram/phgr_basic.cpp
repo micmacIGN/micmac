@@ -1487,8 +1487,8 @@ cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName);
 
 cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName)
 {
-    static cElRegex  ThePattMMCS(".*/Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
-    static cElRegex  ThePattGBMM(".*/Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
+    static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
+    static cElRegex  ThePattGBMM(".*Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
    
     if (ThePattMMCS.Match(aName))
     {
@@ -1506,6 +1506,8 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName)
         return cPolynomial_BGC3M2DNewFromFile(aName);
     }
 
+    std::cout << "For orientation file=" << aName << "\n";
+    ELISE_ASSERT(false,"cBasicGeomCap3D::StdGetFromFile"); 
 
     return 0;
 }
