@@ -526,11 +526,11 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     );
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
-    mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UncorOrient@-"+mDest,NameWithoutDir(mNameIm),true);
 }
 
 void  cApppliConvertBundleGen::ExportStenope()
 {
+     mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UncorOrient@-"+mDest,NameWithoutDir(mNameIm),true);
      CamStenope *  aCS = BasicCamOrientGenFromFile(mNameOrient);
      cOrientationConique  anOC = aCS->StdExportCalibGlob() ;
 

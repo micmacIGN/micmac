@@ -1468,6 +1468,9 @@ class cBasicGeomCap3D
       virtual void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);
 
       static cBasicGeomCap3D * StdGetFromFile(const std::string &);
+
+      // Down cast , dirty but usefull ;-)
+      virtual CamStenope * DownCastCS() ;
 };
 
 
@@ -1985,6 +1988,7 @@ Pt3dr IntersectionRayonPerspectif
 class CamStenope : public ElCamera
 {
       public :
+         CamStenope * DownCastCS() ;
 
          double GetRoughProfondeur() const; // Tente Prof puis Alti
          const tParamAFocal   & ParamAF() const;
