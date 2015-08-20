@@ -483,7 +483,7 @@
             <Arrite>  1 1 </Arrite>
             <Direct>
                 <PatternTransform> (.*) </PatternTransform>
-                <CalcName>  Ori#1/UnCor-Orientation-$1.xml  </CalcName>
+                <CalcName>  Ori#1/UnCorMM-Orientation-$1.xml  </CalcName>
              </Direct>
              <Inverse>
                   <PatternTransform> Ori#1/UnCorMM-Orientation-(.*).xml  </PatternTransform>
@@ -492,9 +492,30 @@
         </Calcs>
 
 
-        <Key>   NKS-Assoc-Im2UncoMMrOrient </Key>
+        <Key>   NKS-Assoc-Im2UnCorMMOrient </Key>
 	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
     </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+    <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/UnCorExtern-Orientation-$1.xml  </CalcName>
+             </Direct>
+             <Inverse>
+                  <PatternTransform> Ori#1/UnCorExtern-Orientation-(.*).xml  </PatternTransform>
+                   <CalcName>  $1  </CalcName>
+             </Inverse>
+        </Calcs>
+
+
+        <Key>   NKS-Assoc-Im2UnCorExternOrient </Key>
+	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
 
 
 
