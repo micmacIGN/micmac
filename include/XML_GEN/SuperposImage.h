@@ -6567,5 +6567,77 @@ std::string  Mangling( cXml_ScanLineSensor *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_PolynXY
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_PolynXY & anObj,cElXMLTree * aTree);
+
+
+        std::vector< cMonomXY > & Monomes();
+        const std::vector< cMonomXY > & Monomes()const ;
+    private:
+        std::vector< cMonomXY > mMonomes;
+};
+cElXMLTree * ToXMLTree(const cXml_PolynXY &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_PolynXY &);
+
+void  BinaryUnDumpFromFile(cXml_PolynXY &,ELISE_fp &);
+
+std::string  Mangling( cXml_PolynXY *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_CamGenPolBundle
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_CamGenPolBundle & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameCamSsCor();
+        const std::string & NameCamSsCor()const ;
+
+        std::string & NameIma();
+        const std::string & NameIma()const ;
+
+        int & DegreTot();
+        const int & DegreTot()const ;
+
+        Pt2dr & Center();
+        const Pt2dr & Center()const ;
+
+        double & Ampl();
+        const double & Ampl()const ;
+
+        cXml_PolynXY & CorX();
+        const cXml_PolynXY & CorX()const ;
+
+        cXml_PolynXY & CorY();
+        const cXml_PolynXY & CorY()const ;
+    private:
+        std::string mNameCamSsCor;
+        std::string mNameIma;
+        int mDegreTot;
+        Pt2dr mCenter;
+        double mAmpl;
+        cXml_PolynXY mCorX;
+        cXml_PolynXY mCorY;
+};
+cElXMLTree * ToXMLTree(const cXml_CamGenPolBundle &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_CamGenPolBundle &);
+
+void  BinaryUnDumpFromFile(cXml_CamGenPolBundle &,ELISE_fp &);
+
+std::string  Mangling( cXml_CamGenPolBundle *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

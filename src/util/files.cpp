@@ -2069,6 +2069,27 @@ Tpl_ElFp_DumpUndump(std::vector<std::string>)
 /*   Qq ad hoc                                          */
 /********************************************************/
 
+void BinaryDumpInFile(ELISE_fp & aFp,const cMonomXY & aVal)
+{
+     BinaryDumpInFile(aFp,aVal.mCoeff);
+     BinaryDumpInFile(aFp,aVal.mDegX);
+     BinaryDumpInFile(aFp,aVal.mDegY);
+}
+
+void BinaryUnDumpFromFile(cMonomXY & aVal,ELISE_fp & aFp)
+{
+    double aCoeff;
+    int aDX,aDY;
+    BinaryUnDumpFromFile(aCoeff,aFp);
+    BinaryUnDumpFromFile(aDX,aFp);
+    BinaryUnDumpFromFile(aDY,aFp);
+    aVal = cMonomXY(aCoeff,aDX,aDY);
+}
+STD_MANGL(cMonomXY)
+
+
+
+
 void BinaryDumpInFile(ELISE_fp & aFp,const cCpleString & aVal)
 {
      BinaryDumpInFile(aFp,aVal.N1());
