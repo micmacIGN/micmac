@@ -1468,6 +1468,28 @@ void cBasicGeomCap3D::Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPI
     aDz = (Ter2Capteur(Pt3dr(aTer.x,aTer.y,aTer.z+aStep)) - aPIm) / aStep;
 }
 
+/*
+    Orientation-_MG_0131.CR2.xml              => Camera Stenope Standard
+    UnCor-Orientation-_MG_0065.CR2.xml        => Copie de Camera Stenope Standard
+    UnCorExtern-RPC.*txt                      => Copie de RPC
+
+    GB-Orientation-_MG_0065.CR2.xml           =>  Generique Bundle
+
+
+     ???  => Initial RPC
+*/
+
+/*
+cBasicGeomCap3D * StdGetFromFile(const std::string & aName)
+{
+    
+    if (IsPostfixed(aName) &&  (StdPostfix(aName)  == "xml"))
+    {
+        
+    }
+}
+*/
+
 
 /*************************************************/
 /*                                               */
@@ -2858,6 +2880,16 @@ cOrientationConique  ElCamera::StdExportCalibGlob() const
 {
    return StdExportCalibGlob(true);
 }
+
+std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm)
+{
+   cOrientationConique  anOC = StdExportCalibGlob() ;
+   std::string aName = anICNM->NameOriStenope(aDirOri,aNameIm);
+   MakeFileXML(anOC,aName);
+   return aName;
+}
+
+
 cOrientationConique  ElCamera::StdExportCalibGlob(bool ModeMatr) const
 {
    // std::cout << "PROFONDEUR " << mProfondeur << "\n";

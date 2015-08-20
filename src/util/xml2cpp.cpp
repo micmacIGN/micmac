@@ -1420,6 +1420,33 @@ void xml_init(cCpleString & aCple,cElXMLTree * aTree)
    aCple = cCpleString(aR1,aR2);
 }
 
+cMonomXY::cMonomXY() 
+{
+   *this = cMonomXY(0,0,0);
+}
+
+cMonomXY::cMonomXY(double aCoeff,int aDX,int aDY) :
+    mCoeff (aCoeff),
+    mDegX  (aDX),
+    mDegY  (aDY)
+{
+}
+
+void xml_init(cMonomXY & aPol,cElXMLTree * aTree)
+{
+   int aDX,aDY;
+   double aCoeff;
+
+   int aNb = sscanf(aTree->Contenu().c_str(),"%lf %d %d",&aCoeff,&aDX,&aDY);
+
+   if (aNb!=3)
+   {
+       std::cout << "CONTENU = " << aTree->Contenu().c_str() << "\n";
+       ELISE_ASSERT(false,"Bad Nb Value in xml_init (cMonomXY)");
+   }
+   aPol = cMonomXY(aCoeff,aDX,aDY);
+}
+
 
 void  xml_init(std::vector<double> & aV,cElXMLTree * aTree)
 {
@@ -1589,6 +1616,14 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const cCpleString & aCpl)
      anOS << aCpl.N1() << " " << aCpl.N2() ;
    return  cElXMLTree::ValueNode(aNameTag,anOS.str());
 }
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const cMonomXY & aMon)
+{
+    std::ostringstream anOS;
+    anOS << aMon.mCoeff <<  " " << aMon.mDegX << " " << aMon.mDegY ;
+   return  cElXMLTree::ValueNode(aNameTag,anOS.str());
+}
+
 
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const Pt3dr & aP)

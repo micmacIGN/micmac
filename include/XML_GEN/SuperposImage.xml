@@ -1438,6 +1438,20 @@
 </Xml_ScanLineSensor>
 
 
+<Xml_PolynXY  Nb="1" Class="true" ToReference="true">
+      <Monomes Nb="*" Type="cMonomXY"  Container="std::vector"> </Monomes>
+</Xml_PolynXY>
+
+<Xml_CamGenPolBundle Nb="1" Class="true" ToReference="true">
+    <NameCamSsCor  Type="std::string" Nb="1" > </NameCamSsCor>
+    <NameIma  Type="std::string" Nb="1" > </NameIma>
+    <DegreTot Type="int" Nb="1"> </DegreTot>
+    <Center Nb="1" Type="Pt2dr"> </Center>
+    <Ampl Nb="1" Type="double"> </Ampl>
+    <CorX Nb="1" RefType="Xml_PolynXY"> </CorX>
+    <CorY Nb="1" RefType="Xml_PolynXY"> </CorY>
+</Xml_CamGenPolBundle>
+
 
 
 
