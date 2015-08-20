@@ -526,8 +526,25 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     );
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
+
+    mCamGen = cBasicGeomCap3D::StdGetFromFile(mNameOrient);
+    CamStenope * aCS = mCamGen->DownCastCS();
+    if (aCS)
+    {
+         mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+mDest,NameWithoutDir(mNameIm),true);
+         MakeFileXML(aCS->StdExportCalibGlob(),mNameOutInit);
+    }
+    else
+    {
+         mNameOutInit =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorExternOrient@-"+mDest,NameWithoutDir(mNameOrient),true);
+         ELISE_fp::CpFile(mNameOrient,mNameOutInit);
+    }
+
+     cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol);
+     aPol.Save(mDest);
 }
 
+/*
 void  cApppliConvertBundleGen::ExportStenope()
 {
      mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UncorOrient@-"+mDest,NameWithoutDir(mNameIm),true);
@@ -559,17 +576,14 @@ void cApppliConvertBundleGen::Export()
 {
      PrepExport();
 
-     cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol);
-
-     aPol.Save(mDest);
      // aPol.Save("T2");
 }
+*/
 
 
 int CPP_ConvertBundleGen(int argc,char ** argv)  
 {
     cApppliConvertBundleGen anAppli(argc,argv);
-    anAppli.Export();
     return EXIT_SUCCESS;
 }
 
