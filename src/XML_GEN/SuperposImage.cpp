@@ -184,6 +184,57 @@ void  BinaryUnDumpFromFile(eQualCloud & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eQualCloud *) {return "BEDA324F1CB997F9FD3F";};
 
+eTypeImporGenBundle  Str2eTypeImporGenBundle(const std::string & aName)
+{
+   if (aName=="eTIGB_Unknown")
+      return eTIGB_Unknown;
+   else if (aName=="eTIGB_MMSten")
+      return eTIGB_MMSten;
+   else if (aName=="eTIGB_NbVals")
+      return eTIGB_NbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeImporGenBundle\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeImporGenBundle) 0;
+}
+void xml_init(eTypeImporGenBundle & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeImporGenBundle(aTree->Contenu());
+}
+std::string  eToString(const eTypeImporGenBundle & anObj)
+{
+   if (anObj==eTIGB_Unknown)
+      return  "eTIGB_Unknown";
+   if (anObj==eTIGB_MMSten)
+      return  "eTIGB_MMSten";
+   if (anObj==eTIGB_NbVals)
+      return  "eTIGB_NbVals";
+ std::cout << "Enum = eTypeImporGenBundle\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeImporGenBundle & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeImporGenBundle & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeImporGenBundle & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeImporGenBundle) aIVal;
+}
+
+std::string  Mangling( eTypeImporGenBundle *) {return "C3915306403B719FFEBF";};
+
 
 int & cIntervLutConvertion::NivIn()
 {

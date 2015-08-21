@@ -50,6 +50,12 @@
          <eQC_NonAff >         </eQC_NonAff>
     </enum>
 
+    <enum Name="eTypeImporGenBundle">
+        <eTIGB_Unknown>  </eTIGB_Unknown>
+        <eTIGB_MMSten>   </eTIGB_MMSten>
+        <eTIGB_NbVals>   </eTIGB_NbVals>
+    </enum>
+
 
     <LutConvertion  Nb="1"  Class="true" ToReference="true">
          <IntervLutConvertion Nb="+"  Container="std::vector">

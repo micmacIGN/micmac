@@ -1482,15 +1482,20 @@ CamStenope * cBasicGeomCap3D::DownCastCS() { return 0; }
 */
 
 // Fonction globale a remetre en cPolynomial_BGC3M2D::NewFromFile lorque (si ?)  la classe sera vue par tout le monde
-cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName);  
+cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName);
 
 
-cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName)
+cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int aIntType)
 {
+    ELISE_ASSERT((aIntType>=0) && (aIntType<eTIGB_NbVals),"cBasicGeomCap3D::StdGetFromFile, Not an  eTypeImporGenBundle");
+
+    eTypeImporGenBundle aType = (eTypeImporGenBundle) aIntType;
     static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
     static cElRegex  ThePattGBMM(".*Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
+
+
    
-    if (ThePattMMCS.Match(aName))
+    if ((aType==eTIGB_MMSten) || ((aType==eTIGB_Unknown) && ThePattMMCS.Match(aName)))
     {
         cElXMLTree aTreeBase (aName);
         // cElXMLTree *  aTreeOri = aTreeBase.GetOneOrZero("OrientationConique");

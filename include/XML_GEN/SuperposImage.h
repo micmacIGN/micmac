@@ -70,6 +70,25 @@ std::string  Mangling( eQualCloud *);
 
 void  BinaryUnDumpFromFile(eQualCloud &,ELISE_fp &);
 
+typedef enum
+{
+  eTIGB_Unknown,
+  eTIGB_MMSten,
+  eTIGB_NbVals
+} eTypeImporGenBundle;
+void xml_init(eTypeImporGenBundle & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeImporGenBundle & aVal);
+
+eTypeImporGenBundle  Str2eTypeImporGenBundle(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeImporGenBundle & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeImporGenBundle &);
+
+std::string  Mangling( eTypeImporGenBundle *);
+
+void  BinaryUnDumpFromFile(eTypeImporGenBundle &,ELISE_fp &);
+
 class cIntervLutConvertion
 {
     public:
