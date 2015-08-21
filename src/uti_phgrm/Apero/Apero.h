@@ -338,6 +338,17 @@ class cGenPoseCam
 };
 
 
+class cPosePolynGenCam : public  cGenPoseCam
+{
+     public  :
+         cPosePolynGenCam(cAppliApero *,const std::string &);
+     private :
+         cPosePolynGenCam(const cPosePolynGenCam &); // N.I. 
+
+         cPolynomial_BGC3M2D     mCam;
+         cPolynBGC3M2D_Formelle  mCamF;
+};
+
 class cPoseCam : public cGenPoseCam
 {
      public :
@@ -2387,6 +2398,9 @@ class cAppliApero : public NROptF1vND
 	tDiCal mDicoCalib;
         tDiArgCab mDicoArgCalib; // Pour gerer les calib/pose qui necessitent
                                                                      // une initialisation differeee
+        std::vector<cGenPoseCam*> mVecGenPose;
+
+        std::vector<cPosePolynGenCam*> mVecPolynPose;
         std::vector<cPoseCam*> mVecPose;
         std::vector<cPoseCam*> mTimeVP; // Triee selon le temps
 
