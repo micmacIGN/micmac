@@ -514,6 +514,8 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
      mCamGen (0)
 {
 
+   std::string aNameType = "TIGB_Unknown";
+
    //  cSubstitueBlocIncTmp::AddInc recouvrement / TMP
    ElInitArgMain
    (
@@ -523,11 +525,26 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
                     << EAMC(mDest,"Directory of oupput Orientation (MyDir -> Oi-MyDir)"),
         LArgMain()
                     << EAM(mDegPol,"Degre", true,"Degre of polynomial correction (Def=2)")
+                    << EAM(aNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+ 
     );
+
+
+    // eTypeImporGenBundle aType = Str2eTypeImporGenBundle(aNameType);
+    
+    bool mModeHelp;
+    eTypeImporGenBundle aType;
+
+    StdReadEnum(mModeHelp,aType,aNameType,eTIGB_NbVals);
+
+    // eTypeImporGenBundle aType = eTIGB_Unknown;
+
+
+
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
 
-    mCamGen = cBasicGeomCap3D::StdGetFromFile(mNameOrient);
+    mCamGen = cBasicGeomCap3D::StdGetFromFile(mNameOrient,aType);
     CamStenope * aCS = mCamGen->DownCastCS();
     if (aCS)
     {
