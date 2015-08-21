@@ -498,8 +498,7 @@ class cApppliConvertBundleGen
 
         void Export();
    private :
-        void ExportStenope();
-        void PrepExport();
+        double RandAngle() {return mPertubAng * NRrandC();}
 
         std::string mNameIm,mNameOrient,mDest;
         std::string mPostFix;
@@ -507,11 +506,16 @@ class cApppliConvertBundleGen
         int mDegPol;
         std::string mNameOutInit;
         cBasicGeomCap3D * mCamGen;
+        std::string       mNameType;
+        eTypeImporGenBundle mType;
+        double              mPertubAng;
 };
 
 cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
-     mDegPol (2),
-     mCamGen (0)
+     mDegPol     (2),
+     mCamGen     (0),
+     mNameType   ("TIGB_Unknown"),
+     mPertubAng  (0)
 {
 
    std::string aNameType = "TIGB_Unknown";
@@ -525,30 +529,39 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
                     << EAMC(mDest,"Directory of oupput Orientation (MyDir -> Oi-MyDir)"),
         LArgMain()
                     << EAM(mDegPol,"Degre", true,"Degre of polynomial correction (Def=2)")
-                    << EAM(aNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+                    << EAM(mNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+                    << EAM(mPertubAng,"PertubAng",true,"Type of sensor (see eTypeImporGenBundle)")
  
     );
 
 
-    // eTypeImporGenBundle aType = Str2eTypeImporGenBundle(aNameType);
     
     bool mModeHelp;
-    eTypeImporGenBundle aType;
 
-    StdReadEnum(mModeHelp,aType,aNameType,eTIGB_NbVals);
-
-    // eTypeImporGenBundle aType = eTIGB_Unknown;
-
+    StdReadEnum(mModeHelp,mType,mNameType,eTIGB_NbVals);
 
 
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
 
-    mCamGen = cBasicGeomCap3D::StdGetFromFile(mNameOrient,aType);
+    mCamGen = cBasicGeomCap3D::StdGetFromFile(mNameOrient,mType);
     CamStenope * aCS = mCamGen->DownCastCS();
     if (aCS)
     {
+        if (mPertubAng != 0)
+        {
+            aCS = aCS->Dupl();
+            ElRotation3D  aR =aCS->Orient().inv();
+            ElMatrix<double> aMPert  = ElMatrix<double>::Rotation(RandAngle(),RandAngle(),RandAngle());
+            aR = ElRotation3D(aR.tr(),aR.Mat()*aMPert,true);
+            aCS->SetOrientation(aR.inv());
+        }
+
+   // int i = 3 +  5* 4;
+
+
          mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+mDest,NameWithoutDir(mNameIm),true);
+         
          MakeFileXML(aCS->StdExportCalibGlob(),mNameOutInit);
     }
     else
@@ -556,46 +569,9 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
          mNameOutInit =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorExternOrient@-"+mDest,NameWithoutDir(mNameOrient),true);
          ELISE_fp::CpFile(mNameOrient,mNameOutInit);
     }
-
-     cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol);
-     aPol.Save(mDest);
+    cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol);
+    aPol.Save(mDest);
 }
-
-/*
-void  cApppliConvertBundleGen::ExportStenope()
-{
-     mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UncorOrient@-"+mDest,NameWithoutDir(mNameIm),true);
-     CamStenope *  aCS = BasicCamOrientGenFromFile(mNameOrient);
-     cOrientationConique  anOC = aCS->StdExportCalibGlob() ;
-
-     MakeFileXML(anOC,mNameOutInit);
-     mCamGen = aCS;
-
-     // aCS->StdExportCalibGlob()
-}
-
-void cApppliConvertBundleGen::PrepExport()
-{
-    if (mPostFix=="xml")
-    {
-        cElXMLTree aTreeBase (mNameOrient);
-        cElXMLTree *  aTreeOri = aTreeBase.GetOneOrZero("OrientationConique");
-        if (aTreeOri!=0)
-        {
-           ExportStenope();
-           return;
-        }
-    }
-    ELISE_ASSERT(false,"Unhandled case in cApppliConvertBundleGen::PrepExport");
-}
-
-void cApppliConvertBundleGen::Export()
-{
-     PrepExport();
-
-     // aPol.Save("T2");
-}
-*/
 
 
 int CPP_ConvertBundleGen(int argc,char ** argv)  
