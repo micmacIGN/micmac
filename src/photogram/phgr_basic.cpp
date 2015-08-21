@@ -1505,6 +1505,11 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
              return BasicCamOrientGenFromFile(aName);
         }
     }
+    else if (aType==eTIGB_MMDimap2 || aType==eTIGB_MMDGlobe)
+    {
+	
+	return CamRPCOrientGenFromFile(aName, aType);
+    }
 
     if (ThePattGBMM.Match(aName))
     {

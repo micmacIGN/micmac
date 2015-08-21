@@ -133,6 +133,7 @@ int SATtoOpticalCenter_main(cSatI_Appli &aApps)
        {
            CameraRPC aCamRPC(*itL,aApps.mModeOri,aApps.mGridSz,aApps.mMetadata);
            aCamRPC.OpticalCenterLineTer(aApps.mCSysOut, true);
+
        }
        //other planets
        else
@@ -237,6 +238,10 @@ void SATbackrpjGCP_main(cSatI_Appli &aApps)
 		        {
 		            if(aImPtIt->NamePt() == aGrPtIt->NamePt())
 			    {
+
+                                //tescik
+                                std::cout << "isVisible " << aCamRPC.PIsVisibleInImage(aGrPtIt->Pt()) << "\n";
+                                std::cout << "resol " << aCamRPC.ResolSolOfPt(aGrPtIt->Pt()) << "\n";
 		                //backproject
 		                cOneMesureAF1I aPtCurCmp;
 				aPtCurCmp.NamePt() = aGrPtIt->NamePt() + "_bprj";

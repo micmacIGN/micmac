@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1476]) = {
+const char * (theNameVar_SuperposImage[1480]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -55,6 +55,10 @@ const char * (theNameVar_SuperposImage[1476]) = {
 "    <enum Name=\"eTypeImporGenBundle\">\n",
 "        <eTIGB_Unknown>  </eTIGB_Unknown>\n",
 "        <eTIGB_MMSten>   </eTIGB_MMSten>\n",
+"        <eTIGB_MMDimap2> </eTIGB_MMDimap2>\n",
+"        <eTIGB_MMDimap1> </eTIGB_MMDimap1>\n",
+"        <eTIGB_MMDGlobe> </eTIGB_MMDGlobe>\n",
+"        <eTIGB_MMIkonos> </eTIGB_MMIkonos>\n",
 "        <eTIGB_NbVals>   </eTIGB_NbVals>\n",
 "    </enum>\n",
 "\n",

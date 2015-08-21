@@ -49,7 +49,8 @@ class CameraRPC: public cBasicGeomCap3D
 {
 	public:
 		//CameraRPC();
-		CameraRPC(std::string const &aNameFile, const std::string &aModeRPC, const Pt2di &aGridSz, std::string const &aMetaFile=0);
+		CameraRPC(const std::string &aNameFile, const std::string &aModeRPC, const Pt2di &aGridSz, const std::string &aMetaFile=0);
+		CameraRPC(const std::string &aNameFile, const eTypeImporGenBundle aType);
 		~CameraRPC();
 
 		Pt2dr Ter2Capteur   (const Pt3dr & aP) const;
@@ -101,6 +102,8 @@ class CameraRPC: public cBasicGeomCap3D
                 void AssertRPCDirInit() const;
 		void AssertRPCInvInit() const;
 };
+
+CameraRPC * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType);
 
 //dimap v1 - Simplified_Location_Model
 class CameraAffine : public cBasicGeomCap3D

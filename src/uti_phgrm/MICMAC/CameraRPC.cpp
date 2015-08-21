@@ -45,7 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /* Image coordinates order: [Line, Sample] = [row, col] =  [x, y]*/
 
-CameraRPC::CameraRPC(std::string const &aNameFile, const  std::string &aModeRPC, const Pt2di &aGridSz, std::string const &aMetaFile) :
+CameraRPC::CameraRPC(const std::string &aNameFile, const  std::string &aModeRPC, const Pt2di &aGridSz, const std::string &aMetaFile) :
        mProfondeurIsDef(false),	
        mAltisSolIsDef(false),
        mOptCentersIsDef(false),
@@ -84,6 +84,45 @@ CameraRPC::CameraRPC(std::string const &aNameFile, const  std::string &aModeRPC,
 
 
 }
+
+CameraRPC::CameraRPC(const std::string &aNameFile, 
+		     const eTypeImporGenBundle aType) : 
+	mProfondeurIsDef(false),
+	mAltisSolIsDef(false),
+	mOptCentersIsDef(false),
+	mGridSzIsDef(false),
+	mOpticalCenters(0),
+	mGridSz(Pt2di(0,0)),
+	mCamNom(aNameFile.substr(0,aNameFile.size()-4))
+{
+    mRPC = new RPC();
+
+    if(aType==eTIGB_MMDimap2)
+    {
+        mRPC->ReadDimap(aNameFile);
+        mRPC->ReconstructValidity();	
+    }
+    else if(aType==eTIGB_MMDGlobe)
+    {
+        mRPC->ReadXML(aNameFile);
+	mRPC->InverseToDirectRPC(Pt2di(50,50));
+    }
+    /*else if(aType==eTIGB_MMIkonos)
+    {
+        mRPC->ReadASCII(aNameFile);
+	mRPC->ReadASCIIMetaData(aMetaFile, aNameFile);
+	mRPC->InverseToDirectRPC(Pt2di(50,50));
+    }*/
+    else {ELISE_ASSERT(false,"Unknown RPC mode.");}
+}
+
+CameraRPC * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType)
+{
+    CameraRPC * aRes = new CameraRPC(aName, aType);
+    
+    return aRes;
+}
+
 CameraRPC::~CameraRPC()
 {
 	delete mRPC;
@@ -100,7 +139,13 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
 
 bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP) const
 {
-    //Project 3D-2D with RPC and see if within ImSz
+    // (1) Check if aP is within the RPC validity zone
+    if( (aP.x < mRPC->first_lon) || (aP.x > mRPC->last_lon) || 
+        (aP.y < mRPC->first_lat) || (aP.y > mRPC->last_lat) || 
+	(aP.z < mRPC->first_height) || (aP.z > mRPC->last_height) )
+        return false;
+
+    // (2) Project 3D-2D with RPC and see if within ImSz
     Pt2di aSz = SzBasicCapt3D(); 
 
     Pt2dr aPtProj = Ter2Capteur(aP);
@@ -216,14 +261,19 @@ bool CameraRPC::AltisSolIsDef() const
 
 double CameraRPC::ResolSolOfPt(const Pt3dr & aP) const
 {
-    //to do
-    return 1.0;//aSeg.DistDoite(aP);
+    Pt2dr aPIm = Ter2Capteur(aP);
+    ElSeg3D aSeg = Capteur2RayTer(aPIm+Pt2dr(1,0));
+    
+    return aSeg.DistDoite(aP);
 }
 
 bool  CameraRPC::CaptHasData(const Pt2dr & aP) const
 {
-    //to do
-    return true;//IndexHasContenuForInterpol(aP);
+    if( (aP.x >= mRPC->first_row) && (aP.x <= mRPC->last_row) &&
+        (aP.y >= mRPC->first_col) && (aP.y <= mRPC->last_col))
+        return true;
+    else
+	return false;
 }
 
 void CameraRPC::AssertRPCDirInit() const

@@ -190,6 +190,14 @@ eTypeImporGenBundle  Str2eTypeImporGenBundle(const std::string & aName)
       return eTIGB_Unknown;
    else if (aName=="eTIGB_MMSten")
       return eTIGB_MMSten;
+   else if (aName=="eTIGB_MMDimap2")
+      return eTIGB_MMDimap2;
+   else if (aName=="eTIGB_MMDimap1")
+      return eTIGB_MMDimap1;
+   else if (aName=="eTIGB_MMDGlobe")
+      return eTIGB_MMDGlobe;
+   else if (aName=="eTIGB_MMIkonos")
+      return eTIGB_MMIkonos;
    else if (aName=="eTIGB_NbVals")
       return eTIGB_NbVals;
   else
@@ -209,6 +217,14 @@ std::string  eToString(const eTypeImporGenBundle & anObj)
       return  "eTIGB_Unknown";
    if (anObj==eTIGB_MMSten)
       return  "eTIGB_MMSten";
+   if (anObj==eTIGB_MMDimap2)
+      return  "eTIGB_MMDimap2";
+   if (anObj==eTIGB_MMDimap1)
+      return  "eTIGB_MMDimap1";
+   if (anObj==eTIGB_MMDGlobe)
+      return  "eTIGB_MMDGlobe";
+   if (anObj==eTIGB_MMIkonos)
+      return  "eTIGB_MMIkonos";
    if (anObj==eTIGB_NbVals)
       return  "eTIGB_NbVals";
  std::cout << "Enum = eTypeImporGenBundle\n";
@@ -233,7 +249,7 @@ void  BinaryUnDumpFromFile(eTypeImporGenBundle & anObj,ELISE_fp & aFp)
    anObj=(eTypeImporGenBundle) aIVal;
 }
 
-std::string  Mangling( eTypeImporGenBundle *) {return "C3915306403B719FFEBF";};
+std::string  Mangling( eTypeImporGenBundle *) {return "5C187B5FD3C96F9FFDBF";};
 
 
 int & cIntervLutConvertion::NivIn()

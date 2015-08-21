@@ -74,6 +74,10 @@ typedef enum
 {
   eTIGB_Unknown,
   eTIGB_MMSten,
+  eTIGB_MMDimap2,
+  eTIGB_MMDimap1,
+  eTIGB_MMDGlobe,
+  eTIGB_MMIkonos,
   eTIGB_NbVals
 } eTypeImporGenBundle;
 void xml_init(eTypeImporGenBundle & aVal,cElXMLTree * aTree);

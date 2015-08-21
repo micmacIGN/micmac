@@ -287,6 +287,7 @@ Im2DGen AllocImGen(Pt2di aSz,const std::string & aName);
 #include "../src/uti_phgrm/SaisiePts/SaisiePts.h"
 
 #include "../src/uti_phgrm/MICMAC/cOrientationGrille.h"
+#include "../src/uti_phgrm/MICMAC/CameraRPC.h"
 
 #include "private/externalToolHandler.h"
 
