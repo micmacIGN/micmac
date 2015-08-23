@@ -478,7 +478,7 @@
     </KeyedNamesAssociations>
 
     <KeyedNamesAssociations>
-    <IsParametrized>  true </IsParametrized>
+        <IsParametrized>  true </IsParametrized>
         <Calcs>
             <Arrite>  1 1 </Arrite>
             <Direct>
@@ -495,6 +495,32 @@
         <Key>   NKS-Assoc-Im2UnCorMMOrient </Key>
 	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
     </KeyedNamesAssociations>
+
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  1 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori#1/GB-Orientation-$1.xml  </CalcName>
+             </Direct>
+             <Inverse>
+                  <PatternTransform> Ori#1/GB-Orientation-(.*).xml  </PatternTransform>
+                   <CalcName>  $1  </CalcName>
+             </Inverse>
+        </Calcs>
+
+
+        <Key>   NKS-Assoc-Im2GBOrient </Key>
+	<SubDirAutoMake> Ori#1 </SubDirAutoMake>
+    </KeyedNamesAssociations>
+
+
+
+
+
+
 
     <KeyedNamesAssociations>
     <IsParametrized>  true </IsParametrized>

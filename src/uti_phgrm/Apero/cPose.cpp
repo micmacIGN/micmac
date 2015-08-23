@@ -97,6 +97,9 @@ void cPoseCam::SetOrInt(const cTplValGesInit<cSetOrientationInterne> & aTplSI)
    mOrIntC2M = mOrIntM2C.inv();
 }
 
+cPoseCam * cPoseCam::DownCastPoseCamSVP() {return this;}
+const cPoseCam * cPoseCam::DownCastPoseCamSVP() const {return this;}
+
 
 cPoseCam::cPoseCam
 (
@@ -107,9 +110,10 @@ cPoseCam::cPoseCam
      cPoseCam *             aPRat,
      cCompileAOI  *         aCompAOI
 )   :
-    mAppli   (anAppli),
+    cGenPoseCam (anAppli,aNamePose),
+    // mAppli   (anAppli),
     mNameCalib (aNameCalib),
-    mName    (aNamePose),
+    // mName    (aNamePose),
     mCpt     (-1),
     mProf2Init (TheDefProf2Init),
     mPdsTmpMST (0.0),
@@ -1727,7 +1731,6 @@ void cPoseCam::CloseAndLoadIm(const Pt2di & aRab)
 
 cCalibCam * cPoseCam::Calib() { return mCalib;}
 cCameraFormelle * cPoseCam::CamF() {return mCF;}
-const  std::string & cPoseCam::Name() const {return mName;}
 double cPoseCam::AltiSol() const {return mAltiSol;}
 double cPoseCam::Profondeur() const {return mProfondeur;}
 
@@ -1997,7 +2000,7 @@ cClassEquivPose::cClassEquivPose(const std::string & anId) :
 {
 }
 
-void cClassEquivPose::AddAPose(cPoseCam * aPC)
+void cClassEquivPose::AddAPose(cGenPoseCam * aPC)
 {
     if (BoolFind(mGrp,aPC))
     {
@@ -2007,7 +2010,7 @@ void cClassEquivPose::AddAPose(cPoseCam * aPC)
     mGrp.push_back(aPC);
 }
 
-const std::vector<cPoseCam *> &   cClassEquivPose::Grp() const
+const std::vector<cGenPoseCam *> &   cClassEquivPose::Grp() const
 {
    return mGrp;
 }
@@ -2077,7 +2080,7 @@ void cRelEquivPose::Show()
    )
    {
           const cClassEquivPose& aCl = *(itM->second);
-          const std::vector<cPoseCam *> & aGrp = aCl.Grp() ;
+          const std::vector<cGenPoseCam *> & aGrp = aCl.Grp() ;
 
           if (aGrp.size() == 1)
              std::cout << aCl.Id() << " ::  " << aGrp[0]->Name()<< "\n";
@@ -2125,7 +2128,7 @@ void cAppliApero::AddObservationsRigidGrp(const cObsRigidGrpImage & anORGI,bool 
        itG++
    )
    {
-        const std::vector<cPoseCam *> & aGrp = itG->second->Grp();
+        const std::vector<cGenPoseCam *> & aGrp = itG->second->Grp();
         int aNb = aGrp.size();
         if (aNb>=2)
         {
@@ -2133,8 +2136,12 @@ void cAppliApero::AddObservationsRigidGrp(const cObsRigidGrpImage & anORGI,bool 
             {
                 for (int aK2=aK1+1 ; aK2<aNb ; aK2++)
                 {
-                    cRotationFormelle & aRF1 =  aGrp[aK1]->RF();
-                    cRotationFormelle & aRF2 =  aGrp[aK2]->RF();
+                    cPoseCam * aCP1 = aGrp[aK1]->DownCastPoseCamNN();
+                    cPoseCam * aCP2 = aGrp[aK2]->DownCastPoseCamNN();
+
+
+                    cRotationFormelle & aRF1 =  aCP1->RF();
+                    cRotationFormelle & aRF2 =  aCP2->RF();
                     if (anORGI.ORGI_CentreCommun().IsInit())
                     {
                        Pt3dr aPInc = anORGI.ORGI_CentreCommun().Val().Incertitude();
