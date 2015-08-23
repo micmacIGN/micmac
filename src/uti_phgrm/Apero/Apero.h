@@ -64,6 +64,7 @@ extern bool BugBestCam;
 
 class cCalibCam;
 class cAppliApero;
+class cGenPoseCam;
 class cPoseCam;
 class cObservLiaison_1Cple;
 class cPackObsLiaison;
@@ -122,14 +123,14 @@ class cClassEquivPose
 {
     public :
         cClassEquivPose(const std::string & anId);
-        void AddAPose(cPoseCam *);
-        const std::vector<cPoseCam *> &   Grp() const;
+        void AddAPose(cGenPoseCam *);
+        const std::vector<cGenPoseCam *> &   Grp() const;
         const std::string & Id() const;
     private :
         cClassEquivPose(const cClassEquivPose &); // N.I.
 
         std::string               mId;
-        std::vector<cPoseCam *>   mGrp;
+        std::vector<cGenPoseCam *>   mGrp;
 };
 
 class cRelEquivPose
@@ -335,23 +336,37 @@ class cPoseCdtImSec;
 class cGenPoseCam
 {
     public :
+	  const std::string & Name() const;
+          cPoseCam * DownCastPoseCamNN();
+          const cPoseCam * DownCastPoseCamNN() const;
+          virtual cPoseCam * DownCastPoseCamSVP();
+          virtual const cPoseCam * DownCastPoseCamSVP() const;
+    protected :
+        cGenPoseCam(cAppliApero & anAppli,const std::string & aName);
+   
+        cAppliApero & mAppli;
+	std::string   mName;
 };
 
 
 class cPosePolynGenCam : public  cGenPoseCam
 {
      public  :
-         cPosePolynGenCam(cAppliApero *,const std::string &);
+         cPosePolynGenCam(cAppliApero &,const std::string & aNameIma,const std::string & aDirOri);
      private :
          cPosePolynGenCam(const cPosePolynGenCam &); // N.I. 
 
-         cPolynomial_BGC3M2D     mCam;
+         std::string             mNameOri;
+         cPolynomial_BGC3M2D *   mCam;
          cPolynBGC3M2D_Formelle  mCamF;
 };
 
 class cPoseCam : public cGenPoseCam
 {
      public :
+
+         virtual cPoseCam * DownCastPoseCamSVP();
+         virtual const cPoseCam * DownCastPoseCamSVP() const;
 
        // Fonction relative a une camera eventuellement non ortho,
        // si active alors toute evolution est bloquee
@@ -418,7 +433,6 @@ class cPoseCam : public cGenPoseCam
           void SetDeFigee();
 	  cCameraFormelle * CamF();
 	  void ActiveContrainte(bool Stricte);
-	  const std::string & Name() const;
 	  double  AltiSol() const;
 	  double  Profondeur() const;
           double  GetProfDyn(int & Ok) const;
@@ -532,9 +546,9 @@ class cPoseCam : public cGenPoseCam
 
 	  static int                theCpt;
 
-          cAppliApero &             mAppli;
+          // cAppliApero &             mAppli;
 	  std::string               mNameCalib;
-	  std::string               mName;
+	  // std::string               mName;
 	  int                       mCpt;  // Compteur de date de creation
           // 0 si direct (appuis,BDD, ) sinon 1 + Prof de la pose de base
           int                       mProf2Init;
@@ -2174,6 +2188,9 @@ class cAppliApero : public NROptF1vND
 	void InitObsRelGPS ();
 	void InitPoses();
 	void InitSurf();
+        void InitGenPoses();
+        void InitGenPoses(const cCamGenInc&);
+
 
          void CompileObsersvations();
          void CompileLiaisons();

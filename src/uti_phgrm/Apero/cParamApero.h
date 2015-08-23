@@ -1731,6 +1731,31 @@ void  BinaryUnDumpFromFile(cBlockCamera &,ELISE_fp &);
 
 std::string  Mangling( cBlockCamera *);
 
+class cCamGenInc
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cCamGenInc & anObj,cElXMLTree * aTree);
+
+
+        std::string & PatterName();
+        const std::string & PatterName()const ;
+
+        std::string & Orient();
+        const std::string & Orient()const ;
+    private:
+        std::string mPatterName;
+        std::string mOrient;
+};
+cElXMLTree * ToXMLTree(const cCamGenInc &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cCamGenInc &);
+
+void  BinaryUnDumpFromFile(cCamGenInc &,ELISE_fp &);
+
+std::string  Mangling( cCamGenInc *);
+
 class cMEP_SPEC_MST
 {
     public:
@@ -2611,6 +2636,9 @@ class cSectionInconnues
         cTplValGesInit< cSetOrientationInterne > & GlobOrInterne();
         const cTplValGesInit< cSetOrientationInterne > & GlobOrInterne()const ;
 
+        std::list< cCamGenInc > & CamGenInc();
+        const std::list< cCamGenInc > & CamGenInc()const ;
+
         std::list< cPoseCameraInc > & PoseCameraInc();
         const std::list< cPoseCameraInc > & PoseCameraInc()const ;
 
@@ -2632,6 +2660,7 @@ class cSectionInconnues
         cTplValGesInit< int > mSeuilL1EstimMatrEss;
         std::list< cBlockCamera > mBlockCamera;
         cTplValGesInit< cSetOrientationInterne > mGlobOrInterne;
+        std::list< cCamGenInc > mCamGenInc;
         std::list< cPoseCameraInc > mPoseCameraInc;
         std::list< cGroupeDePose > mGroupeDePose;
         std::list< cSurfParamInc > mSurfParamInc;
@@ -6316,6 +6345,9 @@ class cParamApero
 
         cTplValGesInit< cSetOrientationInterne > & GlobOrInterne();
         const cTplValGesInit< cSetOrientationInterne > & GlobOrInterne()const ;
+
+        std::list< cCamGenInc > & CamGenInc();
+        const std::list< cCamGenInc > & CamGenInc()const ;
 
         std::list< cPoseCameraInc > & PoseCameraInc();
         const std::list< cPoseCameraInc > & PoseCameraInc()const ;
