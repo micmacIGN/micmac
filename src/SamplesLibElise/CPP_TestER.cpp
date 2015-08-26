@@ -43,6 +43,45 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int TestER_main(int argc,char ** argv)
 {
+    std::string aFullName;
+    std::string aDir;
+    std::string aNameOri;
+    std::list<std::string> aListFile;
+
+    std::string aNameType;
+    eTypeImporGenBundle aType;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aFullName,"Orientation file full name (Dir+OriPattern)"),
+	LArgMain() << EAM(aNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
+    );
+
+    std::cout << aFullName << std::endl;
+   
+    bool aModeHelp;
+    StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
+
+    CameraRPC aRPC(aFullName, aType);
+    aRPC.OpticalCenterPerLine();
+
+    Pt3dr aP1, aP2, aP3;
+    aP1 = aRPC.OpticalCenterOfPixel(Pt2dr(1,1));
+    aP2 = aRPC.OpticalCenterOfPixel(Pt2dr(10,10));
+    aP3 = aRPC.OpticalCenterOfPixel(Pt2dr(aRPC.SzBasicCapt3D().x-1,
+			             aRPC.SzBasicCapt3D().y-1));
+
+    std::cout <<  aP1.x << " " << aP1.y << " " << aP1.z << "\n";
+    std::cout <<  aP2.x << " " << aP2.y << " " << aP2.z << "\n";
+    std::cout <<  aP3.x << " " << aP3.y << " " << aP3.z << "\n";
+
+    return 1;
+}
+
+//test camera affine
+int TestER_main3(int argc,char ** argv)
+{
     //cInterfChantierNameManipulateur * aICNM;
     std::string aFullName;
     std::string aDir;
