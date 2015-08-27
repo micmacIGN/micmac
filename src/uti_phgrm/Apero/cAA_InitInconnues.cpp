@@ -90,8 +90,33 @@ void cAppliApero::InitCalibCam()
     
 void cAppliApero::InitPoses()
 {
-   CompileInitPoseGen(false);
+    CompileInitPoseGen(false);
+    InitGenPoses();
 }
+
+void cAppliApero::InitGenPoses()
+{
+    for (std::list<cCamGenInc>::const_iterator itCG=mParam.CamGenInc().begin() ; itCG!=mParam.CamGenInc().end() ; itCG++)
+    {
+          InitGenPoses(*itCG);
+    }
+}
+
+void  cAppliApero::InitGenPoses(const cCamGenInc& aCGI)
+{
+    std::list<std::string> aLName  = mICNM->StdGetListOfFile(aCGI.PatterName(),1);
+
+    for (std::list<std::string>::const_iterator itN=aLName.begin() ; itN!=aLName.end() ; itN++)
+    {
+         cPosePolynGenCam * aPPGC = new cPosePolynGenCam(*this,*itN,aCGI.Orient());
+         mVecPolynPose.push_back(aPPGC);
+         mVecGenPose.push_back(aPPGC);
+    }
+
+}
+
+
+
 
 void cAppliApero::PreCompilePose()
 {
@@ -419,6 +444,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
 	          cPoseCam * aPC = cPoseCam::Alloc(*this,*itP,*itS,aNameCal,aCAOI);
 	          mDicoPose[*itS] = aPC;
                   mVecPose.push_back(aPC);
+                  mVecGenPose.push_back(aPC);
                   tGrApero::TSom & aSom = mGr.new_som(aPC);
                   aPC->SetSom(aSom);
                   if (! isMST)

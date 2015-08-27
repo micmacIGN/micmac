@@ -19,6 +19,7 @@ set(uti_phgrm_Apero_Src_Files
     ${UTI_PHGRM_APERO_DIR}/cPose.cpp
     ${UTI_PHGRM_APERO_DIR}/cGenPoseCam.cpp
     ${UTI_PHGRM_APERO_DIR}/TestGenBunde.cpp
+    ${UTI_PHGRM_APERO_DIR}/cPosePolynGenCam.cpp
     ${UTI_PHGRM_APERO_DIR}/cImplemBlockCam.cpp
     ${UTI_PHGRM_APERO_DIR}/cSurfParam.cpp
     ${UTI_PHGRM_APERO_DIR}/ExportNuage.cpp
