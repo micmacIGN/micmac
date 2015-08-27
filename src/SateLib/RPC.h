@@ -291,7 +291,7 @@ public:
 
                 //Construction of RPCs
 				vector<vector<Pt3dr> > GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, vector<vector<Pt3dr> > aMatSatPos, int nbLayers, double aHMin, double aHMax);
-                vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
+                // Old version, not to be used ----- vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
                 vector<Pt3dr> GenerateRandNormGrid(const Pt2di &aGridSz);
                 void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
                 void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
