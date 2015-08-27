@@ -74,6 +74,8 @@ class CameraRPC: public cBasicGeomCap3D
 		Pt2di SzBasicCapt3D() const;
 
 		void ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
+                void TestDirectRPCGen();
+
                 /* Optical centers for a user-defined grid */
 		void  OpticalCenterLineGrid(bool aIfSave);
 		/* Optical centers per sensor line */

@@ -75,7 +75,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    else if(aType==eTIGB_MMDGlobe )
    {
        mRPC->ReadXML(aNameFile);
-       mRPC->InverseToDirectRPC(Pt2di(50,50));
+       mRPC->InverseToDirectRPC(Pt3di(50,50,10));
    }
    else if(aType==eTIGB_MMIkonos)
    {
@@ -115,7 +115,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     else if(aType==eTIGB_MMDGlobe)
     {
         mRPC->ReadXML(aNameFile);
-	mRPC->InverseToDirectRPC(Pt2di(50,50));
+	mRPC->InverseToDirectRPC(Pt3di(50,50,10));
     }
     /*else if(aType==eTIGB_MMIkonos)
     {
@@ -802,6 +802,11 @@ Pt3dr CameraRPC::OpticalCenterOfLine(const double & aL) const
 
 
     return aRes;
+}
+
+void CameraRPC::TestDirectRPCGen()
+{
+    mRPC->TestDirectRPCGen(mCS);
 }
 
 void  CameraRPC::testy(const Pt2dr & aP) const

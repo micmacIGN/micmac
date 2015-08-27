@@ -328,6 +328,7 @@ int CPP_TestRPCDirectGen(int argc,char ** argv)
 	if(aType!=eTIGB_Unknown && aType!=eTIGB_MMSten)
 	{
             CameraRPC aCRPC(*itL,aType);
+	    aCRPC.TestDirectRPCGen();
 	    
 	}
 	//other planets or stenope camera
