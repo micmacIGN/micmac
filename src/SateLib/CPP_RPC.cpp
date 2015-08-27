@@ -952,7 +952,7 @@ void RPC::ComputeNormFactors(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3
 	height_off = (aHMax + aHMin) / 2;
 }
 
-
+/*
 vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
 {
 	//Generating a gridSize*gridSize grid on the normalized space with random normalized heights
@@ -972,6 +972,7 @@ vector<Pt3dr> RPC::GenerateRandNormGrid(u_int gridSize)
 
 	return aGridNorm;
 }
+*/
 
 //this GenerateRandNormGrid allows to create rectangular grids
 vector<Pt3dr> RPC::GenerateRandNormGrid(const Pt2di &aGridSz)
