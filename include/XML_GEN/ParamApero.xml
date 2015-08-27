@@ -635,6 +635,12 @@
                <!-- A priori obsolete, remplacee par valeur dans calib -->
               <GlobOrInterne Nb="?" RefType="SetOrientationInterne"></GlobOrInterne>
 
+              <!-- Nouvelles cameras inconnues, generique, pour representer satellite -->
+              <CamGenInc  Nb="*">
+                    <PatterName Nb="1" Type="std::string">  </PatterName>
+                    <Orient Nb="1" Type="std::string">      </Orient>
+              </CamGenInc>
+
               <PoseCameraInc Nb="*"  ToReference="true">
                    
 

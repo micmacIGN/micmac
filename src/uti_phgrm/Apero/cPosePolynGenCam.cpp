@@ -37,103 +37,66 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
-#include "../uti_phgrm/MICMAC/CameraRPC.h"
+#include "Apero.h"
 
 
-int TestER_main(int argc,char ** argv)
+/***********************************************************************/
+/*                                                                     */
+/*                      cGenPoseCam                                    */
+/*                                                                     */
+/***********************************************************************/
+
+
+cGenPoseCam::cGenPoseCam(cAppliApero & anAppli,const std::string & aName) :
+    mAppli (anAppli),
+    mName  (aName)
 {
-    std::string aFullName;
-    std::string aDir;
-    std::string aNameOri;
-    std::list<std::string> aListFile;
-
-    std::string aNameType;
-    eTypeImporGenBundle aType;
-
-    ElInitArgMain
-    (
-        argc, argv,
-        LArgMain() << EAMC(aFullName,"Orientation file full name (Dir+OriPattern)"),
-	LArgMain() << EAM(aNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
-    );
-
-    std::cout << aFullName << std::endl;
-   
-    bool aModeHelp;
-    StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
-
-    CameraRPC aRPC(aFullName, aType);
-    aRPC.OpticalCenterPerLine();
-
-    Pt3dr aP1, aP2, aP3;
-    aP1 = aRPC.OpticalCenterOfPixel(Pt2dr(1,1));
-    aP2 = aRPC.OpticalCenterOfPixel(Pt2dr(10,10));
-    aP3 = aRPC.OpticalCenterOfPixel(Pt2dr(aRPC.SzBasicCapt3D().x-1,
-			             aRPC.SzBasicCapt3D().y-1));
-
-    std::cout <<  aP1.x << " " << aP1.y << " " << aP1.z << "\n";
-    std::cout <<  aP2.x << " " << aP2.y << " " << aP2.z << "\n";
-    std::cout <<  aP3.x << " " << aP3.y << " " << aP3.z << "\n";
-
-    return 1;
 }
 
-//test camera affine
-int TestER_main3(int argc,char ** argv)
+
+const  std::string & cGenPoseCam::Name() const {return mName;}
+
+cPoseCam * cGenPoseCam::DownCastPoseCamNN()
 {
-    //cInterfChantierNameManipulateur * aICNM;
-    std::string aFullName;
-    std::string aDir;
-    std::string aNameOri;
-    std::list<std::string> aListFile;
-
-    ElInitArgMain
-    (
-        argc, argv,
-        LArgMain() << EAMC(aFullName,"Orientation file full name (Dir+OriPattern)"),
-	LArgMain()
-    );
-
-    std::cout << aFullName << std::endl;
-
-    CameraAffine aCamAF(aFullName);
-    aCamAF.ShowInfo();
-
-    return EXIT_SUCCESS;
+    cPoseCam * aRes =  DownCastPoseCamSVP();
+    ELISE_ASSERT(aRes!=0,"cGenPoseCam::DownCastPoseCamNN");
+    return aRes;
 }
-//test export of a CamStenope into bundles of rays
-int TestER_main2(int argc,char ** argv)
+
+const cPoseCam * cGenPoseCam::DownCastPoseCamNN() const
 {
-    cInterfChantierNameManipulateur * aICNM;
-    std::string aFullName;
-    std::string aDir;
-    std::string aNameOri;
-    std::list<std::string> aListFile;
-
-    Pt2di aGridSz;
-
-    ElInitArgMain
-    (
-        argc, argv,
-        LArgMain() << EAMC(aFullName,"Orientation file full name (Dir+OriPattern)"),
-        LArgMain() << EAM(aGridSz,"GrSz",true)
-    );
-    
-    SplitDirAndFile(aDir, aNameOri, aFullName);
-
-    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    aListFile = aICNM->StdGetListOfFile(aNameOri);
-
-
-    for(std::list<std::string>::iterator itL = aListFile.begin(); itL != aListFile.end(); itL++ )
-    {
-        CamStenope * aCurCamSten = CamStenope::StdCamFromFile(true, aDir+(*itL), aICNM);
-        aCurCamSten->ExpImp2Bundle(aGridSz, *itL);
-    }
-
-    return EXIT_SUCCESS;
+    const cPoseCam * aRes =  DownCastPoseCamSVP();
+    ELISE_ASSERT(aRes!=0,"cGenPoseCam::DownCastPoseCamNN");
+    return aRes;
 }
+
+cPoseCam * cGenPoseCam::DownCastPoseCamSVP()
+{
+   return 0;
+}
+const cPoseCam * cGenPoseCam::DownCastPoseCamSVP() const
+{
+   return 0;
+}
+
+
+
+/***********************************************************************/
+/*                                                                     */
+/*                      cPosePolynGenCam                               */
+/*                                                                     */
+/***********************************************************************/
+
+cPosePolynGenCam::cPosePolynGenCam(cAppliApero & anAppli,const std::string & aNameIma,const std::string & aDirOri) :
+    cGenPoseCam (anAppli,aNameIma),
+    mNameOri    (mAppli.ICNM()->Assoc1To1( "NKS-Assoc-Im2GBOrient@"+aDirOri,mName,true)),
+    mCam        (cPolynomial_BGC3M2D::NewFromFile(mNameOri)),
+    mCamF       (mAppli.SetEq(),*mCam,false,false,false)
+
+{
+
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

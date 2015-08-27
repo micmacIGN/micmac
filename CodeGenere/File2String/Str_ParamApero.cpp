@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1626]) = {
+const char * (theNameVar_ParamApero[1632]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -636,6 +636,12 @@ const char * (theNameVar_ParamApero[1626]) = {
 "\n",
 "               <!-- A priori obsolete, remplacee par valeur dans calib -->\n",
 "              <GlobOrInterne Nb=\"?\" RefType=\"SetOrientationInterne\"></GlobOrInterne>\n",
+"\n",
+"              <!-- Nouvelles cameras inconnues, generique, pour representer satellite -->\n",
+"              <CamGenInc  Nb=\"*\">\n",
+"                    <PatterName Nb=\"1\" Type=\"std::string\">  </PatterName>\n",
+"                    <Orient Nb=\"1\" Type=\"std::string\">      </Orient>\n",
+"              </CamGenInc>\n",
 "\n",
 "              <PoseCameraInc Nb=\"*\"  ToReference=\"true\">\n",
 "                   \n",
