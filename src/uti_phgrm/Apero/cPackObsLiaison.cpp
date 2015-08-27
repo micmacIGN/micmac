@@ -552,6 +552,7 @@ cPackObsLiaison::cPackObsLiaison
 			)
 			{
 				pair<string,string> filenames = mAppli.ICNM()->Assoc2To1( aBDL.KeyAssoc()[aKS], *itN, false );
+
 				string reversePackname = mAppli.OutputDirectory()+mAppli.ICNM()->Assoc1To2( aBDL.KeyAssoc()[aKS], filenames.second, filenames.first, true );
 				if ( ELISE_fp::exist_file( reversePackname ) )
 				{
@@ -578,6 +579,7 @@ cPackObsLiaison::cPackObsLiaison
 				
 				std::string aN1 = aPair.first;
 				std::string aN2 = aPair.second;
+// std::cout <<" POLLLL " <<  aN1 << aN2 << "\n"; getchar();
 				
 				addFileToObservation( aN1, aN2, *itN, aBDL, aCpt, aKS==0, false );
 				aFirst = false;

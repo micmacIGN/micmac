@@ -48,7 +48,8 @@ class cSatI_Appli
         cInterfChantierNameManipulateur * mICNM;
 	std::string mCSysOut;
         std::list<std::string> mListFile;
-        std::string mModeOri;
+
+	eTypeImporGenBundle mType;
 	std::string mMetadata;
 	Pt2di mGridSz;
 
@@ -56,7 +57,6 @@ class cSatI_Appli
 };
 
 cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
-	mCSysOut("+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"),//def: rgf93-lambert-93
 	mMetadata(""),
 	mGridSz(Pt2di(10,8))
 {
@@ -64,11 +64,13 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
     std::string aDir;
     std::string aPat;
 
+    std::string aNameType;
+
     ElInitArgMain
     (
          argc, argv,
          LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE) full name (Dir+Pat)", eSAM_IsExistFile)
-                    << EAMC(mModeOri, "The RPC convention (PLEIADE,SPOT,QUICKBIRD,WORLDVIEW,IKONOS,CARTOSAT,SPICE)"),
+                    << EAMC(aNameType,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_")),
 	 LArgMain() << EAM(mCSysOut,"proj","true", "Output cartographic coordinate system (proj format)")
                     << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[10,10]", eSAM_NoInit)
 		    << EAM(mMetadata, "Meta", true, "Sensor metadata file, other than the RPC; Valid for IKONOS and CARTOSAT", eSAM_IsExistFile)
@@ -77,17 +79,8 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
 
     SplitDirAndFile(aDir, aPat, aFullName);
 
-
-    //validate the RPC mode 
-    if (mModeOri=="PLEIADE") {}
-    else if (mModeOri=="SPOT") {}
-    else if (mModeOri=="QUICKBIRD") {}
-    else if (mModeOri=="WORLDVIEW") {}
-    else if (mModeOri=="IKONOS") {}
-    else if (mModeOri=="CARTOSAT") {}
-    else if (mModeOri=="SPICE") {}
-    else {ELISE_ASSERT(false,"Unknown RPC mode");}    
-
+    bool aModeHelp;
+    StdReadEnum(aModeHelp,mType,aNameType,eTIGB_NbVals);
 
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     mListFile = mICNM->StdGetListOfFile(aPat);
@@ -104,10 +97,10 @@ int SATtoBundle_main(int argc,char ** argv)
 					 itL++ )   
     {
 	//Earth satellite
-	if(aApps.mModeOri!="SPICE")
+	if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
 	{
-            CameraRPC aCurCam(*itL,aApps.mModeOri,aApps.mGridSz);
-	    aCurCam.ExpImp2Bundle(aApps.mCSysOut);
+            CameraRPC aCurCam(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz);
+	    aCurCam.ExpImp2Bundle();
 	}
 	//other planets
 	else
@@ -129,10 +122,10 @@ int SATtoOpticalCenter_main(cSatI_Appli &aApps)
 					 itL++ )
     {
        //Earth satellite
-       if(aApps.mModeOri!="SPICE")
+       if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
        {
-           CameraRPC aCamRPC(*itL,aApps.mModeOri,aApps.mGridSz,aApps.mMetadata);
-           aCamRPC.OpticalCenterLineTer(aApps.mCSysOut, true);
+           CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
+           aCamRPC.OpticalCenterLineGrid(true);
 
        }
        //other planets
@@ -207,9 +200,9 @@ void SATbackrpjGCP_main(cSatI_Appli &aApps)
 		                         itL != aApps.mListFile.end(); 
 					 itL++ )
     {
-	if(aApps.mModeOri!="SPICE")
+	if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
 	{
-            CameraRPC aCamRPC(*itL,aApps.mModeOri,aApps.mGridSz,aApps.mMetadata);
+            CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
 
             cMesureAppuiFlottant1Im aImCur;
 	    aImCur.NameIm() = *itL;
@@ -281,6 +274,7 @@ void SATbackrpjGCP_main(cSatI_Appli &aApps)
  * - by intersecting picture elements at the optical centers*/
 int SATvalid_main(int argc,char ** argv)
 {
+
     cSatI_Appli aApps(argc,argv);
 
     //validation by GCPs
@@ -296,6 +290,55 @@ int SATvalid_main(int argc,char ** argv)
 
 }
 
+int CPP_TestRPCDirectGen(int argc,char ** argv)
+{
+
+    cInterfChantierNameManipulateur * aICNM;
+    std::list<std::string> aListFile;
+
+    std::string aFullName;
+    std::string aDir;
+    std::string aPat;
+
+    std::string aNameType;
+    eTypeImporGenBundle aType;
+
+    ElInitArgMain
+    (
+         argc, argv,
+         LArgMain()  << EAMC(aFullName,"Orientation file full name (Dir+Pat)", eSAM_IsExistFile)
+                     << EAMC(aNameType,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_")),
+         LArgMain()
+    );		      
+
+    SplitDirAndFile(aDir, aPat, aFullName);
+
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aListFile = aICNM->StdGetListOfFile(aPat);
+    
+    bool aModeHelp;
+    StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
+  
+    
+    for(std::list<std::string>::iterator itL = aListFile.begin(); 
+		                         itL != aListFile.end(); 
+					 itL++ )   
+    {
+	//Earth satellite
+	if(aType!=eTIGB_Unknown && aType!=eTIGB_MMSten)
+	{
+            CameraRPC aCRPC(*itL,aType);
+	    aCRPC.TestDirectRPCGen();
+	    
+	}
+	//other planets or stenope camera
+	else
+            ELISE_ASSERT(false,"No eTypeImporGenBundle");
+
+    }
+
+    return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -4590,11 +4590,13 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
           ELISE_ASSERT(anOC.FileInterne().IsInit(),"Cam_Gen_From_XML, Interne :  ni Val ni File");
           std::string  aName = anOC.FileInterne().Val();
 
+
           if (anICNM)
           {
-                 string outputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():anICNM->Dir() );
+             string outputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():anICNM->Dir() );
              if (anOC.RelativeNameFI().Val())
              {
+
                 std::string aNewName = outputDirectory+aName;
                 if (ELISE_fp::exist_file(aNewName))
                 {
@@ -4609,8 +4611,16 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
                    }
                    else
                    {
-                       std::cout << "With dir = " <<  outputDirectory  << " and file = " << aName << "\n";
-                       ELISE_ASSERT(false,"Cannot get internal file");
+                       aNewName = outputDirectory + aDir + NameWithoutDir(aName);
+                       if (ELISE_fp::exist_file(aNewName))
+                       {
+                             aName = aNewName;
+                       }
+                       else
+                       {
+                           std::cout << "With dir = " <<  outputDirectory  << " and file = " << aName  << " and Dir Subst " << aDir << "\n";
+                           ELISE_ASSERT(false,"Cannot get internal file");
+                       }
                    }
                 }
              }

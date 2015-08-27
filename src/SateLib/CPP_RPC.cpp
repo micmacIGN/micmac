@@ -997,6 +997,33 @@ vector<Pt3dr> RPC::GenerateRandNormGrid(const Pt2di &aGridSz)
     return(aGridNorm);
 }
 
+//this GenerateNormGrid generates a regular grid
+vector<Pt3dr> RPC::GenerateNormGrid(const Pt3di &aGridSz)
+{
+    vector<Pt3dr> aGridNorm;
+
+    double aZS = double(1)/aGridSz.z;
+
+    int aR, aC, aH;
+    for (aR = 0; aR <= aGridSz.x; aR++)
+    {
+        for (aC = 0; aC <= aGridSz.y; aC++)
+	{
+            for(aH = 0; aH < aGridSz.z; aH++ )
+	    {
+	        Pt3dr aPt;
+	        aPt.x = (double(aR) - (aGridSz.x / 2)) / (aGridSz.x / 2);
+	        aPt.y = (double(aC) - (aGridSz.y / 2)) / (aGridSz.y / 2);
+	        aPt.z = aZS*aH;
+	        
+		aGridNorm.push_back(aPt);
+	    }
+	}
+    }
+
+    return(aGridNorm);
+}
+
 //Use lattice points and satellite positions to generate points to be inputed in GCP2Direct and GCP2Inverse
 vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, vector<vector<Pt3dr> > aMatSatPos, int nbLayers, double aHMin, double aHMax)
 {
@@ -1803,6 +1830,30 @@ int RPC::ReadASCIIMetaData(std::string const &metafilename, std::string const &f
     return EXIT_FAILURE;
 }
 
+void RPC::InverseToDirectRPC(const Pt3di &aGridSz)
+{
+    //Check if inverse exists
+    ELISE_ASSERT(IS_INV_INI,"No inverse RPC's for conversion in RPC::InverseToDirectRPC");
+
+    /* What follows is re-writen from DigitalGlobe2Grid 
+     * BUT
+     * the generated grid is not random but regular in h */
+    /****************************************************/
+
+    //Generate a regular grid on the normalized spac 
+    vector<Pt3dr> aGridGeoNorm = GenerateNormGrid(aGridSz);
+
+    //Converting the points to image space
+    u_int aG;
+
+    vector<Pt3dr> aGridImNorm;
+    for (aG = 0; aG < aGridGeoNorm.size(); aG++)
+        aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[aG]));
+    
+    GCP2Direct(aGridGeoNorm, aGridImNorm);
+
+    IS_DIR_INI=true;
+}
 
 void RPC::InverseToDirectRPC(const Pt2di &aGridSz)
 {
@@ -1825,6 +1876,177 @@ void RPC::InverseToDirectRPC(const Pt2di &aGridSz)
 
     IS_DIR_INI=true;
 }
+
+/* Test calculation of the direct RPCs:
+ * calculate mean, max, std of difference in image and ground space between 
+ * artificial ground truth and backprojected (image) or forward projected (ground) points */
+void RPC::TestDirectRPCGen(const std::string aTargetCS)
+{
+    int aNb, aK1, aK2, aVTmp0, aVTmp1, aVTmp2; 
+    double aRND, aXtmp, aYtmp, aZtmp;
+    Pt2dr aMAXdxy(0,0), aMAXdXY(0,0), aUdxy(0,0), aUdXY(0,0), aSdxy(0,0), aSdXY(0,0);
+    Pt3dr axyTmp(0,0,0);
+    std::vector<Pt3dr> aLPHGT, aLPHFP, aXYHGT, aXYHFP, axyHGT;
+    std::vector<Pt2dr> axyBP, adxy, adXY;
+    
+    Pt2di aGrid(50, 50);
+    Pt2dr aStep(double(last_lon - first_lon)/aGrid.x, 
+		double(last_lat - first_lat)/aGrid.y );
+    int aNNodes = aGrid.x*aGrid.y;
+
+    //aLPHGT - ground truth; generate a random grid (within validity zone) in ground (geodetic CS)
+    srand(time(NULL));
+
+    for(aK1=0; aK1<aGrid.x; aK1++)
+        for(aK2=0; aK2<aGrid.y; aK2++)
+	{
+	    aRND = ((double) rand() / (RAND_MAX));
+            aLPHGT.push_back(Pt3dr(first_lon + aStep.x*aK1,
+				   first_lat + aStep.y*aK2,
+			           first_height + (last_height - first_height)*aRND));	    	
+	}
+
+    //axyGT - ground truth; back project with inverse RPC to image space
+    for(aK1=0; aK1<aNNodes; aK1++)
+    {
+	axyTmp = InverseRPC(aLPHGT.at(aK1));
+        
+	axyHGT.push_back(Pt3dr(axyTmp.x, axyTmp.y, aLPHGT.at(aK1).z) );//3rd coordinate is ground H
+    }
+
+
+    //aLPHFP - forward projection of axyHGT and intersection with HGT
+    for(aK1=0; aK1<aNNodes; aK1++)
+       aLPHFP.push_back(DirectRPC(axyHGT.at(aK1))); 
+
+    //axyBP - backprojection of aLPHFP to image
+    for(aK1=0; aK1<aNNodes; aK1++)
+    {
+	axyTmp = InverseRPC(aLPHFP.at(aK1));
+        axyBP.push_back(Pt2dr(axyTmp.x,axyTmp.y));
+    }
+
+    //aXYHGT, aXYHFP - convert aLPHGT & aLPHFP to cartographic CS
+    ELISE_fp::MkDirSvp("processing");
+    std::ofstream aFO("LPHGT_LPHFP.txt");
+
+    for(aK1=0; aK1<aNNodes; aK1++)
+        aFO << aLPHGT.at(aK1).x << " " << aLPHGT.at(aK1).y << " " << aLPHGT.at(aK1).z << "\n";
+    for(aK1=0; aK1<aNNodes; aK1++)
+	aFO << aLPHFP.at(aK1).x << " " << aLPHFP.at(aK1).y << " " << aLPHFP.at(aK1).z << "\n";
+    aFO.close();
+
+    std::string aCmdProj = g_externalToolHandler.get("cs2cs").callName() + " " +
+	                   "+proj=longlat +datum=WGS84" + " +to " + aTargetCS +
+			   " LPHGT_LPHFP.txt  >  XYHGT_XYHFP.txt";
+
+    int aRunOK = system(aCmdProj.c_str());
+    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
+    
+    aVTmp0=0;
+
+    std::ifstream aFI("XYHGT_XYHFP.txt");
+    while(aFI.good())
+    {
+        if(aVTmp0 < aNNodes)
+	{
+	    aFI >> aXtmp >> aYtmp >> aZtmp;
+	    aXYHGT.push_back(Pt3dr(aXtmp, aYtmp, aZtmp));
+            aVTmp0++;
+	}
+	else
+	{
+	    aFI >> aXtmp >> aYtmp >> aZtmp;
+	    aXYHFP.push_back(Pt3dr(aXtmp, aYtmp, aZtmp));
+	}
+    }
+    aFI.close();
+
+    //|axyHGT(:2)-axyBP|, aXYHGT-aXYHFP| - calculate some measures of goodness
+    aVTmp1=0, aVTmp2=0;
+    aNb=0;
+
+    //mean and max
+    for(aK1=0; aK1<aNNodes; aK1++)
+    {
+	
+	if((axyHGT.at(aK1).x >= first_row) &&
+	   (axyHGT.at(aK1).x < last_row) &&
+	   (axyHGT.at(aK1).y >= first_col) &&
+	   (axyHGT.at(aK1).y < last_col) )
+	{
+	   //image
+	   aVTmp1 = std::abs(axyHGT.at(aK1).x - axyBP.at(aK1).x);
+	   aVTmp2 = std::abs(axyHGT.at(aK1).y - axyBP.at(aK1).y);
+           adxy.push_back( Pt2dr(aVTmp1,aVTmp2) );
+
+	   aUdxy.x += aVTmp1;
+	   aUdxy.y += aVTmp2;
+	   
+	   if(aMAXdxy.x < aVTmp1)
+	       aMAXdxy.x = aVTmp1;
+	   if(aMAXdxy.y < aVTmp2)
+	       aMAXdxy.y = aVTmp2;
+	   
+           //ground
+	   aVTmp1 = std::abs(aXYHGT.at(aK1).x - aXYHFP.at(aK1).x);
+	   aVTmp2 = std::abs(aXYHGT.at(aK1).y - aXYHFP.at(aK1).y);
+          
+
+           adXY.push_back( Pt2dr(aVTmp1,aVTmp2) );
+
+	   aUdXY.x += aVTmp1;
+	   aUdXY.y += aVTmp2;
+
+	   if(aMAXdXY.x < aVTmp1)
+	       aMAXdXY.x = aVTmp1;
+	   if(aMAXdXY.y < aVTmp2)
+	       aMAXdXY.y = aVTmp2;
+
+	   aNb++;
+	}
+    }
+    aUdxy.x = double(aUdxy.x)/aNb;
+    aUdxy.y = double(aUdxy.y)/aNb;
+    aUdXY.x = double(aUdXY.x)/aNb;
+    aUdXY.y = double(aUdXY.y)/aNb;
+   
+
+    //standard deviation
+    for(aK1=0; aK1<aNb; aK1++)
+    {
+       //image
+       aSdxy.x += (adxy.at(aK1).x - aUdxy.x)*(adxy.at(aK1).x - aUdxy.x);
+       aSdxy.y += (adxy.at(aK1).y - aUdxy.y)*(adxy.at(aK1).y - aUdxy.y);
+
+       //ground
+       aSdXY.x = (adXY.at(aK1).x - aUdXY.x)*(adXY.at(aK1).x - aUdXY.x);
+       aSdXY.y = (adXY.at(aK1).y - aUdXY.y)*(adXY.at(aK1).y - aUdXY.y);
+    }
+    aSdxy.x = std::sqrt(double(aSdxy.x)/aNb);
+    aSdxy.y = std::sqrt(double(aSdxy.y)/aNb);
+    aSdXY.x = std::sqrt(double(aSdXY.x)/aNb);
+    aSdXY.y = std::sqrt(double(aSdXY.y)/aNb);
+
+
+    std::cout.precision(5); 
+    std::cout << "/**************************************************/\n";
+    std::cout << "/******** max, mean, std_dev **********************/\n";
+    std::cout << "/******** of the RPC direct calculation ***********/\n";
+    std::cout << "/**************************************************/\n";
+    std::cout << "\n/******** image space [pix] ***********************/\n";
+    std::cout << "max(x,y)     -> " << aMAXdxy.x << " " << aMAXdxy.y << "\n";
+    std::cout << "mean(x,y)    -> " << aUdxy.x << " " << aUdxy.y << "\n";
+    std::cout << "std_dev(x,y) -> " << aSdxy.x << " " << aSdxy.y << "\n";
+
+    std::cout << "\n/******** ground space [m] ************************/\n";
+    std::cout << "max(X,Y)     -> " << aMAXdXY.x << " " << aMAXdXY.y << "\n";
+    std::cout << "mean(X,Y)    -> " << aUdXY.x << " " << aUdXY.y << "\n";
+    std::cout << "std_dev(X,Y) -> " << aSdXY.x << " " << aSdXY.y << "\n";
+    std::cout << "/**************************************************/\n";
+    
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                             Function for RPC2D                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

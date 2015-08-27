@@ -49,8 +49,14 @@ class CameraRPC: public cBasicGeomCap3D
 {
 	public:
 		//CameraRPC();
-		CameraRPC(const std::string &aNameFile, const std::string &aModeRPC, const Pt2di &aGridSz, const std::string &aMetaFile=0);
-		CameraRPC(const std::string &aNameFile, const eTypeImporGenBundle aType);
+		CameraRPC(const std::string &aNameFile, 
+			  const eTypeImporGenBundle &aType, 
+			  const std::string &aCartCS, 
+			  const Pt2di &aGridSz, 
+			  const std::string &aMetaFile=0);
+		CameraRPC(const std::string &aNameFile, 
+                          const eTypeImporGenBundle &aType, 
+			  const std::string aCartoCS="");
 		~CameraRPC();
 
 		Pt2dr Ter2Capteur   (const Pt3dr & aP) const;
@@ -67,10 +73,18 @@ class CameraRPC: public cBasicGeomCap3D
 
 		Pt2di SzBasicCapt3D() const;
 
-		void ExpImp2Bundle(const std::string & aSysOut, 
-				   std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
+		void ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
+                void TestDirectRPCGen();
 
-		void OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave);
+                /* Optical centers for a user-defined grid */
+		void  OpticalCenterLineGrid(bool aIfSave);
+		/* Optical centers per sensor line */
+		void  OpticalCenterPerLine();
+	        bool  HasOpticalCenterOfPixel() const;
+	        Pt3dr OpticalCenterOfPixel_Old(const Pt2dr & aP) const ;
+	        Pt3dr OpticalCenterOfPixel(const Pt2dr & aP) const ;
+		Pt3dr OpticalCenterOfLine(const double & aL) const ;
+		void  testy(const Pt2dr & aP) const;
 
                 void SetProfondeur(double aP);
 		double GetProfondeur() const;
@@ -79,7 +93,7 @@ class CameraRPC: public cBasicGeomCap3D
 		double GetAltiSol() const;
 		bool AltisSolIsDef() const;
 
-        protected:
+        private:
 		bool   mProfondeurIsDef;
 		double mProfondeur;
 		bool   mAltisSolIsDef;
@@ -88,16 +102,19 @@ class CameraRPC: public cBasicGeomCap3D
 		bool   mOptCentersIsDef;
 
 		bool   mGridSzIsDef;
-	private:
+		
 		RPC                * mRPC;
 		std::vector<Pt3dr> * mOpticalCenters;
 		
 		Pt2di        mGridSz;
                 std::string  mCamNom; 
 
+                std::string mCS;
+
 		ElSeg3D F2toRayonLPH(Pt3dr &aP0,Pt3dr & aP1) const;
 		void LPHtoR3(const std::string & aSysOut);
-
+                
+		void FindUTMCS();
 
                 void AssertRPCDirInit() const;
 		void AssertRPCInvInit() const;
