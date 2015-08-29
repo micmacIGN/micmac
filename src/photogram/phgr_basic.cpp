@@ -1442,6 +1442,18 @@ Pt2dr cCorrRefracAPost::CorrC2M(const Pt2dr & aP0) const
 /*                                               */
 /*************************************************/
 
+double cBasicGeomCap3D::ProfondeurDeChamps(const Pt3dr & aP) const
+{
+   Pt2dr aPIm = Ter2Capteur(aP);
+   Pt3dr aC = OpticalCenterOfPixel(aPIm);
+
+   return scal(DirVisee(),aP-aC);
+}
+
+Pt3dr cBasicGeomCap3D::DirVisee() const
+{
+   return DirRayonR3(Pt2dr(SzBasicCapt3D()) / 2.0);
+}
 
 bool   cBasicGeomCap3D::HasOpticalCenterOfPixel() const
 {
@@ -1538,6 +1550,18 @@ cBasicGeomCap3D * StdGetFromFile(const std::string & aName)
 
 
 */
+Pt3dr  cBasicGeomCap3D::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const
+{
+    Pt3dr aC = OpticalCenterOfPixel(aP);
+    ElSeg3D aSeg=Capteur2RayTer(aP);
+
+    return aC + aSeg.TgNormee() * aZ;
+}
+
+Pt3dr cBasicGeomCap3D::DirRayonR3(const Pt2dr & aPIm) const
+{
+    return Capteur2RayTer(aPIm).TgNormee();
+}
 
 
 /*************************************************/
@@ -2424,6 +2448,12 @@ Pt3dr    ElCamera::F2toDirRayonR3(Pt2dr p) const
 Pt3dr    ElCamera::C2toDirRayonR3(Pt2dr p) const
 {
    return  _orient.IRecVect(C2toDirRayonL3(p));
+}
+
+
+Pt3dr ElCamera::DirRayonR3(const Pt2dr & aPIm) const
+{
+    return F2toDirRayonR3(aPIm);
 }
 
 

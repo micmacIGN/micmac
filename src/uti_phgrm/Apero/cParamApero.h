@@ -1744,9 +1744,13 @@ class cCamGenInc
 
         std::string & Orient();
         const std::string & Orient()const ;
+
+        cTplValGesInit< bool > & ErrorWhenEmpytPat();
+        const cTplValGesInit< bool > & ErrorWhenEmpytPat()const ;
     private:
         std::string mPatterName;
         std::string mOrient;
+        cTplValGesInit< bool > mErrorWhenEmpytPat;
 };
 cElXMLTree * ToXMLTree(const cCamGenInc &);
 
@@ -4405,6 +4409,35 @@ void  BinaryUnDumpFromFile(cSectionTracage &,ELISE_fp &);
 
 std::string  Mangling( cSectionTracage *);
 
+class cContrCamGenInc
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cContrCamGenInc & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< std::string > & PatternApply();
+        const cTplValGesInit< std::string > & PatternApply()const ;
+
+        cTplValGesInit< double > & PdsAttachToId();
+        const cTplValGesInit< double > & PdsAttachToId()const ;
+
+        cTplValGesInit< double > & PdsAttachToLast();
+        const cTplValGesInit< double > & PdsAttachToLast()const ;
+    private:
+        cTplValGesInit< std::string > mPatternApply;
+        cTplValGesInit< double > mPdsAttachToId;
+        cTplValGesInit< double > mPdsAttachToLast;
+};
+cElXMLTree * ToXMLTree(const cContrCamGenInc &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cContrCamGenInc &);
+
+void  BinaryUnDumpFromFile(cContrCamGenInc &,ELISE_fp &);
+
+std::string  Mangling( cContrCamGenInc *);
+
 class cObsBlockCamRig
 {
     public:
@@ -4868,6 +4901,9 @@ class cSectionObservations
         friend void xml_init(cSectionObservations & anObj,cElXMLTree * aTree);
 
 
+        std::list< cContrCamGenInc > & ContrCamGenInc();
+        const std::list< cContrCamGenInc > & ContrCamGenInc()const ;
+
         std::list< cObsBlockCamRig > & ObsBlockCamRig();
         const std::list< cObsBlockCamRig > & ObsBlockCamRig()const ;
 
@@ -4895,6 +4931,7 @@ class cSectionObservations
         std::list< cObsRelGPS > & ObsRelGPS();
         const std::list< cObsRelGPS > & ObsRelGPS()const ;
     private:
+        std::list< cContrCamGenInc > mContrCamGenInc;
         std::list< cObsBlockCamRig > mObsBlockCamRig;
         std::list< cObsAppuis > mObsAppuis;
         std::list< cObsAppuisFlottant > mObsAppuisFlottant;
@@ -6077,6 +6114,9 @@ class cEtapeCompensation
 
         cTplValGesInit< double > & MultSLMGlob();
         const cTplValGesInit< double > & MultSLMGlob()const ;
+
+        std::list< cContrCamGenInc > & ContrCamGenInc();
+        const std::list< cContrCamGenInc > & ContrCamGenInc()const ;
 
         std::list< cObsBlockCamRig > & ObsBlockCamRig();
         const std::list< cObsBlockCamRig > & ObsBlockCamRig()const ;

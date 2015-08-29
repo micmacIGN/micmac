@@ -1,15 +1,26 @@
 <!--
     Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Test-Apero-BundleGen.xml   DirectoryChantier=/media/data2/Jeux-Test/Dino/ 
+
+    Apero /home/marc/MMM/culture3d/include/XML_MicMac/Test-Apero-BundleGen.xml   DirectoryChantier=/home/marc/TMP/EPI/Enclos/Bas/
 -->
 
 <Global >
    <ParamApero>
 
        <DicoLoc>
-           <Symb>  AeroIn=-Bundle </Symb>
-           <Symb>  AeroOut=-ResBundle </Symb>
+
+           <Symb>  SetIm=IMGP939[6-9].PEF </Symb>
+           <Symb>  SetImGB=IMGP940[0-1].PEF </Symb>
+
+<!--
            <Symb>  SetIm=_MG_009[6-9].CR2 </Symb>
            <Symb>  SetImGB=(_MG_010[0-4].CR2) </Symb>
+-->
+
+
+           <Symb>  AeroIn=-Bundle </Symb>
+
+           <Symb>  AeroOut=-ResBundle </Symb>
            <Symb>  Ext=dat </Symb>
 
            <Symb>  LibParamInterne=eAllParamFiges  </Symb>
@@ -68,6 +79,7 @@
              <CamGenInc>
                     <PatterName>  ${SetImGB} </PatterName>
                     <Orient>      ${AeroIn}  </Orient>
+                    <ErrorWhenEmpytPat> true </ErrorWhenEmpytPat>
               </CamGenInc>
 
 
@@ -146,6 +158,13 @@
 				 <EcartMax>  ${MaxResTieP} </EcartMax>
                               </Pond>
                           </ObsLiaisons>
+
+                          <ContrCamGenInc>
+                               <PatternApply> .*  </PatternApply>
+                               <PdsAttachToId>   1.0     </PdsAttachToId>
+                               <PdsAttachToLast> 10.0    </PdsAttachToLast>
+                          </ContrCamGenInc>
+
 		    </SectionObservations>
 
                     <SectionExport>

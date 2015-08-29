@@ -129,6 +129,11 @@ void cAppliApero::AddObservations
        AddObservationsRigidGrp(anSO.ObsRigidGrpImage(),IsLastIter,aSO);
    }
 
+
+   {
+       AddObservationsContrCamGenInc(anSO.ContrCamGenInc(),IsLastIter,aSO);
+   }
+
    MajAddCoeffMatrix();
    if (NumIterDebug())  MessageDebug("Fin iter Obs");
 

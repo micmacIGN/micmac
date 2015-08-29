@@ -210,7 +210,7 @@ cOneAppuiMul::cOneAppuiMul(const Pt3dr & aPTer,int aNum) :
 {
 }
 
-void cOneAppuiMul::AddPt(cPoseCam * aPC,const Pt2dr & aPIm)
+void cOneAppuiMul::AddPt(cGenPoseCam * aPC,const Pt2dr & aPIm)
 {
     mVPds.push_back(1.0);
     mPoses.push_back(aPC);
@@ -787,7 +787,7 @@ cPackObserv1Im<TypeEngl,TGlob>::cPackObserv1Im
         {
             std::string aNamePack = (*aVName)[aK];
             std::string aNameIm  = mAppli.ICNM()->Assoc1To1(anArg.KeyAssoc(),aNamePack,false);
-            if ( mAppli.NamePoseIsKnown(aNameIm))
+            if ( mAppli.NamePoseGenIsKnown(aNameIm))
             {
                 cObserv1Im<TypeEngl> * anObs= new  cObserv1Im<TypeEngl>(anAppli,baseDirectory+aNamePack,aNameIm,anArg);
                 Add(anObs);

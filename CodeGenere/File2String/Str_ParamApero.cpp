@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1632]) = {
+const char * (theNameVar_ParamApero[1640]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -641,6 +641,7 @@ const char * (theNameVar_ParamApero[1632]) = {
 "              <CamGenInc  Nb=\"*\">\n",
 "                    <PatterName Nb=\"1\" Type=\"std::string\">  </PatterName>\n",
 "                    <Orient Nb=\"1\" Type=\"std::string\">      </Orient>\n",
+"                    <ErrorWhenEmpytPat Nb=\"?\" Type=\"bool\" Def=\"true\"> </ErrorWhenEmpytPat>\n",
 "              </CamGenInc>\n",
 "\n",
 "              <PoseCameraInc Nb=\"*\"  ToReference=\"true\">\n",
@@ -1245,6 +1246,13 @@ const char * (theNameVar_ParamApero[1632]) = {
 "\n",
 "                 <SectionObservations Nb=\"1\">\n",
 "\n",
+"                     <ContrCamGenInc Nb=\"*\">\n",
+"                         <PatternApply Nb=\"?\" Type=\"std::string\">   </PatternApply>\n",
+"                         <PdsAttachToId Nb=\"?\" Type=\"double\">       </PdsAttachToId>\n",
+"                         <PdsAttachToLast Nb=\"?\" Type=\"double\">     </PdsAttachToLast>\n",
+"                     </ContrCamGenInc>\n",
+"\n",
+"                      <!-- Ici il s'agit de point d'appuis \"sur\", -->\n",
 "                      <!-- Ici il s'agit de point d'appuis \"sur\", -->\n",
 "                     <ObsBlockCamRig Nb=\"*\">\n",
 "                         <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",

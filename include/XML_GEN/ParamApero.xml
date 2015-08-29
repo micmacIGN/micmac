@@ -639,6 +639,7 @@
               <CamGenInc  Nb="*">
                     <PatterName Nb="1" Type="std::string">  </PatterName>
                     <Orient Nb="1" Type="std::string">      </Orient>
+                    <ErrorWhenEmpytPat Nb="?" Type="bool" Def="true"> </ErrorWhenEmpytPat>
               </CamGenInc>
 
               <PoseCameraInc Nb="*"  ToReference="true">
@@ -1243,6 +1244,13 @@ normalises en echelle et/ou en translation -->
 
                  <SectionObservations Nb="1">
 
+                     <ContrCamGenInc Nb="*">
+                         <PatternApply Nb="?" Type="std::string">   </PatternApply>
+                         <PdsAttachToId Nb="?" Type="double">       </PdsAttachToId>
+                         <PdsAttachToLast Nb="?" Type="double">     </PdsAttachToLast>
+                     </ContrCamGenInc>
+
+                      <!-- Ici il s'agit de point d'appuis "sur", -->
                       <!-- Ici il s'agit de point d'appuis "sur", -->
                      <ObsBlockCamRig Nb="*">
                          <Id Nb="1" Type="std::string"> </Id>

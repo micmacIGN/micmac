@@ -298,7 +298,7 @@ class cInterfChantierNameManipulateur
                       );
 
          // Prof par defaut 2, par compat avec l'existant
-         std::list<std::string>  StdGetListOfFile(const std::string & aKeyOrPat, int aProf=2);
+         std::list<std::string>  StdGetListOfFile(const std::string & aKeyOrPat, int aProf=2,bool ErrorWhenEmpty=true);
      // Quatre  dictionnaire sont charges :
      //   Priorite 0 :
      //   Priorite 1 : aDir/aName.Val()  (si aName est initialise)

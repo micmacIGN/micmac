@@ -49,9 +49,133 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 cGenPoseCam::cGenPoseCam(cAppliApero & anAppli,const std::string & aName) :
     mAppli (anAppli),
-    mName  (aName)
+    mName  (aName),
+    mNumTmp(-12345678),
+    mCdtImSec (0),
+    mRotIsInit (false),
+    mPreInit   (false),
+    mOrIntM2C     (ElAffin2D::Id()),
+    mOrIntC2M     (ElAffin2D::Id()),
+    mMasqH       (mAppli.MasqHom(aName)),
+    mTMasqH      (mMasqH ? new  TIm2DBits<1>(*mMasqH) : 0),
+    mSomPM       (0),
+    mLastEstimProfIsInit (false),
+    mLasEstimtProf       (-1),
+    mNbPtsMulNN   (-1),
+    mNbPLiaisCur  (0),
+    mCurLayer      (0),
+    mSom           (0)
+{
+   tGrApero::TSom & aSom = mAppli.Gr().new_som(this);
+   SetSom(aSom);
+}
+
+void cGenPoseCam::SetSom(tGrApero::TSom & aSom)
+{
+   mSom = & aSom;
+}
+
+tGrApero::TSom * cGenPoseCam::Som()
+{
+   return mSom;
+}
+
+
+
+bool cGenPoseCam::PreInit() const { return mPreInit; }
+bool cGenPoseCam::RotIsInit()  const { return mRotIsInit; }
+
+cAnalyseZoneLiaison  &  cGenPoseCam::AZL() {return mAZL;}
+double               &  cGenPoseCam::QualAZL() {return mQualAZL;}
+
+
+
+int     &  cGenPoseCam::NbPLiaisCur() {return mNbPLiaisCur;}
+
+
+bool cGenPoseCam::HasMasqHom() const { return mMasqH !=0; }
+
+void    cGenPoseCam::VirtualInitAvantCompens()
 {
 }
+
+void    cGenPoseCam::InitAvantCompens()
+{
+    VirtualInitAvantCompens();
+    if (PMoyIsInit())
+    {
+       mLasEstimtProf =   ProfMoyHarmonik();
+       mLastEstimProfIsInit = true;
+    }
+    mPMoy = Pt3dr(0,0,0);
+    mMoyInvProf =0;
+    mSomPM = 0;
+}
+
+
+bool     cGenPoseCam::PMoyIsInit() const
+{
+   return mSomPM != 0;
+}
+
+Pt3dr   cGenPoseCam::GetPMoy() const
+{
+   ELISE_ASSERT(PMoyIsInit(),"cPoseCam::GetPMoy");
+   return mPMoy / mSomPM;
+}
+
+
+double   cGenPoseCam::ProfMoyHarmonik() const
+{
+   ELISE_ASSERT(PMoyIsInit(),"cPoseCam::ProfMoyHarmonik");
+   return 1.0 / (mMoyInvProf/mSomPM);
+}
+
+
+void  cGenPoseCam::SetNbPtsMulNN(int aNbNN)
+{
+  mNbPtsMulNN = aNbNN;
+}
+
+int   cGenPoseCam::NbPtsMulNN() const
+{
+   return mNbPtsMulNN;
+}
+
+
+void    cGenPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
+{
+   double aPds = (aBSurH-mAppli.Param().LimInfBSurHPMoy().Val());
+   aPds /= (mAppli.Param().LimSupBSurHPMoy().Val() - mAppli.Param().LimInfBSurHPMoy().Val());
+   if (aPds<0) return;
+
+    const cBasicGeomCap3D * aCS = GenCurCam() ;
+    if (mTMasqH)
+    {
+      Pt2di aPIm =  round_ni(aCS->Ter2Capteur(aP));
+
+      if (! mTMasqH->get(aPIm,0))
+         return;
+    }
+    double aProf = aCS->ProfondeurDeChamps(aP);
+
+
+    mPMoy = mPMoy + aP * aPds;
+    mMoyInvProf  += (1/aProf) * aPds;
+    mSomPM  += aPds ;
+
+}
+
+
+
+
+int & cGenPoseCam::NumTmp()
+{
+   return mNumTmp;
+}
+
+cPoseCdtImSec *  & cGenPoseCam::CdtImSec() {return mCdtImSec;}
+
 
 
 const  std::string & cGenPoseCam::Name() const {return mName;}
@@ -79,6 +203,117 @@ const cPoseCam * cGenPoseCam::DownCastPoseCamSVP() const
    return 0;
 }
 
+cCalibCam *  cGenPoseCam::CalibCam() const {return 0;}
+
+cCalibCam *  cGenPoseCam::CalibCamNN()  const
+{
+    cCalibCam * aRes = CalibCam() ;
+    ELISE_ASSERT(aRes!=0,"cGenPoseCam::CalibCamNN");
+    return aRes;
+}
+
+const cBasicGeomCap3D * cGenPoseCam::GenCurCam () const { return PDVF()->GPF_CurBGCap3D(); }
+cBasicGeomCap3D * cGenPoseCam::GenCurCam ()  {return  PDVF()->GPF_NC_CurBGCap3D();}
+
+
+
+bool  cGenPoseCam::IsInZoneU(const Pt2dr & aP) const
+{
+    return GenCurCam()->CaptHasData(aP);
+}
+
+
+void cGenPoseCam::ResetStatR()
+{
+  mStatRSomP =0;
+  mStatRSomPR =0;
+  mStatRSom1 =0;
+}
+
+void cGenPoseCam::AddStatR(double aPds,double aRes)
+{
+  mStatRSomP += aPds;
+  mStatRSomPR += aPds * aRes;
+  mStatRSom1 += 1;
+}
+
+void cGenPoseCam::GetStatR(double & aSomP,double & aSomPR,double & aSom1) const
+{
+   aSomP = mStatRSomP;
+   aSomPR = mStatRSomPR;
+   aSom1  = mStatRSom1;
+}
+
+
+Pt3dr cGenPoseCam::CurCentreOfPt(const Pt2dr & aPt) const
+{
+    return GenCurCam()->OpticalCenterOfPixel (aPt);
+}
+
+void cGenPoseCam::Trace() const
+{
+}
+
+const ElAffin2D &  cGenPoseCam::OrIntM2C() const
+{
+   return mOrIntM2C;
+}
+const ElAffin2D &  cGenPoseCam::OrIntC2M() const
+{
+   return mOrIntC2M;
+}
+
+
+void cGenPoseCam::ResetPtsVu()
+{
+   mPtsVu.clear();
+}
+
+void cGenPoseCam::AddPtsVu(const Pt3dr & aP)
+{
+   mPtsVu.push_back(aP);
+}
+
+
+const std::vector<Pt3dr> &  cGenPoseCam::PtsVu() const
+{
+    return mPtsVu;
+}
+
+bool cGenPoseCam::CanBeUSedForInit(bool OnInit) const
+{
+   return OnInit ? RotIsInit() : PreInit() ;
+}
+
+
+cOneImageOfLayer * cGenPoseCam::GetCurLayer()
+{
+   if (mCurLayer==0)
+   {
+      std::cout << "FOR NAME POSE " << mName << "\n";
+      ELISE_ASSERT(false,"Cannot get layer");
+   }
+   return mCurLayer;
+}
+
+void cGenPoseCam::SetCurLayer(cLayerImage * aLI)
+{
+    mCurLayer = aLI->NamePose2Layer(mName);
+}
+
+
+void cGenPoseCam::C2MCompenseMesureOrInt(Pt2dr & aPC)
+{
+   aPC = mOrIntC2M(aPC);
+}
+
+bool cGenPoseCam::AcceptPoint(const Pt2dr & aP) const
+{
+   return true;
+}
+
+
+
 
 
 /***********************************************************************/
@@ -92,8 +327,66 @@ cPosePolynGenCam::cPosePolynGenCam(cAppliApero & anAppli,const std::string & aNa
     mNameOri    (mAppli.ICNM()->Assoc1To1( "NKS-Assoc-Im2GBOrient@"+aDirOri,mName,true)),
     mCam        (cPolynomial_BGC3M2D::NewFromFile(mNameOri)),
     mCamF       (mAppli.SetEq(),*mCam,false,false,false)
-
 {
+    mRotIsInit = true;
+    mPreInit = true;
+}
+
+cGenPDVFormelle *  cPosePolynGenCam::PDVF() { return & mCamF; }
+const cGenPDVFormelle *  cPosePolynGenCam::PDVF() const { return & mCamF; }
+
+cPolynBGC3M2D_Formelle *   cPosePolynGenCam::PolyF() 
+{
+   return &mCamF;
+}
+
+Pt2di cPosePolynGenCam::SzCalib() const 
+{
+   return mCam->SzBasicCapt3D();
+}
+
+
+/***********************************************************************/
+/*                                                                     */
+/*                      cAppliApero                                    */
+/*                                                                     */
+/***********************************************************************/
+
+void cAppliApero::AddObservationsContrCamGenInc
+     (
+           const std::list<cContrCamGenInc> & aLC,
+           bool IsLastIter,
+           cStatObs & aSO
+     )
+{
+     for (std::list<cContrCamGenInc>::const_iterator itC=aLC.begin() ; itC!=aLC.end() ; itC++)
+     {
+            AddObservationsContrCamGenInc(*itC,IsLastIter,aSO);
+     }
+}
+
+void cAppliApero::AddObservationsContrCamGenInc
+     (
+         const cContrCamGenInc & aCCIG,
+         bool IsLastIter,
+         cStatObs & aSO
+      )
+{
+    cSetName *  aSelector = mICNM->KeyOrPatSelector(aCCIG.PatternApply());
+
+    for (int aK=0 ; aK<int(mVecPolynPose.size()) ; aK++)
+    {
+        cPosePolynGenCam * aGPC = mVecPolynPose[aK];
+        if (aSelector->IsSetIn(aGPC->Name()))
+        {
+             cPolynBGC3M2D_Formelle * aPF = aGPC->PolyF();
+
+             if (aCCIG.PdsAttachToId().IsInit())
+             {
+                 aPF->AddEqAttachGlob(aCCIG.PdsAttachToId().Val(),false,20,(CamStenope *) 0);
+             }
+        }
+    }
 
 }
 
