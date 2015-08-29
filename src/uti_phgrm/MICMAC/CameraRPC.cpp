@@ -45,34 +45,39 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 /* Image coordinates order: [Line, Sample] = [row, col] =  [x, y]*/
 
-CameraRPC::CameraRPC(const std::string &aNameFile, const  std::string &aModeRPC, const Pt2di &aGridSz, const std::string &aMetaFile) :
+//this is an outdated constructor -- will be soon removed 
+CameraRPC::CameraRPC(const std::string &aNameFile, 
+		     const eTypeImporGenBundle &aType,
+		     const std::string &aCartoCS, 
+		     const Pt2di &aGridSz, 
+		     const std::string &aMetaFile) :
        mProfondeurIsDef(false),	
        mAltisSolIsDef(false),
        mOptCentersIsDef(false),
        mGridSzIsDef(true),
        mOpticalCenters(0),
        mGridSz(aGridSz),
-       mCamNom(aNameFile.substr(0,aNameFile.size()-4))
+       mCamNom(aNameFile.substr(0,aNameFile.size()-4)),
+       mCS(aCartoCS)
 {
    
    mRPC = new RPC();
    
-   if (aModeRPC=="PLEIADE")
+   if (aType==eTIGB_MMDimap2)
    {
        mRPC->ReadDimap(aNameFile);
        mRPC->ReconstructValidity();
    }
-   else if(aModeRPC=="SPOT")//OK for SPOT in Dimap2 format, otherwise CameraAffine
+   else if(aType==eTIGB_MMDimap1)
    {
-       mRPC->ReadDimap(aNameFile);   
-       mRPC->ReconstructValidity(); 
+       ELISE_ASSERT(false,"No eTIGB_MMDimap1");
    }
-   else if(aModeRPC=="QUICKBIRD" || aModeRPC=="WORLDVIEW" )
+   else if(aType==eTIGB_MMDGlobe )
    {
        mRPC->ReadXML(aNameFile);
-       mRPC->InverseToDirectRPC(Pt2di(50,50));
+       mRPC->InverseToDirectRPC(Pt3di(50,50,10));
    }
-   else if(aModeRPC=="IKONOS" || aModeRPC=="CARTOSAT")
+   else if(aType==eTIGB_MMIkonos)
    {
        mRPC->ReadASCII(aNameFile);
        mRPC->ReadASCIIMetaData(aMetaFile, aNameFile);
@@ -82,18 +87,23 @@ CameraRPC::CameraRPC(const std::string &aNameFile, const  std::string &aModeRPC,
 
   mRPC->info();
 
+  //if cartographic coordinate system was not defined
+  if(mCS == "")
+      FindUTMCS();
 
 }
 
 CameraRPC::CameraRPC(const std::string &aNameFile, 
-		     const eTypeImporGenBundle aType) : 
+		     const eTypeImporGenBundle &aType,
+		     const std::string aCartoCS) : 
 	mProfondeurIsDef(false),
 	mAltisSolIsDef(false),
 	mOptCentersIsDef(false),
 	mGridSzIsDef(false),
 	mOpticalCenters(0),
 	mGridSz(Pt2di(0,0)),
-	mCamNom(aNameFile.substr(0,aNameFile.size()-4))
+	mCamNom(aNameFile.substr(0,aNameFile.size()-4)),
+	mCS(aCartoCS)
 {
     mRPC = new RPC();
 
@@ -105,7 +115,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     else if(aType==eTIGB_MMDGlobe)
     {
         mRPC->ReadXML(aNameFile);
-	mRPC->InverseToDirectRPC(Pt2di(50,50));
+	mRPC->InverseToDirectRPC(Pt3di(50,50,10));
     }
     /*else if(aType==eTIGB_MMIkonos)
     {
@@ -114,6 +124,13 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 	mRPC->InverseToDirectRPC(Pt2di(50,50));
     }*/
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
+
+
+    //if cartographic coordinate system was not defined
+    if(mCS == "")
+        FindUTMCS();
+
+    mRPC->info();
 }
 
 CameraRPC * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType)
@@ -298,8 +315,7 @@ Pt2di CameraRPC::SzBasicCapt3D() const
  * - first  iter - generate the bundle grid in geodetic coordinate system (CS) and
  *                 convert to desired CS
  * - second iter - export to xml */
-void CameraRPC::ExpImp2Bundle(const std::string & aSysOut, 
-			      std::vector<std::vector<ElSeg3D> > aGridToExp) const
+void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) const
 {
         //Check that the direct RPC exists
 	AssertRPCDirInit();
@@ -337,11 +353,11 @@ void CameraRPC::ExpImp2Bundle(const std::string & aSysOut,
 		//convert from goedetic CS to the user-selected CS 
 		std::string aCmdTmp = " " + aLPHFiTmp + " > " + aXYZFiTmp;
 		std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " + 
-			             "+proj=longlat +datum=WGS84" + " +to " + aSysOut + 
+			             "+proj=longlat +datum=WGS84" + " +to " + mCS + 
 				     aCmdTmp;
 
-		int aRes = system(cmdConv.c_str());		
-		ELISE_ASSERT(aRes == 0, " Error calling cs2cs");
+		int aRunOK = system(cmdConv.c_str());		
+		ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
 
 		//read-in the converted bundle grid
 		std::vector<Pt3dr> aPtsTmp;
@@ -367,7 +383,7 @@ void CameraRPC::ExpImp2Bundle(const std::string & aSysOut,
 
 			}
 
-		ExpImp2Bundle(aSysOut, aGridToExp);
+		ExpImp2Bundle(aGridToExp);
 	}
 	else
 	{
@@ -408,7 +424,7 @@ void CameraRPC::ExpImp2Bundle(const std::string & aSysOut,
 
 /* For a defined image grid, 
  * extrude to rays and intersect at the line of optical centers */
-void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
+void CameraRPC::OpticalCenterLineGrid(bool aIfSave)
 {
     int aL, aS;
     std::vector<Pt3dr> aVPts;
@@ -451,9 +467,9 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
     //convert from geodetic CS to the user-defined CS
     std::string aCmdTmp = " " + aSavGeo + " > " + aSavUCS;
     std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " +
-                         "+proj=longlat +datum=WGS84" + " +to " + aCSysOut + aCmdTmp;
-    int aRes = system(cmdConv.c_str());
-    ELISE_ASSERT(aRes == 0, " Error calling cs2cs");
+                         "+proj=longlat +datum=WGS84" + " +to " + mCS + aCmdTmp;
+    int aRunOK = system(cmdConv.c_str());
+    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
 
 
     //read-in the converted bundles
@@ -501,7 +517,7 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 
 
 	if(aIsOK==false)
-	    std::cout << "not intersected in CameraRPC::OpticalCenterLineTer" << std::endl;
+	    std::cout << "not intersected in CameraRPC::OpticalCenterLineGrid" << std::endl;
 
     }
     mOptCentersIsDef = true; 
@@ -525,6 +541,311 @@ void CameraRPC::OpticalCenterLineTer(const std::string & aCSysOut, bool aIfSave)
 
 }
 
+//Find the optical center for each sensor line
+void CameraRPC::OpticalCenterPerLine()
+{
+    int aL, aS;
+    int aSNum = 100;
+    int aSGrid = SzBasicCapt3D().y/aSNum; 
+
+    //collect the bundles in geodetic CS and save to txt
+    std::vector<Pt3dr> aVPts;
+    std::string aDirTmp = "PBoptCenter";
+    std::string aSavGeo = aDirTmp + "/bundleGeo" + mCamNom + ".txt";
+    std::string aSavUCS = aDirTmp + "/bundleUCS" + mCamNom + ".txt";
+
+    ELISE_fp::MkDirSvp(aDirTmp);
+    std::ofstream aFO(aSavGeo.c_str());
+    aFO << std::setprecision(15);
+
+    ElSeg3D aSegTmp(Pt3dr(0,0,0), Pt3dr(0,0,0));
+    for( aL=0; aL<SzBasicCapt3D().x; aL++)
+    {
+	for( aS=0; aS<aSNum; aS++)
+	{
+	    aSegTmp = Capteur2RayTer( Pt2dr(aS*aSGrid, aL));
+            aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n"   
+                << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
+	}
+    }
+    aFO.close();
+
+
+
+    //convert from geodetic CS to the user-defined CS
+    std::string aCmdTmp = " " + aSavGeo + " > " + aSavUCS;
+    std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " +
+                         "+proj=longlat +datum=WGS84" + " +to " + mCS + aCmdTmp;
+    int aRunOK = system(cmdConv.c_str());
+    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
+
+
+    //read-in the converted bundles
+    std::vector<Pt3dr> aPtsTmp;
+    double aXtmp, aYtmp, aZtmp;
+    std::ifstream aFI(aSavUCS.c_str());
+    while( !aFI.eof() && aFI.good() )
+    {
+        aFI >> aXtmp >> aYtmp >> aZtmp;
+        aPtsTmp.push_back(Pt3dr(aXtmp,aYtmp,aZtmp));
+    }
+    aFI.close();
+
+
+    //do the intersection on respective segments in the user-def CS
+    mOpticalCenters = new std::vector<Pt3dr>();
+    //cRapOnZ * aRAZ = new cRapOnZ(680000.0,10,10,"");
+    //cResOptInterFaisceaux * aROIF;
+    std::cout.precision(15);
+    int aCntTmp=0;
+    for( aL=0; aL<SzBasicCapt3D().x; aL++)
+    {
+	std::vector<ElSeg3D> aVS;
+	std::vector<double>  aVPds;
+        
+	for( aS=0; aS<aSNum; aS++)
+	{
+	    aVPds.push_back(0.5);
+            aVS.push_back( ElSeg3D(aPtsTmp.at(aCntTmp),
+				   aPtsTmp.at(aCntTmp+1)) );
+
+	    aCntTmp++;
+	    aCntTmp++;
+
+	}
+
+	//intersect
+	bool aIsOK;
+	//mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK, aRAZ) );
+	mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
+
+
+	if(aIsOK==false)
+	    std::cout << "not intersected in CameraRPC::OpticalCenterPerLine" << std::endl;
+
+    }
+    mOptCentersIsDef = true; 
+
+    if(1)
+    {
+	std::string aSaveFile = aDirTmp + "/OpticalCentersPerL" + mCamNom + ".txt";
+        std::ofstream aFO(aSaveFile.c_str());
+        aFO << std::setprecision(15);
+
+        unsigned int i;	
+	for(i=0; i<mOpticalCenters->size(); i++)
+	    aFO << mOpticalCenters->at(i).x 
+		<< " " << mOpticalCenters->at(i).y 
+		<< " " << mOpticalCenters->at(i).z
+		<< "\n";
+	
+        aFO.close();
+    }
+
+}
+
+/* Intersect the ray at pixel aP with the line of optical centers by
+ * - finding the ElSeg on the optical center corresponding to a line before and after aP (this is not very reliable when the center is noisy)
+ * - intersecting the aP ray with the segment */
+Pt3dr CameraRPC::OpticalCenterOfPixel_Old(const Pt2dr & aP) const
+{
+    //check image rand conditions
+    int aLineShift = 50;
+    int aPreLine, aPostLine;
+    ElSeg3D aOptSeg(Pt3dr(0,0,0),Pt3dr(0,0,0));
+    std::vector<double>  aVPds(2,0.5);
+    std::vector<ElSeg3D> aVS;
+
+    if(aP.x > aLineShift) 
+    {
+	if(aP.x < (SzBasicCapt3D().x - aLineShift - 1))
+	{	
+            aPreLine  = int(aP.x) - aLineShift;
+            aPostLine = int(aP.x) + aLineShift;
+	}
+	else
+	{
+	    aPreLine  = int(aP.x) - 2*aLineShift;
+	    aPostLine = int(aP.x);    
+	}
+    }
+    else
+    {
+        aPreLine  = int(aP.x);
+        aPostLine = int(aP.x) + 2*aLineShift;
+    }
+
+    //retrieve aP ray
+    aOptSeg = Capteur2RayTer(Pt2dr(aP.y,aP.x));
+    
+    //convert from geo to carto coordinates
+    std::ofstream aFO("GeoTemp.txt");
+    aFO << aOptSeg.P0().x << " " << aOptSeg.P0().y << " " << aOptSeg.P0().z << "\n"
+	<< aOptSeg.P1().x << " " << aOptSeg.P1().y << " " << aOptSeg.P1().z << "\n";
+    aFO.close();
+
+    std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " +
+                         "+proj=longlat +datum=WGS84" + " +to " + mCS + " " +
+			 "GeoTemp.txt > CartoTemp.txt";
+    int aRunOK = system(cmdConv.c_str());
+    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
+
+    //read-in the converted ray segment
+    Pt3dr aSP1, aSP2;
+    std::ifstream aFI("CartoTemp.txt");
+    if( !aFI.eof() && aFI.good() )
+    {
+        aFI >> aSP1.x >> aSP1.y >> aSP1.z
+	    >> aSP2.x >> aSP2.y >> aSP2.z;
+    
+        aOptSeg = ElSeg3D(aSP1,aSP2);
+    }
+    else
+        ELISE_ASSERT(false, " Error reading converted coordinates, CameraRPC::OpticalCenterOfPixel");
+  
+    std::cout << "ap " << aP << std::endl;
+    std::cout << "pre " << (aPreLine) << std::endl;
+    std::cout << "post " << (aPostLine) << std::endl;
+    std::cout << "g " << aVPds.at(0) << " " << aVPds.at(1) << std::endl;
+
+
+    //collect the respective segments
+    aVS.push_back(ElSeg3D(mOpticalCenters->at(aPreLine),mOpticalCenters->at(aPostLine)));
+    aVS.push_back(aOptSeg);
+
+    //intersect the segments
+    bool aIsOK;
+    Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+
+    if(aIsOK==false)
+        std::cout << "not intersected in CameraRPC::OpticalCenterOfPixel" << std::endl;
+
+    return(aRes);
+
+}
+
+Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
+{
+    return OpticalCenterOfLine(aP.x);
+}
+
+Pt3dr CameraRPC::OpticalCenterOfLine(const double & aL) const
+{
+    int aS;
+    int aSNum = 1000;
+    int aSGrid = SzBasicCapt3D().y/aSNum;
+
+    std::vector<Pt3dr> aVPts;
+    std::string aDirTmp = "PBoptCenter";
+    std::string aSavGeo = aDirTmp + "/bundleGeo" + mCamNom + ".txt";
+    std::string aSavUCS = aDirTmp + "/bundleUCS" + mCamNom + ".txt";
+
+    ELISE_fp::MkDirSvp(aDirTmp);
+    std::ofstream aFO(aSavGeo.c_str());
+    aFO << std::setprecision(15);
+
+    ElSeg3D aSegTmp(Pt3dr(0,0,0), Pt3dr(0,0,0));
+    for( aS=0; aS<aSNum; aS++)
+    {
+        aSegTmp = Capteur2RayTer( Pt2dr(aS*aSGrid, aL));
+        aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n"   
+            << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
+    }
+    aFO.close();
+
+    //convert from geodetic CS to the user-defined CS
+    std::string aCmdTmp = " " + aSavGeo + " > " + aSavUCS;
+    std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " +
+                         "+proj=longlat +datum=WGS84" + " +to " + mCS + aCmdTmp;
+    int aRunOK = system(cmdConv.c_str());
+    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
+
+
+    //read-in the converted bundles
+    std::vector<Pt3dr> aPtsTmp;
+    double aXtmp, aYtmp, aZtmp;
+    std::ifstream aFI(aSavUCS.c_str());
+    while( !aFI.eof() && aFI.good() )
+    {
+        aFI >> aXtmp >> aYtmp >> aZtmp;
+        aPtsTmp.push_back(Pt3dr(aXtmp,aYtmp,aZtmp));
+    }
+    aFI.close();
+
+
+    //do the intersection on respective segments in the user-def CS
+    //cRapOnZ * aRAZ = new cRapOnZ(680000.0,10,10,"");
+    //cResOptInterFaisceaux * aROIF;
+    std::cout.precision(15);
+    int aCntTmp=0;
+    std::vector<ElSeg3D> aVS;
+    std::vector<double>  aVPds;
+        
+    for( aS=0; aS<aSNum; aS++)
+    {
+        aVPds.push_back(0.5);
+        aVS.push_back( ElSeg3D(aPtsTmp.at(aCntTmp),
+                  	       aPtsTmp.at(aCntTmp+1)) );
+
+	aCntTmp++;
+        aCntTmp++;
+
+    }
+
+    //intersect
+    bool aIsOK;
+    //( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK, aRAZ) );
+    Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+
+    if(aIsOK==false)
+        std::cout << "not intersected in CameraRPC::OpticalCenterOfLine" << std::endl;
+
+
+    return aRes;
+}
+
+void CameraRPC::TestDirectRPCGen()
+{
+    mRPC->TestDirectRPCGen(mCS);
+}
+
+void  CameraRPC::testy(const Pt2dr & aP) const
+{
+    //collect points for the fit
+    //compute point1 & 2 outside the line that will lie on plane1 & 2 respectively
+    //load system equation 
+    //  plane1: A*Xi + BYi + CZi + D = 0
+    //  plane2: E*Xi + FYi + GZi + H = 0
+    //solve for A..H
+
+    //find a 3d line by intersecting plane1 & 2
+    //  [A,B,C] x [E,F,G]
+    //find the x0 of the line
+
+}
+
+bool CameraRPC::HasOpticalCenterOfPixel() const
+{
+    if(mOptCentersIsDef)
+        return true;
+    else
+	return false;
+}
+
+void CameraRPC::FindUTMCS()
+{
+    //there are some places for which the formula does not work
+    ostringstream zone;
+    zone << std::floor((mRPC->first_lon + 180)/6 + 1);
+	
+
+    if( mRPC->first_lat>0 )
+        mCS = "+proj=utm +zone=" + zone.str() + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
+    else
+        mCS = "+proj=utm +zone=" + zone.str() + " +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
+
+    std::cout << mCS << std::endl;
+}
 
 /***********************************************************************/
 /*                           CameraAffine                              */

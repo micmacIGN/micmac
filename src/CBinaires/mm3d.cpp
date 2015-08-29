@@ -667,6 +667,7 @@ extern int Aster2Grid_main(int argc, char **argv);
 extern int AsterDestrip_main(int argc, char **argv);
 extern int SATtoBundle_main(int argc,char ** argv);
 extern int SATvalid_main(int argc,char ** argv);
+extern int CPP_TestRPCDirectGen(int argc,char ** argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
@@ -682,6 +683,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
     aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
     aRes.push_back(cMMCom("SATtoBundle", SATtoBundle_main, "Export a satellite image to a grid of bundles"));
     aRes.push_back(cMMCom("SATValid", SATvalid_main, "Validate the prj function by either retrieving the line of optical centers or the provided GCPs"));
+    aRes.push_back(cMMCom("TestRPC", CPP_TestRPCDirectGen, "Test the calculation of direct RPCs"));
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(), aRes.end(), CmpMMCom);
 

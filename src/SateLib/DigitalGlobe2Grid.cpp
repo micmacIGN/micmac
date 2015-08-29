@@ -36,7 +36,8 @@ int DigitalGlobe2Grid_main(int argc, char **argv)
     cout << "RPB File read" << endl;
 
 	//Generating a 50*50 grid on the normalized space with random normalized heights
-	vector<Pt3dr> aGridGeoNorm = aRPC.GenerateRandNormGrid(50);//50 is the size of grid for generated GCPs (50*50)
+	Pt2di aGridSz(50, 50);
+	vector<Pt3dr> aGridGeoNorm = aRPC.GenerateRandNormGrid(aGridSz);//50 is the size of grid for generated GCPs (50*50)
 
 	//Converting the points to image space
 	vector<Pt3dr> aGridImNorm;
