@@ -9,13 +9,13 @@
 
        <DicoLoc>
 
-           <Symb>  SetIm=IMGP939[6-9].PEF </Symb>
-           <Symb>  SetImGB=IMGP940[0-1].PEF </Symb>
 
 <!--
-           <Symb>  SetIm=_MG_009[6-9].CR2 </Symb>
-           <Symb>  SetImGB=(_MG_010[0-4].CR2) </Symb>
+           <Symb>  SetIm=IMGP939[6-9].PEF </Symb>
+           <Symb>  SetImGB=IMGP940[0-1].PEF </Symb>
 -->
+           <Symb>  SetIm=_MG_009[9-9].CR2 </Symb>
+           <Symb>  SetImGB=(_MG_010[0-0].CR2) </Symb>
 
 
            <Symb>  AeroIn=-Bundle </Symb>
@@ -24,8 +24,8 @@
            <Symb>  Ext=dat </Symb>
 
            <Symb>  LibParamInterne=eAllParamFiges  </Symb>
-           <Symb>  SigmaTieP=1  </Symb>
-           <Symb>  FactMaxRes=5  </Symb>
+           <Symb>  SigmaTieP=4  </Symb>
+           <Symb>  FactMaxRes=50  </Symb>
            <Symb>  NbLiais=100 </Symb>
 
 
@@ -137,12 +137,21 @@
                           <ContraintesCamerasInc>
                               <Val> eAllParamFiges  </Val>
                           </ContraintesCamerasInc>
+                          <ContraintesPoses>
+                                   <NamePose>   ${SetIm} </NamePose>
+                                   <ByPattern>  true </ByPattern>
+                                   <Val>      ePoseFigee   </Val>
+                          </ContraintesPoses>
+
 
                        </SectionContraintes>
 
                    </IterationsCompensation>
 
 
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
                    <IterationsCompensation> </IterationsCompensation>
 
 
@@ -161,8 +170,8 @@
 
                           <ContrCamGenInc>
                                <PatternApply> .*  </PatternApply>
-                               <PdsAttachToId>   1.0     </PdsAttachToId>
-                               <PdsAttachToLast> 10.0    </PdsAttachToLast>
+                               <PdsAttachToId>   1e-5     </PdsAttachToId>
+                               <PdsAttachToLast> 1e-3    </PdsAttachToLast>
                           </ContrCamGenInc>
 
 		    </SectionObservations>

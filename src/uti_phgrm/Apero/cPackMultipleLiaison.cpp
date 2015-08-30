@@ -177,6 +177,7 @@ cOneCombinMult::cOneCombinMult
    mGenVP (aVP)
 {
 
+
    for (int aK=0 ; aK<aFlag.Capacite() ; aK++)
    {
        if (aFlag.IsIn(aK))
@@ -184,6 +185,7 @@ cOneCombinMult::cOneCombinMult
           mNumCams.push_back(aK);
        }
    }
+   // std::cout << "JJJJJJJJ : " << aVCF.size()  << " " << mNumCams.size() << "\n"; getchar();
 }
 
 cManipPt3TerInc * cOneCombinMult::LiaisTer()
