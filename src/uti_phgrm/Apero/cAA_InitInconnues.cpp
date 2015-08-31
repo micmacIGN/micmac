@@ -91,7 +91,6 @@ void cAppliApero::InitCalibCam()
 void cAppliApero::InitPoses()
 {
     CompileInitPoseGen(false);
-    InitGenPoses();
 }
 
 void cAppliApero::InitGenPoses()
@@ -104,13 +103,15 @@ void cAppliApero::InitGenPoses()
 
 void  cAppliApero::InitGenPoses(const cCamGenInc& aCGI)
 {
-    std::list<std::string> aLName  = mICNM->StdGetListOfFile(aCGI.PatterName(),1);
+    std::list<std::string> aLName  = mICNM->StdGetListOfFile(aCGI.PatterName(),1,aCGI.ErrorWhenEmpytPat().Val());
 
     for (std::list<std::string>::const_iterator itN=aLName.begin() ; itN!=aLName.end() ; itN++)
     {
          cPosePolynGenCam * aPPGC = new cPosePolynGenCam(*this,*itN,aCGI.Orient());
          mVecPolynPose.push_back(aPPGC);
          mVecGenPose.push_back(aPPGC);
+         mDicoGenPose[*itN] = aPPGC;
+
     }
 
 }
@@ -121,6 +122,7 @@ void  cAppliApero::InitGenPoses(const cCamGenInc& aCGI)
 void cAppliApero::PreCompilePose()
 {
    CompileInitPoseGen(true);
+   InitGenPoses();
 }
 
 
@@ -264,8 +266,8 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
                   if((aFilter==0) || (aFilter->Match(*aNewN)))
                   {
                      bool isNew = isPrecComp                          ?
-                                  (! NamePoseIsKnown(*aNewN))         :
-                                  (      (NamePoseIsKnown(*aNewN))
+                                  (! NamePoseCSIsKnown(*aNewN))         :
+                                  (      (NamePoseCSIsKnown(*aNewN))
                                      &&  (! PoseFromName(*aNewN)->PreInit()) 
                                   );
                      if (isNew)
@@ -443,10 +445,11 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
               {
 	          cPoseCam * aPC = cPoseCam::Alloc(*this,*itP,*itS,aNameCal,aCAOI);
 	          mDicoPose[*itS] = aPC;
+	          mDicoGenPose[*itS] = aPC;
                   mVecPose.push_back(aPC);
                   mVecGenPose.push_back(aPC);
-                  tGrApero::TSom & aSom = mGr.new_som(aPC);
-                  aPC->SetSom(aSom);
+                  // tGrApero::TSom & aSom = mGr.new_som(aPC);
+                  // aPC->SetSom(aSom);
                   if (! isMST)
                      aPC->InitCpt();
 

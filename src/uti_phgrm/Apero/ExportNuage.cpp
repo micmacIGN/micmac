@@ -157,7 +157,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
        )
        {
            cObsLiaisonMultiple * anOLM = itDM->second;
-           cPoseCam *  aPC =  anOLM->Pose1();
+           cGenPoseCam *  aPC =  anOLM->Pose1();
            std::string aNameFile = mICNM->Assoc1To1(anEN.KeyFileColImage(),aPC->Name(),true);
            eModeAGP aMode = eModeAGPIm;
 

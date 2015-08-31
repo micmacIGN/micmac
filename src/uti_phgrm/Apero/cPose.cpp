@@ -54,12 +54,6 @@ void cPoseCam::SetNameCalib(const std::string & aNameC)
 static int theNumCreate =0;
 
 
-void cPoseCam::C2MCompenseMesureOrInt(Pt2dr & aPC)
-{
-   aPC = mOrIntC2M(aPC);
-}
-
-
 
 void cPoseCam::SetOrInt(const cTplValGesInit<cSetOrientationInterne> & aTplSI)
 {
@@ -100,6 +94,10 @@ void cPoseCam::SetOrInt(const cTplValGesInit<cSetOrientationInterne> & aTplSI)
 cPoseCam * cPoseCam::DownCastPoseCamSVP() {return this;}
 const cPoseCam * cPoseCam::DownCastPoseCamSVP() const {return this;}
 
+cCalibCam *  cPoseCam::CalibCam() const {return mCalib;}
+cGenPDVFormelle *   cPoseCam::PDVF()  {return  mCF;}
+const cGenPDVFormelle *   cPoseCam::PDVF() const  {return  mCF;}
+
 
 cPoseCam::cPoseCam
 (
@@ -128,38 +126,26 @@ cPoseCam::cPoseCam
     mAltiSol     (ALTISOL_UNDEF()),
     mProfondeur  (PROF_UNDEF()),
     mTime        (TIME_UNDEF()),
-    mSomPM       (0),
     mPrioSetAlPr (-1),
-    mRotIsInit   (false),
     mLastCP      (0),
-    mSom         (0),
     mCompAOI     (aCompAOI),
     mFirstBoxImSet (false),
     mImageLoaded (false),
     mBoxIm       (Pt2di(0,0),Pt2di(0,0)),
     mIm          (1,1),
     mTIm         (mIm),
-    mMasqH       (mAppli.MasqHom(aNamePose)),
-    mTMasqH      (mMasqH ? new  TIm2DBits<1>(*mMasqH) : 0),
-    mPreInit     (false),
+    // mMasqH       (mAppli.MasqHom(aNamePose)),
+    // mTMasqH      (mMasqH ? new  TIm2DBits<1>(*mMasqH) : 0),
     // mObsCentre   (0,0,0),
     mHasObsOnCentre (false),
     mHasObsOnVitesse (false),
     mLastItereHasUsedObsOnCentre (false),
-    mNumTmp       (-12345678),
-    mNbPtsMulNN   (-1),
     mNumBande     (0),
     mPrec         (NULL),
     mNext         (NULL),
     mNumCreate    (theNumCreate++),
-    mCurLayer     (0), 
-    mOrIntM2C     (ElAffin2D::Id()),
-    mOrIntC2M     (ElAffin2D::Id()),
     mNbPosOfInit  (-1),
     mFidExist     (false),
-    mLastEstimProfIsInit (false),
-    mLasEstimtProf       (-1),
-    mCdtImSec            (0),
     mCamNonOrtho         (0),
     mEqOffsetGPS         (0)
 {
@@ -237,11 +223,6 @@ int cPoseCam::NumCreate() const
    return mNumCreate;
 }
 
-int & cPoseCam::NumTmp()
-{
-   return mNumTmp;
-}
-
 
 bool cPoseCam::AcceptPoint(const Pt2dr & aP) const
 {
@@ -263,19 +244,17 @@ bool cPoseCam::FidExist() const
 }
 
 
-const ElAffin2D &  cPoseCam::OrIntM2C() const
-{
-   return mOrIntM2C;
-}
-const ElAffin2D &  cPoseCam::OrIntC2M() const
-{
-   return mOrIntC2M;
-}
 
 
 bool cPoseCam::IsInZoneU(const Pt2dr & aP) const
 {
    return mCalib->IsInZoneU(aP);
+}
+
+
+Pt2di  cPoseCam::SzCalib() const
+{
+   return Calib()->SzIm();
 }
 
 void cPoseCam::SetLink(cPoseCam * aPrec,bool OK)
@@ -389,20 +368,7 @@ void cPoseCam::UpdateHeriteProf2Init(const  cPoseCam & aC2)
     ElSetMax(mProf2Init,1+aC2.mProf2Init);
 }
 
-void cPoseCam::SetSom(tGrApero::TSom & aSom)
-{
-   mSom = & aSom;
-}
 
-tGrApero::TSom * cPoseCam::Som()
-{
-   return mSom;
-}
-
-bool cPoseCam::PreInit() const
-{
-   return mPreInit;
-}
 
 cPoseCam * cPoseCam::PoseInitMST1()
 {
@@ -447,25 +413,12 @@ ElRotation3D cPoseCam::CurRot() const
    return mRF->CurRot();
 }
 
-int   cPoseCam::NbPtsMulNN() const 
-{
-   return mNbPtsMulNN;
-}
-
-void  cPoseCam::SetNbPtsMulNN(int aNbNN) 
-{
-  mNbPtsMulNN = aNbNN;
-}
 
 
 const std::string &  cPoseCam::NameCalib() const
 {
    return mCalib->CCI().Name();
 }
-
-cAnalyseZoneLiaison  &  cPoseCam::AZL() {return mAZL;}
-double               &  cPoseCam::QualAZL() {return mQualAZL;}
-int                  &  cPoseCam::NbPLiaisCur() {return mNbPLiaisCur;}
 
 
 
@@ -480,18 +433,10 @@ void cPoseCam::SetRattach(const std::string & aNameRat)
    }
 }
 
-void    cPoseCam::InitAvantCompens()
+void    cPoseCam::VirtualInitAvantCompens()
 {
     mLastItereHasUsedObsOnCentre = false;
     AssertHasNotCamNonOrtho();
-    if (PMoyIsInit())
-    {
-       mLasEstimtProf =   ProfMoyHarmonik();
-       mLastEstimProfIsInit = true;
-    }
-    mPMoy = Pt3dr(0,0,0);
-    mMoyInvProf =0;
-    mSomPM = 0;
 }
 
 const CamStenope *  cPoseCam::CurCam() const
@@ -505,6 +450,10 @@ CamStenope *  cPoseCam::NC_CurCam()
    return  mCF->NC_CameraCourante() ;
 }
 
+const cBasicGeomCap3D * cPoseCam::GenCurCam () const { return CurCam(); }
+cBasicGeomCap3D * cPoseCam::GenCurCam () { return NC_CurCam(); }
+
+
 
 
 
@@ -515,28 +464,6 @@ CamStenope *  cPoseCam::DupCurCam() const
 }
 
 
-void    cPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
-{
-   double aPds = (aBSurH-mAppli.Param().LimInfBSurHPMoy().Val());
-   aPds /= (mAppli.Param().LimSupBSurHPMoy().Val() - mAppli.Param().LimInfBSurHPMoy().Val());
-   if (aPds<0) return;
-
-    const CamStenope * aCS = CurCam() ;
-    if (mTMasqH)
-    {
-      Pt2di aPIm =  round_ni(aCS->R3toF2(aP));
-      
-      if (! mTMasqH->get(aPIm,0))
-         return;
-    }
-    double aProf = aCS->ProfondeurDeChamps(aP);
-
-    
-    mPMoy = mPMoy + aP * aPds;
-    mMoyInvProf  += (1/aProf) * aPds;
-    mSomPM  += aPds ;
- 
-}
 
 double cPoseCam::GetProfDyn(int & Ok) const
 {
@@ -564,23 +491,8 @@ double cPoseCam::GetProfDyn(int & Ok) const
     return 0;
 }
 
-bool     cPoseCam::PMoyIsInit() const
-{
-   return mSomPM != 0;
-}
-
-Pt3dr   cPoseCam::GetPMoy() const
-{
-   ELISE_ASSERT(PMoyIsInit(),"cPoseCam::GetPMoy");
-   return mPMoy / mSomPM;
-}
 
 
-double   cPoseCam::ProfMoyHarmonik() const
-{
-   ELISE_ASSERT(PMoyIsInit(),"cPoseCam::ProfMoyHarmonik");
-   return 1.0 / (mMoyInvProf/mSomPM);
-}
 
 
 
@@ -711,7 +623,7 @@ cPoseCam * cPoseCam::Alloc
     {
         // En fait le tri sur les variables n'avait pas d'effet puisque la fonction est symetrique !!
         AllowUnsortedVarIn_SetMappingCur = true;
-        aPRat = anAppli.PoseFromNameGen
+        aPRat = anAppli.PoseCSFromNameGen
                 (
                     aPCI.PosesDeRattachement().Val(),
                     aPCI.NoErroOnRat().Val()
@@ -1510,16 +1422,6 @@ std::cout << " Opt " << mName << " :: " << mCpt << "\n";
 }
 
 
-bool cPoseCam::RotIsInit() const
-{
-    return mRotIsInit;
-}
-
-bool cPoseCam::CanBeUSedForInit(bool OnInit) const
-{
-   return OnInit ? RotIsInit() : PreInit() ;
-}
-
 
 void cPoseCam::SetFigee()
 {
@@ -1649,26 +1551,6 @@ bool cPoseCam::PtForIm(const Pt3dr & aPTer,const Pt2di & aRab,bool Add)
     return true;
 }
 
-void cPoseCam::ResetStatR()
-{
-  mStatRSomP =0;
-  mStatRSomPR =0;
-  mStatRSom1 =0;
-}
-
-void cPoseCam::AddStatR(double aPds,double aRes)
-{
-  mStatRSomP += aPds;
-  mStatRSomPR += aPds * aRes;
-  mStatRSom1 += 1;
-}
-
-void cPoseCam::GetStatR(double & aSomP,double & aSomPR,double & aSom1) const
-{
-   aSomP = mStatRSomP;
-   aSomPR = mStatRSomPR;
-   aSom1  = mStatRSom1;
-}
 
 
 bool cPoseCam::ImageLoaded() const
@@ -1729,15 +1611,12 @@ void cPoseCam::CloseAndLoadIm(const Pt2di & aRab)
 
     //   ACCESSEURS 
 
-cCalibCam * cPoseCam::Calib() { return mCalib;}
+cCalibCam * cPoseCam::Calib() const { return mCalib;}
 cCameraFormelle * cPoseCam::CamF() {return mCF;}
 double cPoseCam::AltiSol() const {return mAltiSol;}
 double cPoseCam::Profondeur() const {return mProfondeur;}
 
-bool cPoseCam::HasMasqHom() const { return mMasqH !=0; }
 int  cPoseCam::NumInit() const {return mNumInit;}
-
-cPoseCdtImSec *  & cPoseCam::CdtImSec() {return mCdtImSec;}
 
 /*
 bool &   cPoseCam::MMSelected() { return mMMSelected;}
@@ -1820,7 +1699,7 @@ std::vector<cPoseCam*>  cAppliApero::VecLoadedPose(const cOnePtsMult & aPM,int a
        {
            if (mVecLoadedPose[aKp]->PtForIm(aResidu->mPTer,aPRab,false))
            {
-               if (mVecLoadedPose[aKp]==aPM.Pose0())
+               if (mVecLoadedPose[aKp]==aPM.GenPose0()->DownCastPoseCamNN())
                {
                    aRes.push_back(mVecLoadedPose[aKp]);
                }
@@ -1865,6 +1744,12 @@ Pt3dr cPoseCam::CurCentre() const
 {
     return  CurRot().ImAff(Pt3dr(0,0,0));
 }
+
+Pt3dr cPoseCam::CurCentreOfPt(const Pt2dr & ) const
+{
+   return CurCentre();
+}
+
 
 Pt3dr  cPoseCam::AddObsCentre
       (
@@ -1953,37 +1838,6 @@ Pt3dr  cPoseCam::AddObsCentre
     
 }
 
-cOneImageOfLayer * cPoseCam::GetCurLayer()
-{
-   if (mCurLayer==0)
-   {
-      std::cout << "FOR NAME POSE " << mName << "\n";
-      ELISE_ASSERT(false,"Cannot get layer");
-   }
-   return mCurLayer;
-}
-
-void cPoseCam::SetCurLayer(cLayerImage * aLI)
-{
-    mCurLayer = aLI->NamePose2Layer(mName);
-}
-
-
-void cPoseCam::ResetPtsVu()
-{
-   mPtsVu.clear();
-}
-
-void cPoseCam::AddPtsVu(const Pt3dr & aP)
-{
-   mPtsVu.push_back(aP);
-}
-
-
-const std::vector<Pt3dr> &  cPoseCam::PtsVu() const
-{
-    return mPtsVu;
-}
 
 
 /************************************************************/
@@ -2045,7 +1899,7 @@ cClassEquivPose * cRelEquivPose::AddAPose(cPoseCam * aPC,const std::string & aNa
    return aCEP;
 }
 
-cClassEquivPose &  cRelEquivPose::ClassOfPose(const cPoseCam & aPC)
+cClassEquivPose &  cRelEquivPose::ClassOfPose(const cGenPoseCam & aPC)
 {
    cClassEquivPose * aCEP = mPos2C[aPC.Name()];
    if (aCEP==0)
@@ -2056,7 +1910,7 @@ cClassEquivPose &  cRelEquivPose::ClassOfPose(const cPoseCam & aPC)
    return *aCEP;
 }
 
-bool cRelEquivPose::SameClass(const cPoseCam & aPC1,const cPoseCam & aPC2)
+bool cRelEquivPose::SameClass(const cGenPoseCam & aPC1,const cGenPoseCam & aPC2)
 {
    return ClassOfPose(aPC1).Id() == ClassOfPose(aPC2).Id();
 }
@@ -2110,7 +1964,7 @@ cRelEquivPose * cAppliApero::RelFromId(const std::string & anId)
 }
 
 
-bool cAppliApero::SameClass(const std::string& anId,const cPoseCam & aPC1,const cPoseCam & aPC2)
+bool cAppliApero::SameClass(const std::string& anId,const cGenPoseCam & aPC1,const cGenPoseCam & aPC2)
 {
    return RelFromId(anId)->SameClass(aPC1,aPC2);
 }
@@ -2136,9 +1990,15 @@ void cAppliApero::AddObservationsRigidGrp(const cObsRigidGrpImage & anORGI,bool 
             {
                 for (int aK2=aK1+1 ; aK2<aNb ; aK2++)
                 {
-                    cPoseCam * aCP1 = aGrp[aK1]->DownCastPoseCamNN();
-                    cPoseCam * aCP2 = aGrp[aK2]->DownCastPoseCamNN();
+                    cPoseCam * aCP1 = aGrp[aK1]->DownCastPoseCamSVP();
+                    cPoseCam * aCP2 = aGrp[aK2]->DownCastPoseCamSVP();
 
+
+                    if ((! aCP1) || (!aCP2))
+                    {
+                        std::cout << "For " << aGrp[aK1]->Name() << " "<< aGrp[aK2]->Name() << "\n";
+                        ELISE_ASSERT(false,"Non stenope cam use in ddObservationsRigidGrp");
+                    }
 
                     cRotationFormelle & aRF1 =  aCP1->RF();
                     cRotationFormelle & aRF2 =  aCP2->RF();

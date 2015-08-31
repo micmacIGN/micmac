@@ -1463,6 +1463,7 @@ class cBasicGeomCap3D
 // When they are, they may vary, as with push-broom, Def fatal erreur (=> Ortho cam)
       virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ; 
 
+      virtual Pt3dr    ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
 // Compute the differential, defaut value compute it by finite difference,at step ResolSolOfPt, 
 // to accelerate it is note centered en reuse the value PIm
       virtual void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);
@@ -1471,6 +1472,10 @@ class cBasicGeomCap3D
 
       // Down cast , dirty but usefull ;-)
       virtual CamStenope * DownCastCS() ;
+
+      virtual Pt3dr DirRayonR3(const Pt2dr & aPIm) const;
+      virtual double ProfondeurDeChamps(const Pt3dr & aP) const;
+      virtual Pt3dr DirVisee() const;
 };
 
 
@@ -1482,7 +1487,7 @@ class cBasicGeomCap3D
 class cCapture3D : public cBasicGeomCap3D
 {
    public :
-      virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
+      // virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
 
       virtual bool  HasRoughCapteur2Terrain() const = 0;
       virtual bool  HasPreciseCapteur2Terrain() const = 0;
@@ -1505,6 +1510,7 @@ class ElCamera : public cCapture3D
          const bool &   IsScanned() const;
          void  SetScanned(bool mIsSC);
 
+         Pt3dr DirRayonR3(const Pt2dr & aPIm) const;
          Pt2di    SzBasicCapt3D() const; 
          bool  CaptHasData(const Pt2dr &) const ;
          Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
@@ -1557,8 +1563,8 @@ class ElCamera : public cCapture3D
           // Pour compatibilite stricte avec ce qui etait fait avant
          // dans cDistStdFromCam::Diff
           virtual double SzDiffFinie() const = 0;
-     Pt3dr DirVisee() const;
-     double ProfondeurDeChamps(const Pt3dr & aP) const;
+          Pt3dr DirVisee() const;
+          double ProfondeurDeChamps(const Pt3dr & aP) const;
 
           virtual double ResolutionSol() const = 0;
           virtual double ResolutionSol(const Pt3dr &) const = 0;

@@ -125,7 +125,7 @@ void cArgGetPtsTerrain::AddAGP
            double aPds,
            bool aReduc,
            const std::vector<double> * aVPds ,
-           const std::vector<cPoseCam *> * aVPose
+           const std::vector<cGenPoseCam *> * aVPose
      )
 {
    if (mMasq)
@@ -187,8 +187,9 @@ void cArgGetPtsTerrain::AddAGP
                double aPds = (*aVPds)[aK];
                if (aPds > 0)
                {
-                   const CamStenope  * aCS = (*aVPose)[aK]->CurCam();
-                   Pt3dr aC = aCS->PseudoOpticalCenter();
+                   const cBasicGeomCap3D  * aCS = (*aVPose)[aK]->GenCurCam();
+                   // Pt3dr aC = aCS->PseudoOpticalCenter();
+                   Pt3dr aC = aCS->OpticalCenterOfPixel(aPIm);
                    aSomP +=  aPds;
                    aNorm  = aNorm + vunit(aC-aPts) * aPds;
                }
@@ -1622,7 +1623,7 @@ cArgVerifAero::~cArgVerifAero()
            {
                 if (aPHS.mPDS[aKP] >0)
                 {
-                    fprintf(aFP,"  -%s\n",aPHS.mPM->PoseK(aKP)->Name().c_str());
+                    fprintf(aFP,"  -%s\n",aPHS.mPM->GenPoseK(aKP)->Name().c_str());
                 }
            }
        }
@@ -1788,14 +1789,14 @@ void  cAppliApero::BlocBasculeOneWay
         {
             cOnePtsMult * aPM = aVMul[aKPm];
             cOneCombinMult * aCOM = aPM->OCM();
-            const std::vector<cPoseCam *> & aVP =  aCOM->VP();
+            const std::vector<cGenPoseCam *> & aVP =  aCOM->GenVP();
 
             int aNb1=0;
             int aNb2=0;
   //  Recherche rapide des mesures potentiellement valides
             for (int aKP=0 ; aKP<int (aVP.size()) ; aKP++)
             {
-                  cPoseCam & aPC = *(aVP[aKP]);
+                  cGenPoseCam & aPC = *(aVP[aKP]);
                   if (aPC.NumTmp() == aNum1) aNb1++;
                   if (aPC.NumTmp() == aNum2) aNb2++;
             }
@@ -1809,10 +1810,10 @@ void  cAppliApero::BlocBasculeOneWay
                 const cNupletPtsHomologues & aNP = aPM->NPts();
                 for (int aKP=0 ; aKP<int (aVP.size()) ; aKP++)
                 {
-                      cPoseCam & aPC = *(aVP[aKP]);
-                      const CamStenope * aCS =   aPC.CurCam();
-                      if (aPC.NumTmp() == aNum1) aV1.push_back(aCS->F2toRayonR3(aNP.PK(aKP)));
-                      if (aPC.NumTmp() == aNum2) aV2.push_back(aCS->F2toRayonR3(aNP.PK(aKP)));
+                      cGenPoseCam & aPC = *(aVP[aKP]);
+                      const cBasicGeomCap3D * aCS =   aPC.GenCurCam ();
+                      if (aPC.NumTmp() == aNum1) aV1.push_back(aCS->Capteur2RayTer(aNP.PK(aKP)));
+                      if (aPC.NumTmp() == aNum2) aV2.push_back(aCS->Capteur2RayTer(aNP.PK(aKP)));
 
                       double aBH1 = BSurH(aV1);
                       if (aBH1 > aSeuilBSurH)

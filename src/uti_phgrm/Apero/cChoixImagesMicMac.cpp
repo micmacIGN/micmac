@@ -669,7 +669,7 @@ bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
         if (aPMul.MemPds() >0)
         {
            cOneCombinMult * anOCM = aPMul.OCM();
-           const std::vector<cPoseCam *> & aVP = anOCM->VP();
+           const std::vector<cGenPoseCam *> & aVP = anOCM->GenVP();
            bool Ok = true;
            std::vector<double> aVPds;
            Pt3dr aPI = aPMul.QuickInter(aVPds);

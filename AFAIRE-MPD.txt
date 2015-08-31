@@ -1,3 +1,8 @@
+
+SBGlobAscule => OK si pas de plan (seulement mise a l'echelle), ou pas de line
+===================
+
+
 Merge Cloud : => PRISE EN COMPTE DE LA RESOLUTION , pour l'instant pas fait
 
 =================================

@@ -127,7 +127,7 @@ void  cOneAppuisFlottant::Compile()
     for (int aK=0; aK<int(mCams.size()) ; aK++)
     {
         mNupl->PK(aK) = mPts[aK];
-	aVCF.push_back(mCams[aK]->CamF());
+	aVCF.push_back(mCams[aK]->PDVF());
 	mPdsIm.push_back(1.0);
         if (mIsDroite[aK])
             mNupl->SetDr(aK);
@@ -172,7 +172,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
               if (mCams[aK]->RotIsInit())
               {
                   aNbCam++;
-                  CamStenope * aCS = mCams[aK]->GetCamNonOrtho();
+                  CamStenope * aCS = mCams[aK]->DownCastPoseCamNN()->GetCamNonOrtho();
                   Pt2dr aPProj = aCS->R3toF2(mPt);
                   double aDist = euclid(aPProj,mPts[aK]);
                   if (aDist>anErMax)
@@ -305,7 +305,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
                      if (mCams[aK]->RotIsInit())
                      {
                          Pt2dr aPIm =  mPts[aK];
-                         Pt2dr aPProj =   mCams[aK]->CurCam()->R3toF2(mPt);
+                         Pt2dr aPProj =   mCams[aK]->GenCurCam()->Ter2Capteur(mPt);
                          std::cout << "D=" << euclid(aPIm-aPProj) << " Im:" << aPIm << " Proj: " << aPProj;
                      }
                      else
@@ -359,11 +359,11 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
 
             if (aFpRT)
             {
-                cPoseCam *  aPC = mCams[aK];
+                cGenPoseCam *  aPC = mCams[aK];
                 Pt2dr anEc = aRes.mEcIm[aK];
                 Pt2dr aPIm = mNupl->PK(aK);
-                const CamStenope * aCS = aPC->CurCam();
-                Pt3dr aDir = aCS->F2toDirRayonR3(aPIm);
+                const cBasicGeomCap3D * aCS = aPC->GenCurCam();
+                Pt3dr aDir = aCS->DirRayonR3(aPIm);
 
                 fprintf(aFpRT,"%s %f %f %f %f %f %f %f",aPC->Name().c_str(),aPIm.x,aPIm.y,anEc.x,anEc.y,aDir.x,aDir.y,aDir.z);
                 fprintf(aFpRT,"\n");
@@ -380,9 +380,9 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
                {
 
 
-                   std::cout <<  mCams[aK]->Name() << " Ec-Im-Ter " << mCams[aK]->CurCam()->R3toF2(mPt)- mNupl->PK(aK);
+                   std::cout <<  mCams[aK]->Name() << " Ec-Im-Ter " << mCams[aK]->GenCurCam()->Ter2Capteur(mPt)- mNupl->PK(aK);
                    if (HasFaiscPur) 
-                       std::cout << " Ec-Im-Faisceau " << mCams[aK]->CurCam()->R3toF2(aPFP)- mNupl->PK(aK);
+                       std::cout << " Ec-Im-Faisceau " << mCams[aK]->GenCurCam()->Ter2Capteur(aPFP)- mNupl->PK(aK);
 
                    std::cout << "\n";
 /*
@@ -785,7 +785,7 @@ void cAppliApero::InitOneSetObsFlot
        itM++
    )
    {
-      if (NamePoseIsKnown(itM->NameIm()))
+      if (NamePoseGenIsKnown(itM->NameIm()))
       {
          for
          (
@@ -818,7 +818,7 @@ void cAppliApero::InitOneSetOnsDr
    )
    {
       std::string aNameIm = itIm->NameIm();
-      if (NamePoseIsKnown(aNameIm))
+      if (NamePoseGenIsKnown(aNameIm))
       {
 
          for
