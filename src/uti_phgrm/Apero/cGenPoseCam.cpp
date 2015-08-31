@@ -68,7 +68,7 @@ cOneEq_PBGC3M2DF::cOneEq_PBGC3M2DF(cPolynBGC3M2D_Formelle & aPF,std::vector<doub
     }
 
     CloseEEF();
-    aPF.Set().AddObj2Kill(this);
+    // aPF.Set().AddObj2Kill(this); => COR DUMP
 
 }
 
@@ -578,7 +578,7 @@ void cPolynBGC3M2D_Formelle::PostInit()
     mBufSubRot->AddInc(mLIntervRot);
     mBufSubRot->Close();
 
-    mSet.AddObj2Kill(this);
+    // mSet.AddObj2Kill(this); ==> CORE DUMP
 }
 
 cBasicGeomCap3D * cPolynBGC3M2D_Formelle::GPF_NC_CurBGCap3D() { return & mCamCur; }

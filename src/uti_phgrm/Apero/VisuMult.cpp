@@ -228,7 +228,7 @@ void cOneVisuPMul::DoOnePMul(cOnePtsMult & aPM )
                  );
 
 
-    const CamStenope * aCS0 = aPM.Pose0()->CurCam();
+    const CamStenope * aCS0 = aPM.GenPose0()->DownCastPoseCamNN()->CurCam();
 
     // cInterpolBilineaire<U_INT2> anIB;
     // cRecorrel aRC(anIB,aPM.Pose0()
@@ -284,7 +284,8 @@ void cOneVisuPMul::DoOnePMul(cOnePtsMult & aPM )
 
    int aSzV0 = 5;
    double aStep0 = 1.0;
-   cRecorrel aRC0(*this,aPM.Pose0(),aSzV0,aStep0);
+    // const CamStenope * aCS0 = aPM.GenPose0()->DownCastPoseCamNN()->CurCam();
+   cRecorrel aRC0(*this,aPM.GenPose0()->DownCastPoseCamNN(),aSzV0,aStep0);
 
 
    double                    aDistPdsErr = 0.25;

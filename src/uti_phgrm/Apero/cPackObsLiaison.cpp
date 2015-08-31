@@ -430,23 +430,25 @@ void cObservLiaison_1Cple::ImageResidu(cAgglomRRL & anAgl)
 /*                                                */
 /**************************************************/
 
-void cPackObsLiaison::addFileToObservation( 
-											const string &i_poseName1, const string &i_poseName2,
-											const string &i_packFilename,
-											const cBDD_PtsLiaisons &i_bd_liaison,
-											int i_iPackObs, // index of the current cPackObsLiaison in cAppliApero->mDicoLiaisons
-											bool i_isFirstKeySet,
-											bool i_isReverseFile // couples inside i_packFilename are to be reversed before use
-										  )
+void cPackObsLiaison::addFileToObservation
+(
+	const string &i_poseName1, const string &i_poseName2,
+	const string &i_packFilename,
+	const cBDD_PtsLiaisons &i_bd_liaison,
+	int i_iPackObs, // index of the current cPackObsLiaison in cAppliApero->mDicoLiaisons
+	bool i_isFirstKeySet,
+	bool i_isReverseFile // couples inside i_packFilename are to be reversed before use
+)
 {
 	std::string packFullFilename =  mAppli.OutputDirectory()+i_packFilename;
 	if (
-			( mAppli.NamePoseIsKnown(i_poseName1) && mAppli.NamePoseIsKnown(i_poseName2) ) &&
+			( mAppli.NamePoseGenIsKnown(i_poseName1) && mAppli.NamePoseGenIsKnown(i_poseName2) ) &&
 			( ( i_poseName1!=i_poseName2 ) || ( !i_bd_liaison.AutoSuprReflexif().Val() ) )
 	   )
 	{
-		cPoseCam * aC1 =  mAppli.PoseFromName(i_poseName1);
-		cPoseCam * aC2 =  mAppli.PoseFromName(i_poseName2);
+
+		cGenPoseCam * aC1 =  mAppli.PoseGenFromName(i_poseName1);
+		cGenPoseCam * aC2 =  mAppli.PoseGenFromName(i_poseName2);
 		bool OkGrp = true;
 		if (i_bd_liaison.IdFilterSameGrp().IsInit())
 			OkGrp = mAppli.SameClass(i_bd_liaison.IdFilterSameGrp().Val(),*aC1,*aC2);
@@ -463,9 +465,14 @@ void cPackObsLiaison::addFileToObservation(
 			if (mIsMult)
 			{
 				if (DicBoolFind(mDicoMul,i_poseName1))
+                                {
 					mDicoMul[i_poseName1]->AddLiaison(packFullFilename,i_poseName2,i_isFirstKeySet, i_isReverseFile );
+
+                                }
 				else
+                                {
 					mDicoMul[i_poseName1]  = new  cObsLiaisonMultiple(mAppli,packFullFilename,i_poseName1,i_poseName2,i_isFirstKeySet, i_isReverseFile);
+                                }
 				cObsLiaisonMultiple * anObs = mDicoMul[i_poseName1];
 				ElPackHomologue aPack;
 				anObs->InitPack(aPack,i_poseName2);
@@ -492,11 +499,14 @@ void cPackObsLiaison::addFileToObservation(
 			}
 			if (i_bd_liaison.SplitLayer().IsInit())
 				mAppli.SplitHomFromImageLayer(i_packFilename,i_bd_liaison.SplitLayer().Val(),i_poseName1,i_poseName2);
-			mAppli.AddLinkCam(aC1,aC2);
+			mAppli.AddLinkCamCam(aC1,aC2);
 			if (i_iPackObs==0)
 			{
-				tGrApero::TSom * aS1 =  mAppli.PoseFromName(i_poseName1)->Som();
-				tGrApero::TSom * aS2 =  mAppli.PoseFromName(i_poseName2)->Som();
+// std::cout << "AAAAAAAAAAAAaaaa\n";
+				tGrApero::TSom * aS1 =  mAppli.PoseGenFromName(i_poseName1)->Som();
+// std::cout << "BBBBBBbbbb\n";
+				tGrApero::TSom * aS2 =  mAppli.PoseGenFromName(i_poseName2)->Som();
+// std::cout << "cCCCCC " << aS1 << " " << aS2 << "\n";
 				tGrApero::TArc * anArc = mAppli.Gr().arc_s1s2(*aS1,*aS2);
 				if (!anArc) 
 				{
@@ -505,6 +515,7 @@ void cPackObsLiaison::addFileToObservation(
 				}
 				anArc->attr().Pds() = aPds;
 				anArc->attr().Nb() = aNbHom;
+// std::cout << "EEEEEEEEEE\n";
 			}
 		}
 	}
@@ -705,9 +716,9 @@ std::list<cPoseCam *> cPackObsLiaison::ListCamInitAvecPtCom
                                      mDicoMul[aName1]-> VPoses();
          for (int aK=0 ; aK<int(aVP.size()) ; aK++)
          {
-             if (aVP[aK]->Pose()->RotIsInit())
+             if (aVP[aK]->GenPose()->RotIsInit())
              {
-                aRes.insert(aVP[aK]->Pose());
+                aRes.insert(aVP[aK]->GenPose()->DownCastPoseCamNN());
              }
          }
       }
@@ -898,7 +909,7 @@ double cPackObsLiaison::AddObs
           {
 // std::cout << "OOLLM "<< itOML->first << "\n";
              cObsLiaisonMultiple * anOLM = itOML->second;
-             cPoseCam * aPC = anOLM->Pose1() ;
+             cGenPoseCam * aPC = anOLM->Pose1() ;
              bool IsDebug = aRegDebug.Match(aPC->Name());
              bool aDoIt = (aK==0) ? IsDebug : (!IsDebug);
              if (aDoIt)

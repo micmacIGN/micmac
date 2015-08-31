@@ -2713,11 +2713,11 @@ aKeyOrFile         :
 
 
 
-std::list<std::string>
-        cInterfChantierNameManipulateur::StdGetListOfFile
+std::list<std::string> cInterfChantierNameManipulateur::StdGetListOfFile
         (
            const std::string & aKeyOrPat,
-           int aProf
+           int aProf,
+           bool ErrorWhenEmpty
         )
 {
         if (SetHasKey(aKeyOrPat))
@@ -2748,8 +2748,11 @@ std::list<std::string>
                 aRes.push_back(aKeyOrPat);
                 return aRes;
             }
-            std::cout << "For Key-Or-Pat=" << aKeyOrPat << " Dir= " << mDir << "\n";
-            ELISE_ASSERT(false,"Empty list for StdGetListOfFile");
+            if (ErrorWhenEmpty)
+            {
+               std::cout << "For Key-Or-Pat=" << aKeyOrPat << " Dir= " << mDir << "\n";
+               ELISE_ASSERT(false,"Empty list for StdGetListOfFile");
+            }
         }
         return aRes;
 }
