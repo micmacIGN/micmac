@@ -1,6 +1,97 @@
 #include "StdAfx.h"
 #include "RPC.h"
 
+class AsterMeta
+{
+public:
+	AsterMeta(){};
+	~AsterMeta(){};
+	vector<Pt2dr> aMatPtsIm;
+	vector<Pt3dr> aMatPtsECEF;
+	vector<Pt3dr> aMatSatPos;
+};
+
+//Read AsterMetaDataXML
+AsterMeta AsterMetaDataXML(string filename)
+{
+	AsterMeta aAsterMeta;
+
+	//Read Lattice points in image coordinates
+	cElXMLTree tree(filename.c_str());
+
+	int NbLattice = tree.GetUnique("NbLattice")->GetUniqueValInt();
+	cout << "Number of lattice points (im) : " << NbLattice << endl;
+
+
+	std::string LatticePoint = "LatticePoint_";
+	for (int c = 1; c <= NbLattice; c++)
+	{
+		std::stringstream ss;
+		ss << c;
+		LatticePoint.append(ss.str());
+		//cout << LatticePoint << endl;
+		std::stringstream aStream(tree.GetUnique(LatticePoint.c_str())->GetUniqueVal());
+		double x, y;
+		aStream >> x >> y;
+		Pt2dr aLattice(x, y);
+		//cout << aLattice << endl;
+		aAsterMeta.aMatPtsIm.push_back(aLattice);
+		LatticePoint = LatticePoint.substr(0, 13);
+	}
+	//cout << aAsterMeta.aMatPtsIm << endl;
+
+
+	//Read Lattice points in ECEF coordinates
+
+	int NbECEF = tree.GetUnique("NbECEF")->GetUniqueValInt();
+	cout << "Number of lattice points (ECEF) : " << NbECEF << endl;
+
+
+	std::string ECEF = "ECEF_";
+	for (int c = 1; c <= NbECEF; c++)
+	{
+		std::stringstream ss;
+		ss << c;
+		ECEF.append(ss.str());
+		//cout << ECEF << endl;
+		std::stringstream aStream(tree.GetUnique(ECEF.c_str())->GetUniqueVal());
+		double x, y, z;
+		aStream >> x >> y >> z;
+		Pt3dr aECEF(x, y, z);
+		//cout << aECEF << endl;
+		aAsterMeta.aMatPtsECEF.push_back(aECEF);
+		ECEF = ECEF.substr(0, 5);
+	}
+	//cout << aAsterMeta.aMatPtsECEF << endl;
+
+	//Read Satelite positions
+
+	int NbSatPos = tree.GetUnique("NbSatPos")->GetUniqueValInt();
+	cout << "Number of Satellite positions : " << NbSatPos << endl;
+
+
+	std::string SatPos = "SatPos_";
+	for (int c = 1; c <= NbSatPos; c++)
+	{
+		std::stringstream ss;
+		ss << c;
+		SatPos.append(ss.str());
+		//cout << SatPos << endl;
+		std::stringstream aStream(tree.GetUnique(SatPos.c_str())->GetUniqueVal());
+		double x, y, z;
+		aStream >> x >> y >> z;
+		Pt3dr aSatPos(x, y, z);
+		//cout << aSatPos << endl;
+		for (u_int j = 0; j < 11; j++)
+			aAsterMeta.aMatSatPos.push_back(aSatPos); //pushed once per column (11 times)
+		SatPos = SatPos.substr(0, 7);
+	}
+
+	return aAsterMeta;
+}
+
+/*OLD : from multiple txt files*/
+/*
 //reads the txt file with lattice point in im coordinates (unit : pixels)
 vector<vector<Pt2dr> > ReadLatticeIm(string aTxtImage)
 {
@@ -206,15 +297,18 @@ vector<vector<Pt3dr> > ReadSatPos(string aTxtSatPos)
 
 	return aSatPos;
 }
+*/
 
 int Aster2Grid_main(int argc, char ** argv)
 {
 	//GET PSEUDO-RPC2D FOR ASTER FROM LATTICE POINTS
-	std::string aTxtImage, aTxtLong, aTxtLat, aTxtSatPos, aNameIm;
+	std::string aAsterMetaDataXML;
+	//std::string aTxtImage, aTxtLong, aTxtLat, aTxtSatPos, aNameIm;
 	std::string inputSyst = "+proj=longlat +datum=WGS84 "; //input syst proj4
 	std::string targetSyst;//output syst proj4
 	std::string refineCoef = "";
 	bool binaire = true;
+	bool expGrid = true;
 	bool expDIMAP = false;
 	int nbLayers;
 	double aHMin = 0, aHMax = 3000;
@@ -229,37 +323,42 @@ int Aster2Grid_main(int argc, char ** argv)
 		(
 		argc, argv,
 		LArgMain()
-		<< EAMC(aNameIm, "name of AsterIm")
+		<< EAMC(aAsterMetaDataXML, "XML file conatining the meta data", eSAM_IsPatFile)
 		<< EAMC(nbLayers, "number of layers (min 4)")
-		<< EAMC(targetSyst, "targetSyst - target system in Proj4 format (ex : \"+proj=utm +zone=32 +north +datum=WGS84 +units=m +no_defs\"")
-		<< EAMC(aTxtImage, "txt file contaning the lattice pointd in image coordinates", eSAM_IsPatFile)
-		<< EAMC(aTxtLong, "txt file contaning the longitude of the lattice points", eSAM_IsPatFile)
-		<< EAMC(aTxtLat, "txt file contaning the geocentric latitude of the lattice points", eSAM_IsPatFile)
-		<< EAMC(aTxtSatPos, "txt file contaning the satellite position in ECEF", eSAM_IsPatFile),
+		<< EAMC(targetSyst, "targetSyst - target system in Proj4 format (ex : \"+proj=utm +zone=32 +north +datum=WGS84 +units=m +no_defs\""),
 		LArgMain()
-		<< EAM(aHMin, "HMin", true, "Min elipsoid height of scene (default=0)")
-		<< EAM(aHMax, "HMax", true, "Max elipsoid height of scene (default=3000)")
+		<< EAM(aHMin, "HMin", true, "Min elipsoid height of scene (Def=0)")
+		<< EAM(aHMax, "HMax", true, "Max elipsoid height of scene (Def=3000)")
 		<< EAM(stepPixel, "stepPixel", true, "Step in pixel (Def=100pix)")
 		<< EAM(stepCarto, "stepCarto", true, "Step in m (carto) (Def=50m)")
 		<< EAM(refineCoef, "refineCoef", true, "File of Coef to refine Grid")
-		<< EAM(binaire, "Bin", true, "Export Grid in binaries (Def=True)")
+		<< EAM(expGrid, "expGrid", true, "Export Grid (Def=True)")
+		<< EAM(binaire, "Bin", true, "Convert Grid to binary format (Def=True)")
 		<< EAM(expDIMAP, "expDIMAP", true, "Export RPC file in DIMAP format (Def=False)")
 		);
 
+	//Read from AsterMetaDataXML
 	////TODO : READ THIS FROM HDF
+	string filename = "AST_L1A_00309062010213037_20150210075613_28108.hdf_3B.xml";
+	AsterMeta aAsterMeta = AsterMetaDataXML(aAsterMetaDataXML);
+	std::string aNameIm=StdPrefix(aAsterMetaDataXML) + ".tif";
+
+	/*OLD : from multiple txt files*/
+	/*
 	//Reading files
 	vector<vector<Pt2dr> > aMatPtsIm = ReadLatticeIm(aTxtImage);// cout << aMatPtsIm << endl;
 	vector<vector<Pt3dr> > aMatPtsECEF = ReadLatticeGeo(aTxtLong, aTxtLat);// cout << aMatPtsGeo << endl;
 	vector<vector<Pt3dr> > aMatSatPos = ReadSatPos(aTxtSatPos);
 	////END TODO
+	*/
 
 	//Find Validity and normalization values
-	aRPC3D.ComputeNormFactors(aMatPtsIm, aMatPtsECEF, aHMin, aHMax);
+	aRPC3D.ComputeNormFactors(aAsterMeta.aMatPtsIm, aAsterMeta.aMatPtsECEF, aHMin, aHMax);
 
 	//Generate 2 vectors :
 	//1 - vectorized nbLayers grids in lon lat z
 	//2 - associated image coordinates
-	vector<vector<Pt3dr> > aGridNorm = aRPC3D.GenerateNormLineOfSightGrid(aMatPtsIm, aMatPtsECEF, aMatSatPos, nbLayers, aHMin, aHMax);
+	vector<vector<Pt3dr> > aGridNorm = aRPC3D.GenerateNormLineOfSightGrid(aAsterMeta.aMatPtsIm, aAsterMeta.aMatPtsECEF, aAsterMeta.aMatSatPos, nbLayers, aHMin, aHMax);
 
 	//Compute Direct and Inverse RPC
 	aRPC3D.GCP2Direct(aGridNorm[0], aGridNorm[1]);
@@ -271,14 +370,15 @@ int Aster2Grid_main(int argc, char ** argv)
 	//Export RPC
 	if (expDIMAP == true)
 	{
-		std::string aNameDIMAP = "RPC_" + StdPrefix(aNameIm) + ".xml";
+		std::string aNameDIMAP = "RPC_" + StdPrefix(aAsterMetaDataXML) + ".xml";
 		aRPC3D.WriteAirbusRPC(aNameDIMAP);
 		cout << "RPC exported in DIMAP format as : " << aNameDIMAP << endl;
 	}
 
 	//Computing Grid
+	if (expGrid == true)
 	aRPC3D.RPC2Grid(nbLayers, aHMin, aHMax, refineCoef, aNameIm, stepPixel, stepCarto, targetSyst, inputSyst, binaire);
-
+	
 
 	
 	/*OLD METHOD*/

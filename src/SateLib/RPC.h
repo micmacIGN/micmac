@@ -291,13 +291,13 @@ public:
 	void InverseToDirectRPC(const Pt3di &aGridSz);//regular grid
 
                 //Construction of RPCs
-				vector<vector<Pt3dr> > GenerateNormLineOfSightGrid(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, vector<vector<Pt3dr> > aMatSatPos, int nbLayers, double aHMin, double aHMax);
+				vector<vector<Pt3dr> > GenerateNormLineOfSightGrid(vector<Pt2dr> aMatPtsIm, vector<Pt3dr> aMatPtsECEF, vector<Pt3dr> aMatSatPos, int nbLayers, double aHMin, double aHMax);
                 // Old version, not to be used ----- vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
                 vector<Pt3dr> GenerateRandNormGrid(const Pt2di &aGridSz);
                 vector<Pt3dr> GenerateNormGrid(const Pt3di &aGridSz);
 		void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
                 void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
-				void ComputeNormFactors(vector<vector<Pt2dr> > aMatPtsIm, vector<vector<Pt3dr> > aMatPtsECEF, double aHMin, double aHMax);
+				void ComputeNormFactors(vector<Pt2dr> aMatPtsIm, vector<Pt3dr> aMatPtsECEF, double aHMin, double aHMax);
                 void Validity2Dto3D(RPC2D aRPC2D);
 
 	void TestDirectRPCGen(const std::string aTargetCS);
