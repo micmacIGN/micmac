@@ -181,6 +181,8 @@ class cAppliWithSetImage
 
       static const std::string TheMMByPairNameCAWSI;
       static const std::string TheMMByPairNameFiles;
+      cElemAppliSetFile & EASF();
+      const cElemAppliSetFile & EASF() const;
 
    protected :
 

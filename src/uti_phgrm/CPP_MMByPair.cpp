@@ -39,6 +39,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 const std::string TheDIRMergeEPI(){return  "MTD-Image-";}
 
+cElemAppliSetFile & cAppliWithSetImage::EASF() {return mEASF;}
+const cElemAppliSetFile & cAppliWithSetImage::EASF() const {return mEASF;}
+
 const std::string cAppliWithSetImage::TheMMByPairNameCAWSI =  "MMByPairCAWSI.xml";
 const std::string cAppliWithSetImage::TheMMByPairNameFiles =  "MMByPairFiles.xml";
 
