@@ -198,6 +198,8 @@ eTypeImporGenBundle  Str2eTypeImporGenBundle(const std::string & aName)
       return eTIGB_MMDGlobe;
    else if (aName=="eTIGB_MMIkonos")
       return eTIGB_MMIkonos;
+   else if (aName == "eTIGB_MMASTER")
+	   return eTIGB_MMASTER;
    else if (aName=="eTIGB_NbVals")
       return eTIGB_NbVals;
   else
@@ -224,7 +226,9 @@ std::string  eToString(const eTypeImporGenBundle & anObj)
    if (anObj==eTIGB_MMDGlobe)
       return  "eTIGB_MMDGlobe";
    if (anObj==eTIGB_MMIkonos)
-      return  "eTIGB_MMIkonos";
+	   return  "eTIGB_MMIkonos";
+   if (anObj == eTIGB_MMASTER)
+	   return  "eTIGB_MMASTER";
    if (anObj==eTIGB_NbVals)
       return  "eTIGB_NbVals";
  std::cout << "Enum = eTypeImporGenBundle\n";

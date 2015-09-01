@@ -83,6 +83,16 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
        mRPC->ReadASCIIMetaData(aMetaFile, aNameFile);
        mRPC->InverseToDirectRPC(Pt2di(50,50));
    }
+   else if (aType == eTIGB_MMASTER)
+   {
+	   mRPC->AsterMetaDataXML(aNameFile);
+	   std::string aNameIm = StdPrefix(aNameFile) + ".tif";
+	   //Find Validity and normalization values
+	   mRPC->ComputeNormFactors(0, 8000);//0 and 800 are min and max altitude
+	   vector<vector<Pt3dr> > aGridNorm = mRPC->GenerateNormLineOfSightGrid(20,0,8000);
+	   mRPC->GCP2Direct(aGridNorm[0], aGridNorm[1]);
+	   mRPC->GCP2Inverse(aGridNorm[0], aGridNorm[1]);
+   }
    else {ELISE_ASSERT(false,"Unknown RPC mode");}
 
   mRPC->info();
