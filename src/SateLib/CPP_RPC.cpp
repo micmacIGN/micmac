@@ -892,14 +892,14 @@ void RPC::Validity2Dto3D(RPC2D aRPC2D)
 	height_off = aRPC2D.height_off;
 }
 
-void RPC::ComputeNormFactors(vector<Pt2dr> aMatPtsIm, vector<Pt3dr> aMatPtsECEF, double aHMin, double aHMax)
+void RPC::ComputeNormFactors(double aHMin, double aHMax)
 {
 	vector<double> aPtsGeoX, aPtsGeoY, aPtsImX, aPtsImY;
-
-	for (u_int i = 0; i < aMatPtsIm.size(); i++)
+	cout << "ASTERPtsIm.size() : " << ASTERPtsIm.size() << endl;
+	for (u_int i = 0; i < ASTERPtsIm.size(); i++)
 	{
-		aPtsImX.push_back(aMatPtsIm[i].x);
-		aPtsImY.push_back(aMatPtsIm[i].y);
+		aPtsImX.push_back(ASTERPtsIm[i].x);
+		aPtsImY.push_back(ASTERPtsIm[i].y);
 
 		//convert to geodetic
 		//WGS84 ellipsoid
@@ -908,7 +908,7 @@ void RPC::ComputeNormFactors(vector<Pt2dr> aMatPtsIm, vector<Pt3dr> aMatPtsECEF,
 		double WGSCorFact = 0.99330562;
 
 		Pt3dr aPtGeo;
-		Pt3dr aPtECEF = aMatPtsECEF[i];
+		Pt3dr aPtECEF = ASTERPtsECEF[i];
 		double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
 		aPtGeo.y = asin(aPtECEF.z / r) * 180 / M_PI; //degrees
 		aPtGeo.x = acos(aPtECEF.x / (r*cos(aPtGeo.y * M_PI / 180))) * 180 / M_PI;//degrees
@@ -1053,7 +1053,7 @@ vector<Pt3dr> RPC::GenerateNormGrid(const Pt3di &aGridSz)
 }
 
 //Use lattice points and satellite positions to generate points to be inputed in GCP2Direct and GCP2Inverse
-vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(vector<Pt2dr> aMatPtsIm, vector<Pt3dr> aMatPtsECEF, vector<Pt3dr> aMatSatPos, int nbLayers, double aHMin, double aHMax)
+vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHMin, double aHMax)
 {
 	//WGS84 ellipsoid
 	double a = 6378137;
@@ -1064,13 +1064,13 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(vector<Pt2dr> aMatPtsIm,
 	vector<Pt3dr> aVectPtsGeo, aVectPtsIm;
 	//int nbLatticePts = aMatPtsIm.size()*aMatPtsIm[0].size();
 
-	for (u_int i = 0; i < aMatPtsIm.size(); i++){
+	for (u_int i = 0; i < ASTERPtsIm.size(); i++){
 
 			//Image point 3D coordinates object created (identical for all grid levels)
-			Pt3dr aPtIm; aPtIm.x = aMatPtsIm[i].x; aPtIm.y = aMatPtsIm[i].y;
+		Pt3dr aPtIm; aPtIm.x = ASTERPtsIm[i].x; aPtIm.y = ASTERPtsIm[i].y;
 
 			//Line of Sight LOS computed
-			Pt3dr aLOS = aMatSatPos[i] - aMatPtsECEF[i];
+		Pt3dr aLOS = ASTERSatPos[i] - ASTERPtsECEF[i];
 			//Norming aLOS
 			aLOS = aLOS / sqrt(aLOS.x*aLOS.x + aLOS.y*aLOS.y + aLOS.z*aLOS.z);
 
@@ -1078,7 +1078,7 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(vector<Pt2dr> aMatPtsIm,
 			for (u_int height = aHMin; height <= aHMax; height = height + (aHMax-aHMin)/(nbLayers-1))
 			{
 				//ECEF coord points are computed
-				Pt3dr aPtECEF = aMatPtsECEF[i] + aLOS*height;
+				Pt3dr aPtECEF = ASTERPtsECEF[i] + aLOS*height;
 
 				//Coordinates are transformed to geocentric
 
@@ -1543,6 +1543,83 @@ void RPC::ReadXML(std::string const &filename)
 
     IS_INV_INI = true; 
 }
+
+//Read AsterMetaDataXML
+void RPC::AsterMetaDataXML(std::string filename)
+{
+
+	//Read Lattice points in image coordinates
+	cElXMLTree tree(filename.c_str());
+
+	int NbLattice = tree.GetUnique("NbLattice")->GetUniqueValInt();
+	cout << "Number of lattice points (im) : " << NbLattice << endl;
+
+
+	std::string LatticePoint = "LatticePoint_";
+	for (int c = 1; c <= NbLattice; c++)
+	{
+		std::stringstream ss;
+		ss << c;
+		LatticePoint.append(ss.str());
+		//cout << LatticePoint << endl;
+		std::stringstream aStream(tree.GetUnique(LatticePoint.c_str())->GetUniqueVal());
+		double x, y;
+		aStream >> x >> y;
+		Pt2dr aLattice(x, y);
+		//cout << aLattice << endl;
+		ASTERPtsIm.push_back(aLattice);
+		LatticePoint = LatticePoint.substr(0, 13);
+	}
+	//cout << ASTERPtsIm << endl;
+
+
+	//Read Lattice points in ECEF coordinates
+
+	int NbECEF = tree.GetUnique("NbECEF")->GetUniqueValInt();
+	cout << "Number of lattice points (ECEF) : " << NbECEF << endl;
+
+
+	std::string ECEF = "ECEF_";
+	for (int c = 1; c <= NbECEF; c++)
+	{
+		std::stringstream ss;
+		ss << c;
+		ECEF.append(ss.str());
+		//cout << ECEF << endl;
+		std::stringstream aStream(tree.GetUnique(ECEF.c_str())->GetUniqueVal());
+		double x, y, z;
+		aStream >> x >> y >> z;
+		Pt3dr aECEF(x, y, z);
+		//cout << aECEF << endl;
+		ASTERPtsECEF.push_back(aECEF);
+		ECEF = ECEF.substr(0, 5);
+	}
+	//cout << ASTERPtsECEF << endl;
+
+	//Read Satelite positions
+
+	int NbSatPos = tree.GetUnique("NbSatPos")->GetUniqueValInt();
+	cout << "Number of Satellite positions : " << NbSatPos << endl;
+
+
+	std::string SatPos = "SatPos_";
+	for (int c = 1; c <= NbSatPos; c++)
+	{
+		std::stringstream ss;
+		ss << c;
+		SatPos.append(ss.str());
+		//cout << SatPos << endl;
+		std::stringstream aStream(tree.GetUnique(SatPos.c_str())->GetUniqueVal());
+		double x, y, z;
+		aStream >> x >> y >> z;
+		Pt3dr aSatPos(x, y, z);
+		//cout << aSatPos << endl;
+		for (u_int j = 0; j < 11; j++)
+			ASTERSatPos.push_back(aSatPos); //pushed once per column (11 times)
+		SatPos = SatPos.substr(0, 7);
+	}
+}
+
 
 void RPC::ReadASCII(std::string const &filename)
 {
