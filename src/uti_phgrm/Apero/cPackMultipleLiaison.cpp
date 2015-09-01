@@ -1070,6 +1070,10 @@ double cObsLiaisonMultiple::AddObsLM
            const cRapOnZ *      aRAZGlob
        )
 {
+if (MPD_MM())
+{
+    std::cout << "######## AddObsLM : " <<  mVPoses[0]->NameCam() << " " << mVPMul.size() << "\n";
+}
 
 /*
   static int aCpt = 0 ; aCpt ++;
@@ -1174,6 +1178,7 @@ double cObsLiaisonMultiple::AddObsLM
 
              if (aRes.mOKRP3I)
              {
+if (MPD_MM()) std::cout << "    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " << aRes.mOKRP3I << "\n";
 
                 if (anAVA  && (anAVA->VA().TypeVerif()==eVerifResPerIm))
                 {
@@ -1222,6 +1227,7 @@ double cObsLiaisonMultiple::AddObsLM
              //  aResidu /= ElSquare(aNbRInit-1);
 
                 double aPdsIm = aPdrtIm.PdsOfError(sqrt(aResidu));
+if (MPD_MM()) std::cout << "    PPPPp aaaa  " << aPdsIm << " R = " << aResidu  << "\n";
              // double aPAv = aPdsIm;
                 aPdsIm *= pow(aNbRInit-1,aImPPM.ExposantPoidsMult().Val());
 
@@ -1349,6 +1355,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                    aPM->MemPds() = aPdsIm;
                 }
 
+std::cout << "YYYYYYY " << (aPdsIm >0) << " " <<   (Add2C) << " " <<  isInF3D << "\n";
 
                 if (((aPdsIm >0) &&  (Add2C)) && isInF3D)
                 {

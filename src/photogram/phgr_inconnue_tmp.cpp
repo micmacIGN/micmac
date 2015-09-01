@@ -1490,6 +1490,10 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               const cRapOnZ *      aRAZ
                            )
 {
+if (MPD_MM() && AddEq)
+{
+   std::cout << "    cManipPt3TerInc::UsePointLiaisonGen\n";
+}
    CptUPL++;
    NewBug =   ::DebugPbCondFaisceau   &&
               (
@@ -1633,6 +1637,14 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
        if (aVPdsIm[aK]>0)
        {
            Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK));
+
+if (MPD_MM() && (!AddEq))
+{
+    std::cout << "    ERRR " << mPPP.mTer << anEr << "PTS " << aNuple.PK(aK) << "\n"; 
+}
+
+
+
            mResidus.mEcIm.push_back(anEr);
 if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << " " << mMulGlobPds << "\n";
 
@@ -1697,6 +1709,11 @@ if (UPL_DCC())  std::cout  << "y====y===y===yyyyyy " << aPds << " " << aK <<  " 
     {
        mSubst.DoSubst();
     }
+if (MPD_MM() && AddEq)
+{
+   std::cout << "    AAAAAAAAAAAAAa " <<  mResidus.mPTer << "\n";
+   getchar();
+}
 
     return mResidus;
 }
