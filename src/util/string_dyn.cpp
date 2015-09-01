@@ -536,14 +536,14 @@ std::string getBanniereMM3D()
     banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    ** \n";
-    banniere += "**                G Maillet, L Girod                                  ** \n";
+    banniere += "**                G Maillet, L Girod, E Rupnik                        ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**    Contact for participating : Marc.Pierrot-Deseilligny@ensg.eu    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**    Hope you enjoy, todo list in case of any problem using MicMac : ** \n";
     banniere += "**      (0) Take a Pastis                                             ** \n";
-    banniere += "**      (1) Switch your computer off and on                           ** \n";
-    banniere += "**      (2) Install it on Gnu-Linux (work better on)                  ** \n";
+    banniere += "**      (1) Switch your computer off and on again                     ** \n";
+    banniere += "**      (2) Install it on Gnu-Linux (might work better)               ** \n";
     banniere += "**      (3) Contact the forum http://forum-micmac.forumprod.com/      ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
