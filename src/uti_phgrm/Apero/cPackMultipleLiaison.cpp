@@ -1355,7 +1355,10 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                    aPM->MemPds() = aPdsIm;
                 }
 
-std::cout << "YYYYYYY " << (aPdsIm >0) << " " <<   (Add2C) << " " <<  isInF3D << "\n";
+if(MPD_MM())
+{
+std::cout << "YYYYYYY " << (aPdsIm >0) << " " <<   (Add2C) << " " <<  isInF3D << "\n"; getchar();
+}
 
                 if (((aPdsIm >0) &&  (Add2C)) && isInF3D)
                 {
