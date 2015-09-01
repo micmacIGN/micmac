@@ -516,6 +516,7 @@ cBasicGeomCap3D *   cPolynBGC3M2D_Formelle::CamSsCorr() const
 void cPolynBGC3M2D_Formelle::PostInit()
 {
     if (mFoncEqResidu!=0) return ;
+// std::cout << "cPolynBGC3M2D_Formelle::PostInitcPolynBGC3M2D_Formelle::PostInit\n" ; getchar();
 
     mEqP3I  = mSet.Pt3dIncTmp();
     mLIntervResiduApp.AddInterv(mEqP3I->IncInterv());
@@ -720,6 +721,7 @@ Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds
     else
     {
        aVRes = mSet.VResiduSigne(mFoncEqResidu);
+       if (MPD_MM()) std::cout << "JJJJJJ " << aProjIm << aPTer << aVRes << "\n";
        
        if (1)
        {
