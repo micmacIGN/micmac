@@ -60,7 +60,9 @@ class cCamTest_PBGC3M2DF
 
        cTest_PBGC3M2DF *       mAppli; 
        cImaMM *                mIma;
+       std::string             mNameIm;
        CamStenope *            mCS0;
+       std::string             mNameSaveCS0;
        ElMatrix<double>        mMatPert;
        CamStenope *            mCSCur;
        cPolynomial_BGC3M2D     mPolCam;
@@ -128,6 +130,7 @@ class cTest_PBGC3M2DF : public cAppliWithSetImage
 cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,int aK) :
    mAppli   (& anAppli),
    mIma     (& anIma),
+   mNameIm  (mIma->mNameIm),
    mCS0     (mIma->mCam),
    mMatPert (3,3),
    mCSCur   (mAppli->CamPerturb(mCS0,mMatPert)),
@@ -137,7 +140,14 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
    mSomPdsMes (0.0),
    mK       (aK)
 {
-     std::cout << " cCamTest_PBGC3M2DF: " << mIma->mNameIm << "\n";
+     std::cout << " cCamTest_PBGC3M2DF: " << mNameIm << "\n";
+     {
+         std::string aDest = "PertTestBundle";
+         mNameSaveCS0 = mAppli->EASF().mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+aDest,NameWithoutDir(mNameIm),true);
+         MakeFileXML(mCSCur->StdExportCalibGlob(),mNameSaveCS0);
+         cPolynomial_BGC3M2D aPol(mCSCur,mNameSaveCS0,mNameIm,mAppli->mDeg);
+         aPol.Save(aDest);
+     }
 }
 
 
