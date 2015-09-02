@@ -487,6 +487,17 @@ void cEqfP3dIncTmp::InitEqP3iVal(const Pt3dr & aP)
    mIncTmp[2]->SetVal(aP.z);
 }
 
+Pt3dr  cEqfP3dIncTmp::GetEqP3iVal() const
+{
+   return Pt3dr
+          (
+              mIncTmp[0]->Val(),
+              mIncTmp[1]->Val(),
+              mIncTmp[2]->Val()
+          );
+}
+
+
 Pt3d<Fonc_Num> cEqfP3dIncTmp::PF()
 {
    return Pt3d<Fonc_Num>
@@ -1324,8 +1335,6 @@ if (BugZ0)
       if ((aParam.mBsH < aParam.mSeuilBsH) && (! aRAZ))
       {
 
-if (MPD_MM()) std::cout << "KKKKK mmm EEEEEEEE " << aParam.mBsH << " " << aParam.mSeuilBsH << "\n";
-
 
           aParam.mProjIsInit = true;
       }
@@ -1494,10 +1503,6 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               const cRapOnZ *      aRAZ
                            )
 {
-if (MPD_MM() && AddEq)
-{
-   std::cout << "    cManipPt3TerInc::UsePointLiaisonGen\n";
-}
    CptUPL++;
    NewBug =   ::DebugPbCondFaisceau   &&
               (
@@ -1594,7 +1599,6 @@ if (MPD_MM() && AddEq)
  
     Pt3dr aPTer =   mPPP.mProjIsInit ? Pt3dr(0,0,0) :  mResidus.mPTer;
     // mResidus.mPTer = aPTer;
-   if (MPD_MM()) std::cout << "KKKjUI ================== aPTer " << aPTer << "\n";
 
     mP3Inc->InitEqP3iVal(aPTer);
 
@@ -1643,10 +1647,6 @@ if (MPD_MM() && AddEq)
        {
            Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK));
 
-if (MPD_MM() && (!AddEq))
-{
-    std::cout << "    ERRR " << mPPP.mTer << anEr << "PTS " << aNuple.PK(aK) << "\n"; 
-}
 
 
 
@@ -1714,11 +1714,6 @@ if (UPL_DCC())  std::cout  << "y====y===y===yyyyyy " << aPds << " " << aK <<  " 
     {
        mSubst.DoSubst();
     }
-if (MPD_MM() && AddEq)
-{
-   std::cout << "    AAAAAAAAAAAAAa " <<  mResidus.mPTer << "\n";
-   getchar();
-}
 
     return mResidus;
 }

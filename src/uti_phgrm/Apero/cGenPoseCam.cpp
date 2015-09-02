@@ -694,15 +694,32 @@ Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds
 {
    ELISE_ASSERT(!IsEqDroite,"cPolynBGC3M2D_Formelle::AddEqAppuisInc do not handle lines equation");
 /*
+   Pt3d<Fonc_Num>  aPTerUnknown  = mEqP3I->PF();
+   Pt3d<Fonc_Num>  aDeltaPTU = aPTerUnknown-mFP3DInit.PtF();
+
+CS :
+     Si proj :::    P0 = aPTer   ,  PUnk = 0,0,0
+     Sinon   ::     P0 = ??      ,  PUnk = PTer
+
+
+   Si proj :::    mFProjInit : aPTer               mEqP3I : (0,0,0)
+   Sinon   :::    mFProjInit : aPTer               mEqP3I : aPTer
+    Pt3dr aPInit = 
 */
+
+
+
     Pt2dr aGx,aGy,aGz;
 
     Pt3dr aPTer = aPPP.mTer;
+    Pt3dr aP3DTer = aPPP.mProjIsInit ? Pt3dr(0,0,0) : aPTer;
+
+
     Pt2dr aProjIm = mCamSsCorr->Ter2Capteur(aPTer);
     mFProjInit.SetEtat(aProjIm);
     mCamSsCorr->Diff(aGx,aGy,aGz,aProjIm,aPTer);
 
-    mFP3DInit.SetEtat(aPTer);
+    mFP3DInit.SetEtat(aP3DTer);
     mFProjInit.SetEtat(aProjIm);
     mFGradX.SetEtat(aGx);
     mFGradY.SetEtat(aGy);
@@ -710,7 +727,14 @@ Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds
     mObsPix.SetEtat(aPixObsIm);
 
 
-    mEqP3I->InitEqP3iVal(aPTer);
+
+    if (MPD_MM())
+    {
+        double aCheck = euclid(   (aP3DTer-mEqP3I->GetEqP3iVal()) /  ElMax(1e-9,(euclid(aP3DTer)+euclid(mEqP3I->GetEqP3iVal())))   );
+       // Test apres correction du probleme en cas proj ou le Pinit est a 000 en CS
+       ELISE_ASSERT(aCheck<1e-4,"Chek disr in cPolynBGC3M2D_Formelle::AddEqAppuisInc");
+    }
+    // mEqP3I->InitEqP3iVal(aPTer);
 
     std::vector<double> aVRes;
 
@@ -721,7 +745,6 @@ Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds
     else
     {
        aVRes = mSet.VResiduSigne(mFoncEqResidu);
-       // if (MPD_MM()) std::cout << "JJJJJJ " << aProjIm << aPTer << aVRes << "\n";
        
        if (1)
        {

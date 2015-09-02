@@ -1025,8 +1025,6 @@ Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtPro
      cEqAppui*  anEq = AddForUseFctrEqAppuisInc ( false, aPPP.mProjIsInit, aPPP.wDist,IsEqDroite);
      Pt2dr aRes = anEq->ResiduPInc(CorrigePFromDAdd(aPIm,true,IsEqDroite),aPds,aPPP);
 
-     if (MPD_MM()) std::cout << " IIIIIII " << aPIm << aPPP.mTer << aRes << anEq->mNameType << "\n";
-
 
 
      if ( std_isnan(aRes.x) || std_isnan(aRes.y))

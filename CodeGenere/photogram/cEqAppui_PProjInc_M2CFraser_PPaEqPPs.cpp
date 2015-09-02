@@ -130,18 +130,6 @@ void cEqAppui_PProjInc_M2CFraser_PPaEqPPs::ComputeVal()
   mVal[1] = ((tmp80_+(tmp81_)*(tmp102_)+(2*tmp83_+tmp84_)*tmp103_+tmp105_*tmp106_)-mLocYIm)*mLocScNorm;
 
 
-if (MPD_MM())
-{
-double aCheck=0;
-for (int aK=18 ; aK<21 ; aK++)
-{
-   std::cout << "K=" << aK << " CC="<<  mCompCoord[aK] << "\n";
-   aCheck +=  mCompCoord[aK];
-}
-
-   std::cout << "LOCPROJ " << mLocProjP0_x << " " << mLocProjP0_y << " " << mLocProjP0_z << "\n";
-std::cout << "CCCCC " <<  mVal[0] << " " << mVal[1]  << " CKCo " << aCheck<< "\n";
-}
 }
 
 
