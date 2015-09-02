@@ -480,7 +480,7 @@ cEqfP3dIncTmp::cEqfP3dIncTmp
 {
 }
 
-void cEqfP3dIncTmp::InitVal(const Pt3dr & aP)
+void cEqfP3dIncTmp::InitEqP3iVal(const Pt3dr & aP)
 {
    mIncTmp[0]->SetVal(aP.x);
    mIncTmp[1]->SetVal(aP.y);
@@ -1323,6 +1323,10 @@ if (BugZ0)
    
       if ((aParam.mBsH < aParam.mSeuilBsH) && (! aRAZ))
       {
+
+if (MPD_MM()) std::cout << "KKKKK mmm EEEEEEEE " << aParam.mBsH << " " << aParam.mSeuilBsH << "\n";
+
+
           aParam.mProjIsInit = true;
       }
       else
@@ -1590,8 +1594,9 @@ if (MPD_MM() && AddEq)
  
     Pt3dr aPTer =   mPPP.mProjIsInit ? Pt3dr(0,0,0) :  mResidus.mPTer;
     // mResidus.mPTer = aPTer;
-   if (UPL_DCC()) std::cout << "================== aPTer " << aPTer << "\n";
-    mP3Inc->InitVal(aPTer);
+   if (MPD_MM()) std::cout << "KKKjUI ================== aPTer " << aPTer << "\n";
+
+    mP3Inc->InitEqP3iVal(aPTer);
 
 
 

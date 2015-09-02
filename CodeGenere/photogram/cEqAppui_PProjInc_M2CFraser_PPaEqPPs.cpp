@@ -133,12 +133,13 @@ void cEqAppui_PProjInc_M2CFraser_PPaEqPPs::ComputeVal()
 if (MPD_MM())
 {
 double aCheck=0;
-for (int aK=0 ; aK<21 ; aK++)
+for (int aK=18 ; aK<21 ; aK++)
 {
    std::cout << "K=" << aK << " CC="<<  mCompCoord[aK] << "\n";
    aCheck +=  mCompCoord[aK];
 }
 
+   std::cout << "LOCPROJ " << mLocProjP0_x << " " << mLocProjP0_y << " " << mLocProjP0_z << "\n";
 std::cout << "CCCCC " <<  mVal[0] << " " << mVal[1]  << " CKCo " << aCheck<< "\n";
 }
 }
