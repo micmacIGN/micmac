@@ -404,7 +404,7 @@ void cPolynBGC3M2D_Formelle::AddEqRot(const Pt2di & aP0,const Pt2di &aP1,double 
                 mDepR2.SetEtat(aCurCell.mValDep[1]);
                 mDepR3.SetEtat(aCurCell.mValDep[2]);
 
-                mEqP3I->InitVal(Pt3dr(0,0,0));
+                mEqP3I->InitEqP3iVal(Pt3dr(0,0,0));
 
                 mSet.VAddEqFonctToSys(mFoncEqRot,aPds/aNbOk,false) ;
             }
@@ -710,7 +710,7 @@ Pt2dr cPolynBGC3M2D_Formelle::AddEqAppuisInc(const Pt2dr & aPixObsIm,double aPds
     mObsPix.SetEtat(aPixObsIm);
 
 
-    mEqP3I->InitVal(aPTer);
+    mEqP3I->InitEqP3iVal(aPTer);
 
     std::vector<double> aVRes;
 

@@ -890,7 +890,7 @@ double     cEqBundleBase::AddEquationGen(const std::vector<Pt2dr> & aVPts,const 
    aVPds.push_back(aPds);
    aVPds.push_back(aPds);
 
-   mEqP3I->InitVal(mLastI);
+   mEqP3I->InitEqP3iVal(mLastI);
 
    for (int aK=0 ; aK<int (aVPts.size())  ; aK++)
    {
