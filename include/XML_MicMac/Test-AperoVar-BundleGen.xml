@@ -1,5 +1,5 @@
 <!--
-    Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Test-Apero-BundleGen.xml   DirectoryChantier=/media/data2/Jeux-Test/Dino/ 
+    Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/media/data2/Jeux-Test/Bas/ 
 
 +UseGB=0
 
@@ -20,9 +20,9 @@
 
             
 
-            <Symb>  SetImGBMixte=IMGP9398.PEF </Symb>
-            <Symb>  SetImStdMixte=IMGP9399.PEF </Symb>
-            <Symb>  SetImGBSingle=IMGP939[8-9].PEF </Symb>
+            <Symb>  SetImGBMixte=IMGP939[6-9].PEF </Symb>
+            <Symb>  SetImStdMixte=IMGP940[0-3].PEF </Symb>
+            <Symb>  SetImGBSingle=IMGP939[3456789].PEF </Symb>
             <Symb>  SetImStdSingle=IMGP939[8-9].PEF </Symb>
 
 
@@ -31,12 +31,12 @@
            <Symb>  AeroInStd=-All </Symb>
            <Symb>  AeroOut=-ResBundle </Symb>
 
-<!--
            <Symb>  Hom=""  </Symb>
            <Symb>  Ext=dat </Symb>
--->
+<!--
            <Symb>  Hom=-Man </Symb>
            <Symb>  Ext=xml </Symb>
+-->
 
            <Symb>  LibParamInterne=eAllParamFiges  </Symb>
            <Symb>  SigmaTieP=4  </Symb>
