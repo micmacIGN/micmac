@@ -91,15 +91,19 @@ Fonc_Num  cOneEq_PBGC3M2DF::EqFormProjCor(Pt2d<Fonc_Num> aP)
    //==========================================
 
 
-cCellPolBGC3M2DForm::cCellPolBGC3M2DForm(Pt2dr aPt,cPolynBGC3M2D_Formelle * aPF) : 
-    mPt       (aPt),
-    mActive   (aPF->CamSsCorr()->CaptHasDataGeom(mPt)),
-    mHasDep   (false)
+cCellPolBGC3M2DForm::cCellPolBGC3M2DForm(Pt2dr aPt,cPolynBGC3M2D_Formelle * aPF,int aDim) : 
+    mPtIm      (aPt),
+    mActive    (aPF->CamSsCorr()->CaptHasDataGeom(mPtIm)),
+    mHasDep    (false),
+    mDim       (aDim),
+    mDerPnlRot (aDim),
+    mValDep    (aDim)
 {
    if (mActive)
    {
-       ElSeg3D aSeg = aPF->CamSsCorr()->Capteur2RayTer(mPt);
+       ElSeg3D aSeg = aPF->CamSsCorr()->Capteur2RayTer(mPtIm);
        mNorm = aSeg.TgNormee();
+       mCenter = aPF->CamSsCorr()->OpticalCenterOfPixel(mPtIm);
    } 
 }
       
@@ -183,7 +187,9 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
    mFoncEqResidu   (0),
    mFoncEqAttach   (0),
    mIndCenter      (-1,-1),
-   mMatW2Loc       (3,3)
+   mRotL2W         (ElRotation3D::Id),
+   mMatW2Loc       (3,3),
+   mDimMvt         (3)
 {
     AllowUnsortedVarIn_SetMappingCur = true;
     mCompX.IncInterv().SetName("CX");
@@ -256,10 +262,10 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
             aP.y = ModifInTervGrad(aP.y,aSzIm.y); //  ElMin(ElMax(2*mEpsGrad,aP.x),aSzIm.x-2*mEpsGrad);
 
             cCellPolBGC3M2DForm & aCurCell =  Cell(aPInd);
-            aCurCell  = cCellPolBGC3M2DForm(aP,this);
+            aCurCell  = cCellPolBGC3M2DForm(aP,this,mDimMvt);
             if (aCurCell.mActive)
             {
-                double aDist = euclid(aCurCell.mPt,aCenter);
+                double aDist = euclid(aCurCell.mPtIm,aCenter);
                 if (aDist<aDistMinCenter)
                 {
                     aDistMinCenter = aDist;
@@ -276,7 +282,9 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
     Pt3dr aY = vunit(aZ ^ aX);
     aX = vunit(aY^aZ);
 
-    mMatW2Loc = MatFromCol(aX,aY,aZ).transpose();
+    mCenterGlob = Cell(mIndCenter).mCenter;
+    mRotL2W = ElRotation3D(mCenterGlob,MatFromCol(aX,aY,aZ),true);
+    mMatW2Loc = mRotL2W.Mat().transpose();
 
     if (mEpsRot.empty())
     {
@@ -310,8 +318,8 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
 
                  for (int aK=0 ; aK< 2 ; aK++)
                  {
-                      Pt2dr aP1 = aCurCell.mPt + Pt2dr(TAB_4_NEIGH[aK]) * mEpsGrad;
-                      Pt2dr aP2 = aCurCell.mPt - Pt2dr(TAB_4_NEIGH[aK]) * mEpsGrad;
+                      Pt2dr aP1 = aCurCell.mPtIm + Pt2dr(TAB_4_NEIGH[aK]) * mEpsGrad;
+                      Pt2dr aP2 = aCurCell.mPtIm - Pt2dr(TAB_4_NEIGH[aK]) * mEpsGrad;
                       if (mCamSsCorr->CaptHasDataGeom(aP1) && mCamSsCorr->CaptHasDataGeom(aP2))
                       {
                           Pt2dr aGrad = (P2dNL(aP1) - P2dNL(aP2) ) / (2*mEpsGrad);
@@ -399,7 +407,7 @@ void cPolynBGC3M2D_Formelle::AddEqRot(const Pt2di & aP0,const Pt2di &aP1,double 
             if (CellHasGradValue(aPInd))
             {
                 cCellPolBGC3M2DForm & aCurCell =  Cell(aPInd);
-                mRotPt.SetEtat(aCurCell.mPt);
+                mRotPt.SetEtat(aCurCell.mPtIm);
                 mDepR1.SetEtat(aCurCell.mValDep[0]);
                 mDepR2.SetEtat(aCurCell.mValDep[1]);
                 mDepR3.SetEtat(aCurCell.mValDep[2]);
@@ -440,7 +448,7 @@ void cPolynBGC3M2D_Formelle::TestRot(const Pt2di & aP0,const Pt2di &aP1,double &
             if (CellHasGradValue(aPInd))
             {
                 cCellPolBGC3M2DForm & aCell = Cell(aPInd);
-                Pt2dr aPt = aCell.mPt;
+                Pt2dr aPt = aCell.mPtIm;
                 Pt2dr aDep = mCamCur.DeltaCamInit2CurIm(aPt);
                 if (aRotPert) aDep = DepSimul(aPt,*aRotPert);
 
@@ -472,7 +480,7 @@ void cPolynBGC3M2D_Formelle::TestRot(const Pt2di & aP0,const Pt2di &aP1,double &
             if (CellHasGradValue(aPInd))
             {
                 cCellPolBGC3M2DForm & aCell = Cell(aPInd);
-                Pt2dr aPt = aCell.mPt;
+                Pt2dr aPt = aCell.mPtIm;
                 Pt2dr aDep = mCamCur.DeltaCamInit2CurIm(aPt);
                 if (aRotPert)
                 {
@@ -732,7 +740,11 @@ CS :
     {
         double aCheck = euclid(   (aP3DTer-mEqP3I->GetEqP3iVal()) /  ElMax(1e-9,(euclid(aP3DTer)+euclid(mEqP3I->GetEqP3iVal())))   );
        // Test apres correction du probleme en cas proj ou le Pinit est a 000 en CS
-       ELISE_ASSERT(aCheck<1e-4,"Chek disr in cPolynBGC3M2D_Formelle::AddEqAppuisInc");
+       if (aCheck>1e-4)
+       {
+          std::cout << "PTSSS = " << aP3DTer << " " << mEqP3I->GetEqP3iVal() << "\n";
+          ELISE_ASSERT(aCheck<1e-4,"Chek disr in cPolynBGC3M2D_Formelle::AddEqAppuisInc");
+       }
     }
     // mEqP3I->InitEqP3iVal(aPTer);
 
