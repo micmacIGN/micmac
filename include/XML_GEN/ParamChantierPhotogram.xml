@@ -646,6 +646,7 @@
 
         <CDist Nb="1" Type="Pt2dr"> </CDist>
         <CoeffDist Nb="*" Container="std::vector" Type="double"> </CoeffDist>
+        <CoeffDistInv Nb="*" Container="std::vector" Type="double"> </CoeffDistInv>
         <RatioDistInv Nb="?" Type="double" Def="1.3"></RatioDistInv>
         <!-- Cree un modele different ou PPA et PPS restent confondus -->
         <PPaEqPPs Nb="?" Type="bool" Def="false"> </PPaEqPPs>

@@ -167,17 +167,19 @@ class cOneEq_PBGC3M2DF : public cElemEqFormelle,
 class cCellPolBGC3M2DForm
 {
       public :
-          cCellPolBGC3M2DForm(Pt2dr mPt,cPolynBGC3M2D_Formelle * aPF);
+          cCellPolBGC3M2DForm(Pt2dr mPt,cPolynBGC3M2D_Formelle * aPF,int aDim);
           cCellPolBGC3M2DForm();
           void InitRep(cPolynBGC3M2D_Formelle * aPF);
           void SetGrad(const Pt2dr & aGX,const Pt2dr & aGy);
       
-          Pt2dr  mPt;
-          Pt3dr  mNorm;
-          Pt2dr  mDerPnlRot[3];
-          bool   mActive;
-          Pt2dr  mValDep[3];
-          bool   mHasDep;
+          Pt2dr               mPtIm;
+          Pt3dr               mNorm;
+          Pt3dr               mCenter;
+          bool                mActive;
+          bool                mHasDep;
+          int                 mDim;
+          std::vector<Pt2dr>  mDerPnlRot;
+          std::vector<Pt2dr>  mValDep;
 };
 
 class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
@@ -280,12 +282,15 @@ class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
          Pt2di               mIndCenter;
 
          std::vector<std::vector<cCellPolBGC3M2DForm> > mVCells;
+         Pt3dr               mCenterGlob;
+         ElRotation3D        mRotL2W;
          ElMatrix<double>    mMatW2Loc;
 
          static double                           mEpsAng;
          static std::vector<ElMatrix<double> >   mEpsRot;
          static double                           mEpsGrad;
-         cSubstitueBlocIncTmp * mBufSubRot;
+         cSubstitueBlocIncTmp *                  mBufSubRot;
+         int                                     mDimMvt;
 };
 
 

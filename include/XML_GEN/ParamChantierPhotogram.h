@@ -2301,6 +2301,9 @@ class cCalibrationInterneRadiale
         std::vector< double > & CoeffDist();
         const std::vector< double > & CoeffDist()const ;
 
+        std::vector< double > & CoeffDistInv();
+        const std::vector< double > & CoeffDistInv()const ;
+
         cTplValGesInit< double > & RatioDistInv();
         const cTplValGesInit< double > & RatioDistInv()const ;
 
@@ -2309,6 +2312,7 @@ class cCalibrationInterneRadiale
     private:
         Pt2dr mCDist;
         std::vector< double > mCoeffDist;
+        std::vector< double > mCoeffDistInv;
         cTplValGesInit< double > mRatioDistInv;
         cTplValGesInit< bool > mPPaEqPPs;
 };
