@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                           CameraRPC                                 */
 /***********************************************************************/
 
-/* Image coordinates order: [Line, Sample] = [row, col] =  [x, y]*/
+/* Image coordinates order: [Line, Sample] = [row, col] =  [y, x]*/
 
 //this is an outdated constructor -- will be soon removed 
 CameraRPC::CameraRPC(const std::string &aNameFile, 
@@ -57,7 +57,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
        mGridSzIsDef(true),
        mOpticalCenters(0),
        mGridSz(aGridSz),
-       mCamNom(aNameFile.substr(0,aNameFile.size()-4)),
+       mImName(aNameFile.substr(0,aNameFile.size()-4)),
        mCS(aCartoCS)
 {
    
@@ -112,7 +112,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 	mGridSzIsDef(false),
 	mOpticalCenters(0),
 	mGridSz(Pt2di(0,0)),
-	mCamNom(aNameFile.substr(0,aNameFile.size()-4)),
+	mImName(aNameFile.substr(0,aNameFile.size()-4)),
 	mCS(aCartoCS)
 {
     mRPC = new RPC();
@@ -156,6 +156,16 @@ CameraRPC::~CameraRPC()
 	delete mOpticalCenters;
 }
 
+const RPC & CameraRPC::GetRPC() const
+{
+    return(*mRPC);
+}
+
+const std::string & CameraRPC::GetImName() const
+{
+    return(mImName);
+}
+
 Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
 {
     AssertRPCInvInit();
@@ -194,6 +204,7 @@ ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
     if(AltisSolIsDef())
         aZ = mAltiSol;
     
+
     Pt3dr aP1RayL3(aP.x, aP.y, 
 		   aZ+double(mRPC->last_height - mRPC->first_height)/2),//middle of the height validity zones 
 	  aP2RayL3(aP.x, aP.y, aZ);
@@ -203,7 +214,8 @@ ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
 
 ElSeg3D CameraRPC::F2toRayonLPH(Pt3dr &aP0,Pt3dr & aP1) const
 {
-    return(ElSeg3D(mRPC->DirectRPC(aP0), mRPC->DirectRPC(aP1)));
+    return(ElSeg3D(mRPC->DirectRPC(Pt3dr(aP0.x,aP0.y,aP0.z)), 
+	           mRPC->DirectRPC(Pt3dr(aP1.x,aP1.y,aP1.z))));
 }
 
 bool   CameraRPC::HasRoughCapteur2Terrain() const
@@ -237,7 +249,7 @@ Pt3dr CameraRPC::ImEtProf2Terrain(const Pt2dr & aP,double aProf) const
 
 	aMeanZ = double(aMeanZ)/mOpticalCenters->size();
 
-        return(mRPC->InverseRPC(Pt3dr(aP.x, aP.y, aMeanZ-mProfondeur)));
+        return(mRPC->DirectRPC(Pt3dr(aP.x, aP.y, aMeanZ-mProfondeur)));
     }
     else
     {
@@ -251,7 +263,7 @@ Pt3dr CameraRPC::ImEtZ2Terrain(const Pt2dr & aP,double aZ) const
 {
     AssertRPCDirInit();
 
-    return(mRPC->InverseRPC(Pt3dr(aP.x, aP.y, aZ)));
+    return(mRPC->DirectRPC(Pt3dr(aP.x, aP.y, aZ)));
 }
 
 void CameraRPC::SetProfondeur(double aP)
@@ -296,8 +308,8 @@ double CameraRPC::ResolSolOfPt(const Pt3dr & aP) const
 
 bool  CameraRPC::CaptHasData(const Pt2dr & aP) const
 {
-    if( (aP.x >= mRPC->first_row) && (aP.x <= mRPC->last_row) &&
-        (aP.y >= mRPC->first_col) && (aP.y <= mRPC->last_col))
+    if( (aP.y >= mRPC->first_row) && (aP.y <= mRPC->last_row) &&
+        (aP.x >= mRPC->first_col) && (aP.x <= mRPC->last_col))
         return true;
     else
 	return false;
@@ -317,8 +329,8 @@ Pt2di CameraRPC::SzBasicCapt3D() const
 {
     ELISE_ASSERT(mRPC!=0,"RPCs were not initialized in CameraRPC::SzBasicCapt3D()");
 
-    return  (Pt2di(mRPC->last_row,
- 	           mRPC->last_col));
+    return  (Pt2di(mRPC->last_col,
+ 	           mRPC->last_row));
 }
 
 /* Export to xml following the cXml_ScanLineSensor standard 
@@ -336,9 +348,9 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 	std::string aDirTmp = "csconv";
 	std::string aFiPrefix = "Bundle_";
 
-	std::string aLPHFiTmp = aDirTmp + "/" + aFiPrefix + mCamNom  + "_LPH_CS.txt";
-	std::string aXYZFiTmp = aDirTmp + "/" + aFiPrefix + mCamNom  + "_XYZ_CS.txt";
-	std::string aXMLFiTmp = aFiPrefix + mCamNom  + ".xml";
+	std::string aLPHFiTmp = aDirTmp + "/" + aFiPrefix + mImName  + "_LPH_CS.txt";
+	std::string aXYZFiTmp = aDirTmp + "/" + aFiPrefix + mImName  + "_XYZ_CS.txt";
+	std::string aXMLFiTmp = aFiPrefix + mImName  + ".xml";
 
 	int aL=0, aS=0;
 	if(aGridToExp.size()==0)
@@ -353,7 +365,8 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 			for( aS=0; aS<mGridSz.y; aS++ )
 			{
 
-				aSegTmp = Capteur2RayTer( Pt2dr(aS*aGridStep.y,aL*aGridStep.x) );
+				//aSegTmp = Capteur2RayTer( Pt2dr(aS*aGridStep.y,aL*aGridStep.x) );
+				aSegTmp = Capteur2RayTer( Pt2dr(aL*aGridStep.x,aS*aGridStep.y) );
 				aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n" 
 				    << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
 
@@ -432,406 +445,135 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 	}		    
 }
 
+void CameraRPC::OpticalCenterrOfImg() const
+{
+
+}
+
 /* For a defined image grid, 
  * extrude to rays and intersect at the line of optical centers */
-void CameraRPC::OpticalCenterLineGrid(bool aIfSave)
+void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 {
+    srand(time(NULL));
+
     int aL, aS;
+    int aCRand1 = rand() % 255, aCRand2 = rand() % 255, aCRand3 = rand() % 255;
     std::vector<Pt3dr> aVPts;
-    std::string aDirTmp = "PBoptCenter";
-    std::string aSavGeo = aDirTmp + "/bundleGridGeo" + mCamNom + ".txt";
-    std::string aSavUCS = aDirTmp + "/bundleGridUCS" + mCamNom + ".txt";
-    std::string aSaveFile = aDirTmp + "/OpticalCentersTer" + mCamNom + ".txt";
-    
+    std::vector<Pt3di> aVCol;
+    Pt3di aCoul(aCRand1,aCRand2,aCRand3);
+    std::vector<const cElNuage3DMaille *> aVNuage;
+
+    std::string aDir = "PBoptCenter//";
+    std::string aPlyFile = aDir + "OptCenter_" + mImName + ".ply";
+    std::list<std::string> aVCom;
+
+    ELISE_fp::MkDirSvp(aDir);
 
     //define a default grid size unless previously defined
     if(!mGridSzIsDef)
         mGridSz = Pt2di(10,10);
 
-    Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/mGridSz.x ,
-                             double(SzBasicCapt3D().y)/mGridSz.y );
+    int aAd=1;
+    Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/(mGridSz.x+aAd) ,
+                             double(SzBasicCapt3D().y)/(mGridSz.y+aAd));
 
-
-
-    //collect the bundles in geodetic CS and save to txt
-    ELISE_fp::MkDirSvp(aDirTmp);
-    std::ofstream aFO(aSavGeo.c_str());
-    aFO << std::setprecision(15);
-
-    ElSeg3D aSegTmp(Pt3dr(0,0,0), Pt3dr(0,0,0));
-    for( aL=0; aL<mGridSz.x; aL++)
-    {
-	for( aS=0; aS<mGridSz.y; aS++)
-	{
-	    //std::cout << aS*aGridStep.y << " " << aL*aGridStep.x << " - ";
-	    aSegTmp = Capteur2RayTer( Pt2dr( aS*aGridStep.y, aL*aGridStep.x));
-            aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n"   
-                << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
-	}
-	//std::cout << "\n";
-    }
-    aFO.close();
-
-
-
-    //convert from geodetic CS to the user-defined CS
-    std::string aCmdTmp = " " + aSavGeo + " > " + aSavUCS;
-    std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " +
-                         "+proj=longlat +datum=WGS84" + " +to " + mCS + aCmdTmp;
-    int aRunOK = system(cmdConv.c_str());
-    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
-
-
-    //read-in the converted bundles
-    std::vector<Pt3dr> aPtsTmp;
-    double aXtmp, aYtmp, aZtmp;
-    std::ifstream aFI(aSavUCS.c_str());
-    while( !aFI.eof() && aFI.good() )
-    {
-        aFI >> aXtmp >> aYtmp >> aZtmp;
-        aPtsTmp.push_back(Pt3dr(aXtmp,aYtmp,aZtmp));
-    }
-    aFI.close();
-
-
-    //do the intersection on respective segments in the user-def CS
     mOpticalCenters = new std::vector<Pt3dr>();
-    //cRapOnZ * aRAZ = new cRapOnZ(680000.0,10,10,"");
-    //cResOptInterFaisceaux * aROIF;
-    std::cout.precision(15);
-    int aCntTmp=0;
-    for( aL=0; aL<mGridSz.x; aL++)
+
+    Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
+    for( aL=aAd; aL<mGridSz.y+aAd; aL++)
     {
-	std::vector<ElSeg3D> aVS;
-	std::vector<double>  aVPds;
-
-        
-	for( aS=0; aS<mGridSz.y; aS++)
+        std::vector<double> aVPds;
+        std::vector<ElSeg3D> aVS;
+	    
+	for( aS=aAd; aS<mGridSz.x+aAd; aS++)
 	{
-	    aVPds.push_back(0.5);
-            aVS.push_back( ElSeg3D(aPtsTmp.at(aCntTmp),
-				   aPtsTmp.at(aCntTmp+1)) );
 
-	   // std::cout << aPtsTmp.at(aCntTmp) << " " << aPtsTmp.at(aCntTmp+1) << " - ";
-	    aCntTmp++;
-	    aCntTmp++;
+            //first height in validity zone
+	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y),
+			                  mRPC->first_height+1);
+	    
+	    aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+            aVPts.push_back(aPGeoC1);
+            
+	    //second height in validity zone
+	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y), 
+			           (mRPC->first_height+1)+double(mRPC->last_height - mRPC->first_height)/2);
+
+	    aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    aVPts.push_back(aPGeoC2);
+	    
+	    //collect for intersection
+	    aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
+	    aVPds.push_back(1);
+
+            aVCol.push_back(aCoul);
+	    aVCol.push_back(aCoul);
 
 	}
-	//std::cout << "\n";
 
-	//intersect
 	bool aIsOK;
-	//mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK, aRAZ) );
 	mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
 
-
-
 	if(aIsOK==false)
-	    std::cout << "not intersected in CameraRPC::OpticalCenterLineGrid" << std::endl;
-
-    }
-    mOptCentersIsDef = true; 
-
-    if(aIfSave)
-    {
-        std::ofstream aFO(aSaveFile.c_str());
-        aFO << std::setprecision(15);
-
-        unsigned int i;	
-	for(i=0; i<mOpticalCenters->size(); i++)
-	    aFO << mOpticalCenters->at(i).x 
-		<< " " << mOpticalCenters->at(i).y 
-		<< " " << mOpticalCenters->at(i).z
-		<< "\n";
-	
-        aFO.close();
-
-    }
-
-
-}
-
-//Find the optical center for each sensor line
-void CameraRPC::OpticalCenterPerLine()
-{
-    int aL, aS;
-    int aSNum = 100;
-    int aSGrid = SzBasicCapt3D().y/aSNum; 
-
-    //collect the bundles in geodetic CS and save to txt
-    std::vector<Pt3dr> aVPts;
-    std::string aDirTmp = "PBoptCenter";
-    std::string aSavGeo = aDirTmp + "/bundleGeo" + mCamNom + ".txt";
-    std::string aSavUCS = aDirTmp + "/bundleUCS" + mCamNom + ".txt";
-
-    ELISE_fp::MkDirSvp(aDirTmp);
-    std::ofstream aFO(aSavGeo.c_str());
-    aFO << std::setprecision(15);
-
-    ElSeg3D aSegTmp(Pt3dr(0,0,0), Pt3dr(0,0,0));
-    for( aL=0; aL<SzBasicCapt3D().x; aL++)
-    {
-	for( aS=0; aS<aSNum; aS++)
-	{
-	    aSegTmp = Capteur2RayTer( Pt2dr(aS*aSGrid, aL));
-            aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n"   
-                << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
-	}
-    }
-    aFO.close();
-
-
-
-    //convert from geodetic CS to the user-defined CS
-    std::string aCmdTmp = " " + aSavGeo + " > " + aSavUCS;
-    std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " +
-                         "+proj=longlat +datum=WGS84" + " +to " + mCS + aCmdTmp;
-    int aRunOK = system(cmdConv.c_str());
-    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
-
-
-    //read-in the converted bundles
-    std::vector<Pt3dr> aPtsTmp;
-    double aXtmp, aYtmp, aZtmp;
-    std::ifstream aFI(aSavUCS.c_str());
-    while( !aFI.eof() && aFI.good() )
-    {
-        aFI >> aXtmp >> aYtmp >> aZtmp;
-        aPtsTmp.push_back(Pt3dr(aXtmp,aYtmp,aZtmp));
-    }
-    aFI.close();
-
-
-    //do the intersection on respective segments in the user-def CS
-    mOpticalCenters = new std::vector<Pt3dr>();
-    //cRapOnZ * aRAZ = new cRapOnZ(680000.0,10,10,"");
-    //cResOptInterFaisceaux * aROIF;
-    std::cout.precision(15);
-    int aCntTmp=0;
-    for( aL=0; aL<SzBasicCapt3D().x; aL++)
-    {
-	std::vector<ElSeg3D> aVS;
-	std::vector<double>  aVPds;
-        
-	for( aS=0; aS<aSNum; aS++)
-	{
-	    aVPds.push_back(0.5);
-            aVS.push_back( ElSeg3D(aPtsTmp.at(aCntTmp),
-				   aPtsTmp.at(aCntTmp+1)) );
-
-	    aCntTmp++;
-	    aCntTmp++;
-
-	}
-
-	//intersect
-	bool aIsOK;
-	//mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK, aRAZ) );
-	mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
-
-
-	if(aIsOK==false)
-	    std::cout << "not intersected in CameraRPC::OpticalCenterPerLine" << std::endl;
-
-    }
-    mOptCentersIsDef = true; 
-
-    if(1)
-    {
-	std::string aSaveFile = aDirTmp + "/OpticalCentersPerL" + mCamNom + ".txt";
-        std::ofstream aFO(aSaveFile.c_str());
-        aFO << std::setprecision(15);
-
-        unsigned int i;	
-	for(i=0; i<mOpticalCenters->size(); i++)
-	    aFO << mOpticalCenters->at(i).x 
-		<< " " << mOpticalCenters->at(i).y 
-		<< " " << mOpticalCenters->at(i).z
-		<< "\n";
-	
-        aFO.close();
-    }
-
-}
-
-/* Intersect the ray at pixel aP with the line of optical centers by
- * - finding the ElSeg on the optical center corresponding to a line before and after aP (this is not very reliable when the center is noisy)
- * - intersecting the aP ray with the segment */
-Pt3dr CameraRPC::OpticalCenterOfPixel_Old(const Pt2dr & aP) const
-{
-    //check image rand conditions
-    int aLineShift = 50;
-    int aPreLine, aPostLine;
-    ElSeg3D aOptSeg(Pt3dr(0,0,0),Pt3dr(0,0,0));
-    std::vector<double>  aVPds(2,0.5);
-    std::vector<ElSeg3D> aVS;
-
-    if(aP.x > aLineShift) 
-    {
-	if(aP.x < (SzBasicCapt3D().x - aLineShift - 1))
-	{	
-            aPreLine  = int(aP.x) - aLineShift;
-            aPostLine = int(aP.x) + aLineShift;
-	}
-	else
-	{
-	    aPreLine  = int(aP.x) - 2*aLineShift;
-	    aPostLine = int(aP.x);    
-	}
-    }
-    else
-    {
-        aPreLine  = int(aP.x);
-        aPostLine = int(aP.x) + 2*aLineShift;
-    }
-
-    //retrieve aP ray
-    aOptSeg = Capteur2RayTer(Pt2dr(aP.y,aP.x));
+	    std::cout << "not intersected in CameraRPC::OpticalCenterGrid" << std::endl;
     
-    //convert from geo to carto coordinates
-    std::ofstream aFO("GeoTemp.txt");
-    aFO << aOptSeg.P0().x << " " << aOptSeg.P0().y << " " << aOptSeg.P0().z << "\n"
-	<< aOptSeg.P1().x << " " << aOptSeg.P1().y << " " << aOptSeg.P1().z << "\n";
-    aFO.close();
 
-    std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " +
-                         "+proj=longlat +datum=WGS84" + " +to " + mCS + " " +
-			 "GeoTemp.txt > CartoTemp.txt";
-    int aRunOK = system(cmdConv.c_str());
-    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
-
-    //read-in the converted ray segment
-    Pt3dr aSP1, aSP2;
-    std::ifstream aFI("CartoTemp.txt");
-    if( !aFI.eof() && aFI.good() )
-    {
-        aFI >> aSP1.x >> aSP1.y >> aSP1.z
-	    >> aSP2.x >> aSP2.y >> aSP2.z;
-    
-        aOptSeg = ElSeg3D(aSP1,aSP2);
     }
-    else
-        ELISE_ASSERT(false, " Error reading converted coordinates, CameraRPC::OpticalCenterOfPixel");
-  
-    std::cout << "ap " << aP << std::endl;
-    std::cout << "pre " << (aPreLine) << std::endl;
-    std::cout << "post " << (aPostLine) << std::endl;
-    std::cout << "g " << aVPds.at(0) << " " << aVPds.at(1) << std::endl;
 
-
-    //collect the respective segments
-    aVS.push_back(ElSeg3D(mOpticalCenters->at(aPreLine),mOpticalCenters->at(aPostLine)));
-    aVS.push_back(aOptSeg);
-
-    //intersect the segments
-    bool aIsOK;
-    Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
-
-    if(aIsOK==false)
-        std::cout << "not intersected in CameraRPC::OpticalCenterOfPixel" << std::endl;
-
-    return(aRes);
-
+    //save to ply
+    cElNuage3DMaille::PlyPutFile
+    (
+       aPlyFile,
+       aVCom,
+       aVNuage,
+       mOpticalCenters,
+       &aVCol,
+       true
+    );
 }
 
 Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 {
-    return OpticalCenterOfLine(aP.x);
-}
+    
+    int aS, aAd = 1, aSNum = 10;
+    double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
+    Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
 
-Pt3dr CameraRPC::OpticalCenterOfLine(const double & aL) const
-{
-    int aS;
-    int aSNum = 1000;
-    int aSGrid = SzBasicCapt3D().y/aSNum;
-
-    std::vector<Pt3dr> aVPts;
-    std::string aDirTmp = "PBoptCenter";
-    std::string aSavGeo = aDirTmp + "/bundleGeo" + mCamNom + ".txt";
-    std::string aSavUCS = aDirTmp + "/bundleUCS" + mCamNom + ".txt";
-
-    ELISE_fp::MkDirSvp(aDirTmp);
-    std::ofstream aFO(aSavGeo.c_str());
-    aFO << std::setprecision(15);
-
-    ElSeg3D aSegTmp(Pt3dr(0,0,0), Pt3dr(0,0,0));
-    for( aS=0; aS<aSNum; aS++)
-    {
-        aSegTmp = Capteur2RayTer( Pt2dr(aS*aSGrid, aL));
-        aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n"   
-            << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
-    }
-    aFO.close();
-
-    //convert from geodetic CS to the user-defined CS
-    std::string aCmdTmp = " " + aSavGeo + " > " + aSavUCS;
-    std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " +
-                         "+proj=longlat +datum=WGS84" + " +to " + mCS + aCmdTmp;
-    int aRunOK = system(cmdConv.c_str());
-    ELISE_ASSERT(aRunOK == 0, " Error calling cs2cs");
-
-
-    //read-in the converted bundles
-    std::vector<Pt3dr> aPtsTmp;
-    double aXtmp, aYtmp, aZtmp;
-    std::ifstream aFI(aSavUCS.c_str());
-    while( !aFI.eof() && aFI.good() )
-    {
-        aFI >> aXtmp >> aYtmp >> aZtmp;
-        aPtsTmp.push_back(Pt3dr(aXtmp,aYtmp,aZtmp));
-    }
-    aFI.close();
-
-
-    //do the intersection on respective segments in the user-def CS
-    //cRapOnZ * aRAZ = new cRapOnZ(680000.0,10,10,"");
-    //cResOptInterFaisceaux * aROIF;
-    std::cout.precision(15);
-    int aCntTmp=0;
+    std::vector<double> aVPds;
     std::vector<ElSeg3D> aVS;
-    std::vector<double>  aVPds;
-        
-    for( aS=0; aS<aSNum; aS++)
+
+    for(aS=0; aS<aSNum; aS++)
     {
-        aVPds.push_back(0.5);
-        aVS.push_back( ElSeg3D(aPtsTmp.at(aCntTmp),
-                  	       aPtsTmp.at(aCntTmp+1)) );
+    
+        //first height in validity zone
+	aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y),
+			        mRPC->first_height+1);
+	    
+	aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+            
+	//second height in validity zone
+	aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y), 
+			        (mRPC->first_height+1)+double(mRPC->last_height - mRPC->first_height)/2);
 
-	aCntTmp++;
-        aCntTmp++;
-
+	aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    
+	//collect for intersection
+	aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
+	aVPds.push_back(1);
     }
 
-    //intersect
     bool aIsOK;
-    //( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK, aRAZ) );
     Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
 
     if(aIsOK==false)
-        std::cout << "not intersected in CameraRPC::OpticalCenterOfLine" << std::endl;
-
-
+        std::cout << "not intersected in CameraRPC::OpticalCenterGrid" << std::endl;
+    
     return aRes;
 }
 
 void CameraRPC::TestDirectRPCGen()
 {
     mRPC->TestDirectRPCGen(mCS);
-}
-
-void  CameraRPC::testy(const Pt2dr & aP) const
-{
-    //collect points for the fit
-    //compute point1 & 2 outside the line that will lie on plane1 & 2 respectively
-    //load system equation 
-    //  plane1: A*Xi + BYi + CZi + D = 0
-    //  plane2: E*Xi + FYi + GZi + H = 0
-    //solve for A..H
-
-    //find a 3d line by intersecting plane1 & 2
-    //  [A,B,C] x [E,F,G]
-    //find the x0 of the line
-
 }
 
 bool CameraRPC::HasOpticalCenterOfPixel() const
