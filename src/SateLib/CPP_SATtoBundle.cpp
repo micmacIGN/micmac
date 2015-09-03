@@ -125,7 +125,7 @@ int SATtoOpticalCenter_main(cSatI_Appli &aApps)
        if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
        {
            CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
-           aCamRPC.OpticalCenterLineGrid(true);
+           aCamRPC.OpticalCenterGrid(true);
 
        }
        //other planets
