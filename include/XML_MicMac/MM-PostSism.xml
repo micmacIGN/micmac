@@ -1,0 +1,247 @@
+<!--
+    A Pattern file for using MicMac in post-sismic deformation
+-->
+<ParamMICMAC>
+    <DicoLoc>
+         <Symb> Im1=XXXX  </Symb>
+         <Symb> Im2=XXXX  </Symb>
+         <Symb> Masq=XXXX  </Symb>
+
+         <Symb> DirMEC=MEC/</Symb>
+         <Symb> Pyr=Pyram/</Symb>
+         <Symb> Inc=2.0  </Symb>
+         <Symb> Pas=0.2 </Symb>
+         <Symb> Teta0=0 </Symb>
+         <Symb> UseMasq=false </Symb>
+         <Symb> UseTeta=false </Symb>
+         <Symb> RegulBase=0.3 </Symb>
+         <Symb> UseDequant=false </Symb>
+
+         <Symb> SzW=4 </Symb>
+         <Symb> CorrelMin=0.5 </Symb>
+         <Symb> GammaCorrel=2 </Symb>
+
+         <Symb> PdsF=0.1 </Symb>
+
+         <Symb> NbDir=7 </Symb>
+         <eSymb> P0= / ${PdsF} +   ${PdsF} / 0 ${NbDir} </eSymb>
+         <eSymb> P1= / ${PdsF} +   ${PdsF} / 1 ${NbDir} </eSymb>
+         <eSymb> P2= / ${PdsF} +   ${PdsF} / 2 ${NbDir} </eSymb>
+         <eSymb> P3= / ${PdsF} +   ${PdsF} / 3 ${NbDir} </eSymb>
+         <eSymb> P4= / ${PdsF} +   ${PdsF} / 4 ${NbDir} </eSymb>
+         <eSymb> P5= / ${PdsF} +   ${PdsF} / 5 ${NbDir} </eSymb>
+         <eSymb> P6= / ${PdsF} +   ${PdsF} / 6 ${NbDir} </eSymb>
+         <eSymb> P7= / ${PdsF} +   ${PdsF} / 7 ${NbDir} </eSymb>
+
+         <Symb>  VPds=[${P0},${P1},${P2},${P3},${P4},${P5},${P6},${P7},${P6},${P7},${P4},${P3},${P2},${P1}] </Symb>
+         <eSymb> NbDirTot=* 2 ${NbDir} </eSymb>
+
+
+         <eSymb> Regul=* ${RegulBase}  ? ${UseTeta} 3 1 </eSymb>
+
+
+         <Symb>  SsResolOpt=4 </Symb>
+         <eSymb> SsResolOptInterm1=* 4 ${SsResolOpt} </eSymb>
+         <eSymb> SsResolOptInterm2=* 2 ${SsResolOpt} </eSymb>
+
+    </DicoLoc>
+<!-- *************************************************************
+Parametres lies au terrain "physique", independamment de la prise de vue
+  *************************************************************-->
+    <Section_Terrain>
+      <IntervParalaxe>
+        <!-- Incertitude en parallaxe -->
+        <!--Px1IncCalc et Px2IncCalc permettent de definir les deux
+        nappes encadrantes utilisees pour definir la zone de recherche
+        au premier niveau de la pyramide-->
+        <Px1IncCalc>  ${Inc}  </Px1IncCalc>
+        <Px2IncCalc>  ${Inc}   </Px2IncCalc>
+
+        <!--Px1Moy et Px2Moy fixent la valeur moyenne de la parallaxe;
+        leurs valeurs ont donc une influence directe sur la zone de
+        recherche exploree lors du premier niveau de la pyramide de
+        resolution. Accessoirement, elles ont une influence sur le
+        formatage du resultat (exprime en relatif par rapport a cette
+        valeur moyenne).-->
+        <Px1Moy >  0.0     </Px1Moy>
+        <Px2Moy >  0.0   </Px2Moy>
+
+      </IntervParalaxe>
+
+      <Planimetrie>
+       <!-- image de Masque utilisee pour designer l'emprise fine de
+          la correlation; il doit etre superposable au MNT de resolution
+          1. Si le fichier n'existe pas, il en sera cree un correspondant
+          aux point du terrain qui sont vus d'au moins deux images (pour
+          la parallaxe moyenne) -->
+        <#WHEN VTEST=${UseMasq}>
+            <MasqueTerrain>
+                <MT_Image> ${Masq}.tif </MT_Image>
+                <MT_Xml>   ${Masq}.xml </MT_Xml>
+            </MasqueTerrain>
+        </#WHEN>
+      </Planimetrie>
+    </Section_Terrain>
+
+ <!-- *************************************************************
+Parametres lies a la prise de vue, independamment de son exploitation
+par le correlateur
+    ************************************************************* -->
+    <Section_PriseDeVue>
+        <GeomImages> eGeomImage_Epip </GeomImages>
+        <Images>
+            <Im1> ${Im1} </Im1>
+            <Im2> ${Im2} </Im2>
+        </Images>
+<!--
+        <FiltreImageIn>
+              <TypeFiltrage>  eFiltrageDeriche  </TypeFiltrage>
+              <SzFiltrage>   1.0          </SzFiltrage>
+        </FiltreImageIn>
+-->
+    </Section_PriseDeVue>
+
+<!--  *************************************************************
+Parametres reglant le comportement de l'algo de mise en correspondance
+
+La premiere etape doit obligatoirement avoir le champs
+resolution a -1. Elle donne les valeurs par defaut et ne
+sera pas executee.
+
+L'ordre des resolutions : les plus basses aux plus grandes.
+************************************************************* -->
+    <Section_MEC>
+        <ChantierFullImage1> true </ChantierFullImage1>
+
+<!--
+        <ProportionClipMEC> 4800 2900   6300 3900    </ProportionClipMEC>
+-->
+        <ClipMecIsProp> false </ClipMecIsProp>
+
+        <EtapeMEC><!-- Etape de Mise En Correspondance -->
+            <DeZoom > -1 </DeZoom> <!-- le seul fils obligatoire a toutes les etapes-->
+            <SzW> ${SzW}   </SzW> <!-- la taille de la fenetre de correlation [-4,4]x[-4,4]-->
+
+
+            <CorrelMin>  ${CorrelMin} </CorrelMin>
+            <GammaCorrel>  ${GammaCorrel} </GammaCorrel>
+            <DynamiqueCorrel> eCoeffGamma </DynamiqueCorrel>
+
+<!--
+    Param_1Dir-NDIR.xml
+    0.1  / (0.1 +K/N*1)
+         <eSymb> NbDirTot=* 2 ${NbDir} </eSymb>
+         <eSymb> NbDirTot=* 2 ${NbDir} </eSymb>
+         <eSymb>  VPds=[${P0},${P1},${P2},${P3},${P4},${P5},${P4},${P3},${P2},${P1}]
+-->
+
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+            <ModulationProgDyn Portee="Globale">
+                <EtapeProgDyn>
+                    <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+                    <#WHEN VTEST=${UseTeta}>
+                        <Px1MultRegul> ${VPds} </Px1MultRegul>
+                        <Px2MultRegul> ${VPds} </Px2MultRegul>
+                    </#WHEN>
+                    <NbDir>      ${NbDirTot}     </NbDir>
+                    <Teta0>    ${Teta0}    </Teta0>
+                </EtapeProgDyn>
+                <Px1PenteMax > 0.4 </Px1PenteMax>
+                <Px2PenteMax > 0.4 </Px2PenteMax>
+            </ModulationProgDyn>
+            <Px1Regul>  ${Regul}    </Px1Regul>
+            <Px2Regul>  ${Regul}   </Px2Regul>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+            <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+            <SzSinCard>  5.0 </SzSinCard>
+            <SzAppodSinCard>  5.0 </SzAppodSinCard>
+
+            <Px1DilatAlti>  2    </Px1DilatAlti>
+            <Px1DilatPlani> 2    </Px1DilatPlani>
+            <Px2DilatAlti>  2    </Px2DilatAlti>
+            <Px2DilatPlani> 2    </Px2DilatPlani>
+
+            <Px1Pas>        ${Pas}  </Px1Pas>
+            <Px2Pas>        ${Pas}  </Px2Pas>
+            <SsResolOptim> ${SsResolOpt} </SsResolOptim>
+
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.8  </Px1Pas>
+           <Px2Pas>   0.8  </Px2Pas>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm1} </SsResolOptim>
+        </EtapeMEC>
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.4  </Px1Pas>
+           <Px2Pas>   0.4  </Px2Pas>
+           <Px1Regul> 2.0    </Px1Regul>
+           <Px2Regul> 2.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm2} </SsResolOptim>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.2  </Px1Pas>
+           <Px2Pas>   0.2  </Px2Pas>
+           <Px1Regul> 1.0    </Px1Regul>
+           <Px2Regul> 1.0   </Px2Regul>
+           <SsResolOptim> ${SsResolOptInterm2} </SsResolOptim>
+        </EtapeMEC>
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.1  </Px1Pas>
+           <Px2Pas>   0.1  </Px2Pas>
+           <Px1Regul> 1.0    </Px1Regul>
+           <Px2Regul> 1.0   </Px2Regul>
+        </EtapeMEC>
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>        0.05  </Px1Pas>
+           <Px2Pas>        0.05  </Px2Pas>
+        </EtapeMEC>
+
+        <#WHEN VTEST=${UseDequant}>
+          <EtapeMEC>
+            <DeZoom >  1  </DeZoom>
+            <Px1Pas>   1.0     </Px1Pas>
+            <Px2Pas>   1.0     </Px2Pas>
+            <AlgoRegul> eAlgoDequant </AlgoRegul>
+          </EtapeMEC>
+        </#WHEN>
+    </Section_MEC>
+
+
+    <Section_Results >
+        <GeomMNT> eGeomPxBiDim </GeomMNT>
+    </Section_Results>
+
+   <Section_WorkSpace >
+      <WorkDir >  ThisDir </WorkDir>
+      <TmpMEC>    ${DirMEC} </TmpMEC>
+      <TmpResult> ${DirMEC} </TmpResult>
+      <TmpPyr>  ${Pyr}  </TmpPyr>
+      <ByProcess>  ${MMNbProc} </ByProcess>
+
+      <NbCelluleMax> 8e7 </NbCelluleMax>
+
+      <SzRecouvrtDalles> 50 </SzRecouvrtDalles>
+      <SzDalleMin> 500 </SzDalleMin>
+
+      <DefTileFile>100000</DefTileFile>
+
+     </Section_WorkSpace>
+
+    <Section_Vrac> </Section_Vrac>
+
+
+
+</ParamMICMAC>
