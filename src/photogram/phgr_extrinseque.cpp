@@ -1026,6 +1026,7 @@ Pt2dr cCameraFormelle::AddEqAppuisInc(const Pt2dr & aPIm,double aPds,cParamPtPro
      Pt2dr aRes = anEq->ResiduPInc(CorrigePFromDAdd(aPIm,true,IsEqDroite),aPds,aPPP);
 
 
+
      if ( std_isnan(aRes.x) || std_isnan(aRes.y))
      {
          std::cout << anEq->mNameType;
@@ -1340,7 +1341,6 @@ void     cCameraFormelle::SetCurRot(const ElRotation3D & aR2CM)
      mRot->SetCurRot(aR2CM);
      mCameraCourante->SetOrientation(mRot->CurRot().inv());
      // mCameraCourante->SetOrientation(aR2CM.inv());
-// std::cout << "IIIIIIIIIIIIIIII " << mCameraCourante->CentreOptique() << "\n";
      Update_0F2D();
 }
 

@@ -519,9 +519,11 @@ class cEqfP3dIncTmp  : public cEqfBlocIncTmp
      public :
         friend class cSetEqFormelles;
 	Pt3d<Fonc_Num> PF();
-	void InitVal(const Pt3dr & aP);
+	void InitEqP3iVal(const Pt3dr & aP);
 
 	tContFcteur  FctrRap(const Pt3dr &);
+        Pt3dr  GetEqP3iVal() const;
+
 
      private :
         cEqfP3dIncTmp ( cSetEqFormelles & aSet, const std::string & aName);

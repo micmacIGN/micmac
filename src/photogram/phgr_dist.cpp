@@ -1082,6 +1082,14 @@ cCalibrationInterneRadiale  ElDistRadiale_PolynImpair::ToXmlDradStruct() const
         aCIR.CoeffDist().push_back(Coeff(aKC));
     }
 
+    if (1)
+    {
+         int aDelta =  NbCoeffNN() - NbCoeff();
+         ElDistRadiale_PolynImpair anInv = const_cast<ElDistRadiale_PolynImpair*>(this)->DistRadialeInverse(mRMax ,aDelta+1);
+         for (int aKC=0 ; aKC<anInv.NbCoeffNN() ; aKC++)
+             aCIR.CoeffDistInv().push_back(anInv.Coeff(aKC));
+    }
+
     return aCIR;
 }
 

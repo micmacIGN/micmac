@@ -1,5 +1,7 @@
 <!--
-    Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Test-Apero-BundleGen.xml   DirectoryChantier=/media/data2/Jeux-Test/Dino/ 
+    Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/media/data2/Jeux-Test/Bas/ 
+
++UseGB=0
 
     Apero /home/marc/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/home/marc/TMP/EPI/Enclos/Bas/
 -->
@@ -9,22 +11,32 @@
 
        <DicoLoc>
 
-
-           <Symb>  SetImGB=IMGP939[8-9].PEF </Symb>
-           <Symb>  SetImStd=IMGP940[0-0].PEF </Symb>
-<!--
-           <Symb>  SetIm=_MG_009[9-9].CR2 </Symb>
-           <Symb>  SetImGB=(_MG_010[0-0].CR2) </Symb>
--->
-
             <Symb>  UseGB=true </Symb>
-            <Symb>  UseStd=false </Symb>
+            <Symb>  UseStd=true </Symb>
 
+
+           <eSymb> Mixte= * ${UseGB} ${UseStd} </eSymb>
+           <eSymb> NotMixte= ! ${Mixte} </eSymb>
+
+            
+
+            <Symb>  SetImGBMixte=IMGP939[6-9].PEF </Symb>
+            <Symb>  SetImStdMixte=IMGP940[0-3].PEF </Symb>
+            <Symb>  SetImGBSingle=IMGP939[3456789].PEF </Symb>
+            <Symb>  SetImStdSingle=IMGP939[8-9].PEF </Symb>
+
+
+           
            <Symb>  AeroInGB=-PertTestBundle </Symb>
            <Symb>  AeroInStd=-All </Symb>
            <Symb>  AeroOut=-ResBundle </Symb>
 
+           <Symb>  Hom=""  </Symb>
            <Symb>  Ext=dat </Symb>
+<!--
+           <Symb>  Hom=-Man </Symb>
+           <Symb>  Ext=xml </Symb>
+-->
 
            <Symb>  LibParamInterne=eAllParamFiges  </Symb>
            <Symb>  SigmaTieP=4  </Symb>
@@ -46,8 +58,8 @@
        <SectionBDD_Observation>
             <BDD_PtsLiaisons>
                  <Id>    Id_Pastis_Hom  </Id>
-                 <KeySet> NKS-Set-Homol@@${Ext}  </KeySet>
-                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@@${Ext}   </KeyAssoc>
+                 <KeySet> NKS-Set-Homol@${Hom}@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${Hom}@${Ext}   </KeyAssoc>
             </BDD_PtsLiaisons>
 
             <#WHEN VTEST=${UseStd}>
@@ -79,7 +91,10 @@
                     <RayApplyOnlyFE > true </RayApplyOnlyFE>
                  </CalibrationCameraInc>
                  <PoseCameraInc>
-                       <PatternName>    ${SetImStd} </PatternName>
+                       <#IF VTEST=${Mixte}>
+                          <PatternName>    ${SetImStdMixte} </PatternName>
+                          <PatternName>    ${SetImStdSingle} </PatternName>
+                       </#IF>
                        <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
                    
                        <PosValueInit>
@@ -91,7 +106,10 @@
 
              <#WHEN VTEST=${UseGB}>
                  <CamGenInc>
-                    <PatterName>  ${SetImGB} </PatterName>
+                    <#IF VTEST=${Mixte}>
+                         <PatterName>  ${SetImGBMixte} </PatterName>
+                         <PatterName>  ${SetImGBSingle} </PatterName>
+                    </#IF>
                     <Orient>      ${AeroInGB}  </Orient>
                     <ErrorWhenEmpytPat> true </ErrorWhenEmpytPat>
                   </CamGenInc>
@@ -146,7 +164,7 @@
                                   <Val> eAllParamFiges  </Val>
                               </ContraintesCamerasInc>
                               <ContraintesPoses>
-                                   <NamePose>   ${SetImStd} </NamePose>
+                                   <NamePose>   .* </NamePose>
                                    <ByPattern>  true </ByPattern>
                                    <Val>      ePoseFigee   </Val>
                               </ContraintesPoses>

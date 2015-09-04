@@ -129,6 +129,7 @@ void cEqAppui_PProjInc_M2CFraser_PPaEqPPs::ComputeVal()
 
   mVal[1] = ((tmp80_+(tmp81_)*(tmp102_)+(2*tmp83_+tmp84_)*tmp103_+tmp105_*tmp106_)-mLocYIm)*mLocScNorm;
 
+
 }
 
 

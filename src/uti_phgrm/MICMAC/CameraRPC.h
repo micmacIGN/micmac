@@ -77,14 +77,11 @@ class CameraRPC: public cBasicGeomCap3D
                 void TestDirectRPCGen();
 
                 /* Optical centers for a user-defined grid */
-		void  OpticalCenterLineGrid(bool aIfSave);
-		/* Optical centers per sensor line */
-		void  OpticalCenterPerLine();
+		void  OpticalCenterGrid(bool aIfSave) const;
+	        void  OpticalCenterOfImg() const;
+		Pt3dr OpticalCenterOfPixel(const Pt2dr & aP) const ;
 	        bool  HasOpticalCenterOfPixel() const;
-	        Pt3dr OpticalCenterOfPixel_Old(const Pt2dr & aP) const ;
-	        Pt3dr OpticalCenterOfPixel(const Pt2dr & aP) const ;
-		Pt3dr OpticalCenterOfLine(const double & aL) const ;
-		void  testy(const Pt2dr & aP) const;
+		
 
                 void SetProfondeur(double aP);
 		double GetProfondeur() const;
@@ -92,6 +89,9 @@ class CameraRPC: public cBasicGeomCap3D
                 void SetAltiSol(double aZ);
 		double GetAltiSol() const;
 		bool AltisSolIsDef() const;
+
+                const RPC & GetRPC() const;
+		const std::string & GetImName() const;
 
         private:
 		bool   mProfondeurIsDef;
@@ -107,7 +107,7 @@ class CameraRPC: public cBasicGeomCap3D
 		std::vector<Pt3dr> * mOpticalCenters;
 		
 		Pt2di        mGridSz;
-                std::string  mCamNom; 
+                std::string  mImName; 
 
                 std::string mCS;
 
@@ -133,6 +133,7 @@ class CameraAffine : public cBasicGeomCap3D
             Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
             Pt2di    SzBasicCapt3D() const;
 	    double ResolSolOfPt(const Pt3dr &) const;
+            Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
 	    bool  CaptHasData(const Pt2dr &) const;
 	    bool     PIsVisibleInImage   (const Pt3dr & aP) const;
 
