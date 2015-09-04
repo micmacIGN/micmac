@@ -53,7 +53,7 @@ class CameraRPC: public cBasicGeomCap3D
 			  const eTypeImporGenBundle &aType, 
 			  const std::string &aCartCS, 
 			  const Pt2di &aGridSz, 
-			  const std::string &aMetaFile="");
+			  const std::string &aMetaFile=0);
 		CameraRPC(const std::string &aNameFile, 
                           const eTypeImporGenBundle &aType, 
 			  const std::string aCartoCS="");
@@ -73,17 +73,12 @@ class CameraRPC: public cBasicGeomCap3D
 
 		Pt2di SzBasicCapt3D() const;
 
-		//utm
-		void ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > 
-		     aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
-		//geoc
-		void Exp2BundleInGeoc(std::vector<std::vector<ElSeg3D> > 
-		     aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
+		void ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
                 void TestDirectRPCGen();
 
                 /* Optical centers for a user-defined grid */
 		void  OpticalCenterGrid(bool aIfSave) const;
-	        void  OpticalCenterOfImg();
+	        void  OpticalCenterOfImg() const;
 		Pt3dr OpticalCenterOfPixel(const Pt2dr & aP) const ;
 	        bool  HasOpticalCenterOfPixel() const;
 		
@@ -106,6 +101,8 @@ class CameraRPC: public cBasicGeomCap3D
 
 		bool   mOptCentersIsDef;
 
+		bool   mGridSzIsDef;
+		
 		RPC                * mRPC;
 		std::vector<Pt3dr> * mOpticalCenters;
 		
@@ -115,6 +112,7 @@ class CameraRPC: public cBasicGeomCap3D
                 std::string mCS;
 
 		ElSeg3D F2toRayonLPH(Pt3dr &aP0,Pt3dr & aP1) const;
+		void LPHtoR3(const std::string & aSysOut);
                 
 		void FindUTMCS();
 
