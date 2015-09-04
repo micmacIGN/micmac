@@ -70,7 +70,7 @@ cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
     (
          argc, argv,
          LArgMain() << EAMC(aFullName,"Orientation file (RPC/SPICE) full name (Dir+Pat)", eSAM_IsExistFile)
-                    << EAMC(aNameType,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_")),
+                    << EAMC(aNameType,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_")), //shouldn't it be ---- ListOfVal(eTIGB_NbVals, "eTIGB_") ---- ??
 	 LArgMain() << EAM(mCSysOut,"proj","true", "Output cartographic coordinate system (proj format)")
                     << EAM(mGridSz,"GrSz",true, "No. of grids of bundles, e.g. GrSz=[10,10]", eSAM_NoInit)
 		    << EAM(mMetadata, "Meta", true, "Sensor metadata file, other than the RPC; Valid for IKONOS and CARTOSAT", eSAM_IsExistFile)
