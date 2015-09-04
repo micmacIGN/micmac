@@ -704,6 +704,11 @@ double CameraAffine::ResolSolOfPt(const Pt3dr &) const
     return( 0.0 );
 }
 
+Pt3dr  CameraAffine::RoughCapteur2Terrain   (const Pt2dr & aP) const
+{
+  return Pt3dr(0,0,0);
+}
+
 bool CameraAffine::CaptHasData(const Pt2dr &) const
 {
     return(true);

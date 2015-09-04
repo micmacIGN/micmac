@@ -1457,6 +1457,8 @@ class cBasicGeomCap3D
       //  Def return true, mean that the geometry is ok independently of the image data
       virtual bool  CaptHasDataGeom(const Pt2dr &) const ;
       virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const =0;
+      // Can be very approximate, using average depth or Z
+      virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const =0;
 
   // Optical center 
       virtual bool     HasOpticalCenterOfPixel() const; // 1 - They are not alway defined
@@ -1491,7 +1493,6 @@ class cCapture3D : public cBasicGeomCap3D
 
       virtual bool  HasRoughCapteur2Terrain() const = 0;
       virtual bool  HasPreciseCapteur2Terrain() const = 0;
-      virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const =0;
       virtual Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const =0;
 
       virtual double ResolSolGlob() const = 0;

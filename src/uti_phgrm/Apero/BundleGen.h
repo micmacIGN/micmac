@@ -72,6 +72,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
            virtual double ResolSolOfPt(const Pt3dr &) const ;
            virtual bool  CaptHasData(const Pt2dr &) const ;
            virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
+           virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const ;
 
   // Optical center 
            virtual bool     HasOpticalCenterOfPixel() const; // 1 - They are not alway defined
@@ -221,6 +222,9 @@ class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
          Pt2dr DepOfKnownSol(const Pt2dr & aP,CamStenope *);
          cPolynBGC3M2D_Formelle(const cPolynBGC3M2D_Formelle &); // N.I.
 
+
+         Pt2dr   PtOfRot(const cCellPolBGC3M2DForm &,const ElMatrix<double> & aMat);
+         
 
    // ==> To unvirtualize cGenPDVFormelle 
          Pt2d<Fonc_Num>  EqFormProj();

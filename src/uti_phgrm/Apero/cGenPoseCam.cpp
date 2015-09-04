@@ -342,6 +342,17 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
 }
 
 
+/*
+Pt2dr   cPolynBGC3M2D_Formelle::PtOfRot(const cCellPolBGC3M2DForm & aCel,const ElMatrix<double> & aMat)
+{
+    Pt2dr aPIm = aCel.mPtIm;
+
+    Pt3dr aDir = 
+}
+*/
+
+
+
 double cPolynBGC3M2D_Formelle::ModifInTervGrad(const double & aV,const double & aBorne) const
 {
     return ElMin(ElMax(2*mEpsGrad,aV),aBorne-2*mEpsGrad);
@@ -805,6 +816,11 @@ Pt2dr  cBGC3_Modif2D::Ter2Capteur(const Pt3dr & aP) const
 Pt2dr  cBGC3_Modif2D::Ter2CapteurSsCorrec(const Pt3dr & aP) const
 {
     return mCam0->Ter2Capteur(aP);
+}
+
+Pt3dr  cBGC3_Modif2D::RoughCapteur2Terrain   (const Pt2dr & aP) const 
+{
+   return mCam0->RoughCapteur2Terrain(CurIm2CamInit(aP));
 }
 
 
