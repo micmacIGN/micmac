@@ -445,10 +445,12 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 	}		    
 }
 
+/*
+MPD 
 void CameraRPC::OpticalCenterrOfImg() const
 {
-
 }
+*/
 
 /* For a defined image grid, 
  * extrude to rays and intersect at the line of optical centers */
@@ -471,13 +473,18 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 
     //define a default grid size unless previously defined
     if(!mGridSzIsDef)
-        mGridSz = Pt2di(10,10);
+    {
+        // MPD : very dirty, just to compile ...
+        const_cast<CameraRPC*>(this)->mGridSz = Pt2di(10,10);
+    }
 
     int aAd=1;
     Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/(mGridSz.x+aAd) ,
                              double(SzBasicCapt3D().y)/(mGridSz.y+aAd));
 
-    mOpticalCenters = new std::vector<Pt3dr>();
+    // MPD : very dirty, just to compile ...
+    const_cast<CameraRPC*>(this)->mOpticalCenters = new std::vector<Pt3dr>();
+    //mOpticalCenters = new std::vector<Pt3dr>();
 
     Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
     for( aL=aAd; aL<mGridSz.y+aAd; aL++)
