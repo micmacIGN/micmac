@@ -1,0 +1,115 @@
+<Global
+    Subst="@$#1"
+>
+   <ParamApero>
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> Key-Set-HomolPastisBin  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolPastisBin   </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_Orient>
+                  <Id>  IdOrInit</Id>
+                  <KeySet> Key-Set-All-OrInit </KeySet>
+                  <KeyAssoc>  Key-Assoc-Im2OrInit </KeyAssoc>
+             </BDD_Orient>
+
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib_035 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>  Orient/F035_AutoCalInit.xml    </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>   F035_IMG_[0-9]{4}_MpDcraw8B_GR.tif  </PatternName> 
+	           <CalcNameCalib>  Key-Assoc-CalculKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+                       <PosFromBDOrient> IdOrInit </PosFromBDOrient>
+                   </PosValueInit>
+              </PoseCameraInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+              <AllMatSym>  true </AllMatSym>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+<!--
+              <ModeResolution> eSysCreuxMap </ModeResolution> 
+-->
+              <GridOptimKnownDist> true </GridOptimKnownDist>
+              <NormaliseEqSc> true </NormaliseEqSc>
+              <NormaliseEqTr> true </NormaliseEqTr>
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation> 
+                      <VerifAero>
+                           <PatternApply> .* </PatternApply>
+                           <IdBdLiaison> Id_Pastis_Hom </IdBdLiaison>
+                           <Resol> 8.0 </Resol>
+                           <PasR> 10 </PasR>  
+                           <PasB> 3 </PasB>
+                           <TypeVerif> eVerifResPerIm </TypeVerif>
+
+                           <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                           </Pond>
+                           <Prefixe> TMP/TEST </Prefixe>
+
+                           <!--  Inutile ici -->
+                           <SeuilTxt> 1 </SeuilTxt> 
+
+                      </VerifAero>
+
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
