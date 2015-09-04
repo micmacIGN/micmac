@@ -6620,6 +6620,17 @@ const std::vector< double > & cCalibrationInterneRadiale::CoeffDist()const
 }
 
 
+std::vector< double > & cCalibrationInterneRadiale::CoeffDistInv()
+{
+   return mCoeffDistInv;
+}
+
+const std::vector< double > & cCalibrationInterneRadiale::CoeffDistInv()const 
+{
+   return mCoeffDistInv;
+}
+
+
 cTplValGesInit< double > & cCalibrationInterneRadiale::RatioDistInv()
 {
    return mRatioDistInv;
@@ -6653,6 +6664,15 @@ void  BinaryUnDumpFromFile(cCalibrationInterneRadiale & anObj,ELISE_fp & aFp)
               anObj.CoeffDist().push_back(aVal);
         }
   } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.CoeffDistInv().push_back(aVal);
+        }
+  } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
@@ -6680,6 +6700,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cCalibrationInterneRadiale & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.CoeffDistInv().size());
+    for(  std::vector< double >::const_iterator iT=anObj.CoeffDistInv().begin();
+         iT!=anObj.CoeffDistInv().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.RatioDistInv().IsInit());
     if (anObj.RatioDistInv().IsInit()) BinaryDumpInFile(aFp,anObj.RatioDistInv().Val());
     BinaryDumpInFile(aFp,anObj.PPaEqPPs().IsInit());
@@ -6697,6 +6723,12 @@ cElXMLTree * ToXMLTree(const cCalibrationInterneRadiale & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("CoeffDist"),(*it))->ReTagThis("CoeffDist"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.CoeffDistInv().begin();
+      it !=anObj.CoeffDistInv().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("CoeffDistInv"),(*it))->ReTagThis("CoeffDistInv"));
    if (anObj.RatioDistInv().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("RatioDistInv"),anObj.RatioDistInv().Val())->ReTagThis("RatioDistInv"));
    if (anObj.PPaEqPPs().IsInit())
@@ -6715,12 +6747,14 @@ void xml_init(cCalibrationInterneRadiale & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.CoeffDist(),aTree->GetAll("CoeffDist",false,1));
 
+   xml_init(anObj.CoeffDistInv(),aTree->GetAll("CoeffDistInv",false,1));
+
    xml_init(anObj.RatioDistInv(),aTree->Get("RatioDistInv",1),double(1.3)); //tototo 
 
    xml_init(anObj.PPaEqPPs(),aTree->Get("PPaEqPPs",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cCalibrationInterneRadiale *) {return "160C948B5429E6E7FE3F";};
+std::string  Mangling( cCalibrationInterneRadiale *) {return "8D43B326A0D4AE82FF3F";};
 
 
 cCalibrationInterneRadiale & cCalibrationInternePghrStd::RadialePart()
@@ -6861,7 +6895,7 @@ void xml_init(cCalibrationInternePghrStd & anObj,cElXMLTree * aTree)
    xml_init(anObj.b2(),aTree->Get("b2",1),double(0.0)); //tototo 
 }
 
-std::string  Mangling( cCalibrationInternePghrStd *) {return "46BB04EBB3BADC9EFF3F";};
+std::string  Mangling( cCalibrationInternePghrStd *) {return "26AD6F7176EF41ADFE3F";};
 
 
 eModelesCalibUnif & cCalibrationInterneUnif::TypeModele()
@@ -7951,7 +7985,7 @@ void xml_init(cCalibDistortion & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModGridDef(),aTree->Get("ModGridDef",1)); //tototo 
 }
 
-std::string  Mangling( cCalibDistortion *) {return "DCCE3AC21BBF1BEDFE3F";};
+std::string  Mangling( cCalibDistortion *) {return "C2893ADDB69613AAFE3F";};
 
 
 std::string & cCorrectionRefractionAPosteriori::FileEstimCam()
@@ -8496,7 +8530,7 @@ void xml_init(cCalibrationInternConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.CorrectionRefractionAPosteriori(),aTree->Get("CorrectionRefractionAPosteriori",1)); //tototo 
 }
 
-std::string  Mangling( cCalibrationInternConique *) {return "874FDD245394C4B7FE3F";};
+std::string  Mangling( cCalibrationInternConique *) {return "72EC6167801FAA91FF3F";};
 
 
 Pt3dr & cRepereCartesien::Ori()
@@ -10202,7 +10236,7 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvOri(),aTree->Get("ConvOri",1)); //tototo 
 }
 
-std::string  Mangling( cOrientationConique *) {return "980E74B5DEA4FCCBFE3F";};
+std::string  Mangling( cOrientationConique *) {return "7569EA54FD2C34B5FD3F";};
 
 
 std::string & cMNT2Cmp::NameIm()

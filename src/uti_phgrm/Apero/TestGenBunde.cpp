@@ -246,6 +246,9 @@ double cTest_PBGC3M2DF::AddBundle(const  std::vector<cSetCTest_PBGC3M2DF *> & aV
           bool Ok;
           Pt3dr  aPImTer = InterSeg(aVP0,aVP1,Ok);
           double anEr = 0;
+
+          mEqP3I->InitEqP3iVal(aPImTer);
+
           for (int aKC=0 ; aKC<aNbCam ; aKC++)
           {
               Pt2dr aPIm = aSet->mVP[aKC][aKP];

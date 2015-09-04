@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1759]) = {
+const char * (theNameVar_ParamChantierPhotogram[1760]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -648,6 +648,7 @@ const char * (theNameVar_ParamChantierPhotogram[1759]) = {
 "\n",
 "        <CDist Nb=\"1\" Type=\"Pt2dr\"> </CDist>\n",
 "        <CoeffDist Nb=\"*\" Container=\"std::vector\" Type=\"double\"> </CoeffDist>\n",
+"        <CoeffDistInv Nb=\"*\" Container=\"std::vector\" Type=\"double\"> </CoeffDistInv>\n",
 "        <RatioDistInv Nb=\"?\" Type=\"double\" Def=\"1.3\"></RatioDistInv>\n",
 "        <!-- Cree un modele different ou PPA et PPS restent confondus -->\n",
 "        <PPaEqPPs Nb=\"?\" Type=\"bool\" Def=\"false\"> </PPaEqPPs>\n",

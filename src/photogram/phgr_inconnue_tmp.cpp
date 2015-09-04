@@ -480,12 +480,23 @@ cEqfP3dIncTmp::cEqfP3dIncTmp
 {
 }
 
-void cEqfP3dIncTmp::InitVal(const Pt3dr & aP)
+void cEqfP3dIncTmp::InitEqP3iVal(const Pt3dr & aP)
 {
    mIncTmp[0]->SetVal(aP.x);
    mIncTmp[1]->SetVal(aP.y);
    mIncTmp[2]->SetVal(aP.z);
 }
+
+Pt3dr  cEqfP3dIncTmp::GetEqP3iVal() const
+{
+   return Pt3dr
+          (
+              mIncTmp[0]->Val(),
+              mIncTmp[1]->Val(),
+              mIncTmp[2]->Val()
+          );
+}
+
 
 Pt3d<Fonc_Num> cEqfP3dIncTmp::PF()
 {
@@ -1323,6 +1334,8 @@ if (BugZ0)
    
       if ((aParam.mBsH < aParam.mSeuilBsH) && (! aRAZ))
       {
+
+
           aParam.mProjIsInit = true;
       }
       else
@@ -1586,8 +1599,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
  
     Pt3dr aPTer =   mPPP.mProjIsInit ? Pt3dr(0,0,0) :  mResidus.mPTer;
     // mResidus.mPTer = aPTer;
-   if (UPL_DCC()) std::cout << "================== aPTer " << aPTer << "\n";
-    mP3Inc->InitVal(aPTer);
+
+    mP3Inc->InitEqP3iVal(aPTer);
 
 
 
@@ -1633,6 +1646,10 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
        if (aVPdsIm[aK]>0)
        {
            Pt2dr anEr = mVCamVis[aK]->AddEqAppuisInc(aNuple.PK(aK),aPds,mPPP,aNuple.IsDr(aK));
+
+
+
+
            mResidus.mEcIm.push_back(anEr);
 if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << " " << mMulGlobPds << "\n";
 
