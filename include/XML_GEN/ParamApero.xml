@@ -1248,6 +1248,7 @@ normalises en echelle et/ou en translation -->
                          <PatternApply Nb="?" Type="std::string">   </PatternApply>
                          <PdsAttachToId Nb="?" Type="double">       </PdsAttachToId>
                          <PdsAttachToLast Nb="?" Type="double">     </PdsAttachToLast>
+                         <PdsAttachRGLob Nb="?" Type="double">      </PdsAttachRGLob>
                      </ContrCamGenInc>
 
                       <!-- Ici il s'agit de point d'appuis "sur", -->

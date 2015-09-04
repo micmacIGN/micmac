@@ -184,7 +184,6 @@ class cCellPolBGC3M2DForm
           bool                     mActive;
           bool                     mHasDep;
           int                      mDim;
-          std::vector<Pt2dr>       mDerPnlRot;
           std::vector<Pt2dr>       mValDep;
 };
 
@@ -220,6 +219,7 @@ class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
          Pt2dr  P2dNL(const Pt2dr & aPt) const;
 
          void AddEqRot(const Pt2di & aP0,const Pt2di &aP1,double aPds);
+         void AddEqRotGlob(double aPds);
          double ModifInTervGrad(const double & aVal,const double & aBorne) const;
 
     private :

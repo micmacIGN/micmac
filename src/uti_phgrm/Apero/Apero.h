@@ -376,6 +376,7 @@ class cGenPoseCam
 	  virtual void    VirtualInitAvantCompens();
 	  bool    PMoyIsInit() const;
 	  Pt3dr   GetPMoy() const;
+	  double  SomPM() const;
 	  double   ProfMoyHarmonik() const;
           int   NbPtsMulNN() const ;
           void  SetNbPtsMulNN(int) ;

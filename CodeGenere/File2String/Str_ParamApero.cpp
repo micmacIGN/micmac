@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1640]) = {
+const char * (theNameVar_ParamApero[1641]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1250,6 +1250,7 @@ const char * (theNameVar_ParamApero[1640]) = {
 "                         <PatternApply Nb=\"?\" Type=\"std::string\">   </PatternApply>\n",
 "                         <PdsAttachToId Nb=\"?\" Type=\"double\">       </PdsAttachToId>\n",
 "                         <PdsAttachToLast Nb=\"?\" Type=\"double\">     </PdsAttachToLast>\n",
+"                         <PdsAttachRGLob Nb=\"?\" Type=\"double\">      </PdsAttachRGLob>\n",
 "                     </ContrCamGenInc>\n",
 "\n",
 "                      <!-- Ici il s'agit de point d'appuis \"sur\", -->\n",

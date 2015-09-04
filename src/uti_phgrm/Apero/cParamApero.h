@@ -4425,10 +4425,14 @@ class cContrCamGenInc
 
         cTplValGesInit< double > & PdsAttachToLast();
         const cTplValGesInit< double > & PdsAttachToLast()const ;
+
+        cTplValGesInit< double > & PdsAttachRGLob();
+        const cTplValGesInit< double > & PdsAttachRGLob()const ;
     private:
         cTplValGesInit< std::string > mPatternApply;
         cTplValGesInit< double > mPdsAttachToId;
         cTplValGesInit< double > mPdsAttachToLast;
+        cTplValGesInit< double > mPdsAttachRGLob;
 };
 cElXMLTree * ToXMLTree(const cContrCamGenInc &);
 

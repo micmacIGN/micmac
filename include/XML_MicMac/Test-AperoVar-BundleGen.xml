@@ -193,8 +193,9 @@
                           <#WHEN VTEST=${UseGB}>
                               <ContrCamGenInc>
                                    <PatternApply> .*  </PatternApply>
-                                   <PdsAttachToId>   1e-5     </PdsAttachToId>
-                                   <PdsAttachToLast> 1e-3    </PdsAttachToLast>
+                                   <PdsAttachToId>   1e-9     </PdsAttachToId>
+                                   <PdsAttachToLast> 1e-8    </PdsAttachToLast>
+                                   <PdsAttachRGLob>  1    </PdsAttachRGLob>
                               </ContrCamGenInc>
                           </#WHEN>
 

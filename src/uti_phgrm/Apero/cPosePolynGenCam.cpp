@@ -112,6 +112,7 @@ void    cGenPoseCam::InitAvantCompens()
     mSomPM = 0;
 }
 
+double  cGenPoseCam::SomPM() const {return mSomPM;}
 
 bool     cGenPoseCam::PMoyIsInit() const
 {
@@ -163,10 +164,7 @@ void    cGenPoseCam::AddPMoy(const Pt3dr & aP,double aBSurH)
     mPMoy = mPMoy + aP * aPds;
     mMoyInvProf  += (1/aProf) * aPds;
     mSomPM  += aPds ;
-
 }
-
-
 
 
 int & cGenPoseCam::NumTmp()
@@ -383,8 +381,31 @@ void cAppliApero::AddObservationsContrCamGenInc
 
              if (aCCIG.PdsAttachToId().IsInit())
              {
-                 aPF->AddEqAttachGlob(aCCIG.PdsAttachToId().Val(),false,20,(CamStenope *) 0);
+                 aPF->AddEqAttachGlob
+                 (
+                     aCCIG.PdsAttachToId().Val()*aGPC->SomPM(),
+                     false,
+                     20,
+                     (CamStenope *) 0
+                 );
              }
+
+             if (aCCIG.PdsAttachToLast().IsInit())
+             {
+                 aPF->AddEqAttachGlob
+                 (
+                     aCCIG.PdsAttachToLast().Val()*aGPC->SomPM(),
+                     true,
+                     20,
+                     (CamStenope *) 0
+                 );
+             }
+
+             if (aCCIG.PdsAttachRGLob().IsInit())
+             {
+                 aPF->AddEqRotGlob(aCCIG.PdsAttachRGLob().Val()*aGPC->SomPM());
+             }
+
         }
     }
 

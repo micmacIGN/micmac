@@ -15957,6 +15957,17 @@ const cTplValGesInit< double > & cContrCamGenInc::PdsAttachToLast()const
    return mPdsAttachToLast;
 }
 
+
+cTplValGesInit< double > & cContrCamGenInc::PdsAttachRGLob()
+{
+   return mPdsAttachRGLob;
+}
+
+const cTplValGesInit< double > & cContrCamGenInc::PdsAttachRGLob()const 
+{
+   return mPdsAttachRGLob;
+}
+
 void  BinaryUnDumpFromFile(cContrCamGenInc & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -15983,6 +15994,14 @@ void  BinaryUnDumpFromFile(cContrCamGenInc & anObj,ELISE_fp & aFp)
         }
         else  anObj.PdsAttachToLast().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PdsAttachRGLob().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PdsAttachRGLob().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PdsAttachRGLob().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cContrCamGenInc & anObj)
@@ -15993,6 +16012,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cContrCamGenInc & anObj)
     if (anObj.PdsAttachToId().IsInit()) BinaryDumpInFile(aFp,anObj.PdsAttachToId().Val());
     BinaryDumpInFile(aFp,anObj.PdsAttachToLast().IsInit());
     if (anObj.PdsAttachToLast().IsInit()) BinaryDumpInFile(aFp,anObj.PdsAttachToLast().Val());
+    BinaryDumpInFile(aFp,anObj.PdsAttachRGLob().IsInit());
+    if (anObj.PdsAttachRGLob().IsInit()) BinaryDumpInFile(aFp,anObj.PdsAttachRGLob().Val());
 }
 
 cElXMLTree * ToXMLTree(const cContrCamGenInc & anObj)
@@ -16005,6 +16026,8 @@ cElXMLTree * ToXMLTree(const cContrCamGenInc & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PdsAttachToId"),anObj.PdsAttachToId().Val())->ReTagThis("PdsAttachToId"));
    if (anObj.PdsAttachToLast().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PdsAttachToLast"),anObj.PdsAttachToLast().Val())->ReTagThis("PdsAttachToLast"));
+   if (anObj.PdsAttachRGLob().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PdsAttachRGLob"),anObj.PdsAttachRGLob().Val())->ReTagThis("PdsAttachRGLob"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -16020,9 +16043,11 @@ void xml_init(cContrCamGenInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.PdsAttachToId(),aTree->Get("PdsAttachToId",1)); //tototo 
 
    xml_init(anObj.PdsAttachToLast(),aTree->Get("PdsAttachToLast",1)); //tototo 
+
+   xml_init(anObj.PdsAttachRGLob(),aTree->Get("PdsAttachRGLob",1)); //tototo 
 }
 
-std::string  Mangling( cContrCamGenInc *) {return "F859D9FD0F9B47BDFBBF";};
+std::string  Mangling( cContrCamGenInc *) {return "A8AE434A1F7E7894FE3F";};
 
 
 std::string & cObsBlockCamRig::Id()
@@ -17832,7 +17857,7 @@ void xml_init(cSectionObservations & anObj,cElXMLTree * aTree)
    xml_init(anObj.ObsRelGPS(),aTree->GetAll("ObsRelGPS",false,1));
 }
 
-std::string  Mangling( cSectionObservations *) {return "24FFF7FFC1027A86FCBF";};
+std::string  Mangling( cSectionObservations *) {return "D428638686C357C2FF3F";};
 
 
 cTplValGesInit< bool > & cExportAsGrid::DoExport()
@@ -23269,7 +23294,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "292783B17E72E1C3FE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "60616EF12FEE88CEFE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -23328,7 +23353,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "9053D37203D839D4FC3F";};
+std::string  Mangling( cSectionCompensation *) {return "02C4D8DB1CBF20AEFDBF";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -24295,7 +24320,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "FC0BCE6519D96B9DFF3F";};
+std::string  Mangling( cParamApero *) {return "E1170B408CC9FE9FFF3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()
