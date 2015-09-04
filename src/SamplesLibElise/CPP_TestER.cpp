@@ -157,29 +157,29 @@ int TestER_main(int argc,char ** argv)
 	    //check if marginal tiles (this shall include imge validity)
 	    if(aK1 < (aImTilGrid.x-1))
 	    {
+		aV2D2.x = (aK1+1)*aImTilSz.x;
 		aV2D3.x = (aK1+1)*aImTilSz.x;
-		aV2D4.x = (aK1+1)*aImTilSz.x;
 	    }
 	    else
 	    {
+	        aV2D2.x = aCRPC1.SzBasicCapt3D().x -1;
 	        aV2D3.x = aCRPC1.SzBasicCapt3D().x -1;
-	        aV2D4.x = aCRPC1.SzBasicCapt3D().x -1;
 	    }
 	    if(aK2 < (aImTilGrid.y-1))
 	    {
-		aV2D2.y = (aK2+1)*aImTilSz.y;
 		aV2D3.y = (aK2+1)*aImTilSz.y;
+		aV2D4.y = (aK2+1)*aImTilSz.y;
 	    }
 	    else
 	    {
-		aV2D2.y = aCRPC1.SzBasicCapt3D().y -1;
 		aV2D3.y = aCRPC1.SzBasicCapt3D().y -1;
+		aV2D4.y = aCRPC1.SzBasicCapt3D().y -1;
 	    }
 
             aV2D1.x = aK1*aImTilSz.x;
-	    aV2D2.x = aK1*aImTilSz.x;
+	    aV2D4.x = aK1*aImTilSz.x;
 	    aV2D1.y = aK2*aImTilSz.y;
-	    aV2D4.y = aK2*aImTilSz.y;
+	    aV2D2.y = aK2*aImTilSz.y;
 
             std::cout << aV2D1 << " " << aV2D2 << " " << aV2D3 << " " << aV2D4 << "\n";
 
