@@ -173,14 +173,19 @@ class cCellPolBGC3M2DForm
           void InitRep(cPolynBGC3M2D_Formelle * aPF);
           void SetGrad(const Pt2dr & aGX,const Pt2dr & aGy);
       
-          Pt2dr               mPtIm;
-          Pt3dr               mNorm;
-          Pt3dr               mCenter;
-          bool                mActive;
-          bool                mHasDep;
-          int                 mDim;
-          std::vector<Pt2dr>  mDerPnlRot;
-          std::vector<Pt2dr>  mValDep;
+          Pt2dr  ProjOfTurnMatr(bool & Ok,const ElMatrix<double> & Mat);
+
+
+          cPolynBGC3M2D_Formelle * mPF;
+          Pt2dr                    mPtIm;
+          Pt3dr                    mNorm;
+          Pt3dr                    mCenter;
+          Pt3dr                    mPTer;
+          bool                     mActive;
+          bool                     mHasDep;
+          int                      mDim;
+          std::vector<Pt2dr>       mDerPnlRot;
+          std::vector<Pt2dr>       mValDep;
 };
 
 class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
@@ -290,8 +295,9 @@ class cPolynBGC3M2D_Formelle : public cGenPDVFormelle
          ElRotation3D        mRotL2W;
          ElMatrix<double>    mMatW2Loc;
 
-         static double                           mEpsAng;
-         static std::vector<ElMatrix<double> >   mEpsRot;
+         static double                           mNbPixOfEpAngle;
+         double                                  mEspilonAngle;
+         std::vector<ElMatrix<double> >          mEpsRot;
          static double                           mEpsGrad;
          cSubstitueBlocIncTmp *                  mBufSubRot;
          int                                     mDimMvt;

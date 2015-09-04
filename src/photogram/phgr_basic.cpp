@@ -1450,6 +1450,16 @@ double cBasicGeomCap3D::ProfondeurDeChamps(const Pt3dr & aP) const
    return scal(DirVisee(),aP-aC);
 }
 
+double cBasicGeomCap3D::ResolutionAngulaire() const
+{
+    Pt2dr aMil = Pt2dr(SzBasicCapt3D()) / 2.0;
+    Pt3dr aPTer = RoughCapteur2Terrain(aMil);
+
+    double aR = ResolSolOfPt(aPTer);
+    return   aR / euclid(aPTer-OpticalCenterOfPixel(aMil));
+}
+
+
 Pt3dr cBasicGeomCap3D::DirVisee() const
 {
    return DirRayonR3(Pt2dr(SzBasicCapt3D()) / 2.0);
@@ -1561,6 +1571,18 @@ Pt3dr  cBasicGeomCap3D::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const
 Pt3dr cBasicGeomCap3D::DirRayonR3(const Pt2dr & aPIm) const
 {
     return Capteur2RayTer(aPIm).TgNormee();
+}
+
+
+void cBasicGeomCap3D::GetCenterAndPTerOnBundle(Pt3dr & aC,Pt3dr & aPTer,const Pt2dr & aPIm) const
+{
+   ElSeg3D aSeg = Capteur2RayTer(aPIm);
+
+   aC  = OpticalCenterOfPixel(aPIm);
+   aPTer = RoughCapteur2Terrain(aPIm);
+
+   aC = aSeg.ProjOrtho(aC);
+   aPTer = aSeg.ProjOrtho(aPTer);
 }
 
 

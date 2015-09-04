@@ -290,12 +290,12 @@ void cTest_PBGC3M2DF::OneIterBundle()
        cPolynBGC3M2D_Formelle & aCF = aCT->mFPC;
 
        double aSomD,aSomRot;
-       aCF.TestRot(Pt2di(0,0),aCF.SzCell(),aSomD,aSomRot,0);
+       // aCF.TestRot(Pt2di(0,0),aCF.SzCell(),aSomD,aSomRot,0);
        // Avec forcage, les resultat sont "bons"
-       // aCF.TestRot(Pt2di(0,0),aCF.SzCell(),aSomD,aSomRot,&(mVCT[aKC]->mMatPert));
+       aCF.TestRot(Pt2di(0,0),aCF.SzCell(),aSomD,aSomRot,&(mVCT[aKC]->mMatPert));
        ElTimer aT;
 
-       aCF.AddEqRot(Pt2di(0,0),aCF.SzCell(),aCT->mSomPdsMes* 1e-3);
+       aCF.AddEqRot(Pt2di(0,0),aCF.SzCell(),aCT->mSomPdsMes* 100);
        aCF.AddEqAttachGlob(aCT->mSomPdsMes *1e-5,true,20,0);
        aCF.AddEqAttachGlob(aCT->mSomPdsMes * 1e-7,false,20,0);
 

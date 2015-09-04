@@ -1478,6 +1478,14 @@ class cBasicGeomCap3D
       virtual Pt3dr DirRayonR3(const Pt2dr & aPIm) const;
       virtual double ProfondeurDeChamps(const Pt3dr & aP) const;
       virtual Pt3dr DirVisee() const;
+
+
+       virtual double ResolutionAngulaire() const;  // OO
+       /// This function calls existing virtual function; in many case it will be redundant with
+       // them, the goals is to be sure that the Center  and the PTer are exactly
+       //  on the line given by Capteur2RayTer; which theoritically may be not the case
+       // especialy when centers are computed from multiples intersections
+       virtual void  GetCenterAndPTerOnBundle(Pt3dr & aC,Pt3dr & aPTer,const Pt2dr & aPIm) const;
 };
 
 

@@ -40,9 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
 
-double  cPolynBGC3M2D_Formelle::mEpsAng;
+double  cPolynBGC3M2D_Formelle::mNbPixOfEpAngle = 1.0;
 double  cPolynBGC3M2D_Formelle::mEpsGrad = 5.0;
-std::vector<ElMatrix<double> > cPolynBGC3M2D_Formelle::mEpsRot;
 
 // cPolynBGC3M2D_Formelle
 
@@ -91,7 +90,9 @@ Fonc_Num  cOneEq_PBGC3M2DF::EqFormProjCor(Pt2d<Fonc_Num> aP)
    //==========================================
 
 
+
 cCellPolBGC3M2DForm::cCellPolBGC3M2DForm(Pt2dr aPt,cPolynBGC3M2D_Formelle * aPF,int aDim) : 
+    mPF        (aPF),
     mPtIm      (aPt),
     mActive    (aPF->CamSsCorr()->CaptHasDataGeom(mPtIm)),
     mHasDep    (false),
@@ -101,11 +102,38 @@ cCellPolBGC3M2DForm::cCellPolBGC3M2DForm(Pt2dr aPt,cPolynBGC3M2D_Formelle * aPF,
 {
    if (mActive)
    {
+       aPF->CamSsCorr()->GetCenterAndPTerOnBundle(mCenter,mPTer,mPtIm);
+       mNorm = vunit(mPTer-mCenter);
+
+
+       for (int aK=0 ; aK<3 ; aK++)
+       {
+           // Pt2dr aN1 = aPF->mEpsRot[aK] * mNorm;
+           // Pt3dr aN2 = aPF->mEpsRot[aK].transpose() * mNorm;
+       }
+
+      
+
+
+/*
        ElSeg3D aSeg = aPF->CamSsCorr()->Capteur2RayTer(mPtIm);
        mNorm = aSeg.TgNormee();
        mCenter = aPF->CamSsCorr()->OpticalCenterOfPixel(mPtIm);
+       // mCenter = 
+       mPTer  =  aPF->CamSsCorr()->RoughCapteur2Terrain(mPtIm);
+*/
+   
    } 
 }
+
+Pt2dr  cCellPolBGC3M2DForm::ProjOfTurnMatr(bool & Ok, const ElMatrix<double> & aMat)
+{
+     Pt3dr aPTer = mCenter + aMat * (mPTer-mCenter);
+     Ok =  mPF->CamSsCorr()->PIsVisibleInImage(aPTer);
+     if (!Ok) return Pt2dr(0,0);
+     return  mPF->CamSsCorr()->Ter2Capteur(aPTer);
+}
+
       
 cCellPolBGC3M2DForm::cCellPolBGC3M2DForm() :
     mActive   (false),
@@ -120,9 +148,9 @@ void cCellPolBGC3M2DForm::InitRep(cPolynBGC3M2D_Formelle * aPF)
 
      for (int aK=0 ; aK<3 ; aK++)
      {
-         Pt2dr aPNPert1 = ProjStenope( cPolynBGC3M2D_Formelle::mEpsRot[aK]* aNormLoc) ;
-         Pt2dr aPNPert2 = ProjStenope( cPolynBGC3M2D_Formelle::mEpsRot[aK].transpose() * aNormLoc) ;
-         mDerPnlRot[aK]  = (aPNPert1-aPNPert2) / cPolynBGC3M2D_Formelle::mEpsAng;
+         Pt2dr aPNPert1 = ProjStenope( aPF->mEpsRot[aK]* aNormLoc) ;
+         Pt2dr aPNPert2 = ProjStenope( aPF->mEpsRot[aK].transpose() * aNormLoc) ;
+         mDerPnlRot[aK]  = (aPNPert1-aPNPert2) / aPF->mEspilonAngle;
      }
 }
 
@@ -245,6 +273,13 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
     Pt2dr aCenter = aSzIm /2.0;
     double aDistMinCenter = 1e20;
 
+    {
+       mEspilonAngle=1;
+       for (int aK=0 ; aK<3 ; aK++)
+       {
+           mEpsRot.push_back(ElMatrix<double>::Rotation3D(mEspilonAngle,aK));
+       }
+    }
 
     mVCells =  std::vector<std::vector<cCellPolBGC3M2DForm> > (mNbCellY+1);
     Pt2di aPInd(-1,-1);
@@ -286,14 +321,6 @@ cPolynBGC3M2D_Formelle::cPolynBGC3M2D_Formelle
     mRotL2W = ElRotation3D(mCenterGlob,MatFromCol(aX,aY,aZ),true);
     mMatW2Loc = mRotL2W.Mat().transpose();
 
-    if (mEpsRot.empty())
-    {
-       mEpsAng = 1e-3;
-       for (int aK=0 ; aK<3 ; aK++)
-       {
-           mEpsRot.push_back(ElMatrix<double>::Rotation3D(mEpsAng,aK));
-       }
-    }
 
     for (aPInd.y=0 ; aPInd.y<= mNbCellY ; aPInd.y++)
     {
@@ -505,7 +532,6 @@ void cPolynBGC3M2D_Formelle::TestRot(const Pt2di & aP0,const Pt2di &aP1,double &
                 }
 
                 aSomRot += euclid(aDep-aDepR);
-                aNbOk++;
             }
         }
     }
