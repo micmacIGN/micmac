@@ -46,11 +46,11 @@ class cSatI_Appli
         cSatI_Appli(int argc,char ** argv);
 
         cInterfChantierNameManipulateur * mICNM;
-	std::string mCSysOut;
         std::list<std::string> mListFile;
 
 	eTypeImporGenBundle mType;
 	std::string mMetadata;
+	std::string mCSysOut;
 	Pt2di mGridSz;
 
 	std::vector<std::string> mValidByGCP;
@@ -58,6 +58,7 @@ class cSatI_Appli
 
 cSatI_Appli::cSatI_Appli(int argc,char ** argv) :
 	mMetadata(""),
+	mCSysOut(""),
 	mGridSz(Pt2di(10,8))
 {
     std::string aFullName;
@@ -99,8 +100,12 @@ int SATtoBundle_main(int argc,char ** argv)
 	//Earth satellite
 	if(aApps.mType!=eTIGB_Unknown && aApps.mType!=eTIGB_MMSten)
 	{
-            CameraRPC aCurCam(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz);
-	    aCurCam.ExpImp2Bundle();
+
+            //CameraRPC aCurCam(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz);
+	   // aCurCam.ExpImp2Bundle();
+
+            CameraRPC aCurCam(*itL,aApps.mType);
+	    aCurCam.Exp2BundleInGeoc();
 	}
 	//other planets
 	else
@@ -126,6 +131,18 @@ int SATtoOpticalCenter_main(cSatI_Appli &aApps)
        {
            CameraRPC aCamRPC(*itL,aApps.mType,aApps.mCSysOut,aApps.mGridSz,aApps.mMetadata);
            aCamRPC.OpticalCenterGrid(true);
+	
+	
+	   /*Pt2dr aa(100.4,1000.0);
+	   Pt3dr aaa1 = aCamRPC.OpticalCenterOfPixel(aa);
+           std::cout << "1 " << aaa1 << "\n";
+
+	   aCamRPC.OpticalCenterOfImg();
+	   Pt3dr aaa2 = aCamRPC.OpticalCenterOfPixel(aa);
+           std::cout << "2 " << aaa2 << "\n";
+
+           std::cout << "1-2 " << aaa1 - aaa2 << "\n";
+*/
 
        }
        //other planets
