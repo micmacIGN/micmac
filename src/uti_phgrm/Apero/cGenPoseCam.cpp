@@ -995,7 +995,7 @@ std::string cPolynomial_BGC3M2D::NameSave(const std::string & aDirLoc) const
     return DirSave(aDirLoc) +  "GB-Orientation-" + NameWithoutDir(mNameIma) + ".xml";
 }
 
-void cPolynomial_BGC3M2D::Save(const std::string & aDirLoc) const
+void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
 {
      std::string aDirFull = DirSave(aDirLoc);
 

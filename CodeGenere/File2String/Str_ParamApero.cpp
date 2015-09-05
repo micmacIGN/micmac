@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1641]) = {
+const char * (theNameVar_ParamApero[1642]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1369,6 +1369,7 @@ const char * (theNameVar_ParamApero[1641]) = {
 "                          <ChC Nb=\"?\" Type=\"std::string\"> </ChC>\n",
 "                          <ChCForceRot Nb=\"?\" Type=\"bool\" Def=\"false\"> </ChCForceRot>\n",
 "                          <KeyAssoc  Nb=\"1\" Type=\"std::string\"> </KeyAssoc>\n",
+"                          <StdNameMMDir  Nb=\"?\" Type=\"std::string\"> </StdNameMMDir>\n",
 "			  <AddCalib   Nb=\"?\" Type=\"bool\" Def=\"true\"> </AddCalib>\n",
 "                          <ExportAsNewGrid Nb=\"?\"  AccessorFils=\"false\" RefType=\"ExportAsNewGrid\"> </ExportAsNewGrid>\n",
 "                          <FileExtern Nb=\"?\" Type=\"std::string\"> </FileExtern>\n",

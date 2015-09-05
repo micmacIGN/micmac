@@ -118,7 +118,7 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            inline const Pt2dr &      Center() const {return mCenter;}
            void Show() const;
 
-           void Save(const std::string & aDir) const;
+           void Save2XmlStdMMName(const std::string & aDir) const;
            std::string DirSave(const std::string & aDirLoc) const;
            std::string NameSave(const std::string & aDirLoc) const;
 

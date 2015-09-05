@@ -1486,6 +1486,10 @@ class cBasicGeomCap3D
        //  on the line given by Capteur2RayTer; which theoritically may be not the case
        // especialy when centers are computed from multiples intersections
        virtual void  GetCenterAndPTerOnBundle(Pt3dr & aC,Pt3dr & aPTer,const Pt2dr & aPIm) const;
+
+
+       // Save using standard MicMac naming ; !! Not supported for now by Stenope camera; Def :  Fatal Error
+       virtual void Save2XmlStdMMName(const std::string &) const ;
 };
 
 
@@ -2015,6 +2019,8 @@ class CamStenope : public ElCamera
          static CamStenope * StdCamFromFile(bool UseGr,const std::string &,cInterfChantierNameManipulateur * anICNM);
 
          virtual const cCamStenopeDistRadPol * Debug_CSDRP() const;
+
+
 
 
           // renvoit la distance de p1 a la projection de la droite
