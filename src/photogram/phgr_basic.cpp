@@ -1442,6 +1442,11 @@ Pt2dr cCorrRefracAPost::CorrC2M(const Pt2dr & aP0) const
 /*                                               */
 /*************************************************/
 
+void cBasicGeomCap3D::Save2XmlStdMMName(const std::string &) const
+{
+    ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
+}
+
 double cBasicGeomCap3D::ProfondeurDeChamps(const Pt3dr & aP) const
 {
    Pt2dr aPIm = Ter2Capteur(aP);

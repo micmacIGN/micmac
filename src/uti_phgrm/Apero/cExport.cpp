@@ -205,7 +205,8 @@ void cAppliApero::ExportSauvAutom()
       aPref = MMTemporaryDirectory();
       aStrS ="Autom";
    }
-   aStrS = "-Sauv-" + aStrS + "-" + ToString(mNumSauvAuto);
+   std::string  aStrSSansMinus = "-Sauv-" + aStrS + "-" + ToString(mNumSauvAuto);
+   aStrS = "-" + aStrSSansMinus;
    
    cExportPose anEP;
    // anEP.KeyAssoc() = "NKS-Assoc-Im2Orient@" + aStrS;
@@ -217,6 +218,8 @@ void cAppliApero::ExportSauvAutom()
    anEP.RelativeNameFE().SetVal(true);
    anEP.ModeAngulaire().SetVal(false);
    anEP.PatternSel().SetVal(".*");
+
+   anEP.StdNameMMDir().SetVal(aStrSSansMinus);
 
    anEP.NbVerif().SetVal(10);
    anEP.ShowWhenVerif().SetVal(true);
@@ -250,157 +253,179 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
       aChCo = cChSysCo::Alloc(anEP.ChC().Val(),mDC);
    }
 
-   for (tDiPo::const_iterator itP=mDicoPose.begin(); itP!=mDicoPose.end(); itP++)
+   // for (tDiPo::const_iterator itP=mDicoPose.begin(); itP!=mDicoPose.end(); itP++)
+   for (tDiPoGen::const_iterator itP=mDicoGenPose.begin(); itP!=mDicoGenPose.end(); itP++)
    {
-       cPoseCam * aPC= itP->second;
-       const std::string & aNP = aPC->Name();
-       if (anAutoSel->IsSetIn(aNP) && aPC->RotIsInit())
+       cGenPoseCam * aGP =  itP->second;
+       const std::string & aNP = aGP->Name();
+       cPoseCam * aPC= aGP->DownCastPoseCamSVP() ;
+       std::string aNXml = mOutputDirectory +  aPref + mICNM->Assoc1To1(anEP.KeyAssoc(),aNP,true);
+       if (anAutoSel->IsSetIn(aNP))
        {
-           bool aMM = !anEP.ModeAngulaire().Val();
-           double aZ= aPC->AltiSol();
-           double aP= aPC->Profondeur();
-	   std::string Engl="ExportAPERO";
+          if (aPC==0)
+          {
+              static cElRegex anExpr (".*Ori-(.*)/Orientation-.*.PEF.xml",10);
+              if ( anEP.StdNameMMDir().IsInit())
+              {
+                // MakeFileXML(anEP,"toto.xml");
+                 aGP->GenCurCam()->Save2XmlStdMMName( anEP.StdNameMMDir().Val());
+              }
+              else if (anExpr.Match(aNXml) && anExpr.Replace(aNXml))
+              {
+                 aGP->GenCurCam()->Save2XmlStdMMName(anExpr.KIemeExprPar(1));
+              }
+              else
+              {
+                 ELISE_ASSERT(false,"Cannot get StdNameMMDir in cAppliApero::ExportPose");
+              }
+          }
+          else if (anAutoSel->IsSetIn(aNP) && aPC->RotIsInit())
+          {
+              bool aMM = !anEP.ModeAngulaire().Val();
+              double aZ= aPC->AltiSol();
+              double aP= aPC->Profondeur();
+	      std::string Engl="ExportAPERO";
 
-           const CamStenope * aCS = aPC->CurCam();
+              const CamStenope * aCS = aPC->CurCam();
 
-	   if (aPC->PMoyIsInit())
-	   {
-              Pt3dr aPM  = aPC->GetPMoy();
-	      aZ = aPM.z;
-	      aP =  aPC->ProfMoyHarmonik();
-	   }
-
-
-           if (anEP.ChC().IsInit())
-           {
-               // ELISE_ASSERT(false,"CHC in Apero, inhibed : use ad-hoc command\n");
-              // On modifie, donc on travaille sur un dupl
-                CamStenope *aCS2 = aPC->DupCurCam();
-                aCS2->UnNormalize();
-                aCS2->SetProfondeur(aP);
-                std::vector<ElCamera*> aVC;
-                aVC.push_back(aCS2);
-                aChCo->ChangCoordCamera(aVC,anEP.ChCForceRot().Val());
-                aCS = aCS2;
-                aZ = aCS2->GetAltiSol();
-           }
-
-
-           int aNbV = anEP.NbVerif().Val();
-           if (mMapMaskHom && (! aPC->HasMasqHom()) && (mParam.SauvePMoyenOnlyWithMasq().Val()))
-           {
-               aZ= 0;
-               aP= 0;
-               aNbV=0;
-           }
+	      if (aPC->PMoyIsInit())
+	      {
+                 Pt3dr aPM  = aPC->GetPMoy();
+	         aZ = aPM.z;
+	         aP =  aPC->ProfMoyHarmonik();
+	      }
 
 
-           std::string aNXml = mOutputDirectory +  aPref + mICNM->Assoc1To1(anEP.KeyAssoc(),aNP,true);
-           ELISE_fp::MkDirRec(aNXml);
-	   if (anEP.AddCalib().Val())
-	   {
-               CamStenope * aCS2 = aPC->CamF()->PIF().DupCurPIF();
-	       Pt2di aSzIm = aPC->Calib()->SzIm();
-               if (anEP.ExportAsNewGrid().IsInit())
-               {
-                  cExportAsNewGrid anEG = anEP.ExportAsNewGrid().Val();
-                  double aR =  anEG.RayonInv().Val();
-                  if (aR<0) 
-                     aR = 1.0;
-                  aR = (euclid(aSzIm)/2.0) * aR;
-                  aCS2 = cCamStenopeGrid::Alloc(aR,*aCS2,anEG.Step());
-               }
-// GRID
-               aCS2->SetOrientation(aCS->Orient());
-               aCS2->SetTime(aPC->Time());
-               aCS2->UnNormalize();
-               const char * aNAux = 0;
-               const Pt3di *aPVerifDet=0;
-                if (anEP.VerifDeterm().IsInit())
-                   aPVerifDet = & anEP.VerifDeterm().Val();
-               //const char * aNAux = aNXml.c_str();
+              if (anEP.ChC().IsInit())
+              {
+                  // ELISE_ASSERT(false,"CHC in Apero, inhibed : use ad-hoc command\n");
+                 // On modifie, donc on travaille sur un dupl
+                   CamStenope *aCS2 = aPC->DupCurCam();
+                   aCS2->UnNormalize();
+                   aCS2->SetProfondeur(aP);
+                   std::vector<ElCamera*> aVC;
+                   aVC.push_back(aCS2);
+                   aChCo->ChangCoordCamera(aVC,anEP.ChCForceRot().Val());
+                   aCS = aCS2;
+                   aZ = aCS2->GetAltiSol();
+              }
 
-	       cOrientationConique anOC = aCS2->ExportCalibGlob(aSzIm,aZ,aP,aNbV,aMM,aNAux,aPVerifDet);
 
-               if (anEP.Force2ObsOnC().IsInit())
-               {
-                  const cForce2ObsOnC & aFOC = anEP.Force2ObsOnC().Val();
-                  if (aPC->HasObsOnCentre())
+              int aNbV = anEP.NbVerif().Val();
+              if (mMapMaskHom && (! aPC->HasMasqHom()) && (mParam.SauvePMoyenOnlyWithMasq().Val()))
+              {
+                  aZ= 0;
+                  aP= 0;
+                  aNbV=0;
+              }
+
+
+              ELISE_fp::MkDirRec(aNXml);
+	      if (anEP.AddCalib().Val())
+	      {
+                  CamStenope * aCS2 = aPC->CamF()->PIF().DupCurPIF();
+	          Pt2di aSzIm = aPC->Calib()->SzIm();
+                  if (anEP.ExportAsNewGrid().IsInit())
                   {
-                       anOC.Externe().Centre() = aPC->ObsCentre();
+                     cExportAsNewGrid anEG = anEP.ExportAsNewGrid().Val();
+                     double aR =  anEG.RayonInv().Val();
+                     if (aR<0) 
+                        aR = 1.0;
+                     aR = (euclid(aSzIm)/2.0) * aR;
+                     aCS2 = cCamStenopeGrid::Alloc(aR,*aCS2,anEG.Step());
+                  }
+// GRID
+                  aCS2->SetOrientation(aCS->Orient());
+                  aCS2->SetTime(aPC->Time());
+                  aCS2->UnNormalize();
+                  const char * aNAux = 0;
+                  const Pt3di *aPVerifDet=0;
+                   if (anEP.VerifDeterm().IsInit())
+                      aPVerifDet = & anEP.VerifDeterm().Val();
+                  //const char * aNAux = aNXml.c_str();
+
+	          cOrientationConique anOC = aCS2->ExportCalibGlob(aSzIm,aZ,aP,aNbV,aMM,aNAux,aPVerifDet);
+
+                  if (anEP.Force2ObsOnC().IsInit())
+                  {
+                     const cForce2ObsOnC & aFOC = anEP.Force2ObsOnC().Val();
+                     if (aPC->HasObsOnCentre())
+                     {
+                          anOC.Externe().Centre() = aPC->ObsCentre();
+                     }
+                     else
+                     {
+                        if (!aFOC.WhenExist().Val())
+                        {
+                             std::cout << "For camera " << aPC->Name() << "\n";
+                             ELISE_ASSERT(false,"Camera has no center in Force2ObsOnC");
+                        }
+                     }
+                  }
+
+
+                  if (aPC->FidExist())
+                  {
+                       anOC.OrIntImaM2C().SetVal(El2Xml(aPC->OrIntM2C())) ;
+                  }
+	          if (aNbV)
+	          {
+	               anOC.Verif().Val().ShowMes().SetVal(anEP.ShowWhenVerif().Val());
+	               anOC.Verif().Val().Tol() = anEP.TolWhenVerif().Val();
+	          }
+                  if (anEP.FileExtern().IsInit()) 
+                  {
+                      std::string aName = anEP.FileExtern().Val();
+                      if ( (anEP.FileExternIsKey().Val()) || (anEP.CalcKeyFromCalib().Val()))
+                      {
+
+                         std::string aNameIn = aNP;
+                         if (anEP.CalcKeyFromCalib().Val())
+                         {
+                             aNameIn=  aPC->Calib()->KeyId();
+                         }
+                         aName= mICNM->Assoc1To1(aName,aNameIn,true);
+                      }
+                      std::string aNFE = aName;
+                      if (! anEP.RelativeNameFE().Val())
+                           aNFE = DC()+aNFE;
+                      anOC.RelativeNameFI().SetVal(anEP.RelativeNameFE().Val());
+                      anOC.Interne().SetNoInit();
+                      anOC.FileInterne().SetVal(aNFE);
+	              MakeFileXML(anOC,aNXml,Engl);
                   }
                   else
                   {
-                     if (!aFOC.WhenExist().Val())
-                     {
-                          std::cout << "For camera " << aPC->Name() << "\n";
-                          ELISE_ASSERT(false,"Camera has no center in Force2ObsOnC");
-                     }
+
+	             MakeFileXML(anOC,aNXml,Engl);
                   }
-               }
 
-
-               if (aPC->FidExist())
-               {
-                    anOC.OrIntImaM2C().SetVal(El2Xml(aPC->OrIntM2C())) ;
-               }
-	       if (aNbV)
-	       {
-	            anOC.Verif().Val().ShowMes().SetVal(anEP.ShowWhenVerif().Val());
-	            anOC.Verif().Val().Tol() = anEP.TolWhenVerif().Val();
-	       }
-               if (anEP.FileExtern().IsInit()) 
-               {
-                   std::string aName = anEP.FileExtern().Val();
-                   if ( (anEP.FileExternIsKey().Val()) || (anEP.CalcKeyFromCalib().Val()))
-                   {
-
-                      std::string aNameIn = aNP;
-                      if (anEP.CalcKeyFromCalib().Val())
-                      {
-                          aNameIn=  aPC->Calib()->KeyId();
-                      }
-                      aName= mICNM->Assoc1To1(aName,aNameIn,true);
-                   }
-                   std::string aNFE = aName;
-                   if (! anEP.RelativeNameFE().Val())
-                        aNFE = DC()+aNFE;
-                   anOC.RelativeNameFI().SetVal(anEP.RelativeNameFE().Val());
-                   anOC.Interne().SetNoInit();
-                   anOC.FileInterne().SetVal(aNFE);
-	           MakeFileXML(anOC,aNXml,Engl);
-               }
-               else
-               {
-
-	          MakeFileXML(anOC,aNXml,Engl);
-               }
-
-               if (0) // VERIFICATION
-               {
-	          cOrientationConique aOCBIS = StdGetObjFromFile<cOrientationConique>
+                  if (0) // VERIFICATION
+                  {
+	             cOrientationConique aOCBIS = StdGetObjFromFile<cOrientationConique>
 		                               (
 					           aNXml,
 						   StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
 						   "OrientationConique",
 						   "OrientationConique"
 					       );
-                  cOrientationExterneRigide anOER = aOCBIS.Externe();
-                  ElRotation3D aR2 = Std_RAff_C2M(anOER,anOER.KnownConv().Val());
-		  ElRotation3D aR0 = aCS->Orient().inv();
-		  std::cout << aR0.ImAff(Pt3dr(0,0,0)) << aR2.ImAff(Pt3dr(0,0,0)) << "\n";
-		  std::cout << aR0.IRecVect(Pt3dr(1,0,0)) << aR2.IRecVect(Pt3dr(1,0,0)) << "\n";
-		  std::cout << aR0.IRecVect(Pt3dr(0,1,0)) << aR2.IRecVect(Pt3dr(0,1,0)) << "\n";
-		  std::cout << aR0.IRecVect(Pt3dr(0,0,1)) << aR2.IRecVect(Pt3dr(0,0,1)) << "\n";
-		  getchar();
-	       }
-	       // delete aCS;
+                     cOrientationExterneRigide anOER = aOCBIS.Externe();
+                     ElRotation3D aR2 = Std_RAff_C2M(anOER,anOER.KnownConv().Val());
+		     ElRotation3D aR0 = aCS->Orient().inv();
+		     std::cout << aR0.ImAff(Pt3dr(0,0,0)) << aR2.ImAff(Pt3dr(0,0,0)) << "\n";
+		     std::cout << aR0.IRecVect(Pt3dr(1,0,0)) << aR2.IRecVect(Pt3dr(1,0,0)) << "\n";
+		     std::cout << aR0.IRecVect(Pt3dr(0,1,0)) << aR2.IRecVect(Pt3dr(0,1,0)) << "\n";
+		     std::cout << aR0.IRecVect(Pt3dr(0,0,1)) << aR2.IRecVect(Pt3dr(0,0,1)) << "\n";
+		     getchar();
+	          }
+	          // delete aCS;
 
-	   }
-	   else
-           {
-               XML_SauvFile(aPC->CamF()->CurRot(),aNXml,Engl,aZ,aP,aMM);
-           }
+	      }
+	      else
+              {
+                  XML_SauvFile(aPC->CamF()->CurRot(),aNXml,Engl,aZ,aP,aMM);
+              }
+          }
        }
    }
 }

@@ -5101,6 +5101,9 @@ class cExportPose
         std::string & KeyAssoc();
         const std::string & KeyAssoc()const ;
 
+        cTplValGesInit< std::string > & StdNameMMDir();
+        const cTplValGesInit< std::string > & StdNameMMDir()const ;
+
         cTplValGesInit< bool > & AddCalib();
         const cTplValGesInit< bool > & AddCalib()const ;
 
@@ -5141,6 +5144,7 @@ class cExportPose
         cTplValGesInit< std::string > mChC;
         cTplValGesInit< bool > mChCForceRot;
         std::string mKeyAssoc;
+        cTplValGesInit< std::string > mStdNameMMDir;
         cTplValGesInit< bool > mAddCalib;
         cTplValGesInit< cExportAsNewGrid > mExportAsNewGrid;
         cTplValGesInit< std::string > mFileExtern;

@@ -1367,6 +1367,7 @@ normalises en echelle et/ou en translation -->
                           <ChC Nb="?" Type="std::string"> </ChC>
                           <ChCForceRot Nb="?" Type="bool" Def="false"> </ChCForceRot>
                           <KeyAssoc  Nb="1" Type="std::string"> </KeyAssoc>
+                          <StdNameMMDir  Nb="?" Type="std::string"> </StdNameMMDir>
 			  <AddCalib   Nb="?" Type="bool" Def="true"> </AddCalib>
                           <ExportAsNewGrid Nb="?"  AccessorFils="false" RefType="ExportAsNewGrid"> </ExportAsNewGrid>
                           <FileExtern Nb="?" Type="std::string"> </FileExtern>

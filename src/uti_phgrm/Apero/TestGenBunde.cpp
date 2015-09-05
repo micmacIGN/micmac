@@ -146,7 +146,7 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
          mNameSaveCS0 = mAppli->EASF().mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+aDest,NameWithoutDir(mNameIm),true);
          MakeFileXML(mCSCur->StdExportCalibGlob(),mNameSaveCS0);
          cPolynomial_BGC3M2D aPol(mCSCur,mNameSaveCS0,mNameIm,mAppli->mDeg);
-         aPol.Save(aDest);
+         aPol.Save2XmlStdMMName(aDest);
      }
 }
 
@@ -583,7 +583,7 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
          ELISE_fp::CpFile(mNameOrient,mNameOutInit);
     }
     cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol);
-    aPol.Save(mDest);
+    aPol.Save2XmlStdMMName(mDest);
 }
 
 
