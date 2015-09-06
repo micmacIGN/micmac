@@ -1447,6 +1447,21 @@ void cBasicGeomCap3D::Save2XmlStdMMName(const std::string &) const
     ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
 }
 
+Pt2dr cBasicGeomCap3D::Mil() const
+{
+    return Pt2dr(SzBasicCapt3D() ) / 2.0;
+}
+
+double  cBasicGeomCap3D::GlobResol() const
+{
+    return ResolSolOfPt(PMoyOfCenter());
+}
+
+Pt3dr  cBasicGeomCap3D::PMoyOfCenter() const
+{
+    RoughCapteur2Terrain(Mil());
+}
+
 double cBasicGeomCap3D::ProfondeurDeChamps(const Pt3dr & aP) const
 {
    Pt2dr aPIm = Ter2Capteur(aP);
@@ -1573,6 +1588,16 @@ Pt3dr  cBasicGeomCap3D::ImEtProf2Terrain(const Pt2dr & aP,double aZ) const
     return aC + aSeg.TgNormee() * aZ;
 }
 
+Pt3dr  cBasicGeomCap3D::ImEtZ2Terrain(const Pt2dr & aPIm,double aZ) const
+{
+    ElSeg3D aSeg = Capteur2RayTer(aPIm);
+
+    Pt3dr aP0 = aSeg.P0();
+    Pt3dr aRay =  aSeg.Tgt();
+    double aLamda =  (aZ-aP0.z)/aRay.z;
+
+    return aP0 +  aRay * aLamda;
+}
 Pt3dr cBasicGeomCap3D::DirRayonR3(const Pt2dr & aPIm) const
 {
     return Capteur2RayTer(aPIm).TgNormee();
@@ -3616,16 +3641,6 @@ Pt3dr  CamStenope::ImEtZ2Terrain(const Pt2dr & aP,double aZ) const
 
 
 
-Pt3dr  ElCamera::ImEtZ2Terrain(const Pt2dr & aPIm,double aZ) const
-{
-    ElSeg3D aSeg = F2toRayonR3(aPIm);
-
-    Pt3dr aP0 = aSeg.P0();
-    Pt3dr aRay =  aSeg.Tgt();
-    double aLamda =  (aZ-aP0.z)/aRay.z;
-
-    return aP0 +  aRay * aLamda;
-}
 
 
 

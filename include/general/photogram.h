@@ -1466,6 +1466,7 @@ class cBasicGeomCap3D
       virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ; 
 
       virtual Pt3dr    ImEtProf2Terrain(const Pt2dr & aP,double aZ) const;
+      virtual Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
 // Compute the differential, defaut value compute it by finite difference,at step ResolSolOfPt, 
 // to accelerate it is note centered en reuse the value PIm
       virtual void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);
@@ -1490,6 +1491,10 @@ class cBasicGeomCap3D
 
        // Save using standard MicMac naming ; !! Not supported for now by Stenope camera; Def :  Fatal Error
        virtual void Save2XmlStdMMName(const std::string &) const ;
+
+       Pt2dr Mil() const;
+       double GlobResol() const;
+       Pt3dr  PMoyOfCenter() const;
 };
 
 
@@ -1781,7 +1786,6 @@ class ElCamera : public cCapture3D
 
          const tOrIntIma & IntrOrImaC2M() const;
 
-     virtual Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
 
          Pt2dr ResiduMond2Cam(const Pt2dr & aRes)const;
          tOrIntIma  InhibeScaneOri();
