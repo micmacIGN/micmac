@@ -2741,6 +2741,45 @@ if (1)
 
 /*****************************************/
 /*                                       */
+/*            cGeomImage_cBasic          */
+/*                                       */
+/*****************************************/
+
+// It is (very naively !!) hoped that this time the cBasicGeomCap3D
+// will replace all the altentaive existing general sensor; cGeomImage_cBasic
+// is then the MicMac interface to cBasicGeomCap3D
+
+class cGeomImage_cBasic : public cGeomImage
+{
+     public :
+       virtual Pt2dr ImageAndPx2Obj_NonEuclid(Pt2dr aP,const REAL * aPx) const
+       {
+          Pt3dr aPTer =  mBGC3D->ImEtZ2Terrain(aP,aPx[0]);
+          return Pt2dr(aPTer.x,aPTer.y);
+       }
+       virtual Pt2dr Objet2ImageInit_NonEuclid(Pt2dr aP,const REAL * aPx) const
+       {
+          Pt3dr aPTer(aP.x,aP.y,aPx[0]);
+          return mBGC3D->Ter2Capteur(aPTer);
+       }
+
+       virtual double GetResolMoyenne_NonEuclid() const
+       {
+	   return mBGC3D->GlobResol();
+       }
+
+       virtual bool GetPxMoyenne_NonEuclid(double * aPxMoy,bool MakeInvIfNeeded) const
+       {
+	   aPxMoy[0] =  mBGC3D->PMoyOfCenter().z;
+           return true;
+       } 
+
+     private :
+         cBasicGeomCap3D * mBGC3D;
+};
+
+/*****************************************/
+/*                                       */
 /*            cGeomImage_Module          */
 /*                                       */
 /*****************************************/
