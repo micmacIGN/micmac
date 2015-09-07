@@ -2778,6 +2778,17 @@ class cGeomImage_cBasic : public cGeomImage
          cBasicGeomCap3D * mBGC3D;
 };
 
+cGeomImage * cGeomImage::GeomImage_Basic3D
+             (
+                                    const cAppliMICMAC & anAppli,
+                                    cPriseDeVue &      aPDV
+             )
+{
+    ELISE_ASSERT(false,"cGeomImage::GeomImage_Basic3D 2 implement ...!!!");
+    return 0;
+}
+
+
 /*****************************************/
 /*                                       */
 /*            cGeomImage_Module          */
@@ -3190,6 +3201,18 @@ bool cGeometrieImageComp::AcceptAndTransform
         aNameTested = aNameTested + "@"+ToString(aNum);
     if (mGeom.NGI_StdDir().IsInit())
     {
+          const cNGI_StdDir  aNGI = mGeom.NGI_StdDir().Val();
+          if (    aNGI.NGI_StdDir_Apply().IsInit()
+               && (! aNGI.NGI_StdDir_Apply().Val()->Match(aNameTested))
+             )
+             return false;
+         std::string aRes =  mAppli.ICNM()->StdNameCamGenOfNames(aNGI.StdDir(),aNameTested);
+         if (aRes !="")
+         {
+             aNameResult= aRes;
+
+             return true;
+         }
     }
     else if (! mAutom)
     {
@@ -3224,6 +3247,7 @@ bool cGeometrieImageComp::AcceptAndTransform
         aNameResult =  mAutom->LastReplaced();
         return true;
     }
+    return false;
 }
 
 const cTplValGesInit< cModuleImageLoader > &  

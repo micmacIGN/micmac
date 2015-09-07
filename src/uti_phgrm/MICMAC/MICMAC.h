@@ -1198,6 +1198,11 @@ class cGeomImage : public cGeomBasculement3D, // Pour pouvoir basculer les MNT e
 				    std::string const &nom_module,
 				    std::string const &nom_geometrie
 				    );
+        static cGeomImage * GeomImage_Basic3D
+                            (
+                                    const cAppliMICMAC & anAppli,
+                                    cPriseDeVue &      aPDV
+                            );
 	static cGeomImage * GeomImage_Grille
                              (
                                     const cAppliMICMAC & anAppli,

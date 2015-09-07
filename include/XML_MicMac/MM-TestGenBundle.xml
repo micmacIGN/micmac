@@ -20,7 +20,7 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml  WorkDir
 <DicoLoc>
 
    <Symb> ImPat=Abbey-IMG_.*.jpg </Symb>
-   <Symb>  Ori=RTL-Init     </Symb>
+   <Symb>  Ori=Bundle     </Symb>
    <Symb>  DirMEC=MEC-TBundle/ </Symb>
 
 </DicoLoc>
@@ -42,23 +42,27 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml  WorkDir
 </Section_Terrain>
 
 <Section_PriseDeVue >
-<!--
      <GeomImages> eGeomGen </GeomImages>
--->
+<!--
      <GeomImages> eGeomImageOri </GeomImages>
+-->
      <Images >
           <ImPat> ${ImPat} </ImPat>
      </Images>
 
 
      <NomsGeometrieImage>
+         <NGI_StdDir>
+              <StdDir>  ${Ori} </StdDir>
+              <NGI_StdDir_Apply> .* </NGI_StdDir_Apply>
+         </NGI_StdDir>
+
 <!--
-         <StdDir> ${Ori} </StdDir>
--->
          <FCND_Mode_GeomIm>
                <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>
                <FCND_GeomApply>  .*</FCND_GeomApply> 
          </FCND_Mode_GeomIm>
+-->
      </NomsGeometrieImage>
 </Section_PriseDeVue>
 
