@@ -138,6 +138,8 @@ class CameraAffine : public cBasicGeomCap3D
 	    bool  CaptHasData(const Pt2dr &) const;
 	    bool     PIsVisibleInImage   (const Pt3dr & aP) const;
 
+	    Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
+
 	    bool     HasOpticalCenterOfPixel() const;
 	    Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ;
 	    void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);

@@ -877,6 +877,11 @@ bool  CameraAffine::HasOpticalCenterOfPixel() const
     return(true);
 }
 
+Pt3dr CameraAffine::RoughCapteur2Terrain(const Pt2dr & aP) const
+{
+    return Pt3dr(0,0,0);
+}
+
 void CameraAffine::Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer)
 {}
 

@@ -463,8 +463,8 @@ int TestER_main3(int argc,char ** argv)
 
     std::cout << aFullName << std::endl;
 
-    CameraAffine aCamAF(aFullName);
-    aCamAF.ShowInfo();
+    //CameraAffine aCamAF(aFullName);
+    //aCamAF.ShowInfo();
 
     return EXIT_SUCCESS;
 }
