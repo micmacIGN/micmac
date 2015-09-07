@@ -210,6 +210,8 @@ class cInterfChantierNameManipulateur
          CamStenope *  StdCamOfNames(const std::string & anOri,const std::string & aNameIm);  // => Ori-XX/Orientation...
          // Ori-XX/Orientation... exist, sinon  Ori-XX/GB-Orientation..
          cBasicGeomCap3D * StdCamGenOfNames(const std::string & anOri,const std::string & aNameIm);
+         // return "" si rien trouve
+         std::string  StdNameCamGenOfNames(const std::string & anOri,const std::string & aNameIm);
 
 
          CamStenope * GlobCalibOfName(const std::string  & aNameIm,const std::string & aPrefOriCal,bool ModeFraser /* Genre un Fraser Basixc ss dist*/ ); // No Dist if aPrefOriCal=""
