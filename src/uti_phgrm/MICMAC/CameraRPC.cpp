@@ -54,13 +54,11 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
        mProfondeurIsDef(false),	
        mAltisSolIsDef(false),
        mOptCentersIsDef(false),
-       mGridSzIsDef(true),
-       mOpticalCenters(0),
+       mOpticalCenters(new std::vector<Pt3dr>()),
        mGridSz(aGridSz),
        mImName(aNameFile.substr(0,aNameFile.size()-4)),
        mCS(aCartoCS)
 {
-   
    mRPC = new RPC();
    
    if (aType==eTIGB_MMDimap2)
@@ -109,9 +107,8 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 	mProfondeurIsDef(false),
 	mAltisSolIsDef(false),
 	mOptCentersIsDef(false),
-	mGridSzIsDef(false),
-	mOpticalCenters(0),
-	mGridSz(Pt2di(0,0)),
+	mOpticalCenters(new std::vector<Pt3dr>()),
+	mGridSz(Pt2di(10,10)),
 	mImName(aNameFile.substr(0,aNameFile.size()-4)),
 	mCS(aCartoCS)
 {
@@ -133,6 +130,17 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 	mRPC->ReadASCIIMetaData(aMetaFile, aNameFile);
 	mRPC->InverseToDirectRPC(Pt2di(50,50));
     }*/
+    else if (aType == eTIGB_MMASTER)
+    {
+	   mRPC->AsterMetaDataXML(aNameFile);
+	   std::string aNameIm = StdPrefix(aNameFile) + ".tif";
+	   //Find Validity and normalization values
+	   mRPC->ComputeNormFactors(0, 8000);//0 and 800 are min and max altitude
+	   vector<vector<Pt3dr> > aGridNorm = 
+		                  mRPC->GenerateNormLineOfSightGrid(20,0,8000);
+	   mRPC->GCP2Direct(aGridNorm[0], aGridNorm[1]);
+	   mRPC->GCP2Inverse(aGridNorm[0], aGridNorm[1]);
+    }
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
 
@@ -333,6 +341,84 @@ Pt2di CameraRPC::SzBasicCapt3D() const
  	           mRPC->last_row));
 }
 
+void CameraRPC::Exp2BundleInGeoc(std::vector<std::vector<ElSeg3D> > aGridToExp) const
+{
+    
+    //Check that the direct RPC exists
+    AssertRPCDirInit();
+
+    int aL, aS;
+    std::string aXMLF = "BundleGEO_" + mImName  + ".xml";
+    Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
+
+    Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/mGridSz.x ,
+   		             double(SzBasicCapt3D().y)/mGridSz.y );
+
+    if(aGridToExp.size()==0)
+    {
+	aGridToExp.resize(mGridSz.y);
+        for( aL=0; aL<mGridSz.y; aL++ )
+	{
+	    for( aS=0; aS<mGridSz.x; aS++ )
+	    {
+		//first height    
+	        aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y),
+				        mRPC->first_height+1);
+		aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+                
+		//second height
+		aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y),
+				        (mRPC->first_height+1) +
+					double(mRPC->last_height - 
+					       mRPC->first_height)/2);
+		aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+
+		aGridToExp.at(aL).push_back(ElSeg3D(aPGeoC1,aPGeoC2));
+	    }
+	}
+
+	Exp2BundleInGeoc(aGridToExp);
+
+    }
+    else
+    {
+    
+	cXml_ScanLineSensor aSLS;
+
+	aSLS.P1P2IsAltitude() = HasRoughCapteur2Terrain();
+	aSLS.LineImIsScanLine() = true;
+	aSLS.GroundSystemIsEuclid() = false;    
+
+	aSLS.ImSz() = SzBasicCapt3D();
+
+	aSLS.StepGrid() = aGridStep;
+
+	aSLS.GridSz() = mGridSz;	
+
+	for( aL=0; aL<mGridSz.y; aL++ )
+	{
+   	    cXml_OneLineSLS aOL;
+	    aOL.IndLine() = aL*aGridStep.y;
+	    for( aS=0; aS<mGridSz.x; aS++ )
+	    {
+		cXml_SLSRay aOR;
+		aOR.IndCol() = aS*aGridStep.x;
+		aOR.P1() = aGridToExp.at(aL).at(aS).P0();
+		aOR.P2() = aGridToExp.at(aL).at(aS).P1();
+
+		aOL.Rays().push_back(aOR);
+
+  	    }
+	    aSLS.Lines().push_back(aOL);
+
+	}
+        
+	//export to XML format
+	MakeFileXML(aSLS, aXMLF);
+    }
+
+}
+
 /* Export to xml following the cXml_ScanLineSensor standard 
  * - first  iter - generate the bundle grid in geodetic coordinate system (CS) and
  *                 convert to desired CS
@@ -346,7 +432,7 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 			         double(SzBasicCapt3D().y)/mGridSz.y );
 
 	std::string aDirTmp = "csconv";
-	std::string aFiPrefix = "Bundle_";
+	std::string aFiPrefix = "BundleUTM_";
 
 	std::string aLPHFiTmp = aDirTmp + "/" + aFiPrefix + mImName  + "_LPH_CS.txt";
 	std::string aXYZFiTmp = aDirTmp + "/" + aFiPrefix + mImName  + "_XYZ_CS.txt";
@@ -361,12 +447,12 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 	
 		//create the bundle grid in geodetic CS & save	
 		ElSeg3D aSegTmp(Pt3dr(0,0,0),Pt3dr(0,0,0));
-		for( aL=0; aL<mGridSz.x; aL++ )
-			for( aS=0; aS<mGridSz.y; aS++ )
+		for( aL=0; aL<mGridSz.y; aL++ )
+			for( aS=0; aS<mGridSz.x; aS++ )
 			{
 
 				//aSegTmp = Capteur2RayTer( Pt2dr(aS*aGridStep.y,aL*aGridStep.x) );
-				aSegTmp = Capteur2RayTer( Pt2dr(aL*aGridStep.x,aS*aGridStep.y) );
+				aSegTmp = Capteur2RayTer( Pt2dr(aS*aGridStep.x,aL*aGridStep.y) );
 				aFO << aSegTmp.P0().x << " " << aSegTmp.P0().y << " " << aSegTmp.P0().z << "\n" 
 				    << aSegTmp.P1().x << " " << aSegTmp.P1().y << " " << aSegTmp.P1().z << "\n";
 
@@ -396,8 +482,8 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 
 		aGridToExp.resize(mGridSz.y);
 		int aCntTmp=0;
-		for( aL=0; aL<mGridSz.x; aL++ )
-			for( aS=0; aS<mGridSz.y; aS++ )
+		for( aL=0; aL<mGridSz.y; aL++ )
+			for( aS=0; aS<mGridSz.x; aS++ )
 			{
 				aGridToExp.at(aL).push_back ( ElSeg3D(aPtsTmp.at(aCntTmp), 
 							              aPtsTmp.at(aCntTmp+1)) );
@@ -423,14 +509,14 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 
 		aSLS.GridSz() = mGridSz;	
 
-		for( aL=0; aL<mGridSz.x; aL++ )
+		for( aL=0; aL<mGridSz.y; aL++ )
 		{
 			cXml_OneLineSLS aOL;
-			aOL.IndLine() = aL*aGridStep.x;
-			for( aS=0; aS<mGridSz.y; aS++ )
+			aOL.IndLine() = aL*aGridStep.y;
+			for( aS=0; aS<mGridSz.x; aS++ )
 			{
 				cXml_SLSRay aOR;
-				aOR.IndCol() = aS*aGridStep.y;
+				aOR.IndCol() = aS*aGridStep.x;
 
 				aOR.P1() = aGridToExp.at(aL).at(aS).P0();
 				aOR.P2() = aGridToExp.at(aL).at(aS).P1();
@@ -445,12 +531,53 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 	}		    
 }
 
-/*
-MPD 
-void CameraRPC::OpticalCenterrOfImg() const
+
+ 
+void CameraRPC::OpticalCenterOfImg()
 {
+    int aL, aS, aAd = 1;
+    double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
+    Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
+    
+    for( aL=0; aL<SzBasicCapt3D().y; aL++)
+    {
+        std::vector<double> aVPds;
+	std::vector<ElSeg3D> aVS;
+
+	for( aS=aAd; aS<mGridSz.x+aAd; aS++)
+	{
+    
+	
+	    //first height in validity zone
+	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL),
+			                  mRPC->first_height+1);
+	    aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+            
+	    //second height in validity zone
+	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL), 
+			           (mRPC->first_height+1) +
+				   double(mRPC->last_height - 
+					  mRPC->first_height)/2);
+
+	    aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    
+	    //collect for intersection
+	    aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
+	    aVPds.push_back(1);
+	}
+
+        
+	bool aIsOK;
+	mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
+
+	if(aIsOK==false)
+	    std::cout << "not intersected in CameraRPC::OpticalCenterOfImg()" << std::endl;
+
+    }
+
+    mOptCentersIsDef=true; 
 }
-*/
+
 
 /* For a defined image grid, 
  * extrude to rays and intersect at the line of optical centers */
@@ -460,6 +587,7 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 
     int aL, aS;
     int aCRand1 = rand() % 255, aCRand2 = rand() % 255, aCRand3 = rand() % 255;
+    std::vector<Pt3dr> aOptCentersAtGrid;
     std::vector<Pt3dr> aVPts;
     std::vector<Pt3di> aVCol;
     Pt3di aCoul(aCRand1,aCRand2,aCRand3);
@@ -471,20 +599,14 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 
     ELISE_fp::MkDirSvp(aDir);
 
-    //define a default grid size unless previously defined
-    if(!mGridSzIsDef)
-    {
-        // MPD : very dirty, just to compile ...
-        const_cast<CameraRPC*>(this)->mGridSz = Pt2di(10,10);
-    }
 
     int aAd=1;
     Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/(mGridSz.x+aAd) ,
                              double(SzBasicCapt3D().y)/(mGridSz.y+aAd));
 
     // MPD : very dirty, just to compile ...
-    const_cast<CameraRPC*>(this)->mOpticalCenters = new std::vector<Pt3dr>();
-    //mOpticalCenters = new std::vector<Pt3dr>();
+    //const_cast<CameraRPC*>(this)->mOpticalCenters = new std::vector<Pt3dr>();
+//    mOpticalCenters = new std::vector<Pt3dr>();
 
     Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
     for( aL=aAd; aL<mGridSz.y+aAd; aL++)
@@ -519,7 +641,7 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 	}
 
 	bool aIsOK;
-	mOpticalCenters->push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
+	aOptCentersAtGrid.push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
 
 	if(aIsOK==false)
 	    std::cout << "not intersected in CameraRPC::OpticalCenterGrid" << std::endl;
@@ -533,7 +655,7 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
        aPlyFile,
        aVCom,
        aVNuage,
-       mOpticalCenters,
+       &aOptCentersAtGrid,
        &aVCol,
        true
     );
@@ -541,41 +663,71 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 
 Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 {
-    
-    int aS, aAd = 1, aSNum = 10;
-    double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
-    Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
-
-    std::vector<double> aVPds;
-    std::vector<ElSeg3D> aVS;
-
-    for(aS=0; aS<aSNum; aS++)
+    if(mOptCentersIsDef==true)
     {
-    
-        //first height in validity zone
-	aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y),
-			        mRPC->first_height+1);
-	    
-	aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
-            
-	//second height in validity zone
-	aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y), 
-			        (mRPC->first_height+1)+double(mRPC->last_height - mRPC->first_height)/2);
+	int aLnPre, aLnPost;
+	double aA, aB, aC, aABC, aT; 
 
-	aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	(aP.y > 1) ? (aLnPre = round_down(aP.y) - 1) : aLnPre = 0;
+	
+	(aP.y < (SzBasicCapt3D().y-2)) ? (aLnPost = round_up(aP.y) + 1) : 
+		                         (aLnPost = SzBasicCapt3D().y-1);
+        
+        aA = mOpticalCenters->at(aLnPre).x - mOpticalCenters->at(aLnPost).x;
+        aB = mOpticalCenters->at(aLnPre).y - mOpticalCenters->at(aLnPost).y;
+        aC = mOpticalCenters->at(aLnPre).z - mOpticalCenters->at(aLnPost).z;
+	
+	aABC = std::sqrt(aA*aA + aB*aB + aC*aC);
+
+        aA /= aABC;
+        aB /= aABC;
+        aC /= aABC;
+
+	aT = double(aP.y - aLnPre)/(aLnPost - aLnPre);
+
 	    
-	//collect for intersection
-	aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
-	aVPds.push_back(1);
+        return Pt3dr(mOpticalCenters->at(aLnPre).x + aT*aA,
+		     mOpticalCenters->at(aLnPre).y + aT*aB,
+		     mOpticalCenters->at(aLnPre).z + aT*aC);
     }
+    else
+    { 
+        int aS, aAd = 1;
+        double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
+        Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
 
-    bool aIsOK;
-    Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+        std::vector<double> aVPds;
+        std::vector<ElSeg3D> aVS;
 
-    if(aIsOK==false)
-        std::cout << "not intersected in CameraRPC::OpticalCenterGrid" << std::endl;
+        for(aS=aAd; aS<mGridSz.x+aAd; aS++)
+        {
     
-    return aRes;
+            //first height in validity zone
+	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y),
+			            mRPC->first_height+1);
+	    
+	    aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+            
+	    //second height in validity zone
+	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y), 
+			           (mRPC->first_height+1) + 
+				   double(mRPC->last_height - mRPC->first_height)/2);
+
+	    aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    
+	    //collect for intersection
+	    aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
+	    aVPds.push_back(1);
+        }
+
+        bool aIsOK;
+        Pt3dr aRes = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+
+        if(aIsOK==false)
+            std::cout << "not intersected in CameraRPC::OpticalCenterOfPixel" << std::endl;
+    
+        return aRes;
+    }
 }
 
 void CameraRPC::TestDirectRPCGen()
@@ -605,6 +757,7 @@ void CameraRPC::FindUTMCS()
 
     std::cout << mCS << std::endl;
 }
+
 
 /***********************************************************************/
 /*                           CameraAffine                              */
@@ -702,11 +855,6 @@ Pt2di CameraAffine::SzBasicCapt3D() const
 double CameraAffine::ResolSolOfPt(const Pt3dr &) const
 {
     return( 0.0 );
-}
-
-Pt3dr  CameraAffine::RoughCapteur2Terrain   (const Pt2dr & aP) const
-{
-  return Pt3dr(0,0,0);
 }
 
 bool CameraAffine::CaptHasData(const Pt2dr &) const
