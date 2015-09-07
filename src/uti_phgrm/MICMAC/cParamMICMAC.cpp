@@ -5091,12 +5091,12 @@ const std::string & cFCND_Mode_GeomIm::FCND_GeomCalc()const
 }
 
 
-cTplValGesInit< std::string > & cFCND_Mode_GeomIm::FCND_GeomApply()
+cTplValGesInit< cElRegex_Ptr > & cFCND_Mode_GeomIm::FCND_GeomApply()
 {
    return mFCND_GeomApply;
 }
 
-const cTplValGesInit< std::string > & cFCND_Mode_GeomIm::FCND_GeomApply()const 
+const cTplValGesInit< cElRegex_Ptr > & cFCND_Mode_GeomIm::FCND_GeomApply()const 
 {
    return mFCND_GeomApply;
 }
@@ -5143,7 +5143,73 @@ void xml_init(cFCND_Mode_GeomIm & anObj,cElXMLTree * aTree)
    xml_init(anObj.FCND_GeomApply(),aTree->Get("FCND_GeomApply",1)); //tototo 
 }
 
-std::string  Mangling( cFCND_Mode_GeomIm *) {return "DD8286939AF83980FE3F";};
+std::string  Mangling( cFCND_Mode_GeomIm *) {return "FC2AE84047D79BC0FD3F";};
+
+
+std::string & cNGI_StdDir::StdDir()
+{
+   return mStdDir;
+}
+
+const std::string & cNGI_StdDir::StdDir()const 
+{
+   return mStdDir;
+}
+
+
+cTplValGesInit< cElRegex_Ptr > & cNGI_StdDir::NGI_StdDir_Apply()
+{
+   return mNGI_StdDir_Apply;
+}
+
+const cTplValGesInit< cElRegex_Ptr > & cNGI_StdDir::NGI_StdDir_Apply()const 
+{
+   return mNGI_StdDir_Apply;
+}
+
+void  BinaryUnDumpFromFile(cNGI_StdDir & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.StdDir(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.NGI_StdDir_Apply().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NGI_StdDir_Apply().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NGI_StdDir_Apply().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cNGI_StdDir & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.StdDir());
+    BinaryDumpInFile(aFp,anObj.NGI_StdDir_Apply().IsInit());
+    if (anObj.NGI_StdDir_Apply().IsInit()) BinaryDumpInFile(aFp,anObj.NGI_StdDir_Apply().Val());
+}
+
+cElXMLTree * ToXMLTree(const cNGI_StdDir & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"NGI_StdDir",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("StdDir"),anObj.StdDir())->ReTagThis("StdDir"));
+   if (anObj.NGI_StdDir_Apply().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NGI_StdDir_Apply"),anObj.NGI_StdDir_Apply().Val())->ReTagThis("NGI_StdDir_Apply"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cNGI_StdDir & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.StdDir(),aTree->Get("StdDir",1)); //tototo 
+
+   xml_init(anObj.NGI_StdDir_Apply(),aTree->Get("NGI_StdDir_Apply",1)); //tototo 
+}
+
+std::string  Mangling( cNGI_StdDir *) {return "DD8BCA004654DDF1FE3F";};
 
 
 std::string & cModuleImageLoader::NomModule()
@@ -5587,12 +5653,12 @@ const std::string & cNomsGeometrieImage::FCND_GeomCalc()const
 }
 
 
-cTplValGesInit< std::string > & cNomsGeometrieImage::FCND_GeomApply()
+cTplValGesInit< cElRegex_Ptr > & cNomsGeometrieImage::FCND_GeomApply()
 {
    return FCND_Mode_GeomIm().Val().FCND_GeomApply();
 }
 
-const cTplValGesInit< std::string > & cNomsGeometrieImage::FCND_GeomApply()const 
+const cTplValGesInit< cElRegex_Ptr > & cNomsGeometrieImage::FCND_GeomApply()const 
 {
    return FCND_Mode_GeomIm().Val().FCND_GeomApply();
 }
@@ -5609,14 +5675,36 @@ const cTplValGesInit< cFCND_Mode_GeomIm > & cNomsGeometrieImage::FCND_Mode_GeomI
 }
 
 
-cTplValGesInit< std::string > & cNomsGeometrieImage::StdDir()
+std::string & cNomsGeometrieImage::StdDir()
 {
-   return mStdDir;
+   return NGI_StdDir().Val().StdDir();
 }
 
-const cTplValGesInit< std::string > & cNomsGeometrieImage::StdDir()const 
+const std::string & cNomsGeometrieImage::StdDir()const 
 {
-   return mStdDir;
+   return NGI_StdDir().Val().StdDir();
+}
+
+
+cTplValGesInit< cElRegex_Ptr > & cNomsGeometrieImage::NGI_StdDir_Apply()
+{
+   return NGI_StdDir().Val().NGI_StdDir_Apply();
+}
+
+const cTplValGesInit< cElRegex_Ptr > & cNomsGeometrieImage::NGI_StdDir_Apply()const 
+{
+   return NGI_StdDir().Val().NGI_StdDir_Apply();
+}
+
+
+cTplValGesInit< cNGI_StdDir > & cNomsGeometrieImage::NGI_StdDir()
+{
+   return mNGI_StdDir;
+}
+
+const cTplValGesInit< cNGI_StdDir > & cNomsGeometrieImage::NGI_StdDir()const 
+{
+   return mNGI_StdDir;
 }
 
 
@@ -5730,10 +5818,10 @@ void  BinaryUnDumpFromFile(cNomsGeometrieImage & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.StdDir().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.StdDir().ValForcedForUnUmp(),aFp);
+             anObj.NGI_StdDir().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NGI_StdDir().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.StdDir().SetNoInit();
+        else  anObj.NGI_StdDir().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
@@ -5783,8 +5871,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cNomsGeometrieImage & anObj)
     if (anObj.PatternNameIm1Im2().IsInit()) BinaryDumpInFile(aFp,anObj.PatternNameIm1Im2().Val());
     BinaryDumpInFile(aFp,anObj.FCND_Mode_GeomIm().IsInit());
     if (anObj.FCND_Mode_GeomIm().IsInit()) BinaryDumpInFile(aFp,anObj.FCND_Mode_GeomIm().Val());
-    BinaryDumpInFile(aFp,anObj.StdDir().IsInit());
-    if (anObj.StdDir().IsInit()) BinaryDumpInFile(aFp,anObj.StdDir().Val());
+    BinaryDumpInFile(aFp,anObj.NGI_StdDir().IsInit());
+    if (anObj.NGI_StdDir().IsInit()) BinaryDumpInFile(aFp,anObj.NGI_StdDir().Val());
     BinaryDumpInFile(aFp,anObj.AddNumToNameGeom().IsInit());
     if (anObj.AddNumToNameGeom().IsInit()) BinaryDumpInFile(aFp,anObj.AddNumToNameGeom().Val());
     BinaryDumpInFile(aFp,anObj.ModuleImageLoader().IsInit());
@@ -5817,8 +5905,8 @@ cElXMLTree * ToXMLTree(const cNomsGeometrieImage & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PatternNameIm1Im2"),anObj.PatternNameIm1Im2().Val())->ReTagThis("PatternNameIm1Im2"));
    if (anObj.FCND_Mode_GeomIm().IsInit())
       aRes->AddFils(ToXMLTree(anObj.FCND_Mode_GeomIm().Val())->ReTagThis("FCND_Mode_GeomIm"));
-   if (anObj.StdDir().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("StdDir"),anObj.StdDir().Val())->ReTagThis("StdDir"));
+   if (anObj.NGI_StdDir().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.NGI_StdDir().Val())->ReTagThis("NGI_StdDir"));
    if (anObj.AddNumToNameGeom().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("AddNumToNameGeom"),anObj.AddNumToNameGeom().Val())->ReTagThis("AddNumToNameGeom"));
    if (anObj.ModuleImageLoader().IsInit())
@@ -5855,7 +5943,7 @@ void xml_init(cNomsGeometrieImage & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.FCND_Mode_GeomIm(),aTree->Get("FCND_Mode_GeomIm",1)); //tototo 
 
-   xml_init(anObj.StdDir(),aTree->Get("StdDir",1)); //tototo 
+   xml_init(anObj.NGI_StdDir(),aTree->Get("NGI_StdDir",1)); //tototo 
 
    xml_init(anObj.AddNumToNameGeom(),aTree->Get("AddNumToNameGeom",1),bool(false)); //tototo 
 
@@ -5866,7 +5954,7 @@ void xml_init(cNomsGeometrieImage & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModifieurGeometrie(),aTree->GetAll("ModifieurGeometrie",false,1));
 }
 
-std::string  Mangling( cNomsGeometrieImage *) {return "B39DCC0E4891F0B3FE3F";};
+std::string  Mangling( cNomsGeometrieImage *) {return "F00AEA2711B5B9B9FF3F";};
 
 
 std::string & cNomsHomomologues::PatternSel()
@@ -6621,7 +6709,7 @@ void xml_init(cSection_PriseDeVue & anObj,cElXMLTree * aTree)
    xml_init(anObj.ClassEquivalenceImage(),aTree->Get("ClassEquivalenceImage",1)); //tototo 
 }
 
-std::string  Mangling( cSection_PriseDeVue *) {return "64C83B03804B55DAFD3F";};
+std::string  Mangling( cSection_PriseDeVue *) {return "A38D2F064DE260DCFE3F";};
 
 
 int & cEchantillonagePtsInterets::FreqEchantPtsI()
@@ -29173,6 +29261,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "F0B797F105B66EFDFA3F";};
+std::string  Mangling( cParamMICMAC *) {return "FF74D26301B295FDFD3F";};
 
 // Quelque chose

@@ -3188,13 +3188,17 @@ bool cGeometrieImageComp::AcceptAndTransform
     std::string aNameTested = aNT;
     if (mGeom.AddNumToNameGeom().Val())
         aNameTested = aNameTested + "@"+ToString(aNum);
-    if (! mAutom)
+    if (mGeom.NGI_StdDir().IsInit())
+    {
+    }
+    else if (! mAutom)
     {
        ELISE_ASSERT(mGeom.FCND_Mode_GeomIm().IsInit()," No FCND_Mode_GeomIm ?? ");
        const cFCND_Mode_GeomIm  &aFCND = mGeom.FCND_Mode_GeomIm().Val();
        if (
                aFCND.FCND_GeomApply().IsInit() 
-           &&  (! *(mAppli.ICNM()->SetIsIn(aFCND.FCND_GeomApply().Val(),aNameTested)))
+           && (! aFCND.FCND_GeomApply().Val()->Match(aNameTested))
+           // &&  (! *(mAppli.ICNM()->SetIsIn(aFCND.FCND_GeomApply().Val(),aNameTested)))
 	  )
 	  return false;
        aNameResult=  mAppli.ICNM()->Assoc1To1(aFCND.FCND_GeomCalc(),aNameTested,true);

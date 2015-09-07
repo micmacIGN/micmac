@@ -20,8 +20,8 @@
 
             
 
-            <Symb>  SetImGBMixte=IMGP939[8-9].PEF </Symb>
-            <Symb>  SetImStdMixte=IMGP940[0-1].PEF </Symb>
+            <Symb>  SetImGBMixte=IMGP938[6-9].PEF </Symb>
+            <Symb>  SetImStdMixte=IMGP939[0-4].PEF </Symb>
             <Symb>  SetImGBSingle=IMGP939[3456789].PEF </Symb>
             <Symb>  SetImStdSingle=IMGP939[8-9].PEF </Symb>
 
@@ -171,11 +171,11 @@
                            </SectionContraintes>
                        </#WHEN>
                    </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
 <!--
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
 -->
 
 

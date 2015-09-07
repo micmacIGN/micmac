@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2142]) = {
+const char * (theNameVar_ParamMICMAC[2145]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -734,11 +734,14 @@ const char * (theNameVar_ParamMICMAC[2142]) = {
 "             <FCND_Mode_GeomIm Nb=\"?\">\n",
 "	          <FCND_GeomCalc Nb=\"1\" Type=\"std::string\"> </FCND_GeomCalc>  <!-- Pour l'instant 1 to 1 -->\n",
 "                 <!-- permet de filtrer si plusieurs NomsGeometrieImage , par def OK-->\n",
-"	          <FCND_GeomApply Nb=\"?\" Type=\"std::string\"> </FCND_GeomApply> \n",
+"	          <FCND_GeomApply Nb=\"?\" Type=\"cElRegex_Ptr\"> </FCND_GeomApply> \n",
 "             </FCND_Mode_GeomIm>\n",
 "\n",
 "             <!-- Si existe remplace tous les autres, pour l'instant uniquement avec eGeomGen, mais a generaliser ... -->\n",
-"             <StdDir Nb=\"?\" Type=\"std::string\"> </StdDir>\n",
+"             <NGI_StdDir Nb=\"?\" >\n",
+"                      <StdDir Nb=\"1\" Type=\"std::string\">   </StdDir>\n",
+"	              <NGI_StdDir_Apply Nb=\"?\" Type=\"cElRegex_Ptr\"> </NGI_StdDir_Apply> \n",
+"             </NGI_StdDir>\n",
 "\n",
 "\n",
 "            <AddNumToNameGeom Type=\"bool\" Nb=\"?\" Def=\"false\"> </AddNumToNameGeom>\n",

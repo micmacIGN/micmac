@@ -42,6 +42,9 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml  WorkDir
 </Section_Terrain>
 
 <Section_PriseDeVue >
+<!--
+     <GeomImages> eGeomGen </GeomImages>
+-->
      <GeomImages> eGeomImageOri </GeomImages>
      <Images >
           <ImPat> ${ImPat} </ImPat>
@@ -49,8 +52,12 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml  WorkDir
 
 
      <NomsGeometrieImage>
+<!--
+         <StdDir> ${Ori} </StdDir>
+-->
          <FCND_Mode_GeomIm>
                <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori}  </FCND_GeomCalc>
+               <FCND_GeomApply>  .*</FCND_GeomApply> 
          </FCND_Mode_GeomIm>
      </NomsGeometrieImage>
 </Section_PriseDeVue>

@@ -554,6 +554,11 @@ cGeomImage * cPriseDeVue::StdGeomTerrain()
                        mAppli.NomModule(),mAppli.NomGeometrie()
                    );
     }
+    else if (mAppli.GeomImages()==eGeomGen)
+    {
+        std::cout << "eGeomGeneGeomGen " << mName << "\n";
+        getchar();
+    }
     ELISE_ASSERT(false,"Incoherence dans cPriseDeVue::StdGeomTerrain");
     return 0;
 }
