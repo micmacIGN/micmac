@@ -74,6 +74,7 @@ typedef enum
   eGeomImageDH_Px_HD,
   eGeomImage_Epip,
   eGeomImage_EpipolairePure,
+  eGeomGen,
   eNoGeomIm
 } eModeGeomImage;
 void xml_init(eModeGeomImage & aVal,cElXMLTree * aTree);
@@ -1756,6 +1757,9 @@ class cNomsGeometrieImage
         cTplValGesInit< cFCND_Mode_GeomIm > & FCND_Mode_GeomIm();
         const cTplValGesInit< cFCND_Mode_GeomIm > & FCND_Mode_GeomIm()const ;
 
+        cTplValGesInit< std::string > & StdDir();
+        const cTplValGesInit< std::string > & StdDir()const ;
+
         cTplValGesInit< bool > & AddNumToNameGeom();
         const cTplValGesInit< bool > & AddNumToNameGeom()const ;
 
@@ -1779,6 +1783,7 @@ class cNomsGeometrieImage
         cTplValGesInit< std::string > mPatNameGeom;
         cTplValGesInit< std::string > mPatternNameIm1Im2;
         cTplValGesInit< cFCND_Mode_GeomIm > mFCND_Mode_GeomIm;
+        cTplValGesInit< std::string > mStdDir;
         cTplValGesInit< bool > mAddNumToNameGeom;
         cTplValGesInit< cModuleImageLoader > mModuleImageLoader;
         std::list< int > mGenereOriDeZoom;

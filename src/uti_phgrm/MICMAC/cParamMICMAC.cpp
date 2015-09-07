@@ -184,6 +184,8 @@ eModeGeomImage  Str2eModeGeomImage(const std::string & aName)
       return eGeomImage_Epip;
    else if (aName=="eGeomImage_EpipolairePure")
       return eGeomImage_EpipolairePure;
+   else if (aName=="eGeomGen")
+      return eGeomGen;
    else if (aName=="eNoGeomIm")
       return eNoGeomIm;
   else
@@ -219,6 +221,8 @@ std::string  eToString(const eModeGeomImage & anObj)
       return  "eGeomImage_Epip";
    if (anObj==eGeomImage_EpipolairePure)
       return  "eGeomImage_EpipolairePure";
+   if (anObj==eGeomGen)
+      return  "eGeomGen";
    if (anObj==eNoGeomIm)
       return  "eNoGeomIm";
  std::cout << "Enum = eModeGeomImage\n";
@@ -243,7 +247,7 @@ void  BinaryUnDumpFromFile(eModeGeomImage & anObj,ELISE_fp & aFp)
    anObj=(eModeGeomImage) aIVal;
 }
 
-std::string  Mangling( eModeGeomImage *) {return "02C2D3DF2342E2A8FDBF";};
+std::string  Mangling( eModeGeomImage *) {return "6E8475AD465FD68FFE3F";};
 
 eOnEmptyImSecApero  Str2eOnEmptyImSecApero(const std::string & aName)
 {
@@ -5605,6 +5609,17 @@ const cTplValGesInit< cFCND_Mode_GeomIm > & cNomsGeometrieImage::FCND_Mode_GeomI
 }
 
 
+cTplValGesInit< std::string > & cNomsGeometrieImage::StdDir()
+{
+   return mStdDir;
+}
+
+const cTplValGesInit< std::string > & cNomsGeometrieImage::StdDir()const 
+{
+   return mStdDir;
+}
+
+
 cTplValGesInit< bool > & cNomsGeometrieImage::AddNumToNameGeom()
 {
    return mAddNumToNameGeom;
@@ -5715,6 +5730,14 @@ void  BinaryUnDumpFromFile(cNomsGeometrieImage & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.StdDir().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.StdDir().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.StdDir().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.AddNumToNameGeom().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.AddNumToNameGeom().ValForcedForUnUmp(),aFp);
         }
@@ -5760,6 +5783,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cNomsGeometrieImage & anObj)
     if (anObj.PatternNameIm1Im2().IsInit()) BinaryDumpInFile(aFp,anObj.PatternNameIm1Im2().Val());
     BinaryDumpInFile(aFp,anObj.FCND_Mode_GeomIm().IsInit());
     if (anObj.FCND_Mode_GeomIm().IsInit()) BinaryDumpInFile(aFp,anObj.FCND_Mode_GeomIm().Val());
+    BinaryDumpInFile(aFp,anObj.StdDir().IsInit());
+    if (anObj.StdDir().IsInit()) BinaryDumpInFile(aFp,anObj.StdDir().Val());
     BinaryDumpInFile(aFp,anObj.AddNumToNameGeom().IsInit());
     if (anObj.AddNumToNameGeom().IsInit()) BinaryDumpInFile(aFp,anObj.AddNumToNameGeom().Val());
     BinaryDumpInFile(aFp,anObj.ModuleImageLoader().IsInit());
@@ -5792,6 +5817,8 @@ cElXMLTree * ToXMLTree(const cNomsGeometrieImage & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PatternNameIm1Im2"),anObj.PatternNameIm1Im2().Val())->ReTagThis("PatternNameIm1Im2"));
    if (anObj.FCND_Mode_GeomIm().IsInit())
       aRes->AddFils(ToXMLTree(anObj.FCND_Mode_GeomIm().Val())->ReTagThis("FCND_Mode_GeomIm"));
+   if (anObj.StdDir().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("StdDir"),anObj.StdDir().Val())->ReTagThis("StdDir"));
    if (anObj.AddNumToNameGeom().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("AddNumToNameGeom"),anObj.AddNumToNameGeom().Val())->ReTagThis("AddNumToNameGeom"));
    if (anObj.ModuleImageLoader().IsInit())
@@ -5828,6 +5855,8 @@ void xml_init(cNomsGeometrieImage & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.FCND_Mode_GeomIm(),aTree->Get("FCND_Mode_GeomIm",1)); //tototo 
 
+   xml_init(anObj.StdDir(),aTree->Get("StdDir",1)); //tototo 
+
    xml_init(anObj.AddNumToNameGeom(),aTree->Get("AddNumToNameGeom",1),bool(false)); //tototo 
 
    xml_init(anObj.ModuleImageLoader(),aTree->Get("ModuleImageLoader",1)); //tototo 
@@ -5837,7 +5866,7 @@ void xml_init(cNomsGeometrieImage & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModifieurGeometrie(),aTree->GetAll("ModifieurGeometrie",false,1));
 }
 
-std::string  Mangling( cNomsGeometrieImage *) {return "F802796EC2871DDEFC3F";};
+std::string  Mangling( cNomsGeometrieImage *) {return "B39DCC0E4891F0B3FE3F";};
 
 
 std::string & cNomsHomomologues::PatternSel()
@@ -6592,7 +6621,7 @@ void xml_init(cSection_PriseDeVue & anObj,cElXMLTree * aTree)
    xml_init(anObj.ClassEquivalenceImage(),aTree->Get("ClassEquivalenceImage",1)); //tototo 
 }
 
-std::string  Mangling( cSection_PriseDeVue *) {return "C0DC225C17839DB3F93F";};
+std::string  Mangling( cSection_PriseDeVue *) {return "64C83B03804B55DAFD3F";};
 
 
 int & cEchantillonagePtsInterets::FreqEchantPtsI()
@@ -29144,6 +29173,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "A55493E8D69A68AFFE3F";};
+std::string  Mangling( cParamMICMAC *) {return "F0B797F105B66EFDFA3F";};
 
 // Quelque chose

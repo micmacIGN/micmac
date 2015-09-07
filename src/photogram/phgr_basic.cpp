@@ -1459,7 +1459,7 @@ double  cBasicGeomCap3D::GlobResol() const
 
 Pt3dr  cBasicGeomCap3D::PMoyOfCenter() const
 {
-    RoughCapteur2Terrain(Mil());
+    return RoughCapteur2Terrain(Mil());
 }
 
 double cBasicGeomCap3D::ProfondeurDeChamps(const Pt3dr & aP) const
@@ -1563,6 +1563,24 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 
     return 0;
 }
+
+cBasicGeomCap3D * cInterfChantierNameManipulateur::StdCamGenOfNames(const std::string & anOri,const std::string & aName)
+{
+    std::string aN1 = Dir() + Assoc1To1("NKS-Assoc-Im2Orient@-"+anOri,aName,true);
+    if (ELISE_fp::exist_file(aN1))
+       return  cBasicGeomCap3D::StdGetFromFile(aN1,eTIGB_MMSten);
+
+    std::string aN2 = Dir() + Assoc1To1("NKS-Assoc-Im2GBOrient@-"+anOri,aName,true);
+    if (ELISE_fp::exist_file(aN2))
+       return  cBasicGeomCap3D::StdGetFromFile(aN2,eTIGB_Unknown);
+
+
+    std::cout << "For Ori=" << anOri << " , and Name=" << aName << "\n";
+    ELISE_ASSERT(false,"cannot get cInterfChantierNameManipulateur::StdCamGenOfNames");
+
+    return 0;
+}
+
 /*
 
 

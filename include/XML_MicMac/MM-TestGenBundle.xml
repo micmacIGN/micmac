@@ -1,7 +1,16 @@
 <!--
+
+CONVERSION :
+
+mm3d MapCmd mm3d Convert2GenBundle "P=Abbey-IMG_.*.jpg" "C=Ori-RTL-Init/Orientation-\$0.xml" Bundle
+
+
+
    The simplest MicMac exemple
 
 MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml WorkDir=/media/data2/ExempleDoc/MiniCuxha/
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml  WorkDir=/home/marc/TMP/ExempleDoc/AerialCuxa/
 
 
 -->
@@ -12,6 +21,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml WorkDir=/
 
    <Symb> ImPat=Abbey-IMG_.*.jpg </Symb>
    <Symb>  Ori=RTL-Init     </Symb>
+   <Symb>  DirMEC=MEC-TBundle/ </Symb>
 
 </DicoLoc>
 
@@ -21,6 +31,12 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml WorkDir=/
              <ZIncCalc>   20.0  </ZIncCalc>
       </IntervAltimetrie>
      <Planimetrie>
+           <MasqueTerrain >
+                <FileBoxMasqIsBoxTer> ${DirMEC}BoxTer-Bundle.xml</FileBoxMasqIsBoxTer> 
+                <MT_Image >  TA/TA_LeChantier_Masq.tif        </MT_Image>
+                <MT_Xml>     TA/TA_LeChantier.xml  </MT_Xml>
+           </MasqueTerrain>
+
      </Planimetrie>
 
 </Section_Terrain>
@@ -97,13 +113,15 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml WorkDir=/
 
 <Section_WorkSpace >
      <WorkDir >  ThisDir </WorkDir> 
-     <TmpMEC>  MEC-TBundle/  </TmpMEC>
-     <TmpResult>  MEC-TBundle/  </TmpResult>
+     <TmpMEC>     ${DirMEC}  </TmpMEC>
+     <TmpResult>  ${DirMEC}  </TmpResult>
      <TmpPyr>    Pyram/  </TmpPyr>
 <!--
      <ByProcess>  0 </ByProcess>
 -->
      <ByProcess>  ${MMNbProc} </ByProcess>
+     <PurgeMECResultBefore>  true </PurgeMECResultBefore>
+
 </Section_WorkSpace>
 
 
