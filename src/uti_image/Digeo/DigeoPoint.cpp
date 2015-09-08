@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 
-#include <fstream>
-
 using namespace std;
 
 unsigned char DigeoPoint::sm_uchar_descriptor[DIGEO_DESCRIPTOR_SIZE];
@@ -330,7 +328,7 @@ bool DigeoPoint::writeDigeoFile( const string &i_filename, const vector<DigeoPoi
 
 	switch( i_version ){
 	case 0: writeDigeoFile_v0( f, i_list ); break;
-	case 1: writeDigeoFile_v1( f, i_list, i_writeBigEndian ); break;
+	case 1: writeDigeoFile_v1( f, i_list, i_writeBigEndian!=MSBF_PROCESSOR() ); break;
 	default: cerr << "ERROR: writeDigeoFile : unkown version number " << i_version << endl; return false;
 	};
 
