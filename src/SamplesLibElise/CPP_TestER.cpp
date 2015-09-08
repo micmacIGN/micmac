@@ -55,7 +55,7 @@ int TestER_main(int argc,char ** argv)
     int aK1,aK2;
     int aZoomF=32;
  
-    Pt2di aImTilSz(10000,9000), aImTilSzTmp;
+    Pt2di aImTilSz(3500,2000), aImTilSzTmp;
     Pt2di aImTilGrid(0,0);
 
     GenIm::type_el aTypeOut = GenIm::u_int1;
@@ -74,7 +74,7 @@ int TestER_main(int argc,char ** argv)
     //   (b) get the vol in space
     //   (c) project the vol to the right img
     //   (d) create the tif
-    //(1) run PASTIS with two tiles
+
 
     bool aModeHelp;
     StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
@@ -88,8 +88,10 @@ int TestER_main(int argc,char ** argv)
 
 
     /* Create tiles & save to hard-drive */
-    aImTilGrid.x = round_up(double(aCRPC1.SzBasicCapt3D().x)/aImTilSz.x);
-    aImTilGrid.y = round_up(double(aCRPC1.SzBasicCapt3D().y)/aImTilSz.y);
+    //aImTilGrid.x = round_up(double(aCRPC1.SzBasicCapt3D().x)/aImTilSz.x);
+    //aImTilGrid.y = round_up(double(aCRPC1.SzBasicCapt3D().y)/aImTilSz.y);
+    aImTilGrid.x = round_up(double(aIm1.sz().x)/aImTilSz.x);
+    aImTilGrid.y = round_up(double(aIm1.sz().y)/aImTilSz.y);
   
 
     ELISE_fp::MkDirSvp(aDirTmp);
@@ -103,15 +105,16 @@ int TestER_main(int argc,char ** argv)
 	    if(aK1 < (aImTilGrid.x-1))
 	        aImTilSzTmp.x = aImTilSz.x;
 	    else
-	        aImTilSzTmp.x = aCRPC1.SzBasicCapt3D().x - aK1*aImTilSz.x;
+	        aImTilSzTmp.x = aIm1.sz().x - aK1*aImTilSz.x;//aCRPC1.SzBasicCapt3D().x - aK1*aImTilSz.x;
 
 	    if(aK2 < (aImTilGrid.y-1))
 	        aImTilSzTmp.y = aImTilSz.y;
 	    else
-	        aImTilSzTmp.y = aCRPC1.SzBasicCapt3D().y - aK2*aImTilSz.y;
+	        aImTilSzTmp.y = aIm1.sz().y - aK2*aImTilSz.y; //aCRPC1.SzBasicCapt3D().y - aK2*aImTilSz.y;
 
 
-            aTmp = aDirTmp + "//" + aIm1Name.substr(0,aIm1Name.size()-4) + aPrefixName + ToString(aK1) + "_" + ToString(aK2);
+            aTmp = aDirTmp + "//" + aIm1Name.substr(0,aIm1Name.size()-4) + 
+		   aPrefixName + ToString(aK1) + "_" + ToString(aK2) + ".tif";
 
             Tiff_Im aTilCur = Tiff_Im
 	    (
@@ -148,6 +151,10 @@ int TestER_main(int argc,char ** argv)
     Pt3dr aV3D1L, aV3D2L, aV3D3L, aV3D4L;
     Pt2dr aV2D1, aV2D2, aV2D3, aV2D4, aV2DTmp;
    
+    //graphHom
+    std::string aGHOut = "//GraphHomSat.xml";
+    cSauvegardeNamedRel aGH;
+
     for(aK1=0; aK1<aImTilGrid.x; aK1++)
     {
         for(aK2=0; aK2<aImTilGrid.y; aK2++)
@@ -162,8 +169,8 @@ int TestER_main(int argc,char ** argv)
 	    }
 	    else
 	    {
-	        aV2D2.x = aCRPC1.SzBasicCapt3D().x -1;
-	        aV2D3.x = aCRPC1.SzBasicCapt3D().x -1;
+	        aV2D2.x = aIm2.sz().x - 1;//aCRPC2.SzBasicCapt3D().x -1;
+	        aV2D3.x = aIm2.sz().x - 1;//aCRPC2.SzBasicCapt3D().x -1;
 	    }
 	    if(aK2 < (aImTilGrid.y-1))
 	    {
@@ -172,8 +179,8 @@ int TestER_main(int argc,char ** argv)
 	    }
 	    else
 	    {
-		aV2D3.y = aCRPC1.SzBasicCapt3D().y -1;
-		aV2D4.y = aCRPC1.SzBasicCapt3D().y -1;
+		aV2D3.y = aIm2.sz().y - 1;//aCRPC1.SzBasicCapt3D().y -1;
+		aV2D4.y = aIm2.sz().y - 1;//aCRPC1.SzBasicCapt3D().y -1;
 	    }
 
             aV2D1.x = aK1*aImTilSz.x;
@@ -181,7 +188,6 @@ int TestER_main(int argc,char ** argv)
 	    aV2D1.y = aK2*aImTilSz.y;
 	    aV2D2.y = aK2*aImTilSz.y;
 
-            std::cout << aV2D1 << " " << aV2D2 << " " << aV2D3 << " " << aV2D4 << "\n";
 
 	    //3d volume
 	    aV3D1H = aCRPC1.ImEtZ2Terrain(aV2D1, aCRPC1.GetRPC().last_height);
@@ -202,95 +208,55 @@ int TestER_main(int argc,char ** argv)
 	    if(aCRPC2.PIsVisibleInImage(aV3D1H))
 	    {
                 aV2DTmp = aCRPC2.Ter2Capteur(aV3D1H);
-//	        if((aV2DTmp.x<aIm2.sz().x) && (aV2DTmp.y<aIm2.sz().y))
-		{
+	        if( aIm2.sz().x > aV2DTmp.x && aIm2.sz().y > aV2DTmp.y )//becase PIsVisibleInImage checks the entire img
 		    CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    
 
-	        std::cout << "1hIS_INI " << IS_INI << " " << aV2DTmp << "\n";	
-	        std::cout << "min " << aMin << "\n";	
-	        std::cout << "max " << aMax << "\n";	
-		}
 	    }
 
 	    if(aCRPC2.PIsVisibleInImage(aV3D1L))
 	    {
                 aV2DTmp = aCRPC2.Ter2Capteur(aV3D1L);
-	        CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
-//	        if((aV2DTmp.x<aIm2.sz().x) && (aV2DTmp.y<aIm2.sz().y))
-		{
-	        std::cout << "1lIS_INI " << IS_INI << " " << aV2DTmp << "\n";	
-	        std::cout << "min " << aMin << "\n";	
-	        std::cout << "max " << aMax << "\n";	
-		}
+	        if( aIm2.sz().x > aV2DTmp.x && aIm2.sz().y > aV2DTmp.y )
+	            CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
 	    }
 
 	    if(aCRPC2.PIsVisibleInImage(aV3D2H))
 	    {
                 aV2DTmp = aCRPC2.Ter2Capteur(aV3D2H);
-//	        if((aV2DTmp.x<aIm2.sz().x) && (aV2DTmp.y<aIm2.sz().y))
-		{
-	        CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
-	        std::cout << "2hIS_INI " << IS_INI << " " << aV2DTmp << "\n";	
-	        std::cout << "min " << aMin << "\n";	
-	        std::cout << "max " << aMax << "\n";	
-		}
+	        if( aIm2.sz().x > aV2DTmp.x && aIm2.sz().y > aV2DTmp.y )
+	            CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
 	    }
 	    if(aCRPC2.PIsVisibleInImage(aV3D2L))
 	    {
                 aV2DTmp = aCRPC2.Ter2Capteur(aV3D2L);
-//	        if((aV2DTmp.x<aIm2.sz().x) && (aV2DTmp.y<aIm2.sz().y))
-		{
-	        CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
-	        std::cout << "2lIS_INI " << IS_INI << " " << aV2DTmp << "\n";	
-	        std::cout << "min " << aMin << "\n";	
-	        std::cout << "max " << aMax << "\n";	
-		}
+	        if( aIm2.sz().x > aV2DTmp.x && aIm2.sz().y > aV2DTmp.y )
+	            CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
 	    }
 
 	    if(aCRPC2.PIsVisibleInImage(aV3D3H))
 	    {
                 aV2DTmp = aCRPC2.Ter2Capteur(aV3D3H);
-//	        if((aV2DTmp.x<aIm2.sz().x) && (aV2DTmp.y<aIm2.sz().y))
-		{
-	        CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
-	        std::cout << "3hIS_INI " << IS_INI << " " << aV2DTmp << "\n";	
-	        std::cout << "min " << aMin << "\n";	
-	        std::cout << "max " << aMax << "\n";	
-		}
+	        if( aIm2.sz().x > aV2DTmp.x && aIm2.sz().y > aV2DTmp.y )
+	            CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
 	    }
 	    if(aCRPC2.PIsVisibleInImage(aV3D3L))
 	    {
                 aV2DTmp = aCRPC2.Ter2Capteur(aV3D3L);
-//	        if((aV2DTmp.x<aIm2.sz().x) && (aV2DTmp.y<aIm2.sz().y))
-		{
-	        CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
-	        std::cout << "3lIS_INI " << IS_INI << " " << aV2DTmp << "\n";	
-	        std::cout << "min " << aMin << "\n";	
-	        std::cout << "max " << aMax << "\n";	
-		}
+	        if( aIm2.sz().x > aV2DTmp.x && aIm2.sz().y > aV2DTmp.y )
+	            CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
 	    }
 
 	    if(aCRPC2.PIsVisibleInImage(aV3D4H))
 	    {
                 aV2DTmp = aCRPC2.Ter2Capteur(aV3D4H);
-//	        if((aV2DTmp.x<aIm2.sz().x) && (aV2DTmp.y<aIm2.sz().y))
-		{
-	        CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
-	        std::cout << "4hIS_INI " << IS_INI << " " << aV2DTmp << "\n";	
-	        std::cout << "min " << aMin << "\n";	
-	        std::cout << "max " << aMax << "\n";	
-		}
+	        if( aIm2.sz().x > aV2DTmp.x && aIm2.sz().y > aV2DTmp.y )
+	            CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
 	    }
 	    if(aCRPC2.PIsVisibleInImage(aV3D4L))
 	    {
                 aV2DTmp = aCRPC2.Ter2Capteur(aV3D4L);
-//	        if((aV2DTmp.x<aIm2.sz().x) && (aV2DTmp.y<aIm2.sz().y))
-		{
-	        CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
-	        std::cout << "4lIS_INI " << IS_INI << " " << aV2DTmp << "\n";	
-	        std::cout << "min " << aMin << "\n";	
-	        std::cout << "max " << aMax << "\n";	
-		}
+	        if( aIm2.sz().x > aV2DTmp.x && aIm2.sz().y > aV2DTmp.y )
+	            CheckBounds(aMin, aMax, aV2DTmp, IS_INI);    	
 	    }
 	
 	    if(IS_INI)
@@ -302,13 +268,10 @@ int TestER_main(int argc,char ** argv)
                 
 		aImTilSzTmp.x = (aMax.x - aMin.x);
                 aImTilSzTmp.y = (aMax.y - aMin.y);
-                if( aImTilSzTmp.x>0 && aImTilSzTmp.y>0 )
-		{
-	        //save img
-                aTmp = aDirTmp + "//" + aIm2Name.substr(0,aIm1Name.size()-4) + aPrefixName + ToString(aK1) + "_" + ToString(aK2);
+	        
+		//save img
+                aTmp = aDirTmp + "//" + aIm2Name.substr(0,aIm2Name.size()-4) + aPrefixName + ToString(aK1) + "_" + ToString(aK2) + ".tif";
 
-		std::cout << "aImTilSzTmp " << aImTilSzTmp << "\n";
-		std::cout << "aMin " << aMin << "\n";
 
 		Tiff_Im aTilCur = Tiff_Im
 	        (
@@ -319,22 +282,38 @@ int TestER_main(int argc,char ** argv)
 	            aIm1.phot_interp(),
 	            Tiff_Im::Empty_ARG
 	        );
-		           
+
+
 	        ELISE_COPY
 	        (
                     aTilCur.all_pts(),
 	            trans(aIm2.in(), Pt2di(aMin.x,aMin.y)), 
 	            aTilCur.out()
 	        );
-	
+
+                std::cout << "*" << aTmp << " " << "minx/y=" << aMin << std::endl; 
+
                 //save GraphHom
-		}
+		aGH.Cple().push_back(cCpleString( aIm1Name.substr(0,aIm1Name.size()-4) + 
+					           aPrefixName + ToString(aK1) + "_" + 
+						   ToString(aK2) + ".tif", 
+						   aIm2Name.substr(0,aIm2Name.size()-4) + 
+						   aPrefixName + ToString(aK1) + "_" + 
+						   ToString(aK2) + ".tif"));
 
 	    }
 	}
     }
+    MakeFileXML(aGH,aDirTmp+aGHOut);
 
-   return EXIT_SUCCESS;
+    //(1) run PASTIS with pairs of tiles
+    std::string aTapRun = "mm3d Tapioca File " + aDirTmp+aGHOut + " -1 ExpTxt=-1";
+    
+    std::cout << aTapRun << "\n"; 
+    
+    System(aTapRun,true);
+
+    return EXIT_SUCCESS;
 }
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI)
