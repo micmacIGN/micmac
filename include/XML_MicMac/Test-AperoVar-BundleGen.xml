@@ -1,4 +1,8 @@
 <!--
+mm3d MapCmd mm3d Convert2GenBundle "P=IMGP.*.PEF" "C=Ori-All/Orientation-\$0.xml" Bundle
+
+
+
     Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/media/data2/Jeux-Test/Bas/ 
 
 +UseGB=0
@@ -15,19 +19,19 @@
        <DicoLoc>
 
             <Symb>  UseGB=true </Symb>
-            <Symb>  UseStd=false </Symb>
+            <Symb>  UseStd=true </Symb>
 
 
            <eSymb> Mixte= * ${UseGB} ${UseStd} </eSymb>
            <eSymb> NotMixte= ! ${Mixte} </eSymb>
 
             
-            <Symb>  SetImGBMixte=Abbey-IMG_.*[12346789].jpg </Symb>
-            <Symb>  SetImStdMixte=Abbey-IMG_.*[05].jpg </Symb>
 
-<!--
             <Symb>  SetImGBMixte=IMGP938[6-9].PEF </Symb>
             <Symb>  SetImStdMixte=IMGP939[0-4].PEF </Symb>
+<!--
+            <Symb>  SetImGBMixte=Abbey-IMG_.*[12346789].jpg </Symb>
+            <Symb>  SetImStdMixte=Abbey-IMG_.*[05].jpg </Symb>
 -->
             <Symb>  SetImGBSingle=Abbey-IMG_.*.jpg </Symb>
             <Symb>  SetImStdSingle=IMGP939[8-9].PEF </Symb>
@@ -35,7 +39,7 @@
 
            
            <Symb>  AeroInGB=-BundlePert </Symb>
-           <Symb>  AeroInStd=-RTL-Init </Symb>
+           <Symb>  AeroInStd=-BundlePert </Symb>
            <Symb>  AeroOut=BundleCorrec </Symb>
 
            <Symb>  Hom=""  </Symb>
@@ -80,7 +84,7 @@
 
        <SectionInconnues>
 
-             <#WHEN VTEST=${UseStd}>
+            <#WHEN VTEST=${UseStd}>
                  <CalibrationCameraInc>
                     <Name> GenerateKC-Others   </Name>
                     <CalValueInit>
@@ -108,7 +112,7 @@
                            <PosFromBDOrient> Or-Init </PosFromBDOrient>
                        </PosValueInit>
                  </PoseCameraInc>
-             </#WHEN>
+            </#WHEN>
 
 
              <#WHEN VTEST=${UseGB}>
