@@ -43,7 +43,7 @@ public:
 	{
 		if ( aDistance==mNeighbourDistance )
 		{
-			ELISE_DEBUG_ERROR(true, "tryNeighbour", "two neighbours with the same descriptor distance");
+			//~ ELISE_DEBUG_ERROR(true, "tryNeighbour", "two neighbours with the same descriptor distance");
 			mNearestNeighbours.push_back(aNeighbour);
 		}
 		else if ( aDistance<mNeighbourDistance )

@@ -2,7 +2,7 @@
 
 #define __DRAW_POINTS
 #define __CHECK_MULTIPLICATION
-#define __SAVE_THEORICAL_POINTS
+//~ #define __SAVE_THEORICAL_POINTS
 //~ #define __PRINT_COMMANDS
 
 using namespace std;
@@ -629,11 +629,25 @@ void computePointsImages( const string &aFilename, const Matrix33R &aMatrix, vec
 	oDifferences.resize(matches.size());
 	double *itDifference = oDifferences.data();
 
+	// __DEL
+	size_t iDiff = 0;
+
 	const PointMatch *itMatch = matches.data();
 	size_t iMatch = matches.size();
 	while ( iMatch-- )
 	{
 		*itDifference++ = difference(itMatch->first, aMatrix, itMatch->second);
+
+		// __DEL
+		if ( oDifferences[iDiff]>100 )
+		{
+			cout << "difference[" << iDiff << "] = " << oDifferences[iDiff] << " > 100" << endl;
+			cout << '\t' << "p0 = " << itMatch->first << endl;
+			cout << '\t' << "p1 = " << itMatch->second << endl;
+			exit(EXIT_FAILURE);
+		}
+		iDiff++;
+
 		itMatch++;
 	}
 }
@@ -803,13 +817,16 @@ void stringToIntegerSet( const string &aStr, int &oV0, int &oV1 )
 	if ( oV0>oV1 ) ELISE_ERROR_EXIT("invalid set [" << oV0 << ';' << oV1 << "], " << oV0 << '>' << oV1 );
 }
 
-void statDifferences( const vector<vector<double> > &aDifferences )
+void statDifferences( const vector<vector<double> > &aDifferences, const string &aFilename )
 {
 	double overAllMinDiff = numeric_limits<double>::max(), overAllMaxDiff = 0.;
 	double overAllMeanDiff = 0.;
 	size_t overAllNbDiff = 0;
 
-	cout << "--- stats format: index min max mean" << endl;
+	ofstream f(aFilename.c_str());
+	if ( !f ) ELISE_ERROR_EXIT("canot open file [" << aFilename << "] for writing");
+
+	f << "### format: index min max mean" << endl;
 	for ( size_t i=0; i<aDifferences.size(); i++ )
 	{
 		double minDiff = numeric_limits<double>::max(), maxDiff = 0.;
@@ -828,15 +845,15 @@ void statDifferences( const vector<vector<double> > &aDifferences )
 		overAllNbDiff += differences.size();
 		meanDiff /= (double)differences.size();
 
-		cerr << i << ' ' << minDiff << ' ' << maxDiff << ' ' << meanDiff << endl;
+		f << i << ' ' << minDiff << ' ' << maxDiff << ' ' << meanDiff << endl;
 
 		if ( minDiff<overAllMinDiff ) overAllMinDiff = minDiff;
 		if ( maxDiff>overAllMaxDiff ) overAllMaxDiff = maxDiff;
 	}
 
 	overAllMeanDiff /= (double)overAllNbDiff;
-	cout << endl;
-	cout << "overall min/max/mean " << overAllMinDiff << ' ' << overAllMaxDiff << ' ' << overAllMeanDiff << endl;
+	f << endl;
+	f << "### overall min/max/mean " << overAllMinDiff << ' ' << overAllMaxDiff << ' ' << overAllMeanDiff << endl;
 }
 
 int main( int argc, char **argv )
@@ -914,7 +931,8 @@ int main( int argc, char **argv )
 		cout << endl;
 	}
 
-	statDifferences(differences);
+	const string statsFilename = dstDirectory + "stats.txt";
+	statDifferences(differences, statsFilename);
 
 	return EXIT_SUCCESS;
 }
