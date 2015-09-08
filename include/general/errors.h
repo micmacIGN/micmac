@@ -18,20 +18,20 @@
 #endif
 
 #ifdef __DEBUG
-	extern MessageHandler *g_defaultDebugErrorHandler;
+	extern MessageHandler *gDefaultDebugErrorHandler;
 	#define ELISE_DEBUG_ERROR(condition,where,what)\
 		if ( condition ){\
 			std::stringstream ssWhat; ssWhat << what;\
 			std::stringstream ssWhere; ssWhere << where;\
-			g_defaultDebugErrorHandler->add( DebugErrorMessage(std::string(__FILE__),__LINE__,ssWhere.str(),ssWhat.str()) );\
+			gDefaultDebugErrorHandler->add( DebugErrorMessage(std::string(__FILE__),__LINE__,ssWhere.str(),ssWhat.str()) );\
 		}
 
-	extern MessageHandler *g_defaultDebugWarningHandler;
+	extern MessageHandler *gDefaultDebugWarningHandler;
 	#define ELISE_DEBUG_WARNING(condition,where,what)\
 		if ( condition ){\
 			std::stringstream ssWhat; ssWhat << what;\
 			std::stringstream ssWhere; ssWhere << where;\
-			g_defaultDebugWarningHandler->add( DebugErrorMessage(std::string(__FILE__),__LINE__,ssWhere.str(),ssWhat.str()) );\
+			gDefaultDebugWarningHandler->add( DebugErrorMessage(std::string(__FILE__),__LINE__,ssWhere.str(),ssWhat.str()) );\
 		}
 #else
 	#define ELISE_DEBUG_ERROR(condition,where,what)
