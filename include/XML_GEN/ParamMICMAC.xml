@@ -131,6 +131,8 @@
 	   <eGeomImage_Epip>        </eGeomImage_Epip>
 	   <eGeomImage_EpipolairePure>        </eGeomImage_EpipolairePure>
 
+           <!-- Peut lire un Stenop ou un bundle gen -->
+	   <eGeomGen>          </eGeomGen>
 	   <eNoGeomIm>              </eNoGeomIm>
            <!-- Pas encore implementée -->
    </enum>
@@ -730,8 +732,14 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <FCND_Mode_GeomIm Nb="?">
 	          <FCND_GeomCalc Nb="1" Type="std::string"> </FCND_GeomCalc>  <!-- Pour l'instant 1 to 1 -->
                  <!-- permet de filtrer si plusieurs NomsGeometrieImage , par def OK-->
-	          <FCND_GeomApply Nb="?" Type="std::string"> </FCND_GeomApply> 
+	          <FCND_GeomApply Nb="?" Type="cElRegex_Ptr"> </FCND_GeomApply> 
              </FCND_Mode_GeomIm>
+
+             <!-- Si existe remplace tous les autres, pour l'instant uniquement avec eGeomGen, mais a generaliser ... -->
+             <NGI_StdDir Nb="?" >
+                      <StdDir Nb="1" Type="std::string">   </StdDir>
+	              <NGI_StdDir_Apply Nb="?" Type="cElRegex_Ptr"> </NGI_StdDir_Apply> 
+             </NGI_StdDir>
 
 
             <AddNumToNameGeom Type="bool" Nb="?" Def="false"> </AddNumToNameGeom>

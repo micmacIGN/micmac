@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2137]) = {
+const char * (theNameVar_ParamMICMAC[2145]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -133,6 +133,8 @@ const char * (theNameVar_ParamMICMAC[2137]) = {
 "	   <eGeomImage_Epip>        </eGeomImage_Epip>\n",
 "	   <eGeomImage_EpipolairePure>        </eGeomImage_EpipolairePure>\n",
 "\n",
+"           <!-- Peut lire un Stenop ou un bundle gen -->\n",
+"	   <eGeomGen>          </eGeomGen>\n",
 "	   <eNoGeomIm>              </eNoGeomIm>\n",
 "           <!-- Pas encore implementée -->\n",
 "   </enum>\n",
@@ -732,8 +734,14 @@ const char * (theNameVar_ParamMICMAC[2137]) = {
 "             <FCND_Mode_GeomIm Nb=\"?\">\n",
 "	          <FCND_GeomCalc Nb=\"1\" Type=\"std::string\"> </FCND_GeomCalc>  <!-- Pour l'instant 1 to 1 -->\n",
 "                 <!-- permet de filtrer si plusieurs NomsGeometrieImage , par def OK-->\n",
-"	          <FCND_GeomApply Nb=\"?\" Type=\"std::string\"> </FCND_GeomApply> \n",
+"	          <FCND_GeomApply Nb=\"?\" Type=\"cElRegex_Ptr\"> </FCND_GeomApply> \n",
 "             </FCND_Mode_GeomIm>\n",
+"\n",
+"             <!-- Si existe remplace tous les autres, pour l'instant uniquement avec eGeomGen, mais a generaliser ... -->\n",
+"             <NGI_StdDir Nb=\"?\" >\n",
+"                      <StdDir Nb=\"1\" Type=\"std::string\">   </StdDir>\n",
+"	              <NGI_StdDir_Apply Nb=\"?\" Type=\"cElRegex_Ptr\"> </NGI_StdDir_Apply> \n",
+"             </NGI_StdDir>\n",
 "\n",
 "\n",
 "            <AddNumToNameGeom Type=\"bool\" Nb=\"?\" Def=\"false\"> </AddNumToNameGeom>\n",

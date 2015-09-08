@@ -111,7 +111,7 @@ void  cNOSolIn_AttrSom::AddGainByTriplet(const double & aVal)
 {
     mSomGainByTriplet += aVal;
     mNbGainByTriplet += 1;
-    mCalcGainByTriplet = mSomGainByTriplet / sqrt(mNbGainByTriplet);
+    mCalcGainByTriplet = mSomGainByTriplet / sqrt((double)mNbGainByTriplet);
 }
 
 
@@ -875,7 +875,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                      ElRotation3D aR3 = aS3->attr().TestRot();
                      ElRotation3D aR2On1 =  aR1.inv() * aR2;
                      ElRotation3D aR3On1 =  aR1.inv() * aR3;
-                     double aScale = 1.1 + cos(mNbTrip);
+                     double aScale = 1.1 + cos((double)mNbTrip);
                      aR2On1.tr() =  aR2On1.tr() * aScale;
                      aR3On1.tr() =  aR3On1.tr() * aScale;
                      aXml3Ori.Ori2On1() =  El2Xml(aR2On1);

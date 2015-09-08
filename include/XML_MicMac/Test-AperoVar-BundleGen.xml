@@ -4,6 +4,9 @@
 +UseGB=0
 
     Apero /home/marc/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/home/marc/TMP/EPI/Enclos/Bas/
+
+
+    Apero /home/marc/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/home/marc/TMP/ExempleDoc/AerialCuxa/
 -->
 
 <Global >
@@ -12,24 +15,28 @@
        <DicoLoc>
 
             <Symb>  UseGB=true </Symb>
-            <Symb>  UseStd=true </Symb>
+            <Symb>  UseStd=false </Symb>
 
 
            <eSymb> Mixte= * ${UseGB} ${UseStd} </eSymb>
            <eSymb> NotMixte= ! ${Mixte} </eSymb>
 
             
+            <Symb>  SetImGBMixte=Abbey-IMG_.*[12346789].jpg </Symb>
+            <Symb>  SetImStdMixte=Abbey-IMG_.*[05].jpg </Symb>
 
-            <Symb>  SetImGBMixte=IMGP939[8-9].PEF </Symb>
-            <Symb>  SetImStdMixte=IMGP940[0-1].PEF </Symb>
-            <Symb>  SetImGBSingle=IMGP939[3456789].PEF </Symb>
+<!--
+            <Symb>  SetImGBMixte=IMGP938[6-9].PEF </Symb>
+            <Symb>  SetImStdMixte=IMGP939[0-4].PEF </Symb>
+-->
+            <Symb>  SetImGBSingle=Abbey-IMG_.*.jpg </Symb>
             <Symb>  SetImStdSingle=IMGP939[8-9].PEF </Symb>
 
 
            
-           <Symb>  AeroInGB=-PertTestBundle </Symb>
-           <Symb>  AeroInStd=-All </Symb>
-           <Symb>  AeroOut=ResBundle </Symb>
+           <Symb>  AeroInGB=-BundlePert </Symb>
+           <Symb>  AeroInStd=-RTL-Init </Symb>
+           <Symb>  AeroOut=BundleCorrec </Symb>
 
            <Symb>  Hom=""  </Symb>
            <Symb>  Ext=dat </Symb>
@@ -171,11 +178,11 @@
                            </SectionContraintes>
                        </#WHEN>
                    </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
 <!--
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
-                   <IterationsCompensation> </IterationsCompensation>
 -->
 
 
@@ -195,9 +202,9 @@
                           <#WHEN VTEST=${UseGB}>
                               <ContrCamGenInc>
                                    <PatternApply> .*  </PatternApply>
-                                   <PdsAttachToId>   1e-9     </PdsAttachToId>
-                                   <PdsAttachToLast> 1e-8    </PdsAttachToLast>
-                                   <PdsAttachRGLob>  1    </PdsAttachRGLob>
+                                   <PdsAttachToId>   1e-7     </PdsAttachToId>
+                                   <PdsAttachToLast> 1e-5    </PdsAttachToLast>
+                                   <PdsAttachRGLob>  1e-1    </PdsAttachRGLob>
                               </ContrCamGenInc>
                           </#WHEN>
 
@@ -206,7 +213,7 @@
                     <SectionExport>
                             <ExportPose>
                                 <PatternSel> (.*) </PatternSel>
-                                <!-- <StdNameMMDir> ${AeroOut} </StdNameMMDir> -->
+                                <StdNameMMDir> ${AeroOut} </StdNameMMDir>
                                 <KeyAssoc> NKS-Assoc-Im2Orient@-${AeroOut} </KeyAssoc>
                                 <AddCalib>  true </AddCalib>
                                 <NbVerif>  10 </NbVerif>

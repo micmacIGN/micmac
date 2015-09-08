@@ -174,6 +174,7 @@ eModeGeomMEC CalculGeomMEC(const cParamMICMAC & aParam)
          case eGeomImageModule :
          case eGeomImageCON :
          case eGeomImageOri :
+         case eGeomGen :
          {
               // Quelques cas toleres jusqu'a present mais en fait
               // au comportement pas tres definis
@@ -182,6 +183,7 @@ eModeGeomMEC CalculGeomMEC(const cParamMICMAC & aParam)
                       ||  (aParam.GeomImages()==eGeomImageGrille)
                       ||  (aParam.GeomImages()==eGeomImageRTO)
                       ||  (aParam.GeomImages()==eGeomImageCON)
+                      ||  (aParam.GeomImages()==eGeomGen)
 		)
               {
                  switch (aParam.GeomMNT())
