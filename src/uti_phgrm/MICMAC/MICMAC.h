@@ -994,7 +994,8 @@ typedef enum
    eTagGeomFaisceau,
    eTagGeomFaisZTerMaitre,
    eTagGeomFaisZTerEsclave,
-   eTagGeomModule
+   eTagGeomModule,
+   eTagGeomBundleGen
 } eTagGeometrie;
 
 

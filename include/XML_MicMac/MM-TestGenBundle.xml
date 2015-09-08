@@ -4,6 +4,9 @@ CONVERSION :
 
 mm3d MapCmd mm3d Convert2GenBundle "P=Abbey-IMG_.*.jpg" "C=Ori-RTL-Init/Orientation-\$0.xml" Bundle
 
+mm3d MapCmd mm3d Convert2GenBundle "P=Abbey-IMG_.*.jpg" "C=Ori-RTL-Init/Orientation-\$0.xml" BundlePert PertubAng=1e-2
+
+
 
 
    The simplest MicMac exemple
@@ -21,7 +24,7 @@ MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-TestGenBundle.xml  WorkDir
 
    <Symb> ImPat=Abbey-IMG_.*.jpg </Symb>
    <Symb>  Ori=Bundle     </Symb>
-   <Symb>  DirMEC=MEC-TBundle/ </Symb>
+   <Symb>  DirMEC=MEC-${Ori}/ </Symb>
 
 </DicoLoc>
 

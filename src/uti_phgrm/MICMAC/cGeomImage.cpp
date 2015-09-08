@@ -2774,6 +2774,12 @@ class cGeomImage_cBasic : public cGeomImage
            return true;
        } 
 
+       cGeomImage_cBasic(const cAppliMICMAC & anAppli,cPriseDeVue & aPDV,cBasicGeomCap3D * aBGC3D) :
+              cGeomImage (anAppli,aPDV,eTagGeomBundleGen,aBGC3D->SzBasicCapt3D(),1),
+              mBGC3D (aBGC3D)
+       {
+       }
+
      private :
          cBasicGeomCap3D * mBGC3D;
 };
@@ -2784,8 +2790,13 @@ cGeomImage * cGeomImage::GeomImage_Basic3D
                                     cPriseDeVue &      aPDV
              )
 {
-    ELISE_ASSERT(false,"cGeomImage::GeomImage_Basic3D 2 implement ...!!!");
-    return 0;
+    
+    return new cGeomImage_cBasic
+               (
+                    anAppli,
+                    aPDV,
+                    cBasicGeomCap3D::StdGetFromFile(aPDV.NameGeom(),eTIGB_Unknown)
+               );
 }
 
 
