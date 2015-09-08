@@ -2774,9 +2774,31 @@ class cGeomImage_cBasic : public cGeomImage
            return true;
        } 
 
+       cGeomImage_cBasic(const cAppliMICMAC & anAppli,cPriseDeVue & aPDV,cBasicGeomCap3D * aBGC3D) :
+              cGeomImage (anAppli,aPDV,eTagGeomBundleGen,aBGC3D->SzBasicCapt3D(),1),
+              mBGC3D (aBGC3D)
+       {
+       }
+
      private :
          cBasicGeomCap3D * mBGC3D;
 };
+
+cGeomImage * cGeomImage::GeomImage_Basic3D
+             (
+                                    const cAppliMICMAC & anAppli,
+                                    cPriseDeVue &      aPDV
+             )
+{
+    
+    return new cGeomImage_cBasic
+               (
+                    anAppli,
+                    aPDV,
+                    cBasicGeomCap3D::StdGetFromFile(aPDV.NameGeom(),eTIGB_Unknown)
+               );
+}
+
 
 /*****************************************/
 /*                                       */
@@ -3188,13 +3210,29 @@ bool cGeometrieImageComp::AcceptAndTransform
     std::string aNameTested = aNT;
     if (mGeom.AddNumToNameGeom().Val())
         aNameTested = aNameTested + "@"+ToString(aNum);
-    if (! mAutom)
+    if (mGeom.NGI_StdDir().IsInit())
+    {
+          const cNGI_StdDir  aNGI = mGeom.NGI_StdDir().Val();
+          if (    aNGI.NGI_StdDir_Apply().IsInit()
+               && (! aNGI.NGI_StdDir_Apply().Val()->Match(aNameTested))
+             )
+             return false;
+         std::string aRes =  mAppli.ICNM()->StdNameCamGenOfNames(aNGI.StdDir(),aNameTested);
+         if (aRes !="")
+         {
+             aNameResult= aRes;
+
+             return true;
+         }
+    }
+    else if (! mAutom)
     {
        ELISE_ASSERT(mGeom.FCND_Mode_GeomIm().IsInit()," No FCND_Mode_GeomIm ?? ");
        const cFCND_Mode_GeomIm  &aFCND = mGeom.FCND_Mode_GeomIm().Val();
        if (
                aFCND.FCND_GeomApply().IsInit() 
-           &&  (! *(mAppli.ICNM()->SetIsIn(aFCND.FCND_GeomApply().Val(),aNameTested)))
+           && (! aFCND.FCND_GeomApply().Val()->Match(aNameTested))
+           // &&  (! *(mAppli.ICNM()->SetIsIn(aFCND.FCND_GeomApply().Val(),aNameTested)))
 	  )
 	  return false;
        aNameResult=  mAppli.ICNM()->Assoc1To1(aFCND.FCND_GeomCalc(),aNameTested,true);
@@ -3220,6 +3258,7 @@ bool cGeometrieImageComp::AcceptAndTransform
         aNameResult =  mAutom->LastReplaced();
         return true;
     }
+    return false;
 }
 
 const cTplValGesInit< cModuleImageLoader > &  

@@ -74,6 +74,7 @@ typedef enum
   eGeomImageDH_Px_HD,
   eGeomImage_Epip,
   eGeomImage_EpipolairePure,
+  eGeomGen,
   eNoGeomIm
 } eModeGeomImage;
 void xml_init(eModeGeomImage & aVal,cElXMLTree * aTree);
@@ -1585,11 +1586,11 @@ class cFCND_Mode_GeomIm
         std::string & FCND_GeomCalc();
         const std::string & FCND_GeomCalc()const ;
 
-        cTplValGesInit< std::string > & FCND_GeomApply();
-        const cTplValGesInit< std::string > & FCND_GeomApply()const ;
+        cTplValGesInit< cElRegex_Ptr > & FCND_GeomApply();
+        const cTplValGesInit< cElRegex_Ptr > & FCND_GeomApply()const ;
     private:
         std::string mFCND_GeomCalc;
-        cTplValGesInit< std::string > mFCND_GeomApply;
+        cTplValGesInit< cElRegex_Ptr > mFCND_GeomApply;
 };
 cElXMLTree * ToXMLTree(const cFCND_Mode_GeomIm &);
 
@@ -1598,6 +1599,31 @@ void  BinaryDumpInFile(ELISE_fp &,const cFCND_Mode_GeomIm &);
 void  BinaryUnDumpFromFile(cFCND_Mode_GeomIm &,ELISE_fp &);
 
 std::string  Mangling( cFCND_Mode_GeomIm *);
+
+class cNGI_StdDir
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cNGI_StdDir & anObj,cElXMLTree * aTree);
+
+
+        std::string & StdDir();
+        const std::string & StdDir()const ;
+
+        cTplValGesInit< cElRegex_Ptr > & NGI_StdDir_Apply();
+        const cTplValGesInit< cElRegex_Ptr > & NGI_StdDir_Apply()const ;
+    private:
+        std::string mStdDir;
+        cTplValGesInit< cElRegex_Ptr > mNGI_StdDir_Apply;
+};
+cElXMLTree * ToXMLTree(const cNGI_StdDir &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cNGI_StdDir &);
+
+void  BinaryUnDumpFromFile(cNGI_StdDir &,ELISE_fp &);
+
+std::string  Mangling( cNGI_StdDir *);
 
 class cModuleImageLoader
 {
@@ -1750,11 +1776,20 @@ class cNomsGeometrieImage
         std::string & FCND_GeomCalc();
         const std::string & FCND_GeomCalc()const ;
 
-        cTplValGesInit< std::string > & FCND_GeomApply();
-        const cTplValGesInit< std::string > & FCND_GeomApply()const ;
+        cTplValGesInit< cElRegex_Ptr > & FCND_GeomApply();
+        const cTplValGesInit< cElRegex_Ptr > & FCND_GeomApply()const ;
 
         cTplValGesInit< cFCND_Mode_GeomIm > & FCND_Mode_GeomIm();
         const cTplValGesInit< cFCND_Mode_GeomIm > & FCND_Mode_GeomIm()const ;
+
+        std::string & StdDir();
+        const std::string & StdDir()const ;
+
+        cTplValGesInit< cElRegex_Ptr > & NGI_StdDir_Apply();
+        const cTplValGesInit< cElRegex_Ptr > & NGI_StdDir_Apply()const ;
+
+        cTplValGesInit< cNGI_StdDir > & NGI_StdDir();
+        const cTplValGesInit< cNGI_StdDir > & NGI_StdDir()const ;
 
         cTplValGesInit< bool > & AddNumToNameGeom();
         const cTplValGesInit< bool > & AddNumToNameGeom()const ;
@@ -1779,6 +1814,7 @@ class cNomsGeometrieImage
         cTplValGesInit< std::string > mPatNameGeom;
         cTplValGesInit< std::string > mPatternNameIm1Im2;
         cTplValGesInit< cFCND_Mode_GeomIm > mFCND_Mode_GeomIm;
+        cTplValGesInit< cNGI_StdDir > mNGI_StdDir;
         cTplValGesInit< bool > mAddNumToNameGeom;
         cTplValGesInit< cModuleImageLoader > mModuleImageLoader;
         std::list< int > mGenereOriDeZoom;
