@@ -107,10 +107,15 @@ void  cAppliApero::InitGenPoses(const cCamGenInc& aCGI)
 
     for (std::list<std::string>::const_iterator itN=aLName.begin() ; itN!=aLName.end() ; itN++)
     {
-         cPosePolynGenCam * aPPGC = new cPosePolynGenCam(*this,*itN,aCGI.Orient());
-         mVecPolynPose.push_back(aPPGC);
-         mVecGenPose.push_back(aPPGC);
-         mDicoGenPose[*itN] = aPPGC;
+
+         std::string aNameOri = DC() + "Ori" + aCGI.Orient()  +"/Orientation-" + *itN + ".xml";
+         if ((!ELISE_fp::exist_file(aNameOri)) || (!mParam.StenCamSupresGBCam().Val()))
+         {
+             cPosePolynGenCam * aPPGC = new cPosePolynGenCam(*this,*itN,aCGI.Orient());
+             mVecPolynPose.push_back(aPPGC);
+             mVecGenPose.push_back(aPPGC);
+             mDicoGenPose[*itN] = aPPGC;
+         }
 
     }
 
@@ -364,6 +369,35 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
                 aNewL.push_back(ICNM()->Assoc1To1(aKeyTr,*itS,true));
            }
            aLName = aNewL;
+        }
+
+
+        // On regarde si il existe un nom bundle gen
+        {
+             std::list<std::string> aNewL;
+	     for 
+	     (
+	        std::list<std::string>::const_iterator itS=aLName.begin();
+	        itS != aLName.end();
+	        itS++
+	     )
+             {
+                 bool ExistFileGB = false;
+                 for (std::list<cCamGenInc>::const_iterator itGC=mParam.CamGenInc().begin();itGC!=mParam.CamGenInc().end();itGC++)
+                 {
+                     std::string aNameOri = DC() + "Ori" + itGC->Orient()  +"/GB-Orientation-" + *itS + ".xml";
+
+                     
+                     if (ELISE_fp::exist_file(aNameOri))
+                        ExistFileGB = true;
+
+                 }
+                 if ((!ExistFileGB) || ( !mParam.GBCamSupresStenCam().Val()))
+                 {
+                      aNewL.push_back(*itS);
+                 }
+             }
+            aLName = aNewL;
         }
 
         if (isPrecComp)

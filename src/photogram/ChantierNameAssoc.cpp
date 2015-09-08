@@ -575,8 +575,10 @@ int CalcNbProcSys()
 #endif
 }
 
+extern int TheNbProcCom;
 int NbProcSys()
 {
+    if (TheNbProcCom>0) return TheNbProcCom;
     static int aRes = CalcNbProcSys();
     if ( MMUserEnv().NbMaxProc().IsInit() ) ElSetMin( aRes, MMUserEnv().NbMaxProc().Val() );
 
