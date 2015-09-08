@@ -787,7 +787,7 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bo
       }
       if (ExApero)
       {
-         System(aCom);
+         System(aCom,false,true);
       }
 
       if (SupressImInNoMasq)
@@ -1003,7 +1003,7 @@ void cAppliWithSetImage::DoPyram()
     std::string aCom =    MMBinFile(MM3DStr) + " MMPyram " + QUOTE(mEASF.mFullName) + " " + mOri;
     if (mShow)
        std::cout << aCom << "\n";
-    System(aCom);
+    System(aCom,false,true);
 }
 
 bool cAppliWithSetImage::ImIsKnown(const std::string & aName) const
@@ -1141,7 +1141,7 @@ cAppliClipChantier::cAppliClipChantier(int argc,char ** argv) :
                                      + " Out=" + aNewIm;
 
                 std::cout << aCom << "\n";
-                System(aCom);
+                System(aCom,false,true);
             }
        }
 
@@ -1706,7 +1706,7 @@ void cAppliMMByPair::DoCorrelAndBasculeStd()
 
                  if (mShow)
                     std::cout << aComCor << "\n";
-                 System(aComCor);
+                 System(aComCor,false,true);
              }
 
    // ====   Bascule =========================
@@ -1735,7 +1735,7 @@ void cAppliMMByPair::DoCorrelAndBasculeStd()
 
                   if (mShow)
                      std::cout  << aComBasc << "\n";
-                 System(aComBasc);
+                 System(aComBasc,false,true);
              }
 
         }
@@ -1757,7 +1757,7 @@ void cAppliMMByPair::DoBascule()
                             ;
         if (mShow)
            std::cout  << aCom << "\n";
-        System(aCom);
+        System(aCom,false,true);
    }
 }
 */
@@ -1769,7 +1769,7 @@ void cAppliMMByPair::DoFusionGround()
                             +   "  WorkDirPFM=" + mEASF.mDir + mDirBasc + "/ ";
          if (mShow)
             std::cout  << aCom << "\n";
-         System(aCom);
+         System(aCom,false,true);
 }
 
 void cAppliMMByPair::DoFusionEpip()
@@ -1918,7 +1918,7 @@ void cAppliMMByPair::DoMDTRIE(bool ForTieP)
 // std::cout << aCom << "\n";
             aLCOM.push_back(aCom);
 
-             // System(aCom);
+             // System(aCom,false,true);
    }
    cEl_GPAO::DoComInParal(aLCOM);
 }
@@ -1956,7 +1956,7 @@ void cAppliMMByPair::DoMDTGround()
               ;
    }
 
-   System(aCom);
+   System(aCom,false,true);
 
    std::string aStrN = mEASF.mDir+mDirBasc+"/NuageImProf_LeChantier_Etape_1.xml";
    cXML_ParamNuage3DMaille aNuage = StdGetFromSI(aStrN,XML_ParamNuage3DMaille);
@@ -2116,7 +2116,7 @@ int DoAllDev_main(int argc,char ** argv)
 void DoAllDev(const std::string & aPat)
 {
      std::string aCom =    MMBinFile(MM3DStr) + " AllDev " + QUOTE(aPat);
-     System(aCom);
+     System(aCom,false,true);
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

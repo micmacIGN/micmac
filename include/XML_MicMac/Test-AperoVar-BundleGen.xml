@@ -38,8 +38,8 @@ mm3d MapCmd mm3d Convert2GenBundle "P=IMGP.*.PEF" "C=Ori-All/Orientation-\$0.xml
 
 
            
-           <Symb>  AeroInGB=-BundlePert </Symb>
-           <Symb>  AeroInStd=-BundlePert </Symb>
+           <Symb>  AeroInGB=-Bundle </Symb>
+           <Symb>  AeroInStd=-Bundle </Symb>
            <Symb>  AeroOut=BundleCorrec </Symb>
 
            <Symb>  Hom=""  </Symb>

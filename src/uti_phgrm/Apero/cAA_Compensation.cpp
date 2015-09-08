@@ -511,7 +511,7 @@ void cAppliApero::MAJContrainteCamera(const cContraintesCamerasInc & aC)
        {
           First = false;
           std::cout << "WARN No Math for ContraintesCamerasInc " << aC.PatternNameApply().Val() << "\n";
-          GetCharOnBrkp();
+          // GetCharOnBrkp();
        }
    }
 }

@@ -1460,7 +1460,10 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
           aXmlE.NbPtsMul() = aNbMult;
           mAppli.CurXmlE().OneIm().push_back(aXmlE);
 
+          bool aIsCS = (mVPoses[0]->GenPose()->DownCastPoseCamSVP() !=0);
+
           mAppli.COUT() << "RES:["  << mVPoses[0]->NameCam() << "]"
+                << "[" << (aIsCS?"C":"g") <<"]"
                 <<  " ER2 " << sqrt(aSEr2)
                 << " Nn " <<  aPercOk
                 << " Of " << aNbP

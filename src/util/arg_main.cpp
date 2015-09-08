@@ -105,8 +105,9 @@ void OpenFileDebug(const std::string & aName)
 
 std::string TheStringMemoArgOptGlob = "";
 
-static const int TheNbKeyACM=4;
-const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle"};
+static const int TheNbKeyACM=5;
+int TheNbProcCom = -1;
+const char *  TheKeyACM[TheNbKeyACM] ={"ExitOnBrkp","ExitOnNan","MajickFile","EnBoucle","NbMaxProc"};
 
 void AnalyseContextCom(int argc,char ** argv)
 {
@@ -121,6 +122,9 @@ void AnalyseContextCom(int argc,char ** argv)
        {
            bool ForAction = false;
            std::string ArgK = argv[aK]+1;
+
+           std::string aBeforEq,aAfterEq;
+           SplitIn2ArroundCar(ArgK,'=', aBeforEq,aAfterEq,true);
            if (ArgK ==TheKeyACM[0])
            {
                TheExitOnBrkp = true;
@@ -141,6 +145,15 @@ void AnalyseContextCom(int argc,char ** argv)
                TheNbIterProcess=100000000;
                ForAction = true;
            }
+           else if (aBeforEq==TheKeyACM[4])
+           {
+               bool Ok=FromString(TheNbProcCom,aAfterEq);
+               ELISE_ASSERT(Ok,"Cannot read value in @NbProc");
+               ForAction = true;
+           }
+/*
+*/
+
 
 
            if (ForAction)
