@@ -1495,6 +1495,8 @@ class cBasicGeomCap3D
        Pt2dr Mil() const;
        double GlobResol() const;
        Pt3dr  PMoyOfCenter() const;
+       virtual bool  HasRoughCapteur2Terrain() const ;
+       virtual   Pt2dr OrGlbImaM2C(const Pt2dr &) const;
 };
 
 
@@ -1508,7 +1510,6 @@ class cCapture3D : public cBasicGeomCap3D
    public :
       // virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const =0;
 
-      virtual bool  HasRoughCapteur2Terrain() const = 0;
       virtual bool  HasPreciseCapteur2Terrain() const = 0;
       virtual Pt3dr PreciseCapteur2Terrain   (const Pt2dr & aP) const =0;
 

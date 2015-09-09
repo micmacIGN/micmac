@@ -86,7 +86,7 @@ void cOneAppuisFlottant::AddLiaison
           bool  aModeDr
      )
 {
-    cPoseCam * aPose = mAppli.PoseFromName(aNameIm);
+    cGenPoseCam * aPose = mAppli.PoseGenFromName(aNameIm);
 
     for (int aK=0; aK<int(mCams.size()) ; aK++)
     {

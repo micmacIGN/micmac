@@ -103,21 +103,23 @@ void cAppliApero::InitGenPoses()
 
 void  cAppliApero::InitGenPoses(const cCamGenInc& aCGI)
 {
-    std::list<std::string> aLName  = mICNM->StdGetListOfFile(aCGI.PatterName()->NameExpr(),1,aCGI.ErrorWhenEmpytPat().Val());
+     std::list<std::string> aLName  = mICNM->StdGetListOfFile(aCGI.PatterName()->NameExpr(),1,aCGI.ErrorWhenEmpytPat().Val());
+
 
     for (std::list<std::string>::const_iterator itN=aLName.begin() ; itN!=aLName.end() ; itN++)
     {
 
          // std::string aNameOri = DC() + "Ori" + aCGI.Orient()  +"/Orientation-" + *itN + ".xml";
          std::string aNameOri = DC() + StdNameCSOrient(aCGI.Orient(),*itN ,false);
+
          if ((!ELISE_fp::exist_file(aNameOri)) || (!mParam.StenCamSupresGBCam().Val()))
          {
              if (! ELISE_fp::exist_file(StdNameGBOrient(aCGI.Orient(),*itN ,false)))
              {
                  if (aCGI.ErrorWhenNoFileOrient().Val())
                  {
-                      // std::cout << 
-                      ELISE_ASSERT(false,"No file for required orient");
+                      std::cout <<  "For ori=" << aCGI.Orient() << " Ima=" << *itN << "\n";
+                      ELISE_ASSERT(false,"No file for required GB orient");
                  }
              }
              else

@@ -432,6 +432,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       }
 
 
+      bool hasNewGenImage =false;
       if (! mModePB)
       {
           // MPD : Ajout le 22/05/2015; car peut creer pb  si l'utilisateur a purge la directory
@@ -439,32 +440,48 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
           {
               const std::string & aNameIm = (*mSetIm)[aKIm];
+
+/*
               std::string aNameOri = mICNM->Assoc1To1(aKeyOri,aNameIm,true);
 
               //ToDo: Faire evoluer ce code pour pouvoir gerer d'autres type d'orientation (Grille et RTO).
               // utilisation d'une ElCamera (avec cCameraModuleOrientation pour le cas des ModuleOrientation)
 
               CamStenope *  aCS = CamOrientGenFromFile(aNameOri,mICNM);
+*/
+              cBasicGeomCap3D * aCG =  mICNM->StdCamGenOfNames(mOri,aNameIm);
 
-              if (aCS->AltisSolIsDef())
+              if (aCG->DownCastCS() == 0)
               {
-                  aSomZM += aCS->GetAltiSol();
-                  aSomResol +=  aCS->ResolutionSol();
+                 hasNewGenImage = true;
+              }
+
+              if (aCG->HasRoughCapteur2Terrain())
+              {
+                  aSomZM += aCG->PMoyOfCenter().z;
+                  aSomResol +=  aCG->GlobResol();
                   aNbZM++;
               }
 
               Pt2di aCorns[4];
-              Box2di aBx(Pt2di(0,0), aCS->Sz());
+              Box2di aBx(Pt2di(0,0), aCG->SzBasicCapt3D());
               aBx.Corners(aCorns);
               Pt2dr aP0(0,0);
               for (int aKC=0 ; aKC< 4 ; aKC++)
-                  aP0.SetSup(aCS->OrGlbImaM2C(Pt2dr(aCorns[aKC])));
+              {
+                  aP0.SetSup(aCG->OrGlbImaM2C(Pt2dr(aCorns[aKC])));
+              }
 
 
               mSzGlob = mSzGlob + aP0;
           }
           mSzGlob = mSzGlob / double(mNbIm);
       }
+
+if(0)
+{
+   for (int aK=0 ; aK<10 ; aK++) std::cout << "HASNEWIMAGE " << hasNewGenImage << "\n";
+}
 
       bool ZMoyInit = EAMIsInit(&mZMoy)  && (mType != eGeomImage);
       bool IncMaxInit = EAMIsInit(&mIncidMax)  && (mType != eGeomImage);
@@ -587,7 +604,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       std::string aNameGeom = (mImMaster=="") ?
                   "eGeomMNTEuclid" :
-                  (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : (mModePB ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
+                  (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : ((mModePB| hasNewGenImage) ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
 
       mCom =              MM3dBinFile_quotes("MICMAC")
               +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )

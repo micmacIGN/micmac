@@ -1452,6 +1452,16 @@ Pt2dr cBasicGeomCap3D::Mil() const
     return Pt2dr(SzBasicCapt3D() ) / 2.0;
 }
 
+bool   cBasicGeomCap3D::HasRoughCapteur2Terrain() const
+{
+    return true;
+}
+
+Pt2dr cBasicGeomCap3D::OrGlbImaM2C(const Pt2dr & aP) const
+{
+   return aP;
+}
+
 double  cBasicGeomCap3D::GlobResol() const
 {
     return ResolSolOfPt(PMoyOfCenter());

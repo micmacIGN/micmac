@@ -9,6 +9,7 @@
        <DicoLoc>
            <Symb>  AeroIn=XXXXXX </Symb>
            <Symb>  AeroOut=XXXXXX </Symb>
+           <Symb>  PatterIm0=XXXXXX </Symb>
            <Symb>  SetIm=XXXXXX </Symb>
 
            <Symb>  LibParamInterne=eAllParamFiges  </Symb>
@@ -80,6 +81,8 @@
            <eSymb> DR1Free= SupEq ${DRMax} 1 </eSymb>
            <eSymb> DR2Free= SupEq ${DRMax} 2 </eSymb>
            <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
+
+            <Symb> AcceptGB=true </Symb>
 
 
        </DicoLoc>
@@ -189,12 +192,14 @@
              </#WHEN>
 
 
-             <CamGenInc>
-                    <PatterName>  ${SetImGBMixte} </PatterName>
-                    <Orient>      ${AeroInGB}  </Orient>
+             <#WHEN  VTEST=${AcceptGB}>
+                 <CamGenInc>
+                    <PatterName>   ${PatterIm0}  </PatterName>
+                    <Orient>      ${AeroIn}  </Orient>
                     <ErrorWhenEmpytPat> false </ErrorWhenEmpytPat>
                     <ErrorWhenNoFileOrient> false </ErrorWhenNoFileOrient>
-             </CamGenInc>
+                 </CamGenInc>
+             </#WHEN>
 
         </SectionInconnues>
 
@@ -424,6 +429,15 @@
                                    </PondAlti>
                               </ObsCentrePDV>
                           </#WHEN>
+                          <#WHEN VTEST=${AcceptGB}>
+                              <ContrCamGenInc>
+                                   <PatternApply> .*  </PatternApply>
+                                   <PdsAttachToId>   1e-8     </PdsAttachToId>
+                                   <PdsAttachToLast> 1e-6    </PdsAttachToLast>
+                                   <PdsAttachRGLob>  1e-2    </PdsAttachRGLob>
+                              </ContrCamGenInc>
+                          </#WHEN>
+
 
 		    </SectionObservations>
 

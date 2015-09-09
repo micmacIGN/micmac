@@ -164,6 +164,7 @@ int Campari_main(int argc,char ** argv)
                            +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
                            +  std::string(" DirectoryChantier=") + aDir + " "
                            +  std::string(" +SetIm=") + QUOTE(aSetIm) + " "
+                           +  std::string(" +PatterIm0=") + QUOTE(aPat) + " "
                            +  std::string(" +AeroIn=-") + AeroIn + " "
                            +  std::string(" +AeroOut=-") + AeroOut + " "
                           ;
