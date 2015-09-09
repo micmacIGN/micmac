@@ -1527,7 +1527,7 @@ CamStenope * cBasicGeomCap3D::DownCastCS() { return 0; }
 cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName);
 
 
-cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int aIntType)
+cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int & aIntType)
 {
     ELISE_ASSERT((aIntType>=0) && (aIntType<eTIGB_NbVals),"cBasicGeomCap3D::StdGetFromFile, Not an  eTypeImporGenBundle");
 
@@ -1535,6 +1535,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
     static cElRegex  ThePattGBMM(".*Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
 
+    static cElRegex  ThePattSatelit(".*Ori-.*/UnCorMM-(eTIGB_[a-z,A-Z,0-9]*)-.*xml",10);  // Its a stenope Camera created using MicMac
 
    
     if ((aType==eTIGB_MMSten) || ((aType==eTIGB_Unknown) && ThePattMMCS.Match(aName)))
@@ -1544,6 +1545,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 
         if (aTreeBase.GetOneOrZero("OrientationConique"))
         {
+             if (aType==eTIGB_Unknown)  aIntType = eTIGB_MMSten;
              return BasicCamOrientGenFromFile(aName);
         }
     }
@@ -1558,6 +1560,24 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
         return cPolynomial_BGC3M2DNewFromFile(aName);
     }
 
+    if (ThePattSatelit.Match(aName))
+    {
+         std::string aNameType = ThePattSatelit.KIemeExprPar(1);
+         eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
+         aIntType =  aTrueType;
+
+         switch (aTrueType)
+         {
+                case eTIGB_MMDGlobe : 
+                case eTIGB_MMDimap2 :
+                      return  CamRPCOrientGenFromFile(aName,aTrueType);
+
+                default : ;
+
+         }
+           
+    }
+
     std::cout << "For orientation file=" << aName << "\n";
     ELISE_ASSERT(false,"cBasicGeomCap3D::StdGetFromFile"); 
 
@@ -1567,7 +1587,8 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 cBasicGeomCap3D * cInterfChantierNameManipulateur::StdCamGenOfNames(const std::string & anOri,const std::string & aName)
 {
    std::string aRes = StdNameCamGenOfNames(anOri,aName);
-   if (aRes!= "") return cBasicGeomCap3D::StdGetFromFile(aRes,eTIGB_Unknown);
+   int aType = eTIGB_Unknown;
+   if (aRes!= "") return cBasicGeomCap3D::StdGetFromFile(aRes,aType);
 
     std::cout << "For Ori=" << anOri << " , and Name=" << aName << "\n";
     ELISE_ASSERT(false,"cannot get cInterfChantierNameManipulateur::StdCamGenOfNames");

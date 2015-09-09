@@ -2791,11 +2791,12 @@ cGeomImage * cGeomImage::GeomImage_Basic3D
              )
 {
     
+    int aType = eTIGB_Unknown;
     return new cGeomImage_cBasic
                (
                     anAppli,
                     aPDV,
-                    cBasicGeomCap3D::StdGetFromFile(aPDV.NameGeom(),eTIGB_Unknown)
+                    cBasicGeomCap3D::StdGetFromFile(aPDV.NameGeom(),aType)
                );
 }
 

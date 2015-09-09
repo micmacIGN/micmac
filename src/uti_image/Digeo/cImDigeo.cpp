@@ -146,6 +146,7 @@ Im2DGen cInterfImageAbs::getWindow( Pt2di P0, const Pt2di &windowSize, int asked
 {
 	#ifdef __DEBUG_DIGEO
 		Pt2di _p1 = P0+windowSize;
+DoNothingButRemoveWarningUnused(_p1);
 		ELISE_DEBUG_ERROR( P0.x<0, "cInterfImageAbs::getWindow", "P0.x = " << P0.x << " <0" );
 		ELISE_DEBUG_ERROR( _p1.x>sz().x, "cInterfImageAbs::getWindow", "_p1.x = " << _p1.x << " > i_src.sz().x = " << sz() );
 		ELISE_DEBUG_ERROR( P0.y<0, "cInterfImageAbs::getWindow", "P0.y = " << P0.y << " <0" );
