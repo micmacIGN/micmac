@@ -1535,7 +1535,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
     static cElRegex  ThePattGBMM(".*Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
 
-    static cElRegex  ThePattSatelit(".*Ori-.*/UnCorMM-(eTIGB_[a-z,A-Z,0-9]*)-.*xml",10);  // Its a stenope Camera created using MicMac
+    static cElRegex  ThePattSatelit(".*Ori-.*/UnCorExtern-Orientation-(eTIGB_[a-z,A-Z,0-9]*)-.*xml",10);  // Its a stenope Camera created using MicMac
 
    
     if ((aType==eTIGB_MMSten) || ((aType==eTIGB_Unknown) && ThePattMMCS.Match(aName)))
@@ -1563,7 +1563,10 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     if (ThePattSatelit.Match(aName))
     {
          std::string aNameType = ThePattSatelit.KIemeExprPar(1);
-         eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
+    
+	 std::cout << "aNameType " << aNameType << "\n";    
+	 eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
+	 std::cout << "aTrueType " << aTrueType << "\n";    
          aIntType =  aTrueType;
 
          switch (aTrueType)
