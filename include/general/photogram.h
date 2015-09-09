@@ -1471,7 +1471,7 @@ class cBasicGeomCap3D
 // to accelerate it is note centered en reuse the value PIm
       virtual void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);
 
-      static cBasicGeomCap3D * StdGetFromFile(const std::string &,int aType); // !!! aType in fact is eTypeImporGenBundle 
+      static cBasicGeomCap3D * StdGetFromFile(const std::string &,int & aType); // !!! aType in fact is eTypeImporGenBundle 
 
       // Down cast , dirty but usefull ;-)
       virtual CamStenope * DownCastCS() ;

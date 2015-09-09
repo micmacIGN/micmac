@@ -1038,7 +1038,8 @@ cPolynomial_BGC3M2D * cPolynomial_BGC3M2D::NewFromFile(const std::string & aName
 {
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
 
-    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),eTIGB_Unknown);
+    int aType = eTIGB_Unknown;
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),aType);
 
 
     cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot());
