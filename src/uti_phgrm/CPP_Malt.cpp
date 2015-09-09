@@ -339,7 +339,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 
 
-      std::string mFullModeOri;
+      std::string mFullModeOri = "eGeomImageOri";
       mModePB = EAMIsInit(&mModeOri);
       if (mModePB)
       {
@@ -478,9 +478,13 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mSzGlob = mSzGlob / double(mNbIm);
       }
 
+      if (hasNewGenImage)
+         mFullModeOri= "eGeomGen";
+
 if(0)
 {
    for (int aK=0 ; aK<10 ; aK++) std::cout << "HASNEWIMAGE " << hasNewGenImage << "\n";
+   getchar();
 }
 
       bool ZMoyInit = EAMIsInit(&mZMoy)  && (mType != eGeomImage);
@@ -685,10 +689,15 @@ if(0)
                   + std::string(" ");
       }
 
-      if (EAMIsInit(&mModeOri))
-          mCom =  mCom + " +ModeOriIm=" + mFullModeOri
+      mCom =  mCom + " +ModeOriIm=" + mFullModeOri + " ";
+      if (hasNewGenImage)
+      {
+         mCom =  mCom + "  +UseGenBundle=true ";
+      }
+      if (EAMIsInit(&mModeOri) || hasNewGenImage)
+          mCom =  mCom 
                   + std::string(" +Conik=false")
-                  +  std::string(" +ZIncIsProp=false")
+                  +  std::string(" +ZIncIsProp=false ")
 
                   ;
 
