@@ -45,10 +45,34 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../../include/XML_GEN/SuperposImage.h"
 
 
-class CameraRPC: public cBasicGeomCap3D
+class cComp3DBasic : public cBasicGeomCap3D
+{
+    public:
+	cComp3DBasic(cBasicGeomCap3D * aCamBase);
+
+	virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const ;
+	virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const ;
+	virtual Pt2di    SzBasicCapt3D() const ;
+
+	virtual double ResolSolOfPt(const Pt3dr &) const ;
+	virtual bool  CaptHasData(const Pt2dr &) const ;
+	virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
+	virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const ;
+
+	virtual bool     HasOpticalCenterOfPixel() const;
+	virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ;
+
+        virtual Pt3dr Origin2TargetCS(const Pt3dr & aP);
+	virtual Pt3dr Target2OriginCS(const Pt3dr & aP);
+
+    protected: 
+	cBasicGeomCap3D * mCamBase;
+};
+
+
+class CameraRPC : public cBasicGeomCap3D
 {
 	public:
-		//CameraRPC();
 		CameraRPC(const std::string &aNameFile, 
 			  const eTypeImporGenBundle &aType, 
 			  const std::string &aCartCS, 
@@ -95,6 +119,7 @@ class CameraRPC: public cBasicGeomCap3D
 		double GetAltiSol() const;
 		bool AltisSolIsDef() const;
 
+
                 const RPC & GetRPC() const;
 		const std::string & GetImName() const;
 
@@ -116,6 +141,9 @@ class CameraRPC: public cBasicGeomCap3D
 
 		ElSeg3D F2toRayonLPH(Pt3dr &aP0,Pt3dr & aP1) const;
                 
+                //Pt3dr Origin2TargetCS(const Pt3dr & aP);
+                //Pt3dr Target2OriginCS(const Pt3dr & aP);
+		
 		void FindUTMCS();
 
                 void AssertRPCDirInit() const;
