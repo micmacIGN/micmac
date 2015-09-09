@@ -187,6 +187,15 @@
                      </ModifInc>
                 </PointFlottantInc>
              </#WHEN>
+
+
+             <CamGenInc>
+                    <PatterName>  ${SetImGBMixte} </PatterName>
+                    <Orient>      ${AeroInGB}  </Orient>
+                    <ErrorWhenEmpytPat> false </ErrorWhenEmpytPat>
+                    <ErrorWhenNoFileOrient> false </ErrorWhenNoFileOrient>
+             </CamGenInc>
+
         </SectionInconnues>
 
 

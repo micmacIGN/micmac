@@ -106,6 +106,7 @@ int Campari_main(int argc,char ** argv)
     int aDegAdd = 0;
     int aDegFree = 0;
     int aDrMax = 0;
+    bool AcceptGB=true;
 
     ElInitArgMain
     (
@@ -132,6 +133,7 @@ int Campari_main(int argc,char ** argv)
                     << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters generiqs")
                     << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
  		    << EAM(PoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
+                    << EAM(AcceptGB,"AcceptGB",true,"Accepte new Generik Bundle image, Def=true, set false for perfect backward compatibility")
 
     );
 
