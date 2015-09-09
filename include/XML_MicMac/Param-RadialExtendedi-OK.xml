@@ -1,0 +1,66 @@
+
+                   <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR1      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR1 </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR2      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR2 </Messages>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberte_DR3      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  DR3 </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLiberteFocale_1      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>  LIB  FOCALE </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLib_PP_CD_Lies      </Val>
+                              <TolContrainte>  1e-2 </TolContrainte>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>   PP CD  Lies </Messages>
+                    </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+                    <IterationsCompensation>
+                       <SectionContraintes>
+                          <ContraintesCamerasInc>
+                              <Val> eLib_PP_CD_11      </Val>
+                          </ContraintesCamerasInc>
+                       </SectionContraintes>
+                       <Messages>   PP CD  </Messages>
+                    </IterationsCompensation>
+
+
+                    <IterationsCompensation> </IterationsCompensation>
+
