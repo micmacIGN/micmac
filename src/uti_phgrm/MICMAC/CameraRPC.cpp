@@ -39,6 +39,72 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "CameraRPC.h"
 
+
+/***********************************************************************/
+/*                           cComp3DBasic                              */
+/***********************************************************************/
+
+cComp3DBasic::cComp3DBasic(cBasicGeomCap3D * aCamBase) : 
+         mCamBase(aCamBase)
+{}
+
+Pt3dr cComp3DBasic::Origin2TargetCS(const Pt3dr & aP)
+{
+    return Pt3dr(0,0,0);
+}
+
+Pt3dr cComp3DBasic::Target2OriginCS(const Pt3dr & aP)
+{
+    return Pt3dr(0,0,0);
+}
+
+ElSeg3D  cComp3DBasic::Capteur2RayTer(const Pt2dr & aP) const
+{
+    return mCamBase->Capteur2RayTer(aP);
+}
+
+Pt2dr  cComp3DBasic::Ter2Capteur(const Pt3dr & aP) const
+{
+    return mCamBase->Ter2Capteur(aP);
+}
+
+Pt3dr  cComp3DBasic::RoughCapteur2Terrain(const Pt2dr & aP) const
+{
+    return mCamBase->RoughCapteur2Terrain(aP);
+}
+
+Pt2di  cComp3DBasic::SzBasicCapt3D() const
+{
+    return mCamBase->SzBasicCapt3D();
+}
+
+double cComp3DBasic::ResolSolOfPt(const Pt3dr & aP) const
+{
+    return mCamBase->ResolSolOfPt(aP);
+}
+
+bool cComp3DBasic::CaptHasData(const Pt2dr &aP) const
+{
+    return  mCamBase->CaptHasData(aP);
+}
+
+bool cComp3DBasic::PIsVisibleInImage(const Pt3dr & aP) const
+{
+    return mCamBase->PIsVisibleInImage(aP);
+}
+
+bool cComp3DBasic::HasOpticalCenterOfPixel() const
+{
+    return mCamBase->HasOpticalCenterOfPixel();
+}
+
+Pt3dr cComp3DBasic::OpticalCenterOfPixel(const Pt2dr & aP) const
+{
+    return mCamBase->OpticalCenterOfPixel(aP);
+}
+
+
+
 /***********************************************************************/
 /*                           CameraRPC                                 */
 /***********************************************************************/
@@ -105,7 +171,8 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 		     const eTypeImporGenBundle &aType,
 		     const std::string aCartoCS) : 
 	mProfondeurIsDef(false),
-	mAltisSolIsDef(false),
+	mAltisSolIsDef(true),
+	mAltiSol(0),
 	mOptCentersIsDef(false),
 	mOpticalCenters(new std::vector<Pt3dr>()),
 	mGridSz(Pt2di(10,10)),
@@ -145,8 +212,8 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 
 
     //if cartographic coordinate system was not defined
-    if(mCS == "")
-        FindUTMCS();
+    //if(mCS == "")
+    //    FindUTMCS();
 
     mRPC->info();
 }
@@ -208,13 +275,14 @@ ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
 {
     AssertRPCDirInit(); 
 
-    double aZ = mRPC->first_height+1;//beginning of the height validity zone
+    //beginning of the height validity zone
+    double aZ = mRPC->first_height+1;
     if(AltisSolIsDef())
         aZ = mAltiSol;
     
-
+    //middle of the height validity zones
     Pt3dr aP1RayL3(aP.x, aP.y, 
-		   aZ+double(mRPC->last_height - mRPC->first_height)/2),//middle of the height validity zones 
+		   aZ+double(mRPC->last_height - mRPC->first_height)/2),
 	  aP2RayL3(aP.x, aP.y, aZ);
 
     return F2toRayonLPH(aP1RayL3, aP2RayL3);
@@ -238,9 +306,9 @@ Pt3dr CameraRPC::RoughCapteur2Terrain(const Pt2dr & aP) const
     
     if (AltisSolIsDef())
 	return(ImEtZ2Terrain(aP, GetAltiSol()));
-    
+
     ELISE_ASSERT(false,"Nor Alti, nor prof : Camera has no \"RoughCapteur2Terrain\"  functionality");
-    return(Pt3dr(0,0,0));        
+    return Pt3dr(0,0,0);
 }
 
 Pt3dr CameraRPC::ImEtProf2Terrain(const Pt2dr & aP,double aProf) const

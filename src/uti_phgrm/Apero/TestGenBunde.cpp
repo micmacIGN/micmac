@@ -581,7 +581,7 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     }
     else
     {
-         mNameOutInit =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorExternOrient@-"+mDest,"-"+ eToString(mType) + NameWithoutDir(mNameOrient),true);
+         mNameOutInit =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorExternOrient@-"+mDest, eToString(mType) + "-" + NameWithoutDir(mNameOrient),true);
          ELISE_fp::CpFile(mNameOrient,mNameOutInit);
     }
     cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol);
