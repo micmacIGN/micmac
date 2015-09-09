@@ -1884,20 +1884,36 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
     }
 
 
-    std::string cInterfChantierNameManipulateur::StdKeyOrient(const tKey & aKeyOri)
-    {
-        if (AssocHasKey(aKeyOri)) return aKeyOri;
+std::string cInterfChantierNameManipulateur::StdKeyOrient(const tKey & aKeyOri)
+{
+   if (AssocHasKey(aKeyOri)) return aKeyOri;
 
-                std::string aKey = aKeyOri;
-                if (aKey.c_str()[0] != '-') aKey = "-" + aKey ;
-        return "NKS-Assoc-Im2Orient@" + aKey;
-    }
+   std::string aKey = aKeyOri;
+   if (aKey.c_str()[0] != '-') aKey = "-" + aKey ;
+   return "NKS-Assoc-Im2Orient@" + aKey;
+}
 
-    std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri,const std::string & aNameIm)
-    {
+
+std::string StdNameGBOrient(const std::string & anOri,const std::string & aName,bool AddMinus)
+{
+   return "Ori" + std::string(AddMinus?"-":"")+ anOri +"/GB-Orientation-" + aName  + ".xml";
+}
+std::string StdNameCSOrient(const std::string & anOri,const std::string & aName,bool AddMinus)
+{
+   return "Ori" + std::string(AddMinus?"-":"")+ anOri +"/Orientation-" + aName  + ".xml";
+}
+
+
+
+
+
+
+
+std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri,const std::string & aNameIm)
+{
            std::string aKey = StdKeyOrient(aKeyOri);
            return Assoc1To1(aKey,aNameIm,true);
-    }
+}
  
 
 

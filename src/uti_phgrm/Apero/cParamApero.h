@@ -1739,18 +1739,22 @@ class cCamGenInc
         friend void xml_init(cCamGenInc & anObj,cElXMLTree * aTree);
 
 
-        std::string & PatterName();
-        const std::string & PatterName()const ;
+        cElRegex_Ptr & PatterName();
+        const cElRegex_Ptr & PatterName()const ;
 
         std::string & Orient();
         const std::string & Orient()const ;
 
         cTplValGesInit< bool > & ErrorWhenEmpytPat();
         const cTplValGesInit< bool > & ErrorWhenEmpytPat()const ;
+
+        cTplValGesInit< bool > & ErrorWhenNoFileOrient();
+        const cTplValGesInit< bool > & ErrorWhenNoFileOrient()const ;
     private:
-        std::string mPatterName;
+        cElRegex_Ptr mPatterName;
         std::string mOrient;
         cTplValGesInit< bool > mErrorWhenEmpytPat;
+        cTplValGesInit< bool > mErrorWhenNoFileOrient;
 };
 cElXMLTree * ToXMLTree(const cCamGenInc &);
 

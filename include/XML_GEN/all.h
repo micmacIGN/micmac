@@ -198,6 +198,10 @@ class cResulMSO
 
 };
 
+std::string StdNameGBOrient(const std::string & anOri,const std::string & aNameIm,bool AddMinus);
+std::string StdNameCSOrient(const std::string & anOri,const std::string & aNameIm,bool AddMinus);
+
+
 class cInterfChantierNameManipulateur
 {
      public :

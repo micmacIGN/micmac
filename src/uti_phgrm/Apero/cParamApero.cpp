@@ -5738,12 +5738,12 @@ void xml_init(cBlockCamera & anObj,cElXMLTree * aTree)
 std::string  Mangling( cBlockCamera *) {return "6BC54E2177D48BFEFE3F";};
 
 
-std::string & cCamGenInc::PatterName()
+cElRegex_Ptr & cCamGenInc::PatterName()
 {
    return mPatterName;
 }
 
-const std::string & cCamGenInc::PatterName()const 
+const cElRegex_Ptr & cCamGenInc::PatterName()const 
 {
    return mPatterName;
 }
@@ -5770,6 +5770,17 @@ const cTplValGesInit< bool > & cCamGenInc::ErrorWhenEmpytPat()const
    return mErrorWhenEmpytPat;
 }
 
+
+cTplValGesInit< bool > & cCamGenInc::ErrorWhenNoFileOrient()
+{
+   return mErrorWhenNoFileOrient;
+}
+
+const cTplValGesInit< bool > & cCamGenInc::ErrorWhenNoFileOrient()const 
+{
+   return mErrorWhenNoFileOrient;
+}
+
 void  BinaryUnDumpFromFile(cCamGenInc & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.PatterName(),aFp);
@@ -5782,6 +5793,14 @@ void  BinaryUnDumpFromFile(cCamGenInc & anObj,ELISE_fp & aFp)
         }
         else  anObj.ErrorWhenEmpytPat().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ErrorWhenNoFileOrient().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ErrorWhenNoFileOrient().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ErrorWhenNoFileOrient().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cCamGenInc & anObj)
@@ -5790,6 +5809,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cCamGenInc & anObj)
     BinaryDumpInFile(aFp,anObj.Orient());
     BinaryDumpInFile(aFp,anObj.ErrorWhenEmpytPat().IsInit());
     if (anObj.ErrorWhenEmpytPat().IsInit()) BinaryDumpInFile(aFp,anObj.ErrorWhenEmpytPat().Val());
+    BinaryDumpInFile(aFp,anObj.ErrorWhenNoFileOrient().IsInit());
+    if (anObj.ErrorWhenNoFileOrient().IsInit()) BinaryDumpInFile(aFp,anObj.ErrorWhenNoFileOrient().Val());
 }
 
 cElXMLTree * ToXMLTree(const cCamGenInc & anObj)
@@ -5800,6 +5821,8 @@ cElXMLTree * ToXMLTree(const cCamGenInc & anObj)
    aRes->AddFils(::ToXMLTree(std::string("Orient"),anObj.Orient())->ReTagThis("Orient"));
    if (anObj.ErrorWhenEmpytPat().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ErrorWhenEmpytPat"),anObj.ErrorWhenEmpytPat().Val())->ReTagThis("ErrorWhenEmpytPat"));
+   if (anObj.ErrorWhenNoFileOrient().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ErrorWhenNoFileOrient"),anObj.ErrorWhenNoFileOrient().Val())->ReTagThis("ErrorWhenNoFileOrient"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -5815,9 +5838,11 @@ void xml_init(cCamGenInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.Orient(),aTree->Get("Orient",1)); //tototo 
 
    xml_init(anObj.ErrorWhenEmpytPat(),aTree->Get("ErrorWhenEmpytPat",1),bool(true)); //tototo 
+
+   xml_init(anObj.ErrorWhenNoFileOrient(),aTree->Get("ErrorWhenNoFileOrient",1),bool(true)); //tototo 
 }
 
-std::string  Mangling( cCamGenInc *) {return "EAC15028173F91D3FD3F";};
+std::string  Mangling( cCamGenInc *) {return "8A8C5C1816652EFDFD3F";};
 
 
 cTplValGesInit< bool > & cMEP_SPEC_MST::Show()
@@ -9452,7 +9477,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "984CDB931E66268DFE3F";};
+std::string  Mangling( cSectionInconnues *) {return "6567E93AF14F2099FE3F";};
 
 
 double & cTimeLinkage::DeltaMax()
@@ -24417,7 +24442,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "CDC917D9CCCA89EFFD3F";};
+std::string  Mangling( cParamApero *) {return "98666FA54B4220BFFD3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

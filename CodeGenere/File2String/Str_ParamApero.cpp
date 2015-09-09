@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1647]) = {
+const char * (theNameVar_ParamApero[1648]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -639,9 +639,10 @@ const char * (theNameVar_ParamApero[1647]) = {
 "\n",
 "              <!-- Nouvelles cameras inconnues, generique, pour representer satellite -->\n",
 "              <CamGenInc  Nb=\"*\">\n",
-"                    <PatterName Nb=\"1\" Type=\"std::string\">  </PatterName>\n",
+"                    <PatterName Nb=\"1\" Type=\"cElRegex_Ptr\">  </PatterName>\n",
 "                    <Orient Nb=\"1\" Type=\"std::string\">      </Orient>\n",
 "                    <ErrorWhenEmpytPat Nb=\"?\" Type=\"bool\" Def=\"true\"> </ErrorWhenEmpytPat>\n",
+"                    <ErrorWhenNoFileOrient Nb=\"?\" Type=\"bool\" Def=\"true\"> </ErrorWhenNoFileOrient>\n",
 "              </CamGenInc>\n",
 "\n",
 "              <PoseCameraInc Nb=\"*\"  ToReference=\"true\">\n",

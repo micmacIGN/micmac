@@ -637,9 +637,10 @@
 
               <!-- Nouvelles cameras inconnues, generique, pour representer satellite -->
               <CamGenInc  Nb="*">
-                    <PatterName Nb="1" Type="std::string">  </PatterName>
+                    <PatterName Nb="1" Type="cElRegex_Ptr">  </PatterName>
                     <Orient Nb="1" Type="std::string">      </Orient>
                     <ErrorWhenEmpytPat Nb="?" Type="bool" Def="true"> </ErrorWhenEmpytPat>
+                    <ErrorWhenNoFileOrient Nb="?" Type="bool" Def="true"> </ErrorWhenNoFileOrient>
               </CamGenInc>
 
               <PoseCameraInc Nb="*"  ToReference="true">

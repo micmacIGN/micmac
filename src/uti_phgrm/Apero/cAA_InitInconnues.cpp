@@ -103,18 +103,30 @@ void cAppliApero::InitGenPoses()
 
 void  cAppliApero::InitGenPoses(const cCamGenInc& aCGI)
 {
-    std::list<std::string> aLName  = mICNM->StdGetListOfFile(aCGI.PatterName(),1,aCGI.ErrorWhenEmpytPat().Val());
+    std::list<std::string> aLName  = mICNM->StdGetListOfFile(aCGI.PatterName()->NameExpr(),1,aCGI.ErrorWhenEmpytPat().Val());
 
     for (std::list<std::string>::const_iterator itN=aLName.begin() ; itN!=aLName.end() ; itN++)
     {
 
-         std::string aNameOri = DC() + "Ori" + aCGI.Orient()  +"/Orientation-" + *itN + ".xml";
+         // std::string aNameOri = DC() + "Ori" + aCGI.Orient()  +"/Orientation-" + *itN + ".xml";
+         std::string aNameOri = DC() + StdNameCSOrient(aCGI.Orient(),*itN ,false);
          if ((!ELISE_fp::exist_file(aNameOri)) || (!mParam.StenCamSupresGBCam().Val()))
          {
-             cPosePolynGenCam * aPPGC = new cPosePolynGenCam(*this,*itN,aCGI.Orient());
-             mVecPolynPose.push_back(aPPGC);
-             mVecGenPose.push_back(aPPGC);
-             mDicoGenPose[*itN] = aPPGC;
+             if (! ELISE_fp::exist_file(StdNameGBOrient(aCGI.Orient(),*itN ,false)))
+             {
+                 if (aCGI.ErrorWhenNoFileOrient().Val())
+                 {
+                      // std::cout << 
+                      ELISE_ASSERT(false,"No file for required orient");
+                 }
+             }
+             else
+             {
+                 cPosePolynGenCam * aPPGC = new cPosePolynGenCam(*this,*itN,aCGI.Orient());
+                 mVecPolynPose.push_back(aPPGC);
+                 mVecGenPose.push_back(aPPGC);
+                 mDicoGenPose[*itN] = aPPGC;
+             }
          }
 
     }
@@ -385,11 +397,14 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
                  bool ExistFileGB = false;
                  for (std::list<cCamGenInc>::const_iterator itGC=mParam.CamGenInc().begin();itGC!=mParam.CamGenInc().end();itGC++)
                  {
-                     std::string aNameOri = DC() + "Ori" + itGC->Orient()  +"/GB-Orientation-" + *itS + ".xml";
+                     if (itGC->PatterName()->Match(*itS) && ELISE_fp::exist_file(StdNameGBOrient(itGC->Orient(),*itS,false)))
+                        ExistFileGB = true;
 
-                     
+/*
+                     std::string aNameOri = DC() + "Ori" + itGC->Orient()  +"/GB-Orientation-" + *itS + ".xml";
                      if (ELISE_fp::exist_file(aNameOri))
                         ExistFileGB = true;
+*/
 
                  }
                  if ((!ExistFileGB) || ( !mParam.GBCamSupresStenCam().Val()))
