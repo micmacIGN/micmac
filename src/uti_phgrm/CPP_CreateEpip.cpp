@@ -62,7 +62,7 @@ cCpleEpip * StdCpleEpip
 }
 
 
-int CreateEpip_main(int argc,char ** argv)
+void  MyCreateEpip_main(int argc,char ** argv)
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -111,7 +111,7 @@ int CreateEpip_main(int argc,char ** argv)
      anICNM->CorrecNameOrient(anOri);
 
 
-    std::string   aKey =  + "NKS-Assoc-Im2Orient@-" + anOri;
+     std::string   aKey =  + "NKS-Assoc-Im2Orient@-" + anOri;
 
      std::string aNameOr1 = anICNM->Assoc1To1(aKey,aName1,true);
      std::string aNameOr2 = anICNM->Assoc1To1(aKey,aName2,true);
@@ -165,6 +165,12 @@ int CreateEpip_main(int argc,char ** argv)
 }
 
 
+int CreateEpip_main(int argc,char ** argv)
+{
+     MyCreateEpip_main(argc,argv);
+
+     return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
