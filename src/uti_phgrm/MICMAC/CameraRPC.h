@@ -26,7 +26,7 @@ Francais :
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
-
+/bin/bash: :w : commande introuvable
 
 English :
 
@@ -44,29 +44,30 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../SateLib/RPC.h"
 #include "../../../include/XML_GEN/SuperposImage.h"
 
-
 class cComp3DBasic : public cBasicGeomCap3D
 {
     public:
-	cComp3DBasic(cBasicGeomCap3D * aCamBase);
+        cComp3DBasic(cBasicGeomCap3D * aCam);
+         
 
-	virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const ;
-	virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const ;
+	virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
+	virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
 	virtual Pt2di    SzBasicCapt3D() const ;
 
-	virtual double ResolSolOfPt(const Pt3dr &) const ;
-	virtual bool  CaptHasData(const Pt2dr &) const ;
-	virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
-	virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const ;
+	virtual double ResolSolOfPt(const Pt3dr &) const;
+	virtual bool   CaptHasData(const Pt2dr &) const;
+	virtual bool   PIsVisibleInImage   (const Pt3dr & aP) const;
+	virtual Pt3dr  RoughCapteur2Terrain   (const Pt2dr & aP) const;
 
-	virtual bool     HasOpticalCenterOfPixel() const;
-	virtual Pt3dr    OpticalCenterOfPixel(const Pt2dr & aP) const ;
+	virtual bool   HasOpticalCenterOfPixel() const;
+	virtual Pt3dr  OpticalCenterOfPixel(const Pt2dr & aP) const;
 
-        virtual Pt3dr Origin2TargetCS(const Pt3dr & aP);
-	virtual Pt3dr Target2OriginCS(const Pt3dr & aP);
 
-    protected: 
-	cBasicGeomCap3D * mCamBase;
+        virtual Pt3dr Origin2TargetCS(const Pt3dr & aP) const;
+        virtual Pt3dr Target2OriginCS(const Pt3dr & aP) const;
+
+    protected:
+        cBasicGeomCap3D * mCam0;
 };
 
 
@@ -150,7 +151,7 @@ class CameraRPC : public cBasicGeomCap3D
 		void AssertRPCInvInit() const;
 };
 
-CameraRPC * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType);
+cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType);
 
 //dimap v1 - Simplified_Location_Model
 class CameraAffine : public cBasicGeomCap3D
