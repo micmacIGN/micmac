@@ -73,6 +73,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
            virtual bool  CaptHasData(const Pt2dr &) const ;
            virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
            virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const ;
+           virtual double GetVeryRoughInterProf() const;
 
   // Optical center 
            virtual bool     HasOpticalCenterOfPixel() const; // 1 - They are not alway defined
