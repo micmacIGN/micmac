@@ -1442,6 +1442,11 @@ Pt2dr cCorrRefracAPost::CorrC2M(const Pt2dr & aP0) const
 /*                                               */
 /*************************************************/
 
+double cBasicGeomCap3D::GetVeryRoughInterProf() const
+{
+   return 1/600.0;
+}
+
 void cBasicGeomCap3D::Save2XmlStdMMName(const std::string &) const
 {
     ELISE_ASSERT(false,"CamStenope::Save2XmlStdMMName Not Suported");
@@ -1719,6 +1724,10 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     UndefAltisSol();
 }
 
+double ElCamera::GetVeryRoughInterProf() const
+{
+   return 1/10.0;
+}
 
 bool  ElCamera::GetZoneUtilInPixel() const
 {
