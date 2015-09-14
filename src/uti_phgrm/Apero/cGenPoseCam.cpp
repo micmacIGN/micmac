@@ -784,6 +784,10 @@ Pt3dr  cBGC3_Modif2D::RoughCapteur2Terrain   (const Pt2dr & aP) const
    return mCam0->RoughCapteur2Terrain(CurIm2CamInit(aP));
 }
 
+double  cBGC3_Modif2D::GetVeryRoughInterProf() const
+{
+    return  mCam0->GetVeryRoughInterProf();
+}
 
 
 Pt2di  cBGC3_Modif2D::SzBasicCapt3D() const

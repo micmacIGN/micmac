@@ -1302,8 +1302,8 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
           INT DeltaDegre() const;
           REAL AmplInv() const;
 
-              Polynome2dReal  mPolToYEpip;
-              Polynome2dReal  mPolToYInit;
+          Polynome2dReal  mPolToYEpip;
+          Polynome2dReal  mPolToYInit;
 
           Pt2dr ToCoordEpipol(Pt2dr aPInit) const;
           Pt2dr ToCoordInit(Pt2dr aPEpi) const;
@@ -1488,6 +1488,10 @@ class cBasicGeomCap3D
        // especialy when centers are computed from multiples intersections
        virtual void  GetCenterAndPTerOnBundle(Pt3dr & aC,Pt3dr & aPTer,const Pt2dr & aPIm) const;
 
+       // Return an "ordre de grandeur'virtual" of the interval of prof in prop; default return 1/600 adapted to
+       // pleiade-spot satellites, redefine in Stenope to 0.2;  used for epipolar computation
+       virtual double GetVeryRoughInterProf() const;
+
 
        // Save using standard MicMac naming ; !! Not supported for now by Stenope camera; Def :  Fatal Error
        virtual void Save2XmlStdMMName(const std::string &) const ;
@@ -1531,6 +1535,7 @@ class ElCamera : public cCapture3D
 
          Pt3dr DirRayonR3(const Pt2dr & aPIm) const;
          Pt2di    SzBasicCapt3D() const; 
+         double GetVeryRoughInterProf() const;
          bool  CaptHasData(const Pt2dr &) const ;
          Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
          bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
