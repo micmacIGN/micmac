@@ -1058,6 +1058,7 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 	//WGS84 ellipsoid
 	double a = 6378137;
 	double b = (1 - 1 / 298.257223563)*a;
+	double e2 = 1 - (b * b) / (a * a);
 	double WGSCorFact = 0.99330562;
 
 	vector<vector<Pt3dr> > aMatPtsNorm;
@@ -1080,8 +1081,39 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 				//ECEF coord points are computed
 				Pt3dr aPtECEF = ASTERPtsECEF[i] + aLOS*height;
 
-				//Coordinates are transformed to geocentric
+				//Coordinates are transformed from ECEF to geodetic
 
+				//NEW
+				Pt3dr aPtGeo;
+				// Computing longitude (true transformation)
+				aPtGeo.x = atan(aPtECEF.y / aPtECEF.x) * 180 / M_PI; //degrees
+				if (aPtECEF.y < 0)//"Western emisphere"
+					aPtGeo.x = aPtGeo.x - 180;
+
+				//Computing latitude (estimation)
+				double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
+				double p = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y);
+				double latNow = atan(p / aPtECEF.z);//rad geocentric to initialize estimation
+				//loop
+				double Rn;
+				double h;
+				for (u_int i = 0; i < 10; i++)// converge after 10 loops (even after 4 but for safety)
+				{
+					Rn = a / sqrt(1 - e2*sin(latNow)*sin(latNow));
+					h = p / cos(latNow) - Rn;
+					latNow = atan(aPtECEF.z / p * 1 / (1 - e2*Rn / (Rn + h)));
+				}
+				aPtGeo.y = latNow;
+
+				//Computing Ellipsoid height
+				Rn = a / sqrt(1 - e2*sin(aPtGeo.y)*sin(aPtGeo.y));
+				aPtGeo.z = p / cos(aPtGeo.y) - Rn;
+				//Latitude rad to degrees
+				aPtGeo.y = aPtGeo.y * 180 / M_PI;
+
+				aVectPtsGeo.push_back(aPtGeo);
+
+				/* OLD
 				Pt3dr aPtGeo;
 				double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
 				aPtGeo.y = asin(aPtECEF.z / r) * 180 / M_PI; //degrees
@@ -1093,6 +1125,7 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 				aPtGeo.y = atan(tan(aPtGeo.y *M_PI / 180) / WGSCorFact) * 180 / M_PI;
 
 				aVectPtsGeo.push_back(aPtGeo);
+				*/
 
 				//Image point 3D coordinates are recorded
 				aPtIm.z = aPtGeo.z;

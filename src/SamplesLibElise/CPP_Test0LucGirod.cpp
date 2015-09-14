@@ -694,7 +694,7 @@ int Luc_main_truc(int argc, char ** argv)
 }
 
 
-int Luc_main(int argc, char ** argv)
+int Luc_main_PSEUDORPC2D(int argc, char ** argv)
 {
     //GET PSEUDO-RPC2D FOR ASTER FROM LATTICE POINTS
     std::string aTxtImage, aTxtCarto;
@@ -889,6 +889,59 @@ int Luc_main(int argc, char ** argv)
     return 0;
 }
 
+int Luc_main(int argc, char ** argv)
+{
+
+	//WGS84 ellipsoid
+	double a = 6378137;
+	double b = (1 - 1 / 298.257223563)*a;
+	double e2 = 1 - (b * b) / (a * a);
+	double WGSCorFact = 0.99330562;
+
+	//Point 
+	Pt3dr aPtECEF(-2741844.353494039736688137054443359375, -1664255.3605559789575636386871337890625, 6304189.845196328125894069671630859375); //ALASKA
+	//Pt3dr aPtECEF(3310919.731059408746659755706787109375, 628192.44206570624373853206634521484375, 6219499.615476393140852451324462890625); //NORWAY
+	//NEW
+	Pt3dr aPtGeo;
+	// Computing longitude (true transformation)
+	aPtGeo.x = atan(aPtECEF.y / aPtECEF.x) * 180 / M_PI; //degrees
+	cout << aPtGeo.x << endl;
+	if (aPtECEF.y < 0)//"Western emisphere"
+		aPtGeo.x = aPtGeo.x - 180;
+
+	//Computing latitude (estimation)
+	double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
+	double p = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y);
+	double latNow = atan(p / aPtECEF.z);//rad geocentric
+	//loop
+	for (u_int i = 0; i < 4; i++)
+	{
+		double Rn = a / sqrt(1 - e2*sin(latNow)*sin(latNow));
+		double h = p / cos(latNow) - Rn;
+		latNow = atan(aPtECEF.z / p * 1 / (1 - e2*Rn / (Rn + h)));
+	}
+	aPtGeo.y = latNow;
+
+	//Computing Ellipsoid height
+	double Rn = a / sqrt(1 - e2*sin(aPtGeo.y)*sin(aPtGeo.y));
+	aPtGeo.z = p / cos(aPtGeo.y) - Rn;
+	//Latitude to degrees
+	aPtGeo.y = aPtGeo.y * 180 / M_PI;
+	cout << "NEW solution :" << aPtGeo << endl;
+
+	//OLD
+	r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
+	aPtGeo.y = asin(aPtECEF.z / r) * 180 / M_PI; //degrees
+	aPtGeo.x = acos(aPtECEF.x / (r*cos(aPtGeo.y * M_PI / 180))) * 180 / M_PI;//degrees
+	if (aPtECEF.y < 0)//"Western emisphere"
+	aPtGeo.x = -aPtGeo.x;
+	aPtGeo.z = r - sqrt(a*a*b*b / (a*a*sin(aPtGeo.y * M_PI / 180)*sin(aPtGeo.y * M_PI / 180) + b*b*cos(aPtGeo.y * M_PI / 180)*cos(aPtGeo.y * M_PI / 180)));//(distance from point to earth center)-(distance from ellipsoide to earth center)
+	//to geodetic
+	aPtGeo.y = atan(tan(aPtGeo.y *M_PI / 180) / WGSCorFact) * 180 / M_PI;
+
+	cout << "OLD solution :" << aPtGeo << endl;
+	return 0;
+}
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant Ã  la mise en
