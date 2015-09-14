@@ -329,13 +329,14 @@ PolynomialEpipolaireCoordinate::PolynomialEpipolaireCoordinate
      Pt2dr aP0,
      Pt2dr aDirX,
      const Polynome2dReal & aPolY,
+     const Polynome2dReal * aPolInvY,
      REAL  aDom,
      INT   DeltaDegreInv,
      Pt2dr aTrFin
 ) :
    EpipolaireCoordinate(aP0,aDirX,aTrFin),
    mPolToYEpip (aPolY),
-   mPolToYInit (InvPolY(aPolY,aDom,aPolY.DMax()+DeltaDegreInv))
+   mPolToYInit (aPolInvY ? *aPolInvY : (InvPolY(aPolY,aDom,aPolY.DMax()+DeltaDegreInv)))
 {
 }
 
@@ -390,7 +391,7 @@ PolynomialEpipolaireCoordinate
   REAL anAmpl =  aFile.read(&anAmpl);
   INT aDeltaDegre = aFile.read(&aDeltaDegre);
 
-   PolynomialEpipolaireCoordinate aRes(aP0,aDirX,aPol,anAmpl,aDeltaDegre);
+   PolynomialEpipolaireCoordinate aRes(aP0,aDirX,aPol,0,anAmpl,aDeltaDegre);
 
    aRes.SetTrFinale(aTrFin);
 
@@ -417,6 +418,7 @@ PolynomialEpipolaireCoordinate *
 		        P0() * aChSacle,
 			DirX(),
                         mPolToYEpip.MapingChScale(aChSacle),
+                        0,
 			AmplInv() * aChSacle,
 			DeltaDegre(),
                         TrFin() * aChSacle
@@ -563,6 +565,7 @@ EpipolaireCoordinate & CpleEpipolaireCoord::EPI2()
 
 CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
                      (
+                          bool                    UseL1,
                           CpleEpipolaireCoord  *  aSolApprox,
                           REAL                    aResiduMin,
                           const ElPackHomologue & aPackH,
@@ -596,6 +599,9 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
    Im1D_REAL8 aVecPds(aNbInc);
    REAL8 * aDVP = aVecPds.data();
 
+   double aRMaxInv1 = 0;
+   double aRMaxInv2 = 0;
+
    for
    (
         ElPackHomologue::const_iterator itC = aPackH.begin();
@@ -615,6 +621,9 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
       Pt2dr aP1 = ( itC->P1() -aStat.Cdg1()) / aDir1;
       Pt2dr aP2 = ( itC->P2() -aStat.Cdg2()) / aDir2;
 
+      ElSetMax(aRMaxInv1,euclid(aP1));
+      ElSetMax(aRMaxInv2,euclid(aP2));
+
       aNbInc=0;
       for (INT k=0; k<aPol1.NbMonome() ; k++)
       {
@@ -629,10 +638,11 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
       // aSys->GSSR_AddNewEquation(itC->Pds()*aPdsResidu,aDVP,aP1.y);
       aSys.PushEquation(aVecPds,aP1.y,itC->Pds()*aPdsResidu);
    }
+
    
    bool aOk;
    // Im1D_REAL8  aSol =  aSys->GSSR_Solve(&aOk);
-   Im1D_REAL8  aSol = (aSolApprox ? aSys.L2Solve(&aOk) : aSys.L1Solve());
+   Im1D_REAL8  aSol = ( (aSolApprox || (!UseL1)) ? aSys.L2Solve(&aOk) : aSys.L1Solve());
 
    aNbInc=0;
    {
@@ -650,11 +660,58 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
    }
    }
 
+
+   int aDeltaDeg = 2;
+
+   Polynome2dReal aPolInv1(aDegre+aDeltaDeg,aRMaxInv1);
+   int aNbIncInv = aPolInv1.NbMonome();
+   SystLinSurResolu aSysInv1 (aNbIncInv,aStat.NbPts()) ;
+   Im1D_REAL8 aVPInv1(aNbIncInv);
+   REAL8 *    aDVPI1 = aVPInv1.data();
+
+   Polynome2dReal aPolInv2(aDegre+aDeltaDeg,aRMaxInv2);
+   SystLinSurResolu aSysInv2 (aNbIncInv,aStat.NbPts()) ;
+   Im1D_REAL8 aVPInv2(aNbIncInv);
+   REAL8 *    aDVPI2 = aVPInv2.data();
+
+   for
+   (
+        ElPackHomologue::const_iterator itC = aPackH.begin();
+        itC != aPackH.end();
+        itC++
+   )
+   {
+      Pt2dr aP1 = ( itC->P1() -aStat.Cdg1()) / aDir1;
+      Pt2dr aP2 = ( itC->P2() -aStat.Cdg2()) / aDir2;
+
+      Pt2dr aQ1 (aP1.x,aPol1(aP1));
+      Pt2dr aQ2 (aP2.x,aPol2(aP2));
+
+      for (int aK=0 ; aK<aNbIncInv ; aK++)
+      {
+           aDVPI1[aK] =  aPolInv1.KthMonome(aK)(aQ1);
+           aDVPI2[aK] =  aPolInv2.KthMonome(aK)(aQ2);
+      }
+      aSysInv1.PushEquation(aDVPI1,aP1.y,1.0);
+      aSysInv2.PushEquation(aDVPI2,aP2.y,1.0);
+   }
+
+   Im1D_REAL8  aSolInv1 =  aSysInv1.L2Solve(&aOk) ;
+   Im1D_REAL8  aSolInv2 =  aSysInv2.L2Solve(&aOk) ;
+      
+   for (INT k=0; k<aNbIncInv ; k++)
+   {
+        aPolInv1.SetCoeff(k,aSolInv1.data()[k]);
+        aPolInv2.SetCoeff(k,aSolInv2.data()[k]);
+   }
+
+
    PolynomialEpipolaireCoordinate * anEpi1 = new PolynomialEpipolaireCoordinate
                                                  (
                                                       aStat.Cdg1(),
                                                       aDir1,
                                                       aPol1,
+                                                      &aPolInv1,
                                                       aStat.RMax1()
                                                  );
 
@@ -663,6 +720,7 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
                                                       aStat.Cdg2(),
                                                       aDir2,
                                                       aPol2,
+                                                      &aPolInv2,
                                                       aStat.RMax2()
                                                  );
 
@@ -677,6 +735,7 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
 
 CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
                      (
+                          bool UseL1,
                           const ElPackHomologue & aPackH,
                           INT   aDegre,
                           Pt2dr aDir1,
@@ -685,6 +744,7 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
 {
       return   PolynomialFromHomologue
                (
+                     UseL1,
                      (CpleEpipolaireCoord *) 0,
                      1.0,
                      aPackH, aDegre,
@@ -702,9 +762,9 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
                           Pt2dr aDir2
                      )
 {
-    CpleEpipolaireCoord * aSol1 = PolynomialFromHomologue(aPackHL1,aDegreL1,aDir1,aDir2);
+    CpleEpipolaireCoord * aSol1 = PolynomialFromHomologue(true,aPackHL1,aDegreL1,aDir1,aDir2);
 
-    CpleEpipolaireCoord * aSol2 =  PolynomialFromHomologue(aSol1,0.5,aPackHL2,aDegreL2,aDir1,aDir2);
+    CpleEpipolaireCoord * aSol2 =  PolynomialFromHomologue(true,aSol1,0.5,aPackHL2,aDegreL2,aDir1,aDir2);
     delete aSol1;
 
     return aSol2;

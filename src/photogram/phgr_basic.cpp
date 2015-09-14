@@ -543,6 +543,7 @@ void ElPackHomologue::PrivDirEpipolaire(Pt2dr & aRes1,Pt2dr & aRes2,INT aSz) con
 
               CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue
                                             (
+                                                  true,
                                                   *this,
                                                   1,
                                                   aDir1,
@@ -611,6 +612,7 @@ CpleEpipolaireCoord *  ElPackHomologue::DirAndCpleEpipolaire
 
     CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue
                                   (
+                                     true,
                                      *this,
                                      aDegreFinal,
                                      aDir1,
