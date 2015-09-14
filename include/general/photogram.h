@@ -1281,6 +1281,7 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
                  Pt2dr aP0,
                  Pt2dr aDirX,
                  const Polynome2dReal & aPolY,
+                 const Polynome2dReal * aPolInvY,
                  REAL                   anAmpl,
                  INT                    DeltaDegreInv = 2,
                  Pt2dr                  aTrFin = Pt2dr(0,0)
@@ -1320,6 +1321,7 @@ class CpleEpipolaireCoord
 
             static CpleEpipolaireCoord * PolynomialFromHomologue
                                         (
+                                                bool  UseL1,  // Si aSolApprox nulle alors utilise-t-on L1 ?
                                                 const ElPackHomologue &,
                                                 INT   aDegre,
                                                 Pt2dr aDir1,
@@ -1337,6 +1339,7 @@ class CpleEpipolaireCoord
 
             static CpleEpipolaireCoord * PolynomialFromHomologue
                                         (
+                                                bool  UseL1,  // Si aSolApprox nulle alors utilise-t-on L1 ?
                                                 CpleEpipolaireCoord  *  aSolApprox, // Solution pour calcul de residu
                                                 REAL  aResiduMin,
                                                 const ElPackHomologue &,
