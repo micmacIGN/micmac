@@ -1,0 +1,6 @@
+                <RedrLocAnam>
+                     <NameOut>  Z_Num1_DeZoom${ZoomFinal}_Malt-Ortho-UnAnam </NameOut>
+                     <NameMasq>  Masq_Malt-Ortho-UnAnam_DeZoom${ZoomFinal} </NameMasq>
+                     <NameOriGlob>  OriGlob_Malt-Ortho-UnAnam.xml </NameOriGlob>
+                     <NameNuage> NuageImProf_Ortho-UnAnam_Etape_1.xml  </NameNuage>
+                </RedrLocAnam>
