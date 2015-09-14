@@ -39,70 +39,68 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "CameraRPC.h"
 
-
 /***********************************************************************/
 /*                           cComp3DBasic                              */
 /***********************************************************************/
 
-cComp3DBasic::cComp3DBasic(cBasicGeomCap3D * aCamBase) : 
-         mCamBase(aCamBase)
+cComp3DBasic::cComp3DBasic(cBasicGeomCap3D * aCam) : mCam0(aCam)
 {}
 
-Pt3dr cComp3DBasic::Origin2TargetCS(const Pt3dr & aP)
+Pt3dr cComp3DBasic::Origin2TargetCS(const Pt3dr & aP) const
 {
-    return Pt3dr(0,0,0);
+    return cSysCoord::WGS84Degre()->ToGeoC(aP);
 }
 
-Pt3dr cComp3DBasic::Target2OriginCS(const Pt3dr & aP)
+Pt3dr cComp3DBasic::Target2OriginCS(const Pt3dr & aP) const
 {
-    return Pt3dr(0,0,0);
+    return cSysCoord::WGS84Degre()->FromGeoC(aP);
 }
 
 ElSeg3D  cComp3DBasic::Capteur2RayTer(const Pt2dr & aP) const
 {
-    return mCamBase->Capteur2RayTer(aP);
+    return ElSeg3D(Origin2TargetCS(mCam0->Capteur2RayTer(aP).P0()), 
+		   Origin2TargetCS(mCam0->Capteur2RayTer(aP).P1()));
 }
 
 Pt2dr  cComp3DBasic::Ter2Capteur(const Pt3dr & aP) const
 {
-    return mCamBase->Ter2Capteur(aP);
+    return mCam0->Ter2Capteur(Target2OriginCS(aP));
 }
 
 Pt3dr  cComp3DBasic::RoughCapteur2Terrain(const Pt2dr & aP) const
 {
-    return mCamBase->RoughCapteur2Terrain(aP);
+    return Origin2TargetCS(mCam0->RoughCapteur2Terrain(aP));
 }
 
 Pt2di  cComp3DBasic::SzBasicCapt3D() const
 {
-    return mCamBase->SzBasicCapt3D();
+    return mCam0->SzBasicCapt3D();
 }
 
 double cComp3DBasic::ResolSolOfPt(const Pt3dr & aP) const
 {
-    return mCamBase->ResolSolOfPt(aP);
+    return mCam0->ResolSolOfPt(Target2OriginCS(aP));
 }
 
 bool cComp3DBasic::CaptHasData(const Pt2dr &aP) const
 {
-    return  mCamBase->CaptHasData(aP);
+    return  mCam0->CaptHasData(aP);
 }
 
 bool cComp3DBasic::PIsVisibleInImage(const Pt3dr & aP) const
 {
-    return mCamBase->PIsVisibleInImage(aP);
+    return mCam0->PIsVisibleInImage(Target2OriginCS(aP));
 }
 
 bool cComp3DBasic::HasOpticalCenterOfPixel() const
 {
-    return mCamBase->HasOpticalCenterOfPixel();
+    return mCam0->HasOpticalCenterOfPixel();
 }
 
 Pt3dr cComp3DBasic::OpticalCenterOfPixel(const Pt2dr & aP) const
 {
-    return mCamBase->OpticalCenterOfPixel(aP);
+    return mCam0->OpticalCenterOfPixel(aP);
 }
-
 
 
 /***********************************************************************/
@@ -218,9 +216,11 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     mRPC->info();
 }
 
-CameraRPC * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType)
+cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType)
 {
-    CameraRPC * aRes = new CameraRPC(aName, aType);
+    
+    //cBasicGeomCap3D * aRes = new CameraRPC(aName, aType); 
+    cComp3DBasic * aRes = new cComp3DBasic (new CameraRPC(aName, aType)); 
     
     return aRes;
 }
@@ -432,14 +432,14 @@ void CameraRPC::Exp2BundleInGeoc(std::vector<std::vector<ElSeg3D> > aGridToExp) 
 		//first height    
 	        aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y),
 				        mRPC->first_height+1);
-		aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+		aPGeoC1 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
                 
 		//second height
 		aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y),
 				        (mRPC->first_height+1) +
 					double(mRPC->last_height - 
 					       mRPC->first_height)/2);
-		aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+		aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
 
 		aGridToExp.at(aL).push_back(ElSeg3D(aPGeoC1,aPGeoC2));
 	    }
@@ -619,7 +619,7 @@ void CameraRPC::OpticalCenterOfImg()
 	    //first height in validity zone
 	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL),
 			                  mRPC->first_height+1);
-	    aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    aPGeoC1 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
             
 	    //second height in validity zone
 	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aL), 
@@ -627,7 +627,7 @@ void CameraRPC::OpticalCenterOfImg()
 				   double(mRPC->last_height - 
 					  mRPC->first_height)/2);
 
-	    aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
 	    
 	    //collect for intersection
 	    aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
@@ -689,14 +689,14 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y),
 			                  mRPC->first_height+1);
 	    
-	    aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    aPGeoC1 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
             aVPts.push_back(aPGeoC1);
             
 	    //second height in validity zone
 	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y), 
 			           (mRPC->first_height+1)+double(mRPC->last_height - mRPC->first_height)/2);
 
-	    aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
 	    aVPts.push_back(aPGeoC2);
 	    
 	    //collect for intersection
@@ -774,14 +774,14 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y),
 			            mRPC->first_height+1);
 	    
-	    aPGeoC1 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    aPGeoC1 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
             
 	    //second height in validity zone
 	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y), 
 			           (mRPC->first_height+1) + 
 				   double(mRPC->last_height - mRPC->first_height)/2);
 
-	    aPGeoC2 = cSysCoord::WGS84()->ToGeoC(aPWGS84);
+	    aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
 	    
 	    //collect for intersection
 	    aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
@@ -793,7 +793,8 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 
         if(aIsOK==false)
             std::cout << "not intersected in CameraRPC::OpticalCenterOfPixel" << std::endl;
-    
+
+	//std::cout << aRes << " " << "\n";	
         return aRes;
     }
 }

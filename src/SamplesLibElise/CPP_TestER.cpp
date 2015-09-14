@@ -42,8 +42,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
+
 //do matching in push-broom and pick salient points
-int TestER_main(int argc,char ** argv)
+int TestER_main6(int argc,char ** argv)
 {
     std::string aDirTmp = "Tmp-TIL", aPrefixName = "_TIL_";
     std::string aTmp;
@@ -386,7 +387,7 @@ int TestER_main5(int argc,char ** argv)
 }
 
 //test OpticalCenterOfPixel
-int TestER_main4(int argc,char ** argv)
+int TestER_main(int argc,char ** argv)
 {
     std::string aFullName;
     std::string aDir;
@@ -408,8 +409,24 @@ int TestER_main4(int argc,char ** argv)
     bool aModeHelp;
     StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
 
-    CameraRPC aRPC(aFullName, aType);
-    //aRPC.OpticalCenterPerLine();
+    CameraRPC * aRPC = new CameraRPC(aFullName, aType);
+    cComp3DBasic * aRPCB = new cComp3DBasic (aRPC);
+    
+    Pt2dr aP2d(100,500);
+    ElSeg3D aElOrg = aRPC->Capteur2RayTer(aP2d);
+    ElSeg3D aElGeo = aRPCB->Capteur2RayTer(aP2d);
+
+    Pt3dr aPB1 = aRPCB->Target2OriginCS(aElGeo.P0());
+    Pt3dr aPB2 = aRPCB->Target2OriginCS(aElGeo.P1());
+
+    std::cout <<  "aElOrg " << aElOrg.P0() << " " 
+	                    << aElOrg.P1() << "\n";
+    std::cout <<  "aElGeo " << aElGeo.P0() << " " 
+	                    << aElGeo.P1() << "\n";
+    std::cout <<  "aElGeoBack " << aPB1 << " " 
+	                        << aPB2 << "\n";
+
+    //aRPC.OptiicalCenterPerLine();
 
     //Pt3dr aP1, aP2, aP3;
     //aP1 = aRPC.OpticalCenterOfPixel(Pt2dr(1,1));
