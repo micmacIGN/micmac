@@ -394,6 +394,7 @@ class Tiff_Im : public ElGenFileIm
           // N'initialise pas
           std::vector<Im2DGen *>  VecOfIm(Pt2di aSz);
           std::vector<Im2DGen *>  ReadVecOfIm();
+          std::vector<Im2D_REAL4>  VecOfImFloat(Pt2di aSz);
 
           static const ElSTDNS string Str_No_Compr;		// NoCompr
           static const ElSTDNS string Str_CCITT_G3_1D_Compr; 	// CCITTG31D
@@ -453,6 +454,9 @@ Tiff_Im MMIcone(const std::string &);
 
 Output   StdOut(const std::vector<Im2DGen *> &);
 Fonc_Num StdInput(const std::vector<Im2DGen *> &);
+
+template<class Type,class TypeBase> Output   StdOut  (std::vector<Im2D<Type,TypeBase> > &);
+template<class Type,class TypeBase> Fonc_Num StdInput(std::vector<Im2D<Type,TypeBase> > &);
 
 class cLazyTiffFile
 {

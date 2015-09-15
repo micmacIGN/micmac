@@ -2120,6 +2120,24 @@ template  Im2D<Type,TyBase> ImMediane(const std::vector<Im2D<Type,TyBase> > & aV
 }
 */
 
+template<class Type,class TypeBase> Output   StdOut(std::vector<Im2D<Type,TypeBase> > & aV)
+{
+    Output aRes = aV[0].out();
+    for (int aK=1 ; aK<int(aV.size()) ; aK++)
+    {
+       aRes = Virgule(aRes,aV[aK].out());
+    }
+    return aRes;
+}
+template<class Type,class TypeBase> Fonc_Num StdInput(std::vector<Im2D<Type,TypeBase> > & aV)
+{
+    Fonc_Num aRes = aV[0].in();
+    for (int aK=1 ; aK<int(aV.size()) ; aK++)
+    {
+       aRes = Virgule(aRes,aV[aK].in());
+    }
+    return aRes;
+}
 
 
 /***********************************************************************/
@@ -2133,6 +2151,8 @@ template void verif_value_op_ass(OperAssocMixte const &, TyBase const *, TyBase 
 
 #define INSTANTIATE_BITM_KD_GEN(Type,TyBase)\
 template  Im2D<Type,TyBase> ImMediane(const std::vector<Im2D<Type,TyBase> > & aVIm, TyBase VaUnused,Type,double);\
+template Fonc_Num StdInput(std::vector<Im2D<Type,TyBase> > & aV);\
+template Output   StdOut(std::vector<Im2D<Type,TyBase> > & aV);\
 template class Im1D<Type,TyBase>;\
 template class DataIm1D<Type,TyBase>;\
 template class Im2D<Type,TyBase>;\
@@ -2532,6 +2552,11 @@ Fonc_Num StdInPut(std::vector<Im2DGen *> aV)
     }
     return aRes;
 }
+
+
+
+
+
 Output StdOutput(std::vector<Im2DGen *> aV)
 {
     Output aRes = aV[0]->out();
@@ -2541,6 +2566,8 @@ Output StdOutput(std::vector<Im2DGen *> aV)
     }
     return aRes;
 }
+
+
 
 
 

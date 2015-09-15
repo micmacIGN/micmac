@@ -1990,6 +1990,23 @@ std::vector<Im2DGen *>  Tiff_Im::VecOfIm(Pt2di aSz)
 }
 
 
+std::vector<Im2D_REAL4>  Tiff_Im::VecOfImFloat(Pt2di aSz)
+{
+   std::vector<Im2D_REAL4> aRes;
+   int aNbC = nb_chan();
+   for (int aK=0 ; aK<aNbC ; aK++)
+   {
+       aRes.push_back(Im2D_REAL4(aSz.x,aSz.y));
+   }
+   return aRes;
+}
+
+
+
+
+
+
+
 std::vector<Im2DGen *> Tiff_Im::ReadVecOfIm()
 {
     std::vector<Im2DGen *> aRes = VecOfIm(this->sz());
