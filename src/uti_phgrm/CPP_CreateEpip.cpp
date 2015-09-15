@@ -197,6 +197,14 @@ cTmpReechEpip::cTmpReechEpip
     mRedImY    (mSzRed.x,mSzRed.y),
     mRedTImY   (mRedImY)
 {
+
+    int aNbSC = 5;
+
+    cSinCardApodInterpol1D aKer(cSinCardApodInterpol1D::eTukeyApod,aNbSC,aNbSC/2,1e-4,false);
+    cTabIM2D_FromIm2D<REAL4>   aSCI (&aKer,1000,false);
+
+
+
     Pt2di aPInd;
 
     for (aPInd.x=0 ; aPInd.x<mSzRed.x ; aPInd.x++)
@@ -225,7 +233,7 @@ cTmpReechEpip::cTmpReechEpip
 
 
     std::string  aNameEpi = Is1?"ImEpi1.tif":"ImEpi2.tif";
-    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),-1,true);
+    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),1,true);
     Tiff_Im aTifEpi
             (
                 aNameEpi.c_str(),
@@ -235,16 +243,18 @@ cTmpReechEpip::cTmpReechEpip
                 aTifOri.phot_interp()
             );
 
-    int aNbBloc=252;
-    Pt2di aBrd(5,5);
+    int aNbBloc=2000;
+    int aBrd = aNbSC+3;
+    Pt2di aSzBrd(aBrd,aBrd);
 
-    for (int aX0=0 ; (aX0+aNbBloc)<=mSzEpi.x ; aX0+=aNbBloc)
+    for (int aX0=0 ; aX0<mSzEpi.x ; aX0+=aNbBloc)
     {
          int aX1 = ElMin(aX0+aNbBloc,mSzEpi.x);
-         for (int aY0=0 ; (aY0+aNbBloc)<=mSzEpi.y ; aY0+=aNbBloc)
+         for (int aY0=0 ; aY0<mSzEpi.y ; aY0+=aNbBloc)
          {
              int aY1 = ElMin(aY0+aNbBloc,mSzEpi.y);
 
+             Pt2di aP0Epi(aX0,aY0);
              Pt2di aSzBloc(aX1-aX0,aY1-aY0);
 
              TIm2D<REAL4,REAL8> aTImX(aSzBloc);
@@ -281,26 +291,94 @@ cTmpReechEpip::cTmpReechEpip
              }
              if (NonVide)
              {
-                 Pt2di aP0BoxIm = Sup(Pt2di(0,0),Pt2di(round_down(aInfIm) - aBrd));
-                 Pt2di aP1BoxIm = Inf(aTifOri.sz(),Pt2di(round_down(aSupIm) + aBrd));
+                 Pt2di aP0BoxIm = Sup(Pt2di(0,0),Pt2di(round_down(aInfIm) - aSzBrd));
+                 Pt2di aP1BoxIm = Inf(aTifOri.sz(),Pt2di(round_down(aSupIm) + aSzBrd));
                  Pt2di aSzIm = aP1BoxIm - aP0BoxIm;
-                 std::vector<Im2DGen *>  aVIm= aTifOri.VecOfIm(aSzIm);
+
+                 // std::vector<Im2D_REAL4>  aVIm;
+
+                 std::vector<Im2D_REAL4>  aVIm= aTifOri.VecOfImFloat(aSzIm);
 
                  ELISE_COPY
                  (
-                     rectangle(aP0BoxIm,aP1BoxIm),
-                     trans(aTifOri.in(),-aP0BoxIm),
+                     rectangle(Pt2di(0,0),aSzIm),
+                     trans(aTifOri.in(),aP0BoxIm),
                      StdOut(aVIm)
                  );
 
-                 std::vector<Im2DGen *>  aVImEpi = aTifEpi.VecOfIm(aSzBloc);
+                 std::vector<Im2D_REAL4>  aVImEpi = aTifEpi.VecOfImFloat(aSzBloc);
+                 ELISE_ASSERT(aVImEpi.size()==aVIm.size(),"Incohe in nb chan, cTmpReechEpip::cTmpReechEpip");
+
+                 for (int aKIm=0 ; aKIm <int(aVImEpi.size()) ; aKIm++)
+                 {
+                      TIm2D<REAL4,REAL8> aImEpi(aVImEpi[aKIm]);
+                      REAL4 ** aDataOri = aVIm[aKIm].data();
+                      for (int anX =0 ; anX<aSzBloc.x ; anX++)
+                      {
+                           for (int anY =0 ; anY<aSzBloc.y ; anY++)
+                           {
+
+                               Pt2di aIndEpi(anX,anY);
+                               aImEpi.oset(aIndEpi,0);
+                               Pt2di anIndEpiGlob  = aIndEpi + aP0Epi;
+
+                               Pt2dr aIndEpiRed (anIndEpiGlob.x/mStep , anIndEpiGlob.y/mStep);
+                               if (mRedTMasq.get(round_down(aIndEpiRed),0))
+                               {
+                                   double aXIm = mRedTImX.getr(aIndEpiRed,-1,true);
+                                   double aYIm = mRedTImY.getr(aIndEpiRed,-1,true);
+                                   Pt2dr aPImLoc = Pt2dr(aXIm,aYIm) - Pt2dr(aP0BoxIm);
+                                   double aV= 128;
+                                   if ((aPImLoc.x>aNbSC+1) && (aPImLoc.y>aNbSC+1) && (aPImLoc.x<aSzIm.x-aNbSC-2) && (aPImLoc.y<aSzIm.y-aNbSC-2))
+                                   {
+                                       aV = aSCI.GetVal(aDataOri,aPImLoc);
+                                       // aV= 255;
+                                   }
+                                   aImEpi.oset(aIndEpi,aV);
+                               }
 
 
 
+/*
+                               Pt2dr aPEpi = Pt2dr(anIndEpiGlob) + mP0;
+                               Pt2dr aPImGlob =  anEpi->Inverse(aPEpi);
+                               Pt2dr aPImLoc = aPImGlob - Pt2dr(aP0BoxIm);
+
+                               double aV= 0;
+                               if ((aPImLoc.x>aNbSC+1) && (aPImLoc.y>aNbSC+1) && (aPImLoc.x<aSzIm.x-aNbSC-2) && (aPImLoc.y<aSzIm.y-aNbSC-2))
+                               {
+                                   aV = aSCI.GetVal(aDataOri,aPImLoc);
+                               }
+                               aImEpi.oset(aIndEpi,aV);
+
+if ( ((anX%50)==25) && ((anY%50)==25) )
+{
+std::cout << "aPImLocaPImLoc " << aPImLoc << " => " << aV  << aSzIm << "\n";
+}
+*/
+
+                           }
+                      }
+                 }
+/*
+static Video_Win aW=Video_Win::WStd(Pt2di(1200,800),1.0);
+TIm2D<REAL4,REAL8> aImEpi(aVIm[0]);
+ELISE_COPY(aImEpi._the_im.all_pts(), mod(aImEpi._the_im.in()/10,256),aW.ogray()); 
+getchar();
+*/
+
+                 ELISE_COPY
+                 (
+                     rectangle(aP0Epi,aP0Epi+aSzBloc),
+                     Tronque(aTifEpi.type_el(),trans(StdInput(aVImEpi),-aP0Epi)),
+                     aTifEpi.out()
+                 );
 
 
-                 DeleteAndClear(aVIm);
+
              }
+
+             std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
          }
     }
 }
