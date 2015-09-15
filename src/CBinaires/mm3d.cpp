@@ -214,12 +214,20 @@ extern int  CPP_CmpOriCam_main(int argc, char** argv);
 extern int CPP_ConvertBundleGen(int argc,char ** argv);
 
 
+int TiePMS_main(int argc,char ** argv);
+int TiePLine_main(int argc,char ** argv);
+int TiePAll_main(int argc,char ** argv);
+
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
+       aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
+       aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
 
        aRes.push_back(cMMCom("Ann",Ann_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("AperiCloud",AperiCloud_main," Visualization of camera in ply file",cArgLogCom(2)));
