@@ -1,3 +1,7 @@
+Nettoyage finale ortho a qq pixel pres
+SFS en mode ligne de commande par @
+
+==========================
 
 SBGlobAscule => OK si pas de plan (seulement mise a l'echelle), ou pas de line
 ===================

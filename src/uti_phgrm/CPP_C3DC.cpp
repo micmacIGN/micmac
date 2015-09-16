@@ -129,10 +129,13 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 {
 
 
-#if(ELISE_QT_VERSION >= 4)
+#if (ELISE_QT_VERSION >= 4)
 
     if (MMVisualMode)
     {
+/*
+// MPD : je comprends pas a quoi cela sert, et cela fait planter, sur les tests cela
+// marche  sans
         QApplication app(argc, argv);
 
         LArgMain LAM;
@@ -167,6 +170,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
             return;
 
         ReadType(mStrType);
+*/
     }
     else
     {

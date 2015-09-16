@@ -558,6 +558,11 @@ void cAppliApero::ExportRepereLoc(const cExportRepereLoc & anERL)
 
            aVX = aHorInPl;
            aVY = aVertInPl;
+           if (anERL.P1P2HorYVert().Val())
+           {
+              aVY = Pt3dr(0,0,1);
+              aVZ = aVX ^ aVY;
+           }
     }
     else if (aNameP1P2 != "NoP1P2")
     {

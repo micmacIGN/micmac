@@ -5282,6 +5282,9 @@ class cExportRepereLoc
         cTplValGesInit< bool > & P1P2Hor();
         const cTplValGesInit< bool > & P1P2Hor()const ;
 
+        cTplValGesInit< bool > & P1P2HorYVert();
+        const cTplValGesInit< bool > & P1P2HorYVert()const ;
+
         cTplValGesInit< bool > & UseIt();
         const cTplValGesInit< bool > & UseIt()const ;
 
@@ -5307,6 +5310,7 @@ class cExportRepereLoc
         cTplValGesInit< Pt2dr > mOrigine;
         cTplValGesInit< std::string > mNameImOri;
         cTplValGesInit< bool > mP1P2Hor;
+        cTplValGesInit< bool > mP1P2HorYVert;
         cTplValGesInit< cExportOrthoCyl > mExportOrthoCyl;
 };
 cElXMLTree * ToXMLTree(const cExportRepereLoc &);

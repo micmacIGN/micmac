@@ -1425,6 +1425,7 @@ normalises en echelle et/ou en translation -->
                           <NameImOri Nb="?" Type="std::string"> </NameImOri>
                           <!-- Si true P1P2 est la direction du plan qui est horizontale-->
                           <P1P2Hor Nb="?" Type="bool" Def="false"> </P1P2Hor>
+                          <P1P2HorYVert Nb="?" Type="bool" Def="false"> </P1P2HorYVert>
                           <ExportOrthoCyl Nb="?">
                                <UseIt Nb="?" Type="bool" Def="true"></UseIt>
                                <PatternEstimAxe Nb="?" Type="std::string"> </PatternEstimAxe>
