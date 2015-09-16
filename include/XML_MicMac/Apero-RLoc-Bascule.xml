@@ -14,6 +14,7 @@
             <Symb>  PostMasq=XXX_MasqPlanFace2 </Symb>
             <Symb>  Ext=dat                </Symb>
             <Symb>  P1P2Hor=false                </Symb>
+            <Symb>  P1P2HorVertY=false                </Symb>
 
 
        </DicoLoc>
@@ -123,6 +124,7 @@
                               </Pond>
                          </EstimPlanHor>
                          <P1P2Hor> ${P1P2Hor} </P1P2Hor>
+                         <P1P2HorYVert> ${P1P2HorVertY} </P1P2HorYVert>
                          <P1>123456.000000  -8765432.000000</P1>
                          <P2>123456.000000  -8765432.000000</P2>
                          <AxeDef>1.000000  0.000000</AxeDef>

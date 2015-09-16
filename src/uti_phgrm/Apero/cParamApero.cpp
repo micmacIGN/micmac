@@ -19193,6 +19193,17 @@ const cTplValGesInit< bool > & cExportRepereLoc::P1P2Hor()const
 }
 
 
+cTplValGesInit< bool > & cExportRepereLoc::P1P2HorYVert()
+{
+   return mP1P2HorYVert;
+}
+
+const cTplValGesInit< bool > & cExportRepereLoc::P1P2HorYVert()const 
+{
+   return mP1P2HorYVert;
+}
+
+
 cTplValGesInit< bool > & cExportRepereLoc::UseIt()
 {
    return ExportOrthoCyl().Val().UseIt();
@@ -19297,6 +19308,14 @@ void  BinaryUnDumpFromFile(cExportRepereLoc & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.P1P2HorYVert().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.P1P2HorYVert().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.P1P2HorYVert().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.ExportOrthoCyl().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.ExportOrthoCyl().ValForcedForUnUmp(),aFp);
         }
@@ -19321,6 +19340,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cExportRepereLoc & anObj)
     if (anObj.NameImOri().IsInit()) BinaryDumpInFile(aFp,anObj.NameImOri().Val());
     BinaryDumpInFile(aFp,anObj.P1P2Hor().IsInit());
     if (anObj.P1P2Hor().IsInit()) BinaryDumpInFile(aFp,anObj.P1P2Hor().Val());
+    BinaryDumpInFile(aFp,anObj.P1P2HorYVert().IsInit());
+    if (anObj.P1P2HorYVert().IsInit()) BinaryDumpInFile(aFp,anObj.P1P2HorYVert().Val());
     BinaryDumpInFile(aFp,anObj.ExportOrthoCyl().IsInit());
     if (anObj.ExportOrthoCyl().IsInit()) BinaryDumpInFile(aFp,anObj.ExportOrthoCyl().Val());
 }
@@ -19344,6 +19365,8 @@ cElXMLTree * ToXMLTree(const cExportRepereLoc & anObj)
       aRes->AddFils(::ToXMLTree(std::string("NameImOri"),anObj.NameImOri().Val())->ReTagThis("NameImOri"));
    if (anObj.P1P2Hor().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("P1P2Hor"),anObj.P1P2Hor().Val())->ReTagThis("P1P2Hor"));
+   if (anObj.P1P2HorYVert().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("P1P2HorYVert"),anObj.P1P2HorYVert().Val())->ReTagThis("P1P2HorYVert"));
    if (anObj.ExportOrthoCyl().IsInit())
       aRes->AddFils(ToXMLTree(anObj.ExportOrthoCyl().Val())->ReTagThis("ExportOrthoCyl"));
   aRes->mGXml = anObj.mGXml;
@@ -19376,10 +19399,12 @@ void xml_init(cExportRepereLoc & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.P1P2Hor(),aTree->Get("P1P2Hor",1),bool(false)); //tototo 
 
+   xml_init(anObj.P1P2HorYVert(),aTree->Get("P1P2HorYVert",1),bool(false)); //tototo 
+
    xml_init(anObj.ExportOrthoCyl(),aTree->Get("ExportOrthoCyl",1)); //tototo 
 }
 
-std::string  Mangling( cExportRepereLoc *) {return "88F8722F90367AB3FCBF";};
+std::string  Mangling( cExportRepereLoc *) {return "5DB9ACD2721B5E88FE3F";};
 
 
 std::string & cExportBlockCamera::Id()
@@ -22652,7 +22677,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportResiduXml(),aTree->Get("ExportResiduXml",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "4EB2AEA5129629C6FE3F";};
+std::string  Mangling( cSectionExport *) {return "22F4B44FC2FCE08AFE3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -23394,7 +23419,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "D940AF8092A541F0FC3F";};
+std::string  Mangling( cEtapeCompensation *) {return "8BF8E722B5EDB1D3FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -23453,7 +23478,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "48B2CE88A91DEADCFC3F";};
+std::string  Mangling( cSectionCompensation *) {return "F02E3E329777C0B8FABF";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -24442,7 +24467,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "98666FA54B4220BFFD3F";};
+std::string  Mangling( cParamApero *) {return "4C29F6FECF5C4B81FE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

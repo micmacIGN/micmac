@@ -59,13 +59,14 @@ int RepLocBascule_main(int argc,char ** argv)
     std::string PostPlan="_Masq";
     bool OrthoCyl = false;
     bool P1P2Hor = false;
+    bool P1P2HorVertY = false;
 
     ElInitArgMain
     (
     argc,argv,
     LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile )
                     << EAMC(AeroIn,"Input orientation", eSAM_IsExistDirOri)
-                    << EAMC(FileMesures,"Image measures xml file, set \"HOR\" if horizontal line is wanted, \"NONE\" if unused ", eSAM_IsExistFile)
+                    << EAMC(FileMesures,"Image measures xml file, set \"HOR\" if horizontal line is wanted (HORVy if Y vertical), \"NONE\" if unused ", eSAM_IsExistFile)
                     << EAMC(RepereOut,"Output xml file", eSAM_IsOutputFile),
     LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true,"Are tie points in ascii mode ? (Def=false)")
@@ -73,7 +74,8 @@ int RepLocBascule_main(int argc,char ** argv)
                     << EAM(OrthoCyl,"OrthoCyl",true,"Is the coordinate system in ortho-cylindric mode?")
 
     );
-    P1P2Hor = (FileMesures=="HOR");
+    P1P2Hor = ((FileMesures=="HOR") || (FileMesures=="HORVy"));
+    P1P2HorVertY =  (FileMesures=="HORVy");
     if (FileMesures=="NONE") FileMesures= "NoP1P2";
 
     #if (ELISE_windows)
@@ -106,6 +108,7 @@ int RepLocBascule_main(int argc,char ** argv)
                     ;
 
    if (P1P2Hor) aCom = aCom + " +P1P2Hor=true";
+   if (P1P2HorVertY) aCom = aCom + " +P1P2HorVertY=true";
 
 
 
