@@ -44,7 +44,7 @@ void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
 
 //do matching in push-broom and pick salient points
-int TestER_main6(int argc,char ** argv)
+int TestER_main(int argc,char ** argv)
 {
     std::string aDirTmp = "Tmp-TIL", aPrefixName = "_TIL_";
     std::string aTmp;
@@ -56,7 +56,7 @@ int TestER_main6(int argc,char ** argv)
     int aK1,aK2;
     int aZoomF=32;
  
-    Pt2di aImTilSz(3500,2000), aImTilSzTmp;
+    Pt2di aImTilSz(10000,9000), aImTilSzTmp;
     Pt2di aImTilGrid(0,0);
 
     GenIm::type_el aTypeOut = GenIm::u_int1;
@@ -312,7 +312,7 @@ int TestER_main6(int argc,char ** argv)
     
     std::cout << aTapRun << "\n"; 
     
-    System(aTapRun,true);
+//    System(aTapRun,true);
 
     return EXIT_SUCCESS;
 }
@@ -387,7 +387,7 @@ int TestER_main5(int argc,char ** argv)
 }
 
 //test OpticalCenterOfPixel
-int TestER_main(int argc,char ** argv)
+int TestER_main100(int argc,char ** argv)
 {
     std::string aFullName;
     std::string aDir;
