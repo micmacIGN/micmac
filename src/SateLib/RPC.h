@@ -277,6 +277,8 @@ public:
         void ReadDimap(std::string const &filename);
         void WriteAirbusRPC(std::string aFileOut);
 	void ReconstructValidity();
+	void ReconstructValidity2D();
+	void ReconstructValidity3D();
 
         //For DigitalGlobe data
         void ReadRPB(std::string const &filename);

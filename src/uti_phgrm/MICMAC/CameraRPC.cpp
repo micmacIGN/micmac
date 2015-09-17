@@ -128,7 +128,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    if (aType==eTIGB_MMDimap2)
    {
        mRPC->ReadDimap(aNameFile);
-       mRPC->ReconstructValidity();
+       mRPC->ReconstructValidity3D();
    }
    else if(aType==eTIGB_MMDimap1)
    {
@@ -182,7 +182,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     if(aType==eTIGB_MMDimap2)
     {
         mRPC->ReadDimap(aNameFile);
-        mRPC->ReconstructValidity();	
+        mRPC->ReconstructValidity3D();	
     }
     else if(aType==eTIGB_MMDGlobe)
     {
@@ -213,7 +213,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     //if(mCS == "")
     //    FindUTMCS();
 
-    mRPC->info();
+    //mRPC->info();
 }
 
 cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType)

@@ -856,18 +856,26 @@ void RPC::WriteAirbusRPC(std::string aFileOut)
 
 void RPC::ReconstructValidity()
 {
-    first_row = -1 * line_scale + line_off;
-    first_col = -1 * samp_scale + samp_off;
-    last_row = 1 * line_scale + line_off;
-    last_col = 1 * samp_scale + samp_off;
+    ReconstructValidity2D();
+    ReconstructValidity3D();
+}
 
+void RPC::ReconstructValidity2D()
+{
+   first_row = -1 * line_scale + line_off;
+   first_col = -1 * samp_scale + samp_off;
+   last_row = 1 * line_scale + line_off;
+   last_col = 1 * samp_scale + samp_off;
+}
+
+void RPC::ReconstructValidity3D()
+{
     first_lon = -1 * long_scale + long_off;
     first_lat = -1 * lat_scale + lat_off;
     first_height = -1 * height_scale + height_off;
     last_lon = 1 * long_scale + long_off;
     last_lat = 1 * lat_scale + lat_off;
     last_height = 1 * height_scale + height_off;
-
 }
 
 void RPC::Validity2Dto3D(RPC2D aRPC2D)
