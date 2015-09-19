@@ -115,6 +115,11 @@ void cAppli_Casa::AddNuage2Surf
      )
 {
    std::string aNameNuage = mDC+aNBI.NameXMLNuage();
+   if (  (!ELISE_fp::exist_file(aNameNuage)) && ELISE_fp::exist_file(aNBI.NameXMLNuage()))
+       aNameNuage = aNBI.NameXMLNuage();
+
+
+
    std::string  aNameMask = "";
    if (aNBI.NameMasqSup().IsInit())
      aNameMask = mDC+aNBI.NameMasqSup().Val();

@@ -1110,7 +1110,10 @@ class cArgMainTieP
 
 
 cArgMainTieP::cArgMainTieP(int argc,char ** argv,const std::string & aNameCom) :
-    mNameCom (aNameCom)
+    mNameCom (aNameCom),
+    mExpTxt  (false),
+    mByP     (-1),
+    mPostFix ("")
 {
     mComObl  << EAMC(mFullDir,"Full Name (Dir+Pat)", eSAM_IsPatFile)
     ;

@@ -1463,6 +1463,7 @@ double cElNuage3DMaille::ProfOfIndexInterpol(const Pt2dr & aPR) const
 
 // Pt2di aPBUG(586,422);
 
+
 class cBasculeNuage : public cZBuffer
 {
      public :
@@ -1496,6 +1497,7 @@ class cBasculeNuage : public cZBuffer
 
         Pt3dr ProjTerrain(const Pt3dr & aP) const
         {
+
            return mDest->Euclid2ProfAndIndex(mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),aP.z));
         }
         double ZofXY(const Pt2di & aP)   const
@@ -1808,7 +1810,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 
         //  aICor = Im2D_U_INT1::FromFileStd(aNameCor);
         aVAttrIm.push_back(&aICor);
-        // std::cout << "COrrrrr " << aICor.sz() << "\n"; getchar();
         aNameCor = NameWithoutDir(aNameRes)+ "_Correl.tif";
 
         aGeomOut.Image_Profondeur().Val().Correl().SetVal(aNameCor);
@@ -1860,7 +1861,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        Pt2di aP;
        double aSeuil = anArgBasc.mSeuilEtir;
 // aSeuil = 0.9;
-// std::cout << "SEUIILLL " << aSeuil << "\n";
        double aDynSeuil = 0.5 / ElMax(aSeuil,1-aSeuil);
 
 
@@ -1877,7 +1877,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
        Im2D_Bits<1> aSol = anOLB->Sol();
        int aOk;
        ELISE_COPY(aSol.all_pts(),aSol.in(),sigma(aOk));
-       // std::cout << "NB OK " << aOk << "\n";
 
 
        ELISE_COPY

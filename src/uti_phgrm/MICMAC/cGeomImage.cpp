@@ -276,7 +276,6 @@ void cGeomImage::RemplitOriXMLNuage
 
 
 
-
    aNuage.PM3D_ParamSpecifs().NoParamSpecif().SetNoInit();
    cModeFaisceauxImage aMFI;
    aMFI.ZIsInverse() = false;
@@ -290,6 +289,16 @@ void cGeomImage::RemplitOriXMLNuage
    bool aZUP = false;
    ElCamera * aCam = GetCamera(aGT.SzDz(),ToDel,aZUP);
 
+
+
+
+/*
+if (MPD_MM())
+{
+   std::cout << "FilllXMLLl " << aCam->IsGrid() << "\n";
+   getchar();
+}
+*/
 
    Pt2dr anOrigine,aResol;
    aGT.SetOriResolPlani(anOrigine,aResol);
@@ -2708,14 +2717,6 @@ if (1)
           aRatio[0] = aCDNE* (mOri->ResolutionAngulaire() / euclid(aC1-aC2));
 
 
-         // std::cout << "GRRAP " << mOri->ResolutionAngulaire() << " " << euclid(aC1-aC2) << " " << mOri->Focale() << "\n";
-
-// std::cout << "HHHH:GetRatioResolAltiPlani " << aRatio[0] << " CDNE " << aCDNE << "\n";
-// std::cout << "HHHH:RA  " << mOri->ResolutionAngulaire() << " FFFFF " << 1/mOri->Focale() << "\n";
-
-
-// std::cout << "HHHhhhhhhhhhhhhhhhhhhhhhhhhh " << aRatio[0] << " " << aC1 << aC2 << "\n";
-// std::cout << "XXxxx " << aCDNE << " " << mOri->ResolutionAngulaire() << " " <<  euclid(aC1-aC2) << "\n";
           for (int aK=1 ; aK<mDimPx ; aK++)
               aRatio[aK] = 1.0;
 

@@ -240,6 +240,7 @@ Im2D_REAL4 cZBuffer::Basculer
                       Pt3dr aDerY = (ProjDisc(aPMed+Pt3dr(0,1,0)) - ProjDisc(aPMed+Pt3dr(0,-1,0))) / 2.0;
 
                       ElMatrix<double> aJac =  MatFromCol(Pt2dr(aDerX.x,aDerX.y),Pt2dr(aDerY.x,aDerY.y));
+
                       aJac = gaussj(aJac);
                       mTImDef_00.oset(anIndexDef,aJac(0,0));
                       mTImDef_10.oset(anIndexDef,aJac(1,0));
@@ -586,6 +587,7 @@ Pt3dr cZBuffer::ProjDisc(const Pt3dr & aPInDisc) const
 	 );
 
    Pt3dr aPOutTer = ProjTerrain(aPInTer);
+
 
    return Pt3dr
           (

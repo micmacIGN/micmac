@@ -226,6 +226,7 @@ void cOneChanel::InitParamGeom
 
   mGridToFusionSpace =  new cDbleGrid
                         (
+                            true, // P0P1IsBoxDirect, maintient du comportement actuel ? A priroi les grille de Dist Bayer sont faibles
                             true,
                             Pt2dr(0,0),
                             Pt2dr(mSz),

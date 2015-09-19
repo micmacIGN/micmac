@@ -330,6 +330,11 @@ if (MPD_MM())\
       getchar();\
 }
 
+#define MPD_MM_MES(aMes)\
+if (MPD_MM())\
+{\
+      std::cout << " At " << __LINE__ << " " << aMes <<  "  , file= " << __FILE__ << "\n"; \
+}
 
 
 

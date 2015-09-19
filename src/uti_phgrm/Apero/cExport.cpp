@@ -161,6 +161,7 @@ void cAppliApero::ExportCalib(const cExportCalib & anEC)
                Pt2dr aStep = anEAG.Step().Val();
                cDbleGrid aGr
                          (
+                              false, // P0P1 Direct non par defaut M->C
                               true,
                               Pt2dr(0,0)-aRab,
                               Pt2dr(aCS->Sz())+aRab,

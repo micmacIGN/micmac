@@ -1144,6 +1144,8 @@
            <FMNTGammaCorrel Nb="1" Type="double"> </FMNTGammaCorrel>
            <KeyPdsNuage Nb="?" Type="std::string"> </KeyPdsNuage>
 
+           <SzBoucheTrou Nb="?" Type="int"> </SzBoucheTrou>
+
            <SpecAlgoFMNT Nb="1">
                 <SigmaPds  Type="double" Nb="1"> </SigmaPds>
                 <SigmaZ    Type="double" Nb="?"> </SigmaZ> <!-- Par defaut SigmaZ=SigmaPds -->
@@ -1194,6 +1196,7 @@
              <InterneSingleBox Nb="?" Type="int" Def="-1"> </InterneSingleBox>
              <WorkDirPFM Nb="?" Type="std::string"> </WorkDirPFM>
              <BoxTest Nb="?" Type="Box2di"> </BoxTest>
+             <ShowCom Nb="?" Type="bool" Def="false"> </ShowCom>
        </SectionGestionChantier>
 
 

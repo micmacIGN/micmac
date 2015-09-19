@@ -16717,6 +16717,17 @@ const cTplValGesInit< std::string > & cParamAlgoFusionMNT::KeyPdsNuage()const
 }
 
 
+cTplValGesInit< int > & cParamAlgoFusionMNT::SzBoucheTrou()
+{
+   return mSzBoucheTrou;
+}
+
+const cTplValGesInit< int > & cParamAlgoFusionMNT::SzBoucheTrou()const 
+{
+   return mSzBoucheTrou;
+}
+
+
 double & cParamAlgoFusionMNT::SigmaPds()
 {
    return SpecAlgoFMNT().SigmaPds();
@@ -16915,6 +16926,14 @@ void  BinaryUnDumpFromFile(cParamAlgoFusionMNT & anObj,ELISE_fp & aFp)
         }
         else  anObj.KeyPdsNuage().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SzBoucheTrou().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SzBoucheTrou().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SzBoucheTrou().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.SpecAlgoFMNT(),aFp);
 }
 
@@ -16924,6 +16943,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cParamAlgoFusionMNT & anObj)
     BinaryDumpInFile(aFp,anObj.FMNTGammaCorrel());
     BinaryDumpInFile(aFp,anObj.KeyPdsNuage().IsInit());
     if (anObj.KeyPdsNuage().IsInit()) BinaryDumpInFile(aFp,anObj.KeyPdsNuage().Val());
+    BinaryDumpInFile(aFp,anObj.SzBoucheTrou().IsInit());
+    if (anObj.SzBoucheTrou().IsInit()) BinaryDumpInFile(aFp,anObj.SzBoucheTrou().Val());
     BinaryDumpInFile(aFp,anObj.SpecAlgoFMNT());
 }
 
@@ -16935,6 +16956,8 @@ cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT & anObj)
    aRes->AddFils(::ToXMLTree(std::string("FMNTGammaCorrel"),anObj.FMNTGammaCorrel())->ReTagThis("FMNTGammaCorrel"));
    if (anObj.KeyPdsNuage().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("KeyPdsNuage"),anObj.KeyPdsNuage().Val())->ReTagThis("KeyPdsNuage"));
+   if (anObj.SzBoucheTrou().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SzBoucheTrou"),anObj.SzBoucheTrou().Val())->ReTagThis("SzBoucheTrou"));
    aRes->AddFils(ToXMLTree(anObj.SpecAlgoFMNT())->ReTagThis("SpecAlgoFMNT"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -16952,10 +16975,12 @@ void xml_init(cParamAlgoFusionMNT & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.KeyPdsNuage(),aTree->Get("KeyPdsNuage",1)); //tototo 
 
+   xml_init(anObj.SzBoucheTrou(),aTree->Get("SzBoucheTrou",1)); //tototo 
+
    xml_init(anObj.SpecAlgoFMNT(),aTree->Get("SpecAlgoFMNT",1)); //tototo 
 }
 
-std::string  Mangling( cParamAlgoFusionMNT *) {return "3F5C215C4F33F5F3FE3F";};
+std::string  Mangling( cParamAlgoFusionMNT *) {return "B3A286A59D50A8C5FE3F";};
 
 
 cTplValGesInit< int > & cSectionGestionChantier::SzDalles()
@@ -17056,6 +17081,17 @@ const cTplValGesInit< Box2di > & cSectionGestionChantier::BoxTest()const
    return mBoxTest;
 }
 
+
+cTplValGesInit< bool > & cSectionGestionChantier::ShowCom()
+{
+   return mShowCom;
+}
+
+const cTplValGesInit< bool > & cSectionGestionChantier::ShowCom()const 
+{
+   return mShowCom;
+}
+
 void  BinaryUnDumpFromFile(cSectionGestionChantier & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -17130,6 +17166,14 @@ void  BinaryUnDumpFromFile(cSectionGestionChantier & anObj,ELISE_fp & aFp)
         }
         else  anObj.BoxTest().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ShowCom().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ShowCom().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ShowCom().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionGestionChantier & anObj)
@@ -17152,6 +17196,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionGestionChantier & anObj)
     if (anObj.WorkDirPFM().IsInit()) BinaryDumpInFile(aFp,anObj.WorkDirPFM().Val());
     BinaryDumpInFile(aFp,anObj.BoxTest().IsInit());
     if (anObj.BoxTest().IsInit()) BinaryDumpInFile(aFp,anObj.BoxTest().Val());
+    BinaryDumpInFile(aFp,anObj.ShowCom().IsInit());
+    if (anObj.ShowCom().IsInit()) BinaryDumpInFile(aFp,anObj.ShowCom().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
@@ -17176,6 +17222,8 @@ cElXMLTree * ToXMLTree(const cSectionGestionChantier & anObj)
       aRes->AddFils(::ToXMLTree(std::string("WorkDirPFM"),anObj.WorkDirPFM().Val())->ReTagThis("WorkDirPFM"));
    if (anObj.BoxTest().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("BoxTest"),anObj.BoxTest().Val())->ReTagThis("BoxTest"));
+   if (anObj.ShowCom().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ShowCom"),anObj.ShowCom().Val())->ReTagThis("ShowCom"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -17203,9 +17251,11 @@ void xml_init(cSectionGestionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.WorkDirPFM(),aTree->Get("WorkDirPFM",1)); //tototo 
 
    xml_init(anObj.BoxTest(),aTree->Get("BoxTest",1)); //tototo 
+
+   xml_init(anObj.ShowCom(),aTree->Get("ShowCom",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cSectionGestionChantier *) {return "9CEFA3D91C2089A3FD3F";};
+std::string  Mangling( cSectionGestionChantier *) {return "C2F6DB6CBF8A78AEFE3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamFusionMNT::DicoLoc()
@@ -17414,6 +17464,17 @@ cTplValGesInit< std::string > & cParamFusionMNT::KeyPdsNuage()
 const cTplValGesInit< std::string > & cParamFusionMNT::KeyPdsNuage()const 
 {
    return ParamAlgoFusionMNT().KeyPdsNuage();
+}
+
+
+cTplValGesInit< int > & cParamFusionMNT::SzBoucheTrou()
+{
+   return ParamAlgoFusionMNT().SzBoucheTrou();
+}
+
+const cTplValGesInit< int > & cParamFusionMNT::SzBoucheTrou()const 
+{
+   return ParamAlgoFusionMNT().SzBoucheTrou();
 }
 
 
@@ -17736,6 +17797,17 @@ const cTplValGesInit< Box2di > & cParamFusionMNT::BoxTest()const
 }
 
 
+cTplValGesInit< bool > & cParamFusionMNT::ShowCom()
+{
+   return SectionGestionChantier().ShowCom();
+}
+
+const cTplValGesInit< bool > & cParamFusionMNT::ShowCom()const 
+{
+   return SectionGestionChantier().ShowCom();
+}
+
+
 cSectionGestionChantier & cParamFusionMNT::SectionGestionChantier()
 {
    return mSectionGestionChantier;
@@ -17822,7 +17894,7 @@ void xml_init(cParamFusionMNT & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionGestionChantier(),aTree->Get("SectionGestionChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamFusionMNT *) {return "F48E4A71D646A1D8FD3F";};
+std::string  Mangling( cParamFusionMNT *) {return "CB018744234495A3FC3F";};
 
 
 cTplValGesInit< Pt2di > & cPFNMiseAuPoint::SzVisu()

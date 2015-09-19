@@ -272,6 +272,7 @@ bool UseICNM(cParamMICMAC & aParam)
 
 
 
+
      //   cAppliMICMAC::cAppliMICMAC  
      
 cAppliMICMAC::cAppliMICMAC
@@ -493,7 +494,6 @@ cAppliMICMAC::cAppliMICMAC
 
    VerifImages();
 
-   // InitMecComp();
 
 /*
    if (FCND_CalcHomFromI1I2().IsInit())

@@ -5039,6 +5039,9 @@ class cParamAlgoFusionMNT
         cTplValGesInit< std::string > & KeyPdsNuage();
         const cTplValGesInit< std::string > & KeyPdsNuage()const ;
 
+        cTplValGesInit< int > & SzBoucheTrou();
+        const cTplValGesInit< int > & SzBoucheTrou()const ;
+
         double & SigmaPds();
         const double & SigmaPds()const ;
 
@@ -5093,6 +5096,7 @@ class cParamAlgoFusionMNT
         double mFMNTSeuilCorrel;
         double mFMNTGammaCorrel;
         cTplValGesInit< std::string > mKeyPdsNuage;
+        cTplValGesInit< int > mSzBoucheTrou;
         cSpecAlgoFMNT mSpecAlgoFMNT;
 };
 cElXMLTree * ToXMLTree(const cParamAlgoFusionMNT &);
@@ -5140,6 +5144,9 @@ class cSectionGestionChantier
 
         cTplValGesInit< Box2di > & BoxTest();
         const cTplValGesInit< Box2di > & BoxTest()const ;
+
+        cTplValGesInit< bool > & ShowCom();
+        const cTplValGesInit< bool > & ShowCom()const ;
     private:
         cTplValGesInit< int > mSzDalles;
         cTplValGesInit< int > mRecouvrtDalles;
@@ -5150,6 +5157,7 @@ class cSectionGestionChantier
         cTplValGesInit< int > mInterneSingleBox;
         cTplValGesInit< std::string > mWorkDirPFM;
         cTplValGesInit< Box2di > mBoxTest;
+        cTplValGesInit< bool > mShowCom;
 };
 cElXMLTree * ToXMLTree(const cSectionGestionChantier &);
 
@@ -5226,6 +5234,9 @@ class cParamFusionMNT
 
         cTplValGesInit< std::string > & KeyPdsNuage();
         const cTplValGesInit< std::string > & KeyPdsNuage()const ;
+
+        cTplValGesInit< int > & SzBoucheTrou();
+        const cTplValGesInit< int > & SzBoucheTrou()const ;
 
         double & SigmaPds();
         const double & SigmaPds()const ;
@@ -5313,6 +5324,9 @@ class cParamFusionMNT
 
         cTplValGesInit< Box2di > & BoxTest();
         const cTplValGesInit< Box2di > & BoxTest()const ;
+
+        cTplValGesInit< bool > & ShowCom();
+        const cTplValGesInit< bool > & ShowCom()const ;
 
         cSectionGestionChantier & SectionGestionChantier();
         const cSectionGestionChantier & SectionGestionChantier()const ;

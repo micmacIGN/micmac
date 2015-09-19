@@ -2437,7 +2437,7 @@ class cDistCamStenopeGrid : public ElDistortion22_Gen
        virtual bool OwnInverse(Pt2dr &) const ;    //  return true
 
        // Si RayonInv <=0 pas utilise
-       static cDistCamStenopeGrid * Alloc(double aRayInv,const CamStenope &,Pt2dr aStepGr,bool doDir=true,bool doInv=true);
+       static cDistCamStenopeGrid * Alloc(bool P0P1IsBoxDirect,double aRayInv,const CamStenope &,Pt2dr aStepGr,bool doDir=true,bool doInv=true);
 
        cDistCamStenopeGrid
        (
@@ -2912,6 +2912,7 @@ class cDbleGrid : public ElDistortion22_Gen
 
          cDbleGrid
          (
+            bool P0P1IsBoxDirect,
          bool AdaptStep,
              Pt2dr aP0,Pt2dr aP1,
              Pt2dr               aStep,

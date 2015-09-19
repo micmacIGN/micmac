@@ -1795,6 +1795,7 @@ void cEtapeMecComp::DoRemplitXMLNuage() const
 
 cXML_ParamNuage3DMaille cEtapeMecComp::DoRemplitXML_MTD_Nuage() const
 {
+
    // Prudence pour la generation systematique, ce ne doit pas
    // fonctionner avec toutes les geometries
 

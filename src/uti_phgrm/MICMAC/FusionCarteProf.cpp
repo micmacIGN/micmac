@@ -1014,6 +1014,11 @@ template <class Type> void cFusionCarteProf<Type>::DoOneFusion(const std::string
                                   + std::string(" InterneSingleImage=") +  anId
                                   + std::string(" InterneSingleBox=") + ToString(aKI);
                   mListCom.push_back(aNewCom);
+
+                  if (mParam.ShowCom().Val()) 
+                  {
+                      std::cout << aNewCom << "\n";
+                  }
              }
              else
              {
@@ -1308,6 +1313,7 @@ if (aPk.P()>MaxP)
        }
    }
 
+   Im2D_Bits<1> aImMasq0 = aImMasq;
    if (mParam.ParamRegProf().IsInit())
    {
        aImMasq = FiltreDetecRegulProf(aImFus,aImMasq,mParam.ParamRegProf().Val());
@@ -1322,6 +1328,9 @@ if (aPk.P()>MaxP)
         TIm2DBits<1>       aTIm1(aIm1);
         ComplKLipsParLBas (aImMasq, aIm1,aImFus,1.0);
    }
+   // Une fois que l'on a detecte les zone a pb potentiel et leur a affecte une valeur par extrapolation
+   // on les remet en NDG STD afin de boucher les trous d'orthos
+   aImMasq = aImMasq0;
 
 
 

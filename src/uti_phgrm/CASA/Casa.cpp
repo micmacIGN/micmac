@@ -122,11 +122,12 @@ int CASA_main(int argc,char ** argv)
          aCom = aCom + " +Pts=" + aVPts[0] + " +PtsOri=" + aVPts[1] + " +UsePts=true" ;
      }
 
+
      System(aCom);
 
      Casa_Banniere();
 
-     return 1;
+     return EXIT_SUCCESS;
 }
 /*
 */

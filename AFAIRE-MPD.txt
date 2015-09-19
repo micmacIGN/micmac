@@ -1,7 +1,9 @@
 Nettoyage finale ortho a qq pixel pres
 SFS en mode ligne de commande par @
+Axe force pour un cylindre.
 
 ==========================
+Pourquoi RadialStd donne 5 degre de liberte R3-R11 ??? => NON ce'st DistInv qui est trompeuse !!
 
 SBGlobAscule => OK si pas de plan (seulement mise a l'echelle), ou pas de line
 ===================

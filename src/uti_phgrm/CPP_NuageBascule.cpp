@@ -284,7 +284,6 @@ int  NuageBascule_main(int argc,char ** argv)
                // std::cout << "DONNNe Topo " << aATP.OneZonXmlAMTB().size() << "\n"; 
                for (int aKA=0 ; aKA<argc; aKA++)
                {
-                   // std::cout << "AAA " << argv[aKA] << "\n";
                    std::string anArg = argv[aKA];
                    if (aKA==1)
                    {
@@ -333,7 +332,6 @@ int  NuageBascule_main(int argc,char ** argv)
             cDecoupageInterv2D aDecoup (aBoxInGlob,aSzDecoup,Box2di(-aPBrd,aPBrd));
 
 
-// std::cout << "AAA " << aSzDecoup << aBoxInGlob._p0 << aBoxInGlob._p1 << aDecoup.NbInterv() << "\n"; getchar();
 
             std::list<std::string> aLCom;
             std::vector<cBlockBasc *> mVBl;
@@ -591,7 +589,6 @@ int  NuageBascule_main(int argc,char ** argv)
 
          if (mDebug)
          {
-             //std::cout << "AAAAA\n";
          }
 
 

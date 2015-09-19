@@ -4233,12 +4233,13 @@ int XML_orlit_fictexte_orientation (const char *fic, or_orientation *ori,bool Qu
            double aDDiscr = ElMin(aDMinGrid,euclid(anOI.SzIm())/aNbGrid);
           ori->mCorrDistM2C = new cDbleGrid
                          (
-                      true,
-                      aBoxMonde._p0 - aRab,
+                                false,  // P0P1 DIrect : false car Monde 2 Cam
+                             true,
+                             aBoxMonde._p0 - aRab,
                               aBoxMonde._p1 + aRab,
-                  Pt2dr(aDDiscr,aDDiscr),
-                               aDFC  ,// aC2.mDistC2M,
-                  "toto"
+                              Pt2dr(aDDiscr,aDDiscr),
+                              aDFC  ,// aC2.mDistC2M,
+                              "toto"
                  );
      }
      else
@@ -4574,6 +4575,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 
          if (CanUseGr && (! aCS->IsGrid()))
          {
+// MPD_MM_BRK("GRID CREATEEEEE");
              Pt2dr aStepGr (20,20);
              if (aCIC.ParamForGrid().IsInit())
              {

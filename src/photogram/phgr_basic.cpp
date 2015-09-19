@@ -2313,30 +2313,9 @@ Pt2dr ElCamera::DistInverseSsComplem(Pt2dr aP) const
 
 Pt2dr ElCamera::DistInverse(Pt2dr aP) const
 {
+
     return DistInverseSsComplem(DComplC2M(aP));
-
-/*
-   aP = DComplC2M(aP);
-   aP= mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
-   return aP;
-*/
-/*
-   static int aCpt=0; aCpt++;
-   // std::cout << "aCPpppt " <<  aCpt << "\n";
-   bool Bug =    (aCpt==149927) || ((aCpt>=159927) && (aCpt<=159930));  //  Avec 1500
-   // bool Bug = (aCpt==242400) || ((aCpt>=252400) && (aCpt<=252403));  //  Avec -1
-   if (Bug)
-   {
-       NS_ParamChantierPhotogram::cOrientationConique  aCO = StdExportCalibGlob();
-       MakeFileXML(aCO,"Debug-"+ToString(aCpt) + ".xml");
-       std::cout << "EXPPPoort ElCamera::DistInverse\n";
-   }
-*/
-
 }
-
-// void ElCamera::SetDistInverse() { mDIsDirect=false; }
-// void ElCamera::SetDistDirecte() { mDIsDirect=true; }
 
 
 bool ElCamera::DistIsDirecte() const {return mDIsDirect;}
@@ -2687,7 +2666,6 @@ void ElCamera::F2toRayonL3(Pt2dr aPF2,Pt3dr &aP0,Pt3dr & aP1) const
 {
 
    Proj().Rayon(F2toC2(aPF2),aP0,aP1);
-
 }
 
 void ElCamera::F2toRayonR3(Pt2dr aPF2,Pt3dr &aP0,Pt3dr & aP1) const
@@ -2708,10 +2686,12 @@ Pt3dr  ElCamera::F2AndZtoR3(const Pt2dr & aPIm,double aZ) const
     return aQ0 + (aQ1-aQ0) * aLambda;
 }
 
+
 ElSeg3D ElCamera::F2toRayonR3(Pt2dr aPF2) const
 {
    Pt3dr  aQa,aQb;
    F2toRayonR3(aPF2,aQa,aQb);
+
    return ElSeg3D(aQa,aQb);
 }
 
@@ -3095,7 +3075,7 @@ std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,co
 cOrientationConique  ElCamera::StdExportCalibGlob(bool ModeMatr) const
 {
    // std::cout << "PROFONDEUR " << mProfondeur << "\n";
-   return ExportCalibGlob
+   cOrientationConique aRes = ExportCalibGlob
           (
                Sz(),
                mAltiSol,
@@ -3104,6 +3084,8 @@ cOrientationConique  ElCamera::StdExportCalibGlob(bool ModeMatr) const
                ModeMatr,
                "???hhh"
           );
+
+   return aRes;
 }
 
 
@@ -3215,7 +3197,10 @@ cOrientationConique  ElCamera::ExportCalibGlob
                          const Pt3di * aNbVeridDet
                       ) const
 {
+
    cCalibrationInternConique aCIC = ExportCalibInterne2XmlStruct(aSzIm);
+
+
    cOrientationExterneRigide anOER = From_Std_RAff_C2M(_orient.inv(),aModeMatr);
    anOER.AltiSol().SetVal(AltiSol);
    if (Prof >0)
@@ -4885,8 +4870,10 @@ cCamStenopeGrid * cCamStenopeGrid::Alloc
   Pt2dr  aSauvTr = aCS.TrCamNorm();
   const_cast<CamStenope &>(aCS).UnNormalize();
 
+
+
  cDistCamStenopeGrid * aDist =
-       cDistCamStenopeGrid::Alloc(aRayInv,aCS,aStepGr,doDir,doInv);
+       cDistCamStenopeGrid::Alloc(!aCS.DistIsDirecte(),aRayInv,aCS,aStepGr,doDir,doInv);
 
   cCamStenopeGrid * aRes =  new cCamStenopeGrid(aCS.Focale(),aCS.PP(),aDist,aCS.Sz(),aCS.ParamAF());
 
@@ -4897,9 +4884,6 @@ cCamStenopeGrid * cCamStenopeGrid::Alloc
   aRes->CamHeritGen(aCS,false,false);
 
   const_cast<CamStenope &>(aCS).StdNormalise(true,true,aSauvSc,aSauvTr);
-
-
-
 
   return aRes;
 }

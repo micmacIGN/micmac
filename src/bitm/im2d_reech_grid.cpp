@@ -841,6 +841,7 @@ cDbleGrid::cDbleGrid
  
 cDbleGrid::cDbleGrid
 (
+    bool P0P1IsBoxDirect,
     bool  AdaptStep,
     Pt2dr aP0In,Pt2dr aP1In,
     Pt2dr               aStepDir,
@@ -851,8 +852,9 @@ cDbleGrid::cDbleGrid
 )   :
     mName (aName)
 {
-    pGrDir = new PtImGrid(AdaptStep,aP0In,aP1In,aStepDir,mName+"_Directe");
-    Pt2di aSzGr = pGrDir->SzGrid();
+
+    PtImGrid * aGR1 = new PtImGrid(AdaptStep,aP0In,aP1In,aStepDir,mName+ (P0P1IsBoxDirect ? "_Directe" : "_Inverse"));
+    Pt2di aSzGr = aGR1->SzGrid();
 
     bool First = true;
     Pt2dr aP0Dist(1e9,1e9);
@@ -863,9 +865,9 @@ cDbleGrid::cDbleGrid
         for (INT aJ=0; aJ<aSzGr.y ; aJ++)
         {
             Pt2di aPIJ(aI,aJ);
-            Pt2dr aPR = pGrDir->ToReal(Pt2dr(aPIJ));
-            Pt2dr  aPDR = aDist.Direct(aPR);
-            pGrDir->SetValueGrid(aPIJ,aPDR);
+            Pt2dr aPR = aGR1->ToReal(Pt2dr(aPIJ));
+            Pt2dr  aPDR = P0P1IsBoxDirect ?  aDist.Direct(aPR) : aDist.Inverse(aPR) ;
+            aGR1->SetValueGrid(aPIJ,aPDR);
             if (First)
             {
                 aP0Dist = aPDR;
@@ -879,12 +881,9 @@ cDbleGrid::cDbleGrid
             }
         }
     }
-    if (!doDir)
-    {
-        delete pGrDir;
-        pGrDir = 0;
-    }
+
     
+    PtImGrid * aGR2 = 0;
     if (doInv)
     {
 
@@ -896,23 +895,28 @@ cDbleGrid::cDbleGrid
                        / (aSzGr.x*aSzGr.y)
                     );
     */
-       pGrInv = new PtImGrid(AdaptStep,aP0Dist,aP1Dist,aStepInv,aName+"_Inverse");
-       aSzGr = pGrInv->SzGrid();
+       aGR2 = new PtImGrid(AdaptStep,aP0Dist,aP1Dist,aStepInv,aName+ (P0P1IsBoxDirect ? "_Inverse" : "_Directe"));
+       aSzGr = aGR2->SzGrid();
 
        for (INT aI=0; aI<aSzGr.x ; aI++)
        {
            for (INT aJ=0; aJ<aSzGr.y ; aJ++)
 	   {
                Pt2di aPIJ(aI,aJ);
-               Pt2dr aPR = pGrInv->ToReal(Pt2dr(aPIJ));
-               Pt2dr  aPDR = aDist.Inverse(aPR);
-               pGrInv->SetValueGrid(aPIJ,aPDR);
+               Pt2dr aPR = aGR2->ToReal(Pt2dr(aPIJ));
+               Pt2dr  aPDR = P0P1IsBoxDirect?  aDist.Inverse(aPR) : aDist.Direct(aPR) ;
+               aGR2->SetValueGrid(aPIJ,aPDR);
 	   }
        }
     }
-    else
+
+    pGrDir  =  P0P1IsBoxDirect ? aGR1 : aGR2;
+    pGrInv  =  P0P1IsBoxDirect ? aGR2 : aGR1;
+
+    if (!doDir)
     {
-       pGrInv = 0;
+        delete pGrDir;
+        pGrDir = 0;
     }
 }
 
@@ -1055,6 +1059,7 @@ cDbleGrid *  cDbleGrid::StdGridPhotogram(const std::string & aNameFile,int aSzDi
 
         cDbleGrid * aRes = new cDbleGrid
                               (
+                                  false, // P0P1 Direct non par defaut M->C
 			          true,
 				  Pt2dr(0,0),Pt2dr(aCam->Sz()),
 				  Pt2dr(aSzDisc,aSzDisc),

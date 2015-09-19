@@ -1159,6 +1159,7 @@ void cModeleAnalytiqueComp::SolveHomographie(const ElPackHomologue &  aPackHom)
 
       cDbleGrid  aGrid
                  (
+                     true, // P0P1 Direct par defaut maintien du comp actuel
                      true,
                      aBox._p0,aBox._p1,
                      Pt2dr(aME,aME),

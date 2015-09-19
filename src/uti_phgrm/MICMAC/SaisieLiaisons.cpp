@@ -277,6 +277,7 @@ void MyBisCr::SauvGrille()
     double aStepG = mAppli.SL_Step_Grid().Val();
     cDbleGrid aDG
               (
+                   true, // P0P1 Direct non par defaut M->C
 	           true,
                    Pt2dr(0,0),Pt2dr(SzU()),
                    Pt2dr(aStepG,aStepG),

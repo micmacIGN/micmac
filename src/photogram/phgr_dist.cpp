@@ -195,6 +195,7 @@ ElDistortion22_Gen::~ElDistortion22_Gen()
 }
 extern bool BugNanFE;
 
+
 Pt2dr  ElDistortion22_Gen::ComputeInvFromDirByDiff
        (
                      Pt2dr aPt,
@@ -373,6 +374,7 @@ void  ElDistortion22_Gen::SetScalingTranslate(const double & aS,const Pt2dr &aTr
 
 Pt2dr ElDistortion22_Gen::Inverse(Pt2dr aP) const
 {
+
     if (OwnInverse(aP))
        return aP;
 
@@ -470,7 +472,8 @@ void ElDistortion22_Gen::SaveAsGrid
              const Pt2dr& aStep
      )
 {
-    cDbleGrid aDistGr(true,aP0,aP1,aStep,*this);
+    cDbleGrid aDistGr(true, // PAS TRES SUR, maintien de l'existant
+                      true,aP0,aP1,aStep,*this);
     aDistGr.SaveXML(aName);
 }
 
@@ -1709,6 +1712,7 @@ bool cDistCamStenopeGrid::OwnInverse(Pt2dr & aP) const
 
 cDistCamStenopeGrid * cDistCamStenopeGrid::Alloc
                       (
+                          bool P0P1IsBoxDirect,
                           double            aRayInv,
                           const CamStenope & aCS,
                           Pt2dr aStepGr,
@@ -1727,7 +1731,7 @@ cDistCamStenopeGrid * cDistCamStenopeGrid::Alloc
    ElDistortion22_Gen * aPreCond = aCS.DistPreCond();
    /// cDistCorrPC aDC(aRayInv,aPreCond,aCS);
 
-   double aRab = euclid(aCS.Sz()) * 0.03;
+   double aRab = euclid(aCS.Sz()) * 0.01;
    Pt2dr aPRab(aRab,aRab);
 
 
@@ -1748,6 +1752,7 @@ cDistCamStenopeGrid * cDistCamStenopeGrid::Alloc
 
    cDbleGrid * aGrid2 = new cDbleGrid
                            (
+                               P0P1IsBoxDirect,
                                true,
                                aCS.NormC2M(Pt2dr(0,0)-aPRab),
                                aCS.NormC2M(Pt2dr(aCS.Sz())+aPRab),
@@ -1822,7 +1827,6 @@ cDistCamStenopeGrid * cDistCamStenopeGrid::Alloc
 
 
 
-
    return aRes2;
 }
 
@@ -1837,7 +1841,8 @@ void   cDistCamStenopeGrid::Test(double aRayInv,const CamStenope & aCS,Pt2dr aSt
 
 
 
-   cDistCamStenopeGrid * aDist = Alloc(aRayInv,aCS,aStepGr);
+   //   P0P1IsBoxDirect  => On conserve la version 
+   cDistCamStenopeGrid * aDist = Alloc(true,aRayInv,aCS,aStepGr);
 
    Im2D_REAL4 aIm(aSzT.x,aSzT.y,0.0);
 

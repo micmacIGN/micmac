@@ -73,7 +73,11 @@ FAIT :
 
 #define BRK_MICMAC_MES(aMes) \
 {\
-    std::cout << aMes << " ;BRK = "<< __LINE__ <<" at " << __FILE__ << "\n";\
+    if (MPD_MM())\
+    {\
+       std::cout << aMes << " ;BRK = "<< __LINE__ <<" at " << __FILE__ << "\n";\
+        getchar();\
+    }\
 }
 
 #define BRK_MICMAC  BRK_MICMAC_MES("")
@@ -3808,6 +3812,7 @@ void CombleTrouPrgDyn (
          Im2D_Bits<1>  aMaskTer,
          Im2D_INT2     aImZ
      );
+
 
 
 

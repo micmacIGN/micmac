@@ -782,12 +782,39 @@ void TestMax(int argc,char** argv)
 
 }
 
-void TestBGC3M2D();
+extern void TestBGC3M2D();
+
+void TestGridCam()
+{
+    /// std::string aNameCam = "/home/marc/TMP/VolSozo2/Ori-MEP/Orientation-IMG_1577.CR2.xml";
+
+    std::string aDir = "/home/marc/TMP/VolSozo2/";
+    std::string aNameIm =  "IMG_1577.CR2";
+    std::string aNameOri =  "MEP";
+    cInterfChantierNameManipulateur*  anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    std::string aFullName = anICNM->NameOriStenope(aNameOri,aNameIm);
+
+    CamStenope * aCS0 =   anICNM->StdCamOfNames(aNameIm,aNameOri);
+    CamStenope *aCSGrid =   CamStenope::StdCamFromFile(true,aFullName,anICNM);
+
+    std::cout << "SZ " << aCS0->Sz() << " " << aCSGrid->Sz() << " ISGR " << aCSGrid->IsGrid() << "\n";
+
+    int aNb = 10;
+    for (int aK = 0 ; aK<=aNb ; aK++)
+    {
+        Pt2dr aP = Pt2dr(aCS0->Sz()) * (aK/double(aNb));
+        Pt2dr aUD1 = aCS0->F2toC2(aP);
+        Pt2dr aUD2 = aCSGrid->F2toC2(aP);
+
+        std::cout << aP << aUD1 << aUD2 << "\n";
+    }
+
+}
 
 
 int MPDtest_main (int argc,char** argv)
 {
-   TestBGC3M2D();
+   TestGridCam();
 
 /*
    TestMax(argc,argv);

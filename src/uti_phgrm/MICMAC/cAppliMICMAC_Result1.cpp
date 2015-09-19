@@ -916,6 +916,7 @@ std::string   cAppliMICMAC::NameOrientationMnt(cEtapeMecComp * itE)
 
 void cAppliMICMAC::GenereOrientationMnt(cEtapeMecComp * itE)
 {
+
     cFileOriMnt aFOM = OrientFromOneEtape(*itE);
     std::string aName =    NameOrientationMnt(itE);
     cElXMLTree * aTree = ToXMLTree(aFOM);

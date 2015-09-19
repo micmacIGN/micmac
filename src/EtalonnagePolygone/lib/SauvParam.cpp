@@ -256,7 +256,8 @@ void cEtalonnage::SauvGrid(REAL aStep,const std::string & aName,bool XML)
      std::string aNameGr =  aName + mParam.NameCamera();
 
       Pt2di aRab = mParam.RabExportGrid();
-      cDbleGrid aGr(true,Pt2dr(0,0)-Pt2dr(aRab),mSzIm+Pt2dr(aRab),Pt2dr(aStep,aStep),anEDF,aNameGr);
+      // false => a priori compatible camera M2C
+      cDbleGrid aGr(false,true,Pt2dr(0,0)-Pt2dr(aRab),mSzIm+Pt2dr(aRab),Pt2dr(aStep,aStep),anEDF,aNameGr);
 // cDbleGrid aGr(Pt2dr(0,0),mSzIm,aStep,anEDF,aNameGr);
      cout << "Time = " << aChrono.uval() << "\n";
      cout << "PHGR : " << aGr.Focale() << " " << aGr.PP() << "\n";
