@@ -1376,7 +1376,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
   );
 
   // Par defaut c'est le meme comportement
-    if (!EAMIsInit(&mRunAperoImSec))
+    if ((!EAMIsInit(&mRunAperoImSec)) && (!mRunAperoImSec))
         mRunAperoImSec=mAddCpleImSec;
 
   if (!MMVisualMode)
