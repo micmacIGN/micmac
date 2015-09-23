@@ -585,7 +585,7 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
             std::cout << "          CalculOrient, done " << aCpt << "soms , T=" << mChrono.uval() << "\n";
     }
 
-    for (int aK=0 ; aK<20 ; aK++)
+    for (int aK=0 ; aK<mNbIterLast ; aK++)
         ReMoyByTriplet();
 
 
