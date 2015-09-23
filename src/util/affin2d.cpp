@@ -208,7 +208,7 @@ ElAffin2D  ElAffin2D::L2Fit(const  ElPackHomologue & aPack)
         it++
    )
    {
-       std::cout << euclid(aRes(it->P1()),it->P2()) << it->P2()  << "\n";
+       std::cout << "FITAFF "  << euclid(aRes(it->P1()),it->P2()) << it->P2()  << "\n";
    }
 */
    return aRes;
