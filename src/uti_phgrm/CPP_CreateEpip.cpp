@@ -148,11 +148,10 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D 
 class cTmpReechEpip
 {
      public :
-        cTmpReechEpip(const std::string &,cBasicGeomCap3D * aGeom,EpipolaireCoordinate * anEpi,Box2dr aBox,double aStep,bool Im1);
+        cTmpReechEpip(const std::string &,Box2dr aBoxImIn,ElDistortion22_Gen * anEpi,Box2dr aBoxOut,double aStep,const std::string & aNameOut);
      private :
-        cBasicGeomCap3D *      mGeom;
-        Pt2di                  mSzIm;
-        EpipolaireCoordinate * mEpi;
+        Box2dr                 mBoxImIn;
+        ElDistortion22_Gen *   mEpi;
         double                 mStep;
         Pt2dr                  mP0;
         Pt2di                  mSzEpi;
@@ -177,14 +176,13 @@ class cTmpReechEpip
 cTmpReechEpip::cTmpReechEpip
 (
         const std::string & aNameOri,
-        cBasicGeomCap3D * aGeom,
-        EpipolaireCoordinate * anEpi,
+        Box2dr aBoxImIn,
+        ElDistortion22_Gen * anEpi,
         Box2dr aBox,
         double aStep,
-        bool Is1
+        const std::string & aNameOut
 ) :
-    mGeom   (aGeom),
-    mSzIm   (mGeom->SzBasicCapt3D()),
+    mBoxImIn(aBoxImIn),
     mEpi    (anEpi),
     mStep   (aStep),
     mP0     (aBox._p0),
@@ -214,7 +212,7 @@ cTmpReechEpip::cTmpReechEpip
           bool Ok= false;
           Pt2dr aPEpi = ToFullEpiCoord(aPInd);
           Pt2dr aPIm =  anEpi->Inverse(aPEpi);
-          if ((aPIm.x>0) && (aPIm.y>0) && (aPIm.x<mSzIm.x) && (aPIm.y<mSzIm.y))
+          if ((aPIm.x>mBoxImIn._p0.x) && (aPIm.y>mBoxImIn._p0.y) && (aPIm.x<mBoxImIn._p1.x) && (aPIm.y<mBoxImIn._p1.y))
           {
                Pt2dr aPEpi2 = anEpi->Direct(aPIm);
                if (euclid(aPEpi-aPEpi2) < 1e-2)
@@ -227,21 +225,31 @@ cTmpReechEpip::cTmpReechEpip
           mRedTImY.oset(aPInd,aPIm.y);
        }
     }
-    ELISE_COPY(mRedIMasq.all_pts(),dilat_d8(mRedIMasq.in(0),1),mRedIMasq.out());
-
-    Tiff_Im::Create8BFromFonc( (Is1?"MEPI1.tif":"MEPI2.tif"),mSzRed, 255*mRedIMasq.in());
+    ELISE_COPY(mRedIMasq.all_pts(),dilat_d8(mRedIMasq.in(0),4),mRedIMasq.out());
 
 
-    std::string  aNameEpi = Is1?"ImEpi1.tif":"ImEpi2.tif";
-    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),1,true);
+    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),-1,true);
     Tiff_Im aTifEpi
             (
-                aNameEpi.c_str(),
+                aNameOut.c_str(),
                 mSzEpi,
                 aTifOri.type_el(),
                 Tiff_Im::No_Compr,
                 aTifOri.phot_interp()
             );
+    std::string aNameMasq = StdPrefix(aNameOut)+"_Masq.tif";
+    Tiff_Im aTifMasq
+            (
+                aNameMasq.c_str(),
+                mSzEpi,
+                GenIm::bits1_msbf,
+                Tiff_Im::No_Compr,
+                Tiff_Im::BlackIsZero
+            );
+
+
+
+
 
     int aNbBloc=2000;
     int aBrd = aNbSC+3;
@@ -278,7 +286,7 @@ cTmpReechEpip::cTmpReechEpip
 
                         if ((aXIm>0) && (aYIm>0))
                         {
-                            aTImMasq.oset(aPIndLoc,1);
+                            // aTImMasq.oset(aPIndLoc,1);
                             aTImX.oset(aPIndLoc,aXIm);
                             aTImY.oset(aPIndLoc,aYIm);
 
@@ -331,53 +339,28 @@ cTmpReechEpip::cTmpReechEpip
                                    double aV= 128;
                                    if ((aPImLoc.x>aNbSC+1) && (aPImLoc.y>aNbSC+1) && (aPImLoc.x<aSzIm.x-aNbSC-2) && (aPImLoc.y<aSzIm.y-aNbSC-2))
                                    {
+                                       aTImMasq.oset(aIndEpi,1);
                                        aV = aSCI.GetVal(aDataOri,aPImLoc);
                                        // aV= 255;
                                    }
                                    aImEpi.oset(aIndEpi,aV);
                                }
-
-
-
-/*
-                               Pt2dr aPEpi = Pt2dr(anIndEpiGlob) + mP0;
-                               Pt2dr aPImGlob =  anEpi->Inverse(aPEpi);
-                               Pt2dr aPImLoc = aPImGlob - Pt2dr(aP0BoxIm);
-
-                               double aV= 0;
-                               if ((aPImLoc.x>aNbSC+1) && (aPImLoc.y>aNbSC+1) && (aPImLoc.x<aSzIm.x-aNbSC-2) && (aPImLoc.y<aSzIm.y-aNbSC-2))
-                               {
-                                   aV = aSCI.GetVal(aDataOri,aPImLoc);
-                               }
-                               aImEpi.oset(aIndEpi,aV);
-
-if ( ((anX%50)==25) && ((anY%50)==25) )
-{
-std::cout << "aPImLocaPImLoc " << aPImLoc << " => " << aV  << aSzIm << "\n";
-}
-*/
-
                            }
                       }
                  }
-/*
-static Video_Win aW=Video_Win::WStd(Pt2di(1200,800),1.0);
-TIm2D<REAL4,REAL8> aImEpi(aVIm[0]);
-ELISE_COPY(aImEpi._the_im.all_pts(), mod(aImEpi._the_im.in()/10,256),aW.ogray()); 
-getchar();
-*/
-
                  ELISE_COPY
                  (
                      rectangle(aP0Epi,aP0Epi+aSzBloc),
                      Tronque(aTifEpi.type_el(),trans(StdInput(aVImEpi),-aP0Epi)),
                      aTifEpi.out()
                  );
-
-
-
              }
-
+             ELISE_COPY
+             (
+                 rectangle(aP0Epi,aP0Epi+aSzBloc),
+                 trans(aTImMasq._the_im.in(0),-aP0Epi),
+                 aTifMasq.out()
+             );
              std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
          }
     }
@@ -471,9 +454,9 @@ void cApply_CreateEpip_main::DoEpipGen()
       std::cout << "Epip Rect Accuracy, Moy " << aErrMoy/mNbP << " Max " << aErrMax << "\n";
 
 
-      cTmpReechEpip aReech1(mName1,mGenI1,&e1,Box2dr(aInf1,aSup1),mStepReech,true);
+      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1.tif");
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(mName2,mGenI2,&e2,Box2dr(aInf2,aSup2),mStepReech,false);
+      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2.tif");
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
@@ -482,6 +465,7 @@ void cApply_CreateEpip_main::DoEpipGen()
 }
 
 
+    // std::string  aNameEpi = Is1?"ImEpi1.tif":"ImEpi2.tif";
 
 
 

@@ -768,7 +768,8 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
     mFlag3CC    (mAllocFlag3.flag_alloc()),
     mHeapSom    (TheCmp3),
     mLastPdsMedRemoy  (0.0),
-    mActiveRemoy      (true)
+    mActiveRemoy      (true),
+    mNbIterLast       (20)
 {
    std::string aNameT1;
    std::string aNameT2;
@@ -792,6 +793,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                    << EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
                    << EAM(mIterLocEstimRot,"ILER",true,"Iter Estim Loc, Def=true, tuning purpose",eSAM_IsBool)
                    << EAM(mActiveRemoy,"AR",true,"Active Remoy, Def=true, tuning purpose",eSAM_IsBool)
+                   << EAM(mNbIterLast,"NbIterLast",true,"Nb Iter in last step",eSAM_IsBool)
    );
 
    cTplTriplet<std::string> aKTest1(aNameT1,aNameT2,aNameT3);
