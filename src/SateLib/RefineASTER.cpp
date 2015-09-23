@@ -22,20 +22,20 @@ public:
 		//colc = vP[0] + vP[1] * col + vP[2] * row + vP[6] * sin(2 * M_PI * col / vP[7] + vP[8]);
 		//rowc = vP[3] + vP[4] * col + vP[5] * row + vP[9] * sin(2 * M_PI * row / vP[10] + vP[11]);
 
-		//Affinity parameters
+		//Affinity parameters //cX //cXsX //cXcY //cXcYsY
 		// the 6 parameters of affinity
 		vP.push_back(0);// Col : Constant
 		//vP.push_back(1);// Col : Param*Col
 		//vP.push_back(0);// Col : Param*Row
 
-		vP.push_back(0);// Row : Constant
+		//vP.push_back(0);// Row : Constant
 		//vP.push_back(0);// Row : Param*Col
 		//vP.push_back(1);// Row : Param*Row
 
 		// the 2*3 parameters of jitter 
-		//vP.push_back(0);// Col : Amplitude across track of sinusoid
-		//vP.push_back(323);// Col : Freq of across track sinusoid
-		//vP.push_back(0);// Col : Phase of across track sinusoid
+		vP.push_back(1);// Col : Amplitude across track of sinusoid
+		vP.push_back(4000);// Col : Freq of across track sinusoid
+		vP.push_back(0);// Col : Phase of across track sinusoid
 
 		//vP.push_back(0.4);// Row : Amplitude of along track sinusoid (1pix?)
 		//vP.push_back(5100);// Row : Freq of along track sinusoid (about 1 cycles per nadir image -> every 5100pix)
@@ -92,7 +92,13 @@ public:
 		//return Pt2dr(vP[0] + ptImg2.x, vP[1] + ptImg2.y + vP[2] * sin(2 * M_PI * ptImg2.y / vP[3] + vP[4]));
 
 		//cXcY
-		return Pt2dr(vP[0] + ptImg2.x, vP[1] + ptImg2.y);
+		//return Pt2dr(vP[0] + ptImg2.x, vP[1] + ptImg2.y);
+
+		//cXsX
+		return Pt2dr(vP[0] + ptImg2.x + vP[1] * sin(2 * M_PI * ptImg2.x / vP[2] + vP[3]), ptImg2.y);
+
+		//cX
+		//return Pt2dr(vP[0] + ptImg2.x, ptImg2.y);
 
 		//return Pt2dr(ptImg2.x, vP[0] * sin(2 * M_PI * ptImg2.y / vP[1] + vP[2]) + ptImg2.y);
 		//return Pt2dr(vP[0] + vP[1] * ptImg2.x + vP[2] * ptImg2.y + vP[6] * sin(2 * M_PI / vP[7] + vP[8]) * ptImg2.x,
@@ -156,7 +162,7 @@ public:
 
 	Pt2dr computeImageDifference(int index,
 		Pt3dr pt,
-		double aX0, double aY0);//, double aSY0, double aSY1, double aSY2);
+		double aX0, double aSX0, double aSX1, double aSX2);//cXsX //cX  , double aY0);//, double aSY0, double aSY1, double aSY2);
 
 	Pt2dr computeImageDifference(int index, Pt3dr pt);
 
@@ -174,7 +180,7 @@ protected:
 
 Pt2dr ObservationASTER::computeImageDifference(int index,
 	Pt3dr pt,
-	double aX0, double aY0)// , double aSY0, double aSY1, double aSY2)
+	double aX0, double aSX0, double aSX1, double aSX2) //cXsX//cX //cXcY, double aY0) //cXcYsY , double aSY0, double aSY1, double aSY2)
 {
 	ImageMeasureASTER* aMes = &vImgMeasure[index];
 
@@ -187,7 +193,13 @@ Pt2dr ObservationASTER::computeImageDifference(int index,
 	//Pt2dr ptImgC(ptImg.x + aX0, ptImg.y + aY0 + aSY0 * sin(2 * M_PI * ptImg.y / aSY1 + aSY2));
 
 	//cXcY
-	Pt2dr ptImgC(ptImg.x + aX0, ptImg.y + aY0);
+	//Pt2dr ptImgC(ptImg.x + aX0, ptImg.y + aY0);
+
+	//cX
+	//Pt2dr ptImgC(ptImg.x + aX0, ptImg.y);
+
+	//cXsX
+	Pt2dr ptImgC(ptImg.x + aX0 + aSX0 * sin(2 * M_PI * ptImg.x / aSX1 + aSX2), ptImg.y);
 
 	Pt2dr proj = cam->Camera()->R3toF2(pt);
 	Pt2dr imageDiff = ptImgC - proj;
@@ -275,14 +287,24 @@ double compute2DGroundDifference(Pt2dr const &ptImg1,
 	AffCameraASTER* Cam1,
 	Pt2dr const &ptImg2,
 	AffCameraASTER* Cam2)
-{
+{ 
 	double z = Cam1->Camera()->PseudoInter(ptImg1, *Cam2->Camera(), ptImg2).z;
 
 	Pt3dr ptTer1 = Cam1->Camera()->ImEtProf2Terrain(ptImg1, z);
 	Pt2dr ptImg2C(Cam2->apply(ptImg2));
 	Pt3dr ptTer2 = Cam2->Camera()->ImEtProf2Terrain(ptImg2C, z);
 
-	return square_euclid(Pt2dr(ptTer1.x - ptTer2.x, ptTer1.y - ptTer2.y));
+	double aGrDif = square_euclid(Pt2dr(ptTer1.x - ptTer2.x, ptTer1.y - ptTer2.y));
+	
+	/*
+	ofstream fic;
+	fic.open("refineASTER/imageDiff.txt", ofstream::app);
+	//cout << "Writing refineCoef file : refineASTER/imageDiff.txt" << endl;
+	fic << setprecision(15);
+	fic << ptImg1.x << " " << ptImg1.y << " " << ptImg2.x << " " << ptImg2.y << " " << aGrDif << endl;
+	*/
+
+	return aGrDif;
 }
 
 //! Abstract class for shared methods
@@ -318,7 +340,8 @@ public:
 	/// \param aNameFileGridSlave Grid file for slave image
 	/// \param aNamefileTiePointASTERs Tie-points file
 	///
-	RefineModelAbsASTER(string const &aFullDir, string imgsExtension = ".tif", bool filter = false) :_N(1, 1, 0.), _Y(1, 1, 0.), numUnk(2), _verbose(false), iteration(0)
+	//cX numUnk(1) //cXsX numUnk(4) //cXcY numUnk(2) //cXcYsY numUnk(5)
+	RefineModelAbsASTER(string const &aFullDir, string imgsExtension = ".tif", bool filter = false) :_N(1, 1, 0.), _Y(1, 1, 0.), numUnk(4), _verbose(false), iteration(0)
 	{
 		string aDir, aPat;
 		SplitDirAndFile(aDir, aPat, aFullDir);
@@ -503,6 +526,30 @@ public:
 		double res = sumRes(numObs);
 		cout << "res= " << res << " numObs= " << numObs << endl;
 
+
+		//ecriture dans un fichier des coefficients en vue d'affiner la grille
+		//consommateur en temps => todo: stocker les parametres de l'iteration n-1
+		map<int, AffCameraASTER *>::const_iterator iter = mapCameras.begin();
+		for (size_t aK = 0; iter != mapCameras.end(); ++iter, ++aK)
+		{
+			AffCameraASTER* cam = iter->second;
+			string name = StdPostfix(cam->name());
+			ofstream fic(("refineASTER/" + name + "_refineCoef.txt").c_str());
+			cout << "Writing refineCoef file : refineASTER" + name + "_refineCoef.txt" << endl;
+			fic << setprecision(15);
+			//cXsX
+			fic << cam->vP[0] << " 1 0 0 0 1 " << cam->vP[1] << cam->vP[2] << cam->vP[3] << endl;
+			//cX
+			//fic << cam->vP[0] << " 1 0 0 0 1" << endl;
+			//cXcY
+			//fic << cam->vP[0] << " 1 0 " << cam->vP[1] << " 0 1" << endl;
+			//cXcYsY
+			//fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[4] << " " << cam->vP[5] << endl;
+			//fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[3] << " " << cam->vP[4] << " " << cam->vP[5] << " "
+			//	<< cam->vP[6] << " " << cam->vP[7] << " " << cam->vP[8] << " " << cam->vP[9] << " " << cam->vP[10] << " " << cam->vP[11] << " " << endl;
+		}
+
+
 		if (numObs)
 		{
 			cout << "RMS_init = " << iniRMS << endl;
@@ -513,22 +560,6 @@ public:
 			{
 				cout << "curRMS = " << curRMS << " / iniRMS = " << iniRMS << endl;
 				cout << "No improve: end at iteration " << iteration << endl;
-
-				//ecriture dans un fichier des coefficients en vue d'affiner la grille
-				//consommateur en temps => todo: stocker les parametres de l'iteration n-1
-				map<int, AffCameraASTER *>::const_iterator iter = mapCameras.begin();
-				for (size_t aK = 0; iter != mapCameras.end(); ++iter, ++aK)
-				{
-					AffCameraASTER* cam = iter->second;
-					string name = StdPostfix(cam->name());
-					ofstream fic(("refineASTER/" + name + "_refineCoef.txt").c_str());
-					cout << "Writing refineCoef file : refineASTER" + name + "_refineCoef.txt" << endl;
-					fic << setprecision(15);
-					fic << cam->vP[0] << " " << cam->vP[1] << endl;
-					//fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[4] << " " << cam->vP[5] << endl;
-					//fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[3] << " " << cam->vP[4] << " " << cam->vP[5] << " "
-					//	<< cam->vP[6] << " " << cam->vP[7] << " " << cam->vP[8] << " " << cam->vP[9] << " " << cam->vP[10] << " " << cam->vP[11] << " " << endl;
-				}
 				return false;
 			}
 			cout << "RMS_after = " << curRMS << endl;
@@ -957,10 +988,14 @@ public:
 			double dY = 0.1;
 			double dZ = 0.1;
 
+			//cXsX //cX //cXcY //cXcYsY
 			double dX0 = 0.05;
 			//double dX1 = 0.1;
 			//double dX2 = 0.1;
-			double dY0 = 0.05;
+			double dSX0 = 0.05;
+			double dSX1 = 1;
+			double dSX2 = 0.05;
+			//double dY0 = 0.05;
 			//double dY1 = 0.1;
 			//double dY2 = 0.1;
 			//double dSY0 = 0.05;
@@ -1012,6 +1047,7 @@ public:
 					if (cam->index() > 0) vPos.push_back(cam->index());
 
 					//For every Parameters
+					//cX //cXcY 
 					//double X0 = cam->vP[0];
 					//double X1 = cam->vP[1];
 					//double X2 = cam->vP[2];
@@ -1022,11 +1058,18 @@ public:
 					//double SY1 = cam->vP[7];
 					//double SY2 = cam->vP[8];
 
-					double X0 = cam->vP[0];
-					double Y0 = cam->vP[1];
+					//cXcYsY
+					//double X0 = cam->vP[0];
+					//double Y0 = cam->vP[1];
 					//double SY0 = cam->vP[2];
 					//double SY1 = cam->vP[3];
 					//double SY2 = cam->vP[4];
+
+					//cXsX
+					double X0 = cam->vP[0];
+					double SX0 = cam->vP[1];
+					double SX1 = cam->vP[2];
+					double SX2 = cam->vP[3];
 
 					/* FOR INFO :
 					Pt2dr ptImgC(aX0 + aX1 * ptImg.x + aX2 * ptImg.y + aSX0 * sin(2 * M_PI  * ptImg.x / aSX1 + aSX2),
@@ -1034,23 +1077,47 @@ public:
 					*/
 
 					//Sinus in y
-					Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, Y0) - D);// , SY0, SY1, SY2) - D);
-					Pt2dr vdY0 = Pt2dr(1. / dY0, 1. / dY0) * (aObs->computeImageDifference(bK, pt, X0, Y0 + dY0) - D);//, SY0, SY1, SY2) - D);
+					//cX 
+					//Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0) - D);// , SY0, SY1, SY2) - D);
+					//Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0) - D);//, SY0, SY1, SY2) - D);
+					//Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0) - D);//, SY0, SY1, SY2) - D);
+					//Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0) - D);//, SY0, SY1, SY2) - D);
+					//cXsX
+					Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, SX0, SX1, SX2) - D);// , SY0, SY1, SY2) - D);
+					Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
+					Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
+					Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
+					Pt2dr vdSX0 = Pt2dr(1. / dSX0, 1. / dSX0) * (aObs->computeImageDifference(bK, pt, X0, SX0 + dSX0, SX1, SX2) - D);
+					Pt2dr vdSX1 = Pt2dr(1. / dSX1, 1. / dSX1) * (aObs->computeImageDifference(bK, pt, X0, SX0, SX1 + dSX1, SX2) - D);
+					Pt2dr vdSX2 = Pt2dr(1. / dSX2, 1. / dSX2) * (aObs->computeImageDifference(bK, pt, X0, SX0, SX1, SX2 + dSX2) - D);
+					//cXcY 
+					//Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, Y0) - D);// , SY0, SY1, SY2) - D);
+					//Pt2dr vdY0 = Pt2dr(1. / dY0, 1. / dY0) * (aObs->computeImageDifference(bK, pt, X0, Y0 + dY0) - D);//, SY0, SY1, SY2) - D);
+					//Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, Y0) - D);//, SY0, SY1, SY2) - D);
+					//Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, Y0) - D);//, SY0, SY1, SY2) - D);
+					//Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, Y0) - D);//, SY0, SY1, SY2) - D);
+					//cXcYsY
 					//Pt2dr vdSY0 = Pt2dr(1. / dSY0, 1. / dSY0) * (aObs->computeImageDifference(bK, pt, X0, Y0, SY0 + dSY0, SY1, SY2) - D);
 					//Pt2dr vdSY1 = Pt2dr(1. / dSY1, 1. / dSY1) * (aObs->computeImageDifference(bK, pt, X0, Y0, SY0, SY1 + dSY1, SY2) - D);
 					//Pt2dr vdSY2 = Pt2dr(1. / dSY2, 1. / dSY2) * (aObs->computeImageDifference(bK, pt, X0, Y0, SY0, SY1, SY2 + dSY2) - D);
 
-					Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, Y0) - D);//, SY0, SY1, SY2) - D);
-					Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, Y0) - D);//, SY0, SY1, SY2) - D);
-					Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, Y0) - D);//, SY0, SY1, SY2) - D);
-
 					if (cam->index() != 0)
 					{
-						//Shift in Col and Row
-						obs(0, 0) = vdX0.x;
-						obs(1, 0) = vdY0.x;
 
-						//Sin in Row
+						//Shift in Col and Row //cX
+						//obs(0, 0) = vdX0.x;
+
+						//Shift in Col and Row //cXsX
+						obs(0, 0) = vdX0.x;
+						obs(1, 0) = vdSX0.x;
+						obs(2, 0) = vdSX1.x;
+						obs(3, 0) = vdSX2.x;
+
+						//Shift in Col and Row //cXcY
+						//obs(0, 0) = vdX0.x;
+						//obs(1, 0) = vdY0.x;
+
+						//Sin in Row //cXcYsY
 						//obs(2, 0) = vdSY0.x;
 						//obs(3, 0) = vdSY1.x;
 						//obs(4, 0) = vdSY2.x;
@@ -1065,11 +1132,21 @@ public:
 
 					if (cam->index() != 0)
 					{
-						//Shift in Col and Row
-						obs(0, 0) = vdX0.y;
-						obs(1, 0) = vdY0.y;
 
-						//Sin in Row
+						//Shift in Col and Row //cX
+						//obs(0, 0) = vdX0.y;
+
+						//Shift in Col and Row //cXsX
+						obs(0, 0) = vdX0.y;
+						obs(1, 0) = vdSX0.y;
+						obs(2, 0) = vdSX1.y;
+						obs(3, 0) = vdSX2.y;
+
+						//Shift in Col and Row //cXcY
+						//obs(0, 0) = vdX0.y;
+						//obs(1, 0) = vdY0.y;
+
+						//Sin in Row //cXcYsY
 						//obs(2, 0) = vdSY0.y;
 						//obs(3, 0) = vdSY1.y;
 						//obs(4, 0) = vdSY2.y;

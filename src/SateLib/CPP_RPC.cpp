@@ -460,9 +460,10 @@ Pt3dr RPC::ptRefined(Pt3dr Pimg, std::vector<double> vRefineCoef)const
 {
     //Pour calculer les coordonnees affinees d'un point
     Pt3dr pImgRefined;
-
-    pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2];
-    pImgRefined.y = vRefineCoef[3] + Pimg.x * vRefineCoef[4] + Pimg.y * vRefineCoef[5];
+	double aSX0 = -0, aSX1 = 4000, aSX2 = 0.2;
+	double aSY0 = 0, aSY1 = 2600, aSY2 = M_PI/2;
+	pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2] + aSX0 * sin(2 * M_PI  * Pimg.x / aSX1 + aSX2);
+	pImgRefined.y = vRefineCoef[3] + Pimg.x * vRefineCoef[4] + Pimg.y * vRefineCoef[5] + aSY0 * sin(2 * M_PI  * Pimg.x / aSY1 + aSY2);
     pImgRefined.z = Pimg.z;
 
     return pImgRefined;
@@ -911,10 +912,12 @@ void RPC::ComputeNormFactors(double aHMin, double aHMax)
 
 		//convert to geodetic
 		//WGS84 ellipsoid
-		//double a = 6378137;
-		//double b = (1 - 1 / 298.257223563)*a;
+		double a = 6378137;
+		double b = (1 - 1 / 298.257223563)*a;
+		double e2 = 1 - (b * b) / (a * a);
 		double WGSCorFact = 0.99330562;
 
+		/**/// OLD good enough since z=0
 		Pt3dr aPtGeo;
 		Pt3dr aPtECEF = ASTERPtsECEF[i];
 		double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
@@ -922,8 +925,43 @@ void RPC::ComputeNormFactors(double aHMin, double aHMax)
 		aPtGeo.x = acos(aPtECEF.x / (r*cos(aPtGeo.y * M_PI / 180))) * 180 / M_PI;//degrees
 		if (aPtECEF.y < 0)//"Western emisphere"
 			aPtGeo.x = -aPtGeo.x;
+		//cout << "OLD :" << aPtGeo.x << endl;
 		//to geodetic
 		aPtGeo.y = atan(tan(aPtGeo.y *M_PI / 180) / WGSCorFact) * 180 / M_PI;
+		/**/
+
+		/*/NEW GEODESY
+		Pt3dr aPtGeo;
+		Pt3dr aPtECEF = ASTERPtsECEF[i];
+		// Computing longitude (true transformation)
+		aPtGeo.x = atan(aPtECEF.y / aPtECEF.x) * 180 / M_PI; //degrees
+		if (aPtECEF.y < 0 && aPtECEF.x < 0)//"Long=[-90->-180]"
+			aPtGeo.x = aPtGeo.x - 180;
+		if (aPtECEF.y > 0 && aPtECEF.x < 0)//"Long=[90->180]"
+			aPtGeo.x = aPtGeo.x + 180;
+
+		//Computing latitude (estimation)
+		double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
+		double p = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y);
+		double latNow = atan(p / aPtECEF.z);//rad geocentric to initialize estimation
+		//loop
+		double Rn;
+		double h;
+		for (u_int i = 0; i < 10; i++)// converge after 10 loops (even after 4 but for safety)
+		{
+			Rn = a / sqrt(1 - e2*sin(latNow)*sin(latNow));
+			h = p / cos(latNow) - Rn;
+			latNow = atan(aPtECEF.z / p * 1 / (1 - e2*Rn / (Rn + h)));
+		}
+		aPtGeo.y = latNow;
+
+		//Computing Ellipsoid height
+		Rn = a / sqrt(1 - e2*sin(aPtGeo.y)*sin(aPtGeo.y));
+		aPtGeo.z = p / cos(aPtGeo.y) - Rn;
+		//Latitude rad to degrees
+		aPtGeo.y = aPtGeo.y * 180 / M_PI;
+		//END NEW GEODESY
+		*/
 
 		//Filling vectors
 		aPtsGeoX.push_back(aPtGeo.x);
@@ -1095,8 +1133,10 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 				Pt3dr aPtGeo;
 				// Computing longitude (true transformation)
 				aPtGeo.x = atan(aPtECEF.y / aPtECEF.x) * 180 / M_PI; //degrees
-				if (aPtECEF.y < 0)//"Western emisphere"
+				if (aPtECEF.y < 0 && aPtECEF.x < 0)//"Long=[-90->-180]"
 					aPtGeo.x = aPtGeo.x - 180;
+				if (aPtECEF.y > 0 && aPtECEF.x < 0)//"Long=[90->180]"
+					aPtGeo.x = aPtGeo.x + 180;
 
 				//Computing latitude (estimation)
 				double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
