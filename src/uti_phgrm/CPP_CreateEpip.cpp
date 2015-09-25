@@ -173,6 +173,27 @@ class cTmpReechEpip
 };
 
 
+void ReechFichier
+    (
+        const std::string & aNameOri,
+        Box2dr aBoxImIn,
+        ElDistortion22_Gen * anEpi,
+        Box2dr aBox,
+        double aStep,
+        const std::string & aNameOut
+)
+{
+    cTmpReechEpip aReech(aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut);
+}
+
+
+
+
+
+
+
+
+
 cTmpReechEpip::cTmpReechEpip
 (
         const std::string & aNameOri,
@@ -212,6 +233,12 @@ cTmpReechEpip::cTmpReechEpip
           bool Ok= false;
           Pt2dr aPEpi = ToFullEpiCoord(aPInd);
           Pt2dr aPIm =  anEpi->Inverse(aPEpi);
+/*
+if ( ((aPInd.x%100)==50) && ((aPInd.y%100)==50) )
+{
+std::cout << "OOOKKKK " << aPInd << aPEpi << aPIm << "\n";
+}
+*/
           if ((aPIm.x>mBoxImIn._p0.x) && (aPIm.y>mBoxImIn._p0.y) && (aPIm.x<mBoxImIn._p1.x) && (aPIm.y<mBoxImIn._p1.y))
           {
                Pt2dr aPEpi2 = anEpi->Direct(aPIm);
@@ -361,7 +388,7 @@ cTmpReechEpip::cTmpReechEpip
                  trans(aTImMasq._the_im.in(0),-aP0Epi),
                  aTifMasq.out()
              );
-             std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
+             // std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
          }
     }
 }
@@ -589,6 +616,166 @@ int CreateEpip_main(int argc,char ** argv)
 
      return EXIT_SUCCESS;
 }
+
+
+/*************************************************************/
+/*                                                           */
+/*                 cAppliOneReechMarqFid                     */                                         
+/*                                                           */
+/*************************************************************/
+
+class cAppliOneReechMarqFid : public ElDistortion22_Gen,
+                              public cAppliWithSetImage
+{
+    public :
+        cAppliOneReechMarqFid(int argc,char ** argv);
+        void DoReech();
+    private :
+        Pt2dr Direct(Pt2dr) const;
+        bool OwnInverse(Pt2dr &) const ;
+        Pt2dr       ChambreMm2ChambrePixel (const Pt2dr &) const;
+        Pt2dr       ChambrePixel2ChambreMm (const Pt2dr &) const;
+        Box2dr      mBoxChambreMm;
+        Box2dr      mBoxChambrePix;
+        ElPackHomologue  mPack;
+
+
+        std::string mNamePat;
+        std::string mNameIm;
+        std::string mDir;
+        cInterfChantierNameManipulateur * mICNM;
+        double      mResol;
+        double      mResidu;
+        ElAffin2D   mAffPixIm2ChambreMm;
+        ElAffin2D   mAffChambreMm2PixIm;
+        Pt2di       mSzIm;
+        bool        mBySingle;
+};
+
+// mAffin (mm) = Pixel
+
+bool cAppliOneReechMarqFid::OwnInverse(Pt2dr & aP) const 
+{
+    aP = mAffChambreMm2PixIm(ChambrePixel2ChambreMm(aP));
+    return true;
+}
+
+Pt2dr  cAppliOneReechMarqFid::Direct(Pt2dr aP) const
+{
+    return  ChambreMm2ChambrePixel(mAffPixIm2ChambreMm(aP));
+}
+/*
+bool cAppliOneReechMarqFid::OwnInverse(Pt2dr & aP) const 
+{
+    aP = ChambreMm2ChambrePixel(mAffPixIm2ChambreMm(aP));
+    return true;
+}
+
+Pt2dr  cAppliOneReechMarqFid::Direct(Pt2dr aP) const
+{
+    return  mAffChambreMm2PixIm(ChambrePixel2ChambreMm(aP));
+}
+*/
+
+
+
+Pt2dr cAppliOneReechMarqFid::ChambreMm2ChambrePixel (const Pt2dr & aP) const
+{
+   return (aP-mBoxChambreMm._p0) / mResol;
+}
+
+Pt2dr cAppliOneReechMarqFid::ChambrePixel2ChambreMm (const Pt2dr & aP) const
+{
+   return mBoxChambreMm._p0 + aP * mResol;
+}
+
+
+
+cAppliOneReechMarqFid::cAppliOneReechMarqFid(int argc,char ** argv) :
+     cAppliWithSetImage   (argc-1,argv+1,TheFlagNoOri),
+     mAffPixIm2ChambreMm  (ElAffin2D::Id()),
+     mBySingle            (true)
+     
+{
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(mNamePat,"Name image", eSAM_IsExistFile)
+                      << EAMC(mResol,"Resolution"),
+          LArgMain()   <<  EAM(mBoxChambreMm,"BoxCh",true,"Box in Chambre (generally in mm)")
+    );
+
+    const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
+    if (aSetIm->size()>1)
+    {
+         mBySingle = false;
+         ExpandCommand(2,"",true);
+         return;
+    }
+
+    mNameIm =(*aSetIm)[0];
+ 
+    mDir = DirOfFile(mNameIm);
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
+    std::pair<std::string,std::string> aPair = mICNM->Assoc2To1("Key-Assoc-STD-Orientation-Interne",mNameIm,true);
+
+
+    mSzIm = Tiff_Im::StdConvGen(mNameIm,-1,true).sz();
+
+    cMesureAppuiFlottant1Im aMesCam = StdGetFromPCP(mDir+aPair.first,MesureAppuiFlottant1Im);
+    cMesureAppuiFlottant1Im aMesIm  = StdGetFromPCP(mDir+aPair.second,MesureAppuiFlottant1Im);
+
+
+    mPack = PackFromCplAPF(aMesCam,aMesIm);
+    if (! EAMIsInit(&mBoxChambreMm))
+    {
+          mBoxChambreMm._p0 = Pt2dr(1e20,1e20);
+          mBoxChambreMm._p1 = Pt2dr(-1e20,-1e20);
+          for (ElPackHomologue::const_iterator itC=mPack.begin() ; itC!=mPack.end() ; itC++)
+          {
+               mBoxChambreMm._p0  = Inf(mBoxChambreMm._p0,itC->P1());
+               mBoxChambreMm._p1  = Sup(mBoxChambreMm._p1,itC->P1());
+          }
+    }
+    mBoxChambrePix._p0 = ChambreMm2ChambrePixel(mBoxChambreMm._p0);
+    mBoxChambrePix._p1 = ChambreMm2ChambrePixel(mBoxChambreMm._p1);
+
+    mAffChambreMm2PixIm = ElAffin2D::L2Fit(mPack,&mResidu);
+    mAffPixIm2ChambreMm  = mAffChambreMm2PixIm.inv();
+    // mAffPixIm2ChambreMm = ElAffin2D::L2Fit(aPack,&mResidu);
+    // mAffChambreMm2PixIm  = mAffPixIm2ChambreMm.inv();
+    std::cout << "FOR " << mNameIm << " RESIDU " << mResidu  << " \n";
+}
+
+
+void cAppliOneReechMarqFid::DoReech()
+{
+    if (! mBySingle) return;
+   
+
+    ReechFichier
+    (
+          mNameIm,
+          Box2dr(Pt2dr(0,0),Pt2dr(mSzIm)),
+          this,
+          mBoxChambrePix,
+          10.0,
+          "Reech_"+mNameIm
+    );
+}
+    
+
+
+int OneReechFid_main(int argc,char ** argv)
+{
+     cAppliOneReechMarqFid anAppli(argc,argv);
+
+     anAppli.DoReech();
+
+     return EXIT_SUCCESS;
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
