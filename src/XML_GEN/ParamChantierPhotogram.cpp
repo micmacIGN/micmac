@@ -5606,6 +5606,17 @@ const std::string & cMesureAppuiFlottant1Im::NameIm()const
 }
 
 
+cTplValGesInit< double > & cMesureAppuiFlottant1Im::PrecPointeByIm()
+{
+   return mPrecPointeByIm;
+}
+
+const cTplValGesInit< double > & cMesureAppuiFlottant1Im::PrecPointeByIm()const 
+{
+   return mPrecPointeByIm;
+}
+
+
 std::list< cOneMesureAF1I > & cMesureAppuiFlottant1Im::OneMesureAF1I()
 {
    return mOneMesureAF1I;
@@ -5619,6 +5630,14 @@ const std::list< cOneMesureAF1I > & cMesureAppuiFlottant1Im::OneMesureAF1I()cons
 void  BinaryUnDumpFromFile(cMesureAppuiFlottant1Im & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameIm(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PrecPointeByIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PrecPointeByIm().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PrecPointeByIm().SetNoInit();
+  } ;
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
@@ -5633,6 +5652,8 @@ void  BinaryUnDumpFromFile(cMesureAppuiFlottant1Im & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMesureAppuiFlottant1Im & anObj)
 {
     BinaryDumpInFile(aFp,anObj.NameIm());
+    BinaryDumpInFile(aFp,anObj.PrecPointeByIm().IsInit());
+    if (anObj.PrecPointeByIm().IsInit()) BinaryDumpInFile(aFp,anObj.PrecPointeByIm().Val());
     BinaryDumpInFile(aFp,(int)anObj.OneMesureAF1I().size());
     for(  std::list< cOneMesureAF1I >::const_iterator iT=anObj.OneMesureAF1I().begin();
          iT!=anObj.OneMesureAF1I().end();
@@ -5646,6 +5667,8 @@ cElXMLTree * ToXMLTree(const cMesureAppuiFlottant1Im & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MesureAppuiFlottant1Im",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
+   if (anObj.PrecPointeByIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PrecPointeByIm"),anObj.PrecPointeByIm().Val())->ReTagThis("PrecPointeByIm"));
   for
   (       std::list< cOneMesureAF1I >::const_iterator it=anObj.OneMesureAF1I().begin();
       it !=anObj.OneMesureAF1I().end();
@@ -5664,10 +5687,12 @@ void xml_init(cMesureAppuiFlottant1Im & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
 
+   xml_init(anObj.PrecPointeByIm(),aTree->Get("PrecPointeByIm",1)); //tototo 
+
    xml_init(anObj.OneMesureAF1I(),aTree->GetAll("OneMesureAF1I",false,1));
 }
 
-std::string  Mangling( cMesureAppuiFlottant1Im *) {return "16E7BC31BE572E8CFF3F";};
+std::string  Mangling( cMesureAppuiFlottant1Im *) {return "6A9B6A8F705B2CF9FE3F";};
 
 
 std::list< cMesureAppuiFlottant1Im > & cSetOfMesureAppuisFlottants::MesureAppuiFlottant1Im()
@@ -5726,7 +5751,7 @@ void xml_init(cSetOfMesureAppuisFlottants & anObj,cElXMLTree * aTree)
    xml_init(anObj.MesureAppuiFlottant1Im(),aTree->GetAll("MesureAppuiFlottant1Im",false,1));
 }
 
-std::string  Mangling( cSetOfMesureAppuisFlottants *) {return "96CF92ABE8A55E89FF3F";};
+std::string  Mangling( cSetOfMesureAppuisFlottants *) {return "E87596C417EE159FFF3F";};
 
 
 std::list< std::string > & cOneMesureSegDr::NamePt()

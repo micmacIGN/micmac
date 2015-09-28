@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1760]) = {
+const char * (theNameVar_ParamChantierPhotogram[1761]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -549,6 +549,7 @@ const char * (theNameVar_ParamChantierPhotogram[1760]) = {
 "   <SetOfMesureAppuisFlottants Nb=\"1\" Class=\"true\">\n",
 "      <MesureAppuiFlottant1Im Nb=\"*\" Class=\"true\">\n",
 "         <NameIm Nb=\"1\" Type=\"std::string\"> </NameIm>\n",
+"         <PrecPointeByIm Nb=\"?\" Type=\"double\"> </PrecPointeByIm>\n",
 "         <OneMesureAF1I Nb=\"*\">\n",
 "            <NamePt Nb=\"1\" Type=\"std::string\"> </NamePt>\n",
 "            <PtIm   Nb=\"1\" Type=\"Pt2dr\"> </PtIm>\n",
