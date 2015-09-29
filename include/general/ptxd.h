@@ -535,7 +535,7 @@ class ElAffin2D : public cElMap2D
         );
 
 
-       static ElAffin2D  L2Fit(const class ElPackHomologue &);
+       static ElAffin2D  L2Fit(const class ElPackHomologue &,double * aRes=0);
 
         bool IsId() const;
         // bool operator == (const ElAffin2D & aF2);

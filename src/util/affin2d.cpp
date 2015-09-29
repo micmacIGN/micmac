@@ -157,7 +157,7 @@ ElAffin2D  ElAffin2D::TransfoImCropAndSousEch(Pt2dr aTr,double aResol,Pt2dr * aS
 }
 
 
-ElAffin2D  ElAffin2D::L2Fit(const  ElPackHomologue & aPack)
+ElAffin2D  ElAffin2D::L2Fit(const  ElPackHomologue & aPack,double *aResidu)
 {
    ELISE_ASSERT(aPack.size()>=3,"Less than 3 point in ElAffin2D::L2Fit");
 
@@ -200,17 +200,22 @@ ElAffin2D  ElAffin2D::L2Fit(const  ElPackHomologue & aPack)
 
    ElAffin2D aRes(aIm00,aIm10,aIm01);
 
-/*
-   for 
-   (
-        ElPackHomologue::const_iterator it=aPack.begin();
-        it!=aPack.end();
-        it++
-   )
+   if (aResidu)
    {
-       std::cout << euclid(aRes(it->P1()),it->P2()) << it->P2()  << "\n";
+      *aResidu = 0;
+      for 
+      (
+           ElPackHomologue::const_iterator it=aPack.begin();
+           it!=aPack.end();
+           it++
+      )
+      {
+          *aResidu +=  euclid(aRes(it->P1()),it->P2()) ;
+      }
+      int aNbPt = aPack.size();
+      if (aNbPt>3)
+          *aResidu /= (aNbPt-3);
    }
-*/
    return aRes;
 }
 

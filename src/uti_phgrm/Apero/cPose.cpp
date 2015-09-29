@@ -163,7 +163,7 @@ cPoseCam::cPoseCam
    std::string aNamePtsCam = aPair.first;
    std::string aNamePtsIm  = aPair.second;
 
-   if (ELISE_fp::exist_file(mAppli.OutputDirectory()+ aNamePtsIm))
+   if ((aPair.first!="NONE") && (ELISE_fp::exist_file(mAppli.OutputDirectory()+ aNamePtsIm)))
    {
        cMesureAppuiFlottant1Im aMesCam = mAppli.StdGetOneMAF(aNamePtsCam);
 

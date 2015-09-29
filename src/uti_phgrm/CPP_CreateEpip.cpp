@@ -75,6 +75,8 @@ class cApply_CreateEpip_main
       double mLengthMin ;
       double mStepReech ;
       bool   mForceGen;
+      int    mNumKer;
+      std::string mPostMasq;
 
       cBasicGeomCap3D *  mGenI1;
       cBasicGeomCap3D *  mGenI2;
@@ -148,11 +150,20 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D 
 class cTmpReechEpip
 {
      public :
-        cTmpReechEpip(const std::string &,cBasicGeomCap3D * aGeom,EpipolaireCoordinate * anEpi,Box2dr aBox,double aStep,bool Im1);
+        cTmpReechEpip
+        (
+                const std::string &,
+                Box2dr aBoxImIn,
+                ElDistortion22_Gen * anEpi,
+                Box2dr aBoxOut,
+                double aStep,
+                const std::string & aNameOut,
+                const std::string & aPostMasq,
+                int aNumKer
+        );
      private :
-        cBasicGeomCap3D *      mGeom;
-        Pt2di                  mSzIm;
-        EpipolaireCoordinate * mEpi;
+        Box2dr                 mBoxImIn;
+        ElDistortion22_Gen *   mEpi;
         double                 mStep;
         Pt2dr                  mP0;
         Pt2di                  mSzEpi;
@@ -174,17 +185,41 @@ class cTmpReechEpip
 };
 
 
+void ReechFichier
+    (
+        const std::string & aNameOri,
+        Box2dr aBoxImIn,
+        ElDistortion22_Gen * anEpi,
+        Box2dr aBox,
+        double aStep,
+        const std::string & aNameOut,
+        const std::string & aPostMasq,
+        int   aNumKer
+)
+{
+    cTmpReechEpip aReech(aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer);
+}
+
+
+
+
+
+
+
+
+
 cTmpReechEpip::cTmpReechEpip
 (
         const std::string & aNameOri,
-        cBasicGeomCap3D * aGeom,
-        EpipolaireCoordinate * anEpi,
+        Box2dr aBoxImIn,
+        ElDistortion22_Gen * anEpi,
         Box2dr aBox,
         double aStep,
-        bool Is1
+        const std::string & aNameOut,
+        const std::string & aPostMasq,
+        int aNumKer 
 ) :
-    mGeom   (aGeom),
-    mSzIm   (mGeom->SzBasicCapt3D()),
+    mBoxImIn(aBoxImIn),
     mEpi    (anEpi),
     mStep   (aStep),
     mP0     (aBox._p0),
@@ -198,10 +233,29 @@ cTmpReechEpip::cTmpReechEpip
     mRedTImY   (mRedImY)
 {
 
-    int aNbSC = 5;
 
-    cSinCardApodInterpol1D aKer(cSinCardApodInterpol1D::eTukeyApod,aNbSC,aNbSC/2,1e-4,false);
-    cTabIM2D_FromIm2D<REAL4>   aSCI (&aKer,1000,false);
+
+    cInterpolateurIm2D<REAL4> * aPtrSCI = 0;
+
+
+    if (aNumKer==0)
+    {
+        aPtrSCI = new cInterpolBilineaire<REAL4>;
+    }
+    else 
+    {
+      
+       cKernelInterpol1D * aKer = 0;
+       if (aNumKer==1)
+          aKer = new cCubicInterpKernel(-0.5);
+       else
+          aKer = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,aNumKer,aNumKer/2,1e-4,false);
+
+       aPtrSCI =  new  cTabIM2D_FromIm2D<REAL4>   (aKer,1000,false);
+       // cTabIM2D_FromIm2D<REAL4>   aSSCI (&aKer,1000,false);
+    }
+
+    cInterpolateurIm2D<REAL4> & aSCI = *aPtrSCI;
 
 
 
@@ -214,7 +268,13 @@ cTmpReechEpip::cTmpReechEpip
           bool Ok= false;
           Pt2dr aPEpi = ToFullEpiCoord(aPInd);
           Pt2dr aPIm =  anEpi->Inverse(aPEpi);
-          if ((aPIm.x>0) && (aPIm.y>0) && (aPIm.x<mSzIm.x) && (aPIm.y<mSzIm.y))
+/*
+if ( ((aPInd.x%100)==50) && ((aPInd.y%100)==50) )
+{
+std::cout << "OOOKKKK " << aPInd << aPEpi << aPIm << "\n";
+}
+*/
+          if ((aPIm.x>mBoxImIn._p0.x) && (aPIm.y>mBoxImIn._p0.y) && (aPIm.x<mBoxImIn._p1.x) && (aPIm.y<mBoxImIn._p1.y))
           {
                Pt2dr aPEpi2 = anEpi->Direct(aPIm);
                if (euclid(aPEpi-aPEpi2) < 1e-2)
@@ -227,24 +287,41 @@ cTmpReechEpip::cTmpReechEpip
           mRedTImY.oset(aPInd,aPIm.y);
        }
     }
-    ELISE_COPY(mRedIMasq.all_pts(),dilat_d8(mRedIMasq.in(0),1),mRedIMasq.out());
-
-    Tiff_Im::Create8BFromFonc( (Is1?"MEPI1.tif":"MEPI2.tif"),mSzRed, 255*mRedIMasq.in());
+    ELISE_COPY(mRedIMasq.all_pts(),dilat_d8(mRedIMasq.in(0),4),mRedIMasq.out());
 
 
-    std::string  aNameEpi = Is1?"ImEpi1.tif":"ImEpi2.tif";
-    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),1,true);
+    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),-1,true);
     Tiff_Im aTifEpi
             (
-                aNameEpi.c_str(),
+                aNameOut.c_str(),
                 mSzEpi,
                 aTifOri.type_el(),
                 Tiff_Im::No_Compr,
                 aTifOri.phot_interp()
             );
 
+    Tiff_Im aTifMasq = aTifEpi;
+    bool ExportMasq = (aPostMasq!="NONE");
+
+    if (ExportMasq)
+    {
+        std::string aNameMasq = StdPrefix(aNameOut)+ aPostMasq  +".tif";
+        aTifMasq = Tiff_Im
+                   (
+                     aNameMasq.c_str(),
+                     mSzEpi,
+                     GenIm::bits1_msbf,
+                     Tiff_Im::No_Compr,
+                     Tiff_Im::BlackIsZero
+                   );
+    }
+
+
+
+
+
     int aNbBloc=2000;
-    int aBrd = aNbSC+3;
+    int aBrd = aNumKer+3;
     Pt2di aSzBrd(aBrd,aBrd);
 
     for (int aX0=0 ; aX0<mSzEpi.x ; aX0+=aNbBloc)
@@ -278,7 +355,7 @@ cTmpReechEpip::cTmpReechEpip
 
                         if ((aXIm>0) && (aYIm>0))
                         {
-                            aTImMasq.oset(aPIndLoc,1);
+                            // aTImMasq.oset(aPIndLoc,1);
                             aTImX.oset(aPIndLoc,aXIm);
                             aTImY.oset(aPIndLoc,aYIm);
 
@@ -329,56 +406,34 @@ cTmpReechEpip::cTmpReechEpip
                                    double aYIm = mRedTImY.getr(aIndEpiRed,-1,true);
                                    Pt2dr aPImLoc = Pt2dr(aXIm,aYIm) - Pt2dr(aP0BoxIm);
                                    double aV= 128;
-                                   if ((aPImLoc.x>aNbSC+1) && (aPImLoc.y>aNbSC+1) && (aPImLoc.x<aSzIm.x-aNbSC-2) && (aPImLoc.y<aSzIm.y-aNbSC-2))
+                                   if ((aPImLoc.x>aNumKer+2) && (aPImLoc.y>aNumKer+2) && (aPImLoc.x<aSzIm.x-aNumKer-3) && (aPImLoc.y<aSzIm.y-aNumKer-3))
                                    {
+                                       aTImMasq.oset(aIndEpi,1);
                                        aV = aSCI.GetVal(aDataOri,aPImLoc);
                                        // aV= 255;
                                    }
                                    aImEpi.oset(aIndEpi,aV);
                                }
-
-
-
-/*
-                               Pt2dr aPEpi = Pt2dr(anIndEpiGlob) + mP0;
-                               Pt2dr aPImGlob =  anEpi->Inverse(aPEpi);
-                               Pt2dr aPImLoc = aPImGlob - Pt2dr(aP0BoxIm);
-
-                               double aV= 0;
-                               if ((aPImLoc.x>aNbSC+1) && (aPImLoc.y>aNbSC+1) && (aPImLoc.x<aSzIm.x-aNbSC-2) && (aPImLoc.y<aSzIm.y-aNbSC-2))
-                               {
-                                   aV = aSCI.GetVal(aDataOri,aPImLoc);
-                               }
-                               aImEpi.oset(aIndEpi,aV);
-
-if ( ((anX%50)==25) && ((anY%50)==25) )
-{
-std::cout << "aPImLocaPImLoc " << aPImLoc << " => " << aV  << aSzIm << "\n";
-}
-*/
-
                            }
                       }
                  }
-/*
-static Video_Win aW=Video_Win::WStd(Pt2di(1200,800),1.0);
-TIm2D<REAL4,REAL8> aImEpi(aVIm[0]);
-ELISE_COPY(aImEpi._the_im.all_pts(), mod(aImEpi._the_im.in()/10,256),aW.ogray()); 
-getchar();
-*/
-
                  ELISE_COPY
                  (
                      rectangle(aP0Epi,aP0Epi+aSzBloc),
                      Tronque(aTifEpi.type_el(),trans(StdInput(aVImEpi),-aP0Epi)),
                      aTifEpi.out()
                  );
-
-
-
              }
-
-             std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
+             if (ExportMasq)
+             {
+                ELISE_COPY
+                (
+                    rectangle(aP0Epi,aP0Epi+aSzBloc),
+                    trans(aTImMasq._the_im.in(0),-aP0Epi),
+                    aTifMasq.out()
+                );
+             }
+             // std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
          }
     }
 }
@@ -471,9 +526,9 @@ void cApply_CreateEpip_main::DoEpipGen()
       std::cout << "Epip Rect Accuracy, Moy " << aErrMoy/mNbP << " Max " << aErrMax << "\n";
 
 
-      cTmpReechEpip aReech1(mName1,mGenI1,&e1,Box2dr(aInf1,aSup1),mStepReech,true);
+      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1.tif",mPostMasq,mNumKer);
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(mName2,mGenI2,&e2,Box2dr(aInf2,aSup2),mStepReech,false);
+      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2.tif",mPostMasq,mNumKer);
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
@@ -482,11 +537,14 @@ void cApply_CreateEpip_main::DoEpipGen()
 }
 
 
+    // std::string  aNameEpi = Is1?"ImEpi1.tif":"ImEpi2.tif";
 
 
 
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
-   mForceGen (false)
+   mForceGen (false),
+   mNumKer   (5),
+   mPostMasq ("NONE")
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -515,7 +573,12 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
                     << EAM(aNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)", eSAM_NoInit)
                     << EAM(mDegre,"Degre",true,"Degre of polynom to correct epi (def=1-, ,2,3)")
                     << EAM(mForceGen,"FG",true,"Force generik epip even with stenope cam")
+                    << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
+                    << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=NONE")
     );
+
+    if (mPostMasq!="NONE") 
+       mPostMasq = "_"+mPostMasq+"Masq";
 
     if (!MMVisualMode)
     {
@@ -605,6 +668,181 @@ int CreateEpip_main(int argc,char ** argv)
 
      return EXIT_SUCCESS;
 }
+
+
+/*************************************************************/
+/*                                                           */
+/*                 cAppliOneReechMarqFid                     */                                         
+/*                                                           */
+/*************************************************************/
+
+class cAppliOneReechMarqFid : public ElDistortion22_Gen,
+                              public cAppliWithSetImage
+{
+    public :
+        cAppliOneReechMarqFid(int argc,char ** argv);
+        void DoReech();
+    private :
+        Pt2dr Direct(Pt2dr) const;
+        bool OwnInverse(Pt2dr &) const ;
+        Pt2dr       ChambreMm2ChambrePixel (const Pt2dr &) const;
+        Pt2dr       ChambrePixel2ChambreMm (const Pt2dr &) const;
+        Box2dr      mBoxChambreMm;
+        Box2dr      mBoxChambrePix;
+        ElPackHomologue  mPack;
+
+
+        std::string mNamePat;
+        std::string mNameIm;
+        std::string mDir;
+        cInterfChantierNameManipulateur * mICNM;
+        double      mResol;
+        double      mResidu;
+        ElAffin2D   mAffPixIm2ChambreMm;
+        ElAffin2D   mAffChambreMm2PixIm;
+        Pt2di       mSzIm;
+        bool        mBySingle;
+        int         mNumKer;
+        std::string mPostMasq;
+};
+
+// mAffin (mm) = Pixel
+
+bool cAppliOneReechMarqFid::OwnInverse(Pt2dr & aP) const 
+{
+    aP = mAffChambreMm2PixIm(ChambrePixel2ChambreMm(aP));
+    return true;
+}
+
+Pt2dr  cAppliOneReechMarqFid::Direct(Pt2dr aP) const
+{
+    return  ChambreMm2ChambrePixel(mAffPixIm2ChambreMm(aP));
+}
+/*
+bool cAppliOneReechMarqFid::OwnInverse(Pt2dr & aP) const 
+{
+    aP = ChambreMm2ChambrePixel(mAffPixIm2ChambreMm(aP));
+    return true;
+}
+
+Pt2dr  cAppliOneReechMarqFid::Direct(Pt2dr aP) const
+{
+    return  mAffChambreMm2PixIm(ChambrePixel2ChambreMm(aP));
+}
+*/
+
+
+
+Pt2dr cAppliOneReechMarqFid::ChambreMm2ChambrePixel (const Pt2dr & aP) const
+{
+   return (aP-mBoxChambreMm._p0) / mResol;
+}
+
+Pt2dr cAppliOneReechMarqFid::ChambrePixel2ChambreMm (const Pt2dr & aP) const
+{
+   return mBoxChambreMm._p0 + aP * mResol;
+}
+
+
+
+cAppliOneReechMarqFid::cAppliOneReechMarqFid(int argc,char ** argv) :
+     cAppliWithSetImage   (argc-1,argv+1,TheFlagNoOri),
+     mAffPixIm2ChambreMm  (ElAffin2D::Id()),
+     mBySingle            (true),
+     mNumKer              (5),
+     mPostMasq            ("NONE")
+{
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(mNamePat,"Pattern image", eSAM_IsExistFile)
+                      << EAMC(mResol,"Resolution"),
+          LArgMain()   <<  EAM(mBoxChambreMm,"BoxCh",true,"Box in Chambre (generally in mm)")
+                       << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
+                       << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=NONE")
+    );
+
+    if (mPostMasq!="NONE") 
+       mPostMasq = "_"+mPostMasq+"Masq";
+
+    const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
+    if (aSetIm->size()>1)
+    {
+         mBySingle = false;
+         ExpandCommand(2,"",true);
+         return;
+    }
+
+    mNameIm =(*aSetIm)[0];
+ 
+    mDir = DirOfFile(mNameIm);
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
+    std::pair<std::string,std::string> aPair = mICNM->Assoc2To1("Key-Assoc-STD-Orientation-Interne",mNameIm,true);
+
+
+    mSzIm = Tiff_Im::StdConvGen(mNameIm,-1,true).sz();
+
+    cMesureAppuiFlottant1Im aMesCam = StdGetFromPCP(mDir+aPair.first,MesureAppuiFlottant1Im);
+    cMesureAppuiFlottant1Im aMesIm  = StdGetFromPCP(mDir+aPair.second,MesureAppuiFlottant1Im);
+
+
+    mPack = PackFromCplAPF(aMesCam,aMesIm);
+    if (! EAMIsInit(&mBoxChambreMm))
+    {
+          mBoxChambreMm._p0 = Pt2dr(1e20,1e20);
+          mBoxChambreMm._p1 = Pt2dr(-1e20,-1e20);
+          for (ElPackHomologue::const_iterator itC=mPack.begin() ; itC!=mPack.end() ; itC++)
+          {
+               mBoxChambreMm._p0  = Inf(mBoxChambreMm._p0,itC->P1());
+               mBoxChambreMm._p1  = Sup(mBoxChambreMm._p1,itC->P1());
+          }
+    }
+    mBoxChambrePix._p0 = ChambreMm2ChambrePixel(mBoxChambreMm._p0);
+    mBoxChambrePix._p1 = ChambreMm2ChambrePixel(mBoxChambreMm._p1);
+
+/*
+    mAffChambreMm2PixIm = ElAffin2D::L2Fit(mPack,&mResidu);
+    mAffPixIm2ChambreMm  = mAffChambreMm2PixIm.inv();
+    std::cout << "FOR " << mNameIm << " RESIDU " << mResidu  << " \n";
+*/
+}
+
+
+void cAppliOneReechMarqFid::DoReech()
+{
+    if (! mBySingle) return;
+
+    ElTimer aChrono;
+   
+    mAffChambreMm2PixIm = ElAffin2D::L2Fit(mPack,&mResidu);
+    mAffPixIm2ChambreMm  = mAffChambreMm2PixIm.inv();
+
+    ReechFichier
+    (
+          mNameIm,
+          Box2dr(Pt2dr(0,0),Pt2dr(mSzIm)),
+          this,
+          mBoxChambrePix,
+          10.0,
+          "OIS-Reech_"+mNameIm,
+          mPostMasq,
+          mNumKer
+    );
+    std::cout << "FOR " << mNameIm << " RESIDU " << mResidu   << " Time " << aChrono.uval() << " \n";
+}
+    
+
+
+int OneReechFid_main(int argc,char ** argv)
+{
+     cAppliOneReechMarqFid anAppli(argc,argv);
+
+     anAppli.DoReech();
+
+     return EXIT_SUCCESS;
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
