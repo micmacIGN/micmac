@@ -460,10 +460,23 @@ Pt3dr RPC::ptRefined(Pt3dr Pimg, std::vector<double> vRefineCoef)const
 {
     //Pour calculer les coordonnees affinees d'un point
     Pt3dr pImgRefined;
-	double aSX0 = -0, aSX1 = 4000, aSX2 = 0.2;
-	double aSY0 = 0, aSY1 = 2600, aSY2 = M_PI/2;
-	pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2] + aSX0 * sin(2 * M_PI  * Pimg.x / aSX1 + aSX2);
-	pImgRefined.y = vRefineCoef[3] + Pimg.x * vRefineCoef[4] + Pimg.y * vRefineCoef[5] + aSY0 * sin(2 * M_PI  * Pimg.x / aSY1 + aSY2);
+	/* Test with refineASTER
+	//ALONE double aPXx2 = -7.07699595453511e-006, aPXx3 = 3.71610587985139e-009, aPXx4 = -8.39285712549466e-013, aPXx5 = 6.96947929658092e-017;
+	//WITH pXy
+	double aPXx2 = 9.99543290566189e-007, aPXx3 = -3.54106265075763e-010, aPXx4 = 6.75132508900207e-014, aPXx5 = -5.31657575522908e-018;
+	double aPXy2 = 2.03369518300494e-006, aPXy3 = -8.19927700050208e-010, aPXy4 = 1.38977078492289e-013, aPXy5 = -7.88660852340546e-018;
+	double aSX0 = 0.300943960195233, aSX1 = 296.310168220886, aSX2 = 0.757953969235237; aSX0 = 0;
+	double aSY0 = 0, aSY1 = 2100, aSY2 = -M_PI/3;
+	double aSY3 = 0, aSY4 = 300, aSY5 = -M_PI / 3;
+	pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2] +
+		aPXx2*pow(Pimg.x, 2) + aPXx3*pow(Pimg.x, 3) + aPXx4*pow(Pimg.x, 4) + aPXx5*pow(Pimg.x, 5) +
+		aPXy2*pow(Pimg.y, 2) + aPXy3*pow(Pimg.y, 3) + aPXy4*pow(Pimg.y, 4) + aPXy5*pow(Pimg.y, 5);// +
+		//aSX0 * sin(2 * M_PI  * Pimg.y / aSX1 + aSX2);
+	pImgRefined.y = vRefineCoef[3] + Pimg.x * vRefineCoef[4] + Pimg.y * vRefineCoef[5] + aSY0 * sin(2 * M_PI  * Pimg.y / aSY1 + aSY2) + aSY3 * sin(2 * M_PI  * Pimg.y / aSY4 + aSY5);
+	*/
+	//Orig
+	pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2];
+	pImgRefined.y = vRefineCoef[3] + Pimg.x * vRefineCoef[4] + Pimg.y * vRefineCoef[5];
     pImgRefined.z = Pimg.z;
 
     return pImgRefined;
