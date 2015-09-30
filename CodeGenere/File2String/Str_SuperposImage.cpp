@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1484]) = {
+const char * (theNameVar_SuperposImage[1485]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1461,6 +1461,7 @@ const char * (theNameVar_SuperposImage[1484]) = {
 "<Xml_CamGenPolBundle Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "    <NameCamSsCor  Type=\"std::string\" Nb=\"1\" > </NameCamSsCor>\n",
 "    <NameIma  Type=\"std::string\" Nb=\"1\" > </NameIma>\n",
+"    <SysCible Nb=\"1\" RefType=\"SystemeCoord\" RefFile=\"ParamChantierPhotogram.xml\"> </SysCible> \n",
 "    <DegreTot Type=\"int\" Nb=\"1\"> </DegreTot>\n",
 "    <Center Nb=\"1\" Type=\"Pt2dr\"> </Center>\n",
 "    <Ampl Nb=\"1\" Type=\"double\"> </Ampl>\n",
