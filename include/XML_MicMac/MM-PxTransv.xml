@@ -17,7 +17,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
 
    <Symb> Zoom0=32 </Symb> <!-- 128 64 32 16 -->
    <Symb> ZoomF=4 </Symb>  <!-- 4 2 1 -->
-   <Symb>  ExporFieldsHom=true </Symb>
+   <Symb>  ExporFieldsHom=false </Symb>
 
 <!-- VALEURS QUASI-FIXE -->
    <Symb> DirMEC=GeoI-Px/ </Symb>
