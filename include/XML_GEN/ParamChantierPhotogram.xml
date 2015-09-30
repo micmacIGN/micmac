@@ -547,6 +547,7 @@
    <SetOfMesureAppuisFlottants Nb="1" Class="true">
       <MesureAppuiFlottant1Im Nb="*" Class="true">
          <NameIm Nb="1" Type="std::string"> </NameIm>
+         <PrecPointeByIm Nb="?" Type="double"> </PrecPointeByIm>
          <OneMesureAF1I Nb="*">
             <NamePt Nb="1" Type="std::string"> </NamePt>
             <PtIm   Nb="1" Type="Pt2dr"> </PtIm>

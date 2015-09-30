@@ -1952,10 +1952,14 @@ class cMesureAppuiFlottant1Im
         std::string & NameIm();
         const std::string & NameIm()const ;
 
+        cTplValGesInit< double > & PrecPointeByIm();
+        const cTplValGesInit< double > & PrecPointeByIm()const ;
+
         std::list< cOneMesureAF1I > & OneMesureAF1I();
         const std::list< cOneMesureAF1I > & OneMesureAF1I()const ;
     private:
         std::string mNameIm;
+        cTplValGesInit< double > mPrecPointeByIm;
         std::list< cOneMesureAF1I > mOneMesureAF1I;
 };
 cElXMLTree * ToXMLTree(const cMesureAppuiFlottant1Im &);

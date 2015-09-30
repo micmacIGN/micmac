@@ -2661,12 +2661,23 @@
             <Calcs>
                  <Arrite>  1 1 </Arrite>
                  <Direct>
+                       <PatternTransform> OIS-Reech_.*  </PatternTransform>
+                       <CalcName> NONE </CalcName>
+                       <CalcName> NONE </CalcName>
+                 </Direct>
+             </Calcs>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
                        <PatternTransform> .*  </PatternTransform>
                        <CalcName> Ori-InterneScan/MeasuresCamera.xml </CalcName>
                        <CalcName> Ori-InterneScan/MeasuresIm-$0.xml </CalcName>
                  </Direct>
              </Calcs>
+
+
              <Key>   Key-Assoc-STD-Orientation-Interne </Key>
+             <SubDirAutoMake> Ori-InterneScan </SubDirAutoMake>
     </KeyedNamesAssociations>
 
 

@@ -19,26 +19,44 @@ public:
 		mCamera = new cCameraModuleOrientation(new OrientationGrille(aFilename), Sz, oriIntImaM2C);
 
 		// the 12 parameters of the refine function
-		//colc = vP[0] + vP[1] * col + vP[2] * row + vP[6] * sin(2 * M_PI * col / vP[7] + vP[8]);
+		//colc = vP[0] + vP[1] * col + vP[2] * row + vP[6] * sin(2 * M_PI * row / vP[7] + vP[8]);
 		//rowc = vP[3] + vP[4] * col + vP[5] * row + vP[9] * sin(2 * M_PI * row / vP[10] + vP[11]);
 
 		//Affinity parameters //cX //cXsX //cXcY //cXcYsY
 		// the 6 parameters of affinity
-		vP.push_back(0);// Col : Constant
+		//vP.push_back(0);// Col : Constant
 		//vP.push_back(1);// Col : Param*Col
 		//vP.push_back(0);// Col : Param*Row
 
+		//pXx (5th deg poly)
+		vP.push_back(0);
+		vP.push_back(1);
+		vP.push_back(0);
+		vP.push_back(0);
+		vP.push_back(0);
+		vP.push_back(0);
+		//pXy (5th deg poly, no 0th order  since already in pXx)
+		vP.push_back(0);
+		vP.push_back(0);
+		vP.push_back(0);
+		vP.push_back(0);
+		vP.push_back(0);
 		//vP.push_back(0);// Row : Constant
 		//vP.push_back(0);// Row : Param*Col
 		//vP.push_back(1);// Row : Param*Row
 
 		// the 2*3 parameters of jitter 
-		vP.push_back(1);// Col : Amplitude across track of sinusoid
-		vP.push_back(4000);// Col : Freq of across track sinusoid
-		vP.push_back(0);// Col : Phase of across track sinusoid
+		//vP.push_back(1);// Col : Amplitude across track of sinusoid
+		//vP.push_back(300);// Col : Freq of across track sinusoid
+		//vP.push_back(0);// Col : Phase of across track sinusoid
 
-		//vP.push_back(0.4);// Row : Amplitude of along track sinusoid (1pix?)
-		//vP.push_back(5100);// Row : Freq of along track sinusoid (about 1 cycles per nadir image -> every 5100pix)
+		//Low Freq
+		//vP.push_back(0.2);// Row : Amplitude of along track sinusoid (1pix?)
+		//vP.push_back(2100);// Row : Freq of along track sinusoid (about 1 cycles per nadir image -> every 5100pix)
+		//vP.push_back(0);// Row : Phase of along track sinusoid
+		//High Freq
+		//vP.push_back(0.2);// Row : Amplitude of along track sinusoid (1pix?)
+		//vP.push_back(300);// Row : Freq of along track sinusoid (about 1 cycles per nadir image -> every 5100pix)
 		//vP.push_back(0);// Row : Phase of along track sinusoid
 	}
 
@@ -61,10 +79,7 @@ public:
 
 		for (size_t aK = 0; aK < vP.size(); aK++)
 		{
-			if (aK == 0 || aK == 1 || aK == 2 || aK == 3 || aK == 4 || aK == 5)
-				vP[aK] += sol(0, aK);
-			if (aK == 9 || aK == 10 || aK == 11)
-				vP[aK] += sol(0, aK - 3);
+			vP[aK] += sol(0, aK);
 		}
 
 
@@ -95,7 +110,14 @@ public:
 		//return Pt2dr(vP[0] + ptImg2.x, vP[1] + ptImg2.y);
 
 		//cXsX
-		return Pt2dr(vP[0] + ptImg2.x + vP[1] * sin(2 * M_PI * ptImg2.x / vP[2] + vP[3]), ptImg2.y);
+		//return Pt2dr(vP[0] + ptImg2.x + vP[1] * sin(2 * M_PI * ptImg2.y / vP[2] + vP[3]), ptImg2.y);
+
+		//pXx
+		//return Pt2dr(vP[0] + vP[1] * ptImg2.x + vP[2] * pow(ptImg2.x, 2) + vP[3] * pow(ptImg2.x, 3) + vP[4] * pow(ptImg2.x, 4) + vP[5] * pow(ptImg2.x, 5), ptImg2.y);
+
+		//pXy
+		return Pt2dr(vP[0] + vP[1] * ptImg2.x + vP[2] * pow(ptImg2.x, 2) + vP[3] * pow(ptImg2.x, 3) + vP[4] * pow(ptImg2.x, 4) + vP[5] * pow(ptImg2.x, 5) + 
+				vP[6] * ptImg2.y + vP[7] * pow(ptImg2.y, 2) + vP[8] * pow(ptImg2.y, 3) + vP[9] * pow(ptImg2.y, 4) + vP[10] * pow(ptImg2.y, 5), ptImg2.y);
 
 		//cX
 		//return Pt2dr(vP[0] + ptImg2.x, ptImg2.y);
@@ -162,7 +184,9 @@ public:
 
 	Pt2dr computeImageDifference(int index,
 		Pt3dr pt,
-		double aX0, double aSX0, double aSX1, double aSX2);//cXsX //cX  , double aY0);//, double aSY0, double aSY1, double aSY2);
+		double apXx0, double apXx1, double apXx2, double apXx3, double apXx4, double apXx5,//pXx
+		double apXy1, double apXy2, double apXy3, double apXy4, double apXy5);//pXy
+		//double aX0, double aSX0, double aSX1, double aSX2);//cXsX //cX  ;//, double aSY0, double aSY1, double aSY2);
 
 	Pt2dr computeImageDifference(int index, Pt3dr pt);
 
@@ -180,7 +204,9 @@ protected:
 
 Pt2dr ObservationASTER::computeImageDifference(int index,
 	Pt3dr pt,
-	double aX0, double aSX0, double aSX1, double aSX2) //cXsX//cX //cXcY, double aY0) //cXcYsY , double aSY0, double aSY1, double aSY2)
+	double apXx0, double apXx1, double apXx2, double apXx3, double apXx4, double apXx5,//pXx
+	double apXy1, double apXy2, double apXy3, double apXy4, double apXy5)//pXy
+	//double aX0, double aSX0, double aSX1, double aSX2) //cXsX//cX //cXcY //cXcYsY , double aSY0, double aSY1, double aSY2)
 {
 	ImageMeasureASTER* aMes = &vImgMeasure[index];
 
@@ -199,8 +225,11 @@ Pt2dr ObservationASTER::computeImageDifference(int index,
 	//Pt2dr ptImgC(ptImg.x + aX0, ptImg.y);
 
 	//cXsX
-	Pt2dr ptImgC(ptImg.x + aX0 + aSX0 * sin(2 * M_PI * ptImg.x / aSX1 + aSX2), ptImg.y);
+	//Pt2dr ptImgC(ptImg.x + aX0 + aSX0 * sin(2 * M_PI * ptImg.y / aSX1 + aSX2), ptImg.y);
 
+	//pXx //pXy
+	Pt2dr ptImgC(apXx0 + apXx1 * ptImg.x + apXx2 * pow(ptImg.x, 2) + apXx3 * pow(ptImg.x, 3) + apXx4 * pow(ptImg.x, 4) + apXx5 * pow(ptImg.x, 5) +
+			             apXy1 * ptImg.y + apXy2 * pow(ptImg.y, 2) + apXy3 * pow(ptImg.y, 3) + apXy4 * pow(ptImg.y, 4) + apXy5 * pow(ptImg.y, 5), ptImg.y);
 	Pt2dr proj = cam->Camera()->R3toF2(pt);
 	Pt2dr imageDiff = ptImgC - proj;
 
@@ -340,8 +369,8 @@ public:
 	/// \param aNameFileGridSlave Grid file for slave image
 	/// \param aNamefileTiePointASTERs Tie-points file
 	///
-	//cX numUnk(1) //cXsX numUnk(4) //cXcY numUnk(2) //cXcYsY numUnk(5)
-	RefineModelAbsASTER(string const &aFullDir, string imgsExtension = ".tif", bool filter = false) :_N(1, 1, 0.), _Y(1, 1, 0.), numUnk(4), _verbose(false), iteration(0)
+	//cX numUnk(1) //cXsX numUnk(4) //cXcY numUnk(2) //cXcYsY numUnk(5) //pXx numUnk(6) //pXy numUnk(11)
+	RefineModelAbsASTER(string const &aFullDir, string imgsExtension = ".tif", bool filter = false) :_N(1, 1, 0.), _Y(1, 1, 0.), numUnk(11), _verbose(false), iteration(0)
 	{
 		string aDir, aPat;
 		SplitDirAndFile(aDir, aPat, aFullDir);
@@ -530,25 +559,6 @@ public:
 		//ecriture dans un fichier des coefficients en vue d'affiner la grille
 		//consommateur en temps => todo: stocker les parametres de l'iteration n-1
 		map<int, AffCameraASTER *>::const_iterator iter = mapCameras.begin();
-		for (size_t aK = 0; iter != mapCameras.end(); ++iter, ++aK)
-		{
-			AffCameraASTER* cam = iter->second;
-			string name = StdPostfix(cam->name());
-			ofstream fic(("refineASTER/" + name + "_refineCoef.txt").c_str());
-			cout << "Writing refineCoef file : refineASTER" + name + "_refineCoef.txt" << endl;
-			fic << setprecision(15);
-			//cXsX
-			fic << cam->vP[0] << " 1 0 0 0 1 " << cam->vP[1] << cam->vP[2] << cam->vP[3] << endl;
-			//cX
-			//fic << cam->vP[0] << " 1 0 0 0 1" << endl;
-			//cXcY
-			//fic << cam->vP[0] << " 1 0 " << cam->vP[1] << " 0 1" << endl;
-			//cXcYsY
-			//fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[4] << " " << cam->vP[5] << endl;
-			//fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[3] << " " << cam->vP[4] << " " << cam->vP[5] << " "
-			//	<< cam->vP[6] << " " << cam->vP[7] << " " << cam->vP[8] << " " << cam->vP[9] << " " << cam->vP[10] << " " << cam->vP[11] << " " << endl;
-		}
-
 
 		if (numObs)
 		{
@@ -564,6 +574,30 @@ public:
 			}
 			cout << "RMS_after = " << curRMS << endl;
 			iteration++;
+			//Print solution to file
+			for (size_t aK = 0; iter != mapCameras.end(); ++iter, ++aK)
+			{
+				AffCameraASTER* cam = iter->second;
+				string name = StdPostfix(cam->name());
+				ofstream fic(("refineASTER/" + name + "_refineCoef.txt").c_str());
+				cout << "Writing refineCoef file : refineASTER" + name + "_refineCoef.txt" << endl;
+				fic << setprecision(15);
+				//cXsX
+				//fic << cam->vP[0] << " 1 0 0 0 1 " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[3] << endl;
+				//pXx
+				//fic << cam->vP[0] << " " << cam->vP[1] <<" 0 0 0 1 " << " " << cam->vP[2] << " " << cam->vP[3] << " " << cam->vP[4] << " " << cam->vP[5] << endl;
+				//pXy
+				fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[6] << " 0 0 1 " << " " << cam->vP[2] << " " << cam->vP[3] << " " << cam->vP[4] << " " << cam->vP[5] << " " << cam->vP[7] << " " << cam->vP[8] << " " << cam->vP[9] << " " << cam->vP[10] << endl;
+				//cX
+				//fic << cam->vP[0] << " 1 0 0 0 1" << endl;
+				//cXcY
+				//fic << cam->vP[0] << " 1 0 " << cam->vP[1] << " 0 1" << endl;
+				//cXcYsY
+				//fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[4] << " " << cam->vP[5] << endl;
+				//fic << cam->vP[0] << " " << cam->vP[1] << " " << cam->vP[2] << " " << cam->vP[3] << " " << cam->vP[4] << " " << cam->vP[5] << " "
+				//	<< cam->vP[6] << " " << cam->vP[7] << " " << cam->vP[8] << " " << cam->vP[9] << " " << cam->vP[10] << " " << cam->vP[11] << " " << endl;
+			}
+
 			return true;
 		}
 		else
@@ -988,13 +1022,22 @@ public:
 			double dY = 0.1;
 			double dZ = 0.1;
 
-			//cXsX //cX //cXcY //cXcYsY
-			double dX0 = 0.05;
-			//double dX1 = 0.1;
-			//double dX2 = 0.1;
-			double dSX0 = 0.05;
-			double dSX1 = 1;
-			double dSX2 = 0.05;
+			//pXx //cXsX //cX //cXcY //cXcYsY
+			double dX0 = 0.1;
+			double dX1 = 0.1;
+			double dX2 = 0.01;
+			double dX3 = 0.001;
+			double dX4 = 0.001;
+			double dX5 = 0.001;
+			//pXy
+			double dXy1 = 0.1;
+			double dXy2 = 0.01;
+			double dXy3 = 0.001;
+			double dXy4 = 0.001;
+			double dXy5 = 0.001;
+			//double dSX0 = 0.05;
+			//double dSX1 = 1;
+			//double dSX2 = 0.05;
 			//double dY0 = 0.05;
 			//double dY1 = 0.1;
 			//double dY2 = 0.1;
@@ -1047,7 +1090,20 @@ public:
 					if (cam->index() > 0) vPos.push_back(cam->index());
 
 					//For every Parameters
-					//cX //cXcY 
+					//pXx 
+					double X0 = cam->vP[0];
+					double X1 = cam->vP[1];
+					double X2 = cam->vP[2];
+					double X3 = cam->vP[3];
+					double X4 = cam->vP[4];
+					double X5 = cam->vP[5];
+					//pXy 
+					double Xy1 = cam->vP[6];
+					double Xy2 = cam->vP[7];
+					double Xy3 = cam->vP[8];
+					double Xy4 = cam->vP[9];
+					double Xy5 = cam->vP[10];
+					//cX 
 					//double X0 = cam->vP[0];
 					//double X1 = cam->vP[1];
 					//double X2 = cam->vP[2];
@@ -1058,7 +1114,7 @@ public:
 					//double SY1 = cam->vP[7];
 					//double SY2 = cam->vP[8];
 
-					//cXcYsY
+					//cXcYsY //cXcY
 					//double X0 = cam->vP[0];
 					//double Y0 = cam->vP[1];
 					//double SY0 = cam->vP[2];
@@ -1066,10 +1122,10 @@ public:
 					//double SY2 = cam->vP[4];
 
 					//cXsX
-					double X0 = cam->vP[0];
-					double SX0 = cam->vP[1];
-					double SX1 = cam->vP[2];
-					double SX2 = cam->vP[3];
+					//double X0 = cam->vP[0];
+					//double SX0 = cam->vP[1];
+					//double SX1 = cam->vP[2];
+					//double SX2 = cam->vP[3];
 
 					/* FOR INFO :
 					Pt2dr ptImgC(aX0 + aX1 * ptImg.x + aX2 * ptImg.y + aSX0 * sin(2 * M_PI  * ptImg.x / aSX1 + aSX2),
@@ -1082,14 +1138,39 @@ public:
 					//Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0) - D);//, SY0, SY1, SY2) - D);
 					//Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0) - D);//, SY0, SY1, SY2) - D);
 					//Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0) - D);//, SY0, SY1, SY2) - D);
+					//pXx
+					//Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, X1, X2, X3, X4, X5) - D);
+					//Pt2dr vdX1 = Pt2dr(1. / dX1, 1. / dX1) * (aObs->computeImageDifference(bK, pt, X0, X1 + dX1, X2, X3, X4, X5) - D);
+					//Pt2dr vdX2 = Pt2dr(1. / dX2, 1. / dX2) * (aObs->computeImageDifference(bK, pt, X0, X1, X2 + dX2, X3, X4, X5) - D);
+					//Pt2dr vdX3 = Pt2dr(1. / dX3, 1. / dX3) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3 + dX3, X4, X5) - D);
+					//Pt2dr vdX4 = Pt2dr(1. / dX4, 1. / dX4) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4 + dX4, X5) - D);
+					//Pt2dr vdX5 = Pt2dr(1. / dX5, 1. / dX5) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5 + dX5) - D);
+					//Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, X1, X2, X3, X4, X5) - D);
+					//Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, X1, X2, X3, X4, X5) - D);
+					//Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, X1, X2, X3, X4, X5) - D);
+					//pXy
+					Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX1 = Pt2dr(1. / dX1, 1. / dX1) * (aObs->computeImageDifference(bK, pt, X0, X1 + dX1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX2 = Pt2dr(1. / dX2, 1. / dX2) * (aObs->computeImageDifference(bK, pt, X0, X1, X2 + dX2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX3 = Pt2dr(1. / dX3, 1. / dX3) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3 + dX3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX4 = Pt2dr(1. / dX4, 1. / dX4) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4 + dX4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX5 = Pt2dr(1. / dX5, 1. / dX5) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5 + dX5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdXy1 = Pt2dr(1. / dX1, 1. / dX1) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1 + dXy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdXy2 = Pt2dr(1. / dX2, 1. / dX2) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2 + dXy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdXy3 = Pt2dr(1. / dX3, 1. / dX3) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3 + dXy3, Xy4, Xy5) - D);
+					Pt2dr vdXy4 = Pt2dr(1. / dX4, 1. / dX4) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4 + dXy4, Xy5) - D);
+					Pt2dr vdXy5 = Pt2dr(1. / dX5, 1. / dX5) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5 + dXy5) - D);
+					Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
 					//cXsX
-					Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, SX0, SX1, SX2) - D);// , SY0, SY1, SY2) - D);
-					Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
-					Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
-					Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
-					Pt2dr vdSX0 = Pt2dr(1. / dSX0, 1. / dSX0) * (aObs->computeImageDifference(bK, pt, X0, SX0 + dSX0, SX1, SX2) - D);
-					Pt2dr vdSX1 = Pt2dr(1. / dSX1, 1. / dSX1) * (aObs->computeImageDifference(bK, pt, X0, SX0, SX1 + dSX1, SX2) - D);
-					Pt2dr vdSX2 = Pt2dr(1. / dSX2, 1. / dSX2) * (aObs->computeImageDifference(bK, pt, X0, SX0, SX1, SX2 + dSX2) - D);
+					//Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, SX0, SX1, SX2) - D);// , SY0, SY1, SY2) - D);
+					//Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
+					//Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
+					//Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
+					//Pt2dr vdSX0 = Pt2dr(1. / dSX0, 1. / dSX0) * (aObs->computeImageDifference(bK, pt, X0, SX0 + dSX0, SX1, SX2) - D);
+					//Pt2dr vdSX1 = Pt2dr(1. / dSX1, 1. / dSX1) * (aObs->computeImageDifference(bK, pt, X0, SX0, SX1 + dSX1, SX2) - D);
+					//Pt2dr vdSX2 = Pt2dr(1. / dSX2, 1. / dSX2) * (aObs->computeImageDifference(bK, pt, X0, SX0, SX1, SX2 + dSX2) - D);
 					//cXcY 
 					//Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, Y0) - D);// , SY0, SY1, SY2) - D);
 					//Pt2dr vdY0 = Pt2dr(1. / dY0, 1. / dY0) * (aObs->computeImageDifference(bK, pt, X0, Y0 + dY0) - D);//, SY0, SY1, SY2) - D);
@@ -1107,11 +1188,24 @@ public:
 						//Shift in Col and Row //cX
 						//obs(0, 0) = vdX0.x;
 
-						//Shift in Col and Row //cXsX
+						//Poly Xx //pXx
 						obs(0, 0) = vdX0.x;
-						obs(1, 0) = vdSX0.x;
-						obs(2, 0) = vdSX1.x;
-						obs(3, 0) = vdSX2.x;
+						obs(1, 0) = vdX1.x;
+						obs(2, 0) = vdX2.x;
+						obs(3, 0) = vdX3.x;
+						obs(4, 0) = vdX4.x;
+						obs(5, 0) = vdX5.x;
+						//Poly Xy //pXy
+						obs(6, 0) = vdXy1.x;
+						obs(7, 0) = vdXy2.x;
+						obs(8, 0) = vdXy3.x;
+						obs(9, 0) = vdXy4.x;
+						obs(10, 0) = vdXy5.x;
+						//Shift in Col and Row //cXsX
+						//obs(0, 0) = vdX0.x;
+						//obs(1, 0) = vdSX0.x;
+						//obs(2, 0) = vdSX1.x;
+						//obs(3, 0) = vdSX2.x;
 
 						//Shift in Col and Row //cXcY
 						//obs(0, 0) = vdX0.x;
@@ -1136,11 +1230,25 @@ public:
 						//Shift in Col and Row //cX
 						//obs(0, 0) = vdX0.y;
 
-						//Shift in Col and Row //cXsX
+						//Poly Xx //pXx
 						obs(0, 0) = vdX0.y;
-						obs(1, 0) = vdSX0.y;
-						obs(2, 0) = vdSX1.y;
-						obs(3, 0) = vdSX2.y;
+						obs(1, 0) = vdX1.y;
+						obs(2, 0) = vdX2.y;
+						obs(3, 0) = vdX3.y;
+						obs(4, 0) = vdX4.y;
+						obs(5, 0) = vdX5.y;
+						//Poly Xy //pXy
+						obs(6, 0) = vdXy1.y;
+						obs(7, 0) = vdXy2.y;
+						obs(8, 0) = vdXy3.y;
+						obs(9, 0) = vdXy4.y;
+						obs(10, 0) = vdXy5.y;
+
+						//Shift in Col and Row //cXsX
+						//obs(0, 0) = vdX0.y;
+						//obs(1, 0) = vdSX0.y;
+						//obs(2, 0) = vdSX1.y;
+						//obs(3, 0) = vdSX2.y;
 
 						//Shift in Col and Row //cXcY
 						//obs(0, 0) = vdX0.y;
