@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../SateLib/RPC.h"
 #include "../../../include/XML_GEN/SuperposImage.h"
 
-class cComp3DBasic : public cBasicGeomCap3D
+/*class cComp3DBasic : public cBasicGeomCap3D
 {
     public:
         cComp3DBasic(cBasicGeomCap3D * aCam);
@@ -68,7 +68,7 @@ class cComp3DBasic : public cBasicGeomCap3D
 
     protected:
         cBasicGeomCap3D * mCam0;
-};
+};*/
 
 
 class CameraRPC : public cBasicGeomCap3D
@@ -76,13 +76,17 @@ class CameraRPC : public cBasicGeomCap3D
 	public:
 		CameraRPC(const std::string &aNameFile, 
 			  const eTypeImporGenBundle &aType, 
-			  const std::string &aCartCS, 
+			  std::string &aChSys, 
 			  const Pt2di &aGridSz, 
 			  const std::string &aMetaFile="");
 		CameraRPC(const std::string &aNameFile, 
                           const eTypeImporGenBundle &aType, 
-			  const std::string aCartoCS="");
+   	                  const cSystemeCoord * aChSys=0);
+
 		~CameraRPC();
+
+		Pt3dr ToSysCible(const Pt3dr &) const;
+		Pt3dr ToSysSource(const Pt3dr &) const;
 
 		Pt2dr Ter2Capteur   (const Pt3dr & aP) const;
 		ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
@@ -92,39 +96,43 @@ class CameraRPC : public cBasicGeomCap3D
 		Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
 
 		Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
-                Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aProf) const;
+        Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aProf) const;
 		double ResolSolOfPt(const Pt3dr &) const ;
 		bool  CaptHasData(const Pt2dr &) const;
 
 		Pt2di SzBasicCapt3D() const;
 
-		//utm
+		//utm - reauires a reimplementation!!!!!!!!!!!!
 		void ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > 
 		     aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
-		//geoc
+		//geoc  reauires a reimplementation!!!!!!!!!!!!
 		void Exp2BundleInGeoc(std::vector<std::vector<ElSeg3D> > 
 		     aGridToExp=std::vector<std::vector<ElSeg3D> >()) const;
-                void TestDirectRPCGen();
+        void TestDirectRPCGen();
 
-                /* Optical centers for a user-defined grid */
+        /* Optical centers for a user-defined grid */
 		void  OpticalCenterGrid(bool aIfSave) const;
-	        void  OpticalCenterOfImg();
+        void  OpticalCenterOfImg();
 		Pt3dr OpticalCenterOfPixel(const Pt2dr & aP) const ;
-	        bool  HasOpticalCenterOfPixel() const;
+        bool  HasOpticalCenterOfPixel() const;
+
 		
 
-                void SetProfondeur(double aP);
+        void SetProfondeur(double aP);
 		double GetProfondeur() const;
-                bool ProfIsDef() const;
-                void SetAltiSol(double aZ);
+        bool ProfIsDef() const;
+        void SetAltiSol(double aZ);
 		double GetAltiSol() const;
 		bool AltisSolIsDef() const;
 
 
-                const RPC & GetRPC() const;
+        const RPC * GetRPC() const;
 		const std::string & GetImName() const;
 
-        private:
+		const cSystemeCoord * mChSys;
+		//std::string mSysCible;//not updated and to be removed
+        
+    private:
 		bool   mProfondeurIsDef;
 		double mProfondeur;
 		bool   mAltisSolIsDef;
@@ -136,22 +144,20 @@ class CameraRPC : public cBasicGeomCap3D
 		std::vector<Pt3dr> * mOpticalCenters;
 		
 		Pt2di        mGridSz;
-                std::string  mImName; 
-
-                std::string mCS;
+        std::string  mImName; 
 
 		ElSeg3D F2toRayonLPH(Pt3dr &aP0,Pt3dr & aP1) const;
                 
                 //Pt3dr Origin2TargetCS(const Pt3dr & aP);
                 //Pt3dr Target2OriginCS(const Pt3dr & aP);
 		
-		void FindUTMCS();
+		const std::string FindUTMCS();
 
-                void AssertRPCDirInit() const;
+        void AssertRPCDirInit() const;
 		void AssertRPCInvInit() const;
 };
 
-cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType);
+cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys);
 
 //dimap v1 - Simplified_Location_Model
 class CameraAffine : public cBasicGeomCap3D

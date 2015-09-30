@@ -6643,6 +6643,9 @@ class cXml_CamGenPolBundle
         std::string & NameIma();
         const std::string & NameIma()const ;
 
+        cSystemeCoord & SysCible();
+        const cSystemeCoord & SysCible()const ;
+
         int & DegreTot();
         const int & DegreTot()const ;
 
@@ -6660,6 +6663,7 @@ class cXml_CamGenPolBundle
     private:
         std::string mNameCamSsCor;
         std::string mNameIma;
+        cSystemeCoord mSysCible;
         int mDegreTot;
         Pt2dr mCenter;
         double mAmpl;
