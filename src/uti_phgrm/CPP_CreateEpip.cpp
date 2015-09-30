@@ -75,6 +75,8 @@ class cApply_CreateEpip_main
       double mLengthMin ;
       double mStepReech ;
       bool   mForceGen;
+      int    mNumKer;
+      std::string mPostMasq;
 
       cBasicGeomCap3D *  mGenI1;
       cBasicGeomCap3D *  mGenI2;
@@ -148,7 +150,17 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D 
 class cTmpReechEpip
 {
      public :
-        cTmpReechEpip(const std::string &,Box2dr aBoxImIn,ElDistortion22_Gen * anEpi,Box2dr aBoxOut,double aStep,const std::string & aNameOut);
+        cTmpReechEpip
+        (
+                const std::string &,
+                Box2dr aBoxImIn,
+                ElDistortion22_Gen * anEpi,
+                Box2dr aBoxOut,
+                double aStep,
+                const std::string & aNameOut,
+                const std::string & aPostMasq,
+                int aNumKer
+        );
      private :
         Box2dr                 mBoxImIn;
         ElDistortion22_Gen *   mEpi;
@@ -180,10 +192,12 @@ void ReechFichier
         ElDistortion22_Gen * anEpi,
         Box2dr aBox,
         double aStep,
-        const std::string & aNameOut
+        const std::string & aNameOut,
+        const std::string & aPostMasq,
+        int   aNumKer
 )
 {
-    cTmpReechEpip aReech(aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut);
+    cTmpReechEpip aReech(aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer);
 }
 
 
@@ -201,7 +215,9 @@ cTmpReechEpip::cTmpReechEpip
         ElDistortion22_Gen * anEpi,
         Box2dr aBox,
         double aStep,
-        const std::string & aNameOut
+        const std::string & aNameOut,
+        const std::string & aPostMasq,
+        int aNumKer 
 ) :
     mBoxImIn(aBoxImIn),
     mEpi    (anEpi),
@@ -217,10 +233,29 @@ cTmpReechEpip::cTmpReechEpip
     mRedTImY   (mRedImY)
 {
 
-    int aNbSC = 5;
 
-    cSinCardApodInterpol1D aKer(cSinCardApodInterpol1D::eTukeyApod,aNbSC,aNbSC/2,1e-4,false);
-    cTabIM2D_FromIm2D<REAL4>   aSCI (&aKer,1000,false);
+
+    cInterpolateurIm2D<REAL4> * aPtrSCI = 0;
+
+
+    if (aNumKer==0)
+    {
+        aPtrSCI = new cInterpolBilineaire<REAL4>;
+    }
+    else 
+    {
+      
+       cKernelInterpol1D * aKer = 0;
+       if (aNumKer==1)
+          aKer = new cCubicInterpKernel(-0.5);
+       else
+          aKer = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,aNumKer,aNumKer/2,1e-4,false);
+
+       aPtrSCI =  new  cTabIM2D_FromIm2D<REAL4>   (aKer,1000,false);
+       // cTabIM2D_FromIm2D<REAL4>   aSSCI (&aKer,1000,false);
+    }
+
+    cInterpolateurIm2D<REAL4> & aSCI = *aPtrSCI;
 
 
 
@@ -264,22 +299,29 @@ std::cout << "OOOKKKK " << aPInd << aPEpi << aPIm << "\n";
                 Tiff_Im::No_Compr,
                 aTifOri.phot_interp()
             );
-    std::string aNameMasq = StdPrefix(aNameOut)+"_Masq.tif";
-    Tiff_Im aTifMasq
-            (
-                aNameMasq.c_str(),
-                mSzEpi,
-                GenIm::bits1_msbf,
-                Tiff_Im::No_Compr,
-                Tiff_Im::BlackIsZero
-            );
+
+    Tiff_Im aTifMasq = aTifEpi;
+    bool ExportMasq = (aPostMasq!="NONE");
+
+    if (ExportMasq)
+    {
+        std::string aNameMasq = StdPrefix(aNameOut)+ aPostMasq  +".tif";
+        aTifMasq = Tiff_Im
+                   (
+                     aNameMasq.c_str(),
+                     mSzEpi,
+                     GenIm::bits1_msbf,
+                     Tiff_Im::No_Compr,
+                     Tiff_Im::BlackIsZero
+                   );
+    }
 
 
 
 
 
     int aNbBloc=2000;
-    int aBrd = aNbSC+3;
+    int aBrd = aNumKer+3;
     Pt2di aSzBrd(aBrd,aBrd);
 
     for (int aX0=0 ; aX0<mSzEpi.x ; aX0+=aNbBloc)
@@ -364,7 +406,7 @@ std::cout << "OOOKKKK " << aPInd << aPEpi << aPIm << "\n";
                                    double aYIm = mRedTImY.getr(aIndEpiRed,-1,true);
                                    Pt2dr aPImLoc = Pt2dr(aXIm,aYIm) - Pt2dr(aP0BoxIm);
                                    double aV= 128;
-                                   if ((aPImLoc.x>aNbSC+1) && (aPImLoc.y>aNbSC+1) && (aPImLoc.x<aSzIm.x-aNbSC-2) && (aPImLoc.y<aSzIm.y-aNbSC-2))
+                                   if ((aPImLoc.x>aNumKer+2) && (aPImLoc.y>aNumKer+2) && (aPImLoc.x<aSzIm.x-aNumKer-3) && (aPImLoc.y<aSzIm.y-aNumKer-3))
                                    {
                                        aTImMasq.oset(aIndEpi,1);
                                        aV = aSCI.GetVal(aDataOri,aPImLoc);
@@ -382,12 +424,15 @@ std::cout << "OOOKKKK " << aPInd << aPEpi << aPIm << "\n";
                      aTifEpi.out()
                  );
              }
-             ELISE_COPY
-             (
-                 rectangle(aP0Epi,aP0Epi+aSzBloc),
-                 trans(aTImMasq._the_im.in(0),-aP0Epi),
-                 aTifMasq.out()
-             );
+             if (ExportMasq)
+             {
+                ELISE_COPY
+                (
+                    rectangle(aP0Epi,aP0Epi+aSzBloc),
+                    trans(aTImMasq._the_im.in(0),-aP0Epi),
+                    aTifMasq.out()
+                );
+             }
              // std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
          }
     }
@@ -481,9 +526,9 @@ void cApply_CreateEpip_main::DoEpipGen()
       std::cout << "Epip Rect Accuracy, Moy " << aErrMoy/mNbP << " Max " << aErrMax << "\n";
 
 
-      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1.tif");
+      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1.tif",mPostMasq,mNumKer);
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2.tif");
+      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2.tif",mPostMasq,mNumKer);
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
@@ -497,7 +542,9 @@ void cApply_CreateEpip_main::DoEpipGen()
 
 
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
-   mForceGen (false)
+   mForceGen (false),
+   mNumKer   (5),
+   mPostMasq ("NONE")
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -526,7 +573,12 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
                     << EAM(aNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)", eSAM_NoInit)
                     << EAM(mDegre,"Degre",true,"Degre of polynom to correct epi (def=1-, ,2,3)")
                     << EAM(mForceGen,"FG",true,"Force generik epip even with stenope cam")
+                    << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
+                    << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=NONE")
     );
+
+    if (mPostMasq!="NONE") 
+       mPostMasq = "_"+mPostMasq+"Masq";
 
     if (!MMVisualMode)
     {
@@ -650,6 +702,8 @@ class cAppliOneReechMarqFid : public ElDistortion22_Gen,
         ElAffin2D   mAffChambreMm2PixIm;
         Pt2di       mSzIm;
         bool        mBySingle;
+        int         mNumKer;
+        std::string mPostMasq;
 };
 
 // mAffin (mm) = Pixel
@@ -694,16 +748,22 @@ Pt2dr cAppliOneReechMarqFid::ChambrePixel2ChambreMm (const Pt2dr & aP) const
 cAppliOneReechMarqFid::cAppliOneReechMarqFid(int argc,char ** argv) :
      cAppliWithSetImage   (argc-1,argv+1,TheFlagNoOri),
      mAffPixIm2ChambreMm  (ElAffin2D::Id()),
-     mBySingle            (true)
-     
+     mBySingle            (true),
+     mNumKer              (5),
+     mPostMasq            ("NONE")
 {
     ElInitArgMain
     (
           argc,argv,
-          LArgMain()  << EAMC(mNamePat,"Name image", eSAM_IsExistFile)
+          LArgMain()  << EAMC(mNamePat,"Pattern image", eSAM_IsExistFile)
                       << EAMC(mResol,"Resolution"),
           LArgMain()   <<  EAM(mBoxChambreMm,"BoxCh",true,"Box in Chambre (generally in mm)")
+                       << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
+                       << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=NONE")
     );
+
+    if (mPostMasq!="NONE") 
+       mPostMasq = "_"+mPostMasq+"Masq";
 
     const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
     if (aSetIm->size()>1)
@@ -741,18 +801,22 @@ cAppliOneReechMarqFid::cAppliOneReechMarqFid(int argc,char ** argv) :
     mBoxChambrePix._p0 = ChambreMm2ChambrePixel(mBoxChambreMm._p0);
     mBoxChambrePix._p1 = ChambreMm2ChambrePixel(mBoxChambreMm._p1);
 
+/*
     mAffChambreMm2PixIm = ElAffin2D::L2Fit(mPack,&mResidu);
     mAffPixIm2ChambreMm  = mAffChambreMm2PixIm.inv();
-    // mAffPixIm2ChambreMm = ElAffin2D::L2Fit(aPack,&mResidu);
-    // mAffChambreMm2PixIm  = mAffPixIm2ChambreMm.inv();
     std::cout << "FOR " << mNameIm << " RESIDU " << mResidu  << " \n";
+*/
 }
 
 
 void cAppliOneReechMarqFid::DoReech()
 {
     if (! mBySingle) return;
+
+    ElTimer aChrono;
    
+    mAffChambreMm2PixIm = ElAffin2D::L2Fit(mPack,&mResidu);
+    mAffPixIm2ChambreMm  = mAffChambreMm2PixIm.inv();
 
     ReechFichier
     (
@@ -761,8 +825,11 @@ void cAppliOneReechMarqFid::DoReech()
           this,
           mBoxChambrePix,
           10.0,
-          "Reech_"+mNameIm
+          "OIS-Reech_"+mNameIm,
+          mPostMasq,
+          mNumKer
     );
+    std::cout << "FOR " << mNameIm << " RESIDU " << mResidu   << " Time " << aChrono.uval() << " \n";
 }
     
 

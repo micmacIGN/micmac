@@ -112,7 +112,7 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
 
         MMD_InitArgcArgv(argc,argv);
 
-        std::string aCom =   MM3dBinFile( "MICMAC" )
+        std::string aCom =  MM3dBinFile( "MICMAC" )
                 + MMDir() + std::string("include/XML_MicMac/MM-TA.xml ")
                 + std::string(" WorkDir=") +aDir +  std::string(" ")
                 + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
@@ -154,6 +154,9 @@ cAppliTarama::cAppliTarama(int argc,char ** argv) :
             }
         }
 
+#if (ELISE_windows)
+		aCom = "\"" + aCom + "\"";
+#endif		
         std::cout << "Com = " << aCom << "\n";
         mResult = system_call(aCom.c_str());
 

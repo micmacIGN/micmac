@@ -160,6 +160,11 @@ template  <class Type,class Type_Base> class  TIm2D : public GTIm2D
           std::string  NameType() {return El_CTypeTraits<Type>::Name();}
 
           Im2D<Type,Type_Base>    _the_im;
+          Flux_Pts all_pts() {return _the_im.all_pts();}
+          Fonc_Num in() {return _the_im.in();}
+          Fonc_Num in(Type_Base aVal) {return _the_im.in(aVal);}
+          Output out() {return _the_im.out();}
+
           Type **                     _d;
 
 		  typedef Type tValueElem;
