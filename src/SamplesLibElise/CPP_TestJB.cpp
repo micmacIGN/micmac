@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 
-#include "../saisieQT/include_QT/Cloud.h"
-
 typedef struct{
 	string name;
 	int (*func)( int argc, char **argv );
@@ -97,6 +95,10 @@ void writePolygons( const cPolyg3D &aPolygons, const string &aFilename )
 	delete xmlTree;
 }
 
+//~ #if ELISE_QT_VERSION >=4
+//~ #include "../saisieQT/include_QT/Cloud.h"
+//~ #endif
+
 int command_correctPlanarPolygons( int argc, char **argv )
 {
 	if (argc < 1) ELISE_ERROR_EXIT("an XML filename is needed");
@@ -113,36 +115,44 @@ int command_correctPlanarPolygons( int argc, char **argv )
 //------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------
 
+#if ELISE_QT_VERSION >=4
+	#include "../saisieQT/include_QT/Cloud.h"
+#endif
+
 void getPlyBoundingBox( const string &aFilename, Pt3dr &oP0, Pt3dr &oP1 )
 {
-	GlCloud *ply = GlCloud::loadPly(aFilename);
-	if ( !ply) ELISE_ERROR_EXIT("cannot load ply file [" << aFilename << ']');
+	#if ELISE_QT_VERSION >=4
+		GlCloud *ply = GlCloud::loadPly(aFilename);
+		if ( !ply) ELISE_ERROR_EXIT("cannot load ply file [" << aFilename << ']');
 
-	if (ply->size() == 0) return;
+		if (ply->size() == 0) return;
 
-	float min[3], max[3];
-	{
-		QVector3D p = ply->getVertex(0).getPosition();
-		min[0] = max[0] = p.x();
-		min[1] = max[1] = p.y();
-		min[2] = max[2] = p.z();
-	}
-	const int plySize = ply->size();
-	for (int i = 1; i < plySize; i++)
-	{
-		QVector3D p = ply->getVertex(i).getPosition();
+		float min[3], max[3];
+		{
+			QVector3D p = ply->getVertex(0).getPosition();
+			min[0] = max[0] = p.x();
+			min[1] = max[1] = p.y();
+			min[2] = max[2] = p.z();
+		}
+		const int plySize = ply->size();
+		for (int i = 1; i < plySize; i++)
+		{
+			QVector3D p = ply->getVertex(i).getPosition();
 
-		if (p.x() < min[0]) min[0] = p.x();
-		if (p.y() < min[1]) min[1] = p.y();
-		if (p.z() < min[2]) min[2] = p.z();
+			if (p.x() < min[0]) min[0] = p.x();
+			if (p.y() < min[1]) min[1] = p.y();
+			if (p.z() < min[2]) min[2] = p.z();
 
-		if (p.x() > max[0]) max[0] = p.x();
-		if (p.y() > max[1]) max[1] = p.y();
-		if (p.z() > max[2]) max[2] = p.z();
-	}
+			if (p.x() > max[0]) max[0] = p.x();
+			if (p.y() > max[1]) max[1] = p.y();
+			if (p.z() > max[2]) max[2] = p.z();
+		}
 
-	oP0 = Pt3dr((REAL)min[0], (REAL)min[1], (REAL)min[2]);
-	oP1 = Pt3dr((REAL)max[0], (REAL)max[1], (REAL)max[2]);
+		oP0 = Pt3dr((REAL)min[0], (REAL)min[1], (REAL)min[2]);
+		oP1 = Pt3dr((REAL)max[0], (REAL)max[1], (REAL)max[2]);
+	#else
+		ELISE_ERROR_EXIT("getPlyBoundingBox: no Qt");
+	#endif
 }
 
 void makeGrid( const Pt3dr &aP0, const Pt3dr &aSize, unsigned int aPointsPerAxis, const cMasqBin3D &aMask, list<Pt3dr> &oPoints )
@@ -231,7 +241,7 @@ int command_maskContent( int argc, char ** argv )
 
 	delete masqBin3D;
 
-	return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }
 
 int TestJB_main( int argc, char **argv )
