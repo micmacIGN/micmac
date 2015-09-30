@@ -1449,7 +1449,7 @@ class cMIC_IndicAutoCorrel;
 
 cMTDImCalc GetMTDImCalc(const std::string & aNameIm);
 const cMIC_IndicAutoCorrel * GetIndicAutoCorrel(const cMTDImCalc & aMTD,int aSzW);
-std::string NameMTDImCalc(const std::string & aFullName);
+std::string NameMTDImCalc(const std::string & aFullName,bool Bin);
 
 
 inline double CoutAttenueTetaMax(const double & aVal,const double & aVMax)
