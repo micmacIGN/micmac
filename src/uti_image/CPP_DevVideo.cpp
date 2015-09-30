@@ -35,6 +35,7 @@ English :
     eLiSe image library. MicMac is governed by the  "Cecill-B licence".
     See below and http://www.cecill.info.
 
+
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
@@ -44,6 +45,12 @@ class cSolChemOptImV;
 class cOneImageVideo;
 class cAppliDevideo;
 
+// -r rate
+// -i input
+// -ss  debu
+// -t   duree
+//  
+// avconv  
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 // ffmpeg -i MVI_0247.MOV Im_0247_%5d_Ok.png
 
@@ -54,6 +61,8 @@ class cAppliDevideo;
 
 // ffmpeg -i MVI_0101.MOV Im_0000_%5d_Ok.png
 
+// Adjudant 50 59
+
 //=================================================
 
 /*
@@ -62,7 +71,7 @@ const cMIC_IndicAutoCorrel * GetIndicAutoCorrel(const cMTDImCalc & aMTD,int aSzW
 std::string NameMTDImCalc(const std::string & aFullName);
 */
 
-double  AutoCorrel(const std::string &aName,int aWSz)
+double  GlobAutoCorrel(const std::string &aName,int aWSz)
 {
     Tiff_Im aTF = Tiff_Im::StdConvGen(aName,1,true);
 
@@ -124,11 +133,14 @@ int  CalcAutoCorrel_main(int argc,char ** argv)
     if (aIAC==0)
     {
         cMIC_IndicAutoCorrel aNewIAC;
-        aNewIAC.AutoC() = AutoCorrel(aNameIm,aSzW);
+        aNewIAC.AutoC() = GlobAutoCorrel(aNameIm,aSzW);
         aNewIAC.SzCalc() = aSzW;
         aMTD.MIC_IndicAutoCorrel().push_back(aNewIAC);
-        std::string aNameXml = NameMTDImCalc(aNameIm);
-        MakeFileXML(aMTD,aNameXml);
+        for (int aKBin=0 ; aKBin<=1 ; aKBin++)
+        {
+            std::string aNameXml = NameMTDImCalc(aNameIm,aKBin);
+            MakeFileXML(aMTD,aNameXml);
+        }
 
     }
 
@@ -164,6 +176,7 @@ class cOneImageVideo
     public :
         cOneImageVideo(const std::string & aNameIm,cAppliDevideo *,int aK);
         void CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> &,int aSzW);
+        void CalcRec(cOneImageVideo *);
 
         const std::string & NameOk()    const {return mNameOk;}
         void  Show();
@@ -198,6 +211,10 @@ class cOneImageVideo
         double           mNormAC;
         double           mPdsAutoCor;
         std::vector<cSolChemOptImV>  mSols;
+        double            mNonRecPrec;
+        double            mCumNonRec;
+        const cMetaDataPhoto &mMDT;
+        Pt2di                 mSz;
 };
 
 
@@ -210,16 +227,23 @@ class cAppliDevideo
         std::string CalcName(const std::string & aName,const std::string aNew);
 
         std::string  NamePtsSift( cOneImageVideo * anOIV);
+        cInterfChantierNameManipulateur * ICNM() {return mEASF.mICNM;}
     private :
         std::string NamePat(const std::string & aPref) const;
         int PivotAPriori(int aKI) { return round_ni((aKI*(mNbIm-1))/mNbInterv);}
         void ComputeChemOpt(int aS0,int aS1);
-        std::string mFullName;
+
+        std::string mFullNameVideo;
+        double      mF35;
+        double      mFoc;
+        std::string mCam;
+        bool        mDoVideo2Im;
+
+
         cElemAppliSetFile mEASF;
         std::string mPrefix;
         std::string mPostfix;
         std::string mMMPatImDev;
-        std::string mMMPatImOk;
         cElRegex *  mAutoMM;
         std::vector<std::string>   mVName;
         std::vector<cOneImageVideo*>      mVIms;
@@ -231,8 +255,10 @@ class cAppliDevideo
         std::string mStrSzS;
         int         mNbInterv;
         std::string mPatNumber;
-        std::string mNumVid;
         Pt2di       mMinMax;
+        int         mNbDigit;
+        double      mPercImInit;
+        bool        mTuning;
 };
 
 
@@ -258,17 +284,73 @@ cOneImageVideo::cOneImageVideo(const std::string & aNameIm,cAppliDevideo * anApp
    mOkFin       (true),
    mLongPred    (-1),
    mTimeNum     (anTimeNum),
-   mAutoCor     (-1)
+   mAutoCor     (-1),
+   mNonRecPrec  (0),
+   mCumNonRec   (0),
+   mMDT         (cMetaDataPhoto::CreateExiv2(aNameIm)),
+   mSz          (mMDT.SzImTifOrXif())
 {
     // std::cout << mNameInit   << "  " << mNameOk << "\n";
     if (mNameInit!= mNameOk)
        ELISE_fp::MvFile(anAppli->Dir()+mNameInit,anAppli->Dir()+mNameOk);
 }
 
+void cOneImageVideo::CalcRec(cOneImageVideo * aPrec)
+{
+   std::string aNameH = mAppli->Dir() 
+                      + mAppli->ICNM()->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",mNameInit,aPrec->mNameInit,true);
+   ElPackHomologue aPack = ElPackHomologue::FromFile(aNameH);
+   mNbHom = aPack.size();
+
+   double aDist,aQual;
+   bool Ok;
+   cElHomographie aHom = cElHomographie::RobustInit   
+                         (
+                            aDist,
+                            &aQual,
+                            aPack,
+                            Ok,
+                            20,
+                            80.0,
+                            100
+                         );
+
+
+
+   Box2dr aBox(Pt2dr(0,0),Pt2dr(mSz));
+   Pt2dr aC4[4];
+   aBox.Corners(aC4);
+   std::vector<Pt2dr> aCont1,aCont2;
+   for (int aK=0 ; aK<4 ; aK++)
+   {
+       aCont1.push_back(aC4[aK]);
+       aCont2.push_back(aHom.Direct(aC4[aK]));
+   }
+   cElPolygone  aPol1,aPol2;
+   aPol1.AddContour(aCont1,false);
+   aPol2.AddContour(aCont2,false);
+   cElPolygone aPolInter = aPol1 * aPol2;
+   cElPolygone aPolUnion = aPol1 + aPol2;
+
+   mNonRecPrec = 1.0 - aPolInter.Surf() / aPolUnion.Surf() ;
+   mCumNonRec = aPrec->mCumNonRec + mNonRecPrec;
+
+   std::cout << "cOneImageVideo::CalcRec " << mNameInit  
+             << " S=" << mNbHom
+             << " R=" << mNonRecPrec
+             << " C=" << mCumNonRec
+             << "\n";
+          
+
+
+
+}
+
 void cOneImageVideo::LoadAutoCorrel()
 {
     cMTDImCalc  aMDTI = GetMTDImCalc(mAppli->Dir()+mNameOk);
     mAutoCor = GetAutoCorrel(aMDTI,2);
+
 }
 
 
@@ -436,40 +518,126 @@ const cSolChemOptImV &  cOneImageVideo::SolOfLength(int aNbL)
 
 // =============  cAppliDevideo ===================================
 
+#define TEST true
+
 cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
-     mPrefix         ("Im_"),
+     mCam            ("NONE"),
      mPostfix        ("png"),
      mTargetRate     (4.0),
      mRateVideoInit  (24.0),
      mParamSzSift    (-1),
-     mMinMax         (0,100000000)
+     mMinMax         (0,100000000),
+     mNbDigit        (5),
+     mPercImInit     (100.0),
+     mTuning         (false)
 {
 
     ElInitArgMain
      (
            argc,argv,
-           LArgMain() << EAMC(mFullName,"Full name (Dir+Pat)", eSAM_IsPatFile) ,
+           LArgMain() << EAMC(mFullNameVideo,"Full name of video", eSAM_IsPatFile) 
+                      << EAMC(mF35,"Focal equiv 35, set -1 if no xif wanted"),
            LArgMain() << EAM(mTargetRate,"Rate",true,"Rate final Def=4")
-                      << EAM(mNumVid,"NumVid",true,"Num of video, def = 00 ")
                       << EAM(mParamSzSift,"ParamSzSift",true,"Parameter used for sift development, def=-1 (Highest)")
                       << EAM(mPatNumber,"PatNumber",true,"Pat number (reduce number for test)")
+                      << EAM(mDoVideo2Im,"DoV2I",true,"Do the development of video 2 images, def true iff no image to corresp pattern")
+                      << EAM(mNbDigit,"NDig",true,"Nb digit for numbering out images (Def=5)")
+                      << EAM(mFoc,"Foc",true,"Set focale in xif, def=F35")
+                      << EAM(mCam,"Cam",true,"Set Cam in xif")
+                      << EAM(mPercImInit,"PercImInit",true,"Pecentage of images a priori sele")
                       << EAM(mMinMax,"MinMax",true,"Min Max numbers (reduce number for test)")
+                      << EAM(mTuning,"Tuning",true,"as it says ")
     );
+
+// avconv -i adjudant.MOV Im_0247_%5d_Ok.png  
+
+    if (! EAMIsInit(&mFoc)) 
+       mFoc = mF35;
 
     if (MMVisualMode) return;
 
     std::cout << "BEGIN Devideo \n";
 
-    mEASF.Init(mFullName);
-    if (!EAMIsInit(&mNumVid))
+    mEASF.Init(mFullNameVideo);
+    mPrefix  = "DIV_" + StdPrefix(mEASF.mPat) +"_";
+    mPatNumber =  "[0-9]{"+ ToString(mNbDigit)  +"}";
+    mMMPatImDev = NamePat("Ok|Nl");
+    mAutoMM =  new cElRegex(mMMPatImDev,10);
+
+    std::vector<std::string>  aSetImExisting = *(mEASF.mICNM->Get(mMMPatImDev));
+    if (!EAMIsInit(&mDoVideo2Im))
     {
-        mNumVid = ExtractDigit(StdPrefix(mEASF.mPat),"0000");
+        mDoVideo2Im = (aSetImExisting.size() == 0);
     }
 
-    if (!EAMIsInit(&mPatNumber))
+    // On remet en Ok toute les images Nl
     {
-        mPatNumber = mNumVid +"_" + "[0-9]{5}";
+        for (int aK=0 ; aK<int(aSetImExisting.size()) ; aK++)
+        {
+            std::string aNInit = (aSetImExisting)[aK];
+            std::string aNOk = CalcName(aNInit,"Ok");
+            if (aNInit!= aNOk)
+            {
+               ELISE_fp::MvFile(Dir()+aNInit,Dir()+aNOk);
+               aSetImExisting[aK] = aNOk;
+            }
+        }
     }
+
+    // Extraction des images fixes +  remplit les xif
+    if (mDoVideo2Im)
+    {
+        std::string aComDev =       "avconv -i " 
+                              +  mFullNameVideo + " "
+                              +  mEASF.mDir  + mPrefix + "\%" + ToString(mNbDigit)  + "d_Ok." + mPostfix;
+
+        System(aComDev);
+        // std::cout << aComDev<< "\n";
+
+        if (mF35>0)
+        {
+               std::string aComXif =        MM3dBinFile("SetExif ") 
+                                        +   QUOTE(mMMPatImDev) 
+                                        + " F=" + ToString(mFoc)
+                                        + " F35=" + ToString(mF35)
+                                        + " Cam=" + mCam
+                                    ;
+
+               System(aComXif);
+               // std::cout << aComXif<< "\n";
+        }
+    }
+
+    // Preselection d'un pourcentage a priori sur le numero des images
+    {
+        // std::cout << "AAAAAAAAAAAAA\n"; getchar();
+        int aNbSel = round_up((aSetImExisting.size()* mPercImInit) /100.0);
+        for (int aK=0 ; aK<int(aSetImExisting.size()) ; aK++)
+        {
+            int aIndGrpP = ((aK-1)  * aNbSel) / (aSetImExisting.size()-1);
+            int aIndGrp = (aK  * aNbSel) / (aSetImExisting.size()-1);
+            std::string aNInit = aSetImExisting[aK];
+            std::string aNTarget = CalcName(aNInit,(aIndGrp==aIndGrpP) ?"Nl" : "Ok");
+
+            if (aNInit!=aNTarget)
+            {
+                ELISE_fp::MvFile(Dir()+aNInit,Dir()+aNTarget);
+                aSetImExisting[aK] = aNTarget;
+            }
+        }
+    }
+
+    // if (mDoVideo2Im)
+
+
+    // std::cout << " KKK " <<  mMMPatImDev << " SZ " << aSetImExisting->size()  << "\n";
+
+
+//========================================================
+//========================================================
+//========================================================
+
+
 
     mStrSzS = " " + ToString(mParamSzSift) + " ";
     mStdJump = mRateVideoInit/mTargetRate;
@@ -477,39 +645,37 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     ELISE_fp::MkDir(Dir()+"Tmp-MM-Dir/");
 
 
-    mMMPatImDev = NamePat("Ok|Nl");
-    mAutoMM =  new cElRegex(mMMPatImDev,10);
-    mMMPatImOk = NamePat("Ok");
 
-
-// std::cout << mMMPatImDev << " " << mMMPatImOk << "\n"; getchar();
     {
-        const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImDev);
-        for (int aK=0 ; aK<int(aVN->size()) ; aK++)
+        std::string aMMPatImOk = NamePat("Ok");
+        if (!mTuning)
+           MakeXmlXifInfo(aMMPatImOk,mEASF.mICNM,true);
+        std::cout << "   Devideo :: Done XmlXif \n";
+
+        Pt2dr aSomSz;
+        // Calcul des noms dans l'intervalle
         {
-            std::string aNInit = (*aVN)[aK];
-            std::string aNOk = CalcName(aNInit,"Ok");
-            if (aNInit!= aNOk)
+            const std::vector<std::string> * aVN = mEASF.mICNM->Get(aMMPatImOk);
+            int aK0 = ElMax(0,mMinMax.x);
+            int aK1 = ElMin(int(aVN->size()),mMinMax.y);
+            for (int aK=aK0; aK<aK1 ;aK++)
             {
-               ELISE_fp::MvFile(Dir()+aNInit,Dir()+aNOk);
+                mVName.push_back((*aVN)[aK]);
+                const cMetaDataPhoto & aMTD = cMetaDataPhoto::CreateExiv2(mVName.back());
+                aSomSz = aSomSz + Pt2dr(aMTD.SzImTifOrXif());
             }
         }
-    }
+        aSomSz = aSomSz / double(mVName.size());
+        double aLarg = dist8(aSomSz);
 
+        std::string aComTieP =      MM3dBinFile("Tapioca ") 
+                                +   std::string("Line ")
+                                +   QUOTE(aMMPatImOk) + " "
+                                +   ToString(round_ni(aLarg/2.0))
+                                +   std::string(" 1");
 
-    MakeXmlXifInfo(mMMPatImOk,mEASF.mICNM);
-    std::cout << "   Devideo :: Done XmlXif \n";
-
-
-    // Calcul des noms dans l'intervalle
-    {
-        const std::vector<std::string> * aVN = mEASF.mICNM->Get(mMMPatImOk);
-        int aK0 = ElMax(0,mMinMax.x);
-        int aK1 = ElMin(int(aVN->size()),mMinMax.y);
-        for (int aK=aK0; aK<aK1 ;aK++)
-        {
-            mVName.push_back((*aVN)[aK]);
-        }
+        if (!mTuning)
+           System(aComTieP);
     }
 
 
@@ -521,7 +687,8 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     }
     mNbIm = mVIms.size();
 
-    Paral_Tiff_Dev(Dir(),mVName,1,true);
+    if (!mTuning)
+       Paral_Tiff_Dev(Dir(),mVName,1,true);
     std::cout << "   Devideo :: Done Dev \n";
 
 
@@ -535,7 +702,8 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
              // std::cout << aCom << "\n";
              // getchar();
         }
-        cEl_GPAO::DoComInParal(aLComAC);
+        if (!mTuning)
+           cEl_GPAO::DoComInParal(aLComAC);
     }
     std::cout << "   Devideo :: Done AutoCorr \n";
 
@@ -546,6 +714,13 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
         mVIms[aK]->LoadAutoCorrel();
     }
 
+    // lecture de ces parametres
+    for (int aK=1 ; aK<int(mVIms.size()) ; aK++)
+    {
+        mVIms[aK]->CalcRec(mVIms[aK-1]);
+    }
+    std::cout << "   Devideo :: Done Cover \n";  getchar();
+
 
     // Calcul d'un score relatif (pour quil ait une influence equilibree sur tout le chemin)
     for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
@@ -553,6 +728,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
          mVIms[aK]->CalcScoreAutoCorrel(mVIms,round_up(5*mStdJump));
     }
 
+return;
 
     // ============= Decoupage en intervalle ===
     std::vector<int> vPivot;
