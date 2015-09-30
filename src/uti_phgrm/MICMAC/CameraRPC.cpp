@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                           cComp3DBasic                              */
 /***********************************************************************/
 
-cComp3DBasic::cComp3DBasic(cBasicGeomCap3D * aCam) : mCam0(aCam)
+/*cComp3DBasic::cComp3DBasic(cBasicGeomCap3D * aCam) : mCam0(aCam)
 {}
 
 Pt3dr cComp3DBasic::Origin2TargetCS(const Pt3dr & aP) const
@@ -101,7 +101,7 @@ Pt3dr cComp3DBasic::OpticalCenterOfPixel(const Pt2dr & aP) const
 {
     return mCam0->OpticalCenterOfPixel(aP);
 }
-
+*/
 
 /***********************************************************************/
 /*                           CameraRPC                                 */
@@ -112,7 +112,7 @@ Pt3dr cComp3DBasic::OpticalCenterOfPixel(const Pt2dr & aP) const
 //this is an outdated constructor -- will be soon removed 
 CameraRPC::CameraRPC(const std::string &aNameFile, 
 		     const eTypeImporGenBundle &aType,
-		     const std::string &aCartoCS, 
+		     std::string &aSysCibleFile, 
 		     const Pt2di &aGridSz, 
 		     const std::string &aMetaFile) :
        mProfondeurIsDef(false),	
@@ -120,15 +120,29 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
        mOptCentersIsDef(false),
        mOpticalCenters(new std::vector<Pt3dr>()),
        mGridSz(aGridSz),
-       mImName(aNameFile.substr(0,aNameFile.size()-4)),
-       mCS(aCartoCS)
+       mImName(aNameFile.substr(0,aNameFile.size()-4))
 {
    mRPC = new RPC();
+   //mChSys = new cSystemeCoord;
    
+   //if cartographic coordinate system was not defined
+   if(aSysCibleFile == "") {aSysCibleFile = FindUTMCS();}
+   
+
+   mChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+             (
+                 aSysCibleFile,
+                 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                 "SystemeCoord",
+                 "SystemeCoord"
+             ));
+
    if (aType==eTIGB_MMDimap2)
-   {
+   {   
        mRPC->ReadDimap(aNameFile);
        mRPC->ReconstructValidity3D();
+
+       mRPC->ChSysRPC(*mChSys);
    }
    else if(aType==eTIGB_MMDimap1)
    {
@@ -138,6 +152,10 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    {
        mRPC->ReadXML(aNameFile);
        mRPC->InverseToDirectRPC(Pt3di(50,50,10));
+       mRPC->ReconstructValidity3D();       
+
+       mRPC->ChSysRPC(*mChSys);
+
    }
    else if(aType==eTIGB_MMIkonos)
    {
@@ -159,35 +177,54 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 
   mRPC->info();
 
-  //if cartographic coordinate system was not defined
-  if(mCS == "")
-      FindUTMCS();
-
 }
 
 CameraRPC::CameraRPC(const std::string &aNameFile, 
 		     const eTypeImporGenBundle &aType,
-		     const std::string aCartoCS) : 
+		     const cSystemeCoord * aChSys) : 
+        mChSys(aChSys),
 	mProfondeurIsDef(false),
 	mAltisSolIsDef(true),
 	mAltiSol(0),
 	mOptCentersIsDef(false),
 	mOpticalCenters(new std::vector<Pt3dr>()),
 	mGridSz(Pt2di(10,10)),
-	mImName(aNameFile.substr(0,aNameFile.size()-4)),
-	mCS(aCartoCS)
+	mImName(aNameFile.substr(0,aNameFile.size()-4))
 {
     mRPC = new RPC();
+
+    //if cartographic coordinate system was not defined
+    /*if(mChSys == 0) 
+    {
+        std::string aSysCibleFile = FindUTMCS();
+       
+        mChSys = cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+             (
+                 aSysCibleFile,
+                 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                 "SystemeCoord",
+                 "SystemeCoord"
+             ));
+    }
+    */
+
 
     if(aType==eTIGB_MMDimap2)
     {
         mRPC->ReadDimap(aNameFile);
-        mRPC->ReconstructValidity3D();	
+        mRPC->ReconstructValidity3D();
+        
+	if(aChSys!=0)
+            mRPC->ChSysRPC(*aChSys);
     }
     else if(aType==eTIGB_MMDGlobe)
     {
         mRPC->ReadXML(aNameFile);
-	mRPC->InverseToDirectRPC(Pt3di(50,50,10));
+        mRPC->ReconstructValidity3D();
+	mRPC->InverseToDirectRPC(Pt3di(50,50,10));//to do: save direct projection when doing ChSysRPC
+        
+	if(aChSys!=0)
+            mRPC->ChSysRPC(*aChSys);
     }
     /*else if(aType==eTIGB_MMIkonos)
     {
@@ -209,18 +246,12 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
 
-    //if cartographic coordinate system was not defined
-    //if(mCS == "")
-    //    FindUTMCS();
-
-    //mRPC->info();
+    mRPC->info();
 }
 
-cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType)
+cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
 {
-    
-    //cBasicGeomCap3D * aRes = new CameraRPC(aName, aType); 
-    cComp3DBasic * aRes = new cComp3DBasic (new CameraRPC(aName, aType)); 
+    cBasicGeomCap3D * aRes = new CameraRPC(aName, aType, aChSys); 
     
     return aRes;
 }
@@ -231,9 +262,22 @@ CameraRPC::~CameraRPC()
 	delete mOpticalCenters;
 }
 
-const RPC & CameraRPC::GetRPC() const
+Pt3dr CameraRPC::ToSysCible(const Pt3dr &) const
 {
-    return(*mRPC);
+     ELISE_ASSERT(false,"CameraRPC::ToSysCible; Under devemopment er.");
+     return Pt3dr(1,1,1);
+}
+
+Pt3dr CameraRPC::ToSysSource(const Pt3dr &) const
+{
+     ELISE_ASSERT(false,"CameraRPC::ToSysSource; Under devemopment er.");
+     return Pt3dr(1,1,1);
+
+}
+
+const RPC * CameraRPC::GetRPC() const
+{
+    return mRPC;
 }
 
 const std::string & CameraRPC::GetImName() const
@@ -252,11 +296,11 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
 bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP) const
 {
     // (1) Check if aP is within the RPC validity zone
-    if( (aP.x < mRPC->first_lon) || (aP.x > mRPC->last_lon) || 
+    /*if( (aP.x < mRPC->first_lon) || (aP.x > mRPC->last_lon) || 
         (aP.y < mRPC->first_lat) || (aP.y > mRPC->last_lat) || 
 	(aP.z < mRPC->first_height) || (aP.z > mRPC->last_height) )
         return false;
-
+*/
     // (2) Project 3D-2D with RPC and see if within ImSz
     Pt2di aSz = SzBasicCapt3D(); 
 
@@ -493,7 +537,7 @@ void CameraRPC::Exp2BundleInGeoc(std::vector<std::vector<ElSeg3D> > aGridToExp) 
  * - second iter - export to xml */
 void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) const
 {
-        //Check that the direct RPC exists
+/*        //Check that the direct RPC exists
 	AssertRPCDirInit();
 
 	Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/mGridSz.x ,
@@ -530,7 +574,7 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 		//convert from goedetic CS to the user-selected CS 
 		std::string aCmdTmp = " " + aLPHFiTmp + " > " + aXYZFiTmp;
 		std::string cmdConv = g_externalToolHandler.get("cs2cs").callName() + " " + 
-			             "+proj=longlat +datum=WGS84" + " +to " + mCS + 
+			             "+proj=longlat +datum=WGS84" + " +to " + mSysCible + 
 				     aCmdTmp;
 
 		int aRunOK = system(cmdConv.c_str());		
@@ -597,7 +641,7 @@ void CameraRPC::ExpImp2Bundle(std::vector<std::vector<ElSeg3D> > aGridToExp) con
 		//export to XML format
 		MakeFileXML(aSLS, aXMLFiTmp);
 	}		    
-}
+*/}
 
 
  
@@ -652,11 +696,80 @@ void CameraRPC::OpticalCenterOfImg()
 void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 {
     srand(time(NULL));
+    int aL, aS;
+    int aCRand1 = rand() % 255, aCRand2 = rand() % 255, aCRand3 = rand() % 255;
+ 
+    std::vector<Pt3dr> aOptCentersAtGrid;
+    std::vector<Pt3di> aVCol;
+    Pt3di aCoul(aCRand1,aCRand2,aCRand3);
+    std::vector<const cElNuage3DMaille *> aVNuage;
+
+    std::string aDir = "PBoptCenter//";
+    std::string aPlyFile = aDir + "OptCenter_" + mImName + ".ply";
+    std::list<std::string> aVCom;
+
+    ELISE_fp::MkDirSvp(aDir);
+    
+    int aAd=1;
+    Pt2dr aGridStep = Pt2dr( double(SzBasicCapt3D().x)/(mGridSz.x+aAd) ,
+                             double(SzBasicCapt3D().y)/(mGridSz.y+aAd));
+
+    Pt3dr aP1, aP2;
+    for( aL=aAd; aL<mGridSz.y+aAd; aL++)
+    {
+        std::vector<double> aVPds;
+        std::vector<ElSeg3D> aVS;
+	    
+	for( aS=aAd; aS<mGridSz.x+aAd; aS++)
+        {
+            //first height in validity zone
+	    aP1 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y),
+			                  mRPC->first_height+1);
+	    
+            
+	    //second height in validity zone
+	    aP2 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y), 
+			           (mRPC->first_height+1)+double(mRPC->last_height - mRPC->first_height)/2);
+
+	    //collect for intersection
+	    aVS.push_back(ElSeg3D(aP1,aP2));
+	    aVPds.push_back(1);
+
+            aVCol.push_back(aCoul);
+	    aVCol.push_back(aCoul);
+
+        }
+        
+	bool aIsOK;
+	aOptCentersAtGrid.push_back( ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK) );
+
+	if(aIsOK==false)
+	    std::cout << "not intersected in CameraRPC::OpticalCenterGrid" << std::endl;
+    
+
+     }
+
+    //save to ply
+    cElNuage3DMaille::PlyPutFile
+    (
+       aPlyFile,
+       aVCom,
+       aVNuage,
+       &aOptCentersAtGrid,
+       &aVCol,
+       true
+    );
+
+
+}
+
+/*void CameraRPC::OpticalCenterGrid(bool aIfSave) const
+{
+    srand(time(NULL));
 
     int aL, aS;
     int aCRand1 = rand() % 255, aCRand2 = rand() % 255, aCRand3 = rand() % 255;
     std::vector<Pt3dr> aOptCentersAtGrid;
-    std::vector<Pt3dr> aVPts;
     std::vector<Pt3di> aVCol;
     Pt3di aCoul(aCRand1,aCRand2,aCRand3);
     std::vector<const cElNuage3DMaille *> aVNuage;
@@ -690,14 +803,12 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 			                  mRPC->first_height+1);
 	    
 	    aPGeoC1 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
-            aVPts.push_back(aPGeoC1);
             
 	    //second height in validity zone
 	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aGridStep.x,aL*aGridStep.y), 
 			           (mRPC->first_height+1)+double(mRPC->last_height - mRPC->first_height)/2);
 
 	    aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
-	    aVPts.push_back(aPGeoC2);
 	    
 	    //collect for intersection
 	    aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
@@ -728,6 +839,7 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
        true
     );
 }
+*/
 
 Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 {
@@ -762,7 +874,7 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
     { 
         int aS, aAd = 1;
         double aSStep = double(SzBasicCapt3D().x)/(mGridSz.x+aAd);
-        Pt3dr aPWGS84, aPGeoC1, aPGeoC2;
+        Pt3dr aP1, aP2;// aPWGS84, aPGeoC1, aPGeoC2;
 
         std::vector<double> aVPds;
         std::vector<ElSeg3D> aVS;
@@ -771,20 +883,20 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
         {
     
             //first height in validity zone
-	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y),
+	    aP1 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y),
 			            mRPC->first_height+1);
 	    
-	    aPGeoC1 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
+	    //aPGeoC1 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
             
 	    //second height in validity zone
-	    aPWGS84 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y), 
+	    aP2 = ImEtZ2Terrain(Pt2dr(aS*aSStep,aP.y), 
 			           (mRPC->first_height+1) + 
 				   double(mRPC->last_height - mRPC->first_height)/2);
 
-	    aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
+	    //aPGeoC2 = cSysCoord::WGS84Degre()->ToGeoC(aPWGS84);
 	    
 	    //collect for intersection
-	    aVS.push_back(ElSeg3D(aPGeoC1,aPGeoC2));
+	    aVS.push_back(ElSeg3D(aP1,aP2));
 	    aVPds.push_back(1);
         }
 
@@ -794,14 +906,14 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
         if(aIsOK==false)
             std::cout << "not intersected in CameraRPC::OpticalCenterOfPixel" << std::endl;
 
-	//std::cout << aRes << " " << "\n";	
+//	std::cout << aRes << " " << "\n";	
         return aRes;
     }
 }
 
 void CameraRPC::TestDirectRPCGen()
 {
-    mRPC->TestDirectRPCGen(mCS);
+    //mRPC->TestDirectRPCGen(mSysCible);
 }
 
 bool CameraRPC::HasOpticalCenterOfPixel() const
@@ -812,19 +924,31 @@ bool CameraRPC::HasOpticalCenterOfPixel() const
 	return false;
 }
 
-void CameraRPC::FindUTMCS()
+const std::string CameraRPC::FindUTMCS()
 {
     //there are some places for which the formula does not work
     ostringstream zone;
     zone << std::floor((mRPC->first_lon + 180)/6 + 1);
 	
+    std::string aAuxStr;
 
     if( mRPC->first_lat>0 )
-        mCS = "+proj=utm +zone=" + zone.str() + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
+        aAuxStr = "+proj=utm +zone=" + zone.str() + " +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
     else
-        mCS = "+proj=utm +zone=" + zone.str() + " +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
+        aAuxStr = "+proj=utm +zone=" + zone.str() + " +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs";
 
-    std::cout << mCS << std::endl;
+    //create & save to XML
+    cSystemeCoord aChSys;
+    cBasicSystemeCoord aBSC;
+    
+    aBSC.AuxStr().push_back(aAuxStr);
+    aChSys.BSC().push_back(aBSC);
+
+    std::string aRes = "UTM" + zone.str() + ".xml";
+    MakeFileXML(aChSys, aRes); 
+
+    return aRes;
+    //std::cout << aRes << std::endl;
 }
 
 

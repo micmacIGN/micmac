@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_XML_GEN_MMBY_P_
 #define _ELISE_XML_GEN_MMBY_P_
 
-void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur * aICNM);
+void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur * aICNM,bool toForce=false);
 
 const std::string  DirFusMMInit();
 const std::string  DirFusStatue();
