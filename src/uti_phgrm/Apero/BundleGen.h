@@ -105,7 +105,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
 class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
 {
       public : 
-           cPolynomial_BGC3M2D(cBasicGeomCap3D * aCam0,const std::string & aName,const std::string & aNameIma,int aDegree,double aRandomPert=0);
+           cPolynomial_BGC3M2D(cBasicGeomCap3D * aCam0,const std::string & aName,const std::string & aNameIma,int aDegree,double aRandomPert=0,const cSystemeCoord * aChSys=0);
            Pt2dr DeltaCamInit2CurIm(const Pt2dr & aP) const ;
            inline Pt2dr ToPNorm(const Pt2dr aP) const {return (aP-mCenter)/mAmpl;}
            inline Pt2dr FromPNorm(const Pt2dr aP) const {return aP*mAmpl + mCenter;}
@@ -117,7 +117,8 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            inline const int & DegreMax()   const {return mDegreMax;}
            inline const double  &       Ampl() const {return mAmpl;}
            inline const Pt2dr &      Center() const {return mCenter;}
-           void Show() const;
+  //         Pt3dr RTLCenter() const;
+	   void Show() const;
 
            void Save2XmlStdMMName(const std::string & aDir) const;
            std::string DirSave(const std::string & aDirLoc) const;
@@ -133,6 +134,8 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            void ShowMonome(const std::string & , int aDeg) const;
            void SetPow(const Pt2dr & aPN) const;
  
+           const cSystemeCoord  mChSys;
+           
            int                 mDegreMax;
            Pt2dr               mCenter;
            double              mAmpl;
@@ -148,6 +151,8 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            static std::vector<double> mPowX;
            static std::vector<double> mPowY;
            mutable Pt2dr  mCurPPow;
+
+
 };
 
 class cOneEq_PBGC3M2DF : public cElemEqFormelle,

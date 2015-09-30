@@ -85,6 +85,7 @@ int MMTestOrient_main(int argc,char ** argv)
     std::string mModeOri;
     double aZMoy,aZInc;
     bool    ShowCom = false;
+    bool ExportDepl = false;
 
     ElInitArgMain
     (
@@ -100,6 +101,7 @@ int MMTestOrient_main(int argc,char ** argv)
                     << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
                     << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
                     << EAM(ShowCom,"ShowCom",true,"Show MicMac command (tuning purpose)")
+                    << EAM(ExportDepl,"ExportDepl",true,"Export result as displacement maps")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -163,6 +165,7 @@ int MMTestOrient_main(int argc,char ** argv)
     if (ShowCom) std::cout << aCom << "\n";
 
 
+   if (ExportDepl) aCom = aCom + " +ExporFieldsHom=true ";
 
    int aRes = system_call(aCom.c_str());
 

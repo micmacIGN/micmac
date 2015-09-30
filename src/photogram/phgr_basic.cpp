@@ -1529,6 +1529,19 @@ void cBasicGeomCap3D::Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPI
 
 CamStenope * cBasicGeomCap3D::DownCastCS() { return 0; }
 
+
+Pt3dr cBasicGeomCap3D::ToSysCible(const Pt3dr &) const
+{
+    ELISE_ASSERT(false,"cBasicGeomCap3D::ToSysCible");
+    return Pt3dr(0,0,0);
+}
+
+Pt3dr cBasicGeomCap3D::ToSysSource(const Pt3dr &) const
+{
+    ELISE_ASSERT(false,"cBasicGeomCap3D::ToSysSource");
+    return Pt3dr(0,0,0);
+}
+
 /*
     Orientation-_MG_0131.CR2.xml              => Camera Stenope Standard
     UnCor-Orientation-_MG_0065.CR2.xml        => Copie de Camera Stenope Standard
@@ -1543,10 +1556,10 @@ CamStenope * cBasicGeomCap3D::DownCastCS() { return 0; }
 // Fonction globale a remetre en cPolynomial_BGC3M2D::NewFromFile lorque (si ?)  la classe sera vue par tout le monde
 cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName);
 
-
-cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int & aIntType)
+cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int & aIntType, const cSystemeCoord * aChSys)
 {
     ELISE_ASSERT((aIntType>=0) && (aIntType<eTIGB_NbVals),"cBasicGeomCap3D::StdGetFromFile, Not an  eTypeImporGenBundle");
+
 
     eTypeImporGenBundle aType = (eTypeImporGenBundle) aIntType;
     static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
@@ -1569,7 +1582,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     else if (aType==eTIGB_MMDimap2 || aType==eTIGB_MMDGlobe)
     {
 	
-	return CamRPCOrientGenFromFile(aName, aType);
+	return CamRPCOrientGenFromFile(aName, aType, aChSys);
     }
 
     if (ThePattGBMM.Match(aName))
@@ -1581,16 +1594,14 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     {
          std::string aNameType = ThePattSatelit.KIemeExprPar(1);
     
-	 std::cout << "aNameType " << aNameType << "\n";    
 	 eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
-	 std::cout << "aTrueType " << aTrueType << "\n";    
          aIntType =  aTrueType;
 
          switch (aTrueType)
          {
                 case eTIGB_MMDGlobe : 
                 case eTIGB_MMDimap2 :
-                      return  CamRPCOrientGenFromFile(aName,aTrueType);
+                      return  CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
 
                 default : ;
 
@@ -1608,6 +1619,8 @@ cBasicGeomCap3D * cInterfChantierNameManipulateur::StdCamGenOfNames(const std::s
 {
    std::string aRes = StdNameCamGenOfNames(anOri,aName);
    int aType = eTIGB_Unknown;
+
+
    if (aRes!= "") return cBasicGeomCap3D::StdGetFromFile(aRes,aType);
 
     std::cout << "For Ori=" << anOri << " , and Name=" << aName << "\n";
@@ -1678,8 +1691,13 @@ void cBasicGeomCap3D::GetCenterAndPTerOnBundle(Pt3dr & aC,Pt3dr & aPTer,const Pt
    aC  = OpticalCenterOfPixel(aPIm);
    aPTer = RoughCapteur2Terrain(aPIm);
 
+/*std::cout << aC << "\n";
+std::cout << aPTer << "\n";
+*/
    aC = aSeg.ProjOrtho(aC);
    aPTer = aSeg.ProjOrtho(aPTer);
+/*std::cout << " " <<  aC << "\n";
+std::cout << " " << aPTer << "\n";*/
 }
 
 
@@ -2313,9 +2331,30 @@ Pt2dr ElCamera::DistInverseSsComplem(Pt2dr aP) const
 
 Pt2dr ElCamera::DistInverse(Pt2dr aP) const
 {
-
     return DistInverseSsComplem(DComplC2M(aP));
+
+/*
+   aP = DComplC2M(aP);
+   aP= mDIsDirect ? Dist().Inverse(aP) : Dist().Direct(aP);
+   return aP;
+*/
+/*
+   static int aCpt=0; aCpt++;
+   // std::cout << "aCPpppt " <<  aCpt << "\n";
+   bool Bug =    (aCpt==149927) || ((aCpt>=159927) && (aCpt<=159930));  //  Avec 1500
+   // bool Bug = (aCpt==242400) || ((aCpt>=252400) && (aCpt<=252403));  //  Avec -1
+   if (Bug)
+   {
+       NS_ParamChantierPhotogram::cOrientationConique  aCO = StdExportCalibGlob();
+       MakeFileXML(aCO,"Debug-"+ToString(aCpt) + ".xml");
+       std::cout << "EXPPPoort ElCamera::DistInverse\n";
+   }
+*/
+
 }
+
+// void ElCamera::SetDistInverse() { mDIsDirect=false; }
+// void ElCamera::SetDistDirecte() { mDIsDirect=true; }
 
 
 bool ElCamera::DistIsDirecte() const {return mDIsDirect;}
@@ -2666,6 +2705,7 @@ void ElCamera::F2toRayonL3(Pt2dr aPF2,Pt3dr &aP0,Pt3dr & aP1) const
 {
 
    Proj().Rayon(F2toC2(aPF2),aP0,aP1);
+
 }
 
 void ElCamera::F2toRayonR3(Pt2dr aPF2,Pt3dr &aP0,Pt3dr & aP1) const
@@ -2686,12 +2726,10 @@ Pt3dr  ElCamera::F2AndZtoR3(const Pt2dr & aPIm,double aZ) const
     return aQ0 + (aQ1-aQ0) * aLambda;
 }
 
-
 ElSeg3D ElCamera::F2toRayonR3(Pt2dr aPF2) const
 {
    Pt3dr  aQa,aQb;
    F2toRayonR3(aPF2,aQa,aQb);
-
    return ElSeg3D(aQa,aQb);
 }
 
@@ -3197,10 +3235,7 @@ cOrientationConique  ElCamera::ExportCalibGlob
                          const Pt3di * aNbVeridDet
                       ) const
 {
-
    cCalibrationInternConique aCIC = ExportCalibInterne2XmlStruct(aSzIm);
-
-
    cOrientationExterneRigide anOER = From_Std_RAff_C2M(_orient.inv(),aModeMatr);
    anOER.AltiSol().SetVal(AltiSol);
    if (Prof >0)
@@ -4870,8 +4905,6 @@ cCamStenopeGrid * cCamStenopeGrid::Alloc
   Pt2dr  aSauvTr = aCS.TrCamNorm();
   const_cast<CamStenope &>(aCS).UnNormalize();
 
-
-
  cDistCamStenopeGrid * aDist =
        cDistCamStenopeGrid::Alloc(!aCS.DistIsDirecte(),aRayInv,aCS,aStepGr,doDir,doInv);
 
@@ -4884,6 +4917,9 @@ cCamStenopeGrid * cCamStenopeGrid::Alloc
   aRes->CamHeritGen(aCS,false,false);
 
   const_cast<CamStenope &>(aCS).StdNormalise(true,true,aSauvSc,aSauvTr);
+
+
+
 
   return aRes;
 }
