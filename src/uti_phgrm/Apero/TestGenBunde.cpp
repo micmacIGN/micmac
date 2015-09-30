@@ -145,7 +145,8 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
          std::string aDest = "PertTestBundle";
          mNameSaveCS0 = mAppli->EASF().mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+aDest,NameWithoutDir(mNameIm),true);
          MakeFileXML(mCSCur->StdExportCalibGlob(),mNameSaveCS0);
-         cPolynomial_BGC3M2D aPol(mCSCur,mNameSaveCS0,mNameIm,mAppli->mDeg);
+         
+	 cPolynomial_BGC3M2D aPol(mCSCur,mNameSaveCS0,mNameIm,mAppli->mDeg);
          aPol.Save2XmlStdMMName(aDest);
      }
 }
@@ -513,12 +514,14 @@ class cApppliConvertBundleGen
    private :
         double RandAngle() {return mPertubAng * NRrandC();}
 
+
         std::string mNameIm,mNameOrient,mDest;
         std::string mPostFix;
         cElemAppliSetFile mEASF;
         int mDegPol;
         std::string mNameOutInit;
         cBasicGeomCap3D * mCamGen;
+        const	cSystemeCoord * mChSys;
         std::string       mNameType;
         eTypeImporGenBundle mType;
         double              mPertubAng;
@@ -532,6 +535,7 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
 {
 
    std::string aNameType = "TIGB_Unknown";
+   std::string aChSysStr = "";
 
    //  cSubstitueBlocIncTmp::AddInc recouvrement / TMP
    ElInitArgMain
@@ -539,14 +543,14 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
         argc,argv,
         LArgMain()  << EAMC(mNameIm,"Name of Image")
                     << EAMC(mNameOrient,"Name of input Orientation File")
-                    << EAMC(mDest,"Directory of oupput Orientation (MyDir -> Oi-MyDir)"),
+                    << EAMC(mDest,"Directory of output Orientation (MyDir -> Oi-MyDir)"),
         LArgMain()
+	            << EAM(aChSysStr,"ChSys", true, "Change coordinate file (MicMac XML convention)")
                     << EAM(mDegPol,"Degre", true,"Degre of polynomial correction (Def=2)")
                     << EAM(mNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
                     << EAM(mPertubAng,"PertubAng",true,"Type of sensor (see eTypeImporGenBundle)")
  
     );
-
 
     
     bool mModeHelp;
@@ -557,8 +561,20 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
 
+    //if(aChSysStr=="") mChSys=0;
+    //else
+        mChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+                     (
+                         aChSysStr,
+                         StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                         "SystemeCoord",
+                         "SystemeCoord"
+                     ));
+
+
+
     int aIntType = mType;
-    mCamGen = cBasicGeomCap3D::StdGetFromFile(mNameOrient,aIntType);
+    mCamGen = cBasicGeomCap3D::StdGetFromFile(mNameOrient,aIntType,mChSys);
     mType = (eTypeImporGenBundle)  aIntType;
     CamStenope * aCS = mCamGen->DownCastCS();
     if (aCS)
@@ -578,16 +594,19 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
          mNameOutInit = mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+mDest,NameWithoutDir(mNameIm),true);
          
          MakeFileXML(aCS->StdExportCalibGlob(),mNameOutInit);
+         
     }
     else
     {
          mNameOutInit =  mEASF.mICNM->Assoc1To1("NKS-Assoc-Im2UnCorExternOrient@-"+mDest, eToString(mType) + "-" + NameWithoutDir(mNameOrient),true);
          ELISE_fp::CpFile(mNameOrient,mNameOutInit);
+        
     }
-    cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol);
-    aPol.Save2XmlStdMMName(mDest);
-}
 
+    cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol,0,mChSys);
+    aPol.Save2XmlStdMMName(mDest);
+    
+}
 
 int CPP_ConvertBundleGen(int argc,char ** argv)  
 {

@@ -125,6 +125,9 @@ cCellPolBGC3M2DForm::cCellPolBGC3M2DForm(Pt2dr aPt,cPolynBGC3M2D_Formelle * aPF,
 Pt2dr  cCellPolBGC3M2DForm::ProjOfTurnMatr(bool & Ok, const ElMatrix<double> & aMat)
 {
      Pt3dr aPTer = mCenter + aMat * (mPTer-mCenter);
+ 
+//std::cout << "* " << mPTer << " " << aPTer << "\n";
+
      Ok =  mPF->CamSsCorr()->PIsVisibleInImage(aPTer);
      if (!Ok) return Pt2dr(0,0);
      return  mPF->CamSsCorr()->Ter2Capteur(aPTer);
@@ -899,15 +902,16 @@ cPolynomial_BGC3M2D::cPolynomial_BGC3M2D
       const std::string & aName,
       const std::string & aNameIma,
       int aDegreeMax,
-      double aRandPerturb
+      double aRandPerturb,
+      const cSystemeCoord * aChSys
 ) :
     cBGC3_Modif2D (aCam0,aName,aNameIma),
+    mChSys        (*aChSys),
     mDegreMax     (aDegreeMax),
     mCenter       (Pt2dr(mSz)/2.0),
     mAmpl         (euclid(mCenter)),
     mCurPPow      (0.0,0.0)
 {
-
      int aCpt=0;
      for (int  aDegreeTot=0 ; aDegreeTot<=aDegreeMax ; aDegreeTot++)
      {
@@ -983,6 +987,7 @@ cXml_CamGenPolBundle cPolynomial_BGC3M2D::ToXml() const
     aRes.NameIma() = mNameIma;
     aRes.NameCamSsCor() = mNameFileCam0;
     
+    aRes.SysCible() = mChSys;
 
     return aRes;
 }
@@ -1013,7 +1018,9 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
             ELISE_fp::CpFile(mNameFileCam0,aNameSsCor);
      }
      aXml.NameCamSsCor() = aNameSsCor;
+     aXml.SysCible() = mChSys;
 
+     
      MakeFileXML(aXml,aNameXml);
 }
 
@@ -1041,15 +1048,18 @@ void   cPolynomial_BGC3M2D::SetMonom(const std::vector<cMonomXY> & aVMon,std::ve
 cPolynomial_BGC3M2D * cPolynomial_BGC3M2D::NewFromFile(const std::string & aName)
 {
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
+   
+    cSystemeCoord aChSys = aXML.SysCible();
 
     int aType = eTIGB_Unknown;
-    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),aType);
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),aType,&aChSys);
 
 
-    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot());
+    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot(),0,&aChSys);
 
     aRes->SetMonom(aXML.CorX().Monomes(),aRes->mCx);
     aRes->SetMonom(aXML.CorY().Monomes(),aRes->mCy);
+
 
     return aRes;
     
@@ -1089,7 +1099,7 @@ void TestBGC3M2D()
    std::string aName =  "/media/data2/Jeux-Test/Dino/Ori-Martini/Orientation-_MG_0140.CR2.xml";
    CamStenope * aCS = BasicCamOrientGenFromFile(aName);
 
-   
+ 
    cPolynomial_BGC3M2D  aP1(aCS,1,0.0);
    cPolynomial_BGC3M2D  aP2(aCS,0,0.0);
    cPolynomial_BGC3M2D  aP2Bis(aCS,3,0.0);
@@ -1104,6 +1114,7 @@ void GenCodeEqProjGen(int aDeg,bool GenCode,bool GenCodeAttach,bool GenCodeRot)
     std::vector<double> aPAF;
     CamStenopeIdeale aCSI(false,1.0,Pt2dr(0,0),aPAF);
     aCSI.SetSz(Pt2di(100,100));
+
 
     cPolynomial_BGC3M2D aPolCSI(&aCSI,"Test","tutu",aDeg,0.0);
 
