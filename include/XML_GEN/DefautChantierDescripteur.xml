@@ -52,6 +52,19 @@
 *                                                               *
  *********************************************************** -->
 
+    <KeyedNamesAssociations>
+             <IsParametrized>  true </IsParametrized>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> (.*) </PatternTransform>
+                       <CalcName> DepX_Zoom#1.tif </CalcName>
+                       <CalcName> DepY_Zoom#1.tif </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-NameMapsDeplacement </Key>
+      </KeyedNamesAssociations>
+
 <!--   HOMOGRAPHY-COMPUTING
 
     <Symb>  Tooooooo=XxX </Symb>
@@ -3049,6 +3062,8 @@
         <Key>  KeyStd-Assoc-H2H-SplitBin </Key>
         <SubDirAutoMakeRec> true </SubDirAutoMakeRec>
     </KeyedNamesAssociations>
+
+
 
 
 

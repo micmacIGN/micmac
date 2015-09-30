@@ -215,6 +215,7 @@ class cOneImageVideo
         double            mCumNonRec;
         const cMetaDataPhoto &mMDT;
         Pt2di                 mSz;
+        int                   mNbHom;
 };
 
 

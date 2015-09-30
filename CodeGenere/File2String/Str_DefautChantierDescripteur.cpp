@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_DefautChantierDescripteur[3049]) = {
+const char * (theNameVar_DefautChantierDescripteur[3060]) = {
 "<!--\n",
 "   Pour ne pas l'oublier : \n",
 "      Un exemple avec utilisation des fonctionnalites arithmetique\n",
