@@ -1,0 +1,594 @@
+
+<!-- 
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data1/Jeux-Tests/Tortue-Pagode-Hue/ +Im1=Epi_Im1_Left_IMGP6872_IMGP6873.tif  +Im2=Epi_Im2_Right_IMGP6872_IMGP6873.tif +Ori=Epi  +DoEpi=false  +Purge=false +MMC=false +DoOnlyXml=true
+
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Marseilles/ +Im1=Epi_Im1_Right_Fr9130_028~1051_rgb_Fr9130_028~1052_rgb.tif +Im2=Epi_Im2_Left_Fr9130_028~1051_rgb_Fr9130_028~1052_rgb.tif +Zoom0=64  +Purge=false +MMC=false
+
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Vainhegen/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64  +Purge=false 
+
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/Tortue/ +Im1=Epi_Im1_Left_IMGP6909_IMGP6910.tif +Im2=Epi_Im2_Right_IMGP6909_IMGP6910.tif +Zoom0=32  +Purge=false 
+
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Munich/ +Im1=Epi_Im1_Left_41_0420_PAN_41_0421_PAN.tif +Im2=Epi_Im2_Right_41_0420_PAN_41_0421_PAN.tif +Zoom0=64  +Purge=false +MMC=true
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/Vainhegen/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +CMS=true  +Purge=false
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/Vainehgen/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64  +Purge=false
+
+MICMAC /home/marc/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/home/marc/TMP/EPI/ +Im1=Epi_Im1_Left_17_18.tif +Im2=Epi_Im2_Right_17_18.tif +Zoom0=64 +ZoomF=4
+
+MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/data2/EPI/ +Im1=Epi_Im1_Left_41_0421_PAN_41_0422_PAN.tif +Im2=Epi_Im2_Right_41_0421_PAN_41_0422_PAN.tif +Zoom0=64 +ZoomF=4
+-->
+<ParamMICMAC>
+
+<DicoLoc>
+
+	<Symb>  ZReg=0.05  </Symb>
+	<Symb>  DefCor=0.50  </Symb>
+        <Symb>  PenteMax=1.0 </Symb>
+	<Symb>  Interpol=eInterpolBiLin  </Symb>
+
+        <Symb>  DoEpi=true </Symb>
+
+        <Symb>  UseGpu=false </Symb>
+        <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
+
+	<Symb> Zoom0=64  </Symb>
+	<Symb> ZoomF=1   </Symb>
+	<Symb> ZPas=0.5   </Symb>
+        <Symb> PrefMEC=MEC2Im </Symb>
+        <Symb> Purge=true </Symb>
+        <Symb> DoOnlyXml=false </Symb>
+  <!-- Parametres essentiels -->
+
+       <Symb> Ori=Epi    </Symb>
+       <Symb> Im1=Epi_Im1_Left_17_18.tif     </Symb>
+       <Symb> Im2=Epi_Im2_Right_17_18.tif     </Symb>
+       <Symb> IncPix=1000   </Symb>
+       <Symb> NbDirProg=4   </Symb>
+       <Symb> CMS=true   </Symb>
+       <Symb> Census=true   </Symb>
+       <Symb> SquareW=true   </Symb>  <!-- Est ce que la fenetre muls scale est carre (sinon gauss) -->
+
+
+       <Symb> DebugClip=true  </Symb>
+       <Symb> SzW0=2  </Symb>
+       <Symb> DeltaY=0  </Symb>
+       <Symb> Verif=false  </Symb>
+       <Symb> NbProc=${MMNbProc}  </Symb>
+
+       <Symb>  MMC=true  </Symb>
+       <Symb>  DoPly=false </Symb>
+       <Symb>  ScalePly=4 </Symb>
+
+       <Symb> MasqImOptional=false </Symb>
+
+       <Symb> DirPyrIsMEC=true </Symb>
+
+  <!-- Clip zone pour le test -->
+       <Symb> ClipCalc=false  </Symb>
+       <Symb> X0Clip=0        </Symb>
+       <Symb> Y0Clip=0        </Symb>
+       <Symb> X1Clip=0        </Symb>
+       <Symb> Y1Clip=0        </Symb>
+
+  <!-- Parametres calcule -->
+        
+        <Symb>  DirMEC=MEC2Im-${Im1}-${Im2} </Symb>
+        <Symb>  DirPyram=Pyram/ </Symb>
+        <eSymb> DbleZPas=* 2 ${ZPas} </eSymb>
+
+           <!-- Ici * joue le role de && --> 
+        <eSymb> WZ64=* Sup ${Zoom0} 64  InfEq  ${ZoomF} 64  </eSymb>
+        <eSymb> WZ32=* Sup ${Zoom0} 32  InfEq  ${ZoomF} 32  </eSymb>
+        <eSymb> WZ16=* Sup ${Zoom0} 16  InfEq  ${ZoomF} 16  </eSymb>
+        <eSymb> WZ8=*  Sup ${Zoom0} 8   InfEq  ${ZoomF} 8  </eSymb>
+        <eSymb> WZ4=*  Sup ${Zoom0} 4   InfEq  ${ZoomF} 4  </eSymb>
+        <eSymb> WZ2=*  Sup ${Zoom0} 2   InfEq  ${ZoomF} 2  </eSymb>
+        <eSymb> WZ1=*  Sup ${Zoom0} 1   InfEq  ${ZoomF} 1  </eSymb>
+        <eSymb> SzW= ? ${CMS} 1 ${SzW0}  </eSymb>
+
+        <eSymb> SzWy= ? ${CMS} 1 + ${DeltaY} ${SzW} </eSymb>
+        <eSymb> MMCEff= * ${MMC} ${DoEpi} </eSymb>
+        <eSymb> CensusEff= * ${Census} ${DoEpi} </eSymb>
+        <eSymb> NotEpi= ! ${DoEpi} </eSymb>
+       
+
+         <Symb> HUGEDilateALTI=7    </Symb>
+         <Symb> HUGEDilatePLANI=5   </Symb>
+         <Symb> BigDilateALTI=5     </Symb>
+         <Symb> BigDilatePLANI=4    </Symb>
+</DicoLoc>
+
+<Section_Terrain> 
+     <#WHEN VTEST=${DoEpi}>
+          <IntervParalaxe>
+              <Px1IncCalc> ${IncPix} </Px1IncCalc>
+          </IntervParalaxe>
+     </#WHEN>
+
+     <GeoRefAutoRoundResol> false </GeoRefAutoRoundResol>
+
+     <#WHEN VTEST=${NotEpi}>
+          <IntervAltimetrie>
+                 <ZIncCalc>   0 </ZIncCalc>
+          </IntervAltimetrie>
+          <IntervSpecialZInv>
+               <MulZMin> 0.5</MulZMin>
+               <MulZMax> 3.0 </MulZMax>
+         </IntervSpecialZInv>
+     </#WHEN>
+
+</Section_Terrain>
+
+
+<!--  ************************************************************* 
+
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue>
+<!--
+     <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
+-->
+
+   <#IF VTEST=${DoEpi}>
+       <GeomImages> eGeomImage_EpipolairePure </GeomImages> 
+       <GeomImages> eGeomImageOri </GeomImages> 
+   </#IF>
+<!--
+   <ValSpecNotImage> 0  </ValSpecNotImage>
+-->
+
+   <Images>
+    	<Im1>   ${Im1} </Im1>
+    	<Im2>   ${Im2}    </Im2>
+   </Images>
+
+   <#WHEN VTEST=${DoEpi}>
+       <MasqImageIn>
+             <OneMasqueImage>
+                <PatternSel>  (.*).tif  </PatternSel>
+                <NomMasq>  $1_Masq.tif     </NomMasq>
+             </OneMasqueImage>
+             <AcceptNonExistingFile> ${MasqImOptional} </AcceptNonExistingFile>
+        </MasqImageIn>
+    </#WHEN>
+
+     <#WHEN VTEST=${NotEpi}>
+         <NomsGeometrieImage>
+             <FCND_Mode_GeomIm>
+                   <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>
+             </FCND_Mode_GeomIm>
+         </NomsGeometrieImage>
+     </#WHEN>
+</Section_PriseDeVue>
+
+
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC>
+	<ChantierFullImage1> true </ChantierFullImage1>
+        <#WHEN  VTEST=${ClipCalc}>
+              <ProportionClipMEC> ${X0Clip}  ${Y0Clip}  ${X1Clip}  ${Y1Clip} </ProportionClipMEC>
+              <ClipMecIsProp> false </ClipMecIsProp>
+        </#WHEN>
+<!--
+        <#WHEN VTEST="false">
+           <MMUseMasq3D>
+                <NameMasq> AperiCloud_AllRel_selectionInfo.xml </NameMasq>
+                <ZoomBegin> 16 </ZoomBegin>
+                <Dilate> 2 </Dilate>
+                <PrefixNuage> NuageImProf_Chantier-Ori </PrefixNuage>
+           </MMUseMasq3D>
+         </#WHEN>
+-->
+
+
+	<EtapeMEC>
+    	    <DeZoom> -1 </DeZoom>
+    	    <ModeInterpolation> ${Interpol} </ModeInterpolation>
+
+<!--
+            <DynamiqueCorrel> eCoeffGamma </DynamiqueCorrel>
+            <CorrelMin>    0.3 </CorrelMin>
+            <GammaCorrel>  3  </GammaCorrel>
+-->
+
+	    <AggregCorr> eAggregIm1Maitre </AggregCorr>
+		
+	    <!-- param correl -->
+	    <SzW> ${SzW} </SzW>
+	    <SzWy>  ${SzWy} </SzWy>
+
+            <#WHEN VTEST=${NotUseGpu}>
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+            </#WHEN>
+            <#WHEN VTEST=${UseGpu}>
+            <AlgoRegul>  eAlgoTestGPU </AlgoRegul>
+            </#WHEN>
+
+            <#WHEN VTEST=${DoEpi}>
+	        <Px1Pas> ${ZPas} </Px1Pas>
+                <Px1DilatAlti>  3  </Px1DilatAlti>
+	        <Px1DilatPlani> 3  </Px1DilatPlani>
+	        <Px1Regul> ${ZReg} </Px1Regul>
+            </#WHEN>
+            <#WHEN VTEST=${NotEpi}>
+	        <ZPas> ${ZPas} </ZPas>
+                <ZDilatAlti>  3  </ZDilatAlti>
+	        <ZDilatPlani> 3  </ZDilatPlani>
+	        <ZRegul> ${ZReg} </ZRegul>
+            </#WHEN>
+
+
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+	    
+	
+            <!-- param regul -->
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+
+	    <ModulationProgDyn>
+               <EtapeProgDyn>
+            	   <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                   <NbDir> ${NbDirProg} </NbDir>
+               </EtapeProgDyn>
+               <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+               <ArgMaskAuto>
+            	   <ValDefCorrel> ${DefCor} </ValDefCorrel>
+                   <CostTrans> 2.0 </CostTrans>
+                   <ReInjectMask> false </ReInjectMask> 
+               </ArgMaskAuto>
+            </ModulationProgDyn>
+
+            <CorrelAdHoc>
+                 <#WHEN VTEST=${DebugClip}>
+                        <SzBlocAH> 40000000 </SzBlocAH>
+                 </#WHEN>
+
+
+                 <#WHEN VTEST=${CMS}>
+                     <CorrelMultiScale>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
+                            <ModeDense> true </ModeDense>
+                            <UseWAdapt> false </UseWAdapt>
+                            <ModeMax> ${MMCEff} </ModeMax>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                                 <SquareW> ${SquareW} </SquareW>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                                 <SquareW> ${SquareW} </SquareW>
+                            </OneParamCMS>
+
+                            <OneParamCMS>
+                                 <SzW> 4 3 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                                 <SquareW> ${SquareW} </SquareW>
+                            </OneParamCMS>
+<!--
+-->
+
+<!--
+                            <OneParamCMS>
+                                 <SzW> 8 6 </SzW>
+                                 <Sigma> 4.0 </Sigma>
+                                 <Pds> 0.125 </Pds>
+                                 <SquareW> ${SquareW} </SquareW>
+                            </OneParamCMS>
+-->
+
+
+                     </CorrelMultiScale>
+                 </#WHEN>
+                   
+
+                 <TypeCAH>
+                     <#IF VTEST=${CensusEff}>
+                         <CensusCost>
+                             <TypeCost> eMCC_CensusCorrel   </TypeCost>
+<!--
+                             <TypeCost> eMCC_CensusMixCorrelBasic   </TypeCost>
+                             <TypeCost> eMCC_CensusBasic   </TypeCost>
+                             <TypeCost> eMCC_GrCensus   </TypeCost>
+-->
+                             <Verif>  ${Verif} </Verif>
+                             <AttenDist>   0.0 </AttenDist>
+                         </CensusCost>
+                         <GPU_Correl>
+                         </GPU_Correl>
+                     </#IF>
+                  </TypeCAH>
+             </CorrelAdHoc>
+
+
+        </EtapeMEC>
+
+<!--
+            <#WHEN VTEST=${DoEpi}>
+                <Px1DilatAlti>  3  </Px1DilatAlti>
+	        <Px1DilatPlani> 3  </Px1DilatPlani>
+            </#WHEN>
+            <#WHEN VTEST=${NotEpi}>
+                <ZDilatAlti>  3  </ZDilatAlti>
+	        <ZDilatPlani> 3  </ZDilatPlani>
+            </#WHEN>
+-->
+
+	<EtapeMEC> 
+                  <DeZoom> ${Zoom0} </DeZoom> 
+                  <#IF VTEST=${DoEpi}>
+                       <Px1Pas>  1 </Px1Pas>
+                       <ZPas>  1   </ZPas>
+                  </#IF>
+        </EtapeMEC>	
+	<EtapeMEC> 
+                 <DeZoom> ${Zoom0} </DeZoom> 
+                 <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+	             <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+                 </#WHEN>
+                 <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+                 </#WHEN>
+        </EtapeMEC>	
+
+        <#WHEN VTEST=${WZ64}>
+	    <EtapeMEC> 
+                  <DeZoom> 64 </DeZoom> 
+                 <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+	             <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+                 </#WHEN>
+                 <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+                 </#WHEN>
+            </EtapeMEC>	
+        </#WHEN>
+
+        <#WHEN VTEST=${WZ32}>
+	    <EtapeMEC> 
+                 <DeZoom> 32 </DeZoom> 
+                 <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+	             <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+                 </#WHEN>
+                 <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+                 </#WHEN>
+            </EtapeMEC>	
+        </#WHEN>
+
+
+        <#WHEN VTEST=${WZ16}>
+	    <EtapeMEC> 
+                  <DeZoom> 16 </DeZoom> 
+            </EtapeMEC>	
+        </#WHEN>
+
+        <#WHEN VTEST=${WZ8}>
+	   <EtapeMEC> 
+              <DeZoom> 8 </DeZoom> 
+              <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+	             <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+               </#WHEN>
+               <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+               </#WHEN>
+           </EtapeMEC>
+        </#WHEN>
+
+
+        <#WHEN VTEST=${WZ4}>
+	     <EtapeMEC> 
+                   <DeZoom> 4 </DeZoom>         
+	           <ModulationProgDyn>
+                      <EtapeProgDyn>
+            	        <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                        <NbDir> ${NbDirProg} </NbDir>
+                      </EtapeProgDyn>
+                      <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                      <ArgMaskAuto>
+            	        <ValDefCorrel>  ${DefCor}  </ValDefCorrel>
+                        <CostTrans> 2.0 </CostTrans>
+                        <ReInjectMask> false </ReInjectMask> 
+                      </ArgMaskAuto>
+                   </ModulationProgDyn>
+             </EtapeMEC>
+        </#WHEN>
+
+        <#WHEN VTEST=${WZ2}>
+	      <EtapeMEC> 
+                    <DeZoom> 2 </DeZoom>         
+	            <ModulationProgDyn>
+                       <EtapeProgDyn>
+            	         <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                         <NbDir> ${NbDirProg} </NbDir>
+                       </EtapeProgDyn>
+                       <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                       <ArgMaskAuto>
+            	         <ValDefCorrel>  ${DefCor}  </ValDefCorrel>
+                         <CostTrans> 2.0 </CostTrans>
+                         <ReInjectMask> false </ReInjectMask> 
+                       </ArgMaskAuto>
+                    </ModulationProgDyn>
+              </EtapeMEC>
+        </#WHEN>
+
+        <#WHEN VTEST=${WZ1}>
+	   <EtapeMEC> 
+                 <DeZoom> 1 </DeZoom>         
+
+                  <#WHEN VTEST=${DoEpi}>
+                      <Px1DilatAlti>  2  </Px1DilatAlti>
+	              <Px1DilatPlani> 2  </Px1DilatPlani>
+                  </#WHEN>
+                  <#WHEN VTEST=${NotEpi}>
+                      <ZDilatAlti>  2  </ZDilatAlti>
+	              <ZDilatPlani> 2  </ZDilatPlani>
+                  </#WHEN>
+
+	         <ModulationProgDyn>
+                    <EtapeProgDyn>
+            	      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir> ${NbDirProg} </NbDir>
+                    </EtapeProgDyn>
+                    <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                    <ArgMaskAuto>
+            	      <ValDefCorrel>  ${DefCor}  </ValDefCorrel>
+                      <CostTrans> 2.0 </CostTrans>
+                      <ReInjectMask> false </ReInjectMask> 
+                    </ArgMaskAuto>
+                 </ModulationProgDyn>
+              </EtapeMEC>
+        </#WHEN>
+
+	<EtapeMEC> 
+              <DeZoom> ${ZoomF} </DeZoom>         
+              <#IF VTEST=${DoEpi}>
+	           <Px1Pas>   1.0 </Px1Pas>
+	           <ZPas>   1.0   </ZPas>
+              </#IF>
+              <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC>
+       
+</Section_MEC>
+
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results>
+    <#IF VTEST=${DoEpi}>
+         <GeomMNT> eGeomPxBiDim     </GeomMNT>
+         <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D     </GeomMNT>
+    </#IF>
+   <#WHEN  VTEST=${DoOnlyXml}>
+         <DoNothingBut>
+            <ButDoMTDNuage>  true </ButDoMTDNuage>
+<!--
+-->
+         </DoNothingBut>
+   </#WHEN>
+<!--
+    <DoMEC> true </DoMEC> 
+    <DoNothingBut>
+            <ButDoOriMNT>  true </ButDoOriMNT>
+    </DoNothingBut>
+
+    <NonExistingFileDoMEC>  ${DirMEC}/Z_Num8_DeZoom2_LeChantier.tif </NonExistingFileDoMEC>
+-->
+
+<!--
+    <DoFDC> true </DoFDC>
+-->
+    <ZoomMakeTA> 32 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    
+</Section_Results>
+
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace>
+
+<!--
+    <MapMicMac>
+         <ActivateCmdMap> true </ActivateCmdMap>
+         <ModeCmdMapeur>
+            <CM_Set>
+                <KeySet> NKS-Set-OfPattern@${PatAllIm} </KeySet>
+                <NameVarMap> Im1 </NameVarMap>
+             </CM_Set>
+        </ModeCmdMapeur>
+
+         <CmdMapRel>
+              <KeyRel>  Key-Pair-To-Match </KeyRel>
+              <NameArc>  Im2 </NameArc>
+         </CmdMapRel>
+
+    </MapMicMac>
+-->
+
+<!--
+    <FirstEtapeMEC> 8 </FirstEtapeMEC>
+    <LastEtapeMEC> 5 </LastEtapeMEC>
+-->
+
+   <#WHEN VTEST=${NotEpi}>
+        <NomChantier>  Chantier-Ori </NomChantier>
+   </#WHEN>
+
+
+    <WorkDir> ThisDir </WorkDir> 
+    <TmpMEC> ${DirMEC}/ </TmpMEC>
+    <TmpResult> ${DirMEC}/ </TmpResult>
+    <TmpPyr> ${DirPyram} </TmpPyr>
+<!--
+    <#IF VTEST=${DirPyrIsMEC}>
+         <TmpPyr> ${DirMEC}/ </TmpPyr>
+         <TmpPyr> Pyram/ </TmpPyr>
+    </#IF>
+-->
+    <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
+<!--
+    <PreservedFile> NuageImProf_Chantier-Ori*xml </PreservedFile>
+-->
+
+    <ByProcess>  ${NbProc} </ByProcess>
+<!--
+    <ByProcess>  1 </ByProcess>
+-->
+    <#WHEN  VTEST=${DoPly}>
+        <PostProcess>
+            <OneCmdPar>
+                <OneCmdSer>  ${MMDir}bin/Nuage2Ply ${ThisDir}${DirMEC}/NuageImProf_Chantier-Ori_Etape_Last.xml  Scale=${ScalePly}  Attr=${Im1} Out=${ThisDir}${DirMEC}/PLY${Im1}-${Im2}.ply RatioAttrCarte=${ZoomF}
+                </OneCmdSer>
+             </OneCmdPar>
+        </PostProcess>
+     </#WHEN>
+
+    <AvalaibleMemory> 1024 </AvalaibleMemory>
+    <SzDalleMin> 128 </SzDalleMin>
+<#WHEN VTEST=${NotUseGpu}>
+            <SzDalleMax> 1000 </SzDalleMax>
+</#WHEN>
+<#WHEN VTEST=${UseGpu}>
+            <SzDalleMax> 512 </SzDalleMax>
+</#WHEN>
+    <SzRecouvrtDalles> 20 </SzRecouvrtDalles>
+    <SzMinDecomposCalc> 40 </SzMinDecomposCalc>
+    <ComprMasque> eComprTiff_None </ComprMasque>
+
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+     <DebugMM> true</DebugMM>
+</Section_Vrac>
+
+</ParamMICMAC>
+
