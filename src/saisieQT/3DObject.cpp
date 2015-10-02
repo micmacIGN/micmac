@@ -41,7 +41,7 @@ cObject::~cObject()
 
 }
 
-QColor cObject::getColor()
+const QColor & cObject::getColor() const
 {
     return _color[state()];
 }

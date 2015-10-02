@@ -310,10 +310,11 @@ public:
                 void Validity2Dto3D(RPC2D aRPC2D);
 
 	void TestDirectRPCGen(const std::string aTargetCS);
+
+	void ChSysRPC(const cSystemeCoord &);
+
 };
-
 #endif
-
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant Ã  la mise en

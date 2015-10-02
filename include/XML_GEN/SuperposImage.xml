@@ -1459,6 +1459,7 @@
 <Xml_CamGenPolBundle Nb="1" Class="true" ToReference="true">
     <NameCamSsCor  Type="std::string" Nb="1" > </NameCamSsCor>
     <NameIma  Type="std::string" Nb="1" > </NameIma>
+    <SysCible Nb="1" RefType="SystemeCoord" RefFile="ParamChantierPhotogram.xml"> </SysCible> 
     <DegreTot Type="int" Nb="1"> </DegreTot>
     <Center Nb="1" Type="Pt2dr"> </Center>
     <Ampl Nb="1" Type="double"> </Ampl>

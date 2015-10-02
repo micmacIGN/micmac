@@ -21590,6 +21590,17 @@ const std::string & cXml_CamGenPolBundle::NameIma()const
 }
 
 
+cSystemeCoord & cXml_CamGenPolBundle::SysCible()
+{
+   return mSysCible;
+}
+
+const cSystemeCoord & cXml_CamGenPolBundle::SysCible()const 
+{
+   return mSysCible;
+}
+
+
 int & cXml_CamGenPolBundle::DegreTot()
 {
    return mDegreTot;
@@ -21648,6 +21659,7 @@ void  BinaryUnDumpFromFile(cXml_CamGenPolBundle & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameCamSsCor(),aFp);
     BinaryUnDumpFromFile(anObj.NameIma(),aFp);
+    BinaryUnDumpFromFile(anObj.SysCible(),aFp);
     BinaryUnDumpFromFile(anObj.DegreTot(),aFp);
     BinaryUnDumpFromFile(anObj.Center(),aFp);
     BinaryUnDumpFromFile(anObj.Ampl(),aFp);
@@ -21659,6 +21671,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_CamGenPolBundle & anObj)
 {
     BinaryDumpInFile(aFp,anObj.NameCamSsCor());
     BinaryDumpInFile(aFp,anObj.NameIma());
+    BinaryDumpInFile(aFp,anObj.SysCible());
     BinaryDumpInFile(aFp,anObj.DegreTot());
     BinaryDumpInFile(aFp,anObj.Center());
     BinaryDumpInFile(aFp,anObj.Ampl());
@@ -21672,6 +21685,7 @@ cElXMLTree * ToXMLTree(const cXml_CamGenPolBundle & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_CamGenPolBundle",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NameCamSsCor"),anObj.NameCamSsCor())->ReTagThis("NameCamSsCor"));
    aRes->AddFils(::ToXMLTree(std::string("NameIma"),anObj.NameIma())->ReTagThis("NameIma"));
+   aRes->AddFils(ToXMLTree(anObj.SysCible())->ReTagThis("SysCible"));
    aRes->AddFils(::ToXMLTree(std::string("DegreTot"),anObj.DegreTot())->ReTagThis("DegreTot"));
    aRes->AddFils(::ToXMLTree(std::string("Center"),anObj.Center())->ReTagThis("Center"));
    aRes->AddFils(::ToXMLTree(std::string("Ampl"),anObj.Ampl())->ReTagThis("Ampl"));
@@ -21691,6 +21705,8 @@ void xml_init(cXml_CamGenPolBundle & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NameIma(),aTree->Get("NameIma",1)); //tototo 
 
+   xml_init(anObj.SysCible(),aTree->Get("SysCible",1)); //tototo 
+
    xml_init(anObj.DegreTot(),aTree->Get("DegreTot",1)); //tototo 
 
    xml_init(anObj.Center(),aTree->Get("Center",1)); //tototo 
@@ -21702,6 +21718,6 @@ void xml_init(cXml_CamGenPolBundle & anObj,cElXMLTree * aTree)
    xml_init(anObj.CorY(),aTree->Get("CorY",1)); //tototo 
 }
 
-std::string  Mangling( cXml_CamGenPolBundle *) {return "C8E31598BA07CEACFDBF";};
+std::string  Mangling( cXml_CamGenPolBundle *) {return "8AA2139AC64B61F3FC3F";};
 
 // };

@@ -244,19 +244,21 @@ cMasq3DOrthoRaster * cMasq3DOrthoRaster::ByPolyg3D(SELECTION_MODE aModeSel,const
     ElRotation3D aP2E = aPlan.CoordPlan2Euclid();
     ElRotation3D aE2P = aP2E.inv();
 
-    std::vector<Pt2dr> aVP2;
-    Pt2dr aMin(1e20,1e20);
-    Pt2dr aMax(-1e20,-1e20);
-    double aZAM = 0; // Z Abs Max
-    for (int aKP=0 ; aKP<int(aPol3.size()); aKP++)
-    {
-        Pt3dr  aQ3 = aE2P.ImAff(aPol3[aKP]);
-        Pt2dr aP2(aQ3.x,aQ3.y);
-        aVP2.push_back(aP2);
-        aMax.SetSup(aP2);
-        aMin.SetInf(aP2);
-        aZAM = ElMax(aZAM,ElAbs(aQ3.z));
-    }
+	std::vector<Pt2dr> aVP2;
+	Pt2dr aMin(1e20,1e20);
+	Pt2dr aMax(-1e20,-1e20);
+	double aZAM = 0; // Z Abs Max
+	for (size_t aKP=0 ; aKP<aPol3.size(); aKP++)
+	{
+		Pt3dr  aQ3 = aE2P.ImAff(aPol3[aKP]);
+		Pt2dr aP2(aQ3.x, aQ3.y);
+		aVP2.push_back(aP2);
+
+		aMax.SetSup(aP2);
+		aMin.SetInf(aP2);
+		aZAM = ElMax(aZAM,ElAbs(aQ3.z));
+	}
+    
 
     if (aZAM>1e-5)
     {
