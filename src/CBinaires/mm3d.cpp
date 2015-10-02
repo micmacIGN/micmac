@@ -484,6 +484,7 @@ extern int  Luc_main(int argc, char ** argv);
 extern int  LucasChCloud_main(int argc,char ** argv);
 extern int  ProjetInfo_main(int argc,char ** argv);
 extern int  Matthieu_main(int argc,char ** argv);
+extern int  TestJB_main(int argc,char ** argv);
 extern int  RawCor_main(int argc,char ** argv);
 extern int  CreateBlockEpip_main(int argc,char ** argv);
 extern int  TD_GenereAppuis_main(int argc,char ** argv);
@@ -563,6 +564,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("Ortho2TieP",Ortho2TieP_main,"Select Tie Points from the orthophotography"));
    aRes.push_back(cMMCom("Idem",Idem_main,"Interpolate DEM on GCP & CP"));
    aRes.push_back(cMMCom("TestSI",Matthieu_main,"Test SelectionInfos"));
+   aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
    aRes.push_back(cMMCom("TestER",TestER_main,"ER test workplace"));
    aRes.push_back(cMMCom("PI",ProjetInfo_main,"Projet Info"));
    // aRes.push_back(cMMCom("RawCor",RawCor_main,"Test for correcting green or red RAWs"));

@@ -305,6 +305,7 @@ void GlCloud::setBufferGl(bool onlyColor)
     {
         GlVertex vert = getVertex(bK);
 		QVector3D  pos  = vert.getPosition();
+
         QColor colo = vert.getColor();
         if(!onlyColor)
         {

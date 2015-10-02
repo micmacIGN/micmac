@@ -134,6 +134,7 @@ int MakeOneXmlXifInfo_main(int argc,char ** argv)
     cXmlXifInfo aXML =  MDT2Xml(aMTD);
 
     MakeFileXML(aXML,aNameXml);
+    MakeFileXML(aXML,StdPrefix(aNameXml)+".dmp");
 
     return 1;
 }
@@ -141,7 +142,7 @@ int MakeOneXmlXifInfo_main(int argc,char ** argv)
 
 
 
-void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur * aICNM)
+void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur * aICNM,bool toForce)
 {
    std::string aDir,aPat;
    SplitDirAndFile(aDir,aPat,aFullPat);
@@ -188,7 +189,7 @@ void MakeXmlXifInfo(const std::string & aFullPat,cInterfChantierNameManipulateur
        //std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameIm + "-MDT-"+ HRevXif + ".xml";
        std::string aNameXml = ( isUsingSeparateDirectories()?MMTemporaryDirectory():aDir+"Tmp-MM-Dir/" );
        aNameXml.append( aNameIm+"-MDT-"+HRevXif+".xml" );
-       if (! ELISE_fp::exist_file(aNameXml))
+       if ( toForce || (! ELISE_fp::exist_file(aNameXml)))
        {
            std::string aCom = MM3dBinFile("TestLib") +  " XmlXif " + aDir+aNameIm + " " + aNameXml;
            aLCom.push_back(aCom);
@@ -1613,17 +1614,33 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 }
 
 
+std::string NameXifXmlOfIm(const std::string & aNameFile,bool Bin)
+{
+     std::string aDir,aNameSsDir;
+     SplitDirAndFile(aDir,aNameSsDir,aNameFile);
+     std::string aNameXml = ( isUsingSeparateDirectories()?MMTemporaryDirectory():aDir+"/Tmp-MM-Dir/" );
+     aNameXml.append( aNameSsDir+"-MDT-"+HRevXif+ (Bin ? ".dmp" : ".xml" ));
+     return aNameXml;
+}
+
+
 
 
 cMetaDataPhoto cMetaDataPhoto::CreateNewExiv2(const std::string & aNameFile) // ,const char *  aNameTest)
 {
+/*
        std::string aDir,aNameSsDir;
        SplitDirAndFile(aDir,aNameSsDir,aNameFile);
        //std::string aNameXml = aDir + "/Tmp-MM-Dir/" + aNameSsDir + "-MDT-"+ HRevXif + ".xml";
        std::string aNameXml = ( isUsingSeparateDirectories()?MMTemporaryDirectory():aDir+"/Tmp-MM-Dir/" );
        aNameXml.append( aNameSsDir+"-MDT-"+HRevXif+".xml" );
-       if ( ELISE_fp::exist_file(aNameXml))
+*/
+       // On essaye en mode Bin puis en Xml
+       for (int aKBin=1 ; aKBin>=0 ; aKBin--)
        {
+         std::string aNameXml  = NameXifXmlOfIm(aNameFile,aKBin);
+         if ( ELISE_fp::exist_file(aNameXml))
+         {
            cXmlXifInfo aXml = StdGetFromPCP(aNameXml,XmlXifInfo);
            cElDate aDate = cElDate::NoDate;
            if (aXml.Date().IsInit())
@@ -1663,6 +1680,7 @@ cMetaDataPhoto cMetaDataPhoto::CreateNewExiv2(const std::string & aNameFile) // 
 
             return aMTD;
 
+         }
        }
 
        return cXifDecoder::GetMTDIm(aNameFile);
@@ -1978,17 +1996,18 @@ std::vector<cLine_N_XYZ_WPK> cLine_N_XYZ_WPK::FromFile
 
 //  MTDImCalc
 
-std::string NameMTDImCalc(const std::string & aFullName)
+std::string NameMTDImCalc(const std::string & aFullName,bool Bin)
 {
    std::string aDir,aName;
    SplitDirAndFile(aDir,aName,aFullName);
    
-   return aDir + "Tmp-MM-Dir/CalcMDT-" + aName + ".xml";
+   return aDir + "Tmp-MM-Dir/CalcMDT-" + aName + (Bin ? ".dmp" : ".xml");
 }
 
 cMTDImCalc GetMTDImCalc(const std::string & aNameIm)
 {
-   std::string aNameXml = NameMTDImCalc(aNameIm);
+   std::string aNameXml = NameMTDImCalc(aNameIm,true);
+
    if ( ! ELISE_fp::exist_file(aNameXml))
    {
         cMTDImCalc aMTD;

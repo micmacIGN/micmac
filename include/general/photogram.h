@@ -101,6 +101,7 @@ class ElDistPolyDegre2;
 class ElDistortionPolynomiale;
 class ElCamera;
 class CamStenope;
+class CameraRPC;
 class cCamStenopeGen;
 class CamStenopeIdeale;
 class CalcPtsInteret;
@@ -1474,7 +1475,8 @@ class cBasicGeomCap3D
 // to accelerate it is note centered en reuse the value PIm
       virtual void Diff(Pt2dr & aDx,Pt2dr & aDy,Pt2dr & aDz,const Pt2dr & aPIm,const Pt3dr & aTer);
 
-      static cBasicGeomCap3D * StdGetFromFile(const std::string &,int & aType); // !!! aType in fact is eTypeImporGenBundle 
+      static cBasicGeomCap3D * StdGetFromFile(const std::string &,int & aType, 
+                                              const cSystemeCoord * aChSys=0); // !!! aType in fact is eTypeImporGenBundle 
 
       // Down cast , dirty but usefull ;-)
       virtual CamStenope * DownCastCS() ;
@@ -1504,6 +1506,9 @@ class cBasicGeomCap3D
        Pt3dr  PMoyOfCenter() const;
        virtual bool  HasRoughCapteur2Terrain() const ;
        virtual   Pt2dr OrGlbImaM2C(const Pt2dr &) const;
+
+       virtual Pt3dr ToSysCible(const Pt3dr &) const;
+       virtual Pt3dr ToSysSource(const Pt3dr &) const;
 };
 
 
@@ -2912,7 +2917,7 @@ class cDbleGrid : public ElDistortion22_Gen
 
          cDbleGrid
          (
-            bool P0P1IsBoxDirect,
+         bool P0P1IsBoxDirect,
          bool AdaptStep,
              Pt2dr aP0,Pt2dr aP1,
              Pt2dr               aStep,

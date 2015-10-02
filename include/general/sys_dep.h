@@ -47,7 +47,40 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_SYS_DEP_H
 #define _ELISE_SYS_DEP_H
 
+#include <cstdio>
+#include <cstring>
+
 #include "general/CMake_defines.h"
+
+#ifndef ELISE_unix
+    #ifdef _WIN32
+        #define USE_NOYAU 0
+        #define ELISE_unix 0
+        #define ELISE_windows 1
+        #define ELISE_MacOs 0
+        #define ELISE_POSIX 0
+        #if __MINGW__
+            #define ELISE_MinGW 1
+        #else
+            #define ELISE_MinGW 0
+        #endif
+    #elif __APPLE__
+        #define USE_NOYAU 0
+        #define ELISE_unix 0
+        #define ELISE_MacOs 1
+        #define ELISE_windows 0
+        #define ELISE_MinGW 0
+        #define ELISE_POSIX 1
+    #else
+        #define USE_NOYAU 0
+        #define ELISE_unix 1
+        #define ELISE_MacOs 0
+        #define ELISE_windows 0
+        #define ELISE_MinGW 0
+        #define ELISE_POSIX 1
+    #endif
+#endif
+
 #include "GpGpu/GpGpu_BuildOptions.h"
 
 // Only for g++ 2.7.2.1 on alpha

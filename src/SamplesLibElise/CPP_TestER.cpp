@@ -42,9 +42,110 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
+//visualize satellite image deformation
+int TestER_main(int argc,char ** argv)
+{
+    std::string aGBOriName = "";
+    std::string aNameOut = "-2Deform.tif";
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aGBOriName,"Corrected image orientation file (type Xml_CamGenPolBundle)"),
+        LArgMain() << EAM(aNameOut,"Out",true,"Output filename")	
+    );
+
+    cXml_CamGenPolBundle aXml = StdGetFromSI(aGBOriName,Xml_CamGenPolBundle);
+    
+
+    GenIm::type_el aTypeOut = GenIm::u_int1;
+    Tiff_Im::COMPR_TYPE aModeCompr = Tiff_Im::No_Compr;
+
+    REAL GS1 = 0;    
+    Disc_Pal aP1 =  Disc_Pal::PCirc(256);
+    Elise_colour * Cols = aP1.create_tab_c();
+    Cols[0] = Elise_colour::gray(GS1);
+    Disc_Pal aPal (Cols,256);
+    Gray_Pal Pgr (30);
+
+    L_Arg_Opt_Tiff aLArgTiff = Tiff_Im::Empty_ARG;
+
+    Tiff_Im TiffOut  = Tiff_Im
+                       (
+                           aNameOut.c_str(),
+                           Pt2di(700,500),//Pt2di(2*aXml.Center().x,2*aXml.Center().y),
+                           aTypeOut,
+                           aModeCompr,
+                           aPal,
+                           aLArgTiff
+                       );
+
+    Fonc_Num aPolynX, aPolynY;
+    unsigned int aK;
+
+   
+    for(aK=0; aK<aXml.CorX().Monomes().size(); aK++)
+    {
+        if(aXml.CorX().Monomes()[aK].mDegX==0 && 
+           aXml.CorX().Monomes()[aK].mDegY==0)
+            aPolynX =+ aXml.CorX().Monomes()[aK].mCoeff;
+        
+        else if(aXml.CorX().Monomes()[aK].mDegX==0)
+            aPolynX =+ aXml.CorX().Monomes()[aK].mCoeff*
+                      pow(FY,aXml.CorX().Monomes()[aK].mDegY);
+
+        else if(aXml.CorX().Monomes()[aK].mDegY==0)
+            aPolynX =+ aXml.CorX().Monomes()[aK].mCoeff*
+                       pow(FX,aXml.CorX().Monomes()[aK].mDegX);
+        else
+            aPolynX =+ aXml.CorX().Monomes()[aK].mCoeff*
+                       pow(FX,aXml.CorX().Monomes()[aK].mDegX)*
+                       pow(FY,aXml.CorX().Monomes()[aK].mDegY);
+
+    }
+
+    for(aK=0; aK<aXml.CorY().Monomes().size(); aK++)
+    {
+        if(aXml.CorY().Monomes()[aK].mDegX==0 && 
+           aXml.CorY().Monomes()[aK].mDegY==0)
+            aPolynY =+ aXml.CorY().Monomes()[aK].mCoeff;
+        
+        else if(aXml.CorY().Monomes()[aK].mDegX==0)
+            aPolynY =+ aXml.CorY().Monomes()[aK].mCoeff*
+                      pow(FY,aXml.CorY().Monomes()[aK].mDegY);
+
+        else if(aXml.CorY().Monomes()[aK].mDegY==0)
+            aPolynY =+ aXml.CorY().Monomes()[aK].mCoeff*
+                       pow(FX,aXml.CorY().Monomes()[aK].mDegX);
+        else
+            aPolynY =+ aXml.CorY().Monomes()[aK].mCoeff*
+                       pow(FX,aXml.CorY().Monomes()[aK].mDegX)*
+                       pow(FY,aXml.CorY().Monomes()[aK].mDegY);
+
+    }
+
+    /*ELISE_COPY
+    (
+        TiffOut.all_pts(),
+        , 
+        TiffOut.out()
+    );*/
+
+//StdFoncChScale
+
+    ELISE_COPY
+    (
+        TiffOut.all_pts(),
+        (aPolynX+aPolynY),
+        TiffOut.out()
+    );
+    
+    
+    return EXIT_SUCCESS;
+}
 
 //do matching in push-broom and pick salient points
-int TestER_main(int argc,char ** argv)
+int TestER_main9856(int argc,char ** argv)
 {
     std::string aDirTmp = "Tmp-TIL", aPrefixName = "_TIL_";
     std::string aTmp;
@@ -191,17 +292,17 @@ int TestER_main(int argc,char ** argv)
 
 
 	    //3d volume
-	    aV3D1H = aCRPC1.ImEtZ2Terrain(aV2D1, aCRPC1.GetRPC().last_height);
-	    aV3D1L = aCRPC1.ImEtZ2Terrain(aV2D1, aCRPC1.GetRPC().first_height);
+	    aV3D1H = aCRPC1.ImEtZ2Terrain(aV2D1, aCRPC1.GetRPC()->last_height);
+	    aV3D1L = aCRPC1.ImEtZ2Terrain(aV2D1, aCRPC1.GetRPC()->first_height);
             
-	    aV3D2H = aCRPC1.ImEtZ2Terrain(aV2D2, aCRPC1.GetRPC().last_height);
-	    aV3D2L = aCRPC1.ImEtZ2Terrain(aV2D2, aCRPC1.GetRPC().first_height);
+	    aV3D2H = aCRPC1.ImEtZ2Terrain(aV2D2, aCRPC1.GetRPC()->last_height);
+	    aV3D2L = aCRPC1.ImEtZ2Terrain(aV2D2, aCRPC1.GetRPC()->first_height);
 
-	    aV3D3H = aCRPC1.ImEtZ2Terrain(aV2D3, aCRPC1.GetRPC().last_height);
-	    aV3D3L = aCRPC1.ImEtZ2Terrain(aV2D3, aCRPC1.GetRPC().first_height);
+	    aV3D3H = aCRPC1.ImEtZ2Terrain(aV2D3, aCRPC1.GetRPC()->last_height);
+	    aV3D3L = aCRPC1.ImEtZ2Terrain(aV2D3, aCRPC1.GetRPC()->first_height);
 
-	    aV3D4H = aCRPC1.ImEtZ2Terrain(aV2D4, aCRPC1.GetRPC().last_height);
-	    aV3D4L = aCRPC1.ImEtZ2Terrain(aV2D4, aCRPC1.GetRPC().first_height);
+	    aV3D4H = aCRPC1.ImEtZ2Terrain(aV2D4, aCRPC1.GetRPC()->last_height);
+	    aV3D4L = aCRPC1.ImEtZ2Terrain(aV2D4, aCRPC1.GetRPC()->first_height);
 
 
 	    //backproject to aCRPC2
@@ -409,7 +510,7 @@ int TestER_main100(int argc,char ** argv)
     bool aModeHelp;
     StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
 
-    CameraRPC * aRPC = new CameraRPC(aFullName, aType);
+   /* CameraRPC * aRPC = new CameraRPC(aFullName, aType);
     cComp3DBasic * aRPCB = new cComp3DBasic (aRPC);
     
     Pt2dr aP2d(100,500);
@@ -437,7 +538,7 @@ int TestER_main100(int argc,char ** argv)
   //  std::cout <<  aP1.x << " " << aP1.y << " " << aP1.z << "\n";
   //  std::cout <<  aP2.x << " " << aP2.y << " " << aP2.z << "\n";
   //  std::cout <<  aP3.x << " " << aP3.y << " " << aP3.z << "\n";
-
+*/
     return EXIT_SUCCESS;
 }
 

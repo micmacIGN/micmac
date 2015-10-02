@@ -74,21 +74,21 @@ class cObject
         cObject(QVector3D pt, QColor color_default);
         virtual ~cObject();
 
-        QString name()          { return _name;     }
-        QVector3D   getPosition()   { return _position; }
-        QVector3D   getRotation()   { return _rotation; }
-        QColor  getColor();
-        QVector3D   getScale()      { return _scale;    }
+        const QString   & name()        const { return _name;     }
+        const QVector3D & getPosition() const { return _position; }
+        const QVector3D & getRotation() const { return _rotation; }
+        const QVector3D & getScale() const { return _scale;    }
+        const QColor    & getColor() const;
         bool    isVisible();
         bool    isSelected()    { return (state() == state_selected);}
 
-        void    setName(QString name)          { _name = name;     }
-        void	setPosition(QVector3D const &aPt);
-        void    setRotation(QVector3D const &aPt)  { _rotation = aPt;  }
-        void    setColor(QColor const &aCol, object_state state = state_default)   { _color[state] = aCol;    }
-        void    setScale(QVector3D aScale)         { _scale = aScale; }
-        void    setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
-        void    setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
+        void setName(QString name)          { _name = name;     }
+        void setPosition(QVector3D const &aPt);
+        void setRotation(QVector3D const &aPt)  { _rotation = aPt;  }
+        void setColor(QColor const &aCol, object_state state = state_default)   { _color[state] = aCol;    }
+        void setScale(QVector3D aScale)         { _scale = aScale; }
+        void setVisible(bool aVis)          { setState(aVis ? state() == state_invible ? state_default : state() : state_invible); }
+        void setSelected(bool aSel)         { setState(aSel ? state_selected : state_default);}
 
         cObject & operator = (const cObject &);
 

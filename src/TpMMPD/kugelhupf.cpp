@@ -852,6 +852,7 @@ int Kugelhupf_main(int argc,char ** argv)
     if (aImg->isExistingXmlFile())
     {
       std::cout<<"  Already has an xml file."<<std::endl;
+      delete aImg;
       continue;
     }
 
@@ -930,6 +931,7 @@ int Kugelhupf_main(int argc,char ** argv)
       std::cout<<"  Save xml file."<<std::endl;
       MakeFileXML(aImg->getAllFP(),aImg->getXmlFileName());
     }
+    delete aImg;
   }
 
   return EXIT_SUCCESS;

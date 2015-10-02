@@ -53,38 +53,8 @@ extern bool BugDG;
 /*
 #endif
 */
-#ifndef ELISE_unix
-	#ifdef _WIN32
-		#define USE_NOYAU 0
-		#define ELISE_unix 0
-		#define ELISE_windows 1
-		#define ELISE_MacOs 0
-		#define ELISE_POSIX 0
-		#if __MINGW__
-			#define ELISE_MinGW 1
-		#else
-			#define ELISE_MinGW 0
-		#endif
-	#elif __APPLE__
-		#define USE_NOYAU 0
-		#define ELISE_unix 0
-		#define ELISE_MacOs 1
-		#define ELISE_windows 0
-		#define ELISE_MinGW 0
-		#define ELISE_POSIX 1
-	#else
-		#define USE_NOYAU 0
-		#define ELISE_unix 1
-		#define ELISE_MacOs 0
-		#define ELISE_windows 0
-		#define ELISE_MinGW 0
-		#define ELISE_POSIX 1
-	#endif
-#endif
 
 #include  "general/HG_defines.h"
-#include  "general/CMake_defines.h"
-
 #include "general/sys_dep.h"
 
 
