@@ -94,9 +94,11 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
         cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
         cResulMSO aRMso =  anICNM->MakeStdOrient(aNC,false);
 
-
+	
         cElNuage3DMaille *  aNuage = aRMso.Nuage();
         ElCamera         * aCam    = aRMso.Cam();
+	
+
         if (! Ter2Im)
         {
             if (aNuage)
@@ -106,9 +108,10 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
             }
         }
 
+	
         ELISE_fp aFIn(aFilePtsIn.c_str(),ELISE_fp::READ);
         FILE *  aFOut = FopenNN(aFilePtsOut.c_str(),"w","XYZ2Im");
-
+	
         char * aLine;
         std::vector<Pt2dr> aV2Ok;
         bool HasEmpty = false;
@@ -132,18 +135,20 @@ int TransfoCam_main(int argc,char ** argv,bool Ter2Im)
                 Pt2dr aPIm;
                 int aNb = sscanf(aLine,"%lf %lf",&aPIm.x,&aPIm.y);
                 ELISE_ASSERT(aNb==2,"Could not read 2 double values");
-
+		std::cout << "2D Point: ["<<aPIm.x<< ","<<aPIm.y<<"]\n";
                 if (aPoinIsImRef)
-                    aPIm = aNuage->ImRef2Capteur (aPIm);
-
+                    aPIm = aNuage->ImRef2Capteur (aPIm);/* ici il y a un bug sous linux, segmention core dumped*/
+		
                 if (aNuage->CaptHasData(aPIm))
                 {
+			 
                    Pt3dr aP  = aNuage->PreciseCapteur2Terrain(aPIm);
                    fprintf(aFOut,"%lf %lf %f\n",aP.x,aP.y,aP.z);
                    aV2Ok.push_back(aPIm);
                 }
                 else
                 {
+		
                     HasEmpty = true;
                     std::cout << "Warn :: " << aPIm << " has no data in cloud\n";
                 }
