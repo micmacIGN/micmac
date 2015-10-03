@@ -37,6 +37,8 @@
 
                 <Symb>  UseSatThr=false </Symb>
                 <Symb>  SatThr=1e9 </Symb>
+
+		<Symb>  DoRadiomEgal=1 </Symb> <!-- perform or not the radiometric egalisation -->
 <!--
                <SzVois >  ${SzV}  </SzVois>
                <CorrelThreshold> ${CorrThresh} </CorrelThreshold>
@@ -97,6 +99,7 @@
 
         </SectionFiltrageIn>
 
+   	<#WHEN VTEST=${DoRadiomEgal}>
         <SectionEgalisation>
                <SzVois >  ${SzV}  </SzVois>
                <CorrelThreshold> ${CorrThresh} </CorrelThreshold>
@@ -123,6 +126,8 @@
                </GlobRappInit>
 
         </SectionEgalisation>
+  	</#WHEN>
+
         <SectionSorties>
            <SzDalle>    1000            </SzDalle>
            <SzBrd>      100             </SzBrd>
