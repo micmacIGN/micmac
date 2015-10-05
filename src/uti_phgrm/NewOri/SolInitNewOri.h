@@ -302,6 +302,9 @@ class cAppli_NewSolGolInit
 
         void Save();
 
+        void StatTrans(Pt3dr & aMoy,double & aDist);
+
+
 
 
     private :

@@ -59,7 +59,8 @@ int Tawny_main(int argc,char ** argv)
     int mSzV = 1;
     double mCorrThresh = 0.8;
     double mNbPerIm = 1e4;
-    bool  DoL1Filter=false;
+    bool  mDoL1Filter=false;
+    bool  mDoRadiomEgal=true;
 
     double  aSatThresh = 1e9;
     string aNameOut="Ortho-Eg-Test-Redr.tif";
@@ -68,7 +69,8 @@ int Tawny_main(int argc,char ** argv)
     (
     argc,argv,
     LArgMain()   << EAMC(aDir,"Data directory", eSAM_IsDir),
-    LArgMain()   << EAM(mDeq,"DEq",true,"Degree of equalization (Def=1)")
+    LArgMain()   << EAM(mDoRadiomEgal,"RadiomEgal",true,"Perform or not radiometric egalization (Def=true)")
+		 << EAM(mDeq,"DEq",true,"Degree of equalization (Def=1)")
                  << EAM(mDeqXY,"DEqXY",true,"Degree of equalization, if diff in X and Y")
                  << EAM(mAddCste,"AddCste",true,"Add unknown constant for equalization (Def=false)", eSAM_IsBool)
                  << EAM(mDegRap,"DegRap",true,"Degree of rappel to initial values, Def = 0")
@@ -79,7 +81,7 @@ int Tawny_main(int argc,char ** argv)
                  << EAM(mSzV,"SzV",true,"Sz of Window for equalization (Def=1, means 3x3)")
                  << EAM(mCorrThresh,"CorThr",true,"Threshold of correlation to validate homologous (Def 0.7)")
                  << EAM(mNbPerIm,"NbPerIm",true,"Average number of point per image (Def = 1e4)")
-                 << EAM(DoL1Filter,"L1F",true,"Do L1 Filter on couple, def=true (change when process is blocked)", eSAM_IsBool)
+                 << EAM(mDoL1Filter,"L1F",true,"Do L1 Filter on couple, def=true (change when process is blocked)", eSAM_IsBool)
                  << EAM(aSatThresh,"SatThresh",true,"Threshold determining saturation value (pixel >SatThresh will be ignored)")
                  << EAM(aNameOut,"Out",true,"Name of output file (in the folder)", eSAM_IsOutputFile)
     );
@@ -122,7 +124,8 @@ int Tawny_main(int argc,char ** argv)
         if (EAMIsInit(&mNbPerIm)) aCom  = aCom + " +NbPerIm=" + ToString(mNbPerIm);
         if (EAMIsInit(&mCorrThresh)) aCom  = aCom + " +CorrThresh=" + ToString(mCorrThresh);
 
-        if (!DoL1Filter) aCom  = aCom +" +DoL1Filter=false ";
+        if (!mDoL1Filter) aCom  = aCom +" +DoL1Filter=false ";
+	if (!mDoRadiomEgal) aCom  = aCom +" +DoRadiomEgal=false ";
 
         std::cout << aCom << "\n";
         int aRes = system_call(aCom.c_str());

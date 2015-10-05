@@ -1,3 +1,13 @@
+
+
+==============================================
+Sujets Info :
+
+Mettre dans MicMac une generation d'ortho photo se basant sur OSSIM.
+
+
+
+==============================================
 Nettoyage finale ortho a qq pixel pres
 SFS en mode ligne de commande par @
 Axe force pour un cylindre.
