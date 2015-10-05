@@ -41,108 +41,89 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 
 
-int AsterDestrip_main(int argc, char ** argv)
+int ApplyParralaxCor_main(int argc, char ** argv)
 {
-    std::string aFullNameIm, aNameIm;
-    std::string aFileOut = "";
-    //Reading the arguments
-    ElInitArgMain
-        (
-        argc, argv,
-        LArgMain()
-        << EAMC(aFullNameIm, "Aster image file", eSAM_IsPatFile),
-        LArgMain()
-        << EAM(aFileOut, "Out", true, "Output xml file with RPC2D coordinates")
-        );
-    string aNameDir;
-    SplitDirAndFile(aNameDir, aNameIm, aFullNameIm);
+	std::string aNameIm, aNameParallax;
+	std::string aNameOut = "";
+	//Reading the arguments
+	ElInitArgMain
+		(
+		argc, argv,
+		LArgMain()
+		<< EAMC(aNameIm, "Image to be corrected", eSAM_IsPatFile)
+		<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile),
+		LArgMain()
+		<< EAM(aNameOut, "Out", true, "Name of output image (Def=ImName_corrected.tif")
+		);
 
-    if (aFileOut == "")
-    {
-        aFileOut = aNameDir + StdPrefix(aNameIm) + "_Destriped.tif";
-    }
+	std::string aDir, aPatIm;
+	SplitDirAndFile(aDir, aPatIm, aNameIm);
 
-    //Reading the image and creating the objects to be manipulated
-    Tiff_Im aTF = Tiff_Im::StdConvGen(aNameDir + aNameIm, 1, false);
+	cout << "Correcting " << aNameIm << endl;
+	if (aNameOut == "")
+		aNameOut = aNameIm + "_corrected.tif";
 
-    Pt2di aSz = aTF.sz();
+	//Reading the image and creating the objects to be manipulated
+	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameIm, 1, false);
 
-    Im2D_REAL8  aIm(aSz.x, aSz.y);
-    Im2D_U_INT1  aImOut(aSz.x, aSz.y);
+	Pt2di aSz = aTF.sz();
+	Im2D_U_INT1  aIm(aSz.x, aSz.y);
+	Im2D_U_INT1  aImOut(aSz.x, aSz.y);
 
-    ELISE_COPY
-        (
-        aTF.all_pts(),
-        aTF.in(),
-        aIm.out()
-        );
+	ELISE_COPY
+		(
+		aTF.all_pts(),
+		aTF.in(),
+		aIm.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
+		);
 
-    cout << aNameIm << " loaded" << endl;
-    REAL8 ** aData = aIm.data();
-    //U_INT1 ** aDataOut = aImOut.data();
+	U_INT1 ** aData = aIm.data();
+	U_INT1 ** aDataOut = aImOut.data();
 
-    //Making regular image at F=2pix
-    Im2D_REAL8  aImRegul(aSz.x, aSz.y);
-    REAL8 ** aDataRegul = aImRegul.data();
-    {
-        Im2D_REAL8  aImHalf(aSz.x / 2, aSz.y / 2);
-        REAL8 ** aDataHalf = aImHalf.data();
-        for (int aY = 0; aY<aSz.y/2; aY++)
-        {
-            for (int aX = 0; aX<aSz.x/2; aX++)
-            {
-                Pt2dr ptOut(aX * 2, aY * 2);
-                aDataHalf[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
-            }
-        }
-        cout << "Small image generated (of size : " << aSz.x / 2 << " " << aSz.y / 2 << ")" << endl;
-
-        double min = 0, max = 0;
-        for (int aY = 0; aY<aSz.y ; aY++)
-        {
-            for (int aX = 0; aX<aSz.x ; aX++)
-            {
-                Pt2dr ptOut(aX / 2, aY / 2);
-                aDataRegul[aY][aX] = aData[aY][aX]-Reechantillonnage::biline(aDataHalf, aSz.x / 2, aSz.y / 2, ptOut);
-                if (aDataRegul[aY][aX] < min)
-                    min = aDataRegul[aY][aX];
-                if (aDataRegul[aY][aX] > max)
-                    max = aDataRegul[aY][aX];
-            }
-        }
-
-        //Normalization
-        for (int aY = 0; aY<aSz.y; aY++)
-        {
-            for (int aX = 0; aX<aSz.x; aX++)
-            {
-                aDataRegul[aY][aX] = (aDataRegul[aY][aX] - min) * 255 / max;
-            }
-        }
-
-        cout << "Regul image generated" << endl;
-
-    }
-
-	
-    Tiff_Im  aTOut
-        (
-        aFileOut.c_str(),
-        aSz,
-        GenIm::u_int1,
-        Tiff_Im::No_Compr,
-        Tiff_Im::BlackIsZero
-        );
+	//Reading the parallax correction file
+	Tiff_Im aTFPar = Tiff_Im::StdConvGen(aDir + aNameParallax, 1, false);
+	Im2D_REAL8  aPar(aSz.x, aSz.y);
+	ELISE_COPY
+		(
+		aTFPar.all_pts(),
+		aTFPar.in(),
+		aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
+		);
+	REAL8 ** aDatPar = aPar.data();
 
 
-    ELISE_COPY
-        (
-        aTOut.all_pts(),
-        aImOut.in(),
-        aTOut.out()
-        );
 
-    return 0;
+	for (int aX = 0; aX < aSz.x; aX++)
+	{
+		for (int aY = 0; aY < aSz.y; aY++)
+		{
+			Pt2dr ptOut;
+			ptOut.x = aX - aDatPar[aY][aX];
+			ptOut.y = aY;
+			aDataOut[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
+		}
+	}
+
+	Tiff_Im  aTOut
+		(
+		aNameOut.c_str(),
+		aSz,
+		GenIm::u_int1,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+		);
+
+
+	ELISE_COPY
+		(
+		aTOut.all_pts(),
+		aImOut.in(),
+		aTOut.out()
+		);
+
+
+
+	return 0;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007
