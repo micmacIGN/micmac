@@ -274,9 +274,29 @@ double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
      return aSomDist;
 }
 
+void cAppli_NewSolGolInit::StatTrans(Pt3dr & aMoy,double & aDist)
+{
+    aMoy = Pt3dr(0,0,0);
+    aDist = 0;
+    int aNbS = mVSOrCur.size();
+    for (int aKS=0 ; aKS<aNbS ; aKS++)
+    {
+         tSomNSI * aSom = mVSOrCur[aKS];
+         Pt3dr aTr = aSom->attr().CurRot().tr();
+         aMoy = aMoy + aTr;
+         aDist += square_euclid(aTr);
+    }
+    aMoy = aMoy / aNbS;
+    aDist = sqrt(ElMax(0.0,aDist/aNbS - square_euclid(aMoy)));
+}
 
 void cAppli_NewSolGolInit::ReMoyByTriplet()
 {
+    Pt3dr aTr0,aTrFin;
+    double aDist0,aDistFin;
+
+    StatTrans(aTr0,aDist0);
+
     mLastEcartReMoy.clear();
     for (int aKS=0 ; aKS <  int(mVSOrCur.size()) ; aKS++)
     {
@@ -318,7 +338,15 @@ void cAppli_NewSolGolInit::ReMoyByTriplet()
     }
 
 
+    StatTrans(aTrFin,aDistFin);
 
+    for (int aKS=0 ; aKS <  int(mVSOrCur.size()) ; aKS++)
+    {
+        tSomNSI * aSom = mVSOrCur[aKS];
+        Pt3dr aTr = aSom->attr().CurRot().tr();
+        aTr = (aTr-aTrFin)  * (aDist0/aDistFin) + aTr0;
+        aSom->attr().CurRot().tr() = aTr;
+    }
 }
 
 /*

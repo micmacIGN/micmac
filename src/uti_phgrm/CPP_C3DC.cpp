@@ -694,7 +694,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
    ElInitArgMain
    (
         argc,argv,
-        LArgMain()  << EAMC(mName,"Dir or PMI-Type (QuickMac ....)",eSAM_None,ListOfVal(eNbTypeMMByP)),  //pas gerable par les vCommandes...
+        LArgMain()  << EAMC(mName,"Dir or PIM-Type (QuickMac ....)",eSAM_None,ListOfVal(eNbTypeMMByP)),  //pas gerable par les vCommandes...
         LArgMain()
                     << EAM(mDS,"DS",true,"Downscale, Def=1.0")
                     << EAM(mRep,"Repere",true,"Repair (Euclid or Cyl)",eSAM_IsExistFileRP)
