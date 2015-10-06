@@ -394,6 +394,7 @@ void RPC::ReadDimap(std::string const &filename)
                 bufferInd4 >> last_lat;
             }
         }
+
         for (it_gridRFM = noeudsRFM.begin(); it_gridRFM != fin_gridRFM; ++it_gridRFM)
         {
             std::istringstream buffer((*it_gridRFM)->GetUnique("LONG_SCALE")->GetUniqueVal());

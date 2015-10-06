@@ -226,42 +226,38 @@ int TestER_main(int argc,char ** argv)
 }
 
 //do matching in push-broom and pick salient points
-int TestER_main9856(int argc,char ** argv)
+int DoTile_main(int argc,char ** argv)
 {
     std::string aDirTmp = "Tmp-TIL", aPrefixName = "_TIL_";
     std::string aTmp;
     std::string aIm1Name, aIm2Name;
     std::string aNameType;
     eTypeImporGenBundle aType;
-    std::string aLayersNum="10";
 
     int aK1,aK2;
-    int aZoomF=32;
+    bool aGraph=false;
  
-    Pt2di aImTilSz(10000,9000), aImTilSzTmp;
-    Pt2di aImTilGrid(0,0);
+    Pt2di aImTilSz(5000,3500), aImTilSzTmp(0,0), aImTilGrid(0,0);
 
     GenIm::type_el aTypeOut = GenIm::u_int1;
 
     ElInitArgMain
     (
         argc, argv,
-        LArgMain() << EAMC(aIm1Name,"First Image")
-	           << EAMC(aIm2Name,"Second Image"),
-        LArgMain() << EAM(aNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)")	
-	           << EAM(aZoomF,"ZoomF",true,"Zoom init,  pow of 2  in [4,1], Def=32")
+        LArgMain() << EAMC(aIm1Name,"First Image RPC file")
+	           << EAMC(aIm2Name,"Second Image RPC file"),
+        LArgMain() << EAM(aNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)")
+                   << EAM(aImTilSz,"Sz",true,"Tile size of the left image, Def Sz=[5000,3000]")	
+	           << EAM(aGraph,"Graph",true,"Create a graphom xml for Tapioca, Def=false")
     );
-
-    //(0) divide the imgs to tiles
-    //   (a) select tie in the left and create a tif
-    //   (b) get the vol in space
-    //   (c) project the vol to the right img
-    //   (d) create the tif
 
 
     bool aModeHelp;
     StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
 
+    //graphHom
+    std::string aGHOut = "//GraphHomSat.xml";
+    cSauvegardeNamedRel aGH;
 
     CameraRPC aCRPC1(aIm1Name,aType);
     CameraRPC aCRPC2(aIm2Name,aType);
@@ -270,7 +266,6 @@ int TestER_main9856(int argc,char ** argv)
     Tiff_Im aIm2 = Tiff_Im::StdConv(aCRPC2.GetImName() + std::string(".tif"));
 
 
-    /* Create tiles & save to hard-drive */
     //aImTilGrid.x = round_up(double(aCRPC1.SzBasicCapt3D().x)/aImTilSz.x);
     //aImTilGrid.y = round_up(double(aCRPC1.SzBasicCapt3D().y)/aImTilSz.y);
     aImTilGrid.x = round_up(double(aIm1.sz().x)/aImTilSz.x);
@@ -279,6 +274,7 @@ int TestER_main9856(int argc,char ** argv)
 
     ELISE_fp::MkDirSvp(aDirTmp);
 
+    //(0) divide the imgs to tiles
     for(aK1=0; aK1<aImTilGrid.x; aK1++)
     {
         for(aK2=0; aK2<aImTilGrid.y; aK2++)
@@ -297,7 +293,9 @@ int TestER_main9856(int argc,char ** argv)
 
 
             aTmp = aDirTmp + "//" + aIm1Name.substr(0,aIm1Name.size()-4) + 
-		   aPrefixName + ToString(aK1) + "_" + ToString(aK2) + ".tif";
+		   aPrefixName + ToString(aK1) + "_" + ToString(aK2) + 
+                   "_Pt_" + ToString(aK1*aImTilSzTmp.x) + "_" + 
+                   ToString(aK2*aImTilSzTmp.y) + ".tif";
 
             Tiff_Im aTilCur = Tiff_Im
 	    (
@@ -322,8 +320,7 @@ int TestER_main9856(int argc,char ** argv)
     * (a) define the volume in 3D space that it sees, and
     * (b) project that volume to the second image;
     * (c) form an image to contain the backprojected zone
-    * (d) save the the pair to an XML file
-    * (e) run Tapioca */ 
+    * (d) save the the pair to an XML file  */ 
 
     //(a) corner start in top left corner and 
     //    follow clockwise direction
@@ -334,9 +331,6 @@ int TestER_main9856(int argc,char ** argv)
     Pt3dr aV3D1L, aV3D2L, aV3D3L, aV3D4L;
     Pt2dr aV2D1, aV2D2, aV2D3, aV2D4, aV2DTmp;
    
-    //graphHom
-    std::string aGHOut = "//GraphHomSat.xml";
-    cSauvegardeNamedRel aGH;
 
     for(aK1=0; aK1<aImTilGrid.x; aK1++)
     {
@@ -453,7 +447,10 @@ int TestER_main9856(int argc,char ** argv)
                 aImTilSzTmp.y = (aMax.y - aMin.y);
 	        
 		//save img
-                aTmp = aDirTmp + "//" + aIm2Name.substr(0,aIm2Name.size()-4) + aPrefixName + ToString(aK1) + "_" + ToString(aK2) + ".tif";
+                aTmp = aDirTmp + "//" + aIm2Name.substr(0,aIm2Name.size()-4) + 
+                       aPrefixName + ToString(aK1) + "_" + ToString(aK2) + 
+                       "_Pt_" + ToString(aMin.x) + "_" + ToString(aMin.y) + 
+                       ".tif";
 
 
 		Tiff_Im aTilCur = Tiff_Im
@@ -474,10 +471,11 @@ int TestER_main9856(int argc,char ** argv)
 	            aTilCur.out()
 	        );
 
-                std::cout << "*" << aTmp << " " << "minx/y=" << aMin << std::endl; 
+                //std::cout << "*" << aTmp << " " << "minx/y=" << aMin << std::endl; 
 
                 //save GraphHom
-		aGH.Cple().push_back(cCpleString( aIm1Name.substr(0,aIm1Name.size()-4) + 
+		if(aGraph)
+                   aGH.Cple().push_back(cCpleString( aIm1Name.substr(0,aIm1Name.size()-4) + 
 					           aPrefixName + ToString(aK1) + "_" + 
 						   ToString(aK2) + ".tif", 
 						   aIm2Name.substr(0,aIm2Name.size()-4) + 
@@ -487,17 +485,16 @@ int TestER_main9856(int argc,char ** argv)
 	    }
 	}
     }
-    MakeFileXML(aGH,aDirTmp+aGHOut);
+    if(aGraph)
+        MakeFileXML(aGH,aDirTmp+aGHOut);
 
     //(1) run PASTIS with pairs of tiles
-    std::string aTapRun = "mm3d Tapioca File " + aDirTmp+aGHOut + " -1 ExpTxt=-1";
-    
-    std::cout << aTapRun << "\n"; 
-    
-//    System(aTapRun,true);
+    //std::string aTapRun = "mm3d Tapioca File " + aDirTmp+aGHOut + " -1 ExpTxt=-1";
+    //System(aTapRun,true);
 
     return EXIT_SUCCESS;
 }
+
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI)
 {

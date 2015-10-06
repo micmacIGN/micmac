@@ -221,7 +221,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     {
         mRPC->ReadXML(aNameFile);
         mRPC->ReconstructValidity3D();
-	mRPC->InverseToDirectRPC(Pt3di(50,50,10));//to do: save direct projection when doing ChSysRPC
+	mRPC->InverseToDirectRPC(Pt3di(50,50,10));
         
 	if(aChSys!=0)
             mRPC->ChSysRPC(*aChSys);
@@ -246,7 +246,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
 
-    //mRPC->info();
+//    mRPC->info();
 }
 
 cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
