@@ -3239,7 +3239,9 @@ bool cGeometrieImageComp::AcceptAndTransform
            // &&  (! *(mAppli.ICNM()->SetIsIn(aFCND.FCND_GeomApply().Val(),aNameTested)))
 	  )
 	  return false;
+std::cout << "aNameTested " << aNameTested << "\n";
        aNameResult=  mAppli.ICNM()->Assoc1To1(aFCND.FCND_GeomCalc(),aNameTested,true);
+std::cout << "a<res " << aNameResult << "\n";
        return true;
     }
     else

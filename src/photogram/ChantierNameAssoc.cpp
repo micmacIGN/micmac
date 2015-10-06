@@ -2840,7 +2840,8 @@ cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(con
       cTplValGesInit<std::string> aNoName;
       aRes =  StdAlloc(0,0,aDir,aNoName);
       TheMap[aDir] = aRes;
-   } 
+   }
+
    return aRes;
 }
 

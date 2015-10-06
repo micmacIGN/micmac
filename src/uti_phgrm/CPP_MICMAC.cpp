@@ -72,7 +72,6 @@ int MICMAC_main(int argc,char ** argv)
   ); 
   cAppliMICMAC * anAppli = cAppliMICMAC::Alloc(argc,argv,eAllocAM_STD);
   if (anAppli==0) return 0;
-
   if ((! anAppli->CalledByProcess().Val()) && (anAppli->SectionBatch().IsInit()))
   {
      for 
