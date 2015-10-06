@@ -157,7 +157,7 @@ Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     {
     double X = PimgNorm.x, Y = PimgNorm.y, Z = PimgNorm.z;
 	double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
-	//double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };
+	//double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };\\Mistake in pleiades doc section C.3.1
 
     double long_den = 0.;
     double long_num = 0.;
@@ -460,10 +460,20 @@ Pt3dr RPC::ptRefined(Pt3dr Pimg, std::vector<double> vRefineCoef)const
 {
     //Pour calculer les coordonnees affinees d'un point
     Pt3dr pImgRefined;
-    double aSX0 = -0, aSX1 = 4000, aSX2 = 0.2;
-	double aSY0 = 0, aSY1 = 2600, aSY2 = M_PI/2;
-	pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2] + aSX0 * sin(2 * M_PI  * Pimg.x / aSX1 + aSX2);
+	//Test for applying 5th degree polynomials
+	/*double aPXx2 = 1.68917122212249e-007, aPXx3 = 1.45693052459939e-010, aPXx4 = -5.24280302379418e-014, aPXx5 = 4.68073194617742e-018;
+	double aPXy2 = 2.03369518300494e-006, aPXy3 = -8.19927700050208e-010, aPXy4 = 1.38977078492289e-013, aPXy5 = -7.88660852340546e-018;
+	double aSX0 = 0.300943960195233, aSX1 = 296.310168220886, aSX2 = 0.757953969235237; aSX0 = 0;
+	double aSY0 = 0, aSY1 = 2100, aSY2 = -M_PI / 3;
+	double aSY3 = 0, aSY4 = 300, aSY5 = -M_PI / 3;
+	pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2] +
+		+aPXx2*pow(Pimg.x, 2) + aPXx3*pow(Pimg.x, 3) + aPXx4*pow(Pimg.x, 4) + aPXx5*pow(Pimg.x, 5) +
+		+aPXy2*pow(Pimg.y, 2) + aPXy3*pow(Pimg.y, 3) + aPXy4*pow(Pimg.y, 4) + aPXy5*pow(Pimg.y, 5);// +
+			//aSX0 * sin(2 * M_PI  * Pimg.y / aSX1 + aSX2);
 	pImgRefined.y = vRefineCoef[3] + Pimg.x * vRefineCoef[4] + Pimg.y * vRefineCoef[5] + aSY0 * sin(2 * M_PI  * Pimg.x / aSY1 + aSY2);
+	*/
+	pImgRefined.x = vRefineCoef[0] + Pimg.x * vRefineCoef[1] + Pimg.y * vRefineCoef[2];
+	pImgRefined.y = vRefineCoef[3] + Pimg.x * vRefineCoef[4] + Pimg.y * vRefineCoef[5];
     pImgRefined.z = Pimg.z;
 
     return pImgRefined;
@@ -1138,7 +1148,7 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
                 if (aPtECEF.y > 0 && aPtECEF.x < 0)//"Long=[90->180]"
 					aPtGeo.x = aPtGeo.x + 180;
 
-				//Computing latitude (estimation)
+				//Computing latitude (estimation) according to ALG0012 in http://geodesie.ign.fr/contenu/fichiers/documentation/algorithmes/notice/NTG_80.pdf
 				double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
 				double p = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y);
 				double latNow = atan(p / aPtECEF.z);//rad geocentric to initialize estimation

@@ -196,6 +196,9 @@ class cOneImageVideo
         void UpdateCheminOpt(int aS0,int aS1,const std::vector<cOneImageVideo*> &,double aStdJ);
         const cSolChemOptImV & SolOfLength(int aNbL);
         void LoadAutoCorrel();
+        double  CumNonRec() const {return mCumNonRec;}
+        double DistCum(const cOneImageVideo & anIm) const {return ElAbs(mCumNonRec-anIm.mCumNonRec);}
+        double  NormAC() const {return  mNormAC;}
     private :
         void  TestInitSift();
 
@@ -229,9 +232,12 @@ class cAppliDevideo
 
         std::string  NamePtsSift( cOneImageVideo * anOIV);
         cInterfChantierNameManipulateur * ICNM() {return mEASF.mICNM;}
+        double NacModifExtre(cOneImageVideo * anI,cOneImageVideo * anI0);
     private :
+        int DecndreGivenLenght(int aSInit,double aLength,int aSLimit,bool Depasse);
         std::string NamePat(const std::string & aPref) const;
         int PivotAPriori(int aKI) { return round_ni((aKI*(mNbIm-1))/mNbInterv);}
+        int   ModifPivot(int aIndP0,int aSign);
         void ComputeChemOpt(int aS0,int aS1);
 
         std::string mFullNameVideo;
@@ -260,6 +266,9 @@ class cAppliDevideo
         int         mNbDigit;
         double      mPercImInit;
         bool        mTuning;
+        std::vector<int> mVPivots;
+        int              mSzDecoup;
+        double           mOverLap;
 };
 
 
@@ -333,7 +342,8 @@ void cOneImageVideo::CalcRec(cOneImageVideo * aPrec)
    cElPolygone aPolInter = aPol1 * aPol2;
    cElPolygone aPolUnion = aPol1 + aPol2;
 
-   mNonRecPrec = 1.0 - aPolInter.Surf() / aPolUnion.Surf() ;
+   mNonRecPrec = ElMax(0.0, (1.0-aPolInter.Surf()/aPolUnion.Surf())/1.0 );
+  
    mCumNonRec = aPrec->mCumNonRec + mNonRecPrec;
 
    std::cout << "cOneImageVideo::CalcRec " << mNameInit  
@@ -420,7 +430,7 @@ void cOneImageVideo::CalcScoreAutoCorrel(const  std::vector<cOneImageVideo*> & a
 
 void  cOneImageVideo::Show()
 {
-    std::cout << (mOkFin? "###" :  "---") << mNameOk << " Time:" << mTimeNum << " C:" << mAutoCor  <<  " N:" << mNormAC << "\n";
+    std::cout << (mOkFin? "###" :  "---") << mNameOk << " Time:" << mTimeNum << " CUM:" << mCumNonRec << " C:" << mAutoCor  <<  " N:" << mNormAC << "\n";
 }
 
 
@@ -471,9 +481,14 @@ void cOneImageVideo::UpdateCheminOpt(int aS0,int aS1,const std::vector<cOneImage
     for (int aS=aS0 ; aS< aS1 ; aS++)
     {
         const cOneImageVideo & aPred = *(aVIV[aS]);
-        double aDeltaL = ElAbs(ElAbs(aS-mTimeNum)-aStdJ) / aStdJ;
+        // double aDeltaL = ElAbs(ElAbs(aS-mTimeNum)-aStdJ) / aStdJ;
+        double aDeltaL = DistCum(*(aVIV[aS])) /aStdJ;
+        double aEps = 0.2;
+        if (aDeltaL<1) aDeltaL = (1+aEps)/(aDeltaL +aEps);
+        aDeltaL = ElAbs(aDeltaL);
 
-        double aGainArc = mNormAC +  aPred.mNormAC - (aDeltaL + 2*ElSquare(aDeltaL)) * 1.0;
+
+        double aGainArc = mNormAC +  aPred.mNormAC - (aDeltaL + 0*ElSquare(aDeltaL)) * 1.0;
         for (int aKSolP=0 ; aKSolP<int(aPred.mSols.size())  ; aKSolP++)
         {
             while (int(mSols.size()) <= (aKSolP+1))
@@ -530,7 +545,9 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
      mMinMax         (0,100000000),
      mNbDigit        (5),
      mPercImInit     (100.0),
-     mTuning         (false)
+     mTuning         (false),
+     mSzDecoup       (TheSzDecoup),
+     mOverLap        (0.1)
 {
 
     ElInitArgMain
@@ -547,7 +564,9 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
                       << EAM(mCam,"Cam",true,"Set Cam in xif")
                       << EAM(mPercImInit,"PercImInit",true,"Pecentage of images a priori sele")
                       << EAM(mMinMax,"MinMax",true,"Min Max numbers (reduce number for test)")
-                      << EAM(mTuning,"Tuning",true,"as it says ")
+                      << EAM(mTuning,"Tuning",true,"as it says ... ")
+                      << EAM(mSzDecoup,"TheSzDecoup",true,"Sz of a priori split, \"expert\" level , Def=300 ")
+                      << EAM(mOverLap,"OverLap",true,"Target overlap between images ")
     );
 
 // avconv -i adjudant.MOV Im_0247_%5d_Ok.png  
@@ -720,7 +739,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     {
         mVIms[aK]->CalcRec(mVIms[aK-1]);
     }
-    std::cout << "   Devideo :: Done Cover \n";  getchar();
+    std::cout << "   Devideo :: Done Cover \n";  
 
 
     // Calcul d'un score relatif (pour quil ait une influence equilibree sur tout le chemin)
@@ -729,12 +748,9 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
          mVIms[aK]->CalcScoreAutoCorrel(mVIms,round_up(5*mStdJump));
     }
 
-return;
-
     // ============= Decoupage en intervalle ===
-    std::vector<int> vPivot;
-    mNbInterv = round_up((mNbIm-1) / double(TheSzDecoup));
-    vPivot.push_back(PivotAPriori(0));
+    mNbInterv = round_up((mNbIm-1) / double(mSzDecoup));
+    mVPivots.push_back(PivotAPriori(0));
     for (int aKI=1 ; aKI< mNbInterv ; aKI++)
     {
         int aPivPrec = PivotAPriori(aKI-1);
@@ -756,21 +772,29 @@ return;
         }
         // std::cout << " PvMax " << aPivMax << " Smx=" << aScoreMax << " in [" << aPiv0 << "," << aPiv1 << "]\n";
         ELISE_ASSERT(aScoreMax>=0,"Incohen in find Piv (DIV command)");
-        vPivot.push_back(aPivMax);
+        mVPivots.push_back(aPivMax);
 
         std::cout << "PIV=" << aPivMax  << " In [" << aPiv0 << " - " << aPiv1 << "]" << "\n";
 
     }
-    vPivot.push_back(PivotAPriori(mNbInterv));
+    mVPivots.push_back(PivotAPriori(mNbInterv));
+    
+    int aPiv0 = ModifPivot(0,1);
+    int aPivEnd = ModifPivot(mNbInterv,-1);
+    mVPivots[0] = aPiv0;
+    mVPivots[mNbInterv] = aPivEnd;
+
+
+    //  ============= On modifie les pivots extremes
 
 
     // ============= optimisation dans chaque intervalle ===
 
-    mVIms[0]->SetLongPred(0);
+    mVIms[aPiv0]->SetLongPred(0);
     for (int aK=1 ; aK<= mNbInterv ; aK++)
     {
-       ComputeChemOpt(vPivot[aK-1],vPivot[aK]);
-       std::cout << "Interv " << vPivot[aK-1] << " " << vPivot[aK] << "\n";
+       ComputeChemOpt(mVPivots[aK-1],mVPivots[aK]);
+       std::cout << "Interv " << mVPivots[aK-1] << " " << mVPivots[aK] << "\n";
     }
 
     for (int aK=0 ; aK<int(mVIms.size()) ; aK++)
@@ -780,6 +804,60 @@ return;
     }
 }
 
+double cAppliDevideo::NacModifExtre(cOneImageVideo * anI,cOneImageVideo * anI0)
+{
+    double aDist =  anI->DistCum(*anI0);
+    double aScore = anI->NormAC();
+
+    return aScore * ((mOverLap-aDist)/mOverLap);
+}
+
+int cAppliDevideo::ModifPivot(int aIndP0,int aSign)
+{
+    int  aP0 = mVPivots[aIndP0];
+    cOneImageVideo * anI0 = mVIms[aP0];
+    int  aP1 = (mVPivots[aIndP0+aSign] + aP0) / 2;
+
+    int aBestP = aP0;
+    double aBestAC =  NacModifExtre(anI0,anI0);
+
+    bool Cont = true;
+    int aCurP = aP0;
+    // double 
+    while (Cont)
+    {
+        if (aCurP==aP1)
+        {
+           Cont = false;
+        }
+        else
+        {
+            cOneImageVideo * aCurIm = mVIms[aCurP];
+            if (aCurIm->DistCum(*anI0) > (mOverLap/2.0))
+            {
+               Cont = false;
+            }
+            else
+            {
+               double aCorr = NacModifExtre(aCurIm,anI0);
+               if (aCorr>aBestAC)
+               {
+                  aBestAC = aCorr;
+                  aBestP = aCurP;
+               }
+
+               aCurP += aSign;
+            }
+        }
+    }
+
+
+    return aBestP;
+}
+/*
+*/
+#if (0)
+#endif
 
 
 std::string  cAppliDevideo::NamePtsSift( cOneImageVideo * anOIV)
@@ -797,21 +875,46 @@ std::string  cAppliDevideo::NamePtsSift( cOneImageVideo * anOIV)
 /*
 */
 
+int cAppliDevideo::DecndreGivenLenght(int aSInit,double aLength,int aSLimit,bool Depasse)
+{
+     int aCurS = aSInit;
+     while (1)
+     {
+         if (aCurS==aSLimit) 
+            return aCurS;
+         double aD = mVIms[aSInit]->DistCum(*(mVIms[aCurS]));
+         if (aD >  aLength)
+         {
+             if ((!Depasse) && (aCurS+1 != aSInit)) aCurS++;
+             return aCurS;
+         }
+         aCurS--;
+     }
+     ELISE_ASSERT(false,"cAppliDevideo:DecndreGivenLenght");
+     return 0;
+}
+
 void cAppliDevideo::ComputeChemOpt(int aS0,int aS1)
 {
     mVIms[aS0]->InitChemOpt();
 
-    int aJumpMax = round_up(2.0*mStdJump);
-    int aJumpMin = round_down(0.5*mStdJump);
     for (int aS=aS0+1 ; aS<=aS1 ; aS++)
     {
-        int aSDeb = ElMax(aS0,aS-aJumpMax);
-        int aSEnd = ElMax(aSDeb+1,aS-aJumpMin);
-        mVIms[aS]->UpdateCheminOpt(aSDeb,aSEnd,mVIms,mStdJump);
+        int aSEnd = DecndreGivenLenght(aS,mOverLap/2.0,aS0,false);
+        int aSDeb = DecndreGivenLenght(aS,mOverLap*2.0,aS0,true);
+        if ((aSDeb==aSEnd) && (aSDeb > aS0))
+           aSDeb --;
+        if ((aSDeb==aSEnd) && (aSEnd < aS))
+           aSEnd ++;
+
+        ELISE_ASSERT(aSDeb<aSEnd,"cAppliDevideo::ComputeChemOpt");
+
+        mVIms[aS]->UpdateCheminOpt(aSDeb,aSEnd,mVIms,mOverLap);
     }
 
+
     int aSom = aS1;
-    int aNbL = round_up((mVIms[aS1]->DifTime(*mVIms[aS0])) / mStdJump) ;
+    int aNbL =  round_up(mVIms[aS0]->DistCum(*(mVIms[aS1])) / mOverLap);
     while (aSom!=aS0)
     {
          const cSolChemOptImV & aSol = mVIms[aSom]->SolOfLength(aNbL);

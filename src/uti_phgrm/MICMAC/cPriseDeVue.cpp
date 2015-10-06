@@ -492,7 +492,8 @@ ElPackHomologue cPriseDeVue::ReadPackHom(const cPriseDeVue * aPDV2) const
 CamStenope * cPriseDeVue::GetOri() const
 {
    std::string aNG = mAppli.FullDirGeom()+NameGeom();
-
+std::cout << "NameGeom() " << NameGeom() << "\n";
+std::cout << "aNG " << aNG << "\n";
 	if ( isUsingSeparateDirectories() ) aNG = NameGeom();
 
    CamStenope * aRes = CamStenope::StdCamFromFile(true,aNG.c_str(),mAppli.ICNM());
@@ -612,7 +613,7 @@ cGeomImage & cPriseDeVue::Geom()
           if (mNum == 0)
           {
              mGeom = cGeomImage::GeomImage_Id_Ori(mAppli,*this,SzIm(),aDimFs,GetOri(),isSpherik);
-             // std::cout << "WWWWWWWWWWWWWWWw\n"; getchar();
+            // std::cout << "WWWWWWWWWWWWWWWw\n"; getchar();
           }
           else
              mGeom = cGeomImage::GeomImage_Faisceau

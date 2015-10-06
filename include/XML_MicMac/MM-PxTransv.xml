@@ -268,14 +268,6 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
 	    <Px1DilatPlani> 0  </Px1DilatPlani>
             <Px2DilatAlti>  2  </Px2DilatAlti>
 	    <Px2DilatPlani> 2  </Px2DilatPlani>
-             <#WHEN VTEST=${ExporFieldsHom}>
-                     <GenerateProjectionInImages Nb="*">
-                         <NumsImageDontApply> 1 </NumsImageDontApply>
-                         <FCND_CalcProj > NKS-NameMapsDeplacement@8 </FCND_CalcProj>
-                         <SubsXY > false </SubsXY>
-                         <Polar  > false </Polar>
-                     </GenerateProjectionInImages>
-             </#WHEN>
         </EtapeMEC>
 
         <#WHEN  VTEST=${DoZoom4}>
@@ -294,14 +286,6 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
 	        <Px1DilatPlani> 0  </Px1DilatPlani>
                 <Px2DilatAlti>  2  </Px2DilatAlti>
 	        <Px2DilatPlani> 2  </Px2DilatPlani>
-                <#WHEN VTEST=${ExporFieldsHom}>
-                     <GenerateProjectionInImages Nb="*">
-                         <NumsImageDontApply> 1 </NumsImageDontApply>
-                         <FCND_CalcProj > NKS-NameMapsDeplacement@4 </FCND_CalcProj>
-                         <SubsXY > false </SubsXY>
-                         <Polar  > false </Polar>
-                     </GenerateProjectionInImages>
-                </#WHEN>
             </EtapeMEC>
         </#WHEN>
 
@@ -322,16 +306,6 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
                 <SzW>  ${SzWPx2} </SzW>
                 <Px2DilatAlti>  2  </Px2DilatAlti>
 	        <Px2DilatPlani> 2  </Px2DilatPlani>
-                <#WHEN VTEST=${ExporFieldsHom}>
-                     <GenerateProjectionInImages Nb="*">
-                         <NumsImageDontApply> 1 </NumsImageDontApply>
-                         <FCND_CalcProj > NKS-NameMapsDeplacement@2 </FCND_CalcProj>
-                         <SubsXY > false </SubsXY>
-                         <Polar  > false </Polar>
-                     </GenerateProjectionInImages>
-                </#WHEN>
-
-
             </EtapeMEC>
         </#WHEN>
 
@@ -353,26 +327,27 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
                 <SzW>  ${SzWPx2} </SzW>
                 <Px2DilatAlti>  1  </Px2DilatAlti>
 	        <Px2DilatPlani> 3  </Px2DilatPlani>
-                <#WHEN VTEST=${ExporFieldsHom}>
-                     <GenerateProjectionInImages Nb="*">
-                         <NumsImageDontApply> 1 </NumsImageDontApply>
-                         <FCND_CalcProj > NKS-NameMapsDeplacement@1 </FCND_CalcProj>
-                         <SubsXY > false </SubsXY>
-                         <Polar  > false </Polar>
-                     </GenerateProjectionInImages>
-                </#WHEN>
             </EtapeMEC>
         </#WHEN>
 
 
 
 
-<!--
 	<EtapeMEC> 
-	       <DeZoom >  1  </DeZoom> 
-	       <ZPas>   1.0     </ZPas>
+	       <DeZoom >  ${ZoomF}  </DeZoom> 
+	       <Px1Pas>   1.0     </Px1Pas>
+	       <Px2Pas>   1.0     </Px2Pas>
                <AlgoRegul> eAlgoDequant </AlgoRegul>
+               <#WHEN VTEST=${ExporFieldsHom}>
+                     <GenerateProjectionInImages Nb="*">
+                         <NumsImageDontApply> 0 </NumsImageDontApply>
+                         <FCND_CalcProj > NKS-NameMapsDeplacement@Last </FCND_CalcProj>
+                         <SubsXY > true </SubsXY>
+                         <Polar  > false </Polar>
+                     </GenerateProjectionInImages>
+                </#WHEN>
         </EtapeMEC>
+<!--
 -->
 
 </Section_MEC>

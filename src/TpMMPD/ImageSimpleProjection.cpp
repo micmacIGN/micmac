@@ -369,7 +369,11 @@ void cISR_Ima::InitMemImProj()
 	// get the pseudo optical center of the camera (position XYZ of the optical center)
 	Pt3dr OC=mCam->PseudoOpticalCenter();
 	mZTerrain=static_cast<int>(OC.z-mAlti);
-	if (mZTerrain<0) ELISE_ASSERT(false,"Ground Surface Elevation is below 0 (check FAlti)."); 
+	// des fois l'info alti est notée dans mCam mais pas l'info Profondeur. c'est peut-etre uniquement le cas pour les mauvais orientation
+	//if (mZTerrain<0) (mZTerrain=static_cast<int>(OC.z-mCam->GetAlti()));
+	if (mZTerrain<0) {
+			 std::cout << "For Image  " << this->mName  << " \n"; 
+			 ELISE_ASSERT(false,"Ground Surface Elevation is below 0 (check FAlti)."); }
 	// declare the 4 3Dpoints used for determining the XYZ coordinates of the 4 corners of the camera
 	Pt3dr P1;
 	Pt3dr P2;

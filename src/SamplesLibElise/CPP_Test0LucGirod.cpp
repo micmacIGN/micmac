@@ -889,7 +889,7 @@ int Luc_main_PSEUDORPC2D(int argc, char ** argv)
     return 0;
 }
 
-int Luc_main(int argc, char ** argv)
+int Luc_main_geodesy_geodeticvsgeocentric(int argc, char ** argv)
 {
 
 	//WGS84 ellipsoid
@@ -940,6 +940,92 @@ int Luc_main(int argc, char ** argv)
 	aPtGeo.y = atan(tan(aPtGeo.y *M_PI / 180) / WGSCorFact) * 180 / M_PI;
 
 	cout << "OLD solution :" << aPtGeo << endl;
+	return 0;
+}
+
+
+int Luc_main(int argc, char ** argv)
+{
+	//GET PSEUDO-RPC2D FOR ASTER FROM LATTICE POINTS
+	std::string aNameIm, aNameParallax;
+	std::string aFileOut = "RPC2D-params.xml";
+	//Reading the arguments
+	ElInitArgMain
+		(
+		argc, argv,
+		LArgMain()
+		<< EAMC(aNameIm, "image to be corrected", eSAM_IsPatFile)
+		<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile),
+		LArgMain()
+		<< EAM(aFileOut, "Out", true, "Output xml file with RPC2D coordinates")
+		);
+
+	std::string aDir, aPatIm;
+	SplitDirAndFile(aDir, aPatIm, aNameIm);
+
+	cout << "Correcting " << aNameIm << endl;
+	string aNameOut = aNameIm + "_corrected.tif";
+
+	//Reading the image and creating the objects to be manipulated
+	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameIm, 1, false);
+
+	Pt2di aSz = aTF.sz();
+	Im2D_U_INT1  aIm(aSz.x, aSz.y);
+	Im2D_U_INT1  aImOut(aSz.x, aSz.y);
+
+	ELISE_COPY
+		(
+		aTF.all_pts(),
+		aTF.in(),
+		aIm.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
+		);
+
+	U_INT1 ** aData = aIm.data();
+	U_INT1 ** aDataOut = aImOut.data();
+
+	//Reading the parallax correction file
+	Tiff_Im aTFPar = Tiff_Im::StdConvGen(aDir + aNameParallax, 1, false);
+	Im2D_REAL8  aPar(aSz.x, aSz.y);
+	ELISE_COPY
+		(
+		aTFPar.all_pts(),
+		aTFPar.in(),
+		aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
+		);
+	REAL8 ** aDatPar = aPar.data();
+
+
+
+	for (int aX = 0; aX < aSz.x; aX++)
+	{
+		for (int aY = 0; aY < aSz.y; aY++)
+		{
+			Pt2dr ptOut;
+			ptOut.x = aX-aDatPar[aY][aX];
+			ptOut.y = aY;
+			aDataOut[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
+		}
+	}
+
+	Tiff_Im  aTOut
+		(
+		aNameOut.c_str(),
+		aSz,
+		GenIm::u_int1,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+		);
+
+
+	ELISE_COPY
+		(
+		aTOut.all_pts(),
+		aImOut.in(),
+		aTOut.out()
+		);
+
+
+
 	return 0;
 }
 /*Footer-MicMac-eLiSe-25/06/2007

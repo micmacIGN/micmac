@@ -353,6 +353,7 @@ cAppliMICMAC::cAppliMICMAC
    // mInterpolTabule (10,8,0.0,eTabul_Bilin)
    // mInterpolTabule (10,8,0.0,eTabul_Bicub)
 {
+
       mDeZoomMax =1;
       mDeZoomMin =1<<20;
       for (std::list<cEtapeMEC>::const_iterator itE=  EtapeMEC().begin() ;  itE!= EtapeMEC().end() ; itE++)
@@ -366,6 +367,7 @@ cAppliMICMAC::cAppliMICMAC
        }
 
        GlobDebugMM = DebugMM().Val();
+
 
         mDoTheMEC = DoMEC().Val();
         if (
@@ -397,6 +399,7 @@ cAppliMICMAC::cAppliMICMAC
 	mMapEquiv		= StdAllocMn2n( ClassEquivalenceImage(), mICNM );
 	mOutputDirectory = ( isUsingSeparateDirectories()?MMOutputDirectory():WorkDir() );
 	setInputDirectory( WorkDir() );
+
 
   if (RepereCorrel().IsInit() && (RepereCorrel().Val() != "NO-REPERE"))
   {
@@ -451,6 +454,7 @@ cAppliMICMAC::cAppliMICMAC
    // Parfois besoin de chantier en amont pour Anam ....
    if (!CalcNomChantier().IsInit() &&  NomChantier().IsInit())
       mNameChantier = NomChantier().Val();
+
 
    InitDirectories();
    InitAnamSA();
@@ -656,7 +660,6 @@ cAppliMICMAC * cAppliMICMAC::Alloc(int argc,char ** argv,eModeAllocAM aMode)
                                               "FileChantierNameDescripteur"
                                            );
     Tiff_Im::SetDefTileFile(aP2.mObj->DefTileFile().Val());
-
     aP2.mObj->WorkDir() = aP2.mDC;
 
     if (IsActive(aP2.mObj->MapMicMac()))
@@ -1242,13 +1245,13 @@ void cAppliMICMAC::InitImages()
          mGeoImsComps.push_back(new cGeometrieImageComp(*itG,*this));
     }
 
+
     if (Im1().IsInit())
        AddAnImage(Im1().Val());
     if (Im2().IsInit())
        AddAnImage(Im2().Val());
     if (ImSecByDelta().IsInit())
        AddImageByDelta(ImSecByDelta().Val());
-
     if (FCND_CalcIm2fromIm1().IsInit())
     {
          ELISE_ASSERT(Im1().IsInit(),"No Im1 with FCND_CalcIm2fromIm1");
@@ -1482,6 +1485,7 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
      if (PDVFromName  (aName,0))
         return;
 
+
      if (CreateGrayFileAtBegin().Val())
      {
          Tiff_Im::StdConvGen(WorkDir() + aName, 1,true,true);
@@ -1496,6 +1500,7 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
         itG++
      )
      {
+
            if ((*itG)->AcceptAndTransform(aName,aNameGeom,mNbPDV))
                theGotGeom = *itG;
      }
@@ -1562,7 +1567,7 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
          mPDV1 =  mPrisesDeVue.back();
      if ( mNbPDV== 1)
          mPDV2 =  mPrisesDeVue.back();
-
+     
      int aDim = mPrisesDeVue.back()->Geom().DimPx();
      if (mNbPDV==0)
      {
