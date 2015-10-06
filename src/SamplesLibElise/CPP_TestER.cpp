@@ -46,7 +46,7 @@ void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 int TestER_main(int argc,char ** argv)
 {
     std::string aGBOriName = "";
-    std::string aNameOut = "-2Deform.tif";
+    std::string aNameOut = "2Deform.tif";
 
     ElInitArgMain
     (
@@ -56,91 +56,172 @@ int TestER_main(int argc,char ** argv)
     );
 
     cXml_CamGenPolBundle aXml = StdGetFromSI(aGBOriName,Xml_CamGenPolBundle);
-    
+    Pt2di aSzOrg = Pt2di(2*aXml.Center().x,2*aXml.Center().y);
+    Pt2di aSzSca = Pt2di(aSzOrg.x/100, aSzOrg.y/100); 
+    //float aScale = (float) aSzSca.x / aSzOrg.x;
+    int aStep = (int) aSzOrg.x / aSzSca.x;
 
     GenIm::type_el aTypeOut = GenIm::u_int1;
     Tiff_Im::COMPR_TYPE aModeCompr = Tiff_Im::No_Compr;
 
     REAL GS1 = 0;    
-    Disc_Pal aP1 =  Disc_Pal::PCirc(256);
-    Elise_colour * Cols = aP1.create_tab_c();
+    Disc_Pal aPP1 =  Disc_Pal::PCirc(256);
+    Elise_colour * Cols = aPP1.create_tab_c();
     Cols[0] = Elise_colour::gray(GS1);
     Disc_Pal aPal (Cols,256);
     Gray_Pal Pgr (30);
 
     L_Arg_Opt_Tiff aLArgTiff = Tiff_Im::Empty_ARG;
 
-    Tiff_Im TiffOut  = Tiff_Im
+    Tiff_Im aTiffX  = Tiff_Im
                        (
-                           aNameOut.c_str(),
-                           Pt2di(700,500),//Pt2di(2*aXml.Center().x,2*aXml.Center().y),
+                           ("X" + aNameOut).c_str(),
+                           aSzSca,
                            aTypeOut,
                            aModeCompr,
                            aPal,
                            aLArgTiff
                        );
 
-    Fonc_Num aPolynX, aPolynY;
+    Tiff_Im aTiffY  = Tiff_Im
+                       (
+                           ("Y" + aNameOut).c_str(),
+                           aSzSca,
+                           aTypeOut,
+                           aModeCompr,
+                           aPal,
+                           aLArgTiff
+                       );
+    
+    Tiff_Im aTiffXY  = Tiff_Im
+                       (
+                           ("XY" + aNameOut).c_str(),
+                           aSzSca,
+                           aTypeOut,
+                           aModeCompr,
+                           aPal,
+                           aLArgTiff
+                       );
+
+    Fonc_Num aResX, aResY, aResXY;
     unsigned int aK;
+    int aP1, aP2;
 
    
-    for(aK=0; aK<aXml.CorX().Monomes().size(); aK++)
+
+    TIm2D<INT,INT> aImX(aSzSca), aImY(aSzSca), aImXY(aSzSca);
+
+    for(aP1=0; aP1<aSzSca.x; aP1++)
     {
-        if(aXml.CorX().Monomes()[aK].mDegX==0 && 
-           aXml.CorX().Monomes()[aK].mDegY==0)
-            aPolynX =+ aXml.CorX().Monomes()[aK].mCoeff;
+        for(aP2=0; aP2<aSzSca.y; aP2++)
+        {
+    
+            double aTx=0, aTy=0;       
+
+            for(aK=0; aK<aXml.CorX().Monomes().size(); aK++)
+            {
+
+
+                if(aXml.CorX().Monomes()[aK].mDegX==0 && 
+                   aXml.CorX().Monomes()[aK].mDegY==0)
+                   aTx += aXml.CorX().Monomes()[aK].mCoeff;
+
+                else if(aXml.CorX().Monomes()[aK].mDegX==0)
+                   aTx += aXml.CorX().Monomes()[aK].mCoeff*
+                         pow(aP2*aStep,aXml.CorX().Monomes()[aK].mDegY);
         
-        else if(aXml.CorX().Monomes()[aK].mDegX==0)
-            aPolynX =+ aXml.CorX().Monomes()[aK].mCoeff*
-                      pow(FY,aXml.CorX().Monomes()[aK].mDegY);
+                else if(aXml.CorX().Monomes()[aK].mDegY==0)
+                   aTx += aXml.CorX().Monomes()[aK].mCoeff*
+                         pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX);
 
-        else if(aXml.CorX().Monomes()[aK].mDegY==0)
-            aPolynX =+ aXml.CorX().Monomes()[aK].mCoeff*
-                       pow(FX,aXml.CorX().Monomes()[aK].mDegX);
-        else
-            aPolynX =+ aXml.CorX().Monomes()[aK].mCoeff*
-                       pow(FX,aXml.CorX().Monomes()[aK].mDegX)*
-                       pow(FY,aXml.CorX().Monomes()[aK].mDegY);
+                else
+                   aTx += aXml.CorX().Monomes()[aK].mCoeff*
+                         pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX)*
+                         pow(aP2*aStep,aXml.CorX().Monomes()[aK].mDegY);
+            }
 
+            for(aK=0; aK<aXml.CorY().Monomes().size(); aK++)
+            {
+
+
+                if(aXml.CorY().Monomes()[aK].mDegX==0 && 
+                   aXml.CorY().Monomes()[aK].mDegY==0)
+                   aTy += aXml.CorY().Monomes()[aK].mCoeff;
+
+                else if(aXml.CorY().Monomes()[aK].mDegX==0)
+                    aTy += aXml.CorY().Monomes()[aK].mCoeff*
+                           pow(aP2*aStep,aXml.CorY().Monomes()[aK].mDegY);
+        
+                else if(aXml.CorY().Monomes()[aK].mDegY==0)
+                    aTy += aXml.CorY().Monomes()[aK].mCoeff*
+                           pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX);
+
+                else
+                    aTy += aXml.CorY().Monomes()[aK].mCoeff*
+                           pow(aP1*aStep,aXml.CorY().Monomes()[aK].mDegX)*
+                           pow(aP2*aStep,aXml.CorY().Monomes()[aK].mDegY);
+            }
+
+            aImX.oset(Pt2di(aP1,aP2),aTx);
+            aImY.oset(Pt2di(aP1,aP2),aTy);
+            aImXY.oset(Pt2di(aP1,aP2),aTx+aTy);
+//            std::cout << aP1 << " " << aP2 << " =" << aTy << "\n"; 
+
+        }
     }
 
-    for(aK=0; aK<aXml.CorY().Monomes().size(); aK++)
-    {
-        if(aXml.CorY().Monomes()[aK].mDegX==0 && 
-           aXml.CorY().Monomes()[aK].mDegY==0)
-            aPolynY =+ aXml.CorY().Monomes()[aK].mCoeff;
-        
-        else if(aXml.CorY().Monomes()[aK].mDegX==0)
-            aPolynY =+ aXml.CorY().Monomes()[aK].mCoeff*
-                      pow(FY,aXml.CorY().Monomes()[aK].mDegY);
 
-        else if(aXml.CorY().Monomes()[aK].mDegY==0)
-            aPolynY =+ aXml.CorY().Monomes()[aK].mCoeff*
-                       pow(FX,aXml.CorY().Monomes()[aK].mDegX);
-        else
-            aPolynY =+ aXml.CorY().Monomes()[aK].mCoeff*
-                       pow(FX,aXml.CorY().Monomes()[aK].mDegX)*
-                       pow(FY,aXml.CorY().Monomes()[aK].mDegY);
-
-    }
-
-    /*ELISE_COPY
+    REAL GMin,GMax;
+    ELISE_COPY
     (
-        TiffOut.all_pts(),
-        , 
-        TiffOut.out()
-    );*/
-
-//StdFoncChScale
+        aImX.all_pts(),
+        aImX.in(),
+        VMax(GMax)|VMin(GMin)
+    );
+    std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
+    aResX = (aImX.in()-GMin) * (255.0 / ElMax(GMax-GMin,1e-2));
+    //aResX = StdFoncChScale(aImX,Pt2dr(0,0), Pt2dr(1.f/aScale,1.f/aScale));
 
     ELISE_COPY
     (
-        TiffOut.all_pts(),
-        (aPolynX+aPolynY),
-        TiffOut.out()
+        aTiffX.all_pts(),
+        aResX,
+        aTiffX.out()
     );
     
+    ELISE_COPY
+    (
+        aImY.all_pts(),
+        aImY.in(),
+        VMax(GMax)|VMin(GMin)
+    );
+    std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
+    aResY = (aImY.in()-GMin) * (255.0 / ElMax(GMax-GMin,1e-2));
+    //aResY = StdFoncChScale(aImY,Pt2dr(0,0), Pt2dr(1.f/aScale,1.f/aScale));
+ 
+    ELISE_COPY
+    (
+        aTiffY.all_pts(),
+        aResY,
+        aTiffY.out()
+    );
     
+    ELISE_COPY
+    (
+        aImXY.all_pts(),
+        aImXY.in(),
+        VMax(GMax)|VMin(GMin)
+    );
+    std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
+    aResXY = (aImXY.in()-GMin) * (255.0 / ElMax(GMax-GMin,1e-2));
+ 
+    ELISE_COPY
+    (
+        aTiffXY.all_pts(),
+        aResXY,
+        aTiffXY.out()
+    );
+
     return EXIT_SUCCESS;
 }
 

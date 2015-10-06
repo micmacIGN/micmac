@@ -1345,7 +1345,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     
     std::vector<Pt3dr> aGridOrg, aGridCarto, aGridImg;
 
-    std::string aTmpIn = "Proj4Input.txt";
+    std::string aTmpIn = "Proj4InputRPC.txt";
     FILE * aFPin = FopenNN(aTmpIn,"w","RPC::ChSysRPC");
 
     for(aK1=0; aK1<aSampl; aK1++)
@@ -1363,7 +1363,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     ElFclose(aFPin);
 
     //convert to carto
-    std::string aTmpOut = "Proj4Output.txt";
+    std::string aTmpOut = "Proj4OutputRPC.txt";
     
     std::string aCom =  g_externalToolHandler.get("cs2cs").callName() + " " +
 	                "+proj=longlat +datum=WGS84" + " +to " + 
