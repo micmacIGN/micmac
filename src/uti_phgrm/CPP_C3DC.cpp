@@ -518,6 +518,7 @@ class cAppli_MPI2Mnt
          std::string mPat;
          std::string mStrRep;
          std::string mDirMTD;
+         std::string mDirOrtho;
          std::string mDirBasc;
          std::string mNameMerge;
          std::string mNameOriMerge;
@@ -529,6 +530,7 @@ class cAppli_MPI2Mnt
          bool                     mDoOrtho;
          std::string			  mMasqImGlob;
          bool                     mDebug;
+         bool                     mPurge;
          void ExeCom(const std::string & aCom);
 };
 
@@ -588,6 +590,7 @@ void cAppli_MPI2Mnt::DoOrtho()
                          +    " +Ori=" +  mCFPI->mOri                 + BLANK
                          +    " +DeZoom=" +ToString(mDeZoom)   + BLANK
                          +    " WorkDir=" + mDirApp
+                         +    " +DirOrthoF=" + mDirOrtho
                       ;
     if (EAMIsInit(&mMasqImGlob)) aCom +=  " +UseGlobMasqPerIm=1  +GlobMasqPerIm="+mMasqImGlob;
 
@@ -681,6 +684,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mDS       (1.0),
     mDeZoom   (2),
     mDirMTD   ("PIMs-TmpMnt/"),
+    mDirOrtho  ("PIMs-ORTHO/"),
     mDirBasc   ("PIMs-TmpBasc/"),
     mNameMerge ("PIMs-Merged.xml"),
     mNameOriMerge ("PIMs-ZNUM-Merged.xml"),
@@ -689,7 +693,8 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mDoMnt       (true),
     mDoOrtho     (false),
     mMasqImGlob (""),
-    mDebug       (false)
+    mDebug       (false),
+    mPurge       (true)
 {
    ElInitArgMain
    (
@@ -709,10 +714,18 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
 
    if (MMVisualMode) return;
 
+
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
    mDirApp = mCFPI->mFullDirChantier;
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirApp);
    mSetIm = mICNM->Get(mCFPI->mStrPat);
+
+// Probleme d'incoherence et pas purgee !!!
+   if (mPurge)
+   {
+      ELISE_fp::PurgeDirRecursif(mDirApp+mDirMTD);
+      ELISE_fp::PurgeDirRecursif(mDirApp+mDirBasc);
+   }
 
    if (EAMIsInit(&mRep))
    {
