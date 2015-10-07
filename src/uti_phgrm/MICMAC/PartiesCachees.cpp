@@ -941,6 +941,8 @@ void cAppliMICMAC::MakeOrtho
     Tiff_Im aFIn = Tiff_Im::StdConvGen(aNameIn.c_str(),aMOPI.NbChan().Val(),false);
 
     int aDzTer = mCurEtape->DeZoomTer();
+    // int aDzIm  = mCurEtape->DeZoomIm();
+
 
     int aNbC = aFIn.nb_chan();
     std::vector<Im2DGen *> mOrthos;
@@ -1017,6 +1019,7 @@ void cAppliMICMAC::MakeOrtho
             double aValTest = -1e10;
             for (aPO.y=0 ; aPO.y<aSzT.y ; aPO.y++)
             {
+
                 if (aTMasqT.get(aPO))
                 {
                     Pt2dr aPM  = aAfPOL2PML(Pt2dr(aPO));
@@ -1052,7 +1055,11 @@ void cAppliMICMAC::MakeOrtho
                            }
                            else
                            {
-                              ElSeg3D  aSeg = aGeom.FaisceauPersp(aPImInc * aDzTer);
+                              // ElSeg3D  aSeg = aGeom.FaisceauPersp(aPImInc * aDzTer);
+                              // MPD le 07/10/2015 , il semble que ce soit la cause des pb dans l'image
+                              // d'incidence
+                              ElSeg3D  aSeg = aGeom.FaisceauPersp(aPImInc);
+                              // ElSeg3D  aSeg = aGeom.FaisceauPersp(aPImInc * aDzIm);
                               double aTeta = acos(-aSeg.TgNormee().z);
                               if (aRF > 0)
                               {
