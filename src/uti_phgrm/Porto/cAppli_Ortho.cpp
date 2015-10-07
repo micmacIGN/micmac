@@ -260,6 +260,15 @@ cAppli_Ortho::cAppli_Ortho
         mW = Video_Win::PtrWStd(aSzW);
     }
 
+
+    cFileOriMnt * aFOM = GetMtdMNT();
+    if (aFOM)
+    {
+        GenTFW(*aFOM,StdPrefix(mWorkDir + mCO.NameOrtho())+".tfw");
+         //const cFileOriMnt & aFOM,const std::string & aName)
+
+        // MTDOrtho.tfw
+    }
 }
 
 Video_Win *  cAppli_Ortho::W()
