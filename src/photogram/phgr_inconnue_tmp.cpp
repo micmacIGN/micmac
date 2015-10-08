@@ -1175,14 +1175,24 @@ bool OkReproj
           int & aKP
     )
 {
+
+   
+
+
    aKP = -1;
    for (int aK=0 ; aK<int(aVCam.size()) ; aK++)
    {
        if (aVPds[aK] >0)
        {
            cBasicGeomCap3D & aCam = *(aVCam[aK]);
-           // Pt2dr aProj = aCam.Ter2Capteur(aPTer);
-           // if (! aCam.CaptHasData(aProj))
+/*
+           Pt2dr aProj = aCam.Ter2Capteur(aPTer);
+           if (! aCam.CaptHasData(aProj))
+           {
+              aKP = aK;
+              return false;
+           }
+*/
  // Semble + robuste de se baser sur la visibilite car reprojection peut etre degeneree
            if (! aCam.PIsVisibleInImage(aPTer))
            {
