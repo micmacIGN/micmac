@@ -1739,7 +1739,8 @@ ElCamera::ElCamera(bool isDistC2M,eTypeProj aTP) :
     mScanned         (false),
     mVitesse         (0,0,0),
     mVitesseIsInit   (false),
-    mIncCentre       (1,1,1)
+    mIncCentre       (1,1,1),
+    mStatDPCDone     (false)
 {
     UndefAltisSol();
 }
@@ -1787,6 +1788,8 @@ void  ElCamera::SetIncCentre(const Pt3dr & anInc)
 
 bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
 {
+
+
    Pt3dr aPCam = R3toL3(aPTer);
 
 
@@ -1794,7 +1797,9 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
          HasOrigineProf() 
          && (aPCam.z <=   1e-5 * (ElAbs(aPCam.x)+ElAbs(aPCam.y)))
       ) 
+   {
       return false;
+  }
 
 
    Pt2dr aPI0 = Proj().Proj(aPCam);
@@ -1803,12 +1808,29 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
    if (GetZoneUtilInPixel() )
    {
        Pt2dr aSz = SzPixel();
+
        Pt2dr aPQ = NormM2C(aPI0) ;
+       ElDistortion22_Gen * aDPC = StaticDistPreCond();
+       if (aDPC)
+       {
+ // std::cout << "WwwwwwwwWW   " << aDPC << "\n";
+/*
+           std::cout << "WwwwwwwwWW   " << euclid(aPQ, Dist().Direct(aPQ)) 
+                     << " " <<  euclid(aPQ,aDPC->Direct(aPQ)) 
+                     << " " <<  euclid(Dist().Direct(aPQ),aDPC->Direct(aPQ)) 
+                     << "\n";
+*/
+           
+           aPQ = aDPC->Direct(aPQ);
+       }
        double aRab = 0.8;
        Pt2dr aMil = Pt2dr(aSz)/2.0;
    
        aPQ =  aMil+ (aPQ-aMil) * aRab;
-       if ((aPQ.x <0)  || (aPQ.y<0) || (aPQ.x>aSz.x) || (aPQ.y>aSz.y)) return false;
+       if ((aPQ.x <0)  || (aPQ.y<0) || (aPQ.x>aSz.x) || (aPQ.y>aSz.y))
+       {
+            return false;
+       }
     }
 
 
@@ -1832,6 +1854,7 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
 
    Pt2dr aI0Again = DistInverse(aPF1);
 
+// if (MPD_MM()) std::cout << "Jjjjjjjjjjjjjjjje  " <<  euclid(aPI0-aI0Again) << " " << 1.0/ mScaleAfnt << "\n";
 
     return euclid(aPI0-aI0Again) < 1.0/ mScaleAfnt;
 }
@@ -2004,6 +2027,15 @@ bool ElCamera::IsForteDist() const
    return DistPreCond() != 0;
 }
 
+ElDistortion22_Gen   *  ElCamera::StaticDistPreCond() const
+{
+    if (!mStatDPCDone)
+    {
+        mStatDPCDone  = true;
+        mStatDPC = DistPreCond();
+    }
+    return mStatDPC;
+}
 
 ElDistortion22_Gen   *  ElCamera::DistPreCond() const
 {
