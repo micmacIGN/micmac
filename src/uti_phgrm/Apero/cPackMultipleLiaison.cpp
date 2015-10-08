@@ -1143,6 +1143,7 @@ double cObsLiaisonMultiple::AddObsLM
    double aSomPdsEvol=0;
 
    int aNbNN=0;
+
    for (int aKPm=0 ; aKPm<int(mVPMul.size()) ; aKPm++)
    {
         cOnePtsMult * aPM = mVPMul[aKPm];
@@ -1396,6 +1397,10 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                         }
                      }
                 }
+ 
+
+
+
                 if (anAVA &&  (anAVA->VA().TypeVerif()==eVerifDZ) && (aPdsIm >0) && (aNbRInit>=3))
                 {
                 //  Dz regarde ce qui se passe quand on supprime les points de l'image elle meme
@@ -1414,6 +1419,12 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                     }
                 }
              }
+             else
+             {
+             }
+        }
+        else
+        {
         }
         BugUPL = false;
    }
