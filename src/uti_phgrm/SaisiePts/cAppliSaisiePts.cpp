@@ -68,9 +68,10 @@ void cVirtualInterface::OUT_Map()
 
 void cVirtualInterface::DeletePoint(cSP_PointGlob * aSG)
 {
-    aSG->SetKilled();
+	ELISE_DEBUG_ERROR(aSG == NULL, "cVirtualInterface::DeletePoint", "aSG == NULL");
 
-    ChangeFreeNamePoint(aSG->PG()->Name(), true);  
+	aSG->SetKilled();
+	ChangeFreeNamePoint(aSG->PG()->Name(), true);  
 }
 
 void cVirtualInterface::ComputeNbFen(Pt2di &pt, int aNbW)
@@ -142,7 +143,6 @@ cSP_PointGlob *cVirtualInterface::addPoint(Pt2dr pt, cImage *curImg)
 
         if (aCNP && aCNP->mFree)
             PG = curImg->CreatePGFromPointeMono(aPGlob, aType, aSz, aCNP);
-
     }
 
     return PG;
@@ -318,6 +318,30 @@ cCaseNamePoint *cVirtualInterface::GetCaseNamePoint(string name)
     return iT->second;
 }
 
+bool cVirtualInterface::DeleteCaseNamePoint(string name)
+{
+	bool result = false;
+
+	// delete actual VNameCase
+	vector<cCaseNamePoint>::iterator it = mVNameCase.begin();
+	while (it != mVNameCase.end())
+	{
+		if (it->mName == name)
+		{
+			mVNameCase.erase(it);
+			result = true;
+			break;
+		}
+		it++;
+	}
+
+	// delete VNameCase reference in the map
+	std::map<std::string,cCaseNamePoint *>::iterator iT = mMapNC.find(name);
+	if (iT != mMapNC.end()) mMapNC.erase(iT);
+
+	return result;
+}
+
 bool cVirtualInterface::PtImgIsVisible(cSP_PointeImage &aPIm)
 {
 
@@ -363,9 +387,6 @@ cAppli_SaisiePts::cAppli_SaisiePts(cResultSubstAndStdGetFile<cParamSaisiePts> aP
         std::string aPref = StdPrefix(aPat);
         mGlobLInputSec  =  *(mICNM->Get("Tmp-SL-Glob-" + aPref  +".xml"));
         mPtImInputSec   =  *(mICNM->Get("Tmp-SL-Im-" + aPref  +".xml"));
-
-        // std::cout << " SSSSSSSssssssssssSSSS\n"; getchar();
-
     }
 
     InitImages();
