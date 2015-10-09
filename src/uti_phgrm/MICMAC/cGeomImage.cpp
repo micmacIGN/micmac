@@ -2794,7 +2794,6 @@ cGeomImage * cGeomImage::GeomImage_Basic3D
     int aType = eTIGB_Unknown;
 
 
-std::cout<< "GeomImage::GeomImage_Bas" << "\n";
     return new cGeomImage_cBasic
                (
                     anAppli,

@@ -339,6 +339,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
 
 
+
       std::string mFullModeOri = "eGeomImageOri";
       mModePB = EAMIsInit(&mModeOri);
       if (mModePB)
@@ -425,7 +426,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       int    aNbZM = 0;
 
 
-      if (mNbIm < mNbMinIV && !mUseImSec)
+      if ((! EAMIsInit(&mNbMinIV))  && (mNbIm< mNbMinIV) )
+      {
+           mNbMinIV = mNbIm;
+      }
+
+      if ((mNbIm < mNbMinIV) && (!mUseImSec))
       {
           std::cout << "For Nb Im = " << mNbIm << " NbVI= " << mNbMinIV << "\n";
           ELISE_ASSERT(false,"Nb image is < to min visible image ...");
@@ -454,6 +460,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               if (aCG->DownCastCS() == 0)
               {
                  hasNewGenImage = true;
+/*
+                 Pt2dr aPMil = aCG->SzBasicCapt3D()/2.0;
+                 Pt3dr aCOpt = aCG->OpticalCenterOfPixel()
+
+
+                 std::cout << "IIIPPPP " << aCG->GetVeryRoughInterProf() 
+                           << " P0 " << aCG->PMoyOfCenter()
+                           << "\n"; getchar();
+*/
               }
 
               if (aCG->HasRoughCapteur2Terrain())
@@ -606,9 +621,10 @@ if(0)
               ;
 
 
+      bool ModeFaisZ = mModePB| hasNewGenImage;
       std::string aNameGeom = (mImMaster=="") ?
                   "eGeomMNTEuclid" :
-                  (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : ((mModePB| hasNewGenImage) ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
+                  (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : ( ModeFaisZ ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
 
       mCom =              MM3dBinFile_quotes("MICMAC")
               +  ToStrBlkCorr( Basic_XML_MM_File(aFileMM) )
