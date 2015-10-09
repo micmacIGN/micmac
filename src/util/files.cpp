@@ -286,16 +286,6 @@ void ELISE_fp::RmFileIfExist(const std::string & aFile)
 
 void ELISE_fp::RmFile(const std::string & aFile)
 {
-if (MPD_MM())
-{
-   std::cout << "ELISE_fp::RmFileELISE_fp::RmFile  " << aFile << "\n";
-   if (aFile=="Proj4InputRPC.txt")
-   {
-         std::cout << "JJJjjjjjjjjj\n";
-        getchar();
-   }
-}
-
 
 #if ELISE_windows
 	if ( DeleteFile( aFile.c_str() )==0 )
