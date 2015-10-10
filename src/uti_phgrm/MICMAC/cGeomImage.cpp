@@ -44,6 +44,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cOrientationCon.h"
 
 
+
+
 void ShowPoly(cElPolygone  aPoly)
 {
   std::list<std::vector<Pt2dr> > aLC = aPoly.Contours();
@@ -1562,7 +1564,6 @@ class cGeomImage_Terrain_Ori : public cGeomImage
 */
               // std::cout << "aaaaaaaaaNNaa " << aCa << "\n";
           }
- // std::cout << "XXXXXXXXXXXX " << mOri->ResolutionPDVVerticale() << "\n"; getchar();
           return ElAbs(mOri->ResolutionPDVVerticale());
        }
        void  RemplitOri(cFileOriMnt & aFOM) const
@@ -2233,6 +2234,8 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
        {return mGeoRef->GeoTerrainIntrinseque();}
 };
 
+
+
 class cGeomFaisZTerEsclave : public cGeomFaisZTerMaitre
 {
     public :
@@ -2295,6 +2298,8 @@ class cGeomFaisZTerEsclave : public cGeomFaisZTerMaitre
 
        Pt2dr Objet2ImageInit_NonEuclid(Pt2dr aP,const REAL * aPx) const
        {
+
+
             Pt2dr aRes = PtOfProf(aP,aPx[0]);
             if (mDimPx > 1)
                aRes =  aRes +  mDirPx * aPx[1];
