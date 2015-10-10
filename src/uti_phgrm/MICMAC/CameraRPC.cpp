@@ -39,6 +39,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "CameraRPC.h"
 
+extern bool DEBUG_ZBB;
+extern Pt2di PT_BugZBB;
+
+
 /***********************************************************************/
 /*                           cComp3DBasic                              */
 /***********************************************************************/
@@ -329,6 +333,11 @@ ElSeg3D  CameraRPC::Capteur2RayTer(const Pt2dr & aP) const
 		   aZ+double(mRPC->last_height - mRPC->first_height)/2),
 	  aP2RayL3(aP.x, aP.y, aZ);
 
+if (DEBUG_ZBB)
+{
+   ElSeg3D aSeg = F2toRayonLPH(aP1RayL3, aP2RayL3);
+   std::cout << PT_BugZBB << "CameraRPC::Capteur2RayTer " << aP << " " <<  aSeg.P0() << aSeg.P1() << "\n";
+}
     return F2toRayonLPH(aP1RayL3, aP2RayL3);
 }
 
