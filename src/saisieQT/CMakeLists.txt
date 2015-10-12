@@ -52,9 +52,9 @@ if ( NOT ${qt_version} EQUAL 0 )
     endif()
 
     if ( ${qt_version} EQUAL 5 )
-        target_link_libraries(SaisieQT elise ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${X11_LIBRARIES})
+        target_link_libraries(SaisieQT elise ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${X11_LIBRARIES} ${KAKADU_LIBRARIES})
     else()
-        target_link_libraries(SaisieQT elise ${X11_LIBRARIES})
+        target_link_libraries(SaisieQT elise ${X11_LIBRARIES} ${KAKADU_LIBRARIES})
     endif()
 
     install(TARGETS SaisieQT DESTINATION ${Install_Dir})
