@@ -301,7 +301,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mCostTrans,"CostTrans",true,"Cost to change from correlation to uncorrelation (Def=2.0) ")
                     << EAM(mEtapeInit,"Etape0",true,"First Step (Def=1) ")
                     << EAM(mAffineLast,"AffineLast",true,"Affine Last Etape with Step Z/2 (Def=true) ")
-                    << EAM(mResolOrtho,"ResolOrtho",true,"Resolution of ortho, relatively to images (Def=1.0; 0.5 means smaller images) ")
+                    << EAM(mResolOrtho,"ResolOrtho",true,"Resolution of ortho, relatively to images (Def=1.0; 0.5 means smaller images, i.e. decrease the resolution) ")
                     << EAM(mImMNT,"ImMNT",true,"Filter to select images used for matching (Def All, usable with ortho) ",eSAM_IsPatFile)
                     << EAM(mImOrtho,"ImOrtho",true,"Filter to select images used for ortho (Def All) ",eSAM_IsPatFile)
                     << EAM(mZMoy,"ZMoy",true,"Average value of Z", eSAM_NoInit)
