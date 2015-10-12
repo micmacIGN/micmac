@@ -139,6 +139,7 @@ Pt2di cZBuffer::ToPtIndexDef(const Pt2di & aPt) const
 }
 
 bool DEBUG_ZBB = false;
+bool ERupnik_MM();
 
 Im2D_REAL4 cZBuffer::Basculer
            (
@@ -213,7 +214,7 @@ Im2D_REAL4 cZBuffer::Basculer
 				   aNbOkIm++;
 
 
-if (MPD_MM())
+if (MPD_MM() || ERupnik_MM())
 {
 if (euclid(aP2Out) > 100000)
 {
