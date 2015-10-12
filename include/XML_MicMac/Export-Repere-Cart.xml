@@ -1,0 +1,23 @@
+
+
+                           <ExportRepereLoc>
+                               <NameRepere >  ${AeroOut} </NameRepere>
+                               <PatternEstimPl>  ${PatternPlan}  </PatternEstimPl>
+                               <EstimPlanHor>
+                                           <KeyCalculMasq>  NKS-Assoc-AddPostChExt@${PostMasq}@tif </KeyCalculMasq>
+                                           <IdBdl >Id_Pastis_Hom </IdBdl>
+                                           <Pond>
+                                              <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                              <Show> eNSM_Paquet     </Show>
+                                              <NbMax>   100    </NbMax>
+                                              <ModePonderation>  eL1Secured </ModePonderation>
+                                              <SigmaPond> 2.0 </SigmaPond>
+                                              <EcartMax> 5.0 </EcartMax>
+                                          </Pond>
+                               </EstimPlanHor>
+                               <P1 >  ${X1RC}  ${Y1RC} </P1>
+                               <P2>   ${X2RC}  ${Y2RC}  </P2>
+                               <AxeDef>   ${XAxeRC}  ${YAxeRC}  </AxeDef>
+                               <ImP1P2 >  ${ImP1P2}  </ImP1P2>
+                               <IncludeFileLoc>  ${FileOrthoCyl} </IncludeFileLoc>
+                          </ExportRepereLoc>
