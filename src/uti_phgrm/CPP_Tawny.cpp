@@ -63,7 +63,7 @@ int Tawny_main(int argc,char ** argv)
     bool  mDoRadiomEgal=true;
 
     double  aSatThresh = 1e9;
-    string aNameOut="Ortho-Eg-Test-Redr.tif";
+    string aNameOut="Orthophotomosaic.tif";
 
     ElInitArgMain
     (
