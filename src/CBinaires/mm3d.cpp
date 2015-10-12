@@ -590,11 +590,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
    
    aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images"));
-<<<<<<< local
+
    aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning"));
-=======
-   aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TXT or XML file, tuning"));
->>>>>>> other
+
    aRes.push_back(cMMCom("ScaleModel",ScaleModel_main," Tool for simple scaling a model",cArgLogCom(2)));
 
 
@@ -620,11 +618,6 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
     aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
     aRes.push_back(cMMCom("San2Ply",San2Ply_main,"Generate a Ply visualisation of an Analytical Surface"));
 
-<<<<<<< local
-    
-
-=======
->>>>>>> other
     aRes.push_back(cMMCom("CASALL",CASALL_main,"Compute Analytic Surface Automatically  low level"));
     aRes.push_back(cMMCom("CalcAutoCorrel",CalcAutoCorrel_main,"Compute and Store Auto Correlation (if not already done)"));
 
