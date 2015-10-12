@@ -536,7 +536,7 @@ std::string getBanniereMM3D()
     banniere += "**                                                                    ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**  Current Team: MP Deseilligny, M Deveau, J Belvaux, G Choqueux,    ** \n";
-    banniere += "**                G Maillet, L Girod, E Rupnik                        ** \n";
+    banniere += "**       G Maillet, L Girod, E Rupnik, JM Muller                      ** \n";
     banniere += "**                                                                    ** \n";
     banniere += "**    Contact for participating : Marc.Pierrot-Deseilligny@ensg.eu    ** \n";
     banniere += "**                                                                    ** \n";

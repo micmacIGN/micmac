@@ -221,12 +221,14 @@ int TiePAll_main(int argc,char ** argv);
 
 int  OneReechFid_main(int argc,char ** argv);
 
+int TNR_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("TNR",TNR_main,"Test Non Regression"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
@@ -537,6 +539,7 @@ int CPP_NewSolGolInit_main(int argc, char ** argv);
 
 int CPP_NewGenTriOfCple(int argc, char ** argv);
 int CPP_TestBundleGen(int argc,char ** argv)   ;
+
 
 
 

@@ -1469,6 +1469,33 @@
 
 
 
+<!--  Test de non regression -->
+
+<XmlTNR_TestExistFile Nb="1" Class="true" ToReference="true">
+     <NameFile Nb="1" Type="std::string"> </NameFile>
+     <TestSize Nb="?" Type="int">         </TestSize>
+</XmlTNR_TestExistFile>
+
+<XmlTNR_OneTest Nb="1" Class="true" ToReference="true">
+     <Cmd  Nb="1" Type="std::string"> </Cmd>
+     <TestReturnValue Nb="?" Type="bool" Def="true"> </TestReturnValue>
+
+     <TestFiles Nb="*" RefType="XmlTNR_TestExistFile"> </TestFiles>
+</XmlTNR_OneTest>
+
+
+<XmlTNR_GlobTest  Nb="1" Class="true" ToReference="true">
+     <Tests RefType="XmlTNR_OneTest" Nb="*">   </Tests>
+     <Name  Type="std::string"  Nb="1">        </Name>   <!-- Non du Test , par ex Fontaine, Chambord ...; -->
+     <PatFileInit  Type="std::string"  Nb="*"> </PatFileInit>  <!-- Fichiers a recopier, ce sont des pattern -->
+     <DirInit  Type="std::string"  Nb="*"> </DirInit>          <!-- dossier a recopier recursivement, ce sont les directory elle meme -->
+
+     <PurgeExe Nb="?" Type="bool" Def="true"> </PurgeExe>  <!-- Si false  ne purge pas les TNR-Exe -->
+</XmlTNR_GlobTest>
+
+
+
+
 
 <Verbatim File=".h.cpp">
 // };

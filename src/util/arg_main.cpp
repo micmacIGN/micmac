@@ -930,7 +930,10 @@ int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIt
         else
             aRes = system_call( aCom.c_str() );
     #else
-        aRes = system_call(aCom.c_str());
+// std::cout << "SYS " << __FILE__ << __LINE__ << " " << aCom << "\n";
+        // aRes = system_call(aCom.c_str());
+        aRes = system(aCom.c_str());
+// std::cout << "SYS " << __FILE__ << __LINE__ << " " << aRes << " " << aCom << "\n";
     #endif
     if ((aRes != 0) && (!aSVP))
     {
@@ -985,6 +988,7 @@ void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
       fprintf(aFP,"MM3D-Command=[%s]\n",GlobArcArgv.c_str());
    }
 
+// std::cout << "ELExit " << __FILE__ << __LINE__ << " " << aCode << " " << GlobArcArgv << "\n";
    StdEXIT(aCode);
 }
 

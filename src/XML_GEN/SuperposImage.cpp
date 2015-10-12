@@ -21720,4 +21720,338 @@ void xml_init(cXml_CamGenPolBundle & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_CamGenPolBundle *) {return "8AA2139AC64B61F3FC3F";};
 
+
+std::string & cXmlTNR_TestExistFile::NameFile()
+{
+   return mNameFile;
+}
+
+const std::string & cXmlTNR_TestExistFile::NameFile()const 
+{
+   return mNameFile;
+}
+
+
+cTplValGesInit< int > & cXmlTNR_TestExistFile::TestSize()
+{
+   return mTestSize;
+}
+
+const cTplValGesInit< int > & cXmlTNR_TestExistFile::TestSize()const 
+{
+   return mTestSize;
+}
+
+void  BinaryUnDumpFromFile(cXmlTNR_TestExistFile & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameFile(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.TestSize().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.TestSize().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.TestSize().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlTNR_TestExistFile & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameFile());
+    BinaryDumpInFile(aFp,anObj.TestSize().IsInit());
+    if (anObj.TestSize().IsInit()) BinaryDumpInFile(aFp,anObj.TestSize().Val());
+}
+
+cElXMLTree * ToXMLTree(const cXmlTNR_TestExistFile & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlTNR_TestExistFile",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameFile"),anObj.NameFile())->ReTagThis("NameFile"));
+   if (anObj.TestSize().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TestSize"),anObj.TestSize().Val())->ReTagThis("TestSize"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlTNR_TestExistFile & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameFile(),aTree->Get("NameFile",1)); //tototo 
+
+   xml_init(anObj.TestSize(),aTree->Get("TestSize",1)); //tototo 
+}
+
+std::string  Mangling( cXmlTNR_TestExistFile *) {return "929DD411FB86DAA1FE3F";};
+
+
+std::string & cXmlTNR_OneTest::Cmd()
+{
+   return mCmd;
+}
+
+const std::string & cXmlTNR_OneTest::Cmd()const 
+{
+   return mCmd;
+}
+
+
+cTplValGesInit< bool > & cXmlTNR_OneTest::TestReturnValue()
+{
+   return mTestReturnValue;
+}
+
+const cTplValGesInit< bool > & cXmlTNR_OneTest::TestReturnValue()const 
+{
+   return mTestReturnValue;
+}
+
+
+std::list< cXmlTNR_TestExistFile > & cXmlTNR_OneTest::TestFiles()
+{
+   return mTestFiles;
+}
+
+const std::list< cXmlTNR_TestExistFile > & cXmlTNR_OneTest::TestFiles()const 
+{
+   return mTestFiles;
+}
+
+void  BinaryUnDumpFromFile(cXmlTNR_OneTest & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Cmd(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.TestReturnValue().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.TestReturnValue().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.TestReturnValue().SetNoInit();
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXmlTNR_TestExistFile aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.TestFiles().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlTNR_OneTest & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Cmd());
+    BinaryDumpInFile(aFp,anObj.TestReturnValue().IsInit());
+    if (anObj.TestReturnValue().IsInit()) BinaryDumpInFile(aFp,anObj.TestReturnValue().Val());
+    BinaryDumpInFile(aFp,(int)anObj.TestFiles().size());
+    for(  std::list< cXmlTNR_TestExistFile >::const_iterator iT=anObj.TestFiles().begin();
+         iT!=anObj.TestFiles().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXmlTNR_OneTest & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlTNR_OneTest",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Cmd"),anObj.Cmd())->ReTagThis("Cmd"));
+   if (anObj.TestReturnValue().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TestReturnValue"),anObj.TestReturnValue().Val())->ReTagThis("TestReturnValue"));
+  for
+  (       std::list< cXmlTNR_TestExistFile >::const_iterator it=anObj.TestFiles().begin();
+      it !=anObj.TestFiles().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("TestFiles"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlTNR_OneTest & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Cmd(),aTree->Get("Cmd",1)); //tototo 
+
+   xml_init(anObj.TestReturnValue(),aTree->Get("TestReturnValue",1),bool(true)); //tototo 
+
+   xml_init(anObj.TestFiles(),aTree->GetAll("TestFiles",false,1));
+}
+
+std::string  Mangling( cXmlTNR_OneTest *) {return "3934190202272199FEBF";};
+
+
+std::list< cXmlTNR_OneTest > & cXmlTNR_GlobTest::Tests()
+{
+   return mTests;
+}
+
+const std::list< cXmlTNR_OneTest > & cXmlTNR_GlobTest::Tests()const 
+{
+   return mTests;
+}
+
+
+std::string & cXmlTNR_GlobTest::Name()
+{
+   return mName;
+}
+
+const std::string & cXmlTNR_GlobTest::Name()const 
+{
+   return mName;
+}
+
+
+std::list< std::string > & cXmlTNR_GlobTest::PatFileInit()
+{
+   return mPatFileInit;
+}
+
+const std::list< std::string > & cXmlTNR_GlobTest::PatFileInit()const 
+{
+   return mPatFileInit;
+}
+
+
+std::list< std::string > & cXmlTNR_GlobTest::DirInit()
+{
+   return mDirInit;
+}
+
+const std::list< std::string > & cXmlTNR_GlobTest::DirInit()const 
+{
+   return mDirInit;
+}
+
+
+cTplValGesInit< bool > & cXmlTNR_GlobTest::PurgeExe()
+{
+   return mPurgeExe;
+}
+
+const cTplValGesInit< bool > & cXmlTNR_GlobTest::PurgeExe()const 
+{
+   return mPurgeExe;
+}
+
+void  BinaryUnDumpFromFile(cXmlTNR_GlobTest & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXmlTNR_OneTest aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Tests().push_back(aVal);
+        }
+  } ;
+    BinaryUnDumpFromFile(anObj.Name(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.PatFileInit().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.DirInit().push_back(aVal);
+        }
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PurgeExe().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PurgeExe().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PurgeExe().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlTNR_GlobTest & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Tests().size());
+    for(  std::list< cXmlTNR_OneTest >::const_iterator iT=anObj.Tests().begin();
+         iT!=anObj.Tests().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,(int)anObj.PatFileInit().size());
+    for(  std::list< std::string >::const_iterator iT=anObj.PatFileInit().begin();
+         iT!=anObj.PatFileInit().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.DirInit().size());
+    for(  std::list< std::string >::const_iterator iT=anObj.DirInit().begin();
+         iT!=anObj.DirInit().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.PurgeExe().IsInit());
+    if (anObj.PurgeExe().IsInit()) BinaryDumpInFile(aFp,anObj.PurgeExe().Val());
+}
+
+cElXMLTree * ToXMLTree(const cXmlTNR_GlobTest & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlTNR_GlobTest",eXMLBranche);
+  for
+  (       std::list< cXmlTNR_OneTest >::const_iterator it=anObj.Tests().begin();
+      it !=anObj.Tests().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Tests"));
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+  for
+  (       std::list< std::string >::const_iterator it=anObj.PatFileInit().begin();
+      it !=anObj.PatFileInit().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("PatFileInit"),(*it))->ReTagThis("PatFileInit"));
+  for
+  (       std::list< std::string >::const_iterator it=anObj.DirInit().begin();
+      it !=anObj.DirInit().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("DirInit"),(*it))->ReTagThis("DirInit"));
+   if (anObj.PurgeExe().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PurgeExe"),anObj.PurgeExe().Val())->ReTagThis("PurgeExe"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXmlTNR_GlobTest & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Tests(),aTree->GetAll("Tests",false,1));
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.PatFileInit(),aTree->GetAll("PatFileInit",false,1));
+
+   xml_init(anObj.DirInit(),aTree->GetAll("DirInit",false,1));
+
+   xml_init(anObj.PurgeExe(),aTree->Get("PurgeExe",1),bool(true)); //tototo 
+}
+
+std::string  Mangling( cXmlTNR_GlobTest *) {return "1848D9B076BB1D9CFF3F";};
+
 // };

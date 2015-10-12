@@ -6681,5 +6681,105 @@ std::string  Mangling( cXml_CamGenPolBundle *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlTNR_TestExistFile
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlTNR_TestExistFile & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameFile();
+        const std::string & NameFile()const ;
+
+        cTplValGesInit< int > & TestSize();
+        const cTplValGesInit< int > & TestSize()const ;
+    private:
+        std::string mNameFile;
+        cTplValGesInit< int > mTestSize;
+};
+cElXMLTree * ToXMLTree(const cXmlTNR_TestExistFile &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlTNR_TestExistFile &);
+
+void  BinaryUnDumpFromFile(cXmlTNR_TestExistFile &,ELISE_fp &);
+
+std::string  Mangling( cXmlTNR_TestExistFile *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlTNR_OneTest
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlTNR_OneTest & anObj,cElXMLTree * aTree);
+
+
+        std::string & Cmd();
+        const std::string & Cmd()const ;
+
+        cTplValGesInit< bool > & TestReturnValue();
+        const cTplValGesInit< bool > & TestReturnValue()const ;
+
+        std::list< cXmlTNR_TestExistFile > & TestFiles();
+        const std::list< cXmlTNR_TestExistFile > & TestFiles()const ;
+    private:
+        std::string mCmd;
+        cTplValGesInit< bool > mTestReturnValue;
+        std::list< cXmlTNR_TestExistFile > mTestFiles;
+};
+cElXMLTree * ToXMLTree(const cXmlTNR_OneTest &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlTNR_OneTest &);
+
+void  BinaryUnDumpFromFile(cXmlTNR_OneTest &,ELISE_fp &);
+
+std::string  Mangling( cXmlTNR_OneTest *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlTNR_GlobTest
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlTNR_GlobTest & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXmlTNR_OneTest > & Tests();
+        const std::list< cXmlTNR_OneTest > & Tests()const ;
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        std::list< std::string > & PatFileInit();
+        const std::list< std::string > & PatFileInit()const ;
+
+        std::list< std::string > & DirInit();
+        const std::list< std::string > & DirInit()const ;
+
+        cTplValGesInit< bool > & PurgeExe();
+        const cTplValGesInit< bool > & PurgeExe()const ;
+    private:
+        std::list< cXmlTNR_OneTest > mTests;
+        std::string mName;
+        std::list< std::string > mPatFileInit;
+        std::list< std::string > mDirInit;
+        cTplValGesInit< bool > mPurgeExe;
+};
+cElXMLTree * ToXMLTree(const cXmlTNR_GlobTest &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlTNR_GlobTest &);
+
+void  BinaryUnDumpFromFile(cXmlTNR_GlobTest &,ELISE_fp &);
+
+std::string  Mangling( cXmlTNR_GlobTest *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

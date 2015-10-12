@@ -47,6 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void cElErrorHandlor::OnError()
 {
+
 }
 
 cElErrorHandlor cElErrorHandlor::TheDefElErrorHandlor;
@@ -304,10 +305,11 @@ void Elise_Pile_Mess_0::display(const char * kind_of)
     msg += "|                                                                \n";
     msg += "-----------------------------------------------------------------\n";
 
+
     throwError(msg);
 
     AddMessErrContext(std::string("Kind of err ") + kind_of);
-    ElEXIT (1,"Elise_Pile_Mess_0::display");
+    ElEXIT (EXIT_FAILURE,"Elise_Pile_Mess_0::display");
 }
 
 INT Elise_Pile_Mess_0::_nb = 0;
