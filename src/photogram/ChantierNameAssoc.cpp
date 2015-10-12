@@ -2519,10 +2519,15 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     bool MPD_MM()
     {
-        //static bool aRes = ELISE_fp::exist_file(MMDir()+"MPD.txt");
         static bool aRes = MMUserEnv().UserName().Val() == "MPD";
         return aRes;
     }
+    bool ERupnik_MM()
+    {
+        static bool aRes = MMUserEnv().UserName().Val() == "ERupnik";
+        return aRes;
+    }
+
 
 bool DebugConvCal() {return false;}
 
