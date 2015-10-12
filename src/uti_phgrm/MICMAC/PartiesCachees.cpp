@@ -52,6 +52,8 @@ const cGenerePartiesCachees & aGPC, double aZMin, double aZMax)
 
 
 
+extern bool DEBUG_ZBB;
+Pt2di PT_BugZBB;
 
 
 
@@ -125,9 +127,30 @@ Pt3dr cMicMacZbuf::ProjTerrain(const Pt3dr & aPTer) const
    // On n'utilise pas la methode BasculeInv, qui devrait a peu pres
    // le faire car elle est redefinie
 
+
     double aPax[theDimPxMax] = {0,0};
     aPax[0] = aPTer.z;
     Pt2dr aPIm = mGeom.Objet2ImageInit_Euclid(Pt2dr(aPTer.x,aPTer.y),aPax);
+if (DEBUG_ZBB)
+{
+   Pt2di aPTI = Pt2di(aPTer.x,aPTer.y);
+   std::cout << "cMicMacZbuf::ProjTerrainXXXX  " << aPTer << " " << " " << aPIm  << " " << mTImTer.get(aPTI) << " \n";
+
+   
+   for (int aDx = -1 ; aDx<=1 ; aDx++)
+   { 
+       for (int aDy = -1 ; aDy<=1 ; aDy++)
+       {
+           PT_BugZBB =  Pt2di(aDx,aDy);
+           Pt2di aPV = aPTI + PT_BugZBB;
+           double aZ = ZofXY(aPV);
+           mGeom.Objet2ImageInit_Euclid(Pt2dr(aPV),&aZ);
+           // std::cout << " ZzzZzz " <<  mGeom.Objet2ImageInit_Euclid(Pt2dr(aPV),&aZ)  << " " << aZ << "\n";
+
+       }
+   }
+   std::cout << "====================================================\n\n";
+}
 /*
     if (mAppli.InversePx())
        return Pt3dr(aPIm.x,aPIm.y,1.0/aPTer.z);
@@ -941,6 +964,8 @@ void cAppliMICMAC::MakeOrtho
     Tiff_Im aFIn = Tiff_Im::StdConvGen(aNameIn.c_str(),aMOPI.NbChan().Val(),false);
 
     int aDzTer = mCurEtape->DeZoomTer();
+    // int aDzIm  = mCurEtape->DeZoomIm();
+
 
     int aNbC = aFIn.nb_chan();
     std::vector<Im2DGen *> mOrthos;
@@ -1017,6 +1042,7 @@ void cAppliMICMAC::MakeOrtho
             double aValTest = -1e10;
             for (aPO.y=0 ; aPO.y<aSzT.y ; aPO.y++)
             {
+
                 if (aTMasqT.get(aPO))
                 {
                     Pt2dr aPM  = aAfPOL2PML(Pt2dr(aPO));
@@ -1052,7 +1078,11 @@ void cAppliMICMAC::MakeOrtho
                            }
                            else
                            {
-                              ElSeg3D  aSeg = aGeom.FaisceauPersp(aPImInc * aDzTer);
+                              // ElSeg3D  aSeg = aGeom.FaisceauPersp(aPImInc * aDzTer);
+                              // MPD le 07/10/2015 , il semble que ce soit la cause des pb dans l'image
+                              // d'incidence
+                              ElSeg3D  aSeg = aGeom.FaisceauPersp(aPImInc);
+                              // ElSeg3D  aSeg = aGeom.FaisceauPersp(aPImInc * aDzIm);
                               double aTeta = acos(-aSeg.TgNormee().z);
                               if (aRF > 0)
                               {

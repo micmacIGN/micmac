@@ -373,6 +373,8 @@ class cVirtualInterface
 
     cCaseNamePoint *    GetCaseNamePoint(string name);
 
+    bool                DeleteCaseNamePoint(string name);
+
     void OUT_Map();
 protected:
 

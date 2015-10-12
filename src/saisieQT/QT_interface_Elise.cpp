@@ -316,6 +316,8 @@ void cQT_Interface::addPoint(QPointF point)
 
 void cQT_Interface::removePointGlobal(cSP_PointGlob * pPg)
 {
+    ELISE_DEBUG_ERROR(pPg == NULL, "cQT_Interface::removePointGlobal", "pPg == NULL");
+
     if (pPg && mAppli)
     {
         QString namePG(pPg->PG()->Name().c_str());
@@ -342,7 +344,6 @@ void cQT_Interface::removePointGlobal(cSP_PointGlob * pPg)
 
     DeletePoint( pPg );
     emit dataChanged(true);
-
 }
 
 bool  cQT_Interface::isPolygonZero()
@@ -353,8 +354,18 @@ bool  cQT_Interface::isPolygonZero()
 
 void cQT_Interface::removePoint(QString aName)
 {
-    if (mAppli && isPolygonZero())
-        removePointGlobal(mAppli->PGlobOfNameSVP(aName.toStdString()));
+
+	if (mAppli && isPolygonZero())
+	{
+		cSP_PointGlob *pPg = mAppli->PGlobOfNameSVP(aName.toStdString());
+		if (pPg == NULL)
+		{
+			mAppli->Interface()->DeleteCaseNamePoint(aName.toStdString());
+			emit dataChanged(true);
+		}
+		else
+			removePointGlobal(mAppli->PGlobOfNameSVP(aName.toStdString()));
+	}
 }
 
 void cQT_Interface::movePoint(int idPt)

@@ -767,6 +767,7 @@ cBGC3_Modif2D::cBGC3_Modif2D(cBasicGeomCap3D * aCam0,const std::string & aName,c
 {
 }
 
+
 ElSeg3D  cBGC3_Modif2D::Capteur2RayTer(const Pt2dr & aP) const
 {
     return mCam0->Capteur2RayTer(CurIm2CamInit(aP));

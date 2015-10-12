@@ -265,7 +265,8 @@ void cAppliApero::ExportPose(const cExportPose & anEP,const std::string & aPref)
        {
           if (aPC==0)
           {
-              static cElRegex anExpr (".*Ori-(.*)/Orientation-.*.PEF.xml",10);
+              static cElRegex anExpr (".*Ori-(.*)/Orientation-.*\.xml",10);
+
               if ( anEP.StdNameMMDir().IsInit())
               {
                 // MakeFileXML(anEP,"toto.xml");

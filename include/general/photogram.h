@@ -1786,6 +1786,7 @@ class ElCamera : public cCapture3D
           bool    HasDomaineSpecial() const;
 
          virtual ElDistortion22_Gen   *  DistPreCond() const ;
+         ElDistortion22_Gen   *  StaticDistPreCond() const ;
   // Eventuellement a redef; now : DistPreCond != 0
          bool IsForteDist() const;
 
@@ -1893,6 +1894,9 @@ class ElCamera : public cCapture3D
          Pt3dr  mVitesse;
          bool   mVitesseIsInit;
          Pt3dr  mIncCentre;
+
+         mutable ElDistortion22_Gen *mStatDPC;
+         mutable bool                mStatDPCDone;
 };
 
 
