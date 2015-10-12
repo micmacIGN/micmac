@@ -146,15 +146,15 @@ int Campari_main(int argc,char ** argv)
         SplitDirAndFile(aDir,aPat,aFullDir);
         StdCorrecNameOrient(AeroIn,aDir);
 
-        Pt2dr Focales(0,100000);
-        std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
-        std::string aSetIm = "NKS-Set-OfPatternAndFoc" + aParamPatFocSetIm;
+        std::string aSetIm = "NKS-Set-OfPattern@" + aPat;
 
 
         if (EAMIsInit(&aImMinMax))
         {
+            // Pt2dr Focales(0,100000);
+            // std::string aParamPatFocSetIm = "@" + aPat + "@" + ToString(Focales.x) + "@" + ToString(Focales.y) ;
             ELISE_ASSERT(aImMinMax.size()==2,"Bad size in vect");
-            aSetIm =  "NKS-Set-OfPatternAndFocAndInterv" + aParamPatFocSetIm + "@" + aImMinMax[0] + "@" + aImMinMax[1];
+            aSetIm =  "NKS-Set-OfPatternAndInterv" + aPat + "@" + aImMinMax[0] + "@" + aImMinMax[1];
         }
 
 

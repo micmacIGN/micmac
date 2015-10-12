@@ -518,6 +518,7 @@ class cAppli_MPI2Mnt
          std::string mPat;
          std::string mStrRep;
          std::string mDirMTD;
+         std::string mDirOrtho;
          std::string mDirBasc;
          std::string mNameMerge;
          std::string mNameOriMerge;
@@ -529,6 +530,8 @@ class cAppli_MPI2Mnt
          bool                     mDoOrtho;
          std::string			  mMasqImGlob;
          bool                     mDebug;
+         bool                     mPurge;
+         bool        mUseTA;
          void ExeCom(const std::string & aCom);
 };
 
@@ -588,6 +591,7 @@ void cAppli_MPI2Mnt::DoOrtho()
                          +    " +Ori=" +  mCFPI->mOri                 + BLANK
                          +    " +DeZoom=" +ToString(mDeZoom)   + BLANK
                          +    " WorkDir=" + mDirApp
+                         +    " +DirOrthoF=" + mDirOrtho
                       ;
     if (EAMIsInit(&mMasqImGlob)) aCom +=  " +UseGlobMasqPerIm=1  +GlobMasqPerIm="+mMasqImGlob;
 
@@ -671,6 +675,7 @@ void cAppli_MPI2Mnt::DoMTD()
                           + mStrRep
                           + " DoMEC=0  Purge=true ZoomI=4 ZoomF=2  IncMax=1.0 " +
                           + " DirMEC=" + mDirMTD
+                          + " UseTA=" + ToString(mUseTA)
                           + " ZoomF=" + ToString(mDeZoom)
                        ;
 
@@ -681,6 +686,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mDS       (1.0),
     mDeZoom   (2),
     mDirMTD   ("PIMs-TmpMnt/"),
+    mDirOrtho  ("PIMs-ORTHO/"),
     mDirBasc   ("PIMs-TmpBasc/"),
     mNameMerge ("PIMs-Merged.xml"),
     mNameOriMerge ("PIMs-ZNUM-Merged.xml"),
@@ -689,7 +695,9 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
     mDoMnt       (true),
     mDoOrtho     (false),
     mMasqImGlob (""),
-    mDebug       (false)
+    mDebug       (false),
+    mPurge       (true),
+    mUseTA       (false)
 {
    ElInitArgMain
    (
@@ -703,16 +711,25 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mDoOrtho,"DoOrtho",true,"Generate ortho photo,  def=false")
                     << EAM(mMasqImGlob,"MasqImGlob",true,"Global Masq for ortho: if used, give full name of masq (e.g. MasqGlob.tif) ",eSAM_IsExistFileRP)
                     << EAM(mDebug,"Debug",true,"Debug !!!",eSAM_InternalUse)
+                    << EAM(mUseTA,"UseTA",true,"Use TA as filter when exist (Def=false)",eSAM_InternalUse)
    );
 
    if (mDoOrtho && (!EAMIsInit(&mDoMnt))) mDoMnt = mDoOrtho;
 
    if (MMVisualMode) return;
 
+
    mCFPI = new cChantierFromMPI(mName,mDS,mPat);
    mDirApp = mCFPI->mFullDirChantier;
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirApp);
    mSetIm = mICNM->Get(mCFPI->mStrPat);
+
+// Probleme d'incoherence et pas purgee !!!
+   if ((mPurge) && (!mDebug))
+   {
+      ELISE_fp::PurgeDirRecursif(mDirApp+mDirMTD);
+      ELISE_fp::PurgeDirRecursif(mDirApp+mDirBasc);
+   }
 
    if (EAMIsInit(&mRep))
    {

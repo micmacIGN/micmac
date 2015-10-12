@@ -286,6 +286,7 @@ void ELISE_fp::RmFileIfExist(const std::string & aFile)
 
 void ELISE_fp::RmFile(const std::string & aFile)
 {
+
 #if ELISE_windows
 	if ( DeleteFile( aFile.c_str() )==0 )
 	{
