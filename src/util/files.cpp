@@ -283,6 +283,40 @@ void ELISE_fp::RmFileIfExist(const std::string & aFile)
       ELISE_fp::RmFile(aFile);
 }
 
+int  ELISE_fp::CmpFiles(const std::string & aN1,const std::string & aN2)
+{
+    FILE * aFp1 = fopen(aN1.c_str(),"r");
+    FILE * aFp2 = fopen(aN2.c_str(),"r");
+
+    if (aFp1==0) 
+    {
+       if (aFp2==0) return 0;
+       ::fclose(aFp2);
+       return -1;
+    }
+
+    if (aFp2==0)
+    {
+         ::fclose(aFp1);
+         return 1;
+    }
+
+    while (1)
+    {
+         int aC1 = ::fgetc(aFp1);
+         int aC2 = ::fgetc(aFp2);
+
+         if ((aC1!=aC2) || (aC1==EOF))
+         {
+             ::fclose(aFp1);
+             ::fclose(aFp2);
+             if (aC1==aC2) return 0;
+              return (aC1<aC2) ? -1 : 1;
+         }
+    }
+    return 0; // anti warning
+}
+
 
 void ELISE_fp::RmFile(const std::string & aFile)
 {
