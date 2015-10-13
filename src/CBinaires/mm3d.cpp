@@ -678,10 +678,9 @@ int SampleLibElise_main(int argc, char ** argv)
 
     // std::cout << "TEST ELISE LIB\n";
 
-    GenMain(argc, argv, TestLibAvailableCommands());
+    return GenMain(argc, argv, TestLibAvailableCommands());
 
 
-    return 0;
 }
 
 //SateLib declarations
@@ -725,9 +724,8 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 int SateLib_main(int argc, char ** argv)
 {
 
-    GenMain(argc, argv, SateLibAvailableCommands());
+    return GenMain(argc, argv, SateLibAvailableCommands());
 
-    return 0;
 }
 
 //=====================================
