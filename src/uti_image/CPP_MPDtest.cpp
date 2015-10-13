@@ -941,6 +941,11 @@ cXml_Ori2Im  aXmlOri = StdGetFromSI(aName,Xml_Ori2Im);
 std_unique_ptr<char> toto;
 
 
+
+
+#endif
+
+
 int SysCalled_main (int argc,char** argv)
 {
     int aResul;
@@ -966,18 +971,12 @@ int SysCall_main (int argc,char** argv)
         {
             std::string aCom = "mm3d TestLib SysCalled "+ ToString(aK) + " BE=" + ToString(aBE!=0);
             int aV = system(aCom.c_str());
-            std::cout << "aK= " << aK << " Got=" << aV  << " " << (aV>>8) << "  BE=" << aBE << "\n";
+            std::cout << "aK= " << aK << " Got=" << aV  << " " << (int)((char*)&aV)[1] << "  BE=" << aBE << "\n";
         }
     }
-
     return EXIT_SUCCESS;
 }
 
-
-
-
-
-#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
