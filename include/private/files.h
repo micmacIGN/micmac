@@ -180,6 +180,7 @@ class  ELISE_fp
 	 static void RmDir(const std::string &);
 	 static void PurgeDirGen(const std::string &,bool Recurs);
 	 static void PurgeDirRecursif(const std::string &);
+         static int  CmpFiles(const std::string & aF1,const std::string & aF2); // return -1, 0 ou 1 
       
          ~ELISE_fp();
          ELISE_fp(eModeBinTxt ModeBin=eTxtOnPremierLigne);
