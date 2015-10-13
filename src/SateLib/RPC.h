@@ -142,7 +142,7 @@ public:
                 dirErrBiasY(0),
 		IS_DIR_INI(false),
 		IS_INV_INI(false),
-		mNumTile(1)
+        mRecGrid(50,50,10)
         {
         }
         double indirErrBiasRow;
@@ -151,9 +151,9 @@ public:
         double dirErrBiasY;
 
         bool IS_DIR_INI;
-	bool IS_INV_INI;
-        
-	int mNumTile;
+	    bool IS_INV_INI;
+    
+        Pt3di mRecGrid;
 
         Pt3dr DirectRPCNorm(Pt3dr)const;
         Pt3dr InverseRPCNorm(Pt3dr)const;
@@ -274,19 +274,27 @@ public:
         }
 
         //For Dimap v2
-        void ReadDimap(std::string const &filename);
-        void WriteAirbusRPC(std::string aFileOut);
+    void ReadDimap(std::string const &filename);
+    void WriteAirbusRPC(std::string aFileOut);
 	void ReconstructValidity();
 	void ReconstructValidity2D();
 	void ReconstructValidity3D();
 
+    void SetNewLongLatHScaleOffset(double& aLongMin,
+                                   double& aLongMax,
+                                   double& aLatMin,
+                                   double& aLatMax,
+                                   double& aHMin,
+                                   double& aHMax);
+
+
         //For DigitalGlobe data
-        void ReadRPB(std::string const &filename);
-        void ReadXML(std::string const &filename);
+    void ReadRPB(std::string const &filename);
+    void ReadXML(std::string const &filename);
 
 	//For IKONOS/CartoSat
 	void ReadASCII(std::string const &filename);
-        int  ReadASCIIMetaData(std::string const &metafilename, std::string const &filename);
+    int  ReadASCIIMetaData(std::string const &metafilename, std::string const &filename);
         
 	//For Aster
 
@@ -296,22 +304,42 @@ public:
 		void AsterMetaDataXML(std::string filename);
 
 	//For all but Dimap
-	void InverseToDirectRPC(const Pt2di &aGridSz);//random h
-	void InverseToDirectRPC(const Pt3di &aGridSz);//regular grid
+	void InverseToDirectRPC();
 
-                //Construction of RPCs
-				vector<vector<Pt3dr> > GenerateNormLineOfSightGrid(int nbLayers, double aHMin, double aHMax);
-                // Old version, not to be used ----- vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
-                vector<Pt3dr> GenerateRandNormGrid(const Pt2di &aGridSz);
-                vector<Pt3dr> GenerateNormGrid(const Pt3di &aGridSz);
-				void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
-                void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
-				void ComputeNormFactors(double aHMin, double aHMax);
-                void Validity2Dto3D(RPC2D aRPC2D);
+    //Construction of RPCs
+    vector<vector<Pt3dr> > GenerateNormLineOfSightGrid(int nbLayers, double aHMin, double aHMax);
+    // Old version, not to be used ----- vector<Pt3dr> GenerateRandNormGrid(u_int gridSize);
+    vector<Pt3dr> GenerateRandNormGrid(const Pt2di &aGridSz);
+    vector<Pt3dr> GenerateNormGrid(const Pt3di &aGridSz);
+	void GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
+    void GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm);
+	void ComputeNormFactors(double aHMin, double aHMax);
+    void Validity2Dto3D(RPC2D aRPC2D);
 
 	void TestDirectRPCGen(const std::string aTargetCS);
 
 	void ChSysRPC(const cSystemeCoord &);
+    void SetRecGrid();   
+
+private:
+    void SetNewLongLatH(double& aLongMin,
+                        double& aLongMax,
+                        double& aLatMin,
+                        double& aLatMax,
+                        double& aHMin,
+                        double& aHMax);
+
+    void SetNewScaleOffset( double& aLongMin,
+                            double& aLongMax,
+                            double& aLatMin,
+                            double& aLatMax,
+                            double& aHMin,
+                            double& aHMax);
+    
+    void ReconstructValidityLong();
+    void ReconstructValidityLat();
+	void ReconstructValidityH();
+        
 
 };
 #endif
