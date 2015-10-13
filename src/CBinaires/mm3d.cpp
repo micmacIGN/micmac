@@ -542,12 +542,18 @@ int CPP_NewGenTriOfCple(int argc, char ** argv);
 int CPP_TestBundleGen(int argc,char ** argv)   ;
 
 
+int SysCalled_main (int argc,char** argv);
+int SysCall_main (int argc,char** argv);
+
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
 
+   aRes.push_back(cMMCom("SysCall",SysCall_main,"Some stuff "));
+   aRes.push_back(cMMCom("SysCalled",SysCalled_main,"Some stuff "));
 
    aRes.push_back(cMMCom("PrepSift",PreparSift_Main,"Some stuff "));
    aRes.push_back(cMMCom("TD1",TD_Match1_main,"Some stuff "));
@@ -672,10 +678,9 @@ int SampleLibElise_main(int argc, char ** argv)
 
     // std::cout << "TEST ELISE LIB\n";
 
-    GenMain(argc, argv, TestLibAvailableCommands());
+    return GenMain(argc, argv, TestLibAvailableCommands());
 
 
-    return 0;
 }
 
 //SateLib declarations
@@ -719,9 +724,8 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 int SateLib_main(int argc, char ** argv)
 {
 
-    GenMain(argc, argv, SateLibAvailableCommands());
+    return GenMain(argc, argv, SateLibAvailableCommands());
 
-    return 0;
 }
 
 //=====================================
