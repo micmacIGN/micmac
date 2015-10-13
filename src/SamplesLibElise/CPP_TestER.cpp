@@ -42,6 +42,70 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
+class cAppliTuak
+{
+    public:
+        cAppliTuak(int argc,char ** argv);
+
+    private:
+        std::string mDir;
+        std::string mIms;
+        std::string mOri;
+
+
+};
+
+cAppliTuak::cAppliTuak(int argc,char ** argv):
+    mDir(""),
+    mIms(""),
+    mOri("")
+{
+    std::string aFullName = "";
+    std::string aComMalt = "";
+    
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() << EAMC(aFullName,"Full Name (Dir+Pattern)")
+                   << EAMC(mOri,"Orientation directory"),
+        LArgMain()
+    );
+
+    SplitDirAndFile(mDir,mIms,aFullName);
+    setInputDirectory(mDir);
+
+    aComMalt = MM3dBinFile_quotes("Malt")
+           + " UrbanMNE " 
+           + aFullName + " "
+           + mOri +
+           + " NbVI=2 NbProc=1";
+
+    TopSystem(aComMalt.c_str());
+}
+
+
+//salient points
+int TestER_Tuak_main(int argc,char ** argv)
+{
+    cAppliTuak aAppli(argc,argv);
+
+    //tile the image
+    //run matching without regularization on respective tiles 
+    //       in eGeomMNTFaisceauIm1ZTerrain Px1D 
+    //       (result saved to hard drive)
+    //read the correlations and depth fields
+    //given the connectivity take the left image + its correlation image
+    //       pick the salient points (corrlation works as a mask)
+    //       get the depth for every point and backproject to all connected imgs
+    //       you can do poly fitting on the coeff to get subpix accuracy
+    //       save the points just as they are saved in Tapas (same data structure)
+
+    //* cAppliKeyPtsPB?
+    //if I give Malt many images..how does it pick the matching order...intercept this info to your appli
+
+    return EXIT_SUCCESS;
+}
+
 //visualize satellite image deformation
 int TestER_main(int argc,char ** argv)
 {
@@ -111,6 +175,7 @@ int TestER_main(int argc,char ** argv)
 
     TIm2D<INT,INT> aImX(aSzSca), aImY(aSzSca), aImXY(aSzSca);
 
+//ask MPD wether or not the poly starts with shift
     for(aP1=0; aP1<aSzSca.x; aP1++)
     {
         for(aP2=0; aP2<aSzSca.y; aP2++)
@@ -225,7 +290,6 @@ int TestER_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-//do matching in push-broom and pick salient points
 int DoTile_main(int argc,char ** argv)
 {
     std::string aDirTmp = "Tmp-TIL", aPrefixName = "_TIL_";
@@ -449,7 +513,7 @@ int DoTile_main(int argc,char ** argv)
 		//save img
                 aTmp = aDirTmp + "//" + aIm2Name.substr(0,aIm2Name.size()-4) + 
                        aPrefixName + ToString(aK1) + "_" + ToString(aK2) + 
-                       "_Pt_" + ToString(aMin.x) + "_" + ToString(aMin.y) + 
+                       "_Pt_" + ToString(int(aMin.x)) + "_" + ToString(int(aMin.y)) + 
                        ".tif";
 
 

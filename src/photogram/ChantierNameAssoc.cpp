@@ -2517,7 +2517,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     std::string current_program_fullname()   { return CurrentProgramFullName;}
     std::string current_program_subcommand() { return CurrentProgramSubcommand;}
 
-    bool MPD_MM()
+    bool (MPD_MM())
     {
         static bool aRes = MMUserEnv().UserName().Val() == "MPD";
         return aRes;

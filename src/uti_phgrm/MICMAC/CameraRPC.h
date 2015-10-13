@@ -26,7 +26,6 @@ Francais :
    au contexte de recherche en information geographique. Il s'appuie sur
    la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
    licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
-/bin/bash: :w : commande introuvable
 
 English :
 
@@ -44,32 +43,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../SateLib/RPC.h"
 #include "../../../include/XML_GEN/SuperposImage.h"
 
-/*class cComp3DBasic : public cBasicGeomCap3D
-{
-    public:
-        cComp3DBasic(cBasicGeomCap3D * aCam);
-         
-
-	virtual ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
-	virtual Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
-	virtual Pt2di    SzBasicCapt3D() const ;
-
-	virtual double ResolSolOfPt(const Pt3dr &) const;
-	virtual bool   CaptHasData(const Pt2dr &) const;
-	virtual bool   PIsVisibleInImage   (const Pt3dr & aP) const;
-	virtual Pt3dr  RoughCapteur2Terrain   (const Pt2dr & aP) const;
-
-	virtual bool   HasOpticalCenterOfPixel() const;
-	virtual Pt3dr  OpticalCenterOfPixel(const Pt2dr & aP) const;
-
-
-        virtual Pt3dr Origin2TargetCS(const Pt3dr & aP) const;
-        virtual Pt3dr Target2OriginCS(const Pt3dr & aP) const;
-
-    protected:
-        cBasicGeomCap3D * mCam0;
-};*/
-
 
 class CameraRPC : public cBasicGeomCap3D
 {
@@ -80,8 +53,9 @@ class CameraRPC : public cBasicGeomCap3D
 			  const Pt2di &aGridSz, 
 			  const std::string &aMetaFile="");
 		CameraRPC(const std::string &aNameFile, 
-                          const eTypeImporGenBundle &aType, 
-   	                  const cSystemeCoord * aChSys=0);
+                  const eTypeImporGenBundle &aType, 
+   	              const cSystemeCoord * aChSys=0,
+                  const double aAltiSol=0);
 
 		~CameraRPC();
 
@@ -152,6 +126,8 @@ class CameraRPC : public cBasicGeomCap3D
                 //Pt3dr Target2OriginCS(const Pt3dr & aP);
 		
 		const std::string FindUTMCS();
+
+        void UpdateValidity3DFromPix() const;
 
         void AssertRPCDirInit() const;
 		void AssertRPCInvInit() const;

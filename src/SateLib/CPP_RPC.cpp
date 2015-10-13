@@ -41,6 +41,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include "RPC.h"
 
+extern bool DEBUG_ZBB;
+extern Pt2di PT_BugZBB;
+
 //Important note:
 //pt.x is either the column in image space or the longitude in geographic coordinates or the easting  in projected coordinates
 //pt.y is either the row    in image space or the latitude  in geographic coordinates or the northing in projected coordinates
@@ -419,6 +422,9 @@ void RPC::ReadDimap(std::string const &filename)
             buffer10 >> line_off;
         }
     }
+
+    ReconstructValidityH();
+
     IS_DIR_INI=true;
     IS_INV_INI=true;
 }
@@ -869,7 +875,52 @@ void RPC::WriteAirbusRPC(std::string aFileOut)
 void RPC::ReconstructValidity()
 {
     ReconstructValidity2D();
+    
     ReconstructValidity3D();
+}
+
+void RPC::SetNewLongLatHScaleOffset(double& aLongMin,
+                         double& aLongMax,
+                         double& aLatMin,
+                         double& aLatMax,
+                         double& aHMin,
+                         double& aHMax)
+{
+    SetNewScaleOffset(aLongMin,aLongMax,aLatMin,aLatMax,aHMin,aHMax);
+    SetNewLongLatH(aLongMin,aLongMax,aLatMin,aLatMax,aHMin,aHMax);
+
+}
+
+void RPC::SetNewLongLatH(double& aLongMin,
+                         double& aLongMax,
+                         double& aLatMin,
+                         double& aLatMax,
+                         double& aHMin,
+                         double& aHMax)
+{
+    first_lon = aLongMin;
+    last_lon = aLongMax;
+    first_lat = aLatMin;
+    last_lat = aLatMax;
+    first_height = aHMin;
+    last_height = aHMax;
+}
+
+void RPC::SetNewScaleOffset(double& aLongMin,
+                            double& aLongMax,
+                            double& aLatMin,
+                            double& aLatMax,
+                            double& aHMin,
+                            double& aHMax)
+{
+    long_scale = (aLongMax - aLongMin)/2;
+    lat_scale = (aLatMax - aLatMin)/2;
+    height_scale = (aHMax - aHMin)/2;
+    
+    long_off = aLongMin + long_scale;
+    lat_off = aLatMin + lat_scale;
+    height_off = aHMin + height_scale;
+
 }
 
 void RPC::ReconstructValidity2D()
@@ -882,11 +933,27 @@ void RPC::ReconstructValidity2D()
 
 void RPC::ReconstructValidity3D()
 {
+    ReconstructValidityLong();
+    ReconstructValidityLat();
+    ReconstructValidityH();
+    
+}
+
+void RPC::ReconstructValidityLong()
+{
     first_lon = -1 * long_scale + long_off;
-    first_lat = -1 * lat_scale + lat_off;
-    first_height = -1 * height_scale + height_off;
     last_lon = 1 * long_scale + long_off;
+}
+
+void RPC::ReconstructValidityLat()
+{
+    first_lat = -1 * lat_scale + lat_off;
     last_lat = 1 * lat_scale + lat_off;
+}
+
+void RPC::ReconstructValidityH()
+{
+    first_height = -1 * height_scale + height_off;
     last_height = 1 * height_scale + height_off;
 }
 
@@ -1327,6 +1394,10 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	double* aDataCol = aSolCol.data();
 	double* aDataRow = aSolRow.data();
 
+    std::cout << "ResiduOfSol aSolCol " << double(aSysCol.ResiduOfSol(aSolCol.data())/aGridGeoNorm.size()) << "\n";
+
+    std::cout << "ResiduOfSol aSolRow " << double(aSysCol.ResiduOfSol(aSolRow.data()))/aGridGeoNorm.size() << "\n";
+
 	//Copying Data in RPC object
 	//Numerators
 	for (int i = 0; i<20; i++)
@@ -1347,22 +1418,26 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 {
 
-    //generate the grid in (original) geodetic CS
-    int aK1, aK2, aK3, aSampl = 50;
-    Pt3dr aP;
-    Pt3dr aStep(double(abs(first_lon-last_lon))/aSampl,
-		        double(abs(first_lat-last_lat))/aSampl,
-		        double(abs(first_height-last_height))/aSampl);
+    int aK1, aK2, aK3;
+    Pt3dr aP, aStep;
+    
+    
+    aStep = Pt3dr(double(abs(first_lon-last_lon))/mRecGrid.x,
+		         double(abs(first_lat-last_lat))/mRecGrid.y,
+		         double(abs(first_height-last_height))/mRecGrid.z);
     
     std::vector<Pt3dr> aGridOrg, aGridCarto, aGridImg;
+
+    
+    std::cout << "RPC::ChSysRPC " << ",mRecGrid " << mRecGrid << "\n"; 
 
     // MPD => GetUnikId , else conflict when in // exec
     std::string aTmpIn = "Proj4InputRPC"+ GetUnikId() +".txt";
     FILE * aFPin = FopenNN(aTmpIn,"w","RPC::ChSysRPC");
 
-    for(aK1=0; aK1<aSampl; aK1++)
-       for(aK2=0; aK2<aSampl; aK2++)
-	      for(aK3=0; aK3<aSampl; aK3++)
+    for(aK1=0; aK1<mRecGrid.x; aK1++)
+       for(aK2=0; aK2<mRecGrid.y; aK2++)
+	      for(aK3=0; aK3<mRecGrid.z; aK3++)
 	      {
 		     aP = Pt3dr(first_lon+aStep.x*aK1,
 			            first_lat+aStep.y*aK2,
@@ -1371,7 +1446,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 		     aGridOrg.push_back(aP);
 
              fprintf(aFPin,"%.20f %.20f %.20f\n",aP.x,aP.y,aP.z);
-	    }
+	      }
     ElFclose(aFPin);
 
     //convert to carto
@@ -1433,8 +1508,10 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
         if(aGridCarto.at(aK1).z > Z_max)
 	       Z_max = aGridCarto.at(aK1).z;
     }
+   
+    SetNewLongLatHScaleOffset(X_min,X_max,Y_min,Y_max,Z_min,Z_max);
     
-    first_lon = X_min;
+    /*first_lon = X_min;
     last_lon = X_max;
     first_lat = Y_min;
     last_lat = Y_max;
@@ -1448,7 +1525,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     long_off = X_min + long_scale;
     lat_off = Y_min + lat_scale;
     height_off = Z_min + height_scale;
-
+*/
     for(aK1=0; aK1<int(aGridCarto.size()); aK1++)
     {
         aGridCarto.at(aK1).x = (aGridCarto.at(aK1).x - lat_off)/lat_scale;
@@ -1467,6 +1544,26 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     //learn direct projection function for xy and XYZ_carto_norm
     GCP2Direct(aGridOrg, aGridImg);    
 
+    
+}
+
+void RPC::SetRecGrid()
+{
+    //500 based on [Tao & Hu, 2001]
+    int aHorizIntInPix = 500, aVertIntInM = 100;
+    int aSampl, aSamplZ;
+
+    aSampl = floor(double(last_row)/aHorizIntInPix);
+    aSamplZ = floor(double(abs(first_height-last_height))/aVertIntInM);
+
+    //if there is less than 5 layers in Z ([Tao & Hu, 2001] suggest min of 3)
+    while(aSamplZ<4)
+        aSamplZ++;
+    //if the grid does not suffice to calculate 78 coefficients of the RPCs
+    while( (aSampl*aSampl*aSamplZ)<80 )
+        aSampl++;
+   
+    mRecGrid = Pt3di(aSampl,aSampl,aSamplZ);
     
 }
 
@@ -1603,8 +1700,8 @@ void RPC::ReadXML(std::string const &filename)
     last_col = std::atof(nodes->GetUniqueVal().c_str()) - 1;
 
 
-    nodes = tree.GetUnique(std::string("NUMTILES"));
-    mNumTile = std::atoi(nodes->GetUniqueVal().c_str());
+    /*nodes = tree.GetUnique(std::string("NUMTILES"));
+    mNumTile = std::atoi(nodes->GetUniqueVal().c_str());*/
    
     
     nodes = tree.GetUnique(std::string("ERRBIAS"));
@@ -2149,44 +2246,22 @@ int RPC::ReadASCIIMetaData(std::string const &metafilename, std::string const &f
     return EXIT_FAILURE;
 }
 
-void RPC::InverseToDirectRPC(const Pt3di &aGridSz)
+void RPC::InverseToDirectRPC()
 {
     //Check if inverse exists
     ELISE_ASSERT(IS_INV_INI,"No inverse RPC's for conversion in RPC::InverseToDirectRPC");
 
     /* What follows is re-writen from DigitalGlobe2Grid 
      * BUT
-     * the generated grid is not random but regular in h */
+     * generated on a diff grid */
     /****************************************************/
 
     //Generate a regular grid on the normalized spac 
-    vector<Pt3dr> aGridGeoNorm = GenerateNormGrid(aGridSz);
+    vector<Pt3dr> aGridGeoNorm = GenerateNormGrid(mRecGrid);
 
     //Converting the points to image space
     u_int aG;
 
-    vector<Pt3dr> aGridImNorm;
-    for (aG = 0; aG < aGridGeoNorm.size(); aG++)
-        aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[aG]));
-    
-    GCP2Direct(aGridGeoNorm, aGridImNorm);
-
-    IS_DIR_INI=true;
-}
-
-void RPC::InverseToDirectRPC(const Pt2di &aGridSz)
-{
-    //Check if inverse exists
-    ELISE_ASSERT(IS_INV_INI,"No inverse RPC's for conversion in RPC::InverseToDirectRPC");
-
-    /* What follows is re-writen from DigitalGlobe2Grid */
-    /****************************************************/
-
-    //Generate a random grid on the normalized spac 
-    vector<Pt3dr> aGridGeoNorm = GenerateRandNormGrid(aGridSz);
-
-    //Converting the points to image space
-    u_int aG;
     vector<Pt3dr> aGridImNorm;
     for (aG = 0; aG < aGridGeoNorm.size(); aG++)
         aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[aG]));

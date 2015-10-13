@@ -121,6 +121,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 		     const std::string &aMetaFile) :
        mProfondeurIsDef(false),	
        mAltisSolIsDef(false),
+       mAltiSol(0),
        mOptCentersIsDef(false),
        mOpticalCenters(new std::vector<Pt3dr>()),
        mGridSz(aGridSz),
@@ -144,7 +145,10 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    if (aType==eTIGB_MMDimap2)
    {   
        mRPC->ReadDimap(aNameFile);
-       mRPC->ReconstructValidity3D();
+       
+       UpdateValidity3DFromPix();
+
+       mRPC->SetRecGrid();
 
        mRPC->ChSysRPC(*mChSys);
    }
@@ -155,9 +159,13 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    else if(aType==eTIGB_MMDGlobe )
    {
        mRPC->ReadXML(aNameFile);
-       mRPC->InverseToDirectRPC(Pt3di(50,50,10));
-       mRPC->ReconstructValidity3D();       
 
+       mRPC->InverseToDirectRPC();
+       
+       UpdateValidity3DFromPix();
+        
+       mRPC->SetRecGrid();
+       
        mRPC->ChSysRPC(*mChSys);
 
    }
@@ -165,7 +173,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    {
        mRPC->ReadASCII(aNameFile);
        mRPC->ReadASCIIMetaData(aMetaFile, aNameFile);
-       mRPC->InverseToDirectRPC(Pt2di(50,50));
+       mRPC->InverseToDirectRPC();
    }
    else if (aType == eTIGB_MMASTER)
    {
@@ -184,12 +192,13 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 }
 
 CameraRPC::CameraRPC(const std::string &aNameFile, 
-		     const eTypeImporGenBundle &aType,
-		     const cSystemeCoord * aChSys) : 
-        mChSys(aChSys),
+		             const eTypeImporGenBundle &aType,
+		             const cSystemeCoord * aChSys,
+                     const double aAltiSol) : 
+                     mChSys(aChSys),
 	mProfondeurIsDef(false),
 	mAltisSolIsDef(true),
-	mAltiSol(0),
+	mAltiSol(aAltiSol),
 	mOptCentersIsDef(false),
 	mOpticalCenters(new std::vector<Pt3dr>()),
 	mGridSz(Pt2di(10,10)),
@@ -216,18 +225,26 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     if(aType==eTIGB_MMDimap2)
     {
         mRPC->ReadDimap(aNameFile);
-        mRPC->ReconstructValidity3D();
+        mRPC->info();
         
-	if(aChSys!=0)
+        UpdateValidity3DFromPix(); 
+        
+        mRPC->SetRecGrid();
+
+	    if(aChSys!=0)
             mRPC->ChSysRPC(*aChSys);
     }
     else if(aType==eTIGB_MMDGlobe)
     {
         mRPC->ReadXML(aNameFile);
-        mRPC->ReconstructValidity3D();
-	mRPC->InverseToDirectRPC(Pt3di(50,50,10));
         
-	if(aChSys!=0)
+        mRPC->InverseToDirectRPC();
+        
+        UpdateValidity3DFromPix();
+        
+        mRPC->SetRecGrid();
+
+	    if(aChSys!=0)
             mRPC->ChSysRPC(*aChSys);
     }
     /*else if(aType==eTIGB_MMIkonos)
@@ -250,7 +267,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
 
-//    mRPC->info();
+    mRPC->info();
 }
 
 cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
@@ -958,6 +975,49 @@ const std::string CameraRPC::FindUTMCS()
 
     return aRes;
     //std::cout << aRes << std::endl;
+}
+
+//in case an image subset is used and the validity must be updated
+void CameraRPC::UpdateValidity3DFromPix() const
+{
+    std::vector<double> aLongVec, aLatVec;
+    
+    //north-west image corner
+    ElSeg3D aTmpSeg(Capteur2RayTer(Pt2dr(mRPC->first_col,mRPC->first_row)));
+    aLongVec.push_back(aTmpSeg.P0().x);
+    aLongVec.push_back(aTmpSeg.P1().x);
+    aLatVec.push_back(aTmpSeg.P0().y);
+    aLatVec.push_back(aTmpSeg.P1().y);
+
+    //north-east image corner
+    aTmpSeg = Capteur2RayTer(Pt2dr(mRPC->last_col,mRPC->first_row));
+    aLongVec.push_back(aTmpSeg.P0().x);
+    aLongVec.push_back(aTmpSeg.P1().x);
+    aLatVec.push_back(aTmpSeg.P0().y);
+    aLatVec.push_back(aTmpSeg.P1().y);
+
+    //south-east image corner
+    aTmpSeg = Capteur2RayTer(Pt2dr(mRPC->last_col,mRPC->last_row));
+    aLongVec.push_back(aTmpSeg.P0().x);
+    aLongVec.push_back(aTmpSeg.P1().x);
+    aLatVec.push_back(aTmpSeg.P0().y);
+    aLatVec.push_back(aTmpSeg.P1().y);
+
+    //south-west image corner
+    aTmpSeg = Capteur2RayTer(Pt2dr(mRPC->first_col,mRPC->last_row));
+    aLongVec.push_back(aTmpSeg.P0().x);
+    aLongVec.push_back(aTmpSeg.P1().x);
+    aLatVec.push_back(aTmpSeg.P0().y);
+    aLatVec.push_back(aTmpSeg.P1().y);
+
+    //update the validity zone in object space
+    mRPC->SetNewLongLatHScaleOffset(*std::min_element(aLongVec.begin(),aLongVec.end()),
+                              *std::max_element(aLongVec.begin(),aLongVec.end()),
+                              *std::min_element(aLatVec.begin(),aLatVec.end()),
+                              *std::max_element(aLatVec.begin(),aLatVec.end()),
+                              mRPC->first_height,
+                              mRPC->last_height);
+
 }
 
 
