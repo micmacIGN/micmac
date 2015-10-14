@@ -22,8 +22,9 @@ INCLUDE_DIRECTORIES(${SAISIE_DIR}/include_QT)
                     ${SAISIE_DIR}/Settings.cpp
                     ${SAISIE_DIR}/QT_interface_Elise.cpp
                     ${SAISIE_DIR}/Tree.cpp
-		    ${SAISIE_DIR}/mmglu.cpp
-		    ${SAISIE_DIR}/WorkbenchWidget.cpp
+                    ${SAISIE_DIR}/mmglu.cpp
+                    ${SAISIE_DIR}/WorkbenchWidget.cpp
+                    ${SAISIE_DIR}/MipmapHandler.cpp
 )
 
 if ( ${qt_version} EQUAL 4)

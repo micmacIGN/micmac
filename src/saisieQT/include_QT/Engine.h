@@ -1,6 +1,11 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+//~ #define USE_MIPMAP_HANDLER
+
+#ifdef USE_MIPMAP_HANDLER
+	#include "MipmapHandler.h"
+#endif
 
 #include "cgldata.h"
 
@@ -76,6 +81,9 @@ public:
 
     GlCloud*    loadCloud(string i_ply_file , int *incre = NULL);
 
+#ifdef USE_MIPMAP_HANDLER
+	void        readImage(QMaskedImage &maskedImg);
+#endif
 	void        loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor = 1.f);
 
 	void        loadMask(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor = 1.f);
@@ -102,6 +110,10 @@ private:
 	QStringList _FilenamesOut; //binary masks
 	QStringList _SelectionOut; //selection infos
     QString     _postFix;
+
+#ifdef USE_MIPMAP_HANDLER
+	MipmapHandler _mipmapHandler;
+#endif
 
 	deviceIOCamera* _devIOCamera;
 
