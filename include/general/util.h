@@ -1402,6 +1402,8 @@ class cElHour
        double mS;
 };
 
+ostream & operator <<( ostream &aStream, const cElHour &aHour );
+
 class cElDate
 {
     public :
@@ -1467,6 +1469,8 @@ class cElDate
 };
 
 bool operator < (const cElDate & aD1, const cElDate & aD2);
+
+ostream & operator <<( ostream &aStream, const cElDate &aDate );
 
 class cINT8ImplemSetInt
 {

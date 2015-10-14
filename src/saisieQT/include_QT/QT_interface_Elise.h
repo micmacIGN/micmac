@@ -150,7 +150,7 @@ public slots:
 
     void                rebuildGlPoints(bool bSave = false, cSP_PointeImage *aPIm = NULL);
 
-    void                changeImages(int idPtGl, bool aUseCpt);
+    void                changeImages(int idPtGl, bool aUseCpt, bool aGoForward = true);
 
     void                selectPointGlobal(QModelIndex modelIndex);
 
@@ -191,7 +191,7 @@ private slots:
 
     void                contextMenu_PGsTable(const QPoint &widgetXY);
 
-    void                changeImagesPG(int idPg, bool aUseCpt = false);
+    void                changeImagesPG(int idPg, bool aUseCpt = false, bool aGoForward = true);
 
     void                contextMenu_ImagesTable(const QPoint &widgetXY);
 

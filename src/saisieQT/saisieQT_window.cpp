@@ -272,7 +272,7 @@ void SaisieQtWindow::addFiles(const QStringList& filenames, bool setGLData)
         {
             if(!QFile(filenames[i]).exists())
             {
-                QMessageBox::critical(this, tr("Error"), tr("File does not exist (or bad argument)"));
+                QMessageBox::critical(this, tr("Error"), QString(tr("File [%1] does not exist (or bad argument)")).arg(filenames[i]));
                 return;
             }
             else
@@ -1535,6 +1535,10 @@ void SaisieQtWindow::setDataToGLWidget(int idGLW, cGLData *glData)
 {
     if (glData)
     {
+		#ifdef USE_MIPMAP_HANDLER
+		_Engine->Loader()->readImage(*glData->glImageMasked().getMaskedImage());
+		#endif
+
         GLWidget * glW = getWidget(idGLW);
         glW->setGLData(glData, glData->stateOption(cGLData::OpShow_Mess), glData->stateOption(cGLData::OpShow_Cams));
         glW->setParams(getParams());

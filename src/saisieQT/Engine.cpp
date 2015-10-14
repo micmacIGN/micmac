@@ -37,6 +37,31 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
     return GlCloud::loadPly( i_ply_file, incre );
 }
 
+#ifdef USE_MIPMAP_HANDLER
+	void cLoader::readImage(QMaskedImage &aMaskedImg)
+	{
+		QImage tempImage(aMaskedImg._fullSize, QImage::Format_RGB888);
+
+		const string mipmapFilename = aMaskedImg.name().toStdString();
+		const bool forceMipmapGray = false;
+		unsigned int mipmapWidth, mipmapHeight;
+		unsigned char *mipmapData;
+		if (_mipmapHandler.getData(mipmapFilename, 0, forceMipmapGray, mipmapData, mipmapWidth, mipmapHeight))
+		{
+			const size_t scanlineSize = size_t(mipmapWidth) * 3;
+			if (scanlineSize == (size_t)tempImage.bytesPerLine())
+				memcpy(tempImage.bits(), mipmapData, scanlineSize * mipmapHeight);
+			else
+			{
+				cout << "--- scanlineCopy " << scanlineSize << " -> " << tempImage.bytesPerLine() << endl; 
+				scanlineCopy(mipmapData, scanlineSize, mipmapHeight, tempImage.bits(), (size_t)tempImage.bytesPerLine());
+			}
+		}
+
+		aMaskedImg._m_image = new QImage(QGLWidget::convertToGLFormat(tempImage));
+	}
+#endif
+
 void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor)
 {
 //	QTime *chro = new QTime(0,0,0,0) ;
@@ -44,6 +69,25 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
 
 //	qDebug() << chro->elapsed() << " begin";
 
+	#ifdef USE_MIPMAP_HANDLER
+		const bool forceMipmapGray = false;
+		unsigned int mipmapWidth, mipmapHeight;
+		if ( !_mipmapHandler.ask(aNameFile.toStdString(), 0, forceMipmapGray, mipmapWidth, mipmapHeight)) // 0 = subscale
+		{
+			cerr << "### failed to load [" << aNameFile.toStdString() << ']' << endl;
+			return;
+		}
+		cout << "--- mipmap " << mipmapWidth << 'x' << mipmapHeight << endl;
+
+		QSize FullSize((int)mipmapWidth, (int)mipmapHeight);
+		QSize rescaledSize = FullSize * scaleFactor;
+		maskedImg->_fullSize = FullSize;
+		maskedImg->_loadedImageRescaleFactor = scaleFactor;
+		maskedImg->_m_image = NULL;
+
+		cout << "--- done." << endl;
+	#else
+    
     QImageReader reader(aNameFile);
 
 //	qDebug() << chro->elapsed() << " start read";
@@ -95,6 +139,7 @@ void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleF
         maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));
         maskedImg->_fullSize = maskedImg->_m_image->size();
     }
+	#endif
 
     if(scaleFactor <1.f)
         maskedImg->_m_rescaled_image = new QImage(maskedImg->_m_image->scaled(rescaledSize,Qt::IgnoreAspectRatio));
@@ -155,7 +200,11 @@ void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float 
         }
         else
         {
-            QImage tempMask(maskedImg->_m_image->size(),QImage::Format_Mono);
+            #ifdef USE_MIPMAP_HANDLER
+                QImage tempMask(maskedImg->_fullSize, QImage::Format_Mono);
+            #else
+                QImage tempMask(maskedImg->_m_image->size(),QImage::Format_Mono);
+            #endif
             maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
             tempMask.fill(Qt::white);
             *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
