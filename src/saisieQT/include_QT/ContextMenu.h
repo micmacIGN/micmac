@@ -6,7 +6,8 @@
 typedef enum
 {
   eAllWindows,
-  eRollWindows,
+  eRollWindowsForward,
+  eRollWindowsBackward,
   eThisWindow,
   eThisPoint
 } eSwitchImage;
@@ -48,7 +49,7 @@ signals:
 
     void changeName(QString oldName, QString newName);
 
-    void changeImagesSignal(int idPt, bool aUseCpt);
+    void changeImagesSignal(int idPt, bool aUseCpt, bool aGoForward);
 
 public slots:
 

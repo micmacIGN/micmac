@@ -748,6 +748,16 @@ void cElDate::write_raw( ostream &io_ostream, bool i_inverseByteOrder ) const
    mH.write_raw( io_ostream, i_inverseByteOrder );
 }
 
+ostream & operator <<( ostream &aStream, const cElHour &aHour )
+{
+	return (aStream << aHour.H() << ':' << aHour.M() << ':' << aHour.S());
+}
+
+ostream & operator <<( ostream &aStream, const cElDate &aDate )
+{
+	return (aStream << aDate.H() << ' ' << aDate.D() << '/' << aDate.M() << '/' << aDate.Y());
+}
+
 
 /************************************************************/
 /*                                                          */

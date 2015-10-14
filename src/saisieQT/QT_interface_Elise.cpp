@@ -33,7 +33,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
         connect(widget->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
 
-        connect(widget->contextMenu(),	SIGNAL(changeImagesSignal(int, bool)), this, SLOT(changeImages(int, bool)));
+        connect(widget->contextMenu(),	SIGNAL(changeImagesSignal(int, bool, bool)), this, SLOT(changeImages(int, bool, bool)));
     }
 
     connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
@@ -441,7 +441,7 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
     }
 }
 
-void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
+void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt, bool aGoForward)
 {
     if(mAppli)
     {
@@ -451,9 +451,16 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
 
         int max = (idPg == THISWIN) ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
 
+        int pace = aGoForward ? 1 : -1;
         while (aKW < max)
         {
             images[aKW]->CptAff() = _aCpt++;
+
+            //~ _aCpt += pace;
+            //~ if (aKW < 0)
+                //~ _aCpt = int(images.size()) - 1;
+            //~ else if (aKW == (int)images.size())
+                //~ _aCpt = 0;
 
             if (!isDisplayed(images[aKW]))
             {
@@ -471,9 +478,9 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
     }
 }
 
-void cQT_Interface::changeImages(int idPtGl, bool aUseCpt)
+void cQT_Interface::changeImages(int idPtGl, bool aUseCpt, bool aGoForward)
 {
-    changeImagesPG(idPointGlobal(idPtGl),aUseCpt);
+    changeImagesPG(idPointGlobal(idPtGl), aUseCpt, aGoForward);
 }
 
 void cQT_Interface::changeCurPose(void *widgetGL)

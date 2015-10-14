@@ -1228,6 +1228,12 @@ void GLWidget::keyPressEvent(QKeyEvent* event)
             case Qt::Key_Right:
                 movePointWithArrows(event);
                 break;
+            case Qt::Key_PageUp:
+                contextMenu()->changeImages(eRollWindowsBackward);
+                break;
+            case Qt::Key_PageDown:
+                contextMenu()->changeImages(eRollWindowsForward);
+                break;
             default:
                 event->ignore();
                 break;
