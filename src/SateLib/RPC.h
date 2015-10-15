@@ -142,6 +142,7 @@ public:
                 dirErrBiasY(0),
 		IS_DIR_INI(false),
 		IS_INV_INI(false),
+        IS_UNIT_m(false),
         mRecGrid(50,50,10)
         {
         }
@@ -152,6 +153,7 @@ public:
 
         bool IS_DIR_INI;
 	    bool IS_INV_INI;
+        bool IS_UNIT_m;
     
         Pt3di mRecGrid;
 
