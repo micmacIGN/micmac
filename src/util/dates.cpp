@@ -136,7 +136,7 @@ int MakeOneXmlXifInfo_main(int argc,char ** argv)
     MakeFileXML(aXML,aNameXml);
     MakeFileXML(aXML,StdPrefix(aNameXml)+".dmp");
 
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 

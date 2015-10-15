@@ -264,6 +264,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     double mPenalSelImBestNadir = -1;
 
     bool ForceNoIncid = false;
+    bool mForceZFaisc = false;
 
     Pt2di  aPtDebug;
 
@@ -325,6 +326,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mPenalSelImBestNadir,"PSIBN",true,"Penal for Automatic Selection of Images to Best Nadir (Def=-1, dont use)", eSAM_InternalUse)
                     << EAM(ForceNoIncid,"InternalNoIncid",true,"Internal Use", eSAM_InternalUse)
                     << EAM(aPtDebug,"PtDebug",true,"Internal Use (Point of debuging)", eSAM_InternalUse)
+                    << EAM(mForceZFaisc,"ForceZFais",true,"Force Z Faisecau evan with stenope camera", eSAM_InternalUse)
+ 
                 );
 
     if (!MMVisualMode)
@@ -621,7 +624,7 @@ if(0)
               ;
 
 
-      bool ModeFaisZ = mModePB| hasNewGenImage;
+      bool ModeFaisZ = mModePB| hasNewGenImage | mForceZFaisc;
       std::string aNameGeom = (mImMaster=="") ?
                   "eGeomMNTEuclid" :
                   (mIsSpherik? "eGeomMNTFaisceauPrChSpherik" : ( ModeFaisZ ? "eGeomMNTFaisceauIm1ZTerrain_Px1D" : "eGeomMNTFaisceauIm1PrCh_Px1D"));
