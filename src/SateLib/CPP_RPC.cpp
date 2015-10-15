@@ -990,9 +990,12 @@ void RPC::ComputeNormFactors(double aHMin, double aHMax)
 
 		//convert to geodetic
 		//WGS84 ellipsoid
-		double a = 6378137;
-		double b = (1 - 1 / 298.257223563)*a;
-		double e2 = 1 - (b * b) / (a * a);
+		//unused variable
+        //double a = 6378137;
+		//unused variable
+        //double b = (1 - 1 / 298.257223563)*a;
+		//unused variable
+        //double e2 = 1 - (b * b) / (a * a);
 		double WGSCorFact = 0.99330562;
 
         /**/// OLD good enough since z=0
@@ -1183,7 +1186,8 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 	double a = 6378137;
 	double b = (1 - 1 / 298.257223563)*a;
 	double e2 = 1 - (b * b) / (a * a);
-	double WGSCorFact = 0.99330562;
+	//unused variable
+    //double WGSCorFact = 0.99330562;
 
 	vector<vector<Pt3dr> > aMatPtsNorm;
 	vector<Pt3dr> aVectPtsGeo, aVectPtsIm;
@@ -1217,7 +1221,8 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 					aPtGeo.x = aPtGeo.x + 180;
 
 				//Computing latitude (estimation) according to ALG0012 in http://geodesie.ign.fr/contenu/fichiers/documentation/algorithmes/notice/NTG_80.pdf
-				double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
+				//unused variable
+                //double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
 				double p = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y);
 				double latNow = atan(p / aPtECEF.z);//rad geocentric to initialize estimation
 				//loop
@@ -1394,10 +1399,10 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	double* aDataCol = aSolCol.data();
 	double* aDataRow = aSolRow.data();
 
-    std::cout << "ResiduOfSol aSolCol " << double(aSysCol.ResiduOfSol(aSolCol.data())/aGridGeoNorm.size()) << "\n";
+    /*std::cout << "ResiduOfSol aSolCol " << double(aSysCol.ResiduOfSol(aSolCol.data())/aGridGeoNorm.size()) << "\n";
 
     std::cout << "ResiduOfSol aSolRow " << double(aSysCol.ResiduOfSol(aSolRow.data()))/aGridGeoNorm.size() << "\n";
-
+*/
 	//Copying Data in RPC object
 	//Numerators
 	for (int i = 0; i<20; i++)
@@ -1422,14 +1427,14 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     Pt3dr aP, aStep;
     
     
-    aStep = Pt3dr(double(abs(first_lon-last_lon))/mRecGrid.x,
-		         double(abs(first_lat-last_lat))/mRecGrid.y,
-		         double(abs(first_height-last_height))/mRecGrid.z);
+    aStep = Pt3dr(double(abs(last_lon-first_lon))/mRecGrid.x,
+		         double(abs(last_lat-first_lat))/mRecGrid.y,
+		         double(abs(last_height-first_height))/mRecGrid.z);
     
     std::vector<Pt3dr> aGridOrg, aGridCarto, aGridImg;
-
     
     std::cout << "RPC::ChSysRPC " << ",mRecGrid " << mRecGrid << "\n"; 
+
 
     // MPD => GetUnikId , else conflict when in // exec
     std::string aTmpIn = "Proj4InputRPC"+ GetUnikId() +".txt";
@@ -1481,8 +1486,9 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
         aGridOrg.at(aK1).x = (aGridOrg.at(aK1).x - long_off)/long_scale;
         aGridOrg.at(aK1).y = (aGridOrg.at(aK1).y - lat_off)/lat_scale;
         aGridOrg.at(aK1).z = (aGridOrg.at(aK1).z - height_off)/height_scale;
+
     }
-   
+
     //get carto cs normalising parameters & validating zone
     double X_min = aGridCarto.at(0).x, X_max = X_min, 
 	Y_min = aGridCarto.at(0).y, Y_max = Y_min, 
@@ -1510,29 +1516,14 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     }
    
     SetNewLongLatHScaleOffset(X_min,X_max,Y_min,Y_max,Z_min,Z_max);
-    
-    /*first_lon = X_min;
-    last_lon = X_max;
-    first_lat = Y_min;
-    last_lat = Y_max;
-    first_height = Z_min;
-    last_height = Z_max;
-
-    long_scale = (X_max - X_min)/2;
-    lat_scale = (Y_max - Y_min)/2;
-    height_scale = (Z_max - Z_min)/2;
-    
-    long_off = X_min + long_scale;
-    lat_off = Y_min + lat_scale;
-    height_off = Z_min + height_scale;
-*/
+   
     for(aK1=0; aK1<int(aGridCarto.size()); aK1++)
     {
         aGridCarto.at(aK1).x = (aGridCarto.at(aK1).x - lat_off)/lat_scale;
         aGridCarto.at(aK1).y = (aGridCarto.at(aK1).y - long_off)/long_scale;
         aGridCarto.at(aK1).z = (aGridCarto.at(aK1).z - height_off)/height_scale;
+        
     }
-
 
     //back project norm geodetic grid to image space
     for(aK1=0; aK1<int(aGridOrg.size()); aK1++)
@@ -1544,26 +1535,47 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     //learn direct projection function for xy and XYZ_carto_norm
     GCP2Direct(aGridOrg, aGridImg);    
 
-    
+    IS_UNIT_m = true;
 }
 
+//even if an image crop is used, the RPC are recomputed on the original img
+//btw in [Tao & Hu, 2001] horizontal grid every ~600pix, vert grid every ~500m
 void RPC::SetRecGrid()
 {
-    //500 based on [Tao & Hu, 2001]
-    int aHorizIntInPix = 500, aVertIntInM = 100;
-    int aSampl, aSamplZ;
+    //grid spacing in 3D in meters
+    int aHorizM = 500, aVertM = 100;
+    int aSamplX, aSamplY, aSamplZ;
 
-    aSampl = floor(double(last_row)/aHorizIntInPix);
-    aSamplZ = floor(double(abs(first_height-last_height))/aVertIntInM);
+    if( IS_UNIT_m )
+    {
+        aSamplX = floor((last_lon - first_lon)/aHorizM);
+        aSamplY = floor((last_lat - first_lat)/aHorizM);
+        aSamplZ = floor((last_height - first_height)/aVertM);
+    }
+    else
+    {
+        double aFprntLonM = 2 * first_height * 
+                            (last_lon - first_lon)*180.0/3.1416;
+        double aFprntLatM = 2 * first_height * 
+                         (last_lat - first_lat)*180.0/3.1416;
+        
+        aSamplX = floor(aFprntLonM/aHorizM);
+        aSamplY = floor(aFprntLatM/aHorizM);
+        aSamplZ = floor((last_height - first_height)/aVertM);
+
+    }
+
 
     //if there is less than 5 layers in Z ([Tao & Hu, 2001] suggest min of 3)
     while(aSamplZ<4)
         aSamplZ++;
     //if the grid does not suffice to calculate 78 coefficients of the RPCs
-    while( (aSampl*aSampl*aSamplZ)<80 )
-        aSampl++;
+    while( (aSamplX*aSamplY*aSamplZ)<80 )
+        aSamplX++;
    
-    mRecGrid = Pt3di(aSampl,aSampl,aSamplZ);
+    mRecGrid = Pt3di(aSamplX,aSamplY,aSamplZ);
+
+    //std::cout <<"ewelina mRecGrid " << mRecGrid << "\n";
     
 }
 
@@ -1852,9 +1864,11 @@ void RPC::ReadXML(std::string const &filename)
     aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
 
     first_height = (*std::min_element(aHMM.begin(), aHMM.end()));
-    last_height  = (*std::max_element(aHMM.begin(), aHMM.end())); */
+    last_height  = (*std::max_element(aHMM.begin(), aHMM.end())); 
     first_height = -1*height_scale + height_off;
-    last_height = 1*height_scale + height_off;
+    last_height = 1*height_scale + height_off;*/
+
+    ReconstructValidityH();
 
     IS_INV_INI = true; 
 }
@@ -2007,8 +2021,10 @@ void RPC::ReadASCII(std::string const &filename)
     iss.str(line);
     iss >> a >> height_scale >> b;}
 
-    first_height = -1*height_scale + height_off;
+    /*first_height = -1*height_scale + height_off;
     last_height = 1*height_scale + height_off;
+*/
+    ReconstructValidityH();
 
     //Inverse_line_num_coef
     for(aC=0; aC<20; aC++)
