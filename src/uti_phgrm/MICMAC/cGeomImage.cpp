@@ -255,6 +255,10 @@ ElCamera * cGeomImage::GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) con
 {
    ToDel = true;
    aZUP = true;
+if (MPD_MM())
+{
+   std::cout << "cGeomImage::GetCamera \n";
+}
    return  cCameraOrtho::Alloc(aSz);
 }
 
@@ -279,6 +283,7 @@ void cGeomImage::RemplitOriXMLNuage
 
 
 
+
    aNuage.PM3D_ParamSpecifs().NoParamSpecif().SetNoInit();
    cModeFaisceauxImage aMFI;
    aMFI.ZIsInverse() = false;
@@ -286,8 +291,6 @@ void cGeomImage::RemplitOriXMLNuage
    aMFI.DirFaisceaux() = Pt3dr(0,0,1);
    aNuage.PM3D_ParamSpecifs().ModeFaisceauxImage().SetVal(aMFI);
 
-   // cCameraOrtho * aCam = cCameraOrtho::Alloc(aGT.SzDz());
-   // ElCamera * aCam = cCameraOrtho::Alloc(aGT.SzDz());
    bool ToDel;
    bool aZUP = false;
    ElCamera * aCam = GetCamera(aGT.SzDz(),ToDel,aZUP);
@@ -1508,7 +1511,6 @@ class cGeomImage_Terrain_Ori : public cGeomImage
           // OO aPTer = mOri.terr_to_carte(aPTer);
           if (mOLiLi && mIsCarto)
              aPTer = mOLiLi->terr_to_carte(aPTer);
-/// std::cout << "BBBBBBBBBBBBBb\n";
           return Pt2dr(aPTer.x,aPTer.y);
        }
        virtual Pt2dr Objet2ImageInit_NonEuclid(Pt2dr aP,const REAL * aPx) const
@@ -1884,8 +1886,6 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
                for (int aKY=1 ; aKY<aNbXY ; aKY++)
                {
 
-// bool TEST = (aKX==aNbXY /2) && (aKY==aNbXY /2) && (MPD_MM()) ;
-bool TEST = (aKX==2) && (aKY==2) && (MPD_MM()) ;
 
                    Pt2dr aPds(double(aKX)/aNbXY,double(aKY)/aNbXY);
                    Pt2dr aCdg = aPds.mcbyc(Pt2dr(mOri->SzPixel()));
@@ -1893,7 +1893,6 @@ bool TEST = (aKX==2) && (aKY==2) && (MPD_MM()) ;
                    cTplValGesInit<Pt3dr> aPGI3A = mAnamSA->InterDemiDroiteVisible(aSegA,0);
 
 
-if (TEST) std::cout << "CDDDGGGg " << aCdg << "\n";
                    if (aPGI3A.IsInit())
                    {
                         bool AllOk=true;
@@ -1924,7 +1923,6 @@ if (TEST) std::cout << "CDDDGGGg " << aCdg << "\n";
                                AllOk= false;
                             }
                         }
-if (TEST) std::cout << "ALLAOOOK  " << aCdg  << " " << AllOk  << " " << aPExtr0 << " " << aPExtr1 << "\n";
 
                         if (AllOk)
                         {
@@ -2158,6 +2156,39 @@ void cGeomImage_Terrain_Ori::InitAnamSA(double aResol,const Box2dr & )
 class cGeomFaisZTerMaitre : public cGeomImage_Id
 {
     public :
+/*
+    void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
+    {
+
+if (MPD_MM())
+{
+   std::cout << "RemplitOriXMLNuageRemplitOriXMLNuage \n";
+   CFM = true;
+   getchar();
+}
+        cGeomImage::RemplitOriXMLNuage(false,mtd,aGT,aNuage,mode);
+        if (CFM)
+        {
+            cModuleOrientationFile oriFile;
+            oriFile.NameFileOri()=mModule->GetFilename();
+            aNuage.Orientation().ModuleOrientationFile().SetVal(oriFile);
+            aNuage.Orientation().TypeProj().SetVal(eProjGrid);
+         }
+    }
+*/
+       void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
+       {
+/*
+if (MPD_MM())
+{
+   std::cout << "cGeomFaisZTerMaitre:: RemplitOriXMLNuageRemplitOriXMLNuage " << aNuage.Orientation().Interne().Val().PP() << " \n";
+   CFM = true;
+   getchar();
+}
+*/
+           mGeoRef->RemplitOriXMLNuage(true,mtd,aGT,aNuage,mode);
+       }
+
 
       ElCamera * GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) const
       {
@@ -2203,11 +2234,6 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
     
     
     // Par defaut erreur fatale si pas mode Image_Nuage
-    void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
-    {
-        mGeoRef->RemplitOriXMLNuage(true,mtd,aGT,aNuage,mode);
-    }
-
     protected :
       bool GetPxMoyenne_NonEuclid(double * aPxMoy,bool MakeInvIfNeeded) const
       {
@@ -2547,6 +2573,14 @@ getchar();
                 eModeExportNuage
            ) const
       {
+/*
+if (MPD_MM())
+{
+   std::cout << "RemplitOriXMLNuageRemplitOriXMLNuage \n";
+   CFM = true;
+   getchar();
+}
+*/
            aNuage.PM3D_ParamSpecifs().NoParamSpecif().SetNoInit();
            cModeFaisceauxImage aMFI;
            aMFI.ZIsInverse() = true;
@@ -2875,6 +2909,7 @@ class cGeomImage_Module : public cGeomImage
     // Par defaut erreur fatale si pas mode Image_Nuage
     void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
     {
+
         cGeomImage::RemplitOriXMLNuage(false,mtd,aGT,aNuage,mode);
         if (CFM)
         {
