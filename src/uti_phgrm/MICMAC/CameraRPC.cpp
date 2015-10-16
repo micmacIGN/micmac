@@ -267,7 +267,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
 
-//    mRPC->info();
+    //mRPC->info();
 }
 
 cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
