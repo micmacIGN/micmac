@@ -63,7 +63,7 @@ int AperoChImMM_main(int argc,char ** argv)
     LArgMain()  << EAMC(aFullDir,"Dir + Pattern", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation", eSAM_IsExistDirOri),
     LArgMain()
-                    << EAM(ExpTxt,"ExpTxt",true,"Have tie points been exported in text format (def = false)", eSAM_IsBool)
+                    << EAM(ExpTxt,"ExpTxt",true,"Use tie points in text format (def = false, use dat format)", eSAM_IsBool)
                     << EAM(Out,"Out",true,"Output destination (Def= same as Orientation-parameter)", eSAM_IsOutputFile)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=False)", eSAM_IsBool)
                     << EAM(aPatternExport,"PatExp",true,"Pattern to limit export (Def=.* , i.e. all are exported)", eSAM_IsBool)
