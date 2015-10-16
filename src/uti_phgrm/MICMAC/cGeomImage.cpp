@@ -255,7 +255,7 @@ ElCamera * cGeomImage::GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) con
 {
    ToDel = true;
    aZUP = true;
-if (MPD_MM())
+if (0&&MPD_MM())
 {
    std::cout << "cGeomImage::GetCamera " << Name () << " \n";
    getchar();
@@ -2191,7 +2191,7 @@ if (MPD_MM())
       {
             ToDel = false;
             ElCamera * aCam = GetOri();
-if (MPD_MM())
+if (0&&MPD_MM())
 {
     std::cout << "ZFFF::GetCamera " << aCam << "\n";
 }

@@ -134,6 +134,7 @@ Pt3dr cMicMacZbuf::ProjTerrain(const Pt3dr & aPTer) const
 if (DEBUG_ZBB)
 {
    Pt2di aPTI = Pt2di(aPTer.x,aPTer.y);
+   std::cout << "AAAA cMicMacZbuf::ProjTerrainXXXX " << aPTI << " " <<  mTImTer.sz() << "\n";
    std::cout << "cMicMacZbuf::ProjTerrainXXXX  " << aPTer << " " << " " << aPIm  << " " << mTImTer.get(aPTI) << " \n";
 
    
@@ -151,6 +152,8 @@ if (DEBUG_ZBB)
    }
    std::cout << "====================================================\n\n";
 }
+/*
+*/
 /*
     if (mAppli.InversePx())
        return Pt3dr(aPIm.x,aPIm.y,1.0/aPTer.z);
