@@ -1554,9 +1554,9 @@ void RPC::SetRecGrid()
     }
     else
     {
-        double aFprntLonM = 2 * first_height * 
+        double aFprntLonM =  first_height * 
                             (last_lon - first_lon)*180.0/3.1416;
-        double aFprntLatM = 2 * first_height * 
+        double aFprntLatM =  first_height * 
                          (last_lat - first_lat)*180.0/3.1416;
         
         aSamplX = floor(aFprntLonM/aHorizM);
