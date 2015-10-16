@@ -257,7 +257,8 @@ ElCamera * cGeomImage::GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) con
    aZUP = true;
 if (MPD_MM())
 {
-   std::cout << "cGeomImage::GetCamera \n";
+   std::cout << "cGeomImage::GetCamera " << Name () << " \n";
+   getchar();
 }
    return  cCameraOrtho::Alloc(aSz);
 }
@@ -1195,10 +1196,7 @@ class cGeomImage_Id : public cGeomImage
       {
       }
 
-       std::string Name() const
-       {
-          return "cGeomImage_Id";
-       }
+       std::string Name() const { return "cGeomImage_Id"; }
 
     private :
        virtual Pt2dr ImageAndPx2Obj_NonEuclid(Pt2dr aP,const REAL * aPx) const
@@ -1236,10 +1234,7 @@ class cGeomImage_NoGeom : public cGeomImage
          cGeomImage(anAppli,aPDV,eTagNoGeom,aSzIm,2)
       {
       }
-       std::string Name() const
-       {
-          return "cGeomImage_NoGeom";
-       }
+       std::string Name() const { return "cGeomImage_NoGeom"; }
 
     private :
        virtual Pt2dr ImageAndPx2Obj_NonEuclid(Pt2dr aP,const REAL * aPx) const
@@ -1310,6 +1305,7 @@ class cGeomImage_NoGeom : public cGeomImage
 class cGeomImage_DHD_Px : public cGeomImage 
 {
     public :
+      std::string Name() const { return "cGeomImage_DHD_Px"; }
       cGeomImage_DHD_Px
       (
           const                   cAppliMICMAC & anAppli,
@@ -1444,6 +1440,7 @@ class cGeomImage_DHD_Px : public cGeomImage
 class cGeomImage_Terrain_Ori : public cGeomImage
 {
     public :
+      std::string Name() const { return "cGeomImage_Terrain_Ori"; }
       Pt2dr ToGeomMasqAnam(const Pt2dr & aPTer) const;
 
       std::string NameMasqImNadir() { return cGeomImage::NameMasqImNadir(mAppli.MMImNadir()->KBest()); }
@@ -2194,6 +2191,11 @@ if (MPD_MM())
       {
             ToDel = false;
             ElCamera * aCam = GetOri();
+if (MPD_MM())
+{
+    std::cout << "ZFFF::GetCamera " << aCam << "\n";
+}
+
             if (aCam) return aCam;
             return  cGeomImage::GetCamera(aSz,ToDel,aZUP);
       }
@@ -2285,7 +2287,7 @@ class cGeomFaisZTerEsclave : public cGeomFaisZTerMaitre
 
        std::string Name() const
        {
-          return "cGeomFaisZTerMaitre["+mGeom->Name() +"]["+mGeoRef->Name()+"]";
+          return "cGeomFaisZTerEsclave["+mGeom->Name() +"]["+mGeoRef->Name()+"]";
        }
 
       void InstPostInit()
@@ -2448,6 +2450,7 @@ class cGeomImage_Id_Ori : public cGeomImage_Id
           return mOriRef->ImDirEtProf2Terrain(aP,1/aPax[0],mNormPl);
       }
 
+      std::string Name() const { return "cGeomImage_Id_Ori"; }
 
       cGeomImage_Id_Ori
       (
@@ -2599,6 +2602,7 @@ if (MPD_MM())
 class cGeomImage_Faisceau : public cGeomImage_Id_Ori
 {
     public :
+       std::string Name() const {return "cGeomImage_Faisceau::" + mGITO.Name() ;}
 
       // interface pour cGeomBasculement3D, envoie de image vers terrain
       Pt3dr Bascule(const Pt3dr & aP3) const
@@ -2791,6 +2795,7 @@ if (1)
 class cGeomImage_cBasic : public cGeomImage
 {
      public :
+       std::string Name() const {return "cGeomImage_cBasic"  ;}
        virtual Pt2dr ImageAndPx2Obj_NonEuclid(Pt2dr aP,const REAL * aPx) const
        {
           Pt3dr aPTer =  mBGC3D->ImEtZ2Terrain(aP,aPx[0]);
