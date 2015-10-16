@@ -984,7 +984,7 @@ cChangEpip::cChangEpip(const ElPackHomologue & aPck,double anAmpl,int aDegre) :
 }
 
 
-void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,const char * CarNameHom,int aDegPolyCor)
+void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool InParal,bool DoIm,const char * CarNameHom,int aDegPolyCor,bool ExpTxt)
 {
 
     LockMess("Begin cCpleEpip::ImEpip Im1="+ToString(Im1));
@@ -1021,10 +1021,10 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
         std::string & aNamA  =  Im1 ? mName1 : mName2;
         std::string & aNamB  =  Im1 ? mName2 : mName1;
         std::string aNameHom = mICNM->Dir()
-                             + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+aPrefixHom+"@dat",aNamA,aNamB,true);
+                             + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+aPrefixHom+std::string(ExpTxt?"@txt":"@dat"),aNamA,aNamB,true);
 
         std::string aNameHomMatch = mICNM->Dir()
-                             + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",aNamA,aNamB,true);
+                             + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+std::string(ExpTxt?"@txt":"@dat"),aNamA,aNamB,true);
 
         ElPackHomologue aPackIn = ElPackHomologue::FromFile(aNameHom);
         ElPackHomologue aPackOut;
@@ -1071,7 +1071,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
         if (CarNameHom)
         {
             std::string aNameHEpi = mICNM->Dir()
-                                  + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@@dat",LocNameImEpi(Im1),LocNameImEpi(!Im1),true);
+                                  + mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+std::string(ExpTxt?"@txt":"@dat"),LocNameImEpi(Im1),LocNameImEpi(!Im1),true);
 
             aPackMatch.StdPutInFile(aNameHEpi);
         }
@@ -1168,7 +1168,7 @@ void cCpleEpip::ImEpip(Tiff_Im aTIn,const std::string & aNameOriIn,bool Im1,bool
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant \C3  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -1184,17 +1184,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
+développement et \C3  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
+manipuler et qui le réserve donc \C3  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
+logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -205,8 +205,8 @@ class cAppliWithSetImage
       void MakeStripStruct(const std::string & aPairByStrip,bool StripFirst);
       void AddDelaunayCple();
       void AddFilePair(const std::string & aFilePair);
-      void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq,bool AddCple);
-	  void AddLinePair(int);
+      void AddCoupleMMImSec(bool ExeApero,bool SupressImInNoMasq,bool AddCple,bool ExpTxt);
+      void AddLinePair(int);
 
 
       void DoPyram();
