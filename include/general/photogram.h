@@ -3121,7 +3121,7 @@ class cCpleEpip
          bool IsLeft(const std::string &);
 
 
-         void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1,bool InParal=true,bool DoIm=true,const char * NameHom= 0,int aDegPloCor=-1);
+         void ImEpip(Tiff_Im aFile,const std::string & aNameOriIn,bool Im1,bool InParal=true,bool DoIm=true,const char * NameHom= 0,int aDegPloCor=-1,bool ExpTxt=false);
          void AssertOk() const;
 
          void LockMess(const std::string & aMes);

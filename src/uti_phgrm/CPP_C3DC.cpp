@@ -107,6 +107,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          bool		 mUseGpu;
          double          mDefCor;
          double          mZReg;
+	 bool		 mExpTxt;
          std::string     mArgSupEpip;
          std::string     mFilePair;
          bool                     mDebugMMByP;
@@ -124,6 +125,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mDoMerge            (DoMerge),
    mMMIN               (0),
    mUseGpu	       (false),
+   mExpTxt	       (false),
    mArgSupEpip         (""),
    mDebugMMByP         (false)
 {
@@ -200,6 +202,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",true,"Def correlation, context depend")
                     << EAM(mZReg,"ZReg",true,"Regularisation, context depend")
+   		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs")
                     << EAM(mFilePair,"FilePair",true,"Explicit pairs of images (as in Tapioca)", eSAM_IsExistFileRP)
                     << EAM(mDebugMMByP,"DebugMMByP",true,"Debug MMByPair ...")
     );
@@ -221,7 +224,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 
    if (EAMIsInit(&mDefCor)) mArgSupEpip +=  " DefCor=" + ToString(mDefCor);
    if (EAMIsInit(&mZReg)) mArgSupEpip +=  " ZReg=" + ToString(mZReg);
-
+   if (EAMIsInit(&mExpTxt)) mArgSupEpip +=  " ExpTxt=" + ToString(mExpTxt);
    if (! EAMIsInit(&mMergeOut)) mMergeOut = "C3DC_"+ mStrType + ".ply";
 
    mStrImOri0  =  BLANK + QUOTE(mEASF.mFullName) +  BLANK + Ori() + BLANK;
