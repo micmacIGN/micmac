@@ -1,0 +1,182 @@
+<!--
+    A Pattern file for using MicMac in post-sismic deformation
+-->
+<ParamMICMAC>
+    <DicoLoc>
+         <Symb> Im1=Ortho-0.tif  </Symb>
+         <Symb> Im2=Ortho-1.tif  </Symb>
+         <Symb> Inc=100.0  </Symb>
+         <Symb> SzW=4 </Symb>
+         <Symb> Regul=1.0 </Symb>
+
+
+        <!--  ===================================  -->
+
+         <Symb> CorrelMin=0.5 </Symb>
+         <Symb> GammaCorrel=2 </Symb>
+         <Symb>  SsResolOpt=4 </Symb>
+         <Symb> NbDir=7 </Symb>
+
+  <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> (.*) </PatternTransform>
+                       <CalcName> Rho.tif </CalcName>
+                       <CalcName> Teta.tif </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   KeyCsteRhoTeta </Key>
+    </KeyedNamesAssociations>
+
+
+    </DicoLoc>
+<!-- *************************************************************
+Parametres lies au terrain "physique", independamment de la prise de vue
+  *************************************************************-->
+    <Section_Terrain>
+      <IntervParalaxe>
+        <Px1IncCalc>  ${Inc}  </Px1IncCalc>
+        <Px2IncCalc>  ${Inc}   </Px2IncCalc>
+
+        <!--Px1Moy et Px2Moy fixent la valeur moyenne de la parallaxe;
+        leurs valeurs ont donc une influence directe sur la zone de
+        recherche exploree lors du premier niveau de la pyramide de
+        resolution. Accessoirement, elles ont une influence sur le
+        formatage du resultat (exprime en relatif par rapport a cette
+        valeur moyenne).-->
+        <Px1Moy >  0.0     </Px1Moy>
+        <Px2Moy >  0.0   </Px2Moy>
+
+      </IntervParalaxe>
+
+      <Planimetrie>
+       <!-- image de Masque utilisee pour designer l'emprise fine de
+          la correlation; il doit etre superposable au MNT de resolution
+          1. Si le fichier n'existe pas, il en sera cree un correspondant
+          aux point du terrain qui sont vus d'au moins deux images (pour
+          la parallaxe moyenne) -->
+      </Planimetrie>
+    </Section_Terrain>
+
+ <!-- *************************************************************
+Parametres lies a la prise de vue, independamment de son exploitation
+par le correlateur
+    ************************************************************* -->
+    <Section_PriseDeVue>
+        <GeomImages> eGeomImage_Epip </GeomImages>
+        <Images>
+            <Im1> ${Im1} </Im1>
+            <Im2> ${Im2} </Im2>
+        </Images>
+    </Section_PriseDeVue>
+
+    <Section_MEC>
+        <ChantierFullImage1> true </ChantierFullImage1>
+
+
+        <EtapeMEC><!-- Etape de Mise En Correspondance -->
+            <DeZoom > -1 </DeZoom> <!-- le seul fils obligatoire a toutes les etapes-->
+            <SzW> ${SzW}   </SzW> <!-- la taille de la fenetre de correlation [-4,4]x[-4,4]-->
+
+
+            <CorrelMin>  ${CorrelMin} </CorrelMin>
+            <GammaCorrel>  ${GammaCorrel} </GammaCorrel>
+            <DynamiqueCorrel> eCoeffGamma </DynamiqueCorrel>
+
+
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+            <ModulationProgDyn Portee="Globale">
+                <EtapeProgDyn>
+                    <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+                    <NbDir>      ${NbDir}     </NbDir>
+                </EtapeProgDyn>
+            </ModulationProgDyn>
+            <Px1Regul>  ${Regul}    </Px1Regul>
+            <Px2Regul>  ${Regul}   </Px2Regul>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+            <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+
+            <Px1DilatAlti>  2    </Px1DilatAlti>
+            <Px1DilatPlani> 2    </Px1DilatPlani>
+            <Px2DilatAlti>  2    </Px2DilatAlti>
+            <Px2DilatPlani> 2    </Px2DilatPlani>
+
+            <Px1Pas>        1  </Px1Pas>
+            <Px2Pas>        1   </Px2Pas>
+            <SsResolOptim> ${SsResolOpt} </SsResolOptim>
+
+        </EtapeMEC>
+
+
+        <EtapeMEC>
+           <DeZoom > 32 </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+               <DeZoom > 16 </DeZoom> 
+       </EtapeMEC>
+        <EtapeMEC> <DeZoom > 8 </DeZoom> </EtapeMEC>
+        <EtapeMEC> <DeZoom > 4 </DeZoom> </EtapeMEC>
+        <EtapeMEC> <DeZoom > 2 </DeZoom> </EtapeMEC>
+        <EtapeMEC> 
+             <DeZoom > 1 </DeZoom> 
+        </EtapeMEC> 
+        <EtapeMEC> 
+             <DeZoom > 1 </DeZoom> 
+            <Px1DilatAlti>  1    </Px1DilatAlti>
+            <Px1DilatPlani> 3    </Px1DilatPlani>
+            <Px2DilatAlti>  1    </Px2DilatAlti>
+            <Px2DilatPlani> 3    </Px2DilatPlani>
+            <Px1Pas>        0.5  </Px1Pas>
+            <Px2Pas>        0.5   </Px2Pas>
+            <GenerateProjectionInImages>
+                <NumsImageDontApply> 0 </NumsImageDontApply>
+                <FCND_CalcProj> KeyCsteRhoTeta </FCND_CalcProj>
+                <SubsXY> true </SubsXY>
+                <Polar> true</Polar>
+            </GenerateProjectionInImages>
+
+        </EtapeMEC>
+
+
+<!--
+        <#WHEN VTEST=${UseDequant}>
+          <EtapeMEC>
+            <DeZoom >  1  </DeZoom>
+            <Px1Pas>   1.0     </Px1Pas>
+            <Px2Pas>   1.0     </Px2Pas>
+            <AlgoRegul> eAlgoDequant </AlgoRegul>
+          </EtapeMEC>
+        </#WHEN>
+-->
+    </Section_MEC>
+
+
+    <Section_Results >
+        <GeomMNT> eGeomPxBiDim </GeomMNT>
+    </Section_Results>
+
+   <Section_WorkSpace >
+      <WorkDir >  ThisDir </WorkDir>
+      <TmpMEC> MMDeform/ </TmpMEC>
+      <TmpResult> MMDeform/ </TmpResult>
+
+      <ByProcess>  ${MMNbProc} </ByProcess>
+
+      <NbCelluleMax> 8e7 </NbCelluleMax>
+
+      <SzRecouvrtDalles> 50 </SzRecouvrtDalles>
+      <SzDalleMin> 500 </SzDalleMin>
+
+      <DefTileFile>100000</DefTileFile>
+
+     </Section_WorkSpace>
+
+    <Section_Vrac> </Section_Vrac>
+
+
+
+</ParamMICMAC>
