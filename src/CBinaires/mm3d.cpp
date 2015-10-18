@@ -549,12 +549,14 @@ int SysCalled_main (int argc,char** argv);
 int SysCall_main (int argc,char** argv);
 
 
+int TestARCam_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
 
+   aRes.push_back(cMMCom("TestARCam",TestARCam_main,"Some consitency check on camera "));
    aRes.push_back(cMMCom("SysCall",SysCall_main,"Some stuff "));
    aRes.push_back(cMMCom("SysCalled",SysCalled_main,"Some stuff "));
 

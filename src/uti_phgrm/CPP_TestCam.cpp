@@ -191,7 +191,86 @@ int TestCam_main(int argc,char ** argv)
 }
 
 
+// ========================================
 
+class cAppliTestARCam 
+{
+     public :
+        cAppliTestARCam(int argc,char ** argv);
+        std::string mName;
+
+        cBasicGeomCap3D *mCam;
+        Pt2di           mSz;
+        double          mZ0;
+
+        void TestAR();
+        void TestAR(double aZ);
+        double TestAR(const Pt2dr & aP,const double & aZ);
+};
+
+
+double cAppliTestARCam::TestAR(const Pt2dr & aPI0,const double & aZ)
+{
+     Pt3dr aPTer = mCam->ImEtZ2Terrain(aPI0,aZ);
+     Pt2dr aPI1 = mCam->Ter2Capteur(aPTer);
+
+     return euclid(aPI0-aPI1) + ElAbs(aZ-aPTer.z);
+}
+
+void cAppliTestARCam::TestAR(double aZ)
+{
+    Pt2di aP;
+    double aMaxD = 0;
+    Pt2di  aPMax;
+    int aNb1=0;
+    for (aP.x=0 ; aP.x<=mSz.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<=mSz.y ; aP.y++)
+        {
+             double aD = TestAR(Pt2dr(aP),aZ);
+             if (aD>aMaxD)
+             {
+                 aMaxD = aD;
+                 aPMax = aP;
+             }
+             if (aD>1) aNb1++;
+        }
+    }
+    std::cout << "MaxD " << aMaxD << " ; PMax " << aPMax  << " ; Nb>1 " << aNb1 << "\n";
+}
+
+void cAppliTestARCam::TestAR()
+{
+    TestAR(mZ0);
+}
+
+
+
+cAppliTestARCam::cAppliTestARCam(int argc,char ** argv) 
+{
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mName,"Name Ori"),
+        LArgMain()  << EAM(mZ0,"Z0")
+    );
+
+    int aType = eTIGB_Unknown;
+
+    mCam = cBasicGeomCap3D::StdGetFromFile(mName,aType);
+
+    mSz  = mCam->SzBasicCapt3D();
+    std::cout << "Sz " << mSz << "\n";
+
+}
+
+int TestARCam_main(int argc,char ** argv)
+{
+   cAppliTestARCam anAppli(argc,argv);
+   anAppli.TestAR();
+
+   return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
