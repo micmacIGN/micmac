@@ -965,8 +965,6 @@ void cAppliMalt::InitDefValFromType()
     };
 }
 
-// 
-
 void  cAppliMalt::ShowParam()
 {
     std::cout << "============= PARAMS ========== \n";
