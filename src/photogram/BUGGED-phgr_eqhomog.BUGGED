@@ -1,0 +1,545 @@
+/*Header-MicMac-eLiSe-25/06/2007
+
+    MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
+    eLiSe  : ELements of an Image Software Environnement
+
+    www.micmac.ign.fr
+
+   
+    Copyright : Institut Geographique National
+    Author : Marc Pierrot Deseilligny
+    Contributors : Gregoire Maillet, Didier Boldo.
+
+[1] M. Pierrot-Deseilligny, N. Paparoditis.
+    "A multiresolution and optimization-based image matching approach:
+    An application to surface reconstruction from SPOT5-HRS stereo imagery."
+    In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
+    (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
+
+[2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
+    d'images, adapte au contexte geograhique" to appears in 
+    Bulletin d'information de l'Institut Geographique National, 2007.
+
+Francais :
+
+   MicMac est un logiciel de mise en correspondance d'image adapte 
+   au contexte de recherche en information geographique. Il s'appuie sur
+   la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
+   licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
+
+
+English :
+
+    MicMac is an open source software specialized in image matching
+    for research in geographic information. MicMac is built on the
+    eLiSe image library. MicMac is governed by the  "Cecill-B licence".
+    See below and http://www.cecill.info.
+
+Header-MicMac-eLiSe-25/06/2007*/
+
+
+/*
+   Sur le long terme, modifier :
+
+     - la possiblite d'avoir des fonctions multiple (Dim N)
+     - associer a un fctr, un cSetEqFormelles
+*/
+
+CE FICHIER NE PREND PAS EN COMPTE DES MODIFICATIONS IMPORTANTES FAITES SUR PLUSIEURS CLASSES
+DE GENERATION DE CODE FORMELS, NE PAS LE REMETTRE
+
+#include "StdAfx.h"
+
+
+
+
+
+/************************************************************/
+/*                                                          */
+/*                    cHomogFormelle                        */
+/*                                                          */
+/************************************************************/
+
+             //
+             //    cHomogFormelle::cComp
+             //
+
+cHomogFormelle::cComp::cComp
+(
+     cElComposHomographie & aComp,
+     cSetEqFormelles &         aSet,
+     bool                   IsDenom
+)   :
+    mX        (aSet.Alloc().NewF(&aComp.CoeffX())),
+    mY        (aSet.Alloc().NewF(&aComp.CoeffY())),
+    m1        (IsDenom ?
+                    Fonc_Num(1) :
+                    aSet.Alloc().NewF(&aComp.Coeff1())
+              )
+{
+}
+
+Fonc_Num cHomogFormelle::cComp::operator ()(Pt2d< Fonc_Num> aP)
+{
+   return mX*aP.x + mY*aP.y + m1;
+}
+
+             //
+             //    cHomogFormelle
+             //
+
+
+void cHomogFormelle::SetModeCtrl(eModeContrHom aMode)
+{
+	mModeContr = aMode;
+}
+
+cHomogFormelle::cHomogFormelle
+(
+     const cElHomographie & anHomog,
+     cSetEqFormelles &         aSet,
+     eModeContrHom                   aModeContr
+)  :
+     cElemEqFormelle(aSet,false),
+     mHomInit     (anHomog),
+     mCurHom      (anHomog),
+     mCX          (mCurHom.HX(),aSet,false),
+     mCY          (mCurHom.HY(),aSet,false),
+     mCZ          (mCurHom.HZ(),aSet,true),
+     mModeContr   (aModeContr),
+     mHomFTol     (cContrainteEQF::theContrStricte)
+{
+   CloseEEF();
+}
+
+
+
+Pt2d< Fonc_Num>  cHomogFormelle::operator ()(Pt2d< Fonc_Num> aP)
+{
+   return Pt2d<Fonc_Num>(mCX(aP)/ mCZ(aP) ,mCY(aP) / mCZ(aP));
+}
+
+
+cMultiContEQF    cHomogFormelle::StdContraintes()
+{
+   cMultiContEQF aRes;
+   if (mModeContr==eHomFigee)
+   { 
+       AddFoncRappInit(aRes,0,8,mHomFTol);
+   }
+   else if (mModeContr==eHomLibre) 
+   {
+      AddFoncRappInit(aRes,0,0,mHomFTol);
+   }
+   else if (mModeContr==eHomStdBloqueRot)
+   {
+	AddFoncRappInit(aRes,2,3,mHomFTol);
+	AddFoncRappInit(aRes,3,4,mHomFTol);
+	AddFoncRappInit(aRes,5,6,mHomFTol);
+   }
+   else
+   {
+        ELISE_ASSERT(false,"Unknown enum in cHomogFormelle::StdContraintes");
+   }
+
+   return  aRes;
+}
+
+const cElHomographie & cHomogFormelle::HomInit() const {return mHomInit;}
+const cElHomographie & cHomogFormelle::HomCur() const  {return mCurHom;}
+
+void cHomogFormelle::ReinitHom(const cElHomographie & anHom)
+{
+    mHomInit = mCurHom = anHom;
+    ReinitOnCur();
+}
+
+/************************************************************/
+/*                                                          */
+/*                    cEqHomogFormelle                      */
+/*                                                          */
+/************************************************************/
+
+cEqHomogFormelle::cEq::cEq(Fonc_Num F,cEqHomogFormelle & anEQF,bool isX,bool Code2Gen) :
+   mEQF(anEQF)
+{
+  mName =   std::string("cEqHomogr")
+          + std::string(isX ? "X" : "Y")
+          + std::string("Deg")
+          + ToString(anEQF.mDRF.DistInit().NbCoeff());
+
+
+  if (Code2Gen)
+  {
+       cElCompileFN::DoEverything
+       (
+          std::string("src")+ELISE_CAR_DIR+"GC_photogram"+ELISE_CAR_DIR,
+          mName,
+          F,
+          anEQF.mLInterv
+       );
+       return;
+  }
+
+  pFEq = cElCompiledFonc::AllocFromName(mName);
+  
+  if (pFEq == 0)
+  {
+       ELISE_ASSERT(false,"Dont Get CompVal for cEqHomogFormelle");
+       pFEq =  cElCompiledFonc::DynamicAlloc(anEQF.mLInterv,F);
+  }
+  else
+  {
+  }
+  pFEq->SetMappingCur(anEQF.mLInterv,&(anEQF.mSet));
+
+  pAdrX1 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberX1);
+  pAdrY1 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberY1);
+  pAdrX2 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberX2);
+  pAdrY2 = pFEq->RequireAdrVarLocFromString(anEQF.mMemberY2);
+
+  anEQF.mSet.AddFonct(pFEq);
+
+
+}
+
+cEqHomogFormelle::cEq::~cEq()
+{
+}
+
+
+
+REAL cEqHomogFormelle::cEq::AddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool WithD2)
+{
+   *pAdrX1 = aP1.x;
+   *pAdrY1 = aP1.y;
+   *pAdrX2 = aP2.x;
+   *pAdrY2 = aP2.y;
+   return mEQF.mSet.AddEqFonctToSys(pFEq,aPds,WithD2);
+}
+
+REAL cEqHomogFormelle::cEq::ResiduSigneP1P2(Pt2dr aP1,Pt2dr aP2)
+{
+   *pAdrX1 = aP1.x;
+   *pAdrY1 = aP1.y;
+   *pAdrX2 = aP2.x;
+   *pAdrY2 = aP2.y;
+   return mEQF.mSet.ResiduSigne(pFEq);
+}
+
+
+
+   //
+
+cEqHomogFormelle::~cEqHomogFormelle()
+{
+     delete pFEqX;
+     delete pFEqY;
+}
+cEqHomogFormelle::cEqHomogFormelle
+(
+   cHomogFormelle &      aHF1,
+   cHomogFormelle &      aHF2,
+   cDistRadialeFormelle& aDRF,
+   bool Code2Gen
+) :
+  mSet       (*aHF1.Set()),
+  mHF1       (aHF1),
+  mHF2       (aHF2),
+  mDRF       (aDRF),
+  mEqHom     (mHF1(mDRF(mP1))-mHF2(mDRF(mP2))),
+  mLInterv   (),
+  pFEqX      (0),
+  pFEqY      (0)
+{
+  mHF1.IncInterv().SetName("Hom1");
+  mHF2.IncInterv().SetName("Hom2");
+  mDRF.IncInterv().SetName("DRF");
+  mLInterv.AddInterv(mHF1.IncInterv());
+  mLInterv.AddInterv(mHF2.IncInterv());
+  mLInterv.AddInterv(mDRF.IncInterv());
+
+
+  pFEqX =  new cEq(mEqHom.x,*this,true,Code2Gen);
+  pFEqY =  new cEq(mEqHom.y,*this,false,Code2Gen);
+
+}
+
+REAL cEqHomogFormelle::AddLiaisonP1P2(Pt2dr aP1,Pt2dr aP2,REAL aPds,bool WithD2)
+{
+  return
+       ElAbs(pFEqX->AddLiaisonP1P2(aP1,aP2,aPds,WithD2)) +
+       ElAbs(pFEqY->AddLiaisonP1P2(aP1,aP2,aPds,WithD2)) ;
+}
+
+
+REAL cEqHomogFormelle::ResiduNonSigneP1P2(Pt2dr aP1,Pt2dr aP2)
+{
+   return   ElAbs(pFEqX->ResiduSigneP1P2(aP1,aP2))
+          + ElAbs(pFEqY->ResiduSigneP1P2(aP1,aP2));
+}
+
+Pt2dr  cEqHomogFormelle::PtResidu(Pt2dr aP1,Pt2dr aP2)
+{
+   return   Pt2dr
+            (
+                pFEqX->ResiduSigneP1P2(aP1,aP2),
+                pFEqY->ResiduSigneP1P2(aP1,aP2)
+            );
+}
+
+
+
+cSetEqFormelles &  cEqHomogFormelle::Set()
+{
+   return mSet;
+}
+
+
+/*
+static REAL DistHomogr(cElHomographie  aH1,cElHomographie  aH2)
+{
+   cDistHomographie aDist1(aH1);
+   cDistHomographie aDist2(aH2);
+
+   return aDist1.D2(aDist2,Pt2dr(-1,-1),Pt2dr(1,1),10);
+}
+*/
+
+cHomogFormelle&       cEqHomogFormelle::HF1() {return mHF1;}
+cHomogFormelle&       cEqHomogFormelle::HF2() {return mHF2;}
+cDistRadialeFormelle& cEqHomogFormelle::DRF() {return mDRF;}
+
+
+void cEqHomogFormelle::StdRepondere(ElPackHomologue & aPack,REAL aCoeff)
+{
+    cElHomographie H1 = HF1().HomCur();
+    cElHomographie H2 = HF2().HomCur();
+    ElDistRadiale_PolynImpair Dist = DRF().DistCur();
+
+    for
+    (
+         ElPackHomologue::iterator it=aPack.begin();
+         it!=aPack.end();
+         it++
+    )
+    {
+          Pt2dr Ec = H1.Direct(Dist.Direct(it->P1())) - H2.Direct(Dist.Direct(it->P2()));
+
+          REAL D = euclid(Ec);
+         
+          REAL Pds = 1 / (1 + ElSquare(D/aCoeff));
+          it->Pds() = Pds;
+    }
+}
+
+void cEqHomogFormelle::StdRepondere(REAL aCoeff)
+{
+     StdRepondere(StdPack(),aCoeff);
+}
+
+/************************************************************/
+/*                                                          */
+/*                    cLEqHomOneDist                        */
+/*                                                          */
+/************************************************************/
+
+
+
+void cLEqHomOneDist::AddHomogF(cHomogFormelle * anHom)
+{
+   if (std::find(mHomFs.begin(),mHomFs.end(),anHom) == mHomFs.end())
+   {
+      mHomFs.push_back(anHom);
+      mHomInits.push_back(anHom->HomInit());
+   }
+}
+
+void cLEqHomOneDist::AddEqF(cEqHomogFormelle * pEq)
+{
+   ELISE_ASSERT(mDRF ==&pEq->DRF(),"Multiple Dist in cLEqHomOneDist");
+
+   mEqFs.push_back(pEq);
+   AddHomogF(&pEq->HF1());
+   AddHomogF(&pEq->HF2());
+   mLiaisons.push_back(new ElPackHomologue);
+}
+
+void cLEqHomOneDist::AddCple(const ElPackHomologue & aPack)
+{
+    cElHomographie aH12(aPack,true); 
+    cElHomographie aH2 = aH12.Inverse();
+
+
+     cHomogFormelle * aHF1 =   mSet.NewHomF(cElHomographie::Id(),cNameSpaceEqF::eHomFigee);
+     cHomogFormelle * aHF2 =   mSet.NewHomF(aH2,cNameSpaceEqF::eHomLibre);
+
+
+     ELISE_ASSERT(mDRF !=0,"LEqHomOneDist::AddCple");
+     AddEqF(mSet.NewEqHomog(*aHF1,*aHF2,*mDRF));
+
+     for 
+     (
+        ElPackHomologue::const_iterator it= aPack.begin();
+        it!= aPack.end();
+        it++
+     )
+     {
+        AddLiaisonOnTop(it->P1(),it->P2(),it->Pds());
+     }
+}
+
+cSetEqFormelles * cLEqHomOneDist::Set()
+{
+   return & mSet;
+}
+
+
+
+cLEqHomOneDist::cLEqHomOneDist(REAL aDiag) :
+   mDiag           (aDiag),
+   mSet            (),
+   mDistInit       (ElDistRadiale_PolynImpair::DistId(1.0,Pt2dr(0,0),5)),
+   mCentreFige     (true),
+   mDegreDRFFiged  (3),
+   mDRF            (mSet.NewDistF(true,mCentreFige,mDegreDRFFiged,mDistInit)),
+   mDerSec         (false)
+{
+}
+
+
+REAL cLEqHomOneDist::AddAllEquationsToSet()
+{
+
+   mSet.AddContrainte(mDRF->StdContraintes(),true);
+
+   for (std::vector<cHomogFormelle *>::iterator itH=mHomFs.begin();itH!=mHomFs.end() ;itH++)
+   {
+       mSet.AddContrainte((*itH)->StdContraintes(),true);
+   }
+
+   
+
+   REAL Res=0,Cpt=0;
+   for (INT aK=0; aK<INT(mEqFs.size()) ; aK++)
+   {
+        cEqHomogFormelle * pEq = mEqFs[aK];
+        ElPackHomologue * pPack = mLiaisons[aK];
+        
+        for 
+        (
+           ElPackHomologue::const_iterator it= pPack->begin();
+           it!= pPack->end();
+           it++
+        )
+        {
+           REAL Ecart = pEq->AddLiaisonP1P2(it->P1(),it->P2(),it->Pds(),mDerSec) ;
+           Res += ElAbs(Ecart);
+           Cpt ++;
+        }
+   }
+
+
+   return Res/Cpt;
+}
+
+void cLEqHomOneDist::PondereFromErreur(REAL aDCut)
+{
+   for (INT aK=0; aK<INT(mEqFs.size()) ; aK++)
+   {
+       cEqHomogFormelle * pEq = mEqFs[aK];
+       ElPackHomologue * pPack = mLiaisons[aK];
+
+       
+       ElDistRadiale_PolynImpair aDist = pEq->DRF().DistCur();
+       cElHomographie  aH1 = pEq->HF1().HomCur();
+       cElHomographie  aH2 = pEq->HF2().HomCur();
+
+       for
+       (
+           ElPackHomologue::iterator it= pPack->begin();
+           it!= pPack->end();
+           it++
+       )
+       {
+           Pt2dr aP1 = aH1.Direct(aDist.Direct(it->P1()));
+           Pt2dr aP2 = aH2.Direct(aDist.Direct(it->P2()));
+           REAL aD = euclid(aP1,aP2) * mDiag;
+
+
+           REAL aPds = 1 / (1+ElSquare(aD/aDCut));
+           it->Pds() = aPds;
+       }
+   }
+}
+
+REAL  cLEqHomOneDist::NStepOpt(INT aNb,bool CentreFiged)
+{
+	// Pour initialiser correctement la dist
+   REAL aRes = 20.0;
+   mCentreFige = CentreFiged;
+   mDRF->SetCentreFige(CentreFiged);
+   for (INT aK= 0 ; aK<aNb ; aK++)
+   {
+      aRes = AddAllEquationsToSet();
+      mSet.SolveResetUpdate();
+   }
+   return aRes;
+}
+
+
+
+
+void cLEqHomOneDist::AddLiaisonOnTop(Pt2dr aP1,Pt2dr aP2,REAL aPds)
+{
+      mLiaisons.back()->Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+}
+
+
+cDistRadialeFormelle * cLEqHomOneDist::DRF()
+{
+   return mDRF;
+}
+
+void cLEqHomOneDist::CloseSet()
+{
+   mSet.SetClosed();
+}
+
+
+
+
+
+
+/*Footer-MicMac-eLiSe-25/06/2007
+
+Ce logiciel est un programme informatique servant à la mise en
+correspondances d'images pour la reconstruction du relief.
+
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+respectant les principes de diffusion des logiciels libres. Vous pouvez
+utiliser, modifier et/ou redistribuer ce programme sous les conditions
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+sur le site "http://www.cecill.info".
+
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
+
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+manipuler et qui le réserve donc à des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+termes.
+Footer-MicMac-eLiSe-25/06/2007*/
