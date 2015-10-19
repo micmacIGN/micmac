@@ -16,7 +16,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/Export2Ply.cpp
 	${TDPPMD_DIR}/ScaleModel.cpp
 	${TDPPMD_DIR}/ImageSimpleProjection.cpp
-	${TDPPMD_DIR}/ScaleModel.cpp
+	${TDPPMD_DIR}/PLY2XYZ.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
