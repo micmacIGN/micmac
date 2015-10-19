@@ -221,6 +221,7 @@ void cAppliTestARCam::TestAR(double aZ)
 {
     Pt2di aP;
     double aMaxD = 0;
+    double aMoyD = 0;
     Pt2di  aPMax;
     int aNb1=0;
     for (aP.x=0 ; aP.x<=mSz.x ; aP.x++)
@@ -228,6 +229,7 @@ void cAppliTestARCam::TestAR(double aZ)
         for (aP.y=0 ; aP.y<=mSz.y ; aP.y++)
         {
              double aD = TestAR(Pt2dr(aP),aZ);
+             aMoyD += aD;
              if (aD>aMaxD)
              {
                  aMaxD = aD;
@@ -236,7 +238,8 @@ void cAppliTestARCam::TestAR(double aZ)
              if (aD>1) aNb1++;
         }
     }
-    std::cout << "MaxD " << aMaxD << " ; PMax " << aPMax  << " ; Nb>1 " << aNb1 << "\n";
+    aMoyD /= double(mSz.x*mSz.y);
+    std::cout << "MaxD " << aMaxD <<" ; MoyD " << aMoyD << " ; PMax " << aPMax  << " ; Nb>1 " << aNb1 << "\n";
 }
 
 void cAppliTestARCam::TestAR()
@@ -261,7 +264,7 @@ cAppliTestARCam::cAppliTestARCam(int argc,char ** argv)  :
     mCam = cBasicGeomCap3D::StdGetFromFile(mName,aType);
 
     mSz  = mCam->SzBasicCapt3D();
-    std::cout << "Sz " << mSz << "\n";
+    std::cout << "Sz " << mSz << " Z0 " << mZ0 << "\n";
 
 }
 

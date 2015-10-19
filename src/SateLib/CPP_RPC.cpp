@@ -1434,7 +1434,8 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     std::vector<Pt3dr> aGridOrg, aGridCarto, 
                        aGridOrgCh, aGridCartoCh, 
                        aGridImg, aGridImgCh;
-    
+   
+
 
     // MPD => GetUnikId , else conflict when in // exec
     std::string aTmpIn = "Proj4InputRPC"+ GetUnikId() +".txt";
@@ -1459,7 +1460,8 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
                          first_lat+aStep.y*aK2+0.5*aStep.y,
                          first_height+aStep.z*aK3+0.5*aStep.z);
 
-		     aGridOrg.push_back(aP);
+	
+             aGridOrg.push_back(aP);
              aGridOrgCh.push_back(aPP);
 
              fprintf(aFPin,"%.20f %.20f %.20f\n",aP.x,aP.y,aP.z);
@@ -1492,6 +1494,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     {
         int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
 	    ELISE_ASSERT(aNb==3,"Bad Nb value RPC::ChSysRPC, internal error");
+
 
 	    aGridCarto.push_back(aP);
     }
@@ -1621,10 +1624,11 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     /* Normalise the carto grid **************************************/
     for(aK1=0; aK1<int(aGridCarto.size()); aK1++)
     {
+
         aGridCarto.at(aK1).x = (aGridCarto.at(aK1).x - long_off)/long_scale;
         aGridCarto.at(aK1).y = (aGridCarto.at(aK1).y - lat_off)/lat_scale;
         aGridCarto.at(aK1).z = (aGridCarto.at(aK1).z - height_off)/height_scale;
-        
+
     }
 
     /* Normalise the control carto grid **************************************/
@@ -1664,7 +1668,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
         //std::cout << "ewelina " << aPDif << "\n";
     }
 
-    std::cout << "ewelina MOY " << double(aPDifMoy.x)/(aGridCarto.size()) << " " << double(aPDifMoy.y)/(aGridCarto.size()) << "\n";
+    //std::cout << "ewelina MOY " << double(aPDifMoy.x)/(aGridCarto.size()) << " " << double(aPDifMoy.y)/(aGridCarto.size()) << "\n";
     
 }
 
