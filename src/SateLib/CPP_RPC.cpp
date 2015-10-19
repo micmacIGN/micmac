@@ -1424,22 +1424,29 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 {
 
     int aK1, aK2, aK3;
-    Pt3dr aP, aStep;
+    Pt3dr aP, aPP, aStep;
     
     
     aStep = Pt3dr(double(abs(last_lon-first_lon))/mRecGrid.x,
 		         double(abs(last_lat-first_lat))/mRecGrid.y,
 		         double(abs(last_height-first_height))/mRecGrid.z);
     
-    std::vector<Pt3dr> aGridOrg, aGridCarto, aGridImg;
+    std::vector<Pt3dr> aGridOrg, aGridCarto, 
+                       aGridOrgCh, aGridCartoCh, 
+                       aGridImg, aGridImgCh;
     
-    std::cout << "RPC::ChSysRPC " << ",mRecGrid " << mRecGrid << "\n"; 
-
 
     // MPD => GetUnikId , else conflict when in // exec
     std::string aTmpIn = "Proj4InputRPC"+ GetUnikId() +".txt";
     FILE * aFPin = FopenNN(aTmpIn,"w","RPC::ChSysRPC");
+    std::string aTmpInCh = "Proj4InputRPC"+ GetUnikId() +"_Ch.txt";
+    FILE * aFPinCh = FopenNN(aTmpInCh,"w","RPC::ChSysRPC");
 
+
+
+
+
+    /* Create the object space grids **********************************/
     for(aK1=0; aK1<mRecGrid.x; aK1++)
        for(aK2=0; aK2<mRecGrid.y; aK2++)
 	      for(aK3=0; aK3<mRecGrid.z; aK3++)
@@ -1448,12 +1455,25 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 			            first_lat+aStep.y*aK2,
 			            first_height+aStep.z*aK3);
 	        
+             aPP = Pt3dr(first_lon+aStep.x*aK1+0.5*aStep.x,
+                         first_lat+aStep.y*aK2+0.5*aStep.y,
+                         first_height+aStep.z*aK3+0.5*aStep.z);
+
 		     aGridOrg.push_back(aP);
+             aGridOrgCh.push_back(aPP);
 
              fprintf(aFPin,"%.20f %.20f %.20f\n",aP.x,aP.y,aP.z);
+             fprintf(aFPinCh,"%.20f %.20f %.20f\n",aPP.x,aPP.y,aPP.z);
 	      }
     ElFclose(aFPin);
+    ElFclose(aFPinCh);
 
+
+
+
+
+
+    /* Convert the grid to cartographic coords *********************/
     //convert to carto
     // MPD => GetUnikId , else conflict when in // exec
     std::string aTmpOut = "Proj4OutputRPC" + GetUnikId() + ".txt";
@@ -1480,6 +1500,37 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     ELISE_fp::RmFile(aTmpOut);
     ELISE_fp::RmFile(aTmpIn);
 
+
+
+
+    /* Convert the control_grid to cartographic coords *************/
+    //the control grid
+    std::string aTmpOutCh = "Proj4OutputRPC" + GetUnikId() + "_Ch.txt";
+    
+    std::string aComCh =  g_externalToolHandler.get("cs2cs").callName() + " " +
+	                "+proj=longlat +datum=WGS84" + " +to " + 
+			        aChSys.BSC()[0].AuxStr()[0] + " " + aTmpInCh + 
+			        " > " + aTmpOutCh;
+
+    VoidSystem(aComCh.c_str());
+
+    ELISE_fp aFOutCh(aTmpOutCh.c_str(),ELISE_fp::READ);
+
+    char * aLineCh;
+    while ((aLineCh = aFOutCh.std_fgets()))
+    {
+        int aNb = sscanf(aLineCh,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
+	    ELISE_ASSERT(aNb==3,"Bad Nb value RPC::ChSysRPC, internal error");
+
+	    aGridCartoCh.push_back(aP);
+    }
+    aFOutCh.close();
+
+    ELISE_fp::RmFile(aTmpOutCh);
+    ELISE_fp::RmFile(aTmpInCh);
+
+
+    /* Normalise the grid *********************************************/
     //normalise the geodetic cs
     for(aK1=0; aK1<int(aGridOrg.size()); aK1++)
     {
@@ -1488,14 +1539,42 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
         aGridOrg.at(aK1).z = (aGridOrg.at(aK1).z - height_off)/height_scale;
 
     }
+    //back project norm geodetic grid to normalised image space
+    for(aK1=0; aK1<int(aGridOrg.size()); aK1++)
+        aGridImg.push_back(InverseRPCNorm(aGridOrg.at(aK1)));    
 
-    //get carto cs normalising parameters & validating zone
+
+
+    /* Normalise the control grid *************************************/
+    for(aK1=0; aK1<int(aGridOrgCh.size()); aK1++)
+    {
+        aGridOrgCh.at(aK1).x = (aGridOrgCh.at(aK1).x - long_off)/long_scale;
+        aGridOrgCh.at(aK1).y = (aGridOrgCh.at(aK1).y - lat_off)/lat_scale;
+        aGridOrgCh.at(aK1).z = (aGridOrgCh.at(aK1).z - height_off)/height_scale;
+
+    }
+    //back project norm geodetic grid to normalised image space
+    for(aK1=0; aK1<int(aGridOrgCh.size()); aK1++)
+        aGridImgCh.push_back(InverseRPCNorm(aGridOrgCh.at(aK1)));    
+
+    
+
+
+
+    /*get carto cs normalising parameters & validating zone ************/
+    double aEX=aGridCarto.at(0).x, 
+           aEY=aGridCarto.at(0).y, 
+           aEZ=aGridCarto.at(0).z;
     double X_min = aGridCarto.at(0).x, X_max = X_min, 
 	Y_min = aGridCarto.at(0).y, Y_max = Y_min, 
 	Z_min = aGridCarto.at(0).z, Z_max = Z_min;
 
     for(aK1=1; aK1<int(aGridCarto.size()); aK1++)
     {
+        aEX+=aGridCarto.at(aK1).x;
+        aEY+=aGridCarto.at(aK1).y;
+        aEZ+=aGridCarto.at(aK1).z;
+
         if(aGridCarto.at(aK1).x > X_max)
 	       X_max = aGridCarto.at(aK1).x;
 	
@@ -1515,27 +1594,78 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 	       Z_max = aGridCarto.at(aK1).z;
     }
    
-    SetNewLongLatHScaleOffset(X_min,X_max,Y_min,Y_max,Z_min,Z_max);
+    //SetNewLongLatHScaleOffset(X_min,X_max,Y_min,Y_max,Z_min,Z_max);
    
+    //new validity
+    SetNewLongLatH(X_min,X_max,Y_min,Y_max,Z_min,Z_max);
+
+    //new scale and offset
+    long_off = double(aEX)/aGridCarto.size();
+    lat_off = double(aEY)/aGridCarto.size();
+    height_off = double(aEZ)/aGridCarto.size();
+    
+    std::abs(X_max - long_off) > std::abs(X_min - long_off) ? 
+        long_scale = std::abs(X_max - long_off) : 
+        long_scale = std::abs(X_min - long_off);
+
+    std::abs(Y_max - lat_off) > std::abs(Y_min - lat_off) ?
+        lat_scale = std::abs(Y_max - lat_off) :
+        lat_scale = std::abs(Y_min - lat_off);
+
+    std::abs(Z_max - height_off) > std::abs(Z_min - height_off) ?
+        height_scale = std::abs(Z_max - height_off) :
+        height_scale = std::abs(Z_min - height_off);
+
+    
+
+    /* Normalise the carto grid **************************************/
     for(aK1=0; aK1<int(aGridCarto.size()); aK1++)
     {
-        aGridCarto.at(aK1).x = (aGridCarto.at(aK1).x - lat_off)/lat_scale;
-        aGridCarto.at(aK1).y = (aGridCarto.at(aK1).y - long_off)/long_scale;
+        aGridCarto.at(aK1).x = (aGridCarto.at(aK1).x - long_off)/long_scale;
+        aGridCarto.at(aK1).y = (aGridCarto.at(aK1).y - lat_off)/lat_scale;
         aGridCarto.at(aK1).z = (aGridCarto.at(aK1).z - height_off)/height_scale;
         
     }
 
-    //back project norm geodetic grid to image space
-    for(aK1=0; aK1<int(aGridOrg.size()); aK1++)
-        aGridImg.push_back(InverseRPCNorm(aGridOrg.at(aK1)));    
+    /* Normalise the control carto grid **************************************/
+    for(aK1=0; aK1<int(aGridCartoCh.size()); aK1++)
+    {
+        aGridCartoCh.at(aK1).x = (aGridCartoCh.at(aK1).x - long_off)/long_scale;
+        aGridCartoCh.at(aK1).y = (aGridCartoCh.at(aK1).y - lat_off)/lat_scale;
+        aGridCartoCh.at(aK1).z = (aGridCartoCh.at(aK1).z - height_off)/height_scale;
+        
+    }
     
     //learn inverse projection function for xy and XYZ_carto_norm
-    GCP2Inverse(aGridOrg, aGridImg);
+    GCP2Inverse(aGridCarto, aGridImg);
 
     //learn direct projection function for xy and XYZ_carto_norm
-    GCP2Direct(aGridOrg, aGridImg);    
+    GCP2Direct(aGridCarto, aGridImg);    
 
     IS_UNIT_m = true;
+
+    /* Check the accuracy ********************************************/
+    Pt2dr aPDifMoy(0,0);
+    for(aK1=0; aK1<int(aGridCarto.size()); aK1++)
+    {
+        
+        Pt2dr aPDif; 
+        Pt3dr aPBP = InverseRPCNorm(aGridCartoCh.at(aK1));
+        aPDif.x = aGridImgCh.at(aK1).x - aPBP.x;
+        aPDif.y = aGridImgCh.at(aK1).y - aPBP.y;
+
+        aPDif.x = aPDif.x * samp_scale;// + samp_off;
+        aPDif.y = aPDif.y * line_scale;// + line_off;
+
+
+        aPDifMoy.x += aPDif.x;
+        aPDifMoy.y += aPDif.y;
+
+        //std::cout << "ewelina " << aPDif << "\n";
+    }
+
+    std::cout << "ewelina MOY " << double(aPDifMoy.x)/(aGridCarto.size()) << " " << double(aPDifMoy.y)/(aGridCarto.size()) << "\n";
+    
 }
 
 //even if an image crop is used, the RPC are recomputed on the original img
@@ -1575,7 +1705,7 @@ void RPC::SetRecGrid()
    
     mRecGrid = Pt3di(aSamplX,aSamplY,aSamplZ);
 
-    //std::cout <<"ewelina mRecGrid " << mRecGrid << "\n";
+    std::cout <<"ewelina mRecGrid " << mRecGrid << "\n";
     
 }
 
