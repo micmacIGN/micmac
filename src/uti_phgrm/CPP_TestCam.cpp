@@ -246,7 +246,8 @@ void cAppliTestARCam::TestAR()
 
 
 
-cAppliTestARCam::cAppliTestARCam(int argc,char ** argv) 
+cAppliTestARCam::cAppliTestARCam(int argc,char ** argv)  :
+    mZ0(0.0)
 {
     ElInitArgMain
     (
