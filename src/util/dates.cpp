@@ -1188,6 +1188,7 @@ class cXifDecoder
 public :
 	static const std::vector<cXifDecoder *>  &  TheVect();
 	static cMetaDataPhoto GetMTDIm(const std::string & aNameIm);
+        friend class cCmpXifDecoderOnPrio;
 private  :
 	bool GenerateTxtFile(const std::string & aNameIm);
 	void  GetOneDouble(cElRegex * & anAutom,bool & aGot,double & aVal);
@@ -1196,6 +1197,7 @@ private  :
 
 	cXifDecoder
 		(
+                double  aPrio,
 		const std::string & aStrExe,
 		const std::string & aStrTmp,
 		const std::string & aStrDate,
@@ -1216,7 +1218,8 @@ private  :
 		const std::string & aStrNbBits
                
 		) :
-	mStrExe             (aStrExe + " "),
+                mPrio               (aPrio),
+	        mStrExe             (aStrExe + " "),
 		mStrLangE           (STRLANG+ mStrExe),
 		mStrTmp             (aStrTmp),
 		mAutomDate          (new cElRegex(aStrDate,15)),
@@ -1244,6 +1247,7 @@ private  :
 	}
 
            // std::cout << "  XXXXXxxxxXX  " << aNameXml << aXml.Foc35().Val() << "\n";
+        double              mPrio;
 	std::string         mStrExe;
 	std::string         mStrLangE;
 	std::string         mStrTmp;
@@ -1534,6 +1538,16 @@ void TestXD(const std::string & aNameIm)
 }
 
 
+class cCmpXifDecoderOnPrio
+{
+   public :
+
+       bool operator () (cXifDecoder * aDec1,cXifDecoder *  aDec2) const
+       {
+                  return aDec1->mPrio < aDec2->mPrio;
+       }
+};
+
 const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 {
 	static  std::vector<cXifDecoder *> aRes;
@@ -1541,12 +1555,17 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 	if (aRes.size() == 0)
 	{
 
+                double  Prio_exiftool = 0.0;
+                double  Prio_exiv2 =    1.0;
+                double  PrioElDcraw =   2.0;
 
 		aRes.push_back
 			(
+                        
 			new cXifDecoder
 			(
-              MM3dBinFile_quotes("ElDcraw")+" -i -v ",
+                         PrioElDcraw,
+                         MM3dBinFile_quotes("ElDcraw")+" -i -v ",
 			"ELDCRAW.txt",
 			"Timestamp: .* (...)  ?([0-9]{1,2})  ?([0-9]{1,2}):([0-9]{2}):([0-9]{2}) ([0-9]{4})",
 			"612345" ,
@@ -1572,6 +1591,7 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 		else aRes.push_back(
 			new cXifDecoder
 			(
+                          Prio_exiv2,
 			string(" ")+g_externalToolHandler.get("exiv2").callName()+" ",
 			"EXIV2.txt",
 			"Image timestamp : ([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})",
@@ -1598,6 +1618,7 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 		else aRes.push_back(
 			new cXifDecoder
 			(
+                         Prio_exiftool,
 			string(" ")+g_externalToolHandler.get("exiftool").callName()+" ",
 			"EXIFTOOL.txt",
 			"Create Date *: ([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})",
@@ -1619,6 +1640,9 @@ const std::vector<cXifDecoder *> &  cXifDecoder::TheVect()
 			)
 			);
 	}
+
+        cCmpXifDecoderOnPrio aCmp;
+        std::sort(aRes.begin(),aRes.end(),aCmp);
 
 	return aRes;
 }
