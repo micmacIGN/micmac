@@ -516,6 +516,7 @@ int ExoMCI_main(int argc, char** argv);
 int PseudoIntersect_main(int argc, char** argv);
 int ExoCorrelEpip_main(int argc,char ** argv);
 int ScaleModel_main(int argc, char ** argv);
+int PLY2XYZ_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
 int  NLD_main(int argc,char ** argv);
@@ -604,10 +605,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
    
    aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images"));
-
    aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning"));
-
    aRes.push_back(cMMCom("ScaleModel",ScaleModel_main," Tool for simple scaling a model",cArgLogCom(2)));
+   aRes.push_back(cMMCom("Ply2Xyz",PLY2XYZ_main," Tool to export in TxT file XYZ columns only from a .ply file",cArgLogCom(2)));
+   
 
 
    aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
