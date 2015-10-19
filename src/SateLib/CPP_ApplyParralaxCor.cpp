@@ -39,11 +39,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 #include "hassan/reechantillonnage.h"
+#include "RPC.h"
 
 
 int ApplyParralaxCor_main(int argc, char ** argv)
 {
-	std::string aNameIm, aNameParallax;
+	std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
 	std::string aNameOut = "";
 	//Reading the arguments
 	ElInitArgMain
@@ -51,7 +52,9 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		argc, argv,
 		LArgMain()
 		<< EAMC(aNameIm, "Image to be corrected", eSAM_IsPatFile)
-		<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile),
+		<< EAMC(aNameIm2, "Other image", eSAM_IsPatFile)
+		<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile)
+		<< EAMC(aNameDEM, "DEM file", eSAM_IsPatFile),
 		LArgMain()
 		<< EAM(aNameOut, "Out", true, "Name of output image (Def=ImName_corrected.tif")
 		);
@@ -63,12 +66,22 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	if (aNameOut == "")
 		aNameOut = aNameIm + "_corrected.tif";
 
+	//Read RPCs
+	RPC aRPC;
+	string aNameRPC1 = "RPC_" + StdPrefix(aNameIm) + ".xml";
+	aRPC.ReadDimap(aNameRPC1);
+	cout << "Dimap File " << aNameRPC1 << " read" << endl;
+	RPC aRPC2;
+	string aNameRPC2 = "RPC_" + StdPrefix(aNameIm2) + ".xml";
+	aRPC2.ReadDimap(aNameRPC2);
+	cout << "Dimap File " << aNameRPC2 << " read" << endl;
+
+
 	//Reading the image and creating the objects to be manipulated
 	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameIm, 1, false);
 
 	Pt2di aSz = aTF.sz();
 	Im2D_U_INT1  aIm(aSz.x, aSz.y);
-	Im2D_U_INT1  aImOut(aSz.x, aSz.y);
 
 	ELISE_COPY
 		(
@@ -78,7 +91,6 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		);
 
 	U_INT1 ** aData = aIm.data();
-	U_INT1 ** aDataOut = aImOut.data();
 
 	//Reading the parallax correction file
 	Tiff_Im aTFPar = Tiff_Im::StdConvGen(aDir + aNameParallax, 1, false);
@@ -90,16 +102,64 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
 		);
 	REAL8 ** aDatPar = aPar.data();
+	
+	//Reading the DEM file
+	Tiff_Im aTFDEM = Tiff_Im::StdConvGen(aDir + aNameDEM, 1, false);
+	Im2D_REAL8  aDEM(aSz.x, aSz.y);
+	ELISE_COPY
+		(
+		aTFDEM.all_pts(),
+		aTFDEM.in(),
+		aDEM.out()
+		);
+	REAL8 ** aDatDEM = aDEM.data();
+
+
+	//Output container
+	Im2D_U_INT1  aImOut(aSz.x, aSz.y);
+	U_INT1 ** aDataOut = aImOut.data();
+
+	//Output anagle container
+	Im2D_REAL8  aAngleOut(aSz.x, aSz.y);
+	REAL8 ** aDataAngleOut = aAngleOut.data();
+	string aNameAngle = "Angle.tif";
+
+	Pt3dr PBTest(1500,3000, 0);
+	Pt3dr PWTest = aRPC.DirectRPC(PBTest);
+	Pt3dr PNTest = aRPC2.InverseRPC(PWTest);
+	cout << "PB0 = " << PBTest << endl;
+	cout << "PW0 = " << PWTest << endl;
+	cout << "PN0 = " << PNTest << endl;
+	cout << aRPC.height_scale << " " << aRPC.height_off << endl;
+	PBTest.z=1000;
+	PWTest = aRPC.DirectRPC(PBTest);
+	PNTest = aRPC2.InverseRPC(PWTest);
+	cout << "PB1 = " << PBTest << endl;
+	cout << "PW1 = " << PWTest << endl;
+	cout << "PN1 = " << PNTest << endl;
 
 
 
+	//Computing output data
 	for (int aX = 0; aX < aSz.x; aX++)
 	{
 		for (int aY = 0; aY < aSz.y; aY++)
 		{
+			//Pt3dr P1B(aX, aY, aDatDEM[aY][aX] - 1);
+			//Pt3dr P2B(aX, aY, aDatDEM[aY][aX] + 1);
+			Pt3dr P1B(aX, aY, 0);
+			Pt3dr P2B(aX, aY, 10000);
+			Pt3dr P1N = aRPC2.InverseRPC(aRPC.DirectRPC(P1B));
+			Pt3dr P2N = aRPC2.InverseRPC(aRPC.DirectRPC(P2B));
+			double aAngle = atan((P2N.x - P1N.x) / (P2N.y - P1N.y));
+			aDataAngleOut[aY][aX] = aAngle;
+			//cout << aX << " " << aY << " " << aAngle << endl;
+			//cout << P1N << " " << P2N << " " << aAngle << endl;
+
+			//THE THINGS COMPUTED ABOVE WILL BE USED IN A FURTHER UPDATE
 			Pt2dr ptOut;
-			ptOut.x = aX - aDatPar[aY][aX];
-			ptOut.y = aY;
+			ptOut.x = aX - aDatPar[aY][aX] * cos(aAngle);
+			ptOut.y = aY;// -aDatPar[aY][aX] * sin(aAngle);
 			aDataOut[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
 		}
 	}
@@ -119,6 +179,23 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		aTOut.all_pts(),
 		aImOut.in(),
 		aTOut.out()
+		);
+
+	Tiff_Im  aTAngleOut
+		(
+		aNameAngle.c_str(),
+		aSz,
+		GenIm::real8,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+		);
+
+
+	ELISE_COPY
+		(
+		aTAngleOut.all_pts(),
+		aAngleOut.in(),
+		aTAngleOut.out()
 		);
 
 
