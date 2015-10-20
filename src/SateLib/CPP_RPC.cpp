@@ -1476,7 +1476,6 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 
 
     /* Convert the grid to cartographic coords *********************/
-    //convert to carto
     // MPD => GetUnikId , else conflict when in // exec
     std::string aTmpOut = "Proj4OutputRPC" + GetUnikId() + ".txt";
     
@@ -1507,7 +1506,6 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 
 
     /* Convert the control_grid to cartographic coords *************/
-    //the control grid
     std::string aTmpOutCh = "Proj4OutputRPC" + GetUnikId() + "_Ch.txt";
     
     std::string aComCh =  g_externalToolHandler.get("cs2cs").callName() + " " +
@@ -1533,8 +1531,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     ELISE_fp::RmFile(aTmpInCh);
 
 
-    /* Normalise the grid *********************************************/
-    //normalise the geodetic cs
+    /* Normalise the grid (in geo coordinates) **************************/
     for(aK1=0; aK1<int(aGridOrg.size()); aK1++)
     {
         aGridOrg.at(aK1).x = (aGridOrg.at(aK1).x - long_off)/long_scale;
@@ -1548,7 +1545,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 
 
 
-    /* Normalise the control grid *************************************/
+    /* Normalise the control grid (in geo coordinates) ******************/
     for(aK1=0; aK1<int(aGridOrgCh.size()); aK1++)
     {
         aGridOrgCh.at(aK1).x = (aGridOrgCh.at(aK1).x - long_off)/long_scale;
@@ -1564,7 +1561,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 
 
 
-    /*get carto cs normalising parameters & validating zone ************/
+    /* Get carto cs normalising parameters & validating zone ************/
     double aEX=aGridCarto.at(0).x, 
            aEY=aGridCarto.at(0).y, 
            aEZ=aGridCarto.at(0).z;
@@ -1631,7 +1628,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 
     }
 
-    /* Normalise the control carto grid **************************************/
+    /* Normalise the control carto grid *****************************/
     for(aK1=0; aK1<int(aGridCartoCh.size()); aK1++)
     {
         aGridCartoCh.at(aK1).x = (aGridCartoCh.at(aK1).x - long_off)/long_scale;
@@ -1642,9 +1639,14 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     
     //learn inverse projection function for xy and XYZ_carto_norm
     GCP2Inverse(aGridCarto, aGridImg);
-
+    /*info();
+	GCP2Inverse(aGridCartoCh, aGridImgCh);
+    info();*/
     //learn direct projection function for xy and XYZ_carto_norm
     GCP2Direct(aGridCarto, aGridImg);    
+    /*info();
+	GCP2Direct(aGridCartoCh, aGridImgCh);
+    info();*/
 
     IS_UNIT_m = true;
 
@@ -1662,22 +1664,25 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
         aPDif.y = aPDif.y * line_scale;// + line_off;
 
 
-        aPDifMoy.x += aPDif.x;
-        aPDifMoy.y += aPDif.y;
+        aPDifMoy.x += abs(aPDif.x);
+        aPDifMoy.y += abs(aPDif.y);
 
         //std::cout << "ewelina " << aPDif << "\n";
     }
 
-    //std::cout << "ewelina MOY " << double(aPDifMoy.x)/(aGridCarto.size()) << " " << double(aPDifMoy.y)/(aGridCarto.size()) << "\n";
+	std::cout << "RPC recalculation"
+              << " precision: " << double(aPDifMoy.x)/(aGridCarto.size()) << " " 
+              << double(aPDifMoy.y)/(aGridCarto.size()) << " [pix]\n";
     
 }
 
-//even if an image crop is used, the RPC are recomputed on the original img
-//btw in [Tao & Hu, 2001] horizontal grid every ~600pix, vert grid every ~500m
+/* Even if an image crop is used, the RPC are recomputed on the original img
+   btw in [Tao & Hu, 2001] horizontal grid every ~600pix, vert grid every ~500m
+       in [Guo, 2006] empirically showed that 20x20x3 grid is sufficient */  
 void RPC::SetRecGrid()
 {
     //grid spacing in 3D in meters
-    int aHorizM = 500, aVertM = 100;
+    int aHorizM = 200, aVertM = 50;
     int aSamplX, aSamplY, aSamplZ;
 
     if( IS_UNIT_m )
@@ -1691,7 +1696,7 @@ void RPC::SetRecGrid()
         double aFprntLonM =  first_height * 
                             (last_lon - first_lon)*180.0/M_PI;
         double aFprntLatM =  first_height * 
-							(last_lat - first_lat)*180.0 / M_PI;
+			     (last_lat - first_lat)*180.0 / M_PI;
         
         aSamplX = floor(aFprntLonM/aHorizM);
         aSamplY = floor(aFprntLatM/aHorizM);
@@ -1709,7 +1714,7 @@ void RPC::SetRecGrid()
    
     mRecGrid = Pt3di(aSamplX,aSamplY,aSamplZ);
 
-    std::cout <<"ewelina mRecGrid " << mRecGrid << "\n";
+    std::cout <<"RPC recalculation on a grid: " << mRecGrid << "\n";
     
 }
 
