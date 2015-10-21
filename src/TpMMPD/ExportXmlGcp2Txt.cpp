@@ -36,83 +36,48 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
 #include "StdAfx.h"
-#include <algorithm>
 
-#define DEF_OFSET -12349876
-
-int ScaleModel_main(int argc,char ** argv)
+int ExportXmlGcp2Txt_main(int argc,char ** argv)
 {
-    NoInit = "NoP1P2";
-    aNoPt = Pt2dr(123456,-8765432);
-
-    // MemoArg(argc,argv);
-    MMD_InitArgcArgv(argc,argv);
-    std::string  aDir,aPat,aFullDir;
-    bool ExpTxt=false;
-    std::string AeroIn;
-    std::string AeroOut;
-    std::string FileMesures ;
-    bool  CPI = false;
-
-
-    double DistFE = 1;
-
-    ElInitArgMain
+	std::string aFile, aDir, aOut="Output.txt";
+	bool addInc = false;
+	
+	ElInitArgMain
     (
-    argc,argv,
-    LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pat)", eSAM_IsPatFile )
-                << EAMC(AeroIn,"Orientation in", eSAM_IsExistDirOri)
-                << EAMC(FileMesures,"Images measures xml file", eSAM_IsExistFile)
-                << EAMC(AeroOut,"Out : orientation ", eSAM_IsOutputDirOri)
-                << EAMC(DistFE,"Distance between Ech1 and Ech2 to fix the scale"),
-    LArgMain()
-                << EAM(ExpTxt,"ExpTxt",true)
-                << EAM(CPI,"CPI",true,"Calibration Per Image (Def=false)")
-
+          argc, argv,
+          LArgMain() << EAMC(aDir, "Directory")
+					 << EAMC(aFile, "xml Gcps file",  eSAM_IsExistFile),
+          LArgMain() << EAM(aOut,"Out",false,"output txt file name : def=Output.txt")
+					 << EAM(addInc,"addInc",false,"export also uncertainty values : def=flase",eSAM_IsBool)
     );
-
-    if (!MMVisualMode)
-    {
-#if (ELISE_windows)
-        replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
-#endif
-        SplitDirAndFile(aDir,aPat,aFullDir);
-
-        StdCorrecNameOrient(AeroIn,aDir);
-
-
-        MMD_InitArgcArgv(argc,argv);
-
-        std::string aCom =   MM3dBinFile( "Apero" )
-                + MMDir() + std::string("include/XML_MicMac/Apero-Scale.xml ")
-                + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
-                + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
-                + std::string(" +AeroOut=-") +  AeroOut
-                + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
-                + std::string(" +AeroIn=-") + AeroIn
-                + std::string(" +DistFE=") + ToString(DistFE)
-                + std::string(" +FileMesures=") + FileMesures
-                + std::string(" +CPI=") + ToString(CPI)
-                ;
-
-
-
-        std::cout << "Com = " << aCom << "\n";
-        int aRes = system_call(aCom.c_str());
-
-
-        return aRes;
-    }
-    else
-    {
-        return EXIT_SUCCESS;
-    }
+    
+    //read .xml file
+    cDicoAppuisFlottant aDico = StdGetFromPCP(aFile,DicoAppuisFlottant);
+	std::list<cOneAppuisDAF> aOneAppuisDAFList = aDico.OneAppuisDAF();
+	
+	//write data in .txt file
+	if (!MMVisualMode)
+	{
+		FILE * aFP = FopenNN(aOut,"w","OrthoShifting_main");
+		cElemAppliSetFile aEASF(aDir + ELISE_CAR_DIR + aOut);
+		
+		for (std::list<cOneAppuisDAF>::iterator itP=aOneAppuisDAFList.begin(); itP != aOneAppuisDAFList.end(); itP ++)
+		{
+			fprintf(aFP,"%s %.5f %.5f %.5f", itP->NamePt().c_str(), itP->Pt().x, itP->Pt().y, itP->Pt().z);
+			
+			if(addInc)
+				fprintf(aFP,"%.5f %.5f %.5f\n", itP->Incertitude().x, itP->Incertitude().y, itP->Incertitude().z);
+			else
+				fprintf(aFP,"\n");
+		}
+		
+		ElFclose(aFP);
+	}
+    
+	return EXIT_SUCCESS;
 }
-
-
-
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
