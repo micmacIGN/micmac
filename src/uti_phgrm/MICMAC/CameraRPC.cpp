@@ -212,7 +212,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     {
         mRPC->ReadDimap(aNameFile);
         
-        //UpdateValidity3DFromPix(); 
+        mRPC->UpdateValidity();
         
         mRPC->SetRecGrid();
 
@@ -977,55 +977,6 @@ const std::string CameraRPC::FindUTMCS()
     //std::cout << aRes << std::endl;
 }
 
-void CameraRPC::UpdateValidity3DFromPix() const
-{
-    std::vector<double> aLongVec, aLatVec;
-    Pt3dr aP1, aP2;
-    
-    //north-west image corner
-    aP1 = ImEtZ2Terrain(Pt2dr(mRPC->first_col,mRPC->first_row),mRPC->first_height);
-    aP2 = ImEtZ2Terrain(Pt2dr(mRPC->first_col,mRPC->first_row),mRPC->last_height);
-
-    aLongVec.push_back(aP1.x);
-    aLongVec.push_back(aP2.x);
-    aLatVec.push_back(aP1.y);
-    aLatVec.push_back(aP2.y);
-
-    //north-east image corner
-    aP1 = ImEtZ2Terrain(Pt2dr(mRPC->last_col,mRPC->first_row),mRPC->first_height);
-    aP2 = ImEtZ2Terrain(Pt2dr(mRPC->last_col,mRPC->first_row),mRPC->last_height);
-    
-    aLongVec.push_back(aP1.x);
-    aLongVec.push_back(aP2.x);
-    aLatVec.push_back(aP1.y);
-    aLatVec.push_back(aP2.y);
-
-    //south-east image corner
-    aP1 = ImEtZ2Terrain(Pt2dr(mRPC->last_col,mRPC->last_row),mRPC->first_height);
-    aP2 = ImEtZ2Terrain(Pt2dr(mRPC->last_col,mRPC->last_row),mRPC->last_height);
-
-    aLongVec.push_back(aP1.x);
-    aLongVec.push_back(aP2.x);
-    aLatVec.push_back(aP1.y);
-    aLatVec.push_back(aP2.y);
-    
-    //south-west image corner
-    aP1 = ImEtZ2Terrain(Pt2dr(mRPC->first_col,mRPC->last_row),mRPC->first_height);
-    aP2 = ImEtZ2Terrain(Pt2dr(mRPC->first_col,mRPC->last_row),mRPC->last_height);
-
-    aLongVec.push_back(aP1.x);
-    aLongVec.push_back(aP2.x);
-    aLatVec.push_back(aP1.y);
-    aLatVec.push_back(aP2.y);
-    
-    //update the validity zone in object space
-    mRPC->SetNewLongLatHScaleOffset(*std::min_element(aLongVec.begin(),aLongVec.end()),
-                              *std::max_element(aLongVec.begin(),aLongVec.end()),
-                              *std::min_element(aLatVec.begin(),aLatVec.end()),
-                              *std::max_element(aLatVec.begin(),aLatVec.end()),
-                              mRPC->first_height,
-                              mRPC->last_height);
-}
 
 
 /***********************************************************************/

@@ -127,7 +127,7 @@ class CameraRPC : public cBasicGeomCap3D
 		
 		const std::string FindUTMCS();
 
-        void UpdateValidity3DFromPix() const;
+        //void UpdateValidity3DFromPix() const;
 
         void AssertRPCDirInit() const;
 		void AssertRPCInvInit() const;
