@@ -929,8 +929,20 @@ cElPlan3D cAppliApero::EstimPlan
 
    aPOL->GetPtsTerrain (aPEP, aSelectorEstim, aAGPt,anAttr);
 
-   const std::vector<Pt3dr>  &  aVPts = aAGPt.Pts();
-   const std::vector<double> &  aVPds = aAGPt.Pds();
+   // const std::vector<Pt3dr>  &  aVPts = aAGPt.Pts();
+   // const std::vector<double> &  aVPds = aAGPt.Pds();
+   std::vector<Pt3dr>   aVPts = aAGPt.Pts();
+   std::vector<double>  aVPds = aAGPt.Pds();
+
+   if ((aVPts.size() == 0) && (aPEP.AcceptDefPlanIfNoPoint().Val()))
+   {
+       aVPts.push_back(Pt3dr(0,0,0));
+       aVPts.push_back(Pt3dr(1,0,0));
+       aVPts.push_back(Pt3dr(0,1,0));
+       aVPds.push_back(1.0);
+       aVPds.push_back(1.0);
+       aVPds.push_back(1.0);
+   }
 
 /*
 {
@@ -1042,10 +1054,13 @@ void cAppliApero::BasculePlan
         const cOrientInPlane & anOIP = aBL.OrientInPlane().Val();
         cSetOfMesureAppuisFlottants aSMAF = StdGetMAF(anOIP.FileMesures());
 
+         Pt3dr aP1 = aRP2E.ImAff(Pt3dr(1,0,0));
+         aP1 = CreatePtFromPointeMonoOrStereo(aSMAF,"Line1",&aPlan,"USEDEF",&aP1);
 
-         Pt3dr aP1 = CreatePtFromPointeMonoOrStereo(aSMAF,"Line1",&aPlan);
-         Pt3dr aP2 = CreatePtFromPointeMonoOrStereo(aSMAF,"Line2",&aPlan);
-         aPOrig    = CreatePtFromPointeMonoOrStereo(aSMAF,"Origine",&aPlan,"Line1");
+         Pt3dr aP2 = aRP2E.ImAff(Pt3dr(2,0,0));
+         aP2 = CreatePtFromPointeMonoOrStereo(aSMAF,"Line2",&aPlan,"USEDEF",&aP2);
+
+         aPOrig    = CreatePtFromPointeMonoOrStereo(aSMAF,"Origine",&aPlan,"USEDEF",&aP1);
 
 /*
         cAperoPointeMono aPt1 =  CreatePointeMono(aSMAF,"Line1");
@@ -1069,9 +1084,11 @@ void cAppliApero::BasculePlan
         Pt3dr aNorm = aRP2E.ImVect(Pt3dr(0,0,1));
 
         std::vector<cOneMesureAF1I>  aVM = GetMesureOfPts(aSMAF,"Line1");
-        cPoseCam * aPose1 = PoseFromName  (aVM[0].NamePt());
-        // const CamStenope * aCS1 =  aPose1->CurCam();
-        AjustNormalSortante(true,aNorm,aPose1->CurCam(),aVM[0].PtIm());
+        if (aVM.size())
+        {
+           cPoseCam * aPose1 = PoseFromName  (aVM[0].NamePt());
+           AjustNormalSortante(true,aNorm,aPose1->CurCam(),aVM[0].PtIm());
+        }
 
 // void AjustNormalSortante(Pt3dr & aNorm, const ElCamera * aCS1,const Pt2dr &aPIm)
 
@@ -1280,7 +1297,8 @@ Pt3dr cAppliApero::CreatePtFromPointeMonoOrStereo
             const cSetOfMesureAppuisFlottants & aMAF,
             const std::string & aNamePt,
             const cElPlan3D  * aPlan,
-            const std::string & aNameSec
+            const std::string & aNameSec,
+            const Pt3dr * aPDef
       )
 {
    Pt3dr aRes(0,0,0);
@@ -1293,6 +1311,8 @@ Pt3dr cAppliApero::CreatePtFromPointeMonoOrStereo
 
    if (int(aV.size()) <1)
    {
+      if (aPDef!=0)
+          return *aPDef; 
       std::cout << "For name point = " << aNamePt << "\n";
       ELISE_ASSERT(false,"cAppliApero::CreatePtFromPointe No Pointe");
    }

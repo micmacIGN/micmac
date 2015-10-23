@@ -431,12 +431,16 @@ class cParamEstimPlan
 
         cTplValGesInit< double > & LimBSurH();
         const cTplValGesInit< double > & LimBSurH()const ;
+
+        cTplValGesInit< bool > & AcceptDefPlanIfNoPoint();
+        const cTplValGesInit< bool > & AcceptDefPlanIfNoPoint()const ;
     private:
         cTplValGesInit< std::string > mAttrSup;
         cTplValGesInit< std::string > mKeyCalculMasq;
         std::string mIdBdl;
         cPonderationPackMesure mPond;
         cTplValGesInit< double > mLimBSurH;
+        cTplValGesInit< bool > mAcceptDefPlanIfNoPoint;
 };
 cElXMLTree * ToXMLTree(const cParamEstimPlan &);
 
