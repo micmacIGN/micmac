@@ -233,6 +233,7 @@
       <IdBdl Nb="1"  Type="std::string"> </IdBdl>
       <Pond Nb="1" RefType="PonderationPackMesure"> </Pond>
       <LimBSurH Nb="?" Type="double" Def="1e-2"> </LimBSurH>
+      <AcceptDefPlanIfNoPoint Nb="?" Type="bool" Def="false"></AcceptDefPlanIfNoPoint>
 </ParamEstimPlan>
 
 <RigidBlockWeighting Nb="1" Class="true" ToReference="true">

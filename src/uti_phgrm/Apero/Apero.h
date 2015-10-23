@@ -2384,7 +2384,8 @@ class cAppliApero : public NROptF1vND
                     const cSetOfMesureAppuisFlottants & aMAF,
                     const std::string & aNamePt,
                     const cElPlan3D  * aPlan,
-                    const std::string & aNameSec=""
+                    const std::string & aNameSec="",
+                    const Pt3dr * aPDef  = 0
               );
 
         ElSeg3D   PointeMono2Seg(const cAperoPointeMono &) ;

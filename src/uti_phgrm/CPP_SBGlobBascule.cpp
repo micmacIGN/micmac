@@ -89,7 +89,7 @@ int SBGlobBascule_main(int argc,char ** argv)
                     << EAMC(AeroOut,"Out : orientation ", eSAM_IsOutputDirOri),
     LArgMain()
                     << EAM(ExpTxt,"ExpTxt",true)
-                    << EAM(PostPlan,"PostPlan",true)
+                    << EAM(PostPlan,"PostPlan",true,"Set NONE if no plane")
                     << EAM(DistFE,"DistFS",true,"Distance between Ech1 and Ech2 to fix scale (if not given no scaling)")
                     << EAM(TargetRep,"Rep",true,"Target coordinate system (Def = ki, ie normal is vertical)")
                     << EAM(CPI,"CPI",true,"Calibration Per Image (Def=false)")
@@ -102,7 +102,7 @@ int SBGlobBascule_main(int argc,char ** argv)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
         SplitDirAndFile(aDir,aPat,aFullDir);
-        if (EAMIsInit(&PostPlan))
+        if (EAMIsInit(&PostPlan) && (PostPlan!="NONE"))
         {
             CorrecNameMasq(aDir,aPat,PostPlan);
         }
@@ -124,6 +124,7 @@ int SBGlobBascule_main(int argc,char ** argv)
                 + std::string(" +RepNL=") + TargetRep
                 + std::string(" +FileMesures=") + FileMesures
                 + std::string(" +CPI=") + ToString(CPI)
+                + std::string(" +AcceptNoPointInPlan=") + ToString(PostPlan=="NONE")
                 ;
 
 
