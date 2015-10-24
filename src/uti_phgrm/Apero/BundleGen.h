@@ -134,7 +134,7 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            void ShowMonome(const std::string & , int aDeg) const;
            void SetPow(const Pt2dr & aPN) const;
  
-           const cSystemeCoord  mChSys;
+           const cSystemeCoord  * mChSys;
            
            int                 mDegreMax;
            Pt2dr               mCenter;

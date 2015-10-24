@@ -907,7 +907,7 @@ cPolynomial_BGC3M2D::cPolynomial_BGC3M2D
       const cSystemeCoord * aChSys
 ) :
     cBGC3_Modif2D (aCam0,aName,aNameIma),
-    mChSys        (*aChSys),
+    mChSys        (aChSys),
     mDegreMax     (aDegreeMax),
     mCenter       (Pt2dr(mSz)/2.0),
     mAmpl         (euclid(mCenter)),
@@ -988,7 +988,10 @@ cXml_CamGenPolBundle cPolynomial_BGC3M2D::ToXml() const
     aRes.NameIma() = mNameIma;
     aRes.NameCamSsCor() = mNameFileCam0;
     
-    aRes.SysCible() = mChSys;
+    if (mChSys)
+    {
+       aRes.SysCible().SetVal(*mChSys);
+    }
 
     return aRes;
 }
@@ -1019,7 +1022,10 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
             ELISE_fp::CpFile(mNameFileCam0,aNameSsCor);
      }
      aXml.NameCamSsCor() = aNameSsCor;
-     aXml.SysCible() = mChSys;
+     if (mChSys)
+     {
+        aXml.SysCible().SetVal(*mChSys);
+     }
 
      
      MakeFileXML(aXml,aNameXml);
@@ -1050,13 +1056,13 @@ cPolynomial_BGC3M2D * cPolynomial_BGC3M2D::NewFromFile(const std::string & aName
 {
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
    
-    cSystemeCoord aChSys = aXML.SysCible();
+    cSystemeCoord * aChSys = aXML.SysCible().PtrVal();
 
     int aType = eTIGB_Unknown;
-    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),aType,&aChSys);
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),aType,aChSys);
 
 
-    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot(),0,&aChSys);
+    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot(),0,aChSys);
 
     aRes->SetMonom(aXML.CorX().Monomes(),aRes->mCx);
     aRes->SetMonom(aXML.CorY().Monomes(),aRes->mCy);
