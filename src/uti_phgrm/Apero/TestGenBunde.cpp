@@ -561,8 +561,9 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
 
-    //if(aChSysStr=="") mChSys=0;
-    //else
+    if(aChSysStr=="") 
+      mChSys=0;
+    else
         mChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
                      (
                          aChSysStr,

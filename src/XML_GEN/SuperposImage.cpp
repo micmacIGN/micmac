@@ -21590,12 +21590,12 @@ const std::string & cXml_CamGenPolBundle::NameIma()const
 }
 
 
-cSystemeCoord & cXml_CamGenPolBundle::SysCible()
+cTplValGesInit< cSystemeCoord > & cXml_CamGenPolBundle::SysCible()
 {
    return mSysCible;
 }
 
-const cSystemeCoord & cXml_CamGenPolBundle::SysCible()const 
+const cTplValGesInit< cSystemeCoord > & cXml_CamGenPolBundle::SysCible()const 
 {
    return mSysCible;
 }
@@ -21659,7 +21659,14 @@ void  BinaryUnDumpFromFile(cXml_CamGenPolBundle & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameCamSsCor(),aFp);
     BinaryUnDumpFromFile(anObj.NameIma(),aFp);
-    BinaryUnDumpFromFile(anObj.SysCible(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SysCible().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SysCible().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SysCible().SetNoInit();
+  } ;
     BinaryUnDumpFromFile(anObj.DegreTot(),aFp);
     BinaryUnDumpFromFile(anObj.Center(),aFp);
     BinaryUnDumpFromFile(anObj.Ampl(),aFp);
@@ -21671,7 +21678,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_CamGenPolBundle & anObj)
 {
     BinaryDumpInFile(aFp,anObj.NameCamSsCor());
     BinaryDumpInFile(aFp,anObj.NameIma());
-    BinaryDumpInFile(aFp,anObj.SysCible());
+    BinaryDumpInFile(aFp,anObj.SysCible().IsInit());
+    if (anObj.SysCible().IsInit()) BinaryDumpInFile(aFp,anObj.SysCible().Val());
     BinaryDumpInFile(aFp,anObj.DegreTot());
     BinaryDumpInFile(aFp,anObj.Center());
     BinaryDumpInFile(aFp,anObj.Ampl());
@@ -21685,7 +21693,8 @@ cElXMLTree * ToXMLTree(const cXml_CamGenPolBundle & anObj)
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_CamGenPolBundle",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("NameCamSsCor"),anObj.NameCamSsCor())->ReTagThis("NameCamSsCor"));
    aRes->AddFils(::ToXMLTree(std::string("NameIma"),anObj.NameIma())->ReTagThis("NameIma"));
-   aRes->AddFils(ToXMLTree(anObj.SysCible())->ReTagThis("SysCible"));
+   if (anObj.SysCible().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.SysCible().Val())->ReTagThis("SysCible"));
    aRes->AddFils(::ToXMLTree(std::string("DegreTot"),anObj.DegreTot())->ReTagThis("DegreTot"));
    aRes->AddFils(::ToXMLTree(std::string("Center"),anObj.Center())->ReTagThis("Center"));
    aRes->AddFils(::ToXMLTree(std::string("Ampl"),anObj.Ampl())->ReTagThis("Ampl"));
@@ -21718,7 +21727,7 @@ void xml_init(cXml_CamGenPolBundle & anObj,cElXMLTree * aTree)
    xml_init(anObj.CorY(),aTree->Get("CorY",1)); //tototo 
 }
 
-std::string  Mangling( cXml_CamGenPolBundle *) {return "8AA2139AC64B61F3FC3F";};
+std::string  Mangling( cXml_CamGenPolBundle *) {return "9C955EF102EC008EFD3F";};
 
 
 std::string & cXmlTNR_TestExistFile::NameFile()

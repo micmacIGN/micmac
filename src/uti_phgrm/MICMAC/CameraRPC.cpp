@@ -216,10 +216,12 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
         
         mRPC->SetRecGrid();
 
-	    if(aChSys!=0)
+	if(aChSys!=0)
             mRPC->ChSysRPC(*aChSys);
         else
-            ELISE_ASSERT(false,"CameraRPC::CameraRPC; no cartographic coordinate system (ChSys) provided");
+        {
+             ELISE_ASSERT(false,"CameraRPC::CameraRPC; no cartographic coordinate system (ChSys) provided");
+        }
 
         SetAltiSol(mRPC->first_height);
 
