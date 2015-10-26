@@ -552,6 +552,7 @@ int SysCall_main (int argc,char** argv);
 
 
 int TestARCam_main(int argc,char ** argv);
+int CPP_TestPhysMod_Main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -673,6 +674,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("TestBundleGen",CPP_TestBundleGen,"Unitary test for new bundle gen"));
 
+    aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
 
     cCmpMMCom CmpMMCom;

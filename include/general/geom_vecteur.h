@@ -666,7 +666,7 @@ Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1,
 Pt3dr InterSeg(const Pt3dr & aP0,const Pt3dr & aP1,const Pt3dr & aQ0,const Pt3dr & aQ1,bool & Ok,double * aSquareD=0);
 Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt3dr & aQ1,const Pt3dr & aQ2,bool & Ok,double * aSquareD=0);
 Pt3dr InterSeg(const ElRotation3D & aR2to1 ,const Pt2dr & aP1,const Pt2dr & aP2,bool & Ok,double * aSquareD=0);
-
+Pt3dr InterSeg(const std::vector<ElSeg3D> & aVP0, bool &Ok);
 
 
 
@@ -699,6 +699,7 @@ class ElSeg3D
 
           Pt3dr P0() const;
           Pt3dr P1() const;
+          Pt3dr Mil() const;
 
       static Pt3dr L2InterFaisceaux
                    (

@@ -656,7 +656,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
       (
            const std::vector<double> * aVPds,
            const std::vector<ElSeg3D> & aVS,
-       bool * aOK,
+           bool * aOK,
            const cRapOnZ *      aRAZ ,
            cResOptInterFaisceaux * aROIF,
            const std::vector<Pt3dr> *  aVPts
