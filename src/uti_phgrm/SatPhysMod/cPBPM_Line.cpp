@@ -48,9 +48,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 cPushB_GeomLine::cPushB_GeomLine(const cPushB_PhysMod * aPBPM,int aNbSampleX,double anY) :
-    mPBPM  (aPBPM),
-    mNbX   (aNbSampleX),
-    mY     (anY)
+    mPBPM    (aPBPM),
+    mNbX     (aNbSampleX),
+    mY       (anY),
+    mPlanRay (Pt3dr(0,0,0),Pt3dr(1,0,0),Pt3dr(0,1,0))
 {
 
    // Computation of segments and centers
@@ -65,34 +66,94 @@ cPushB_GeomLine::cPushB_GeomLine(const cPushB_PhysMod * aPBPM,int aNbSampleX,dou
     double aSomD=0;
     mMaxResInt = 0;
 
+    Pt3dr aSpeed = vunit(aPBPM->Rough_GroundSpeed(anY));
+
 
    // Computation of directions
-    std::vector<Pt3dr> aVDirPlan;
-    for (int aKS=0 ; aKS<int(aVSeg.size()) ; aKS++)
+    std::vector<Pt3dr> aVDirOrient;
     {
-         double aDist  = aVSeg[aKS].DistDoite(mCenter);
-         aSomD += aDist;
-         ElSetMax(mMaxResInt,aDist);
+       std::vector<Pt3dr> aVDirCalcPlan;
+       for (int aKS=0 ; aKS<int(aVSeg.size()) ; aKS++)
+       {
+            double aDist  = aVSeg[aKS].DistDoite(mCenter);
+            aSomD += aDist;
+            ElSetMax(mMaxResInt,aDist);
 
-         Pt3dr aDir = vunit(aVSeg[aKS].Mil()-mCenter);
-         mDirs.push_back(aDir);
+            Pt3dr aDir = vunit(aVSeg[aKS].Mil()-mCenter);
+            aVDirOrient.push_back(aDir);
 
-         aVDirPlan.push_back(aDir);
-         aVDirPlan.push_back(-aDir);
+            aVDirCalcPlan.push_back(aDir);
+            aVDirCalcPlan.push_back(-aDir);
+       }
+       mPlanRay = cElPlan3D(aVDirCalcPlan,0);
     }
     mResInt = aSomD / aVSeg.size();
 
 
-    cElPlan3D aPlanDir(aVDirPlan,0);
+    ElRotation3D aRe2p = mPlanRay.CoordPlan2Euclid().inv();
+    mAxeY = mPlanRay.Norm();
+    if (scal(aSpeed,mAxeY) < 0) 
+       mAxeY = -mAxeY;
+
+    // Pt3dr aX0 = vunit(mPlanRay.Proj(aRe2p.ImAff(aVDirPlan[aVSeg.size()/2])));
+    int aK0 = aVSeg.size()/2;
+    mAxeZ = DirOnPlan(aVDirOrient[aK0]);
+    mAxeX = vunit(mAxeY ^mAxeZ);
+
+    mMoyDistPlan = 0.0;
+    mMaxDistPlan = 0.0;
+    double aTetaMoy = 0.0;
     for (int aKS=0 ; aKS<int(aVSeg.size()) ; aKS++)
     {
-        Pt3dr aD = mDirs[aKS];
-        std::cout <<  " Dis Pl Dir " << euclid(aD-aPlanDir.Proj(aD)) << "\n";
-    }
+        Pt3dr aD = aVDirOrient[aKS];
+        double aDPlan = ElAbs(scal(mAxeY,aD));
+        mMoyDistPlan += aDPlan;
+        ElSetMax(mMaxDistPlan,aDPlan);
 
-    getchar();
-    // std::cout << "DISTTT " << mResInt << " " << euclid(mCenter) -7.07617e+06  << "\n";
+        Pt3dr aProjDir = DirOnPlan(aD);
+        double aScalZ = ElMax(-1.0,ElMin(1.0,scal(mAxeZ,aProjDir)));
+        double aScalX = ElMax(-1.0,ElMin(1.0,scal(mAxeX,aProjDir)));
+        double aTeta = atan2(aScalX,aScalZ);
+        aTetaMoy += aTeta;
+    }
+    aTetaMoy /= aVSeg.size();
+
+    mAxeZ = DirOnPlan(mAxeZ*cos(aTetaMoy) + mAxeX * sin(aTetaMoy));
+    mAxeX = vunit(mAxeY ^mAxeZ);
+
+
+    mMoyDistPlan /= aVSeg.size();
+    for (int aKS=0 ; aKS<int(aVSeg.size()) ; aKS++)
+    {
+        Pt3dr aD = DirOnPlan(aVDirOrient[aKS]);
+  
+        double aZ = scal(mAxeZ,aD);
+        double aX = scal(mAxeX,aD);
+        mCalib.push_back(aX/aZ);
+    }
 }
+
+
+Pt3dr cPushB_GeomLine::DirOnPlan(const Pt3dr & aP) const
+{
+   return vunit(mPlanRay.Proj(aP));
+}
+
+
+ElMatrix<double>  cPushB_GeomLine::MatC2M() const
+{
+    return MatFromCol(mAxeX,mAxeY,mAxeZ);
+}
+
+ElMatrix<double>  cPushB_GeomLine::MatC1ToC2(cPushB_GeomLine & aCam2) const
+{
+   return aCam2.MatC2M().transpose()   * MatC2M();
+}
+
+
+
+
+
 
 double  cPushB_GeomLine::XIm(int aKx) const
 {
@@ -108,10 +169,13 @@ Pt2dr cPushB_GeomLine::PIm(int aKx) const
 const Pt3dr &   cPushB_GeomLine::Center() const {return mCenter;}
 const double  & cPushB_GeomLine::MoyResiduCenter() const {return mResInt;}
 const double  & cPushB_GeomLine::MaxResiduCenter() const {return mMaxResInt;}
+const double  & cPushB_GeomLine::MoyDistPlan() const {return mMoyDistPlan;}
+const double  & cPushB_GeomLine::MaxDistPlan() const {return mMaxDistPlan;}
 
 
 const Pt3dr &   cPushB_GeomLine::CUnRot() const {return mCUnRot;}
 Pt3dr &   cPushB_GeomLine::CUnRot() {return mCUnRot;}
+const std::vector<double> cPushB_GeomLine::Calib() const {return mCalib;}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

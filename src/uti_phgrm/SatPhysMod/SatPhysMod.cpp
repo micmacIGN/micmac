@@ -82,18 +82,11 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
          ELISE_ASSERT(false,"Use unsuported eTypeImporGenBundle");
      }
      cRPC_PushB_PhysMod * aPhys = cRPC_PushB_PhysMod::NewRPC_PBP(mRPC,aModeRefine,mSzLineG);
-     Pt2dr aSz =       Pt2dr(aPhys->Sz());
+     // Pt2dr aSz =       Pt2dr(aPhys->Sz());
 
 
-
-     std::cout << "SENSOR SIZE " << aSz << "\n";
-     double aCMoy,aCMax;
-     aPhys->CoherARGlob(20,aCMoy,aCMax);
-     std::cout << " DdddD=== " << aCMoy << " " << aCMax  << "\n";
 
      aPhys->ShowLinesPB();
-/*
-*/
 }
 
 int CPP_TestPhysMod_Main(int argc,char ** argv)

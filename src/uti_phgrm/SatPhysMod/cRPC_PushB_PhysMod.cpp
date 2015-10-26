@@ -87,10 +87,6 @@ ElSeg3D cRPC_PushB_PhysMod::Im2GeoC_Init(const Pt2dr & aPIm) const
    return ElSeg3D(mWGS84Degr->ToGeoC(aPT0),mWGS84Degr->ToGeoC(aPT1));
 }
 
-Pt3dr  cRPC_PushB_PhysMod::RoughPtIm2GeoC_Init(const Pt2dr & aPIm) const
-{
-   return  Im2GeoC_Init(aPIm).Mil();
-}
 
 Pt2dr   cRPC_PushB_PhysMod::GeoC2Im_Init(const Pt3dr & aPTer)  const
 {
