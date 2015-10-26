@@ -1283,6 +1283,11 @@ ElMatrix<REAL>  VectRotationArroundAxe(const Pt3dr &,double aTeta);
 ElRotation3D  AffinRotationArroundAxe(const ElSeg3D &,double aTeta);
 ElRotation3D RotationOfInvariantPoint(const Pt3dr & ,const ElMatrix<double> &);
 
+ElMatrix<REAL> VecKern ( const ElMatrix<REAL> & aMat);
+ElMatrix<REAL> VecOfValP(const ElMatrix<REAL> & aMat,REAL aVP);
+Pt3dr AxeRot(const ElMatrix<REAL> & aMat);
+
+
 double ProfFromCam(const ElRotation3D & anOr,const Pt3dr & aP);  // anOr M->C
 
 

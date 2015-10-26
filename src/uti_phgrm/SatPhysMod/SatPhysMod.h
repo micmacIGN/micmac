@@ -65,18 +65,34 @@ class cPushB_GeomLine
 
         const double  & MoyResiduCenter() const;
         const double  & MaxResiduCenter() const;
-    private :
+        const double  & MoyDistPlan() const;
+        const double  & MaxDistPlan() const;
+
+        Pt3dr  DirOnPlan(const Pt3dr & aP) const;
         Pt2dr  PIm(int aKx) const;
         double XIm(int aKx) const;
+        const std::vector<double> Calib() const;
+        ElMatrix<double>  MatC2M() const;
+        ElMatrix<double>  MatC1ToC2(cPushB_GeomLine & aCam2) const;
+
+
+    private :
 
         const cPushB_PhysMod *  mPBPM;
         Pt3dr                   mCenter;
         Pt3dr                   mCUnRot;
         int                     mNbX;
         double                  mY;
-        double                  mResInt;  // Residual of intersection
-        double                  mMaxResInt;  // Residual of intersection
-        std::vector<Pt3dr>      mDirs;
+        double                  mResInt;     // Average Residual of intersection
+        double                  mMaxResInt;  // Max Residual of intersection
+        double                  mMoyDistPlan;
+        double                  mMaxDistPlan;
+        cElPlan3D               mPlanRay;
+        Pt3dr                   mAxeX;  // satellite displacement 
+        Pt3dr                   mAxeY;  // sensor aligned
+        Pt3dr                   mAxeZ;  // Point to vertical, to the earth
+        std::vector<double>     mCalib;  // Inside the plane the vector (1,mCalib[aK]) is the Dir
+        // std::vector<Pt3dr>      mDirs;
 };
 
 class cPushB_PhysMod
@@ -85,18 +101,22 @@ class cPushB_PhysMod
         Pt2di Sz() const;
         double CoherAR(const Pt2dr & aPIm) const;
         void CoherARGlob(int aNbPts,double & aMoy,double & aMax) const;
+        // Value to use, one or none can be refined
         Pt2dr   GeoC2Im(const Pt3dr & aP)   const ; // Invert
         ElSeg3D Im2GeoC(const Pt2dr & aP)   const ;  // Direct
 
         void ShowLinesPB();
 
-        // void ComputeGeomLine(int aNbSampleLine,
+        // Basic speed in m/pixel
+        Pt3dr   Rough_GroundSpeed(double anY) const;
+        Pt3dr   RoughPtIm2GeoC_Init(const Pt2dr & aPIm) const; // Midlle of Im2GeoC_Init
 
 
        // Initial value, not refined
 
         virtual  ElSeg3D Im2GeoC_Init (const Pt2dr & aPIm) const = 0;  // En Geo Centrique
         virtual  Pt2dr   GeoC2Im_Init   (const Pt3dr & aP)   const = 0;  // En Geo Centrique
+
 
     protected :
 
@@ -119,9 +139,19 @@ class cPushB_PhysMod
         eModeRefinePB       mModeRefine;
         std::vector<cPushB_GeomLine *>  mLinesPB;
         double                          mMoyRay;
-        double                          mMoyRes;
+        double                          mMoyAlt;
+ // Indicateur des ecarts entre la modelisation physique et le RPC ou autre; max et moyen
+        double                          mMoyRes;    // Residu d'intersection des lignes
         double                          mMaxRes;
+        double                          mMoyPlan;   // Residu des directions d'un plan
+        double                          mMaxPlan;
+        double                          mMoyCalib;  // Residu par rapport a la calib moy
+        double                          mMaxCalib;
+
+
         double                          mPeriod;
+        double                          mDureeAcq;
+        std::vector<double>             mCalib;
 };
 
 class cRPC_PushB_PhysMod : public cPushB_PhysMod
@@ -133,11 +163,11 @@ class cRPC_PushB_PhysMod : public cPushB_PhysMod
         Pt3dr RPC_ImAndZ2LlZ(const Pt2dr & aPIm,const double & aZ) const;
  //  Geo Centrique <-> Image
         ElSeg3D Im2GeoC_Init(const Pt2dr & aPIm) const; 
-        Pt3dr   RoughPtIm2GeoC_Init(const Pt2dr & aPIm) const; // Midlle of Im2GeoC_Init
 
         Pt2dr   GeoC2Im_Init   (const Pt3dr & aP)   const;
     private :
 
+        
         cRPC_PushB_PhysMod(const RPC & aRPC,eModeRefinePB,const Pt2di & aSzGeoL);
 
 

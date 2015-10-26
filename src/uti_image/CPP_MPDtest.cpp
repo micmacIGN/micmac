@@ -814,7 +814,17 @@ void TestGridCam()
 
 int MPDtest_main (int argc,char** argv)
 {
-   TestGridCam();
+   for (int aK=0 ; aK< 100 ; aK++)
+   {
+        Pt3dr anAxe(NRrandom3(),NRrandom3(),NRrandom3());
+        anAxe = vunit(anAxe);
+        ElMatrix<REAL>  aRot = VectRotationArroundAxe(anAxe,10*NRrandom3());
+        Pt3dr  anAxe2 = AxeRot(aRot);
+        if (scal(anAxe2,anAxe) < 0) anAxe2 = - anAxe2;
+
+        std::cout << anAxe -anAxe2 << "\n";
+ 
+   }
 
 /*
    TestMax(argc,argv);
