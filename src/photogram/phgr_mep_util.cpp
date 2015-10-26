@@ -295,6 +295,16 @@ Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1,
     return aMCF.CoffVecInv(aV);
 }
 
+Pt3dr InterSeg(const std::vector<ElSeg3D> & aVS,bool & Ok)
+{
+     std::vector<Pt3dr>  aVP0,aVP1;
+     for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+     {
+         aVP0.push_back(aVS[aKS].P0());
+         aVP1.push_back(aVS[aKS].P1());
+     }
+     return InterSeg(aVP0,aVP1,Ok);
+}
 
 
 
