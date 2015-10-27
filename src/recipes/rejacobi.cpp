@@ -503,6 +503,20 @@ Pt3dr AxeRot(const ElMatrix<REAL> & aMat)
 }
 
 
+double TetaOfAxeRot(const ElMatrix<REAL> & aMat, Pt3dr & aP1)
+{ 
+    Pt3dr aP2,aP3;
+
+    MakeRONWith1Vect(aP1,aP2,aP3);
+    Pt3dr aQ2 = aMat * aP2;
+    
+    double aC = scal(aP2,aQ2);
+    double aS = scal(aP3,aQ2);
+
+    return atan2(aS,aC);
+}
+
+
 
 
 

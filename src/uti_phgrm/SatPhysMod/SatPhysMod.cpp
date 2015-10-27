@@ -81,6 +81,21 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
           aModeRefine = eMRP_Direct;
           // aModeRefine = eMRP_None;
      }
+     else if(mType==eTIGB_MMDGlobe )
+     {
+          mRPC.ReadXML(mNameOrient);
+
+          mRPC.InverseToDirectRPC();
+          aModeRefine = eMRP_Direct;
+
+       //UpdateValidity3DFromPix();
+
+        // mRPC->SetRecGrid();
+
+       // mRPC->ChSysRPC(*mChSys);
+
+   }
+
      else
      {
          ELISE_ASSERT(false,"Use unsuported eTypeImporGenBundle");
