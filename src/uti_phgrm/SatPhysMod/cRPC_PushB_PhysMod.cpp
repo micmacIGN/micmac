@@ -76,7 +76,11 @@ Pt2dr  cRPC_PushB_PhysMod::RPC_LlZ2Im(const Pt3dr & aLlZ) const
 
 Pt3dr cRPC_PushB_PhysMod::RPC_ImAndZ2LlZ(const Pt2dr & aPIm,const double & aZ) const
 {
-    return mRPC.DirectRPC(Pt3dr(aPIm.x,aPIm.y,aZ));
+    // std::cout << aPIm << " " << aZ << "\n";
+    Pt3dr aRes =  mRPC.DirectRPC(Pt3dr(aPIm.x,aPIm.y,aZ));
+    // std::cout << "GGGGGGgggg \n";
+
+    return aRes;
 }
 
 ElSeg3D cRPC_PushB_PhysMod::Im2GeoC_Init(const Pt2dr & aPIm) const

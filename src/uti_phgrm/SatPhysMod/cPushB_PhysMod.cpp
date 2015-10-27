@@ -259,6 +259,9 @@ void cPushB_PhysMod::PostInit()
 }
 
 
+double TetaOfAxeRot(const ElMatrix<REAL> & aMat, Pt3dr & aP1);
+
+
 void cPushB_PhysMod::ShowLinesPB(bool Det)
 {
     cElPlan3D aPlanC (Pt3dr(0,0,0),mLinesPB.front()->Center(),mLinesPB.back()->Center());
@@ -266,6 +269,8 @@ void cPushB_PhysMod::ShowLinesPB(bool Det)
     cElPlan3D aPlanUr (Pt3dr(0,0,0),mLinesPB.front()->CUnRot(),mLinesPB.back()->CUnRot());
     ElRotation3D aRE2PUr = aPlanUr.CoordPlan2Euclid().inv();
 
+
+    
     if (Det)
     {
         // Pourquoi les redisu ZPU restent forts, explications :
@@ -274,6 +279,8 @@ void cPushB_PhysMod::ShowLinesPB(bool Det)
         //   * centre de masse terre != origine du repere GeoC
         //   * influence Lune/Soleil ; assimilabe à un déplacement du centre de masse ?? 
         //   * correlation entre position et attitude + legere approx des RPC 
+
+        
 
         for (int aK=0 ; aK<int(mLinesPB.size())  ; aK++)
         {
@@ -288,9 +295,18 @@ void cPushB_PhysMod::ShowLinesPB(bool Det)
                        << " ZP=" << aPP.z 
                        << " ZPU=" << aPPUr.z ;
              if (aK>0)
+             {
                 std::cout << " DRay=" << euclid(aLPB->Center()) -  euclid(mLinesPB[aK-1]->Center()) ;
+                ElMatrix<double>  aMat = mLinesPB[0]->MatC1ToC2(*(mLinesPB[aK]));
+                Pt3dr anAxe =  AxeRot (aMat);
+ if (anAxe.z<0) anAxe = -anAxe;
+                double aTeta = TetaOfAxeRot(aMat,anAxe);
+                std::cout << " Axe " << anAxe   << " AcAx " << euclid(anAxe-aMat*anAxe) << " Teta " << aTeta ;
+
+             }
              std::cout  << " " << aK << "\n";
         }
+
     }
 
     mMoyRes /= mLinesPB.size();
