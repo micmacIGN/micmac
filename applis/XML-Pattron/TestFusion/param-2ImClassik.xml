@@ -1,0 +1,232 @@
+<!-- 
+      Parametrage pour les points de liaison pour une triangulation.
+   Il s'agit de l'etape 0, elle doit etre suivie de 1, 2 et 3.
+   Cette etape 0 ne va que jusqu'a la resolution 16 et les 
+   les orientation exportees ne laisse libre que le cap.
+
+       Ce fichier a ete mis au point pour un vol drone heliporte.
+   Les valeus suivie d'un "#" en commentaire doivent etre modifiee
+   pour utilisation sur d'autre mission (terrestre, aerien ...)
+
+   #N : indique une modification numerique, une fois les valeurs 
+   fixees pour un type de chantier, il n'est pas necessaire de les
+   modifier pour un autre.
+
+   #S : indique une modification de nom;
+               <NV> NumImC 0071 </NV> <NV> NumImVois "(007[1-5])"  </NV>  
+               <NV> NumAux "(007[6-9])"  </NV>
+-->
+<ParamMICMAC >
+<DicoLoc>
+   <Symb> Num1="0355" </Symb>
+   <Symb> Num2="0356" </Symb>
+</DicoLoc>
+<Section_Terrain>  
+
+
+    
+    <IntervAltimetrie>
+        <ZIncCalc>   0.0 </ZIncCalc>    <!-- metres -->
+        <ZIncZonage>   0.0 </ZIncZonage>    <!-- metres -->
+    </IntervAltimetrie>
+
+    <Planimetrie>
+          <MasqueTerrain >
+                  <MT_Image> IMG_${Num1}_Masq.tif   </MT_Image>
+                  <MT_Xml>   IMG_${Num1}_Masq.xml </MT_Xml>
+         </MasqueTerrain>
+    </Planimetrie>
+    <IntervSpecialZInv >
+             <MulZMin> 0.3 </MulZMin>
+             <MulZMax> 3  </MulZMax>
+    </IntervSpecialZInv>
+
+</Section_Terrain>
+<!--  ************************************************************* 
+         Parametres lies a la prise de vue,
+         independamment de son exploitation
+         par le correlateur
+-->
+<Section_PriseDeVue>
+     <GeomImages> eGeomImageOri </GeomImages> 
+     <Images >  
+          <Im1 >    IMG_${Num1}.CR2   </Im1>  
+          <Im2 >  IMG_${Num2}.CR2  </Im2>  
+     </Images>
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>   NKS-Assoc-Im2Orient@-All </FCND_GeomCalc>  
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+<!--  *************************************************************
+       Parametres fixant le comportement
+     de l'algo de mise en correspondance
+-->
+<Section_MEC >
+	<ChantierFullImage1>  true </ChantierFullImage1>
+	<!-- 
+	     Etape 0, ne sera pas calculee, DeZoom vaut -1,
+	elle permet de donner des valeur par defaut aux autres
+	parametres
+	-->
+        <TypePyramImage>
+               <Resol>   2            </Resol>
+               <TypeEl>  eFloat32Bits </TypeEl>
+        </TypePyramImage>
+
+	<EtapeMEC>
+            <DeZoom >  -1             </DeZoom>
+            <DynamiqueCorrel> eCoeffAngle </DynamiqueCorrel>
+	    <AggregCorr> eAggregSymetrique </AggregCorr>
+
+            <SzW >       1               </SzW>
+
+
+	    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+            <ZRegul>  0.1     </ZRegul>
+	    <ZPas>   0.5     </ZPas>
+            <ZDilatAlti>  4  </ZDilatAlti>
+	    <ZDilatPlani> 5  </ZDilatPlani>
+
+            <SsResolOptim> 1 </SsResolOptim>
+            <CoxRoyUChar> false </CoxRoyUChar>
+
+            <Gen8Bits_Px1> false </Gen8Bits_Px1>
+
+            <ModulationProgDyn Portee="Globale">
+                  <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   11              </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   3.0    </Px1PenteMax>
+                  <ArgMaskAuto >
+                         <ValDefCorrel >  0.2 </ValDefCorrel>
+                         <CostTrans >     2.0   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask> 
+
+                         <Erod32Mask> 6        </Erod32Mask>
+                         <SzOpen32> 2 </SzOpen32>
+                        <SeuilZC> 50 </SeuilZC>
+
+                  </ArgMaskAuto>
+            </ModulationProgDyn>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+	</EtapeMEC>
+
+	<EtapeMEC> <DeZoom >  64    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  32    </DeZoom> </EtapeMEC>
+	<EtapeMEC> <DeZoom >  16                </DeZoom> </EtapeMEC>
+
+	<EtapeMEC> 
+                    <DeZoom >  8                </DeZoom> 
+        </EtapeMEC>
+
+	<EtapeMEC> 
+                    <DeZoom >  4                </DeZoom> 
+                    <ZDilatAlti Portee="Globale">  3  </ZDilatAlti>
+	            <ZDilatPlani Portee="Globale"> 4  </ZDilatPlani>
+                    <ModulationProgDyn Portee="Globale">
+                         <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   11              </NbDir>
+                          </EtapeProgDyn>
+                          <Px1PenteMax>   2.0    </Px1PenteMax>
+                          <ArgMaskAuto >
+                                 <ValDefCorrel >  0.3 </ValDefCorrel>
+                                 <CostTrans >     2.0   </CostTrans>
+                                 <ReInjectMask> true   </ReInjectMask> 
+
+                                 <Erod32Mask> 6        </Erod32Mask>
+                                 <SzOpen32> 4 </SzOpen32>
+                                <SeuilZC> 75 </SeuilZC>
+                          </ArgMaskAuto>
+                    </ModulationProgDyn>
+        </EtapeMEC>
+
+	<EtapeMEC> 
+                    <DeZoom >  2                </DeZoom> 
+                    <ModulationProgDyn Portee="Globale">
+                         <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   11              </NbDir>
+                          </EtapeProgDyn>
+                          <Px1PenteMax>   2.0    </Px1PenteMax>
+                          <ArgMaskAuto >
+                                 <ValDefCorrel >  0.4 </ValDefCorrel>
+                                 <CostTrans >     2.0   </CostTrans>
+                                 <ReInjectMask> true   </ReInjectMask> 
+
+                                 <Erod32Mask> 0        </Erod32Mask>
+                                 <SzOpen32> 0 </SzOpen32>
+                                <SeuilZC> 100 </SeuilZC>
+                          </ArgMaskAuto>
+                    </ModulationProgDyn>
+        </EtapeMEC>
+
+
+	<EtapeMEC> 
+	       <DeZoom >  2  </DeZoom> 
+	       <ZPas>   1.0     </ZPas>
+               <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC>
+
+
+
+
+
+</Section_MEC>
+<!--  *************************************************************
+       Parametres fixant les resultats
+     devant etre produits par l'algo
+-->
+<Section_Results >
+
+<!--
+    <X_DirPlanInterFaisceau>  ${XVertStd} </X_DirPlanInterFaisceau>
+    <Y_DirPlanInterFaisceau>  ${YVertStd} </Y_DirPlanInterFaisceau>
+    <Z_DirPlanInterFaisceau>  ${ZVertStd} </Z_DirPlanInterFaisceau>
+-->
+
+
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D </GeomMNT>
+    <DoMEC >  true </DoMEC> 
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <GammaVisu> 2.0 </GammaVisu>
+    <ZoomVisuLiaison> -1 </ZoomVisuLiaison>
+    <!--
+    <DoNothingBut>
+	<ButDoOriMNT>  true </ButDoOriMNT>
+    </DoNothingBut>
+    -->
+    <!--
+    -->
+</Section_Results>
+<!--  *************************************************************
+       Parametres lies a la gestions
+     du "chantier" sur la machine
+-->
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC > MEC-Classik/ </TmpMEC>
+     <TmpPyr > Pyram/ </TmpPyr>
+     <TmpResult > MEC-Classik/ </TmpResult>
+
+     <AvalaibleMemory> 1024 </AvalaibleMemory>
+     <SzDalleMin>  400 </SzDalleMin>
+     <SzDalleMax>  1000  </SzDalleMax>
+     <SzRecouvrtDalles> 100 </SzRecouvrtDalles>
+     <ByProcess> ${MMNbProc} </ByProcess>
+     <NomChantier> Geom-Im-${Num1} </NomChantier>
+
+
+</Section_WorkSpace>
+
+<Section_Vrac> 
+</Section_Vrac>
+
+</ParamMICMAC>
+
