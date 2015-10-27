@@ -452,7 +452,6 @@ ElMatrix<REAL> NearestRotation ( const ElMatrix<REAL> & aMat)
      ElMatrix<REAL> anU(n),aV(n),aDiag(n);
 
      svdcmp_diag(aMat,anU,aDiag,aV,true);
-
      
 
      ElMatrix<REAL> aMul (n);
@@ -463,6 +462,63 @@ ElMatrix<REAL> NearestRotation ( const ElMatrix<REAL> & aMat)
 
      return anU *  aMul * aV;
 }
+
+
+ElMatrix<REAL> VecKern ( const ElMatrix<REAL> & aMat)
+{
+     INT n = aMat.tx();
+     ElMatrix<REAL> anU(n),aV(n),aDiag(n);
+
+     svdcmp_diag(aMat,anU,aDiag,aV,true);
+     int aKMin = 0;
+     double aVPMin = 1e100;
+     for (int aK=0 ; aK < n ; aK++)
+     {
+         double aVP = ElAbs(aDiag(aK,aK));
+         if (aVP < aVPMin)
+         {
+            aVPMin = aVP;
+            aKMin = aK;
+         }
+     }
+
+     ElMatrix<REAL> aVecP(1,n);
+     for (int aK=0 ; aK < n ; aK++)
+        aVecP(0,aK) = (aKMin==aK);
+
+     return aV.transpose() * aVecP;
+}
+
+ElMatrix<REAL> VecOfValP(const ElMatrix<REAL> & aMat,REAL aVP)
+{
+    return VecKern(aMat -  ElMatrix<REAL>(aMat.tx())*aVP);
+}
+
+
+Pt3dr AxeRot(const ElMatrix<REAL> & aMat)
+{
+    ElMatrix<REAL> aVec =  VecOfValP(aMat,1.0);
+
+    return Pt3dr(aVec(0,0),aVec(0,1),aVec(0,2));
+}
+
+
+double TetaOfAxeRot(const ElMatrix<REAL> & aMat, Pt3dr & aP1)
+{ 
+    Pt3dr aP2,aP3;
+
+    MakeRONWith1Vect(aP1,aP2,aP3);
+    Pt3dr aQ2 = aMat * aP2;
+    
+    double aC = scal(aP2,aQ2);
+    double aS = scal(aP3,aQ2);
+
+    return atan2(aS,aC);
+}
+
+
+
+
 
 /*
 void MakeRONConservByPrio(Pt3dr & aV1,Pt3dr & aV2,Pt3dr & aV3)

@@ -230,7 +230,7 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("TNR",TNR_main,"Test Non Regression"));
+       aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
@@ -274,7 +274,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriExport",OriExport_main," Export orientation from XML to XML or TXT with specified convention",cArgLogCom(3)));
-       aRes.push_back(cMMCom("Ori2NVM",Apero2NVM_main,"Matthieu Moneyrond's convertor to VSfM, MVE, SURE, MeshRecon ",cArgLogCom(3)));
+       aRes.push_back(cMMCom("Apero2NVM",Apero2NVM_main,"Matthieu Moneyrond's convertor to VSfM, MVE, SURE, MeshRecon ",cArgLogCom(3)));
        aRes.push_back(cMMCom("XifGps2Xml",XifGps2Xml_main," Create MicMac-Xml struct from GPS embedded in EXIF",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
@@ -552,6 +552,7 @@ int SysCall_main (int argc,char** argv);
 
 
 int TestARCam_main(int argc,char ** argv);
+int CPP_TestPhysMod_Main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -673,6 +674,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("TestBundleGen",CPP_TestBundleGen,"Unitary test for new bundle gen"));
 
+    aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
 
     cCmpMMCom CmpMMCom;

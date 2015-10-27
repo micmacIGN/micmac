@@ -161,6 +161,11 @@ Pt3dr ElSeg3D::PseudoInter(const ElSeg3D & aS2)
     return (P1+P2) / 2.0;
 }
 
+Pt3dr ElSeg3D::Mil() const
+{
+    return (mP0+mP1)/2.0;
+}
+
 
 Pt3dr ElSeg3D::P0() const
 {
