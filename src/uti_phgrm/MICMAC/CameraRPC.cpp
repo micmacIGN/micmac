@@ -234,7 +234,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
         
         mRPC->InverseToDirectRPC();
         
-        //UpdateValidity3DFromPix();
+        mRPC->UpdateValidity();
         
         mRPC->SetRecGrid();
 

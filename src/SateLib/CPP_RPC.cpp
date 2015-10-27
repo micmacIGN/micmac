@@ -1506,8 +1506,8 @@ void RPC::NormR2(std::vector<Pt3dr> & aPts) const
 {
     int aK;
   /*  double aXNmax=0, aXNmin=0,
-           aYNmax=0, aYNmin=0;*/
-
+           aYNmax=0, aYNmin=0;
+*/
     for (aK=0; aK<int(aPts.size()); aK++)
     {
         aPts.at(aK).x = (aPts.at(aK).x - samp_off) / samp_scale;
@@ -1527,7 +1527,7 @@ void RPC::NormR2(std::vector<Pt3dr> & aPts) const
 
     
     //std::cout << "RPC::NormR2 min " << aXNmin << " " << aYNmin << "; ";
-    //std::cout << "max " << aXNmax << " " << aYNmax << "\n";
+   // std::cout << "max " << aXNmax << " " << aYNmax << "\n";
                      
     
 }
@@ -1785,7 +1785,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 void RPC::SetRecGrid()
 {
     //grid spacing in 3D in meters
-    int aHorizM = 500, aVertM = 100;
+    int aHorizM = 250, aVertM = 100;
     int aSamplX, aSamplY, aSamplZ;
 
     if( IS_UNIT_m )
