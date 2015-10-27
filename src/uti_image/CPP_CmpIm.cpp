@@ -54,6 +54,7 @@ int CmpIm_main(int argc,char ** argv)
      double aMulIm2 = 1.0;
      bool aUseXmlFOM = false;
      double   aColDif = 0;
+     std::string mXmlG ="";
 
      ElInitArgMain
      (
@@ -67,6 +68,7 @@ int CmpIm_main(int argc,char ** argv)
                        << EAM(aMulIm2,"Mul2",true,"Multiplier of file2 (Def 1.0)")
                        << EAM(aUseXmlFOM,"UseFOM",true,"Consider file as DTSM and use XML FileOriMnt")
                        << EAM(aColDif,"ColDif",true,"Color file of diff using Red/Blue for sign")
+                       << EAM(mXmlG,"XmlG",true,"Generate Xml")
     );
 
     if (!MMVisualMode)
@@ -126,6 +128,8 @@ int CmpIm_main(int argc,char ** argv)
                sigma(aSom1)
             )
         );
+        cXmlTNR_TestImgReport aImg;
+        aImg.ImgName() = aName1;
 
         if (aNbDif)
         {
@@ -151,20 +155,30 @@ int CmpIm_main(int argc,char ** argv)
                 );
            }
 
-
            std::cout << aName1 << " et " << aName2 << " sont differentes\n";
            std::cout << "Nombre de pixels differents  = " << aNbDif << "\n";
            std::cout << "Somme des differences        = " << aSomDif << "\n";
            std::cout << "Moyenne des differences        = " << (aSomDif/aSom1 )<< "\n";
            std::cout << "Difference maximale          = " << aMaxDif << " (position " << aPtDifMax[0] << " " << aPtDifMax[1] << ")\n";
+           
+           if(mXmlG!="")
+           {
 
-           return 1;
-        }
+			aImg.TestImgDiff() = false;
+			aImg.NbPxDiff() = aNbDif;
+            aImg.SumDiff() = aSomDif;
+            aImg.MoyDiff() = (aSomDif/aSom1);
+            Pt3dr Diff(aPtDifMax[0],aPtDifMax[1],aMaxDif);
+			aImg.DiffMaxi()= Diff;
+		   }
+        }   
         else
         {
            std::cout << "FICHIERS IDENTIQUES SUR LEURS DOMAINES\n";
+           aImg.TestImgDiff() = true;
            return 0;
         }
+        MakeFileXML(aImg, mXmlG);
     }
     else return EXIT_SUCCESS;
 }
