@@ -53,10 +53,12 @@ class cAppli_TestPhysMod
        eTypeImporGenBundle mType;
        RPC                  mRPC;  // Gives acces to the lowest level
        Pt2di                mSzLineG;
+       bool                 mDet;
 };
 cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
     mNameType ("TIGB_MMDimap2"),
-    mSzLineG  (100,200)
+    mSzLineG  (100,200),
+    mDet      (true)
 {
      ElInitArgMain
      (
@@ -66,6 +68,7 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
                     << EAM(mNameType,"Type",true,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_"))
                     << EAM(mNameIm,"Im",true,"Name of Im")
                     << EAM(mSzLineG,"SzLineG",true,"Size in X and Y of computation line parameters")
+                    << EAM(mDet,"Det",true,"Show Detail")
      );
      bool mModeHelp;
      StdReadEnum(mModeHelp,mType,mNameType,eTIGB_NbVals);
@@ -76,6 +79,7 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
      {
           mRPC.ReadDimap(mNameOrient);
           aModeRefine = eMRP_Direct;
+          // aModeRefine = eMRP_None;
      }
      else
      {
@@ -86,7 +90,7 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
 
 
 
-     aPhys->ShowLinesPB();
+     aPhys->ShowLinesPB(mDet);
 }
 
 int CPP_TestPhysMod_Main(int argc,char ** argv)

@@ -259,22 +259,29 @@ void cPushB_PhysMod::PostInit()
 }
 
 
-void cPushB_PhysMod::ShowLinesPB()
+void cPushB_PhysMod::ShowLinesPB(bool Det)
 {
     cElPlan3D aPlanC (Pt3dr(0,0,0),mLinesPB.front()->Center(),mLinesPB.back()->Center());
     ElRotation3D aRE2P = aPlanC.CoordPlan2Euclid().inv();
     cElPlan3D aPlanUr (Pt3dr(0,0,0),mLinesPB.front()->CUnRot(),mLinesPB.back()->CUnRot());
     ElRotation3D aRE2PUr = aPlanUr.CoordPlan2Euclid().inv();
 
-    if (0)
+    if (Det)
     {
+        // Pourquoi les redisu ZPU restent forts, explications :
+        //
+        //   * force de Coriolis ??? => a priori non car le UnRot remet dans un ref galileen ?
+        //   * centre de masse terre != origine du repere GeoC
+        //   * influence Lune/Soleil ; assimilabe à un déplacement du centre de masse ?? 
+        //   * correlation entre position et attitude + legere approx des RPC 
+
         for (int aK=0 ; aK<int(mLinesPB.size())  ; aK++)
         {
              cPushB_GeomLine * aLPB = mLinesPB[aK];
              Pt3dr aPP = aRE2P.ImAff(aLPB->Center());
              Pt3dr aPPUr = aRE2PUr.ImAff(aLPB->CUnRot());
 
-             std::cout <<  "Residu= " << aLPB->MoyResiduCenter() 
+             std::cout << "Residu= " << aLPB->MoyResiduCenter() 
                        << " " << aLPB->MaxResiduCenter() 
                        << " DPlan " << aLPB->MoyDistPlan() 
                        << " " << aLPB->MaxDistPlan() 
@@ -282,7 +289,7 @@ void cPushB_PhysMod::ShowLinesPB()
                        << " ZPU=" << aPPUr.z ;
              if (aK>0)
                 std::cout << " DRay=" << euclid(aLPB->Center()) -  euclid(mLinesPB[aK-1]->Center()) ;
-             std::cout << "\n";
+             std::cout  << " " << aK << "\n";
         }
     }
 
@@ -299,7 +306,7 @@ void cPushB_PhysMod::ShowLinesPB()
     std::cout << " RESIDIU Calib ; MOY=" << mMoyCalib*mMoyAlt << " MAX=" << mMaxCalib*mMoyAlt << " meter\n";
     std::cout << " ORBIT, Ray-MOY " << mMoyRay/1000 << " km;  Alt-MOY " << mMoyAlt/1000 << " km;" 
               << " PERIOD=" << mPeriod /60.0 << " Min,  Duree " << mDureeAcq << " Sec\n";
-    std::cout << " SENSOR , SZ " << mSz  << " Coher, Moy=" <<  aCMoy << " Max=" << aCMax << "\n";
+    std::cout << " SENSOR , SZ " << mSz  << " (Pixel) Coher, Moy=" <<  aCMoy << " Max=" << aCMax << "\n";
 }
 
 

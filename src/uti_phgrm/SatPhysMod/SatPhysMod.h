@@ -42,8 +42,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+//  cPushB_GeomLine :  Class for the geometry of one line
+class cPushB_GeomLine;
 
+//  cPushB_PhysMod :  Absract class for push broom physical model
+//   a cPushB_PhysMod contains many cPushB_GeomLine
 class cPushB_PhysMod;
+
+
+// cRPC_PushB_PhysMod : specilization of cPushB_PhysMod to RPC
 class cRPC_PushB_PhysMod;
 
 //================ SEUILS ==============
@@ -105,7 +112,7 @@ class cPushB_PhysMod
         Pt2dr   GeoC2Im(const Pt3dr & aP)   const ; // Invert
         ElSeg3D Im2GeoC(const Pt2dr & aP)   const ;  // Direct
 
-        void ShowLinesPB();
+        void ShowLinesPB(bool Det);
 
         // Basic speed in m/pixel
         Pt3dr   Rough_GroundSpeed(double anY) const;
