@@ -128,7 +128,8 @@ class cAppliCmpCal
                  const std::string & aName2,
                  bool  aModeL1,
                  int   aSzW,
-                 double aDynV
+                 double aDynV,
+                 const std::string Out
           ) :
              mGr1   (cCapteurCmpCal::StdAlloc(aName1)),
              mGr2   (cCapteurCmpCal::StdAlloc(aName2)),
@@ -157,7 +158,8 @@ std::cout <<  mGr2.P0() << mGr2.P1() << "\n";
               mSetEq.SetClosed();
           }
 
-          void OneItere(bool First,bool Last);
+          void OneItere(bool First,bool Last,const std::string Out);
+          void OneItere2(bool First,bool Last,const std::string Out,const std::string mXmlG);
 
           double K2Pds(int aK)
           {
@@ -237,7 +239,7 @@ double cAppliCmpCal::EcartFromRay(double aR)
 }
 
 
-void cAppliCmpCal::OneItere(bool First,bool Last)
+void cAppliCmpCal::OneItere(bool First,bool Last,const std::string Out)
 {
 
     double aS1=0, aSD=0;
@@ -246,14 +248,22 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
     mRotCur =  mRotF.CurRot();
 
     FILE * aFP=0;
-    if (Last)
-    {
-        std::string aName = StdPrefix(mGr1.Name()) + "_Ecarts.txt";
-        aFP = ElFopen(aName.c_str(),"w");
-    }
 
     if (Last)
     {
+        if(Out!="")
+		{
+			std::string aName = Out;
+			aFP = ElFopen(aName.c_str(),"w");
+		}
+		else
+		{
+			std::string aName = StdPrefix(mGr1.Name()) + "_Ecarts.txt";
+			aFP = ElFopen(aName.c_str(),"w");
+		}
+			
+       //std::string aName = StdPrefix(mGr1.Name()) + "_Ecarts.txt";
+       //aFP = ElFopen(aName.c_str(),"w");
        double aStep = 200;
        fprintf(aFP,"--------------  Ecart radiaux  -----------\n");
        fprintf(aFP," Rayon   Ecart\n");
@@ -318,6 +328,117 @@ void cAppliCmpCal::OneItere(bool First,bool Last)
           ElFclose(aFP);
 }
 
+void cAppliCmpCal::OneItere2(bool First,bool Last,const std::string Out,const std::string mXmlG)
+{
+	cXmlTNR_TestCalibReport aCalib;
+	aCalib.CalibName() = mGr1.Name();
+	
+    double aS1=0, aSD=0;
+    mSetEq.AddContrainte(mRotF.StdContraintes(),true);
+    mSetEq.SetPhaseEquation();
+    mRotCur =  mRotF.CurRot();
+
+    FILE * aFP=0;
+    double SEp = 0;
+    double SUx = 0;
+    double SUy = 0;
+    double SE = 0;
+
+    if (Last)
+    {
+        if(Out!="")
+		{
+			std::string aName = Out;
+			aFP = ElFopen(aName.c_str(),"w");
+		}
+		else
+		{
+			std::string aName = StdPrefix(mGr1.Name()) + "_Ecarts.txt";
+			aFP = ElFopen(aName.c_str(),"w");
+		}
+			
+       //std::string aName = StdPrefix(mGr1.Name()) + "_Ecarts.txt";
+       //aFP = ElFopen(aName.c_str(),"w");
+       double aStep = 200;
+       fprintf(aFP,"--------------  Ecart radiaux  -----------\n");
+       fprintf(aFP," Rayon   Ecart\n");
+       for( double aR = 0 ; aR<(mRay+aStep) ; aR+= aStep)
+       {
+           double aRM = ElMin(aR,mRay-10.0);
+           double EC =  EcartFromRay(aRM);
+           std::cout << "Ray=" << aRM
+                     << " ; Ecart=" << EC << "\n";
+           SEp += EC;
+           fprintf(aFP," %lf %lf\n",aRM,EC);
+           Pt2dr aER(aRM,EC);
+           aCalib.EcartsRadiaux().push_back(aER);
+       }
+    }
+
+    if (Last)
+    {
+       fprintf(aFP,"--------------  Ecart plani  -----------\n");
+       fprintf(aFP,"Im.X Im.Y  PhG.X Phg.Y Ec\n");
+    }
+    for (int aKX=0 ; aKX<=mNBP ; aKX++)
+       for (int aKY=0 ; aKY<=mNBP ; aKY++)
+       {
+           double aPdsX = K2Pds(aKX);
+           double aPdsY = K2Pds(aKY);
+
+           Pt2dr  aPIm (
+                      mP0.x * aPdsX+mP1.x * (1-aPdsX),
+                      mP0.y * aPdsY+mP1.y * (1-aPdsY)
+                 );
+
+           InitNormales (aPIm);
+
+           mEqORV->AddObservation(mN1,mN2);
+           Pt2dr U = EcartNormaleCorr();
+           aS1++;
+           aSD += euclid(U);
+
+            if ((mW!=0) && (First || Last ))
+            {
+                // Pt2dr aP0 (mSzW*aPdsX,mSzW*aPdsY);
+               //  Pt2dr aP0 = (aPIm- mP0)  * mRatioW;
+                Pt2dr aP0 = (aPIm-mP0)  * mRatioW;
+
+
+                mW->draw_circle_loc(aP0,2.0,mW->pdisc()(P8COL::green));
+                int aCoul = First ? P8COL::blue : P8COL::red;
+
+                mW->draw_seg
+                (
+                   aP0,
+                   aP0 + U* mDynVisu,
+                   mW->pdisc()(aCoul)
+                );
+            }
+            if (aFP)
+               fprintf(aFP,"%lf %lf %lf %lf %lf\n",aPIm.x,aPIm.y,U.x,U.y,euclid(U));
+            SUx += U.x;
+            SUy += U.y;
+            SE += euclid(U);
+            Pt2dr aCoord(aPIm.x,aPIm.y);
+            Pt3dr aR(U.x,U.y,euclid(U));
+            cEcartsPlani aEP;
+            aEP.CoordPx() = aCoord;
+            aEP.UxUyE() = aR;
+            aCalib.EcartsPlani().push_back(aEP);
+            
+       }
+
+       std::cout << (aSD/aS1) << " "  << (aSD/aS1) * (1e6/mFocale) << " MicroRadians " << "\n";
+       mSetEq.SolveResetUpdate();
+
+       if (aFP)
+          ElFclose(aFP);
+if(SEp==0&&SUx==0&&SUy==0&&SE==0){aCalib.TestCalibDiff() = true;}
+else{aCalib.TestCalibDiff() = false;}
+MakeFileXML(aCalib, mXmlG);
+}
+
 
 int CmpCalib_main(int argc,char ** argv)
 {
@@ -327,8 +448,11 @@ int CmpCalib_main(int argc,char ** argv)
     int     aL1 = 0;
     int     aSzW= 700;
     double  aDynV = 100.0;
+    bool 	DispW = false;
+    std::string	mXmlG ="";
     std::string aName1;
     std::string aName2;
+    std::string Out="";
 
     ElInitArgMain
     (
@@ -341,18 +465,21 @@ int CmpCalib_main(int argc,char ** argv)
                 << EAM(aL1,"L1",true)
                 << EAM(aSzW,"SzW",true)
                 << EAM(aDynV,"DynV",true)
+                << EAM(Out,"Out",true,"Result (Def=Name1_ecarts.txt)", eSAM_IsOutputFile)
+                << EAM(DispW,"DispW",true,"Display window")
+                << EAM(mXmlG,"XmlG",true,"Generate Xml")
     );
-
     if (!MMVisualMode)
     {
-        cAppliCmpCal aCmpC(aName1,aName2, (aL1!=0),aSzW,aDynV);
-
+        cAppliCmpCal aCmpC(aName1,aName2, (aL1!=0),aSzW,aDynV,Out);
         int aNbStep = 5;
         for (int aK=0 ; aK< 5 ; aK++)
-            aCmpC.OneItere(aK==0,aK==(aNbStep-1));
-
-        getchar();
-
+			if(mXmlG!=""){aCmpC.OneItere2(aK==0,aK==(aNbStep-1),Out,mXmlG);}
+			else{aCmpC.OneItere(aK==0,aK==(aNbStep-1),Out);}
+		if(DispW)
+		{
+			getchar();
+		}
         return EXIT_SUCCESS;
     }
     else return EXIT_SUCCESS;

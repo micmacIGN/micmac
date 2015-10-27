@@ -4,6 +4,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/TD_Exemple.cpp
 	${TDPPMD_DIR}/cTD_Im.cpp
 	${TDPPMD_DIR}/ExoMM_CorrelMulImage.cpp
+	#${TDPPMD_DIR}/cExoMM_CorrelMulImage.cpp 
 	${TDPPMD_DIR}/Match1.cpp
 	${TDPPMD_DIR}/ExoMM_SimulTieP.cpp
 	${TDPPMD_DIR}/ServiceGeoSud.cpp
@@ -25,3 +26,4 @@ set(Elise_Src_Files
 	${Elise_Src_Files}
 	${Src_TD_PPMD}
 )
+
