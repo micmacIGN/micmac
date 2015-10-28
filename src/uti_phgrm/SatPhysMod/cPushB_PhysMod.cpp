@@ -301,7 +301,7 @@ void cPushB_PhysMod::ShowLinesPB(bool Det)
                 Pt3dr anAxe =  AxeRot (aMat);
  if (anAxe.z<0) anAxe = -anAxe;
                 double aTeta = TetaOfAxeRot(aMat,anAxe);
-                std::cout << " Axe " << anAxe   << " AcAx " << euclid(anAxe-aMat*anAxe) << " Teta " << aTeta ;
+                std::cout << " Axe " << anAxe   << " AcAx " << euclid(anAxe-aMat*anAxe) << " Teta " << (aTeta / aK) * 1000 ;
 
              }
              std::cout  << " " << aK << "\n";
