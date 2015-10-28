@@ -194,6 +194,7 @@ public :
 
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
+extern int TestRegEx_main(int , char **);
 extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
 extern int SimplePredict_main(int , char **);
@@ -251,6 +252,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("CmpOri",CPP_CmpOriCam_main," Compare two sets of orientation"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
+       aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
        aRes.push_back(cMMCom("FFTKugelhupf",FFTKugelhupf_main," Version of Kugelhupf using FFT, expecetd faster when it works (if ever ...)"));
        aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
