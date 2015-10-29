@@ -124,6 +124,7 @@ class cPushB_PhysMod
         virtual  ElSeg3D Im2GeoC_Init (const Pt2dr & aPIm) const = 0;  // En Geo Centrique
         virtual  Pt2dr   GeoC2Im_Init   (const Pt3dr & aP)   const = 0;  // En Geo Centrique
 
+        bool    SwapXY() const;
 
     protected :
 
@@ -159,6 +160,7 @@ class cPushB_PhysMod
         double                          mPeriod;
         double                          mDureeAcq;
         std::vector<double>             mCalib;
+        bool                            mSwapXY;
 };
 
 class cRPC_PushB_PhysMod : public cPushB_PhysMod
