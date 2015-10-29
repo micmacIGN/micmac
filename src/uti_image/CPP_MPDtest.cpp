@@ -814,6 +814,7 @@ void TestGridCam()
 
 int MPDtest_main (int argc,char** argv)
 {
+/*
    for (int aK=0 ; aK< 100 ; aK++)
    {
         Pt3dr anAxe(NRrandom3(),NRrandom3(),NRrandom3());
@@ -824,6 +825,20 @@ int MPDtest_main (int argc,char** argv)
 
         std::cout << anAxe -anAxe2 << "\n";
  
+   }
+*/
+
+   ElTimer aChrono;
+   int aCpt=0;
+   while (1)
+   {
+       if (ELISE_fp::exist_file("toto" + ToString(aCpt)))
+       {
+             std::cout << "GET ONE " << aCpt << "\n";
+             getchar();
+       }
+       if ((aCpt%100000) ==1) std::cout << "TIME " << aChrono.uval() << " " << aCpt << " " << 1e6*(aChrono.uval() / aCpt)<< "\n";
+       aCpt ++;
    }
 
 /*

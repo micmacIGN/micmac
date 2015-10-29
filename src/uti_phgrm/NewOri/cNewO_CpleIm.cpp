@@ -663,6 +663,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
 {
    std::string aPat,aNameOriCalib;
    bool aQuick=false;
+   std::map<std::string,cListOfName > aMLCpleOk;
 
 
    ElInitArgMain
@@ -682,7 +683,10 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    // Force la creation des directories
    for (int aK=0 ; aK<int(aVIm->size())  ; aK++)
    {
-       aNM->NameXmlOri2Im((*aVIm)[aK],(*aVIm)[aK],true);
+       std::string aName = (*aVIm)[aK];
+       // aNM->NameXmlOri2Im((*aVIm)[aK],(*aVIm)[aK],true);
+       aNM->NameXmlOri2Im(aName,aName,true);
+       aMLCpleOk[aName] = cListOfName();
    }
 
 /*
@@ -740,7 +744,6 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    aTiming.TimeHomStd()    = 0;
 
 
-   std::map<std::string,cListOfName > aMLCpleOk;
    cSauvegardeNamedRel                aLCple;
 
    for (int aK1=0 ; aK1<int(aVIm->size()) ; aK1++)
