@@ -214,6 +214,11 @@ std::string cNewO_NameManager::NameListeCpleOriented(bool Bin) const
     return Dir3P() + "ListCpleOriented"+ (Bin ? ".dmp" : ".xml");
 }
 
+std::list<std::string>  cNewO_NameManager::ListeImOrientedWith(const std::string & aName) const
+{
+   return StdGetFromPCP(NameListeImOrientedWith(aName,true),ListOfName).Name();
+}
+
 std::list<std::string>  cNewO_NameManager::ListeCompleteTripletTousOri(const std::string & aN1,const std::string & aN2) const
 {
     cListOfName aL1 = StdGetFromPCP(NameListeImOrientedWith(aN1,true),ListOfName);
