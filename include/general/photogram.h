@@ -1450,6 +1450,13 @@ class cCorrRefracAPost
 // La plus basique des classes, normalement tout doit pouvoir etre redefini 
 // a partir de ca
 
+class cArgOPtPIsVisibleInImage
+{
+    public :
+       double  mBSurH;
+       double  mEcartCOpt;
+};
+
 class cBasicGeomCap3D
 {
     public :
@@ -1460,7 +1467,7 @@ class cBasicGeomCap3D
       virtual bool  CaptHasData(const Pt2dr &) const = 0;
       //  Def return true, mean that the geometry is ok independently of the image data
       virtual bool  CaptHasDataGeom(const Pt2dr &) const ;
-      virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const =0;
+      virtual bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOPtPIsVisibleInImage * =0) const =0;
       // Can be very approximate, using average depth or Z
       virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const =0;
 
@@ -1546,7 +1553,7 @@ class ElCamera : public cCapture3D
          double GetVeryRoughInterProf() const;
          bool  CaptHasData(const Pt2dr &) const ;
          Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
-         bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
+         bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOPtPIsVisibleInImage * =0) const ;
          ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
          double ResolImRefFromCapteur() const ;
          bool  HasRoughCapteur2Terrain() const ;

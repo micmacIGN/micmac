@@ -1167,6 +1167,7 @@ void InspectInterFaisc
    }
 }
 
+extern Pt3dr GLOBPCAMVIS;
 bool OkReproj
      (  
           const std::vector<cBasicGeomCap3D *> &  aVCam,
@@ -1196,6 +1197,11 @@ bool OkReproj
  // Semble + robuste de se baser sur la visibilite car reprojection peut etre degeneree
            if (! aCam.PIsVisibleInImage(aPTer))
            {
+
+if(MPD_MM())
+{
+    std::cout << "NOTVIS " << aPTer << " " << GLOBPCAMVIS << "\n";
+}
               aKP = aK;
               return false;
            }
@@ -1219,6 +1225,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
            std::string *             aMesPb
        )
 {
+   if (aMesPb) *aMesPb="NoPb";
 
 if (BugZ0) 
 {
@@ -1513,6 +1520,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               const cRapOnZ *      aRAZ
                            )
 {
+
+
    CptUPL++;
    NewBug =   ::DebugPbCondFaisceau   &&
               (
@@ -1554,6 +1563,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
          mResidus.mOKRP3I = 1;
        }
 */
+
        
 
        {
@@ -1580,6 +1590,16 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               &mResidus.mMesPb
                          );
 
+if (MPD_MM())
+{
+     if (mPPP.mProjIsInit)
+     {
+          double aBsH = mPPP.mBsH;
+          static double aBsHMin=10;
+          ElSetMin(aBsHMin,aBsH);
+          std::cout << "PPppPP " << 1/ aBsH << " " << 1/aBsHMin << " " << mResidus.mPTer << " " << mResidus.mMesPb << "\n";
+     }
+}
 
    if (UPL_DCC()) std::cout << "================== mResidus.mPTer " <<mResidus.mPTer  << " " << mResidus.mBSurH << "\n";
           mResidus.mBSurH  = mPPP.mBsH;

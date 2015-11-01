@@ -748,7 +748,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        {
             std::cout  << " " << aVComs[aKC].mName << "\t" << aVComs[aKC].mComment << "\n";
        }
-       return 0;
+       return EXIT_SUCCESS;
    }
 
    if ((argc>=2) && (argv[1][0] == 'v') && (argv[1]!=std::string("vic")))
@@ -819,6 +819,11 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           delete PatMach;
           delete PrefMach;
           delete SubMach;
+
+          if (Chol16Byte)
+          {
+               std::cout << "WARN : 16 BYTE ACCURACY FOR LEAST SQUARE\n";
+          }
           return aRes;
        }
        for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
@@ -840,7 +845,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
            delete PatMach;
            delete PrefMach;
            delete SubMach;
-           return -1;
+           return EXIT_FAILURE;
        }
    }
 
@@ -852,7 +857,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    delete PatMach;
    delete PrefMach;
    delete SubMach;
-   return -1;
+   return  EXIT_FAILURE;
 }
 
 
