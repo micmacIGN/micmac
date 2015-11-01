@@ -150,6 +150,7 @@ Pt3dr cPushB_PhysMod::Im2GeoC_Refined(const Pt2dr & aP0Im,Pt3dr aPTer,const Pt3d
     Pt2dr  aPIm = GeoC2Im_Init(aPTer);
     Pt2dr  aGradX = GeoC2Im_Init(aPTer+aU) - aPIm;
     Pt2dr  aGradY = GeoC2Im_Init(aPTer+aV) - aPIm;
+
     ElMatrix<double> aGrad = MatFromCol(aGradX,aGradY);
     aGrad = gaussj(aGrad);
 
@@ -302,11 +303,11 @@ void cPushB_PhysMod::ShowLinesPB(bool Det)
              if (aK>0)
              {
                 std::cout << " DRay=" << euclid(aLPB->Center()) -  euclid(mLinesPB[aK-1]->Center()) ;
-                ElMatrix<double>  aMat = mLinesPB[0]->MatC1ToC2(*(mLinesPB[aK]));
+                ElMatrix<double>  aMat = mLinesPB[aK-1]->MatC1ToC2(*(mLinesPB[aK]));
                 Pt3dr anAxe =  AxeRot (aMat);
  if (anAxe.z<0) anAxe = -anAxe;
                 double aTeta = TetaOfAxeRot(aMat,anAxe);
-                std::cout << " Axe " << anAxe   << " AcAx " << euclid(anAxe-aMat*anAxe) << " Teta " << (aTeta / aK) * 1000 ;
+                std::cout << " Axe " << anAxe   << " AcAx " << euclid(anAxe-aMat*anAxe) << " Teta " << (aTeta ) * 1000 ;
 
              }
              std::cout  << " " << aK << "\n";
