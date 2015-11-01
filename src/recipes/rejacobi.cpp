@@ -55,18 +55,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*************************************************************/
 
 
-INT NR_jacobi (REAL ** A ,INT n ,REAL *d ,REAL ** V)
+template<class Type>  INT NR_jacobi (Type ** A ,INT n ,Type *d ,Type ** V)
 {
 	INT j,iq,ip,i;
-	REAL tresh,theta,tau,t,sm,s,h,g,c;
+	Type tresh,theta,tau,t,sm,s,h,g,c;
 
 	d--;
 
-	static ElFilo<REAL *> Fa;  NR_InitNrMat(Fa,A,n); REAL ** a= Fa.tab();
-	static ElFilo<REAL *> Fv;  NR_InitNrMat(Fv,V,n); REAL ** v = Fv.tab();
+	static ElFilo<Type *> Fa;  NR_InitNrMat(Fa,A,n); Type ** a= Fa.tab();
+	static ElFilo<Type *> Fv;  NR_InitNrMat(Fv,V,n); Type ** v = Fv.tab();
 
-	static ElFilo<REAL> Fb;  NR_InitVect(Fb,n); REAL * b = Fb.tab();
-	static ElFilo<REAL> Fz;  NR_InitVect(Fz,n); REAL * z = Fz.tab();
+	static ElFilo<Type> Fb;  NR_InitVect(Fb,n); Type * b = Fb.tab();
+	static ElFilo<Type> Fz;  NR_InitVect(Fz,n); Type * z = Fz.tab();
 
 	for (ip=1;ip<=n;ip++) {
 		for (iq=1;iq<=n;iq++) v[ip][iq]=0.0;
@@ -140,27 +140,30 @@ INT NR_jacobi (REAL ** A ,INT n ,REAL *d ,REAL ** V)
 #undef ROTATE
 
 
-static ElMatrix<REAL> * THEVP;
-
-class cCmpTHEVP
+template <class Type> class cCmpTHEVP
 {
     public :
        bool operator ()(const int & i1,const int & i2)
        {
             return (*THEVP)(i1,0) < (*THEVP)(i2,0);
        }
+       cCmpTHEVP( ElMatrix<Type> * aMat) :
+            THEVP (aMat)
+       {
+       }
+ 
+       ElMatrix<Type> * THEVP;
 };
 
-static cCmpTHEVP the_cCmpTHEVP;
 
-std::vector<int> jacobi
+template<class Type> std::vector<int> Tpl_jacobi
      (
-          const ElMatrix<REAL> &  aMat0,
-          ElMatrix<REAL>  & aValP,
-          ElMatrix<REAL> &  aVecP
+          const ElMatrix<Type> &  aMat0,
+          ElMatrix<Type>  & aValP,
+          ElMatrix<Type> &  aVecP
      )
 {
-    ElMatrix<REAL>   aMatSym = aMat0;
+    ElMatrix<Type>   aMatSym = aMat0;
     INT n = aMatSym.tx();
     ELISE_ASSERT(n==aMatSym.ty(),"Not Squre in jacobi");
 
@@ -172,11 +175,35 @@ std::vector<int> jacobi
     for (int aK=0 ; aK<n ; aK++)
         aRes.push_back(aK);
 
-    THEVP =  &aValP;
+    cCmpTHEVP<Type> the_cCmpTHEVP(&aValP);
     std::sort(aRes.begin(),aRes.end(),the_cCmpTHEVP);
 
    return aRes;
 }
+
+
+std::vector<int> jacobi
+     (
+          const ElMatrix<REAL> &  aMat0,
+          ElMatrix<REAL>  & aValP,
+          ElMatrix<REAL> &  aVecP
+     )
+{
+   return Tpl_jacobi(aMat0,aValP,aVecP);
+}
+
+std::vector<int> jacobi
+     (
+          const ElMatrix<REAL16> &  aMat0,
+          ElMatrix<REAL16>  & aValP,
+          ElMatrix<REAL16> &  aVecP
+     )
+{
+   return Tpl_jacobi(aMat0,aValP,aVecP);
+}
+
+
+
 
 void MatLigneToDiag
      (

@@ -170,7 +170,7 @@ class cElNuage3DMaille : public cCapture3D
         Pt2di    SzBasicCapt3D() const;
         bool  CaptHasData(const Pt2dr &) const ;
         Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
-         bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
+         bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOPtPIsVisibleInImage * =0) const ;
         ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
         bool  HasRoughCapteur2Terrain() const ;
         Pt2dr ImRef2Capteur   (const Pt2dr & aP) const ;
