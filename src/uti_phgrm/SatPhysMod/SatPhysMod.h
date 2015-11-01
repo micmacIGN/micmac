@@ -181,6 +181,7 @@ class cRPC_PushB_PhysMod : public cPushB_PhysMod
 
 
         static const double ThePdsRay;
+        static const double TheMinDeltaZ;
 
         RPC  mRPC;
         cSysCoord * mWGS84Degr;
