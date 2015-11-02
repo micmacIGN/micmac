@@ -948,10 +948,11 @@ double  cSubstitueBlocIncTmp::Cond() const
 
 const double cResiduP3Inc::TheDefBSurH = 1.0;
 
-cParamPtProj::cParamPtProj(double aSeuilBsH,double aSeuilBsHRefut,bool aDebug) :
+cParamPtProj::cParamPtProj(double aSeuilBsH,double aSeuilBsHRefut,bool aDebug,double aSeuilOkBehind) :
    mBsH       (cResiduP3Inc::TheDefBSurH),
    mDebug     (aDebug),
    mSeuilBsH  (aSeuilBsH),
+   mSeuilOkBehind  (aSeuilOkBehind),
    mSeuilBsHRefut  (aSeuilBsHRefut),
    mProjIsInit (false),
    wDist       (true),
@@ -991,7 +992,7 @@ cManipPt3TerInc::cManipPt3TerInc
    mVCamVis    (aVCamVis),
    mSubst      (*mP3Inc),
    mTerIsInit  (false),  // Pour eventuellement eviter le re-calcul
-   mPPP        (0.0,0.0,true), // INIT +ou- bidon, refaite par ailleurs
+   mPPP        (0.0,0.0,true,-1), // INIT +ou- bidon, refaite par ailleurs
    mMulGlobPds (1.0)
 
 {
@@ -1167,17 +1168,18 @@ void InspectInterFaisc
    }
 }
 
-extern Pt3dr GLOBPCAMVIS;
 bool OkReproj
      (  
           const std::vector<cBasicGeomCap3D *> &  aVCam,
           const std::vector<double> &  aVPds,
           const Pt3dr &                aPTer,
-          int & aKP
+          int & aKP,
+          bool  OkBehind
     )
 {
 
-   
+  cArgOptionalPIsVisibleInImage anArg;
+  anArg.mOkBehind = OkBehind; 
 
 
    aKP = -1;
@@ -1195,13 +1197,8 @@ bool OkReproj
            }
 */
  // Semble + robuste de se baser sur la visibilite car reprojection peut etre degeneree
-           if (! aCam.PIsVisibleInImage(aPTer))
+           if (! aCam.PIsVisibleInImage(aPTer,&anArg))
            {
-
-if(MPD_MM())
-{
-    std::cout << "NOTVIS " << aPTer << " " << GLOBPCAMVIS << "\n";
-}
               aKP = aK;
               return false;
            }
@@ -1427,7 +1424,7 @@ if (BugZ0)
 
 
       int aKPb=-1;
-      if (! OkReproj(aVCC,aVPds,aRes,aKPb))
+      if (! OkReproj(aVCC,aVPds,aRes,aKPb,(aParam.mBsH<aParam.mSeuilOkBehind)))
       {
          OKInter = false;
          if (aMesPb)
@@ -1521,6 +1518,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                            )
 {
 
+   double aLimBsHOKBehind = 1e-2;
 
    CptUPL++;
    NewBug =   ::DebugPbCondFaisceau   &&
@@ -1551,7 +1549,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
 
    if (!mTerIsInit)
    {
-      mPPP = cParamPtProj(aLimBsHProj,aLimBsHRefut,true);
+      mPPP = cParamPtProj(aLimBsHProj,aLimBsHRefut,true,aLimBsHOKBehind);
 
 
     // if (DebugFaisceau && (aCpt%1000==999)) getchar();
@@ -1590,14 +1588,28 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                               &mResidus.mMesPb
                          );
 
-if (MPD_MM())
+if (0 && MPD_MM())
 {
+     static int aNbOk=0;
+     static int aNbNotOk=0;
+     static int aCpt=0;
+     aCpt++;
+     if (mResidus.mOKRP3I) 
+         aNbOk++;
+     else
+         aNbNotOk++;
      if (mPPP.mProjIsInit)
      {
           double aBsH = mPPP.mBsH;
           static double aBsHMin=10;
           ElSetMin(aBsHMin,aBsH);
-          std::cout << "PPppPP " << 1/ aBsH << " " << 1/aBsHMin << " " << mResidus.mPTer << " " << mResidus.mMesPb << "\n";
+          std::cout << "PPppPP " << 1/ aBsH << " " << 1/aBsHMin << " " << mResidus.mPTer << " " << mResidus.mMesPb << " PROP " << aNbNotOk/double(aCpt)<< "\n";
+
+          if ( ((aCpt+1) % 5000) == 0)
+          {
+             std::cout << "MPD_MMMPD_MM " << aCpt << "\n";
+             getchar();
+          }
      }
 }
 
