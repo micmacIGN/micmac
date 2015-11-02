@@ -195,6 +195,7 @@ public :
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
 extern int TestRegEx_main(int , char **);
+extern int TestElParseDir_main(int , char **);
 extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
 extern int SimplePredict_main(int , char **);
@@ -678,6 +679,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
+    aRes.push_back(cMMCom("TestParseDir",TestElParseDir_main," Test Parse Dir"));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
