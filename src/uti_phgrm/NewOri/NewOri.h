@@ -391,6 +391,8 @@ class cNewO_NameManager
            std::string NameHomFloat(cNewO_OneIm * ,cNewO_OneIm * );
 
            std::string NameListeImOrientedWith(const std::string &,bool Bin) const;
+           std::list<std::string>  ListeImOrientedWith(const std::string & aName) const;
+
            std::string NameListeCpleOriented(bool Bin) const;
 
            void LoadHomFloats(cNewO_OneIm * ,cNewO_OneIm *,std::vector<Pt2df> * aVP1,std::vector<Pt2df> * aVP2);

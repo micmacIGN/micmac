@@ -55,7 +55,8 @@ const double cPushB_PhysMod::TheEpsilonRefine = 1e-7;
 cPushB_PhysMod::cPushB_PhysMod(const Pt2di & aSz,eModeRefinePB aModeRefine,const Pt2di & aSzGeoL) :
    mSz            ( ((aSz + Pt2di(1,1))/2) * 2),  // On rend pair les nombres
    mSzGeoL        (aSzGeoL),
-   mModeRefine    (aModeRefine)
+   mModeRefine    (aModeRefine),
+   mSwapXY        (false)
 {
 }
 
@@ -149,6 +150,7 @@ Pt3dr cPushB_PhysMod::Im2GeoC_Refined(const Pt2dr & aP0Im,Pt3dr aPTer,const Pt3d
     Pt2dr  aPIm = GeoC2Im_Init(aPTer);
     Pt2dr  aGradX = GeoC2Im_Init(aPTer+aU) - aPIm;
     Pt2dr  aGradY = GeoC2Im_Init(aPTer+aV) - aPIm;
+
     ElMatrix<double> aGrad = MatFromCol(aGradX,aGradY);
     aGrad = gaussj(aGrad);
 
@@ -182,7 +184,7 @@ void cPushB_PhysMod::PostInitLinesPB()
     mMoyAlt = 0;
     for (int aK=0 ; aK<= mSzGeoL.y ; aK++)
     {
-         double anY = mSz.y * (aK/double(mSzGeoL.y)); 
+         double anY = (mSwapXY ? mSz.x : mSz.y)  * (aK/double(mSzGeoL.y)); 
          cPushB_GeomLine * aLPB = new cPushB_GeomLine(this,mSzGeoL.x,anY);
          mLinesPB.push_back(aLPB);
          mMoyRay +=  euclid(aLPB->Center());
@@ -258,6 +260,10 @@ void cPushB_PhysMod::PostInit()
     PostInitLinesPB();
 }
 
+bool  cPushB_PhysMod::SwapXY() const
+{
+   return mSwapXY;
+}
 
 double TetaOfAxeRot(const ElMatrix<REAL> & aMat, Pt3dr & aP1);
 
@@ -297,11 +303,11 @@ void cPushB_PhysMod::ShowLinesPB(bool Det)
              if (aK>0)
              {
                 std::cout << " DRay=" << euclid(aLPB->Center()) -  euclid(mLinesPB[aK-1]->Center()) ;
-                ElMatrix<double>  aMat = mLinesPB[0]->MatC1ToC2(*(mLinesPB[aK]));
+                ElMatrix<double>  aMat = mLinesPB[aK-1]->MatC1ToC2(*(mLinesPB[aK]));
                 Pt3dr anAxe =  AxeRot (aMat);
  if (anAxe.z<0) anAxe = -anAxe;
                 double aTeta = TetaOfAxeRot(aMat,anAxe);
-                std::cout << " Axe " << anAxe   << " AcAx " << euclid(anAxe-aMat*anAxe) << " Teta " << aTeta ;
+                std::cout << " Axe " << anAxe   << " AcAx " << euclid(anAxe-aMat*anAxe) << " Teta " << (aTeta ) * 1000 ;
 
              }
              std::cout  << " " << aK << "\n";

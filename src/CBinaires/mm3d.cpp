@@ -194,6 +194,7 @@ public :
 
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
+extern int TestRegEx_main(int , char **);
 extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
 extern int SimplePredict_main(int , char **);
@@ -251,6 +252,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("CmpOri",CPP_CmpOriCam_main," Compare two sets of orientation"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
+       aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
        aRes.push_back(cMMCom("FFTKugelhupf",FFTKugelhupf_main," Version of Kugelhupf using FFT, expecetd faster when it works (if ever ...)"));
        aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
@@ -746,7 +748,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        {
             std::cout  << " " << aVComs[aKC].mName << "\t" << aVComs[aKC].mComment << "\n";
        }
-       return 0;
+       return EXIT_SUCCESS;
    }
 
    if ((argc>=2) && (argv[1][0] == 'v') && (argv[1]!=std::string("vic")))
@@ -817,6 +819,11 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           delete PatMach;
           delete PrefMach;
           delete SubMach;
+
+          if (Chol16Byte)
+          {
+               std::cout << "WARN : 16 BYTE ACCURACY FOR LEAST SQUARE\n";
+          }
           return aRes;
        }
        for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
@@ -838,7 +845,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
            delete PatMach;
            delete PrefMach;
            delete SubMach;
-           return -1;
+           return EXIT_FAILURE;
        }
    }
 
@@ -850,7 +857,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    delete PatMach;
    delete PrefMach;
    delete SubMach;
-   return -1;
+   return  EXIT_FAILURE;
 }
 
 

@@ -157,13 +157,13 @@ ElMatrix<double>  cPushB_GeomLine::MatC1ToC2(cPushB_GeomLine & aCam2) const
 
 double  cPushB_GeomLine::XIm(int aKx) const
 {
-    return (double(mPBPM->Sz().x) * (aKx+0.5) )/(mNbX+1);
+    return (double(mPBPM->SwapXY() ? mPBPM->Sz().y : mPBPM->Sz().x) * (aKx+0.5) )/(mNbX+1);
 }
 
 
 Pt2dr cPushB_GeomLine::PIm(int aKx) const
 {
-   return Pt2dr(XIm(aKx),mY);
+   return  mPBPM->SwapXY() ? Pt2dr(mY,XIm(aKx)) :  Pt2dr(XIm(aKx),mY) ;
 }
 
 const Pt3dr &   cPushB_GeomLine::Center() const {return mCenter;}

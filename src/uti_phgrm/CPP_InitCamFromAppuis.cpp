@@ -314,6 +314,10 @@ int Init11Param_Main(int argc,char ** argv)
               System(aCom);
                               
         }
+        else
+        {
+             std::cout << "for " << itMAF->NameIm() << " only " << aICA.mVCPCur.size() << " measurements\n";
+        }
     }
 
     return EXIT_SUCCESS;

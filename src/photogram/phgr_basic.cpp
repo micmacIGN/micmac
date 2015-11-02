@@ -1785,19 +1785,22 @@ void  ElCamera::SetIncCentre(const Pt3dr & anInc)
 }
 
 
+Pt3dr GLOBPCAMVIS;
 
-bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer) const
+bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,cArgOPtPIsVisibleInImage *) const
 {
 
 
    Pt3dr aPCam = R3toL3(aPTer);
 
+GLOBPCAMVIS  = aPCam;
 
    if (
          HasOrigineProf() 
          && (aPCam.z <=   1e-5 * (ElAbs(aPCam.x)+ElAbs(aPCam.y)))
       ) 
    {
+
       return false;
   }
 
