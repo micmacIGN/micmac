@@ -810,7 +810,7 @@ bool  cBGC3_Modif2D::CaptHasData(const Pt2dr &aP) const
     return  mCam0->CaptHasData(CurIm2CamInit(aP));
 }
 
-bool      cBGC3_Modif2D::PIsVisibleInImage(const Pt3dr & aP,cArgOPtPIsVisibleInImage * anArg) const
+bool      cBGC3_Modif2D::PIsVisibleInImage(const Pt3dr & aP,const cArgOptionalPIsVisibleInImage  * anArg) const
 {
     return mCam0->PIsVisibleInImage(aP,anArg);
 }
@@ -990,7 +990,11 @@ cXml_CamGenPolBundle cPolynomial_BGC3M2D::ToXml() const
     
     if (mChSys)
     {
+std::cout << "CCCCCCCCCC\n";
+cSystemeCoord aSysTest = *mChSys;
+std::cout << "DDDDDDDD\n";
        aRes.SysCible().SetVal(*mChSys);
+std::cout << "EEEEE\n";
     }
 
     return aRes;

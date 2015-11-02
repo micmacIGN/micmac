@@ -1784,25 +1784,29 @@ void  ElCamera::SetIncCentre(const Pt3dr & anInc)
    mIncCentre = anInc;
 }
 
+cArgOptionalPIsVisibleInImage::cArgOptionalPIsVisibleInImage() :
+    mOkBehind (false)
+{
+}
 
-Pt3dr GLOBPCAMVIS;
 
-bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,cArgOPtPIsVisibleInImage *) const
+bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIsVisibleInImage * anArg) const
 {
 
 
    Pt3dr aPCam = R3toL3(aPTer);
 
-GLOBPCAMVIS  = aPCam;
 
-   if (
-         HasOrigineProf() 
-         && (aPCam.z <=   1e-5 * (ElAbs(aPCam.x)+ElAbs(aPCam.y)))
-      ) 
+   if (HasOrigineProf())
    {
+        double aSeuil = 1e-5 * (ElAbs(aPCam.x)+ElAbs(aPCam.y));
+        if (aPCam.z <= aSeuil)
+        {
+             if ( (anArg==0) || (! anArg->mOkBehind)  || (aPCam.z>-aSeuil))
+                return false;
+        }
+   }
 
-      return false;
-  }
 
 
    Pt2dr aPI0 = Proj().Proj(aPCam);
