@@ -142,14 +142,13 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
                  "SystemeCoord"
              ));
 
+
    if (aType==eTIGB_MMDimap2)
    {   
        mRPC->ReadDimap(aNameFile);
-       
-       //UpdateValidity3DFromPix();
 
        mRPC->SetRecGrid();
-
+       
        mRPC->ChSysRPC(*mChSys);
    }
    else if(aType==eTIGB_MMDimap1)
@@ -159,13 +158,12 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    else if(aType==eTIGB_MMDGlobe )
    {
        mRPC->ReadXML(aNameFile);
+       
+       mRPC->SetRecGrid();
 
        mRPC->InverseToDirectRPC();
        
-       //UpdateValidity3DFromPix();
-        
-       mRPC->SetRecGrid();
-       
+
        mRPC->ChSysRPC(*mChSys);
 
    }
@@ -212,7 +210,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     {
         mRPC->ReadDimap(aNameFile);
         
-        mRPC->UpdateValidity();
+        //mRPC->UpdateValidity();
         
         mRPC->SetRecGrid();
 
@@ -236,8 +234,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
         
         mRPC->InverseToDirectRPC();
         
-        mRPC->UpdateValidity();
-        
+    //    mRPC->UpdateValidity();
         mRPC->SetRecGrid();
 
 	    if(aChSys!=0)
@@ -791,7 +788,7 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 
 }
 
-/*void CameraRPC::OpticalCenterGrid(bool aIfSave) const
+/* void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 {
     srand(time(NULL));
 
@@ -941,7 +938,7 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 
 void CameraRPC::TestDirectRPCGen()
 {
-    //mRPC->TestDirectRPCGen(mSysCible);
+    mRPC->TestDirectRPCGen();
 }
 
 bool CameraRPC::HasOpticalCenterOfPixel() const

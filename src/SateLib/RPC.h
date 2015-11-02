@@ -311,7 +311,7 @@ public:
 	void ComputeNormFactors(double aHMin, double aHMax);
     void Validity2Dto3D(RPC2D aRPC2D);
 
-	void TestDirectRPCGen(const std::string aTargetCS);
+	void TestDirectRPCGen();
 
 	void ChSysRPC(const cSystemeCoord &);
     void SetRecGrid();   

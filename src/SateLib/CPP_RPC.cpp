@@ -958,6 +958,7 @@ void RPC::SetNewScaleOffsetR2(const std::vector<Pt3dr> & aGrid)
         line_scale = std::abs(aExtMax.y - line_off) :
         line_scale = std::abs(aExtMin.y - line_off);
 
+
 }
 
     
@@ -1195,23 +1196,26 @@ vector<Pt3dr> RPC::GenerateNormGrid(const Pt3di &aGridSz)
 {
     vector<Pt3dr> aGridNorm;
 
-    double aZS = double(1)/aGridSz.z;
-
+    double aZS = double(2)/aGridSz.z;
+    double aXS = double(2)/aGridSz.x;
+    double aYS = double(2)/aGridSz.y;
+    
     int aR, aC, aH;
     for (aR = 0; aR <= aGridSz.x; aR++)
     {
         for (aC = 0; aC <= aGridSz.y; aC++)
-	{
-            for(aH = 0; aH < aGridSz.z; aH++ )
 	    {
-	        Pt3dr aPt;
-	        aPt.x = (double(aR) - (aGridSz.x / 2)) / (aGridSz.x / 2);
-	        aPt.y = (double(aC) - (aGridSz.y / 2)) / (aGridSz.y / 2);
-	        aPt.z = aZS*aH;
-	        
-		aGridNorm.push_back(aPt);
+            for(aH = 0; aH <= aGridSz.z; aH++ )
+	        {
+	            Pt3dr aPt;
+	            aPt.x = aR*aXS -1;
+                aPt.y = aC*aYS -1;
+                aPt.z = aZS*aH -1;
+		        aGridNorm.push_back(aPt);
+
+	        }
+
 	    }
-	}
     }
 
     return(aGridNorm);
@@ -1505,15 +1509,15 @@ void RPC::GetGridExtent(const std::vector<Pt3dr> & aGrid,
 void RPC::NormR2(std::vector<Pt3dr> & aPts) const
 {
     int aK;
-  /*  double aXNmax=0, aXNmin=0,
+    double aXNmax=0, aXNmin=0,
            aYNmax=0, aYNmin=0;
-*/
+
     for (aK=0; aK<int(aPts.size()); aK++)
     {
         aPts.at(aK).x = (aPts.at(aK).x - samp_off) / samp_scale;
         aPts.at(aK).y = (aPts.at(aK).y - line_off) / line_scale;
         
-      /*  if( aPts.at(aK).x > aXNmax )
+        if( aPts.at(aK).x > aXNmax )
             aXNmax = aPts.at(aK).x;
         if( aPts.at(aK).x < aXNmin )
             aXNmin = aPts.at(aK).x;
@@ -1522,12 +1526,12 @@ void RPC::NormR2(std::vector<Pt3dr> & aPts) const
             aYNmax = aPts.at(aK).y;
         if( aPts.at(aK).y < aYNmin )
             aYNmin = aPts.at(aK).y;
-*/
+
     }
 
     
-    //std::cout << "RPC::NormR2 min " << aXNmin << " " << aYNmin << "; ";
-   // std::cout << "max " << aXNmax << " " << aYNmax << "\n";
+    std::cout << "RPC::NormR2 min " << aXNmin << " " << aYNmin << "; ";
+    std::cout << "max " << aXNmax << " " << aYNmax << "\n";
                      
     
 }
@@ -1548,9 +1552,9 @@ void RPC::UnNormR2(std::vector<Pt3dr> & aPts) const
 void RPC::NormR3(std::vector<Pt3dr> & aPts) const
 {
     int aK;
-/*    double aXNmax=0, aXNmin=0,
+    double aXNmax=0, aXNmin=0,
            aYNmax=0, aYNmin=0,
-           aZNmax=0, aZNmin=0;*/
+           aZNmax=0, aZNmin=0;
 
     for (aK=0; aK<int(aPts.size()); aK++)
     {
@@ -1558,7 +1562,7 @@ void RPC::NormR3(std::vector<Pt3dr> & aPts) const
         aPts.at(aK).y = (aPts.at(aK).y - lat_off) / lat_scale;
         aPts.at(aK).z = (aPts.at(aK).z - height_off)/height_scale;
     
-        /*if( aPts.at(aK).x > aXNmax )
+        if( aPts.at(aK).x > aXNmax )
             aXNmax = aPts.at(aK).x;
         if( aPts.at(aK).x < aXNmin )
             aXNmin = aPts.at(aK).x;
@@ -1571,12 +1575,12 @@ void RPC::NormR3(std::vector<Pt3dr> & aPts) const
         if( aPts.at(aK).z > aZNmax )
             aZNmax = aPts.at(aK).z;
         if( aPts.at(aK).z < aZNmin )
-            aZNmin = aPts.at(aK).z;*/
+            aZNmin = aPts.at(aK).z;
     
     }
 
-//    std::cout << "RPC::NormR3 min " << aXNmin << " " << aYNmin << " " << aZNmin <<"; ";
-  //  std::cout << "max " << aXNmax << " " << aYNmax << " " << aZNmax << "\n";
+    std::cout << "RPC::NormR3 min " << aXNmin << " " << aYNmin << " " << aZNmin <<"; ";
+    std::cout << "max " << aXNmax << " " << aYNmax << " " << aZNmax << "\n";
 
 }
 
@@ -1785,7 +1789,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 void RPC::SetRecGrid()
 {
     //grid spacing in 3D in meters
-    int aHorizM = 250, aVertM = 100;
+    int aHorizM = 500, aVertM = 100;
     int aSamplX, aSamplY, aSamplZ;
 
     if( IS_UNIT_m )
@@ -1840,12 +1844,12 @@ void RPC::UpdateValidity()
     Pt3dr aP1, aP2;
 
     //north-west image corner
-    aP1 = DirectRPC(Pt3dr(0 + line_off - last_col/2, 
-                              0 + samp_off - last_row/2, 
-                              first_height));
-    aP2 = DirectRPC(Pt3dr(0 + line_off - last_col/2, 
-                              0 + samp_off - last_row/2, 
-                              last_height));
+    aP1 = DirectRPC(Pt3dr(0, 
+                          0, 
+                          first_height));
+    aP2 = DirectRPC(Pt3dr(0, 
+                          0, 
+                          last_height));
 
     aLongVec.push_back(aP1.x);
     aLongVec.push_back(aP2.x);
@@ -1854,12 +1858,12 @@ void RPC::UpdateValidity()
 
         
     //north-east image corner
-    aP1 = DirectRPC(Pt3dr(last_col + line_off - last_col/2, 
-                          0 + samp_off - last_row/2, 
-                    first_height));
-    aP2 = DirectRPC(Pt3dr(last_col + line_off - last_col/2, 
-                              0 + samp_off - last_row/2, 
-                              last_height));
+    aP1 = DirectRPC(Pt3dr(last_col, 
+                          0, 
+                          first_height));
+    aP2 = DirectRPC(Pt3dr(last_col, 
+                          0, 
+                          last_height));
 
     aLongVec.push_back(aP1.x);
     aLongVec.push_back(aP2.x);
@@ -1868,12 +1872,12 @@ void RPC::UpdateValidity()
 
 
     //south-east image corner
-    aP1 = DirectRPC(Pt3dr(last_col + line_off - last_col/2, 
-                              last_row + samp_off - last_row/2, 
-                              first_height));
-    aP2 = DirectRPC(Pt3dr(last_col + line_off - last_col/2, 
-                              last_row + samp_off - last_row/2, 
-                              last_height));
+    aP1 = DirectRPC(Pt3dr(last_col, 
+                          last_row, 
+                          first_height));
+    aP2 = DirectRPC(Pt3dr(last_col, 
+                          last_row, 
+                          last_height));
    
 
     aLongVec.push_back(aP1.x);
@@ -1884,12 +1888,12 @@ void RPC::UpdateValidity()
         
 
     //south-west image corner
-    aP1 = DirectRPC(Pt3dr(0 + line_off - last_col/2, 
-                              last_row + samp_off - last_row/2, 
-                              first_height));
-    aP2 = DirectRPC(Pt3dr(0 + line_off - last_col/2, 
-                              last_row + samp_off - last_row/2, 
-                              last_height));
+    aP1 = DirectRPC(Pt3dr(0, 
+                          last_row, 
+                          first_height));
+    aP2 = DirectRPC(Pt3dr(0, 
+                          last_row, 
+                          last_height));
 
     aLongVec.push_back(aP1.x);
     aLongVec.push_back(aP2.x);
@@ -2063,7 +2067,6 @@ void RPC::ReadXML(std::string const &filename)
 
     nodes = tree.GetUnique(std::string("LONGOFFSET"));
     long_off = std::atof(nodes->GetUniqueVal().c_str());
-    
 
     nodes = tree.GetUnique(std::string("HEIGHTOFFSET"));
     height_off = std::atof(nodes->GetUniqueVal().c_str());
@@ -2163,38 +2166,44 @@ void RPC::ReadXML(std::string const &filename)
     }
      
     cElXMLTree* nodesFilOne; 
-    
+   
+    std::vector<double> aLongMM, aLatMM;
+
     nodes = tree.GetUnique(std::string("BAND_P"));
     nodesFilOne = nodes->GetUnique("ULLON");
-    first_lon = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    aLongMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
 
     nodesFilOne = nodes->GetUnique("URLON");
-    last_lon = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    aLongMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    nodesFilOne = nodes->GetUnique("LRLON");
+    aLongMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    nodesFilOne = nodes->GetUnique("LLLON");
+    aLongMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    first_lon = *std::min_element(aLongMM.begin(),aLongMM.end());
+    last_lon = *std::max_element(aLongMM.begin(),aLongMM.end());
+
+
+
     
     nodesFilOne = nodes->GetUnique("ULLAT");
-    last_lat = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    aLatMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    nodesFilOne = nodes->GetUnique("URLAT");
+    aLatMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    nodesFilOne = nodes->GetUnique("LRLAT");
+    aLatMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
 
     nodesFilOne = nodes->GetUnique("LLLAT");
-    first_lat = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    aLatMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+        
+    first_lat = *std::min_element(aLatMM.begin(),aLatMM.end());
+    last_lat = *std::max_element(aLatMM.begin(),aLatMM.end());
 
-/*    std::vector<double> aHMM;
 
-    nodesFilOne = nodes->GetUnique("ULHAE");
-    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
-
-    nodesFilOne = nodes->GetUnique("URHAE");
-    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
-
-    nodesFilOne = nodes->GetUnique("LRHAE");
-    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
-
-    nodesFilOne = nodes->GetUnique("LLHAE");
-    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
-
-    first_height = (*std::min_element(aHMM.begin(), aHMM.end()));
-    last_height  = (*std::max_element(aHMM.begin(), aHMM.end())); 
-    first_height = -1*height_scale + height_off;
-    last_height = 1*height_scale + height_off;*/
 
     ReconstructValidityH();
 
@@ -2609,7 +2618,8 @@ void RPC::InverseToDirectRPC()
     vector<Pt3dr> aGridImNorm;
     for (aG = 0; aG < aGridGeoNorm.size(); aG++)
         aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[aG]));
-    
+   
+
     GCP2Direct(aGridGeoNorm, aGridImNorm);
 
     IS_DIR_INI=true;
@@ -2618,7 +2628,7 @@ void RPC::InverseToDirectRPC()
 /* Test calculation of the direct RPCs:
  * calculate mean, max, std of difference in image and ground space between 
  * artificial ground truth and backprojected (image) or forward projected (ground) points */
-void RPC::TestDirectRPCGen(const std::string aTargetCS)
+void RPC::TestDirectRPCGen()
 {
     int aNb, aK1, aK2, aVTmp0, aVTmp1, aVTmp2; 
     double aRND, aXtmp, aYtmp, aZtmp;
@@ -2665,7 +2675,7 @@ void RPC::TestDirectRPCGen(const std::string aTargetCS)
     }
 
     //aXYHGT, aXYHFP - convert aLPHGT & aLPHFP to cartographic CS
-    ELISE_fp::MkDirSvp("processing");
+  /*  ELISE_fp::MkDirSvp("processing");
     std::ofstream aFO("LPHGT_LPHFP.txt");
 
     for(aK1=0; aK1<aNNodes; aK1++)
@@ -2699,7 +2709,7 @@ void RPC::TestDirectRPCGen(const std::string aTargetCS)
 	}
     }
     aFI.close();
-
+*/
     //|axyHGT(:2)-axyBP|, aXYHGT-aXYHFP| - calculate some measures of goodness
     aVTmp1=0, aVTmp2=0;
     aNb=0;
@@ -2727,8 +2737,8 @@ void RPC::TestDirectRPCGen(const std::string aTargetCS)
 	       aMAXdxy.y = aVTmp2;
 	   
            //ground
-	   aVTmp1 = std::abs(aXYHGT.at(aK1).x - aXYHFP.at(aK1).x);
-	   aVTmp2 = std::abs(aXYHGT.at(aK1).y - aXYHFP.at(aK1).y);
+	   aVTmp1 = std::abs(aLPHGT.at(aK1).x - aLPHFP.at(aK1).x);
+	   aVTmp2 = std::abs(aLPHGT.at(aK1).y - aLPHFP.at(aK1).y);
           
 
            adXY.push_back( Pt2dr(aVTmp1,aVTmp2) );
