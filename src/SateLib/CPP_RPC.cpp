@@ -2630,8 +2630,8 @@ void RPC::InverseToDirectRPC()
  * artificial ground truth and backprojected (image) or forward projected (ground) points */
 void RPC::TestDirectRPCGen()
 {
-    int aNb, aK1, aK2, aVTmp0, aVTmp1, aVTmp2; 
-    double aRND, aXtmp, aYtmp, aZtmp;
+    int aNb, aK1, aK2, aVTmp1, aVTmp2; 
+    double aRND;
     Pt2dr aMAXdxy(0,0), aMAXdXY(0,0), aUdxy(0,0), aUdXY(0,0), aSdxy(0,0), aSdXY(0,0);
     Pt3dr axyTmp(0,0,0);
     std::vector<Pt3dr> aLPHGT, aLPHFP, aXYHGT, aXYHFP, axyHGT;
