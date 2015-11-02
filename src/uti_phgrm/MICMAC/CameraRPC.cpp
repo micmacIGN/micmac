@@ -91,7 +91,7 @@ bool cComp3DBasic::CaptHasData(const Pt2dr &aP) const
     return  mCam0->CaptHasData(aP);
 }
 
-bool cComp3DBasic::PIsVisibleInImage(const Pt3dr & aP,cArgOPtPIsVisibleInImage * anArg) const
+bool cComp3DBasic::PIsVisibleInImage(const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * anArg) const
 {
     return mCam0->PIsVisibleInImage(Target2OriginCS(aP),anArg);
 }
@@ -316,7 +316,7 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
     return Pt2dr(aPIm.x, aPIm.y);
 }
 
-bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOPtPIsVisibleInImage *) const
+bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
 {
     // (1) Check if aP is within the RPC validity zone
     /*if( (aP.x < mRPC->first_lon) || (aP.x > mRPC->last_lon) || 
@@ -1084,7 +1084,7 @@ bool CameraAffine::CaptHasData(const Pt2dr &) const
     return(true);
 }
 
-bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP,cArgOPtPIsVisibleInImage *) const
+bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
 {
     return(true);
 }
@@ -1158,7 +1158,7 @@ Pt2dr BundleCameraRPC::Ter2Capteur(const Pt3dr & aP) const
 	return(mCam->Ter2Capteur(aP));
 }
 
-bool BundleCameraRPC::PIsVisibleInImage(const Pt3dr & aP,cArgOPtPIsVisibleInImage * anArg) const
+bool BundleCameraRPC::PIsVisibleInImage(const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * anArg) const
 {
 	return(mCam->PIsVisibleInImage(aP,anArg));
 }

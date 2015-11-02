@@ -71,7 +71,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
            virtual Pt2di    SzBasicCapt3D() const ;
            virtual double ResolSolOfPt(const Pt3dr &) const ;
            virtual bool  CaptHasData(const Pt2dr &) const ;
-           virtual bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOPtPIsVisibleInImage * = 0) const ;
+           virtual bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage  * = 0) const ;
            virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const ;
            virtual double GetVeryRoughInterProf() const;
 
