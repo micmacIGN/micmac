@@ -437,7 +437,7 @@ Pt2dr cElNuage3DMaille::Ter2Capteur(const Pt3dr & aP) const
 }
 
 
-bool cElNuage3DMaille::PIsVisibleInImage   (const Pt3dr & aP,cArgOPtPIsVisibleInImage *anArg) const
+bool cElNuage3DMaille::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage  *anArg) const
 {
     return   mCam->PIsVisibleInImage (aP,anArg);
 }

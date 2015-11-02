@@ -630,12 +630,13 @@ class cParamPtProj
 {
     public :
 
-       cParamPtProj(double SeuilBH,double aLimBsHRefut,bool Debug);
+       cParamPtProj(double SeuilBH,double aLimBsHRefut,bool Debug,double aSeuilOkBehind);
 
        double mBsH;
        double mEc2;
        bool   mDebug;
        double mSeuilBsH;
+       double mSeuilOkBehind;
        double mSeuilBsHRefut;
        bool   mProjIsInit;
 
