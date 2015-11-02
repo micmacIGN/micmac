@@ -810,9 +810,9 @@ bool  cBGC3_Modif2D::CaptHasData(const Pt2dr &aP) const
     return  mCam0->CaptHasData(CurIm2CamInit(aP));
 }
 
-bool      cBGC3_Modif2D::PIsVisibleInImage(const Pt3dr & aP) const
+bool      cBGC3_Modif2D::PIsVisibleInImage(const Pt3dr & aP,cArgOPtPIsVisibleInImage * anArg) const
 {
-    return mCam0->PIsVisibleInImage(aP);
+    return mCam0->PIsVisibleInImage(aP,anArg);
 }
 
 bool      cBGC3_Modif2D::HasOpticalCenterOfPixel() const

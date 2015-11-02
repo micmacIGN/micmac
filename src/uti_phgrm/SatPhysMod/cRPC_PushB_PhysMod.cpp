@@ -50,6 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /******************************************************/
 
 const double cRPC_PushB_PhysMod::ThePdsRay = 0.1;
+const double cRPC_PushB_PhysMod::TheMinDeltaZ = 50;
 
 cRPC_PushB_PhysMod::cRPC_PushB_PhysMod(const RPC & aRPC,eModeRefinePB aModeRefine,const Pt2di & aSzGeoL) :
    cPushB_PhysMod  (Pt2di(aRPC.last_col,aRPC.last_row),aModeRefine,aSzGeoL),
@@ -58,6 +59,15 @@ cRPC_PushB_PhysMod::cRPC_PushB_PhysMod(const RPC & aRPC,eModeRefinePB aModeRefin
    mZ0Ray          (barry(0.5+ThePdsRay,mRPC.height_scale,mRPC.height_off)),
    mZ1Ray          (barry(0.5-ThePdsRay,mRPC.height_scale,mRPC.height_off))
 {
+
+   // MPD 
+   // Probably something go wrong in altitude interval
+   if (ElAbs(mZ0Ray-mZ1Ray) < TheMinDeltaZ)
+   {
+        double aZMean = (mZ0Ray+mZ1Ray) /2.0;
+        mZ0Ray = aZMean  - TheMinDeltaZ/2.0;
+        mZ1Ray = aZMean  + TheMinDeltaZ/2.0;
+   }
 }
 
 cRPC_PushB_PhysMod * cRPC_PushB_PhysMod::NewRPC_PBP(const RPC & aRPC,eModeRefinePB aModeRefine,const Pt2di &aSzGeoL)
@@ -86,8 +96,10 @@ Pt3dr cRPC_PushB_PhysMod::RPC_ImAndZ2LlZ(const Pt2dr & aPIm,const double & aZ) c
 ElSeg3D cRPC_PushB_PhysMod::Im2GeoC_Init(const Pt2dr & aPIm) const
 {
 
+
    Pt3dr aPT0 = RPC_ImAndZ2LlZ(aPIm,mZ0Ray);
    Pt3dr aPT1 = RPC_ImAndZ2LlZ(aPIm,mZ1Ray);
+   //std::cout << " cRPC_PushB_PhysMod::Im2GeoC_Init " << aPT0 << " " << aPT1 << "\n";
    return ElSeg3D(mWGS84Degr->ToGeoC(aPT0),mWGS84Degr->ToGeoC(aPT1));
 }
 

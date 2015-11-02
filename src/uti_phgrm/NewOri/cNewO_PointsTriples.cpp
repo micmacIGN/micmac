@@ -252,14 +252,25 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
    mCam = new cNewO_OneIm(*mNM,mName);
    mDirSom =  mNM->Dir3POneImage(mCam,true);
 
+   mVCams.push_back(mCam);
 
+   std::list<std::string> aLN = mNM->ListeImOrientedWith(mName);
+   for (std::list<std::string>::const_iterator itN=aLN.begin() ; itN!=aLN.end() ; itN++)
+   {
+        if (mName < *itN)
+        {
+            /// std::cout << "PPPP " << mName << " " << *itN << "\n";
+            cNewO_OneIm * aCam2 = new cNewO_OneIm(*mNM,*itN);
+            mVCams.push_back(aCam2);
+        }
+   }
+/*
    std::string aKeySetHom = "NKS-Set-HomolOfOneImage@@dat@" +mName;
    std::string aKeyAsocHom = "NKS-Assoc-CplIm2Hom@@dat";
 
    const std::vector<std::string>* aVH = mNM->ICNM()->Get(aKeySetHom);
 
    // std::cout << aKeySetHom << " " << aVH->size() << "\n";
-   mVCams.push_back(mCam);
 
    for (int aKH = 0 ; aKH <int(aVH->size()) ; aKH++)
    {
@@ -277,6 +288,7 @@ cAppli_GenPTripleOneImage::cAppli_GenPTripleOneImage(int argc,char ** argv) :
              }
         }
    }
+*/
    std::sort(mVCams.begin(),mVCams.end(),TheCmpPtrIOnName);
 }
 
@@ -556,6 +568,8 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
             if (EAMIsInit(&anOriCalib))  aCom = aCom + " OriCalib=" + anOriCalib;
             aCom += " Quick=" +ToString(aQuick);
             aCom += " SWE=" +ToString(aSkWhenExist);
+
+            //           std::cout << "COM= " << aCom << "\n";
             anEPbP.AddCom(aCom);
        }
    }
