@@ -103,7 +103,8 @@ class CameraRPC : public cBasicGeomCap3D
         const RPC * GetRPC() const;
 		const std::string & GetImName() const;
 
-		const cSystemeCoord * mChSys;
+		//const cSystemeCoord * mChSys;
+		cSystemeCoord  mChSys;
 		//std::string mSysCible;//not updated and to be removed
         
     private:

@@ -134,7 +134,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    if(aSysCibleFile == "") {aSysCibleFile = FindUTMCS();}
    
 
-   mChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+   mChSys = cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
              (
                  aSysCibleFile,
                  StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
@@ -149,7 +149,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 
        mRPC->SetRecGrid();
        
-       mRPC->ChSysRPC(*mChSys);
+       mRPC->ChSysRPC(mChSys);
    }
    else if(aType==eTIGB_MMDimap1)
    {
@@ -164,7 +164,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
        mRPC->InverseToDirectRPC();
        
 
-       mRPC->ChSysRPC(*mChSys);
+       mRPC->ChSysRPC(mChSys);
 
    }
    else if(aType==eTIGB_MMIkonos)
@@ -193,7 +193,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 		             const eTypeImporGenBundle &aType,
 		             const cSystemeCoord * aChSys,
                      const double aAltiSol) : 
-                     mChSys(aChSys),
+                     mChSys(*aChSys),
 	mProfondeurIsDef(false),
 	mAltisSolIsDef(true),
 	mAltiSol(aAltiSol),
@@ -204,7 +204,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 {
     mRPC = new RPC();
 
-
+    //std::cout << "ewelina CCCCC " << aChSys->BSC().at(0).AuxStr().at(0) << "\n";
 
     if(aType==eTIGB_MMDimap2)
     {

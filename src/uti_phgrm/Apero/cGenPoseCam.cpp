@@ -907,12 +907,13 @@ cPolynomial_BGC3M2D::cPolynomial_BGC3M2D
       const cSystemeCoord * aChSys
 ) :
     cBGC3_Modif2D (aCam0,aName,aNameIma),
-    mChSys        (aChSys),
+    mChSys        (*aChSys),
     mDegreMax     (aDegreeMax),
     mCenter       (Pt2dr(mSz)/2.0),
     mAmpl         (euclid(mCenter)),
     mCurPPow      (0.0,0.0)
 {
+
      int aCpt=0;
      for (int  aDegreeTot=0 ; aDegreeTot<=aDegreeMax ; aDegreeTot++)
      {
@@ -988,13 +989,9 @@ cXml_CamGenPolBundle cPolynomial_BGC3M2D::ToXml() const
     aRes.NameIma() = mNameIma;
     aRes.NameCamSsCor() = mNameFileCam0;
     
-    if (mChSys)
+    //if (mChSys)
     {
-std::cout << "CCCCCCCCCC\n";
-cSystemeCoord aSysTest = *mChSys;
-std::cout << "DDDDDDDD\n";
-       aRes.SysCible().SetVal(*mChSys);
-std::cout << "EEEEE\n";
+       aRes.SysCible()=mChSys;//.SetVal(*mChSys);
     }
 
     return aRes;
@@ -1026,9 +1023,9 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
             ELISE_fp::CpFile(mNameFileCam0,aNameSsCor);
      }
      aXml.NameCamSsCor() = aNameSsCor;
-     if (mChSys)
+     //if (mChSys)
      {
-        aXml.SysCible().SetVal(*mChSys);
+        aXml.SysCible()=mChSys;//.SetVal(*mChSys);
      }
 
      
@@ -1070,6 +1067,7 @@ cPolynomial_BGC3M2D * cPolynomial_BGC3M2D::NewFromFile(const std::string & aName
 
     aRes->SetMonom(aXML.CorX().Monomes(),aRes->mCx);
     aRes->SetMonom(aXML.CorY().Monomes(),aRes->mCy);
+
 
 
     return aRes;

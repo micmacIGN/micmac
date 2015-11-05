@@ -118,6 +118,7 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            inline const double  &       Ampl() const {return mAmpl;}
            inline const Pt2dr &      Center() const {return mCenter;}
   //         Pt3dr RTLCenter() const;
+
 	   void Show() const;
 
            void Save2XmlStdMMName(const std::string & aDir) const;
@@ -134,7 +135,7 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            void ShowMonome(const std::string & , int aDeg) const;
            void SetPow(const Pt2dr & aPN) const;
  
-           const cSystemeCoord  * mChSys;
+           const cSystemeCoord  mChSys;
            
            int                 mDegreMax;
            Pt2dr               mCenter;

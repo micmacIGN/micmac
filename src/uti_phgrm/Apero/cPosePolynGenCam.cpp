@@ -201,6 +201,7 @@ const cPoseCam * cGenPoseCam::DownCastPoseCamSVP() const
    return 0;
 }
 
+
 cCalibCam *  cGenPoseCam::CalibCam() const {return 0;}
 
 cCalibCam *  cGenPoseCam::CalibCamNN()  const
@@ -326,12 +327,14 @@ cPosePolynGenCam::cPosePolynGenCam(cAppliApero & anAppli,const std::string & aNa
     mCam        (cPolynomial_BGC3M2D::NewFromFile(mNameOri)),
     mCamF       (mAppli.SetEq(),*mCam,false,false,false)
 {
+    
     mRotIsInit = true;
     mPreInit = true;
 }
 
 cGenPDVFormelle *  cPosePolynGenCam::PDVF() { return & mCamF; }
 const cGenPDVFormelle *  cPosePolynGenCam::PDVF() const { return & mCamF; }
+
 
 cPolynBGC3M2D_Formelle *   cPosePolynGenCam::PolyF() 
 {
