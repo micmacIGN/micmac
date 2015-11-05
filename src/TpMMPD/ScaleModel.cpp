@@ -67,8 +67,8 @@ int ScaleModel_main(int argc,char ** argv)
                 << EAMC(AeroOut,"Out : orientation ", eSAM_IsOutputDirOri)
                 << EAMC(DistFE,"Distance between Ech1 and Ech2 to fix the scale"),
     LArgMain()
-                    << EAM(ExpTxt,"ExpTxt",true)
-                    << EAM(CPI,"CPI",true,"Calibration Per Image (Def=false)")
+                << EAM(ExpTxt,"ExpTxt",true)
+                << EAM(CPI,"CPI",true,"Calibration Per Image (Def=false)")
 
     );
 

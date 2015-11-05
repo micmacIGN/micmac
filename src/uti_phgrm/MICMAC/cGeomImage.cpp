@@ -255,6 +255,11 @@ ElCamera * cGeomImage::GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) con
 {
    ToDel = true;
    aZUP = true;
+if (0&&MPD_MM())
+{
+   std::cout << "cGeomImage::GetCamera " << Name () << " \n";
+   getchar();
+}
    return  cCameraOrtho::Alloc(aSz);
 }
 
@@ -279,6 +284,7 @@ void cGeomImage::RemplitOriXMLNuage
 
 
 
+
    aNuage.PM3D_ParamSpecifs().NoParamSpecif().SetNoInit();
    cModeFaisceauxImage aMFI;
    aMFI.ZIsInverse() = false;
@@ -286,8 +292,6 @@ void cGeomImage::RemplitOriXMLNuage
    aMFI.DirFaisceaux() = Pt3dr(0,0,1);
    aNuage.PM3D_ParamSpecifs().ModeFaisceauxImage().SetVal(aMFI);
 
-   // cCameraOrtho * aCam = cCameraOrtho::Alloc(aGT.SzDz());
-   // ElCamera * aCam = cCameraOrtho::Alloc(aGT.SzDz());
    bool ToDel;
    bool aZUP = false;
    ElCamera * aCam = GetCamera(aGT.SzDz(),ToDel,aZUP);
@@ -1192,10 +1196,7 @@ class cGeomImage_Id : public cGeomImage
       {
       }
 
-       std::string Name() const
-       {
-          return "cGeomImage_Id";
-       }
+       std::string Name() const { return "cGeomImage_Id"; }
 
     private :
        virtual Pt2dr ImageAndPx2Obj_NonEuclid(Pt2dr aP,const REAL * aPx) const
@@ -1233,10 +1234,7 @@ class cGeomImage_NoGeom : public cGeomImage
          cGeomImage(anAppli,aPDV,eTagNoGeom,aSzIm,2)
       {
       }
-       std::string Name() const
-       {
-          return "cGeomImage_NoGeom";
-       }
+       std::string Name() const { return "cGeomImage_NoGeom"; }
 
     private :
        virtual Pt2dr ImageAndPx2Obj_NonEuclid(Pt2dr aP,const REAL * aPx) const
@@ -1307,6 +1305,7 @@ class cGeomImage_NoGeom : public cGeomImage
 class cGeomImage_DHD_Px : public cGeomImage 
 {
     public :
+      std::string Name() const { return "cGeomImage_DHD_Px"; }
       cGeomImage_DHD_Px
       (
           const                   cAppliMICMAC & anAppli,
@@ -1441,6 +1440,7 @@ class cGeomImage_DHD_Px : public cGeomImage
 class cGeomImage_Terrain_Ori : public cGeomImage
 {
     public :
+      std::string Name() const { return "cGeomImage_Terrain_Ori"; }
       Pt2dr ToGeomMasqAnam(const Pt2dr & aPTer) const;
 
       std::string NameMasqImNadir() { return cGeomImage::NameMasqImNadir(mAppli.MMImNadir()->KBest()); }
@@ -1508,7 +1508,6 @@ class cGeomImage_Terrain_Ori : public cGeomImage
           // OO aPTer = mOri.terr_to_carte(aPTer);
           if (mOLiLi && mIsCarto)
              aPTer = mOLiLi->terr_to_carte(aPTer);
-/// std::cout << "BBBBBBBBBBBBBb\n";
           return Pt2dr(aPTer.x,aPTer.y);
        }
        virtual Pt2dr Objet2ImageInit_NonEuclid(Pt2dr aP,const REAL * aPx) const
@@ -1884,8 +1883,6 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
                for (int aKY=1 ; aKY<aNbXY ; aKY++)
                {
 
-// bool TEST = (aKX==aNbXY /2) && (aKY==aNbXY /2) && (MPD_MM()) ;
-bool TEST = (aKX==2) && (aKY==2) && (MPD_MM()) ;
 
                    Pt2dr aPds(double(aKX)/aNbXY,double(aKY)/aNbXY);
                    Pt2dr aCdg = aPds.mcbyc(Pt2dr(mOri->SzPixel()));
@@ -1893,7 +1890,6 @@ bool TEST = (aKX==2) && (aKY==2) && (MPD_MM()) ;
                    cTplValGesInit<Pt3dr> aPGI3A = mAnamSA->InterDemiDroiteVisible(aSegA,0);
 
 
-if (TEST) std::cout << "CDDDGGGg " << aCdg << "\n";
                    if (aPGI3A.IsInit())
                    {
                         bool AllOk=true;
@@ -1924,7 +1920,6 @@ if (TEST) std::cout << "CDDDGGGg " << aCdg << "\n";
                                AllOk= false;
                             }
                         }
-if (TEST) std::cout << "ALLAOOOK  " << aCdg  << " " << AllOk  << " " << aPExtr0 << " " << aPExtr1 << "\n";
 
                         if (AllOk)
                         {
@@ -2158,11 +2153,49 @@ void cGeomImage_Terrain_Ori::InitAnamSA(double aResol,const Box2dr & )
 class cGeomFaisZTerMaitre : public cGeomImage_Id
 {
     public :
+/*
+    void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
+    {
+
+if (MPD_MM())
+{
+   std::cout << "RemplitOriXMLNuageRemplitOriXMLNuage \n";
+   CFM = true;
+   getchar();
+}
+        cGeomImage::RemplitOriXMLNuage(false,mtd,aGT,aNuage,mode);
+        if (CFM)
+        {
+            cModuleOrientationFile oriFile;
+            oriFile.NameFileOri()=mModule->GetFilename();
+            aNuage.Orientation().ModuleOrientationFile().SetVal(oriFile);
+            aNuage.Orientation().TypeProj().SetVal(eProjGrid);
+         }
+    }
+*/
+       void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
+       {
+/*
+if (MPD_MM())
+{
+   std::cout << "cGeomFaisZTerMaitre:: RemplitOriXMLNuageRemplitOriXMLNuage " << aNuage.Orientation().Interne().Val().PP() << " \n";
+   CFM = true;
+   getchar();
+}
+*/
+           mGeoRef->RemplitOriXMLNuage(true,mtd,aGT,aNuage,mode);
+       }
+
 
       ElCamera * GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) const
       {
             ToDel = false;
             ElCamera * aCam = GetOri();
+if (0&&MPD_MM())
+{
+    std::cout << "ZFFF::GetCamera " << aCam << "\n";
+}
+
             if (aCam) return aCam;
             return  cGeomImage::GetCamera(aSz,ToDel,aZUP);
       }
@@ -2203,11 +2236,6 @@ class cGeomFaisZTerMaitre : public cGeomImage_Id
     
     
     // Par defaut erreur fatale si pas mode Image_Nuage
-    void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
-    {
-        mGeoRef->RemplitOriXMLNuage(true,mtd,aGT,aNuage,mode);
-    }
-
     protected :
       bool GetPxMoyenne_NonEuclid(double * aPxMoy,bool MakeInvIfNeeded) const
       {
@@ -2259,7 +2287,7 @@ class cGeomFaisZTerEsclave : public cGeomFaisZTerMaitre
 
        std::string Name() const
        {
-          return "cGeomFaisZTerMaitre["+mGeom->Name() +"]["+mGeoRef->Name()+"]";
+          return "cGeomFaisZTerEsclave["+mGeom->Name() +"]["+mGeoRef->Name()+"]";
        }
 
       void InstPostInit()
@@ -2422,6 +2450,7 @@ class cGeomImage_Id_Ori : public cGeomImage_Id
           return mOriRef->ImDirEtProf2Terrain(aP,1/aPax[0],mNormPl);
       }
 
+      std::string Name() const { return "cGeomImage_Id_Ori"; }
 
       cGeomImage_Id_Ori
       (
@@ -2547,6 +2576,14 @@ getchar();
                 eModeExportNuage
            ) const
       {
+/*
+if (MPD_MM())
+{
+   std::cout << "RemplitOriXMLNuageRemplitOriXMLNuage \n";
+   CFM = true;
+   getchar();
+}
+*/
            aNuage.PM3D_ParamSpecifs().NoParamSpecif().SetNoInit();
            cModeFaisceauxImage aMFI;
            aMFI.ZIsInverse() = true;
@@ -2565,6 +2602,7 @@ getchar();
 class cGeomImage_Faisceau : public cGeomImage_Id_Ori
 {
     public :
+       std::string Name() const {return "cGeomImage_Faisceau::" + mGITO.Name() ;}
 
       // interface pour cGeomBasculement3D, envoie de image vers terrain
       Pt3dr Bascule(const Pt3dr & aP3) const
@@ -2757,6 +2795,7 @@ if (1)
 class cGeomImage_cBasic : public cGeomImage
 {
      public :
+       std::string Name() const {return "cGeomImage_cBasic"  ;}
        virtual Pt2dr ImageAndPx2Obj_NonEuclid(Pt2dr aP,const REAL * aPx) const
        {
           Pt3dr aPTer =  mBGC3D->ImEtZ2Terrain(aP,aPx[0]);
@@ -2875,6 +2914,7 @@ class cGeomImage_Module : public cGeomImage
     // Par defaut erreur fatale si pas mode Image_Nuage
     void RemplitOriXMLNuage(bool CFM,const cMTD_Nuage_Maille & mtd,const cGeomDiscFPx & aGT,cXML_ParamNuage3DMaille &aNuage ,eModeExportNuage mode) const
     {
+
         cGeomImage::RemplitOriXMLNuage(false,mtd,aGT,aNuage,mode);
         if (CFM)
         {

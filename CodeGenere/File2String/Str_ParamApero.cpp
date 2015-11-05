@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1649]) = {
+const char * (theNameVar_ParamApero[1650]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -235,6 +235,7 @@ const char * (theNameVar_ParamApero[1649]) = {
 "      <IdBdl Nb=\"1\"  Type=\"std::string\"> </IdBdl>\n",
 "      <Pond Nb=\"1\" RefType=\"PonderationPackMesure\"> </Pond>\n",
 "      <LimBSurH Nb=\"?\" Type=\"double\" Def=\"1e-2\"> </LimBSurH>\n",
+"      <AcceptDefPlanIfNoPoint Nb=\"?\" Type=\"bool\" Def=\"false\"></AcceptDefPlanIfNoPoint>\n",
 "</ParamEstimPlan>\n",
 "\n",
 "<RigidBlockWeighting Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

@@ -100,11 +100,11 @@ class cMicMacZbuf : public cZBuffer
          void Inspect();
          double ZBrutOfXY(const Pt2di & aP)   const { return   mTImTer.get(aP); }
          Im2D_REAL4 ZBrutOfXY()   const { return   mImTer; }
-        bool SelectP(const Pt2di & aP)   const  ;
+         bool SelectP(const Pt2di & aP)   const  ;
+         double ZofXY(const Pt2di & aP)   const ; 
     private  :
-        Pt3dr ProjTerrain(const Pt3dr &) const;
-        double ZofXY(const Pt2di & aP)   const ; 
-        double ZInterpofXY(const Pt2dr & aP,bool & OK) const;
+         Pt3dr ProjTerrain(const Pt3dr &) const;
+         double ZInterpofXY(const Pt2dr & aP,bool & OK) const;
 
 
 
@@ -134,7 +134,8 @@ Pt3dr cMicMacZbuf::ProjTerrain(const Pt3dr & aPTer) const
 if (DEBUG_ZBB)
 {
    Pt2di aPTI = Pt2di(aPTer.x,aPTer.y);
-   std::cout << "cMicMacZbuf::ProjTerrainXXXX  " << aPTer << " " << " " << aPIm  << " " << mTImTer.get(aPTI) << " \n";
+   std::cout << "AAAA cMicMacZbuf::ProjTerrainXXXX " << aPTI << " " <<  mTImTer.sz() << "\n";
+   //std::cout << "cMicMacZbuf::ProjTerrainXXXX  " << aPTer << " " << " " << aPIm  << " " << mTImTer.get(aPTI) << " \n";
 
    
    for (int aDx = -1 ; aDx<=1 ; aDx++)
@@ -151,6 +152,8 @@ if (DEBUG_ZBB)
    }
    std::cout << "====================================================\n\n";
 }
+/*
+*/
 /*
     if (mAppli.InversePx())
        return Pt3dr(aPIm.x,aPIm.y,1.0/aPTer.z);
@@ -711,6 +714,33 @@ void cAppliMICMAC::MakePartiesCachees
            aMmZB->SetWithBufXYZ(aGPC.BufXYZ().Val());
 
            float aZDef = -1e15f;
+
+           if (0 && MPD_MM())
+           {
+                Pt2di aP;
+                int aNbIn=0;
+                int aNbOut=0;
+                cGeomImage & aGeom = aPdv.Geom();
+                for (aP.x = 0 ; aP.x<aGT.SzClip().x; aP.x++)
+                {
+                    for (aP.y = 0 ; aP.y<aGT.SzClip().y; aP.y++)
+                    {
+                         bool Ok =  aMmZB->SelectP(aP);
+                         if (Ok) 
+                            aNbIn++;
+                         else
+                            aNbOut++;
+                         if (aNbIn)
+                         {
+                             double aZ = aMmZB->ZofXY(aP);
+                             Pt2dr aPI = aGeom.Objet2ImageInit_Euclid(Pt2dr(aP),&aZ);
+                             Pt2dr aPTer = aGeom.ImageAndPx2Obj_Euclid(aPI,&aZ);
+                             std::cout << " HHHHhhhh  " << aP << aPI <<  " " << aPTer << "\n";
+                         }
+                    }
+                }
+                std::cout << "aNbOutaNbOut " << aNbIn << " " << aNbOut << "\n";
+           }
 
            aIPC = aMmZB->ZCaches (Pt2di(0,0),aGT.SzClip(), aZDef);
            aMasqOrt = aMmZB->ImOkTer();

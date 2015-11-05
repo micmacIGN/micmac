@@ -37,109 +37,591 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <vector>
+
+class cTestElParseDir : public ElActionParseDir
+{
+    public :
+        void act(const ElResParseDir & aRPD)
+	{
+	    FileList.push_back(aRPD.name());
+	};
+	vector<std::string> FileList;
+};
 
 
 class cAppli_TNR_Main  : public  cElErrorHandlor
 {
     public :
-        cAppli_TNR_Main(int argc,char ** argv);
+	cAppli_TNR_Main(int argc,char ** argv);
     private :
 
-        void OnError();
-
-        
-
-        void DoOneGlobTNR(const std::string &);
-        void TestOneCom(const cXmlTNR_OneTest & aOneT);
+	void OnError();
+        void DoOneGlobTNR(const std::string &,const std::string & mOutXML,const std::string & mOutErrorsXML);
+        vector<cXmlTNR_OneTestReport> TestOneCom(const cXmlTNR_OneTest & aOneT);
+        cXmlTNR_TestFileReport TestExistFile(const cXmlTNR_TestExistFile & aFile);
+        cXmlTNR_TestDirReport TestExistDir(const cXmlTNR_TestExistDir & aDirPath);
+        cXmlTNR_CalibReport TestCalib(const cXmlTNR_TestDiffCalib & aCalib);
+        cXmlTNR_OriReport TestOri(const cXmlTNR_TestDiffOri & aOri);
+        cXmlTNR_ImgReport TestImg(const cXmlTNR_TestDiffImg & aImg);
+	std::vector<std::string> DirArbo(const std::string & DirPath);
+	int DirSize(const std::string & DirPath);
         cElemAppliSetFile mEASF;
         std::string mPattern;
         std::string mCurDirRef;
-        std::string mCurDirTNR;
+        std::string mCurDirExe;
+        std::list<std::string>mLFileExe;
+        std::list<std::string>mLFileRef;
+        std::string mFullName;
+        std::string mOutReportXML;
+	std::string mOutErrorsXML;
+        std::string mInRefDir;
+        std::string mInExeDir;
+	cInterfChantierNameManipulateur*mICNMExe;
+	cInterfChantierNameManipulateur*mICNMRef;
+	cInterfChantierNameManipulateur*DirFile;
 
-        cXmlTNR_GlobTest  mXML_CurGT;
+        cXmlTNR_GlobTest mXML_CurGT;
 
         void  Error(const std::string &);
         std::string mCurCom;
 };
 
+
 void cAppli_TNR_Main::OnError()
 {
     std::cout << "ERROR WHEN EXE " << mCurCom << "\n";
     exit(EXIT_SUCCESS);
-}
-  
+} 
 
 void cAppli_TNR_Main::Error(const std::string & aMes)
 {
     std::cout << aMes << "\n";
 }
 
-
-void cAppli_TNR_Main::TestOneCom(const cXmlTNR_OneTest & aOneT)
+std::vector<std::string> cAppli_TNR_Main::DirArbo(const std::string & DirPath)
 {
-      mCurCom = aOneT.Cmd();
-      int aVal = System(mCurCom,true);
-
-std::cout << "VVVVVVVVVvvvvvvv " << aVal << "\n";
-      if ((aVal != EXIT_SUCCESS)  && (aOneT.TestReturnValue().Val()))
-      {
-             Error("Cannot exe "+ mCurCom);
-      }
+    cTestElParseDir aTPD;
+    ElParseDir(DirPath.c_str(),aTPD,1000);
+    return aTPD.FileList;
 }
 
-void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile)
+int cAppli_TNR_Main::DirSize(const std::string & DirPath)
 {
+    std::vector<std::string> FileList = DirArbo(DirPath);
+    int Sz = 0;
+    for(unsigned int i=0;i<FileList.size();i++)
+    {
+	if(ELISE_fp::IsDirectory(FileList[i])==0)
+	{
+	    Sz += ELISE_fp::file_length(FileList[i]);
+	}
+    }
+    return Sz;
+}
+
+cXmlTNR_TestFileReport cAppli_TNR_Main::TestExistFile(const cXmlTNR_TestExistFile & aFile)
+{
+    //Global test report in Xml
+    cXmlTNR_TestFileReport aFileReport;
+    aFileReport.FileName() = aFile.NameFile(); //Get FileName
     
-      mXML_CurGT = StdGetFromSI(mEASF.mDir+aNameFile,XmlTNR_GlobTest);
-
-      mCurDirRef = mEASF.mDir+  "TNR-Ref-" + mXML_CurGT.Name() + "/";
-      mCurDirTNR = mEASF.mDir+  "TNR-Exe-" + mXML_CurGT.Name() + "/";
-
-      // On fait une directory TNT vide
-      if (mXML_CurGT.PurgeExe().Val())
-      {
-          ELISE_fp::PurgeDir(mCurDirTNR);
-          ELISE_fp::MkDirSvp(mCurDirTNR);
-
-/*
-const std::list<std::string> & aLN = mXML_CurGT.PatFileInit();
-*/
-          for (std::list<std::string>::const_iterator itN=mXML_CurGT.PatFileInit().begin() ; itN!=mXML_CurGT.PatFileInit().end() ; itN++)
-          {
-              std::string aComCp = "cp " + (mCurDirRef + *itN) + " " + mCurDirTNR;
-              std::cout << aComCp << "\n";
-              System(aComCp);
-          }
-      }
-
-
-      for (std::list<cXmlTNR_OneTest>::const_iterator it1T= mXML_CurGT.Tests().begin() ; it1T!= mXML_CurGT.Tests().end() ;  it1T++)
-      {
-           TestOneCom(*it1T);
-      }
+    std::cout<<"Check for file in Ref and Exe directory "<<aFile.NameFile()<<endl;
+    int IsExeFile = ELISE_fp::exist_file(mCurDirExe+aFile.NameFile());//See if the file exist in Exe
+    int IsRefFile = ELISE_fp::exist_file(mCurDirRef+aFile.NameFile());//See if the file exist in Ref
+    
+    //File exist in the Exe directory
+    if(IsExeFile==1){aFileReport.TestExeFile() = true;}
+    else{aFileReport.TestExeFile() = false;}
+    
+    //File exist in the Ref directory
+    if(IsRefFile==1){aFileReport.TestRefFile() = true;}
+    else{aFileReport.TestRefFile() = false;}
+    
+    if(IsExeFile==1&&IsRefFile==1)
+    {
+	//If file exist, check for file size		
+	std::cout<<"Ref file and Exe file "<<mCurDirExe+aFile.NameFile()<<" EXIST"<<endl;
+	int CmpFile = ELISE_fp::CmpFiles(mCurDirExe+aFile.NameFile(),mCurDirRef+aFile.NameFile()); //Binary comparison beetween Ref and Exe file
+	if(CmpFile==1)
+	{
+	    //If file are different display size of Reference and New
+	    std::cout<<"WARNING : Files are DIFFERENT : Exe file size "<<ELISE_fp::file_length(mCurDirExe+aFile.NameFile())<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+aFile.NameFile())<<"o"<<endl;
+	    aFileReport.ExeFileSize() = ELISE_fp::file_length(mCurDirExe+aFile.NameFile());//Stock Exe file size
+	    aFileReport.RefFileSize() = ELISE_fp::file_length(mCurDirExe+aFile.NameFile());//Stock Ref file size
+	    aFileReport.TestFileDiff() = false;
+	}
+	else
+	{
+	    //Else display the size of both
+	    aFileReport.TestFileDiff() = true;
+	    std::cout<<"Files are the SAME : file size "<<ELISE_fp::file_length(mCurDirExe+aFile.NameFile())<<"o"<<endl;
+	    aFileReport.ExeFileSize() = ELISE_fp::file_length(mCurDirExe+aFile.NameFile());//Stock Exe file size
+	    aFileReport.RefFileSize() = ELISE_fp::file_length(mCurDirRef+aFile.NameFile());//Stock Ref file size
+	}
+    }
+    else
+    {
+	//If file doesn't exist display message
+	aFileReport.TestFileDiff() = false;//False to FileTest
+	std::cout<<"ERROR : file "<<mCurDirExe+aFile.NameFile()<<" DOESN'T EXIST"<<endl;
+    }
+    return aFileReport;
 }
 
 
+cXmlTNR_TestDirReport cAppli_TNR_Main::TestExistDir(const cXmlTNR_TestExistDir & aDir)
+{
+    std::vector<std::string> FileListRef = DirArbo(mCurDirRef+aDir.NameDir());
+    std::vector<std::string> FileListExe = DirArbo(mCurDirExe+aDir.NameDir());
+    
+    //Global test report in Xml
+    cXmlTNR_TestDirReport aDirReport;
+    aDirReport.DirName() = aDir.NameDir();//Get Dir name
+    
+    //vector<string> ExeNotFound;
+    //vector<string> RefNotFound;
+    int DirExeSz=0;
+    int DirRefSz=0;
+    int DirSz=0;
+    
+    //~ vector<string> NoFiles;
+    //~ NoFiles.push_back("Shade");
+    //~ NoFiles.push_back("MakefileParallelisation");
+    //~ NoFiles.push_back(".ply");
+    //~ NoFiles.push_back("8Bits");
+    
+    int diff=0;
+    for(unsigned int i=0;i<FileListRef.size();i++)
+    {
+	std::string tmp = FileListRef[i];
+	std::string tmpstr = tmp.substr(mCurDirRef.size(),tmp.size());
+	std::size_t found1 = tmpstr.find("Shade");
+	std::size_t found2 = tmpstr.find("MakefileParallelisation");
+	std::size_t found3 = tmpstr.find(".ply");
+	std::size_t found4 = tmpstr.find("8Bits");
 
+	int IsDir = ELISE_fp::IsDirectory(mCurDirExe+tmpstr);
+	if(IsDir!=1&&found1>1000&&found2>1000&&found3>1000&&found4>1000)
+	{
+	    std::cout<<"Check for file "<<tmpstr<<endl;
+	    DirRefSz += ELISE_fp::file_length(mCurDirRef+tmpstr);
+	    if(ELISE_fp::exist_file(mCurDirExe+tmpstr)==1)
+	    {
+		int CmpFile = ELISE_fp::CmpFiles(mCurDirExe+tmpstr,mCurDirRef+tmpstr);
+		if((CmpFile==1)|(CmpFile==-1))
+		{
+		    //If file are different display size of Reference and New
+		    std::cout<<"WARNING : Files are DIFFERENT : Exe file size "<<ELISE_fp::file_length(mCurDirExe+tmpstr)<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+tmpstr)<<"o"<<"\n\n";
+		    cFileDiff tmpFile;
+		    tmpFile.Name() = tmpstr;
+		    tmpFile.DiffSize() = ELISE_fp::file_length(mCurDirRef+tmpstr) - ELISE_fp::file_length(mCurDirExe+tmpstr);
+		    aDirReport.FileDiff().push_back(tmpFile);
+		    diff += 1;
+		}
+		if(CmpFile==0)
+		{
+		    //Else display the size of both
+		    std::cout<<"Files are the SAME : Exe file size "<<ELISE_fp::file_length(mCurDirExe+tmpstr)<<"o Ref file size "<<ELISE_fp::file_length(mCurDirRef+tmpstr)<<"o"<<"\n\n";
+		    DirSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
+		}
+	    }
+	    if(ELISE_fp::exist_file(mCurDirExe+tmpstr)!=1&&tmpstr!=aDir.NameDir())
+	    {
+		std::cout<<"WARNING : Ref file "<<tmpstr<<" NOT FOUND in Exe directory"<<endl;
+		aDirReport.MissingExeFile().push_back(tmpstr);
+	    }
+	}
+    }
+    
+    for(unsigned int i=0;i<FileListExe.size();i++)
+    {
+	std::string tmp = FileListExe[i];
+	std::string tmpstr = tmp.substr(mCurDirExe.size(),tmp.size());
+	DirExeSz += ELISE_fp::file_length(mCurDirExe+tmpstr);
+	std::size_t found1 = tmpstr.find("Shade");
+	std::size_t found2 = tmpstr.find("MakefileParallelisation");
+	std::size_t found3 = tmpstr.find(".ply");
+	std::size_t found4 = tmpstr.find("8Bits");
+	if(found1>1000&&found2>1000&&found3>1000&&found4>1000&&ELISE_fp::exist_file(mCurDirRef+tmpstr)!=1&&tmpstr!=aDir.NameDir()&&ELISE_fp::IsDirectory(mCurDirRef+tmpstr)!=1)
+	{
+	    std::cout<<"WARNING : Exe file "<<tmpstr<<" NOT FOUND in Ref directory"<<endl;
+	    aDirReport.MissingRefFile().push_back(tmpstr);
+	}
+    }
+    
+    aDirReport.ExeDirSize() = DirExeSz;
+    aDirReport.RefDirSize() = DirRefSz;
+    if(diff==0)
+    {
+	aDirReport.TestDirDiff()=true;
+    }
+    else
+    {
+	aDirReport.TestDirDiff()=false;
+    }
+    
+    if(ELISE_fp::IsDirectory(mCurDirExe+aDir.NameDir())!=1)
+    {
+	//Else display message
+	aDirReport.TestExeDir() = false;
+	std::cout<<"ERROR : Exe directory "<<mCurDirExe+aDir.NameDir()<<" DOESN'T EXIST"<<endl;
+    }
+    else
+    {
+	aDirReport.TestExeDir() = true;
+    }
+    
+    if(ELISE_fp::IsDirectory(mCurDirRef+aDir.NameDir())!=1)
+    {
+	//Else display message
+	aDirReport.TestRefDir() = false;
+	std::cout<<"ERROR : Ref directory "<<mCurDirRef+aDir.NameDir()<<" DOESN'T EXIST"<<endl;
+    }
+    else
+    {
+	aDirReport.TestRefDir() = true;
+    }
+    return aDirReport;
+}
+
+cXmlTNR_CalibReport cAppli_TNR_Main::TestCalib(const cXmlTNR_TestDiffCalib & aCalib)
+{	
+    //mm3d CmpCalib to compare two AutoCal files (in Ori directories)
+    std::string CmdCalib = "mm3d CmpCalib " + (mCurDirExe + aCalib.NameTestCalib()) + " " + (mCurDirRef + aCalib.NameTestCalib())+" DispW=false Out=ecarts_calib.txt XmlG=Calib.xml";
+    std::cout << CmdCalib << "\n";
+    System(CmdCalib,true);//execute system cmd
+    cXmlTNR_TestCalibReport mXML_TestCalib = StdGetFromSI("Calib.xml",XmlTNR_TestCalibReport);//Get the file and parse it
+    
+    cXmlTNR_CalibReport mCalib;
+    mCalib.CalibName () =  mXML_TestCalib.CalibName();
+    mCalib.TestCalibDiff() = mXML_TestCalib.TestCalibDiff();
+    if(!mCalib.TestCalibDiff())
+    {
+	for (std::list<Pt2dr>::const_iterator i= mXML_TestCalib.EcartsRadiaux().begin() ; i!= mXML_TestCalib.EcartsRadiaux().end() ;  i++)
+	{
+		mCalib.EcartsRadiaux().push_back(*i);
+	}
+	
+	for (std::list<cEcartsPlani>::iterator i= mXML_TestCalib.EcartsPlani().begin() ; i!= mXML_TestCalib.EcartsPlani().end() ;  i++)
+	{
+	    crEcartsPlani mEP;
+	    mEP.CoordPx()=(*i).CoordPx();
+	    mEP.UxUyE()=(*i).UxUyE();
+	    mCalib.rEcartsPlani().push_back(mEP);
+	}
+    }
+	
+    //mCalib.EcartsRadiaux() = mXML_TestCalib.EcartsRadiaux();
+    //mCalib.DistMatrix() = mXML_TestCalib.DistMatrix();
+    return mCalib;//return the same structure for Global Test Report
+}
+
+cXmlTNR_OriReport cAppli_TNR_Main::TestOri(const cXmlTNR_TestDiffOri & aOri)
+{
+    //mm3d CmpOri to compare two Orientation
+    std::string CmdOri = "mm3d CmpOri " +(mCurDirExe+aOri.PatternTestOri())+" "+aOri.NameTestOri()+" "+aOri.NameTestOri()+" DirOri2="+mCurDirExe +" XmlG=Ori.xml";
+    std::cout << CmdOri << "\n";
+    System(CmdOri,true);//execute system cmd
+    cXmlTNR_TestOriReport mXML_TestOri = StdGetFromSI("Ori.xml",XmlTNR_TestOriReport);//Get the file and parse it
+    
+    cXmlTNR_OriReport mOri;
+    mOri.OriName() =  mXML_TestOri.OriName();
+    mOri.TestOriDiff() = mXML_TestOri.TestOriDiff();
+    if(!mOri.TestOriDiff())
+    {
+	mOri.DistCenter() = mXML_TestOri.DistCenter();
+	mOri.DistMatrix() = mXML_TestOri.DistMatrix();
+    }
+    return mOri;//return the same structure for Global Test Report
+}
+
+cXmlTNR_ImgReport cAppli_TNR_Main::TestImg(const cXmlTNR_TestDiffImg & aImg)
+{
+    //mm3d CmpIm to compare images px per px
+    std::string CmdImg = "mm3d CmpIm " + (mCurDirExe + aImg.NameTestImg()) + " " + (mCurDirRef + aImg.NameTestImg())+" XmlG=CmpImg.xml";
+    std::cout << CmdImg << "\n";
+    System(CmdImg,true);//execute system cmd
+    cXmlTNR_TestImgReport mXML_TestImg = StdGetFromSI("CmpImg.xml",XmlTNR_TestImgReport);//Get the file and parse it
+    
+    cXmlTNR_ImgReport mImg;
+    mImg.ImgName() =  mXML_TestImg.ImgName();
+    mImg.TestImgDiff() = mXML_TestImg.TestImgDiff();
+    mImg.NbPxDiff() = mXML_TestImg.NbPxDiff();
+    mImg.SumDiff() = mXML_TestImg.SumDiff();
+    mImg.MoyDiff() = mXML_TestImg.MoyDiff();
+    mImg.DiffMaxi() = mXML_TestImg.DiffMaxi();
+    return mImg;
+}
+
+vector<cXmlTNR_OneTestReport> cAppli_TNR_Main::TestOneCom(const cXmlTNR_OneTest & aOneT)
+{      
+    cXmlTNR_OneTestReport aOTR;//initialize One Test Report
+    cXmlTNR_OneTestReport aFTR;//initialize One Test Report
+    
+    mCurCom = aOneT.Cmd();
+    cXmlTNR_TestCmdReport aCmd;
+    aCmd.CmdName() = aOneT.Cmd();
+    //std::cout<<"AAAA"<<mCurCom.substr(0,4)<<endl;
+    if(mCurCom!="")
+    {
+	std::cout<<"**************************************************"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**                TESTING COMMAND               **"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**************************************************"<<endl;
+	
+	int aVal = System(mCurCom,true);//execute commande of the test
+	
+	
+	//Check if you get de cmd execution status
+	if ((aVal != EXIT_SUCCESS)  && (aOneT.TestReturnValue().Val()))
+	{
+	    aFTR.XmlTNR_TestCmdReport().push_back(aCmd);
+	    Error("Cannot exe "+ mCurCom);
+	    aCmd.TestCmd() = false;
+	}
+	else{aCmd.TestCmd() = true;}
+	aOTR.XmlTNR_TestCmdReport().push_back(aCmd);
+    }
+    
+    
+    
+    //For each file to check
+    int ct = 0;
+    int c = 0;
+    for (std::list<cXmlTNR_TestExistFile>::const_iterator it2T= aOneT.TestFiles().begin() ; it2T!= aOneT.TestFiles().end() ;  it2T++)
+    {
+	c += 1;
+	std::cout<<"**************************************************"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**                TESTING FILE                  **"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**************************************************"<<endl;
+	cXmlTNR_TestFileReport aFile = TestExistFile(*it2T);
+	if(aFile.TestFileDiff())
+	{
+	    ct+=1;
+	}
+	else
+	{
+	    aFTR.XmlTNR_TestFileReport().push_back(aFile);  
+	}
+	aOTR.XmlTNR_TestFileReport().push_back(aFile);           
+    }
+    
+    
+    
+    //For each directory to check
+    for (std::list<cXmlTNR_TestExistDir>::const_iterator it3T= aOneT.TestDir().begin() ; it3T!= aOneT.TestDir().end() ;  it3T++)
+    {
+	c += 1;
+	std::cout<<"**************************************************"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**                TESTING DIR                   **"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**************************************************"<<endl;
+	cXmlTNR_TestDirReport aDir = TestExistDir(*it3T);
+	if(aDir.TestDirDiff())
+	{
+	    ct+=1;
+	}
+	else
+	{
+	    aFTR.XmlTNR_TestDirReport().push_back(aDir);  
+	}
+	aOTR.XmlTNR_TestDirReport().push_back(aDir);        
+    }
+    
+    //For each calib to check
+    for (std::list<cXmlTNR_TestDiffCalib>::const_iterator it4T= aOneT.TestCalib().begin() ; it4T!= aOneT.TestCalib().end() ;  it4T++)
+    {
+	c += 1;
+	std::cout<<"**************************************************"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**                TESTING CALIB                 **"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**************************************************"<<endl;          
+	cXmlTNR_CalibReport aCalib = TestCalib(*it4T);
+	if(aCalib.TestCalibDiff())
+	{
+	    ct+=1;
+	}
+	else
+	{
+	    aFTR.XmlTNR_CalibReport().push_back(aCalib);  
+	}
+	aOTR.XmlTNR_CalibReport().push_back(aCalib);          
+    }
+    
+    //For each Ori to check
+    for (std::list<cXmlTNR_TestDiffOri>::const_iterator it5T= aOneT.TestOri().begin() ; it5T!= aOneT.TestOri().end() ;  it5T++)
+    {
+	c += 1;
+	std::cout<<"**************************************************"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**                TESTING ORIENTATION           **"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**************************************************"<<endl;          
+	cXmlTNR_OriReport aOri = TestOri(*it5T);
+	if(aOri.TestOriDiff())
+	{
+	    ct+=1;
+	}
+	else
+	{
+	    aFTR.XmlTNR_OriReport().push_back(aOri);  
+	}
+	aOTR.XmlTNR_OriReport().push_back(aOri);          
+    }
+    
+    //For each Img to check
+    for (std::list<cXmlTNR_TestDiffImg>::const_iterator it6T= aOneT.TestImg().begin() ; it6T!= aOneT.TestImg().end() ;  it6T++)
+    {
+	c += 1;
+	std::cout<<"**************************************************"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**                TESTING IMAGE                 **"<<endl;
+	std::cout<<"**                                              **"<<endl;
+	std::cout<<"**************************************************"<<endl;
+	cXmlTNR_ImgReport aImg = TestImg(*it6T);
+	if(aImg.TestImgDiff())
+	{
+	    ct+=1;
+	}
+	else
+	{
+	    aFTR.XmlTNR_ImgReport().push_back(aImg); 
+	}
+	aOTR.XmlTNR_ImgReport().push_back(aImg);           
+    }
+    if(ct==c&&aCmd.TestCmd())
+    {
+	aOTR.TestOK() = true;
+    }
+    else{aOTR.TestOK() = false;}
+    vector<cXmlTNR_OneTestReport> Test;
+    Test.push_back(aOTR);
+    Test.push_back(aFTR);
+    return Test;
+}
+
+void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::string & mOutXML, const std::string & mOutErrorsXML)
+{
+    cXmlTNR_GlobTestReport aGTR;//initialize Global Test Report
+    cXmlTNR_GlobTestReport aGFT;//initialize Global Test Report
+    mXML_CurGT = StdGetFromSI(mEASF.mDir+aNameFile,XmlTNR_GlobTest);
+    if(mInRefDir!=""){mCurDirRef = mEASF.mDir+mInRefDir+"/";}
+    else{
+    mCurDirRef = mEASF.mDir+  "TNR-Ref-" + mXML_CurGT.Name() + "/";
+    }
+    if(mInExeDir!=""){mCurDirExe = mEASF.mDir+mInExeDir+"/";}
+    else
+    {
+	mCurDirExe = mEASF.mDir+  "TNR-Exe-" + mXML_CurGT.Name() + "/";
+    }
+    int ExistDir=ELISE_fp::IsDirectory(mCurDirExe);
+    
+    // On fait une directory TNR vide
+    if (ExistDir==1)
+    {
+	if (mXML_CurGT.PurgeExe())
+	{
+	    //std::cout<<mXML_CurGT.PurgeExe()<<endl;
+	    std::string aComCp = "rm -r " + mCurDirExe;
+	    System(aComCp);
+	    aComCp = "mkdir " + mCurDirExe;
+	    System(aComCp);
+	    for (std::list<std::string>::const_iterator itN=mXML_CurGT.PatFileInit().begin() ; itN!=mXML_CurGT.PatFileInit().end() ; itN++)
+	    {
+		//std::cout << *itN <<endl;
+		aComCp = "cp " + (mCurDirRef + *itN) + " " + mCurDirExe;
+		std::cout << aComCp << "\n";
+		System(aComCp);
+	    }
+	}
+    }
+    else
+    {
+	std::string aComCp = "mkdir " + mCurDirExe;
+	System(aComCp);
+	for (std::list<std::string>::const_iterator itN=mXML_CurGT.PatFileInit().begin() ; itN!=mXML_CurGT.PatFileInit().end() ; itN++)
+	{
+	    //std::cout << *itN <<endl;
+	    aComCp = "cp " + (mCurDirRef + *itN) + " " + mCurDirExe;
+	    std::cout << aComCp << "\n";
+	    System(aComCp);
+	}
+    }
+		
+    int c = 0;
+    int ct = 0;
+    for (std::list<cXmlTNR_OneTest>::const_iterator it1T= mXML_CurGT.Tests().begin() ; it1T!= mXML_CurGT.Tests().end() ;  it1T++)
+    {
+	c += 1;   
+	vector<cXmlTNR_OneTestReport> aOT = TestOneCom(*it1T);
+	if(aOT[0].TestOK())
+	{
+	    ct += 1;
+	}
+	else
+	{
+	    aOT[1].TestOK()=false;
+	    aGFT.XmlTNR_OneTestReport().push_back(aOT[1]);
+	}	
+	aGTR.XmlTNR_OneTestReport().push_back(aOT[0]);
+	
+    }
+    aGTR.NbTest() = c;
+    aGTR.NbTestOk() = ct;
+    
+    aGFT.NbTest() = c;
+    aGFT.NbTestOk() = ct;
+    
+    if(c==ct)
+    {
+	aGTR.Bilan()=true;
+	aGFT.Bilan()=true;
+    }
+    else
+    {
+	aGTR.Bilan()=false;
+	aGFT.Bilan()=false;
+    }
+    if(mOutReportXML!=""){MakeFileXML(aGTR, mOutReportXML);}
+    else{MakeFileXML(aGTR, "GlobTest.xml");}
+    if(mOutErrorsXML!=""){MakeFileXML(aGFT, mOutErrorsXML);}
+    else{MakeFileXML(aGFT, "ErrorsReport.xml");}		      
+}
 
 cAppli_TNR_Main::cAppli_TNR_Main(int argc,char ** argv)  
 {
     TheCurElErrorHandlor = this;
+    bool aShowArgs = false;
+    mOutReportXML="";
+    mOutErrorsXML="";
+    mInRefDir="";
+    mInExeDir="";
     ElInitArgMain
     (
-         argc,argv,
-         LArgMain()  << EAMC(mPattern, "Pattern of Xml test specification",  eSAM_IsPatFile),
-         LArgMain()  
+	argc,argv,
+	LArgMain()  << EAMC(mPattern, "Xml file with test specification",  eSAM_IsPatFile),
+	LArgMain()  << EAM(mOutReportXML,"OutReportXML", true,"XML report file (Def=GlobTest.xml)")
+		    << EAM(mOutErrorsXML,"OutErrorsXML", true,"XML errors file (Def=ErrorsReport.xml)")
+		    << EAM(mInRefDir,"InRefDir", true,"Input Reference Directory (Def=TNR-Ref-Name)")
+		    //<< EAM(mInExeDir,"InExeDir", true,"Input Execution Directory")
     );
-
+    
     mEASF.Init(mPattern);
     const cInterfChantierNameManipulateur::tSet * aSetIm = mEASF.SetIm();
-
-
+    SplitDirAndFile(mCurDirRef, mPattern, mFullName);
+	
     for (int aK=0 ; aK<int(aSetIm->size()) ; aK++)
     {
-         DoOneGlobTNR((*aSetIm)[aK]);
+	DoOneGlobTNR((*aSetIm)[aK],mOutReportXML,mOutErrorsXML);
     }
+    
+    if (aShowArgs) ShowArgs();
 }
 
 
@@ -147,8 +629,8 @@ cAppli_TNR_Main::cAppli_TNR_Main(int argc,char ** argv)
 
 int TNR_main(int argc,char ** argv)
 {
-  cAppli_TNR_Main anAppli(argc,argv);
-  return EXIT_SUCCESS;
+    cAppli_TNR_Main anAppli(argc,argv);
+    return EXIT_SUCCESS;
 }
 
 /* Footer-MicMac-eLiSe-25/06/2007

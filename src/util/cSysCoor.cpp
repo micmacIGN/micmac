@@ -214,7 +214,8 @@ Pt3dr cGeoc_WGS4::FromGeoC(const Pt3dr & aP) const
    double h = 0;
 
    int maxiter=500;
-   double epsilon=1e-10;
+   // MPD modif 1e-10 => 1e-15 ; car influence sur la precision des RPC
+   double epsilon=1e-15;
    int i=0;
    double delta_lat=1234;
    
@@ -228,6 +229,8 @@ Pt3dr cGeoc_WGS4::FromGeoC(const Pt3dr & aP) const
       i=i+1;
       delta_lat=abs(lat-oldlat);
    }
+
+   // std::cout << "NB ITER " << i << " " << delta_lat * 1e20  << "\n";
 
    if (X < 0)  longit=longit+ PI;
 
@@ -313,7 +316,7 @@ std::vector<Pt3dr> cProj4::FromGeoC(const std::vector<Pt3dr> & aV) const
 std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2GeoC) const
 {
    cGeoc_WGS4 aWD(eUniteAngleDegre);
-   std::string aTmpIn = "Proj4Input.txt";
+   std::string aTmpIn = "Proj4Input"+GetUnikId() +".txt";  // Pour exe en //
    FILE * aFPin = FopenNN(aTmpIn,"w","cProj4::Chang");
    for (int aK= 0 ; aK< int(aPtsIn.size()) ; aK++)
    {
@@ -328,7 +331,7 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
    }
    ElFclose(aFPin);
 
-   std::string aTmpOut = "Proj4Output.txt";
+   std::string aTmpOut = "Proj4Output" + GetUnikId() + ".txt";
 
 	#if ELISE_windows
 	   std::string aCom =  g_externalToolHandler.get("proj").callName() + (Sens2GeoC?" -I ":" ")

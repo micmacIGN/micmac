@@ -142,6 +142,7 @@ public:
                 dirErrBiasY(0),
 		IS_DIR_INI(false),
 		IS_INV_INI(false),
+        IS_UNIT_m(false),
         mRecGrid(50,50,10)
         {
         }
@@ -152,6 +153,7 @@ public:
 
         bool IS_DIR_INI;
 	    bool IS_INV_INI;
+        bool IS_UNIT_m;
     
         Pt3di mRecGrid;
 
@@ -279,14 +281,7 @@ public:
 	void ReconstructValidity();
 	void ReconstructValidity2D();
 	void ReconstructValidity3D();
-
-    void SetNewLongLatHScaleOffset(double& aLongMin,
-                                   double& aLongMax,
-                                   double& aLatMin,
-                                   double& aLatMax,
-                                   double& aHMin,
-                                   double& aHMax);
-
+    void UpdateValidity();
 
         //For DigitalGlobe data
     void ReadRPB(std::string const &filename);
@@ -316,30 +311,38 @@ public:
 	void ComputeNormFactors(double aHMin, double aHMax);
     void Validity2Dto3D(RPC2D aRPC2D);
 
-	void TestDirectRPCGen(const std::string aTargetCS);
+	void TestDirectRPCGen();
 
 	void ChSysRPC(const cSystemeCoord &);
     void SetRecGrid();   
 
-private:
-    void SetNewLongLatH(double& aLongMin,
-                        double& aLongMax,
-                        double& aLatMin,
-                        double& aLatMax,
-                        double& aHMin,
-                        double& aHMax);
 
-    void SetNewScaleOffset( double& aLongMin,
-                            double& aLongMax,
-                            double& aLatMin,
-                            double& aLatMax,
-                            double& aHMin,
-                            double& aHMax);
+private:
+
+    void NormR2(std::vector<Pt3dr> & aPts) const;
+    void NormR3(std::vector<Pt3dr> & aPts) const;
+
+    void UnNormR2(std::vector<Pt3dr> & aPts) const;
+    void UnNormR3(std::vector<Pt3dr> & aPts) const;
+   
     
+    void SetNewScaleOffsetR2(const std::vector<Pt3dr> & aGrid);
+    void SetNewScaleOffsetR3(const std::vector<Pt3dr> & aGrid);
+    void SetNewFirstLastR3(double& aLongMin,
+                           double& aLongMax,
+                           double& aLatMin,
+                           double& aLatMax,
+                           double& aHMin,
+                           double& aHMax);
+
     void ReconstructValidityLong();
     void ReconstructValidityLat();
 	void ReconstructValidityH();
-        
+
+    void GetGridExtent(const std::vector<Pt3dr> & aGrid,
+                             Pt3dr & aExtMin, 
+                             Pt3dr & aExtMax,
+                             Pt3dr & aSumXYZ ) const;
 
 };
 #endif

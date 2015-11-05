@@ -167,6 +167,7 @@ class cAppliMMByPair : public cAppliWithSetImage
       bool         mUseGpu;
       double       mDefCor;
       double       mZReg;
+      bool	   mExpTxt;
       bool mSuprImNoMasq;
       std::string mPIMsDirName;
 };
@@ -767,12 +768,13 @@ void cAppliWithSetImage::AddDelaunayCple()
 
 }
 
-void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bool AddCple)
+void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bool AddCple,bool ExpTxt=false)
 {
       std::string aCom = MMDir() + "bin/mm3d AperoChImSecMM "
                          + BLANK + QUOTE(mEASF.mFullName)
-                         + BLANK + mOri;
-
+                         + BLANK + mOri
+			 + BLANK + "ExpTxt=" + ToString(ExpTxt);
+	 
       if (mPenPerIm>0)
       {
          aCom = aCom + " PenPerIm=" + ToString(mPenPerIm) + " ";
@@ -789,7 +791,6 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bo
       {
          System(aCom,false,true);
       }
-
       if (SupressImInNoMasq)
       {
            mSetImNoMasq = mEASF.mICNM->Get(PatFileOfImSec());
@@ -1261,6 +1262,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
     mUseGpu        (false),
     mDefCor        (0.5),
     mZReg          (0.05),
+    mExpTxt       (false),
     mSuprImNoMasq  (false),
     mPIMsDirName   ("Statue") // used in MMEnvStatute for differenciating PIMs-Forest from PIMs-Statue
 
@@ -1360,7 +1362,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mRIEInParal,"RIEPar",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mTimes,"TimesExe",true,"Internal use (debug Reech Inv Epip)", eSAM_InternalUse)
                     << EAM(mDebugCreatE,"DCE",true,"Debug Create Epip", eSAM_InternalUse)
-                    << EAM(mDebugMMByP,"DebugMMByP",true,"Debug Create This programm", eSAM_InternalUse)
+                    << EAM(mDebugMMByP,"DebugMMByP",true,"Debug this programm", eSAM_InternalUse)
                     << EAM(mDoOMF,"DoOMF",true,"Do Only Masq Final (tuning purpose)")
                     << EAM(mHasVeget,"HasVeg",true,"Scene contains vegetation (Def=true on Ground)")
                     << EAM(mSkyBackGround,"HasSBG",true,"Scene has sky (or homogeneous) background (Def=false on Ground)")
@@ -1372,6 +1374,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
                     << EAM(mUseGpu,"UseGpu",false,"Use cuda (Def=false)")
                     << EAM(mDefCor,"DefCor",false,"Def corr (context condepend 0.5 Statue, 0.2 Forest)")
                     << EAM(mZReg,"ZReg",true,"Z Regul (context condepend,  0.05 Statue, 0.02 Forest)")
+   		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points for determining image pairs and/or computing epipolar geometry (Def false, e.g. use dat format)")
 
   );
 
@@ -1422,7 +1425,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
          AddDelaunayCple();
       if (mRunAperoImSec)
       {
-         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq,mAddCpleImSec);
+         AddCoupleMMImSec(BoolFind(mDo,'A'),mSuprImNoMasq,mAddCpleImSec,mExpTxt);
       }
 
       if (EAMIsInit(&mFilePair))
@@ -1597,8 +1600,8 @@ std::string cAppliMMByPair::MatchEpipOnePair(tArcAWSI & anArc,bool & ToDo,bool &
                          +  " UseGpu=" + ToString(mUseGpu)
                          +  " DefCor=" + ToString(mDefCor)
                          +  " ZReg=" + ToString(mZReg)
+			 +  " ExpTxt=" + ToString(mExpTxt)
                       ;
-
 
      if (EAMIsInit(&mMasq3D)) aMatchCom = aMatchCom + " Masq3D=" +mMasq3D + " ";
 

@@ -71,7 +71,7 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
            virtual Pt2di    SzBasicCapt3D() const ;
            virtual double ResolSolOfPt(const Pt3dr &) const ;
            virtual bool  CaptHasData(const Pt2dr &) const ;
-           virtual bool     PIsVisibleInImage   (const Pt3dr & aP) const ;
+           virtual bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage  * = 0) const ;
            virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const ;
            virtual double GetVeryRoughInterProf() const;
 
@@ -118,6 +118,7 @@ class cPolynomial_BGC3M2D  : public cBGC3_Modif2D
            inline const double  &       Ampl() const {return mAmpl;}
            inline const Pt2dr &      Center() const {return mCenter;}
   //         Pt3dr RTLCenter() const;
+
 	   void Show() const;
 
            void Save2XmlStdMMName(const std::string & aDir) const;

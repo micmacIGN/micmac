@@ -253,7 +253,7 @@ double cTest_PBGC3M2DF::AddBundle(const  std::vector<cSetCTest_PBGC3M2DF *> & aV
           for (int aKC=0 ; aKC<aNbCam ; aKC++)
           {
               Pt2dr aPIm = aSet->mVP[aKC][aKP];
-              cParamPtProj aPPP(1.0,1.0,false);
+              cParamPtProj aPPP(1.0,1.0,false,-1);
               aPPP.mTer = aPImTer;
 
               Pt2dr aPAp = aSet->mVCams[aKC]->mFPC.AddEqAppuisInc(aPIm,0,aPPP,false);
@@ -268,7 +268,7 @@ double cTest_PBGC3M2DF::AddBundle(const  std::vector<cSetCTest_PBGC3M2DF *> & aV
               for (int aKC=0 ; aKC<aNbCam ; aKC++)
               {
                   Pt2dr aPIm = aSet->mVP[aKC][aKP];
-                  cParamPtProj aPPP(1.0,1.0,false);
+                  cParamPtProj aPPP(1.0,1.0,false,-1);
                   aPPP.mTer = aPImTer;
                   aSet->mVCams[aKC]->mFPC.AddEqAppuisInc(aPIm,aPds,aPPP,false);
               }
@@ -561,8 +561,9 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
 
-    //if(aChSysStr=="") mChSys=0;
-    //else
+    if(aChSysStr=="") 
+      mChSys=0;
+    else
         mChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
                      (
                          aChSysStr,
