@@ -1,5 +1,13 @@
 #include "StdAfx.h"
 #include "MipmapHandler.h"
+#include "../src/uti_image/Digeo/MultiChannel.h"
+
+//~ #define WRITE_READ_MIPMAP
+//~ #define VERBOSE_MIPMAP_HANDLER
+
+#ifdef VERBOSE_MIPMAP_HANDLER
+	int gNbDeletetedMipmaps = 0;
+#endif
 
 using namespace std;
 
@@ -7,29 +15,28 @@ using namespace std;
 // MipmapHandler::Mipmap
 // ---------------------------------------------------------------------
 
+#ifdef WRITE_READ_MIPMAP
+	int gNbReadMipmap = 0;
+#endif
+
 bool MipmapHandler::Mipmap::init()
 {
-	if ( !ELISE_fp::exist_file(mFilename))
-	{
-		cerr << "input file [" << mFilename << "] does not exist" << endl;
-		return false;
-	}
+	#ifdef __DEBUG
+		ELISE_DEBUG_ERROR(mIsInit == true, "MipmapHandler::Mipmap::init", "mIsInit == true");
+		mIsInit = true;
+	#endif
+
+	if ( !ELISE_fp::exist_file(mFilename)) return false;
 
 	mCacheFilename = NameFileStd(mFilename, 3, false, true, false, true); // 3 = aNbChan, false = cons16B, true = ExigNoCompr, false = Create, true = ExigB8
 	if (mForceGray || !ELISE_fp::exist_file(mCacheFilename))
 		mCacheFilename = NameFileStd(mFilename, 1, false, true, false, true); // 1 = aNbChan, false = cons16B, true = ExigNoCompr, false = Create, true = ExigB8
 
-	cout << "mCacheFilename = [" << mCacheFilename << ']' << endl;
-
-	//~ cElDate cacheFileDate = cElDate::NoDate;
-	//~ if (  || cacheFileDate < imageFileDate)
-		//~ cout << "cache is outdated" << endl;
-	//~ else
-
-	if ( !ELISE_fp::exist_file(mCacheFilename))
-		cout << "creating cache file [" << mCacheFilename << ']' << endl;
+	if ( !ELISE_fp::exist_file(mCacheFilename)) cout << "creating cache file [" << mCacheFilename << ']' << endl;
 
 	Tiff_Im cacheTiff(mCacheFilename.c_str());
+	ELISE_DEBUG_ERROR(cacheTiff.nb_chan() < 1, "MipmapHandler::Mipmap::init", "cacheTiff.nb_chan() = " << cacheTiff.nb_chan() << " < 1");
+	ELISE_DEBUG_ERROR(cacheTiff.bitpp() < 1, "MipmapHandler::Mipmap::init", "cacheTiff.bitpp() = " << cacheTiff.bitpp() << " < 1");
 
 	if (cacheTiff.type_el() != GenIm::u_int1)
 	{
@@ -46,49 +53,96 @@ bool MipmapHandler::Mipmap::init()
 	mWidth = cacheTiff.sz().x;
 	mHeight = cacheTiff.sz().y;
 	mNbPixels = size_t(mWidth) * size_t(mHeight);
+	mNbChannels = (unsigned int)cacheTiff.nb_chan();
+	mNbBitsPerChannel = (unsigned int)cacheTiff.bitpp();
+	mNbBytes = mNbPixels * size_t(mNbChannels) * size_t(mNbBitsPerChannel >> 3);
 
 	return true;
 }
 
 void MipmapHandler::Mipmap::release()
 {
-	delete [] mData;
+	if (mData != NULL)
+	{
+		#ifdef VERBOSE_MIPMAP_HANDLER
+			cout << "VERBOSE_MIPMAP_HANDLER: release mData = {" << (void *)mData << "} of mipmap {" << this << "}" << endl;
+		#endif
+		delete [] mData;
+	}
 	mData = NULL;
+}
+
+MipmapHandler::Mipmap::~Mipmap()
+{
+	release();
+
+	#ifdef VERBOSE_MIPMAP_HANDLER
+		cout << "VERBOSE_MIPMAP_HANDLER: " << gNbDeletetedMipmaps++ << ": deleting Mipmap {" << this << "} of name [" << mFilename << "]" << endl;
+		//~ if (gNbDeletetedMipmaps == 2) cin.get();
+	#endif
 }
 
 bool MipmapHandler::Mipmap::read()
 {
+	#ifdef __DEBUG
+		ELISE_DEBUG_ERROR(mIsInit == false, "MipmapHandler::Mipmap::read", "mIsInit == false");
+	#endif
+
 	release();
 
-	mData = new unsigned char[mNbPixels * 3];
+	MultiChannel<U_INT1> channels;
+	if ( !channels.read_tiff(mCacheFilename)) return false;
 
-	Tiff_Im tiff(mCacheFilename.c_str());
+	mData = new unsigned char[mNbBytes];
+	#ifdef VERBOSE_MIPMAP_HANDLER
+		cout << "VERBOSE_MIPMAP_HANDLER: allocate mData = {" << (void *)mData << "} of mipmap {" << this << "}" << endl;
+	#endif
 
-	if (tiff.nb_chan() == 1)
+	channels.toTupleArray(mData);
+
+	#ifdef WRITE_READ_MIPMAP
+		stringstream ss;
+		ss << "read_mipmap_" << setw(3) << setfill('0') << gNbReadMipmap++ << ".tif";
+		writeTiff(ss.str());
+		cout << "WRITE_READ_MIPMAP: read mipmap written to [" << ss.str() << ']' << endl;
+	#endif
+
+	return true;
+}
+
+bool MipmapHandler::Mipmap::writeTiff( const string &aOutputFilename, string *oErrorMessage )
+{
+	if (mData == NULL)
 	{
-		Im2DGen channel = tiff.ReadIm();
-		const U_INT1 *gray = ((Im2D_U_INT1 *)&channel)->data_lin();
-		grayToRGB(gray, mNbPixels, mData);
-
-		return true;
+		if (oErrorMessage != NULL) *oErrorMessage = "no data loaded";
+		return false;
 	}
 
-	if (tiff.nb_chan() == 3)
+	if ((mNbChannels != 1 && mNbChannels != 3) || (mNbBitsPerChannel != 8 && mNbBitsPerChannel != 16))
 	{
-		std::vector<Im2DGen *> channels = tiff.ReadVecOfIm();
-		const U_INT1 *red = ((Im2D_U_INT1 *)channels[0])->data_lin(),
-						 *green = ((Im2D_U_INT1 *)channels[1])->data_lin(),
-						 *blue = ((Im2D_U_INT1 *)channels[2])->data_lin();
-		mixRGB(red, green, blue, mNbPixels, mData);
-
-		delete channels[0];
-		delete channels[1];
-		delete channels[2];
-
-		return true;
+		if (oErrorMessage != NULL)
+		{
+			stringstream ss;
+			ss << "invalid format: " << mNbChannels << " channels, " << mNbBitsPerChannel << " bits per channel";
+			*oErrorMessage = ss.str();
+		}
+		return false;
 	}
 
-	return false;
+	if (mNbBitsPerChannel == 8)
+	{
+		MultiChannel<U_INT1> channels(mWidth, mHeight, mNbChannels);
+		channels.setFromTuple(mData);
+		channels.write_tiff(aOutputFilename);
+	}
+	else
+	{
+		MultiChannel<U_INT2> channels(mWidth, mHeight, mNbChannels);
+		channels.setFromTuple((U_INT2 *)mData);
+		channels.write_tiff(aOutputFilename);
+	}
+
+	return ELISE_fp::exist_file(mFilename);
 }
 
 
@@ -98,11 +152,11 @@ bool MipmapHandler::Mipmap::read()
 
 MipmapHandler::Mipmap * MipmapHandler::getExisting( const std::string &aFilename, unsigned int aSubscale, bool aForceGray )
 {
-	Mipmap *it = mMipmaps.data();
+	Mipmap **it = mMipmaps.data();
 	size_t i = mMipmaps.size();
 	while (i--)
 	{
-		if (it->is(aFilename, aSubscale, aForceGray)) return &*it;
+		if ((**it).is(aFilename, aSubscale, aForceGray)) return *it;
 		it++;
 	}
 	return NULL;
@@ -113,8 +167,13 @@ bool MipmapHandler::add( const std::string &aFilename, unsigned int aSubscale, b
 	oMipmap = getExisting(aFilename, aSubscale, aForceGray);
 	if (oMipmap != NULL) return false;
 
-	mMipmaps.push_back(Mipmap(aFilename, aSubscale, aForceGray));
-	oMipmap = &mMipmaps.back();
+	mMipmaps.push_back(new Mipmap(aFilename, aSubscale, aForceGray));
+	oMipmap = mMipmaps.back();
+
+	#ifdef VERBOSE_MIPMAP_HANDLER
+		cout << "VERBOSE_MIPMAP_HANDLER: adding mipmap {" << oMipmap << "} of name [" << oMipmap->mFilename << "]" << endl;
+	#endif
+
 	return true;
 }
 
@@ -129,24 +188,116 @@ MipmapHandler::Mipmap * MipmapHandler::ask( const std::string &aFilename, unsign
 	return mipmap;
 }
 
-bool MipmapHandler::ask( const std::string &aFilename, unsigned int aSubScale, bool aForceGray, unsigned int &oWidth, unsigned int &oHeight )
+MipmapHandler::Mipmap * MipmapHandler::releaseOneMipmap( const MipmapHandler::Mipmap *aMipmapToKeep )
 {
-	Mipmap *mipmap = ask(aFilename, aSubScale, aForceGray);
-	if (mipmap == NULL) return false;
-	oWidth = mipmap->mWidth;
-	oHeight = mipmap->mHeight;
-	return true;
+	list<Mipmap *>::iterator itMipmap = mLoadedMipmaps.begin();
+	while (itMipmap != mLoadedMipmaps.end())
+	{
+		if (*itMipmap != aMipmapToKeep)
+		{
+			Mipmap *released = *itMipmap;
+			released->release();
+			mLoadedMipmaps.erase(itMipmap);
+			return released;
+		}
+		itMipmap++;
+	}
+
+	ELISE_DEBUG_ERROR(true, "MipmapHandler::releaseOneMipmap", "failed to release a Mipmap");
+
+	return NULL;
 }
 
-bool MipmapHandler::getData( const std::string &aFilename, unsigned int aSubScale, bool aForceGray, unsigned char *&oData, unsigned int &oWidth, unsigned int &oHeight )
+void MipmapHandler::setMaxLoaded( size_t aMaxLoaded )
 {
-	Mipmap *mipmap = ask(aFilename, aSubScale, aForceGray);
-	if (mipmap == NULL || !mipmap->read()) return false;
+	cout << "setMaxLoaded = " << aMaxLoaded << endl;
 
-	oData = mipmap->mData;
-	oWidth = mipmap->mWidth;
-	oHeight = mipmap->mHeight;
-	return true;
+	mMaxLoaded = aMaxLoaded;
+	if (mLoadedMipmaps.size() <= aMaxLoaded) return;
+	size_t i = mLoadedMipmaps.size() - aMaxLoaded;
+	list<Mipmap *>::iterator it = mLoadedMipmaps.begin();
+	while (i--)
+	{
+		(**it).release();
+		it = mLoadedMipmaps.erase(it);
+	}
+}
+
+bool MipmapHandler::read( Mipmap &aMipmap )
+{
+	if (mLoadedMipmaps.size() >= mMaxLoaded) releaseOneMipmap(&aMipmap);
+
+	bool result = aMipmap.read();
+	mLoadedMipmaps.push_back(&aMipmap);
+	return result;
+}
+
+#ifdef __DEBUG
+	size_t MipmapHandler::nbLoadedMipmaps() const
+	{
+		size_t result = 0;
+		Mipmap * const *it = mMipmaps.data();
+		size_t i = mMipmaps.size();
+		while (i--) if ((**it++).mData != NULL) result++;
+		return result;
+	}
+#endif
+
+void MipmapHandler::release()
+{
+	list<Mipmap *>::iterator it = mLoadedMipmaps.begin();
+	while (it != mLoadedMipmaps.end())
+	{
+		(**it).release();
+		it = mLoadedMipmaps.erase(it);
+	}
+
+	ELISE_DEBUG_ERROR(nbLoadedMipmaps() != 0, "MipmapHandler::release", "nbLoadedMipmaps() = " << nbLoadedMipmaps() << " != 0");
+}
+
+void MipmapHandler::clear()
+{
+	Mipmap * const *it = mMipmaps.data();
+	size_t i = mMipmaps.size();
+	while (i--) delete (*it++);
+
+	mMipmaps.clear();
+	mLoadedMipmaps.clear();
+}
+
+bool MipmapHandler::isLoaded( const Mipmap &aMipmap ) const
+{
+	bool result = false;
+	list<Mipmap *>::const_iterator it = mLoadedMipmaps.begin();
+	while (it != mLoadedMipmaps.end())
+	{
+		if (*it == &aMipmap)
+		{
+			result = true;
+			break;
+		}
+	}
+
+	ELISE_DEBUG_ERROR(result != (aMipmap.mData != NULL), "MipmapHandler::isLoaded", "result = " << result << " != (aMipmap.mData != NULL) = " << (aMipmap.mData != NULL));
+	return result;
+}
+
+void MipmapHandler::release( Mipmap &aMipmap )
+{
+	ELISE_DEBUG_ERROR( !isLoaded(aMipmap), "MipmapHandler::release", "!isLoaded(aMipmap)");
+
+	list<Mipmap *>::iterator it = mLoadedMipmaps.begin();
+	while (it != mLoadedMipmaps.end())
+	{
+		if (*it == &aMipmap)
+		{
+			aMipmap.release();
+			mLoadedMipmaps.erase(it);
+			return;
+		}
+	}
+
+	ELISE_DEBUG_ERROR(true, "MipmapHandler::release", "try to release a Mipmap that is not loaded");
 }
 
 
@@ -154,32 +305,30 @@ bool MipmapHandler::getData( const std::string &aFilename, unsigned int aSubScal
 // related functions
 // ---------------------------------------------------------------------
 
-void grayToRGB( const U_INT1 *aGrayData, size_t aNbPixels, U_INT1 *oData )
-{
-	while (aNbPixels--)
-	{
-		oData[0] = oData[1] = oData[2] = *aGrayData++;
-		oData += 3;
-	}
-}
-
-void mixRGB( const U_INT1 *aRedData, const U_INT1 *aGreenData, const U_INT1 *aBlueData, size_t aNbPixels, U_INT1 *oData )
-{
-	while (aNbPixels--)
-	{
-		oData[0] = *aRedData++;
-		oData[1] = *aGreenData++;
-		oData[2] = *aBlueData++;
-		oData += 3;
-	}
-}
-
-void scanlineCopy( const unsigned char *aSrc, size_t aSrcWidth, size_t aHeight, unsigned char *aDst, size_t aDstWidth )
+void gray8_to_rgb888( const unsigned char *aGrayData, size_t aWidth, size_t aHeight, unsigned char *oData, unsigned int aPadding )
 {
 	while (aHeight--)
 	{
-		memcpy(aDst, aSrc, aSrcWidth);
-		aSrc += aSrcWidth;
-		aDst += aDstWidth;
+		size_t x = aWidth;
+		while (x--)
+		{
+			oData[0] = oData[1] = oData[2] = *aGrayData++;
+			oData += 3;
+		}
+		oData += aPadding;
+	}
+}
+
+void rgb888_to_red8( const unsigned char *aRgbData, size_t aWidth, size_t aHeight, unsigned int aPadding, unsigned char *oData )
+{
+	while (aHeight--)
+	{
+		size_t x = aWidth;
+		while (x--)
+		{
+			*oData++ = *aRgbData;
+			aRgbData += 3;
+		}
+		aRgbData += aPadding;
 	}
 }

@@ -61,10 +61,23 @@ public:
         _BGColor1 = col1;
     }
 
-    float imWidth() { return m_GLData->glImageMasked()._m_image->width();  }
-    float imHeight(){ return m_GLData->glImageMasked()._m_image->height(); }
+	float imWidth()
+	{
+		ELISE_DEBUG_ERROR(m_GLData->glImageMasked()._m_image == NULL, "GLWidget::imWidth", "m_GLData->glImageMasked()._m_image == NULL");
+		return m_GLData->glImageMasked()._m_image->width();
+	}
 
-    bool  isPtInsideIm(QPointF const &pt) { return m_GLData->glImageMasked()._m_image->isPtInside(pt); }
+	float imHeight()
+	{
+		ELISE_DEBUG_ERROR( m_GLData->glImageMasked()._m_image == NULL, "GLWidget::imHeight)", " m_GLData->glImageMasked()._m_image == NULL");
+		return m_GLData->glImageMasked()._m_image->height();
+	}
+
+	bool  isPtInsideIm(QPointF const &pt)
+	{
+		ELISE_DEBUG_ERROR( m_GLData->glImageMasked()._m_image == NULL, "GLWidget::isPtInsideIm)", " m_GLData->glImageMasked()._m_image == NULL");
+		return m_GLData->glImageMasked()._m_image->isPtInside(pt);
+	}
 
     GLint vpWidth() { return _matrixManager.vpWidth();  }
     GLint vpHeight(){ return _matrixManager.vpHeight(); }

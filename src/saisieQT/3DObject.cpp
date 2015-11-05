@@ -2,11 +2,23 @@
 #include "SaisieGlsl.glsl"
 #include <limits>
 
+#ifdef USE_MIPMAP_HANDLER
+	#include "StdAfx.h"
+	#include "../src/uti_image/Digeo/MultiChannel.h"
+#endif
 
+//~ #define WRITE_LOADED_TEXTURE
 
+#ifdef WRITE_LOADED_TEXTURE
+	#define WRITE_SOURCE_IMAGE
+
+	int gNbLoadedTextures = 0;
+#endif
 
 cObject::cObject() :
-    _name(""),
+	#ifndef USE_MIPMAP_HANDLER
+		_name(""),
+	#endif
     _position(QVector3D(0.f,0.f,0.f)),
     _rotation(QVector3D(0.f,0.f,0.f)),
     _scale(QVector3D(1.f, 1.f,1.f)),
@@ -19,7 +31,9 @@ cObject::cObject() :
 }
 
 cObject::cObject(QVector3D pos, QColor color_default) :
-    _name(""),
+	#ifndef USE_MIPMAP_HANDLER
+		_name(""),
+	#endif
     _position(pos),
     _rotation(QVector3D(0.f,0.f,0.f)),
     _scale(QVector3D(1.f, 1.f,1.f)),
@@ -597,9 +611,8 @@ void cCamGL::draw()
         glVertex3d(C.x(), C.y(), C.z());
         glEnd();
 
-        glEndList();
-
         glPopAttrib();
+        glEndList();
 
         glCallList(list);
 
@@ -818,6 +831,9 @@ cPolygon::~cPolygon()
 }
 
 cPolygon::cPolygon(int maxSz, float lineWidth, QColor lineColor,  QColor pointColor, bool withHelper, int geometry, int style):
+	#ifdef USE_MIPMAP_HANDLER
+		_helper(NULL),
+	#endif
     _lineColor(lineColor),
     _idx(-1),
     _style(style),
@@ -1089,6 +1105,8 @@ const QVector<QPointF> cPolygon::getVector()
 
 const QVector<QPointF> cPolygon::getImgCoordVector(const cMaskedImageGL &img)
 {
+	ELISE_DEBUG_ERROR(img._m_image == NULL, "cPolygon::getImgCoordVector", "img._m_image == NULL");
+
     float nImgWidth, nImgHeight;
     float imgHeight = (float) img._m_image->height();
     if (_bNormalize)
@@ -1600,16 +1618,25 @@ void cImageGL::drawQuad(GLfloat originX, GLfloat originY, GLfloat glw,  GLfloat 
     glColor4f(color.redF(),color.greenF(),color.blueF(),color.alphaF());
     glBegin(GL_QUADS);
     {
-
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(originX, originY);
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(originX+glw, originY);
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(originX+glw, originY+glh);
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(originX, originY+glh);
-
+		#ifdef USE_MIPMAP_HANDLER
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2f(originX, originY);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2f(originX+glw, originY);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2f(originX+glw, originY+glh);
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2f(originX, originY+glh);
+		#else
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2f(originX, originY);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2f(originX+glw, originY);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2f(originX+glw, originY+glh);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2f(originX, originY+glh);
+		#endif
     }
     glEnd();
 }
@@ -1656,49 +1683,265 @@ bool cImageGL::isPtInside(const QPointF &pt)
     return (pt.x()>=0.f)&&(pt.y()>=0.f)&&(pt.x()<width())&&(pt.y()<height());
 }
 
-void cImageGL::createTexture(QImage * pImg)
-{
+#ifdef USE_MIPMAP_HANDLER
+	string glErrorToString( GLenum aEnum )
+	{
+		switch (aEnum)
+		{ 
+		case GL_NO_ERROR: return "GL_NO_ERROR";
+		case GL_INVALID_ENUM: return "GL_INVALID_ENUM";
+		case GL_INVALID_VALUE: return "GL_INVALID_VALUE";
+		case GL_INVALID_OPERATION: return "GL_INVALID_OPERATION";
+		case GL_INVALID_FRAMEBUFFER_OPERATION: return "GL_INVALID_FRAMEBUFFER_OPERATION";
+		case GL_OUT_OF_MEMORY: return "GL_OUT_OF_MEMORY";
+		case GL_STACK_UNDERFLOW: return "GL_STACK_UNDERFLOW";
+		case GL_STACK_OVERFLOW: return "GL_STACK_OVERFLOW";
+		}
+		return "unknown";
+	}
 
-    if(!pImg || pImg->isNull())
-        return;
+	void printPixelStoreParameters( const string &aPrefix = string(), ostream &aStream = cout )
+	{
+		GLboolean glBool;
+		glGetBooleanv(GL_UNPACK_LSB_FIRST, &glBool);
+		aStream << aPrefix << "GL_UNPACK_LSB_FIRST = " << to_true_false((bool)glBool) << endl;
+		glGetBooleanv(GL_PACK_SWAP_BYTES, &glBool);
+		aStream << aPrefix << "GL_PACK_SWAP_BYTES = " << to_true_false((bool)glBool) << endl;
+		glGetBooleanv(GL_PACK_LSB_FIRST, &glBool);
+		aStream << aPrefix << "GL_PACK_LSB_FIRST = " << to_true_false((bool)glBool) << endl;
+		glGetBooleanv(GL_UNPACK_SWAP_BYTES, &glBool);
+		aStream << aPrefix << "GL_UNPACK_SWAP_BYTES = " << to_true_false((bool)glBool) << endl;
+		glGetBooleanv(GL_UNPACK_SWAP_BYTES, &glBool);
+		aStream << aPrefix << "GL_UNPACK_LSB_FIRST = " << to_true_false((bool)glBool) << endl;
 
-    glGenTextures(1, getTexture() );
+		GLint glInt;
+		glGetIntegerv(GL_PACK_ROW_LENGTH, &glInt);
+		aStream << aPrefix << "GL_PACK_ROW_LENGTH = " << glInt << endl;
+		glGetIntegerv(GL_PACK_IMAGE_HEIGHT, &glInt);
+		aStream << aPrefix << "GL_PACK_IMAGE_HEIGHT = " << glInt << endl;
+		glGetIntegerv(GL_PACK_SKIP_ROWS, &glInt);
+		aStream << aPrefix << "GL_PACK_SKIP_ROWS = " << glInt << endl;
+		glGetIntegerv(GL_PACK_SKIP_PIXELS, &glInt);
+		aStream << aPrefix << "GL_PACK_SKIP_PIXELS = " << glInt << endl;
+		glGetIntegerv(GL_PACK_SKIP_IMAGES, &glInt);
+		aStream << aPrefix << "GL_PACK_SKIP_IMAGES = " << glInt << endl;
+		glGetIntegerv(GL_PACK_ALIGNMENT, &glInt);
+		aStream << aPrefix << "GL_PACK_ALIGNMENT = " << glInt << endl;
+		glGetIntegerv(GL_UNPACK_ROW_LENGTH, &glInt);
+		aStream << aPrefix << "GL_UNPACK_ROW_LENGTH = " << glInt << endl;
+		glGetIntegerv(GL_UNPACK_IMAGE_HEIGHT, &glInt);
+		aStream << aPrefix << "GL_UNPACK_IMAGE_HEIGHT = " << glInt << endl;
+		glGetIntegerv(GL_UNPACK_SKIP_ROWS, &glInt);
+		aStream << aPrefix << "GL_UNPACK_SKIP_ROWS = " << glInt << endl;
+		glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &glInt);
+		aStream << aPrefix << "GL_UNPACK_SKIP_PIXELS = " << glInt << endl;
+		glGetIntegerv(GL_UNPACK_SKIP_IMAGES, &glInt);
+		aStream << aPrefix << "GL_UNPACK_SKIP_IMAGES = " << glInt << endl;
+		glGetIntegerv(GL_UNPACK_ALIGNMENT, &glInt);
+		aStream << aPrefix << "GL_UNPACK_ALIGNMENT = " << glInt << endl;
 
-    ImageToTexture(pImg);
-}
+		__check_gl_error("printPixelStoreParameters");
+	}
 
-void cImageGL::ImageToTexture(QImage *pImg)
-{
+	void fillShade( U_INT1 *aData, size_t aWidth, size_t aHeight, size_t aNbChannels )
+	{
+		// fill first line
+		U_INT1 *firstLine = aData;
+		for (size_t x = 0; x < aWidth; x++)
+		{
+			for (size_t c = 0; c < aNbChannels; c++)
+				aData[c] = (U_INT1)x;
+			aData += aNbChannels;
+		}
 
-    glEnable(GL_TEXTURE_2D);
+		// duplicate first line along height
+		const size_t lineSize = aWidth * aNbChannels;
+		for (size_t y = 1; y < aHeight; y++)
+		{
+			memcpy(aData, firstLine, lineSize);
+			aData += lineSize;
+		}
+	}
 
-    glBindTexture( GL_TEXTURE_2D, _texture );
-    if (pImg->format() == QImage::Format_Indexed8)
-        glTexImage2D( GL_TEXTURE_2D, 0, 3, pImg->width(), pImg->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, pImg->bits());
-    else
-        glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
+	MultiChannel<U_INT1> * getCurrentOpenGlTexture()
+	{
+		GLint width, height, internalFormat;
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width); // 0 = level
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+
+		ELISE_DEBUG_ERROR(internalFormat != 1 && internalFormat != 3, "getLoadedChannels", "internalFormat = " << internalFormat << " != 1 && != 3");
+
+		MultiChannel<U_INT1> *readTexture = new MultiChannel<U_INT1>(width, height, internalFormat);
+
+		const size_t nbBytes = size_t(readTexture->width()) * size_t(readTexture->height()) * readTexture->nbChannels();
+		U_INT1 *data = new U_INT1[nbBytes];
+
+		//~ fillShade(data, readTexture->width(), readTexture->height(), readTexture->nbChannels());
+
+		glGetTexImage(GL_TEXTURE_2D, 0, (internalFormat == 1 ? GL_RED : GL_RGB), GL_UNSIGNED_BYTE, data); // 0 = mipmap level, 1 = internal format (nb channels)
+
+		readTexture->setFromTuple(data);
+		delete [] data;
+
+		return readTexture;
+	}
+
+	bool writeTexture2dToTiff( const std::string &aFilename )
+	{
+		MultiChannel<U_INT1> *readTexture = getCurrentOpenGlTexture();
+
+		ELISE_DEBUG_ERROR(readTexture == NULL, "writeTexture2dToTiff", "writeTexture2dToTiff == NULL");
+
+		bool result = readTexture->write_tiff(aFilename);
+		delete readTexture;
+
+		return result;
+	}
+
+	bool cImageGL::writeTiff( const string &aFilename ) const
+	{
+		// store setting
+		GLboolean isTexture2dEnable = glIsEnabled(GL_TEXTURE_2D);
+		GLint bindedTexture;
+		glGetIntegerv(GL_TEXTURE_BINDING_2D, &bindedTexture);
+		GLint packAlignement;
+		glGetIntegerv(GL_PACK_ALIGNMENT, &packAlignement); // pack = GL -> memory
+
+		ELISE_DEBUG_ERROR(GLuint(bindedTexture) == GL_INVALID_LIST_ID, "cImageGL::getOpenGlTexture", "bindedTexture == GL_INVALID_LIST_ID");
+
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, _texture);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+		bool result = writeTexture2dToTiff(aFilename);
+
+		// restore setting
+		glPixelStorei(GL_PACK_ALIGNMENT, packAlignement);
+		glBindTexture(GL_TEXTURE_2D, bindedTexture);
+		if ( !isTexture2dEnable) glDisable(GL_TEXTURE_2D);
+
+		return result;
+	}
+
+	void cImageGL::ImageToTexture( MipmapHandler::Mipmap &aImage )
+	{
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture( GL_TEXTURE_2D, _texture );
+
+		GLenum format;
+		switch (aImage.mNbChannels)
+		{
+		case 1: format = GL_RED; break;
+		case 3: format = GL_RGB; break;
+		default:
+			cerr << ELISE_RED_ERROR << "cannot load a texture with " << aImage.mNbChannels << " channels" << endl;
+			return;
+		}
+
+		GLenum type;
+		switch (aImage.mNbBitsPerChannel)
+		{
+		case 8: type = GL_UNSIGNED_BYTE; break;
+		case 16: type = GL_UNSIGNED_SHORT; break;
+		default:
+			cerr << ELISE_RED_ERROR << "cannot load a texture with " << aImage.mNbChannels << " channels" << endl;
+			return;
+		}
+
+		if (aImage.mData == NULL)
+		{
+			cerr << ELISE_RED_ERROR << "image file [" << aImage.mCacheFilename << "] is not loaded" << endl;
+			return;
+		}
+
+		// store unpacking alignement (unpack = memory -> GL)
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, (GLint)aImage.mNbChannels, (GLsizei)aImage.mWidth, (GLsizei)aImage.mHeight, 0, format, type, aImage.mData); // 0 = mipmap level, 0 = border
+		__check_gl_error("cImageGL::ImageToTexture");
+
+		#ifdef WRITE_LOADED_TEXTURE
+			#ifdef WRITE_SOURCE_IMAGE
+				{
+					stringstream ss;
+					ss << "source_image_" << setw(3) << setfill('0') << gNbLoadedTextures << ".tif";
+					aImage.writeTiff(ss.str());
+					cout << "source images of loaded texture written to [" << ss.str() << ']' << endl;
+				}
+			#endif
+
+			stringstream ss;
+			ss << "loaded_texture_" << setw(3) << setfill('0') << gNbLoadedTextures++ << ".tif";
+			writeTiff(ss.str());
+			cout << "loaded texture written to [" << ss.str() << ']' << endl;
+
+			__check_gl_error("cImageGL::ImageToTexture (2)");
+		#endif
+
+		//~ GLenum glErrorT = glGetError();
+		//~ if(glErrorT == GL_OUT_OF_MEMORY)
+		//~ {
+			//~ setGlError(glErrorT);
+			//~ printf("GL_OUT_OF_MEMORY \n");
+		//~ }
+
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glBindTexture( GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+	}
+
+	void cImageGL::createTexture( MipmapHandler::Mipmap &aImage )
+	{
+		glGenTextures(1, getTexture());
+		ImageToTexture(aImage);
+	}
+#else
+	void cImageGL::createTexture(QImage * pImg)
+	{
+
+		if(!pImg || pImg->isNull())
+		    return;
+
+		glGenTextures(1, getTexture() );
+
+		ImageToTexture(pImg);
+	}
+
+	void cImageGL::ImageToTexture(QImage *pImg)
+	{
+
+		glEnable(GL_TEXTURE_2D);
+
+		glBindTexture( GL_TEXTURE_2D, _texture );
+		if (pImg->format() == QImage::Format_Indexed8)
+		    glTexImage2D( GL_TEXTURE_2D, 0, 3, pImg->width(), pImg->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, pImg->bits());
+		else
+		    glTexImage2D( GL_TEXTURE_2D, 0, 4, pImg->width(), pImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pImg->bits());
 
 
-    /*GLenum glErrorT = glGetError();
-    if(glErrorT == GL_OUT_OF_MEMORY)
-    {
-        setGlError(glErrorT);
-        printf("GL_OUT_OF_MEMORY \n");
-    }*/
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-    glBindTexture( GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-}
+		/*GLenum glErrorT = glGetError();
+		if(glErrorT == GL_OUT_OF_MEMORY)
+		{
+		    setGlError(glErrorT);
+		    printf("GL_OUT_OF_MEMORY \n");
+		}*/
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		glBindTexture( GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+	}
+#endif
 
-void cImageGL::deleteTexture()
-{
+	void cImageGL::deleteTexture()
+	{
 
-    if(_texture != GL_INVALID_LIST_ID)
-        glDeleteTextures(1,&_texture);
-    _texture = GL_INVALID_LIST_ID;
+		if(_texture != GL_INVALID_LIST_ID)
+		    glDeleteTextures(1,&_texture);
+		_texture = GL_INVALID_LIST_ID;
 
-}
+	}
 
 void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 {
@@ -1735,19 +1978,39 @@ void cImageGL::drawGradientBackground(int w, int h, QColor c1, QColor c2)
 //********************************************************************************
 
 //TODO: un seul constructeur ?
-cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
-    _qMaskedImage(qMaskedImage)
-{
-    _loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
-    _m_mask     = new cImageGL();
-    _m_image    = new cImageGL(qMaskedImage->_gamma);
-    _m_newMask  = qMaskedImage->_m_newMask;
+#ifdef USE_MIPMAP_HANDLER
+	cMaskedImageGL::cMaskedImageGL( MipmapHandler::Mipmap *aSrcImage, MipmapHandler::Mipmap *aSrcMask ):
+		mSrcImage(aSrcImage),
+		mSrcMask(aSrcMask)
+	{
+		if (mSrcImage == NULL) return;
 
-    cObjectGL::setName(qMaskedImage->name());
-}
+		_m_mask     = new cImageGL();
+		_m_image    = new cImageGL();
+
+		string directory, basename;
+		SplitDirAndFile(directory, basename, mSrcImage->mFilename);
+		cObjectGL::setName(QString(basename.c_str()));
+	}
+#else
+	cMaskedImageGL::cMaskedImageGL(cMaskedImage<QImage> *qMaskedImage):
+		_qMaskedImage(qMaskedImage)
+	{
+		_loadedImageRescaleFactor = qMaskedImage->_loadedImageRescaleFactor;
+		_m_mask     = new cImageGL();
+		_m_image    = new cImageGL(qMaskedImage->_gamma);
+		_m_newMask  = qMaskedImage->_m_newMask;
+
+		cObjectGL::setName(qMaskedImage->name());
+	}
+#endif
 
 cMaskedImageGL::cMaskedImageGL(const QRectF &aRect):
-    _qMaskedImage(NULL)
+#ifdef USE_MIPMAP_HANDLER
+	mSrcImage(NULL)
+#else
+	_qMaskedImage(NULL)
+#endif
 {
     _m_image = new cImageGL();
     _m_mask  = new cImageGL();
@@ -1864,90 +2127,131 @@ void cMaskedImageGL::drawImgTiles()
 }*/
 
 
+#ifdef USE_MIPMAP_HANDLER
+	void cMaskedImageGL::createTextures()
+	{
+		_mutex.tryLock();
+		if ( !hasSrcImage() || _m_image == NULL || !_m_image->isVisible())
+		{
+			_mutex.unlock();
+			return;
+		}
+		_m_image->createTexture(*mSrcImage);
+		_m_image->setSize(QSize((int) mSrcImage->mWidth, (int)mSrcImage->mHeight));
 
-void cMaskedImageGL::createTextures()
-{
-    _mutex.tryLock();
-    if( _qMaskedImage)
-    {
-        if( glMask() && glMask()->isVisible() )
-        {
+		if ( !hasSrcMask() || _m_mask == NULL || !_m_mask->isVisible())
+		{
+			_mutex.unlock();
+			return;
+		}
 
-            glMask()->createTexture( _qMaskedImage->_m_rescaled_mask );
+		ELISE_DEBUG_ERROR(mSrcImage->mWidth != mSrcMask->mWidth || mSrcImage->mHeight != mSrcMask->mHeight, "cMaskedImageGL::createTextures",
+			"mSrcImage = " << mSrcImage->mWidth << 'x' << mSrcImage->mHeight << " != " << mSrcMask->mWidth << 'x' << mSrcMask->mHeight);
 
-            if(!_qMaskedImage->_fullSize.isNull())
-            {
-                glMask()->setSize( _qMaskedImage->_fullSize);
-            }
-            else
-                glMask()->setSize( _qMaskedImage->_m_mask->size() );
-        }
-        if(glImage() && glImage()->isVisible())
-        {
-            if(getLoadedImageRescaleFactor() < 1.f)
-                glImage()->createTexture( _qMaskedImage->_m_rescaled_image );
-            else
-                glImage()->createTexture( _qMaskedImage->_m_image );
-
-            if(!_qMaskedImage->_fullSize.isNull())
-            {
-                glImage()->setSize( _qMaskedImage->_fullSize );
-            }
-            else
-                glImage()->setSize( _qMaskedImage->_m_image->size() );
-
-        }
-    }
-    _mutex.unlock();
-}
-
-void cMaskedImageGL::createFullImageTexture()
-{
-    if(glImage() && glImage()->isVisible())
-    {
-        _mutex.tryLock();
-        if(_qMaskedImage)
-        {
-            glImage()->createTexture( _qMaskedImage->_m_image );
-            delete _qMaskedImage;
-            _qMaskedImage = NULL;
-        }
-        _mutex.unlock();
-    }
-
-}
-
-void cMaskedImageGL::copyImage(QMaskedImage* image, QRect& rect)
-{
-    _mutex.tryLock();
-    if(!_qMaskedImage)
-        _qMaskedImage = new QMaskedImage();
-
-    _qMaskedImage->_m_image = new QImage(rect.size(),QImage::Format_Mono);
-
-    QImage* tImage = getMaskedImage()->_m_image;
-
-    QImage* sourceImage = image->_m_image;
-
-    *(tImage) = sourceImage->copy(rect);
-
-    _mutex.unlock();
-}
-
+		_m_mask->createTexture(*mSrcMask);
+		_m_mask->setSize(QSize((int) mSrcMask->mWidth, (int)mSrcMask->mHeight));
+		_mutex.unlock();
+	}
 QSize cMaskedImageGL::fullSize()
 {
-
-    _mutex.tryLock();
-    if(getMaskedImage() && !getMaskedImage()->_fullSize.isNull())
-    {
-        QSize lfullSize	= _qMaskedImage->_fullSize;
-        return lfullSize;
-    }
-    else
-        return glImage()->getSize();
-
-    _mutex.unlock();
+	_mutex.tryLock();
+		QSize result;
+		#ifdef USE_MIPMAP_HANDLER
+			result = hasSrcImage() ? QSize((int)srcImage().mWidth, (int)srcImage().mHeight) : QSize(0, 0);
+		#else
+			if(getMaskedImage() && !getMaskedImage()->_fullSize.isNull())
+				result = _qMaskedImage->_fullSize;
+			else
+				result = glImage()->getSize();
+		#endif
+	_mutex.unlock();
+	return result;
 }
+#else
+	void cMaskedImageGL::createTextures()
+	{
+		_mutex.tryLock();
+		if( _qMaskedImage)
+		{
+		    if( glMask() && glMask()->isVisible() )
+		    {
+
+		        glMask()->createTexture( _qMaskedImage->_m_rescaled_mask );
+
+		        if(!_qMaskedImage->_fullSize.isNull())
+		        {
+		            glMask()->setSize( _qMaskedImage->_fullSize);
+		        }
+		        else
+		            glMask()->setSize( _qMaskedImage->_m_mask->size() );
+		    }
+		    if(glImage() && glImage()->isVisible())
+		    {
+		        if(getLoadedImageRescaleFactor() < 1.f)
+		            glImage()->createTexture( _qMaskedImage->_m_rescaled_image );
+		        else
+		            glImage()->createTexture( _qMaskedImage->_m_image );
+
+		        if(!_qMaskedImage->_fullSize.isNull())
+		        {
+		            glImage()->setSize( _qMaskedImage->_fullSize );
+		        }
+		        else
+		            glImage()->setSize( _qMaskedImage->_m_image->size() );
+
+		    }
+		}
+		_mutex.unlock();
+	}
+
+	void cMaskedImageGL::createFullImageTexture()
+	{
+		if(glImage() && glImage()->isVisible())
+		{
+		    _mutex.tryLock();
+		    if(_qMaskedImage)
+		    {
+		        glImage()->createTexture( _qMaskedImage->_m_image );
+		        delete _qMaskedImage;
+		        _qMaskedImage = NULL;
+		    }
+		    _mutex.unlock();
+		}
+
+	}
+
+	void cMaskedImageGL::copyImage(QMaskedImage* image, QRect& rect)
+	{
+		_mutex.tryLock();
+		if(!_qMaskedImage)
+		    _qMaskedImage = new QMaskedImage();
+
+		_qMaskedImage->_m_image = new QImage(rect.size(),QImage::Format_Mono);
+
+		QImage* tImage = getMaskedImage()->_m_image;
+
+		QImage* sourceImage = image->_m_image;
+
+		*(tImage) = sourceImage->copy(rect);
+
+		_mutex.unlock();
+	}
+
+	QSize cMaskedImageGL::fullSize()
+	{
+		_mutex.tryLock();
+		if(getMaskedImage() && !getMaskedImage()->_fullSize.isNull())
+		{
+		    QSize lfullSize	= _qMaskedImage->_fullSize;
+		    return lfullSize;
+		}
+		else
+		    return glImage()->getSize();
+
+		_mutex.unlock();
+	}
+#endif
+
 
 void cMaskedImageGL::deleteTextures()
 {
@@ -2163,3 +2467,7 @@ void cGrid::draw()
     }
 }
 
+ostream & operator <<( ostream &aStream, const QSize &aSize )
+{
+	return (aStream << aSize.width() << 'x' << aSize.height()); 
+}

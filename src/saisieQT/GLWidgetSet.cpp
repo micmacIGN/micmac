@@ -69,7 +69,11 @@ void GLWidgetSet::option3DPreview()
 
 void GLWidgetSet::init3DPreview(cData* data, cParameters params)
 {
-    threeDWidget()->setGLData(new cGLData(data,params));
+	#ifdef USE_MIPMAP_HANDLER
+		threeDWidget()->setGLData(new cGLData(-1, data, params));
+	#else
+    	threeDWidget()->setGLData(new cGLData(data,params));
+	#endif
     threeDWidget()->getGLData()->setIncFirstCloud(true);
     option3DPreview();
 }

@@ -10,6 +10,12 @@
 
 #define QMaskedImage cMaskedImage<QImage>
 
+#include "general/errors.h"
+
+#ifdef USE_MIPMAP_HANDLER
+	#include "MipmapHandler.h"
+#endif
+
 typedef enum // Attention repercutions sur QT ... TODO à regler
 {
   qEPI_NonSaisi,	// 0
@@ -559,10 +565,15 @@ class cImageGL : public cObjectGL
         void    setSize(QSize size);
         QSize   getSize() { return _size; }
 
+#ifdef USE_MIPMAP_HANDLER
+        void createTexture( MipmapHandler::Mipmap &aImage );
+        void ImageToTexture( MipmapHandler::Mipmap &aImage );
+        bool writeTiff( const std::string &aFilename ) const;
+#else
         void    createTexture(QImage *pImg);
 
         void    ImageToTexture(QImage *pImg);
-
+#endif
         void    deleteTexture();
 
         GLuint* getTexture(){return &_texture;}
@@ -665,12 +676,15 @@ class cMaskedImageGL : public cMaskedImage<cImageGL>, virtual public cObjectGL
 {
 
 public:
+	#ifdef USE_MIPMAP_HANDLER
+		cMaskedImageGL( MipmapHandler::Mipmap *aSrcImage, MipmapHandler::Mipmap *aSrcMask );
+	#else
+		cMaskedImageGL():
+		    _qMaskedImage(NULL)
+		{}
 
-    cMaskedImageGL():
-        _qMaskedImage(NULL)
-    {}
-
-    cMaskedImageGL(QMaskedImage *qMaskedImage);
+		cMaskedImageGL(QMaskedImage *qMaskedImage);
+	#endif
 
     cMaskedImageGL(const QRectF & aRect);
 
@@ -707,9 +721,38 @@ public:
 
     QSize		fullSize();
 
-private:
+	#ifdef USE_MIPMAP_HANDLER
+		bool hasSrcImage() const { return mSrcImage != NULL; }
 
-    QMaskedImage *_qMaskedImage;
+		MipmapHandler::Mipmap & srcImage()
+		{
+			ELISE_DEBUG_ERROR( !hasSrcImage(), "cMaskedImageGL::srcImage()", "!hasSrcImage");
+			return *mSrcImage;
+		}
+
+		const MipmapHandler::Mipmap & srcImage() const
+		{
+			ELISE_DEBUG_ERROR( !hasSrcImage(), "cMaskedImageGL::srcImage()", "!hasSrcImage");
+			return *mSrcImage;
+		}
+
+		bool hasSrcMask() const { return mSrcMask != NULL; }
+
+		MipmapHandler::Mipmap & srcMask()
+		{
+			ELISE_DEBUG_ERROR( !hasSrcMask(), "cMaskedImageGL::srcMask()", "!hasSrcMask");
+			return *mSrcMask;
+		}
+
+		void removeSrcMask() { mSrcMask = NULL; }
+	#endif
+private:
+	#ifdef USE_MIPMAP_HANDLER
+		MipmapHandler::Mipmap *mSrcImage;
+		MipmapHandler::Mipmap *mSrcMask;
+	#else
+		QMaskedImage *_qMaskedImage;
+	#endif
 
     QMutex			_mutex;
 };
@@ -801,5 +844,22 @@ private:
 
 void glDrawUnitCircle(uchar dim, float cx = 0.f, float cy = 0.f, float r = 1.f, int steps = 128);
 void glDrawEllipse(float cx, float cy, float rx=3.f, float ry= 3.f, int steps = 64);
+
+string eToString( QImage::Format e );
+std::ostream & operator <<( std::ostream &aStream, const QSize &aSize );
+
+#ifdef USE_MIPMAP_HANDLER
+	string glErrorToString( GLenum aEnum );
+#endif
+
+#if defined(USE_MIPMAP_HANDLER) && defined(__DEBUG)
+	inline void __check_gl_error( const std::string &aWhere )
+	{
+		const GLenum err = glGetError();
+		ELISE_DEBUG_ERROR(err != GL_NO_ERROR, aWhere, "glGetError() = " << glErrorToString(err));
+	}
+#else
+	inline void __check_gl_error( const std::string & ){}
+#endif
 
 #endif //__3DObject__

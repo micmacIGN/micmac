@@ -8,7 +8,7 @@ int saisieBascQT_main(QApplication &app, int argc, char *argv[])
     if (argc>1)
     {
         string str = string(argv[argc-1]);
-        unsigned int pos = str.find("Mode=");
+        size_t pos = str.find("Mode=");
         if(pos != string::npos)
         {
             aMode=QString::fromStdString(str.substr(pos + sizeof("Mode=") -1, 1));

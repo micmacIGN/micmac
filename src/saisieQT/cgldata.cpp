@@ -2,6 +2,172 @@
 #include <limits>
 
 
+#ifdef DUMP_GL_DATA
+	string eToString( QImage::Format e )
+	{
+		switch (e)
+		{
+		case QImage::Format_Invalid: return "Invalid";
+		case QImage::Format_Mono: return "Mono";
+		case QImage::Format_MonoLSB: return "MonoLSB";
+		case QImage::Format_Indexed8: return "Indexed8";
+		case QImage::Format_RGB32: return "RGB32";
+		case QImage::Format_ARGB32: return "ARGB32";
+		case QImage::Format_ARGB32_Premultiplied: return "ARGB32_Premultiplied";
+		case QImage::Format_RGB16: return "RGB16";
+		case QImage::Format_ARGB8565_Premultiplied: return "ARGB8565_Premultiplied";
+		case QImage::Format_RGB666: return "RGB666";
+		case QImage::Format_ARGB6666_Premultiplied: return "ARGB6666_Premultiplied";
+		case QImage::Format_RGB555: return "RGB555";
+		case QImage::Format_ARGB8555_Premultiplied: return "ARGB8555_Premultiplied";
+		case QImage::Format_RGB888: return "RGB888";
+		case QImage::Format_RGB444: return "RGB444";
+		case QImage::Format_ARGB4444_Premultiplied: return "ARGB4444_Premultiplied";
+		case QImage::Format_RGBX8888: return "RGBX8888";
+		case QImage::Format_RGBA8888: return "RGBA8888";
+		case QImage::Format_RGBA8888_Premultiplied: return "RGBA8888_Premultiplied";
+		//~ case QImage::Format_BGR30: return "BGR30";
+		//~ case QImage::Format_A2BGR30_Premultiplied: return "A2BGR30_Premultiplied";
+		//~ case QImage::Format_RGB30: return "RGB30";
+		//~ case QImage::Format_A2RGB30_Premultiplied: return "A2RGB30_Premultiplied";
+		//~ case QImage::Format_Alpha8: return "Alpha8";
+		//~ case QImage::Format_Grayscale8: return "Grayscale8";
+		case QImage::NImageFormats: return "NImageFormats";
+		}
+		return "unknown";
+	}
+
+	list<cGLData *> __all_cGLData;
+
+	size_t __dump( QImage &aQImage, const string &aName, const string &aPrefix )
+	{
+		size_t total = size_t(aQImage.bytesPerLine()) * size_t(aQImage.height());
+		cout << aPrefix << "QImage " << aName << ' ' << aQImage.width() << 'x' << aQImage.height() << ' ' << eToString(aQImage.format()) << ": " << __humanReadable(total) << endl;
+		return total;
+	}
+
+	#ifdef USE_MIPMAP_HANDLER
+		size_t __dump( MipmapHandler::Mipmap &aMipmap, const string &aPrefix )
+		{
+			size_t total = (aMipmap.mData == NULL ? 0 : aMipmap.mNbBytes);
+			cout << aPrefix << "Mipmap " << aMipmap.mWidth << 'x' << aMipmap.mHeight << 'x' << aMipmap.mNbChannels << '(' << aMipmap.mNbBitsPerChannel << "): " << __humanReadable(total) << endl;
+			return total;
+		}
+	#else
+		size_t __dump( QMaskedImage &aQMaskedImage, const string &aPrefix )
+		{
+			cout << aPrefix << ">>>QMaskedImage:" << endl;
+			size_t total = 0;
+			if (aQMaskedImage._m_image != NULL)          total += __dump(*aQMaskedImage._m_image, "_m_image", aPrefix + "\t");
+			if (aQMaskedImage._m_mask != NULL)           total += __dump(*aQMaskedImage._m_mask, "_m_mask", aPrefix + "\t");
+			if (aQMaskedImage._m_rescaled_image != NULL) total += __dump(*aQMaskedImage._m_rescaled_image, "_m_rescaled_image", aPrefix + "\t");
+			if (aQMaskedImage._m_rescaled_mask != NULL)  total += __dump(*aQMaskedImage._m_rescaled_mask, "_m_rescaled_mask", aPrefix + "\t");
+			cout << aPrefix << "<<<QMaskedImage: total = " << __humanReadable(total) << endl;
+			return total;
+		}
+	#endif
+
+	size_t __dump( cImageGL &aImageGL, const string &aPrefix )
+	{
+		cout << aPrefix << "cImageGL: unknown" << endl;
+		return 0;
+	}
+
+	size_t __dump( cMaskedImageGL &aMaskedImageGL, const string &aPrefix )
+	{
+		cout << aPrefix << ">>>cMaskedImageGL:" << endl;
+		size_t total = 0;
+		if (aMaskedImageGL._m_image != NULL)          total += __dump(*aMaskedImageGL._m_image, aPrefix + "\t");
+		if (aMaskedImageGL._m_mask != NULL)           total += __dump(*aMaskedImageGL._m_mask, aPrefix + "\t");
+		if (aMaskedImageGL._m_rescaled_image != NULL) total += __dump(*aMaskedImageGL._m_rescaled_image, aPrefix + "\t");
+		if (aMaskedImageGL._m_rescaled_mask != NULL)  total += __dump(*aMaskedImageGL._m_rescaled_mask, aPrefix + "\t");
+		#ifdef USE_MIPMAP_HANDLER
+			if (aMaskedImageGL.hasSrcImage())               total += __dump(aMaskedImageGL.srcImage(), aPrefix + "\t");
+			if (aMaskedImageGL.hasSrcMask())               total += __dump(aMaskedImageGL.srcMask(), aPrefix + "\t");
+		#else
+			if (aMaskedImageGL.hasQImage())               total += __dump(*aMaskedImageGL.getMaskedImage(), aPrefix + "\t");
+		#endif
+		cout << aPrefix << "<<<cMaskedImageGL: total = " << __humanReadable(total) << endl;
+		return total;
+	}
+
+	size_t __dump( const QVector <cMaskedImageGL*> &aData, const string &aPrefix )
+	{
+		cout << aPrefix << ">>>QVector<cMaskedImageGL*>:" << endl;
+		size_t total = 0;
+		foreach(cMaskedImageGL *ptr, aData)
+			total += __dump(*ptr, aPrefix + "\t");
+		cout << aPrefix << "<<<QVector<cMaskedImageGL*>: total = " << __humanReadable(total) << endl;
+		return total;
+	}
+
+	size_t __dump( cGLData &aData, const string &aPrefix )
+	{
+		cout << aPrefix << ">>>cGLData:" << endl;
+		size_t total = __dump(aData.glImageMasked(), aPrefix + "\t");
+		total += __dump(aData.glTiles(), aPrefix + "\t");
+		cout << aPrefix << "<<<cGLData: total = " << __humanReadable(total) << endl;
+		return total;
+	}
+
+	string formatedLine( string aText, bool aAppend = true, size_t aLineSize = 60, char aFillCharacter = '-' )
+	{
+		if ( !aText.empty() && aText.length() < aLineSize)
+		{
+			if (aAppend)
+				aText.append(" ");
+			else
+				aText = string(" ") + aText;
+		}
+		if (aText.length() >= aLineSize) return aText;
+		if (aAppend) return aText + string(aLineSize - aText.length(), aFillCharacter);
+		return string(aLineSize - aText.length(), aFillCharacter) + aText;
+	}
+
+	void __dump_used_memory( const string &aName = string() )
+	{
+		cout << formatedLine(aName) << endl;
+		size_t total = 0;
+		list<cGLData *>::iterator it = __all_cGLData.begin();
+		while (it != __all_cGLData.end())
+			total += __dump(**it++, "\t");
+		cout << formatedLine(string("total = ") + __humanReadable(total), false) << endl; // false = append -> prepend
+	}
+
+	bool __exist_cGLData( cGLData *aData )
+	{
+		list<cGLData *>::iterator it = __all_cGLData.begin();
+		while (it != __all_cGLData.end())
+		{
+			if (*it == aData) return true;
+			it++;
+		}
+		return false;
+	}
+
+	void __add_cGLData( cGLData *aData )
+	{
+		ELISE_DEBUG_ERROR(__exist_cGLData(aData), "__add_cGLData", aData << " already exists");
+		__all_cGLData.push_back(aData);
+		__dump_used_memory("add_cGLData");
+	}
+
+	void __remove_cGLData( cGLData *aData )
+	{
+		list<cGLData *>::iterator it = __all_cGLData.begin();
+		while (it != __all_cGLData.end())
+		{
+			if (*it == aData)
+			{
+				__all_cGLData.erase(it);
+				return;
+			}
+			it++;
+		}
+		__dump_used_memory("remove_cGLData");
+		ELISE_DEBUG_ERROR(true, "__remove_cGLData", aData << " does not exist");
+	}
+#endif
 
 void cGLData::setOptionPolygons(cParameters aParams)
 {
@@ -16,48 +182,102 @@ void cGLData::setOptionPolygons(cParameters aParams)
     }
 }
 
-cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode):
-    _glMaskedImage(qMaskedImage),
-    _pBall(NULL),
-    _pAxis(NULL),
-    _pBbox(NULL),
-    _pGrid(NULL),
-	_bbox_center(QVector3D(0.,0.,0.)),
-	_clouds_center(QVector3D(0.,0.,0.)),
-	_appMode(appMode)
-//    _bDrawTiles(false)
-{
-    if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
-    else _glMaskedImage._m_mask->setVisible(true);
+#ifdef USE_MIPMAP_HANDLER
+	cGLData::cGLData( int aId, cData *data, cParameters aParams, int appMode, MaskedImage aSrcImage ):
+		_glMaskedImage(aSrcImage.first, aSrcImage.second),
+		mId(aId),
+		mIsLoaded(false),
+		_bbox_center(QVector3D(0.,0.,0.)),
+		_clouds_center(QVector3D(0.,0.,0.)),
+		_appMode(appMode),
+		_currentPolygon(-1)
+	{
+		#ifdef DUMP_GL_DATA
+			__add_cGLData(this);
+		#endif
 
-    initOptions(appMode);
+		_modePt = false;
 
-    setPolygons(data);
+		#ifdef USE_MIPMAP_HANDLER
+			if (aSrcImage.first != NULL)
+		#else
+			if (qMaskedImage != NULL)
+		#endif
+		{
+			_pBall = NULL;
+			_pAxis = NULL;
+			_pBbox = NULL;
+			_pGrid = NULL;
 
-    setOptionPolygons(aParams);
-}
+			if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
+			else _glMaskedImage._m_mask->setVisible(true);
+
+			initOptions(appMode);
+			setPolygons(data);
+			setOptionPolygons(aParams);
+
+			#ifdef USE_MIPMAP_HANDLER
+				setName(QString(aSrcImage.first->mFilename.c_str()));
+			#endif
+
+			return;
+		}
+
+		_pBall = new cBall;
+		_pAxis = new cAxis;
+		_pBbox = new cBBox;
+		_pGrid = new cGrid;
+		_diam = 1.f;
+		_incFirstCloud = false;
+
+		setData(data, true, aParams.getSceneCenterType());
+		setPolygons(data);
+		setOptionPolygons(aParams);
+	}
+#else
+	cGLData::cGLData(cData *data, QMaskedImage *qMaskedImage, cParameters aParams, int appMode):
+		_glMaskedImage(qMaskedImage),
+		_pBall(NULL),
+		_pAxis(NULL),
+		_pBbox(NULL),
+		_pGrid(NULL),
+		_bbox_center(QVector3D(0.,0.,0.)),
+		_clouds_center(QVector3D(0.,0.,0.)),
+		_appMode(appMode)
+	//    _bDrawTiles(false)
+	{
+		if (appMode != MASK2D) _glMaskedImage._m_mask->setVisible(aParams.getShowMasks());
+		else _glMaskedImage._m_mask->setVisible(true);
+
+		initOptions(appMode);
+
+		setPolygons(data);
+
+		setOptionPolygons(aParams);
+	}
 
 
-cGLData::cGLData(cData *data, cParameters aParams, int appMode):
-    _pBall(new cBall),
-    _pAxis(new cAxis),
-    _pBbox(new cBBox),
-    _pGrid(new cGrid),
-	_bbox_center(QVector3D(0.,0.,0.)),
-	_clouds_center(QVector3D(0.,0.,0.)),
-    _appMode(appMode),
-    _diam(1.f),
-	_incFirstCloud(false)
-//    _bDrawTiles(false)
-{
-    initOptions(appMode);
+	cGLData::cGLData(cData *data, cParameters aParams, int appMode):
+		_pBall(new cBall),
+		_pAxis(new cAxis),
+		_pBbox(new cBBox),
+		_pGrid(new cGrid),
+		_bbox_center(QVector3D(0.,0.,0.)),
+		_clouds_center(QVector3D(0.,0.,0.)),
+		_appMode(appMode),
+		_diam(1.f),
+		_incFirstCloud(false)
+	//    _bDrawTiles(false)
+	{
+		initOptions(appMode);
 
-	setData(data, true, aParams.getSceneCenterType());
+		setData(data, true, aParams.getSceneCenterType());
 
-    setPolygons(data);
+		setPolygons(data);
 
-    setOptionPolygons(aParams);
-}
+		setOptionPolygons(aParams);
+	}
+#endif
 
 void cGLData::setPolygons(cData *data)
 {
@@ -132,6 +352,11 @@ cMaskedImageGL &cGLData::glImageMasked()
     return _glMaskedImage;
 }
 
+const cMaskedImageGL &cGLData::glImageMasked() const
+{
+    return _glMaskedImage;
+}
+
 QVector<cMaskedImageGL *> cGLData::glTiles()
 {
     return _glMaskedTiles;
@@ -139,10 +364,8 @@ QVector<cMaskedImageGL *> cGLData::glTiles()
 
 cPolygon *cGLData::polygon(int id)
 {
-    if(id < (int) _vPolygons.size())
-        return _vPolygons[id];
-    else
-        return NULL;
+    if (id < 0 || id >= _vPolygons.size()) return NULL;
+    return _vPolygons[id];
 }
 
 cPolygon *cGLData::currentPolygon()
@@ -184,6 +407,9 @@ void cGLData::initOptions(int appMode)
 
 cGLData::~cGLData()
 {
+	#ifdef DUMP_GL_DATA
+		__remove_cGLData(this);
+	#endif
 
 	_glMaskedImage.deleteTextures();
 	_glMaskedImage.deallocImages();
@@ -358,6 +584,10 @@ void cGLData::createTiles()
 
             _glMaskedTiles.push_back(tile);
         }
+
+	#ifdef DUMP_GL_DATA
+		__dump_used_memory("createTiles");
+	#endif
 }
 cBall* cGLData::pBall() const
 {
@@ -396,14 +626,16 @@ void cGLData::applyLockRule()
 
 void cGLData::normalizeCurrentPolygon(bool nrm)
 {
-	if(currentPolygon())
-		currentPolygon()->normalize(nrm);
+	cPolygon *p = currentPolygon();
+	if (p == NULL) return;
+	p->normalize(nrm);
 }
 
 void cGLData::clearCurrentPolygon()
 {
-    if(currentPolygon())
-        currentPolygon()->clear();
+	cPolygon *p = currentPolygon();
+	if (p == NULL) return;
+	p->clear();
 }
 
 void cGLData::setGlobalCenter(QVector3D aCenter)
@@ -480,105 +712,182 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
     return false;
 }
 
-void cGLData::editImageMask(int mode, cPolygon *polyg, bool m_bFirstAction)
-{
-    QPainter    p;
+#ifdef USE_MIPMAP_HANDLER
+	void cGLData::editImageMask(int mode, cPolygon *polyg, bool m_bFirstAction)
+	{
+		QPainter    p;
 
-    QRect  rect = getMask()->rect();
-    QRectF rectPoly;
+		MipmapHandler::Mipmap &mask = getMask();
+		QImage qimage((int)mask.mWidth, (int)mask.mHeight), QImage::Format_RGB888);
+		unsigned int padding = (unsigned int)(qimage.bytesPerLine() / (qimage.width() * 3));
+		gray8_to_rgb888(mask.mData, mask.mWidth, mask.mHeight, qimage.bits(), padding);
+		p.begin(&qimage);
 
-    p.begin(getMask());
-    p.setCompositionMode(QPainter::CompositionMode_Source);
-    p.setPen(Qt::NoPen);
+		QRectF rectPoly;
 
-	QPolygonF polyDraw(polyg->getVector());
-    QPainterPath path;
+		p.setCompositionMode(QPainter::CompositionMode_Source);
+		p.setPen(Qt::NoPen);
 
-    float scaleFactor = _glMaskedImage.getLoadedImageRescaleFactor();
-    QTransform trans;
+		QPolygonF polyDraw(polyg->getVector());
+		QPainterPath path;
 
-    if ( scaleFactor < 1.f )
-    {
-        rectPoly = polyDraw.boundingRect();
+		float scaleFactor = _glMaskedImage.getLoadedImageRescaleFactor();
+		QTransform trans;
 
-        trans = trans.scale(scaleFactor,scaleFactor);
+		if ( scaleFactor < 1.f )
+		{
+		    rectPoly = polyDraw.boundingRect();
 
-        polyDraw = trans.map(polyDraw);
-    }
+		    trans = trans.scale(scaleFactor,scaleFactor);
 
-    if(mode == ADD_INSIDE || mode == SUB_INSIDE)
-    {
-        path.addPolygon(polyDraw);
-    }
-    else if((mode == ADD_OUTSIDE || mode == SUB_OUTSIDE))
-    {
-        path.addRect(rect);
-        QPainterPath inner;
-        inner.addPolygon(polyDraw);
-        path = path.subtracted(inner);
-    }
+		    polyDraw = trans.map(polyDraw);
+		}
 
-//	QColor colorSelect(Qt::white);
-//	QColor colorUnSelect(Qt::black);
+		if(mode == ADD_INSIDE || mode == SUB_INSIDE)
+		{
+		    path.addPolygon(polyDraw);
+		}
+		else if((mode == ADD_OUTSIDE || mode == SUB_OUTSIDE))
+		{
+		    path.addRect(rect);
+		    QPainterPath inner;
+		    inner.addPolygon(polyDraw);
+		    path = path.subtracted(inner);
+		}
 
+		QColor colorSelect(Qt::black);
+		QColor colorUnSelect(Qt::white);
 
-	QColor colorSelect(Qt::black);
-	QColor colorUnSelect(Qt::white);
+		if(mode == ADD_INSIDE || mode == ADD_OUTSIDE)
+		{
+		    if (m_bFirstAction)
+				p.fillRect(rect, colorSelect);
 
-    if(mode == ADD_INSIDE || mode == ADD_OUTSIDE)
-    {
-        if (m_bFirstAction)
+			p.setBrush(QBrush(colorUnSelect));
+		    p.drawPath(path);
+		}
+		else if(mode == SUB_INSIDE || mode == SUB_OUTSIDE)
+		{
+			p.setBrush(QBrush(colorSelect));
+		    p.drawPath(path);
+		}
+		else if(mode == ALL)
+
+			p.fillRect(rect, colorUnSelect);
+
+		else if(mode == NONE)
+
 			p.fillRect(rect, colorSelect);
 
-		p.setBrush(QBrush(colorUnSelect));
-        p.drawPath(path);
-    }
-    else if(mode == SUB_INSIDE || mode == SUB_OUTSIDE)
-    {
-		p.setBrush(QBrush(colorSelect));
-        p.drawPath(path);
-    }
-    else if(mode == ALL)
+		p.end();
 
-		p.fillRect(rect, colorUnSelect);
+		if (mode == INVERT) qimage.invertPixels();
+		rgb888_to_red8(qimage.bits(), mask.mWidth, mask.mHeight, padding, mask.mData);
 
-    else if(mode == NONE)
+		_glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
+		_glMaskedImage._m_mask->createTexture(getMask());
+	}
+#else
+	void cGLData::editImageMask(int mode, cPolygon *polyg, bool m_bFirstAction)
+	{
+		QPainter    p;
 
-		p.fillRect(rect, colorSelect);
+		QRect  rect = getMask()->rect();
+		QRectF rectPoly;
 
-    p.end();
+		p.begin(getMask());
+		p.setCompositionMode(QPainter::CompositionMode_Source);
+		p.setPen(Qt::NoPen);
 
-    if (mode == INVERT)
-        getMask()->invertPixels(QImage::InvertRgb);
+		QPolygonF polyDraw(polyg->getVector());
+		QPainterPath path;
 
-    _glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
-    _glMaskedImage._m_mask->createTexture(getMask());
+		float scaleFactor = _glMaskedImage.getLoadedImageRescaleFactor();
+		QTransform trans;
 
-//    if ( getDrawTiles() )
-//    {
+		if ( scaleFactor < 1.f )
+		{
+		    rectPoly = polyDraw.boundingRect();
 
-//        for (int aK=0; aK < glTiles().size(); ++aK)
-//        {
-//            cMaskedImageGL * tile = glTiles()[aK];
-//            cImageGL * glMaskTile = tile->glMask();
+		    trans = trans.scale(scaleFactor,scaleFactor);
 
-//            QVector3D pos = glMaskTile->getPosition();
-//            QSize sz  = glMaskTile->getSize();
-//            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
+		    polyDraw = trans.map(polyDraw);
+		}
 
-//            if (rectImg.intersects(rectPoly))
-//            {
-//                QRect rescaled_rect = trans.mapRect(rectImg.toAlignedRect());
+		if(mode == ADD_INSIDE || mode == SUB_INSIDE)
+		{
+		    path.addPolygon(polyDraw);
+		}
+		else if((mode == ADD_OUTSIDE || mode == SUB_OUTSIDE))
+		{
+		    path.addRect(rect);
+		    QPainterPath inner;
+		    inner.addPolygon(polyDraw);
+		    path = path.subtracted(inner);
+		}
 
-//                QImage mask_crop = getMask()->copy(rescaled_rect).scaled(sz, Qt::KeepAspectRatio);
+	//	QColor colorSelect(Qt::white);
+	//	QColor colorUnSelect(Qt::black);
 
-//                tile->getMaskedImage()->_m_mask = &mask_crop;
 
-//                glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
-//            }
-//        }
-//    }
-}
+		QColor colorSelect(Qt::black);
+		QColor colorUnSelect(Qt::white);
+
+		if(mode == ADD_INSIDE || mode == ADD_OUTSIDE)
+		{
+		    if (m_bFirstAction)
+				p.fillRect(rect, colorSelect);
+
+			p.setBrush(QBrush(colorUnSelect));
+		    p.drawPath(path);
+		}
+		else if(mode == SUB_INSIDE || mode == SUB_OUTSIDE)
+		{
+			p.setBrush(QBrush(colorSelect));
+		    p.drawPath(path);
+		}
+		else if(mode == ALL)
+
+			p.fillRect(rect, colorUnSelect);
+
+		else if(mode == NONE)
+
+			p.fillRect(rect, colorSelect);
+
+		p.end();
+
+		if (mode == INVERT)
+		    getMask()->invertPixels(QImage::InvertRgb);
+
+		_glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
+		_glMaskedImage._m_mask->createTexture(getMask());
+
+	//    if ( getDrawTiles() )
+	//    {
+
+	//        for (int aK=0; aK < glTiles().size(); ++aK)
+	//        {
+	//            cMaskedImageGL * tile = glTiles()[aK];
+	//            cImageGL * glMaskTile = tile->glMask();
+
+	//            QVector3D pos = glMaskTile->getPosition();
+	//            QSize sz  = glMaskTile->getSize();
+	//            QRectF rectImg(QPointF(pos.x,pos.y), QSizeF(sz));
+
+	//            if (rectImg.intersects(rectPoly))
+	//            {
+	//                QRect rescaled_rect = trans.mapRect(rectImg.toAlignedRect());
+
+	//                QImage mask_crop = getMask()->copy(rescaled_rect).scaled(sz, Qt::KeepAspectRatio);
+
+	//                tile->getMaskedImage()->_m_mask = &mask_crop;
+
+	//                glMaskTile->createTexture(tile->getMaskedImage()->_m_mask);
+	//            }
+	//        }
+	//    }
+	}
+#endif
 
 void cGLData::editCloudMask(int mode, cPolygon *polyg, bool m_bFirstAction, MatrixManager &mm)
 {
@@ -704,3 +1013,13 @@ void cGLData::setOption(QFlags<cGLData::Option> option, bool show)
             _vCams[i]->setVisible(stateOption(OpShow_Cams));
     }
 }
+
+#ifdef USE_MIPMAP_HANDLER
+	void cGLData::dump( std::string aPrefix, std::ostream &aStream ) const
+	{
+		aStream << aPrefix << mId << " [" << name().toStdString() << ']';
+		if (_glMaskedImage.hasSrcImage()) aStream << " [" << _glMaskedImage.srcImage().mFilename << ']';
+		if (isLoaded()) aStream << " loaded";
+		aStream << endl;
+	}
+#endif
