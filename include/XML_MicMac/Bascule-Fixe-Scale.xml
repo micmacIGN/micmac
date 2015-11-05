@@ -1,0 +1,13 @@
+     <FixeEchelle>
+            <ModeFE>
+                 <FEFromFile>
+                       <File>   ${FileMesure} </File>
+                       <NameP1> Ech1  </NameP1>
+                       <NameP2> Ech2  </NameP2>
+                 </FEFromFile>
+            </ModeFE>
+            <DistVraie> ${DistFS} </DistVraie>
+       </FixeEchelle>
+
+
+
