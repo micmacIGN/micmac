@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1622]) = {
+const char * (theNameVar_SuperposImage[1628]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1519,7 +1519,7 @@ const char * (theNameVar_SuperposImage[1622]) = {
 "     <PatFileInit  Type=\"std::string\"  Nb=\"*\"> </PatFileInit>  <!-- Fichiers a recopier, ce sont des pattern -->\n",
 "     <DirInit  Type=\"std::string\"  Nb=\"*\"> </DirInit>          <!-- dossier a recopier recursivement, ce sont les directory elle meme -->\n",
 "\n",
-"     <PurgeExe Nb=\"?\" Type=\"bool\" Def=\"true\"> </PurgeExe>  <!-- Si false  ne purge pas les TNR-Exe -->\n",
+"     <PurgeExe Nb=\"1\" Type=\"bool\"> </PurgeExe>  <!-- Si false  ne purge pas les TNR-Exe -->\n",
 "</XmlTNR_GlobTest>\n",
 "\n",
 "<!--  Test de non regression/Report -->\n",
@@ -1551,6 +1551,12 @@ const char * (theNameVar_SuperposImage[1622]) = {
 "			<TestRefDir Nb=\"1\" Type=\"bool\"> </TestRefDir>\n",
 "			<ExeDirSize Nb=\"1\" Type=\"int\"> </ExeDirSize>\n",
 "			<RefDirSize Nb=\"1\" Type=\"int\"> </RefDirSize>\n",
+"			<MissingRefFile Nb=\"*\" Type=\"string\"></MissingRefFile>\n",
+"			<MissingExeFile Nb=\"*\" Type=\"string\"></MissingExeFile>\n",
+"			<FileDiff Nb=\"*\">\n",
+"				<Name Nb=\"1\" Type=\"string\"></Name>\n",
+"				<DiffSize Nb=\"1\" Type=\"int\"></DiffSize>\n",
+"			</FileDiff>\n",
 "		</XmlTNR_TestDirReport>\n",
 "		<XmlTNR_CalibReport Nb=\"*\">\n",
 "			<CalibName Nb=\"1\" Type=\"std::string\"> </CalibName>\n",

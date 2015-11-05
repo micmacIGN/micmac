@@ -86,14 +86,14 @@ class cTestElParseDir : public ElActionParseDir
     public :
         void act(const ElResParseDir & aRPD) 
         {
-            std::cout << aRPD.name() << "\n";
+            //std::cout << aRPD.name() << "\n";
         }
 };
 
 int TestElParseDir_main(int argc,char ** argv)
 {
-     cTestElParseDir aTPD;
-     ElParseDir("/home/marc/TMP/EPI/Croco/",aTPD,1000);
+     //cTestElParseDir aTPD;
+     //ElParseDir("/home/marc/TMP/EPI/Croco/",aTPD,1000);
 
      return EXIT_SUCCESS;
 }

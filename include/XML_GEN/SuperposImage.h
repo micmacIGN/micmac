@@ -6873,14 +6873,14 @@ class cXmlTNR_GlobTest
         std::list< std::string > & DirInit();
         const std::list< std::string > & DirInit()const ;
 
-        cTplValGesInit< bool > & PurgeExe();
-        const cTplValGesInit< bool > & PurgeExe()const ;
+        bool & PurgeExe();
+        const bool & PurgeExe()const ;
     private:
         std::list< cXmlTNR_OneTest > mTests;
         std::string mName;
         std::list< std::string > mPatFileInit;
         std::list< std::string > mDirInit;
-        cTplValGesInit< bool > mPurgeExe;
+        bool mPurgeExe;
 };
 cElXMLTree * ToXMLTree(const cXmlTNR_GlobTest &);
 
@@ -6959,6 +6959,31 @@ void  BinaryUnDumpFromFile(cXmlTNR_TestFileReport &,ELISE_fp &);
 
 std::string  Mangling( cXmlTNR_TestFileReport *);
 
+class cFileDiff
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cFileDiff & anObj,cElXMLTree * aTree);
+
+
+        string & Name();
+        const string & Name()const ;
+
+        int & DiffSize();
+        const int & DiffSize()const ;
+    private:
+        string mName;
+        int mDiffSize;
+};
+cElXMLTree * ToXMLTree(const cFileDiff &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cFileDiff &);
+
+void  BinaryUnDumpFromFile(cFileDiff &,ELISE_fp &);
+
+std::string  Mangling( cFileDiff *);
+
 class cXmlTNR_TestDirReport
 {
     public:
@@ -6984,6 +7009,15 @@ class cXmlTNR_TestDirReport
 
         int & RefDirSize();
         const int & RefDirSize()const ;
+
+        std::list< string > & MissingRefFile();
+        const std::list< string > & MissingRefFile()const ;
+
+        std::list< string > & MissingExeFile();
+        const std::list< string > & MissingExeFile()const ;
+
+        std::list< cFileDiff > & FileDiff();
+        const std::list< cFileDiff > & FileDiff()const ;
     private:
         std::string mDirName;
         bool mTestDirDiff;
@@ -6991,6 +7025,9 @@ class cXmlTNR_TestDirReport
         bool mTestRefDir;
         int mExeDirSize;
         int mRefDirSize;
+        std::list< string > mMissingRefFile;
+        std::list< string > mMissingExeFile;
+        std::list< cFileDiff > mFileDiff;
 };
 cElXMLTree * ToXMLTree(const cXmlTNR_TestDirReport &);
 
