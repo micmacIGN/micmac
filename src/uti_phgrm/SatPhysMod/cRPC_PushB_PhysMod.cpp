@@ -57,7 +57,7 @@ cRPC_PushB_PhysMod::cRPC_PushB_PhysMod(const RPC & aRPC,eModeRefinePB aModeRefin
    mRPC            (aRPC),
    mWGS84Degr      (cSysCoord::WGS84Degre()),
    mZ0Ray          (barry(0.5+ThePdsRay,mRPC.first_height,mRPC.last_height)),
-   mZ1Ray          (barry(0.5-ThePdsRay,mRPC.height_scale,mRPC.height_off))
+   mZ1Ray          (barry(0.5-ThePdsRay,mRPC.first_height,mRPC.last_height))
    //mZ0Ray          (barry(0.5+ThePdsRay,mRPC.height_scale,mRPC.height_off)),
    //mZ1Ray          (barry(0.5-ThePdsRay,mRPC.height_scale,mRPC.height_off))
 {
