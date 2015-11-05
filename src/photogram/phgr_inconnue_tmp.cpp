@@ -1510,6 +1510,7 @@ bool UPL_DCC() {return false;}
 
 const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                            (
+                              const cArg_UPL& anArg,
                               double  aLimBsHProj,
                               double  aLimBsHRefut,
                               double  aPdsPl,
@@ -1524,7 +1525,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
 {
    double aLimBsHOKBehind = 1e-2;
 
-   bool  DoLvmGcp =  MPD_MM()  && AddEq  && (aPtApuis==0) ;
+   bool  DoLvmGcp =  anArg.mRop   && AddEq  && (aPtApuis==0) ;
    Pt3dr aLVMPtApuis,aLVMIncertApuis;
    if (DoLvmGcp )
    {
@@ -1762,6 +1763,7 @@ std::cout << "AAAAAAAAAAAAA " << aVInc[aK] << " " << mMulGlobPds  << " " <<  aPR
 
 const cResiduP3Inc& cManipPt3TerInc::UsePointLiaison
                            (
+                              const cArg_UPL& anArg,
                               double  aLimBsHProj,
                               double  aLimBsH,
                               double  aPdsPl,
@@ -1771,12 +1773,13 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaison
                               const cRapOnZ *      aRAZ
                            )
 {
-   return UsePointLiaisonGen(aLimBsHProj,aLimBsH,aPdsPl,aNuple,aVPdsIm,AddEq,0,0,false,aRAZ);
+   return UsePointLiaisonGen(anArg,aLimBsHProj,aLimBsH,aPdsPl,aNuple,aVPdsIm,AddEq,0,0,false,aRAZ);
 }
 
 
 const cResiduP3Inc & cManipPt3TerInc::UsePointLiaisonWithConstr
                      (
+                          const cArg_UPL& anArg,
                           double aLimBsHProj,
                           double  aLimBsH,
                           double aPdsPl,
@@ -1790,6 +1793,7 @@ const cResiduP3Inc & cManipPt3TerInc::UsePointLiaisonWithConstr
 {
    return UsePointLiaisonGen
           (
+               anArg,
                aLimBsHProj,
                aLimBsH,
                aPdsPl,aNuple,aVPdsIm,AddEq,

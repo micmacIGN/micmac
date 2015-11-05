@@ -2139,6 +2139,8 @@ class cAppliApero : public NROptF1vND
        void CheckInit(const cLiaisonsInit * ,cPoseCam *);
        bool SqueezeDOCOAC() const;  
        cAperoOffsetGPS *  OffsetNNOfName(const std::string &);
+       const cXmlSLM_RappelOnPt *  XmlSMLRop();
+       cArg_UPL                    ArgUPL();
     private :
 
        // Active uniquement si  mFileDebug != 0

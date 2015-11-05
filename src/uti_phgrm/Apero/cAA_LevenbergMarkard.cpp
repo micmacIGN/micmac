@@ -39,6 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
 
+cArg_UPL::cArg_UPL(const cXmlSLM_RappelOnPt * aRop) :
+    mRop (aRop)
+{
+}
+
 
     /************************************************/
     /*                                              */

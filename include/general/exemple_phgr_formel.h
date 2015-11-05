@@ -686,7 +686,19 @@ class cRapOnZ
        double mIE;
        std::string mLayerIm;
 };
-//
+
+class cXmlSLM_RappelOnPt;
+
+class cArg_UPL
+{
+   public :
+        cArg_UPL(const cXmlSLM_RappelOnPt *);
+
+        const cXmlSLM_RappelOnPt * mRop;
+};
+
+
+
 class cManipPt3TerInc
 {
     public :
@@ -703,6 +715,7 @@ class cManipPt3TerInc
 
 	const cResiduP3Inc & UsePointLiaison
 	                     (
+                                  const cArg_UPL &,
                                   double aLimBsHProj,
                                   double aLimBsH,
 			          double aPdsPl, // Poids de rattach a l'eventuelle surf
@@ -714,6 +727,7 @@ class cManipPt3TerInc
 
 	const cResiduP3Inc & UsePointLiaisonWithConstr
 	                     (
+                                  const cArg_UPL &,
                                   double aLimBsHProj,
                                   double aLimBsH,
 			          double aPdsPl,
@@ -743,6 +757,7 @@ class cManipPt3TerInc
 
 	const cResiduP3Inc & UsePointLiaisonGen
 	                     (
+                                  const cArg_UPL &,
                                   double aLimBsHProj,
                                   double aLimBsH,
 			          double aPdsPl,
