@@ -1071,6 +1071,7 @@ double cObsLiaisonMultiple::AddObsLM
        )
 {
 
+
 /*
   static int aCpt = 0 ; aCpt ++;
   bool aBug = false;
@@ -1172,6 +1173,7 @@ double cObsLiaisonMultiple::AddObsLM
              aNbMult += (aNbRInit>=3);
              const cRapOnZ * aRAZ = aPM->OnPRaz()? aRAZGlob : 0;
              const cResiduP3Inc & aRes = aCOM->LiaisTer()->UsePointLiaison(aLimBsHP,aLimBsHRefut,0.0,aNupl,aVpds,false,aRAZ);
+
 
              if (aRes.mOKRP3I)
              {
@@ -1357,7 +1359,11 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                     aNbMultPdsNN += (aNbRInit>=3);
 	            for (int aKPose=0 ; aKPose<int(aVpds.size()) ; aKPose++)
                     {
-                        // aVpds[aKPose] *= aPdsIm;
+                        // !!!! !!!!   ???? ACHHTUNNGG
+                        // Cette ligne avait ete commentee (depuis quand ??) , sans que cela semble avoir
+                        // pose de gros problemes .......
+                        aVpds[aKPose] *= aPdsIm;
+// std::cout << "Ppppppppppppppppppppppppppp " << aVpds[aKPose] << " " << aPdsIm << "\n";
                         if (aVpds[aKPose])
                         {
                             aVP[aKPose]->AddPMoy(aRes.mPTer,aRes.mBSurH);
