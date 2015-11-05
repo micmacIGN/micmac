@@ -22231,12 +22231,12 @@ const std::list< std::string > & cXmlTNR_GlobTest::DirInit()const
 }
 
 
-cTplValGesInit< bool > & cXmlTNR_GlobTest::PurgeExe()
+bool & cXmlTNR_GlobTest::PurgeExe()
 {
    return mPurgeExe;
 }
 
-const cTplValGesInit< bool > & cXmlTNR_GlobTest::PurgeExe()const 
+const bool & cXmlTNR_GlobTest::PurgeExe()const 
 {
    return mPurgeExe;
 }
@@ -22271,14 +22271,7 @@ void  BinaryUnDumpFromFile(cXmlTNR_GlobTest & anObj,ELISE_fp & aFp)
               anObj.DirInit().push_back(aVal);
         }
   } ;
-  { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.PurgeExe().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.PurgeExe().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.PurgeExe().SetNoInit();
-  } ;
+    BinaryUnDumpFromFile(anObj.PurgeExe(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlTNR_GlobTest & anObj)
@@ -22302,8 +22295,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlTNR_GlobTest & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,anObj.PurgeExe().IsInit());
-    if (anObj.PurgeExe().IsInit()) BinaryDumpInFile(aFp,anObj.PurgeExe().Val());
+    BinaryDumpInFile(aFp,anObj.PurgeExe());
 }
 
 cElXMLTree * ToXMLTree(const cXmlTNR_GlobTest & anObj)
@@ -22329,8 +22321,7 @@ cElXMLTree * ToXMLTree(const cXmlTNR_GlobTest & anObj)
       it++
   ) 
       aRes->AddFils(::ToXMLTree(std::string("DirInit"),(*it))->ReTagThis("DirInit"));
-   if (anObj.PurgeExe().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("PurgeExe"),anObj.PurgeExe().Val())->ReTagThis("PurgeExe"));
+   aRes->AddFils(::ToXMLTree(std::string("PurgeExe"),anObj.PurgeExe())->ReTagThis("PurgeExe"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -22349,10 +22340,10 @@ void xml_init(cXmlTNR_GlobTest & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.DirInit(),aTree->GetAll("DirInit",false,1));
 
-   xml_init(anObj.PurgeExe(),aTree->Get("PurgeExe",1),bool(true)); //tototo 
+   xml_init(anObj.PurgeExe(),aTree->Get("PurgeExe",1)); //tototo 
 }
 
-std::string  Mangling( cXmlTNR_GlobTest *) {return "FA66ADEF431D8594FF3F";};
+std::string  Mangling( cXmlTNR_GlobTest *) {return "F756926A06F20CA4FE3F";};
 
 
 std::string & cXmlTNR_TestCmdReport::CmdName()
@@ -22533,6 +22524,63 @@ void xml_init(cXmlTNR_TestFileReport & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXmlTNR_TestFileReport *) {return "7B3D6262D9050C8EFF3F";};
 
 
+string & cFileDiff::Name()
+{
+   return mName;
+}
+
+const string & cFileDiff::Name()const 
+{
+   return mName;
+}
+
+
+int & cFileDiff::DiffSize()
+{
+   return mDiffSize;
+}
+
+const int & cFileDiff::DiffSize()const 
+{
+   return mDiffSize;
+}
+
+void  BinaryUnDumpFromFile(cFileDiff & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Name(),aFp);
+    BinaryUnDumpFromFile(anObj.DiffSize(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cFileDiff & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,anObj.DiffSize());
+}
+
+cElXMLTree * ToXMLTree(const cFileDiff & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FileDiff",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(::ToXMLTree(std::string("DiffSize"),anObj.DiffSize())->ReTagThis("DiffSize"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cFileDiff & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.DiffSize(),aTree->Get("DiffSize",1)); //tototo 
+}
+
+std::string  Mangling( cFileDiff *) {return "F0694C2011F9ACA6FB3F";};
+
+
 std::string & cXmlTNR_TestDirReport::DirName()
 {
    return mDirName;
@@ -22598,6 +22646,39 @@ const int & cXmlTNR_TestDirReport::RefDirSize()const
    return mRefDirSize;
 }
 
+
+std::list< string > & cXmlTNR_TestDirReport::MissingRefFile()
+{
+   return mMissingRefFile;
+}
+
+const std::list< string > & cXmlTNR_TestDirReport::MissingRefFile()const 
+{
+   return mMissingRefFile;
+}
+
+
+std::list< string > & cXmlTNR_TestDirReport::MissingExeFile()
+{
+   return mMissingExeFile;
+}
+
+const std::list< string > & cXmlTNR_TestDirReport::MissingExeFile()const 
+{
+   return mMissingExeFile;
+}
+
+
+std::list< cFileDiff > & cXmlTNR_TestDirReport::FileDiff()
+{
+   return mFileDiff;
+}
+
+const std::list< cFileDiff > & cXmlTNR_TestDirReport::FileDiff()const 
+{
+   return mFileDiff;
+}
+
 void  BinaryUnDumpFromFile(cXmlTNR_TestDirReport & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.DirName(),aFp);
@@ -22606,6 +22687,33 @@ void  BinaryUnDumpFromFile(cXmlTNR_TestDirReport & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.TestRefDir(),aFp);
     BinaryUnDumpFromFile(anObj.ExeDirSize(),aFp);
     BinaryUnDumpFromFile(anObj.RefDirSize(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.MissingRefFile().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.MissingExeFile().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cFileDiff aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.FileDiff().push_back(aVal);
+        }
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlTNR_TestDirReport & anObj)
@@ -22616,6 +22724,24 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlTNR_TestDirReport & anObj)
     BinaryDumpInFile(aFp,anObj.TestRefDir());
     BinaryDumpInFile(aFp,anObj.ExeDirSize());
     BinaryDumpInFile(aFp,anObj.RefDirSize());
+    BinaryDumpInFile(aFp,(int)anObj.MissingRefFile().size());
+    for(  std::list< string >::const_iterator iT=anObj.MissingRefFile().begin();
+         iT!=anObj.MissingRefFile().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.MissingExeFile().size());
+    for(  std::list< string >::const_iterator iT=anObj.MissingExeFile().begin();
+         iT!=anObj.MissingExeFile().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.FileDiff().size());
+    for(  std::list< cFileDiff >::const_iterator iT=anObj.FileDiff().begin();
+         iT!=anObj.FileDiff().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
 }
 
 cElXMLTree * ToXMLTree(const cXmlTNR_TestDirReport & anObj)
@@ -22628,6 +22754,24 @@ cElXMLTree * ToXMLTree(const cXmlTNR_TestDirReport & anObj)
    aRes->AddFils(::ToXMLTree(std::string("TestRefDir"),anObj.TestRefDir())->ReTagThis("TestRefDir"));
    aRes->AddFils(::ToXMLTree(std::string("ExeDirSize"),anObj.ExeDirSize())->ReTagThis("ExeDirSize"));
    aRes->AddFils(::ToXMLTree(std::string("RefDirSize"),anObj.RefDirSize())->ReTagThis("RefDirSize"));
+  for
+  (       std::list< string >::const_iterator it=anObj.MissingRefFile().begin();
+      it !=anObj.MissingRefFile().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("MissingRefFile"),(*it))->ReTagThis("MissingRefFile"));
+  for
+  (       std::list< string >::const_iterator it=anObj.MissingExeFile().begin();
+      it !=anObj.MissingExeFile().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("MissingExeFile"),(*it))->ReTagThis("MissingExeFile"));
+  for
+  (       std::list< cFileDiff >::const_iterator it=anObj.FileDiff().begin();
+      it !=anObj.FileDiff().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("FileDiff"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -22649,9 +22793,15 @@ void xml_init(cXmlTNR_TestDirReport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExeDirSize(),aTree->Get("ExeDirSize",1)); //tototo 
 
    xml_init(anObj.RefDirSize(),aTree->Get("RefDirSize",1)); //tototo 
+
+   xml_init(anObj.MissingRefFile(),aTree->GetAll("MissingRefFile",false,1));
+
+   xml_init(anObj.MissingExeFile(),aTree->GetAll("MissingExeFile",false,1));
+
+   xml_init(anObj.FileDiff(),aTree->GetAll("FileDiff",false,1));
 }
 
-std::string  Mangling( cXmlTNR_TestDirReport *) {return "82E121641AF82BB1FF3F";};
+std::string  Mangling( cXmlTNR_TestDirReport *) {return "A982FA6E74754D8BFEBF";};
 
 
 Pt2dr & crEcartsPlani::CoordPx()
@@ -23288,7 +23438,7 @@ void xml_init(cXmlTNR_OneTestReport & anObj,cElXMLTree * aTree)
    xml_init(anObj.XmlTNR_ImgReport(),aTree->GetAll("XmlTNR_ImgReport",false,1));
 }
 
-std::string  Mangling( cXmlTNR_OneTestReport *) {return "4BA82740130911F5FE3F";};
+std::string  Mangling( cXmlTNR_OneTestReport *) {return "D4369893510EE3C7FB3F";};
 
 
 bool & cXmlTNR_GlobTestReport::Bilan()
@@ -23395,7 +23545,7 @@ void xml_init(cXmlTNR_GlobTestReport & anObj,cElXMLTree * aTree)
    xml_init(anObj.XmlTNR_OneTestReport(),aTree->GetAll("XmlTNR_OneTestReport",false,1));
 }
 
-std::string  Mangling( cXmlTNR_GlobTestReport *) {return "4F5A14D0DE1176DFFE3F";};
+std::string  Mangling( cXmlTNR_GlobTestReport *) {return "E95FA618096CAACDFE3F";};
 
 
 Pt2dr & cEcartsPlani::CoordPx()
