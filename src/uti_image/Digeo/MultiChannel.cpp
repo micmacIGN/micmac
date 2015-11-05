@@ -266,10 +266,23 @@ bool MultiChannel<tData>::read_tiff( Tiff_Im &i_tiff ) // Tiff_Im is not const b
 	if ( i_tiff.type_el()!=typeEl() ) return false;
 
 	vector<Im2DGen *> tiffChannels = i_tiff.ReadVecOfIm();
-	resize( i_tiff.sz().x, i_tiff.sz().y, i_tiff.nb_chan() );
 
-	for ( size_t i=0; i<mChannels.size(); i++ )
-		set( i, *(Im2D<tData,tBase>*)tiffChannels[i] );
+	#if 0
+		resize( i_tiff.sz().x, i_tiff.sz().y, i_tiff.nb_chan() );
+
+		for ( size_t i=0; i<mChannels.size(); i++ )
+			set( i, *(Im2D<tData,tBase>*)tiffChannels[i] );
+
+		for (size_t i = 0; i < tiffChannels.size(); i++)
+			delete tiffChannels[i];
+	#else
+		clear();
+		mChannels.resize(tiffChannels.size());
+		for (size_t i = 0; i < mChannels.size(); i++)
+			mChannels[i] = (Im2D<tData,tBase>*)tiffChannels[i];
+		mWidth = mChannels[0]->tx();
+		mHeight = mChannels[0]->ty();
+	#endif
 
 	return true;
 }
@@ -633,6 +646,12 @@ tData * MultiChannel<tData>::newTupleArray() const
 template <class tData>
 void MultiChannel<tData>::toTupleArray( tData *o_dst ) const
 {
+	if (nbChannels() == 1)
+	{
+		memcpy(o_dst, mChannels[0]->data_lin(), nbPixels() * sizeof(tData));
+		return;
+	}
+
 	const size_t nbChan = nbChannels();
 	const size_t nbPix = nbPixels();
 	for ( size_t iChannel=0; iChannel<nbChan; iChannel++ )

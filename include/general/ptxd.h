@@ -1226,6 +1226,7 @@ class cMetaDataPhoto
          bool & FocForced();
          const std::string & Orientation() const;
          const std::string & CameraOrientation() const;
+         void dump( const std::string &aPrefix, std::ostream &aStream = std::cout );
    private :
         static cMetaDataPhoto  CreateNewExiv2(const std::string &);
 
@@ -1465,7 +1466,9 @@ inline double GenCoutAttenueTetaMax(const double & aVal,const double & aVMax)
 
 Pt2dr arrondi_ni(const Pt2dr & aP,double aPer);
 
+inline std::string to_yes_no( bool aBoolean ){ return aBoolean ? "yes" : "no"; }
 
+inline std::string to_true_false( bool aBoolean ){ return aBoolean ? "true" : "false"; }
 
 
 #endif //  _ELISE_INCLUDE_GENERAL_PTXD_H_

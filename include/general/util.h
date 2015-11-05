@@ -1624,6 +1624,11 @@ bool launchMake( const std::string &i_makefile, const std::string &i_rule=std::s
 double MoyHarmonik(const double & aV1,const double & aV2);
 double MoyHarmonik(const double & aV1,const double & aV2,const double & aV3);
 
+size_t getSystemMemory();
+
+size_t getUsedMemory();
+
+std::string humanReadable( size_t aSize );
 
 #endif /* ! _ELISE_UTIL_H */
 

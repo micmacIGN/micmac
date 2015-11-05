@@ -556,6 +556,71 @@ bool launchMake( const string &i_makefile, const string &i_rule, unsigned int i_
 	return ( System(aCom,!i_stopCurrentProgramOnFail)==EXIT_SUCCESS );
 }
 
+#ifdef ELISE_unix
+	#include <sys/time.h>
+	#include <sys/resource.h>
+
+	size_t getSystemMemory()
+	{
+		 long nbPages = sysconf(_SC_PHYS_PAGES);
+		 ELISE_DEBUG_ERROR(nbPages < 0, "getTotalSystemMemory", "nbPages == " << nbPages);
+
+		 long pageSize = sysconf(_SC_PAGE_SIZE);
+		 ELISE_DEBUG_ERROR(pageSize < 0, "getTotalSystemMemory", "pageSize == " << pageSize);
+
+		 return size_t(nbPages) * size_t(pageSize);
+	}
+
+	size_t getUsedMemory()
+	{
+		struct rusage rUsage;
+		#ifdef __DEBUG
+			int result =
+		#endif
+		//~ getrusage(RUSAGE_SELF, &rUsage);
+		getrusage(RUSAGE_THREAD, &rUsage);
+		ELISE_DEBUG_ERROR(result == 1, "getUsedMemory", "rusage returned -1");
+
+		//~ __OUT("ru_maxrss   = " << humanReadable(rUsage.ru_maxrss));   // maximum resident set size
+		//~ __OUT("ru_ixrss    = " << humanReadable(rUsage.ru_ixrss));    // integral shared memory size
+		//~ __OUT("ru_idrss    = " << humanReadable(rUsage.ru_idrss));    // integral unshared data size
+		//~ __OUT("ru_isrss    = " << humanReadable(rUsage.ru_isrss));    // integral unshared stack size
+		//~ __OUT("ru_minflt   = " << humanReadable(rUsage.ru_minflt));   // page reclaims (soft page faults)
+		//~ __OUT("ru_majflt   = " << humanReadable(rUsage.ru_majflt));   // page faults (hard page faults)
+		//~ __OUT("ru_nswap    = " << humanReadable(rUsage.ru_nswap));    // swap
+		//~ __OUT("ru_inblock  = " << humanReadable(rUsage.ru_inblock));  // block input operations
+		//~ __OUT("ru_oublock  = " << humanReadable(rUsage.ru_oublock));  // block output operations
+		//~ __OUT("ru_msgsnd   = " << humanReadable(rUsage.ru_msgsnd));   // IPC messages sent
+		//~ __OUT("ru_msgrcv   = " << humanReadable(rUsage.ru_msgrcv));   // IPC messages received
+		//~ __OUT("ru_nsignals = " << humanReadable(rUsage.ru_nsignals)); // signals received
+		//~ __OUT("ru_nvcsw    = " << humanReadable(rUsage.ru_nvcsw));    // voluntary context switches
+		//~ __OUT("ru_nivcsw   = " << humanReadable(rUsage.ru_nivcsw));   // involuntary context switches
+		//~ struct timeval ru_utime; /* user CPU time used */
+		//~ struct timeval ru_stime; /* system CPU time used */
+
+		return rUsage.ru_ixrss + rUsage.ru_idrss + rUsage.ru_isrss;
+	}
+#else
+	size_t getSystemMemory()
+	{
+		ELISE_DEBUG_ERROR(true, "getTotalSystemMemory", "not implemented");
+		return 0;
+	}
+
+	size_t getUsedMemory()
+	{
+		ELISE_DEBUG_ERROR(true, "getUsedMemory", "not implemented");
+		return 0;
+	}
+#endif
+
+string humanReadable( size_t aSize )
+{
+	stringstream ss;
+	ss << aSize << " = " << (aSize >> 10) << " Ko" << " = " << (aSize >> 20) << " Mo";
+	return ss.str();
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -1146,6 +1146,39 @@ bool cMetaDataPhoto::IsNoMTD() const
 	return mDate.IsNoDate();
 }
 
+void cMetaDataPhoto::dump( const string &aPrefix, ostream &aStream )
+{
+	if (IsNoMTD())
+	{
+		aStream << aPrefix << "no meta-data" << endl;
+		return;
+	}
+
+	aStream << aPrefix << "date = " << Date(true) << endl;
+	aStream << aPrefix << "tiff sz = " << TifSzIm(true) << endl;
+	aStream << aPrefix << "xif sz = " << XifSzIm(true) << endl;
+	aStream << aPrefix << "focal = " << FocMm(true) << "mm (equivalent 35mm = " << Foc35(true) << "mm, pixel = " << FocPix() << ')' << endl;
+	aStream << aPrefix << "exp time = " << ExpTime(true) << endl;
+	aStream << aPrefix << "diaph = " << Diaph(true) << endl;
+	aStream << aPrefix << "iso speed = " << IsoSpeed(true) << endl;
+	aStream << aPrefix << "camera name = [" << Cam(true) << ']' << endl;
+	if (XYZTetasInit())
+	{
+		aStream << aPrefix << "xyz = " << XYZ() << endl;
+		aStream << aPrefix << "tetas = " << Tetas() << endl;
+	}
+	if (HasGPSLatLon())
+	{
+		aStream << aPrefix << "GPS latitude = " << GPSLat() << endl;
+		aStream << aPrefix << "GPS longitude = " << GPSLon() << endl;
+	}
+	if (HasGPSAlt()) aStream << aPrefix << "GPS altitude = " << GPSAlt() << endl;
+	aStream << aPrefix << "bayer pattern = [" << BayPat() << ']' << endl;
+	aStream << aPrefix << "forced focal = " << to_yes_no(FocForced()) << endl;
+	aStream << aPrefix << "orientation = [" << Orientation() << ']' << endl;
+	aStream << aPrefix << "camera orientation = [" << CameraOrientation() << ']' << endl;
+}
+
 //===================================================
 
 // GERALD 
