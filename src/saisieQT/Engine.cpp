@@ -38,179 +38,162 @@ GlCloud* cLoader::loadCloud( string i_ply_file, int* incre )
 }
 
 #ifdef USE_MIPMAP_HANDLER
-	void cLoader::readImage(QMaskedImage &aMaskedImg)
+	bool cLoader::loadImage( MipmapHandler::Mipmap &aImage )
 	{
-		QImage tempImage(aMaskedImg._fullSize, QImage::Format_RGB888);
+		bool result = _mipmapHandler.read(aImage);
+		if ( !result) cerr << ELISE_RED_ERROR << "cLoader::readImage: failed to read image [" << aImage.mFilename << ']' << endl;
+		return result;
+	}
 
-		const string mipmapFilename = aMaskedImg.name().toStdString();
-		const bool forceMipmapGray = false;
-		unsigned int mipmapWidth, mipmapHeight;
-		unsigned char *mipmapData;
-		if (_mipmapHandler.getData(mipmapFilename, 0, forceMipmapGray, mipmapData, mipmapWidth, mipmapHeight))
+	bool cLoader::reloadImage( MipmapHandler::Mipmap &aImage )
+	{
+		if (aImage.mData != NULL) _mipmapHandler.release(aImage);
+		return loadImage(aImage);
+	}
+
+	string cLoader::getMaskFilename( const string &aImageFilename ) const
+	{
+		QFileInfo fi(QString(aImageFilename.c_str()));
+		return (fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif").toStdString();
+	}
+
+	MipmapHandler::Mipmap * cLoader::loadImage( const string &aFilename, float scaleFactor )
+	{
+		MipmapHandler::Mipmap *image = _mipmapHandler.ask(aFilename, 0, _forceGrayMipmap);
+		if (image == NULL) return NULL;
+		return image;
+	}
+#else
+	void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor)
+	{
+	//	QTime *chro = new QTime(0,0,0,0) ;
+	//	chro->start();
+
+	//	qDebug() << chro->elapsed() << " begin";
+
+		QImageReader reader(aNameFile);
+
+	//	qDebug() << chro->elapsed() << " start read";
+
+	//	DUMP(reader.supportsOption(QImageIOHandler::ClipRect))
+	//	DUMP(reader.supportsOption(QImageIOHandler::ScaledSize))
+
+		QSize rescaledSize	= reader.size()*scaleFactor;
+		QSize FullSize		= reader.size();
+
+		//reader.setScaledSize(rescaledSize );
+
+		maskedImg->_m_image			= new QImage(FullSize,QImage::Format_RGB888);
+
+		maskedImg->_loadedImageRescaleFactor = scaleFactor;
+		maskedImg->_fullSize = reader.size();
+
+		QSize tempSize = FullSize;
+
+		QImage tempImage(tempSize,QImage::Format_RGB888);
+
+		if (!reader.read(&tempImage))
 		{
-			const size_t scanlineSize = size_t(mipmapWidth) * 3;
-			if (scanlineSize == (size_t)tempImage.bytesPerLine())
-				memcpy(tempImage.bits(), mipmapData, scanlineSize * mipmapHeight);
+			if(maskedImg->_m_image )
+			    delete maskedImg->_m_image;
+
+			maskedImg->_m_image = new QImage( aNameFile);
+		}
+
+		// TODO: message d'erreur (non bloquant)
+		// foo: Can not read scanlines from a tiled image.
+		// see QTBUG-12636 => QImage load error on tiff tiled with lzw compression https://bugreports.qt-project.org/browse/QTBUG-12636
+		// bug Qt non resolu
+		// work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
+
+		if (maskedImg->_m_image->isNull() && _devIOImageAlter)
+		{
+			delete maskedImg->_m_image;
+
+			maskedImg->_m_image = _devIOImageAlter->loadImage(aNameFile);
+			maskedImg->_fullSize = maskedImg->_m_image->size(); // TODO ATTENTION _fullSize surement inutile
+
+		}
+		else
+		{
+			if(maskedImg->_m_image )
+			    delete maskedImg->_m_image;
+
+			maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));
+			maskedImg->_fullSize = maskedImg->_m_image->size();
+		}
+
+		if(scaleFactor <1.f)
+			maskedImg->_m_rescaled_image = new QImage(maskedImg->_m_image->scaled(rescaledSize,Qt::IgnoreAspectRatio));
+
+		//MASK
+		QFileInfo fi(aNameFile);
+
+		QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif";
+
+		maskedImg->setName(fi.fileName());
+
+		loadMask(mask_filename, maskedImg,scaleFactor);
+
+	}
+
+	void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float scaleFactor)
+	{
+		setFilenameOut(aNameFile);
+
+		if (QFile::exists(aNameFile))
+		{
+
+			maskedImg->_m_newMask = false;
+
+			QImageReader reader(aNameFile);
+
+			reader.setScaledSize(reader.size()*scaleFactor);
+
+			if(maskedImg->_m_rescaled_mask )
+			    delete maskedImg->_m_rescaled_mask;
+
+			maskedImg->_m_rescaled_mask = new QImage(reader.scaledSize(), QImage::Format_Mono);
+			QImage tempMask(reader.scaledSize(), QImage::Format_Mono);
+
+			if ((!reader.read(&tempMask) || tempMask.isNull()) && _devIOImageAlter)
+			{
+
+			    maskedImg->_m_rescaled_mask = _devIOImageAlter->loadMask(aNameFile);
+
+			    if(maskedImg->_m_rescaled_mask == NULL)
+
+			        QMessageBox::critical(NULL, "cLoader::loadMask",QObject::tr("Cannot load mask image"));
+
+			}
+			else
+
+			    *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
+
+		}
+		else
+		{
+			if(scaleFactor<1.f) // TODO Mask c'est quoi la différence ....
+			{
+			    QImage tempMask(maskedImg->_m_rescaled_image->size(),QImage::Format_Mono);
+			    maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
+			    tempMask.fill(Qt::white);
+			    *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
+			}
 			else
 			{
-				cout << "--- scanlineCopy " << scanlineSize << " -> " << tempImage.bytesPerLine() << endl; 
-				scanlineCopy(mipmapData, scanlineSize, mipmapHeight, tempImage.bits(), (size_t)tempImage.bytesPerLine());
+			    #ifdef USE_MIPMAP_HANDLER
+			        QImage tempMask(maskedImg->_fullSize, QImage::Format_Mono);
+			    #else
+			        QImage tempMask(maskedImg->_m_image->size(),QImage::Format_Mono);
+			    #endif
+			    maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
+			    tempMask.fill(Qt::white);
+			    *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
 			}
 		}
-
-		aMaskedImg._m_image = new QImage(QGLWidget::convertToGLFormat(tempImage));
 	}
 #endif
-
-void cLoader::loadImage(QString aNameFile, QMaskedImage *maskedImg, float scaleFactor)
-{
-//	QTime *chro = new QTime(0,0,0,0) ;
-//	chro->start();
-
-//	qDebug() << chro->elapsed() << " begin";
-
-	#ifdef USE_MIPMAP_HANDLER
-		const bool forceMipmapGray = false;
-		unsigned int mipmapWidth, mipmapHeight;
-		if ( !_mipmapHandler.ask(aNameFile.toStdString(), 0, forceMipmapGray, mipmapWidth, mipmapHeight)) // 0 = subscale
-		{
-			cerr << "### failed to load [" << aNameFile.toStdString() << ']' << endl;
-			return;
-		}
-		cout << "--- mipmap " << mipmapWidth << 'x' << mipmapHeight << endl;
-
-		QSize FullSize((int)mipmapWidth, (int)mipmapHeight);
-		QSize rescaledSize = FullSize * scaleFactor;
-		maskedImg->_fullSize = FullSize;
-		maskedImg->_loadedImageRescaleFactor = scaleFactor;
-		maskedImg->_m_image = NULL;
-
-		cout << "--- done." << endl;
-	#else
-    
-    QImageReader reader(aNameFile);
-
-//	qDebug() << chro->elapsed() << " start read";
-
-//	DUMP(reader.supportsOption(QImageIOHandler::ClipRect))
-//	DUMP(reader.supportsOption(QImageIOHandler::ScaledSize))
-
-    QSize rescaledSize	= reader.size()*scaleFactor;
-    QSize FullSize		= reader.size();
-
-    //reader.setScaledSize(rescaledSize );
-
-    maskedImg->_m_image			= new QImage(FullSize,QImage::Format_RGB888);
-
-    maskedImg->_loadedImageRescaleFactor = scaleFactor;
-    maskedImg->_fullSize = reader.size();
-
-    QSize tempSize = FullSize;
-
-    QImage tempImage(tempSize,QImage::Format_RGB888);
-
-    if (!reader.read(&tempImage))
-    {
-        if(maskedImg->_m_image )
-            delete maskedImg->_m_image;
-
-        maskedImg->_m_image = new QImage( aNameFile);
-    }
-
-    // TODO: message d'erreur (non bloquant)
-    // foo: Can not read scanlines from a tiled image.
-    // see QTBUG-12636 => QImage load error on tiff tiled with lzw compression https://bugreports.qt-project.org/browse/QTBUG-12636
-    // bug Qt non resolu
-    // work around by creating an untiled and uncompressed temporary file with a system call to "tiffcp.exe" from libtiff library tools.
-
-    if (maskedImg->_m_image->isNull() && _devIOImageAlter)
-    {
-        delete maskedImg->_m_image;
-
-        maskedImg->_m_image = _devIOImageAlter->loadImage(aNameFile);
-        maskedImg->_fullSize = maskedImg->_m_image->size(); // TODO ATTENTION _fullSize surement inutile
-
-    }
-    else
-    {
-        if(maskedImg->_m_image )
-            delete maskedImg->_m_image;
-
-        maskedImg->_m_image = new QImage(QGLWidget::convertToGLFormat( tempImage ));
-        maskedImg->_fullSize = maskedImg->_m_image->size();
-    }
-	#endif
-
-    if(scaleFactor <1.f)
-        maskedImg->_m_rescaled_image = new QImage(maskedImg->_m_image->scaled(rescaledSize,Qt::IgnoreAspectRatio));
-
-    //MASK
-    QFileInfo fi(aNameFile);
-
-    QString mask_filename = fi.path() + QDir::separator() + fi.completeBaseName() + _postFix + ".tif";
-
-    maskedImg->setName(fi.fileName());
-
-    loadMask(mask_filename, maskedImg,scaleFactor);
-
-}
-
-void cLoader::loadMask(QString aNameFile, cMaskedImage<QImage> *maskedImg,float scaleFactor)
-{
-    setFilenameOut(aNameFile);
-
-    if (QFile::exists(aNameFile))
-    {
-
-        maskedImg->_m_newMask = false;
-
-        QImageReader reader(aNameFile);
-
-        reader.setScaledSize(reader.size()*scaleFactor);
-
-        if(maskedImg->_m_rescaled_mask )
-            delete maskedImg->_m_rescaled_mask;
-
-        maskedImg->_m_rescaled_mask = new QImage(reader.scaledSize(), QImage::Format_Mono);
-        QImage tempMask(reader.scaledSize(), QImage::Format_Mono);
-
-        if ((!reader.read(&tempMask) || tempMask.isNull()) && _devIOImageAlter)
-        {
-
-            maskedImg->_m_rescaled_mask = _devIOImageAlter->loadMask(aNameFile);
-
-            if(maskedImg->_m_rescaled_mask == NULL)
-
-                QMessageBox::critical(NULL, "cLoader::loadMask",QObject::tr("Cannot load mask image"));
-
-        }
-        else
-
-            *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
-
-    }
-    else
-    {
-        if(scaleFactor<1.f) // TODO Mask c'est quoi la différence ....
-        {
-            QImage tempMask(maskedImg->_m_rescaled_image->size(),QImage::Format_Mono);
-            maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
-            tempMask.fill(Qt::white);
-            *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
-        }
-        else
-        {
-            #ifdef USE_MIPMAP_HANDLER
-                QImage tempMask(maskedImg->_fullSize, QImage::Format_Mono);
-            #else
-                QImage tempMask(maskedImg->_m_image->size(),QImage::Format_Mono);
-            #endif
-            maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
-            tempMask.fill(Qt::white);
-            *(maskedImg->_m_rescaled_mask) = QGLWidget::convertToGLFormat(tempMask);
-        }
-    }
-}
 
 void cLoader::setFilenames(const QStringList &strl)
 {
@@ -271,6 +254,20 @@ cEngine::~cEngine()
     delete _Data;
 }
 
+#ifdef USE_MIPMAP_HANDLER
+	void cEngine::setParams(cParameters *params)
+	{
+		_params = params;
+		if (_Loader != NULL)
+		{
+			_Loader->setForceGrayMipmap(params->getForceGray());
+			_Loader->setMaxLoadMipmap(size_t(params->getNbFen().x()) * size_t(params->getNbFen().y()));
+
+			cout << "setForceGray(" << params->getForceGray() << ")" << endl;
+		}
+	}
+#endif
+
 void cEngine::loadClouds(QStringList filenames, int* incre)
 {
     for (int i=0;i<filenames.size();++i)
@@ -330,14 +327,32 @@ void cEngine::loadImages(QStringList filenames, int* incre)
     }
 }
 
-void  cEngine::loadImage(QString imgName,float scaleFactor )
-{
-    QMaskedImage *maskedImg =  new QMaskedImage(_params->getGamma());
+#ifdef USE_MIPMAP_HANDLER
+	void cEngine::loadImage( QString imgName, float scaleFactor )
+	{
+		const string imageFilename = imgName.toStdString();
+		MipmapHandler::Mipmap *image = _Loader->loadImage(imgName.toStdString(), scaleFactor);
 
-    _Loader->loadImage(imgName, maskedImg,scaleFactor);
+		if (image == NULL)
+		{
+			cerr << ELISE_RED_ERROR << "skipping image [" << imgName.toStdString() << "]: loading failed" << endl;
+			return;
+		}
 
-    _Data->pushBackMaskedImage(maskedImg);
-}
+		const string maskFilename = _Loader->getMaskFilename(imageFilename);
+		MipmapHandler::Mipmap *mask = _Loader->loadImage(maskFilename, scaleFactor);
+		_Data->addImage(MaskedImage(image, mask));
+	}
+#else
+	void  cEngine::loadImage(QString imgName,float scaleFactor )
+	{
+		QMaskedImage *maskedImg =  new QMaskedImage(_params->getGamma());
+
+		_Loader->loadImage(imgName, maskedImg,scaleFactor);
+
+		_Data->pushBackMaskedImage(maskedImg);
+	}
+#endif
 
 /*void cEngine::reloadImage(int appMode, int aK)
 {
@@ -351,13 +366,26 @@ void  cEngine::loadImage(QString imgName,float scaleFactor )
     reallocAndSetGLData(appMode, *_params, aK);
 }*/
 
-void cEngine::reloadMask(int appMode, int aK)
-{
-    if (aK < _Data->getNbImages())
-        _Loader->loadMask(getFilenamesOut()[aK], _Data->getMaskedImage(aK), _Data->getMaskedImage(aK)->_loadedImageRescaleFactor);
+#ifdef USE_MIPMAP_HANDLER
+	void cEngine::reloadMask(int appMode, int aK)
+	{
+		if (_Data != NULL && aK >= 0 && aK < _Data->getNbImages())
+		{
+			MaskedImage &maskedImage = _Data->getMaskedImage(aK);
+			if (maskedImage.second != NULL) _Loader->reloadImage(*maskedImage.second);
+		}
 
-    reallocAndSetGLData(appMode, *_params, aK);
-}
+		reallocAndSetGLData(appMode, *_params, aK);
+	}
+#else
+	void cEngine::reloadMask(int appMode, int aK)
+	{
+		if (aK < _Data->getNbImages())
+		    _Loader->loadMask(getFilenamesOut()[aK], _Data->getMaskedImage(aK), _Data->getMaskedImage(aK)->_loadedImageRescaleFactor);
+
+		reallocAndSetGLData(appMode, *_params, aK);
+	}
+#endif
 
 void cEngine::addObject(cObject * aObj)
 {
@@ -411,62 +439,75 @@ void cEngine::do3DMasks()
     }
 }
 */
-void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
-{
-//    if (!isFirstAction)
-//        _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
 
-    QImage Mask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
+#ifdef USE_MIPMAP_HANDLER
+	void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
+	{
+		if ( !isFirstAction) return;
+		ELISE_DEBUG_ERROR(_vGLData[idCur] == NULL, "cEngine::doMaskImage", "_vGLData[" << idCur << "] == NULL");
+		cMaskedImageGL &maskedImageGL = _vGLData[idCur]->glImageMasked();
+		if ( !maskedImageGL.hasSrcMask()) return;
+		string errorMesage;
+		if ( !maskedImageGL.srcMask().writeTiff(errorMesage)) cerr << ELISE_RED_ERROR << "failed to save mask to [" << maskedImageGL.srcMask().mFilename << "] (" << errorMesage << ')' << endl;
+	}
+#else
+	void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
+	{
+	//    if (!isFirstAction)
+	//        _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
 
-    if (!Mask.isNull())
-    {
-        QString aOut = _Loader->getFilenamesOut()[idCur];
+		QImage Mask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
 
-        float scaleFactor = _vGLData[idCur]->glImageMasked().getLoadedImageRescaleFactor();
+		if (!Mask.isNull())
+		{
+		    QString aOut = _Loader->getFilenamesOut()[idCur];
 
-        if (scaleFactor != 1.f)
-        {
-            int width  = (int) ((float) Mask.width() / scaleFactor);
-            int height = (int) ((float) Mask.height() / scaleFactor);
+		    float scaleFactor = _vGLData[idCur]->glImageMasked().getLoadedImageRescaleFactor();
 
-            Mask = Mask.scaled(width, height,Qt::KeepAspectRatio);
-        }
+		    if (scaleFactor != 1.f)
+		    {
+		        int width  = (int) ((float) Mask.width() / scaleFactor);
+		        int height = (int) ((float) Mask.height() / scaleFactor);
 
-#ifdef _DEBUG
-        cout << "Saving mask to: " << aOut.toStdString().c_str() << endl;
+		        Mask = Mask.scaled(width, height,Qt::KeepAspectRatio);
+		    }
+
+	#ifdef _DEBUG
+		    cout << "Saving mask to: " << aOut.toStdString().c_str() << endl;
+	#endif
+
+		    if (!Mask.save(aOut))
+		    {
+		        QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Error saving mask"));
+		        return;
+		    }
+
+		    if(Loader()->devIOImageAlter())
+		        Loader()->devIOImageAlter()->doMaskImage(Mask,aOut);
+
+		/*
+		    cFileOriMnt anOri;
+
+		    anOri.NameFileMnt()		= aOut.toStdString();
+		    anOri.NombrePixels()	= Pt2di(Mask.width(),Mask.height());
+		    anOri.OriginePlani()	= Pt2dr(0,0);
+		    anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
+		    anOri.OrigineAlti()		= 0.0;
+		    anOri.ResolutionAlti()	= 1.0;
+		    anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
+
+		    MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
+		    */
+
+	//        if (!isFirstAction)
+	//            _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
+		}
+		else
+		{
+		    QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Mask is Null"));
+		}
+	}
 #endif
-
-        if (!Mask.save(aOut))
-        {
-            QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Error saving mask"));
-            return;
-        }
-
-        if(Loader()->devIOImageAlter())
-            Loader()->devIOImageAlter()->doMaskImage(Mask,aOut);
-
-    /*
-        cFileOriMnt anOri;
-
-        anOri.NameFileMnt()		= aOut.toStdString();
-        anOri.NombrePixels()	= Pt2di(Mask.width(),Mask.height());
-        anOri.OriginePlani()	= Pt2dr(0,0);
-        anOri.ResolutionPlani() = Pt2dr(1.0,1.0);
-        anOri.OrigineAlti()		= 0.0;
-        anOri.ResolutionAlti()	= 1.0;
-        anOri.Geometrie()		= eGeomMNTFaisceauIm1PrCh_Px1D;
-
-        MakeFileXML(anOri, StdPrefix(aOut.toStdString()) + ".xml");
-        */
-
-//        if (!isFirstAction)
-//            _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
-    }
-    else
-    {
-        QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Mask is Null"));
-    }
-}
 
 void cEngine::saveBox2D(ushort idCur)
 {
@@ -513,30 +554,67 @@ void cEngine::unload(int aK)
     _Data->clear(aK);
 }
 
-void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
-{
-    _vGLData.clear();
+#ifdef USE_MIPMAP_HANDLER
+	void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
+	{
+		_vGLData.clear();
 
-    for (int aK = 0; aK < _Data->getNbImages();++aK)
-        _vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode));
+		for (int aK = 0; aK < _Data->getNbImages();++aK)
+		{
+			ELISE_DEBUG_ERROR(_Loader == NULL, "cEngine::allocAndSetGLData", "_Loader == NULL");
+			_vGLData.push_back(new cGLData(_vGLData.size(), _Data, aParams, appMode, _Data->getMaskedImage(aK)));
+		}
 
-    if (_Data->is3D())
-        _vGLData.push_back(new cGLData(_Data, aParams,appMode));
-}
+		if (_Data->is3D()) _vGLData.push_back(new cGLData(_vGLData.size(), _Data, aParams, appMode));
+	}
+#else
+	void cEngine::allocAndSetGLData(int appMode, cParameters aParams)
+	{
+		_vGLData.clear();
 
-void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
-{
+		for (int aK = 0; aK < _Data->getNbImages();++aK)
+		    _vGLData.push_back(new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode));
+
+		if (_Data->is3D())
+		    _vGLData.push_back(new cGLData(_Data, aParams,appMode));
+	}
+#endif
+
+#ifdef USE_MIPMAP_HANDLER
+	void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
+	{
+		delete _vGLData[aK];
+
+		if (_Data->is3D())
+			_vGLData[aK] = new cGLData(aK, _Data, aParams,appMode);
+		else
+			_vGLData[aK] = new cGLData(aK, _Data, aParams, appMode, _Data->getMaskedImage(aK));
+	}
+#else
+	void cEngine::reallocAndSetGLData(int appMode, cParameters aParams, int aK)
+	{
 
 
-    delete _vGLData[aK];
+		delete _vGLData[aK];
 
-    if (_Data->is3D())
-        _vGLData[aK] = new cGLData(_Data, aParams,appMode);
-    else
-        _vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode);
-}
+		if (_Data->is3D())
+		    _vGLData[aK] = new cGLData(_Data, aParams,appMode);
+		else
+		    _vGLData[aK] = new cGLData(_Data, _Data->getMaskedImage(aK), aParams, appMode);
+	}
+#endif
 
 cGLData* cEngine::getGLData(int WidgetIndex)
+{
+    if ((_vGLData.size() > 0) && (WidgetIndex < _vGLData.size()))
+    {
+        return _vGLData[WidgetIndex];
+    }
+    else
+        return NULL;
+}
+
+const cGLData * cEngine::getGLData(int WidgetIndex) const
 {
     if ((_vGLData.size() > 0) && (WidgetIndex < _vGLData.size()))
     {
@@ -730,6 +808,42 @@ float cEngine::computeScaleFactor(QStringList& filenames)
 //    }
 }
 
+#ifdef USE_MIPMAP_HANDLER
+	int cEngine::minLoadedGLDataId() const
+	{
+		for (int i = 0; i < _vGLData.size(); i++)
+			if (_vGLData[i]->isLoaded()) return i;
+		return -1;
+	}
+
+	void cEngine::getGLDataIdSet( int aI0, int aI1, bool aIsLoaded, size_t aNbRequestedWidgets, std::vector<int> &oIds ) const
+	{
+		int di;
+		if (aI0 <= aI1)
+		{
+			aI0 = max<int>(0, aI0);
+			aI1 = min<int>(nbGLData(), aI1) + 1;
+			di = 1;
+		}
+		else
+		{
+			aI0 = min<int>(nbGLData(), aI0);
+			aI1 = max<int>(0, aI1) - 1;
+			di = -1;
+		}
+
+		oIds.resize(aNbRequestedWidgets, -1);
+		int *itDst = oIds.data();
+		int * const dst_end = oIds.data() + oIds.size();
+		for (int i = aI0; i != aI1 && itDst < dst_end; i += di)
+		{
+			const cGLData &data = *getGLData(i);
+			// we consider only GLData with a source image
+			if (data.glImageMasked().hasSrcImage() && data.isLoaded() == aIsLoaded) *itDst++ = i;
+		}
+		oIds.resize(itDst - oIds.data());
+	}
+#endif
 
 //********************************************************************************
 

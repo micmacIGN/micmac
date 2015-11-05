@@ -65,6 +65,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine,
 #else
 int main(int argc, char *argv[])
 {
+	//~ gDefaultDebugErrorHandler->setAction(MessageHandler::CIN_GET);
 #endif
 
     MMD_InitArgcArgv( argc, argv );

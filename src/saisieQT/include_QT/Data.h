@@ -18,7 +18,19 @@ class cData
 
         void replaceCloud(GlCloud * cloud, int id = 0);
 
+	#ifdef USE_MIPMAP_HANDLER
+		void addImage( const MaskedImage &aMaskedImage );
+
+		int getNbImages() { return (int)_maskedImages.size(); }
+
+		MaskedImage & getMaskedImage(int aK) { return _maskedImages[aK]; }
+	#else
         void pushBackMaskedImage(QMaskedImage *maskedImage);
+
+        int getNbImages()   { return _MaskedImages.size(); }
+
+        QMaskedImage*  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
+	#endif
 
         void clearCameras();
         void clearClouds();
@@ -34,7 +46,6 @@ class cData
 
         int getNbCameras()  { return _Cameras.size(); }
         int getNbClouds()   { return _Clouds.size();  }
-        int getNbImages()   { return _MaskedImages.size(); }
         int getNbPolygons() { return _vPolygons.size(); }
 
         cCamHandler *   getCamera(int aK) { return aK < _Cameras.size() ? _Cameras[aK] : NULL; }
@@ -44,8 +55,6 @@ class cData
         cPolygon*      getPolygon(int aK){ return _vPolygons[aK]; }
 
         int            idPolygon(cPolygon* polygon);
-
-        QMaskedImage*  getMaskedImage(int aK)   { return _MaskedImages[aK]; }
 
         void    getMinMax(QVector3D);
         void    computeCenterAndBBox(int idCloud = -1); //compute clouds bounding box and center
@@ -70,7 +79,11 @@ private:
 
         QVector <cCamHandler *> _Cameras;
         QVector <GlCloud *>    _Clouds;
-        QVector <QMaskedImage*> _MaskedImages;
+	#ifdef USE_MIPMAP_HANDLER
+		std::vector<MaskedImage> _maskedImages;
+	#else
+		QVector <QMaskedImage*> _MaskedImages;
+	#endif
 
         //! list of polygons
         QVector<cPolygon*>     _vPolygons;

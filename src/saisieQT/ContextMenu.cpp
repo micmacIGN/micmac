@@ -17,7 +17,6 @@ void ContextMenu::createContextMenuActions()
     connect(_ThisP,             SIGNAL(triggered()),   _switchSignalMapper, SLOT(map()));
 
     _switchSignalMapper->setMapping (_AllW,  eAllWindows);
-    _switchSignalMapper->setMapping (_RollW, eRollWindowsForward);
     _switchSignalMapper->setMapping (_ThisW, eThisWindow);
     _switchSignalMapper->setMapping (_ThisP, eThisPoint);
 
@@ -68,7 +67,6 @@ void ContextMenu::changeImages(int mode)
 {
     int idx = -4;
     bool aUseCpt = false;
-    bool goForward = true;
 
     switch(mode)
     {
@@ -80,15 +78,13 @@ void ContextMenu::changeImages(int mode)
     case eThisPoint:
         idx = getNearestPointIndex(_lastPosImage);
         break;
-    case eRollWindowsBackward:
-        goForward = false;
-    case eRollWindowsForward:
+    case eRollWindows:
         //idx =
         aUseCpt= true;
         break;
     }
 
-    emit changeImagesSignal(idx, aUseCpt, goForward);
+    emit changeImagesSignal(idx, aUseCpt);
 }
 
 void ContextMenu::highlight()

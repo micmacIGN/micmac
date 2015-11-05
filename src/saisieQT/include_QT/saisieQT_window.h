@@ -44,7 +44,9 @@ public:
 
     void updateUI();
 
-    bool eventFilter(QObject *object, QEvent *event);
+	#ifndef USE_MIPMAP_HANDLER
+		bool eventFilter(QObject *object, QEvent *event);
+	#endif
 
     QTableView *tableView_PG();
 
@@ -98,6 +100,17 @@ public:
 
     deviceIOTieFile* devIOTieFile() const;
     void setDevIOTieFile(deviceIOTieFile* devIOTieFile);
+
+	#ifdef USE_MIPMAP_HANDLER
+		void changeDisplayedImages( bool aForward );
+
+		void loadGLDataIdSet( const std::vector<int> &aIdSet );
+
+		#ifdef __DEBUG
+			void dumpAllGLData( const std::string &aPrefix = std::string(), std::ostream &aStream = std::cout ) const;
+			void dumpGLDataIdSet( const std::vector<int> &aIdSet, const std::string &aPrefix = std::string(), std::ostream &aStream = std::cout ) const;
+		#endif
+	#endif
 
 public slots:
 

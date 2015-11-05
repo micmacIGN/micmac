@@ -33,7 +33,7 @@ cQT_Interface::cQT_Interface(cAppli_SaisiePts &appli, SaisieQtWindow *QTMainWind
 
         connect(widget->contextMenu(),	SIGNAL(changeName(QString, QString)), this, SLOT(changeName(QString, QString)));
 
-        connect(widget->contextMenu(),	SIGNAL(changeImagesSignal(int, bool, bool)), this, SLOT(changeImages(int, bool, bool)));
+        connect(widget->contextMenu(),	SIGNAL(changeImagesSignal(int, bool)), this, SLOT(changeImages(int, bool)));
     }
 
     connect(m_QTMainWindow,	SIGNAL(showRefuted(bool)), this, SLOT(SetInvisRef(bool)));
@@ -238,7 +238,11 @@ bool cQT_Interface::isDisplayed(cImage* aImage)
 
     for (int aK = 0; aK < m_QTMainWindow->nbWidgets();++aK)
         if (m_QTMainWindow->getWidget(aK)->hasDataLoaded())
-            if (m_QTMainWindow->getWidget(aK)->getGLData()->imageName() == aName)
+			#ifdef USE_MIPMAP_HANDLER
+            	if (m_QTMainWindow->getWidget(aK)->getGLData()->glImageMasked().cObjectGL::name() == aName)
+			#else
+            	if (m_QTMainWindow->getWidget(aK)->getGLData()->imageName() == aName)
+			#endif
                 return true;
 
     return false;
@@ -441,7 +445,7 @@ void cQT_Interface::changeName(QString aOldName, QString aNewName)
     }
 }
 
-void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt, bool aGoForward)
+void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt)
 {
     if(mAppli)
     {
@@ -451,16 +455,9 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt, bool aGoForward)
 
         int max = (idPg == THISWIN) ? 1 : min(m_QTMainWindow->nbWidgets(),(int)images.size());
 
-        int pace = aGoForward ? 1 : -1;
         while (aKW < max)
         {
             images[aKW]->CptAff() = _aCpt++;
-
-            //~ _aCpt += pace;
-            //~ if (aKW < 0)
-                //~ _aCpt = int(images.size()) - 1;
-            //~ else if (aKW == (int)images.size())
-                //~ _aCpt = 0;
 
             if (!isDisplayed(images[aKW]))
             {
@@ -478,9 +475,9 @@ void cQT_Interface::changeImagesPG(int idPg, bool aUseCpt, bool aGoForward)
     }
 }
 
-void cQT_Interface::changeImages(int idPtGl, bool aUseCpt, bool aGoForward)
+void cQT_Interface::changeImages(int idPtGl, bool aUseCpt)
 {
-    changeImagesPG(idPointGlobal(idPtGl), aUseCpt, aGoForward);
+    changeImagesPG(idPointGlobal(idPtGl), aUseCpt);
 }
 
 void cQT_Interface::changeCurPose(void *widgetGL)
@@ -596,14 +593,28 @@ void cQT_Interface::filesDropped(const QStringList &filenames)
     m_QTMainWindow->loadPlyIn3DPrev(filenames,_data);
 }
 
-int cQT_Interface::idCImage(QString nameImage)
-{
-    for (int i = 0; i < mAppli->nbImagesVis(); ++i)
-       if(mAppli->imageVis(i)->Name() == nameImage.toStdString())
-           return i;
+#ifdef USE_MIPMAP_HANDLER
+	int cQT_Interface::idCImage(QString aNameImage)
+	{
+		ELISE_DEBUG_ERROR(mAppli == NULL, "cQT_Interface::idCImage", "mAppli == NULL");
+		const string nameImage = aNameImage.toStdString();
+		for (int i = 0; i < mAppli->nbImagesVis(); ++i)
+		{
+		   ELISE_DEBUG_ERROR(mAppli->imageVis(i) == NULL, "cQT_Interface::idCImage", "mAppli->imageVis(" << i << ") == NULL");
+		   if (mAppli->imageVis(i)->Name() == nameImage) return i;
+		}
+		return -1;
+	}
+#else
+	int cQT_Interface::idCImage(QString nameImage)
+	{
+		for (int i = 0; i < mAppli->nbImagesVis(); ++i)
+		   if(mAppli->imageVis(i)->Name() == nameImage.toStdString())
+		       return i;
 
-    return -1;
-}
+		return -1;
+	}
+#endif
 
 void cQT_Interface::toQVec3D(Pt3d<double> P, QVector3D& qP)
 {
@@ -659,7 +670,14 @@ int cQT_Interface::idCurrentCImage()
 int cQT_Interface::idCImage(cGLData* data)
 {
     if(data)
-        return idCImage(data->imageName());
+		#ifdef USE_MIPMAP_HANDLER
+		{
+		    const QString &name = data->glImageMasked().cObjectGL::name();
+		    return idCImage(name);
+		}
+        #else
+			return idCImage(data->imageName());
+		#endif
     else
         return -1;
 }
@@ -724,23 +742,46 @@ cGLData * cQT_Interface::getGlData(int idWidget)
     return (idWidget == -1) ? m_QTMainWindow->currentWidget()->getGLData() : m_QTMainWindow->getWidget(idWidget)->getGLData();
 }
 
-cGLData *cQT_Interface::getGlData(cImage *image)
-{
-    if(!image) return NULL;
+#ifdef USE_MIPMAP_HANDLER
+	cGLData *cQT_Interface::getGlData(cImage *image)
+	{
+		if(!image) return NULL;
 
-    for (int iGd = 0; iGd < m_QTMainWindow->getEngine()->nbGLData(); ++iGd)
-    {
-        QString nameImage = QString(image->Name().c_str());
-            if(nameImage == m_QTMainWindow->getEngine()->getGLData(iGd)->imageName())
-                return m_QTMainWindow->getEngine()->getGLData(iGd);
-    }
+		ELISE_DEBUG_ERROR(m_QTMainWindow->getEngine() == NULL, "cQT_Interface::getGlData", "m_QTMainWindow->getEngine() == NULL");
+		cEngine &engine = *m_QTMainWindow->getEngine();
+		
+		QString nameImage = QString(image->Name().c_str());
+		for (int iGd = 0; iGd < engine.nbGLData(); ++iGd)
+		{
+		    ELISE_DEBUG_ERROR(engine.getGLData(iGd) == NULL, "cQT_Interface::getGlData", "engine.getGLData(iGd) == NULL");
+		    const QString &name = engine.getGLData(iGd)->glImageMasked().cObjectGL::name();
+		    //~ if(nameImage == m_QTMainWindow->getEngine()->getGLData(iGd)->imageName())
+		    if (nameImage == name) return engine.getGLData(iGd);
+		}
 
-    return NULL;
-}
+		return NULL;
+	}
+#else
+	cGLData *cQT_Interface::getGlData(cImage *image)
+	{
+		if(!image) return NULL;
+
+		for (int iGd = 0; iGd < m_QTMainWindow->getEngine()->nbGLData(); ++iGd)
+		{
+		    QString nameImage = QString(image->Name().c_str());
+		        if(nameImage == m_QTMainWindow->getEngine()->getGLData(iGd)->imageName())
+		            return m_QTMainWindow->getEngine()->getGLData(iGd);
+		}
+
+		return NULL;
+	}
+#endif
 
 Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
 {
     float scaleFactor = getGlData(idImage)->glImageMasked().getLoadedImageRescaleFactor();
+
+	ELISE_DEBUG_ERROR(getGlData(idImage)->glImageMasked()._m_image == NULL, "cQT_Interface::transformation(1)", "getGlData(idImage)->glImageMasked()._m_image == NULL");
 
     return Pt2dr(pt.x()/scaleFactor,(getGlData(idImage)->glImageMasked()._m_image->height() - pt.y())/scaleFactor);
 }
@@ -748,6 +789,8 @@ Pt2dr cQT_Interface::transformation(QPointF pt, int idImage)
 QPointF cQT_Interface::transformation(Pt2dr pt, int idImage)
 {
     float scaleFactor = getGlData(idImage)->glImageMasked().getLoadedImageRescaleFactor();
+
+	ELISE_DEBUG_ERROR(getGlData(idImage)->glImageMasked()._m_image == NULL, "cQT_Interface::transformation(2)", "getGlData(idImage)->glImageMasked()._m_image == NULL");
 
     return QPointF(pt.x*scaleFactor,getGlData(idImage)->glImageMasked()._m_image->height() - pt.y*scaleFactor);
 }

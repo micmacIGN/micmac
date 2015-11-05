@@ -45,12 +45,19 @@ void cData::addCamera(cCamHandler * aCam)
     _Cameras.push_back(aCam);
 }
 
-void cData::pushBackMaskedImage(QMaskedImage *maskedImage)
-{
+#ifdef USE_MIPMAP_HANDLER
+	void cData::addImage( const MaskedImage &aMaskedImage )
+	{
+		_maskedImages.push_back(aMaskedImage);
+	}
+#else
+	void cData::pushBackMaskedImage(QMaskedImage *maskedImage)
+	{
 
-    _MaskedImages.push_back(maskedImage);
+		_MaskedImages.push_back(maskedImage);
 
-}
+	}
+#endif
 
 void cData::clearClouds()
 {
@@ -69,20 +76,28 @@ void cData::clearCameras()
     reset();
 }
 
-void cData::clearImages()
-{
-    //qDeleteAll(_MaskedImages);
+#ifdef USE_MIPMAP_HANDLER
+	void cData::clearImages()
+	{
+		maskedImages.clear();
+		reset();
+	}
+#else
+	void cData::clearImages()
+	{
+		//qDeleteAll(_MaskedImages);
 
-    for (int idQMImg = 0; idQMImg < _MaskedImages.size(); ++idQMImg)
-    {
-        if(_MaskedImages[idQMImg])
-            delete _MaskedImages[idQMImg];
-        _MaskedImages[idQMImg] = NULL;
-    }
+		for (int idQMImg = 0; idQMImg < _MaskedImages.size(); ++idQMImg)
+		{
+		    if(_MaskedImages[idQMImg])
+		        delete _MaskedImages[idQMImg];
+		    _MaskedImages[idQMImg] = NULL;
+		}
 
-    _MaskedImages.clear();
-    reset();
-}
+		_MaskedImages.clear();
+		reset();
+	}
+#endif
 
 void cData::clearObjects()
 {
@@ -124,11 +139,8 @@ void cData::clear(int aK)
             _Cameras[aK] = NULL;
         }
     }
-    if (_MaskedImages.size())
-    {
-        if(_MaskedImages[aK])
-            delete _MaskedImages[aK];
-    }
+
+    if (aK >= 0 && aK < _MaskedImages.size()) delete _MaskedImages[aK];
 }
 
 int cData::idPolygon(cPolygon *polygon)
