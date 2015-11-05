@@ -77,34 +77,22 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
      eModeRefinePB aModeRefine = eMRP_None;
      if (mType==eTIGB_MMDimap2)
      {
-          mRPC.ReadDimap(mNameOrient);
-          
-          //mRPC.SetRecGrid();
 
-          //mRPC.UpdateValidity();
+          mRPC.ReadDimap(mNameOrient);
 
           aModeRefine = eMRP_Direct;
-         // aModeRefine = eMRP_None;
+
+     
      }
      else if(mType==eTIGB_MMDGlobe )
      {
-          mRPC.ReadXML(mNameOrient);
 
-//          mRPC.SetRecGrid();
+          mRPC.ReadXML(mNameOrient);
 
           mRPC.InverseToDirectRPC();
 
-          //mRPC.UpdateValidity();
-
-          //mRPC.SetRecGrid();
-
-          //recompute Direct RPC on the new grid
-          //mRPC.InverseToDirectRPC();
-
           aModeRefine = eMRP_Direct;
 
-
-       // mRPC->ChSysRPC(*mChSys);
 
    }
 
