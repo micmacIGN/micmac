@@ -2564,6 +2564,7 @@ class cAppliApero : public NROptF1vND
              // flag utilise lorque l'on a utilise ori non ortho
         int                                    mSqueezeDOCOAC;  
         cXmlSauvExportAperoGlob                mXMLExport;
+        const cXmlSLM_RappelOnPt *             mXmlSMLRop;
 };
 
 
