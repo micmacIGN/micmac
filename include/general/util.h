@@ -835,6 +835,7 @@ class cTplValGesInit
           }
 
           const Type * PtrVal() const { return mIsInit?&mVal:0;}
+          const Type * PtrCopy() const { return mIsInit?new Type(mVal):0;}
           Type * PtrVal() { return mIsInit?&mVal:0;}
      private :
           Type mVal;

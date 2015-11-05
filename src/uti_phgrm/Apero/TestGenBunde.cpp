@@ -134,7 +134,7 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
    mCS0     (mIma->mCam),
    mMatPert (3,3),
    mCSCur   (mAppli->CamPerturb(mCS0,mMatPert)),
-   mPolCam  (mCSCur,"Test","tutu",anAppli.mDeg,anAppli.mPerturbPol),
+   mPolCam  (0,mCSCur,"Test","tutu",anAppli.mDeg,anAppli.mPerturbPol),  // TAGGG
    mFPC     (*(mAppli->mSet),mPolCam,false,false,false),
    mNbMesPts (0.0),
    mSomPdsMes (0.0),
@@ -146,7 +146,7 @@ cCamTest_PBGC3M2DF::cCamTest_PBGC3M2DF(cImaMM & anIma,cTest_PBGC3M2DF& anAppli,i
          mNameSaveCS0 = mAppli->EASF().mICNM->Assoc1To1("NKS-Assoc-Im2UnCorMMOrient@-"+aDest,NameWithoutDir(mNameIm),true);
          MakeFileXML(mCSCur->StdExportCalibGlob(),mNameSaveCS0);
          
-	 cPolynomial_BGC3M2D aPol(mCSCur,mNameSaveCS0,mNameIm,mAppli->mDeg);
+	 cPolynomial_BGC3M2D aPol(0,mCSCur,mNameSaveCS0,mNameIm,mAppli->mDeg); // TAGG
          aPol.Save2XmlStdMMName(aDest);
      }
 }
@@ -604,7 +604,7 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
         
     }
 
-    cPolynomial_BGC3M2D aPol(mCamGen,mNameOutInit,mNameIm,mDegPol,0,mChSys);
+    cPolynomial_BGC3M2D aPol(mChSys,mCamGen,mNameOutInit,mNameIm,mDegPol,0); // TAGG
     aPol.Save2XmlStdMMName(mDest);
     
 }

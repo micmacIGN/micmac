@@ -1553,8 +1553,7 @@ Pt3dr cBasicGeomCap3D::ToSysSource(const Pt3dr &) const
      ???  => Initial RPC
 */
 
-// Fonction globale a remetre en cPolynomial_BGC3M2D::NewFromFile lorque (si ?)  la classe sera vue par tout le monde
-cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName);
+cBasicGeomCap3D * Polynomial_BGC3M2DNewFromFile (const std::string & aName);
 
 cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int & aIntType, const cSystemeCoord * aChSys)
 {
@@ -1587,7 +1586,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 
     if (ThePattGBMM.Match(aName))
     {
-        return cPolynomial_BGC3M2DNewFromFile(aName);
+        return Polynomial_BGC3M2DNewFromFile(aName);
     }
 
     if (ThePattSatelit.Match(aName))

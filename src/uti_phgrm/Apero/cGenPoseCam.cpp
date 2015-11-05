@@ -899,15 +899,15 @@ Pt2dr cPolynomial_BGC3M2D::DeltaCamInit2CurIm(const Pt2dr & aP0) const
 
 cPolynomial_BGC3M2D::cPolynomial_BGC3M2D
 (
+      const cSystemeCoord * aChSys,
       cBasicGeomCap3D * aCam0,
       const std::string & aName,
       const std::string & aNameIma,
       int aDegreeMax,
-      double aRandPerturb,
-      const cSystemeCoord * aChSys
+      double aRandPerturb
 ) :
     cBGC3_Modif2D (aCam0,aName,aNameIma),
-    mChSys        (*aChSys),
+    mPtrChSys     (aChSys),
     mDegreMax     (aDegreeMax),
     mCenter       (Pt2dr(mSz)/2.0),
     mAmpl         (euclid(mCenter)),
@@ -989,9 +989,9 @@ cXml_CamGenPolBundle cPolynomial_BGC3M2D::ToXml() const
     aRes.NameIma() = mNameIma;
     aRes.NameCamSsCor() = mNameFileCam0;
     
-    //if (mChSys)
+    if (mPtrChSys)
     {
-       aRes.SysCible()=mChSys;//.SetVal(*mChSys);
+       aRes.SysCible().SetVal(*mPtrChSys);
     }
 
     return aRes;
@@ -1023,9 +1023,9 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
             ELISE_fp::CpFile(mNameFileCam0,aNameSsCor);
      }
      aXml.NameCamSsCor() = aNameSsCor;
-     //if (mChSys)
+     if (mPtrChSys)
      {
-        aXml.SysCible()=mChSys;//.SetVal(*mChSys);
+        aXml.SysCible().SetVal(*mPtrChSys);
      }
 
      
@@ -1057,13 +1057,13 @@ cPolynomial_BGC3M2D * cPolynomial_BGC3M2D::NewFromFile(const std::string & aName
 {
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
    
-    cSystemeCoord * aChSys = aXML.SysCible().PtrVal();
+    const cSystemeCoord * aChSys = aXML.SysCible().PtrCopy(); // TAGG
 
     int aType = eTIGB_Unknown;
     cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),aType,aChSys);
 
 
-    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot(),0,aChSys);
+    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aChSys,aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot(),0); // TAGG
 
     aRes->SetMonom(aXML.CorX().Monomes(),aRes->mCx);
     aRes->SetMonom(aXML.CorY().Monomes(),aRes->mCy);
@@ -1074,7 +1074,7 @@ cPolynomial_BGC3M2D * cPolynomial_BGC3M2D::NewFromFile(const std::string & aName
     
 }
 
-cBasicGeomCap3D * cPolynomial_BGC3M2DNewFromFile (const std::string & aName)
+cBasicGeomCap3D * Polynomial_BGC3M2DNewFromFile (const std::string & aName)
 {
   return cPolynomial_BGC3M2D::NewFromFile(aName);
 }
@@ -1125,7 +1125,7 @@ void GenCodeEqProjGen(int aDeg,bool GenCode,bool GenCodeAttach,bool GenCodeRot)
     aCSI.SetSz(Pt2di(100,100));
 
 
-    cPolynomial_BGC3M2D aPolCSI(&aCSI,"Test","tutu",aDeg,0.0);
+    cPolynomial_BGC3M2D aPolCSI(0,&aCSI,"Test","tutu",aDeg,0.0); // TAGG
 
     new cPolynBGC3M2D_Formelle(*aSet,aPolCSI,GenCode,GenCodeAttach,GenCodeRot);
 }
