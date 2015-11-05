@@ -73,6 +73,7 @@ int CmpIm_main(int argc,char ** argv)
 
     if (!MMVisualMode)
     {
+        
         Tiff_Im aFile1 = Tiff_Im::BasicConvStd(aName1);
         Tiff_Im aFile2 = Tiff_Im::BasicConvStd(aName2);
 
@@ -91,6 +92,7 @@ int CmpIm_main(int argc,char ** argv)
         Fonc_Num aFonc2 = aMulIm2*aFile2.in_proj();
         if (aUseXmlFOM)
         {
+              
               cFileOriMnt anFOM1 = StdGetFromPCP(StdPrefix(aName1)+".xml",FileOriMnt);
               cFileOriMnt anFOM2 = StdGetFromPCP(StdPrefix(aName2)+".xml",FileOriMnt);
 
@@ -128,6 +130,8 @@ int CmpIm_main(int argc,char ** argv)
                sigma(aSom1)
             )
         );
+        
+        
         cXmlTNR_TestImgReport aImg;
         aImg.ImgName() = aName1;
 
@@ -163,24 +167,29 @@ int CmpIm_main(int argc,char ** argv)
            
            if(mXmlG!="")
            {
-
-			aImg.TestImgDiff() = false;
-			aImg.NbPxDiff() = aNbDif;
-            aImg.SumDiff() = aSomDif;
-            aImg.MoyDiff() = (aSomDif/aSom1);
-            Pt3dr Diff(aPtDifMax[0],aPtDifMax[1],aMaxDif);
-			aImg.DiffMaxi()= Diff;
+				
+				aImg.TestImgDiff() = false;
+				aImg.NbPxDiff() = aNbDif;
+				aImg.SumDiff() = aSomDif;
+				aImg.MoyDiff() = (aSomDif/aSom1);
+				Pt3dr Diff(aPtDifMax[0],aPtDifMax[1],aMaxDif);
+				aImg.DiffMaxi()= Diff;
 		   }
         }   
         else
         {
            std::cout << "FICHIERS IDENTIQUES SUR LEURS DOMAINES\n";
            aImg.TestImgDiff() = true;
-           return 0;
+           aImg.NbPxDiff() = aNbDif;
+		   aImg.SumDiff() = aSomDif;
+		   aImg.MoyDiff() = (aSomDif/aSom1);
+		   Pt3dr Diff(aPtDifMax[0],aPtDifMax[1],aMaxDif);
+		   aImg.DiffMaxi()= Diff;
         }
         MakeFileXML(aImg, mXmlG);
     }
-    else return EXIT_SUCCESS;
+    else{return EXIT_SUCCESS;}
+    return 0;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007
