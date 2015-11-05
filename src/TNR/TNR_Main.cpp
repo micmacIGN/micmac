@@ -73,7 +73,8 @@ class cAppli_TNR_Main  : public  cElErrorHandlor
         std::list<std::string>mLFileExe;
         std::list<std::string>mLFileRef;
         std::string mFullName;
-        std::string mOutXML;
+        std::string mOutReportXML;
+	std::string mOutErrorsXML;
         std::string mInRefDir;
         std::string mInExeDir;
 	cInterfChantierNameManipulateur*mICNMExe;
@@ -597,10 +598,10 @@ cAppli_TNR_Main::cAppli_TNR_Main(int argc,char ** argv)
 {
     TheCurElErrorHandlor = this;
     bool aShowArgs = false;
-    std::string mOutReportXML="";
-    std::string mOutErrorsXML="";
-    std::string mInRefDir="";
-    std::string mInExeDir="";
+    mOutReportXML="";
+    mOutErrorsXML="";
+    mInRefDir="";
+    mInExeDir="";
     ElInitArgMain
     (
 	argc,argv,
