@@ -721,6 +721,34 @@ std::string  Mangling( cRappelOnIntrinseque *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXmlSLM_RappelOnPt
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlSLM_RappelOnPt & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & NbPixInc();
+        const cTplValGesInit< double > & NbPixInc()const ;
+
+        cTplValGesInit< double > & BsHMin();
+        const cTplValGesInit< double > & BsHMin()const ;
+    private:
+        cTplValGesInit< double > mNbPixInc;
+        cTplValGesInit< double > mBsHMin;
+};
+cElXMLTree * ToXMLTree(const cXmlSLM_RappelOnPt &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlSLM_RappelOnPt &);
+
+void  BinaryUnDumpFromFile(cXmlSLM_RappelOnPt &,ELISE_fp &);
+
+std::string  Mangling( cXmlSLM_RappelOnPt *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSectionLevenbergMarkard
 {
     public:
@@ -737,10 +765,20 @@ class cSectionLevenbergMarkard
 
         std::list< cRappelOnIntrinseque > & RappelOnIntrinseque();
         const std::list< cRappelOnIntrinseque > & RappelOnIntrinseque()const ;
+
+        cTplValGesInit< double > & NbPixInc();
+        const cTplValGesInit< double > & NbPixInc()const ;
+
+        cTplValGesInit< double > & BsHMin();
+        const cTplValGesInit< double > & BsHMin()const ;
+
+        cTplValGesInit< cXmlSLM_RappelOnPt > & XmlSLM_RappelOnPt();
+        const cTplValGesInit< cXmlSLM_RappelOnPt > & XmlSLM_RappelOnPt()const ;
     private:
         std::list< cRappelOnAngles > mRappelOnAngles;
         std::list< cRappelOnCentres > mRappelOnCentres;
         std::list< cRappelOnIntrinseque > mRappelOnIntrinseque;
+        cTplValGesInit< cXmlSLM_RappelOnPt > mXmlSLM_RappelOnPt;
 };
 cElXMLTree * ToXMLTree(const cSectionLevenbergMarkard &);
 

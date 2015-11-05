@@ -632,6 +632,9 @@ class cParamPtProj
 
        cParamPtProj(double SeuilBH,double aLimBsHRefut,bool Debug,double aSeuilOkBehind);
 
+       double mResolMoy;
+       double mSomPds;
+       bool   mHasResolMoy;
        double mBsH;
        double mEc2;
        bool   mDebug;
@@ -774,6 +777,8 @@ class cManipPt3TerInc
 	cResiduP3Inc                     mResidus;
         cSubstitueBlocIncTmp             mSubst;
         bool                             mTerIsInit;
+        bool                             mResolMoyIsInit;
+        double                           mResolMoy;
         cParamPtProj                     mPPP;
         double                           mMulGlobPds;
 };
