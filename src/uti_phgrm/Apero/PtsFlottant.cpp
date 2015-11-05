@@ -270,6 +270,7 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
 */
    const cResiduP3Inc &  aRes = mMP3TI->UsePointLiaisonGen
                                 (
+                                   mAppli.ArgUPL(),
                                    -1,
                                    -1,
 				   0.0,  // Pds Pl

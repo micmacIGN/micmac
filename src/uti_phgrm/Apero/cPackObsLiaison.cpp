@@ -336,7 +336,7 @@ double  cObservLiaison_1Cple::AddObs
 
 
           //const std::vector<Pt2dr> & aPTers = mPLiaisTer->ResiduPointLiaison(*itL,&aPInter);
-	  const cResiduP3Inc & aRes = mPLiaisTer->UsePointLiaison(-1,-1,0.0,*itL,aVPds,false);
+	  const cResiduP3Inc & aRes = mPLiaisTer->UsePointLiaison(cArg_UPL(0),-1,-1,0.0,*itL,aVPds,false);
           double aResidu = (square_euclid(aRes.mEcIm[0])+square_euclid(aRes.mEcIm[1]));
 
 	  ElSetMax(mEcMax,sqrt(aResidu));
@@ -351,7 +351,7 @@ double  cObservLiaison_1Cple::AddObs
              aPdsSurf = aPdrtSurf.PdsOfError(ElAbs(aRes.mEcSurf)) *aNb;
 	  }
 	  aSomPdsSurf += aPdsSurf;
-          mPLiaisTer->UsePointLiaison(-1,-1,aPdsSurf,*itL,aVPds,true);
+          mPLiaisTer->UsePointLiaison(cArg_UPL(0),-1,-1,aPdsSurf,*itL,aVPds,true);
 	  aSEr2 += aResidu * aNb;
           aS1 += aNb;
 
@@ -398,7 +398,7 @@ void cObservLiaison_1Cple::ImageResidu(cAgglomRRL & anAgl)
    )
    {
       std::vector<double> aVP;
-      const std::vector<Pt2dr> & aPTers = mPLiaisTer->UsePointLiaison(-1,-1,0.0,*itL,aVP,false).mEcIm;
+      const std::vector<Pt2dr> & aPTers = mPLiaisTer->UsePointLiaison(cArg_UPL(0),-1,-1,0.0,*itL,aVP,false).mEcIm;
       double aR1 =0;
       double aR2 = 0;
       if (! isSigne)

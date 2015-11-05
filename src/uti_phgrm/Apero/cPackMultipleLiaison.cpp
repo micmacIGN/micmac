@@ -466,7 +466,7 @@ const cResiduP3Inc * cOnePtsMult::ComputeInter
      int aNbRInit= InitPdsPMul(1.0,aVPds);
      if (aNbRInit>=2)
      {
-         const cResiduP3Inc  & aRes =  (mOCM->LiaisTer()->UsePointLiaison(-1,-1,0.0,mNPts,aVPds,false));
+         const cResiduP3Inc  & aRes =  (mOCM->LiaisTer()->UsePointLiaison(cArg_UPL(0),-1,-1,0.0,mNPts,aVPds,false));
 
          if (! aRes.mOKRP3I)
             return 0;
@@ -1172,7 +1172,7 @@ double cObsLiaisonMultiple::AddObsLM
              static int aCpt=0; aCpt++;
              aNbMult += (aNbRInit>=3);
              const cRapOnZ * aRAZ = aPM->OnPRaz()? aRAZGlob : 0;
-             const cResiduP3Inc & aRes = aCOM->LiaisTer()->UsePointLiaison(aLimBsHP,aLimBsHRefut,0.0,aNupl,aVpds,false,aRAZ);
+             const cResiduP3Inc & aRes = aCOM->LiaisTer()->UsePointLiaison(mAppli.ArgUPL(),aLimBsHP,aLimBsHRefut,0.0,aNupl,aVpds,false,aRAZ);
 
 
              if (aRes.mOKRP3I)
@@ -1378,7 +1378,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
 
                      aCOM->LiaisTer()->SetTerrainInit(true);
                      aCOM->LiaisTer()->SetMulPdsGlob(aPdsIm);
-	             const cResiduP3Inc & aRes2 = aCOM->LiaisTer()->UsePointLiaison(aLimBsHP,aLimBsHRefut,aPdsSurf,aNupl,aVpds,aSO.AddEq(),aRAZ);
+	             const cResiduP3Inc & aRes2 = aCOM->LiaisTer()->UsePointLiaison(mAppli.ArgUPL(),aLimBsHP,aLimBsHRefut,aPdsSurf,aNupl,aVpds,aSO.AddEq(),aRAZ);
                      aCOM->LiaisTer()->SetMulPdsGlob(1.0);
                      aCOM->LiaisTer()->SetTerrainInit(false);  // Conservatif
 
@@ -1415,7 +1415,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                     std::vector<double>  aDupV  = aVpds;
                     aDupV[0] = 0;
                     aCOM->LiaisTer()->SetMulPdsGlob(aPdsIm);
-                    const cResiduP3Inc & aRes2 = aCOM->LiaisTer()->UsePointLiaison(aLimBsHP,aLimBsHRefut,0.0,aNupl,aDupV,false,aRAZ);
+                    const cResiduP3Inc & aRes2 = aCOM->LiaisTer()->UsePointLiaison(mAppli.ArgUPL(),aLimBsHP,aLimBsHRefut,0.0,aNupl,aDupV,false,aRAZ);
                     aCOM->LiaisTer()->SetMulPdsGlob(1.0);
                     if (aRes2.mOKRP3I)
                     {
@@ -2188,7 +2188,7 @@ double cObsLiaisonMultiple::BasicAddObsLM
         {
              aPM->InitPdsPMul(aPds*aPMem,aVpds);
 
-	     const cResiduP3Inc & aRes2 =  aCOM->LiaisTer()->UsePointLiaison(aLimBsHP,aLimBsHRefut,0,aNupl,aVpds,aSO.AddEq(),aRAZ);
+	     const cResiduP3Inc & aRes2 =  aCOM->LiaisTer()->UsePointLiaison(mAppli.ArgUPL(),aLimBsHP,aLimBsHRefut,0,aNupl,aVpds,aSO.AddEq(),aRAZ);
              if (aRes2.mOKRP3I)
              {
                 aSO.AddSEP(aRes2.mSomPondEr);

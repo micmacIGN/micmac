@@ -884,6 +884,17 @@ const std::string & cAppliApero::SymbPack0() const
   return mSymbPack0;
 }
 
+const cXmlSLM_RappelOnPt *   cAppliApero::XmlSMLRop()
+{
+    return mXmlSMLRop;
+}
+
+cArg_UPL     cAppliApero::ArgUPL()
+{
+   return cArg_UPL(mXmlSMLRop);
+}
+
+
 
 void cAppliApero::CheckInit(const cLiaisonsInit * aLI,cPoseCam * aPC)
 {
