@@ -78,6 +78,27 @@ int TestRegEx_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+/******************************************************/
+
+
+class cTestElParseDir : public ElActionParseDir
+{
+    public :
+        void act(const ElResParseDir & aRPD) 
+        {
+            std::cout << aRPD.name() << "\n";
+        }
+};
+
+int TestElParseDir_main(int argc,char ** argv)
+{
+     cTestElParseDir aTPD;
+     ElParseDir("/home/marc/TMP/EPI/Croco/",aTPD,1000);
+
+     return EXIT_SUCCESS;
+}
+
+
 /* Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant Ã  la mise en
