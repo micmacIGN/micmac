@@ -184,9 +184,9 @@ void cGLData::setOptionPolygons(cParameters aParams)
 
 #ifdef USE_MIPMAP_HANDLER
 	cGLData::cGLData( int aId, cData *data, cParameters aParams, int appMode, MaskedImage aSrcImage ):
-		_glMaskedImage(aSrcImage.first, aSrcImage.second),
 		mId(aId),
 		mIsLoaded(false),
+		_glMaskedImage(aSrcImage.first, aSrcImage.second),
 		_bbox_center(QVector3D(0.,0.,0.)),
 		_clouds_center(QVector3D(0.,0.,0.)),
 		_appMode(appMode),
@@ -718,7 +718,8 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 		QPainter    p;
 
 		MipmapHandler::Mipmap &mask = getMask();
-		QImage qimage((int)mask.mWidth, (int)mask.mHeight), QImage::Format_RGB888);
+		QImage qimage((int)mask.mWidth, (int)mask.mHeight, QImage::Format_RGB888);
+		QRect rect = qimage.rect();
 		unsigned int padding = (unsigned int)(qimage.bytesPerLine() / (qimage.width() * 3));
 		gray8_to_rgb888(mask.mData, mask.mWidth, mask.mHeight, qimage.bits(), padding);
 		p.begin(&qimage);

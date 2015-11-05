@@ -711,9 +711,6 @@ public:
 
     void  createFullImageTexture();
 
-    QMaskedImage* getMaskedImage() { return _qMaskedImage; }
-    void          setMaskedImage(QMaskedImage * aMaskedImage) { _qMaskedImage = aMaskedImage; }
-
     cImageGL*   glImage()  { return _m_image; }
     cImageGL*   glMask()   { return _m_mask;  }
 
@@ -745,6 +742,9 @@ public:
 		}
 
 		void removeSrcMask() { mSrcMask = NULL; }
+	#else
+		QMaskedImage* getMaskedImage() { return _qMaskedImage; }
+		void          setMaskedImage(QMaskedImage * aMaskedImage) { _qMaskedImage = aMaskedImage; }
 	#endif
 private:
 	#ifdef USE_MIPMAP_HANDLER

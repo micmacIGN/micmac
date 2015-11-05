@@ -79,7 +79,7 @@ void cData::clearCameras()
 #ifdef USE_MIPMAP_HANDLER
 	void cData::clearImages()
 	{
-		maskedImages.clear();
+		_maskedImages.clear();
 		reset();
 	}
 #else
@@ -140,7 +140,9 @@ void cData::clear(int aK)
         }
     }
 
-    if (aK >= 0 && aK < _MaskedImages.size()) delete _MaskedImages[aK];
+	#ifndef USE_MIPMAP_HANDLER
+		if (aK >= 0 && aK < _MaskedImages.size()) delete _MaskedImages[aK];
+	#endif
 }
 
 int cData::idPolygon(cPolygon *polygon)

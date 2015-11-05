@@ -5,6 +5,10 @@
 
 class GlCloud;
 
+#ifdef USE_MIPMAP_HANDLER
+	typedef std::pair<MipmapHandler::Mipmap *, MipmapHandler::Mipmap *> MaskedImage;
+#endif
+
 class cData
 {
     public:
