@@ -56,12 +56,15 @@ cRPC_PushB_PhysMod::cRPC_PushB_PhysMod(const RPC & aRPC,eModeRefinePB aModeRefin
    cPushB_PhysMod  (Pt2di(aRPC.last_col,aRPC.last_row),aModeRefine,aSzGeoL),
    mRPC            (aRPC),
    mWGS84Degr      (cSysCoord::WGS84Degre()),
-   mZ0Ray          (barry(0.5+ThePdsRay,mRPC.height_scale,mRPC.height_off)),
-   mZ1Ray          (barry(0.5-ThePdsRay,mRPC.height_scale,mRPC.height_off))
+   mZ0Ray          (barry(0.5+ThePdsRay,mRPC.first_height,mRPC.last_height)),
+   mZ1Ray          (barry(0.5-ThePdsRay,mRPC.first_height,mRPC.last_height))
+   //mZ0Ray          (barry(0.5+ThePdsRay,mRPC.height_scale,mRPC.height_off)),
+   //mZ1Ray          (barry(0.5-ThePdsRay,mRPC.height_scale,mRPC.height_off))
 {
 
    // MPD 
    // Probably something go wrong in altitude interval
+   // ERupnik changed; see initialization
    if (ElAbs(mZ0Ray-mZ1Ray) < TheMinDeltaZ)
    {
         double aZMean = (mZ0Ray+mZ1Ray) /2.0;
