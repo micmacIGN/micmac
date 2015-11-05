@@ -178,7 +178,7 @@ std::cout << "HHHHHH  " << i   << " "
           << direct_line_num_coef.size() <<   " " 
           << direct_line_den_coef.size() <<   " " 
           << "\n";
-*//
+*/
 		long_num += vecteurD[i] * direct_samp_num_coef[i];
 		long_den += vecteurD[i] * direct_samp_den_coef[i];
         lat_num += vecteurD[i] * direct_line_num_coef[i];
