@@ -810,9 +810,9 @@ bool  cBGC3_Modif2D::CaptHasData(const Pt2dr &aP) const
     return  mCam0->CaptHasData(CurIm2CamInit(aP));
 }
 
-bool      cBGC3_Modif2D::PIsVisibleInImage(const Pt3dr & aP) const
+bool      cBGC3_Modif2D::PIsVisibleInImage(const Pt3dr & aP,const cArgOptionalPIsVisibleInImage  * anArg) const
 {
-    return mCam0->PIsVisibleInImage(aP);
+    return mCam0->PIsVisibleInImage(aP,anArg);
 }
 
 bool      cBGC3_Modif2D::HasOpticalCenterOfPixel() const
@@ -913,6 +913,7 @@ cPolynomial_BGC3M2D::cPolynomial_BGC3M2D
     mAmpl         (euclid(mCenter)),
     mCurPPow      (0.0,0.0)
 {
+
      int aCpt=0;
      for (int  aDegreeTot=0 ; aDegreeTot<=aDegreeMax ; aDegreeTot++)
      {
@@ -988,7 +989,10 @@ cXml_CamGenPolBundle cPolynomial_BGC3M2D::ToXml() const
     aRes.NameIma() = mNameIma;
     aRes.NameCamSsCor() = mNameFileCam0;
     
-    aRes.SysCible() = mChSys;
+    //if (mChSys)
+    {
+       aRes.SysCible()=mChSys;//.SetVal(*mChSys);
+    }
 
     return aRes;
 }
@@ -1019,7 +1023,10 @@ void cPolynomial_BGC3M2D::Save2XmlStdMMName(const std::string & aDirLoc) const
             ELISE_fp::CpFile(mNameFileCam0,aNameSsCor);
      }
      aXml.NameCamSsCor() = aNameSsCor;
-     aXml.SysCible() = mChSys;
+     //if (mChSys)
+     {
+        aXml.SysCible()=mChSys;//.SetVal(*mChSys);
+     }
 
      
      MakeFileXML(aXml,aNameXml);
@@ -1050,16 +1057,17 @@ cPolynomial_BGC3M2D * cPolynomial_BGC3M2D::NewFromFile(const std::string & aName
 {
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
    
-    cSystemeCoord aChSys = aXML.SysCible();
+    cSystemeCoord * aChSys = aXML.SysCible().PtrVal();
 
     int aType = eTIGB_Unknown;
-    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),aType,&aChSys);
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aXML.NameCamSsCor(),aType,aChSys);
 
 
-    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot(),0,&aChSys);
+    cPolynomial_BGC3M2D * aRes = new cPolynomial_BGC3M2D(aCamSsCor,aXML.NameCamSsCor(),aXML.NameIma(),aXML.DegreTot(),0,aChSys);
 
     aRes->SetMonom(aXML.CorX().Monomes(),aRes->mCx);
     aRes->SetMonom(aXML.CorY().Monomes(),aRes->mCy);
+
 
 
     return aRes;

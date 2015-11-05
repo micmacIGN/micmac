@@ -194,6 +194,8 @@ public :
 
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
+extern int TestRegEx_main(int , char **);
+extern int TestElParseDir_main(int , char **);
 extern int Kugelhupf_main(int , char **);
 extern int FFTKugelhupf_main(int , char **);
 extern int SimplePredict_main(int , char **);
@@ -222,13 +224,15 @@ int TiePAll_main(int argc,char ** argv);
 int  OneReechFid_main(int argc,char ** argv);
 
 int TNR_main(int argc,char ** argv);
+int  Apero2NVM_main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("TNR",TNR_main,"Test Non Regression"));
+       aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePAll",TiePAll_main," matches points of interest of two images"));
@@ -249,6 +253,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("CmpOri",CPP_CmpOriCam_main," Compare two sets of orientation"));
        aRes.push_back(cMMCom("ConvertCalib",ConvertCalib_main," Conversion of calibration from one model 2 the other"));
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
+       aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
        aRes.push_back(cMMCom("FFTKugelhupf",FFTKugelhupf_main," Version of Kugelhupf using FFT, expecetd faster when it works (if ever ...)"));
        aRes.push_back(cMMCom("SimplePredict",SimplePredict_main," Project ground points on oriented cameras"));
@@ -272,6 +277,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
        aRes.push_back(cMMCom("OriExport",OriExport_main," Export orientation from XML to XML or TXT with specified convention",cArgLogCom(3)));
+       aRes.push_back(cMMCom("Apero2NVM",Apero2NVM_main,"Matthieu Moneyrond's convertor to VSfM, MVE, SURE, MeshRecon ",cArgLogCom(3)));
        aRes.push_back(cMMCom("XifGps2Xml",XifGps2Xml_main," Create MicMac-Xml struct from GPS embedded in EXIF",cArgLogCom(2)));
 
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
@@ -513,6 +519,8 @@ int ExoMCI_main(int argc, char** argv);
 int PseudoIntersect_main(int argc, char** argv);
 int ExoCorrelEpip_main(int argc,char ** argv);
 int ScaleModel_main(int argc, char ** argv);
+int PLY2XYZ_main(int argc,char ** argv);
+int ExportXmlGcp2Txt_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
 int  NLD_main(int argc,char ** argv);
@@ -546,12 +554,15 @@ int SysCalled_main (int argc,char** argv);
 int SysCall_main (int argc,char** argv);
 
 
+int TestARCam_main(int argc,char ** argv);
+int CPP_TestPhysMod_Main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
 
+   aRes.push_back(cMMCom("TestARCam",TestARCam_main,"Some consitency check on camera "));
    aRes.push_back(cMMCom("SysCall",SysCall_main,"Some stuff "));
    aRes.push_back(cMMCom("SysCalled",SysCalled_main,"Some stuff "));
 
@@ -599,10 +610,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("TDEpi",TDEpip_main,"Test epipolar matcher  "));
    
    aRes.push_back(cMMCom("PseudoIntersect",PseudoIntersect_main,"Pseudo Intersection of 2d points from N images"));
-
    aRes.push_back(cMMCom("Export2Ply",Export2Ply_main,"Tool to generate a ply file from TEXT or XML file, tuning"));
-
    aRes.push_back(cMMCom("ScaleModel",ScaleModel_main," Tool for simple scaling a model",cArgLogCom(2)));
+   aRes.push_back(cMMCom("Ply2Xyz",PLY2XYZ_main," Tool to export in TxT file XYZ columns only from a .ply file",cArgLogCom(2)));
+   aRes.push_back(cMMCom("ExportXmlGcp2Txt",ExportXmlGcp2Txt_main," Tool to export xml GCPs file to Txt file"));
+   
 
 
    aRes.push_back(cMMCom("RHH",RHH_main,"In dev estimation of global 2D homography  "));
@@ -665,7 +677,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
     aRes.push_back(cMMCom("TestBundleGen",CPP_TestBundleGen,"Unitary test for new bundle gen"));
 
+    aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
+    aRes.push_back(cMMCom("TestParseDir",TestElParseDir_main," Test Parse Dir"));
 
     cCmpMMCom CmpMMCom;
     std::sort(aRes.begin(),aRes.end(),CmpMMCom);
@@ -675,12 +689,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
 int SampleLibElise_main(int argc, char ** argv)
 {
-
-    // std::cout << "TEST ELISE LIB\n";
-
     return GenMain(argc, argv, TestLibAvailableCommands());
-
-
 }
 
 //SateLib declarations
@@ -741,7 +750,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
        {
             std::cout  << " " << aVComs[aKC].mName << "\t" << aVComs[aKC].mComment << "\n";
        }
-       return 0;
+       return EXIT_SUCCESS;
    }
 
    if ((argc>=2) && (argv[1][0] == 'v') && (argv[1]!=std::string("vic")))
@@ -812,6 +821,11 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           delete PatMach;
           delete PrefMach;
           delete SubMach;
+
+          if (Chol16Byte)
+          {
+               std::cout << "WARN : 16 BYTE ACCURACY FOR LEAST SQUARE\n";
+          }
           return aRes;
        }
        for (int aKS=0 ; aKS<int(mSugg.size()) ; aKS++)
@@ -833,7 +847,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
            delete PatMach;
            delete PrefMach;
            delete SubMach;
-           return -1;
+           return EXIT_FAILURE;
        }
    }
 
@@ -845,7 +859,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
    delete PatMach;
    delete PrefMach;
    delete SubMach;
-   return -1;
+   return  EXIT_FAILURE;
 }
 
 

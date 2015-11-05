@@ -1459,7 +1459,7 @@
 <Xml_CamGenPolBundle Nb="1" Class="true" ToReference="true">
     <NameCamSsCor  Type="std::string" Nb="1" > </NameCamSsCor>
     <NameIma  Type="std::string" Nb="1" > </NameIma>
-    <SysCible Nb="1" RefType="SystemeCoord" RefFile="ParamChantierPhotogram.xml"> </SysCible> 
+    <SysCible Nb="?" RefType="SystemeCoord" RefFile="ParamChantierPhotogram.xml"> </SysCible> 
     <DegreTot Type="int" Nb="1"> </DegreTot>
     <Center Nb="1" Type="Pt2dr"> </Center>
     <Ampl Nb="1" Type="double"> </Ampl>
@@ -1469,31 +1469,147 @@
 
 
 
-<!--  Test de non regression -->
+<!--  Test de non regression/Tests -->
 
 <XmlTNR_TestExistFile Nb="1" Class="true" ToReference="true">
      <NameFile Nb="1" Type="std::string"> </NameFile>
-     <TestSize Nb="?" Type="int">         </TestSize>
+     <!--<TestFileSize Nb="1" Type="int">         </TestFileSize>-->
 </XmlTNR_TestExistFile>
+
+
+<XmlTNR_TestExistDir Nb="1" Class="true" ToReference="true">
+     <NameDir Nb="1" Type="std::string"> </NameDir>
+     <!--<TestDirSize Nb="1" Type="int">         </TestDirSize>-->
+</XmlTNR_TestExistDir>
+
+
+<XmlTNR_TestDiffCalib Nb="1" Class="true" ToReference="true">
+     <NameTestCalib Nb="1" Type="std::string"> </NameTestCalib>
+</XmlTNR_TestDiffCalib>
+
+
+<XmlTNR_TestDiffOri Nb="1" Class="true" ToReference="true">
+     <NameTestOri Nb="1" Type="std::string"> </NameTestOri>
+     <PatternTestOri Nb="1" Type="std::string"> </PatternTestOri>
+</XmlTNR_TestDiffOri>
+
+
+<XmlTNR_TestDiffImg Nb="1" Class="true" ToReference="true">
+     <NameTestImg Nb="1" Type="std::string"> </NameTestImg>
+</XmlTNR_TestDiffImg>
+
 
 <XmlTNR_OneTest Nb="1" Class="true" ToReference="true">
      <Cmd  Nb="1" Type="std::string"> </Cmd>
      <TestReturnValue Nb="?" Type="bool" Def="true"> </TestReturnValue>
 
      <TestFiles Nb="*" RefType="XmlTNR_TestExistFile"> </TestFiles>
+     <TestDir Nb="*" RefType="XmlTNR_TestExistDir"> </TestDir>
+     <TestCalib Nb="*" RefType="XmlTNR_TestDiffCalib"> </TestCalib>
+     <TestOri Nb="*" RefType="XmlTNR_TestDiffOri"> </TestOri>
+     <TestImg Nb="*" RefType="XmlTNR_TestDiffImg"> </TestImg>
 </XmlTNR_OneTest>
 
 
 <XmlTNR_GlobTest  Nb="1" Class="true" ToReference="true">
      <Tests RefType="XmlTNR_OneTest" Nb="*">   </Tests>
-     <Name  Type="std::string"  Nb="1">        </Name>   <!-- Non du Test , par ex Fontaine, Chambord ...; -->
+     <Name  Type="std::string"  Nb="1">        </Name>   <!-- Nom du Test , par ex Fontaine, Chambord ...; -->
      <PatFileInit  Type="std::string"  Nb="*"> </PatFileInit>  <!-- Fichiers a recopier, ce sont des pattern -->
      <DirInit  Type="std::string"  Nb="*"> </DirInit>          <!-- dossier a recopier recursivement, ce sont les directory elle meme -->
 
-     <PurgeExe Nb="?" Type="bool" Def="true"> </PurgeExe>  <!-- Si false  ne purge pas les TNR-Exe -->
+     <PurgeExe Nb="1" Type="bool"> </PurgeExe>  <!-- Si false  ne purge pas les TNR-Exe -->
 </XmlTNR_GlobTest>
 
+<!--  Test de non regression/Report -->
+<!--  Test de fichier -->
 
+<!--  test de directory -->
+<XmlTNR_GlobTestReport Nb="*" Class="true">
+	<Bilan Nb="1" Type="bool"></Bilan>
+	<NbTest Nb="1" Type="int"></NbTest>
+	<NbTestOk Nb="1" Type="int"></NbTestOk>
+	<XmlTNR_OneTestReport Nb="*">
+		<TestOK Nb="1" Type="bool"></TestOK>
+		<XmlTNR_TestCmdReport Nb="*">
+			<CmdName Nb="1" Type="std::string"> </CmdName>
+			<TestCmd Nb="1" Type="bool"> </TestCmd>
+		</XmlTNR_TestCmdReport>
+		<XmlTNR_TestFileReport Nb="*">
+			<FileName Nb="1" Type="std::string"> </FileName>
+			<TestFileDiff Nb="1" Type="bool"> </TestFileDiff>
+			<TestExeFile Nb="1" Type="bool"> </TestExeFile>
+			<TestRefFile Nb="1" Type="bool"> </TestRefFile>
+			<ExeFileSize Nb="1" Type="int"> </ExeFileSize>
+			<RefFileSize Nb="1" Type="int"> </RefFileSize>
+		</XmlTNR_TestFileReport>
+		<XmlTNR_TestDirReport Nb="*">
+			<DirName Nb="1" Type="std::string"> </DirName>
+			<TestDirDiff Nb="1" Type="bool"> </TestDirDiff>
+			<TestExeDir Nb="1" Type="bool"> </TestExeDir>
+			<TestRefDir Nb="1" Type="bool"> </TestRefDir>
+			<ExeDirSize Nb="1" Type="int"> </ExeDirSize>
+			<RefDirSize Nb="1" Type="int"> </RefDirSize>
+			<MissingRefFile Nb="*" Type="string"></MissingRefFile>
+			<MissingExeFile Nb="*" Type="string"></MissingExeFile>
+			<FileDiff Nb="*">
+				<Name Nb="1" Type="string"></Name>
+				<DiffSize Nb="1" Type="int"></DiffSize>
+			</FileDiff>
+		</XmlTNR_TestDirReport>
+		<XmlTNR_CalibReport Nb="*">
+			<CalibName Nb="1" Type="std::string"> </CalibName>
+			<TestCalibDiff Nb="1" Type="bool"> </TestCalibDiff>
+			<EcartsRadiaux Nb="*" Type="Pt2dr"></EcartsRadiaux>
+			<rEcartsPlani Nb="*">
+				<CoordPx Nb="1" Type="Pt2dr"></CoordPx>
+				<UxUyE Nb="1" Type="Pt3dr"></UxUyE>
+			</rEcartsPlani>
+		</XmlTNR_CalibReport>
+		<XmlTNR_OriReport Nb="*">
+			<OriName Nb="1" Type="std::string"> </OriName>
+			<TestOriDiff Nb="1" Type="bool"> </TestOriDiff>
+			<DistCenter Nb="1" Type="double"> </DistCenter>
+			<DistMatrix Nb="1" Type="double"> </DistMatrix>     
+		</XmlTNR_OriReport>
+		<XmlTNR_ImgReport Nb="*">
+			<ImgName Nb="1" Type="std::string"> </ImgName>
+			<TestImgDiff Nb="1" Type="bool"> </TestImgDiff>
+			<NbPxDiff Nb="1" Type="double"> </NbPxDiff>
+			<SumDiff Nb="1" Type="double"> </SumDiff>
+			<MoyDiff Nb="1" Type="double"> </MoyDiff>
+			<DiffMaxi Nb="1" Type="Pt3dr"> </DiffMaxi>     
+		</XmlTNR_ImgReport>
+	</XmlTNR_OneTestReport>
+</XmlTNR_GlobTestReport>
+
+<!--  test de calibration -->
+<XmlTNR_TestCalibReport Nb="1" Class="true" ToReference="true">
+     <CalibName Nb="1" Type="std::string"> </CalibName>
+     <TestCalibDiff Nb="1" Type="bool"> </TestCalibDiff>
+     <EcartsRadiaux Nb="*" Type="Pt2dr"></EcartsRadiaux>
+     <EcartsPlani Nb="*">
+		 <CoordPx Nb="1" Type="Pt2dr"></CoordPx>
+		 <UxUyE Nb="1" Type="Pt3dr"></UxUyE>
+     </EcartsPlani>
+</XmlTNR_TestCalibReport>
+
+<!--  test d'orientation -->
+<XmlTNR_TestOriReport Nb="1" Class="true" ToReference="true">
+     <OriName Nb="1" Type="std::string"> </OriName>
+     <TestOriDiff Nb="1" Type="bool"> </TestOriDiff>
+     <DistCenter Nb="1" Type="double"> </DistCenter>
+     <DistMatrix Nb="1" Type="double"> </DistMatrix>     
+</XmlTNR_TestOriReport>
+
+<!--  test d'image -->
+<XmlTNR_TestImgReport Nb="1" Class="true" ToReference="true">
+     <ImgName Nb="1" Type="std::string"> </ImgName>
+     <TestImgDiff Nb="1" Type="bool"> </TestImgDiff>
+     <NbPxDiff Nb="1" Type="double"> </NbPxDiff>
+     <SumDiff Nb="1" Type="double"> </SumDiff>
+     <MoyDiff Nb="1" Type="double"> </MoyDiff>
+     <DiffMaxi Nb="1" Type="Pt3dr"> </DiffMaxi>
+</XmlTNR_TestImgReport>
 
 
 

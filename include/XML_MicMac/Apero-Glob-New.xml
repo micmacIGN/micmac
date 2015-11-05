@@ -64,6 +64,8 @@
                <Symb>  LibCD=XXXX    </Symb>
                <Symb>  LibDec=XXXX    </Symb>
 
+               <Symb>  EcartMaxInit=100.0 </Symb>
+               <Symb>  SigmaPondInit=5.0 </Symb>
                <Symb>  EcartMaxFin=5.0    </Symb>
                <Symb>  DoSauvAutom=true    </Symb>
     
@@ -94,6 +96,7 @@
                <eSymb> IntrLVM1000=* 1000 ${IntrLVM} </eSymb>
                <eSymb>  AffineAll=! ${Fast}  </eSymb>
                <eSymb>  NbMax0=? ${Fast} 3 10  </eSymb>
+
 
        </DicoLoc>
 
@@ -317,9 +320,9 @@
                                  <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
                                  <Show> eNSM_Paquet     </Show>
                                  <NbMax>   100    </NbMax>
-                                  <EcartMax> 100 </EcartMax>
-                                  <SigmaPond> 5 </SigmaPond>
-                                  <ModePonderation> eL1Secured </ModePonderation>
+                                     <EcartMax> ${EcartMaxInit} </EcartMax>
+                                     <SigmaPond> ${SigmaPondInit} </SigmaPond>
+                                     <ModePonderation> eL1Secured </ModePonderation>
                               </Pond>
                            </ObsLiaisons>
 		    </SectionObservations>

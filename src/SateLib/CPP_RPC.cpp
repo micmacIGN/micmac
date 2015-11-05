@@ -160,7 +160,7 @@ Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     {
     double X = PimgNorm.x, Y = PimgNorm.y, Z = PimgNorm.z;
 	double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
-	//double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };\\Mistake in pleiades doc section C.3.1
+	//double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };\\From pleiades doc section C.3.1 - incorrect
 
     double long_den = 0.;
     double long_num = 0.;
@@ -879,7 +879,7 @@ void RPC::ReconstructValidity()
     ReconstructValidity3D();
 }
 
-void RPC::SetNewLongLatHScaleOffset(double& aLongMin,
+/*void RPC::SetNewLongLatHScaleOffset(double& aLongMin,
                          double& aLongMax,
                          double& aLatMin,
                          double& aLatMax,
@@ -887,11 +887,11 @@ void RPC::SetNewLongLatHScaleOffset(double& aLongMin,
                          double& aHMax)
 {
     SetNewScaleOffset(aLongMin,aLongMax,aLatMin,aLatMax,aHMin,aHMax);
-    SetNewLongLatH(aLongMin,aLongMax,aLatMin,aLatMax,aHMin,aHMax);
+    SetNewFirstLastR3(aLongMin,aLongMax,aLatMin,aLatMax,aHMin,aHMax);
 
-}
+}*/
 
-void RPC::SetNewLongLatH(double& aLongMin,
+void RPC::SetNewFirstLastR3(double& aLongMin,
                          double& aLongMax,
                          double& aLatMin,
                          double& aLatMax,
@@ -906,23 +906,62 @@ void RPC::SetNewLongLatH(double& aLongMin,
     last_height = aHMax;
 }
 
-void RPC::SetNewScaleOffset(double& aLongMin,
-                            double& aLongMax,
-                            double& aLatMin,
-                            double& aLatMax,
-                            double& aHMin,
-                            double& aHMax)
+
+void RPC::SetNewScaleOffsetR3(const std::vector<Pt3dr> & aGrid)
 {
-    long_scale = (aLongMax - aLongMin)/2;
-    lat_scale = (aLatMax - aLatMin)/2;
-    height_scale = (aHMax - aHMin)/2;
-    
-    long_off = aLongMin + long_scale;
-    lat_off = aLatMin + lat_scale;
-    height_off = aHMin + height_scale;
+    Pt3dr aExtMin, aExtMax, aSumXYZ;
+   
+    GetGridExtent(aGrid,aExtMin,aExtMax,aSumXYZ);
+
+
+    long_off = double(aSumXYZ.x)/aGrid.size();
+    lat_off = double(aSumXYZ.y)/aGrid.size();
+    height_off = double(aSumXYZ.z)/aGrid.size();
+   
+    //prob no need for the cond
+    std::abs(aExtMax.x - long_off) > std::abs(aExtMin.x - long_off) ? 
+        long_scale = std::abs(aExtMax.x - long_off) : 
+        long_scale = std::abs(aExtMin.x - long_off);
+
+    std::abs(aExtMax.y - lat_off) > std::abs(aExtMin.y - lat_off) ?
+        lat_scale = std::abs(aExtMax.y - lat_off) :
+        lat_scale = std::abs(aExtMin.y - lat_off);
+
+    std::abs(aExtMax.z - height_off) > std::abs(aExtMin.z - height_off) ?
+        height_scale = std::abs(aExtMax.z - height_off) :
+        height_scale = std::abs(aExtMin.z - height_off);
+
+  
+
+    SetNewFirstLastR3(aExtMin.x,aExtMax.x,
+                      aExtMin.y,aExtMax.y,
+                      aExtMin.z,aExtMax.z);
 
 }
 
+void RPC::SetNewScaleOffsetR2(const std::vector<Pt3dr> & aGrid)
+{
+    Pt3dr aExtMin, aExtMax, aSumXYZ;
+   
+    GetGridExtent(aGrid,aExtMin,aExtMax,aSumXYZ);
+
+
+    samp_off = double(aSumXYZ.x)/aGrid.size();
+    line_off = double(aSumXYZ.y)/aGrid.size();
+    
+    //prob no need for the cond
+    std::abs(aExtMax.x - samp_off) > std::abs(aExtMin.x - samp_off) ? 
+        samp_scale = std::abs(aExtMax.x - samp_off) : 
+        samp_scale = std::abs(aExtMin.x - samp_off);
+
+    std::abs(aExtMax.y - line_off) > std::abs(aExtMin.y - line_off) ?
+        line_scale = std::abs(aExtMax.y - line_off) :
+        line_scale = std::abs(aExtMin.y - line_off);
+
+
+}
+
+    
 void RPC::ReconstructValidity2D()
 {
    first_row = -1 * line_scale + line_off;
@@ -990,9 +1029,12 @@ void RPC::ComputeNormFactors(double aHMin, double aHMax)
 
 		//convert to geodetic
 		//WGS84 ellipsoid
-		double a = 6378137;
-		double b = (1 - 1 / 298.257223563)*a;
-		double e2 = 1 - (b * b) / (a * a);
+		//unused variable
+        //double a = 6378137;
+		//unused variable
+        //double b = (1 - 1 / 298.257223563)*a;
+		//unused variable
+        //double e2 = 1 - (b * b) / (a * a);
 		double WGSCorFact = 0.99330562;
 
         /**/// OLD good enough since z=0
@@ -1154,23 +1196,26 @@ vector<Pt3dr> RPC::GenerateNormGrid(const Pt3di &aGridSz)
 {
     vector<Pt3dr> aGridNorm;
 
-    double aZS = double(1)/aGridSz.z;
-
+    double aZS = double(2)/aGridSz.z;
+    double aXS = double(2)/aGridSz.x;
+    double aYS = double(2)/aGridSz.y;
+    
     int aR, aC, aH;
     for (aR = 0; aR <= aGridSz.x; aR++)
     {
         for (aC = 0; aC <= aGridSz.y; aC++)
-	{
-            for(aH = 0; aH < aGridSz.z; aH++ )
 	    {
-	        Pt3dr aPt;
-	        aPt.x = (double(aR) - (aGridSz.x / 2)) / (aGridSz.x / 2);
-	        aPt.y = (double(aC) - (aGridSz.y / 2)) / (aGridSz.y / 2);
-	        aPt.z = aZS*aH;
-	        
-		aGridNorm.push_back(aPt);
+            for(aH = 0; aH <= aGridSz.z; aH++ )
+	        {
+	            Pt3dr aPt;
+	            aPt.x = aR*aXS -1;
+                aPt.y = aC*aYS -1;
+                aPt.z = aZS*aH -1;
+		        aGridNorm.push_back(aPt);
+
+	        }
+
 	    }
-	}
     }
 
     return(aGridNorm);
@@ -1183,7 +1228,8 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 	double a = 6378137;
 	double b = (1 - 1 / 298.257223563)*a;
 	double e2 = 1 - (b * b) / (a * a);
-	double WGSCorFact = 0.99330562;
+	//unused variable
+    //double WGSCorFact = 0.99330562;
 
 	vector<vector<Pt3dr> > aMatPtsNorm;
 	vector<Pt3dr> aVectPtsGeo, aVectPtsIm;
@@ -1217,7 +1263,8 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 					aPtGeo.x = aPtGeo.x + 180;
 
 				//Computing latitude (estimation) according to ALG0012 in http://geodesie.ign.fr/contenu/fichiers/documentation/algorithmes/notice/NTG_80.pdf
-				double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
+				//unused variable
+                //double r = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y + aPtECEF.z*aPtECEF.z);
 				double p = sqrt(aPtECEF.x*aPtECEF.x + aPtECEF.y*aPtECEF.y);
 				double latNow = atan(p / aPtECEF.z);//rad geocentric to initialize estimation
 				//loop
@@ -1394,10 +1441,10 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	double* aDataCol = aSolCol.data();
 	double* aDataRow = aSolRow.data();
 
-    std::cout << "ResiduOfSol aSolCol " << double(aSysCol.ResiduOfSol(aSolCol.data())/aGridGeoNorm.size()) << "\n";
+    /*std::cout << "ResiduOfSol aSolCol " << double(aSysCol.ResiduOfSol(aSolCol.data())/aGridGeoNorm.size()) << "\n";
 
     std::cout << "ResiduOfSol aSolRow " << double(aSysCol.ResiduOfSol(aSolRow.data()))/aGridGeoNorm.size() << "\n";
-
+*/
 	//Copying Data in RPC object
 	//Numerators
 	for (int i = 0; i<20; i++)
@@ -1415,41 +1462,198 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	}
 }
 
+void RPC::GetGridExtent(const std::vector<Pt3dr> & aGrid,
+                              Pt3dr & aExtMin,
+                              Pt3dr & aExtMax,
+                              Pt3dr & aSumXYZ ) const
+{
+    int aK;
+
+    double aEX=0, aEY=0, aEZ=0;
+    double X_min=aGrid.at(0).x, X_max=X_min,
+           Y_min=aGrid.at(0).y, Y_max=Y_min,
+           Z_min=aGrid.at(0).z, Z_max=Z_min;
+
+    for(aK=0; aK<int(aGrid.size()); aK++)
+    {
+        aEX+=aGrid.at(aK).x;
+        aEY+=aGrid.at(aK).y;
+        aEZ+=aGrid.at(aK).z;
+
+        if(aGrid.at(aK).x > X_max)
+	       X_max = aGrid.at(aK).x;
+	
+ 	    if(aGrid.at(aK).x < X_min)
+	       X_min = aGrid.at(aK).x;
+
+	    if(aGrid.at(aK).y < Y_min)
+	       Y_min = aGrid.at(aK).y;
+ 
+        if(aGrid.at(aK).y > Y_max)
+	       Y_max = aGrid.at(aK).y;
+
+	    if(aGrid.at(aK).z < Z_min)
+	       Z_min = aGrid.at(aK).z;
+
+        if(aGrid.at(aK).z > Z_max)
+	       Z_max = aGrid.at(aK).z;
+    }
+
+    aExtMin = Pt3dr(X_min,Y_min,Z_min);
+    aExtMax = Pt3dr(X_max,Y_max,Z_max);
+    aSumXYZ = Pt3dr(aEX,aEY,aEZ);
+
+
+}
+
+void RPC::NormR2(std::vector<Pt3dr> & aPts) const
+{
+    int aK;
+    double aXNmax=0, aXNmin=0,
+           aYNmax=0, aYNmin=0;
+
+    for (aK=0; aK<int(aPts.size()); aK++)
+    {
+        aPts.at(aK).x = (aPts.at(aK).x - samp_off) / samp_scale;
+        aPts.at(aK).y = (aPts.at(aK).y - line_off) / line_scale;
+        
+        if( aPts.at(aK).x > aXNmax )
+            aXNmax = aPts.at(aK).x;
+        if( aPts.at(aK).x < aXNmin )
+            aXNmin = aPts.at(aK).x;
+
+        if( aPts.at(aK).y > aYNmax )
+            aYNmax = aPts.at(aK).y;
+        if( aPts.at(aK).y < aYNmin )
+            aYNmin = aPts.at(aK).y;
+
+    }
+
+    
+    std::cout << "RPC::NormR2 min " << aXNmin << " " << aYNmin << "; ";
+    std::cout << "max " << aXNmax << " " << aYNmax << "\n";
+                     
+    
+}
+
+void RPC::UnNormR2(std::vector<Pt3dr> & aPts) const
+{
+    int aK;
+
+    for (aK=0; aK<int(aPts.size()); aK++)
+    {
+        aPts.at(aK).x = aPts.at(aK).x * samp_scale + samp_off;
+        aPts.at(aK).y = aPts.at(aK).y * line_scale + line_off;
+    }
+
+
+}
+
+void RPC::NormR3(std::vector<Pt3dr> & aPts) const
+{
+    int aK;
+    double aXNmax=0, aXNmin=0,
+           aYNmax=0, aYNmin=0,
+           aZNmax=0, aZNmin=0;
+
+    for (aK=0; aK<int(aPts.size()); aK++)
+    {
+        aPts.at(aK).x = (aPts.at(aK).x - long_off) / long_scale;
+        aPts.at(aK).y = (aPts.at(aK).y - lat_off) / lat_scale;
+        aPts.at(aK).z = (aPts.at(aK).z - height_off)/height_scale;
+    
+        if( aPts.at(aK).x > aXNmax )
+            aXNmax = aPts.at(aK).x;
+        if( aPts.at(aK).x < aXNmin )
+            aXNmin = aPts.at(aK).x;
+
+        if( aPts.at(aK).y > aYNmax )
+            aYNmax = aPts.at(aK).y;
+        if( aPts.at(aK).y < aYNmin )
+            aYNmin = aPts.at(aK).y;
+
+        if( aPts.at(aK).z > aZNmax )
+            aZNmax = aPts.at(aK).z;
+        if( aPts.at(aK).z < aZNmin )
+            aZNmin = aPts.at(aK).z;
+    
+    }
+
+    std::cout << "RPC::NormR3 min " << aXNmin << " " << aYNmin << " " << aZNmin <<"; ";
+    std::cout << "max " << aXNmax << " " << aYNmax << " " << aZNmax << "\n";
+
+}
+
+void RPC::UnNormR3(std::vector<Pt3dr> & aPts) const
+{
+    int aK;
+
+    for (aK=0; aK<int(aPts.size()); aK++)
+    {
+        aPts.at(aK).x = aPts.at(aK).x * long_scale + long_off;
+        aPts.at(aK).y = aPts.at(aK).y * lat_scale + lat_off;
+        aPts.at(aK).z = aPts.at(aK).z * height_scale + height_off;
+    }
+
+}
+
 void RPC::ChSysRPC(const cSystemeCoord & aChSys)
 {
 
     int aK1, aK2, aK3;
-    Pt3dr aP, aStep;
+    Pt3dr aP, aPP, aStep;
     
     
-    aStep = Pt3dr(double(abs(first_lon-last_lon))/mRecGrid.x,
-		         double(abs(first_lat-last_lat))/mRecGrid.y,
-		         double(abs(first_height-last_height))/mRecGrid.z);
+    aStep = Pt3dr(double(abs(last_lon-first_lon))/mRecGrid.x,
+		         double(abs(last_lat-first_lat))/mRecGrid.y,
+		         double(abs(last_height-first_height))/mRecGrid.z);
     
-    std::vector<Pt3dr> aGridOrg, aGridCarto, aGridImg;
+    std::vector<Pt3dr> aGridOrg, aGridCarto, 
+                       aGridOrgCh, aGridCartoCh, 
+                       aGridImg, aGridImgCh;
+   
 
-    
-    std::cout << "RPC::ChSysRPC " << ",mRecGrid " << mRecGrid << "\n"; 
 
     // MPD => GetUnikId , else conflict when in // exec
     std::string aTmpIn = "Proj4InputRPC"+ GetUnikId() +".txt";
     FILE * aFPin = FopenNN(aTmpIn,"w","RPC::ChSysRPC");
+    std::string aTmpInCh = "Proj4InputRPC"+ GetUnikId() +"_Ch.txt";
+    FILE * aFPinCh = FopenNN(aTmpInCh,"w","RPC::ChSysRPC");
 
-    for(aK1=0; aK1<mRecGrid.x; aK1++)
-       for(aK2=0; aK2<mRecGrid.y; aK2++)
-	      for(aK3=0; aK3<mRecGrid.z; aK3++)
+
+
+
+
+    /* Create the object space grids 
+     * to recompute and control new RPCs ****************************/
+    for(aK1=0; aK1<=mRecGrid.x; aK1++)
+       for(aK2=0; aK2<=mRecGrid.y; aK2++)
+	      for(aK3=0; aK3<=mRecGrid.z; aK3++)
 	      {
 		     aP = Pt3dr(first_lon+aStep.x*aK1,
 			            first_lat+aStep.y*aK2,
 			            first_height+aStep.z*aK3);
 	        
-		     aGridOrg.push_back(aP);
+             aPP = Pt3dr(first_lon+aStep.x*aK1+0.5*aStep.x,
+                         first_lat+aStep.y*aK2+0.5*aStep.y,
+                         first_height+aStep.z*aK3+0.5*aStep.z);
+
+	
+             aGridOrg.push_back(aP);
+             aGridOrgCh.push_back(aPP);
 
              fprintf(aFPin,"%.20f %.20f %.20f\n",aP.x,aP.y,aP.z);
+             fprintf(aFPinCh,"%.20f %.20f %.20f\n",aPP.x,aPP.y,aPP.z);
 	      }
     ElFclose(aFPin);
+    ElFclose(aFPinCh);
 
-    //convert to carto
+
+
+
+
+
+    /* Convert the grid to cartographic coords *********************/
     // MPD => GetUnikId , else conflict when in // exec
     std::string aTmpOut = "Proj4OutputRPC" + GetUnikId() + ".txt";
     
@@ -1468,6 +1672,7 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
         int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
 	    ELISE_ASSERT(aNb==3,"Bad Nb value RPC::ChSysRPC, internal error");
 
+
 	    aGridCarto.push_back(aP);
     }
     aFOut.close();
@@ -1475,96 +1680,235 @@ void RPC::ChSysRPC(const cSystemeCoord & aChSys)
     ELISE_fp::RmFile(aTmpOut);
     ELISE_fp::RmFile(aTmpIn);
 
-    //normalise the geodetic cs
+
+
+
+    /* Convert the control_grid to cartographic coords *************/
+    std::string aTmpOutCh = "Proj4OutputRPC" + GetUnikId() + "_Ch.txt";
+    
+    std::string aComCh =  g_externalToolHandler.get("cs2cs").callName() + " " +
+	                "+proj=longlat +datum=WGS84" + " +to " + 
+			        aChSys.BSC()[0].AuxStr()[0] + " " + aTmpInCh + 
+			        " > " + aTmpOutCh;
+
+    VoidSystem(aComCh.c_str());
+
+    ELISE_fp aFOutCh(aTmpOutCh.c_str(),ELISE_fp::READ);
+
+    char * aLineCh;
+    while ((aLineCh = aFOutCh.std_fgets()))
+    {
+        int aNb = sscanf(aLineCh,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
+	    ELISE_ASSERT(aNb==3,"Bad Nb value RPC::ChSysRPC, internal error");
+
+	    aGridCartoCh.push_back(aP);
+    }
+    aFOutCh.close();
+
+    ELISE_fp::RmFile(aTmpOutCh);
+    ELISE_fp::RmFile(aTmpInCh);
+
+
+    /* Normalise the igrid (in geo coordinates) **************************/
+    NormR3(aGridOrg);
+    
+
+    //back project norm geodetic grid to normalised image space
     for(aK1=0; aK1<int(aGridOrg.size()); aK1++)
-    {
-        aGridOrg.at(aK1).x = (aGridOrg.at(aK1).x - long_off)/long_scale;
-        aGridOrg.at(aK1).y = (aGridOrg.at(aK1).y - lat_off)/lat_scale;
-        aGridOrg.at(aK1).z = (aGridOrg.at(aK1).z - height_off)/height_scale;
-    }
-   
-    //get carto cs normalising parameters & validating zone
-    double X_min = aGridCarto.at(0).x, X_max = X_min, 
-	Y_min = aGridCarto.at(0).y, Y_max = Y_min, 
-	Z_min = aGridCarto.at(0).z, Z_max = Z_min;
+        aGridImg.push_back(InverseRPCNorm(aGridOrg.at(aK1)));
 
-    for(aK1=1; aK1<int(aGridCarto.size()); aK1++)
-    {
-        if(aGridCarto.at(aK1).x > X_max)
-	       X_max = aGridCarto.at(aK1).x;
-	
- 	    if(aGridCarto.at(aK1).x < X_min)
-	       X_min = aGridCarto.at(aK1).x;
 
-	    if(aGridCarto.at(aK1).y < Y_min)
-	       Y_min = aGridCarto.at(aK1).y;
- 
-        if(aGridCarto.at(aK1).y > Y_max)
-	       Y_max = aGridCarto.at(aK1).y;
+    /* Normalise the control grid (in geo coordinates) ******************/
+    NormR3(aGridOrgCh);
 
-	    if(aGridCarto.at(aK1).z < Z_min)
-	       Z_min = aGridCarto.at(aK1).z;
+    //back project norm geodetic grid to normalised image space
+    for(aK1=0; aK1<int(aGridOrgCh.size()); aK1++)
+        aGridImgCh.push_back(InverseRPCNorm(aGridOrgCh.at(aK1)));    
 
-        if(aGridCarto.at(aK1).z > Z_max)
-	       Z_max = aGridCarto.at(aK1).z;
-    }
-   
-    SetNewLongLatHScaleOffset(X_min,X_max,Y_min,Y_max,Z_min,Z_max);
     
-    /*first_lon = X_min;
-    last_lon = X_max;
-    first_lat = Y_min;
-    last_lat = Y_max;
-    first_height = Z_min;
-    last_height = Z_max;
+    //unnormalize (in order to update the offset and scale)
+    UnNormR2(aGridImg);
+    UnNormR2(aGridImgCh);
 
-    long_scale = (X_max - X_min)/2;
-    lat_scale = (Y_max - Y_min)/2;
-    height_scale = (Z_max - Z_min)/2;
-    
-    long_off = X_min + long_scale;
-    lat_off = Y_min + lat_scale;
-    height_off = Z_min + height_scale;
-*/
+    SetNewScaleOffsetR2(aGridImg);
+
+    NormR2(aGridImg);
+    NormR2(aGridImgCh);
+
+
+    /* Get carto cs normalising parameters & validating zone ************/
+    SetNewScaleOffsetR3(aGridCarto);
+
+    NormR3(aGridCarto);
+    NormR3(aGridCartoCh);
+
+
+    //learn inverse projection function for xy and XYZ_carto_norm
+    GCP2Inverse(aGridCarto, aGridImg);
+    //learn direct projection function for xy and XYZ_carto_norm
+    GCP2Direct(aGridCarto, aGridImg);    
+
+
+
+    /* Check the accuracy ********************************************/
+    Pt2dr aPDifMoy(0,0);
     for(aK1=0; aK1<int(aGridCarto.size()); aK1++)
     {
-        aGridCarto.at(aK1).x = (aGridCarto.at(aK1).x - lat_off)/lat_scale;
-        aGridCarto.at(aK1).y = (aGridCarto.at(aK1).y - long_off)/long_scale;
-        aGridCarto.at(aK1).z = (aGridCarto.at(aK1).z - height_off)/height_scale;
+        
+        Pt2dr aPDif; 
+        Pt3dr aPBP = InverseRPCNorm(aGridCartoCh.at(aK1));
+        aPDif.x = aGridImgCh.at(aK1).x - aPBP.x;
+        aPDif.y = aGridImgCh.at(aK1).y - aPBP.y;
+
+        aPDif.x = aPDif.x * samp_scale;// + samp_off;
+        aPDif.y = aPDif.y * line_scale;// + line_off;
+
+
+        aPDifMoy.x += abs(aPDif.x);
+        aPDifMoy.y += abs(aPDif.y);
+
+        //std::cout << "ewelina " << aPDif << "\n";
+    }
+
+	std::cout << "RPC recalculation"
+              << " precision: " << double(aPDifMoy.x)/(aGridCarto.size()) << " " 
+              << double(aPDifMoy.y)/(aGridCarto.size()) << " [pix]\n";
+    
+
+
+
+
+    IS_UNIT_m = true;
+
+}
+    
+
+/* Even if an image crop is used, the RPC are recomputed on the original img
+   btw in [Tao & Hu, 2001] horizontal grid every ~600pix, vert grid every ~500m
+       in [Guo, 2006] empirically showed that 20x20x3 grid is sufficient */  
+void RPC::SetRecGrid()
+{
+    //grid spacing in 3D in meters
+    int aHorizM = 500, aVertM = 100;
+    int aSamplX, aSamplY, aSamplZ;
+
+    if( IS_UNIT_m )
+    {
+        aSamplX = floor((last_lon - first_lon)/aHorizM);
+        aSamplY = floor((last_lat - first_lat)/aHorizM);
+        aSamplZ = floor((last_height - first_height)/aVertM);
+    }
+    else
+    {
+        double aFprntLonM =  6378137 * 
+                            (last_lon - first_lon) * M_PI /180.0;
+        double aFprntLatM =  6378137 * 
+							(last_lat - first_lat) * M_PI /180.0;
+        
+		aSamplX = floor(aFprntLonM/aHorizM);
+        aSamplY = floor(aFprntLatM/aHorizM);
+        aSamplZ = floor((last_height - first_height)/aVertM);
+
     }
 
 
-    //back project norm geodetic grid to image space
-    for(aK1=0; aK1<int(aGridOrg.size()); aK1++)
-        aGridImg.push_back(InverseRPCNorm(aGridOrg.at(aK1)));    
+    //if there is less than 5 layers in Z ([Tao & Hu, 2001] suggest min of 3)
+    while (aSamplZ<4)
+        aSamplZ++;
     
-    //learn inverse projection function for xy and XYZ_carto_norm
-    GCP2Inverse(aGridOrg, aGridImg);
+    //if planar grid smaller than 5
+    while (aSamplX<5)
+        aSamplX++;
+    while (aSamplY<5)
+        aSamplY++;
+    //if the grid does not suffice to calculate 78 coefficients of the RPCs
+    while ( (aSamplX*aSamplY*aSamplZ)<80 )
+        aSamplX++;
+   
+    mRecGrid = Pt3di(aSamplX,aSamplY,aSamplZ);
 
-    //learn direct projection function for xy and XYZ_carto_norm
-    GCP2Direct(aGridOrg, aGridImg);    
-
+    std::cout <<"RPC recalculation on a grid: " << mRecGrid << "\n";
     
 }
 
-void RPC::SetRecGrid()
+/* Update: first,last cols and rows */
+void RPC::UpdateValidity()
 {
-    //500 based on [Tao & Hu, 2001]
-    int aHorizIntInPix = 500, aVertIntInM = 100;
-    int aSampl, aSamplZ;
-
-    aSampl = floor(double(last_row)/aHorizIntInPix);
-    aSamplZ = floor(double(abs(first_height-last_height))/aVertIntInM);
-
-    //if there is less than 5 layers in Z ([Tao & Hu, 2001] suggest min of 3)
-    while(aSamplZ<4)
-        aSamplZ++;
-    //if the grid does not suffice to calculate 78 coefficients of the RPCs
-    while( (aSampl*aSampl*aSamplZ)<80 )
-        aSampl++;
-   
-    mRecGrid = Pt3di(aSampl,aSampl,aSamplZ);
     
+    
+    ELISE_ASSERT(IS_DIR_INI, "RPC::UpdateValidity(); no direct projection function provided");
+    
+
+
+    std::vector<double> aLongVec, aLatVec;
+    Pt3dr aP1, aP2;
+
+    //north-west image corner
+    aP1 = DirectRPC(Pt3dr(0, 
+                          0, 
+                          first_height));
+    aP2 = DirectRPC(Pt3dr(0, 
+                          0, 
+                          last_height));
+
+    aLongVec.push_back(aP1.x);
+    aLongVec.push_back(aP2.x);
+    aLatVec.push_back(aP1.y);
+    aLatVec.push_back(aP2.y);
+
+        
+    //north-east image corner
+    aP1 = DirectRPC(Pt3dr(last_col, 
+                          0, 
+                          first_height));
+    aP2 = DirectRPC(Pt3dr(last_col, 
+                          0, 
+                          last_height));
+
+    aLongVec.push_back(aP1.x);
+    aLongVec.push_back(aP2.x);
+    aLatVec.push_back(aP1.y);
+    aLatVec.push_back(aP2.y);
+
+
+    //south-east image corner
+    aP1 = DirectRPC(Pt3dr(last_col, 
+                          last_row, 
+                          first_height));
+    aP2 = DirectRPC(Pt3dr(last_col, 
+                          last_row, 
+                          last_height));
+   
+
+    aLongVec.push_back(aP1.x);
+    aLongVec.push_back(aP2.x);
+    aLatVec.push_back(aP1.y);
+    aLatVec.push_back(aP2.y);
+            
+        
+
+    //south-west image corner
+    aP1 = DirectRPC(Pt3dr(0, 
+                          last_row, 
+                          first_height));
+    aP2 = DirectRPC(Pt3dr(0, 
+                          last_row, 
+                          last_height));
+
+    aLongVec.push_back(aP1.x);
+    aLongVec.push_back(aP2.x);
+    aLatVec.push_back(aP1.y);
+    aLatVec.push_back(aP2.y);
+
+
+    SetNewFirstLastR3 (*std::min_element(aLongVec.begin(),aLongVec.end()),
+            *std::max_element(aLongVec.begin(),aLongVec.end()),
+            *std::min_element(aLatVec.begin(),aLatVec.end()),
+            *std::max_element(aLatVec.begin(),aLatVec.end()),
+            first_height,last_height);
+
+    
+
 }
 
 void RPC::ReadRPB(std::string const &filename)
@@ -1723,7 +2067,6 @@ void RPC::ReadXML(std::string const &filename)
 
     nodes = tree.GetUnique(std::string("LONGOFFSET"));
     long_off = std::atof(nodes->GetUniqueVal().c_str());
-    
 
     nodes = tree.GetUnique(std::string("HEIGHTOFFSET"));
     height_off = std::atof(nodes->GetUniqueVal().c_str());
@@ -1823,38 +2166,46 @@ void RPC::ReadXML(std::string const &filename)
     }
      
     cElXMLTree* nodesFilOne; 
-    
+   
+    std::vector<double> aLongMM, aLatMM;
+
     nodes = tree.GetUnique(std::string("BAND_P"));
     nodesFilOne = nodes->GetUnique("ULLON");
-    first_lon = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    aLongMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
 
     nodesFilOne = nodes->GetUnique("URLON");
-    last_lon = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    aLongMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    nodesFilOne = nodes->GetUnique("LRLON");
+    aLongMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    nodesFilOne = nodes->GetUnique("LLLON");
+    aLongMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    first_lon = *std::min_element(aLongMM.begin(),aLongMM.end());
+    last_lon = *std::max_element(aLongMM.begin(),aLongMM.end());
+
+
+
     
     nodesFilOne = nodes->GetUnique("ULLAT");
-    last_lat = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    aLatMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    nodesFilOne = nodes->GetUnique("URLAT");
+    aLatMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+
+    nodesFilOne = nodes->GetUnique("LRLAT");
+    aLatMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
 
     nodesFilOne = nodes->GetUnique("LLLAT");
-    first_lat = std::atof((nodesFilOne->GetUniqueVal()).c_str());
+    aLatMM.push_back(std::atof((nodesFilOne->GetUniqueVal()).c_str()));
+        
+    first_lat = *std::min_element(aLatMM.begin(),aLatMM.end());
+    last_lat = *std::max_element(aLatMM.begin(),aLatMM.end());
 
-/*    std::vector<double> aHMM;
 
-    nodesFilOne = nodes->GetUnique("ULHAE");
-    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
 
-    nodesFilOne = nodes->GetUnique("URHAE");
-    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
-
-    nodesFilOne = nodes->GetUnique("LRHAE");
-    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
-
-    nodesFilOne = nodes->GetUnique("LLHAE");
-    aHMM.push_back( std::atof((nodesFilOne->GetUniqueVal()).c_str()) );
-
-    first_height = (*std::min_element(aHMM.begin(), aHMM.end()));
-    last_height  = (*std::max_element(aHMM.begin(), aHMM.end())); */
-    first_height = -1*height_scale + height_off;
-    last_height = 1*height_scale + height_off;
+    ReconstructValidityH();
 
     IS_INV_INI = true; 
 }
@@ -2007,8 +2358,10 @@ void RPC::ReadASCII(std::string const &filename)
     iss.str(line);
     iss >> a >> height_scale >> b;}
 
-    first_height = -1*height_scale + height_off;
+    /*first_height = -1*height_scale + height_off;
     last_height = 1*height_scale + height_off;
+*/
+    ReconstructValidityH();
 
     //Inverse_line_num_coef
     for(aC=0; aC<20; aC++)
@@ -2265,7 +2618,8 @@ void RPC::InverseToDirectRPC()
     vector<Pt3dr> aGridImNorm;
     for (aG = 0; aG < aGridGeoNorm.size(); aG++)
         aGridImNorm.push_back(InverseRPCNorm(aGridGeoNorm[aG]));
-    
+   
+
     GCP2Direct(aGridGeoNorm, aGridImNorm);
 
     IS_DIR_INI=true;
@@ -2274,10 +2628,10 @@ void RPC::InverseToDirectRPC()
 /* Test calculation of the direct RPCs:
  * calculate mean, max, std of difference in image and ground space between 
  * artificial ground truth and backprojected (image) or forward projected (ground) points */
-void RPC::TestDirectRPCGen(const std::string aTargetCS)
+void RPC::TestDirectRPCGen()
 {
-    int aNb, aK1, aK2, aVTmp0, aVTmp1, aVTmp2; 
-    double aRND, aXtmp, aYtmp, aZtmp;
+    int aNb, aK1, aK2, aVTmp1, aVTmp2; 
+    double aRND;
     Pt2dr aMAXdxy(0,0), aMAXdXY(0,0), aUdxy(0,0), aUdXY(0,0), aSdxy(0,0), aSdXY(0,0);
     Pt3dr axyTmp(0,0,0);
     std::vector<Pt3dr> aLPHGT, aLPHFP, aXYHGT, aXYHFP, axyHGT;
@@ -2321,7 +2675,7 @@ void RPC::TestDirectRPCGen(const std::string aTargetCS)
     }
 
     //aXYHGT, aXYHFP - convert aLPHGT & aLPHFP to cartographic CS
-    ELISE_fp::MkDirSvp("processing");
+  /*  ELISE_fp::MkDirSvp("processing");
     std::ofstream aFO("LPHGT_LPHFP.txt");
 
     for(aK1=0; aK1<aNNodes; aK1++)
@@ -2355,7 +2709,7 @@ void RPC::TestDirectRPCGen(const std::string aTargetCS)
 	}
     }
     aFI.close();
-
+*/
     //|axyHGT(:2)-axyBP|, aXYHGT-aXYHFP| - calculate some measures of goodness
     aVTmp1=0, aVTmp2=0;
     aNb=0;
@@ -2383,8 +2737,8 @@ void RPC::TestDirectRPCGen(const std::string aTargetCS)
 	       aMAXdxy.y = aVTmp2;
 	   
            //ground
-	   aVTmp1 = std::abs(aXYHGT.at(aK1).x - aXYHFP.at(aK1).x);
-	   aVTmp2 = std::abs(aXYHGT.at(aK1).y - aXYHFP.at(aK1).y);
+	   aVTmp1 = std::abs(aLPHGT.at(aK1).x - aLPHFP.at(aK1).x);
+	   aVTmp2 = std::abs(aLPHGT.at(aK1).y - aLPHFP.at(aK1).y);
           
 
            adXY.push_back( Pt2dr(aVTmp1,aVTmp2) );
@@ -2809,6 +3163,7 @@ int RPC_main(int argc, char ** argv)
 
     return 0;
 }
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

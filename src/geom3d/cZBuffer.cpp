@@ -216,9 +216,12 @@ Im2D_REAL4 cZBuffer::Basculer
 
 if (MPD_MM() || ERupnik_MM())
 {
+
+//  std::cout << "pppppppppppppp " << aP2Out << "\n";
 if (euclid(aP2Out) > 100000)
 {
-   std::cout << "----aP2OutaP2Out " <<aP2Out  << " " << aZofXY  << " " << aPIn << "\n";
+   
+   std::cout << "----aP2OutaP2Out " << aP2Out  << " " << aZofXY  << " " << aPIn << " BD=" <<  mBufDone << "\n";
    DEBUG_ZBB = true;
    ProjDisc(aPIn,&aZofXY);
    DEBUG_ZBB = false;

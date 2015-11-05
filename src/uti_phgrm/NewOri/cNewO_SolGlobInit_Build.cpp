@@ -651,7 +651,7 @@ void  cAppli_NewSolGolInit::CalculOrient(cNO_CC_TripSom * aCC)
      cNOSolIn_Triplet * aGerm0 =0;
      double aBesCoherCost = 1e30;
 
-     for (int aK=0 ; aK<(aCC->mTri.size()) ; aK++)
+     for (int aK=0 ; aK< int(aCC->mTri.size()) ; aK++)
      {
          cNOSolIn_Triplet * aTri = aCC->mTri[aK];
          if (aTri->CostArc()<aBesCoherCost)

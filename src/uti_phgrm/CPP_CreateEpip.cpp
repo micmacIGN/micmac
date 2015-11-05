@@ -77,6 +77,7 @@ class cApply_CreateEpip_main
       bool   mForceGen;
       int    mNumKer;
       std::string mPostMasq;
+      bool mExpTxt;
 
       cBasicGeomCap3D *  mGenI1;
       cBasicGeomCap3D *  mGenI2;
@@ -556,6 +557,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
     bool InParal = true;
     bool DoIm = true;
     std::string aNameHom;
+    bool mExpTxt=false;
 
 
     ElInitArgMain
@@ -575,6 +577,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
                     << EAM(mForceGen,"FG",true,"Force generik epip even with stenope cam")
                     << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
                     << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=NONE")
+		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points (Def false, e.g. use dat format)")
     );
 
     if (mPostMasq!="NONE") 
@@ -646,9 +649,9 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 
      std::cout << "TimeEpi-0 \n";
      ElTimer aChrono;
-     aCplE.ImEpip(aTif1,aNameOr1,true,InParal,DoIm,aCarHom,mDegre);
+     aCplE.ImEpip(aTif1,aNameOr1,true,InParal,DoIm,aCarHom,mDegre,mExpTxt);
      std::cout << "TimeEpi-1 " << aChrono.uval() << "\n";
-     aCplE.ImEpip(aTif2,aNameOr2,false,InParal,DoIm,aCarHom,mDegre);
+     aCplE.ImEpip(aTif2,aNameOr2,false,InParal,DoIm,aCarHom,mDegre,mExpTxt);
      std::cout << "TimeEpi-2 " << aChrono.uval() << "\n";
 
      aCplE.SetNameLock("End");
@@ -786,7 +789,6 @@ cAppliOneReechMarqFid::cAppliOneReechMarqFid(int argc,char ** argv) :
     cMesureAppuiFlottant1Im aMesCam = StdGetFromPCP(mDir+aPair.first,MesureAppuiFlottant1Im);
     cMesureAppuiFlottant1Im aMesIm  = StdGetFromPCP(mDir+aPair.second,MesureAppuiFlottant1Im);
 
-
     mPack = PackFromCplAPF(aMesCam,aMesIm);
     if (! EAMIsInit(&mBoxChambreMm))
     {
@@ -847,7 +849,7 @@ int OneReechFid_main(int argc,char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant \C3  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -863,17 +865,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  \C3  l'utilisation,  \C3  la modification et/ou au
+développement et \C3  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe \C3
+manipuler et qui le réserve donc \C3  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités \C3  charger  et  tester  l'adéquation  du
+logiciel \C3  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+\C3  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder \C3  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

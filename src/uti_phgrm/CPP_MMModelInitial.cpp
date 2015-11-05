@@ -774,7 +774,7 @@ void cAppli_Enveloppe_Main::DownScaleNuage(eTypeMMByImNM aType)
 int MMEnveloppe_Main(int argc,char ** argv)
 {
    cAppli_Enveloppe_Main(argc,argv);
-   return 1;
+   return EXIT_SUCCESS;
 }
 
 
@@ -884,7 +884,7 @@ int MMInitialModel_main(int argc,char ** argv)
 
    // int i; DoNothingButRemoveWarningUnused(i);
 
-   return 0;
+   return EXIT_SUCCESS;
 }
 
 

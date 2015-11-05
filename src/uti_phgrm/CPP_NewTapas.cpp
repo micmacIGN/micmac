@@ -386,6 +386,7 @@ int Tapas_main(int argc,char ** argv)
     double EcartMaxFin=5.0;
 
     std::vector<std::string> aImMinMax;
+    Pt2dr EcartInit(100.0,5.0);
 
 
     ElInitArgMain
@@ -423,6 +424,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(AffineAll,"RefineAll",true,"More refinement at all step, safer and more accurate, but slower, def=true")
                     << EAM(aImMinMax,"ImMinMax",true,"Image min and max (may avoid tricky pattern ...)")
                     << EAM(EcartMaxFin,"EcMax",true,"Final threshold for residual, def = 5.0 ")
+                    << EAM(EcartInit,"EcInit",true,"Inital threshold for residual def = [100,5.0] ")
     );
 
 
@@ -531,6 +533,11 @@ int Tapas_main(int argc,char ** argv)
         if (EAMIsInit(&EcartMaxFin))
         {
             aCom = aCom + " +EcartMaxFin=" + ToString(EcartMaxFin);
+        }
+
+        if (EAMIsInit(&EcartInit))
+        {
+            aCom = aCom + " +EcartMaxInit=" + ToString(EcartInit.x) + " +SigmaPondInit=" + ToString(EcartInit.y) ;
         }
 
 

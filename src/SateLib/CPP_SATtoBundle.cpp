@@ -316,6 +316,7 @@ int CPP_TestRPCDirectGen(int argc,char ** argv)
     std::string aFullName;
     std::string aDir;
     std::string aPat;
+    std::string aChSysStr = "";
 
     std::string aNameType;
     eTypeImporGenBundle aType;
@@ -325,7 +326,7 @@ int CPP_TestRPCDirectGen(int argc,char ** argv)
          argc, argv,
          LArgMain()  << EAMC(aFullName,"Orientation file full name (Dir+Pat)", eSAM_IsExistFile)
                      << EAMC(aNameType,"Type of sensor (see eTypeImporGenBundle)",eSAM_None,ListOfVal(eTT_NbVals,"eTT_")),
-         LArgMain()
+         LArgMain()  << EAM(aChSysStr,"ChSys",true,"Coordinate system change (xml)")
     );		      
 
     SplitDirAndFile(aDir, aPat, aFullName);
@@ -335,7 +336,17 @@ int CPP_TestRPCDirectGen(int argc,char ** argv)
     
     bool aModeHelp;
     StdReadEnum(aModeHelp,aType,aNameType,eTIGB_NbVals);
-  
+ 
+    cSystemeCoord * aChSys = 0;
+    if(aChSysStr!="")
+        aChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+                    (
+                        aChSysStr,
+                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                        "SystemeCoord",
+                        "SystemeCoord"
+                    ));
+        
     
     for(std::list<std::string>::iterator itL = aListFile.begin(); 
 		                         itL != aListFile.end(); 
@@ -344,7 +355,7 @@ int CPP_TestRPCDirectGen(int argc,char ** argv)
 	//Earth satellite
 	if(aType!=eTIGB_Unknown && aType!=eTIGB_MMSten)
 	{
-            CameraRPC aCRPC(*itL,aType);
+        CameraRPC aCRPC(*itL,aType,aChSys);
 	    aCRPC.TestDirectRPCGen();
 	    
 	}

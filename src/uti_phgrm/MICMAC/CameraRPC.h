@@ -64,7 +64,7 @@ class CameraRPC : public cBasicGeomCap3D
 
 		Pt2dr Ter2Capteur   (const Pt3dr & aP) const;
 		ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
-		bool     PIsVisibleInImage   (const Pt3dr & aP) const;
+		bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * =0) const;
 
 		bool  HasRoughCapteur2Terrain() const;
 		Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
@@ -103,7 +103,8 @@ class CameraRPC : public cBasicGeomCap3D
         const RPC * GetRPC() const;
 		const std::string & GetImName() const;
 
-		const cSystemeCoord * mChSys;
+		//const cSystemeCoord * mChSys;
+		cSystemeCoord  mChSys;
 		//std::string mSysCible;//not updated and to be removed
         
     private:
@@ -127,7 +128,7 @@ class CameraRPC : public cBasicGeomCap3D
 		
 		const std::string FindUTMCS();
 
-        void UpdateValidity3DFromPix() const;
+        //void UpdateValidity3DFromPix() const;
 
         void AssertRPCDirInit() const;
 		void AssertRPCInvInit() const;
@@ -147,7 +148,7 @@ class CameraAffine : public cBasicGeomCap3D
             Pt2di    SzBasicCapt3D() const;
 	    double ResolSolOfPt(const Pt3dr &) const;
 	    bool  CaptHasData(const Pt2dr &) const;
-	    bool     PIsVisibleInImage   (const Pt3dr & aP) const;
+	    bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * =0) const;
 
 	    Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
 
@@ -186,7 +187,7 @@ class BundleCameraRPC : public cCapture3D
 	    ~BundleCameraRPC(){};
 
 	    Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
-	    bool     PIsVisibleInImage   (const Pt3dr & aP) const;
+	    bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * =0) const;
 	    ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
 	    Pt2di    SzBasicCapt3D() const; 
 

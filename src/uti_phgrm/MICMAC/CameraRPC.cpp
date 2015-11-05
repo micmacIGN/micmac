@@ -91,9 +91,9 @@ bool cComp3DBasic::CaptHasData(const Pt2dr &aP) const
     return  mCam0->CaptHasData(aP);
 }
 
-bool cComp3DBasic::PIsVisibleInImage(const Pt3dr & aP) const
+bool cComp3DBasic::PIsVisibleInImage(const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * anArg) const
 {
-    return mCam0->PIsVisibleInImage(Target2OriginCS(aP));
+    return mCam0->PIsVisibleInImage(Target2OriginCS(aP),anArg);
 }
 
 bool cComp3DBasic::HasOpticalCenterOfPixel() const
@@ -134,7 +134,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    if(aSysCibleFile == "") {aSysCibleFile = FindUTMCS();}
    
 
-   mChSys = new cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
+   mChSys = cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
              (
                  aSysCibleFile,
                  StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
@@ -142,15 +142,14 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
                  "SystemeCoord"
              ));
 
+
    if (aType==eTIGB_MMDimap2)
    {   
        mRPC->ReadDimap(aNameFile);
-       
-       UpdateValidity3DFromPix();
 
        mRPC->SetRecGrid();
-
-       mRPC->ChSysRPC(*mChSys);
+       
+       mRPC->ChSysRPC(mChSys);
    }
    else if(aType==eTIGB_MMDimap1)
    {
@@ -159,14 +158,13 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
    else if(aType==eTIGB_MMDGlobe )
    {
        mRPC->ReadXML(aNameFile);
+       
+       mRPC->SetRecGrid();
 
        mRPC->InverseToDirectRPC();
        
-       UpdateValidity3DFromPix();
-        
-       mRPC->SetRecGrid();
-       
-       mRPC->ChSysRPC(*mChSys);
+
+       mRPC->ChSysRPC(mChSys);
 
    }
    else if(aType==eTIGB_MMIkonos)
@@ -195,7 +193,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 		             const eTypeImporGenBundle &aType,
 		             const cSystemeCoord * aChSys,
                      const double aAltiSol) : 
-                     mChSys(aChSys),
+                     mChSys(*aChSys),
 	mProfondeurIsDef(false),
 	mAltisSolIsDef(true),
 	mAltiSol(aAltiSol),
@@ -206,33 +204,29 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 {
     mRPC = new RPC();
 
-    //if cartographic coordinate system was not defined
-    /*if(mChSys == 0) 
-    {
-        std::string aSysCibleFile = FindUTMCS();
-       
-        mChSys = cSystemeCoord(StdGetObjFromFile<cSystemeCoord>
-             (
-                 aSysCibleFile,
-                 StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                 "SystemeCoord",
-                 "SystemeCoord"
-             ));
-    }
-    */
-
+    //std::cout << "ewelina CCCCC " << aChSys->BSC().at(0).AuxStr().at(0) << "\n";
 
     if(aType==eTIGB_MMDimap2)
     {
         mRPC->ReadDimap(aNameFile);
-        mRPC->info();
         
-        UpdateValidity3DFromPix(); 
+        //mRPC->UpdateValidity();
         
         mRPC->SetRecGrid();
 
-	    if(aChSys!=0)
+	if(aChSys!=0)
             mRPC->ChSysRPC(*aChSys);
+        else
+        {
+             // ELISE_ASSERT(false,"CameraRPC::CameraRPC; no cartographic coordinate system (ChSys) provided");
+        }
+
+        SetAltiSol(mRPC->first_height);
+
+    }
+    else if(aType==eTIGB_MMDimap1)
+    {
+        ELISE_ASSERT(false,"CameraRPC::CameraRPC; No eTIGB_MMDimap1");
     }
     else if(aType==eTIGB_MMDGlobe)
     {
@@ -240,12 +234,17 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
         
         mRPC->InverseToDirectRPC();
         
-        UpdateValidity3DFromPix();
-        
+    //    mRPC->UpdateValidity();
         mRPC->SetRecGrid();
 
 	    if(aChSys!=0)
             mRPC->ChSysRPC(*aChSys);
+        else
+            ELISE_ASSERT(false,"CameraRPC::CameraRPC; no cartographic coordinate system (ChSys) provided");
+
+        
+        SetAltiSol(mRPC->first_height);
+    
     }
     /*else if(aType==eTIGB_MMIkonos)
     {
@@ -267,7 +266,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
 
-    mRPC->info();
+    //mRPC->info();
 }
 
 cBasicGeomCap3D * CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
@@ -314,7 +313,7 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
     return Pt2dr(aPIm.x, aPIm.y);
 }
 
-bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP) const
+bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
 {
     // (1) Check if aP is within the RPC validity zone
     /*if( (aP.x < mRPC->first_lon) || (aP.x > mRPC->last_lon) || 
@@ -789,7 +788,7 @@ void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 
 }
 
-/*void CameraRPC::OpticalCenterGrid(bool aIfSave) const
+/* void CameraRPC::OpticalCenterGrid(bool aIfSave) const
 {
     srand(time(NULL));
 
@@ -939,7 +938,7 @@ Pt3dr CameraRPC::OpticalCenterOfPixel(const Pt2dr & aP) const
 
 void CameraRPC::TestDirectRPCGen()
 {
-    //mRPC->TestDirectRPCGen(mSysCible);
+    mRPC->TestDirectRPCGen();
 }
 
 bool CameraRPC::HasOpticalCenterOfPixel() const
@@ -977,48 +976,6 @@ const std::string CameraRPC::FindUTMCS()
     //std::cout << aRes << std::endl;
 }
 
-//in case an image subset is used and the validity must be updated
-void CameraRPC::UpdateValidity3DFromPix() const
-{
-    std::vector<double> aLongVec, aLatVec;
-    
-    //north-west image corner
-    ElSeg3D aTmpSeg(Capteur2RayTer(Pt2dr(mRPC->first_col,mRPC->first_row)));
-    aLongVec.push_back(aTmpSeg.P0().x);
-    aLongVec.push_back(aTmpSeg.P1().x);
-    aLatVec.push_back(aTmpSeg.P0().y);
-    aLatVec.push_back(aTmpSeg.P1().y);
-
-    //north-east image corner
-    aTmpSeg = Capteur2RayTer(Pt2dr(mRPC->last_col,mRPC->first_row));
-    aLongVec.push_back(aTmpSeg.P0().x);
-    aLongVec.push_back(aTmpSeg.P1().x);
-    aLatVec.push_back(aTmpSeg.P0().y);
-    aLatVec.push_back(aTmpSeg.P1().y);
-
-    //south-east image corner
-    aTmpSeg = Capteur2RayTer(Pt2dr(mRPC->last_col,mRPC->last_row));
-    aLongVec.push_back(aTmpSeg.P0().x);
-    aLongVec.push_back(aTmpSeg.P1().x);
-    aLatVec.push_back(aTmpSeg.P0().y);
-    aLatVec.push_back(aTmpSeg.P1().y);
-
-    //south-west image corner
-    aTmpSeg = Capteur2RayTer(Pt2dr(mRPC->first_col,mRPC->last_row));
-    aLongVec.push_back(aTmpSeg.P0().x);
-    aLongVec.push_back(aTmpSeg.P1().x);
-    aLatVec.push_back(aTmpSeg.P0().y);
-    aLatVec.push_back(aTmpSeg.P1().y);
-
-    //update the validity zone in object space
-    mRPC->SetNewLongLatHScaleOffset(*std::min_element(aLongVec.begin(),aLongVec.end()),
-                              *std::max_element(aLongVec.begin(),aLongVec.end()),
-                              *std::min_element(aLatVec.begin(),aLatVec.end()),
-                              *std::max_element(aLatVec.begin(),aLatVec.end()),
-                              mRPC->first_height,
-                              mRPC->last_height);
-
-}
 
 
 /***********************************************************************/
@@ -1124,7 +1081,7 @@ bool CameraAffine::CaptHasData(const Pt2dr &) const
     return(true);
 }
 
-bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP) const
+bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
 {
     return(true);
 }
@@ -1198,9 +1155,9 @@ Pt2dr BundleCameraRPC::Ter2Capteur(const Pt3dr & aP) const
 	return(mCam->Ter2Capteur(aP));
 }
 
-bool BundleCameraRPC::PIsVisibleInImage(const Pt3dr & aP) const
+bool BundleCameraRPC::PIsVisibleInImage(const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * anArg) const
 {
-	return(mCam->PIsVisibleInImage(aP));
+	return(mCam->PIsVisibleInImage(aP,anArg));
 }
 
 ElSeg3D BundleCameraRPC::Capteur2RayTer(const Pt2dr & aP) const
