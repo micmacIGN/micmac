@@ -158,6 +158,7 @@ Pt3dr RPC::DirectRPC(Pt3dr Pimg)const
 
 Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     {
+// std::cout << "UUUUUU  " << __LINE__ << "\n";
     double X = PimgNorm.x, Y = PimgNorm.y, Z = PimgNorm.z;
 	double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
 	//double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };\\From pleiades doc section C.3.1 - incorrect
@@ -169,6 +170,15 @@ Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
 
     for (int i = 0; i<20; i++)
 	{
+/*
+std::cout << "HHHHHH  " << i   << " "  
+          // << vecteurD.size() <<   " " 
+          << direct_samp_num_coef.size() <<   " " 
+          << direct_samp_den_coef.size() <<   " " 
+          << direct_line_num_coef.size() <<   " " 
+          << direct_line_den_coef.size() <<   " " 
+          << "\n";
+*//
 		long_num += vecteurD[i] * direct_samp_num_coef[i];
 		long_den += vecteurD[i] * direct_samp_den_coef[i];
         lat_num += vecteurD[i] * direct_line_num_coef[i];
@@ -187,6 +197,7 @@ Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     {
         std::cout << "Computing error - denominator = 0" << std::endl;
     }
+std::cout << "UUUUUU  " << __LINE__ << "\n";
     return PgeoNorm;
 }
 
