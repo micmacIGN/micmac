@@ -1194,7 +1194,8 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 	//int nbLatticePts = aMatPtsIm.size()*aMatPtsIm[0].size();
 
 	for (u_int i = 0; i < ASTERPtsIm.size(); i++){
-
+		//if (i==58)
+		//	continue;
 			//Image point 3D coordinates object created (identical for all grid levels)
 		Pt3dr aPtIm; aPtIm.x = ASTERPtsIm[i].x; aPtIm.y = ASTERPtsIm[i].y;
 
@@ -1228,11 +1229,21 @@ vector<vector<Pt3dr> > RPC::GenerateNormLineOfSightGrid(int nbLayers, double aHM
 				//loop
 				double Rn;
 				double h;
-				for (u_int i = 0; i < 10; i++)// converge after 10 loops (even after 4 but for safety)
+
+				//for better convergence (usually converge at 8 iterations with these parameters)
+				int maxiter = 500;
+				double epsilon = 1e-15;
+				int i = 0;
+				double delta_lat = 1234;//Arbitrary big number so loop 1 runs
+
+				while ((delta_lat > epsilon) && (i < maxiter))
 				{
 					Rn = a / sqrt(1 - e2*sin(latNow)*sin(latNow));
 					h = p / cos(latNow) - Rn;
+					double oldlat = latNow;
 					latNow = atan(aPtECEF.z / p * 1 / (1 - e2*Rn / (Rn + h)));
+					i = i + 1;
+					delta_lat = abs(latNow - oldlat);
 				}
 				aPtGeo.y = latNow;
 
