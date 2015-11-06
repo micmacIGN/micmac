@@ -273,10 +273,47 @@ int Aster2Grid_main(int argc, char ** argv)
 	vector<vector<Pt3dr> > aGridNorm = aRPC.GenerateNormLineOfSightGrid(nbLayers, aHMin, aHMax);
 
 	//Compute Direct and Inverse RPC
-	aRPC.GCP2Direct(aGridNorm[0], aGridNorm[1]);
-	cout << "Direct RPC estimated" << endl;
-	aRPC.GCP2Inverse(aGridNorm[0], aGridNorm[1]);
-	cout << "Inverse RPC estimated" << endl;
+
+	//Method 1 : Using the same grid for direct and inverse
+		aRPC.GCP2Direct(aGridNorm[0], aGridNorm[1]);
+		cout << "Direct RPC estimated" << endl;
+		aRPC.GCP2Inverse(aGridNorm[0], aGridNorm[1]);
+		cout << "Inverse RPC estimated" << endl;
+
+	/*Method 2 : Using a new generated grid from Direct to get inverse
+		aRPC.GCP2Direct(aGridNorm[0], aGridNorm[1]);
+		cout << "Direct RPC estimated" << endl;
+		//Generating a 50*50*50 grid on the normalized space with random normalized heights
+		Pt3di aGridSz(50, 50, 50);
+		vector<Pt3dr> aGridImNorm = aRPC.GenerateNormGrid(aGridSz);//50 is the size of grid for generated GCPs (50*50)
+
+		//Converting the points to image space
+		vector<Pt3dr> aGridGeoNorm;
+		for (u_int i = 0; i < aGridImNorm.size(); i++)
+		{
+			aGridGeoNorm.push_back(aRPC.DirectRPCNorm(aGridImNorm[i]));
+		}
+	
+		aRPC.GCP2Inverse(aGridGeoNorm, aGridImNorm);
+		cout << "Inverse RPC estimated" << endl;*/
+
+		/*Method 3 : Using a new generated grid from Direct to get inverse
+		aRPC.GCP2Inverse(aGridNorm[0], aGridNorm[1]);
+		cout << "Inverse RPC estimated" << endl;
+		//Generating a 50*50*50 grid on the normalized space with random normalized heights
+		Pt3di aGridSz(50, 50, 50);
+		vector<Pt3dr> aGridGeoNorm = aRPC.GenerateNormGrid(aGridSz);//50 is the size of grid for generated GCPs (50*50)
+
+		//Converting the points to image space
+		vector<Pt3dr> aGridImNorm;
+		for (u_int i = 0; i < aGridGeoNorm.size(); i++)
+		{
+			aGridImNorm.push_back(aRPC.InverseRPCNorm(aGridGeoNorm[i]));
+		}
+
+		aRPC.GCP2Direct(aGridGeoNorm, aGridImNorm);
+		cout << "Direct RPC estimated" << endl;*/
+
 	aRPC.info();
 
 	//Export RPC
