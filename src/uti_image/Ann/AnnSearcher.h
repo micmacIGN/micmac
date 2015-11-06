@@ -144,7 +144,7 @@ inline const ANNpointArray AnnArray::getANNpointArray() const { return (const AN
 
 inline SIFT_ANN_SEARCH_MODE AnnArray::getSearchMode() const { return m_searchMode; }
 
-inline unsigned int AnnArray::size() const { return m_annArray.size(); }
+inline unsigned int AnnArray::size() const { return (unsigned int)m_annArray.size(); }
 
 // class AnnSearcher
 
