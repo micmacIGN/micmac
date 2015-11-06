@@ -12,6 +12,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/cTD_Epip.cpp
 	${TDPPMD_DIR}/ReprojImg.cpp
 	${TDPPMD_DIR}/TestRegEx.cpp
+	${TDPPMD_DIR}/InitOriLinear.cpp
 	${TDPPMD_DIR}/kugelhupf.cpp
 	${TDPPMD_DIR}/SimplePredict.cpp
 	${TDPPMD_DIR}/cPseudoIntersect.cpp
