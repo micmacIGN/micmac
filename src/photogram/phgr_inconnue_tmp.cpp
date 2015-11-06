@@ -1526,6 +1526,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
    double aLimBsHOKBehind = 1e-2;
 
    bool  DoLvmGcp =  anArg.mRop   && AddEq  && (aPtApuis==0) ;
+   double aNbPixRop = anArg.mRop->NbPixInc().Val();
+   DoLvmGcp = DoLvmGcp && (aNbPixRop>0);
    Pt3dr aLVMPtApuis,aLVMIncertApuis;
    if (DoLvmGcp )
    {
@@ -1538,9 +1540,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
           
           double anInc1Pix = mResolMoy / sqrt(aSP);
 
-          double aNbPix = 500.0;
-          double aBsHMin = 1/40.0;
-          double anIncXY = anInc1Pix * aNbPix;
+          double aBsHMin = anArg.mRop->BsHMin().Val();
+          double anIncXY = anInc1Pix * aNbPixRop;
           double anIncZ = anIncXY  / ElMax(mPPP.mBsH,aBsHMin);
 
 
@@ -1704,10 +1705,6 @@ if (UPL_DCC())  std::cout << "=x=x=x=x=x=x=x=x=x=x=x=x=x " << aNuple.PK(aK) << "
         mResidus.mSomPondEr += aPdsPl * ElSquare(mResidus.mEcSurf);
     }
 
-if (0 && MPD_MM())
-{
-   std::cout << "XXXXXxxyytTTTT  " << AddEq <<  "  " << aPtApuis << " \n";
-}
 
     if (aPtApuis  ||  aRAZ ) // && AddEq)
     {
