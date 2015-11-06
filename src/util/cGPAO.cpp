@@ -556,7 +556,7 @@ bool launchMake( const string &i_makefile, const string &i_rule, unsigned int i_
 	return ( System(aCom,!i_stopCurrentProgramOnFail)==EXIT_SUCCESS );
 }
 
-#ifdef ELISE_unix
+#if ELISE_unix
 	#include <sys/time.h>
 	#include <sys/resource.h>
 
