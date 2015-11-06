@@ -158,7 +158,6 @@ Pt3dr RPC::DirectRPC(Pt3dr Pimg)const
 
 Pt3dr RPC::DirectRPCNorm(Pt3dr PimgNorm)const
     {
-// std::cout << "UUUUUU  " << __LINE__ << "\n";
     double X = PimgNorm.x, Y = PimgNorm.y, Z = PimgNorm.z;
 	double vecteurD[] = { 1, X, Y, Z, Y*X, X*Z, Y*Z, X*X, Y*Y, Z*Z, X*Y*Z, X*X*X, Y*Y*X, X*Z*Z, X*X*Y, Y*Y*Y, Y*Z*Z, X*X*Z, Y*Y*Z, Z*Z*Z };
 	//double vecteurD[] = { 1, Y, X, Z, X*Y, Y*Z, X*Z, Y*Y, X*X, Z*Z, Y*X*Z, Y*Y*Y, X*X*Y, Y*Z*Z, Y*Y*X, X*X*X, X*Z*Z, Y*Y*Z, X*X*Z, Z*Z*Z };\\From pleiades doc section C.3.1 - incorrect
@@ -197,7 +196,6 @@ std::cout << "HHHHHH  " << i   << " "
     {
         std::cout << "Computing error - denominator = 0" << std::endl;
     }
-std::cout << "UUUUUU  " << __LINE__ << "\n";
     return PgeoNorm;
 }
 
