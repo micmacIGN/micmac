@@ -80,7 +80,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	//Reading the image and creating the objects to be manipulated
 	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameIm, 1, false);
 
-	Pt2di aSz = aTF.sz();
+	Pt2di aSz = aTF.sz(); cout << "size of image = " << aSz << endl;
 	Im2D_U_INT1  aIm(aSz.x, aSz.y);
 
 	ELISE_COPY
@@ -119,51 +119,65 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	Im2D_U_INT1  aImOut(aSz.x, aSz.y);
 	U_INT1 ** aDataOut = aImOut.data();
 
-	//Output anagle container
-	Im2D_REAL8  aAngleOut(aSz.x, aSz.y);
-	REAL8 ** aDataAngleOut = aAngleOut.data();
-	string aNameAngle = "Angle.tif";
+	//Output angle container
+	Im2D_REAL8  aAngleBOut(aSz.x, aSz.y);
+	REAL8 ** aDataAngleBOut = aAngleBOut.data();
+	string aNameAngleB = "AngleB.tif";
 
-	Pt3dr PBTest(1500,3000, 0);
-	Pt3dr PWTest = aRPC.DirectRPC(PBTest);
-	Pt3dr PNTest = aRPC2.InverseRPC(PWTest);
-	cout << "PB0 = " << PBTest << endl;
-	cout << "PW0 = " << PWTest << endl;
-	cout << "PN0 = " << PNTest << endl;
-	cout << aRPC.height_scale << " " << aRPC.height_off << endl;
-	PBTest.z=1000;
-	PWTest = aRPC.DirectRPC(PBTest);
-	PNTest = aRPC2.InverseRPC(PWTest);
-	cout << "PB1 = " << PBTest << endl;
-	cout << "PW1 = " << PWTest << endl;
-	cout << "PN1 = " << PNTest << endl;
+	//Output angle container
+	Im2D_REAL8  aAngleNOut(aSz.x, aSz.y);
+	REAL8 ** aDataAngleNOut = aAngleNOut.data();
+	string aNameAngleN = "AngleN.tif";
+
+	//Pt3dr PBTest(1500,3000, 0);
+	//Pt3dr PWTest = aRPC.DirectRPC(PBTest);
+	//Pt3dr PNTest = aRPC2.InverseRPC(PWTest);
+	//cout << "PB0 = " << PBTest << endl;
+	//cout << "PW0 = " << PWTest << endl;
+	//cout << "PN0 = " << PNTest << endl;
+	//cout << aRPC.height_scale << " " << aRPC.height_off << endl;
+	//PBTest.z=1000;
+	//PWTest = aRPC.DirectRPC(PBTest);
+	//PNTest = aRPC2.InverseRPC(PWTest);
+	//cout << "PB1 = " << PBTest << endl;
+	//cout << "PW1 = " << PWTest << endl;
+	//cout << "PN1 = " << PNTest << endl;
 
 
-
+	cout << "size of image = " << aSz << endl;
 	//Computing output data
 	for (int aX = 0; aX < aSz.x; aX++)
 	{
 		for (int aY = 0; aY < aSz.y; aY++)
 		{
-			//Pt3dr P1B(aX, aY, aDatDEM[aY][aX] - 1);
-			//Pt3dr P2B(aX, aY, aDatDEM[aY][aX] + 1);
-			Pt3dr P1B(aX, aY, 0);
-			Pt3dr P2B(aX, aY, 10000);
-			Pt3dr P1N = aRPC2.InverseRPC(aRPC.DirectRPC(P1B));
-			Pt3dr P2N = aRPC2.InverseRPC(aRPC.DirectRPC(P2B));
-			double aAngle = atan((P2N.x - P1N.x) / (P2N.y - P1N.y));
-			aDataAngleOut[aY][aX] = aAngle;
+			Pt3dr P0B(aX, aY, aDatDEM[aY][aX]);
+			Pt3dr PW0 = aRPC.DirectRPC(P0B);
+			Pt3dr PW1 = PW0, PW2 = PW0;
+			PW1.z = PW1.z - 1;
+			PW2.z = PW2.z + 1;
+			Pt3dr P1B = aRPC.InverseRPC(PW1);
+			Pt3dr P2B = aRPC.InverseRPC(PW2);
+			Pt3dr P1N = aRPC2.InverseRPC(PW1);
+			Pt3dr P2N = aRPC2.InverseRPC(PW2);
+			//Pt3dr P1B(aX, aY, 0);
+			//Pt3dr P2B(aX, aY, 10000);
+			//Pt3dr P1N = aRPC2.InverseRPC(aRPC.DirectRPC(P1B));
+			//Pt3dr P2N = aRPC2.InverseRPC(aRPC.DirectRPC(P2B));
+			double aAngleB = atan((P2B.x - P1B.x) / (P2B.y - P1B.y));
+			aDataAngleBOut[aY][aX] = aAngleB;
+			double aAngleN = atan((P2N.x - P1N.x) / (P2N.y - P1N.y));
+			aDataAngleNOut[aY][aX] = aAngleN;
 			//cout << aX << " " << aY << " " << aAngle << endl;
 			//cout << P1N << " " << P2N << " " << aAngle << endl;
 
 			//THE THINGS COMPUTED ABOVE WILL BE USED IN A FURTHER UPDATE
 			Pt2dr ptOut;
-			ptOut.x = aX - aDatPar[aY][aX] * cos(aAngle);
-			ptOut.y = aY;// -aDatPar[aY][aX] * sin(aAngle);
+			ptOut.x = aX - aDatPar[aY][aX];// * cos(aAngleB);
+			ptOut.y = aY - aDatPar[aY][aX];// * sin(aAngleB);
 			aDataOut[aY][aX] = Reechantillonnage::biline(aData, aSz.x, aSz.y, ptOut);
 		}
 	}
-
+	cout << "size of image = " << aSz << endl;
 	Tiff_Im  aTOut
 		(
 		aNameOut.c_str(),
@@ -181,9 +195,9 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		aTOut.out()
 		);
 
-	Tiff_Im  aTAngleOut
+	Tiff_Im  aTAngleBOut
 		(
-		aNameAngle.c_str(),
+		aNameAngleB.c_str(),
 		aSz,
 		GenIm::real8,
 		Tiff_Im::No_Compr,
@@ -193,12 +207,28 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 
 	ELISE_COPY
 		(
-		aTAngleOut.all_pts(),
-		aAngleOut.in(),
-		aTAngleOut.out()
+		aTAngleBOut.all_pts(),
+		aAngleBOut.in(),
+		aTAngleBOut.out()
 		);
 
 
+	Tiff_Im  aTAngleNOut
+		(
+		aNameAngleN.c_str(),
+		aSz,
+		GenIm::real8,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+		);
+
+
+	ELISE_COPY
+		(
+		aTAngleNOut.all_pts(),
+		aAngleNOut.in(),
+		aTAngleNOut.out()
+		);
 
 	return 0;
 }
