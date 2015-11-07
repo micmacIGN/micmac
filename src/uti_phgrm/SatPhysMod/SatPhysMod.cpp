@@ -48,7 +48,7 @@ class cAppli_TestPhysMod
     public :
        cAppli_TestPhysMod(int argc, char ** argv);
 
-       std::string mNameIm,mNameOrient;
+       std::string mNameIm,mNameOrient,mNameMetaOri;
        std::string       mNameType;
        eTypeImporGenBundle mType;
        RPC                  mRPC;  // Gives acces to the lowest level
@@ -56,7 +56,7 @@ class cAppli_TestPhysMod
        bool                 mDet;
 };
 cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
-    mNameType ("TIGB_MMDimap2"),
+    mNameType ("TIGB_Unknown"),
     mSzLineG  (100,200),
     mDet      (true)
 {
@@ -69,40 +69,44 @@ cAppli_TestPhysMod::cAppli_TestPhysMod (int argc, char ** argv)  :
                     << EAM(mNameIm,"Im",true,"Name of Im")
                     << EAM(mSzLineG,"SzLineG",true,"Size in X and Y of computation line parameters")
                     << EAM(mDet,"Det",true,"Show Detail")
+                    << EAM(mNameMetaOri,"Meta",true,"Meta data for ikonos")
      );
      bool mModeHelp;
      StdReadEnum(mModeHelp,mType,mNameType,eTIGB_NbVals);
+
+     AutoDetermineTypeTIGB(mType,mNameOrient);
+
      // int aIntType = mType;
 
      eModeRefinePB aModeRefine = eMRP_None;
      if (mType==eTIGB_MMDimap2)
      {
-
           mRPC.ReadDimap(mNameOrient);
-
           aModeRefine = eMRP_Direct;
-
-     
      }
      else if(mType==eTIGB_MMDGlobe )
      {
-
           mRPC.ReadXML(mNameOrient);
+          mRPC.InverseToDirectRPC();
+          aModeRefine = eMRP_Direct;
 
+     }
+     else if (mType==eTIGB_MMIkonos)
+     {
+          ELISE_ASSERT(EAMIsInit(&mNameMetaOri),"Ikonos requires meta file");
+          mRPC.ReadASCII(mNameOrient);
+          mRPC.ReadASCIIMetaData(mNameMetaOri, mNameOrient);
           mRPC.InverseToDirectRPC();
 
           aModeRefine = eMRP_Direct;
-
-
-   }
-
+     }
      else
      {
          ELISE_ASSERT(false,"Use unsuported eTypeImporGenBundle");
      }
+
      cRPC_PushB_PhysMod * aPhys = cRPC_PushB_PhysMod::NewRPC_PBP(mRPC,aModeRefine,mSzLineG);
      // Pt2dr aSz =       Pt2dr(aPhys->Sz());
-
 
 
      aPhys->ShowLinesPB(mDet);

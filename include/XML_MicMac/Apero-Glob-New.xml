@@ -98,6 +98,12 @@
                <eSymb>  NbMax0=? ${Fast} 3 10  </eSymb>
 
 
+               <!--      Relatif aux problemes de panoramiques -->
+
+                <Symb>  UsePano=false </Symb>
+                <Symb>  PanoNbPix=500.0 </Symb>
+                <Symb>  PanoBsHMin=0.025 </Symb>
+
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -235,6 +241,16 @@
         <SectionSolveur>
               <ModeControleDescDic> ${ModeCDD} </ModeControleDescDic>
 	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
+
+              <#WHEN VTest=${UsePano}>
+                  <SLMGlob> 
+                      <XmlSLM_RappelOnPt>
+                           <NbPixInc> ${PanoNbPix} </NbPixInc> <!-- Si <=0 annule tout -->
+                           <BsHMin>   ${PanoBsHMin} </BsHMin>
+                      </XmlSLM_RappelOnPt>
+                  </SLMGlob>
+              </#WHEN>
+
 
         </SectionSolveur>
 

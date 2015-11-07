@@ -1563,6 +1563,8 @@ class cMMByImNM
 
 bool IsMacType(eTypeMMByP aType);
 
+void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName);
+
 
 
 

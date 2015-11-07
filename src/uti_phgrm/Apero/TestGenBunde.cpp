@@ -558,6 +558,8 @@ cApppliConvertBundleGen::cApppliConvertBundleGen (int argc,char ** argv)   :
     StdReadEnum(mModeHelp,mType,mNameType,eTIGB_NbVals);
 
 
+    AutoDetermineTypeTIGB(mType,mNameOrient);
+
     mPostFix = IsPostfixed(mNameOrient) ?  StdPostfix(mNameOrient) : "";
     mEASF.Init(mNameIm);
 

@@ -1555,6 +1555,66 @@ Pt3dr cBasicGeomCap3D::ToSysSource(const Pt3dr &) const
 
 cBasicGeomCap3D * Polynomial_BGC3M2DNewFromFile (const std::string & aName);
 
+
+void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName)
+{               
+   if (aType != eTIGB_Unknown) return;
+
+   if (IsPostfixed(aName))
+   {
+       std::string aPost = StdPostfix(aName);
+
+       if ((aPost=="xml") || (aPost=="XML"))
+       {
+           cElXMLTree * aTree = new cElXMLTree(aName);
+
+           cElXMLTree * aXmlMETADATA_FORMAT = aTree->Get("METADATA_FORMAT");
+           if (aXmlMETADATA_FORMAT)
+           {
+               std::string aStrMETADATA_FORMAT = aXmlMETADATA_FORMAT->GetUniqueVal() ;
+               if (aStrMETADATA_FORMAT == "DIMAP")
+               {
+                    std::string aStrVersion = aXmlMETADATA_FORMAT->ValAttr("version","-1");
+                    if (aStrVersion =="2.0")
+                    {
+                        // std::cout << "GOT DIMAP2 \n"; getchar();
+                        aType = eTIGB_MMDimap2;
+                        return;
+                    }
+               }
+           }
+
+           if (     (aTree->Get("NUMROWS") !=0)
+                &&  (aTree->Get("NUMCOLUMNS") !=0)
+                &&  (aTree->Get("ERRBIAS") !=0)
+                &&  (aTree->Get("LINEOFFSET") !=0)
+                &&  (aTree->Get("SAMPOFFSET") !=0)
+                &&  (aTree->Get("LATOFFSET") !=0)
+                &&  (aTree->Get("LONGOFFSET") !=0)
+                &&  (aTree->Get("HEIGHTOFFSET") !=0)
+                &&  (aTree->Get("LINESCALE") !=0)
+                &&  (aTree->Get("SAMPSCALE") !=0)
+                &&  (aTree->Get("LATSCALE") !=0)
+                &&  (aTree->Get("LONGSCALE") !=0)
+                &&  (aTree->Get("HEIGHTSCALE") !=0)
+                &&  (aTree->Get("LINENUMCOEF") !=0)
+                &&  (aTree->Get("LINEDENCOEF") !=0)
+              )
+           {
+               aType = eTIGB_MMDGlobe;
+               return;
+           }
+
+       }
+
+       if ((aPost=="txt") || (aPost=="TXT"))
+       {
+       }
+   }
+}
+
+
+
 cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int & aIntType, const cSystemeCoord * aChSys)
 {
     ELISE_ASSERT((aIntType>=0) && (aIntType<eTIGB_NbVals),"cBasicGeomCap3D::StdGetFromFile, Not an  eTypeImporGenBundle");
@@ -1564,7 +1624,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
     static cElRegex  ThePattMMCS(".*Ori-.*/(UnCorMM-|)Orientation.*xml",10);  // Its a stenope Camera created using MicMac
     static cElRegex  ThePattGBMM(".*Ori-.*/GB-Orientation-.*xml",10);  // Its a Generik Bundle Camera created using MicMac
 
-    static cElRegex  ThePattSatelit(".*Ori-.*/UnCorExtern-Orientation-(eTIGB_[a-z,A-Z,0-9]*)-.*xml",10);  // Its a stenope Camera created using MicMac
+    static cElRegex  ThePattSatelit(".*Ori-.*/UnCorExtern-Orientation-(eTIGB_[a-z,A-Z,0-9]*)-.*xml",10);  // Its a copy for generik
 
    
     if ((aType==eTIGB_MMSten) || ((aType==eTIGB_Unknown) && ThePattMMCS.Match(aName)))
