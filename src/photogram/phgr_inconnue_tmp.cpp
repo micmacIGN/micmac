@@ -1526,7 +1526,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
    double aLimBsHOKBehind = 1e-2;
 
    bool  DoLvmGcp =  anArg.mRop   && AddEq  && (aPtApuis==0) ;
-   double aNbPixRop = anArg.mRop->NbPixInc().Val();
+   double aNbPixRop = anArg.mRop ? anArg.mRop->NbPixInc().Val() : 0;
    DoLvmGcp = DoLvmGcp && (aNbPixRop>0);
    Pt3dr aLVMPtApuis,aLVMIncertApuis;
    if (DoLvmGcp )

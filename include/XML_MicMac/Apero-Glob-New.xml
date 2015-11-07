@@ -242,10 +242,10 @@
               <ModeControleDescDic> ${ModeCDD} </ModeControleDescDic>
 	      <ModeResolution> eSysL2BlocSym </ModeResolution> 
 
-              <#WHEN VTest=${UsePano}>
+              <#WHEN VTEST=${UsePano}>
                   <SLMGlob> 
                       <XmlSLM_RappelOnPt>
-                           <NbPixInc> ${PanoNbPix} </NbPixInc> <!-- Si <=0 annule tout -->
+                           <NbPixInc> ${PanoNbPix} </NbPixInc> 
                            <BsHMin>   ${PanoBsHMin} </BsHMin>
                       </XmlSLM_RappelOnPt>
                   </SLMGlob>
