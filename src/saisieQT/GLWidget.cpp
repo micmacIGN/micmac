@@ -1129,7 +1129,7 @@ void GLWidget::enterEvent(QEvent *event)
 
 	// BUG Qt 5.2.2: It may happen that a click event produces an unexpected enterEvent
 	// in such a case, emitting overWidget signal will reset selected point index to -1
-    //~ emit overWidget(this);
+    emit overWidget(this);
 }
 
 void GLWidget::movePointWithArrows(QKeyEvent* event)
