@@ -101,8 +101,7 @@
                <!--      Relatif aux problemes de panoramiques -->
 
                 <Symb>  UsePano=false </Symb>
-                <Symb>  PanoNbPix=500.0 </Symb>
-                <Symb>  PanoBsHMin=0.025 </Symb>
+                <Symb>  CondMaxPano=1e4 </Symb>
 
        </DicoLoc>
 
@@ -245,8 +244,7 @@
               <#WHEN VTEST=${UsePano}>
                   <SLMGlob> 
                       <XmlSLM_RappelOnPt>
-                           <NbPixInc> ${PanoNbPix} </NbPixInc> 
-                           <BsHMin>   ${PanoBsHMin} </BsHMin>
+                           <CondMax> ${CondMaxPano} </CondMax> 
                       </XmlSLM_RappelOnPt>
                   </SLMGlob>
               </#WHEN>

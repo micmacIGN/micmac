@@ -42,6 +42,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 //  AJOUT DES OBSERVATIONS
 
+void cAppliApero::AddStatCam(cGenPoseCam * aCam,double aRes,double aPerc)
+{
+   if  (aRes>mWorstRes)
+   {
+       mWorstRes = aRes;
+       mPoseWorstRes  = aCam;
+   }
+   if (aPerc<mWorstPerc)
+   {
+        mWorstPerc = aPerc;
+        mPoseWorstPerc = aCam;
+   }
+}
+
 cXmlSauvExportAperoOneIter & cAppliApero::CurXmlE()
 {
     ELISE_ASSERT(!mXMLExport.Iters().empty(),"cAppliApero::CurXmlE");
@@ -55,6 +69,11 @@ void cAppliApero::AddObservations
           cStatObs & aSO
      )
 {
+   mWorstRes = -1;
+   mWorstPerc = 1e10;
+   mPoseWorstRes = 0;
+   mPoseWorstPerc = 0;
+
    cXmlSauvExportAperoOneIter aXmlE;
    aXmlE.NumIter() = mNbIterDone;
    aXmlE.NumEtape() = mNbEtape;

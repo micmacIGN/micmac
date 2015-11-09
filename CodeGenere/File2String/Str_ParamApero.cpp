@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1654]) = {
+const char * (theNameVar_ParamApero[1653]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -296,8 +296,7 @@ const char * (theNameVar_ParamApero[1654]) = {
 "          <ParamF Nb=\"1\" RefType=\"ParamForceRappel\" AccessorFils=\"false\"> </ParamF> \n",
 "    </RappelOnIntrinseque>\n",
 "    <XmlSLM_RappelOnPt Nb=\"?\">\n",
-"          <NbPixInc Nb=\"?\" Type=\"double\" Def=\"500\">  </NbPixInc> <!-- Si <=0 annule tout -->\n",
-"          <BsHMin Nb=\"?\" Type=\"double\" Def=\"0.025\">    </BsHMin>\n",
+"          <CondMax Nb=\"1\" Type=\"double\">  </CondMax> <!-- Si <=0 annule tout -->\n",
 "    </XmlSLM_RappelOnPt>\n",
 "</SectionLevenbergMarkard>\n",
 "\n",

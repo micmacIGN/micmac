@@ -596,10 +596,11 @@ cBufSubstIncTmp * cBufSubstIncTmp::TheBuf()
 }
 
 
-static double aMaxCond = 1e4;
-static double aSomCond = 0;
-static double aNbCond = 0;
-static double aNb100 = 0;
+double aSeuilCond = 1e20;
+double aGlobMaxCond = 0;
+double aSomCond = 0;
+double aNbCond = 0;
+double aNb100 = 0;
 
 double aSeuilMaxCondSubstFaiseau =  1e60;
 
@@ -616,7 +617,7 @@ void ShowStatCondFaisceau(bool aShowVect)
      if (!ShowStatMatCond) return;
 
 
-     std::cout << "Cond = " << aMaxCond  
+     std::cout << "Cond = " << aGlobMaxCond  
                << "  Moy = " << (aSomCond/aNbCond) 
                << "  SupS = " << (double(aNb100)/double(aNbCond))
                << " CptUPL=" << CptUPL
@@ -669,6 +670,28 @@ void ShowM3(const ElMatrix<tSysCho> & aM,const std::string & aMes)
       }
 }
 
+double CondMat(ElMatrix<tSysCho> & aMat,bool Sym3,bool SSym)
+{
+   double aCond = aMat.L2();
+   if (Sym3)
+   {
+       tSysCho ** aDL =aMat.data();
+       cMSymCoffact3x3<tSysCho>   aCf(aDL);
+       aCf.CoffSetInv(aDL);
+   }
+   else
+   {
+      if (SSym)
+      {
+          aMat.SymetriseParleBas();
+      }
+      self_gaussj(aMat);
+   }
+
+   aCond *=  aMat.L2();
+   aCond = sqrt(aCond) / (aMat.tx() * aMat.ty());
+   return aCond;
+}
 
 double cBufSubstIncTmp::DoSubst
      (  // X et Y notation de la doc, pas ligne ou colonnes
@@ -678,7 +701,8 @@ double cBufSubstIncTmp::DoSubst
           const int                     aNbBloc,
           //   const std::vector<int> &  ,//aVX,
           //   const std::vector<int> &  ,// aVY,
-          bool                     doRaz
+          bool                     doRaz,
+          double                   aLimCond
      )
 {
 
@@ -713,6 +737,7 @@ if(DebugCamBil)
    ElMatrix<tSysCho> aSauvL  = mLambda;
 
    double aCond = mLambda.L2();
+   double aNormL2 = aCond;
    if (Sym3)
    {
        tSysCho ** aDL =mLambda.data();
@@ -731,14 +756,30 @@ if(DebugCamBil)
 
    aCond *=  mLambda.L2();
    aCond = sqrt(aCond) / (mLambda.tx() * mLambda.ty());
+
+   if ((aLimCond>0)  && (aCond>aLimCond))
+   {
+      aNormL2 = sqrt(aNormL2/(mLambda.tx() * mLambda.ty()));
+      double aPds = (aCond-aLimCond) / aCond;
+      aSauvL = aSauvL + ElMatrix<tSysCho>(mLambda.tx(),true) * ((aNormL2/(2*aLimCond)) * aPds);
+      double 	aC2 =  CondMat(aSauvL,Sym3,SSym);
+      if (0)
+      {
+          std::cout << "CooooooNnndd " << aC2  << " " << aCond << "\n";
+      }
+      mLambda = aSauvL;
+      // double aCond = mLambda.L2();
+   }
+
    aSomCond += aCond;
    aNbCond++;
    if(aCond> 100)
      aNb100++;
-   if (aCond> aMaxCond)
+   if (aCond> aGlobMaxCond)
    {       
-      aMaxCond = aCond;
-      ShowStatCondFaisceau(false);
+      aGlobMaxCond = aCond;
+      if (aCond> aSeuilCond)
+         ShowStatCondFaisceau(false);
    }
 //   if (DebugPbCondFaisceau) { aVBSurH.push_back(aCond); }
 
@@ -924,14 +965,15 @@ void cSubstitueBlocIncTmp::RazNonTmp()
 }
     
 
-void cSubstitueBlocIncTmp::DoSubst(bool doRaz)
+void cSubstitueBlocIncTmp::DoSubst(bool doRaz,double LimCond)
 {
 
    mCond = cBufSubstIncTmp::TheBuf()->DoSubst
            (
               mBlocTmp.Set(),
               mVSBlTmp,mSBlNonTmp,mNbBloc,
-              doRaz
+              doRaz,
+              LimCond
            );
 }
 
@@ -1524,8 +1566,14 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                            )
 {
    double aLimBsHOKBehind = 1e-2;
+   double aCondMax = -1;
+   if (anArg.mRop)
+   {
+      aCondMax = anArg.mRop->CondMax();
+   }
 
-   bool  DoLvmGcp =  anArg.mRop   && AddEq  && (aPtApuis==0) ;
+/*
+   bool  DoLvmGcp =  false; //  anArg.mRop   && AddEq  && (aPtApuis==0) ;
    double aNbPixRop = anArg.mRop ? anArg.mRop->NbPixInc().Val() : 0;
    DoLvmGcp = DoLvmGcp && (aNbPixRop>0);
    Pt3dr aLVMPtApuis,aLVMIncertApuis;
@@ -1545,7 +1593,6 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
           double anIncZ = anIncXY  / ElMax(mPPP.mBsH,aBsHMin);
 
 
-           // std::cout << " Inc " << anIncXY << " " << anIncZ << " PdsP " << aVPdsIm[0] << " " << aVPdsIm.size() << " B/H " << mPPP.mBsH<< "\n";
           aLVMPtApuis= mPPP.mProjIsInit ? Pt3dr(0,0,0) :mResidus.mPTer;
           aLVMIncertApuis = Pt3dr(anIncXY,anIncXY,anIncZ);
           aPtApuis = & aLVMPtApuis;
@@ -1553,6 +1600,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
       }
       aLimBsHProj = 0;
    }
+*/
 
 
    CptUPL++;
@@ -1752,7 +1800,7 @@ std::cout << "AAAAAAAAAAAAA " << aVInc[aK] << " " << mMulGlobPds  << " " <<  aPR
     if (UPL_DCC()) std::cout << "HHHHHHHHhhhhhhhhhh " << AddEq << "\n";
     if (AddEq)
     {
-       mSubst.DoSubst();
+       mSubst.DoSubst(true,(mPPP.mProjIsInit?aCondMax:-1));
     }
 
     return mResidus;

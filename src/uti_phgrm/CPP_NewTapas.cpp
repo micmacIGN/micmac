@@ -388,6 +388,7 @@ int Tapas_main(int argc,char ** argv)
     std::vector<std::string> aImMinMax;
     Pt2dr EcartInit(100.0,5.0);
 
+    double CondMaxPano = 1e6 ;
 
     ElInitArgMain
     (
@@ -425,6 +426,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aImMinMax,"ImMinMax",true,"Image min and max (may avoid tricky pattern ...)")
                     << EAM(EcartMaxFin,"EcMax",true,"Final threshold for residual, def = 5.0 ")
                     << EAM(EcartInit,"EcInit",true,"Inital threshold for residual def = [100,5.0] ")
+                    << EAM(CondMaxPano,"CondMaxPano",true,"Precaution for conditionning with Panoramic images, Def=1e4 (old was 0) ")
     );
 
 
@@ -521,6 +523,8 @@ int Tapas_main(int argc,char ** argv)
                            + std::string(" +DegGen=") + ToString(GlobDegGen)
                            + std::string(" +LibDec=") + ToString(GlobLibDec)
                            + std::string(" +Fast=") + ToString(! AffineAll)
+                           + std::string(" +UsePano=true") 
+                           + std::string(" +CondMaxPano=") + ToString(CondMaxPano)
                           ;
 
 

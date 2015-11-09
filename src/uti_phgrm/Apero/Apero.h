@@ -1945,7 +1945,8 @@ class cAppliApero : public NROptF1vND
 {
     public :
 
-       void DebugPbConvAppui();
+        void AddStatCam(cGenPoseCam *,double aRes,double aPerc);
+        void DebugPbConvAppui();
         cXmlSauvExportAperoOneIter & CurXmlE();
 
         int  NumSauvAuto() const {return  mNumSauvAuto;}
@@ -2567,6 +2568,13 @@ class cAppliApero : public NROptF1vND
         int                                    mSqueezeDOCOAC;  
         cXmlSauvExportAperoGlob                mXMLExport;
         const cXmlSLM_RappelOnPt *             mXmlSMLRop;
+
+        
+    public :
+         double                                mWorstRes;
+         double                                mWorstPerc;
+         cGenPoseCam *                         mPoseWorstRes;
+         cGenPoseCam *                         mPoseWorstPerc;
 };
 
 

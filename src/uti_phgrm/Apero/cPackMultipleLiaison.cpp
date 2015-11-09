@@ -1488,6 +1488,8 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                 << " Mul-NN " << aNbMultPdsNN
                 <<  " Time " << aT0.uval();
 
+           mAppli.AddStatCam(mVPoses[0]->GenPose(),sqrt(aSEr2),aPercOk);
+
           if (0 && aSomPdsEvol)
           {
              mAppli.COUT() << " Evol, Moy=" <<  aSomEvolPt << " Max=" << aMaxEvolPt ;
