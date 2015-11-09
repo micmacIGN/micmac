@@ -1,0 +1,241 @@
+<!--
+mm3d MapCmd mm3d Convert2GenBundle "P=IMGP.*.PEF" "C=Ori-All/Orientation-\$0.xml" Bundle
+
+
+
+    Apero /home/mpd/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/media/data2/Jeux-Test/Bas/ 
+
++UseGB=0
+
+    Apero /home/marc/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/home/marc/TMP/EPI/Enclos/Bas/
+
+
+    Apero /home/marc/MMM/culture3d/include/XML_MicMac/Test-AperoVar-BundleGen.xml   DirectoryChantier=/home/marc/TMP/ExempleDoc/AerialCuxa/
+-->
+
+<Global >
+   <ParamApero>
+
+       <DicoLoc>
+
+            <Symb>  UseGB=true </Symb>
+            <Symb>  UseStd=true </Symb>
+
+
+           <eSymb> Mixte= * ${UseGB} ${UseStd} </eSymb>
+           <eSymb> NotMixte= ! ${Mixte} </eSymb>
+
+            
+
+            <Symb>  SetImGBMixte=IMGP938[6-9].PEF </Symb>
+            <Symb>  SetImStdMixte=IMGP939[0-4].PEF </Symb>
+<!--
+            <Symb>  SetImGBMixte=Abbey-IMG_.*[12346789].jpg </Symb>
+            <Symb>  SetImStdMixte=Abbey-IMG_.*[05].jpg </Symb>
+-->
+            <Symb>  SetImGBSingle=Abbey-IMG_.*.jpg </Symb>
+            <Symb>  SetImStdSingle=IMGP939[8-9].PEF </Symb>
+
+
+           
+           <Symb>  AeroInGB=-Bundle </Symb>
+           <Symb>  AeroInStd=-Bundle </Symb>
+           <Symb>  AeroOut=BundleCorrec </Symb>
+
+           <Symb>  Hom=""  </Symb>
+           <Symb>  Ext=dat </Symb>
+<!--
+           <Symb>  Hom=-Man </Symb>
+           <Symb>  Ext=xml </Symb>
+-->
+
+           <Symb>  LibParamInterne=eAllParamFiges  </Symb>
+           <Symb>  SigmaTieP=4  </Symb>
+           <Symb>  FactMaxRes=50  </Symb>
+           <Symb>  NbLiais=100 </Symb>
+
+
+           <eSymb>  MaxResTieP=* ${SigmaTieP} ${FactMaxRes}  </eSymb>
+
+           <Symb>  Viscos=1 </Symb>
+           <eSymb>  TetaLVM=/   0.1 ${Viscos} </eSymb>
+           <eSymb>  CentreLVM=/ 1.0  ${Viscos}</eSymb>
+
+
+
+
+       </DicoLoc>
+
+       <SectionBDD_Observation>
+            <BDD_PtsLiaisons>
+                 <Id>    Id_Pastis_Hom  </Id>
+                 <KeySet> NKS-Set-Homol@${Hom}@${Ext}  </KeySet>
+                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${Hom}@${Ext}   </KeyAssoc>
+            </BDD_PtsLiaisons>
+
+            <#WHEN VTEST=${UseStd}>
+               <BDD_Orient>
+                     <Id>  Or-Init   </Id>
+                     <KeySet>  NKS-Set-Orient@${AeroInStd} </KeySet>
+                     <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroInStd} </KeyAssoc>
+                </BDD_Orient>
+            </#WHEN>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+            <#WHEN VTEST=${UseStd}>
+                 <CalibrationCameraInc>
+                    <Name> GenerateKC-Others   </Name>
+                    <CalValueInit>
+                         <CalFromFileExtern>
+                              <NameFile>   ####  </NameFile>
+                              <NameTag>    CalibrationInternConique </NameTag>
+                              <AutorizeNonExisting > false </AutorizeNonExisting>
+                         </CalFromFileExtern>
+                    </CalValueInit>
+                    <CalibPerPose>
+                         <KeyPose2Cal> NKS-Assoc-FromFocMm@TheKeyCalib_@ </KeyPose2Cal>
+                         <KeyInitFromPose>  NKS-Assoc-FromFocMm@Ori${AeroInStd}/AutoCal@.xml  </KeyInitFromPose>
+                    </CalibPerPose>
+                    <RayIsRelatifDiag  > true </RayIsRelatifDiag>
+                    <RayApplyOnlyFE > true </RayApplyOnlyFE>
+                 </CalibrationCameraInc>
+                 <PoseCameraInc>
+                       <#IF VTEST=${Mixte}>
+                          <PatternName>    ${SetImStdMixte} </PatternName>
+                          <PatternName>    ${SetImStdSingle} </PatternName>
+                       </#IF>
+                       <CalcNameCalib>  GenerateKC-Others </CalcNameCalib>
+                   
+                       <PosValueInit>
+                           <PosFromBDOrient> Or-Init </PosFromBDOrient>
+                       </PosValueInit>
+                 </PoseCameraInc>
+            </#WHEN>
+
+
+             <#WHEN VTEST=${UseGB}>
+                 <CamGenInc>
+                    <#IF VTEST=${Mixte}>
+                         <PatterName>  ${SetImGBMixte} </PatterName>
+                         <PatterName>  ${SetImGBSingle} </PatterName>
+                    </#IF>
+                    <Orient>      ${AeroInGB}  </Orient>
+                    <ErrorWhenEmpytPat> true </ErrorWhenEmpytPat>
+                  </CamGenInc>
+             </#WHEN>
+
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> XXXX </DirectoryChantier>
+             <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
+             <SauvAutomBasic>  true </SauvAutomBasic>
+        </SectionChantier>
+
+        <SectionSolveur>
+	    <ModeResolution> eSysL2BlocSym </ModeResolution> 
+            <#WHEN VTEST=${UseStd}>
+                <SLMGlob> 
+                   <RappelOnAngles>
+                      <ParamF >
+                          <PatternNameApply> .* </PatternNameApply>
+                          <Incertitude> ${TetaLVM} </Incertitude>
+                          <OnCur> true </OnCur>  
+                       </ParamF>
+                      <TetaApply> 0 </TetaApply>
+                      <TetaApply> 1 </TetaApply>
+                      <TetaApply> 2 </TetaApply>
+                   </RappelOnAngles>
+                   <RappelOnCentres>
+                      <ParamF> 
+                             <PatternNameApply> .* </PatternNameApply>
+                             <Incertitude> ${CentreLVM} </Incertitude>
+                             <OnCur> true </OnCur>  
+                      </ParamF>
+                      <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                   </RappelOnCentres>
+             </SLMGlob>
+            </#WHEN>
+
+        </SectionSolveur>
+
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                   <IterationsCompensation>
+                       <#WHEN VTEST=${UseStd}>
+                           <SectionContraintes>
+                              <ContraintesCamerasInc>
+                                  <Val> eAllParamFiges  </Val>
+                              </ContraintesCamerasInc>
+                              <ContraintesPoses>
+                                   <NamePose>   .* </NamePose>
+                                   <ByPattern>  true </ByPattern>
+                                   <Val>      ePoseFigee   </Val>
+                              </ContraintesPoses>
+                           </SectionContraintes>
+                       </#WHEN>
+                   </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+                   <IterationsCompensation> </IterationsCompensation>
+<!--
+-->
+
+
+		    <SectionObservations>
+                          <ObsLiaisons>
+                              <NameRef> Id_Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   ${NbLiais}    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> ${SigmaTieP} </SigmaPond>
+				 <EcartMax>  ${MaxResTieP} </EcartMax>
+                              </Pond>
+                          </ObsLiaisons>
+
+                          <#WHEN VTEST=${UseGB}>
+                              <ContrCamGenInc>
+                                   <PatternApply> .*  </PatternApply>
+                                   <PdsAttachToId>   1e-7     </PdsAttachToId>
+                                   <PdsAttachToLast> 1e-5    </PdsAttachToLast>
+                                   <PdsAttachRGLob>  1e-1    </PdsAttachRGLob>
+                              </ContrCamGenInc>
+                          </#WHEN>
+
+		    </SectionObservations>
+
+                    <SectionExport>
+                            <ExportPose>
+                                <PatternSel> (.*) </PatternSel>
+                                <StdNameMMDir> ${AeroOut} </StdNameMMDir>
+                                <KeyAssoc> NKS-Assoc-Im2Orient@-${AeroOut} </KeyAssoc>
+                                <AddCalib>  true </AddCalib>
+                                <NbVerif>  10 </NbVerif>
+                                <TolWhenVerif> 1e-3 </TolWhenVerif>
+                                <FileExtern> NKS-Assoc-FromFocMm@Ori-${AeroOut}/AutoCal@.xml </FileExtern>
+                                <FileExternIsKey> true </FileExternIsKey>
+                            </ExportPose>
+                            <ExportCalib>
+                                 <KeyAssoc>  NKS-Assoc-FromKeyCal@Ori-${AeroOut}/AutoCal@.xml </KeyAssoc>
+                                 <KeyIsName> false </KeyIsName>
+                            </ExportCalib>
+                            <ExportResiduXml> Ori-${AeroOut}/Residus.xml </ExportResiduXml>
+<!--
+-->
+                    </SectionExport>
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
