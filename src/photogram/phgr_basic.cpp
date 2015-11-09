@@ -1609,6 +1609,8 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
 
        if ((aPost=="txt") || (aPost=="TXT"))
        {
+            aType = eTIGB_MMIkonos;
+            return;
        }
    }
 }
