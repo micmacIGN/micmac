@@ -294,8 +294,7 @@
           <ParamF Nb="1" RefType="ParamForceRappel" AccessorFils="false"> </ParamF> 
     </RappelOnIntrinseque>
     <XmlSLM_RappelOnPt Nb="?">
-          <NbPixInc Nb="?" Type="double" Def="500">  </NbPixInc> <!-- Si <=0 annule tout -->
-          <BsHMin Nb="?" Type="double" Def="0.025">    </BsHMin>
+          <CondMax Nb="1" Type="double">  </CondMax> <!-- Si <=0 annule tout -->
     </XmlSLM_RappelOnPt>
 </SectionLevenbergMarkard>
 

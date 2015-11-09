@@ -194,7 +194,7 @@ void  cAppliApero::InitLVM
      const cXmlSLM_RappelOnPt * aRop = aPtr->XmlSLM_RappelOnPt().PtrVal();
      if (aRop)
      {
-        mXmlSMLRop  = (aRop->NbPixInc().Val() > 0) ? aRop :  0;
+        mXmlSMLRop  = aRop;
      }
    }
 

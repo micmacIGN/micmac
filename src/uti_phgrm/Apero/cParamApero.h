@@ -729,14 +729,10 @@ class cXmlSLM_RappelOnPt
         friend void xml_init(cXmlSLM_RappelOnPt & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< double > & NbPixInc();
-        const cTplValGesInit< double > & NbPixInc()const ;
-
-        cTplValGesInit< double > & BsHMin();
-        const cTplValGesInit< double > & BsHMin()const ;
+        double & CondMax();
+        const double & CondMax()const ;
     private:
-        cTplValGesInit< double > mNbPixInc;
-        cTplValGesInit< double > mBsHMin;
+        double mCondMax;
 };
 cElXMLTree * ToXMLTree(const cXmlSLM_RappelOnPt &);
 
@@ -766,11 +762,8 @@ class cSectionLevenbergMarkard
         std::list< cRappelOnIntrinseque > & RappelOnIntrinseque();
         const std::list< cRappelOnIntrinseque > & RappelOnIntrinseque()const ;
 
-        cTplValGesInit< double > & NbPixInc();
-        const cTplValGesInit< double > & NbPixInc()const ;
-
-        cTplValGesInit< double > & BsHMin();
-        const cTplValGesInit< double > & BsHMin()const ;
+        double & CondMax();
+        const double & CondMax()const ;
 
         cTplValGesInit< cXmlSLM_RappelOnPt > & XmlSLM_RappelOnPt();
         const cTplValGesInit< cXmlSLM_RappelOnPt > & XmlSLM_RappelOnPt()const ;

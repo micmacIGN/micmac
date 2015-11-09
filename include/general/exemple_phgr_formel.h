@@ -542,7 +542,8 @@ class cBufSubstIncTmp
                   const int                     aNbBloc,
                   // const std::vector<int> & aVIndTmp,
                   // const std::vector<int> & aVIndNonTmp,
-                  bool  Raz=true // False pour des test de temps, histoire de relancer +sieur fois
+                  bool  Raz=true, // False pour des test de temps, histoire de relancer +sieur fois
+                  double LimCond=-1 
 	      );
 
           // Conditionnement du Lambda de l'inversion, on le teste comme un signal
@@ -573,7 +574,7 @@ class cSubstitueBlocIncTmp
          cSubstitueBlocIncTmp(cEqfBlocIncTmp &);
 	 void AddInc(const cIncListInterv &);
 	 void Close();
-	 void DoSubst(bool Raz=true);
+	 void DoSubst(bool Raz=true,double LimCond=-1);
 
          void RazNonTmp();
 

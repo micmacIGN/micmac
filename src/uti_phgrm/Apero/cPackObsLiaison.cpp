@@ -881,6 +881,11 @@ void  cPackObsLiaison::GetPtsTerrain
 }
 
 
+extern double aGlobMaxCond ;
+extern double aSomCond ;
+extern double aNbCond ;
+extern double aNb100 ;
+
 
 double cPackObsLiaison::AddObs
        (
@@ -953,17 +958,29 @@ double cPackObsLiaison::AddObs
    {
        double aSqrtEr = sqrt(aSEr);
        mAppli.CurXmlE().AverageResidual() = aSqrtEr;
-       mAppli.COUT() << "| | " << " RESIDU LIAISON MOYENS = "  
-                 <<  aSqrtEr << " pour " << mId ;
+       mAppli.COUT() << "| | " << " Residual = "  
+                 <<  aSqrtEr  ;
        if (aSO.PdsEvol())
        {
            mAppli.CurXmlE().EvolMax().SetVal(aSO.MaxEvol());
            mAppli.CurXmlE().EvolMoy().SetVal(aSO.MoyEvol());
-           mAppli.COUT() << " Evol, Moy=" <<  aSO.MoyEvol() << " ,Max=" << aSO.MaxEvol() ;
+           mAppli.COUT() << " ;; Evol, Moy=" <<  aSO.MoyEvol() << " ,Max=" << aSO.MaxEvol() ;
        }
        mAppli.COUT() <<  "\n";
 
+       if (mAppli.mPoseWorstRes)
+       {
+          mAppli.COUT() << "| |  Worst, Res " << mAppli.mWorstRes << " for " << mAppli.mPoseWorstRes->Name();
+          mAppli.COUT() << ",  Perc " << mAppli.mWorstPerc << " for " << mAppli.mPoseWorstPerc->Name();
+          mAppli.COUT() <<  "\n";
+       }
 
+       if (aNbCond)
+       {
+          mAppli.COUT() << "| |  Cond , Aver " <<  aSomCond/aNbCond 
+                                    << " Max " << aGlobMaxCond 
+                                    << " Prop>100 " << aNb100/aNbCond << "\n";
+       }
 
 
        if (TheExitOnNan)

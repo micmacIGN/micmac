@@ -2115,63 +2115,31 @@ void xml_init(cRappelOnIntrinseque & anObj,cElXMLTree * aTree)
 std::string  Mangling( cRappelOnIntrinseque *) {return "754E5035B214CC95FE3F";};
 
 
-cTplValGesInit< double > & cXmlSLM_RappelOnPt::NbPixInc()
+double & cXmlSLM_RappelOnPt::CondMax()
 {
-   return mNbPixInc;
+   return mCondMax;
 }
 
-const cTplValGesInit< double > & cXmlSLM_RappelOnPt::NbPixInc()const 
+const double & cXmlSLM_RappelOnPt::CondMax()const 
 {
-   return mNbPixInc;
-}
-
-
-cTplValGesInit< double > & cXmlSLM_RappelOnPt::BsHMin()
-{
-   return mBsHMin;
-}
-
-const cTplValGesInit< double > & cXmlSLM_RappelOnPt::BsHMin()const 
-{
-   return mBsHMin;
+   return mCondMax;
 }
 
 void  BinaryUnDumpFromFile(cXmlSLM_RappelOnPt & anObj,ELISE_fp & aFp)
 {
-   { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.NbPixInc().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.NbPixInc().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.NbPixInc().SetNoInit();
-  } ;
-  { bool IsInit;
-       BinaryUnDumpFromFile(IsInit,aFp);
-        if (IsInit) {
-             anObj.BsHMin().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.BsHMin().ValForcedForUnUmp(),aFp);
-        }
-        else  anObj.BsHMin().SetNoInit();
-  } ;
+     BinaryUnDumpFromFile(anObj.CondMax(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlSLM_RappelOnPt & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.NbPixInc().IsInit());
-    if (anObj.NbPixInc().IsInit()) BinaryDumpInFile(aFp,anObj.NbPixInc().Val());
-    BinaryDumpInFile(aFp,anObj.BsHMin().IsInit());
-    if (anObj.BsHMin().IsInit()) BinaryDumpInFile(aFp,anObj.BsHMin().Val());
+    BinaryDumpInFile(aFp,anObj.CondMax());
 }
 
 cElXMLTree * ToXMLTree(const cXmlSLM_RappelOnPt & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlSLM_RappelOnPt",eXMLBranche);
-   if (anObj.NbPixInc().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("NbPixInc"),anObj.NbPixInc().Val())->ReTagThis("NbPixInc"));
-   if (anObj.BsHMin().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("BsHMin"),anObj.BsHMin().Val())->ReTagThis("BsHMin"));
+   aRes->AddFils(::ToXMLTree(std::string("CondMax"),anObj.CondMax())->ReTagThis("CondMax"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -2182,12 +2150,10 @@ void xml_init(cXmlSLM_RappelOnPt & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.NbPixInc(),aTree->Get("NbPixInc",1),double(500)); //tototo 
-
-   xml_init(anObj.BsHMin(),aTree->Get("BsHMin",1),double(0.025)); //tototo 
+   xml_init(anObj.CondMax(),aTree->Get("CondMax",1)); //tototo 
 }
 
-std::string  Mangling( cXmlSLM_RappelOnPt *) {return "572B837DD9971591FD3F";};
+std::string  Mangling( cXmlSLM_RappelOnPt *) {return "0C90024C4E4431F8FB3F";};
 
 
 std::list< cRappelOnAngles > & cSectionLevenbergMarkard::RappelOnAngles()
@@ -2223,25 +2189,14 @@ const std::list< cRappelOnIntrinseque > & cSectionLevenbergMarkard::RappelOnIntr
 }
 
 
-cTplValGesInit< double > & cSectionLevenbergMarkard::NbPixInc()
+double & cSectionLevenbergMarkard::CondMax()
 {
-   return XmlSLM_RappelOnPt().Val().NbPixInc();
+   return XmlSLM_RappelOnPt().Val().CondMax();
 }
 
-const cTplValGesInit< double > & cSectionLevenbergMarkard::NbPixInc()const 
+const double & cSectionLevenbergMarkard::CondMax()const 
 {
-   return XmlSLM_RappelOnPt().Val().NbPixInc();
-}
-
-
-cTplValGesInit< double > & cSectionLevenbergMarkard::BsHMin()
-{
-   return XmlSLM_RappelOnPt().Val().BsHMin();
-}
-
-const cTplValGesInit< double > & cSectionLevenbergMarkard::BsHMin()const 
-{
-   return XmlSLM_RappelOnPt().Val().BsHMin();
+   return XmlSLM_RappelOnPt().Val().CondMax();
 }
 
 
@@ -2361,7 +2316,7 @@ void xml_init(cSectionLevenbergMarkard & anObj,cElXMLTree * aTree)
    xml_init(anObj.XmlSLM_RappelOnPt(),aTree->Get("XmlSLM_RappelOnPt",1)); //tototo 
 }
 
-std::string  Mangling( cSectionLevenbergMarkard *) {return "FE8DB56E861A60EAFD3F";};
+std::string  Mangling( cSectionLevenbergMarkard *) {return "48BA5FEF1A4B43A3FE3F";};
 
 
 std::string & cSetOrientationInterne::KeyFile()
@@ -10742,7 +10697,7 @@ void xml_init(cSectionSolveur & anObj,cElXMLTree * aTree)
    xml_init(anObj.Im2Aff(),aTree->Get("Im2Aff",1)); //tototo 
 }
 
-std::string  Mangling( cSectionSolveur *) {return "FE1CD4508CD0C18EFF3F";};
+std::string  Mangling( cSectionSolveur *) {return "04CD7003068DABC3FE3F";};
 
 
 double & cAutoAdaptLVM::Mult()
@@ -15928,7 +15883,7 @@ void xml_init(cIterationsCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.TestInteractif(),aTree->Get("TestInteractif",1)); //tototo 
 }
 
-std::string  Mangling( cIterationsCompensation *) {return "394760AF3FB30DABFF3F";};
+std::string  Mangling( cIterationsCompensation *) {return "FF2EA49C9C7100B5FE3F";};
 
 
 std::string & cTraceCpleHom::Id()
@@ -23566,7 +23521,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "688C45D2A15B0683FF3F";};
+std::string  Mangling( cEtapeCompensation *) {return "6C54A3A551548193FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -23625,7 +23580,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "A0F132F098ACC6C0FDBF";};
+std::string  Mangling( cSectionCompensation *) {return "50C7AF4BB681ACFEFC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -24614,7 +24569,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "E892DD33C94783A2FE3F";};
+std::string  Mangling( cParamApero *) {return "D078909AC801B984FF3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()
