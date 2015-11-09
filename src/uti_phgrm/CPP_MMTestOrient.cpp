@@ -69,12 +69,25 @@ int  FixSizeImage(int aZoom,std::string aFile,double aLargMin,int aZoomMax)
 }
 
 
-int MMTestOrient_main(int argc,char ** argv)
+class cAppliMMTestOrient
+{
+    public :
+
+       cAppliMMTestOrient(int argc,char ** argv);
+       int Exec();
+    private :
+       std::string mCom;
+       std::vector<std::string> mVIms;
+       bool mMMV;
+};
+
+cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
 {
     MMD_InitArgcArgv(argc,argv);
 
     std::string anIm1,anIm2;
     std::string AeroIn= "";
+    std::string AeroInSsMinus= "";
     std::string aDir="./";
     int Zoom0=32;
     int ZoomF=2;
@@ -86,6 +99,7 @@ int MMTestOrient_main(int argc,char ** argv)
     double aZMoy,aZInc;
     bool    ShowCom = false;
     bool ExportDepl = false;
+    bool mModeGB = false;
 
     ElInitArgMain
     (
@@ -97,6 +111,7 @@ int MMTestOrient_main(int argc,char ** argv)
                     << EAM(Zoom0,"Zoom0",true,"Zoom init, pow of 2  in [128,8], Def depend of size", eSAM_IsPowerOf2)
                     << EAM(ZoomF,"ZoomF",true,"Zoom init,  pow of 2  in [4,1], Def=2",eSAM_IsPowerOf2)
                     << EAM(mModePB,"PB",true,"Push broom sensor")
+                    << EAM(mModeGB,"GB",true,"Gen Bundle Mode")
                     << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO), Mandatory in PB", eSAM_NoInit)
                     << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
                     << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
@@ -104,7 +119,16 @@ int MMTestOrient_main(int argc,char ** argv)
                     << EAM(ExportDepl,"ExportDepl",true,"Export result as displacement maps")
     );
 
-    if (MMVisualMode) return EXIT_SUCCESS;
+    // cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(anIm1));
+
+    mVIms.push_back(anIm1);
+    mVIms.push_back(anIm2);
+
+    mMMV = MMVisualMode;
+    if (MMVisualMode) 
+    {
+        return;
+    }
 
     if (!mModePB)
     {
@@ -114,6 +138,8 @@ int MMTestOrient_main(int argc,char ** argv)
 
     if (!EAMIsInit(&mModePB))
         mModePB = EAMIsInit(&mModeOri);
+
+
 
     std::string aFullModeOri = "eGeomImageOri";
     if (mModePB)
@@ -127,6 +153,13 @@ int MMTestOrient_main(int argc,char ** argv)
          else  {ELISE_ASSERT(false,"Unknown mode ori");}
     }
 
+    if (mModeGB)
+    {
+         ELISE_ASSERT(EAMIsInit(&aZMoy)    , "ZMoy is Mandatory in GB");
+         ELISE_ASSERT(EAMIsInit(&aZInc)    , "ZInc is Mandatory in GB");
+         aFullModeOri= "eGeomGen";
+
+    }
 
 // eGeomImageRTO
 // eGeomImageGrille
@@ -143,32 +176,44 @@ int MMTestOrient_main(int argc,char ** argv)
 
 
 
-   std::string aCom =     MM3dBinFile( "MICMAC" ) + " "
+   mCom =     MM3dBinFile( "MICMAC" ) + " "
                        +  Basic_XML_MM_File("MM-PxTransv.xml")
                        +  std::string(" WorkDir=") + aDir + " "
                        +  std::string(" +Im1=") + QUOTE(anIm1) + " "
                        +  std::string(" +Im2=") + QUOTE(anIm2) + " "
                        +  std::string(" +AeroIn=-") + AeroIn + " "
+                       +  std::string(" +AeroInSsMinus=") + AeroIn + " "
                        +  std::string(" +Zoom0=") + ToString(Zoom0) + " "
                        +  std::string(" +ZoomF=") + ToString(ZoomF) + " "
                       ;
 
     if (mModePB)
     {
-         aCom = aCom + " +Conik=false "
+         mCom = mCom + " +Conik=false "
                      +  " +ModeOriIm=" + aFullModeOri + std::string(" ")
                      + " +PostFixOri=" + AeroIn     + std::string(" ")
                      + " +Px1Inc=" + ToString(aZInc) + std::string(" ")
                      + " +Px1Moy=" + ToString(aZMoy) + std::string(" ") ;
     }
+    if (mModeGB)
+    {
+         mCom = mCom + " +Conik=false "
+                     + " +UseGenBundle=true"
+                     + " +ModeOriIm=" + aFullModeOri + std::string(" ")
+                     + " +Px1Inc=" + ToString(aZInc) + std::string(" ")
+                     + " +Px1Moy=" + ToString(aZMoy) + std::string(" ") ;
+    }
 
-    if (ShowCom) std::cout << aCom << "\n";
+    if (ShowCom) std::cout << mCom << "\n";
 
 
-   if (ExportDepl) aCom = aCom + " +ExporFieldsHom=true ";
+   if (ExportDepl) mCom = mCom + " +ExporFieldsHom=true ";
+}
 
-   int aRes = system_call(aCom.c_str());
-
+int cAppliMMTestOrient::Exec()
+{
+   if (mMMV) return EXIT_SUCCESS;
+   int aRes = system_call(mCom.c_str());
 
    BanniereMM3D();
 
@@ -176,6 +221,12 @@ int MMTestOrient_main(int argc,char ** argv)
 }
 
 
+int MMTestOrient_main(int argc,char ** argv)
+{
+    cAppliMMTestOrient anAppli(argc,argv);
+ 
+    return anAppli.Exec();
+}
 
 
 
