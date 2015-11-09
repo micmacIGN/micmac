@@ -82,6 +82,8 @@ cPushB_GeomLine::cPushB_GeomLine(const cPushB_PhysMod * aPBPM,int aNbSampleX,dou
             Pt3dr aDir = vunit(aVSeg[aKS].Mil()-mCenter);
             aVDirOrient.push_back(aDir);
 
+            // we want to enforce the fact that the plane contains (0,0,0) so we add P and -P
+            // to this observation
             aVDirCalcPlan.push_back(aDir);
             aVDirCalcPlan.push_back(-aDir);
        }
@@ -89,6 +91,8 @@ cPushB_GeomLine::cPushB_GeomLine(const cPushB_PhysMod * aPBPM,int aNbSampleX,dou
     }
     mResInt = aSomD / aVSeg.size();
 
+    // R=CoordPlan2Euclid()  affine rotation  such that, if P is in plane coordinates
+    // R(P) is in global coordinates;   
 
     ElRotation3D aRe2p = mPlanRay.CoordPlan2Euclid().inv();
     mAxeY = mPlanRay.Norm();
@@ -134,6 +138,7 @@ cPushB_GeomLine::cPushB_GeomLine(const cPushB_PhysMod * aPBPM,int aNbSampleX,dou
 }
 
 
+// compute the projection of P on mPlanRay, then make it a unit vector
 Pt3dr cPushB_GeomLine::DirOnPlan(const Pt3dr & aP) const
 {
    return vunit(mPlanRay.Proj(aP));
