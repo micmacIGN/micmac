@@ -1146,7 +1146,6 @@ void cAppliMICMAC::InitAnamSA()
                      "",
                      mXmlAnamSA
                );
-// std::cout << "AAAAAAAAaa\n";
        if (mAnaGeomMNT && mAnaGeomMNT->UnUseAnamXCste().Val())
        {
               mAnamSA->SetUnusedAnamXCSte();
@@ -1246,6 +1245,7 @@ void cAppliMICMAC::InitImages()
     }
 
 
+
     if (Im1().IsInit())
        AddAnImage(Im1().Val());
     if (Im2().IsInit())
@@ -1265,6 +1265,8 @@ void cAppliMICMAC::InitImages()
 	     )
 	 );
     }
+
+
     if (mModeAlloc==eAllocAM_Surperposition)
     {
        if (Im3Superp().IsInit())

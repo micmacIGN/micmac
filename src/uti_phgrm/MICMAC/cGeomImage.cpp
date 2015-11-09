@@ -255,11 +255,6 @@ ElCamera * cGeomImage::GetCamera(const Pt2di & aSz,bool & ToDel,bool & aZUP) con
 {
    ToDel = true;
    aZUP = true;
-if (0&&MPD_MM())
-{
-   std::cout << "cGeomImage::GetCamera " << Name () << " \n";
-   getchar();
-}
    return  cCameraOrtho::Alloc(aSz);
 }
 
@@ -2191,10 +2186,6 @@ if (MPD_MM())
       {
             ToDel = false;
             ElCamera * aCam = GetOri();
-if (0&&MPD_MM())
-{
-    std::cout << "ZFFF::GetCamera " << aCam << "\n";
-}
 
             if (aCam) return aCam;
             return  cGeomImage::GetCamera(aSz,ToDel,aZUP);
@@ -2576,14 +2567,6 @@ getchar();
                 eModeExportNuage
            ) const
       {
-/*
-if (MPD_MM())
-{
-   std::cout << "RemplitOriXMLNuageRemplitOriXMLNuage \n";
-   CFM = true;
-   getchar();
-}
-*/
            aNuage.PM3D_ParamSpecifs().NoParamSpecif().SetNoInit();
            cModeFaisceauxImage aMFI;
            aMFI.ZIsInverse() = true;
@@ -3265,6 +3248,7 @@ bool cGeometrieImageComp::AcceptAndTransform
                && (! aNGI.NGI_StdDir_Apply().Val()->Match(aNameTested))
              )
              return false;
+
          std::string aRes =  mAppli.ICNM()->StdNameCamGenOfNames(aNGI.StdDir(),aNameTested);
          if (aRes !="")
          {
