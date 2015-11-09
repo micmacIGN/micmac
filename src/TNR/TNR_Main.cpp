@@ -320,7 +320,7 @@ cXmlTNR_CalibReport cAppli_TNR_Main::TestCalib(const cXmlTNR_TestDiffCalib & aCa
 cXmlTNR_OriReport cAppli_TNR_Main::TestOri(const cXmlTNR_TestDiffOri & aOri)
 {
     //mm3d CmpOri to compare two Orientation
-    std::string CmdOri = "mm3d CmpOri " +(mCurDirExe+aOri.PatternTestOri())+" "+aOri.NameTestOri()+" "+aOri.NameTestOri()+" DirOri2="+mCurDirExe +" XmlG=Ori.xml";
+    std::string CmdOri = "mm3d CmpOri " +(mCurDirExe+aOri.PatternTestOri())+" "+aOri.NameTestOri()+" "+aOri.NameTestOri()+" DirOri2="+mCurDirRef +" XmlG=Ori.xml";
     std::cout << CmdOri << "\n";
     System(CmdOri,true);//execute system cmd
     cXmlTNR_TestOriReport mXML_TestOri = StdGetFromSI("Ori.xml",XmlTNR_TestOriReport);//Get the file and parse it
@@ -339,7 +339,7 @@ cXmlTNR_OriReport cAppli_TNR_Main::TestOri(const cXmlTNR_TestDiffOri & aOri)
 cXmlTNR_ImgReport cAppli_TNR_Main::TestImg(const cXmlTNR_TestDiffImg & aImg)
 {
     //mm3d CmpIm to compare images px per px
-    std::string CmdImg = "mm3d CmpIm " + (mCurDirExe + aImg.NameTestImg()) + " " + (mCurDirRef + aImg.NameTestImg())+" XmlG=CmpImg.xml";
+    std::string CmdImg = "mm3d CmpIm " +(mCurDirExe + aImg.NameTestImg()) + " " + (mCurDirRef + aImg.NameTestImg())+" XmlG=CmpImg.xml";
     std::cout << CmdImg << "\n";
     System(CmdImg,true);//execute system cmd
     cXmlTNR_TestImgReport mXML_TestImg = StdGetFromSI("CmpImg.xml",XmlTNR_TestImgReport);//Get the file and parse it
@@ -539,6 +539,13 @@ void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::stri
 		std::cout << aComCp << "\n";
 		System(aComCp);
 	    }
+	    for (std::list<std::string>::const_iterator itN=mXML_CurGT.DirInit().begin() ; itN!=mXML_CurGT.DirInit().end() ; itN++)
+	    {
+		//std::cout << *itN <<endl;
+		aComCp = "cp -r " + (mCurDirRef + *itN) + " " + mCurDirExe;
+		std::cout << aComCp << "\n";
+		System(aComCp);
+	    }
 	}
     }
     else
@@ -549,6 +556,14 @@ void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::stri
 	{
 	    //std::cout << *itN <<endl;
 	    aComCp = "cp " + (mCurDirRef + *itN) + " " + mCurDirExe;
+	    std::cout << aComCp << "\n";
+	    System(aComCp);
+	}
+	
+	for (std::list<std::string>::const_iterator itN=mXML_CurGT.DirInit().begin() ; itN!=mXML_CurGT.DirInit().end() ; itN++)
+	{
+	    //std::cout << *itN <<endl;
+	    aComCp = "cp -r " + (mCurDirRef + *itN) + " " + mCurDirExe;
 	    std::cout << aComCp << "\n";
 	    System(aComCp);
 	}
