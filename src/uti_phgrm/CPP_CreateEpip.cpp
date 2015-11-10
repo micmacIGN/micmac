@@ -77,6 +77,7 @@ class cApply_CreateEpip_main
       bool   mForceGen;
       int    mNumKer;
       std::string mPostMasq;
+      std::string mPostIm;
       bool mExpTxt;
 
       cBasicGeomCap3D *  mGenI1;
@@ -304,6 +305,8 @@ std::cout << "OOOKKKK " << aPInd << aPEpi << aPIm << "\n";
     Tiff_Im aTifMasq = aTifEpi;
     bool ExportMasq = (aPostMasq!="NONE");
 
+std::cout << "POSTMAS " << aPostMasq << "\n";
+
     if (ExportMasq)
     {
         std::string aNameMasq = StdPrefix(aNameOut)+ aPostMasq  +".tif";
@@ -527,9 +530,9 @@ void cApply_CreateEpip_main::DoEpipGen()
       std::cout << "Epip Rect Accuracy, Moy " << aErrMoy/mNbP << " Max " << aErrMax << "\n";
 
 
-      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1.tif",mPostMasq,mNumKer);
+      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer);
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2.tif",mPostMasq,mNumKer);
+      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer);
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
@@ -545,7 +548,7 @@ void cApply_CreateEpip_main::DoEpipGen()
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mForceGen (false),
    mNumKer   (5),
-   mPostMasq ("NONE")
+   mPostMasq ("")
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -573,21 +576,18 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
                     << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)", eSAM_IsBool)
                     << EAM(DoIm,"DoIm",true,"Compute image (def=true !!)", eSAM_IsBool)
                     << EAM(aNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)", eSAM_NoInit)
-                    << EAM(mDegre,"Degre",true,"Degre of polynom to correct epi (def=1-, ,2,3)")
+                    << EAM(mDegre,"Degre",true,"Degre of polynom to correct epi (def=9)")
                     << EAM(mForceGen,"FG",true,"Force generik epip even with stenope cam")
                     << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
-                    << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=NONE")
+                    << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=Ori")
+                    << EAM(mPostIm,"PostIm",true,"Attribut for Im ")
 		    << EAM(mExpTxt,"ExpTxt",false,"Use txt tie points (Def false, e.g. use dat format)")
     );
 
-    if (mPostMasq!="NONE") 
-       mPostMasq = "_"+mPostMasq+"Masq";
 
-    if (!MMVisualMode)
-    {
+if (!MMVisualMode)
+{
     if (mName1 > mName2) ElSwap(mName1,mName2);
-
-
 
     int aNbChan = Gray ? 1 : - 1;
 
@@ -599,6 +599,13 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
                                                    aTplFCND
                                                );
      mICNM->CorrecNameOrient(anOri);
+
+     if (mPostMasq!="NONE") 
+     {
+          // if (!EAMIsInit(&mPostMasq)) mPostMasq =  anOri;
+           mPostMasq = "_Masq";
+     }
+     if (!EAMIsInit(&mPostIm)) mPostIm =  "_"+anOri;
 
 
      mGenI1 = mICNM->StdCamGenOfNames(anOri,mName1);
@@ -660,8 +667,8 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 
      return ;
 
-    }
-    else return ;
+}
+else return ;
 }
 
 
