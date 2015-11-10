@@ -513,59 +513,60 @@ void cAppli_TNR_Main::DoOneGlobTNR(const std::string & aNameFile,const std::stri
     mXML_CurGT = StdGetFromSI(mEASF.mDir+aNameFile,XmlTNR_GlobTest);
     if(mInRefDir!=""){mCurDirRef = mEASF.mDir+mInRefDir+"/";}
     else{
-    mCurDirRef = mEASF.mDir+  "TNR-Ref-" + mXML_CurGT.Name() + "/";
+		mCurDirRef = mEASF.mDir+  "TNR-Ref-" + mXML_CurGT.Name() + "/";
     }
     if(mInExeDir!=""){mCurDirExe = mEASF.mDir+mInExeDir+"/";}
     else
     {
-	mCurDirExe = mEASF.mDir+  "TNR-Exe-" + mXML_CurGT.Name() + "/";
+		mCurDirExe = mEASF.mDir+  "TNR-Exe-" + mXML_CurGT.Name() + "/";
     }
     int ExistDir=ELISE_fp::IsDirectory(mCurDirExe);
     
     // On fait une directory TNR vide
     if (ExistDir==1)
     {
-	if (mXML_CurGT.PurgeExe())
-	{
-	    //std::cout<<mXML_CurGT.PurgeExe()<<endl;
-	    std::string aComCp = "rm -r " + mCurDirExe;
-	    System(aComCp);
-	    aComCp = "mkdir " + mCurDirExe;
-	    System(aComCp);
-	    for (std::list<std::string>::const_iterator itN=mXML_CurGT.PatFileInit().begin() ; itN!=mXML_CurGT.PatFileInit().end() ; itN++)
-	    {
-		//std::cout << *itN <<endl;
-		aComCp = "cp " + (mCurDirRef + *itN) + " " + mCurDirExe;
-		std::cout << aComCp << "\n";
-		System(aComCp);
-	    }
-	    for (std::list<std::string>::const_iterator itN=mXML_CurGT.DirInit().begin() ; itN!=mXML_CurGT.DirInit().end() ; itN++)
-	    {
-		//std::cout << *itN <<endl;
-		aComCp = "cp -r " + (mCurDirRef + *itN) + " " + mCurDirExe;
-		std::cout << aComCp << "\n";
-		System(aComCp);
-	    }
+		if (mXML_CurGT.PurgeExe())
+		{
+			ELISE_fp::PurgeDirRecursif(mCurDirExe);
+			ELISE_fp::MkDir(mCurDirExe);
+			for (std::list<std::string>::const_iterator itN=mXML_CurGT.PatFileInit().begin() ; itN!=mXML_CurGT.PatFileInit().end() ; itN++)
+			{
+				ELISE_fp::CpFile((mCurDirRef + *itN),mCurDirExe);
+			}
+			for (std::list<std::string>::const_iterator itN=mXML_CurGT.DirInit().begin() ; itN!=mXML_CurGT.DirInit().end() ; itN++)
+			{
+				std::vector<std::string> FileList = DirArbo(mCurDirRef + *itN);
+				ELISE_fp::MkDir(mCurDirExe + *itN);
+				for(unsigned int i=0;i<FileList.size();i++)
+				{
+					if(ELISE_fp::IsDirectory(mCurDirRef + *itN + FileList[i])!=1)
+					{
+						ELISE_fp::CpFile((mCurDirRef + *itN + FileList[i]),mCurDirExe + *itN);
+					}
+				}
+				
+			}
 	}
     }
     else
     {
-	std::string aComCp = "mkdir " + mCurDirExe;
-	System(aComCp);
+		ELISE_fp::MkDir(mCurDirExe);
 	for (std::list<std::string>::const_iterator itN=mXML_CurGT.PatFileInit().begin() ; itN!=mXML_CurGT.PatFileInit().end() ; itN++)
 	{
-	    //std::cout << *itN <<endl;
-	    aComCp = "cp " + (mCurDirRef + *itN) + " " + mCurDirExe;
-	    std::cout << aComCp << "\n";
-	    System(aComCp);
+	    ELISE_fp::CpFile((mCurDirRef + *itN),mCurDirExe);
 	}
 	
 	for (std::list<std::string>::const_iterator itN=mXML_CurGT.DirInit().begin() ; itN!=mXML_CurGT.DirInit().end() ; itN++)
 	{
-	    //std::cout << *itN <<endl;
-	    aComCp = "cp -r " + (mCurDirRef + *itN) + " " + mCurDirExe;
-	    std::cout << aComCp << "\n";
-	    System(aComCp);
+	    std::vector<std::string> FileList = DirArbo(mCurDirRef + *itN);
+		ELISE_fp::MkDir(mCurDirExe + *itN);
+		for(unsigned int i=0;i<FileList.size();i++)
+		{
+			if(ELISE_fp::IsDirectory(mCurDirRef + *itN + FileList[i])!=1)
+			{
+				ELISE_fp::CpFile((mCurDirRef + *itN + FileList[i]),mCurDirExe + *itN);
+			}
+		}
 	}
     }
 		
