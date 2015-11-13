@@ -1529,15 +1529,15 @@ void RPC::GetGridExtent(const std::vector<Pt3dr> & aGrid,
 void RPC::NormR2(std::vector<Pt3dr> & aPts) const
 {
     int aK;
-    double aXNmax=0, aXNmin=0,
-           aYNmax=0, aYNmin=0;
+    /*double aXNmax=0, aXNmin=0,
+           aYNmax=0, aYNmin=0;*/
 
     for (aK=0; aK<int(aPts.size()); aK++)
     {
         aPts.at(aK).x = (aPts.at(aK).x - samp_off) / samp_scale;
         aPts.at(aK).y = (aPts.at(aK).y - line_off) / line_scale;
         
-        if( aPts.at(aK).x > aXNmax )
+/*        if( aPts.at(aK).x > aXNmax )
             aXNmax = aPts.at(aK).x;
         if( aPts.at(aK).x < aXNmin )
             aXNmin = aPts.at(aK).x;
@@ -1546,12 +1546,12 @@ void RPC::NormR2(std::vector<Pt3dr> & aPts) const
             aYNmax = aPts.at(aK).y;
         if( aPts.at(aK).y < aYNmin )
             aYNmin = aPts.at(aK).y;
-
+*/
     }
 
     
-    std::cout << "RPC::NormR2 min " << aXNmin << " " << aYNmin << "; ";
-    std::cout << "max " << aXNmax << " " << aYNmax << "\n";
+    //std::cout << "RPC::NormR2 min " << aXNmin << " " << aYNmin << "; ";
+    //std::cout << "max " << aXNmax << " " << aYNmax << "\n";
                      
     
 }
@@ -1572,9 +1572,9 @@ void RPC::UnNormR2(std::vector<Pt3dr> & aPts) const
 void RPC::NormR3(std::vector<Pt3dr> & aPts) const
 {
     int aK;
-    double aXNmax=0, aXNmin=0,
+    /*double aXNmax=0, aXNmin=0,
            aYNmax=0, aYNmin=0,
-           aZNmax=0, aZNmin=0;
+           aZNmax=0, aZNmin=0;*/
 
     for (aK=0; aK<int(aPts.size()); aK++)
     {
@@ -1582,7 +1582,7 @@ void RPC::NormR3(std::vector<Pt3dr> & aPts) const
         aPts.at(aK).y = (aPts.at(aK).y - lat_off) / lat_scale;
         aPts.at(aK).z = (aPts.at(aK).z - height_off)/height_scale;
     
-        if( aPts.at(aK).x > aXNmax )
+/*        if( aPts.at(aK).x > aXNmax )
             aXNmax = aPts.at(aK).x;
         if( aPts.at(aK).x < aXNmin )
             aXNmin = aPts.at(aK).x;
@@ -1596,11 +1596,11 @@ void RPC::NormR3(std::vector<Pt3dr> & aPts) const
             aZNmax = aPts.at(aK).z;
         if( aPts.at(aK).z < aZNmin )
             aZNmin = aPts.at(aK).z;
-    
+  */  
     }
 
-    std::cout << "RPC::NormR3 min " << aXNmin << " " << aYNmin << " " << aZNmin <<"; ";
-    std::cout << "max " << aXNmax << " " << aYNmax << " " << aZNmax << "\n";
+    //std::cout << "RPC::NormR3 min " << aXNmin << " " << aYNmin << " " << aZNmin <<"; ";
+    //std::cout << "max " << aXNmax << " " << aYNmax << " " << aZNmax << "\n";
 
 }
 

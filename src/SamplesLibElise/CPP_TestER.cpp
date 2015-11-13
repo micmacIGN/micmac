@@ -125,6 +125,7 @@ int TestER_main(int argc,char ** argv)
     //float aScale = (float) aSzSca.x / aSzOrg.x;
     int aStep = (int) aSzOrg.x / aSzSca.x;
 
+
     GenIm::type_el aTypeOut = GenIm::u_int1;
     Tiff_Im::COMPR_TYPE aModeCompr = Tiff_Im::No_Compr;
 
@@ -143,7 +144,7 @@ int TestER_main(int argc,char ** argv)
                            aSzSca,
                            aTypeOut,
                            aModeCompr,
-                           aPal,
+                           Tiff_Im::BlackIsZero,//aPal,
                            aLArgTiff
                        );
 
@@ -175,7 +176,6 @@ int TestER_main(int argc,char ** argv)
 
     TIm2D<INT,INT> aImX(aSzSca), aImY(aSzSca), aImXY(aSzSca);
 
-//ask MPD wether or not the poly starts with shift
     for(aP1=0; aP1<aSzSca.x; aP1++)
     {
         for(aP2=0; aP2<aSzSca.y; aP2++)
@@ -186,24 +186,29 @@ int TestER_main(int argc,char ** argv)
             for(aK=0; aK<aXml.CorX().Monomes().size(); aK++)
             {
 
-
                 if(aXml.CorX().Monomes()[aK].mDegX==0 && 
                    aXml.CorX().Monomes()[aK].mDegY==0)
+                {
                    aTx += aXml.CorX().Monomes()[aK].mCoeff;
-
+                }
                 else if(aXml.CorX().Monomes()[aK].mDegX==0)
+                {
                    aTx += aXml.CorX().Monomes()[aK].mCoeff*
                          pow(aP2*aStep,aXml.CorX().Monomes()[aK].mDegY);
-        
+                }
                 else if(aXml.CorX().Monomes()[aK].mDegY==0)
+                {
                    aTx += aXml.CorX().Monomes()[aK].mCoeff*
                          pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX);
-
+                }
                 else
+                {
                    aTx += aXml.CorX().Monomes()[aK].mCoeff*
                          pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX)*
                          pow(aP2*aStep,aXml.CorX().Monomes()[aK].mDegY);
+                }
             }
+
 
             for(aK=0; aK<aXml.CorY().Monomes().size(); aK++)
             {
@@ -211,21 +216,27 @@ int TestER_main(int argc,char ** argv)
 
                 if(aXml.CorY().Monomes()[aK].mDegX==0 && 
                    aXml.CorY().Monomes()[aK].mDegY==0)
+                {
                    aTy += aXml.CorY().Monomes()[aK].mCoeff;
-
+                }
                 else if(aXml.CorY().Monomes()[aK].mDegX==0)
+                {
                     aTy += aXml.CorY().Monomes()[aK].mCoeff*
                            pow(aP2*aStep,aXml.CorY().Monomes()[aK].mDegY);
-        
+                }
                 else if(aXml.CorY().Monomes()[aK].mDegY==0)
+                {
                     aTy += aXml.CorY().Monomes()[aK].mCoeff*
                            pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX);
-
+                }
                 else
+                {
                     aTy += aXml.CorY().Monomes()[aK].mCoeff*
                            pow(aP1*aStep,aXml.CorY().Monomes()[aK].mDegX)*
                            pow(aP2*aStep,aXml.CorY().Monomes()[aK].mDegY);
+                }
             }
+            
 
             aImX.oset(Pt2di(aP1,aP2),aTx);
             aImY.oset(Pt2di(aP1,aP2),aTy);
@@ -236,15 +247,22 @@ int TestER_main(int argc,char ** argv)
     }
 
 
-    REAL GMin,GMax;
+    REAL GMin=0,GMax=0;
     ELISE_COPY
     (
         aImX.all_pts(),
         aImX.in(),
         VMax(GMax)|VMin(GMin)
     );
+    
+    
+    //in case of flat displacements
+    if(GMin < 0){ GMin == GMax ? GMax=0 : GMax=GMax; } 
+    else        { GMin == GMax ? GMin=0 : GMin=GMin; }
+
     std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
-    aResX = (aImX.in()-GMin) * (255.0 / ElMax(GMax-GMin,1e-2));
+    
+    aResX = (aImX.in() - GMin) * (255.0 / (GMax-GMin));
     //aResX = StdFoncChScale(aImX,Pt2dr(0,0), Pt2dr(1.f/aScale,1.f/aScale));
 
     ELISE_COPY
@@ -253,15 +271,22 @@ int TestER_main(int argc,char ** argv)
         aResX,
         aTiffX.out()
     );
-    
+   
+    GMin=0;
+    GMax=0;
     ELISE_COPY
     (
         aImY.all_pts(),
         aImY.in(),
         VMax(GMax)|VMin(GMin)
     );
+    
+    //in case of flat displacements 
+    if(GMin < 0){ GMin == GMax ? GMax=0 : GMax=GMax; } 
+    else        { GMin == GMax ? GMin=0 : GMin=GMin; }
     std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
-    aResY = (aImY.in()-GMin) * (255.0 / ElMax(GMax-GMin,1e-2));
+    
+    aResY = (aImY.in() - GMin) * (255.0 / (GMax-GMin));
     //aResY = StdFoncChScale(aImY,Pt2dr(0,0), Pt2dr(1.f/aScale,1.f/aScale));
  
     ELISE_COPY
@@ -271,14 +296,21 @@ int TestER_main(int argc,char ** argv)
         aTiffY.out()
     );
     
+    GMin=0;
+    GMax=0;
     ELISE_COPY
     (
         aImXY.all_pts(),
         aImXY.in(),
         VMax(GMax)|VMin(GMin)
     );
+
+    //in case of flat displacements 
+    if(GMin < 0){ GMin == GMax ? GMax=0 : GMax=GMax; } 
+    else        { GMin == GMax ? GMin=0 : GMin=GMin; }
     std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
-    aResXY = (aImXY.in()-GMin) * (255.0 / ElMax(GMax-GMin,1e-2));
+    
+    aResXY = (aImXY.in() - GMin) * (255.0 / (GMax-GMin));
  
     ELISE_COPY
     (
