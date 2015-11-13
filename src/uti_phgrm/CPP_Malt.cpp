@@ -584,7 +584,7 @@ if(0)
           {
               mDirMEC = "MM-Malt-Img-" + StdPrefix(mImMaster) +ELISE_CAR_DIR;
           }
-          mUseMasqTA = UseMTAOri && ELISE_fp::exist_file(StdPrefix(mImMaster)+"_Masq.tif");
+          mUseMasqTA = UseMTAOri && ELISE_fp::exist_file(mDir+StdPrefix(mImMaster)+"_Masq.tif");
           if (mUseMasqTA)
               FileMasqT = "MM-MasqImage.xml";
       }
