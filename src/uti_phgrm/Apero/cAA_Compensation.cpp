@@ -321,8 +321,11 @@ void cAppliApero::AddObservationsAppuisFlottants(const std::list<cObsAppuisFlott
       mMaxAbsEcPtsFlot = Pt3dr(0,0,0);
       aBAF->AddObs(*itOAF,aSO);
 
-      std::cout << "=== GCP STAT ===  Dist,  Moy="<< (mSomDistFlot/mNbPtsFlot) << " Max=" << mMaxDistFlot << "\n";
-      std::cout <<  " XYZ , MoyAbs=" << (mSomAbsEcPtsFlot/mNbPtsFlot) << " Max=" << mMaxAbsEcPtsFlot << " Bias=" << (mSomEcPtsFlot/mNbPtsFlot) << "\n";
+      if (mNbPtsFlot)
+      {
+          std::cout << "=== GCP STAT ===  Dist,  Moy="<< (mSomDistFlot/mNbPtsFlot) << " Max=" << mMaxDistFlot << "\n";
+          std::cout <<  " XYZ , MoyAbs=" << (mSomAbsEcPtsFlot/mNbPtsFlot) << " Max=" << mMaxAbsEcPtsFlot << " Bias=" << (mSomEcPtsFlot/mNbPtsFlot) << "\n";
+      }
    }
 }
 
