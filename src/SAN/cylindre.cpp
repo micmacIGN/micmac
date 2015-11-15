@@ -1016,6 +1016,26 @@ void  cPlyCloud::AddCercle(const tCol & aCol,const Pt3dr & aC,const Pt3dr &aNorm
     }
 }
 
+void cPlyCloud::PutDigit(char aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,int aNbByCase)
+{
+    cElBitmFont & aFont =  cElBitmFont::BasicFont_10x8();
+
+    Im2D_Bits<1>  anIm = aFont.ImChar(aDigit);
+
+    Pt2di  aSz = anIm.sz();
+    Pt2di aNb = aSz * aNbByCase;
+    double aSc = aLargCar / aNb.x;
+
+    Pt2di aP;
+    for (aP.x = 0 ; aP.x <aNb.x ; aP.x++)
+    {
+        for (aP.y = 0 ; aP.y <aNb.y ; aP.y++)
+        {
+        }
+    }
+
+}
+
 
 
 void cPlyCloud::PutFile(const std::string & aName)

@@ -312,8 +312,30 @@ void cAppliApero::AddObservationsAppuisFlottants(const std::list<cObsAppuisFlott
    for (std::list<cObsAppuisFlottant>::const_iterator itOAF= aL.begin(); itOAF!=aL.end() ; itOAF++)
    {
       cBdAppuisFlottant * aBAF =  GetEntreeNonVide(mDicPF,itOAF->NameRef(),"AddObservationsAppuisFlottants");
+
+      mNbPtsFlot = 0;
+      mMaxDistFlot=0.0;
+      mSomDistFlot=0.0;
+      mSomEcPtsFlot = Pt3dr(0,0,0);
+      mSomAbsEcPtsFlot = Pt3dr(0,0,0);
+      mMaxAbsEcPtsFlot = Pt3dr(0,0,0);
       aBAF->AddObs(*itOAF,aSO);
+
+      std::cout << "=== GCP STAT ===  Dist,  Moy="<< (mSomDistFlot/mNbPtsFlot) << " Max=" << mMaxDistFlot << "\n";
+      std::cout <<  " XYZ , MoyAbs=" << (mSomAbsEcPtsFlot/mNbPtsFlot) << " Max=" << mMaxAbsEcPtsFlot << " Bias=" << (mSomEcPtsFlot/mNbPtsFlot) << "\n";
    }
+}
+
+void cAppliApero::AddEcPtsFlot(const Pt3dr & anEc)
+{
+   mNbPtsFlot++;
+   double aD = euclid(anEc);
+   mMaxDistFlot= ElMax(mMaxDistFlot,aD);
+   mSomDistFlot += aD;
+   mSomEcPtsFlot = anEc + mSomEcPtsFlot;
+   Pt3dr aEcAbs = Pt3dr(ElAbs(anEc.x),ElAbs(anEc.y),ElAbs(anEc.z));
+   mSomAbsEcPtsFlot = aEcAbs + mSomAbsEcPtsFlot  ;
+   mMaxAbsEcPtsFlot = Sup(mMaxAbsEcPtsFlot,aEcAbs);
 }
 
 
