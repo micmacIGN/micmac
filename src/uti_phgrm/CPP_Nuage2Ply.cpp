@@ -301,6 +301,56 @@ int San2Ply_main(int argc,char ** argv)
 
 
 
+int PlyGCP_main(int argc,char ** argv)
+{
+    cPlyCloud aPC;
+    Pt3di aCoul(255,0,0);
+    std::string aNameGCP,aNamePly;
+    Pt3dr aNorm (0,0,1);
+    double aResol;
+    double aOffset = 2.0;
+    bool aUseNum = false;
+    int aNbByCase = 5;
+    double aSpace = 0.0;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameGCP,"Name of GCP  file", eSAM_IsExistFile)
+                    << EAMC(aResol,"Resolution"),
+        LArgMain()  << EAM(aNamePly,"Out",true," Def= GCP.ply")
+                    << EAM(aNorm,"Normal",true,"Def=(0,0,1)")
+                    << EAM(aCoul,"Coul",true,"Color Def=[255,0,0]")
+                    << EAM(aOffset,"Offset",true, "Ofset, prop to Resolution, Def=2")
+                    << EAM(aUseNum,"UseNum",true, "Use num as name, def=false")
+                    
+    );
+    if (!EAMIsInit(&aNamePly)) 
+    {
+         aNamePly = StdPrefix(aNameGCP) + ".ply";
+    }
+    Pt3dr aX,aY;
+    MakeRONWith1Vect(aNorm,aX,aY);
+
+    cDicoAppuisFlottant aDAF = StdGetFromPCP(aNameGCP,DicoAppuisFlottant);
+
+    int aNum= 1;
+    for (std::list<cOneAppuisDAF>::const_iterator itF=aDAF.OneAppuisDAF().begin() ; itF!=aDAF.OneAppuisDAF().end() ; itF++)
+    {
+        cOneAppuisDAF anAp = *itF;
+        std::string aStr = anAp.NamePt();
+        if (aUseNum) aStr = ToString(aNum);
+        Pt3dr aP0 = anAp.Pt() + aNorm * (aOffset*aResol);
+
+        aPC.PutStringDigit(aStr,aP0,aX,-aY,aCoul,aResol,aResol*aSpace,aNbByCase);
+
+        aNum++;
+    }
+
+    aPC.PutFile(aNamePly);
+
+    return EXIT_SUCCESS;
+}
 
 
 

@@ -189,6 +189,8 @@ double cOneAppuisFlottant::AddObs(const cObsAppuisFlottant & anObs,cStatObs & aS
              // std::cout << "AxCAA " << mPt << PInter() << "\n";
              Pt3dr aDif =  mPt - PInter();
              std::cout << "Ctrl " << mName  << " GCP-Bundle, D=" <<  euclid(aDif) << " P=" << aDif<< "\n";
+
+             mAppli.AddEcPtsFlot(aDif);
           }
           if (aKMax>=0)
              aCamMaxErr =  mCams[aKMax]->Name();

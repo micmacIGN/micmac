@@ -85,6 +85,9 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
 
            cBasicGeomCap3D * CamSsCor();
 
+            virtual Pt2dr DeltaCamInit2CurIm(const Pt2dr & aP) const = 0;
+            Pt2dr   DeltaCurIm2CamInit(const Pt2dr & aP) const ;
+
       protected  : 
             cBasicGeomCap3D * mCam0;
             std::string       mNameFileCam0;
@@ -95,8 +98,6 @@ class cBGC3_Modif2D  : public cBasicGeomCap3D
 
             // Ter2Cam (x) = x + DifCorTer2Cal(x)
 
-            virtual Pt2dr DeltaCamInit2CurIm(const Pt2dr & aP) const = 0;
-            Pt2dr   DeltaCurIm2CamInit(const Pt2dr & aP) const ;
             
 
 };
