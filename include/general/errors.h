@@ -34,7 +34,7 @@
 			gDefaultDebugWarningHandler->add( DebugErrorMessage(std::string(__FILE__),__LINE__,ssWhere.str(),ssWhat.str()) );\
 		}
 
-	#define __OUT(msg) std::cout << msg << endl;
+	#define __OUT(msg) std::cout << msg << std::endl;
 #else
 	#define ELISE_DEBUG_ERROR(condition,where,what)
 	#define ELISE_DEBUG_WARNING(condition,where,what)
