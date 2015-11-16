@@ -124,7 +124,11 @@ std::string StdFileCalibOfImage
    if (aMDP.IsNoMTD())
        aMDP = cMetaDataPhoto::CreateExiv2(aFullName);
 
-   cCameraEntry * aCE = CamOfName(aMDP.Cam() );
+// std::cout << "AAA " << aPrefix << "#"<< aPrefix << "#" << aDef << "#" << aMDP.Cam(true) << "\n"; getchar();
+
+   cCameraEntry * aCE = CamOfName(aMDP.Cam(true) );
+   // MPD => sinon blocage qd pas de camera ds xif
+   // cCameraEntry * aCE = CamOfName(aMDP.Cam() );
 
    if (aCE==0)
       return aDef;

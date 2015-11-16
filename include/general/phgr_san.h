@@ -130,6 +130,10 @@ class cPlyCloud
          static const tCol Black;
          static const tCol White;
          static tCol Gray(const double & aGr); // Entre 0 et 1
+
+
+         void PutDigit(char aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,int aNbByCase);
+         void PutStringDigit(std::string aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,double aSpace,int aNbByCase);
 };
 
 class cInterfSurfaceAnalytique

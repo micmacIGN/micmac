@@ -1016,6 +1016,49 @@ void  cPlyCloud::AddCercle(const tCol & aCol,const Pt3dr & aC,const Pt3dr &aNorm
     }
 }
 
+void cPlyCloud::PutDigit(char aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,int aNbByCase)
+{
+    cElBitmFont & aFont =  cElBitmFont::BasicFont_10x8();
+
+    Im2D_Bits<1>  anIm = aFont.ImChar(aDigit);
+    TIm2DBits<1>  aTIm(anIm);
+
+
+    Pt2di  aSz = anIm.sz();
+    Pt2di aNb = aSz * aNbByCase;
+    double aSc = aLargCar / aNb.x;
+
+
+    Pt2di aP;
+    for (aP.x = 0 ; aP.x <aNb.x ; aP.x++)
+    {
+        for (aP.y = 0 ; aP.y <aNb.y ; aP.y++)
+        {
+             if (aTIm.get(aP/aNbByCase))
+             {
+                 Pt3dr aP3 = aP0 + aX*(aP.x*aSc) + aY*(aP.y*aSc);
+// std::cout << aP <<  " " << aX*(aP.x*aSc) << "\n";
+                 AddPt(aCoul,aP3);
+             }
+        }
+    }
+// std::cout << "HHHhh " << aSc << " " << aLargCar << " " << aNb << " NBCC " << aNbByCase  << " " << aX << " " << aY << "\n";
+// getchar();
+
+}
+
+void cPlyCloud::PutStringDigit(std::string aDigit,Pt3dr aP0,Pt3dr aX,Pt3dr aY,tCol aCoul,double aLargCar,double aSpace,int aNbByCase)
+{
+    for (const char * aC = aDigit.c_str(); *aC ; aC++)
+    {
+        if (isdigit(*aC))
+        {
+           PutDigit(*aC,aP0,aX,aY,aCoul,aLargCar,aNbByCase);
+           aP0 = aP0 + aX * (aLargCar+aSpace);
+        }
+    }
+}
+
 
 
 void cPlyCloud::PutFile(const std::string & aName)

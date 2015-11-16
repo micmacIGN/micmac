@@ -1944,6 +1944,7 @@ class cCompiledObsRelGPS
 class cAppliApero : public NROptF1vND
 {
     public :
+        void AddEcPtsFlot(const Pt3dr &) ;
 
         void AddStatCam(cGenPoseCam *,double aRes,double aPerc);
         void DebugPbConvAppui();
@@ -2575,6 +2576,15 @@ class cAppliApero : public NROptF1vND
          double                                mWorstPerc;
          cGenPoseCam *                         mPoseWorstRes;
          cGenPoseCam *                         mPoseWorstPerc;
+
+         // Stat sur les Pts flottants 
+         double mNbPtsFlot;
+         double mMaxDistFlot;
+         double mSomDistFlot;
+         Pt3dr  mSomEcPtsFlot;
+         Pt3dr  mSomAbsEcPtsFlot;
+         Pt3dr  mMaxAbsEcPtsFlot;
+
 };
 
 
