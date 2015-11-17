@@ -1,8 +1,7 @@
 #include "cgldata.h"
 #include <limits>
 
-
-#ifdef DUMP_GL_DATA
+#ifdef __DEBUG
 	string eToString( QImage::Format e )
 	{
 		switch (e)
@@ -36,7 +35,9 @@
 		}
 		return "unknown";
 	}
+#endif
 
+#ifdef DUMP_GL_DATA
 	list<cGLData *> __all_cGLData;
 
 	size_t __dump( QImage &aQImage, const string &aName, const string &aPrefix )
