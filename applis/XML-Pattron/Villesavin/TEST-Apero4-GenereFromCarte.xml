@@ -1,0 +1,103 @@
+<Global
+    Subst="@$#1"
+    NameDecl="@$#1"
+    PatCouloir="img_(2789)_MpDcraw8B_GR.tif"
+>
+   <ParamApero>
+
+<!-- Raccord : 2787 (plafond)
+-->
+
+
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Id_Carte_Hom  </Id>
+                 <KeySet> Key-Set-HomolCarte  </KeySet>
+                 <UseAsPtMultiple> true </UseAsPtMultiple>
+                 <KeyAssoc>  Key-Assoc-CpleIm2HomolCarte   </KeyAssoc>
+             </BDD_PtsLiaisons>
+             <BDD_Orient>
+                  <Id>  IdOrFinale </Id>
+                  <KeySet>   Key-Set-OrFinale       </KeySet>
+                  <KeyAssoc> Key-Assoc-Im2OrFinale  </KeyAssoc>
+             </BDD_Orient>
+             <BDD_PtsAppuis>
+                  <Id>  IdAppuisCartes </Id>
+                  <KeySet>   Key-Set-All-Appuis-Cartes       </KeySet>
+                  <KeyAssoc> Key-Assoc-Carte2Appuis  </KeyAssoc>
+             </BDD_PtsAppuis>
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> TheKeyCalib </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>    Orient/AutoCalib2Villesavin-Cannon15.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^${PatternAllIm} </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosFromBDOrient> IdOrFinale </PosFromBDOrient>
+                   </PosValueInit>
+                   <PatternRefuteur> ${PatCouloir} </PatternRefuteur>
+              </PoseCameraInc>
+
+<!--
+              <PoseCameraInc>
+	           <PatternName>  ^${PatCouloir} </PatternName>
+	           <CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+                   <PosValueInit>
+	               <PosId> toto </PosId>
+                   </PosValueInit>
+              </PoseCameraInc>
+-->
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier> ThisDir
+             </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+                    <IterationsCompensation> 
+                    </IterationsCompensation>
+		    <SectionObservations>
+                         <ObsAppuis>
+                             <NameRef>  IdAppuisCartes </NameRef>
+                             <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Indiv     </Show>
+                                 <NbMax>   100    </NbMax>
+                             </Pond>
+                         </ObsAppuis>
+                         <ObsLiaisons>
+                             <NameRef>  Id_Carte_Hom </NameRef>
+                             <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Indiv     </Show>
+                                 <NbMax>   100    </NbMax>
+                             </Pond>
+                         </ObsLiaisons>
+
+		    </SectionObservations>
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+   </ParamApero>
+</Global>
+
