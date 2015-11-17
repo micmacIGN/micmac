@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+#include "../src/uti_image/Digeo/MultiChannel.h"
+
 cLoader::cLoader()
  : _FilenamesIn(),
    _FilenamesOut(),
@@ -451,18 +453,27 @@ void cEngine::do3DMasks()
 		if ( !maskedImageGL.srcMask().writeTiff(errorMesage)) cerr << ELISE_RED_ERROR << "failed to save mask to [" << maskedImageGL.srcMask().mFilename << "] (" << errorMesage << ')' << endl;
 	}
 #else
+	void scanlineCopy_binary( const unsigned char *aSrc, const size_t aSrcLineSize, size_t aHeight, unsigned char **aDst, const size_t aDstLineSize )
+	{
+		while (aHeight--)
+		{
+			memcpy(*aDst++, aSrc, aDstLineSize);
+			aSrc += aSrcLineSize;
+		}
+	}
+
 	void cEngine::doMaskImage(ushort idCur, bool isFirstAction)
 	{
 	//    if (!isFirstAction)
 	//        _vGLData[idCur]->getMask()->invertPixels(QImage::InvertRgb);
 
 		QImage Mask = _vGLData[idCur]->getMask()->mirrored().convertToFormat(QImage::Format_Mono);
+		Mask.invertPixels();
 
 		if (!Mask.isNull())
 		{
-		    QString aOut = _Loader->getFilenamesOut()[idCur];
-
-		    float scaleFactor = _vGLData[idCur]->glImageMasked().getLoadedImageRescaleFactor();
+			QString aOut = _Loader->getFilenamesOut()[idCur];
+			float scaleFactor = _vGLData[idCur]->glImageMasked().getLoadedImageRescaleFactor();
 
 		    if (scaleFactor != 1.f)
 		    {
@@ -476,14 +487,30 @@ void cEngine::do3DMasks()
 		    cout << "Saving mask to: " << aOut.toStdString().c_str() << endl;
 	#endif
 
-		    if (!Mask.save(aOut))
-		    {
-		        QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Error saving mask"));
-		        return;
-		    }
+			Im2D_Bits<1> outImage(Mask.width(), Mask.height());
+			const string outFilename = aOut.toStdString();
+			const size_t dstLineSize = (size_t)ceil((double)(outImage.tx()) / 8.);
+			scanlineCopy_binary(Mask.constBits(), Mask.bytesPerLine(), Mask.height(), outImage.data(), dstLineSize);
+			ELISE_COPY(
+				outImage.all_pts(),
+				outImage.in(),
+			Tiff_Im(
+				outFilename.c_str(),
+				outImage.sz(),
+				GenIm::bits1_msbf,
+				Tiff_Im::LZW_Compr,
+				Tiff_Im::BlackIsZero,
+				Tiff_Im::Empty_ARG).out()
+			);
 
-		    if(Loader()->devIOImageAlter())
-		        Loader()->devIOImageAlter()->doMaskImage(Mask,aOut);
+			if ( !Tiff_Im::IsTiff(outFilename.c_str()))
+			{
+				QMessageBox::critical(NULL, "cEngine::doMaskImage",QObject::tr("Error saving mask"));
+				return;
+			}
+
+			// write the xml associated to the mask
+			if(Loader()->devIOImageAlter()) Loader()->devIOImageAlter()->doMaskImage(Mask,aOut);
 
 		/*
 		    cFileOriMnt anOri;

@@ -204,6 +204,10 @@ private:
 	QPointF     _locksRule[2];
 };
 
+#ifdef __DEBUG
+	string eToString( QImage::Format e );
+#endif
+
 #ifdef DUMP_GL_DATA
 	extern list<cGLData *> __all_cGLData;
 
