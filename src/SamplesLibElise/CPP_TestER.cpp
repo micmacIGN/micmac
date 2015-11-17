@@ -194,18 +194,18 @@ int TestER_main(int argc,char ** argv)
                 else if(aXml.CorX().Monomes()[aK].mDegX==0)
                 {
                    aTx += aXml.CorX().Monomes()[aK].mCoeff*
-                         pow(aP2*aStep,aXml.CorX().Monomes()[aK].mDegY);
+                         pow(double(aP2*aStep),double(aXml.CorX().Monomes()[aK].mDegY));
                 }
                 else if(aXml.CorX().Monomes()[aK].mDegY==0)
                 {
                    aTx += aXml.CorX().Monomes()[aK].mCoeff*
-                         pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX);
+                         pow(double(aP1*aStep),double(aXml.CorX().Monomes()[aK].mDegX));
                 }
                 else
                 {
                    aTx += aXml.CorX().Monomes()[aK].mCoeff*
-                         pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX)*
-                         pow(aP2*aStep,aXml.CorX().Monomes()[aK].mDegY);
+                         pow(double(aP1*aStep),double(aXml.CorX().Monomes()[aK].mDegX))*
+                         pow(double(aP2*aStep),double(aXml.CorX().Monomes()[aK].mDegY));
                 }
             }
 
@@ -222,18 +222,18 @@ int TestER_main(int argc,char ** argv)
                 else if(aXml.CorY().Monomes()[aK].mDegX==0)
                 {
                     aTy += aXml.CorY().Monomes()[aK].mCoeff*
-                           pow(aP2*aStep,aXml.CorY().Monomes()[aK].mDegY);
+                           pow(double(aP2*aStep),double(aXml.CorY().Monomes()[aK].mDegY));
                 }
                 else if(aXml.CorY().Monomes()[aK].mDegY==0)
                 {
                     aTy += aXml.CorY().Monomes()[aK].mCoeff*
-                           pow(aP1*aStep,aXml.CorX().Monomes()[aK].mDegX);
+                           pow(double(aP1*aStep),double(aXml.CorX().Monomes()[aK].mDegX));
                 }
                 else
                 {
                     aTy += aXml.CorY().Monomes()[aK].mCoeff*
-                           pow(aP1*aStep,aXml.CorY().Monomes()[aK].mDegX)*
-                           pow(aP2*aStep,aXml.CorY().Monomes()[aK].mDegY);
+                           pow(double(aP1*aStep),double(aXml.CorY().Monomes()[aK].mDegX))*
+                           pow(double(aP2*aStep),double(aXml.CorY().Monomes()[aK].mDegY));
                 }
             }
             
