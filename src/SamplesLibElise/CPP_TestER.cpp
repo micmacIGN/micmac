@@ -144,7 +144,7 @@ int TestER_main(int argc,char ** argv)
                            aSzSca,
                            aTypeOut,
                            aModeCompr,
-                           Tiff_Im::BlackIsZero,//aPal,
+                           aPal,//Tiff_Im::BlackIsZero,
                            aLArgTiff
                        );
 
@@ -240,7 +240,7 @@ int TestER_main(int argc,char ** argv)
 
             aImX.oset(Pt2di(aP1,aP2),aTx);
             aImY.oset(Pt2di(aP1,aP2),aTy);
-            aImXY.oset(Pt2di(aP1,aP2),aTx+aTy);
+            aImXY.oset(Pt2di(aP1,aP2),abs(aTx)+abs(aTy));
 //            std::cout << aP1 << " " << aP2 << " =" << aTy << "\n"; 
 
         }
@@ -260,7 +260,7 @@ int TestER_main(int argc,char ** argv)
     if(GMin < 0){ GMin == GMax ? GMax=0 : GMax=GMax; } 
     else        { GMin == GMax ? GMin=0 : GMin=GMin; }
 
-    std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
+    std::cout << "x: GMin,Gax " << GMin << " " << GMax << "\n";
     
     aResX = (aImX.in() - GMin) * (255.0 / (GMax-GMin));
     //aResX = StdFoncChScale(aImX,Pt2dr(0,0), Pt2dr(1.f/aScale,1.f/aScale));
@@ -284,7 +284,7 @@ int TestER_main(int argc,char ** argv)
     //in case of flat displacements 
     if(GMin < 0){ GMin == GMax ? GMax=0 : GMax=GMax; } 
     else        { GMin == GMax ? GMin=0 : GMin=GMin; }
-    std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
+    std::cout << "y: GMin,Gax " << GMin << " " << GMax << "\n";
     
     aResY = (aImY.in() - GMin) * (255.0 / (GMax-GMin));
     //aResY = StdFoncChScale(aImY,Pt2dr(0,0), Pt2dr(1.f/aScale,1.f/aScale));
@@ -308,7 +308,7 @@ int TestER_main(int argc,char ** argv)
     //in case of flat displacements 
     if(GMin < 0){ GMin == GMax ? GMax=0 : GMax=GMax; } 
     else        { GMin == GMax ? GMin=0 : GMin=GMin; }
-    std::cout << " GMin,Gax " << GMin << " " << GMax << "\n";
+    std::cout << "xy: GMin,Gax " << GMin << " " << GMax << "\n";
     
     aResXY = (aImXY.in() - GMin) * (255.0 / (GMax-GMin));
  
