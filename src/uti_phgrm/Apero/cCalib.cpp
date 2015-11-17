@@ -983,6 +983,22 @@ cCalibrationInternConique   CalibInternAutom
 
        aDist.ModUnif().SetVal(aCIU);
    }
+   else if (
+                  (aType==eCalibAutomEbner)
+              ||  (aType==eCalibAutomBrown)
+           )
+   {
+       cCalibrationInterneUnif aCIU;
+       if  (aType==eCalibAutomEbner)
+       {
+           aCIU.TypeModele() = eModeleEbner;
+       }
+       else if  (aType==eCalibAutomBrown)
+       {
+           aCIU.TypeModele() = eModeleDCBrown;
+       }
+       aDist.ModUnif().SetVal(aCIU);
+   }
    else
    {
        ELISE_ASSERT(false,"Internal error unknown eTypeCalibAutom");
