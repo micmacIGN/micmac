@@ -76,6 +76,7 @@ class cApply_CreateEpip_main
       double mStepReech ;
       bool   mForceGen;
       int    mNumKer;
+      bool   mDebug;
       std::string mPostMasq;
       std::string mPostIm;
       bool mExpTxt;
@@ -161,7 +162,8 @@ class cTmpReechEpip
                 double aStep,
                 const std::string & aNameOut,
                 const std::string & aPostMasq,
-                int aNumKer
+                int aNumKer,
+                bool aDebug
         );
      private :
         Box2dr                 mBoxImIn;
@@ -199,13 +201,8 @@ void ReechFichier
         int   aNumKer
 )
 {
-    cTmpReechEpip aReech(aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer);
+    cTmpReechEpip aReech(aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer,false);
 }
-
-
-
-
-
 
 
 
@@ -219,7 +216,8 @@ cTmpReechEpip::cTmpReechEpip
         double aStep,
         const std::string & aNameOut,
         const std::string & aPostMasq,
-        int aNumKer 
+        int aNumKer ,
+        bool Debug
 ) :
     mBoxImIn(aBoxImIn),
     mEpi    (anEpi),
@@ -270,12 +268,6 @@ cTmpReechEpip::cTmpReechEpip
           bool Ok= false;
           Pt2dr aPEpi = ToFullEpiCoord(aPInd);
           Pt2dr aPIm =  anEpi->Inverse(aPEpi);
-/*
-if ( ((aPInd.x%100)==50) && ((aPInd.y%100)==50) )
-{
-std::cout << "OOOKKKK " << aPInd << aPEpi << aPIm << "\n";
-}
-*/
           if ((aPIm.x>mBoxImIn._p0.x) && (aPIm.y>mBoxImIn._p0.y) && (aPIm.x<mBoxImIn._p1.x) && (aPIm.y<mBoxImIn._p1.y))
           {
                Pt2dr aPEpi2 = anEpi->Direct(aPIm);
@@ -293,14 +285,16 @@ std::cout << "OOOKKKK " << aPInd << aPEpi << aPIm << "\n";
 
 
     Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),-1,true);
-    Tiff_Im aTifEpi
-            (
-                aNameOut.c_str(),
-                mSzEpi,
-                aTifOri.type_el(),
-                Tiff_Im::No_Compr,
-                aTifOri.phot_interp()
-            );
+    Tiff_Im aTifEpi  = Debug                       ?
+                       Tiff_Im(aNameOut.c_str())     :
+                       Tiff_Im
+                       (
+                           aNameOut.c_str(),
+                           mSzEpi,
+                           aTifOri.type_el(),
+                           Tiff_Im::No_Compr,
+                           aTifOri.phot_interp()
+                       )                            ;
 
     Tiff_Im aTifMasq = aTifEpi;
     bool ExportMasq = (aPostMasq!="NONE");
@@ -310,14 +304,16 @@ std::cout << "POSTMAS " << aPostMasq << "\n";
     if (ExportMasq)
     {
         std::string aNameMasq = StdPrefix(aNameOut)+ aPostMasq  +".tif";
-        aTifMasq = Tiff_Im
-                   (
-                     aNameMasq.c_str(),
-                     mSzEpi,
-                     GenIm::bits1_msbf,
-                     Tiff_Im::No_Compr,
-                     Tiff_Im::BlackIsZero
-                   );
+        aTifMasq =  Debug                         ?
+                    Tiff_Im(aNameMasq.c_str())    :
+                    Tiff_Im
+                    (
+                        aNameMasq.c_str(),
+                        mSzEpi,
+                        GenIm::bits1_msbf,
+                        Tiff_Im::No_Compr,
+                        Tiff_Im::BlackIsZero
+                    )                             ;
     }
 
 
@@ -328,11 +324,16 @@ std::cout << "POSTMAS " << aPostMasq << "\n";
     int aBrd = aNumKer+3;
     Pt2di aSzBrd(aBrd,aBrd);
 
-    for (int aX0=0 ; aX0<mSzEpi.x ; aX0+=aNbBloc)
+    int aX00 = 0;
+    int aY00 = 0;
+
+    for (int aX0=aX00 ; aX0<mSzEpi.x ; aX0+=aNbBloc)
     {
          int aX1 = ElMin(aX0+aNbBloc,mSzEpi.x);
-         for (int aY0=0 ; aY0<mSzEpi.y ; aY0+=aNbBloc)
+         for (int aY0=aY00 ; aY0<mSzEpi.y ; aY0+=aNbBloc)
          {
+// std::cout << "X0Y0 " << aX0 << " " << aY0 << "\n";
+
              int aY1 = ElMin(aY0+aNbBloc,mSzEpi.y);
 
              Pt2di aP0Epi(aX0,aY0);
@@ -370,11 +371,12 @@ std::cout << "POSTMAS " << aPostMasq << "\n";
                      }
                  }
              }
+             Pt2di aP0BoxIm = Sup(Pt2di(0,0),Pt2di(round_down(aInfIm) - aSzBrd));
+             Pt2di aP1BoxIm = Inf(aTifOri.sz(),Pt2di(round_down(aSupIm) + aSzBrd));
+             Pt2di aSzIm = aP1BoxIm - aP0BoxIm;
+             NonVide = NonVide && (aSzIm.x>0) && (aSzIm.y>0);
              if (NonVide)
              {
-                 Pt2di aP0BoxIm = Sup(Pt2di(0,0),Pt2di(round_down(aInfIm) - aSzBrd));
-                 Pt2di aP1BoxIm = Inf(aTifOri.sz(),Pt2di(round_down(aSupIm) + aSzBrd));
-                 Pt2di aSzIm = aP1BoxIm - aP0BoxIm;
 
                  // std::vector<Im2D_REAL4>  aVIm;
 
@@ -438,6 +440,7 @@ std::cout << "POSTMAS " << aPostMasq << "\n";
                 );
              }
              // std::cout << "ReechDONE " <<  aX0 << " "<< aY0 << "\n";
+
          }
     }
 }
@@ -530,9 +533,9 @@ void cApply_CreateEpip_main::DoEpipGen()
       std::cout << "Epip Rect Accuracy, Moy " << aErrMoy/mNbP << " Max " << aErrMax << "\n";
 
 
-      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer);
+      cTmpReechEpip aReech1(mName1,Box2dr(Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D())),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer,mDebug);
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer);
+      cTmpReechEpip aReech2(mName2,Box2dr(Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D())),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer,mDebug);
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
@@ -548,6 +551,7 @@ void cApply_CreateEpip_main::DoEpipGen()
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mForceGen (false),
    mNumKer   (5),
+   mDebug    (false),
    mPostMasq ("")
 {
     Tiff_Im::SetDefTileFile(50000);
@@ -848,6 +852,7 @@ int OneReechFid_main(int argc,char ** argv)
      cAppliOneReechMarqFid anAppli(argc,argv);
 
      anAppli.DoReech();
+
 
      return EXIT_SUCCESS;
 }
