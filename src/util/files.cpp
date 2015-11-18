@@ -351,6 +351,8 @@ void ELISE_fp::CpFile(const std::string & aName1,const std::string &  aDest)
 {
      std::string aNameCom = std::string(SYS_CP)+ " " + aName1 + " " + aDest;
      VoidSystem(aNameCom.c_str());
+
+     ELISE_DEBUG_ERROR(ELISE_fp::exist_file(aDest), "ELISE_fp::CpFile", '[' << aDest << "] has not been created");
 }
 
 void  ELISE_fp::PurgeDirGen(const std::string & aDir,bool Recurs)

@@ -68,6 +68,10 @@ if ( TRACE_SYSTEM )
 	add_definitions(-D__TRACE_SYSTEM__=${TRACE_SYSTEM})
 endif()
 
+if (__DEBUG)
+	add_definitions(-D__DEBUG=${__DEBUG})
+endif()
+
 if ( WITH_OPEN_MP )
 	FIND_PACKAGE(OpenMP REQUIRED)
 	if (${CUDA_ENABLED})
