@@ -364,20 +364,30 @@ void ELISE_fp::CpFile(const std::string & aName1,const std::string &  aDest)
 	 ELISE_DEBUG_ERROR(!ELISE_fp::exist_file(aDest), "ELISE_fp::CpFile", '[' << aNameCom << "] has not been created");
 }
 
-void  ELISE_fp::PurgeDirGen(const std::string & aDir,bool Recurs)
+void  ELISE_fp::PurgeDirGen(const std::string & aDir, bool Recurs)
 {
-	std::string aDirC = aDir;
-	MakeFileDirCompl(aDirC);
-#if ELISE_windows
-	replace( aDirC.begin(), aDirC.end(), '/', '\\' );
-	std::string aCom = std::string(SYS_RM)+" /Q \""+aDirC+"*\"";
-#else
-    // MODIF MPD LES "" ne permettent pas
-	std::string aCom = std::string(SYS_RM)+ " " + aDirC+"*";
-#endif
-        if (Recurs)
-           aCom = aCom + " .* -r";
-	VoidSystem(aCom.c_str());
+	#if 1
+		ctPath path(aDir);
+		if ( !path.exists()) return;
+		if ( !path.removeContent(Recurs)) ELISE_WARNING("failed to purge " << (Recurs ? "recursively" : "") << '[' << aDir << ']');
+		return;
+	#else
+		std::string aDirC = aDir;
+		MakeFileDirCompl(aDirC);
+
+		if ( !ELISE_fp::IsDirectory(aDir)) return;
+
+		#if ELISE_windows
+			replace( aDirC.begin(), aDirC.end(), '/', '\\' );
+			std::string aCom = std::string(SYS_RM)+" /Q \""+aDirC+"*\"";
+		#else
+			//~ // MODIF MPD LES "" ne permettent pas
+			std::string aCom = std::string(SYS_RM)+ " " + aDirC+"*";
+			if (Recurs) aCom = aCom + " .* -r";
+		#endif
+
+		VoidSystem(aCom.c_str());
+	#endif
 }
 
 void  ELISE_fp::PurgeDirRecursif(const std::string & aDir)

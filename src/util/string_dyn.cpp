@@ -497,6 +497,23 @@ std::string QUOTE(const std::string & aStr)
            + ((aC[aL-1]=='"') ? "" : "\"" );
 }
 
+bool needCommandlineProtection( const string &aStr )
+{
+	const char *it = aStr.c_str();
+	size_t i = aStr.length();
+	while (i--)
+	{
+		const char &c = *it++;
+		if (c == '[' || c == '(' || c == ')' || c == ']') return true;
+	}
+	return false;
+}
+
+string PATTERN_QUOTE( const string &aStr )
+{
+	return (needCommandlineProtection(aStr) ? QUOTE(aStr): aStr);
+}
+
 std::vector<std::string> VecStrFromFile(const std::string & aFilePtsIn)
 {
     std::vector<std::string>  aRes;

@@ -112,10 +112,7 @@ bool cElFilename::setRights( mode_t o_rights ) const {
 		res = true; // __TODO : windows read-only files
 	#endif
 	#ifdef __DEBUG_C_EL_COMMAND
-		if ( !res ){
-			std::cerr << RED_DEBUG_ERROR << "cannot set rights on [" << str_unix() << ']' << std::endl;
-			exit(EXIT_FAILURE);
-		}
+		if ( !res ) ELISE_ERROR_EXIT("cannot set rights on [" << str_unix() << ']');
 	#endif
 	return res;
 }
@@ -133,10 +130,7 @@ bool cElFilename::getRights( mode_t &o_rights ) const
 		res = true; // __TODO : windows read-only files
 	#endif
 	#ifdef __DEBUG_C_EL_COMMAND
-		if ( !res ){
-			std::cerr << RED_DEBUG_ERROR << "cannot get rights on [" << str_unix() << ']' << std::endl;
-			exit(EXIT_FAILURE);
-		}
+		if ( !res) ELISE_ERROR_EXIT("cannot get rights on [" << str_unix() << ']');
 	#endif
 	return res;
 }
