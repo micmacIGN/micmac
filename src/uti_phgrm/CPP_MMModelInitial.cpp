@@ -579,7 +579,7 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
 
            VoidSystem(aComPyr.c_str());
        }
-       std::list<std::pair<std::string,std::string> >  aLPair = ExpandCommand(3,"InternalCalledByP=true");
+       std::list<std::pair<std::string,std::string> >  aLPair = ExpandCommand(3,"InternalCalledByP=true",false,true);
 
        std::list<std::string>  aLCom ;
        std::list<std::string>  aNameIs ;
@@ -598,7 +598,6 @@ cAppli_Enveloppe_Main::cAppli_Enveloppe_Main(int argc,char ** argv) :
 
            if (aDoIt)
            {
-              std::cout << aCom<< "\n";
               aLCom.push_back(aCom);
            }
            else
