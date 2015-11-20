@@ -369,7 +369,6 @@ void cElemAppliSetFile::Init(const std::string & aFullName)
 #endif
    SplitDirAndFile(mDir,mPat,mFullName);
 
-// std::cout << "mDdddd '" << mDir  << " " << mPat << "\n";
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    mSetIm = mICNM->Get(mPat);
 }
@@ -584,14 +583,14 @@ void cAppliWithSetImage::SaveCAWSI(const std::string & aName)
 }
 
 
-std::list<std::pair<std::string,std::string> > cAppliWithSetImage::ExpandCommand(int aNumPat,std::string ArgSup,bool Exe)
+std::list<std::pair<std::string,std::string> > cAppliWithSetImage::ExpandCommand(int aNumPat,std::string ArgSup,bool Exe,bool WithDir)
 {
     std::list<std::string> aLCom;
     std::list<std::pair<std::string,std::string> >  aRes;
     for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
     {
        std::string aNIm = mVSoms[aK]->attr().mIma->mNameIm;
-       std::string aNCom = SubstArgcArvGlob(aNumPat,aNIm) + " " + ArgSup;
+       std::string aNCom = SubstArgcArvGlob(aNumPat,WithDir ? (Dir()+aNIm) : aNIm) + " " + ArgSup;
        aRes.push_back(std::pair<std::string,std::string>(aNCom,aNIm));
        aLCom.push_back(aNCom);
     }
@@ -794,6 +793,8 @@ void cAppliWithSetImage::AddCoupleMMImSec(bool ExApero,bool SupressImInNoMasq,bo
       if (SupressImInNoMasq)
       {
            mSetImNoMasq = mEASF.mICNM->Get(PatFileOfImSec());
+           // std::string aKS =   "NKS-Set-OfFile@" + mEASF.mDir+ "Ori-"+mOri + "/FileImSel.xml";
+           // mSetImNoMasq = mEASF.mICNM->Get(aKS);
       }
 
 
