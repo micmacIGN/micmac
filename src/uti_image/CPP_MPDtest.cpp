@@ -828,6 +828,7 @@ cTestCircleFit()
         std::vector<double> aVC;
         for (int aD=0 ; aD<=mDegre ; aD++)
         {
+            aVC.push_back(pow(aTeta,aD));
         }
     }
 }
