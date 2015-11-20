@@ -79,7 +79,7 @@ public:
 
 		for (size_t aK = 0; aK < vP.size(); aK++)
 		{
-			vP[aK] += sol(0, aK);
+			vP[aK] += sol(0, (int)aK);
 		}
 
 
@@ -518,7 +518,7 @@ public:
 			//pour chaque image ou le point de liaison est vu
 			for (size_t i = 0; i<TP->vImgMeasure.size(); ++i, ++nbMes)
 			{
-				Pt2dr D = TP->computeImageDifference(i, PT);
+				Pt2dr D = TP->computeImageDifference((int)i, PT);
 				//cout << square_euclid(D) << endl;
 				sumRes += square_euclid(D);
 			}
@@ -627,7 +627,7 @@ public:
 		{
 			if (it->second->name() == StdPrefixGen(aFilename)) return it->second;
 		}
-		AffCameraASTER* Cam = new AffCameraASTER(aFilename, mapCameras.size(), mapCameras.size() != 0);
+		AffCameraASTER* Cam = new AffCameraASTER(aFilename, (int)mapCameras.size(), mapCameras.size() != 0);
 		mapCameras.insert(pair <int, AffCameraASTER*>(mapCameras.size(), Cam));
 		return Cam;
 	}
@@ -774,7 +774,7 @@ public:
 
 			for (int aK = 0; aK < C1.Sz().x; aK++)
 			for (int bK = 0; bK < C1.Sz().y; bK++)
-				_N((pos - 1)*numUnk + 3 + aK, bK) += C1(aK, bK);
+				_N((pos - 1)*(int)numUnk + 3 + aK, bK) += C1(aK, bK);
 
 			ElMatrix <double> C1t = C1.transpose();
 
@@ -782,7 +782,7 @@ public:
 
 			for (int aK = 0; aK < C1t.Sz().x; aK++)
 			for (int bK = 0; bK < C1t.Sz().y; bK++)
-				_N(aK, (pos - 1)*numUnk + 3 + bK) += C1t(aK, bK);
+				_N(aK, (pos - 1)*(int)numUnk + 3 + bK) += C1t(aK, bK);
 
 			//3 - Ajout de N1
 
@@ -790,7 +790,7 @@ public:
 
 			for (int aK = 0; aK < N1.Sz().x; aK++)
 			for (int bK = 0; bK < N1.Sz().y; bK++)
-				_N((pos - 1)*numUnk + 3 + aK, (pos - 1)*numUnk + 3 + bK) += N1(aK, bK);
+				_N((pos - 1)*(int)numUnk + 3 + aK, (pos - 1)*(int)numUnk + 3 + bK) += N1(aK, bK);
 		}
 
 		//pour Y
@@ -802,7 +802,7 @@ public:
 
 		if (pos > 0)
 		for (int aK = 0; aK<Y1.Sz().y; ++aK)
-			_Y(0, (pos - 1)*numUnk + 3 + aK) += Y1(0, aK);
+			_Y(0, (pos - 1)*(int)numUnk + 3 + aK) += Y1(0, aK);
 
 		if (verbose)
 		{
@@ -851,7 +851,7 @@ public:
 		{
 			for (int aK = 0; aK < N1.Sz().x; aK++)
 			for (int bK = 0; bK < N1.Sz().y; bK++)
-				_N((pos - 1)*numUnk + 3 + aK, (pos - 1)*numUnk + 3 + bK) += N1(aK, bK);
+				_N((pos - 1)*(int)numUnk + 3 + aK, (pos - 1)*(int)numUnk + 3 + bK) += N1(aK, bK);
 		}
 
 		//pour Y
@@ -859,7 +859,7 @@ public:
 
 		if (pos > 0)
 		for (int aK = 0; aK< Y1.Sz().y; ++aK)
-			_Y(0, (pos - 1)*numUnk + 3 + aK) += Y1(0, aK);
+			_Y(0, (pos - 1)*(int)numUnk + 3 + aK) += Y1(0, aK);
 
 		if (verbose)
 		{
