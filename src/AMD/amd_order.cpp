@@ -184,7 +184,7 @@ GLOBAL Int AMD_order
     /* order the matrix */
     /* --------------------------------------------------------------------- */
 
-    AMD_1 (n, Cp, Ci, P, Pinv, Len, slen, S, Control, Info) ;
+    AMD_1 (n, Cp, Ci, P, Pinv, Len, (int)slen, S, Control, Info) ;
 
     /* --------------------------------------------------------------------- */
     /* free the workspace */

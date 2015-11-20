@@ -414,17 +414,17 @@ template <class TVal> TVal MoyKPPVal(std::vector<TVal> & aV,int aKth)
 
 template <class TVal> TVal KthVal(std::vector<TVal> & aV,int aKth)
 {
-    return KthVal(VData(aV),aV.size(),aKth);
+    return KthVal(VData(aV),(int)aV.size(),aKth);
 }
 
 template <class TVal> TVal MedianeSup(std::vector<TVal> & aV)
 {
-    return KthVal(aV,aV.size()/2);
+    return KthVal(aV,(int)(aV.size()/2));
 }
 
 template <class TVal> TVal KthValProp(std::vector<TVal> & aV,double aProp)
 {
-    return KthVal(VData(aV),aV.size(),ElMax(0,ElMin(int(aV.size()-1),round_ni(aV.size()*aProp))));
+    return KthVal(VData(aV),(int)aV.size(),ElMax(0,ElMin(int(aV.size()-1),round_ni(aV.size()*aProp))));
 }
 
 double MedianPond(std::vector<Pt2df> &  aV,int * aKMed=0);

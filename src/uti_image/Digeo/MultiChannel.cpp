@@ -513,7 +513,7 @@ bool MultiChannel<U_INT1>::read_pnm( const string &i_filename, list<string> *o_c
 		return false;
 	}
 
-	resize( width, height, nbChannels );
+	resize(width, height, (int)nbChannels);
 	if ( nbChannels==1 )
 		f.read( (char*)mChannels[0]->data_lin(), nbChannelBytes() );
 	else
@@ -553,7 +553,7 @@ bool MultiChannel<U_INT2>::read_pnm( const string &i_filename, list<string> *o_c
 		return false;
 	}
 
-	resize( width, height, nbChannels );
+	resize(width, height, (int)nbChannels);
 
 	if ( !MSBF_PROCESSOR() && nbChannels==1 )
 	{

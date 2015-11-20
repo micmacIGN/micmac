@@ -81,7 +81,7 @@ std::vector<int> cAMD_Interf::DoRank(bool show)
           }
           // std::cout << " " << aVK[aI] ;
       }
-      Ap.push_back(Ap.back()+aVK.size());
+      Ap.push_back(int(Ap.back() + aVK.size()));
       P.push_back(0);
       // std::cout << "\n";
 

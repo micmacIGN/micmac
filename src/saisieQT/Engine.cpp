@@ -1,6 +1,5 @@
-#include "Engine.h"
-
 #include "../src/uti_image/Digeo/MultiChannel.h"
+#include "Engine.h"
 
 cLoader::cLoader()
  : _FilenamesIn(),
