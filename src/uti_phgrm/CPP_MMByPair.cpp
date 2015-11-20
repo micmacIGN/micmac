@@ -590,7 +590,8 @@ std::list<std::pair<std::string,std::string> > cAppliWithSetImage::ExpandCommand
     for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
     {
        std::string aNIm = mVSoms[aK]->attr().mIma->mNameIm;
-       std::string aNCom = SubstArgcArvGlob(aNumPat,WithDir ? (Dir()+aNIm) : aNIm) + " " + ArgSup;
+       std::string aNameDir = WithDir ? (Dir()+aNIm) : aNIm;
+       std::string aNCom = SubstArgcArvGlob(aNumPat,aNameDir) + " " + ArgSup;
        aRes.push_back(std::pair<std::string,std::string>(aNCom,aNIm));
        aLCom.push_back(aNCom);
     }

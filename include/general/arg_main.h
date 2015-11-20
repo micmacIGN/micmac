@@ -72,7 +72,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 class cMMSpecArg;
 
+// MPD : apparement cette declaration ne correspond pas a la definition , rajoute New pour verif ts le code
 std::string MakeStrFromArgcARgv( int argc, char **argv, bool aProtect = false);
+std::string MakeStrFromArgcARgvNew( int argc, char **argv);
 
 void MemoArg(int,char**);
 void ShowArgs();
