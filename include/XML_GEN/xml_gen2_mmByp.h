@@ -164,7 +164,8 @@ class cAppliWithSetImage
       void operator()(tSomAWSI*,tSomAWSI*,bool);   // Delaunay call back
 
     // Remplace la commande argc-argc par N command avec les image indiv, aNumPat est necessaire car peut varier (TestLib ou non)
-      std::list<std::pair<std::string,std::string> > ExpandCommand(int aNumPat,std::string ArgSup,bool Exe=false);
+      // Probably WithDir=true in most case, but for perfect backward compatibility set it to false
+      std::list<std::pair<std::string,std::string> > ExpandCommand(int aNumPat,std::string ArgSup,bool Exe=false,bool WithDir=false);
 
       static const int  TheFlagDev8BGray      = 1;
       static const int  TheFlagDev16BGray     = 2;
