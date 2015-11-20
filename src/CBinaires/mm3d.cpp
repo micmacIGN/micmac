@@ -228,7 +228,7 @@ int  OneReechFid_main(int argc,char ** argv);
 int TNR_main(int argc,char ** argv);
 int  Apero2NVM_main(int argc,char ** argv);
 
-int Vino_Main(int argc, char ** argv);
+//~ int Vino_Main(int argc, char ** argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -236,7 +236,7 @@ const std::vector<cMMCom> & getAvailableCommands()
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
-       aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
+       //~ aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
@@ -528,6 +528,7 @@ int ExoCorrelEpip_main(int argc,char ** argv);
 int ScaleModel_main(int argc, char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
+int ExportALP_main(int argc,char ** argv);
 
 int  CheckOri_main(int argc,char ** argv);
 int  NLD_main(int argc,char ** argv);
@@ -623,6 +624,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("ScaleModel",ScaleModel_main," Tool for simple scaling a model",cArgLogCom(2)));
    aRes.push_back(cMMCom("Ply2Xyz",PLY2XYZ_main," Tool to export in TxT file XYZ columns only from a .ply file",cArgLogCom(2)));
    aRes.push_back(cMMCom("ExportXmlGcp2Txt",ExportXmlGcp2Txt_main," Tool to export xml GCPs file to Txt file"));
+   aRes.push_back(cMMCom("ExportALP",ExportALP_main," Tool to export Altitude long a profile drawn in Ortho"));
    
 
 
