@@ -228,12 +228,15 @@ int  OneReechFid_main(int argc,char ** argv);
 int TNR_main(int argc,char ** argv);
 int  Apero2NVM_main(int argc,char ** argv);
 
+int Vino_Main(int argc, char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
