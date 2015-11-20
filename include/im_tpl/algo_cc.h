@@ -77,7 +77,7 @@ template <class T1,class T2,class Action> int OneZC
    int aNbTot = 0;
    while (! aVCur->empty())
    {
-       int aNbCur = aVCur->size(); 
+       int aNbCur = (int)aVCur->size(); 
        aNbTot += aNbCur;
        aOnNewPt.OnNewStep();
        if (aOnNewPt.StopCondStep())
