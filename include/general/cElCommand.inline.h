@@ -39,9 +39,9 @@ cElCommand::cElCommand( const cElCommand &i_b ){ *this=i_b; }
 
 bool cElCommand::operator !=( const cElCommand &i_b ) const { return !( (*this)==i_b ); }
 
-unsigned int cElCommand::nbTokens() const { return m_tokens.size(); }
-   
-   
+unsigned int cElCommand::nbTokens() const { return (unsigned int)m_tokens.size(); }
+
+
 //-------------------------------------------
 // ctPath::Token
 //-------------------------------------------
@@ -163,7 +163,7 @@ std::string read_string( std::istream &io_istream, std::vector<char> &io_buffer,
 
 void write_string( const std::string &str, std::ostream &io_ostream, bool i_reverseByteOrder )
 {
-   U_INT4 ui = str.size();
+   U_INT4 ui = (U_INT4)str.size();
    if ( i_reverseByteOrder ) byte_inv_4( &ui );
    io_ostream.write( (char*)(&ui), 4 );
    io_ostream.write( str.c_str(), ui );

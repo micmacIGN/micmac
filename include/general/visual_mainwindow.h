@@ -6,8 +6,6 @@
 #if(ELISE_QT_VERSION >= 4)
 
 #include "StdAfx.h"
-
-
 #include "saisieQT_window.h"
 #include "general/visual_buttons.h"
 

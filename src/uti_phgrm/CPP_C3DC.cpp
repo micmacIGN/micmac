@@ -37,12 +37,12 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
-#include <algorithm>
-
 #if (ELISE_QT_VERSION >= 4)
     #include "general/visual_mainwindow.h"
 #endif
+
+#include "StdAfx.h"
+#include <algorithm>
 
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 
