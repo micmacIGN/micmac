@@ -843,7 +843,7 @@ cTestCircleFit()
     double mTetaMax ;
     int    mNbEch;
     int    mDegre;
-}
+};
 
 
 int MPDtest_main (int argc,char** argv)
