@@ -187,12 +187,19 @@ std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::
    return aRes;
 }
 
-std::string MakeStrFromArgcARgv(int  argc,char** argv)
+
+std::string MakeStrFromArgcARgv(int  argc,char** argv,bool aProtect)
 {
-     return MakeStrFromArgcARgvWithSubst(argc,argv,-1,"");
+   return MakeStrFromArgcARgvWithSubst(argc,argv,-1,"");
 }
 
-std::string SubstArgcArvGlob(int aKSubst,std::string aSubst)
+std::string MakeStrFromArgcARgvNew(int  argc,char** argv)
+{
+     return MakeStrFromArgcARgv(argc,argv,false);
+}
+
+
+std::string SubstArgcArvGlob(int aKSubst,std::string aSubst,bool aProtect) // MPD aProtect a ete declare ...
 {
      return MakeStrFromArgcARgvWithSubst(MemoArgc,MemoArgv, aKSubst,aSubst);
 }
@@ -231,7 +238,7 @@ void MemoArg(int argc,char** argv)
     MMD_InitArgcArgv(argc,argv);
     MemoArgc = argc;
     MemoArgv = argv;
-   GlobArcArgv = MakeStrFromArgcARgv(argc,argv);
+   GlobArcArgv = MakeStrFromArgcARgvNew(argc,argv);
 }
 
 void ShowArgs()
