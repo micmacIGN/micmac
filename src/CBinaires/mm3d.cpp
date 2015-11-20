@@ -528,7 +528,7 @@ int ExoCorrelEpip_main(int argc,char ** argv);
 int ScaleModel_main(int argc, char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
-int ExportALP_main(int argc,char ** argv);
+
 
 int  CheckOri_main(int argc,char ** argv);
 int  NLD_main(int argc,char ** argv);
@@ -624,7 +624,6 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
    aRes.push_back(cMMCom("ScaleModel",ScaleModel_main," Tool for simple scaling a model",cArgLogCom(2)));
    aRes.push_back(cMMCom("Ply2Xyz",PLY2XYZ_main," Tool to export in TxT file XYZ columns only from a .ply file",cArgLogCom(2)));
    aRes.push_back(cMMCom("ExportXmlGcp2Txt",ExportXmlGcp2Txt_main," Tool to export xml GCPs file to Txt file"));
-   aRes.push_back(cMMCom("ExportALP",ExportALP_main," Tool to export Altitude long a profile drawn in Ortho"));
    
 
 
