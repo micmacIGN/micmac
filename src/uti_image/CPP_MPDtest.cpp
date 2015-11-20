@@ -811,6 +811,40 @@ void TestGridCam()
 
 }
 
+class cTestCircleFit
+{
+    public :
+
+cTestCircleFit()
+{
+    mTetaMax = 0.5;
+    mNbEch = 1000;
+    mDegre = 8;
+    L2SysSurResol mSys(mDegre+1);
+
+    for (int aK=0 ; aK<mNbEch ; aK++)
+    {
+        double aTeta = Teta(aK);
+        std::vector<double> aVC;
+        for (int aD=0 ; aD<=mDegre ; aD++)
+        {
+        }
+    }
+}
+
+    double F(double aTeta)
+    {
+          return sqrt(1-aTeta*aTeta);
+    }
+
+
+    double Teta(int aK) { return ((mTetaMax) /mNbEch) * aK;}
+
+    double mTetaMax ;
+    int    mNbEch;
+    int    mDegre;
+}
+
 
 int MPDtest_main (int argc,char** argv)
 {
