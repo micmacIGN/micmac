@@ -893,7 +893,7 @@ void cAppliWithSetImage::AddFilePair(const std::string & aFilePair)
 }
 
 
-void cAppliWithSetImage::AddLinePair(int aDif)
+void cAppliWithSetImage::AddLinePair(int aDif, bool ExpTxt)
 {
     for (tItSAWSI it1=mGrIm.begin(mSubGrAll); it1.go_on() ; it1++)
     {
@@ -920,8 +920,13 @@ void cAppliWithSetImage::AddLinePair(int aDif)
             // test if numerical value from the image name are closed each other
             if ((aN1>aN2) && (ecart<=aDif))
             {
+		// tie points should exist for this image pair otherwise the process bug later (during create epip step)
+		std::string aNameHom =  mEASF.mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+std::string(ExpTxt?"@txt":"@dat"),aName1,aName2,true);
+		if (ELISE_fp::exist_file(aNameHom))
+		{
                  AddPair(&(*it1),&(*it2));
                  std::cout << "Adding the following image pair: " << aName1 << " and " << aName2 << " \n";
+		}
              }
 
              if ((aN1=0) || (aN2=0))
@@ -1409,7 +1414,7 @@ cAppliMMByPair::cAppliMMByPair(int argc,char ** argv) :
 
       if (mAddCpleLine)
       {
-          AddLinePair(1);
+          AddLinePair(1,mExpTxt);
       }
 
       if (mModeHelp)
@@ -2123,6 +2128,7 @@ void DoAllDev(const std::string & aPat)
      std::string aCom =    MMBinFile(MM3DStr) + " AllDev " + QUOTE(aPat);
      System(aCom,false,true);
 }
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
