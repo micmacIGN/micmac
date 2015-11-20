@@ -9,7 +9,7 @@ INCLUDE (${UTI_IMAGE_MPDCRAW_DIR}/Sources.cmake)
 INCLUDE (${UTI_IMAGE_DIGEO_DIR}/Sources.cmake)
 INCLUDE (${UTI_IMAGE_SIFT_DIR}/Sources.cmake)
 INCLUDE (${UTI_IMAGE_ANN_DIR}/Sources.cmake)
-INCLUDE (${UTI_IMAGE_VINO_DIR}/Sources.cmake)
+#~ INCLUDE (${UTI_IMAGE_VINO_DIR}/Sources.cmake)
 
 list( APPEND uti_image_Src_Files ${uti_image_Sift_Src_Files})
 list( APPEND uti_image_Src_Files ${uti_image_Ann_Src_Files})
