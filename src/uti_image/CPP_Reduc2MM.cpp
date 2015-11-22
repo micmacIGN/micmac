@@ -56,15 +56,21 @@ int Reduc2MM_main(int argc,char ** argv)
     ElInitArgMain
     (
 	argc,argv,
-	LArgMain()  << EAM(aNameIn)
-                    << EAM(aNameOut)
-                    << EAM(anIntType)
-                    << EAM(aDivIm)
-                    << EAM(aHasValSpec)
-                    << EAM(aValSpec),
+	LArgMain()  << EAMC(aNameIn,"Name Image In")
+                    << EAMC(aNameOut,"Name Image Out")
+                    << EAMC(anIntType,"Type of image (int cast, -1 => conserve initial value)")
+                    << EAMC(aDivIm,"Divisor image")
+                    << EAMC(aHasValSpec,"Has special value")
+                    << EAMC(aValSpec,"Special value"),
 	LArgMain()  
     );	
 
+
+   if (anIntType==-1)
+   {
+      Tiff_Im aTifIn(aNameIn.c_str());
+      anIntType = int (aTifIn.type_el());
+   }
     
 
    MakeTiffRed2

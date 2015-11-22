@@ -274,20 +274,28 @@ class VideoWin_Visu_ElImScr  : public Visu_ElImScr
 
 class ElPyramScroller;
 
+class cElScrCalcNameSsResol
+{
+     public :
+         virtual std::string  CalculName(const std::string & aName, INT InvScale) = 0;
+
+};
+
 class ElImScroller
 {
      public :
-              virtual bool CanReinitTif();
-              virtual void ReInitTifFile(Tiff_Im aTif);
+               virtual bool CanReinitTif();
+               virtual void ReInitTifFile(Tiff_Im aTif);
 
 
-               void  SetAlwaysQuick(bool aVal);
-
-               void  SetAlwaysQuickInZoom();
-               void  SetAlwaysQuick();
+               virtual void  SetAlwaysQuick(bool aVal);
+               virtual void  SetAlwaysQuickInZoom(bool aVal);
+               virtual void  SetAlwaysQuickInZoom();
+               virtual void  SetAlwaysQuick();
 
 
                bool AlwaysQuick() const;
+               bool AlwaysQuickZoom() const;
 
 		virtual Output out(); //  Output::onul();
 		virtual Fonc_Num in(); // 0
@@ -314,7 +322,8 @@ class ElImScroller
 					const std::string &,
 					std::vector<INT> * EchAcc =0,
 					bool Adapt =false,
-					bool ForceGray =false
+					bool ForceGray =false,
+                                        cElScrCalcNameSsResol * = 0
 			);
 
 	    friend class ElPyramScroller;
@@ -406,7 +415,7 @@ class ElImScroller
 
 	    static ElImScroller * StdScrollIfExist(Visu_ElImScr &Visu,const std::string &,REAL scale,bool Adapt,bool ForceGray);
      private :
-	    static ElImScroller * StdFileGenerique(Visu_ElImScr &Visu,const std::string &,INT  InvScale,bool Adapt,bool ForceGray);
+	    static ElImScroller * StdFileGenerique(Visu_ElImScr &Visu,const std::string &,INT  InvScale,bool Adapt,bool ForceGray,cElScrCalcNameSsResol * = 0);
 
 
 
@@ -452,7 +461,12 @@ class ElPyramScroller : public ElImScroller
 		virtual REAL TimeReformat() const; // 0.0
 		Fonc_Num in(); // 0
 
+           virtual void  SetAlwaysQuick(bool aVal);
+           virtual void  SetAlwaysQuickInZoom(bool aVal);
+           virtual void  SetAlwaysQuickInZoom();
+           virtual void  SetAlwaysQuick();
 	private :
+
            void Sauv(const std::string & aName);
            void SetPoly(Fonc_Num ,std::vector<Pt2dr>);
            virtual void ApplyLutOnPoly(Fonc_Num ,std::vector<Pt2dr>);

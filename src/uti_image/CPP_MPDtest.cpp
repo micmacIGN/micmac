@@ -811,6 +811,8 @@ void TestGridCam()
 
 }
 
+
+// Test de fit de courbe analytique sur un polynome 
 class cTestCircleFit
 {
     public :
@@ -818,8 +820,8 @@ class cTestCircleFit
 cTestCircleFit()
 {
     mTetaMax = 0.5;
-    mNbEch = 1000;
-    mDegre = 8;
+    mNbEch = 100;
+    mDegre = 4;
     L2SysSurResol mSys(mDegre+1);
 
     for (int aK=0 ; aK<mNbEch ; aK++)
@@ -830,12 +832,34 @@ cTestCircleFit()
         {
             aVC.push_back(pow(aTeta,aD));
         }
+        mSys.V_GSSR_AddNewEquation(1.0,VData(aVC),F(aTeta));
     }
+
+    bool Ok;
+    Im1D_REAL8  aSol = mSys.V_GSSR_Solve(&Ok);
+    double * aDS = aSol.data();
+
+    
+    for (int aK=0 ; aK<mNbEch ; aK++)
+    {
+        double aTeta = Teta(aK);
+        std::vector<double> aVC;
+        double aRes = 0.0;
+        for (int aD=0 ; aD<=mDegre ; aD++)
+        {
+             aRes += pow(aTeta,aD) * aDS[aD];
+        }
+        aRes -= F(aTeta);
+
+        std::cout << "RES " << ((aRes>0) ? "+" : "-" ) << "\n";
+    }
+
+    getchar();
 }
 
     double F(double aTeta)
     {
-          return sqrt(1-aTeta*aTeta);
+          return sqrt(1-aTeta*aTeta + aTeta);
     }
 
 
@@ -849,6 +873,7 @@ cTestCircleFit()
 
 int MPDtest_main (int argc,char** argv)
 {
+    cTestCircleFit aTCF;
 /*
    for (int aK=0 ; aK< 100 ; aK++)
    {
