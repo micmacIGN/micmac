@@ -39,12 +39,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Vino.h"
 
+#if (ELISE_X11)
+
+
 
 int Vino_Main(int argc, char ** argv)
 {
     
     cAppli_Vino  anAppli(argc,argv);
 
+    anAppli.PostInitVirtual();
     anAppli.Boucle();
 
     getchar();
@@ -67,6 +71,36 @@ int Vino_Main(int argc, char ** argv)
     return EXIT_SUCCESS;
 }
 
+
+cPopUpMenuMessage::cPopUpMenuMessage(Video_Win aW,Pt2di aSz) :
+   PopUpMenuTransp(aW,aSz)
+{
+}
+
+void cPopUpMenuMessage::ShowMessage(const std::string & aName, Pt2di aP,Pt3di aCoul)
+{
+     UpP0(aP);
+     Pt2di aLarg = mW.SizeFixedString(aName);
+     mW.fixed_string
+     (
+           Pt2dr(aP+ (mSz+Pt2di(-aLarg.x, aLarg.y))/2)  ,
+           aName.c_str(), mW.prgb()(aCoul.x,aCoul.y,aCoul.z),
+           true
+     );
+}
+
+void cPopUpMenuMessage::Hide()
+{
+    Pop();
+}
+
+
+#else
+int Vino_Main(int argc, char ** argv)
+{
+   return EXIT_FAILURE;
+}
+#endif
 
 
 

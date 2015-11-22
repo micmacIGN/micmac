@@ -653,7 +653,8 @@ Output_Computed * Data_Elise_PS_Win::rle_out_comp
 (
       const Data_El_Geom_GWin * degw,
       const Arg_Output_Comp & arg,
-      Data_Elise_Palette *    dep
+      Data_Elise_Palette *    dep,
+      bool                    OnYDiff
 )
 {
       return new PS_Out_RLE_computed (arg,degw,dep,this,true);

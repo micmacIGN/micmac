@@ -42,37 +42,110 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+#if (ELISE_X11)
 
-class cAppli_Vino : public Grab_Untill_Realeased
+
+std::string StrNbChifSignNotSimple(double aVal,int aNbCh);
+std::string StrNbChifSign(double aVal,int aNbCh);
+std::string SimplString(std::string aStr);
+
+
+
+typedef enum
+{
+   eModeGrapZoomVino,
+   eModeGrapTranslateVino,
+   eModeGrapAscX,
+   eModeGrapAscY,
+   eModeGrapShowRadiom
+}  eModeGrapAppli_Vino;
+
+
+class cPopUpMenuMessage : public PopUpMenuTransp
+{
+   public :
+      cPopUpMenuMessage(Video_Win aW,Pt2di aSz) ;
+      void ShowMessage(const std::string & aName, Pt2di aP,Pt3di aCoul);
+      void Hide();
+
+};
+
+#define TheNbMaxChan  10
+
+
+class cAppli_Vino : public cXml_EnvVino,
+                    public Grab_Untill_Realeased ,
+                    public cElScrCalcNameSsResol
 {
      public :
         cAppli_Vino(int,char **);
+        void PostInitVirtual();
         void  Boucle();
+        cXml_EnvVino & EnvXml() {return static_cast<cXml_EnvVino &> (*this);}
+
 
      private :
+        void ShowOneVal();
+        void ShowOneVal(Pt2dr aP);
+
+
+        void  StatRect(Pt2di  aP0,Pt2di  P1);
+        void  StatFlux(Flux_Pts);
+
+        std::string NamePyramImage(int aZoom);
+        std::string  CalculName(const std::string & aName, INT InvScale); // cElScrCalcNameSsResol
 
         void  GUR_query_pointer(Clik,bool);
-        void ExeGrab(Clik);
+        void ExeClikGeom(Clik);
+        void ZoomMolette();
+        void ShowAsc();
+        Pt2dr ToCoordAsc(const Pt2dr & aP);
 
+        std::string               mNameXmlOut;
+        std::string               mNameXmlIn;
         std::string               mDir;
-
         std::string               mNameIm;
         Tiff_Im  *                mTiffIm;
         std::string               mNameTiffIm;
         Pt2di                     mTifSz;
+        bool                      mCoul;
+        int                       mNbChan;
+        double                    mNbPix;
         double                    mRatioFul;
+        Pt2dr                     mRatioFulXY;
 
-        Pt2di                     mSzW;
         Pt2di                     mSzIncr;
+        Video_Win *               mWAscH;
         Video_Win *               mW;
+        Video_Win *               mWAscV;
         Video_Display *           mDisp;
         std::string               mTitle;
         Visu_ElImScr *            mVVE;
         ElImScroller *            mScr;
+        cPopUpMenuMessage  *      mMenuMess1;
+        std::vector<INT>          mVEch;
+        Pt2dr                     mP0Click;
+        Pt2di                     mP0StrVal;
+        Pt2di                     mP1StrVal;
+        double                    mScale0;
+        Pt2dr                     mTr0;
+        int                       mBut0;
+        bool                      mCtrl0;
+        bool                      mShift0;
+        eModeGrapAppli_Vino       mModeGrab;
 
+        double                    mNbPixMinFile;
+        double                    mSzEl;
+
+        double                    mNb;
+        double                    mSom[TheNbMaxChan];
+        double                    mSom2[TheNbMaxChan];
+        double                    mMax[TheNbMaxChan];
+        double                    mMin[TheNbMaxChan];
         
 };
 
+#endif
 
 
 

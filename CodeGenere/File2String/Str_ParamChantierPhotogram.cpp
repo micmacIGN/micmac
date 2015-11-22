@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[1761]) = {
+const char * (theNameVar_ParamChantierPhotogram[1771]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1746,6 +1746,16 @@ const char * (theNameVar_ParamChantierPhotogram[1761]) = {
 "   <auxiliarydata Nb=\"1\" RefType=\"XmlMatis_auxiliarydata\"> </auxiliarydata>\n",
 "   <geometry Nb=\"1\" RefType=\"XmlMatis_geometry\"> </geometry>\n",
 "</orientation>\n",
+"\n",
+"\n",
+"<Xml_EnvVino  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"    <SzW Nb=\"1\" Type=\"Pt2di\">                </SzW>\n",
+"    <LargAsc Nb=\"1\" Type=\"int\">              </LargAsc>\n",
+"    <SzIncr Nb=\"1\" Type=\"Pt2di\">             </SzIncr>\n",
+"    <ZoomBilin Nb=\"1\" Type=\"bool\">           </ZoomBilin>\n",
+"    <SpeedZoomGrab Nb=\"1\" Type=\"double\">     </SpeedZoomGrab>\n",
+"    <SpeedZoomMolette Nb=\"1\" Type=\"double\">  </SpeedZoomMolette>\n",
+"</Xml_EnvVino>\n",
 "\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",

@@ -1746,6 +1746,16 @@
 </orientation>
 
 
+<Xml_EnvVino  Nb="1" Class="true" ToReference="true">
+    <SzW Nb="1" Type="Pt2di">                </SzW>
+    <LargAsc Nb="1" Type="int">              </LargAsc>
+    <SzIncr Nb="1" Type="Pt2di">             </SzIncr>
+    <ZoomBilin Nb="1" Type="bool">           </ZoomBilin>
+    <SpeedZoomGrab Nb="1" Type="double">     </SpeedZoomGrab>
+    <SpeedZoomMolette Nb="1" Type="double">  </SpeedZoomMolette>
+</Xml_EnvVino>
+
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>
