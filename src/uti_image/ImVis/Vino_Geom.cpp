@@ -65,8 +65,20 @@ void cAppli_Vino::ShowAsc()
    Pt2dr aP10 =  ToCoordAsc((Pt2dr(SzW().x,0))) ; 
    Pt2dr aP01 =  ToCoordAsc(Pt2dr(0,SzW().y));  
 
-   mWAscH->fill_rect(Pt2dr(aP00.x,0),Pt2dr(aP10.x,LargAsc()),mWAscH->pdisc()(P8COL::yellow));
-   mWAscV->fill_rect(Pt2dr(0,aP00.y),Pt2dr(LargAsc(),aP01.y),mWAscV->pdisc()(P8COL::yellow));
+   
+
+   mWAscH->fill_rect
+   (
+       Pt2dr(aP00.x,0),
+       Pt2dr(ElMax(aP00.x+1,aP10.x),LargAsc()),
+       mWAscH->pdisc()(P8COL::yellow)
+   );
+   mWAscV->fill_rect
+   (
+         Pt2dr(0,aP00.y),
+         Pt2dr(LargAsc(),ElMax(aP00.y+1,aP01.y)),
+         mWAscV->pdisc()(P8COL::yellow)
+  );
 
    std::string aStrZoom = "Zoom=" + StrNbChifSign(mScr->sc(),3); // ToString(mScr->sc()); 
    mW->fixed_string(Pt2dr(5,10),aStrZoom.c_str(),mW->pdisc()(P8COL::black),true);
