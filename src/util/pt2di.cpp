@@ -1248,7 +1248,7 @@ Pt3dr PMoyFromEchant(const std::vector<Pt3dr> & anEch)
 std::vector<Pt3dr>  GetDistribRepreBySort(std::vector<Pt2dr> & aVP,const Pt2di & aNbOut,Pt3dr & aPRep)
 {
     Pt2dr * aAdr0 = VData(aVP);
-    int aNbIn0 = aVP.size();
+    int aNbIn0 = (int)aVP.size();
     std::vector<Pt3dr> aRes;
 
     cCmpPtOnX aCmpX;

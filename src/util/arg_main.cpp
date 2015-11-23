@@ -424,7 +424,7 @@ INT LArgMain::Init
 }
 
 
-int LArgMain::Size() const {return _larg.size();}
+int LArgMain::Size() const {return (int)_larg.size();}
 
 
 
@@ -887,7 +887,7 @@ bool IsThomFile (const std::string & aName)
 
 std::string StrFromArgMain(const std::string & aStr)
 {
-    int aL= aStr.length();
+    int aL = (int)aStr.length();
     aL--;
     while ((aL>=0) && isspace(aStr.at(aL)))
         aL--;
@@ -1174,7 +1174,7 @@ void cAppliBatch::DoAll()
         const std::vector<cCpleString> * aVC = mICNM->GetRel(mPatF1);
         for (int aK=0 ; aK<int(aVC->size()) ; aK++)
         {
-            int aKC = (mReverse ? (aVC->size()-1-aK) : aK);
+            int aKC = (mReverse ? int(aVC->size()) - 1 - aK : aK);
             mCurF1 = (*aVC)[aKC].N1();
             mCurF2 = (*aVC)[aKC].N2();
             DoOne();
@@ -1283,7 +1283,7 @@ bool  cAppliBatch::IsRelancedByThis() const
 
 int cAppliBatch::ARGC()
 {
-    return mArgsNC.size();
+    return (int)mArgsNC.size();
 }
 
 char ** cAppliBatch::ARGV()

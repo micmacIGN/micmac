@@ -220,7 +220,7 @@ cStatOneClassEquiv::cStatOneClassEquiv
 
    mVIndOK      (aVIndiceOK),
    mIndOK       (&(mVIndOK[0])),
-   mNbOK        (mVIndOK.size())
+   mNbOK        ((int)mVIndOK.size())
 
 {
    mNbVIn =0;
@@ -584,7 +584,7 @@ cStatGlob::cStatGlob
        mIndOk      (&(mVIndOK[0])),
        mVPtOK      (aVPtOK),
        mPtsOK      (&(mVPtOK[0])),
-       mNbOK       (mVPtOK.size()),
+       mNbOK       ((int)mVPtOK.size()),
        mNbClass    (0),
        mDefCorr    (mAppli.DefCorrelation().Val()),
        mEpsCorr    (mAppli.EpsilonCorrelation().Val()),

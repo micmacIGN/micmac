@@ -584,7 +584,7 @@ cOneCoorSysPolyn::cOneCoorSysPolyn
    mPX     (1+aDeg.x),
    mPY     (1+aDeg.y),
    mPZ     (1+aDeg.z),
-   mNbDeg  (mPX.size()*mPY.size()*mPZ.size()),
+   mNbDeg  ((int)(mPX.size() * mPY.size() * mPZ.size())),
    mDeg    (aDeg),
    mCoord  (mNbDeg),
    mSys    (0),
@@ -1036,14 +1036,14 @@ cSysCoord * cSysCoord::FromXML
    {
 
       const int    * aDI = &(aVBSC[0].AuxI()[0]);
-      int      aNbI = aVBSC[0].AuxI().size();
+      int aNbI = (int)aVBSC[0].AuxI().size();
       ELISE_ASSERT(aNbI==9,"Bad int size in  cSysCoord::FromXML  eTC_Polyn");
       Pt3di aNbX(aDI[0],aDI[1],aDI[2]);
       Pt3di aNbY(aDI[3],aDI[4],aDI[5]);
       Pt3di aNbZ(aDI[6],aDI[7],aDI[8]);
 
       const double * aDR = &(aVBSC[0].AuxR()[0]);
-      int      aNbR = aVBSC[0].AuxR().size();
+      int aNbR = (int)aVBSC[0].AuxR().size();
 
       aVBSC++; aNbB--;
       cSysCoord * aSysIn = cSysCoord::FromXML(aVBSC,aNbB,aDir);
@@ -1067,7 +1067,7 @@ cSysCoord * cSysCoord::FromXML(const cSystemeCoord & aSC,const char * aDir)
 {
    
    const cBasicSystemeCoord * aVBSC = &(aSC.BSC()[0]);
-   int  aNbB = aSC.BSC().size();
+   int aNbB = (int)aSC.BSC().size();
  
 // std::cout << "NB IN " << aNbB<< "\n";
    cSysCoord * aRes = cSysCoord::FromXML(aVBSC,aNbB,aDir);
