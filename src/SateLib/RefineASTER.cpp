@@ -628,7 +628,7 @@ public:
 			if (it->second->name() == StdPrefixGen(aFilename)) return it->second;
 		}
 		AffCameraASTER* Cam = new AffCameraASTER(aFilename, (int)mapCameras.size(), mapCameras.size() != 0);
-		mapCameras.insert(pair <int, AffCameraASTER*>(mapCameras.size(), Cam));
+		mapCameras.insert(pair <int, AffCameraASTER*>((int)mapCameras.size(), Cam));
 		return Cam;
 	}
 
@@ -893,9 +893,10 @@ public:
 		//sinon, extraire de Y sub(0,6*k..,6,1) puis Y -= Dk*C-1*Y0
 		//       extraire pour tout col dans vPos sub(ligne k,vPos[k],6,6) puis N -= Dk*C-1*N(0,vPos[k],3,6)
 
+		const int numUnk_int = (int)numUnk;
 		for (size_t k = 0; k < vpos.size(); ++k)
 		{
-			ElMatrix <double> Dk = _N.sub_mat(0, (vpos[k] - 1)*numUnk + 3, 3, numUnk);
+			ElMatrix <double> Dk = _N.sub_mat(0, (vpos[k] - 1)*numUnk_int + 3, 3, numUnk_int);
 
 			ElMatrix <double> M2 = Dk*Cinv*Y0;
 
@@ -903,7 +904,7 @@ public:
 
 			//Y -= Dk*C-1*Y0
 			for (int bK = 0; bK < M2.Sz().y; bK++)
-				_Y(0, (vpos[k] - 1)*numUnk + 3 + bK) -= M2(0, bK);
+				_Y(0, (vpos[k] - 1)*numUnk_int + 3 + bK) -= M2(0, bK);
 
 			if (verbose)
 			{
@@ -914,7 +915,7 @@ public:
 
 			for (size_t k2 = 0; k2 < vpos.size(); ++k2)
 			{
-				ElMatrix <double> Dk2 = _N.sub_mat((vpos[k2] - 1)*numUnk + 3, 0, numUnk, 3);
+				ElMatrix <double> Dk2 = _N.sub_mat((vpos[k2] - 1)*numUnk_int + 3, 0, numUnk_int, 3);
 
 				//printMatrix(Dk2, "Dk2");
 
@@ -925,7 +926,7 @@ public:
 				// N -= Dk*C-1*N(0,vPos[k],3,6)
 				for (int aK = 0; aK < N2.Sz().x; aK++)
 				for (int bK = 0; bK < N2.Sz().y; bK++)
-					_N((vpos[k2] - 1)*numUnk + 3 + aK, (vpos[k] - 1)*numUnk + 3 + bK) -= N2(aK, bK);
+					_N((vpos[k2] - 1)*numUnk_int + 3 + aK, (vpos[k] - 1)*numUnk_int + 3 + bK) -= N2(aK, bK);
 			}
 		}
 
@@ -983,12 +984,13 @@ public:
 		int aK = 0;
 		map<int, AffCameraASTER *>::const_iterator iter = mapCameras.begin();
 		iter++; //don't use first image
+		const int numUnk_int = (int)numUnk;
 		for (; iter != mapCameras.end(); ++iter)
 		{
-			ElMatrix <double> solSub = sol.sub_mat(0, aK, 1, numUnk);
+			ElMatrix <double> solSub = sol.sub_mat(0, aK, 1, numUnk_int);
 			iter->second->updateParams(solSub);
 
-			aK += numUnk;
+			aK += numUnk_int;
 		}
 
 
@@ -1054,7 +1056,8 @@ public:
 			cout << "Nb cam to estimate : " << nbCam << endl;
 
 			//Init matrix
-			int matSz = 3 + numUnk*nbCam;
+			const int numUnk_int = (int)numUnk_int;
+			int matSz = 3 + numUnk_int*nbCam;
 			cout << "matSz : " << matSz << endl;
 			cout << "numUnk : " << numUnk << endl;
 			_N = ElMatrix<double>(matSz, matSz);
@@ -1073,14 +1076,14 @@ public:
 				//pour chaque image où le point de liaison est vu
 				for (size_t bK = 0; bK < vMes.size(); ++bK)
 				{
-					Pt2dr D = aObs->computeImageDifference(bK, pt);
+					Pt2dr D = aObs->computeImageDifference((int)bK, pt);
 					// double ecart2 = square_euclid(D);
 
 					double pdt = 1.; //1./sqrt(1. + ecart2);
 
 					//todo : strategie d'elimination d'ObservationASTERs / ou ponderation
 
-					ElMatrix<double> obs(numUnk, 1);
+					ElMatrix<double> obs(numUnk_int, 1);
 					ElMatrix<double> ccc(3, 1);
 
 					// estimation des derivees partielles
@@ -1149,20 +1152,20 @@ public:
 					//Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, X1, X2, X3, X4, X5) - D);
 					//Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, X1, X2, X3, X4, X5) - D);
 					//pXy
-					Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdX1 = Pt2dr(1. / dX1, 1. / dX1) * (aObs->computeImageDifference(bK, pt, X0, X1 + dX1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdX2 = Pt2dr(1. / dX2, 1. / dX2) * (aObs->computeImageDifference(bK, pt, X0, X1, X2 + dX2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdX3 = Pt2dr(1. / dX3, 1. / dX3) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3 + dX3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdX4 = Pt2dr(1. / dX4, 1. / dX4) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4 + dX4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdX5 = Pt2dr(1. / dX5, 1. / dX5) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5 + dX5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdXy1 = Pt2dr(1. / dX1, 1. / dX1) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1 + dXy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdXy2 = Pt2dr(1. / dX2, 1. / dX2) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2 + dXy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdXy3 = Pt2dr(1. / dX3, 1. / dX3) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3 + dXy3, Xy4, Xy5) - D);
-					Pt2dr vdXy4 = Pt2dr(1. / dX4, 1. / dX4) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4 + dXy4, Xy5) - D);
-					Pt2dr vdXy5 = Pt2dr(1. / dX5, 1. / dX5) * (aObs->computeImageDifference(bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5 + dXy5) - D);
-					Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
-					Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference(bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference((int)bK, pt, X0 + dX0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX1 = Pt2dr(1. / dX1, 1. / dX1) * (aObs->computeImageDifference((int)bK, pt, X0, X1 + dX1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX2 = Pt2dr(1. / dX2, 1. / dX2) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2 + dX2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX3 = Pt2dr(1. / dX3, 1. / dX3) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2, X3 + dX3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX4 = Pt2dr(1. / dX4, 1. / dX4) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2, X3, X4 + dX4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdX5 = Pt2dr(1. / dX5, 1. / dX5) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2, X3, X4, X5 + dX5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdXy1 = Pt2dr(1. / dX1, 1. / dX1) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2, X3, X4, X5, Xy1 + dXy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdXy2 = Pt2dr(1. / dX2, 1. / dX2) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2 + dXy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdXy3 = Pt2dr(1. / dX3, 1. / dX3) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3 + dXy3, Xy4, Xy5) - D);
+					Pt2dr vdXy4 = Pt2dr(1. / dX4, 1. / dX4) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4 + dXy4, Xy5) - D);
+					Pt2dr vdXy5 = Pt2dr(1. / dX5, 1. / dX5) * (aObs->computeImageDifference((int)bK, pt, X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5 + dXy5) - D);
+					Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference((int)bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdY = Pt2dr(1. / dY, 1. / dY) * (aObs->computeImageDifference((int)bK, Pt3dr(pt.x, pt.y + dY, pt.z), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
+					Pt2dr vdZ = Pt2dr(1. / dZ, 1. / dZ) * (aObs->computeImageDifference((int)bK, Pt3dr(pt.x, pt.y, pt.z + dZ), X0, X1, X2, X3, X4, X5, Xy1, Xy2, Xy3, Xy4, Xy5) - D);
 					//cXsX
 					//Pt2dr vdX0 = Pt2dr(1. / dX0, 1. / dX0) * (aObs->computeImageDifference(bK, pt, X0 + dX0, SX0, SX1, SX2) - D);// , SY0, SY1, SY2) - D);
 					//Pt2dr vdX = Pt2dr(1. / dX, 1. / dX) * (aObs->computeImageDifference(bK, Pt3dr(pt.x + dX, pt.y, pt.z), X0, SX0, SX1, SX2) - D);//, SY0, SY1, SY2) - D);
@@ -1300,8 +1303,8 @@ public:
 
 				for (size_t aK = 0; aK < numUnk; aK++)
 				{
-					ElMatrix <double> AB(numUnk, 1);
-					AB(aK, 0) = 1.;
+					ElMatrix <double> AB((int)numUnk, 1);
+					AB((int)aK, 0) = 1.;
 
 					double sig = 1.;
 					if ((aK == 0) || (aK == 3)) sig = 0.1;  //pix
@@ -1386,7 +1389,7 @@ int RefineJitter_main(int argc, char **argv)
 			double sumRes = 0.;
 			for (size_t i = 0; i<aObs->vImgMeasure.size(); ++i)
 			{
-				Pt2dr D = aObs->computeImageDifference(i, PT);
+				Pt2dr D = aObs->computeImageDifference((int)i, PT);
 
 				ficRes << aK << " " << aObs->vImgMeasure[i].imgName() << " " << aObs->vImgMeasure[i].pt().x << " " << aObs->vImgMeasure[i].pt().y << " " << D.x << " " << D.y << " " << endl;
 
