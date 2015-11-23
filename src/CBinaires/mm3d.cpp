@@ -191,7 +191,7 @@ public :
     }
 };
 
-
+extern int PHO_MI_main(int , char **);
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
 extern int TestRegEx_main(int , char **);
@@ -260,6 +260,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
        aRes.push_back(cMMCom("InitOriLinear",InitOriLinear_main," Initialize orientation for linear acquisition"));
+       aRes.push_back(cMMCom("PHO_MI",PHO_MI_main," Filter homologue points from initial orientation and eliminate bad point"));
        aRes.push_back(cMMCom("ExtractMesure2D",ExtractMesure2D_main," Extract points from a 2D measures xml file"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
        aRes.push_back(cMMCom("FFTKugelhupf",FFTKugelhupf_main," Version of Kugelhupf using FFT, expecetd faster when it works (if ever ...)"));
@@ -832,7 +833,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           if (DoLog) LogOut( aRes, outDirectory );
 
           delete PatMach;
-          delete PrefMach;
+          delete PrefMach; 
           delete SubMach;
 
           if (Chol16Byte)
