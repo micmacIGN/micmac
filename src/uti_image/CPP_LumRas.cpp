@@ -338,7 +338,7 @@ cAppli_LumRas::cAppli_LumRas(int argc,char ** argv) :
 
     if (!MMVisualMode)
     {
-        for (int aK=aPdsI.size() ; aK<3 ; aK++)
+        for (int aK=(int)aPdsI.size() ; aK<3 ; aK++)
             aPdsI.push_back(1);
         // mTifBaseGr =   new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,1,true));
         mTifBaseCoul = new  Tiff_Im (Tiff_Im::StdConvGen(mNameImBase,3,true));

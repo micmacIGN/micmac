@@ -96,7 +96,7 @@ int EstimFlatField_main(int argc,char ** argv)
     Pt2di aSzF(-1,-1);
 
 
-    int aNbIm = aLName.size();
+    int aNbIm = (int)aLName.size();
     int aCpt = aNbIm;
 
     std::vector<Im2D_REAL4> aVImRed;

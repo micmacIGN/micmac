@@ -140,7 +140,7 @@ int ConvertIm_main(int argc,char ** argv)
               aNameOut = aNameIn + anExt + "tif";
         }
 
-        Pt2di aCoefReduc(aReducX? 2 : 1,aReducY ? 2 : 1);
+        Pt2di aCoefReduc(aReducX != 0 ? 2 : 1, aReducY != 0 ? 2 : 1);
         aSzOut = aSzOut.dcbyc(aCoefReduc);
 
         if (aNameTypeOut != "")
