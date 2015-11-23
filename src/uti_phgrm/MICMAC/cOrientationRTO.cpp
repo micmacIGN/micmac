@@ -708,7 +708,7 @@ void OrientationRTO::InitXml(std::string const &nom)
                         std::string path;
                         {
                                 int placeSlash = -1;
-                                for(int l=nom.size()-1;(l>=0)&&(placeSlash==-1);--l)
+                                for(int l = (int)(nom.size() - 1);(l>=0)&&(placeSlash==-1);--l)
                                 {
                                         if ( ( nom[l]=='/' )||( nom[l]=='\\' ) )
                                         {

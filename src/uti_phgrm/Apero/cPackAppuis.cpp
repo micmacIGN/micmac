@@ -224,7 +224,7 @@ const Pt3dr & cOneAppuiMul::PTer() const
 
 int   cOneAppuiMul::NbInter() const
 {
-   return mVPds.size();
+   return (int)mVPds.size();
 }
 
 Pt3dr cOneAppuiMul::PInter() const
@@ -1196,7 +1196,7 @@ void  cAppliApero::DoRapportAppuis
       mMTRes->Show(aFP);
    }
 
-   int aNbC = aVEr.size();
+   int aNbC = (int)aVEr.size();
 
    fprintf(aFP,"========== STAT GLOBALE =========\n");
    fprintf(aFP,"Nb Cible = %d\n",aNbC);

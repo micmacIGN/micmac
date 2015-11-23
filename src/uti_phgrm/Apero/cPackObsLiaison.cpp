@@ -549,7 +549,7 @@ cPackObsLiaison::cPackObsLiaison
 		const std::vector<std::string> * aVName = iChantierNM->Get(keyset);
 		if ( isUsingSeparateDirectories() ) iChantierNM->setDir( MMInputDirectory() );
 
-		aNbTot += aVName->size();
+		aNbTot += (int)aVName->size();
 
 		if (1)
 		{

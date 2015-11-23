@@ -1297,7 +1297,7 @@ void cAppliMICMAC::InitImages()
       )
    {
       cChantierAppliWithSetImage aCAWSI = StdGetFromSI(WorkDir()+ ImageSecByCAWSI().Val(),ChantierAppliWithSetImage);
-      int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
+      int aNbPDV = (int)mPrisesDeVue.size();  // Car la taille va augmenter
       for (int aKV=0 ; aKV<aNbPDV ; aKV++)
       {
           const cCWWSImage * aWI = GetFromCAWSI(aCAWSI,mPrisesDeVue[aKV]->Name());
@@ -1313,7 +1313,7 @@ void cAppliMICMAC::InitImages()
    else if (ImSecCalcApero().IsInit())
    {
        const cImSecCalcApero & aISCA = ImSecCalcApero().Val();
-       int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
+       int aNbPDV = (int)mPrisesDeVue.size();  // Car la taille va augmenter
        int aNbMin = aISCA.NbMin().Val();
        int aNbMax = aISCA.NbMax().Val();
        for (int aKV=0 ; aKV<aNbPDV ; aKV++)
@@ -1365,7 +1365,7 @@ void cAppliMICMAC::InitImages()
 
    if (RelGlobSelecteur().IsInit())
    {
-       int aNbPDV = mPrisesDeVue.size();  // Car la taille va augmenter
+       int aNbPDV = (int)mPrisesDeVue.size();  // Car la taille va augmenter
        for (int aKV=0 ; aKV<aNbPDV ; aKV++)
        {
            std::vector<std::string> aSBR =  GetStrFromGenStrRel(ICNM(),RelGlobSelecteur().Val(),mPrisesDeVue[aKV]->Name());
@@ -1763,7 +1763,7 @@ double cAppliMICMAC::CurCorrelToCout(double aCor) const
 
 int cAppliMICMAC::NbVueAct() const
 {
-   return mPDVBoxGlobAct.size();
+   return (int)mPDVBoxGlobAct.size();
 }
 
 int cAppliMICMAC::NumImAct2NumImAbs(int aNum) const
@@ -2096,7 +2096,7 @@ void cAppliMICMAC::ExeProcessParallelisable
    if ((ByProcess().Val() == 0) || (ByProcess().Val() == 1))
    {
 	int num=0;
-	int nbDalles=aLProc.size();
+	int nbDalles = (int)aLProc.size();
 #ifdef MAC
 	utsname buf;
 	uname(&buf);
