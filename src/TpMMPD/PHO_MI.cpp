@@ -47,19 +47,38 @@ Header-MicMac-eLiSe-25/06/2007*/
  * Output:
  *  - List de coordonné de point homologue
  * */
+
+void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
+{
+
+    int aL = strlen(aNameH.c_str());
+    if (aL && (aNameH[aL-1]==ELISE_CAR_DIR))
+    {
+        aNameH = aNameH.substr(0,aL-1);
+    }
+
+    if ((strlen(aNameH.c_str())>=5) && (aNameH.substr(0,5)==std::string("Homol")))
+       aNameH = aNameH.substr(5,std::string::npos);
+
+    std::string aTest =  ( isUsingSeparateDirectories()?MMOutputDirectory():aDir ) + "Homol"+aNameH+ ELISE_CAR_DIR;
+}
+
+
 int PHO_MI_main(int argc,char ** argv)
 {
-    std::string aFullPatternImages, aOriInput, aOriOutput, aNameHomol="Homol/", aHomolOutput;
+    std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="Homol_Filtered/";
+    bool ExpTxt = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
     (
     argc,                   //nb d’arguments
     argv,                   //chaines de caracteres contenants tous les arguments
     //mandatory arguments - arg obligatoires
     LArgMain()  << EAMC(aFullPatternImages, "Pattern of images to compute",  eSAM_IsPatFile)
-                << EAMC(aOriInput, "Input Initial Orientation",  eSAM_IsExistDirOri)
-                << EAMC(aHomolOutput, "Output corrected Homologues points",  eSAM_IsDir),  //not yet created => no need of eSAM_IsExistDirOri ?
+                << EAMC(aOriInput, "Input Initial Orientation",  eSAM_IsExistDirOri),
     //optional arguments - arg facultatifs
-    LArgMain()  << EAM(aNameHomol, "Homol Input", true, "Name of Homol foler, Homol par default")
+    LArgMain()  << EAM(aNameHomol, "HomolIn", true, "Name of input Homol foler, Homol par default")
+                << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
+                << EAM(aHomolOutput, "HomolOut" , true, "Output corrected Homologues folder")
     );
     if (MMVisualMode) return EXIT_SUCCESS;
 
@@ -68,19 +87,69 @@ int PHO_MI_main(int argc,char ** argv)
     // Initialize name manipulator & files
     std::string aDirImages, aPatImages;
     SplitDirAndFile(aDirImages,aPatImages,aFullPatternImages);
-    StdCorrecNameOrient(aOriInput,aOriInput);//remove "Ori-" if needed
-    StdCorrecNameOrient(aOriOutput,aOriOutput);//remove "Ori-" if needed
-
+    StdCorrecNameOrient(aOriInput,aDirImages);//remove "Ori-" if needed
 
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
     const std::vector<std::string> aSetImages = *(aICNM->Get(aPatImages));
-    ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
-    std::cout<<"***"<<aFullPatternImages<<"***"<<std::endl;
 
-    for (uint i=0; i<aSetImages.size(); i++)
+    ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
+
+//    cout<<"List of image to compute: "<<endl;
+//    std::cout<<"***"<<aFullPatternImages<<"***"<<std::endl;
+//    for (uint i=0; i<aSetImages.size(); i++)
+//    {
+//        cout<<" ++ "<<aSetImages[i]<<endl;
+//    }
+
+    std::string anExt = ExpTxt ? "txt" : "dat";
+
+
+    std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(aNameHomol)
+                       +  std::string("@")
+                       +  std::string(anExt);
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aHomolOutput)
+                        +  std::string("@")
+                       +  std::string(anExt);
+
+    for (int aKN1 = 0 ; aKN1<int(aSetImages.size()) ; aKN1++)
     {
-        cout<<" ++ "<<aSetImages[i]<<endl;
+        for (int aKN2 = 0 ; aKN2<int(aSetImages.size()) ; aKN2++)
+        {
+             std::string aNameIm1 = aSetImages[aKN1];
+             std::string aNameIm2 = aSetImages[aKN2];
+             //cout<< aNameIm1<<endl;
+             //cout<< aNameIm2<<endl;
+
+             std::string aNameIn = aICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm2,true);  //fichier contient les point homologue à partir des pairs
+
+             //cout<<aNameIn<<"++";
+             StdCorrecNameHomol_G(aNameIn,aDirImages);
+             //cout<<aNameIn<<endl;
+
+             if (ELISE_fp::exist_file(aNameIn))     //check fichier point homo existe
+             {
+                    //cout<< aNameIn << " existe!"<<endl;
+
+                  ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);    //lire coor de point homo dans images
+                  ElPackHomologue aPackOut;
+                  cout<<"There are "<<aPackIn.size()<<" point homologues b/w "<< aNameIm1<<" and "<< aNameIm2<<endl;
+                  for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
+                  {   //parcourir les point homo
+
+                      Pt2dr aP1 = itP->P1();    //Point 2d REAL
+                      Pt2dr aP2 = itP->P2();
+                      //Pt3dr  aPTer= aVCam[aKN1]->PseudoInter(aP1,*(aVCam[aKN2]),aP2);
+                      //cout << aP1 << " ++ "<< aP2<< " -- "<<aPTer <<endl;
+
+                  }
+             }
+        }
     }
+
+
+
 
 return EXIT_SUCCESS;
 }
