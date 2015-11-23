@@ -161,7 +161,7 @@ cGraphHom::cGraphHom(int argc,char ** argv) :
     mLFile =  mICNM->StdGetListOfFile(mPat);
 
 
-    mNbSom =  mLFile.size();
+    mNbSom =  (int)mLFile.size();
 
     std::cout << "Nb Images = " <<  mNbSom << "\n";
 

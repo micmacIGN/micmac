@@ -143,7 +143,7 @@ void cNewO_NameManager::WriteTriplet
           const std::vector<U_INT1> & aVNb
      )
 {
-    int aNb = aVP1.size();
+    int aNb = (int)aVP1.size();
     ELISE_fp aFile(aNameFile.c_str(),ELISE_fp::WRITE,false);
     aFile.write_INT4(NumHgRev());
     aFile.write_INT4(aNb);
@@ -378,7 +378,7 @@ aMap.Delete();
           }
     }
 
-    int aNb = aVP1Exp.size();
+    int aNb = (int)aVP1Exp.size();
     if (aNb<TNbMinTriplet)
     {
        aMap.Delete();
@@ -559,7 +559,7 @@ int PreGenerateDuTriplet(int argc,char ** argv,const std::string & aComIm)
    const cInterfChantierNameManipulateur::tSet * aSetIm = anEASF.SetIm();
 
    {
-       cExeParalByPaquets anEPbP(aComIm,aSetIm->size());
+       cExeParalByPaquets anEPbP(aComIm, (int)aSetIm->size());
 
        for (int aKIm=0 ; aKIm<int(aSetIm->size()) ; aKIm++)
        {
