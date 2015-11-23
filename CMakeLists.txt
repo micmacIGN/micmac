@@ -52,7 +52,7 @@ OPTION(TRACE_SYSTEM "print system calls" OFF )
 OPTION(BUILD_BENCH "compile low-level test bench" OFF )
 
 # Interfaces de saisie des paramètres
-OPTION(WITH_QT5 "compile Qt interfaces" OFF )
+OPTION(WITH_QT5 "compile Qt interfaces" ON )
 
 # Interfaces de saisie des paramètres
 OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
