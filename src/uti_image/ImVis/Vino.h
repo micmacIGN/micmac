@@ -87,6 +87,7 @@ class cAppli_Vino : public cXml_EnvVino,
      private :
         void ShowOneVal();
         void ShowOneVal(Pt2dr aP);
+        void EffaceVal();
 
 
         void  StatRect(Pt2di  aP0,Pt2di  P1);
@@ -125,6 +126,7 @@ class cAppli_Vino : public cXml_EnvVino,
         cPopUpMenuMessage  *      mMenuMess1;
         std::vector<INT>          mVEch;
         Pt2dr                     mP0Click;
+        bool                      mInitP0StrVal;
         Pt2di                     mP0StrVal;
         Pt2di                     mP1StrVal;
         double                    mScale0;

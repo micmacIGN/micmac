@@ -279,17 +279,26 @@ void  cAppli_Vino::StatFlux(Flux_Pts aFlux)
 }
 
 
+void cAppli_Vino::EffaceVal()
+{
+    if (mInitP0StrVal)
+    {
+        int aR = 7;
+        mScr->VisuIm(mP0StrVal-Pt2di(aR,aR),mP1StrVal+Pt2di(aR,aR),false);
+    }
+}
 
 void  cAppli_Vino::ShowOneVal()
 {
+    mInitP0StrVal = false;
     mModeGrab = eModeGrapShowRadiom;
     mW->grab(*this);
-    int aR = 7;
-    mScr->VisuIm(mP0StrVal-Pt2di(aR,aR),mP1StrVal+Pt2di(aR,aR),false);
+    EffaceVal();
 }
 
 void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
 {
+    EffaceVal();
     Pt2di  aP = round_ni(mScr->to_user(aPW));
 
     StatRect(aP,aP+Pt2di(1,1));
@@ -300,15 +309,17 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
     for (int aK=0 ; aK<mNbChan; aK++)
         aMes = aMes  + SimplString(ToString(mSom[aK])) + " ";
 
-    aMes = aMes + "      ";
+    // aMes = aMes + "      ";
 
-    mP0StrVal = Pt2di(mP0Click)+Pt2di(-20,30);
+    // mP0StrVal = Pt2di(mP0Click)+Pt2di(-20,30);
+    mP0StrVal = Pt2di(aPW)+Pt2di(-20,30);
 
     mW->fixed_string(Pt2dr(mP0StrVal),aMes.c_str(),mW->pdisc()(P8COL::black),true);
 
     Pt2di aSz =  mW->SizeFixedString(aMes);
     mP0StrVal.y -= aSz.y;
     mP1StrVal = mP0StrVal + aSz;
+    mInitP0StrVal = true;
 }
 
 #endif
