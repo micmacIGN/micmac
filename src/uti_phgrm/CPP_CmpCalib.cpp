@@ -517,13 +517,13 @@ cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
     if (aCalib.ModRad().IsInit())
     {
          const cCalibrationInterneRadiale & aCIR = aCalib.ModRad().Val();
-         return cLibertOfCalib(aCIR.CoeffDist().size(),0,0,true ,false);
+         return cLibertOfCalib((int)aCIR.CoeffDist().size(), 0, 0, true, false);
     }
     if (aCalib.ModPhgrStd().IsInit())
     {
          const cCalibrationInternePghrStd & aCIR = aCalib.ModPhgrStd().Val();
          const cCalibrationInterneRadiale & aCIP = aCIR.RadialePart();
-         return cLibertOfCalib(aCIP.CoeffDist().size(),1,1,true ,false);
+         return cLibertOfCalib((int)aCIP.CoeffDist().size(), 1, 1, true, false);
     }
 
     if (aCalib.ModUnif().IsInit())

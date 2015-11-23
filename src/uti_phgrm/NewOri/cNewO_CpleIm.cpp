@@ -723,7 +723,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                     {
                        cEl_GPAO::DoComInParal(aLCom);
                        aLCom.clear();
-                       int aNbIm = aVIm->size();
+                       int aNbIm = (int)aVIm->size();
                        std::cout << "    Done  "  << aCptCom  << " on " <<  (aNbIm *(aNbIm-1)) /2  << " in T=" << aChrono.uval() << "\n";
                     }
                     aCptCom++;

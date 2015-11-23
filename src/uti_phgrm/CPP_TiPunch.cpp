@@ -266,7 +266,7 @@ int TiPunch_main(int argc,char ** argv)
         Pt2dr A2, B2, C2, AB, AC;
         Pt2di A2i, B2i, C2i, aP0, aP1;
 
-        const int nNuages = vNuages.size();
+        const int nNuages = (int)vNuages.size();
         for(int bK=0 ; bK<nNuages; bK++)
         {
             set <int> vTri;
@@ -373,7 +373,7 @@ int TiPunch_main(int argc,char ** argv)
 
             //looking for biggest region
             unsigned int id = 0;
-            unsigned int nbTri = vTexBox[0].triangles.size();
+            size_t nbTri = vTexBox[0].triangles.size();
             for (unsigned int aK = 1; aK < vTexBox.size();++aK)
             {
                 if (vTexBox[aK].triangles.size() > nbTri) id = aK;
@@ -393,7 +393,7 @@ int TiPunch_main(int argc,char ** argv)
             cout << "Removing " << toRemove.size() << " / " << myMesh.getFacesNumber() << " faces" << endl;
 
             set < int, greater<int> >::const_iterator itr = toRemove.begin();
-            int aCpt = toRemove.size();
+            int aCpt = (int)toRemove.size();
             for (; itr != toRemove.end(); ++itr)
             {
                   myMesh.removeTriangle(*itr);

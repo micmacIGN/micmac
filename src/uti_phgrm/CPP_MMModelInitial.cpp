@@ -218,7 +218,7 @@ cMMByImNM * cMMByImNM::ForGlobMerge(const std::string & aDirGlob,double aDS, con
 
 void SelfSuppressCarDirEnd(std::string & aDir)
 {
-    int aL = strlen(aDir.c_str());
+    int aL = (int)strlen(aDir.c_str());
     if (aL && (aDir[aL-1]==ELISE_CAR_DIR))
     {
         aDir = aDir.substr(0,aL-1);

@@ -229,7 +229,7 @@ void cPushB_PhysMod::PostInitLinesPB()
 
     // Calcul de la calibration 
     mCalib = mLinesPB[0]->Calib();
-    int aNbC = mCalib.size();
+    int aNbC = (int)mCalib.size();
     for (int aKL=1 ; aKL< int(mLinesPB.size()) ; aKL++)
     {
         const std::vector<double>  aCalK =  mLinesPB[aKL]->Calib();

@@ -84,8 +84,8 @@ class cImOfTriplet
          Video_Win * W() {return mW;}
 
          void SetReduce(const cResIPR & aResIPR);
-         int NbR() {return mVRedPtOf3.size();}
-         int NbF() {return mVFullPtOf3.size();}
+         int NbR() {return (int)mVRedPtOf3.size();}
+         int NbF() {return (int)mVFullPtOf3.size();}
          int  Num() {return mNum;}
    private :
          cImOfTriplet(const cImOfTriplet&); // N.I.
@@ -109,8 +109,8 @@ class cPairOfTriplet
           double ResiduMoy(const ElRotation3D & aR1,const ElRotation3D & aR2);
 
           void AddResidu(const ElRotation3D & aR1,const ElRotation3D & aR2,double &aSomPds,double & aSomPdsRes);
-          int NbR() const {return mVRedP1.size();}
-          int NbF() const {return mFullVP1.size();}
+          int NbR() const {return (int)mVRedP1.size();}
+          int NbF() const {return (int)mFullVP1.size();}
 
 
           const ElRotation3D & Ori1()  const  {return mIm1->Ori();}
@@ -729,7 +729,7 @@ void cAppliOptimTriplet::Execute()
    aXml.Ori2On1() = El2Xml(mIm2->Ori());
    aXml.Ori3On1() = El2Xml(mIm3->Ori());
    aXml.ResiduTriplet() = ResiduGlob();
-   aXml.NbTriplet() = mRedH123[0]->size();
+   aXml.NbTriplet() = (int)mRedH123[0]->size();
    aXml.BSurH() = aBOnH;
    aXml.PMed() = aPMed;
 
@@ -806,7 +806,7 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    cSauvegardeNamedRel aLCpl =  StdGetFromPCP(aNM->NameCpleOfTopoTriplet(true),SauvegardeNamedRel);
    std::list<std::string> aLCom;
    int aNb= 0 ;
-   int aNb2 = aLCpl.Cple().size();
+   int aNb2 = (int)aLCpl.Cple().size();
    for (std::vector<cCpleString>::const_iterator itC=aLCpl.Cple().begin() ; itC!=aLCpl.Cple().end() ; itC++)
    {
        aNb++;

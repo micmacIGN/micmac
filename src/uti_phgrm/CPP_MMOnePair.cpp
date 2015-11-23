@@ -366,7 +366,7 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
              mVZoom.push_back(aDZ);
     }
     // mStepEnd = round_ni(log2(mZoom0/double(mZoomF))) + 3;
-    mStepEnd = mVZoom.size()-1;
+    mStepEnd = (int)(mVZoom.size() - 1);
 
     // std::cout << "STEP END = " << mStepEnd << " " << round_ni(log2(mZoom0/double(mZoomF))) + 3 << " :: " << mVZoom << "\n"; StdEXIT(0);
 

@@ -244,7 +244,7 @@ cNewO_CombineCple::cNewO_CombineCple(const  cFixedMergeStruct<2,Pt2dr>  &  aMap,
     RMat_Inertie aMat;
 
     {
-       cRandNParmiQ aSelec(NbMaxInit,aLM.size());
+       cRandNParmiQ aSelec(NbMaxInit, (int)aLM.size());
        for (std::list<tMerge *>::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
        {
             if (aSelec.GetNext())
