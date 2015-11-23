@@ -829,7 +829,7 @@ void TAG_TIF::write_value_0
 void TAG_TIF::write_string0(ELISE_fp fp ,const std::string & aStr)
 {
    const char * aC = aStr.c_str();
-   int aNb = strlen(aC);
+   int aNb = (int)strlen(aC);
 
    INT * aTab = STD_NEW_TAB_USER(aNb,INT);
    convert(aTab,aC,aNb);

@@ -226,8 +226,8 @@ int ConvertIm_main(int argc,char ** argv)
             aFin = Rconv(aFin);
         }
 
-        aFin = reduc_binaire_gen(aFin,aReducX,aReducY,16,true,0);
-        anOut = Filtre_Out_RedBin_Gen(anOut,aReducX,aReducY);
+        aFin = reduc_binaire_gen(aFin, aReducX != 0, aReducY != 0, 16, true, 0);
+        anOut = Filtre_Out_RedBin_Gen(anOut, aReducX != 0, aReducY != 0);
         aSzROut = aSzOut.mcbyc(aCoefReduc);
         aFin = trans(aFin,aP0);
 
