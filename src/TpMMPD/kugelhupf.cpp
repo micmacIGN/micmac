@@ -473,7 +473,7 @@ cAppli_FFTKugelhupf_main::cAppli_FFTKugelhupf_main(int argc,char ** argv) :
 
      if (! EAMIsInit(&mSzFFT))
      {
-          double aNb = 2*sqrt((mTargetHalfSzPx.x+mSearchIncertitudePx)*(mTargetHalfSzPx.y+mSearchIncertitudePx));
+          double aNb = 2*sqrt(double((mTargetHalfSzPx.x+mSearchIncertitudePx)*(mTargetHalfSzPx.y+mSearchIncertitudePx)));
           mSzFFT = (aNb > 5200) ? 256 : 128;
      }
 

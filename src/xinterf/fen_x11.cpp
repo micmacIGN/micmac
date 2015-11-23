@@ -374,6 +374,9 @@ class Data_Elise_Video_Win : public Data_Elise_Raster_W
                         Data_Col_Pal *      colStr,
                         Data_Col_Pal *      colEras
                   );
+
+       Pt2di InstSizeFixedString(const std::string aStr);
+
 };
 
 
@@ -1412,6 +1415,18 @@ Pt2dr Data_Elise_Video_Win::to_user_geom(Pt2dr p)
 #define X_RETOUR_CHARIOT 13
 #define X_ERASE 8
 
+Pt2di Data_Elise_Video_Win::InstSizeFixedString(const std::string aStr)
+{
+    
+   XFontStruct * aFont = _devd->SetFixedFonte();
+   XCharStruct aXCS;
+   int aDirRet,aFontAccRet,aFontDescRet;
+
+   XTextExtents(aFont,aStr.c_str(),aStr.size(),&aDirRet,&aFontAccRet,&aFontDescRet,&aXCS);
+
+
+   return Pt2di(aXCS.rbearing - aXCS.lbearing ,aXCS.ascent + aXCS.descent);
+}
 
 std::string Data_Elise_Video_Win::InstGetString
             (
@@ -1652,6 +1667,30 @@ std::string Video_Win::GetString(const Pt2dr & aPt,Col_Pal aColDr,Col_Pal aColEr
 {
    return devw()->InstGetString(U2W(aPt),aColDr.dcp(),aColErase.dcp());
 }
+
+Pt2di Video_Win::SizeFixedString(const std::string aStr)
+{
+   return devw()->InstSizeFixedString(aStr);
+}
+
+void Video_Win::fixed_string_middle(int aPos,const std::string &  name,Col_Pal aCol,bool draw_im)
+{
+    Pt2di aLarg = SizeFixedString(name);
+    int aRab=ElAbs(aPos);
+
+    int anY = (sz().y + aLarg.y) / 2;
+    int anX = 0;
+    if (aPos < 0)  anX=aRab;
+    else if (aPos > 0)  anX = sz().x - aLarg.x -aRab;
+    else  anX = (sz().x - aLarg.x) / 2;
+      
+
+    fixed_string(Pt2dr(anX,anY),name.c_str(),aCol,draw_im);
+
+}
+
+
+
 
 void Video_Win::grab(Grab_Untill_Realeased & gur)
 {

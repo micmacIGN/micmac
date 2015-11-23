@@ -119,7 +119,7 @@ void Tapas_Banniere()
 }
 
 
-#define  NbModele 25
+#define  NbModele 27
 
 const char * Modele[NbModele] = {
                                    "RadialBasic",     // 0
@@ -148,7 +148,10 @@ const char * Modele[NbModele] = {
                                    "AddPolyDeg4",          // 21
                                    "AddPolyDeg5",          // 22
                                    "AddPolyDeg6",          // 23
-                                   "AddPolyDeg7"           // 24
+                                   "AddPolyDeg7",          // 24
+
+                                   "Ebner",                // 25
+                                   "Brown"                 // 26
 
                                 };
 
@@ -318,6 +321,16 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
               TheModelAdd = "eModelePolyDeg" +  ToString(LocDegGen);
         }
         eModAutom = "eCalibAutomNone";
+    }
+    else if (     (aMod==Modele[25]) // Ebner
+              ||  (aMod==Modele[26]) // Brown
+           )
+    {
+        eModAutom = "eCalibAutom" + aMod;
+
+        LocDRadMaxUSer = 1;
+        LocDegGen = 5;
+        LocLibDec = false;
     }
     else
     {

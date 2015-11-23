@@ -191,7 +191,7 @@ public :
     }
 };
 
-
+extern int PHO_MI_main(int , char **);
 extern int CCL_main(int , char **);
 extern int ReprojImg_main(int , char **);
 extern int TestRegEx_main(int , char **);
@@ -228,12 +228,15 @@ int  OneReechFid_main(int argc,char ** argv);
 int TNR_main(int argc,char ** argv);
 int  Apero2NVM_main(int argc,char ** argv);
 
+int Vino_Main(int argc, char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
    static std::vector<cMMCom> aRes;
    if (aRes.empty())
    {
+       aRes.push_back(cMMCom("Vino",Vino_Main,"Image Viewer"));
        aRes.push_back(cMMCom("TripleSec",TNR_main,"Test Non Regression"));
        aRes.push_back(cMMCom("TiePMS",TiePMS_main," matches points of interest of two images"));
        aRes.push_back(cMMCom("TiePLine",TiePLine_main," matches points of interest of two images"));
@@ -257,6 +260,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("ReprojImg",ReprojImg_main," Reproject an image into geometry of another"));
        aRes.push_back(cMMCom("TestRegEx",TestRegEx_main," Test regular expression"));
        aRes.push_back(cMMCom("InitOriLinear",InitOriLinear_main," Initialize orientation for linear acquisition"));
+       aRes.push_back(cMMCom("PHO_MI",PHO_MI_main," Filter homologue points from initial orientation, eliminate bad point and re-compute orientation"));
        aRes.push_back(cMMCom("ExtractMesure2D",ExtractMesure2D_main," Extract points from a 2D measures xml file"));
        aRes.push_back(cMMCom("Kugelhupf",Kugelhupf_main," Semi-automatic fiducial points determination"));
        aRes.push_back(cMMCom("FFTKugelhupf",FFTKugelhupf_main," Version of Kugelhupf using FFT, expecetd faster when it works (if ever ...)"));
@@ -525,6 +529,7 @@ int ExoCorrelEpip_main(int argc,char ** argv);
 int ScaleModel_main(int argc, char ** argv);
 int PLY2XYZ_main(int argc,char ** argv);
 int ExportXmlGcp2Txt_main(int argc,char ** argv);
+
 
 int  CheckOri_main(int argc,char ** argv);
 int  NLD_main(int argc,char ** argv);
@@ -828,7 +833,7 @@ int GenMain(int argc,char ** argv, const std::vector<cMMCom> & aVComs)
           if (DoLog) LogOut( aRes, outDirectory );
 
           delete PatMach;
-          delete PrefMach;
+          delete PrefMach; 
           delete SubMach;
 
           if (Chol16Byte)

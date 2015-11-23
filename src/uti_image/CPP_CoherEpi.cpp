@@ -673,7 +673,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    if (mByP && (!mCalledByP))
    {
    // Cas on lance le process en paral et onr recolle les morceaux
-         std::string aCom = MMBinFile(MM3DStr) +  MakeStrFromArgcARgv(argc,argv);
+         std::string aCom = MMBinFile(MM3DStr) +  MakeStrFromArgcARgvNew(argc,argv);
          aCom = aCom + " InternalCalledByP=true";
          std::cout << "COM = " << aCom << "\n";
          Pt2di aPSzDecoup(mSzDecoup,mSzDecoup);

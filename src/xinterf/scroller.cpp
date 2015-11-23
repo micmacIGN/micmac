@@ -90,6 +90,11 @@ void ElImScroller::SetAlwaysQuickInZoom()
    mAlwaysQuickInZoom = true;
 }
 
+void ElImScroller::SetAlwaysQuickInZoom(bool aVal)
+{
+   mAlwaysQuickInZoom = aVal;
+}
+
 void ElImScroller::SetAlwaysQuick(bool aVal)
 {
    mAlwaysQuick  = aVal;
@@ -106,6 +111,10 @@ bool ElImScroller::AlwaysQuick() const
     return mAlwaysQuick || (mAlwaysQuickInZoom && (_sc>1.0));
 }
 
+bool ElImScroller::AlwaysQuickZoom() const
+{
+   return mAlwaysQuickInZoom;
+}
 
 void ElImScroller::LoadAndVerifXImage(Pt2di p0W,Pt2di p1W,bool quick)
 {
@@ -450,7 +459,8 @@ ElImScroller * ElImScroller::StdFileGenerique
        const std::string & aName,
        INT InvScale,
        bool VisuAdaptPal ,
-       bool ForceGray 
+       bool ForceGray ,
+       cElScrCalcNameSsResol * aCalcName
 )
 {
     static std::string Reduc("Reduc");
@@ -463,6 +473,19 @@ ElImScroller * ElImScroller::StdFileGenerique
     ElSTDNS string Scale(CScale);
 
     ElImScroller * res =0;
+
+   // ===================
+    if (aCalcName)
+    {
+        std::string aNewName = aCalcName->CalculName(aName,InvScale);
+        res = ElImScroller::StdScrollIfExist(aVisu,aNewName,aScale,VisuAdaptPal,ForceGray);
+
+        if (res)
+        {
+            return res;
+        }
+    }
+
 
     // Test fichier tif "Reduc"
     res = ElImScroller::StdScrollIfExist(aVisu,aName+Reduc+Scale+tif,aScale,VisuAdaptPal,ForceGray);
@@ -497,8 +520,8 @@ ElPyramScroller * ElImScroller::StdPyramide
                          const std::string & aName,
                          std::vector<INT> * EchAcc,
                          bool VisuAdaptPal ,
-                         bool ForceGray 
-                        
+                         bool ForceGray ,
+                         cElScrCalcNameSsResol *  aCalcName
                   )
 {
      ElSTDNS vector <ElImScroller *>  VScrol; 
@@ -512,7 +535,7 @@ ElPyramScroller * ElImScroller::StdPyramide
           }
           if (OkScale)
           {
-             ElImScroller * aScr = StdFileGenerique(aVisu,aName,InvScale,VisuAdaptPal,ForceGray);
+             ElImScroller * aScr = StdFileGenerique(aVisu,aName,InvScale,VisuAdaptPal,ForceGray,aCalcName);
              if (aScr)
              {
                 VScrol.push_back(aScr);
@@ -823,8 +846,10 @@ void ElPyramScroller::LoadXImage(Pt2di p0,Pt2di p1,bool quick)
 
         ElImScroller  * ScrClosest  = 0;
 
+   // Recherche de la plus basse resolution > a la resolution demandee
         for (INT k=0; k<(INT)_subs.size(); k++)
         {
+// std::cout << "ElPyramScroller::LoadXImage  " << _subs[k]->sc_im()  << " " <<  sc_abs() << "\n";
             if (_subs[k]->sc_im() > sc_abs())
             {
                 if (
@@ -835,6 +860,7 @@ void ElPyramScroller::LoadXImage(Pt2di p0,Pt2di p1,bool quick)
             }
         }
 
+   // Si pas trouvee Recherche de la plus haute resolution < a la resolution demandee
         if (! ScrClosest)
         {
             ScrClosest = _subs[0];
@@ -907,6 +933,43 @@ Fonc_Num ElPyramScroller::in()
 {
    return _subs[0]->in(); 
 }
+
+void  ElPyramScroller::SetAlwaysQuick(bool aVal)
+{
+   ElImScroller::SetAlwaysQuick(aVal);
+   for (int aK=0 ; aK<int(_subs.size()) ; aK++)
+   {
+       _subs[aK]->SetAlwaysQuick(aVal);
+   }
+}
+
+void  ElPyramScroller::SetAlwaysQuickInZoom(bool aVal)
+{
+   ElImScroller::SetAlwaysQuickInZoom(aVal);
+   for (int aK=0 ; aK<int(_subs.size()) ; aK++)
+   {
+       _subs[aK]->SetAlwaysQuickInZoom(aVal);
+   }
+}
+
+void  ElPyramScroller::SetAlwaysQuickInZoom()
+{
+   ElImScroller::SetAlwaysQuickInZoom();
+   for (int aK=0 ; aK<int(_subs.size()) ; aK++)
+   {
+       _subs[aK]->SetAlwaysQuickInZoom();
+   }
+}
+
+void  ElPyramScroller::SetAlwaysQuick()
+{
+   ElImScroller::SetAlwaysQuick();
+   for (int aK=0 ; aK<int(_subs.size()) ; aK++)
+   {
+       _subs[aK]->SetAlwaysQuick();
+   }
+}
+
 
 /****************************************************************/
 /*                                                              */

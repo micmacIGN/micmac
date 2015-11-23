@@ -78,7 +78,7 @@ class  DE_GW_Not_Comp : public Output_Not_Comp
    public :
 
 
-      DE_GW_Not_Comp(El_Window ,Elise_Palette PAL);
+      DE_GW_Not_Comp(El_Window ,Elise_Palette PAL,bool OnYDiff=false);
 
       Output_Computed * compute(const Arg_Output_Comp & );
 
@@ -86,11 +86,13 @@ class  DE_GW_Not_Comp : public Output_Not_Comp
 
       El_Window          _ew;
       Elise_Palette      _pal;
+      bool               mOnYDiff;
 };
 
-DE_GW_Not_Comp::DE_GW_Not_Comp(El_Window ew,Elise_Palette PAL) :
+DE_GW_Not_Comp::DE_GW_Not_Comp(El_Window ew,Elise_Palette PAL,bool OnYDiff) :
     _ew      (ew),
-    _pal     (PAL)
+    _pal     (PAL),
+    mOnYDiff (OnYDiff)
 {
 }
 
@@ -123,7 +125,7 @@ Output_Computed * DE_GW_Not_Comp::compute(const Arg_Output_Comp & arg)
       switch (arg.flux()->type())
       {
               case Pack_Of_Pts::rle   :
-                     res = degw->rle_out_comp(geom,arg,dep);
+                     res = degw->rle_out_comp(geom,arg,dep,mOnYDiff);
               break;
 
            case Pack_Of_Pts::integer   :
@@ -212,9 +214,9 @@ El_Window El_Window::operator |(El_Window w)
          //---------------------------------------------
 
 
-Output El_Window::out(Elise_Palette pal)
+Output El_Window::out(Elise_Palette pal,bool OnYDif)
 {
-   Output o = new DE_GW_Not_Comp(*this,pal);
+   Output o = new DE_GW_Not_Comp(*this,pal,OnYDif);
 
    if (degeow()->_dnext)
       o = o | degeow()->_next.out(pal);
@@ -235,10 +237,10 @@ Elise_Rect El_Window::box() const
      return degeow()->box();
 }
 
-Output El_Window::out(TYOFPAL::t type)
+Output El_Window::out(TYOFPAL::t type,bool OnYDif)
 {
 
-      return out(degraw()->sop().pal_of_type(type));
+      return out(degraw()->sop().pal_of_type(type),OnYDif);
 }
 
 Output El_Window::ogray()
@@ -252,9 +254,9 @@ Output El_Window::orgb()
 }
 
 
-Output El_Window::odisc()
+Output El_Window::odisc(bool OnYDif)
 {
-    return out(TYOFPAL::disc);
+    return out(TYOFPAL::disc,OnYDif);
 }
 
 Output El_Window::obicol()

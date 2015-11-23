@@ -85,7 +85,7 @@ void  cAppliBATCH_MICMAC::ExecCom(const std::string & aCom)
 {
    if (mSB.ExeBatch().Val())
    {
-      int aCodeRetour = system(aCom.c_str());
+      int aCodeRetour = system_call(aCom.c_str());
       if (mAPM.StopOnEchecFils().Val())
       {
           ELISE_ASSERT(aCodeRetour==0,"Erreur dans processus fils");
