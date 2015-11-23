@@ -162,7 +162,7 @@ typename tGetVal::tValue     GenValPercentile
              const tGetVal&  aGetV
          )
 {
-    int aNBV = aVec.size();
+    int aNBV = (int)aVec.size();
     ELISE_ASSERT(aNBV,"No Val in ValPercentile");
     if (aNBV==1)
        return  aGetV(aVec[0]);
@@ -221,7 +221,7 @@ typename tGetVal::tValue     GenValPdsPercentile
              double aSom
          )
 {
-    int aNBV = aVec.size();
+    int aNBV = (int)aVec.size();
     ELISE_ASSERT(aNBV,"No Val in ValPercentile");
     if (aNBV==1)
        return  aGetV(aVec[0]);

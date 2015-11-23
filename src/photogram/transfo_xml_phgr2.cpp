@@ -83,7 +83,7 @@ void UseRequirement(const std::string & aDir,const cTplValGesInit<cBatchRequirem
 
              std::list<std::string>  aL=RegexListFileMatch(aDir2,aPat2,1,false);
 
-             int aNb = aL.size();
+             int aNb = (int)aL.size();
              if ((aNb<aNbMin) || (aNb>aNbMax))
              {
                   std::cout << "For Pattern {" << aPat2 << "} Number " 
@@ -747,7 +747,7 @@ const std::list<std::string > * GetBestImSec(const cImSecOfMaster& anISOM,int aN
           itS++
    )
    {
-       int aNbIm = itS->Images().size();
+       int aNbIm = (int)itS->Images().size();
        if ((aNb<=0) || (aNbIm == aNb))
        {
             if ((itS->Score() > aScoreMax) && (aNbIm>=aNbMin) && (aNbIm<=aNbMax))

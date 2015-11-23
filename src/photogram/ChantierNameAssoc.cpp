@@ -2426,7 +2426,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     const bool  *  cStdChantierMultiManipulateur::SetIsIn(const tKey & aKey,const std::string & aName)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1) ; aK>=0 ; aK--)
         {
             const bool * aRes = mVM[aK]->SetIsIn(aKey,aName);
             if (aRes!=0)

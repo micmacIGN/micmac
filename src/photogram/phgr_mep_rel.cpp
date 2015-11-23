@@ -1216,7 +1216,7 @@ void cResolvAmbiBase::AddHom(const ElPackHomologue & aH12,const ElRotation3D & a
 
 double cResolvAmbiBase::SolveBase()
 {
-  int aSz = mLambdas.size();
+  int aSz = (int)mLambdas.size();
   ELISE_ASSERT(aSz!=0,"cResolvAmbiBase::SolveBase :: vide!!");
 
   std::sort(mLambdas.begin(), mLambdas.end());
@@ -1454,8 +1454,8 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
 {
    InitPackME( mVFullP1, mVFullP2,mVPds,aPackFull);
    InitPackME(mRedVP1,mRedVP2,mRedVPds,aPack500);
-   mNbTot =  mVFullP1.size();
-   mNbRed = mRedVP1.size();
+   mNbTot =  (int)mVFullP1.size();
+   mNbRed = (int)mRedVP1.size();
    for (int aK=0 ; aK<mNbTot ; aK++)
    {
       mIsSelected.push_back(false);
@@ -1490,8 +1490,8 @@ cRansacMatriceEssentielle::cRansacMatriceEssentielle
    EndSerieTest();
 
 
-   OneReduc(mKBestGlob.Els().size()/2,3,mBundle0);
-   OneReduc(mKBestGlob.Els().size()/2,3,mBundle0);
+   OneReduc((int)(mKBestGlob.Els().size() / 2),3,mBundle0);
+   OneReduc((int)(mKBestGlob.Els().size() / 2),3,mBundle0);
    OneReduc(1,3,mBundle1);
 
    // std::vector<tRotPrio>  aV0 = mKBestGlob.Els();

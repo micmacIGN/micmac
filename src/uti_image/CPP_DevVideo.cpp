@@ -138,7 +138,7 @@ int  CalcAutoCorrel_main(int argc,char ** argv)
         aMTD.MIC_IndicAutoCorrel().push_back(aNewIAC);
         for (int aKBin=0 ; aKBin<=1 ; aKBin++)
         {
-            std::string aNameXml = NameMTDImCalc(aNameIm,aKBin);
+            std::string aNameXml = NameMTDImCalc(aNameIm, aKBin != 0);
             MakeFileXML(aMTD,aNameXml);
         }
 
@@ -609,7 +609,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     {
         std::string aComDev =       "avconv -i " 
                               +  mFullNameVideo + " "
-                              +  mEASF.mDir  + mPrefix + "\%" + ToString(mNbDigit)  + "d_Ok." + mPostfix;
+                              +  mEASF.mDir  + mPrefix + "%" + ToString(mNbDigit)  + "d_Ok." + mPostfix;
 
         System(aComDev);
         // std::cout << aComDev<< "\n";
@@ -634,8 +634,8 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
         int aNbSel = round_up((aSetImExisting.size()* mPercImInit) /100.0);
         for (int aK=0 ; aK<int(aSetImExisting.size()) ; aK++)
         {
-            int aIndGrpP = ((aK-1)  * aNbSel) / (aSetImExisting.size()-1);
-            int aIndGrp = (aK  * aNbSel) / (aSetImExisting.size()-1);
+            int aIndGrpP = ((aK-1)  * aNbSel) / (int)(aSetImExisting.size() - 1);
+            int aIndGrp = (aK  * aNbSel) / (int)(aSetImExisting.size() - 1);
             std::string aNInit = aSetImExisting[aK];
             std::string aNTarget = CalcName(aNInit,(aIndGrp==aIndGrpP) ?"Nl" : "Ok");
 
@@ -705,7 +705,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     {
         mVIms.push_back(new cOneImageVideo(mVName[aK],this,aK));
     }
-    mNbIm = mVIms.size();
+    mNbIm = (int)mVIms.size();
 
     if (!mTuning)
        Paral_Tiff_Dev(Dir(),mVName,1,true);
