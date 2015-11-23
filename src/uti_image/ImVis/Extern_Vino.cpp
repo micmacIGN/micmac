@@ -41,38 +41,42 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if (ELISE_X11)
 
+/*******************************************************************/
+/*                                                                 */
+/*    cPopUpMenuMessage                                            */
+/*                                                                 */
+/*******************************************************************/
 
-
-int Vino_Main(int argc, char ** argv)
+void CorrectNonEmpty(int &aV0,int & aV1, const int & aVMax)
 {
-    
-    cAppli_Vino  anAppli(argc,argv);
+    if (aV0>aV1) ElSwap(aV0,aV1);
 
-    anAppli.PostInitVirtual();
-    anAppli.Boucle();
+    if (aV0==aV1)
+    {
+         if (aV1<aVMax) 
+            aV1++;
+         else 
+            aV0--;
+    }
+}
 
-    getchar();
+void CorrectRect(Pt2di &  aP0,Pt2di &  aP1,const Pt2di & aSz)
+{
+    aP0 = Inf(aSz,Sup(aP0,Pt2di(0,0)));
+    aP1 = Inf(aSz,Sup(aP1,Pt2di(0,0)));
 
-/*
-    VideoWin_Visu_ElImScr  aVV = VideoWin_Visu_ElImScr
-
-     ElPyramScroller * StdPyramide
-                                     (
-                                        Visu_ElImScr &Visu,
-                                        const std::string &,
-                                        std::vector<INT> * EchAcc =0,
-                                        bool Adapt =false,
-                                        bool ForceGray =false
-                        );
-
-
-*/
-
-    return EXIT_SUCCESS;
+    CorrectNonEmpty(aP0.x,aP1.x,aSz.x);
+    CorrectNonEmpty(aP0.y,aP1.y,aSz.y);
 }
 
 
-/*
+/*******************************************************************/
+/*                                                                 */
+/*    cPopUpMenuMessage                                            */
+/*                                                                 */
+/*******************************************************************/
+
+
 cPopUpMenuMessage::cPopUpMenuMessage(Video_Win aW,Pt2di aSz) :
    PopUpMenuTransp(aW,aSz)
 {
@@ -94,14 +98,45 @@ void cPopUpMenuMessage::Hide()
 {
     Pop();
 }
-*/
+
+/*******************************************************************/
+/*                                                                 */
+/*    cStatImageRehauss                                            */
+/*                                                                 */
+/*******************************************************************/
 
 
-#else
-int Vino_Main(int argc, char ** argv)
+void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc)
 {
-   return EXIT_FAILURE;
+   int aNbCh = aFonc.dimf_out();
+   aStat.Soms().resize(aNbCh,0.0);
+   aStat.Soms2().resize(aNbCh,0.0);
+   aStat.ECT().resize(aNbCh,0.0);
+   aStat.VLow().resize(aNbCh,0.0);
+   aStat.VHigh().resize(aNbCh,0.0);
+   Symb_FNum aSF(aFonc);
+
+   ELISE_COPY
+   (
+        aFlux,
+        Virgule(1.0,aSF,Square(aSF)),
+        Virgule
+        (
+            sigma(aStat.Nb()),
+            sigma(VData(aStat.Soms()),aNbCh)  | VMin(VData(aStat.VLow()),aNbCh) | VMax(VData(aStat.VHigh()),aNbCh),
+            sigma(VData(aStat.Soms2()),aNbCh)
+        )
+   );
+
+   for (int aK=0 ; aK<aNbCh ; aK++)
+   {
+         aStat.Soms()[aK] /= aNbCh;
+         aStat.Soms2()[aK] /= aNbCh;
+         aStat.ECT()[aK] = sqrt(ElMax(0.0,aStat.Soms2()[aK]-ElSquare(aStat.Soms()[aK])));
+   }
 }
+
+
 #endif
 
 

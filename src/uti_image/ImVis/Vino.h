@@ -44,10 +44,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if (ELISE_X11)
 
+#define TheNbMaxChan  10
+
 
 std::string StrNbChifSignNotSimple(double aVal,int aNbCh);
 std::string StrNbChifSign(double aVal,int aNbCh);
 std::string SimplString(std::string aStr);
+
+
+void CorrectRect(Pt2di &  aP0,Pt2di &  aP1,const Pt2di & aSz);
+void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc);
+
 
 
 
@@ -57,7 +64,8 @@ typedef enum
    eModeGrapTranslateVino,
    eModeGrapAscX,
    eModeGrapAscY,
-   eModeGrapShowRadiom
+   eModeGrapShowRadiom,
+   eModeVinoPopUp
 }  eModeGrapAppli_Vino;
 
 
@@ -70,7 +78,6 @@ class cPopUpMenuMessage : public PopUpMenuTransp
 
 };
 
-#define TheNbMaxChan  10
 
 
 class cAppli_Vino : public cXml_EnvVino,
@@ -85,13 +92,16 @@ class cAppli_Vino : public cXml_EnvVino,
 
 
      private :
+        void  MenuPopUp();
+        void InitMenu();
         void ShowOneVal();
         void ShowOneVal(Pt2dr aP);
         void EffaceVal();
+        bool OkPt(const Pt2di & aPt);
+        void End();
 
 
-        void  StatRect(Pt2di  aP0,Pt2di  P1);
-        void  StatFlux(Flux_Pts);
+        cXml_StatVino  StatRect(Pt2di &  aP0,Pt2di &  P1);
 
         std::string NamePyramImage(int aZoom);
         std::string  CalculName(const std::string & aName, INT InvScale); // cElScrCalcNameSsResol
@@ -123,7 +133,6 @@ class cAppli_Vino : public cXml_EnvVino,
         std::string               mTitle;
         Visu_ElImScr *            mVVE;
         ElImScroller *            mScr;
-        cPopUpMenuMessage  *      mMenuMess1;
         std::vector<INT>          mVEch;
         Pt2dr                     mP0Click;
         bool                      mInitP0StrVal;
@@ -139,12 +148,15 @@ class cAppli_Vino : public cXml_EnvVino,
         double                    mNbPixMinFile;
         double                    mSzEl;
 
-        double                    mNb;
-        double                    mSom[TheNbMaxChan];
-        double                    mSom2[TheNbMaxChan];
-        double                    mMax[TheNbMaxChan];
-        double                    mMin[TheNbMaxChan];
-        
+
+         // Menus contextuels
+
+          Pt2di                   mSzCase;
+          GridPopUpMenuTransp*    mPopUpBase;
+          CaseGPUMT *             mCaseExit;
+
+          GridPopUpMenuTransp*    mPopUpCur;
+
 };
 
 #endif

@@ -120,7 +120,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mWAscV = new Video_Win(*mW,Video_Win::eDroiteH,Pt2di(LargAsc(),SzW().y));
 
 
-    mTitle = std::string("Vino : ") + mNameIm;
+    mTitle = std::string("MicMac/Vino -> ") + mNameIm;
     mW->set_title(mTitle.c_str());
     mDisp = new Video_Display(mW->disp());
 
@@ -158,13 +158,12 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
         }
     }
     mWAscH->clear();
+
+    InitMenu();
 }
 
 void cAppli_Vino::PostInitVirtual()
 {
-
-    // ELISE_ASSERT(false,"aVEch 2 done");
-    
     mVVE->SetEtalDyn(0,255);
     mScr = ElPyramScroller::StdPyramide(*mVVE,mNameTiffIm,&mVEch,false,false,this);
     mScr->SetAlwaysQuick(false);
@@ -174,28 +173,56 @@ void cAppli_Vino::PostInitVirtual()
     mScr->set_max();
     ShowAsc();
 
+}
 
-if (1)
+void cAppli_Vino::InitMenu()
 {
+    mSzCase        = MMIcone("Exit").sz();
+    mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(2,3),Pt2di(1,1));
+    mCaseExit  = new CaseGPUMT (*mPopUpBase,"titi",Pt2di(0,0), MMIcone("Exit").in(1) *255);
 
-    mMenuMess1 = new cPopUpMenuMessage(*mW,Pt2di(300,30));
-/*
+}
 
-    std::cout << "SZ1 " << mW->SizeFixedString("AgTYioo") << "\n";
-    std::cout << "SZ2 " << mW->SizeFixedString("Ag") << "\n";
+void cAppli_Vino::End()
+{
+    std::cout << "   ******************************************\n";
+    std::cout << "   *                                        *\n";
+    std::cout << "   *    V-isualizer of                      *\n";
+    std::cout << "   *    I-mages                             *\n";
+    std::cout << "   *    N-ot                                *\n";
+    std::cout << "   *    O-versized                          *\n";
+    std::cout << "   *                                        *\n";
+    std::cout << "   ******************************************\n";
+
+    exit(EXIT_SUCCESS);
+
+}
 
 
-    for (int aK=0 ; aK<10  ; aK++)
+void  cAppli_Vino::MenuPopUp()
+{
+    mPopUpCur = 0;
+    if ((!mCtrl0) && (!mShift0)) mPopUpCur = mPopUpBase;
+
+    if (mPopUpCur==0)  return;
+
+    mModeGrab=eModeVinoPopUp;
+
+    mPopUpCur->UpCenter(Pt2di(mP0Click));
+    mW->grab(*this);
+    CaseGPUMT * aCase = mPopUpCur->PopAndGet();
+
+
+    if (mPopUpCur==mPopUpBase)
     {
-       mMenuMess1->ShowMessage("uiuuuuuiuououiototo",Pt2di(aK*5,aK*30),Pt3di(128,128,128));
-       mW->clik_in();
-       mMenuMess1->Hide();
-       mW->clik_in();
+        if (aCase== mCaseExit)
+        {
+            End();
+        }
     }
-*/
 }
 
-}
+
 
 
 
@@ -228,6 +255,10 @@ void cAppli_Vino::Boucle()
             {
                 ShowOneVal();
             }
+            if (mBut0==3)
+            {
+                MenuPopUp();
+            }
         }
         if (aCl._w == *mWAscH)
         {
@@ -252,31 +283,18 @@ void cAppli_Vino::Boucle()
 /********************************************/
 
 
-void  cAppli_Vino::StatRect(Pt2di  aP0,Pt2di aP1)
-{
-    
-    aP0 = Sup(aP0,Pt2di(0,0));
-    aP1 = Inf(aP1,mTifSz);
 
-    StatFlux(rectangle(aP0,aP1));
+cXml_StatVino  cAppli_Vino::StatRect(Pt2di  &aP0,Pt2di & aP1)
+{
+    cXml_StatVino aRes;
+    CorrectRect(aP0,aP1,mTifSz);
+
+    FillStat(aRes,rectangle(aP0,aP1),mTiffIm->in());
+
+    return aRes;
+
 }
 
-void  cAppli_Vino::StatFlux(Flux_Pts aFlux)
-{
-   Symb_FNum aFTif(mTiffIm->in());
-
-   ELISE_COPY
-   (
-        aFlux,
-        Virgule(1.0,aFTif,Square(aFTif)),
-        Virgule
-        (
-            sigma(mNb),
-            sigma(mSom,mNbChan) | VMin(mMin,mNbChan) | VMax(mMax,mNbChan),
-            sigma(mSom2,mNbChan)
-        )
-   );
-}
 
 
 void cAppli_Vino::EffaceVal()
@@ -300,25 +318,32 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
 {
     EffaceVal();
     Pt2di  aP = round_ni(mScr->to_user(aPW));
+    Pt2di  aPp1 = aP+Pt2di(1,1);
 
-    StatRect(aP,aP+Pt2di(1,1));
+    cXml_StatVino aStat = StatRect(aP,aPp1);
 
     //std::cout << "PPPPP " << aP << " " << mSom[0] << "\n";
 
-    std::string aMes = "x=" + ToString(aP.x) + " y=" + ToString(aP.y)+  " ; V=";
+    std::string aMesXY = " x=" + ToString(aP.x) + " y=" + ToString(aP.y);
+    std::string aMesV =  " V=";
     for (int aK=0 ; aK<mNbChan; aK++)
-        aMes = aMes  + SimplString(ToString(mSom[aK])) + " ";
+        aMesV = aMesV  + SimplString(ToString(aStat.Soms()[aK])) + " ";
 
     // aMes = aMes + "      ";
 
     // mP0StrVal = Pt2di(mP0Click)+Pt2di(-20,30);
     mP0StrVal = Pt2di(aPW)+Pt2di(-20,30);
 
-    mW->fixed_string(Pt2dr(mP0StrVal),aMes.c_str(),mW->pdisc()(P8COL::black),true);
+    mW->fixed_string(Pt2dr(mP0StrVal),aMesV.c_str(),mW->pdisc()(P8COL::black),true);
+    Pt2di aSzV =  mW->SizeFixedString(aMesV);
+    Pt2di aSzXY =  mW->SizeFixedString(aMesXY);
 
-    Pt2di aSz =  mW->SizeFixedString(aMes);
-    mP0StrVal.y -= aSz.y;
-    mP1StrVal = mP0StrVal + aSz;
+    Pt2di aP0XY = mP0StrVal + Pt2di(0,aSzXY.y+3);
+    mP0StrVal.y -= aSzV.y;
+    mW->fixed_string(Pt2dr(aP0XY),aMesXY.c_str(),mW->pdisc()(P8COL::black),true);
+
+
+    mP1StrVal = aP0XY + Pt2di(ElMax(aSzV.x,aSzXY.x),0);
     mInitP0StrVal = true;
 }
 

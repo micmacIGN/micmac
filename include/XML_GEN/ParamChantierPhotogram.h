@@ -6769,6 +6769,54 @@ std::string  Mangling( corientation *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_StatVino
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        double & Nb();
+        const double & Nb()const ;
+
+        std::vector< double > & Soms();
+        const std::vector< double > & Soms()const ;
+
+        std::vector< double > & Soms2();
+        const std::vector< double > & Soms2()const ;
+
+        std::vector< double > & ECT();
+        const std::vector< double > & ECT()const ;
+
+        std::vector< double > & VLow();
+        const std::vector< double > & VLow()const ;
+
+        std::vector< double > & VHigh();
+        const std::vector< double > & VHigh()const ;
+    private:
+        std::string mName;
+        double mNb;
+        std::vector< double > mSoms;
+        std::vector< double > mSoms2;
+        std::vector< double > mECT;
+        std::vector< double > mVLow;
+        std::vector< double > mVHigh;
+};
+cElXMLTree * ToXMLTree(const cXml_StatVino &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_StatVino &);
+
+void  BinaryUnDumpFromFile(cXml_StatVino &,ELISE_fp &);
+
+std::string  Mangling( cXml_StatVino *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_EnvVino
 {
     public:
@@ -6794,6 +6842,9 @@ class cXml_EnvVino
 
         double & SpeedZoomMolette();
         const double & SpeedZoomMolette()const ;
+
+        std::list< cXml_StatVino > & Stats();
+        const std::list< cXml_StatVino > & Stats()const ;
     private:
         Pt2di mSzW;
         int mLargAsc;
@@ -6801,6 +6852,7 @@ class cXml_EnvVino
         bool mZoomBilin;
         double mSpeedZoomGrab;
         double mSpeedZoomMolette;
+        std::list< cXml_StatVino > mStats;
 };
 cElXMLTree * ToXMLTree(const cXml_EnvVino &);
 

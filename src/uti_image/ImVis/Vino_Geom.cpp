@@ -114,6 +114,11 @@ void  cAppli_Vino::GUR_query_pointer(Clik aCl,bool)
     {
          ShowOneVal(aCl._pt);
     }
+
+    if (mModeGrab==eModeVinoPopUp)
+    {
+         mPopUpCur->SetPtActif(Pt2di(aCl._pt));
+    }
 }
 
 void cAppli_Vino::ZoomMolette()

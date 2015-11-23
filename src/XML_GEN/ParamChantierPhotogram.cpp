@@ -20937,6 +20937,233 @@ void xml_init(corientation & anObj,cElXMLTree * aTree)
 std::string  Mangling( corientation *) {return "DF7FA3370998EAE8FD3F";};
 
 
+std::string & cXml_StatVino::Name()
+{
+   return mName;
+}
+
+const std::string & cXml_StatVino::Name()const 
+{
+   return mName;
+}
+
+
+double & cXml_StatVino::Nb()
+{
+   return mNb;
+}
+
+const double & cXml_StatVino::Nb()const 
+{
+   return mNb;
+}
+
+
+std::vector< double > & cXml_StatVino::Soms()
+{
+   return mSoms;
+}
+
+const std::vector< double > & cXml_StatVino::Soms()const 
+{
+   return mSoms;
+}
+
+
+std::vector< double > & cXml_StatVino::Soms2()
+{
+   return mSoms2;
+}
+
+const std::vector< double > & cXml_StatVino::Soms2()const 
+{
+   return mSoms2;
+}
+
+
+std::vector< double > & cXml_StatVino::ECT()
+{
+   return mECT;
+}
+
+const std::vector< double > & cXml_StatVino::ECT()const 
+{
+   return mECT;
+}
+
+
+std::vector< double > & cXml_StatVino::VLow()
+{
+   return mVLow;
+}
+
+const std::vector< double > & cXml_StatVino::VLow()const 
+{
+   return mVLow;
+}
+
+
+std::vector< double > & cXml_StatVino::VHigh()
+{
+   return mVHigh;
+}
+
+const std::vector< double > & cXml_StatVino::VHigh()const 
+{
+   return mVHigh;
+}
+
+void  BinaryUnDumpFromFile(cXml_StatVino & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Name(),aFp);
+    BinaryUnDumpFromFile(anObj.Nb(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Soms().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Soms2().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.ECT().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.VLow().push_back(aVal);
+        }
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             double aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.VHigh().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_StatVino & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,anObj.Nb());
+    BinaryDumpInFile(aFp,(int)anObj.Soms().size());
+    for(  std::vector< double >::const_iterator iT=anObj.Soms().begin();
+         iT!=anObj.Soms().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.Soms2().size());
+    for(  std::vector< double >::const_iterator iT=anObj.Soms2().begin();
+         iT!=anObj.Soms2().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.ECT().size());
+    for(  std::vector< double >::const_iterator iT=anObj.ECT().begin();
+         iT!=anObj.ECT().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.VLow().size());
+    for(  std::vector< double >::const_iterator iT=anObj.VLow().begin();
+         iT!=anObj.VLow().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,(int)anObj.VHigh().size());
+    for(  std::vector< double >::const_iterator iT=anObj.VHigh().begin();
+         iT!=anObj.VHigh().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_StatVino & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_StatVino",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(::ToXMLTree(std::string("Nb"),anObj.Nb())->ReTagThis("Nb"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.Soms().begin();
+      it !=anObj.Soms().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Soms"),(*it))->ReTagThis("Soms"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.Soms2().begin();
+      it !=anObj.Soms2().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("Soms2"),(*it))->ReTagThis("Soms2"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.ECT().begin();
+      it !=anObj.ECT().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("ECT"),(*it))->ReTagThis("ECT"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.VLow().begin();
+      it !=anObj.VLow().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("VLow"),(*it))->ReTagThis("VLow"));
+  for
+  (       std::vector< double >::const_iterator it=anObj.VHigh().begin();
+      it !=anObj.VHigh().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("VHigh"),(*it))->ReTagThis("VHigh"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.Nb(),aTree->Get("Nb",1)); //tototo 
+
+   xml_init(anObj.Soms(),aTree->GetAll("Soms",false,1));
+
+   xml_init(anObj.Soms2(),aTree->GetAll("Soms2",false,1));
+
+   xml_init(anObj.ECT(),aTree->GetAll("ECT",false,1));
+
+   xml_init(anObj.VLow(),aTree->GetAll("VLow",false,1));
+
+   xml_init(anObj.VHigh(),aTree->GetAll("VHigh",false,1));
+}
+
+std::string  Mangling( cXml_StatVino *) {return "3219AD025B81579DFE3F";};
+
+
 Pt2di & cXml_EnvVino::SzW()
 {
    return mSzW;
@@ -21002,6 +21229,17 @@ const double & cXml_EnvVino::SpeedZoomMolette()const
    return mSpeedZoomMolette;
 }
 
+
+std::list< cXml_StatVino > & cXml_EnvVino::Stats()
+{
+   return mStats;
+}
+
+const std::list< cXml_StatVino > & cXml_EnvVino::Stats()const 
+{
+   return mStats;
+}
+
 void  BinaryUnDumpFromFile(cXml_EnvVino & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.SzW(),aFp);
@@ -21010,6 +21248,15 @@ void  BinaryUnDumpFromFile(cXml_EnvVino & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.ZoomBilin(),aFp);
     BinaryUnDumpFromFile(anObj.SpeedZoomGrab(),aFp);
     BinaryUnDumpFromFile(anObj.SpeedZoomMolette(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_StatVino aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Stats().push_back(aVal);
+        }
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EnvVino & anObj)
@@ -21020,6 +21267,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EnvVino & anObj)
     BinaryDumpInFile(aFp,anObj.ZoomBilin());
     BinaryDumpInFile(aFp,anObj.SpeedZoomGrab());
     BinaryDumpInFile(aFp,anObj.SpeedZoomMolette());
+    BinaryDumpInFile(aFp,(int)anObj.Stats().size());
+    for(  std::list< cXml_StatVino >::const_iterator iT=anObj.Stats().begin();
+         iT!=anObj.Stats().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
 }
 
 cElXMLTree * ToXMLTree(const cXml_EnvVino & anObj)
@@ -21032,6 +21285,12 @@ cElXMLTree * ToXMLTree(const cXml_EnvVino & anObj)
    aRes->AddFils(::ToXMLTree(std::string("ZoomBilin"),anObj.ZoomBilin())->ReTagThis("ZoomBilin"));
    aRes->AddFils(::ToXMLTree(std::string("SpeedZoomGrab"),anObj.SpeedZoomGrab())->ReTagThis("SpeedZoomGrab"));
    aRes->AddFils(::ToXMLTree(std::string("SpeedZoomMolette"),anObj.SpeedZoomMolette())->ReTagThis("SpeedZoomMolette"));
+  for
+  (       std::list< cXml_StatVino >::const_iterator it=anObj.Stats().begin();
+      it !=anObj.Stats().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Stats"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21053,8 +21312,10 @@ void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.SpeedZoomGrab(),aTree->Get("SpeedZoomGrab",1)); //tototo 
 
    xml_init(anObj.SpeedZoomMolette(),aTree->Get("SpeedZoomMolette",1)); //tototo 
+
+   xml_init(anObj.Stats(),aTree->GetAll("Stats",false,1));
 }
 
-std::string  Mangling( cXml_EnvVino *) {return "EA8679445CC502A2FEBF";};
+std::string  Mangling( cXml_EnvVino *) {return "A0CF49D0AEF20EB1FF3F";};
 
 // };
