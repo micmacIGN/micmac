@@ -649,7 +649,7 @@ cInterfModuleImageLoader * cAppliMICMAC::GetMIL
  {
 	 //on recupere l'extension
 	 int placePoint = -1;
-	 for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+	 for(int l=(int)(aName.size() - 1);(l>=0)&&(placePoint==-1);--l)
 	 {
 		 if (aName[l]=='.')
 		 {

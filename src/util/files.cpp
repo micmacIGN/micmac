@@ -452,7 +452,7 @@ void ELISE_fp::MkDirRec(const std::string &  aName )
 bool ELISE_fp::copy_file( const std::string i_src, const std::string i_dst, bool i_overwrite )
 {
 	#if (ELISE_windows)
-		return (bool)CopyFile( i_src.c_str(), i_dst.c_str(), i_overwrite?0:1 /*fail if Exits*/ );
+		return CopyFile(i_src.c_str(), i_dst.c_str(), i_overwrite ? 0 : 1 /*fail if Exits*/ ) != 0;
 	#else
 		if ( !i_overwrite && exist_file(i_dst) ) return false;
 
@@ -605,7 +605,7 @@ REAL8  ELISE_fp::read_REAL8 ()
 
 void  ELISE_fp::write(const std::string & aName)
 {
-	write_INT4(aName.size());
+	write_INT4((INT4)aName.size());
 	write(aName.c_str(),sizeof(char),aName.size());
 }
 
@@ -753,7 +753,7 @@ void  ELISE_fp::write_dummy(tFileOffset nb_byte)
 
 	for ( tFileOffset nb = 0; nb<nb_byte ; nb += sz_buf)
 	{
-		tFileOffset nb_loc = ElMin(tFileOffset(sz_buf),(nb_byte-nb));
+		tFileOffset nb_loc = min<tFileOffset>(tFileOffset(sz_buf),(nb_byte-nb));
 		if (!nb.BasicLLO())
 			MEM_RAZ(buf_local,nb_loc);
 		write(buf_local,sizeof(U_INT1),nb_loc);
@@ -2081,7 +2081,7 @@ Raw_ElFp_DumpUndump(Box2di)
 
 template <class tCont> void TplContDumpInFile(ELISE_fp & aFp,const tCont & aCont)
 {
-    aFp.write_INT4(aCont.size());
+    aFp.write_INT4((INT4)aCont.size());
     for (typename tCont::const_iterator itV=aCont.begin(); itV!=aCont.end() ; itV++)
          BinaryDumpInFile(aFp,*itV);
 }

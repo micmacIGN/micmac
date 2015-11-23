@@ -329,7 +329,7 @@ std::vector<Pt3di>  VecKImGen
                   )
 {
     std::vector<Pt3di> aRes;
-    int aNbScale = aVSz.size();
+    int aNbScale = (int)aVSz.size();
 
     for (int aKS=1 ; aKS<int(aVSigma.size()) ; aKS++)
     {
@@ -463,7 +463,7 @@ template  <class Type> cFlagPonder<Type> * cFlagPonder<Type>::PonderSomFlag(cons
 
 template  <class Type> cFlagPonder<Type>  *cFlagPonder<Type>::PonderSomFlag(const std::vector<double> & aV,const Pt2di & aVois)
 {
-   cFlagPonder<Type> * aRes = new cFlagPonder<Type>(aV.size(),aVois);
+   cFlagPonder<Type> * aRes = new cFlagPonder<Type>((int)aV.size(), aVois);
    int aNbBCum = 0;
 
    for (int aK=0 ; aK<int(aRes->mDIm.size()) ; aK++)
@@ -523,7 +523,7 @@ template   <class Type> cImFlags<Type> cImFlags<Type>::CensusMS
 
     Pt2di aSz = aVIm[0].sz();
     cImFlags<Type> aRes(aSz,NbSomOfVois(aSzVMax));
-    int aNbScale = aVSz.size();
+    int aNbScale = (int)aVSz.size();
 
     std::vector<int> aVKIm = VecKIm(aSzVMax,aVSz,aVSigma);
 
@@ -910,7 +910,7 @@ cMoment_Correl::cMoment_Correl
              const std::vector<double > &             aVPds,
              Pt2di                                    aSzVMax
 ) :
-   mNbIm (aVIm.size())
+   mNbIm ((int)aVIm.size())
 {
     Pt2di aSz = aVIm[0].sz();
     std::vector<cBufOnImage<float> * > aVBOI ;
@@ -943,7 +943,7 @@ cMoment_Correl::cMoment_Correl
                           double aSom2 = 0;
 
                           const std::vector<Pt2di> & aVP = aVV[aKS];
-                          int aNbP = aVP.size();
+                          int aNbP = (int)aVP.size();
                           float ** anIm = aVBOI[aKS]->data();
                           double aPdsK = aVPds[aKS];
                           for (int aKP=0 ; aKP<aNbP ; aKP++)
@@ -1045,7 +1045,7 @@ double MS_CorrelBasic_Center
      {
           const std::vector<Pt2di> & aVP = aVV[aKS];
           double aPds = aVPds[aKS];
-          int aNbP = aVP.size();
+          int aNbP = (int)aVP.size();
           float ** anIm1 = aVBOI1[aKS]->data();
           float ** anIm2 = aVBOI2[aKS]->data();
           for (int aKP=0 ; aKP<aNbP ; aKP++)
@@ -1083,14 +1083,14 @@ double Quick_MS_CorrelBasic_Center
      double aMaxCor = -1;
      double aCovGlob = 0;
      double aPdsGlob = 0;
-     int aNbScale = aVV.size();
+     int aNbScale = (int)aVV.size();
      for (int aKS=0 ; aKS< aNbScale ; aKS++)
      {
           bool aLast = (aKS==(aNbScale-1));
           const std::vector<Pt2di> & aVP = aVV[aKS];
           double aPds = aVPds[aKS];
           double aCov = 0;
-          int aNbP = aVP.size();
+          int aNbP = (int)aVP.size();
           float ** anIm1 = aVBOI1[aKS]->data();
           float ** anIm2 = aVBOI2[aKS]->data();
           aPdsGlob += aPds * aNbP;
@@ -1320,7 +1320,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
       aVPds.push_back(aVPmsInit[aKS]/NbSomOfVois(aVSz[aKS]));
    }
 
-   int aNbScale = aVPmsInit.size();
+   int aNbScale = (int)aVPmsInit.size();
    float * aDataPmsInit = & (aVPmsInit[0]);
 
 
@@ -1613,7 +1613,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
         {
              aTabFlag1 = cImFlags<U_INT2>::CensusMS(mBufCensusIm2,mCurSzVMax,aVSz,aVSigma);
         }
-        int aNbBOI = aVBOI0.size();
+        int aNbBOI = (int)aVBOI0.size();
 
         // cBufOnImage<float> aBOI0(aDataIm0,aBoxDef0,aBoxCalc0);
         // cBufOnImage<float> aBOIC(aDataC  ,aBoxDef1,aBoxCalc1);

@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 std::string RegExAdapt(const std::string & aNameExprIn)
 {
     const char * aC = aNameExprIn.c_str();
-    int aNb = strlen(aC);
+    int aNb = (int)strlen(aC);
 
     return
                  ( ((aNb==0) || (aC[0]!='^'))  ? "^" : "")
@@ -201,7 +201,7 @@ double  cElRegex::VNumKIemeExprPar(int aNum,bool aVerif,double * aDefError)
 std::string  ToStringNBD(int aNb,int aNbDig)
 {
    std::string aRes = ToString(aNb);
-   int aSz = aRes.size();
+   int aSz = (int)aRes.size();
    ELISE_ASSERT(aSz<=aNbDig,"Pas assez de digit dans ToStringNBD");
    for (;aSz<aNbDig ; aSz++)
    {
@@ -322,7 +322,7 @@ bool  cElRegex::Replace(const std::string & aMotif)
 		    aVal /= aOffset;
 		 if (aNbDigit==-1)
 		 {
-		     aNbDigit = aToInsert.size();
+		     aNbDigit = (int)aToInsert.size();
 		 }
 		 aToInsert = ToString(aVal);
 		 if (int(aToInsert.size()) >aNbDigit)
