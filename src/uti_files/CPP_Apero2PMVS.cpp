@@ -103,7 +103,7 @@ void Apero2PMVS(string aFullPattern, string aOri)
 
     //Reading the list of input files
     list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-    int nbIm=ListIm.size();
+    int nbIm = (int)ListIm.size();
     cout<<"Images to process: "<<nbIm<<endl;
 
     string cmdDRUNK,cmdConv;

@@ -519,7 +519,7 @@ public:
             if (it->second->name() == StdPrefixGen(aFilename)) return it->second;
         }
         AffCamera* Cam = new AffCamera(aFilename, (int)mapCameras.size(), mapCameras.size()!=0);
-        mapCameras.insert(pair <int,AffCamera*>(mapCameras.size(), Cam));
+        mapCameras.insert(pair <int,AffCamera*>((int)mapCameras.size(), Cam));
         return Cam;
     }
 

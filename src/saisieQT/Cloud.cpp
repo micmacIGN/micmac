@@ -228,7 +228,7 @@ void GlCloud::addVertex(const GlVertex &vertex)
 
 int GlCloud::size()
 {
-    return _vertices.size();
+    return (int)_vertices.size();
 }
 
 GlVertex& GlCloud::getVertex(uint nb_vert)
