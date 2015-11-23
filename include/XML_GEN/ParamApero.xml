@@ -106,6 +106,8 @@
     <eCalibAutomFour11x2>                 </eCalibAutomFour11x2>
     <eCalibAutomFour15x2>                 </eCalibAutomFour15x2>
     <eCalibAutomFour19x2>                 </eCalibAutomFour19x2>
+    <eCalibAutomEbner>                 </eCalibAutomEbner>
+    <eCalibAutomBrown>                 </eCalibAutomBrown>
     <eCalibAutomNone>                 </eCalibAutomNone>
 </enum>
 

@@ -590,7 +590,7 @@ void cAppli_MPI2Mnt::DoOrtho()
 {
      std::string aCom =       MM3dBinFile("MICMAC ")
                          +    XML_MM_File("MM-PIMs2Ortho.xml") + BLANK
-                         +    " +Pat=" +  mCFPI->mStrPat       + BLANK
+                         +    " +Pat=" + PATTERN_QUOTE(mCFPI->mStrPat) + BLANK
                          +    " +Ori=" +  mCFPI->mOri                 + BLANK
                          +    " +DeZoom=" +ToString(mDeZoom)   + BLANK
                          +    " WorkDir=" + mDirApp
@@ -673,7 +673,7 @@ void cAppli_MPI2Mnt::DoMTD()
 {
     std::string aCom =      MM3dBinFile("Malt ")
                           + std::string( " UrbanMNE ")
-                          + std::string(" ") + mCFPI->mStrPat
+                          + PATTERN_QUOTE(mCFPI->mStrPat)
                           + std::string(" ") + mCFPI->mMMI->GetOriOfEtat()
                           + mStrRep
                           + " DoMEC=0  Purge=true ZoomI=4 ZoomF=2  IncMax=1.0 " +
@@ -761,6 +761,7 @@ int MPI2Mnt_main(int argc,char ** argv)
     cAppli_MPI2Mnt anAppli(argc,argv);
     if (!MMVisualMode) anAppli.DoAll();
 
+    if (!MMVisualMode) anAppli.DoAll();
 
     return EXIT_SUCCESS;
 }

@@ -84,7 +84,7 @@ int ReechInvEpip_main(int argc,char ** argv)
     std::string aNameIn       =  aDirIn  + "NuageImProf_Chantier-Ori_Etape_Last.xml";
     std::string aNameGeomOut  =  aDirOut + "NuageImProf_LeChantier_Etape_1.xml";
     std::string aNameOut = aDirOut+"Nuage-"+aName2 +".xml";
-    std::string aComBase =  MMBinFile(MM3DStr) +   " TestLib " + MakeStrFromArgcARgv(argc,argv);
+    std::string aComBase =  MMBinFile(MM3DStr) +   " TestLib " + MakeStrFromArgcARgvNew(argc,argv);
     // std::string aNameOut  =  aDirOut +     "NuageImProf_LeChantier_Etape_1.xml"
     cXML_ParamNuage3DMaille aNuageXMLGeomOut = StdGetFromSI(aNameGeomOut,XML_ParamNuage3DMaille);
     Pt2di aSzOut =  aNuageXMLGeomOut.NbPixel();

@@ -53,7 +53,7 @@ extern void mem_raz(void *,tFileOffset);
 
 extern int MemoArgc;
 extern char ** MemoArgv;
-extern std::string SubstArgcArvGlob(int aKSubst,std::string aSubst);
+extern std::string SubstArgcArvGlob(int aKSubst,std::string aSubst, bool aProtect = false);
 
 
 std::string GetUnikId();
@@ -610,7 +610,8 @@ std::string ToCommande(int argc,char ** argv);
 std::string QUOTE(const std::string & aStr);
 void GlobStdAdapt2Crochet(std::string & aStr);
 
-
+bool needPatternProtection( const string &aStr );
+string PATTERN_QUOTE( const string &aStr );
 
 bool SplitIn2ArroundCar
      (

@@ -264,7 +264,9 @@ void  cWinIm::SetImage(cImage *aIm)
     }
     mCurIm = aIm;
     mCurIm->SetWAff(this);
+    //  if (MPD_MM()) {std::cout << "AAAAAAAAAAAA\n";getchar();}
     mScr->set_max();
+    //  if (MPD_MM()) {std::cout << "BBbbbbBBbbbb\n";getchar();}
     ShowVect();
     SetTitle();
 }

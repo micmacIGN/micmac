@@ -1183,7 +1183,7 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
                    itL++
             )
             {
-                cListOfName aLON = StdGetFromPCP(*itL,ListOfName);
+                cListOfName aLON = StdGetFromPCP(mDir+*itL,ListOfName);
                 InternalAddList(aLON.Name());
             }
 

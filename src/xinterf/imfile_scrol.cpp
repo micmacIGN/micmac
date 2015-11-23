@@ -903,14 +903,15 @@ template <class Type> void ImFileLoader<Type>::MakeOneLinePixelPond()
 
 template <class Type>  void ImFileLoader<Type>::MakeOneLine(bool quick)
 {
-mPixReplic =true;
+// std::cout << "MakeOneLiMakeOneLi " << mPixReplic << " " << this->AlwaysQuick() << "\n";
+// mPixReplic =true;
     if (mPixReplic)
     {
        MakeOneLineZooPPV();
     }
     else
     {
-	   MakeOneLinePixelPond();
+       MakeOneLinePixelPond();
     }
 }
 
@@ -1075,6 +1076,15 @@ template <class Type> ImFileScroller<Type>::ImFileScroller
 
 template <class Type> void ImFileScroller<Type>::LoadXImage(Pt2di p0,Pt2di p1,bool quick)
 {
+/*
+  mm3d Vino VeryBig.tif Bilin=1
+
+   LLL::LoadXImage 1 0.569406 0 0
+   LLL::LoadXImage 0 0.569406 0 0
+
+std::cout << "LLL::LoadXImage " << quick << " " << this->sc() << " " << this->AlwaysQuickZoom() << " " << this->AlwaysQuick() << "\n";
+*/
+
 	this->do_it(ElImScroller::tr(),ElImScroller::sc(),p0,p1,quick);
 }
 

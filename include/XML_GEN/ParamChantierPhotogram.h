@@ -6769,5 +6769,49 @@ std::string  Mangling( corientation *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_EnvVino
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree);
+
+
+        Pt2di & SzW();
+        const Pt2di & SzW()const ;
+
+        int & LargAsc();
+        const int & LargAsc()const ;
+
+        Pt2di & SzIncr();
+        const Pt2di & SzIncr()const ;
+
+        bool & ZoomBilin();
+        const bool & ZoomBilin()const ;
+
+        double & SpeedZoomGrab();
+        const double & SpeedZoomGrab()const ;
+
+        double & SpeedZoomMolette();
+        const double & SpeedZoomMolette()const ;
+    private:
+        Pt2di mSzW;
+        int mLargAsc;
+        Pt2di mSzIncr;
+        bool mZoomBilin;
+        double mSpeedZoomGrab;
+        double mSpeedZoomMolette;
+};
+cElXMLTree * ToXMLTree(const cXml_EnvVino &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_EnvVino &);
+
+void  BinaryUnDumpFromFile(cXml_EnvVino &,ELISE_fp &);
+
+std::string  Mangling( cXml_EnvVino *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotPCP

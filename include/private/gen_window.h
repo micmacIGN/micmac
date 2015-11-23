@@ -243,7 +243,8 @@ class Data_Elise_Gra_Win : public RC_Object
                   (
                        const Data_El_Geom_GWin *,
                        const Arg_Output_Comp & arg,
-                       Data_Elise_Palette *
+                       Data_Elise_Palette *,
+                       bool  OnYDiff
                    ) = 0;
 
 
@@ -454,7 +455,8 @@ class Data_Elise_Raster_W : public Data_Elise_Gra_Win
                   (
                        const Data_El_Geom_GWin *,
                        const Arg_Output_Comp & arg,
-                       Data_Elise_Palette *
+                       Data_Elise_Palette *,
+                       bool  OnYDiff
                    );
 
         virtual   Output_Computed 

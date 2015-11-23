@@ -1481,6 +1481,7 @@ template <class Type> cFusionCarteProf<Type>::cFusionCarteProf
 /*
 */
 
+
 int FusionCarteProf_main(int argc,char ** argv)
 {
    /*if ((argc>=2)  && (std::string(argv[1])==std::string("-help")))
@@ -1496,7 +1497,7 @@ int FusionCarteProf_main(int argc,char ** argv)
 
    Tiff_Im::SetDefTileFile(50000);
 
-   std::string aCom0 = MMBin() + "mm3d "+ MakeStrFromArgcARgv(argc,argv);
+   std::string aCom0 = MMBin() + "mm3d "+ MakeStrFromArgcARgv(argc, argv, true); // true = aProtect
    // std::cout << aCom0 << "\n"; getchar();
 
 

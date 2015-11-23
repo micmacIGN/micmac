@@ -20936,4 +20936,125 @@ void xml_init(corientation & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( corientation *) {return "DF7FA3370998EAE8FD3F";};
 
+
+Pt2di & cXml_EnvVino::SzW()
+{
+   return mSzW;
+}
+
+const Pt2di & cXml_EnvVino::SzW()const 
+{
+   return mSzW;
+}
+
+
+int & cXml_EnvVino::LargAsc()
+{
+   return mLargAsc;
+}
+
+const int & cXml_EnvVino::LargAsc()const 
+{
+   return mLargAsc;
+}
+
+
+Pt2di & cXml_EnvVino::SzIncr()
+{
+   return mSzIncr;
+}
+
+const Pt2di & cXml_EnvVino::SzIncr()const 
+{
+   return mSzIncr;
+}
+
+
+bool & cXml_EnvVino::ZoomBilin()
+{
+   return mZoomBilin;
+}
+
+const bool & cXml_EnvVino::ZoomBilin()const 
+{
+   return mZoomBilin;
+}
+
+
+double & cXml_EnvVino::SpeedZoomGrab()
+{
+   return mSpeedZoomGrab;
+}
+
+const double & cXml_EnvVino::SpeedZoomGrab()const 
+{
+   return mSpeedZoomGrab;
+}
+
+
+double & cXml_EnvVino::SpeedZoomMolette()
+{
+   return mSpeedZoomMolette;
+}
+
+const double & cXml_EnvVino::SpeedZoomMolette()const 
+{
+   return mSpeedZoomMolette;
+}
+
+void  BinaryUnDumpFromFile(cXml_EnvVino & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.SzW(),aFp);
+    BinaryUnDumpFromFile(anObj.LargAsc(),aFp);
+    BinaryUnDumpFromFile(anObj.SzIncr(),aFp);
+    BinaryUnDumpFromFile(anObj.ZoomBilin(),aFp);
+    BinaryUnDumpFromFile(anObj.SpeedZoomGrab(),aFp);
+    BinaryUnDumpFromFile(anObj.SpeedZoomMolette(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_EnvVino & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.SzW());
+    BinaryDumpInFile(aFp,anObj.LargAsc());
+    BinaryDumpInFile(aFp,anObj.SzIncr());
+    BinaryDumpInFile(aFp,anObj.ZoomBilin());
+    BinaryDumpInFile(aFp,anObj.SpeedZoomGrab());
+    BinaryDumpInFile(aFp,anObj.SpeedZoomMolette());
+}
+
+cElXMLTree * ToXMLTree(const cXml_EnvVino & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_EnvVino",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("SzW"),anObj.SzW())->ReTagThis("SzW"));
+   aRes->AddFils(::ToXMLTree(std::string("LargAsc"),anObj.LargAsc())->ReTagThis("LargAsc"));
+   aRes->AddFils(::ToXMLTree(std::string("SzIncr"),anObj.SzIncr())->ReTagThis("SzIncr"));
+   aRes->AddFils(::ToXMLTree(std::string("ZoomBilin"),anObj.ZoomBilin())->ReTagThis("ZoomBilin"));
+   aRes->AddFils(::ToXMLTree(std::string("SpeedZoomGrab"),anObj.SpeedZoomGrab())->ReTagThis("SpeedZoomGrab"));
+   aRes->AddFils(::ToXMLTree(std::string("SpeedZoomMolette"),anObj.SpeedZoomMolette())->ReTagThis("SpeedZoomMolette"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.SzW(),aTree->Get("SzW",1)); //tototo 
+
+   xml_init(anObj.LargAsc(),aTree->Get("LargAsc",1)); //tototo 
+
+   xml_init(anObj.SzIncr(),aTree->Get("SzIncr",1)); //tototo 
+
+   xml_init(anObj.ZoomBilin(),aTree->Get("ZoomBilin",1)); //tototo 
+
+   xml_init(anObj.SpeedZoomGrab(),aTree->Get("SpeedZoomGrab",1)); //tototo 
+
+   xml_init(anObj.SpeedZoomMolette(),aTree->Get("SpeedZoomMolette",1)); //tototo 
+}
+
+std::string  Mangling( cXml_EnvVino *) {return "EA8679445CC502A2FEBF";};
+
 // };

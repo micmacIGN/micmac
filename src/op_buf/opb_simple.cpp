@@ -514,15 +514,18 @@ Fonc_Num reduc_binaire_Y (Fonc_Num f)
 
 
 
+#if (ELISE_X11)
+Video_Win * TheWinAffRed = 0;
+#endif
 
 void MakeTiffRed2Gen
      (
           int                   aNbReduc,
           const std::string &   aNameFul,
           const std::string &   aNameRed,
-      bool                  UseType,
-      GenIm::type_el        aTypeDem,
-      int                   aDiv,
+          bool                  UseType,
+          GenIm::type_el        aTypeDem,
+          int                   aDiv,
           bool                  HasVS,
           REAL                  aVSpec
      )
@@ -567,6 +570,14 @@ void MakeTiffRed2Gen
     for (int aK=0 ; aK< aNbReduc ; aK++)
         anOut = Filtre_Out_RedBin(anOut);
 
+#if (ELISE_X11)
+   if (TheWinAffRed)
+   {
+       Pt2dr aSz (TheWinAffRed->sz());
+       Pt2dr aSzIn (aTifIn.sz());
+       anOut = anOut | (TheWinAffRed->chc(Pt2dr(0,0),aSz.dcbyc(aSzIn),false).odisc(true) << P8COL::red);
+   }
+#endif
 
     ELISE_COPY(aTifIn.all_pts(),aFonc,anOut);
 }

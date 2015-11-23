@@ -1,3 +1,4 @@
+#include "general/errors.h"
 #include "general/cElCommand.h"
 
 #ifndef ELISE_windows
@@ -111,8 +112,7 @@ cElCommandToken * cElCommandToken::allocate( CmdTokenType i_type, const std::str
    case CTT_Filename:
    case CTT_PathRegEx:
    case CTT_Prefix:
-      cerr << RED_ERROR << "allocate(CmdTokenType,string): unhandled CmdTokenType " << CmdTokenType_to_string(i_type) << endl;
-      exit(EXIT_FAILURE);
+      ELISE_ERROR_EXIT("allocate(CmdTokenType,string): unhandled CmdTokenType " << CmdTokenType_to_string(i_type));
    }
    return NULL;
 }
@@ -132,11 +132,7 @@ cElCommandToken * cElCommandToken::from_raw_data( char const *&io_rawData, bool 
    int4_from_raw_data( io_rawData, i_reverseByteOrder, i4 );
 
    #ifdef __DEBUG_C_EL_COMMAND
-      if ( !isCommandTokenType(i4) )
-      {
-     cerr << RED_DEBUG_ERROR << "cElCommandToken::from_raw_data: invalid token type" << endl;
-     exit(-1);
-      }
+      if ( !isCommandTokenType(i4) ) ELISE_ERROR_EXIT("cElCommandToken::from_raw_data: invalid token type");
    #endif
 
    // copy string value of the token
@@ -146,11 +142,7 @@ cElCommandToken * cElCommandToken::from_raw_data( char const *&io_rawData, bool 
    cElCommandToken *res = allocate( (CmdTokenType)i4, value );
 
    #ifdef __DEBUG_C_EL_COMMAND
-      if ( res==NULL )
-      {
-     cerr << RED_DEBUG_ERROR << "cElCommand::from_raw_data: allocate( " << CmdTokenType_to_string((CmdTokenType)i4) << ", [" << value << "] ) returned NULL" << endl;
-     exit(-1);
-      }
+      if (res == NULL) ELISE_ERROR_EXIT("cElCommand::from_raw_data: allocate( " << CmdTokenType_to_string((CmdTokenType)i4) << ", [" << value << "] ) returned NULL");
    #endif
 
    return res;
@@ -232,13 +224,10 @@ void cElCommand::from_raw_data( char const *&io_rawData, bool i_reverseByteOrder
    while ( nbTokens-- )
       m_tokens.push_back( cElCommandToken::from_raw_data( io_rawData, i_reverseByteOrder ) );
 
-   #ifdef __DEBUG_C_EL_COMMAND
-      if ( rawData>io_rawData || (U_INT8)(io_rawData-rawData)!=raw_size() )
-      {
-     cerr << RED_DEBUG_ERROR << "cElCommand::from_raw_data: " << (U_INT8)(io_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
-     exit(EXIT_FAILURE);
-      }
-   #endif
+	#ifdef __DEBUG_C_EL_COMMAND
+		if ( rawData>io_rawData || (U_INT8)(io_rawData-rawData)!=raw_size() )
+			ELISE_ERROR_EXIT("cElCommand::from_raw_data: " << (U_INT8)(io_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size());
+	#endif
 }
 
 void cElCommand::to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const
@@ -255,13 +244,9 @@ void cElCommand::to_raw_data( bool i_reverseByteOrder, char *&o_rawData ) const
    while ( itToken!=m_tokens.end() )
       ( *itToken++ )->to_raw_data( i_reverseByteOrder, o_rawData );
 
-   #ifdef __DEBUG_C_EL_COMMAND
-      if ( rawData>o_rawData || (U_INT8)(o_rawData-rawData)!=raw_size() )
-      {
-     cerr << RED_DEBUG_ERROR << "cElCommand::to_raw_data: " << (U_INT8)(o_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size() << endl;
-     exit(EXIT_FAILURE);
-      }
-   #endif
+	#ifdef __DEBUG_C_EL_COMMAND
+		if ( rawData>o_rawData || (U_INT8)(o_rawData-rawData)!=raw_size() ) ELISE_ERROR_EXIT("cElCommand::to_raw_data: " << (U_INT8)(o_rawData-rawData) << " copied bytes, but raw_size() = " << raw_size());
+	#endif
 }
 
 U_INT8 cElCommand::raw_size() const
@@ -571,10 +556,7 @@ bool ctPath::create() const
     #ifdef _MSC_VER
         string path = str(windows_separator);
         #ifdef __DEBUG_C_EL_COMMAND
-            if ( path.length()>248 ){
-                cerr << RED_DEBUG_ERROR << "ctPath::create: paths are limited to 248 characters for creation" << endl;
-                exit(EXIT_FAILURE);
-            }
+            if ( path.length()>248 ) ELISE_ERROR_EXIT("ctPath::create: paths are limited to 248 characters for creation");
         #endif
         CreateDirectory( path.c_str(), NULL );
     #else
@@ -618,8 +600,7 @@ bool ctPath::getContent( list<cElFilename> &o_files ) const
         FindClose(hFind);
         return true;
     #else
-        //not implemented
-        cerr << RED_DEBUG_ERROR << "ctPath::getContent: not implemented";
+        ELISE_ERROR_EXIT("ctPath::getContent: not implemented");
         return false;
     #endif
 }
@@ -649,10 +630,7 @@ bool ctPath::removeEmpty() const
     #else
         string path = str(windows_separator);
         #ifdef __DEBUG_C_EL_COMMAND
-            if ( path.length()>MAX_PATH ){
-                cerr << RED_DEBUG_ERROR << "ctPath::remove_empty: paths are limited to " << MAX_PATH << " characters" << endl;
-                exit(EXIT_FAILURE);
-            }
+            if ( path.length()>MAX_PATH ) ELISE_ERROR_EXIT("ctPath::remove_empty: paths are limited to " << MAX_PATH << " characters");
         #endif
         RemoveDirectory( path.c_str() );
     #endif
@@ -662,14 +640,14 @@ bool ctPath::removeEmpty() const
 
 static bool __ctPath_sup( const ctPath &i_a, const ctPath &i_b ){ return i_a>i_b; }
 
-bool ctPath::removeContent() const
+bool ctPath::removeContent( bool aRecursive ) const
 {
    list<cElFilename> contentFiles;
    list<ctPath> contentPaths;
-   if ( !getContent( contentFiles, contentPaths, true/*recursive*/ ) ){
+   if ( !getContent(contentFiles, contentPaths, aRecursive))
+   {
         #ifdef __DEBUG_C_EL_COMMAND
-            cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot get content of directory [" << str() <<']' << endl;
-            exit(EXIT_FAILURE);
+            ELISE_ERROR_EXIT("ctPath::removeContent(): cannot get content of directory [" << str() <<']');
         #endif
        return false;
    }
@@ -679,13 +657,14 @@ bool ctPath::removeContent() const
     while ( itFile!=contentFiles.end() ){
         if ( !itFile->remove() ){
             #ifdef __DEBUG_C_EL_COMMAND
-                cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove file [" << itFile->str_unix() <<']' << endl;
-                exit(EXIT_FAILURE);
+                ELISE_ERROR_EXIT("ctPath::removeContent(): cannot remove file [" << itFile->str_unix() <<']');
             #endif
             return false;
         }
         itFile++;
     }
+
+	if ( !aRecursive) return true;
 
     // remove all empty directories
     contentPaths.sort( __ctPath_sup ); // sort in reverse order so that subdirectories come before their parents
@@ -693,8 +672,7 @@ bool ctPath::removeContent() const
     while ( itPath!=contentPaths.end() ){
         if ( !itPath->removeEmpty() ){
             #ifdef __DEBUG_C_EL_COMMAND
-                cerr << RED_DEBUG_ERROR << "ctPath::removeContent(): cannot remove directory [" << itPath->str() <<']' << endl;
-                exit(EXIT_FAILURE);
+                ELISE_ERROR_EXIT("ctPath::removeContent(): cannot remove directory [" << itPath->str() << ']');
             #endif
             return false;
         }
@@ -794,10 +772,7 @@ bool cElFilename::remove() const
    ELISE_fp::RmFile( str_unix() );
 
    #ifdef __DEBUG_C_EL_COMMAND
-      if ( exists() ){
-         cerr << RED_DEBUG_ERROR << "cElFilename::remove: cannot remove file [" << str_unix() << ']' << endl;
-         exit(EXIT_FAILURE);
-      }
+      if (exists()) ELISE_ERROR_EXIT("cElFilename::remove: failed to remove file [" << str_unix() << ']');
    #endif
 
    return !exists();
@@ -829,21 +804,19 @@ void specialize_filenames( const list<cElFilename> &i_filenames, list<cElFilenam
     list<cElFilename>::const_iterator itFilename = i_filenames.begin();
     while ( itFilename!=i_filenames.end() )
     {
-        #ifdef __DEBUG_C_EL_COMMAND
-            if ( itFilename->exists() && itFilename->isDirectory() ){
-                cerr << RED_DEBUG_ERROR << "specialize_filenames: filename [" << itFilename->str_unix() << "] is both an existing file and an existing directory " << endl;
-                exit(EXIT_FAILURE);
-            }
-        #endif
+		#ifdef __DEBUG_C_EL_COMMAND
+			if ( itFilename->exists() && itFilename->isDirectory() )
+				ELISE_ERROR_EXIT("specialize_filenames: filename [" << itFilename->str_unix() << "] is both an existing file and an existing directory ");
+		#endif
 
         if ( itFilename->exists() )	o_filenames.push_back( *itFilename );
         else if ( itFilename->isDirectory() ) o_paths.push_back( ctPath(*itFilename) );
+
         #ifdef __DEBUG_C_EL_COMMAND
-            else{
-                cerr << "ERROR: specialize_filenames: filename [" << itFilename->str_unix() << "] is neither an existing file nor an existing directory " << endl;
-                exit(EXIT_FAILURE);
-            }
+        else
+            ELISE_ERROR_EXIT("specialize_filenames: filename [" << itFilename->str_unix() << "] is neither an existing file nor an existing directory ");
         #endif
+
         itFilename++;
     }
 }

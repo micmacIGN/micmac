@@ -352,7 +352,8 @@ class Data_Elise_PS_Win  : public Data_Elise_Gra_Win
          (
                        const Data_El_Geom_GWin *,
                        const Arg_Output_Comp & ,
-                       Data_Elise_Palette *
+                       Data_Elise_Palette *,
+                       bool  OnYDiff
          );
 
          Output_Computed * pint_cste_out_comp

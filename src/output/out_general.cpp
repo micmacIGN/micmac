@@ -458,7 +458,9 @@ class  Data_Elise_Video_Win  : public Data_Elise_Gra_Win
                   (
                        const Data_El_Geom_GWin *,
                        const Arg_Output_Comp & ,
-                       Data_Elise_Palette * dep
+                       Data_Elise_Palette * dep,
+                       bool OnYDiff
+
                    )
                    {
                           return new Out_Nul_Comp(dep->dim_pal() );
@@ -687,7 +689,8 @@ Output Video_Win::WiewAv(Pt2di sz,Pt2di szmax)
 
     Video_Win w0 = res.chc(Pt2dr(0,0),Pt2dr(1,1));
     ELISE_COPY(w0.all_pts(),P8COL::black,w0.odisc());
-    return res.odisc() << (int) P8COL::red;
+
+    return res.odisc(true) << (int) P8COL::red;
 }
 
 

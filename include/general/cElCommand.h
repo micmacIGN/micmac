@@ -20,16 +20,6 @@ class ctPath;
 
 #define __DEBUG_C_EL_COMMAND
 
-#if (ELISE_POSIX)
-	#define RED_ERROR "\033[1;31mERROR: \033[0m"
-	#define RED_DEBUG_ERROR "\033[1;31mDEBUG_ERROR: \033[0m"
-	#define RED_WARNING "\033[0;31mWARNING: \033[0m"
-#else
-	#define RED_ERROR "ERROR: "
-	#define RED_DEBUG_ERROR "DEBUG_ERROR: "
-	#define RED_WARNING "WARNING: "
-#endif
-
 //-------------------------------------------
 // cElCommandToken
 //-------------------------------------------
@@ -193,7 +183,7 @@ public:
    bool exists() const;
    bool create() const;
    bool removeEmpty() const;
-   bool removeContent() const;
+   bool removeContent( bool aRecursive = true ) const;
    inline bool remove() const;
    // return true if directory exists and containts nothing
    bool isEmpty() const; 
