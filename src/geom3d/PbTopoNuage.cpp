@@ -213,7 +213,7 @@ bool operator == (const cOneZonzATB & aZ1, const cOneZonzATB & aZ2)
 
 int  cAnalyPbTopo::NextNumZoneC()
 {
-  if (int(mATB.OneZonzATB().size()) <= mNbMaxZone) return mATB.OneZonzATB().size() +1 ;
+  if (int(mATB.OneZonzATB().size()) <= mNbMaxZone) return (int)(mATB.OneZonzATB().size() + 1);
 
    
    cOneZonzATB aMinZ =  *(mATB.OneZonzATB().begin());
