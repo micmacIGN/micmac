@@ -307,7 +307,7 @@ void cOctaveDigeo::DoAllExtract()
 
 REAL8 cOctaveDigeo::GetMaxValue() const{ return mIm.GetMaxValue(); }
 
-int cOctaveDigeo::NbIm() const { return mVIms.size(); }
+int cOctaveDigeo::NbIm() const { return (int)mVIms.size(); }
 cImInMem * cOctaveDigeo::KthIm(int aK) const { return mVIms.at(aK); }
 int  cOctaveDigeo::Niv() const { return mNiv; }
 
