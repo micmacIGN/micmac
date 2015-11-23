@@ -121,7 +121,7 @@ void cOneAppuisFlottant::DoAMD(cAMD_Interf *)
 
 void  cOneAppuisFlottant::Compile()
 {
-    mNupl = new cNupletPtsHomologues(mCams.size(),1.0);
+    mNupl = new cNupletPtsHomologues((int)mCams.size(), 1.0);
     std::vector<cGenPDVFormelle *> aVCF;
 
     for (int aK=0; aK<int(mCams.size()) ; aK++)
@@ -149,7 +149,7 @@ void  cOneAppuisFlottant::Compile()
 
 int cOneAppuisFlottant::NbMesures() const
 {
-   return mCams.size();
+   return (int)mCams.size();
 }
 
 Pt3dr cOneAppuisFlottant::PInter() const

@@ -945,7 +945,7 @@ static int aCptCMT =0 ; aCptCMT++;
     double aSomDistTot = 0;
     double aMaxDistTot = 0;
     double aMinDistTot = 4;
-    int aNbCpleOk = aVOk.size() - 1;
+    int aNbCpleOk = (int)(aVOk.size() - 1);
     for (int aKK=1 ; aKK<int(aVOk.size()) ; aKK++)
     {
          int aK0 = 0;

@@ -753,7 +753,7 @@ void cAppliMICMAC::DoOneBloc
             aVPtInEc.push_back(dist8(Pt2di(anX,anY))<=mCurSzWInt);
             if (aVPtInEc.back())
             {
-               aVPtIndOK.push_back(aVPtInEc.size()-1);
+               aVPtIndOK.push_back((int)(aVPtInEc.size()-1));
                aVPtOK.push_back(Pt2di(anX,anY));
             }
             mVecV1.push_back(0);
