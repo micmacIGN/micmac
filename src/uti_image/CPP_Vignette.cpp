@@ -466,7 +466,7 @@ vector<GrpVodka> Make_Grp(std::string aDir, std::string InCal, std::vector<std::
         //string aPatVignette="Foc[0-9]{1,6}Diaph[0-9]{1,6}-FlatField.tif";
         string aPatVignette="Foc[0-9]{4}Diaph[0-9]{3}-FlatField.tif";
         list<string> aSetVignette=RegexListFileMatch(aDir + InCal,aPatVignette,1,false);
-        unsigned nbInCal=aSetVignette.size();
+        unsigned nbInCal = (unsigned)aSetVignette.size();
         for(unsigned i=0;i<nbInCal;i++){
             GrpVodka aGrpVodka(atof((aSetVignette.back().substr (12,3)).c_str())/10,atof((aSetVignette.back().substr (3,4)).c_str())/10, true);
             aVectGrpVodka.push_back(aGrpVodka);

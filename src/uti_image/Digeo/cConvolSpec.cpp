@@ -818,7 +818,7 @@ void legacy_convolution_transpose( const tData *i_src, const int i_width, const 
 
 	// convolve along columns, save transpose
 	// filter is (2*W+1) by 1
-	const int W = ( i_kernel.size()-1 )/2;
+	const int W = (int)((i_kernel.size() - 1) / 2);
 	const TBASE *filter_pt = i_kernel.data();
 	const tData *src_pt = i_src;
 	for ( int j=0; j<i_height; ++j )

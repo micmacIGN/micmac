@@ -214,7 +214,7 @@ bool MultiChannel<tData>::read_raw_v1( istream &io_istream, bool i_reverseByteOr
 
 	if ( readType!=typeEl() ) return false;
 
-	resize( readWidth, readHeight, readNbChannels );
+	resize(readWidth, readHeight, (int)readNbChannels);
 	const size_t nbElements = (size_t)mWidth*(size_t)mHeight;
 	for ( size_t iChannel=0; iChannel<readNbChannels; iChannel++ )
 	{
@@ -613,7 +613,7 @@ void MultiChannel<tData>::duplicateLastChannel( size_t i_nbDuplicates )
 
 	const tData *src = mChannels.back()->data_lin();
 	size_t i = mChannels.size();
-	resize( mWidth, mHeight, mChannels.size()+i_nbDuplicates );
+	resize( mWidth, mHeight, (int)(mChannels.size() + i_nbDuplicates));
 
 	ELISE_DEBUG_ERROR( src!=mChannels[i-1]->data_lin(), "MultiChannel<tData>::duplicateLastChannel", "resize has reallocated image memory" );
 

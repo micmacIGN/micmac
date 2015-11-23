@@ -11,7 +11,7 @@ public:
 	bool isComputed;
 	vector<string> aListIm;
 	vector<double> ExpTime,ISO; 
-	int size(){return this->aListIm.size();}
+	int size(){return (int)this->aListIm.size();}
 };
 
 class ArsenicImage
@@ -33,7 +33,7 @@ public:
 	Param3Chan(){}
 	~Param3Chan(){}
     vector<double> parRed, parBlue, parGreen;
-	int size(){return this->parRed.size();}
+	int size(){return (int)this->parRed.size();}
 private:
   
 };
@@ -45,7 +45,7 @@ class PtsHom
 	~PtsHom(){}
     vector<double> Gr1,Gr2,Dist1,Dist2;
 	Pt2di SZ;
-    int size(){	return Gr1.size();}
+    int size(){	return (int)Gr1.size();}
 private:
   
 };
@@ -59,7 +59,7 @@ class cl_PtsRadio
 	vector<Pt2dr> Pts;
 	vector<int> OtherIm;
 	Pt2di SZ;
-    int size(){return Pts.size();}
+    int size(){return (int)Pts.size();}
 
 };
 
