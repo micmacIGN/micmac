@@ -1,0 +1,242 @@
+<ParamApero>
+       <DicoLoc>
+           <KeyedSetsOfNames >
+	       <Sets>
+		    <PatternAccepteur>  ^Orient.*\.xml  </PatternAccepteur>
+	       </Sets>
+	       <Key> All-Orient-Calib </Key>
+           </KeyedSetsOfNames>
+
+           <KeyedNamesAssociations>
+                 <Calcs>
+                     <Arrite>  1 1 </Arrite>
+                      <Direct>
+                             <PatternTransform> MpDcraw_sg1l(.*)GB\.tif </PatternTransform>
+                             <CalcName>  Orient$1.xml  </CalcName>
+                      </Direct>
+                      <Inverse>
+                             <PatternTransform> Orient(.*)\.xml </PatternTransform>
+                             <CalcName>  MpDcraw_sg1l$1GB.tif  </CalcName>
+                      </Inverse>
+                  </Calcs>
+                  <Key>   Im2OrCal </Key>
+             </KeyedNamesAssociations>
+
+            <KeyedNamesAssociations>
+                 <Calcs>
+                     <Arrite>  1 1 </Arrite>
+                      <Direct>
+                             <PatternTransform> MpDcraw_sg1l(.*)GB\.tif </PatternTransform>
+                              <CalcName>  Aero/BisOrient$1.xml  </CalcName>
+                      </Direct>
+                  </Calcs>
+		  <SubDirAutoMake> Aero/ </SubDirAutoMake>
+                  <Key>   ExportPose </Key>
+             </KeyedNamesAssociations>
+
+            <KeyedNamesAssociations>
+                 <Calcs>
+                     <Arrite>  1 1 </Arrite>
+                      <Direct>
+                             <PatternTransform> (.*) </PatternTransform>
+                              <CalcName>  Aero_0_$1.xml  </CalcName>
+                      </Direct>
+                  </Calcs>
+                  <Key>   ExportCalib </Key>
+             </KeyedNamesAssociations>
+
+
+
+	   
+       </DicoLoc>
+
+
+       <SectionBDD_Observation>
+
+              <BDD_PtsAppuis>
+                   <Id>  AppuisFromCalib </Id>
+	           <KeySet>  All-Orient-Calib </KeySet>
+		   <KeyAssoc> Im2OrCal </KeyAssoc>
+              </BDD_PtsAppuis>
+                   
+              <BDD_Orient>
+                   <Id>  OrientFromCalib </Id>
+	           <KeySet>  All-Orient-Calib  </KeySet>
+		   <KeyAssoc> Im2OrCal </KeyAssoc>
+              </BDD_Orient>
+
+	       <BDD_ObsAppuisFlottant>
+	           <Id>  PtsPolyg-Flot  </Id>
+		   <KeySetOrPat> ^AppOnDico_.*\.xml </KeySetOrPat>
+	       </BDD_ObsAppuisFlottant>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> Pentax-18mm </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile> DRadFinalePentax-1858-18.xml </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <!-- <PatternName>  (^MpDcraw_sg1l4989GB.tif)|(^MpDcraw_sg1l4993GB.tif)   </PatternName>-->
+	           <PatternName>  (^MpDcraw_sg1l....GB\.tif)   </PatternName>
+	           <CalcNameCalib>  Pentax-18mm  </CalcNameCalib>
+		   <PosValueInit>
+                       <PosFromBDOrient>  OrientFromCalib </PosFromBDOrient>
+		   </PosValueInit>
+              </PoseCameraInc>
+
+	      <PointFlottantInc>
+                  <Id>  PtsPolyg-Flot </Id>
+	          <KeySetOrPat> DicoOfApp_DicoHallMtd0.xml </KeySetOrPat>
+	      </PointFlottantInc>
+
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <ProfSceneChantier> 10.000  </ProfSceneChantier> 
+	     <DirectoryChantier>   /mnt/data/Calib/Pentax-1858-18mm/HallMTD/  </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		              <Val> eFige_Phgr_Std_Aff      </Val>
+		              <Val> eFige_Phgr_Std_Dec      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+
+
+		    <SectionContraintes> </SectionContraintes>
+		    <SectionContraintes> </SectionContraintes>
+
+
+
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val> eLiberte_DR2      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val> eLiberte_DR3      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+
+		    <SectionContraintes> </SectionContraintes>
+
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val> eLib_PP_CD_Lies      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+		    <SectionContraintes> </SectionContraintes>
+
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_1      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+		    <SectionContraintes> </SectionContraintes>
+
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val> eLiberte_Phgr_Std_Aff      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+		    <SectionContraintes> </SectionContraintes>
+
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val> eLiberte_DR4      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val> eLiberte_DR5      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+
+		    <SectionContraintes>
+		        <ContraintesCamerasInc>
+		              <Val>  eFige_Phgr_Std_Dec      </Val>
+		        </ContraintesCamerasInc>
+		    </SectionContraintes>
+		    <SectionContraintes> </SectionContraintes>
+
+
+		    <SectionContraintes> </SectionContraintes>
+		    <SectionContraintes> </SectionContraintes>
+
+
+		    <SectionObservations>
+                          <ObsAppuisFlottant>
+                             <NameRef > PtsPolyg-Flot  </NameRef>
+                             <PondIm> 
+                                  <EcartMesureIndiv>  0.1 </EcartMesureIndiv>
+                                  <Show> eNSM_Paquet     </Show>
+			     </PondIm>
+                             <PondTer> 1.0 </PondTer>
+			     <ShowMax> true </ShowMax>
+			     <ShowSom> true </ShowSom>
+                          </ObsAppuisFlottant>
+	            </SectionObservations>
+
+
+	      </EtapeCompensation>
+	      <EtapeCompensation>
+
+		    <SectionContraintes> </SectionContraintes>
+		    <SectionContraintes> </SectionContraintes>
+
+		    <SectionObservations>
+                          <ObsAppuisFlottant>
+                             <NameRef > PtsPolyg-Flot  </NameRef>
+                             <PondIm> 
+                                  <EcartMesureIndiv>  0.1 </EcartMesureIndiv>
+                                  <Show> eNSM_Paquet     </Show>
+				  <ModePonderation>  eL1Secured </ModePonderation>
+			          <SigmaPond>   0.5 </SigmaPond>
+
+			     </PondIm>
+                             <PondTer> 1.0 </PondTer>
+			     <ShowMax> true </ShowMax>
+			     <ShowSom> true </ShowSom>
+                          </ObsAppuisFlottant>
+	            </SectionObservations>
+
+                    <SectionExport>
+                        <ExportCalib>
+                            <KeyAssoc>   ExportCalib </KeyAssoc>
+                        </ExportCalib>
+                        <ExportPtsFlottant>
+                            <NameFileTxt>  Polyg-Expprt </NameFileTxt>
+			    <TextComplTxt>  Mtd9  0</TextComplTxt>
+                        </ExportPtsFlottant>
+
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+</ParamApero>
+
