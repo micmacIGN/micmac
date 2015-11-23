@@ -282,7 +282,7 @@ template <class Type> double GetValPercOfHisto
 {
     //cOperatorIdentite<int> anOI;
     std::vector<double> aVInd;
-    int aNbV= aVH.size();
+    int aNbV= (int)aVH.size();
     for (int aK=0 ; aK<aNbV ; aK++)
        aVInd.push_back(aK);
 
@@ -403,7 +403,7 @@ template <class TVal> TVal KthValGen(TVal * Data,int aNb,int aKth,const TVal & a
 
 template <class TVal> void SplitArrounKthValue(std::vector<TVal> & aV,int aKth)
 {
-   SplitArrounKthValue(VData(aV),aV.size(),aKth);
+   SplitArrounKthValue(VData(aV), (int)aV.size(),aKth);
 }
 
 template <class TVal> TVal MoyKPPVal(std::vector<TVal> & aV,int aKth)

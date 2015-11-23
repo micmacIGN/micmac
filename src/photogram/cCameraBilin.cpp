@@ -539,7 +539,7 @@ cDistorBilin cDistorBilin::FromXmlGridStuct(const cCalibrationInterneGridDef &  
 {
     cDistorBilin aCBL(aCIG.P0(),aCIG.P1(),aCIG.Nb());
 
-    int aNbPtGr = aCIG.PGr().size();
+    int aNbPtGr = (int)aCIG.PGr().size();
     Pt2di aNb = aCIG.Nb();
 
     if (aNbPtGr==((aNb.y+1)*(aNb.x+1)))

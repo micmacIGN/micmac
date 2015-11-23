@@ -172,7 +172,7 @@ REAL & cNupletPtsHomologues::Pds() {return mPds;}
 
 int cNupletPtsHomologues::NbPts() const
 {
-   return mPts.size();
+   return (int)mPts.size();
 }
 
 const Pt2dr & cNupletPtsHomologues::PK(int aK) const
@@ -1033,7 +1033,7 @@ ElPackHomologue  cElImPackHom::ToPackH(int aK)
 
 
 
-int cElImPackHom::NbIm() const{return 1+mImXn.size();}
+int cElImPackHom::NbIm() const{return (int)(1 + mImXn.size());}
 void  cElImPackHom::SauvFile(const std::string & aName)
 {
     ELISE_ASSERT(NbIm()==2,"Bad Nb Im in cElImPackHom::SauvFile");
@@ -2929,7 +2929,7 @@ void ElCamera::ChangeSys(const std::vector<ElCamera *> & aVCam, const cTransfo3D
                         // if (Test) aPPhgr = Pt2dr(aPPhgr.x*1.1 +0.05 * aPPhgr.y,aPPhgr.y*0.9) + Pt2dr(0.1,0.15)  ;
                             Pt3dr aPSource = aCam.ImEtProf2Terrain(aPIm,aProf) ;//   + Pt3dr(1e6,1e7,1e5);
                             if ((aKp==0) && (aKx==0) && (aKy==0))
-                               anIndCentre = aVSource.size();
+                               anIndCentre = (int)aVSource.size();
                             aVPhGr.push_back(aPPhgr);
                             aVSource.push_back(aPSource);
                             aVIm.push_back(aPIm);
@@ -4298,7 +4298,7 @@ ElRotation3D  CamStenope::CombinatoireOFPAGen
                {
 
                 if (aModeRansac)
-                        RansacTriplet(k0,k1,k2,V3.size());
+                        RansacTriplet(k0, k1, k2, (int)V3.size());
                 L3.push_front(V3[k0]);
                 L2.push_front(V2[k0]);
                 L3.push_front(V3[k1]);
@@ -4489,7 +4489,7 @@ void  CamStenope::Set_GPS_Orientation_From_Appuis
                      int  aNbRansac
                   )
 {
-     int aNbPts = aVApp.size();
+     int aNbPts = (int)aVApp.size();
      ELISE_ASSERT
      (
         aNbPts>=2,
