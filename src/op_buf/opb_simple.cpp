@@ -1344,7 +1344,7 @@ void  cDilateCondOPB::calc_buf(int ** output,int *** input)
               for (int aK=0 ; (!Ok) && (aK<mNbVois) ; aK++)
               {
                    const Pt2di * aV = mVois+ aK;
-                   Ok = aFoncToDil[aV->y][anX+aV->x];
+                   Ok = (aFoncToDil[aV->y][anX+aV->x] != 0);
               }
          }
          anO[anX] = Ok;

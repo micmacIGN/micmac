@@ -77,7 +77,7 @@ template <class tParam> void     GenZonec
        if (aParam.GZC_StopOnNewStep())
           return;
 
-       int aNbCur = aVCur->size();
+       int aNbCur = (int)aVCur->size();
        for (int aKp=0 ; aKp<aNbCur ; aKp++)
        {
            Pt2di aP = (*aVCur)[aKp];

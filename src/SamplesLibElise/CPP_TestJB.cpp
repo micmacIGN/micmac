@@ -115,13 +115,15 @@ int command_correctPlanarPolygons( int argc, char **argv )
 //------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------
 
-#if ELISE_QT_VERSION >=4
+//~ #if ELISE_QT_VERSION >=4
+#if 0
 	#include "../saisieQT/include_QT/Cloud.h"
 #endif
 
 void getPlyBoundingBox( const string &aFilename, Pt3dr &oP0, Pt3dr &oP1 )
 {
-	#if ELISE_QT_VERSION >=4
+	//~ #if ELISE_QT_VERSION >=4
+	#if 0
 		GlCloud *ply = GlCloud::loadPly(aFilename);
 		if ( !ply) ELISE_ERROR_EXIT("cannot load ply file [" << aFilename << ']');
 
