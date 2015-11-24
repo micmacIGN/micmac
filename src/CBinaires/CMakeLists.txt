@@ -191,6 +191,9 @@ if (NOT ${BUILD_ONLY_ELISE_MM3D})
         add_executable(to8Bits  to8Bits.c)
         INSTALL(TARGETS to8Bits RUNTIME DESTINATION ${Install_Dir})
 
+        add_executable(Vino  Vino.c)
+        INSTALL(TARGETS Vino RUNTIME DESTINATION ${Install_Dir})
+
         # for x11 tools
         if (X11_FOUND)
                 add_executable(SaisieAppuisInit  SaisieAppuisInit.c)

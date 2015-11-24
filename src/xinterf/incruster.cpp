@@ -321,14 +321,9 @@ void VideoWin_Visu_ElImScr::write_image_out(Pt2di p0_src,Pt2di p0_dest,Pt2di sz)
 extern Im2D_INT4  Ok_eLise();
 
 
+/*
 ElXim  VideoWin_Visu_ElImScr::StdIm(Video_Win w)
 {
-/*
-    Tiff_Im  tif("/home/pierrot/ELISE/data/Ok_eLiSe.tif");
-    Pt2di Sz0 = tif.sz();
-    Im2D_U_INT1 E(Sz0.x,Sz0.y);
-    ELISE_COPY(tif.all_pts(),tif.in(),E.out());
-*/
     Im2D_INT4  E = Ok_eLise();
     Pt2di Sz0 = E.sz();
 
@@ -352,8 +347,42 @@ sz = Inf(sz,w.sz());
     ElXim aRes = ElXim(w,sz,Virgule(R.in(),G.in(),B.in()),w.prgb());
 
     return aRes;
-
 }
+
+GnuLinux 256,205
+*/
+
+ElXim  VideoWin_Visu_ElImScr::StdIm(Video_Win w)
+{
+
+    Tiff_Im aGnuxTiff =   MMIcone("Gnux");
+    Tiff_Im aMikMakTiff = MMIcone("MikMak");
+
+    Pt2di aSzG = aGnuxTiff.sz();
+    Pt2di aSzM = aMikMakTiff.sz();
+    Pt2di aSz(2*aSzG.x,aSzG.y+aSzM.y);
+
+    Im2D_U_INT1 R(aSz.x,aSz.y,255);
+    Im2D_U_INT1 G(aSz.x,aSz.y,255);
+    Im2D_U_INT1 B(aSz.x,aSz.y,255);
+         
+    ELISE_COPY(rectangle(Pt2di(0,0),aSzG),aGnuxTiff.in(),Virgule(R.out(),G.out(),B.out()));
+
+    Pt2di aTr1 = Pt2di(0,aSzG.y);
+    ELISE_COPY(rectangle(aTr1,aSzM+aTr1),trans(aMikMakTiff.in(),-aTr1),Virgule(R.out(),G.out(),B.out()));
+    Pt2di aTr2 = Pt2di(aSzG.x,0);
+    ELISE_COPY(rectangle(aTr2,aSzM+aTr2),trans(aMikMakTiff.in(),-aTr2),Virgule(R.out(),G.out(),B.out()));
+
+    Pt2di aTr3 = Pt2di(aSzG.x,aSzM.y);
+    ELISE_COPY(rectangle(aTr3,aSzG+aTr3),trans(aGnuxTiff.in(),-aTr3),Virgule(R.out(),G.out(),B.out()));
+
+    ElXim aRes = ElXim(w,aSz,Virgule(R.in(),G.in(),B.in()),w.prgb());
+
+
+    return aRes;
+}
+
+
 
 void VideoWin_Visu_ElImScr::InscrustImage
      (
