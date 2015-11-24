@@ -982,7 +982,7 @@ void cGLData::GprintBits(const size_t size, const void * const ptr)
     unsigned char byte;
     int i, j;
 
-    for (i=size-1;i>=0;i--)
+    for (i=(int)(size-1);i>=0;i--)
     {
         for (j=7;j>=0;j--)
         {

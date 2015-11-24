@@ -118,7 +118,7 @@ template <class Type,class TAttrLnk> class cMergingNode
 
          void EraseFromFathers(tNode * aPere)
          {
-            int aNbSupr = mFathers.erase(aPere);
+            int aNbSupr = (int)mFathers.erase(aPere);
             ELISE_ASSERT(aNbSupr==1,"Chek failed in mRoots.erase/UpdateAdoption");
          }
 
@@ -266,7 +266,7 @@ template <class Type,class TAttrLnk,class TParam>
                    tSetN & aNewVois
               )
 {
-   int aNbSupr = mRoots.erase(anAdopted);
+   int aNbSupr = (int)mRoots.erase(anAdopted);
    ELISE_ASSERT(aNbSupr==1,"Chek failed in mRoots.erase/UpdateAdoption");
 
    int aNbPereGot = 0;  // Pour checker
@@ -414,7 +414,7 @@ template <class Type,class TAttrLnk,class TParam>
     if (mNivShow >=3)
        std::cout << " Pair " << aSetPair.size() << " Sets " <<  aVV1.size() << " " << aVV2.size() << "\n";
     // mParam.OnNewCandidate(aMerge);
-    return aSetPair.size();
+    return (int)aSetPair.size();
 }
 
 

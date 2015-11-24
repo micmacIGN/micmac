@@ -146,7 +146,7 @@ void cPtHom::AddMesureInImage(cImagH * aI2,const Pt2dr & aP2)
 
 int cPtHom::NbIm() const
 {
-   return mMesures.size();
+   return (int)mMesures.size();
 }
 
 
@@ -227,7 +227,7 @@ void cPtHom::ShowAll()
        const cPtHom & aH = **itH;  // Sinon recycle
        if (aH.mCptArc)
        {
-           int aNbS = aH.mMesures.size();
+           int aNbS = (int)aH.mMesures.size();
            cStatH &  aStat = aDicoStat[aNbS];
            if (aNbS==1)
            {

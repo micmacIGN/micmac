@@ -255,7 +255,7 @@ std::string StdWorkdDir(const std::string & aValWD,const std::string & aNameFile
 void MakeFileDirCompl(std::string & aD)
 {
    const char * aC = aD.c_str();
-   int aL = strlen(aC);
+   int aL = (int)strlen(aC);
    if ( (aL==0) || ( (aC[aL-1]!='/') && (aC[aL-1]!='\\') ) )
    {
           aD = aD + '/';
@@ -463,7 +463,7 @@ int  StringDcraw(const std::string & aStr)
 {
     std::vector<char *> anAM= ToArgMain(aStr);
 
-    int aRes = el_dcraw_main(anAM.size()-1,const_cast<const char **>(&anAM[1]));
+    int aRes = el_dcraw_main((int)(anAM.size() - 1),const_cast<const char **>(&anAM[1]));
 
     delete [] anAM[0];
     return aRes;
@@ -488,7 +488,7 @@ void GlobStdAdapt2Crochet(std::string & aStr)
 std::string QUOTE(const std::string & aStr)
 {
    const char * aC = aStr.c_str();
-   int aL = strlen(aC);
+   int aL = (int)strlen(aC);
    if (aL==0) return aStr;
 
 
