@@ -176,25 +176,33 @@ std::list<std::string>  TheEmptyListEnum;
 
 bool MMVisualMode = false;
 
-std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::string aSubst)
+std::string MakeStrFromArgcARgvWithSubst(int  argc,char** argv,int aKSubst,std::string aSubst, bool aProtect)
 {
-   std::string aRes;
-   for (int aK=0 ; aK<argc ; aK++)
-   {
-      aRes = aRes + ((aK== aKSubst) ? aSubst: std::string(argv[aK])) + " ";
-   }
+	if (aProtect) aSubst = PATTERN_QUOTE(aSubst);
+ 
+	std::string aRes;
+	for (int aK=0 ; aK<argc ; aK++)
+	{
+		if (aK == aKSubst)
+			aRes = aRes + aSubst + " ";
+		else
+		{
+			const string str(argv[aK]);
+			aRes = aRes + (aProtect ? PATTERN_QUOTE(str) : str) + " ";
+		}
+	}
 
-   return aRes;
+	return aRes;
 }
 
-std::string MakeStrFromArgcARgv(int  argc,char** argv)
+std::string MakeStrFromArgcARgv( int argc,char **argv, bool aProtect )
 {
-     return MakeStrFromArgcARgvWithSubst(argc,argv,-1,"");
+     return MakeStrFromArgcARgvWithSubst(argc, argv, -1, "", aProtect);
 }
 
-std::string SubstArgcArvGlob(int aKSubst,std::string aSubst)
+std::string SubstArgcArvGlob(int aKSubst,std::string aSubst, bool aProtect)
 {
-     return MakeStrFromArgcARgvWithSubst(MemoArgc,MemoArgv, aKSubst,aSubst);
+     return MakeStrFromArgcARgvWithSubst(MemoArgc, MemoArgv, aKSubst, aSubst, aProtect);
 }
 
 int MemoArgc=-1;
@@ -931,8 +939,11 @@ int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIt
             aRes = system_call( aCom.c_str() );
     #else
 // std::cout << "SYS " << __FILE__ << __LINE__ << " " << aCom << "\n";
-        // aRes = system_call(aCom.c_str());
+		#ifdef __TRACE_SYSTEM__
+        aRes = system_call(aCom.c_str());
+      #else
         aRes = system(aCom.c_str());
+      #endif
 // std::cout << "SYS " << __FILE__ << __LINE__ << " " << aRes << " " << aCom << "\n";
     #endif
     if ((aRes != 0) && (!aSVP))
