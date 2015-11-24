@@ -1746,6 +1746,27 @@
 </orientation>
 
 
+<Xml_StatVino Nb="1" Class="true" ToReference="true">
+     <Name Type="std::string" Nb="1">                        </Name>
+     <Nb  Nb="1"    Type="double" >                          </Nb>
+     <Soms  Nb="*" Type="double" Container="std::vector">    </Soms>
+     <Soms2  Nb="*" Type="double" Container="std::vector">   </Soms2>
+     <ECT    Nb="*" Type="double" Container="std::vector">   </ECT>
+     <VLow    Nb="*" Type="double" Container="std::vector">  </VLow>
+     <VHigh    Nb="*" Type="double" Container="std::vector"> </VHigh>
+</Xml_StatVino>
+
+<Xml_EnvVino  Nb="1" Class="true" ToReference="true">
+    <SzW Nb="1" Type="Pt2di">                  </SzW>
+    <LargAsc Nb="1" Type="int">                </LargAsc>
+    <SzIncr Nb="1" Type="Pt2di">               </SzIncr>
+    <ZoomBilin Nb="1" Type="bool">             </ZoomBilin>
+    <SpeedZoomGrab Nb="1" Type="double">       </SpeedZoomGrab>
+    <SpeedZoomMolette Nb="1" Type="double">    </SpeedZoomMolette>
+    <Stats Nb="*" RefType="Xml_StatVino">      </Stats>
+</Xml_EnvVino>
+
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>

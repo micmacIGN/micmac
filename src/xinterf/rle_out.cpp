@@ -84,7 +84,8 @@ class  RLE_Out_Ras_W_Comp : public  Out_Ras_W_Comp
            const Arg_Output_Comp &  ,
            const Data_El_Geom_GWin *,
            Data_Elise_Raster_W     *,
-           Data_Elise_Palette      *
+           Data_Elise_Palette      *,
+           bool  OnYDiff
       );
 
 
@@ -110,6 +111,8 @@ class  RLE_Out_Ras_W_Comp : public  Out_Ras_W_Comp
 
       U_INT2 *  _zx;
       U_INT2 *  _wx0;
+      bool      mOnYDiff;
+      bool      _LineInProgr;
 
 };
 
@@ -119,11 +122,14 @@ RLE_Out_Ras_W_Comp::RLE_Out_Ras_W_Comp
       const Arg_Output_Comp &  arg   ,
       const Data_El_Geom_GWin * geom ,
       Data_Elise_Raster_W     * derw ,
-      Data_Elise_Palette      * pal
+      Data_Elise_Palette      * pal,
+      bool                      OnYDiff
 ) :
-      Out_Ras_W_Comp(arg,geom,derw,pal)
+      Out_Ras_W_Comp(arg,geom,derw,pal),
+      mOnYDiff      (OnYDiff)
       // _u_last_y,_w_last_x0 and _w_last_x1 initialized in update when (! _first)
 {
+   
 
     geom->box_user_geom(_pu1,_pu2);
     _line_lut = _derd->alloc_line_buf(_pu2.x-_pu1.x+2);
@@ -163,6 +169,7 @@ void RLE_Out_Ras_W_Comp::flush_image(void)
        interval_user_to_window(wy0,wy1,_u_last_y,_u_last_y+1,_tr.y,_sc.y);
        wy0 = ElMax(0,wy0);
        wy1 = ElMin(_sz.y,wy1);
+// std::cout << "WY " << wy0 << " " << wy1  << " " << _w_last_x0 << " " << _w_last_x1 << "\n";
        if (wy0 != wy1)
        {
             memcpy
@@ -176,6 +183,7 @@ void RLE_Out_Ras_W_Comp::flush_image(void)
                 _derw->flush_bli(_w_last_x0,_w_last_x1,wy);
            _derd->disp_flush();
        }
+
    }
 }
 
@@ -191,13 +199,43 @@ void RLE_Out_Ras_W_Comp::update(const Pack_Of_Pts * p,const Pack_Of_Pts * v)
 
     INT ** vals = ivals->_pts;
 
-     _dep->verif_values_out(vals,nb);
+     // _dep->verif_values_out(vals,nb);
 
 
 
     INT ux0 = rle_pack->x0();
     INT ux1 = ux0 + nb;
     INT uy  = rle_pack->pt0()[1];
+
+    if (mOnYDiff)
+    {
+       int wy0,wy1;
+       interval_user_to_window(wy0,wy1,uy,uy+1,_tr.y,_sc.y);
+       if (wy0==wy1) return;
+/*
+       if (_first || (wy0!= _w_last_y))
+       {
+          _LineInProgr = true;
+       }
+       else if   (ux0!=_u_last_x1)
+       {
+            _LineInProgr = false;
+       }
+
+       _w_last_y = wy0;
+       _u_last_x1 = ux1;
+      
+
+       if (  ! _LineInProgr)
+       {
+            return;
+       }
+*/
+    }
+
+
+     _dep->verif_values_out(vals,nb);
+
 
     REAL tx = _tr.x;
     REAL sx = _sc.x;
@@ -312,10 +350,11 @@ Output_Computed * Data_Elise_Raster_W::rle_out_comp
 (
       const Data_El_Geom_GWin * geom,
       const Arg_Output_Comp & arg,
-      Data_Elise_Palette *    p
+      Data_Elise_Palette *    p,
+      bool                    OnYDiff
 )
 {
-     return  new RLE_Out_Ras_W_Comp(arg,geom,this,p);
+     return  new RLE_Out_Ras_W_Comp(arg,geom,this,p,OnYDiff);
 }
 
 

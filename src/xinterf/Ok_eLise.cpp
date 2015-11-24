@@ -316,6 +316,8 @@ Im2D_INT4  Ok_eLise()
   res.SetLine(0,55,108,1);
   res.SetLine(0,56,108,1);
   res.SetLine(0,57,108,1);
+
+// ELISE_COPY(res.all_pts(),1-res.in(),res.out());
 return res;
 }
 

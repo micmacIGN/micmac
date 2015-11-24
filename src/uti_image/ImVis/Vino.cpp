@@ -36,55 +36,73 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
+
+#include "Vino.h"
+
+#if (ELISE_X11)
 
 
 
-#define DEF_OFSET -12349876
-
-
-int Reduc2MM_main(int argc,char ** argv)
+int Vino_Main(int argc, char ** argv)
 {
-    std::string aNameIn;
-    std::string aNameOut;
-    int         anIntType;
-    int         aDivIm;
-    bool        aHasValSpec;
-    int         aValSpec;
-
-
-    ElInitArgMain
-    (
-	argc,argv,
-	LArgMain()  << EAMC(aNameIn,"Name Image In")
-                    << EAMC(aNameOut,"Name Image Out")
-                    << EAMC(anIntType,"Type of image (int cast, -1 => conserve initial value)")
-                    << EAMC(aDivIm,"Divisor image")
-                    << EAMC(aHasValSpec,"Has special value")
-                    << EAMC(aValSpec,"Special value"),
-	LArgMain()  
-    );	
-
-
-   if (anIntType==-1)
-   {
-      Tiff_Im aTifIn(aNameIn.c_str());
-      anIntType = int (aTifIn.type_el());
-   }
     
+    cAppli_Vino  anAppli(argc,argv);
 
-   MakeTiffRed2
-   (
-       aNameIn,
-       aNameOut,
-       GenIm::type_el(anIntType),
-       aDivIm,
-       aHasValSpec,
-       aValSpec
-   );
-   
-	return EXIT_SUCCESS;
+    anAppli.PostInitVirtual();
+    anAppli.Boucle();
+
+    getchar();
+
+/*
+    VideoWin_Visu_ElImScr  aVV = VideoWin_Visu_ElImScr
+
+     ElPyramScroller * StdPyramide
+                                     (
+                                        Visu_ElImScr &Visu,
+                                        const std::string &,
+                                        std::vector<INT> * EchAcc =0,
+                                        bool Adapt =false,
+                                        bool ForceGray =false
+                        );
+
+
+*/
+
+    return EXIT_SUCCESS;
 }
+
+
+/*
+cPopUpMenuMessage::cPopUpMenuMessage(Video_Win aW,Pt2di aSz) :
+   PopUpMenuTransp(aW,aSz)
+{
+}
+
+void cPopUpMenuMessage::ShowMessage(const std::string & aName, Pt2di aP,Pt3di aCoul)
+{
+     UpP0(aP);
+     Pt2di aLarg = mW.SizeFixedString(aName);
+     mW.fixed_string
+     (
+           Pt2dr(aP+ (mSz+Pt2di(-aLarg.x, aLarg.y))/2)  ,
+           aName.c_str(), mW.prgb()(aCoul.x,aCoul.y,aCoul.z),
+           true
+     );
+}
+
+void cPopUpMenuMessage::Hide()
+{
+    Pop();
+}
+*/
+
+
+#else
+int Vino_Main(int argc, char ** argv)
+{
+   return EXIT_FAILURE;
+}
+#endif
 
 
 

@@ -6769,5 +6769,101 @@ std::string  Mangling( corientation *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_StatVino
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        double & Nb();
+        const double & Nb()const ;
+
+        std::vector< double > & Soms();
+        const std::vector< double > & Soms()const ;
+
+        std::vector< double > & Soms2();
+        const std::vector< double > & Soms2()const ;
+
+        std::vector< double > & ECT();
+        const std::vector< double > & ECT()const ;
+
+        std::vector< double > & VLow();
+        const std::vector< double > & VLow()const ;
+
+        std::vector< double > & VHigh();
+        const std::vector< double > & VHigh()const ;
+    private:
+        std::string mName;
+        double mNb;
+        std::vector< double > mSoms;
+        std::vector< double > mSoms2;
+        std::vector< double > mECT;
+        std::vector< double > mVLow;
+        std::vector< double > mVHigh;
+};
+cElXMLTree * ToXMLTree(const cXml_StatVino &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_StatVino &);
+
+void  BinaryUnDumpFromFile(cXml_StatVino &,ELISE_fp &);
+
+std::string  Mangling( cXml_StatVino *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_EnvVino
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree);
+
+
+        Pt2di & SzW();
+        const Pt2di & SzW()const ;
+
+        int & LargAsc();
+        const int & LargAsc()const ;
+
+        Pt2di & SzIncr();
+        const Pt2di & SzIncr()const ;
+
+        bool & ZoomBilin();
+        const bool & ZoomBilin()const ;
+
+        double & SpeedZoomGrab();
+        const double & SpeedZoomGrab()const ;
+
+        double & SpeedZoomMolette();
+        const double & SpeedZoomMolette()const ;
+
+        std::list< cXml_StatVino > & Stats();
+        const std::list< cXml_StatVino > & Stats()const ;
+    private:
+        Pt2di mSzW;
+        int mLargAsc;
+        Pt2di mSzIncr;
+        bool mZoomBilin;
+        double mSpeedZoomGrab;
+        double mSpeedZoomMolette;
+        std::list< cXml_StatVino > mStats;
+};
+cElXMLTree * ToXMLTree(const cXml_EnvVino &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_EnvVino &);
+
+void  BinaryUnDumpFromFile(cXml_EnvVino &,ELISE_fp &);
+
+std::string  Mangling( cXml_EnvVino *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotPCP

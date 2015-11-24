@@ -36,55 +36,108 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include "StdAfx.h"
 
+#include "Vino.h"
 
+#if (ELISE_X11)
 
-#define DEF_OFSET -12349876
+/*******************************************************************/
+/*                                                                 */
+/*    cPopUpMenuMessage                                            */
+/*                                                                 */
+/*******************************************************************/
 
-
-int Reduc2MM_main(int argc,char ** argv)
+void CorrectNonEmpty(int &aV0,int & aV1, const int & aVMax)
 {
-    std::string aNameIn;
-    std::string aNameOut;
-    int         anIntType;
-    int         aDivIm;
-    bool        aHasValSpec;
-    int         aValSpec;
+    if (aV0>aV1) ElSwap(aV0,aV1);
 
-
-    ElInitArgMain
-    (
-	argc,argv,
-	LArgMain()  << EAMC(aNameIn,"Name Image In")
-                    << EAMC(aNameOut,"Name Image Out")
-                    << EAMC(anIntType,"Type of image (int cast, -1 => conserve initial value)")
-                    << EAMC(aDivIm,"Divisor image")
-                    << EAMC(aHasValSpec,"Has special value")
-                    << EAMC(aValSpec,"Special value"),
-	LArgMain()  
-    );	
-
-
-   if (anIntType==-1)
-   {
-      Tiff_Im aTifIn(aNameIn.c_str());
-      anIntType = int (aTifIn.type_el());
-   }
-    
-
-   MakeTiffRed2
-   (
-       aNameIn,
-       aNameOut,
-       GenIm::type_el(anIntType),
-       aDivIm,
-       aHasValSpec,
-       aValSpec
-   );
-   
-	return EXIT_SUCCESS;
+    if (aV0==aV1)
+    {
+         if (aV1<aVMax) 
+            aV1++;
+         else 
+            aV0--;
+    }
 }
+
+void CorrectRect(Pt2di &  aP0,Pt2di &  aP1,const Pt2di & aSz)
+{
+    aP0 = Inf(aSz,Sup(aP0,Pt2di(0,0)));
+    aP1 = Inf(aSz,Sup(aP1,Pt2di(0,0)));
+
+    CorrectNonEmpty(aP0.x,aP1.x,aSz.x);
+    CorrectNonEmpty(aP0.y,aP1.y,aSz.y);
+}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*    cPopUpMenuMessage                                            */
+/*                                                                 */
+/*******************************************************************/
+
+
+cPopUpMenuMessage::cPopUpMenuMessage(Video_Win aW,Pt2di aSz) :
+   PopUpMenuTransp(aW,aSz)
+{
+}
+
+void cPopUpMenuMessage::ShowMessage(const std::string & aName, Pt2di aP,Pt3di aCoul)
+{
+     UpP0(aP);
+     Pt2di aLarg = mW.SizeFixedString(aName);
+     mW.fixed_string
+     (
+           Pt2dr(aP+ (mSz+Pt2di(-aLarg.x, aLarg.y))/2)  ,
+           aName.c_str(), mW.prgb()(aCoul.x,aCoul.y,aCoul.z),
+           true
+     );
+}
+
+void cPopUpMenuMessage::Hide()
+{
+    Pop();
+}
+
+/*******************************************************************/
+/*                                                                 */
+/*    cStatImageRehauss                                            */
+/*                                                                 */
+/*******************************************************************/
+
+
+void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc)
+{
+   int aNbCh = aFonc.dimf_out();
+   aStat.Soms().resize(aNbCh,0.0);
+   aStat.Soms2().resize(aNbCh,0.0);
+   aStat.ECT().resize(aNbCh,0.0);
+   aStat.VLow().resize(aNbCh,0.0);
+   aStat.VHigh().resize(aNbCh,0.0);
+   Symb_FNum aSF(aFonc);
+
+   ELISE_COPY
+   (
+        aFlux,
+        Virgule(1.0,aSF,Square(aSF)),
+        Virgule
+        (
+            sigma(aStat.Nb()),
+            sigma(VData(aStat.Soms()),aNbCh)  | VMin(VData(aStat.VLow()),aNbCh) | VMax(VData(aStat.VHigh()),aNbCh),
+            sigma(VData(aStat.Soms2()),aNbCh)
+        )
+   );
+
+   for (int aK=0 ; aK<aNbCh ; aK++)
+   {
+         aStat.Soms()[aK] /= aNbCh;
+         aStat.Soms2()[aK] /= aNbCh;
+         aStat.ECT()[aK] = sqrt(ElMax(0.0,aStat.Soms2()[aK]-ElSquare(aStat.Soms()[aK])));
+   }
+}
+
+
+#endif
 
 
 

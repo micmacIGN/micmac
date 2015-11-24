@@ -201,13 +201,13 @@ int CPP_SATDef2D_main(int argc,char ** argv)
 
 
 
-    //aResX = (aImX.in() - aGMinx) * (255.0 / ElMax(aGMaxx-aGMinx,1e-3));
+    aResX = (aImX.in() - aGMinx) * (255.0 / ElMax(aGMaxx-aGMinx,1e-3));
     //aResX = StdFoncChScale(aImX,Pt2dr(0,0), Pt2dr(1.f/aScale,1.f/aScale));
 
     ELISE_COPY
     (
         aTiffX.all_pts(),
-        aImX.in(),//aResX,
+        aResX,
         aTiffX.out()
     );
 
