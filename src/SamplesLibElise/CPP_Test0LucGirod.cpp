@@ -211,7 +211,7 @@ int  Luc_main_corner_crop(int argc,char ** argv){
     const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
     std::vector<std::string> aVectIm=*aSetIm;
-    int nbIm=aVectIm.size();
+    int nbIm=(int)aVectIm.size();
 
     vector<vector<Pt2dr> > Pts;
     vector<int> SzX, SzY;
@@ -388,7 +388,7 @@ vector<SpatioTempImage> LoadGrpImages(string aDir, std::string aPatIm, std::stri
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
     std::vector<std::string> aVectIm = *aSetIm;
-    int nbIm = aVectIm.size();
+    int nbIm = (int)aVectIm.size();
 
     vector<SpatioTempImage> aGrIm;
 
@@ -456,7 +456,7 @@ Im2D_U_INT1 Window_Maker(SpatioTempImage aIm, Pt2di aCtrPt, int aSzW)
 double Correlator(vector<vector<float> > aWindow1, vector<vector<float> > aWindow2)
 {
     double aScore=0;
-    int aSz = aWindow1.size();
+    int aSz = (int)aWindow1.size();
     for (int i = 0; i < aSz; i++)
     {
         for (int j = 0; j < aSz; j++)

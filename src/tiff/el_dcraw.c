@@ -22,6 +22,7 @@
    $Revision: 1.476 $
    $Date: 2015/05/25 02:29:14 $
  */
+#include "disable_msvc_warnings.h"
 
 #define DCRAW_VERSION "9.26"
 
@@ -67,6 +68,7 @@
 		#include <io.h>
 		#define isatty _isatty
 		#define setmode _setmode
+		#define swab( src, dst, len) _swab((char *)src, (char *)dst, len)
 
 		// assuming M. Coffin knows
 		#pragma warning( disable : 4018 ) // signed/unsigned mismatch
@@ -6506,7 +6508,7 @@ void CLASS parse_ciff (int offset, int length, int depth)
       fread_checked (artist, 64, 1, ifp);
     if (type == 0x080a) {
       fread_checked (make, 64, 1, ifp);
-      fseek (ifp, strlen(make) - 63, SEEK_CUR);
+      fseek (ifp, (long int)(strlen(make) - 63), SEEK_CUR);
       fread_checked (model, 64, 1, ifp);
     }
     if (type == 0x1810) {
@@ -8571,7 +8573,7 @@ void CLASS identify()
   while (*--cp == ' ') *cp = 0;
   cp = model + strlen(model);
   while (*--cp == ' ') *cp = 0;
-  i = strlen(make);			/* Remove make from model */
+  i = (int)strlen(make);			/* Remove make from model */
   if (!strncasecmp (model, make, i) && model[i++] == ' ')
     memmove (model, model+i, 64-i);
   if (!strncmp (model,"FinePix ",8))
@@ -9436,7 +9438,7 @@ void CLASS convert_to_rgb()
       oprof[0] += (pbody[i*3+3] + 3) & -4;
     }
     memcpy (oprof+32, pbody, sizeof pbody);
-    oprof[pbody[5]/4+2] = strlen(name[output_color-1]) + 1;
+    oprof[pbody[5]/4+2] = (unsigned int)strlen(name[output_color-1]) + 1;
     memcpy ((char *)oprof+pbody[8]+8, pwhite, sizeof pwhite);
     pcurve[3] = (short)(256/gamm[5]+0.5) << 16;
     for (i=4; i < 7; i++)
@@ -9597,7 +9599,7 @@ void CLASS tiff_set (struct tiff_hdr *th, ushort *ntag,
   if (type == 1 && count <= 4)
     FORC(4) tt->val.c[c] = val >> (c << 3);
   else if (type == 2) {
-    count = strnlen((char *)th + val, count-1) + 1;
+    count = (int)strnlen((char *)th + val, count-1) + 1;
     if (count <= 4)
       FORC(4) tt->val.c[c] = ((char *)th)[val+c];
   } else if (type == 3 && count <= 2)
