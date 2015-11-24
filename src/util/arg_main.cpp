@@ -205,11 +205,6 @@ std::string SubstArgcArvGlob(int aKSubst,std::string aSubst, bool aProtect)
      return MakeStrFromArgcARgvWithSubst(MemoArgc, MemoArgv, aKSubst, aSubst, aProtect);
 }
 
-std::string MakeStrFromArgcARgvNew(int  argc,char** argv)
-{
-     return MakeStrFromArgcARgv(argc,argv,false);
-}
-
 int MemoArgc=-1;
 char ** MemoArgv=0;
 static std::string GlobArcArgv;
