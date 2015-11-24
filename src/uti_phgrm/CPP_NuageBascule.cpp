@@ -315,7 +315,7 @@ int  NuageBascule_main(int argc,char ** argv)
             std::string aPrefRes = StdPrefix(aNameRes);
             int aBrd=5;
             Pt2di aPBrd(aBrd,aBrd);
-            std::string aComBase =  MMBinFile(MM3DStr) +  MakeStrFromArgcARgvNew(argc,argv);
+            std::string aComBase =  MMBinFile(MM3DStr) +  MakeStrFromArgcARgv(argc,argv);
             bool Ok;
             Box2di      aBoxInGlob  = BoxEnglobMasq(aDirIn + aNuageIn.Image_Profondeur().Val().Masq(),&Ok);
 
