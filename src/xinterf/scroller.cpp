@@ -72,7 +72,7 @@ ElImScroller::ElImScroller
      mSetInit            (false)
 {
 
-// std::cout << "DIMOUT " << aDimOut  << " " << sc_im << "\n"; getchar();
+ // std::cout << "DIMOUT " << aDimOut  << " " << sc_im  << " " << this << "\n"; 
 } 
 
 
@@ -651,6 +651,12 @@ Fonc_Num PckBitImScroller::in()
    return _pbim.in();
 }
 
+Pt2di  PckBitImScroller::SzIn() 
+{
+   return _pbim.sz();
+}
+
+
 REAL PckBitImScroller::TimeUnCompr() const
 {
    return mTimeUnCompr;
@@ -699,6 +705,12 @@ RGB_PckbImScr::RGB_PckbImScr
    mBIm     (mIm[2])
 {
 }
+
+Pt2di RGB_PckbImScr::SzIn() 
+{
+   return mP1Im-mP0Im;
+}
+                      
 
 
 RGB_PckbImScr::~RGB_PckbImScr()
@@ -853,6 +865,8 @@ ElImScroller * ElPyramScroller::CurScale()
    return this;
 }
 
+
+
 void ElPyramScroller::LoadXImage(Pt2di p0,Pt2di p1,bool quick)
 {
 
@@ -872,6 +886,7 @@ void ElPyramScroller::LoadXImage(Pt2di p0,Pt2di p1,bool quick)
             }
         }
 
+
    // Si pas trouvee Recherche de la plus haute resolution < a la resolution demandee
         if (! ScrClosest)
         {
@@ -880,6 +895,7 @@ void ElPyramScroller::LoadXImage(Pt2di p0,Pt2di p1,bool quick)
                  if (_subs[k]->sc_im() > ScrClosest->sc_im())
                     ScrClosest = _subs[k];
         }
+ // std::cout << "ElPyramScroller::LoadXImage " << _cur << " => " <<   ScrClosest << "\n";
 
         if ((_cur!=0) && (_cur != ScrClosest))
            _cur->no_use();
@@ -944,6 +960,10 @@ REAL ElPyramScroller::TimeReformat() const
 Fonc_Num ElPyramScroller::in()
 {
    return _subs[0]->in(); 
+}
+Pt2di ElPyramScroller::SzIn()
+{
+   return _subs[0]->SzIn(); 
 }
 
 void  ElPyramScroller::SetAlwaysQuick(bool aVal)
