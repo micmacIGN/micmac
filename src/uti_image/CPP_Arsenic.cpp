@@ -72,7 +72,7 @@ string FindMaltEtape(int ResolModel, std::string aNameIm, std::string aPatModel)
         const std::vector<std::string> * aSetModel = aICNM->Get(aPat);
 
         std::vector<std::string> aVectModel=*aSetModel;
-        int nbModel=aVectModel.size();
+        int nbModel = (int)aVectModel.size();
 
         int aEtape = 0;
         for (int i=0 ; i<nbModel ; i++)
@@ -103,7 +103,7 @@ vector<ArsenicImage> LoadGrpImages(string aDir, std::string aPatIm, int ResolMod
     //Scaling the images the comply with MM-Initial-Model
     list<string> ListConvert, ListVig;
     vector<std::string> VectImSc,VectMasq;
-    int nbIm=aVectIm.size();
+    int nbIm = (int)aVectIm.size();
     char ResolModelch[3];sprintf(ResolModelch, "%02d", ResolModel);string ResolModelStr=(string)ResolModelch;
     if(ResolModel<10){ResolModelStr=ResolModelStr.substr(1,1);}
     //If a vignette correction folder is entered
@@ -186,7 +186,7 @@ cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMode
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
     std::vector<std::string> aVectIm=*aSetIm;
-    int nbIm=aVectIm.size();
+    int nbIm = (int)aVectIm.size();
     cl_MatPtsHom aMatPtsHomol;
 
     //Loading all images and usefull metadata (masks...)
@@ -263,7 +263,7 @@ cl_MatPtsHom ReadPtsHom3D(string aDir,string aPatIm, string InVig, int ResolMode
 cl_MatPtsHom TiePtsFilter(cl_MatPtsHom aMatPtsHomol, double aThresh)
 {
     //Computing the mean of the correction factor
-    int nbIm=aMatPtsHomol.aMat.size();
+    int nbIm = (int)aMatPtsHomol.aMat.size();
     for (int numIm=0 ; numIm<nbIm ; numIm++)
     {
         cout<<"[Im "<< numIm <<"] NbPts before filter : "<<aMatPtsHomol.aMat[numIm].size()<<endl;
@@ -509,7 +509,7 @@ int  Arsenic_main(int argc,char ** argv)
             const std::vector<std::string> * aSetIm = aICNM->Get(aPatIm);
 
             std::vector<std::string> aVectIm=*aSetIm;
-            int nbIm=aVectIm.size();
+            int nbIm = (int)aVectIm.size();
 
             ELISE_ASSERT(nbIm>1,"Less than two images found with this pattern");
 

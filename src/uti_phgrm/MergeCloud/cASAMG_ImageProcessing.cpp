@@ -232,7 +232,7 @@ void cASAMG::ComputeIncidKLip(Fonc_Num fMasq,double aPenteInPixel,int aNumQual)
                 cCC_GetVPt aCC;
                 OneZC(aP,true,aTMarq,1,0,aTLab,2,aCC);
 
-                int aNbZ = aCC.mVPts.size();
+                int aNbZ = (int)aCC.mVPts.size();
                 bool ToSupr = (aNbZ < 20);
 
                 for (int aKP=0; ToSupr && (aKP<aNbZ) ; aKP++)

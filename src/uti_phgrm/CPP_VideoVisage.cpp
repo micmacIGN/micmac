@@ -159,7 +159,7 @@ cVideoVisage::cVideoVisage(int argc,char ** argv) :
         mSetIm = mICNM->Get(mPatIm);
         mPatIm =  QUOTE(mPatIm) ;
 
-        mImMedian = NameIm (Str5OfInt(mSetIm->size()/2));
+        mImMedian = NameIm (Str5OfInt((int)(mSetIm->size() / 2)));
 
 
         DoHomol();

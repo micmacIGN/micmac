@@ -400,7 +400,7 @@ void cTmpPile::SetPPrec(cTmpPile & aPrec,float aExpFact)
 
 void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
 {
-     int aNb = aVTmp.size();
+     int aNb = (int)aVTmp.size();
      aVTmp[0].mNewPdsp = aVTmp[0].mPds0;
      aVTmp[0].mNewZPp  = aVTmp[0].mZP0;
      aVTmp[0].mNewNbp  = aVTmp[0].mNb0;
@@ -415,7 +415,7 @@ void OneSensMoyTmpPile(std::vector<cTmpPile> & aVTmp)
      aVTmp[aNb-1].mNewPdsm = aVTmp[aNb-1].mPds0;
      aVTmp[aNb-1].mNewZPm = aVTmp[aNb-1].mZP0;
      aVTmp[aNb-1].mNewNbm = aVTmp[aNb-1].mNb0;
-     for (int aK=(aVTmp.size()) -2 ; aK>=0 ; aK--)
+     for (int aK=(int)(aVTmp.size() - 2); aK>=0 ; aK--)
      {
           aVTmp[aK].mNewPdsm = aVTmp[aK].mPds0 + aVTmp[aK+1].mNewPdsm * aVTmp[aK].mPNext;
           aVTmp[aK].mNewZPm  = aVTmp[aK].mZP0  + aVTmp[aK+1].mNewZPm  * aVTmp[aK].mPNext;
@@ -474,7 +474,7 @@ bool IsMaxLoc(const std::vector<cTmpPile> & aVPile,int aK,float anEc,int aStep,i
 bool IsMaxLoc(const std::vector<cTmpPile> & aVPile,int aK,float anEc)
 {
     return    IsMaxLoc(aVPile,aK,anEc,-1,-1)
-           && IsMaxLoc(aVPile,aK,anEc, 1,aVPile.size());
+           && IsMaxLoc(aVPile, aK, anEc, 1, (int)aVPile.size());
 }
 
 double PdsCptr(double aDZ,double aSeuil)
@@ -575,7 +575,7 @@ std::vector<cElPile>  ComputeExpEv(const std::vector<cElPile> & aVPile,double aR
    {
          IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK  ,aSCpt,-1,            -1);
          // IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK+1,aSCpt, 1,aResTmp.size());
-         IncreCptr(aTmp,aResTmp[aI],aResTmp[aI].mK+1,aSCpt, 1,aTmp.size());
+         IncreCptr(aTmp, aResTmp[aI], aResTmp[aI].mK + 1, aSCpt, 1, (int)aTmp.size());
    }
 
 
@@ -1190,7 +1190,7 @@ template <class Type> void cFusionCarteProf<Type>::DoOneBloc(int aKB,const Box2d
                 std::vector<cElPile> aVPile = ComputeExpEv(aPCel,mResolPlaniEquiAlt,mSpecA);
 
                 aLVP.push_back(aVPile);
-                aTImNb.oset(aQ0,aVPile.size());
+                aTImNb.oset(aQ0, (int)aVPile.size());
 
                 if (isDebug)
                 {

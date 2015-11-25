@@ -1341,7 +1341,7 @@ template <class Type,class TyBase> void  Im2D<Type,TyBase>::PutData
    Type & aV = data()[aP.y][aP.x];
    if (aModeBin)
    {
-         int aNb= fwrite(&aV,sizeof(Type),1,aFP);
+         size_t aNb= fwrite(&aV,sizeof(Type),1,aFP);
          ELISE_ASSERT(aNb==1,"cElNuage3DMaille::PlyPutData");
 
    }
@@ -2053,7 +2053,7 @@ template <class Type,class Type_Base> Im2D<Type,Type_Base>
                      aV.push_back(aVal);
              }
 
-             int aNb = aV.size();
+             size_t aNb = aV.size();
              if (aNb==0)
              {
                 aRes.data()[aY][aX] = ValDef;
@@ -2073,7 +2073,7 @@ template <class Type,class Type_Base> Im2D<Type,Type_Base>
                  double  aSomV= 0;
                  double  aSomP= 0;
                  double aTol = ElMax(aTolTh,1/double(aNb-1));
-                 for (int aK=0 ; aK<aNb; aK++)
+                 for (size_t aK=0 ; aK<aNb; aK++)
                  {
                      double aRank = ElAbs(aK/double(aNb-1) - 0.5);
                      double aPds = ElMax(0.0,aTol-aRank);

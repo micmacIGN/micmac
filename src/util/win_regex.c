@@ -26,7 +26,7 @@
 #endif
 
 #ifdef WIN32
-#pragma warning( disable : 4244 4018 4305 )
+#include "disable_msvc_warnings.h"
 
 #define _GNU_SOURCE
 
@@ -3146,7 +3146,7 @@ re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, cons
   /* We fill all the registers internally, independent of what we
      return, for use in backreferences.  The number here includes
      an element for register zero.  */
-  unsigned num_regs = bufp->re_nsub + 1;
+  unsigned num_regs = (unsigned)(bufp->re_nsub + 1);
 
   /* The currently active registers.  */
   unsigned lowest_active_reg = NO_LOWEST_ACTIVE_REG;
@@ -4605,7 +4605,7 @@ re_comp (const char *s)
   /* Match anchors at newlines.  */
   re_comp_buf.newline_anchor = 1;
 
-  ret = regex_compile (s, strlen (s), re_syntax_options, &re_comp_buf);
+  ret = regex_compile (s, (int)strlen (s), re_syntax_options, &re_comp_buf);
 
   /* Yes, we're discarding `const' here.  */
   return (char *) re_error_msg[(int) ret];
@@ -4615,7 +4615,7 @@ re_comp (const char *s)
 int
 re_exec (const char *s)
 {
-  const int len = strlen (s);
+  const int len = (int)strlen (s);
   return
     0 <= re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0);
 }
@@ -4707,7 +4707,7 @@ regcomp (regex_t *preg, const char *pattern, int cflags)
 
   /* POSIX says a null character in the pattern terminates it, so we
      can use strlen here in compiling the pattern.  */
-  ret = regex_compile (pattern, strlen (pattern), syntax, preg);
+  ret = regex_compile (pattern, (int)strlen (pattern), syntax, preg);
 
   /* POSIX doesn't distinguish between an unmatched open-group and an
      unmatched close-group: both are REG_EPAREN.  */
@@ -4737,7 +4737,7 @@ regexec (const regex_t *preg, const char *string, size_t nmatch, regmatch_t pmat
   int ret;
   struct re_registers regs;
   regex_t private_preg;
-  int len = strlen (string);
+  int len = (int)strlen (string);
   boolean want_reg_info = !preg->no_sub && nmatch > 0;
 
   private_preg = *preg;
@@ -4752,7 +4752,7 @@ regexec (const regex_t *preg, const char *string, size_t nmatch, regmatch_t pmat
 
   if (want_reg_info)
     {
-      regs.num_regs = nmatch;
+      regs.num_regs = (unsigned int)nmatch;
       regs.start = TALLOC (nmatch, regoff_t);
       regs.end = TALLOC (nmatch, regoff_t);
       if (regs.start == NULL || regs.end == NULL)

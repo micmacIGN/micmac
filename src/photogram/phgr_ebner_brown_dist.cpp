@@ -889,7 +889,7 @@ void InitVars(double * aVLoc,int aNbLoc,const std::vector<double> * aVInit,const
 
     if (aVInit)
     {
-         int aNbInit = aVInit->size();
+         int aNbInit = (int)aVInit->size();
 /*
          if ((aNbInit!=0) && (aNbInit!=aNbLoc))
 	 {

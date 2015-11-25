@@ -1668,7 +1668,7 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
         }\
         const tType  * cStdChantierMultiManipulateur::SvpGet##tEntry(const std::string& anIdBase,const std::string& anIdVal) const\
     {\
-    for (int aK=mVM.size()-1 ; aK>=0 ; aK--)\
+    for (int aK = (int)(mVM.size() - 1) ; aK>=0 ; aK--)\
     {\
     const tType * aRes = mVM[aK]->SvpGet##tEntry(anIdBase,anIdVal);\
     if (aRes)  \
@@ -2079,7 +2079,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     const cInterfChantierNameManipulateur::tSet *  cStdChantierMultiManipulateur::Get(const tKey & aKey)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1) ; aK>=0 ; aK--)
         {
             const tSet * aSet = mVM[aK]->Get(aKey);
             if (aSet!=0)
@@ -2103,7 +2103,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     const cBatchChantDesc *
         cStdChantierMultiManipulateur::BatchDesc(const tKey & aKey) const
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1) ; aK>=0 ; aK--)
         {
             const cBatchChantDesc  * aL = mVM[aK]->BatchDesc(aKey);
             if (aL!=0)
@@ -2117,7 +2117,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     const cShowChantDesc *
         cStdChantierMultiManipulateur::ShowChant(const tKey & aKey) const
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             const cShowChantDesc  * aL = mVM[aK]->ShowChant(aKey);
             if (aL!=0)
@@ -2131,7 +2131,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     cSetName *  cStdChantierMultiManipulateur::GetSet(const tKey & aKey)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             cSetName * aRes =  mVM[aK]->GetSet(aKey);
             if (aRes) return aRes;
@@ -2150,7 +2150,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
         cInterfChantierNameManipulateur  * ancetre
         )
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             cContenuAPrioriImage  * aRes = mVM[aK]->GetAPriori(aName,aKey,ancetre);
             if (aRes != 0)
@@ -2161,7 +2161,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     cStrRelEquiv *  cStdChantierMultiManipulateur::GetEquiv(const tKey & aKey)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             cStrRelEquiv * aRes = mVM[aK]->GetEquiv(aKey);
             if (aRes)
@@ -2176,7 +2176,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     const cInterfChantierNameManipulateur::tRel *
         cStdChantierMultiManipulateur::GetRel(const tKey & aKey)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             if ( mVM[aK]->RelHasKey(aKey))
                 return mVM[aK]->GetRel(aKey);
@@ -2367,7 +2367,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     {
         cTplValGesInit<cResBoxMatr> aRes;
 
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             aRes = mVM[aK]->GetBoxOfMatr(aKey,aName);
             if (aRes.IsInit())
@@ -2383,7 +2383,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     bool  cStdChantierMultiManipulateur::AssocHasKey(const tKey & aKey) const
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             if ( mVM[aK]->AssocHasKey(aKey))
                 return true;
@@ -2394,7 +2394,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     bool  cStdChantierMultiManipulateur::SetHasKey(const tKey & aKey) const
     {
 
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             if ( mVM[aK]->SetHasKey(aKey))
                 return true;
@@ -2403,7 +2403,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
         std::string aKeySsArb,aNameSubDir;
         SplitIn2ArroundCar(aKey,'@',aKeySsArb,aNameSubDir,true);
 
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             if ( mVM[aK]->SetHasKey(aKeySsArb))
                 return true;
@@ -2413,7 +2413,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     bool  cStdChantierMultiManipulateur::RelHasKey(const tKey & aKey)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             if ( mVM[aK]->RelHasKey(aKey))
                 return true;
@@ -2426,7 +2426,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     const bool  *  cStdChantierMultiManipulateur::SetIsIn(const tKey & aKey,const std::string & aName)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1) ; aK>=0 ; aK--)
         {
             const bool * aRes = mVM[aK]->SetIsIn(aKey,aName);
             if (aRes!=0)
@@ -2440,7 +2440,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     cInterfChantierNameManipulateur::tNuplet
         cStdChantierMultiManipulateur::Direct(const tKey & aKey,const tNuplet& aNuple)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             tNuplet  aRes = mVM[aK]->Direct(aKey,aNuple);
             if (cInterfNameCalculator::IsDefined(aRes))
@@ -2466,7 +2466,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
     cInterfChantierNameManipulateur::tNuplet
         cStdChantierMultiManipulateur::Inverse(const tKey & aKey,const tNuplet& aNuple)
     {
-        for (int aK=mVM.size()-1 ; aK>=0 ; aK--)
+        for (int aK = (int)(mVM.size() - 1); aK>=0 ; aK--)
         {
             tNuplet  aRes = mVM[aK]->Inverse(aKey,aNuple);
             if (cInterfNameCalculator::IsDefined(aRes))
@@ -2627,7 +2627,7 @@ bool DebugConvCal() {return false;}
 
         std::string aPref = aSplit[0];
         std::string aStrNum1 = aSplit[1];
-        int aNbDig = aStrNum1.size();
+        int aNbDig = (int)aStrNum1.size();
         int aVMax = round_ni(pow(10.0,aNbDig));
         int aNum1;
         FromString(aNum1,aStrNum1);
@@ -3177,7 +3177,7 @@ void cStdChantierRel::AddAllCpleKeySet
                 */
 
                 for (int  aKB= aKB0 ;aKB<=aKB1 ; aKB++)
-                    aVKB.push_back(mod(aKB,aSetB->size()));
+                    aVKB.push_back(mod(aKB, (int)aSetB->size()));
             }
             else
             {
@@ -3483,7 +3483,7 @@ void cStdChantierRel::AddAllCpleKeySet
             cComputeFiltreRelOr aCFO(itA->Filtre(),mICNM);
 
             // cComputeFiltreRelSsEch * aFSsEch = 0;
-            int aNbSet = itA->KeySets().size();
+            int aNbSet = (int)itA->KeySets().size();
             int aDefDeltaMin = (aNbSet==2) ? -1000000 : 0;
             int aDeltaMin = itA->DeltaMin().ValWithDef(IntSubst(aDefDeltaMin)).Val();
             int aDeltaMax = itA->DeltaMax().Val().Val();
@@ -4005,7 +4005,7 @@ void cInterfChantierNameManipulateur::CorrecNameOrient(std::string & aNameOri)
 {
     if (aNameOri=="NONE") return;
 
-    int aL = strlen(aNameOri.c_str());
+    int aL = (int)strlen(aNameOri.c_str());
     if (aL && (aNameOri[aL-1]==ELISE_CAR_DIR))
     {
         aNameOri = aNameOri.substr(0,aL-1);
@@ -4071,7 +4071,7 @@ cResulMSO cInterfChantierNameManipulateur::MakeStdOrient(std::string & anOri,boo
 
 
         const char * aC = anOri.c_str();
-        int aL = strlen(aC);
+        int aL = (int)strlen(aC);
         if ((aL!=0) &&  (aC[aL-1] == ELISE_CAR_DIR))
         {
             anOri = anOri.substr(0,aL-1);
@@ -4140,7 +4140,7 @@ std::vector<std::string> cInterfChantierNameManipulateur::StdGetVecStr(const std
 void StdCorrecNameHomol(std::string & aNameH,const std::string & aDir)
 {
 
-    int aL = strlen(aNameH.c_str());
+    int aL = (int)strlen(aNameH.c_str());
     if (aL && (aNameH[aL-1]==ELISE_CAR_DIR))
     {
         aNameH = aNameH.substr(0,aL-1);

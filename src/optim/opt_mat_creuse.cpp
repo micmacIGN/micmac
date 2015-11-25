@@ -1328,7 +1328,7 @@ void cElMatCreuseBlocSym::VMAT_GSSR_AddNewEquation_Indexe
 
    tSysCho a2P =  2 * aPds ;
    tSysCho a2PB =  a2P *aB;
-   int aNbBl = aVSB->size();
+   int aNbBl = (int)aVSB->size();
 
    int Y0InBloc =0;
    for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)
@@ -1398,7 +1398,7 @@ void cElMatCreuseBlocSym::SoutraitProduc3x3
    tSysCho * aL2A = aData2[0];
    tSysCho * aL2B = aData2[1];
    tSysCho * aL2C = aData2[2];
-   int aNbBl = aYVSB->size();
+   int aNbBl = (int)aYVSB->size();
    int Y0InBloc = 0;
 
    for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)
@@ -1471,11 +1471,11 @@ cElMatCreuseBlocSym::cElMatCreuseBlocSym
       const  std::vector<int> &              ISolve2Bloc,
       eModePreCond                           aMode
 ) :
-  cElMatCreuseGen  (true,ISolve2Bloc.size(),ISolve2Bloc.size()),
+  cElMatCreuseGen  (true, (int)ISolve2Bloc.size(), (int)ISolve2Bloc.size()),
   mStrBlocs        (strBlocs),
   mISolve2Bloc          (ISolve2Bloc),
-  mNbEl            (ISolve2Bloc.size()),
-  mNbBlocs         (strBlocs.size()),
+  mNbEl            ((int)ISolve2Bloc.size()),
+  mNbBlocs         ((int)strBlocs.size()),
   mBloc0OfCol      (new tBlP [mNbBlocs]),
   mModePC          (aMode),
   mMatPCB          (0),

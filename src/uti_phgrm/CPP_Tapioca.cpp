@@ -727,7 +727,8 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
     const DigeoPoint *pSrc;
     DigeoPoint *pDst = &( all_keypoints[0] );
     int *itIndex = &( all_image_indices[0] );
-    for ( iImage=0; iImage<nbImages; iImage++, itSrc++ )
+    const int nbImages_int = (int)nbImages;
+    for ( int i = 0; i < nbImages_int; i++, itSrc++ )
     {
         nbPoints = itSrc->size();
         if ( nbPoints==0 ) continue;
@@ -735,7 +736,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
         pSrc = &( ( *itSrc )[0] );
         memcpy( pDst, pSrc, nbPoints*sizeof( DigeoPoint ) );
         pDst += nbPoints;
-        while ( nbPoints-- ) *itIndex++=iImage;
+        while (nbPoints--) *itIndex++ = i;
     }
 
     // create a connectivity matrix

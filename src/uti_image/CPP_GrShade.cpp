@@ -132,7 +132,7 @@ int GrShade_main(int argc,char ** argv)
     {
 
     double aPdsDef = aVPdsFiltre.size() ? 0 : 1;
-    for (int aK=aVPdsFiltre.size() ; aK<4 ; aK++)
+    for (int aK=(int)aVPdsFiltre.size() ; aK<4 ; aK++)
        aVPdsFiltre.push_back(aPdsDef);
 
     double aSPdsF = 0;

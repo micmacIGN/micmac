@@ -685,7 +685,7 @@ Im1D_INT4 LutGama(int aNbVal,double aGama,double aValRef,int aMaxVal,double aCoe
 Im1D_INT4 LutIm(const cLutConvertion & aLut,int aMinVal,int aMaxVal,double aCoeff)
 {
    const std::vector<cIntervLutConvertion > & aViLC = aLut.IntervLutConvertion();
-   int aNbV = aViLC.size();
+   int aNbV = (int)aViLC.size();
 
    Im1D_INT4 aRes(round_ni(aViLC[aNbV-1].NivIn()*aCoeff));
    ELISE_ASSERT(aViLC[0].NivIn()==0,"LutConvertion");

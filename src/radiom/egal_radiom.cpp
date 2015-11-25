@@ -202,7 +202,7 @@ int cER_ParamOneSys::NbVarTot() const
 
 int  cER_ParamOneSys::DegMaxRadiom() const
 {
-   return mDeg.size();
+   return (int)mDeg.size();
 }
 
 Pt2di  cER_ParamOneSys::DegXYOfDegRadiom(int aDeg) const
@@ -267,7 +267,7 @@ void cER_MesureOneIm::write(ELISE_fp & aFp) const
 {
    aFp.write_INT4(mKIm);
    aFp.write(mPtIm);
-   aFp.write_INT4(mVal.size());
+   aFp.write_INT4((int)mVal.size());
 
    for (int aK=0 ; aK<int(mVal.size()) ; aK++)
    {
@@ -291,7 +291,7 @@ cER_MesureOneIm cER_MesureOneIm::read(ELISE_fp & aFp)
 
 int cER_MesureOneIm::NBV() const
 {
-   return mVal.size();
+   return (int)mVal.size();
 }
 
 int cER_MesureOneIm::KIm() const
@@ -374,7 +374,7 @@ void cER_MesureNIm::write(ELISE_fp & aFp) const
    }
 
 
-   int aNb = mMes.size();
+   int aNb = (int)mMes.size();
    aFp.write_INT4(aNb);
    for (int aK=0 ; aK<aNb ; aK++)
        mMes[aK].write(aFp);
@@ -417,7 +417,7 @@ int cER_MesureNIm::NBV() const
 
 int cER_MesureNIm::NbMes() const
 {
-   return mMes.size();
+   return (int)mMes.size();
 }
 
 
@@ -693,7 +693,7 @@ int cER_OneIm::InitObs(const Pt2df & aPI,double aV0,const cER_ParamOneSys & aPar
         cER_SysResol::AddCoeff(aVVals[aD],aPN,aParam.DegXYOfDegRadiom(aD),mCoeff);
         if (aD==0)
         {
-             aRes = mCoeff.size();
+             aRes = (int)mCoeff.size();
         }
     }
     return aRes;
@@ -1059,7 +1059,7 @@ cER_Global::cER_Global
     mNumV      (NUMV),
     mParam     (aParam),
     mParamGlob (aParamGlob),
-    mNbCh      (aParam.size()),
+    mNbCh      ((int)aParam.size()),
     mImG0      (0),
     mMoy       (mNbCh),
     mNbEch     (mNbCh),
@@ -1136,7 +1136,7 @@ void cER_Global::DoComputeL1Cple()
    mNbCplOk = 0;
    mPdsTot = 0;
    
-   int aNbRest = mGrIm.size();
+   int aNbRest = (int)mGrIm.size();
    for (std::map<Pt2di,cElemGrapheIm>::iterator itD =mGrIm.begin(); itD!=mGrIm.end() ; itD++)
    {
        cER_OneIm * aI1 = mVecIm[itD->first.x];
@@ -1178,11 +1178,11 @@ void cER_Global::DoComputeL1Cple()
 
 
 
-   int aNbIm  = mVecIm.size();
+   int aNbIm  = (int)mVecIm.size();
    int aNbInc = 3*aNbIm;
    Im1D_REAL8 aVec (aNbInc);
    double * aDataInc = aVec.data();
-   SystLinSurResolu aSys(aNbInc,mNbCplOk*TabNorm().size()+1);
+   SystLinSurResolu aSys(aNbInc,mNbCplOk * (int)(TabNorm().size() + 1));
 
 
    for (int aOffs=0 ; aOffs < 3 ; aOffs++)
@@ -1335,7 +1335,7 @@ void  cER_Global::MakeStatL1ByIm(cER_OneIm * anIm)
            }
         }
    }
-   anIm->NbMesValidL1() = aVDif.size();
+   anIm->NbMesValidL1() = (int)aVDif.size();
    std::sort(aVDif.begin(),aVDif.end());
 
    std::cout << " L1 COMPUT  " <<  anIm->Name()  << " Nb Mes Valid " << aVDif.size() << " CPT " << aCpt << "\n";
@@ -1537,7 +1537,7 @@ cER_Global::~cER_Global()
 
 int  cER_Global::NbIm() const
 {
-   return mVecIm.size();
+   return (int)mVecIm.size();
 }
 
 
@@ -1659,7 +1659,7 @@ void cER_Global::InitSys()
 {
    if (mAMD) return;
 
-   mAMD = new cAMD_Interf(mVecIm.size());
+   mAMD = new cAMD_Interf((int)mVecIm.size());
    for (std::list<cER_MesureNIm>::iterator itM=mMes.begin();itM!=mMes.end();itM++)
    {
        itM-> AddAMD(mAMD);
@@ -1844,7 +1844,7 @@ cER_OneIm * cER_Global::AddIm(const std::string & aName,const Pt2di & aSz)
    cER_OneIm * anIm = new cER_OneIm
                           (
                               this,
-                              mVecIm.size(),
+                              (int)mVecIm.size(),
                               aSz,
                               aName
                           );
@@ -1911,13 +1911,13 @@ void cER_Global::write(ELISE_fp & aFP) const
         mParamGlob[aKCh].write(aFP);
     }
 
-    aFP.write_INT4(mVecIm.size());
+    aFP.write_INT4((INT4)mVecIm.size());
     for (int aK=0 ; aK<int(mVecIm.size()) ; aK++)
     {
           mVecIm[aK]->write(aFP);
     }
 
-    aFP.write_INT4(mMes.size());
+    aFP.write_INT4((INT4)mMes.size());
     for 
     (
         std::list<cER_MesureNIm>::const_iterator itM=mMes.begin();

@@ -420,7 +420,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mICNM->CorrecNameOrient(mOri);
       }
       mSetIm = mICNM->Get(mIms);
-      mNbIm = mSetIm->size();
+      mNbIm = (int)mSetIm->size();
       ELISE_ASSERT((mNbIm>=2)|mUseImSec,"Not Enough image in Pattern");
 
       std::string aKeyOri = "NKS-Assoc-Im2Orient@-" + mOri;

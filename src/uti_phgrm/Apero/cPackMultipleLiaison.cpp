@@ -278,7 +278,7 @@ cOnePtsMult::cOnePtsMult() :
 
 bool cOnePtsMult::OnPRaz() const
 {
-  return mOnPlaneRapOnz;
+  return mOnPlaneRapOnz != 0;
 }
 
 void cOnePtsMult::SetOnPRaz(bool aPRaz)
@@ -288,7 +288,7 @@ void cOnePtsMult::SetOnPRaz(bool aPRaz)
 
 bool cOnePtsMult::MemPtOk() const
 {
-   return mMemPtOk;
+   return mMemPtOk != 0;
 }
 
 void cOnePtsMult::SetMemPtOk(bool aOk)
@@ -824,7 +824,7 @@ Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D,int * aNb) con
 
   if (aNb)
   {
-      *aNb = aVProf.size();
+      *aNb = (int)aVProf.size();
       if (*aNb==0) return Pt3dr(0,0,0);
   }
   else
@@ -839,7 +839,7 @@ Pt3dr cObsLiaisonMultiple::CentreNuage(const cMasqBin3D * aMasq3D,int * aNb) con
   double aProf  = ValPercentile(aVProf,0.5);
   */
   //double aProf = KthVal(aVProf.data(),aVProf.size(),aVProf.size()/2);
-double aProf = KthVal(&aVProf.front(),aVProf.size(),aVProf.size()/2);
+double aProf = KthVal(&aVProf.front(), (int)aVProf.size(), (int)(aVProf.size() / 2));
 
   return aCS.ImEtProf2Terrain(aPMoy,aProf);
 }
@@ -1444,7 +1444,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
 
 
    aSEr2 /= aSPds2;
-   int aNbP = mVPMul.size();
+   int aNbP = (int)mVPMul.size();
       
   mVPoses[0]->GenPose()->SetNbPtsMulNN(aNbMultPdsNN+mVPoses[0]->GenPose()->NbPtsMulNN());
 
@@ -1503,7 +1503,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
 
        if ((int(aImPPM.Show().Val()) >= int(eNSM_Percentile)) &&  aMatchIm0)
        {
-           int aNBV = aVErs.size();
+           int aNBV = (int)aVErs.size();
            if (aNBV>=2)
            {
                std::cout << "----- % % % % % % % % % % -----------\n";
@@ -2036,7 +2036,7 @@ void cObsLiaisonMultiple::TestMEPAppuis
     // std::cout << "Cost " << aCostMin * aFoc << " Time " << aT0.uval() << "\n";
 
     std::set<cIndAppui>  aSetIA;
-    MakeVectIndAppui(aVS2,aSetIA,aVS2.size(),aNbRansac);
+    MakeVectIndAppui(aVS2, aSetIA, (int)aVS2.size(), aNbRansac);
         
     bool RChanged = false; GccUse(RChanged);
     for (std::set<cIndAppui>::const_iterator itI=aSetIA.begin();  itI!=aSetIA.end(); itI++)

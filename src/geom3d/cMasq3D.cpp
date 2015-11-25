@@ -321,7 +321,7 @@ cMasq3DEmpileMasqPart::cMasq3DEmpileMasqPart(const std::vector<cMasq3DPartiel *>
    bool doInvert = false;
    bool HasConst = false;
    bool LastAdd = false;
-   for (int aK=aVM.size()-1 ; (aK>=0) && (!HasConst) ; aK--)
+   for (int aK = (int)(aVM.size() - 1); (aK>=0) && (!HasConst) ; aK--)
    {
         cMasq3DPartiel * aMk = aVM[aK];
         SELECTION_MODE aMode = aMk->ModeSel();
@@ -443,7 +443,7 @@ cMasq3DEmpileMasqPart * cMasq3DEmpileMasqPart::FromSaisieMasq3d(const std::strin
    }
    cPolyg3D aP3D = StdGetFromSI(aName,Polyg3D);
    bool Cont=true;
-   int aK0 =  aP3D.Item().size()-1;
+   int aK0 = (int)(aP3D.Item().size() - 1);
    for ( ; (aK0>=0) && Cont ; aK0--)
    {
       SELECTION_MODE aMode = (SELECTION_MODE) aP3D.Item()[aK0].Mode();

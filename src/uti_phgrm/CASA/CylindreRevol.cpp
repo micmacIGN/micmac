@@ -120,8 +120,8 @@ void cAppli_Casa::EstimeCylindreRevolution
     std::cout << "Nb Facette " << aVF.size() << "\n";
     for (int aK=0 ; aK<aSES.NbRansac().Val() ; aK++)
     {
-        int aK1 = NRrandom3(aVF.size());
-        int aK2 = NRrandom3(aVF.size());
+        int aK1 = NRrandom3((int)aVF.size());
+        int aK2 = NRrandom3((int)aVF.size());
         if (aK1!=aK2)
         {
            TestCylindreRevolution(aSurf,aVF[aK1],aVF[aK2]);

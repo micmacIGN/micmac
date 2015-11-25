@@ -100,7 +100,7 @@ cPushB_GeomLine::cPushB_GeomLine(const cPushB_PhysMod * aPBPM,int aNbSampleX,dou
        mAxeY = -mAxeY;
 
     // Pt3dr aX0 = vunit(mPlanRay.Proj(aRe2p.ImAff(aVDirPlan[aVSeg.size()/2])));
-    int aK0 = aVSeg.size()/2;
+    int aK0 = (int)(aVSeg.size() / 2);
     mAxeZ = DirOnPlan(aVDirOrient[aK0]);
     mAxeX = vunit(mAxeY ^mAxeZ);
 

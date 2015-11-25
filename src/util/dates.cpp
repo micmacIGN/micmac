@@ -1705,7 +1705,7 @@ cMetaDataPhoto cMetaDataPhoto::CreateNewExiv2(const std::string & aNameFile) // 
        // On essaye en mode Bin puis en Xml
        for (int aKBin=1 ; aKBin>=0 ; aKBin--)
        {
-         std::string aNameXml  = NameXifXmlOfIm(aNameFile,aKBin);
+         std::string aNameXml  = NameXifXmlOfIm(aNameFile, aKBin != 0);
          if ( ELISE_fp::exist_file(aNameXml))
          {
            cXmlXifInfo aXml = StdGetFromPCP(aNameXml,XmlXifInfo);

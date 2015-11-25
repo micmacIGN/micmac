@@ -1187,7 +1187,7 @@ cOriPlanePatch::cOriPlanePatch
          if (mW) ShowPoint(aSom,3.0,P8COL::green);
          aCpt++;
     }
-    mNbSom = mVSom.size();
+    mNbSom = (int)mVSom.size();
 
     if (mW) 
        std::cout << "ENETR DELAU , Nb " << aPack.size() << " \n";

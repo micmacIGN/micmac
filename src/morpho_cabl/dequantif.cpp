@@ -520,7 +520,7 @@ Im2D_REAL4 RecursiveImpaint
       }
 
 
-      int aNbPts = aVF.size();
+      int aNbPts = (int)aVF.size();
       for (int aKIter=0 ; aKIter<aNbIter ; aKIter++)
       {
           TIm2D<REAL4,REAL> aTSolInit(aSolInit);

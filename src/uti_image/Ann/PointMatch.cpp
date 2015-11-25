@@ -117,7 +117,7 @@ void fromRealVector( vector<REAL8> &aVector, bool aReverseByteOrder, vector<Poin
 
 void writePointMatch_v1( std::ostream &aOutput, bool aReverseByteOrder, const vector<PointMatch> &aMatches )
 {
-	U_INT4 nbMatches = aMatches.size();
+	U_INT4 nbMatches = (U_INT4)aMatches.size();
 	if (aReverseByteOrder) byte_inv_4(&nbMatches);
 	aOutput.write((const char *)&nbMatches, 4);
 
@@ -128,7 +128,7 @@ void writePointMatch_v1( std::ostream &aOutput, bool aReverseByteOrder, const ve
 
 void writePointMatch_v1( std::ostream &aOutput, bool aReverseByteOrder, const list<PointMatch> &aMatches )
 {
-	U_INT4 nbMatches = aMatches.size();
+	U_INT4 nbMatches = (U_INT4)aMatches.size();
 	if (aReverseByteOrder) byte_inv_4(&nbMatches);
 	aOutput.write((const char *)&nbMatches, 4);
 
@@ -227,8 +227,9 @@ bool readMatchesFile( const string &aFilename, vector<PointMatch> &oVector, Vers
 		default: return false;
 		}
 	}
-	catch (const bad_alloc &e)
+	catch (const bad_alloc &)
 	{
+		ELISE_DEBUG_ERROR(true, "readMatchesFile", "not enough memory to read file [" << aFilename << "]");
 		return false;
 	}
 
