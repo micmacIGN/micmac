@@ -192,6 +192,56 @@ std::string SimplString(std::string aStr)
 }
 
 
+/****************************************/
+/*                                      */
+/*            Icone                     */
+/*                                      */
+/****************************************/
+
+Im2D_U_INT1 Icone(const std::string & aName,const Pt2di & aSzCase,bool Floutage,bool Negatif)
+{
+   cElBitmFont & aFont = cElBitmFont::BasicFont_10x8() ;
+
+   Im2D_Bits<1> aImBin = aFont.MultiLineImageString(aName,Pt2di(0,5),-aSzCase,0);
+   ELISE_COPY(aImBin.border(3),1,aImBin.out());
+   ELISE_COPY(aImBin.border(1),0,aImBin.out());
+
+   Pt2di  aSz = aImBin.sz();
+   Im2D_U_INT1 aRes(aSz.x,aSz.y);
+
+   if (Negatif)
+   {
+      ELISE_COPY(line(Pt2di(0,0),aSz),1,aImBin.oclip());
+      ELISE_COPY(line(Pt2di(aSz.x,0),Pt2di(0,aSz.y)),1,aImBin.oclip());
+      ELISE_COPY(aImBin.all_pts(),!aImBin.in(),aImBin.out());
+   }
+
+   ELISE_COPY
+   (
+      aRes.all_pts(),
+      (!aImBin.in(0)) *255,
+      aRes.out()
+   );
+
+
+   if (Floutage)
+   {
+       ELISE_COPY
+       (
+            aRes.all_pts(),
+            (  Negatif                                   ?
+               Max(aRes.in(),rect_som(aRes.in(0),1)/9.0) :
+               Min(aRes.in(),rect_som(aRes.in(0),1)/9.0)
+            ),
+            aRes.out()
+       );
+
+   }
+
+   return aRes;
+}
+
+
 
 #endif
 

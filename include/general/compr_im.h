@@ -311,6 +311,7 @@ class ElImScroller
 
 		virtual Output out(); //  Output::onul();
 		virtual Fonc_Num in(); // 0
+                virtual Pt2di SzIn() = 0;
                 virtual REAL  GetValPtsR(Pt2dr aP);  // Def Erreur Fatale
 
                 virtual void Sauv(const std::string & aName);
@@ -478,6 +479,7 @@ class ElPyramScroller : public ElImScroller
            virtual void  SetAlwaysQuickInZoom();
            virtual void  SetAlwaysQuick();
            virtual ElImScroller * CurScale() ; 
+           virtual Pt2di SzIn() ;
 	private :
 
            void Sauv(const std::string & aName);
@@ -920,6 +922,7 @@ class BiScroller : public ElImScroller
 
 
                 Im2D_U_INT1 ImMasq();
+                Pt2di SzIn() ;
 
                 const ElSTDNS vector<ElImScroller *> & SubScrolls();
 
