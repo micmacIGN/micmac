@@ -273,8 +273,8 @@ int CheckDependencies_main(int argc,char ** argv)
     cout << printResult( "proj" ) << endl;
     cout << printResult( "cs2cs" ) << endl;
 
-    cout << printResult( TheStrSiftPP ) << endl;
-    cout << printResult( TheStrAnnPP ) << endl;
+    //~ cout << printResult( TheStrSiftPP ) << endl;
+    //~ cout << printResult( TheStrAnnPP ) << endl;
 
     return EXIT_SUCCESS;
 }

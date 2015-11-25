@@ -87,7 +87,7 @@ Im2D_Bits<1> cElImplemBitmFont::ImChar(char aChar)
 void cElImplemBitmFont::AddChar(char anEntry,const char* aStr)
 {
    // std::cout << "cElImplemBitmFont::AddChar " << mSz << " " << strlen(aStr) << " " << anEntry << "\n";
-   ELISE_ASSERT(strlen(aStr)==(mSz.x*mSz.y),"cElImplemBitmFont::AddChar ");
+   ELISE_ASSERT(strlen(aStr)==(size_t)(mSz.x*mSz.y),"cElImplemBitmFont::AddChar ");
    mDico[anEntry] = new Im2D_Bits<1> (mSz.x,mSz.y);
    Im2D_Bits<1>  * aVal = mDico[anEntry];
 
