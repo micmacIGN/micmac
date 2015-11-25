@@ -1,0 +1,2 @@
+This Filee contains a clone a Reduc Hom because I needed to work on global homography estimation while Ewelina was working on homologous reduction to avoid interference.
+

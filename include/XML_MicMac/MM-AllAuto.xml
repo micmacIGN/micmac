@@ -1,0 +1,312 @@
+<!--
+   The simplest MicMac exemple
+
+    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-AllAuto.xml  WorkDir=/media/data1/Jeux-Tests/Rodin-Baiser/ +Im1=F100_img_0161.CR2 +Ori=-All
+
+  A rajouter :
+
+    - parties cachees
+    - tester Correl MultiPonct
+
+    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-AllAuto.xml  WorkDir=/media/data1/Jeux-Tests/Lafleur-2/ +Im1=IMG_8356.JPG +Ori=-All +VisuModelTieP=true
+
+    mm3d MICMAC  /home/mpd/MMM/culture3d/include/XML_MicMac/MM-AllAuto.xml  WorkDir=/media/data1/Jeux-Tests/Castle/ +Im1=0010.png +Ori=-All +VisuModelTieP=true
+-->
+<ParamMICMAC>
+<DicoLoc>
+
+   <!-- Parametre fondamentaux -->
+      <Symb> Ori="-All"     </Symb>
+      <Symb> Im1=IMG_0018.JPG </Symb>
+
+
+   <!-- Parametre a changer eventuellement -->
+      <Symb>  CmsDense=true </Symb>
+      <Symb> ZoomInit=8     </Symb>
+      <Symb> Do2ZTieP=false        </Symb>
+
+      <Symb> SeuilSCor=0.85 </Symb>
+      <Symb> SeuilMedCor=1.2  </Symb>
+      <Symb> SeuilMCor=3.0  </Symb>
+      <Symb> ZoomF=2  </Symb>
+      <Symb> MCP=false </Symb>
+
+   <!-- Parametre a changer en phase de mise au point -->
+      <Symb>  ImLab=false  </Symb>
+      <Symb> VisuModelTieP=false  </Symb>
+
+
+    <!--  A ne (probablement) jamais changer -->
+      <Symb> ImSec=${Ori} </Symb>
+      <Symb> DirMEC="All-Auto-${Im1}-Dir"     </Symb>
+    <!--  Parametere calcules : NE JAMAIS CHANGER  -->
+      <eSymb>   2Z=* ${ZoomInit} 2 </eSymb>
+
+      <eSymb>  WithZ2=InfEq ${ZoomF} 2  </eSymb>
+      <eSymb>  WithZ1=InfEq ${ZoomF} 1 </eSymb>
+
+        <Symb>  UseGpu=false </Symb>
+        <eSymb> NotUseGpu=! ${UseGpu} </eSymb>
+
+
+</DicoLoc>
+
+
+<Section_Terrain>  
+      <IntervAltimetrie>
+             <!-- Mandatory but unused -->
+             <ZIncCalc>   0.0  </ZIncCalc>
+      </IntervAltimetrie>
+      <IntervSpecialZInv >
+             <MulZMin >  0.9999</MulZMin>
+             <MulZMax >  1.0001 </MulZMax>
+      </IntervSpecialZInv>
+</Section_Terrain>
+
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <Im1> ${Im1} </Im1>
+         <ImSecCalcApero>
+               <Key> NKS-Assoc-ImSec@${ImSec} </Key>
+               <NbMin>  2 </NbMin>
+               <NbMax>  4 </NbMax>
+               <OnEmpty> eOEISA_error </OnEmpty>
+          </ImSecCalcApero>
+     </Images>
+
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@${Ori}  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <ChantierFullImage1>  true </ChantierFullImage1>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgoMaxOfScore </AlgoRegul>
+             <AggregCorr> eAggregMoyMedIm1Maitre </AggregCorr>
+
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+
+	     <ZDilatAlti>  4    </ZDilatAlti>
+             <ZDilatPlani> 3    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+
+             <ModulationProgDyn Portee="Globale">
+                  <EtapeProgDyn>
+                              <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                              <NbDir>   7              </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   2.0    </Px1PenteMax>
+                  <ArgMaskAuto >
+                         <ValDefCorrel >  0.3 </ValDefCorrel>
+                         <CostTrans >     2   </CostTrans>
+                         <ReInjectMask> true   </ReInjectMask>
+
+                         <Erod32Mask> 0        </Erod32Mask>
+                         <SzOpen32> 0 </SzOpen32>
+                         <SeuilZC> 50 </SeuilZC>
+                  </ArgMaskAuto>
+             </ModulationProgDyn>
+
+            
+        </EtapeMEC>
+	     
+        <#WHEN  VTEST=${Do2ZTieP}>
+            <EtapeMEC> 
+                 <DeZoom >        ${2Z}       </DeZoom> 
+                 <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+	         <ZDilatAlti>  1    </ZDilatAlti>
+                 <ZDilatPlani> 1    </ZDilatPlani>
+                 <CorrelAdHoc>
+                     <SzBlocAH> 400000 </SzBlocAH>
+
+                     <CorrelMultiScale>
+                            <ModeDense> ${CmsDense} </ModeDense>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
+                            <UseWAdapt> false </UseWAdapt>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.4 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.16 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+
+                     <TypeCAH>
+                        <MasqueAutoByTieP>
+                            <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
+                            <DeltaZ >        1                         </DeltaZ>
+                            <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel> ${SeuilMCor}  </SeuilMaxCostCorrel>
+                            <SeuilMedCostCorrel> ${SeuilMedCor}  </SeuilMedCostCorrel>
+                            <Visu> ${VisuModelTieP} </Visu>
+                        </MasqueAutoByTieP>
+                     </TypeCAH>
+                 </CorrelAdHoc>
+            </EtapeMEC>
+        </#WHEN>
+
+        <EtapeMEC> 
+                 <DeZoom >        ${ZoomInit}       </DeZoom> 
+                 <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+	         <ZDilatAlti>  1    </ZDilatAlti>
+                 <ZDilatPlani> 1    </ZDilatPlani>
+                 <CorrelAdHoc>
+                     <SzBlocAH> 400000 </SzBlocAH>
+
+                     <CorrelMultiScale>
+                            <ModeDense> ${CmsDense} </ModeDense>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
+                            <UseWAdapt> true </UseWAdapt>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+
+                     <TypeCAH>
+                        <MasqueAutoByTieP>
+                            <KeyImFilePt3D>  NKS-Assoc-Pts3dIm@${Ori} </KeyImFilePt3D>
+                            <DeltaZ >        1                         </DeltaZ>
+                            <SeuilSomCostCorrel> ${SeuilSCor}  </SeuilSomCostCorrel>
+                            <SeuilMaxCostCorrel> ${SeuilMCor}  </SeuilMaxCostCorrel>
+                            <SeuilMedCostCorrel> ${SeuilMedCor}  </SeuilMedCostCorrel>
+                            <Visu> ${VisuModelTieP} </Visu>
+                            <#WHEN  VTEST=${Do2ZTieP}>
+                                <TiePMasqIm>
+                                    <DeZoomRel > 2 </DeZoomRel>
+                                    <Dilate>   4 </Dilate>
+                                </TiePMasqIm>
+                            </#WHEN>
+                            <DoImageLabel> ${ImLab}  </DoImageLabel>
+                        </MasqueAutoByTieP>
+                     </TypeCAH>
+                 </CorrelAdHoc>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                 <DeZoom >        ${ZoomInit}       </DeZoom> 
+                 <ModeInterpolation Portee="Globale"> eInterpolBiCub </ModeInterpolation>
+                 <AlgoRegul Portee="Globale">  eAlgo2PrgDyn </AlgoRegul>
+                 <CorrelAdHoc Portee="Globale">
+                     <CorrelMultiScale>
+                            <ModeDense> ${CmsDense} </ModeDense>
+                            <UseWAdapt> true </UseWAdapt>
+                            <UseGpGpu> ${UseGpu} </UseGpGpu>
+                            <OneParamCMS>
+                                 <SzW> 1 1 </SzW>
+                                 <Sigma> 0 </Sigma>
+                                 <Pds> 1.0 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 2 2 </SzW>
+                                 <Sigma> 1.0 </Sigma>
+                                 <Pds> 0.5 </Pds>
+                            </OneParamCMS>
+                            <OneParamCMS>
+                                 <SzW> 4 4 </SzW>
+                                 <Sigma> 2.0 </Sigma>
+                                 <Pds> 0.25 </Pds>
+                            </OneParamCMS>
+                     </CorrelMultiScale>
+                     <TypeCAH>
+                           <#IF VTEST=${MCP}>
+                                <MultiCorrelPonctuel>
+                                    <PdsCorrelStd  > 0.1 </PdsCorrelStd>
+                                    <PdsCorrelPonct> 0.9 </PdsCorrelPonct>
+                                    <DefCost>  0.1</DefCost>  <!-- ?? Val def ... -->
+                                </MultiCorrelPonctuel>
+                                <GPU_Correl> </GPU_Correl>
+                           </#IF>
+                     </TypeCAH>
+                 </CorrelAdHoc>
+        </EtapeMEC>
+
+        <EtapeMEC> <DeZoom >       4  </DeZoom> </EtapeMEC> 
+        <#WHEN  VTEST=${WithZ2}>
+             <EtapeMEC> <DeZoom >       2  </DeZoom> </EtapeMEC> 
+        </#WHEN>
+
+        <#WHEN  VTEST=${WithZ1}>
+            <EtapeMEC> 
+                 <DeZoom >       1  </DeZoom> 
+	         <ZDilatAlti>    2    </ZDilatAlti>
+                 <ZDilatPlani>   2    </ZDilatPlani>
+            </EtapeMEC> 
+        </#WHEN>
+
+        <EtapeMEC> 
+                 <DeZoom >       ${ZoomF}  </DeZoom> 
+                 <ZPas>          1.0       </ZPas>
+                 <AlgoRegul>  eAlgoDequant </AlgoRegul>
+        </EtapeMEC> 
+
+<!--
+-->
+
+</Section_MEC>
+
+<Section_Results >
+     <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+     <ZoomMakeTA> 16 </ZoomMakeTA>
+     <LazyZoomMaskTerrain> true </LazyZoomMaskTerrain>
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  XXXX </WorkDir> 
+     <TmpMEC>    ${DirMEC}/  </TmpMEC>
+     <TmpResult> ${DirMEC}/  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+<!--
+     <ByProcess>  1  </ByProcess>
+-->
+     <ByProcess>  ${MMNbProc}  </ByProcess>
+     <PurgeMECResultBefore>  true </PurgeMECResultBefore>
+     <DeZoomDefMinFileAux> 8 </DeZoomDefMinFileAux>
+
+
+    <ComprMasque> eComprTiff_None </ComprMasque>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+
