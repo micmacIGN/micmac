@@ -38,6 +38,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * TestPointHomo: read point homologue entre 2 image après Tapioca
@@ -64,8 +66,41 @@ void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
 }
 
 
+Im2D<U_INT1,INT4> CreatImageZ(Im2D<U_INT1,INT4> origin, int centreX, int centreY, int w, int h)
+{
+    Im2D<U_INT1,INT4> imageZ(w*2+1,h*2+1);
+    ELISE_COPY
+    (
+        imageZ.all_pts(),                     //List de coordonné on va travailler
+        origin.in()[Virgule(FX+centreX-w,FY+centreY-h)],    //entrée, FX et FY va parcourir dans la list de coordonné
+        imageZ.out()
+    );
+//    ELISE_COPY
+//    (
+//        imageZ.all_pts(),
+//        imageZ.in()[Virgule(FX,FY)],
+//        Tiff_Im(
+//            "toto.tif",
+//            imageZ.sz(),
+//            GenIm::u_int1,
+//            Tiff_Im::No_Compr,
+//            Tiff_Im::BlackIsZero,
+//            Tiff_Im::Empty_ARG ).out()
+//    );
+    return imageZ;
+}
+
+
 int PHO_MI_main(int argc,char ** argv)
 {
+    cout<<"*********************"<<endl;
+    cout<<"* "<<"P : Points"<<endl;
+    cout<<"* "<<"H : Homologues"<<endl;
+    cout<<"* "<<"O : Observés sur"<<endl;
+    cout<<"* "<<"M : Modèle"<<endl;
+    cout<<"* "<<"I : Initial"<<endl;
+    cout<<"*********************"<<endl;
+
     std::string aFullPatternImages = ".*.tif", aOriInput, aNameHomol="Homol/", aHomolOutput="Homol_Filtered/";
     bool ExpTxt = false;
     ElInitArgMain			//initialize Elise, set which is mandantory arg and which is optional arg
@@ -93,16 +128,45 @@ int PHO_MI_main(int argc,char ** argv)
     const std::vector<std::string> aSetImages = *(aICNM->Get(aPatImages));
 
     ELISE_ASSERT(aSetImages.size()>1,"Number of image must be > 1");
+    string aDirImageZ = aDirImages + "Temp_ImageZ/";
+ //======================================================================//
+    //Lire une image:
+//    Tiff_Im mTiffImg(aSetImages[0].c_str());                      //read header of image Tiff
+//    cout<<mTiffImg.sz().x<<" x "<<mTiffImg.sz().y<<endl;
+//    Im2D<U_INT1,INT4> mImg(mTiffImg.sz().x,mTiffImg.sz().y);      //to read pixel, using Im2D
+//    ELISE_COPY(                                                   //read image
+//                mTiffImg.all_pts(),
+//                mTiffImg.in(),
+//                mImg.out()
+//              );
 
-//    cout<<"List of image to compute: "<<endl;
-//    std::cout<<"***"<<aFullPatternImages<<"***"<<std::endl;
-//    for (uint i=0; i<aSetImages.size(); i++)
-//    {
-//        cout<<" ++ "<<aSetImages[i]<<endl;
-//    }
+//    Im2D<U_INT1,INT4> mImgOut(mTiffImg.sz().x,mTiffImg.sz().y);
+//    cout<<mImgOut.sz()<<endl;
 
+//   // Copy une Image Jet
+//    int w=200;
+//    Im2D<U_INT1,INT4> mImgOut2(w*2+1,w*2+1);
+//    float cx=2000,cy=2000;
+//    ELISE_COPY
+//    (
+//        mImgOut2.all_pts(),                     //List de coordonné on va travailler
+//        mImg.in()[Virgule(FX+cx-w,FY+cy-w)],    //entrée, FX et FY va parcourir dans la list de coordonné
+//        mImgOut2.out()
+//    );
+//    ELISE_COPY
+//    (
+//        mImgOut2.all_pts(),
+//        mImgOut2.in()[Virgule(FX,FY)],
+//        Tiff_Im(
+//            "toto.tif",
+//            mImgOut2.sz(),
+//            GenIm::u_int1,
+//            Tiff_Im::No_Compr,
+//            Tiff_Im::BlackIsZero,
+//            Tiff_Im::Empty_ARG).out()
+//    );
+//=========================================================================================//
     std::string anExt = ExpTxt ? "txt" : "dat";
-
 
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aNameHomol)
@@ -112,6 +176,7 @@ int PHO_MI_main(int argc,char ** argv)
                         +  std::string(aHomolOutput)
                         +  std::string("@")
                        +  std::string(anExt);
+
 
     for (int aKN1 = 0 ; aKN1<int(aSetImages.size()) ; aKN1++)
     {
@@ -130,24 +195,119 @@ int PHO_MI_main(int argc,char ** argv)
 
              if (ELISE_fp::exist_file(aNameIn))     //check fichier point homo existe
              {
-                    //cout<< aNameIn << " existe!"<<endl;
-
                   ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);    //lire coor de point homo dans images
                   ElPackHomologue aPackOut;
-                  cout<<"There are "<<aPackIn.size()<<" point homologues b/w "<< aNameIm1<<" and "<< aNameIm2<<endl;
-                  for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
-                  {   //parcourir les point homo
+                  cout<<endl<<"There are "<<aPackIn.size()<<" point homologues b/w "<< aNameIm1<<" and "<< aNameIm2<<endl;
 
+                  //   R3 : "reel" coorhttp://stackoverflow.com/questions/5590381/easiest-way-to-convert-int-to-string-in-cdonnee initiale
+                  //   L3 : "Locale", apres rotation
+                  //   C2 :  camera, avant distortion
+                  //   F2 : finale apres Distortion
+                  //
+                  //       Orientation      Projection      Distortion
+                  //   R3 -------------> L3------------>C2------------->F2
+
+                  //get orientation information of 2 images
+                  std::string anOrient = "All";
+                  std::string aNameOri0 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm1,true);
+                  std::cout << " ++ For image " << aNameIm1 << " ++ " << aNameOri0  << "\n";
+                  CamStenope * aCam0 = CamOrientGenFromFile(aNameOri0 , aICNM);
+
+
+                  std::string aNameOri1 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm2,true);
+                  std::cout << " ++ For image " << aNameIm2 << " ++ " << aNameOri1  << "\n";
+                  CamStenope * aCam1 = CamOrientGenFromFile(aNameOri1 , aICNM);
+
+
+                  for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
+                  {
+                      //lire les point homo
                       Pt2dr aP1 = itP->P1();    //Point 2d REAL
                       Pt2dr aP2 = itP->P2();
-                      //Pt3dr  aPTer= aVCam[aKN1]->PseudoInter(aP1,*(aVCam[aKN2]),aP2);
-                      //cout << aP1 << " ++ "<< aP2<< " -- "<<aPTer <<endl;
+                      double d, d1;
 
+                      //calcul coordonné 3D à partir de points homos et orientation 2 camera
+                      Pt3dr PInter_Cam0= aCam0->ElCamera::PseudoInter(aP1, *aCam1, aP2, &d);       //partir de cam0
+                      Pt3dr PInter_Cam1= aCam1->ElCamera::PseudoInter(aP2, *aCam0, aP1, &d1);      //partir de cam1
+
+                      //reprojecter à partir de point R3 => F2
+                      Pt2dr aP1verify = aCam0->ElCamera::R3toF2(PInter_Cam0);
+
+                      //reprojeter vers autre camera
+                      /*
+                      string aNameIm = aSetImages.back();
+                      std::string aNameOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm,true);
+                      CamStenope * aCam3 = CamOrientGenFromFile(aNameOri3 , aICNM);
+                      Pt2dr aP3verify = aCam3->ElCamera::R3toF2(PInter_Cam0);
+                      */
+
+                      //créer ImageZ autour point d'intéret
                   }
              }
         }
     }
 
+
+    //======================================Lire image et créer les imageZ autour point d'intéret====================//
+    int h = 50;    //taille du fenetre de balayage
+    int w = 50;
+    int extzone = 10; //taile du zone de recherche
+    int step = 5;
+    ELISE_fp::MkDir(aDirImages+"/temp_balayer");
+    Tiff_Im mTiffImg(aSetImages[0].c_str());                      //read header of image Tiff
+    cout<<mTiffImg.sz().x<<" x "<<mTiffImg.sz().y<<endl;
+    Im2D<U_INT1,INT4> mImg(mTiffImg.sz().x,mTiffImg.sz().y);      //to read pixel, using Im2D
+    ELISE_COPY(                                                   //read image
+                mTiffImg.all_pts(),
+                mTiffImg.in(),
+                mImg.out()
+              );
+
+        int startZoneX=2000 - w - extzone;
+        int startZoneY=1500 - h - extzone;
+        int endZoneX=2000 + w + extzone;
+        int endZoneY=1500 + h + extzone;
+
+        //control if slide out of image
+        if (endZoneX > mTiffImg.sz().x)
+            {endZoneX = mTiffImg.sz().x;}
+        if (endZoneY > mTiffImg.sz().y)
+            {endZoneY = mTiffImg.sz().y;}
+        if (startZoneX <0 )
+            {startZoneX = 0;}
+        if (startZoneY  <0 )
+            {startZoneY = 0;}
+
+        vector< Im2D<U_INT1,INT4> > ImageZScan;                 //vector store all ImageZ
+        for (int ii=startZoneX; ii<endZoneX-w*2; ii=ii+step)
+        {
+            for (int jj=startZoneY; jj<endZoneY-w*2; jj=jj+step)
+            {
+                Im2D<U_INT1,INT4>ImageZ = CreatImageZ(mImg, ii+w, jj+h, w, h);
+                ImageZScan.push_back(ImageZ);
+            }
+        }
+        cout <<"Total "<<ImageZScan.size()<<" image Z"<<endl;
+        for (uint i=0; i<ImageZScan.size(); i++)
+        {
+            string count;
+            std::stringstream out;
+            out << i;
+            count = out.str();
+            string pathImageZ = aDirImages+"temp_balayer/"+ aSetImages.back()+ "_" + count + "_toto.tif";
+        ELISE_COPY
+        (
+            ImageZScan[i].all_pts(),
+            ImageZScan[i].in()[Virgule(FX,FY)],
+            Tiff_Im(
+                pathImageZ.c_str(),
+                ImageZScan[i].sz(),
+                GenIm::u_int1,
+                Tiff_Im::No_Compr,
+                Tiff_Im::BlackIsZero,
+                Tiff_Im::Empty_ARG ).out()
+        );
+        }
 
 
 
