@@ -75,6 +75,12 @@ ElImScroller & BiScroller::TheScrAct()
    return Scr2();
 }
 
+Pt2di BiScroller::SzIn() 
+{
+   return TheScrAct().SzIn();
+}
+
+
 
 ElImScroller &  BiScroller::TheFirstScrAct()
 {
