@@ -61,8 +61,14 @@ Visu_ElImDest::Visu_ElImDest(Pt2di aSz,INT aDimOut)  :
        mGama         (1.0),
        mImGamaCorr   (256),
        mDataGamaCorr (mImGamaCorr.data()),
-       mUseGamaCorr  (false)
+       mUseGamaCorr  (false),
+       mIVCD         (0)
 {
+}
+
+void Visu_ElImDest::SetChgDyn(cImgVisuChgDyn * anIVCD)
+{
+    mIVCD = anIVCD;
 }
 
 INT Visu_ElImDest::VMin() const
@@ -106,7 +112,15 @@ void Visu_ElImDest::write_image(INT  x0src,Pt2di p0dest,INT nb,INT ** data)
 {
      INT ** ToW = data;
 
-     if (mUseEtalDyn)
+     if (mIVCD)
+     {
+         for (INT d=0 ; d<mDimOut ; d++)
+         {
+              mIVCD->ChgDyn(mDataBuf[d]+x0src,data[d]+x0src,nb);
+         }
+         ToW = mDataBuf;
+     }
+     else if (mUseEtalDyn)
      {
          for (INT d=0 ; d<mDimOut ; d++)
          {
@@ -375,6 +389,36 @@ ElXim  VideoWin_Visu_ElImScr::StdIm(Video_Win w)
 
     Pt2di aTr3 = Pt2di(aSzG.x,aSzM.y);
     ELISE_COPY(rectangle(aTr3,aSzG+aTr3),trans(aGnuxTiff.in(),-aTr3),Virgule(R.out(),G.out(),B.out()));
+
+
+    Pt2di aSzW = w.sz();
+    double aRatio = ElMin(double(aSzW.x-2)/aSz.x,double(aSzW.y-2)/aSz.y);
+    if (aRatio<1.0)
+    {
+         aSz = round_ni(Pt2dr(aSz)*aRatio);
+         Im2D_U_INT1 aNewR(aSz.x,aSz.y,255);
+         Im2D_U_INT1 aNewG(aSz.x,aSz.y,255);
+         Im2D_U_INT1 aNewB(aSz.x,aSz.y,255);
+         ELISE_COPY
+         (
+              aNewR.all_pts(),
+              Max (0,Min(255,
+                     StdFoncChScale
+                     (
+                              //aDebug ? ((FX/30)%2) && tiff.in_proj() : tiff.in_proj(),
+                              Virgule(R.in_proj(),G.in_proj(),B.in_proj()),
+                              Pt2dr(0,0),
+                              Pt2dr(1/aRatio,1/aRatio),
+                              Pt2dr(1.0,1.0)
+                     )
+                  )
+              ),
+              Virgule(aNewR.out(),aNewG.out(),aNewB.out())
+         );
+         R = aNewR;
+         G = aNewG;
+         B = aNewB;
+    }
 
     ElXim aRes = ElXim(w,aSz,Virgule(R.in(),G.in(),B.in()),w.prgb());
 

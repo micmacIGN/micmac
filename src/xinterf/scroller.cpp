@@ -75,6 +75,12 @@ ElImScroller::ElImScroller
 // std::cout << "DIMOUT " << aDimOut  << " " << sc_im << "\n"; getchar();
 } 
 
+
+ElImScroller * ElImScroller::CurScale() 
+{
+   return this;
+}
+
 bool  ElImScroller::CanReinitTif()
 {
    return true;
@@ -839,6 +845,12 @@ ElPyramScroller::ElPyramScroller
              scrolls[k]->DimOut() == DimOut(),
              "Variable DimOut in ElPyramScroller"
         );
+}
+
+ElImScroller * ElPyramScroller::CurScale()
+{
+   if (_cur) return _cur;
+   return this;
 }
 
 void ElPyramScroller::LoadXImage(Pt2di p0,Pt2di p1,bool quick)

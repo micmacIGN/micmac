@@ -42,123 +42,110 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if (ELISE_X11)
 
-
-
-
-/****************************************/
-/*                                      */
-/*          Grab Geom                   */
-/*                                      */
-/****************************************/
-
-Pt2dr  cAppli_Vino::ToCoordAsc(const Pt2dr & aP)
+void cAppli_Vino::End()
 {
-   return Sup(Pt2dr(0,0),Inf(Pt2dr(SzW()),mScr->to_user(aP).mcbyc(mRatioFulXY)));
+    std::cout << "   ******************************************\n";
+    std::cout << "   *                                        *\n";
+    std::cout << "   *    V-isualizer of                      *\n";
+    std::cout << "   *    I-mages                             *\n";
+    std::cout << "   *    N-ot                                *\n";
+    std::cout << "   *    O-versized                          *\n";
+    std::cout << "   *                                        *\n";
+    std::cout << "   ******************************************\n";
+
+    exit(EXIT_SUCCESS);
+
+}
+
+void cAppli_Vino::HistoSetDyn()
+{
+    mW->fill_rect(Pt2dr(5,20),Pt2dr(280,60),mW->pdisc()(P8COL::magenta));
+    mW->fixed_string(Pt2dr(40,45),"Clik P1 and P2 of rectangle",mW->pdisc()(P8COL::black),true);
+
+    Pt2dr aP1 = mW->clik_in()._pt;
+    mW->fill_rect(aP1-Pt2dr(3,3),aP1+Pt2dr(3,3),mW->pdisc()(P8COL::green));
+    Pt2dr aP2 = mW->clik_in()._pt;
+    mW->draw_rect(aP1,aP2,mW->pdisc()(P8COL::green));
 }
 
 
-void cAppli_Vino::ShowAsc()
+
+void  cAppli_Vino::MenuPopUp()
 {
-   mWAscH->clear();
-   mWAscV->clear();
-   Pt2dr aP00 =  ToCoordAsc(Pt2dr(0,0));
-   Pt2dr aP10 =  ToCoordAsc((Pt2dr(SzW().x,0))) ; 
-   Pt2dr aP01 =  ToCoordAsc(Pt2dr(0,SzW().y));  
+    mPopUpCur = 0;
+    if ((!mCtrl0) && (!mShift0)) mPopUpCur = mPopUpBase;
 
-   
+    if (mPopUpCur==0)  return;
 
-   mWAscH->fill_rect
+    mModeGrab=eModeVinoPopUp;
+
+    mPopUpCur->UpCenter(Pt2di(mP0Click));
+    mW->grab(*this);
+    mCaseCur = mPopUpCur->PopAndGet();
+
+
+    if (mPopUpCur==mPopUpBase)
+    {
+        if (mCaseCur== mCaseExit)
+        {
+            End();
+        }
+
+        if (    (mCaseCur==mCaseHStat)
+             || (mCaseCur==mCaseHMinMax)
+             || (mCaseCur==mCaseHEqual)
+           )
+        {
+            HistoSetDyn();
+        }
+    }
+}
+
+
+Im2D_Bits<1> cAppli_Vino::Icone(const std::string & aName,const Pt2di & aSz)
+{
+   cElBitmFont & aFont = cElBitmFont::BasicFont_10x8() ;
+
+   return aFont.MultiLineImageString(aName,Pt2di(0,5),-aSz,0);
+}
+
+CaseGPUMT * cAppli_Vino::CaseBase(const std::string& aName,const Pt2di aNumCase)
+{
+   Im2D_Bits<1> anIc = Icone(aName,mSzCase);
+   ELISE_COPY(anIc.border(3),1,anIc.out());
+   ELISE_COPY(anIc.border(1),0,anIc.out());
+
+/*
+   Pt2di  aSz = anIc.sz();
+   Im2D_U_INT1 aRes(aSz.x,aSz.y);
+   ELISE_COPY
    (
-       Pt2dr(aP00.x,0),
-       Pt2dr(ElMax(aP00.x+1,aP10.x),LargAsc()),
-       mWAscH->pdisc()(P8COL::yellow)
+         aRes.all_pts(),
+         Max(anIc.in(),rect_som(anIc.in(0),1)/9.0) *255,
+         aRes.out()
    );
-   mWAscV->fill_rect
-   (
-         Pt2dr(0,aP00.y),
-         Pt2dr(LargAsc(),ElMax(aP00.y+1,aP01.y)),
-         mWAscV->pdisc()(P8COL::yellow)
-  );
 
-   std::string aStrZoom = "Zoom=" + StrNbChifSign(mScr->sc(),3); // ToString(mScr->sc()); 
-   mW->fixed_string(Pt2dr(5,10),aStrZoom.c_str(),mW->pdisc()(P8COL::black),true);
+   return new CaseGPUMT (*mPopUpBase,"i",aNumCase, 255-aRes.in(255));
+*/
+    return new CaseGPUMT (*mPopUpBase,"i",aNumCase, (!anIc.in(0)) *255);
 }
 
 
-void  cAppli_Vino::GUR_query_pointer(Clik aCl,bool)
+
+void cAppli_Vino::InitMenu()
 {
-    if (mModeGrab==eModeGrapZoomVino)
-    {
-         double aDY= aCl._pt.y - mP0Click.y;
-         double aMulScale = pow(2.0,aDY/SpeedZoomGrab());
-         // mScr->set(mTr0,mScale0*aMulScale,true);
-         mScr->SetScArroundPW(mP0Click,mScale0*aMulScale,true);
-         // std::cout << "GUR_query_pointer " << mP0Click << " " << aCl._pt << "\n";
-    }
-    if (mModeGrab==eModeGrapTranslateVino)
-    {
-       mScr->set(mTr0-(aCl._pt-mP0Click)/mScale0,mScale0,false);
-    }
-    if (mModeGrab==eModeGrapAscX)
-    {
-       mScr->set(mTr0+Pt2dr(aCl._pt.x-mP0Click.x,0)/mRatioFulXY.x,mScale0,false);
-       ShowAsc();
-    }
-    if (mModeGrab==eModeGrapAscY)
-    {
-       mScr->set(mTr0+Pt2dr(0,aCl._pt.y-mP0Click.y)/mRatioFulXY.y,mScale0,false);
-       ShowAsc();
-    }
+    mSzCase        = Pt2di(70,40);
+    mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(5,3),Pt2di(1,1));
 
-    if (mModeGrab==eModeGrapShowRadiom)
-    {
-         ShowOneVal(aCl._pt);
-    }
+    mCaseExit  = CaseBase("Exit",Pt2di(0,0));
+    mCaseHStat  = CaseBase("Histo\nStat2",Pt2di(1,0));
+    mCaseHMinMax  = CaseBase("Histo\nMinMax",Pt2di(2,0));
+    mCaseHEqual   = CaseBase("Histo\nEqual",Pt2di(3,0));
 
-    if (mModeGrab==eModeVinoPopUp)
-    {
-         mPopUpCur->SetPtActif(Pt2di(aCl._pt));
-    }
-}
-
-void cAppli_Vino::ZoomMolette()
-{
-    double aSc =  mScale0 * pow(2.0,SpeedZoomMolette()*(mBut0==5?1:-1));
-    mScr->SetScArroundPW(mP0Click,aSc,false);
 }
 
 
 
-void cAppli_Vino::ExeClikGeom(Clik aCl)
-{
-
-     if (mShift0)
-     {
-         if (mCtrl0)
-         {
-             mScr->set_max();
-         }
-         else
-         {
-              mModeGrab = eModeGrapZoomVino;
-              mW->grab(*this);
-              mScr->SetScArroundPW(mP0Click,mScr->sc(),false);
-         }
-     }
-     else
-     {
-         if (mCtrl0)
-         {
-              mScr->SetScArroundPW(mP0Click,1.0,false);
-         }
-         else
-         {
-              mModeGrab = eModeGrapTranslateVino;
-              mW->grab(*this);
-         }
-     }
-     ShowAsc();
-}
 
 
 

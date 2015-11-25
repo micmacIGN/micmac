@@ -2000,6 +2000,10 @@ class cElBitmFont
        static  cElBitmFont & BasicFont_10x8();
        virtual Im2D_Bits<1> ImChar(char) = 0;
        virtual ~cElBitmFont();
+
+       Im2D_Bits<1> BasicImageString(const std::string & ,int aSpace);
+       Im2D_Bits<1> MultiLineImageString(const std::string & aStrInit,Pt2di  aSpace,Pt2di aRab,int Centering);
+
     private :
       static class cElImplemBitmFont * theFont_10x8;
 };

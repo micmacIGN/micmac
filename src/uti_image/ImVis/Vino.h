@@ -97,8 +97,12 @@ class cAppli_Vino : public cXml_EnvVino,
         void ShowOneVal();
         void ShowOneVal(Pt2dr aP);
         void EffaceVal();
+        void HistoSetDyn();
         bool OkPt(const Pt2di & aPt);
         void End();
+        Im2D_Bits<1> Icone(const std::string & aName,const Pt2di & aSz);
+        CaseGPUMT * CaseBase(const std::string&,const Pt2di aNumCase);
+
 
 
         cXml_StatVino  StatRect(Pt2di &  aP0,Pt2di &  P1);
@@ -154,8 +158,12 @@ class cAppli_Vino : public cXml_EnvVino,
           Pt2di                   mSzCase;
           GridPopUpMenuTransp*    mPopUpBase;
           CaseGPUMT *             mCaseExit;
+          CaseGPUMT *             mCaseHStat;
+          CaseGPUMT *             mCaseHMinMax;
+          CaseGPUMT *             mCaseHEqual;
 
           GridPopUpMenuTransp*    mPopUpCur;
+          CaseGPUMT *             mCaseCur;
 
 };
 

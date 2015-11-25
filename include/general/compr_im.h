@@ -123,6 +123,14 @@ void GetBoxUpdate(Pt2di tr,Box2di box,INT rab,Box2di & BX,Box2di & BY);
 
 
 
+class cImgVisuChgDyn
+{
+    public :
+        virtual void ChgDyn(int * anOut,const int * anInput,int aNb) = 0;
+    private :
+};
+
+
 class Visu_ElImDest
 {
       public :
@@ -139,6 +147,8 @@ class Visu_ElImDest
 		   void SetUseEtalDyn(bool UseEtalDyn);
 		   INT VMax() const;
 		   INT VMin() const;
+
+                   void SetChgDyn(cImgVisuChgDyn *);
 
 	  protected :
 		   // Visu_ElImDest();
@@ -160,6 +170,7 @@ class Visu_ElImDest
 		   INT4 *         mDataGamaCorr;
 		   bool           mUseGamaCorr;
 
+                   cImgVisuChgDyn * mIVCD;
 };
 
 
@@ -284,6 +295,7 @@ class cElScrCalcNameSsResol
 class ElImScroller
 {
      public :
+               virtual ElImScroller * CurScale() ;   // Default this => utilise dans Pyram
                virtual bool CanReinitTif();
                virtual void ReInitTifFile(Tiff_Im aTif);
 
@@ -465,6 +477,7 @@ class ElPyramScroller : public ElImScroller
            virtual void  SetAlwaysQuickInZoom(bool aVal);
            virtual void  SetAlwaysQuickInZoom();
            virtual void  SetAlwaysQuick();
+           virtual ElImScroller * CurScale() ; 
 	private :
 
            void Sauv(const std::string & aName);

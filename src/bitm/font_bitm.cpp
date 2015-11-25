@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+std::list<std::string> SplitStrings(const std::string & aCppStr);
 
 
 /******************************************************/
@@ -85,6 +86,8 @@ Im2D_Bits<1> cElImplemBitmFont::ImChar(char aChar)
 
 void cElImplemBitmFont::AddChar(char anEntry,const char* aStr)
 {
+   // std::cout << "cElImplemBitmFont::AddChar " << mSz << " " << strlen(aStr) << " " << anEntry << "\n";
+   ELISE_ASSERT(strlen(aStr)==(mSz.x*mSz.y),"cElImplemBitmFont::AddChar ");
    mDico[anEntry] = new Im2D_Bits<1> (mSz.x,mSz.y);
    Im2D_Bits<1>  * aVal = mDico[anEntry];
 
@@ -98,11 +101,166 @@ void cElImplemBitmFont::AddChar(char anEntry,const char* aStr)
 }
 
 
+Im2D_Bits<1> cElBitmFont::BasicImageString(const std::string & aStr,int aSpace)
+{
+   if (aStr=="")
+   {
+      return  ImChar(' ');
+   }
+   Pt2di aSzRes(0,0);
+
+   for (const char * aC = aStr.c_str(); (*aC) ; aC++) 
+   {
+      Im2D_Bits<1> anIm = ImChar(*aC);
+      Pt2di aSzIm = anIm.sz();
+      if (aSzRes.x==0)
+      {
+           aSzRes = aSzIm;
+      }
+      else
+      {
+           aSzRes.x += aSzIm.x + aSpace;
+           ELISE_ASSERT(aSzRes.y==aSzIm.y,"ImageString Height variable for font");
+      }
+   }
+
+   Im2D_Bits<1> aRes(aSzRes.x,aSzRes.y,0);
+   int OffsetX=0;
+
+   for (const char * aC = aStr.c_str(); (*aC) ; aC++) 
+   {
+      Im2D_Bits<1> anIm = ImChar(*aC);
+      Pt2di aSzIm = anIm.sz();
+      ELISE_COPY
+      (
+           rectangle(Pt2di(OffsetX,0),Pt2di(OffsetX+aSzIm.x,aSzIm.y)),
+           trans( anIm.in(),-Pt2di(OffsetX,0)),
+           aRes.out()
+      );
+      OffsetX += aSzIm.x + aSpace;
+   }
+
+   return aRes;
+}
+
+Im2D_Bits<1> cElBitmFont::MultiLineImageString(const std::string & aStrInit,Pt2di  aSpace,Pt2di aRab,int Centering)
+{
+     std::list<std::string> aLStr =  SplitStrings(aStrInit);
+
+     std::list<Im2D_Bits<1> > aLIm;
+  
+     int aXMax=0;
+     int aSomY = 0;
+
+     std::list<Im2D_Bits<1> > aLB;
+     for (std::list<std::string>::const_iterator itS=aLStr.begin() ;itS!=aLStr.end() ; itS++)
+     {
+         Im2D_Bits<1>  anIm = BasicImageString(*itS,aSpace.x);
+         Pt2di aSz = anIm.sz();
+         aXMax = ElMax(aXMax,aSz.x);
+         aSomY += aSz.y;
+         aLB.push_back(anIm);
+     }
+     aSomY += aSpace.y*(aLStr.size()-1);
+     if (aRab.x<0)  // Alors Rab est une taille totale
+     {
+        aRab = - aRab;
+        aRab = (aRab- Pt2di(aXMax,aSomY))/2;
+     }
+
+     Pt2di aSzRes = (aRab*2) +Pt2di(aXMax,aSomY);
+
+     Im2D_Bits<1>  aRes(aSzRes.x,aSzRes.y);
+
+     Pt2di aP0(0,aRab.y);
+
+     for (std::list<Im2D_Bits<1> >::const_iterator itB=aLB.begin() ;itB!=aLB.end() ; itB++)
+     {
+            
+         Im2D_Bits<1>  anIm = *itB;
+         Pt2di aSz =  anIm.sz();
+
+         aP0.x = aRab.x; // cas -1
+         if (Centering==0)
+            aP0.x = (aSzRes.x-aSz.x) /2;
+         else if (Centering>0)
+            aP0.x = (aSzRes.x-aSz.x) - aRab.x;
+
+         ELISE_COPY
+         (
+              rectangle(aP0,aP0+aSz),
+              trans(anIm.in(),-aP0),
+              aRes.out()
+         );
+         aP0.y += aSz.y + aSpace.y;
+     }
+
+     return aRes;
+}
+
+Im2D_Bits<1> MMStrIcone(const std::string & aName)
+{
+    cElBitmFont & aFont = cElBitmFont::BasicFont_10x8() ;
+
+    return aFont.MultiLineImageString(aName,Pt2di(0,1),Pt2di(5,5),0);
+}
+
+Im2D_Bits<1> MMStrIcone(const std::string & aName,const Pt2di & aSz)
+{
+    cElBitmFont & aFont = cElBitmFont::BasicFont_10x8() ;
+
+    return aFont.MultiLineImageString(aName,Pt2di(0,1),-aSz,0);
+}
+
 /******************************************************/
 /*                                                    */
 /*              cElBitmFont                           */
 /*                                                    */
 /******************************************************/
+
+
+/*
+bool IsBackSlashMetaChar(const char * aStr,const char aVal)
+{
+   return (aStr[0]=='\\') && (aStr[1]==aVal);
+}
+*/
+
+std::list<std::string> SplitStrings(const std::string & aCppStr)
+{
+   std::list<std::string> aRes;
+   const char *  aStrInit = aCppStr.c_str();
+   const char * aStr0 = aStrInit;
+   bool Cont = (*aStr0!=0);
+
+   while (Cont)
+   {
+        const char * aStr1 = aStr0;
+        while ((*aStr1!=0) &&  (*aStr1 !='\n'))
+           aStr1++;
+        aRes.push_back(std::string(aStr0,aStr1));
+
+        if (*aStr1==0)
+          Cont= false;
+        else
+          aStr0 = aStr1+1;
+   }
+
+   return aRes;
+}
+
+void TestSplitStrings(const std::string & aCppStr)
+{
+
+   std::list<std::string> aRes = SplitStrings(aCppStr);
+
+   std::cout << "**** IN={["<< aCppStr << "]}\n";
+   for (std::list<std::string>::const_iterator itS=aRes.begin() ; itS!=aRes.end() ; itS++)
+   {
+       std::cout << "   ["<< *itS << "]\n";
+   }
+   std::cout << "************************** \n";
+}
 
 cElBitmFont::~cElBitmFont()
 {
@@ -115,8 +273,24 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
   if (theFont_10x8 !=0)
      return *theFont_10x8;
 
-   theFont_10x8 = new cElImplemBitmFont(Pt2di(10,8),"El_10x8");
+   theFont_10x8 = new cElImplemBitmFont(Pt2di(10,10),"El_10x8");
  
+   theFont_10x8->AddChar
+   (
+        ' ',
+        ".........."
+        ".........."
+        ".........."
+        ".........."
+        ".........."
+        ".........."
+        ".........."
+        ".........."
+
+        ".........."
+        ".........."
+   );
+
    theFont_10x8->AddChar
    (
         '0',
@@ -128,6 +302,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "..#....#.."
         "..#....#.."
         "...####..."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -141,6 +318,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "......#..."
         "......#..."
         "....####.."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -154,6 +334,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "....#....."
         "...#......"
         "..######.."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -167,6 +350,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         ".......#.."
         "...#...#.."
         "....###..."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -180,6 +366,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "..######.."
         "......#..."
         "......#..."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -193,6 +382,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         ".......#.."
         ".......#.."
         "..#####..."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -206,6 +398,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "..##....#."
         "..#.....#."
         "...#####.."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -219,6 +414,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         ".....#...."
         "....#....."
         "....#....."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -232,6 +430,9 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         ".#......#."
         ".#......#."
         "..######.."
+
+        ".........."
+        ".........."
    );
 
    theFont_10x8->AddChar
@@ -245,8 +446,298 @@ cElBitmFont & cElBitmFont::BasicFont_10x8()
         "......#..."
         ".....#...."
         "..###....."
+
+        ".........."
+        ".........."
    );
 
+
+   theFont_10x8->AddChar
+   (
+        'A',
+        "...####..."
+        "..#....#.."
+        ".#......#."
+        ".#......#."
+        ".########."
+        ".#......#."
+        ".#......#."
+        ".#......#."
+
+        ".........."
+        ".........."
+   );
+
+   theFont_10x8->AddChar
+   (
+        'B',
+        ".#####...."
+        ".#....#..."
+        ".#....#..."
+        ".#####...."
+        ".#.....#.."
+        ".#......#."
+        ".#.....#.."
+        ".######..."
+
+        ".........."
+        ".........."
+   );
+
+
+   theFont_10x8->AddChar
+   (
+        'C',
+        "...####..."
+        "..#....#.."
+        "..#......."
+        "..#......."
+        "..#......."
+        "..#......."
+        "..#....#.."
+        "...####..."
+
+        ".........."
+        ".........."
+   );
+   theFont_10x8->AddChar
+   (
+        'E',
+        "..######.."
+        "..#......."
+        "..#......."
+        "..#####..."
+        "..#......."
+        "..#......."
+        "..#......."
+        "..######.."
+
+        ".........."
+        ".........."
+   );
+   theFont_10x8->AddChar
+   (
+        'H',
+        "..#....#.."
+        "..#....#.."
+        "..#....#.."
+        "..######.."
+        "..#....#.."
+        "..#....#.."
+        "..#....#.."
+        "..#....#.."
+
+        ".........."
+        ".........."
+   );
+
+   theFont_10x8->AddChar
+   (
+        'M',
+        "..#.....#."
+        "..##...##."
+        "..#.#.#.#."
+        "..#..#..#."
+        "..#.....#."
+        "..#.....#."
+        "..#.....#."
+        "..#.....#."
+
+        ".........."
+        ".........."
+   );
+
+   theFont_10x8->AddChar
+   (
+        'S',
+        "...####..."
+        "..#....#.."
+        "..#......."
+        "...#####.."
+        "........#."
+        "........#."
+        "..#.....#."
+        "...#####.."
+
+        ".........."
+        ".........."
+   );
+
+
+   theFont_10x8->AddChar
+   (
+        'a',
+        ".........."
+        ".........."
+        "...####..."
+        ".......#.."
+        "...#####.."
+        "..#....#.."
+        "..#....#.."
+        "...###.#.."
+
+        ".........."
+        ".........."
+   );
+
+   theFont_10x8->AddChar
+   (
+        'i',
+        ".........."
+        "...#......"
+        ".........."
+        "..##......"
+        "...#......"
+        "...#......"
+        "....#....."
+        ".....##..."
+
+        ".........."
+        ".........."
+   );
+
+   theFont_10x8->AddChar
+   (
+        'l',
+        "..##......"
+        "...#......"
+        "...#......"
+        "...#......"
+        "...#......"
+        "...#......"
+        "....#..#.."
+        ".....##..."
+
+        ".........."
+        ".........."
+   );
+
+
+   theFont_10x8->AddChar
+   (
+        'm',
+        ".........."
+        ".........."
+        "..#.#.##.."
+        "..##.#..#."
+        "..#..#..#."
+        "..#..#..#."
+        "..#..#..#."
+        "..#..#..#."
+
+        ".........."
+        ".........."
+   );
+   theFont_10x8->AddChar
+   (
+        'n',
+        ".........."
+        ".........."
+        "..#.####.."
+        "..##....#."
+        "..#.....#."
+        "..#.....#."
+        "..#.....#."
+        "..#.....#."
+
+        ".........."
+        ".........."
+   );
+
+   theFont_10x8->AddChar
+   (
+        'o',
+        ".........."
+        ".........."
+        "....###..."
+        "...#...#.."
+        "..#.....#."
+        "..#.....#."
+        "...#...#.."
+        "....###..."
+
+        ".........."
+        ".........."
+   );
+
+   theFont_10x8->AddChar
+   (
+        'q',
+        ".........."
+        ".........."
+        "...###.#.."
+        "..#...##.."
+        "..#....#.."
+        "..#....#.."
+        "..#...##.."
+        "...###.#.."
+        ".......#.."
+        ".......#.."
+   );
+
+   theFont_10x8->AddChar
+   (
+        's',
+        ".........."
+        ".........."
+        "...####..."
+        "..#......."
+        "...####..."
+        ".......#.."
+        "..#....#.."
+        "...####..."
+
+        ".........."
+        ".........."
+   );
+
+
+   theFont_10x8->AddChar
+   (
+        't',
+        ".........."
+        ".........."
+        "...#......"
+        "..####...."
+        "...#......"
+        "...#......"
+        "...#...#.."
+        "....###..."
+
+        ".........."
+        ".........."
+   );
+   theFont_10x8->AddChar
+   (
+        'u',
+        ".........."
+        ".........."
+        "..#.....#."
+        "..#.....#."
+        "..#.....#."
+        "..#.....#."
+        "..#....##."
+        "...####.#."
+
+        ".........."
+        ".........."
+   );
+
+   theFont_10x8->AddChar
+   (
+        'x',
+        ".........."
+        ".........."
+        "..#....#.."
+        "...#..#..."
+        "....##...."
+        "...#..#..."
+        "..#....#.."
+        ".#......#."
+
+        ".........."
+        ".........."
+   );
 
    return *theFont_10x8;
 }

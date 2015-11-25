@@ -451,6 +451,7 @@ class Tiff_Im : public ElGenFileIm
 
 //  MMDirr + data + Name + .tif
 Tiff_Im MMIcone(const std::string &);
+Im2D_Bits<1> MMStrIcone(const std::string &);
 
 Output   StdOut(const std::vector<Im2DGen *> &);
 Fonc_Num StdInput(const std::vector<Im2DGen *> &);

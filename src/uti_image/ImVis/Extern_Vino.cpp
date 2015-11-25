@@ -128,13 +128,69 @@ void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc)
         )
    );
 
+   double aNb = aStat.Nb();
+
    for (int aK=0 ; aK<aNbCh ; aK++)
    {
-         aStat.Soms()[aK] /= aNbCh;
-         aStat.Soms2()[aK] /= aNbCh;
+         aStat.Soms()[aK] /= aNb;
+         aStat.Soms2()[aK] /= aNb;
          aStat.ECT()[aK] = sqrt(ElMax(0.0,aStat.Soms2()[aK]-ElSquare(aStat.Soms()[aK])));
    }
 }
+
+/****************************************/
+/*                                      */
+/*          STRING                      */
+/*                                      */
+/****************************************/
+
+std::string StrNbChifSignNotSimple(double aVal,int aNbCh)
+{
+   if (aVal==1) return "1";
+   if (aVal < 1)
+   {
+        if (aVal>0.1) return  ToString(aVal).substr(0,aNbCh+2);
+        if (aVal>0.01) return  ToString(aVal).substr(0,aNbCh+3);
+
+        double aLog10 = log(aVal) / log(10);
+        int aLogDown =  round_down(ElAbs(aLog10));
+        aVal = ElMin(1.0,aVal * pow(10,aLogDown));
+
+        return ToString(aVal).substr(0,aNbCh+2) + "E-" + ToString(aLogDown);
+
+
+   }
+
+   if (aVal<100)
+   {
+       std::string aRes = ToString(aVal).substr(0,aNbCh+1);
+       return aRes;
+   }
+
+   double aLog10 = log(aVal) / log(10);
+   int aLogDown =  round_down(ElAbs(aLog10));
+   aVal = ElMin(10.0,aVal / pow(10,aLogDown));
+   return ToString(aVal).substr(0,aNbCh+2) +  "E" + ToString(aLogDown);
+}
+
+std::string StrNbChifSign(double aVal,int aNbCh)
+{
+    return SimplString(StrNbChifSignNotSimple(aVal,aNbCh));
+}
+
+std::string SimplString(std::string aStr)
+{
+   if (aStr.find('.') == std::string::npos)
+      return aStr;
+   int aK= aStr.size()-1;
+   while ((aK>0) && (aStr[aK]=='0'))
+     aK--;
+   if (aStr[aK]=='.')
+     aK--;
+   aK++;
+   return aStr.substr(0,aK);
+}
+
 
 
 #endif

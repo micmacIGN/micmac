@@ -172,57 +172,7 @@ void cAppli_Vino::PostInitVirtual()
     // mScr->ReInitTifFile(*mTiffIm);
     mScr->set_max();
     ShowAsc();
-
 }
-
-void cAppli_Vino::InitMenu()
-{
-    mSzCase        = MMIcone("Exit").sz();
-    mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(2,3),Pt2di(1,1));
-    mCaseExit  = new CaseGPUMT (*mPopUpBase,"titi",Pt2di(0,0), MMIcone("Exit").in(1) *255);
-
-}
-
-void cAppli_Vino::End()
-{
-    std::cout << "   ******************************************\n";
-    std::cout << "   *                                        *\n";
-    std::cout << "   *    V-isualizer of                      *\n";
-    std::cout << "   *    I-mages                             *\n";
-    std::cout << "   *    N-ot                                *\n";
-    std::cout << "   *    O-versized                          *\n";
-    std::cout << "   *                                        *\n";
-    std::cout << "   ******************************************\n";
-
-    exit(EXIT_SUCCESS);
-
-}
-
-
-void  cAppli_Vino::MenuPopUp()
-{
-    mPopUpCur = 0;
-    if ((!mCtrl0) && (!mShift0)) mPopUpCur = mPopUpBase;
-
-    if (mPopUpCur==0)  return;
-
-    mModeGrab=eModeVinoPopUp;
-
-    mPopUpCur->UpCenter(Pt2di(mP0Click));
-    mW->grab(*this);
-    CaseGPUMT * aCase = mPopUpCur->PopAndGet();
-
-
-    if (mPopUpCur==mPopUpBase)
-    {
-        if (aCase== mCaseExit)
-        {
-            End();
-        }
-    }
-}
-
-
 
 
 

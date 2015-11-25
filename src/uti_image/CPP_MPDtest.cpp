@@ -871,9 +871,39 @@ cTestCircleFit()
 };
 
 
+
+
+
+
+void TestBitmFont(const std::string & aStr,Pt2di aSpace,Pt2di aRab,int aCenter)
+{
+    cElBitmFont & aFont=  cElBitmFont::BasicFont_10x8();
+    Im2D_Bits<1> anIm = aFont.MultiLineImageString(aStr,aSpace,aRab,aCenter);
+    Tiff_Im::Create8BFromFonc("toto.tif",anIm.sz(),255*anIm.in());
+    std::cout << "DONE " << aStr << "\n";
+    getchar();
+}
+
+void TestFont()
+{
+    // cElBitmFont & aFont=  cElBitmFont::BasicFont_10x8();
+    //TestSplitStrings("Abcd");
+	    //TestSplitStrings("");
+	    // TestSplitStrings("Ab\ncd");
+    // TestSplitStrings("Ab\n\ncd");
+    // TestSplitStrings("Ab\n\ncd\n");
+
+    // Im2D_Bits<1> anIm = ImageString(aFont,"01AB",2);
+    TestBitmFont("01AB\n1\n\n1234567",Pt2di(2,10),Pt2di(5,5),0);
+exit(0);
+}
+
+
+
 int MPDtest_main (int argc,char** argv)
 {
-    cTestCircleFit aTCF;
+     TestFont();
+    // cTestCircleFit aTCF;
 /*
    for (int aK=0 ; aK< 100 ; aK++)
    {
