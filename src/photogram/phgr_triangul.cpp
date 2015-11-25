@@ -355,7 +355,7 @@ cTFI_AttrSom::cTFI_AttrSom
     mPos     (aPos),
     mValsInc (aVInit),
     mNumInc  (aSet.Alloc().CurInc()),
-    mDim     (mValsInc.size())
+    mDim     ((int)mValsInc.size())
 {
   for (int aK=0 ; aK<mDim ; aK++)
       mIncs.push_back(aSet.Alloc().NewF(&(mValsInc[aK])));

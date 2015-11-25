@@ -6,8 +6,6 @@
 #if(ELISE_QT_VERSION >= 4)
 
 #include "StdAfx.h"
-
-
 #include "saisieQT_window.h"
 #include "general/visual_buttons.h"
 
@@ -32,7 +30,7 @@ public:
     cMMSpecArg  Arg()       { return mArg;    }
     int         Type();
     vector < pair < int, QWidget*> >    Widgets()    { return vWidgets; }
-    int         NbWidgets() { return vWidgets.size(); }
+    int         NbWidgets() { return (int)vWidgets.size(); }
 
 private:
     cMMSpecArg  mArg;

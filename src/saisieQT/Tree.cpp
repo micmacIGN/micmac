@@ -173,12 +173,12 @@ int ModelPointGlobal::AllCount() const
 
 int ModelPointGlobal::PG_Count() const
 {
-    return  mAppli->PG().size();
+    return (int)mAppli->PG().size();
 }
 
 int ModelPointGlobal::CaseNamePointCount() const
 {
-    return  mAppli->Interface()->GetNumCaseNamePoint();
+    return (int)mAppli->Interface()->GetNumCaseNamePoint();
 }
 
 cAppli_SaisiePts *ModelPointGlobal::getMAppli() const
@@ -214,7 +214,7 @@ ModelCImage::ModelCImage(QObject *parent, cAppli_SaisiePts *appli)
 
 int ModelCImage::rowCount(const QModelIndex & /*parent*/) const
 {
-    return mAppli->imagesVis().size();
+    return (int)mAppli->imagesVis().size();
 }
 
 int ModelCImage::columnCount(const QModelIndex & /*parent*/) const

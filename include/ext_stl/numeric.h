@@ -162,7 +162,7 @@ typename tGetVal::tValue     GenValPercentile
              const tGetVal&  aGetV
          )
 {
-    int aNBV = aVec.size();
+    int aNBV = (int)aVec.size();
     ELISE_ASSERT(aNBV,"No Val in ValPercentile");
     if (aNBV==1)
        return  aGetV(aVec[0]);
@@ -221,7 +221,7 @@ typename tGetVal::tValue     GenValPdsPercentile
              double aSom
          )
 {
-    int aNBV = aVec.size();
+    int aNBV = (int)aVec.size();
     ELISE_ASSERT(aNBV,"No Val in ValPercentile");
     if (aNBV==1)
        return  aGetV(aVec[0]);
@@ -282,7 +282,7 @@ template <class Type> double GetValPercOfHisto
 {
     //cOperatorIdentite<int> anOI;
     std::vector<double> aVInd;
-    int aNbV= aVH.size();
+    int aNbV= (int)aVH.size();
     for (int aK=0 ; aK<aNbV ; aK++)
        aVInd.push_back(aK);
 
@@ -403,7 +403,7 @@ template <class TVal> TVal KthValGen(TVal * Data,int aNb,int aKth,const TVal & a
 
 template <class TVal> void SplitArrounKthValue(std::vector<TVal> & aV,int aKth)
 {
-   SplitArrounKthValue(VData(aV),aV.size(),aKth);
+   SplitArrounKthValue(VData(aV), (int)aV.size(),aKth);
 }
 
 template <class TVal> TVal MoyKPPVal(std::vector<TVal> & aV,int aKth)
@@ -414,17 +414,17 @@ template <class TVal> TVal MoyKPPVal(std::vector<TVal> & aV,int aKth)
 
 template <class TVal> TVal KthVal(std::vector<TVal> & aV,int aKth)
 {
-    return KthVal(VData(aV),aV.size(),aKth);
+    return KthVal(VData(aV),(int)aV.size(),aKth);
 }
 
 template <class TVal> TVal MedianeSup(std::vector<TVal> & aV)
 {
-    return KthVal(aV,aV.size()/2);
+    return KthVal(aV,(int)(aV.size()/2));
 }
 
 template <class TVal> TVal KthValProp(std::vector<TVal> & aV,double aProp)
 {
-    return KthVal(VData(aV),aV.size(),ElMax(0,ElMin(int(aV.size()-1),round_ni(aV.size()*aProp))));
+    return KthVal(VData(aV),(int)aV.size(),ElMax(0,ElMin(int(aV.size()-1),round_ni(aV.size()*aProp))));
 }
 
 double MedianPond(std::vector<Pt2df> &  aV,int * aKMed=0);

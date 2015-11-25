@@ -77,7 +77,7 @@ template <class tParam> void     GenZonec
        if (aParam.GZC_StopOnNewStep())
           return;
 
-       int aNbCur = aVCur->size();
+       int aNbCur = (int)aVCur->size();
        for (int aKp=0 ; aKp<aNbCur ; aKp++)
        {
            Pt2di aP = (*aVCur)[aKp];
@@ -213,7 +213,7 @@ bool operator == (const cOneZonzATB & aZ1, const cOneZonzATB & aZ2)
 
 int  cAnalyPbTopo::NextNumZoneC()
 {
-  if (int(mATB.OneZonzATB().size()) <= mNbMaxZone) return mATB.OneZonzATB().size() +1 ;
+  if (int(mATB.OneZonzATB().size()) <= mNbMaxZone) return (int)(mATB.OneZonzATB().size() + 1);
 
    
    cOneZonzATB aMinZ =  *(mATB.OneZonzATB().begin());

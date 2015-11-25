@@ -137,7 +137,7 @@ void cAppliReduc::AmelioHomLocal(cImagH & anIm)
     mImCAmel->GainLoc() = 1e10;
     mImCAmel->InitLoc() = true;
     mImCAmel->C2CI() = true;
-    int aNbIm2Init =  aVIms.size();
+    int aNbIm2Init = (int)aVIms.size();
 
 
    cCmpPtrImOnGain aCmpPtrIm;
@@ -225,7 +225,7 @@ void cAppliReduc::AmelioHomLocal(cImagH & anIm)
                                 cElHomographie aH12 = aLnk->Hom12();
                                 const std::vector<Pt3dr> & anEch = aLnk->EchantP1();
                                 cEqHomogFormelle * anEq = aLnk->EqHF();
-                                int aNbPts =  anEch.size();
+                                int aNbPts = (int)anEch.size();
 
                                 for (int aKEch = 0 ; aKEch<int(aNbPts) ; aKEch++)
                                 {

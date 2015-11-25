@@ -737,8 +737,8 @@ int  cVarSetIntMultiple::NumOrdre(int aI) const
 
 bool cVarSetIntMultiple::operator < (const cVarSetIntMultiple & aS2) const
 {
-   int aNb1 = mSets.size();
-   int aNb2 = aS2.mSets.size();
+   int aNb1 = (int)mSets.size();
+   int aNb2 = (int)aS2.mSets.size();
 
    if (aNb1 < aNb2) return true;
    if (aNb2 < aNb1) return false;
@@ -753,7 +753,7 @@ bool cVarSetIntMultiple::operator < (const cVarSetIntMultiple & aS2) const
 
 int cVarSetIntMultiple::Capacite() const
 {
-    return mSets.size() * cINT8ImplemSetInt::Capacite();
+    return (int)(mSets.size() * cINT8ImplemSetInt::Capacite());
 }
 
 /*

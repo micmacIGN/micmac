@@ -689,7 +689,7 @@ Pt3dr ElSeg3D::L2InterFaisceaux
 
    if (aVPts)
    {
-       int aNb = aVPts->size();
+       int aNb = (int)aVPts->size();
        ELISE_ASSERT((aNb%2)==0,"ElSeg3D::L2InterFaisceaux aVPts impair !!!");
        for (int aK=0 ; aK<aNb ; aK+=2)
        {
@@ -962,7 +962,7 @@ void  L2SysSurResol::SoutraitProduc3x3
    double * aL2A = aData2[0];
    double * aL2B = aData2[1];
    double * aL2C = aData2[2];
-   int aNbBl = aYVSB->size();
+   int aNbBl = (int)aYVSB->size();
    int Y0InBloc = 0;
    for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)
    {
@@ -1034,7 +1034,7 @@ std::cout <<  aNbTot << " " << aVInd.size()  << "\n";
      if  (aVSB ) //  && (int(aVInd.size())==aNbTot))
      {
          double aPB =  aPds *aB;
-         int aNbBl = aVSB->size();
+         int aNbBl = (int)aVSB->size();
 
          int Y0InBloc =0;
          for (int aKBly=0 ; aKBly <aNbBl ; aKBly++)

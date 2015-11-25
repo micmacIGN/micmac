@@ -364,7 +364,7 @@ template <class TArg>  void cProg2DOptimiser<TArg>::TransfertNapOpt(const std::v
 
 template <class TArg>  void cProg2DOptimiser<TArg>::BalayageOneLine(const std::vector<Pt2di> & aVP)
 {
-   mNbLine = aVP.size();
+   mNbLine = (int)aVP.size();
    mLineZMin.clear();
    mLineZMax.clear();
    for (int aKP=0; aKP<mNbLine ; aKP++)

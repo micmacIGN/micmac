@@ -461,7 +461,7 @@ template <class tNum,class tNBase>  Im2D_REAL4   TplFReduceImageProf
                   OneZC(aNearest,true,aTMasqTmpCC,1,0,aTMasq,1,aCCParam);
 
                   std::vector<Pt2di> aVP = aCCParam.mVPts;
-                  int aNbP = aVP.size();
+                  int aNbP = (int)aVP.size();
 
                   for (int aKP=0 ; aKP<aNbP ; aKP++)
                   {

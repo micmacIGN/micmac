@@ -230,7 +230,7 @@ int Export2Ply_main(int argc,char ** argv)
     if((int)aScale != 1)
     {
         int aIndice=0;
-        int aSizeInit = aPoints.size();
+        int aSizeInit = (int)aPoints.size();
         std::vector<Pt3dr> cPoints;
         std::vector<Pt3di> cVCol;
         while(aIndice*aScale < aSizeInit)

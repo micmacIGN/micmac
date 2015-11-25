@@ -391,7 +391,7 @@ void  cOriFromBundle::Solve(int aNbInit,int aDepthNonSol,int aDepthSol)
    }
 
    std::sort(mVSols.begin(),mVSols.end());
-   int aNB = mVSols.size()-1;
+   int aNB = (int)(mVSols.size() - 1);
 
    for (int aK=0 ; aK<aNB ; aK++)
    {
@@ -436,7 +436,7 @@ tPairOFBSol  cOriFromBundle::ExploreDichotChSgn(int aK0,int aK2,int aLevel,int a
 
     double aTetaMil = (mVSols[aK0].mTeta + mVSols[aK2].mTeta) / 2.0;
     TestTeta(aTetaMil,aKSign,aKSign+1);
-    int aK1 = mVSols.size() -1 ;
+    int aK1 = (int)(mVSols.size() - 1);
 
     if (! mVSols[aK1].mOK)
     {
@@ -461,7 +461,7 @@ void cOriFromBundle::ExploreDichotFrontNonSol(int aK0,int aK2,int aLevel)
 
     double aTetaMil = (mVSols[aK0].mTeta + mVSols[aK2].mTeta) / 2.0;
     TestTeta(aTetaMil,0,2);
-    int aK1 = mVSols.size() -1 ;
+    int aK1 = (int)(mVSols.size() - 1);
 
     if ( mVSols[aK0].mOK != mVSols[aK1].mOK)
       ExploreDichotFrontNonSol(aK0,aK1,aLevel-1);

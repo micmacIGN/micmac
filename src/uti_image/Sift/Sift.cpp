@@ -48,7 +48,7 @@ void Siftator::scale_space_format( int i_nbOctaves, int i_nbLevels, int i_firstO
     // resize image vectors
     m_octaves.resize( m_nbOctaves );
     vector<vector<RealImage1> >::iterator itOctave=m_octaves.begin();
-    UINT iOctave = m_octaves.size();
+    UINT iOctave = (UINT)m_octaves.size();
     // allocate space for two more levels per octave for continuity
     // first level and last level cross to lower octave and upper octave respectively
     while ( iOctave-- )
@@ -719,7 +719,7 @@ bool write_siftPoint_list( const string &i_filename, const list<SiftPoint> &i_li
 
     if ( !f ) return false;
 
-    uint32_t nbPoints  = i_list.size(),
+    uint32_t nbPoints  = (uint32_t)i_list.size(),
 			 dimension = SIFT_DESCRIPTOR_SIZE;
     f.write( (char*)&nbPoints, 4 );
     f.write( (char*)&dimension, 4 );

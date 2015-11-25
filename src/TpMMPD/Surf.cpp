@@ -80,8 +80,8 @@ void SurfLayer::calculerReponsesHessian(BufferImage<double> const &imageIntegral
         std::cout << "m : "<<m<<" _lobe : "<<_lobe<<" pas : "<<_pas<<std::endl;
     }
     int NCII,NLII;
-    NCII = imageIntegrale.numCols();
-    NLII = imageIntegrale.numLines();
+    NCII = (int)imageIntegrale.numCols();
+    NLII = (int)imageIntegrale.numLines();
 
     int minL = std::max(m+1,_lobe+1);
     int maxL = NLII-std::max(_lobe,-m-1+_taille_filtre);
@@ -454,8 +454,8 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
 
     if (verbose) std::cout << __FILE__<<" : "<<__LINE__<<" Surf "<<octaves<<" "<<intervals<<" "<<init_sample<<" "<<nbPoints<<std::endl;
     int NC,NL;
-    NC = imageIn.numCols();
-    NL = imageIn.numLines();
+    NC = (int)imageIn.numCols();
+    NL = (int)imageIn.numLines();
 
     // nombre de resolutions de calcul des reponses de Hessian
     _num_echelles=CST_Table_Filtres [_octaves-1][_intervals-1]+1;
@@ -625,8 +625,8 @@ Surf::Surf(BufferImage<unsigned short> const &imageIn,
 void Surf::computeIntegral(BufferImage<unsigned short> const &imageIn,BufferImage<double> &imageIntegral,int lig_ini,int nb_lig)
 {
     int NC,NL/*,NbC*/;
-    NC = imageIn.numCols();
-    NL = imageIn.numLines();
+    NC = (int)imageIn.numCols();
+    NL = (int)imageIn.numLines();
     //NbC = imageIn.numBands();
     int L0 = lig_ini;
     if ((lig_ini+nb_lig)>NL)
@@ -682,8 +682,8 @@ Surf::Surf(BufferImage<unsigned char> const &imageIn,
     std::cout << "Surf : "<<octaves<<" "<<intervals<<" "<<init_sample<<" "<<nbPoints<<std::endl;
 
     int NC,NL;
-    NC = imageIn.numCols();
-    NL = imageIn.numLines();
+    NC = (int)imageIn.numCols();
+    NL = (int)imageIn.numLines();
 
     // nombre de resolutions de calcul des reponses de Hessian
     _num_echelles=CST_Table_Filtres [_octaves-1][_intervals-1]+1;
@@ -851,8 +851,8 @@ Surf::Surf(BufferImage<unsigned char> const &imageIn,
 void Surf::computeIntegral(BufferImage<unsigned char> const &imageIn,BufferImage<double> &imageIntegral,int lig_ini,int nb_lig)
 {
     int NC,NL/*,NbC*/;
-    NC = imageIn.numCols();
-    NL = imageIn.numLines();
+    NC = (int)imageIn.numCols();
+    NL = (int)imageIn.numLines();
     //NbC = imageIn.numBands();
     int L0 = lig_ini;
     if ((lig_ini+nb_lig)>NL)
@@ -905,8 +905,8 @@ double Surf::integraleBoite(BufferImage<double> const &imageIntegrale,int c0,int
     int      cf=c0+nc-1;
 
     int NC,NL;
-    NC = imageIntegrale.numCols();
-    NL = imageIntegrale.numLines();
+    NC = (int)imageIntegrale.numCols();
+    NL = (int)imageIntegrale.numLines();
 
 
     if ((ci<0) || (li<0) || (cf>= NC) || (lf>= NL))

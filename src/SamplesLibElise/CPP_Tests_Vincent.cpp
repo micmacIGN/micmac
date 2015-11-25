@@ -892,7 +892,7 @@ Pt3dr SplitToPt3dr(string inS)
 			rX = atof(inS2.c_str());
 			myPoint.x=rX;
 			inS3=inS.substr(i+1,inS.size()-i-1);
-			i=inS.size();
+			i=(unsigned int)inS.size();
 		}
 	}
 	for (unsigned int i =0 ; i < inS3.size() ; i++)

@@ -261,7 +261,7 @@ Pt3dr InterSeg(const std::vector<Pt3dr> & aVP0, const std::vector<Pt3dr> & aVP1,
     static double aV[3];
     aV[0] = aV[1] = aV[2]=0;
 
-    int aNb = aVP0.size();
+    int aNb = (int)aVP0.size();
 
     for (int aK=0 ; aK<aNb  ; aK++)
     {
@@ -1068,7 +1068,7 @@ cPairB3Im::cPairB3Im(const tMultiplePF  & aHom,int aIndA,int aIndB,int aIndC) :
     mIndA (aIndA),
     mIndB (aIndB),
     mIndC (aIndC),
-    mNb   (aHom[0]->size())
+    mNb   ((int)aHom[0]->size())
 {
 }
 
@@ -1100,7 +1100,7 @@ cBundle3Image::cBundle3Image
    mR12Cur   (aR12),
    mR13Cur   (aR13),
    mH123     (aH123),
-   mNb123    (aH123[0]->size()),
+   mNb123    ((int)aH123[0]->size()),
    mP12      (aH12,0,1,2),
    mP13      (aH13,0,2,1),
    mP23      (aH23,1,2,0),
@@ -1819,7 +1819,7 @@ class cFullEqLinariseAngle  :  public cPackInPts3d,
 
 cFullEqLinariseAngle::cFullEqLinariseAngle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCste0) :
    cPackInPts3d           (aPack),
-   cInterfBundle2Image  (mVP1.size(),aFoc),
+   cInterfBundle2Image  ((int)mVP1.size(),aFoc),
    mELA                 (false,UseAccelCste0)
 {
 }
@@ -1869,7 +1869,7 @@ const std::string cFullBundleLin::TheName = "cFullBundleLin";
 
 cFullBundleLin::cFullBundleLin(const  ElPackHomologue & aPack,double aFoc) :
    cPackInPts3d           (aPack),
-   cInterfBundle2Image  (mVP1.size(),aFoc),
+   cInterfBundle2Image  ((int)mVP1.size(),aFoc),
    mBIL                 ()
 {
 }
@@ -1920,7 +1920,7 @@ class cFullBundleBase  :  public  cPackInPts2d,
 
 cFullBundleBase::cFullBundleBase(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCoordCste) :
     cPackInPts2d          (aPack),
-    cInterfBundle2Image   (mVP1.size(),aFoc),
+    cInterfBundle2Image   ((int)mVP1.size(),aFoc),
     mBB                   (false,0,aFoc,UseAccelCoordCste)
 {
 }

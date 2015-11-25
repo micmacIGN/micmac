@@ -119,7 +119,7 @@ class cSwappablePairVPts : public cBaseSwappable
 
 int  cSwappablePairVPts::Swap_SizeOf()
 {
-    return 2 * (sizeof(Pt2df) * mVP1->size() + sizeof(std::vector<Pt2df>));
+    return (int)(2 * (sizeof(Pt2df) * mVP1->size() + sizeof(std::vector<Pt2df>)));
 }
 
 void cSwappablePairVPts::Swap_Create(const Swap_tArgCreate & anArg)
@@ -1012,7 +1012,7 @@ bool cAppli_GenTriplet::AddTriplet(tSomGT & aS1Ori,tSomGT & aS2Ori,tSomGT & aS3O
            }
        }
        aResidu = MedianeSup(aVRes);
-       aNbTriplet = aVP1.size();
+       aNbTriplet = (int)aVP1.size();
    }
 
    cTripletInt aTr(aA1.Num(),aA2.Num(),aA3.Num());

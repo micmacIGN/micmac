@@ -803,7 +803,7 @@ template<class TypePt> class   cTplSelecPt
 template<class TypePt> cTplSelecPt<TypePt>::cTplSelecPt(const std::vector<TypePt> & aVPts,const std::vector<double> * aVPds) :
      mVPts  (&aVPts),
      mVPds  (aVPds),
-     mNbPts (mVPts->size()),
+     mNbPts ((int)mVPts->size()),
      mVSel  (mRes.mVSel)
 {
 }
@@ -938,7 +938,7 @@ template<class TypePt> cResIPR  TplIndPackReduit
     // risque d'avoir des degeneresnce
     if (aVPts.size() <= 5)
     {
-        return cResIPRIdent(aVPts.size());
+        return cResIPRIdent((int)aVPts.size());
     }
 
 

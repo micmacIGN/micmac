@@ -241,7 +241,7 @@ void cStdChantierRel::ComputeFiltrageSpatial()
          const cFiltreDelaunay & aFD = itFS->FiltreDelaunay().Val();
          double aDist = aFD.DMaxDelaunay().Val();
 
-         Delaunay_Mediatrice(&(aVNC[0]),aVNC.size(),aGetP,anAct,aDist);
+         Delaunay_Mediatrice(&(aVNC[0]), (int)aVNC.size(),aGetP,anAct,aDist);
 
       }
       if (itFS->FiltreDist().IsInit())

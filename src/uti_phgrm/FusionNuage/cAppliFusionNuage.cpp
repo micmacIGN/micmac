@@ -118,7 +118,7 @@ cAppliFusionNuage::cAppliFusionNuage
             std::cout << " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  \n";
         }
     }
-    mNbSom = mVSom.size();
+    mNbSom = (int)mVSom.size();
 
     //=============================================================
     //        CONSTRUCTION DES ARCS DU GRAPHE

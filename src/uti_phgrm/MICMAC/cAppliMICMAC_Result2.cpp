@@ -94,7 +94,7 @@ void cAppliMICMAC::InitNadirRank()
                        std::cout << "  " << aVAngles[aKV] << "\n";
                     
                }
-               double aVal = KthValGen(&(aVAngles[0]),aVAngles.size(),aKB,0.0);
+               double aVal = KthValGen(&(aVAngles[0]), (int)aVAngles.size(), aKB, 0.0);
                aImKNad.oset(aPDisc,aVal);
                if (IsPBUG(aPDisc))
                {

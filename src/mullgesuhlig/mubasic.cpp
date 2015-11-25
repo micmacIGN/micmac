@@ -38,6 +38,8 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 /* ------------------------- MODULE basis.c ------------------------- */
 
+#include "disable_msvc_warnings.h"
+
 /***********************************************************************
 *                                                                      *
 * Basic fundtions: Definitions file                                    *

@@ -42,7 +42,7 @@ ctPath getWorkingDirectory()
 {
    #if (ELISE_windows)
       vector<char> buffer( GetCurrentDirectory( 0, NULL ) );
-      GetCurrentDirectory( buffer.size(), buffer.data() );
+      GetCurrentDirectory((int)buffer.size(), buffer.data());
       return ctPath( string( buffer.data() ) );
    #elif (ELISE_POSIX)
       vector<char> buffer( pathconf(".", _PC_PATH_MAX) );
@@ -261,7 +261,7 @@ U_INT8 cElCommand::raw_size() const
 void cElCommand::write( ostream &io_ostream, bool i_inverseByteOrder ) const
 {
    // write number of tokens
-   U_INT4 nbTokens = m_tokens.size();
+   U_INT4 nbTokens = (U_INT4)m_tokens.size();
    if ( i_inverseByteOrder ) byte_inv_4( &nbTokens );
    io_ostream.write( (char*)&nbTokens, 4 );
 

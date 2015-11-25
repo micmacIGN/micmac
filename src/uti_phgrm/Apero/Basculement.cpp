@@ -140,7 +140,7 @@ void cArgGetPtsTerrain::AddAGP
       mPds.push_back(aPds);
       if (mDoByIm && aVPose)
       {
-          int aNb = mSymDoByIm ? aVPose->size() : ElMin(1,int(aVPose->size()));
+          int aNb = mSymDoByIm ? (int)aVPose->size() : ElMin(1,int(aVPose->size()));
           for (int aK=0 ; aK<aNb ; aK++)
               (*aVPose)[aK]->AddPtsVu(aPts);
       }
@@ -311,7 +311,7 @@ void TestBasc
 {
    Pt3dr aC1(0,0,0);
    Pt3dr aC2(0,0,0);
-   int aNb = aV1.size();
+   int aNb = (int)aV1.size();
    for (int aK=0 ; aK<aNb ; aK++)
    {
        aC1 = aC1 + aV1[aK];
@@ -527,7 +527,7 @@ cCompBascNonLin::cCompBascNonLin
    mSBR  (aSBR),
    mADLN (anADLN),
    mShow (mADLN.Show().Val()),
-   mNb   (mBasc.PAvant().size()),
+   mNb   ((int)mBasc.PAvant().size()),
    mMQX  (mShow,"X",anADLN.FlagX().Val()),
    mMQY  (mShow,"Y",anADLN.FlagY().Val()),
    mMQZ  (mShow,"Z",anADLN.FlagZ().Val()),

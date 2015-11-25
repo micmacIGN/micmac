@@ -86,7 +86,7 @@ void cStatOneImage::Reset()
 
 void cStatOneImage::Normalise(double aMoy,double aSigma)
 {
-    int aNb = mVals.size();
+    int aNb = (int)mVals.size();
     double * aData = &(mVals[0]);
 
     for (int aK=0 ; aK<aNb ; aK++)
@@ -106,7 +106,7 @@ void cStatOneImage::StdNormalise(double aEpsilon)
 
 double cStatOneImage::SquareDist(const cStatOneImage & aS2) const
 {
-    int aNb = mVals.size();
+    int aNb = (int)mVals.size();
     ELISE_ASSERT(aNb==int(aS2.mVals.size()),"Incoherent size in cStatOneImage::SquareDist");
 
     const double * aD1 = &(mVals[0]);
@@ -122,7 +122,7 @@ double cStatOneImage::SquareDist(const cStatOneImage & aS2) const
 
 double cStatOneImage::SquareNorm() const
 {
-    int aNb = mVals.size();
+    int aNb = (int)mVals.size();
 
     const double * aD1 = &(mVals[0]);
     double aRes = 0;
@@ -287,7 +287,7 @@ Pt2di  cGPU_LoadedImGeom::SzV0() const
 
 int  cGPU_LoadedImGeom::NbScale() const
 {
-    return mMSGLI.size();
+    return (int)mMSGLI.size();
 }
 
 Im2D_REAL4 * cGPU_LoadedImGeom::FloatIm(int aKScale)

@@ -73,10 +73,13 @@ template <class tData>
 void cAppliDigeo::allocateConvolutionHandler( ConvolutionHandler<tData> *&o_convolutionHandler )
 {
 	o_convolutionHandler = new ConvolutionHandler<tData>;
-	unsigned int nbCompiledConvolutions = o_convolutionHandler->nbConvolutions();
-	if ( isVerbose() )
+
+	if (isVerbose())
+	{
+		const size_t nbCompiledConvolutions = o_convolutionHandler->nbConvolutions();
 		cout << "--- " << nbCompiledConvolutions << " compiled convolution" << (nbCompiledConvolutions>1?'s':'\0')
 		     << " of type " << El_CTypeTraits<tData>::Name() << endl;
+	}
 }
 
 string cAppliDigeo::defaultParameterFile(){ return Basic_XML_MM_File("Digeo-Parameters.xml"); }

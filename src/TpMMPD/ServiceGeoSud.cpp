@@ -18,7 +18,7 @@ std::string baseName(std::string const &aName)
 {
     //on recupere l'extension
     int placePoint = -1;
-    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    for(int l=(int)(aName.size()-1);(l>=0)&&(placePoint==-1);--l)
     {
         if (aName[l]=='.')
         {
@@ -41,7 +41,7 @@ Pt2di getImageSize(std::string const &aName)
 {
     //on recupere l'extension
     int placePoint = -1;
-    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    for(int l=(int)(aName.size()-1);(l>=0)&&(placePoint==-1);--l)
     {
         if (aName[l]=='.')
         {
@@ -79,7 +79,7 @@ void getImageInfo(std::string const &aName,Pt2di &Size,int &NbCanaux)
     NbCanaux = 0;
     //on recupere l'extension
     int placePoint = -1;
-    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    for(int l=(int)(aName.size()-1);(l>=0)&&(placePoint==-1);--l)
     {
         if (aName[l]=='.')
         {
@@ -120,7 +120,7 @@ std::vector<TIm2D<Type,TyBase>* > createVTIm2DFromFile(std::string const &aName,
     std::vector<TIm2D<Type,TyBase>* > vPtr;
     //on recupere l'extension
     int placePoint = -1;
-    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    for(int l=(int)(aName.size()-1);(l>=0)&&(placePoint==-1);--l)
     {
         if (aName[l]=='.')
         {
@@ -178,7 +178,7 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName, Pt2di const &P
 {
     //on recupere l'extension
     int placePoint = -1;
-    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    for(int l=(int)(aName.size()-1);(l>=0)&&(placePoint==-1);--l)
     {
         if (aName[l]=='.')
         {
@@ -288,7 +288,7 @@ TIm2D<Type,TyBase>* createTIm2DFromFile(std::string const &aName)
 {
     //on recupere l'extension
     int placePoint = -1;
-    for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+    for(int l=(int)(aName.size()-1);(l>=0)&&(placePoint==-1);--l)
     {
         if (aName[l]=='.')
         {
@@ -738,7 +738,7 @@ int TP2GCP(std::string const &aNameFileMNT,
 
     //on recupere le nom de sortie sans extension
     int placePoint = -1;
-    for(int l=aNameResult.size()-1;(l>=0)&&(placePoint==-1);--l)
+    for(int l=(int)(aNameResult.size()-1);(l>=0)&&(placePoint==-1);--l)
     {
         if (aNameResult[l]=='.')
         {
@@ -1416,7 +1416,7 @@ int ServiceGeoSud_GeoSud_main(int argc, char **argv){
 
         // On cherche la grille correspondante
         int placePoint = -1;
-        for(int l=aNameFileImage.size()-1;(l>=0)&&(placePoint==-1);--l)
+        for(int l=(int)(aNameFileImage.size()-1);(l>=0)&&(placePoint==-1);--l)
         {
             if (aNameFileImage[l]=='.')
             {

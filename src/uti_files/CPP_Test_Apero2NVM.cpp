@@ -59,7 +59,7 @@ vector<string> FindMatchFileAndIndex(string aNameDir, string aPattern, int ExpTx
 
 	//Reading the list of input files (images)
     	list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-    	int nbIm=ListIm.size();
+    	int nbIm = (int)ListIm.size();
     	cout<<"Number of images to process: "<<nbIm<<endl;
 	vector<string> VectIm;
 	vector<string> aFullDir;
@@ -84,7 +84,7 @@ vector<string> FindMatchFileAndIndex(string aNameDir, string aPattern, int ExpTx
 	aFullDir.push_back(aFullSiftDir);
 	cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aFullSiftDir);
 	list<string> aFileList = anICNM->StdGetListOfFile(aKee,1); //here akee is quite alike aPattern
-	int nbFiles = aFileList.size();
+	int nbFiles = (int)aFileList.size();
 	cout<<"nombre de fichier = "<< nbFiles <<endl;
 	//delete anICNM;
 	std::vector<string> VectSift;
@@ -139,7 +139,7 @@ vector<vector<double> > CopyAndMergeMatchFile(string aNameDir, string aPattern, 
 
 	//Name a new file which will contains all the previous data
 	//string aOutputFileName= aNameDir+ DirOut + "SumOfSiftData.txt";
-	int nbIm=V_ImSift.size();
+	int nbIm = (int)V_ImSift.size();
 	double n1,n2,n3,n4;
 	//bool ExpTxt;
 	// Declare vector which will contains the value
@@ -148,7 +148,7 @@ vector<vector<double> > CopyAndMergeMatchFile(string aNameDir, string aPattern, 
 
 	for (int i=0;i<nbIm;i++)
 	{
-	int nbFl=V_ImSift[i].size();
+	int nbFl = (int)V_ImSift[i].size();
 		for (int j=0;j<nbFl;j++)
 		{ //make a string for every file which include the directory
 		string aFullFileName=aFullSiftDir[i] + V_ImSift[i][j]; 
@@ -218,11 +218,11 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 {
 	//load the data from the previous function	
 	vector<vector<double> > aFullTabSift = CopyAndMergeMatchFile(aNameDir, aPattern, DirOut, ExpTxt);
-	int NBSift=aFullTabSift[0].size();
+	int NBSift = (int)aFullTabSift[0].size();
 	//cout<<"Nombre de lignes/de mesures : "<<aFullTabSift[0].size()<<endl;
 	//Reading the list of input files
 	list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-    	int nbIm=ListIm.size();
+    	int nbIm = (int)ListIm.size();
 
 	//loop for know where are the change of image in the vector aFullTabSift[0]
 	int Value =0;
@@ -278,7 +278,7 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 	}
 	//CANCELLATION PART
 	sort( aListPtDouble.begin(),aListPtDouble.end() );
-	int K=aListPtDouble.size();
+	int K = (int)aListPtDouble.size();
 	cout<<"NB Double: "<<aListPtDouble.size()<<endl;
 	for (int i=K-1;i>=0; i--)
 	{
@@ -287,7 +287,7 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 		for (int j=0;j<6; j++)
 		{aFullTabSift[j].erase(aFullTabSift[j].begin()+Val);}
 	}
-	int NBSiftM=aFullTabSift[0].size();
+	int NBSiftM = (int)aFullTabSift[0].size();
 	cout<<"NB restant: "<<NBSiftM<<endl;
 	aListPtDouble.clear();
 
@@ -382,7 +382,7 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 	cout<<"taille pour un couple : "<<aFinalTabSift[0].size()<<endl;
 
 	//CANCELLATION PART
-	int N=aListPtMulti.size();
+	int N = (int)aListPtMulti.size();
 	int Q=0;
 	for (int i=0;i<N; i++)
 	{int L=aListPtMulti[i];
@@ -404,7 +404,7 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 	int IndTaken=aListPtMultiIni[i];
 	IndReceiv=IndReceiv - i;
 	IndTaken=IndTaken - i;
-	int S=aFinalTabSift[IndTaken].size();
+	int S = (int)aFinalTabSift[IndTaken].size();
 	if(S>6)
 	{//cout<<"redondance :"<<S-6<<endl;
 	Q2=Q2+1;}
@@ -428,7 +428,7 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 	cout<<"NB Quadruple ou plus : "<<Q2<<endl;
 
 	//cout the number of point
-	int NBSiftFinal=aFinalTabSift.size();
+	int NBSiftFinal = (int)aFinalTabSift.size();
 	cout<<"NB final restant: "<<NBSiftFinal<<endl;
 	aListPtMulti.clear();
 	aListPtMultiIni.clear();
@@ -464,7 +464,7 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 		}
 	}
 	aIndexImageN.push_back(NBSiftFinal);//add the last value
-	int p=aIndexImageN.size();
+	int p = (int)aIndexImageN.size();
 	cout<<"size IndexIm : "<<p<<endl;
 	cout<<"nombre d'image : "<<nbIm<<endl;
 
@@ -515,7 +515,7 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 	}
 	
 	//CANCELLATION PART
-	int Z=aListSimple.size();
+	int Z = (int)aListSimple.size();
 	cout<<"Nombre de Point Oubliés : "<<Z<<endl;
 	int Q3=0;
 	for (int i=0;i<Z; i++)
@@ -538,7 +538,7 @@ vector<vector<double> > CorrectTiePoint(string aNameDir, string aPattern, string
 	//cout<<"Val :"<<Val<<endl;
 	aFinalTabSift.erase(aFinalTabSift.begin()+Val);
 	}
-	int NBTiePointFinal=aFinalTabSift.size();
+	int NBTiePointFinal = (int)aFinalTabSift.size();
 	cout<<"NB restant: "<<NBTiePointFinal<<endl;
 	/*
 	//-------------------Fabrication of a new list -------------------------//
@@ -564,10 +564,10 @@ vector<vector<double> > GlobalCorrectionTiePoint(string aNameDir, string aPatter
 {
 	//load the data from the previous function	
 	vector<vector<double> >	aFinalTabSift=CorrectTiePoint(aNameDir, aPattern, DirOut, ExpTxt);
-	int NBTiePoints=aFinalTabSift.size();
+	int NBTiePoints = (int)aFinalTabSift.size();
 	//Reading the list of input files
 	list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-    	int nbIm=ListIm.size();
+    	int nbIm = (int)ListIm.size();
 	//loop for know where are the change of image in the vector aFullTabSift[j][0]
 	int Value =0;
 	vector<int> aIndexImage;
@@ -598,11 +598,11 @@ vector<vector<double> > GlobalCorrectionTiePoint(string aNameDir, string aPatter
 
 	for (int h=Alimitinf;h<Alimitsup;h++)
 	{//iterate the number of point of the same image
-	int S1=aFinalTabSift[h].size()/3;
+	int S1 = (int)(aFinalTabSift[h].size() / 3);
 		//run the rest of the point on the other images in order to find a next point with a same measurement
 		for (int l=Alimitsup;l<NBTiePoints;l++)
 		{//iterate the number of point of the others images
-		int S2=aFinalTabSift[l].size()/3;
+		int S2 = (int)(aFinalTabSift[l].size() / 3);
 		int exitNumber=0;
 			for ( int i=1; i<S1; i++)
 			{
@@ -637,7 +637,7 @@ vector<vector<double> > GlobalCorrectionTiePoint(string aNameDir, string aPatter
 	}
 	}
 	//CANCELLATION PART
-	int Z=aList.size();
+	int Z = (int)(aList.size());
 	cout<<"Nombre de Point réécris : "<<Z<<endl;
 	int Q=0;
 	for (int i=0;i<Z; i++)
@@ -657,8 +657,8 @@ vector<vector<double> > GlobalCorrectionTiePoint(string aNameDir, string aPatter
 	{
 	long IndVal1=aListIni[i]-i;
 	long IndVal2=aList[i]-i;
-	int S1=aFinalTabSift[IndVal1].size()/3;
-	int S2=aFinalTabSift[IndVal2].size()/3;
+	int S1 = (int)(aFinalTabSift[IndVal1].size() / 3);
+	int S2 = (int)(aFinalTabSift[IndVal2].size() / 3);
 	//cout<<"Val :"<<Val<<endl;
 		for (int j=0;j<S1;j++)
 		{//iterate for every measurement
@@ -680,7 +680,7 @@ vector<vector<double> > GlobalCorrectionTiePoint(string aNameDir, string aPatter
 	aFinalTabSift.erase(aFinalTabSift.begin()+IndVal1);
 	}
 
-	int NBTiePointFinal=aFinalTabSift.size();
+	int NBTiePointFinal = (int)aFinalTabSift.size();
 	cout<<"NB restant: "<<NBTiePointFinal<<endl;
 
 	
@@ -718,7 +718,7 @@ vector<vector<double> > GlobalCorrectionTiePoint(string aNameDir, string aPatter
 	int R=0;
 	for (int j=0;j<NBTiePointFinal;j++)
 	{
-		int T=aFinalTabSift[j].size()/3;
+		int T = (int)(aFinalTabSift[j].size() / 3);
 		for (int k=0;k<T;k++)
 		{
 		int indice=aFinalTabSift[j][3*k];
@@ -748,10 +748,10 @@ vector<vector<double> > GlobalCorrectionTiePoint(string aNameDir, string aPatter
 	//////////just for verif
 	string aOutputFileName= aNameDir+ DirOut + "OriginalTiePtsList.txt"; 
 	FILE *Ou = fopen(aOutputFileName.c_str(), "a" );
-	int NBTiePointF=aFinalTabSift.size();		
+	int NBTiePointF = (int)aFinalTabSift.size();
 	for( int l=0;l<NBTiePointF; l++)
 	{
-	int NB= aFinalTabSift[l].size();
+	int NB = (int)aFinalTabSift[l].size();
 		for ( int m=0;m<NB; m++)
 		{double maVal=aFinalTabSift[l][m];
 	//fill the vectors with all the elements			
@@ -819,7 +819,7 @@ void Triangulation(string aNameDir, string aPattern, string aOri, string DirOut,
 	vector<vector<double> > aFinalTabSift=GlobalCorrectionTiePoint(aNameDir, aPattern, DirOut, aOri, ExpTxt, ExpTieP);
 	//Reading the list of input files
     	list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-    	int nbIm=ListIm.size();
+    	int nbIm = (int)ListIm.size();
     	//cout<<"Number of images to process: "<<nbIm<<endl;
 	vector<CamStenope *> aCam;
 	vector<Pt3dr> aListPtCentre;
@@ -864,7 +864,7 @@ void Triangulation(string aNameDir, string aPattern, string aOri, string DirOut,
 	
 	//////UndistortIMing tie points
 	//////make list of centre and direction vector for each ligne
-	int NPt=aFinalTabSift.size();
+	int NPt = (int)aFinalTabSift.size();
 	//int P=0;
 	//int R=0;
 	//vector<vector<double> > aFullTabTiePoint;//=aFinalTabSift with the cancellated point
@@ -873,7 +873,7 @@ void Triangulation(string aNameDir, string aPattern, string aOri, string DirOut,
 	{
 		vector<double> aTabDroite;
 		vector<double> aTiePt;
-		int T=aFinalTabSift[j].size()/3;
+		int T = (int)(aFinalTabSift[j].size() / 3);
 		for (int k=0;k<T;k++)
 		{
 		int indice=aFinalTabSift[j][3*k];
@@ -917,7 +917,7 @@ void Triangulation(string aNameDir, string aPattern, string aOri, string DirOut,
 	}
 	//supression of the previous tab of tie points	 
 	aFinalTabSift.clear();
-	int NewNBLimit=aFullTabTiePoint.size();
+	int NewNBLimit = (int)aFullTabTiePoint.size();
 	cout<<"nombre de points final : "<<NewNBLimit<<endl;
 	cout<<"fini list of droite !"<<endl;
 	cout<<"Begin 3D intersection"<<endl;
@@ -926,7 +926,7 @@ void Triangulation(string aNameDir, string aPattern, string aOri, string DirOut,
 	for (int j=0;j<NewNBLimit;j++) //NewNBLimit
 	{
 	vector<vector<double> > aSolForaPt;
-	int T=aFullTabDroite[j].size()/6;
+	int T = (int)(aFullTabDroite[j].size() / 6);
 		//we work only with couple of point
 		for (int k=0;k<T-1;k++)
 		{//initialise data for first point
@@ -949,7 +949,7 @@ void Triangulation(string aNameDir, string aPattern, string aOri, string DirOut,
 		}
 		}
 	//do a mean of every x,y,z and push_back the final x,y,z table
-	int N=aSolForaPt.size();
+	int N = (int)aSolForaPt.size();
 		if (N>1)
 		{
 		double X=0;double Y=0;double Z=0;
@@ -975,7 +975,7 @@ void Triangulation(string aNameDir, string aPattern, string aOri, string DirOut,
 	FILE *Ou = fopen(aOutputFileName.c_str(), "a" );		
 	for( int l=0;l<NewNBLimit; l++)
 	{
-	int NB= aFullTabDroite[l].size();
+	int NB = (int)aFullTabDroite[l].size();
 		for ( int m=0;m<NB; m++)
 		{double maVal=aFullTabDroite[l][m];
 	//fill the vectors with all the elements
@@ -1001,7 +1001,7 @@ void Triangulation(string aNameDir, string aPattern, string aOri, string DirOut,
 	string aOutputFileName3= aNameDir+ DirOut + "TiePtsUndistortedList.txt"; 
 	FILE *Ouv = fopen(aOutputFileName3.c_str(), "a" );		
 	for( int l=0;l<NewNBLimit; l++)
-	{int NB= aFullTabTiePoint[l].size();
+	{int NB = (int)aFullTabTiePoint[l].size();
 		for ( int m=0;m<NB; m++)
 		{double maVal=aFullTabTiePoint[l][m];
 	//fill the vectors with all the elements			
@@ -1023,7 +1023,7 @@ void UndistortIM(string aNameDir, string aPattern, string aOri, string DirOut, b
 	{//if KeepImC==0 the undistortion will be done after in the last function
 	//Reading the list of input files
     	list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-    	int nbIm=ListIm.size();
+    	int nbIm = (int)ListIm.size();
     	cout<<"Number of images to process: "<<nbIm<<endl;
 
 	string cmdDRUNK,cmdConv;
@@ -1170,7 +1170,7 @@ void TransfORI_andWFile(string aNameDir, string aPattern, string aOri, string Di
 {
 	//Reading the list of input files
     	list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-    	int nbIm=ListIm.size();
+    	int nbIm = (int)ListIm.size();
     	cout<<"Convert the Orientations"<<endl;
 	//initialiezd every list of internal data and its name
 	// And define boundaries and list of camera
@@ -1303,7 +1303,7 @@ void TransfORI_andWFile(string aNameDir, string aPattern, string aOri, string Di
 	{
 	cEl_GPAO::DoComInParal(ListConvert,aNameDir + "MkConvert");
 	}
-	int N=aFullTabTiePoint.size();
+	int N = (int)aFullTabTiePoint.size();
 
 	//////-------------------Fabrication of the final file -------------------------//////
 	//if Point cloud Chosen initiate the ply file

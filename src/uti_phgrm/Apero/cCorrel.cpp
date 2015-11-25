@@ -87,7 +87,7 @@ cRecorrel::cRecorrel
            mBox._p1.SetSup(aP);
        }
    }
-   mNbPts =  mPInit.size();
+   mNbPts =  (int)mPInit.size();
    int  aSzK = mInterp->SzKernel()+1;
    Pt2dr aPSzK(aSzK,aSzK);
    mBox._p0 = mBox._p0-aPSzK;

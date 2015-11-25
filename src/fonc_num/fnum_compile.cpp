@@ -950,7 +950,7 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
 	 bool EnPtsCur
      )
 {
-  int aSzPds = aVPds.size();
+  int aSzPds = (int)aVPds.size();
   ELISE_ASSERT((aSzPds==1) || (aSzPds==mDimOut),"Taille Pds incohe in cElCompiledFonc::SVD_And_AddEqSysSurResol");
 
   if (INT(aVIndInit.size())!=mNbCompVar)
@@ -1038,7 +1038,7 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
                ( 
                        &mBlocs,
 		       &(mCompDer[aD][0]),
-                       aVIndInit.size(),
+                       (int)aVIndInit.size(),
                        aVInd,
                        aPdsCur,
                        ( ( aDer.size()==0 )?NULL:&(aDer[0]) ),
@@ -1262,7 +1262,7 @@ void cElCompileFN::MakeFileCpp(std::vector<Fonc_Num> vFoncs,bool SpecFCUV)
 
    SetFile("cpp","h");
 
-   int aDimOut = vFoncs.size();
+   int aDimOut = (int)vFoncs.size();
 
 
 // Constructeur : 
@@ -1384,7 +1384,7 @@ Fonc_Num SimplifyFCUV(Fonc_Num aF)
 void cElCompileFN::MakeFonc(std::vector<Fonc_Num> vFoncs,INT aDegDeriv,bool UseAccel) // 0, fonc , 1 deriv, 2 hessian
 {
    FnumCoorUseCsteVal = UseAccel;
-   int aDimOut = vFoncs.size();
+   int aDimOut = (int)vFoncs.size();
 // std::cout << "DEGRE " << aDegDeriv << "\n";
     if (! MAKE_DER_SEC && (aDegDeriv==2))
     {

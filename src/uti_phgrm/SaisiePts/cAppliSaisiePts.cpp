@@ -448,7 +448,7 @@ void cAppli_SaisiePts::InitImages()
         AddImageOfImOfName(*itN,true);
     }
     mImagesVis = mImagesTot;
-    mNbImVis  = mImagesVis.size();
+    mNbImVis  = (int)mImagesVis.size();
 
     mNameSauvPtIm = mDC + mParam.NamePointesImage().Val();
     mDupNameSauvPtIm = mNameSauvPtIm + ".dup";
@@ -478,7 +478,7 @@ void cAppli_SaisiePts::InitImages()
     {
        AddImageOfImOfName(itS->NameIm(),false);
     }
-    mNbImTot = mImagesTot.size();
+    mNbImTot = (int)mImagesTot.size();
 }
 
 cSaisiePointeIm * GetPointeFromName(cSetOfSaisiePointeIm & aSSPI,const std::string & aNameIm)

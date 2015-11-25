@@ -76,7 +76,7 @@ template <class Iterator,class Fpt,class Act,class Type>  void
             F.push_back(&(*it));
     }
     Type ** vals =&(F[0]);
-    INT nb = F.size();
+    INT nb = (int)F.size();
 
 
     {

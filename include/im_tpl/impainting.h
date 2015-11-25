@@ -176,7 +176,7 @@ cImpainting<Type,Type_Base>::cImpainting
            }
       }
    }
-   mNbPts = mVPts.size();
+   mNbPts = (int)mVPts.size();
 }
 Im2D_REAL4 RecursiveImpaint
      (
