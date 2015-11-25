@@ -37,11 +37,13 @@ See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#if(ELISE_QT_VERSION >= 4)
-    #include "general/visual_mainwindow.h"
-#endif
+#include "general/CMake_defines.h"
 
-#include "StdAfx.h"
+#if(ELISE_QT_VERSION >= 4)
+	#include "general/visual_mainwindow.h"
+#else
+	#include "StdAfx.h"
+#endif
 
 void ShowEnum(const cMMSpecArg & anArg)
 {
@@ -120,8 +122,6 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
     return true;
 }*/
 
-#if (0)   // MPD = > COMPILE PAS
-
 #if(ELISE_QT_VERSION >= 4)
 
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
@@ -188,23 +188,7 @@ int MMRunVisualMode
 #endif //ELISE_QT_VERSION >= 4
     return EXIT_SUCCESS;
 }
-#else
 
-class QApplication;
-void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
-{
-}
-int MMRunVisualMode
-(
-        int argc,char ** argv,
-        std::vector<cMMSpecArg> & aVAM,  // Vector Arg Mandatory
-        std::vector<cMMSpecArg> & aVAO,  // Vector Arg Optional
-        std::string aFirstArg            // Command name
-        )
-{
-    return EXIT_SUCCESS;
-}
-#endif
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
