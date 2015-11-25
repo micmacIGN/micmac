@@ -108,12 +108,13 @@ void cPopUpMenuMessage::Hide()
 
 void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc)
 {
+   aFonc = Rconv(aFonc);
    int aNbCh = aFonc.dimf_out();
    aStat.Soms().resize(aNbCh,0.0);
    aStat.Soms2().resize(aNbCh,0.0);
    aStat.ECT().resize(aNbCh,0.0);
-   aStat.VLow().resize(aNbCh,0.0);
-   aStat.VHigh().resize(aNbCh,0.0);
+   aStat.VMax().resize(aNbCh,0.0);
+   aStat.VMin().resize(aNbCh,0.0);
    Symb_FNum aSF(aFonc);
 
    ELISE_COPY
@@ -123,19 +124,23 @@ void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc)
         Virgule
         (
             sigma(aStat.Nb()),
-            sigma(VData(aStat.Soms()),aNbCh)  | VMin(VData(aStat.VLow()),aNbCh) | VMax(VData(aStat.VHigh()),aNbCh),
+            sigma(VData(aStat.Soms()),aNbCh)  | VMin(VData(aStat.VMin()),aNbCh) | VMax(VData(aStat.VMax()),aNbCh),
             sigma(VData(aStat.Soms2()),aNbCh)
         )
    );
 
    double aNb = aStat.Nb();
+   aStat.IntervDyn() = Pt2dr(0,0);
 
    for (int aK=0 ; aK<aNbCh ; aK++)
    {
-         aStat.Soms()[aK] /= aNb;
-         aStat.Soms2()[aK] /= aNb;
-         aStat.ECT()[aK] = sqrt(ElMax(0.0,aStat.Soms2()[aK]-ElSquare(aStat.Soms()[aK])));
+       aStat.Soms()[aK] /= aNb;
+       aStat.Soms2()[aK] /= aNb;
+       aStat.ECT()[aK] = sqrt(ElMax(0.0,aStat.Soms2()[aK]-ElSquare(aStat.Soms()[aK])));
+       aStat.IntervDyn().x += aStat.VMin()[aK];
+       aStat.IntervDyn().y += aStat.VMax()[aK];
    }
+    aStat.IntervDyn() = aStat.IntervDyn() / aNbCh;
 }
 
 /****************************************/
