@@ -37,11 +37,13 @@ See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#if(ELISE_QT_VERSION >= 4)
-    #include "general/visual_mainwindow.h"
-#endif
+#include "general/CMake_defines.h"
 
-#include "StdAfx.h"
+#if(ELISE_QT_VERSION >= 4)
+	#include "general/visual_mainwindow.h"
+#else
+	#include "StdAfx.h"
+#endif
 
 void ShowEnum(const cMMSpecArg & anArg)
 {
