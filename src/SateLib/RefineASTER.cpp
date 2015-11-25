@@ -1056,7 +1056,7 @@ public:
 			cout << "Nb cam to estimate : " << nbCam << endl;
 
 			//Init matrix
-			const int numUnk_int = (int)numUnk_int;
+			const int numUnk_int = (int)numUnk;
 			int matSz = 3 + numUnk_int*nbCam;
 			cout << "matSz : " << matSz << endl;
 			cout << "numUnk : " << numUnk << endl;
