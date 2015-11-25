@@ -41,6 +41,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <stdio.h>
 #include <stdlib.h>
 
+#if ELISE_windows
+	#define uint unsigned
+#endif
+
 /**
  * TestPointHomo: read point homologue entre 2 image après Tapioca
  * Inputs:
