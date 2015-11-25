@@ -50,6 +50,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 std::string StrNbChifSignNotSimple(double aVal,int aNbCh);
 std::string StrNbChifSign(double aVal,int aNbCh);
 std::string SimplString(std::string aStr);
+Im2D_U_INT1 Icone(const std::string & aName,const Pt2di & aSz,bool Floutage,bool Negatif);
 
 
 void CorrectRect(Pt2di &  aP0,Pt2di &  aP1,const Pt2di & aSz);
@@ -85,6 +86,7 @@ class cAppli_Vino : public cXml_EnvVino,
                     public cElScrCalcNameSsResol
 {
      public :
+        bool Floutage() {return false;} // A mettre dans cXml_EnvVino,
         cAppli_Vino(int,char **);
         void PostInitVirtual();
         void  Boucle();
@@ -98,10 +100,16 @@ class cAppli_Vino : public cXml_EnvVino,
         void ShowOneVal(Pt2dr aP);
         void EffaceVal();
         void HistoSetDyn();
+        Box2di GetRectImage(bool GlobScale);
+
+
         bool OkPt(const Pt2di & aPt);
         void End();
-        Im2D_Bits<1> Icone(const std::string & aName,const Pt2di & aSz);
         CaseGPUMT * CaseBase(const std::string&,const Pt2di aNumCase);
+        ChoixParmiCaseGPUMT * CaseChoix( ChoixParmiCaseGPUMT * aCaseBase,const std::string&,const Pt2di aNumCase,int aNumVal);
+
+
+        void SetInterpoleMode(eModeInterpolation);
 
 
 
@@ -158,12 +166,15 @@ class cAppli_Vino : public cXml_EnvVino,
           Pt2di                   mSzCase;
           GridPopUpMenuTransp*    mPopUpBase;
           CaseGPUMT *             mCaseExit;
+          ChoixParmiCaseGPUMT *   mCaseInterpPpv;
+          ChoixParmiCaseGPUMT *   mCaseInterpBilin;
           CaseGPUMT *             mCaseHStat;
           CaseGPUMT *             mCaseHMinMax;
           CaseGPUMT *             mCaseHEqual;
 
           GridPopUpMenuTransp*    mPopUpCur;
           CaseGPUMT *             mCaseCur;
+          eModeInterpolation      mMode;
 
 };
 

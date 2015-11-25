@@ -57,15 +57,43 @@ void cAppli_Vino::End()
 
 }
 
-void cAppli_Vino::HistoSetDyn()
+Box2di cAppli_Vino::GetRectImage(bool GlobScale)
 {
     mW->fill_rect(Pt2dr(5,20),Pt2dr(280,60),mW->pdisc()(P8COL::magenta));
     mW->fixed_string(Pt2dr(40,45),"Clik P1 and P2 of rectangle",mW->pdisc()(P8COL::black),true);
 
-    Pt2dr aP1 = mW->clik_in()._pt;
-    mW->fill_rect(aP1-Pt2dr(3,3),aP1+Pt2dr(3,3),mW->pdisc()(P8COL::green));
-    Pt2dr aP2 = mW->clik_in()._pt;
-    mW->draw_rect(aP1,aP2,mW->pdisc()(P8COL::green));
+    Pt2dr aPW1 = mW->clik_in()._pt;
+    mW->fill_rect(aPW1-Pt2dr(3,3),aPW1+Pt2dr(3,3),mW->pdisc()(P8COL::green));
+    Pt2dr aPW2 = mW->clik_in()._pt;
+    mW->draw_rect(aPW1,aPW2,mW->pdisc()(P8COL::green));
+
+
+    pt_set_min_max(aPW1,aPW2);
+
+    ElImScroller * aCurScr = GlobScale ? mScr : mScr->CurScale();
+
+    Pt2di aPU1 = round_ni(aCurScr->to_user(aPW1));
+    Pt2di aPU2 = round_ni(aCurScr->to_user(aPW2));
+
+    // Pt2di aSz = aCurScr->SzIn();
+
+    CorrectRect(aPU1,aPU2,aCurScr->SzIn());
+
+   return Box2di (aPU1,aPU2);
+}
+
+    
+void cAppli_Vino::HistoSetDyn()
+{
+    Box2di aBox = GetRectImage(false);
+    ELISE_COPY
+    (
+         rectangle(Pt2di(0,0),aBox.sz()),
+         trans( mScr->CurScale()->in(),aBox._p0),
+         mW->ogray()
+    );
+    std::cout << "SCRRrrr " <<  aBox.sz() << "\n";
+
 }
 
 
@@ -98,36 +126,55 @@ void  cAppli_Vino::MenuPopUp()
         {
             HistoSetDyn();
         }
+
+       if (mCaseCur==mCaseInterpPpv)
+       {
+           SetInterpoleMode(eInterpolPPV);
+       }
+       if (mCaseCur==mCaseInterpBilin)
+       {
+           SetInterpoleMode(eInterpolBiLin);
+       }
     }
 }
 
-
-Im2D_Bits<1> cAppli_Vino::Icone(const std::string & aName,const Pt2di & aSz)
+void cAppli_Vino::SetInterpoleMode(eModeInterpolation aMode)
 {
-   cElBitmFont & aFont = cElBitmFont::BasicFont_10x8() ;
+   mMode = aMode;
 
-   return aFont.MultiLineImageString(aName,Pt2di(0,5),-aSz,0);
+   if (mMode==eInterpolPPV)
+   {
+      mScr->SetAlwaysQuickInZoom(true);
+   }
+   else
+   {
+      mScr->SetAlwaysQuickInZoom(false);
+   }
+   mScr->LoadAndVisuIm();
 }
+
+
+
 
 CaseGPUMT * cAppli_Vino::CaseBase(const std::string& aName,const Pt2di aNumCase)
 {
-   Im2D_Bits<1> anIc = Icone(aName,mSzCase);
-   ELISE_COPY(anIc.border(3),1,anIc.out());
-   ELISE_COPY(anIc.border(1),0,anIc.out());
+    Im2D_U_INT1  anIc = Icone(aName,mSzCase,Floutage(),false);
+    return new CaseGPUMT (*mPopUpBase,"i",aNumCase, anIc.in_proj());
+}
 
-/*
-   Pt2di  aSz = anIc.sz();
-   Im2D_U_INT1 aRes(aSz.x,aSz.y);
-   ELISE_COPY
-   (
-         aRes.all_pts(),
-         Max(anIc.in(),rect_som(anIc.in(0),1)/9.0) *255,
-         aRes.out()
-   );
+ChoixParmiCaseGPUMT * cAppli_Vino::CaseChoix(ChoixParmiCaseGPUMT * aCasePrec,const std::string& aName,const Pt2di aNumCase,int aNumVal)
+{
+    Im2D_U_INT1  anIcPos = Icone(aName,mSzCase,Floutage(),false);
+    Im2D_U_INT1  anIcNeg = Icone(aName,mSzCase,Floutage(),true);
 
-   return new CaseGPUMT (*mPopUpBase,"i",aNumCase, 255-aRes.in(255));
-*/
-    return new CaseGPUMT (*mPopUpBase,"i",aNumCase, (!anIc.in(0)) *255);
+    return new ChoixParmiCaseGPUMT
+               (
+                    *mPopUpBase,"1 0",aNumCase,
+                    anIcPos.in_proj(),
+                    anIcNeg.in_proj(),
+                    aNumVal,
+                    aCasePrec
+               );
 }
 
 
@@ -138,9 +185,13 @@ void cAppli_Vino::InitMenu()
     mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(5,3),Pt2di(1,1));
 
     mCaseExit  = CaseBase("Exit",Pt2di(0,0));
-    mCaseHStat  = CaseBase("Histo\nStat2",Pt2di(1,0));
-    mCaseHMinMax  = CaseBase("Histo\nMinMax",Pt2di(2,0));
-    mCaseHEqual   = CaseBase("Histo\nEqual",Pt2di(3,0));
+    mCaseInterpPpv    = CaseChoix(             0,"Interp\nPpv"  ,Pt2di(1,0),0);
+    mCaseInterpBilin  = CaseChoix(mCaseInterpPpv,"Interp\nBilin",Pt2di(2,0),1);
+
+    mCaseHStat  = CaseBase("Histo\nStat2",Pt2di(0,1));
+    mCaseHMinMax  = CaseBase("Histo\nMinMax",Pt2di(1,1));
+    mCaseHEqual   = CaseBase("Histo\nEqual",Pt2di(2,1));
+
 
 }
 

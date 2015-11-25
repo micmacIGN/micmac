@@ -408,6 +408,8 @@ class PckBitImScroller : public ElImScroller ,
 
         Output out();
         Fonc_Num in();
+        Pt2di SzIn() ;
+
 
         PckBitImScroller
         (
@@ -441,6 +443,7 @@ class  RGB_PckbImScr : public ElImScroller
 		virtual ~RGB_PckbImScr();
 	 protected :
         void WriteRGBImage(Pt2di p0,Pt2di p1,RGB_Int **);
+        Pt2di SzIn() ;
      private :
 
 		Pt2di   mP0Im;
@@ -685,6 +688,7 @@ template <class Type> class ImFileScroller : public ImFileLoader<Type>,
 				void LoadXImage(Pt2di p0,Pt2di p1,bool quick);
 				void RasterUseLine(Pt2di p0,Pt2di p1,INT **);
                 virtual ElImScroller * Reduc(INT zoom,bool quick = false);
+                Pt2di SzIn() ;
 
 		private :
                                 Fonc_Num in();
