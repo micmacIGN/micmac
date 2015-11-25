@@ -276,7 +276,7 @@ template <class TypeIm,class TypeBase> Im2D_Bits<1> CreateGr(tGRGraf & mGr,Im2D<
              {
                 std::vector<Pt2di> aVPts;
                 CompCnx(aVPts,V8,aP0,anIm,aImLabel,INT4(aCpt),&aSV);
-                int aNbPts = aVPts.size();
+                int aNbPts = (int)aVPts.size();
                 if (aNbPts >= aPGR.mSzMinInit)
                 {
                    cGR_AttrSom anAttr(aP0,aLabel,aCpt,aNbPts);

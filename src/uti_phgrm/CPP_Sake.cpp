@@ -180,7 +180,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
 
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     mSetIm = mICNM->Get(mImgs);
-    mNbIm = mSetIm->size();
+    mNbIm = (int)mSetIm->size();
     ELISE_ASSERT((mNbIm>=2)|mUseMastIm,"Not enough images in pattern!!");
 
     MakeFileDirCompl(mDirMEC);

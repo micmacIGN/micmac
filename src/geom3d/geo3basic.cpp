@@ -283,7 +283,7 @@ cElPlan3D RobustePlan3D
 
     int aNbTirage = sqrt(anEffort*aRatioTirage);
     int aNbPTest = ElMin(int(aVPts.size()),round_up(anEffort/aNbTirage));
-    std::vector<int> aIndPts; GetNRandParmiQ(aIndPts,aNbPTest,aVPts.size());
+    std::vector<int> aIndPts; GetNRandParmiQ(aIndPts, aNbPTest, (int)aVPts.size());
 
 
     cElPlan3D  aRes(Pt3dr(0,0,0),Pt3dr(1,0,0),Pt3dr(0,1,0));

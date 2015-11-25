@@ -430,7 +430,7 @@ std::list<cCple> FiltrageDup
 ElPackHomologue ToLPt(const std::list<cCple> &aLC,bool isQ,int aNbIn)
 {
 
-   int aNbTot = aLC.size();
+   int aNbTot = (int)aLC.size();
    if ((aNbIn <0)  || (aNbIn>aNbTot))
        aNbIn = aNbTot;
 
@@ -512,7 +512,7 @@ bool cAppliPastis::ValideGlobH(const std::list<cCple> & aLC)
 {
    if (mSeuilHGLOB <0) return true;
 
-   int aNB = aLC.size();
+   int aNB = (int)aLC.size();
    if (aNB <= mNbMinValidGlobH)
       return false;
    if (aNB > mNbMaxValidGlobH)
@@ -600,7 +600,7 @@ std::list<cCple>  cAppliPastis::FiltrageRot(std::list<cCple>  aLC,double aSeuil)
 
    int aNbPPV = 10;
    double aDistPPV = sqrt((aNbPPV/2.0)*mSzIm1.x*mSzIm1.y/(PI*aNewLC.size()));
-   int aKT= aNewLC.size();
+   int aKT = (int)aNewLC.size();
    double aMaxPente = 0;
    for
    (
@@ -634,7 +634,7 @@ std::list<cCple>  cAppliPastis::FiltrageRot(std::list<cCple>  aLC,double aSeuil)
    std::sort(aVC.begin(),aVC.end(),aCmp);
 
    aLC.clear();
-   for ( int aK=aVC.size()-1; aK>=0; aK--)
+   for ( int aK = (int)(aVC.size() - 1); aK>=0; aK--)
    {
       if (aVC[aK]->mOnePenteOut)
       {
@@ -1059,7 +1059,7 @@ int Pastis_main(int argc,char ** argv)
     }
 
     argv = & (aNewArgv[0]);
-    argc = aNewArgv.size();
+    argc = (int)aNewArgv.size();
 
     MMD_InitArgcArgv(argc,argv);
 

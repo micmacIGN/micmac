@@ -232,7 +232,7 @@ cAppli_Ortho::cAppli_Ortho
     mLutLabelR = InitRanLutLabel();
     mLutLabelV = InitRanLutLabel();
     mLutLabelB = InitRanLutLabel();
-    mLutInd = Im1D_U_INT2(mVAllOrhtos.size());
+    mLutInd = Im1D_U_INT2((int)mVAllOrhtos.size());
 
     mTF0 = new Tiff_Im(mVAllOrhtos[0]->TF());
     mNbCh = mTF0->nb_chan();
@@ -278,7 +278,7 @@ Video_Win *  cAppli_Ortho::W()
 
 Im1D_U_INT1 cAppli_Ortho::InitRanLutLabel()
 {
-   Im1D_U_INT1 aRes(mVAllOrhtos.size());
+   Im1D_U_INT1 aRes((int)mVAllOrhtos.size());
    ELISE_COPY(aRes.all_pts(),255*frandr(),aRes.out());
    return aRes;
 }
@@ -382,7 +382,7 @@ void  cAppli_Ortho::DoOneBox
         {
             while (aKReserve>=int(mReserveLoadedIms.size()))
             {
-               int anInd = mReserveLoadedIms.size();
+               int anInd = (int)mReserveLoadedIms.size();
                mReserveLoadedIms.push_back(new cLoadedIm(*this,anInd,*mTF0,mSzMaxIn));
             }
             cLoadedIm * aLI = mReserveLoadedIms[aKReserve];

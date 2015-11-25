@@ -254,7 +254,7 @@ int Tequila_main(int argc,char ** argv)
     vector <cZBuf> aZBuffers;
 
     list<string>::const_iterator itS=aLS.begin();
-    const int nCam = ListCam.size();
+    const int nCam = (int)ListCam.size();
     for(int aK=0 ; aK<nCam; aK++, itS++)
     {
         CamStenope* Cam = ListCam[aK];
@@ -665,7 +665,7 @@ int Tequila_main(int argc,char ** argv)
         cout <<"***************************Packing textures**************************"<<endl;
         cout << endl;
 
-        const int nRegions = regions.size();
+        const int nRegions = (int)regions.size();
         tp->setTextureCount(nRegions);
 
         for (int aK=0; aK < nRegions; ++aK)
@@ -962,7 +962,7 @@ int Tequila_main(int argc,char ** argv)
                     aPhI
                 );
 
-        const int nImg = aVT.size();
+        const int nImg = (int)aVT.size();
         for (int aK=0 ; aK< nImg ; aK++)
         {
             Pt2di ptK(aK % aNbCol, aK / aNbCol);

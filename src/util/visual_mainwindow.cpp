@@ -160,7 +160,7 @@ void visual_MainWindow::addGridLayout(const vector<cMMSpecArg> &aVA, QString pag
 
     if (addSpace)
     {
-        gridLayout->addItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding), aVA.size(), 0);
+        gridLayout->addItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding), (int)aVA.size(), 0);
     }
 }
 
@@ -772,25 +772,25 @@ void visual_MainWindow::add_select(QGridLayout* layout, QWidget* parent, int aK,
     {
         if (aArg.IsExistDirOri() || aArg.IsDir())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &directory"), vLineEdit.size(), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &directory"), (int)vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectDirPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsPatFile())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &images"), vLineEdit.size(), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &images"), (int)vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectImgsPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsExistFile() )
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vLineEdit.size(), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), (int)vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFilePressed(int)));
             layout->addWidget(sButton,aK,3);
         }
         else if (aArg.IsExistFileWithRelativePath())
         {
-            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), vLineEdit.size(), parent);
+            cSelectionButton* sButton = new cSelectionButton(tr("Select &file"), (int)vLineEdit.size(), parent);
             connect(sButton,SIGNAL(my_click(int)),this,SLOT(onSelectFileRPPressed(int)));
             layout->addWidget(sButton,aK,3);
         }
@@ -873,7 +873,7 @@ void visual_MainWindow::add_3d_SpinBox(QGridLayout *layout, QWidget *parent, int
 
 void visual_MainWindow::add_saisieButton(QGridLayout *layout, int aK, bool normalize)
 {
-    cSelectionButton *saisieButton = new cSelectionButton(tr("Selection &editor"), vInputs.size(), normalize);
+    cSelectionButton *saisieButton = new cSelectionButton(tr("Selection &editor"), (int)vInputs.size(), normalize);
     layout->addWidget(saisieButton, aK, 5);
     connect(saisieButton,SIGNAL(my_click(int, bool)),this,SLOT(onSaisieButtonPressed(int, bool)));
 }

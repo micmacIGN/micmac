@@ -51,7 +51,7 @@ Im1D_U_INT1 ImMajic()
 	{
 		First = false;
 		const char * majic = "krznp re9pjsuquk8peyk9mcnbwlmqopa6teyioptrenslohteapoiutegnm";
-		res = Im1D_U_INT1( strlen(majic) );
+		res = Im1D_U_INT1( (int)strlen(majic) );
 
 		for ( INT x=0; x<res.tx(); x++ )
 			res.data()[x] = majic[x];

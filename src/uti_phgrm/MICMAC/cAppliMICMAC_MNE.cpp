@@ -143,7 +143,7 @@ void cAppliMICMAC::Correl_MNE_ZPredic
                    }
 
                    int aNbImOk = 0;
-                   int aNbSelIm = aSelLI.size();
+                   int aNbSelIm = (int)aSelLI.size();
                    aStat.Add(aNbSelIm);
 
                    // On balaye les images  pour lire les valeur et stocker, par image,

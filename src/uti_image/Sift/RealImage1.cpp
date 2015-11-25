@@ -499,7 +499,7 @@ void RealImage1::convolution_transpose_1d( const std::vector<PixReal> &i_kernel,
 {
     o_res.resize( m_height, m_width );
 
-    UINT n = i_kernel.size();
+    UINT n = (UINT)i_kernel.size();
     if ( n<3 || ( (n&1)==0 ) )
     {
         #ifdef _DEBUG
@@ -542,7 +542,7 @@ void RealImage1::convolution_transpose_1d( const std::vector<PixReal> &i_kernel,
     // process full-kernel computed pixels
     UINT srcStepLine = 2*n;
     PixReal *itFirstDst = o_res.data()+n*m_height;
-    nbValidElements = i_kernel.size();
+    nbValidElements = (UINT)i_kernel.size();
     itKernelFirst   = i_kernel.data();
     srcStep         = -nbValidElements+1;
     itSrc           = m_data.data();
@@ -598,7 +598,7 @@ void RealImage1::convolution_transpose_1d_2( const std::vector<PixReal> &i_kerne
 {
     o_res.resize( m_height, m_width );
 
-    int N = i_kernel.size(),
+    int N = (int)i_kernel.size(),
         n = ( N-1 )/2;
     if ( N<3 || ( (N&1)==0 ) )
     {
@@ -661,7 +661,7 @@ void RealImage1::convolution_transpose_1d_3( const std::vector<PixReal> &i_kerne
     // filter is (2*W+1) by 1
     const int N = (int)m_height,
               M = (int)m_width,
-              W = ( i_kernel.size()-1 )/2;
+              W = (int)((i_kernel.size() - 1) /  2);
     const PixReal *filter_pt = i_kernel.data(),
                   *src_pt    = m_data.data();
     PixReal *dst_pt = o_res.m_data.data();
@@ -920,7 +920,7 @@ Real_ saveKernel( const string &i_filename, Real_ s, const vector<PixReal> &o_ke
         if ( !f ) cerr << "ERROR: saveKernel( " << i_filename << "): unable to open file" << endl;
     #endif
 
-    int N = o_ker.size(),
+    int N = (int)o_ker.size(),
         n = ( N-1 )/2;
     f.write( (char*)&s, sizeof( Real_ ) );
     f.write( (char*)&n, sizeof( int ) );
@@ -1020,12 +1020,12 @@ void clusterize_2d( const ImageSize &i_areaSize, const ImageSize &i_efficientSiz
     vector<RoiWindow_2d>::iterator it2d = o_cluster.begin();
     vector<RoiWindow_1d>::iterator itX = clusterX.begin(),
                                    itY;
-    int x = clusterX.size(),
+    int x = (int)clusterX.size(),
         y;
     while ( x-- )
     {
         itY = clusterY.begin();
-        y = clusterY.size();
+        y = (int)clusterY.size();
         while ( y-- )
         {
             it2d->set_along_y( *itY++ );
@@ -1045,7 +1045,7 @@ bool check_grid( const RealImage1 &i_img, const vector<RoiWindow_2d> &i_win )
         ymin = INT_MAX, ymax = INT_MIN;
     vector<RoiWindow_2d>::const_iterator itWin = i_win.begin();
     vector<RealImage1>::iterator itSub = subs.begin();
-    int i = i_win.size();
+    int i = (int)i_win.size();
     while ( i-- ){
         if ( itWin->m_x0<xmin ) xmin=itWin->m_x0;
         if ( itWin->m_y0<ymin ) ymin=itWin->m_y0;
@@ -1065,7 +1065,7 @@ bool check_grid( const RealImage1 &i_img, const vector<RoiWindow_2d> &i_win )
     int nbTotalPix = 0;
     itWin = i_win.begin();
     itSub = subs.begin();
-    i = i_win.size();
+    i = (int)i_win.size();
     while ( i-- ){
         reconsImg.drawWindow( itWin->m_x0, itWin->m_y0, *itSub );
         nbTotalPix += itSub->width()*itSub->height();

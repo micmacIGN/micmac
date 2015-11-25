@@ -118,7 +118,7 @@ class cLoaedImTDEpip
        {
 		   
 		   // std::cout << aPIm1 << " " << mTMIn.get(aPIm1,0) << "\n";
-		   return   mTMIn.get(aPIm1,0) ;
+		   return mTMIn.get(aPIm1,0) != 0;
 		   /*
           return     (aPIm1.x >= aSzW.x) 
                   &&  (aPIm1.y >= aSzW.y) 

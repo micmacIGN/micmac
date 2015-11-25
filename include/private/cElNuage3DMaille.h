@@ -758,7 +758,7 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
 template <class Type> void WriteType(FILE * aFP,Type f)
 {
     size_t  size = sizeof(Type);
-    TheIntFuckingReturnValue=fwrite(&f,size,1,aFP);
+    TheIntFuckingReturnValue = (int)fwrite(&f,size,1,aFP);
 }
 
 

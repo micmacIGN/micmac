@@ -58,7 +58,7 @@ ElGrowingSetInd::ElGrowingSetInd
 
 int ElGrowingSetInd::size() const
 {
-   return mIndexes.size();
+   return (int)mIndexes.size();
 }
 
 ElGrowingSetInd::~ElGrowingSetInd() 

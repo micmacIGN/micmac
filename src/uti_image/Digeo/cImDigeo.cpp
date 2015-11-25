@@ -88,7 +88,7 @@ cInterfImageAbs* cInterfImageAbs::create( std::string const &aName, unsigned int
 #if defined (__USE_JP2__)
 	//on recupere l'extension
 	int placePoint = -1;
-	for(int l=aName.size()-1;(l>=0)&&(placePoint==-1);--l)
+	for(int l = (int)(aName.size() - 1);(l>=0)&&(placePoint==-1);--l)
 	{
 		if (aName[l]=='.')
 		{
@@ -952,7 +952,7 @@ unsigned int cImDigeo::getNbFeaturePoints() const
 	{
 		// process first image
 		const cImInMem &image = *mVIms[iImage];
-		nbTotalFeaturePoints += image.featurePoints().size();
+		nbTotalFeaturePoints += (unsigned int)image.featurePoints().size();
 	}
 	return nbTotalFeaturePoints;
 }

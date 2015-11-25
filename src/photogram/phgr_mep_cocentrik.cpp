@@ -85,7 +85,7 @@ double SomEcartDist
     }
     // int aNbVal = round_ni(aVRes.size() * PropCostEcartDist);
     // aNbVal = ElMax(1,ElMin(int(aVRes.size())-1,aNbVal));
-    return MoyKPPVal(aVRes,NbForEcart(aVRes.size()));
+    return MoyKPPVal(aVRes,NbForEcart((int)aVRes.size()));
 }
 
 
@@ -112,8 +112,8 @@ ElMatrix<REAL> GlobMepRelCocentrique(double & anEcartMin,const ElPackHomologue &
 
    while (aNbRansac)
    {
-       int aKA = NRrandom3(aVDir1.size());
-       int aKB = NRrandom3(aVDir2.size());
+       int aKA = NRrandom3((int)aVDir1.size());
+       int aKB = NRrandom3((int)aVDir2.size());
        if (aKA!=aKB)
        {
           aNbRansac--;
@@ -229,7 +229,7 @@ void cMEPCoCentrik::OneItereRotPur(ElMatrix<REAL>  & aMat,double & anErrStd)
              aSysLin3.GSSR_AddNewEquation(aPds,aCoeff,aVQ2[aY]-aVQ1[aY],0);
          }
     }
-    double anErrRobut = MoyKPPVal(aVRes,NbForEcart(aVRes.size()));
+    double anErrRobut = MoyKPPVal(aVRes,NbForEcart((int)aVRes.size()));
     double anErrQuad = sqrt(aSomErr/aSomP);
     if (0)
     {
@@ -316,8 +316,8 @@ void cMEPCoCentrik::ComputePlanBase(const ElMatrix<REAL>  & aMat)
     {
          for (int aK=0 ; aK<10000  ; aK++)
          {
-              int aKA = NRrandom3(mVPlanBase.size());
-              int aKB = NRrandom3(mVPlanBase.size());
+              int aKA = NRrandom3((int)mVPlanBase.size());
+              int aKB = NRrandom3((int)mVPlanBase.size());
 
              
               Pt3dr aBase = mVPlanBase[aKA] ^  mVPlanBase[aKB];
@@ -339,8 +339,8 @@ Pt3dr cMEPCoCentrik::ComputeNormBase()
     Pt3dr aBestNorm(0,0,0);
     for (int aCpt=0 ; aCpt<NbCpleBase ; )
     {
-        int aKA = NRrandom3(mVPlanBase.size());
-        int aKB = NRrandom3(mVPlanBase.size());
+        int aKA = NRrandom3((int)mVPlanBase.size());
+        int aKB = NRrandom3((int)mVPlanBase.size());
 
         if (aKA!=aKB)
         {

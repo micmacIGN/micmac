@@ -211,12 +211,12 @@ void cAppliMorito::InitRotM2toM1()
        ElRotation3D aLocM2toM1 =  aRM1toCam.inv() * aRM2toCam;
        mRM2toM1  = mRM2toM1 + aLocM2toM1.Mat();
 
-       if (mShow>=2)
-       {
-          std::cout << "TETA : " << aLocM2toM1.teta01() << " "
-                                 << aLocM2toM1.teta02() << " "
-                                 << aLocM2toM1.teta12()  << "\n";
-       }
+       //~ if (mShow>=2)
+       //~ {
+          //~ std::cout << "TETA : " << aLocM2toM1.teta01() << " "
+                                 //~ << aLocM2toM1.teta02() << " "
+                                 //~ << aLocM2toM1.teta12()  << "\n";
+       //~ }
    }
    mRM2toM1 = mRM2toM1 * (1.0/double(mVDpl.size()));
    mRM2toM1  = NearestRotation(mRM2toM1);
@@ -248,10 +248,10 @@ void cAppliMorito::InitScTr2to1()
    {
        double aD1 = euclid(mVP1[aK]-aCdg1);
        double aD2 = euclid(mVP2[aK]-aCdg2);
-       if (mShow>=2)
-       {
-           std::cout << "Ratio = " << aD1 / aD2 << " D1 " << aD1 << "\n";
-       }
+       //~ if (mShow>=2)
+       //~ {
+           //~ std::cout << "Ratio = " << aD1 / aD2 << " D1 " << aD1 << "\n";
+       //~ }
 
        aSomD1 += aD1;
        aSomD2 += aD2;
@@ -260,11 +260,11 @@ void cAppliMorito::InitScTr2to1()
    aSomD2 /= mVDpl.size();
 
    mSc2to1 = aSomD1 / aSomD2;
-   if (mShow>=2)
-   {
-      std::cout << "RGLOB " << mSc2to1 << "\n";
-      std::cout << "RRGLOBBBb = " << aSomD1 << " " << aSomD2 << "\n";
-   }
+   //~ if (mShow>=2)
+   //~ {
+      //~ std::cout << "RGLOB " << mSc2to1 << "\n";
+      //~ std::cout << "RRGLOBBBb = " << aSomD1 << " " << aSomD2 << "\n";
+   //~ }
    mTr2to1 = aCdg1  - aCdg2 * mSc2to1;
 }
 
@@ -318,7 +318,7 @@ void cAppliMorito::ComputNewRot2()
 
 
             aCam2->SetOrientation(aCamToM1.inv());
-            if (aCam1 && (mShow>=1))
+            if (aCam1 != NULL && mShow)
             {
                 ElRotation3D aRM2toCam =  aCam2->Orient();
                 ElRotation3D aRM1toCam =  aCam1->Orient();

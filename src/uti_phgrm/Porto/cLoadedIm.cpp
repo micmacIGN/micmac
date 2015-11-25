@@ -50,7 +50,7 @@ cLoadedIm::cLoadedIm (cAppli_Ortho & anAppli,int anInd,Tiff_Im & aTF0,const Pt2d
      mImPC       (aSz.x,aSz.y),
      mTImPC      (mImPC),
      mIms        (aTF0.VecOfIm(aSz)),
-     mChCor      (mIms.size() /2 ) // Ca fait V dans RVB ....
+     mChCor      ((int)(mIms.size() /2)) // Ca fait V dans RVB ....
 {
 }
 

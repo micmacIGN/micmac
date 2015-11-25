@@ -497,7 +497,7 @@ const void * GetXMLDataBin(int aK)
 
 inline int LengthBinSeq()
 {
-    static int aRes = strlen(TheBinSeq);
+    static int aRes = (int)strlen(TheBinSeq);
     return aRes;
 }
 
@@ -893,7 +893,7 @@ void cArgCreatXLMTree::SetDico(const std::string & aKey,std::string  aVal,bool I
 	if (aVal.length()!=0 && aVal[0]=='"')
 	{
 		const char * aVc = aVal.c_str();
-		int aL = strlen(aVc);
+		int aL = (int)strlen(aVc);
 		if (aL>1 && aVc[aL-1]=='"')
 		{
 			aVal = aVal.substr(1,aL-2);

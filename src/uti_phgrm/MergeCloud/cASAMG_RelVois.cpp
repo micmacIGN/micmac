@@ -140,7 +140,7 @@ void cASAMG::ComputeSubset(int aNbPts,cResumNuage & aRN)
        }
    }
 
-   aRN.Reset(aVPts.size());
+   aRN.Reset((int)aVPts.size());
    aRN.mNbSom = aNbSomTot;
    for (int aK=0 ; aK<int(aVPts.size()); aK++)
    {
@@ -255,7 +255,7 @@ void cASAMG::TestImCoher()
     ElTimer aChrono;
     const   std::vector<cASAMG *> & aVN = mCloseNeigh;
 
-    int aNbIm = aVN.size();
+    int aNbIm = (int)aVN.size();
     Im2D_REAL4 aImDif(mSz.x,mSz.y,1000);
     TIm2D<REAL4,REAL8> aTDif(aImDif);
     Pt2di aP;

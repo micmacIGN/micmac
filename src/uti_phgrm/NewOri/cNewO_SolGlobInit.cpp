@@ -570,7 +570,7 @@ void  cAppli_NewSolGolInit::EstimCoheTriplet()
        int aNb= 20;
        for (int aK=0 ; aK<= aNb ; aK++)
        {
-            int aKS = (aK * (mV3.size()-1)) / aNb;
+            int aKS = (aK * (int)(mV3.size() - 1)) / aNb;
              mV3[aKS]->Show(ToString(aKS)) ;
        }
        std::cout << "COST ;  S3A= " << mSeuilCostArc  << " M3A " << mMedTripletCostA << "\n";
@@ -596,7 +596,7 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
           {
                 if ((*anItA).attr().IsOrASym())
                 {
-                    int aNbT = (*anItA).attr().ASym()->Lnk3().size();
+                    int aNbT = (int)(*anItA).attr().ASym()->Lnk3().size();
                      aNbTT += (aNbT*(aNbT-1)) / 2;
                      (*anItA).attr().ASym()->PostInit(false);
                 }
@@ -653,7 +653,7 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
     {
        for (int aK=0 ; aK<100 ; aK++)
        {
-            int aKH = (aVP12.size() * aK) /100;
+            int aKH = (int)((aVP12.size() * aK) /100);
             std::cout << " Med " << aK << " = " << aVP12[aKH] << "\n";
        }
        std::cout << "MEDIAN=" << mCoherMed12  << " Prop=" << aKMed/double(aVP12.size()) << "\n";
@@ -681,7 +681,7 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
    }
 
    // Remplissage de la structure de calul du noyau
-   mCompKG.SetN(aVL.size());
+   mCompKG.SetN((int)aVL.size());
    for (int aK1=0 ; aK1<int(aVL.size()) ; aK1++)
    {
        cNOSolIn_Triplet * aTri1 = aVL[aK1].m3;

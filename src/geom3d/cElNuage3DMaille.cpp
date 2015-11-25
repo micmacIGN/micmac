@@ -493,7 +493,7 @@ void cElNuage3DMaille::AddExportMesh()
    {
       std::vector<tTri>  aVT;
       GenTri(aVT,anI,0);
-      mNbTri += aVT.size();
+      mNbTri += (int)aVT.size();
    }
 
    // std::cout << "NB FACE " << mNbTri  << " NB SOM " << mNbPts << "\n";
@@ -688,7 +688,7 @@ void cElNuage3DMaille::PlyPutFile
    int aNbS = 0;
    if (mPts)
    {
-       aNbS = mPts->size();
+       aNbS = (int)mPts->size();
        ELISE_ASSERT(mCouls,"Pts sans coul dans cElNuage3DMaille::PlyPutFile");
        ELISE_ASSERT(aNbS==int(mPts->size()),"Pts and coul dif size in PlyPutFile");
    }
@@ -703,7 +703,7 @@ void cElNuage3DMaille::PlyPutFile
    else
    {
       aN0 = aVN[0];
-      aNbAttr = aN0->mAttrs.size();
+      aNbAttr = (int)aN0->mAttrs.size();
    }
 
    for (int aK=0 ; aK<int(aVN.size()) ; aK++)
@@ -866,7 +866,7 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
                 xyz[2] = aP.z;
                 if (aModeBin)
                 {
-                    int aNb= fwrite(xyz,sizeof(double),3,aFP);
+                    int aNb= (int)fwrite(xyz,sizeof(double),3,aFP);
                     ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex");
                 }
                 else
@@ -882,7 +882,7 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
                 xyz[2] = (float)aP.z;
                 if (aModeBin)
                 {
-                    int aNb= fwrite(xyz,sizeof(float),3,aFP);
+                    int aNb = (int)fwrite(xyz, sizeof(float), 3, aFP);
                     ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex");
                 }
                 else
@@ -902,7 +902,7 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
 
            if (aModeBin)
            {
-               int aNb= fwrite(Nxyz,sizeof(float),3,aFP);
+               int aNb= (int)fwrite(Nxyz, sizeof(float), 3, aFP);
                ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
            }
            else
@@ -1263,7 +1263,7 @@ void  cElNuage3DMaille:: VerifParams() const
 
 void cElNuage3DMaille::AddGrpeLyaer(int aNb,const std::string & aName)
 {
-    mGrpAttr.push_back(cGrpeLayerN3D(mAttrs.size(),mAttrs.size()+aNb,aName));
+    mGrpAttr.push_back(cGrpeLayerN3D((int)mAttrs.size(), int(mAttrs.size()) + aNb, aName));
 }
 
 void cElNuage3DMaille::Std_AddAttrFromFile
@@ -1310,7 +1310,7 @@ void cElNuage3DMaille::AddAttrFromFile
 
     Output anOutGlog = Output::onul(1); // Initialisation par ce qu'il faut
     int aNbAdded = 0;
-    int aNbProp = aNameProps.size();
+    int aNbProp = (int)aNameProps.size();
     for (int aK=0 ;aK<aNbC ; aK++)
     {
        Output anAdd =  Output::onul(1);

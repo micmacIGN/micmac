@@ -544,7 +544,7 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
         aBegin.pushlast(aVSom[aK]);
 
     ElFilo<tSom *> aEnd;
-    for (int aK = aVSom.size()-4 ; aK< int(aVSom.size()) ; aK++)
+    for (int aK = (int)(aVSom.size() - 4); aK< int(aVSom.size()) ; aK++)
         aEnd.pushlast(aVSom[aK]);
 
     ElSubGrapheInFilo<cAttrHypSomV,cHypAttrA> aGrBut(aEnd);
@@ -1238,7 +1238,7 @@ void cAppli_Ori_Txt2Xml_main::CalcImCenter()
               aVSel.push_back(mVCam[aK1]);
 
        mVCam = aVSel;
-       mNbCam = mVCam.size();
+       mNbCam = (int)mVCam.size();
     }
 }
 

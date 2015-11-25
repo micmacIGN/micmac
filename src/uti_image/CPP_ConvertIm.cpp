@@ -140,7 +140,7 @@ int ConvertIm_main(int argc,char ** argv)
               aNameOut = aNameIn + anExt + "tif";
         }
 
-        Pt2di aCoefReduc(aReducX? 2 : 1,aReducY ? 2 : 1);
+        Pt2di aCoefReduc(aReducX != 0 ? 2 : 1, aReducY != 0 ? 2 : 1);
         aSzOut = aSzOut.dcbyc(aCoefReduc);
 
         if (aNameTypeOut != "")
@@ -226,8 +226,8 @@ int ConvertIm_main(int argc,char ** argv)
             aFin = Rconv(aFin);
         }
 
-        aFin = reduc_binaire_gen(aFin,aReducX,aReducY,16,true,0);
-        anOut = Filtre_Out_RedBin_Gen(anOut,aReducX,aReducY);
+        aFin = reduc_binaire_gen(aFin, aReducX != 0, aReducY != 0, 16, true, 0);
+        anOut = Filtre_Out_RedBin_Gen(anOut, aReducX != 0, aReducY != 0);
         aSzROut = aSzOut.mcbyc(aCoefReduc);
         aFin = trans(aFin,aP0);
 

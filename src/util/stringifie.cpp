@@ -198,7 +198,7 @@ void AddEntryStringifie(const std::string & aKey,const char ** aVal,bool formal)
        {
  // std::cout << "ddd " << "\n";
  // std::cout <<  *aC << "\n";
-           aNbTot+= strlen(*aC);
+           aNbTot += (int)strlen(*aC);
        }
 
 // std::cout << "BBBBBBBB\n";
@@ -334,7 +334,7 @@ class cFILEVirtStream : public cVirtStream
 
        void fread(void *dest,int aNbOct)
        {
-            int aGot = ::fread(dest,1,aNbOct,mFP);
+            int aGot = (int)::fread(dest,1,aNbOct,mFP);
             ELISE_ASSERT(aNbOct==aGot,"cFILEVirtStream::fread");
        }
 

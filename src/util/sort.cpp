@@ -197,7 +197,7 @@ void RecGetSubset(std::vector<std::vector<int> > & aRes,int aNb,int aMax)
 
    // Ceux qui n'ont pas aMax
    RecGetSubset(aRes,aNb,aMax-1);
-   int aNbRes = aRes.size();
+   int aNbRes = (int)aRes.size();
    // Ceux qui ont  aMax
    RecGetSubset(aRes,aNb-1,aMax-1);
    for (int aK=aNbRes ; aK<int(aRes.size()) ; aK++)

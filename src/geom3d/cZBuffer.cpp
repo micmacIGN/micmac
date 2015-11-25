@@ -246,7 +246,7 @@ if (euclid(aP2Out) > 100000)
             {
                 // Pt2di anIndexDef((anXDal0-aP0In.x)/SzDalleDef,(anYDal0-aP0In.y)/SzDalleDef);
                 Pt2di anIndexDef = ToPtIndexDef(Pt2di(anXDal0,anYDal0));
-                int aNbVal = aVZofXY.size();
+                int aNbVal = (int)aVZofXY.size();
 
                 if (aNbVal)
                 {

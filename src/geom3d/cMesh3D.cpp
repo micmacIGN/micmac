@@ -394,7 +394,7 @@ cMesh::~cMesh(){}
 
 void cMesh::initDefValue(float aVal)
 {
-    const int nTri = mTriangles.size();
+    const int nTri = (int)mTriangles.size();
     for (int aK=0; aK < nTri;++aK)
         mTriangles[aK].setDefValue(aVal);
 }
@@ -553,7 +553,7 @@ cMesh::cMesh(const std::string & Filename, bool doAdjacence)
     {
         int id0a, id1a, id2a;
 
-        const int nFaces = mTriangles.size();
+        const int nFaces = (int)mTriangles.size();
         for (int aK = 0; aK < nFaces; ++aK)
         {
             mTriangles[aK].getVertexesIndexes(id0a, id1a, id2a);
@@ -592,7 +592,7 @@ void cMesh::addEdge(int aK, int bK)
 
     if (ret.second)
     {
-        int idx = mEdges.size();
+        int idx = (int)mEdges.size();
         mEdges.push_back(cEdge (aK, bK));
 
         mTriangles[aK].addEdge(idx);
@@ -622,7 +622,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
             cout << " entre " << mEdges[edges[aK]].n1() << " et " << mEdges[edges[aK]].n2() <<endl;
         }*/
 
-        const int nTriangles = mTriangles.size();
+        const int nTriangles = (int)mTriangles.size();
         for (unsigned int aK=0; aK< edges->size(); aK++)
         {
             int edgeIndex = (*edges)[aK];
@@ -639,7 +639,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
             {
                 mTriangles[idx].removeEdge(edgeIndex);
 
-                int backEdgeIdx = mEdges.size() -1;
+                int backEdgeIdx = (int)(mEdges.size() - 1);
                 mEdges[edgeIndex] = mEdges.back();
                 mEdges.pop_back();
 
@@ -661,7 +661,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
         }
     }
 
-    int backTriangleIdx = mTriangles.size() - 1;
+    int backTriangleIdx = (int)(mTriangles.size() - 1);
     mTriangles[triIndex] = mTriangles.back();
     mTriangles.pop_back();
 
@@ -669,7 +669,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
 
     if (doAdjacence)
     {
-        const int nbEdges = mEdges.size();
+        const int nbEdges = (int)mEdges.size();
         for (int aK=0; aK < nbEdges;++aK)
         {
             cEdge *e = getEdge(aK);
@@ -678,7 +678,7 @@ void cMesh::removeTriangle(cTriangle &aTri, bool doAdjacence)
         }
     }
 
-    const int nbVertex = mVertexes.size();
+    const int nbVertex = (int)mVertexes.size();
     for(int aK=0;aK < nbVertex;++aK)
     {
         vector<int> *triIdx = getVertex(aK)->getTriIdx();
@@ -740,7 +740,7 @@ void cMesh::clean()
     cout << "Removing " << toRemove.size() << " / " << nFaces << " faces" <<endl;
 
     std::set < int, std::greater<int> >::const_iterator itr = toRemove.begin();
-    int aCpt = toRemove.size();
+    int aCpt = (int)toRemove.size();
     for (; itr != toRemove.end(); ++itr)
     {
          removeTriangle(mTriangles[*itr]);
@@ -771,7 +771,7 @@ void cMesh::clean()
         {
             //cout << "removing vertex : " << aK << endl;
 
-            int backVertexIdx = mVertexes.size() -1;
+            int backVertexIdx = (int)(mVertexes.size() - 1);
             mVertexes[aK] = mVertexes.back();
             mVertexes.pop_back();
 
@@ -1027,7 +1027,7 @@ void cZBuf::BasculerUnMaillage(cMesh &aMesh)
 
     vector <cTriangle>* vTriangles = aMesh.getTriangles();
 
-    const int nbTriangles = vTriangles->size();
+    const int nbTriangles = (int)vTriangles->size();
     for (int aK=0; aK<nbTriangles;++aK)
     {
         BasculerUnTriangle((*vTriangles)[aK]);
@@ -1043,7 +1043,7 @@ void cZBuf::BasculerUnMaillage(cMesh &aMesh, const CamStenope &aCam)
 
     vector <cTriangle> *vTriangles = aMesh.getTriangles();
 
-    const int nbTriangles = vTriangles->size();
+    const int nbTriangles = (int)vTriangles->size();
     for (int aK=0; aK<nbTriangles;++aK)
     {
         cTriangle aTri = (*vTriangles)[aK];

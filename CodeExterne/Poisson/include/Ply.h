@@ -33,6 +33,8 @@
 #ifndef __PLY_H__
 #define __PLY_H__
 
+#include "disable_msvc_warnings.h"
+
 /*#ifndef WIN32
 #ifdef __cplusplus
 /extern "C" {

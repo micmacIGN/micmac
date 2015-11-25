@@ -62,7 +62,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
 
     //Reading input files
     list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-    int nbIm=ListIm.size();
+    int nbIm = (int)ListIm.size();
     if (Talk){cout<<"Images to process: "<<nbIm<<endl;}
 
     //Paralelizing (an instance of Drunk is called for each image)

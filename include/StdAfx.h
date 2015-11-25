@@ -1,6 +1,8 @@
 #ifndef _ELISE_STDAFX_H
 #define _ELISE_STDAFX_H
 
+#include "disable_msvc_warnings.h"
+
 #define NS_ParamMICMAC
 #define NS_ParamApero
 #define NS_Casa

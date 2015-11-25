@@ -1063,7 +1063,7 @@ else
          cResolvAmbiBase * aRAB=0;
          const std::vector<cLiaisonsInit> & aVL = mPCI->PoseFromLiaisons().Val().LiaisonsInit();
 	 // bool   aNormIsFixed = false;
-	 int aNbL = aVL.size();
+	 int aNbL = (int)aVL.size();
 
          
 	 ElPackHomologue  aPack0;
@@ -1983,7 +1983,7 @@ void cAppliApero::AddObservationsRigidGrp(const cObsRigidGrpImage & anORGI,bool 
    )
    {
         const std::vector<cGenPoseCam *> & aGrp = itG->second->Grp();
-        int aNb = aGrp.size();
+        int aNb = (int)aGrp.size();
         if (aNb>=2)
         {
             for (int aK1=0 ; aK1<aNb ; aK1++)

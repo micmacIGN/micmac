@@ -140,7 +140,7 @@ class cCEM_OneIm
           virtual  Pt2dr  RoughToIm2(const Pt2dr & aP,bool & Ok) const = 0;
           bool  IsOK(const Pt2di & aP)
           {
-              return mTMasq.get(aP,0);
+              return mTMasq.get(aP,0) != 0;
           }
 
           Output VGray() {return mWin ?  mWin->ogray() : Output::onul(1) ;}

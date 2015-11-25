@@ -122,7 +122,7 @@ void cAppliApero::ExportRedressement(const cExportRedressement & anER,cPoseCam &
     ELISE_fp::MkDirRec(aNameImOut);
  
     std::vector<Im2DGen *>   aVIn = aTIn.VecOfIm(round_ni(aSzIn));
-    int aNbCh = aVIn.size();
+    int aNbCh = (int)aVIn.size();
     ELISE_COPY(aTIn.all_pts(),aTIn.in(),StdOutput(aVIn));
     std::vector<Im2DGen *>   aVOut = aTIn.VecOfIm(aSzOut);
 
