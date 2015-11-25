@@ -227,7 +227,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<short unsigned in
         dernier_canal=m_Nbc;
     }
     int nb_canaux = dernier_canal-premier_canal+1;
-    if (nb_canaux>(int)aVImages.size()) nb_canaux=aVImages.size();
+    if (nb_canaux>(int)aVImages.size()) nb_canaux = (int)aVImages.size();
 
     codestream.apply_input_restrictions(premier_canal,nb_canaux,discard_levels,max_layers,&mdims,KDU_WANT_OUTPUT_COMPONENTS);
 
@@ -382,7 +382,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<float> > & aVImag
         dernier_canal=m_Nbc;
     }
     int nb_canaux = dernier_canal-premier_canal+1;
-    if (nb_canaux>(int)aVImages.size()) nb_canaux=aVImages.size();
+    if (nb_canaux>(int)aVImages.size()) nb_canaux = (int)aVImages.size();
 
     codestream.apply_input_restrictions(premier_canal,nb_canaux,discard_levels,max_layers,&mdims,KDU_WANT_OUTPUT_COMPONENTS);
 
@@ -557,7 +557,7 @@ void JP2ImageLoader::LoadNCanaux(const std::vector<sLowLevelIm<unsigned char> > 
         dernier_canal=m_Nbc;
     }
     int nb_canaux = dernier_canal-premier_canal+1;
-    if (nb_canaux>(int)aVImages.size()) nb_canaux=aVImages.size();
+    if (nb_canaux > (int)aVImages.size()) nb_canaux = (int)aVImages.size();
 
     codestream.apply_input_restrictions(premier_canal,nb_canaux,discard_levels,max_layers,&mdims,KDU_WANT_OUTPUT_COMPONENTS);
 

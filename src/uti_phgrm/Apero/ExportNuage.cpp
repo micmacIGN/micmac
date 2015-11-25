@@ -356,7 +356,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
          const std::vector<Pt3di>  &   aVNorm = anAGP.Cols();
          if ((aLastMode==eModeAGPNoAttr) && aModeBin)
          {
-             int aNb = aVPts.size();
+             int aNb = (int)aVPts.size();
              fwrite(&aNb,sizeof(aNb),1,aFP);
          }
 
@@ -400,7 +400,7 @@ void cAppliApero::ExportNuage(const cExportNuage & anEN)
              
              if (aModeBin)
              {
-                 int aNb = aVPts.size();
+                 int aNb = (int)aVPts.size();
                  fwrite(&aNb,sizeof(aNb),1,aFP);
              }
              for (int aK=0; aK<int(aVPts.size()) ; aK++)

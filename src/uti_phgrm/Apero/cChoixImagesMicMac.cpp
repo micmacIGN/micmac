@@ -411,7 +411,7 @@ class cCombinPosCam
 
 cCombinPosCam::cCombinPosCam(const std::vector<int> & aSub ,const std::vector<cPoseCam*> & aVPres) :
    mFlag  (FlagOfVI(aSub)),
-   mNbIm  (aSub.size()),
+   mNbIm  ((int)aSub.size()),
    mGainDir  (0),
    mGainGlob (0)
 {
@@ -492,7 +492,7 @@ cCombinPosCam & cSetCombPosCam::GetComb(int aFlag)
     mMapCPC[aFlag] = cCombinPosCam(aSub,mVPres);
     cCombinPosCam & aRes = mMapCPC[aFlag];
     if (mAddMBC)
-        mMapByCard[aSub.size()].push_back(&aRes);
+        mMapByCard[(int)aSub.size()].push_back(&aRes);
     return aRes;
 }
 
@@ -620,7 +620,7 @@ bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
 
    if (ShowACISec) 
        std::cout << " ************ " << aPC0->Name() << " ***********\n";
-   int aNbPose = mVecPose.size();
+   int aNbPose = (int)mVecPose.size();
    cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale (aCIM.IdBdl(),aPC0->Name());
 
    int aNbPtsInNu;
@@ -761,7 +761,7 @@ bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
     cCmpImOnGainHom aCmp;
     std::sort(aVPPres.begin(),aVPPres.end(),aCmp);
     while (int(aVPPres.size()) >aCIM.NbMaxPresel().Val()) aVPPres.pop_back();
-    int aNbImAct = aVPPres.size();
+    int aNbImAct = (int)aVPPres.size();
 
 
     // Calcul de l'image d'occupation et de la matrice de recouvrement

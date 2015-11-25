@@ -128,7 +128,7 @@ void  cAppliApero::ConstructMST
        aVCible.push_back(PoseFromName(*itS));
    }
 
-   int aNbC = aVCible.size() ; 
+   int aNbC = (int)aVCible.size(); 
 
    // A chaque iteration on va affecter un sommet
    for (int aTimes=0 ; aTimes<aNbC ; aTimes++)

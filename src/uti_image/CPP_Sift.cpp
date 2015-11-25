@@ -55,8 +55,8 @@ inline void first_octave_func   ( const string &val, sift_parameters_t &p ){ p.f
 inline void threshold_func      ( const string &val, sift_parameters_t &p ){ p.strength_threshold=atof( val.c_str() ); }
 inline void edge_threshold_func ( const string &val, sift_parameters_t &p ){ p.nb_levels=atoi( val.c_str() ); }
 inline void chunk_size_func     ( const string &val, sift_parameters_t &p ){ p.chunk_size=atoi( val.c_str() ); }
-inline void no_orientations_func( const string &val, sift_parameters_t &p ){ p.no_orientations=atoi( val.c_str() ); }
-inline void no_descriptors_func ( const string &val, sift_parameters_t &p ){ p.no_descriptors=true; }
+inline void no_orientations_func( const string &val, sift_parameters_t &p ){ p.no_orientations = (atoi(val.c_str()) != 0); }
+inline void no_descriptors_func ( const string &val, sift_parameters_t &p ){ p.no_descriptors = true; }
 
 typedef struct {
     const string long_name;
@@ -131,7 +131,7 @@ void process_image( const RealImage1 &i_image, const sift_parameters_t &i_params
 
 		if ( i_params.verbose ) cout << "\t\tafter refinement and on-edge removal\t" << refinedPoints.size() << endl;
         
-        int iRefinedPoint  = refinedPoints.size();
+        int iRefinedPoint = (int)refinedPoints.size();
         if ( iRefinedPoint!=0 )
         {
             // compute orientation
@@ -377,7 +377,7 @@ int Sift_main( int argc, char**argv )
 
             // process all sub-images
             list<SiftPoint>::iterator itPoint;
-            int iWin = grid.size();
+            int iWin = (int)grid.size();
             vector<RoiWindow_2d>::iterator itWindow = grid.begin();
             while ( iWin-- )
             {
@@ -388,7 +388,7 @@ int Sift_main( int argc, char**argv )
                 if ( parameters.verbose ) cout << "processing chunk " << itWindow->m_x0 << ',' << itWindow->m_y0 << ' ' << subimage.width() << 'x' << subimage.height() << "..." << endl;
                 process_image( subimage, parameters, outputBasename, gaussPyramid, siftPoints_sub );
 
-                int iPoint = siftPoints_sub.size();
+                int iPoint = (int)siftPoints_sub.size();
                 if ( parameters.verbose ) cout << "chunk " << itWindow->m_x0 << ',' << itWindow->m_y0 << ' ' << subimage.width() << 'x' << subimage.height() << " : " << iPoint << " points" << endl;
 
                 // shift points into orignal image's coordinate system

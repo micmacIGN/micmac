@@ -4,10 +4,6 @@
 #include "Settings.h"
 #include "mmglu.h"
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
-
 #define QMaskedImage cMaskedImage<QImage>
 
 #include "general/errors.h"

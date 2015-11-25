@@ -634,7 +634,7 @@ int  cAppliWithSetImage::DeZoomOfSize(double aSz) const
 
 void cAppliWithSetImage::SuppressSom(tSomAWSI & aSom)
 {
-    int aNbEr = mDicIm.erase(aSom.attr().mIma->mNameIm);
+    int aNbEr = (int)mDicIm.erase(aSom.attr().mIma->mNameIm);
     ELISE_ASSERT(aNbEr==1,"Incoherence in cAppliWithSetImage::FilterImageIsolated");
     aSom.remove();
 }

@@ -289,7 +289,7 @@ bool  cRansacBasculementRigide::Close(bool aSvp)
 
 int   cRansacBasculementRigide::CurK() const
 {
-  return (mAvant.size()-1);
+  return (int)(mAvant.size() - 1);
 }
 
 #define TheCostDef 1e50 

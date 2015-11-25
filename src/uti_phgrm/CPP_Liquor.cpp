@@ -159,14 +159,14 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
 
     mEASF.Init(mFullName);
     mVNames = mEASF.SetIm();
-    mNbIm = mVNames->size();
+    mNbIm = (int)mVNames->size();
     StdCorrecNameOrient(mCalib,Dir());
 
 
     SplitRecInterv(0,mNbIm,0);
     DoComTerm();
 
-    for (int aLevel=mInterv.size()-2 ;  aLevel>=0 ;  aLevel--)
+    for (int aLevel = (int)(mInterv.size() - 2);  aLevel>=0 ;  aLevel--)
     {
          DoComRec(aLevel);
     }
@@ -256,7 +256,7 @@ cIntervLiquor * cAppliLiquor::SplitRecInterv(int aDeb,int aEnd,int aProf)
          aRes->SetF2(SplitRecInterv(aEnd-aNewLarg,aEnd,aProf+1));
    }
 
-   for (int aP=mInterv.size() ; aP<=aProf ; aP++)
+   for (int aP = (int)mInterv.size() ; aP<=aProf ; aP++)
    {
       std::list<cIntervLiquor*> aL;
       mInterv.push_back(aL);

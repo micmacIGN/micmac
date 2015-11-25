@@ -249,9 +249,9 @@ bool DigeoPoint::readDigeoFile( const string &i_filename, bool i_allowMultipleAn
 		default: cerr << "ERROR: writeDigeoFile : unkown version number " << header.version() << endl; return false;
 		}
 	}
-	catch ( const bad_alloc &e )
+	catch ( const bad_alloc & )
 	{
-		//~ cerr << "WARNING: DigeoPoint::readDigeoFile: not enough memory to load file [" << i_filename <<']' << endl;
+		ELISE_DEBUG_ERROR(true, "DigeoPoint::readDigeoFile", "not enough memory to load file [" << i_filename << ']');
 		return false;
 	}
 
@@ -351,7 +351,7 @@ void DigeoPoint::uniqueToMultipleAngles( vector<DigeoPoint> &io_points )
 {
 	DigeoPoint *itPrevious = io_points.data(),
 	           *itCurrent = io_points.data()+1;
-	unsigned int nbPoints = io_points.size(),
+	unsigned int nbPoints = (unsigned int)io_points.size(),
 	             i = nbPoints-1;
 	if ( nbPoints==0 ) return;
 	while ( i-- )

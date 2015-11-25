@@ -173,8 +173,8 @@ void cTest_PBGC3M2DF::SetPerfectData(const  std::vector<cSetCTest_PBGC3M2DF *> &
     for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
     {
        cSetCTest_PBGC3M2DF * aSet = aVS[aKS];
-       int aNbCam = aSet->mVCams.size();
-       int aNbP = aSet->mVP[0].size();
+       int aNbCam = (int)aSet->mVCams.size();
+       int aNbP = (int)aSet->mVP[0].size();
        std::vector<Pt2dr>  aNewVP[3];
        for (int aKP=0 ; aKP<aNbP ; aKP++)
        {
@@ -230,8 +230,8 @@ double cTest_PBGC3M2DF::AddBundle(const  std::vector<cSetCTest_PBGC3M2DF *> & aV
     for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
     {
        cSetCTest_PBGC3M2DF * aSet = aVS[aKS];
-       int aNbCam = aSet->mVCams.size();
-       int aNbP = aSet->mVP[0].size();
+       int aNbCam = (int)aSet->mVCams.size();
+       int aNbP = (int)aSet->mVP[0].size();
        for (int aKP=0 ; aKP<aNbP ; aKP++)
        {
           std::vector<Pt3dr> aVP0;
@@ -346,7 +346,7 @@ cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
                     << EAM(mPerturbPol,"PertPol", true,"Polynomial Perturbation")
                     << EAM(mPerfectData,"PerfectData", true,"Set data with potentially perfect projection")
    );
-   mNbSom = mVSoms.size();
+   mNbSom = (int)mVSoms.size();
 
    for (int aK=0 ; aK<mNbSom ; aK++)
    {
@@ -382,7 +382,7 @@ cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
                  std::cout << aN12 << " " << aN21 
                           << " Sz0= " << aCple->mPack12.size() << " " << aCple->mPack21.size() 
                           << " SzM= " << aCple->mVP[0].size()  << "\n";
-                 int aNbPts = aCple->mVP[0].size();
+                 int aNbPts = (int)aCple->mVP[0].size();
                  if (aNbPts > 10)
                  {
                      cSubstitueBlocIncTmp * aBS = new cSubstitueBlocIncTmp(*mEqP3I);
@@ -437,7 +437,7 @@ cTest_PBGC3M2DF::cTest_PBGC3M2DF(int argc,char ** argv)  :
                         aCp13->mVP[0], aCp13->mVP[1],
                         aCp23->mVP[0], aCp23->mVP[1]
                    );
-                   int aNbPts = aTri->mVP[0].size();
+                   int aNbPts = (int)aTri->mVP[0].size();
                    if (aNbPts > 5)
                    {
                        cSubstitueBlocIncTmp * aBS = new cSubstitueBlocIncTmp(*mEqP3I);

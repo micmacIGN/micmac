@@ -232,7 +232,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
 
   //Reading the list of input files
   list<string> ListIm=RegexListFileMatch(aNameDir,aPattern,1,false);
-  int nbIm=ListIm.size();
+  int nbIm = (int)ListIm.size();
   cout<<"Images to process: "<<nbIm<<endl;
 
   string cmdDRUNK,cmdConv, cmdCopyMeta;
@@ -252,7 +252,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
       //Reading the images list
       string aFullName=ListIm.front();
 
-      int lastindex = aFullName.find_last_of(".");
+      int lastindex = (int)aFullName.find_last_of(".");
       string aRawName = aFullName.substr(0, lastindex);
 
       cout<<aFullName<<" ("<<i+1<<" of "<<nbIm<<")"<<endl;

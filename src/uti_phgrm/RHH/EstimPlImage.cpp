@@ -281,7 +281,7 @@ std::string cImagH::EstimatePlan()
 
 
      const std::vector<cLink2Img*> &  aVL = VLink() ;
-     int aNbL = aVL.size();
+     int aNbL = (int)aVL.size();
 
 
 

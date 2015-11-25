@@ -2305,7 +2305,7 @@ void cMessages2DGL::draw(){
     if (drawMessages())
     {
         int ll_curHeight, lr_curHeight, lc_curHeight; //lower left, lower right and lower center y position
-        ll_curHeight = lr_curHeight = lc_curHeight = h - (m_font.pointSize())*(m_messagesToDisplay.size()-1) ;
+        ll_curHeight = lr_curHeight = lc_curHeight = h - (int)((m_font.pointSize()) * (m_messagesToDisplay.size() - 1));
         int uc_curHeight = m_font.pointSize();            //upper center
 
         std::list<MessageToDisplay>::iterator it = m_messagesToDisplay.begin();

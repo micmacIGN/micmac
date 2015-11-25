@@ -279,7 +279,7 @@ void cRanscMinimMatEss::OneTest(int aCpt)
         if (aKCase!=aKUnused)
         {
             const std::vector<ElCplePtsHomologues> & aVC = mDal[aKCase/3][aKCase%3];
-            int aKP = NRrandom3(aVC.size());
+            int aKP = NRrandom3((int)aVC.size());
 
             const Pt2dr & aP1 = aVC[aKP].P1();
             const Pt2dr & aP2 = aVC[aKP].P2();
@@ -549,8 +549,8 @@ cRanscMinimMatEss::cRanscMinimMatEss
    for (int aK=0 ; aK<mNbTir0 ; aK++)
         OneTest(aK);
 
-    OneFiltrage(mKBest.Els().size()/2,mQuick ? 2 : 3 , mQuick ? mIBI30 : mIBI150);
-    OneFiltrage(mKBest.Els().size()/2,mQuick ? 2 : 3 , mQuick ? mIBI30 : mIBI150);
+    OneFiltrage((int)(mKBest.Els().size() / 2),mQuick ? 2 : 3 , mQuick ? mIBI30 : mIBI150);
+    OneFiltrage((int)(mKBest.Els().size() / 2),mQuick ? 2 : 3 , mQuick ? mIBI30 : mIBI150);
     OneFiltrage(1,2,mIBI150);
     mRotMinAbs = mKBest.Els()[0].mVal;
 

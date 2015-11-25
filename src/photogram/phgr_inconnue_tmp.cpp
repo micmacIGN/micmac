@@ -450,7 +450,7 @@ void cEqfBlocIncTmp::CloseEBI()
 
 cElemEqFormelle::tContFcteur  cEqfBlocIncTmp::FctrRap(const double * aVal)
 {
-   return FoncRapp(0,mIncTmp.size(),aVal);
+   return FoncRapp(0, (int)mIncTmp.size(), aVal);
 }
 
 /*
@@ -513,7 +513,7 @@ cElemEqFormelle::tContFcteur  cEqfP3dIncTmp::FctrRap(const Pt3dr & aP)
 {
    double aV[3];
    aP.to_tab(aV);
-   return FoncRapp(0,mIncTmp.size(),aV);
+   return FoncRapp(0, (int)mIncTmp.size(), aV);
 }
 
 

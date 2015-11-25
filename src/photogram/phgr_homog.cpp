@@ -370,10 +370,10 @@ cElHomographie cElHomographie::RansacInitH(const ElPackHomologue & aPack,int aNb
 
    while (aNbRansac)
    {
-       int aK1 = NRrandom3(aVCH.size());
-       int aK2 = NRrandom3(aVCH.size());
-       int aK3 = NRrandom3(aVCH.size());
-       int aK4 = NRrandom3(aVCH.size());
+       int aK1 = NRrandom3((int)aVCH.size());
+       int aK2 = NRrandom3((int)aVCH.size());
+       int aK3 = NRrandom3((int)aVCH.size());
+       int aK4 = NRrandom3((int)aVCH.size());
        if ( 
                (aK1!=aK2) && (aK1!=aK3) &&  (aK1!=aK4)
             && (aK2!=aK3) && (aK2!=aK4)
@@ -640,7 +640,7 @@ cElHomographie  cElHomographie::RobustInit(double & aDMIn,double * aQuality,cons
 
 
    aDMIn = 1e30;
-   int aNbPts = aVAll.size();
+   int aNbPts = (int)aVAll.size();
    int aNbKth = ElMax(1,ElMin(aNbPts-1,round_ni((aPerc/100.0) * aNbPts)));
    std::vector<double> aVDist;
 
@@ -651,10 +651,10 @@ cElHomographie  cElHomographie::RobustInit(double & aDMIn,double * aQuality,cons
    std::vector<double> aVD; // For tuning and show in if(0) ...
    while (aNbTestEstim)
    {
-       int aK00 = NRrandom3(aV00.size());
-       int aK01 = NRrandom3(aV01.size());
-       int aK10 = NRrandom3(aV10.size());
-       int aK11 = NRrandom3(aV11.size());
+       int aK00 = NRrandom3((int)aV00.size());
+       int aK01 = NRrandom3((int)aV01.size());
+       int aK10 = NRrandom3((int)aV10.size());
+       int aK11 = NRrandom3((int)aV11.size());
 
        ElPackHomologue aP4;
        AddPair(aP4,aV00[aK00]);

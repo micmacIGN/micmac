@@ -278,7 +278,7 @@ void cAppli_NewSolGolInit::StatTrans(Pt3dr & aMoy,double & aDist)
 {
     aMoy = Pt3dr(0,0,0);
     aDist = 0;
-    int aNbS = mVSOrCur.size();
+    int aNbS = (int)mVSOrCur.size();
     for (int aKS=0 ; aKS<aNbS ; aKS++)
     {
          tSomNSI * aSom = mVSOrCur[aKS];

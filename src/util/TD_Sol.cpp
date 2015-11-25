@@ -90,7 +90,7 @@ int TD_Sol1(int argc,char ** argv)
     cTD_SetAppuis aSetGCP(aNameAppuis);
 
 
-    int aNbPts =  aSetGCP.PTer().size();
+    int aNbPts = (int)aSetGCP.PTer().size();
     int aK1Max=-1,aK2Max=-1,aK3Max=-1;
     double aSurfMax=0;
     for (int aK=0 ; aK< aNbTest ; aK++)
@@ -184,7 +184,7 @@ int TD_Sol2(int argc,char ** argv)
     cTD_Camera aCam(aNameCam);
     cTD_SetAppuis aSetGCP(aNameAppuis);
 
-    int aNbPts =  aSetGCP.PTer().size();
+    int aNbPts = (int)aSetGCP.PTer().size();
 
     
     double aScoreMin = 1e20;
