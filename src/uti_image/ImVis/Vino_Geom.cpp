@@ -51,6 +51,33 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                      */
 /****************************************/
 
+
+Box2di cAppli_Vino::GetRectImage(bool GlobScale)
+{
+    mW->fill_rect(Pt2dr(5,20),Pt2dr(280,60),mW->pdisc()(P8COL::magenta));
+    mW->fixed_string(Pt2dr(40,45),"Clik P1 and P2 of rectangle",mW->pdisc()(P8COL::black),true);
+
+    Pt2dr aPW1 = mW->clik_in()._pt;
+    mW->fill_rect(aPW1-Pt2dr(3,3),aPW1+Pt2dr(3,3),mW->pdisc()(P8COL::green));
+    Pt2dr aPW2 = mW->clik_in()._pt;
+    mW->draw_rect(aPW1,aPW2,mW->pdisc()(P8COL::green));
+
+
+    pt_set_min_max(aPW1,aPW2);
+
+    ElImScroller * aCurScr = GlobScale ? mScr : mScr->CurScale();
+
+    Pt2di aPU1 = round_ni(aCurScr->to_user(aPW1));
+    Pt2di aPU2 = round_ni(aCurScr->to_user(aPW2));
+
+    // Pt2di aSz = aCurScr->SzIn();
+
+    CorrectRect(aPU1,aPU2,aCurScr->SzIn());
+
+   return Box2di (aPU1,aPU2);
+}
+
+
 Pt2dr  cAppli_Vino::ToCoordAsc(const Pt2dr & aP)
 {
    return Sup(Pt2dr(0,0),Inf(Pt2dr(SzW()),mScr->to_user(aP).mcbyc(mRatioFulXY)));

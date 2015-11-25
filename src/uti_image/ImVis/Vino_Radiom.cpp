@@ -42,26 +42,72 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #if (ELISE_X11)
 
-void cAppli_Vino::End()
+
+/****************************************/
+/*                                      */
+/*          Grab Geom                   */
+/*                                      */
+/****************************************/
+
+
+
+void cAppli_Vino::ChgDyn(int * anOut,const int * anInput,int aNb) 
 {
-    std::cout << "   ******************************************\n";
-    std::cout << "   *                                        *\n";
-    std::cout << "   *    V-isualizer of                      *\n";
-    std::cout << "   *    I-mages                             *\n";
-    std::cout << "   *    N-ot                                *\n";
-    std::cout << "   *    O-versized                          *\n";
-    std::cout << "   *                                        *\n";
-    std::cout << "   ******************************************\n";
+    switch (mCurStats->Type())
+    {
+          case eDynVinoModulo :
+          {
+              for (int aK=0 ; aK<aNb ; aK++)
+                   anOut[aK] =  anInput[aK] % 256;
+              return;
+          }
 
-    exit(EXIT_SUCCESS);
+          case eDynVinoMaxMin :
+          {
+              
+              int aV0 = mCurStats->IntervDyn().x; 
+              int anEcart = mCurStats->IntervDyn().y -aV0; 
+              for (int aK=0 ; aK<aNb ; aK++)
+              {
+                   anOut[aK] = ElMax(0,ElMin(255, ((anInput[aK] -aV0) * 255) / anEcart));
+              }
+              return;
+          }
 
+          case eDynVinoStat2 :
+          {
+              
+              double aMoy   = mCurStats->Soms()[0];
+              double anECT  = mCurStats->ECT()[0] * 2;
+              for (int aK=0 ; aK<aNb ; aK++)
+              {
+                  float aVal = (anInput[aK]-aMoy)/ anECT;
+                   // anOut[aK] = 128 * (1+ aVal / (ElAbs(aVal) +0.5));
+                   anOut[aK] = ElMax(0,ElMin(255,round_ni(256 * erfcc (aVal))));
+              }
+              return;
+          }
+
+          default :
+          {
+              for (int aK=0 ; aK<aNb ; aK++)
+                   anOut[aK] =  anInput[aK] ;
+              return;
+          }
+    }
 }
 
-/*
+
 void cAppli_Vino::HistoSetDyn()
 {
     Box2di aBox = GetRectImage(false);
     FillStat(*mCurStats,rectangle(aBox._p0,aBox._p1),mScr->CurScale()->in());
+
+    if (mCaseCur==mCaseHStat)
+       mCurStats->Type() =  eDynVinoStat2;
+
+    if (mCaseCur==mCaseHMinMax)
+       mCurStats->Type() =  eDynVinoMaxMin;
 
 
     std::cout << " STATS " << mCurStats->Soms()[0] << " " << mCurStats->ECT()[0] << "\n";
@@ -69,118 +115,6 @@ void cAppli_Vino::HistoSetDyn()
     SaveState();
     Refresh();
 }
-*/
-
-
-
-void  cAppli_Vino::MenuPopUp()
-{
-    mPopUpCur = 0;
-    if ((!mCtrl0) && (!mShift0)) mPopUpCur = mPopUpBase;
-
-    if (mPopUpCur==0)  return;
-
-    mModeGrab=eModeVinoPopUp;
-
-    mPopUpCur->UpCenter(Pt2di(mP0Click));
-    mW->grab(*this);
-    mCaseCur = mPopUpCur->PopAndGet();
-
-
-    if (mPopUpCur==mPopUpBase)
-    {
-        if (mCaseCur== mCaseExit)
-        {
-            End();
-        }
-
-        if (    (mCaseCur==mCaseHStat)
-             || (mCaseCur==mCaseHMinMax)
-             || (mCaseCur==mCaseHEqual)
-           )
-        {
-            HistoSetDyn();
-        }
-
-       if (mCaseCur==mCaseInterpPpv)
-       {
-           SetInterpoleMode(eInterpolPPV,true);
-       }
-       if (mCaseCur==mCaseInterpBilin)
-       {
-           SetInterpoleMode(eInterpolBiLin,true);
-       }
-    }
-}
-
-void cAppli_Vino::SetInterpoleMode(eModeInterpolation aMode,bool DoRefresh)
-{
-   mMode = aMode;
-
-   if (mMode==eInterpolPPV)
-   {
-      mScr->SetAlwaysQuickInZoom(true);
-      ZoomBilin() = false;
-   }
-   else
-   {
-      mScr->SetAlwaysQuickInZoom(false);
-      ZoomBilin() = true;
-   }
-   SaveState();
-   if (DoRefresh)
-      Refresh();
-}
-
-void cAppli_Vino::Refresh()
-{
-   mScr->LoadAndVisuIm();
-}
-
-
-
-CaseGPUMT * cAppli_Vino::CaseBase(const std::string& aName,const Pt2di aNumCase)
-{
-    Im2D_U_INT1  anIc = Icone(aName,mSzCase,Floutage(),false);
-    return new CaseGPUMT (*mPopUpBase,"i",aNumCase, anIc.in_proj());
-}
-
-ChoixParmiCaseGPUMT * cAppli_Vino::CaseChoix(ChoixParmiCaseGPUMT * aCasePrec,const std::string& aName,const Pt2di aNumCase,int aNumVal)
-{
-    Im2D_U_INT1  anIcPos = Icone(aName,mSzCase,Floutage(),false);
-    Im2D_U_INT1  anIcNeg = Icone(aName,mSzCase,Floutage(),true);
-
-    return new ChoixParmiCaseGPUMT
-               (
-                    *mPopUpBase,"1 0",aNumCase,
-                    anIcPos.in_proj(),
-                    anIcNeg.in_proj(),
-                    aNumVal,
-                    aCasePrec
-               );
-}
-
-
-
-void cAppli_Vino::InitMenu()
-{
-    mSzCase        = Pt2di(70,40);
-    mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(5,3),Pt2di(1,1));
-
-    mCaseExit  = CaseBase("Exit",Pt2di(0,0));
-    mCaseInterpPpv    = CaseChoix(             0,"Interp\nPpv"  ,Pt2di(1,0),0);
-    mCaseInterpBilin  = CaseChoix(mCaseInterpPpv,"Interp\nBilin",Pt2di(2,0),1);
-
-    mCaseHStat  = CaseBase("Histo\nStat2",Pt2di(0,1));
-    mCaseHMinMax  = CaseBase("Histo\nMinMax",Pt2di(1,1));
-    mCaseHEqual   = CaseBase("Histo\nEqual",Pt2di(2,1));
-
-
-}
-
-
-
-
 
 
 #endif
