@@ -20936,15 +20936,96 @@ void xml_init(corientation & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( corientation *) {return "DF7FA3370998EAE8FD3F";};
 
-
-std::string & cXml_StatVino::Name()
+eTypeDynVino  Str2eTypeDynVino(const std::string & aName)
 {
-   return mName;
+   if (aName=="eDynVinoModulo")
+      return eDynVinoModulo;
+   else if (aName=="eDynVinoColCirc")
+      return eDynVinoColCirc;
+   else if (aName=="eDynVinoMaxMin")
+      return eDynVinoMaxMin;
+   else if (aName=="eDynVinoStat2")
+      return eDynVinoStat2;
+   else if (aName=="eDynVinoNbVals")
+      return eDynVinoNbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeDynVino\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeDynVino) 0;
+}
+void xml_init(eTypeDynVino & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeDynVino(aTree->Contenu());
+}
+std::string  eToString(const eTypeDynVino & anObj)
+{
+   if (anObj==eDynVinoModulo)
+      return  "eDynVinoModulo";
+   if (anObj==eDynVinoColCirc)
+      return  "eDynVinoColCirc";
+   if (anObj==eDynVinoMaxMin)
+      return  "eDynVinoMaxMin";
+   if (anObj==eDynVinoStat2)
+      return  "eDynVinoStat2";
+   if (anObj==eDynVinoNbVals)
+      return  "eDynVinoNbVals";
+ std::cout << "Enum = eTypeDynVino\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
 }
 
-const std::string & cXml_StatVino::Name()const 
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeDynVino & anObj)
 {
-   return mName;
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeDynVino & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeDynVino & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeDynVino) aIVal;
+}
+
+std::string  Mangling( eTypeDynVino *) {return "DA97E52C36B3369FFC3F";};
+
+
+std::string & cXml_StatVino::NameFile()
+{
+   return mNameFile;
+}
+
+const std::string & cXml_StatVino::NameFile()const 
+{
+   return mNameFile;
+}
+
+
+eTypeDynVino & cXml_StatVino::Type()
+{
+   return mType;
+}
+
+const eTypeDynVino & cXml_StatVino::Type()const 
+{
+   return mType;
+}
+
+
+bool & cXml_StatVino::IsInit()
+{
+   return mIsInit;
+}
+
+const bool & cXml_StatVino::IsInit()const 
+{
+   return mIsInit;
 }
 
 
@@ -20992,30 +21073,43 @@ const std::vector< double > & cXml_StatVino::ECT()const
 }
 
 
-std::vector< double > & cXml_StatVino::VLow()
+std::vector< double > & cXml_StatVino::VMax()
 {
-   return mVLow;
+   return mVMax;
 }
 
-const std::vector< double > & cXml_StatVino::VLow()const 
+const std::vector< double > & cXml_StatVino::VMax()const 
 {
-   return mVLow;
+   return mVMax;
 }
 
 
-std::vector< double > & cXml_StatVino::VHigh()
+std::vector< double > & cXml_StatVino::VMin()
 {
-   return mVHigh;
+   return mVMin;
 }
 
-const std::vector< double > & cXml_StatVino::VHigh()const 
+const std::vector< double > & cXml_StatVino::VMin()const 
 {
-   return mVHigh;
+   return mVMin;
+}
+
+
+Pt2dr & cXml_StatVino::IntervDyn()
+{
+   return mIntervDyn;
+}
+
+const Pt2dr & cXml_StatVino::IntervDyn()const 
+{
+   return mIntervDyn;
 }
 
 void  BinaryUnDumpFromFile(cXml_StatVino & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Name(),aFp);
+     BinaryUnDumpFromFile(anObj.NameFile(),aFp);
+    BinaryUnDumpFromFile(anObj.Type(),aFp);
+    BinaryUnDumpFromFile(anObj.IsInit(),aFp);
     BinaryUnDumpFromFile(anObj.Nb(),aFp);
   { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
@@ -21050,7 +21144,7 @@ void  BinaryUnDumpFromFile(cXml_StatVino & anObj,ELISE_fp & aFp)
         {
              double aVal;
               BinaryUnDumpFromFile(aVal,aFp);
-              anObj.VLow().push_back(aVal);
+              anObj.VMax().push_back(aVal);
         }
   } ;
   { int aNb;
@@ -21059,14 +21153,17 @@ void  BinaryUnDumpFromFile(cXml_StatVino & anObj,ELISE_fp & aFp)
         {
              double aVal;
               BinaryUnDumpFromFile(aVal,aFp);
-              anObj.VHigh().push_back(aVal);
+              anObj.VMin().push_back(aVal);
         }
   } ;
+    BinaryUnDumpFromFile(anObj.IntervDyn(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_StatVino & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,anObj.NameFile());
+    BinaryDumpInFile(aFp,anObj.Type());
+    BinaryDumpInFile(aFp,anObj.IsInit());
     BinaryDumpInFile(aFp,anObj.Nb());
     BinaryDumpInFile(aFp,(int)anObj.Soms().size());
     for(  std::vector< double >::const_iterator iT=anObj.Soms().begin();
@@ -21086,25 +21183,28 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_StatVino & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,(int)anObj.VLow().size());
-    for(  std::vector< double >::const_iterator iT=anObj.VLow().begin();
-         iT!=anObj.VLow().end();
+    BinaryDumpInFile(aFp,(int)anObj.VMax().size());
+    for(  std::vector< double >::const_iterator iT=anObj.VMax().begin();
+         iT!=anObj.VMax().end();
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,(int)anObj.VHigh().size());
-    for(  std::vector< double >::const_iterator iT=anObj.VHigh().begin();
-         iT!=anObj.VHigh().end();
+    BinaryDumpInFile(aFp,(int)anObj.VMin().size());
+    for(  std::vector< double >::const_iterator iT=anObj.VMin().begin();
+         iT!=anObj.VMin().end();
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.IntervDyn());
 }
 
 cElXMLTree * ToXMLTree(const cXml_StatVino & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_StatVino",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(::ToXMLTree(std::string("NameFile"),anObj.NameFile())->ReTagThis("NameFile"));
+   aRes->AddFils(ToXMLTree(std::string("Type"),anObj.Type())->ReTagThis("Type"));
+   aRes->AddFils(::ToXMLTree(std::string("IsInit"),anObj.IsInit())->ReTagThis("IsInit"));
    aRes->AddFils(::ToXMLTree(std::string("Nb"),anObj.Nb())->ReTagThis("Nb"));
   for
   (       std::vector< double >::const_iterator it=anObj.Soms().begin();
@@ -21125,17 +21225,18 @@ cElXMLTree * ToXMLTree(const cXml_StatVino & anObj)
   ) 
       aRes->AddFils(::ToXMLTree(std::string("ECT"),(*it))->ReTagThis("ECT"));
   for
-  (       std::vector< double >::const_iterator it=anObj.VLow().begin();
-      it !=anObj.VLow().end();
+  (       std::vector< double >::const_iterator it=anObj.VMax().begin();
+      it !=anObj.VMax().end();
       it++
   ) 
-      aRes->AddFils(::ToXMLTree(std::string("VLow"),(*it))->ReTagThis("VLow"));
+      aRes->AddFils(::ToXMLTree(std::string("VMax"),(*it))->ReTagThis("VMax"));
   for
-  (       std::vector< double >::const_iterator it=anObj.VHigh().begin();
-      it !=anObj.VHigh().end();
+  (       std::vector< double >::const_iterator it=anObj.VMin().begin();
+      it !=anObj.VMin().end();
       it++
   ) 
-      aRes->AddFils(::ToXMLTree(std::string("VHigh"),(*it))->ReTagThis("VHigh"));
+      aRes->AddFils(::ToXMLTree(std::string("VMin"),(*it))->ReTagThis("VMin"));
+   aRes->AddFils(::ToXMLTree(std::string("IntervDyn"),anObj.IntervDyn())->ReTagThis("IntervDyn"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21146,7 +21247,11 @@ void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+   xml_init(anObj.NameFile(),aTree->Get("NameFile",1)); //tototo 
+
+   xml_init(anObj.Type(),aTree->Get("Type",1)); //tototo 
+
+   xml_init(anObj.IsInit(),aTree->Get("IsInit",1)); //tototo 
 
    xml_init(anObj.Nb(),aTree->Get("Nb",1)); //tototo 
 
@@ -21156,12 +21261,14 @@ void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ECT(),aTree->GetAll("ECT",false,1));
 
-   xml_init(anObj.VLow(),aTree->GetAll("VLow",false,1));
+   xml_init(anObj.VMax(),aTree->GetAll("VMax",false,1));
 
-   xml_init(anObj.VHigh(),aTree->GetAll("VHigh",false,1));
+   xml_init(anObj.VMin(),aTree->GetAll("VMin",false,1));
+
+   xml_init(anObj.IntervDyn(),aTree->Get("IntervDyn",1)); //tototo 
 }
 
-std::string  Mangling( cXml_StatVino *) {return "3219AD025B81579DFE3F";};
+std::string  Mangling( cXml_StatVino *) {return "F56D274B2A2FB4CFFD3F";};
 
 
 Pt2di & cXml_EnvVino::SzW()
@@ -21316,6 +21423,6 @@ void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.Stats(),aTree->GetAll("Stats",false,1));
 }
 
-std::string  Mangling( cXml_EnvVino *) {return "A0CF49D0AEF20EB1FF3F";};
+std::string  Mangling( cXml_EnvVino *) {return "975BECBBCD38D9FFFE3F";};
 
 // };

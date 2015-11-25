@@ -1745,15 +1745,25 @@
    <geometry Nb="1" RefType="XmlMatis_geometry"> </geometry>
 </orientation>
 
+<enum Name="eTypeDynVino">
+    <eDynVinoModulo>       </eDynVinoModulo>
+    <eDynVinoColCirc>      </eDynVinoColCirc>
+    <eDynVinoMaxMin>       </eDynVinoMaxMin>
+    <eDynVinoStat2>        </eDynVinoStat2>
+    <eDynVinoNbVals>       </eDynVinoNbVals>
+</enum>
 
 <Xml_StatVino Nb="1" Class="true" ToReference="true">
-     <Name Type="std::string" Nb="1">                        </Name>
+     <NameFile Type="std::string" Nb="1">                    </NameFile>
+     <Type    Nb="1"  Type="eTypeDynVino" >                  </Type>
+     <IsInit  Nb="1" Type="bool">                            </IsInit>
      <Nb  Nb="1"    Type="double" >                          </Nb>
      <Soms  Nb="*" Type="double" Container="std::vector">    </Soms>
      <Soms2  Nb="*" Type="double" Container="std::vector">   </Soms2>
      <ECT    Nb="*" Type="double" Container="std::vector">   </ECT>
-     <VLow    Nb="*" Type="double" Container="std::vector">  </VLow>
-     <VHigh    Nb="*" Type="double" Container="std::vector"> </VHigh>
+     <VMax    Nb="*" Type="double" Container="std::vector">  </VMax>
+     <VMin    Nb="*" Type="double" Container="std::vector"> </VMin>
+     <IntervDyn    Nb="1" Type="Pt2dr">  </IntervDyn>
 </Xml_StatVino>
 
 <Xml_EnvVino  Nb="1" Class="true" ToReference="true">

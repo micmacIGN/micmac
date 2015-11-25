@@ -83,7 +83,8 @@ class cPopUpMenuMessage : public PopUpMenuTransp
 
 class cAppli_Vino : public cXml_EnvVino,
                     public Grab_Untill_Realeased ,
-                    public cElScrCalcNameSsResol
+                    public cElScrCalcNameSsResol,
+                    public cImgVisuChgDyn
 {
      public :
         bool Floutage() {return false;} // A mettre dans cXml_EnvVino,
@@ -94,12 +95,15 @@ class cAppli_Vino : public cXml_EnvVino,
 
 
      private :
+        void ChgDyn(int * anOut,const int * anInput,int aNb) ;
+        void SaveState();
         void  MenuPopUp();
         void InitMenu();
         void ShowOneVal();
         void ShowOneVal(Pt2dr aP);
         void EffaceVal();
         void HistoSetDyn();
+        void Refresh();
         Box2di GetRectImage(bool GlobScale);
 
 
@@ -109,7 +113,7 @@ class cAppli_Vino : public cXml_EnvVino,
         ChoixParmiCaseGPUMT * CaseChoix( ChoixParmiCaseGPUMT * aCaseBase,const std::string&,const Pt2di aNumCase,int aNumVal);
 
 
-        void SetInterpoleMode(eModeInterpolation);
+        void SetInterpoleMode(eModeInterpolation,bool DoRefresh);
 
 
 
@@ -175,6 +179,8 @@ class cAppli_Vino : public cXml_EnvVino,
           GridPopUpMenuTransp*    mPopUpCur;
           CaseGPUMT *             mCaseCur;
           eModeInterpolation      mMode;
+          cXml_StatVino *         mCurStats;
+          bool                    mStatIsInFile;
 
 };
 
