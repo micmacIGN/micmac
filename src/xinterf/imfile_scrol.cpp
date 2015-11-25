@@ -1026,6 +1026,11 @@ template <class Type> Fonc_Num ImFileScroller<Type>::in()
    return this->Tiff().in(0);
 }
 
+template <class Type> Pt2di ImFileScroller<Type>::SzIn()
+{
+   return this->Tiff().sz();
+}
+
 template <class Type> ImFileScroller<Type>:: ImFileScroller
 (
    ImFileScroller & Big,
@@ -1067,6 +1072,8 @@ template <class Type> ImFileScroller<Type>::ImFileScroller
 	ImFileLoader<Type>(tif,V.SzW(),alloc),
 	ElImScroller(V,tif.nb_chan(),tif.sz(),sc_im)
 {
+
+// std::cout << "ImFileScroller<Type>::ImFil " << tif.name() << " " << sc_im << " " << this << "\n";
    if (! El_CTypeTraits<Type>::IsIntType())
       WarnIntConversion(tif);
 }
