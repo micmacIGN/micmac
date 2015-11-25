@@ -80,6 +80,28 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     }
     EnvXml() = StdGetFromPCP(mNameXmlIn,Xml_EnvVino);
 
+    if (argc>1)
+    {
+        std::string aNameFile = NameWithoutDir(argv[1]);
+        mStatIsInFile = false;
+        std::list<cXml_StatVino> & aLStat = Stats();
+        for (std::list<cXml_StatVino>::iterator itS=aLStat.begin(); itS!=aLStat.end() ; itS++)
+        {
+             if (itS->NameFile() == aNameFile)
+             {
+                 mStatIsInFile = true;
+                 mCurStats = & (*itS);
+             }
+        }
+        if (!mStatIsInFile)
+        {
+            aLStat.push_back(cXml_StatVino());
+            mCurStats = & aLStat.back();
+            mCurStats->Type() = eDynVinoModulo;
+            mCurStats->IsInit() = false ;
+            mCurStats->NameFile() = aNameFile;
+        }
+    }
 
 
     ElInitArgMain
@@ -91,12 +113,16 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
                     << EAM(SpeedZoomGrab(),"SZG",true,"Speed Zoom Grab")
                     << EAM(SpeedZoomMolette(),"SZM",true,"Speed Zoom Molette")
                     << EAM(LargAsc(),"WS",true,"Width Scroller")
+                    << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
+
+
+
 
 // Files
     mDir = DirOfFile(mNameIm);
     ELISE_fp::MkDirSvp(mDir+"Tmp-MM-Dir/");
-    MakeFileXML(EnvXml(),mNameXmlOut);
+    // MakeFileXML(EnvXml(),mNameXmlOut);
 
 
 
@@ -110,6 +136,16 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
 
     mSzEl = (mNbChan  * mTiffIm->bitpp()) /8.0;
 
+    if (!mStatIsInFile)
+    {
+        if (! EAMIsInit(&(mCurStats->IntervDyn()  ))) 
+            mCurStats->IntervDyn() = Pt2dr(0,255);
+    }
+    if (EAMIsInit(&(mCurStats->IntervDyn())))
+    {
+          mCurStats->Type() = eDynVinoMaxMin;
+    }
+    SaveState();
 // window
 
     mRatioFulXY = Pt2dr(SzW()).dcbyc(Pt2dr(mTifSz));
@@ -129,6 +165,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     
 // Scrollers
 
+    // mVVE = new  VideoWin_Visu_ElImScr(*mW,(true?Elise_Palette(mW->prgb()):Elise_Palette(mW->pgray())),mSzIncr);
     mVVE = new  VideoWin_Visu_ElImScr(*mW,(mCoul?Elise_Palette(mW->prgb()):Elise_Palette(mW->pgray())),mSzIncr);
 
     mVEch.push_back(1); 
@@ -164,10 +201,12 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
 
 void cAppli_Vino::PostInitVirtual()
 {
-    mVVE->SetEtalDyn(0,255);
+    // mVVE->SetEtalDyn(mCurStats->IntervDyn().x,mCurStats->IntervDyn().y);
+    mVVE->SetChgDyn(this);
     mScr = ElPyramScroller::StdPyramide(*mVVE,mNameTiffIm,&mVEch,false,false,this);
     mScr->SetAlwaysQuick(false);
-    mScr->SetAlwaysQuickInZoom(!ZoomBilin());
+    //mScr->SetAlwaysQuickInZoom(!ZoomBilin());
+    SetInterpoleMode(ZoomBilin() ? eInterpolBiLin : eInterpolPPV,false);
     // mScr = new ImFileScroller<U_INT1> (*mVVE,*mTiffIm,1.0);
     // mScr->ReInitTifFile(*mTiffIm);
     mScr->set_max();
@@ -175,6 +214,10 @@ void cAppli_Vino::PostInitVirtual()
 }
 
 
+void cAppli_Vino::SaveState()
+{
+    MakeFileXML(EnvXml(),mNameXmlOut);
+}
 
 void cAppli_Vino::Boucle()
 {

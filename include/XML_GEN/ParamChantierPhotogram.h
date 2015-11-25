@@ -6769,6 +6769,27 @@ std::string  Mangling( corientation *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+typedef enum
+{
+  eDynVinoModulo,
+  eDynVinoColCirc,
+  eDynVinoMaxMin,
+  eDynVinoStat2,
+  eDynVinoNbVals
+} eTypeDynVino;
+void xml_init(eTypeDynVino & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeDynVino & aVal);
+
+eTypeDynVino  Str2eTypeDynVino(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeDynVino & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeDynVino &);
+
+std::string  Mangling( eTypeDynVino *);
+
+void  BinaryUnDumpFromFile(eTypeDynVino &,ELISE_fp &);
+
 class cXml_StatVino
 {
     public:
@@ -6777,8 +6798,14 @@ class cXml_StatVino
         friend void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree);
 
 
-        std::string & Name();
-        const std::string & Name()const ;
+        std::string & NameFile();
+        const std::string & NameFile()const ;
+
+        eTypeDynVino & Type();
+        const eTypeDynVino & Type()const ;
+
+        bool & IsInit();
+        const bool & IsInit()const ;
 
         double & Nb();
         const double & Nb()const ;
@@ -6792,19 +6819,25 @@ class cXml_StatVino
         std::vector< double > & ECT();
         const std::vector< double > & ECT()const ;
 
-        std::vector< double > & VLow();
-        const std::vector< double > & VLow()const ;
+        std::vector< double > & VMax();
+        const std::vector< double > & VMax()const ;
 
-        std::vector< double > & VHigh();
-        const std::vector< double > & VHigh()const ;
+        std::vector< double > & VMin();
+        const std::vector< double > & VMin()const ;
+
+        Pt2dr & IntervDyn();
+        const Pt2dr & IntervDyn()const ;
     private:
-        std::string mName;
+        std::string mNameFile;
+        eTypeDynVino mType;
+        bool mIsInit;
         double mNb;
         std::vector< double > mSoms;
         std::vector< double > mSoms2;
         std::vector< double > mECT;
-        std::vector< double > mVLow;
-        std::vector< double > mVHigh;
+        std::vector< double > mVMax;
+        std::vector< double > mVMin;
+        Pt2dr mIntervDyn;
 };
 cElXMLTree * ToXMLTree(const cXml_StatVino &);
 
