@@ -278,7 +278,7 @@ void GlCloud::draw()
     glColorPointer(3, GL_FLOAT, 0, NULL);
     _vertexColor.release();
 
-    glDrawArrays( GL_POINTS, 0, size()*3 );
+    glDrawArrays( GL_POINTS, 0, size() );
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
