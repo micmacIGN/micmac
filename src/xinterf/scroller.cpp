@@ -76,11 +76,11 @@ ElImScroller::ElImScroller
 } 
 
 
+/*
 void ElImScroller::write_image(INT x0src,Pt2di p0dest,INT nb,double ** data)
 {
-   ELISE_ASSERT(false,"ElImScroller::write_image double "); MPD_MM();
-
 }
+*/
 
 
 ElImScroller * ElImScroller::CurScale() 
@@ -390,6 +390,7 @@ void ElImScroller::LoadXImageInVisu(Visu_ElImDest & aTmpVisu,Pt2di p0W,Pt2di p1W
 
 void ElImScroller::SetVisuCur(Visu_ElImDest * pVEID)
 { 
+
     mVisuCur = pVEID;
     ReflexSetVisuCur(pVEID);
 }

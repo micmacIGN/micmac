@@ -500,7 +500,8 @@ cGenerateMail::cGenerateMail(int argc,char ** argv) :
 
 
 
-    std::string aSep=";";
+    // std::string aSep=";";
+    std::string aSep="";
 
     for (int aK=0 ; aK<int(mVE.size()) ; aK++)
     {

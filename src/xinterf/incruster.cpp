@@ -391,7 +391,7 @@ ElXim  VideoWin_Visu_ElImScr::StdIm(Video_Win w)
     ELISE_COPY(rectangle(aTr3,aSzG+aTr3),trans(aGnuxTiff.in(),-aTr3),Virgule(R.out(),G.out(),B.out()));
 
 
-    Pt2di aSzW = Inf(w.sz(),Pt2di(400,400));
+    Pt2di aSzW = w.sz(); // Inf(w.sz(),Pt2di(400,400));
     double aRatio = ElMin(double(aSzW.x-2)/aSz.x,double(aSzW.y-2)/aSz.y);
     if (aRatio<1.0)
     {

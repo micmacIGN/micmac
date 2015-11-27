@@ -672,12 +672,6 @@ void  cAppli_NewSolGolInit::CalculOrient()
 }
 
 
-/*
-16H 10h
-Marie Duclos 
-Le grand Bouveron
-07160 Saint Julien la brousse
-*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
