@@ -62,6 +62,10 @@ bool ctPath::Token::isRoot() const
 CmdTokenType ctPath::type() const { return CTT_Path; }
 
 std::string ctPath::str() const { return m_normalizedName; }
+
+std::string ctPath::str_unix() const { return str(ctPath::unix_separator); }
+
+std::string ctPath::str_windows() const { return str(ctPath::windows_separator); }
    
 bool ctPath::isAbsolute() const { return m_tokens.size()>1 && m_tokens.begin()->isRoot(); }
 
@@ -95,6 +99,8 @@ std::string cElFilename::str( char i_separator ) const
 std::string cElFilename::str_unix() const { return str(ctPath::unix_separator); }
 
 std::string cElFilename::str_windows() const { return str(ctPath::windows_separator); }
+
+std::string cElFilename::str() const { return str_unix(); }
 
 bool cElFilename::operator <( const cElFilename &i_b ) const { return compare( i_b )<0; }
 

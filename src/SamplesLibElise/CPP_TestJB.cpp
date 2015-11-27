@@ -269,6 +269,24 @@ int TestJB_main( int argc, char **argv )
 		itCommand++;
 	}
 
+	if (argc == 2)
+	{
+		ctPath path = getWorkingDirectory();
+		cout << "working directory: [" << path.str_unix() << ']' << endl;
+
+		ctPath newPath(argv[1]);
+		if ( !setWorkingDirectory(newPath)) ELISE_ERROR_EXIT("failed to change directory to [" << newPath.str() << "]");
+
+		path = getWorkingDirectory();
+		cout << "working directory: [" << path.str_unix() << ']' << endl;
+
+		list<cElFilename> filenames;
+		ctPath current(".");
+		current.getContent(filenames);
+		for (list<cElFilename>::const_iterator it = filenames.begin(); it != filenames.end(); it++)
+			cout << '[' << (*it++).str() << ']' << endl;
+	}
+
 	if (itCommand->func == NULL)
 	{
 		cout << "command [" << command << "] is not valid" << endl;
