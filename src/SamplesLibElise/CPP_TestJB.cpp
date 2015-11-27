@@ -284,7 +284,7 @@ int TestJB_main( int argc, char **argv )
 		ctPath current(".");
 		current.getContent(filenames);
 		for (list<cElFilename>::const_iterator it = filenames.begin(); it != filenames.end(); it++)
-			cout << '[' << (*it++).str() << ']' << endl;
+			cout << '[' << it->str() << ']' << endl;
 	}
 
 	if (itCommand->func == NULL)
