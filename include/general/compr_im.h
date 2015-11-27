@@ -414,12 +414,13 @@ class ElImScroller
         Pt2di           _SzW;
         Pt2di           _SzU;
         void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data)
-		{
-				mVisuCur->write_image(x0src,p0dest,nb,data);
-		}
-		void SetVisuCur(Visu_ElImDest *);
-		REAL mTimeLoadXIm;
-		REAL mTimeReformat;
+        {
+              mVisuCur->write_image(x0src,p0dest,nb,data);
+        }
+        void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data); // MPD
+        void SetVisuCur(Visu_ElImDest *);
+        REAL mTimeLoadXIm;
+        REAL mTimeReformat;
 
 
 

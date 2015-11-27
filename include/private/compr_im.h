@@ -593,9 +593,12 @@ template <class Type> class TilesIMFL;
 template <class Type> class LoadedTilesIMFL;
 template <class Type> class LoadedTilesIMFLAllocator;
 
-template <class Type> class  ImFileLoader : public GenScaleIm<INT>
+// template <class Type> class  ImFileLoader : public GenScaleIm<INT> MPD
+template <class Type> class  ImFileLoader : public GenScaleIm<typename El_CTypeTraits<Type>::tBase>
 {
 	    public :
+               
+                typedef typename El_CTypeTraits<Type>::tBase  tGSI;
 
                 void ImFReInitTifFile(Tiff_Im aTif);
 
@@ -611,7 +614,7 @@ template <class Type> class  ImFileLoader : public GenScaleIm<INT>
                        Tiff_Im  Tiff();                        
 			bool load_all(Pt2dr tr,REAL sc,Pt2di p0,Pt2di p1);
 			Type * get_line_user(INT x0,INT x1,INT y);
-			virtual void RasterUseLine(Pt2di p0,Pt2di p1,INT **) =0;
+			virtual void RasterUseLine(Pt2di p0,Pt2di p1,tGSI **) =0;
 																			 
                        void MakeOneLine(bool quick);
                        void MakeOneLineZooPPV();
@@ -671,6 +674,7 @@ template <class Type> class ImFileScroller : public ImFileLoader<Type>,
                                              public ElImScroller
 {
 		public :
+                                typedef typename El_CTypeTraits<Type>::tBase  tGSI;
                                 bool CanReinitTif();
                                 void ReInitTifFile(Tiff_Im aTif);
 
@@ -686,7 +690,7 @@ template <class Type> class ImFileScroller : public ImFileLoader<Type>,
                                 virtual void no_use();
 							 
 				void LoadXImage(Pt2di p0,Pt2di p1,bool quick);
-				void RasterUseLine(Pt2di p0,Pt2di p1,INT **);
+				void RasterUseLine(Pt2di p0,Pt2di p1,tGSI **);
                 virtual ElImScroller * Reduc(INT zoom,bool quick = false);
                 Pt2di SzIn() ;
 

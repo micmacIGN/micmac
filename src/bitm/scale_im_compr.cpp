@@ -637,6 +637,7 @@ template class Scale_Im_Compr<RGB_Int,TrueCol16Bit_RGB,U_INT2>;
 
 
 template class GenScaleIm<int>;
+template class GenScaleIm<double>;
 
 
 

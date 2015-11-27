@@ -76,6 +76,13 @@ ElImScroller::ElImScroller
 } 
 
 
+void ElImScroller::write_image(INT x0src,Pt2di p0dest,INT nb,double ** data)
+{
+   ELISE_ASSERT(false,"ElImScroller::write_image double "); MPD_MM();
+
+}
+
+
 ElImScroller * ElImScroller::CurScale() 
 {
    return this;

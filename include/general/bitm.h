@@ -53,6 +53,7 @@ template <class Type> class El_CTypeTraits
         public :
                 typedef Type  tVal;
                 typedef Type  tBase;
+                typedef Type  tBase4Bytes;
                 enum   {eSizeOf = 1111};
                 static tVal  RawDataToVal(U_INT1 *);
         private :
@@ -71,6 +72,7 @@ static std::string   Name() {return "U_INT1";}
 
                 typedef U_INT1  tVal;
                 typedef INT     tBase;
+                typedef INT     tBase4Bytes;
                        static tVal Tronque(tBase aVal) {return ElMax(tBase(eVMin),ElMin(tBase(eVMax),aVal));}
 static tVal TronqueR(double aVal)
 {
@@ -97,6 +99,7 @@ template <> class El_CTypeTraits<U_INT2>
 static std::string   Name() {return "U_INT2";}
                 typedef U_INT2  tVal;
                 typedef INT     tBase;
+                typedef INT     tBase4Bytes;
                 static bool IsIntType() {return true;}
                        static tVal Tronque(tBase aVal) {return ElMax(tBase(eVMin),ElMin(tBase(eVMax),aVal));}
 static tVal TronqueR(double aVal)
@@ -144,6 +147,7 @@ static std::string   Name() {return "INT2";}
                      static Fonc_Num TronqueF(Fonc_Num aFonc) {return Max(tBase(eVMin),Min(tBase(eVMax),aFonc));}
                 typedef INT2  tVal;
                 typedef INT     tBase;
+                typedef INT     tBase4Bytes;
                 static bool IsIntType() {return true;}
                        static tVal Tronque(tBase aVal) {return ElMax(tBase(eVMin),ElMin(tBase(eVMax),aVal));}
 static tVal TronqueR(double aVal)
@@ -172,6 +176,7 @@ static std::string   Name() {return "INT1";}
 
                 typedef INT1   tVal;
                 typedef INT    tBase;
+                typedef INT     tBase4Bytes;
                 static bool IsIntType() {return true;}
                        static tVal Tronque(tBase aVal) {return ElMax(tBase(eVMin),ElMin(tBase(eVMax),aVal));}
 static tVal TronqueR(double aVal)
@@ -197,6 +202,7 @@ template <> class El_CTypeTraits<INT>
 static std::string   Name() {return "INT";}
                 typedef INT   tVal;
                 typedef INT   tBase;
+                typedef INT     tBase4Bytes;
                 static bool IsIntType() {return true;}
                        static tVal Tronque(tBase aVal) {return aVal;}
 static tVal TronqueR(double aVal) { return round_ni(aVal); }
@@ -220,6 +226,7 @@ template <> class El_CTypeTraits<REAL4>
 static std::string   Name() {return "REAL4";}
                 typedef REAL4   tVal;
                 typedef REAL8   tBase;
+                typedef REAL4   tBase4Bytes;
                 static bool IsIntType() {return false;}
                                 enum   {
                                           eSizeOf = 4,
@@ -242,6 +249,7 @@ template <> class El_CTypeTraits<REAL8>
 static std::string   Name() {return "REAL8";}
                 typedef REAL8   tVal;
                 typedef REAL8   tBase;
+                typedef REAL4   tBase4Bytes;
                 static bool IsIntType() {return false;}
                                 enum   {
                                           eSizeOf = 8,
@@ -260,6 +268,7 @@ template <> class El_CTypeTraits<REAL16>
 static std::string   Name() {return "REAL16";}
                 typedef REAL16   tVal;
                 typedef REAL16   tBase;
+                typedef REAL4    tBase4Bytes;
                 static bool IsIntType() {return false;}
                                 enum   {
                                           eSizeOf = 16,
