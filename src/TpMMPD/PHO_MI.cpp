@@ -38,12 +38,14 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "kugelhupf.h"
+
 
 #if ELISE_windows
 	#define uint unsigned
 #endif
+
+
 
 /**
  * TestPointHomo: read point homologue entre 2 image après Tapioca
@@ -53,6 +55,8 @@ Header-MicMac-eLiSe-25/06/2007*/
  * Output:
  *  - List de coordonné de point homologue
  * */
+
+
 
 void StdCorrecNameHomol_G(std::string & aNameH,const std::string & aDir)
 {
@@ -75,8 +79,8 @@ Im2D<U_INT1,INT4> CreatImageZ(Im2D<U_INT1,INT4> origin, int centreX, int centreY
     Im2D<U_INT1,INT4> imageZ(w*2+1,h*2+1);
     ELISE_COPY
     (
-        imageZ.all_pts(),                     //List de coordonné on va travailler
-        origin.in()[Virgule(FX+centreX-w,FY+centreY-h)],    //entrée, FX et FY va parcourir dans la list de coordonné
+        imageZ.all_pts(),                     //List de coordonne on va travailler
+        origin.in()[Virgule(FX+centreX-w,FY+centreY-h)],    //entree, FX et FY va parcourir dans la list de coordonne
         imageZ.out()
     );
 //    ELISE_COPY
@@ -153,8 +157,8 @@ int PHO_MI_main(int argc,char ** argv)
 //    float cx=2000,cy=2000;
 //    ELISE_COPY
 //    (
-//        mImgOut2.all_pts(),                     //List de coordonné on va travailler
-//        mImg.in()[Virgule(FX+cx-w,FY+cy-w)],    //entrée, FX et FY va parcourir dans la list de coordonné
+//        mImgOut2.all_pts(),                     //List de coordonne on va travailler
+//        mImg.in()[Virgule(FX+cx-w,FY+cy-w)],    //entrée, FX et FY va parcourir dans la list de coordonne
 //        mImgOut2.out()
 //    );
 //    ELISE_COPY
@@ -181,21 +185,38 @@ int PHO_MI_main(int argc,char ** argv)
                         +  std::string("@")
                        +  std::string(anExt);
 
+    int h = 10;    //taille du fenetre de balayage
+    int w = 10;
+    int extzone = 10; //taile d'extende zone de recherche
+    int step = 5;
 
-    for (int aKN1 = 0 ; aKN1<int(aSetImages.size()) ; aKN1++)
+    ELISE_fp::MkDir(aDirImages+"/temp_balayer");
+    for (int aKN1 = 0 ; aKN1<int(aSetImages.size()-1) ; aKN1++)     //test just for 3 images, from point homo b/w 2, verify with 3
     {
-        for (int aKN2 = 0 ; aKN2<int(aSetImages.size()) ; aKN2++)
+        for (int aKN2 = 0 ; aKN2<int(aSetImages.size()-1) ; aKN2++)
         {
              std::string aNameIm1 = aSetImages[aKN1];
              std::string aNameIm2 = aSetImages[aKN2];
-             //cout<< aNameIm1<<endl;
-             //cout<< aNameIm2<<endl;
+
+             //read image
+             Tiff_Im mTiffImg1(aNameIm1.c_str());                      //read header of image Tiff
+             Im2D<U_INT1,INT4> mImg1(mTiffImg1.sz().x,mTiffImg1.sz().y);      //to read pixel, using Im2D
+             ELISE_COPY(                                                   //read image
+                         mTiffImg1.all_pts(),
+                         mTiffImg1.in(),
+                         mImg1.out()
+                       );
+             Tiff_Im mTiffImg2(aNameIm2.c_str());
+             Im2D<U_INT1,INT4> mImg2(mTiffImg2.sz().x,mTiffImg2.sz().y);
+             ELISE_COPY(
+                         mTiffImg2.all_pts(),
+                         mTiffImg2.in(),
+                         mImg2.out()
+                       );
+
 
              std::string aNameIn = aICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm2,true);  //fichier contient les point homologue à partir des pairs
-
-             //cout<<aNameIn<<"++";
              StdCorrecNameHomol_G(aNameIn,aDirImages);
-             //cout<<aNameIn<<endl;
 
              if (ELISE_fp::exist_file(aNameIn))     //check fichier point homo existe
              {
@@ -222,6 +243,18 @@ int PHO_MI_main(int argc,char ** argv)
                   std::cout << " ++ For image " << aNameIm2 << " ++ " << aNameOri1  << "\n";
                   CamStenope * aCam1 = CamOrientGenFromFile(aNameOri1 , aICNM);
 
+                  //le 3eme image pour reprojeter point homo de 1er et 2eme
+                  string aNameIm = aSetImages.back();
+                  std::string aNameOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm,true);
+                  CamStenope * aCam3 = CamOrientGenFromFile(aNameOri3 , aICNM);
+
+                  Tiff_Im mTiffImg3(aNameIm.c_str());
+                  Im2D<U_INT1,INT4> mImg3(mTiffImg3.sz().x,mTiffImg3.sz().y);
+                  ELISE_COPY(
+                              mTiffImg3.all_pts(),
+                              mTiffImg3.in(),
+                              mImg3.out()
+                            );
 
                   for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
                   {
@@ -232,26 +265,89 @@ int PHO_MI_main(int argc,char ** argv)
 
                       //calcul coordonné 3D à partir de points homos et orientation 2 camera
                       Pt3dr PInter_Cam0= aCam0->ElCamera::PseudoInter(aP1, *aCam1, aP2, &d);       //partir de cam0
-                      Pt3dr PInter_Cam1= aCam1->ElCamera::PseudoInter(aP2, *aCam0, aP1, &d1);      //partir de cam1
 
                       //reprojecter à partir de point R3 => F2
-                      Pt2dr aP1verify = aCam0->ElCamera::R3toF2(PInter_Cam0);
+                      //Pt2dr aP1verify = aCam0->ElCamera::R3toF2(PInter_Cam0);
 
                       //reprojeter vers autre camera
-                      /*
-                      string aNameIm = aSetImages.back();
-                      std::string aNameOri3 = aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOriInput,aNameIm,true);
-                      CamStenope * aCam3 = CamOrientGenFromFile(aNameOri3 , aICNM);
-                      Pt2dr aP3verify = aCam3->ElCamera::R3toF2(PInter_Cam0);
-                      */
+                      Pt2dr aP3 = aCam3->ElCamera::R3toF2(PInter_Cam0);
 
-                      //créer ImageZ autour point d'intéret
+                      //Get imagette1 and imagette 2
+                      cCorrelImage::setSzW(w);
+                      cCorrelImage Imgette1,Imgette2;
+                      Imgette1.getFromIm(&mImg1, aP1.x, aP1.y);
+                      Imgette2.getFromIm(&mImg2, aP2.x, aP2.y);
+
+                      //Store all imagette to vector, compute correllation b/w all
+                      int startZoneX=aP3.x - w - extzone;
+                      int startZoneY=aP3.y - h - extzone;
+                      int endZoneX=aP3.x + w + extzone;
+                      int endZoneY=aP3.y + h + extzone;
+
+                      //control if slide out of image
+                      if (endZoneX > mTiffImg3.sz().x)
+                          {endZoneX = mTiffImg3.sz().x;}
+                      if (endZoneY > mTiffImg3.sz().y)
+                          {endZoneY = mTiffImg3.sz().y;}
+                      if (startZoneX <0 )
+                          {startZoneX = 0;}
+                      if (startZoneY  <0 )
+                          {startZoneY = 0;}
+
+                      vector< Im2D<U_INT1,INT4> > Imagette3Autour;                 //vector store all ImageZ
+                      vector< double > CorrImagette3_1;
+                      vector< double > CorrImagette3_2;
+                      for (int ii=startZoneX; ii<endZoneX-w*2; ii=ii+step)
+                      {
+                          for (int jj=startZoneY; jj<endZoneY-w*2; jj=jj+step)
+                          {
+
+                              //creer ImageZ autour point d'interet reprojeter image3
+                              cCorrelImage Imgette3;
+                              Imgette3.getFromIm(&mImg3, ii+w, jj+h);
+
+//                              ELISE_COPY
+//                                    (
+//                                          Imgette3.getIm()->all_pts(),
+//                                          Imgette3.getIm()->in()[Virgule(FX,FY)],
+//                                      Tiff_Im(
+//                                          "tototestkukuf_1.tif",
+//                                          Imgette3.getmSz(),
+//                                          GenIm::u_int1,
+//                                          Tiff_Im::No_Compr,
+//                                          Tiff_Im::BlackIsZero,
+//                                          Tiff_Im::Empty_ARG ).out()
+//                                    );
+                              Im2D<U_INT1,INT4> Imgette3Courrant (Imgette3.getIm()->sz().x, Imgette3.getIm()->sz().y);
+                              ELISE_COPY
+                                    (
+                                          Imgette3.getIm()->all_pts(),
+                                          Imgette3.getIm()->in()[Virgule(FX,FY)],
+                                          Imgette3Courrant.out()
+                                    );
+                              Imagette3Autour.push_back(Imgette3Courrant);
+                              CorrImagette3_1.push_back(abs(Imgette1.CrossCorrelation(Imgette3)));
+                              CorrImagette3_2.push_back(abs(Imgette2.CrossCorrelation(Imgette3)));
+                          }
+                      }
+                      cout <<"Total "<<Imagette3Autour.size()<<" imagettes +-+-+ ";
+                      if (Imagette3Autour.size() > 0)
+                      {
+                          double max_Corr3_1 = CorrImagette3_1[*max_element(CorrImagette3_1.begin(), CorrImagette3_1.end())];
+                          double max_Corr3_2 = CorrImagette3_2[*max_element(CorrImagette3_2.begin(), CorrImagette3_2.end())];
+                          cout<<"Max corr value 3-1 = "<<max_Corr3_1<<" ++ 3_2 = "<<max_Corr3_2<<endl;
+                      }
+                      else
+                      {
+                          cout<<"Coor reproj sur Img3 = "<<aP3<<" ++StartCoor++ "<<Pt2dr(startZoneX,startZoneY)<<" ++EndCoor++ "<<Pt2dr(endZoneX,endZone)<<endl;
+                      }
                   }
              }
         }
     }
 
 
+/*
     //======================================Lire image et créer les imageZ autour point d'intéret====================//
     int h = 50;    //taille du fenetre de balayage
     int w = 50;
@@ -299,21 +395,64 @@ int PHO_MI_main(int argc,char ** argv)
             out << i;
             count = out.str();
             string pathImageZ = aDirImages+"temp_balayer/"+ aSetImages.back()+ "_" + count + "_toto.tif";
-        ELISE_COPY
-        (
-            ImageZScan[i].all_pts(),
-            ImageZScan[i].in()[Virgule(FX,FY)],
+            ELISE_COPY
+            (
+                        ImageZScan[i].all_pts(),
+                        ImageZScan[i].in()[Virgule(FX,FY)],
+                    Tiff_Im(
+                        pathImageZ.c_str(),
+                        ImageZScan[i].sz(),
+                        GenIm::u_int1,
+                        Tiff_Im::No_Compr,
+                        Tiff_Im::BlackIsZero,
+                        Tiff_Im::Empty_ARG ).out()
+            );
+        }
+
+
+
+    Pt2dr aP1(30,30);
+    cCorrelImage::setSzW(10);
+    cCorrelImage Imgette0;
+    Imgette0.getFromIm(&ImageZScan[5], aP1.x, aP1.y);
+
+    ELISE_COPY
+    (
+                Imgette0.getIm()->all_pts(),
+                Imgette0.getIm()->in()[Virgule(FX,FY)],
             Tiff_Im(
-                pathImageZ.c_str(),
-                ImageZScan[i].sz(),
+                "tototestkukuf_1.tif",
+                Imgette0.getIm()->sz(),
                 GenIm::u_int1,
                 Tiff_Im::No_Compr,
                 Tiff_Im::BlackIsZero,
                 Tiff_Im::Empty_ARG ).out()
-        );
-        }
+    );
 
 
+    Pt2dr aP2(30,30);
+    cCorrelImage Imgette1;
+    Imgette1.getFromIm(&ImageZScan[6], aP2.x, aP2.y);
+
+    ELISE_COPY
+    (
+                Imgette1.getIm()->all_pts(),
+                Imgette1.getIm()->in()[Virgule(FX,FY)],
+            Tiff_Im(
+                "tototestkukuf_2.tif",
+                Imgette1.getIm()->sz(),
+                GenIm::u_int1,
+                Tiff_Im::No_Compr,
+                Tiff_Im::BlackIsZero,
+                Tiff_Im::Empty_ARG ).out()
+    );
+
+    cout<<"CrossCorrelation 0-1 = "<<Imgette0.CrossCorrelation(Imgette1)<<endl;
+    cout<<"Covariance 0-1 = "<<Imgette0.Covariance(Imgette1)<<endl;
+    cout<<"CrossCorrelation 1-0 = "<<Imgette1.CrossCorrelation(Imgette0)<<endl;
+    cout<<"Covariance 1-0 = "<<Imgette1.Covariance(Imgette0)<<endl;
+
+*/
 
 return EXIT_SUCCESS;
 }
