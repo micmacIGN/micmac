@@ -178,6 +178,8 @@ public:
    inline bool operator !=( const ctPath &i_b ) const;
    
    std::string str( char i_separator ) const;
+   inline std::string str_unix() const;
+   inline std::string str_windows() const;
    
    void toAbsolute( const ctPath &i_relativeTo );
    bool exists() const;
@@ -228,6 +230,7 @@ public:
    inline bool operator !=( const cElFilename &i_b ) const;
    
    inline std::string str( char i_separator ) const;
+   inline std::string str() const;
    inline std::string str_unix() const;
    inline std::string str_windows() const;
    
