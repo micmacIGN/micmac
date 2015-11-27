@@ -56,7 +56,7 @@ bool setWorkingDirectory( const ctPath &i_path )
       string path = i_path.str(ctPath::windows_separator);
       return (SetCurrentDirectory(path.c_str() ) != 0);
    #elif (ELISE_POSIX)
-      return (chdir(i_path.str().c_str()) != 0);
+      return (chdir(i_path.str().c_str()) == 0);
    #endif
 }
 
