@@ -1764,6 +1764,7 @@
      <VMax    Nb="*" Type="double" Container="std::vector">  </VMax>
      <VMin    Nb="*" Type="double" Container="std::vector"> </VMin>
      <IntervDyn    Nb="1" Type="Pt2dr">  </IntervDyn>
+     <MulDyn       Nb="1" Type="double">  </MulDyn>
 </Xml_StatVino>
 
 <Xml_EnvVino  Nb="1" Class="true" ToReference="true">

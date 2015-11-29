@@ -21105,6 +21105,17 @@ const Pt2dr & cXml_StatVino::IntervDyn()const
    return mIntervDyn;
 }
 
+
+double & cXml_StatVino::MulDyn()
+{
+   return mMulDyn;
+}
+
+const double & cXml_StatVino::MulDyn()const 
+{
+   return mMulDyn;
+}
+
 void  BinaryUnDumpFromFile(cXml_StatVino & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.NameFile(),aFp);
@@ -21157,6 +21168,7 @@ void  BinaryUnDumpFromFile(cXml_StatVino & anObj,ELISE_fp & aFp)
         }
   } ;
     BinaryUnDumpFromFile(anObj.IntervDyn(),aFp);
+    BinaryUnDumpFromFile(anObj.MulDyn(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_StatVino & anObj)
@@ -21196,6 +21208,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_StatVino & anObj)
     )
         BinaryDumpInFile(aFp,*iT);
     BinaryDumpInFile(aFp,anObj.IntervDyn());
+    BinaryDumpInFile(aFp,anObj.MulDyn());
 }
 
 cElXMLTree * ToXMLTree(const cXml_StatVino & anObj)
@@ -21237,6 +21250,7 @@ cElXMLTree * ToXMLTree(const cXml_StatVino & anObj)
   ) 
       aRes->AddFils(::ToXMLTree(std::string("VMin"),(*it))->ReTagThis("VMin"));
    aRes->AddFils(::ToXMLTree(std::string("IntervDyn"),anObj.IntervDyn())->ReTagThis("IntervDyn"));
+   aRes->AddFils(::ToXMLTree(std::string("MulDyn"),anObj.MulDyn())->ReTagThis("MulDyn"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21266,9 +21280,11 @@ void xml_init(cXml_StatVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.VMin(),aTree->GetAll("VMin",false,1));
 
    xml_init(anObj.IntervDyn(),aTree->Get("IntervDyn",1)); //tototo 
+
+   xml_init(anObj.MulDyn(),aTree->Get("MulDyn",1)); //tototo 
 }
 
-std::string  Mangling( cXml_StatVino *) {return "F56D274B2A2FB4CFFD3F";};
+std::string  Mangling( cXml_StatVino *) {return "C64B821BE0E3FEB2FE3F";};
 
 
 Pt2di & cXml_EnvVino::SzW()
@@ -21423,6 +21439,6 @@ void xml_init(cXml_EnvVino & anObj,cElXMLTree * aTree)
    xml_init(anObj.Stats(),aTree->GetAll("Stats",false,1));
 }
 
-std::string  Mangling( cXml_EnvVino *) {return "975BECBBCD38D9FFFE3F";};
+std::string  Mangling( cXml_EnvVino *) {return "B461B100BCB399CCFE3F";};
 
 // };

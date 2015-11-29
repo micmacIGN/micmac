@@ -52,29 +52,42 @@ Header-MicMac-eLiSe-25/06/2007*/
 /****************************************/
 
 
-Box2di cAppli_Vino::GetRectImage(bool GlobScale)
+ElList<Pt2di> cAppli_Vino::GetPtsImage(bool GlobScale,bool ModeRect,const std::string& aMessage)
 {
-    mW->fill_rect(Pt2dr(5,20),Pt2dr(280,60),mW->pdisc()(P8COL::magenta));
-    mW->fixed_string(Pt2dr(40,45),"Clik P1 and P2 of rectangle",mW->pdisc()(P8COL::black),true);
 
-    Pt2dr aPW1 = mW->clik_in()._pt;
-    mW->fill_rect(aPW1-Pt2dr(3,3),aPW1+Pt2dr(3,3),mW->pdisc()(P8COL::green));
-    Pt2dr aPW2 = mW->clik_in()._pt;
-    mW->draw_rect(aPW1,aPW2,mW->pdisc()(P8COL::green));
-
-
-    pt_set_min_max(aPW1,aPW2);
-
+    PutMessageRelief(0,"Clik  for polygone ; Shift Clik  to finish ; Enter 2 point for rectangle");
     ElImScroller * aCurScr = GlobScale ? mScr : mScr->CurScale();
 
-    Pt2di aPU1 = round_ni(aCurScr->to_user(aPW1));
-    Pt2di aPU2 = round_ni(aCurScr->to_user(aPW2));
+    bool Cont=true;
 
-    // Pt2di aSz = aCurScr->SzIn();
 
-    CorrectRect(aPU1,aPU2,aCurScr->SzIn());
+    ElList<Pt2di> aList;
 
-   return Box2di (aPU1,aPU2);
+    Pt2dr aLastW(-1,-1);
+
+    while (Cont)
+    {
+        Clik aClik = mW->clik_in();
+        Pt2dr aPW = aClik._pt;
+        Pt2di aPU = round_ni(aCurScr->to_user(aPW));
+        aList = aList + aPU;
+
+        mW->fill_rect(aPW-Pt2dr(3,3),aPW+Pt2dr(3,3),mW->pdisc()(P8COL::green));
+
+        if (aLastW.x >0)
+        {
+            mW->draw_seg(aPW,aLastW,mW->pdisc()(P8COL::red));
+        }
+
+        aLastW  = aPW;
+        Cont = !aClik.shifted();
+        if (ModeRect && (aList.card()>=2)) 
+        {
+           Cont = false;
+        }
+    }
+
+    return aList;
 }
 
 
@@ -152,6 +165,28 @@ void cAppli_Vino::ZoomMolette()
 {
     double aSc =  mScale0 * pow(2.0,SpeedZoomMolette()*(mBut0==5?1:-1));
     mScr->SetScArroundPW(mP0Click,aSc,false);
+}
+
+void cAppli_Vino::ZoomRect()
+{
+    ElList<Pt2di> aL = GetPtsImage(true,true,"Clik 2 point to select rectangle");
+
+    Pt2dr aP0 = Pt2dr(aL.car());
+    Pt2dr aP1 = Pt2dr(aL.cdr().car());
+    pt_set_min_max(aP0,aP1);
+
+    Pt2dr aSz = aP1-aP0;
+
+    double aScale = ElMin(SzW().x/aSz.x,SzW().y/aSz.y);
+
+    std::cout << "SCALE " << aScale  << " " << aSz  << "\n";
+    // mScr->SetScArroundPW(mScr->to_win((aP0+aP1)/2.0),aScale,false);
+
+    Pt2dr aSzU = SzW() / aScale;
+    Pt2dr aMil = (aP0+aP1)/2.0;
+
+    mScr->set(aMil-aSzU/2.0,aScale);
+    ShowAsc();
 }
 
 

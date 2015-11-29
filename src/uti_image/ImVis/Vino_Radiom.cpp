@@ -65,9 +65,27 @@ double  VerifInt(const double * anInput,int aNb)
    return (aNb==0) ? 0.0 : (aSom/aNb);
 }
 
-template <class Type> void  TplChgDyn(const cXml_StatVino & aStats,int * anOut,const Type * anInput,int aNb)
+template <class Type> void  cAppli_Vino_TplChgDyn<Type>::SetDyn(cAppli_Vino & anAppli,int * anOut,const Type * anInput,int aNb)
 {
     // std::cout << " VerifInt== " << VerifInt(anInput,aNb) << "\n"; getchar();
+    if (anAppli.mTabulDynIsInit)
+    {
+       int aMaxInd = anAppli.mTabulDyn.size() - 1;
+       int * aTD = & (anAppli.mTabulDyn[0]);
+       double aV0 = anAppli.mV0TabulDyn;
+       double aStep = anAppli.mStepTabulDyn;
+       for (int aK=0 ; aK<aNb ; aK++)
+       {
+           // int aInd = round_ni((anInput[aK]-mV0TabulDyn)/mStepTabulDyn);
+           int aInd = round_ni((anInput[aK]-aV0)/aStep);
+           aInd = ElMax(0,ElMin(aMaxInd,aInd));
+           anOut[aK] = aTD[aInd];
+       }
+       return;
+    }
+
+   const cXml_StatVino & aStats = *(anAppli.mCurStats);
+
     switch (aStats.Type())
     {
           case eDynVinoModulo :
@@ -93,7 +111,7 @@ template <class Type> void  TplChgDyn(const cXml_StatVino & aStats,int * anOut,c
           {
               
               double aMoy   = aStats.Soms()[0];
-              double anECT  = aStats.ECT()[0] * 2;
+              double anECT  = aStats.ECT()[0] / aStats.MulDyn();
               for (int aK=0 ; aK<aNb ; aK++)
               {
                   float aVal = (anInput[aK]-aMoy)/ anECT;
@@ -114,79 +132,71 @@ template <class Type> void  TplChgDyn(const cXml_StatVino & aStats,int * anOut,c
 
 void cAppli_Vino::ChgDyn(int * anOut,const double * anInput,int aNb) 
 {
-    TplChgDyn(*mCurStats,anOut,anInput,aNb);
-/*
-   ELISE_ASSERT(false,"cAppli_Vino::ChgDyn");
-*/
+    cAppli_Vino_TplChgDyn<double>::SetDyn(*this,anOut,anInput,aNb);
+    // TplChgDyn(*mCurStats,anOut,anInput,aNb);
 }
 
 void cAppli_Vino::ChgDyn(int * anOut,const int * anInput,int aNb) 
 {
-    TplChgDyn(*mCurStats,anOut,anInput,aNb);
-
-/*
-template <class Type> void  TplChgDyn(const cXml_StatVino & aStats,int * anOut,const double * anInput,int aNb)
-    switch (mCurStats->Type())
-    {
-          case eDynVinoModulo :
-          {
-              for (int aK=0 ; aK<aNb ; aK++)
-                   anOut[aK] =  anInput[aK] % 256;
-              return;
-          }
-
-          case eDynVinoMaxMin :
-          {
-              
-              int aV0 = mCurStats->IntervDyn().x; 
-              int anEcart = mCurStats->IntervDyn().y -aV0; 
-              for (int aK=0 ; aK<aNb ; aK++)
-              {
-                   anOut[aK] = ElMax(0,ElMin(255, ((anInput[aK] -aV0) * 255) / anEcart));
-              }
-              return;
-          }
-
-          case eDynVinoStat2 :
-          {
-              
-              double aMoy   = mCurStats->Soms()[0];
-              double anECT  = mCurStats->ECT()[0] * 2;
-              for (int aK=0 ; aK<aNb ; aK++)
-              {
-                  float aVal = (anInput[aK]-aMoy)/ anECT;
-                   // anOut[aK] = 128 * (1+ aVal / (ElAbs(aVal) +0.5));
-                   anOut[aK] = ElMax(0,ElMin(255,round_ni(256 * erfcc (aVal))));
-              }
-              return;
-          }
-
-          default :
-          {
-              for (int aK=0 ; aK<aNb ; aK++)
-                   anOut[aK] =  anInput[aK] ;
-              return;
-          }
-    }
-*/
+    cAppli_Vino_TplChgDyn<int>::SetDyn(*this,anOut,anInput,aNb);
+    // TplChgDyn(*mCurStats,anOut,anInput,aNb);
 }
 
 
+void cAppli_Vino::InitTabulDyn()
+{
+   if (mCurStats==0) return;
+   if (!mCurStats->IsInit()) return;
+
+
+   mTabulDynIsInit = false;
+   double aMoy   = mCurStats->Soms()[0];
+   double anECT  = mCurStats->ECT()[0] ;
+
+   double  anEcart = anECT * 10 ; // 10 Sigma
+
+   mV0TabulDyn = aMoy - anEcart;
+   mStepTabulDyn = anECT / (255.0 * 5);
+
+   int aNbTabul = round_ni((anEcart/mStepTabulDyn) * 2);
+
+   if (mCurStats->Type() == eDynVinoStat2)
+   {
+       mTabulDyn.clear();
+       double aDiv  = anECT / mCurStats->MulDyn();
+       mTabulDynIsInit = true;
+       for (int aK=0 ; aK<= aNbTabul ; aK++)
+       {
+           double  aVal = mV0TabulDyn + aK * mStepTabulDyn;
+           aVal = (aVal-aMoy)/aDiv;
+           mTabulDyn.push_back(ElMax(0,ElMin(255,round_ni(256 * erfcc (aVal)))));
+       }
+
+       std::cout << "mTabulDyn.push_backmTabulDyn.push_back \n";
+   }
+}
+
 void cAppli_Vino::HistoSetDyn()
 {
-    Box2di aBox = GetRectImage(false);
-    FillStat(*mCurStats,rectangle(aBox._p0,aBox._p1),mScr->CurScale()->in());
+    std::string aMes = "Clik  for polygone ; Shift Clik  to finish ; Enter 2 point for rectangle";
+    ElList<Pt2di> aL = GetPtsImage(false,false,aMes);
+    if (aL.card() >= 2)
+    {
+        if (aL.card()== 2)
+           FillStat(*mCurStats,rectangle(aL.car(),aL.cdr().car()),mScr->CurScale()->in());
+        else
+           FillStat(*mCurStats,polygone(aL),mScr->CurScale()->in());
 
-    if (mCaseCur==mCaseHStat)
-       mCurStats->Type() =  eDynVinoStat2;
+        if (mCaseCur==mCaseHStat)
+           mCurStats->Type() =  eDynVinoStat2;
 
-    if (mCaseCur==mCaseHMinMax)
-       mCurStats->Type() =  eDynVinoMaxMin;
+        if (mCaseCur==mCaseHMinMax)
+           mCurStats->Type() =  eDynVinoMaxMin;
 
-
-    // std::cout << " STATS " << mCurStats->Soms()[0] << " " << mCurStats->ECT()[0] << "\n";
-
-    SaveState();
+        mCurStats->IsInit() = true;
+        InitTabulDyn();
+        SaveState();
+    }
     Refresh();
 }
 

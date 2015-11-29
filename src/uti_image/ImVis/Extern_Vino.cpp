@@ -281,6 +281,19 @@ Im2D_U_INT1 Icone(const std::string & aName,const Pt2di & aSzCase,bool Floutage,
    return aRes;
 }
 
+void PutFileText(Video_Win aW,const std::string & aName)
+{
+   ELISE_fp  aFile (aName.c_str(),ELISE_fp::READ);
+
+   int aCpt=0;
+   while (char * aCstr = aFile.std_fgets())
+   {
+       aW.fixed_string(Pt2dr(10,15*aCpt +20),aCstr,aW.pdisc()(P8COL::black),true);
+       aCpt++;
+   }
+   aFile.close();
+}
+
 
 
 #endif

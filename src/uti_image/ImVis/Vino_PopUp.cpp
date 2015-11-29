@@ -80,6 +80,11 @@ void  cAppli_Vino::MenuPopUp()
             End();
         }
 
+        if (mCaseCur== mCaseZoomRect)
+        {
+            ZoomRect();
+        }
+
         if (    (mCaseCur==mCaseHStat)
              || (mCaseCur==mCaseHMinMax)
              || (mCaseCur==mCaseHEqual)
@@ -151,15 +156,16 @@ ChoixParmiCaseGPUMT * cAppli_Vino::CaseChoix(ChoixParmiCaseGPUMT * aCasePrec,con
 void cAppli_Vino::InitMenu()
 {
     mSzCase        = Pt2di(70,40);
-    mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(5,3),Pt2di(1,1));
+    mPopUpBase = new GridPopUpMenuTransp(*mW,mSzCase,Pt2di(3,3),Pt2di(1,1));
 
-    mCaseExit  = CaseBase("Exit",Pt2di(0,0));
-    mCaseInterpPpv    = CaseChoix(             0,"Interp\nPpv"  ,Pt2di(1,0),0);
-    mCaseInterpBilin  = CaseChoix(mCaseInterpPpv,"Interp\nBilin",Pt2di(2,0),1);
+    mCaseExit         = CaseBase("Exit",Pt2di(0,0));
+    mCaseZoomRect     = CaseBase("Zoom\nRect",Pt2di(1,0));
+    mCaseInterpPpv    = CaseChoix(             0,"Interp\nPpv"  ,Pt2di(0,1),0);
+    mCaseInterpBilin  = CaseChoix(mCaseInterpPpv,"Interp\nBilin",Pt2di(1,1),1);
 
-    mCaseHStat  = CaseBase("Histo\nStat2",Pt2di(0,1));
-    mCaseHMinMax  = CaseBase("Histo\nMinMax",Pt2di(1,1));
-    mCaseHEqual   = CaseBase("Histo\nEqual",Pt2di(2,1));
+    mCaseHStat  = CaseBase("Histo\nStat2",Pt2di(0,2));
+    mCaseHMinMax  = CaseBase("Histo\nMinMax",Pt2di(1,2));
+    mCaseHEqual   = CaseBase("Histo\nEqual",Pt2di(2,2));
 
 
 }
