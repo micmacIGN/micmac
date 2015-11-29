@@ -50,6 +50,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 std::string StrNbChifSignNotSimple(double aVal,int aNbCh);
 std::string StrNbChifSign(double aVal,int aNbCh);
 std::string SimplString(std::string aStr);
+std::string StrNbChifApresVirg(double aVal,int aNbCh);
+
 Im2D_U_INT1 Icone(const std::string & aName,const Pt2di & aSz,bool Floutage,bool Negatif);
 
 
@@ -81,6 +83,7 @@ class cPopUpMenuMessage : public PopUpMenuTransp
 
 
 
+
 class cAppli_Vino : public cXml_EnvVino,
                     public Grab_Untill_Realeased ,
                     public cElScrCalcNameSsResol,
@@ -95,13 +98,18 @@ class cAppli_Vino : public cXml_EnvVino,
 
 
      private :
+        Box2di PutMessage(Pt2dr ,const std::string & aMes,int aCoulText,Pt2dr aSzRelief = Pt2dr(-1,-1),int aCoulRelief=-1);
+        
         void ChgDyn(int * anOut,const int * anInput,int aNb) ;
+        void ChgDyn(int * anOut,const double * anInput,int aNb) ;
         void SaveState();
         void  MenuPopUp();
         void InitMenu();
         void ShowOneVal();
         void ShowOneVal(Pt2dr aP);
-        void EffaceVal();
+        void EffaceMessageVal();
+        void EffaceMessages(std::vector<Box2di> &);
+        void Efface(const Box2di & aBox);
         void HistoSetDyn();
         void Refresh();
         Box2di GetRectImage(bool GlobScale);
@@ -151,9 +159,7 @@ class cAppli_Vino : public cXml_EnvVino,
         ElImScroller *            mScr;
         std::vector<INT>          mVEch;
         Pt2dr                     mP0Click;
-        bool                      mInitP0StrVal;
-        Pt2di                     mP0StrVal;
-        Pt2di                     mP1StrVal;
+        std::vector<Box2di>       mVBoxMessageVal;
         double                    mScale0;
         Pt2dr                     mTr0;
         int                       mBut0;

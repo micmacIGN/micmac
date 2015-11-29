@@ -77,10 +77,17 @@ ElImScroller::ElImScroller
 
 
 /*
+*/
+
+void ElImScroller::write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data)
+{
+   mVisuCur->write_image(x0src,p0dest,nb,data);
+}
 void ElImScroller::write_image(INT x0src,Pt2di p0dest,INT nb,double ** data)
 {
+
+   mVisuCur->write_image(x0src,p0dest,nb,data);
 }
-*/
 
 
 ElImScroller * ElImScroller::CurScale() 

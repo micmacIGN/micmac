@@ -339,7 +339,9 @@ int PHO_MI_main(int argc,char ** argv)
                       }
                       else
                       {
-                          cout<<"Coor reproj sur Img3 = "<<aP3<<" ++StartCoor++ "<<Pt2dr(startZoneX,startZoneY)<<" ++EndCoor++ "<<Pt2dr(endZoneX,endZone)<<endl;
+                          //cout<<"Coor reproj sur Img3 = "<<aP3<<" ++StartCoor++ "<<Pt2dr(startZoneX,startZoneY)<<" ++EndCoor++ "<<Pt2dr(endZoneX,endZone)<<endl;
+                          // MPD endZone=>endZoneY, sinon ca compile pas
+                          cout<<"Coor reproj sur Img3 = "<<aP3<<" ++StartCoor++ "<<Pt2dr(startZoneX,startZoneY)<<" ++EndCoor++ "<<Pt2dr(endZoneX,endZoneY)<<endl;
                       }
                   }
              }

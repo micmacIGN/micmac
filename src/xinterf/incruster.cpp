@@ -52,17 +52,16 @@ Visu_ElImDest::~Visu_ElImDest() {}
 Visu_ElImDest::Visu_ElImDest(Pt2di aSz,INT aDimOut)  :
 
       mDimOut        (aDimOut),
-      mSz            (aSz),
-
-       mBuf          (aSz.x,Elise_Palette::MaxDimPal,0),
-       mDataBuf      (mBuf.data()),
-       mUseEtalDyn   (false),
-
-       mGama         (1.0),
-       mImGamaCorr   (256),
-       mDataGamaCorr (mImGamaCorr.data()),
-       mUseGamaCorr  (false),
-       mIVCD         (0)
+      mSzBigIm       (aSz),
+      mSzBuf         (aSz.x,Elise_Palette::MaxDimPal),
+      mBufI          (mSzBuf.x,mSzBuf.y,0),
+      mDataBufI      (mBufI.data()),
+      mUseEtalDyn    (false),
+      mGama         (1.0),
+      mImGamaCorr   (256),
+      mDataGamaCorr (mImGamaCorr.data()),
+      mUseGamaCorr  (false),
+      mIVCD         (0)
 {
 }
 
@@ -107,48 +106,102 @@ void Visu_ElImDest::SetGamaCorr(REAL aGamaFact)
    mUseGamaCorr = true;
 }
 
+template <class Type>  void FriendVisu_ElImDest<Type>::write_image(Visu_ElImDest& aVEI,INT  x0src,Pt2di p0dest,INT nb,Type ** data,int** aDataBuf)
+{
+
+     if (aVEI.mIVCD)
+     {
+         for (INT d=0 ; d<aVEI.mDimOut ; d++)
+         {
+              aVEI.mIVCD->ChgDyn(aDataBuf[d]+x0src,data[d]+x0src,nb);
+         }
+     }
+     else if (aVEI.mUseEtalDyn)
+     {
+         for (INT d=0 ; d<aVEI.mDimOut ; d++)
+         {
+              Type  * dIn = data[d]+x0src;
+              INT * dOut = aDataBuf[d]+x0src;
+// cout << dIn << " " << dOut << " " << mVMin << " " << mDiff << "\n";
+              for (INT k=0; k<nb ; k++)
+                  dOut[k] = ElMin(255,ElMax(0, ElStdTypeScal<int>::RtoT (((dIn[k]-aVEI.mVMin)*255)/aVEI.mDiff)));
+         }
+     }
+     else if (aVEI.mUseGamaCorr)
+     {
+         for (INT d=0 ; d<aVEI.mDimOut ; d++)
+         {
+              Type  * dIn = data[d]+x0src;
+              INT * dOut = aDataBuf[d]+x0src;
+              for (INT k=0; k<nb ; k++)
+              {
+                  // ELISE_ASSERT(dIn[k]>=0&&dIn[k]<256,"Bad Vals in mUseGamaCorr");
+                  dOut[k] = aVEI.mDataGamaCorr[round_ni(dIn[k])];
+              }
+         }
+     }
+     else
+     {
+         for (INT d=0 ; d<aVEI.mDimOut ; d++)
+             convert(aDataBuf[d]+x0src,data[d]+x0src,nb);
+     }
+     aVEI.write_image_brute(x0src,p0dest,nb,aDataBuf);
+}
+
+
 
 void Visu_ElImDest::write_image(INT  x0src,Pt2di p0dest,INT nb,INT ** data)
 {
+    FriendVisu_ElImDest<int>::write_image(*this,x0src,p0dest,nb,data,mDataBufI);
+
+/*
+Visu_ElImDest& aVEI,INT  x0src,Pt2di p0dest,INT nb,Type ** data,Type** aDataBuf)
+     INT ** aDataBuf = mDataBufI;
      INT ** ToW = data;
 
      if (mIVCD)
      {
          for (INT d=0 ; d<mDimOut ; d++)
          {
-              mIVCD->ChgDyn(mDataBuf[d]+x0src,data[d]+x0src,nb);
+              mIVCD->ChgDyn(aDataBuf[d]+x0src,data[d]+x0src,nb);
          }
-         ToW = mDataBuf;
+         ToW = aDataBuf;
      }
      else if (mUseEtalDyn)
      {
          for (INT d=0 ; d<mDimOut ; d++)
          {
               INT * dIn = data[d]+x0src;
-              INT * dOut = mDataBuf[d]+x0src;
+              INT * dOut = aDataBuf[d]+x0src;
 // cout << dIn << " " << dOut << " " << mVMin << " " << mDiff << "\n";
               for (INT k=0; k<nb ; k++)
                   dOut[k] = ElMin(255,ElMax(0,((dIn[k]-mVMin)*255)/mDiff));
          }
-         ToW = mDataBuf;
+         ToW = aDataBuf;
      }
      else if (mUseGamaCorr)
      {
          for (INT d=0 ; d<mDimOut ; d++)
          {
               INT * dIn = data[d]+x0src;
-              INT * dOut = mDataBuf[d]+x0src;
+              INT * dOut = aDataBuf[d]+x0src;
               for (INT k=0; k<nb ; k++)
               {
                   // ELISE_ASSERT(dIn[k]>=0&&dIn[k]<256,"Bad Vals in mUseGamaCorr");
                   dOut[k] = mDataGamaCorr[dIn[k]];
               }
          }
-         ToW = mDataBuf;
+         ToW = aDataBuf;
      }
      write_image_brute(x0src,p0dest,nb,ToW);
+*/
 }
 
+void Visu_ElImDest::write_image(INT  x0src,Pt2di p0dest,INT nb,double ** data)
+{
+    FriendVisu_ElImDest<double>::write_image(*this,x0src,p0dest,nb,data,mDataBufI);
+   // ELISE_ASSERT(false,"Visu_ElImDest::write_image double");
+}
 
 
 /****************************************************************/

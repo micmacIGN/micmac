@@ -290,26 +290,57 @@ cXml_StatVino  cAppli_Vino::StatRect(Pt2di  &aP0,Pt2di & aP1)
 
 
 
-void cAppli_Vino::EffaceVal()
-{
-    if (mInitP0StrVal)
-    {
-        int aR = 7;
-        mScr->VisuIm(mP0StrVal-Pt2di(aR,aR),mP1StrVal+Pt2di(aR,aR),false);
-    }
-}
+
 
 void  cAppli_Vino::ShowOneVal()
 {
-    mInitP0StrVal = false;
     mModeGrab = eModeGrapShowRadiom;
     mW->grab(*this);
-    EffaceVal();
+    EffaceMessageVal();
+}
+
+
+void cAppli_Vino::Efface(const Box2di & aBox)
+{
+   int aR = 0;
+   mScr->VisuIm(aBox._p0-Pt2di(aR,aR),aBox._p1+Pt2di(aR,aR),false);
+}
+
+void cAppli_Vino::EffaceMessages(std::vector<Box2di> &aVBox)
+{
+    for (int aKB=0; aKB<int(aVBox.size()) ; aKB++)
+    {
+        Efface(aVBox[aKB]);
+    }
+    aVBox.clear();
+}
+void cAppli_Vino::EffaceMessageVal()
+{
+   EffaceMessages(mVBoxMessageVal);
+}
+
+
+
+Box2di cAppli_Vino::PutMessage(Pt2dr aP0 ,const std::string & aMes,int aCoulText,Pt2dr aSzRelief,int aCoulRelief)
+{
+    Box2di aRes;
+    Pt2dr aRab(2,2);
+
+    Pt2di aSzV =  mW->SizeFixedString(aMes);
+    aRes._p0  = round_down(Pt2dr(aP0.x,aP0.y-aSzV.y) + Pt2dr(0,0) - aRab) ;
+    aRes._p1  = round_up(Pt2dr(aP0.x+aSzV.x,aP0.y) + Pt2dr(1,2)   + aRab);
+
+    if (aCoulRelief>=0)
+    {
+    }
+ 
+    mW->fixed_string(Pt2dr(aP0),aMes.c_str(),mW->pdisc()(aCoulText),true);
+
+    return aRes;
 }
 
 void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
 {
-    EffaceVal();
     Pt2di  aP = round_ni(mScr->to_user(aPW));
     Pt2di  aPp1 = aP+Pt2di(1,1);
 
@@ -320,13 +351,22 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
     std::string aMesXY = " x=" + ToString(aP.x) + " y=" + ToString(aP.y);
     std::string aMesV =  " V=";
     for (int aK=0 ; aK<mNbChan; aK++)
-        aMesV = aMesV  + SimplString(ToString(aStat.Soms()[aK])) + " ";
+        aMesV = aMesV  + StrNbChifApresVirg(aStat.Soms()[aK],3) ;
+        // aMesV = aMesV  + StrNbChifSign(aStat.Soms()[aK],3) + " ";
+        // aMesV = aMesV  + SimplString(ToString(aStat.Soms()[aK])) + " ";
 
-    // aMes = aMes + "      ";
+    EffaceMessageVal();
 
-    // mP0StrVal = Pt2di(mP0Click)+Pt2di(-20,30);
+
+
+    mVBoxMessageVal.push_back(PutMessage(aPW+Pt2dr(-20,50),aMesXY,P8COL::black));
+
+    mVBoxMessageVal.push_back(PutMessage(Pt2dr(mVBoxMessageVal.back()._p0)+Pt2dr(0,-5),aMesV,P8COL::black));
+
+/*
+    Box2di = mVBoxMessageVal.P0(
+Box2di cAppli_Vino::PutMessage(Pt2dr aP0 ,const std::string & aMes,int aCoulText,Pt2dr aSzRelief,int aCoulRelief)
     mP0StrVal = Pt2di(aPW)+Pt2di(-20,30);
-
     mW->fixed_string(Pt2dr(mP0StrVal),aMesV.c_str(),mW->pdisc()(P8COL::black),true);
     Pt2di aSzV =  mW->SizeFixedString(aMesV);
     Pt2di aSzXY =  mW->SizeFixedString(aMesXY);
@@ -338,6 +378,7 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
 
     mP1StrVal = aP0XY + Pt2di(ElMax(aSzV.x,aSzXY.x),0);
     mInitP0StrVal = true;
+*/
 }
 
 #endif

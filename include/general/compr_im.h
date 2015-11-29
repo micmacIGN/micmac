@@ -40,6 +40,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_GENERAL_COMPR_IM_H
 #define _ELISE_GENERAL_COMPR_IM_H
 
+double VerifInt(const int    * anInput,int aNb);
+double VerifInt(const double * anInput,int aNb);
+
+
+
 
 template <class Type> class Data_PackB_IM;
 
@@ -127,19 +132,31 @@ class cImgVisuChgDyn
 {
     public :
         virtual void ChgDyn(int * anOut,const int * anInput,int aNb) = 0;
+        virtual void ChgDyn(int * anOut,const double * anInput,int aNb) = 0;
     private :
 };
 
+class Visu_ElImDest;
+
+template <class Type> class FriendVisu_ElImDest
+{
+   public :
+       static void write_image(Visu_ElImDest&,INT  x0src,Pt2di p0dest,INT nb,Type ** data,int** aDataBuf);
+};
 
 class Visu_ElImDest
 {
       public :
-           virtual ~Visu_ElImDest();
 		   friend class ElImScroller;
+                   friend class FriendVisu_ElImDest<int>;
+                   friend class FriendVisu_ElImDest<double>;
+
+                   virtual ~Visu_ElImDest();
 		   virtual void VerifDim(INT DimOut) =0;
 
 		   void SetGamaCorr(REAL aGamaFact);
-           void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data);
+                   void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data);
+                   void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data);
 
 		   Visu_ElImDest(Pt2di aSz,INT aDimOut);
 
@@ -153,13 +170,14 @@ class Visu_ElImDest
 	  protected :
 		   // Visu_ElImDest();
       // private :
-           virtual void write_image_brute(INT x0src,Pt2di p0dest,INT nb,INT ** data) =0;
+                   virtual void write_image_brute(INT x0src,Pt2di p0dest,INT nb,INT ** data) =0;
 		   Visu_ElImDest(const Visu_ElImDest &);
 
 		   INT             mDimOut;
-		   Pt2di           mSz;
-		   Im2D_INT4       mBuf;
-		   INT4 **         mDataBuf;
+		   Pt2di           mSzBigIm;
+		   Pt2di           mSzBuf;
+		   Im2D_INT4       mBufI;
+		   INT4 **         mDataBufI;
 		   bool            mUseEtalDyn;
 		   INT             mVMin;
 		   INT             mVMax;
@@ -413,11 +431,19 @@ class ElImScroller
 
         Pt2di           _SzW;
         Pt2di           _SzU;
-        void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data)
+        void write_image(INT x0src,Pt2di p0dest,INT nb,INT ** data);
+        void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data);
+/*
         {
               mVisuCur->write_image(x0src,p0dest,nb,data);
         }
-        void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data); // MPD
+        void write_image(INT x0src,Pt2di p0dest,INT nb,double ** data)
+        {
+              mVisuCur->write_image(x0src,p0dest,nb,data);
+        }
+*/
+
+
         void SetVisuCur(Visu_ElImDest *);
         REAL mTimeLoadXIm;
         REAL mTimeReformat;
