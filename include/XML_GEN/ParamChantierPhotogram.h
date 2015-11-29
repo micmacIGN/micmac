@@ -6827,6 +6827,9 @@ class cXml_StatVino
 
         Pt2dr & IntervDyn();
         const Pt2dr & IntervDyn()const ;
+
+        double & MulDyn();
+        const double & MulDyn()const ;
     private:
         std::string mNameFile;
         eTypeDynVino mType;
@@ -6838,6 +6841,7 @@ class cXml_StatVino
         std::vector< double > mVMax;
         std::vector< double > mVMin;
         Pt2dr mIntervDyn;
+        double mMulDyn;
 };
 cElXMLTree * ToXMLTree(const cXml_StatVino &);
 

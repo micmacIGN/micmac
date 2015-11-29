@@ -53,6 +53,7 @@ std::string SimplString(std::string aStr);
 std::string StrNbChifApresVirg(double aVal,int aNbCh);
 
 Im2D_U_INT1 Icone(const std::string & aName,const Pt2di & aSz,bool Floutage,bool Negatif);
+void PutFileText(Video_Win,const std::string &);
 
 
 void CorrectRect(Pt2di &  aP0,Pt2di &  aP1,const Pt2di & aSz);
@@ -82,6 +83,13 @@ class cPopUpMenuMessage : public PopUpMenuTransp
 };
 
 
+class cAppli_Vino;
+template <class Type> class cAppli_Vino_TplChgDyn
+{
+    public :
+       static void SetDyn(cAppli_Vino &,int * anOut,const Type * anInput,int aNb);
+};
+
 
 
 class cAppli_Vino : public cXml_EnvVino,
@@ -90,6 +98,10 @@ class cAppli_Vino : public cXml_EnvVino,
                     public cImgVisuChgDyn
 {
      public :
+        friend class cAppli_Vino_TplChgDyn<double>;
+        friend class cAppli_Vino_TplChgDyn<int>;
+
+
         bool Floutage() {return false;} // A mettre dans cXml_EnvVino,
         cAppli_Vino(int,char **);
         void PostInitVirtual();
@@ -99,20 +111,25 @@ class cAppli_Vino : public cXml_EnvVino,
 
      private :
         Box2di PutMessage(Pt2dr ,const std::string & aMes,int aCoulText,Pt2dr aSzRelief = Pt2dr(-1,-1),int aCoulRelief=-1);
+        void   PutMessageRelief(int aK,const std::string & aMes);
         
         void ChgDyn(int * anOut,const int * anInput,int aNb) ;
         void ChgDyn(int * anOut,const double * anInput,int aNb) ;
         void SaveState();
         void  MenuPopUp();
         void InitMenu();
-        void ShowOneVal();
+        void GrabShowOneVal();
         void ShowOneVal(Pt2dr aP);
         void EffaceMessageVal();
+        void EffaceMessageRelief();
         void EffaceMessages(std::vector<Box2di> &);
         void Efface(const Box2di & aBox);
         void HistoSetDyn();
         void Refresh();
-        Box2di GetRectImage(bool GlobScale);
+        void InitTabulDyn();
+        void ZoomRect();
+        void  Help();
+        ElList<Pt2di> GetPtsImage(bool GlobScale,bool ModeRect,const std::string& aMessage);
 
 
         bool OkPt(const Pt2di & aPt);
@@ -152,6 +169,7 @@ class cAppli_Vino : public cXml_EnvVino,
         Pt2di                     mSzIncr;
         Video_Win *               mWAscH;
         Video_Win *               mW;
+        Video_Win *               mWHelp;
         Video_Win *               mWAscV;
         Video_Display *           mDisp;
         std::string               mTitle;
@@ -160,6 +178,7 @@ class cAppli_Vino : public cXml_EnvVino,
         std::vector<INT>          mVEch;
         Pt2dr                     mP0Click;
         std::vector<Box2di>       mVBoxMessageVal;
+        std::vector<Box2di>       mVBoxMessageRelief;
         double                    mScale0;
         Pt2dr                     mTr0;
         int                       mBut0;
@@ -173,21 +192,27 @@ class cAppli_Vino : public cXml_EnvVino,
 
          // Menus contextuels
 
-          Pt2di                   mSzCase;
-          GridPopUpMenuTransp*    mPopUpBase;
-          CaseGPUMT *             mCaseExit;
-          ChoixParmiCaseGPUMT *   mCaseInterpPpv;
-          ChoixParmiCaseGPUMT *   mCaseInterpBilin;
-          CaseGPUMT *             mCaseHStat;
-          CaseGPUMT *             mCaseHMinMax;
-          CaseGPUMT *             mCaseHEqual;
+        Pt2di                   mSzCase;
+        GridPopUpMenuTransp*    mPopUpBase;
+        CaseGPUMT *             mCaseExit;
+        CaseGPUMT *             mCaseZoomRect;
+        ChoixParmiCaseGPUMT *   mCaseInterpPpv;
+        ChoixParmiCaseGPUMT *   mCaseInterpBilin;
+        CaseGPUMT *             mCaseHStat;
+        CaseGPUMT *             mCaseHMinMax;
+        CaseGPUMT *             mCaseHEqual;
 
-          GridPopUpMenuTransp*    mPopUpCur;
-          CaseGPUMT *             mCaseCur;
-          eModeInterpolation      mMode;
-          cXml_StatVino *         mCurStats;
-          bool                    mStatIsInFile;
+        GridPopUpMenuTransp*    mPopUpCur;
+        CaseGPUMT *             mCaseCur;
+        eModeInterpolation      mMode;
+        cXml_StatVino *         mCurStats;
+        bool                    mStatIsInFile;
 
+        // Etalement  des tabulation
+        bool                    mTabulDynIsInit;
+        double                  mV0TabulDyn;
+        double                  mStepTabulDyn;
+        std::vector<int>        mTabulDyn;
 };
 
 #endif

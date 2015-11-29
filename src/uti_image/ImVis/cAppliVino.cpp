@@ -69,7 +69,9 @@ extern Video_Win * TheWinAffRed ;
 
 cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     mSzIncr            (400,400),
-    mNbPixMinFile      (2e6)
+    mNbPixMinFile      (2e6),
+    mCurStats          (0),
+    mTabulDynIsInit    (false)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -100,6 +102,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
             mCurStats->Type() = eDynVinoModulo;
             mCurStats->IsInit() = false ;
             mCurStats->NameFile() = aNameFile;
+            mCurStats->MulDyn() = 0.5;
         }
     }
 
@@ -196,6 +199,11 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv) :
     }
     mWAscH->clear();
 
+    Tiff_Im aTifHelp = MMIcone("Help");
+    mWHelp = new Video_Win(*mW,Video_Win::eSamePos,aTifHelp.sz());
+    ELISE_COPY(mWHelp->all_pts(),aTifHelp.in(),mWHelp->ogray());
+    mWHelp->move_to(Pt2di(mW->sz().x-mWHelp->sz().x,LargAsc()+10));
+
     InitMenu();
 }
 
@@ -209,6 +217,7 @@ void cAppli_Vino::PostInitVirtual()
     SetInterpoleMode(ZoomBilin() ? eInterpolBiLin : eInterpolPPV,false);
     // mScr = new ImFileScroller<U_INT1> (*mVVE,*mTiffIm,1.0);
     // mScr->ReInitTifFile(*mTiffIm);
+    InitTabulDyn();
     mScr->set_max();
     ShowAsc();
 }
@@ -246,7 +255,7 @@ void cAppli_Vino::Boucle()
 
             if (mBut0==1)
             {
-                ShowOneVal();
+                GrabShowOneVal();
             }
             if (mBut0==3)
             {
@@ -265,7 +274,21 @@ void cAppli_Vino::Boucle()
              mWAscV->grab(*this);
              ShowAsc();
         }
+        if (aCl._w == *mWHelp)
+        {
+             Help();
+        }
     }
+}
+
+
+void cAppli_Vino::Help()
+{
+    mW->fill_rect(Pt2dr(0,0),Pt2dr(mW->sz()),mW->pdisc()(P8COL::white));
+    
+    PutFileText(*mW,Basic_XML_MM_File("HelpVino.txt"));
+    mW->clik_in();
+    Refresh();
 }
 
 
@@ -288,11 +311,7 @@ cXml_StatVino  cAppli_Vino::StatRect(Pt2di  &aP0,Pt2di & aP1)
 
 }
 
-
-
-
-
-void  cAppli_Vino::ShowOneVal()
+void  cAppli_Vino::GrabShowOneVal()
 {
     mModeGrab = eModeGrapShowRadiom;
     mW->grab(*this);
@@ -300,44 +319,6 @@ void  cAppli_Vino::ShowOneVal()
 }
 
 
-void cAppli_Vino::Efface(const Box2di & aBox)
-{
-   int aR = 0;
-   mScr->VisuIm(aBox._p0-Pt2di(aR,aR),aBox._p1+Pt2di(aR,aR),false);
-}
-
-void cAppli_Vino::EffaceMessages(std::vector<Box2di> &aVBox)
-{
-    for (int aKB=0; aKB<int(aVBox.size()) ; aKB++)
-    {
-        Efface(aVBox[aKB]);
-    }
-    aVBox.clear();
-}
-void cAppli_Vino::EffaceMessageVal()
-{
-   EffaceMessages(mVBoxMessageVal);
-}
-
-
-
-Box2di cAppli_Vino::PutMessage(Pt2dr aP0 ,const std::string & aMes,int aCoulText,Pt2dr aSzRelief,int aCoulRelief)
-{
-    Box2di aRes;
-    Pt2dr aRab(2,2);
-
-    Pt2di aSzV =  mW->SizeFixedString(aMes);
-    aRes._p0  = round_down(Pt2dr(aP0.x,aP0.y-aSzV.y) + Pt2dr(0,0) - aRab) ;
-    aRes._p1  = round_up(Pt2dr(aP0.x+aSzV.x,aP0.y) + Pt2dr(1,2)   + aRab);
-
-    if (aCoulRelief>=0)
-    {
-    }
- 
-    mW->fixed_string(Pt2dr(aP0),aMes.c_str(),mW->pdisc()(aCoulText),true);
-
-    return aRes;
-}
 
 void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
 {
