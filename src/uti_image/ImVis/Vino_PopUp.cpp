@@ -57,20 +57,6 @@ void cAppli_Vino::End()
 
 }
 
-/*
-void cAppli_Vino::HistoSetDyn()
-{
-    Box2di aBox = GetRectImage(false);
-    FillStat(*mCurStats,rectangle(aBox._p0,aBox._p1),mScr->CurScale()->in());
-
-
-    std::cout << " STATS " << mCurStats->Soms()[0] << " " << mCurStats->ECT()[0] << "\n";
-
-    SaveState();
-    Refresh();
-}
-*/
-
 
 
 void  cAppli_Vino::MenuPopUp()

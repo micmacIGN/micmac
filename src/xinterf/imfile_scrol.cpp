@@ -811,7 +811,10 @@ template <class Type>  void ImFileLoader<Type>::MakeOneLineZooPPV()
     {
        tGSI * lc = this->_line[c];
        for (INT wx = this->_pW0.x ; wx< this->_pW1.x ; wx++)
-          lc[wx] = CAST2INT(ul[this->_Cw2uX[wx]*_nb_chan+c]);
+       {
+          lc[wx] = (ul[this->_Cw2uX[wx]*_nb_chan+c]);
+          // lc[wx] = CAST2INT(ul[this->_Cw2uX[wx]*_nb_chan+c]);
+       }
     }
 }
 
@@ -839,11 +842,8 @@ template <class Type>  void ImFileLoader<Type>::MakeOneLineReduceSomPPV()
 
                  for (INT UX = UX0 ; UX < UX1 ; UX++)
                  {
-                     lc[wx] += CAST2INT(ul[UX*_nb_chan+c]);
-if (MPD_MM())
-{
-ELISE_ASSERT(false,"CAST2INT");
-}
+                     // lc[wx] += CAST2INT(ul[UX*_nb_chan+c]);
+                     lc[wx] += (ul[UX*_nb_chan+c]);
                  }
               }
          }
@@ -909,8 +909,6 @@ template <class Type> void ImFileLoader<Type>::MakeOneLinePixelPond()
 
 template <class Type>  void ImFileLoader<Type>::MakeOneLine(bool quick)
 {
-// std::cout << "MakeOneLiMakeOneLi " << mPixReplic << " " << this->AlwaysQuick() << "\n";
-// mPixReplic =true;
     if (mPixReplic)
     {
        MakeOneLineZooPPV();
@@ -1088,9 +1086,10 @@ if (MPD_MM())
 }
 */
 
-
+/*
    if (! El_CTypeTraits<Type>::IsIntType())
       WarnIntConversion(tif);
+*/
 }
 
 

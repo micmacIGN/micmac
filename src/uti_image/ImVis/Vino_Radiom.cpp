@@ -49,10 +49,83 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                      */
 /****************************************/
 
+double VerifInt(const int * anInput,int aNb)
+{
+   return 0;
+}
 
+double  VerifInt(const double * anInput,int aNb)
+{
+   double aSom = 0.0;
+
+   for (int aK=0 ; aK<aNb ; aK++)
+   {
+        aSom += ElAbs(anInput[aK]-round_ni(anInput[aK]));
+   }
+   return (aNb==0) ? 0.0 : (aSom/aNb);
+}
+
+template <class Type> void  TplChgDyn(const cXml_StatVino & aStats,int * anOut,const Type * anInput,int aNb)
+{
+    // std::cout << " VerifInt== " << VerifInt(anInput,aNb) << "\n"; getchar();
+    switch (aStats.Type())
+    {
+          case eDynVinoModulo :
+          {
+              for (int aK=0 ; aK<aNb ; aK++)
+                   anOut[aK] =  int(anInput[aK]) % 256;
+              return;
+          }
+
+          case eDynVinoMaxMin :
+          {
+              
+              int aV0 = aStats.IntervDyn().x; 
+              int anEcart = aStats.IntervDyn().y -aV0; 
+              for (int aK=0 ; aK<aNb ; aK++)
+              {
+                   anOut[aK] = ElMax(0,ElMin(255, int(((anInput[aK] -aV0) * 255) / anEcart)));
+              }
+              return;
+          }
+
+          case eDynVinoStat2 :
+          {
+              
+              double aMoy   = aStats.Soms()[0];
+              double anECT  = aStats.ECT()[0] * 2;
+              for (int aK=0 ; aK<aNb ; aK++)
+              {
+                  float aVal = (anInput[aK]-aMoy)/ anECT;
+                   // anOut[aK] = 128 * (1+ aVal / (ElAbs(aVal) +0.5));
+                   anOut[aK] = ElMax(0,ElMin(255,round_ni(256 * erfcc (aVal))));
+              }
+              return;
+          }
+
+          default :
+          {
+              for (int aK=0 ; aK<aNb ; aK++)
+                   anOut[aK] =  anInput[aK] ;
+              return;
+          }
+    }
+}
+
+void cAppli_Vino::ChgDyn(int * anOut,const double * anInput,int aNb) 
+{
+    TplChgDyn(*mCurStats,anOut,anInput,aNb);
+/*
+   ELISE_ASSERT(false,"cAppli_Vino::ChgDyn");
+*/
+}
 
 void cAppli_Vino::ChgDyn(int * anOut,const int * anInput,int aNb) 
 {
+    TplChgDyn(*mCurStats,anOut,anInput,aNb);
+
+/*
+template <class Type> void  TplChgDyn(const cXml_StatVino & aStats,int * anOut,const double * anInput,int aNb)
     switch (mCurStats->Type())
     {
           case eDynVinoModulo :
@@ -95,6 +168,7 @@ void cAppli_Vino::ChgDyn(int * anOut,const int * anInput,int aNb)
               return;
           }
     }
+*/
 }
 
 
@@ -110,7 +184,7 @@ void cAppli_Vino::HistoSetDyn()
        mCurStats->Type() =  eDynVinoMaxMin;
 
 
-    std::cout << " STATS " << mCurStats->Soms()[0] << " " << mCurStats->ECT()[0] << "\n";
+    // std::cout << " STATS " << mCurStats->Soms()[0] << " " << mCurStats->ECT()[0] << "\n";
 
     SaveState();
     Refresh();

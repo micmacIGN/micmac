@@ -152,6 +152,16 @@ void FillStat(cXml_StatVino & aStat,Flux_Pts aFlux,Fonc_Num aFonc)
 std::string StrNbChifSignNotSimple(double aVal,int aNbCh)
 {
    if (aVal==1) return "1";
+   if (aVal==0) return "0";
+   if (aVal==-1) return "-1";
+
+   std::string aStrSign = "";
+   if (aVal<0)
+   {
+         aVal = - aVal;
+         aStrSign = "-";
+   }
+
    if (aVal < 1)
    {
         if (aVal>0.1) return  ToString(aVal).substr(0,aNbCh+2);
@@ -161,7 +171,7 @@ std::string StrNbChifSignNotSimple(double aVal,int aNbCh)
         int aLogDown =  round_down(ElAbs(aLog10));
         aVal = ElMin(1.0,aVal * pow(10,aLogDown));
 
-        return ToString(aVal).substr(0,aNbCh+2) + "E-" + ToString(aLogDown);
+        return aStrSign  + ToString(aVal).substr(0,aNbCh+2) + "E-" + ToString(aLogDown);
 
 
    }
@@ -169,13 +179,13 @@ std::string StrNbChifSignNotSimple(double aVal,int aNbCh)
    if (aVal<100)
    {
        std::string aRes = ToString(aVal).substr(0,aNbCh+1);
-       return aRes;
+       return aStrSign  + aRes;
    }
 
    double aLog10 = log(aVal) / log(10);
    int aLogDown =  round_down(ElAbs(aLog10));
    aVal = ElMin(10.0,aVal / pow(10,aLogDown));
-   return ToString(aVal).substr(0,aNbCh+2) +  "E" + ToString(aLogDown);
+   return aStrSign  + ToString(aVal).substr(0,aNbCh+2) +  "E" + ToString(aLogDown);
 }
 
 std::string StrNbChifSign(double aVal,int aNbCh)
@@ -196,6 +206,31 @@ std::string SimplString(std::string aStr)
    return aStr.substr(0,aK);
 }
 
+
+std::string StrNbChifApresVirg(double aVal,int aNbCh)
+{
+    std::string aRes = ToString(aVal);
+    int aKp = aRes.find('.');
+
+    if (int(std::string::npos) == aKp)
+    {
+       return aRes;
+    }
+
+    int aK;
+    for (aK = aKp ; (aK< aKp+aNbCh+1) && (aRes[aK]!=0) ; aK++) ;
+
+
+    return SimplString(aRes.substr(0,aK));
+}
+
+
+/*
+std::string StrNbChifSign(double aVal,int aNbCh)
+{
+    return SimplString(StrNbChifSignNotSimple(aVal,aNbCh));
+}
+*/
 
 /****************************************/
 /*                                      */

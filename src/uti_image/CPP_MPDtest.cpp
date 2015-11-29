@@ -899,12 +899,32 @@ exit(0);
 }
 
 
+void TestFoncReelle(Fonc_Num aF,const std::string & aName,Pt2di aSz)
+{
+    Im2D_REAL8 anIm(aSz.x,aSz.y);
+    ELISE_COPY(anIm.all_pts(),aF,anIm.out());
+    std::vector<Im2DGen> aV;
+    aV.push_back(anIm);
+    Tiff_Im::CreateFromIm(aV,aName);
+
+}
+
+
 
 int MPDtest_main (int argc,char** argv)
 {
-     TestFont();
+    TestFoncReelle(FX/100.0,"FXDiv100.tif",Pt2di(500,500));
+
+   // TestFoncReelle(FY/10.0,"FYDiv10.tif");
+
+   // TestFoncReelle(FX-1000,"FX.tif");
+   // TestFoncReelle(500*sin(FX/50.0)*sin(FY/70.0),"SinSin.tif");
+
+    // TestFoncReelle(500*sin(FX/50.0 + 20*sin((FY+(FX*FY)*1e-5)/500.0)),"SinPer.tif", Pt2di (8000,12000));
+    exit(1);
     // cTestCircleFit aTCF;
 /*
+     TestFont();
    for (int aK=0 ; aK< 100 ; aK++)
    {
         Pt3dr anAxe(NRrandom3(),NRrandom3(),NRrandom3());
