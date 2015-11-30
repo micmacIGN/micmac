@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#define _Pi 3.14159265359
 #include "StdAfx.h"
 // #include "XML_GEN/all_tpl.h"
 
@@ -62,6 +63,7 @@ class cAppli_XifGps2Xml : public cAppliListIm
     public :
        cAppli_XifGps2Xml(const std::string & aFullName,double aDefZ);
        void ExportSys(cSysCoord *,const std::string & anOri);
+       void ExportCoordTxtFile(std::string aOut, std::string aOutFormat);
 
     public :
       std::vector<cIm_XifGp>  mVIm;
@@ -144,6 +146,42 @@ void cAppli_XifGps2Xml::ExportSys(cSysCoord * aSC,const std::string & anOri)
     }
 }
 
+//use OriConvert --> xml Ori folder
+void cAppli_XifGps2Xml::ExportCoordTxtFile(std::string aOut, std::string aOutFormat)
+{
+	
+	if (!MMVisualMode)
+	{
+		FILE * aFP = FopenNN(aOut,"w","ExportXifGpsData_main");
+				
+		cElemAppliSetFile aEASF(mDir + ELISE_CAR_DIR + aOut);
+				
+		for (int aK=0 ; aK< (int) mSetIm->size() ; aK++)
+		{
+			const cIm_XifGp & anIm = mVIm[aK];
+			if (anIm.mHasPT)
+			{
+				Pt3dr aPt;
+				aPt.x = anIm.mMDP.GPSLon();
+				aPt.y = anIm.mMDP.GPSLat();
+				aPt.z = anIm.mMDP.HasGPSAlt() ? anIm.mMDP.GPSAlt() : 0.0;
+				Pt3dr mPGeoC  = cSysCoord::WGS84()->ToGeoC(aPt);
+				
+				if(aOutFormat == "WGS84_rad")
+					fprintf(aFP,"%s %lf %lf %lf \n",anIm.mName.c_str(),aPt.x,aPt.y,aPt.z);
+				else if(aOutFormat == "WGS84_deg")
+					fprintf(aFP,"%s %lf %lf %lf \n",anIm.mName.c_str(),aPt.x*180/_Pi,aPt.y*180/_Pi,aPt.z);
+				else if(aOutFormat == "GeoC")
+					fprintf(aFP,"%s %lf %lf %lf \n",anIm.mName.c_str(),mPGeoC.x,mPGeoC.y,mPGeoC.z);
+				else
+					printf("Format export not valid ! Try : 'WGS84_rad' or 'WGS84_deg' or 'GeoC' \n");
+			}
+		}
+			
+		ElFclose(aFP);	
+	}
+}
+
 /*******************************************************************/
 /*                                                                 */
 /*                  cIm_XifGp                                      */
@@ -215,6 +253,44 @@ int XifGps2Xml_main(int argc,char ** argv)
 
 
     return 0;
+}
+
+/*******************************************************************/
+/*                                                                 */
+/*                      ::                                         */
+/*                                                                 */
+/*******************************************************************/
+
+int XifGps2Txt_main(int argc,char ** argv)
+{
+	MMD_InitArgcArgv(argc,argv,2);
+    std::string aFullName, aOutFile="GpsCoordinatesFromExif.txt";
+    std::string Sys="WGS84_deg";
+    double aDefZ=0;
+    bool aFC=true;
+        
+	ElInitArgMain
+    (
+           argc,argv,
+           LArgMain() << EAMC(aFullName,"Full Name", eSAM_IsPatFile),
+           LArgMain() << EAM(aOutFile,"OutTxtFile",true,"Def file created : 'GpsCoordinatesFromExif.txt' ")
+					  << EAM(Sys,"Sys",true,"System to express output coordinates : WGS84_deg/WGS84_rad/GeoC ; Def=WGS84_deg")
+					  << EAM(aDefZ,"DefZ","Default value for altitude (def = 0)")
+    );
+    
+    if(Sys != "WGS84_rad" && Sys != "WGS84_deg" && Sys !="GeoC")
+	{
+		aFC=false;
+		ELISE_ASSERT(aFC,"The value of Sys is incorrect ; try 'WGS84_rad' or 'WGS84_deg' or 'GeoC'");
+	}
+	
+    if (MMVisualMode) return EXIT_SUCCESS;
+    
+    cAppli_XifGps2Xml anAppli(aFullName,aDefZ);
+    
+    anAppli.ExportCoordTxtFile(aOutFile,Sys);
+
+	return 0;
 }
 
 
