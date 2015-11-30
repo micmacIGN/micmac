@@ -171,8 +171,6 @@ void cAppli_Vino::InitTabulDyn()
            aVal = (aVal-aMoy)/aDiv;
            mTabulDyn.push_back(ElMax(0,ElMin(255,round_ni(256 * erfcc (aVal)))));
        }
-
-       std::cout << "mTabulDyn.push_backmTabulDyn.push_back \n";
    }
 }
 
