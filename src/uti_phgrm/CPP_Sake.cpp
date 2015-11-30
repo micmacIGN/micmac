@@ -138,7 +138,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
   InitDefValFromType();
 
   Box2dr            aBoxClip, aBoxTer;
-
+  double aResolTerrain;
   std::string       mModeGeomIm;
   std::string       mModeGeomMnt;
 
@@ -162,6 +162,7 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
               << EAM(mZoomF,"ZoomF",true,"Final zoom (Def=1)",eSAM_IsPowerOf2)
               << EAM(aBoxClip,"BoxClip",true,"Define computation area (Def=[0,0,1,1] means full area) relative to image", eSAM_Normalize)
               << EAM(aBoxTer,"BoxTer",true,"Define computation area [Xmin,Ymin,Xmax,Ymax] relative to ground")
+			  << EAM(aResolTerrain, "ResolTerrain", true, "Ground Resol (Def automatically computed)", eSAM_NoInit)
               << EAM(mEZA,"EZA",true,"Export absolute values for Z (Def=true)", eSAM_IsBool)
               << EAM(mDirMEC,"DirMEC",true,"Results subdirectory (Def=MEC-Sake/)")
               << EAM(mDirOrtho,"DirOrtho",true,"Orthos subdirectory if OrthoIm (Def=Ortho-${DirMEC})")
@@ -287,6 +288,13 @@ cAppliSake::cAppliSake(int argc,char ** argv) :
                 +  std::string(" +X1Ter=") + ToString(aBoxTer._p1.x)
                 +  std::string(" +Y1Ter=") + ToString(aBoxTer._p1.y) ;
     }
+
+	bool ResolTerrainIsInit = EAMIsInit(&aResolTerrain);
+	if (ResolTerrainIsInit)
+	{
+		mInstruct = mInstruct + " +UseResolTerrain=true "
+			+ std::string(" +ResolTerrain=") + ToString(aResolTerrain);
+	}
 
     mNbStepsQ = 2 + round_ni(log2(mZoomI/mZoomF)) + 1;
 
