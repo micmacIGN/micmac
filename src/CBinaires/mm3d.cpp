@@ -229,7 +229,7 @@ int TNR_main(int argc,char ** argv);
 int  Apero2NVM_main(int argc,char ** argv);
 
 int Vino_Main(int argc, char ** argv);
-
+int XifGps2Txt_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -281,13 +281,13 @@ const std::vector<cMMCom> & getAvailableCommands()
 
        aRes.push_back(cMMCom("CenterBascule",CentreBascule_main," Relative to absolute using embedded GPS",cArgLogCom(2)));
 
-       aRes.push_back(cMMCom("GrapheHom",GrapheHom_main," Compute XML-Visibility graph from approximate orientation ",cArgLogCom(3)));
-       aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main," Convert GCP from Txt 2 XML",cArgLogCom(3)));
-       aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main," Convert Orientation from Txt 2 XML",cArgLogCom(3)));
-       aRes.push_back(cMMCom("OriExport",OriExport_main," Export orientation from XML to XML or TXT with specified convention",cArgLogCom(3)));
+       aRes.push_back(cMMCom("GrapheHom",GrapheHom_main,"Compute XML-Visibility graph from approximate orientation",cArgLogCom(3)));
+       aRes.push_back(cMMCom("GCPConvert",GCP_Txt2Xml_main,"Convert GCP from Txt 2 XML",cArgLogCom(3)));
+       aRes.push_back(cMMCom("OriConvert",Ori_Txt2Xml_main,"Convert Orientation from Txt 2 XML",cArgLogCom(3)));
+       aRes.push_back(cMMCom("OriExport",OriExport_main,"Export orientation from XML to XML or TXT with specified convention",cArgLogCom(3)));
        aRes.push_back(cMMCom("Apero2NVM",Apero2NVM_main,"Matthieu Moneyrond's convertor to VSfM, MVE, SURE, MeshRecon ",cArgLogCom(3)));
-       aRes.push_back(cMMCom("XifGps2Xml",XifGps2Xml_main," Create MicMac-Xml struct from GPS embedded in EXIF",cArgLogCom(2)));
-
+       aRes.push_back(cMMCom("XifGps2Xml",XifGps2Xml_main,"Create MicMac-Xml struct from GPS embedded in EXIF",cArgLogCom(2)));
+	   aRes.push_back(cMMCom("XifGps2Txt",XifGps2Txt_main,"Export embedded EXIF GPS data 2 Txt",cArgLogCom(2)));
        aRes.push_back(cMMCom("GenXML2Cpp",GenXML2Cpp_main," Do some stuff"));
        aRes.push_back(cMMCom("GenCode",GenCode_main," Do some stuff"));
        aRes.push_back(cMMCom("GrShade",GrShade_main," Compute shading from depth image"));
