@@ -1,0 +1,171 @@
+<ParamApero>
+       <SectionBDD_Observation>
+             <BDD_PtsLiaisons>
+                 <Id>    Pastis_Hom  </Id>
+                 <KeySet> All-PastisHom   </KeySet>
+                 <KeyAssoc>  PastisHom    </KeyAssoc>
+             </BDD_PtsLiaisons>
+
+       </SectionBDD_Observation>
+
+       <SectionInconnues>
+
+             <CalibrationCameraInc>
+                   <Name> Pentax28 </Name>
+                   <CalValueInit>
+                       <CalFromFileExtern>
+		           <NameFile>   C2M_DRadFinalePentax28mm.xml  </NameFile>
+			   <NameTag>    CalibrationInternConique </NameTag>
+                       </CalFromFileExtern>
+                   </CalValueInit>
+              </CalibrationCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^MpDcraw_sg1l5405GR.tif  </PatternName>
+	           <CalcNameCalib>  Pentax28 </CalcNameCalib>
+	           <PosValueInit>
+                          <PoseInitFromReperePlan>   <!--  Voir [PIFRP]-->
+                                <OnZonePlane> Terre-Plane   </OnZonePlane>
+                                <IdBD > Pastis_Hom </IdBD>
+                                <NameCam> MpDcraw_sg1l5406GR.tif    </NameCam>
+
+                                <Ap1  >
+                                    <Im>   100    100     </Im>
+                                    <Ter>   0.1   -0.1    -1 </Ter>
+                                </Ap1>
+                                <Ap2  >
+                                    <Im>   3000   100  </Im>
+                                    <Ter>   3     -0.1   -1 </Ter>
+                                </Ap2>
+                                <Ap3  >
+                                    <Im>   100    2000    </Im>
+                                    <Ter>  0.1     -2   -1  </Ter>
+                                </Ap3>
+                          </PoseInitFromReperePlan>
+                   </PosValueInit>
+
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^MpDcraw_sg1l5406GR.tif  </PatternName>
+	           <CalcNameCalib>  Pentax28 </CalcNameCalib>
+
+                   <PosesDeRattachement>  MpDcraw_sg1l5405GR.tif </PosesDeRattachement>
+
+		   <PosValueInit>
+		        <PoseFromLiaisons>
+                             <LiaisonsInit>
+                                 <OnZonePlane> Terre-Plane   </OnZonePlane>
+                                 <NameCam> MpDcraw_sg1l5405GR.tif </NameCam>
+				 <IdBD> Pastis_Hom  </IdBD>
+                             </LiaisonsInit>
+		        </PoseFromLiaisons>
+		   </PosValueInit>
+              </PoseCameraInc>
+
+              <PoseCameraInc>
+	           <PatternName>  ^MpDcraw_sg1l54((07)|(08)|(09)|(10)|(11)|(12)|(13)|(14))GR\.tif </PatternName>
+	           <CalcNameCalib>  Pentax28 </CalcNameCalib>
+
+		   <PosValueInit>
+		        <PoseFromLiaisons>
+                             <LiaisonsInit>
+                                 <OnZonePlane> Terre-Plane   </OnZonePlane>
+                                 <NameCam>  MpDcraw_sg1l5405GR.tif </NameCam>
+				 <IdBD> Pastis_Hom  </IdBD>
+                             </LiaisonsInit>
+		        </PoseFromLiaisons>
+		   </PosValueInit>
+              </PoseCameraInc>
+<!--
+-->
+
+        </SectionInconnues>
+
+
+        <SectionChantier>
+	     <DirectoryChantier>  /mnt/data/Archi/China/Oiseau-Citee/ </DirectoryChantier>
+        </SectionChantier>
+
+        <SectionSolveur>
+	      <ModeResolution> eSysPlein </ModeResolution> 
+        </SectionSolveur>
+
+
+	<SectionCompensation>
+	      <EtapeCompensation>
+
+                    <IterationsCompensation>
+		       <SectionContraintes>
+		          <ContraintesCamerasInc>
+		              <Val> eLiberteFocale_0  </Val>
+		              <Val> eLib_PP_CD_00     </Val>
+		              <Val> eLiberte_DR0      </Val>
+		          </ContraintesCamerasInc>
+
+		          <ContraintesPoses>
+			     <NamePose>  MpDcraw_sg1l5405GR.tif </NamePose>
+			     <Val>      ePoseFigee   </Val>
+		          </ContraintesPoses>
+
+		          <ContraintesPoses>
+			     <NamePose>  MpDcraw_sg1l5406GR.tif     </NamePose>
+			     <Val>      ePoseBaseNormee   </Val>
+			     <PoseRattachement>  MpDcraw_sg1l5405GR.tif </PoseRattachement>
+		          </ContraintesPoses>
+		       </SectionContraintes>
+                    </IterationsCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+
+
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+                                 </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+	      </EtapeCompensation>
+	      <EtapeCompensation>
+
+                    <IterationsCompensation> </IterationsCompensation>
+                    <IterationsCompensation> </IterationsCompensation>
+		    <SectionObservations>
+                           <ObsLiaisons>
+                              <NameRef> Pastis_Hom </NameRef>
+                              <Pond>
+                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                 <Show> eNSM_Paquet     </Show>
+                                 <NbMax>   100    </NbMax>
+				 <ModePonderation>  eL1Secured </ModePonderation>
+				 <SigmaPond> 2.0 </SigmaPond>
+				 <!--
+				 -->
+				 <EcartMax> 5.0 </EcartMax>
+                              </Pond>
+                           </ObsLiaisons>
+		    </SectionObservations>
+
+                    <SectionExport>
+
+                        <ExportPose>
+                            <PatternSel> (.*).tif </PatternSel>
+                            <KeyAssoc> OrInit </KeyAssoc>
+                            <AddCalib>  true </AddCalib>
+			    <NbVerif>  10 </NbVerif>
+			    <TolWhenVerif> 1e-3 </TolWhenVerif>
+                        </ExportPose>
+                    </SectionExport>
+
+	      </EtapeCompensation>
+	</SectionCompensation>
+
+</ParamApero>
+
