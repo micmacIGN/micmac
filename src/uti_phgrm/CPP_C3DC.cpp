@@ -400,7 +400,7 @@ class cChantierFromMPI
 
        std::string    mStrPat; // Pattern : def  =>KeyFileLON
        std::string    mPatFilter; // Pattern : def  =>KeyFileLON
-       std::string    mStrImOri0; // les initiales
+       std::string    mCFPIStrImOri0; // les initiales
 
        std::string    mStrType;
        std::string    mFullDirPIm;
@@ -411,11 +411,11 @@ class cChantierFromMPI
 
 
 cChantierFromMPI::cChantierFromMPI(const std::string & aStr,double aScale,const std::string & aPat) :
-    mMMI               (cMMByImNM::FromExistingDirOrMatch(aStr,false,aScale)),
+    mMMI               (cMMByImNM::FromExistingDirOrMatch(aStr,false,aScale,"./",true)),
     mOri               (mMMI->Etat().NameOri().ValWithDef("")),
     mStrPat            (aPat=="" ? mMMI->KeyFileLON() : aPat),
     mPatFilter         (aPat=="" ? ".*" : aPat),
-    mStrImOri0         (std::string(" ") + mStrPat + " " + mOri),
+    mCFPIStrImOri0     (std::string(" ") + mStrPat + " " + mOri),
     mStrType           (mMMI->NameType()),
     mFullDirPIm        (mMMI->FullDir()),
     mFullDirChantier   (mMMI->DirGlob())
@@ -425,6 +425,8 @@ cChantierFromMPI::cChantierFromMPI(const std::string & aStr,double aScale,const 
         std::cout << "For Name=" << aStr  << " Scale=" << aScale << "\n";
         ELISE_ASSERT(false,"Reused PIMs was not correctly terminated");
     }
+
+
 }
 
 
@@ -465,7 +467,7 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
     mCFPI = new cChantierFromMPI(mName,mDS,mPat);
 
     mComNuageMerge =       MM3dBinFile("TestLib  MergeCloud ")
-                  +   mCFPI-> mStrImOri0
+                  +   mCFPI-> mCFPIStrImOri0
                   + " ModeMerge=" + mCFPI->mStrType
                   + " DownScale=" +ToString(mDS)
                   + " SzNorm=3"
@@ -482,6 +484,14 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
 
 void cAppli_MPI2Ply::DoAll()
 {
+if (0)
+{
+   std::cout <<    mCFPI-> mCFPIStrImOri0 << "\n";
+   std::cout <<  "cAppli_MPI2Ply::DoAllcAppli_MPI2Ply::DoAll \n\n";
+   std::cout <<  mComNuageMerge << "\n\n";
+   std::cout <<  mComCatPly << "\n";
+   getchar();
+}
    System(mComNuageMerge);
    System(mComCatPly);
 }

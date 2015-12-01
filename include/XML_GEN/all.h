@@ -1505,10 +1505,10 @@ class cMMByImNM
 {
     public :
 
-        static cMMByImNM * ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch);
+        static cMMByImNM * ForGlobMerge(const std::string & aDirGlob,double aDS, const std::string & aNameMatch,bool AddDirLoc=false);
         static cMMByImNM * ForMTDMerge(const std::string & aDirGlob,const std::string & aNameIm,const std::string & aNameMatch);
 
-        static cMMByImNM * FromExistingDirOrMatch(const std::string & aNameDirOriOrMatch,bool Svp,double aDS=1,const std::string & aDir0="./");
+        static cMMByImNM * FromExistingDirOrMatch(const std::string & aNameDirOriOrMatch,bool Svp,double aDS=1,const std::string & aDir0="./",bool AddDirLoc=false);
 
         void DoDownScale(const std::string & aNameIm);
         void PatDoDownScale(const std::string & aPat);
@@ -1537,7 +1537,7 @@ class cMMByImNM
         static std::string StdDirPims(double aDS, const std::string & aNameMatch);
 
     private  :
-        cMMByImNM (double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix,const std::string &  aNameType) ;
+        cMMByImNM (double aDS,const std::string & aDirGlob,const std::string & aDirLoc,const std::string & aPrefix,const std::string &  aNameType,bool AddDirLoc=false) ;
 
         static std::string NameOfType(eTypeMMByImNM);
         std::string NameFileGlob(eTypeMMByImNM,const std::string aNameIm,const std::string aExt);

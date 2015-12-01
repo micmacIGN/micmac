@@ -1997,6 +1997,18 @@ class TAG_TIF_DATA_FORMAT :  public  TAG_TIF
         void tag_use_value(DATA_Tiff_Ifd * Di,TIFF_TAG_VALUE & v,ELISE_fp fp) 
         {
               Di->_data_format = v.get_tabi(fp);
+              for (int aK=0 ; aK<v._nb_log ; aK++)
+              {
+                   // On supporte un bug GeoView qui genere parfois des Undef_data
+                   if (Di->_data_format[aK] ==  Tiff_Im::Undef_data)
+                   {
+                        if (aK==0)
+                           Di->_data_format[aK] = Tiff_Im::Unsigned_int;
+                        else
+                           Di->_data_format[aK] = Di->_data_format[0];
+                   }
+              }
+              
         }
         bool write_value (DATA_Tiff_Ifd * Di,ELISE_fp fp)
         {
